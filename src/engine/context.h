@@ -50,8 +50,8 @@ public:
 	std::map<std::string, TR1::shared_ptr<Object> > objects;
 	std::list<TR1::function<void()> > functions;
 
-	Context() :
-			counter_(0), timer_(0)
+	Context(TR1::shared_ptr<const Object> pg, ptree const & pt) :
+			counter_(0), timer_(0), grid(pg)
 	{
 	}
 	~Context()

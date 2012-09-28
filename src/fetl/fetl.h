@@ -20,9 +20,10 @@ namespace fetl {
 
 //Default fields are real value
 
-template<int IFORM, typename TV, typename TG = DEFAULT_GRID> struct Field;
+template<int IFORM, typename TV, typename TG> struct Field;
 
 #define DEFINE_FIELDS(TV,TG)                                          \
+typedef TG Grid;                                                      \
 typedef Field<IZeroForm, TV,TG> ZeroForm;                             \
 typedef Field<IOneForm, TV,TG> OneForm;                               \
 typedef Field<ITwoForm, TV,TG> TwoForm;                               \

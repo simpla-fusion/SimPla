@@ -22,3 +22,4 @@ ADD_SUBDIRECTORY( ecrf )
 #                  )
 
 
+ADD_EXECUTABLE(WriteXDMF  WriteXDMF.cpp)

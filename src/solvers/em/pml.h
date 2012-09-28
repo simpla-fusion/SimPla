@@ -30,8 +30,8 @@ public:
 
 	DEFINE_FIELDS(TV,TG);
 
-	explicit PML(Context::Holder ctx, nTuple<SIX, int> bc) :
-	ctx_(ctx), grid(ctx->getGrid<Grid>()), bc_(bc)
+	explicit PML(Context::Holder ctx, const ptree & properties) :
+	ctx_(ctx), grid(ctx->getGrid<Grid>()), bc_(properties.get< nTuple<SIX, int> >("bc"))
 	{
 		PreProcess();
 	}

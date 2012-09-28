@@ -79,10 +79,6 @@ template<int N> struct Int2Type
 #include <tr1/functional>
 namespace TR1 = std::tr1;
 
-#define PARALL_FOR( _IT_,_IT_BEGIN_,_IT_END_)                                                            \
-			int _ib = _IT_BEGIN_ + (_IT_END_ - _IT_BEGIN_) * omp_thread_num() / omp_num_threads();       \
-			int _ie =  _IT_BEGIN_ + (_IT_END_ - _IT_BEGIN_) * (omp_thread_num()+1) / omp_num_threads();  \
-			for (int _IT_ = _ib;_IT_ < _ie; ++_IT_)
 
 //#else
 //#	include <boost/shared_ptr.hpp>
@@ -91,6 +87,8 @@ namespace TR1 = std::tr1;
 //namespace TR1 = boost;
 //#endif //DONOT_USE_TR1
 //#endif //__GXX_EXPERIMENTAL_CXX0X__
+
+
 
 #include "utilities/log.h"
 

@@ -28,10 +28,11 @@ namespace fetl
 /**
  *  UniformRectGrid -- Uniform rectangular structured grid.
  * */
-class UniformRectGrid:public Object
+class UniformRectGrid: public Object
 {
 
-	UniformRectGrid & operator=(const UniformRectGrid&);
+	UniformRectGrid &
+	operator=(const UniformRectGrid&);
 	bool initialized_;
 
 	UniformRectGrid const * parent_;
@@ -58,14 +59,11 @@ public:
 	IVec3 strides;
 	IVec3 gw;
 
-	UniformRectGrid(const UniformRectGrid &rhs)
-	{
-		;
-	}
-
-	UniformRectGrid() :
+	UniformRectGrid(ptree const &properties) :
 			initialized_(false)
 	{
+		Initialize(properties.get<Real>("dt"), properties.get<Vec3>("xim"),
+				properties.get<Vec3>("xmax"), properties.get<IVec3>("dims"));
 	}
 	~UniformRectGrid()
 	{
@@ -138,7 +136,8 @@ public:
 				}
 	}
 
-	inline std::vector<size_t> const & get_center_elements(int iform) const
+	inline std::vector<size_t> const &
+	get_center_elements(int iform) const
 	{
 		return (center_ele_[iform]);
 	}
@@ -153,7 +152,8 @@ public:
 	{
 		return (center_ele_[iform].end());
 	}
-	inline std::vector<size_t> const & get_ghost_elements(int iform) const
+	inline std::vector<size_t> const &
+	get_ghost_elements(int iform) const
 	{
 		return (ghost_ele_[iform]);
 	}
@@ -162,7 +162,8 @@ public:
 	{
 		return (this == &r);
 	}
-	ThisType const & parent() const
+	ThisType const &
+	parent() const
 	{
 		return (*parent_);
 	}
@@ -210,7 +211,7 @@ public:
 		return res;
 	}
 
-	// Property -----------------------------------------------
+// Property -----------------------------------------------
 
 	inline size_t get_num_of_vertex() const
 	{
@@ -330,7 +331,7 @@ public:
 		return ndims;
 	}
 
-	// Assign Operation --------------------------------------------
+// Assign Operation --------------------------------------------
 
 //	template<int IFORM, typename TV, typename TL, int N, typename TR> void //
 //	Assign(Field<IFORM, TV, TL> & lhs, nTuple<N, TR> rhs) const
@@ -346,7 +347,8 @@ public:
 //		}
 //	}
 
-	template<int IFORM, typename TV, typename TL, typename TRV> void //
+	template<int IFORM, typename TV, typename TL, typename TRV>
+	void //
 	Assign(Field<IFORM, TV, TL> & lhs, nTuple<THREE, TRV> const & rhs) const
 	{
 		ASSERT(lhs.grid==*this);
@@ -359,8 +361,9 @@ public:
 		}
 	}
 
-	template<int IFORM, typename TV, typename TL, typename TR> void //
-	Assign(Field<IFORM, TV, TL> & lhs,TR rhs) const
+	template<int IFORM, typename TV, typename TL, typename TR>
+	void //
+	Assign(Field<IFORM, TV, TL> & lhs, TR rhs) const
 	{
 		ASSERT(lhs.grid==*this);
 		size_t ele_num = get_num_of_elements(Field<IFORM, TV, TL>::IForm);
@@ -372,9 +375,10 @@ public:
 		}
 	}
 
-	template<int IFORM, typename TV, typename TL, typename TR> void //
-	Assign(Field<IFORM, nTuple<THREE, TV> , TL> & lhs
-			,nTuple<THREE, TR> rhs) const
+	template<int IFORM, typename TV, typename TL, typename TR>
+	void //
+	Assign(Field<IFORM, nTuple<THREE, TV>, TL> & lhs,
+			nTuple<THREE, TR> rhs) const
 	{
 		ASSERT(lhs.grid==*this);
 		size_t ele_num = get_num_of_elements(Field<IFORM, TV, TL>::IForm);
@@ -387,7 +391,8 @@ public:
 		}
 	}
 
-	template<int IFORM, typename TV, typename TL, typename TVR, typename TR> void //
+	template<int IFORM, typename TV, typename TL, typename TVR, typename TR>
+	void //
 	Assign(Field<IFORM, TV, TL>& lhs, Field<IFORM, TVR, TR> const& rhs) const
 	{
 		ASSERT(lhs.grid==*this);
@@ -466,7 +471,7 @@ public:
 //		}
 		else
 		{
-			ERROR<<"Grid mismatch!" << std::endl;
+			ERROR << "Grid mismatch!" << std::endl;
 			throw(-1);
 		}
 	}
@@ -474,8 +479,8 @@ public:
 	template<int IFORM, typename TVL, typename TLExpr, typename TVR,
 			typename TRExpr>
 	typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType //
-	InnerProduct(Field<IFORM, TVL, TLExpr> const & lhs
-			, Field<IFORM, TVR, TRExpr> const & rhs) const
+	InnerProduct(Field<IFORM, TVL, TLExpr> const & lhs,
+			Field<IFORM, TVR, TRExpr> const & rhs) const
 	{
 		typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
 		ValueType res;
@@ -494,7 +499,8 @@ public:
 
 	}
 
-	template<int IFORM, typename TV, typename TExpr> static void //
+	template<int IFORM, typename TV, typename TExpr>
+	static void //
 	Add(Field<IFORM, TV, TExpr> & lhs, const TV & rhs)
 	{
 		size_t size = lhs.size();
@@ -507,7 +513,8 @@ public:
 		}
 	}
 
-	template<int IFORM, typename TV, typename TL, typename TR> static void //
+	template<int IFORM, typename TV, typename TL, typename TR>
+	static void //
 	Add(Field<IFORM, TV, TL> & lhs, Field<IFORM, TV, TR> const& rhs)
 	{
 		if (lhs.grid == rhs.grid)
@@ -583,14 +590,15 @@ public:
 		}
 		else
 		{
-			ERROR<<"Grid mismatch!" << std::endl;
+			ERROR << "Grid mismatch!" << std::endl;
 			throw(-1);
 		}
 	}
 
-	// Interpolation ----------------------------------------------------------
+// Interpolation ----------------------------------------------------------
 
-	template<typename TV, typename TExpr> inline TV //
+	template<typename TV, typename TExpr>
+	inline TV //
 	Gather(Field<IZeroForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		IVec3 idx;
@@ -607,7 +615,8 @@ public:
 		return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
 	}
 
-	template<typename TV, typename TExpr> inline void //
+	template<typename TV, typename TExpr>
+	inline void //
 	Scatter(Field<IZeroForm, TV, TExpr> & f, RVec3 x, TV const v) const
 	{
 		TV res;
@@ -630,7 +639,8 @@ public:
 
 	}
 
-	template<typename TV, typename TExpr> inline nTuple<THREE, TV>  //
+	template<typename TV, typename TExpr>
+	inline nTuple<THREE, TV>        //
 	Gather(Field<IOneForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -651,9 +661,10 @@ public:
 				+ f[(s - strides[2]) * 3 + 2] * (0.5 + r[2]));
 		return res;
 	}
-	template<typename TV, typename TExpr> inline void //
-	Scatter(Field<IOneForm, TV, TExpr> & f, RVec3 x
-			, nTuple<THREE, TV> const &v) const
+	template<typename TV, typename TExpr>
+	inline void //
+	Scatter(Field<IOneForm, TV, TExpr> & f, RVec3 x,
+			nTuple<THREE, TV> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -671,7 +682,8 @@ public:
 		f[(s - strides[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
 	}
 
-	template<typename TV, typename TExpr> inline nTuple<THREE, TV>  //
+	template<typename TV, typename TExpr>
+	inline nTuple<THREE, TV>        //
 	Gather(Field<ITwoForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -697,9 +709,10 @@ public:
 
 	}
 
-	template<typename TV, typename TExpr> inline void //
-	Scatter(Field<ITwoForm, TV, TExpr> & f, RVec3 x
-			, nTuple<THREE, TV> const &v) const
+	template<typename TV, typename TExpr>
+	inline void //
+	Scatter(Field<ITwoForm, TV, TExpr> & f, RVec3 x,
+			nTuple<THREE, TV> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -738,39 +751,45 @@ public:
 ////-----------------------------------------
 //// map to
 ////-----------------------------------------
-	template<int IForm, typename TV, typename TIter> inline TV //
+	template<int IForm, typename TV, typename TIter>
+	inline TV //
 	mapto_(Int2Type<IForm> const&, TV const & v, TIter) const
 	{
 		return v;
 	}
 
-	template<int IForm, int N, typename TV, typename TIter> inline TV // for constant vector
-	mapto_(Int2Type<IForm> const&, nTuple<N, TV> const & v
-			, TIter const &s) const
+	template<int IForm, int N, typename TV, typename TIter>
+	inline TV // for constant vector
+	mapto_(Int2Type<IForm> const&, nTuple<N, TV> const & v,
+			TIter const &s) const
 	{
 		return (mapto_(Int2Type<IForm>(), v, s));
 	}
 
-	template<int IForm, int IFORMR, typename TV, typename TExpr, typename TIter> //
+	template<int IForm, int IFORMR, typename TV, typename TExpr, typename TIter>
+//
 	inline typename Field<IFORMR, TV, TExpr>::ValueType // for fields transformation
-	mapto_(Int2Type<IForm> const&, const Field<IFORMR, TV, TExpr> & expr ,
-	TIter const & s) const
+	mapto_(Int2Type<IForm> const&, const Field<IFORMR, TV, TExpr> & expr,
+			TIter const & s) const
 	{
 		return (mapto_(Int2Type<IForm>(), Int2Type<IFORMR>(), expr, s));
 	}
-	template<int IForm, int N, typename TV> inline TV //
+	template<int IForm, int N, typename TV>
+	inline TV //
 	mapto_(Int2Type<IForm>, nTuple<N, TV> const & v, size_t s) const
 	{
 		return v[s % N];
 	}
 
-	template<int IForm, typename TExpr> inline typename TExpr::ValueType // for same type field
+	template<int IForm, typename TExpr>
+	inline typename TExpr::ValueType // for same type field
 	mapto_(Int2Type<IForm>, Int2Type<IForm>, const TExpr & expr, size_t s) const
 	{
 		return expr[s];
 	}
 
-	template<typename TExpr> inline typename TExpr::ValueType //
+	template<typename TExpr>
+	inline typename TExpr::ValueType //
 	mapto_(Int2Type<IOneForm>, Int2Type<IZeroForm>, const TExpr & expr,
 			size_t s) const
 	{
@@ -779,7 +798,8 @@ public:
 		return ((expr[idx] + expr[idx + strides[j0]]) * 0.5);
 	}
 
-	template<typename TExpr> inline typename TExpr::ValueType //
+	template<typename TExpr>
+	inline typename TExpr::ValueType //
 	mapto_(Int2Type<ITwoForm>, Int2Type<IZeroForm>, const TExpr & expr,
 			size_t s) const
 	{
@@ -800,7 +820,8 @@ public:
 //		return (expr[idx]);
 //	}
 
-	template<typename TExpr> inline typename TExpr::ValueType //
+	template<typename TExpr>
+	inline typename TExpr::ValueType //
 	mapto_(Int2Type<IZeroForm>, Int2Type<IOneForm>, const TExpr & expr,
 			size_t s) const
 	{
@@ -808,7 +829,8 @@ public:
 		return ((expr[s] + expr[s - 3 * strides[s % 3]]) * 0.5);
 	}
 
-	template<typename TExpr> inline typename TExpr::ValueType //
+	template<typename TExpr>
+	inline typename TExpr::ValueType //
 	mapto_(Int2Type<IZeroForm>, Int2Type<ITwoForm>, const TExpr & expr,
 			size_t s) const
 	{
@@ -866,7 +888,8 @@ public:
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
-	template<typename TExpr> inline typename TExpr::ValueType //
+	template<typename TExpr>
+	inline typename TExpr::ValueType //
 	dot_(TExpr const & expr, size_t s) const
 	{
 		return
@@ -884,7 +907,8 @@ public:
 		mapto_(Int2Type<IZeroForm>(), expr.rhs_, s * 3 + 2);
 	}
 
-	template<typename TV, typename TExpr> inline typename TExpr::ValueType //
+	template<typename TV, typename TExpr>
+	inline typename TExpr::ValueType //
 	cross_(TExpr const & expr, size_t s) const
 	{
 		size_t j0 = s % 3;
@@ -904,7 +928,8 @@ public:
 
 	}
 
-	template<typename TV, typename TExpr> inline TV //
+	template<typename TV, typename TExpr>
+	inline TV //
 	grad_(Field<IZeroForm, TV, TExpr> const & expr, size_t s) const
 	{
 		size_t j0 = s % 3;
@@ -913,7 +938,8 @@ public:
 		size_t idx0 = (s - j0) / 3;
 		return (expr[idx0 + strides[j0]] - expr[idx0]) * inv_dx[j0];
 	}
-	template<typename TV, typename TExpr> inline TV //
+	template<typename TV, typename TExpr>
+	inline TV //
 	diverge_(Field<IOneForm, TV, TExpr> const & expr, size_t s) const
 	{
 		return
@@ -927,7 +953,8 @@ public:
 		;
 	}
 
-	template<typename TV, typename TExpr> inline TV //
+	template<typename TV, typename TExpr>
+	inline TV //
 	curl_(Field<IOneForm, TV, TExpr> const & expr, size_t s) const
 	{
 		size_t j0 = s % 3;
@@ -940,7 +967,8 @@ public:
 
 		(expr[idx1 + j1 + 3 * strides[j2]] - expr[idx1 + j1]) * inv_dx[j2];
 	}
-	template<typename TV, typename TExpr> inline TV //
+	template<typename TV, typename TExpr>
+	inline TV //
 	curl_(Field<ITwoForm, TV, TExpr> const & expr, size_t s) const
 	{
 		size_t j0 = s % 3;
@@ -954,7 +982,8 @@ public:
 		- (expr[idx2 + j1] - expr[idx2 + j1 - 3 * strides[j2]]) * inv_dx[j2];
 	}
 
-	template<int PD, typename TV, typename TExpr> inline TV //
+	template<int PD, typename TV, typename TExpr>
+	inline TV //
 	curlPd_(Field<IOneForm, TV, TExpr> const & expr, size_t s) const
 	{
 		if (dims[PD] == 1)
@@ -980,7 +1009,8 @@ public:
 		return (res);
 	}
 
-	template<int PD, typename TV, typename TExpr> inline TV //
+	template<int PD, typename TV, typename TExpr>
+	inline TV //
 	curlPd_(Field<ITwoForm, TV, TExpr> const & expr, size_t s) const
 	{
 		if (dims[PD] == 1)

@@ -10,6 +10,7 @@
 #define SRC_PIC_DELTA_F_H_
 #include <string>
 #include <sstream>
+
 #include "include/simpla_defs.h"
 #include "engine/object.h"
 #include "engine/context.h"
@@ -19,11 +20,12 @@
 
 namespace simpla
 {
-using namespace fetl;
 namespace pic
 {
+using namespace fetl;
 
-template<typename, typename > struct PICEngine;
+template<typename, typename >
+struct PICEngine;
 
 struct DeltaF
 {
@@ -38,14 +40,14 @@ struct DeltaF
 		stream << ""
 				"H5T_COMPOUND {          "
 				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : "
-				<< offsetof(DeltaF, X) << ";"
-						"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" :  "
+				<< offsetof(DeltaF, X)<< ";"
+				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" :  "
 				<< offsetof(DeltaF, V) << ";"
-						"   H5T_NATIVE_DOUBLE    \"F\" : "
+				"   H5T_NATIVE_DOUBLE    \"F\" : "
 				<< offsetof(DeltaF, F) << ";"
-						"   H5T_NATIVE_DOUBLE    \"W\" :  "
+				"   H5T_NATIVE_DOUBLE    \"W\" :  "
 				<< offsetof(DeltaF, w) << ";"
-						"}";
+				"}";
 
 		return (stream.str());
 	}
@@ -74,31 +76,25 @@ public:
 
 	Grid const & grid;
 
-	PICEngine(ThisType const & rhs) :
-	Solver(rhs), Pool(rhs), ctx_(rhs.ctx_), grid(rhs.grid), name_(
-			rhs.name_), m_(rhs.m_), q_(rhs.q_), T_(rhs.T_), vT_(rhs.vT_)
-	{
-	}
+	PICEngine(TR1::shared_ptr<Context > ctx, ptree const &properties) :
+	ctx_(ctx), grid( ctx->getGrid<TG>() ),
 
-	PICEngine(TR1::shared_ptr<Context > ctx) :
-	ctx_(ctx), grid( ctx->getGrid<TG>() ), name_("UnNamed"), //
-	m_(1.0), q_(1.0), T_(1.0), vT_(sqrt(2.0 * T_ / m_)), pic_(100)
+	name_(properties.get<std::string>("name")),
+
+	pic_(properties.get<unsigned int>("pic_")),
+
+	m_(properties.get<Real>("m")),
+
+	q_(properties.get<Real>("q")),
+
+	T_(properties.get<Real>("T")),
+
+	vT_(sqrt(2.0 * T_ / m_))
 	{
 	}
 
 	virtual ~PICEngine()
 	{
-	}
-
-	void set_property(std::string const & name, Real m, Real q, Real T0,
-			size_t particle_in_cell)
-	{
-		name_ = name;
-		m_ = m;
-		q_ = q;
-		T_ = T0;
-		vT_ = sqrt(2.0 * T_ / m_);
-		pic_ = particle_in_cell;
 	}
 
 	void PreProcess()

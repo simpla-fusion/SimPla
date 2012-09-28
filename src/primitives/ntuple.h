@@ -17,6 +17,7 @@
 #include <iostream>
 #include <complex>
 #include <vector>
+#include <sstream>
 #include "include/simpla_defs.h"
 #include "primitives/operation.h"
 
@@ -437,45 +438,21 @@ operator<<(std::ostream& os, const nTuple<N, T> & tv)
 template<int N, typename T> std::istream &
 operator>>(std::istream& is, nTuple<N, T> & tv)
 {
-	int ch;
-	int lbrace = is.get();
-	int rbrace;
-
-	if (lbrace == '[')
+	for(int i=0; i<N && is; ++i )
 	{
-		rbrace = ']';
-	}
-	else if (lbrace == '(')
-	{
-		rbrace = ')';
-	}
-	else if (lbrace == '{')
-	{
-		rbrace = '}';
-	}
-	else if (lbrace == '<')
-	{
-		rbrace = '>';
-	}
-	else
-	{
-		is.setstate(std::ios_base::failbit);
-		return (is);
-	}
-
-	is >> tv[0];
-
-	for (int i = 1; i < N; ++i)
-	{
-		while (is && (ch = is.get()) != ',')
-			is >> tv[i];
-	}
-	while (is && (ch = is.get()) != rbrace)
-	{
+		is >> tv[i];
 	}
 
 	return (is);
+}
 
+template<int N,typename T> nTuple<N,T>
+ToNTuple(std::string const & str)
+{
+	std::istringstream ss(str);
+	nTuple<N,T> res;
+	ss>>res;
+	return res;
 }
 
 template<typename T> inline typename nTuple<3, nTuple<3, T> >::ValueType //
