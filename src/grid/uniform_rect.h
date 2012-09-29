@@ -17,9 +17,9 @@
 
 #include "include/simpla_defs.h"
 #include "primitives/ntuple.h"
+#include "primitives/properties.h"
 #include "fetl/fetl_defs.h"
 #include "engine/object.h"
-
 namespace simpla
 {
 namespace fetl
@@ -67,6 +67,10 @@ public:
 	}
 	~UniformRectGrid()
 	{
+	}
+	Holder Create(ptree const &properties)
+	{
+		return Holder(new ThisType(properties));
 	}
 
 	void Initialize(Real _dt, Vec3 _xmin, Vec3 _xmax, IVec3 _dims)
@@ -640,7 +644,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>        //
+	inline nTuple<THREE, TV>         //
 	Gather(Field<IOneForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -683,7 +687,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>        //
+	inline nTuple<THREE, TV>         //
 	Gather(Field<ITwoForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;

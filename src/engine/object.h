@@ -10,23 +10,36 @@
 #include "include/simpla_defs.h"
 #include <typeinfo>
 #include <iostream>
+#include "primitives/properties.h"
 
 namespace simpla
 {
 class Object
 {
+
 public:
+	static const int MAX_NUM_OF_DIMS = 10;
 
 	typedef TR1::shared_ptr<Object> Holder;
 
-	Object()
+	ptree properties;
+
+	Object(size_t es, std::string const & desc) :
+			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+	{
+		dims[0] = 0;
+	}
+
+	inline virtual ~Object()
 	{
 	}
 
-	inline virtual ~Object()=0;
-
 	// Metadata ------------------------------------------------------------
 
+	inline bool Empty() const
+	{
+		return (data == NULL);
+	}
 	virtual inline bool CheckType(std::type_info const &) const
 	{
 		return false;
@@ -36,23 +49,24 @@ public:
 	{
 		return false;
 	}
-	virtual inline size_t get_element_size_in_bytes() const
+
+	inline size_t get_element_size_in_bytes() const
 	{
-		return 0;
+		return ele_size_in_bytes;
 	}
 
-	virtual inline std::string get_element_type_desc() const
+	inline std::string get_element_type_desc() const
 	{
-		return "";
+		return ele_type_desc;
 	}
-	virtual inline void const * get_data() const
+	inline char const * get_data(size_t s = 0) const
 	{
-		return NULL;
+		return data + s * ele_size_in_bytes;
 	}
 
-	virtual inline void * get_data()
+	inline char * get_data(size_t s = 0)
 	{
-		return NULL;
+		return data + s * ele_size_in_bytes;
 	}
 
 	/**
@@ -62,36 +76,64 @@ public:
 	 * @Return: the number of dimensions
 	 *
 	 * */
-	virtual inline int get_dimensions(size_t* dims = NULL) const
+	inline int get_dimensions(size_t* d = NULL) const
 	{
-		return 0;
+		if (d != NULL)
+		{
+			for (int i = 0; i < nd; ++i)
+			{
+				d[i] = dims[i];
+			}
+		}
+		return nd;
 	}
 
-	virtual inline size_t get_size_in_bytes() const
+	inline size_t get_size_in_bytes() const
 	{
-		return 0;
+		size_t res = 1;
+		for (int i = 0; i < nd; ++i)
+		{
+			res *= dims[i];
+		}
+		return res;
 	}
-	virtual inline bool Empty() const
+	void ReleaseMemory()
 	{
-		return (true);
-	}
-
-	template<typename T>
-	static TR1::shared_ptr<T> alloc(size_t num, size_t ele_size_in_bytes =
-			sizeof(T))
-	{
-		TR1::shared_ptr<T> res;
-		size_t size_in_bytes = num * ele_size_in_bytes;
-
+		nd = 0;
 #pragma omp critical(OBJECT_ALLOC)
 		{
-
-			if (size_in_bytes > 0)
+			if (data != NULL)
 			{
+				delete data;
+				data = NULL;
+			}
+		}
+
+	}
+	void ReAlloc(size_t *d, int ndims = 1)
+	{
+		size_t o_size_in_bytes = get_size_in_bytes();
+
+		size_t size_in_bytes = ele_size_in_bytes;
+
+		nd = ndims;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			dims[i] = d[i];
+			size_in_bytes *= d[i];
+		}
+		if (size_in_bytes > 0
+				&& (size_in_bytes < o_size_in_bytes / 2
+						|| size_in_bytes > o_size_in_bytes))
+		{
+			ReleaseMemory();
+#pragma omp critical(OBJECT_ALLOC)
+			{
+
 				try
 				{
-					res = TR1::shared_ptr<T>(
-							reinterpret_cast<T*>(operator new(size_in_bytes)));
+					data = reinterpret_cast<char*>(operator new(size_in_bytes));
 
 				} catch (std::bad_alloc const &error)
 				{
@@ -99,9 +141,13 @@ public:
 				}
 			}
 		}
-		return res;
 	}
-
+private:
+	char * data;
+	int nd;
+	size_t dims[MAX_NUM_OF_DIMS];
+	const size_t ele_size_in_bytes;
+	const std::string ele_type_desc;
 };
 inline Object::~Object()
 {

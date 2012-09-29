@@ -14,7 +14,8 @@
 #include <map>
 #include <typeinfo>
 #include "include/simpla_defs.h"
-
+#include "primitives/properties.h"
+#include "fetl/fetl.h"
 namespace simpla
 {
 
@@ -34,30 +35,25 @@ namespace simpla
  * */
 
 class Object;
+typedef TR1::shared_ptr<Object> ObjectHolder;
 inline void eval_(TR1::function<void(void)> & f)
 {
 	f();
 }
-class Context
+class BaseContext
 {
-
 public:
-	typedef TR1::shared_ptr<Object> ObjectHolder;
-	typedef TR1::shared_ptr<Context> Holder;
-
-	TR1::shared_ptr<const Object> grid;
 
 	std::map<std::string, TR1::shared_ptr<Object> > objects;
 	std::list<TR1::function<void()> > functions;
+	typedef TR1::shared_ptr<BaseContext> Holder;
 
-	Context(TR1::shared_ptr<const Object> pg, ptree const & pt) :
-			counter_(0), timer_(0), grid(pg)
+	BaseContext()
 	{
 	}
-	~Context()
+	virtual ~BaseContext()
 	{
 	}
-
 	inline size_t Counter() const
 	{
 		return (counter_);
@@ -68,84 +64,68 @@ public:
 		return (timer_);
 	}
 
-	template<typename TG>
-	void setGrid(TR1::shared_ptr<TG> const& pg)
-	{
-		grid = TR1::dynamic_pointer_cast<const Object>(pg);
-	}
+	template<typename TG> virtual TG const & getGrid()=0;
 
-	template<typename TG>
-	TG const & getGrid() const
+	template<typename TOBJ> virtual TR1::shared_ptr<TOBJ> CreateObject()=0;
+
+	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> CreateObject(std::string const & name,
+			TR1::shared_ptr<TOBJ> obj = TR1::shared_ptr<TOBJ>())
 	{
-		if (grid->CheckType(typeid(TG)))
+		TR1::shared_ptr<TOBJ> res;
+
+		if (objects.find(name) != objects.end())
 		{
-			ERROR << "Grid type is not " << typeid(TG).name();
+			ERROR << "Can not create new object! Object\"" << name
+					<< "\" has been defined. ";
 		}
-		return (*TR1::dynamic_pointer_cast<const TG>(grid));
+		else if (obj != TR1::shared_ptr<TOBJ>())
+		{
+			res = obj;
+		}
+		else
+		{
+			res = CreateObject<TOBJ>();
+		}
+
+		if (name != "")
+		{
+			objects[name] = res;
+		}
 	}
 
-	template<typename TO>
-	void AddObject(std::string const & name, TR1::shared_ptr<TO> obj)
+	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> CreateObject(std::string const & name, TOBJ* obj)
 	{
-		if (name != "")
+		return CreateObject(name, TR1::shared_ptr<TOBJ>(obj));
+	}
 
+	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> FindObject(std::string const & name)
+	{
+		TR1::shared_ptr<TOBJ> res;
+
+		if (name != "")
 		{
 			std::map<std::string, typename Object::Holder>::iterator it =
 					objects.find(name);
-
-			if (it == objects.end())
+			if (it != objects.end() && it->second->CheckType(typeid(TOBJ)))
 			{
-				objects[name] = obj;
-			}
-			else
-			{
-				ERROR << "Object\"" << name << "\" has been registered";
+				res = TR1::dynamic_pointer_cast<TOBJ>(it->second);
 			}
 		}
-	}
 
-	template<typename TO>
-	void AddObject(std::string const & name, TO* obj)
-	{
-		AddObject(name, TR1::shared_ptr<TO>(obj));
-
-	}
-
-	template<typename TO>
-	TR1::shared_ptr<TO> CreateObject(std::string const & name)
-	{
-		TR1::shared_ptr<TO> res(new TO(getGrid<typename TO::Grid>()));
-		AddObject(name, res);
 		return (res);
 	}
 
-	template<typename TO> inline TR1::shared_ptr<TO> FindObject(
-			std::string const & name)
+	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> GetObject(const std::string & name = "")
 	{
-		TR1::shared_ptr<TO> res;
-		std::map<std::string, typename Object::Holder>::iterator it =
-				objects.find(name);
-		if (it != objects.end() && it->second->CheckType(typeid(TO)))
+		TR1::shared_ptr<TOBJ> res = FindObject<TOBJ>(name);
+
+		if (res == TR1::shared_ptr<TOBJ>())
 		{
-			res = TR1::dynamic_pointer_cast<TO>(it->second);
-		}
-		return (res);
-	}
-
-	template<typename TF>
-	TR1::shared_ptr<TF> GetObject(const std::string & name)
-	{
-		TR1::shared_ptr<TF> res;
-
-		if (name != "")
-		{
-			res = FindObject<TF>(name);
-		}
-
-		if (res == TR1::shared_ptr<TF>())
-		{
-			res = CreateObject<TF>(name);
-
+			res = CreateObject<TOBJ>(name);
 		}
 
 		return (res);
@@ -155,22 +135,62 @@ public:
 		objects.erase(name);
 	}
 
-	inline void Eval()
+	void Eval()
 	{
 		++counter_;
 		std::for_each(functions.begin(), functions.end(), eval_);
 
 	}
+private:
+	size_t counter_;
+	Real timer_;
+	std::list<std::string, TR1::shared_ptr<BaseContext> > neighbours_;
+
+};
+
+using namespace fetl;
+
+template<typename TV, typename TG>
+class Context: public BaseContext
+{
+public:
+
+	typedef Context<TV, TG> ThisType;
+	typedef TR1::shared_ptr<ThisType> Holder;
+
+	DEFINE_FIELDS(TV,TG)
+
+	Grid grid;
+
+	Context(ptree const & pt)
+
+	~Context()
+	{
+	}
+
+	template<typename >
+	Grid const & getGrid()
+	{
+		return grid;
+	}
+
+	TR1::shared_ptr<BaseContext> Create(ptree const &properties)
+	{
+		return TR1::dynamic_pointer_cast<BaseContext>(
+				Holder(new Context(properties)));
+	}
+
+	template<typename TOBJ>
+	inline TR1::shared_ptr<TOBJ> CreateObject()
+	{
+		return TR1::shared_ptr<TOBJ>(new TOBJ(grid));
+	}
 
 private:
 	Context(Context const &);
 	Context & operator=(Context const &);
-
-	std::map<std::string, TR1::shared_ptr<Object> > neighbours_;
-
-	size_t counter_;
-	Real timer_;
-
 };
-} // namespace simpla
+
+}
+// namespace simpla
 #endif   // SRC_ENGINE_CONTEXT_H_

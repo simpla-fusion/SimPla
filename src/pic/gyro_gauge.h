@@ -16,279 +16,233 @@ namespace simpla
 {
 namespace pic
 {
-
-struct GyroGauge
+namespace GyroGauge
 {
-	typedef GyroGauge ThisType;
 
-	ThisType * next;
+struct Point_s
+{
+
 	RVec3 X, V;
 	Real F;
 	Real w[];
 
-	static std::string get_value_type_desc(int num_of_mate)
-	{
-		char cbuff[1024];
-		snprintf(cbuff, sizeof(cbuff), "H5T_COMPOUND {          "
-				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
-				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
-				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
-				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
-				"}",
+}
+;
 
-		(offsetof(ThisType, X)),
-
-		(offsetof(ThisType, V)),
-
-		(offsetof(ThisType, F)),
-
-		num_of_mate,
-
-		(offsetof(ThisType, w)));
-
-		return std::string(cbuff);
-	}
-	static size_t get_value_size_in_bytes(int num_of_mate = 4)
-	{
-		return (sizeof(GyroGauge) + sizeof(Real) * num_of_mate);
-	}
-
-};
-
-template<typename > class PICEngine;
-
-template<typename TG, template<typename, typename > class TPool>
-class PICEngine<TPool<GyroGauge, TG> > : public Solver
+template<typename TG, typename TF>
+Object::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 {
-public:
 
-	typedef TG Grid;
+	size_t num_of_mate = pt.get<int>("num_of_mate");
 
-	typedef GyroGauge Point_s;
+	char desc[1024];
+	snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
+			"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
+			"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
+			"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
+			"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
+			"}", (offsetof(Point_s, X)),
+	(offsetof(Point_s, V)),
+	(offsetof(Point_s, F)),
+	num_of_mate,
+	(offsetof(Point_s, w)));
 
-	typedef TPool<Point_s, Grid> Pool;
+	size_t particle_in_cell = pt.get<int>("pic");
 
-	typedef PICEngine<Pool> ThisType;
+	size_t num = particle_in_cell * grid.get_numof_cell();
 
-	Grid const &grid;
+	typedef ParticlePool<Point_s, Grid> Pool;
 
-	PICEngine(Grid const &pgrid) :
-			grid(pgrid), num_of_mate_(4), //
-			m_(1.0), q_(1.0), T_(1.0), vT_(sqrt(2.0 * T_ / m_))
-	{
-	}
-	~PICEngine()
-	{
-	}
+	typename Pool::Holder res(
+			new Pool(grid, sizeof(Point_s) + sizeof(Real) * num_of_mate, desc));
 
-	void set_property(Real m, Real q, Real T0, int num_of_mate)
-	{
-		num_of_mate_ = num_of_mate;
-		m_ = m;
-		q_ = q;
-		T_ = T0;
-		vT_ = sqrt(2.0 * T_ / m_);
+	Pool & pool = *res;
 
-		cosdq.resize(num_of_mate_);
-		sindq.resize(num_of_mate_);
+	pool.properties = pt;
 
-		Real dq = TWOPI / static_cast<Real>(num_of_mate_);
+	pool.resize(num);
 
-		for (int i = 0; i < num_of_mate_; ++i)
-		{
-			cosdq[i] = cos(dq * i);
-			sindq[i] = sin(dq * i);
-		}
+	RandomLoad<Point_s>(pool);
 
-	}
+	double alpha = static_cast<double>(particle_in_cell);
 
-	template<typename TContexHolder>
-	inline void Initialize(TContexHolder ctx, int pic)
-	{
+	Real m = pool.properties.get<Real>("m");
+	Real q = pool.properties.get<Real>("q");
+	Real T = pool.properties.get<Real>("T");
+	Real vT = sqrt(2.0 * T / m);
 
-		typename Pool::Holder(
-				Pool(grid, Point_s::get_value_size_in_bytes(num_of_mate_),
-						Point_s::get_value_type_desc(num_of_mate_))).swap(
-				pool_);
-
-		pool_.Initialize(pic);
-
-		size_t num_of_cells = grid.get_num_of_cell();
-
-		Vec3 w =
-		{ 1, 1, 1 };
+	double alpha = static_cast<double>(particle_in_cell * num_of_mate);
 
 #pragma omp parallel for
-		for (size_t s = 0; s < num_of_cells; ++s)
-		{
+	for (size_t s = 0; s < num; ++s)
+	{
+		Point_s * p = pool[s];
 
-			RVec3 X0 = grid.get_cell_center(s);
+		p->X = p->X * (grid.xmax - grid.xmin) + grid.xmin;
 
-			Grid sgrid = grid.SubGrid(X0, w);
+		p->V = p->V * vT;
 
-			ZeroForm n1(sgrid);
+		p->F = n1(p->X) / alpha;
 
-			n1 = *(ctx->find(n1)->second);
-
-			for (Point_s * p = (*pool_)[s]; p != NULL; p = p->next)
-			{
-				p->X = p->X * Pool::grid.dx + X0;
-				p->V = p->V * vT_;
-				p->F = n1(p->X) * w / static_cast<Real>(num_of_mate_);
-
-			}
-		}
+		p->w = 1.0;
 
 	}
+}
 
-	template<typename TContexHolder>
-	void Push(TContexHolder ctx)
+template<typename TG, typename TFE, typename TFB>
+void Push(Real dt, TFE const & E1, TFB const & B0,
+		ParticlePool<Point_s, TG> & pool)
+{
+
+	TG const &grid = pool.grid;
+
+	size_t num_of_mate = pool.properties.get<int>("num_of_mate");
+	Real m = pool.properties.get<Real>("m");
+	Real q = pool.properties.get<Real>("q");
+	Real T = pool.properties.get<Real>("T");
+	Real vT = sqrt(2.0 * T / m);
+
+	Real cosdq[num_of_mate];
+	Real sindq[num_of_mate];
+
+	Real dq = TWOPI / static_cast<Real>(num_of_mate);
+
+	for (int i = 0; i < num_of_mate; ++i)
 	{
-		size_t num_of_cells = grid.get_num_of_cell();
-
-		Vec3 w =
-		{ 1, 1, 1 };
-		Real dt = grid.dt;
-#pragma omp parallel for
-		for (size_t s = 0; s < num_of_cells; ++s)
-		{
-
-			RVec3 X0 = grid.get_cell_center(s);
-
-			Grid sgrid = grid.SubGrid(X0, w);
-
-			VecZeroForm B0(sgrid);
-			B0 = *(ctx->find("B0")->second);
-			OneForm E1(sgrid);
-			E1 = *(ctx->find("E1")->second);
-			TwoForm B1(sgrid);
-			B1 = *(ctx->find("B1")->second);
-
-			for (Point_s * p = (*pool_)[s]; p != NULL; p = p->next)
-			{
-
-				Vec3 Bv = B0(p->X);
-				Real BB = Dot(Bv, Bv);
-				Real Bs = sqrt(BB);
-				// --------------------------------------------------------------------
-				Vec3 v0, v1, r0, r1;
-				Vec3 Vc;
-				Vc = (Dot(p->V, Bv) * Bv) / BB;
-				v1 = Cross(p->V, Bv / Bs);
-				v0 = -Cross(v1, Bv / Bs);
-				r0 = -Cross(v0, Bv) / (q_ / m_ * BB);
-				r1 = -Cross(v1, Bv) / (q_ / m_ * BB);
-
-				for (int ms = 0; ms < num_of_mate_; ++ms)
-				{
-					Vec3 v, r;
-					v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-					r = (p->X + r0 * cosdq[ms] + r1 * sindq[ms]);
-					p->w[ms] += 0.5 * Dot(E1(r), v) * dt;
-				}
-				// --------------------------------------------------------------------
-				/**
-				 *  delta-f
-				 *  dw/dt=(1-w) v.E/T
-				 * */
-				// --------------------------------------------------------------------
-				//   Boris' algorithm   Birdsall(1991)   p->62
-				//   dv/dt = v x B
-				Vec3 t, V_;
-				t = Bv * q_ / m_ * dt * 0.5;
-				V_ = p->V + Cross(p->V, t);
-				p->V += Cross(V_, t) / (Dot(t, t) + 1.0) * 2.0;
-				Vc = (Dot(p->V, Bv) * Bv) / BB;
-
-				p->X += Vc * dt * 0.5;
-				// --------------------------------------------------------------------
-				v1 = Cross(p->V, Bv / Bs);
-				v0 = -Cross(v1, Bv / Bs);
-				r0 = -Cross(v0, Bv) / (q_ / m_ * BB);
-				r1 = -Cross(v1, Bv) / (q_ / m_ * BB);
-				for (int ms = 0; ms < num_of_mate_; ++ms)
-				{
-					Vec3 v, r;
-					v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-					r = (p->X + r0 * cosdq[ms] + r1 * sindq[ms]);
-
-					p->w[ms] += 0.5 * Dot(E1(r), v) * q_ / T_ * dt;
-
-				}
-				// --------------------------------------------------------------------
-				p->X += Vc * dt * 0.5;
-			}
-		}
+		cosdq[i] = cos(dq * i);
+		sindq[i] = sin(dq * i);
 	}
 
-	template<typename TContexHolder>
-	void Scatter(TContexHolder ctx)
-	{
-		size_t num_of_cells = grid.get_num_of_cell();
-
-		Vec3 w =
-		{ 1, 1, 1 };
+	size_t num_of_cells = grid.get_num_of_cell();
+	size_t num = pool.get_numof_elements();
 
 #pragma omp parallel for
-		for (size_t s = 0; s < num_of_cells; ++s)
+	for (size_t s = 0; s < num; ++s)
+	{
+		Point_s & p = pool[s];
+
+		Vec3 Bv = B0(p.X);
+		Real BB = Dot(Bv, Bv);
+		Real Bs = sqrt(BB);
+		// --------------------------------------------------------------------
+		Vec3 v0, v1, r0, r1;
+		Vec3 Vc;
+		Vc = (Dot(p.V, Bv) * Bv) / BB;
+		v1 = Cross(p.V, Bv / Bs);
+		v0 = -Cross(v1, Bv / Bs);
+		r0 = -Cross(v0, Bv) / (q / m * BB);
+		r1 = -Cross(v1, Bv) / (q / m * BB);
+
+		for (int ms = 0; ms < num_of_mate; ++ms)
 		{
-
-			RVec3 X0 = grid.get_cell_center(s);
-
-			Grid sgrid = grid.SubGrid(X0, w);
-
-			VecZeroForm B0(sgrid);
-			B0 = *(ctx->find("B0")->second);
-			VecZeroForm J1(sgrid);
-			J1 = 0.0;
-			ZeroForm n1(sgrid);
-			n1 = 0.0;
-
-			for (Point_s * p = (*pool_)[s]; p != NULL; p = p->next)
-			{
-
-				Vec3 Bv = B0(p->X);
-				Real BB = Dot(Bv, Bv);
-				Real Bs = sqrt(BB);
-				// --------------------------------------------------------------------
-				Vec3 v0, v1, r0, r1;
-				Vec3 Vc;
-
-				Vc = (Dot(p->V, Bv) * Bv) / BB;
-
-				v1 = Cross(p->V, Bv / Bs);
-				v0 = -Cross(v1, Bv / Bs);
-				r0 = -Cross(v0, Bv) / (q_ / m_ * BB);
-				r1 = -Cross(v1, Bv) / (q_ / m_ * BB);
-				for (int ms = 0; ms < num_of_mate_; ++ms)
-				{
-					Vec3 v, r;
-					v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-					r = (p->X + r0 * cosdq[ms] + r1 * sindq[ms]);
-
-					J1.Add(r, v);
-					n1.Add(r, p->w[ms]);
-				}
-
-			}
-#pragma omp critical(PICENGINE_DELTAF)
-			{
-				*(ctx->find("J1")->second) += q_ * J1;
-				*(ctx->find("n1")->second) += q_ * n1;
-			}
+			Vec3 v, r;
+			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+			r = (p.X + r0 * cosdq[ms] + r1 * sindq[ms]);
+			p.w[ms] += 0.5 * Dot(E1(r), v) * dt;
 		}
+		// --------------------------------------------------------------------
+		/**
+		 *  delta-f
+		 *  dw/dt=(1-w) v.E/T
+		 * */
+		// --------------------------------------------------------------------
+		//   Boris' algorithm   Birdsall(1991)   p->62
+		//   dv/dt = v x B
+		Vec3 t, V_;
+		t = Bv * q / m * dt * 0.5;
+		V_ = p.V + Cross(p.V, t);
+		p.V += Cross(V_, t) / (Dot(t, t) + 1.0) * 2.0;
+		Vc = (Dot(p.V, Bv) * Bv) / BB;
+
+		p.X += Vc * dt * 0.5;
+		// --------------------------------------------------------------------
+		v1 = Cross(p.V, Bv / Bs);
+		v0 = -Cross(v1, Bv / Bs);
+		r0 = -Cross(v0, Bv) / (q / m * BB);
+		r1 = -Cross(v1, Bv) / (q / m * BB);
+		for (int ms = 0; ms < num_of_mate; ++ms)
+		{
+			Vec3 v, r;
+			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+			r = (p.X + r0 * cosdq[ms] + r1 * sindq[ms]);
+
+			p.w[ms] += 0.5 * Dot(E1(r), v) * q / T * dt;
+
+		}
+		// --------------------------------------------------------------------
+		p.X += Vc * dt * 0.5;
+	}
+}
+template<typename TG, typename TFE, typename TFB, typename TFJ>
+void ScatterJ(ParticlePool<Point_s, TG> const & pool, TFE const & E1,
+		TFB const & B0, TFJ & Js)
+{
+	TG const &grid = pool.grid;
+
+	size_t num_of_mate = pool.properties.get<int>("num_of_mate");
+	Real m = pool.properties.get<Real>("m");
+	Real q = pool.properties.get<Real>("q");
+	Real T = pool.properties.get<Real>("T");
+	Real vT = sqrt(2.0 * T / m);
+
+	Real cosdq[num_of_mate];
+	Real sindq[num_of_mate];
+
+	Real dq = TWOPI / static_cast<Real>(num_of_mate);
+
+	for (int i = 0; i < num_of_mate; ++i)
+	{
+		cosdq[i] = cos(dq * i);
+		sindq[i] = sin(dq * i);
 	}
 
-private:
-	typename Pool::Holder pool_;
+	size_t num_of_cells = grid.get_num_of_cell();
+	size_t num = pool.get_numof_elements();
 
-	Real m_, q_, T_;
-	Real vT_;
+#pragma omp parallel
+	{
+		TFJ J1(grid);
+		J1 = 0;
+		int m = omp_get_num_threads();
+		int n = omp_get_thread_num();
 
-	int num_of_mate_;
-	std::vector<Real> cosdq, sindq;
-};
+		for (size_t s = n * num / m; s < (n + 1) * num / m; ++s)
+		{
+			Point_s * p = pool[s];
 
+			Vec3 Bv = B0(p->X);
+			Real BB = Dot(Bv, Bv);
+			Real Bs = sqrt(BB);
+			// --------------------------------------------------------------------
+			Vec3 v0, v1, r0, r1;
+			Vec3 Vc;
+
+			Vc = (Dot(p->V, Bv) * Bv) / BB;
+
+			v1 = Cross(p->V, Bv / Bs);
+			v0 = -Cross(v1, Bv / Bs);
+			r0 = -Cross(v0, Bv) / (q / m * BB);
+			r1 = -Cross(v1, Bv) / (q / m * BB);
+			for (int ms = 0; ms < num_of_mate; ++ms)
+			{
+				Vec3 v, r;
+				v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+				r = (p->X + r0 * cosdq[ms] + r1 * sindq[ms]);
+
+				J1.Add(r, v * p->w[ms]);
+			}
+		}
+
+#pragma omp critical(PIC_ENGINE_FullF)
+		{
+			Js += q * J1;
+		}
+
+	}
+
+}
+
+} // namespace GyroGauge
 } // namespace PIC
 } // namespace simpla
 #endif  // PIC_GYRO_GAUGE_H_
