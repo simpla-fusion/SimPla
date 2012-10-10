@@ -16,7 +16,7 @@ namespace em_field
 {
 
 template<int IForm>
-void boundaryCondition(Context::Holder ctx, std::string const & fname)
+void boundaryCondition(Modules::Holder ctx, std::string const & fname)
 {
 	/**
 	 *   bc <0  Cycle BC
@@ -198,7 +198,7 @@ void boundaryCondition(Context::Holder ctx, std::string const & fname)
 	}
 }
 template<int IForm, typename TV>
-void zeroBC(Context::Holder ctx, std::string const & fname)
+void zeroBC(Modules::Holder ctx, std::string const & fname)
 {
 
 	for (int d = 0; d < 3; ++d)

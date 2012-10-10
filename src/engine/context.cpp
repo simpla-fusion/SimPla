@@ -232,14 +232,6 @@ namespace simpla
 //
 //}
 
-Context::Context(ptree const & pt) :
-		counter_(0), timer_(0)
-{
-	InitialContext(this, pt);
-}
 
-Context::~Context()
-{
-}
 
 } // namespace simpla

@@ -8,8 +8,8 @@
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
 #include "engine/object.h"
-#include "engine/context.h"
-#include "pic/detail/initial_random_load.h"
+#include "engine/modules.h"
+#include "detail/initial_random_load.h"
 
 namespace simpla
 {

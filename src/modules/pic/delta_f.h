@@ -13,29 +13,94 @@
 
 #include "include/simpla_defs.h"
 #include "engine/object.h"
-#include "engine/context.h"
-#include "pic/detail/initial_random_load.h"
-#include "pic/particle_pool.h"
+#include "engine/modules.h"
+#include "modules/pic/detail/initial_random_load.h"
+#include "modules/pic/particle_pool.h"
 #include "fetl/fetl.h"
 
 namespace simpla
 {
 namespace pic
 {
-namespace delta_f
-{
+
 using namespace fetl;
 
-struct Point_s
+template<typename TV, typename TG>
+class DeltaF: public Modules
 {
-	RVec3 X, V;
-	Real F;
-	Real w;
+public:
+	DEFINE_FIELDS(TV, TG)
+
+	struct Point_s
+	{
+		RVec3 X, V;
+		Real F;
+		Real w;
+	};
+	DeltaF(Domain & d, const ptree & pt);
+	virtual ~DeltaF()
+	{
+	}
+	virtual void Eval();
+private:
+	Grid const & grid;
+
+	const Real dt;
+	const Real mu0;
+	const Real epsilon0;
+	const Real speed_of_light;
+	const Real proton_mass;
+	const Real elementary_charge;
+	const Real eV;
+
+	const Real m;
+	const Real q;
+	const Real T;
+	const Real vT;
+
+	//input
+	VecZeroForm & Js;
+	//output
+	OneForm const & E1;
+	TwoForm const & B1;
+
+	typename ParticlePool<Point_s, TG>::Holder pool;
+
 };
 
-template<typename TG>
-Object::Holder InitLoadParticle(TG const & grid, const ptree & pt,
-		Field<IZeroForm, Real, TG> const &n1)
+template<typename TV, typename TG>
+DeltaF<TV, TG>::DeltaF(Domain & d, const ptree & pt) :
+		Modules(d),
+
+		grid(d.grid<UniformRectGrid>()),
+
+		dt(d.dt),
+
+		mu0(d.PHYS_CONSTANTS.get<Real>("mu")),
+
+		epsilon0(d.PHYS_CONSTANTS.get<Real>("epsilon")),
+
+		speed_of_light(d.PHYS_CONSTANTS.get<Real>("speed_of_light")),
+
+		proton_mass(d.PHYS_CONSTANTS.get<Real>("proton_mass")),
+
+		elementary_charge(d.PHYS_CONSTANTS.get<Real>("elementary_charge")),
+
+		elementary_charge(d.PHYS_CONSTANTS.get<Real>("eV")),
+
+		m(pt.get<Real>("m") * proton_mass),
+
+		q(pt.get<Real>("q") * elementary_charge),
+
+		T(pt.get<Real>("T") * eV),
+
+		vT(sqrt(2.0 * T / m)),
+
+		B1(d.GetObject<TwoForm>("B1")),
+
+		E1(d.GetObject<OneForm>("E1")),
+
+		Js(d.GetObject<OneForm>("Js"))
 
 {
 
@@ -45,9 +110,9 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt,
 			"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : "
 			<< offsetof(Point_s, X)<< ";"
 			"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" :  "
-			<< offsetof(Point_s, V) << ";"
+			<< offsetof(Point_s, V)<< ";"
 			"   H5T_NATIVE_DOUBLE    \"F\" : "
-			<< offsetof(Point_s, F) << ";"
+			<< offsetof(Point_s, F)<< ";"
 			"   H5T_NATIVE_DOUBLE    \"W\" :  "
 			<< offsetof(Point_s, w) << ";"
 			"}";
@@ -56,23 +121,22 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt,
 
 	size_t particle_in_cell = pt.get<int>("pic");
 
-	typename Pool::Holder res(new Pool(grid, sizeof(Point_s), desc.str()));
+	pool = d.AddObject<Pool>(pt.get<std::string>("name"),
+			new Pool(grid, sizeof(Point_s), desc.str()));
 
-	Pool & pool = *res;
+	pool->properties = pt;
 
-	pool.properties = pt;
-
-	pool.resize(particle_in_cell * grid.get_numof_cell());
+	pool->resize(particle_in_cell * grid.get_numof_cell());
 
 	RandomLoad<Point_s>(pool);
 
-	size_t num = pool.get_numof_elements();
+	size_t num = pool->get_num_of_elements();
 
 	double alpha = static_cast<double>(particle_in_cell);
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
+	Real m = pt.get<Real>("m");
+	Real q = pt.get<Real>("q");
+	Real T = pt.get<Real>("T");
 	Real vT = sqrt(2.0 * T / m);
 
 #pragma omp parallel for
@@ -92,31 +156,22 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt,
 
 }
 
-template<typename TG, typename TFE, typename TFB>
-void Push(Real dt, TFE const & E1, TFB const & B0,
-		ParticlePool<Point_s, TG> & pool)
+template<typename TV, typename TG>
+void DeltaF<TV, TG>::Eval()
 {
-	//   Boris' algorithm   Birdsall(1991)   p.62
-	//   dv/dt = v x B
+//   Boris' algorithm   Birdsall(1991)   p.62
+//   dv/dt = v x B
 	/**
 	 *  delta-f
 	 *  dw/dt=(1-w) v.E/T
 	 * */
 
-	TG const & grid = pool.grid;
-
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
-
-	Real vT = sqrt(2.0 * T / m);
-
-	size_t num = pool.get_numof_elements();
+	size_t num = pool->get_num_of_elements();
 
 #pragma omp parallel for
 	for (size_t s = 0; s < num; ++s)
 	{
-		Point_s * p = pool[s];
+		Point_s * p = (*pool)[s];
 
 		//FIXME there is some problem of B0
 		Vec3 Bv =
@@ -161,30 +216,17 @@ void Push(Real dt, TFE const & E1, TFB const & B0,
 
 	}
 
-}
-
-template<typename TG, typename TFE, typename TFB, typename TFJ>
-void ScatterJ(ParticlePool<Point_s, TG> const & pool, TFE const & E1,
-		TFB const & B0, TFJ & Js)
-{
-	//   Boris' algorithm   Birdsall(1991)   p.62
-	//   dv/dt = v x B
+//   Boris' algorithm   Birdsall(1991)   p.62
+//   dv/dt = v x B
 	/**
 	 *  delta-f
 	 *  dw/dt=(1-w) v.E/T
 	 * */
 
-	Grid const & grid = pool.grid;
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
-	Real vT = sqrt(2.0 * T / m);
-
-	size_t num = pool.get_num_of_elements();
 #pragma omp parallel
 	{
-		TFJ J1(grid);
+		VecZeroForm J1(grid);
 		J1 = 0;
 		int m = omp_get_num_threads();
 		int n = omp_get_thread_num();
@@ -206,7 +248,6 @@ void ScatterJ(ParticlePool<Point_s, TG> const & pool, TFE const & E1,
 	}
 }
 
-} // namespace delta_f
 } // namespace pic
 } // namespace simpla
 

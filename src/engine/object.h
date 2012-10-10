@@ -24,17 +24,28 @@ public:
 
 	ptree properties;
 
-	Object(size_t es, std::string const & desc) :
-			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+	Object(size_t es, std::string const & desc, size_t s) :
+			data(NULL), nd(1), ele_size_in_bytes(es), ele_type_desc(desc)
 	{
-		dims[0] = 0;
+		dims[0] = s;
+		ReAlloc(dims, 1);
 	}
 
+	Object(size_t es, std::string const & desc = "", int ndims = 0, size_t *d =
+			NULL) :
+			data(NULL), nd(ndims), ele_size_in_bytes(es), ele_type_desc(desc)
+	{
+		if (ndims > 0)
+		{
+			for (int i = 0; i < ndims; ++i)
+				dims[i] = d[i];
+		}
+	}
 	inline virtual ~Object()
 	{
 	}
 
-	// Metadata ------------------------------------------------------------
+// Metadata ------------------------------------------------------------
 
 	inline bool Empty() const
 	{
@@ -148,10 +159,9 @@ private:
 	size_t dims[MAX_NUM_OF_DIMS];
 	const size_t ele_size_in_bytes;
 	const std::string ele_type_desc;
-};
-inline Object::~Object()
-{
 }
+;
+
 } //namespace simpla
 
 #endif /* OBJECT_H_ */

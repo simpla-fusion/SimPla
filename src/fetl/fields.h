@@ -58,15 +58,11 @@ public:
 
 	Grid const & grid;
 
-	Field(ThisType const & rhs) :
-			grid(rhs.grid), num_of_elements_(rhs.num_of_elements_), //
-			data_(rhs.data_)
-	{
-	}
+
 
 	Field(Grid const & pgrid) :
-			grid(pgrid), num_of_elements_(pgrid.get_num_of_elements(IForm)), //
-			data_(Object::alloc<ValueType>(num_of_elements_))
+			Object( sizeof(ValueType),
+					"H5T_NATIVE_DOUBLE"), grid(pgrid)
 	{
 	}
 
@@ -151,41 +147,6 @@ public:
 		return (tinfo == typeid(ValueType));
 	}
 
-	virtual inline size_t get_element_size_in_bytes() const
-	{
-		return sizeof(ValueType);
-	}
-
-	virtual inline std::string get_element_type_desc() const
-	{
-		return "H5T_NATIVE_DOUBLE";
-	}
-
-	virtual inline void const * get_data() const
-	{
-		return reinterpret_cast<const void*>(data_.get());
-	}
-
-	virtual inline void * get_data()
-	{
-		return reinterpret_cast<void*>(data_.get());
-	}
-
-	virtual inline int get_dimensions(size_t* dims) const
-	{
-		return (grid.get_field_shape(dims, IForm));
-	}
-
-	virtual inline size_t get_size_in_bytes() const
-	{
-		return (num_of_elements_ * sizeof(ValueType));
-	}
-
-	virtual inline bool Empty() const
-	{
-		return (data_ == NULL);
-	}
-
 	//----------------------------------------------------------------------
 
 	inline void Add(size_t s, ValueType const & v)
@@ -207,7 +168,6 @@ public:
 	static const Field<IFORM, TV, Int2Type<0> > ZERO;
 	static const Field<IFORM, TV, Int2Type<1> > ONE;
 private:
-	size_t num_of_elements_;
 	TR1::shared_ptr<ValueType> data_;
 
 };

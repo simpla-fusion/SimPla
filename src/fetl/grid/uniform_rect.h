@@ -19,18 +19,17 @@
 #include "primitives/ntuple.h"
 #include "primitives/properties.h"
 #include "fetl/fetl_defs.h"
-#include "engine/object.h"
+#include "grid.h"
+
 namespace simpla
 {
 namespace fetl
 {
-
 /**
  *  UniformRectGrid -- Uniform rectangular structured grid.
  * */
-class UniformRectGrid: public Object
+class UniformRectGrid: public BaseGrid
 {
-
 	UniformRectGrid &
 	operator=(const UniformRectGrid&);
 	bool initialized_;
@@ -59,37 +58,23 @@ public:
 	IVec3 strides;
 	IVec3 gw;
 
-	UniformRectGrid(ptree const &properties) :
+	UniformRectGrid(ptree const &pt) :
 			initialized_(false)
 	{
-		Initialize(properties.get<Real>("dt"), properties.get<Vec3>("xim"),
-				properties.get<Vec3>("xmax"), properties.get<IVec3>("dims"));
-	}
-	~UniformRectGrid()
-	{
-	}
-	Holder Create(ptree const &properties)
-	{
-		return Holder(new ThisType(properties));
-	}
-
-	void Initialize(Real _dt, Vec3 _xmin, Vec3 _xmax, IVec3 _dims)
-	{
-		dt = _dt;
-		gw[0] = 2;
-		gw[1] = 2;
-		gw[2] = 2;
-
-		for (int i = 0; i < NDIMS; ++i)
+		if (pt.get<std::string>("type") != "UniformRect")
 		{
-			dims[i] = _dims[i];
-			xmin[i] = _xmin[i];
-			xmax[i] = _xmax[i];
-			gw[i] = (gw[i] * 2 > dims[i]) ? dims[i] / 2 : gw[i];
+			ERROR << "Grid type mismatch";
 		}
 
+		dt = pt.get<Real>("dt");
+		xmin = pt.get<Vec3>("xmin");
+		xmax = pt.get<Vec3>("xmax");
+		dims = pt.get<IVec3>("dims");
+		gw = pt.get<IVec3>("ghostwidht");
+
 		for (int i = 0; i < NDIMS; ++i)
 		{
+			gw[i] = (gw[i] * 2 > dims[i]) ? dims[i] / 2 : gw[i];
 			if (dims[i] <= 1)
 			{
 				dims[i] = 1;
@@ -107,8 +92,6 @@ public:
 		strides[2] = 1;
 		strides[1] = dims[2];
 		strides[0] = dims[1] * dims[2];
-
-		initialized_ = true;
 
 //#pragma omp parallel for  << here can not be parallized
 		for (size_t i = 0; i < dims[0]; ++i)
@@ -171,49 +154,49 @@ public:
 	{
 		return (*parent_);
 	}
+//
+//	ThisType SubGrid(size_t s, IVec3 w) const
+//	{
+//		IVec3 ix0;
+//		IVec3 imin, imax;
+//		imin = ix0 - w;
+//		imin = ix0 + w;
+//		return SubGrid(imin, imax);
+//	}
+//
+//	ThisType SubGrid(RVec3 x, RVec3 w) const
+//	{
+//		IVec3 imin, imax;
+//		imin = (x - w) * inv_dx;
+//		imax = (x + w) * inv_dx;
+//		return SubGrid(imin, imax);
+//	}
+//
+//	ThisType SubGrid(RVec3 x, IVec3 w) const
+//	{
+//		IVec3 ix0;
+//		ix0 = x * inv_dx;
+//		IVec3 imin, imax;
+//		imin = ix0 - w;
+//		imin = ix0 + w;
+//		return SubGrid(imin, imax);
+//	}
 
-	ThisType SubGrid(size_t s, IVec3 w) const
-	{
-		IVec3 ix0;
-		IVec3 imin, imax;
-		imin = ix0 - w;
-		imin = ix0 + w;
-		return SubGrid(imin, imax);
-	}
-
-	ThisType SubGrid(RVec3 x, RVec3 w) const
-	{
-		IVec3 imin, imax;
-		imin = (x - w) * inv_dx;
-		imax = (x + w) * inv_dx;
-		return SubGrid(imin, imax);
-	}
-
-	ThisType SubGrid(RVec3 x, IVec3 w) const
-	{
-		IVec3 ix0;
-		ix0 = x * inv_dx;
-		IVec3 imin, imax;
-		imin = ix0 - w;
-		imin = ix0 + w;
-		return SubGrid(imin, imax);
-	}
-
-	ThisType SubGrid(IVec3 imin, IVec3 imax) const
-	{
-		ThisType res;
-		Vec3 pxmin, pxmax;
-		pxmin = imin * dx;
-		pxmax = imax * dx;
-		IVec3 pdims;
-		pdims = xmax - xmin;
-
-		res.Initialize(dt, pxmin, pxmax, pdims);
-
-		res.parent_ = this;
-		res.shift_ = imin;
-		return res;
-	}
+//	ThisType SubGrid(IVec3 imin, IVec3 imax) const
+//	{
+//		ThisType res;
+//		Vec3 pxmin, pxmax;
+//		pxmin = imin * dx;
+//		pxmax = imax * dx;
+//		IVec3 pdims;
+//		pdims = xmax - xmin;
+//
+//		res.Initialize(dt, pxmin, pxmax, pdims);
+//
+//		res.parent_ = this;
+//		res.shift_ = imin;
+//		return res;
+//	}
 
 // Property -----------------------------------------------
 
@@ -644,7 +627,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>         //
+	inline nTuple<THREE, TV>                     //
 	Gather(Field<IOneForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -687,7 +670,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>         //
+	inline nTuple<THREE, TV>                     //
 	Gather(Field<ITwoForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;

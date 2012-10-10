@@ -14,9 +14,10 @@
 #include "include/simpla_defs.h"
 #include "primitives/properties.h"
 #include "engine/object.h"
-#include "engine/context.h"
-#include "pic/detail/initial_randomload.h"
-#include "pic/particle_pool.h"
+#include "engine/modules.h"
+
+#include "detail/initial_random_load.h"
+#include "particle_pool.h"
 
 namespace simpla
 {
@@ -46,7 +47,7 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 			<< offsetof(Point_s, V) << ";"
 			"   H5T_NATIVE_DOUBLE    \"F\" : " << offsetof(Point_s, F)
 			<< ";"
-			"}"
+			"}";
 
 	std::string desc = os.str();
 
@@ -68,9 +69,9 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 
 	double alpha = static_cast<double>(particle_in_cell);
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
+	Real m = pt.get<Real>("m");
+	Real q = pt.get<Real>("q");
+	Real T = pt.get<Real>("T");
 	Real vT = sqrt(2.0 * T / m);
 
 #pragma omp parallel for
@@ -92,13 +93,13 @@ Object::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 
 template<typename TG, typename TFE, typename TFB>
 void Push(Real dt, TFE const & E1, TFB const & B0,
-		ParticlePool<Point_s, TG> pool)
+		ParticlePool<Point_s, TG> & pool)
 {
 	TG const & grid = pool.grid;
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
+	Real m = pool.properties.template get<Real>("m");
+	Real q = pool.properties.template get<Real>("q");
+	Real T = pool.properties.template get<Real>("T");
 	Real vT = sqrt(2.0 * T / m);
 
 	size_t num = pool->get_numof_elements();
@@ -166,11 +167,11 @@ void ScatterJ(ParticlePool<Point_s, TG> const & pool, TFE const & E1,
 		TFB const & B0, TFJ & Js)
 {
 
-	Grid const & grid = pool.grid;
+	TG const & grid = pool.grid;
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
+	Real m = pool.properties.template get<Real>("m");
+	Real q = pool.properties.template get<Real>("q");
+	Real T = pool.properties.template get<Real>("T");
 	Real vT = sqrt(2.0 * T / m);
 
 	size_t num = pool->get_num_of_elements();
@@ -205,11 +206,11 @@ void ScatterN(ParticlePool<Point_s, TG> const & pool, TFE const & E1,
 		TFB const & B0, TFN & ns)
 {
 
-	Grid const & grid = pool.grid;
+	TG const & grid = pool.grid;
 
-	Real m = pool.properties.get<Real>("m");
-	Real q = pool.properties.get<Real>("q");
-	Real T = pool.properties.get<Real>("T");
+	Real m = pool.properties.template get<Real>("m");
+	Real q = pool.properties.template get<Real>("q");
+	Real T = pool.properties.template get<Real>("T");
 	Real vT = sqrt(2.0 * T / m);
 
 	size_t num = pool->get_num_of_elements();

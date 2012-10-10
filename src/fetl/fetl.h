@@ -10,17 +10,18 @@
 #define FETL_H_
 
 #include "fetl/fetl_defs.h"
-#ifndef DEFAULT_GRID
-#  include "grid/uniform_rect.h"
-#endif
+#include "fields.h"
+#include "arithmetic.h"
+#include "vector_calculus.h"
 
 namespace simpla
 {
-namespace fetl {
+namespace fetl
+{
 
 //Default fields are real value
 
-template<int IFORM, typename TV, typename TG> struct Field;
+//template<int IFORM, typename TV, typename TG> struct Field;
 
 #define DEFINE_FIELDS(TV,TG)                                          \
 typedef TG Grid;                                                      \
@@ -60,8 +61,5 @@ typedef Field<IZeroForm, CVec3,TG> CVecField;                         \
 
 }  // namespace fetl
 } //namespace simpla
-#include "fetl/fields.h"
-#include "fetl/arithmetic.h"
-#include "fetl/vector_calculus.h"
 
 #endif  // FETL_H_

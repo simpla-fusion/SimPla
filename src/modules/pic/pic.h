@@ -12,9 +12,9 @@
 #include "include/simpla_defs.h"
 #include "engine/object.h"
 #include "fetl/fetl.h"
-#include "pic/particle_pool.h"
-#include "pic/delta_f.h"
-#include "pic/full_f.h"
+#include "particle_pool.h"
+#include "delta_f.h"
+#include "full_f.h"
 namespace simpla {
 namespace pic {
 template<typename, typename > struct PICEngine;
