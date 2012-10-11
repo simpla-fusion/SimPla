@@ -14,376 +14,181 @@
 
 #ifndef ARITHMETIC_H_
 #define ARITHMETIC_H_
-#include "fetl/fetl_defs.h"
-#include "primitives/operation.h"
+#include "fetl_defs.h"
+#include "operation.h"
 namespace simpla
 {
-namespace fetl
-{
+using namespace fetl;
+
 
 // Arithmetic
 //-----------------------------------------
 
+template<int IFORM, typename TVL, typename TLExpr> //
+inline Field<IFORM, TVL, arithmetic::OpNegative<Field<IFORM, TVL, TLExpr> > >  //
+operator -(Field<IFORM, TVL, TLExpr> const & lhs)
+{
+	return (Field<IFORM, TVL, arithmetic::OpNegative<Field<IFORM, TVL, TLExpr> > >(
+			lhs));
+}
+
+//------------------------------------------------------------------------------------
+
+template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
+inline Field<IFORM, typename arithmetic::OpAddition<TVL, TVR>::ValueType,
+		arithmetic::OpAddition<Field<IFORM, TVL, TLExpr>,
+				Field<IFORM, TVR, TRExpr> > >                                 //
+operator +(Field<IFORM, TVL, TLExpr> const &lhs,
+		Field<IFORM, TVR, TRExpr> const & rhs)
+{
+
+	return (Field<IFORM, typename arithmetic::OpAddition<TVL, TVR>::ValueType,
+			arithmetic::OpAddition<Field<IFORM, TVL, TLExpr>,
+					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
+}
+//------------------------------------------------------------------------------------
+
+template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
+inline Field<IFORM, typename arithmetic::OpSubtraction<TVL, TVR>::ValueType,
+		arithmetic::OpSubtraction<Field<IFORM, TVL, TLExpr>,
+				Field<IFORM, TVR, TRExpr> > >                                 //
+operator -(Field<IFORM, TVL, TLExpr> const &lhs,
+		Field<IFORM, TVR, TRExpr> const & rhs)
+{
+
+	return (Field<IFORM,
+			typename arithmetic::OpSubtraction<TVL, TVR>::ValueType,
+			arithmetic::OpSubtraction<Field<IFORM, TVL, TLExpr>,
+					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
+}
+
+//------------------------------------------------------------------------------------
+
 template<int IFORM, typename TVL, typename TLExpr>
-struct UniOp<Field<IFORM, TVL, TLExpr> , arithmetic::OpNegative>
+inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, Real>::ValueType,
+		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Real> >       //
+operator *(Field<IFORM, TVL, TLExpr> const &lhs, Real const & rhs)
 {
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<IFORM, TVL, TLExpr> , arithmetic::OpNegative> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, NullType, arithmetic::OpNegative>::ValueType ValueType;
-	typedef typename Field<IFORM, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, size_t const & s)
-	{
-		return (-lhs[s]);
-	}
-
-};
-
-template<int IFORM, typename TV, typename TL> //
-inline typename UniOp<Field<IFORM, TV, TL> ,arithmetic::OpNegative>::ResultType //
-operator -(Field<IFORM, TV, TL> const & lhs)
+	return (Field<IFORM,
+			typename arithmetic::OpMultiplication<TVL, Real>::ValueType,
+			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Real> >(lhs,
+			rhs));
+}
+template<int IFORM, typename TVL, typename TLExpr>
+inline Field<IFORM,
+		typename arithmetic::OpMultiplication<TVL, Complex>::ValueType,
+		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Complex> >    //
+operator *(Field<IFORM, TVL, TLExpr> const &lhs, Complex const & rhs)
 {
-	typedef UniOp<Field<IFORM, TV, TL> ,arithmetic::OpNegative> TOP;
-	return (typename TOP::ResultType(lhs));
+	return (Field<IFORM,
+			typename arithmetic::OpMultiplication<TVL, Complex>::ValueType,
+			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Complex> >(
+			lhs, rhs));
+}
+template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
+inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>,
+				Field<IZeroForm, TVR, TRExpr> > >                             //
+operator *(Field<IFORM, TVL, TLExpr> const &lhs,
+		Field<IZeroForm, TVR, TRExpr> const & rhs)
+{
+
+	return (Field<IFORM,
+			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>,
+					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
 }
 
 template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,Field<IFORM, TVR, TRExpr>
-		,arithmetic::OpAddition>
-{
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef Field<IFORM, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpAddition> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpAddition>::ValueType ValueType;
-	typedef typename Field<IFORM, TVL, TLExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] + rhs[s]);
-	}
-
-};
-template<int IFORM, typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IFORM, TVL, TL> ,Field<IFORM, TVR, TR>
-		,arithmetic::OpAddition>::ResultType //
-operator +(Field<IFORM, TVL, TL> const &lhs , Field<IFORM, TVR, TR> const & rhs)
-{
-	typedef BiOp<Field<IFORM, TVL, TL> ,Field<IFORM, TVR, TR>
-			,arithmetic::OpAddition> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
-}
-
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,Field<IFORM, TVR, TRExpr>
-		,arithmetic::OpSubtraction>
-{
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef Field<IFORM, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpSubtraction> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpSubtraction>::ValueType ValueType;
-	typedef typename Field<IFORM, TVL, TLExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] - rhs[s]);
-	}
-
-};
-template<int IFORM, typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IFORM, TVL, TL> ,Field<IFORM, TVR, TR>
-		,arithmetic::OpSubtraction>::ResultType //
-operator -(Field<IFORM, TVL, TL> const &lhs , Field<IFORM, TVR, TR> const & rhs)
-{
-	typedef BiOp<Field<IFORM, TVL, TL> ,Field<IFORM, TVR, TR>
-			,arithmetic::OpSubtraction> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
-}
-
-template<typename TVL, int IFORM, typename TVR, typename TRExpr>
-struct BiOp<TVL, Field<IFORM, TVR, TRExpr> ,arithmetic::OpMultiplication>
+inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+		arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
+				Field<IFORM, TVR, TRExpr> > >                                 //
+operator *(Field<IZeroForm, TVL, TLExpr> const &lhs,
+		Field<IFORM, TVR, TRExpr> const & rhs)
 {
 
-	typedef TVL TL;
-	typedef Field<IFORM, TVR, TRExpr> TR;
-	typedef TVL LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpMultiplication> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR,
-			typename arithmetic::OpMultiplication>::ValueType ValueType;
-	typedef typename Field<IFORM, TVR, TRExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (rhs.grid);
-	}
-	static ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs * rhs[s]);
-	}
-
-};
-template<typename TL, int IFORM, typename TV, typename TR>
-inline typename BiOp<TL, Field<IFORM, TV, TR> ,arithmetic::OpMultiplication>::ResultType //
-operator *(TL const & lhs, Field<IFORM, TV, TR> const &rhs)
-{
-	typedef BiOp<TL, Field<IFORM, TV, TR> ,arithmetic::OpMultiplication> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
-}
-
-template<int IFORM, typename TVL, typename TLExpr, typename TVR>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,TVR,arithmetic::OpMultiplication>
-{
-
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef TVR TR;
-
-	typedef typename TL::ConstReference LReference;
-	typedef TVR RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpMultiplication> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-	typedef typename Field<IFORM, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] * rhs);
-	}
-
-};
-template<int IFORM, typename TV, typename TL, typename TR>
-inline typename BiOp<Field<IFORM, TV, TL> ,TR ,arithmetic::OpMultiplication>::ResultType //
-operator *(Field<IFORM, TV, TL> const &lhs, TR const & rhs)
-{
-	typedef BiOp<Field<IFORM, TV, TL> ,TR ,arithmetic::OpMultiplication> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
-}
-
-template<typename TVL, typename TLExpr, int IFORM, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, TVL, TLExpr> ,Field<IFORM, TVR, TRExpr>
-		,arithmetic::OpMultiplication>
-{
-
-	typedef Field<IZeroForm, TVL, TLExpr> TL;
-	typedef Field<IFORM, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpMultiplication> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-	typedef typename Field<IFORM, TVR, TRExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs.grid.mapto_(Int2Type<IForm>(), lhs, s) * rhs[s]);
-	}
-
-};
-
-template<int IFORM, typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IZeroForm, TVL, TL> ,Field<IFORM, TVR, TR>
-		,arithmetic::OpMultiplication>::ResultType //
-operator *(Field<IZeroForm, TVL, TL> const &lhs
-		, Field<IFORM, TVR, TR> const & rhs)
-{
-	typedef BiOp<Field<IZeroForm, TVL, TL> ,Field<IFORM, TVR, TR>
-			,arithmetic::OpMultiplication> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
-}
-
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,Field<IZeroForm, TVR, TRExpr>
-		,arithmetic::OpMultiplication>
-{
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef Field<IZeroForm, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpMultiplication> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-	typedef typename Field<IFORM, TVR, TRExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] * rhs.grid.mapto_(Int2Type<IForm>(), rhs, s));
-	}
-};
-
-template<int IFORM, typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IFORM, TVL, TL> ,Field<IZeroForm, TVR, TR>
-		,arithmetic::OpMultiplication>::ResultType //
-operator *(Field<IFORM, TVL, TL> const &lhs
-		, Field<IZeroForm, TVR, TR> const & rhs)
-{
-	typedef BiOp<Field<IFORM, TVL, TL> ,Field<IZeroForm, TVR, TR>
-			,arithmetic::OpMultiplication> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
+	return (Field<IFORM,
+			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+			arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
+					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
 }
 
 template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, TVL, TLExpr> ,Field<IZeroForm, TVR, TRExpr>
-		,arithmetic::OpMultiplication>
+inline Field<IZeroForm,
+		typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+		arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
+				Field<IZeroForm, TVR, TRExpr> > >                             //
+operator *(Field<IZeroForm, TVL, TLExpr> const &lhs,
+		Field<IZeroForm, TVR, TRExpr> const & rhs)
 {
-	typedef Field<IZeroForm, TVL, TLExpr> TL;
-	typedef Field<IZeroForm, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
 
-	typedef BiOp<TL, TR, arithmetic::OpMultiplication> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-	typedef typename Field<IZeroForm, TVR, TRExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
+	return (Field<IZeroForm,
+			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+			arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
+					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
+}
 
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] * rhs[s]);
-	}
-};
-
-template<typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IZeroForm, TVL, TL> ,Field<IZeroForm, TVR, TR>
-		,arithmetic::OpMultiplication>::ResultType //
-operator *(Field<IZeroForm, TVL, TL> const &lhs
-		, Field<IZeroForm, TVR, TR> const & rhs)
+template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
+inline Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+		arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>,
+				Field<IZeroForm, TVR, TRExpr> > >                             //
+operator /(Field<IFORM, TVL, TLExpr> const &lhs,
+		Field<IZeroForm, TVR, TRExpr> const & rhs)
 {
-	typedef BiOp<Field<IZeroForm, TVL, TL> ,Field<IZeroForm, TVR, TR>
-			,arithmetic::OpMultiplication> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
+
+	return (Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+			arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>,
+					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
 }
 
 template<int IFORM, typename TVL, typename TLExpr, typename TVR>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,TVR,arithmetic::OpDivision>
+inline Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+		arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>, TVR> >              //
+operator /(Field<IFORM, TVL, TLExpr> const &lhs, TVR const & rhs)
 {
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef TVR TR;
-
-	typedef typename TL::ConstReference LReference;
-	typedef TVR RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpDivision> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, typename arithmetic::OpDivision>::ValueType ValueType;
-	typedef typename Field<IFORM, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] / rhs);
-	}
-};
-
-template<int IFORM, typename TV, typename TL, typename TR>
-inline typename BiOp<Field<IFORM, TV, TL> ,TR ,arithmetic::OpDivision>::ResultType //
-operator /(Field<IFORM, TV, TL> const &lhs, TR const & rhs)
+	return (Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+			arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>, TVR> >(lhs, rhs));
+}
+template<typename TVL, typename TVR, typename TRExpr>
+inline Field<IZeroForm, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+		arithmetic::OpDivision<TVL, Field<IZeroForm, TVR, TRExpr> > >         //
+operator /(TVL const & lhs, Field<IZeroForm, TVR, TRExpr> const &rhs)
 {
-	typedef BiOp<Field<IFORM, TV, TL> ,TR ,arithmetic::OpDivision> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+			arithmetic::OpDivision<TVL, Field<IZeroForm, TVR, TRExpr> > >(lhs,
+			rhs));
 }
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IFORM, TVL, TLExpr> ,Field<IZeroForm, TVR, TRExpr>
-		,arithmetic::OpDivision>
+template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
+inline Field<IZeroForm, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+		arithmetic::OpDivision<nTuple<N, TVL, TLExpr>,
+				Field<IZeroForm, TVR, TRExpr> > >          //
+operator /(nTuple<N, TVL, TLExpr> const & lhs,
+		Field<IZeroForm, TVR, TRExpr> const &rhs)
 {
-	typedef Field<IFORM, TVL, TLExpr> TL;
-	typedef Field<IZeroForm, TVR, TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, arithmetic::OpDivision> ThisType;
-	static const int IForm = IFORM;
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpDivision>::ValueType ValueType;
-	typedef typename Field<IFORM, TVR, TRExpr>::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (lhs[s] / rhs.grid.mapto_(Int2Type<IForm>(), rhs, s));
-	}
-};
-
-template<int IFORM, typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IFORM, TVL, TL> ,Field<IZeroForm, TVR, TR>
-		,arithmetic::OpDivision>::ResultType //
-operator /(Field<IFORM, TVL, TL> const &lhs
-		, Field<IZeroForm, TVR, TR> const & rhs)
-{
-	typedef BiOp<Field<IFORM, TVL, TL> ,Field<IZeroForm, TVR, TR>
-			,arithmetic::OpDivision> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			typename arithmetic::OpDivision<TVL, TVR>::ValueType,
+			arithmetic::OpDivision<nTuple<N, TVL, TLExpr>,
+					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
 }
+//
+//
+//
+
+//------------------------------------------------------------------------------------
 
 template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType //
-InnerProduct(Field<IFORM, TVL, TLExpr> const & lhs
-		, Field<IFORM, TVR, TRExpr> const & rhs)
+typename arithmetic::OpMultiplication<TVL, TVR>::ValueType //
+InnerProduct(Field<IFORM, TVL, TLExpr> const & lhs,
+		Field<IFORM, TVR, TRExpr> const & rhs)
 {
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-	ValueType res;
-	res = 0;
+	typedef typename arithmetic::OpMultiplication<TVL, TVR>::ValueType ValueType;
 	return (lhs.grid.InnerProduct(lhs, rhs));
 
 }
 
-} // namespace fetl
+//} // namespace fetl
 }
 // namespace simpla
 

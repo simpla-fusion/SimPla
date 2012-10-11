@@ -10,6 +10,8 @@
 #define FETL_H_
 
 #include "fetl/fetl_defs.h"
+
+#include "ntuple.h"
 #include "fields.h"
 #include "arithmetic.h"
 #include "vector_calculus.h"

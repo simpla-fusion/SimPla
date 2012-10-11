@@ -186,8 +186,12 @@ void ColdFluid<TV, TG>::Eval()
 
 		K_ = (*it)->Js * as + Cross((*it)->Js, Bv) + ((Ev) * (*it)->ns) * Z;
 
-		(*it)->Js = K_ / as + Cross(K_, Bv) / (BB + as * as)
-				+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
+		(*it)->Js =
+								K_ / as  +
+				Cross(K_, Bv) / (BB + as * as)
+//				+ Cross(Cross(K_, Bv), Bv)
+//				/ (as * (BB + as * as))
+				;
 
 		dEv_ -= (*it)->Js * 0.5 * dt / epsilon0;
 	}

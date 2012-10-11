@@ -99,12 +99,12 @@ int main(int argc, char **argv)
 //
 ////	domain.AddSolver("DeltaF", new PICEngine<DeltaF, Grid>(domain));
 
-	if (boost::optional<ptree &> module = pt.get_child_optional("Modules.PML"))
-	{
-		domain.functions.push_back(
-				TR1::bind(&em::PML<Real, UniformRectGrid>::Eval,
-						new em::PML<Real, Grid>(domain, *module)));
-	}
+//	if (boost::optional<ptree &> module = pt.get_child_optional("Modules.PML"))
+//	{
+//		domain.functions.push_back(
+//				TR1::bind(&em::PML<Real, UniformRectGrid>::Eval,
+//						new em::PML<Real, Grid>(domain, *module)));
+//	}
 
 	if (boost::optional<ptree &> module = pt.get_child_optional(
 			"Modules.Maxwell"))

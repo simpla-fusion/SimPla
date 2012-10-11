@@ -2,7 +2,7 @@ SET(HDF5_USE_STATIC_LIBRARIES TRUE)
 FIND_PACKAGE(HDF5 1.8 COMPONENTS CXX HL )
 include_directories(BEFORE ${HDF5_INCLUDE_DIR} )
 
-cxx_test(io_test io ${HDF5_CXX_LIBRARIES_RELEASE} ${HDF5_HL_LIBRARIES_RELEASE} z)
+#my_test(io_test io ${HDF5_CXX_LIBRARIES_RELEASE} ${HDF5_HL_LIBRARIES_RELEASE} z)
 
 
 add_library(io  write_hdf5.cpp   )

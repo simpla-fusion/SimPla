@@ -2,25 +2,19 @@ cmake_minimum_required(VERSION 2.8.5)
 
 PROJECT(SimPla  CXX C)
 
+INCLUDE(CTest)
+ENABLE_TESTING()
 
+SET(GTEST_ROOT ${PROJECT_SOURCE_DIR}/gtest-build)
 FIND_PACKAGE(GTest)
 
+INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
+
+
+
+ 
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
-
-if(GTEST_FOUND)
-
- INCLUDE(CTest)
- ENABLE_TESTING()
-
- option(BUILD_TESTS "Build tests." TRUE)
- if (BUILD_TESTS)
-    enable_testing()
- endif()
-else()
-   function(cxx_test name  )
-   endfunction()
-endif(GTEST_FOUND)
-
+ 
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_BUILD_TYPE Debug)
@@ -53,6 +47,7 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 
 ADD_SUBDIRECTORY(src )
 ADD_SUBDIRECTORY(applications )

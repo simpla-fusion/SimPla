@@ -8,4 +8,4 @@ include_directories(BEFORE ${MKL_C_INLCUDE_DIR} )
 #TARGET_LINK_LIBRARIES( pic  ${MKL_STATIC_LIBRARIES} )
  	
 
-cxx_test(pic_test ${MKL_STATIC_LIBRARIES} )  
+#my_test(pic_test ${MKL_STATIC_LIBRARIES} )  

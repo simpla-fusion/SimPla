@@ -7,424 +7,331 @@
 
 #ifndef VECTOR_CALCULUS_H_
 #define VECTOR_CALCULUS_H_
-#include "fetl/fetl_defs.h"
+#include "fetl_defs.h"
+#include "ntuple.h"
+
 namespace simpla
 {
 namespace fetl
 {
+namespace vector_calculus
+{
+
+template<typename TL, typename TR> struct OpDot;
+template<typename TL, typename TR> struct OpCross;
+
+template<typename TL> struct OpGrad;
+template<typename TL> struct OpDiverge;
+template<typename TL> struct OpCurl;
+template<int IR, typename TL> struct OpCurlPD;
+} // namespace vector_calculus
+
 template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, nTuple<N, TVL> , TLExpr>
-		,Field<IZeroForm, nTuple<N, TVR> , TRExpr> ,vector_calculus::OpDot>
+inline Field<IZeroForm,
+		typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+		vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
+				Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >                  //
+Dot(Field<IZeroForm, nTuple<N, TVL>, TLExpr> const & lhs,
+		Field<IZeroForm, nTuple<N, TVR>, TRExpr> const & rhs)
 {
-
-	typedef Field<IZeroForm, nTuple<N, TVL> , TLExpr> TL;
-	typedef Field<IZeroForm, nTuple<N, TVR> , TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpDot> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<N, TVL> , nTuple<N, TVR>
-			, vector_calculus::OpDot>::ValueType ValueType;
-	typedef typename TL::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Dot(lhs[s], rhs[s]));
-	}
-};
-
-template<typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TL>
-		,Field<IZeroForm, nTuple<THREE, TVR> , TR> ,vector_calculus::OpDot>::ResultType //
-Dot(Field<IZeroForm, nTuple<THREE, TVL> , TL> const & lhs
-		,Field<IZeroForm, nTuple<THREE, TVR> , TR> const & rhs)
-{
-	typedef BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TL>
-			,Field<IZeroForm, nTuple<THREE, TVR> , TR> ,vector_calculus::OpDot> TOP;
-	return (typename TOP::ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
+			vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
+					Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >(lhs, rhs));
 }
 
 template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<nTuple<N, TVL, TLExpr> , Field<IZeroForm, nTuple<N, TVR> , TRExpr>
-		,vector_calculus::OpDot>
+inline Field<IZeroForm,
+		typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>, nTuple<N, TVR> >::ValueType,
+		vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
+				Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >                  //
+Dot(nTuple<N, TVL, TLExpr> const & lhs,
+		Field<IZeroForm, nTuple<N, TVR>, TRExpr> const &rhs)
 {
 
-	typedef nTuple<N, TVL, TLExpr> TL;
-	typedef Field<IZeroForm, nTuple<N, TVR> , TRExpr> TR;
-	typedef TL LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpDot> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<N, TVL, TLExpr> , nTuple<N, TVR> ,
-	vector_calculus::OpDot>::ValueType ValueType;
-	typedef typename TR::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (rhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Dot(lhs, rhs[s]));
-	}
-
-};
-
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-typename BiOp<nTuple<N, TVL, TLExpr> , Field<IZeroForm, nTuple<N, TVR> , TRExpr>
-		,vector_calculus::OpDot>::ResultType //
-Dot(nTuple<N, TVL, TLExpr> const & lhs
-		, Field<IZeroForm, nTuple<N, TVR> , TRExpr> const &rhs)
-{
-	typedef typename BiOp<nTuple<N, TVL, TLExpr>
-			, Field<IZeroForm, nTuple<N, TVR> , TRExpr> ,vector_calculus::OpDot>::ResultType ResultType;
-	return (ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
+					nTuple<N, TVR> >::ValueType,
+			vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
+					Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >(lhs, rhs));
 }
 
 template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, nTuple<N, TVL> , TLExpr> ,nTuple<N, TVR, TRExpr>
-		,vector_calculus::OpDot>
+inline Field<IZeroForm,
+		typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>, nTuple<N, TVR> >::ValueType,
+		vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
+				nTuple<N, TVR, TRExpr> > >                                    //
+Dot(Field<IZeroForm, nTuple<N, TVL>, TLExpr> const & lhs,
+		nTuple<N, TVR, TRExpr> const & rhs)
 {
 
-	typedef Field<IZeroForm, nTuple<N, TVL> , TLExpr> TL;
-	typedef nTuple<N, TVR, TRExpr> TR;
-
-	typedef typename TL::ConstReference LReference;
-	typedef TR RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpDot> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<N, TVL> , nTuple<N, TVR, TRExpr>
-			, vector_calculus::OpDot>::ValueType ValueType;
-	typedef typename TL::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Dot(lhs[s], rhs));
-	}
-
-};
-
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline typename BiOp<Field<IZeroForm, nTuple<N, TVL> , TLExpr>
-		,nTuple<N, TVR, TRExpr> ,vector_calculus::OpDot>::ResultType //
-Dot(Field<IZeroForm, nTuple<N, TVL> , TLExpr> const & lhs
-		,nTuple<N, TVR, TRExpr> const & rhs)
-{
-	typedef typename BiOp<Field<IZeroForm, nTuple<N, TVL> , TLExpr>
-			,nTuple<N, TVR, TRExpr> ,vector_calculus::OpDot>::ResultType ResultType;
-	return (ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
+					nTuple<N, TVR> >::ValueType,
+			vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
+					nTuple<N, TVR, TRExpr> > >(lhs, rhs));
 }
 
 template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TLExpr>
-		,Field<IZeroForm, nTuple<THREE, TVR> , TRExpr> ,vector_calculus::OpCross>
+inline Field<IZeroForm,
+		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+		vector_calculus::OpCross<Field<IZeroForm, nTuple<THREE, TVL>, TLExpr>,
+				Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >              //
+Cross(Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr> const & lhs,
+		Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> const & rhs)
 {
-
-	typedef Field<IZeroForm, nTuple<THREE, TVL> , TLExpr> TL;
-	typedef Field<IZeroForm, nTuple<THREE, TVR> , TRExpr> TR;
-	typedef typename TL::ConstReference LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpCross> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<THREE, TVL> , nTuple<THREE, TVR>
-			, vector_calculus::OpCross>::ValueType ValueType;
-	typedef typename TL::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Cross(lhs[s], rhs[s]));
-	}
-};
-
-template<typename TVL, typename TL, typename TVR, typename TR>
-inline typename BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TL>
-		,Field<IZeroForm, nTuple<THREE, TVR> , TR> ,vector_calculus::OpCross>::ResultType //
-Cross(Field<IZeroForm, nTuple<THREE, TVL> , TL> const & lhs
-		,Field<IZeroForm, nTuple<THREE, TVR> , TR> const & rhs)
-{
-	typedef typename BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TL>
-			,Field<IZeroForm, nTuple<THREE, TVR> , TR> ,vector_calculus::OpCross>::ResultType ResultType;
-	return (ResultType(lhs, rhs));
-}
-
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<nTuple<N, TVL, TLExpr> , Field<IZeroForm, nTuple<N, TVR> , TRExpr>
-		,vector_calculus::OpCross>
-{
-
-	typedef nTuple<N, TVL, TLExpr> TL;
-	typedef Field<IZeroForm, nTuple<N, TVR> , TRExpr> TR;
-	typedef TL LReference;
-	typedef typename TR::ConstReference RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpCross> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<N, TVL, TLExpr> , nTuple<N, TVR>
-			, vector_calculus::OpCross>::ValueType ValueType;
-	typedef typename TR::Grid Grid; // FIXME need grid detriment
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (rhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Cross(lhs, rhs[s]));
-	}
-
-};
-
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-typename BiOp<nTuple<N, TVL, TLExpr> , Field<IZeroForm, nTuple<N, TVR> , TRExpr>
-		,vector_calculus::OpCross>::ResultType //
-Cross(nTuple<N, TVL, TLExpr> const & lhs
-		, Field<IZeroForm, nTuple<N, TVR> , TRExpr> const &rhs)
-{
-	typedef typename BiOp<nTuple<N, TVL, TLExpr>
-			, Field<IZeroForm, nTuple<N, TVR> , TRExpr>
-			,vector_calculus::OpCross>::ResultType ResultType;
-	return (ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			nTuple<THREE,
+					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+			vector_calculus::OpCross<
+					Field<IZeroForm, nTuple<THREE, TVL>, TLExpr>,
+					Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >(lhs, rhs));
 }
 
 template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TLExpr>
-		,nTuple<THREE, TVR, TRExpr> ,vector_calculus::OpCross>
+inline Field<IZeroForm,
+		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+		vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
+				Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >              //
+Cross(nTuple<THREE, TVL, TLExpr> const & lhs,
+		Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> const &rhs)
 {
-
-	typedef Field<IZeroForm, nTuple<THREE, TVL> , TLExpr> TL;
-	typedef nTuple<THREE, TVR, TRExpr> TR;
-
-	typedef typename TL::ConstReference LReference;
-	typedef TR RReference;
-
-	typedef BiOp<TL, TR, vector_calculus::OpCross> ThisType;
-	static const int IForm = IZeroForm;
-	typedef typename TypeOpTraits<nTuple<THREE, TVL>
-			, nTuple<THREE, TVR, TRExpr> , vector_calculus::OpCross>::ValueType ValueType;
-	typedef typename TL::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs, TR const & rhs)
-	{
-		return (lhs.grid);
-	}
-	static inline ValueType op(TL const & lhs, TR const & rhs, size_t s)
-	{
-		return (Cross(lhs[s], rhs));
-	}
-
-};
+	return (Field<IZeroForm,
+			nTuple<THREE,
+					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+			vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
+					Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> > >(
+			lhs, rhs));
+}
 
 template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline typename BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TLExpr>
-		,nTuple<THREE, TVR, TRExpr> ,vector_calculus::OpCross>::ResultType //
-Cross(Field<IZeroForm, nTuple<THREE, TVL> , TLExpr> const & lhs
-		, nTuple<THREE, TVR, TRExpr> const & rhs)
+inline Field<IZeroForm,
+		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+		vector_calculus::OpCross<
+				Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr>,
+				nTuple<THREE, TVR, TRExpr> > >                                //
+Cross(Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr> const & lhs,
+		nTuple<THREE, TVR, TRExpr> const & rhs)
 {
-	typedef typename BiOp<Field<IZeroForm, nTuple<THREE, TVL> , TLExpr>
-			, nTuple<THREE, TVR, TRExpr> ,vector_calculus::OpCross>::ResultType ResultType;
-	return (ResultType(lhs, rhs));
+	return (Field<IZeroForm,
+			nTuple<THREE,
+					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
+			vector_calculus::OpCross<
+					Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr>,
+					nTuple<THREE, TVR, TRExpr> > >(lhs, rhs));
 }
 
 template<typename TVL, typename TLExpr>
-struct UniOp<Field<IZeroForm, TVL, TLExpr> ,vector_calculus::OpGrad>
+struct Field<IOneForm, TVL,
+		vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >
 {
 
 	typedef Field<IZeroForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<IZeroForm, TVL, TLExpr> , vector_calculus::OpGrad> ThisType;
-	static const int IForm = IOneForm;
-	typedef TVL ValueType;
-	typedef typename TL::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
+	typename TypeTraits<TL>::ConstReference lhs_;
 
-	static Grid const & get_grid(TL const & lhs)
+	static const int IForm = IOneForm;
+
+	typedef TVL ValueType;
+
+	typedef Field<IForm, ValueType, vector_calculus::OpGrad<TL> > ThisType;
+
+	typedef typename TL::Grid Grid;
+
+	Grid const & grid; // FIXME need grid detriment
+
+	Field(TL const &lhs) :
+			grid(lhs.grid), lhs_(lhs)
 	{
-		return (lhs.grid);
 	}
-	static ValueType op(TL const & lhs, size_t const & s)
+
+	inline ValueType operator[](size_t s) const
 	{
-		return (lhs.grid.grad_(lhs, s));
+		return (grid.grad_(lhs_, s));
 	}
 };
 
-template<typename TVL, typename TL>
-inline typename UniOp<Field<IZeroForm, TVL, TL> , vector_calculus::OpGrad>::ResultType //
-Grad(Field<IZeroForm, TVL, TL> const & lhs)
+template<typename TVL, typename TLExpr>
+inline Field<IOneForm, TVL,
+		vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >             //
+Grad(Field<IZeroForm, TVL, TLExpr> const & lhs)
 {
-	typedef typename UniOp<Field<IZeroForm, TVL, TL> , vector_calculus::OpGrad>::ResultType ResultType;
-	return (ResultType(lhs));
+	return (Field<IOneForm, TVL,
+			vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >(lhs));
 }
 
 template<typename TVL, typename TLExpr>
-struct UniOp<Field<IOneForm, TVL, TLExpr> ,vector_calculus::OpDiverge>
+struct Field<IZeroForm, TVL,
+		vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >
 {
 
 	typedef Field<IOneForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<IOneForm, TVL, TLExpr> , vector_calculus::OpDiverge> ThisType;
+	typename TypeTraits<TL>::ConstReference lhs_;
+
 	static const int IForm = IZeroForm;
+
 	typedef TVL ValueType;
+
 	typedef typename TL::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
 
-	static Grid const & get_grid(TL const & lhs)
+	typedef Field<IForm, ValueType, vector_calculus::OpDiverge<TL> > ThisType;
+
+	Grid const & grid; // FIXME need grid detriment
+
+	Field(TL const &lhs) :
+			grid(lhs.grid), lhs_(lhs)
 	{
-		return (lhs.grid);
 	}
 
-	static ValueType op(TL const & lhs, size_t const & s)
+	inline ValueType operator[](size_t s) const
 	{
-		return (lhs.grid.diverge_(lhs, s));
+		return (grid.diverge_(lhs_, s));
 	}
+
 };
 
-template<typename TVL, typename TL>
-inline typename UniOp<Field<IOneForm, TVL, TL> , vector_calculus::OpDiverge>::ResultType //
-Diverge(Field<IOneForm, TVL, TL> const & lhs)
+template<typename TVL, typename TLExpr>
+inline Field<IZeroForm, TVL,
+		vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >           //
+Diverge(Field<IOneForm, TVL, TLExpr> const & lhs)
 {
-	typedef typename UniOp<Field<IOneForm, TVL, TL> , vector_calculus::OpDiverge>::ResultType ResultType;
-	return (ResultType(lhs));
+	return (Field<IZeroForm, TVL,
+			vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >(lhs));
+}
+template<typename TVL, typename TLExpr>
+struct Field<ITwoForm, TVL,
+		vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >
+{
+	typedef Field<IOneForm, TVL, TLExpr> TL;
+	typename TypeTraits<TL>::ConstReference lhs_;
+
+	static const int IForm = ITwoForm;
+
+	typedef TVL ValueType;
+
+	typedef Field<IForm, ValueType, vector_calculus::OpCurl<TL> > ThisType;
+
+	typedef typename TL::Grid Grid;
+
+	Grid const & grid; // FIXME need grid detriment
+
+	Field(TL const &lhs) :
+			grid(lhs.grid), lhs_(lhs)
+	{
+	}
+
+	inline ValueType operator[](size_t s) const
+	{
+		return (grid.curl_(lhs_, s));
+	}
+
+};
+
+template<typename TVL, typename TLExpr>
+inline Field<ITwoForm, TVL,
+		vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >              //
+Curl(Field<IOneForm, TVL, TLExpr> const & lhs)
+{
+	return (Field<ITwoForm, TVL,
+			vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >(lhs));
 }
 
 template<typename TVL, typename TLExpr>
-struct UniOp<Field<IOneForm, TVL, TLExpr> ,vector_calculus::OpCurl>
+struct Field<IOneForm, TVL,
+		vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >
 {
-	typedef Field<IOneForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<IOneForm, TVL, TLExpr> , vector_calculus::OpCurl> ThisType;
-	static const int IForm = ITwoForm;
+	typedef Field<ITwoForm, TVL, TLExpr> TL;
+	typename TypeTraits<TL>::ConstReference lhs_;
+
+	static const int IForm = IOneForm;
+
 	typedef TVL ValueType;
-	typedef typename Field<IOneForm, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
 
-	static Grid const & get_grid(TL const & lhs)
+	typedef Field<IForm, ValueType, vector_calculus::OpCurl<TL> > ThisType;
+
+	typedef typename TL::Grid Grid;
+
+	Grid const & grid; // FIXME need grid detriment
+
+	Field(TL const &lhs) :
+			grid(lhs.grid), lhs_(lhs)
 	{
-		return (lhs.grid);
 	}
-	static ValueType op(TL const & lhs, size_t const & s)
+
+	inline ValueType operator[](size_t s) const
 	{
-		return (lhs.grid.curl_(lhs, s));
+		return (grid.curl_(lhs_, s));
 	}
+
 };
-
-template<typename TVL, typename TL>
-inline typename UniOp<Field<IOneForm, TVL, TL> , vector_calculus::OpCurl>::ResultType //
-Curl(Field<IOneForm, TVL, TL> const & lhs)
-{
-	typedef typename UniOp<Field<IOneForm, TVL, TL> , vector_calculus::OpCurl>::ResultType ResultType;
-	return (ResultType(lhs));
-}
 
 template<typename TVL, typename TLExpr>
-struct UniOp<Field<ITwoForm, TVL, TLExpr> ,vector_calculus::OpCurl>
+inline Field<IOneForm, TVL,
+		vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >              //
+Curl(Field<ITwoForm, TVL, TLExpr> const & lhs)
 {
-	typedef Field<ITwoForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<ITwoForm, TVL, TLExpr> , vector_calculus::OpCurl> ThisType;
-	static const int IForm = IOneForm;
-	typedef TVL ValueType;
-	typedef typename Field<ITwoForm, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, size_t const & s)
-	{
-		return (lhs.grid.curl_(lhs, s));
-	}
-};
-
-template<typename TVL, typename TL>
-inline typename UniOp<Field<ITwoForm, TVL, TL> , vector_calculus::OpCurl>::ResultType //
-Curl(Field<ITwoForm, TVL, TL> const & lhs)
-{
-	typedef typename UniOp<Field<ITwoForm, TVL, TL> , vector_calculus::OpCurl>::ResultType ResultType;
-	return (ResultType(lhs));
+	return (Field<IOneForm, TVL,
+			vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >(lhs));
 }
-
-template<int IPD, typename TVL, typename TLExpr>
-struct UniOp<Field<IOneForm, TVL, TLExpr> ,vector_calculus::OpCurlPD<IPD> >
-{
-	typedef Field<IOneForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<TL, vector_calculus::OpCurlPD<IPD> > ThisType;
-	static const int IForm = ITwoForm;
-	typedef TVL ValueType;
-	typedef typename Field<IOneForm, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, size_t const & s)
-	{
-		return (lhs.grid.template curlPd_<IPD>(lhs, s));
-	}
-};
-template<int IPD, typename TVL, typename TL>
-inline typename UniOp<Field<IOneForm, TVL, TL> , vector_calculus::OpCurlPD<IPD> >::ResultType //
-CurlPD(Field<IOneForm, TVL, TL> const & lhs)
-{
-	typedef typename UniOp<Field<IOneForm, TVL, TL>
-			, vector_calculus::OpCurlPD<IPD> >::ResultType ResultType;
-	return (ResultType(lhs));
-}
-
-template<int IPD, typename TVL, typename TLExpr>
-struct UniOp<Field<ITwoForm, TVL, TLExpr> ,vector_calculus::OpCurlPD<IPD> >
-{
-
-	typedef Field<ITwoForm, TVL, TLExpr> TL;
-	typedef TL LReference;
-	typedef UniOp<Field<ITwoForm, TVL, TLExpr> , vector_calculus::OpCurlPD<IPD> > ThisType;
-	static const int IForm = IOneForm;
-	typedef TVL ValueType;
-	typedef typename Field<ITwoForm, TVL, TLExpr>::Grid Grid;
-	typedef Field<IForm, ValueType, ThisType> ResultType;
-
-	static Grid const & get_grid(TL const & lhs)
-	{
-		return (lhs.grid);
-	}
-	static ValueType op(TL const & lhs, size_t const & s)
-	{
-		return (lhs.grid.template curlPd_<IPD>(lhs, s));
-	}
-};
-
-template<int IPD, typename TVL, typename TL>
-inline typename UniOp<Field<ITwoForm, TVL, TL> , vector_calculus::OpCurlPD<IPD> >::ResultType //
-CurlPD(Field<ITwoForm, TVL, TL> const & lhs)
-{
-	typedef typename UniOp<Field<ITwoForm, TVL, TL>
-			, vector_calculus::OpCurlPD<IPD> >::ResultType ResultType;
-	return (ResultType(lhs));
-}
+//
+//template<int IPD, typename TVL, typename TLExpr>
+//struct UniOp<Field<IOneForm, TVL, TLExpr>, vector_calculus::OpCurlPD<IPD> >
+//{
+//	typedef Field<IOneForm, TVL, TLExpr> TL;
+//	typedef TL LReference;
+//	typedef UniOp<TL, vector_calculus::OpCurlPD<IPD> > ThisType;
+//	static const int IForm = ITwoForm;
+//	typedef TVL ValueType;
+//	typedef typename Field<IOneForm, TVL, TLExpr>::Grid Grid;
+//	typedef Field<IForm, ValueType, ThisType> ResultType;
+//
+//	static Grid const & get_grid(TL const & lhs)
+//	{
+//		return (lhs.grid);
+//	}
+//	static ValueType op(TL const & lhs, size_t const & s)
+//	{
+//		return (lhs.grid.template curlPd_<IPD>(lhs, s));
+//	}
+//};
+//template<int IPD, typename TVL, typename TL>
+//inline typename UniOp<Field<IOneForm, TVL, TL>, vector_calculus::OpCurlPD<IPD> >::ResultType //
+//CurlPD(Field<IOneForm, TVL, TL> const & lhs)
+//{
+//	typedef typename UniOp<Field<IOneForm, TVL, TL>,
+//			vector_calculus::OpCurlPD<IPD> >::ResultType ResultType;
+//	return (ResultType(lhs));
+//}
+//
+//template<int IPD, typename TVL, typename TLExpr>
+//struct UniOp<Field<ITwoForm, TVL, TLExpr>, vector_calculus::OpCurlPD<IPD> >
+//{
+//
+//	typedef Field<ITwoForm, TVL, TLExpr> TL;
+//	typedef TL LReference;
+//	typedef UniOp<Field<ITwoForm, TVL, TLExpr>, vector_calculus::OpCurlPD<IPD> > ThisType;
+//	static const int IForm = IOneForm;
+//	typedef TVL ValueType;
+//	typedef typename Field<ITwoForm, TVL, TLExpr>::Grid Grid;
+//	typedef Field<IForm, ValueType, ThisType> ResultType;
+//
+//	static Grid const & get_grid(TL const & lhs)
+//	{
+//		return (lhs.grid);
+//	}
+//	static ValueType op(TL const & lhs, size_t const & s)
+//	{
+//		return (lhs.grid.template curlPd_<IPD>(lhs, s));
+//	}
+//};
+//
+//template<int IPD, typename TVL, typename TL>
+//inline typename UniOp<Field<ITwoForm, TVL, TL>, vector_calculus::OpCurlPD<IPD> >::ResultType //
+//CurlPD(Field<ITwoForm, TVL, TL> const & lhs)
+//{
+//	typedef typename UniOp<Field<ITwoForm, TVL, TL>,
+//			vector_calculus::OpCurlPD<IPD> >::ResultType ResultType;
+//	return (ResultType(lhs));
+//}
 
 // Vector operation -----------------------------------------
 //

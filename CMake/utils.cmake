@@ -1,5 +1,5 @@
   
-function(cxx_test name library )
+function(my_test name library )
 
   add_executable(${name} ${name}.cpp ${ARGN})
 

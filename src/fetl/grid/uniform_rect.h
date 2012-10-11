@@ -16,9 +16,9 @@
 #include <numeric>
 
 #include "include/simpla_defs.h"
-#include "primitives/ntuple.h"
 #include "primitives/properties.h"
-#include "fetl/fetl_defs.h"
+#include "../ntuple.h"
+#include "../fetl_defs.h"
 #include "grid.h"
 
 namespace simpla
@@ -383,7 +383,7 @@ public:
 	Assign(Field<IFORM, TV, TL>& lhs, Field<IFORM, TVR, TR> const& rhs) const
 	{
 		ASSERT(lhs.grid==*this);
-		if (lhs.grid == rhs.grid)
+//		if (lhs.grid == rhs.grid)
 		{
 			std::vector<size_t> const & ele_list = get_center_elements(
 					Field<IFORM, TV, TL>::IForm);
@@ -456,11 +456,11 @@ public:
 //							(k + lhs.grid.shift_[2]) * rhs.grid.strides[2] + l];
 //						}
 //		}
-		else
-		{
-			ERROR << "Grid mismatch!" << std::endl;
-			throw(-1);
-		}
+//		else
+//		{
+//			ERROR << "Grid mismatch!" << std::endl;
+//			throw(-1);
+//		}
 	}
 
 	template<int IFORM, typename TVL, typename TLExpr, typename TVR,
@@ -1025,6 +1025,7 @@ public:
 		return (res);
 	}
 };
+
 
 } // namespace fetl
 } //namespace simpla
