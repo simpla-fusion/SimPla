@@ -12,6 +12,7 @@
 #include "grid/uniform_rect.h"
 #include "fetl.h"
 #include "vector_calculus.h"
+#include "primitives/properties.h"
 
 using namespace simpla;
 using namespace simpla::fetl;
@@ -24,16 +25,16 @@ class TestFETLBasicArithmetic: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		IVec3 dims =
-		{ 20, 30, 40 };
+		Log::Verbose(10);
+		ptree pt;
+		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
+		pt.push_back(ptree::value_type("dt", ptree("1.0")));
+		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
+		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
+		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
+		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		Vec3 xmin =
-		{ 0, 0, 0 };
-
-		Vec3 xmax =
-		{ 1, 1, 1 };
-
-//		grid.Initialize(1.0, xmin, xmax, dims);
+		grid = TR1::shared_ptr<Grid>(new Grid(pt));
 
 	}
 public:
@@ -45,19 +46,17 @@ public:
 
 };
 
-typedef testing::Types<RZeroForm //
-		, ROneForm, RTwoForm, CZeroForm, COneForm, CTwoForm //
-		, VecZeroForm, VecOneForm, VecTwoForm, VecThreeForm //
+typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm //
+		, ROneForm, COneForm, VecOneForm //
+		, RTwoForm, CTwoForm, VecTwoForm, VecThreeForm //
 > AllFieldTypes;
 
 TYPED_TEST_CASE(TestFETLBasicArithmetic, AllFieldTypes);
 
 TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
-{
+{	Log::Verbose(10);
 	Grid const & grid = *TestFixture::grid;
-
 	typename TestFixture::FieldType f(grid);
-
 	size_t size =grid.get_num_of_elements(TestFixture::FieldType::IForm);
 
 	typename TestFixture::FieldType::ValueType a; a= 1.0;
@@ -161,7 +160,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 
 	f1 = va;
 	f2 = vb;
-	f3 = -f1+ f2 *c -f1/b;
+	f3 = -f1 + c* f2-f1/b;
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
@@ -198,14 +197,16 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	va=2.0;vb=3.0;
 
 	f1 = va;
+
 	f2 = vb;
-	f3 =- f1/a - f2*b +f1/c;
+
+	f3 = - f1/a -b* f2 +f1*c;
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 	{
 		typename TestFixture::ValueType res;
-		res=-f1[*s] /a[*s/num_of_comp] -f2[*s]*b[*s/num_of_comp]+f1[*s]/c[*s/num_of_comp];
+		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
 		ASSERT_EQ( res, f3[*s])
 		<< "idx=" <<*s;
 	}
@@ -219,16 +220,15 @@ class TestFETLVecAlgegbra: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		IVec3 dims =
-		{ 20, 30, 40 };
+		ptree pt;
+		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
+		pt.push_back(ptree::value_type("dt", ptree("1.0")));
+		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
+		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
+		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
+		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		Vec3 xmin =
-		{ 0, 0, 0 };
-
-		Vec3 xmax =
-		{ 1, 1, 1 };
-
-//		grid.Initialize(1.0, xmin, xmax, dims);
+		grid = TR1::shared_ptr<Grid>(new Grid(pt));
 
 	}
 public:
@@ -382,14 +382,15 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		IVec3 dims =
-		{ 20, 30, 40 };
+		ptree pt;
+		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
+		pt.push_back(ptree::value_type("dt", ptree("1.0")));
+		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
+		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
+		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
+		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		Vec3 xmin =
-		{ 0, 0, 0 };
-
-		Vec3 xmax =
-		{ 1, 1, 1 };
+		pgrid = TR1::shared_ptr<Grid>(new Grid(pt));
 
 	}
 public:
@@ -484,14 +485,14 @@ protected:
 		IVec3 dims =
 		{ 2 * ratio, 3 * ratio, 4 * ratio };
 
-		IVec3 ghost =
-		{ 2, 2, 2 };
-
-		Vec3 xmin =
-		{ 0, 0, 0 };
-
-		Vec3 xmax =
-		{ 1, 1, 1 };
+		ptree pt;
+		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
+		pt.push_back(ptree::value_type("dt", ptree("1.0")));
+		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
+		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
+		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
+		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
+		pgrid = TR1::shared_ptr<Grid>(new Grid(pt));
 
 	}
 public:

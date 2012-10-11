@@ -58,11 +58,9 @@ public:
 
 	Grid const & grid;
 
-
-
 	Field(Grid const & pgrid) :
-			Object( sizeof(ValueType),
-					"H5T_NATIVE_DOUBLE"), grid(pgrid)
+			Object(sizeof(ValueType), "H5T_NATIVE_DOUBLE",
+					pgrid.get_num_of_elements(IFORM)), grid(pgrid)
 	{
 	}
 
@@ -135,7 +133,7 @@ public:
 
 	bool IsSame(ThisType const & rhs) const
 	{
-		return (data_.get() == rhs.data_.get());
+		return (Object::get_data() == rhs.get_data());
 	}
 
 	virtual inline bool CheckType(std::type_info const &tinfo) const
@@ -152,23 +150,21 @@ public:
 	inline void Add(size_t s, ValueType const & v)
 	{
 #pragma omp atomic
-		data_.get()[s] += v;
+		Object::value<ValueType>(s) += v;
 	}
 
 	inline ValueType & operator[](size_t s)
 	{
-		return (data_.get()[s]);
+		return (Object::value<ValueType>(s));
 	}
 
 	inline ValueType const &operator[](size_t s) const
 	{
-		return (data_.get()[s]);
+		return (Object::value<ValueType>(s));
 	}
 
 	static const Field<IFORM, TV, Int2Type<0> > ZERO;
 	static const Field<IFORM, TV, Int2Type<1> > ONE;
-private:
-	TR1::shared_ptr<ValueType> data_;
 
 };
 template<int IFORM, typename TV, typename TG>

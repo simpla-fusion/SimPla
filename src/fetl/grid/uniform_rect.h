@@ -61,16 +61,23 @@ public:
 	UniformRectGrid(ptree const &pt) :
 			initialized_(false)
 	{
-		if (pt.get<std::string>("type") != "UniformRect")
+		boost::optional<std::string> ot = pt.get_optional<std::string>("type");
+		if (!ot || *ot != "UniformRect")
 		{
 			ERROR << "Grid type mismatch";
 		}
 
 		dt = pt.get<Real>("dt");
-		xmin = pt.get<Vec3>("xmin");
-		xmax = pt.get<Vec3>("xmax");
-		dims = pt.get<IVec3>("dims");
-		gw = pt.get<IVec3>("ghostwidht");
+		xmin = pt.get<Vec3>("xmin",
+				pt_trans<Vec3, typename ptree::data_type>());
+		xmax = pt.get<Vec3>("xmax",
+				pt_trans<Vec3, typename ptree::data_type>());
+		dims = pt.get<IVec3>("dims",
+				pt_trans<IVec3, typename ptree::data_type>());
+		gw = pt.get<IVec3>("ghostwidth",
+				pt_trans<IVec3, typename ptree::data_type>());
+
+
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -121,6 +128,7 @@ public:
 
 					}
 				}
+
 	}
 
 	inline std::vector<size_t> const &
@@ -627,7 +635,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>                     //
+	inline nTuple<THREE, TV>                               //
 	Gather(Field<IOneForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -670,7 +678,7 @@ public:
 	}
 
 	template<typename TV, typename TExpr>
-	inline nTuple<THREE, TV>                     //
+	inline nTuple<THREE, TV>                               //
 	Gather(Field<ITwoForm, TV, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, TV> res;
@@ -1025,7 +1033,6 @@ public:
 		return (res);
 	}
 };
-
 
 } // namespace fetl
 } //namespace simpla

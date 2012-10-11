@@ -214,11 +214,11 @@ operator nTuple<NDIM,ValueType,NullType>()                                    \
 }                                                                   \
 
 template<int N, typename TV, typename TL, template<typename > class TOP>
-struct nTuple<N, typename TOP<TV>::ValueType, TOP<nTuple<N, TV, TL> > >
+struct nTuple<N, TV, TOP<nTuple<N, TV, TL> > >
 {
 	typedef nTuple<N, TV, TOP<nTuple<N, TV, TL> > > ThisType;
 	static const int NDIM = N;
-	typedef typename TOP<TV>::ValueType ValueType;
+	typedef TV ValueType;
 	typedef const ThisType ConstReference;
 	typename nTuple<N, TV, TL>::ConstReference lhs_;
 
@@ -229,19 +229,17 @@ struct nTuple<N, typename TOP<TV>::ValueType, TOP<nTuple<N, TV, TL> > >
 
 	inline ValueType operator[](size_t const & s) const
 	{
-		return TOP<TV>::eval(-lhs_[s]);
+		return TOP<TV>::eval(lhs_[s]);
 	}
 
 	IMPLICIT_TYPE_CONVERT
 };
 
 template<int N, typename TV, typename TL> //
-inline nTuple<N, typename arithmetic::OpNegative<TV>::ValueType,
-		arithmetic::OpNegative<nTuple<N, TV, TL> > >                          //
+inline nTuple<N, TV, arithmetic::OpNegative<nTuple<N, TV, TL> > >             //
 operator -(nTuple<N, TV, TL> const & lhs)
 {
-	return (nTuple<N, typename arithmetic::OpNegative<TV>::ValueType,
-			arithmetic::OpNegative<nTuple<N, TV, TL> > >(lhs));
+	return (nTuple<N, TV, arithmetic::OpNegative<nTuple<N, TV, TL> > >(lhs));
 }
 
 template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr,

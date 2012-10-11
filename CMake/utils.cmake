@@ -12,7 +12,7 @@ function(my_test name library )
   target_link_libraries(${name} ${GTEST_LIBRARY})
   target_link_libraries(${name} ${GTEST_MAIN_LIBRARY})
  
-  add_test(${name} ${name})
+  GTEST_ADD_TESTS(${name} "" ${name}.cpp )
   
   target_link_libraries(${name} ${library} ) 	 
 endfunction()

@@ -20,7 +20,6 @@ namespace simpla
 {
 using namespace fetl;
 
-
 // Arithmetic
 //-----------------------------------------
 
@@ -63,28 +62,33 @@ operator -(Field<IFORM, TVL, TLExpr> const &lhs,
 }
 
 //------------------------------------------------------------------------------------
+#define DEFINE_MULTI(_TV_)                                                                                \
+template<int IFORM, typename TVL, typename TLExpr>                                                        \
+inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, _TV_>::ValueType,                          \
+		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, _TV_> >                                   \
+operator *(Field<IFORM, TVL, TLExpr> const &lhs, _TV_ const & rhs)                                        \
+{                                                                                                         \
+	return (Field<IFORM,                                                                                  \
+			typename arithmetic::OpMultiplication<TVL, _TV_>::ValueType,                                  \
+			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, _TV_> >(lhs,                          \
+			rhs));                                                                                        \
+}                                                                                                         \
+                                                                                                          \
+template<int IFORM, typename TVR, typename TRExpr>                                                        \
+inline Field<IFORM, typename arithmetic::OpMultiplication<_TV_, TVR>::ValueType,                          \
+		arithmetic::OpMultiplication<_TV_, Field<IFORM, TVR, TRExpr> > >                                  \
+operator *(_TV_ const & lhs, Field<IFORM, TVR, TRExpr> const & rhs)                                      \
+{                                                                                                         \
+	return (Field<IFORM,                                                                                  \
+			typename arithmetic::OpMultiplication<_TV_, TVR>::ValueType,                                  \
+			arithmetic::OpMultiplication<_TV_, Field<IFORM, TVR, TRExpr> > >(                             \
+			lhs, rhs));                                                                                   \
+}
 
-template<int IFORM, typename TVL, typename TLExpr>
-inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, Real>::ValueType,
-		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Real> >       //
-operator *(Field<IFORM, TVL, TLExpr> const &lhs, Real const & rhs)
-{
-	return (Field<IFORM,
-			typename arithmetic::OpMultiplication<TVL, Real>::ValueType,
-			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Real> >(lhs,
-			rhs));
-}
-template<int IFORM, typename TVL, typename TLExpr>
-inline Field<IFORM,
-		typename arithmetic::OpMultiplication<TVL, Complex>::ValueType,
-		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Complex> >    //
-operator *(Field<IFORM, TVL, TLExpr> const &lhs, Complex const & rhs)
-{
-	return (Field<IFORM,
-			typename arithmetic::OpMultiplication<TVL, Complex>::ValueType,
-			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, Complex> >(
-			lhs, rhs));
-}
+DEFINE_MULTI(Real)
+DEFINE_MULTI(Complex)
+#undef  DEFINE_MULTI
+
 template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
 inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
 		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>,
@@ -163,7 +167,7 @@ operator /(TVL const & lhs, Field<IZeroForm, TVR, TRExpr> const &rhs)
 template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
 inline Field<IZeroForm, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
 		arithmetic::OpDivision<nTuple<N, TVL, TLExpr>,
-				Field<IZeroForm, TVR, TRExpr> > >          //
+				Field<IZeroForm, TVR, TRExpr> > >             //
 operator /(nTuple<N, TVL, TLExpr> const & lhs,
 		Field<IZeroForm, TVR, TRExpr> const &rhs)
 {

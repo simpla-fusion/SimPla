@@ -25,20 +25,19 @@ public:
 	ptree properties;
 
 	Object(size_t es, std::string const & desc, size_t s) :
-			data(NULL), nd(1), ele_size_in_bytes(es), ele_type_desc(desc)
+			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
 	{
-		dims[0] = s;
-		ReAlloc(dims, 1);
+		size_t ss = s;
+		ReAlloc(&ss, 1);
 	}
 
 	Object(size_t es, std::string const & desc = "", int ndims = 0, size_t *d =
 			NULL) :
-			data(NULL), nd(ndims), ele_size_in_bytes(es), ele_type_desc(desc)
+			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
 	{
 		if (ndims > 0)
 		{
-			for (int i = 0; i < ndims; ++i)
-				dims[i] = d[i];
+			ReAlloc(d, ndims);
 		}
 	}
 	inline virtual ~Object()
@@ -79,7 +78,16 @@ public:
 	{
 		return data + s * ele_size_in_bytes;
 	}
-
+	template<typename T>
+	T & value(size_t s)
+	{
+		return *reinterpret_cast<T*>(data + s * ele_size_in_bytes);
+	}
+	template<typename T>
+	T const & value(size_t s) const
+	{
+		return *reinterpret_cast<T const*>(data + s * ele_size_in_bytes);
+	}
 	/**
 	 * Purpose: get the dimensions of object
 	 * @Input:
@@ -123,6 +131,7 @@ public:
 	}
 	void ReAlloc(size_t *d, int ndims = 1)
 	{
+
 		size_t o_size_in_bytes = get_size_in_bytes();
 
 		size_t size_in_bytes = ele_size_in_bytes;
@@ -134,9 +143,9 @@ public:
 			dims[i] = d[i];
 			size_in_bytes *= d[i];
 		}
-		if (size_in_bytes > 0
-				&& (size_in_bytes < o_size_in_bytes / 2
-						|| size_in_bytes > o_size_in_bytes))
+//		if (size_in_bytes > 0
+//				&& (size_in_bytes < o_size_in_bytes / 2
+//						|| size_in_bytes > o_size_in_bytes))
 		{
 			ReleaseMemory();
 #pragma omp critical(OBJECT_ALLOC)
@@ -152,6 +161,7 @@ public:
 				}
 			}
 		}
+
 	}
 private:
 	char * data;

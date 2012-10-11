@@ -1,6 +1,4 @@
 my_test(fetl_test log)
-ADD_SUBDIRECTORY( grid  )
-GTEST_ADD_TESTS(ntuple_test "" ntuple_test.cpp )
 my_test(ntuple_test  "" )
 #add_executable(ntuple_test   test/ntuple_test.cpp)
 #target_link_libraries(ntuple_test gtest  )
