@@ -35,22 +35,25 @@ protected:
 		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
 		grid = TR1::shared_ptr<Grid>(new Grid(pt));
-
 	}
 public:
 	typedef TF FieldType;
 	typedef typename FieldType::ValueType ValueType;
-	typedef typename ComplexTraits<ValueType>::ValueType CValueType;
-	typedef Field<TF::IForm, CValueType, Grid> CFieldType;
+	typedef typename _fetl_impl::ComplexTraits<ValueType>::ValueType CValueType;
+	typedef Field<Grid, TF::IForm, CValueType> CFieldType;
 	TR1::shared_ptr<Grid> grid;
 
 };
 
-typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm //
-		, ROneForm, COneForm, VecOneForm //
-		, RTwoForm, CTwoForm, VecTwoForm, VecThreeForm //
+typedef testing::Types<RZeroForm
+		, CZeroForm, VecZeroForm
+		, ROneForm, COneForm, VecOneForm
+		, RTwoForm, CTwoForm, VecTwoForm
 > AllFieldTypes;
 
+//, VecThreeForm
+
+// test arithmetic.h
 TYPED_TEST_CASE(TestFETLBasicArithmetic, AllFieldTypes);
 
 TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
@@ -130,7 +133,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 	f1 = va;
 	f2 = vb;
-	f3 = -f1 + f2 * c -f1/b;
+	f3 = -f1+f2 * c-f1/b;
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
@@ -200,7 +203,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 	f2 = vb;
 
-	f3 = - f1/a -b* f2 +f1*c;
+	f3 = - f1/a- b*f2 +f1*c;
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
@@ -213,7 +216,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 }
 
 }
-
+// test vector_calculus.h
 template<typename T>
 class TestFETLVecAlgegbra: public testing::Test
 {
@@ -233,12 +236,13 @@ protected:
 	}
 public:
 	TR1::shared_ptr<Grid> grid;
-	typedef Field<IZeroForm, T, Grid> ScalarField;
-	typedef Field<IZeroForm, nTuple<THREE, T>, Grid> VectorField;
+	typedef Field<Grid, IZeroForm, T> ScalarField;
+	typedef Field<Grid, IZeroForm, nTuple<THREE, T> > VectorField;
 
-	typedef Field<IZeroForm, typename ComplexTraits<T>::ValueType, Grid> CScalarField;
-	typedef Field<IZeroForm,
-			nTuple<THREE, typename ComplexTraits<T>::ValueType>, Grid> CVectorField;
+	typedef Field<Grid, IZeroForm,
+			typename _fetl_impl::ComplexTraits<T>::ValueType> CScalarField;
+	typedef Field<Grid, IZeroForm,
+			nTuple<THREE, typename _fetl_impl::ComplexTraits<T>::ValueType> > CVectorField;
 
 };
 
@@ -257,13 +261,15 @@ TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 
 	Vec3 res_vec;
 
-	res_vec=Cross(vc1,vc2);
+	res_vec = Cross(vc1, vc2);
 
-	Real res_scalar; res_scalar= Dot(vc1,vc2);
+	Real res_scalar;
+	res_scalar = Dot(vc1, vc2);
 
 	typename TestFixture::ScalarField res_scalar_field(grid);
 
-	typename TestFixture::VectorField va(grid),vb(grid), res_vector_field(grid);
+	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
+			grid);
 
 	va = vc2;
 
@@ -271,12 +277,16 @@ TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 
 	res_vector_field = Cross(vc1, va);
 
-	size_t num_of_comp =grid.get_num_of_comp(TestFixture::VectorField::IForm);
+	size_t num_of_comp = grid.get_num_of_comp(
+			TestFixture::VectorField::IForm);
 
-	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::VectorField::IForm);
-			s!=grid.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
+	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
+					TestFixture::VectorField::IForm);
+			s
+			!= grid.get_center_elements_end(
+					TestFixture::VectorField::IForm); ++s)
 	{
-		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
+		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s);
 
 		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
 	}

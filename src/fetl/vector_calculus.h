@@ -1,5 +1,5 @@
 /*
- * vector_calculus.h
+ *  _fetl_impl::vector_calculus.h
  *
  *  Created on: 2012-3-1
  *      Author: salmon
@@ -14,278 +14,132 @@ namespace simpla
 {
 namespace fetl
 {
-namespace vector_calculus
+
+template<typename TG, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpDot<Field<TG, IZeroForm, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+Dot(Field<TG, IZeroForm, TLExpr> const & lhs,
+		Field<TG, IZeroForm, TRExpr> const & rhs)
 {
-
-template<typename TL, typename TR> struct OpDot;
-template<typename TL, typename TR> struct OpCross;
-
-template<typename TL> struct OpGrad;
-template<typename TL> struct OpDiverge;
-template<typename TL> struct OpCurl;
-template<int IR, typename TL> struct OpCurlPD;
-} // namespace vector_calculus
-
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-		vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
-				Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >                  //
-Dot(Field<IZeroForm, nTuple<N, TVL>, TLExpr> const & lhs,
-		Field<IZeroForm, nTuple<N, TVR>, TRExpr> const & rhs)
-{
-	return (Field<IZeroForm,
-			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-			vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
-					Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpDot<Field<TG, IZeroForm, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>, nTuple<N, TVR> >::ValueType,
-		vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
-				Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >                  //
-Dot(nTuple<N, TVL, TLExpr> const & lhs,
-		Field<IZeroForm, nTuple<N, TVR>, TRExpr> const &rhs)
+template<typename TG, int N, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpDot<nTuple<N, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >          //
+Dot(nTuple<N, TLExpr> const & lhs, Field<TG, IZeroForm, TRExpr> const &rhs)
 {
 
-	return (Field<IZeroForm,
-			typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
-					nTuple<N, TVR> >::ValueType,
-			vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
-					Field<IZeroForm, nTuple<N, TVR>, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpDot<nTuple<N, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>, nTuple<N, TVR> >::ValueType,
-		vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
-				nTuple<N, TVR, TRExpr> > >                                    //
-Dot(Field<IZeroForm, nTuple<N, TVL>, TLExpr> const & lhs,
-		nTuple<N, TVR, TRExpr> const & rhs)
+template<typename TG, int N, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpDot<Field<TG, IZeroForm, TLExpr>,
+				nTuple<N, TRExpr> > >                                         //
+Dot(Field<TG, IZeroForm, TLExpr> const & lhs, nTuple<N, TRExpr> const & rhs)
 {
 
-	return (Field<IZeroForm,
-			typename vector_calculus::OpDot<nTuple<N, TVL, TLExpr>,
-					nTuple<N, TVR> >::ValueType,
-			vector_calculus::OpDot<Field<IZeroForm, nTuple<N, TVL>, TLExpr>,
-					nTuple<N, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpDot<Field<TG, IZeroForm, TLExpr>,
+					nTuple<N, TRExpr> > >(lhs, rhs));
 }
 
-template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-		vector_calculus::OpCross<Field<IZeroForm, nTuple<THREE, TVL>, TLExpr>,
-				Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >              //
-Cross(Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr> const & lhs,
-		Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> const & rhs)
+template<typename TG, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpCross<Field<TG, IZeroForm, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+Cross(Field<TG, IZeroForm, TLExpr> const & lhs,
+		Field<TG, IZeroForm, TRExpr> const & rhs)
 {
-	return (Field<IZeroForm,
-			nTuple<THREE,
-					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-			vector_calculus::OpCross<
-					Field<IZeroForm, nTuple<THREE, TVL>, TLExpr>,
-					Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpCross<Field<TG, IZeroForm, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-		vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
-				Field<IZeroForm, nTuple<THREE, TVR>, TRExpr> > >              //
-Cross(nTuple<THREE, TVL, TLExpr> const & lhs,
-		Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> const &rhs)
+template<typename TG, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpCross<nTuple<THREE, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+Cross(nTuple<THREE, TLExpr> const & lhs,
+		Field<TG, IZeroForm, TRExpr> const &rhs)
 {
-	return (Field<IZeroForm,
-			nTuple<THREE,
-					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-			vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
-					Field<IZeroForm, nTuple<THREE, TVR, NullType>, TRExpr> > >(
-			lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpCross<nTuple<THREE, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-		vector_calculus::OpCross<
-				Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr>,
-				nTuple<THREE, TVR, TRExpr> > >                                //
-Cross(Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr> const & lhs,
-		nTuple<THREE, TVR, TRExpr> const & rhs)
+template<typename TG, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpCross<Field<TG, IZeroForm, TLExpr>,
+				nTuple<THREE, TRExpr> > >                                     //
+Cross(Field<TG, IZeroForm, TLExpr> const & lhs,
+		nTuple<THREE, TRExpr> const & rhs)
 {
-	return (Field<IZeroForm,
-			nTuple<THREE,
-					typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>,
-			vector_calculus::OpCross<
-					Field<IZeroForm, nTuple<THREE, TVL, NullType>, TLExpr>,
-					nTuple<THREE, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpCross<Field<TG, IZeroForm, TLExpr>,
+					nTuple<THREE, TRExpr> > >(lhs, rhs));
 }
 
-template<typename TVL, typename TLExpr>
-struct Field<IOneForm, TVL,
-		vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >
+template<typename TG, typename TLExpr>
+inline Field<TG, IOneForm,
+		_fetl_impl::vector_calculus::OpGrad<Field<TG, IZeroForm, TLExpr> > >  //
+Grad(Field<TG, IZeroForm, TLExpr> const & lhs)
 {
-
-	typedef Field<IZeroForm, TVL, TLExpr> TL;
-	typename TypeTraits<TL>::ConstReference lhs_;
-
-	static const int IForm = IOneForm;
-
-	typedef TVL ValueType;
-
-	typedef Field<IForm, ValueType, vector_calculus::OpGrad<TL> > ThisType;
-
-	typedef typename TL::Grid Grid;
-
-	Grid const & grid; // FIXME need grid detriment
-
-	Field(TL const &lhs) :
-			grid(lhs.grid), lhs_(lhs)
-	{
-	}
-
-	inline ValueType operator[](size_t s) const
-	{
-		return (grid.grad_(lhs_, s));
-	}
-};
-
-template<typename TVL, typename TLExpr>
-inline Field<IOneForm, TVL,
-		vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >             //
-Grad(Field<IZeroForm, TVL, TLExpr> const & lhs)
-{
-	return (Field<IOneForm, TVL,
-			vector_calculus::OpGrad<Field<IZeroForm, TVL, TLExpr> > >(lhs));
+	return (Field<TG, IOneForm,
+			_fetl_impl::vector_calculus::OpGrad<Field<TG, IZeroForm, TLExpr> > >(
+			lhs));
 }
 
-template<typename TVL, typename TLExpr>
-struct Field<IZeroForm, TVL,
-		vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >
+template<typename TG, typename TLExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::vector_calculus::OpDiverge<Field<TG, IOneForm, TLExpr> > >  //
+Diverge(Field<TG, IOneForm, TLExpr> const & lhs)
 {
-
-	typedef Field<IOneForm, TVL, TLExpr> TL;
-	typename TypeTraits<TL>::ConstReference lhs_;
-
-	static const int IForm = IZeroForm;
-
-	typedef TVL ValueType;
-
-	typedef typename TL::Grid Grid;
-
-	typedef Field<IForm, ValueType, vector_calculus::OpDiverge<TL> > ThisType;
-
-	Grid const & grid; // FIXME need grid detriment
-
-	Field(TL const &lhs) :
-			grid(lhs.grid), lhs_(lhs)
-	{
-	}
-
-	inline ValueType operator[](size_t s) const
-	{
-		return (grid.diverge_(lhs_, s));
-	}
-
-};
-
-template<typename TVL, typename TLExpr>
-inline Field<IZeroForm, TVL,
-		vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >           //
-Diverge(Field<IOneForm, TVL, TLExpr> const & lhs)
-{
-	return (Field<IZeroForm, TVL,
-			vector_calculus::OpDiverge<Field<IOneForm, TVL, TLExpr> > >(lhs));
-}
-template<typename TVL, typename TLExpr>
-struct Field<ITwoForm, TVL,
-		vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >
-{
-	typedef Field<IOneForm, TVL, TLExpr> TL;
-	typename TypeTraits<TL>::ConstReference lhs_;
-
-	static const int IForm = ITwoForm;
-
-	typedef TVL ValueType;
-
-	typedef Field<IForm, ValueType, vector_calculus::OpCurl<TL> > ThisType;
-
-	typedef typename TL::Grid Grid;
-
-	Grid const & grid; // FIXME need grid detriment
-
-	Field(TL const &lhs) :
-			grid(lhs.grid), lhs_(lhs)
-	{
-	}
-
-	inline ValueType operator[](size_t s) const
-	{
-		return (grid.curl_(lhs_, s));
-	}
-
-};
-
-template<typename TVL, typename TLExpr>
-inline Field<ITwoForm, TVL,
-		vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >              //
-Curl(Field<IOneForm, TVL, TLExpr> const & lhs)
-{
-	return (Field<ITwoForm, TVL,
-			vector_calculus::OpCurl<Field<IOneForm, TVL, TLExpr> > >(lhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::vector_calculus::OpDiverge<Field<TG, IOneForm, TLExpr> > >(
+			lhs));
 }
 
-template<typename TVL, typename TLExpr>
-struct Field<IOneForm, TVL,
-		vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >
+template<typename TG, typename TLExpr>
+inline Field<TG, ITwoForm,
+		_fetl_impl::vector_calculus::OpCurl<Field<TG, IOneForm, TLExpr> > >   //
+Curl(Field<TG, IOneForm, TLExpr> const & lhs)
 {
-	typedef Field<ITwoForm, TVL, TLExpr> TL;
-	typename TypeTraits<TL>::ConstReference lhs_;
-
-	static const int IForm = IOneForm;
-
-	typedef TVL ValueType;
-
-	typedef Field<IForm, ValueType, vector_calculus::OpCurl<TL> > ThisType;
-
-	typedef typename TL::Grid Grid;
-
-	Grid const & grid; // FIXME need grid detriment
-
-	Field(TL const &lhs) :
-			grid(lhs.grid), lhs_(lhs)
-	{
-	}
-
-	inline ValueType operator[](size_t s) const
-	{
-		return (grid.curl_(lhs_, s));
-	}
-
-};
-
-template<typename TVL, typename TLExpr>
-inline Field<IOneForm, TVL,
-		vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >              //
-Curl(Field<ITwoForm, TVL, TLExpr> const & lhs)
-{
-	return (Field<IOneForm, TVL,
-			vector_calculus::OpCurl<Field<ITwoForm, TVL, TLExpr> > >(lhs));
+	return (Field<TG, ITwoForm,
+			_fetl_impl::vector_calculus::OpCurl<Field<TG, IOneForm, TLExpr> > >(
+			lhs));
 }
 
-template<int IFORM_OUT, int IFORM_IN, int IPD, typename TVL, typename TLExpr>
-struct Field<IFORM_OUT, TVL,
-		vector_calculus::OpCurlPD<IPD, Field<IFORM_IN, TVL, TLExpr> > >
+template<typename TG, typename TLExpr>
+inline Field<TG, IOneForm,
+		_fetl_impl::vector_calculus::OpCurl<Field<TG, ITwoForm, TLExpr> > >   //
+Curl(Field<TG, ITwoForm, TLExpr> const & lhs)
 {
-	typedef Field<IFORM_IN, TVL, TLExpr> TL;
+	return (Field<TG, IOneForm,
+			_fetl_impl::vector_calculus::OpCurl<Field<TG, ITwoForm, TLExpr> > >(
+			lhs));
+}
+
+template<typename TG, int IFORM_OUT, int IFORM_IN, int IPD, typename TLExpr>
+struct Field<TG, IFORM_OUT,
+		_fetl_impl::vector_calculus::OpCurlPD<IPD, Field<TG, IFORM_IN, TLExpr> > >
+{
+	typedef Field<TG, IFORM_IN, TLExpr> TL;
 
 	typename TypeTraits<TL>::ConstReference lhs_;
 
 	static const int IForm = ITwoForm;
 
-	typedef TVL ValueType;
+	typedef typename TL::ValueType ValueType;
 
-	typedef Field<IFORM_OUT, ValueType, vector_calculus::OpCurlPD<IPD, TL> > ThisType;
+	typedef Field<TG, IFORM_OUT, _fetl_impl::vector_calculus::OpCurlPD<IPD, TL> > ThisType;
 
 	typedef typename TL::Grid Grid;
 
@@ -301,22 +155,24 @@ struct Field<IFORM_OUT, TVL,
 		return (lhs_.grid.curlPd_<IPD>(lhs_, s));
 	}
 };
-template<int IPD, typename TVL, typename TLExpr>
-inline Field<ITwoForm, TVL,
-		vector_calculus::OpCurlPD<IPD, Field<IOneForm, TVL, TLExpr> > >    //
-CurlPD(Field<IOneForm, TVL, TLExpr> const & lhs)
+template<typename TG, int IPD, typename TLExpr>
+inline Field<TG, ITwoForm,
+		_fetl_impl::vector_calculus::OpCurlPD<IPD, Field<TG, IOneForm, TLExpr> > >  //
+CurlPD(Field<TG, IOneForm, TLExpr> const & lhs)
 {
-	return (Field<ITwoForm, TVL,
-			vector_calculus::OpCurlPD<IPD, Field<IOneForm, TVL, TLExpr> > >(lhs));
+	return (Field<TG, ITwoForm,
+			_fetl_impl::vector_calculus::OpCurlPD<IPD,
+					Field<TG, IOneForm, TLExpr> > >(lhs));
 }
 
-template<int IPD, typename TVL, typename TLExpr>
-inline Field<IOneForm, TVL,
-		vector_calculus::OpCurlPD<IPD, Field<ITwoForm, TVL, TLExpr> > >    //
-CurlPD(Field<ITwoForm, TVL, TLExpr> const & lhs)
+template<typename TG, int IPD, typename TLExpr>
+inline Field<TG, IOneForm,
+		_fetl_impl::vector_calculus::OpCurlPD<IPD, Field<TG, ITwoForm, TLExpr> > >  //
+CurlPD(Field<TG, ITwoForm, TLExpr> const & lhs)
 {
-	return (Field<IOneForm, TVL,
-			vector_calculus::OpCurlPD<IPD, Field<ITwoForm, TVL, TLExpr> > >(lhs));
+	return (Field<TG, IOneForm,
+			_fetl_impl::vector_calculus::OpCurlPD<IPD,
+					Field<TG, ITwoForm, TLExpr> > >(lhs));
 }
 
 }

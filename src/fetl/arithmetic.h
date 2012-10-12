@@ -23,173 +23,172 @@ using namespace fetl;
 // Arithmetic
 //-----------------------------------------
 
-template<int IFORM, typename TVL, typename TLExpr> //
-inline Field<IFORM, TVL, arithmetic::OpNegative<Field<IFORM, TVL, TLExpr> > >  //
-operator -(Field<IFORM, TVL, TLExpr> const & lhs)
+template<typename TG, int IFORM, typename TLExpr> //
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpNegative<Field<TG, IFORM, TLExpr> > >     //
+operator -(Field<TG, IFORM, TLExpr> const & lhs)
 {
-	return (Field<IFORM, TVL, arithmetic::OpNegative<Field<IFORM, TVL, TLExpr> > >(
-			lhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpNegative<Field<TG, IFORM, TLExpr> > >(lhs));
 }
 
 //------------------------------------------------------------------------------------
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IFORM, typename arithmetic::OpAddition<TVL, TVR>::ValueType,
-		arithmetic::OpAddition<Field<IFORM, TVL, TLExpr>,
-				Field<IFORM, TVR, TRExpr> > >                                 //
-operator +(Field<IFORM, TVL, TLExpr> const &lhs,
-		Field<IFORM, TVR, TRExpr> const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpAddition<Field<TG, IFORM, TLExpr>,
+				Field<TG, IFORM, TRExpr> > >                                  //
+operator +(Field<TG, IFORM, TLExpr> const &lhs,
+		Field<TG, IFORM, TRExpr> const & rhs)
 {
 
-	return (Field<IFORM, typename arithmetic::OpAddition<TVL, TVR>::ValueType,
-			arithmetic::OpAddition<Field<IFORM, TVL, TLExpr>,
-					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpAddition<Field<TG, IFORM, TLExpr>,
+					Field<TG, IFORM, TRExpr> > >(lhs, rhs));
 }
 //------------------------------------------------------------------------------------
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IFORM, typename arithmetic::OpSubtraction<TVL, TVR>::ValueType,
-		arithmetic::OpSubtraction<Field<IFORM, TVL, TLExpr>,
-				Field<IFORM, TVR, TRExpr> > >                                 //
-operator -(Field<IFORM, TVL, TLExpr> const &lhs,
-		Field<IFORM, TVR, TRExpr> const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpSubtraction<Field<TG, IFORM, TLExpr>,
+				Field<TG, IFORM, TRExpr> > >                                  //
+operator -(Field<TG, IFORM, TLExpr> const &lhs,
+		Field<TG, IFORM, TRExpr> const & rhs)
 {
 
-	return (Field<IFORM,
-			typename arithmetic::OpSubtraction<TVL, TVR>::ValueType,
-			arithmetic::OpSubtraction<Field<IFORM, TVL, TLExpr>,
-					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpSubtraction<Field<TG, IFORM, TLExpr>,
+					Field<TG, IFORM, TRExpr> > >(lhs, rhs));
 }
 
 //------------------------------------------------------------------------------------
+template<typename TG, int IFORM, typename TLExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpMultiplication<Field<TG, IFORM, TLExpr>, Real> >  //
+operator *(Field<TG, IFORM, TLExpr> const &lhs, Real rhs)
+{
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpMultiplication<Field<TG, IFORM, TLExpr>,
+					Real> >(lhs, rhs));
+}
+
+template<typename TG, int IFORM, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpMultiplication<Real, Field<TG, IFORM, TRExpr> > >  //
+operator *(Real lhs, Field<TG, IFORM, TRExpr> const & rhs)
+{
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpMultiplication<Real,
+					Field<TG, IFORM, TRExpr> > >(lhs, rhs));
+}
 #define DEFINE_MULTI(_TV_)                                                                                \
-template<int IFORM, typename TVL, typename TLExpr>                                                        \
-inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, _TV_>::ValueType,                          \
-		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, _TV_> >                                   \
-operator *(Field<IFORM, TVL, TLExpr> const &lhs, _TV_ const & rhs)                                        \
+template<typename TG,int IFORM, typename TLExpr>                                                        \
+inline Field<TG,IFORM,                           \
+		_fetl_impl::arithmetic::OpMultiplication<Field<TG,IFORM,  TLExpr>, _TV_> >                                   \
+operator *(Field<TG,IFORM,  TLExpr> const &lhs, _TV_ const & rhs)                                        \
 {                                                                                                         \
-	return (Field<IFORM,                                                                                  \
-			typename arithmetic::OpMultiplication<TVL, _TV_>::ValueType,                                  \
-			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>, _TV_> >(lhs,                          \
+	return (Field<TG,IFORM,                                  \
+			_fetl_impl::arithmetic::OpMultiplication<Field<TG,IFORM,  TLExpr>, _TV_> >(lhs,                          \
 			rhs));                                                                                        \
 }                                                                                                         \
                                                                                                           \
-template<int IFORM, typename TVR, typename TRExpr>                                                        \
-inline Field<IFORM, typename arithmetic::OpMultiplication<_TV_, TVR>::ValueType,                          \
-		arithmetic::OpMultiplication<_TV_, Field<IFORM, TVR, TRExpr> > >                                  \
-operator *(_TV_ const & lhs, Field<IFORM, TVR, TRExpr> const & rhs)                                      \
+template<typename TG,int IFORM,  typename TRExpr>                                                        \
+inline Field<TG,IFORM,                           \
+		_fetl_impl::arithmetic::OpMultiplication<_TV_, Field<TG,IFORM,  TRExpr> > >                                  \
+operator *(_TV_ const & lhs, Field<TG,IFORM,  TRExpr> const & rhs)                                      \
 {                                                                                                         \
-	return (Field<IFORM,                                                                                  \
-			typename arithmetic::OpMultiplication<_TV_, TVR>::ValueType,                                  \
-			arithmetic::OpMultiplication<_TV_, Field<IFORM, TVR, TRExpr> > >(                             \
+	return (Field<TG,IFORM,                                  \
+			_fetl_impl::arithmetic::OpMultiplication<_TV_, Field<TG,IFORM,  TRExpr> > >(                             \
 			lhs, rhs));                                                                                   \
 }
 
-DEFINE_MULTI(Real)
+//DEFINE_MULTI(Real)
 DEFINE_MULTI(Complex)
 #undef  DEFINE_MULTI
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-		arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>,
-				Field<IZeroForm, TVR, TRExpr> > >                             //
-operator *(Field<IFORM, TVL, TLExpr> const &lhs,
-		Field<IZeroForm, TVR, TRExpr> const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpMultiplication<Field<TG, IFORM, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+operator *(Field<TG, IFORM, TLExpr> const &lhs,
+		Field<TG, IZeroForm, TRExpr> const & rhs)
 {
 
-	return (Field<IFORM,
-			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-			arithmetic::OpMultiplication<Field<IFORM, TVL, TLExpr>,
-					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpMultiplication<Field<TG, IFORM, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IFORM, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-		arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
-				Field<IFORM, TVR, TRExpr> > >                                 //
-operator *(Field<IZeroForm, TVL, TLExpr> const &lhs,
-		Field<IFORM, TVR, TRExpr> const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpMultiplication<Field<TG, IZeroForm, TLExpr>,
+				Field<TG, IFORM, TRExpr> > >                                  //
+operator *(Field<TG, IZeroForm, TLExpr> const &lhs,
+		Field<TG, IFORM, TRExpr> const & rhs)
 {
 
-	return (Field<IFORM,
-			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-			arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
-					Field<IFORM, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpMultiplication<
+					Field<TG, IZeroForm, TLExpr>, Field<TG, IFORM, TRExpr> > >(
+			lhs, rhs));
 }
 
-template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm,
-		typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-		arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
-				Field<IZeroForm, TVR, TRExpr> > >                             //
-operator *(Field<IZeroForm, TVL, TLExpr> const &lhs,
-		Field<IZeroForm, TVR, TRExpr> const & rhs)
+template<typename TG, typename TLExpr, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::arithmetic::OpMultiplication<Field<TG, IZeroForm, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+operator *(Field<TG, IZeroForm, TLExpr> const &lhs,
+		Field<TG, IZeroForm, TRExpr> const & rhs)
 {
 
-	return (Field<IZeroForm,
-			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-			arithmetic::OpMultiplication<Field<IZeroForm, TVL, TLExpr>,
-					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::arithmetic::OpMultiplication<
+					Field<TG, IZeroForm, TLExpr>, Field<TG, IZeroForm, TRExpr> > >(
+			lhs, rhs));
 }
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-		arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>,
-				Field<IZeroForm, TVR, TRExpr> > >                             //
-operator /(Field<IFORM, TVL, TLExpr> const &lhs,
-		Field<IZeroForm, TVR, TRExpr> const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpDivision<Field<TG, IFORM, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+operator /(Field<TG, IFORM, TLExpr> const &lhs,
+		Field<TG, IZeroForm, TRExpr> const & rhs)
 {
 
-	return (Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-			arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>,
-					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpDivision<Field<TG, IFORM, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
-template<int IFORM, typename TVL, typename TLExpr, typename TVR>
-inline Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-		arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>, TVR> >              //
-operator /(Field<IFORM, TVL, TLExpr> const &lhs, TVR const & rhs)
+template<typename TG, int IFORM, typename TLExpr, typename TVR>
+inline Field<TG, IFORM,
+		_fetl_impl::arithmetic::OpDivision<Field<TG, IFORM, TLExpr>, TVR> >   //
+operator /(Field<TG, IFORM, TLExpr> const &lhs, TVR const & rhs)
 {
-	return (Field<IFORM, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-			arithmetic::OpDivision<Field<IFORM, TVL, TLExpr>, TVR> >(lhs, rhs));
+	return (Field<TG, IFORM,
+			_fetl_impl::arithmetic::OpDivision<Field<TG, IFORM, TLExpr>, TVR> >(
+			lhs, rhs));
 }
-template<typename TVL, typename TVR, typename TRExpr>
-inline Field<IZeroForm, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-		arithmetic::OpDivision<TVL, Field<IZeroForm, TVR, TRExpr> > >         //
-operator /(TVL const & lhs, Field<IZeroForm, TVR, TRExpr> const &rhs)
+template<typename TG, typename TVL, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::arithmetic::OpDivision<TVL, Field<TG, IZeroForm, TRExpr> > >  //
+operator /(TVL const & lhs, Field<TG, IZeroForm, TRExpr> const &rhs)
 {
-	return (Field<IZeroForm,
-			typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-			arithmetic::OpDivision<TVL, Field<IZeroForm, TVR, TRExpr> > >(lhs,
-			rhs));
+	return (Field<TG, IZeroForm,
+			_fetl_impl::arithmetic::OpDivision<TVL, Field<TG, IZeroForm, TRExpr> > >(
+			lhs, rhs));
 }
 
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline Field<IZeroForm, typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-		arithmetic::OpDivision<nTuple<N, TVL, TLExpr>,
-				Field<IZeroForm, TVR, TRExpr> > >             //
-operator /(nTuple<N, TVL, TLExpr> const & lhs,
-		Field<IZeroForm, TVR, TRExpr> const &rhs)
+template<int N, typename TLExpr, typename TG, typename TRExpr>
+inline Field<TG, IZeroForm,
+		_fetl_impl::arithmetic::OpDivision<nTuple<N, TLExpr>,
+				Field<TG, IZeroForm, TRExpr> > >                              //
+operator /(nTuple<N, TLExpr> const & lhs,
+		Field<TG, IZeroForm, TRExpr> const &rhs)
 {
-	return (Field<IZeroForm,
-			typename arithmetic::OpDivision<TVL, TVR>::ValueType,
-			arithmetic::OpDivision<nTuple<N, TVL, TLExpr>,
-					Field<IZeroForm, TVR, TRExpr> > >(lhs, rhs));
-}
-//
-//
-//
-
-//------------------------------------------------------------------------------------
-
-template<int IFORM, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-typename arithmetic::OpMultiplication<TVL, TVR>::ValueType //
-InnerProduct(Field<IFORM, TVL, TLExpr> const & lhs,
-		Field<IFORM, TVR, TRExpr> const & rhs)
-{
-	typedef typename arithmetic::OpMultiplication<TVL, TVR>::ValueType ValueType;
-	return (lhs.grid.InnerProduct(lhs, rhs));
-
+	return (Field<TG, IZeroForm,
+			_fetl_impl::arithmetic::OpDivision<nTuple<N, TLExpr>,
+					Field<TG, IZeroForm, TRExpr> > >(lhs, rhs));
 }
 
 //} // namespace fetl

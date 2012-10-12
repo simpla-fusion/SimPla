@@ -66,26 +66,26 @@ public:
 };
 
 typedef testing::Types< //
-		nTuple<3, double> //
-		, nTuple<3, int> //
-		, nTuple<3, Complex> //
-		, nTuple<10, double> //
+		nTuple<3, double>
+		, nTuple<3, int>
+		, nTuple<3, Complex>
+		, nTuple<10, double>
 		, nTuple<20, double>
 
 > MyTypes;
 
 TYPED_TEST_CASE(TestNtuple, MyTypes);
-//
-//TYPED_TEST(TestNtuple,Assign_Scalar){
-//{
-//
-//	TestFixture::vD = TestFixture::aA;
-//
-//	for (int i = 0; i < TestFixture::NDIM; ++i)
-//	{
-//		EXPECT_DOUBLE_EQ(_real(TestFixture::aA[i]), _real(TestFixture::vD[i]) );
-//	}
-//}}
+
+TYPED_TEST(TestNtuple,Assign_Scalar){
+{
+
+	TestFixture::vD = TestFixture::aA;
+
+	for (int i = 0; i < TestFixture::NDIM; ++i)
+	{
+		EXPECT_DOUBLE_EQ(_real(TestFixture::aA[i]), _real(TestFixture::vD[i]) );
+	}
+}}
 
 TYPED_TEST(TestNtuple,Assign_Array){
 {
@@ -111,7 +111,6 @@ TYPED_TEST(TestNtuple, Dot){
 
 	for (int i = 0; i < TestFixture::NDIM; ++i)
 	{
-
 		res += TestFixture::vA[i] * TestFixture::vB[i];
 	}
 	EXPECT_DOUBLE_EQ(_real(res),_real( Dot( TestFixture::vA, TestFixture::vB)));
@@ -138,13 +137,11 @@ TYPED_TEST(TestNtuple, Cross){
 
 TYPED_TEST(TestNtuple, Arithmetic){
 {
-
 	TestFixture::vD = EQUATION(vA ,vB ,vC);
 	for (int i = 0; i < TestFixture::NDIM; ++i)
 	{
 		EXPECT_DOUBLE_EQ(_real(EQUATION(vA[i] ,vB[i] ,vC[i])),_real( TestFixture::vD[i]));
 	}
-
 }
 }
 

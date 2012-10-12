@@ -71,6 +71,7 @@ template<int N> struct Int2Type
 	static const int value = N;
 };
 
+
 } //namespace simpla
 
 //#ifndef DONOT_USE_TR1

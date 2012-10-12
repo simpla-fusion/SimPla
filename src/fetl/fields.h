@@ -20,7 +20,6 @@
 
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
-#include "primitives/typetraits.h"
 #include "engine/object.h"
 
 namespace simpla
@@ -37,8 +36,7 @@ namespace fetl
  *   All specific calculus are defined in "Grid".
  *
  */
-
-template<int IFORM, typename TV, typename TG>
+template<typename TG, int IFORM, typename TV>
 struct Field: public Object
 {
 public:
@@ -48,11 +46,9 @@ public:
 
 	static const int IForm = IFORM;
 
-	typedef Field<IForm, ValueType, Grid> ThisType;
+	typedef Field<Grid, IForm, ValueType> ThisType;
 
 	typedef ThisType const &ConstReference;
-
-	typedef typename ElementTypeTraits<ThisType>::Type ElementType;
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 
@@ -60,7 +56,7 @@ public:
 
 	Field(Grid const & pgrid) :
 			Object(sizeof(ValueType), "H5T_NATIVE_DOUBLE",
-					pgrid.get_num_of_elements(IFORM)), grid(pgrid)
+					pgrid.get_num_of_elements(IForm)), grid(pgrid)
 	{
 	}
 
@@ -70,14 +66,14 @@ public:
 
 // Interpolation  ----------------------------------------------------------------------
 
-	inline ElementType operator()(RVec3 const & x)
-	{
-		return (grid.Gather(*this, x));
-	}
-	inline void Add(RVec3 const & x, ElementType const & v)
-	{
-		grid.Scatter(*this, x, v);
-	}
+//	inline ValueType operator()(RVec3 const & x)
+//	{
+//		return (grid.Gather(*this, x));
+//	}
+//	inline void Add(RVec3 const & x, ValueType const & v)
+//	{
+//		grid.Scatter(*this, x, v);
+//	}
 
 // Assignment --------
 
@@ -95,21 +91,21 @@ public:
 		return (*this);
 	}
 
-	template<typename TRV, typename TR>
-	inline ThisType & operator =(Field<IForm, TRV, TR> const &rhs)
+	template<typename TR>
+	inline ThisType & operator =(Field<Grid, IForm, TR> const &rhs)
 	{
 		grid.Assign(*this, rhs);
 		return (*this);
 	}
 
-	template<typename TRV, typename TR>
-	inline ThisType & operator +=(Field<IForm, TRV, TR> const &rhs)
+	template<typename TR>
+	inline ThisType & operator +=(Field<Grid, IForm, TR> const &rhs)
 	{
 		*this = *this + rhs;
 		return (*this);
 	}
-	template<typename TRV, typename TR>
-	inline ThisType & operator -=(Field<IForm, TRV, TR> const &rhs)
+	template<typename TR>
+	inline ThisType & operator -=(Field<Grid, IForm, TR> const &rhs)
 	{
 		*this = *this - rhs;
 		return (*this);
@@ -163,22 +159,70 @@ public:
 		return (Object::value<ValueType>(s));
 	}
 
-	static const Field<IFORM, TV, Int2Type<0> > ZERO;
-	static const Field<IFORM, TV, Int2Type<1> > ONE;
+	static const Field<TG, IForm, Int2Type<0> > ZERO;
+	static const Field<TG, IForm, Int2Type<1> > ONE;
 
 };
-template<int IFORM, typename TV, typename TG>
-const Field<IFORM, TV, Int2Type<0> > Field<IFORM, TV, TG>::ZERO;
-template<int IFORM, typename TV, typename TG>
-const Field<IFORM, TV, Int2Type<1> > Field<IFORM, TV, TG>::ONE;
+
+//------------------------------------------------------------------------------------------
+template<typename TG, int IFORM, int IFORM2, typename TLExpr,
+		template<typename > class TOP>
+struct Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > >
+{
+	typedef Field<TG, IFORM2, TLExpr> TL;
+
+	typedef Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > > ThisType;
+
+	typedef typename Field<TG, IFORM2, TLExpr>::ValueType ValueType;
+
+	typedef TG Grid;
+
+	static const int IForm = IFORM;
+
+	typename simpla::TypeTraits<TL>::ConstReference lhs_;
+
+	Grid const &grid;
+
+	Field(TL const &lhs) :
+			grid(lhs.grid), lhs_(lhs)
+	{
+	}
+
+	inline ValueType operator[](size_t s) const
+	{
+		return grid.eval(*this, s);
+	}
+
+};
+
+template<typename TG, int IFORM, typename TL, typename TR, template<typename,
+		typename > class TOP>
+struct Field<TG, IFORM, TOP<TL, TR> >
+{
+
+	typedef Field<TG, IFORM, TOP<TL, TR> > ThisType;
+
+	typedef typename TOP<TL, TR>::ValueType ValueType;
+
+	typename simpla::TypeTraits<TL>::ConstReference lhs_;
+	typename simpla::TypeTraits<TR>::ConstReference rhs_;
+
+	typedef TG Grid;
+	Grid const & grid;
+
+	Field(TL const &lhs, TR const & rhs) :
+			grid(FieldOpTriats<TL, TR>::grid(lhs, rhs)), lhs_(lhs), rhs_(rhs)
+	{
+	}
+
+	inline ValueType operator[](size_t s) const
+	{
+		return grid.eval(*this, s);
+	}
+
+};
 
 } // namespace fetl
 
-template<int IFORM, typename TV, typename TG>
-struct TypeTraits<fetl::Field<IFORM, TV, TG> >
-{
-	typedef fetl::Field<IFORM, TV, TG> & Reference;
-	typedef const fetl::Field<IFORM, TV, TG> & ConstReference;
-};
 } //namespace simpla
 #endif  // FETL_DETAIL_FIELD_H_

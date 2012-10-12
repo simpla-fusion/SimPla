@@ -23,6 +23,7 @@
 
 namespace simpla
 {
+
 namespace fetl
 {
 
@@ -41,60 +42,119 @@ namespace fetl
  *
  * */
 
-template<int N, typename T, typename TExpr = NullType> struct nTuple;
+template<int N, typename T> struct nTuple;
 
-typedef nTuple<THREE, Real, NullType> Vec3;
-typedef nTuple<THREE, nTuple<THREE, Real, NullType>, NullType> Tensor3;
-typedef nTuple<FOUR, nTuple<FOUR, Real, NullType>, NullType> Tensor4;
+typedef nTuple<THREE, Real> Vec3;
+typedef nTuple<THREE, nTuple<THREE, Real> > Tensor3;
+typedef nTuple<FOUR, nTuple<FOUR, Real> > Tensor4;
 
-typedef nTuple<THREE, Integral, NullType> IVec3;
-typedef nTuple<THREE, Real, NullType> RVec3;
-typedef nTuple<THREE, Complex, NullType> CVec3;
+typedef nTuple<THREE, Integral> IVec3;
+typedef nTuple<THREE, Real> RVec3;
+typedef nTuple<THREE, Complex> CVec3;
 
-typedef nTuple<THREE, nTuple<THREE, Real, NullType>, NullType> RTensor3;
-typedef nTuple<THREE, nTuple<THREE, Complex, NullType>, NullType> CTensor3;
+typedef nTuple<THREE, nTuple<THREE, Real> > RTensor3;
+typedef nTuple<THREE, nTuple<THREE, Complex> > CTensor3;
 
-typedef nTuple<FOUR, nTuple<FOUR, Real, NullType>, NullType> RTensor4;
-typedef nTuple<FOUR, nTuple<FOUR, Complex, NullType>, NullType> CTensor4;
+typedef nTuple<FOUR, nTuple<FOUR, Real> > RTensor4;
+typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 
-#define DEFINE_NTUPLE_OP(_TV_ )                                                                  \
-template<int N, typename TVL, typename TLExpr,                                                   \
-		template<typename, typename > class TOP>                                                 \
-struct TypeOpTraits<nTuple<N, TVL, TLExpr>, _TV_, TOP>                                           \
-{                                                                                                \
-	typedef nTuple<N, typename TOP<TVL, _TV_>::ValueType> ValueType;                             \
-};                                                                                               \
-template<int N, typename TRExpr, typename TVR,                                                   \
-		template<typename, typename > class TOP>                                                 \
-struct TypeOpTraits<_TV_, nTuple<N, TVR, TRExpr>, TOP>                                           \
-{                                                                                                \
-	typedef nTuple<N, typename TypeOpTraits<_TV_, TVR, TOP>::ValueType> ValueType;               \
-};
+namespace _fetl_impl
+{
+template<typename, typename > struct TypeConvertTraits;
+
+
+
+#define DEFINE_NTUPLE_OP(_TV_ )                                                                         \
+template<int N, typename TE>                                                                            \
+struct TypeConvertTraits<nTuple<N, TE>, _TV_>                                                        \
+{                                                                                                       \
+	typedef nTuple<N,                                                                                   \
+			typename TypeConvertTraits<_TV_,                                                         \
+					typename nTuple<N, TE>::ValueType>::ValueType> ValueType;                           \
+};                                                                                                      \
+                                                                                                        \
+template<int N, typename TE>                                                                            \
+struct TypeConvertTraits<_TV_, nTuple<N, TE> >                                                       \
+{                                                                                                       \
+	typedef nTuple<N,                                                                                   \
+			typename TypeConvertTraits<typename nTuple<N, TE>::ValueType,                               \
+			_TV_>::ValueType> ValueType;                                                     \
+};                                                                                                      \
+
 DEFINE_NTUPLE_OP(int)
 DEFINE_NTUPLE_OP(Real)
 DEFINE_NTUPLE_OP(Complex)
 //DEFINE_NTUPLE_OP(RVec3)
 //DEFINE_NTUPLE_OP(CVec3)
 #undef DEFINE_NTUPLE_OP
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr,
-		template<typename, typename > class TOP>
-struct TypeOpTraits<nTuple<N, TVL, TLExpr>, nTuple<N, TVR, TRExpr>, TOP>
+
+template<int N, typename TLExpr, typename TRExpr>
+struct TypeConvertTraits<nTuple<N, TLExpr>, nTuple<N, TRExpr> >
 {
-	typedef nTuple<N, typename TypeOpTraits<TVL, TVR, TOP>::ValueType> ValueType;
+	typedef nTuple<N,
+			typename TypeConvertTraits<typename nTuple<N, TLExpr>::ValueType,
+					typename nTuple<N, TRExpr>::ValueType>::ValueType> ValueType;
 };
 
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-struct TypeOpTraits<nTuple<N, TVL, TLExpr>, nTuple<N, TVR, TRExpr>,
-		vector_calculus::OpDot>
+template<typename T> inline typename T::ValueType eval(T const & nt, size_t s)
 {
-	typedef typename TypeOpTraits<TVL, TVR, arithmetic::OpMultiplication>::ValueType ValueType;
-};
+	return nt[s];
+}
 
+template<typename T> inline //
+T mapto_(T const & expr, size_t s)
+{
+	return expr;
+}
+template<int N, typename T> inline //
+typename nTuple<N, T>::ValueType //
+mapto_(nTuple<N, T> const & expr, size_t s)
+{
+	return expr[s];
+}
+template<int N, typename TL> inline //
+typename nTuple<N, _fetl_impl::arithmetic::OpNegative<TL> >::ValueType //
+eval(nTuple<N, _fetl_impl::arithmetic::OpNegative<TL> > const & expr, size_t s)
+{
+	return -mapto_(expr.lhs_, s);
+}
+template<int N, typename TL, typename TR> inline //
+typename nTuple<N, _fetl_impl::arithmetic::OpAddition<TL, TR> >::ValueType //
+eval(nTuple<N, _fetl_impl::arithmetic::OpAddition<TL, TR> > const & expr,
+		size_t s)
+{
+	return mapto_(expr.lhs_, s) + mapto_(expr.rhs_, s);
+}
+template<int N, typename TL, typename TR> inline //
+typename nTuple<N, _fetl_impl::arithmetic::OpSubtraction<TL, TR> >::ValueType //
+eval(nTuple<N, _fetl_impl::arithmetic::OpSubtraction<TL, TR> > const & expr,
+		size_t s)
+{
+	return mapto_(expr.lhs_, s) - mapto_(expr.rhs_, s);
+}
+template<int N, typename TL, typename TR> inline //
+typename nTuple<N, _fetl_impl::arithmetic::OpMultiplication<TL, TR> >::ValueType //
+eval(nTuple<N, _fetl_impl::arithmetic::OpMultiplication<TL, TR> > const & expr,
+		size_t s)
+{
+	return mapto_(expr.lhs_, s) * mapto_(expr.rhs_, s);
+}
+template<int N, typename TL, typename TR> inline //
+typename nTuple<N, _fetl_impl::arithmetic::OpDivision<TL, TR> >::ValueType //
+eval(nTuple<N, _fetl_impl::arithmetic::OpDivision<TL, TR> > const & expr,
+		size_t s)
+{
+	return mapto_(expr.lhs_, s) / mapto_(expr.rhs_, s);
+}
+
+} //namespace _fetl_impl
+
+//--------------------------------------------------------------------------------------------
 template<int N, typename T>
-struct nTuple<N, T, NullType>
+struct nTuple
 {
 	static const int NDIM = N;
-	typedef nTuple<NDIM, T, NullType> ThisType;
+	typedef nTuple<NDIM, T> ThisType;
 	typedef const ThisType & ConstReference;
 	typedef T ValueType;
 
@@ -120,8 +180,8 @@ struct nTuple<N, T, NullType>
 		}
 	}
 
-	template<typename TR, typename TExpr>
-	inline bool operator ==(nTuple<NDIM, TR, TExpr> const &rhs)
+	template<typename TExpr>
+	inline bool operator ==(nTuple<NDIM, TExpr> const &rhs)
 	{
 		bool res = true;
 		for (int i = 0; i < NDIM; ++i)
@@ -131,8 +191,8 @@ struct nTuple<N, T, NullType>
 		return (res);
 	}
 
-	template<typename TR, typename TExpr>
-	inline bool operator !=(nTuple<NDIM, TR, TExpr> const &rhs)
+	template<typename TExpr>
+	inline bool operator !=(nTuple<NDIM, TExpr> const &rhs)
 	{
 		return (!(*this == rhs));
 	}
@@ -155,8 +215,8 @@ struct nTuple<N, T, NullType>
 		}
 		return (*this);
 	}
-	template<typename TR, typename TExpr>
-	inline ThisType & operator =(nTuple<NDIM, TR, TExpr> const &rhs)
+	template<typename TExpr>
+	inline ThisType & operator =(nTuple<NDIM, TExpr> const &rhs)
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{
@@ -194,208 +254,99 @@ struct nTuple<N, T, NullType>
 	}
 };
 
-template<int N, typename T>
-struct TypeTraits<nTuple<N, T, NullType> >
-{
-	typedef nTuple<N, T, NullType> & Reference;
-	typedef const nTuple<N, T, NullType>& ConstReference;
-};
-
 #define IMPLICIT_TYPE_CONVERT                                       \
-operator nTuple<NDIM,ValueType,NullType>()                                    \
+operator nTuple<NDIM,ValueType >()                          \
 {                                                                   \
-	nTuple<NDIM, ValueType, NullType> res;                                    \
-	for (int s = 0; s < NDIM; ++s)                                     \
+	nTuple<NDIM, ValueType> res;                                    \
+	for (int s = 0; s < NDIM; ++s)                                  \
 	{                                                               \
 		res[s] = operator[](s);                                     \
                                                                     \
 	}                                                               \
 	return res;                                                     \
-}                                                                   \
+}
 
-template<int N, typename TV, typename TL, template<typename > class TOP>
-struct nTuple<N, TV, TOP<nTuple<N, TV, TL> > >
+template<int N, typename TL, template<typename > class TOP>
+struct nTuple<N, TOP<nTuple<N, TL> > >
 {
-	typedef nTuple<N, TV, TOP<nTuple<N, TV, TL> > > ThisType;
-	static const int NDIM = N;
-	typedef TV ValueType;
-	typedef const ThisType ConstReference;
-	typename nTuple<N, TV, TL>::ConstReference lhs_;
+	typedef nTuple<N, TOP<nTuple<N, TL> > > ThisType;
 
-	nTuple(nTuple<N, TV, TL> const & lhs) :
+	static const int NDIM = N;
+
+	typedef typename TOP<nTuple<N, TL> >::ValueType::ValueType ValueType;
+
+	typename TypeTraits<nTuple<N, TL> >::ConstReference lhs_;
+
+	nTuple(nTuple<N, TL> const & lhs) :
 			lhs_(lhs)
 	{
 	}
 
 	inline ValueType operator[](size_t const & s) const
 	{
-		return TOP<TV>::eval(lhs_[s]);
+		return _fetl_impl::eval(*this, s);
 	}
 
 	IMPLICIT_TYPE_CONVERT
 };
 
-template<int N, typename TV, typename TL> //
-inline nTuple<N, TV, arithmetic::OpNegative<nTuple<N, TV, TL> > >             //
-operator -(nTuple<N, TV, TL> const & lhs)
+template<int N, typename TL, typename TR,
+		template<typename, typename > class TOP>
+struct nTuple<N, TOP<TL, TR> >
 {
-	return (nTuple<N, TV, arithmetic::OpNegative<nTuple<N, TV, TL> > >(lhs));
+	typedef typename TOP<TL, TR>::ValueType::ValueType ValueType;
+
+	static const int NDIM = N;
+
+	typename simpla::TypeTraits<TL>::ConstReference lhs_;
+	typename simpla::TypeTraits<TR>::ConstReference rhs_;
+
+	nTuple(TL const & lhs, TR const & rhs) :
+			lhs_(lhs), rhs_(rhs)
+	{
+	}
+
+	inline ValueType operator[](size_t s) const
+	{
+		return _fetl_impl::eval(*this, s);
+	}
+
+	IMPLICIT_TYPE_CONVERT
+};
+
+template<int N, typename TL> //
+inline nTuple<N, _fetl_impl::arithmetic::OpNegative<nTuple<N, TL> > >         //
+operator -(nTuple<N, TL> const & lhs)
+{
+	return (nTuple<N, _fetl_impl::arithmetic::OpNegative<nTuple<N, TL> > >(lhs));
 }
 
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr,
-		template<typename, typename > class TOP>
-struct nTuple<N, typename TOP<TVL, TVR>::ValueType,
-		TOP<nTuple<N, TVL, TLExpr>, nTuple<N, TVR, TRExpr> > >
-{
-	typedef typename TOP<TVL, TVR>::ValueType ValueType;
+#define DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_,_OPNAME_,_TYPE_)                                \
+template<int N, typename TExpr>                                                             \
+inline nTuple<N, _fetl_impl::arithmetic::_OPNAME_<_TYPE_, nTuple<N, TExpr> > >                          \
+_OP_(_TYPE_  const & lhs, nTuple<N, TExpr> const &rhs)                                      \
+{                                                            \
+	return nTuple<N, _fetl_impl::arithmetic::_OPNAME_<_TYPE_, nTuple<N, TExpr> > >(lhs, rhs);           \
+}                                                                                           \
+                                                                                            \
+template<int N, typename TExpr>                                                             \
+inline nTuple<N, _fetl_impl::arithmetic::_OPNAME_<nTuple<N, TExpr>, _TYPE_> >                           \
+_OP_(nTuple<N, TExpr> const & lhs, _TYPE_ const & rhs)                                      \
+{                                                                                         \
+	return nTuple<N, _fetl_impl::arithmetic::_OPNAME_<nTuple<N, TExpr>, _TYPE_> >(lhs, rhs);            \
+}
 
-	static const int NDIM = N;
-
-	typedef nTuple<N, TVL, TLExpr> TL;
-	typedef nTuple<N, TVR, TRExpr> TR;
-	typename TypeTraits<nTuple<N, TVL, TLExpr> >::ConstReference lhs_;
-	typename TypeTraits<nTuple<N, TVR, TRExpr> >::ConstReference rhs_;
-
-	nTuple(TL const & lhs, TR const & rhs) :
-			lhs_(lhs), rhs_(rhs)
-	{
-	}
-
-	inline ValueType operator[](size_t s) const
-	{
-		return TOP<TVL, TVR>::eval(lhs_[s], rhs_[s]);
-	}
-
-	IMPLICIT_TYPE_CONVERT
-};
-
-template<int N, typename TVL, typename TLExpr, typename TVR, template<typename,
-		typename > class TOP>
-struct nTuple<N, typename TOP<TVL, TVR>::ValueType,
-		TOP<nTuple<N, TVL, TLExpr>, TVR> >
-{
-
-	static const int NDIM = N;
-
-	typedef typename TOP<TVL, TVR>::ValueType ValueType;
-
-	typedef nTuple<N, TVL, TLExpr> TL;
-	typedef TVR TR;
-	typename TypeTraits<nTuple<N, TVL, TLExpr> >::ConstReference lhs_;
-	TVR rhs_;
-	nTuple(TL const & lhs, TR const & rhs) :
-			lhs_(lhs), rhs_(rhs)
-	{
-	}
-	inline ValueType operator[](size_t s) const
-	{
-		return TOP<TVL, TVR>::eval(lhs_[s], rhs_);
-	}
-
-	IMPLICIT_TYPE_CONVERT
-};
-
-template<typename TVL, int N, typename TVR, typename TRExpr, template<typename,
-		typename > class TOP>
-struct nTuple<N, typename TOP<TVL, TVR>::ValueType,
-		TOP<TVL, nTuple<N, TVR, TRExpr> > >
-{
-	static const int NDIM = N;
-
-	typedef typename TOP<TVL, TVR>::ValueType ValueType;
-
-	typedef TVL TL;
-	typedef nTuple<N, TVR, TRExpr> TR;
-
-	TVL lhs_;
-	typename TypeTraits<nTuple<N, TVR, TRExpr> >::ConstReference rhs_;
-
-	nTuple(TL const & lhs, TR const & rhs) :
-			lhs_(lhs), rhs_(rhs)
-	{
-	}
-	inline ValueType operator[](size_t s) const
-	{
-		return TOP<TVL, TVR>::eval(lhs_, rhs_[s]);
-	}
-	IMPLICIT_TYPE_CONVERT
-};
-
-#define DECLARE_NTUPLE_ARITHMETIC(_OP_,_OP_NAME_)                                           \
-                                                                                                       \
-                                                                                                       \
-template<int N, typename TVL, typename TLExpr, typename TVR, typename TRExpr>                          \
-inline nTuple<N, typename arithmetic::_OP_NAME_<TVL, TVR>::ValueType,                           \
-arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, nTuple<N, TVR, TRExpr> > >                                                        \
-_OP_(	nTuple<N, TVL, TLExpr> const &lhs, nTuple<N, TVR, TRExpr> const & rhs)                     \
-{                                                                                                      \
-                                                                                                       \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<TVL, TVR>::ValueType,                                \
-			arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, nTuple<N, TVR, TRExpr> > >(lhs, rhs));                                        \
-}                                                                                                      \
-template<int N, typename TVR, typename TRExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<Real, TVR>::ValueType,                          \
- arithmetic::_OP_NAME_<Real, nTuple<N, TVR, TRExpr> > >                             \
-_OP_(	Real const & lhs, nTuple<N, TVR, TRExpr> const &rhs)                                       \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<Real, TVR>::ValueType,                               \
-			 arithmetic::_OP_NAME_<Real, nTuple<N, TVR, TRExpr> > >(                        \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-template<int N, typename TVR, typename TRExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<Complex, TVR>::ValueType,                       \
-arithmetic::_OP_NAME_<Complex, nTuple<N, TVR, TRExpr> > >                          \
-_OP_(	Complex const & lhs, nTuple<N, TVR, TRExpr> const &rhs)                                    \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<Complex, TVR>::ValueType,                            \
-			  arithmetic::_OP_NAME_<Complex, nTuple<N, TVR, TRExpr> > >(                     \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-template<int N, typename TVR, typename TRExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<int, TVR>::ValueType,                           \
-		  arithmetic::_OP_NAME_<int, nTuple<N, TVR, TRExpr> > >                              \
-_OP_(	int const & lhs, nTuple<N, TVR, TRExpr> const &rhs)                                        \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<int, TVR>::ValueType,                                \
-			  arithmetic::_OP_NAME_<int, nTuple<N, TVR, TRExpr> > >(                         \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-                                                                                                       \
-template<int N, typename TVL, typename TLExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<TVL, int>::ValueType,                           \
-		  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, int > >                              \
-_OP_(	nTuple<N, TVL, TLExpr> const & lhs, int const &rhs)                                        \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<TVL, int>::ValueType,                                \
-			  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, int > >(                         \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-template<int N, typename TVL, typename TLExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<TVL, Real>::ValueType,                          \
-		  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, Real > >                             \
-_OP_(	nTuple<N, TVL, TLExpr> const & lhs, Real const &rhs)                                       \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<TVL, Real>::ValueType,                               \
-			  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, Real > >(                        \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-template<int N, typename TVL, typename TLExpr>                                                         \
-inline nTuple<N, typename arithmetic::_OP_NAME_<TVL, Complex>::ValueType,                       \
-		  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, Complex > >                          \
-_OP_(	nTuple<N, TVL, TLExpr> const & lhs, Complex const &rhs)                                    \
-{                                                                                                      \
-	return (nTuple<N,                                                                                  \
-			typename arithmetic::_OP_NAME_<TVL, Complex>::ValueType,                            \
-			  arithmetic::_OP_NAME_<nTuple<N, TVL, TLExpr>, Complex > >(                     \
-			lhs, rhs));                                                                                \
-}                                                                                                      \
-
+#define DECLARE_NTUPLE_ARITHMETIC(_OP_,_OPNAME_)                                            \
+                                                                                            \
+template<int N, typename TLExpr, typename TRExpr>                                           \
+inline nTuple<N, _fetl_impl::arithmetic::_OPNAME_<nTuple<N, TLExpr>, nTuple<N, TRExpr> > >              \
+_OP_(nTuple<N, TLExpr> const &lhs, nTuple<N, TRExpr> const & rhs)                           \
+{                                                                                           \
+return (nTuple<N,_fetl_impl::arithmetic::_OPNAME_<nTuple<N, TLExpr>, nTuple<N, TRExpr> > >(lhs,	rhs));  \
+}                                                                                           \
+DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, int)                                         \
+DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, Real)                                        \
+DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, Complex)                                     \
 
 DECLARE_NTUPLE_ARITHMETIC(operator*, OpMultiplication);
 DECLARE_NTUPLE_ARITHMETIC(operator/, OpDivision);
@@ -403,52 +354,19 @@ DECLARE_NTUPLE_ARITHMETIC(operator+, OpAddition);
 DECLARE_NTUPLE_ARITHMETIC(operator-, OpSubtraction);
 
 #undef DECLARE_NTUPLE_ARITHMETIC
+#undef DECLARE_NTUPLE_ARITHMETIC_TYPE
 
-//template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-//struct nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-//		vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
-//				nTuple<THREE, TVR, TRExpr> > >
-//{
-//	static const int NDIM = THREE;
-//	typedef typename arithmetic::OpMultiplication<TVL, TVR>::ValueType ValueType;
-//
-//	typedef nTuple<NDIM, TVL, TLExpr> TL;
-//	typedef nTuple<NDIM, TVR, TRExpr> TR;
-//	typename nTuple<NDIM, TVL, TLExpr>::ConstReference lhs_;
-//	typename nTuple<NDIM, TVR, TRExpr>::ConstReference rhs_;
-//
-//	nTuple(TL const & lhs, TR const & rhs) :
-//			lhs_(lhs), rhs_(rhs)
-//	{
-//	}
-//	inline ValueType operator[](size_t s) const
-//
-//	{
-//		return (lhs_[(s + 1) % 3] * rhs_[(s + 2) % 3]
-//				- lhs_[(s + 2) % 3] * rhs_[(s + 1) % 3]);
-//	}
-//
-//	IMPLICIT_TYPE_CONVERT
-//};
-//template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-//inline nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-//		vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
-//				nTuple<THREE, TVR, TRExpr> > >                                //
-//Cross(nTuple<THREE, TVL, TLExpr> const &lhs,
-//		nTuple<THREE, TVR, TRExpr> const & rhs)
-//{
-//	return (nTuple<THREE,
-//			typename arithmetic::OpMultiplication<TVL, TVR>::ValueType,
-//			vector_calculus::OpCross<nTuple<THREE, TVL, TLExpr>,
-//					nTuple<THREE, TVR, TRExpr> > >(lhs, rhs));
-//}
-
-template<typename TVL, typename TLExpr, typename TVR, typename TRExpr>
-inline nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType>  //
-Cross(nTuple<THREE, TVL, TLExpr> const &lhs,
-		nTuple<THREE, TVR, TRExpr> const & rhs)
+template<typename TLExpr, typename TRExpr>
+inline nTuple<THREE,
+		typename _fetl_impl::TypeConvertTraits<
+				typename nTuple<THREE, TLExpr>::ValueType,
+				typename nTuple<THREE, TRExpr>::ValueType>::ValueType>        //
+Cross(nTuple<THREE, TLExpr> const &lhs, nTuple<THREE, TRExpr> const & rhs)
 {
-	nTuple<THREE, typename arithmetic::OpMultiplication<TVL, TVR>::ValueType> res =
+	nTuple<THREE,
+			typename _fetl_impl::TypeConvertTraits<
+					typename nTuple<THREE, TLExpr>::ValueType,
+					typename nTuple<THREE, TRExpr>::ValueType>::ValueType> res =
 	{
 
 	lhs[1] * rhs[2] - lhs[2] * rhs[1],
@@ -461,12 +379,14 @@ Cross(nTuple<THREE, TVL, TLExpr> const &lhs,
 	return res;
 }
 
-template<int N, typename TVL, typename TL, typename TVR, typename TR>
-inline typename arithmetic::OpMultiplication<TVL, TVR>::ValueType //
-Dot(nTuple<N, TVL, TL> const &lhs, nTuple<N, TVR, TR> const & rhs)
+template<int N, typename TL, typename TR>
+inline typename _fetl_impl::TypeConvertTraits<typename nTuple<N, TL>::ValueType,
+		typename nTuple<N, TR>::ValueType>::ValueType Dot(
+		nTuple<N, TL> const &lhs, nTuple<N, TR> const & rhs)
 {
-	typedef typename arithmetic::OpMultiplication<TVL, TVR>::ValueType ValueType;
-	ValueType res = 0.0;
+	typename _fetl_impl::TypeConvertTraits<typename nTuple<N, TL>::ValueType,
+			typename nTuple<N, TR>::ValueType>::ValueType res = 0.0;
+
 	for (int i = 0; i < N; ++i)
 	{
 		res += lhs[i] * rhs[i];
@@ -474,45 +394,17 @@ Dot(nTuple<N, TVL, TL> const &lhs, nTuple<N, TVR, TR> const & rhs)
 	return (res);
 }
 
-template<typename TVL, typename TL, typename TVR, typename TR>
-inline typename arithmetic::OpMultiplication<TVL, TVR>::ValueType //
-Dot(nTuple<THREE, TVL, TL> const &lhs, nTuple<THREE, TVR, TR> const & rhs)
+template<typename TL, typename TR>
+inline typename _fetl_impl::TypeConvertTraits<
+		typename nTuple<THREE, TL>::ValueType,
+		typename nTuple<THREE, TR>::ValueType>::ValueType //
+Dot(nTuple<THREE, TL> const &lhs, nTuple<THREE, TR> const & rhs)
 {
 	return (lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2]);
 }
 
-namespace vector_calculus
-{
-template<int N, typename TL, typename TLExpr, typename TR, typename TRExpr>
-struct OpDot<nTuple<N, TL, TLExpr>, nTuple<N, TR, TRExpr> >
-{
-	typedef typename arithmetic::OpMultiplication<TL, TR>::ValueType ValueType;
-	static ValueType eval(nTuple<N, TL, TLExpr> const & lhs,
-			nTuple<N, TR, TRExpr> const & rhs)
-	{
-		return Dot(lhs, rhs);
-	}
-
-};
-
-template<typename TL, typename TLExpr, typename TR, typename TRExpr>
-struct OpCross<nTuple<THREE, TL, TLExpr>, nTuple<THREE, TR, TRExpr> >
-{
-	typedef nTuple<THREE,
-			typename arithmetic::OpMultiplication<TL, TR>::ValueType> ValueType;
-	static ValueType eval(nTuple<THREE, TL, TLExpr> const & lhs,
-			nTuple<THREE, TR, TRExpr> const & rhs)
-	{
-		return Cross(lhs, rhs);
-	}
-
-};
-
-} //namespace vector_calculus
-
-template<int N, typename TVL, typename TL, typename TVR, typename TR>
-inline bool operator==(nTuple<N, TVL, TL> const &lhs,
-		nTuple<N, TVR, TR> const & rhs)
+template<int N, typename TL, typename TR>
+inline bool operator==(nTuple<N, TL> const &lhs, nTuple<N, TR> const & rhs)
 {
 	bool res = true;
 	for (int i = 0; i < N; ++i)
@@ -522,9 +414,9 @@ inline bool operator==(nTuple<N, TVL, TL> const &lhs,
 	return (res);
 }
 
-template<typename TVL, typename TL, typename TVR, typename TR>
-inline bool operator==(nTuple<THREE, TVL, TL> const &lhs,
-		nTuple<THREE, TVR, TR> const & rhs)
+template<typename TL, typename TR>
+inline bool operator==(nTuple<THREE, TL> const &lhs,
+		nTuple<THREE, TR> const & rhs)
 {
 
 	return ((lhs[0] == rhs[0]) && (lhs[1] == rhs[1]) && (lhs[2] == rhs[2]));
@@ -601,6 +493,19 @@ Determinant(nTuple<4, nTuple<4, T> > const & m)
 	);
 }
 } //namespace fetl
+#define DEFINE_TYPETRAITS(_TV_)                                           \
+template<int N >                                                          \
+struct TypeTraits<fetl::nTuple<N, _TV_> >                                 \
+{                                                                         \
+	typedef fetl::nTuple<N, _TV_> & Reference;                            \
+	typedef const fetl::nTuple<N, _TV_>& ConstReference;                  \
+};                                                                        \
+                                                                          \
+
+DEFINE_TYPETRAITS(int)
+DEFINE_TYPETRAITS(Real)
+DEFINE_TYPETRAITS(Complex)
+#undef DEFINE_TYPETRAITS
 } //namespace simpla
 
 #endif  // INCLUDE_NTUPLE_H_
