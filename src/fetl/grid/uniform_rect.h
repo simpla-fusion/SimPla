@@ -1002,11 +1002,16 @@ public:
 	{
 		return
 
-		(expr.lhs_[s * 3 + 0] - expr.lhs_[s * 3 + 0 - 3 * strides[0]]) * inv_dx[0] +
+		(expr.lhs_[s * 3 + 0] - expr.lhs_[s * 3 + 0 - 3 * strides[0]])
+				* inv_dx[0]
+				+
 
-		(expr.lhs_[s * 3 + 1] - expr.lhs_[s * 3 + 1 - 3 * strides[1]]) * inv_dx[1] +
+				(expr.lhs_[s * 3 + 1] - expr.lhs_[s * 3 + 1 - 3 * strides[1]])
+						* inv_dx[1]
+				+
 
-		(expr.lhs_[s * 3 + 2] - expr.lhs_[s * 3 + 2 - 3 * strides[2]]) * inv_dx[2]
+				(expr.lhs_[s * 3 + 2] - expr.lhs_[s * 3 + 2 - 3 * strides[2]])
+						* inv_dx[2]
 
 		;
 	}
@@ -1026,9 +1031,12 @@ public:
 		size_t idx1 = s - j0;
 		return
 
-		(expr.lhs_[idx1 + j2 + 3 * strides[j1]] - expr.lhs_[idx1 + j2]) * inv_dx[j1] -
+		(expr.lhs_[idx1 + j2 + 3 * strides[j1]] - expr.lhs_[idx1 + j2])
+				* inv_dx[j1]
+				-
 
-		(expr.lhs_[idx1 + j1 + 3 * strides[j2]] - expr.lhs_[idx1 + j1]) * inv_dx[j2];
+				(expr.lhs_[idx1 + j1 + 3 * strides[j2]] - expr.lhs_[idx1 + j1])
+						* inv_dx[j2];
 	}
 	template<typename TLExpr>
 	typename Field<Grid, IOneForm, //
@@ -1046,16 +1054,24 @@ public:
 		size_t idx2 = s - j0;
 		return
 
-		(expr.lhs_[idx2 + j2] - expr.lhs_[idx2 + j2 - 3 * strides[j1]]) * inv_dx[j1]
+		(expr.lhs_[idx2 + j2] - expr.lhs_[idx2 + j2 - 3 * strides[j1]])
+				* inv_dx[j1]
 
-		- (expr.lhs_[idx2 + j1] - expr.lhs_[idx2 + j1 - 3 * strides[j2]]) * inv_dx[j2];
+				- (expr.lhs_[idx2 + j1] - expr.lhs_[idx2 + j1 - 3 * strides[j2]])
+						* inv_dx[j2];
 	}
 
-	template<int PD, typename TExpr>
-	inline typename Field<Grid, IOneForm, TExpr>::ValueType //
-	curlPd_(Field<Grid, IOneForm, TExpr> const & expr, size_t s) const
+	template<int IPD, typename TExpr>
+	inline typename Field<Grid, IOneForm,
+			_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
+					Field<Grid, ITwoForm, TExpr> > >::ValueType //
+	eval(
+			Field<Grid, IOneForm,
+					_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
+							Field<Grid, ITwoForm, TExpr> > > const & expr,
+			size_t s) const
 	{
-		if (dims[PD] == 1)
+		if (dims[IPD] == 1)
 		{
 			return (0);
 		}
@@ -1064,25 +1080,31 @@ public:
 		size_t j2 = (s + 2) % 3;
 		size_t idx1 = s - j0;
 		typename Field<Grid, IOneForm, TExpr>::ValueType res = 0.0;
-		if (j1 == PD)
+		if (j1 == IPD)
 		{
-			res = (expr.lhs_[idx1 + j2 + 3 * strides[PD]] - expr.lhs_[idx1 + j2])
-					* inv_dx[PD];
+			res = (expr.rhs_[idx1 + j2 + 3 * strides[IPD]]
+					- expr.rhs_[idx1 + j2]) * inv_dx[IPD];
 		}
-		else if (j2 == PD)
+		else if (j2 == IPD)
 		{
-			res = (-expr.lhs_[idx1 + j1 + 3 * strides[PD]] + expr.lhs_[idx1 + j1])
-					* inv_dx[PD];
+			res = (-expr.rhs_[idx1 + j1 + 3 * strides[IPD]]
+					+ expr.rhs_[idx1 + j1]) * inv_dx[IPD];
 		}
 
 		return (res);
 	}
 
-	template<int PD, typename TExpr>
-	inline typename Field<Grid, ITwoForm, TExpr>::ValueType //
-	curlPd_(Field<Grid, ITwoForm, TExpr> const & expr, size_t s) const
+	template<int IPD, typename TExpr>
+	inline typename Field<Grid, ITwoForm,
+			_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
+					Field<Grid, IOneForm, TExpr> > >::ValueType //
+	eval(
+			Field<Grid, ITwoForm,
+					_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
+							Field<Grid, IOneForm, TExpr> > > const & expr,
+			size_t s) const
 	{
-		if (dims[PD] == 1)
+		if (dims[IPD] == 1)
 		{
 			return (0);
 		}
@@ -1092,16 +1114,16 @@ public:
 		size_t idx2 = s - j0;
 
 		typename Field<Grid, ITwoForm, TExpr>::ValueType res = 0.0;
-		if (j1 == PD)
+		if (j1 == IPD)
 		{
-			res = (expr.lhs_[idx2 + j2] - expr.lhs_[idx2 + j2 - 3 * strides[PD]])
-					* inv_dx[PD];
+			res = (expr.rhs_[idx2 + j2]
+					- expr.rhs_[idx2 + j2 - 3 * strides[IPD]]) * inv_dx[IPD];
 
 		}
-		else if (j2 == PD)
+		else if (j2 == IPD)
 		{
-			res = (-expr.lhs_[idx2 + j1] + expr.lhs_[idx2 + j1 - 3 * strides[PD]])
-					* inv_dx[PD];
+			res = (-expr.rhs_[idx2 + j1]
+					+ expr.rhs_[idx2 + j1 - 3 * strides[IPD]]) * inv_dx[IPD];
 		}
 
 		return (res);

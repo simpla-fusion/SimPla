@@ -132,29 +132,29 @@ void PML<Real, UniformRectGrid>::Eval()
 
 	TwoForm & dX1 = domain.GetObject<TwoForm>("");
 
-	dX1 = (-2.0 * s0 * X10 + CurlPD<0>(E1)) / (a0 / dt + s0);
+	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
 	X10 += dX1;
 	B1 -= dX1;
 
-	dX1 = (-2.0 * s1 * X11 + CurlPD<1>(E1)) / (a1 / dt + s1);
+	dX1 = (-2.0 * s1 * X11 + CurlPD(Int2Type<1>(), E1)) / (a1 / dt + s1);
 	X11 += dX1;
 	B1 -= dX1;
 
-	dX1 = (-2.0 * s2 * X12 + CurlPD<2>(E1)) / (a2 / dt + s2);
+	dX1 = (-2.0 * s2 * X12 + CurlPD(Int2Type<2>(), E1)) / (a2 / dt + s2);
 	X12 += dX1;
 	B1 -= dX1;
 
 	OneForm &dX2 = domain.GetObject<OneForm>("");
 
-	dX2 = (-2.0 * s0 * X20 + CurlPD<0>(B1 / mu0)) / (a0 / dt + s0);
+	dX2 = (-2.0 * s0 * X20 + CurlPD(Int2Type<0>(), B1 / mu0)) / (a0 / dt + s0);
 	X20 += dX2;
 	E1 += dX2 / epsilon0;
 
-	dX2 = (-2.0 * s1 * X21 + CurlPD<1>(B1 / mu0)) / (a1 / dt + s1);
+	dX2 = (-2.0 * s1 * X21 + CurlPD(Int2Type<1>(), B1 / mu0)) / (a1 / dt + s1);
 	X21 += dX2;
 	E1 += dX2 / epsilon0;
 
-	dX2 = (-2.0 * s2 * X22 + CurlPD<2>(B1 / mu0)) / (a2 / dt + s2);
+	dX2 = (-2.0 * s2 * X22 + CurlPD(Int2Type<2>(), B1 / mu0)) / (a2 / dt + s2);
 	X22 += dX2;
 	E1 += dX2 / epsilon0;
 

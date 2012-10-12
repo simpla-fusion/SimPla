@@ -25,7 +25,7 @@ using namespace fetl;
 
 template<typename TG, int IFORM, typename TLExpr> //
 inline Field<TG, IFORM,
-		_fetl_impl::arithmetic::OpNegative<Field<TG, IFORM, TLExpr> > >     //
+		_fetl_impl::arithmetic::OpNegative<Field<TG, IFORM, TLExpr> > >       //
 operator -(Field<TG, IFORM, TLExpr> const & lhs)
 {
 	return (Field<TG, IFORM,
@@ -46,6 +46,7 @@ operator +(Field<TG, IFORM, TLExpr> const &lhs,
 			_fetl_impl::arithmetic::OpAddition<Field<TG, IFORM, TLExpr>,
 					Field<TG, IFORM, TRExpr> > >(lhs, rhs));
 }
+
 //------------------------------------------------------------------------------------
 
 template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
@@ -61,6 +62,53 @@ operator -(Field<TG, IFORM, TLExpr> const &lhs,
 					Field<TG, IFORM, TRExpr> > >(lhs, rhs));
 }
 
+#define DEFINE_OP(TV)                                                                                  \
+template<typename TG, typename TVExpr>                                                                 \
+inline Field<TG, IZeroForm,                                                                            \
+		_fetl_impl::arithmetic::OpAddition<Field<TG, IZeroForm, TVExpr>, TV> >                         \
+operator +(Field<TG, IZeroForm, TVExpr> const &lhs, TV const & rhs)                                    \
+{                                                                                                      \
+                                                                                                       \
+	return (Field<TG, IZeroForm,                                                                       \
+			_fetl_impl::arithmetic::OpAddition<Field<TG, IZeroForm, TVExpr>, TV> >(                    \
+			lhs, rhs));                                                                                \
+}                                                                                                      \
+                                                                                                       \
+template<typename TG, typename TVExpr>                                                                 \
+inline Field<TG, IZeroForm,                                                                            \
+		_fetl_impl::arithmetic::OpAddition<TV, Field<TG, IZeroForm, TVExpr> > >                        \
+operator +(TV const &lhs, Field<TG, IZeroForm, TVExpr> const & rhs)                                    \
+{                                                                                                      \
+                                                                                                       \
+	return (Field<TG, IZeroForm,                                                                       \
+			_fetl_impl::arithmetic::OpAddition<TV, Field<TG, IZeroForm, TVExpr> > >(                   \
+			lhs, rhs));                                                                                \
+}                                                                                                      \
+template<typename TG, typename TVExpr>                                                                 \
+inline Field<TG, IZeroForm,                                                                            \
+		_fetl_impl::arithmetic::OpSubtraction<TV, Field<TG, IZeroForm, TVExpr> > >                     \
+operator -(TV const &lhs, Field<TG, IZeroForm, TVExpr> const & rhs)                                    \
+{                                                                                                      \
+                                                                                                       \
+	return (Field<TG, IZeroForm,                                                                       \
+			_fetl_impl::arithmetic::OpSubtraction<TV,                                                  \
+					Field<TG, IZeroForm, TVExpr> > >(lhs, rhs));                                       \
+}                                                                                                      \
+                                                                                                       \
+template<typename TG, typename TVExpr>                                                                 \
+inline Field<TG, IZeroForm,                                                                            \
+		_fetl_impl::arithmetic::OpSubtraction<Field<TG, IZeroForm, TVExpr>, TV> >                      \
+operator -(Field<TG, IZeroForm, TVExpr> const &lhs, TV const & rhs)                                    \
+{                                                                                                      \
+                                                                                                       \
+	return (Field<TG, IZeroForm,                                                                       \
+			_fetl_impl::arithmetic::OpSubtraction<Field<TG, IZeroForm, TVExpr>,                        \
+					TV> >(lhs, rhs));                                                                  \
+}                                                                                                      \
+
+DEFINE_OP(Real)
+DEFINE_OP(Complex)
+#undef DEFINE_OP
 //------------------------------------------------------------------------------------
 template<typename TG, int IFORM, typename TLExpr>
 inline Field<TG, IFORM,

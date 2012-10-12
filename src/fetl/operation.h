@@ -222,7 +222,7 @@ template<typename TL> struct OpCurl
 {
 	typedef typename TL::ValueType ValueType;
 };
-template<int IR, typename TL> struct OpCurlPD
+template<typename IR, typename TL> struct OpCurlPD
 {
 	typedef typename TL::ValueType ValueType;
 };
