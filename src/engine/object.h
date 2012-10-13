@@ -10,7 +10,7 @@
 #include "include/simpla_defs.h"
 #include <typeinfo>
 #include <iostream>
-#include "primitives/properties.h"
+#include "utilities/properties.h"
 
 namespace simpla
 {

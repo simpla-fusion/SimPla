@@ -18,8 +18,6 @@
 
 namespace simpla
 {
-namespace fetl
-{
 
 //Default fields are real value
 
@@ -60,7 +58,6 @@ typedef Field<Grid, IZeroForm, CVec3> CVecZeroForm;                         \
 typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
 typedef Field<Grid, IZeroForm, CVec3> CVecField;
 
-}  // namespace fetl
 } //namespace simpla
 
 #endif  // FETL_H_

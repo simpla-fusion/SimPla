@@ -11,7 +11,6 @@
 #include "ntuple.h"
 
 using namespace simpla;
-using namespace simpla::fetl;
 
 template<typename T> T _real(T const & v)
 {

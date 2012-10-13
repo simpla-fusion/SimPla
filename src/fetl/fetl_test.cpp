@@ -10,12 +10,11 @@
 
 #include "physics/constants.h"
 #include "grid/uniform_rect.h"
+#include "utilities/properties.h"
+#include "ntuple.h"
 #include "fetl.h"
-#include "vector_calculus.h"
-#include "primitives/properties.h"
 
 using namespace simpla;
-using namespace simpla::fetl;
 
 DEFINE_FIELDS(Real, UniformRectGrid)
 
@@ -39,17 +38,14 @@ protected:
 public:
 	typedef TF FieldType;
 	typedef typename FieldType::ValueType ValueType;
-	typedef typename _fetl_impl::ComplexTraits<ValueType>::ValueType CValueType;
+	typedef typename _impl::ComplexTraits<ValueType>::ValueType CValueType;
 	typedef Field<Grid, TF::IForm, CValueType> CFieldType;
 	TR1::shared_ptr<Grid> grid;
 
 };
 
-typedef testing::Types<RZeroForm
-		, CZeroForm, VecZeroForm
-		, ROneForm, COneForm, VecOneForm
-		, RTwoForm, CTwoForm, VecTwoForm
-> AllFieldTypes;
+typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm, ROneForm, COneForm,
+		VecOneForm, RTwoForm, CTwoForm, VecTwoForm> AllFieldTypes;
 
 //, VecThreeForm
 
@@ -239,10 +235,9 @@ public:
 	typedef Field<Grid, IZeroForm, T> ScalarField;
 	typedef Field<Grid, IZeroForm, nTuple<THREE, T> > VectorField;
 
+	typedef Field<Grid, IZeroForm, typename _impl::ComplexTraits<T>::ValueType> CScalarField;
 	typedef Field<Grid, IZeroForm,
-			typename _fetl_impl::ComplexTraits<T>::ValueType> CScalarField;
-	typedef Field<Grid, IZeroForm,
-			nTuple<THREE, typename _fetl_impl::ComplexTraits<T>::ValueType> > CVectorField;
+			nTuple<THREE, typename _impl::ComplexTraits<T>::ValueType> > CVectorField;
 
 };
 

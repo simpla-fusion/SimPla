@@ -29,15 +29,15 @@ void write_file(std::string const & fname, ptree const & pt);
 template<class Ext, class Int = std::string> struct pt_trans;
 
 template<int N, class T>
-struct pt_trans<fetl::nTuple<N, T>, std::string>
+struct pt_trans<nTuple<N, T>, std::string>
 {
-	typedef fetl::nTuple<N, T> external_type;
+	typedef nTuple<N, T> external_type;
 	typedef std::string internal_type;
 
 	external_type get_value(const internal_type &value) const
 	{
 		std::istringstream is(value);
-		fetl::nTuple<N, T> tv;
+		nTuple<N, T> tv;
 		for (int i = 0; i < N && is; ++i)
 		{
 			is >> tv[i];

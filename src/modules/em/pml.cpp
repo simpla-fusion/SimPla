@@ -6,7 +6,6 @@ namespace simpla
 {
 namespace em
 {
-using namespace fetl;
 inline Real sigma_(Real r, Real expN, Real dB)
 {
 	return (0.5 * (expN + 2.0) * 0.1 * dB * pow(r, expN + 1.0));

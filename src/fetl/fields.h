@@ -21,10 +21,8 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
 #include "engine/object.h"
-
+#include "typeconvert.h"
 namespace simpla
-{
-namespace fetl
 {
 
 /**
@@ -179,7 +177,7 @@ struct Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > >
 
 	static const int IForm = IFORM;
 
-	typename simpla::TypeTraits<TL>::ConstReference lhs_;
+	typename simpla::_impl::TypeTraits<TL>::ConstReference lhs_;
 
 	Grid const &grid;
 
@@ -204,14 +202,14 @@ struct Field<TG, IFORM, TOP<TL, TR> >
 
 	typedef typename TOP<TL, TR>::ValueType ValueType;
 
-	typename simpla::TypeTraits<TL>::ConstReference lhs_;
-	typename simpla::TypeTraits<TR>::ConstReference rhs_;
+	typename _impl::TypeTraits<TL>::ConstReference lhs_;
+	typename _impl::TypeTraits<TR>::ConstReference rhs_;
 
 	typedef TG Grid;
 	Grid const & grid;
 
 	Field(TL const &lhs, TR const & rhs) :
-			grid(FieldOpTriats<TL, TR>::grid(lhs, rhs)), lhs_(lhs), rhs_(rhs)
+			grid(selectGrid(lhs, rhs)), lhs_(lhs), rhs_(rhs)
 	{
 	}
 
@@ -219,10 +217,30 @@ struct Field<TG, IFORM, TOP<TL, TR> >
 	{
 		return grid.eval(*this, s);
 	}
+private:
+
+	template<int IFORML, typename TLExpr, int IFORMR, typename TRExpr>
+	static inline Grid const &selectGrid(Field<Grid, IFORML, TLExpr> const &l,
+			Field<Grid, IFORMR, TRExpr> const &r)
+	{
+		return l.grid;
+	}
+
+	template<typename TVL, int IFORMR, typename TRExpr>
+	static inline Grid const &selectGrid(TVL const &l,
+			Field<Grid, IFORMR, TRExpr> const &r)
+	{
+		return r.grid;
+	}
+
+	template<int IFORML, typename TLExpr, typename TVR>
+	static inline Grid const &selectGrid(Field<Grid, IFORML, TLExpr> const &l,
+			TVR const &r)
+	{
+		return l.grid;
+	}
 
 };
-
-} // namespace fetl
 
 } //namespace simpla
 #endif  // FETL_DETAIL_FIELD_H_

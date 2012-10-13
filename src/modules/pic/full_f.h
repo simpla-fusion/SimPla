@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "include/simpla_defs.h"
-#include "primitives/properties.h"
+#include "utilities/properties.h"
 #include "engine/object.h"
 #include "engine/modules.h"
 
@@ -25,7 +25,6 @@ namespace pic
 {
 namespace full_f
 {
-using namespace fetl;
 
 struct Point_s
 {

@@ -5,10 +5,9 @@
  * Created on: 2009-4-19
  * Author: salmon
  */
-
-#ifndef DEFAULT_GRID
-
-#define DEFAULT_GRID UniformRectGrid
+#ifndef UNIFORM_RECT_H_
+#define UNIFORM_RECT_H_
+#include "grid.h"
 
 #include <omp.h>
 #include <vector>
@@ -16,16 +15,16 @@
 #include <numeric>
 
 #include "include/simpla_defs.h"
-#include "primitives/properties.h"
+#include "utilities/properties.h"
+
 #include "../ntuple.h"
 #include "../fetl_defs.h"
-#include "../operation.h"
-#include "grid.h"
-
+#include "../typeconvert.h"
+#include "../arithmetic.h"
+#include "../vector_calculus.h"
 namespace simpla
 {
-namespace fetl
-{
+
 /**
  *  UniformRectGrid -- Uniform rectangular structured grid.
  * */
@@ -455,13 +454,13 @@ public:
 	}
 
 	template<int IFORM, typename TLExpr, typename TRExpr>
-	typename _fetl_impl::arithmetic::OpMultiplication<
-			Field<Grid, IFORM, TLExpr>, Field<Grid, IFORM, TRExpr> >::ValueType //
+	typename _impl::OpMultiplication<Field<Grid, IFORM, TLExpr>,
+			Field<Grid, IFORM, TRExpr> >::ValueType //
 	InnerProduct(Field<Grid, IFORM, TLExpr> const & lhs,
 			Field<Grid, IFORM, TRExpr> const & rhs) const
 	{
-		typedef typename _fetl_impl::arithmetic::OpMultiplication<
-				Field<Grid, IFORM, TLExpr>, Field<Grid, IFORM, TRExpr> >::ValueType ValueType;
+		typedef typename _impl::OpMultiplication<Field<Grid, IFORM, TLExpr>,
+				Field<Grid, IFORM, TRExpr> >::ValueType ValueType;
 		ValueType res;
 		res = 0;
 
@@ -868,45 +867,40 @@ public:
 //   Arithmetic
 //-----------------------------------------
 	template<int IFORM, typename TEXPR>
-	inline typename Field<Grid, IFORM, _fetl_impl::arithmetic::OpNegative<TEXPR> >::ValueType //
-	eval(
-			Field<Grid, IFORM, _fetl_impl::arithmetic::OpNegative<TEXPR> > const & expr,
+	inline typename Field<Grid, IFORM, _impl::OpNegative<TEXPR> >::ValueType //
+	eval(Field<Grid, IFORM, _impl::OpNegative<TEXPR> > const & expr,
 			size_t s) const
 	{
 		return (-mapto_(Int2Type<IFORM>(), expr.lhs_, s));
 	}
 
 	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _fetl_impl::arithmetic::OpMultiplication<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IFORM, _fetl_impl::arithmetic::OpMultiplication<TL, TR> > const & expr,
+	typename Field<Grid, IFORM, _impl::OpMultiplication<TL, TR> >::ValueType //
+	eval(Field<Grid, IFORM, _impl::OpMultiplication<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
 				* mapto_(Int2Type<IFORM>(), expr.rhs_, s));
 	}
 	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _fetl_impl::arithmetic::OpDivision<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IFORM, _fetl_impl::arithmetic::OpDivision<TL, TR> > const & expr,
+	typename Field<Grid, IFORM, _impl::OpDivision<TL, TR> >::ValueType //
+	eval(Field<Grid, IFORM, _impl::OpDivision<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
 				/ mapto_(Int2Type<IFORM>(), expr.rhs_, s));
 	}
 	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _fetl_impl::arithmetic::OpAddition<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IFORM, _fetl_impl::arithmetic::OpAddition<TL, TR> > const & expr,
+	typename Field<Grid, IFORM, _impl::OpAddition<TL, TR> >::ValueType //
+	eval(Field<Grid, IFORM, _impl::OpAddition<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
 				+ mapto_(Int2Type<IFORM>(), expr.rhs_, s));
 	}
 	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _fetl_impl::arithmetic::OpSubtraction<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IFORM, _fetl_impl::arithmetic::OpSubtraction<TL, TR> > const & expr,
+	typename Field<Grid, IFORM, _impl::OpSubtraction<TL, TR> >::ValueType //
+	eval(Field<Grid, IFORM, _impl::OpSubtraction<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
@@ -917,9 +911,9 @@ public:
 //-----------------------------------------
 
 //	template<typename TL, typename TR>
-//	typename Field<Grid, IZeroForm, _fetl_impl::vector_calculus::OpDot<TL, TR> >::ValueType //
+//	typename Field<Grid, IZeroForm, _impl::OpDot<TL, TR> >::ValueType //
 //	eval(
-//			Field<Grid, IZeroForm, _fetl_impl::vector_calculus::OpDot<TL, TR> > const & expr,
+//			Field<Grid, IZeroForm, _impl::OpDot<TL, TR> > const & expr,
 //			size_t const & s) const
 //	{
 //
@@ -939,9 +933,8 @@ public:
 //	}
 
 	template<typename TL, typename TR>
-	typename Field<Grid, IZeroForm, _fetl_impl::vector_calculus::OpDot<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IZeroForm, _fetl_impl::vector_calculus::OpDot<TL, TR> > const & expr,
+	typename Field<Grid, IZeroForm, _impl::OpDot<TL, TR> >::ValueType //
+	eval(Field<Grid, IZeroForm, _impl::OpDot<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 
@@ -950,9 +943,8 @@ public:
 	}
 
 	template<int IForm, typename TL, typename TR>
-	typename Field<Grid, IForm, _fetl_impl::vector_calculus::OpCross<TL, TR> >::ValueType //
-	eval(
-			Field<Grid, IForm, _fetl_impl::vector_calculus::OpCross<TL, TR> > const & expr,
+	typename Field<Grid, IForm, _impl::OpCross<TL, TR> >::ValueType //
+	eval(Field<Grid, IForm, _impl::OpCross<TL, TR> > const & expr,
 			size_t const & s) const
 	{
 		return Cross(mapto_(Int2Type<IForm>(), expr.lhs_, s),
@@ -975,12 +967,9 @@ public:
 	}
 
 	template<typename TL>
-	typename Field<Grid, IOneForm,
-			_fetl_impl::vector_calculus::OpGrad<Field<Grid, IZeroForm, TL> > >::ValueType //
+	typename Field<Grid, IOneForm, _impl::OpGrad<Field<Grid, IZeroForm, TL> > >::ValueType //
 	eval(
-			Field<Grid, IOneForm,
-					_fetl_impl::vector_calculus::OpGrad<
-							Field<Grid, IZeroForm, TL> > > const & expr,
+			Field<Grid, IOneForm, _impl::OpGrad<Field<Grid, IZeroForm, TL> > > const & expr,
 			size_t const & s) const
 	{
 
@@ -993,11 +982,10 @@ public:
 
 	template<typename TLExpr>
 	typename Field<Grid, IZeroForm,
-			_fetl_impl::vector_calculus::OpDiverge<Field<Grid, IOneForm, TLExpr> > >::ValueType //
+			_impl::OpDiverge<Field<Grid, IOneForm, TLExpr> > >::ValueType //
 	eval(
 			Field<Grid, IZeroForm,
-					_fetl_impl::vector_calculus::OpDiverge<
-							Field<Grid, IOneForm, TLExpr> > > const & expr,
+					_impl::OpDiverge<Field<Grid, IOneForm, TLExpr> > > const & expr,
 			size_t const & s) const
 	{
 		return
@@ -1017,12 +1005,9 @@ public:
 	}
 
 	template<typename TL>
-	typename Field<Grid, ITwoForm,
-			_fetl_impl::vector_calculus::OpCurl<Field<Grid, IOneForm, TL> > >::ValueType //
+	typename Field<Grid, ITwoForm, _impl::OpCurl<Field<Grid, IOneForm, TL> > >::ValueType //
 	eval(
-			Field<Grid, ITwoForm,
-					_fetl_impl::vector_calculus::OpCurl<
-							Field<Grid, IOneForm, TL> > > const & expr,
+			Field<Grid, ITwoForm, _impl::OpCurl<Field<Grid, IOneForm, TL> > > const & expr,
 			size_t const & s) const
 	{
 		size_t j0 = s % 3;
@@ -1040,12 +1025,9 @@ public:
 	}
 	template<typename TLExpr>
 	typename Field<Grid, IOneForm, //
-			_fetl_impl::vector_calculus::OpCurl<Field<Grid, ITwoForm, TLExpr> > >::ValueType //
-	eval(
-			Field<Grid,
-					IOneForm, //
-					_fetl_impl::vector_calculus::OpCurl<
-							Field<Grid, ITwoForm, TLExpr> > > const & expr,
+			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr> > >::ValueType //
+	eval(Field<Grid, IOneForm, //
+			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr> > > const & expr,
 			size_t const & s) const
 	{
 		size_t j0 = s % 3;
@@ -1063,12 +1045,10 @@ public:
 
 	template<int IPD, typename TExpr>
 	inline typename Field<Grid, IOneForm,
-			_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
-					Field<Grid, ITwoForm, TExpr> > >::ValueType //
+			_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, ITwoForm, TExpr> > >::ValueType //
 	eval(
 			Field<Grid, IOneForm,
-					_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
-							Field<Grid, ITwoForm, TExpr> > > const & expr,
+					_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, ITwoForm, TExpr> > > const & expr,
 			size_t s) const
 	{
 		if (dims[IPD] == 1)
@@ -1096,12 +1076,10 @@ public:
 
 	template<int IPD, typename TExpr>
 	inline typename Field<Grid, ITwoForm,
-			_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
-					Field<Grid, IOneForm, TExpr> > >::ValueType //
+			_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, IOneForm, TExpr> > >::ValueType //
 	eval(
 			Field<Grid, ITwoForm,
-					_fetl_impl::vector_calculus::OpCurlPD<Int2Type<IPD>,
-							Field<Grid, IOneForm, TExpr> > > const & expr,
+					_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, IOneForm, TExpr> > > const & expr,
 			size_t s) const
 	{
 		if (dims[IPD] == 1)
@@ -1130,6 +1108,5 @@ public:
 	}
 };
 
-} // namespace fetl
 } //namespace simpla
-#endif  // DEFAULT_GRID
+#endif //UNIFORM_RECT_H_

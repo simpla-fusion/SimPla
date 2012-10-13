@@ -19,8 +19,6 @@ namespace simpla
 namespace em
 {
 
-using namespace fetl;
-
 template<typename TV, typename TG>
 class Maxwell: public Modules
 {

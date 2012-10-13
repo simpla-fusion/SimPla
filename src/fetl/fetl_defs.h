@@ -13,11 +13,8 @@
 
 #ifndef FETL_DEFS_H_
 #define FETL_DEFS_H_
-#include "ntuple.h"
 
 namespace simpla
-{
-namespace fetl
 {
 
 enum TopologyID
@@ -52,57 +49,6 @@ template<typename TG, int IFORM, typename TExpr> struct Field;
 //	return (FieldEquation<Field<TG, IFORM, TLExpr>, Field<TG, IFORM, TRExpr> >(
 //			lhs, rhs));
 //}
-
-template<typename, typename > struct FieldOpTriats;
-
-template<typename TG, int IFORML, typename TLExpr, int IFORMR, typename TRExpr>
-struct FieldOpTriats<Field<TG, IFORML, TLExpr>, Field<TG, IFORMR, TRExpr> >
-{
-	typedef Field<TG, IFORML, TLExpr> TL;
-	typedef Field<TG, IFORMR, TRExpr> TR;
-	typedef typename Field<TG, IFORML, TLExpr>::ValueType LeftValueType;
-	typedef typename Field<TG, IFORMR, TRExpr>::ValueType RightValueType;
-
-	typedef TG Grid;
-
-	static inline Grid const &grid(TL const &l, TR const &r)
-	{
-		return l.grid;
-	}
-};
-template<typename TVL, typename TG, int IFORMR, typename TRExpr>
-struct FieldOpTriats<TVL, Field<TG, IFORMR, TRExpr> >
-{
-	typedef TVL TL;
-	typedef Field<TG, IFORMR, TRExpr> TR;
-
-	typedef TVL LeftValueType;
-	typedef typename Field<TG, IFORMR, TRExpr>::ValueType RightValueType;
-
-	typedef typename TR::Grid Grid;
-
-	static inline Grid const &grid(TL const &l, TR const &r)
-	{
-		return r.grid;
-	}
-};
-
-template<typename TG, int IFORML, typename TLExpr, typename TVR>
-struct FieldOpTriats<Field<TG, IFORML, TLExpr>, TVR>
-{
-	typedef Field<TG, IFORML, TLExpr> TL;
-	typedef TVR TR;
-
-	typedef typename Field<TG, IFORML, TLExpr>::ValueType LeftValueType;
-	typedef TVR RightValueType;
-
-	typedef typename TL::Grid Grid;
-
-	static inline Grid const &grid(TL const &l, TR const &r)
-	{
-		return l.grid;
-	}
-};
 
 template<typename TG, typename TL, int IR, typename TRExpr>
 bool CheckEquationHasVariable(TL const & eqn, Field<TG, IR, TRExpr> const & v)
@@ -151,8 +97,6 @@ DuplicateField(Field<TG, IFORM, TExpr> const f)
 	return (TR1::shared_ptr<Field<TG, IFORM, Grid> >(
 			new Field<TG, IFORM, Grid>(f.grid)));
 }
-
-} // namespace fetl
 
 } // namespace simpla
 

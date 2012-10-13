@@ -109,7 +109,6 @@ ColdFluid<TV, TG>::ColdFluid(Domain & d, const ptree & pt) :
 		pa1_(grid), pb1_(grid), pc1_(grid)
 
 {
-	using namespace fetl;
 
 	pa1_ = 0.0;
 	pb1_ = 0.0;

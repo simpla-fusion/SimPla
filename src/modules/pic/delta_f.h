@@ -22,9 +22,6 @@ namespace simpla
 {
 namespace pic
 {
-
-using namespace fetl;
-
 template<typename TV, typename TG>
 class DeltaF: public Modules
 {

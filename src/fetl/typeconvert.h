@@ -1,5 +1,5 @@
 /*
- * operation.h
+ * typeconvert.h
  *
  *  Created on: 2012-3-23
  *      Author: salmon
@@ -12,23 +12,25 @@
  *
  */
 
-#ifndef OPERATION_H_
-#define OPERATION_H_
+#ifndef TYPECONVERT_H_
+#define TYPECONVERT_H_
 namespace simpla
-{
-template<typename T> struct TypeTraits
-{
-	typedef T Reference;
-	typedef const T ConstReference;
-};
-namespace fetl
 {
 
 template<int, typename > struct nTuple;
 template<typename TG, int IFORM, typename > struct Field;
 
-namespace _fetl_impl
+// NOTE: this is a replacement before C++11 available for CUDA
+
+namespace _impl
 {
+
+template<typename T> struct TypeTraits
+{
+	typedef T Reference;
+	typedef const T ConstReference;
+};
+
 template<typename, typename > struct TypeConvertTraits;
 
 template<>
@@ -91,28 +93,6 @@ TYPE_OP_RULE(std::complex<double>, long, std::complex<double>)
 TYPE_OP_RULE(std::complex<double>, unsigned long, std::complex<double>)
 #undef TYPE_OP_RULE
 
-//template<typename TL, typename TR>
-//struct OpTypeTraits<TL, TR, arithmetic::OpMultiplication>
-//{
-//	typedef decltype(TL() * TR()) ValueType;
-//};
-//template<typename TL, typename TR>
-//struct OpTypeTraits<TL, TR, arithmetic::OpDivision>
-//{
-//	typedef decltype(TL() / TR()) ValueType;
-//};
-//template<typename TL, typename TR>
-//struct OpTypeTraits<TL, TR, arithmetic::OpAddition>
-//{
-//	typedef decltype(TL() + TR()) ValueType;
-//};
-//template<typename TL, typename TR>
-//struct OpTypeTraits<TL, TR, arithmetic::OpSubtraction>
-//{
-//	typedef decltype(TL() - TR()) ValueType;
-//};
-////---------------------------------------------------------------------------------------------
-
 ////---------------------------------------------------------------------------------------------
 
 template<typename T> struct ComplexTraits
@@ -149,35 +129,37 @@ template<int N, typename TE> struct nTupleValueTraits<nTuple<N, TE> >
 {
 	typedef typename nTuple<N, TE>::ValueType ValueType;
 };
-////---------------------------------------------------------------------------------------------
 
-namespace arithmetic
-{
+
 template<typename TL, typename TR>
 struct OpMultiplication
 {
-	typedef typename TypeConvertTraits<typename ValueTraits<TL>::ValueType,
+	typedef typename TypeConvertTraits<
+			typename ValueTraits<TL>::ValueType,
 			typename ValueTraits<TR>::ValueType>::ValueType ValueType;
 }
 ;
 template<typename TL, typename TR>
 struct OpDivision
 {
-	typedef typename TypeConvertTraits<typename ValueTraits<TL>::ValueType,
+	typedef typename TypeConvertTraits<
+			typename ValueTraits<TL>::ValueType,
 			typename ValueTraits<TR>::ValueType>::ValueType ValueType;
 }
 ;
 template<typename TL, typename TR>
 struct OpAddition
 {
-	typedef typename TypeConvertTraits<typename ValueTraits<TL>::ValueType,
+	typedef typename TypeConvertTraits<
+			typename ValueTraits<TL>::ValueType,
 			typename ValueTraits<TR>::ValueType>::ValueType ValueType;
 }
 ;
 template<typename TL, typename TR>
 struct OpSubtraction
 {
-	typedef typename TypeConvertTraits<typename ValueTraits<TL>::ValueType,
+	typedef typename TypeConvertTraits<
+			typename ValueTraits<TL>::ValueType,
 			typename ValueTraits<TR>::ValueType>::ValueType ValueType;
 }
 ;
@@ -188,76 +170,7 @@ struct OpNegative
 }
 ;
 
-} // namespace arithmetic
-
-namespace vector_calculus
-{
-
-template<typename TL, typename TR> struct OpDot
-{
-	typedef typename TypeConvertTraits<
-			typename nTupleValueTraits<typename ValueTraits<TL>::ValueType>::ValueType,
-			typename nTupleValueTraits<typename ValueTraits<TR>::ValueType>::ValueType>::ValueType ValueType;
-};
-
-
-template<typename TL, typename TR> struct OpCross
-{
-	typedef nTuple<THREE,
-			typename TypeConvertTraits<
-					typename nTupleValueTraits<typename ValueTraits<TL>::ValueType>::ValueType,
-					typename nTupleValueTraits<typename ValueTraits<TR>::ValueType>::ValueType>::ValueType> ValueType;
-	;
-};
-
-template<typename TL> struct OpGrad
-{
-	typedef typename TL::ValueType ValueType;
-};
-template<typename TL> struct OpDiverge
-{
-	typedef typename TL::ValueType ValueType;
-};
-template<typename TL> struct OpCurl
-{
-	typedef typename TL::ValueType ValueType;
-};
-template<typename IR, typename TL> struct OpCurlPD
-{
-	typedef typename TL::ValueType ValueType;
-};
-
-} // namespace vector_calculus
-
-// NOTE: this is a replacement before C++11 available for CUDA
-
-//template<>
-//struct OpTypeTraits<int, int>
-//{
-//	typedef int ValueType;
-//};
-//template<>
-//struct OpTypeTraits<long, long>
-//{
-//	typedef long ValueType;
-//};
-//template<>
-//struct OpTypeTraits<unsigned long, unsigned long>
-//{
-//	typedef unsigned long ValueType;
-//};
-//template<>
-//struct OpTypeTraits<double, double>
-//{
-//	typedef double ValueType;
-//};
-//template<>
-//struct OpTypeTraits<std::complex<double>, std::complex<double>>
-//{
-//	typedef std::complex<double> ValueType;
-//};
-}//namespace _fetl_impl
-} //namespace fetl
+} //namespace  _impl
 } // namespace simpla
 
-#endif /* OPERATION_H_ */
+#endif /* TYPECONVERT_H_ */

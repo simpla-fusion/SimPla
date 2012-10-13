@@ -18,7 +18,6 @@ namespace simpla
 {
 namespace em
 {
-using namespace fetl;
 
 template<typename TV, typename TG>
 class PML: public Modules

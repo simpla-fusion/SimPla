@@ -8,7 +8,7 @@
 #include "include/simpla_defs.h"
 #include "physics/constants.h"
 #include "fetl/fetl.h"
-#include "primitives/properties.h"
+#include "utilities/properties.h"
 
 #include "engine/modules.h"
 
@@ -19,7 +19,6 @@
 
 //#include "io/io.h"
 using namespace simpla;
-using namespace simpla::fetl;
 
 DEFINE_FIELDS(Real, UniformRectGrid);
 
