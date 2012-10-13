@@ -8,7 +8,6 @@
 #include "include/simpla_defs.h"
 #include "physics/constants.h"
 #include "fetl/fetl.h"
-#include "utilities/properties.h"
 
 #include "engine/modules.h"
 

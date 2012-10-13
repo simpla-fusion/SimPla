@@ -13,7 +13,6 @@
 #include <map>
 #include <typeinfo>
 #include "include/simpla_defs.h"
-#include "utilities/properties.h"
 #include "fetl/fetl.h"
 #include "fetl/grid/grid.h"
 

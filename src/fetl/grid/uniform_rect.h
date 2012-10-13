@@ -15,7 +15,6 @@
 #include <numeric>
 
 #include "include/simpla_defs.h"
-#include "utilities/properties.h"
 
 #include "../ntuple.h"
 #include "../fetl_defs.h"

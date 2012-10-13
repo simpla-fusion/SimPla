@@ -16,8 +16,6 @@
 #include <boost/property_tree/ini_parser.hpp>
 #include <boost/property_tree/json_parser.hpp>
 
-#include "fetl/ntuple.h"
-
 namespace simpla
 {
 using boost::property_tree::ptree;
@@ -25,6 +23,8 @@ using boost::property_tree::ptree;
 void read_file(std::string const & fname, ptree & pt);
 
 void write_file(std::string const & fname, ptree const & pt);
+
+template<int N, typename T> struct nTuple;
 
 template<class Ext, class Int = std::string> struct pt_trans;
 

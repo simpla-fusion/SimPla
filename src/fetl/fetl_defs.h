@@ -79,14 +79,7 @@ bool CheckEquationHasVariable(Field<TG, IL, TOP<TL, TR> > const & eqn,
 			|| CheckEquationHasVariable(eqn.rhs_, v);
 }
 
-template<typename > struct FieldTraits;
 
-template<int IFORM, typename TG, typename TExpr>
-struct FieldTraits<Field<TG, IFORM, TExpr> >
-{
-	typedef typename Field<TG, IFORM, TExpr>::Grid Grid;
-	typedef Field<TG, IFORM, Grid> FieldType;
-};
 
 template<int IFORM, typename TG, typename TExpr>
 TR1::shared_ptr<Field<TG, IFORM, typename Field<TG, IFORM, TExpr>::Grid> > //

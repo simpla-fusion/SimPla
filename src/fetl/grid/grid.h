@@ -8,7 +8,6 @@
 #ifndef GRID_H_
 #define GRID_H_
 #include "include/simpla_defs.h"
-#include "utilities/properties.h"
 namespace simpla
 {
 

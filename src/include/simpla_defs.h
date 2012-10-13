@@ -92,6 +92,7 @@ namespace TR1 = std::tr1;
 
 
 #include "utilities/log.h"
+#include "utilities/properties.h"
 
 
 #ifdef NDEBUG

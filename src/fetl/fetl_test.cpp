@@ -7,13 +7,9 @@
 
 #include <gtest/gtest.h>
 #include "include/simpla_defs.h"
-
-#include "physics/constants.h"
 #include "grid/uniform_rect.h"
-#include "utilities/properties.h"
-#include "ntuple.h"
 #include "fetl.h"
-
+#include "physics/constants.h"
 using namespace simpla;
 
 DEFINE_FIELDS(Real, UniformRectGrid)
