@@ -42,12 +42,11 @@ public:
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
 
+	typedef UniformRectGrid ThisType;
+
 	static const int NDIMS = THREE;
 	typedef typename std::vector<size_t>::iterator iterator;
 	typedef typename std::vector<size_t>::const_iterator const_iterator;
-	Real dt;
-	Real time;
-	Real counter;
 	// Geometry
 	RVec3 xmin, xmax;
 	RVec3 dx;
@@ -60,13 +59,12 @@ public:
 	UniformRectGrid(ptree const &pt) :
 			initialized_(false)
 	{
-		boost::optional<std::string> ot = pt.get_optional<std::string>("type");
+		boost::optional<std::string> ot = pt.get_optional<std::string>("Type");
 		if (!ot || *ot != "UniformRect")
 		{
 			ERROR << "Grid type mismatch";
 		}
 
-		dt = pt.get<Real>("dt");
 		xmin = pt.get<Vec3>("xmin",
 				pt_trans<Vec3, typename ptree::data_type>());
 		xmax = pt.get<Vec3>("xmax",
@@ -128,6 +126,26 @@ public:
 
 	}
 
+	inline static TR1::shared_ptr<BaseGrid> Factory(ptree const & pt)
+	{
+		return TR1::shared_ptr<BaseGrid>(new ThisType(pt));
+	}
+
+	virtual inline std::string Summary() const
+	{
+		std::ostringstream os;
+
+		os
+
+		<< std::setw(20) << "Grid dims : " << dims << std::endl
+
+		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax << "[m]"
+				<< std::endl
+
+				<< std::setw(20) << "dx : " << dx << "[m]" << std::endl;
+
+		return os.str();
+	}
 	inline std::vector<size_t> const &
 	get_center_elements(int iform) const
 	{

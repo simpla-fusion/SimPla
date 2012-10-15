@@ -1,4 +1,14 @@
-/*
+/*  ____  _           ____  _
+ * / ___|(_)_ __ ___ |  _ \| | __ _
+ * \___ \| | '_ ` _ \| |_) | |/ _` |
+ *  ___) | | | | | | |  __/| | (_| |
+ * |____/|_|_| |_| |_|_|   |_|\__,_|
+ *
+ * A Framework of plasma simulation
+ *
+ * Copyright 2007-2012 YU Zhi All right reserved.
+ *
+ *
  * object.h
  *
  *  Created on: 2012-2-6

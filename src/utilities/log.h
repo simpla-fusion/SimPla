@@ -1,4 +1,12 @@
-/*
+/*  ____  _           ____  _
+ * / ___|(_)_ __ ___ |  _ \| | __ _
+ * \___ \| | '_ ` _ \| |_) | |/ _` |
+ *  ___) | | | | | | |  __/| | (_| |
+ * |____/|_|_| |_| |_|_|   |_|\__,_|
+ *
+ *
+ *
+ *
  * log.h
  *
  *  Created on: 2012-3-21
@@ -60,8 +68,12 @@ public:
 		info_level = l;
 	}
 
+	static std::string Teimstamp()
+	{
+		return boost::posix_time::to_simple_string(clock_time());
+	}
 private:
-	boost::posix_time::ptime clock_time() const
+	static boost::posix_time::ptime clock_time()
 	{
 		timespec tv;
 		clock_gettime(CLOCK_REALTIME, &tv);
@@ -84,6 +96,8 @@ private:
 #define CHECK(_MSG_)    Log(0)  << (__FILE__) <<":"<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< _MSG_ <<std::endl
 
+#define DOUBLELINE "================================================================="
+#define SINGLELINE "-----------------------------------------------------------------"
 } // namespace simpla
 
 #endif /* LOG_H_ */

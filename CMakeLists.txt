@@ -36,11 +36,11 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 FIND_PACKAGE(Boost  COMPONENTS date_time program_options )
 
 
-#execute_process(COMMAND  hg identify
-#            OUTPUT_VARIABLE PROJECT_IDENTIFY      
-#            WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR} 
-#            OUTPUT_STRIP_TRAILING_WHITESPACE 
-#git log HEAD        )
+execute_process(COMMAND  git describe --all  --dirty --long
+            OUTPUT_VARIABLE PROJECT_IDENTIFY      
+            WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR} 
+            OUTPUT_STRIP_TRAILING_WHITESPACE 
+     )
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
  

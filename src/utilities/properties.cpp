@@ -11,7 +11,6 @@ namespace simpla
 
 void read_file(std::string const & fname, ptree & pt)
 {
-	std::cout << fname << std::endl;
 
 	std::string ext = fname.substr(fname.rfind(".")+1);
 

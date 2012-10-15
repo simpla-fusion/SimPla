@@ -40,7 +40,9 @@ public:
 
 			PHYS_CONSTANTS(pt.get_child("PhysConstants")),
 
-			dt(pt.get<Real>("dt")),
+			dt(pt.get("dt",1.0f)),
+
+			grid_(BaseGrid::GridFactory(pt.get_child("Grid"))),
 
 			counter_(0),
 
@@ -52,6 +54,19 @@ public:
 	{
 	}
 
+	inline std::string Summary() const
+	{
+		std::ostringstream os;
+
+		os << std::setw(20) << "dt: " << dt << std::endl
+
+		<< grid_->Summary() << std::endl
+
+		<< SINGLELINE << std::endl;
+
+		return os.str();
+
+	}
 	inline size_t Counter() const
 	{
 		return (counter_);

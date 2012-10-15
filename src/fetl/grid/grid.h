@@ -20,10 +20,13 @@ public:
 	virtual ~BaseGrid()
 	{
 	}
+	virtual std::string Summary() const =0;
 
+	static TR1::shared_ptr<BaseGrid> GridFactory(ptree const & pt);
+	static std::map<std::string,
+			TR1::function<TR1::shared_ptr<BaseGrid>(ptree const & pt)> > callback_;
 };
 
-TR1::shared_ptr<BaseGrid> make_grid(ptree const & pt);
 }  // namespace simpla
 
 #endif /* GRID_H_ */

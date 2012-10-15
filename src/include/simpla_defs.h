@@ -71,7 +71,6 @@ template<int N> struct Int2Type
 	static const int value = N;
 };
 
-
 } //namespace simpla
 
 //#ifndef DONOT_USE_TR1
@@ -79,7 +78,6 @@ template<int N> struct Int2Type
 #include <tr1/memory>
 #include <tr1/functional>
 namespace TR1 = std::tr1;
-
 
 //#else
 //#	include <boost/shared_ptr.hpp>
@@ -89,11 +87,23 @@ namespace TR1 = std::tr1;
 //#endif //DONOT_USE_TR1
 //#endif //__GXX_EXPERIMENTAL_CXX0X__
 
-
-
 #include "utilities/log.h"
 #include "utilities/properties.h"
 
+#define SIMPLA_LOGO                                                        \
+"=======================================================================\n"\
+"               ____  _           ___  _                                \n"\
+"              / ___|(_)_ __ ___ | _ \\| | __ _                         \n"\
+"              \\___ \\| | '_ ` _ \\||_) | |/ _` |                      \n"\
+"               ___) | | | | | | | __/| | (_| |                         \n"\
+"              |____/|_|_| |_| |_|_|  |_|\\__,_|                        \n"\
+"                                                                       \n"\
+"                                                                       \n"\
+" SimPla aka. GGauge, 3D version Electromagnetic Plasma Simulation      \n"\
+" Build Date: " __DATE__ " " __TIME__"  ID:" IDENTIFY "                 \n"\
+" Copyright (C) 2007-2012 YU Zhi. ASIPP. All rights reserved.           \n"\
+"                                                                       \n"\
+"=======================================================================\n"\
 
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)

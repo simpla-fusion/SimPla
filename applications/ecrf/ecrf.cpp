@@ -63,24 +63,14 @@ int main(int argc, char **argv)
 
 	}
 
+	BaseGrid::callback_["UniformRect"] = &UniformRectGrid::Factory;
+
 	boost::property_tree::ptree pt;
 
 	read_file(input, pt);
-
+	write_file(output,pt);
 	Domain domain(pt.get_child("Domain"));
 
-//  std::cout << "=========================================================="
-//      << std::endl;
-//  std::cout << "Record \t:" << max_step << "/" << record_stride << std::endl;
-//  std::cout << "dims \t:" << grid->dims << std::endl;
-//  std::cout << "xmin \t:" << grid->xmin << std::endl;
-//  std::cout << "xmax \t:" << grid->xmax << std::endl;
-//  std::cout << "dt \t:" << grid->dt << std::endl;
-//  std::cout << "J Amp. \t:" << JAmp << std::endl;
-//  std::cout << "Omega. \t:" << omega << std::endl;
-//  std::cout << "T \t:" << T << std::endl;
-//  std::cout << "=========================================================="
-//      << std::endl;
 //
 ////	simpla::io::IOEngine<Grid> diag(domain, output);
 //
@@ -119,6 +109,34 @@ int main(int argc, char **argv)
 				TR1::bind(&em::ColdFluid<Real, UniformRectGrid>::Eval,
 						new em::ColdFluid<Real, Grid>(domain, *module)));
 	}
+
+	std::cout
+
+	<< SIMPLA_LOGO << std::endl
+
+	<< std::setw(20) << "Teimstamp: " << Log::Teimstamp() << std::endl
+
+	<< std::setw(20) << "Num. of procs. : " << omp_get_num_procs() << std::endl
+
+	<< std::setw(20) << "Num. of threads : " << omp_get_max_threads()
+
+	<< std::endl
+
+	<< std::setw(20) << "Configure File : " << input << std::endl
+
+	<< std::setw(20) << "Output Path: " << output << std::endl
+
+	<< std::setw(20) << "Number of steps : " << max_step << std::endl
+
+	<< std::setw(20) << "Record/steps : " << record_stride << std::endl
+
+	<< SINGLELINE << std::endl
+
+	<< domain.Summary() << std::endl
+
+	<< SINGLELINE << std::endl
+
+	<< std::endl;
 
 //	domain.PreProcess();
 
