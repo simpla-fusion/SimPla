@@ -59,9 +59,9 @@ public:
 	{
 		LOG << "Run module Maxwell";
 
-		B1 -= Curl(E1) * dt;
+		*B1 -= Curl(*E1) * dt;
 
-		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
+		*E1 += (Curl(*B1 / mu0) - *J1) / epsilon0 * dt;
 	}
 
 private:
@@ -71,10 +71,10 @@ private:
 	const Real speed_of_light;
 
 //input
-	OneForm const & J1;
+	TR1::shared_ptr<const OneForm> J1;
 //output
-	OneForm & E1;
-	TwoForm & B1;
+	TR1::shared_ptr<OneForm> E1;
+	TR1::shared_ptr<TwoForm> B1;
 
 };
 

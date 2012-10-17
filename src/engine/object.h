@@ -122,27 +122,13 @@ public:
 		}
 		return res;
 	}
-	void ReleaseMemory()
-	{
-		nd = 0;
-#pragma omp critical(OBJECT_ALLOC)
-		{
-			if (data != NULL)
-			{
-				delete data;
-				data = NULL;
-			}
-		}
 
-	}
 	void ReAlloc(size_t *d, int ndims = 1)
 	{
 
 		size_t o_size_in_bytes = get_size_in_bytes();
 
 		size_t size_in_bytes = ele_size_in_bytes;
-
-		nd = ndims;
 
 		for (int i = 0; i < ndims; ++i)
 		{
@@ -153,10 +139,12 @@ public:
 //				&& (size_in_bytes < o_size_in_bytes / 2
 //						|| size_in_bytes > o_size_in_bytes))
 		{
-			ReleaseMemory();
 #pragma omp critical(OBJECT_ALLOC)
 			{
-
+				if (data != NULL)
+				{
+					delete data;
+				}
 				try
 				{
 					data = reinterpret_cast<char*>(operator new(size_in_bytes));
@@ -165,6 +153,9 @@ public:
 				{
 					ERROR_BAD_ALLOC_MEMORY(size_in_bytes, error);
 				}
+
+				nd = ndims;
+
 			}
 		}
 

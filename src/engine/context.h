@@ -54,16 +54,18 @@ public:
 		return (timer_);
 	}
 
-	boost::optional<Object &> FindObject(std::string const & name,
+	boost::optional<TR1::shared_ptr<Object> > FindObject(
+			std::string const & name,
 			std::type_info const &tinfo = typeid(void));
 
-	boost::optional<Object const&> FindObject(std::string const & name,
+	boost::optional<TR1::shared_ptr<const Object> > FindObject(
+			std::string const & name,
 			std::type_info const &tinfo = typeid(void)) const;
 
 	void DeleteObject(std::string const & name);
 
 	template<typename TOBJ>
-	TOBJ & GetObject(std::string const & name = "");
+	TR1::shared_ptr<TOBJ> GetObject(std::string const & name = "");
 
 	void Eval();
 

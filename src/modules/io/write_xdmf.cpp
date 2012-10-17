@@ -149,14 +149,11 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		std::map<std::string, TR1::shared_ptr<Object> >::const_iterator oit =
 				ctx.objects.find(*it);
 
-		CHECK(*it);
-
 		if (oit != ctx.objects.end())
 		{
-			CHECK(*it+"is found!");
 
 			int ndim = oit->second->get_dimensions();
-
+			CHECK(ndim);
 			size_t dims[ndim];
 
 			oit->second->get_dimensions(dims);

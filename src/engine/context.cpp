@@ -24,39 +24,39 @@ BaseContext::~BaseContext()
 {
 }
 
-boost::optional<Object&> BaseContext::FindObject(std::string const & name,
-		std::type_info const &tinfo)
+boost::optional<TR1::shared_ptr<Object> > BaseContext::FindObject(
+		std::string const & name, std::type_info const &tinfo)
 {
 	TR1::shared_ptr<Object> res;
 
 	if (name == "")
 	{
-		return boost::optional<Object &>();
+		return boost::optional<TR1::shared_ptr<Object> >();
 	}
 	std::map<std::string, Object::Holder>::iterator it = objects.find(name);
 
-	return boost::optional<Object &>(
+	return boost::optional<TR1::shared_ptr<Object> >(
 			it != objects.end()
 					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
-			*it->second);
+			it->second);
 
 }
 
-boost::optional<Object const&> BaseContext::FindObject(std::string const & name,
-		std::type_info const &tinfo) const
+boost::optional<TR1::shared_ptr<const Object> > BaseContext::FindObject(
+		std::string const & name, std::type_info const &tinfo) const
 {
 
 	if (name == "")
 	{
-		return boost::optional<Object const &>();
+		return boost::optional<TR1::shared_ptr<const Object> >();
 	}
 	std::map<std::string, Object::Holder>::const_iterator it = objects.find(
 			name);
 
-	return boost::optional<Object const &>(
+	return boost::optional<TR1::shared_ptr<const Object> >(
 			it != objects.end()
 					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
-			*it->second);
+			it->second);
 
 }
 void BaseContext::DeleteObject(std::string const & name)

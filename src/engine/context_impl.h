@@ -17,7 +17,7 @@ namespace simpla
 {
 
 template<typename TOBJ>
-TOBJ & BaseContext::GetObject(std::string const & name)
+TR1::shared_ptr<TOBJ> BaseContext::GetObject(std::string const & name)
 {
 
 	if (name != "")
@@ -27,7 +27,7 @@ TOBJ & BaseContext::GetObject(std::string const & name)
 		{
 			if (it->second->CheckType(typeid(TOBJ)))
 			{
-				return *TR1::dynamic_pointer_cast<TOBJ>(it->second);
+				return TR1::dynamic_pointer_cast<TOBJ>(it->second);
 			}
 			else
 			{
@@ -37,33 +37,14 @@ TOBJ & BaseContext::GetObject(std::string const & name)
 		}
 	}
 
-	TR1::shared_ptr<TOBJ> res;
-	for (typename std::list<TR1::shared_ptr<Object> >::iterator it =
-			opool_.begin(); it != opool_.end(); ++it)
+	TR1::shared_ptr<TOBJ> res(
+			new TOBJ(*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
+	if (name != "")
 	{
-		if (it->use_count() <= 1 && (**it).CheckType(typeid(TOBJ)))
-		{
-			res = TR1::dynamic_pointer_cast<TOBJ>(*it);
-			break;
-		}
-	}
-	if (res == TR1::shared_ptr<TOBJ>())
-	{
-		res =
-				TR1::shared_ptr<TOBJ>(
-						new TOBJ(
-								*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
-		if (name != "")
-		{
-			objects[name] = TR1::dynamic_pointer_cast<Object>(res);
-		}
-		else
-		{
-			opool_.push_back(TR1::dynamic_pointer_cast<Object>(res));
-		}
+		objects[name] = TR1::dynamic_pointer_cast<Object>(res);
 	}
 
-	return *res;
+	return res;
 }
 
 template<typename TG>

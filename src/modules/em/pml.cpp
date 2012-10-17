@@ -18,9 +18,9 @@ template<>
 PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
 		ctx(d),
 
-		grid(d.grid),
+		grid(ctx.grid),
 
-		dt(d.dt),
+		dt(ctx.dt),
 
 		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
@@ -30,11 +30,11 @@ PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) 
 
 		bc_(pt.get<nTuple<SIX, int> >("bc")),
 
-		B1(d.GetObject<TwoForm>("B1")),
+		B1(ctx.GetObject<TwoForm>("B1")),
 
-		E1(d.GetObject<OneForm>("E1")),
+		E1(ctx.GetObject<OneForm>("E1")),
 
-		J1(d.GetObject<OneForm>("J1")),
+		J1(ctx.GetObject<OneForm>("J1")),
 
 		a0(grid), a1(grid), a2(grid),
 
@@ -131,35 +131,38 @@ void PML<Real, UniformRectGrid>::Eval()
 {
 	LOG << "Run module PML";
 
-	TwoForm & dX1 = ctx.GetObject<TwoForm>();
+	TwoForm dX1(grid);
 
-	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
+	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), (*E1))) / (a0 / dt + s0);
 	X10 += dX1;
-	B1 -= dX1;
+	(*B1) -= dX1;
 
-	dX1 = (-2.0 * s1 * X11 + CurlPD(Int2Type<1>(), E1)) / (a1 / dt + s1);
+	dX1 = (-2.0 * s1 * X11 + CurlPD(Int2Type<1>(), (*E1))) / (a1 / dt + s1);
 	X11 += dX1;
-	B1 -= dX1;
+	(*B1) -= dX1;
 
-	dX1 = (-2.0 * s2 * X12 + CurlPD(Int2Type<2>(), E1)) / (a2 / dt + s2);
+	dX1 = (-2.0 * s2 * X12 + CurlPD(Int2Type<2>(), (*E1))) / (a2 / dt + s2);
 	X12 += dX1;
-	B1 -= dX1;
+	(*B1) -= dX1;
 
-	OneForm &dX2 = ctx.GetObject<OneForm>("");
+	OneForm dX2(grid);
 
-	dX2 = (-2.0 * s0 * X20 + CurlPD(Int2Type<0>(), B1 / mu0)) / (a0 / dt + s0);
+	dX2 = (-2.0 * s0 * X20 + CurlPD(Int2Type<0>(), (*B1) / mu0))
+			/ (a0 / dt + s0);
 	X20 += dX2;
-	E1 += dX2 / epsilon0;
+	(*E1) += dX2 / epsilon0;
 
-	dX2 = (-2.0 * s1 * X21 + CurlPD(Int2Type<1>(), B1 / mu0)) / (a1 / dt + s1);
+	dX2 = (-2.0 * s1 * X21 + CurlPD(Int2Type<1>(), (*B1) / mu0))
+			/ (a1 / dt + s1);
 	X21 += dX2;
-	E1 += dX2 / epsilon0;
+	(*E1) += dX2 / epsilon0;
 
-	dX2 = (-2.0 * s2 * X22 + CurlPD(Int2Type<2>(), B1 / mu0)) / (a2 / dt + s2);
+	dX2 = (-2.0 * s2 * X22 + CurlPD(Int2Type<2>(), (*B1) / mu0))
+			/ (a2 / dt + s2);
 	X22 += dX2;
-	E1 += dX2 / epsilon0;
+	(*E1) += dX2 / epsilon0;
 
-	E1 -= J1 / epsilon0 * dt;
+	(*E1) -= (*J1) / epsilon0 * dt;
 
 }
 } //namespace em
