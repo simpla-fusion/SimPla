@@ -42,7 +42,10 @@ public:
 
 	typedef TG Grid;
 
-	static const int IForm = IFORM;
+	enum
+	{
+		IForm = IFORM
+	};
 
 	typedef Field<Grid, IForm, ValueType> ThisType;
 
@@ -175,7 +178,10 @@ struct Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > >
 
 	typedef TG Grid;
 
-	static const int IForm = IFORM;
+	enum
+	{
+		IForm = IFORM
+	};
 
 	typename simpla::_impl::TypeTraits<TL>::ConstReference lhs_;
 
@@ -197,7 +203,10 @@ template<typename TG, int IFORM, typename TL, typename TR, template<typename,
 		typename > class TOP>
 struct Field<TG, IFORM, TOP<TL, TR> >
 {
-
+	enum
+	{
+		IForm = IFORM
+	};
 	typedef Field<TG, IFORM, TOP<TL, TR> > ThisType;
 
 	typedef typename TOP<TL, TR>::ValueType ValueType;

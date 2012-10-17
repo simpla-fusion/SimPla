@@ -8,13 +8,10 @@
 #include "include/simpla_defs.h"
 #include "physics/constants.h"
 #include "fetl/fetl.h"
-
-#include "engine/modules.h"
-
-#include "modules/em/maxwell.h"
-#include "modules/em/pml.h"
-#include "modules/pic/pic.h"
-#include "modules/fluid/cold_fluid.h"
+//#include "pic/pic.h"
+#include "engine/context.h"
+#include "engine/context_impl.h"
+#include "fetl/grid/uniform_rect.h"
 
 //#include "io/io.h"
 using namespace simpla;
@@ -30,7 +27,7 @@ int main(int argc, char **argv)
 	size_t record_stride = 1;
 
 	std::string input = "simpla.xml";
-	std::string output = "untitle";
+	std::string output = "untitle.info";
 
 	double omega = 1.0;
 
@@ -63,13 +60,14 @@ int main(int argc, char **argv)
 
 	}
 
-	BaseGrid::callback_["UniformRect"] = &UniformRectGrid::Factory;
 
 	boost::property_tree::ptree pt;
 
 	read_file(input, pt);
-	write_file(output,pt);
-	Domain domain(pt.get_child("Domain"));
+
+	write_file(output, pt);
+
+	Context<UniformRectGrid> ctx(pt.get_child("Context"));
 
 //
 ////	simpla::io::IOEngine<Grid> diag(domain, output);
@@ -94,27 +92,12 @@ int main(int argc, char **argv)
 //						new em::PML<Real, Grid>(domain, *module)));
 //	}
 
-	if (boost::optional<ptree &> module = pt.get_child_optional(
-			"Modules.Maxwell"))
-	{
-		domain.functions.push_back(
-				TR1::bind(&em::Maxwell<Real, Grid>::Eval,
-						new em::Maxwell<Real, Grid>(domain, *module)));
-	}
-
-	if (boost::optional<ptree &> module = pt.get_child_optional(
-			"Modules.ColdFluid"))
-	{
-		domain.functions.push_back(
-				TR1::bind(&em::ColdFluid<Real, UniformRectGrid>::Eval,
-						new em::ColdFluid<Real, Grid>(domain, *module)));
-	}
 
 	std::cout
 
 	<< SIMPLA_LOGO << std::endl
 
-	<< std::setw(20) << "Teimstamp: " << Log::Teimstamp() << std::endl
+	<< std::setw(20) << "Teimstamp : " << Log::Teimstamp() << std::endl
 
 	<< std::setw(20) << "Num. of procs. : " << omp_get_num_procs() << std::endl
 
@@ -124,7 +107,7 @@ int main(int argc, char **argv)
 
 	<< std::setw(20) << "Configure File : " << input << std::endl
 
-	<< std::setw(20) << "Output Path: " << output << std::endl
+	<< std::setw(20) << "Output Path : " << output << std::endl
 
 	<< std::setw(20) << "Number of steps : " << max_step << std::endl
 
@@ -132,7 +115,7 @@ int main(int argc, char **argv)
 
 	<< SINGLELINE << std::endl
 
-	<< domain.Summary() << std::endl
+	<< ctx.Summary() << std::endl
 
 	<< SINGLELINE << std::endl
 

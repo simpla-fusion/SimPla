@@ -1,4 +1,5 @@
-/*  ____  _           ____  _
+/* SimPla Copyright 2007-2012 YU Zhi All right reserved.
+ *   ____  _           ____  _
  * / ___|(_)_ __ ___ |  _ \| | __ _
  * \___ \| | '_ ` _ \| |_) | |/ _` |
  *  ___) | | | | | | |  __/| | (_| |
@@ -6,7 +7,7 @@
  *
  * A Framework of plasma simulation
  *
- * Copyright 2007-2012 YU Zhi All right reserved.
+ *
  *
  *
  * object.h
@@ -56,18 +57,13 @@ public:
 
 // Metadata ------------------------------------------------------------
 
+	virtual bool CheckType(std::type_info const &) const=0;
+
+	virtual bool CheckValueType(std::type_info const &) const=0;
+
 	inline bool Empty() const
 	{
 		return (data == NULL);
-	}
-	virtual inline bool CheckType(std::type_info const &) const
-	{
-		return false;
-	}
-
-	virtual inline bool CheckValueType(std::type_info const &) const
-	{
-		return false;
 	}
 
 	inline size_t get_element_size_in_bytes() const

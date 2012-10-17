@@ -43,7 +43,7 @@ static const Mass mp(1.0);
 static const Charge e(1.0);
 static const Temperature eV(1.0);
 
-static const Mass g(1.0 / SI_atomic_mass_unit);
+static const Mass g(0.001 / SI_atomic_mass_unit);
 static const Charge C(1.0 / SI_elementary_charge);
 static const Temperature K(SI_elementary_charge / SI_Boltzmann_constant);
 static const Length m(

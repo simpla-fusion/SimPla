@@ -16,9 +16,6 @@
 namespace simpla
 {
 
-namespace pic
-{
-template<typename TP, typename TG>
 void PIC<TP, TG>::AllocMemory(size_t num_of_ele)
 {
 	num_of_ele_ = num_of_ele;
@@ -28,9 +25,9 @@ void PIC<TP, TG>::AllocMemory(size_t num_of_ele)
 
 	try
 	{
-		TR1::shared_ptr<ByteType>(
-				reinterpret_cast<ByteType*>(operator new(memory_size))).swap(
-				data_);
+		TR1::shared_ptr < ByteType
+				> (reinterpret_cast<ByteType*>(operator new(memory_size))).swap(
+						data_);
 	} catch (std::bad_alloc const & error)
 	{
 		ERROR_BAD_ALLOC_MEMORY(memory_size, error);
@@ -44,7 +41,6 @@ void PIC<TP, TG>::AllocMemory(size_t num_of_ele)
 		ERROR_BAD_ALLOC_MEMORY(grid.get_num_of_cell() * sizeof(size_t), error);
 	}
 }
-template<typename TP, typename TG>
 void PIC<TP, TG>::Initialize(ZeroForm const &pn1, size_t pic)
 {
 	AllocMemory(pic * grid.get_num_of_cell());
@@ -90,12 +86,12 @@ template<typename TContext>
 void PIC<TP, TG>::PushAndScatter(TContext &ctx)
 {
 
-	Interpolation<VecZeroForm> B0(ctx.find("B0")->second);
-	Interpolation<OneForm> E1(ctx.find("E1")->second);
-	Interpolation<TwoForm> B1(ctx.find("B1")->second);
+	Interpolation < VecZeroForm > B0(ctx.find("B0")->second);
+	Interpolation < OneForm > E1(ctx.find("E1")->second);
+	Interpolation < TwoForm > B1(ctx.find("B1")->second);
 
-	Interpolation<VecZeroForm> J1(ctx.find("J1")->second);
-	Interpolation<ZeroForm> n1(ctx.find("n1")->second);
+	Interpolation < VecZeroForm > J1(ctx.find("J1")->second);
+	Interpolation < ZeroForm > n1(ctx.find("n1")->second);
 
 #pragma omp parallel for
 	for (size_t s = 0; s < StorageType::size(); ++s)
@@ -117,7 +113,6 @@ void PIC<TP, TG>::PushAndScatter(TContext &ctx)
 	}
 }
 
-} // namespace pic
 } // namespace simpla
 
 #endif /* PIC_IMPL_H_ */

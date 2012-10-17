@@ -15,18 +15,18 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 template<>
-PML<Real, UniformRectGrid>::PML(Domain & d, const ptree & pt) :
-		Modules(d),
+PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
+		ctx(d),
 
-		grid(d.grid<UniformRectGrid>()),
+		grid(d.grid),
 
 		dt(d.dt),
 
-		mu0(d.PHYS_CONSTANTS.get<Real>("mu")),
+		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
-		epsilon0(d.PHYS_CONSTANTS.get<Real>("epsilon")),
+		epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
 
-		speed_of_light(d.PHYS_CONSTANTS.get<Real>("speed_of_light")),
+		speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
 
 		bc_(pt.get<nTuple<SIX, int> >("bc")),
 
@@ -129,7 +129,7 @@ template<>
 void PML<Real, UniformRectGrid>::Eval()
 {
 
-	TwoForm & dX1 = domain.GetObject<TwoForm>("");
+	TwoForm & dX1 = ctx.GetObject<TwoForm>("");
 
 	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
 	X10 += dX1;
@@ -143,7 +143,7 @@ void PML<Real, UniformRectGrid>::Eval()
 	X12 += dX1;
 	B1 -= dX1;
 
-	OneForm &dX2 = domain.GetObject<OneForm>("");
+	OneForm &dX2 = ctx.GetObject<OneForm>("");
 
 	dX2 = (-2.0 * s0 * X20 + CurlPD(Int2Type<0>(), B1 / mu0)) / (a0 / dt + s0);
 	X20 += dX2;

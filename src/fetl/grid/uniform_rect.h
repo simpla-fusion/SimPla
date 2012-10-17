@@ -7,7 +7,6 @@
  */
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
-#include "grid.h"
 
 #include <omp.h>
 #include <vector>
@@ -15,7 +14,7 @@
 #include <numeric>
 
 #include "include/simpla_defs.h"
-
+#include "../grid.h"
 #include "../ntuple.h"
 #include "../fetl_defs.h"
 #include "../typeconvert.h"
@@ -39,6 +38,7 @@ class UniformRectGrid: public BaseGrid
 	std::vector<size_t> center_ele_[4];
 	std::vector<size_t> ghost_ele_[4];
 public:
+
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
 
@@ -59,7 +59,8 @@ public:
 	UniformRectGrid(ptree const &pt) :
 			initialized_(false)
 	{
-		boost::optional<std::string> ot = pt.get_optional<std::string>("Type");
+		boost::optional<std::string> ot = pt.get_optional<std::string>(
+				"<xmlattr>.type");
 		if (!ot || *ot != "UniformRect")
 		{
 			ERROR << "Grid type mismatch";
@@ -126,23 +127,20 @@ public:
 
 	}
 
-	inline static TR1::shared_ptr<BaseGrid> Factory(ptree const & pt)
-	{
-		return TR1::shared_ptr<BaseGrid>(new ThisType(pt));
-	}
-
-	virtual inline std::string Summary() const
+	inline std::string Summary() const
 	{
 		std::ostringstream os;
 
 		os
 
+		<< std::setw(20) << "Grid Type : " << "UniformRect" << std::endl
+
 		<< std::setw(20) << "Grid dims : " << dims << std::endl
 
-		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax << "[m]"
+		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax
 				<< std::endl
 
-				<< std::setw(20) << "dx : " << dx << "[m]" << std::endl;
+				<< std::setw(20) << "dx : " << dx   << std::endl;
 
 		return os.str();
 	}

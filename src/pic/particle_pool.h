@@ -7,14 +7,13 @@
 
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
+#include "include/simpla_defs.h"
+
 #include "engine/object.h"
-#include "engine/modules.h"
-#include "detail/initial_random_load.h"
 
 namespace simpla
 {
-namespace pic
-{
+
 template<typename TS, typename TG>
 struct ParticlePool: public Object
 {
@@ -49,7 +48,6 @@ public:
 	{
 		Object::ReAlloc(&num);
 	}
-
 
 // Metadata ------------------------------------------------------------
 
@@ -104,6 +102,5 @@ public:
 
 };
 
-} // namespace pic
 } // namespace simpla
 #endif /* PARTICLE_POOL_H_ */

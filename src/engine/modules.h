@@ -9,7 +9,6 @@
 
 #ifndef CONTEXT_H_
 #define CONTEXT_H_
-#include "domain.h"
 
 namespace simpla
 {
@@ -21,13 +20,10 @@ public:
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	Domain & domain;
-
 	//TODO input dataflow
 	//TODO output dataflow
 
-	Modules(Domain & d) :
-			domain(d)
+	Modules()
 	{
 	}
 

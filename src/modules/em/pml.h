@@ -11,7 +11,7 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "fetl/grid/uniform_rect.h"
-
+#include "engine/context.h"
 #include "engine/modules.h"
 
 namespace simpla
@@ -29,7 +29,7 @@ public:
 
 	DEFINE_FIELDS(TV, TG)
 
-	PML(Domain & d, const ptree & properties);
+	PML(Context<TG> & d, const ptree & properties);
 
 	virtual ~PML()
 	{
@@ -38,7 +38,7 @@ public:
 	virtual void Eval();
 
 private:
-
+	Context<TG> & ctx;
 	Grid const & grid;
 
 	nTuple<SIX, int> bc_;
@@ -63,7 +63,7 @@ private:
 	TwoForm & B1;
 
 };
-template<> PML<Real, UniformRectGrid>::PML(Domain & d,
+template<> PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d,
 		const ptree & properties);
 template<> void PML<Real, UniformRectGrid>::Eval();
 } // namespace em

@@ -11,7 +11,7 @@
 
 #include "fetl/fetl.h"
 #include "fetl/vector_calculus.h"
-#include "engine/solver.h"
+#include "engine/context.h"
 #include "engine/modules.h"
 
 namespace simpla
@@ -29,22 +29,24 @@ public:
 
 	DEFINE_FIELDS(TV, TG)
 
-	Maxwell(Domain & d, const ptree & properties) :
-			Modules(d),
+	Context<TG> & ctx;
 
-			dt(d.dt),
+	Maxwell(Context<TG> & d, const ptree & properties) :
+			ctx(d),
 
-			mu0(d.PHYS_CONSTANTS.get<Real>("mu")),
+			dt(ctx.dt),
 
-			epsilon0(d.PHYS_CONSTANTS.get<Real>("epsilon")),
+			mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
-			speed_of_light(d.PHYS_CONSTANTS.get<Real>("speed_of_light")),
+			epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
 
-			B1(d.GetObject<TwoForm>("B1")),
+			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
 
-			E1(d.GetObject<OneForm>("E1")),
+			B1(ctx.template GetObject<TwoForm>("B1")),
 
-			J1(d.GetObject<OneForm>("J1"))
+			E1(ctx.template GetObject<OneForm>("E1")),
+
+			J1(ctx.template GetObject<OneForm>("J1"))
 	{
 	}
 

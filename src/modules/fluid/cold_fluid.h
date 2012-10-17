@@ -16,7 +16,7 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "engine/modules.h"
-
+#include "engine/context.h"
 namespace simpla
 {
 namespace em
@@ -32,14 +32,14 @@ public:
 
 	DEFINE_FIELDS(TV, TG)
 
-	ColdFluid(Domain & d, const ptree & pt);
+	ColdFluid(Context<TG> & d, const ptree & pt);
 	virtual ~ColdFluid()
 	{
 	}
 
 	virtual void Eval();
 private:
-
+	Context<TG> & ctx;
 	Grid const & grid;
 
 	const Real dt;
@@ -81,26 +81,26 @@ private:
 };
 
 template<typename TV, typename TG>
-ColdFluid<TV, TG>::ColdFluid(Domain & d, const ptree & pt) :
-		Modules(d),
+ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
+		ctx(d),
 
-		grid(d.grid<UniformRectGrid>()),
+		grid(d.grid),
 
 		dt(d.dt),
 
-		mu0(d.PHYS_CONSTANTS.get<Real>("mu")),
+		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
-		epsilon0(d.PHYS_CONSTANTS.get<Real>("epsilon")),
+		epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
 
-		proton_mass(d.PHYS_CONSTANTS.get<Real>("proton_mass")),
+		proton_mass(ctx.PHYS_CONSTANTS["proton_mass"]),
 
-		elementary_charge(d.PHYS_CONSTANTS.get<Real>("elementary_charge")),
+		elementary_charge(ctx.PHYS_CONSTANTS["elementary_charge"]),
 
-		Jv(d.GetObject<VecZeroForm>("")),
+		Jv(d.template GetObject<VecZeroForm>("")),
 
-		Ev(d.GetObject<VecZeroForm>("")),
+		Ev(d.template GetObject<VecZeroForm>("")),
 
-		Bv(d.GetObject<VecZeroForm>("")),
+		Bv(d.template GetObject<VecZeroForm>("")),
 
 		BB(grid),
 
@@ -113,7 +113,6 @@ ColdFluid<TV, TG>::ColdFluid(Domain & d, const ptree & pt) :
 	pa1_ = 0.0;
 	pb1_ = 0.0;
 	pc1_ = 0.0;
-
 
 	ptree sp_pt = pt.get_child("Species");
 
@@ -171,8 +170,8 @@ void ColdFluid<TV, TG>::Eval()
 
 	BB = Dot(Bv, Bv);
 
-	VecZeroForm &K_ = domain.GetObject<VecZeroForm>("");
-	VecZeroForm &dEv_ = domain.GetObject<VecZeroForm>("");
+	VecZeroForm &K_ = ctx.template GetObject<VecZeroForm>("");
+	VecZeroForm &dEv_ = ctx.template GetObject<VecZeroForm>("");
 	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
 			sp_list.begin(); it != sp_list.end(); ++it)
 	{
@@ -185,9 +184,7 @@ void ColdFluid<TV, TG>::Eval()
 
 		K_ = (*it)->Js * as + Cross((*it)->Js, Bv) + ((Ev) * (*it)->ns) * Z;
 
-		(*it)->Js =
-								K_ / as  +
-				Cross(K_, Bv) / (BB + as * as)
+		(*it)->Js = K_ / as + Cross(K_, Bv) / (BB + as * as)
 //				+ Cross(Cross(K_, Bv), Bv)
 //				/ (as * (BB + as * as))
 				;

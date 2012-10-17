@@ -62,18 +62,11 @@ typedef std::complex<Real> Complex;
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-class NullType;
-class EmptyType
-{
-};
-template<int N> struct Int2Type
-{
-	static const int value = N;
-};
 
 } //namespace simpla
 
-//#ifndef DONOT_USE_TR1
+#include "mpl/typetraits.h"
+
 
 #include <tr1/memory>
 #include <tr1/functional>
@@ -92,17 +85,17 @@ namespace TR1 = std::tr1;
 
 #define SIMPLA_LOGO                                                        \
 "=======================================================================\n"\
-"               ____  _           ___  _                                \n"\
-"              / ___|(_)_ __ ___ | _ \\| | __ _                         \n"\
-"              \\___ \\| | '_ ` _ \\||_) | |/ _` |                      \n"\
-"               ___) | | | | | | | __/| | (_| |                         \n"\
-"              |____/|_|_| |_| |_|_|  |_|\\__,_|                        \n"\
-"                                                                       \n"\
-"                                                                       \n"\
-" SimPla aka. GGauge, 3D version Electromagnetic Plasma Simulation      \n"\
-" Build Date: " __DATE__ " " __TIME__"  ID:" IDENTIFY "                 \n"\
-" Copyright (C) 2007-2012 YU Zhi. ASIPP. All rights reserved.           \n"\
-"                                                                       \n"\
+"*               ____  _           ___  _                                \n"\
+"*              / ___|(_)_ __ ___ | _ \\| | __ _                          \n"\
+"*              \\___ \\| | '_ ` _ \\||_) | |/ _` |                         \n"\
+"*               ___) | | | | | | | __/| | (_| |                         \n"\
+"*              |____/|_|_| |_| |_|_|  |_|\\__,_|                         \n"\
+"*                                                                       \n"\
+"*                                                                       \n"\
+"* SimPla aka. GGauge, 3D version Electromagnetic Plasma Simulation      \n"\
+"* Build Date: " __DATE__ " " __TIME__"  ID:" IDENTIFY "                 \n"\
+"* Copyright (C) 2007-2012 YU Zhi. ASIPP. All rights reserved.           \n"\
+"*                                                                       \n"\
 "=======================================================================\n"\
 
 #ifdef NDEBUG
