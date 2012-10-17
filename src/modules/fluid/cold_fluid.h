@@ -23,7 +23,7 @@ namespace em
 {
 
 template<typename TV, typename TG>
-class ColdFluid: public Modules
+class ColdFluid: public Module
 {
 public:
 
@@ -84,9 +84,9 @@ template<typename TV, typename TG>
 ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 		ctx(d),
 
-		grid(d.grid),
+		grid(ctx.grid),
 
-		dt(d.dt),
+		dt(ctx.dt),
 
 		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
@@ -96,11 +96,11 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 
 		elementary_charge(ctx.PHYS_CONSTANTS["elementary_charge"]),
 
-		Jv(d.template GetObject<VecZeroForm>("")),
+		Jv(ctx.template GetObject<VecZeroForm>("")),
 
-		Ev(d.template GetObject<VecZeroForm>("")),
+		Ev(ctx.template GetObject<VecZeroForm>("")),
 
-		Bv(d.template GetObject<VecZeroForm>("")),
+		Bv(ctx.template GetObject<VecZeroForm>("")),
 
 		BB(grid),
 
@@ -124,13 +124,13 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 
 		v.second.get<Real>("Z"),
 
-		d.template GetObject<ZeroForm>(id + "_ns"),
+		ctx.template GetObject<ZeroForm>(id + "_ns"),
 
-		d.template GetObject<VecZeroForm>(id + "_Js")
+		ctx.template GetObject<VecZeroForm>(id + "_Js")
 
 		)));
 	}
-	LOG << "Run module ColdFluid";
+	LOG << "Create module ColdFluid";
 
 }
 

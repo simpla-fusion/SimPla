@@ -11,6 +11,7 @@
 #include "modules/em/maxwell.h"
 #include "modules/em/pml.h"
 #include "modules/fluid/cold_fluid.h"
+#include "modules/io/write_xdmf.h"
 #include <boost/foreach.hpp>
 namespace simpla
 {
@@ -86,7 +87,18 @@ inline std::string Context<TG>::Summary() const
 
 	<< grid.Summary() << std::endl
 
-	<< SINGLELINE << std::endl;
+	<< DOUBLELINE << std::endl
+
+	<< "Objects List" << std::endl
+
+	<< SINGLELINE << std::endl
+
+	;
+	for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
+			objects.begin(); it != objects.end(); ++it)
+	{
+		os << it->first << std::endl;
+	}
 
 	return os.str();
 
@@ -98,7 +110,6 @@ void Context<TG>::LoadModules(ptree const & pt)
 	LOG << "Load Modules";
 
 	BOOST_FOREACH(const ptree::value_type &v, pt.get_child("Modules"))
-
 	{
 		std::string type = v.second.get<std::string>("<xmlattr>.type");
 
@@ -120,18 +131,13 @@ void Context<TG>::LoadModules(ptree const & pt)
 					TR1::bind(&em::ColdFluid<Real, Grid>::Eval,
 							new em::ColdFluid<Real, Grid>(*this, v.second)));
 		}
+		else if (type == "WriteXDMF")
+		{
+			modules.push_back(
+					TR1::bind(&io::WriteXDMF<Grid>::Eval,
+							new io::WriteXDMF<Grid>(*this, v.second)));
+		}
 	}
-
-//	std::pair<ptree::const_assoc_iterator, ptree::const_assoc_iterator> it_range =
-//				pt.equal_range("module");
-//		for (typename ptree::const_assoc_iterator it = it_range.first;
-//				it != it_range.second; ++it)
-//template<typename TG>
-//void RegisterModules(ptree const & pt)
-//{
-
-//
-//}
 
 }
 

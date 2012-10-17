@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 	INFORM << ">>> START ! <<<";
 
 	typedef DEFAULT_GRID Grid;
-	TR1::shared_ptr<Modules<Grid> > ctx(new Modules<Grid>());
+	TR1::shared_ptr<Module<Grid> > ctx(new Module<Grid>());
 	ctx->grid.Initialize(1 / 200.0, xmin, xmax, dims);
 
 	Grid const & grid = ctx->grid;

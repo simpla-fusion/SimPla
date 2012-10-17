@@ -49,13 +49,16 @@ public:
 		return (counter_);
 	}
 
-	inline Real Time() const
+	inline Real Timer() const
 	{
 		return (timer_);
 	}
 
 	boost::optional<Object &> FindObject(std::string const & name,
-			std::type_info const &tinfo);
+			std::type_info const &tinfo = typeid(void));
+
+	boost::optional<Object const&> FindObject(std::string const & name,
+			std::type_info const &tinfo = typeid(void)) const;
 
 	void DeleteObject(std::string const & name);
 
@@ -73,7 +76,6 @@ private:
 
 }
 ;
-
 
 template<typename TG>
 class Context: public BaseContext

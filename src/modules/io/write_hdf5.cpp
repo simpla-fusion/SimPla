@@ -29,10 +29,10 @@ namespace io
 //		H5::DataSpace fspace;
 //		H5::DataSpace mspace;
 //		H5::DataType mdtype(
-//				H5LTtext_to_dtype(obj->get_element_type_desc().c_str(),
+//				H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),
 //						H5LT_DDL));
 //
-//		int ndims = obj->get_dimensions();
+//		int ndims = obj.get_dimensions();
 //
 //		size_t dims[ndims + 1];
 //
@@ -40,7 +40,7 @@ namespace io
 //		hsize_t mdims[ndims + 1];
 //		hsize_t fdims[ndims + 1];
 //
-//		obj->get_dimensions(dims);
+//		obj.get_dimensions(dims);
 //
 //		mdims[0] = 1;
 //		mspace = H5::DataSpace(ndims + 1, &mdims[0]);
@@ -70,7 +70,7 @@ namespace io
 //		fspace = dataset.getSpace();
 //		fspace.selectHyperslab(H5S_SELECT_SET, &mdims[0], &start[0]);
 //
-//		dataset.write(obj->get_data(), mdtype, mspace, fspace);
+//		dataset.write(obj.get_data(), mdtype, mspace, fspace);
 //	} catch (H5::Exception &e)
 //	{
 //		ERROR << "Can not write dataset  to [" << name.c_str()
@@ -80,30 +80,29 @@ namespace io
 //
 //}
 
-void WriteHDF5(const Object::Holder obj, H5::Group grp,
-		std::string const & name)
+void WriteHDF5(H5::Group grp, std::string const & name, Object const & obj)
 {
 	try
 	{
 
 		H5::DataType mdtype(
-				H5LTtext_to_dtype(obj->get_element_type_desc().c_str(),
+				H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),
 						H5LT_DDL));
 
-		int ndims = obj->get_dimensions();
+		int ndims = obj.get_dimensions();
 
 		size_t dims[ndims];
 
 		hsize_t mdims[ndims];
 
-		obj->get_dimensions(dims);
+		obj.get_dimensions(dims);
 
 		std::copy(dims, dims + ndims, mdims);
 
 		H5::DataSet dataset = grp.createDataSet(name.c_str(), mdtype,
 				H5::DataSpace(ndims, mdims));
 
-		dataset.write(obj->get_data(), mdtype);
+		dataset.write(obj.get_data(), mdtype);
 
 //		HDF5AddAttribute(dataset, obj);
 

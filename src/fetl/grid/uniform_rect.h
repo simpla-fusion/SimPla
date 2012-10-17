@@ -44,7 +44,10 @@ public:
 
 	typedef UniformRectGrid ThisType;
 
-	static const int NDIMS = THREE;
+	enum
+	{
+		NDIMS = THREE
+	};
 	typedef typename std::vector<size_t>::iterator iterator;
 	typedef typename std::vector<size_t>::const_iterator const_iterator;
 	// Geometry
@@ -137,10 +140,9 @@ public:
 
 		<< std::setw(20) << "Grid dims : " << dims << std::endl
 
-		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax
-				<< std::endl
+		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax << std::endl
 
-				<< std::setw(20) << "dx : " << dx   << std::endl;
+		<< std::setw(20) << "dx : " << dx << std::endl;
 
 		return os.str();
 	}

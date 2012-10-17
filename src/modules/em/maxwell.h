@@ -20,7 +20,7 @@ namespace em
 {
 
 template<typename TV, typename TG>
-class Maxwell: public Modules
+class Maxwell: public Module
 {
 public:
 

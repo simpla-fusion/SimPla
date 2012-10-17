@@ -13,29 +13,29 @@
 namespace simpla
 {
 
-class Modules
+class Module
 {
 public:
-	typedef Modules ThisType;
+	typedef Module ThisType;
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 
 	//TODO input dataflow
 	//TODO output dataflow
 
-	Modules()
+	Module()
 	{
 	}
 
-	virtual ~Modules()
+	virtual ~Module()
 	{
 	}
 
 	virtual void Eval()=0;
 private:
 
-	Modules(ThisType const &);
-	Modules & operator=(ThisType const &);
+	Module(ThisType const &);
+	Module & operator=(ThisType const &);
 
 }
 ;

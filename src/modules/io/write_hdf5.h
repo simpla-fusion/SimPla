@@ -19,8 +19,8 @@ namespace io
 void HDF5Append(H5::Group grp, std::string const & name,
 		const Object::Holder obj);
 
-void WriteHDF5(const Object::Holder obj, H5::Group grp,
-		std::string const & name);
+void WriteHDF5(H5::Group grp, std::string const & name, Object const & obj);
+
 
 Object::Holder ReadHDF5(H5::Group grp, std::string const & name);
 

@@ -7,14 +7,41 @@
 #include "include/simpla_defs.h"
 #include "engine/object.h"
 #include "engine/context.h"
-#include "grid/uniform_rect.h"
+#include "engine/modules.h"
 namespace simpla
 {
 namespace io
 {
-void WriteXDMF(std::list<Object::Holder> const & objs, std::string const & dir_path, fetl::UniformRectGrid const & grid,
-		 TR1::function<Real()> counter);
+
+template<typename TG>
+class WriteXDMF: public Module
+{
+public:
+
+	typedef TG Grid;
+	typedef WriteXDMF<Grid> ThisType;
+	typedef TR1::shared_ptr<ThisType> Holder;
+
+	WriteXDMF(Context<TG> const & d, const ptree & properties);
+
+	virtual ~WriteXDMF()
+	{
+	}
+
+	virtual void Eval();
+private:
+	Context<Grid> const & ctx;
+	Grid const & grid;
+
+	size_t step;
+
+	std::list<std::string> obj_list_;
+
+	std::string file_template;
+	std::string attrPlaceHolder;
+
+	std::string dir_path_;
+};
 } // namespace io
 } // namespace simpla
-#include "io/write_xdmf.impl.h"
 #endif  // SRC_IO_WRITE_XDMF_H_

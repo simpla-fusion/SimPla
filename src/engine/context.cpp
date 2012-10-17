@@ -36,10 +36,29 @@ boost::optional<Object&> BaseContext::FindObject(std::string const & name,
 	std::map<std::string, Object::Holder>::iterator it = objects.find(name);
 
 	return boost::optional<Object &>(
-			it != objects.end() && it->second->CheckType(tinfo), *it->second);
+			it != objects.end()
+					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
+			*it->second);
 
 }
 
+boost::optional<Object const&> BaseContext::FindObject(std::string const & name,
+		std::type_info const &tinfo) const
+{
+
+	if (name == "")
+	{
+		return boost::optional<Object const &>();
+	}
+	std::map<std::string, Object::Holder>::const_iterator it = objects.find(
+			name);
+
+	return boost::optional<Object const &>(
+			it != objects.end()
+					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
+			*it->second);
+
+}
 void BaseContext::DeleteObject(std::string const & name)
 {
 	typename std::map<std::string, TR1::shared_ptr<Object> >::iterator it =
@@ -62,6 +81,7 @@ void BaseContext::Eval()
 	LOG << "COUNTER:" << counter_;
 	std::for_each(modules.begin(), modules.end(), eval_);
 	++counter_;
+	timer_ += dt;
 }
 
 }  // namespace simpla

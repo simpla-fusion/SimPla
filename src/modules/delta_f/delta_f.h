@@ -23,7 +23,7 @@ namespace simpla
 namespace pic
 {
 template<typename TV, typename TG>
-class DeltaF: public Modules
+class DeltaF: public Module
 {
 public:
 	DEFINE_FIELDS(TV, TG)
@@ -67,7 +67,7 @@ private:
 
 template<typename TV, typename TG>
 DeltaF<TV, TG>::DeltaF(Domain & d, const ptree & pt) :
-		Modules(d),
+		Module(d),
 
 		grid(d.grid<UniformRectGrid>()),
 
