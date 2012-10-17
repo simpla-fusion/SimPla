@@ -13,7 +13,7 @@ namespace simpla
 BaseContext::BaseContext(ptree const&pt) :
 		dt(pt.get("dt", 1.0f)),
 
-		PHYS_CONSTANTS(pt.get_child("PhysConstants")),
+		PHYS_CONSTANTS(pt.get_child_optional("PhysConstants")),
 
 		counter_(0), timer_(0)
 
@@ -46,7 +46,7 @@ void BaseContext::DeleteObject(std::string const & name)
 			objects.find(name);
 	if (it != objects.end())
 	{
-		unnamed_objects.push_back(it->second);
+		opool_.push_back(it->second);
 		objects.erase(it);
 	}
 
@@ -58,8 +58,10 @@ inline void eval_(TR1::function<void(void)> & f)
 }
 void BaseContext::Eval()
 {
-	++counter_;
+
+	LOG << "COUNTER:" << counter_;
 	std::for_each(modules.begin(), modules.end(), eval_);
+	++counter_;
 }
 
 }  // namespace simpla

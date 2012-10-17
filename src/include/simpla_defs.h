@@ -84,7 +84,6 @@ namespace TR1 = std::tr1;
 #include "utilities/properties.h"
 
 #define SIMPLA_LOGO                                                        \
-"=======================================================================\n"\
 "*               ____  _           ___  _                                \n"\
 "*              / ___|(_)_ __ ___ | _ \\| | __ _                          \n"\
 "*              \\___ \\| | '_ ` _ \\||_) | |/ _` |                         \n"\
@@ -96,7 +95,6 @@ namespace TR1 = std::tr1;
 "* Build Date: " __DATE__ " " __TIME__"  ID:" IDENTIFY "                 \n"\
 "* Copyright (C) 2007-2012 YU Zhi. ASIPP. All rights reserved.           \n"\
 "*                                                                       \n"\
-"=======================================================================\n"\
 
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)

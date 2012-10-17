@@ -48,6 +48,7 @@ public:
 
 			J1(ctx.template GetObject<OneForm>("J1"))
 	{
+		LOG << "Create module Maxwell";
 	}
 
 	virtual ~Maxwell()
@@ -56,6 +57,7 @@ public:
 
 	virtual void Eval()
 	{
+		LOG << "Run module Maxwell";
 
 		B1 -= Curl(E1) * dt;
 

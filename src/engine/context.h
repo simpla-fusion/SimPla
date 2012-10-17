@@ -30,7 +30,7 @@ public:
 
 	const Real dt;
 
-	std::list<TR1::shared_ptr<Object> > unnamed_objects;
+	std::list<TR1::shared_ptr<Object> > opool_;
 
 	std::map<std::string, TR1::shared_ptr<Object> > objects;
 
@@ -74,35 +74,6 @@ private:
 }
 ;
 
-template<typename TOBJ>
-TOBJ & BaseContext::GetObject(std::string const & name)
-{
-
-	if (name != "")
-	{
-		std::map<std::string, Object::Holder>::iterator it = objects.find(name);
-		if (it != objects.end())
-		{
-			if (it->second->CheckType(typeid(TOBJ)))
-			{
-				return *TR1::dynamic_pointer_cast<TOBJ>(it->second);
-			}
-			else
-			{
-				ERROR << "Object " << name << "can not been created as "
-						<< typeid(TOBJ).name();
-			}
-		}
-	}
-
-	TR1::shared_ptr<TOBJ> res(
-			new TOBJ(*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
-	if (name != "")
-	{
-		objects[name] = res;
-	}
-	return *res;
-}
 
 template<typename TG>
 class Context: public BaseContext
@@ -119,6 +90,7 @@ public:
 	Context(const ptree & pt) :
 			BaseContext(pt), grid(pt.get_child("Grid"))
 	{
+
 		LoadModules(pt);
 	}
 
@@ -143,32 +115,6 @@ private:
 
 }
 ;
-
-template<typename TG>
-TR1::shared_ptr<Context<TG> > Context<TG>::Create(ptree const & pt)
-{
-	return TR1::shared_ptr<Context<TG> >(new ThisType(pt));
-}
-template<typename TG>
-inline std::string Context<TG>::Summary() const
-{
-	std::ostringstream os;
-
-	os
-
-	<< PHYS_CONSTANTS.Summary()
-
-	<< SINGLELINE << std::endl
-
-	<< std::setw(20) << "dt : " << dt << std::endl
-
-	<< grid.Summary() << std::endl
-
-	<< SINGLELINE << std::endl;
-
-	return os.str();
-
-}
 
 }
 // namespace simpla

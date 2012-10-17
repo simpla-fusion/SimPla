@@ -60,7 +60,6 @@ int main(int argc, char **argv)
 
 	}
 
-
 	boost::property_tree::ptree pt;
 
 	read_file(input, pt);
@@ -92,10 +91,13 @@ int main(int argc, char **argv)
 //						new em::PML<Real, Grid>(domain, *module)));
 //	}
 
-
 	std::cout
 
+	<< DOUBLELINE << std::endl
+
 	<< SIMPLA_LOGO << std::endl
+
+	<< DOUBLELINE << std::endl
 
 	<< std::setw(20) << "Teimstamp : " << Log::Teimstamp() << std::endl
 
@@ -120,6 +122,11 @@ int main(int argc, char **argv)
 	<< SINGLELINE << std::endl
 
 	<< std::endl;
+
+	for (int i = 0; i < max_step; ++i)
+	{
+		ctx.Eval();
+	}
 
 //	domain.PreProcess();
 

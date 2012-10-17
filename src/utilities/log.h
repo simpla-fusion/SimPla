@@ -48,6 +48,10 @@ public:
 	~Log()
 	{
 		(*this) << std::endl;
+		if (level_ <= info_level)
+		{
+			std::cout << (*this).str();
+		}
 
 		if (level_ == -3)
 		{
@@ -57,12 +61,9 @@ public:
 		{
 			throw(std::runtime_error(this->str()));
 		}
-		else if (level_ <= info_level)
-		{
-			std::cout << (*this).str();
-		}
 
 	}
+
 	static void Verbose(int l = 1)
 	{
 		info_level = l;

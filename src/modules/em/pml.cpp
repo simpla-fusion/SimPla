@@ -45,6 +45,7 @@ PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) 
 		X20(grid), X21(grid), X22(grid)
 
 {
+	LOG << "Create module PML";
 
 	Real dB = 100, expN = 2;
 
@@ -128,8 +129,9 @@ PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) 
 template<>
 void PML<Real, UniformRectGrid>::Eval()
 {
+	LOG << "Run module PML";
 
-	TwoForm & dX1 = ctx.GetObject<TwoForm>("");
+	TwoForm & dX1 = ctx.GetObject<TwoForm>();
 
 	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
 	X10 += dX1;

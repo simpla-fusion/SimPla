@@ -114,25 +114,32 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 	pb1_ = 0.0;
 	pc1_ = 0.0;
 
-	ptree sp_pt = pt.get_child("Species");
+	BOOST_FOREACH(const ptree::value_type &v, pt.get_child("Composition"))
+	{
+		std::string id = v.second.get<std::string>("<xmlattr>.id");
 
-//	for (typename ptree::const_iterator it = sp_pt.begin(); it != sp_pt.end();
-//			++it)
-//	{
-//		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
-//
-//		it.second.get<Real>("m"),
-//
-//		it.second.get<Real>("Z"),
-//
-//		d.GetObject<VecZeroForm>(it.first + "ns"),
-//
-//		d.GetObject<VecZeroForm>(it.first + "Js")
-//
-//		))
-//
-//		);
-//	}
+		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
+
+		v.second.get<Real>("m"),
+
+		v.second.get<Real>("Z"),
+
+		d.template GetObject<ZeroForm>(id + "_ns"),
+
+		d.template GetObject<VecZeroForm>(id + "_Js")
+
+		)));
+	}
+	LOG << "Run module ColdFluid";
+
+}
+
+template<typename TV, typename TG>
+void ColdFluid<TV, TG>::Eval()
+{
+	LOG << "Run module ColdFluid";
+
+	BB = Dot(Bv, Bv);
 
 	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
 			sp_list.begin(); it != sp_list.end(); ++it)
@@ -161,14 +168,6 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 			/ (pa1_
 					* ((pc1_ * BB - pa1_) * (pc1_ * BB - pa1_)
 							+ pb1_ * pb1_ * BB));
-
-}
-
-template<typename TV, typename TG>
-void ColdFluid<TV, TG>::Eval()
-{
-
-	BB = Dot(Bv, Bv);
 
 	VecZeroForm &K_ = ctx.template GetObject<VecZeroForm>("");
 	VecZeroForm &dEv_ = ctx.template GetObject<VecZeroForm>("");
