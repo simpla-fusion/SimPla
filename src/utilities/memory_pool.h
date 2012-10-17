@@ -8,24 +8,33 @@
 #ifndef INCLUDE_MEMORY_POOL_H_
 #define INCLUDE_MEMORY_POOL_H_
 #include <map>
-#include "defs.h"
 #include "singleton_holder.h"
-
+#include "log.h"
 class MemoryPool: public SingletonHolder<MemoryPool>
 {
-	static const int MAX_POOL_DEPTH = 128;
-	typedef std::multimap<SizeType, TR1::shared_ptr<int8_t> > MemoryMap;
+	enum
+	{
+		MAX_POOL_DEPTH = 128
+	};
+
+	typedef std::multimap<size_t, TR1::shared_ptr<int8_t> > MemoryMap;
+
 	MemoryMap pool_;
 
+	static size_t MAX_POOL_DEPTH_IN_Gbytes;
 public:
-	MemoryPool()
+	MemoryPool()  //2G
 	{
 	}
 	~MemoryPool()
 	{
 	}
+	static void set_max_pool_depth_in_Gb(size_t s)
+	{
+		MAX_POOL_DEPTH_IN_Gbytes = s;
+	}
 
-	inline TR1::shared_ptr<int8_t> alloc(SizeType size)
+	inline TR1::shared_ptr<int8_t> alloc(size_t size)
 	{
 		TR1::shared_ptr<int8_t> res;
 
@@ -47,7 +56,15 @@ public:
 		}
 		if (!isFound)
 		{
-			TR1::shared_ptr<int8_t>(new int8_t[size]).swap(res);
+			try
+			{
+				TR1::shared_ptr<int8_t>(new int8_t[size]).swap(res);
+
+			} catch (std::bad_alloc const &error)
+			{
+				ERROR_BAD_ALLOC_MEMORY(size, error);
+			}
+
 			pool_.insert(MemoryMap::value_type(size, res));
 		}
 		return res;
@@ -55,15 +72,31 @@ public:
 
 	inline void release()
 	{
-		if (pool_.size() > MAX_POOL_DEPTH)
+		static size_t pool_depth = 0;
+
+		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
 		{
-			for (MemoryMap::iterator it = pool_.begin(); it != pool_.end();
-					++it)
+			if (it->second.unique())
 			{
-				if (it->second.unique())
+				if (pool_depth > MAX_POOL_DEPTH_IN_Gbytes)
 				{
 					pool_.erase(it);
-					break;
+				}
+				else
+				{
+					pool_depth += it->first;
+				}
+			}
+		}
+
+		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
+		{
+			if (it->second.unique())
+			{
+				if (pool_depth > MAX_POOL_DEPTH_IN_Gbytes)
+				{
+					pool_.erase(it);
+					pool_depth -= it->first;
 				}
 			}
 		}

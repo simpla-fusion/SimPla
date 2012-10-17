@@ -153,7 +153,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		{
 
 			int ndim = oit->second->get_dimensions();
-			CHECK(ndim);
+
 			size_t dims[ndim];
 
 			oit->second->get_dimensions(dims);

@@ -13,10 +13,11 @@
 #include "engine/context_impl.h"
 #include "fetl/grid/uniform_rect.h"
 
+size_t MemoryPool::MAX_POOL_DEPTH_IN_Gbytes = 20;
+
 //#include "io/io.h"
 using namespace simpla;
 
-DEFINE_FIELDS(Real, UniformRectGrid);
 
 int main(int argc, char **argv)
 {

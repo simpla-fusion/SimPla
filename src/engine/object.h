@@ -22,6 +22,7 @@
 #include <typeinfo>
 #include <iostream>
 #include "utilities/properties.h"
+#include "utilities/memory_pool.h"
 
 namespace simpla
 {
@@ -29,14 +30,17 @@ class Object
 {
 
 public:
-	static const int MAX_NUM_OF_DIMS = 10;
+	enum
+	{
+		MAX_NUM_OF_DIMS = 10
+	};
 
 	typedef TR1::shared_ptr<Object> Holder;
 
 	ptree properties;
 
 	Object(size_t es, std::string const & desc, size_t s) :
-			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+			nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
 	{
 		size_t ss = s;
 		ReAlloc(&ss, 1);
@@ -44,7 +48,7 @@ public:
 
 	Object(size_t es, std::string const & desc = "", int ndims = 0, size_t *d =
 			NULL) :
-			data(NULL), nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+			nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
 	{
 		if (ndims > 0)
 		{
@@ -53,6 +57,7 @@ public:
 	}
 	inline virtual ~Object()
 	{
+		MemoryPool::instance().release();
 	}
 
 // Metadata ------------------------------------------------------------
@@ -75,24 +80,24 @@ public:
 	{
 		return ele_type_desc;
 	}
-	inline char const * get_data(size_t s = 0) const
+	inline int8_t const * get_data(size_t s = 0) const
 	{
-		return data + s * ele_size_in_bytes;
+		return data.get() + s * ele_size_in_bytes;
 	}
 
-	inline char * get_data(size_t s = 0)
+	inline int8_t * get_data(size_t s = 0)
 	{
-		return data + s * ele_size_in_bytes;
+		return data.get() + s * ele_size_in_bytes;
 	}
 	template<typename T>
 	T & value(size_t s)
 	{
-		return *reinterpret_cast<T*>(data + s * ele_size_in_bytes);
+		return *reinterpret_cast<T*>(data.get() + s * ele_size_in_bytes);
 	}
 	template<typename T>
 	T const & value(size_t s) const
 	{
-		return *reinterpret_cast<T const*>(data + s * ele_size_in_bytes);
+		return *reinterpret_cast<T const*>(data.get() + s * ele_size_in_bytes);
 	}
 	/**
 	 * Purpose: get the dimensions of object
@@ -135,37 +140,19 @@ public:
 			dims[i] = d[i];
 			size_in_bytes *= d[i];
 		}
-//		if (size_in_bytes > 0
-//				&& (size_in_bytes < o_size_in_bytes / 2
-//						|| size_in_bytes > o_size_in_bytes))
-		{
-#pragma omp critical(OBJECT_ALLOC)
-			{
-				if (data != NULL)
-				{
-					delete data;
-				}
-				try
-				{
-					data = reinterpret_cast<char*>(operator new(size_in_bytes));
 
-				} catch (std::bad_alloc const &error)
-				{
-					ERROR_BAD_ALLOC_MEMORY(size_in_bytes, error);
-				}
+		data = MemoryPool::instance().alloc(size_in_bytes);
 
-				nd = ndims;
-
-			}
-		}
+		nd = ndims;
 
 	}
 private:
-	char * data;
+	TR1::shared_ptr<int8_t> data;
 	int nd;
 	size_t dims[MAX_NUM_OF_DIMS];
 	const size_t ele_size_in_bytes;
 	const std::string ele_type_desc;
+	static std::multimap<size_t, char*> pool_;
 }
 ;
 

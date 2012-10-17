@@ -27,8 +27,7 @@
 #include <iostream>
 #include <map>
 //#include <exception>
-namespace simpla
-{
+
 class Log: public std::ostringstream
 {
 	int level_;
@@ -99,6 +98,5 @@ private:
 
 #define DOUBLELINE "================================================================="
 #define SINGLELINE "-----------------------------------------------------------------"
-} // namespace simpla
 
 #endif /* LOG_H_ */
