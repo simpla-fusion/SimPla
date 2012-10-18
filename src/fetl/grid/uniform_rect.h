@@ -324,22 +324,21 @@ public:
 		return (res);
 	}
 
-	inline int get_field_shape(size_t *d, int iform) const
+	inline std::vector<size_t> get_field_shape(int iform) const
 	{
 		int ndims =
 				(iform == IOneForm || iform == ITwoForm) ? NDIMS + 1 : NDIMS;
-		if (d != NULL)
+
+		std::vector<size_t> d(ndims);
+		for (int i = 0; i < NDIMS; ++i)
 		{
-			for (int i = 0; i < NDIMS; ++i)
-			{
-				d[i] = dims[i];
-			}
-			if (iform == IOneForm || iform == ITwoForm)
-			{
-				d[NDIMS] = get_num_of_comp(iform);
-			}
+			d[i] = dims[i];
 		}
-		return ndims;
+		if (iform == IOneForm || iform == ITwoForm)
+		{
+			d[NDIMS] = get_num_of_comp(iform);
+		}
+		return d;
 	}
 
 // Assign Operation --------------------------------------------

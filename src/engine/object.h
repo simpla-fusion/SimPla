@@ -23,7 +23,7 @@
 #include <iostream>
 #include "utilities/properties.h"
 #include "utilities/memory_pool.h"
-
+#include "datatype.h"
 namespace simpla
 {
 class Object
@@ -39,21 +39,18 @@ public:
 
 	ptree properties;
 
-	Object(size_t es, std::string const & desc, size_t s) :
-			nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+	Object(BaseDataType const & pdtype, std::vector<size_t> const & d) :
+			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(
+					pdtype.desc())
 	{
-		size_t ss = s;
-		ReAlloc(&ss, 1);
+		ReAlloc(&d[0], d.size());
 	}
 
-	Object(size_t es, std::string const & desc = "", int ndims = 0, size_t *d =
-			NULL) :
-			nd(0), ele_size_in_bytes(es), ele_type_desc(desc)
+	Object(BaseDataType const & pdtype, size_t d) :
+			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(
+					pdtype.desc())
 	{
-		if (ndims > 0)
-		{
-			ReAlloc(d, ndims);
-		}
+		ReAlloc(&d, 1);
 	}
 	inline virtual ~Object()
 	{
@@ -128,7 +125,7 @@ public:
 		return res;
 	}
 
-	void ReAlloc(size_t *d, int ndims = 1)
+	void ReAlloc(size_t const *d, int ndims = 1)
 	{
 
 		size_t o_size_in_bytes = get_size_in_bytes();
@@ -152,7 +149,6 @@ private:
 	size_t dims[MAX_NUM_OF_DIMS];
 	const size_t ele_size_in_bytes;
 	const std::string ele_type_desc;
-	static std::multimap<size_t, char*> pool_;
 }
 ;
 

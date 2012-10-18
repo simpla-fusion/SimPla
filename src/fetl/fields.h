@@ -21,7 +21,9 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
 #include "engine/object.h"
+#include "engine/datatype.h"
 #include "typeconvert.h"
+
 namespace simpla
 {
 
@@ -56,8 +58,8 @@ public:
 	Grid const & grid;
 
 	Field(Grid const & pgrid) :
-			Object(sizeof(ValueType), "H5T_NATIVE_DOUBLE",
-					pgrid.get_num_of_elements(IForm)), grid(pgrid)
+			Object(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
+					pgrid)
 	{
 	}
 
