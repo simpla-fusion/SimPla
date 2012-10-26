@@ -10,13 +10,8 @@
 #include "object.h"
 namespace simpla
 {
-BaseContext::BaseContext(ptree const&pt) :
-		dt(pt.get("dt", 1.0f)),
-
-		PHYS_CONSTANTS(pt.get_child_optional("PhysConstants")),
-
-		counter_(0), timer_(0)
-
+BaseContext::BaseContext() :
+		dt(0.0)
 {
 
 }

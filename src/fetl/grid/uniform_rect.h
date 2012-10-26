@@ -14,12 +14,14 @@
 #include <numeric>
 
 #include "include/simpla_defs.h"
-#include "../grid.h"
 #include "../ntuple.h"
 #include "../fetl_defs.h"
 #include "../typeconvert.h"
 #include "../arithmetic.h"
 #include "../vector_calculus.h"
+#include "../grid.h"
+#include "utilities/properties.h"
+
 namespace simpla
 {
 
@@ -39,6 +41,7 @@ class UniformRectGrid: public BaseGrid
 	std::vector<size_t> ghost_ele_[4];
 public:
 
+	typedef Real ValueType;
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
 
@@ -58,25 +61,22 @@ public:
 	IVec3 dims;
 	IVec3 strides;
 	IVec3 gw;
-
-	UniformRectGrid(ptree const &pt) :
+	template<typename PT>
+	UniformRectGrid(PT const &pt) :
 			initialized_(false)
 	{
-		boost::optional<std::string> ot = pt.get_optional<std::string>(
+		boost::optional<std::string> ot = pt.template get_optional<std::string>(
 				"<xmlattr>.type");
 		if (!ot || *ot != "UniformRect")
 		{
 			ERROR << "Grid type mismatch";
 		}
 
-		xmin = pt.get<Vec3>("xmin",
-				pt_trans<Vec3, typename ptree::data_type>());
-		xmax = pt.get<Vec3>("xmax",
-				pt_trans<Vec3, typename ptree::data_type>());
-		dims = pt.get<IVec3>("dims",
-				pt_trans<IVec3, typename ptree::data_type>());
-		gw = pt.get<IVec3>("ghostwidth",
-				pt_trans<IVec3, typename ptree::data_type>());
+		xmin = pt.template get<Vec3>("xmin", pt_trans<Vec3, typename PT::data_type>());
+		xmax = pt.template get<Vec3>("xmax", pt_trans<Vec3, typename PT::data_type>());
+		dims = pt.template get<IVec3>("dims", pt_trans<IVec3, typename PT::data_type>());
+		gw = pt.template get<IVec3>("ghostwidth",
+				pt_trans<IVec3, typename PT::data_type>());
 
 		for (int i = 0; i < NDIMS; ++i)
 		{

@@ -15,31 +15,35 @@
 #include <boost/foreach.hpp>
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
+#include "engine/basecontext.h"
 #include "engine/modules.h"
-#include "engine/context.h"
+
 namespace simpla
 {
 namespace em
 {
 
-template<typename TV, typename TG>
+template<typename TG>
 class ColdFluid: public Module
 {
 public:
 
-	typedef ColdFluid<TV, TG> ThisType;
+	typedef ColdFluid<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	DEFINE_FIELDS(TV, TG)
+	DEFINE_FIELDS(typename TG::ValueType, TG)
+	;
 
-	ColdFluid(Context<TG> & d, const ptree & pt);
-	virtual ~ColdFluid()
-	{
-	}
+	template<typename TP> ColdFluid(BaseContext & d, const TP & pt);
+
+	virtual ~ColdFluid();
+
+	virtual void Initialize();
 
 	virtual void Eval();
+
 private:
-	Context<TG> & ctx;
+	BaseContext & ctx;
 	Grid const & grid;
 
 	const Real dt;
@@ -81,11 +85,12 @@ private:
 
 };
 
-template<typename TV, typename TG>
-ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
+template<typename TG>
+template<typename TP>
+ColdFluid<TG>::ColdFluid(BaseContext & d, const TP & pt) :
 		ctx(d),
 
-		grid(ctx.grid),
+		grid(ctx.Grid<TG>()),
 
 		dt(ctx.dt),
 
@@ -111,19 +116,15 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 
 {
 
-	pa1_ = 0.0;
-	pb1_ = 0.0;
-	pc1_ = 0.0;
-
-	BOOST_FOREACH(const ptree::value_type &v, pt.get_child("Composition"))
+	BOOST_FOREACH(const typename TP::value_type &v, pt.get_child("Composition"))
 	{
-		std::string id = v.second.get<std::string>("<xmlattr>.id");
+		std::string id = v.second.template get<std::string>("<xmlattr>.id");
 
 		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
 
-		v.second.get<Real>("m"),
+		v.second.template get<Real>("m"),
 
-		v.second.get<Real>("Z"),
+		v.second.template get<Real>("Z"),
 
 		ctx.template GetObject<ZeroForm>(id + "_ns"),
 
@@ -131,16 +132,31 @@ ColdFluid<TV, TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 
 		)));
 	}
+
+}
+template<typename TG>
+ColdFluid<TG>::~ColdFluid()
+{
+}
+
+template<typename TG>
+void ColdFluid<TG>::Initialize()
+{
+
 	LOG << "Create module ColdFluid";
 
 }
 
-template<typename TV, typename TG>
-void ColdFluid<TV, TG>::Eval()
+template<typename TG>
+void ColdFluid<TG>::Eval()
 {
 	LOG << "Run module ColdFluid";
 
 	BB = Dot(*Bv, *Bv);
+
+	pa1_ = 0.0;
+	pb1_ = 0.0;
+	pc1_ = 0.0;
 
 	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
 			sp_list.begin(); it != sp_list.end(); ++it)

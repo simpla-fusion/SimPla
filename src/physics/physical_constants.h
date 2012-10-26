@@ -15,8 +15,27 @@ namespace simpla
 class PhysicalConstants
 {
 public:
-	PhysicalConstants(boost::optional<ptree const &> pt);
+	PhysicalConstants();
+
+	template<typename PT>
+	PhysicalConstants(PT const & pt) :
+			type(pt.template get<std::string>("<xmlattr>.type"))
+	{
+		if (type == "CUSTOM")
+		{
+			m = pt.get("m", 1.0d);
+			s = pt.get("s", 1.0d);
+			kg = pt.get("kg", 1.0d);
+			C = pt.get("C", 1.0f);
+			K = pt.get("K", 1.0f);
+			mol = pt.get("mol", 1.0d);
+		}
+		Initialize();
+	}
+
 	~PhysicalConstants();
+
+	void Initialize();
 	std::string Summary() const;
 
 	inline Real operator[](std::string const &s) const

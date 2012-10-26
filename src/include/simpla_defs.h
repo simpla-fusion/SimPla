@@ -62,11 +62,9 @@ typedef std::complex<Real> Complex;
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-
 } //namespace simpla
 
 #include "mpl/typetraits.h"
-
 
 #include <tr1/memory>
 #include <tr1/functional>
@@ -81,20 +79,19 @@ namespace TR1 = std::tr1;
 //#endif //__GXX_EXPERIMENTAL_CXX0X__
 
 #include "utilities/log.h"
-#include "utilities/properties.h"
 
 #define SIMPLA_LOGO                                                        \
-"*               ____  _           ___  _                                \n"\
-"*              / ___|(_)_ __ ___ | _ \\| | __ _                          \n"\
-"*              \\___ \\| | '_ ` _ \\||_) | |/ _` |                         \n"\
-"*               ___) | | | | | | | __/| | (_| |                         \n"\
-"*              |____/|_|_| |_| |_|_|  |_|\\__,_|                         \n"\
-"*                                                                       \n"\
-"*                                                                       \n"\
-"* SimPla aka. GGauge, 3D version Electromagnetic Plasma Simulation      \n"\
-"* Build Date: " __DATE__ " " __TIME__"  ID:" IDENTIFY "                 \n"\
-"* Copyright (C) 2007-2012 YU Zhi. ASIPP. All rights reserved.           \n"\
-"*                                                                       \n"\
+"       ____        ____                                 \n"\
+"      / ___|      / ___| __ _ _   _  __ _  ___           \n"\
+"     | |  _ _____| |  _ / _` | | | |/ _` |/ _ \\            \n"\
+"     | |_| |_____| |_| | (_| | |_| | (_| |  __/         \n"\
+"      \\____|      \\____|\\__,_|\\__,_|\\__, |\\___|          \n"\
+"                                    |___/                       \n"\
+"                                                                       \n"\
+" GGauge, 3D version Electromagnetic Plasma Simulation      \n"\
+" Build Date: " __DATE__ " " __TIME__"                   \n"\
+" ID:" IDENTIFY  "                                        \n"\
+" Copyright (C) 2007-2012 YU Zhi. All rights reserved.           \n"
 
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)

@@ -16,39 +16,9 @@
 namespace simpla
 {
 
-template<typename TOBJ>
-TR1::shared_ptr<TOBJ> BaseContext::GetObject(std::string const & name)
-{
-
-	if (name != "")
-	{
-		std::map<std::string, Object::Holder>::iterator it = objects.find(name);
-		if (it != objects.end())
-		{
-			if (it->second->CheckType(typeid(TOBJ)))
-			{
-				return TR1::dynamic_pointer_cast<TOBJ>(it->second);
-			}
-			else
-			{
-				ERROR << "Object " << name << "can not been created as "
-						<< typeid(TOBJ).name();
-			}
-		}
-	}
-
-	TR1::shared_ptr<TOBJ> res(
-			new TOBJ(*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
-	if (name != "")
-	{
-		objects[name] = TR1::dynamic_pointer_cast<Object>(res);
-	}
-
-	return res;
-}
-
 template<typename TG>
-TR1::shared_ptr<Context<TG> > Context<TG>::Create(ptree const & pt)
+template<typename PT>
+TR1::shared_ptr<Context<TG> > Context<TG>::Create(PT const & pt)
 {
 	return TR1::shared_ptr<Context<TG> >(new ThisType(pt));
 }
@@ -70,56 +40,72 @@ inline std::string Context<TG>::Summary() const
 
 	<< DOUBLELINE << std::endl
 
-	<< "Objects List" << std::endl
-
-	<< SINGLELINE << std::endl
-
 	;
-	for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
-			objects.begin(); it != objects.end(); ++it)
-	{
-		os << it->first << std::endl;
-	}
+
+
+//	<< "Objects List" << std::endl
+//
+//	<< SINGLELINE << std::endl
+//
+//
+//	for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
+//			objects.begin(); it != objects.end(); ++it)
+//	{
+//		os << it->first << std::endl;
+//	}
 
 	return os.str();
 
 }
-
 template<typename TG>
-void Context<TG>::LoadModules(ptree const & pt)
+template<typename PT>
+void Context<TG>::LoadModules(PT const & pt)
 {
 	LOG << "Load Modules";
 
-	BOOST_FOREACH(const ptree::value_type &v, pt.get_child("Modules"))
+	BOOST_FOREACH(const typename PT::value_type &v, pt.get_child("Modules"))
 	{
-		std::string type = v.second.get<std::string>("<xmlattr>.type");
+		boost::optional<std::string> type = v.second.template get_optional<
+				std::string>("<xmlattr>.type");
+		if (!type)
+		{
+			continue;
+		}
+		if (*type == "Maxwell")
+		{
+			modules.push_back(
+					TR1::bind(&em::Maxwell<TG>::Eval,
+							new em::template Maxwell<TG>(*this, v.second)));
+		}
+		else if (*type == "PML")
+		{
+			modules.push_back(
+					TR1::bind(&em::PML<TG>::Eval,
+							new em::template PML<TG>(*this, v.second)));
+		}
+		else if (*type == "ColdFluid")
+		{
+			modules.push_back(
+					TR1::bind(&em::ColdFluid<TG>::Eval,
+							new em::template ColdFluid<TG>(*this, v.second)));
+		}
 
-		if (type == "Maxwell")
-		{
-			modules.push_back(
-					TR1::bind(&em::Maxwell<Real, Grid>::Eval,
-							new em::Maxwell<Real, Grid>(*this, v.second)));
-		}
-		else if (type == "PML")
-		{
-			modules.push_back(
-					TR1::bind(&em::PML<Real, Grid>::Eval,
-							new em::PML<Real, Grid>(*this, v.second)));
-		}
-		else if (type == "ColdFluid")
-		{
-			modules.push_back(
-					TR1::bind(&em::ColdFluid<Real, Grid>::Eval,
-							new em::ColdFluid<Real, Grid>(*this, v.second)));
-		}
-		else if (type == "WriteXDMF")
-		{
-			modules.push_back(
-					TR1::bind(&io::WriteXDMF<Grid>::Eval,
-							new io::WriteXDMF<Grid>(*this, v.second)));
-		}
 	}
 
+	boost::optional<std::string> type = pt.template get_optional<std::string>(
+			"OutPut.<xmlattr>.type");
+
+	if (!!type)
+	{
+		if (*type == "XDMF")
+		{
+			modules.push_back(
+					TR1::bind(&io::WriteXDMF<TG>::Eval,
+							new io::template WriteXDMF<TG>(*this,
+									pt.get_child("OutPut"))));
+
+		}
+	}
 }
 
 }  // namespace simpla

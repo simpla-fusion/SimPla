@@ -10,38 +10,63 @@
 #define SRC_EMFIELD_PML_H_
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
-#include "fetl/grid/uniform_rect.h"
-#include "engine/context.h"
 #include "engine/modules.h"
-
+#include "engine/basecontext.h"
 namespace simpla
 {
 namespace em
 {
 
-template<typename TV, typename TG>
+template<typename TG>
 class PML: public Module
 {
 public:
 
-	typedef PML ThisType;
+	typedef PML<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	DEFINE_FIELDS(TV, TG)
+	DEFINE_FIELDS(typename TG::ValueType,TG)
+	;
 
-	PML(Context<TG> & d, const ptree & properties);
+	template<typename PT>
+	PML(BaseContext & d, const PT & pt) :
+			ctx(d),
 
-	virtual ~PML()
+			grid(ctx.Grid<TG>()),
+
+			dt(ctx.dt),
+
+			mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
+
+			epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
+
+			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
+
+			B1(ctx.template GetObject < TwoForm > ("B1")),
+
+			E1(ctx.template GetObject < OneForm > ("E1")),
+
+			J1(ctx.template GetObject < OneForm > ("J1")),
+
+			a0(grid), a1(grid), a2(grid),
+
+			s0(grid), s1(grid), s2(grid),
+
+			X10(grid), X11(grid), X12(grid),
+
+			X20(grid), X21(grid), X22(grid),
+
+			bc_(pt.template get<nTuple<SIX, int> >("bc"))
 	{
+		Initialize();
 	}
 
+	virtual ~PML();
 	virtual void Eval();
-
+	void Initialize();
 private:
-	Context<TG> & ctx;
+	BaseContext & ctx;
 	Grid const & grid;
-
-	nTuple<SIX, int> bc_;
 
 	const Real dt;
 	const Real mu0;
@@ -62,10 +87,10 @@ private:
 	TR1::shared_ptr<OneForm> E1;
 	TR1::shared_ptr<TwoForm> B1;
 
+	nTuple<SIX, int> bc_;
+
 };
-template<> PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d,
-		const ptree & properties);
-template<> void PML<Real, UniformRectGrid>::Eval();
+
 } // namespace em
 } // namespace simpla
 #endif  // SRC_EMFIELD_PML_H_

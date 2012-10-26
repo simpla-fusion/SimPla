@@ -26,6 +26,7 @@ public:
 };
 
 template<typename T> struct DataType;
+
 template<>
 struct DataType<double> : public BaseDataType
 {
@@ -46,8 +47,43 @@ struct DataType<double> : public BaseDataType
 	}
 };
 
-template<int N, typename TV>
+template<typename TV>
+struct DataType<std::complex<TV> > : public BaseDataType
+{
+	DataType()
+	{
+	}
+	virtual ~DataType()
+	{
+	}
+	virtual size_t size_in_bytes() const
+	{
+		return DataType<TV>().size_in_bytes() * 2;
+	}
 
+	virtual std::string desc() const
+	{
+		std::ostringstream os;
+		os << "H5T_COMPOUND {  "
+
+		<< DataType<TV>().desc() << "  \"r\" : " << offsetof(_complex, r) << ";"
+
+		<< DataType<TV>().desc() << "  \"i\" : " << offsetof(_complex, i) << ";"
+
+		<< "}";
+
+		return os.str();
+	}
+private:
+	struct _complex
+	{
+		TV r;
+		TV i;
+	};
+};
+template<int N, typename TV> class nTuple;
+
+template<int N, typename TV>
 struct DataType<nTuple<N, TV> > : public BaseDataType
 {
 	DataType()

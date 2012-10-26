@@ -30,7 +30,6 @@ public:
 	virtual ~Module()
 	{
 	}
-
 	virtual void Eval()=0;
 private:
 

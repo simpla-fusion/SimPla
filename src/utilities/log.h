@@ -26,16 +26,56 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include "utilities/singleton_holder.h"
 //#include <exception>
+class LogStreams: public SingletonHolder<LogStreams>
+{
+public:
+
+	// TODO add multi_stream support
+
+	LogStreams() :
+			info_level(0)
+	{
+	}
+	~LogStreams()
+	{
+		fs.close();
+	}
+
+	inline void OpenFile(std::string const & name)
+	{
+		if (fs.is_open())
+		{
+			fs.close();
+		}
+
+		fs.open(name.c_str(), std::ios_base::out);
+	}
+	void put(int level, std::string const & msg)
+	{
+		if (level <= info_level)
+		{
+			std::cerr << msg;
+		}
+		if (fs.good())
+		{
+			fs << msg;
+		}
+	}
+	int info_level;
+
+	std::fstream fs;
+
+};
 
 class Log: public std::ostringstream
 {
 	int level_;
 public:
-	static int info_level;
 
-	Log(int l = 0) :
-			level_(l)
+	Log(int lv = 0) :
+			level_(lv)
 	{
 		(*this)
 #ifdef  _OMP
@@ -47,10 +87,8 @@ public:
 	~Log()
 	{
 		(*this) << std::endl;
-		if (level_ <= info_level)
-		{
-			std::cout << (*this).str();
-		}
+
+		LogStreams::instance().put(level_, (*this).str());
 
 		if (level_ == -3)
 		{
@@ -65,7 +103,12 @@ public:
 
 	static void Verbose(int l = 1)
 	{
-		info_level = l;
+		LogStreams::instance().info_level = l;
+	}
+
+	static void OpenFile(std::string const & fname)
+	{
+		LogStreams::instance().OpenFile(fname);
 	}
 
 	static std::string Teimstamp()
@@ -87,7 +130,7 @@ private:
 #define LOGIC_ERROR Log(-3)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
 #define WARNING Log(-1) <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define INFORM Log(1) <<"[I]"
+#define INFORM Log(0) <<"[I]"
 #define LOG Log(2) <<"[L]"
 #define VERBOSE Log(3) <<"[V]"
 #define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \

@@ -13,7 +13,6 @@
 #include <hdf5_hl.h>
 #include <fstream>
 #include <sstream>
-#include <boost/algorithm/string.hpp>
 #include "fetl/grid/uniform_rect.h"
 #include "engine/context.h"
 #include "engine/modules.h"
@@ -24,25 +23,14 @@ namespace simpla
 {
 namespace io
 {
-
 template<>
-WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
-		const ptree & pt) :
-		ctx(d),
-
-		grid(d.grid),
-
-		attrPlaceHolder("<!-- Add Attribute Here -->"),
-
-		step(pt.get("step", 1))
+WriteXDMF<UniformRectGrid>::~WriteXDMF()
 {
+}
+template<>
+void WriteXDMF<UniformRectGrid>::Initialize()
 
-	BOOST_FOREACH(const ptree::value_type &v, pt.get_child("Objects"))
-	{
-		std::string id = v.second.get_value<std::string>();
-		boost::algorithm::trim(id);
-		obj_list_.push_back(id);
-	}
+{
 
 	std::ostringstream ss;
 	ss << "<?xml version='1.0' ?>" << std::endl
@@ -117,9 +105,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
 
 	file_template = ss.str();
 
-	dir_path_ = pt.get("DirPath", "Untitled");
-
-	mkdir(dir_path_.c_str(), 0777);
+	mkdir(path_.c_str(), 0777);
 
 	LOG << "Create module WriteXDMF";
 
@@ -137,8 +123,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		filename = st.str();
 	}
 
-	H5::Group grp = H5::H5File(dir_path_ + "/" + filename + ".h5",
-			H5F_ACC_TRUNC) //
+	H5::Group grp = H5::H5File(path_ + "/" + filename + ".h5", H5F_ACC_TRUNC) //
 	.openGroup("/");
 
 	std::string xmdf_file(file_template);
@@ -184,7 +169,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		}
 	}
 
-	std::fstream fs((dir_path_ + "/" + filename + ".xdmf").c_str(),
+	std::fstream fs((path_ + "/" + filename + ".xdmf").c_str(),
 			std::fstream::out);
 	fs << xmdf_file;
 	fs.close();

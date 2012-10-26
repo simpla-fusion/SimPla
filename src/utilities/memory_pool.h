@@ -10,6 +10,7 @@
 #include <map>
 #include "singleton_holder.h"
 #include "log.h"
+
 class MemoryPool: public SingletonHolder<MemoryPool>
 {
 	enum
@@ -21,19 +22,20 @@ class MemoryPool: public SingletonHolder<MemoryPool>
 
 	MemoryMap pool_;
 
-	static size_t MAX_POOL_DEPTH_IN_Gbytes;
+	size_t MAX_POOL_DEPTH_IN_GB;
+
 public:
-	MemoryPool()  //2G
+	MemoryPool() :
+			MAX_POOL_DEPTH_IN_GB(2)  //2G
 	{
 	}
 	~MemoryPool()
 	{
 	}
-	static void set_max_pool_depth_in_Gb(size_t s)
+	void set_pool_depth_in_GB(size_t s)
 	{
-		MAX_POOL_DEPTH_IN_Gbytes = s;
+		MAX_POOL_DEPTH_IN_GB = s;
 	}
-
 	inline TR1::shared_ptr<int8_t> alloc(size_t size)
 	{
 		TR1::shared_ptr<int8_t> res;
@@ -72,13 +74,14 @@ public:
 
 	inline void release()
 	{
-		static size_t pool_depth = 0;
+		size_t pool_depth = 0;
+		const size_t ONE_GIGA = 1024l * 1024l * 1024l;
 
 		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
 		{
 			if (it->second.unique())
 			{
-				if (pool_depth > MAX_POOL_DEPTH_IN_Gbytes)
+				if (pool_depth > MAX_POOL_DEPTH_IN_GB * ONE_GIGA)
 				{
 					pool_.erase(it);
 				}
@@ -93,7 +96,7 @@ public:
 		{
 			if (it->second.unique())
 			{
-				if (pool_depth > MAX_POOL_DEPTH_IN_Gbytes)
+				if (pool_depth > MAX_POOL_DEPTH_IN_GB * ONE_GIGA)
 				{
 					pool_.erase(it);
 					pool_depth -= it->first;

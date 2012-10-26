@@ -21,7 +21,6 @@
 #include "include/simpla_defs.h"
 #include <typeinfo>
 #include <iostream>
-#include "utilities/properties.h"
 #include "utilities/memory_pool.h"
 #include "datatype.h"
 namespace simpla
@@ -37,7 +36,6 @@ public:
 
 	typedef TR1::shared_ptr<Object> Holder;
 
-	ptree properties;
 
 	Object(BaseDataType const & pdtype, std::vector<size_t> const & d) :
 			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(

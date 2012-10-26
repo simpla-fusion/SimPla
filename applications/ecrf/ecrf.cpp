@@ -6,29 +6,28 @@
  */
 
 #include "include/simpla_defs.h"
+#include "utilities/properties.h"
+
 #include "physics/constants.h"
 #include "fetl/fetl.h"
-//#include "pic/pic.h"
+
 #include "engine/context.h"
 #include "engine/context_impl.h"
-#include "fetl/grid/uniform_rect.h"
 
-size_t MemoryPool::MAX_POOL_DEPTH_IN_Gbytes = 20;
+#include "fetl/grid/uniform_rect.h"
 
 //#include "io/io.h"
 using namespace simpla;
 
-
 int main(int argc, char **argv)
 {
-	Log::info_level = 0;
 
 	size_t max_step = 1000;
 
 	size_t record_stride = 1;
 
 	std::string input = "simpla.xml";
-	std::string output = "untitle.info";
+	std::string output = "untitle";
 
 	double omega = 1.0;
 
@@ -54,6 +53,9 @@ int main(int argc, char **argv)
 		case 'i':
 			input = argv[i] + 2;
 			break;
+		case 'l':
+			Log::OpenFile(argv[i] + 2);
+			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));
 			break;
@@ -65,34 +67,13 @@ int main(int argc, char **argv)
 
 	read_file(input, pt);
 
-	write_file(output, pt);
+	pt.put("Context.OutPut.<xmlattr>.path", output);
 
 	Context<UniformRectGrid> ctx(pt.get_child("Context"));
 
-//
-////	simpla::io::IOEngine<Grid> diag(domain, output);
-//
-//	ZeroForm &n1 = *domain.GetObject<ZeroForm>("n0");
-//
-//	for (size_t s = 0; s < dims[0]; ++s)
-//	{
-//		n1[s] = N0 * 0.5
-//				* (1.0
-//						- std::cos(
-//								PI * static_cast<double>(s)
-//										/ static_cast<double>(dims[0] - 1)));
-//	}
-//
-////	domain.AddSolver("DeltaF", new PICEngine<DeltaF, Grid>(domain));
+	INFORM
 
-//	if (boost::optional<ptree &> module = pt.get_child_optional("Modules.PML"))
-//	{
-//		domain.functions.push_back(
-//				TR1::bind(&em::PML<Real, UniformRectGrid>::Eval,
-//						new em::PML<Real, Grid>(domain, *module)));
-//	}
-
-	std::cout
+	<< std::endl
 
 	<< DOUBLELINE << std::endl
 
@@ -124,33 +105,11 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-
-
 	for (int i = 0; i < max_step; ++i)
 	{
 		ctx.Eval();
 	}
 
-//	domain.PreProcess();
-
-//	diag.Register("E1", record_stride);
-//	diag.Register("B1", record_stride);
-//	diag.Register("J1", record_stride);
-//	diag.Register("n1", record_stride);
-//	diag.Register("electron", record_stride);
-//
-//	for (size_t s = 0; s < max_step; ++s)
-//	{
-////		diag.WriteAll();
-//		n1 = 0.0;
-//
-////		J1[6 * 3 + 1] = JAmp * sin(omega * domain.Time());
-//
-//		domain.Eval();
-//
-//	}
-
-//	domain.PostProcess();
-
+	INFORM << "====== Done! =======" << std::endl;
 }
 

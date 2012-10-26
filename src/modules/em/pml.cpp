@@ -1,11 +1,27 @@
+/*Copyright (C) 2007-2011 YU Zhi. All rights reserved.
+ * $Id$
+ * Maxwell/PML.h
+ *
+ *  Created on: 2010-12-7
+ *      Author: salmon
+ */
+
 #include "pml.h"
 
 #include "fetl/grid/uniform_rect.h"
+
+#include "engine/context.h"
 
 namespace simpla
 {
 namespace em
 {
+
+template<>
+PML<UniformRectGrid >::~PML()
+{
+}
+
 inline Real sigma_(Real r, Real expN, Real dB)
 {
 	return (0.5 * (expN + 2.0) * 0.1 * dB * pow(r, expN + 1.0));
@@ -15,34 +31,7 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 template<>
-PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
-		ctx(d),
-
-		grid(ctx.grid),
-
-		dt(ctx.dt),
-
-		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
-
-		epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
-
-		speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
-
-		bc_(pt.get<nTuple<SIX, int> >("bc")),
-
-		B1(ctx.GetObject<TwoForm>("B1")),
-
-		E1(ctx.GetObject<OneForm>("E1")),
-
-		J1(ctx.GetObject<OneForm>("J1")),
-
-		a0(grid), a1(grid), a2(grid),
-
-		s0(grid), s1(grid), s2(grid),
-
-		X10(grid), X11(grid), X12(grid),
-
-		X20(grid), X21(grid), X22(grid)
+void PML<UniformRectGrid>::Initialize()
 
 {
 	LOG << "Create module PML";
@@ -127,7 +116,7 @@ PML<Real, UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) 
 
 }
 template<>
-void PML<Real, UniformRectGrid>::Eval()
+void PML<UniformRectGrid >::Eval()
 {
 	LOG << "Run module PML";
 

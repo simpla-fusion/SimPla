@@ -7,26 +7,18 @@
 #include "physical_constants.h"
 namespace simpla
 {
-
-PhysicalConstants::PhysicalConstants(boost::optional<ptree const &> opt)
+PhysicalConstants::PhysicalConstants() :
+		type("SI")
 {
-	if (!opt || !opt->get_optional<std::string>("<xmlattr>.type"))
-	{
-		type = "SI";
-	}
-	else
-	{
-		type = opt->get<std::string>("<xmlattr>.type");
-		if (type == "CUSTOM")
-		{
-			m = opt->get("m", 1.0f);
-			s = opt->get("s", 1.0f);
-			kg = opt->get("kg", 1.0f);
-			C = opt->get("C", 1.0f);
-			K = opt->get("K", 1.0f);
-			mol = opt->get("mol", 1.0f);
-		}
-	}
+	Initialize();
+}
+PhysicalConstants::~PhysicalConstants()
+{
+
+}
+
+void PhysicalConstants::Initialize()
+{
 
 	if (type == "SI")
 	{
@@ -129,10 +121,7 @@ PhysicalConstants::PhysicalConstants(boost::optional<ptree const &> opt)
 	q_["atomic_mass_unit"] = SI_atomic_mass_unit * kg; /*4.4e-8*/
 
 }
-PhysicalConstants::~PhysicalConstants()
-{
-	;
-}
+
 std::string PhysicalConstants::Summary() const
 {
 	std::ostringstream os;
@@ -141,7 +130,7 @@ std::string PhysicalConstants::Summary() const
 
 	<< DOUBLELINE << std::endl
 
-	<< "Units " << type << "~ SI" << std::endl
+	<< "Units " << type << " ~ SI" << std::endl
 
 	<< SINGLELINE << std::endl
 

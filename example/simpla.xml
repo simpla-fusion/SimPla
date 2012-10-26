@@ -1,0 +1,52 @@
+<Context>
+<!--        <PhysConstants type="SI"></PhysConstants> -->
+
+	<Grid type="UniformRect">
+		<NUM_OF_DIMS>3</NUM_OF_DIMS>
+		<dx unit="m">1 1 1</dx>
+		<dt unit="m" >1</dt>
+		<xmin unit="m">0 0 0 </xmin>
+		<xmax unit="m">1 1 1 </xmax>
+		<dims>11 11 11</dims>
+		<ghostwidth>2 2 2 </ghostwidth>
+	</Grid>
+
+	<Particles type="delta_f" id="ele">
+		<pic></pic>
+	</Particles>
+
+	<Fields type="OneForm" id="E">
+		<save>0</save>
+		<value>0</value>
+	</Fields>
+	<Modules>
+		<module type="Maxwell" id="EMSolver" > </module>
+<!--	
+	<module type="PML" >
+			<bc> 2 2 2 2 2 2 </bc>
+		</module>
+                <module type="ColdFluid" >
+			<Composition>
+				<species id="H">
+					<m>1</m>
+					<Z>1</Z>
+					<ns>0.5</ns>
+					
+				</species>
+			</Composition>
+                </module>
+-->
+		<module type="WriteXDMF">
+			<step> 10 </step>
+			<Objects>
+				<field>E1</field>
+				<field> B1 </field>
+			</Objects>
+		</module>
+	</Modules>
+	<Output>
+		<name></name>
+		<step></step>
+	</Output>
+
+</Context>

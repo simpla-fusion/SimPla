@@ -11,7 +11,7 @@
 
 #include "fetl/fetl.h"
 #include "fetl/vector_calculus.h"
-#include "engine/context.h"
+#include "engine/basecontext.h"
 #include "engine/modules.h"
 
 namespace simpla
@@ -19,19 +19,21 @@ namespace simpla
 namespace em
 {
 
-template<typename TV, typename TG>
+template<typename TG>
 class Maxwell: public Module
 {
 public:
 
-	typedef Maxwell ThisType;
+	typedef Maxwell<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	DEFINE_FIELDS(TV, TG)
+	DEFINE_FIELDS(typename TG::ValueType, TG)
+	;
 
-	Context<TG> & ctx;
+	BaseContext & ctx;
 
-	Maxwell(Context<TG> & d, const ptree & properties) :
+	template<typename PT>
+	Maxwell(BaseContext & d, PT const &) :
 			ctx(d),
 
 			dt(ctx.dt),
