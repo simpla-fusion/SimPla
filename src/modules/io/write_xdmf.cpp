@@ -15,9 +15,8 @@
 #include <sstream>
 #include "fetl/grid/uniform_rect.h"
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "engine/object.h"
-#include "write_hdf5.h"
+#include "fetl/fetl.h"
 
 namespace simpla
 {
@@ -39,7 +38,10 @@ void WriteXDMF<UniformRectGrid>::Initialize()
 
 	<< "<Xdmf Version='2.0'>" << std::endl
 
-	<< "<Domain>" << std::endl;
+	<< "<Domain>" << std::endl
+
+	<< "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
+			<< std::endl;
 
 	int ndims = 0;
 	Real xmin[3], dx[3];
@@ -58,56 +60,51 @@ void WriteXDMF<UniformRectGrid>::Initialize()
 	if (ndims == 3) //3D
 	{
 
-		ss << "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
-				<< std::endl
+		ss << "  <Topology TopologyType='3DCoRectMesh'  "
 
-				<< "  <Topology TopologyType='3DCoRectMesh'  "
+		<< " Dimensions='" << dims[0] << " " << dims[1] << " " << dims[2]
 
-				<< " Dimensions='" << dims[0] << " " << dims[1] << " "
-				<< dims[2] << "'></Topology>" << std::endl
+		<< "'></Topology>" << std::endl
 
-				<< "  <Geometry Type='Origin_DxDyDz'>" << std::endl
+		<< "  <Geometry Type='Origin_DxDyDz'>" << std::endl
 
-				<< "    <DataItem Format='XML' Dimensions='3'>"
+		<< "    <DataItem Format='XML' Dimensions='3'>"
 
-				<< xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>"
-				<< std::endl
+		<< xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>"
 
-				<< "    <DataItem Format='XML' Dimensions='3'>"
+		<< std::endl
 
-				<< dx[0] << " " << dx[1] << " " << dx[2] << "</DataItem>"
-				<< std::endl
+		<< "    <DataItem Format='XML' Dimensions='3'>"
 
-				<< "  </Geometry>" << std::endl;
+		<< dx[0] << " " << dx[1] << " " << dx[2] << "</DataItem>" << std::endl
+
+		<< "  </Geometry>" << std::endl;
 
 	}
 	else if (ndims == 2) //2D
 	{
-		ss << "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
-				<< std::endl
+		ss
 
-				<< "  <Topology TopologyType='2DCoRectMesh'  "
+		<< "  <Topology TopologyType='2DCoRectMesh'  "
 
-				<< " Dimensions='"
+		<< " Dimensions='"
 
-				<< dims[0] << " " << dims[1] << "'></Topology>" << std::endl
+		<< dims[0] << " " << dims[1] << "'></Topology>" << std::endl
 
-				<< "  <Geometry Type='Origin_DxDy'>" << std::endl
+		<< "  <Geometry Type='Origin_DxDy'>" << std::endl
 
-				<< "    <DataItem Format='XML' Dimensions='2'>"
+		<< "    <DataItem Format='XML' Dimensions='2'>"
 
-				<< xmin[0] << " " << xmin[1] << "</DataItem>" << std::endl
+		<< xmin[0] << " " << xmin[1] << "</DataItem>" << std::endl
 
-				<< "    <DataItem Format='XML' Dimensions='2'>"
+		<< "    <DataItem Format='XML' Dimensions='2'>"
 
-				<< dx[0] << " " << dx[1] << "</DataItem>" << std::endl
+		<< dx[0] << " " << dx[1] << "</DataItem>" << std::endl
 
-				<< "  </Geometry>" << std::endl;
+		<< "  </Geometry>" << std::endl;
 	}
 
-	ss
-
-	<< attrPlaceHolder << std::endl
+	ss << attrPlaceHolder << std::endl
 
 	<< "</Grid>" << std::endl
 
@@ -154,36 +151,68 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 		if (oit != ctx.objects.end())
 		{
+			Object & obj = *oit->second;
 
-			int ndim = oit->second->get_dimensions();
+			std::string attr_str = "Scalar";
 
-			size_t dims[ndim];
+			H5::DataType mdatatype(
+					H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),
+							H5LT_DDL));
 
-			oit->second->get_dimensions(dims);
+			int mem_nd = 0;
+			hsize_t mdims[MAX_XDMF_NDIMS];
 
-			int pndim = 0;
-			size_t pdims[ndim];
+			if (obj.CheckType(typeid(Field<Grid, IZeroForm, Real> ))
+					|| obj.CheckType(typeid(Field<Grid, IZeroForm, Complex> )))
 			{
+			}
+			else if (obj.CheckType(typeid(Field<Grid, IOneForm, Real> ))
+					|| obj.CheckType(typeid(Field<Grid, ITwoForm, Real> ))
+					|| obj.CheckType(typeid(Field<Grid, IOneForm, Complex> ))
+					|| obj.CheckType(typeid(Field<Grid, ITwoForm, Complex> )))
+			{
+				attr_str = "Vector";
+				mem_nd = 1;
+				mdims[0] = THREE;
+			}
+			else if (obj.CheckType(
+					typeid(Field<Grid, IZeroForm, nTuple<THREE, Real> > )))
+			{
+				attr_str = "Vector";
 
-				for (int i = 0; i < ndim; ++i)
+				mdatatype = H5::PredType::NATIVE_DOUBLE;
+				mem_nd = 1;
+				mdims[0] = THREE;
+			}
+			else if (obj.CheckType(
+					typeid(Field<Grid, IZeroForm, nTuple<THREE, Complex> > )))
+			{
+				attr_str = "Vector";
+				mdatatype = H5LTtext_to_dtype(
+						DataType<Complex>().desc().c_str(), H5LT_DDL);
+				mem_nd = 1;
+				mdims[0] = THREE;
+			}
+
+			for (int i = 0; i < THREE; ++i)
+			{
+				if (grid.dims[i] > 1)
 				{
-					if (dims[i] > 1)
-					{
-						pdims[pndim] = dims[i];
-						++pndim;
-					}
+					mdims[mem_nd] = grid.dims[i];
+					++mem_nd;
 				}
 			}
+
 			std::ostringstream ss;
 
-			ss << "  <Attribute Name='" << (*it)
-					<< "'  AttributeType='Vector' Center='Node' >" << std::endl
+			ss << "  <Attribute Name='" << (*it) << "'  AttributeType='"
+					<< attr_str << "' Center='Node' >" << std::endl
 
 					<< "    <DataItem  NumberType='Float' Precision='8' Format='HDF' Dimensions='";
 
-			for (int i = 0; i < pndim; ++i)
+			for (int i = 0; i < mem_nd; ++i)
 			{
-				ss << pdims[i] << " ";
+				ss << mdims[i] << " ";
 			}
 
 			ss << "' >" << std::endl
@@ -196,7 +225,11 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 			xmdf_file.insert(xmdf_file.find(attrPlaceHolder, 0), ss.str());
 
-			WriteHDF5(grp, (*it), *(oit->second));
+			H5::DataSet dataset = grp.createDataSet((*it).c_str(), mdatatype,
+					H5::DataSpace(mem_nd, mdims));
+
+			dataset.write(obj.get_data(), mdatatype);
+
 		}
 	}
 

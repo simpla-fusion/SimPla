@@ -19,6 +19,10 @@ namespace io
 template<typename TG>
 class WriteXDMF: public Module
 {
+	enum
+	{
+		MAX_XDMF_NDIMS = 10
+	};
 public:
 
 	typedef TG Grid;

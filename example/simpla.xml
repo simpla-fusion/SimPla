@@ -4,12 +4,13 @@
         <dt unit="s">0.01</dt>
 
 	<Grid type="UniformRect">
-		<dx unit="m">1 1 0 </dx>
+		<NUM_OF_DIMS>3</NUM_OF_DIMS>
+		<dx unit="m">1 1 1</dx>
 		<dt unit="s">0.1</dt>
 		<xmin unit="m">0 0 0 </xmin>
-		<xmax unit="m">1 1 1</xmax>
-		<dims> 21 21 1 </dims>
-		<ghostwidth>0 2 2  </ghostwidth>
+		<xmax unit="m">1 1 1 </xmax>
+		<dims>21 21 1</dims>
+		<ghostwidth>2 2 2 </ghostwidth>
 	</Grid>
 
 	<Particles type="delta_f" id="ele">
@@ -22,7 +23,6 @@
 	</Fields>
 	<Modules>
 		<module type="RFSrc" >
-			<hard_src>true</hard_src>
 			<field>E1</field>
 			<alpha> 0.01 </alpha>
 			<freq> 1 </freq>
@@ -35,7 +35,7 @@
 		<module type="PML" >
 			<bc> 2 2 2 2 2 2 </bc>
 		</module>
-                <module type="ColdFluid" >
+<!--                <module type="ColdFluid" >
 			<Composition>
 				<species id="H">
 					<m>1</m>
@@ -45,7 +45,7 @@
 				</species>
 			</Composition>
                 </module>
-
+-->
 	</Modules>
 
 	<OutPut type="XDMF" path="Untitle" step="1">

@@ -8,7 +8,8 @@ ENABLE_TESTING()
 INCLUDE(ExternalProject)
 ExternalProject_Add(googletest
     PREFIX third_part 
-    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    #URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/googletest
     INSTALL_COMMAND "" )
 ExternalProject_Get_Property(googletest SOURCE_DIR)
 ExternalProject_Get_Property(googletest BINARY_DIR)
@@ -17,13 +18,14 @@ LINK_DIRECTORIES(${BINARY_DIR})
 
 ExternalProject_Add(Xdmf
     PREFIX third_part
-    GIT_REPOSITORY git://paraview.org/Xdmf.git
+    #GIT_REPOSITORY git://paraview.org/Xdmf.git
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Xdmf
     INSTALL_COMMAND "" )
 ExternalProject_Get_Property(Xdmf SOURCE_DIR)
 ExternalProject_Get_Property(Xdmf BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR} )
-LINK_DIRECTORIES(${BINARY_DIR})
-
+INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR}/libsrc )
+LINK_DIRECTORIES(${BINARY_DIR}/bin)
+SET(XDMF_NO_MPI ON)
 
  
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)

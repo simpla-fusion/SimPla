@@ -36,7 +36,6 @@ public:
 
 	typedef TR1::shared_ptr<Object> Holder;
 
-
 	Object(BaseDataType const & pdtype, std::vector<size_t> const & d) :
 			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(
 					pdtype.desc())
@@ -94,6 +93,11 @@ public:
 	{
 		return *reinterpret_cast<T const*>(data.get() + s * ele_size_in_bytes);
 	}
+
+	inline int get_num_of_dimesnsions() const
+	{
+		return nd;
+	}
 	/**
 	 * Purpose: get the dimensions of object
 	 * @Input:
@@ -101,7 +105,8 @@ public:
 	 * @Return: the number of dimensions
 	 *
 	 * */
-	inline int get_dimensions(size_t* d = NULL) const
+	template<typename TS>
+	inline int get_dimensions(TS* d) const
 	{
 		if (d != NULL)
 		{
