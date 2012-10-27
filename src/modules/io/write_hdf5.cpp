@@ -97,10 +97,21 @@ void WriteHDF5(H5::Group grp, std::string const & name, Object const & obj)
 
 		obj.get_dimensions(dims);
 
-		std::copy(dims, dims + ndims, mdims);
+		int mnd = 0;
+		{
+
+			for (int i = 0; i < ndims; ++i)
+			{
+				if (dims[i] > 1)
+				{
+					mdims[mnd] = dims[i];
+					++mnd;
+				}
+			}
+		}
 
 		H5::DataSet dataset = grp.createDataSet(name.c_str(), mdtype,
-				H5::DataSpace(ndims, mdims));
+				H5::DataSpace(mnd, mdims));
 
 		dataset.write(obj.get_data(), mdtype);
 

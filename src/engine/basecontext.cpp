@@ -73,7 +73,7 @@ inline void eval_(TR1::function<void(void)> & f)
 void BaseContext::Eval()
 {
 
-	LOG << "COUNTER:" << counter_;
+	LOG << "COUNTER:" << counter_ << " Time:" << timer_;
 	std::for_each(modules.begin(), modules.end(), eval_);
 	++counter_;
 	timer_ += dt;

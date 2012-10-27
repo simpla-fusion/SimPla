@@ -5,11 +5,24 @@ PROJECT(SimPla  CXX C)
 INCLUDE(CTest)
 ENABLE_TESTING()
 
-SET(GTEST_ROOT ${PROJECT_SOURCE_DIR}/gtest-build)
-FIND_PACKAGE(GTest)
+INCLUDE(ExternalProject)
+ExternalProject_Add(googletest
+    PREFIX third_part 
+    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    INSTALL_COMMAND "" )
+ExternalProject_Get_Property(googletest SOURCE_DIR)
+ExternalProject_Get_Property(googletest BINARY_DIR)
+INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
+LINK_DIRECTORIES(${BINARY_DIR})
 
-INCLUDE_DIRECTORIES(${GTEST_INCLUDE_DIRS})
-
+ExternalProject_Add(Xdmf
+    PREFIX third_part
+    GIT_REPOSITORY git://paraview.org/Xdmf.git
+    INSTALL_COMMAND "" )
+ExternalProject_Get_Property(Xdmf SOURCE_DIR)
+ExternalProject_Get_Property(Xdmf BINARY_DIR)
+INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR} )
+LINK_DIRECTORIES(${BINARY_DIR})
 
 
  
@@ -49,9 +62,9 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
-ADD_SUBDIRECTORY(src )
-ADD_SUBDIRECTORY(applications )
-ADD_SUBDIRECTORY(doc )
+SUBDIRS(src )
+SUBDIRS(applications )
+SUBDIRS(doc )
 
 
  

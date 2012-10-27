@@ -81,7 +81,7 @@ public:
 #ifdef  _OMP
 		<<"["<<omp_get_thread_num()<<"]"
 #endif
-		<< "[" << boost::posix_time::to_simple_string(clock_time()) << "]";
+		<< "[" << boost::posix_time::to_simple_string(clock_time()) << "]" ;
 
 	}
 	~Log()
@@ -125,7 +125,7 @@ private:
 				+ boost::posix_time::nanosec(tv.tv_nsec));
 	}
 };
-
+//FIXME The operator<< eat first input and transform to integral
 #define ERROR Log(-2)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 #define LOGIC_ERROR Log(-3)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 

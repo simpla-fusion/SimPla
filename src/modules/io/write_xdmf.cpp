@@ -41,7 +41,21 @@ void WriteXDMF<UniformRectGrid>::Initialize()
 
 	<< "<Domain>" << std::endl;
 
-	if (grid.NDIMS == 3) //3D
+	int ndims = 0;
+	Real xmin[3], dx[3];
+	size_t dims[3];
+	for (int i = 0; i < 3; ++i)
+	{
+		if (grid.dims[i] > 1)
+		{
+			xmin[ndims] = grid.xmin[i];
+			dx[ndims] = grid.dx[i];
+			dims[ndims] = grid.dims[i];
+			++ndims;
+		}
+	}
+
+	if (ndims == 3) //3D
 	{
 
 		ss << "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
@@ -49,51 +63,49 @@ void WriteXDMF<UniformRectGrid>::Initialize()
 
 				<< "  <Topology TopologyType='3DCoRectMesh'  "
 
-				<< " Dimensions='" << grid.dims << "'></Topology>" << std::endl
+				<< " Dimensions='" << dims[0] << " " << dims[1] << " "
+				<< dims[2] << "'></Topology>" << std::endl
 
 				<< "  <Geometry Type='Origin_DxDyDz'>" << std::endl
 
 				<< "    <DataItem Format='XML' Dimensions='3'>"
 
-				<< grid.xmin << "</DataItem>" << std::endl
+				<< xmin[0] << " " << xmin[1] << " " << xmin[2] << "</DataItem>"
+				<< std::endl
 
 				<< "    <DataItem Format='XML' Dimensions='3'>"
 
-				<< grid.dx << "</DataItem>" << std::endl
+				<< dx[0] << " " << dx[1] << " " << dx[2] << "</DataItem>"
+				<< std::endl
 
 				<< "  </Geometry>" << std::endl;
 
 	}
-	else if (grid.NDIMS == 2) //2D
+	else if (ndims == 2) //2D
 	{
-		nTuple<TWO, size_t> dims =
-		{ grid.dims[0], grid.dims[1] };
-		nTuple<TWO, Real> xmin =
-		{ grid.xmin[0], grid.xmin[1] };
-		nTuple<TWO, Real> dx =
-		{ grid.dx[0], grid.dx[1] };
-
 		ss << "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
 				<< std::endl
 
 				<< "  <Topology TopologyType='2DCoRectMesh'  "
 
-				<< " Dimensions='" << dims << "'></Topology>" << std::endl
+				<< " Dimensions='"
 
-				<< "  <Geometry Type='Origin_DxDyDz'>" << std::endl
+				<< dims[0] << " " << dims[1] << "'></Topology>" << std::endl
 
-				<< "    <DataItem Format='XML' Dimensions='2'>"
-
-				<< xmin << "</DataItem>" << std::endl
+				<< "  <Geometry Type='Origin_DxDy'>" << std::endl
 
 				<< "    <DataItem Format='XML' Dimensions='2'>"
 
-				<< dx << "</DataItem>" << std::endl
+				<< xmin[0] << " " << xmin[1] << "</DataItem>" << std::endl
+
+				<< "    <DataItem Format='XML' Dimensions='2'>"
+
+				<< dx[0] << " " << dx[1] << "</DataItem>" << std::endl
 
 				<< "  </Geometry>" << std::endl;
 	}
 
-	ss << "  <Time  Value='" << ctx.Timer() << "' />" << std::endl
+	ss
 
 	<< attrPlaceHolder << std::endl
 
@@ -128,6 +140,12 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 	std::string xmdf_file(file_template);
 
+	{
+		std::ostringstream ss;
+		ss << "  <Time  Value='" << ctx.Timer() << "' />" << std::endl;
+		xmdf_file.insert(xmdf_file.find(attrPlaceHolder, 0), ss.str());
+	}
+
 	for (std::list<std::string>::const_iterator it = obj_list_.begin();
 			it != obj_list_.end(); ++it)
 	{
@@ -143,6 +161,19 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 			oit->second->get_dimensions(dims);
 
+			int pndim = 0;
+			size_t pdims[ndim];
+			{
+
+				for (int i = 0; i < ndim; ++i)
+				{
+					if (dims[i] > 1)
+					{
+						pdims[pndim] = dims[i];
+						++pndim;
+					}
+				}
+			}
 			std::ostringstream ss;
 
 			ss << "  <Attribute Name='" << (*it)
@@ -150,9 +181,9 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 					<< "    <DataItem  NumberType='Float' Precision='8' Format='HDF' Dimensions='";
 
-			for (int i = 0; i < ndim; ++i)
+			for (int i = 0; i < pndim; ++i)
 			{
-				ss << dims[i] << " ";
+				ss << pdims[i] << " ";
 			}
 
 			ss << "' >" << std::endl

@@ -9,10 +9,10 @@ function(my_test name library )
       COMPILE_DEFINITIONS "GTEST_LINKED_AS_SHARED_LIBRARY=1")
   endif()
   
-  target_link_libraries(${name} ${GTEST_LIBRARY})
-  target_link_libraries(${name} ${GTEST_MAIN_LIBRARY})
+  target_link_libraries(${name} ${library} gtest_main gtest)   
  
-  GTEST_ADD_TESTS(${name} "" ${name}.cpp )
+  add_test(${name}  ${name}  )
   
-  target_link_libraries(${name} ${library} ) 	 
+ 
+  ADD_DEPENDENCIES(${name} googletest) 
 endfunction()

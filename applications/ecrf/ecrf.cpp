@@ -7,16 +7,10 @@
 
 #include "include/simpla_defs.h"
 #include "utilities/properties.h"
-
-#include "physics/constants.h"
-#include "fetl/fetl.h"
-
 #include "engine/context.h"
 #include "engine/context_impl.h"
-
 #include "fetl/grid/uniform_rect.h"
 
-//#include "io/io.h"
 using namespace simpla;
 
 int main(int argc, char **argv)
@@ -54,7 +48,7 @@ int main(int argc, char **argv)
 			input = argv[i] + 2;
 			break;
 		case 'l':
-			Log::OpenFile(argv[i] + 2);
+			Log::OpenFile(output + "/" + std::string(argv[i] + 2));
 			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));

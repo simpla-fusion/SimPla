@@ -79,7 +79,9 @@ namespace TR1 = std::tr1;
 //#endif //__GXX_EXPERIMENTAL_CXX0X__
 
 #include "utilities/log.h"
-
+#ifndef IDENTIFY
+#	define IDENTIFY "UNKNOWN"
+#endif
 #define SIMPLA_LOGO                                                        \
 "       ____        ____                                 \n"\
 "      / ___|      / ___| __ _ _   _  __ _  ___           \n"\
