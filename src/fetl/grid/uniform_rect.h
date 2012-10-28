@@ -72,9 +72,12 @@ public:
 			ERROR << "Grid type mismatch";
 		}
 
-		xmin = pt.template get<Vec3>("xmin", pt_trans<Vec3, typename PT::data_type>());
-		xmax = pt.template get<Vec3>("xmax", pt_trans<Vec3, typename PT::data_type>());
-		dims = pt.template get<IVec3>("dims", pt_trans<IVec3, typename PT::data_type>());
+		xmin = pt.template get<Vec3>("xmin",
+				pt_trans<Vec3, typename PT::data_type>());
+		xmax = pt.template get<Vec3>("xmax",
+				pt_trans<Vec3, typename PT::data_type>());
+		dims = pt.template get<IVec3>("dims",
+				pt_trans<IVec3, typename PT::data_type>());
 		gw = pt.template get<IVec3>("ghostwidth",
 				pt_trans<IVec3, typename PT::data_type>());
 
@@ -384,6 +387,18 @@ public:
 		}
 	}
 
+	template<int IFORM, typename TExpr, int NR, typename TR>
+	void Assign(Field<Grid, IFORM, TExpr> & lhs, nTuple<NR, TR> rhs) const
+	{
+		ASSERT(lhs.grid==*this);
+		size_t ele_num = get_num_of_elements(IFORM);
+
+#pragma omp parallel for
+		for (size_t i = 0; i < ele_num; ++i)
+		{
+			lhs[i] = rhs[i % NR];
+		}
+	}
 	template<int IFORM, typename TL, typename TR>
 	void //
 	Assign(Field<Grid, IFORM, TL>& lhs, Field<Grid, IFORM, TR> const& rhs) const

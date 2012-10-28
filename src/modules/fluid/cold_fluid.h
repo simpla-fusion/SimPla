@@ -17,6 +17,7 @@
 #include "fetl/fetl.h"
 #include "engine/basecontext.h"
 #include "engine/modules.h"
+#include "utilities/properties.h"
 
 namespace simpla
 {
@@ -32,9 +33,8 @@ public:
 	typedef TR1::shared_ptr<ThisType> Holder;
 
 	DEFINE_FIELDS(typename TG::ValueType, TG)
-	;
 
-	template<typename TP> ColdFluid(BaseContext & d, const TP & pt);
+	ColdFluid(BaseContext & d, const ptree & pt);
 
 	virtual ~ColdFluid();
 
@@ -86,8 +86,7 @@ private:
 };
 
 template<typename TG>
-template<typename TP>
-ColdFluid<TG>::ColdFluid(BaseContext & d, const TP & pt) :
+ColdFluid<TG>::ColdFluid(BaseContext & d, const ptree & pt) :
 		ctx(d),
 
 		grid(ctx.Grid<TG>()),
@@ -116,9 +115,9 @@ ColdFluid<TG>::ColdFluid(BaseContext & d, const TP & pt) :
 
 {
 
-	BOOST_FOREACH(const typename TP::value_type &v, pt.get_child("Composition"))
+	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Composition"))
 	{
-		std::string id = v.second.template get<std::string>("<xmlattr>.id");
+		std::string id = v.second.get<std::string>("<xmlattr>.id");
 
 		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
 

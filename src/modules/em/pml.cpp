@@ -18,7 +18,7 @@ namespace em
 {
 
 template<>
-PML<UniformRectGrid >::~PML()
+PML<UniformRectGrid>::~PML()
 {
 }
 
@@ -31,9 +31,36 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 template<>
-void PML<UniformRectGrid>::Initialize()
+PML<UniformRectGrid>::PML(BaseContext & d, const ptree & pt) :
+		ctx(d),
 
+		grid(ctx.Grid<UniformRectGrid>()),
+
+		dt(ctx.dt),
+
+		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
+
+		epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
+
+		speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
+
+		B1(ctx.GetObject<TwoForm>("B1")),
+
+		E1(ctx.GetObject<OneForm>("E1")),
+
+		J1(ctx.GetObject<OneForm>("J1")),
+
+		a0(grid), a1(grid), a2(grid),
+
+		s0(grid), s1(grid), s2(grid),
+
+		X10(grid), X11(grid), X12(grid),
+
+		X20(grid), X21(grid), X22(grid),
+
+		bc_(pt.get<nTuple<SIX, int> >("bc"))
 {
+
 	LOG << "Create module PML";
 
 	Real dB = 100, expN = 2;
@@ -116,7 +143,7 @@ void PML<UniformRectGrid>::Initialize()
 
 }
 template<>
-void PML<UniformRectGrid >::Eval()
+void PML<UniformRectGrid>::Eval()
 {
 	LOG << "Run module PML";
 

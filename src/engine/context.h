@@ -10,8 +10,8 @@
 
 #include "include/simpla_defs.h"
 #include "basecontext.h"
-
-
+#include "fetl/fetl.h"
+#include "utilities/properties.h"
 namespace simpla
 {
 
@@ -19,34 +19,25 @@ template<typename TG>
 class Context: public BaseContext
 {
 public:
+	DEFINE_FIELDS(typename TG::ValueType, TG)
+
 	typedef Context<TG> ThisType;
 
 	typedef typename TG::ValueType ValueType;
 
-	typedef TG Grid;
-
 	typedef TR1::shared_ptr<ThisType> Holder;
+
+	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(void)> > objFactory;
 
 	Grid grid;
 
-	template<typename PT>
-	Context(const PT & pt) :
-			BaseContext(pt), grid(pt.get_child("Grid"))
-	{
+	Context(const ptree & pt);
 
-		LoadModules(pt);
-	}
-
-	~Context()
-	{
-	}
-
-	template<typename PT>
-	static TR1::shared_ptr<ThisType> Create(PT const & pt);
-
-	template<typename PT> void LoadModules(PT const & pt);
+	virtual ~Context();
 
 	virtual std::string Summary() const;
+
+	virtual void RegisterFactory();
 
 private:
 	Grid const * getGridPtr() const

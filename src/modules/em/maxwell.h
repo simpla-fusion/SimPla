@@ -13,7 +13,7 @@
 #include "fetl/vector_calculus.h"
 #include "engine/basecontext.h"
 #include "engine/modules.h"
-
+#include "utilities/properties.h"
 namespace simpla
 {
 namespace em
@@ -28,12 +28,10 @@ public:
 	typedef TR1::shared_ptr<ThisType> Holder;
 
 	DEFINE_FIELDS(typename TG::ValueType, TG)
-	;
 
 	BaseContext & ctx;
 
-	template<typename PT>
-	Maxwell(BaseContext & d, PT const &) :
+	Maxwell(BaseContext & d, ptree const &) :
 			ctx(d),
 
 			dt(ctx.dt),

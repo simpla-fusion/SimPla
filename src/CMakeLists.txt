@@ -1,5 +1,7 @@
 ADD_SUBDIRECTORY( primitives  )
+
 ADD_SUBDIRECTORY( utilities  )
+
 ADD_SUBDIRECTORY( engine )
 
 ADD_SUBDIRECTORY( physics)
@@ -8,6 +10,7 @@ ADD_SUBDIRECTORY( fetl )
 
 ADD_SUBDIRECTORY( modules)
 
+ADD_SUBDIRECTORY( io)
 
 #ADD_SUBDIRECTORY( swig  )
 

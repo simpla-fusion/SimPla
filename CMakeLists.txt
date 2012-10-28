@@ -16,16 +16,16 @@ ExternalProject_Get_Property(googletest BINARY_DIR)
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/include)
 LINK_DIRECTORIES(${BINARY_DIR})
 
-ExternalProject_Add(Xdmf
-    PREFIX third_part
-    #GIT_REPOSITORY git://paraview.org/Xdmf.git
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Xdmf
-    INSTALL_COMMAND "" )
-ExternalProject_Get_Property(Xdmf SOURCE_DIR)
-ExternalProject_Get_Property(Xdmf BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR}/libsrc )
-LINK_DIRECTORIES(${BINARY_DIR}/bin)
-SET(XDMF_NO_MPI ON)
+#ExternalProject_Add(Xdmf
+#    PREFIX third_part
+#    #GIT_REPOSITORY git://paraview.org/Xdmf.git
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Xdmf
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(Xdmf SOURCE_DIR)
+#ExternalProject_Get_Property(Xdmf BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/libsrc ${BINARY_DIR}/libsrc )
+#LINK_DIRECTORIES(${BINARY_DIR}/bin)
+#SET(XDMF_NO_MPI ON)
 
  
 include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
@@ -64,9 +64,10 @@ ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\")
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
-SUBDIRS(src )
-SUBDIRS(applications )
-SUBDIRS(doc )
+
+add_subdirectory(src )
+add_subdirectory(applications )
+add_subdirectory(doc )
 
 
  

@@ -57,5 +57,39 @@ struct pt_trans<nTuple<N, T>, std::string>
 	}
 
 };
+
+template<int M, int N, class T>
+struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
+{
+	typedef nTuple<M, nTuple<N, T> > external_type;
+	typedef std::string internal_type;
+
+	external_type get_value(const internal_type &value) const
+	{
+		std::istringstream is(value);
+		external_type tv;
+
+		for (int i = 0; i < M; ++i)
+			for (int j = 0; j < N; ++j)
+			{
+				is >> tv[i][j];
+			}
+
+		return tv;
+	}
+
+	internal_type put_value(const external_type &value) const
+	{
+		std::ostringstream os;
+
+		for (int i = 0; i < M; ++i)
+			for (int j = 0; j < N; ++j)
+			{
+				os << " " << value[i][j];
+			}
+		return os.str();
+	}
+
+};
 } // namespace simpla
 #endif /* PROPERTIES_H_ */

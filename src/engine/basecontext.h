@@ -74,6 +74,9 @@ public:
 	void DeleteObject(std::string const & name);
 
 	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> CreateObject();
+
+	template<typename TOBJ>
 	TR1::shared_ptr<TOBJ> GetObject(std::string const & name = "");
 
 	void Eval();
@@ -92,6 +95,14 @@ private:
 
 }
 ;
+
+template<typename TOBJ>
+TR1::shared_ptr<TOBJ> BaseContext::CreateObject()
+{
+	return TR1::shared_ptr<TOBJ>(
+			new TOBJ(*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
+}
+
 template<typename TOBJ>
 TR1::shared_ptr<TOBJ> BaseContext::GetObject(std::string const & name)
 {
@@ -112,9 +123,8 @@ TR1::shared_ptr<TOBJ> BaseContext::GetObject(std::string const & name)
 			}
 		}
 	}
+	TR1::shared_ptr<TOBJ> res = CreateObject<TOBJ>();
 
-	TR1::shared_ptr<TOBJ> res(
-			new TOBJ(*static_cast<typename TOBJ::Grid const *>(getGridPtr())));
 	if (name != "")
 	{
 		objects[name] = TR1::dynamic_pointer_cast<Object>(res);

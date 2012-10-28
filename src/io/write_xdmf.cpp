@@ -22,14 +22,28 @@ namespace simpla
 {
 namespace io
 {
+
 template<>
-WriteXDMF<UniformRectGrid>::~WriteXDMF()
-{
-}
-template<>
-void WriteXDMF<UniformRectGrid>::Initialize()
+WriteXDMF<UniformRectGrid>::WriteXDMF(BaseContext const & d, const ptree & pt) :
+		ctx(d),
+
+		grid(d.Grid<UniformRectGrid>()),
+
+		step(pt.get("step", 1)),
+
+		file_template(""),
+
+		attrPlaceHolder("<!-- Add Attribute Here -->"),
+
+		path_(pt.get("<xmlattr>.path", "Untitled"))
 
 {
+	BOOST_FOREACH(const typename ptree::value_type &v, pt)
+	{
+		std::string id = v.second.get_value<std::string>();
+		boost::algorithm::trim(id);
+		obj_list_.push_back(id);
+	}
 
 	std::ostringstream ss;
 	ss << "<?xml version='1.0' ?>" << std::endl
@@ -118,6 +132,11 @@ void WriteXDMF<UniformRectGrid>::Initialize()
 
 	LOG << "Create module WriteXDMF";
 
+}
+
+template<>
+WriteXDMF<UniformRectGrid>::~WriteXDMF()
+{
 }
 template<>
 void WriteXDMF<UniformRectGrid>::Eval()
