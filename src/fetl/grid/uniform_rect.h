@@ -606,8 +606,8 @@ public:
 
 // Interpolation ----------------------------------------------------------
 
-	template<typename TExpr, typename TV>
-	inline TV //
+	template<typename TExpr>
+	inline typename Field<Grid, IZeroForm, TExpr>::ValueType //
 	Gather(Field<Grid, IZeroForm, TExpr> const &f, RVec3 x) const
 	{
 		IVec3 idx;
@@ -624,11 +624,12 @@ public:
 		return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
 	}
 
-	template<typename TExpr, typename TV>
+	template<typename TExpr>
 	inline void //
-	Scatter(Field<Grid, IZeroForm, TExpr> & f, RVec3 x, TV const v) const
+	Scatter(Field<Grid, IZeroForm, TExpr> & f, RVec3 x,
+			typename Field<Grid, IZeroForm, TExpr>::ValueType const v) const
 	{
-		TV res;
+		typename Field<Grid, IZeroForm, TExpr>::ValueType res;
 		IVec3 idx;
 		Vec3 r;
 		r = (x - xmin) * inv_dx;
@@ -648,11 +649,11 @@ public:
 
 	}
 
-	template<typename TExpr, typename TV>
-	inline nTuple<THREE, TV>                                                  //
+	template<typename TExpr>
+	inline nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::ValueType>    //
 	Gather(Field<Grid, IOneForm, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, TV> res;
+		nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::ValueType> res;
 
 		IVec3 idx;
 		Vec3 r;
@@ -670,10 +671,10 @@ public:
 				+ f[(s - strides[2]) * 3 + 2] * (0.5 + r[2]));
 		return res;
 	}
-	template<typename TExpr, typename TV>
+	template<typename TExpr>
 	inline void //
 	Scatter(Field<Grid, IOneForm, TExpr> & f, RVec3 x,
-			nTuple<THREE, TV> const &v) const
+			nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::ValueType> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -691,11 +692,11 @@ public:
 		f[(s - strides[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
 	}
 
-	template<typename TExpr, typename TV>
-	inline nTuple<THREE, TV>                                                  //
+	template<typename TExpr>
+	inline nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::ValueType>    //
 	Gather(Field<Grid, ITwoForm, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, TV> res;
+		nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::ValueType> res;
 
 		IVec3 idx;
 		Vec3 r;
@@ -718,10 +719,10 @@ public:
 
 	}
 
-	template<typename TExpr, typename TV>
+	template<typename TExpr>
 	inline void //
 	Scatter(Field<Grid, ITwoForm, TExpr> & f, RVec3 x,
-			nTuple<THREE, TV> const &v) const
+			nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::ValueType> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;

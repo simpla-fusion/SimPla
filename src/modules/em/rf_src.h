@@ -23,28 +23,30 @@ namespace simpla
 namespace em
 {
 
-template<typename TContext>
+template<typename TG>
 struct RFSrc: public Module
 {
 
-	DEFINE_FIELDS(typename TContext::Grid)
+	DEFINE_FIELDS(typename TG::ValueType,TG)
 
-TContext	& ctx;
+	Context<Grid> & ctx;
 
-	RFSrc(TContext & d, const ptree & pt) :
-	ctx(d),
+	RFSrc(Context<Grid> & d, const ptree & pt) :
+			ctx(d),
 
-	dt(ctx.dt),
+			dt(ctx.dt),
 
-	alpha(pt.get("alpha", 0.0f)),
+			alpha(pt.get("alpha", 0.0f)),
 
-	freq(pt.get("freq", 1.0f)),
+			freq(pt.get("freq", 1.0f)),
 
-	field_name(pt.get<std::string>("field")),
+			field_name(pt.get("Parameters.field", "E1")),
 
-	x(pt.get<Vec3>("pos" )),
+			field_type(pt.get("Parameters.field.<xmlattr>.type", "OneForm")),
 
-	A(pt.get<Vec3>("amp" ))
+			x(pt.get<Vec3>("pos")),
+
+			A(pt.get<Vec3>("amp"))
 
 	{
 		boost::algorithm::trim(field_name);
@@ -61,10 +63,39 @@ TContext	& ctx;
 
 		Real t = ctx.Timer();
 
-		ctx.grid.Scatter(*ctx.template GetObject<OneForm>(field_name), x,
-				A * (1.0 - std::exp(-t * alpha)) * std::sin(freq * t));
-		CHECK(x);
-		CHECK(A * (1.0 - std::exp(-t * alpha)) * std::sin(freq * t));
+		Vec3 v = A * (1.0 - std::exp(-t * alpha)) * std::sin(freq * t);
+
+		if (field_type == "OneForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<OneForm>(field_name), x,
+					v);
+		}
+		else if (field_type == "TwoForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<TwoForm>(field_name), x,
+					v);
+		}
+		else if (field_type == "VecZeroForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<VecZeroForm>(field_name),
+					x, v);
+		}
+		else if (field_type == "COneForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<COneForm>(field_name), x,
+					v);
+		}
+		else if (field_type == "CTwoForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<CTwoForm>(field_name), x,
+					v);
+		}
+		else if (field_type == "CVecZeroForm")
+		{
+			ctx.grid.Scatter(*ctx.template GetObject<CVecZeroForm>(field_name),
+					x, v);
+		}
+
 	}
 
 private:
@@ -75,6 +106,7 @@ private:
 	const Vec3 x;
 
 	std::string field_name;
+	std::string field_type;
 
 };
 

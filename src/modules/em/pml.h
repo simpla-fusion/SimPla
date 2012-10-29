@@ -49,11 +49,8 @@ private:
 // sigma
 	RScalarField s0, s1, s2;
 
-//input
-	TR1::shared_ptr<const OneForm> J1;
-//output
-	TR1::shared_ptr<OneForm> E1;
-	TR1::shared_ptr<TwoForm> B1;
+	std::string E, B, J;
+	std::string Etype, Btype, Jtype;
 
 	nTuple<SIX, int> bc_;
 

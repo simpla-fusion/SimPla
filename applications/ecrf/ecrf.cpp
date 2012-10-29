@@ -21,15 +21,8 @@ int main(int argc, char **argv)
 	size_t record_stride = 1;
 
 	std::string input = "simpla.xml";
-	std::string output = "untitle";
-
-	double omega = 1.0;
-
-	double JAmp = 1.0;
-
-	double N0 = 1.0;
-
-	double T = 0.001;
+	std::string output = "untitled";
+	std::string log_file = output + "/" + "simpla.log";
 
 	for (int i = 1; i < argc; ++i)
 	{
@@ -48,7 +41,7 @@ int main(int argc, char **argv)
 			input = argv[i] + 2;
 			break;
 		case 'l':
-			Log::OpenFile(output + "/" + std::string(argv[i] + 2));
+			log_file = output + "/" + std::string(argv[i] + 2);
 			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));
@@ -57,11 +50,13 @@ int main(int argc, char **argv)
 
 	}
 
+	Log::OpenFile(log_file);
 	boost::property_tree::ptree pt;
 
 	read_file(input, pt);
 
 	pt.put("Context.OutPut.<xmlattr>.path", output);
+	pt.put("Context.OutPut.<xmlattr>.stride", record_stride);
 
 	Context<UniformRectGrid> ctx(pt.get_child("Context"));
 
@@ -86,6 +81,8 @@ int main(int argc, char **argv)
 	<< std::setw(20) << "Configure File : " << input << std::endl
 
 	<< std::setw(20) << "Output Path : " << output << std::endl
+
+	<< std::setw(20) << "Log File : " << log_file << std::endl
 
 	<< std::setw(20) << "Number of steps : " << max_step << std::endl
 

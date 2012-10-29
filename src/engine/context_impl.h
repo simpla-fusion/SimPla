@@ -11,6 +11,7 @@
 #include "fetl/fetl.h"
 #include "modules/em/maxwell.h"
 #include "modules/em/pml.h"
+#include "modules/em/rf_src.h"
 #include "modules/fluid/cold_fluid.h"
 #include "io/write_xdmf.h"
 #include "io/read_hdf5.h"
@@ -238,7 +239,13 @@ Context<TG>::Context(ptree const & pt) :
 		{
 			continue;
 		}
-		if (*type == "Maxwell")
+		else if (*type == "RFSrc")
+		{
+			modules.push_back(
+					TR1::bind(&em::RFSrc<TG>::Eval,
+							new em::template RFSrc<TG>(*this, v.second)));
+		}
+		else if (*type == "Maxwell")
 		{
 			modules.push_back(
 					TR1::bind(&em::Maxwell<TG>::Eval,
@@ -259,20 +266,17 @@ Context<TG>::Context(ptree const & pt) :
 
 	}
 
-	boost::optional<std::string> type = pt.template get_optional<std::string>(
-			"OutPut.<xmlattr>.type");
+	std::string type = pt.template get("OutPut.<xmlattr>.type", "XDMF");
 
-	if (!!type)
+	if (type == "XDMF")
 	{
-		if (*type == "XDMF")
-		{
-			modules.push_back(
-					TR1::bind(&io::WriteXDMF<TG>::Eval,
-							new io::template WriteXDMF<TG>(*this,
-									pt.get_child("OutPut"))));
+		modules.push_back(
+				TR1::bind(&io::WriteXDMF<TG>::Eval,
+						new io::template WriteXDMF<TG>(*this,
+								pt.get_child("OutPut"))));
 
-		}
 	}
+
 }
 template<typename TG>
 Context<TG>::~Context()

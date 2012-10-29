@@ -31,7 +31,7 @@ public:
 
 	BaseContext & ctx;
 
-	Maxwell(BaseContext & d, ptree const &) :
+	Maxwell(BaseContext & d, ptree const &pt) :
 			ctx(d),
 
 			dt(ctx.dt),
@@ -42,11 +42,18 @@ public:
 
 			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
 
-			B1(ctx.template GetObject<TwoForm>("B1")),
+			B(pt.get("Parameters.B", "B1")),
 
-			E1(ctx.template GetObject<OneForm>("E1")),
+			Btype(pt.get("Parameters.B.<xmlattr>.type", "TwoForm")),
 
-			J1(ctx.template GetObject<OneForm>("J1"))
+			E(pt.get("Parameters.E", "E1")),
+
+			Etype(pt.get("Parameters.E.<xmlattr>.type", "OneForm")),
+
+			J(pt.get("Parameters.J", "J1")),
+
+			Jtype(pt.get("Parameters.J.<xmlattr>.type", "OneForm"))
+
 	{
 		LOG << "Create module Maxwell";
 	}
@@ -59,9 +66,39 @@ public:
 	{
 		LOG << "Run module Maxwell";
 
-		*B1 -= Curl(*E1) * dt;
+		if (Btype == "TwoForm" && Etype == "OneForm" && Jtype == "OneForm")
+		{
+			DoMaxwellEq(*ctx.template GetObject<TwoForm>(B),
+					*ctx.template GetObject<OneForm>(E),
+					*ctx.template GetObject<OneForm>(J));
+		}
+		else if ((Btype == "CTwoForm" || Etype == "COneForm")
+				&& Jtype == "OneForm")
+		{
+			DoMaxwellEq(*ctx.template GetObject<CTwoForm>(B),
+					*ctx.template GetObject<COneForm>(E),
+					*ctx.template GetObject<OneForm>(J));
+		}
+		else if ((Btype == "CTwoForm" || Etype == "COneForm")
+				&& Jtype == "COneForm")
+		{
+			DoMaxwellEq(*ctx.template GetObject<CTwoForm>(B),
+					*ctx.template GetObject<COneForm>(E),
+					*ctx.template GetObject<COneForm>(J));
+		}
+		else
+		{
+			ERROR << "Field type mismatch!!";
+		}
 
-		*E1 += (Curl(*B1 / mu0) - *J1) / epsilon0 * dt;
+	}
+
+	template<typename TE, typename TB, typename TJ>
+	void DoMaxwellEq(TB &B, TE & E, TJ const &J)
+	{
+		B -= Curl(E) * dt;
+
+		E += (Curl(B / mu0) - J) / epsilon0 * dt;
 	}
 
 private:
@@ -70,11 +107,8 @@ private:
 	const Real epsilon0;
 	const Real speed_of_light;
 
-//input
-	TR1::shared_ptr<const OneForm> J1;
-//output
-	TR1::shared_ptr<OneForm> E1;
-	TR1::shared_ptr<TwoForm> B1;
+	std::string E, B, J;
+	std::string Etype, Btype, Jtype;
 
 };
 

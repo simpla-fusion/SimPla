@@ -29,11 +29,11 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(BaseContext const & d, const ptree & pt) :
 
 		grid(d.Grid<UniformRectGrid>()),
 
-		step(pt.get("step", 1)),
-
 		file_template(""),
 
 		attrPlaceHolder("<!-- Add Attribute Here -->"),
+
+		stride_(pt.get("<xmlattr>.stride", 1)),
 
 		path_(pt.get("<xmlattr>.path", "Untitled"))
 
@@ -141,6 +141,10 @@ WriteXDMF<UniformRectGrid>::~WriteXDMF()
 template<>
 void WriteXDMF<UniformRectGrid>::Eval()
 {
+	if (ctx.Counter() % stride_ != 0)
+	{
+		return;
+	}
 	LOG << "Run module WriteXDMF";
 
 	std::string filename;
@@ -178,8 +182,8 @@ void WriteXDMF<UniformRectGrid>::Eval()
 					H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),
 							H5LT_DDL));
 
-			int mem_nd = 0;
-			hsize_t mdims[MAX_XDMF_NDIMS];
+			int nd = 0;
+			hsize_t xdmf_dims[MAX_XDMF_NDIMS];
 
 			if (obj.CheckType(typeid(Field<Grid, IZeroForm, Real> ))
 					|| obj.CheckType(typeid(Field<Grid, IZeroForm, Complex> )))
@@ -191,8 +195,8 @@ void WriteXDMF<UniformRectGrid>::Eval()
 					|| obj.CheckType(typeid(Field<Grid, ITwoForm, Complex> )))
 			{
 				attr_str = "Vector";
-				mem_nd = 1;
-				mdims[0] = THREE;
+				nd = 1;
+				xdmf_dims[0] = THREE;
 			}
 			else if (obj.CheckType(
 					typeid(Field<Grid, IZeroForm, nTuple<THREE, Real> > )))
@@ -200,8 +204,8 @@ void WriteXDMF<UniformRectGrid>::Eval()
 				attr_str = "Vector";
 
 				mdatatype = H5::PredType::NATIVE_DOUBLE;
-				mem_nd = 1;
-				mdims[0] = THREE;
+				nd = 1;
+				xdmf_dims[0] = THREE;
 			}
 			else if (obj.CheckType(
 					typeid(Field<Grid, IZeroForm, nTuple<THREE, Complex> > )))
@@ -209,16 +213,16 @@ void WriteXDMF<UniformRectGrid>::Eval()
 				attr_str = "Vector";
 				mdatatype = H5LTtext_to_dtype(
 						DataType<Complex>().desc().c_str(), H5LT_DDL);
-				mem_nd = 1;
-				mdims[0] = THREE;
+				nd = 1;
+				xdmf_dims[0] = THREE;
 			}
 
 			for (int i = 0; i < THREE; ++i)
 			{
 				if (grid.dims[i] > 1)
 				{
-					mdims[mem_nd] = grid.dims[i];
-					++mem_nd;
+					xdmf_dims[nd] = grid.dims[i];
+					++nd;
 				}
 			}
 
@@ -229,9 +233,9 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 					<< "    <DataItem  NumberType='Float' Precision='8' Format='HDF' Dimensions='";
 
-			for (int i = 0; i < mem_nd; ++i)
+			for (int i = 0; i < nd; ++i)
 			{
-				ss << mdims[i] << " ";
+				ss << xdmf_dims[i] << " ";
 			}
 
 			ss << "' >" << std::endl
@@ -244,8 +248,14 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 			xmdf_file.insert(xmdf_file.find(attrPlaceHolder, 0), ss.str());
 
+			hsize_t h5_dims[MAX_XDMF_NDIMS];
+			for (int i = 0; i < nd; ++i)
+			{
+				h5_dims[i] = xdmf_dims[nd - 1 - i];
+			}
+
 			H5::DataSet dataset = grp.createDataSet((*it).c_str(), mdatatype,
-					H5::DataSpace(mem_nd, mdims));
+					H5::DataSpace(nd, h5_dims));
 
 			dataset.write(obj.get_data(), mdatatype);
 

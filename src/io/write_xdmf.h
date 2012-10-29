@@ -39,7 +39,7 @@ private:
 	BaseContext const & ctx;
 	Grid const & grid;
 
-	size_t step;
+	size_t stride_;
 
 	std::list<std::string> obj_list_;
 

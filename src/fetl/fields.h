@@ -148,7 +148,7 @@ public:
 
 	inline void Add(size_t s, ValueType const & v)
 	{
-#pragma omp atomic
+//#pragma omp atomic
 		Object::value<ValueType>(s) += v;
 	}
 

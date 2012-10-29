@@ -179,6 +179,17 @@ struct nTuple
 		return (v_[i]);
 	}
 
+	template<typename TR>
+	inline operator nTuple<N,TR>() const
+	{
+		nTuple<N, TR> res;
+		for (int i = 0; i < N; ++i)
+		{
+			res[i] = v_[i];
+		}
+		return res;
+	}
+
 	inline void swap(ThisType & rhs)
 	{
 		for (int i = 0; i < N; ++i)
@@ -322,7 +333,7 @@ struct nTuple<N, TOP<TL, TR> >
 };
 
 template<int N, typename TL> //
-inline nTuple<N, _impl::OpNegative<nTuple<N, TL> > >                //
+inline nTuple<N, _impl::OpNegative<nTuple<N, TL> > >                  //
 operator -(nTuple<N, TL> const & lhs)
 {
 	return (nTuple<N, _impl::OpNegative<nTuple<N, TL> > >(lhs));
