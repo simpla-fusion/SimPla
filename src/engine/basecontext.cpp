@@ -110,6 +110,57 @@ void BaseContext::Eval(size_t maxstep)
 	}
 }
 
+void FillData(TR1::shared_ptr<Object> obj, ptree const & pt)
+{
+	boost::optional<std::string> format = pt.get_optional<std::string>(
+			"Data.<xmlattr>.Format");
+
+	if (!format)
+	{
+		obj->Clear();
+	}
+	else if (*format == "HDF")
+	{
+		std::string url = pt.get<std::string>("Data");
+		io::ReadData(url, obj);
+	}
+	else if (*format == "XML")
+	{
+		if (obj->CheckValueType(typeid(Integral)))
+		{
+			obj->FullFill(pt.get<Integral>("Data", 0));
+		}
+		else if (obj->CheckValueType(typeid(Real)))
+		{
+			obj->FullFill(pt.get("Data", 0.0d));
+		}
+		else if (obj->CheckValueType(typeid(Complex)))
+		{
+			Complex dv(0, 0);
+			Complex a = pt.get("Data", dv, pt_trans<Complex, std::string>());
+			obj->FullFill(a);
+		}
+		else if (obj->CheckValueType(typeid(nTuple<THREE, Real> )))
+		{
+			nTuple<THREE, Real> dv =
+			{ 0, 0, 0 };
+			nTuple<THREE, Real> a = pt.get("Data", dv,
+					pt_trans<nTuple<THREE, Real>, std::string>());
+			obj->FullFill(a);
+		}
+		else if (obj->CheckValueType(typeid(nTuple<THREE, Complex> )))
+		{
+			nTuple<THREE, Complex> dv =
+			{ 0, 0, 0 };
+			nTuple<THREE, Complex> a = pt.get("Data", dv,
+					pt_trans<nTuple<THREE, Complex>, std::string>());
+			obj->FullFill(a);
+		}
+
+	}
+
+}
+
 void BaseContext::Load(ptree const & pt)
 {
 
@@ -127,12 +178,8 @@ void BaseContext::Load(ptree const & pt)
 		{
 			objects[id] = objFactory_[type]();
 
-			boost::optional<std::string> url =
-					v.second.get_optional<std::string>("url");
-			if (!!url)
-			{
-				io::ReadData(*url, objects[id]);
-			}
+			FillData(objects[id], v.second);
+
 			LOG << "Load data " << id << "<" << type << ">";
 		}
 		else

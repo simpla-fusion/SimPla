@@ -10,6 +10,7 @@
 #include <string>
 #include <sstream>
 #include <map>
+#include <complex>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/xml_parser.hpp>
 #include <boost/property_tree/info_parser.hpp>
@@ -27,6 +28,31 @@ void write_file(std::string const & fname, ptree const & pt);
 template<int N, typename T> struct nTuple;
 
 template<class Ext, class Int = std::string> struct pt_trans;
+
+template<class T>
+struct pt_trans<T, std::string>
+{
+	typedef T external_type;
+	typedef std::string internal_type;
+
+	external_type get_value(const internal_type &value) const
+	{
+		std::istringstream is(value);
+		external_type tv;
+		is >> tv;
+		return tv;
+	}
+
+	internal_type put_value(const external_type &value) const
+	{
+		std::ostringstream os;
+
+		os << " " << value;
+
+		return os.str();
+	}
+
+};
 
 template<int N, class T>
 struct pt_trans<nTuple<N, T>, std::string>
@@ -87,6 +113,33 @@ struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
 			{
 				os << " " << value[i][j];
 			}
+		return os.str();
+	}
+
+};
+
+template<typename T>
+struct pt_trans<std::complex<T>, std::string>
+{
+	typedef std::complex<T> external_type;
+	typedef std::string internal_type;
+
+	external_type get_value(const internal_type &value) const
+	{
+		std::istringstream is(value);
+
+		T r, i;
+		is >> r;
+		is >> i;
+		return external_type(r, i);
+	}
+
+	internal_type put_value(const external_type &value) const
+	{
+		std::ostringstream os;
+
+		os << " " << value.real() << " " << value.imag();
+
 		return os.str();
 	}
 

@@ -1,82 +1,100 @@
 <Context>
-        <PhysConstants type="NATURE"></PhysConstants> 
-	
-	<dt unit="s">0.0025</dt>
+	<PhysConstants Type="NATURE"></PhysConstants> 
 
-	<Grid type="UniformRect">
-		<NUM_OF_DIMS>3</NUM_OF_DIMS>
-		<dx unit="m">1 1 1</dx>
-		<xmin unit="m">0 0 0 </xmin>
-		<xmax unit="m">1 1 1 </xmax>
-		<dims>201 201 1</dims>
-		<ghostwidth>2 2 2 </ghostwidth>
+	<Grid Type="Uniform">	
+		<Topology Type="CoRectMesh"  
+		  			 Dimensions="201 201 1" Ghostwidth="2 2 2" >
+		</Topology>
+		<Geometry Type="MIN_MAX" Unit="m" >
+			<XMin>0 0 0 </XMin>
+			<XMax>1 1 1 </XMax>
+		</Geometry>
+		
+		<Time Value="0" dt="0.0025" Unit="s">0.0025</Time>
+		
+		<Attribute Name='B1'  Type='TwoForm'>
+			<Data  Format='XML' Dimensions='3'>1 0 0</Data>
+		</Attribute>
+		<Attribute Name='E1'  Type='OneForm'>
+<!--				<Data  Format='HDF' >a.h5:/E1</Data> -->
+		</Attribute>
+		<Attribute Name='J1'  Type='OneForm'>
+<!--		<Data  Format='HDF' >a.h5:/E1</Data> -->
+		</Attribute>
+<!--		<Attribute Name='ele' Type='DeltaF'>
+		</Attribute>
+		-->
 	</Grid>
 
-	<Particles type="delta_f" id="ele">
-		<pic></pic>
-	</Particles>
-	
-	<Fields>
-		<Field type="OneForm" id="E1"><value> 0 0 0 </value></Field>
-		<Field type="OneForm" id="J1"><value> 0 0 0 </value></Field>
-		<Field type="TwoForm" id="B1"><value> 0 0 1 </value>
-		<!--	<url>file://tmp/a.h5:/B1</url> -->
-		</Field>
-	</Fields>
-	<Modules>
-		<Module type="SetValue">
-			 <Parameters> 
-				<Field type="OneForm" >J1</Field>
-			 </Parameters> 
-			 <value> 0 0 0 </value>
+	<Process Maxsteps="1000" >
+ 		<Module Type="RampWave">
+			<Data> 
+				<Field Type="OneForm" >E1</Field>
+			</Data> 
+			<Domain>
+				<XMin>0.48 0 0 </XMin>
+				<XMax>0.52 1 0 </XMax>
+			</Domain>
+			<Arguments>
+				<alpha>0.01 </alpha>
+				<freq> 100 </freq>
+				<amp> 1 1 1 </amp>
+				<k>   0.0 6.28 0.0 </k>
+			</Arguments>	
 		</Module>
-		<Module type="RFSrc" >
-			<Parameters>                               
-				<Field type="OneForm" io="RW">E1</Field>
-			</Parameters>
-			<alpha>0.01 </alpha>
-			<freq> 100 </freq>
-			<amp> 0 0 1 </amp>
-			<pos> 0.5 0.5 0 </pos>
+<!--
+		<Module Type="RFSrc" >
+			<Data>                               
+				<Field Type="OneForm" IO="RW">E1</Field>
+			</Data>
+			<Arguments>
+				<alpha>0.01 </alpha>
+				<freq> 100 </freq>
+				<amp> 0 0 1 </amp>
+				<pos> 0.5 0.5 0 </pos>
+			</Arguments>
 		</Module>
-		<Module type="ColdFluid" >
-			  <Parameters>
-				  <Field id="B" type="TwoForm" io="RW">B1</B>
-				  <Field id="E" type="OneForm" io="RW">E1</E>
-				  <Field id="J" type="OneForm" io="R" >J1</J>
-			  </Parameters>
-			  <Composition>
-				  <species id="H">
-					  <m>1</m>
-					  <Z>1</Z>
-					  <ns>0.5</ns>                                        
-				  </species>
-			  </Composition>
-		  </Module>
+		<Module Type="ColdFluid" >
+			<Data>
+				<Field Name="B" IO="RW">B1</Field>
+				<Field Name="E" IO="RW">E1</Field>
+				<Field Name="J" IO="R" >J1</Field>
+			</Data>
+			<Arguments>
+				<species Name="H">
+					<m>1</m>
+					<Z>1</Z>
+					<ns>0.5</ns>
+				</species>
+			</Arguments>
+		</Module>
 
-
-<!--		<Module type="Maxwell" id="EMSolver" > 
-			<Parameters>
-				  <Field id="B" type="TwoForm" io="RW">B1</B>
-				  <Field id="E" type="OneForm" io="RW">E1</E>
-				  <Field id="J" type="OneForm" io="R" >J1</J>	
-			</Parameters>
+		<Module Type="Maxwell" Name="EMSolver" > 
+			<Data>
+				<Field Name="B" IO="RW">B1</Field>
+				<Field Name="E" IO="RW">E1</Field>
+				<Field Name="J" IO="R" >J1</Field>
+			</Data>
 		</Module>
 -->	
-		<Module type="PML" >
-			<Parameters>
-				  <Field id="B" type="TwoForm" io="RW">B1</B>
-				  <Field id="E" type="OneForm" io="RW">E1</E>
-				  <Field id="J" type="OneForm" io="R" >J1</J>   
-			</Parameters>
-			<bc> 20 20 20 20 20 20 </bc>
+
+		<Module Type="PML" >
+			<Data>
+				<Field Name="B" IO="RW">B1</Field>
+				<Field Name="E" IO="RW">E1</Field>
+				<Field Name="J" IO="R" >J1</Field>
+			</Data>
+			<Arguments>
+				<bc> 20 20 20 20 20 20 </bc>
+			</Arguments>
 		</Module>
-
-	</Modules>
-
-	<OutPut type="XDMF" path="Untitle" stride="1">
-		<Field>E1</Field>
-		<Field>B1</Field>
-	</OutPut>
+		
+		<Output Type="XDMF" Path="Untitle" Stride="1">
+			<Field>E1</Field>
+			<Field>B1</Field>
+		</Output>
+	</Process>
+	
+	
 
 </Context>

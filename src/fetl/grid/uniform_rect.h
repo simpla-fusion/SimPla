@@ -235,12 +235,6 @@ public:
 
 // Property -----------------------------------------------
 
-	inline size_t get_index(RVec3 x) const
-	{
-		RVec3 r = (x - xmin) * inv_dx;
-		return r[0] * strides[0] + r[1] * strides[1] + r[2] * strides[2];
-	}
-
 	inline size_t get_num_of_vertex() const
 	{
 		size_t res = 1;
@@ -275,6 +269,10 @@ public:
 		RVec3 res =
 		{ 0, 0, 0 };
 		return (res);
+	}
+	inline size_t get_cell_num(IVec3 const & I) const
+	{
+		return (I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]);
 	}
 	inline size_t get_cell_num(size_t I0, size_t I1, size_t I2) const
 	{

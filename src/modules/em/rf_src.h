@@ -37,9 +37,9 @@ struct RFSrc: public Module
 
 			dt(ctx.grid.dt),
 
-			alpha(pt.get("alpha", 0.0f)),
+			alpha(pt.get("Arguments.alpha", 0.0f)),
 
-			freq(pt.get("freq", 1.0f)),
+			freq(pt.get("Arguments.freq", 1.0f)),
 
 			field_name(pt.get("Data.Field", "E1")),
 
@@ -72,7 +72,7 @@ struct RFSrc: public Module
 
 		Vec3 v = A * (1.0 - std::exp(-t * alpha)) * std::sin(freq * t);
 
-		size_t s = ctx.grid.get_index(x);
+		size_t s = ctx.grid.get_cell_num(x);
 
 		boost::optional<TR1::shared_ptr<Object> > obj = ctx.FindObject(
 				field_name);

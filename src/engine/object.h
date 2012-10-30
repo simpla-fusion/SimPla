@@ -117,8 +117,7 @@ public:
 		}
 		return nd;
 	}
-
-	inline size_t get_size_in_bytes() const
+	inline size_t get_num_of_elements() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < nd; ++i)
@@ -126,6 +125,10 @@ public:
 			res *= dims[i];
 		}
 		return res;
+	}
+	inline size_t get_size_in_bytes() const
+	{
+		return get_num_of_elements() * get_element_size_in_bytes();
 	}
 
 	void ReAlloc(size_t const *d, int ndims = 1)
@@ -145,6 +148,32 @@ public:
 
 		nd = ndims;
 
+	}
+
+	template<typename T>
+	void FullFill(T const & v)
+	{
+		if (!CheckValueType(typeid(T)))
+		{
+			ERROR << "Value type do not match !";
+		}
+
+		size_t num_of_ele = get_num_of_elements();
+
+#pragma omp parallel for
+		for (size_t s = 0; s < num_of_ele; ++s)
+		{
+			this->value<T>(s) = v;
+		}
+	}
+	void Clear()
+	{
+		size_t size_in_bytes = get_size_in_bytes();
+#pragma omp parallel for
+		for (size_t s = 0; s < size_in_bytes; ++s)
+		{
+			*(data.get() + s) = 0;
+		}
 	}
 private:
 	TR1::shared_ptr<int8_t> data;

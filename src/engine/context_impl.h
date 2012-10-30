@@ -13,8 +13,10 @@
 #include "modules/em/pml.h"
 #include "modules/em/rf_src.h"
 #include "modules/fluid/cold_fluid.h"
+#include "modules/field_fun/field_fun.h"
 #include "io/write_xdmf.h"
 #include "io/read_hdf5.h"
+
 #include <boost/foreach.hpp>
 namespace simpla
 {
@@ -38,6 +40,18 @@ Context<TG>::Context(ptree const & pt) :
 
 	moduleFactory_["ColdFluid"] = TR1::bind(&em::ColdFluid<TG>::Create, this,
 			TR1::placeholders::_1);
+
+	moduleFactory_["RampWave"] = TR1::bind(
+			field_fun::Create<TG, field_fun::RampWave>, this,
+			TR1::placeholders::_1);
+
+//	moduleFactory_["Smooth"] = TR1::bind(
+//			&field_fun::Create<TG, field_fun::Smooth>, this,
+//			TR1::placeholders::_1);
+//
+//	moduleFactory_["Damping"] = TR1::bind(
+//			&field_fun::Create<TG, field_fun::Damping>, this,
+//			TR1::placeholders::_1);
 
 	objFactory_["ZeroForm"] = TR1::bind(&ZeroForm::Create, grid);
 

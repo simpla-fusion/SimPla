@@ -1,2 +1,3 @@
 ADD_SUBDIRECTORY( em  )
-ADD_SUBDIRECTORY( fluid  )
+#ADD_SUBDIRECTORY( fluid  )
+ADD_SUBDIRECTORY( field_fun  )
