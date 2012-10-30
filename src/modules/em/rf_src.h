@@ -12,9 +12,10 @@
 
 #include <cmath>
 #include <boost/algorithm/string.hpp>
-
+#include <boost/optional.hpp>
 #include "engine/context.h"
 #include "engine/modules.h"
+#include "engine/object.h"
 #include "fetl/fetl.h"
 #include "utilities/properties.h"
 
@@ -28,25 +29,25 @@ struct RFSrc: public Module
 {
 
 	DEFINE_FIELDS(typename TG::ValueType,TG)
-
+	typedef RFSrc<TG> ThisType;
 	Context<Grid> & ctx;
 
 	RFSrc(Context<Grid> & d, const ptree & pt) :
 			ctx(d),
 
-			dt(ctx.dt),
+			dt(ctx.grid.dt),
 
 			alpha(pt.get("alpha", 0.0f)),
 
 			freq(pt.get("freq", 1.0f)),
 
-			field_name(pt.get("Parameters.field", "E1")),
+			field_name(pt.get("Data.Field", "E1")),
 
-			field_type(pt.get("Parameters.field.<xmlattr>.type", "OneForm")),
+			field_type(pt.get("Data.Field.<xmlattr>.Type", "OneForm")),
 
-			x(pt.get<Vec3>("pos")),
+			x(pt.get<Vec3>("Arguments.pos")),
 
-			A(pt.get<Vec3>("amp"))
+			A(pt.get<Vec3>("Arguments.amp"))
 
 	{
 		boost::algorithm::trim(field_name);
@@ -57,6 +58,12 @@ struct RFSrc: public Module
 	{
 	}
 
+	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	{
+		return TR1::bind(&ThisType::Eval,
+				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+	}
+
 	virtual void Eval()
 	{
 		LOG << "Run module RFSrc";
@@ -64,6 +71,11 @@ struct RFSrc: public Module
 		Real t = ctx.Timer();
 
 		Vec3 v = A * (1.0 - std::exp(-t * alpha)) * std::sin(freq * t);
+
+		size_t s = ctx.grid.get_index(x);
+
+		boost::optional<TR1::shared_ptr<Object> > obj = ctx.FindObject(
+				field_name);
 
 		if (field_type == "OneForm")
 		{

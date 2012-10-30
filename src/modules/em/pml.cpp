@@ -31,30 +31,18 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 template<>
-PML<UniformRectGrid>::PML(BaseContext & d, const ptree & pt) :
+PML<UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
 		ctx(d),
 
-		grid(ctx.Grid<UniformRectGrid>()),
+		grid(ctx.grid),
 
-		dt(ctx.dt),
+		dt(ctx.grid.dt),
 
 		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
 		epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
 
 		speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
-
-		B(pt.get("Parameters.B", "B1")),
-
-		Btype(pt.get("Parameters.B.<xmlattr>.type", "TwoForm")),
-
-		E(pt.get("Parameters.E", "E1")),
-
-		Etype(pt.get("Parameters.E.<xmlattr>.type", "OneForm")),
-
-		J(pt.get("Parameters.J", "J1")),
-
-		Jtype(pt.get("Parameters.J.<xmlattr>.type", "OneForm")),
 
 		a0(grid), a1(grid), a2(grid),
 
@@ -64,10 +52,17 @@ PML<UniformRectGrid>::PML(BaseContext & d, const ptree & pt) :
 
 		X20(grid), X21(grid), X22(grid),
 
-		bc_(pt.get<nTuple<SIX, int> >("bc"))
+		bc_(pt.get<nTuple<SIX, int> >("Arguments.bc"))
 {
 
 	LOG << "Create module PML";
+
+	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
+	{
+		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] = //
+				v.second.get_value<std::string>();
+
+	}
 
 	Real dB = 100, expN = 2;
 
@@ -152,24 +147,9 @@ template<>
 void PML<UniformRectGrid>::Eval()
 {
 	LOG << "Run module PML";
-
-	TwoForm &B1 = *ctx.GetObject<TwoForm>(B);
-	OneForm &E1 = *ctx.GetObject<OneForm>(E);
-	OneForm &J1 = *ctx.GetObject<OneForm>(J);
-
-	TwoForm dX1(grid);
-
-	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
-	X10 += dX1;
-	B1 -= dX1;
-
-	dX1 = (-2.0 * s1 * X11 + CurlPD(Int2Type<1>(), E1)) / (a1 / dt + s1);
-	X11 += dX1;
-	B1 -= dX1;
-
-	dX1 = (-2.0 * s2 * X12 + CurlPD(Int2Type<2>(), E1)) / (a2 / dt + s2);
-	X12 += dX1;
-	B1 -= dX1;
+	TwoForm &B1 = *ctx.GetObject<TwoForm>(dataflow_["B"]);
+	OneForm &E1 = *ctx.GetObject<OneForm>(dataflow_["E"]);
+	OneForm &J1 = *ctx.GetObject<OneForm>(dataflow_["J"]);
 
 	OneForm dX2(grid);
 
@@ -186,6 +166,20 @@ void PML<UniformRectGrid>::Eval()
 	E1 += dX2 / epsilon0;
 
 	E1 -= J1 / epsilon0 * dt;
+
+	TwoForm dX1(grid);
+
+	dX1 = (-2.0 * s0 * X10 + CurlPD(Int2Type<0>(), E1)) / (a0 / dt + s0);
+	X10 += dX1;
+	B1 -= dX1;
+
+	dX1 = (-2.0 * s1 * X11 + CurlPD(Int2Type<1>(), E1)) / (a1 / dt + s1);
+	X11 += dX1;
+	B1 -= dX1;
+
+	dX1 = (-2.0 * s2 * X12 + CurlPD(Int2Type<2>(), E1)) / (a2 / dt + s2);
+	X12 += dX1;
+	B1 -= dX1;
 
 }
 } //namespace em

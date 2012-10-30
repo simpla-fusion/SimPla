@@ -20,6 +20,221 @@ namespace simpla
 {
 
 template<typename TG>
+Context<TG>::Context(ptree const & pt) :
+		BaseContext(pt), grid(pt.get_child("Grid"))
+{
+
+	moduleFactory_["XDMF"] = TR1::bind(&io::WriteXDMF<TG>::Create, this,
+			TR1::placeholders::_1);
+
+	moduleFactory_["RFSrc"] = TR1::bind(&em::RFSrc<TG>::Create, this,
+			TR1::placeholders::_1);
+
+	moduleFactory_["Maxwell"] = TR1::bind(&em::Maxwell<TG>::Create, this,
+			TR1::placeholders::_1);
+
+	moduleFactory_["PML"] = TR1::bind(&em::PML<TG>::Create, this,
+			TR1::placeholders::_1);
+
+	moduleFactory_["ColdFluid"] = TR1::bind(&em::ColdFluid<TG>::Create, this,
+			TR1::placeholders::_1);
+
+	objFactory_["ZeroForm"] = TR1::bind(&ZeroForm::Create, grid);
+
+	objFactory_["OneForm"] = TR1::bind(&OneForm::Create, grid);
+
+	objFactory_["TwoForm"] = TR1::bind(&TwoForm::Create, grid);
+
+	objFactory_["ThreeForm"] = TR1::bind(&ThreeForm::Create, grid);
+
+	objFactory_["VecZeroForm"] = TR1::bind(&VecZeroForm::Create, grid);
+
+	objFactory_["VecOneForm"] = TR1::bind(&VecOneForm::Create, grid);
+
+	objFactory_["VecTwoForm"] = TR1::bind(&VecTwoForm::Create, grid);
+
+	objFactory_["VecThreeForm"] = TR1::bind(&VecThreeForm::Create, grid);
+
+	objFactory_["CZeroForm"] = TR1::bind(&CZeroForm::Create, grid);
+
+	objFactory_["COneForm"] = TR1::bind(&COneForm::Create, grid);
+
+	objFactory_["CTwoForm"] = TR1::bind(&CTwoForm::Create, grid);
+
+	objFactory_["CThreeForm"] = TR1::bind(&CThreeForm::Create, grid);
+
+	objFactory_["CVecZeroForm"] = TR1::bind(&CVecZeroForm::Create, grid);
+
+	objFactory_["CVecOneForm"] = TR1::bind(&CVecOneForm::Create, grid);
+
+	objFactory_["CTwoForm"] = TR1::bind(&CTwoForm::Create, grid);
+
+	objFactory_["CVecThreeForm"] = TR1::bind(&CVecThreeForm::Create, grid);
+
+	BaseContext::Load(pt);
+}
+template<typename TG>
+Context<TG>::~Context()
+{
+}
+
+template<typename TG>
+template<typename TOBJ>
+TR1::shared_ptr<TOBJ> Context<TG>::CreateObject()
+{
+	return TR1::shared_ptr<TOBJ>(new TOBJ(grid));
+}
+
+template<typename TG>
+template<typename TOBJ>
+TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
+{
+
+	if (name != "")
+	{
+		std::map<std::string, Object::Holder>::iterator it = objects.find(name);
+		if (it != objects.end())
+		{
+			if (it->second->CheckType(typeid(TOBJ)))
+			{
+				return TR1::dynamic_pointer_cast<TOBJ>(it->second);
+			}
+			else
+			{
+				ERROR << "The type of object " << name << " is not "
+						<< typeid(TOBJ).name();
+			}
+		}
+	}
+	TR1::shared_ptr<TOBJ> res = CreateObject<TOBJ>();
+
+	if (name != "")
+	{
+		objects[name] = TR1::dynamic_pointer_cast<Object>(res);
+	}
+
+	return res;
+}
+//template<typename TG>
+//TR1::shared_ptr<Object> Context<TG>::ObjectFactory(std::string const & type)
+//{
+//	TR1::shared_ptr<Object> res;
+//	if (type == "ZeroForm")
+//	{
+//		res = CreateObject<ZeroForm>();
+//	}
+//	else if (type == "OneForm")
+//	{
+//		res = CreateObject<OneForm>();
+//	}
+//	else if (type == "TwoForm")
+//	{
+//		res = CreateObject<TwoForm>();
+//	}
+//	else if (type == "ThreeForm")
+//	{
+//		res = CreateObject<ThreeForm>();
+//	}
+//	else if (type == "VecZeroForm")
+//	{
+//		res = CreateObject<VecZeroForm>();
+//	}
+//	else if (type == "VecOneForm")
+//	{
+//		res = CreateObject<VecOneForm>();
+//
+//	}
+//	else if (type == "TwoForm")
+//	{
+//		res = CreateObject<VecTwoForm>();
+//	}
+//	else if (type == "VecThreeForm")
+//	{
+//		res = CreateObject<VecThreeForm>();
+//	}
+//	else if (type == "CZeroForm")
+//	{
+//		res = CreateObject<CZeroForm>();
+//	}
+//	else if (type == "COneForm")
+//	{
+//		res = CreateObject<COneForm>();
+//	}
+//	else if (type == "CTwoForm")
+//	{
+//		res = CreateObject<CTwoForm>();
+//	}
+//	else if (type == "CThreeForm")
+//	{
+//		res = CreateObject<CThreeForm>();
+//	}
+//	else if (type == "CVecZeroForm")
+//	{
+//
+//		res = CreateObject<CVecZeroForm>();
+//	}
+//	else if (type == "CVecOneForm")
+//	{
+//
+//		res = CreateObject<CVecOneForm>();
+//
+//	}
+//	else if (type == "CTwoForm")
+//	{
+//
+//		res = CreateObject<CVecTwoForm>();
+//
+//	}
+//	else if (type == "CVecThreeForm")
+//	{
+//
+//		res = CreateObject<CVecThreeForm>();
+//	}
+//	else
+//	{
+//		res = BaseContext::ObjectFactory(type);
+//	}
+//	return res;
+//}
+
+//template<typename TG>
+//TR1::function<void(void)> Context<TG>::ModuleFactory(std::string const & name,
+//		ptree const & pt)
+//{
+//
+//	TR1::function<void(void)> res;
+//	if (name == "RFSrc")
+//	{
+//		res = TR1::bind(&em::RFSrc<TG>::Eval,
+//				new em::template RFSrc<TG>(*this, pt));
+//	}
+//	else if (name == "Maxwell")
+//	{
+//		res = TR1::bind(&em::Maxwell<TG>::Eval,
+//				new em::template Maxwell<TG>(*this, pt));
+//	}
+//	else if (name == "PML")
+//	{
+//		res = TR1::bind(&em::PML<TG>::Eval,
+//				new em::template PML<TG>(*this, pt));
+//	}
+//	else if (name == "ColdFluid")
+//	{
+//		res = TR1::bind(&em::ColdFluid<TG>::Eval,
+//				new em::template ColdFluid<TG>(*this, pt));
+//	}
+//	else if (name == "XDMF")
+//	{
+//		res = TR1::bind(&io::WriteXDMF<TG>::Eval,
+//				new io::template WriteXDMF<TG>(*this, pt));
+//	}
+//	else
+//	{
+//		BaseContext::ModuleFactory(name, pt);
+//	}
+//
+//}
+template<typename TG>
 inline std::string Context<TG>::Summary() const
 {
 	std::ostringstream os;
@@ -29,8 +244,6 @@ inline std::string Context<TG>::Summary() const
 	<< PHYS_CONSTANTS.Summary()
 
 	<< SINGLELINE << std::endl
-
-	<< std::setw(20) << "dt : " << dt << std::endl
 
 	<< grid.Summary() << std::endl
 
@@ -53,235 +266,6 @@ inline std::string Context<TG>::Summary() const
 
 }
 
-template<typename TG>
-void Context<TG>::RegisterFactory()
-{
-//#define REG_OBJ_FACTORY(_NAME_,_TYPE_)  \
-//    objFactory[_NAME_] =  &BaseContext::CreateObject<_TYPE_> ;			\
-//	objFactory[std::string("R")+_NAME_] =  &BaseContext::CreateObject<R##_TYPE_> ;		\
-//	objFactory[std::string("C")+_NAME_ ] =  &BaseContext::CreateObject<C##_TYPE_> ;		\
-//
-//	REG_OBJ_FACTORY("ZeroForm", ZeroForm);
-//	REG_OBJ_FACTORY("OneForm", OneForm);
-//	REG_OBJ_FACTORY("TwoForm", TwoForm);
-//
-//	REG_OBJ_FACTORY("VecZeroForm", VecZeroForm);
-//	REG_OBJ_FACTORY("VecOneForm", VecOneForm);
-//	REG_OBJ_FACTORY("VecTwoForm", VecTwoForm);
-//
-//#undef REG_OBJ_FACTORY
-
-}
-
-template<typename TG>
-Context<TG>::Context(ptree const & pt) :
-		BaseContext(pt), grid(pt.get_child("Grid"))
-{
-	LOG << "Register Fields";
-
-	RegisterFactory();
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Fields"))
-	{
-		if (v.first != "Field")
-		{
-			continue;
-		}
-		try
-		{
-			std::string type = v.second.template get<std::string>(
-					"<xmlattr>.type");
-			std::string id = v.second.template get<std::string>("<xmlattr>.id");
-
-			if (type == "ZeroForm")
-			{
-				*GetObject<ZeroForm>(id) = v.second.get("value", 0.0d);
-
-			}
-			else if (type == "OneForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<OneForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-
-			}
-			else if (type == "TwoForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<TwoForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-			else if (type == "ThreeForm")
-			{
-				*GetObject<ThreeForm>(id) = v.second.get("value", 0.0d);
-			}
-			else if (type == "VecZeroForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<VecZeroForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-			else if (type == "VecOneForm")
-			{
-				nTuple<THREE, nTuple<THREE, Real> > dv =
-				{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-				*GetObject<VecOneForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, nTuple<THREE, Real> >,
-								std::string>());
-
-			}
-			else if (type == "TwoForm")
-			{
-				nTuple<THREE, nTuple<THREE, Real> > dv =
-				{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-				*GetObject<VecTwoForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, nTuple<THREE, Real> >,
-								std::string>());
-
-			}
-			else if (type == "VecThreeForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<VecThreeForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-			else if (type == "CZeroForm")
-			{
-				*GetObject<CZeroForm>(id) = v.second.get("value", 0.0d);
-			}
-			else if (type == "COneForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<COneForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-
-			}
-			else if (type == "CTwoForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<CTwoForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-			else if (type == "CThreeForm")
-			{
-				*GetObject<CThreeForm>(id) = v.second.get("value", 0.0d);
-			}
-			else if (type == "CVecZeroForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<CVecZeroForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-			else if (type == "CVecOneForm")
-			{
-				nTuple<THREE, nTuple<THREE, Real> > dv =
-				{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-				*GetObject<CVecOneForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, nTuple<THREE, Real> >,
-								std::string>());
-
-			}
-			else if (type == "CTwoForm")
-			{
-				nTuple<THREE, nTuple<THREE, Real> > dv =
-				{ 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-				*GetObject<CVecTwoForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, nTuple<THREE, Real> >,
-								std::string>());
-
-			}
-			else if (type == "CVecThreeForm")
-			{
-				nTuple<THREE, Real> dv =
-				{ 0, 0, 0 };
-				*GetObject<CVecThreeForm>(id) = v.second.get("value", dv,
-						pt_trans<nTuple<THREE, Real>, std::string>());
-			}
-
-			boost::optional<std::string> url =
-					v.second.get_optional<std::string>("url");
-			if (!!url)
-			{
-				boost::optional<TR1::shared_ptr<Object> > obj = FindObject(id);
-
-				if (!!obj)
-				{
-					io::ReadData(*url, *obj);
-				}
-			}
-
-		} catch (...)
-		{
-			WARNING << "Register field error!";
-		}
-	}
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Modules"))
-	{
-		if (v.first != "Module")
-		{
-			continue;
-		}
-		boost::optional<std::string> type = v.second.template get_optional<
-				std::string>("<xmlattr>.type");
-		if (!type)
-		{
-			continue;
-		}
-		else if (*type == "RFSrc")
-		{
-			modules.push_back(
-					TR1::bind(&em::RFSrc<TG>::Eval,
-							new em::template RFSrc<TG>(*this, v.second)));
-		}
-		else if (*type == "Maxwell")
-		{
-			modules.push_back(
-					TR1::bind(&em::Maxwell<TG>::Eval,
-							new em::template Maxwell<TG>(*this, v.second)));
-		}
-		else if (*type == "PML")
-		{
-			modules.push_back(
-					TR1::bind(&em::PML<TG>::Eval,
-							new em::template PML<TG>(*this, v.second)));
-		}
-		else if (*type == "ColdFluid")
-		{
-			modules.push_back(
-					TR1::bind(&em::ColdFluid<TG>::Eval,
-							new em::template ColdFluid<TG>(*this, v.second)));
-		}
-
-	}
-
-	std::string type = pt.template get("OutPut.<xmlattr>.type", "XDMF");
-
-	if (type == "XDMF")
-	{
-		modules.push_back(
-				TR1::bind(&io::WriteXDMF<TG>::Eval,
-						new io::template WriteXDMF<TG>(*this,
-								pt.get_child("OutPut"))));
-
-	}
-
-}
-template<typename TG>
-Context<TG>::~Context()
-{
-}
-}  // namespace simpla
+} // namespace simpla
 
 #endif /* CONTEXT_IMPL_H_ */

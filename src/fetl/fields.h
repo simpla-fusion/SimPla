@@ -67,6 +67,11 @@ public:
 	{
 	}
 
+	static TR1::shared_ptr<ThisType> Create(Grid const & grid)
+	{
+		return TR1::shared_ptr<ThisType>(new ThisType(grid));
+	}
+
 // Interpolation  ----------------------------------------------------------------------
 
 //	inline ValueType operator()(RVec3 const & x)
@@ -111,6 +116,16 @@ public:
 	inline ThisType & operator -=(Field<Grid, IForm, TR> const &rhs)
 	{
 		*this = *this - rhs;
+		return (*this);
+	}
+	inline ThisType & operator *=(Real rhs)
+	{
+		*this = *this * rhs;
+		return (*this);
+	}
+	inline ThisType & operator /=(Real rhs)
+	{
+		*this = *this / rhs;
 		return (*this);
 	}
 	template<typename TR>

@@ -53,6 +53,8 @@ public:
 	};
 	typedef typename std::vector<size_t>::iterator iterator;
 	typedef typename std::vector<size_t>::const_iterator const_iterator;
+
+	Real dt;
 	// Geometry
 	RVec3 xmin, xmax;
 	RVec3 dx;
@@ -66,20 +68,25 @@ public:
 			initialized_(false)
 	{
 		boost::optional<std::string> ot = pt.template get_optional<std::string>(
-				"<xmlattr>.type");
-		if (!ot || *ot != "UniformRect")
+				"Topology.<xmlattr>.Type");
+		if (!ot || *ot != "CoRectMesh")
 		{
 			ERROR << "Grid type mismatch";
 		}
 
-		xmin = pt.template get<Vec3>("xmin",
-				pt_trans<Vec3, typename PT::data_type>());
-		xmax = pt.template get<Vec3>("xmax",
-				pt_trans<Vec3, typename PT::data_type>());
-		dims = pt.template get<IVec3>("dims",
+		dims = pt.template get<IVec3>("Topology.<xmlattr>.Dimensions",
 				pt_trans<IVec3, typename PT::data_type>());
-		gw = pt.template get<IVec3>("ghostwidth",
+
+		gw = pt.template get<IVec3>("Topology.<xmlattr>.Ghostwidth",
 				pt_trans<IVec3, typename PT::data_type>());
+
+		xmin = pt.template get<Vec3>("Geometry.XMin",
+				pt_trans<Vec3, typename PT::data_type>());
+
+		xmax = pt.template get<Vec3>("Geometry.XMax",
+				pt_trans<Vec3, typename PT::data_type>());
+
+		dt = pt.get("Time.<xmlattr>.dt", 1.0d);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -145,7 +152,9 @@ public:
 
 		<< std::setw(20) << "Range : " << xmin << " ~ " << xmax << std::endl
 
-		<< std::setw(20) << "dx : " << dx << std::endl;
+		<< std::setw(20) << "dx : " << dx << std::endl
+
+		<< std::setw(20) << "dt : " << dt << std::endl;
 
 		return os.str();
 	}
@@ -225,6 +234,12 @@ public:
 //	}
 
 // Property -----------------------------------------------
+
+	inline size_t get_index(RVec3 x) const
+	{
+		RVec3 r = (x - xmin) * inv_dx;
+		return r[0] * strides[0] + r[1] * strides[1] + r[2] * strides[2];
+	}
 
 	inline size_t get_num_of_vertex() const
 	{

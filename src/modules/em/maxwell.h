@@ -11,7 +11,7 @@
 
 #include "fetl/fetl.h"
 #include "fetl/vector_calculus.h"
-#include "engine/basecontext.h"
+#include "engine/context.h"
 #include "engine/modules.h"
 #include "utilities/properties.h"
 namespace simpla
@@ -29,32 +29,26 @@ public:
 
 	DEFINE_FIELDS(typename TG::ValueType, TG)
 
-	BaseContext & ctx;
+	Context<TG> & ctx;
 
-	Maxwell(BaseContext & d, ptree const &pt) :
+	Maxwell(Context<TG> & d, ptree const &pt) :
 			ctx(d),
 
-			dt(ctx.dt),
+			dt(ctx.grid.dt),
 
 			mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
 			epsilon0(ctx.PHYS_CONSTANTS["permittivity_of_free_space"]),
 
-			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"]),
-
-			B(pt.get("Parameters.B", "B1")),
-
-			Btype(pt.get("Parameters.B.<xmlattr>.type", "TwoForm")),
-
-			E(pt.get("Parameters.E", "E1")),
-
-			Etype(pt.get("Parameters.E.<xmlattr>.type", "OneForm")),
-
-			J(pt.get("Parameters.J", "J1")),
-
-			Jtype(pt.get("Parameters.J.<xmlattr>.type", "OneForm"))
-
+			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"])
 	{
+		BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
+		{
+			para_[v.second.get<std::string>("id")] = std::pair<std::string,
+					std::string>(v.second.get<std::string>("type"),
+					v.second.get_value<std::string>());
+
+		}
 		LOG << "Create module Maxwell";
 	}
 
@@ -62,29 +56,30 @@ public:
 	{
 	}
 
+	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	{
+		return TR1::bind(&ThisType::Eval,
+				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+	}
+
 	virtual void Eval()
 	{
 		LOG << "Run module Maxwell";
 
-		if (Btype == "TwoForm" && Etype == "OneForm" && Jtype == "OneForm")
+		if (para_["B"].first == "TwoForm" && para_["E"].first == "OneForm"
+				&& para_["J"].first == "OneForm")
 		{
-			DoMaxwellEq(*ctx.template GetObject<TwoForm>(B),
-					*ctx.template GetObject<OneForm>(E),
-					*ctx.template GetObject<OneForm>(J));
+			DoMaxwellEq(*ctx.template GetObject<TwoForm>(para_["B"].second),
+					*ctx.template GetObject<OneForm>(para_["E"].second),
+					*ctx.template GetObject<OneForm>(para_["J"].second));
 		}
-		else if ((Btype == "CTwoForm" || Etype == "COneForm")
-				&& Jtype == "OneForm")
+		else if (para_["B"].first == "CTwoForm"
+				&& para_["E"].first == "COneForm"
+				&& para_["J"].first == "COneForm")
 		{
-			DoMaxwellEq(*ctx.template GetObject<CTwoForm>(B),
-					*ctx.template GetObject<COneForm>(E),
-					*ctx.template GetObject<OneForm>(J));
-		}
-		else if ((Btype == "CTwoForm" || Etype == "COneForm")
-				&& Jtype == "COneForm")
-		{
-			DoMaxwellEq(*ctx.template GetObject<CTwoForm>(B),
-					*ctx.template GetObject<COneForm>(E),
-					*ctx.template GetObject<COneForm>(J));
+			DoMaxwellEq(*ctx.template GetObject<TwoForm>(para_["B"].second),
+					*ctx.template GetObject<OneForm>(para_["E"].second),
+					*ctx.template GetObject<OneForm>(para_["J"].second));
 		}
 		else
 		{
@@ -96,9 +91,10 @@ public:
 	template<typename TE, typename TB, typename TJ>
 	void DoMaxwellEq(TB &B, TE & E, TJ const &J)
 	{
-		B -= Curl(E) * dt;
 
 		E += (Curl(B / mu0) - J) / epsilon0 * dt;
+
+		B -= Curl(E) * dt;
 	}
 
 private:
@@ -107,8 +103,7 @@ private:
 	const Real epsilon0;
 	const Real speed_of_light;
 
-	std::string E, B, J;
-	std::string Etype, Btype, Jtype;
+	std::map<std::string, std::pair<std::string, std::string> > para_;
 
 };
 

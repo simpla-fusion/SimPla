@@ -37,14 +37,19 @@ public:
 
 	virtual std::string Summary() const;
 
-	virtual void RegisterFactory();
+//	virtual TR1::shared_ptr<Object> ObjectFactory(std::string const & type);
+
+//	virtual TR1::function<void(void)> ModuleFactory(std::string const & type,ptree const & pt);
+
+	template<typename TOBJ> TR1::shared_ptr<TOBJ> CreateObject();
+
+	template<typename TOBJ>
+	TR1::shared_ptr<TOBJ> GetObject(std::string const & name = "");
 
 private:
-	Grid const * getGridPtr() const
-	{
-		return &grid;
-	}
+
 	Context(ThisType const &);
+
 	Context & operator=(ThisType const &);
 
 }

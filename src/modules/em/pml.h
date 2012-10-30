@@ -11,7 +11,7 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "engine/modules.h"
-#include "engine/basecontext.h"
+#include "engine/context.h"
 #include "utilities/properties.h"
 
 namespace simpla
@@ -29,11 +29,16 @@ public:
 
 	DEFINE_FIELDS(typename TG::ValueType,TG)
 
-	PML(BaseContext & d, const ptree & pt);
+	PML(Context<TG> & d, const ptree & pt);
 	virtual ~PML();
+	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	{
+		return TR1::bind(&ThisType::Eval,
+				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+	}
 	virtual void Eval();
 private:
-	BaseContext & ctx;
+	Context<TG> & ctx;
 	Grid const & grid;
 
 	const Real dt;
@@ -53,6 +58,8 @@ private:
 	std::string Etype, Btype, Jtype;
 
 	nTuple<SIX, int> bc_;
+	std::map<std::string, std::string > dataflow_;
+	// internal variable name, type, reference name
 
 };
 

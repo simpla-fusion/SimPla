@@ -51,12 +51,14 @@ int main(int argc, char **argv)
 	}
 
 	Log::OpenFile(log_file);
-	boost::property_tree::ptree pt;
+
+	ptree pt;
 
 	read_file(input, pt);
 
-	pt.put("Context.OutPut.<xmlattr>.path", output);
-	pt.put("Context.OutPut.<xmlattr>.stride", record_stride);
+	pt.put("Context.Process.<xmlattr>.Maxstep", max_step);
+	pt.put("Context.Process.OutPut.<xmlattr>.Path", output);
+	pt.put("Context.Process.OutPut.<xmlattr>.Stride", record_stride);
 
 	Context<UniformRectGrid> ctx(pt.get_child("Context"));
 
@@ -96,10 +98,7 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-	for (int i = 0; i < max_step; ++i)
-	{
-		ctx.Eval();
-	}
+	ctx.Eval(max_step);
 
 	INFORM << "====== Done! =======" << std::endl;
 }

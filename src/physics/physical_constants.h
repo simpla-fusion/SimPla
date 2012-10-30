@@ -19,7 +19,7 @@ public:
 
 	template<typename PT>
 	PhysicalConstants(PT const & pt) :
-			type(pt.template get<std::string>("<xmlattr>.type"))
+			type(pt.template get<std::string>("<xmlattr>.Type"))
 	{
 		if (type == "CUSTOM")
 		{

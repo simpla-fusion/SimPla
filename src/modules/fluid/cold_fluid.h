@@ -15,7 +15,7 @@
 #include <boost/foreach.hpp>
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
-#include "engine/basecontext.h"
+#include "engine/context.h"
 #include "engine/modules.h"
 #include "utilities/properties.h"
 
@@ -34,16 +34,20 @@ public:
 
 	DEFINE_FIELDS(typename TG::ValueType, TG)
 
-	ColdFluid(BaseContext & d, const ptree & pt);
+	ColdFluid(Context<TG> & d, const ptree & pt);
 
 	virtual ~ColdFluid();
 
-	virtual void Initialize();
+	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	{
+		return TR1::bind(&ThisType::Eval,
+				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+	}
 
 	virtual void Eval();
 
 private:
-	BaseContext & ctx;
+	Context<TG> & ctx;
 	Grid const & grid;
 
 	const Real dt;
@@ -70,28 +74,18 @@ private:
 
 	// vector fields on  grid node
 
-	ZeroForm BB;
-	ZeroForm pa_;
-	ZeroForm pb_;
-	ZeroForm pc_;
-	ZeroForm pa1_;
-	ZeroForm pb1_;
-	ZeroForm pc1_;
-//input
-	TR1::shared_ptr<VecZeroForm> Jv;
-//output
-	TR1::shared_ptr<VecZeroForm> Ev;
-	TR1::shared_ptr<VecZeroForm> Bv;
+	std::map<std::string, std::string> dataflow_;
+	// internal variable name, type, reference name
 
 };
 
 template<typename TG>
-ColdFluid<TG>::ColdFluid(BaseContext & d, const ptree & pt) :
+ColdFluid<TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 		ctx(d),
 
-		grid(ctx.Grid<TG>()),
+		grid(ctx.grid),
 
-		dt(ctx.dt),
+		dt(ctx.grid.dt),
 
 		mu0(ctx.PHYS_CONSTANTS["permeability_of_free_space"]),
 
@@ -99,25 +93,21 @@ ColdFluid<TG>::ColdFluid(BaseContext & d, const ptree & pt) :
 
 		proton_mass(ctx.PHYS_CONSTANTS["proton_mass"]),
 
-		elementary_charge(ctx.PHYS_CONSTANTS["elementary_charge"]),
-
-		Jv(ctx.template GetObject<VecZeroForm>("Jv")),
-
-		Ev(ctx.template GetObject<VecZeroForm>("Ev")),
-
-		Bv(ctx.template GetObject<VecZeroForm>("Bv")),
-
-		BB(grid),
-
-		pa_(grid), pb_(grid), pc_(grid),
-
-		pa1_(grid), pb1_(grid), pc1_(grid)
+		elementary_charge(ctx.PHYS_CONSTANTS["elementary_charge"])
 
 {
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Composition"))
+	LOG << "Create module ColdFluid";
+	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
 	{
-		std::string id = v.second.get<std::string>("<xmlattr>.id");
+		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] = v.second.get_value<
+				std::string>();
+
+	}
+
+	BOOST_FOREACH(
+			const typename ptree::value_type &v, pt.get_child("Arguments"))
+	{
+		std::string id = v.second.get<std::string>("<xmlattr>.Name");
 
 		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
 
@@ -131,7 +121,6 @@ ColdFluid<TG>::ColdFluid(BaseContext & d, const ptree & pt) :
 
 		)));
 	}
-
 }
 template<typename TG>
 ColdFluid<TG>::~ColdFluid()
@@ -139,54 +128,34 @@ ColdFluid<TG>::~ColdFluid()
 }
 
 template<typename TG>
-void ColdFluid<TG>::Initialize()
-{
-
-	LOG << "Create module ColdFluid";
-
-}
-
-template<typename TG>
 void ColdFluid<TG>::Eval()
 {
 	LOG << "Run module ColdFluid";
 
-	BB = Dot(*Bv, *Bv);
+	TwoForm const&B = *ctx.template GetObject<TwoForm>(dataflow_["B"]);
+	OneForm const&E = *ctx.template GetObject<OneForm>(dataflow_["E"]);
+	OneForm &J = *ctx.template GetObject<OneForm>(dataflow_["J"]);
 
-	pa1_ = 0.0;
-	pb1_ = 0.0;
-	pc1_ = 0.0;
+	ZeroForm BB(grid);
 
-	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
-			sp_list.begin(); it != sp_list.end(); ++it)
-	{
+	VecZeroForm Ev(grid), Bv(grid), dEvdt(grid);
 
-		Real m = (*it)->m * proton_mass;
-		Real Z = (*it)->Z * elementary_charge;
-		Real as = 2.0 * m / (dt * Z);
+//	Bv = B;
 
-		pa1_ += *(*it)->ns * Z / as;
-		pb1_ += *(*it)->ns * Z / (BB + as * as);
-		pc1_ += *(*it)->ns * Z / ((BB + as * as) * as);
+//	Ev = E + (Curl(B) / mu0 - J) / epsilon0 * (dt * 0.5);
 
-	}
-	pa1_ = pa1_ * (0.5 * dt) / epsilon0;
-	pb1_ = pb1_ * (0.5 * dt) / epsilon0;
-	pc1_ = pc1_ * (0.5 * dt) / epsilon0;
-
-	pa1_ = pa1_ + 1.0;
-
-	pa_ = 1.0 / pa1_;
-
-	pb_ = -pb1_ / ((pc1_ * BB - pa1_) * (pc1_ * BB - pa1_) + pb1_ * pb1_ * BB);
-
-	pc_ = -(-pc1_ * pc1_ * BB + pc1_ * pa1_ - pb1_ * pb1_)
-			/ (pa1_
-					* ((pc1_ * BB - pa1_) * (pc1_ * BB - pa1_)
-							+ pb1_ * pb1_ * BB));
+	BB = Dot(Bv, Bv);
 
 	VecZeroForm K_(grid);
-	VecZeroForm dEv_(grid);
+	VecZeroForm K(grid);
+	K = 0.0;
+
+	ZeroForm a(grid);
+	ZeroForm b(grid);
+	ZeroForm c(grid);
+	a = 0.0;
+	b = 0.0;
+	c = 0.0;
 
 	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
 			sp_list.begin(); it != sp_list.end(); ++it)
@@ -196,35 +165,46 @@ void ColdFluid<TG>::Eval()
 		Real Z = (*it)->Z * elementary_charge;
 		Real as = 2.0 * m / (dt * Z);
 
-		dEv_ -= *(*it)->Js * 0.5 * dt / epsilon0;
+		a += *(*it)->ns * Z / as;
+		b += *(*it)->ns * Z / (BB + as * as);
+		c += *(*it)->ns * Z / ((BB + as * as) * as);
 
-		K_ = *(*it)->Js * as + Cross(*(*it)->Js, (*Bv))
-				+ ((*Ev) * (*(*it)->ns)) * Z;
+		K_ = // 2.0*nu**(*it)->Js
+				-2.0 * Cross(*(*it)->Js, Bv) - (Ev * (*(*it)->ns)) * (2.0 * Z);
 
-		*(*it)->Js = K_ / as + Cross(K_, (*Bv)) / (BB + as * as)
-//				+ Cross(Cross(K_, (*Bv)), (*Bv))
-//				/ (as * (BB + as * as))
-				;
+		K -= *(*it)->Js
+				+ 0.5
+						* (K_ / as + Cross(K_, Bv) / (BB + as * as)
+								+ Cross(Cross(K_, Bv), Bv)
+										/ (as * (BB + as * as)));
 
-		dEv_ -= *(*it)->Js * 0.5 * dt / epsilon0;
 	}
+	a = a * (0.5 * dt) / epsilon0 - 1.0;
+	b = b * (0.5 * dt) / epsilon0;
+	c = c * (0.5 * dt) / epsilon0;
 
-	K_ = (*Ev) + dEv_;
+	K /= epsilon0;
 
-	(*Ev) = K_ * pa_ + Cross(K_, (*Bv)) * pb_
-			+ Cross(Cross(K_, (*Bv)), (*Bv)) * pc_;
+	dEvdt = K / a
+			+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+			+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
+					/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
 
 	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
 			sp_list.begin(); it != sp_list.end(); ++it)
 	{
-		Real m = (*it)->m * proton_mass;
-		Real Z = (*it)->Z * elementary_charge;
-		Real as = 2.0 * m / (dt * Z);
+		Real ms = (*it)->m * proton_mass;
+		Real Zs = (*it)->Z * elementary_charge;
+		Real as = 2.0 * ms / (dt * Zs);
 
-		*(*it)->Js += ((*Ev) / as + Cross((*Ev), (*Bv)) / (BB + as * as)
-				+ Cross(Cross((*Ev), (*Bv)), (*Bv)) / (as * (BB + as * as)))
-				* (*(*it)->ns * Z);
+		K_ = // 2.0*nu*(*(*it)->Js)
+				-2.0 * Cross(*(*it)->Js, Bv)
+						- (2.0 * Ev + dEvdt * dt) * (*(*it)->ns) * Zs;
+		*(*it)->Js += K_ / as + Cross(K_, Bv) / (BB + as * as)
+				+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
+
+//	J -= dEvdt;
 
 }
 

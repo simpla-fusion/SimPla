@@ -24,18 +24,18 @@ namespace io
 {
 
 template<>
-WriteXDMF<UniformRectGrid>::WriteXDMF(BaseContext const & d, const ptree & pt) :
+WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d, const ptree & pt) :
 		ctx(d),
 
-		grid(d.Grid<UniformRectGrid>()),
+		grid(d.grid),
 
 		file_template(""),
 
 		attrPlaceHolder("<!-- Add Attribute Here -->"),
 
-		stride_(pt.get("<xmlattr>.stride", 1)),
+		stride_(pt.get("<xmlattr>.Stride", 1)),
 
-		path_(pt.get("<xmlattr>.path", "Untitled"))
+		path_(pt.get("<xmlattr>.Path", "Untitled"))
 
 {
 	BOOST_FOREACH(const typename ptree::value_type &v, pt)

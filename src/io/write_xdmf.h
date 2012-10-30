@@ -8,7 +8,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
-#include "engine/basecontext.h"
+#include "engine/context.h"
 #include "engine/object.h"
 #include "utilities/properties.h"
 
@@ -30,13 +30,18 @@ public:
 	typedef WriteXDMF<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	WriteXDMF(BaseContext const & d, const ptree & pt);
+	WriteXDMF(Context<TG> const & d, const ptree & pt);
 
 	virtual ~WriteXDMF();
 
+	static TR1::function<void()> Create(Context<TG> const* d, const ptree & pt)
+	{
+		return TR1::bind(&ThisType::Eval,
+				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+	}
 	virtual void Eval();
 private:
-	BaseContext const & ctx;
+	Context<TG> const & ctx;
 	Grid const & grid;
 
 	size_t stride_;
