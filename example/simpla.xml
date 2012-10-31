@@ -11,88 +11,90 @@
 		</Geometry>
 		
 		<Time Value="0" dt="0.0025" Unit="s">0.0025</Time>
-		
-		<Attribute Name='B1'  Type='TwoForm'>
-			<Data  Format='XML' Dimensions='3'>1 0 0</Data>
-		</Attribute>
-		<Attribute Name='E1'  Type='OneForm'>
-<!--				<Data  Format='HDF' >a.h5:/E1</Data> -->
-		</Attribute>
-		<Attribute Name='J1'  Type='OneForm'>
-<!--		<Data  Format='HDF' >a.h5:/E1</Data> -->
-		</Attribute>
-<!--		<Attribute Name='ele' Type='DeltaF'>
-		</Attribute>
-		-->
 	</Grid>
 
-	<Process Maxsteps="1000" >
- 		<Module Type="RampWave">
-			<Data> 
-				<Field Type="OneForm" >E1</Field>
-			</Data> 
-			<Domain>
-				<XMin>0.48 0 0 </XMin>
-				<XMax>0.52 1 0 </XMax>
-			</Domain>
-			<Arguments>
-				<alpha>0.01 </alpha>
-				<freq> 100 </freq>
-				<amp> 1 1 1 </amp>
-				<k>   0.0 6.28 0.0 </k>
-			</Arguments>	
-		</Module>
-<!--
-		<Module Type="RFSrc" >
-			<Data>                               
-				<Field Type="OneForm" IO="RW">E1</Field>
-			</Data>
-			<Arguments>
-				<alpha>0.01 </alpha>
-				<freq> 100 </freq>
-				<amp> 0 0 1 </amp>
-				<pos> 0.5 0.5 0 </pos>
-			</Arguments>
-		</Module>
-		<Module Type="ColdFluid" >
-			<Data>
-				<Field Name="B" IO="RW">B1</Field>
-				<Field Name="E" IO="RW">E1</Field>
-				<Field Name="J" IO="R" >J1</Field>
-			</Data>
-			<Arguments>
-				<species Name="H">
-					<m>1</m>
-					<Z>1</Z>
-					<ns>0.5</ns>
-				</species>
-			</Arguments>
-		</Module>
+	<Process>
+		<LoadField Name='B1'  Type='TwoForm'>
+			<Data  Format='XML' Dimensions='3'>1 0 0</Data>
+		</LoadField>
 
-		<Module Type="Maxwell" Name="EMSolver" > 
-			<Data>
-				<Field Name="B" IO="RW">B1</Field>
-				<Field Name="E" IO="RW">E1</Field>
-				<Field Name="J" IO="R" >J1</Field>
-			</Data>
-		</Module>
+		<LoadField Name='E1'  Type='OneForm'>
+<!--				<Data  Format='HDF' >a.h5:/E1</Data> -->
+		</LoadField>
+
+		<LoadField Name='J1'  Type='OneForm'>
+<!--		<Data  Format='HDF' >a.h5:/E1</Data> -->
+		</LoadField>
+
+<!--	<PIC Name='ele' Type='DeltaF'></PIC>-->
+
+		<Loop   Steps="1000">
+ 			<RampWave  >
+				<Data><Field Type="OneForm" >E1</Field></Data> 
+				<Domain>
+					<XMin>0.48 0 0 </XMin>
+					<XMax>0.52 1 0 </XMax>
+				</Domain>
+				<Arguments>
+					<alpha>0.01 </alpha>
+					<freq> 100 </freq>
+					<amp> 1 1 1 </amp>
+					<k>   0.0 6.28 0.0 </k>
+				</Arguments>	
+			</RampWave>
+<!--
+			<RFSrc >
+				<Data>                               
+					<Field Type="OneForm" IO="RW">E1</Field>
+				</Data>
+				<Arguments>
+					<alpha>0.01 </alpha>
+					<freq> 100 </freq>
+					<amp> 0 0 1 </amp>
+					<pos> 0.5 0.5 0 </pos>
+				</Arguments>
+			</RFSrc>
+			<ColdFluid>
+				<Data>
+					<Field Name="B" IO="RW">B1</Field>
+					<Field Name="E" IO="RW">E1</Field>
+					<Field Name="J" IO="R" >J1</Field>
+				</Data>
+				<Arguments>
+					<species Name="H">
+						<m>1</m>
+						<Z>1</Z>
+						<ns>0.5</ns>
+					</species>
+				</Arguments>
+			</ColdFluid>
+
+			<Maxwell > 
+				<Data>
+					<Field Name="B" IO="RW">B1</Field>
+					<Field Name="E" IO="RW">E1</Field>
+					<Field Name="J" IO="R" >J1</Field>
+				</Data>
+			</Maxwell>
 -->	
 
-		<Module Type="PML" >
-			<Data>
-				<Field Name="B" IO="RW">B1</Field>
-				<Field Name="E" IO="RW">E1</Field>
-				<Field Name="J" IO="R" >J1</Field>
-			</Data>
-			<Arguments>
-				<bc> 20 20 20 20 20 20 </bc>
-			</Arguments>
-		</Module>
-		
-		<Output Type="XDMF" Path="Untitle" Stride="1">
-			<Field>E1</Field>
-			<Field>B1</Field>
-		</Output>
+			<PML>
+				<Data>
+					<Field Name="B" IO="RW">B1</Field>
+					<Field Name="E" IO="RW">E1</Field>
+					<Field Name="J" IO="R" >J1</Field>
+				</Data>
+				<Arguments>
+					<bc> 20 20 20 20 20 20 </bc>
+				</Arguments>
+			</PML>
+			
+			<WriteXDMF Path="Untitle" Stride="1">
+				<Field>E1</Field>
+				<Field>B1</Field>
+			</WriteXDMF >
+			<Clock></Clock>
+		</Loop>
 	</Process>
 	
 	

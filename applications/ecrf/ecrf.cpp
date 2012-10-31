@@ -98,7 +98,7 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-	ctx.Eval(max_step);
+	ctx.Eval();
 
 	INFORM << "====== Done! =======" << std::endl;
 }

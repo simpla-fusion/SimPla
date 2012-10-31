@@ -9,43 +9,32 @@
 #include "context.h"
 #include "object.h"
 #include "fetl/grid.h"
-#include "io/read_hdf5.h"
+#include "modules/flow_control/flow_control.h"
 namespace simpla
 {
-BaseContext::BaseContext() :
-		dt(0.0), counter_(0), timer_(0)
-{
 
+BaseContext::BaseContext() :
+		dt(0.0), counter_(0), timer_(0), output_path("")
+{
 }
 BaseContext::BaseContext(ptree const&pt) :
 		dt(pt.get("Grid.Time.<xmlattr>.dt", 1.0d)),
 
 		PHYS_CONSTANTS(pt.get_child("PhysConstants")),
 
-		counter_(0), timer_(0)
+		counter_(0), timer_(0), output_path("Untitled")
 {
+	moduleFactory_["Loop"] = TR1::bind(&flow_control::Loop::Create, this,
+			TR1::placeholders::_1);
+	moduleFactory_["LoadField"] = TR1::bind(&flow_control::LoadField::Create,
+			this, TR1::placeholders::_1);
+
+	moduleFactory_["Clock"] = TR1::bind(&flow_control::Clock::Create, this,
+			TR1::placeholders::_1);
 }
 BaseContext::~BaseContext()
 {
 }
-//TR1::shared_ptr<BaseContext> BaseContext::Create(ptree const & pt)
-//{
-//	TR1::shared_ptr<BaseContext> res;
-//
-//	std::string topology = pt.get("Topology.<xmlattr>.Type", "CoRectMesh");
-//
-//	if (topology == "CoRectMesh")
-//	{
-//		res = TR1::shared_ptr<BaseContext>(new Context<UniformRectGrid>(pt))
-//	}
-//	else
-//	{
-//		ERROR << "Unregistered Context type!" << topology;
-//	}
-//
-//	return res;
-//
-//}
 
 boost::optional<TR1::shared_ptr<Object> > BaseContext::FindObject(
 		std::string const & name, std::type_info const &tinfo)
@@ -93,124 +82,42 @@ void BaseContext::DeleteObject(std::string const & name)
 
 }
 
-inline void eval_(TR1::function<void(void)> & f)
+void BaseContext::PushClock()
 {
-	f();
-}
-void BaseContext::Eval(size_t maxstep)
-{
-
-	for (size_t i = 0; i < maxstep; ++i)
-	{
-		LOG << "COUNTER:" << counter_ << " Time:" << timer_;
-		std::for_each(modules.begin(), modules.end(), eval_);
-
-		++counter_;
-		timer_ += dt;
-	}
-}
-
-void FillData(TR1::shared_ptr<Object> obj, ptree const & pt)
-{
-	boost::optional<std::string> format = pt.get_optional<std::string>(
-			"Data.<xmlattr>.Format");
-
-	if (!format)
-	{
-		obj->Clear();
-	}
-	else if (*format == "HDF")
-	{
-		std::string url = pt.get<std::string>("Data");
-		io::ReadData(url, obj);
-	}
-	else if (*format == "XML")
-	{
-		if (obj->CheckValueType(typeid(Integral)))
-		{
-			obj->FullFill(pt.get<Integral>("Data", 0));
-		}
-		else if (obj->CheckValueType(typeid(Real)))
-		{
-			obj->FullFill(pt.get("Data", 0.0d));
-		}
-		else if (obj->CheckValueType(typeid(Complex)))
-		{
-			Complex dv(0, 0);
-			Complex a = pt.get("Data", dv, pt_trans<Complex, std::string>());
-			obj->FullFill(a);
-		}
-		else if (obj->CheckValueType(typeid(nTuple<THREE, Real> )))
-		{
-			nTuple<THREE, Real> dv =
-			{ 0, 0, 0 };
-			nTuple<THREE, Real> a = pt.get("Data", dv,
-					pt_trans<nTuple<THREE, Real>, std::string>());
-			obj->FullFill(a);
-		}
-		else if (obj->CheckValueType(typeid(nTuple<THREE, Complex> )))
-		{
-			nTuple<THREE, Complex> dv =
-			{ 0, 0, 0 };
-			nTuple<THREE, Complex> a = pt.get("Data", dv,
-					pt_trans<nTuple<THREE, Complex>, std::string>());
-			obj->FullFill(a);
-		}
-
-	}
-
+	timer_ += dt;
+	++counter_;
 }
 
 void BaseContext::Load(ptree const & pt)
 {
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Grid"))
-	{
-		if (v.first != "Attribute")
-		{
-			continue;
-		}
-		std::string type = v.second.get<std::string>("<xmlattr>.Type");
-
-		std::string id = v.second.get<std::string>("<xmlattr>.Name");
-
-		if (objFactory_.find(type) != objFactory_.end())
-		{
-			objects[id] = objFactory_[type]();
-
-			FillData(objects[id], v.second);
-
-			LOG << "Load data " << id << "<" << type << ">";
-		}
-		else
-		{
-			WARNING << "Object type " << type << " is not registered!";
-		}
-
-	}
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Process"))
-	{
-		if (v.first != "Module")
-		{
-			continue;
-		}
-		std::string type = v.second.get<std::string>("<xmlattr>.Type");
-		if (moduleFactory_.find(type) != moduleFactory_.end())
-		{
-			modules.push_back(moduleFactory_[type](v.second));
-			LOG << "Add module " << type << " successed!";
-		}
-		else
-		{
-			WARNING << "Module type " << type << " is not registered!";
-		}
-
-	}
-	modules.push_back(
-			moduleFactory_[pt.get("Process.Output.<xmlattr>.Type", "XDMF")](
-					pt.get_child("Process.Output")));
+	eval_ = flow_control::Loop::Create(this, pt.get_child("Process"));
 }
 
-}  // namespace simpla
+void BaseContext::Save()
+{
+}
+
+void BaseContext::Eval()
+{
+	eval_();
+}
+//TR1::shared_ptr<BaseContext> BaseContext::Create(ptree const & pt)
+//{
+//	TR1::shared_ptr<BaseContext> res;
+//
+//	std::string topology = pt.get("Topology.<xmlattr>.Type", "CoRectMesh");
+//
+//	if (topology == "CoRectMesh")
+//	{
+//		res = TR1::shared_ptr<BaseContext>(new Context<UniformRectGrid>(pt))
+//	}
+//	else
+//	{
+//		ERROR << "Unregistered Context type!" << topology;
+//	}
+//
+//	return res;
+//
+//}
+}// namespace simpla
 

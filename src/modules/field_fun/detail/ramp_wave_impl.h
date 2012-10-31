@@ -23,8 +23,8 @@ template<typename TF, typename Fonctor> struct FieldFunction;
 template<typename TG> struct BaseFieldFunction;
 
 template<typename TV>
-struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, RampWave<TV> > : public Module,
-		public BaseFieldFunction<UniformRectGrid>
+struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, RampWave<TV> > : public BaseFieldFunction<
+		UniformRectGrid>
 {
 
 	typedef TV ValueType;
@@ -77,8 +77,8 @@ struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, RampWave<TV> > : pub
 };
 
 template<typename TV>
-struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, RampWave<TV> > : public Module,
-		public BaseFieldFunction<UniformRectGrid>
+struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, RampWave<TV> > : public BaseFieldFunction<
+		UniformRectGrid>
 {
 
 	typedef TV ValueType;
@@ -133,8 +133,8 @@ struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, RampWave<TV> > : pu
 
 template<typename TV>
 struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
-		RampWave<nTuple<THREE, TV> > > : public Module,
-		public BaseFieldFunction<UniformRectGrid>
+		RampWave<nTuple<THREE, TV> > > : public BaseFieldFunction<
+		UniformRectGrid>
 {
 
 	DEFINE_FIELDS(typename UniformRectGrid::ValueType,UniformRectGrid)
@@ -181,7 +181,6 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 		RVec3 DZ =
 		{ 0, 0, ctx.grid.dx[0] * 0.5 };
 
-
 		for (I[0] = imin[0]; I[0] < imax[0]; ++I[0])
 			for (I[1] = imin[1]; I[1] < imax[1]; ++I[1])
 				for (I[2] = imin[2]; I[2] < imax[2]; ++I[2])
@@ -201,8 +200,8 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 
 template<typename TV>
 struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
-		RampWave<nTuple<THREE, TV> > > : public Module,
-		public BaseFieldFunction<UniformRectGrid>
+		RampWave<nTuple<THREE, TV> > > : public BaseFieldFunction<
+		UniformRectGrid>
 {
 
 	DEFINE_FIELDS(typename UniformRectGrid::ValueType,UniformRectGrid)

@@ -26,7 +26,7 @@ Context<TG>::Context(ptree const & pt) :
 		BaseContext(pt), grid(pt.get_child("Grid"))
 {
 
-	moduleFactory_["XDMF"] = TR1::bind(&io::WriteXDMF<TG>::Create, this,
+	moduleFactory_["WriteXDMF"] = TR1::bind(&io::WriteXDMF<TG>::Create, this,
 			TR1::placeholders::_1);
 
 	moduleFactory_["RFSrc"] = TR1::bind(&em::RFSrc<TG>::Create, this,

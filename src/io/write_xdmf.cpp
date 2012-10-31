@@ -35,7 +35,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d, const 
 
 		stride_(pt.get("<xmlattr>.Stride", 1)),
 
-		path_(pt.get("<xmlattr>.Path", "Untitled"))
+		path_(ctx.output_path)
 
 {
 	BOOST_FOREACH(const typename ptree::value_type &v, pt)

@@ -34,14 +34,18 @@ public:
 
 	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(void)> > objFactory_;
 
-	std::list<TR1::function<void(void)> > modules;
-
 	std::map<std::string, TR1::function<TR1::function<void(void)>(ptree const&)> > moduleFactory_;
+
+	std::string output_path;
+
+	TR1::function<void(void)> eval_;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
 	BaseContext();
+
 	BaseContext(ptree const&pt);
+
 	virtual ~BaseContext();
 
 	virtual std::string Summary() const=0;
@@ -55,9 +59,12 @@ public:
 	{
 		return (timer_);
 	}
-	void Load(ptree const & pt);
 
-	void Eval(size_t maxstep);
+	void PushClock();
+
+	void Load(ptree const & pt);
+	void Save();
+	void Eval();
 
 	boost::optional<TR1::shared_ptr<Object> > FindObject(
 			std::string const & name,
@@ -68,9 +75,6 @@ public:
 			std::type_info const &tinfo = typeid(void)) const;
 
 	void DeleteObject(std::string const & name);
-
-
-
 
 private:
 	Real dt;
