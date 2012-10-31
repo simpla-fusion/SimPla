@@ -45,7 +45,8 @@ boost::optional<TR1::shared_ptr<Object> > BaseContext::FindObject(
 	{
 		return boost::optional<TR1::shared_ptr<Object> >();
 	}
-	std::map<std::string, Object::Holder>::iterator it = objects.find(name);
+	std::map<std::string, TR1::shared_ptr<Object> >::iterator it = objects.find(
+			name);
 
 	return boost::optional<TR1::shared_ptr<Object> >(
 			it != objects.end()
@@ -62,8 +63,8 @@ boost::optional<TR1::shared_ptr<const Object> > BaseContext::FindObject(
 	{
 		return boost::optional<TR1::shared_ptr<const Object> >();
 	}
-	std::map<std::string, Object::Holder>::const_iterator it = objects.find(
-			name);
+	std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
+			objects.find(name);
 
 	return boost::optional<TR1::shared_ptr<const Object> >(
 			it != objects.end()

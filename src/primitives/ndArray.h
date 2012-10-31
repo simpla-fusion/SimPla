@@ -25,7 +25,7 @@
 namespace simpla
 {
 template<typename T>
-class NdArray: public Object
+class NdArray: public ArrayObject
 {
 public:
 	typedef T ValueType;

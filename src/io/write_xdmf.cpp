@@ -15,7 +15,7 @@
 #include <sstream>
 #include "fetl/grid/uniform_rect.h"
 #include "engine/context.h"
-#include "engine/object.h"
+#include "engine/arrayobject.h"
 #include "fetl/fetl.h"
 
 namespace simpla
@@ -24,7 +24,8 @@ namespace io
 {
 
 template<>
-WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d, const ptree & pt) :
+WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
+		const ptree & pt) :
 		ctx(d),
 
 		grid(d.grid),
@@ -174,7 +175,8 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 		if (oit != ctx.objects.end())
 		{
-			Object & obj = *oit->second;
+			ArrayObject & obj = *TR1::dynamic_pointer_cast<ArrayObject>(
+					oit->second);
 
 			std::string attr_str = "Scalar";
 

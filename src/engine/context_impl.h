@@ -106,7 +106,8 @@ TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
 
 	if (name != "")
 	{
-		std::map<std::string, Object::Holder>::iterator it = objects.find(name);
+		std::map<std::string, TR1::shared_ptr<Object> >::iterator it =
+				objects.find(name);
 		if (it != objects.end())
 		{
 			if (it->second->CheckType(typeid(TOBJ)))
@@ -124,7 +125,7 @@ TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
 
 	if (name != "")
 	{
-		objects[name] = TR1::dynamic_pointer_cast<Object>(res);
+		objects[name] = TR1::dynamic_pointer_cast<ArrayObject>(res);
 	}
 
 	return res;

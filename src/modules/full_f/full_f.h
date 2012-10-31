@@ -34,7 +34,7 @@ struct Point_s
 };
 
 template<typename TG, typename TF>
-Object::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
+ArrayObject::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 {
 
 	std::stringstream os;

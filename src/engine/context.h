@@ -27,7 +27,7 @@ public:
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(void)> > objFactory;
+	std::map<std::string, TR1::function<TR1::shared_ptr<ArrayObject>(void)> > objFactory;
 
 	Grid grid;
 

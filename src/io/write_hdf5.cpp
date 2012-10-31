@@ -80,7 +80,7 @@ namespace io
 //
 //}
 
-void WriteHDF5(H5::Group grp, std::string const & name, Object const & obj)
+void WriteHDF5(H5::Group grp, std::string const & name, ArrayObject const & obj)
 {
 	try
 	{
@@ -126,7 +126,7 @@ void WriteHDF5(H5::Group grp, std::string const & name, Object const & obj)
 
 }
 
-void HDF5AddAttribute(H5::DataSet dataset, const Object::Holder obj)
+void HDF5AddAttribute(H5::DataSet dataset, const ArrayObject::Holder obj)
 {
 
 }

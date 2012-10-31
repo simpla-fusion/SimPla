@@ -20,7 +20,7 @@
 
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
-#include "engine/object.h"
+#include "engine/arrayobject.h"
 #include "engine/datatype.h"
 #include "typeconvert.h"
 
@@ -37,7 +37,7 @@ namespace simpla
  *
  */
 template<typename TG, int IFORM, typename TV>
-struct Field: public Object
+struct Field: public ArrayObject
 {
 public:
 	typedef TV ValueType;
@@ -58,7 +58,7 @@ public:
 	Grid const & grid;
 
 	Field(Grid const & pgrid) :
-			Object(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
+			ArrayObject(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
 					pgrid)
 	{
 	}
@@ -147,7 +147,7 @@ public:
 
 	bool IsSame(ThisType const & rhs) const
 	{
-		return (Object::get_data() == rhs.get_data());
+		return (ArrayObject::get_data() == rhs.get_data());
 	}
 
 	virtual inline bool CheckType(std::type_info const &tinfo) const
@@ -164,17 +164,17 @@ public:
 	inline void Add(size_t s, ValueType const & v)
 	{
 //#pragma omp atomic
-		Object::value<ValueType>(s) += v;
+		ArrayObject::value<ValueType>(s) += v;
 	}
 
 	inline ValueType & operator[](size_t s)
 	{
-		return (Object::value<ValueType>(s));
+		return (ArrayObject::value<ValueType>(s));
 	}
 
 	inline ValueType const &operator[](size_t s) const
 	{
-		return (Object::value<ValueType>(s));
+		return (ArrayObject::value<ValueType>(s));
 	}
 
 	static const Field<TG, IForm, Int2Type<0> > ZERO;

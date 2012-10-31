@@ -20,7 +20,7 @@ namespace simpla
 {
 template<typename T, typename TExpr = NullType> class Array;
 template<typename T>
-class Array<T, NullType> : public Object
+class Array<T, NullType> : public ArrayObject
 {
 public:
 	typedef T ValueType;
@@ -38,7 +38,7 @@ public:
 	}
 
 	Array(size_t num) :
-			data_(Object::alloc<ValueType>(num)), num_of_elements_(num)
+			data_(ArrayObject::alloc<ValueType>(num)), num_of_elements_(num)
 	{
 	}
 
