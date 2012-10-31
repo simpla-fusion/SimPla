@@ -7,51 +7,18 @@
 
 #ifndef CONTEXT_IMPL_H_
 #define CONTEXT_IMPL_H_
-#include "context.h"
-#include "fetl/fetl.h"
-#include "modules/em/maxwell.h"
-#include "modules/em/pml.h"
-#include "modules/em/rf_src.h"
-#include "modules/fluid/cold_fluid.h"
-#include "modules/field_fun/field_fun.h"
-#include "io/write_xdmf.h"
-#include "io/read_hdf5.h"
 
+#include "fetl/fetl.h"
+#include "modules/modules.h"
 #include <boost/foreach.hpp>
 namespace simpla
 {
 
 template<typename TG>
-Context<TG>::Context(ptree const & pt) :
-		BaseContext(pt), grid(pt.get_child("Grid"))
+Context<TG>::Context()
 {
 
-	moduleFactory_["WriteXDMF"] = TR1::bind(&io::WriteXDMF<TG>::Create, this,
-			TR1::placeholders::_1);
-
-	moduleFactory_["RFSrc"] = TR1::bind(&em::RFSrc<TG>::Create, this,
-			TR1::placeholders::_1);
-
-	moduleFactory_["Maxwell"] = TR1::bind(&em::Maxwell<TG>::Create, this,
-			TR1::placeholders::_1);
-
-	moduleFactory_["PML"] = TR1::bind(&em::PML<TG>::Create, this,
-			TR1::placeholders::_1);
-
-	moduleFactory_["ColdFluid"] = TR1::bind(&em::ColdFluid<TG>::Create, this,
-			TR1::placeholders::_1);
-
-	moduleFactory_["RampWave"] = TR1::bind(
-			field_fun::Create<TG, field_fun::RampWave>, this,
-			TR1::placeholders::_1);
-
-//	moduleFactory_["Smooth"] = TR1::bind(
-//			&field_fun::Create<TG, field_fun::Smooth>, this,
-//			TR1::placeholders::_1);
-//
-//	moduleFactory_["Damping"] = TR1::bind(
-//			&field_fun::Create<TG, field_fun::Damping>, this,
-//			TR1::placeholders::_1);
+	RegisterModules(this);
 
 	objFactory_["ZeroForm"] = TR1::bind(&ZeroForm::Create, grid);
 
@@ -85,13 +52,17 @@ Context<TG>::Context(ptree const & pt) :
 
 	objFactory_["CVecThreeForm"] = TR1::bind(&CVecThreeForm::Create, grid);
 
-	BaseContext::Load(pt);
 }
 template<typename TG>
 Context<TG>::~Context()
 {
 }
-
+template<typename TG>
+void Context<TG>::Parse(ptree const & pt)
+{
+	grid.Parse(pt.get_child("Grid"));
+	BaseContext::Parse(pt);
+}
 template<typename TG>
 template<typename TOBJ>
 TR1::shared_ptr<TOBJ> Context<TG>::CreateObject()

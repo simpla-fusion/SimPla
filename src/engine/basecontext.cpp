@@ -9,28 +9,25 @@
 #include "context.h"
 #include "object.h"
 #include "fetl/grid.h"
-#include "modules/flow_control/flow_control.h"
+#include "modules/modules.h"
 namespace simpla
 {
 
 BaseContext::BaseContext() :
 		dt(0.0), counter_(0), timer_(0), output_path("")
 {
+	RegisterModules(this);
 }
-BaseContext::BaseContext(ptree const&pt) :
-		dt(pt.get("Grid.Time.<xmlattr>.dt", 1.0d)),
-
-		PHYS_CONSTANTS(pt.get_child("PhysConstants")),
-
-		counter_(0), timer_(0), output_path("Untitled")
+void BaseContext::Parse(ptree const&pt)
 {
-	moduleFactory_["Loop"] = TR1::bind(&flow_control::Loop::Create, this,
-			TR1::placeholders::_1);
-	moduleFactory_["LoadField"] = TR1::bind(&flow_control::LoadField::Create,
-			this, TR1::placeholders::_1);
+	dt = (pt.get("Grid.Time.<xmlattr>.dt", 1.0d)),
 
-	moduleFactory_["Clock"] = TR1::bind(&flow_control::Clock::Create, this,
-			TR1::placeholders::_1);
+	PHYS_CONSTANTS.Parse(pt.get_child("PhysConstants"));
+
+	preprocess_ = flow_control::Loop::Create(this, pt.get_child("Preprocess"));
+
+	process_ = flow_control::Loop::Create(this, pt.get_child("Process"));
+
 }
 BaseContext::~BaseContext()
 {
@@ -89,18 +86,14 @@ void BaseContext::PushClock()
 	++counter_;
 }
 
-void BaseContext::Load(ptree const & pt)
-{
-	eval_ = flow_control::Loop::Create(this, pt.get_child("Process"));
-}
-
 void BaseContext::Save()
 {
 }
 
 void BaseContext::Eval()
 {
-	eval_();
+	preprocess_();
+	process_();
 }
 //TR1::shared_ptr<BaseContext> BaseContext::Create(ptree const & pt)
 //{

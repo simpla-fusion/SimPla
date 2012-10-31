@@ -1,5 +1,4 @@
 
-ADD_SUBDIRECTORY( ecrf )
 #ADD_SUBDIRECTORY( solver/electromagnetic )
 #ADD_SUBDIRECTORY( fluid )
 #ADD_SUBDIRECTORY( emfield )
@@ -20,6 +19,11 @@ ADD_SUBDIRECTORY( ecrf )
 #                 ${LUA_LIBRARIES}
 #                 dl rt 
 #                  )
+#ADD_EXECUTABLE(WriteXDMF  WriteXDMF.cpp)
 
+SET(MKL_LIBRARY_DIR   /opt/intel/composerxe/mkl/lib)
+FIND_PACKAGE(IntelMKL)
 
-ADD_EXECUTABLE(WriteXDMF  WriteXDMF.cpp)
+ADD_EXECUTABLE(ggauge  ggauge.cpp)
+TARGET_LINK_LIBRARIES(ggauge modules  engine physics io 
+            preprocess utilities  em ${MKL_STATIC_LIBRARIES} )

@@ -27,7 +27,6 @@ class BaseGrid;
 
 class BaseContext
 {
-
 public:
 
 	std::map<std::string, TR1::shared_ptr<Object> > objects;
@@ -38,17 +37,19 @@ public:
 
 	std::string output_path;
 
-	TR1::function<void(void)> eval_;
+	TR1::function<void(void)> preprocess_;
+
+	TR1::function<void(void)> process_;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
 	BaseContext();
 
-	BaseContext(ptree const&pt);
-
 	virtual ~BaseContext();
 
 	virtual std::string Summary() const=0;
+
+	virtual void Parse(ptree const&pt);
 
 	inline size_t Counter() const
 	{

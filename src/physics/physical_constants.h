@@ -8,6 +8,7 @@
 #ifndef PHYSICAL_CONSTANTS_H_
 #define PHYSICAL_CONSTANTS_H_
 #include "include/simpla_defs.h"
+#include "utilities/properties.h"
 #include "constants.h"
 namespace simpla
 {
@@ -16,26 +17,11 @@ class PhysicalConstants
 {
 public:
 	PhysicalConstants();
-
-	template<typename PT>
-	PhysicalConstants(PT const & pt) :
-			type(pt.template get<std::string>("<xmlattr>.Type"))
-	{
-		if (type == "CUSTOM")
-		{
-			m = pt.get("m", 1.0d);
-			s = pt.get("s", 1.0d);
-			kg = pt.get("kg", 1.0d);
-			C = pt.get("C", 1.0f);
-			K = pt.get("K", 1.0f);
-			mol = pt.get("mol", 1.0d);
-		}
-		Initialize();
-	}
-
 	~PhysicalConstants();
 
-	void Initialize();
+	void Parse(ptree const &pt);
+	void Reset();
+
 	std::string Summary() const;
 
 	inline Real operator[](std::string const &s) const
@@ -57,9 +43,10 @@ public:
 private:
 	std::map<std::string, Real> q_; //physical quantity
 	std::map<std::string, std::string> unitSymbol_;
-	std::string type;
-	//SI base unit
 
+	std::string type;
+
+	//SI base unit
 	Real m; //<< length [meter]
 	Real s;	//<< time	[second]
 	Real kg; //<< mass	[kilgram]

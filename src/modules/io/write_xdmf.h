@@ -34,7 +34,7 @@ public:
 
 	virtual ~WriteXDMF();
 
-	static TR1::function<void()> Create(Context<TG> const* d, const ptree & pt)
+	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));

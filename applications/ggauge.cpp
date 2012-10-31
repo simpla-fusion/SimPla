@@ -1,5 +1,5 @@
 /*
- * ecrf.cpp
+ * ggauge.cpp
  *
  *  Created on: 2012-3-6
  *      Author: salmon
@@ -8,13 +8,16 @@
 #include "include/simpla_defs.h"
 #include "utilities/properties.h"
 #include "engine/context.h"
-#include "engine/context_impl.h"
+#include "engine/detail/context_impl.h"
+
 #include "fetl/grid/uniform_rect.h"
 
 using namespace simpla;
 
 int main(int argc, char **argv)
 {
+
+	Context<UniformRectGrid> ctx;
 
 	size_t max_step = 1000;
 
@@ -60,8 +63,6 @@ int main(int argc, char **argv)
 	pt.put("Context.Process.OutPut.<xmlattr>.Path", output);
 	pt.put("Context.Process.OutPut.<xmlattr>.Stride", record_stride);
 
-	Context<UniformRectGrid> ctx(pt.get_child("Context"));
-
 	INFORM
 
 	<< std::endl
@@ -90,7 +91,13 @@ int main(int argc, char **argv)
 
 	<< std::setw(20) << "Record/steps : " << record_stride << std::endl
 
-	<< SINGLELINE << std::endl
+	<< SINGLELINE << std::endl;
+
+
+
+	ctx.Parse(pt.get_child("Context"));
+
+	INFORM
 
 	<< ctx.Summary() << std::endl
 

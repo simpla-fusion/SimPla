@@ -10,16 +10,30 @@ namespace simpla
 PhysicalConstants::PhysicalConstants() :
 		type("SI")
 {
-	Initialize();
+	Reset();
 }
 PhysicalConstants::~PhysicalConstants()
 {
-
 }
 
-void PhysicalConstants::Initialize()
+void PhysicalConstants::Parse(ptree const &pt)
 {
 
+	type = pt.get("<xmlattr>.Type", "NATURE");
+
+	if (type == "CUSTOM")
+	{
+		m = pt.get("m", 1.0d);
+		s = pt.get("s", 1.0d);
+		kg = pt.get("kg", 1.0d);
+		C = pt.get("C", 1.0f);
+		K = pt.get("K", 1.0f);
+		mol = pt.get("mol", 1.0d);
+	}
+	Reset();
+}
+void PhysicalConstants::Reset()
+{
 	if (type == "SI")
 	{
 		m = 1.0;

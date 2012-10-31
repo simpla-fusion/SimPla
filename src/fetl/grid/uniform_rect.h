@@ -32,7 +32,6 @@ class UniformRectGrid: public BaseGrid
 {
 	UniformRectGrid &
 	operator=(const UniformRectGrid&);
-	bool initialized_;
 
 	UniformRectGrid const * parent_;
 	IVec3 shift_;
@@ -63,28 +62,33 @@ public:
 	IVec3 dims;
 	IVec3 strides;
 	IVec3 gw;
-	template<typename PT>
-	UniformRectGrid(PT const &pt) :
-			initialized_(false)
+	UniformRectGrid()
 	{
-		boost::optional<std::string> ot = pt.template get_optional<std::string>(
+	}
+	~UniformRectGrid()
+	{
+	}
+
+	inline void Parse(ptree const &pt)
+	{
+		boost::optional<std::string> ot = pt.get_optional<std::string>(
 				"Topology.<xmlattr>.Type");
 		if (!ot || *ot != "CoRectMesh")
 		{
 			ERROR << "Grid type mismatch";
 		}
 
-		dims = pt.template get<IVec3>("Topology.<xmlattr>.Dimensions",
-				pt_trans<IVec3, typename PT::data_type>());
+		dims = pt.get<IVec3>("Topology.<xmlattr>.Dimensions",
+				pt_trans<IVec3, typename ptree::data_type>());
 
-		gw = pt.template get<IVec3>("Topology.<xmlattr>.Ghostwidth",
-				pt_trans<IVec3, typename PT::data_type>());
+		gw = pt.get<IVec3>("Topology.<xmlattr>.Ghostwidth",
+				pt_trans<IVec3, typename ptree::data_type>());
 
-		xmin = pt.template get<Vec3>("Geometry.XMin",
-				pt_trans<Vec3, typename PT::data_type>());
+		xmin = pt.get<Vec3>("Geometry.XMin",
+				pt_trans<Vec3, typename ptree::data_type>());
 
-		xmax = pt.template get<Vec3>("Geometry.XMax",
-				pt_trans<Vec3, typename PT::data_type>());
+		xmax = pt.get<Vec3>("Geometry.XMax",
+				pt_trans<Vec3, typename ptree::data_type>());
 
 		dt = pt.get("Time.<xmlattr>.dt", 1.0d);
 

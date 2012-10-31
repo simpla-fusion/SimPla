@@ -31,9 +31,11 @@ public:
 
 	Grid grid;
 
-	Context(const ptree & pt);
+	Context();
 
 	virtual ~Context();
+
+	virtual void Parse(ptree const&pt);
 
 	virtual std::string Summary() const;
 
@@ -53,5 +55,4 @@ private:
 
 }
 // namespace simpla
-
 #endif /* DOMAIN_H_ */

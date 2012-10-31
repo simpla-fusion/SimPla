@@ -27,9 +27,12 @@ TR1::function<void(void)> Create(Context<TG>* ctx, ptree const & pt)
 
 	TR1::function<void(void)> res;
 
+
+	//FIXME object should not have been defined at here!!!
+
 	if (!obj)
 	{
-		ERROR << "Field " << field_name << "is not defined!!";
+		ERROR << "Field " << field_name << " is not defined!!";
 	}
 	//Real
 	else if ((*obj)->CheckType(typeid(Field<TG, IZeroForm, Real> )))
