@@ -30,8 +30,7 @@ LoadField::LoadField(BaseContext & d, const ptree & pt) :
 LoadField::~LoadField()
 {
 }
- TR1::function<void(void)> LoadField::Create(BaseContext* d,
-		const ptree & pt)
+TR1::function<void(void)> LoadField::Create(BaseContext* d, const ptree & pt)
 {
 	return TR1::bind(&ThisType::Eval,
 			TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
@@ -39,10 +38,9 @@ LoadField::~LoadField()
 
 void LoadField::Eval()
 {
-	ctx.objects[name] = ctx.objFactory_[type]();
 
 	TR1::shared_ptr<ArrayObject> obj = TR1::dynamic_pointer_cast<ArrayObject>(
-			ctx.objects[name]);
+			ctx.objFactory_[type]());
 
 	boost::optional<std::string> format = pt_.get_optional<std::string>(
 			"Data.<xmlattr>.Format");
@@ -90,6 +88,8 @@ void LoadField::Eval()
 		}
 
 	}
+
+	ctx.objects[name] = obj;
 
 	LOG << "Load data " << name << "<" << type << ">";
 

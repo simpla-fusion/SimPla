@@ -67,11 +67,6 @@ public:
 	{
 	}
 
-	static TR1::shared_ptr<ThisType> Create(Grid const & grid)
-	{
-		return TR1::shared_ptr<ThisType>(new ThisType(grid));
-	}
-
 // Interpolation  ----------------------------------------------------------------------
 
 //	inline ValueType operator()(RVec3 const & x)

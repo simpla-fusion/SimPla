@@ -37,9 +37,9 @@ public:
 
 	std::string output_path;
 
-	TR1::function<void(void)> preprocess_;
+	TR1::function<void(void)> PreProcess;
 
-	TR1::function<void(void)> process_;
+	TR1::function<void(void)> Process;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
@@ -65,7 +65,9 @@ public:
 
 	void Load(ptree const & pt);
 	void Save();
-	void Eval();
+
+//	void PreProcess();
+//	void Process();
 
 	boost::optional<TR1::shared_ptr<Object> > FindObject(
 			std::string const & name,

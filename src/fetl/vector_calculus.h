@@ -47,9 +47,56 @@ template<typename TL> struct OpCurl
 {
 	typedef typename TL::ValueType ValueType;
 };
-template<typename IR, typename TL> struct OpCurlPD
+template<typename TL, typename TR> struct OpCurlPD
 {
-	typedef typename TL::ValueType ValueType;
+	typedef typename TR::ValueType ValueType;
+};
+template<typename TL, typename TR> struct OpMapTo
+{
+	typedef typename TR::ValueType ValueType;
+};
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
+		Field<TG, IOneForm, TR> >
+{
+	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::ValueType> ValueType;
+};
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
+		Field<TG, ITwoForm, TR> >
+{
+	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::ValueType> ValueType;
+};
+
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
+		Field<TG, IZeroForm, TR> >
+{
+	typedef typename Field<TG, IZeroForm, TR>::ValueType::ValueType ValueType;
+};
+template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
+		Field<TG, IZeroForm, TR> >
+{
+	typedef typename Field<TG, IZeroForm, TR>::ValueType::ValueType ValueType;
+};
+
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
+		Field<TG, IOneForm, TR> >
+{
+	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::ValueType> ValueType;
+};
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
+		Field<TG, ITwoForm, TR> >
+{
+	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::ValueType> ValueType;
+};
+
+template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
+		Field<TG, IThreeForm, TR> >
+{
+	typedef typename Field<TG, IThreeForm, TR>::ValueType::ValueType ValueType;
+};
+template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
+		Field<TG, IThreeForm, TR> >
+{
+	typedef typename Field<TG, IThreeForm, TR>::ValueType::ValueType ValueType;
 };
 
 } // namespace namespace _impl{
@@ -171,6 +218,14 @@ CurlPD(Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> const & lhs)
 	return (Field<TG, IOneForm,
 			_impl::OpCurlPD<Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> > >(
 			Int2Type<IPD>(), lhs));
+}
+
+template<typename TG, int IL, int IR, typename TRExpr>
+inline Field<TG, IL, _impl::OpMapTo<Int2Type<IL>, Field<TG, IR, TRExpr> > >   //
+MapTo(Int2Type<IL>, Field<TG, IR, TRExpr> const & lhs)
+{
+	return (Field<TG, IL, _impl::OpMapTo<Int2Type<IL>, Field<TG, IR, TRExpr> > >(
+			Int2Type<IL>(), lhs));
 }
 
 }        // namespace simpla

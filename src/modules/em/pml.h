@@ -10,7 +10,6 @@
 #define SRC_EMFIELD_PML_H_
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
-#include "engine/modules.h"
 #include "engine/context.h"
 #include "utilities/properties.h"
 
@@ -20,7 +19,7 @@ namespace em
 {
 
 template<typename TG>
-class PML: public Module
+class PML
 {
 public:
 

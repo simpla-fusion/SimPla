@@ -10,7 +10,6 @@
 
 #include "include/simpla_defs.h"
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "utilities/properties.h"
 #include "modules/io/read_hdf5.h"
 namespace simpla

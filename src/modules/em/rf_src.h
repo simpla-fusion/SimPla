@@ -14,7 +14,6 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/optional.hpp>
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "engine/object.h"
 #include "fetl/fetl.h"
 #include "utilities/properties.h"
@@ -25,7 +24,7 @@ namespace em
 {
 
 template<typename TG>
-struct RFSrc: public Module
+struct RFSrc
 {
 
 	DEFINE_FIELDS(typename TG::ValueType,TG)

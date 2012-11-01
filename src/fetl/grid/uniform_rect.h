@@ -1155,6 +1155,91 @@ public:
 
 		return (res);
 	}
+
+	template<typename TRExpr>
+	inline typename Field<Grid, IZeroForm,
+			_impl::OpMapTo<Int2Type<IZeroForm>, Field<Grid, IOneForm, TRExpr> > >::ValueType //
+	eval(
+			Field<Grid, IZeroForm,
+					_impl::OpMapTo<Int2Type<IZeroForm>,
+							Field<Grid, IOneForm, TRExpr> > >
+			const & expr, size_t s) const
+	{
+		typename Field<Grid, IZeroForm,
+				_impl::OpMapTo<Int2Type<IZeroForm>,
+						Field<Grid, IOneForm, TRExpr> > >::ValueType res =
+		{ 0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[0]) * 3]),
+
+		0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]),
+
+		0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[2]) * 3]) };
+		return res;
+	}
+
+	template<typename TRExpr>
+	inline typename Field<Grid, IZeroForm,
+			_impl::OpMapTo<Int2Type<IZeroForm>, Field<Grid, ITwoForm, TRExpr> > >::ValueType //
+	eval(
+			Field<Grid, IZeroForm,
+					_impl::OpMapTo<Int2Type<IZeroForm>,
+							Field<Grid, ITwoForm, TRExpr> > >
+			const & expr, size_t s) const
+	{
+		typename Field<Grid, IZeroForm,
+				_impl::OpMapTo<Int2Type<IZeroForm>,
+						Field<Grid, ITwoForm, TRExpr> > >::ValueType res =
+		{ 0.25
+				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+						+ expr.rhs_[(s - strides[2]) * 3]
+						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
+
+		0.25
+				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+						+ expr.rhs_[(s - strides[2]) * 3]
+						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
+
+		0.25
+				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+						+ expr.rhs_[(s - strides[2]) * 3]
+						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]) };
+		return res;
+	}
+
+	template<typename TRExpr>
+	inline typename Field<Grid, IOneForm,
+			_impl::OpMapTo<Int2Type<IOneForm>, Field<Grid, IZeroForm, TRExpr> > >::ValueType //
+	eval(
+			Field<Grid, IOneForm,
+					_impl::OpMapTo<Int2Type<IOneForm>,
+							Field<Grid, IZeroForm, TRExpr> > >
+			const & expr, size_t s) const
+	{
+		return 0.5
+				* (expr.rhs_[(s - s % 3) / 3][s % 3]
+						+ expr.rhs_[((s - s % 3) / 3 + strides[0])][s % 3]);;
+	}
+
+	template<typename TRExpr>
+	inline typename Field<Grid, ITwoForm,
+			_impl::OpMapTo<Int2Type<ITwoForm>, Field<Grid, IZeroForm, TRExpr> > >::ValueType //
+	eval(
+			Field<Grid, ITwoForm,
+					_impl::OpMapTo<Int2Type<ITwoForm>,
+							Field<Grid, IZeroForm, TRExpr> > >
+			const & expr, size_t s) const
+	{
+		return 0.25
+				* (
+
+				expr.rhs_[(s - s % 3) / 3][s % 3]
+
+				+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 1) % 3]][s % 3]
+
+				+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 2) % 3]][s % 3]
+
+						+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 1) % 3]
+								+ strides[(s + 2) % 3]][s % 3]);
+	}
 };
 
 } //namespace simpla

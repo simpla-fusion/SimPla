@@ -36,10 +36,15 @@
 	<Process>
 		
 <!--	<PIC Name='ele' Type='DeltaF'></PIC>-->
-
-		<Loop   Steps="1000">
+		<AssignConstant>
+			<Data><Field Type="OneForm" >J1</Field></Data>
+			<Arguments>
+					<value> 0 0 0 </value>
+			</Arguments>	
+		</AssignConstant>
+		<Loop   Steps="200">
  			<RampWave  >
-				<Data><Field Type="OneForm" >E1</Field></Data> 
+				<Data><Field Type="OneForm" >J1</Field></Data> 
 				<Domain>
 					<XMin>0.0 0 0 </XMin>
 					<XMax>0.1 1 0 </XMax>
@@ -69,6 +74,7 @@
 					<Field Name="B" IO="RW">B1</Field>
 					<Field Name="E" IO="RW">E1</Field>
 					<Field Name="J" IO="R" >J1</Field>
+					<Particle Name="H" IO="R" >J</Particle>
 				</Data>
 				<Arguments>
 					<species Name="H">
@@ -81,9 +87,9 @@
 <!--
 			<Maxwell > 
 				<Data>
-					<Field Name="B" IO="RW">B1</Field>
-					<Field Name="E" IO="RW">E1</Field>
-					<Field Name="J" IO="R" >J1</Field>
+					<Field Name="B" IO="RW" Type="TwoForm">B1</Field>
+					<Field Name="E" IO="RW" Type="OneForm">E1</Field>
+					<Field Name="J" IO="R"  Type="OneForm" >J1</Field>
 				</Data>
 			</Maxwell>
 -->	
@@ -99,9 +105,11 @@
 				</Arguments>
 			</PML>
 			
-			<WriteXDMF Path="Untitle" Stride="1">
+			<WriteXDMF  Stride="1">
 				<Field>E1</Field>
 				<Field>B1</Field>
+				<Field>J1</Field>
+				<Field>H_J</Field>
 			</WriteXDMF >
 			<Clock></Clock>
 		</Loop>
@@ -110,3 +118,4 @@
 	
 
 </Context>
+

@@ -53,5 +53,4 @@ struct RampWave
 }  // namespace field_fun
 
 }  // namespace simpla
-#include "detail/ramp_wave_impl.h"
 #endif /* RAMP_WAVE_H_ */

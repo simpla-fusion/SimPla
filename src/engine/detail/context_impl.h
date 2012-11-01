@@ -17,40 +17,55 @@ namespace simpla
 template<typename TG>
 Context<TG>::Context()
 {
+	objFactory_["ZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<ZeroForm>, this);
+
+	objFactory_["OneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<OneForm>, this);
+
+	objFactory_["TwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<TwoForm>, this);
+
+	objFactory_["ThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<ThreeForm>, this);
+
+	objFactory_["VecZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecZeroForm>, this);
+
+	objFactory_["VecOneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecOneForm>, this);
+
+	objFactory_["VecTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecTwoForm>, this);
+
+	objFactory_["VecThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecThreeForm>, this);
+
+	objFactory_["CZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CZeroForm>, this);
+
+	objFactory_["COneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<COneForm>, this);
+
+	objFactory_["CTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CTwoForm>, this);
+
+	objFactory_["CThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CThreeForm>, this);
+
+	objFactory_["CVecZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecZeroForm>, this);
+
+	objFactory_["CVecOneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecOneForm>, this);
+
+	objFactory_["CTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CTwoForm>, this);
+
+	objFactory_["CVecThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecThreeForm>, this);
 
 	RegisterModules(this);
-
-	objFactory_["ZeroForm"] = TR1::bind(&ZeroForm::Create, grid);
-
-	objFactory_["OneForm"] = TR1::bind(&OneForm::Create, grid);
-
-	objFactory_["TwoForm"] = TR1::bind(&TwoForm::Create, grid);
-
-	objFactory_["ThreeForm"] = TR1::bind(&ThreeForm::Create, grid);
-
-	objFactory_["VecZeroForm"] = TR1::bind(&VecZeroForm::Create, grid);
-
-	objFactory_["VecOneForm"] = TR1::bind(&VecOneForm::Create, grid);
-
-	objFactory_["VecTwoForm"] = TR1::bind(&VecTwoForm::Create, grid);
-
-	objFactory_["VecThreeForm"] = TR1::bind(&VecThreeForm::Create, grid);
-
-	objFactory_["CZeroForm"] = TR1::bind(&CZeroForm::Create, grid);
-
-	objFactory_["COneForm"] = TR1::bind(&COneForm::Create, grid);
-
-	objFactory_["CTwoForm"] = TR1::bind(&CTwoForm::Create, grid);
-
-	objFactory_["CThreeForm"] = TR1::bind(&CThreeForm::Create, grid);
-
-	objFactory_["CVecZeroForm"] = TR1::bind(&CVecZeroForm::Create, grid);
-
-	objFactory_["CVecOneForm"] = TR1::bind(&CVecOneForm::Create, grid);
-
-	objFactory_["CTwoForm"] = TR1::bind(&CTwoForm::Create, grid);
-
-	objFactory_["CVecThreeForm"] = TR1::bind(&CVecThreeForm::Create, grid);
 
 }
 template<typename TG>

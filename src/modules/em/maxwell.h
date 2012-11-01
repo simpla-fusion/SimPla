@@ -12,7 +12,6 @@
 #include "fetl/fetl.h"
 #include "fetl/vector_calculus.h"
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "utilities/properties.h"
 namespace simpla
 {
@@ -20,7 +19,7 @@ namespace em
 {
 
 template<typename TG>
-class Maxwell: public Module
+class Maxwell
 {
 public:
 

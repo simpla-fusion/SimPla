@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 
 	std::string input = "simpla.xml";
 	std::string output = "untitled";
-	std::string log_file = output + "/" + "simpla.log";
+	std::string log_file = "simpla.log";
 
 	for (int i = 1; i < argc; ++i)
 	{
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 			input = argv[i] + 2;
 			break;
 		case 'l':
-			log_file = output + "/" + std::string(argv[i] + 2);
+			log_file =  std::string(argv[i] + 2);
 			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));
@@ -53,15 +53,17 @@ int main(int argc, char **argv)
 
 	}
 
-	Log::OpenFile(log_file);
+	Log::OpenFile(output + "/" +log_file);
 
 	ptree pt;
 
 	read_file(input, pt);
 
-	pt.put("Context.Process.<xmlattr>.Maxstep", max_step);
-	pt.put("Context.Process.OutPut.<xmlattr>.Path", output);
-	pt.put("Context.Process.OutPut.<xmlattr>.Stride", record_stride);
+	ctx.output_path = output;
+
+
+	ctx.Parse(pt.get_child("Context"));
+
 
 	INFORM
 
@@ -83,7 +85,7 @@ int main(int argc, char **argv)
 
 	<< std::setw(20) << "Configure File : " << input << std::endl
 
-	<< std::setw(20) << "Output Path : " << output << std::endl
+	<< std::setw(20) << "Output Path : " << ctx.output_path << std::endl
 
 	<< std::setw(20) << "Log File : " << log_file << std::endl
 
@@ -93,10 +95,6 @@ int main(int argc, char **argv)
 
 	<< SINGLELINE << std::endl;
 
-
-
-	ctx.Parse(pt.get_child("Context"));
-
 	INFORM
 
 	<< ctx.Summary() << std::endl
@@ -105,7 +103,13 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-	ctx.Eval();
+	INFORM << "====== Start PreProcess! =======" << std::endl;
+
+	ctx.PreProcess();
+
+	INFORM << "====== Start Process! =======" << std::endl;
+
+	ctx.Process();
 
 	INFORM << "====== Done! =======" << std::endl;
 }

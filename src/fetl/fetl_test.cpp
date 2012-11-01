@@ -29,14 +29,14 @@ protected:
 		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
 		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		grid = TR1::shared_ptr<Grid>(new Grid(pt));
+		grid.Parse(pt);
 	}
 public:
 	typedef TF FieldType;
 	typedef typename FieldType::ValueType ValueType;
 	typedef typename _impl::ComplexTraits<ValueType>::ValueType CValueType;
 	typedef Field<Grid, TF::IForm, CValueType> CFieldType;
-	TR1::shared_ptr<Grid> grid;
+	Grid grid;
 
 };
 
@@ -50,7 +50,7 @@ TYPED_TEST_CASE(TestFETLBasicArithmetic, AllFieldTypes);
 
 TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 {	Log::Verbose(10);
-	Grid const & grid = *TestFixture::grid;
+	Grid const & grid =  TestFixture::grid;
 	typename TestFixture::FieldType f(grid);
 	size_t size =grid.get_num_of_elements(TestFixture::FieldType::IForm);
 
@@ -73,7 +73,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	Grid const & grid = *TestFixture::grid;
+	Grid const & grid =  TestFixture::grid;
 
 	typename TestFixture::FieldType f1(grid),f2(grid);
 
@@ -108,7 +108,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	Grid const & grid= *TestFixture::grid;
+	Grid const & grid=  TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
 
@@ -139,7 +139,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 {
-	Grid const & grid = *TestFixture::grid;
+	Grid const & grid =  TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid);
 	typename TestFixture::CFieldType f3(grid);
@@ -171,7 +171,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
 
-	Grid const & grid = * TestFixture::grid;
+	Grid const & grid =   TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
 
@@ -223,11 +223,10 @@ protected:
 		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
 		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		grid = TR1::shared_ptr<Grid>(new Grid(pt));
-
+		grid.Parse(pt);
 	}
 public:
-	TR1::shared_ptr<Grid> grid;
+	Grid grid;
 	typedef Field<Grid, IZeroForm, T> ScalarField;
 	typedef Field<Grid, IZeroForm, nTuple<THREE, T> > VectorField;
 
@@ -243,7 +242,7 @@ TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 
 TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 {
-	const Grid& grid = *TestFixture::grid;
+	const Grid& grid =  TestFixture::grid;
 
 	Vec3 vc1 =
 	{	1.0, 2.0, 3.0};
@@ -288,7 +287,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vector_field){
 {
 	//FIXME  should test with non-uniform field
 
-	Grid const & grid = *TestFixture::grid;
+	Grid const & grid = TestFixture::grid;
 
 	Vec3 vc1 =
 	{	1.0, 2.0, 3.0};
@@ -331,7 +330,7 @@ TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
 {
 	//FIXME  should test with non-uniform field
 
-	Grid const & grid = *TestFixture::grid;
+	Grid const & grid = TestFixture::grid;
 
 	Vec3 vc1 =
 	{	1.0,2.0,3.0};
@@ -391,12 +390,12 @@ protected:
 		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
 		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		pgrid = TR1::shared_ptr<Grid>(new Grid(pt));
+		grid.Parse(pt);
 
 	}
 public:
 
-	TR1::shared_ptr<Grid> pgrid;
+	Grid grid;
 
 	double RelativeError(double a, double b)
 	{
@@ -406,7 +405,6 @@ public:
 
 TEST_F(TestFETLDiffCalcuate, curl_grad_eq_0)
 {
-	Grid const & grid = *pgrid;
 
 	ZeroForm sf(grid);
 	OneForm vf1(grid);
@@ -443,7 +441,6 @@ TEST_F(TestFETLDiffCalcuate, curl_grad_eq_0)
 
 TEST_F(TestFETLDiffCalcuate, div_curl_eq_0)
 {
-	Grid const & grid = *pgrid;
 
 	ZeroForm sf(grid);
 	OneForm vf1(grid);
@@ -493,11 +490,12 @@ protected:
 		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
 		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
 		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
-		pgrid = TR1::shared_ptr<Grid>(new Grid(pt));
+
+		grid.Parse(pt);
 
 	}
 public:
-	TR1::shared_ptr<Grid> pgrid;
+	Grid grid;
 
 	static const int NDIMS = 3;
 
@@ -512,7 +510,6 @@ INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
 
 TEST_P(TestFETLPerformance, error_analyze)
 {
-	Grid const & grid = *pgrid;
 
 	static const double epsilon = 0.01;
 

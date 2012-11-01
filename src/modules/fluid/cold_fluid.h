@@ -16,16 +16,15 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "utilities/properties.h"
 
 namespace simpla
 {
-namespace em
+namespace fliud
 {
 
 template<typename TG>
-class ColdFluid: public Module
+class ColdFluid
 {
 public:
 
@@ -99,8 +98,8 @@ ColdFluid<TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 	LOG << "Create module ColdFluid";
 	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
 	{
-		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] = v.second.get_value<
-				std::string>();
+		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] =
+				v.second.get_value<std::string>();
 
 	}
 
@@ -140,9 +139,10 @@ void ColdFluid<TG>::Eval()
 
 	VecZeroForm Ev(grid), Bv(grid), dEvdt(grid);
 
-//	Bv = B;
+	Bv = MapTo(Int2Type<IZeroForm>(), B);
 
-//	Ev = E + (Curl(B) / mu0 - J) / epsilon0 * (dt * 0.5);
+	Ev = MapTo(Int2Type<IZeroForm>(),
+			E + (Curl(B) / mu0 - J) / epsilon0 * (dt * 0.5));
 
 	BB = Dot(Bv, Bv);
 
@@ -204,11 +204,11 @@ void ColdFluid<TG>::Eval()
 				+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-//	J -= dEvdt;
+	J -= MapTo(Int2Type<IOneForm>(), dEvdt);
 
 }
 
-} // namespace em
+} // namespace fliud
 } // namespace simpla
 
 #endif  // SRC_FLUID_OHM_LAW_H_

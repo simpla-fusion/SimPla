@@ -51,7 +51,6 @@ private:
 	std::string file_template;
 	std::string attrPlaceHolder;
 
-	std::string path_;
 };
 
 } // namespace io

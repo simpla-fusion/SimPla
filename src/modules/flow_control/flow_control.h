@@ -9,7 +9,6 @@
 #define FLOW_CONTROL_H_
 #include "include/simpla_defs.h"
 #include "engine/context.h"
-#include "engine/modules.h"
 #include "utilities/properties.h"
 
 namespace simpla
@@ -18,7 +17,7 @@ namespace simpla
 namespace flow_control
 {
 
-class Clock: public Module
+class Clock
 {
 public:
 	typedef Clock ThisType;
@@ -49,12 +48,11 @@ public:
 }
 ;
 
-
 inline void eval_(TR1::function<void(void)> & f)
 {
 	f();
 }
-class Loop: public Module
+class Loop
 {
 public:
 	typedef Loop ThisType;
@@ -108,6 +106,14 @@ public:
 
 }
 ;
+template<typename TCTX>
+inline void RegisterModules(TCTX * ctx)
+{
+	ctx->moduleFactory_["Loop"] = TR1::bind(&Loop::Create, ctx,
+			TR1::placeholders::_1);
+	ctx->moduleFactory_["Clock"] = TR1::bind(&Clock::Create, ctx,
+			TR1::placeholders::_1);
+}
 
 }  // namespace flow_control
 

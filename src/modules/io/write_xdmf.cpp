@@ -34,9 +34,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
 
 		attrPlaceHolder("<!-- Add Attribute Here -->"),
 
-		stride_(pt.get("<xmlattr>.Stride", 1)),
-
-		path_(ctx.output_path)
+		stride_(pt.get("<xmlattr>.Stride", 1))
 
 {
 	BOOST_FOREACH(const typename ptree::value_type &v, pt)
@@ -129,10 +127,9 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
 
 	file_template = ss.str();
 
-	mkdir(path_.c_str(), 0777);
-
 	LOG << "Create module WriteXDMF";
 
+	mkdir(ctx.output_path.c_str(), 0777);
 }
 
 template<>
@@ -146,6 +143,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 	{
 		return;
 	}
+
 	LOG << "Run module WriteXDMF";
 
 	std::string filename;
@@ -156,8 +154,9 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		filename = st.str();
 	}
 
-	H5::Group grp = H5::H5File(path_ + "/" + filename + ".h5", H5F_ACC_TRUNC) //
-	.openGroup("/");
+
+	H5::Group grp = H5::H5File(ctx.output_path + "/" + filename + ".h5",
+			H5F_ACC_TRUNC).openGroup("/");
 
 	std::string xmdf_file(file_template);
 
@@ -232,7 +231,6 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 			ss << "  <Attribute Name='" << (*it) << "'  AttributeType='"
 					<< attr_str << "' Center='Node' >" << std::endl
-
 					<< "    <DataItem  NumberType='Float' Precision='8' Format='HDF' Dimensions='";
 
 			for (int i = 0; i < nd; ++i)
@@ -264,7 +262,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		}
 	}
 
-	std::fstream fs((path_ + "/" + filename + ".xdmf").c_str(),
+	std::fstream fs((ctx.output_path + "/" + filename + ".xdmf").c_str(),
 			std::fstream::out);
 	fs << xmdf_file;
 	fs.close();

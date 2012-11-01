@@ -7,11 +7,27 @@
 
 #ifndef FLUID_H_
 #define FLUID_H_
-#include "../engine/context.h"
 
-namespace Fluid
+#include "include/simpla_defs.h"
+#include "engine/context.h"
+
+#include "cold_fluid.h"
+namespace simpla
 {
-void registerFunction(Context::Holder ctx);
+namespace fliud
+{
+
+template<typename TG>
+void RegisterModules(Context<TG> * ctx)
+{
+	DEFINE_FIELDS(typename TG::ValueType, TG)
+
+	ctx->moduleFactory_["ColdFluid"] = TR1::bind(&ColdFluid<TG>::Create, ctx,
+			TR1::placeholders::_1);
+
 }
+
+} //namespace fliud
+} //namespace simpla
 
 #endif /* FLUID_H_ */

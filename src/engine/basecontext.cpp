@@ -9,14 +9,14 @@
 #include "context.h"
 #include "object.h"
 #include "fetl/grid.h"
-#include "modules/modules.h"
+#include "modules/flow_control/flow_control.h"
+
 namespace simpla
 {
 
 BaseContext::BaseContext() :
-		dt(0.0), counter_(0), timer_(0), output_path("")
+		dt(0.0), counter_(0), timer_(0), output_path("Untitled")
 {
-	RegisterModules(this);
 }
 void BaseContext::Parse(ptree const&pt)
 {
@@ -24,9 +24,9 @@ void BaseContext::Parse(ptree const&pt)
 
 	PHYS_CONSTANTS.Parse(pt.get_child("PhysConstants"));
 
-	preprocess_ = flow_control::Loop::Create(this, pt.get_child("Preprocess"));
+	PreProcess = flow_control::Loop::Create(this, pt.get_child("Preprocess"));
 
-	process_ = flow_control::Loop::Create(this, pt.get_child("Process"));
+	Process = flow_control::Loop::Create(this, pt.get_child("Process"));
 
 }
 BaseContext::~BaseContext()
@@ -90,11 +90,7 @@ void BaseContext::Save()
 {
 }
 
-void BaseContext::Eval()
-{
-	preprocess_();
-	process_();
-}
+
 //TR1::shared_ptr<BaseContext> BaseContext::Create(ptree const & pt)
 //{
 //	TR1::shared_ptr<BaseContext> res;
