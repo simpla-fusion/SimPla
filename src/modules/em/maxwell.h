@@ -13,13 +13,14 @@
 #include "fetl/vector_calculus.h"
 #include "engine/context.h"
 #include "utilities/properties.h"
+#include "../basemodule.h"
 namespace simpla
 {
 namespace em
 {
 
 template<typename TG>
-class Maxwell
+class Maxwell: public BaseModule
 {
 public:
 
@@ -31,6 +32,8 @@ public:
 	Context<TG> & ctx;
 
 	Maxwell(Context<TG> & d, ptree const &pt) :
+			BaseModule(d, pt),
+
 			ctx(d),
 
 			dt(ctx.grid.dt),
@@ -41,13 +44,6 @@ public:
 
 			speed_of_light(ctx.PHYS_CONSTANTS["speed_of_light"])
 	{
-		BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
-		{
-			para_[v.second.get<std::string>("id")] = std::pair<std::string,
-					std::string>(v.second.get<std::string>("type"),
-					v.second.get_value<std::string>());
-
-		}
 		LOG << "Create module Maxwell";
 	}
 
@@ -65,20 +61,17 @@ public:
 	{
 		LOG << "Run module Maxwell";
 
-		if (para_["B"].first == "TwoForm" && para_["E"].first == "OneForm"
-				&& para_["J"].first == "OneForm")
+		if (dataset_["E"]->CheckType(typeid(OneForm)))
 		{
-			DoMaxwellEq(*ctx.template GetObject<TwoForm>(para_["B"].second),
-					*ctx.template GetObject<OneForm>(para_["E"].second),
-					*ctx.template GetObject<OneForm>(para_["J"].second));
+			DoMaxwellEq(*TR1::dynamic_pointer_cast<TwoForm>(dataset_["B"]),
+					*TR1::dynamic_pointer_cast<OneForm>(dataset_["E"]),
+					*TR1::dynamic_pointer_cast<OneForm>(dataset_["J"]));
 		}
-		else if (para_["B"].first == "CTwoForm"
-				&& para_["E"].first == "COneForm"
-				&& para_["J"].first == "COneForm")
+		else if (dataset_["E"]->CheckType(typeid(COneForm)))
 		{
-			DoMaxwellEq(*ctx.template GetObject<TwoForm>(para_["B"].second),
-					*ctx.template GetObject<OneForm>(para_["E"].second),
-					*ctx.template GetObject<OneForm>(para_["J"].second));
+			DoMaxwellEq(*TR1::dynamic_pointer_cast<CTwoForm>(dataset_["B"]),
+					*TR1::dynamic_pointer_cast<COneForm>(dataset_["E"]),
+					*TR1::dynamic_pointer_cast<COneForm>(dataset_["J"]));
 		}
 		else
 		{
@@ -101,8 +94,6 @@ private:
 	const Real mu0;
 	const Real epsilon0;
 	const Real speed_of_light;
-
-	std::map<std::string, std::pair<std::string, std::string> > para_;
 
 };
 

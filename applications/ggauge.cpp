@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 			input = argv[i] + 2;
 			break;
 		case 'l':
-			log_file =  std::string(argv[i] + 2);
+			log_file = std::string(argv[i] + 2);
 			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));
@@ -53,7 +53,7 @@ int main(int argc, char **argv)
 
 	}
 
-	Log::OpenFile(output + "/" +log_file);
+	Log::OpenFile(output + "/" + log_file);
 
 	ptree pt;
 
@@ -61,9 +61,7 @@ int main(int argc, char **argv)
 
 	ctx.output_path = output;
 
-
 	ctx.Parse(pt.get_child("Context"));
-
 
 	INFORM
 
@@ -103,13 +101,13 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-	INFORM << "====== Start PreProcess! =======" << std::endl;
+	INFORM << "====== Preprocess! =======" << std::endl;
 
-	ctx.PreProcess();
+	ctx.Preprocess(pt.get_child("Context.Preprocess"));
 
-	INFORM << "====== Start Process! =======" << std::endl;
+	INFORM << "====== Process! =======" << std::endl;
 
-	ctx.Process();
+	ctx.Process(pt.get_child("Context.Process"));
 
 	INFORM << "====== Done! =======" << std::endl;
 }

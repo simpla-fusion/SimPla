@@ -64,6 +64,61 @@ typedef Field<Grid, IThreeForm, CVec3>  CVecThreeForm;                       \
 typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
 typedef Field<Grid, IZeroForm, CVec3> CVecField;
 
+template<typename > struct Context;
+
+template<typename TG> void RegisterFields(Context<TG> * ctx)
+{
+	DEFINE_FIELDS(typename TG::ValueType, TG)
+
+	ctx->objFactory_["ZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<ZeroForm>, ctx);
+
+	ctx->objFactory_["OneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<OneForm>, ctx);
+
+	ctx->objFactory_["TwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<TwoForm>, ctx);
+
+	ctx->objFactory_["ThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<ThreeForm>, ctx);
+
+	ctx->objFactory_["VecZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecZeroForm>, ctx);
+
+	ctx->objFactory_["VecOneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecOneForm>, ctx);
+
+	ctx->objFactory_["VecTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecTwoForm>, ctx);
+
+	ctx->objFactory_["VecThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<VecThreeForm>, ctx);
+
+	ctx->objFactory_["CZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CZeroForm>, ctx);
+
+	ctx->objFactory_["COneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<COneForm>, ctx);
+
+	ctx->objFactory_["CTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CTwoForm>, ctx);
+
+	ctx->objFactory_["CThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CThreeForm>, ctx);
+
+	ctx->objFactory_["CVecZeroForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecZeroForm>, ctx);
+
+	ctx->objFactory_["CVecOneForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecOneForm>, ctx);
+
+	ctx->objFactory_["CTwoForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CTwoForm>, ctx);
+
+	ctx->objFactory_["CVecThreeForm"] = TR1::bind(
+			&Context<TG>::template CreateObject<CVecThreeForm>, ctx);
+
+}
 } //namespace simpla
 
 #endif  // FETL_H_

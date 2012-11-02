@@ -20,7 +20,7 @@
 
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 #include "engine/datatype.h"
 #include "typeconvert.h"
 
@@ -37,7 +37,7 @@ namespace simpla
  *
  */
 template<typename TG, int IFORM, typename TV>
-struct Field: public ArrayObject
+struct Field: public NdArray
 {
 public:
 	typedef TV ValueType;
@@ -58,7 +58,7 @@ public:
 	Grid const & grid;
 
 	Field(Grid const & pgrid) :
-			ArrayObject(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
+			NdArray(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
 					pgrid)
 	{
 	}
@@ -142,7 +142,7 @@ public:
 
 	bool IsSame(ThisType const & rhs) const
 	{
-		return (ArrayObject::get_data() == rhs.get_data());
+		return (NdArray::get_data() == rhs.get_data());
 	}
 
 	virtual inline bool CheckType(std::type_info const &tinfo) const
@@ -159,17 +159,17 @@ public:
 	inline void Add(size_t s, ValueType const & v)
 	{
 //#pragma omp atomic
-		ArrayObject::value<ValueType>(s) += v;
+		NdArray::value<ValueType>(s) += v;
 	}
 
 	inline ValueType & operator[](size_t s)
 	{
-		return (ArrayObject::value<ValueType>(s));
+		return (NdArray::value<ValueType>(s));
 	}
 
 	inline ValueType const &operator[](size_t s) const
 	{
-		return (ArrayObject::value<ValueType>(s));
+		return (NdArray::value<ValueType>(s));
 	}
 
 	static const Field<TG, IForm, Int2Type<0> > ZERO;

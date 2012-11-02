@@ -10,7 +10,7 @@
 #include "object.h"
 #include "fetl/grid.h"
 #include "modules/flow_control/flow_control.h"
-
+#include "modules/preprocess/preprocess.h"
 namespace simpla
 {
 
@@ -24,53 +24,55 @@ void BaseContext::Parse(ptree const&pt)
 
 	PHYS_CONSTANTS.Parse(pt.get_child("PhysConstants"));
 
-	PreProcess = flow_control::Loop::Create(this, pt.get_child("Preprocess"));
-
-	Process = flow_control::Loop::Create(this, pt.get_child("Process"));
-
+}
+void BaseContext::Preprocess(ptree const&pt)
+{
+	preprocess::Preprocess(this, pt);
+}
+void BaseContext::Process(ptree const&pt)
+{
+	flow_control::Loop(*this, pt).Eval();
 }
 BaseContext::~BaseContext()
 {
 }
 
 boost::optional<TR1::shared_ptr<Object> > BaseContext::FindObject(
-		std::string const & name, std::type_info const &tinfo)
+		std::string const & name)
 {
-	TR1::shared_ptr<Object> res;
-
 	if (name == "")
 	{
-		return boost::optional<TR1::shared_ptr<Object> >();
+		return boost::optional<TR1::shared_ptr<Object> >(false,
+				TR1::shared_ptr<Object>());
 	}
+
 	std::map<std::string, TR1::shared_ptr<Object> >::iterator it = objects.find(
 			name);
 
-	return boost::optional<TR1::shared_ptr<Object> >(
-			it != objects.end()
-					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
+	return boost::optional<TR1::shared_ptr<Object> >(it != objects.end(),
 			it->second);
 
 }
 
 boost::optional<TR1::shared_ptr<const Object> > BaseContext::FindObject(
-		std::string const & name, std::type_info const &tinfo) const
+		std::string const & name) const
 {
-
 	if (name == "")
 	{
-		return boost::optional<TR1::shared_ptr<const Object> >();
+		return boost::optional<TR1::shared_ptr<const Object> >(false,
+				TR1::shared_ptr<const Object>());
 	}
+
 	std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
 			objects.find(name);
 
-	return boost::optional<TR1::shared_ptr<const Object> >(
-			it != objects.end()
-					&& (tinfo == typeid(void) || it->second->CheckType(tinfo)),
+	return boost::optional<TR1::shared_ptr<const Object> >(it != objects.end(),
 			it->second);
 
 }
 void BaseContext::DeleteObject(std::string const & name)
 {
+
 	typename std::map<std::string, TR1::shared_ptr<Object> >::iterator it =
 			objects.find(name);
 	if (it != objects.end())
@@ -89,7 +91,6 @@ void BaseContext::PushClock()
 void BaseContext::Save()
 {
 }
-
 
 //TR1::shared_ptr<BaseContext> BaseContext::Create(ptree const & pt)
 //{

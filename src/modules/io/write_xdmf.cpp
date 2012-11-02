@@ -15,7 +15,7 @@
 #include <sstream>
 #include "fetl/grid/uniform_rect.h"
 #include "engine/context.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 #include "fetl/fetl.h"
 
 namespace simpla
@@ -174,7 +174,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 
 		if (oit != ctx.objects.end())
 		{
-			ArrayObject & obj = *TR1::dynamic_pointer_cast<ArrayObject>(
+			NdArray & obj = *TR1::dynamic_pointer_cast<NdArray>(
 					oit->second);
 
 			std::string attr_str = "Scalar";

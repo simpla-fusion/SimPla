@@ -1,2 +1,2 @@
-add_library(preprocess  loadfield.cpp loadparticle.cpp)
+add_library(preprocess  preprocess.cpp  )
 TARGET_LINK_LIBRARIES(preprocess  io  )

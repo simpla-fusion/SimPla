@@ -37,19 +37,18 @@ public:
 
 	std::string output_path;
 
-	TR1::function<void(void)> PreProcess;
-
-	TR1::function<void(void)> Process;
-
 	PhysicalConstants PHYS_CONSTANTS;
 
 	BaseContext();
+
+	virtual void Parse(ptree const&pt);
 
 	virtual ~BaseContext();
 
 	virtual std::string Summary() const=0;
 
-	virtual void Parse(ptree const&pt);
+	virtual void Preprocess(ptree const&pt);
+	virtual void Process(ptree const&pt);
 
 	inline size_t Counter() const
 	{
@@ -64,18 +63,25 @@ public:
 	void PushClock();
 
 	void Load(ptree const & pt);
+
 	void Save();
 
-//	void PreProcess();
-//	void Process();
+	template<typename TOBJ>
+	bool CheckObjectType(std::string const & name) const
+	{
+		boost::optional<TR1::shared_ptr<Object> > obj = FindObject(name);
+		bool res = false;
+		if (!!obj && (*obj)->CheckType(typeid(TOBJ)))
+		{
+			res = true;
+		}
+	}
 
 	boost::optional<TR1::shared_ptr<Object> > FindObject(
-			std::string const & name,
-			std::type_info const &tinfo = typeid(void));
+			std::string const & name);
 
 	boost::optional<TR1::shared_ptr<const Object> > FindObject(
-			std::string const & name,
-			std::type_info const &tinfo = typeid(void)) const;
+			std::string const & name) const;
 
 	void DeleteObject(std::string const & name);
 

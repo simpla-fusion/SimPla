@@ -12,14 +12,14 @@
 #include "fetl/fetl.h"
 #include "engine/context.h"
 #include "utilities/properties.h"
-
+#include "modules/basemodule.h"
 namespace simpla
 {
 namespace em
 {
 
 template<typename TG>
-class PML
+class PML:public BaseModule
 {
 public:
 
@@ -57,7 +57,6 @@ private:
 	std::string Etype, Btype, Jtype;
 
 	nTuple<SIX, int> bc_;
-	std::map<std::string, std::string > dataflow_;
 	// internal variable name, type, reference name
 
 };

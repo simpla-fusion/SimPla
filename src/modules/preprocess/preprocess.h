@@ -8,29 +8,26 @@
 #ifndef PREPROCESS_H_
 #define PREPROCESS_H_
 #include "include/simpla_defs.h"
-#include "engine/context.h"
 #include "utilities/properties.h"
+#include "engine/basecontext.h"
 
-#include "loadfield.h"
-#include "loadparticle.h"
+#include "datastruct/ndarray.h"
+#include "datastruct/pool.h"
+#include "datastruct/compound.h"
 
 namespace simpla
 {
 namespace preprocess
 {
+TR1::shared_ptr<NdArray> LoadField(BaseContext * ctx, const ptree & pt);
 
-template<typename TCTX>
-inline void RegisterModules(TCTX * ctx)
-{
+TR1::shared_ptr<Pool> LoadPool(BaseContext * ctx, const ptree & pt);
 
-	ctx->moduleFactory_["Field"] = TR1::bind(&preprocess::LoadField::Create,
-			ctx, TR1::placeholders::_1);
+TR1::shared_ptr<CompoundObject> LoadCompound(BaseContext * ctx,
+		const ptree & pt);
 
-	ctx->moduleFactory_["Particle"] = TR1::bind(
-			&preprocess::LoadParticle::Create, ctx, TR1::placeholders::_1);
-
-}
-}  // namespace preprocess
+void Preprocess(BaseContext * ctx, const ptree & pt);
+} // namespace preprocess
 }  // namespace simpla
 
 #endif /* PREPROCESS_H_ */

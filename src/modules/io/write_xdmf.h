@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include "engine/context.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 #include "utilities/properties.h"
 
 namespace simpla

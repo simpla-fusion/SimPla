@@ -9,6 +9,7 @@
 #define CONTEXT_IMPL_H_
 
 #include "fetl/fetl.h"
+#include "particle/particle.h"
 #include "modules/modules.h"
 #include <boost/foreach.hpp>
 namespace simpla
@@ -17,54 +18,8 @@ namespace simpla
 template<typename TG>
 Context<TG>::Context()
 {
-	objFactory_["ZeroForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<ZeroForm>, this);
-
-	objFactory_["OneForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<OneForm>, this);
-
-	objFactory_["TwoForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<TwoForm>, this);
-
-	objFactory_["ThreeForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<ThreeForm>, this);
-
-	objFactory_["VecZeroForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<VecZeroForm>, this);
-
-	objFactory_["VecOneForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<VecOneForm>, this);
-
-	objFactory_["VecTwoForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<VecTwoForm>, this);
-
-	objFactory_["VecThreeForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<VecThreeForm>, this);
-
-	objFactory_["CZeroForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CZeroForm>, this);
-
-	objFactory_["COneForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<COneForm>, this);
-
-	objFactory_["CTwoForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CTwoForm>, this);
-
-	objFactory_["CThreeForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CThreeForm>, this);
-
-	objFactory_["CVecZeroForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CVecZeroForm>, this);
-
-	objFactory_["CVecOneForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CVecOneForm>, this);
-
-	objFactory_["CTwoForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CTwoForm>, this);
-
-	objFactory_["CVecThreeForm"] = TR1::bind(
-			&Context<TG>::template CreateObject<CVecThreeForm>, this);
-
+	RegisterFields(this);
+	RegisterParticles<TG>(this);
 	RegisterModules(this);
 
 }
@@ -89,31 +44,35 @@ template<typename TG>
 template<typename TOBJ>
 TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
 {
-
-	if (name != "")
+	if (name == "")
 	{
-		std::map<std::string, TR1::shared_ptr<Object> >::iterator it =
-				objects.find(name);
-		if (it != objects.end())
+		ERROR << "The name of  object   is empty!";
+	}
+
+	TR1::shared_ptr<TOBJ> res;
+
+	if (boost::optional<TR1::shared_ptr<Object> > obj = BaseContext::FindObject(
+			name))
+	{
+
+		if ((*obj)->CheckType(typeid(TOBJ)))
 		{
-			if (it->second->CheckType(typeid(TOBJ)))
-			{
-				return TR1::dynamic_pointer_cast<TOBJ>(it->second);
-			}
-			else
-			{
-				ERROR << "The type of object " << name << " is not "
-						<< typeid(TOBJ).name();
-			}
+			res = TR1::dynamic_pointer_cast<TOBJ>(*obj);
+		}
+		else
+		{
+			ERROR << "The type of object " << name << " is not "
+					<< typeid(TOBJ).name();
 		}
 	}
-	TR1::shared_ptr<TOBJ> res = CreateObject<TOBJ>();
-
-	if (name != "")
+	else
 	{
-		objects[name] = TR1::dynamic_pointer_cast<ArrayObject>(res);
-	}
 
+		res = CreateObject<TOBJ>();
+
+		objects[name] = TR1::dynamic_pointer_cast<Object>(res);
+
+	}
 	return res;
 }
 //template<typename TG>

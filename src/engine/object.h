@@ -29,6 +29,10 @@ public:
 	virtual bool Empty() const=0;
 };
 
+inline bool Object::CheckValueType(std::type_info const &)const
+{
+	return false;
+}
 }  // namespace simpla
 
 #endif /* OBJECT_H_ */

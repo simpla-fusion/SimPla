@@ -1165,6 +1165,7 @@ public:
 							Field<Grid, IOneForm, TRExpr> > >
 			const & expr, size_t s) const
 	{
+		CHECK("ONE");
 		typename Field<Grid, IZeroForm,
 				_impl::OpMapTo<Int2Type<IZeroForm>,
 						Field<Grid, IOneForm, TRExpr> > >::ValueType res =
@@ -1185,23 +1186,25 @@ public:
 							Field<Grid, ITwoForm, TRExpr> > >
 			const & expr, size_t s) const
 	{
+		CHECK("TWO");
 		typename Field<Grid, IZeroForm,
 				_impl::OpMapTo<Int2Type<IZeroForm>,
 						Field<Grid, ITwoForm, TRExpr> > >::ValueType res =
-		{ 0.25
-				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-						+ expr.rhs_[(s - strides[2]) * 3]
-						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
-
-		0.25
-				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-						+ expr.rhs_[(s - strides[2]) * 3]
-						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
-
-		0.25
-				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-						+ expr.rhs_[(s - strides[2]) * 3]
-						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]) };
+		{ 0, 0, 0 };
+//		{ 0.25
+//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+//						+ expr.rhs_[(s - strides[2]) * 3]
+//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
+//
+//		0.25
+//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+//						+ expr.rhs_[(s - strides[2]) * 3]
+//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
+//
+//		0.25
+//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
+//						+ expr.rhs_[(s - strides[2]) * 3]
+//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]) };
 		return res;
 	}
 

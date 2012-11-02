@@ -32,6 +32,8 @@ inline Real alpha_(Real r, Real expN, Real dB)
 }
 template<>
 PML<UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
+		BaseModule(d, pt),
+
 		ctx(d),
 
 		grid(ctx.grid),
@@ -56,13 +58,6 @@ PML<UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
 {
 
 	LOG << "Create module PML";
-
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
-	{
-		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] = //
-				v.second.get_value<std::string>();
-
-	}
 
 	Real dB = 100, expN = 2;
 
@@ -147,9 +142,9 @@ template<>
 void PML<UniformRectGrid>::Eval()
 {
 	LOG << "Run module PML";
-	TwoForm &B1 = *ctx.GetObject<TwoForm>(dataflow_["B"]);
-	OneForm &E1 = *ctx.GetObject<OneForm>(dataflow_["E"]);
-	OneForm &J1 = *ctx.GetObject<OneForm>(dataflow_["J"]);
+	TwoForm &B1 = *TR1::dynamic_pointer_cast<TwoForm>(dataset_["B"]);
+	OneForm &E1 = *TR1::dynamic_pointer_cast<OneForm>(dataset_["E"]);
+	OneForm &J1 = *TR1::dynamic_pointer_cast<OneForm>(dataset_["J"]);
 
 	OneForm dX2(grid);
 

@@ -22,11 +22,11 @@
 #include <typeinfo>
 #include <iostream>
 #include "utilities/memory_pool.h"
-#include "datatype.h"
-#include "object.h"
+#include "engine/datatype.h"
+#include "engine/object.h"
 namespace simpla
 {
-class ArrayObject:public Object
+class NdArray:public Object
 {
 
 public:
@@ -35,22 +35,22 @@ public:
 		MAX_NUM_OF_DIMS = 10
 	};
 
-	typedef TR1::shared_ptr<ArrayObject> Holder;
+	typedef TR1::shared_ptr<NdArray> Holder;
 
-	ArrayObject(BaseDataType const & pdtype, std::vector<size_t> const & d) :
+	NdArray(BaseDataType const & pdtype, std::vector<size_t> const & d) :
 			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(
-					pdtype.desc())
+					pdtype.desc()),nd(0)
 	{
 		ReAlloc(&d[0], d.size());
 	}
 
-	ArrayObject(BaseDataType const & pdtype, size_t d) :
+	NdArray(BaseDataType const & pdtype, size_t d) :
 			ele_size_in_bytes(pdtype.size_in_bytes()), ele_type_desc(
-					pdtype.desc())
+					pdtype.desc()),nd(0)
 	{
 		ReAlloc(&d, 1);
 	}
-	inline virtual ~ArrayObject()
+	inline virtual ~NdArray()
 	{
 		MemoryPool::instance().release();
 	}

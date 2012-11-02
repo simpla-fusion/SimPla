@@ -203,29 +203,29 @@ Curl(Field<TG, ITwoForm, TLExpr> const & lhs)
 template<int IPD, typename TG, typename TLExpr>
 inline Field<TG, ITwoForm,
 		_impl::OpCurlPD<Int2Type<IPD>, Field<TG, IOneForm, TLExpr> > >        //
-CurlPD(Int2Type<IPD>, Field<TG, IOneForm, TLExpr> const & lhs)
+CurlPD(Int2Type<IPD>, Field<TG, IOneForm, TLExpr> const & rhs)
 {
 	return (Field<TG, ITwoForm,
 			_impl::OpCurlPD<Int2Type<IPD>, Field<TG, IOneForm, TLExpr> > >(
-			Int2Type<IPD>(), lhs));
+			Int2Type<IPD>(), rhs));
 }
 
 template<int IPD, typename TG, typename TLExpr>
 inline Field<TG, IOneForm,
 		_impl::OpCurlPD<Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> > >        //
-CurlPD(Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> const & lhs)
+CurlPD(Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> const & rhs)
 {
 	return (Field<TG, IOneForm,
 			_impl::OpCurlPD<Int2Type<IPD>, Field<TG, ITwoForm, TLExpr> > >(
-			Int2Type<IPD>(), lhs));
+			Int2Type<IPD>(), rhs));
 }
 
 template<typename TG, int IL, int IR, typename TRExpr>
 inline Field<TG, IL, _impl::OpMapTo<Int2Type<IL>, Field<TG, IR, TRExpr> > >   //
-MapTo(Int2Type<IL>, Field<TG, IR, TRExpr> const & lhs)
+MapTo(Int2Type<IL>, Field<TG, IR, TRExpr> const & rhs)
 {
 	return (Field<TG, IL, _impl::OpMapTo<Int2Type<IL>, Field<TG, IR, TRExpr> > >(
-			Int2Type<IL>(), lhs));
+			Int2Type<IL>(), rhs));
 }
 
 }        // namespace simpla

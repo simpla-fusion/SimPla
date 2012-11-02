@@ -68,7 +68,6 @@ public:
 	{
 		BOOST_FOREACH(const typename ptree::value_type &v, pt)
 		{
-			CHECK(v.first);
 			if (v.first == "<xmlcomment>" || v.first == "<xmlattr>")
 			{
 				continue;

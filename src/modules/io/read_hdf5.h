@@ -9,12 +9,12 @@
 #define READ_HDF5_H_
 #include <algorithm>
 #include "include/simpla_defs.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 namespace simpla
 {
 namespace io
 {
-void ReadData(std::string const & name, TR1::shared_ptr<ArrayObject> obj);
+void ReadData(std::string const & name, TR1::shared_ptr<NdArray> obj);
 }  // namespace io
 
 }  // namespace simpla
