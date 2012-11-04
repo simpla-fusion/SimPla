@@ -20,6 +20,7 @@ namespace simpla
 
 template<typename > struct Context;
 
+
 template<typename TG> void RegisterFields(Context<TG> * ctx)
 {
 	DEFINE_FIELDS(typename TG::ValueType, TG)

@@ -10,6 +10,7 @@
 #include "object.h"
 #include "fetl/grid.h"
 #include "modules/modules.h"
+
 namespace simpla
 {
 
@@ -33,6 +34,7 @@ void BaseContext::Process(ptree const&pt)
 	flow_control::Loop(this, pt).Eval();
 }
 BaseContext::~BaseContext()
+
 {
 }
 

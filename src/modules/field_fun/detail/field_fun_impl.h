@@ -26,7 +26,6 @@ namespace simpla
 namespace field_fun
 {
 template<typename TG> struct BaseFieldFunction;
-template<typename TF, typename Fonctor> struct FieldFunction;
 
 template<>
 struct BaseFieldFunction<UniformRectGrid> : public BaseModule
@@ -68,6 +67,7 @@ struct BaseFieldFunction<UniformRectGrid> : public BaseModule
 	}
 
 };
+template<typename, typename > struct FieldFunction;
 
 template<typename TV, template<typename > class TFun>
 struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, TFun<TV> > : public BaseFieldFunction<

@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 
 	ctx.Parse(pt.get_child("Context"));
 
+
 	INFORM
 
 	<< std::endl
@@ -114,6 +115,7 @@ int main(int argc, char **argv)
 	INFORM << "====== Preprocess! =======" << std::endl;
 
 	ctx.InitLoad(pt.get_child("Context.InitLoad"));
+
 
 	INFORM << "====== Process! =======" << std::endl;
 

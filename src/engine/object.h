@@ -39,6 +39,7 @@ public:
 };
 
 inline bool Object::CheckValueType(std::type_info const &) const
+
 {
 	return false;
 }

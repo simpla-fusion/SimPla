@@ -54,7 +54,7 @@ PML<UniformRectGrid>::PML(Context<UniformRectGrid> * d, const ptree & pt) :
 
 		X20(grid), X21(grid), X22(grid),
 
-		bc_(pt.get<nTuple<SIX, int> >("Arguments.bc"))
+		bc_(pt.get < nTuple<SIX, int> > ("Arguments.bc"))
 {
 
 	LOG << "Create module PML";
@@ -142,9 +142,9 @@ template<>
 void PML<UniformRectGrid>::Eval()
 {
 	LOG << "Run module PML";
-	TwoForm &B1 = *TR1::dynamic_pointer_cast<TwoForm>(dataset_["B"]);
-	OneForm &E1 = *TR1::dynamic_pointer_cast<OneForm>(dataset_["E"]);
-	OneForm &J1 = *TR1::dynamic_pointer_cast<OneForm>(dataset_["J"]);
+	TwoForm &B1 = *TR1::dynamic_pointer_cast < TwoForm > (dataset_["B"]);
+	OneForm &E1 = *TR1::dynamic_pointer_cast < OneForm > (dataset_["E"]);
+	OneForm &J1 = *TR1::dynamic_pointer_cast < OneForm > (dataset_["J"]);
 
 	OneForm dX2(grid);
 

@@ -18,6 +18,7 @@
 #include "engine/context.h"
 #include "engine/basemodule.h"
 #include "engine/compound.h"
+
 #include "utilities/properties.h"
 
 namespace simpla
@@ -134,12 +135,15 @@ void ColdFluid<TG>::Eval()
 	b = 0.0;
 	c = 0.0;
 
-	BOOST_FOREACH(const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v, sp_list)
+	BOOST_FOREACH(
+			const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v,
+			sp_list)
 	{
 		ZeroForm & ns = *TR1::dynamic_pointer_cast<ZeroForm>((*v)["n"]);
 		VecZeroForm & Js = *TR1::dynamic_pointer_cast<VecZeroForm>((*v)["J"]);
 		Real ms = v->properties.get<Real>("m") * proton_mass;
 		Real Zs = v->properties.get<Real>("Z") * elementary_charge;
+
 		Real as = 2.0 * ms / (dt * Zs);
 
 		a += ns * Zs / as;
@@ -167,7 +171,9 @@ void ColdFluid<TG>::Eval()
 			+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
 			+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
 					/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
-	BOOST_FOREACH(const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v, sp_list)
+	BOOST_FOREACH(
+			const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v,
+			sp_list)
 
 	{
 		ZeroForm & ns = *TR1::dynamic_pointer_cast<ZeroForm>((*v)["n"]);
@@ -175,6 +181,7 @@ void ColdFluid<TG>::Eval()
 
 		Real ms = v->properties.get<Real>("m") * proton_mass;
 		Real Zs = v->properties.get<Real>("Z") * elementary_charge;
+
 		Real as = 2.0 * ms / (dt * Zs);
 
 		K_ = // 2.0*nu*(Js)

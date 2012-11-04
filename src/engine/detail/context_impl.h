@@ -209,7 +209,6 @@ inline std::string Context<TG>::Summary() const
 
 	<< DOUBLELINE << std::endl
 
-
 	;
 	return os.str();
 
