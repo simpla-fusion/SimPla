@@ -19,6 +19,7 @@
 
 namespace simpla
 {
+
 using boost::property_tree::ptree;
 
 void read_file(std::string const & fname, ptree & pt);

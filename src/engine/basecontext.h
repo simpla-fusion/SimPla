@@ -10,7 +10,7 @@
 
 #include "include/simpla_defs.h"
 #include "object.h"
-
+#include "compound.h"
 #include <list>
 #include <string>
 #include <map>
@@ -23,33 +23,36 @@
 
 namespace simpla
 {
-class BaseGrid;
 
 class BaseContext
 {
 public:
+	//FIXME Need garbage collection of objects!!
 
-	std::map<std::string, TR1::shared_ptr<Object> > objects;
-
-	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(void)> > objFactory_;
+	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(ptree const&)> > objFactory_;
 
 	std::map<std::string, TR1::function<TR1::function<void(void)>(ptree const&)> > moduleFactory_;
 
-	std::string output_path;
+	ptree env;
 
-	TR1::function<void(void)> PreProcess;
-
-	TR1::function<void(void)> Process;
+	TR1::shared_ptr<CompoundObject> objects;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
 	BaseContext();
 
+	virtual void Parse(ptree const&pt);
+
 	virtual ~BaseContext();
 
 	virtual std::string Summary() const=0;
 
-	virtual void Parse(ptree const&pt);
+	virtual void InitLoad(ptree const&pt)
+	{
+		objects = CompoundObject::Create(this, pt);
+	}
+
+	virtual void Process(ptree const&pt);
 
 	inline size_t Counter() const
 	{
@@ -61,23 +64,35 @@ public:
 		return (timer_);
 	}
 
-	void PushClock();
+	inline void PushClock()
+	{
+		timer_ += dt;
+		++counter_;
+	}
 
-	void Load(ptree const & pt);
-	void Save();
-
-//	void PreProcess();
-//	void Process();
-
-	boost::optional<TR1::shared_ptr<Object> > FindObject(
-			std::string const & name,
-			std::type_info const &tinfo = typeid(void));
-
-	boost::optional<TR1::shared_ptr<const Object> > FindObject(
-			std::string const & name,
-			std::type_info const &tinfo = typeid(void)) const;
-
-	void DeleteObject(std::string const & name);
+	template<typename T>
+	inline boost::optional<T> GetEnv(std::string const &name,
+			boost::optional<ptree const &> pt) const
+	{
+		boost::optional<T> res(false, T());
+		if (!!pt)
+		{
+			if (boost::optional<const ptree &> apt = pt->get_child_optional(
+					name))
+			{
+				if (apt->data().substr(0, 5) != "$ENV{")
+				{
+					res = apt->get_value_optional<T>();
+				}
+				else
+				{
+					res = env.get_optional<T>(
+							apt->data().substr(5, apt->data().size() - 6));
+				}
+			}
+		}
+		return res;
+	}
 
 private:
 	Real dt;
@@ -88,5 +103,4 @@ private:
 ;
 
 }  // namespace simpla
-
 #endif /* BASECONTEXT_H_ */

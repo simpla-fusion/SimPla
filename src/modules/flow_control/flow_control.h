@@ -64,11 +64,10 @@ public:
 	std::list<TR1::function<void(void)> > modules;
 
 	Loop(BaseContext & d, const ptree & pt) :
-			ctx(d), maxstep(pt.get("<xmlattr>.Steps", 1))
+			ctx(d), maxstep(1)
 	{
 		BOOST_FOREACH(const typename ptree::value_type &v, pt)
 		{
-			CHECK(v.first);
 			if (v.first == "<xmlcomment>" || v.first == "<xmlattr>")
 			{
 				continue;
@@ -83,6 +82,12 @@ public:
 				WARNING << "Module type " << v.first << " is not registered!";
 			}
 
+		}
+
+		if (boost::optional<size_t> sp = ctx.GetEnv<size_t>("MaxStep",
+				pt.get_child_optional("<xmlattr>")))
+		{
+			maxstep = *sp;
 		}
 	}
 

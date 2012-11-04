@@ -26,4 +26,4 @@ FIND_PACKAGE(IntelMKL)
 
 ADD_EXECUTABLE(ggauge  ggauge.cpp)
 TARGET_LINK_LIBRARIES(ggauge    engine physics io 
-            preprocess utilities  em ${MKL_STATIC_LIBRARIES} )
+              utilities  em ${MKL_STATIC_LIBRARIES} )

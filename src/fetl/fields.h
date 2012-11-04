@@ -17,13 +17,16 @@
 #ifndef FETL_DETAIL_FIELD_H_
 #define FETL_DETAIL_FIELD_H_
 #include <typeinfo>
+#include "typeconvert.h"
+#include "fetl_defs.h"
 
 #include "include/simpla_defs.h"
-#include "fetl/fetl_defs.h"
-#include "engine/arrayobject.h"
-#include "engine/datatype.h"
-#include "typeconvert.h"
 
+#include "utilities/properties.h"
+#include "datastruct/ndarray.h"
+#include "engine/datatype.h"
+#include "engine/context.h"
+#include "io/read_hdf5.h"
 namespace simpla
 {
 
@@ -37,7 +40,7 @@ namespace simpla
  *
  */
 template<typename TG, int IFORM, typename TV>
-struct Field: public ArrayObject
+struct Field: public NdArray
 {
 public:
 	typedef TV ValueType;
@@ -58,13 +61,61 @@ public:
 	Grid const & grid;
 
 	Field(Grid const & pgrid) :
-			ArrayObject(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
+			NdArray(DataType<ValueType>(), pgrid.get_field_shape(IForm)), grid(
 					pgrid)
 	{
 	}
 
 	virtual ~Field()
 	{
+	}
+
+	static TR1::shared_ptr<ThisType> Create(Context<TG> * ctx, ptree const & pt)
+	{
+
+		TR1::shared_ptr<ThisType> res(new ThisType(ctx->grid));
+
+		boost::optional<ptree const &> o_pt = pt.get_child_optional(
+				"<xmlattr>");
+
+		if (!!o_pt)
+		{
+			res->properties = *o_pt;
+
+			LOG << "Load Field ["
+
+			<< res->properties.template get<std::string>("Name") << ":"
+
+			<< res->properties.template get<std::string>("Type") << "]";
+		}
+
+		boost::optional<ptree const &> value = pt.get_child_optional("Value");
+
+		if (!value)
+		{
+			res->Clear();
+		}
+		else if (value->get<std::string>("<xmlattr>.Format") == "HDF")
+		{
+			std::string url = value->get_value<std::string>();
+			io::ReadData(url, res);
+		}
+		else if (value->get<std::string>("<xmlattr>.Format") == "XML")
+		{
+			if (IFORM == IOneForm || IFORM == ITwoForm)
+			{
+				*res = value->get_value<nTuple<THREE, ValueType> >(
+						pt_trans<nTuple<THREE, ValueType>,
+								typename ptree::key_type>());
+			}
+			else
+			{
+				*res = value->get_value<ValueType>(
+						pt_trans<ValueType, typename ptree::key_type>());
+			}
+		}
+
+		return res;
 	}
 
 // Interpolation  ----------------------------------------------------------------------
@@ -142,7 +193,7 @@ public:
 
 	bool IsSame(ThisType const & rhs) const
 	{
-		return (ArrayObject::get_data() == rhs.get_data());
+		return (NdArray::get_data() == rhs.get_data());
 	}
 
 	virtual inline bool CheckType(std::type_info const &tinfo) const
@@ -159,17 +210,17 @@ public:
 	inline void Add(size_t s, ValueType const & v)
 	{
 //#pragma omp atomic
-		ArrayObject::value<ValueType>(s) += v;
+		NdArray::value<ValueType>(s) += v;
 	}
 
 	inline ValueType & operator[](size_t s)
 	{
-		return (ArrayObject::value<ValueType>(s));
+		return (NdArray::value<ValueType>(s));
 	}
 
 	inline ValueType const &operator[](size_t s) const
 	{
-		return (ArrayObject::value<ValueType>(s));
+		return (NdArray::value<ValueType>(s));
 	}
 
 	static const Field<TG, IForm, Int2Type<0> > ZERO;
@@ -195,7 +246,7 @@ struct Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > >
 		IForm = IFORM
 	};
 
-	typename simpla::_impl::TypeTraits<TL>::ConstReference lhs_;
+	typename _impl::TypeTraits<TL>::ConstReference lhs_;
 
 	Grid const &grid;
 

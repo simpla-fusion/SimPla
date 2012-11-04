@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 			input = argv[i] + 2;
 			break;
 		case 'l':
-			log_file =  std::string(argv[i] + 2);
+			log_file = std::string(argv[i] + 2);
 			break;
 		case 'v':
 			Log::Verbose(atof(argv[i] + 2));
@@ -53,17 +53,19 @@ int main(int argc, char **argv)
 
 	}
 
-	Log::OpenFile(output + "/" +log_file);
+	Log::OpenFile(output + "/" + log_file);
 
 	ptree pt;
 
 	read_file(input, pt);
 
-	ctx.output_path = output;
+	ctx.env.put("Path", output);
 
+	ctx.env.put("MaxStep", max_step);
+
+	ctx.env.put("RecordStep", record_stride);
 
 	ctx.Parse(pt.get_child("Context"));
-
 
 	INFORM
 
@@ -85,13 +87,19 @@ int main(int argc, char **argv)
 
 	<< std::setw(20) << "Configure File : " << input << std::endl
 
-	<< std::setw(20) << "Output Path : " << ctx.output_path << std::endl
+	<< std::setw(20) << "Output Path : "
+
+	<< ctx.env.get<std::string>("Path") << std::endl
 
 	<< std::setw(20) << "Log File : " << log_file << std::endl
 
-	<< std::setw(20) << "Number of steps : " << max_step << std::endl
+	<< std::setw(20) << "Number of steps : "
 
-	<< std::setw(20) << "Record/steps : " << record_stride << std::endl
+	<< ctx.env.get<size_t>("MaxStep") << std::endl
+
+	<< std::setw(20) << "Record/steps : "
+
+	<< ctx.env.get<size_t>("RecordStep") << std::endl
 
 	<< SINGLELINE << std::endl;
 
@@ -103,13 +111,13 @@ int main(int argc, char **argv)
 
 	<< std::endl;
 
-	INFORM << "====== Start PreProcess! =======" << std::endl;
+	INFORM << "====== Preprocess! =======" << std::endl;
 
-	ctx.PreProcess();
+	ctx.InitLoad(pt.get_child("Context.InitLoad"));
 
-	INFORM << "====== Start Process! =======" << std::endl;
+	INFORM << "====== Process! =======" << std::endl;
 
-	ctx.Process();
+	ctx.Process(pt.get_child("Context.Process"));
 
 	INFORM << "====== Done! =======" << std::endl;
 }

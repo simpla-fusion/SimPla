@@ -11,7 +11,6 @@
 
 #include "fetl_defs.h"
 
-#include "ntuple.h"
 #include "fields.h"
 #include "arithmetic.h"
 #include "vector_calculus.h"
@@ -19,51 +18,61 @@
 namespace simpla
 {
 
-//Default fields are real value
+template<typename > struct Context;
 
-template<typename Grid, int IFORM, typename TV> struct Field;
+template<typename TG> void RegisterFields(Context<TG> * ctx)
+{
+	DEFINE_FIELDS(typename TG::ValueType, TG)
 
-#define DEFINE_FIELDS(TV,TG)                                                         \
-typedef TG Grid;                                                                     \
-typedef Field<Grid, IZeroForm, TV>     ZeroForm;                                \
-typedef Field<Grid, IOneForm, TV>      OneForm;                                  \
-typedef Field<Grid, ITwoForm, TV>      TwoForm;                                  \
-typedef Field<Grid, IThreeForm, TV>    ThreeForm;                              \
-                                                                                     \
-typedef Field<Grid, IZeroForm, Vec3>   VecZeroForm;                           \
-typedef Field<Grid, IOneForm, Vec3>    VecOneForm;                             \
-typedef Field<Grid, ITwoForm, Vec3>    VecTwoForm;                             \
-typedef Field<Grid, IThreeForm, Vec3>  VecThreeForm;                         \
-                                                                                     \
-typedef Field<Grid, IZeroForm, TV> ScalarField;                             \
-typedef Field<Grid, IZeroForm, Vec3> VecField;                              \
-                                                                                     \
-typedef Field<Grid, IZeroForm, TV>     RZeroForm;                               \
-typedef Field<Grid, IOneForm, TV>      ROneForm;                                 \
-typedef Field<Grid, ITwoForm, TV>      RTwoForm;                                 \
-typedef Field<Grid, IThreeForm, TV>    RThreeForm;                             \
-                                                                                     \
-typedef Field<Grid, IZeroForm, RVec3>  RVecZeroForm;                         \
-typedef Field<Grid, IOneForm, RVec3>   RVecOneForm;                           \
-typedef Field<Grid, ITwoForm, RVec3>   RVecTwoForm;                           \
-typedef Field<Grid, IThreeForm, RVec3> RVecThreeForm;                       \
-                                                                                     \
-typedef Field<Grid, IZeroForm, TV> RScalarField;                            \
-typedef Field<Grid, IZeroForm, RVec3> RVecField;                            \
-                                                                                     \
-typedef Field<Grid, IZeroForm, Complex> CZeroForm;                          \
-typedef Field<Grid, IOneForm, Complex>  COneForm;                            \
-typedef Field<Grid, ITwoForm, Complex>  CTwoForm;                            \
-typedef Field<Grid, IThreeForm, Complex>  CThreeForm;                       \
-	                                                                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecZeroForm;                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecOneForm;                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecTwoForm;                         \
-typedef Field<Grid, IThreeForm, CVec3>  CVecThreeForm;                       \
-	                                                                         \
-typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
-typedef Field<Grid, IZeroForm, CVec3> CVecField;
+	ctx->objFactory_["Field.ZeroForm"] = TR1::bind(&ZeroForm::Create, ctx,
+			TR1::placeholders::_1);
 
-} //namespace simpla
+	ctx->objFactory_["Field.OneForm"] = TR1::bind(&OneForm::Create, ctx,
+			TR1::placeholders::_1);
 
+	ctx->objFactory_["Field.TwoForm"] = TR1::bind(&TwoForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.ThreeForm"] = TR1::bind(&ThreeForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.VecZeroForm"] = TR1::bind(&VecZeroForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.VecOneForm"] = TR1::bind(&VecOneForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.VecTwoForm"] = TR1::bind(&VecTwoForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.VecThreeForm"] = TR1::bind(&VecThreeForm::Create,
+			ctx, TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CZeroForm"] = TR1::bind(&CZeroForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.COneForm"] = TR1::bind(&COneForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CTwoForm"] = TR1::bind(&CTwoForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CThreeForm"] = TR1::bind(&CThreeForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CVecZeroForm"] = TR1::bind(&CVecZeroForm::Create,
+			ctx, TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CVecOneForm"] = TR1::bind(&CVecOneForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CTwoForm"] = TR1::bind(&CTwoForm::Create, ctx,
+			TR1::placeholders::_1);
+
+	ctx->objFactory_["Field.CVecThreeForm"] = TR1::bind(&CVecThreeForm::Create,
+			ctx, TR1::placeholders::_1);
+
+}
+
+}  // namespace simpla
 #endif  // FETL_H_

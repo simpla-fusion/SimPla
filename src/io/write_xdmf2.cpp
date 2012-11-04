@@ -94,7 +94,7 @@ void WriteXDMF2<UniformRectGrid>::Eval()
 	for (std::list<std::string>::const_iterator it = obj_list_.begin();
 			it != obj_list_.end(); ++it)
 	{
-		std::map<std::string, TR1::shared_ptr<ArrayObject> >::const_iterator oit =
+		std::map<std::string, TR1::shared_ptr<NdArray> >::const_iterator oit =
 				ctx.objects.find(*it);
 
 		if (oit != ctx.objects.end())
@@ -107,7 +107,7 @@ void WriteXDMF2<UniformRectGrid>::Eval()
 			xgrid.Insert(&attr);
 			root.Build();
 
-			ArrayObject & obj = *oit->second;
+			NdArray & obj = *oit->second;
 
 			H5::DataType mdatatype(
 					H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),

@@ -17,14 +17,14 @@ namespace simpla
 namespace io
 {
 void HDF5Append(H5::Group grp, std::string const & name,
-		const ArrayObject::Holder obj);
+		const NdArray::Holder obj);
 
-void WriteHDF5(H5::Group grp, std::string const & name, ArrayObject const & obj);
+void WriteHDF5(H5::Group grp, std::string const & name, NdArray const & obj);
 
 
-ArrayObject::Holder ReadHDF5(H5::Group grp, std::string const & name);
+NdArray::Holder ReadHDF5(H5::Group grp, std::string const & name);
 
-void HDF5AddAttribute(H5::DataSet dataset, const ArrayObject::Holder obj);
+void HDF5AddAttribute(H5::DataSet dataset, const NdArray::Holder obj);
 
 } // namespace IO
 } // namespace simpla

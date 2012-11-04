@@ -17,9 +17,9 @@ namespace simpla
 struct ParticleObject
 {
 	Real Z, m, T;
-	TR1::shared_ptr<Object> n;
-	TR1::shared_ptr<Object> J;
-	TR1::shared_ptr<Object> P;
+
+	std::map<std::string, TR1::shared_ptr<Object> > fields;
+
 	TR1::shared_ptr<Object> f;
 };
 

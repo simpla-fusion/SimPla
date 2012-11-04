@@ -8,67 +8,48 @@
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
 #include "include/simpla_defs.h"
-
 #include "engine/object.h"
 
 namespace simpla
 {
 
-template<typename TS, typename TG>
-struct ParticlePool: public Object
+struct Pool: public Object
 {
 
 public:
 	//TODO Define a parallel iterator
 
-	typedef TG Grid;
-
-	typedef TS Point_s;
-
-	typedef ParticlePool<Point_s, Grid> ThisType;
+	typedef Pool ThisType;
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	Grid const & grid;
-
-	ParticlePool(Grid const &pgrid, size_t element_size = sizeof(Point_s),
-			std::string desc = "") :
-			Object(element_size, desc), grid(pgrid)
-
+	Pool()
 	{
 		// initialize node lists
-
 	}
 
-	virtual ~ParticlePool()
+	virtual ~Pool()
 	{
 	}
 
 	inline void resize(size_t num)
 	{
-		Object::ReAlloc(&num);
 	}
 
 // Metadata ------------------------------------------------------------
 
-	virtual inline bool CheckValueType(std::type_info const & info) const
+	virtual bool CheckValueType(std::type_info const & info) const
 	{
-		return (info == typeid(Point_s));
+		return false;
 	}
 
 	virtual inline bool CheckType(std::type_info const & info) const
 	{
-		return (info == typeid(ThisType));
+		return (info == typeid(Pool));
 	}
-
-	Point_s & operator[](size_t s)
+	virtual inline bool Empty()
 	{
-		return (*reinterpret_cast<Point_s *>(Object::get_data(s)));
-	}
-
-	Point_s const & operator[](size_t s) const
-	{
-		return (*reinterpret_cast<Point_s const*>(Object::get_data(s)));
+		return true;
 	}
 
 	virtual void Sort()

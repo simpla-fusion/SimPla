@@ -9,7 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include "engine/context.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 #include "utilities/properties.h"
 
 namespace simpla
@@ -44,12 +44,14 @@ private:
 	Context<TG> const & ctx;
 	Grid const & grid;
 
-	size_t stride_;
+	size_t step_;
 
 	std::list<std::string> obj_list_;
 
 	std::string file_template;
 	std::string attrPlaceHolder;
+
+	std::string out_path;
 
 };
 

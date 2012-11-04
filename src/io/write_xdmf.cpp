@@ -15,7 +15,7 @@
 #include <sstream>
 #include "fetl/grid/uniform_rect.h"
 #include "engine/context.h"
-#include "engine/arrayobject.h"
+#include "datastruct/ndarray.h"
 #include "fetl/fetl.h"
 
 namespace simpla
@@ -32,10 +32,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
 
 		file_template(""),
 
-		attrPlaceHolder("<!-- Add Attribute Here -->"),
-
-		stride_(pt.get("<xmlattr>.Stride", 1))
-
+		attrPlaceHolder("<!-- Add Attribute Here -->")
 {
 	BOOST_FOREACH(const typename ptree::value_type &v, pt)
 	{
@@ -129,7 +126,18 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
 
 	LOG << "Create module WriteXDMF";
 
-	mkdir(ctx.output_path.c_str(), 0777);
+	if (boost::optional<size_t> sp = ctx.GetEnv<size_t>("RecordStep",
+			pt.get_child_optional("<xmlattr>")))
+	{
+		step_ = *sp;
+	}
+	if (boost::optional<std::string> sp = ctx.GetEnv<std::string>("Path",
+			pt.get_child("<xmlattr>")))
+	{
+		out_path = *sp;
+	}
+
+	mkdir(out_path.c_str(), 0777);
 }
 
 template<>
@@ -139,7 +147,7 @@ WriteXDMF<UniformRectGrid>::~WriteXDMF()
 template<>
 void WriteXDMF<UniformRectGrid>::Eval()
 {
-	if (ctx.Counter() % stride_ != 0)
+	if (ctx.Counter() % step_ != 0)
 	{
 		return;
 	}
@@ -154,9 +162,9 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		filename = st.str();
 	}
 
-
-	H5::Group grp = H5::H5File(ctx.output_path + "/" + filename + ".h5",
-			H5F_ACC_TRUNC).openGroup("/");
+	H5::Group grp =
+			H5::H5File(out_path + "/" + filename + ".h5", H5F_ACC_TRUNC).openGroup(
+					"/");
 
 	std::string xmdf_file(file_template);
 
@@ -169,13 +177,12 @@ void WriteXDMF<UniformRectGrid>::Eval()
 	for (std::list<std::string>::const_iterator it = obj_list_.begin();
 			it != obj_list_.end(); ++it)
 	{
-		std::map<std::string, TR1::shared_ptr<Object> >::const_iterator oit =
-				ctx.objects.find(*it);
+		boost::optional<TR1::shared_ptr<Object> > oit = ctx.objects->FindObject(
+				*it);
 
-		if (oit != ctx.objects.end())
+		if (!!oit)
 		{
-			ArrayObject & obj = *TR1::dynamic_pointer_cast<ArrayObject>(
-					oit->second);
+			NdArray & obj = *TR1::dynamic_pointer_cast<NdArray>(*oit);
 
 			std::string attr_str = "Scalar";
 
@@ -262,7 +269,7 @@ void WriteXDMF<UniformRectGrid>::Eval()
 		}
 	}
 
-	std::fstream fs((ctx.output_path + "/" + filename + ".xdmf").c_str(),
+	std::fstream fs((out_path + "/" + filename + ".xdmf").c_str(),
 			std::fstream::out);
 	fs << xmdf_file;
 	fs.close();

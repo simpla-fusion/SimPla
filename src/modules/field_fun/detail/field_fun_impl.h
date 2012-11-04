@@ -22,8 +22,8 @@ template<typename TG> struct BaseFieldFunction;
 template<typename TG, template<typename > class TFun>
 TR1::function<void(void)> Create(Context<TG>* ctx, ptree const & pt)
 {
-	std::string field_name = pt.get<std::string>("Data.Field");
-	std::string field_type = pt.get<std::string>("Data.Field.<xmlattr>.Type");
+	std::string field_name = pt.get<std::string>("DataSet");
+	std::string field_type = pt.get<std::string>("DataSet.<xmlattr>.Type");
 
 	TR1::function<void(void)> res;
 
@@ -137,7 +137,7 @@ struct BaseFieldFunction<UniformRectGrid>
 	BaseFieldFunction(Context<Grid> & d, const ptree & pt) :
 			ctx(d),
 
-			field_name(pt.get<std::string>("Data.Field"))
+			field_name(pt.get<std::string>("DataSet"))
 	{
 		boost::optional<RVec3> xmin = pt.get_optional<RVec3>("Domain.XMin",
 				pt_trans<RVec3, std::string>());

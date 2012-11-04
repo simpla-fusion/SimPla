@@ -15,9 +15,10 @@
 #include "modules/em/em.h"
 #include "modules/fluid/fluid.h"
 #include "modules/field_fun/field_fun.h"
-#include "modules/io/io.h"
-#include "modules/preprocess/preprocess.h"
 #include "modules/flow_control/flow_control.h"
+
+#include "io/io.h"
+
 namespace simpla
 {
 
@@ -30,7 +31,6 @@ void RegisterModules(Context<TG> * ctx)
 	fliud::RegisterModules(ctx);
 	field_fun::RegisterModules(ctx);
 	flow_control::RegisterModules(ctx);
-	preprocess::RegisterModules(ctx);
 
 }
 

@@ -16,6 +16,8 @@
 #include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "engine/context.h"
+#include "engine/basemodule.h"
+#include "engine/compound.h"
 #include "utilities/properties.h"
 
 namespace simpla
@@ -24,7 +26,7 @@ namespace fliud
 {
 
 template<typename TG>
-class ColdFluid
+class ColdFluid: public BaseModule
 {
 public:
 
@@ -55,31 +57,15 @@ private:
 	const Real proton_mass;
 	const Real elementary_charge;
 
-	struct Sepcies
-	{
-		Sepcies(Real pm, Real pZ, TR1::shared_ptr<ZeroForm> n,
-				TR1::shared_ptr<VecZeroForm> J) :
-				m(pm), Z(pZ), ns(n), Js(J)
-		{
-
-		}
-		const Real m;
-		const Real Z;
-		TR1::shared_ptr<ZeroForm> ns;
-		TR1::shared_ptr<VecZeroForm> Js;
-	};
-
-	std::list<TR1::shared_ptr<Sepcies> > sp_list;
+	std::list<TR1::shared_ptr<CompoundObject> > sp_list;
 
 	// vector fields on  grid node
-
-	std::map<std::string, std::string> dataflow_;
-	// internal variable name, type, reference name
-
 };
 
 template<typename TG>
 ColdFluid<TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
+		BaseModule(d, pt),
+
 		ctx(d),
 
 		grid(ctx.grid),
@@ -96,29 +82,20 @@ ColdFluid<TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
 
 {
 	LOG << "Create module ColdFluid";
-	BOOST_FOREACH(const typename ptree::value_type &v, pt.get_child("Data"))
+
+	BOOST_FOREACH( const typename ptree::value_type &v, pt)
 	{
-		dataflow_[v.second.get<std::string>("<xmlattr>.Name")] =
-				v.second.get_value<std::string>();
+		if (v.first == "Compound")
+		{
+			boost::optional<TR1::shared_ptr<Object> > obj =
+					ctx.objects->FindObject(v.second.get_value<std::string>());
 
-	}
-
-	BOOST_FOREACH(
-			const typename ptree::value_type &v, pt.get_child("Arguments"))
-	{
-		std::string id = v.second.get<std::string>("<xmlattr>.Name");
-
-		sp_list.push_back(TR1::shared_ptr<Sepcies>(new Sepcies(
-
-		v.second.template get<Real>("m"),
-
-		v.second.template get<Real>("Z"),
-
-		ctx.template GetObject<ZeroForm>(id + "_ns"),
-
-		ctx.template GetObject<VecZeroForm>(id + "_Js")
-
-		)));
+			if (!!obj)
+			{
+				sp_list.push_back(
+						TR1::dynamic_pointer_cast<CompoundObject>(*obj));
+			}
+		}
 	}
 }
 template<typename TG>
@@ -131,18 +108,18 @@ void ColdFluid<TG>::Eval()
 {
 	LOG << "Run module ColdFluid";
 
-	TwoForm const&B = *ctx.template GetObject<TwoForm>(dataflow_["B"]);
-	OneForm const&E = *ctx.template GetObject<OneForm>(dataflow_["E"]);
-	OneForm &J = *ctx.template GetObject<OneForm>(dataflow_["J"]);
+	TwoForm const&B = *TR1::dynamic_pointer_cast<TwoForm>(dataset_["B"]);
+	OneForm const&E = *TR1::dynamic_pointer_cast<OneForm>(dataset_["E"]);
+	OneForm &J = *TR1::dynamic_pointer_cast<OneForm>(dataset_["J"]);
 
 	ZeroForm BB(grid);
 
 	VecZeroForm Ev(grid), Bv(grid), dEvdt(grid);
 
-	Bv = MapTo(Int2Type<IZeroForm>(), B);
-
-	Ev = MapTo(Int2Type<IZeroForm>(),
-			E + (Curl(B) / mu0 - J) / epsilon0 * (dt * 0.5));
+//	Bv = MapTo(Int2Type<IZeroForm>(), B);
+//
+//	Ev = MapTo(Int2Type<IZeroForm>(),
+//			E + (Curl(B) / mu0 - J) / epsilon0 * (dt * 0.5));
 
 	BB = Dot(Bv, Bv);
 
@@ -157,28 +134,29 @@ void ColdFluid<TG>::Eval()
 	b = 0.0;
 	c = 0.0;
 
-	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
-			sp_list.begin(); it != sp_list.end(); ++it)
+	BOOST_FOREACH(const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v, sp_list)
 	{
+		ZeroForm & ns = *TR1::dynamic_pointer_cast<ZeroForm>((*v)["n"]);
+		VecZeroForm & Js = *TR1::dynamic_pointer_cast<VecZeroForm>((*v)["J"]);
+		Real ms = v->properties.get<Real>("m") * proton_mass;
+		Real Zs = v->properties.get<Real>("Z") * elementary_charge;
+		Real as = 2.0 * ms / (dt * Zs);
 
-		Real m = (*it)->m * proton_mass;
-		Real Z = (*it)->Z * elementary_charge;
-		Real as = 2.0 * m / (dt * Z);
+		a += ns * Zs / as;
+		b += ns * Zs / (BB + as * as);
+		c += ns * Zs / ((BB + as * as) * as);
 
-		a += *(*it)->ns * Z / as;
-		b += *(*it)->ns * Z / (BB + as * as);
-		c += *(*it)->ns * Z / ((BB + as * as) * as);
+		K_ = // 2.0*nu*Js
+				-2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
 
-		K_ = // 2.0*nu**(*it)->Js
-				-2.0 * Cross(*(*it)->Js, Bv) - (Ev * (*(*it)->ns)) * (2.0 * Z);
-
-		K -= *(*it)->Js
+		K -= Js
 				+ 0.5
 						* (K_ / as + Cross(K_, Bv) / (BB + as * as)
 								+ Cross(Cross(K_, Bv), Bv)
 										/ (as * (BB + as * as)));
 
 	}
+
 	a = a * (0.5 * dt) / epsilon0 - 1.0;
 	b = b * (0.5 * dt) / epsilon0;
 	c = c * (0.5 * dt) / epsilon0;
@@ -189,22 +167,23 @@ void ColdFluid<TG>::Eval()
 			+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
 			+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
 					/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
+	BOOST_FOREACH(const typename std::list<TR1::shared_ptr<CompoundObject> >::value_type &v, sp_list)
 
-	for (typename std::list<TR1::shared_ptr<Sepcies> >::iterator it =
-			sp_list.begin(); it != sp_list.end(); ++it)
 	{
-		Real ms = (*it)->m * proton_mass;
-		Real Zs = (*it)->Z * elementary_charge;
+		ZeroForm & ns = *TR1::dynamic_pointer_cast<ZeroForm>((*v)["n"]);
+		VecZeroForm & Js = *TR1::dynamic_pointer_cast<VecZeroForm>((*v)["J"]);
+
+		Real ms = v->properties.get<Real>("m") * proton_mass;
+		Real Zs = v->properties.get<Real>("Z") * elementary_charge;
 		Real as = 2.0 * ms / (dt * Zs);
 
-		K_ = // 2.0*nu*(*(*it)->Js)
-				-2.0 * Cross(*(*it)->Js, Bv)
-						- (2.0 * Ev + dEvdt * dt) * (*(*it)->ns) * Zs;
-		*(*it)->Js += K_ / as + Cross(K_, Bv) / (BB + as * as)
+		K_ = // 2.0*nu*(Js)
+				-2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+		Js += K_ / as + Cross(K_, Bv) / (BB + as * as)
 				+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-	J -= MapTo(Int2Type<IOneForm>(), dEvdt);
+//	J -= MapTo(Int2Type<IOneForm>(), dEvdt);
 
 }
 

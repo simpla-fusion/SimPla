@@ -13,38 +13,37 @@
 		<Time Value="0" dt="0.0025" Unit="s">0.0025</Time>
 	</Grid>
 	
-	<Preprocess>
+	<InitLoad>
 		<Field Name='B1'  Type='TwoForm'>
-			<Data  Format='XML' Dimensions='3'>1 0 0</Data>
+			<Value  Format='XML' Dimensions='3'>1 0 0</Value>
 		</Field>
 
 		<Field Name='E1'  Type='OneForm'>
-<!--				<Data  Format='HDF' >a.h5:/E1</Data> -->
+<!--				<Value  Format='HDF' >a.h5:/E1</Value> -->
 		</Field>
 
 		<Field Name='J1'  Type='OneForm'>
-<!--		<Data  Format='HDF' >a.h5:/E1</Data> -->
+<!--		<Value  Format='HDF' >a.h5:/E1</Value> -->
 		</Field>
-		
-		<Particle Name="ele" Z="-1" m="1" T="1.0">
-			<Field Name='J'  Type='VecZeroForm'></Field>
-			<Field Name='n'  Type='ZeroForm'></Field>
-		</Particle>
-	</Preprocess>
+		<Compound  Type="" Name="H" Z="-1" m="1" T="1.0">
+			<Field Name="J"  Type="VecZeroForm"><Value  Format='XML' Dimensions='3'>1 0 0</Value></Field>
+			<Field Name="n"  Type="ZeroForm"><Value  Format='XML'> 0</Value></Field>
+			<!--<Pool Name='f'  Type='DeltaF'></Pool>--> 
+		</Compound>
+	</InitLoad>
 	
 
 	<Process>
 		
-<!--	<PIC Name='ele' Type='DeltaF'></PIC>-->
 		<AssignConstant>
-			<Data><Field Type="OneForm" >J1</Field></Data>
+			<DataSet  Type="OneForm" >J1 </DataSet>
 			<Arguments>
 					<value> 0 0 0 </value>
 			</Arguments>	
 		</AssignConstant>
-		<Loop   Steps="200">
+		<Loop   MaxStep="$ENV{MaxStep}">
  			<RampWave  >
-				<Data><Field Type="OneForm" >J1</Field></Data> 
+				<DataSet  Type="OneForm" >J1 </DataSet> 
 				<Domain>
 					<XMin>0.0 0 0 </XMin>
 					<XMax>0.1 1 0 </XMax>
@@ -58,9 +57,7 @@
 			</RampWave>
 <!--
 			<RFSrc >
-				<Data>                               
-					<Field Type="OneForm" IO="RW">E1</Field>
-				</Data>
+				<DataSet Type="OneForm" IO="RW">E1 </DataSet>
 				<Arguments>
 					<alpha>0.01 </alpha>
 					<freq> 100 </freq>
@@ -68,48 +65,36 @@
 					<pos> 0.5 0.5 0 </pos>
 				</Arguments>
 			</RFSrc>
--->	
+	-->	
 			<ColdFluid>
-				<Data>
-					<Field Name="B" IO="RW">B1</Field>
-					<Field Name="E" IO="RW">E1</Field>
-					<Field Name="J" IO="R" >J1</Field>
-					<Particle Name="H" IO="R" >J</Particle>
-				</Data>
-				<Arguments>
-					<species Name="H">
-						<m>1</m>
-						<Z>1</Z>
-						<ns>0.5</ns>
-					</species>
-				</Arguments>
-			</ColdFluid>
-<!--
-			<Maxwell > 
-				<Data>
-					<Field Name="B" IO="RW" Type="TwoForm">B1</Field>
-					<Field Name="E" IO="RW" Type="OneForm">E1</Field>
-					<Field Name="J" IO="R"  Type="OneForm" >J1</Field>
-				</Data>
-			</Maxwell>
--->	
+				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
+				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
+				<DataSet Name="J" IO="R"  Type="OneForm">J1</DataSet>
+				<DataSet Name="H" Type="Compound">H</DataSet>
 
+			</ColdFluid>
+ 
+		
+			<Maxwell > 
+				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
+				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
+				<DataSet Name="J" IO="R"  Type="OneForm" >J1</DataSet>
+			</Maxwell>
+
+ 
 			<PML>
-				<Data>
-					<Field Name="B" IO="RW">B1</Field>
-					<Field Name="E" IO="RW">E1</Field>
-					<Field Name="J" IO="R" >J1</Field>
-				</Data>
+				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
+				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
+				<DataSet Name="J" IO="R"  Type="OneForm">J1</DataSet>
 				<Arguments>
 					<bc> 20 20 20 20 20 20 </bc>
 				</Arguments>
 			</PML>
-			
-			<WriteXDMF  Stride="1">
-				<Field>E1</Field>
-				<Field>B1</Field>
-				<Field>J1</Field>
-				<Field>H_J</Field>
+		
+			<WriteXDMF Path="$ENV{Path}" RecordStep="$ENV{RecordStep}">
+				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
+				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
+				<DataSet Name="J" IO="R"  Type="OneForm">J1</DataSet>
 			</WriteXDMF >
 			<Clock></Clock>
 		</Loop>

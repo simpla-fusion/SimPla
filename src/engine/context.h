@@ -10,7 +10,7 @@
 
 #include "include/simpla_defs.h"
 #include "basecontext.h"
-#include "fetl/fetl.h"
+#include "fetl/fetl_defs.h"
 #include "utilities/properties.h"
 namespace simpla
 {
@@ -26,8 +26,6 @@ public:
 	typedef typename TG::ValueType ValueType;
 
 	typedef TR1::shared_ptr<ThisType> Holder;
-
-	std::map<std::string, TR1::function<TR1::shared_ptr<ArrayObject>(void)> > objFactory;
 
 	Grid grid;
 

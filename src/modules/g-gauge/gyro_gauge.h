@@ -30,7 +30,7 @@ struct Point_s
 ;
 
 template<typename TG, typename TF>
-ArrayObject::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
+NdArray::Holder InitLoadParticle(TG const & grid, const ptree & pt, TF const &n1)
 {
 
 	size_t num_of_mate = pt.get<int>("num_of_mate");

@@ -9,7 +9,7 @@
 #include <H5Cpp.h>
 #include <hdf5_hl.h>
 
-void simpla::io::ReadData(std::string const &url, TR1::shared_ptr<ArrayObject> obj)
+void simpla::io::ReadData(std::string const &url, TR1::shared_ptr<NdArray> obj)
 {
 
 	int domain_pos = url.find(":", 0);

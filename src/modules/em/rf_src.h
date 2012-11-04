@@ -73,7 +73,7 @@ struct RFSrc
 
 		size_t s = ctx.grid.get_cell_num(x);
 
-		boost::optional<TR1::shared_ptr<Object> > obj = ctx.FindObject(
+		boost::optional<TR1::shared_ptr<Object> > obj = ctx.objects->FindObject(
 				field_name);
 
 		if (field_type == "OneForm")
