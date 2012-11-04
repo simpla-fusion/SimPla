@@ -35,14 +35,14 @@ public:
 
 	DEFINE_FIELDS(typename TG::ValueType, TG)
 
-	ColdFluid(Context<TG> & d, const ptree & pt);
+	ColdFluid(Context<TG> * d, const ptree & pt);
 
 	virtual ~ColdFluid();
 
 	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
 
 	virtual void Eval();
@@ -63,10 +63,10 @@ private:
 };
 
 template<typename TG>
-ColdFluid<TG>::ColdFluid(Context<TG> & d, const ptree & pt) :
+ColdFluid<TG>::ColdFluid(Context<TG> * d, const ptree & pt) :
 		BaseModule(d, pt),
 
-		ctx(d),
+		ctx(*d),
 
 		grid(ctx.grid),
 

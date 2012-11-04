@@ -36,14 +36,14 @@
 	<Process>
 		
 		<AssignConstant>
-			<DataSet  Type="OneForm" >J1 </DataSet>
+			<DataSet  Type="OneForm" >J1</DataSet>
 			<Arguments>
 					<value> 0 0 0 </value>
 			</Arguments>	
 		</AssignConstant>
 		<Loop   MaxStep="$ENV{MaxStep}">
  			<RampWave  >
-				<DataSet  Type="OneForm" >J1 </DataSet> 
+				<DataSet  Type="OneForm" >J1</DataSet> 
 				<Domain>
 					<XMin>0.0 0 0 </XMin>
 					<XMax>0.1 1 0 </XMax>
@@ -57,7 +57,7 @@
 			</RampWave>
 <!--
 			<RFSrc >
-				<DataSet Type="OneForm" IO="RW">E1 </DataSet>
+				<DataSet Type="OneForm" IO="RW">E1</DataSet>
 				<Arguments>
 					<alpha>0.01 </alpha>
 					<freq> 100 </freq>
@@ -78,7 +78,7 @@
 			<Maxwell > 
 				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
 				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
-				<DataSet Name="J" IO="R"  Type="OneForm" >J1</DataSet>
+				<DataSet Name="J" IO="R"  Type="OneForm">J1</DataSet>
 			</Maxwell>
 
  

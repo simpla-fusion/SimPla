@@ -24,11 +24,13 @@ namespace io
 {
 
 template<>
-WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> const & d,
+WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
 		const ptree & pt) :
-		ctx(d),
+		BaseModule(d, pt),
 
-		grid(d.grid),
+		ctx(*d),
+
+		grid(d->grid),
 
 		file_template(""),
 

@@ -9,6 +9,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/foreach.hpp>
 #include "engine/context.h"
+#include "engine/basemodule.h"
 #include "datastruct/ndarray.h"
 #include "utilities/properties.h"
 
@@ -18,7 +19,7 @@ namespace simpla
 namespace io
 {
 template<typename TG>
-class WriteXDMF
+class WriteXDMF:public BaseModule
 {
 	enum
 	{
@@ -30,14 +31,14 @@ public:
 	typedef WriteXDMF<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	WriteXDMF(Context<TG> const & d, const ptree & pt);
+	WriteXDMF(Context<TG> * d, const ptree & pt);
 
 	virtual ~WriteXDMF();
 
 	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
 	virtual void Eval();
 private:

@@ -31,10 +31,10 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 template<>
-PML<UniformRectGrid>::PML(Context<UniformRectGrid> & d, const ptree & pt) :
+PML<UniformRectGrid>::PML(Context<UniformRectGrid> * d, const ptree & pt) :
 		BaseModule(d, pt),
 
-		ctx(d),
+		ctx(*d),
 
 		grid(ctx.grid),
 

@@ -24,8 +24,8 @@ public:
 
 	BaseContext & ctx;
 
-	Clock(BaseContext & d, const ptree & pt) :
-			ctx(d)
+	Clock(BaseContext * d, const ptree & pt) :
+			ctx(*d)
 	{
 	}
 
@@ -35,7 +35,7 @@ public:
 	static TR1::function<void(void)> Create(BaseContext* d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
 
 	virtual void Eval()
@@ -63,8 +63,8 @@ public:
 
 	std::list<TR1::function<void(void)> > modules;
 
-	Loop(BaseContext & d, const ptree & pt) :
-			ctx(d), maxstep(1)
+	Loop(BaseContext * d, const ptree & pt) :
+			ctx(*d), maxstep(1)
 	{
 		BOOST_FOREACH(const typename ptree::value_type &v, pt)
 		{
@@ -97,7 +97,7 @@ public:
 	static TR1::function<void(void)> Create(BaseContext* d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType( d, pt)));
 	}
 
 	virtual void Eval()

@@ -13,12 +13,11 @@
 #include "fetl/grid.h"
 #include "fetl/fetl.h"
 #include "engine/context.h"
-namespace simpla {
+namespace simpla
+{
 
-namespace field_fun {
-
-template<typename TF, typename Fonctor> struct FieldFunction;
-template<typename TG> struct BaseFieldFunction;
+namespace field_fun
+{
 
 template<typename TV>
 struct RampWave
@@ -48,7 +47,6 @@ struct RampWave
 	}
 
 };
-
 
 }  // namespace field_fun
 

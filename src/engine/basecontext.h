@@ -50,6 +50,16 @@ public:
 	virtual void InitLoad(ptree const&pt)
 	{
 		objects = CompoundObject::Create(this, pt);
+
+		std::ostringstream os;
+		for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
+				objects->childs.begin(); it != objects->childs.end(); ++it)
+		{
+			os << it->first << " ";
+		}
+
+		LOG << os.str() << std::endl;
+
 	}
 
 	virtual void Process(ptree const&pt);

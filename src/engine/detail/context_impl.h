@@ -209,19 +209,8 @@ inline std::string Context<TG>::Summary() const
 
 	<< DOUBLELINE << std::endl
 
+
 	;
-
-//	<< "Objects List" << std::endl
-//
-//	<< SINGLELINE << std::endl
-//
-//
-//	for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
-//			objects.begin(); it != objects.end(); ++it)
-//	{
-//		os << it->first << std::endl;
-//	}
-
 	return os.str();
 
 }

@@ -25,5 +25,5 @@ SET(MKL_LIBRARY_DIR   /opt/intel/composerxe/mkl/lib)
 FIND_PACKAGE(IntelMKL)
 
 ADD_EXECUTABLE(ggauge  ggauge.cpp)
-TARGET_LINK_LIBRARIES(ggauge    engine physics io 
+TARGET_LINK_LIBRARIES(ggauge    engine physics io field_fun
               utilities  em ${MKL_STATIC_LIBRARIES} )

@@ -24,7 +24,7 @@ public:
 
 	typedef TR1::shared_ptr<BaseModule> Holder;
 
-	BaseModule(BaseContext & d, ptree const &pt)
+	BaseModule(BaseContext * d, ptree const &pt)
 	{
 		BOOST_FOREACH(const typename ptree::value_type &v, pt)
 		{
@@ -33,11 +33,12 @@ public:
 				std::string o_name = v.second.get_value<std::string>();
 
 				boost::optional<TR1::shared_ptr<Object> > obj =
-						d.objects->FindObject(o_name);
+						d->objects->FindObject(o_name);
 				if (!!obj)
 				{
-					dataset_[v.second.get<std::string>("<xmlattr>.Name")] =
-							*obj;
+					std::string p_name = v.second.get("<xmlattr>.Name",
+							"default");
+					dataset_[p_name] = *obj;
 				}
 				else
 				{

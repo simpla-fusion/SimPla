@@ -11,7 +11,6 @@
 #include "include/simpla_defs.h"
 #include "engine/context.h"
 
-#include "rf_src.h"
 #include "maxwell.h"
 #include "pml.h"
 
@@ -24,9 +23,6 @@ template<typename TG>
 void RegisterModules(Context<TG> * ctx)
 {
 	DEFINE_FIELDS(typename TG::ValueType, TG)
-
-	ctx->moduleFactory_["RFSrc"] = TR1::bind(&RFSrc<TG>::Create, ctx,
-			TR1::placeholders::_1);
 
 	ctx->moduleFactory_["Maxwell"] = TR1::bind(&Maxwell<TG>::Create, ctx,
 			TR1::placeholders::_1);

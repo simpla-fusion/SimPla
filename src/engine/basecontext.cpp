@@ -30,7 +30,7 @@ void BaseContext::Parse(ptree const&pt)
 
 void BaseContext::Process(ptree const&pt)
 {
-	flow_control::Loop(*this, pt).Eval();
+	flow_control::Loop(this, pt).Eval();
 }
 BaseContext::~BaseContext()
 {

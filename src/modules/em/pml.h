@@ -20,7 +20,7 @@ namespace em
 {
 
 template<typename TG>
-class PML:public BaseModule
+class PML: public BaseModule
 {
 public:
 
@@ -29,12 +29,12 @@ public:
 
 	DEFINE_FIELDS(typename TG::ValueType,TG)
 
-	PML(Context<TG> & d, const ptree & pt);
+	PML(Context<TG> * d, const ptree & pt);
 	virtual ~PML();
 	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(*d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
 	virtual void Eval();
 private:
