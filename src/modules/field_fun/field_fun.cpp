@@ -24,8 +24,8 @@ struct FieldFunction<Field<UniformRectGrid, IZeroForm, nTuple<THREE, Real> >,   
 	TFUN<nTuple<THREE, Real> > > ;                                                 \
 
 
-DEFINE_FIELD_FUNCTION(RampWave)
 DEFINE_FIELD_FUNCTION(AssignConstant)
+DEFINE_FIELD_FUNCTION(LuaScript)
 }  // namespace field_fun
 
 }  // namespace simpla

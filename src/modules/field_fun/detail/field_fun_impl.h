@@ -17,7 +17,6 @@
 #include "fetl/fetl.h"
 #include "fetl/grid/uniform_rect.h"
 
-#include "../ramp_wave.h"
 #include "../assign_constant.h"
 #include "../smooth.h"
 #include "../damping.h"
@@ -414,9 +413,6 @@ template<typename TG, template<typename > class TFun> inline TR1::function<
 template<typename TG> inline void RegisterModules(Context<TG> * ctx)
 {
 	DEFINE_FIELDS(typename TG::ValueType, TG)
-
-	ctx->moduleFactory_["RampWave"] = TR1::bind(&Create<TG, RampWave>, ctx,
-			TR1::placeholders::_1);
 
 	ctx->moduleFactory_["AssignConstant"] = TR1::bind(
 			&Create<TG, AssignConstant>, ctx, TR1::placeholders::_1);

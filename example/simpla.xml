@@ -48,20 +48,17 @@
 					<XMin>0.0 0 0 </XMin>
 					<XMax>0.1 1 0 </XMax>
 				</Domain>
-				<Script >
+				<Script Name="RampSin">
 					 	f0=1.9
 					 	k={0,1,1}
 					 	alpha=1.0e32
 					 	A={1,0,0}
-					 	function Fun(x,y,z,t)
+					 	function RampSin(x,y,z,t)
 					 		wt=t*f0+x*k[1]+y*k[2]+z*k[3]
 					 		a=(1-math.exp(-t*alpha))*math.sin(wt)
 					 		r={A[1]*a,A[2]*a,A[3]*a}
-					 		print(x,y,z,t,r[1])
-					 		
-					 		return r 
+					 		return r
 					 	end
-					 	
 				</Script>	
 			</LuaScript>
  
@@ -90,7 +87,7 @@
 				</Arguments>
 			</PML>
 		
-			<WriteXDMF Path="$ENV{Path}" RecordStep="$ENV{RecordStep}">
+			<WriteXDMF Path="Untitled" RecordStep="1">
 				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
 				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
 				<DataSet Name="J" IO="R"  Type="OneForm">J1</DataSet>

@@ -8,8 +8,12 @@
 #ifndef LUA_SCRIPT_H_
 #define LUA_SCRIPT_H_
 
-#include "engine/context.h"
+#include "include/simpla_defs.h"
+
 #include <lua5.1/lua.hpp>
+
+#include "utilities/properties.h"
+
 namespace simpla
 {
 namespace field_fun
@@ -22,7 +26,7 @@ public:
 	std::string funname;
 
 	LuaScript(ptree const &pt) :
-			lua_s(luaL_newstate()), funname(pt.get("<xmlattr>.Name", "Fun"))
+			lua_s(luaL_newstate()), funname(pt.get("Script.<xmlattr>.Name", "Fun"))
 	{
 		luaL_openlibs(lua_s);
 		luaL_dostring(lua_s, pt.get<std::string>("Script").c_str());
