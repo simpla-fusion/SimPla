@@ -41,31 +41,31 @@
 					<value> 0 0 0 </value>
 			</Arguments>	
 		</AssignConstant>
-		<Loop   MaxStep="$ENV{MaxStep}">
- 			<RampWave  >
+		<Loop   MaxStep="10"> 		
+			 <LuaScript>
 				<DataSet  Type="OneForm" >J1</DataSet> 
 				<Domain>
 					<XMin>0.0 0 0 </XMin>
 					<XMax>0.1 1 0 </XMax>
 				</Domain>
-				<Arguments>
-					<alpha>0.01 </alpha>
-					<freq> 100 </freq>
-					<amp> 1 1 1 </amp>
-					<k>   0.0 6.28 0.0 </k>
-				</Arguments>	
-			</RampWave>
-<!--
-			<RFSrc >
-				<DataSet Type="OneForm" IO="RW">E1</DataSet>
-				<Arguments>
-					<alpha>0.01 </alpha>
-					<freq> 100 </freq>
-					<amp> 0 0 1 </amp>
-					<pos> 0.5 0.5 0 </pos>
-				</Arguments>
-			</RFSrc>
-	-->	
+				<Script >
+					 	f0=1.9
+					 	k={0,1,1}
+					 	alpha=1.0e32
+					 	A={1,0,0}
+					 	function Fun(x,y,z,t)
+					 		wt=t*f0+x*k[1]+y*k[2]+z*k[3]
+					 		a=(1-math.exp(-t*alpha))*math.sin(wt)
+					 		r={A[1]*a,A[2]*a,A[3]*a}
+					 		print(x,y,z,t,r[1])
+					 		
+					 		return r 
+					 	end
+					 	
+				</Script>	
+			</LuaScript>
+ 
+<!--			
 			<ColdFluid>
 				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
 				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>
@@ -73,7 +73,7 @@
 				<DataSet Name="H" Type="Compound">H</DataSet>
 
 			</ColdFluid>
-		
+-->		
 			<Maxwell > 
 				<DataSet Name="B" IO="RW" Type="TwoForm">B1</DataSet>
 				<DataSet Name="E" IO="RW" Type="OneForm">E1</DataSet>

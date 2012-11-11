@@ -8,35 +8,43 @@
 
 #ifndef INCLUDE_LUA_PARSER_H_
 #define INCLUDE_LUA_PARSER_H_
-#include <lua.hpp>
+#include <lua5.1/lua.hpp>
+#include "include/simpla_defs.h"
 #include <map>
 #include <list>
 #include <vector>
 #include <string>
 
-#include "log.h"
+//#include "log.h"
 #include "fetl/ntuple.h"
+namespace simpla
+{
 
 #define LUA_ERROR(_L, _MSG_) \
-  ERROR((_MSG_)+std::string("\n") + lua_tostring(_L, 1)); \
+  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, 1) ; \
   lua_pop(_L, 1); \
   throw -1;
 
-class LuaParser
+class LuaState
 {
-private:
-	lua_State *lstate;
+	lua_State * lstate;
 public:
-	explicit LuaParser() :
+	typedef LuaState ThisType;
+	explicit LuaState() :
 			lstate(luaL_newstate())
 	{
 		luaL_openlibs(lstate);
 	}
 
-	~LuaParser()
+	~LuaState()
 	{
-		lua_close(lstate);
+		if (lstate != NULL)
+		{
+			lua_close(lstate);
+			delete lstate;
+		}
 	}
+
 	void parseFile(std::string const & filename)
 	{
 		if (filename != "" && luaL_dofile(lstate, filename.c_str()))
@@ -53,7 +61,7 @@ public:
 	}
 
 	template<typename T>
-	void getValue(std::string const & key, T & value)
+	void getValue(std::string const & key, T * value)
 	{
 		lua_getfield(lstate, LUA_GLOBALSINDEX, key.c_str());
 		int idx = lua_gettop(lstate);
@@ -62,17 +70,17 @@ public:
 			toValue_(idx, value);
 		} catch (const char e[])
 		{
-			ERROR("\n\t Can not parse \"" +key+ "\" to " + e+ "!");
+			ERROR << ("\n\t Can not parse \"" + key + "\" to " + e + "!");
 		}
 		lua_pop(lstate, 1);
 	}
 	template<typename T>
-	void getValue2(std::string const & key, TR1::shared_ptr<T> p)
+	void getValue2(std::string const & key, T* p)
 	{
-		getValue(key, *p);
+		getValue(key, p);
 	}
 	template<typename T>
-	inline void getExprTo(std::string const & expr, TR1::shared_ptr<T> v)
+	inline void getExprTo(std::string const & expr, T * v)
 	{
 		std::string e = std::string("__evalExpr=") + expr;
 
@@ -106,7 +114,7 @@ public:
 			lua_fillArray(idx, array, 0);
 		} catch (std::string const & e)
 		{
-			ERROR("Can not parse \"" +key+ "\" to "+e+" !");
+			ERROR << ("Can not parse \"" + key + "\" to " + e + " !");
 		}
 		lua_pop(lstate, 1);
 
@@ -134,35 +142,35 @@ public:
 	}
 private:
 	template<typename T>
-	inline void toValue_(int idx, T &res)
+	inline void toValue_(int idx, T *res)
 	{
 		switch (lua_type(lstate, idx))
 		{
 		case LUA_TBOOLEAN:
-			res = lua_toboolean(lstate, idx);
+			*res = lua_toboolean(lstate, idx);
 			break;
 		case LUA_TNUMBER:
-			res = lua_tonumber(lstate, idx);
+			*res = lua_tonumber(lstate, idx);
 			break;
 		case LUA_TTABLE:
 		{
-			typedef typename Reference<T>::KeyType KeyType;
-			typedef typename Reference<T>::ValueType ValueType;
-
-			/* table is in the stack at index 'idx' */
-			lua_pushnil(lstate); /* first key */
-			ValueType item;
-			KeyType key;
-			while (lua_next(lstate, -2))
-			{
-				/* uses 'key' (at index -2) and 'value' (at index -1) */
-				toValue_(-1, item);
-				toValue_(-2, key);
-				Reference<T>::index(res, key) = item;
-				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(lstate, 1);
-
-			}
+//			typedef typename Reference<T>::KeyType KeyType;
+//			typedef typename Reference<T>::ValueType ValueType;
+//
+//			/* table is in the stack at index 'idx' */
+//			lua_pushnil(lstate); /* first key */
+//			ValueType item;
+//			KeyType key;
+//			while (lua_next(lstate, -2))
+//			{
+//				/* uses 'key' (at index -2) and 'value' (at index -1) */
+//				toValue_(-1, item);
+//				toValue_(-2, key);
+//				Reference<T>::index(res, key) = item;
+//				/* removes 'value'; keeps 'key' for next iteration */
+//				lua_pop(lstate, 1);
+//
+//			}
 			break;
 		}
 		}
@@ -237,72 +245,72 @@ private:
 	}
 
 	template<typename T, int N> inline
-	void toValue_(int idx, nTuple<T, N> & res)
+	void toValue_(int idx, nTuple<N, T> * res)
 	{
 		lua_fillArray(idx, res, N);
 	}
 
 	template<typename T>
-	inline void toValue_(int idx, std::vector<T> & array)
+	inline void toValue_(int idx, std::vector<T> * array)
 	{
 		if (lua_istable(lstate, idx))
 		{
-			SizeType fnum = lua_objlen(lstate, idx);
+			size_t fnum = lua_objlen(lstate, idx);
 
 			if (fnum > 0)
 			{
-				if (array.size() < fnum)
+				if (array->size() < fnum)
 				{
-					array.resize(fnum);
+					array->resize(fnum);
 				}
-				for (SizeType s = 0; s < fnum; ++s)
+				for (size_t s = 0; s < fnum; ++s)
 				{
 					lua_rawgeti(lstate, idx, s % fnum + 1);
-					toValue_(-1, array[s]);
+					toValue_(-1, *array[s]);
 					lua_pop(lstate, 1);
 				}
 			}
 		}
 		else
 		{
-			ERROR(" std::vector<T>");
+			ERROR << (" std::vector<T>");
 		}
 	}
 	template<typename T>
-	inline void toValue_(int idx, std::list<T> & list)
+	inline void toValue_(int idx, std::list<T> * list)
 	{
 		if (lua_istable(lstate, idx))
 		{
-			SizeType fnum = lua_objlen(lstate, idx);
+			size_t fnum = lua_objlen(lstate, idx);
 
-			for (SizeType s = 0; s < fnum; ++s)
+			for (size_t s = 0; s < fnum; ++s)
 			{
 				lua_rawgeti(lstate, idx, s % fnum + 1);
 				T tmp;
 				toValue_(-1, tmp);
-				list.push_back(tmp);
+				list->push_back(tmp);
 				lua_pop(lstate, 1);
 			}
 		}
 		else
 		{
-			ERROR(" std::list<T>");
+			ERROR << (" std::list<T>");
 		}
 	}
 
-	inline void toValue_(int idx, boost::any &res)
+	inline void toValue_(int idx, boost::any *res)
 	{
 
 		switch (lua_type(lstate, idx))
 		{
 		case LUA_TBOOLEAN:
-			res = static_cast<bool>(lua_toboolean(lstate, idx));
+			*res = static_cast<bool>(lua_toboolean(lstate, idx));
 			break;
 		case LUA_TNUMBER:
-			res = static_cast<double>(lua_tonumber(lstate, idx));
+			*res = static_cast<double>(lua_tonumber(lstate, idx));
 			break;
 		case LUA_TSTRING:
-			res = std::string(lua_tostring(lstate, idx));
+			*res = std::string(lua_tostring(lstate, idx));
 			break;
 		default:
 			throw(" boost::any");
@@ -310,7 +318,7 @@ private:
 		}
 	}
 	template<typename ValueType>
-	inline void toValue_(int idx, std::map<std::string, ValueType> &res)
+	inline void toValue_(int idx, std::map<std::string, ValueType> *res)
 	{
 		if (lua_type(lstate, idx) == LUA_TTABLE)
 		{
@@ -326,7 +334,7 @@ private:
 
 				toValue_(-2, key);
 				toValue_(-1, item);
-				res[key] = item;
+				*res[key] = item;
 				/* removes 'value'; keeps 'key' for next iteration */
 				lua_pop(lstate, 1);
 			}
@@ -340,17 +348,17 @@ private:
 
 	}
 	template<typename T>
-	inline void lua_fillArray(int idx, T & array, int size)
+	inline void lua_fillArray(int idx, T * array, int size)
 	{
 		if (lua_istable(lstate, idx))
 		{
-			SizeType fnum = lua_objlen(lstate, idx);
+			size_t fnum = lua_objlen(lstate, idx);
 			if (fnum > 0)
 			{
-				for (SizeType s = 0; s < size; ++s)
+				for (size_t s = 0; s < size; ++s)
 				{
 					lua_rawgeti(lstate, idx, s % fnum + 1);
-					toValue_(-1, array[s]);
+					toValue_(-1, &(*array)[s]);
 					lua_pop(lstate, 1);
 				}
 			}
@@ -359,4 +367,5 @@ private:
 	}
 
 };
+} //namespace simpla
 #endif  // INCLUDE_LUA_PARSER_H_

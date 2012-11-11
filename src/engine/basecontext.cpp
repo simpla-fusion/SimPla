@@ -10,6 +10,7 @@
 #include "object.h"
 #include "fetl/grid.h"
 #include "modules/modules.h"
+#include "utilities/properties.h"
 
 namespace simpla
 {

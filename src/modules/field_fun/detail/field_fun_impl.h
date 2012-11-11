@@ -21,6 +21,7 @@
 #include "../assign_constant.h"
 #include "../smooth.h"
 #include "../damping.h"
+#include "../lua_script.h"
 namespace simpla
 {
 namespace field_fun
@@ -85,9 +86,7 @@ struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, TFun<TV> > : public 
 	FunType fun;
 
 	FieldFunction(Context<Grid> * d, const ptree & pt) :
-			BaseFieldFunction<UniformRectGrid>(d, pt),
-
-			fun(pt.get_child("Arguments"))
+			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 		LOG << "Create module TFun: " << typeid(TFun<TV> ).name();
 	}
@@ -140,9 +139,7 @@ struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, TFun<TV> > : public
 	FunType fun;
 
 	FieldFunction(Context<Grid> * d, const ptree & pt) :
-			BaseFieldFunction<UniformRectGrid>(d, pt),
-
-			fun(pt.get_child("Arguments"))
+			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 
 	}
@@ -198,9 +195,7 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 	FunType fun;
 
 	FieldFunction(Context<Grid> *d, const ptree & pt) :
-			BaseFieldFunction<UniformRectGrid>(d, pt),
-
-			fun(pt.get_child("Arguments"))
+			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 	}
 
@@ -265,10 +260,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 	FunType fun;
 
 	FieldFunction(Context<Grid> * d, const ptree & pt) :
-			BaseFieldFunction<UniformRectGrid>(d, pt),
-
-			fun(pt.get_child("Arguments"))
-
+			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 	}
 
@@ -317,6 +309,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 template<typename TG, template<typename > class TFun> inline TR1::function<
 		void(void)> Create(Context<TG>* ctx, ptree const & pt)
 {
+
 	boost::optional<std::string> field_type = pt.get<std::string>(
 			"DataSet.<xmlattr>.Type");
 
@@ -427,6 +420,9 @@ template<typename TG> inline void RegisterModules(Context<TG> * ctx)
 
 	ctx->moduleFactory_["AssignConstant"] = TR1::bind(
 			&Create<TG, AssignConstant>, ctx, TR1::placeholders::_1);
+
+	ctx->moduleFactory_["LuaScript"] = TR1::bind(&Create<TG, LuaScript>, ctx,
+			TR1::placeholders::_1);
 
 //	moduleFactory_["Smooth"] = TR1::bind(
 //			&field_fun::Create<TG, field_fun::Smooth>, ctx,

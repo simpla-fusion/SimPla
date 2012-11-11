@@ -17,7 +17,7 @@
 #include "engine/context.h"
 #include "datastruct/ndarray.h"
 #include "fetl/fetl.h"
-
+#include <sys/stat.h>
 namespace simpla
 {
 namespace io
@@ -128,13 +128,12 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
 
 	LOG << "Create module WriteXDMF";
 
-	if (boost::optional<size_t> sp = ctx.GetEnv<size_t>("RecordStep",
-			pt.get_child_optional("<xmlattr>")))
+	if (boost::optional<size_t> sp = pt.get_optional<size_t>(
+			"<xmlattr>.RecordStep"))
 	{
 		step_ = *sp;
 	}
-	if (boost::optional<std::string> sp = ctx.GetEnv<std::string>("Path",
-			pt.get_child("<xmlattr>")))
+	if (boost::optional<std::string> sp = pt.get<std::string>("<xmlattr>.Path"))
 	{
 		out_path = *sp;
 	}

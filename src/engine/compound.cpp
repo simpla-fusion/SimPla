@@ -25,7 +25,7 @@ TR1::shared_ptr<CompoundObject> CompoundObject::Create(BaseContext * ctx,
 {
 	TR1::shared_ptr<CompoundObject> res(new CompoundObject);
 
-	boost::optional<ptree const &> o_pt = pt.get_child_optional("<xmlattr>");
+	boost::optional<ptree const&> o_pt = pt.get_child_optional("<xmlattr>");
 
 	if (!!o_pt)
 	{
@@ -68,7 +68,8 @@ TR1::shared_ptr<CompoundObject> CompoundObject::Create(BaseContext * ctx,
 			ERROR << "Can not register unnamed object !";
 		}
 
-		res->childs[*o_name] = ctx->objFactory_[o_type](v.second);
+		res->childs[*o_name] = ctx->objFactory_[o_type](
+				reinterpret_cast<ptree const&>(v.second));
 	}
 
 	return res;

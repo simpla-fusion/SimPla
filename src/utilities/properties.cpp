@@ -6,51 +6,23 @@
  */
 
 #include "properties.h"
+#include <boost/property_tree/xml_parser.hpp>
+
 namespace simpla
 {
 
 void read_file(std::string const & fname, ptree & pt)
 {
 
-	std::string ext = fname.substr(fname.rfind(".")+1);
+	boost::property_tree::read_xml(fname,
+			reinterpret_cast<boost::property_tree::ptree &>(pt));
 
-	if (ext == "xml")
-	{
-		read_xml(fname, pt);
-	}
-	else if (ext == "ini")
-	{
-		read_ini(fname, pt);
-	}
-	else if (ext == "json")
-	{
-		read_json(fname, pt);
-	}
-	else if (ext == "info")
-	{
-		read_info(fname, pt);
-	}
 }
 
 void write_file(std::string const & fname, ptree const & pt)
 {
-	std::string ext = fname.substr(fname.rfind(".")+1);
+	boost::property_tree::write_xml(fname,
+			reinterpret_cast<boost::property_tree::ptree const&>(pt));
 
-	if (ext == "xml")
-	{
-		write_xml(fname, pt);
-	}
-	else if (ext == "ini")
-	{
-		write_ini(fname, pt);
-	}
-	else if (ext == "json")
-	{
-		write_json(fname, pt);
-	}
-	else if (ext == "info")
-	{
-		write_info(fname, pt);
-	}
 }
 } //namespace simpla

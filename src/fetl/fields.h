@@ -75,8 +75,7 @@ public:
 
 		TR1::shared_ptr<ThisType> res(new ThisType(ctx->grid));
 
-		boost::optional<ptree const &> o_pt = pt.get_child_optional(
-				"<xmlattr>");
+		boost::optional<ptree const &> o_pt = pt.get_child_optional("<xmlattr>");
 
 		if (!!o_pt)
 		{
@@ -104,14 +103,11 @@ public:
 		{
 			if (IFORM == IOneForm || IFORM == ITwoForm)
 			{
-				*res = value->get_value<nTuple<THREE, ValueType> >(
-						pt_trans<nTuple<THREE, ValueType>,
-								typename ptree::key_type>());
+				*res = value->get_value<nTuple<THREE, ValueType> >( );
 			}
 			else
 			{
-				*res = value->get_value<ValueType>(
-						pt_trans<ValueType, typename ptree::key_type>());
+				*res = value->get_value<ValueType>( );
 			}
 		}
 

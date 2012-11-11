@@ -12,23 +12,17 @@
 #include <map>
 #include <complex>
 #include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <boost/property_tree/info_parser.hpp>
-#include <boost/property_tree/ini_parser.hpp>
-#include <boost/property_tree/json_parser.hpp>
-
 namespace simpla
 {
-
-using boost::property_tree::ptree;
-
-void read_file(std::string const & fname, ptree & pt);
-
-void write_file(std::string const & fname, ptree const & pt);
+typedef boost::property_tree::ptree ptree;
 
 template<int N, typename T> struct nTuple;
 
 template<class Ext, class Int = std::string> struct pt_trans;
+
+void read_file(std::string const & fname, ptree & pt);
+
+void write_file(std::string const & fname, ptree const & pt);
 
 template<class T>
 struct pt_trans<T, std::string>
@@ -55,6 +49,50 @@ struct pt_trans<T, std::string>
 
 };
 
+template<>
+struct pt_trans<std::string, std::string>
+{
+	typedef std::string external_type;
+	typedef std::string internal_type;
+
+	external_type get_value(const internal_type &value) const
+	{
+		return value;
+	}
+
+	internal_type put_value(const external_type &value) const
+	{
+		return value;
+	}
+
+};
+
+template<class T>
+struct pt_trans<std::complex<T>, std::string>
+{
+	typedef std::complex<T> external_type;
+	typedef std::string internal_type;
+
+	external_type get_value(const internal_type &value) const
+	{
+		std::istringstream is(value);
+
+		T r, i;
+		is >> r >> i;
+
+		return external_type(r, i);
+	}
+
+	internal_type put_value(const external_type &value) const
+	{
+		std::ostringstream os;
+
+		os << " " << value;
+
+		return os.str();
+	}
+
+};
 template<int N, class T>
 struct pt_trans<nTuple<N, T>, std::string>
 {
@@ -118,32 +156,44 @@ struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
 	}
 
 };
-
-template<typename T>
-struct pt_trans<std::complex<T>, std::string>
-{
-	typedef std::complex<T> external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		std::istringstream is(value);
-
-		T r, i;
-		is >> r;
-		is >> i;
-		return external_type(r, i);
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		std::ostringstream os;
-
-		os << " " << value.real() << " " << value.imag();
-
-		return os.str();
-	}
-
-};
+//class ptree: public boost::property_tree::ptree
+//{
+//public:
+//	typedef boost::property_tree::ptree BaseType;
+//	typedef ptree ThisType;
+//	template<typename T> T get_value() const
+//	{
+//		return BaseType::get_value<T>(
+//				pt_trans<T, typename BaseType::data_type>());
+//	}
+//	template<typename T> T get(std::string const & path) const
+//	{
+//		return BaseType::get<T>(path,
+//				pt_trans<T, typename BaseType::data_type>());
+//	}
+//
+//	template<typename T> T get(std::string const & path, T def) const
+//	{
+//		return BaseType::get(path, def,
+//				pt_trans<T, typename BaseType::data_type>());
+//	}
+//
+//	std::string get(std::string const & path, const char* def) const
+//	{
+//		return BaseType::get(path, def);
+//	}
+//	const ptree &get_child(const std::string &path) const
+//	{
+//		return reinterpret_cast<ptree const &>(BaseType::get_child(path));
+//	}
+////	boost::optional<const ptree> get_child_optional(
+////			const std::string &path) const
+////	{
+////		boost::optional<const boost::property_tree::ptree&> res =
+////				BaseType::get_child_optional(path);
+////
+////		return reinterpret_cast<ptree const&>(*res);
+////	}
+//};
 } // namespace simpla
 #endif /* PROPERTIES_H_ */

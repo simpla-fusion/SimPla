@@ -78,17 +78,13 @@ public:
 			ERROR << "Grid type mismatch";
 		}
 
-		dims = pt.get<IVec3>("Topology.<xmlattr>.Dimensions",
-				pt_trans<IVec3, typename ptree::data_type>());
+		dims = pt.get<IVec3>("Topology.<xmlattr>.Dimensions");
 
-		gw = pt.get<IVec3>("Topology.<xmlattr>.Ghostwidth",
-				pt_trans<IVec3, typename ptree::data_type>());
+		gw = pt.get<IVec3>("Topology.<xmlattr>.Ghostwidth");
 
-		xmin = pt.get<Vec3>("Geometry.XMin",
-				pt_trans<Vec3, typename ptree::data_type>());
+		xmin = pt.get<Vec3>("Geometry.XMin");
 
-		xmax = pt.get<Vec3>("Geometry.XMax",
-				pt_trans<Vec3, typename ptree::data_type>());
+		xmax = pt.get<Vec3>("Geometry.XMax");
 
 		dt = pt.get("Time.<xmlattr>.dt", 1.0d);
 

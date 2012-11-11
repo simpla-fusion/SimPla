@@ -50,6 +50,9 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 
 FIND_PACKAGE(Boost  COMPONENTS date_time program_options )
 
+find_package(Lua51)
+
+INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
 execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      

@@ -25,7 +25,7 @@ struct AssignConstant
 	TV value;
 
 	AssignConstant(ptree const pt) :
-			value(pt.get<TV>("value", pt_trans<TV, std::string>()))
+			value(pt.get<TV>("Arguments.value"))
 	{
 	}
 	~AssignConstant()

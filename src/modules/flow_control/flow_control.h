@@ -74,7 +74,9 @@ public:
 			}
 			if (ctx.moduleFactory_.find(v.first) != ctx.moduleFactory_.end())
 			{
-				modules.push_back(ctx.moduleFactory_[v.first](v.second));
+				modules.push_back(
+						ctx.moduleFactory_[v.first](
+								reinterpret_cast<ptree const &>(v.second)));
 				LOG << "Add module " << v.first << " successed!";
 			}
 			else
@@ -84,8 +86,8 @@ public:
 
 		}
 
-		if (boost::optional<size_t> sp = ctx.GetEnv<size_t>("MaxStep",
-				pt.get_child_optional("<xmlattr>")))
+		if (boost::optional<size_t> sp = pt.get_optional<size_t>(
+				"<xmlattr>.MaxStep"))
 		{
 			maxstep = *sp;
 		}
@@ -97,7 +99,7 @@ public:
 	static TR1::function<void(void)> Create(BaseContext* d, const ptree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType( d, pt)));
+				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
 
 	virtual void Eval()
