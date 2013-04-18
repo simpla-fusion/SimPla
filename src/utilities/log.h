@@ -20,7 +20,7 @@
 #endif
 #include <time.h>
 #define BOOST_DATE_TIME_POSIX_TIME_STD_CONFIG
-#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/date_time.hpp>
 
 #include <string>
 #include <fstream>

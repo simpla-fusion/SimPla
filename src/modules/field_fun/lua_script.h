@@ -10,7 +10,7 @@
 
 #include "include/simpla_defs.h"
 
-#include <lua5.1/lua.hpp>
+#include <lua.hpp>
 
 #include "utilities/properties.h"
 

@@ -8,7 +8,7 @@ ENABLE_TESTING()
 INCLUDE(ExternalProject)
 ExternalProject_Add(googletest
     PREFIX third_part 
-    #URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/googletest
     INSTALL_COMMAND "" )
 ExternalProject_Get_Property(googletest SOURCE_DIR)
@@ -49,6 +49,7 @@ set(Boost_USE_MULTITHREADED     OFF)
 set(Boost_USE_STATIC_RUNTIME    OFF)
 
 FIND_PACKAGE(Boost  COMPONENTS date_time program_options )
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 find_package(Lua51)
 
