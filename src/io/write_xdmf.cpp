@@ -13,7 +13,7 @@
 #include <hdf5_hl.h>
 #include <fstream>
 #include <sstream>
-#include "fetl/grid/uniform_rect.h"
+#include "grid/uniform_rect.h"
 #include "engine/context.h"
 #include "datastruct/ndarray.h"
 #include "fetl/fetl.h"

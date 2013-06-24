@@ -15,7 +15,7 @@
 #include "engine/basemodule.h"
 
 #include "fetl/fetl.h"
-#include "fetl/grid/uniform_rect.h"
+#include "grid/uniform_rect.h"
 
 #include "../assign_constant.h"
 #include "../smooth.h"
@@ -30,7 +30,7 @@ template<typename TG> struct BaseFieldFunction;
 template<>
 struct BaseFieldFunction<UniformRectGrid> : public BaseModule
 {
-	DEFINE_FIELDS(typename UniformRectGrid::ValueType,UniformRectGrid)
+	DEFINE_FIELDS(UniformRectGrid)
 
 	Context<Grid> & ctx;
 
@@ -181,7 +181,7 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 		TFun<nTuple<THREE, TV> > > : public BaseFieldFunction<UniformRectGrid>
 {
 
-	DEFINE_FIELDS(typename UniformRectGrid::ValueType,UniformRectGrid)
+	DEFINE_FIELDS(UniformRectGrid)
 
 	typedef nTuple<THREE, TV> ValueType;
 
@@ -246,7 +246,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 		TFun<nTuple<THREE, TV> > > : public BaseFieldFunction<UniformRectGrid>
 {
 
-	DEFINE_FIELDS(typename UniformRectGrid::ValueType,UniformRectGrid)
+	DEFINE_FIELDS(UniformRectGrid)
 
 	typedef nTuple<THREE, TV> ValueType;
 
@@ -412,7 +412,7 @@ template<typename TG, template<typename > class TFun> inline TR1::function<
 
 template<typename TG> inline void RegisterModules(Context<TG> * ctx)
 {
-	DEFINE_FIELDS(typename TG::ValueType, TG)
+	DEFINE_FIELDS( TG)
 
 	ctx->moduleFactory_["AssignConstant"] = TR1::bind(
 			&Create<TG, AssignConstant>, ctx, TR1::placeholders::_1);

@@ -8,7 +8,7 @@
 #include "include/simpla_defs.h"
 #include "context.h"
 #include "object.h"
-#include "fetl/grid.h"
+#include "grid/grid.h"
 #include "modules/modules.h"
 #include "utilities/properties.h"
 

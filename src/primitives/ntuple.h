@@ -317,7 +317,7 @@ struct nTuple<N, TOP<TL, TR> >
 };
 
 template<int N, typename TL> //
-inline nTuple<N, _impl::OpNegative<nTuple<N, TL> > >                    //
+inline nTuple<N, _impl::OpNegative<nTuple<N, TL> > >                          //
 operator -(nTuple<N, TL> const & lhs)
 {
 	return (nTuple<N, _impl::OpNegative<nTuple<N, TL> > >(lhs));
@@ -361,7 +361,7 @@ DECLARE_NTUPLE_ARITHMETIC(operator-, OpSubtraction);
 template<typename TLExpr, typename TRExpr>
 inline nTuple<THREE,
 		typename _impl::TypeConvertTraits<typename nTuple<THREE, TLExpr>::Value,
-				typename nTuple<THREE, TRExpr>::Value>::Value>          //
+				typename nTuple<THREE, TRExpr>::Value>::Value>                //
 Cross(nTuple<THREE, TLExpr> const &lhs, nTuple<THREE, TRExpr> const & rhs)
 {
 	nTuple<THREE,
@@ -491,6 +491,21 @@ Determinant(nTuple<4, nTuple<4, T> > const & m)
 	- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2] //
 			* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3] //
 	);
+}
+
+template<int N, typename T> T Abs(nTuple<N, T> const & m)
+{
+	return sqrt(Dot(m, m));
+}
+
+template<int N, typename T> T Abs(nTuple<N, nTuple<N, T> > const & m)
+{
+	nTuple<N, T> res;
+	for (size_t i = 0; i < N; ++i)
+	{
+		res[i] = Dot(m[i], m[i]);
+	}
+	return sqrt(Dot(res, res));
 }
 
 } //namespace simpla

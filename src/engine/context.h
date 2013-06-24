@@ -19,11 +19,11 @@ template<typename TG>
 class Context: public BaseContext
 {
 public:
-	DEFINE_FIELDS(typename TG::ValueType, TG)
+	DEFINE_FIELDS(TG)
 
 	typedef Context<TG> ThisType;
 
-	typedef typename TG::ValueType ValueType;
+	typedef typename TG::Value Value;
 
 	typedef TR1::shared_ptr<ThisType> Holder;
 

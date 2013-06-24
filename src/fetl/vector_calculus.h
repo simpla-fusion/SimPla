@@ -8,7 +8,6 @@
 #ifndef VECTOR_CALCULUS_H_
 #define VECTOR_CALCULUS_H_
 #include "fetl_defs.h"
-#include "typeconvert.h"
 
 namespace simpla
 {
@@ -19,9 +18,9 @@ template<typename TL, typename TR> struct OpDot
 {
 	typedef typename _impl::TypeConvertTraits<
 			typename _impl::nTupleValueTraits<
-					typename _impl::ValueTraits<TL>::ValueType>::ValueType,
+					typename _impl::ValueTraits<TL>::Value>::Value,
 			typename _impl::nTupleValueTraits<
-					typename _impl::ValueTraits<TR>::ValueType>::ValueType>::ValueType ValueType;
+					typename _impl::ValueTraits<TR>::Value>::Value>::Value Value;
 };
 
 template<typename TL, typename TR> struct OpCross
@@ -29,74 +28,74 @@ template<typename TL, typename TR> struct OpCross
 	typedef nTuple<THREE,
 			typename _impl::TypeConvertTraits<
 					typename _impl::nTupleValueTraits<
-							typename _impl::ValueTraits<TL>::ValueType>::ValueType,
+							typename _impl::ValueTraits<TL>::Value>::Value,
 					typename _impl::nTupleValueTraits<
-							typename _impl::ValueTraits<TR>::ValueType>::ValueType>::ValueType> ValueType;
+							typename _impl::ValueTraits<TR>::Value>::Value>::Value> Value;
 	;
 };
 
 template<typename TL> struct OpGrad
 {
-	typedef typename TL::ValueType ValueType;
+	typedef typename TL::Value Value;
 };
 template<typename TL> struct OpDiverge
 {
-	typedef typename TL::ValueType ValueType;
+	typedef typename TL::Value Value;
 };
 template<typename TL> struct OpCurl
 {
-	typedef typename TL::ValueType ValueType;
+	typedef typename TL::Value Value;
 };
 template<typename TL, typename TR> struct OpCurlPD
 {
-	typedef typename TR::ValueType ValueType;
+	typedef typename TR::Value Value;
 };
 template<typename TL, typename TR> struct OpMapTo
 {
-	typedef typename TR::ValueType ValueType;
+	typedef typename TR::Value Value;
 };
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
 		Field<TG, IOneForm, TR> >
 {
-	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::ValueType> ValueType;
+	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::Value> Value;
 };
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
 		Field<TG, ITwoForm, TR> >
 {
-	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::ValueType> ValueType;
+	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::Value> Value;
 };
 
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
 		Field<TG, IZeroForm, TR> >
 {
-	typedef typename Field<TG, IZeroForm, TR>::ValueType::ValueType ValueType;
+	typedef typename Field<TG, IZeroForm, TR>::Value::Value Value;
 };
 template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
 		Field<TG, IZeroForm, TR> >
 {
-	typedef typename Field<TG, IZeroForm, TR>::ValueType::ValueType ValueType;
+	typedef typename Field<TG, IZeroForm, TR>::Value::Value Value;
 };
 
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
 		Field<TG, IOneForm, TR> >
 {
-	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::ValueType> ValueType;
+	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::Value> Value;
 };
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
 		Field<TG, ITwoForm, TR> >
 {
-	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::ValueType> ValueType;
+	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::Value> Value;
 };
 
 template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
 		Field<TG, IThreeForm, TR> >
 {
-	typedef typename Field<TG, IThreeForm, TR>::ValueType::ValueType ValueType;
+	typedef typename Field<TG, IThreeForm, TR>::Value::Value Value;
 };
 template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
 		Field<TG, IThreeForm, TR> >
 {
-	typedef typename Field<TG, IThreeForm, TR>::ValueType::ValueType ValueType;
+	typedef typename Field<TG, IThreeForm, TR>::Value::Value Value;
 };
 
 } // namespace namespace _impl{

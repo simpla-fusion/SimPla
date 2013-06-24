@@ -9,10 +9,11 @@
 #include "include/simpla_defs.h"
 #include "grid/uniform_rect.h"
 #include "fetl.h"
+#include "primitives/primitives.h"
 #include "physics/constants.h"
 using namespace simpla;
 
-DEFINE_FIELDS(Real, UniformRectGrid)
+DEFINE_FIELDS( UniformRectGrid)
 
 template<typename TF>
 class TestFETLBasicArithmetic: public testing::Test
@@ -21,21 +22,29 @@ protected:
 	virtual void SetUp()
 	{
 		Log::Verbose(10);
-		ptree pt;
-		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
-		pt.push_back(ptree::value_type("dt", ptree("1.0")));
-		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
-		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
-		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
-		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
 
-		grid.Parse(pt);
+		grid.dt = 1.0;
+		grid.xmin[0] = 0;
+		grid.xmin[1] = 0;
+		grid.xmin[2] = 0;
+		grid.xmax[0] = 1.0;
+		grid.xmax[1] = 1.0;
+		grid.xmax[2] = 1.0;
+		grid.dims[0] = 20;
+		grid.dims[1] = 30;
+		grid.dims[2] = 40;
+		grid.gw[0] = 2;
+		grid.gw[1] = 2;
+		grid.gw[2] = 2;
+
+		grid.init();
+
 	}
 public:
 	typedef TF FieldType;
-	typedef typename FieldType::ValueType ValueType;
-	typedef typename _impl::ComplexTraits<ValueType>::ValueType CValueType;
-	typedef Field<Grid, TF::IForm, CValueType> CFieldType;
+	typedef typename FieldType::Value Value;
+	typedef typename _impl::ComplexTraits<Value>::Value CValue;
+	typedef Field<Grid, TF::IForm, CValue> CFieldType;
 	Grid grid;
 
 };
@@ -49,12 +58,17 @@ typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm, ROneForm, COneForm,
 TYPED_TEST_CASE(TestFETLBasicArithmetic, AllFieldTypes);
 
 TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
-{	Log::Verbose(10);
-	Grid const & grid =  TestFixture::grid;
+{
+
+	Log::Verbose(10);
+
+	Grid const & grid = TestFixture::grid;
+
 	typename TestFixture::FieldType f(grid);
+
 	size_t size =grid.get_num_of_elements(TestFixture::FieldType::IForm);
 
-	typename TestFixture::FieldType::ValueType a; a= 1.0;
+	typename TestFixture::FieldType::Value a; a= 1.0;
 
 	for (size_t s = 0; s < size; ++s)
 	{
@@ -63,7 +77,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	for (size_t s = 0; s<size; ++s)
 	{
-		typename TestFixture::ValueType res;
+		typename TestFixture::Value res;
 		res=a*static_cast<Real>(s);
 		ASSERT_EQ(res,f[s])<<"idx=" << s;
 	}
@@ -73,15 +87,15 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	Grid const & grid =  TestFixture::grid;
+	Grid const & grid = TestFixture::grid;
 
 	typename TestFixture::FieldType f1(grid),f2(grid);
 
-	typedef typename TestFixture::FieldType::ValueType ValueType;
+	typedef typename TestFixture::FieldType::Value Value;
 
 	size_t size = grid.get_num_of_elements(TestFixture::FieldType::IForm);
 
-	ValueType a; a = 3.0;
+	Value a; a = 3.0;
 
 	f2 = a;
 
@@ -100,7 +114,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 	{
-		typename TestFixture::ValueType res;
+		typename TestFixture::Value res;
 		res=a*static_cast<Real>(*s);
 		ASSERT_EQ( res,f2[*s])<<"idx="<< *s;
 	}
@@ -108,7 +122,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	Grid const & grid=  TestFixture::grid;
+	Grid const & grid= TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
 
@@ -117,9 +131,9 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
 
-	typedef typename TestFixture::ValueType ValueType;
+	typedef typename TestFixture::Value Value;
 
-	ValueType va,vb;
+	Value va,vb;
 
 	va=2.0;vb=3.0;
 
@@ -130,7 +144,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 	{
-		ValueType res;
+		Value res;
 		res=-f1[*s] + f2[*s] *c - f1[*s]/b;
 		ASSERT_EQ( res, f3[*s]) << *s;
 	}
@@ -139,7 +153,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 {
-	Grid const & grid =  TestFixture::grid;
+	Grid const & grid = TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid);
 	typename TestFixture::CFieldType f3(grid);
@@ -149,7 +163,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 	Complex a(1.0,-1.0);
 	Complex b(-2.0,3.0);
 	Complex c(4.0,3.0);
-	typename TestFixture::ValueType va,vb;
+	typename TestFixture::Value va,vb;
 
 	va=2.0;vb=3.0;
 
@@ -160,7 +174,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 	{
-		typename TestFixture::CValueType res;
+		typename TestFixture::CValue res;
 		res=-f1[*s] + f2[*s] *c - f1[*s]/b;
 		ASSERT_EQ( res, f3[*s]) << *s;
 	}
@@ -171,7 +185,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
 
-	Grid const & grid =   TestFixture::grid;
+	Grid const & grid = TestFixture::grid;
 
 	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
 
@@ -187,7 +201,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		b[s]= (3.0);//*s;
 		c[s]= (5.0);//(s+1.0);
 	}
-	typename TestFixture::ValueType va,vb;
+	typename TestFixture::Value va,vb;
 
 	va=2.0;vb=3.0;
 
@@ -200,7 +214,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 	{
-		typename TestFixture::ValueType res;
+		typename TestFixture::Value res;
 		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
 		ASSERT_EQ( res, f3[*s])
 		<< "idx=" <<*s;
@@ -215,24 +229,30 @@ class TestFETLVecAlgegbra: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		ptree pt;
-		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
-		pt.push_back(ptree::value_type("dt", ptree("1.0")));
-		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
-		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
-		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
-		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
+		grid.dt = 1.0;
+		grid.xmin[0] = 0;
+		grid.xmin[1] = 0;
+		grid.xmin[2] = 0;
+		grid.xmax[0] = 1.0;
+		grid.xmax[1] = 1.0;
+		grid.xmax[2] = 1.0;
+		grid.dims[0] = 20;
+		grid.dims[1] = 30;
+		grid.dims[2] = 40;
+		grid.gw[0] = 2;
+		grid.gw[1] = 2;
+		grid.gw[2] = 2;
 
-		grid.Parse(pt);
+		grid.init();
 	}
 public:
 	Grid grid;
 	typedef Field<Grid, IZeroForm, T> ScalarField;
 	typedef Field<Grid, IZeroForm, nTuple<THREE, T> > VectorField;
 
-	typedef Field<Grid, IZeroForm, typename _impl::ComplexTraits<T>::ValueType> CScalarField;
+	typedef Field<Grid, IZeroForm, typename _impl::ComplexTraits<T>::Value> CScalarField;
 	typedef Field<Grid, IZeroForm,
-			nTuple<THREE, typename _impl::ComplexTraits<T>::ValueType> > CVectorField;
+			nTuple<THREE, typename _impl::ComplexTraits<T>::Value> > CVectorField;
 
 };
 
@@ -242,7 +262,7 @@ TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 
 TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 {
-	const Grid& grid =  TestFixture::grid;
+	const Grid& grid = TestFixture::grid;
 
 	Vec3 vc1 =
 	{	1.0, 2.0, 3.0};
@@ -276,9 +296,13 @@ TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 			!= grid.get_center_elements_end(
 					TestFixture::VectorField::IForm); ++s)
 	{
-		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s);
+		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
+		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
+		;
 
-		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
+		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
+		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
+		;
 	}
 
 }
@@ -376,48 +400,90 @@ TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
 }
 }
 
+template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test
 {
 
 protected:
 	virtual void SetUp()
 	{
-		ptree pt;
-		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
-		pt.push_back(ptree::value_type("dt", ptree("1.0")));
-		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
-		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
-		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
-		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
+		grid.dt = 1.0;
+		grid.xmin[0] = 0;
+		grid.xmin[1] = 0;
+		grid.xmin[2] = 0;
+		grid.xmax[0] = 1.0;
+		grid.xmax[1] = 1.0;
+		grid.xmax[2] = 1.0;
+		grid.dims[0] = 20;
+		grid.dims[1] = 30;
+		grid.dims[2] = 40;
+		grid.gw[0] = 2;
+		grid.gw[1] = 2;
+		grid.gw[2] = 2;
 
-		grid.Parse(pt);
+		grid.init();
 
 	}
 public:
 
 	Grid grid;
 
+	typedef TP Value;
+	typedef Field<Grid, IZeroForm, TP> TZeroForm;
+	typedef Field<Grid, IOneForm, TP> TOneForm;
+	typedef Field<Grid, ITwoForm, TP> TTwoForm;
+
 	double RelativeError(double a, double b)
 	{
 		return 2.0 * fabs((a - b) / (a + b));
 	}
+
+	void SetValue(double *v)
+	{
+		*v = 1.0;
+	}
+
+	void SetValue(Complex *v)
+	{
+		v->real() = 1.0;
+		v->imag() = 2.0;
+	}
+
+	template<int N, typename TV>
+	void SetValue(nTuple<N, TV> *v)
+	{
+		for (size_t i = 0; i < N; ++i)
+		{
+			SetValue(&((*v)[i]));
+		}
+	}
 };
 
-TEST_F(TestFETLDiffCalcuate, curl_grad_eq_0)
-{
+typedef testing::Types<double, Complex, nTuple<THREE, double>, nTuple<THREE, nTuple<THREE, double> > > PrimitiveTypes;
 
-	ZeroForm sf(grid);
-	OneForm vf1(grid);
-	TwoForm vf2(grid);
+TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
+
+TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
+{
+	Grid const & grid = TestFixture::grid;
+
+	typename TestFixture::Value v;
+
+	TestFixture::SetValue(&v);
+
+	typename TestFixture::TZeroForm sf(grid);
+	typename TestFixture::TOneForm vf1(grid);
+	typename TestFixture::TTwoForm vf2(grid);
+
 	size_t size = grid.get_num_of_vertex() * grid.get_num_of_comp(IZeroForm);
 
 	for (size_t i = 0; i < grid.dims[0]; ++i)
-		for (size_t j = 0; j < grid.dims[1]; ++j)
-			for (size_t k = 0; k < grid.dims[2]; ++k)
-			{
-				size_t s = grid.get_cell_num(i, j, k);
-				sf[s] = s;
-			}
+	for (size_t j = 0; j < grid.dims[1]; ++j)
+	for (size_t k = 0; k < grid.dims[2]; ++k)
+	{
+		size_t s = grid.get_cell_num(i, j, k);
+		sf[s] = static_cast<double>(s)*v;
+	}
 
 	vf1 = Grad(sf);
 
@@ -426,33 +492,41 @@ TEST_F(TestFETLDiffCalcuate, curl_grad_eq_0)
 	size_t num_of_comp = grid.get_num_of_comp(IOneForm);
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-			IOneForm); s != grid.get_center_elements_end(IOneForm); ++s)
+					IOneForm); s != grid.get_center_elements_end(IOneForm); ++s)
 	{
 
-		EXPECT_NE(0.0, vf1[(*s)]) << "idx=" << *s;
+		EXPECT_NE(0.0,Abs(vf1[(*s)])) << "idx=" << *s;
 	}
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-			ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
+					ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
 	{
-		EXPECT_DOUBLE_EQ(0.0, vf2[(*s)]) << "idx=" << *s;
+		EXPECT_DOUBLE_EQ(0.0,Abs(vf2[(*s)])) << "idx=" << *s;
 	}
 }
+}
 
-TEST_F(TestFETLDiffCalcuate, div_curl_eq_0)
+TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 {
 
-	ZeroForm sf(grid);
-	OneForm vf1(grid);
-	TwoForm vf2(grid);
+	Grid const & grid = TestFixture::grid;
+
+	typename TestFixture::TZeroForm sf(grid);
+	typename TestFixture::TOneForm vf1(grid);
+	typename TestFixture::TTwoForm vf2(grid);
+
+	typename TestFixture::Value v;
+
+	TestFixture::SetValue(&v);
+
 	size_t num_of_ele = grid.get_num_of_elements(IZeroForm);
 
 	for (size_t s = 0; s < num_of_ele; ++s)
 	{
 
-		vf2[s * 3 + 0] = s + 1.0;
-		vf2[s * 3 + 1] = s * 2.0;
-		vf2[s * 3 + 2] = s + 10.0;
+		vf2[s * 3 + 0] = v*(s + 1.0);
+		vf2[s * 3 + 1] = v*(s * 2.0);
+		vf2[s * 3 + 2] = v*(s + 10.0);
 	}
 
 	vf1 = Curl(vf2);
@@ -460,19 +534,19 @@ TEST_F(TestFETLDiffCalcuate, div_curl_eq_0)
 	sf = Diverge(Curl(vf2));
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-			ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
+					ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
 	{
 
-		EXPECT_NE(0.0, vf1[(*s)]) << "idx=" << *s;
+		EXPECT_NE(0.0,Abs(vf1[(*s)])) << "idx=" << *s;
 	}
 
 	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-			IZeroForm); s != grid.get_center_elements_end(IZeroForm); ++s)
+					IZeroForm); s != grid.get_center_elements_end(IZeroForm); ++s)
 	{
-		EXPECT_DOUBLE_EQ(0.0, sf[(*s)]) << "idx=" << *s;
+		EXPECT_DOUBLE_EQ(0.0,Abs(sf[(*s)])) << "idx=" << *s;
 	}
 }
-
+}
 class TestFETLPerformance: public testing::TestWithParam<size_t>
 {
 protected:
@@ -480,18 +554,21 @@ protected:
 	{
 		size_t ratio = GetParam();
 
-		IVec3 dims =
-		{ 2 * ratio, 3 * ratio, 4 * ratio };
+		grid.dt = 1.0;
+		grid.xmin[0] = 0;
+		grid.xmin[1] = 0;
+		grid.xmin[2] = 0;
+		grid.xmax[0] = 1.0;
+		grid.xmax[1] = 1.0;
+		grid.xmax[2] = 1.0;
+		grid.dims[0] = 2 * ratio;
+		grid.dims[1] = 3 * ratio;
+		grid.dims[2] = 4 * ratio;
+		grid.gw[0] = 2;
+		grid.gw[1] = 2;
+		grid.gw[2] = 2;
 
-		ptree pt;
-		pt.push_back(ptree::value_type("type", ptree("UniformRect")));
-		pt.push_back(ptree::value_type("dt", ptree("1.0")));
-		pt.push_back(ptree::value_type("xmin", ptree("0 0 0 ")));
-		pt.push_back(ptree::value_type("xmax", ptree("1.0 1.0 1.0 ")));
-		pt.push_back(ptree::value_type("dims", ptree("20  30  40 ")));
-		pt.push_back(ptree::value_type("ghostwidth", ptree("2 2 2")));
-
-		grid.Parse(pt);
+		grid.init();
 
 	}
 public:
@@ -506,7 +583,7 @@ public:
 };
 
 INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
-		testing::Values(10, 50, 100,1000,2000));
+		testing::Values(10, 20, 50));
 
 TEST_P(TestFETLPerformance, error_analyze)
 {

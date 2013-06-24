@@ -74,7 +74,17 @@ typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-}  // namespace simpla
+template<typename T> inline T Abs(T const & v)
+{
+	return abs(v);
+}
+
+template<typename T> inline T Abs(typename std::complex<T> const & v)
+{
+	return abs(v);
+}
+}
+// namespace simpla
 #include "ntuple.h"
 #include "typeconvert.h"
 #endif /* PRIMITIVES_H_ */

@@ -34,7 +34,7 @@ public:
 	typedef ColdFluid<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	DEFINE_FIELDS(typename TG::ValueType, TG)
+	DEFINE_FIELDS(TG)
 
 	ColdFluid(Context<TG> * d, const ptree & pt);
 

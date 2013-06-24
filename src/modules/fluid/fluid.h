@@ -20,7 +20,7 @@ namespace fliud
 template<typename TG>
 void RegisterModules(Context<TG> * ctx)
 {
-	DEFINE_FIELDS(typename TG::ValueType, TG)
+	DEFINE_FIELDS( TG)
 
 	ctx->moduleFactory_["ColdFluid"] = TR1::bind(&ColdFluid<TG>::Create, ctx,
 			TR1::placeholders::_1);

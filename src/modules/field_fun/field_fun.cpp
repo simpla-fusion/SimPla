@@ -5,7 +5,6 @@
  *      Author: salmon
  */
 #include "field_fun.h"
-#include "fetl/grid/uniform_rect.h"
 namespace simpla
 {
 namespace field_fun

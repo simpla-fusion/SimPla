@@ -14,7 +14,8 @@
 #ifndef FETL_DEFS_H_
 #define FETL_DEFS_H_
 
-#include "ntuple.h"
+#include "primitives/primitives.h"
+
 namespace simpla
 {
 
@@ -26,7 +27,6 @@ enum TopologyID
 }
 ;
 
-template<typename TG, int IFORM, typename TExpr> struct Field;
 //template<typename TL, typename TR>
 //struct FieldEquation
 //{
@@ -51,98 +51,82 @@ template<typename TG, int IFORM, typename TExpr> struct Field;
 //			lhs, rhs));
 //}
 
-template<typename TG, typename TL, int IR, typename TRExpr>
-bool CheckEquationHasVariable(TL const & eqn, Field<TG, IR, TRExpr> const & v)
-{
-	return false;
-}
-template<typename TG, int IL, typename TLExpr, typename TRExpr>
-bool CheckEquationHasVariable(Field<TG, IL, TLExpr> const & eqn,
-		Field<TG, IL, TRExpr> const & v)
-{
-	return (eqn.IsSame(v));
-}
-
-template<typename TG, typename TLExpr, int IL, int IR, typename TRExpr,
-		template<typename > class TOP>
-bool CheckEquationHasVariable(Field<TG, IL, TOP<TLExpr> > const & eqn,
-		Field<TG, IR, TRExpr> const & v)
-{
-	return CheckEquationHasVariable(eqn.lhs_, v);
-}
-
-template<typename TG, typename TL, typename TR, int IL, int IR, typename TRExpr,
-		template<typename, typename > class TOP>
-bool CheckEquationHasVariable(Field<TG, IL, TOP<TL, TR> > const & eqn,
-		Field<TG, IR, TRExpr> const & v)
-{
-	return CheckEquationHasVariable(eqn.lhs_, v)
-			|| CheckEquationHasVariable(eqn.rhs_, v);
-}
-
-
-
-template<int IFORM, typename TG, typename TExpr>
-TR1::shared_ptr<Field<TG, IFORM, typename Field<TG, IFORM, TExpr>::Grid> > //
-DuplicateField(Field<TG, IFORM, TExpr> const f)
-{
-	typedef typename Field<TG, IFORM, TExpr>::Grid Grid;
-
-	return (TR1::shared_ptr<Field<TG, IFORM, Grid> >(
-			new Field<TG, IFORM, Grid>(f.grid)));
-}
-
-
-
-namespace simpla
-{
-
 //Default fields are real value
 
-template<typename Grid, int IFORM, typename TV> struct Field;
+template<typename Grid, int IFORM, typename TV> class Field;
 
-#define DEFINE_FIELDS(TV,TG)                                                         \
+#define DEFINE_FIELDS(TG)                                                         \
 typedef TG Grid;                                                                     \
-typedef Field<Grid, IZeroForm, TV>     ZeroForm;                                \
-typedef Field<Grid, IOneForm, TV>      OneForm;                                  \
-typedef Field<Grid, ITwoForm, TV>      TwoForm;                                  \
-typedef Field<Grid, IThreeForm, TV>    ThreeForm;                              \
+typedef Field<Grid, IZeroForm, Real>     ZeroForm;                                \
+typedef Field<Grid, IOneForm, Real>      OneForm;                                  \
+typedef Field<Grid, ITwoForm, Real>      TwoForm;                                  \
+typedef Field<Grid, IThreeForm, Real>    ThreeForm;                              \
                                                                                      \
-typedef Field<Grid, IZeroForm, Vec3>   VecZeroForm;                           \
-typedef Field<Grid, IOneForm, Vec3>    VecOneForm;                             \
-typedef Field<Grid, ITwoForm, Vec3>    VecTwoForm;                             \
-typedef Field<Grid, IThreeForm, Vec3>  VecThreeForm;                         \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Real> >   VecZeroForm;                           \
+typedef Field<Grid, IOneForm, nTuple<THREE,Real> >    VecOneForm;                             \
+typedef Field<Grid, ITwoForm, nTuple<THREE,Real> >    VecTwoForm;                             \
+typedef Field<Grid, IThreeForm, nTuple<THREE,Real> >  VecThreeForm;                         \
                                                                                      \
-typedef Field<Grid, IZeroForm, TV> ScalarField;                             \
-typedef Field<Grid, IZeroForm, Vec3> VecField;                              \
+typedef Field<Grid, IZeroForm, Real> ScalarField;                             \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Real> > VecField;                              \
                                                                                      \
-typedef Field<Grid, IZeroForm, TV>     RZeroForm;                               \
-typedef Field<Grid, IOneForm, TV>      ROneForm;                                 \
-typedef Field<Grid, ITwoForm, TV>      RTwoForm;                                 \
-typedef Field<Grid, IThreeForm, TV>    RThreeForm;                             \
+typedef Field<Grid, IZeroForm, Real>     RZeroForm;                               \
+typedef Field<Grid, IOneForm, Real>      ROneForm;                                 \
+typedef Field<Grid, ITwoForm, Real>      RTwoForm;                                 \
+typedef Field<Grid, IThreeForm, Real>    RThreeForm;                             \
                                                                                      \
-typedef Field<Grid, IZeroForm, RVec3>  RVecZeroForm;                         \
-typedef Field<Grid, IOneForm, RVec3>   RVecOneForm;                           \
-typedef Field<Grid, ITwoForm, RVec3>   RVecTwoForm;                           \
-typedef Field<Grid, IThreeForm, RVec3> RVecThreeForm;                       \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Real> >  RVecZeroForm;                         \
+typedef Field<Grid, IOneForm, nTuple<THREE,Real> >   RVecOneForm;                           \
+typedef Field<Grid, ITwoForm, nTuple<THREE,Real> >   RVecTwoForm;                           \
+typedef Field<Grid, IThreeForm, nTuple<THREE,Real> > RVecThreeForm;                       \
                                                                                      \
-typedef Field<Grid, IZeroForm, TV> RScalarField;                            \
-typedef Field<Grid, IZeroForm, RVec3> RVecField;                            \
+typedef Field<Grid, IZeroForm, Real> RScalarField;                            \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Real> > RVecField;                            \
                                                                                      \
 typedef Field<Grid, IZeroForm, Complex> CZeroForm;                          \
 typedef Field<Grid, IOneForm, Complex>  COneForm;                            \
 typedef Field<Grid, ITwoForm, Complex>  CTwoForm;                            \
 typedef Field<Grid, IThreeForm, Complex>  CThreeForm;                       \
 	                                                                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecZeroForm;                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecOneForm;                         \
-typedef Field<Grid, IZeroForm, CVec3>   CVecTwoForm;                         \
-typedef Field<Grid, IThreeForm, CVec3>  CVecThreeForm;                       \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecZeroForm;                         \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecOneForm;                         \
+typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecTwoForm;                         \
+typedef Field<Grid, IThreeForm, nTuple<THREE,Complex> >  CVecThreeForm;                       \
 	                                                                         \
 typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
-typedef Field<Grid, IZeroForm, CVec3> CVecField;
+typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> > CVecField;
 
-} //namespace simpla
+namespace _impl
+{
+
+template<typename TG, int IFORM, typename TLEXPR, typename TR>
+struct TypeConvertTraits<Field<TG, IFORM, TLEXPR>, TR>
+{
+	typedef typename TypeConvertTraits<typename Field<TG, IFORM, TLEXPR>::Value,
+			TR>::Value Value;
+};
+template<typename TL, typename TG, int IFORM, typename TEXPR>
+struct TypeConvertTraits<TL, Field<TG, IFORM, TEXPR> >
+{
+	typedef typename TypeConvertTraits<TL,
+			typename Field<TG, IFORM, TEXPR>::Value>::Value Value;
+};
+
+template<typename TG, int ILFORM, typename TLEXPR, int IRFORM, typename TREXPR>
+struct TypeConvertTraits<Field<TG, ILFORM, TLEXPR>, Field<TG, IRFORM, TREXPR> >
+{
+	typedef typename TypeConvertTraits<
+			typename Field<TG, ILFORM, TLEXPR>::Value,
+			typename Field<TG, IRFORM, TREXPR>::Value>::Value Value;
+};
+
+template<int I, typename TG, typename TE> struct ValueTraits<Field<TG, I, TE> >
+{
+	typedef typename Field<TG, I, TE>::Value Value;
+};
+
+
+}  // namespace _impl
 
 } // namespace simpla
 

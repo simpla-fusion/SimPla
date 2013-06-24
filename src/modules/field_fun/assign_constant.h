@@ -10,7 +10,7 @@
 
 #include "include/simpla_defs.h"
 #include "utilities/properties.h"
-#include "fetl/grid.h"
+#include "grid/grid.h"
 #include "fetl/fetl.h"
 #include "engine/context.h"
 namespace simpla

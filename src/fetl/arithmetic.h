@@ -15,7 +15,6 @@
 #ifndef ARITHMETIC_H_
 #define ARITHMETIC_H_
 #include "fetl_defs.h"
-#include "typeconvert.h"
 namespace simpla
 {
 

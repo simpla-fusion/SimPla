@@ -8,7 +8,7 @@
 
 #include "pml.h"
 
-#include "fetl/grid/uniform_rect.h"
+#include "grid/uniform_rect.h"
 
 #include "engine/context.h"
 

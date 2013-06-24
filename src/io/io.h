@@ -21,7 +21,7 @@ namespace io
 template<typename TG>
 void RegisterModules(Context<TG> * ctx)
 {
-	DEFINE_FIELDS(typename TG::ValueType, TG)
+	DEFINE_FIELDS(TG)
 
 	ctx->moduleFactory_["WriteXDMF"] = TR1::bind(&WriteXDMF<TG>::Create,
 			ctx, TR1::placeholders::_1);
