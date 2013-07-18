@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 #include "write_xdmf2.h"
-#include "fetl/grid/uniform_rect.h"
+#include "grid/uniform_rect.h"
 #include <Xdmf.h>
 #include <H5Cpp.h>
 #include <hdf5_hl.h>

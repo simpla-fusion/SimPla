@@ -6,7 +6,6 @@
  */
 
 #include "compound.h"
-#include "basecontext.h"
 #include "include/simpla_defs.h"
 #include "utilities/properties.h"
 #include <boost/foreach.hpp>

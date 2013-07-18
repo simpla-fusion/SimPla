@@ -44,6 +44,7 @@ public:
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
 	typedef size_t Index;
+	typedef Real DX_Type;
 	typedef RVec3 Coordinates;
 	typedef UniformRectGrid ThisType;
 
@@ -56,22 +57,19 @@ public:
 
 	typedef RVec3 Coordinate;
 
-	typedef TR1::shared_ptr<ByteType> Container;
+	typedef TR1::shared_ptr<ByteType> Storage;
 
 	Real dt;
 	// Geometry
 	RVec3 xmin, xmax;
-	RVec3 dx;
-
 	// Topology
 	IVec3 dims;
 	IVec3 gw;
 
-private:
 	IVec3 strides;
 	RVec3 inv_dx;
+	RVec3 dx;
 
-public:
 	UniformRectGrid() :
 			dt(0)
 	{
@@ -80,7 +78,18 @@ public:
 	{
 	}
 
-	void init()
+	void SetGeometry(Real pdt, RVec3 pxmin, RVec3 pxmax, IVec3 pdims, IVec3 pgw)
+	{
+		dt = pdt;
+		xmin = pxmin;
+		xmax = pxmax;
+		dims = pdims;
+		gw = pgw;
+
+		Init();
+	}
+
+	void Init()
 	{
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -280,7 +289,7 @@ public:
 		{
 			d[NDIMS] = get_num_of_comp(iform);
 		}
-		return d;
+		return (d);
 	}
 
 // Assign Operation --------------------------------------------
@@ -316,10 +325,10 @@ public:
 	template<int IF, typename TV> inline //
 	void InitEmptyField(Field<ThisType, IF, TV> * f) const
 	{
-		if (f->storage == Container())
+		if (f->storage == Storage())
 		{
 			f->storage =
-					Container(
+					Storage(
 							reinterpret_cast<ByteType*>(operator new(
 									get_num_of_elements(IF)
 											* (f->value_size_in_bytes))));
@@ -329,14 +338,14 @@ public:
 	template<int IF, typename TV> TV const & //
 	GetConstValue(Field<ThisType, IF, TV> const &f, Index s) const
 	{
-		return *reinterpret_cast<const TV*>(&(*f.storage)
-				+ s * f.value_size_in_bytes);;
+		return (*reinterpret_cast<const TV*>(&(*f.storage)
+				+ s * f.value_size_in_bytes));
 	}
 
 	template<int IF, typename TV> TV & //
 	GetValue(Field<ThisType, IF, TV> &f, Index s) const
 	{
-		return *reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes);;
+		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
@@ -966,9 +975,11 @@ public:
 	}
 
 	template<typename TL>
-	typename Field<Grid, IOneForm, _impl::OpGrad<Field<Grid, IZeroForm, TL> > >::Value //
+	typename Field<Grid, IOneForm,
+			_impl::OpGrad<Field<Grid, IZeroForm, TL>, DX_Type> >::Value //
 	eval(
-			Field<Grid, IOneForm, _impl::OpGrad<Field<Grid, IZeroForm, TL> > > const & expr,
+			Field<Grid, IOneForm,
+					_impl::OpGrad<Field<Grid, IZeroForm, TL>, DX_Type> > const & expr,
 			Index const & s) const
 	{
 
@@ -981,10 +992,10 @@ public:
 
 	template<typename TLExpr>
 	typename Field<Grid, IZeroForm,
-			_impl::OpDiverge<Field<Grid, IOneForm, TLExpr> > >::Value //
+			_impl::OpDiverge<Field<Grid, IOneForm, TLExpr>, DX_Type> >::Value //
 	eval(
 			Field<Grid, IZeroForm,
-					_impl::OpDiverge<Field<Grid, IOneForm, TLExpr> > > const & expr,
+					_impl::OpDiverge<Field<Grid, IOneForm, TLExpr>, DX_Type> > const & expr,
 			Index const & s) const
 	{
 		return
@@ -1004,9 +1015,11 @@ public:
 	}
 
 	template<typename TL>
-	typename Field<Grid, ITwoForm, _impl::OpCurl<Field<Grid, IOneForm, TL> > >::Value //
+	typename Field<Grid, ITwoForm,
+			_impl::OpCurl<Field<Grid, IOneForm, TL>, DX_Type> >::Value //
 	eval(
-			Field<Grid, ITwoForm, _impl::OpCurl<Field<Grid, IOneForm, TL> > > const & expr,
+			Field<Grid, ITwoForm,
+					_impl::OpCurl<Field<Grid, IOneForm, TL>, DX_Type> > const & expr,
 			Index const & s) const
 	{
 		Index j0 = s % 3;
@@ -1024,9 +1037,10 @@ public:
 	}
 	template<typename TLExpr>
 	typename Field<Grid, IOneForm, //
-			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr> > >::Value //
-	eval(Field<Grid, IOneForm, //
-			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr> > > const & expr,
+			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr>, DX_Type> >::Value //
+	eval(
+			Field<Grid, IOneForm, //
+					_impl::OpCurl<Field<Grid, ITwoForm, TLExpr>, DX_Type> > const & expr,
 			Index const & s) const
 	{
 		Index j0 = s % 3;

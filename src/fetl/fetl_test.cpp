@@ -37,7 +37,7 @@ protected:
 		grid.gw[1] = 2;
 		grid.gw[2] = 2;
 
-		grid.init();
+		grid.Init();
 
 	}
 public:
@@ -243,7 +243,7 @@ protected:
 		grid.gw[1] = 2;
 		grid.gw[2] = 2;
 
-		grid.init();
+		grid.Init();
 	}
 public:
 	Grid grid;
@@ -421,7 +421,7 @@ protected:
 		grid.gw[1] = 2;
 		grid.gw[2] = 2;
 
-		grid.init();
+		grid.Init();
 
 	}
 public:
@@ -568,7 +568,7 @@ protected:
 		grid.gw[1] = 2;
 		grid.gw[2] = 2;
 
-		grid.init();
+		grid.Init();
 
 	}
 public:

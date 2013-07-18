@@ -32,17 +32,10 @@ public:
 
 	virtual bool CheckType(std::type_info const &) const=0;
 
-	virtual bool CheckValueType(std::type_info const &) const=0;
-
-	virtual bool Empty() const=0;
+	virtual bool IsEmpty() const=0;
 
 };
 
-inline bool Object::CheckValueType(std::type_info const &) const
-
-{
-	return false;
-}
 }  // namespace simpla
 
 #endif /* OBJECT_H_ */

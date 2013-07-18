@@ -34,21 +34,21 @@ template<typename TL, typename TR> struct OpCross
 	;
 };
 
-template<typename TL> struct OpGrad
+template<typename TL, typename TR> struct OpGrad
 {
-	typedef typename TL::Value Value;
+	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
 };
-template<typename TL> struct OpDiverge
+template<typename TL, typename TR> struct OpDiverge
 {
-	typedef typename TL::Value Value;
+	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
 };
-template<typename TL> struct OpCurl
+template<typename TL, typename TR> struct OpCurl
 {
-	typedef typename TL::Value Value;
+	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
 };
 template<typename TL, typename TR> struct OpCurlPD
 {
-	typedef typename TR::Value Value;
+	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
 };
 template<typename TL, typename TR> struct OpMapTo
 {
@@ -168,35 +168,43 @@ Cross(Field<TG, IZeroForm, TLExpr> const & lhs,
 }
 
 template<typename TG, typename TLExpr>
-inline Field<TG, IOneForm, _impl::OpGrad<Field<TG, IZeroForm, TLExpr> > >     //
+inline Field<TG, IOneForm,
+		_impl::OpGrad<Field<TG, IZeroForm, TLExpr>, typename TG::DX_Type> >   //
 Grad(Field<TG, IZeroForm, TLExpr> const & lhs)
 {
-	return (Field<TG, IOneForm, _impl::OpGrad<Field<TG, IZeroForm, TLExpr> > >(
-			lhs));
+	return (Field<TG, IOneForm,
+			_impl::OpGrad<Field<TG, IZeroForm, TLExpr>, typename TG::DX_Type> >(
+			lhs, typename TG::DX_Type()));
 }
 
 template<typename TG, typename TLExpr>
-inline Field<TG, IZeroForm, _impl::OpDiverge<Field<TG, IOneForm, TLExpr> > >  //
+inline Field<TG, IZeroForm,
+		_impl::OpDiverge<Field<TG, IOneForm, TLExpr>, typename TG::DX_Type> >  //
 Diverge(Field<TG, IOneForm, TLExpr> const & lhs)
 {
-	return (Field<TG, IZeroForm, _impl::OpDiverge<Field<TG, IOneForm, TLExpr> > >(
-			lhs));
+	return (Field<TG, IZeroForm,
+			_impl::OpDiverge<Field<TG, IOneForm, TLExpr>, typename TG::DX_Type> >(
+			lhs, typename TG::DX_Type()));
 }
 
 template<typename TG, typename TLExpr>
-inline Field<TG, ITwoForm, _impl::OpCurl<Field<TG, IOneForm, TLExpr> > >      //
+inline Field<TG, ITwoForm,
+		_impl::OpCurl<Field<TG, IOneForm, TLExpr>, typename TG::DX_Type> >    //
 Curl(Field<TG, IOneForm, TLExpr> const & lhs)
 {
-	return (Field<TG, ITwoForm, _impl::OpCurl<Field<TG, IOneForm, TLExpr> > >(
-			lhs));
+	return (Field<TG, ITwoForm,
+			_impl::OpCurl<Field<TG, IOneForm, TLExpr>, typename TG::DX_Type> >(
+			lhs, typename TG::DX_Type()));
 }
 
 template<typename TG, typename TLExpr>
-inline Field<TG, IOneForm, _impl::OpCurl<Field<TG, ITwoForm, TLExpr> > >      //
+inline Field<TG, IOneForm,
+		_impl::OpCurl<Field<TG, ITwoForm, TLExpr>, typename TG::DX_Type> >    //
 Curl(Field<TG, ITwoForm, TLExpr> const & lhs)
 {
-	return (Field<TG, IOneForm, _impl::OpCurl<Field<TG, ITwoForm, TLExpr> > >(
-			lhs));
+	return (Field<TG, IOneForm,
+			_impl::OpCurl<Field<TG, ITwoForm, TLExpr>, typename TG::DX_Type> >(
+			lhs,typename TG::DX_Type()));
 }
 
 template<int IPD, typename TG, typename TLExpr>

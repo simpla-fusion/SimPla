@@ -7,10 +7,6 @@
 
 #ifndef _GRID_IS_DEFINED_
 #define _GRID_IS_DEFINED_ "Dummy"
-#include "defs.h"
-#include "data_struct/ntuple.h"
-#include "data_struct/array.h"
-#include "fetl/detail/common.h"
 
 /** @file fetl/grid/dummy.h
  *

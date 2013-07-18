@@ -53,6 +53,9 @@ INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 find_package(Lua51)
 
+FIND_PACKAGE(XDMF)
+MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
+
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
 execute_process(COMMAND  git describe --all  --dirty --long

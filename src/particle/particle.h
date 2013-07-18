@@ -8,17 +8,43 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 #include "include/simpla_defs.h"
-#include "engine/context.h"
-
+#include "datastruct/ndarray.h"
+#include "datastruct/pool.h"
 namespace simpla
 {
 
-template<typename TG>
-void RegisterParticles(Context<TG> * ctx)
+template<typename TG, typename TS>
+class Particle: public NdArray
 {
-//	ctx->objFactory_["DeltaF"] = TR1::bind(
-//			&Context<TG>::template CreateObject<ParticleObject<TG, TS> >, ctx);
-}
+public:
+
+	typedef TG Grid;
+
+	typedef TS ParticleType;
+
+	typedef typename Grid::Index Index;
+
+	typedef typename Grid::Coordinates Coordinates;
+
+	typedef Particle<Grid, ParticleType> ThisType;
+
+	const Grid & grid;
+
+	typedef Pool<ParticleType> ParticlePool;
+
+	typename Grid::ZeroForm n;
+
+	Particle(const Grid &pgrid) :
+			grid(pgrid)
+	{
+
+	}
+
+	~Particle()
+	{
+	}
+
+};
 
 }  // namespace simpla
 

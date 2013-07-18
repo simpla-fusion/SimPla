@@ -7,7 +7,6 @@
 
 #ifndef DIFFERENTIAL_GEOMETRY_H_
 #define DIFFERENTIAL_GEOMETRY_H_
-#include "fetl/detail/field_expr_common.h"
 namespace simpla
 {
 namespace differential_geometry

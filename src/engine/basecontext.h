@@ -18,8 +18,8 @@
 #include <boost/foreach.hpp>
 #include <boost/optional.hpp>
 
+#include "primitives/primitives.h"
 #include "physics/physical_constants.h"
-#include "utilities/properties.h"
 
 namespace simpla
 {
@@ -33,36 +33,15 @@ public:
 
 	std::map<std::string, TR1::function<TR1::function<void(void)>(ptree const&)> > moduleFactory_;
 
-	ptree env;
-
 	TR1::shared_ptr<CompoundObject> objects;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
 	BaseContext();
 
-	virtual void Parse(ptree const&pt);
 
 	virtual ~BaseContext();
 
-	virtual std::string Summary() const=0;
-
-	virtual void InitLoad(ptree const&pt)
-	{
-		objects = CompoundObject::Create(this, pt);
-
-		std::ostringstream os;
-		for (typename std::map<std::string, TR1::shared_ptr<Object> >::const_iterator it =
-				objects->childs.begin(); it != objects->childs.end(); ++it)
-		{
-			os << it->first << " ";
-		}
-
-		LOG << os.str() << std::endl;
-
-	}
-
-	virtual void Process(ptree const&pt);
 
 	inline size_t Counter() const
 	{
@@ -80,29 +59,7 @@ public:
 		++counter_;
 	}
 
-	template<typename T>
-	inline boost::optional<T> GetEnv(std::string const &name,
-			boost::optional<ptree const &> pt) const
-	{
-		boost::optional<T> res(false, T());
-		if (!!pt)
-		{
-			if (boost::optional<const ptree &> apt = pt->get_child_optional(
-					name))
-			{
-				if (apt->data().substr(0, 5) != "$ENV{")
-				{
-					res = apt->get_value_optional<T>();
-				}
-				else
-				{
-					res = env.get_optional<T>(
-							apt->data().substr(5, apt->data().size() - 6));
-				}
-			}
-		}
-		return res;
-	}
+
 
 private:
 	Real dt;

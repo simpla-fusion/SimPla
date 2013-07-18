@@ -18,63 +18,57 @@ namespace simpla
 template<typename TG>
 Context<TG>::Context()
 {
-	RegisterFields(this);
-	RegisterParticles<TG>(this);
-	RegisterModules(this);
+//	RegisterFields(this);
+//	RegisterParticles(this);
+//	RegisterModules(this);
 
 }
 template<typename TG>
 Context<TG>::~Context()
 {
 }
-template<typename TG>
-void Context<TG>::Parse(ptree const & pt)
-{
-	grid.Parse(pt.get_child("Grid"));
-	BaseContext::Parse(pt);
-}
-template<typename TG>
-template<typename TOBJ>
-TR1::shared_ptr<TOBJ> Context<TG>::CreateObject()
-{
-	return TR1::shared_ptr<TOBJ>(new TOBJ(grid));
-}
-
-template<typename TG>
-template<typename TOBJ>
-TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
-{
-	if (name == "")
-	{
-		ERROR << "The name of  object   is empty!";
-	}
-
-	TR1::shared_ptr<TOBJ> res;
-
-	if (boost::optional<TR1::shared_ptr<Object> > obj = objects->FindObject(
-			name))
-	{
-
-		if ((*obj)->CheckType(typeid(TOBJ)))
-		{
-			res = TR1::dynamic_pointer_cast<TOBJ>(*obj);
-		}
-		else
-		{
-			ERROR << "The type of object " << name << " is not "
-					<< typeid(TOBJ).name();
-		}
-	}
-	else
-	{
-
-		res = CreateObject<TOBJ>();
-
-		objects->operator[](name) = TR1::dynamic_pointer_cast<Object>(res);
-
-	}
-	return res;
-}
+//template<typename TG>
+//template<typename TOBJ>
+//TR1::shared_ptr<TOBJ> Context<TG>::CreateObject()
+//{
+//	return TR1::shared_ptr<TOBJ>(new TOBJ(grid));
+//}
+//
+//template<typename TG>
+//template<typename TOBJ>
+//TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
+//{
+//	if (name == "")
+//	{
+//		ERROR << "The name of  object   is empty!";
+//	}
+//
+//	TR1::shared_ptr<TOBJ> res;
+//
+//	if (boost::optional<TR1::shared_ptr<Object> > obj = objects->FindObject(
+//			name))
+//	{
+//
+//		if ((*obj)->CheckType(typeid(TOBJ)))
+//		{
+//			res = TR1::dynamic_pointer_cast<TOBJ>(*obj);
+//		}
+//		else
+//		{
+//			ERROR << "The type of object " << name << " is not "
+//					<< typeid(TOBJ).name();
+//		}
+//	}
+//	else
+//	{
+//
+//		res = CreateObject<TOBJ>();
+//
+//		objects->operator[](name) = TR1::dynamic_pointer_cast<Object>(res);
+//
+//	}
+//	return res;
+//}
 //template<typename TG>
 //TR1::shared_ptr<Object> Context<TG>::ObjectFactory(std::string const & type)
 //{
@@ -194,25 +188,25 @@ TR1::shared_ptr<TOBJ> Context<TG>::GetObject(std::string const & name)
 //	}
 //
 //}
-template<typename TG>
-inline std::string Context<TG>::Summary() const
-{
-	std::ostringstream os;
-
-	os
-
-	<< PHYS_CONSTANTS.Summary()
-
-	<< SINGLELINE << std::endl
-
-	<< grid.Summary() << std::endl
-
-	<< DOUBLELINE << std::endl
-
-	;
-	return os.str();
-
-}
+//template<typename TG>
+//inline std::string Summary(Context<TG> * ctx) const
+//{
+//	std::ostringstream os;
+//
+//	os
+//
+//	<< Summary(ctx->PHYS_CONSTANTS)
+//
+//	<< SINGLELINE << std::endl
+//
+//	<< Summary(ctx->grid) << std::endl
+//
+//	<< DOUBLELINE << std::endl
+//
+//	;
+//	return os.str();
+//
+//}
 
 } // namespace simpla
 

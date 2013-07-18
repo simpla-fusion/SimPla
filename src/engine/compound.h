@@ -15,7 +15,6 @@
 
 namespace simpla
 {
-class BaseContext;
 class CompoundObject: public Object
 {
 public:
@@ -34,18 +33,13 @@ public:
 	static TR1::shared_ptr<CompoundObject> Create(BaseContext * ctx,
 			ptree const & pt);
 
-	virtual bool Empty() const
+	virtual bool IsEmpty() const
 	{
-		return childs.empty();
+		return (childs.empty());
 	}
 	virtual bool CheckType(std::type_info const &tinfo) const
 	{
-		return tinfo == typeid(CompoundObject);
-	}
-
-	virtual bool CheckValueType(std::type_info const &) const
-	{
-		return false;
+		return (tinfo == typeid(CompoundObject));
 	}
 
 	TR1::shared_ptr<Object> operator[](std::string const &name);

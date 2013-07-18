@@ -18,6 +18,7 @@
 #define FIELD_H_
 
 #include <stddef.h> // for NULL
+#include "engine/object.h"
 namespace simpla
 {
 
@@ -32,7 +33,7 @@ namespace simpla
  */
 
 template<typename TG, int IFORM, typename TV>
-struct Field
+struct Field: public Object
 {
 public:
 
@@ -57,30 +58,44 @@ public:
 
 	const size_t value_size_in_bytes;
 
-	typename Grid::Container storage;
+	typename Grid::Storage storage;
 
 public:
 
 	Field(Grid const & pgrid, size_t value_size = sizeof(Value)) :
 			storage(), grid(pgrid), value_size_in_bytes(value_size)
 	{
-		init();
+		Init();
 	}
 
 	virtual ~Field()
 	{
 	}
 
-	void init()
+	void Init()
 	{
 		grid.InitEmptyField(this);
+	}
+
+	bool CheckType(std::type_info const &rhs) const
+	{
+		return (typeid(ThisType) == rhs);
+	}
+
+	bool IsEmpty() const
+	{
+		return (storage == typename Grid::Storage());
+	}
+	bool IsSame(ThisType const & rhs) const
+	{
+		return (storage == rhs.storage);
 	}
 // Assignment --------
 
 	template<typename TR>
 	inline ThisType & operator =(TR const &rhs)
 	{
-		init();
+		Init();
 //
 //		if (CheckEquationHasVariable(rhs, *this))
 //		{
@@ -98,7 +113,7 @@ public:
 
 	inline ThisType & operator =(ThisType const &rhs)
 	{
-		init();
+		Init();
 
 		if (!(this->IsSame(rhs)))
 		{
@@ -110,7 +125,7 @@ public:
 	template<typename TR>
 	inline ThisType & operator =(Field<Grid, IForm, TR> const &rhs)
 	{
-		init();
+		Init();
 		grid.Assign(*this, rhs);
 		return (*this);
 	}
@@ -138,21 +153,16 @@ public:
 		return (*this);
 	}
 
-	bool IsSame(ThisType const & rhs) const
-	{
-		return (storage == rhs.storage);
-	}
-
 	//----------------------------------------------------------------------
 
 	inline Value & operator[](Index s)
 	{
-		return grid.GetValue(*this, s);
+		return (grid.GetValue(*this, s));
 	}
 
 	inline Value const &operator[](Index s) const
 	{
-		return grid.GetConstValue(*this, s);
+		return (grid.GetConstValue(*this, s));
 	}
 
 	// interpolate
@@ -245,7 +255,7 @@ struct Field<TG, IFORM, TOP<Field<TG, IFORM2, TLExpr> > >
 
 	inline Value operator[](Index s) const
 	{
-		return grid.eval(*this, s);
+		return (grid.eval(*this, s));
 	}
 
 };
@@ -279,7 +289,7 @@ struct Field<TG, IFORM, TOP<TL, TR> >
 
 	inline Value operator[](Index s) const
 	{
-		return grid.eval(*this, s);
+		return (grid.eval(*this, s));
 	}
 private:
 
@@ -287,21 +297,21 @@ private:
 	static inline Grid const &selectGrid(Field<Grid, IFORML, TLExpr> const &l,
 			Field<Grid, IFORMR, TRExpr> const &r)
 	{
-		return l.grid;
+		return (l.grid);
 	}
 
 	template<typename TVL, int IFORMR, typename TRExpr>
 	static inline Grid const &selectGrid(TVL const &l,
 			Field<Grid, IFORMR, TRExpr> const &r)
 	{
-		return r.grid;
+		return (r.grid);
 	}
 
 	template<int IFORML, typename TLExpr, typename TVR>
 	static inline Grid const &selectGrid(Field<Grid, IFORML, TLExpr> const &l,
 			TVR const &r)
 	{
-		return l.grid;
+		return (l.grid);
 	}
 
 };

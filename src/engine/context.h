@@ -33,10 +33,6 @@ public:
 
 	virtual ~Context();
 
-	virtual void Parse(ptree const&pt);
-
-	virtual std::string Summary() const;
-
 	template<typename TOBJ> TR1::shared_ptr<TOBJ> CreateObject();
 
 	template<typename TOBJ>

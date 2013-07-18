@@ -7,10 +7,7 @@
 
 #include "include/simpla_defs.h"
 #include "utilities/properties.h"
-#include "engine/context.h"
-#include "engine/detail/context_impl.h"
-
-#include "fetl/grid/uniform_rect.h"
+#include "grid/uniform_rect.h"
 
 using namespace simpla;
 
@@ -59,68 +56,92 @@ int main(int argc, char **argv)
 
 	read_file(input, pt);
 
-	ctx.env.put("Path", output);
+	boost::optional<std::string> ot = pt.get_optional<std::string>(
+			"Topology.<xmlattr>.Type");
+	if (!ot || *ot != "CoRectMesh")
+	{
+		ERROR << "Grid type mismatch";
+	}
 
-	ctx.env.put("MaxStep", max_step);
+	ctx.PHYS_CONSTANTS.SetBaseUnits(
+			pt.get("Context.PhysConstants.<xmlattr>.Type", "NATURE"),
+			pt.get("Context.PhysConstants.m", 1.0d),
+			pt.get("Context.PhysConstants.s", 1.0d),
+			pt.get("Context.PhysConstants.kg", 1.0d),
+			pt.get("Context.PhysConstants.C", 1.0f),
+			pt.get("Context.PhysConstants.K", 1.0f),
+			pt.get("Context.PhysConstants.mol", 1.0d));
 
-	ctx.env.put("RecordStep", record_stride);
+	ctx.grid.SetGeometry(
 
-	ctx.Parse(pt.get_child("Context"));
+	pt.get("Context.Grid.Time.<xmlattr>.dt", 1.0d),
+
+	pt.get<Vec3>("Context.Grid.Geometry.XMin"),
+
+	pt.get<Vec3>("Context.Grid.Geometry.XMax"),
+
+	pt.get<IVec3>("Context.Grid.Topology.<xmlattr>.Dimensions"),
+
+	pt.get<IVec3>("Context.Grid.Topology.<xmlattr>.Ghostwidth")
+
+	);
+
+//	INFORM
+//
+//	<< std::endl
+//
+//	<< DOUBLELINE << std::endl
+//
+//	<< SIMPLA_LOGO << std::endl
+//
+//	<< DOUBLELINE << std::endl
+//
+//	<< std::setw(20) << "Teimstamp : " << Log::Teimstamp() << std::endl
+//
+//	<< std::setw(20) << "Num. of procs. : " << omp_get_num_procs() << std::endl
+//
+//	<< std::setw(20) << "Num. of threads : " << omp_get_max_threads()
+//
+//	<< std::endl
+//
+//	<< std::setw(20) << "Configure File : " << input << std::endl
+//
+//	<< std::setw(20) << "Output Path : "
+//
+//	<< output << std::endl
+//
+//	<< std::setw(20) << "Log File : " << log_file << std::endl
+//
+//	<< std::setw(20) << "Number of steps : "
+//
+//	<< max_step << std::endl
+//
+//	<< std::setw(20) << "Record/steps : "
+//
+//	<< record_stride << std::endl
+//
+//	<< SINGLELINE << std::endl;
+//
+//	INFORM
+//
+//	<< Summary(ctx) << std::endl
+//
+//	<< SINGLELINE << std::endl
+//
+//	<< std::endl
+//
+//	;
+//
+//	INFORM << "====== Preprocess! =======" << std::endl;
+//
+//	ctx.InitLoad(pt.get_child("Context.InitLoad"));
+//
+//	INFORM << "====== Process! =======" << std::endl;
+//
+//	ctx.Process(pt.get_child("Context.Process"));
+//
+//	INFORM << "====== Done! =======" << std::endl;
 
 
-	INFORM
-
-	<< std::endl
-
-	<< DOUBLELINE << std::endl
-
-	<< SIMPLA_LOGO << std::endl
-
-	<< DOUBLELINE << std::endl
-
-	<< std::setw(20) << "Teimstamp : " << Log::Teimstamp() << std::endl
-
-	<< std::setw(20) << "Num. of procs. : " << omp_get_num_procs() << std::endl
-
-	<< std::setw(20) << "Num. of threads : " << omp_get_max_threads()
-
-	<< std::endl
-
-	<< std::setw(20) << "Configure File : " << input << std::endl
-
-	<< std::setw(20) << "Output Path : "
-
-	<< ctx.env.get<std::string>("Path") << std::endl
-
-	<< std::setw(20) << "Log File : " << log_file << std::endl
-
-	<< std::setw(20) << "Number of steps : "
-
-	<< ctx.env.get<size_t>("MaxStep") << std::endl
-
-	<< std::setw(20) << "Record/steps : "
-
-	<< ctx.env.get<size_t>("RecordStep") << std::endl
-
-	<< SINGLELINE << std::endl;
-
-	INFORM
-
-	<< ctx.Summary() << std::endl
-
-	<< SINGLELINE << std::endl
-
-	<< std::endl;
-
-	INFORM << "====== Preprocess! =======" << std::endl;
-
-	ctx.InitLoad(pt.get_child("Context.InitLoad"));
-
-
-	INFORM << "====== Process! =======" << std::endl;
-
-	ctx.Process(pt.get_child("Context.Process"));
-
-	INFORM << "====== Done! =======" << std::endl;
 }
 

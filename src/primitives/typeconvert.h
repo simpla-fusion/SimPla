@@ -18,10 +18,10 @@ namespace simpla
 {
 
 template<int, typename > struct nTuple;
-// NOTE: this is a replacement before C++11 available for CUDA
 
 namespace _impl
 {
+// NOTE: this is a replacement before C++11 available for CUDA
 
 
 template<typename, typename > struct TypeConvertTraits;
@@ -137,6 +137,10 @@ struct OpNegative
 	typedef typename ValueTraits<TL>::Value Value;
 }
 ;
+
+template<typename TL, typename TR> class OpEquality;
+
+template<typename TL, typename TR> class OpLessThan;
 
 } //namespace  _impl
 } // namespace simpla

@@ -10,29 +10,13 @@ namespace simpla
 PhysicalConstants::PhysicalConstants() :
 		type("SI")
 {
-	Reset();
+	Init();
 }
 PhysicalConstants::~PhysicalConstants()
 {
 }
 
-void PhysicalConstants::Parse(ptree const &pt)
-{
-
-	type = pt.get("<xmlattr>.Type", "NATURE");
-
-	if (type == "CUSTOM")
-	{
-		m = pt.get("m", 1.0d);
-		s = pt.get("s", 1.0d);
-		kg = pt.get("kg", 1.0d);
-		C = pt.get("C", 1.0f);
-		K = pt.get("K", 1.0f);
-		mol = pt.get("mol", 1.0d);
-	}
-	Reset();
-}
-void PhysicalConstants::Reset()
+void PhysicalConstants::Init()
 {
 	if (type == "SI")
 	{
@@ -62,81 +46,94 @@ void PhysicalConstants::Reset()
 		mol = 1.0;
 	}
 
-#define METRIC_PRREFIXES(_NAME_)
+	q_["kg"] = kg;
+
+	q_["K"] = K;
+
+	q_["C"] = C;
+
+	q_["s"] = s;
+
+	q_["m"] = m;
+
+	q_["mol"] = mol;
+
 	q_["Hz"] = 1.0 / s;
-	METRIC_PRREFIXES (Hz)
 
 	q_["rad"] = 1.0;
-	METRIC_PRREFIXES (rad)
 
 	q_["sr"] = 1.0;
-	METRIC_PRREFIXES (sr)
 
 	q_["J"] = m * m * kg / s / s; /* energy */
-	METRIC_PRREFIXES (J)
 
 	q_["N"] = kg * m / s / s; /* Force */
-	METRIC_PRREFIXES (N)
 
 	q_["Pa"] = kg / m / s / s; /*  Pressure */
-	METRIC_PRREFIXES (Pa)
 
 	q_["W"] = kg * m * m / s / s; /* Power    */
-	METRIC_PRREFIXES (W)
 
 	q_["volt"] = kg * m * m / s / s / C; /*Electric Potential  */
-	METRIC_PRREFIXES (volt)
 
 	q_["Ohm"] = kg * m * m / s / C / C; /*ElectricResistance */
-	METRIC_PRREFIXES (Ohm)
 
 	q_["simens"] = s * C * C / kg / m / m; /*ElectricConductance*/
-	METRIC_PRREFIXES (simens)
 
 	q_["F"] = s * s * C * C / kg / m / m; /*Capacitance;    */
-	METRIC_PRREFIXES (F)
 
 	q_["Wb"] = kg * m * m / s / C; /* MagneticFlux    */
-	METRIC_PRREFIXES (Wb)
 
 	q_["H"] = kg * m * m / C / C; /*Magnetic inductance herny  */
-	METRIC_PRREFIXES (H)
 
 	q_["Tesla"] = kg / s / C; /*Magnetic induction   */
-	METRIC_PRREFIXES (Tesla)
-
-#undef METRIC_PRREFIXES
 
 	q_["speed_of_light"] = SI_speed_of_light * m / s; /*exact*/
+
 	q_["permeability_of_free_space"] = SI_permeability_of_free_space * q_["H"]
 			/ m; /*exact*/
+
 	q_["permittivity_of_free_space"] = 1.0
 			/ (q_["speed_of_light"] * q_["speed_of_light"]
 					* q_["permeability_of_free_space"]);/*exact*/
 
 	q_["mu"] = q_["permeability_of_free_space"];
+
 	q_["epsilon"] = q_["permittivity_of_free_space"];
 
 	q_["gravitational_constant"] = SI_gravitational_constant * (m * m * m)
 			/ (s * s) / kg; /*1.2e-4*/
+
 	q_["plank_constant"] = SI_plank_constant * q_["J"] * s; /*4.4e-8*/
+
 	q_["plank_constant_bar"] = SI_plank_constant_bar * q_["J"] * s;
+
 	q_["elementary_charge"] = SI_elementary_charge * C; /*2.2e-8*/
+
 	q_["electron_mass"] = SI_electron_mass * kg; /*4.4e-8*/
+
 	q_["proton_mass"] = SI_proton_mass * kg;
+
 	q_["proton_electron_mass_ratio"] = SI_proton_electron_mass_ratio;
+
 	q_["electron_charge_mass_ratio"] = SI_electron_charge_mass_ratio * C / kg;
+
 	q_["fine_structure_constant"] = SI_fine_structure_constant; /*3.23-10*/
+
 	q_["Rydberg_constant"] = SI_Rydberg_constant / m; /*5e-12*/
+
 	q_["Avogadro_constant"] = SI_Avogadro_constant / mol; /*4.4e-8*/
+
 	q_["Faraday_constant"] = SI_Faraday_constant * C / mol; /*2.2e-10*/
+
 	q_["Boltzmann_constant"] = SI_Boltzmann_constant * q_["J"] / K; /*9.1e-7*/
+
 	q_["electron_volt"] = SI_electron_volt * q_["J"]; /*2.2e-8*/
+
 	q_["atomic_mass_unit"] = SI_atomic_mass_unit * kg; /*4.4e-8*/
 
 }
 
-std::string PhysicalConstants::Summary() const
+
+std::string Summary(PhysicalConstants* self)
 {
 	std::ostringstream os;
 
@@ -144,63 +141,67 @@ std::string PhysicalConstants::Summary() const
 
 	<< DOUBLELINE << std::endl
 
-	<< "Units " << type << " ~ SI" << std::endl
+	<< "Units " << self->type << " ~ SI" << std::endl
 
 	<< SINGLELINE << std::endl
 
-	<< std::setw(40) << "1 [length unit] = " << 1.0 / m << "[m]" << std::endl
+	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*self)["m"] << "[m]"
+			<< std::endl
 
-	<< std::setw(40) << "1 [time unit] = " << 1.0 / s << "[s]" << std::endl
+			<< std::setw(40) << "1 [time unit] = " << 1.0 / (*self)["s"]
+			<< "[s]" << std::endl
 
-	<< std::setw(40) << "1 [mass unit] = " << 1.0 / kg << "[kg]" << std::endl
+			<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*self)["kg"]
+			<< "[kg]" << std::endl
 
-	<< std::setw(40) << "1 [electric charge unit] = "
+			<< std::setw(40) << "1 [electric charge unit] = "
 
-	<< 1.0 / C << "[C]" << std::endl
+			<< 1.0 / (*self)["C"] << "[C]" << std::endl
 
-	<< std::setw(40) << "1 [temperature unit] = "
+			<< std::setw(40) << "1 [temperature unit] = "
 
-	<< 1.0 / K << "[K]" << std::endl
+			<< 1.0 / (*self)["K"] << "[K]" << std::endl
 
-	<< std::setw(40) << "1 [amount of substance] = "
+			<< std::setw(40) << "1 [amount of substance] = "
 
-	<< 1.0 / mol << "[mole]" << std::endl
+			<< 1.0 / (*self)["mol"] << "[mole]" << std::endl
 
-	<< SINGLELINE << std::endl
+			<< SINGLELINE << std::endl
 
-	<< "Physical constants:" << std::endl
+			<< "Physical constants:" << std::endl
 
-	<< SINGLELINE << std::endl
+			<< SINGLELINE << std::endl
 
-	<< std::setw(40) << "permeability of free space, mu = "
+			<< std::setw(40) << "permeability of free space, mu = "
 
-	<< (*this)["permeability_of_free_space"] << std::endl
+			<< (*self)["permeability_of_free_space"] << std::endl
 
-	<< std::setw(40) << "permittivity of free space, epsilon = "
+			<< std::setw(40) << "permittivity of free space, epsilon = "
 
-	<< (*this)["permittivity_of_free_space"] << std::endl
+			<< (*self)["permittivity_of_free_space"] << std::endl
 
-	<< std::setw(40) << "speed of light, c = "
+			<< std::setw(40) << "speed of light, c = "
 
-	<< (*this)["speed_of_light"] << std::endl
+			<< (*self)["speed_of_light"] << std::endl
 
-	<< std::setw(40) << "elementary charge, e = "
+			<< std::setw(40) << "elementary charge, e = "
 
-	<< (*this)["elementary_charge"] << std::endl
+			<< (*self)["elementary_charge"] << std::endl
 
-	<< std::setw(40) << "electron mass, m_e = "
+			<< std::setw(40) << "electron mass, m_e = "
 
-	<< (*this)["electron_mass"] << std::endl
+			<< (*self)["electron_mass"] << std::endl
 
-	<< std::setw(40) << "proton mass,m_p = "
+			<< std::setw(40) << "proton mass,m_p = "
 
-	<< (*this)["proton_mass"] << std::endl
+			<< (*self)["proton_mass"] << std::endl
 
-	<< DOUBLELINE << std::endl;
+			<< DOUBLELINE << std::endl;
 
 	return os.str();
 
 }
+
 
 }  // namespace simpla
 

@@ -223,6 +223,7 @@ operator /(nTuple<N, TLExpr> const & lhs,
 			lhs, rhs));
 }
 
+
 } // namespace simpla
 
 #endif /* ARITHMETIC_H_ */

@@ -7,10 +7,8 @@
 
 #ifndef WRITE_SILO_H_
 #define WRITE_SILO_H_
-#include <silo.h>
 #include <string>
 #include <list>
-#include "include/common.h"
 
 class Context;
 

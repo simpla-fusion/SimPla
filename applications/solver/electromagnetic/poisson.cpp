@@ -7,11 +7,9 @@
 #include <string>
 #include <iostream>
 #include "include/simpla_defs.h"
-#include "primitives/ntuple.h"
 #include "fetl/fetl.h"
 #include "engine/context.h"
 #include "io/io.h"
-#include "solvers/linear_solver/ksp_cg.h"
 #include "utilities/log.h"
 
 using namespace simpla;

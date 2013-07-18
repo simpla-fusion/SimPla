@@ -7,9 +7,7 @@
 #include "context.h"
 #include "engine/engine.h"
 
-#include "emfield/emfield.h"
 #include "fluid/fluid.h"
-#include "pic/pic.h"
 #include "io/io.h"
 #include "utilities/luaParser.h"
 

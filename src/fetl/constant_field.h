@@ -9,7 +9,6 @@
 #define CONSTANT_FIELD_H_
 #include "include/simpla_defs.h"
 #include "fetl/fetl_defs.h"
-#include "primitives/typetraits.h"
 namespace simpla
 {
 

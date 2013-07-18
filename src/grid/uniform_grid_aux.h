@@ -11,25 +11,8 @@
 #include "utilities/properties.h"
 namespace simpla {
 
-inline void Parse(ptree const &pt)
+inline void Init()
 {
-	boost::optional<std::string> ot = pt.get_optional < std::string
-			> ("Topology.<xmlattr>.Type");
-	if (!ot || *ot != "CoRectMesh")
-	{
-		ERROR << "Grid type mismatch";
-	}
-
-	dims = pt.get < IVec3 > ("Topology.<xmlattr>.Dimensions");
-
-	gw = pt.get < IVec3 > ("Topology.<xmlattr>.Ghostwidth");
-
-	xmin = pt.get < Vec3 > ("Geometry.XMin");
-
-	xmax = pt.get < Vec3 > ("Geometry.XMax");
-
-	dt = pt.get("Time.<xmlattr>.dt", 1.0d);
-
 	for (int i = 0; i < NDIMS; ++i)
 	{
 		gw[i] = (gw[i] * 2 > dims[i]) ? dims[i] / 2 : gw[i];

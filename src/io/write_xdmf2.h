@@ -15,7 +15,6 @@
 #include <boost/foreach.hpp>
 #include "engine/basecontext.h"
 #include "engine/object.h"
-#include "engine/modules.h"
 
 namespace simpla
 {
