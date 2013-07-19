@@ -7,8 +7,9 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-
+#include <complex>
 #include "ntuple.h"
+#include "expression_template/arithmetic.h"
 
 using namespace simpla;
 
@@ -30,10 +31,10 @@ protected:
 
 	virtual void SetUp()
 	{
-		a = static_cast<ValueType>(1);
-		b = static_cast<ValueType>(3);
-		c = static_cast<ValueType>(4);
-		d = static_cast<ValueType>(7);
+		a = static_cast<Value>(1);
+		b = static_cast<Value>(3);
+		c = static_cast<Value>(4);
+		d = static_cast<Value>(7);
 
 		for (int i = 0; i < NDIM; ++i)
 		{
@@ -49,27 +50,25 @@ protected:
 
 		}
 
-		m = static_cast<ValueType>(loop_num);
+		m = static_cast<Value>(loop_num);
 	}
 
 public:
 	static const int NDIM = T::NDIM;
 	static const int loop_num = 1000000L;
-	typedef typename T::ValueType ValueType;
-	ValueType m;
+	typedef typename T::Value Value;
+	Value m;
 
 	T vA, vB, vC, vD;
-	typename T::ValueType aA[NDIM], aB[NDIM], aC[NDIM], aD[NDIM];
-	typename T::ValueType a, b, c, d;
+	Value aA[NDIM], aB[NDIM], aC[NDIM], aD[NDIM];
+	Value a, b, c, d;
 
 };
 
 typedef testing::Types< //
-		nTuple<3, double>
-		, nTuple<3, int>
-		, nTuple<3, Complex>
-		, nTuple<10, double>
-		, nTuple<20, double>
+		nTuple<3, double>, nTuple<3, int>
+		, nTuple<3, std::complex<double> >
+		, nTuple<10, double>, nTuple<20, double>
 
 > MyTypes;
 
@@ -104,9 +103,20 @@ TYPED_TEST(TestNtuple, Logical){
 
 }}
 
+TYPED_TEST(TestNtuple, Arithmetic){
+{
+	TestFixture::vD = EQUATION(vA ,vB ,vC);
+
+	for (int i = 0; i < TestFixture::NDIM; ++i)
+	{
+		EXPECT_DOUBLE_EQ(_real(EQUATION(vA[i] ,vB[i] ,vC[i])),_real( TestFixture::vD[i]));
+	}
+}
+}
+
 TYPED_TEST(TestNtuple, Dot){
 {
-	typename TestFixture::ValueType res(0);
+	typename TestFixture::Value res(0);
 
 	for (int i = 0; i < TestFixture::NDIM; ++i)
 	{
@@ -117,15 +127,15 @@ TYPED_TEST(TestNtuple, Dot){
 
 TYPED_TEST(TestNtuple, Cross){
 {
-	nTuple<THREE, typename TestFixture::ValueType> vA, vB, vD;
+	nTuple<3, typename TestFixture::Value> vA, vB, vD;
 
-	for (int i = 0; i < THREE; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
-		vA[i] = static_cast<typename TestFixture::ValueType>(i * 2);
-		vB[i] = static_cast<typename TestFixture::ValueType>(5 - i);
+		vA[i] = static_cast<typename TestFixture::Value>(i * 2);
+		vB[i] = static_cast<typename TestFixture::Value>(5 - i);
 	}
 
-	for (int i = 0; i < THREE; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		vD[i] = vA[(i + 1) % 3] * vB[(i + 2) % 3]
 		- vA[(i + 2) % 3] * vB[(i + 1) % 3];
@@ -133,16 +143,6 @@ TYPED_TEST(TestNtuple, Cross){
 
 	EXPECT_EQ(vD,Cross(vA,vB) );
 }}
-
-TYPED_TEST(TestNtuple, Arithmetic){
-{
-	TestFixture::vD = EQUATION(vA ,vB ,vC);
-	for (int i = 0; i < TestFixture::NDIM; ++i)
-	{
-		EXPECT_DOUBLE_EQ(_real(EQUATION(vA[i] ,vB[i] ,vC[i])),_real( TestFixture::vD[i]));
-	}
-}
-}
 
 TYPED_TEST(TestNtuple, performance_rawarray){
 {
@@ -160,7 +160,6 @@ TYPED_TEST(TestNtuple, performance_rawarray){
 
 }
 }
-
 TYPED_TEST(TestNtuple, performance_nTuple){
 {
 

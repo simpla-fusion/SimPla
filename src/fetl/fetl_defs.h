@@ -53,7 +53,7 @@ enum TopologyID
 
 //Default fields are real value
 
-template<typename Grid, int IFORM, typename TV> class Field;
+template<typename TV> class Field;
 
 #define DEFINE_FIELDS(TG)                                                         \
 typedef TG Grid;                                                                     \
@@ -95,38 +95,6 @@ typedef Field<Grid, IThreeForm, nTuple<THREE,Complex> >  CVecThreeForm;         
 	                                                                         \
 typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
 typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> > CVecField;
-
-namespace _impl
-{
-
-template<typename TG, int IFORM, typename TLEXPR, typename TR>
-struct TypeConvertTraits<Field<TG, IFORM, TLEXPR>, TR>
-{
-	typedef typename TypeConvertTraits<typename Field<TG, IFORM, TLEXPR>::Value,
-			TR>::Value Value;
-};
-template<typename TL, typename TG, int IFORM, typename TEXPR>
-struct TypeConvertTraits<TL, Field<TG, IFORM, TEXPR> >
-{
-	typedef typename TypeConvertTraits<TL,
-			typename Field<TG, IFORM, TEXPR>::Value>::Value Value;
-};
-
-template<typename TG, int ILFORM, typename TLEXPR, int IRFORM, typename TREXPR>
-struct TypeConvertTraits<Field<TG, ILFORM, TLEXPR>, Field<TG, IRFORM, TREXPR> >
-{
-	typedef typename TypeConvertTraits<
-			typename Field<TG, ILFORM, TLEXPR>::Value,
-			typename Field<TG, IRFORM, TREXPR>::Value>::Value Value;
-};
-
-template<int I, typename TG, typename TE> struct ValueTraits<Field<TG, I, TE> >
-{
-	typedef typename Field<TG, I, TE>::Value Value;
-};
-
-
-}  // namespace _impl
 
 } // namespace simpla
 

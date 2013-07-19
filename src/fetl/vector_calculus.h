@@ -34,69 +34,6 @@ template<typename TL, typename TR> struct OpCross
 	;
 };
 
-template<typename TL, typename TR> struct OpGrad
-{
-	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
-};
-template<typename TL, typename TR> struct OpDiverge
-{
-	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
-};
-template<typename TL, typename TR> struct OpCurl
-{
-	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
-};
-template<typename TL, typename TR> struct OpCurlPD
-{
-	typedef typename OpDivision<typename TL::Value, TR>::Value Value;
-};
-template<typename TL, typename TR> struct OpMapTo
-{
-	typedef typename TR::Value Value;
-};
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
-		Field<TG, IOneForm, TR> >
-{
-	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::Value> Value;
-};
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IZeroForm>,
-		Field<TG, ITwoForm, TR> >
-{
-	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::Value> Value;
-};
-
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
-		Field<TG, IZeroForm, TR> >
-{
-	typedef typename Field<TG, IZeroForm, TR>::Value::Value Value;
-};
-template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
-		Field<TG, IZeroForm, TR> >
-{
-	typedef typename Field<TG, IZeroForm, TR>::Value::Value Value;
-};
-
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
-		Field<TG, IOneForm, TR> >
-{
-	typedef nTuple<THREE, typename Field<TG, IOneForm, TR>::Value> Value;
-};
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IThreeForm>,
-		Field<TG, ITwoForm, TR> >
-{
-	typedef nTuple<THREE, typename Field<TG, ITwoForm, TR>::Value> Value;
-};
-
-template<typename TG, typename TR> struct OpMapTo<Int2Type<IOneForm>,
-		Field<TG, IThreeForm, TR> >
-{
-	typedef typename Field<TG, IThreeForm, TR>::Value::Value Value;
-};
-template<typename TG, typename TR> struct OpMapTo<Int2Type<ITwoForm>,
-		Field<TG, IThreeForm, TR> >
-{
-	typedef typename Field<TG, IThreeForm, TR>::Value::Value Value;
-};
 
 } // namespace namespace _impl{
 

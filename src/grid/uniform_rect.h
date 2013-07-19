@@ -580,6 +580,8 @@ public:
 		}
 	}
 
+#define DECL_RET_TYPE(_EXPR_) ->decltype(_EXPR_){return (_EXPR_);}
+
 // Interpolation ----------------------------------------------------------
 
 	template<typename TExpr>
@@ -805,25 +807,18 @@ public:
 //		return (expr[idx]);
 //	}
 
-	template<typename TExpr>
-	inline typename TExpr::Value //
+	template<typename TExpr> inline auto //
 	mapto_(Int2Type<IZeroForm>, Int2Type<IOneForm>, const TExpr & expr,
 			Index s) const
-	{
-		unsigned IS = s % 3;
-		return ((expr[s] + expr[s - 3 * strides[s % 3]]) * 0.5);
-	}
+			DECL_RET_TYPE( (expr[s] + expr[s - 3 * strides[s % 3]]) * 0.5 )
 
-	template<typename TExpr>
-	inline typename TExpr::Value //
+	template<typename TExpr> inline auto //
 	mapto_(Int2Type<IZeroForm>, Int2Type<ITwoForm>, const TExpr & expr,
 			Index s) const
-	{
-		return ((expr[s] + expr[s - 3 * strides[(s + 1) % 3]]
-				+ expr[s - 3 * strides[(s + 2) % 3]]
-				+ expr[s - 3 * strides[(s + 1) % 3] - 3 * strides[(s + 2) % 3]])
-				* 0.25);
-	}
+					DECL_RET_TYPE ((expr[s] + expr[s - 3 * strides[(s + 1) % 3]]
+									+ expr[s - 3 * strides[(s + 2) % 3]]
+									+ expr[s - 3 * strides[(s + 1) % 3] - 3 * strides[(s + 2) % 3]])
+							* 0.25)
 
 //	template<typename TExpr> inline typename TExpr::Value //
 //	mapto_(Int2Type<IZeroForm>, Int2Type<IVecZeroForm>, const TExpr & expr,
@@ -1207,6 +1202,7 @@ public:
 						+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 1) % 3]
 								+ strides[(s + 2) % 3]][s % 3]);
 	}
+#undef DECL_RET_TYPE
 };
 
 } //namespace simpla

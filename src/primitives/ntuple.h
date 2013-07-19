@@ -19,8 +19,8 @@
 #include <vector>
 #include <sstream>
 
-#include "mpl/typetraits.h"
-#include "typeconvert.h"
+#include <utility>
+#include "expression_template/arithmetic.h"
 namespace simpla
 {
 
@@ -40,105 +40,6 @@ namespace simpla
  * */
 
 template<int N, typename T> struct nTuple;
-
-#define DEFINE_TYPETRAITS(_TV_)                                           \
-template<int N >                                                          \
-struct TypeTraits< nTuple<N, _TV_> >                                 \
-{                                                                         \
-	typedef  nTuple<N, _TV_> & Reference;                            \
-	typedef const  nTuple<N, _TV_>& ConstReference;                  \
-};                                                                        \
-                                                                          \
-
-DEFINE_TYPETRAITS(int)
-DEFINE_TYPETRAITS(Real)
-DEFINE_TYPETRAITS(Complex)
-#undef DEFINE_TYPETRAITS
-
-namespace _impl
-{
-template<typename, typename > struct TypeConvertTraits;
-
-#define DEFINE_NTUPLE_OP(_TV_ )                                                                         \
-template<int N, typename TE>                                                                            \
-struct TypeConvertTraits<nTuple<N, TE>, _TV_>                                                        \
-{                                                                                                       \
-	typedef nTuple<N,                                                                                   \
-			typename TypeConvertTraits<_TV_,                                                         \
-					typename nTuple<N, TE>::Value>::Value> Value;                           \
-};                                                                                                      \
-                                                                                                        \
-template<int N, typename TE>                                                                            \
-struct TypeConvertTraits<_TV_, nTuple<N, TE> >                                                       \
-{                                                                                                       \
-	typedef nTuple<N,                                                                                   \
-			typename TypeConvertTraits<typename nTuple<N, TE>::Value,                               \
-			_TV_>::Value> Value;                                                     \
-};                                                                                                      \
-
-DEFINE_NTUPLE_OP(int)
-DEFINE_NTUPLE_OP(Real)
-DEFINE_NTUPLE_OP(Complex)
-//DEFINE_NTUPLE_OP(RVec3)
-//DEFINE_NTUPLE_OP(CVec3)
-#undef DEFINE_NTUPLE_OP
-
-template<int N, typename TLExpr, typename TRExpr>
-struct TypeConvertTraits<nTuple<N, TLExpr>, nTuple<N, TRExpr> >
-{
-	typedef nTuple<N,
-			typename TypeConvertTraits<typename nTuple<N, TLExpr>::Value,
-					typename nTuple<N, TRExpr>::Value>::Value> Value;
-};
-
-template<typename T> inline typename T::Value eval(T const & nt, size_t s)
-{
-	return nt[s];
-}
-
-template<typename T> inline //
-T mapto_(T const & expr, size_t s)
-{
-	return expr;
-}
-template<int N, typename T> inline //
-typename nTuple<N, T>::Value //
-mapto_(nTuple<N, T> const & expr, size_t s)
-{
-	return expr[s];
-}
-template<int N, typename TL> inline //
-typename nTuple<N, OpNegative<TL> >::Value //
-eval(nTuple<N, OpNegative<TL> > const & expr, size_t s)
-{
-	return -mapto_(expr.lhs_, s);
-}
-template<int N, typename TL, typename TR> inline //
-typename nTuple<N, OpAddition<TL, TR> >::Value //
-eval(nTuple<N, OpAddition<TL, TR> > const & expr, size_t s)
-{
-	return mapto_(expr.lhs_, s) + mapto_(expr.rhs_, s);
-}
-template<int N, typename TL, typename TR> inline //
-typename nTuple<N, OpSubtraction<TL, TR> >::Value //
-eval(nTuple<N, OpSubtraction<TL, TR> > const & expr, size_t s)
-{
-	return mapto_(expr.lhs_, s) - mapto_(expr.rhs_, s);
-}
-template<int N, typename TL, typename TR> inline //
-typename nTuple<N, OpMultiplication<TL, TR> >::Value //
-eval(nTuple<N, OpMultiplication<TL, TR> > const & expr, size_t s)
-{
-	return mapto_(expr.lhs_, s) * mapto_(expr.rhs_, s);
-}
-template<int N, typename TL, typename TR> inline //
-typename nTuple<N, OpDivision<TL, TR> >::Value //
-eval(nTuple<N, OpDivision<TL, TR> > const & expr, size_t s)
-{
-	return mapto_(expr.lhs_, s) / mapto_(expr.rhs_, s);
-}
-
-} //namespace  _impl
 
 //--------------------------------------------------------------------------------------------
 template<int N, typename T>
@@ -171,7 +72,7 @@ struct nTuple
 		{
 			res[i] = v_[i];
 		}
-		return res;
+		return (res);
 	}
 
 	inline void swap(ThisType & rhs)
@@ -199,30 +100,12 @@ struct nTuple
 		return (!(*this == rhs));
 	}
 
-	inline ThisType & operator =(Value rhs)
-	{
-		for (int i = 0; i < NDIM; ++i)
-		{
-			v_[i] = rhs;
-		}
-		return (*this);
-	}
-
 	template<typename TR>
-	inline ThisType & operator =(TR const *rhs)
+	inline ThisType & operator =(TR const &rhs)
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{
-			v_[i] = rhs[i];
-		}
-		return (*this);
-	}
-	template<typename TExpr>
-	inline ThisType & operator =(nTuple<NDIM, TExpr> const &rhs)
-	{
-		for (int i = 0; i < NDIM; ++i)
-		{
-			v_[i] = rhs[i];
+			v_[i] = index(rhs, i);
 		}
 		return (*this);
 	}
@@ -268,106 +151,12 @@ operator nTuple<NDIM,Value >()                          \
 	return res;                                                     \
 }
 
-template<int N, typename TL, template<typename > class TOP>
-struct nTuple<N, TOP<nTuple<N, TL> > >
-{
-	typedef nTuple<N, TOP<nTuple<N, TL> > > ThisType;
-
-	static const int NDIM = N;
-
-	typedef typename TOP<nTuple<N, TL> >::Value::Value Value;
-
-	typename TypeTraits<nTuple<N, TL> >::ConstReference lhs_;
-
-	nTuple(nTuple<N, TL> const & lhs) :
-			lhs_(lhs)
-	{
-	}
-
-	inline Value operator[](size_t const & s) const
-	{
-		return _impl::eval(*this, s);
-	}
-
-	IMPLICIT_TYPE_CONVERT
-};
-
-template<int N, typename TL, typename TR,
-		template<typename, typename > class TOP>
-struct nTuple<N, TOP<TL, TR> >
-{
-	typedef typename TOP<TL, TR>::Value::Value Value;
-
-	static const int NDIM = N;
-
-	typename TypeTraits<TL>::ConstReference lhs_;
-	typename TypeTraits<TR>::ConstReference rhs_;
-
-	nTuple(TL const & lhs, TR const & rhs) :
-			lhs_(lhs), rhs_(rhs)
-	{
-	}
-
-	inline Value operator[](size_t s) const
-	{
-		return _impl::eval(*this, s);
-	}
-
-	IMPLICIT_TYPE_CONVERT
-};
-
-template<int N, typename TL> //
-inline nTuple<N, _impl::OpNegative<nTuple<N, TL> > >                          //
-operator -(nTuple<N, TL> const & lhs)
-{
-	return (nTuple<N, _impl::OpNegative<nTuple<N, TL> > >(lhs));
-}
-
-#define DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_,_OPNAME_,_TYPE_)                                \
-template<int N, typename TExpr>                                                             \
-inline nTuple<N, _impl::_OPNAME_<_TYPE_, nTuple<N, TExpr> > >                          \
-_OP_(_TYPE_  const & lhs, nTuple<N, TExpr> const &rhs)                                      \
-{                                                            \
-	return nTuple<N, _impl::_OPNAME_<_TYPE_, nTuple<N, TExpr> > >(lhs, rhs);           \
-}                                                                                           \
-                                                                                            \
-template<int N, typename TExpr>                                                             \
-inline nTuple<N, _impl::_OPNAME_<nTuple<N, TExpr>, _TYPE_> >                           \
-_OP_(nTuple<N, TExpr> const & lhs, _TYPE_ const & rhs)                                      \
-{                                                                                         \
-	return nTuple<N, _impl::_OPNAME_<nTuple<N, TExpr>, _TYPE_> >(lhs, rhs);            \
-}
-
-#define DECLARE_NTUPLE_ARITHMETIC(_OP_,_OPNAME_)                                            \
-                                                                                            \
-template<int N, typename TLExpr, typename TRExpr>                                           \
-inline nTuple<N, _impl::_OPNAME_<nTuple<N, TLExpr>, nTuple<N, TRExpr> > >              \
-_OP_(nTuple<N, TLExpr> const &lhs, nTuple<N, TRExpr> const & rhs)                           \
-{                                                                                           \
-return (nTuple<N,_impl::_OPNAME_<nTuple<N, TLExpr>, nTuple<N, TRExpr> > >(lhs,	rhs));  \
-}                                                                                           \
-DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, int)                                         \
-DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, Real)                                        \
-DECLARE_NTUPLE_ARITHMETIC_TYPE(_OP_, _OPNAME_, Complex)                                     \
-
-DECLARE_NTUPLE_ARITHMETIC(operator*, OpMultiplication);
-DECLARE_NTUPLE_ARITHMETIC(operator/, OpDivision);
-DECLARE_NTUPLE_ARITHMETIC(operator+, OpAddition);
-DECLARE_NTUPLE_ARITHMETIC(operator-, OpSubtraction);
-
-#undef DECLARE_NTUPLE_ARITHMETIC
-#undef DECLARE_NTUPLE_ARITHMETIC_TYPE
-
 template<typename TLExpr, typename TRExpr>
-inline nTuple<THREE,
-		typename _impl::TypeConvertTraits<typename nTuple<THREE, TLExpr>::Value,
-				typename nTuple<THREE, TRExpr>::Value>::Value>                //
-Cross(nTuple<THREE, TLExpr> const &lhs, nTuple<THREE, TRExpr> const & rhs)
+inline auto Cross(nTuple<3, TLExpr> const &lhs, nTuple<3, TRExpr> const & rhs)
+->nTuple<3,decltype(lhs[0]*rhs[0])>
+
 {
-	nTuple<THREE,
-			typename _impl::TypeConvertTraits<
-					typename nTuple<THREE, TLExpr>::Value,
-					typename nTuple<THREE, TRExpr>::Value>::Value> res =
+	nTuple<3, decltype(lhs[0]*rhs[0])> res =
 	{
 
 	lhs[1] * rhs[2] - lhs[2] * rhs[1],
@@ -380,13 +169,11 @@ Cross(nTuple<THREE, TLExpr> const &lhs, nTuple<THREE, TRExpr> const & rhs)
 	return res;
 }
 
-template<int N, typename TL, typename TR>
-inline typename _impl::TypeConvertTraits<typename nTuple<N, TL>::Value,
-		typename nTuple<N, TR>::Value>::Value Dot(nTuple<N, TL> const &lhs,
-		nTuple<N, TR> const & rhs)
+template<int N, typename TL, typename TR> inline auto Dot(
+		nTuple<N, TL> const &lhs,
+		nTuple<N, TR> const & rhs)->decltype(lhs[0] * rhs[0])
 {
-	typename _impl::TypeConvertTraits<typename nTuple<N, TL>::Value,
-			typename nTuple<N, TR>::Value>::Value res = 0.0;
+	decltype(lhs[0] * rhs[0]) res = 0.0;
 
 	for (int i = 0; i < N; ++i)
 	{
@@ -395,13 +182,9 @@ inline typename _impl::TypeConvertTraits<typename nTuple<N, TL>::Value,
 	return (res);
 }
 
-template<typename TL, typename TR>
-inline typename _impl::TypeConvertTraits<typename nTuple<THREE, TL>::Value,
-		typename nTuple<THREE, TR>::Value>::Value //
-Dot(nTuple<THREE, TL> const &lhs, nTuple<THREE, TR> const & rhs)
-{
-	return (lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2]);
-}
+//template<typename TL, typename TR>
+//inline auto Dot(nTuple<3, TL> const &lhs, nTuple<3, TR> const & rhs)
+//DECL_RET_TYPE( (lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2]))
 
 template<int N, typename TL, typename TR>
 inline bool operator==(nTuple<N, TL> const &lhs, nTuple<N, TR> const & rhs)
@@ -415,8 +198,7 @@ inline bool operator==(nTuple<N, TL> const &lhs, nTuple<N, TR> const & rhs)
 }
 
 template<typename TL, typename TR>
-inline bool operator==(nTuple<THREE, TL> const &lhs,
-		nTuple<THREE, TR> const & rhs)
+inline bool operator==(nTuple<3, TL> const &lhs, nTuple<3, TR> const & rhs)
 {
 
 	return ((lhs[0] == rhs[0]) && (lhs[1] == rhs[1]) && (lhs[2] == rhs[2]));
@@ -449,7 +231,7 @@ template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 	std::istringstream ss(str);
 	nTuple<N, T> res;
 	ss >> res;
-	return res;
+	return (res);
 }
 
 template<typename T> inline typename nTuple<3, nTuple<3, T> >::Value //
