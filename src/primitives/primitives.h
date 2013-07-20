@@ -86,5 +86,4 @@ template<typename T> inline T Abs(typename std::complex<T> const & v)
 }
 // namespace simpla
 #include "ntuple.h"
-#include "typeconvert.h"
 #endif /* PRIMITIVES_H_ */

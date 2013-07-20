@@ -16,11 +16,10 @@
 #define INCLUDE_NTUPLE_H_
 #include <iostream>
 #include <complex>
-#include <vector>
 #include <sstream>
 
 #include <utility>
-#include "expression_template/arithmetic.h"
+#include "expression.h"
 namespace simpla
 {
 
@@ -102,6 +101,16 @@ struct nTuple
 
 	template<typename TR>
 	inline ThisType & operator =(TR const &rhs)
+	{
+		for (int i = 0; i < NDIM; ++i)
+		{
+			v_[i] = index(rhs, i);
+		}
+		return (*this);
+	}
+
+	template<typename TR>
+	inline ThisType & operator =(nTuple<NDIM, TR> const &rhs)
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{
@@ -275,19 +284,21 @@ Determinant(nTuple<4, nTuple<4, T> > const & m)
 	);
 }
 
-template<int N, typename T> T Abs(nTuple<N, T> const & m)
+template<int N, typename T> auto abs(
+		nTuple<N, T> const & m)-> decltype(std::abs(std::sqrt(Dot(m, m))))
 {
-	return sqrt(Dot(m, m));
+	return std::abs(std::sqrt(Dot(m, m)));
 }
 
-template<int N, typename T> T Abs(nTuple<N, nTuple<N, T> > const & m)
+template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
+->decltype(abs(m[0][0]*m[0][0]))
 {
 	nTuple<N, T> res;
 	for (size_t i = 0; i < N; ++i)
 	{
 		res[i] = Dot(m[i], m[i]);
 	}
-	return sqrt(Dot(res, res));
+	return (abs(res));
 }
 
 } //namespace simpla

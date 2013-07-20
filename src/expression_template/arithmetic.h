@@ -42,6 +42,7 @@ template<typename IDX> inline std::complex<double> index(std::complex<double> v,
 	return (v);
 }
 
+
 namespace _impl
 {
 
@@ -94,14 +95,13 @@ struct OpAddition
 			TR const &r)
 			DECL_RET_TYPE(l+r)
 };
-;
 struct OpSubtraction
 {
 	template<typename TL, typename TR> inline static auto eval(TL const & l,
 			TR const &r)
 			DECL_RET_TYPE(l-r)
 };
-;
+
 }  // namespace _impl
 
 template<typename TL, typename TR> inline typename std::enable_if<

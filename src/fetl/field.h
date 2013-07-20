@@ -39,38 +39,7 @@ public:
 
 // Assignment --------
 
-	template<typename TR>
-	inline ThisType & operator =(TR const &rhs)
-	{
-		Assign(*this, rhs);
-		return (*this);
-	}
 
-	template<typename TR>
-	inline ThisType & operator +=(TR const &rhs)
-	{
-		*this = *this + rhs;
-		return (*this);
-	}
-	template<typename TR>
-	inline ThisType & operator -=(TR const &rhs)
-	{
-		*this = *this - rhs;
-		return (*this);
-	}
-
-	template<typename TR>
-	inline ThisType & operator *=(TR const &rhs)
-	{
-		*this = *this * rhs;
-		return (*this);
-	}
-	template<typename TR>
-	inline ThisType & operator /=(TR const &rhs)
-	{
-		*this = *this / rhs;
-		return (*this);
-	}
 
 };
 

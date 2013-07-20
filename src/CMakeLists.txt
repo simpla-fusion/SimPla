@@ -1,5 +1,7 @@
 ADD_SUBDIRECTORY( primitives  )
 
+ADD_SUBDIRECTORY( datastruct)
+
 ADD_SUBDIRECTORY( utilities  )
 
 ADD_SUBDIRECTORY( engine )
