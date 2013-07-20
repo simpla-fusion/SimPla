@@ -8,8 +8,9 @@
 #ifndef INCLUDE_MEMORY_POOL_H_
 #define INCLUDE_MEMORY_POOL_H_
 #include <map>
+#include <memory>
 #include "singleton_holder.h"
-#include "log.h"
+#include "utilities/log.h"
 
 class MemoryPool: public SingletonHolder<MemoryPool>
 {
@@ -18,7 +19,7 @@ class MemoryPool: public SingletonHolder<MemoryPool>
 		MAX_POOL_DEPTH = 128
 	};
 
-	typedef std::multimap<size_t, TR1::shared_ptr<int8_t> > MemoryMap;
+	typedef std::multimap<size_t, std::shared_ptr<int8_t> > MemoryMap;
 
 	MemoryMap pool_;
 
@@ -36,9 +37,9 @@ public:
 	{
 		MAX_POOL_DEPTH_IN_GB = s;
 	}
-	inline TR1::shared_ptr<int8_t> alloc(size_t size)
+	inline std::shared_ptr<int8_t> alloc(size_t size)
 	{
-		TR1::shared_ptr<int8_t> res;
+		std::shared_ptr<int8_t> res;
 
 		bool isFound = false;
 
@@ -50,7 +51,7 @@ public:
 			{
 				if (it->second.unique())
 				{
-					TR1::shared_ptr<int8_t>(it->second).swap(res);
+					std::shared_ptr<int8_t>(it->second).swap(res);
 					isFound = true;
 					break;
 				}
@@ -60,7 +61,7 @@ public:
 		{
 			try
 			{
-				TR1::shared_ptr<int8_t>(new int8_t[size]).swap(res);
+				std::shared_ptr<int8_t>(new int8_t[size]).swap(res);
 
 			} catch (std::bad_alloc const &error)
 			{
@@ -106,4 +107,5 @@ public:
 	}
 };
 
+#define MEMPOOL MemoryPool::instance()
 #endif  // INCLUDE_MEMORY_POOL_H_

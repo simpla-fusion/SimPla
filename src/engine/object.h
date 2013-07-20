@@ -8,7 +8,10 @@
 #ifndef OBJECT_H_
 #define OBJECT_H_
 #include <typeinfo>
-#include "utilities/properties.h"
+#include <memory>
+#include <algorithm>
+#include <string>
+#include "utilities/memory_pool.h"
 namespace simpla
 {
 class Object
@@ -17,22 +20,34 @@ public:
 	Object()
 	{
 	}
-	inline virtual ~Object()
+	Object(size_t size_in_byte, std::string name = "unnamed") :
+			data_(MemoryPool::instance().alloc(size_in_byte)), name_(name)
 	{
 	}
 
-	ptree properties;
+	inline virtual ~Object()
+	{
+		MEMPOOL.release();
+	}
+
+//	ptree properties;
 
 	virtual void swap(Object & rhs)
 	{
-		properties.swap(rhs.properties);
+		std::swap(data_, rhs.data_);
+		std::swap(name_, rhs.name_);
+//		properties.swap(rhs.properties);
 	}
 
 	// Metadata ------------------------------------------------------------
 
-	virtual bool CheckType(std::type_info const &) const=0;
+//	virtual bool CheckType(std::type_info const &) const=0;
 
 	virtual bool IsEmpty() const=0;
+
+protected:
+	std::string name_;
+	std::shared_ptr<ByteType> data_;
 
 };
 
