@@ -7,39 +7,61 @@
 
 #ifndef FIELD_H_
 #define FIELD_H_
+#include <memory> // for shared_ptr
+#include <algorithm> //for swap
 #include "datastruct/array.h"
 namespace simpla
 {
 
-template<typename TV, typename TPolicy = NullType>
+template<typename TGeometry, typename TV>
 struct Field: public Array<TV>
 {
 public:
 
 	typedef Array<TV> BaseType;
-	typedef Field<TV, TPolicy> ThisType;
+	typedef Field<TGeometry, TV> ThisType;
+	typedef TGeometry Grid;
+	typedef typename Grid::Coordinates Coordinates;
 
-	typedef ThisType const &ConstReference;
+	std::shared_ptr<const Grid> grid;
 
-public:
-
-	Field(size_t size = 0, size_t value_size = sizeof(Value)) :
-			BaseType(size, value_size)
+	Field()
 	{
+	}
+
+	Field(std::shared_ptr<Grid> g, size_t value_size = sizeof(Value)) :
+			BaseType(grid->get_num_of_elements(), value_size), grid(g)
+	{
+	}
+
+	Field(ThisType const &) = delete;
+
+	void swap(ThisType & rhs)
+	{
+		BaseType::swap(rhs);
+		std::swap(grid, rhs.grid);
 	}
 
 	virtual ~Field()
 	{
 	}
 
-	bool CheckType(std::type_info const &rhs) const
+	inline Value Get(Coordinates const &x,Real effect_radius=0)const
 	{
-		return (typeid(ThisType) == rhs || BaseType::CheckType(rhs));
+		return (grid->IntepolateFrom(*this,x,effect_radius));
 	}
 
+	inline void Put(Value const & v,Coordinates const &x,Real effect_radius=0)
+	{
+		grid->IntepolateTo(*this,v,x,effect_radius);
+	}
+
+//	bool CheckType(std::type_info const &rhs) const
+//	{
+//		return (typeid(ThisType) == rhs || BaseType::CheckType(rhs));
+//	}
+
 // Assignment --------
-
-
 
 };
 

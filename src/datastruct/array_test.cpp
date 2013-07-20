@@ -180,7 +180,7 @@ public:
 
 typedef testing::Types< //
 		Array<nTuple<3, double> > //
-		, Array<nTuple<5, std::complex<double> > > //
+		, Array<nTuple<3, std::complex<double> > > //
 > MyVecTypes;
 
 TYPED_TEST_CASE(TestVecArray, MyVecTypes);
@@ -209,6 +209,26 @@ TYPED_TEST(TestVecArray,Assign_Array){
 		EXPECT_DOUBLE_EQ(abs(res) ,0.0)<<res;
 	}
 }}
+
+TYPED_TEST(TestVecArray,VecArithmetic){
+{
+	TestFixture::vA = TestFixture::aA;
+	TestFixture::vB = TestFixture::aB;
+	TestFixture::vC = Cross(TestFixture::vA,TestFixture::vB);
+
+	Array<decltype(Dot(TestFixture::vA[0],TestFixture::vB[0]))> res(TestFixture::num);
+
+	res=Dot(TestFixture::vA ,TestFixture::vB);
+
+#pragma omp parallel for
+	for (size_t i = 0; i < TestFixture::num; ++i)
+	{
+//		EXPECT_DOUBLE_EQ(res[i] ,Dot(TestFixture::vA[i],TestFixture::vB[i]));
+//		EXPECT_DOUBLE_EQ(abs(TestFixture::vC[i]
+//						-Cross(TestFixture::vA[i],TestFixture::vB[i])),0);
+	}
+}
+}
 
 //
 //TYPED_TEST(TestArray, performance_rawarray){

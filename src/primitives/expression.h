@@ -142,14 +142,14 @@ operator /(TL const &lhs, TR const & rhs)
 template<typename TL> inline auto //
 operator -(TL const &lhs) DECL_RET_TYPE((-1.0*lhs))
 
-#define BI_FUN_OP(_OP_NAME_)                                                       \
+#define BI_FUN_OP(_OP_NAME_,_FUN_)                                                       \
                                                                                      \
 struct Op##_OP_NAME_                                                                 \
 {                                                                                    \
 	template<typename TL, typename TR> inline static auto eval(TL const & l,         \
-			TR const &r)->decltype(pow(l, r))                                        \
+			TR const &r)->decltype(_FUN_(l, r))                                        \
 	{                                                                                \
-		return (std::_OP_NAME_(l, r));                                               \
+		return (_FUN_(l, r));                                               \
 	}                                                                                \
 };                                                                                   \
 template<typename TL, typename TR> inline typename std::enable_if<                   \
@@ -160,8 +160,10 @@ _OP_NAME_(TL const &lhs, TR const & rhs)                                        
 	return (BiOp<Op##_OP_NAME_, TL, TR>(lhs, rhs));                                  \
 }                                                                                    \
 
-BI_FUN_OP(pow)
-BI_FUN_OP(modf)
+BI_FUN_OP(pow, std::pow)
+BI_FUN_OP(modf, std::modf)
+BI_FUN_OP(Dot, Dot)
+BI_FUN_OP(Cross, Cross)
 
 #undef BI_FUN_OP
 
@@ -191,12 +193,12 @@ public:
 
 };
 
-#define UNI_FUN_OP(_OP_NAME_)                                                       \
+#define UNI_FUN_OP(_OP_NAME_,_FUN_)                                                       \
 struct Op##_OP_NAME_                                                                \
 {                                                                                   \
 	template<typename TL> inline static auto eval(TL const & l)                     \
-	->decltype((std::_OP_NAME_(l)))                                                 \
-	{ return (std::_OP_NAME_(l));  }                                                \
+	->decltype((_FUN_(l)))                                                 \
+	{ return (_FUN_(l));  }                                                \
 };                                                                                  \
                                                                                     \
 template<typename TL> inline                                           \
@@ -205,13 +207,13 @@ _OP_NAME_(TL const &lhs)                                                        
 {                                                                                   \
 	return (UniOp<Op##_OP_NAME_, TL>(lhs));                                         \
 }
-UNI_FUN_OP(abs)
-UNI_FUN_OP(sin)
-UNI_FUN_OP(cos)
-UNI_FUN_OP(tan)
-UNI_FUN_OP(log)
-UNI_FUN_OP(log10)
-UNI_FUN_OP(exp)
+UNI_FUN_OP(abs, std::abs)
+UNI_FUN_OP(sin, std::sin)
+UNI_FUN_OP(cos, std::cos)
+UNI_FUN_OP(tan, std::tan)
+UNI_FUN_OP(log, std::log)
+UNI_FUN_OP(log10, std::log10)
+UNI_FUN_OP(exp, std::exp)
 
 #undef UNI_FUN_OP
 
