@@ -19,45 +19,11 @@
 namespace simpla
 {
 
-enum TopologyID
-{
-	INullForm = -1,
-
-	IZeroForm = 0, IOneForm = 1, ITwoForm = 2, IThreeForm = 3, IFourForm = 4
-}
-;
-
-//template<typename TL, typename TR>
-//struct FieldEquation
-//{
-//public:
-//
-//	typename TypeTraits<TL>::ConstReference lhs_;
-//	typename TypeTraits<TR>::ConstReference rhs_;
-//
-//	FieldEquation(TL const & lhs, TR const & rhs) :
-//			lhs_(lhs), rhs_(rhs)
-//	{
-//	}
-//
-//};
-//
-//template<typename TG, int IFORM, typename TLExpr, typename TRExpr>
-//FieldEquation<Field<TG, IFORM, TLExpr>, Field<TG, IFORM, TRExpr> >            //
-//operator==(Field<TG, IFORM, TLExpr> const & lhs,
-//		Field<TG, IFORM, TRExpr> const & rhs)
-//{
-//	return (FieldEquation<Field<TG, IFORM, TLExpr>, Field<TG, IFORM, TRExpr> >(
-//			lhs, rhs));
-//}
-
-//Default fields are real value
-
-template<typename TV> class Field;
+template<typename TG,typename TV> class Field;
 
 #define DEFINE_FIELDS(TG)                                                         \
 typedef TG Grid;                                                                     \
-typedef Field<Grid, IZeroForm, Real>     ZeroForm;                                \
+typedef Field<ZeroForm<Grid>, Real>     ZeroForm;                                \
 typedef Field<Grid, IOneForm, Real>      OneForm;                                  \
 typedef Field<Grid, ITwoForm, Real>      TwoForm;                                  \
 typedef Field<Grid, IThreeForm, Real>    ThreeForm;                              \

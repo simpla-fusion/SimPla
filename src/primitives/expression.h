@@ -31,6 +31,16 @@ struct is_arithmetic_scalar
 			|| std::is_arithmetic<TL>::value);
 };
 
+template<typename TL>
+struct ReferenceTraits
+{
+	typedef typename std::conditional<
+			std::is_copy_constructible<TL>::value
+					&& !(std::is_trivial<TL>::value
+							&& sizeof(TL) > sizeof(int) * 3), TL, TL const &>::type type;
+
+};
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 template<typename T, typename IDX> inline
@@ -55,14 +65,9 @@ template<typename IDX> inline std::complex<double> index(std::complex<double> v,
 template<typename TOP, typename TL, typename TR> class BiOp
 {
 public:
-	typename std::conditional<
-			std::is_copy_constructible<TL>::value
-					&& !(std::is_trivial<TL>::value
-							&& sizeof(TL) > sizeof(int) * 3), TL, TL const &>::type l_;
-	typename std::conditional<
-			std::is_copy_constructible<TR>::value
-					&& !(std::is_trivial<TR>::value
-							&& sizeof(TR) > sizeof(int) * 3), TR, TR const &>::type r_;
+
+	typename ReferenceTraits<TL>::type l_;
+	typename ReferenceTraits<TR>::type r_;
 
 	typedef BiOp<TOP, TL, TR> ThisType;
 
@@ -170,10 +175,7 @@ BI_FUN_OP(Cross, Cross)
 template<typename TOP, typename TL> class UniOp
 {
 public:
-	typename std::conditional<
-			std::is_copy_constructible<TL>::value
-					&& !(std::is_trivial<TL>::value
-							&& sizeof(TL) > sizeof(int) * 3), TL, TL const &>::type l_;
+	typename ReferenceTraits<TL>::type l_;
 
 	typedef UniOp<TOP, TL> ThisType;
 

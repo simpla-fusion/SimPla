@@ -1,23 +1,19 @@
 /*
- * physical_quantity.h
+ * dimensioned_quantity.h
  *
- *  Created on: 2012-8-3
+ *  Created on: 2012-3-18
  *      Author: salmon
  */
 
-#ifndef PHYSICAL_QUANTITY_H_
-#define PHYSICAL_QUANTITY_H_
-#include <cmath>
+#ifndef DIMENSIONED_QUANTITY_H_
+#define DIMENSIONED_QUANTITY_H_
 #include <type_traits>
 #include <utility>
 #include "primitives/expression.h"
 namespace simpla
 {
-namespace physics
-{
 
-template<int I0, int I1, int I2, int I3, int I4, int I5, int I6,
-		typename TV = double>
+template<int I0, int I1, int I2, int I3, int I4, int I5, int I6, typename TV>
 class DimensionedQuantity
 {
 public:
@@ -43,9 +39,7 @@ struct DimensionLessQuantityTraits
 	std::conditional<
 			std::is_same<
 					DimensionedQuantity<0, 0, 0, 0, 0, 0, 0, typename T::Value>,
-					T>::value,
-
-			typename T::Value, T>::type type;
+					T>::value, typename T::Value, T>::type type;
 };
 template<int L0, int L1, int L2, int L3, int L4, int L5, int L6, typename TL,
 		int R0, int R1, int R2, int R3, int R4, int R5, int R6, typename TR>
@@ -83,7 +77,8 @@ inline auto operator+(
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TV> const & lhs,
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TV> const & rhs)
 				DECL_RET_TYPE(
-						(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, decltype(lhs.value + rhs.value)>( lhs.value + rhs.value ))
+						(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6,
+								decltype(lhs.value + rhs.value)>( lhs.value + rhs.value ))
 
 				)
 
@@ -92,14 +87,15 @@ inline auto operator-(
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TV> const & lhs,
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TV> const & rhs)
 				DECL_RET_TYPE(
-						(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, decltype(lhs.value - rhs.value)>( lhs.value - rhs.value ))
+						(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6,
+								decltype(lhs.value - rhs.value)>( lhs.value - rhs.value ))
 
 				)
 
 template<int L0, int L1, int L2, int L3, int L4, int L5, int L6, typename TL,
 		typename TR>
-inline auto   //
-operator*(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
+inline auto operator*(
+		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
 		TR const &rhs)
 				DECL_RET_TYPE(
 						(
@@ -109,8 +105,7 @@ operator*(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
 
 template<int L0, int L1, int L2, int L3, int L4, int L5, int L6, typename TL,
 		typename TR>
-inline auto   //
-operator*(TL const &lhs,
+inline auto operator*(TL const &lhs,
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TR> const & rhs,
 		)
 				DECL_RET_TYPE(
@@ -120,8 +115,8 @@ operator*(TL const &lhs,
 						))
 template<int L0, int L1, int L2, int L3, int L4, int L5, int L6, typename TL,
 		typename TR>
-inline auto   //
-operator/(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
+inline auto operator/(
+		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
 		TR const &rhs)
 				DECL_RET_TYPE(
 						(
@@ -131,8 +126,7 @@ operator/(DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TL> const & lhs,
 
 template<int L0, int L1, int L2, int L3, int L4, int L5, int L6, typename TL,
 		typename TR>
-inline auto   //
-operator/(TL const &lhs,
+inline auto operator/(TL const &lhs,
 		DimensionedQuantity<L0, L1, L2, L3, L4, L5, L6, TR> const & rhs,
 		)
 				DECL_RET_TYPE(
@@ -177,54 +171,54 @@ struct UnitSystem
 		static const double AmountOfSubstance;
 	};
 //-------------------------- l  m  t  q  T  Iv n
-	typedef DimensionedQuantity<0, 0, 0, 0, 0, 0, 0,  double> DIMESIONLESS;
-	typedef DimensionedQuantity<1, 0, 0, 0, 0, 0, 0,  double> Length;
-	typedef DimensionedQuantity<0, 1, 0, 0, 0, 0, 0,  double> Mass;
-	typedef DimensionedQuantity<0, 0, 1, 0, 0, 0, 0,  double> Time;
-	typedef DimensionedQuantity<0, 0, 0, 1, 0, 0, 0,  double> Charge;
-	typedef DimensionedQuantity<0, 0, 0, 0, 1, 0, 0,  double> Temperature;
-	typedef DimensionedQuantity<0, 0, 0, 0, 0, 1, 0,  double> Luminousintensity;
-	typedef DimensionedQuantity<0, 0, 0, 0, 0, 0, 1,  double> AmountOfSubstance;
-	typedef DimensionedQuantity<0, 2, 0, 0, 0, 0, 0,  double> Area;
-	typedef DimensionedQuantity<-2, -1, 2, 2, 0, 0, 0,  double> Capacitance;
-	typedef DimensionedQuantity<-3, 0, 0, 1, 0, 0, 0,  double> ChargeDensity;
-	typedef DimensionedQuantity<-2, -1, 1, 2, 0, 0, 0,  double> ElectricConductance;
-	typedef DimensionedQuantity<-3, -1, 1, 2, 0, 0, 0,  double> Conductivity;
-	typedef DimensionedQuantity<0, 0, -1, 1, 0, 0, 0,  double> CurrentDensity;
-	typedef DimensionedQuantity<-3, 0, 0, 0, 0, 0, 0,  double> Density;
-	typedef DimensionedQuantity<-2, 0, 0, 1, 0, 0, 0,  double> Displacement;
-	typedef DimensionedQuantity<1, 1, -2, -1, 0, 0, 0,  double> ElectricField;
-	typedef DimensionedQuantity<2, 1, -2, -1, 0, 0, 0,  double> Electromotance;
-	typedef DimensionedQuantity<2, 1, -2, 0, 0, 0, 0,  double> Energy;
-	typedef DimensionedQuantity<-1, 1, -2, 0, 0, 0, 0,  double> EnergyDensity;
-	typedef DimensionedQuantity<1, 1, -2, 0, 0, 0, 0,  double> Force;
-	typedef DimensionedQuantity<0, 0, -1, 0, 0, 0, 0,  double> Frequency;
-	typedef DimensionedQuantity<2, 1, -1, -2, 0, 0, 0,  double> Impedance;
-	typedef DimensionedQuantity<2, 1, 0, -2, 0, 0, 0,  double> Inductance;
-	typedef DimensionedQuantity<-1, 0, -1, 1, 0, 0, 0,  double> MagneticIntensity;
-	typedef DimensionedQuantity<2, 1, -1, -1, 0, 0, 0,  double> MagneticFlux;
-	typedef DimensionedQuantity<0, 1, -1, -1, 0, 0, 0,  double> MagneticInduction;
-	typedef DimensionedQuantity<2, 0, -1, 1, 0, 0, 0,  double> MagneticMoment;
-	typedef DimensionedQuantity<-1, 0, -1, 1, 0, 0, 0,  double> Magnetization;
-	typedef DimensionedQuantity<0, 0, -1, 1, 0, 0, 0,  double> Magnetomotance;
-	typedef DimensionedQuantity<1, 1, -1, 0, 0, 0, 0,  double> Momentum;
-	typedef DimensionedQuantity<-2, 1, -1, 0, 0, 0, 0,  double> MomentumDensity;
-	typedef DimensionedQuantity<1, 1, 0, -2, 0, 0, 0,  double> Permeability;
-	typedef DimensionedQuantity<-3, -1, 2, 2, 0, 0, 0,  double> Permittivity;
-	typedef DimensionedQuantity<-2, 0, 0, 1, 0, 0, 0,  double> Polarization;
-	typedef DimensionedQuantity<2, 1, -2, -1, 0, 0, 0,  double> Potential;
-	typedef DimensionedQuantity<2, 1, -3, 0, 0, 0, 0,  double> Power;
-	typedef DimensionedQuantity<-1, 1, -3, 0, 0, 0, 0,  double> PowerDensity;
-	typedef DimensionedQuantity<-1, 1, -2, 0, 0, 0, 0,  double> Pressure;
-	typedef DimensionedQuantity<-2, -1, 0, 2, 0, 0, 0,  double> Reluctance;
-	typedef DimensionedQuantity<2, 1, -1, -2, 0, 0, 0,  double> Resistance;
-	typedef DimensionedQuantity<3, 1, -1, -2, 0, 0, 0,  double> Resistivity;
-	typedef DimensionedQuantity<1, 1, -3, 0, 0, 0, 0,  double> ThermalConductivity;
-	typedef DimensionedQuantity<1, 1, -1, -1, 0, 0, 0,  double> VectorPotential;
-	typedef DimensionedQuantity<-1, 1, -1, 0, 0, 0, 0,  double> Viscosity;
-	typedef DimensionedQuantity<3, 0, 0, 0, 0, 0, 0,  double> Volume;
-	typedef DimensionedQuantity<0, 0, -1, 0, 0, 0, 0,  double> Vorticity;
-	typedef DimensionedQuantity<2, 1, -2, 0, 0, 0, 0,  double> Work;
+	typedef DimensionedQuantity<0, 0, 0, 0, 0, 0, 0, double> DIMESIONLESS;
+	typedef DimensionedQuantity<1, 0, 0, 0, 0, 0, 0, double> Length;
+	typedef DimensionedQuantity<0, 1, 0, 0, 0, 0, 0, double> Mass;
+	typedef DimensionedQuantity<0, 0, 1, 0, 0, 0, 0, double> Time;
+	typedef DimensionedQuantity<0, 0, 0, 1, 0, 0, 0, double> Charge;
+	typedef DimensionedQuantity<0, 0, 0, 0, 1, 0, 0, double> Temperature;
+	typedef DimensionedQuantity<0, 0, 0, 0, 0, 1, 0, double> Luminousintensity;
+	typedef DimensionedQuantity<0, 0, 0, 0, 0, 0, 1, double> AmountOfSubstance;
+	typedef DimensionedQuantity<0, 2, 0, 0, 0, 0, 0, double> Area;
+	typedef DimensionedQuantity<-2, -1, 2, 2, 0, 0, 0, double> Capacitance;
+	typedef DimensionedQuantity<-3, 0, 0, 1, 0, 0, 0, double> ChargeDensity;
+	typedef DimensionedQuantity<-2, -1, 1, 2, 0, 0, 0, double> ElectricConductance;
+	typedef DimensionedQuantity<-3, -1, 1, 2, 0, 0, 0, double> Conductivity;
+	typedef DimensionedQuantity<0, 0, -1, 1, 0, 0, 0, double> CurrentDensity;
+	typedef DimensionedQuantity<-3, 0, 0, 0, 0, 0, 0, double> Density;
+	typedef DimensionedQuantity<-2, 0, 0, 1, 0, 0, 0, double> Displacement;
+	typedef DimensionedQuantity<1, 1, -2, -1, 0, 0, 0, double> ElectricField;
+	typedef DimensionedQuantity<2, 1, -2, -1, 0, 0, 0, double> Electromotance;
+	typedef DimensionedQuantity<2, 1, -2, 0, 0, 0, 0, double> Energy;
+	typedef DimensionedQuantity<-1, 1, -2, 0, 0, 0, 0, double> EnergyDensity;
+	typedef DimensionedQuantity<1, 1, -2, 0, 0, 0, 0, double> Force;
+	typedef DimensionedQuantity<0, 0, -1, 0, 0, 0, 0, double> Frequency;
+	typedef DimensionedQuantity<2, 1, -1, -2, 0, 0, 0, double> Impedance;
+	typedef DimensionedQuantity<2, 1, 0, -2, 0, 0, 0, double> Inductance;
+	typedef DimensionedQuantity<-1, 0, -1, 1, 0, 0, 0, double> MagneticIntensity;
+	typedef DimensionedQuantity<2, 1, -1, -1, 0, 0, 0, double> MagneticFlux;
+	typedef DimensionedQuantity<0, 1, -1, -1, 0, 0, 0, double> MagneticInduction;
+	typedef DimensionedQuantity<2, 0, -1, 1, 0, 0, 0, double> MagneticMoment;
+	typedef DimensionedQuantity<-1, 0, -1, 1, 0, 0, 0, double> Magnetization;
+	typedef DimensionedQuantity<0, 0, -1, 1, 0, 0, 0, double> Magnetomotance;
+	typedef DimensionedQuantity<1, 1, -1, 0, 0, 0, 0, double> Momentum;
+	typedef DimensionedQuantity<-2, 1, -1, 0, 0, 0, 0, double> MomentumDensity;
+	typedef DimensionedQuantity<1, 1, 0, -2, 0, 0, 0, double> Permeability;
+	typedef DimensionedQuantity<-3, -1, 2, 2, 0, 0, 0, double> Permittivity;
+	typedef DimensionedQuantity<-2, 0, 0, 1, 0, 0, 0, double> Polarization;
+	typedef DimensionedQuantity<2, 1, -2, -1, 0, 0, 0, double> Potential;
+	typedef DimensionedQuantity<2, 1, -3, 0, 0, 0, 0, double> Power;
+	typedef DimensionedQuantity<-1, 1, -3, 0, 0, 0, 0, double> PowerDensity;
+	typedef DimensionedQuantity<-1, 1, -2, 0, 0, 0, 0, double> Pressure;
+	typedef DimensionedQuantity<-2, -1, 0, 2, 0, 0, 0, double> Reluctance;
+	typedef DimensionedQuantity<2, 1, -1, -2, 0, 0, 0, double> Resistance;
+	typedef DimensionedQuantity<3, 1, -1, -2, 0, 0, 0, double> Resistivity;
+	typedef DimensionedQuantity<1, 1, -3, 0, 0, 0, 0, double> ThermalConductivity;
+	typedef DimensionedQuantity<1, 1, -1, -1, 0, 0, 0, double> VectorPotential;
+	typedef DimensionedQuantity<-1, 1, -1, 0, 0, 0, 0, double> Viscosity;
+	typedef DimensionedQuantity<3, 0, 0, 0, 0, 0, 0, double> Volume;
+	typedef DimensionedQuantity<0, 0, -1, 0, 0, 0, 0, double> Vorticity;
+	typedef DimensionedQuantity<2, 1, -2, 0, 0, 0, 0, double> Work;
 
 };
 
@@ -240,6 +234,6 @@ struct UnitSystem
 //METRIC_PRREFIXES(UnitSystem<SI>::Temperature, K)
 
 }// namespace units
-}  //namespace physics
 } //namespace simpla
-#endif /* PHYsiCAL_QUANTITY_H_ */
+
+#endif /* DIMENSIONED_QUANTITY_H_ */
