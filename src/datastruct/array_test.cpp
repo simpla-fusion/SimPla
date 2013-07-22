@@ -10,8 +10,8 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <complex>
-#include "primitives/ntuple.h"
-#include "primitives/expression.h"
+#include "fetl/ntuple.h"
+#include "fetl/expression.h"
 
 using namespace simpla;
 
@@ -33,11 +33,11 @@ protected:
 
 	virtual void SetUp()
 	{
-//		a = static_cast<Value>(1);
-//		b = static_cast<Value>(3);
-//		c = static_cast<Value>(4);
-//		d = static_cast<Value>(7);
-//		m = static_cast<Value>(loop_);
+//		a = static_cast<ValueType>(1);
+//		b = static_cast<ValueType>(3);
+//		c = static_cast<ValueType>(4);
+//		d = static_cast<ValueType>(7);
+//		m = static_cast<ValueType>(loop_);
 		a = 1;
 		b = 2;
 		c = 3;
@@ -60,12 +60,12 @@ protected:
 public:
 	static const int num = 100000;
 	static const int loop_ = 1000000L;
-	typedef typename T::Value Value;
-	Value m;
+	typedef typename T::ValueType ValueType;
+	ValueType m;
 
 	T vA, vB, vC, vD;
-	Value a, b, c, d;
-	Value aA[num], aB[num], aC[num], aD[num];
+	ValueType a, b, c, d;
+	ValueType aA[num], aB[num], aC[num], aD[num];
 };
 
 typedef testing::Types< //
@@ -142,11 +142,11 @@ protected:
 
 	virtual void SetUp()
 	{
-//		a = static_cast<Value>(1);
-//		b = static_cast<Value>(3);
-//		c = static_cast<Value>(4);
-//		d = static_cast<Value>(7);
-//		m = static_cast<Value>(loop_);
+//		a = static_cast<ValueType>(1);
+//		b = static_cast<ValueType>(3);
+//		c = static_cast<ValueType>(4);
+//		d = static_cast<ValueType>(7);
+//		m = static_cast<ValueType>(loop_);
 		a = 1;
 		b = 2;
 		vc = 3;
@@ -169,13 +169,13 @@ protected:
 public:
 	static const int num = 100000;
 	static const int loop_ = 1000000L;
-	typedef typename T::Value Value;
-	Value m;
+	typedef typename T::ValueType ValueType;
+	ValueType m;
 
 	T vA, vB, vC, vD;
 	Real a, b;
-	Value vc, vd;
-	Value aA[num], aB[num], aC[num], aD[num];
+	ValueType vc, vd;
+	ValueType aA[num], aB[num], aC[num], aD[num];
 };
 
 typedef testing::Types< //
@@ -192,7 +192,7 @@ TYPED_TEST(TestVecArray,Assign_Scalar){
 
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		typename TestFixture::Value res;res=(TestFixture::vc -TestFixture::vA[i]);
+		typename TestFixture::ValueType res;res=(TestFixture::vc -TestFixture::vA[i]);
 
 		EXPECT_DOUBLE_EQ(abs(res) ,0)<<TestFixture::vc <<TestFixture::vA[i];
 	}
@@ -205,7 +205,7 @@ TYPED_TEST(TestVecArray,Assign_Array){
 #pragma omp parallel for
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		typename TestFixture::Value res;res=(TestFixture::aA[i]-TestFixture::vA[i]);
+		typename TestFixture::ValueType res;res=(TestFixture::aA[i]-TestFixture::vA[i]);
 		EXPECT_DOUBLE_EQ(abs(res) ,0.0)<<res;
 	}
 }}

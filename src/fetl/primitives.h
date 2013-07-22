@@ -14,6 +14,11 @@ namespace simpla
 {
 
 static const int NIL = 0;
+
+template<int N> struct Int2Type
+{
+	static const int value = N;
+};
 enum CONST_NUMBER
 {
 	ZERO = 0,
@@ -57,6 +62,7 @@ typedef long Integral;
 typedef std::complex<Real> Complex;
 
 template<int N, typename T> struct nTuple;
+
 typedef nTuple<THREE, Real> Vec3;
 typedef nTuple<THREE, nTuple<THREE, Real> > Tensor3;
 typedef nTuple<FOUR, nTuple<FOUR, Real> > Tensor4;
@@ -74,15 +80,6 @@ typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-template<typename T> inline T Abs(T const & v)
-{
-	return abs(v);
-}
-
-template<typename T> inline T Abs(typename std::complex<T> const & v)
-{
-	return abs(v);
-}
 }
 // namespace simpla
 #include "ntuple.h"

@@ -15,21 +15,22 @@
 
 #include "include/simpla_defs.h"
 
-#include "primitives/primitives.h"
-
-#include "mpl/typetraits.h"
-
 #include "fetl/fetl.h"
+
+#include "fetl/primitives.h"
+
+#include "fetl/geometry.h"
+
+#include "fetl/vector_calculus.h"
 
 #include "grid.h"
 
 namespace simpla
 {
-
 /**
  *  UniformRectGrid -- Uniform rectangular structured grid.
  * */
-class UniformRectGrid: public BaseGrid
+struct UniformRectGrid: public BaseGrid
 {
 	UniformRectGrid &
 	operator=(const UniformRectGrid&);
@@ -38,22 +39,20 @@ class UniformRectGrid: public BaseGrid
 
 	std::vector<size_t> center_ele_[4];
 	std::vector<size_t> ghost_ele_[4];
-public:
 
-	typedef Real Value;
+	typedef Real ValueType;
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
-	typedef size_t Index;
-	typedef Real DX_Type;
-	typedef RVec3 Coordinates;
+	typedef size_t IndexType;
+	typedef RVec3 CoordinatesType;
 	typedef UniformRectGrid ThisType;
 
 	enum
 	{
 		NDIMS = THREE
 	};
-	typedef typename std::vector<Index>::iterator iterator;
-	typedef typename std::vector<Index>::const_iterator const_iterator;
+	typedef typename std::vector<IndexType>::iterator iterator;
+	typedef typename std::vector<IndexType>::const_iterator const_iterator;
 
 	typedef RVec3 Coordinate;
 
@@ -113,16 +112,17 @@ public:
 		strides[0] = dims[1] * dims[2];
 
 		//#pragma omp parallel for  << here can not be parallized
-		for (Index i = 0; i < dims[0]; ++i)
-			for (Index j = 0; j < dims[1]; ++j)
-				for (Index k = 0; k < dims[2]; ++k)
+		for (IndexType i = 0; i < dims[0]; ++i)
+			for (IndexType j = 0; j < dims[1]; ++j)
+				for (IndexType k = 0; k < dims[2]; ++k)
 				{
-					Index s = (i * strides[0] + j * strides[1] + k * strides[2]);
+					IndexType s = (i * strides[0] + j * strides[1]
+							+ k * strides[2]);
 
 					for (int f = 0; f < 4; ++f)
 					{
-						Index num_of_comp = get_num_of_comp(f);
-						for (Index l = 0; l < num_of_comp; ++l)
+						IndexType num_of_comp = get_num_of_comp(f);
+						for (IndexType l = 0; l < num_of_comp; ++l)
 						{
 							if (i < gw[0] || i > dims[0] - gw[0] //
 							|| j < gw[1] || j > dims[1] - gw[1] //
@@ -141,23 +141,31 @@ public:
 				}
 
 	}
-	inline std::vector<Index> const &
+
+	template<int N>
+	Geometry<ThisType, N> get_sub_geometry()
+	{
+		return (Geometry<ThisType, N>(*this));
+
+	}
+
+	inline std::vector<IndexType> const &
 	get_center_elements(int iform) const
 	{
 		return (center_ele_[iform]);
 	}
 
-	inline std::vector<Index>::const_iterator get_center_elements_begin(
+	inline std::vector<IndexType>::const_iterator get_center_elements_begin(
 			int iform) const
 	{
 		return (center_ele_[iform].begin());
 	}
-	inline std::vector<Index>::const_iterator get_center_elements_end(
+	inline std::vector<IndexType>::const_iterator get_center_elements_end(
 			int iform) const
 	{
 		return (center_ele_[iform].end());
 	}
-	inline std::vector<Index> const &
+	inline std::vector<IndexType> const &
 	get_ghost_elements(int iform) const
 	{
 		return (ghost_ele_[iform]);
@@ -170,27 +178,27 @@ public:
 
 // Property -----------------------------------------------
 
-	inline Index get_num_of_vertex() const
+	inline IndexType get_num_of_vertex() const
 	{
-		Index res = 1;
+		IndexType res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
 			res *= (dims[i] > 0) ? dims[i] : 1;
 		}
 		return (res);
 	}
-	inline Index get_num_of_edge() const
+	inline IndexType get_num_of_edge() const
 	{
 
 		return (0);
 	}
-	inline Index get_num_of_face() const
+	inline IndexType get_num_of_face() const
 	{
 		return (0);
 	}
-	inline Index get_num_of_cell(int iform = 0) const
+	inline IndexType get_num_of_cell(int iform = 0) const
 	{
-		Index res = 1;
+		IndexType res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
 			res *= (dims[i] > 1) ? (dims[i] - 1) : 1;
@@ -198,29 +206,30 @@ public:
 		return (res);
 	}
 
-	inline RVec3 get_cell_center(Index s) const
+	inline RVec3 get_cell_center(IndexType s) const
 	{
 		//TODO UNIMPLEMENTED!!
 		RVec3 res =
 		{ 0, 0, 0 };
 		return (res);
 	}
-	inline Index get_cell_num(IVec3 const & I) const
+	inline IndexType get_cell_num(IVec3 const & I) const
 	{
 		return (I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]);
 	}
-	inline Index get_cell_num(Index I0, Index I1, Index I2) const
+	inline IndexType get_cell_num(IndexType I0, IndexType I1,
+			IndexType I2) const
 	{
 		return (I0 * strides[0] + I1 * strides[1] + I2 * strides[2]);
 	}
-	inline Index get_cell_num(RVec3 x) const
+	inline IndexType get_cell_num(RVec3 x) const
 	{
 		IVec3 I;
 		I = (x - xmin) * inv_dx;
 		return ((I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]));
 	}
 
-	inline Real get_cell_volumn(Index s = 0) const
+	inline Real get_cell_volumn(IndexType s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -234,7 +243,7 @@ public:
 		return (res);
 	}
 
-	inline Real get_cell_d_volumn(Index s = 0) const
+	inline Real get_cell_d_volumn(IndexType s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -247,45 +256,31 @@ public:
 
 		return (res);
 	}
-	inline Index get_num_of_elements(int iform) const
+	inline IndexType get_num_of_elements(int iform) const
 	{
 		return get_num_of_comp(iform) * get_num_of_vertex();
 
 	}
 
-	static inline Index get_num_of_comp(int iform)
+	static inline IndexType get_num_of_comp(int iform)
 	{
-		int res = 0;
+		static const int comps[4] =
+		{ 1, 3, 3, 1 };
 
-		switch (iform)
-		{
-		case IZeroForm:
-			res = 1;
-			break;
-		case IOneForm:
-			res = 3;
-			break;
-		case ITwoForm:
-			res = 3;
-			break;
-		case IThreeForm:
-			res = 1;
-			break;
-		}
-		return (res);
+		return (comps[iform]);
 	}
 
-	inline std::vector<Index> get_field_shape(int iform) const
+	inline std::vector<IndexType> get_field_shape(int iform) const
 	{
-		int ndims =
-				(iform == IOneForm || iform == ITwoForm) ? NDIMS + 1 : NDIMS;
+		int ndims = 1;
+//		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
 
-		std::vector<Index> d(ndims);
+		std::vector<IndexType> d(ndims);
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			d[i] = dims[i];
 		}
-		if (iform == IOneForm || iform == ITwoForm)
+		if (iform == 1 || iform == 2)
 		{
 			d[NDIMS] = get_num_of_comp(iform);
 		}
@@ -294,36 +289,8 @@ public:
 
 // Assign Operation --------------------------------------------
 
-//	template<int IFORM, typename TL, int N, typename TR> void //
-//	Assign(Field<Grid,IFORM,TL> & lhs, nTuple<N, TR> rhs) const
-//	{
-//		ASSERT(lhs.grid==*this);
-//		Index ele_num = get_num_of_elements(Field<Grid,IFORM,TL>::IForm);
-//
-//#pragma omp parallel for
-//		for (Index i = 0; i < ele_num; ++i)
-//		{
-//			lhs[i] = rhs[i % N];
-//
-//		}
-//	}
-
-//	template<int IFORM, typename TL, typename TRV>
-//	void //
-//	Assign(Field<Grid, IFORM, TL> & lhs, nTuple<THREE, TRV> const & rhs) const
-//	{
-//		ASSERT(lhs.grid==*this);
-//		Index ele_num = get_num_of_elements(IFORM);
-//
-//#pragma omp parallel for
-//		for (Index i = 0; i < ele_num; ++i)
-//		{
-//			lhs[i] = rhs[3];
-//		}
-//	}
-
 	template<int IF, typename TV> inline //
-	void InitEmptyField(Field<ThisType, IF, TV> * f) const
+	void InitEmptyField(Field<Geometry<Grid, IF>, TV> * f) const
 	{
 		if (f->storage == Storage())
 		{
@@ -336,35 +303,35 @@ public:
 	}
 
 	template<int IF, typename TV> TV const & //
-	GetConstValue(Field<ThisType, IF, TV> const &f, Index s) const
+	GetConstValue(Field<Geometry<Grid, IF>, TV> const &f, IndexType s) const
 	{
 		return (*reinterpret_cast<const TV*>(&(*f.storage)
 				+ s * f.value_size_in_bytes));
 	}
 
 	template<int IF, typename TV> TV & //
-	GetValue(Field<ThisType, IF, TV> &f, Index s) const
+	GetValue(Field<Geometry<Grid, IF>, TV> &f, IndexType s) const
 	{
 		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Grid, IFORM, TExpr> & lhs, TR rhs) const
+	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR rhs) const
 	{
 		ASSERT(lhs.grid==*this);
-		Index ele_num = get_num_of_elements(IFORM);
+		IndexType ele_num = get_num_of_elements(IFORM);
 
 #pragma omp parallel for
-		for (Index i = 0; i < ele_num; ++i)
+		for (IndexType i = 0; i < ele_num; ++i)
 		{
-			lhs[i] = rhs;
+			lhs[i] = index(rhs, i);
 		}
 	}
 
 // @NOTE the propose of this function is to assign constant vector to a field.
 //   It confuses the semantics of nTuple with constant Field, and was discarded.
 //	template<int IFORM, typename TExpr, int NR, typename TR>
-//	void Assign(Field<Grid, IFORM, TExpr> & lhs, nTuple<NR, TR> rhs) const
+//	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, nTuple<NR, TR> rhs) const
 //	{
 //		ASSERT(lhs.grid==*this);
 //		Index ele_num = get_num_of_elements(IFORM);
@@ -375,204 +342,64 @@ public:
 //			lhs[i] = rhs[i % NR];
 //		}
 //	}
-	template<int IFORM, typename TL, typename TR>
-	void //
-	Assign(Field<Grid, IFORM, TL>& lhs, Field<Grid, IFORM, TR> const& rhs) const
+	template<int IFORM, typename TL, typename TR> void //
+	Assign(Field<Geometry<Grid, IFORM>, TL>& lhs,
+			Field<Geometry<Grid, IFORM>, TR> const& rhs) const
 	{
 		ASSERT(lhs.grid==*this);
-//		if (lhs.grid == rhs.grid)
 		{
-			std::vector<Index> const & ele_list = get_center_elements(IFORM);
-			Index ele_num = ele_list.size();
+			std::vector<IndexType> const & ele_list = get_center_elements(
+					IFORM);
+			IndexType ele_num = ele_list.size();
 
 #pragma omp parallel for
-			for (Index i = 0; i < ele_num; ++i)
+			for (IndexType i = 0; i < ele_num; ++i)
 			{
 				lhs[ele_list[i]] = rhs[ele_list[i]];
 			}
 
 		}
-//		else if (lhs.grid == rhs.grid.parent())
-//		{
-//#pragma omp parallel for
-//			for (Index i = 0; i < rhs.grid.dims[0]; ++i)
-//				for (Index j = 0; j < rhs.grid.dims[1]; ++j)
-//					for (Index k = 0; k < rhs.grid.dims[2]; ++k)
-//						for (Index l = 0;
-//								l < lhs.grid.get_num_of_comp(lhs.IForm); ++l)
-//						{
-//							lhs[
-//
-//							(i + rhs.grid.shift_[0]) * lhs.grid.strides[0] +
-//
-//							(j + rhs.grid.shift_[1]) * lhs.grid.strides[1] +
-//
-//							(k + rhs.grid.shift_[2]) * lhs.grid.strides[2] + l
-//
-//							]
-//
-//							=
-//
-//							rhs[
-//
-//							i * rhs.grid.strides[0] +
-//
-//							j * rhs.grid.strides[1] +
-//
-//							k * rhs.grid.strides[2] + l
-//
-//							];
-//						}
-//		}
-//		else if (lhs.grid.parent() == rhs.grid)
-//		{
-//
-//#pragma omp parallel for
-//			for (Index i = 0; i < lhs.grid.dims[0]; ++i)
-//				for (Index j = 0; j < lhs.grid.dims[1]; ++j)
-//					for (Index k = 0; k < lhs.grid.dims[2]; ++k)
-//						for (Index l = 0;
-//								l < lhs.grid.get_num_of_comp(lhs.IForm); ++l)
-//						{
-//							lhs[
-//
-//							i * lhs.grid.strides[0] +
-//
-//							j * lhs.grid.strides[1] +
-//
-//							k * lhs.grid.strides[2] + l]
-//
-//							=
-//
-//							rhs[
-//
-//							(i + lhs.grid.shift_[0]) * rhs.grid.strides[0] +
-//
-//							(j + lhs.grid.shift_[1]) * rhs.grid.strides[1] +
-//
-//							(k + lhs.grid.shift_[2]) * rhs.grid.strides[2] + l];
-//						}
-//		}
-//		else
-//		{
-//			ERROR << "Grid mismatch!" << std::endl;
-//			throw(-1);
-//		}
 	}
 
-	template<int IFORM, typename TLExpr, typename TRExpr>
-	typename _impl::OpMultiplication<Field<Grid, IFORM, TLExpr>,
-			Field<Grid, IFORM, TRExpr> >::Value //
-	InnerProduct(Field<Grid, IFORM, TLExpr> const & lhs,
-			Field<Grid, IFORM, TRExpr> const & rhs) const
-	{
-		typedef typename _impl::OpMultiplication<Field<Grid, IFORM, TLExpr>,
-				Field<Grid, IFORM, TRExpr> >::Value Value;
-		Value res;
-		res = 0;
-
-		std::vector<Index> const & ele_list = get_center_elements(IFORM);
-		Index ele_num = ele_list.size();
-
-#pragma omp parallel for reduction(+:res)
-		for (Index i = 0; i < ele_num; ++i)
-		{
-			res += lhs[ele_list[i]] * rhs[ele_list[i]];
-		}
-
-		return (res);
-
-	}
-
-	template<int IFORM, typename TExpr, typename TV>
-	static void //
-	Add(Field<Grid, IFORM, TExpr> & lhs, const TV & rhs)
-	{
-		Index size = lhs.size();
-
-		// NOTE this is the parallelism of FDTD
-#pragma omp parallel for
-		for (Index s = 0; s < size; ++s)
-		{
-			lhs[s] = mapto_(Int2Type<IFORM>(), rhs, s);
-		}
-	}
+//	template<int IFORM, typename TLExpr, typename TRExpr> inline auto //
+//	InnerProduct(Field<Geometry<Grid, IFORM>, TLExpr> const & lhs,
+//			Field<Geometry<Grid, IFORM>, TRExpr> const & rhs) const
+//	{
+//		typedef decltype(lhs[0] * rhs[0]) Value;
+//
+//		Value res;
+//		res = 0;
+//
+//		std::vector<Index> const & ele_list = get_center_elements(IFORM);
+//		Index ele_num = ele_list.size();
+//
+//#pragma omp parallel for reduction(+:res)
+//		for (Index i = 0; i < ele_num; ++i)
+//		{
+//			res += lhs[ele_list[i]] * rhs[ele_list[i]];
+//		}
+//
+//		return (res);
+//
+//	}
 
 	template<int IFORM, typename TL, typename TR>
 	static void //
-	Add(Field<Grid, IFORM, TL> & lhs, Field<Grid, IFORM, TR> const& rhs)
+	Add(Field<Geometry<Grid, IFORM>, TL> & lhs,
+			Field<Geometry<Grid, IFORM>, TR> const& rhs)
 	{
 		if (lhs.grid == rhs.grid)
 		{
-			Index size = lhs.size();
+			IndexType size = lhs.size();
 
 			// NOTE this is parallelism of FDTD
 #pragma omp parallel for
-			for (Index s = 0; s < size; ++s)
+			for (IndexType s = 0; s < size; ++s)
 			{
 				lhs[s] += rhs[s];
 			}
 		}
-//		else if (lhs.grid == rhs.grid.parent())
-//		{
-//#pragma omp parallel for
-//			for (Index i = 0; i < rhs.grid.dims[0]; ++i)
-//				for (Index j = 0; j < rhs.grid.dims[1]; ++j)
-//					for (Index k = 0; k < rhs.grid.dims[2]; ++k)
-//						for (Index l = 0; l < get_num_of_comp(lhs.IForm); ++l)
-//						{
-//							lhs[
-//
-//							(i + rhs.grid.shift_[0]) * lhs.grid.strides[0] +
-//
-//							(j + rhs.grid.shift_[1]) * lhs.grid.strides[1] +
-//
-//							(k + rhs.grid.shift_[2]) * lhs.grid.strides[2] + l
-//
-//							]
-//
-//							+=
-//
-//							rhs[
-//
-//							i * rhs.grid.strides[0] +
-//
-//							j * rhs.grid.strides[1] +
-//
-//							k * rhs.grid.strides[2] + l
-//
-//							];
-//						}
-//		}
-//		else if (lhs.grid.parent() == rhs.grid)
-//		{
-//
-//			// NOTE this is parallelism of FDTD
-//#pragma omp parallel for
-//			for (Index i = 0; i < lhs.grid.dims[0]; ++i)
-//				for (Index j = 0; j < lhs.grid.dims[1]; ++j)
-//					for (Index k = 0; k < lhs.grid.dims[2]; ++k)
-//						for (Index l = 0; l < get_num_of_comp(lhs.IForm); ++l)
-//						{
-//							lhs[
-//
-//							i * lhs.grid.strides[0] +
-//
-//							j * lhs.grid.strides[1] +
-//
-//							k * lhs.grid.strides[2] + l]
-//
-//							+=
-//
-//							rhs[
-//
-//							(i + lhs.grid.shift_[0]) * rhs.grid.strides[0] +
-//
-//							(j + lhs.grid.shift_[1]) * rhs.grid.strides[1] +
-//
-//							(k + lhs.grid.shift_[2]) * rhs.grid.strides[2] + l];
-//						}
-//		}
+
 		else
 		{
 			ERROR << "Grid mismatch!" << std::endl;
@@ -580,13 +407,11 @@ public:
 		}
 	}
 
-#define DECL_RET_TYPE(_EXPR_) ->decltype(_EXPR_){return (_EXPR_);}
-
 // Interpolation ----------------------------------------------------------
 
 	template<typename TExpr>
-	inline typename Field<Grid, IZeroForm, TExpr>::Value //
-	Gather(Field<Grid, IZeroForm, TExpr> const &f, RVec3 x) const
+	inline typename Field<Geometry<Grid, 0>, TExpr>::Value //
+	Gather(Field<Geometry<Grid, 0>, TExpr> const &f, RVec3 x) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -596,7 +421,7 @@ public:
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
@@ -604,10 +429,10 @@ public:
 
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Grid, IZeroForm, TExpr> & f, RVec3 x,
-			typename Field<Grid, IZeroForm, TExpr>::Value const v) const
+	Scatter(Field<Geometry<Grid, 0>, TExpr> & f, RVec3 x,
+			typename Field<Geometry<Grid, 0>, TExpr>::Value const v) const
 	{
-		typename Field<Grid, IZeroForm, TExpr>::Value res;
+		typename Field<Geometry<Grid, 0>, TExpr>::Value res;
 		IVec3 idx;
 		Vec3 r;
 		r = (x - xmin) * inv_dx;
@@ -615,30 +440,26 @@ public:
 		idx[1] = static_cast<long>(r[1]);
 		idx[2] = static_cast<long>(r[2]);
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
-//		CHECK(x);
-//		CHECK(r);
-//		CHECK(inv_dx);
-//		CHECK(xmin);
-//		CHECK(idx);
+
 		f.Add(s, v * (1.0 - r[0]));
 		f.Add(s + strides[0], v * r[0]); //FIXME Only for 1-dim
 
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::Value>        //
-	Gather(Field<Grid, IOneForm, TExpr> const &f, RVec3 x) const
+	inline nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value>     //
+	Gather(Field<Geometry<Grid, 1>, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::Value> res;
+		nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> res;
 
 		IVec3 idx;
 		Vec3 r;
 		r = (x - xmin) * inv_dx;
 		idx = r + 0.5;
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
@@ -651,15 +472,15 @@ public:
 	}
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Grid, IOneForm, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Grid, IOneForm, TExpr>::Value> const &v) const
+	Scatter(Field<Geometry<Grid, 1>, TExpr> & f, RVec3 x,
+			nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
 		r = (x - xmin) * inv_dx;
 		idx = r + 0.5;
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
@@ -671,10 +492,10 @@ public:
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::Value>        //
-	Gather(Field<Grid, ITwoForm, TExpr> const &f, RVec3 x) const
+	inline nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value>     //
+	Gather(Field<Geometry<Grid, 2>, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::Value> res;
+		nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> res;
 
 		IVec3 idx;
 		Vec3 r;
@@ -684,7 +505,7 @@ public:
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
@@ -699,8 +520,8 @@ public:
 
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Grid, ITwoForm, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Grid, ITwoForm, TExpr>::Value> const &v) const
+	Scatter(Field<Geometry<Grid, 2>, TExpr> & f, RVec3 x,
+			nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -710,7 +531,7 @@ public:
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		Index s = idx[0] * strides[0] + idx[1] * strides[1]
+		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
@@ -724,8 +545,8 @@ public:
 
 // Mapto ----------------------------------------------------------
 	/**
-	 *    mapto(Int2Type<IZeroForm> ,   //target topology position
-	 *     Field<Grid,IOneForm , TExpr> const & vl,  //field
+	 *    mapto(Int2Type<0> ,   //target topology position
+	 *     Field<Grid,1 , TExpr> const & vl,  //field
 	 *      SizeType s   //grid index of point
 	 *      )
 	 * target topology position:
@@ -737,472 +558,109 @@ public:
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
-////-----------------------------------------
-//// map to
-////-----------------------------------------
-	template<int IForm, typename TV, typename TIter>
-	inline TV //
-	mapto_(Int2Type<IForm> const&, TV const & v, TIter) const
-	{
-		return v;
-	}
-
-//	template<int IForm, int N, typename TV, typename TIter>
-//	inline TV // for constant vector
-//	mapto_(Int2Type<IForm> const&, nTuple<N, TV> const & v, TIter const &) const
-//	{
-//		return (v);
-//	}
-//	template<int IForm, int N, typename TV>
-//	inline nTuple<N, typename _fetl_impl::ValueTraits<TV>::Value > //
-//	mapto_(Int2Type<IForm>, nTuple<N, TV> const & v, Index s) const
-//	{
-//		return v;
-//	}
-	template<int IForm, int IFORMR, typename TExpr, typename TIter>
-
-	inline typename Field<Grid, IFORMR, TExpr>::Value // for fields transformation
-	mapto_(Int2Type<IForm> const&, const Field<Grid, IFORMR, TExpr> & expr,
-			TIter const & s) const
-	{
-		return (mapto_(Int2Type<IForm>(), Int2Type<IFORMR>(), expr, s));
-	}
-
-	template<int IForm, typename TExpr>
-	inline typename TExpr::Value // for same type field
-	mapto_(Int2Type<IForm>, Int2Type<IForm>, const TExpr & expr, Index s) const
-	{
-		return expr[s];
-	}
-
-	template<typename TExpr>
-	inline typename TExpr::Value //
-	mapto_(Int2Type<IOneForm>, Int2Type<IZeroForm>, const TExpr & expr,
-			Index s) const
-	{
-		Index j0 = s % 3;
-		Index idx = (s - j0) / 3;
-		return ((expr[idx] + expr[idx + strides[j0]]) * 0.5);
-	}
-
-	template<typename TExpr>
-	inline typename TExpr::Value //
-	mapto_(Int2Type<ITwoForm>, Int2Type<IZeroForm>, const TExpr & expr,
-			Index s) const
-	{
-		Index j0 = s % 3;
-		Index j1 = (s + 1) % 3;
-		Index j2 = (s + 2) % 3;
-		Index idx = (s - j0) / 3;
-		return ((expr[idx] + expr[idx + strides[j1]] + expr[idx + strides[j2]]
-				+ expr[idx + strides[j1] + strides[j2]]) * 0.25);
-	}
-
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<IVecZeroForm>, Int2Type<IZeroForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		Index j0 = s % 3;
-//		Index idx = (s - j0) / 3;
-//		return (expr[idx]);
-//	}
-
-	template<typename TExpr> inline auto //
-	mapto_(Int2Type<IZeroForm>, Int2Type<IOneForm>, const TExpr & expr,
-			Index s) const
-			DECL_RET_TYPE( (expr[s] + expr[s - 3 * strides[s % 3]]) * 0.5 )
-
-	template<typename TExpr> inline auto //
-	mapto_(Int2Type<IZeroForm>, Int2Type<ITwoForm>, const TExpr & expr,
-			Index s) const
-					DECL_RET_TYPE ((expr[s] + expr[s - 3 * strides[(s + 1) % 3]]
-									+ expr[s - 3 * strides[(s + 2) % 3]]
-									+ expr[s - 3 * strides[(s + 1) % 3] - 3 * strides[(s + 2) % 3]])
-							* 0.25)
-
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<IZeroForm>, Int2Type<IVecZeroForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		return (expr[s]);
-//	}
-
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<IOneForm>, Int2Type<IVecZeroForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		Index j0 = s % 3;
-//		return ((expr[s] + expr[s + 3 * strides[j0]]) * 0.5);
-//	}
-//
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<ITwoForm>, Int2Type<IVecZeroForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		Index j0 = s % 3;
-//		Index j1 = (j0 + 1) % 3;
-//		Index j2 = (j0 + 2) % 3;
-//		return (expr[s] + expr[s + 3 * strides[j1]] + expr[s + 3 * strides[j2]]
-//				+ expr[s + 3 * strides[j1] + 3 * strides[j2]]) * 0.25;
-//	}
-//
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<IVecZeroForm>, Int2Type<IOneForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		Index j0 = s % 3;
-//		return (expr[s - 3 * strides[j0]] + expr[s]) * 0.5;
-//	}
-//
-//	template<typename TExpr> inline typename TExpr::Value //
-//	mapto_(Int2Type<IVecZeroForm>, Int2Type<ITwoForm>, const TExpr & expr,
-//			Index s) const
-//	{
-//		Index j0 = s % 3;
-//		Index j1 = (j0 + 1) % 3;
-//		Index j2 = (j0 + 2) % 3;
-//		return (expr[s] + expr[s - 3 * strides[j1]] + expr[s - 3 * strides[j2]]
-//				+ expr[s - 3 * strides[j1] - 3 * strides[j2]]) * 0.25;
-//	}
-//
-
-//-----------------------------------------
-//   Arithmetic
-//-----------------------------------------
-	template<int IFORM, typename TEXPR>
-	inline typename Field<Grid, IFORM, _impl::OpNegative<TEXPR> >::Value //
-	eval(Field<Grid, IFORM, _impl::OpNegative<TEXPR> > const & expr,
-			Index s) const
-	{
-		return (-mapto_(Int2Type<IFORM>(), expr.lhs_, s));
-	}
-
-	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _impl::OpMultiplication<TL, TR> >::Value //
-	eval(Field<Grid, IFORM, _impl::OpMultiplication<TL, TR> > const & expr,
-			Index const & s) const
-	{
-		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
-				* mapto_(Int2Type<IFORM>(), expr.rhs_, s));
-	}
-	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _impl::OpDivision<TL, TR> >::Value //
-	eval(Field<Grid, IFORM, _impl::OpDivision<TL, TR> > const & expr,
-			Index const & s) const
-	{
-		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
-				/ mapto_(Int2Type<IFORM>(), expr.rhs_, s));
-	}
-	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _impl::OpAddition<TL, TR> >::Value //
-	eval(Field<Grid, IFORM, _impl::OpAddition<TL, TR> > const & expr,
-			Index const & s) const
-	{
-		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
-				+ mapto_(Int2Type<IFORM>(), expr.rhs_, s));
-	}
-	template<int IFORM, typename TL, typename TR>
-	typename Field<Grid, IFORM, _impl::OpSubtraction<TL, TR> >::Value //
-	eval(Field<Grid, IFORM, _impl::OpSubtraction<TL, TR> > const & expr,
-			Index const & s) const
-	{
-		return (mapto_(Int2Type<IFORM>(), expr.lhs_, s)
-				- mapto_(Int2Type<IFORM>(), expr.rhs_, s));
-	}
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
+	template<typename TExpr> inline auto //
+	eval(Field<Geometry<Grid, 1>, BiOp<space3::OpGrad, TExpr> > const & expr,
+			IndexType const & s) const
+			DECL_RET_TYPE(
+					(expr.expr[(s - s % 3) / 3 + strides[s % 3]]
+							- expr.expr[(s - s % 3) / 3]) * inv_dx[s % 3])
 
-//	template<typename TL, typename TR>
-//	typename Field<Grid, IZeroForm, _impl::OpDot<TL, TR> >::Value //
-//	eval(
-//			Field<Grid, IZeroForm, _impl::OpDot<TL, TR> > const & expr,
-//			Index const & s) const
-//	{
-//
-//		return
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.lhs_, s * 3 + 0) *
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.rhs_, s * 3 + 0) +
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.lhs_, s * 3 + 1) *
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.rhs_, s * 3 + 1) +
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.lhs_, s * 3 + 2) *
-//
-//		mapto_(Int2Type<IZeroForm>(), expr.rhs_, s * 3 + 2);
-//	}
+	template<typename TExpr> inline auto //
+	eval(Field<Geometry<Grid, 0>, BiOp<space3::OpDiverge, TExpr> > const & expr,
+			IndexType const & s) const
+					DECL_RET_TYPE(
 
-	template<typename TL, typename TR>
-	typename Field<Grid, IZeroForm, _impl::OpDot<TL, TR> >::Value //
-	eval(Field<Grid, IZeroForm, _impl::OpDot<TL, TR> > const & expr,
-			Index const & s) const
-	{
+							(expr.expr[s * 3 + 0] - expr.expr[s * 3 + 0 - 3 * strides[0]])
+							* inv_dx[0] +
 
-		return Dot(mapto_(Int2Type<IZeroForm>(), expr.lhs_, s),
-				mapto_(Int2Type<IZeroForm>(), expr.rhs_, s));
-	}
+							(expr.expr[s * 3 + 1] - expr.expr[s * 3 + 1 - 3 * strides[1]])
+							* inv_dx[1] +
 
-	template<int IForm, typename TL, typename TR>
-	typename Field<Grid, IForm, _impl::OpCross<TL, TR> >::Value //
-	eval(Field<Grid, IForm, _impl::OpCross<TL, TR> > const & expr,
-			Index const & s) const
-	{
-		return Cross(mapto_(Int2Type<IForm>(), expr.lhs_, s),
-				mapto_(Int2Type<IForm>(), expr.rhs_, s));
-//		Index j0 = s % 3;
-//		Index j1 = (j0 + 1) % 3;
-//		Index j2 = (j0 + 2) % 3;
-//		Index idx = s - j0;
-//
-//		return
-//
-//		mapto_(Int2Type<IForm>(), expr.lhs_, idx + j1) *
-//
-//		mapto_(Int2Type<IForm>(), expr.rhs_, idx + j2) -
-//
-//		mapto_(Int2Type<IForm>(), expr.lhs_, idx + j2) *
-//
-//		mapto_(Int2Type<IForm>(), expr.rhs_, idx + j1);
+							(expr.expr[s * 3 + 2] - expr.expr[s * 3 + 2 - 3 * strides[2]])
+							* inv_dx[2]
+					)
+	template<typename TL> inline auto //
+	eval(Field<Geometry<Grid, 2>, BiOp<space3::OpCurl, TL> > const & expr,
+			IndexType const & s) const
+					DECL_RET_TYPE(
+							(expr.expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr.expr[s - s %3 + (s + 2) % 3])
+							* inv_dx[(s + 1) % 3]-
 
-	}
+							(expr.expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr.expr[s - s %3 + (s + 1) % 3])
+							* inv_dx[(s + 2) % 3]
+					)
 
-	template<typename TL>
-	typename Field<Grid, IOneForm,
-			_impl::OpGrad<Field<Grid, IZeroForm, TL>, DX_Type> >::Value //
+	template<typename TL> auto //
+	eval(Field<Geometry<Grid, 1>, BiOp<space3::OpCurl, TL> > const & expr,
+			IndexType const & s) const
+					DECL_RET_TYPE(
+
+							(expr.expr[s - s % 3 + (s + 2) % 3] - expr.expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]])
+							* inv_dx[(s + 1) % 3]-
+
+							(expr.expr[s - s % 3 + (s + 1) % 3] - expr.expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]])
+							* inv_dx[(s + 2) % 3]
+					)
+
+	template<int IPD, typename TExpr> inline auto //
 	eval(
-			Field<Grid, IOneForm,
-					_impl::OpGrad<Field<Grid, IZeroForm, TL>, DX_Type> > const & expr,
-			Index const & s) const
-	{
-
-		Index j0 = s % 3;
-//		Index j1 = (j0 + 1) % 3;
-//		Index j2 = (j0 + 2) % 3;
-		Index idx0 = (s - j0) / 3;
-		return (expr.lhs_[idx0 + strides[j0]] - expr.lhs_[idx0]) * inv_dx[j0];
-	}
-
-	template<typename TLExpr>
-	typename Field<Grid, IZeroForm,
-			_impl::OpDiverge<Field<Grid, IOneForm, TLExpr>, DX_Type> >::Value //
-	eval(
-			Field<Grid, IZeroForm,
-					_impl::OpDiverge<Field<Grid, IOneForm, TLExpr>, DX_Type> > const & expr,
-			Index const & s) const
-	{
-		return
-
-		(expr.lhs_[s * 3 + 0] - expr.lhs_[s * 3 + 0 - 3 * strides[0]])
-				* inv_dx[0]
-				+
-
-				(expr.lhs_[s * 3 + 1] - expr.lhs_[s * 3 + 1 - 3 * strides[1]])
-						* inv_dx[1]
-				+
-
-				(expr.lhs_[s * 3 + 2] - expr.lhs_[s * 3 + 2 - 3 * strides[2]])
-						* inv_dx[2]
-
-		;
-	}
-
-	template<typename TL>
-	typename Field<Grid, ITwoForm,
-			_impl::OpCurl<Field<Grid, IOneForm, TL>, DX_Type> >::Value //
-	eval(
-			Field<Grid, ITwoForm,
-					_impl::OpCurl<Field<Grid, IOneForm, TL>, DX_Type> > const & expr,
-			Index const & s) const
-	{
-		Index j0 = s % 3;
-		Index j1 = (j0 + 1) % 3;
-		Index j2 = (j0 + 2) % 3;
-		Index idx1 = s - j0;
-		return
-
-		(expr.lhs_[idx1 + j2 + 3 * strides[j1]] - expr.lhs_[idx1 + j2])
-				* inv_dx[j1]
-				-
-
-				(expr.lhs_[idx1 + j1 + 3 * strides[j2]] - expr.lhs_[idx1 + j1])
-						* inv_dx[j2];
-	}
-	template<typename TLExpr>
-	typename Field<Grid, IOneForm, //
-			_impl::OpCurl<Field<Grid, ITwoForm, TLExpr>, DX_Type> >::Value //
-	eval(
-			Field<Grid, IOneForm, //
-					_impl::OpCurl<Field<Grid, ITwoForm, TLExpr>, DX_Type> > const & expr,
-			Index const & s) const
-	{
-		Index j0 = s % 3;
-		Index j1 = (j0 + 1) % 3;
-		Index j2 = (j0 + 2) % 3;
-		Index idx2 = s - j0;
-		return
-
-		(expr.lhs_[idx2 + j2] - expr.lhs_[idx2 + j2 - 3 * strides[j1]])
-				* inv_dx[j1]
-
-				- (expr.lhs_[idx2 + j1] - expr.lhs_[idx2 + j1 - 3 * strides[j2]])
-						* inv_dx[j2];
-	}
-
-	template<int IPD, typename TExpr>
-	inline typename Field<Grid, IOneForm,
-			_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, ITwoForm, TExpr> > >::Value //
-	eval(
-			Field<Grid, IOneForm,
-					_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, ITwoForm, TExpr> > > const & expr,
-			Index s) const
+			Field<Geometry<Grid, 1>, BiOp<space3::OpCurlPD<IPD>, TExpr> > const & expr,
+			IndexType const &s) const->decltype(expr[0])
 	{
 		if (dims[IPD] == 1)
 		{
 			return (0);
 		}
-		Index j0 = s % 3;
-		Index j1 = (s + 1) % 3;
-		Index j2 = (s + 2) % 3;
-		Index idx1 = s - j0;
-		typename Field<Grid, IOneForm, TExpr>::Value res = 0.0;
-		if (j1 == IPD)
+		IndexType j0 = s % 3;
+
+		IndexType idx1 = s - j0;
+		typename Field<Geometry<Grid, 1>, TExpr>::Value res = 0.0;
+		if (1 == IPD)
 		{
-			res = (expr.rhs_[idx1 + j2 + 3 * strides[IPD]]
-					- expr.rhs_[idx1 + j2]) * inv_dx[IPD];
+			res = (expr.rhs_[idx1 + 2 + 3 * strides[IPD]] - expr.rhs_[idx1 + 2])
+					* inv_dx[IPD];
 		}
-		else if (j2 == IPD)
+		else if (2 == IPD)
 		{
-			res = (-expr.rhs_[idx1 + j1 + 3 * strides[IPD]]
-					+ expr.rhs_[idx1 + j1]) * inv_dx[IPD];
+			res =
+					(-expr.rhs_[idx1 + 1 + 3 * strides[IPD]]
+							+ expr.rhs_[idx1 + 1]) * inv_dx[IPD];
 		}
 
 		return (res);
 	}
 
-	template<int IPD, typename TExpr>
-	inline typename Field<Grid, ITwoForm,
-			_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, IOneForm, TExpr> > >::Value //
-	eval(
-			Field<Grid, ITwoForm,
-					_impl::OpCurlPD<Int2Type<IPD>, Field<Grid, IOneForm, TExpr> > > const & expr,
-			Index s) const
+	template<int IPD, typename TExpr> inline auto eval(
+			Field<Geometry<Grid, 2>, BiOp<space3::OpCurlPD<IPD>, TExpr> > const & expr,
+			IndexType const &s) const ->decltype(expr[0])
 	{
 		if (dims[IPD] == 1)
 		{
 			return (0);
 		}
-		Index j0 = s % 3;
-		Index j1 = (s + 1) % 3;
-		Index j2 = (s + 2) % 3;
-		Index idx2 = s - j0;
+		IndexType j0 = s % 3;
 
-		typename Field<Grid, ITwoForm, TExpr>::Value res = 0.0;
-		if (j1 == IPD)
-		{
-			res = (expr.rhs_[idx2 + j2]
-					- expr.rhs_[idx2 + j2 - 3 * strides[IPD]]) * inv_dx[IPD];
+		IndexType idx2 = s - j0;
 
-		}
-		else if (j2 == IPD)
-		{
-			res = (-expr.rhs_[idx2 + j1]
-					+ expr.rhs_[idx2 + j1 - 3 * strides[IPD]]) * inv_dx[IPD];
-		}
+		typename Field<Geometry<Grid, 2>, TExpr>::Value res = 0.0;
+//		if (1 == IPD)
+//		{
+//			res = (expr.rhs_[idx2 + 2]
+//					- expr.rhs_[idx2 + 2 - 3 * strides[IPD]]) * inv_dx[IPD];
+//
+//		}
+//		else if (2 == IPD)
+//		{
+//			res = (-expr.rhs_[idx2 + 1]
+//					+ expr.rhs_[idx2 + 1 - 3 * strides[IPD]]) * inv_dx[IPD];
+//		}
 
 		return (res);
 	}
 
-	template<typename TRExpr>
-	inline typename Field<Grid, IZeroForm,
-			_impl::OpMapTo<Int2Type<IZeroForm>, Field<Grid, IOneForm, TRExpr> > >::Value //
-	eval(
-			Field<Grid, IZeroForm,
-					_impl::OpMapTo<Int2Type<IZeroForm>,
-							Field<Grid, IOneForm, TRExpr> > >
-			const & expr, Index s) const
-	{
-		CHECK("ONE");
-		typename Field<Grid, IZeroForm,
-				_impl::OpMapTo<Int2Type<IZeroForm>,
-						Field<Grid, IOneForm, TRExpr> > >::Value res =
-		{ 0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[0]) * 3]),
-
-		0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]),
-
-		0.5 * (expr.rhs_[s * 3] + expr.rhs_[(s - strides[2]) * 3]) };
-		return res;
-	}
-
-	template<typename TRExpr>
-	inline typename Field<Grid, IZeroForm,
-			_impl::OpMapTo<Int2Type<IZeroForm>, Field<Grid, ITwoForm, TRExpr> > >::Value //
-	eval(
-			Field<Grid, IZeroForm,
-					_impl::OpMapTo<Int2Type<IZeroForm>,
-							Field<Grid, ITwoForm, TRExpr> > >
-			const & expr, Index s) const
-	{
-		CHECK("TWO");
-		typename Field<Grid, IZeroForm,
-				_impl::OpMapTo<Int2Type<IZeroForm>,
-						Field<Grid, ITwoForm, TRExpr> > >::Value res =
-		{ 0, 0, 0 };
-//		{ 0.25
-//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-//						+ expr.rhs_[(s - strides[2]) * 3]
-//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
-//
-//		0.25
-//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-//						+ expr.rhs_[(s - strides[2]) * 3]
-//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]),
-//
-//		0.25
-//				* (expr.rhs_[s * 3] + expr.rhs_[(s - strides[1]) * 3]
-//						+ expr.rhs_[(s - strides[2]) * 3]
-//						+ expr.rhs_[(s - strides[1] - strides[2]) * 3]) };
-		return res;
-	}
-
-	template<typename TRExpr>
-	inline typename Field<Grid, IOneForm,
-			_impl::OpMapTo<Int2Type<IOneForm>, Field<Grid, IZeroForm, TRExpr> > >::Value //
-	eval(
-			Field<Grid, IOneForm,
-					_impl::OpMapTo<Int2Type<IOneForm>,
-							Field<Grid, IZeroForm, TRExpr> > >
-			const & expr, Index s) const
-	{
-		return 0.5
-				* (expr.rhs_[(s - s % 3) / 3][s % 3]
-						+ expr.rhs_[((s - s % 3) / 3 + strides[0])][s % 3]);;
-	}
-
-	template<typename TRExpr>
-	inline typename Field<Grid, ITwoForm,
-			_impl::OpMapTo<Int2Type<ITwoForm>, Field<Grid, IZeroForm, TRExpr> > >::Value //
-	eval(
-			Field<Grid, ITwoForm,
-					_impl::OpMapTo<Int2Type<ITwoForm>,
-							Field<Grid, IZeroForm, TRExpr> > >
-			const & expr, Index s) const
-	{
-		return 0.25
-				* (
-
-				expr.rhs_[(s - s % 3) / 3][s % 3]
-
-				+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 1) % 3]][s % 3]
-
-				+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 2) % 3]][s % 3]
-
-						+ expr.rhs_[(s - s % 3) / 3 + strides[(s + 1) % 3]
-								+ strides[(s + 2) % 3]][s % 3]);
-	}
-#undef DECL_RET_TYPE
 };
 
 } //namespace simpla

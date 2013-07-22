@@ -9,28 +9,41 @@
 #define FIELD_H_
 #include <memory> // for shared_ptr
 #include <algorithm> //for swap
-#include "datastruct/array.h"
+#include <utility>
+#include <type_traits>
+
 namespace simpla
 {
 
-template<typename TGeometry, typename TV>
-struct Field: public Array<TV>
+template<typename TGeometry, typename TExpr>
+struct Field
 {
 public:
+	typedef TGeometry GeometryType;
 
-	typedef Array<TV> BaseType;
-	typedef Field<TGeometry, TV> ThisType;
-	typedef TGeometry Grid;
-	typedef typename Grid::Coordinates Coordinates;
+	typename ConstReferenceTraits<GeometryType>::type geometry;
 
-	std::shared_ptr<const Grid> grid;
+	typename ReferenceTraits<TExpr>::type expr;
+
+	typedef typename remove_const_reference<decltype(expr[0])>::type ValueType;
+
+	typedef Field<GeometryType, TExpr> ThisType;
+
+	typedef typename TGeometry::CoordinatesType CoordinatesType;
 
 	Field()
 	{
 	}
 
-	Field(std::shared_ptr<Grid> g, size_t value_size = sizeof(Value)) :
-			BaseType(grid->get_num_of_elements(), value_size), grid(g)
+	template<typename TG>
+	Field(TG const & g) :
+			geometry(g), expr(geometry.get_num_of_elements())
+	{
+	}
+
+	template<typename TG, typename TE>
+	Field(TG const & g, TE e) :
+			geometry(g), expr(e)
 	{
 	}
 
@@ -38,33 +51,119 @@ public:
 
 	void swap(ThisType & rhs)
 	{
-		BaseType::swap(rhs);
-		std::swap(grid, rhs.grid);
+		GeometryType::swap(rhs);
+		TExpr::swap(rhs);
 	}
 
 	virtual ~Field()
 	{
 	}
 
-	inline Value Get(Coordinates const &x,Real effect_radius=0)const
+	inline ThisType & operator=(ThisType const & rhs)
 	{
-		return (grid->IntepolateFrom(*this,x,effect_radius));
+		geometry.grid.Assign(*this,rhs);
+		return (*this);
 	}
 
-	inline void Put(Value const & v,Coordinates const &x,Real effect_radius=0)
+	template<typename TR>
+	inline ThisType & operator=(TR const & rhs)
 	{
-		grid->IntepolateTo(*this,v,x,effect_radius);
+		geometry.grid.Assign(*this,rhs);
+		return (*this);
 	}
 
-//	bool CheckType(std::type_info const &rhs) const
-//	{
-//		return (typeid(ThisType) == rhs || BaseType::CheckType(rhs));
-//	}
+	inline ValueType Get(CoordinatesType const &x,Real effect_radius=0)const
+	{
+		return (geometry.IntepolateFrom(expr,x,effect_radius));
+	}
 
-// Assignment --------
+	inline void Put(ValueType const & v,CoordinatesType const &x,Real effect_radius=0)
+	{
+		geometry.IntepolateTo(expr,v,x,effect_radius);
+	}
+	template<typename TIDX>
+	inline ValueType & operator[](TIDX const &s )
+	{
+		return (expr[s]);
+	}
+	template<typename TIDX>
+	inline ValueType const & operator[](TIDX const &s )const
+	{
+		return (expr[s]);
+	}
+};
+
+template<typename TG, typename TE, typename TOP>
+struct Field<TG, BiOp<TOP, TE> > : public BiOp<TOP, TE>
+{
+public:
+	typedef TG GeometryType;
+
+	typename ConstReferenceTraits<GeometryType>::type geometry;
+
+	typedef Field<TG, BiOp<TOP, TE> > ThisType;
+
+	Field(TE const & l) :
+			geometry(l.geometry.grid), BiOp<TOP, TE>(l)
+	{
+	}
+
+	Field(ThisType const &) =default;
+
+	template<typename IDX> inline auto operator[](IDX const & idx) const
+	->typename remove_const_reference<decltype(geometry.eval(*this,idx))>::type
+	{
+		return ((geometry.eval(*this,idx)));
+	}
+};
+
+template<typename TG, typename TL, typename TR, typename TOP>
+struct Field<TG, BiOp<TOP, TL, TR> > : public BiOp<TOP, TL, TR>
+{
+public:
+	typedef TG GeometryType;
+
+	typename ConstReferenceTraits<GeometryType>::type geometry;
+
+	typedef Field<TG, BiOp<TOP, TL, TR> > ThisType;
+
+	Field(TL const & l, TR const & r) :
+			geometry(l.geometry.grid), BiOp<TOP, TL, TR>(l, r)
+	{
+	}
+
+	Field(ThisType const &) =default;
+
+	template<typename IDX>
+	inline auto operator[](IDX const & idx) const
+	->typename remove_const_reference<decltype(geometry.eval(*this,idx))>::type
+	{
+		return (geometry.eval(*this,idx));
+	}
+
+};
+template<typename TG>
+struct Field<TG, Zero>
+{
+public:
+
+	typedef Field<TG, Zero> ThisType;
+
+	Field()
+	{
+	}
+
+	Field(ThisType const &) =default;
+
+	template<typename IDX>
+	inline Zero operator[](IDX const & ) const
+	{
+		return (Zero());
+	}
 
 };
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* FIELD_H_ */

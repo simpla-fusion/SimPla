@@ -1,4 +1,3 @@
-ADD_SUBDIRECTORY( primitives  )
 
 ADD_SUBDIRECTORY( datastruct)
 

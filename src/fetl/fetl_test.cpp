@@ -9,7 +9,10 @@
 #include "include/simpla_defs.h"
 #include "grid/uniform_rect.h"
 #include "fetl.h"
-#include "primitives/primitives.h"
+#include "fetl/primitives.h"
+#include "fetl/ntuple.h"
+#include "fetl/expression.h"
+#include "fetl/vector_calculus.h"
 #include "physics/constants.h"
 using namespace simpla;
 
@@ -42,15 +45,15 @@ protected:
 	}
 public:
 	typedef TF FieldType;
-	typedef typename FieldType::Value Value;
-	typedef typename _impl::ComplexTraits<Value>::Value CValue;
-	typedef Field<Grid, TF::IForm, CValue> CFieldType;
+
 	Grid grid;
 
 };
 
-typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm, ROneForm, COneForm,
-		VecOneForm, RTwoForm, CTwoForm, VecTwoForm> AllFieldTypes;
+typedef testing::Types<RZeroForm
+//		, CZeroForm, VecZeroForm, ROneForm, COneForm,
+//		VecOneForm, RTwoForm, CTwoForm, VecTwoForm
+> AllFieldTypes;
 
 //, VecThreeForm
 
@@ -64,20 +67,20 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	Grid const & grid = TestFixture::grid;
 
-	typename TestFixture::FieldType f(grid);
+	typename TestFixture::FieldType f( grid );
 
-	size_t size =grid.get_num_of_elements(TestFixture::FieldType::IForm);
+	typename TestFixture::FieldType::ValueType a; a= 1.0;
 
-	typename TestFixture::FieldType::Value a; a= 1.0;
+	size_t num= f.geometry.get_num_of_elements();
 
-	for (size_t s = 0; s < size; ++s)
+	for (size_t s = 0; s < num; ++s)
 	{
 		f[s] = a*static_cast<double>(s);
 	}
 
-	for (size_t s = 0; s<size; ++s)
+	for (size_t s = 0; s<num; ++s)
 	{
-		typename TestFixture::Value res;
+		typename TestFixture::FieldType::ValueType res;
 		res=a*static_cast<Real>(s);
 		ASSERT_EQ(res,f[s])<<"idx=" << s;
 	}
@@ -87,34 +90,34 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	Grid const & grid = TestFixture::grid;
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
 
-	typename TestFixture::FieldType f1(grid),f2(grid);
+	typename TestFixture::FieldType f1(geometry),f2(geometry);
 
-	typedef typename TestFixture::FieldType::Value Value;
+	typedef typename TestFixture::FieldType::ValueType ValueType;
 
-	size_t size = grid.get_num_of_elements(TestFixture::FieldType::IForm);
+	size_t num= f1.geometry.get_num_of_elements();
 
-	Value a; a = 3.0;
+	ValueType a; a = 3.0;
 
 	f2 = a;
 
-	for (size_t s = 0; s<size; ++s)
+	for (size_t s = 0; s<num; ++s)
 	{
 		ASSERT_EQ(a,f2[s])<<"idx="<< s;
 	}
 
-	for (size_t s = 0; s<size; ++s)
+	for (size_t s = 0; s<num; ++s)
 	{
 		f1[s]=a*static_cast<Real>(s);
 	}
 
 	f2 = f1;
 
-	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
-			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
+	for (auto s = geometry.get_center_elements_begin( );
+			s!=geometry.get_center_elements_end( ); ++s)
 	{
-		typename TestFixture::Value res;
+		typename TestFixture::FieldType::ValueType res;
 		res=a*static_cast<Real>(*s);
 		ASSERT_EQ( res,f2[*s])<<"idx="<< *s;
 	}
@@ -122,18 +125,18 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	Grid const & grid= TestFixture::grid;
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
 
-	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
+	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
 
-	size_t size=grid.get_num_of_elements(TestFixture::FieldType::IForm);
+	size_t num=geometry.get_num_of_elements( );
 
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
 
-	typedef typename TestFixture::Value Value;
+	typedef typename TestFixture::FieldType::ValueType ValueType;
 
-	Value va,vb;
+	ValueType va,vb;
 
 	va=2.0;vb=3.0;
 
@@ -141,19 +144,21 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	f2 = vb;
 	f3 =-f1 + f2 * c -f1/b;
 
-	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
-			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
+	for (auto s = geometry.get_center_elements_begin( );
+			s!=geometry.get_center_elements_end( ); ++s)
 	{
-		Value res;
+		ValueType res;
 		res=-f1[*s] + f2[*s] *c -f1[*s]/b;
 		ASSERT_EQ( res, f3[*s]) << *s;
 	}
 }
 }
-//
+
 //TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
 //{
-//	Grid const & grid = TestFixture::grid;
+//	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+//
+//	typename TestFixture::FieldType f1( geometry),f2(geometry);
 //
 //	typename TestFixture::FieldType f1( grid),f2(grid);
 //	typename TestFixture::CFieldType f3(grid);
@@ -163,7 +168,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //	Complex a(1.0,-1.0);
 //	Complex b(-2.0,3.0);
 //	Complex c(4.0,3.0);
-//	typename TestFixture::Value va,vb;
+//	typename TestFixture::ValueType va,vb;
 //
 //	va=2.0;vb=3.0;
 //
@@ -171,57 +176,57 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //	f2 = vb;
 //	f3 = -f1 + c* f2-f1/b;
 //
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
+//	for (auto s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
 //			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
 //	{
-//		typename TestFixture::CValue res;
+//		typename TestFixture::CValueType res;
 //		res=-f1[*s] + f2[*s] *c - f1[*s]/b;
 //		ASSERT_EQ( res, f3[*s]) << *s;
 //	}
 //
 //}
 //}
-//TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-//{
-//	//FIXME  should test with non-uniform field
-//
-//	Grid const & grid = TestFixture::grid;
-//
-//	typename TestFixture::FieldType f1( grid),f2(grid),f3(grid);
-//
-//	size_t num_of_comp=grid.get_num_of_comp(TestFixture::FieldType::IForm);
-//
-//	size_t size=grid.get_num_of_elements(TestFixture::FieldType::IForm);
-//
-//	RScalarField a(grid),b(grid),c(grid);
-//
-//	for(size_t s=0;s<size/num_of_comp;++s)
-//	{
-//		a[s]= (1.0); //+s;
-//		b[s]= (3.0);//*s;
-//		c[s]= (5.0);//(s+1.0);
-//	}
-//	typename TestFixture::Value va,vb;
-//
-//	va=2.0;vb=3.0;
-//
-//	f1 = va;
-//
-//	f2 = vb;
-//
-//	f3 = - f1/a- b*f2 +f1*c;
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
-//			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
-//	{
-//		typename TestFixture::Value res;
-//		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
-//		ASSERT_EQ( res, f3[*s])
-//		<< "idx=" <<*s;
-//	}
-//}
-//
-//}
+TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+{
+	//FIXME  should test with non-uniform field
+
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+
+	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
+
+	size_t num_of_comp=geometry.get_num_of_comp();
+
+	size_t num=geometry.get_num_of_elements();
+
+	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
+
+	for(size_t s=0;s<num/num_of_comp;++s)
+	{
+		a[s]= (1.0); //+s;
+		b[s]= (3.0);//*s;
+		c[s]= (5.0);//(s+1.0);
+	}
+	typename TestFixture::FieldType::ValueType va,vb;
+
+	va=2.0;vb=3.0;
+
+	f1 = va;
+
+	f2 = vb;
+
+	f3 = - f1/a- b*f2 +f1*c;
+
+	for (auto s = geometry.get_center_elements_begin( );
+			s!=geometry.get_center_elements_end( ); ++s)
+	{
+		typename TestFixture::FieldType::ValueType res;
+		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
+		ASSERT_EQ( res, f3[*s])
+		<< "idx=" <<*s;
+	}
+}
+
+}
 // test vector_calculus.h
 //template<typename T>
 //class TestFETLVecAlgegbra: public testing::Test
@@ -247,71 +252,67 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //	}
 //public:
 //	Grid grid;
-//	typedef Field<Grid, IZeroForm, T> ScalarField;
-//	typedef Field<Grid, IZeroForm, nTuple<THREE, T> > VectorField;
-//
-//	typedef Field<Grid, IZeroForm, typename _impl::ComplexTraits<T>::Value> CScalarField;
-//	typedef Field<Grid, IZeroForm,
-//			nTuple<THREE, typename _impl::ComplexTraits<T>::Value> > CVectorField;
-//
+//	typedef Field<Geometry<Grid, 0>, Array<T> > ScalarField;
+//	typedef Field<Geometry<Grid, 0>, Array<nTuple<3, T> > > VectorField;
 //};
 //
 //typedef testing::Types<double, Complex> VecFieldTypes;
 //
 //TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 //
-//TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
-//{
-//	const Grid& grid = TestFixture::grid;
-//
-//	Vec3 vc1 =
-//	{	1.0, 2.0, 3.0};
-//	Vec3 vc2 =
-//	{	-1.0, 4.0, 2.0};
-//
-//	Vec3 res_vec;
-//
-//	res_vec = Cross(vc1, vc2);
-//
-//	Real res_scalar;
-//	res_scalar = Dot(vc1, vc2);
-//
-//	typename TestFixture::ScalarField res_scalar_field(grid);
-//
-//	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
-//			grid);
-//
-//	va = vc2;
-//
-//	res_scalar_field = Dot(vc1, va);
-//
-//	res_vector_field = Cross(vc1, va);
-//
-//	size_t num_of_comp = grid.get_num_of_comp(
-//			TestFixture::VectorField::IForm);
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-//					TestFixture::VectorField::IForm);
-//			s
-//			!= grid.get_center_elements_end(
-//					TestFixture::VectorField::IForm); ++s)
-//	{
-//		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
-//		;
-//
-//		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
-//		;
-//	}
-//
-//}
-//}
+////TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
+////{
+////	const Grid& grid = TestFixture::grid;
+////
+////	Geometry<Grid, 0> geometry(TestFixture::grid);
+////
+////	Vec3 vc1 =
+////	{	1.0, 2.0, 3.0};
+////	Vec3 vc2 =
+////	{	-1.0, 4.0, 2.0};
+////
+////	Vec3 res_vec;
+////
+////	res_vec = Cross(vc1, vc2);
+////
+////	Real res_scalar;
+////	res_scalar = Dot(vc1, vc2);
+////
+////	typename TestFixture::ScalarField res_scalar_field(grid);
+////
+////	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
+////			grid);
+////
+////	va = vc2;
+////
+////	res_scalar_field = Dot(vc1, va);
+////
+////	res_vector_field = Cross(vc1, va);
+////
+////	size_t num_of_comp = geometry.get_num_of_comp( );
+////
+////	for (auto s = geometry.get_center_elements_begin( );
+////			s != geometry.get_center_elements_end( ); ++s)
+////	{
+////		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
+////		;
+////
+////		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
+////		;
+////	}
+////
+////}
+////}
 //TYPED_TEST(TestFETLVecAlgegbra,vector_field){
 //{
+//	using namespace space3;
 //	//FIXME  should test with non-uniform field
 //
 //	Grid const & grid = TestFixture::grid;
+//
+//	Geometry<Grid, 0> geometry(grid);
 //
 //	Vec3 vc1 =
 //	{	1.0, 2.0, 3.0};
@@ -330,23 +331,23 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //	typename TestFixture::ScalarField res_scalar_field(grid);
 //
 //	va = vc1;
-//
-//	vb = vc2;
-//
-//	res_scalar_field = Dot(vb, va);
-//
-//	res_vector_field = Cross(va, vb);
-//
-//	size_t num_of_comp =grid.get_num_of_comp(TestFixture::VectorField::IForm);
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::VectorField::IForm);
-//			s!=grid.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
-//	{
-//		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
-//
-//		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
-//
-//	}
+////
+////	vb = vc2;
+////
+////	res_scalar_field = Dot( vb ,va);
+////
+////	res_vector_field = Cross(va , vb);
+////
+////	size_t num_of_comp =geometry.get_num_of_comp( );
+////
+////	for (auto s = geometry.get_center_elements_begin( );
+////			s!=geometry.get_center_elements_end( ); ++s)
+////	{
+////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
+////
+////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
+////
+////	}
 //
 //}
 //}
@@ -400,153 +401,154 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //}
 //}
 //
-//template<typename TP>
-//class TestFETLDiffCalcuate: public testing::Test
-//{
-//
-//protected:
-//	virtual void SetUp()
-//	{
-//		grid.dt = 1.0;
-//		grid.xmin[0] = 0;
-//		grid.xmin[1] = 0;
-//		grid.xmin[2] = 0;
-//		grid.xmax[0] = 1.0;
-//		grid.xmax[1] = 1.0;
-//		grid.xmax[2] = 1.0;
-//		grid.dims[0] = 20;
-//		grid.dims[1] = 30;
-//		grid.dims[2] = 40;
-//		grid.gw[0] = 2;
-//		grid.gw[1] = 2;
-//		grid.gw[2] = 2;
-//
-//		grid.Init();
-//
-//	}
-//public:
-//
-//	Grid grid;
-//
-//	typedef TP Value;
-//	typedef Field<Grid, IZeroForm, TP> TZeroForm;
-//	typedef Field<Grid, IOneForm, TP> TOneForm;
-//	typedef Field<Grid, ITwoForm, TP> TTwoForm;
-//
-//	double RelativeError(double a, double b)
-//	{
-//		return (2.0 * fabs((a - b) / (a + b)));
-//	}
-//
-//	void SetValue(double *v)
-//	{
-//		*v = 1.0;
-//	}
-//
-//	void SetValue(Complex *v)
-//	{
-//		*v = Complex(1.0, 2.0);
-//	}
-//
-//	template<int N, typename TV>
-//	void SetValue(nTuple<N, TV> *v)
-//	{
-//		for (size_t i = 0; i < N; ++i)
-//		{
-//			SetValue(&((*v)[i]));
-//		}
-//	}
-//};
-//
-//typedef testing::Types<double, Complex, nTuple<THREE, double>,
-//		nTuple<THREE, nTuple<THREE, double> > > PrimitiveTypes;
-//
-//TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
-//
-//TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
-//{
-//	Grid const & grid = TestFixture::grid;
-//
-//	typename TestFixture::Value v;
-//
-//	TestFixture::SetValue(&v);
-//
-//	typename TestFixture::TZeroForm sf(grid);
-//	typename TestFixture::TOneForm vf1(grid);
-//	typename TestFixture::TTwoForm vf2(grid);
-//
-//	size_t size = grid.get_num_of_vertex() * grid.get_num_of_comp(IZeroForm);
-//
-//	for (size_t i = 0; i < grid.dims[0]; ++i)
-//	for (size_t j = 0; j < grid.dims[1]; ++j)
-//	for (size_t k = 0; k < grid.dims[2]; ++k)
-//	{
-//		size_t s = grid.get_cell_num(i, j, k);
-//		sf[s] = static_cast<double>(s)*v;
-//	}
-//
-//	vf1 = Grad(sf);
-//
-//	vf2 = Curl(Grad(sf));
-//
-//	size_t num_of_comp = grid.get_num_of_comp(IOneForm);
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-//					IOneForm); s != grid.get_center_elements_end(IOneForm); ++s)
-//	{
-//
-//		EXPECT_NE(0.0,Abs(vf1[(*s)])) << "idx=" << *s;
-//	}
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-//					ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
-//	{
-//		EXPECT_DOUBLE_EQ(0.0,Abs(vf2[(*s)])) << "idx=" << *s;
-//	}
-//}
-//}
-//
-//TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
-//{
-//
-//	Grid const & grid = TestFixture::grid;
-//
-//	typename TestFixture::TZeroForm sf(grid);
-//	typename TestFixture::TOneForm vf1(grid);
-//	typename TestFixture::TTwoForm vf2(grid);
-//
-//	typename TestFixture::Value v;
-//
-//	TestFixture::SetValue(&v);
-//
-//	size_t num_of_ele = grid.get_num_of_elements(IZeroForm);
-//
-//	for (size_t s = 0; s < num_of_ele; ++s)
-//	{
-//
-//		vf2[s * 3 + 0] = v*(s + 1.0);
-//		vf2[s * 3 + 1] = v*(s * 2.0);
-//		vf2[s * 3 + 2] = v*(s + 10.0);
-//	}
-//
-//	vf1 = Curl(vf2);
-//
-//	sf = Diverge(Curl(vf2));
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-//					ITwoForm); s != grid.get_center_elements_end(ITwoForm); ++s)
-//	{
-//
-//		EXPECT_NE(0.0,Abs(vf1[(*s)])) << "idx=" << *s;
-//	}
-//
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(
-//					IZeroForm); s != grid.get_center_elements_end(IZeroForm); ++s)
-//	{
-//		EXPECT_DOUBLE_EQ(0.0,Abs(sf[(*s)])) << "idx=" << *s;
-//	}
-//}
-//}
+template<typename TP>
+class TestFETLDiffCalcuate: public testing::Test
+{
+
+protected:
+	virtual void SetUp()
+	{
+		grid.dt = 1.0;
+		grid.xmin[0] = 0;
+		grid.xmin[1] = 0;
+		grid.xmin[2] = 0;
+		grid.xmax[0] = 1.0;
+		grid.xmax[1] = 1.0;
+		grid.xmax[2] = 1.0;
+		grid.dims[0] = 20;
+		grid.dims[1] = 30;
+		grid.dims[2] = 40;
+		grid.gw[0] = 2;
+		grid.gw[1] = 2;
+		grid.gw[2] = 2;
+
+		grid.Init();
+
+	}
+public:
+
+	Grid grid;
+
+	typedef TP ValueType;
+	typedef Field<Geometry<Grid, 0>, Array<ValueType> > TZeroForm;
+	typedef Field<Geometry<Grid, 1>, Array<ValueType> > TOneForm;
+	typedef Field<Geometry<Grid, 2>, Array<ValueType> > TTwoForm;
+
+	double RelativeError(double a, double b)
+	{
+		return (2.0 * fabs((a - b) / (a + b)));
+	}
+
+	void SetValueType(double *v)
+	{
+		*v = 1.0;
+	}
+
+	void SetValueType(Complex *v)
+	{
+		*v = Complex(1.0, 2.0);
+	}
+
+	template<int N, typename TV>
+	void SetValueType(nTuple<N, TV> *v)
+	{
+		for (size_t i = 0; i < N; ++i)
+		{
+			SetValueType(&((*v)[i]));
+		}
+	}
+};
+
+typedef testing::Types<double, Complex, nTuple<3, double>,
+		nTuple<3, nTuple<3, double> > > PrimitiveTypes;
+
+TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
+
+TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
+{
+	Grid const & grid = TestFixture::grid;
+
+	typename TestFixture::ValueType v;
+
+	TestFixture::SetValueType(&v);
+
+	typename TestFixture::TZeroForm sf(grid);
+	typename TestFixture::TOneForm vf1(grid);
+	typename TestFixture::TTwoForm vf2(grid);
+
+	size_t num = grid.get_num_of_vertex() * grid.get_num_of_comp(0);
+
+	for (size_t i = 0; i < grid.dims[0]; ++i)
+	for (size_t j = 0; j < grid.dims[1]; ++j)
+	for (size_t k = 0; k < grid.dims[2]; ++k)
+	{
+		size_t s = grid.get_cell_num(i, j, k);
+		sf[s] = static_cast<double>(s)*v;
+	}
+
+	vf1 = space3::Grad(sf);
+
+	vf2 = space3::Curl(space3::Grad(sf));
+
+	Geometry<Grid,1> geometry1(grid);
+
+	for (auto s = geometry1.get_center_elements_begin(
+			); s != geometry1.get_center_elements_end( ); ++s)
+	{
+
+		EXPECT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
+	}
+	Geometry<Grid,2> geometry2(grid);
+	for (auto s = geometry2.get_center_elements_begin( ); s != geometry2.get_center_elements_end( ); ++s)
+	{
+		EXPECT_DOUBLE_EQ(0.0,abs(vf2[(*s)])) << "idx=" << *s;
+	}
+}
+}
+
+TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
+{
+
+	Grid const & grid = TestFixture::grid;
+
+	typename TestFixture::TZeroForm sf(grid);
+	typename TestFixture::TOneForm vf1(grid);
+	typename TestFixture::TTwoForm vf2(grid);
+
+	typename TestFixture::ValueType v;
+
+	TestFixture::SetValueType(&v);
+
+	Geometry<Grid,0> geometry0(grid);
+
+	size_t num_of_ele = geometry0.get_num_of_elements();
+
+	for (size_t s = 0; s < num_of_ele; ++s)
+	{
+
+		vf2[s * 3 + 0] = v*(s + 1.0);
+		vf2[s * 3 + 1] = v*(s * 2.0);
+		vf2[s * 3 + 2] = v*(s + 10.0);
+	}
+
+	vf1 = space3::Curl(vf2);
+
+	sf = space3::Diverge(space3::Curl(vf2));
+
+	Geometry<Grid,1> geometry1(grid);
+
+	for (auto s = geometry1.get_center_elements_begin(); s != geometry1.get_center_elements_end(); ++s)
+	{
+
+		EXPECT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
+	}
+
+	for (auto s = geometry0.get_center_elements_begin(); s != geometry0.get_center_elements_end(); ++s)
+	{
+		EXPECT_DOUBLE_EQ(0.0,abs(sf[(*s)])) << "idx=" << *s;
+	}
+}
+}
 //class TestFETLPerformance: public testing::TestWithParam<size_t>
 //{
 //protected:
@@ -583,7 +585,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 //};
 //
 //INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
-//		testing::Values(10, 20, 50));
+//		testing::ValueTypes(10, 20, 50));
 //
 //TEST_P(TestFETLPerformance, error_analyze)
 //{

@@ -25,6 +25,8 @@ public:
 	{
 	}
 
+	Object(Object const &)=default;
+
 	inline virtual ~Object()
 	{
 		MEMPOOL.release();

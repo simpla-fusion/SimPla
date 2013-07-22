@@ -11,14 +11,19 @@
 #include <utility>
 namespace simpla
 {
+template<typename, typename > struct Field;
+
 template<typename TG, int IFORM>
 class Geometry
 {
+public:
 	typedef TG Grid;
 
 	typedef Geometry<Grid, IFORM> ThisType;
 
-	typedef typename Grid::Coordinates Coordinates;
+	typedef typename Grid::CoordinatesType CoordinatesType;
+
+	typedef typename Grid::IndexType IndexType;
 
 	Grid const & grid;
 
@@ -32,20 +37,43 @@ class Geometry
 	~Geometry()
 	{
 	}
-	template<typename TF>
-	auto IntepolateFrom(TF const & f,Coordinates const & s ,Real effect_radius)->decltype(f[0])
+	template<typename TE>
+	inline typename Field<ThisType,TE>::Value
+	IntepolateFrom(Field<ThisType,TE> const & f,CoordinatesType const & s ,Real effect_radius) const
 	{
 		return (f[0]);
 	}
 
-	template<typename TF>
-	void IntepolateTo(TF const & f,typename TF::Value const & v,Coordinates const & s ,Real effect_radius)
+	template<typename TE>
+	inline void IntepolateTo( Field<ThisType,TE> const & f, typename Field<ThisType,TE>::Value const & v,
+			CoordinatesType const & s ,Real effect_radius)const
 	{
 	}
-	size_t get_num_of_elements()
+	inline size_t get_num_of_elements() const
 	{
-		return (0);
+		return (grid.get_num_of_elements(IFORM));
 	}
+
+	inline typename std::vector<IndexType>::const_iterator get_center_elements_begin( ) const
+	{
+		return (grid.center_ele_[IFORM].begin());
+	}
+	inline typename std::vector<IndexType>::const_iterator get_center_elements_end( ) const
+	{
+		return (grid.center_ele_[IFORM].end());
+	}
+
+	inline size_t get_num_of_comp()const
+	{
+		return (grid.get_num_of_comp(IFORM));
+	}
+
+	template<typename TEXPR,typename INDEX> inline auto
+	eval(TEXPR const & expr,INDEX const &idx) const
+	DECL_RET_TYPE((grid.eval(expr,idx)))
+//	{
+//		return (grid.eval(expr,idx));
+//	}
 };
 
 }  // namespace simpla

@@ -31,10 +31,10 @@ protected:
 
 	virtual void SetUp()
 	{
-		a = static_cast<Value>(1);
-		b = static_cast<Value>(3);
-		c = static_cast<Value>(4);
-		d = static_cast<Value>(7);
+		a = static_cast<ValueType>(1);
+		b = static_cast<ValueType>(3);
+		c = static_cast<ValueType>(4);
+		d = static_cast<ValueType>(7);
 
 		for (int i = 0; i < NDIM; ++i)
 		{
@@ -50,18 +50,18 @@ protected:
 
 		}
 
-		m = static_cast<Value>(loop_num);
+		m = static_cast<ValueType>(loop_num);
 	}
 
 public:
 	static const int NDIM = T::NDIM;
 	static const int loop_num = 1000000L;
-	typedef typename T::Value Value;
-	Value m;
+	typedef typename T::ValueType ValueType;
+	ValueType m;
 
 	T vA, vB, vC, vD;
-	Value aA[NDIM], aB[NDIM], aC[NDIM], aD[NDIM];
-	Value a, b, c, d;
+	ValueType aA[NDIM], aB[NDIM], aC[NDIM], aD[NDIM];
+	ValueType a, b, c, d;
 
 };
 
@@ -116,7 +116,7 @@ TYPED_TEST(TestNtuple, Arithmetic){
 
 TYPED_TEST(TestNtuple, Dot){
 {
-	typename TestFixture::Value res(0);
+	typename TestFixture::ValueType res(0);
 
 	for (int i = 0; i < TestFixture::NDIM; ++i)
 	{
@@ -127,12 +127,12 @@ TYPED_TEST(TestNtuple, Dot){
 
 TYPED_TEST(TestNtuple, Cross){
 {
-	nTuple<3, typename TestFixture::Value> vA, vB, vD;
+	nTuple<3, typename TestFixture::ValueType> vA, vB, vD;
 
 	for (int i = 0; i < 3; ++i)
 	{
-		vA[i] = static_cast<typename TestFixture::Value>(i * 2);
-		vB[i] = static_cast<typename TestFixture::Value>(5 - i);
+		vA[i] = static_cast<typename TestFixture::ValueType>(i * 2);
+		vB[i] = static_cast<typename TestFixture::ValueType>(5 - i);
 	}
 
 	for (int i = 0; i < 3; ++i)

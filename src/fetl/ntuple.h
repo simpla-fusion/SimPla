@@ -47,17 +47,17 @@ struct nTuple
 	static const int NDIM = N;
 	typedef nTuple<NDIM, T> ThisType;
 	typedef const ThisType & ConstReference;
-	typedef T Value;
+	typedef T ValueType;
 
-	Value v_[N];
+	ValueType v_[N];
 
-	inline Value &
+	inline ValueType &
 	operator[](int i)
 	{
 		return (v_[i]);
 	}
 
-	inline Value const&
+	inline ValueType const&
 	operator[](int i) const
 	{
 		return (v_[i]);
@@ -175,12 +175,12 @@ inline auto Cross(nTuple<3, TLExpr> const &lhs, nTuple<3, TRExpr> const & rhs)
 	lhs[0] * rhs[1] - lhs[1] * rhs[0]
 
 	};
-	return res;
+	return (res);
 }
 
-template<int N, typename TL, typename TR> inline auto Dot(
-		nTuple<N, TL> const &lhs,
-		nTuple<N, TR> const & rhs)->decltype(lhs[0] * rhs[0])
+template<int N, typename TL, typename TR> inline auto //
+Dot(nTuple<N, TL> const &lhs,
+		nTuple<N, TR> const &rhs)->decltype(lhs[0] * rhs[0])
 {
 	decltype(lhs[0] * rhs[0]) res = 0.0;
 
@@ -190,6 +190,29 @@ template<int N, typename TL, typename TR> inline auto Dot(
 	}
 	return (res);
 }
+
+//#define BI_FUN_OP(_OP_NAME_,_FUN_)                                                       \
+//                                                                                     \
+//struct Op##_OP_NAME_                                                                 \
+//{                                                                                    \
+//	template<typename TL, typename TR> inline static auto eval(TL const & l,         \
+//			TR const &r)->decltype(_FUN_(l, r))                                        \
+//	{                                                                                \
+//		return (_FUN_(l, r));                                               \
+//	}                                                                                \
+//};                                                                                   \
+//template<typename TL, typename TR> inline typename std::enable_if<                   \
+//		!(is_arithmetic_scalar<TL>::value && is_arithmetic_scalar<TR>::value),       \
+//		BiOp<Op##_OP_NAME_, TL, TR> >::type                                        \
+//_OP_NAME_(TL const &lhs, TR const & rhs)                                                   \
+//{                                                                                    \
+//	return (BiOp<Op##_OP_NAME_, TL, TR>(lhs, rhs));                                  \
+//}                                                                                    \
+//
+//BI_FUN_OP(Dot, Dot)
+//BI_FUN_OP(Cross, Cross)
+//
+//#undef BI_FUN_OP
 
 //template<typename TL, typename TR>
 //inline auto Dot(nTuple<3, TL> const &lhs, nTuple<3, TR> const & rhs)
@@ -290,15 +313,21 @@ template<int N, typename T> auto abs(
 	return std::abs(std::sqrt(Dot(m, m)));
 }
 
-template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
-->decltype(abs(m[0][0]*m[0][0]))
+template<int N, typename T> auto abs(
+		nTuple<N, nTuple<N, T> > const & m)
+		->typename std::remove_const<typename std::remove_reference<decltype(m[0][0])>::type>::type
 {
-	nTuple<N, T> res;
+	typedef typename std::remove_const<
+			typename std::remove_reference<decltype(m[0][0])>::type>::type ValueType;
+
+	nTuple<N, ValueType> res;
+
 	for (size_t i = 0; i < N; ++i)
 	{
 		res[i] = Dot(m[i], m[i]);
 	}
-	return (abs(res));
+
+	return (sqrt(Dot(res, res)));
 }
 
 } //namespace simpla

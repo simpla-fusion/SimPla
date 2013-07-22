@@ -11,7 +11,7 @@
 
 #include "fetl_defs.h"
 #include "field.h"
-#include "arithmetic.h"
+#include "expression.h"
 //#include "vector_calculus.h"
 //#include "matrix_operator.h"
 namespace simpla

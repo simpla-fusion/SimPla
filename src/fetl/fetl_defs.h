@@ -14,53 +14,54 @@
 #ifndef FETL_DEFS_H_
 #define FETL_DEFS_H_
 
-#include "primitives/primitives.h"
-
+#include "fetl/primitives.h"
+#include "datastruct/array.h"
 namespace simpla
 {
 
-template<typename TG,typename TV> class Field;
+template<typename TG, typename TV> class Field;
+template<typename, int> class Geometry;
 
 #define DEFINE_FIELDS(TG)                                                         \
 typedef TG Grid;                                                                     \
-typedef Field<ZeroForm<Grid>, Real>     ZeroForm;                                \
-typedef Field<Grid, IOneForm, Real>      OneForm;                                  \
-typedef Field<Grid, ITwoForm, Real>      TwoForm;                                  \
-typedef Field<Grid, IThreeForm, Real>    ThreeForm;                              \
+typedef Field<Geometry<Grid,0>,Array<Real> >     ZeroForm;                                \
+typedef Field<Geometry<Grid,1>,Array<Real> >      OneForm;                                  \
+typedef Field<Geometry<Grid,2>,Array<Real> >      TwoForm;                                  \
+typedef Field<Geometry<Grid,3>,Array<Real> >    ThreeForm;                              \
+                                                                                        \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Real> > >   VecZeroForm;                           \
+typedef Field<Geometry<Grid,1>, Array<nTuple<3,Real> > >    VecOneForm;                             \
+typedef Field<Geometry<Grid,2>, Array<nTuple<3,Real> > >    VecTwoForm;                             \
+typedef Field<Geometry<Grid,3>, Array<nTuple<3,Real> > >  VecThreeForm;                         \
                                                                                      \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Real> >   VecZeroForm;                           \
-typedef Field<Grid, IOneForm, nTuple<THREE,Real> >    VecOneForm;                             \
-typedef Field<Grid, ITwoForm, nTuple<THREE,Real> >    VecTwoForm;                             \
-typedef Field<Grid, IThreeForm, nTuple<THREE,Real> >  VecThreeForm;                         \
+typedef Field<Geometry<Grid,0>,Array<Real> > ScalarField;                             \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Real> > > VecField;                              \
                                                                                      \
-typedef Field<Grid, IZeroForm, Real> ScalarField;                             \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Real> > VecField;                              \
+typedef Field<Geometry<Grid,0>,Array<Real> >     RZeroForm;                               \
+typedef Field<Geometry<Grid,1>,Array<Real> >      ROneForm;                                 \
+typedef Field<Geometry<Grid,2>,Array<Real> >      RTwoForm;                                 \
+typedef Field<Geometry<Grid,3>,Array<Real> >    RThreeForm;                             \
                                                                                      \
-typedef Field<Grid, IZeroForm, Real>     RZeroForm;                               \
-typedef Field<Grid, IOneForm, Real>      ROneForm;                                 \
-typedef Field<Grid, ITwoForm, Real>      RTwoForm;                                 \
-typedef Field<Grid, IThreeForm, Real>    RThreeForm;                             \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Real> > >  RVecZeroForm;                         \
+typedef Field<Geometry<Grid,1>, Array<nTuple<3,Real> > >   RVecOneForm;                           \
+typedef Field<Geometry<Grid,2>, Array<nTuple<3,Real> > >   RVecTwoForm;                           \
+typedef Field<Geometry<Grid,3>, Array<nTuple<3,Real> > > RVecThreeForm;                       \
                                                                                      \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Real> >  RVecZeroForm;                         \
-typedef Field<Grid, IOneForm, nTuple<THREE,Real> >   RVecOneForm;                           \
-typedef Field<Grid, ITwoForm, nTuple<THREE,Real> >   RVecTwoForm;                           \
-typedef Field<Grid, IThreeForm, nTuple<THREE,Real> > RVecThreeForm;                       \
+typedef Field<Geometry<Grid,0>,Array<Real> > RScalarField;                            \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Real> > > RVecField;                            \
                                                                                      \
-typedef Field<Grid, IZeroForm, Real> RScalarField;                            \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Real> > RVecField;                            \
-                                                                                     \
-typedef Field<Grid, IZeroForm, Complex> CZeroForm;                          \
-typedef Field<Grid, IOneForm, Complex>  COneForm;                            \
-typedef Field<Grid, ITwoForm, Complex>  CTwoForm;                            \
-typedef Field<Grid, IThreeForm, Complex>  CThreeForm;                       \
+typedef Field<Geometry<Grid,0>, Array<Complex > > CZeroForm;                          \
+typedef Field<Geometry<Grid,1>, Array<Complex > >  COneForm;                            \
+typedef Field<Geometry<Grid,2>, Array<Complex > >  CTwoForm;                            \
+typedef Field<Geometry<Grid,3>, Array<Complex > >  CThreeForm;                       \
 	                                                                         \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecZeroForm;                         \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecOneForm;                         \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> >   CVecTwoForm;                         \
-typedef Field<Grid, IThreeForm, nTuple<THREE,Complex> >  CVecThreeForm;                       \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Complex> > >   CVecZeroForm;                         \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Complex> > >   CVecOneForm;                         \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Complex> > >   CVecTwoForm;                         \
+typedef Field<Geometry<Grid,3>, Array<nTuple<3,Complex> > >  CVecThreeForm;                       \
 	                                                                         \
-typedef Field<Grid, IZeroForm, Complex> CScalarField;                       \
-typedef Field<Grid, IZeroForm, nTuple<THREE,Complex> > CVecField;
+typedef Field<Geometry<Grid,0>, Array<Complex > > CScalarField;                       \
+typedef Field<Geometry<Grid,0>, Array<nTuple<3,Complex> > > CVecField;
 
 } // namespace simpla
 
