@@ -93,11 +93,12 @@ public:
 	}
 };
 
-template<typename T,typename INDEX>
-auto eval(T const &f ,INDEX const & s)
-->typename std::enable_if<is_Field<T>::value,decltype(get_grid(f).eval(f,s))>::type
+template<typename T, typename INDEX>
+auto eval(T const &f,
+		INDEX const & s)
+		->typename std::enable_if<is_Field<T>::value,decltype(get_grid(f).eval(f,s))>::type
 {
-	return (get_grid(f).eval(f,s));
+	return (get_grid(f).eval(f, s));
 }
 
 template<typename TG,typename TE> auto get_grid(Field<TG, TE> const & f)
@@ -105,26 +106,29 @@ DECL_RET_TYPE(f.geometry.grid)
 
 template<typename TOP, typename TExpr> auto get_grid(
 		UniOp<TOP, TExpr> const & f) ->
-		typename std::enable_if<is_Field<TExpr>::value,
-		typename remove_const_reference<decltype(get_grid(f.expr))>::type>::type const &
+typename std::enable_if<is_Field<TExpr>::value,
+typename remove_const_reference<decltype(get_grid(f.expr))>::type>::type const &
 {
 	return (get_grid(f.expr));
 }
 
-template<typename TOP, typename TL, typename TR> auto get_grid(
-		BiOp<TOP, TL, TR> const & f)
-		-> typename std::enable_if<is_Field<TL>::value,
-		typename remove_const_reference<decltype(get_grid(f.l_.expr))>::type>::type const &
+template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
+-> typename std::enable_if<is_Field<TL>::value,
+typename remove_const_reference<decltype(get_grid(l))>::type>::type const &
 {
-	return (get_grid(f.l_.expr));
+	return (get_grid(l));
+}
+
+template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
+-> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
+typename remove_const_reference<decltype(get_grid(r))>::type>::type const &
+{
+	return (get_grid(r));
 }
 template<typename TOP, typename TL, typename TR> auto get_grid(
 		BiOp<TOP, TL, TR> const & f)
-		-> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
-		typename remove_const_reference<decltype(get_grid(f.r_.expr))>::type>::type const &
-{
-	return (get_grid(f.r_.expr));
-}
+DECL_RET_TYPE(get_grid(f.l_,f.r_))
+
 template<typename T> struct order_of_form
 {
 	static const int value = -10000;

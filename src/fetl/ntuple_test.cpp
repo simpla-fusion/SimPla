@@ -68,7 +68,7 @@ public:
 typedef testing::Types< //
 		nTuple<3, double>
 		, nTuple<3, int>
-//		, nTuple<3, std::complex<double> >
+		, nTuple<3, std::complex<double> >
 		, nTuple<10, double>, nTuple<20, double>
 
 > MyTypes;

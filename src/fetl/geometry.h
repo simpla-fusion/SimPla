@@ -26,8 +26,6 @@ public:
 
 	typedef typename Grid::CoordinatesType CoordinatesType;
 
-	typedef typename Grid::IndexType IndexType;
-
 	Grid const & grid;
 
 	Geometry(Grid const & g) :
@@ -57,11 +55,11 @@ public:
 		return (grid.get_num_of_elements(IFORM));
 	}
 
-	inline typename std::vector<IndexType>::const_iterator get_center_elements_begin( ) const
+	inline typename std::vector<size_t>::const_iterator get_center_elements_begin( ) const
 	{
 		return (grid.center_ele_[IFORM].begin());
 	}
-	inline typename std::vector<IndexType>::const_iterator get_center_elements_end( ) const
+	inline typename std::vector<size_t>::const_iterator get_center_elements_end( ) const
 	{
 		return (grid.center_ele_[IFORM].end());
 	}
@@ -71,12 +69,6 @@ public:
 		return (grid.get_num_of_comp(IFORM));
 	}
 
-	template<typename TEXPR,typename INDEX> inline auto
-	eval(TEXPR const & expr,INDEX const &idx) const
-	DECL_RET_TYPE((grid.eval(expr,idx)))
-//	{
-//		return (grid.eval(expr,idx));
-//	}
 };
 
 }  // namespace simpla

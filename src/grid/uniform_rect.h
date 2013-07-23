@@ -45,7 +45,6 @@ struct UniformRectGrid: public BaseGrid
 	typedef Real ValueType;
 	typedef UniformRectGrid Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
-	typedef size_t IndexType;
 	typedef RVec3 CoordinatesType;
 	typedef UniformRectGrid ThisType;
 
@@ -53,8 +52,8 @@ struct UniformRectGrid: public BaseGrid
 	{
 		NDIMS = THREE
 	};
-	typedef typename std::vector<IndexType>::iterator iterator;
-	typedef typename std::vector<IndexType>::const_iterator const_iterator;
+	typedef typename std::vector<size_t>::iterator iterator;
+	typedef typename std::vector<size_t>::const_iterator const_iterator;
 
 	typedef RVec3 Coordinate;
 
@@ -114,17 +113,17 @@ struct UniformRectGrid: public BaseGrid
 		strides[0] = dims[1] * dims[2];
 
 		//#pragma omp parallel for  << here can not be parallized
-		for (IndexType i = 0; i < dims[0]; ++i)
-			for (IndexType j = 0; j < dims[1]; ++j)
-				for (IndexType k = 0; k < dims[2]; ++k)
+		for (size_t i = 0; i < dims[0]; ++i)
+			for (size_t j = 0; j < dims[1]; ++j)
+				for (size_t k = 0; k < dims[2]; ++k)
 				{
-					IndexType s = (i * strides[0] + j * strides[1]
-							+ k * strides[2]);
+					size_t s =
+							(i * strides[0] + j * strides[1] + k * strides[2]);
 
 					for (int f = 0; f < 4; ++f)
 					{
-						IndexType num_of_comp = get_num_of_comp(f);
-						for (IndexType l = 0; l < num_of_comp; ++l)
+						size_t num_of_comp = get_num_of_comp(f);
+						for (size_t l = 0; l < num_of_comp; ++l)
 						{
 							if (i < gw[0] || i > dims[0] - gw[0] //
 							|| j < gw[1] || j > dims[1] - gw[1] //
@@ -151,23 +150,23 @@ struct UniformRectGrid: public BaseGrid
 
 	}
 
-	inline std::vector<IndexType> const &
+	inline std::vector<size_t> const &
 	get_center_elements(int iform) const
 	{
 		return (center_ele_[iform]);
 	}
 
-	inline std::vector<IndexType>::const_iterator get_center_elements_begin(
+	inline std::vector<size_t>::const_iterator get_center_elements_begin(
 			int iform) const
 	{
 		return (center_ele_[iform].begin());
 	}
-	inline std::vector<IndexType>::const_iterator get_center_elements_end(
+	inline std::vector<size_t>::const_iterator get_center_elements_end(
 			int iform) const
 	{
 		return (center_ele_[iform].end());
 	}
-	inline std::vector<IndexType> const &
+	inline std::vector<size_t> const &
 	get_ghost_elements(int iform) const
 	{
 		return (ghost_ele_[iform]);
@@ -180,27 +179,27 @@ struct UniformRectGrid: public BaseGrid
 
 // Property -----------------------------------------------
 
-	inline IndexType get_num_of_vertex() const
+	inline size_t get_num_of_vertex() const
 	{
-		IndexType res = 1;
+		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
 			res *= (dims[i] > 0) ? dims[i] : 1;
 		}
 		return (res);
 	}
-	inline IndexType get_num_of_edge() const
+	inline size_t get_num_of_edge() const
 	{
 
 		return (0);
 	}
-	inline IndexType get_num_of_face() const
+	inline size_t get_num_of_face() const
 	{
 		return (0);
 	}
-	inline IndexType get_num_of_cell(int iform = 0) const
+	inline size_t get_num_of_cell(int iform = 0) const
 	{
-		IndexType res = 1;
+		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
 			res *= (dims[i] > 1) ? (dims[i] - 1) : 1;
@@ -208,30 +207,29 @@ struct UniformRectGrid: public BaseGrid
 		return (res);
 	}
 
-	inline RVec3 get_cell_center(IndexType s) const
+	inline RVec3 get_cell_center(size_t s) const
 	{
 		//TODO UNIMPLEMENTED!!
 		RVec3 res =
 		{ 0, 0, 0 };
 		return (res);
 	}
-	inline IndexType get_cell_num(IVec3 const & I) const
+	inline size_t get_cell_num(IVec3 const & I) const
 	{
 		return (I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]);
 	}
-	inline IndexType get_cell_num(IndexType I0, IndexType I1,
-			IndexType I2) const
+	inline size_t get_cell_num(size_t I0, size_t I1, size_t I2) const
 	{
 		return (I0 * strides[0] + I1 * strides[1] + I2 * strides[2]);
 	}
-	inline IndexType get_cell_num(RVec3 x) const
+	inline size_t get_cell_num(RVec3 x) const
 	{
 		IVec3 I;
 		I = (x - xmin) * inv_dx;
 		return ((I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]));
 	}
 
-	inline Real get_cell_volumn(IndexType s = 0) const
+	inline Real get_cell_volumn(size_t s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -245,7 +243,7 @@ struct UniformRectGrid: public BaseGrid
 		return (res);
 	}
 
-	inline Real get_cell_d_volumn(IndexType s = 0) const
+	inline Real get_cell_d_volumn(size_t s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -258,13 +256,13 @@ struct UniformRectGrid: public BaseGrid
 
 		return (res);
 	}
-	inline IndexType get_num_of_elements(int iform) const
+	inline size_t get_num_of_elements(int iform) const
 	{
 		return get_num_of_comp(iform) * get_num_of_vertex();
 
 	}
 
-	static inline IndexType get_num_of_comp(int iform)
+	static inline size_t get_num_of_comp(int iform)
 	{
 		static const int comps[4] =
 		{ 1, 3, 3, 1 };
@@ -272,12 +270,12 @@ struct UniformRectGrid: public BaseGrid
 		return (comps[iform]);
 	}
 
-	inline std::vector<IndexType> get_field_shape(int iform) const
+	inline std::vector<size_t> get_field_shape(int iform) const
 	{
 		int ndims = 1;
 //		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
 
-		std::vector<IndexType> d(ndims);
+		std::vector<size_t> d(ndims);
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			d[i] = dims[i];
@@ -305,14 +303,14 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<int IF, typename TV> TV const & //
-	GetConstValue(Field<Geometry<Grid, IF>, TV> const &f, IndexType s) const
+	GetConstValue(Field<Geometry<Grid, IF>, TV> const &f, size_t s) const
 	{
 		return (*reinterpret_cast<const TV*>(&(*f.storage)
 				+ s * f.value_size_in_bytes));
 	}
 
 	template<int IF, typename TV> TV & //
-	GetValue(Field<Geometry<Grid, IF>, TV> &f, IndexType s) const
+	GetValue(Field<Geometry<Grid, IF>, TV> &f, size_t s) const
 	{
 		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
 	}
@@ -321,10 +319,10 @@ struct UniformRectGrid: public BaseGrid
 	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR rhs) const
 	{
 		ASSERT(lhs.grid==*this);
-		IndexType ele_num = get_num_of_elements(IFORM);
+		size_t ele_num = get_num_of_elements(IFORM);
 
 #pragma omp parallel for
-		for (IndexType i = 0; i < ele_num; ++i)
+		for (size_t i = 0; i < ele_num; ++i)
 		{
 			lhs[i] = index(rhs, i);
 		}
@@ -350,12 +348,11 @@ struct UniformRectGrid: public BaseGrid
 	{
 		ASSERT(lhs.grid==*this);
 		{
-			std::vector<IndexType> const & ele_list = get_center_elements(
-					IFORM);
-			IndexType ele_num = ele_list.size();
+			std::vector<size_t> const & ele_list = get_center_elements(IFORM);
+			size_t ele_num = ele_list.size();
 
 #pragma omp parallel for
-			for (IndexType i = 0; i < ele_num; ++i)
+			for (size_t i = 0; i < ele_num; ++i)
 			{
 				lhs[ele_list[i]] = rhs[ele_list[i]];
 			}
@@ -392,11 +389,11 @@ struct UniformRectGrid: public BaseGrid
 	{
 		if (lhs.grid == rhs.grid)
 		{
-			IndexType size = lhs.size();
+			size_t size = lhs.size();
 
 			// NOTE this is parallelism of FDTD
 #pragma omp parallel for
-			for (IndexType s = 0; s < size; ++s)
+			for (size_t s = 0; s < size; ++s)
 			{
 				lhs[s] += rhs[s];
 			}
@@ -423,7 +420,7 @@ struct UniformRectGrid: public BaseGrid
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
@@ -442,7 +439,7 @@ struct UniformRectGrid: public BaseGrid
 		idx[1] = static_cast<long>(r[1]);
 		idx[2] = static_cast<long>(r[2]);
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		f.Add(s, v * (1.0 - r[0]));
@@ -461,7 +458,7 @@ struct UniformRectGrid: public BaseGrid
 		r = (x - xmin) * inv_dx;
 		idx = r + 0.5;
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
@@ -482,7 +479,7 @@ struct UniformRectGrid: public BaseGrid
 		r = (x - xmin) * inv_dx;
 		idx = r + 0.5;
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
@@ -507,7 +504,7 @@ struct UniformRectGrid: public BaseGrid
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
@@ -533,7 +530,7 @@ struct UniformRectGrid: public BaseGrid
 		idx[2] = static_cast<long>(r[2]);
 
 		r -= idx;
-		IndexType s = idx[0] * strides[0] + idx[1] * strides[1]
+		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
 				+ idx[2] * strides[2];
 
 		f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
@@ -564,104 +561,99 @@ struct UniformRectGrid: public BaseGrid
 // Vector Arithmetic
 //-----------------------------------------
 	template<typename TExpr> inline auto //
-	eval(UniOp<OpGrad, TExpr> const & expr, IndexType const & s) const
+	Grad(TExpr const & expr, size_t const & s) const
 	DECL_RET_TYPE(
-			(expr.expr[(s - s % 3) / 3 + strides[s % 3]]
-					- expr.expr[(s - s % 3) / 3]) * inv_dx[s % 3])
+			(expr[(s - s % 3) / 3 + strides[s % 3]]
+					- expr[(s - s % 3) / 3]) * inv_dx[s % 3])
 
 	template<typename TExpr> inline auto //
-	eval(UniOp<OpDiverge, TExpr> const & expr,
-			IndexType const & s) const
-					DECL_RET_TYPE(
+	Diverge(TExpr const & expr, size_t const & s) const
+	DECL_RET_TYPE(
 
-							(expr.expr[s * 3 + 0] - expr.expr[s * 3 + 0 - 3 * strides[0]])
-							* inv_dx[0] +
+			(expr[s * 3 + 0] - expr[s * 3 + 0 - 3 * strides[0]])
+			* inv_dx[0] +
 
-							(expr.expr[s * 3 + 1] - expr.expr[s * 3 + 1 - 3 * strides[1]])
-							* inv_dx[1] +
+			(expr[s * 3 + 1] - expr[s * 3 + 1 - 3 * strides[1]])
+			* inv_dx[1] +
 
-							(expr.expr[s * 3 + 2] - expr.expr[s * 3 + 2 - 3 * strides[2]])
-							* inv_dx[2]
-					)
+			(expr[s * 3 + 2] - expr[s * 3 + 2 - 3 * strides[2]])
+			* inv_dx[2]
+	)
+
 	template<typename TL> inline auto //
-	eval(UniOp<OpCurl, TL> const & expr,
-			IndexType const & s) const
-					DECL_RET_TYPE(
-							(expr.expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr.expr[s - s %3 + (s + 2) % 3])
-							* inv_dx[(s + 1) % 3]-
+	Curl(TL const & expr,
+			size_t const & s) const
+					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==2),(
+									(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
+									* inv_dx[(s + 1) % 3]-
+									(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
+									* inv_dx[(s + 2) % 3] ) )
 
-							(expr.expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr.expr[s - s %3 + (s + 1) % 3])
-							* inv_dx[(s + 2) % 3]
-					)
+	template<typename TL> auto //
+	Curl(TL const & expr,
+			size_t const & s) const
+					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==1),
+							((expr[s - s % 3 + (s + 2) % 3] - expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]])
+									* inv_dx[(s + 1) % 3]-
+									(expr[s - s % 3 + (s + 1) % 3] - expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]])
+									* inv_dx[(s + 2) % 3] ))
 
-	template<typename TL> auto // Field<Geometry<Grid, 1>,
-	eval(UniOp<OpCurl, TL> const & expr,
-			IndexType const & s) const
-					DECL_RET_TYPE(
-
-							(expr.expr[s - s % 3 + (s + 2) % 3] - expr.expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]])
-							* inv_dx[(s + 1) % 3]-
-
-							(expr.expr[s - s % 3 + (s + 1) % 3] - expr.expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]])
-							* inv_dx[(s + 2) % 3]
-					)
-
-	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
-	eval(UniOp<OpCurlPD<IPD>, TExpr> const & expr,
-			IndexType const &s) const ->
-			typename std::enable_if<order_of_form<TExpr>::value==1, decltype(expr[0]) >::type
-	{
-		if (dims[IPD] == 1)
-		{
-			return (0);
-		}
-		IndexType j0 = s % 3;
-
-		IndexType idx1 = s - j0;
-		typename TExpr::Value res = 0.0;
-		if (1 == IPD)
-		{
-			res = (expr.rhs_[idx1 + 2 + 3 * strides[IPD]] - expr.rhs_[idx1 + 2])
-					* inv_dx[IPD];
-		}
-		else if (2 == IPD)
-		{
-			res =
-					(-expr.rhs_[idx1 + 1 + 3 * strides[IPD]]
-							+ expr.rhs_[idx1 + 1]) * inv_dx[IPD];
-		}
-
-		return (res);
-	}
-
-	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
-	eval(UniOp<OpCurlPD<IPD>, TExpr> const & expr,
-			IndexType const &s) const ->
-			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
-	{
-		if (dims[IPD] == 1)
-		{
-			return (0);
-		}
-		IndexType j0 = s % 3;
-
-		IndexType idx2 = s - j0;
-
-		typename Field<Geometry<Grid, 2>, TExpr>::Value res = 0.0;
+//	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
+//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
+//			size_t const &s) const ->
+//			typename std::enable_if<order_of_form<TExpr>::value==1, decltype(expr[0]) >::type
+//	{
+//		if (dims[IPD] == 1)
+//		{
+//			return (0);
+//		}
+//		size_t j0 = s % 3;
+//
+//		size_t idx1 = s - j0;
+//		typename TExpr::Value res = 0.0;
 //		if (1 == IPD)
 //		{
-//			res = (expr.rhs_[idx2 + 2]
-//					- expr.rhs_[idx2 + 2 - 3 * strides[IPD]]) * inv_dx[IPD];
-//
+//			res = (expr.rhs_[idx1 + 2 + 3 * strides[IPD]] - expr.rhs_[idx1 + 2])
+//					* inv_dx[IPD];
 //		}
 //		else if (2 == IPD)
 //		{
-//			res = (-expr.rhs_[idx2 + 1]
-//					+ expr.rhs_[idx2 + 1 - 3 * strides[IPD]]) * inv_dx[IPD];
+//			res =
+//					(-expr.rhs_[idx1 + 1 + 3 * strides[IPD]]
+//							+ expr.rhs_[idx1 + 1]) * inv_dx[IPD];
 //		}
-
-		return (res);
-	}
+//
+//		return (res);
+//	}
+//
+//	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
+//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
+//			size_t const &s) const ->
+//			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
+//	{
+//		if (dims[IPD] == 1)
+//		{
+//			return (0);
+//		}
+//		size_t j0 = s % 3;
+//
+//		size_t idx2 = s - j0;
+//
+//		typename Field<Geometry<Grid, 2>, TExpr>::Value res = 0.0;
+////		if (1 == IPD)
+////		{
+////			res = (expr.rhs_[idx2 + 2]
+////					- expr.rhs_[idx2 + 2 - 3 * strides[IPD]]) * inv_dx[IPD];
+////
+////		}
+////		else if (2 == IPD)
+////		{
+////			res = (-expr.rhs_[idx2 + 1]
+////					+ expr.rhs_[idx2 + 1 - 3 * strides[IPD]]) * inv_dx[IPD];
+////		}
+//
+//		return (res);
+//	}
 
 };
 
