@@ -249,7 +249,7 @@ template<typename T>
 struct is_expression
 {
 	static const bool value = is_Field<T>::value || is_nTuple<T>::value
-			|| is_op_node<T>::value;
+			|| is_op_node<T>::value ;
 };
 
 template<typename T>
@@ -272,24 +272,38 @@ struct ConstReferenceTraits
 			TL const &>::type type;
 
 };
-template<typename I> inline
-double index(double v, I)
+
+inline double index(double v, size_t)
 {
 	return (v);
 }
-template<typename I> inline std::complex<double> index(std::complex<double> v,
-		I)
+inline std::complex<double> index(std::complex<double> v, size_t)
 {
 	return (v);
 }
-template<typename T, typename I> inline
-auto index(T const & v, I const & s)->decltype(v[s])
+template<typename T> inline
+auto index(T const & v, size_t s)->decltype(v[s])
 {
 	return (v[s]);
 }
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 #define CONDITION_DECL_RET_TYPE(_COND_,_EXPR_)	->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
+template<bool cond>
+struct c_index
+{
+	template<typename T>
+	static auto eval(T const & v, size_t s)
+	DECL_RET_TYPE (v[s])
+};
+
+template<>
+struct c_index<false>
+{
+	template<typename T> static auto eval(T const & v, size_t)
+	DECL_RET_TYPE(v)
+};
 
 template<typename TE> inline TE const &
 operator +(TE const &e, Zero const &)
@@ -397,9 +411,10 @@ struct Op##_OP_NAME_                                                            
 {template<typename TL> inline static auto                               \
 eval(TL const & l, size_t s) ->decltype((std::sin(index(l, s))))     \
 {	return (_FUN_(index(l, s)));} };                                                     \
-template<typename TL> inline typename  \
-std::enable_if<is_expression<TL>::value ,UniOp<Op##_OP_NAME_, TL> >::type _OP_NAME_(TL const &lhs)         \
+template<typename TL> inline    \
+UniOp<Op##_OP_NAME_, TL> _OP_NAME_(TL const &lhs)         \
 {	return (UniOp<Op##_OP_NAME_, TL>(lhs));}                                           \
+double _OP_NAME_(double v){return _FUN_(v);}
 
 UNI_FUN_OP(abs, std::abs)
 UNI_FUN_OP(sin, std::sin)

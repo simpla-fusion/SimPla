@@ -50,10 +50,8 @@ public:
 
 };
 
-typedef testing::Types<RZeroForm
-//		, CZeroForm, VecZeroForm, ROneForm, COneForm,
-//		VecOneForm, RTwoForm, CTwoForm, VecTwoForm
-> AllFieldTypes;
+typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm, ROneForm, COneForm,
+		VecOneForm, RTwoForm, CTwoForm, VecTwoForm> AllFieldTypes;
 
 //, VecThreeForm
 
@@ -100,7 +98,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	ValueType a; a = 3.0;
 
-	f2 = a;
+	f2.fill( a);
 
 	for (size_t s = 0; s<num; ++s)
 	{
@@ -140,8 +138,8 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 	va=2.0;vb=3.0;
 
-	f1 = va;
-	f2 = vb;
+	f1 .fill( va);
+	f2 .fill( vb);
 	f3 = - f1*2.0 + f2 * c -f1/b;
 
 	for (auto s = geometry.get_center_elements_begin( );
@@ -150,227 +148,224 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 		ValueType res;
 		res= - f1[*s]*2.0 + f2[*s] *c -f1[*s]/b
 		;
-		ASSERT_EQ( res, f3[*s]) << *s <<"( " << f1[*s]<<","<<va<<" ) ( " << f2[*s]<<","<<vb<<" )="
-		<<-f1[*s]*2 + f2[*s] *c -f1[*s]/b;
+		ASSERT_EQ( res, f3[*s]) << *s;
 	}
 }
 }
 
-TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-{
-	//FIXME  should test with non-uniform field
-
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
-
-	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
-
-	size_t num_of_comp=geometry.get_num_of_comp();
-
-	size_t num=geometry.get_num_of_elements();
-
-	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
-
-	for(size_t s=0;s<num/num_of_comp;++s)
-	{
-		a[s]= (1.0); //+s;
-		b[s]= (3.0);//*s;
-		c[s]= (5.0);//(s+1.0);
-	}
-	typename TestFixture::FieldType::ValueType va,vb;
-
-	va=2.0;vb=3.0;
-
-	f1 = va;
-
-	f2 = vb;
-
-	f3 = - f1/a- b*f2 +f1*c;
-
-	for (auto s = geometry.get_center_elements_begin( );
-			s!=geometry.get_center_elements_end( ); ++s)
-	{
-		typename TestFixture::FieldType::ValueType res;
-		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
-		ASSERT_EQ( res, f3[*s])
-		<< "idx=" <<*s;
-	}
-}
-}
-//// test vector_calculus.h
-////template<typename T>
-////class TestFETLVecAlgegbra: public testing::Test
-////{
-////protected:
-////	virtual void SetUp()
-////	{
-////		grid.dt = 1.0;
-////		grid.xmin[0] = 0;
-////		grid.xmin[1] = 0;
-////		grid.xmin[2] = 0;
-////		grid.xmax[0] = 1.0;
-////		grid.xmax[1] = 1.0;
-////		grid.xmax[2] = 1.0;
-////		grid.dims[0] = 20;
-////		grid.dims[1] = 30;
-////		grid.dims[2] = 40;
-////		grid.gw[0] = 2;
-////		grid.gw[1] = 2;
-////		grid.gw[2] = 2;
-////
-////		grid.Init();
-////	}
-////public:
-////	Grid grid;
-////	typedef Field<Geometry<Grid, 0>, Array<T> > ScalarField;
-////	typedef Field<Geometry<Grid, 0>, Array<nTuple<3, T> > > VectorField;
-////};
-////
-////typedef testing::Types<double, Complex> VecFieldTypes;
-////
-////TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
-////
-//////TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
-//////{
-//////	const Grid& grid = TestFixture::grid;
-//////
-//////	Geometry<Grid, 0> geometry(TestFixture::grid);
-//////
-//////	Vec3 vc1 =
-//////	{	1.0, 2.0, 3.0};
-//////	Vec3 vc2 =
-//////	{	-1.0, 4.0, 2.0};
-//////
-//////	Vec3 res_vec;
-//////
-//////	res_vec = Cross(vc1, vc2);
-//////
-//////	Real res_scalar;
-//////	res_scalar = Dot(vc1, vc2);
-//////
-//////	typename TestFixture::ScalarField res_scalar_field(grid);
-//////
-//////	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
-//////			grid);
-//////
-//////	va = vc2;
-//////
-//////	res_scalar_field = Dot(vc1, va);
-//////
-//////	res_vector_field = Cross(vc1, va);
-//////
-//////	size_t num_of_comp = geometry.get_num_of_comp( );
-//////
-//////	for (auto s = geometry.get_center_elements_begin( );
-//////			s != geometry.get_center_elements_end( ); ++s)
-//////	{
-//////		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
-//////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
-//////		;
-//////
-//////		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
-//////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
-//////		;
-//////	}
-//////
-//////}
-//////}
-////TYPED_TEST(TestFETLVecAlgegbra,vector_field){
-////{
-////	using namespace space3;
-////	//FIXME  should test with non-uniform field
-////
-////	Grid const & grid = TestFixture::grid;
-////
-////	Geometry<Grid, 0> geometry(grid);
-////
-////	Vec3 vc1 =
-////	{	1.0, 2.0, 3.0};
-////	Vec3 vc2 =
-////	{	-1.0, 4.0, 2.0};
-////
-////	Vec3 res_vec;
-////
-////	res_vec=Cross(vc1,vc2);
-////
-////	Real res_scalar= Dot(vc1,vc2);
-////
-////	typename TestFixture::VectorField va(grid), vb(grid);
-////
-////	typename TestFixture::VectorField res_vector_field(grid);
-////	typename TestFixture::ScalarField res_scalar_field(grid);
-////
-////	va = vc1;
-//////
-//////	vb = vc2;
-//////
-//////	res_scalar_field = Dot( vb ,va);
-//////
-//////	res_vector_field = Cross(va , vb);
-//////
-//////	size_t num_of_comp =geometry.get_num_of_comp( );
-//////
-//////	for (auto s = geometry.get_center_elements_begin( );
-//////			s!=geometry.get_center_elements_end( ); ++s)
-//////	{
-//////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
-//////
-//////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
-//////
-//////	}
-////
-////}
-////}
-////TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
-////{
-////	//FIXME  should test with non-uniform field
-////
-////	Grid const & grid = TestFixture::grid;
-////
-////	Vec3 vc1 =
-////	{	1.0,2.0,3.0};
-////
-////	CVec3 vc2 =
-////	{
-////		Complex( 0.0,0.0) ,
-////		Complex( -0.2,0.2) ,
-////		Complex( 3.0,1.3)};
-////
-////	Complex res_scalar= Dot(vc2,vc1);
-////
-////	CVec3 res_vec;
-////
-////	res_vec=Cross(vc1,vc2);
-////
-////	typename TestFixture::VectorField va(grid);
-////
-////	typename TestFixture::CVectorField vb(grid);
-////
-////	va = vc1;
+//TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+//{
+//	//FIXME  should test with non-uniform field
+//
+//	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+//
+//	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
+//
+//	size_t num_of_comp=geometry.get_num_of_comp();
+//
+//	size_t num=geometry.get_num_of_elements();
+//
+//	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
+//
+//	for(size_t s=0;s<num/num_of_comp;++s)
+//	{
+//		a[s]= (1.0); //+s;
+//		b[s]= (3.0);//*s;
+//		c[s]= (5.0);//(s+1.0);
+//	}
+//	typename TestFixture::FieldType::ValueType va,vb;
+//
+//	va=2.0;vb=3.0;
+//
+//	f1.fill( va);
+//	f2.fill( vb);
+//
+//	f3 = - f1/a- b*f2 +f1*c;
+//
+//	for (auto s = geometry.get_center_elements_begin( );
+//			s!=geometry.get_center_elements_end( ); ++s)
+//	{
+//		typename TestFixture::FieldType::ValueType res;
+//		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
+//		ASSERT_EQ( res, f3[*s])
+//		<< "idx=" <<*s;
+//	}
+//}
+//}
+// test vector_calculus.h
+//template<typename T>
+//class TestFETLVecAlgegbra: public testing::Test
+//{
+//protected:
+//	virtual void SetUp()
+//	{
+//		grid.dt = 1.0;
+//		grid.xmin[0] = 0;
+//		grid.xmin[1] = 0;
+//		grid.xmin[2] = 0;
+//		grid.xmax[0] = 1.0;
+//		grid.xmax[1] = 1.0;
+//		grid.xmax[2] = 1.0;
+//		grid.dims[0] = 20;
+//		grid.dims[1] = 30;
+//		grid.dims[2] = 40;
+//		grid.gw[0] = 2;
+//		grid.gw[1] = 2;
+//		grid.gw[2] = 2;
+//
+//		grid.Init();
+//	}
+//public:
+//	Grid grid;
+//	typedef Field<Geometry<Grid, 0>, Array<T> > ScalarField;
+//	typedef Field<Geometry<Grid, 0>, Array<nTuple<3, T> > > VectorField;
+//};
+//
+//typedef testing::Types<double, Complex> VecFieldTypes;
+//
+//TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
+//
+//TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
+//{
+//	const Grid& grid = TestFixture::grid;
+//
+//	Geometry<Grid, 0> geometry(TestFixture::grid);
+//
+//	Vec3 vc1 =
+//	{	1.0, 2.0, 3.0};
+//	Vec3 vc2 =
+//	{	-1.0, 4.0, 2.0};
+//
+//	Vec3 res_vec;
+//
+//	res_vec = Cross(vc1, vc2);
+//
+//	Real res_scalar;
+//	res_scalar = Dot(vc1, vc2);
+//
+//	typename TestFixture::ScalarField res_scalar_field(grid);
+//
+//	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
+//			grid);
+//
+//	va = vc2;
+//
+//	res_scalar_field = Dot(vc1, va);
+//
+//	res_vector_field = Cross(vc1, va);
+//
+//	size_t num_of_comp = geometry.get_num_of_comp( );
+//
+//	for (auto s = geometry.get_center_elements_begin( );
+//			s != geometry.get_center_elements_end( ); ++s)
+//	{
+//		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
+//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
+//		;
+//
+//		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
+//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
+//		;
+//	}
+//
+//}
+//}
+//TYPED_TEST(TestFETLVecAlgegbra,vector_field){
+//{
+//	using namespace space3;
+//	//FIXME  should test with non-uniform field
+//
+//	Grid const & grid = TestFixture::grid;
+//
+//	Geometry<Grid, 0> geometry(grid);
+//
+//	Vec3 vc1 =
+//	{	1.0, 2.0, 3.0};
+//	Vec3 vc2 =
+//	{	-1.0, 4.0, 2.0};
+//
+//	Vec3 res_vec;
+//
+//	res_vec=Cross(vc1,vc2);
+//
+//	Real res_scalar= Dot(vc1,vc2);
+//
+//	typename TestFixture::VectorField va(grid), vb(grid);
+//
+//	typename TestFixture::VectorField res_vector_field(grid);
+//	typename TestFixture::ScalarField res_scalar_field(grid);
+//
+//	va = vc1;
 ////
 ////	vb = vc2;
 ////
-////	typename TestFixture::CVectorField res_vector_field(grid);
-////	typename TestFixture::CScalarField res_scalar_field(grid);
+////	res_scalar_field = Dot( vb ,va);
 ////
-////	res_scalar_field = Dot(vb, va);
+////	res_vector_field = Cross(va , vb);
 ////
-////	res_vector_field = Cross(va, vb);
+////	size_t num_of_comp =geometry.get_num_of_comp( );
 ////
-////	size_t num_of_comp =grid.get_num_of_comp(TestFixture::VectorField::IForm);
-////
-////	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::VectorField::IForm);
-////			s!=grid.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
+////	for (auto s = geometry.get_center_elements_begin( );
+////			s!=geometry.get_center_elements_end( ); ++s)
 ////	{
 ////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
 ////
 ////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
 ////
 ////	}
-////
-////}
-////}
-////
 //
+//}
+//}
+//TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
+//{
+//	//FIXME  should test with non-uniform field
+//
+//	Grid const & grid = TestFixture::grid;
+//
+//	Vec3 vc1 =
+//	{	1.0,2.0,3.0};
+//
+//	CVec3 vc2 =
+//	{
+//		Complex( 0.0,0.0) ,
+//		Complex( -0.2,0.2) ,
+//		Complex( 3.0,1.3)};
+//
+//	Complex res_scalar= Dot(vc2,vc1);
+//
+//	CVec3 res_vec;
+//
+//	res_vec=Cross(vc1,vc2);
+//
+//	typename TestFixture::VectorField va(grid);
+//
+//	typename TestFixture::CVectorField vb(grid);
+//
+//	va = vc1;
+//
+//	vb = vc2;
+//
+//	typename TestFixture::CVectorField res_vector_field(grid);
+//	typename TestFixture::CScalarField res_scalar_field(grid);
+//
+//	res_scalar_field = Dot(vb, va);
+//
+//	res_vector_field = Cross(va, vb);
+//
+//	size_t num_of_comp =grid.get_num_of_comp(TestFixture::VectorField::IForm);
+//
+//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::VectorField::IForm);
+//			s!=grid.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
+//	{
+//		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
+//
+//		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
+//
+//	}
+//
+//}
+//}
+
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test
 {

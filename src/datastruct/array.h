@@ -113,6 +113,14 @@ public:
 		*this = *this / rhs;
 		return (*this);
 	}
+	void fill(ValueType const &v)
+	{
+#pragma omp parallel for
+		for (size_t i = 0; i < num_of_elements_; ++i)
+		{
+			operator[](i) = v;
+		}
+	}
 
 private:
 	size_t num_of_elements_;

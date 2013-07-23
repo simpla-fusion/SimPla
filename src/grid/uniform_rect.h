@@ -23,6 +23,8 @@
 
 #include "fetl/vector_calculus.h"
 
+#include "fetl/expression.h"
+
 #include "grid.h"
 
 namespace simpla
@@ -324,7 +326,7 @@ struct UniformRectGrid: public BaseGrid
 #pragma omp parallel for
 		for (size_t i = 0; i < ele_num; ++i)
 		{
-			lhs[i] = index(rhs, i);
+			lhs[i] = rhs[i];
 		}
 	}
 

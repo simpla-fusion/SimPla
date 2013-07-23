@@ -16,16 +16,14 @@ namespace simpla
 {
 
 template<typename TGeometry, typename TStorage>
-struct Field
+struct Field: public TStorage
 {
 public:
 	typedef TGeometry GeometryType;
 
 	TGeometry geometry;
 
-	TStorage expr;
-
-	typedef typename remove_const_reference<decltype(expr[0])>::type ValueType;
+	typedef TStorage BaseType;
 
 	typedef Field<GeometryType, TStorage> ThisType;
 
@@ -37,13 +35,13 @@ public:
 
 	template<typename TG>
 	Field(TG const & g) :
-			geometry(g), expr(geometry.get_num_of_elements())
+			BaseType(TGeometry(g).get_num_of_elements()), geometry(g)
 	{
 	}
 
 	template<typename TG, typename TE>
 	Field(TG const & g, TE e) :
-			geometry(g), expr(e)
+			geometry(g), BaseType(e)
 	{
 	}
 
@@ -66,29 +64,18 @@ public:
 	}
 
 	template<typename TR>
-	inline ThisType & operator=(TR const & rhs)
+	inline typename std::enable_if<is_Field<TR>::value,ThisType &>::type operator=(TR const & rhs)
 	{
 		geometry.grid.Assign(*this,rhs);
 		return (*this);
 	}
 
-	inline ValueType Get(CoordinatesType const &x,Real effect_radius=0)const
-	{
-		return (geometry.IntepolateFrom(expr,x,effect_radius));
-	}
+//	inline auto Get(CoordinatesType const &x,Real effect_radius=0)const
+//	DECL_RET_TYPE( (geometry.IntepolateFrom(*this,x,effect_radius)))
+//
+//	inline auto Put(ValueType const & v,CoordinatesType const &x,Real effect_radius=0)
+//	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
 
-	inline void Put(ValueType const & v,CoordinatesType const &x,Real effect_radius=0)
-	{
-		geometry.IntepolateTo(expr,v,x,effect_radius);
-	}
-	inline ValueType & operator[](size_t s )
-	{
-		return (expr[s]);
-	}
-	inline ValueType const & operator[](size_t s )const
-	{
-		return (expr[s]);
-	}
 };
 
 template<typename T, typename INDEX>
