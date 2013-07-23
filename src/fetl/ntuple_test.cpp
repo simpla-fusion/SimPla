@@ -22,7 +22,7 @@ template<typename T> T _real(std::complex<T> const & v)
 {
 	return (real(v));
 }
-#define EQUATION(_A,_B,_C)  ( (TestFixture::_A /TestFixture::a - TestFixture::a )* ( TestFixture::_B * TestFixture::b  - TestFixture::b ) - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( (-TestFixture::_A /TestFixture::a - TestFixture::a )* ( TestFixture::_B * TestFixture::b  - TestFixture::b ) - TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test

@@ -229,20 +229,47 @@ struct is_primitive
 	static const bool value = (is_arithmetic_scalar<TL>::value
 			|| is_nTuple<TL>::value || has_PlaceHolder<TL>::value);
 };
+template<typename T>
+struct is_op_node
+{
+	static const bool value = false;
+};
+template<typename TOP, typename TExp>
+struct is_op_node<UniOp<TOP, TExp> >
+{
+	static const bool value = true;
+};
 
-template<typename TL>
+template<typename TOP, typename TL, typename TR>
+struct is_op_node<BiOp<TOP, TL, TR> >
+{
+	static const bool value = true;
+};
+template<typename T>
+struct is_expression
+{
+	static const bool value = is_Field<T>::value || is_nTuple<T>::value
+			|| is_op_node<T>::value;
+};
+
+template<typename T>
 struct ReferenceTraits
 {
-	typedef typename std::conditional<
-			std::is_copy_constructible<TL>::value
-					&& !(std::is_trivial<TL>::value && is_nTuple<TL>::value),
-			TL, TL const &>::type type;
+	typedef typename remove_const_reference<T>::type TL;
+	typedef typename std::conditional<is_op_node<TL>::value, TL, TL &>::type type;
+
+//	typedef typename std::conditional<
+//			std::is_copy_constructible<TL>::value
+//					&& !(std::is_trivial<TL>::value && is_nTuple<TL>::value),
+//			TL, TL const &>::type type;
 
 };
-template<typename TL>
+template<typename T>
 struct ConstReferenceTraits
 {
-	typedef typename std::add_const<typename ReferenceTraits<TL>::type>::type type;
+	typedef typename remove_const_reference<T>::type TL;
+	typedef typename std::conditional<is_op_node<TL>::value, const TL,
+			TL const &>::type type;
 
 };
 template<typename I> inline
@@ -263,9 +290,6 @@ auto index(T const & v, I const & s)->decltype(v[s])
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 #define CONDITION_DECL_RET_TYPE(_COND_,_EXPR_)	->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
-
-template<typename TL> inline auto //
-operator -(TL const &lhs) DECL_RET_TYPE((-1.0*lhs))
 
 template<typename TE> inline TE const &
 operator +(TE const &e, Zero const &)
@@ -338,7 +362,7 @@ struct UniOp
 {
 public:
 
-	typename ReferenceTraits<TL>::type expr;
+	typename ConstReferenceTraits<TL>::type expr;
 
 	typedef UniOp<TOP, TL> ThisType;
 
@@ -352,21 +376,30 @@ public:
 	UniOp(ThisType const &) =default;
 
 	inline ValueType
-	operator[](size_t const & s)const
+	operator[](size_t s)const
 	{
 		return ( TOP::eval(expr,s ));
 	}
 
 };
 
+struct OpNegate
+{
+	template<typename TL> inline static auto eval(TL const & l, size_t s)
+	DECL_RET_TYPE((-index(l, s)))
+};
+
+template<typename T> auto operator-(T const & lhs)
+DECL_RET_TYPE((UniOp<OpNegate, T>(lhs)))
+
 #define UNI_FUN_OP(_OP_NAME_,_FUN_)                                                    \
 struct Op##_OP_NAME_                                                                 \
 {template<typename TL> inline static auto                               \
 eval(TL const & l, size_t s) ->decltype((std::sin(index(l, s))))     \
 {	return (_FUN_(index(l, s)));} };                                                     \
-template<typename TL> inline UniOp<Op##_OP_NAME_, TL> _OP_NAME_(TL const &lhs)         \
+template<typename TL> inline typename  \
+std::enable_if<is_expression<TL>::value ,UniOp<Op##_OP_NAME_, TL> >::type _OP_NAME_(TL const &lhs)         \
 {	return (UniOp<Op##_OP_NAME_, TL>(lhs));}                                           \
-inline double _OP_NAME_(double lhs){return (_FUN_(lhs)); }                         \
 
 UNI_FUN_OP(abs, std::abs)
 UNI_FUN_OP(sin, std::sin)
@@ -388,8 +421,8 @@ struct BiOp
 {
 public:
 
-	typename ReferenceTraits<TL>::type l_;
-	typename ReferenceTraits<TR>::type r_;
+	typename ConstReferenceTraits<TL>::type l_;
+	typename ConstReferenceTraits<TR>::type r_;
 
 	typedef BiOp<TOP, TL, TR> ThisType;
 
@@ -401,7 +434,7 @@ public:
 
 	BiOp(ThisType const &) =default;
 
-	inline ValueType operator[](size_t const & s)const
+	inline ValueType operator[](size_t s)const
 	{
 		return ( TOP::eval(l_,r_,s));
 	}
@@ -459,7 +492,7 @@ template<typename TL, typename TR> inline BiOp<OpDivides, TL, TR> operator /(
 #define BI_FUN_OP(_OP_NAME_,_FUN_)                                               \
 struct Op##_OP_NAME_                                                            \
 {template<typename TL, typename TR> inline static auto eval(TL const &l,        \
-		TR const & r,size_t s) DECL_RET_TYPE((_FUN_(index(l,s),index(r,s))))};                              \
+		TR const & r,size_t s) DECL_RET_TYPE((_FUN_(index(l,s),index(r,s))))};     \
 template<typename TL, typename TR> inline BiOp<Op##_OP_NAME_, TL, TR>            \
 _OP_NAME_(TL const &lhs, TR const & rhs)                                         \
 {                                                                                \

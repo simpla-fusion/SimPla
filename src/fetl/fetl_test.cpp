@@ -142,50 +142,20 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 	f1 = va;
 	f2 = vb;
-	f3 =-f1 + f2 * c -f1/b;
+	f3 = - f1*2.0 + f2 * c -f1/b;
 
 	for (auto s = geometry.get_center_elements_begin( );
 			s!=geometry.get_center_elements_end( ); ++s)
 	{
 		ValueType res;
-		res=-f1[*s] + f2[*s] *c -f1[*s]/b;
-		ASSERT_EQ( res, f3[*s]) << *s;
+		res= - f1[*s]*2.0 + f2[*s] *c -f1[*s]/b
+		;
+		ASSERT_EQ( res, f3[*s]) << *s <<"( " << f1[*s]<<","<<va<<" ) ( " << f2[*s]<<","<<vb<<" )="
+		<<-f1[*s]*2 + f2[*s] *c -f1[*s]/b;
 	}
 }
 }
 
-//TYPED_TEST(TestFETLBasicArithmetic, constant_complex){
-//{
-//	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
-//
-//	typename TestFixture::FieldType f1( geometry),f2(geometry);
-//
-//	typename TestFixture::FieldType f1( grid),f2(grid);
-//	typename TestFixture::CFieldType f3(grid);
-//
-//	size_t size=grid.get_num_of_elements(TestFixture::FieldType::IForm);
-//
-//	Complex a(1.0,-1.0);
-//	Complex b(-2.0,3.0);
-//	Complex c(4.0,3.0);
-//	typename TestFixture::ValueType va,vb;
-//
-//	va=2.0;vb=3.0;
-//
-//	f1 = va;
-//	f2 = vb;
-//	f3 = -f1 + c* f2-f1/b;
-//
-//	for (auto s = grid.get_center_elements_begin(TestFixture::FieldType::IForm);
-//			s!=grid.get_center_elements_end(TestFixture::FieldType::IForm); ++s)
-//	{
-//		typename TestFixture::CValueType res;
-//		res=-f1[*s] + f2[*s] *c - f1[*s]/b;
-//		ASSERT_EQ( res, f3[*s]) << *s;
-//	}
-//
-//}
-//}
 TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
@@ -553,7 +523,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 	}
 }
 }
-//
+
 ////class TestFETLPerformance: public testing::TestWithParam<size_t>
 ////{
 ////protected:

@@ -15,19 +15,19 @@
 namespace simpla
 {
 
-template<typename TGeometry, typename TExpr>
+template<typename TGeometry, typename TStorage>
 struct Field
 {
 public:
 	typedef TGeometry GeometryType;
 
-	typename ConstReferenceTraits<GeometryType>::type geometry;
+	TGeometry geometry;
 
-	typename ReferenceTraits<TExpr>::type expr;
+	TStorage expr;
 
 	typedef typename remove_const_reference<decltype(expr[0])>::type ValueType;
 
-	typedef Field<GeometryType, TExpr> ThisType;
+	typedef Field<GeometryType, TStorage> ThisType;
 
 	typedef typename TGeometry::CoordinatesType CoordinatesType;
 
@@ -52,7 +52,7 @@ public:
 	void swap(ThisType & rhs)
 	{
 		GeometryType::swap(rhs);
-		TExpr::swap(rhs);
+		TStorage::swap(rhs);
 	}
 
 	virtual ~Field()
@@ -81,13 +81,11 @@ public:
 	{
 		geometry.IntepolateTo(expr,v,x,effect_radius);
 	}
-	template<typename TIDX>
-	inline ValueType & operator[](TIDX const &s )
+	inline ValueType & operator[](size_t s )
 	{
 		return (expr[s]);
 	}
-	template<typename TIDX>
-	inline ValueType const & operator[](TIDX const &s )const
+	inline ValueType const & operator[](size_t s )const
 	{
 		return (expr[s]);
 	}

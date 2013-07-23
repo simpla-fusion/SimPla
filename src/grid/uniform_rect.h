@@ -316,7 +316,7 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR rhs) const
+	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR const & rhs) const
 	{
 		ASSERT(lhs.grid==*this);
 		size_t ele_num = get_num_of_elements(IFORM);
@@ -342,23 +342,23 @@ struct UniformRectGrid: public BaseGrid
 //			lhs[i] = rhs[i % NR];
 //		}
 //	}
-	template<int IFORM, typename TL, typename TR> void //
-	Assign(Field<Geometry<Grid, IFORM>, TL>& lhs,
-			Field<Geometry<Grid, IFORM>, TR> const& rhs) const
-	{
-		ASSERT(lhs.grid==*this);
-		{
-			std::vector<size_t> const & ele_list = get_center_elements(IFORM);
-			size_t ele_num = ele_list.size();
-
-#pragma omp parallel for
-			for (size_t i = 0; i < ele_num; ++i)
-			{
-				lhs[ele_list[i]] = rhs[ele_list[i]];
-			}
-
-		}
-	}
+//	template<int IFORM, typename TL, typename TR> void //
+//	Assign(Field<Geometry<Grid, IFORM>, TL>& lhs,
+//			Field<Geometry<Grid, IFORM>, TR> const& rhs) const
+//	{
+//		ASSERT(lhs.grid==*this);
+//		{
+//			std::vector<size_t> const & ele_list = get_center_elements(IFORM);
+//			size_t ele_num = ele_list.size();
+//
+//#pragma omp parallel for
+//			for (size_t i = 0; i < ele_num; ++i)
+//			{
+//				lhs[ele_list[i]] = rhs[ele_list[i]];
+//			}
+//
+//		}
+//	}
 
 //	template<int IFORM, typename TLExpr, typename TRExpr> inline auto //
 //	InnerProduct(Field<Geometry<Grid, IFORM>, TLExpr> const & lhs,
@@ -580,23 +580,27 @@ struct UniformRectGrid: public BaseGrid
 			* inv_dx[2]
 	)
 
-	template<typename TL> inline auto //
-	Curl(TL const & expr,
+	template<typename TL> inline auto Curl(TL const & expr,
 			size_t const & s) const
 					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==2),(
-									(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
-									* inv_dx[(s + 1) % 3]-
-									(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
-									* inv_dx[(s + 2) % 3] ) )
 
-	template<typename TL> auto //
-	Curl(TL const & expr,
+									(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
+									* inv_dx[(s + 1) % 3] -
+									(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
+									* inv_dx[(s + 2) % 3]
+							)
+					)
+
+	template<typename TL> inline auto Curl(TL const & expr,
 			size_t const & s) const
 					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==1),
-							((expr[s - s % 3 + (s + 2) % 3] - expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]])
-									* inv_dx[(s + 1) % 3]-
-									(expr[s - s % 3 + (s + 1) % 3] - expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]])
-									* inv_dx[(s + 2) % 3] ))
+							(
+									(expr[s - s % 3 + (s + 2) % 3]
+											- expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
+									(expr[s - s % 3 + (s + 1) % 3]
+											- expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
+							)
+					)
 
 //	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,

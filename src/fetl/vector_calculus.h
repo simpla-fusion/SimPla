@@ -15,15 +15,6 @@
 namespace simpla
 {
 
-struct OpGrad
-{
-	template<typename TL> static inline auto eval(TL const & l, size_t s)
-	DECL_RET_TYPE(get_grid(l).Grad(l,s))
-};
-template<typename TR> inline UniOp<OpGrad, TR> Grad(TR const & f)
-{
-	return (UniOp<OpGrad, TR>(f));
-}
 
 #define DEF_UNI_FIELDOP(_NAME_)                                                  \
 struct Op##_NAME_                                                                 \
@@ -32,6 +23,7 @@ struct Op##_NAME_                                                               
 template<typename TR> inline UniOp<Op##_NAME_, TR> _NAME_(TR const & f)           \
 { return (UniOp<Op##_NAME_, TR>(f)); }
 
+DEF_UNI_FIELDOP(Grad)
 DEF_UNI_FIELDOP(Curl)
 DEF_UNI_FIELDOP(Diverge)
 #undef DEF_UNI_FIELDOP
@@ -80,8 +72,9 @@ UniOp<OpExtriorDerivative, TL>, Zero>::type
 
 struct OpWedge
 {
-	template<typename TL,typename TR> static inline auto eval(TL const & l,TR const & r, size_t s)
-	DECL_RET_TYPE(get_grid(l,r).Wedge(l,r,s))
+	template<typename TL, typename TR> static inline auto eval(TL const & l,
+			TR const & r, size_t s)
+			DECL_RET_TYPE(get_grid(l,r).Wedge(l,r,s))
 };
 template<typename TL, typename TR> inline auto             //
 operator^(TL const & lhs,

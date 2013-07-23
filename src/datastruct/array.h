@@ -18,7 +18,6 @@ template<typename T>
 class Array: public Object
 {
 public:
-	typedef size_t IndexType;
 	typedef T ValueType;
 	typedef Array<T> ThisType;
 
@@ -60,7 +59,7 @@ public:
 	inline ThisType & operator =(TR const &rhs)
 	{
 #pragma omp parallel for
-		for (IndexType s = 0; s < num_of_elements_; ++s)
+		for (size_t s = 0; s < num_of_elements_; ++s)
 		{
 			operator[](s) = index(rhs, s);
 		}
@@ -71,7 +70,7 @@ public:
 	inline ThisType & operator =(ValueType const &rhs)
 	{
 #pragma omp parallel for
-		for (IndexType s = 0; s < num_of_elements_; ++s)
+		for (size_t s = 0; s < num_of_elements_; ++s)
 		{
 			operator[](s) = rhs;
 		}
@@ -79,12 +78,12 @@ public:
 		return (*this);
 	}
 
-	inline ValueType & operator[](IndexType s)
+	inline ValueType & operator[](size_t s)
 	{
 		return (*reinterpret_cast<T*>(&(*Object::data_) + s * ele_size_in_byte_));
 	}
 
-	inline ValueType const & operator[](IndexType s) const
+	inline ValueType const & operator[](size_t s) const
 	{
 		return (*reinterpret_cast<T const*>(&(*Object::data_) + s * ele_size_in_byte_));
 	}
