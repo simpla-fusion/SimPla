@@ -93,76 +93,59 @@ public:
 	}
 };
 
-template<typename TG, typename TE, typename TOP>
-struct Field<TG, BiOp<TOP, TE> > : public BiOp<TOP, TE>
+template<typename T,typename INDEX>
+auto eval(T const &f ,INDEX const & s)
+->typename std::enable_if<is_Field<T>::value,decltype(get_grid(f).eval(f,s))>::type
 {
-public:
-	typedef TG GeometryType;
+	return (get_grid(f).eval(f,s));
+}
 
-	typename ConstReferenceTraits<GeometryType>::type geometry;
+template<typename TG,typename TE> auto get_grid(Field<TG, TE> const & f)
+DECL_RET_TYPE(f.geometry.grid)
 
-	typedef Field<TG, BiOp<TOP, TE> > ThisType;
+template<typename TOP, typename TExpr> auto get_grid(
+		UniOp<TOP, TExpr> const & f) ->
+		typename std::enable_if<is_Field<TExpr>::value,
+		typename remove_const_reference<decltype(get_grid(f.expr))>::type>::type const &
+{
+	return (get_grid(f.expr));
+}
 
-	Field(TE const & l) :
-			geometry(l.geometry.grid), BiOp<TOP, TE>(l)
-	{
-	}
-
-	Field(ThisType const &) =default;
-
-	template<typename IDX> inline auto operator[](IDX const & idx) const
-	->typename remove_const_reference<decltype(geometry.eval(*this,idx))>::type
-	{
-		return ((geometry.eval(*this,idx)));
-	}
+template<typename TOP, typename TL, typename TR> auto get_grid(
+		BiOp<TOP, TL, TR> const & f)
+		-> typename std::enable_if<is_Field<TL>::value,
+		typename remove_const_reference<decltype(get_grid(f.l_.expr))>::type>::type const &
+{
+	return (get_grid(f.l_.expr));
+}
+template<typename TOP, typename TL, typename TR> auto get_grid(
+		BiOp<TOP, TL, TR> const & f)
+		-> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
+		typename remove_const_reference<decltype(get_grid(f.r_.expr))>::type>::type const &
+{
+	return (get_grid(f.r_.expr));
+}
+template<typename T> struct order_of_form
+{
+	static const int value = -10000;
+};
+template<typename TG, int IFORM, typename TE>
+struct order_of_form<Field<Geometry<TG, IFORM>, TE> >
+{
+	static const int value = IFORM;
 };
 
-template<typename TG, typename TL, typename TR, typename TOP>
-struct Field<TG, BiOp<TOP, TL, TR> > : public BiOp<TOP, TL, TR>
+template<typename TOP, typename TF>
+struct order_of_form<UniOp<TOP, TF> >
 {
-public:
-	typedef TG GeometryType;
-
-	typename ConstReferenceTraits<GeometryType>::type geometry;
-
-	typedef Field<TG, BiOp<TOP, TL, TR> > ThisType;
-
-	Field(TL const & l, TR const & r) :
-			geometry(l.geometry.grid), BiOp<TOP, TL, TR>(l, r)
-	{
-	}
-
-	Field(ThisType const &) =default;
-
-	template<typename IDX>
-	inline auto operator[](IDX const & idx) const
-	->typename remove_const_reference<decltype(geometry.eval(*this,idx))>::type
-	{
-		return (geometry.eval(*this,idx));
-	}
-
-};
-template<typename TG>
-struct Field<TG, Zero>
-{
-public:
-
-	typedef Field<TG, Zero> ThisType;
-
-	Field()
-	{
-	}
-
-	Field(ThisType const &) =default;
-
-	template<typename IDX>
-	inline Zero operator[](IDX const & ) const
-	{
-		return (Zero());
-	}
-
+	static const int value = order_of_form<TF>::value;
 };
 
+template<typename TOP, typename TL, typename TR>
+struct order_of_form<BiOp<TOP, TL, TR> >
+{
+	static const int value = order_of_form<TL>::value;
+};
 }
 // namespace simpla
 

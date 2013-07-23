@@ -52,13 +52,13 @@ struct nTuple
 	ValueType v_[N];
 
 	inline ValueType &
-	operator[](int i)
+	operator[](size_t i)
 	{
 		return (v_[i]);
 	}
 
 	inline ValueType const&
-	operator[](int i) const
+	operator[](size_t i) const
 	{
 		return (v_[i]);
 	}
@@ -98,19 +98,19 @@ struct nTuple
 	{
 		return (!(*this == rhs));
 	}
+//	template<typename TR> inline typename std::enable_if<
+//	!is_indexable<TR>::value, ThisType &>::type //
+//	operator =(TR const &rhs)
+//	{
+//		for (int i = 0; i < NDIM; ++i)
+//		{
+//			v_[i] = rhs;
+//		}
+//		return (*this);
+//	}
 
-	template<typename TR>
-	inline ThisType & operator =(TR const &rhs)
-	{
-		for (int i = 0; i < NDIM; ++i)
-		{
-			v_[i] = index(rhs, i);
-		}
-		return (*this);
-	}
-
-	template<typename TR>
-	inline ThisType & operator =(nTuple<NDIM, TR> const &rhs)
+	template<typename TR> inline ThisType & //
+	operator =(TR const &rhs)
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{

@@ -17,6 +17,9 @@ template<typename TG, int IFORM>
 class Geometry
 {
 public:
+
+	static const int NUM_OF_DIMS = TG::NUM_OF_DIMS;
+
 	typedef TG Grid;
 
 	typedef Geometry<Grid, IFORM> ThisType;

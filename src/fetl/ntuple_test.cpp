@@ -22,7 +22,7 @@ template<typename T> T _real(std::complex<T> const & v)
 {
 	return (real(v));
 }
-#define EQUATION(_A,_B,_C)  ( (-TestFixture::_A /TestFixture::a - TestFixture::a )* ( TestFixture::_B * TestFixture::b  - TestFixture::b ) - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( (TestFixture::_A /TestFixture::a - TestFixture::a )* ( TestFixture::_B * TestFixture::b  - TestFixture::b ) - TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test
@@ -66,8 +66,9 @@ public:
 };
 
 typedef testing::Types< //
-		nTuple<3, double>, nTuple<3, int>
-		, nTuple<3, std::complex<double> >
+		nTuple<3, double>
+		, nTuple<3, int>
+//		, nTuple<3, std::complex<double> >
 		, nTuple<10, double>, nTuple<20, double>
 
 > MyTypes;
@@ -95,14 +96,14 @@ TYPED_TEST(TestNtuple,Assign_Array){
 	}
 }}
 
-TYPED_TEST(TestNtuple, Logical){
-{
-	EXPECT_TRUE( TestFixture::vA!= TestFixture::vB);
-	EXPECT_TRUE( TestFixture::vA== TestFixture::vA);
-	EXPECT_FALSE( TestFixture::vA== TestFixture::vB);
-
-}}
-
+//TYPED_TEST(TestNtuple, Logical){
+//{
+//	EXPECT_TRUE( TestFixture::vA!= TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA== TestFixture::vA);
+//	EXPECT_FALSE( TestFixture::vA== TestFixture::vB);
+//
+//}}
+//
 TYPED_TEST(TestNtuple, Arithmetic){
 {
 	TestFixture::vD = EQUATION(vA ,vB ,vC);

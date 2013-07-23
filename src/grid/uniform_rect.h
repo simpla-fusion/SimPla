@@ -32,6 +32,8 @@ namespace simpla
  * */
 struct UniformRectGrid: public BaseGrid
 {
+	static const int NUM_OF_DIMS = 3;
+
 	UniformRectGrid &
 	operator=(const UniformRectGrid&);
 
@@ -562,14 +564,13 @@ struct UniformRectGrid: public BaseGrid
 // Vector Arithmetic
 //-----------------------------------------
 	template<typename TExpr> inline auto //
-	eval(Field<Geometry<Grid, 1>, BiOp<space3::OpGrad, TExpr> > const & expr,
-			IndexType const & s) const
-			DECL_RET_TYPE(
-					(expr.expr[(s - s % 3) / 3 + strides[s % 3]]
-							- expr.expr[(s - s % 3) / 3]) * inv_dx[s % 3])
+	eval(UniOp<OpGrad, TExpr> const & expr, IndexType const & s) const
+	DECL_RET_TYPE(
+			(expr.expr[(s - s % 3) / 3 + strides[s % 3]]
+					- expr.expr[(s - s % 3) / 3]) * inv_dx[s % 3])
 
 	template<typename TExpr> inline auto //
-	eval(Field<Geometry<Grid, 0>, BiOp<space3::OpDiverge, TExpr> > const & expr,
+	eval(UniOp<OpDiverge, TExpr> const & expr,
 			IndexType const & s) const
 					DECL_RET_TYPE(
 
@@ -583,7 +584,7 @@ struct UniformRectGrid: public BaseGrid
 							* inv_dx[2]
 					)
 	template<typename TL> inline auto //
-	eval(Field<Geometry<Grid, 2>, BiOp<space3::OpCurl, TL> > const & expr,
+	eval(UniOp<OpCurl, TL> const & expr,
 			IndexType const & s) const
 					DECL_RET_TYPE(
 							(expr.expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr.expr[s - s %3 + (s + 2) % 3])
@@ -593,8 +594,8 @@ struct UniformRectGrid: public BaseGrid
 							* inv_dx[(s + 2) % 3]
 					)
 
-	template<typename TL> auto //
-	eval(Field<Geometry<Grid, 1>, BiOp<space3::OpCurl, TL> > const & expr,
+	template<typename TL> auto // Field<Geometry<Grid, 1>,
+	eval(UniOp<OpCurl, TL> const & expr,
 			IndexType const & s) const
 					DECL_RET_TYPE(
 
@@ -605,10 +606,10 @@ struct UniformRectGrid: public BaseGrid
 							* inv_dx[(s + 2) % 3]
 					)
 
-	template<int IPD, typename TExpr> inline auto //
-	eval(
-			Field<Geometry<Grid, 1>, BiOp<space3::OpCurlPD<IPD>, TExpr> > const & expr,
-			IndexType const &s) const->decltype(expr[0])
+	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
+	eval(UniOp<OpCurlPD<IPD>, TExpr> const & expr,
+			IndexType const &s) const ->
+			typename std::enable_if<order_of_form<TExpr>::value==1, decltype(expr[0]) >::type
 	{
 		if (dims[IPD] == 1)
 		{
@@ -617,7 +618,7 @@ struct UniformRectGrid: public BaseGrid
 		IndexType j0 = s % 3;
 
 		IndexType idx1 = s - j0;
-		typename Field<Geometry<Grid, 1>, TExpr>::Value res = 0.0;
+		typename TExpr::Value res = 0.0;
 		if (1 == IPD)
 		{
 			res = (expr.rhs_[idx1 + 2 + 3 * strides[IPD]] - expr.rhs_[idx1 + 2])
@@ -633,9 +634,10 @@ struct UniformRectGrid: public BaseGrid
 		return (res);
 	}
 
-	template<int IPD, typename TExpr> inline auto eval(
-			Field<Geometry<Grid, 2>, BiOp<space3::OpCurlPD<IPD>, TExpr> > const & expr,
-			IndexType const &s) const ->decltype(expr[0])
+	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
+	eval(UniOp<OpCurlPD<IPD>, TExpr> const & expr,
+			IndexType const &s) const ->
+			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
 	{
 		if (dims[IPD] == 1)
 		{

@@ -9,101 +9,83 @@
 #define VECTOR_CALCULUS_H_
 
 #include "expression.h"
+#include "field.h"
+#include "geometry.h"
 
 namespace simpla
 {
-template<typename, typename > class Field;
-template<typename, int> class Geometry;
-namespace space3
-{ //3-dimensional space
 
-struct OpGrad;
-template<typename TG, typename TE> inline auto //
-Grad(Field<Geometry<TG, 0>, TE> const & f)
-->Field<Geometry<TG, 1>, BiOp<OpGrad,Field<Geometry<TG, 0>, TE> > >
-{
-	return (Field<Geometry<TG, 1>, BiOp<OpGrad, Field<Geometry<TG, 0>, TE> > >(
-			f));
-}
-//DECL_RET_TYPE( (Field<Geometry<TG, 1>,
-//				BiOp<OpGrad, Field<Geometry<TG, 0>, TE> ,NullType > > (f)))
+#define DEF_UNI_FIELDOP(_NAME_)                                                  \
+struct Op##_NAME_; \
+template<typename TR> inline auto                               \
+_NAME_(TR const & f) DECL_RET_TYPE((UniOp<Op##_NAME_, TR>(f)))
 
-struct OpDiverge;
-template<typename TG, typename TE> inline auto //
-Diverge(Field<Geometry<TG, 1>, TE> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 0>,
-				BiOp<OpDiverge, Field<Geometry<TG, 1>,TE >,NullType > > (f)))
+DEF_UNI_FIELDOP(Grad)
+DEF_UNI_FIELDOP(Curl)
+DEF_UNI_FIELDOP(Diverge)
+#undef DEF_UNI_FIELDOP
 
-struct OpCurl;
-template<typename TG, typename TE> inline auto //
-Curl(Field<Geometry<TG, 2>, TE> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 1>,
-				BiOp<OpCurl, Field<Geometry<TG, 2>, TE> ,NullType> > (f)))
-
-template<typename TG, typename TE> inline auto //
-Curl(Field<Geometry<TG, 1>, TE> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 2>,
-				BiOp<OpCurl, Field<Geometry<TG, 1>, TE> ,NullType> > (f)))
-
-template<int IPD> struct OpCurlPD;
-template<int IPD, typename TG, typename TE> inline auto //
-CurlPD(Int2Type<IPD>, Field<Geometry<TG, 1>, TE> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 2>,
-				BiOp< OpCurlPD<IPD>, Field<Geometry<TG, 1>, TE> ,NullType>
-				> (f)))
-
-template<int IPD, typename TG, typename TE> inline auto //
-CurlPD(Int2Type<IPD>, Field<Geometry<TG, 2>, TE> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 1>,
-				BiOp<OpCurlPD<IPD>, Field<Geometry<TG, 2>, TE>,NullType> > (f)))
+template<int> struct OpCurlPD;
+template<int IPD, typename TR> inline auto                //
+CurlPD(Int2Type<IPD>, TR const & f)
+DECL_RET_TYPE((UniOp<OpCurlPD<IPD>, TR>(f)))
 
 struct OpHodgeStar;
-template<typename TG, int IFORM, typename TL> inline auto  //
-operator*(
-		Field<Geometry<TG, IFORM>, TL> const & lexpr)
-				DECL_RET_TYPE(
-						( Field<Geometry<TG, 3-IFORM>,
-								BiOp<OpHodgeStar, Field<Geometry<TG,IFORM>, TL>,NullType > > (lexpr )))
-
-struct OpWedge;
-template<typename TG, int IL, int IR, typename TL, typename TR> inline auto //
-operator^(Field<Geometry<TG, IL>, TL> const & lhs,
-		Field<Geometry<TG, IR>, TR> const & rhs)
-		DECL_RET_TYPE(
-				(Field<Geometry<TG,IL+IR> ,
-						BiOp< OpWedge,
-						Field<Geometry<TG,IL> , TL>,
-						Field<Geometry<TG,IR> , TR> > >(lhs, rhs) ) )
-
-template<typename TG, int IL, typename TL, typename TR> inline auto //
-operator^(Field<Geometry<TG, IL>, TL> const & lhs,
-		Field<Geometry<TG, 4 - IL>, TR> const & rhs)
-		DECL_RET_TYPE( (Field<Geometry<TG,0> ,Zero>() ) )
-
-template<typename TG, int IL, typename TL, typename TR> inline auto //
-operator^(Field<Geometry<TG, IL>, TL> const & lhs,
-		Field<Geometry<TG, 5 - IL>, TR> const & rhs)
-		DECL_RET_TYPE( (Field<Geometry<TG,0> ,Zero>() ) )
-
-template<typename TG, int IL, typename TL, typename TR> inline auto //
-operator^(Field<Geometry<TG, IL>, TL> const & lhs,
-		Field<Geometry<TG, 6 - IL>, TR> const & rhs)
-		DECL_RET_TYPE( (Field<Geometry<TG,0> ,Zero>() ) )
+template<typename TL> inline typename std::enable_if<is_Field<TL>::value,
+		UniOp<OpHodgeStar, TL> >::type                //
+operator*(TL const & f)
+{
+	return (UniOp<OpHodgeStar, TL>(f));
+}
 
 struct OpExtriorDerivative;
-
-template<typename TG, int IFORM, typename TL> inline auto  //
-d(Field<Geometry<TG, IFORM>, TL> const & lexpr)
-DECL_RET_TYPE( ( Field<Geometry<TG, IFORM+1>,
-				BiOp<OpExtriorDerivative,
-				Field<Geometry<TG,IFORM>, TL> > > (lexpr )))
-
-template<typename TG, typename TL> inline auto  //
-d(Field<Geometry<TG, 3>, TL> const &)
-DECL_RET_TYPE( ( Field<Geometry<TG, 0>,Zero > ()))
+template<typename TL> inline auto d(TL const &f)
+->typename std::enable_if<is_Field<TL>::value,
+typename std::conditional< order_of_form<TL>::value >=0 &&
+(order_of_form<TL>::value < TL::Geometry::NUM_OF_DIMS ),
+UniOp<OpExtriorDerivative, TL>, Zero>::type
+>::type
+{
+	return (typename std::conditional<
+			order_of_form<TL>::value >= 0
+					&& (order_of_form<TL>::value < TL::Geometry::NUM_OF_DIMS),
+			UniOp<OpExtriorDerivative, TL>, Zero>::type(f));
 }
-// namespace space3
 
+struct OpWedge;
+template<typename TL, typename TR> inline auto             //
+operator^(TL const & lhs,
+		TR const & rhs)
+		->typename std::enable_if<
+		is_Field<TL>::value && is_Field<TR>::value,
+		typename std::conditional<
+		(order_of_form<TL>::value + order_of_form<TR>::value )>=0
+		&& ((order_of_form<TL>::value + order_of_form<TR>::value ) < TL::Geometry::NUM_OF_DIMS ),
+		UniOp<OpExtriorDerivative, TL>,
+		Zero>::type>::type
+{
+	return ((typename std::conditional<
+			(order_of_form<TL>::value + order_of_form<TR>::value) >= 0
+					&& ((order_of_form<TL>::value + order_of_form<TR>::value)
+							< TL::Geometry::NUM_OF_DIMS),
+			UniOp<OpExtriorDerivative, TL>, Zero>::type(lhs, rhs)));
 }
-// namespace simpla
+
+template<typename TF>
+struct order_of_form<UniOp<OpDiverge, TF> >
+{
+	static const int value = (order_of_form<TF>::value == 1 ? 0 : 0);
+};
+template<typename TF>
+struct order_of_form<UniOp<OpGrad, TF> >
+{
+	static const int value = (order_of_form<TF>::value == 0 ? 1 : 0);
+};
+template<typename TF>
+struct order_of_form<UniOp<OpCurl, TF> >
+{
+	static const int value = (order_of_form<TF>::value == 1 ? 2 : 1);
+};
+
+} // namespace simpla
 #endif /* VECTOR_CALCULUS_H_ */
