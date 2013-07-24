@@ -15,15 +15,6 @@
 
 using namespace simpla;
 
-template<typename T> T _real(T const & v)
-{
-	return (v);
-}
-
-template<typename T> T _real(std::complex<T> const & v)
-{
-	return (real(v));
-}
 #define EQUATION(_A,_B,_C,_a,_b,_c)  ( (- _A /_a - _a )* ( _B * _b  - _c ) - _C )
 
 template<typename T>
@@ -68,10 +59,7 @@ public:
 	ValueType aA[num], aB[num], aC[num], aD[num];
 };
 
-typedef testing::Types< //
-		Array<double> //
-		, Array<std::complex<double> > //
-> MyTypes;
+typedef testing::Types<Array<double>, Array<std::complex<double> > > MyTypes;
 
 TYPED_TEST_CASE(TestArray, MyTypes);
 
@@ -82,7 +70,7 @@ TYPED_TEST(TestArray,Assign_Scalar){
 
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		EXPECT_DOUBLE_EQ(_real(TestFixture::a ), _real(TestFixture::vD[i]) );
+		EXPECT_DOUBLE_EQ(abs(TestFixture::a ), abs(TestFixture::vD[i]) );
 	}
 }}
 
@@ -93,7 +81,7 @@ TYPED_TEST(TestArray,Assign_Array){
 #pragma omp parallel for
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		EXPECT_DOUBLE_EQ( _real(TestFixture::aA[i]), _real(TestFixture::vA[i]));
+		EXPECT_DOUBLE_EQ( abs(TestFixture::aA[i]), abs(TestFixture::vA[i]));
 	}
 }}
 //
@@ -108,11 +96,11 @@ TYPED_TEST(TestArray,Assign_Array){
 
 TYPED_TEST(TestArray, Function){
 {
-	TestFixture::vD = sin(TestFixture::vB);
+	TestFixture::vD;TestFixture::vD = sin(TestFixture::vB);
 
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		EXPECT_DOUBLE_EQ(_real(TestFixture::vD[i]),_real( std::sin(TestFixture::vB[i])));
+		EXPECT_DOUBLE_EQ(abs( TestFixture::vD[i]),abs(sin(TestFixture::vB[i])));
 	}
 }
 }
@@ -128,9 +116,9 @@ TYPED_TEST(TestArray, Arithmetic){
 
 	for (size_t i = 0; i < TestFixture::num; ++i)
 	{
-		EXPECT_DOUBLE_EQ(_real(EQUATION(TestFixture::vA[i] ,TestFixture::vB[i] ,TestFixture::vC[i],
-								TestFixture::a, TestFixture::b, TestFixture::c)),_real( TestFixture::vD[i]));
-		EXPECT_DOUBLE_EQ(_real(TestFixture::vD[i]),_real( TestFixture::aD[i]));
+		EXPECT_DOUBLE_EQ(abs(EQUATION(TestFixture::vA[i] ,TestFixture::vB[i] ,TestFixture::vC[i],
+								TestFixture::a, TestFixture::b, TestFixture::c)),abs( TestFixture::vD[i]));
+		EXPECT_DOUBLE_EQ(abs(TestFixture::vD[i]),abs(TestFixture::aD[i]));
 	}
 }
 }
@@ -242,7 +230,7 @@ TYPED_TEST(TestVecArray,VecArithmetic){
 //
 ////	for (int i = 0; i < TestFixture::num; ++i)
 ////	{
-////		EXPECT_DOUBLE_EQ(_real(EQUATION(aA[i] ,aB[i] ,aC[i])),_real(TestFixture::aD[i]/TestFixture::m) );
+////		EXPECT_DOUBLE_EQ(abs(EQUATION(aA[i] ,aB[i] ,aC[i])),abs(TestFixture::aD[i]/TestFixture::m) );
 ////	}
 //
 //}
@@ -257,7 +245,7 @@ TYPED_TEST(TestVecArray,VecArithmetic){
 //
 ////	for (int i = 0; i < TestFixture::num; ++i)
 ////	{
-////		EXPECT_DOUBLE_EQ(_real(TestFixture::aD[i]) ,_real(TestFixture::vD[i]/TestFixture::m));
+////		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
 ////	}
 //}
 //}

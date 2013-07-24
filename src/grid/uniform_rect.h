@@ -559,50 +559,53 @@ struct UniformRectGrid: public BaseGrid
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
+};
+
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
-	template<typename TExpr> inline auto //
-	Grad(TExpr const & expr, size_t const & s) const
-	DECL_RET_TYPE(
-			(expr[(s - s % 3) / 3 + strides[s % 3]]
-					- expr[(s - s % 3) / 3]) * inv_dx[s % 3])
+template<typename TExpr> inline auto //
+Grad(TExpr const & expr,
+		size_t const & s) const
+				CONDITION_DECL_RET_TYPE((std::is_same<UniformRectGrid,typename GridType<TExpr>::type>::value),
+						(expr[(s - s % 3) / 3 + get_grid(expr).strides[s % 3]]
+								- expr[(s - s % 3) / 3]) * get_grid(expr).inv_dx[s % 3])
 
-	template<typename TExpr> inline auto //
-	Diverge(TExpr const & expr, size_t const & s) const
-	DECL_RET_TYPE(
+template<typename TExpr> inline auto //
+Diverge(TExpr const & expr, size_t const & s) const
+DECL_RET_TYPE(
 
-			(expr[s * 3 + 0] - expr[s * 3 + 0 - 3 * strides[0]])
-			* inv_dx[0] +
+		(expr[s * 3 + 0] - expr[s * 3 + 0 - 3 * strides[0]])
+		* inv_dx[0] +
 
-			(expr[s * 3 + 1] - expr[s * 3 + 1 - 3 * strides[1]])
-			* inv_dx[1] +
+		(expr[s * 3 + 1] - expr[s * 3 + 1 - 3 * strides[1]])
+		* inv_dx[1] +
 
-			(expr[s * 3 + 2] - expr[s * 3 + 2 - 3 * strides[2]])
-			* inv_dx[2]
-	)
+		(expr[s * 3 + 2] - expr[s * 3 + 2 - 3 * strides[2]])
+		* inv_dx[2]
+)
 
-	template<typename TL> inline auto Curl(TL const & expr,
-			size_t const & s) const
-					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==2),(
+template<typename TL> inline auto Curl(TL const & expr,
+		size_t const & s) const
+				CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==2),(
 
-									(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
-									* inv_dx[(s + 1) % 3] -
-									(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
-									* inv_dx[(s + 2) % 3]
-							)
-					)
+								(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
+								* inv_dx[(s + 1) % 3] -
+								(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
+								* inv_dx[(s + 2) % 3]
+						)
+				)
 
-	template<typename TL> inline auto Curl(TL const & expr,
-			size_t const & s) const
-					CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==1),
-							(
-									(expr[s - s % 3 + (s + 2) % 3]
-											- expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
-									(expr[s - s % 3 + (s + 1) % 3]
-											- expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
-							)
-					)
+template<typename TL> inline auto Curl(TL const & expr,
+		size_t const & s) const
+				CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==1),
+						(
+								(expr[s - s % 3 + (s + 2) % 3]
+										- expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
+								(expr[s - s % 3 + (s + 1) % 3]
+										- expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
+						)
+				)
 
 //	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
@@ -661,7 +664,6 @@ struct UniformRectGrid: public BaseGrid
 //		return (res);
 //	}
 
-};
-
-} //namespace simpla
+}
+//namespace simpla
 #endif //UNIFORM_RECT_H_

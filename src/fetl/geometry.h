@@ -32,7 +32,11 @@ public:
 			grid(g)
 	{
 	}
-
+	template<int IFORM>
+	Geometry(Geometry<Grid, IFORM> const & g) :
+			grid(g.grid)
+	{
+	}
 	Geometry(ThisType const &)=default;
 
 	~Geometry()

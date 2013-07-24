@@ -212,7 +212,7 @@ template<typename TOP, typename TExpr> struct has_PlaceHolder<UniOp<TOP, TExpr> 
 template<typename TE> struct is_indexable
 {
 	typedef typename remove_const_reference<TE>::type T;
-	static const bool value = is_nTuple<T>::value || is_Field<T>::value
+	static const bool value =  is_nTuple<T>::value || is_Field<T>::value
 			|| std::is_pointer<T>::value;
 };
 
@@ -409,12 +409,12 @@ DECL_RET_TYPE((UniOp<OpNegate, T>(lhs)))
 #define UNI_FUN_OP(_OP_NAME_,_FUN_)                                                    \
 struct Op##_OP_NAME_                                                                 \
 {template<typename TL> inline static auto                               \
-eval(TL const & l, size_t s) ->decltype((std::sin(index(l, s))))     \
+eval(TL const & l, size_t s) ->decltype((_OP_NAME_(index(l, s))))     \
 {	return (_FUN_(index(l, s)));} };                                                     \
 template<typename TL> inline    \
-UniOp<Op##_OP_NAME_, TL> _OP_NAME_(TL const &lhs)         \
-{	return (UniOp<Op##_OP_NAME_, TL>(lhs));}                                           \
-double _OP_NAME_(double v){return _FUN_(v);}
+typename std::enable_if<!is_arithmetic_scalar<TL>::value,UniOp<Op##_OP_NAME_, TL> >::type \
+_OP_NAME_(TL const &lhs){	return (UniOp<Op##_OP_NAME_, TL>(lhs));}                                           \
+
 
 UNI_FUN_OP(abs, std::abs)
 UNI_FUN_OP(sin, std::sin)
@@ -508,7 +508,9 @@ template<typename TL, typename TR> inline BiOp<OpDivides, TL, TR> operator /(
 struct Op##_OP_NAME_                                                            \
 {template<typename TL, typename TR> inline static auto eval(TL const &l,        \
 		TR const & r,size_t s) DECL_RET_TYPE((_FUN_(index(l,s),index(r,s))))};     \
-template<typename TL, typename TR> inline BiOp<Op##_OP_NAME_, TL, TR>            \
+template<typename TL, typename TR> inline \
+typename std::enable_if<!(is_arithmetic_scalar<TL>::value && is_arithmetic_scalar<TR>::value), \
+	BiOp<Op##_OP_NAME_, TL, TR> >::type           \
 _OP_NAME_(TL const &lhs, TR const & rhs)                                         \
 {                                                                                \
 	return (BiOp<Op##_OP_NAME_, TL, TR>(lhs, rhs));                              \

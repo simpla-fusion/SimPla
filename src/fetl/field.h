@@ -16,12 +16,10 @@ namespace simpla
 {
 
 template<typename TGeometry, typename TStorage>
-struct Field: public TStorage
+struct Field: public TGeometry, public TStorage
 {
 public:
 	typedef TGeometry GeometryType;
-
-	TGeometry geometry;
 
 	typedef TStorage BaseType;
 
@@ -33,15 +31,20 @@ public:
 	{
 	}
 
-	template<typename TG>
-	Field(TG const & g) :
-			BaseType(TGeometry(g).get_num_of_elements()), geometry(g)
+	template<typename TG, typename TE>
+	Field(TG const & g, TE e) :
+			GeometryType(g), BaseType(e)
 	{
 	}
 
 	template<typename TG, typename TE>
-	Field(TG const & g, TE e) :
-			geometry(g), BaseType(e)
+	Field(Field<TG, TE> const & f) :
+			GeometryType(f), BaseType(f)
+	{
+	}
+
+	Field(typename GeometryType::Grid const & g) :
+			GeometryType(g), BaseType(TGeometry(g).get_num_of_elements())
 	{
 	}
 
@@ -50,7 +53,7 @@ public:
 	void swap(ThisType & rhs)
 	{
 		GeometryType::swap(rhs);
-		TStorage::swap(rhs);
+		BaseType::swap(rhs);
 	}
 
 	virtual ~Field()
@@ -59,14 +62,15 @@ public:
 
 	inline ThisType & operator=(ThisType const & rhs)
 	{
-		geometry.grid.Assign(*this,rhs);
+		GeometryType::grid.Assign(*this,rhs);
 		return (*this);
 	}
 
 	template<typename TR>
-	inline typename std::enable_if<is_Field<TR>::value,ThisType &>::type operator=(TR const & rhs)
+	inline typename std::enable_if<is_Field<TR>::value,ThisType &>::type //
+	operator=(TR const & rhs)
 	{
-		geometry.grid.Assign(*this,rhs);
+		GeometryType::grid.Assign(*this,rhs);
 		return (*this);
 	}
 
@@ -77,15 +81,29 @@ public:
 //	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
 
 };
-
-template<typename T, typename INDEX>
-auto eval(T const &f,
-		INDEX const & s)
-		->typename std::enable_if<is_Field<T>::value,decltype(get_grid(f).eval(f,s))>::type
+template<typename TGeometry, typename TOP, typename TL>
+struct Field<TGeometry, UniOp<TOP, TL> >
 {
-	return (get_grid(f).eval(f, s));
-}
 
+	typename ConstReferenceTraits<TL>::type expr;
+
+	typedef UniOp<TOP, TL> ThisType;
+
+	typedef decltype(TOP::eval(expr ,0 )) ValueType;
+
+	Field(TL const & l) :
+			expr(l)
+	{
+	}
+
+	Field(ThisType const &) =default;
+
+	operator[](size_t s) const
+	{
+
+	}
+
+};
 template<typename TG,typename TE> auto get_grid(Field<TG, TE> const & f)
 DECL_RET_TYPE(f.geometry.grid)
 
@@ -114,27 +132,6 @@ template<typename TOP, typename TL, typename TR> auto get_grid(
 		BiOp<TOP, TL, TR> const & f)
 DECL_RET_TYPE(get_grid(f.l_,f.r_))
 
-template<typename T> struct order_of_form
-{
-	static const int value = -10000;
-};
-template<typename TG, int IFORM, typename TE>
-struct order_of_form<Field<Geometry<TG, IFORM>, TE> >
-{
-	static const int value = IFORM;
-};
-
-template<typename TOP, typename TF>
-struct order_of_form<UniOp<TOP, TF> >
-{
-	static const int value = order_of_form<TF>::value;
-};
-
-template<typename TOP, typename TL, typename TR>
-struct order_of_form<BiOp<TOP, TL, TR> >
-{
-	static const int value = order_of_form<TL>::value;
-};
 }
 // namespace simpla
 

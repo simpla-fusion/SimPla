@@ -15,6 +15,13 @@
 namespace simpla
 {
 
+template<typename TG, typename TR> inline //
+Field<Geometry<TG, 1>, UniOp<OpGrad, TR> >       //
+Grad(Field<Geometry<TG, 0>, TR> const & f)
+{
+	return (Field<Geometry<TG, 1>, UniOp<OpGrad, TR> >(f));
+}
+
 
 #define DEF_UNI_FIELDOP(_NAME_)                                                  \
 struct Op##_NAME_                                                                 \
