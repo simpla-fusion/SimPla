@@ -69,7 +69,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	typename TestFixture::FieldType::ValueType a; a= 1.0;
 
-	size_t num= f.geometry.get_num_of_elements();
+	size_t num= f.get_num_of_elements();
 
 	for (size_t s = 0; s < num; ++s)
 	{
@@ -90,11 +90,11 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
 	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
 
-	typename TestFixture::FieldType f1(geometry),f2(geometry);
+	typename TestFixture::FieldType f1(TestFixture::grid),f2(TestFixture::grid);
 
 	typedef typename TestFixture::FieldType::ValueType ValueType;
 
-	size_t num= f1.geometry.get_num_of_elements();
+	size_t num= f1.get_num_of_elements();
 
 	ValueType a; a = 3.0;
 
@@ -125,7 +125,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
 	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
 
-	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
+	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),f3(TestFixture::grid);
 
 	size_t num=geometry.get_num_of_elements( );
 
@@ -153,45 +153,45 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 }
 }
 
-//TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-//{
-//	//FIXME  should test with non-uniform field
-//
-//	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
-//
-//	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
-//
-//	size_t num_of_comp=geometry.get_num_of_comp();
-//
-//	size_t num=geometry.get_num_of_elements();
-//
-//	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
-//
-//	for(size_t s=0;s<num/num_of_comp;++s)
-//	{
-//		a[s]= (1.0); //+s;
-//		b[s]= (3.0);//*s;
-//		c[s]= (5.0);//(s+1.0);
-//	}
-//	typename TestFixture::FieldType::ValueType va,vb;
-//
-//	va=2.0;vb=3.0;
-//
-//	f1.fill( va);
-//	f2.fill( vb);
-//
-//	f3 = - f1/a- b*f2 +f1*c;
-//
-//	for (auto s = geometry.get_center_elements_begin( );
-//			s!=geometry.get_center_elements_end( ); ++s)
-//	{
-//		typename TestFixture::FieldType::ValueType res;
-//		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
-//		ASSERT_EQ( res, f3[*s])
-//		<< "idx=" <<*s;
-//	}
-//}
-//}
+TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+{
+	//FIXME  should test with non-uniform field
+
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+
+	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
+
+	size_t num_of_comp=geometry.get_num_of_comp();
+
+	size_t num=geometry.get_num_of_elements();
+
+	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
+
+	for(size_t s=0;s<num/num_of_comp;++s)
+	{
+		a[s]= (1.0); //+s;
+		b[s]= (3.0);//*s;
+		c[s]= (5.0);//(s+1.0);
+	}
+	typename TestFixture::FieldType::ValueType va,vb;
+
+	va=2.0;vb=3.0;
+
+	f1.fill( va);
+	f2.fill( vb);
+
+	f3 = - f1/a- b*f2 +f1*c;
+
+	for (auto s = geometry.get_center_elements_begin( );
+			s!=geometry.get_center_elements_end( ); ++s)
+	{
+		typename TestFixture::FieldType::ValueType res;
+		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
+		ASSERT_EQ( res, f3[*s])
+		<< "idx=" <<*s;
+	}
+}
+}
 // test vector_calculus.h
 //template<typename T>
 //class TestFETLVecAlgegbra: public testing::Test
@@ -424,10 +424,12 @@ public:
 	}
 };
 
-typedef testing::Types<double
+typedef testing::Types<
+//		double
 //		, Complex
-//		, nTuple<3, double>,nTuple<3, nTuple<3, double> >
-> PrimitiveTypes;
+//		, nTuple<3, double>
+//		,
+		nTuple<3, nTuple<3, double> > > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
@@ -459,16 +461,15 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	Geometry<Grid,1> geometry1(grid);
 
-	for (auto s = geometry1.get_center_elements_begin(
-			); s != geometry1.get_center_elements_end( ); ++s)
-	{
-
-		EXPECT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
-	}
+//	for (auto s = geometry1.get_center_elements_begin(); s != geometry1.get_center_elements_end( ); ++s)
+//	{
+//
+//		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
+//	}
 	Geometry<Grid,2> geometry2(grid);
 	for (auto s = geometry2.get_center_elements_begin( ); s != geometry2.get_center_elements_end( ); ++s)
 	{
-		EXPECT_DOUBLE_EQ(0.0,abs(vf2[(*s)])) << "idx=" << *s;
+		ASSERT_DOUBLE_EQ(0.0,abs(vf2[(*s)])) << "idx=" << *s;
 	}
 }
 }
@@ -504,17 +505,16 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	Geometry < Grid, 1 > geometry1(grid);
 
-	for (auto s = geometry1.get_center_elements_begin();
-			s != geometry1.get_center_elements_end(); ++s)
-	{
-
-		EXPECT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
-	}
+//	for (auto s = geometry1.get_center_elements_begin();
+//			s != geometry1.get_center_elements_end(); ++s)
+//	{
+//		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
+//	}
 
 	for (auto s = geometry0.get_center_elements_begin();
 			s != geometry0.get_center_elements_end(); ++s)
 	{
-		EXPECT_DOUBLE_EQ(0.0,abs(sf[(*s)])) << "idx=" << *s;
+		ASSERT_DOUBLE_EQ(0.0,abs(sf[(*s)])) << "idx=" << *s;
 	}
 }
 }

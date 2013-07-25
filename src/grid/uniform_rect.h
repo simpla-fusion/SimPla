@@ -559,85 +559,78 @@ struct UniformRectGrid: public BaseGrid
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
-};
-
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
-template<typename TExpr> inline auto //
-Grad(TExpr const & expr,
-		size_t const & s) const
-				CONDITION_DECL_RET_TYPE((std::is_same<UniformRectGrid,typename GridType<TExpr>::type>::value),
-						(expr[(s - s % 3) / 3 + get_grid(expr).strides[s % 3]]
-								- expr[(s - s % 3) / 3]) * get_grid(expr).inv_dx[s % 3])
+	template<int N, typename TL> inline auto //
+	HodgeStar(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	DECL_RET_TYPE( (f[(s - s % 3)]))
 
-template<typename TExpr> inline auto //
-Diverge(TExpr const & expr, size_t const & s) const
-DECL_RET_TYPE(
+	template<int N, typename TL> inline auto //
+	ExtriorDerivative(Field<Geometry<ThisType, N>, TL> const & f,
+			size_t s) const
+			DECL_RET_TYPE((f[s]*inv_dx[s%s]) )
 
-		(expr[s * 3 + 0] - expr[s * 3 + 0 - 3 * strides[0]])
-		* inv_dx[0] +
+	template<int IL, typename TL, int IR, typename TR> inline auto //
+	Wedge(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, IR>, TR> const & r, size_t s) const
+			DECL_RET_TYPE((l[s]* r[s]))
 
-		(expr[s * 3 + 1] - expr[s * 3 + 1 - 3 * strides[1]])
-		* inv_dx[1] +
+	template<typename TExpr> inline auto //
+	Grad(Field<Geometry<ThisType, 0>, TExpr> const & f, size_t s) const
+	DECL_RET_TYPE(
+			(f[(s - s % 3) / 3 + strides[s % 3]]
+					- f[(s - s % 3) / 3]) * inv_dx[s % 3])
 
-		(expr[s * 3 + 2] - expr[s * 3 + 2 - 3 * strides[2]])
-		* inv_dx[2]
-)
+	template<typename TExpr> inline auto //
+	Diverge(Field<Geometry<ThisType, 1>, TExpr> const & f, size_t s) const
+	DECL_RET_TYPE(
 
-template<typename TL> inline auto Curl(TL const & expr,
-		size_t const & s) const
-				CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==2),(
+			(f[s * 3 + 0] - f[s * 3 + 0 - 3 * strides[0]])
+			* inv_dx[0] +
 
-								(expr[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - expr[s - s %3 + (s + 2) % 3])
-								* inv_dx[(s + 1) % 3] -
-								(expr[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - expr[s - s %3 + (s + 1) % 3])
-								* inv_dx[(s + 2) % 3]
-						)
-				)
+			(f[s * 3 + 1] - f[s * 3 + 1 - 3 * strides[1]])
+			* inv_dx[1] +
 
-template<typename TL> inline auto Curl(TL const & expr,
-		size_t const & s) const
-				CONDITION_DECL_RET_TYPE((order_of_form<TL>::value==1),
-						(
-								(expr[s - s % 3 + (s + 2) % 3]
-										- expr[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
-								(expr[s - s % 3 + (s + 1) % 3]
-										- expr[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
-						)
-				)
+			(f[s * 3 + 2] - f[s * 3 + 2 - 3 * strides[2]])
+			* inv_dx[2]
+	)
 
-//	template<int IPD, typename TExpr> inline auto // Field<Geometry<Grid, 1>,
-//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
-//			size_t const &s) const ->
-//			typename std::enable_if<order_of_form<TExpr>::value==1, decltype(expr[0]) >::type
-//	{
-//		if (dims[IPD] == 1)
-//		{
-//			return (0);
-//		}
-//		size_t j0 = s % 3;
-//
-//		size_t idx1 = s - j0;
-//		typename TExpr::Value res = 0.0;
-//		if (1 == IPD)
-//		{
-//			res = (expr.rhs_[idx1 + 2 + 3 * strides[IPD]] - expr.rhs_[idx1 + 2])
-//					* inv_dx[IPD];
-//		}
-//		else if (2 == IPD)
-//		{
-//			res =
-//					(-expr.rhs_[idx1 + 1 + 3 * strides[IPD]]
-//							+ expr.rhs_[idx1 + 1]) * inv_dx[IPD];
-//		}
-//
-//		return (res);
-//	}
+	template<typename TL> inline auto //
+	Curl(Field<Geometry<ThisType, 1>, TL> const & f,
+			size_t s) const
+					DECL_RET_TYPE(
+							(f[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3])
+							* inv_dx[(s + 1) % 3] -
+							(f[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3])
+							* inv_dx[(s + 2) % 3]
+					)
+
+	template<typename TL> inline auto //
+	Curl(Field<Geometry<ThisType, 2>, TL> const & f,
+			size_t s) const
+					DECL_RET_TYPE(
+							(f[s - s % 3 + (s + 2) % 3]
+									- f[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
+							(f[s - s % 3 + (s + 1) % 3]
+									- f[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
+					)
+
+	template<typename TExpr> inline auto //
+	OpCurlPD(Int2Type<1>, TExpr const & expr,
+			size_t s) const
+					DECL_RET_TYPE( (expr.rhs_[s-s % 3 + 2 + 3 * strides[1]] - expr.rhs_[s-s % 3 + 2]) * inv_dx[1] )
+
+	template<typename TExpr> inline auto //
+	OpCurlPD(Int2Type<2>, TExpr const & expr,
+			size_t s) const
+					DECL_RET_TYPE( (-expr.rhs_[s-s % 3 + 1 + 3 * strides[2]] + expr.rhs_[s-s % 3 + 1]) * inv_dx[2])
+	)
+
 //
 //	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
-//			size_t const &s) const ->
+//			size_t  s) const ->
 //			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
 //	{
 //		if (dims[IPD] == 1)
@@ -664,6 +657,7 @@ template<typename TL> inline auto Curl(TL const & expr,
 //		return (res);
 //	}
 
-}
-//namespace simpla
+};
+
+} //namespace simpla
 #endif //UNIFORM_RECT_H_

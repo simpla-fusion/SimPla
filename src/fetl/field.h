@@ -62,7 +62,7 @@ public:
 
 	inline ThisType & operator=(ThisType const & rhs)
 	{
-		GeometryType::grid.Assign(*this,rhs);
+		GeometryType::grid->Assign(*this,rhs);
 		return (*this);
 	}
 
@@ -70,7 +70,7 @@ public:
 	inline typename std::enable_if<is_Field<TR>::value,ThisType &>::type //
 	operator=(TR const & rhs)
 	{
-		GeometryType::grid.Assign(*this,rhs);
+		GeometryType::grid->Assign(*this,rhs);
 		return (*this);
 	}
 
@@ -81,56 +81,20 @@ public:
 //	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
 
 };
-template<typename TGeometry, typename TOP, typename TL>
-struct Field<TGeometry, UniOp<TOP, TL> >
+
+template<typename TL, typename TR> auto get_grid(TL const & l,
+		TR const & r)
+		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Grid>::type const &
 {
-
-	typename ConstReferenceTraits<TL>::type expr;
-
-	typedef UniOp<TOP, TL> ThisType;
-
-	typedef decltype(TOP::eval(expr ,0 )) ValueType;
-
-	Field(TL const & l) :
-			expr(l)
-	{
-	}
-
-	Field(ThisType const &) =default;
-
-	operator[](size_t s) const
-	{
-
-	}
-
-};
-template<typename TG,typename TE> auto get_grid(Field<TG, TE> const & f)
-DECL_RET_TYPE(f.geometry.grid)
-
-template<typename TOP, typename TExpr> auto get_grid(
-		UniOp<TOP, TExpr> const & f) ->
-typename std::enable_if<is_Field<TExpr>::value,
-typename remove_const_reference<decltype(get_grid(f.expr))>::type>::type const &
-{
-	return (get_grid(f.expr));
-}
-
-template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
--> typename std::enable_if<is_Field<TL>::value,
-typename remove_const_reference<decltype(get_grid(l))>::type>::type const &
-{
-	return (get_grid(l));
+	return (l.grid);
 }
 
 template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
 -> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
-typename remove_const_reference<decltype(get_grid(r))>::type>::type const &
+typename TR::Geometry::Grid>::type const &
 {
-	return (get_grid(r));
+	return (r.grid);
 }
-template<typename TOP, typename TL, typename TR> auto get_grid(
-		BiOp<TOP, TL, TR> const & f)
-DECL_RET_TYPE(get_grid(f.l_,f.r_))
 
 }
 // namespace simpla

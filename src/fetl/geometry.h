@@ -26,14 +26,18 @@ public:
 
 	typedef typename Grid::CoordinatesType CoordinatesType;
 
-	Grid const & grid;
+	Grid const* grid;
+	Geometry() :
+			grid(NULL)
+	{
 
+	}
 	Geometry(Grid const & g) :
-			grid(g)
+			grid(&g)
 	{
 	}
-	template<int IFORM>
-	Geometry(Geometry<Grid, IFORM> const & g) :
+	template<int IF>
+	Geometry(Geometry<Grid, IF> const & g) :
 			grid(g.grid)
 	{
 	}
@@ -56,21 +60,21 @@ public:
 	}
 	inline size_t get_num_of_elements() const
 	{
-		return (grid.get_num_of_elements(IFORM));
+		return (grid->get_num_of_elements(IFORM));
 	}
 
 	inline typename std::vector<size_t>::const_iterator get_center_elements_begin( ) const
 	{
-		return (grid.center_ele_[IFORM].begin());
+		return (grid->center_ele_[IFORM].begin());
 	}
 	inline typename std::vector<size_t>::const_iterator get_center_elements_end( ) const
 	{
-		return (grid.center_ele_[IFORM].end());
+		return (grid->center_ele_[IFORM].end());
 	}
 
 	inline size_t get_num_of_comp()const
 	{
-		return (grid.get_num_of_comp(IFORM));
+		return (grid->get_num_of_comp(IFORM));
 	}
 
 };
