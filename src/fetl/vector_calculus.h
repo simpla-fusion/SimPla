@@ -31,6 +31,7 @@ DEF_OP_CLASS(Diverge)
 DEF_OP_CLASS(Curl)
 DEF_OP_CLASS(HodgeStar)
 DEF_OP_CLASS(ExtriorDerivative)
+DEF_OP_CLASS(NegateField)
 #undef DEF_OP_CLASS
 
 template<typename TG, typename TR> inline auto //
@@ -73,20 +74,21 @@ struct Field<TGeometry, OpCurlPD<IPD, TL> > : public TGeometry
 	DECL_RET_TYPE((TGeometry::grid->CurlPD(Int2Type<IPD>(),expr, s)))
 
 };
+#define DECL_RET_TYPE_1_ARG(_TYPE_,_ARG_) ->_TYPE_{return (_TYPE_(_ARG_);}
 
 template<int IPD, typename TG, typename TR> inline auto //
 CurlPD(Int2Type<2>, Field<Geometry<TG, 2>, TR> const & f)
-DECL_RET_TYPE(
-		(Field<Geometry<TG, 1>,
-				OpCurlPD<IPD,Field<Geometry<TG, 2>,TR > > >(f))
-)
+->Field<Geometry<TG, 1>,OpCurlPD<IPD,Field<Geometry<TG, 2>,TR > > >
+{
+	return (Field<Geometry<TG, 1>, OpCurlPD<IPD, Field<Geometry<TG, 2>, TR> > >(
+			f));
+}
 
 template<typename TG, int IL, typename TL> inline  //
-auto operator*(Field<Geometry<TG, IL>, TL> const & f)
-DECL_RET_TYPE(
-		(typename std::conditional<(IL > 0 && IL <= TG::NUM_OF_DIMS),
-				Field<Geometry<TG, TG::NUM_OF_DIMS - IL>,
-				OpHodgeStar<Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
+auto operator*(
+		Field<Geometry<TG, IL>, TL> const & f)
+				DECL_RET_TYPE(
+						(typename std::conditional<(IL > 0 && IL <= TG::NUM_OF_DIMS), Field<Geometry<TG, TG::NUM_OF_DIMS - IL>, OpHodgeStar<Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
 
 template<typename TG, int IL, typename TL> inline  //
 auto d(Field<Geometry<TG, IL>, TL> const & f)
@@ -95,6 +97,13 @@ DECL_RET_TYPE(
 				Field<Geometry<TG, IL+1>,
 				OpExtriorDerivative<Field<Geometry<TG, IL>, TL> > >
 				, Zero>::type(f)) )
+
+template<typename TG, int IL, typename TL> inline  //
+auto operator-(Field<Geometry<TG, IL>, TL> const & f)
+DECL_RET_TYPE(
+		( Field<Geometry<TG, IL>,
+				OpNegateField<Field<Geometry<TG, IL>, TL> > > (f)))
+
 #define DEF_BIOP_CLASS(_NAME_)                                                  \
 template<typename, typename > struct Op##_NAME_;                                    \
 template<typename TGeometry, typename TL, typename TR>                              \
@@ -116,46 +125,46 @@ DEF_BIOP_CLASS(Wedge)
 DEF_BIOP_CLASS(PlusField)
 DEF_BIOP_CLASS(MinusField)
 DEF_BIOP_CLASS(MultipliesField)
-DEF_BIOP_CLASS(DividField)
+DEF_BIOP_CLASS(DividesField)
 #undef DEF_BIOP_CLASS
 
 template<typename TG, int IL, int IR, typename TL, typename TR> inline auto //
 operator^(Field<Geometry<TG, IL>, TL> const & lhs,
 		Field<Geometry<TG, IR>, TR> const & rhs)
-				DECL_RET_TYPE(
-						(typename std::conditional<(IL + IR >=0 &&
-										IL+IR < TG::NUM_OF_DIMS ),
-								Field<Geometry<TG,IL+IR> ,OpWedge<Field<Geometry<TG, IL>, TL> ,
-								Field<Geometry<TG, IR>, TR> > >,Zero>::type
-								(lhs, rhs)))
-
-//template<typename TGeo, int IL, typename TL, typename TR> inline auto   //
-//operator+(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
-//DECL_RET_TYPE(
-//		( Field<TGeo ,
-//				OpPlusField<Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
-//
-//template<typename TGeo, int IL, typename TL, typename TR> inline auto   //
-//operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
-//DECL_RET_TYPE(
-//		( Field<TGeo ,
-//				OpMinusField<Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
-
-template<typename TG, int IL, typename TL, typename TR> inline auto   //
-operator*(Field<Geometry<TG, IL>, TL> const & lhs,
-		Field<Geometry<TG, 0>, TR> const & rhs)
 		DECL_RET_TYPE(
-				( Field<Geometry<TG,IL >,
-						OpMultipliesField<Field<Geometry<TG, IL>, TL>,
-						Field<Geometry<TG,0>, TR> > >
+				(typename std::conditional<(IL + IR >=0 &&
+								IL+IR <= TG::NUM_OF_DIMS ),
+						Field<Geometry<TG,IL+IR> ,
+						OpWedge<Field<Geometry<TG, IL>, TL> ,
+						Field<Geometry<TG, IR>, TR> > >,Zero>::type
 						(lhs, rhs)))
 
+template<typename TGeo, int IL, typename TL, typename TR> inline auto   //
+operator+(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
+DECL_RET_TYPE(
+		( Field<TGeo ,
+				OpPlusField<Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+
+template<typename TGeo, int IL, typename TL, typename TR> inline auto   //
+operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
+DECL_RET_TYPE(
+		( Field<TGeo ,
+				OpMinusField<Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+
+template<typename TG, int IL, int IR, typename TL, typename TR> inline auto   //
+operator*(Field<Geometry<TG, IL>, TL> const & lhs,
+		Field<Geometry<TG, IR>, TR> const & rhs)
+		ENABLE_IF_DECL_RET_TYPE((IL+IR>0 && IL*IR==0),
+				(Field<Geometry<TG,IL >,
+						OpMultipliesField<Field<Geometry<TG, IL>, TL>,
+						Field<Geometry<TG,IR>, TR> > > (lhs, rhs))
+		)
 template<typename TG, int IL, typename TL, typename TR> inline auto   //
 operator/(Field<Geometry<TG, IL>, TL> const & lhs,
 		Field<Geometry<TG, 0>, TR> const & rhs)
 		DECL_RET_TYPE(
 				(Field<Geometry<TG,IL >,
-						OpDividField<Field<Geometry<TG, IL>, TL>,
+						OpDividesField<Field<Geometry<TG, IL>, TL>,
 						Field<Geometry<TG,0>, TR> > > (lhs, rhs)))
 
 }

@@ -29,7 +29,6 @@ public:
 			Object(num * ele_size, typeid(ThisType).name()), num_of_elements_(
 					num), ele_size_in_byte_(ele_size)
 	{
-
 	}
 
 	~Array()

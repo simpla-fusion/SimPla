@@ -50,8 +50,14 @@ public:
 
 };
 
-typedef testing::Types<RZeroForm, CZeroForm, VecZeroForm, ROneForm, COneForm,
-		VecOneForm, RTwoForm, CTwoForm, VecTwoForm> AllFieldTypes;
+typedef testing::Types<
+//		RZeroForm, ROneForm, RTwoForm, RThreeForm, CZeroForm,
+//		COneForm, CTwoForm, CThreeForm, VecZeroForm,
+		VecOneForm
+//, VecTwoForm
+//		,VecThreeForm
+//		,CVecZeroForm, CVecOneForm, CVecTwoForm,CVecThreeForm
+> AllFieldTypes;
 
 //, VecThreeForm
 
@@ -157,39 +163,74 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
 
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
-
-	typename TestFixture::FieldType f1( geometry),f2(geometry),f3(geometry);
-
-	size_t num_of_comp=geometry.get_num_of_comp();
-
-	size_t num=geometry.get_num_of_elements();
+	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),f3(TestFixture::grid);
 
 	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
 
-	for(size_t s=0;s<num/num_of_comp;++s)
+	a.fill(1.0);
+	b.fill(3.0);
+	c.fill(5.0);
+
+	size_t count=0;
+
+	for (auto s = a.get_center_elements_begin( );
+			s!=a.get_center_elements_end( ); ++s)
 	{
-		a[s]= (1.0); //+s;
-		b[s]= (3.0);//*s;
-		c[s]= (5.0);//(s+1.0);
+
+		if( 1.0 == a[*s] && 3.0== b[*s] && 5.0==c[*s])
+		{
+			++count;
+		}
 	}
+	EXPECT_EQ(a.get_num_of_center_elements(),count);
+
 	typename TestFixture::FieldType::ValueType va,vb;
 
-	va=2.0;vb=3.0;
+	va=2.0;
+	vb=3.0;
 
-	f1.fill( va);
-	f2.fill( vb);
+	f1.fill(va);
+	f2.fill(vb);
 
-	f3 = - f1/a- b*f2 +f1*c;
+	f3 =
+	-(f1^a)-f2/b+f1*c
 
-	for (auto s = geometry.get_center_elements_begin( );
-			s!=geometry.get_center_elements_end( ); ++s)
+	;
+
+	count =0;
+
+	size_t num_of_comp=f3.get_num_of_comp();
+
+	for (auto s = f3.get_center_elements_begin( );
+			s!=f3.get_center_elements_end( ); ++s)
 	{
 		typename TestFixture::FieldType::ValueType res;
-		res=-f1[*s] /a[*s/num_of_comp] -b[*s/num_of_comp]*f2[*s] +f1[*s]*c[*s/num_of_comp];
-		ASSERT_EQ( res, f3[*s])
-		<< "idx=" <<*s;
+		res=
+		-f1[*s]*a[*s/num_of_comp]
+		-f2[*s]/b[*s/num_of_comp]
+		+f1[*s]*c[*s/num_of_comp]
+		;
+
+		EXPECT_EQ(res,f3[*s])<<*s
+		<<" "<<num_of_comp
+		<<" "<<f1[*s]
+		<<" "<<f2[*s]
+		<<" "<<a[*s/num_of_comp]
+		<<" "<<b[*s/num_of_comp]
+		<<" "<<c[*s/num_of_comp]
+
+//		EXPECT_EQ(res,f3[*s])<<*s
+//		<<" "<<num_of_comp
+//		<<" "<<f1[*s]
+//		<<" "<<f2[*s]
+//		<<" "<<a[*s/num_of_comp]
+//		<<" "<<b[*s/num_of_comp]
+//		<<" "<<c[*s/num_of_comp]
+//
+		;
+
 	}
+
 }
 }
 // test vector_calculus.h

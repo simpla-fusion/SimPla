@@ -266,46 +266,46 @@ template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 	return (res);
 }
 
-template<typename T> inline typename nTuple<3, nTuple<3, T> >::Value //
-Determinant(nTuple<3, nTuple<3, T> > const & m)
-{
-	return ( //
-	m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
-	* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1] //
-			* m[0][2] - m[1][2] * m[2][1] * m[0][0] //
-	);
-}
+template<typename T> inline auto //
+Determinant(
+		nTuple<3, nTuple<3, T> > const & m) //
+				DECL_RET_TYPE(//
+						(
+								m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1]//
+								* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
+								* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
+						)
+						//
+				)
 
-template<typename T> inline typename nTuple<4, nTuple<4, T> >::Value //
-Determinant(nTuple<4, nTuple<4, T> > const & m)
-{
-	return ( //
-	m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] //
-			* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
-			+ m[0][1] * m[1][3] //
-					* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
-			- m[0][1] //
-			* m[1][2] * m[2][3] * m[3][0]
-			- m[0][3] * m[1][2] * m[2][0] * m[3][1] //
-	+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2] //
-			* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
-			- m[0][2] * m[1][0] //
-					* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
-			+ m[0][3] //
-			* m[1][1] * m[2][0] * m[3][2]
-			- m[0][1] * m[1][3] * m[2][0] * m[3][2] //
-			- m[0][3] * m[1][0] * m[2][1] * m[3][2]
-			+ m[0][0] * m[1][3] * m[2][1] //
-					* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
-			- m[0][0] * m[1][1] //
-					* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
-			+ m[0][1] //
-			* m[1][2] * m[2][0] * m[3][3]
-			+ m[0][2] * m[1][0] * m[2][1] * m[3][3] //
-	- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2] //
-			* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3] //
-	);
-}
+template<typename T> inline auto //
+Determinant(nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
+		(//
+		m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]//
+		* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
+		+ m[0][1] * m[1][3]//
+		* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
+		- m[0][1]//
+		* m[1][2] * m[2][3] * m[3][0]
+		- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+		+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
+		* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
+		- m[0][2] * m[1][0]//
+		* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
+		+ m[0][3]//
+		* m[1][1] * m[2][0] * m[3][2]
+		- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
+		- m[0][3] * m[1][0] * m[2][1] * m[3][2]
+		+ m[0][0] * m[1][3] * m[2][1]//
+		* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
+		- m[0][0] * m[1][1]//
+		* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
+		+ m[0][1]//
+		* m[1][2] * m[2][0] * m[3][3]
+		+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
+		- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
+		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
+))
 
 template<int N, typename T> auto abs(
 		nTuple<N, T> const & m)-> decltype(std::abs(std::sqrt(Dot(m, m))))
@@ -313,22 +313,8 @@ template<int N, typename T> auto abs(
 	return std::abs(std::sqrt(Dot(m, m)));
 }
 
-template<int N, typename T> auto abs(
-		nTuple<N, nTuple<N, T> > const & m)
-		->typename std::remove_const<typename std::remove_reference<decltype(m[0][0])>::type>::type
-{
-	typedef typename std::remove_const<
-			typename std::remove_reference<decltype(m[0][0])>::type>::type ValueType;
-
-	nTuple<N, ValueType> res;
-
-	for (size_t i = 0; i < N; ++i)
-	{
-		res[i] = Dot(m[i], m[i]);
-	}
-
-	return (sqrt(Dot(res, res)));
-}
+template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
+DECL_RET_TYPE( (sqrt(Determinant(m))))
 
 } //namespace simpla
 

@@ -84,14 +84,14 @@ public:
 
 template<typename TL, typename TR> auto get_grid(TL const & l,
 		TR const & r)
-		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Grid>::type const &
+		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Grid >::type const *
 {
 	return (l.grid);
 }
 
 template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
 -> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
-typename TR::Geometry::Grid>::type const &
+typename TR::Geometry::Grid>::type const *
 {
 	return (r.grid);
 }

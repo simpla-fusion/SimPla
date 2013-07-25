@@ -36,6 +36,10 @@ public:
 			grid(&g)
 	{
 	}
+	Geometry(Grid const * g) :
+			grid(g)
+	{
+	}
 	template<int IF>
 	Geometry(Geometry<Grid, IF> const & g) :
 			grid(g.grid)
@@ -75,6 +79,10 @@ public:
 	inline size_t get_num_of_comp()const
 	{
 		return (grid->get_num_of_comp(IFORM));
+	}
+	inline size_t get_num_of_center_elements()const
+	{
+		return (grid->get_num_of_center_elements(IFORM));
 	}
 
 };

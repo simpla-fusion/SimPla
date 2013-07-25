@@ -168,6 +168,12 @@ struct UniformRectGrid: public BaseGrid
 	{
 		return (center_ele_[iform].end());
 	}
+
+	inline size_t get_num_of_center_elements(int iform) const
+	{
+		return (center_ele_[iform].size());
+	}
+
 	inline std::vector<size_t> const &
 	get_ghost_elements(int iform) const
 	{
@@ -326,7 +332,7 @@ struct UniformRectGrid: public BaseGrid
 #pragma omp parallel for
 		for (size_t i = 0; i < ele_num; ++i)
 		{
-			lhs[i] = rhs[i];
+			lhs[i] = mapto(Int2Type<IFORM>(), rhs, i);
 		}
 	}
 
@@ -559,22 +565,53 @@ struct UniformRectGrid: public BaseGrid
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
+	template<int IF, typename TR> inline auto //
+	mapto(Int2Type<IF>, TR const &l, size_t s) const DECL_RET_TYPE((l[s]))
+
+//	template<int IF, typename TL> inline auto //
+//	mapto(Int2Type<IF>, Field<Geometry<ThisType, IF>, TL> const &l,
+//			size_t s) const
+//			DECL_RET_TYPE((l[s]))
+
+	template<typename TL> inline auto //
+	mapto(Int2Type<1>, Field<Geometry<ThisType, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides[s%3]])*0.5) )
+
+	template<typename TL> inline auto //
+	mapto(Int2Type<2>, Field<Geometry<ThisType, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE(((
+											l[(s-s%3)/3]+
+											l[(s-s%3)/3+strides[(s+1)%3]]+
+											l[(s-s%3)/3+strides[(s+2)%3]]+
+											l[(s-s%3)/3+strides[(s+1)%3]+strides[(s+2)%3]])*0.25
+
+							))
+	template<typename TL> inline auto //
+	mapto(Int2Type<3>, Field<Geometry<ThisType, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE(((
+											l[(s-s%3)/3]+
+											l[(s-s%3)/3+strides[(s+1)%3]]+
+											l[(s-s%3)/3+strides[(s+2)%3]]+
+											l[(s-s%3)/3+strides[(s+1)%3]+strides[(s+2)%3]]+
+											l[(s-s%3)/3+strides[s%3]]+
+											l[(s-s%3)/3+strides[s%3]+strides[(s+1)%3]]+
+											l[(s-s%3)/3+strides[s%3]+strides[(s+2)%3]]+
+											l[(s-s%3)/3+strides[s%3]+strides[(s+1)%3]+strides[(s+2)%3]]
+
+									)*0.125
+
+							))
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
-	template<int N, typename TL> inline auto //
-	HodgeStar(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
-	DECL_RET_TYPE( (f[(s - s % 3)]))
 
 	template<int N, typename TL> inline auto //
 	ExtriorDerivative(Field<Geometry<ThisType, N>, TL> const & f,
 			size_t s) const
-			DECL_RET_TYPE((f[s]*inv_dx[s%s]) )
-
-	template<int IL, typename TL, int IR, typename TR> inline auto //
-	Wedge(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, IR>, TR> const & r, size_t s) const
-			DECL_RET_TYPE((l[s]* r[s]))
+			DECL_RET_TYPE((f[s]*inv_dx[s%3]) )
 
 	template<typename TExpr> inline auto //
 	Grad(Field<Geometry<ThisType, 0>, TExpr> const & f, size_t s) const
@@ -625,8 +662,48 @@ struct UniformRectGrid: public BaseGrid
 	OpCurlPD(Int2Type<2>, TExpr const & expr,
 			size_t s) const
 					DECL_RET_TYPE( (-expr.rhs_[s-s % 3 + 1 + 3 * strides[2]] + expr.rhs_[s-s % 3 + 1]) * inv_dx[2])
-	)
 
+	template<int IL, int IR, typename TL, typename TR> inline auto //
+	Wedge(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, IR>, TR> const &r,
+			size_t s) const
+					DECL_RET_TYPE(
+							(mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s))
+					)
+
+	template<int N, typename TL> inline auto //
+	HodgeStar(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	DECL_RET_TYPE( (mapto(Int2Type<NUM_OF_DIMS-N >(),f,s)))
+
+	template<int N, typename TL> inline auto //
+	NegateField(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	DECL_RET_TYPE( (-f[s]))
+
+	template<int IL, typename TL, typename TR> inline auto //
+	PlusField(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
+			DECL_RET_TYPE( (l[s]+r[s]) )
+
+	template<int IL, typename TL, typename TR> inline auto //
+	MinusField(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
+			DECL_RET_TYPE( (l[s]-r[s]) )
+
+	template<int IL, int IR, typename TL, typename TR> inline auto //
+	MultipliesField(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, IR>, TR> const &r,
+			size_t s) const
+					DECL_RET_TYPE( (mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s)) )
+
+	template<int IL, typename TL, typename TR> inline auto //
+	DividesField(Field<Geometry<ThisType, IL>, TL> const &l,
+			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
+			DECL_RET_TYPE((l[s]/mapto(Int2Type<IL>(),r,s)))
+
+	template<typename TL, typename TR> inline auto //
+	DividesField(Field<Geometry<ThisType, 0>, TL> const &l,
+			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
+			DECL_RET_TYPE((l[s]/r[s]))
 //
 //	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,

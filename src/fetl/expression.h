@@ -288,7 +288,7 @@ auto index(T const & v, size_t s)->decltype(v[s])
 }
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-#define CONDITION_DECL_RET_TYPE(_COND_,_EXPR_)	->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_)	->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
 template<bool cond>
 struct c_index
@@ -466,7 +466,7 @@ struct OpDivides
 {
 	template<typename TL, typename TR>
 	static inline auto eval(TL const & l, TR const &r, size_t s)
-	DECL_RET_TYPE((index(l,s)/ index(r,s)))
+	DECL_RET_TYPE((index(l,s)/index(r,s)))
 };
 
 struct OpPlus
