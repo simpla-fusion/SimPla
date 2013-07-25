@@ -163,7 +163,8 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
 
-	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),f3(TestFixture::grid);
+	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),
+	f3(TestFixture::grid),f4(TestFixture::grid);
 
 	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
 
@@ -184,19 +185,35 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	}
 	EXPECT_EQ(a.get_num_of_center_elements(),count);
 
-	typename TestFixture::FieldType::ValueType va,vb;
+	typename TestFixture::FieldType::ValueType va,vb,vc;
 
 	va=2.0;
 	vb=3.0;
+	vc=5.0;
 
 	f1.fill(va);
 	f2.fill(vb);
+	f3.fill(vc);
 
-	f3 =
-	-(f1^a)-f2/b+f1*c
+	f4=
+////	Minus(Negate(Wedge(f1,a)), Divides(f2,b))
+//
+//	Minus(Negate(Wedge(f1,a)), Divides(f2,b))
 
-	;
-
+	Wedge(Multiplies(f1,2.0),a);
+//	Plus(
+//						Minus(Negate(Wedge(f1,a)),
+//								Divides(f2,b))
+//						,Multiplies(f3,c) ),
+	/**           (+)
+	 *           /   \
+	 *         (-)    (*)
+	 *        /   \    | \
+	 *      (^)    (/) f1 c
+	 *     /  \   /  \
+	 *-f1      a f2   b
+	 *
+	 * */
 	count =0;
 
 	size_t num_of_comp=f3.get_num_of_comp();
@@ -208,28 +225,25 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		res=
 		-f1[*s]*a[*s/num_of_comp]
 		-f2[*s]/b[*s/num_of_comp]
-		+f1[*s]*c[*s/num_of_comp]
+		+f3[*s]*c[*s/num_of_comp]
 		;
 
-		EXPECT_EQ(res,f3[*s])<<*s
+		if(res==f4[*s])
+		{
+			++count;
+		}
+		EXPECT_EQ(res,f4[*s])<<*s
 		<<" "<<num_of_comp
 		<<" "<<f1[*s]
 		<<" "<<f2[*s]
+		<<" "<<f3[*s]
 		<<" "<<a[*s/num_of_comp]
 		<<" "<<b[*s/num_of_comp]
 		<<" "<<c[*s/num_of_comp]
-
-//		EXPECT_EQ(res,f3[*s])<<*s
-//		<<" "<<num_of_comp
-//		<<" "<<f1[*s]
-//		<<" "<<f2[*s]
-//		<<" "<<a[*s/num_of_comp]
-//		<<" "<<b[*s/num_of_comp]
-//		<<" "<<c[*s/num_of_comp]
-//
 		;
 
 	}
+	EXPECT_EQ(f3.get_num_of_center_elements(),count);
 
 }
 }

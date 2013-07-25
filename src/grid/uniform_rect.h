@@ -568,6 +568,13 @@ struct UniformRectGrid: public BaseGrid
 	template<int IF, typename TR> inline auto //
 	mapto(Int2Type<IF>, TR const &l, size_t s) const DECL_RET_TYPE((l[s]))
 
+//	template<int IF, typename TR> inline auto //
+//	mapto(Int2Type<IF>, TR const &l,
+//			size_t s) const ->std::enable_if<is_arithmetic_scalar<TR>::value || is_nTuple<TR>::value,TR>
+//	{
+//		return (l);
+//	}
+
 //	template<int IF, typename TL> inline auto //
 //	mapto(Int2Type<IF>, Field<Geometry<ThisType, IF>, TL> const &l,
 //			size_t s) const
@@ -734,7 +741,8 @@ struct UniformRectGrid: public BaseGrid
 //		return (res);
 //	}
 
-};
+}
+;
 
 } //namespace simpla
 #endif //UNIFORM_RECT_H_

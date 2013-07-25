@@ -212,7 +212,7 @@ template<typename TOP, typename TExpr> struct has_PlaceHolder<UniOp<TOP, TExpr> 
 template<typename TE> struct is_indexable
 {
 	typedef typename remove_const_reference<TE>::type T;
-	static const bool value =  is_nTuple<T>::value || is_Field<T>::value
+	static const bool value = is_nTuple<T>::value || is_Field<T>::value
 			|| std::is_pointer<T>::value;
 };
 
@@ -232,24 +232,26 @@ struct is_primitive
 template<typename T>
 struct is_op_node
 {
+	static const bool value = true;
+};
+template<typename > struct Array;
+template<typename TG, typename T>
+struct is_op_node<Field<TG, Array<T> > >
+{
 	static const bool value = false;
 };
-template<typename TOP, typename TExp>
-struct is_op_node<UniOp<TOP, TExp> >
+
+template<int N>
+struct is_op_node<nTuple<N, double> >
 {
-	static const bool value = true;
+	static const bool value = false;
 };
 
-template<typename TOP, typename TL, typename TR>
-struct is_op_node<BiOp<TOP, TL, TR> >
-{
-	static const bool value = true;
-};
 template<typename T>
 struct is_expression
 {
 	static const bool value = is_Field<T>::value || is_nTuple<T>::value
-			|| is_op_node<T>::value ;
+			|| is_op_node<T>::value;
 };
 
 template<typename T>
@@ -257,7 +259,7 @@ struct ReferenceTraits
 {
 	typedef typename remove_const_reference<T>::type TL;
 	typedef typename std::conditional<is_op_node<TL>::value, TL, TL &>::type type;
-
+//FIXME NEED IMPROVE
 //	typedef typename std::conditional<
 //			std::is_copy_constructible<TL>::value
 //					&& !(std::is_trivial<TL>::value && is_nTuple<TL>::value),
