@@ -122,12 +122,6 @@ template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
 	static const bool value = true;
 };
 
-template<typename TOP, typename TL, typename TR> struct is_Field<
-		BiOp<TOP, TL, TR> >
-{
-	static const bool value = is_Field<TL>::value || is_Field<TR>::value;
-};
-
 // check is_nTuple
 template<typename > struct is_nTuple
 {
@@ -177,11 +171,6 @@ template<typename TOP, typename TL, typename TR> struct is_complex<
 	static const bool value = is_complex<TL>::value || is_complex<TR>::value;
 };
 
-template<typename TOP, typename TExpr> struct is_complex<UniOp<TOP, TExpr> >
-{
-	static const bool value = is_complex<TExpr>::value;
-};
-
 template<typename > struct has_PlaceHolder
 {
 	static const bool value = false;
@@ -190,18 +179,6 @@ template<typename > struct has_PlaceHolder
 template<typename TE> struct has_PlaceHolder<PlaceHolder<TE> >
 {
 	static const bool value = true;
-};
-
-template<typename TOP, typename TL, typename TR> struct has_PlaceHolder<
-		BiOp<TOP, TL, TR> >
-{
-	static const bool value = has_PlaceHolder<TL>::value
-			|| has_PlaceHolder<TR>::value;
-};
-
-template<typename TOP, typename TExpr> struct has_PlaceHolder<UniOp<TOP, TExpr> >
-{
-	static const bool value = has_PlaceHolder<TExpr>::value;
 };
 
 template<typename TE> struct is_indexable
