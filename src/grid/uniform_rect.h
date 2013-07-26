@@ -328,7 +328,6 @@ struct UniformRectGrid: public BaseGrid
 	template<int IFORM, typename TExpr, typename TR>
 	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR const & rhs) const
 	{
-		ASSERT(lhs.grid==*this);
 		size_t ele_num = get_num_of_elements(IFORM);
 
 #pragma omp parallel for
@@ -581,7 +580,7 @@ struct UniformRectGrid: public BaseGrid
 		return (l);
 	}
 
-	template<int IF, int N, typename TR> inline nTuple<N, TR>                //
+	template<int IF, int N, typename TR> inline nTuple<N, TR>                 //
 	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
 	{
 		return (l);
@@ -657,8 +656,8 @@ struct UniformRectGrid: public BaseGrid
 			size_t s) const
 					DECL_RET_TYPE(
 							(f[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3])
-							* inv_dx[(s + 1) % 3] -
-							(f[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3])
+							* inv_dx[(s + 1) % 3]
+							- (f[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3])
 							* inv_dx[(s + 2) % 3]
 					)
 
@@ -667,18 +666,18 @@ struct UniformRectGrid: public BaseGrid
 			size_t s) const
 					DECL_RET_TYPE(
 							(f[s - s % 3 + (s + 2) % 3]
-									- f[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 1) % 3]-
-							(f[s - s % 3 + (s + 1) % 3]
+									- f[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]] ) * inv_dx[(s + 1) % 3]
+							-(f[s - s % 3 + (s + 1) % 3]
 									- f[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
 					)
 
 	template<typename TExpr> inline auto //
-	OpCurlPD(Int2Type<1>, TExpr const & expr,
+	CurlPD(Int2Type<1>, TExpr const & expr,
 			size_t s) const
 					DECL_RET_TYPE( (expr.rhs_[s-s % 3 + 2 + 3 * strides[1]] - expr.rhs_[s-s % 3 + 2]) * inv_dx[1] )
 
 	template<typename TExpr> inline auto //
-	OpCurlPD(Int2Type<2>, TExpr const & expr,
+	CurlPD(Int2Type<2>, TExpr const & expr,
 			size_t s) const
 					DECL_RET_TYPE( (-expr.rhs_[s-s % 3 + 1 + 3 * strides[2]] + expr.rhs_[s-s % 3 + 1]) * inv_dx[2])
 

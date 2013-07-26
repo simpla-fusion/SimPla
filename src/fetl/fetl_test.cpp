@@ -225,6 +225,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		{
 			++count;
 		}
+
 //		EXPECT_EQ(res,f4[*s])<<*s
 //		<<" "<<num_of_comp
 //		<<" "<<f1[*s]
@@ -473,10 +474,7 @@ public:
 };
 
 typedef testing::Types<
-//		double
-//		, Complex
-//		, nTuple<3, double>
-//		,
+		double, Complex, nTuple<3, double>,
 		nTuple<3, nTuple<3, double> > > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
@@ -535,33 +533,18 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	TestFixture::SetValueType(&v);
 
-	Geometry < Grid, 0 > geometry0(grid);
-
-	size_t num_of_ele = geometry0.get_num_of_elements();
-
-	for (size_t s = 0; s < num_of_ele; ++s)
+	for (size_t s = 0; s < vf2.get_num_of_elements(); ++s)
 	{
-
-		vf2[s * 3 + 0] = v * (s + 1.0);
-		vf2[s * 3 + 1] = v * (s * 2.0);
-		vf2[s * 3 + 2] = v * (s + 10.0);
+		vf2[s] = v * (s + 1.0);
 	}
 
 	vf1 = Curl(vf2);
+	sf = Diverge( Curl(vf2));
 
-	sf = Diverge(Curl(vf2));
-
-	Geometry < Grid, 1 > geometry1(grid);
-
-//	for (auto s = geometry1.get_center_elements_begin();
-//			s != geometry1.get_center_elements_end(); ++s)
-//	{
-//		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
-//	}
-
-	for (auto s = geometry0.get_center_elements_begin();
-			s != geometry0.get_center_elements_end(); ++s)
+	for (auto s = sf.get_center_elements_begin();
+			s != sf.get_center_elements_end(); ++s)
 	{
+//		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
 		ASSERT_DOUBLE_EQ(0.0,abs(sf[(*s)])) << "idx=" << *s;
 	}
 }

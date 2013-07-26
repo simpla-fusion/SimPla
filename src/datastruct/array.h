@@ -9,6 +9,7 @@
 #define ARRAY_H_
 #include <algorithm>
 #include <typeinfo>
+#include <cassert>
 #include "fetl/primitives.h"
 #include "engine/object.h"
 namespace simpla
@@ -79,12 +80,14 @@ public:
 
 	inline ValueType & operator[](size_t s)
 	{
-		return (*reinterpret_cast<T*>(&(*Object::data_) + s * ele_size_in_byte_));
+//		ASSERT(s<num_of_elements_);
+		return (*reinterpret_cast<T*>(&(*Object::data_) + (s%num_of_elements_) * ele_size_in_byte_));
 	}
 
 	inline ValueType const & operator[](size_t s) const
 	{
-		return (*reinterpret_cast<T const*>(&(*Object::data_) + s * ele_size_in_byte_));
+//		ASSERT(s<num_of_elements_);
+		return (*reinterpret_cast<T const*>(&(*Object::data_) + (s%num_of_elements_) * ele_size_in_byte_));
 	}
 
 	template<typename TR>
