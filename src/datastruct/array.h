@@ -126,6 +126,11 @@ private:
 	size_t ele_size_in_byte_;
 
 };
+template<typename T>
+struct is_storage_type<Array<T> >
+{
+	static const bool value = is_primitive<T>::value;
+};
 
 }  // namespace simpla
 

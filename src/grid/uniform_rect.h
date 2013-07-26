@@ -25,6 +25,8 @@
 
 #include "fetl/expression.h"
 
+#include "fetl/operator_overload.h"
+
 #include "grid.h"
 
 namespace simpla
@@ -564,21 +566,31 @@ struct UniformRectGrid: public BaseGrid
 	 *       100 : 1/2,	0,	0
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
-
-	template<int IF, typename TR> inline auto //
-	mapto(Int2Type<IF>, TR const &l, size_t s) const DECL_RET_TYPE((l[s]))
-
+//
 //	template<int IF, typename TR> inline auto //
-//	mapto(Int2Type<IF>, TR const &l,
-//			size_t s) const ->std::enable_if<is_arithmetic_scalar<TR>::value || is_nTuple<TR>::value,TR>
-//	{
-//		return (l);
-//	}
+//	mapto(Int2Type<IF>, TR const &l, size_t s) const DECL_RET_TYPE((l[s]))
+	template<int IF> inline double //
+	mapto(Int2Type<IF>, double l, size_t s) const
+	{
+		return (l);
+	}
 
-//	template<int IF, typename TL> inline auto //
-//	mapto(Int2Type<IF>, Field<Geometry<ThisType, IF>, TL> const &l,
-//			size_t s) const
-//			DECL_RET_TYPE((l[s]))
+	template<int IF> inline std::complex<double>  //
+	mapto(Int2Type<IF>, std::complex<double> l, size_t s) const
+	{
+		return (l);
+	}
+
+	template<int IF, int N, typename TR> inline nTuple<N, TR>                //
+	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
+	{
+		return (l);
+	}
+
+	template<int IF, typename TL> inline auto //
+	mapto(Int2Type<IF>, Field<Geometry<ThisType, IF>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE((l[s]))
 
 	template<typename TL> inline auto //
 	mapto(Int2Type<1>, Field<Geometry<ThisType, 0>, TL> const &l,
@@ -703,6 +715,18 @@ struct UniformRectGrid: public BaseGrid
 					DECL_RET_TYPE( (mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s)) )
 
 	template<int IL, typename TL, typename TR> inline auto //
+	MultipliesField(Field<Geometry<ThisType, IL>, TL> const &l, TR r,
+			size_t s) const
+			ENABLE_IF_DECL_RET_TYPE((!is_Field<TR>::value),
+					(l[s]*r) )
+
+	template<int IR, typename TL, typename TR> inline auto //
+	MultipliesField(TL l, Field<Geometry<ThisType, IR>, TR> const & r,
+			size_t s) const
+			ENABLE_IF_DECL_RET_TYPE((!is_Field<TL>::value),
+					(l*r[s]) )
+
+	template<int IL, typename TL, typename TR> inline auto //
 	DividesField(Field<Geometry<ThisType, IL>, TL> const &l,
 			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
 			DECL_RET_TYPE((l[s]/mapto(Int2Type<IL>(),r,s)))
@@ -711,6 +735,12 @@ struct UniformRectGrid: public BaseGrid
 	DividesField(Field<Geometry<ThisType, 0>, TL> const &l,
 			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
 			DECL_RET_TYPE((l[s]/r[s]))
+
+	template<int IL, typename TL, typename TR> inline auto //
+	DividesField(Field<Geometry<ThisType, IL>, TL> const &l, TR r,
+			size_t s) const
+			ENABLE_IF_DECL_RET_TYPE((!is_indexable<TR>::value),(l[s]/r))
+	//
 //
 //	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,

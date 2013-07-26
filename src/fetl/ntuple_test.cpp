@@ -8,9 +8,9 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <complex>
-#include "ntuple.h"
 #include "expression.h"
-
+#include "ntuple.h"
+#include "operator_overload.h"
 using namespace simpla;
 
 template<typename T> T _real(T const & v)
@@ -22,7 +22,7 @@ template<typename T> T _real(std::complex<T> const & v)
 {
 	return (real(v));
 }
-#define EQUATION(_A,_B,_C)  ( (-TestFixture::_A /TestFixture::a - TestFixture::a )* ( TestFixture::_B * TestFixture::b  - TestFixture::b ) - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( -TestFixture::_A /TestFixture::a + TestFixture::a * TestFixture::_A   -  TestFixture::_B / TestFixture::b   - TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test

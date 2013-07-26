@@ -82,6 +82,12 @@ public:
 
 };
 
+template<typename TG, typename T>
+struct is_storage_type<Field<TG, T> >
+{
+	static const bool value = is_storage_type<T>::value;
+};
+
 template<typename TL, typename TR> auto get_grid(TL const & l,
 		TR const & r)
 		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Grid >::type const *

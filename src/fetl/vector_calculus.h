@@ -84,7 +84,7 @@ DECL_RET_TYPE(
 				OpHodgeStar<Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
 
 template<typename TG, int IL, typename TL> inline  //
-auto d(Field<Geometry<TG, IL>, TL> const & f)
+auto ExtriorDerivative(Field<Geometry<TG, IL>, TL> const & f)
 DECL_RET_TYPE(
 		(typename std::conditional<(IL > 0 && IL+1 <= TG::NUM_OF_DIMS),
 				Field<Geometry<TG, IL+1>,
@@ -153,12 +153,15 @@ Multiplies(Field<Geometry<TG, IL>, TL> const & lhs,
 						Field<Geometry<TG,IR>, TR> > > (lhs, rhs))
 		)
 
-template<typename TL, typename TR> inline auto   //
-Multiplies(TL const & lhs, TR const & rhs)
-ENABLE_IF_DECL_RET_TYPE(
-		((is_Field<TL>::value || is_Field<TR>::value)
-				&& !(is_Field<TL>::value && is_Field<TR>::value) ),
-		(Field<TL,OpMultipliesField<TL,TR > > (lhs, rhs)))
+template<typename TG, typename TL, typename TR> inline auto   //
+Multiplies(Field<TG, TL> const & lhs, TR const & rhs)
+ENABLE_IF_DECL_RET_TYPE( (!is_Field<TR>::value),
+		(Field<TG,OpMultipliesField<Field<TG,TL>,TR > > (lhs, rhs)))
+
+template<typename TG, typename TL, typename TR> inline auto   //
+Multiplies(TL const & lhs, Field<TG, TR> const & rhs)
+ENABLE_IF_DECL_RET_TYPE( (!(is_Field<TL>::value)),
+		(Field<TG,OpMultipliesField<TL,Field<TG,TR> > > (lhs, rhs)))
 
 //template<typename TG, int IL, int IR, typename TL, typename TR> inline auto   //
 //operator*(Field<Geometry<TG, IL>, TL> const & lhs,
@@ -176,6 +179,23 @@ Divides(Field<Geometry<TG, IL>, TL> const & lhs,
 						OpDividesField<Field<Geometry<TG, IL>, TL>,
 						Field<Geometry<TG, 0>, TR> > > (lhs, rhs))
 		)
+template<typename TG, int IL, typename TL, typename TR> inline auto   //
+Divides(Field<Geometry<TG, IL>, TL> const & lhs, TR rhs)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<TR>::value),
+		(Field<Geometry<TG,IL >,
+				OpDividesField<Field<Geometry<TG, IL>, TL>, TR > > (lhs, rhs))
+)
+
+template<typename TG, int IL, int IR, typename TL, typename TR> inline auto //
+operator ^(Field<Geometry<TG, IL>, TL> const &lhs,
+		Field<Geometry<TG, IR>, TR> const & rhs)
+		DECL_RET_TYPE(Wedge(lhs,rhs))
+
+template<typename TG, typename TL> inline auto //
+operator *(Field<TG, TL> const & l) DECL_RET_TYPE(HodgeStar(l))
+
+template<typename TG, typename TL> inline auto //
+d(Field<TG, TL> const & l) DECL_RET_TYPE(ExtriorDerivative(l))
 
 }
 // namespace simpla

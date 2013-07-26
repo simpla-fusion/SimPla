@@ -19,6 +19,7 @@
 #include <sstream>
 
 #include <utility>
+#include <type_traits>
 #include "expression.h"
 namespace simpla
 {
@@ -148,6 +149,24 @@ struct nTuple
 	}
 };
 
+template<int N, typename T>
+struct is_storage_type<nTuple<N, T> >
+{
+	static const bool value = is_storage_type<T>::value;
+};
+
+template<int N>
+struct is_storage_type<nTuple<N, double> >
+{
+	static const bool value = true;
+};
+
+template<int N>
+struct is_storage_type<nTuple<N, std::complex<double> > >
+{
+	static const bool value = true;
+};
+
 #define IMPLICIT_TYPE_CONVERT                                       \
 operator nTuple<NDIM,Value >()                          \
 {                                                                   \
@@ -159,64 +178,6 @@ operator nTuple<NDIM,Value >()                          \
 	}                                                               \
 	return res;                                                     \
 }
-
-template<typename TLExpr, typename TRExpr>
-inline auto Cross(nTuple<3, TLExpr> const &lhs, nTuple<3, TRExpr> const & rhs)
-->nTuple<3,decltype(lhs[0]*rhs[0])>
-
-{
-	nTuple<3, decltype(lhs[0]*rhs[0])> res =
-	{
-
-	lhs[1] * rhs[2] - lhs[2] * rhs[1],
-
-	lhs[2] * rhs[0] - lhs[0] * rhs[2],
-
-	lhs[0] * rhs[1] - lhs[1] * rhs[0]
-
-	};
-	return (res);
-}
-
-template<int N, typename TL, typename TR> inline auto //
-Dot(nTuple<N, TL> const &lhs,
-		nTuple<N, TR> const &rhs)->decltype(lhs[0] * rhs[0])
-{
-	decltype(lhs[0] * rhs[0]) res = 0.0;
-
-	for (int i = 0; i < N; ++i)
-	{
-		res += lhs[i] * rhs[i];
-	}
-	return (res);
-}
-
-//#define BI_FUN_OP(_OP_NAME_,_FUN_)                                                       \
-//                                                                                     \
-//struct Op##_OP_NAME_                                                                 \
-//{                                                                                    \
-//	template<typename TL, typename TR> inline static auto eval(TL const & l,         \
-//			TR const &r)->decltype(_FUN_(l, r))                                        \
-//	{                                                                                \
-//		return (_FUN_(l, r));                                               \
-//	}                                                                                \
-//};                                                                                   \
-//template<typename TL, typename TR> inline typename std::enable_if<                   \
-//		!(is_arithmetic_scalar<TL>::value && is_arithmetic_scalar<TR>::value),       \
-//		BiOp<Op##_OP_NAME_, TL, TR> >::type                                        \
-//_OP_NAME_(TL const &lhs, TR const & rhs)                                                   \
-//{                                                                                    \
-//	return (BiOp<Op##_OP_NAME_, TL, TR>(lhs, rhs));                                  \
-//}                                                                                    \
-//
-//BI_FUN_OP(Dot, Dot)
-//BI_FUN_OP(Cross, Cross)
-//
-//#undef BI_FUN_OP
-
-//template<typename TL, typename TR>
-//inline auto Dot(nTuple<3, TL> const &lhs, nTuple<3, TR> const & rhs)
-//DECL_RET_TYPE( (lhs[0] * rhs[0] + lhs[1] * rhs[1] + lhs[2] * rhs[2]))
 
 template<int N, typename TL, typename TR>
 inline bool operator==(nTuple<N, TL> const &lhs, nTuple<N, TR> const & rhs)
@@ -316,6 +277,143 @@ template<int N, typename T> auto abs(
 template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
 DECL_RET_TYPE( (sqrt(Determinant(m))))
 
-} //namespace simpla
+// Expression template of nTuple
+
+#define DEF_BIOP_CLASS(_NAME_,_OP_)                                                  \
+template<typename, typename > struct Op##_NAME_;      \
+template<int N, typename TL, typename TR>                              \
+struct nTuple<N, Op##_NAME_<TL, TR> >                    \
+{                                                                                   \
+	typename ConstReferenceTraits<TL>::type l_;                                     \
+	typename ConstReferenceTraits<TR>::type r_;                                     \
+                                                                                    \
+    nTuple(TL const & l, TR const & r) :                                             \
+			 l_(l), r_(r)                                 \
+	{                                                                               \
+	}                                                                               \
+	inline auto operator[](size_t s) const                                          \
+	DECL_RET_TYPE((index(l_,s) _OP_ index(r_,s)))                              \
+                                                                                    \
+};\
+
+DEF_BIOP_CLASS(PlusNTuple, +)
+DEF_BIOP_CLASS(MinusNTuple, -)
+DEF_BIOP_CLASS(MultipliesNTuple, *)
+DEF_BIOP_CLASS(DividesNTuple, /)
+#undef DEF_BIOP_CLASS
+
+template<int N, typename TL, typename TR> inline auto   //
+Plus(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
+DECL_RET_TYPE(
+		( nTuple<N ,
+				OpPlusNTuple<nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Plus(nTuple<N, TL> const & lhs, TR const & rhs)
+ENABLE_IF_DECL_RET_TYPE((is_arithmetic_scalar<TR>::value) ,
+		(nTuple<N,OpPlusNTuple<nTuple<N, TL>,TR > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Plus(TL const & lhs, nTuple<N, TR> const & rhs)
+ENABLE_IF_DECL_RET_TYPE(( is_arithmetic_scalar<TL>::value) ,
+		(nTuple<N,OpPlusNTuple<TL,nTuple<N, TR> > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Minus(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
+DECL_RET_TYPE(
+		( nTuple<N ,
+				OpMinusNTuple<nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Minus(nTuple<N, TL> const & lhs, TR const & rhs)
+ENABLE_IF_DECL_RET_TYPE((is_arithmetic_scalar<TR>::value) ,
+		(nTuple<N,OpMinusNTuple<nTuple<N, TL>,TR > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Minus(TL const & lhs, nTuple<N, TR> const & rhs)
+ENABLE_IF_DECL_RET_TYPE(( is_arithmetic_scalar<TL>::value) ,
+		(nTuple<N,OpMinusNTuple<TL,nTuple<N, TR> > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Multiplies(nTuple<N, TL> const & lhs, TR const & rhs)
+ENABLE_IF_DECL_RET_TYPE((is_arithmetic_scalar<TR>::value) ,
+		(nTuple<N,OpMultipliesNTuple<nTuple<N, TL>,TR > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Multiplies(TL const & lhs, nTuple<N, TR> const & rhs)
+ENABLE_IF_DECL_RET_TYPE(( is_arithmetic_scalar<TL>::value) ,
+		(nTuple<N,OpMultipliesNTuple<TL,nTuple<N, TR> > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Multiplies(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
+DECL_RET_TYPE(
+		(nTuple<N,OpMultipliesNTuple<
+				nTuple<N, TL>,
+				nTuple<N, TR> > > (lhs, rhs)))
+
+template<int N, typename TL, typename TR> inline auto   //
+Divides(nTuple<N, TL> const & lhs, TR const & rhs)
+ENABLE_IF_DECL_RET_TYPE(( is_arithmetic_scalar<TR>::value) ,
+		(nTuple<N,OpDividesNTuple<nTuple<N, TL>,TR > > (lhs, rhs)))
+
+template<typename > struct OpNegateNTuple;
+template<int N, typename TL>
+struct nTuple<N, OpNegateNTuple<TL> >
+{
+	typename ConstReferenceTraits<TL>::type expr;
+	nTuple(TL const & l) :
+			expr(l)
+	{
+	}
+	inline auto operator[](size_t s) const
+	DECL_RET_TYPE((- index(expr,s)))
+};
+template<int N, typename TL> inline  //
+auto Negate(nTuple<N, TL> const & f)
+DECL_RET_TYPE(( nTuple<N, OpNegateNTuple<nTuple<N, TL> > > (f)))
+
+template<typename TLExpr, typename TRExpr> struct OpCrossNTuple;
+template<int N, typename TL, typename TR>
+struct nTuple<N, OpCrossNTuple<TL, TR> >
+{
+
+	typename ConstReferenceTraits<TL>::type l_;
+	typename ConstReferenceTraits<TR>::type r_;
+
+	nTuple(TL const & l, TR const & r) :
+			l_(l), r_(r)
+	{
+	}
+
+	inline auto operator[](size_t s) const
+	DECL_RET_TYPE((l_[(s+1)%3] * r_[(s+2)%3] - l_[(s+2)%3] * r_[(s+1)%3]))
+
+}
+;
+template<int N, typename TL, typename TR> inline auto   //
+Cross(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
+DECL_RET_TYPE((nTuple<N,
+				OpCrossNTuple<nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
+
+namespace _impl
+{
+template<int M, typename TL, typename TR> struct _dot
+{
+	static inline auto eval(TL const & l, TR const &r)
+	DECL_RET_TYPE((l[M - 1] * r[M - 1] + _dot<M - 1, TL, TR>::eval(l, r)))
+};
+template<typename TL, typename TR> struct _dot<1, TL, TR>
+{
+	static inline auto eval(TL const & l, TR const &r)
+	DECL_RET_TYPE(l[0]*r[0])
+};
+}   //namespace _impl
+
+template<int N, typename TL, typename TR> inline auto //
+Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+DECL_RET_TYPE( (_impl::_dot<N,nTuple<N, TL>,nTuple<N, TR> >::eval(l,r)))
+
+}
+//namespace simpla
 
 #endif  // INCLUDE_NTUPLE_H_
