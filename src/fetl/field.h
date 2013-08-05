@@ -50,6 +50,11 @@ public:
 
 	Field(ThisType const &) = delete;
 
+	Field(ThisType &&rhs) :
+			GeometryType(rhs), BaseType(rhs)
+	{
+	}
+
 	void swap(ThisType & rhs)
 	{
 		GeometryType::swap(rhs);
@@ -62,15 +67,15 @@ public:
 
 	inline ThisType & operator=(ThisType const & rhs)
 	{
-		GeometryType::grid->Assign(*this,rhs);
+		GeometryType::grid->Assign(*this, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
-	inline typename std::enable_if<is_Field<TR>::value,ThisType &>::type //
+	inline typename std::enable_if<is_Field<TR>::value, ThisType &>::type //
 	operator=(TR const & rhs)
 	{
-		GeometryType::grid->Assign(*this,rhs);
+		GeometryType::grid->Assign(*this, rhs);
 		return (*this);
 	}
 

@@ -4,3 +4,5 @@
 /gtest-build-gcc
 /gtest-build-intel
 /third_part
+/build-gcc
+/build-intel

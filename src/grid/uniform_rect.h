@@ -8,7 +8,6 @@
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
 
-#include <omp.h>
 #include <vector>
 #include <exception>
 #include <numeric>
@@ -24,8 +23,6 @@
 #include "fetl/vector_calculus.h"
 
 #include "fetl/expression.h"
-
-#include "fetl/operator_overload.h"
 
 #include "grid.h"
 
@@ -326,14 +323,13 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, TR const & rhs) const
+	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, Field<Geometry<Grid, IFORM>, TR> const & rhs) const
 	{
 		size_t ele_num = get_num_of_elements(IFORM);
 
-#pragma omp parallel for
 		for (size_t i = 0; i < ele_num; ++i)
 		{
-			lhs[i] = mapto(Int2Type<IFORM>(), rhs, i);
+			lhs[i] = rhs[i];
 		}
 	}
 
@@ -457,7 +453,7 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value>     //
+	inline nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value>    //
 	Gather(Field<Geometry<Grid, 1>, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> res;
@@ -500,7 +496,7 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value>     //
+	inline nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value>    //
 	Gather(Field<Geometry<Grid, 2>, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> res;
@@ -580,7 +576,7 @@ struct UniformRectGrid: public BaseGrid
 		return (l);
 	}
 
-	template<int IF, int N, typename TR> inline nTuple<N, TR>                 //
+	template<int IF, int N, typename TR> inline nTuple<N, TR>                //
 	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
 	{
 		return (l);
@@ -694,51 +690,47 @@ struct UniformRectGrid: public BaseGrid
 	DECL_RET_TYPE( (mapto(Int2Type<NUM_OF_DIMS-N >(),f,s)))
 
 	template<int N, typename TL> inline auto //
-	NegateField(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	Negate(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
 	DECL_RET_TYPE( (-f[s]))
 
 	template<int IL, typename TL, typename TR> inline auto //
-	PlusField(Field<Geometry<ThisType, IL>, TL> const &l,
+	Plus(Field<Geometry<ThisType, IL>, TL> const &l,
 			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
 			DECL_RET_TYPE( (l[s]+r[s]) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	MinusField(Field<Geometry<ThisType, IL>, TL> const &l,
+	Minus(Field<Geometry<ThisType, IL>, TL> const &l,
 			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
 			DECL_RET_TYPE( (l[s]-r[s]) )
 
 	template<int IL, int IR, typename TL, typename TR> inline auto //
-	MultipliesField(Field<Geometry<ThisType, IL>, TL> const &l,
+	Multiplies(Field<Geometry<ThisType, IL>, TL> const &l,
 			Field<Geometry<ThisType, IR>, TR> const &r,
 			size_t s) const
 					DECL_RET_TYPE( (mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s)) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	MultipliesField(Field<Geometry<ThisType, IL>, TL> const &l, TR r,
-			size_t s) const
-			ENABLE_IF_DECL_RET_TYPE((!is_Field<TR>::value),
-					(l[s]*r) )
+	Multiplies(Field<Geometry<ThisType, IL>, TL> const &l, TR r, size_t s) const
+	DECL_RET_TYPE( (l[s]*r) )
 
 	template<int IR, typename TL, typename TR> inline auto //
-	MultipliesField(TL l, Field<Geometry<ThisType, IR>, TR> const & r,
+	Multiplies(TL l, Field<Geometry<ThisType, IR>, TR> const & r,
 			size_t s) const
-			ENABLE_IF_DECL_RET_TYPE((!is_Field<TL>::value),
-					(l*r[s]) )
+			DECL_RET_TYPE( (l*r[s]) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	DividesField(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
+	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR const &r,
+			size_t s) const
 			DECL_RET_TYPE((l[s]/mapto(Int2Type<IL>(),r,s)))
 
-	template<typename TL, typename TR> inline auto //
-	DividesField(Field<Geometry<ThisType, 0>, TL> const &l,
-			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
-			DECL_RET_TYPE((l[s]/r[s]))
-
-	template<int IL, typename TL, typename TR> inline auto //
-	DividesField(Field<Geometry<ThisType, IL>, TL> const &l, TR r,
-			size_t s) const
-			ENABLE_IF_DECL_RET_TYPE((!is_indexable<TR>::value),(l[s]/r))
+//	template<typename TL, typename TR> inline auto //
+//	Divides(Field<Geometry<ThisType, 0>, TL> const &l,
+//			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
+//			DECL_RET_TYPE((l[s]/r[s]))
+//
+//	template<int IL, typename TL, typename TR> inline auto //
+//	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR r, size_t s) const
+//	DECL_RET_TYPE( (l[s]/r))
 	//
 //
 //	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,

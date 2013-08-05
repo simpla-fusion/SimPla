@@ -10,7 +10,7 @@
 #include <complex>
 #include "expression.h"
 #include "ntuple.h"
-#include "operator_overload.h"
+//#include "operator_overload.h"
 using namespace simpla;
 
 template<typename T> T _real(T const & v)
@@ -55,7 +55,7 @@ protected:
 
 public:
 	static const int NDIM = T::NDIM;
-	static const int loop_num = 1000000L;
+	static const int loop_num = 10000000L;
 	typedef typename T::ValueType ValueType;
 	ValueType m;
 
@@ -65,11 +65,11 @@ public:
 
 };
 
-typedef testing::Types< //
-		nTuple<3, double>
-		, nTuple<3, int>
-		, nTuple<3, std::complex<double> >
-		, nTuple<10, double>, nTuple<20, double>
+typedef testing::Types<
+		//
+		nTuple<3, double>, nTuple<3, int>, nTuple<3, std::complex<double> >,
+		nTuple<10, double>, nTuple<10, int>, nTuple<10, std::complex<double> >,
+		nTuple<20, double>, nTuple<20, int>, nTuple<20, std::complex<double> >
 
 > MyTypes;
 
@@ -151,7 +151,7 @@ TYPED_TEST(TestNtuple, performance_rawarray){
 	for (int s = 0; s < TestFixture::loop_num; ++s)
 	{
 		for(int i=0;i<TestFixture::NDIM;++i)
-		{	TestFixture::aD[i] += EQUATION(aA[i] ,aB[i] ,aC[i]);};
+		{	TestFixture::aD[i] += static_cast<typename TestFixture::ValueType>(s)*EQUATION(aA[i] ,aB[i] ,aC[i]);};
 	}
 
 //	for (int i = 0; i < TestFixture::NDIM; ++i)
@@ -166,7 +166,7 @@ TYPED_TEST(TestNtuple, performance_nTuple){
 
 	for (int s = 0; s < TestFixture::loop_num; ++s)
 	{
-		TestFixture::vD += EQUATION(vA ,vB ,vC);
+		TestFixture::vD += static_cast<typename TestFixture::ValueType>(s)*EQUATION(vA ,vB ,vC);
 	}
 
 //	for (int i = 0; i < TestFixture::NDIM; ++i)

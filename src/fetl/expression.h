@@ -86,11 +86,76 @@ struct Undefine
 
 };
 
+//
+//template<typename TE> inline TE const &
+//operator +(TE const &e, Zero const &)
+//{
+//	return (e);
+//}
+//
+//template<typename TE> inline TE const &
+//operator +(Zero const &, TE const &e)
+//{
+//	return (e);
+//}
+//
+//template<typename TE> inline TE const &
+//operator -(TE const &e, Zero const &)
+//{
+//	return (e);
+//}
+//
+//template<typename TE> inline auto operator -(Zero const &, TE const &e)
+//DECL_RET_TYPE((Negate(e)))
+//
+//Zero operator +(Zero const &, Zero const &e)
+//{
+//	return (Zero());
+//}
+//
+//template<typename TE> inline TE const &operator *(TE const &e, One const &)
+//{
+//	return (e);
+//}
+//
+//template<typename TE> inline TE const & operator *(One const &, TE const &e)
+//{
+//	return (e);
+//}
+//
+//template<typename TE> inline Zero operator *(TE const &, Zero const &)
+//{
+//	return (Zero());
+//}
+//
+//template<typename TE> inline Zero operator *(Zero const &, TE const &)
+//{
+//	return (Zero());
+//}
+//
+//template<typename TE> inline Infinity operator /(TE const &e, Zero const &)
+//{
+//	return (Infinity());
+//}
+//
+//template<typename TE> inline Zero operator /(Zero const &, TE const &e)
+//{
+//	return (Zero());
+//}
+//
+//template<typename TE> inline Zero operator /(TE const &, Infinity const &)
+//{
+//	return (Zero());
+//}
+//
+//template<typename TE> inline Infinity operator /(Infinity const &, TE const &e)
+//{
+//	return (Infinity());
+//}
+
 template<int N, typename TExpr> struct nTuple;
 
 template<typename TG, typename TExpr> struct Field;
-
-template<typename > struct PlaceHolder;
 
 template<typename TOP, typename TL, typename TR> struct BiOp;
 
@@ -176,11 +241,6 @@ template<typename > struct has_PlaceHolder
 	static const bool value = false;
 };
 
-template<typename TE> struct has_PlaceHolder<PlaceHolder<TE> >
-{
-	static const bool value = true;
-};
-
 template<typename TE> struct is_indexable
 {
 	typedef typename remove_const_reference<TE>::type T;
@@ -197,6 +257,11 @@ struct is_arithmetic_scalar
 
 template<typename T>
 struct is_storage_type
+{
+	static const bool value = false;
+};
+template<typename T>
+struct is_storage_type<std::complex<T>>
 {
 	static const bool value = false;
 };
@@ -260,6 +325,16 @@ struct c_index<false>
 	template<typename T> static auto eval(T const & v, size_t)
 	DECL_RET_TYPE(v)
 };
+template<typename TL, typename TR> struct OpMultiplies;
+template<typename TL, typename TR> struct OpDivides;
+template<typename TL, typename TR> struct OpPlus;
+template<typename TL, typename TR> struct OpMinus;
+template<typename TL, typename TR> struct OpModulus;
+template<typename TL, typename TR> struct OpBitwiseXOR;
+template<typename TL, typename TR> struct OpBitwiseAND;
+template<typename TL, typename TR> struct OpBitwiseOR;
+
+template<typename > struct OpNegate;
 
 //template<typename TOP, typename TL>
 //struct UniOp

@@ -9,7 +9,7 @@ function(my_test name library )
       COMPILE_DEFINITIONS "GTEST_LINKED_AS_SHARED_LIBRARY=1")
   endif()
   
-  target_link_libraries(${name} ${library} gtest_main gtest)   
+  target_link_libraries(${name} ${library} gtest_main gtest pthread)   
  
   add_test(${name}  ${name}  )
   

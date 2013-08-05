@@ -25,7 +25,13 @@ public:
 	{
 	}
 
-	Object(Object const &)=default;
+	Object(Object const &) = default;
+
+	Object(Object && rhs)
+	{
+		rhs.data_.swap(rhs.data_);
+		rhs.name_.swap(rhs.name_);
+	}
 
 	inline virtual ~Object()
 	{
@@ -53,6 +59,7 @@ protected:
 
 };
 
-}  // namespace simpla
+}
+ // namespace simpla
 
 #endif /* OBJECT_H_ */

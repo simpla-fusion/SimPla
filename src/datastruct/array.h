@@ -37,13 +37,20 @@ public:
 
 	}
 
-	Array(ThisType const&)=default;
+	Array(ThisType const&) = default;
+
+	Array(ThisType && rhs) :
+			Object(rhs), num_of_elements_(rhs.num_of_elements_), ele_size_in_byte_(
+					rhs.ele_size_in_byte_)
+	{
+
+	}
 
 	void swap(ThisType & rhs)
 	{
 		Object::swap(rhs);
-		std::swap(num_of_elements_,rhs.num_of_elements_);
-		std::swap(ele_size_in_byte_,rhs.ele_size_in_byte_);
+		std::swap(num_of_elements_, rhs.num_of_elements_);
+		std::swap(ele_size_in_byte_, rhs.ele_size_in_byte_);
 	}
 
 	bool IsEmpty() const
@@ -81,13 +88,15 @@ public:
 	inline ValueType & operator[](size_t s)
 	{
 //		ASSERT(s<num_of_elements_);
-		return (*reinterpret_cast<T*>(&(*Object::data_) + (s%num_of_elements_) * ele_size_in_byte_));
+		return (*reinterpret_cast<T*>(&(*Object::data_)
+				+ (s % num_of_elements_) * ele_size_in_byte_));
 	}
 
 	inline ValueType const & operator[](size_t s) const
 	{
 //		ASSERT(s<num_of_elements_);
-		return (*reinterpret_cast<T const*>(&(*Object::data_) + (s%num_of_elements_) * ele_size_in_byte_));
+		return (*reinterpret_cast<T const*>(&(*Object::data_)
+				+ (s % num_of_elements_) * ele_size_in_byte_));
 	}
 
 	template<typename TR>
