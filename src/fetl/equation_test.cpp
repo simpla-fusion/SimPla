@@ -24,7 +24,7 @@ int main(int argc, char **argv)
 
 	for (int i = 0; i < 10; ++i)
 	{
-		PlaceHolder(i, i * 3).assign(m, 1);
+		PlaceHolder(i).assign(m);
 	}
 	for (auto it = m.begin(); it != m.end(); ++it)
 	{

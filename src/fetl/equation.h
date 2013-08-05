@@ -307,7 +307,7 @@ template<typename TL, typename TR> auto operator-(LinearExpression<TL> const& l,
 		DECL_RET_TYPE(( LinearExpression<OpMinus<LinearExpression<TL>,
 						LinearExpression< TR > > > (l,r)))
 
-template<typename TL, typename TR> auto operator--(TL const& l,
+template<typename TL, typename TR> auto operator-(TL const& l,
 		LinearExpression<TR> const& r)
 				DECL_RET_TYPE(( LinearExpression<OpMinus<LinearExpression<TL>,
 								LinearExpression< TR > > > (LinearExpression<TL>(-1,l),r)))
