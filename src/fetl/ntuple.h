@@ -307,9 +307,9 @@ DECL_RET_TYPE( (sqrt(Determinant(m))))
 
 // Expression template of nTuple
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
-template<typename TL, typename TR> class Op##_NAME_;                                                                                   \
+class Op##_NAME_;                                                                                   \
 template<int N, typename TL, typename TR>                                          \
-struct nTuple<N, Op##_NAME_<nTuple<N, TL>, nTuple<N, TR> > >                           \
+struct nTuple<N, BiOp< Op##_NAME_,nTuple<N, TL>, nTuple<N, TR> > >                           \
 {                                                                                  \
 	typename ConstReferenceTraits<nTuple<N, TL>>::type l_;                                    \
 	typename ConstReferenceTraits<nTuple<N, TR>>::type r_;                                    \
@@ -323,7 +323,7 @@ struct nTuple<N, Op##_NAME_<nTuple<N, TL>, nTuple<N, TR> > >                    
 };                                                                                 \
                                                                                    \
 template<int N, typename TL, typename TR>                                          \
-struct nTuple<N, Op##_NAME_<nTuple<N, TL>, TR> >                                       \
+struct nTuple<N, BiOp< Op##_NAME_,nTuple<N, TL>, TR> >                                       \
 {                                                                                  \
 	typename ConstReferenceTraits<nTuple<N, TL>>::type l_;                                    \
 	typename ConstReferenceTraits<TR>::type r_;                                    \
@@ -337,7 +337,7 @@ struct nTuple<N, Op##_NAME_<nTuple<N, TL>, TR> >                                
 };                                                                                 \
                                                                                    \
 template<int N, typename TL, typename TR>                                          \
-struct nTuple<N, Op##_NAME_<TL, nTuple<N, TR> > >                                      \
+struct nTuple<N,  BiOp<Op##_NAME_,TL, nTuple<N, TR> > >                                      \
 {                                                                                  \
 	typename ConstReferenceTraits<TL>::type l_;                                    \
 	typename ConstReferenceTraits<nTuple<N, TR>>::type r_;                                    \
@@ -353,15 +353,15 @@ struct nTuple<N, Op##_NAME_<TL, nTuple<N, TR> > >                               
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)                   \
 DECL_RET_TYPE(                                                                     \
-		(nTuple<N, Op##_NAME_<nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
+		(nTuple<N, BiOp<Op##_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,Op##_NAME_<nTuple<N, TL>,TR > > (lhs,rhs)))                    \
+DECL_RET_TYPE((nTuple<N,BiOp<Op##_NAME_ ,nTuple<N, TL>,TR > > (lhs,rhs)))                    \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,Op##_NAME_<TL,nTuple<N, TR> > > (lhs,rhs)))                    \
+DECL_RET_TYPE((nTuple<N,BiOp<Op##_NAME_,TL,nTuple<N, TR> > > (lhs,rhs)))                    \
                                                                                    \
 
 _DEFINE_BINARY_OPERATOR(Plus, +)
@@ -374,9 +374,9 @@ _DEFINE_BINARY_OPERATOR(BitwiseAND, &)
 _DEFINE_BINARY_OPERATOR(BitwiseOR, |)
 #undef _DEFINE_BINARY_OPERATOR
 
-template<typename > struct OpNegate;
+struct OpNegate;
 template<int N, typename TL>
-struct nTuple<N, OpNegate<nTuple<N, TL> > >
+struct nTuple<N, UniOp<OpNegate,nTuple<N, TL> > >
 {
 	typename ConstReferenceTraits<nTuple<N, TL>>::type expr;
 	nTuple(nTuple<N, TL> const & l) :
@@ -388,15 +388,15 @@ struct nTuple<N, OpNegate<nTuple<N, TL> > >
 };
 template<int N, typename TL> inline  //
 auto operator-(nTuple<N, TL> const & f)
-DECL_RET_TYPE(( nTuple<N, OpNegate<nTuple<N, TL> > > (f)))
+DECL_RET_TYPE(( nTuple<N, UniOp<OpNegate,nTuple<N, TL> > > (f)))
 
 template<int N, typename TL> inline  //
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
-template<typename TLExpr, typename TRExpr> struct OpCross;
+struct OpCross;
 template<int N, typename TL, typename TR>
-struct nTuple<N, OpCross<TL, TR> >
+struct nTuple<N, BiOp<OpCross, TL, TR> >
 {
 
 	typename ConstReferenceTraits<TL>::type l_;
@@ -413,9 +413,10 @@ struct nTuple<N, OpCross<TL, TR> >
 }
 ;
 template<int N, typename TL, typename TR> inline auto   //
-Cross(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE(
-		(nTuple<N, OpCross<nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
+Cross(nTuple<N, TL> const & lhs,
+		nTuple<N, TR> const & rhs)
+				DECL_RET_TYPE(
+						(nTuple<N,BiOp<OpCross, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
 
 namespace _impl
 {

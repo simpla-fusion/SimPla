@@ -20,69 +20,71 @@ public:
 
 	static const int NUM_OF_DIMS = TG::NUM_OF_DIMS;
 
-	typedef TG Grid;
+	typedef TG Mesh;
 
-	typedef Geometry<Grid, IFORM> ThisType;
+	typedef Geometry<Mesh, IFORM> ThisType;
 
-	typedef typename Grid::CoordinatesType CoordinatesType;
+	typedef typename Mesh::CoordinatesType CoordinatesType;
 
-	Grid const* grid;
+	Mesh const* mesh;
 	Geometry() :
-			grid(NULL)
+			mesh(NULL)
 	{
 
 	}
-	Geometry(Grid const & g) :
-			grid(&g)
+	Geometry(Mesh const & g) :
+			mesh(&g)
 	{
 	}
-	Geometry(Grid const * g) :
-			grid(g)
+	Geometry(Mesh const * g) :
+			mesh(g)
 	{
 	}
 	template<int IF>
-	Geometry(Geometry<Grid, IF> const & g) :
-			grid(g.grid)
+	Geometry(Geometry<Mesh, IF> const & g) :
+			mesh(g.mesh)
 	{
 	}
-	Geometry(ThisType const &)=default;
+	Geometry(ThisType const &) = default;
 
 	~Geometry()
 	{
 	}
 	template<typename TE>
-	inline typename Field<ThisType,TE>::Value
-	IntepolateFrom(Field<ThisType,TE> const & f,CoordinatesType const & s ,Real effect_radius) const
+	inline typename Field<ThisType, TE>::Value IntepolateFrom(
+			Field<ThisType, TE> const & f, CoordinatesType const & s,
+			Real effect_radius) const
 	{
 		return (f[0]);
 	}
 
 	template<typename TE>
-	inline void IntepolateTo( Field<ThisType,TE> const & f, typename Field<ThisType,TE>::Value const & v,
-			CoordinatesType const & s ,Real effect_radius)const
+	inline void IntepolateTo(Field<ThisType, TE> const & f,
+			typename Field<ThisType, TE>::Value const & v,
+			CoordinatesType const & s, Real effect_radius) const
 	{
 	}
 	inline size_t get_num_of_elements() const
 	{
-		return (grid->get_num_of_elements(IFORM));
+		return (mesh->get_num_of_elements(IFORM));
 	}
 
-	inline typename std::vector<size_t>::const_iterator get_center_elements_begin( ) const
+	inline typename std::vector<size_t>::const_iterator get_center_elements_begin() const
 	{
-		return (grid->center_ele_[IFORM].begin());
+		return (mesh->center_ele_[IFORM].begin());
 	}
-	inline typename std::vector<size_t>::const_iterator get_center_elements_end( ) const
+	inline typename std::vector<size_t>::const_iterator get_center_elements_end() const
 	{
-		return (grid->center_ele_[IFORM].end());
+		return (mesh->center_ele_[IFORM].end());
 	}
 
-	inline size_t get_num_of_comp()const
+	inline size_t get_num_of_comp() const
 	{
-		return (grid->get_num_of_comp(IFORM));
+		return (mesh->get_num_of_comp(IFORM));
 	}
-	inline size_t get_num_of_center_elements()const
+	inline size_t get_num_of_center_elements() const
 	{
-		return (grid->get_num_of_center_elements(IFORM));
+		return (mesh->get_num_of_center_elements(IFORM));
 	}
 
 };

@@ -6,8 +6,7 @@
  */
 
 #include <gtest/gtest.h>
-//#include "include/simpla_defs.h"
-#include "grid/uniform_rect.h"
+#include "mesh/uniform_rect.h"
 #include "fetl.h"
 #include "fetl/primitives.h"
 #include "fetl/ntuple.h"
@@ -16,7 +15,7 @@
 #include "physics/constants.h"
 using namespace simpla;
 
-DEFINE_FIELDS( UniformRectGrid)
+DEFINE_FIELDS(UniformRectMesh)
 
 template<typename TF>
 class TestFETLBasicArithmetic: public testing::Test
@@ -26,35 +25,32 @@ protected:
 	{
 		Log::Verbose(10);
 
-		grid.dt = 1.0;
-		grid.xmin[0] = 0;
-		grid.xmin[1] = 0;
-		grid.xmin[2] = 0;
-		grid.xmax[0] = 1.0;
-		grid.xmax[1] = 1.0;
-		grid.xmax[2] = 1.0;
-		grid.dims[0] = 20;
-		grid.dims[1] = 30;
-		grid.dims[2] = 40;
-		grid.gw[0] = 2;
-		grid.gw[1] = 2;
-		grid.gw[2] = 2;
+		mesh.dt = 1.0;
+		mesh.xmin[0] = 0;
+		mesh.xmin[1] = 0;
+		mesh.xmin[2] = 0;
+		mesh.xmax[0] = 1.0;
+		mesh.xmax[1] = 1.0;
+		mesh.xmax[2] = 1.0;
+		mesh.dims[0] = 20;
+		mesh.dims[1] = 30;
+		mesh.dims[2] = 40;
+		mesh.gw[0] = 2;
+		mesh.gw[1] = 2;
+		mesh.gw[2] = 2;
 
-		grid.Init();
+		mesh.Init();
 
 	}
 public:
 	typedef TF FieldType;
 
-	Grid grid;
+	Mesh mesh;
 
 };
 
-typedef testing::Types<
-//		RZeroForm, ROneForm, RTwoForm, RThreeForm, CZeroForm,
-//		COneForm, CTwoForm, CThreeForm, VecZeroForm,
-		VecOneForm
-//, VecTwoForm
+typedef testing::Types<RZeroForm, ROneForm, RTwoForm, RThreeForm, CZeroForm,
+		COneForm, CTwoForm, CThreeForm, VecZeroForm, VecOneForm, VecTwoForm
 //		,VecThreeForm
 //		,CVecZeroForm, CVecOneForm, CVecTwoForm,CVecThreeForm
 > AllFieldTypes;
@@ -69,9 +65,9 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	Log::Verbose(10);
 
-	Grid const & grid = TestFixture::grid;
+	Mesh const & mesh = TestFixture::mesh;
 
-	typename TestFixture::FieldType f( grid );
+	typename TestFixture::FieldType f( mesh );
 
 	typename TestFixture::FieldType::ValueType a; a= 1.0;
 
@@ -94,9 +90,9 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::mesh);
 
-	typename TestFixture::FieldType f1(TestFixture::grid),f2(TestFixture::grid);
+	typename TestFixture::FieldType f1(TestFixture::mesh),f2(TestFixture::mesh);
 
 	typedef typename TestFixture::FieldType::ValueType ValueType;
 
@@ -129,9 +125,9 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::grid);
+	typename TestFixture::FieldType::GeometryType geometry(TestFixture::mesh);
 
-	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),f3(TestFixture::grid);
+	typename TestFixture::FieldType f1( TestFixture::mesh),f2(TestFixture::mesh),f3(TestFixture::mesh);
 
 	size_t num=geometry.get_num_of_elements( );
 
@@ -163,10 +159,10 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
 
-	typename TestFixture::FieldType f1( TestFixture::grid),f2(TestFixture::grid),
-	f3(TestFixture::grid),f4(TestFixture::grid);
+	typename TestFixture::FieldType f1( TestFixture::mesh),f2(TestFixture::mesh),
+	f3(TestFixture::mesh),f4(TestFixture::mesh);
 
-	RScalarField a(TestFixture::grid),b(TestFixture::grid),c(TestFixture::grid);
+	RScalarField a(TestFixture::mesh),b(TestFixture::mesh),c(TestFixture::mesh);
 
 	a.fill(1.0);
 	b.fill(3.0);
@@ -195,7 +191,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	f2.fill(vb);
 	f3.fill(vc);
 
-	f4= -(f1^a)-f2/b+f3*c
+	f4= -(f1^a)-f2/b +f3*c;
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
 	/**           (+)
@@ -248,26 +244,26 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //protected:
 //	virtual void SetUp()
 //	{
-//		grid.dt = 1.0;
-//		grid.xmin[0] = 0;
-//		grid.xmin[1] = 0;
-//		grid.xmin[2] = 0;
-//		grid.xmax[0] = 1.0;
-//		grid.xmax[1] = 1.0;
-//		grid.xmax[2] = 1.0;
-//		grid.dims[0] = 20;
-//		grid.dims[1] = 30;
-//		grid.dims[2] = 40;
-//		grid.gw[0] = 2;
-//		grid.gw[1] = 2;
-//		grid.gw[2] = 2;
+//		mesh.dt = 1.0;
+//		mesh.xmin[0] = 0;
+//		mesh.xmin[1] = 0;
+//		mesh.xmin[2] = 0;
+//		mesh.xmax[0] = 1.0;
+//		mesh.xmax[1] = 1.0;
+//		mesh.xmax[2] = 1.0;
+//		mesh.dims[0] = 20;
+//		mesh.dims[1] = 30;
+//		mesh.dims[2] = 40;
+//		mesh.gw[0] = 2;
+//		mesh.gw[1] = 2;
+//		mesh.gw[2] = 2;
 //
-//		grid.Init();
+//		mesh.Init();
 //	}
 //public:
-//	Grid grid;
-//	typedef Field<Geometry<Grid, 0>, Array<T> > ScalarField;
-//	typedef Field<Geometry<Grid, 0>, Array<nTuple<3, T> > > VectorField;
+//	mesh mesh;
+//	typedef Field<Geometry<mesh, 0>, Array<T> > ScalarField;
+//	typedef Field<Geometry<mesh, 0>, Array<nTuple<3, T> > > VectorField;
 //};
 //
 //typedef testing::Types<double, Complex> VecFieldTypes;
@@ -276,9 +272,9 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //
 //TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
 //{
-//	const Grid& grid = TestFixture::grid;
+//	const mesh& mesh = TestFixture::mesh;
 //
-//	Geometry<Grid, 0> geometry(TestFixture::grid);
+//	Geometry<mesh, 0> geometry(TestFixture::mesh);
 //
 //	Vec3 vc1 =
 //	{	1.0, 2.0, 3.0};
@@ -292,10 +288,10 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //	Real res_scalar;
 //	res_scalar = Dot(vc1, vc2);
 //
-//	typename TestFixture::ScalarField res_scalar_field(grid);
+//	typename TestFixture::ScalarField res_scalar_field(mesh);
 //
-//	typename TestFixture::VectorField va(grid), vb(grid), res_vector_field(
-//			grid);
+//	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+//			mesh);
 //
 //	va = vc2;
 //
@@ -324,9 +320,9 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //	using namespace space3;
 //	//FIXME  should test with non-uniform field
 //
-//	Grid const & grid = TestFixture::grid;
+//	mesh const & mesh = TestFixture::mesh;
 //
-//	Geometry<Grid, 0> geometry(grid);
+//	Geometry<mesh, 0> geometry(mesh);
 //
 //	Vec3 vc1 =
 //	{	1.0, 2.0, 3.0};
@@ -339,10 +335,10 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //
 //	Real res_scalar= Dot(vc1,vc2);
 //
-//	typename TestFixture::VectorField va(grid), vb(grid);
+//	typename TestFixture::VectorField va(mesh), vb(mesh);
 //
-//	typename TestFixture::VectorField res_vector_field(grid);
-//	typename TestFixture::ScalarField res_scalar_field(grid);
+//	typename TestFixture::VectorField res_vector_field(mesh);
+//	typename TestFixture::ScalarField res_scalar_field(mesh);
 //
 //	va = vc1;
 ////
@@ -369,7 +365,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //{
 //	//FIXME  should test with non-uniform field
 //
-//	Grid const & grid = TestFixture::grid;
+//	mesh const & mesh = TestFixture::mesh;
 //
 //	Vec3 vc1 =
 //	{	1.0,2.0,3.0};
@@ -386,25 +382,25 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //
 //	res_vec=Cross(vc1,vc2);
 //
-//	typename TestFixture::VectorField va(grid);
+//	typename TestFixture::VectorField va(mesh);
 //
-//	typename TestFixture::CVectorField vb(grid);
+//	typename TestFixture::CVectorField vb(mesh);
 //
 //	va = vc1;
 //
 //	vb = vc2;
 //
-//	typename TestFixture::CVectorField res_vector_field(grid);
-//	typename TestFixture::CScalarField res_scalar_field(grid);
+//	typename TestFixture::CVectorField res_vector_field(mesh);
+//	typename TestFixture::CScalarField res_scalar_field(mesh);
 //
 //	res_scalar_field = Dot(vb, va);
 //
 //	res_vector_field = Cross(va, vb);
 //
-//	size_t num_of_comp =grid.get_num_of_comp(TestFixture::VectorField::IForm);
+//	size_t num_of_comp =mesh.get_num_of_comp(TestFixture::VectorField::IForm);
 //
-//	for (typename Grid::const_iterator s = grid.get_center_elements_begin(TestFixture::VectorField::IForm);
-//			s!=grid.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
+//	for (typename mesh::const_iterator s = mesh.get_center_elements_begin(TestFixture::VectorField::IForm);
+//			s!=mesh.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
 //	{
 //		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
 //
@@ -422,31 +418,31 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		grid.dt = 1.0;
-		grid.xmin[0] = 0;
-		grid.xmin[1] = 0;
-		grid.xmin[2] = 0;
-		grid.xmax[0] = 1.0;
-		grid.xmax[1] = 1.0;
-		grid.xmax[2] = 1.0;
-		grid.dims[0] = 20;
-		grid.dims[1] = 30;
-		grid.dims[2] = 40;
-		grid.gw[0] = 2;
-		grid.gw[1] = 2;
-		grid.gw[2] = 2;
+		mesh.dt = 1.0;
+		mesh.xmin[0] = 0;
+		mesh.xmin[1] = 0;
+		mesh.xmin[2] = 0;
+		mesh.xmax[0] = 1.0;
+		mesh.xmax[1] = 1.0;
+		mesh.xmax[2] = 1.0;
+		mesh.dims[0] = 20;
+		mesh.dims[1] = 30;
+		mesh.dims[2] = 40;
+		mesh.gw[0] = 2;
+		mesh.gw[1] = 2;
+		mesh.gw[2] = 2;
 
-		grid.Init();
+		mesh.Init();
 
 	}
 public:
 
-	Grid grid;
+	Mesh mesh;
 
 	typedef TP ValueType;
-	typedef Field<Geometry<Grid, 0>, Array<ValueType> > TZeroForm;
-	typedef Field<Geometry<Grid, 1>, Array<ValueType> > TOneForm;
-	typedef Field<Geometry<Grid, 2>, Array<ValueType> > TTwoForm;
+	typedef Field<Geometry<Mesh, 0>, Array<ValueType> > TZeroForm;
+	typedef Field<Geometry<Mesh, 1>, Array<ValueType> > TOneForm;
+	typedef Field<Geometry<Mesh, 2>, Array<ValueType> > TTwoForm;
 
 	double RelativeError(double a, double b)
 	{
@@ -473,31 +469,30 @@ public:
 	}
 };
 
-typedef testing::Types<
-		double, Complex, nTuple<3, double>,
+typedef testing::Types<double, Complex, nTuple<3, double>,
 		nTuple<3, nTuple<3, double> > > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
 TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 {
-	Grid const & grid = TestFixture::grid;
+	Mesh const & mesh = TestFixture::mesh;
 
 	typename TestFixture::ValueType v;
 
 	TestFixture::SetValueType(&v);
 
-	typename TestFixture::TZeroForm sf(grid);
-	typename TestFixture::TOneForm vf1(grid);
-	typename TestFixture::TTwoForm vf2(grid);
+	typename TestFixture::TZeroForm sf(mesh);
+	typename TestFixture::TOneForm vf1(mesh);
+	typename TestFixture::TTwoForm vf2(mesh);
 
-	size_t num = grid.get_num_of_vertex() * grid.get_num_of_comp(0);
+	size_t num = mesh.get_num_of_vertex() * mesh.get_num_of_comp(0);
 
-	for (size_t i = 0; i < grid.dims[0]; ++i)
-	for (size_t j = 0; j < grid.dims[1]; ++j)
-	for (size_t k = 0; k < grid.dims[2]; ++k)
+	for (size_t i = 0; i < mesh.dims[0]; ++i)
+	for (size_t j = 0; j < mesh.dims[1]; ++j)
+	for (size_t k = 0; k < mesh.dims[2]; ++k)
 	{
-		size_t s = grid.get_cell_num(i, j, k);
+		size_t s = mesh.get_cell_num(i, j, k);
 		sf[s] = static_cast<double>(s)*v;
 	}
 
@@ -505,14 +500,14 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	vf2 = Curl(Grad(sf));
 
-	Geometry<Grid,1> geometry1(grid);
+	Geometry<Mesh,1> geometry1(mesh);
 
 //	for (auto s = geometry1.get_center_elements_begin(); s != geometry1.get_center_elements_end( ); ++s)
 //	{
 //
 //		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
 //	}
-	Geometry<Grid,2> geometry2(grid);
+	Geometry<Mesh,2> geometry2(mesh);
 	for (auto s = geometry2.get_center_elements_begin( ); s != geometry2.get_center_elements_end( ); ++s)
 	{
 		ASSERT_DOUBLE_EQ(0.0,abs(vf2[(*s)])) << "idx=" << *s;
@@ -523,11 +518,11 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 {
 
-	Grid const & grid = TestFixture::grid;
+	Mesh const & mesh = TestFixture::mesh;
 
-	typename TestFixture::TZeroForm sf(grid);
-	typename TestFixture::TOneForm vf1(grid);
-	typename TestFixture::TTwoForm vf2(grid);
+	typename TestFixture::TZeroForm sf(mesh);
+	typename TestFixture::TOneForm vf1(mesh);
+	typename TestFixture::TTwoForm vf2(mesh);
 
 	typename TestFixture::ValueType v;
 
@@ -557,25 +552,25 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 ////	{
 ////		size_t ratio = GetParam();
 ////
-////		grid.dt = 1.0;
-////		grid.xmin[0] = 0;
-////		grid.xmin[1] = 0;
-////		grid.xmin[2] = 0;
-////		grid.xmax[0] = 1.0;
-////		grid.xmax[1] = 1.0;
-////		grid.xmax[2] = 1.0;
-////		grid.dims[0] = 2 * ratio;
-////		grid.dims[1] = 3 * ratio;
-////		grid.dims[2] = 4 * ratio;
-////		grid.gw[0] = 2;
-////		grid.gw[1] = 2;
-////		grid.gw[2] = 2;
+////		mesh.dt = 1.0;
+////		mesh.xmin[0] = 0;
+////		mesh.xmin[1] = 0;
+////		mesh.xmin[2] = 0;
+////		mesh.xmax[0] = 1.0;
+////		mesh.xmax[1] = 1.0;
+////		mesh.xmax[2] = 1.0;
+////		mesh.dims[0] = 2 * ratio;
+////		mesh.dims[1] = 3 * ratio;
+////		mesh.dims[2] = 4 * ratio;
+////		mesh.gw[0] = 2;
+////		mesh.gw[1] = 2;
+////		mesh.gw[2] = 2;
 ////
-////		grid.Init();
+////		mesh.Init();
 ////
 ////	}
 ////public:
-////	Grid grid;
+////	mesh mesh;
 ////
 ////	static const int NDIMS = 3;
 ////
@@ -593,24 +588,24 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 ////
 ////	static const double epsilon = 0.01;
 ////
-////	ZeroForm sf(grid), res_sf(grid);
+////	ZeroForm sf(mesh), res_sf(mesh);
 ////
-////	OneForm res_vf(grid);
+////	OneForm res_vf(mesh);
 ////
-////	size_t size = grid.get_num_of_vertex() * grid.get_num_of_comp(IZeroForm);
+////	size_t size = mesh.get_num_of_vertex() * mesh.get_num_of_comp(IZeroForm);
 ////
 ////	Real k0 = 1.0 * TWOPI, k1 = 2.0 * TWOPI, k2 = 3.0 * TWOPI;
 ////
 ////#pragma omp parallel for
-////	for (size_t i = 0; i < grid.dims[0]; ++i)
+////	for (size_t i = 0; i < mesh.dims[0]; ++i)
 ////	{
-////		for (size_t j = 0; j < grid.dims[1]; ++j)
-////			for (size_t k = 0; k < grid.dims[2]; ++k)
+////		for (size_t j = 0; j < mesh.dims[1]; ++j)
+////			for (size_t k = 0; k < mesh.dims[2]; ++k)
 ////			{
-////				size_t s = grid.get_cell_num(i, j, k);
+////				size_t s = mesh.get_cell_num(i, j, k);
 ////				sf[s] = sin(
-////						k0 * i * grid.dx[0] + k1 * j * grid.dx[1]
-////								+ k2 * k * grid.dx[2]);
+////						k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
+////								+ k2 * k * mesh.dx[2]);
 ////			}
 ////	}
 ////	res_vf = Grad(sf);
@@ -623,20 +618,20 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 ////	Real re2 = 0.0;
 ////
 ////#pragma omp parallel for  reduction(+:rex,rey,rez,re2)
-////	for (size_t i = grid.gw[0]; i < grid.dims[0] - grid.gw[0]; ++i)
-////		for (size_t j = grid.gw[1]; j < grid.dims[1] - grid.gw[1]; ++j)
-////			for (size_t k = grid.gw[2]; k < grid.dims[2] - grid.gw[2]; ++k)
+////	for (size_t i = mesh.gw[0]; i < mesh.dims[0] - mesh.gw[0]; ++i)
+////		for (size_t j = mesh.gw[1]; j < mesh.dims[1] - mesh.gw[1]; ++j)
+////			for (size_t k = mesh.gw[2]; k < mesh.dims[2] - mesh.gw[2]; ++k)
 ////			{
-////				size_t s = grid.get_cell_num(i, j, k);
+////				size_t s = mesh.get_cell_num(i, j, k);
 ////
-////				Real alpha = k0 * i * grid.dx[0] + k1 * j * grid.dx[1]
-////						+ k2 * k * grid.dx[2];
+////				Real alpha = k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
+////						+ k2 * k * mesh.dx[2];
 ////
-////				rex += RelativeError2(k0 * cos(alpha + k0 * 0.5 * grid.dx[0]),
+////				rex += RelativeError2(k0 * cos(alpha + k0 * 0.5 * mesh.dx[0]),
 ////						res_vf[s * 3 + 0]);
-////				rey += RelativeError2(k1 * cos(alpha + k1 * 0.5 * grid.dx[1]),
+////				rey += RelativeError2(k1 * cos(alpha + k1 * 0.5 * mesh.dx[1]),
 ////						res_vf[s * 3 + 1]);
-////				rez += RelativeError2(k2 * cos(alpha + k2 * 0.5 * grid.dx[2]),
+////				rez += RelativeError2(k2 * cos(alpha + k2 * 0.5 * mesh.dx[2]),
 ////						res_vf[s * 3 + 2]);
 ////
 ////				re2 += RelativeError2(
@@ -648,11 +643,11 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 ////	rez /= static_cast<Real>(size);
 ////	re2 /= static_cast<Real>(size);
 ////
-////	EXPECT_LE(rex, pow(k0*grid.dx[0],2));
-////	EXPECT_LE(rey, pow(k1*grid.dx[1],2));
-////	EXPECT_LE(rez, pow(k2*grid.dx[2],2));
+////	EXPECT_LE(rex, pow(k0*mesh.dx[0],2));
+////	EXPECT_LE(rey, pow(k1*mesh.dx[1],2));
+////	EXPECT_LE(rez, pow(k2*mesh.dx[2],2));
 ////	EXPECT_LE( re2,
-////			(pow(k0*grid.dx[0],2)+pow(k1*grid.dx[1],2)+pow(k2*grid.dx[2],2))/3.0);
+////			(pow(k0*mesh.dx[0],2)+pow(k1*mesh.dx[1],2)+pow(k2*mesh.dx[2],2))/3.0);
 ////
 ////}
 

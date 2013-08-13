@@ -14,29 +14,31 @@
 
 #include "include/simpla_defs.h"
 
-#include "fetl/fetl.h"
+//#include "fetl/fetl.h"
 
 #include "fetl/primitives.h"
 
-#include "fetl/geometry.h"
+//#include "fetl/geometry.h"
 
-#include "fetl/vector_calculus.h"
+//#include "fetl/vector_calculus.h"
 
-#include "fetl/expression.h"
+//#include "fetl/expression.h"
 
-#include "grid.h"
+#include "mesh.h"
 
 namespace simpla
 {
+template<typename, typename > class Field;
+template<typename, int> class Geometry;
 /**
- *  UniformRectGrid -- Uniform rectangular structured grid.
+ *  UniformRectMesh -- Uniform rectangular structured grid.
  * */
-struct UniformRectGrid: public BaseGrid
+struct UniformRectMesh: public BaseMesh
 {
 	static const int NUM_OF_DIMS = 3;
 
-	UniformRectGrid &
-	operator=(const UniformRectGrid&);
+	UniformRectMesh &
+	operator=(const UniformRectMesh&);
 
 	IVec3 shift_;
 
@@ -44,10 +46,10 @@ struct UniformRectGrid: public BaseGrid
 	std::vector<size_t> ghost_ele_[4];
 
 	typedef Real ValueType;
-	typedef UniformRectGrid Grid;
+	typedef UniformRectMesh Grid;
 	typedef TR1::shared_ptr<Grid> Holder;
 	typedef RVec3 CoordinatesType;
-	typedef UniformRectGrid ThisType;
+	typedef UniformRectMesh ThisType;
 
 	enum
 	{
@@ -71,11 +73,11 @@ struct UniformRectGrid: public BaseGrid
 	RVec3 inv_dx;
 	RVec3 dx;
 
-	UniformRectGrid() :
+	UniformRectMesh() :
 			dt(0)
 	{
 	}
-	~UniformRectGrid()
+	~UniformRectMesh()
 	{
 	}
 
@@ -323,7 +325,8 @@ struct UniformRectGrid: public BaseGrid
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, Field<Geometry<Grid, IFORM>, TR> const & rhs) const
+	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs,
+			Field<Geometry<Grid, IFORM>, TR> const & rhs) const
 	{
 		size_t ele_num = get_num_of_elements(IFORM);
 

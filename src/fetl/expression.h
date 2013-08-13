@@ -23,6 +23,10 @@
 namespace simpla
 {
 
+#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
+#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
+        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
 struct NullType;
 
 struct EmptyType
@@ -31,127 +35,92 @@ struct EmptyType
 
 struct Zero
 {
-	Zero()
-	{
-	}
-	template<typename TL> Zero(TL const &)
-	{
-	}
-	template<typename TL, typename TR> Zero(TL const &, TR const &)
-	{
-	}
 };
+
 struct One
 {
-	One()
-	{
-	}
-	template<typename TL> One(TL const &)
-	{
-	}
-
-	template<typename TL, typename TR> One(TL const &, TR const &)
-	{
-	}
-
 };
-
 struct Infinity
 {
-	Infinity()
-	{
-
-	}
-	template<typename TL> Infinity(TL const &)
-	{
-	}
-	template<typename TL, typename TR> Infinity(TL const &, TR const &)
-	{
-	}
-
 };
 
 struct Undefine
 {
-	Undefine()
-	{
-
-	}
-	template<typename TL> Undefine(TL const &)
-	{
-	}
-	template<typename TL, typename TR> Undefine(TL const &, TR const &)
-	{
-	}
-
 };
 
-//
-//template<typename TE> inline TE const &
-//operator +(TE const &e, Zero const &)
-//{
-//	return (e);
-//}
-//
-//template<typename TE> inline TE const &
-//operator +(Zero const &, TE const &e)
-//{
-//	return (e);
-//}
-//
-//template<typename TE> inline TE const &
-//operator -(TE const &e, Zero const &)
-//{
-//	return (e);
-//}
-//
-//template<typename TE> inline auto operator -(Zero const &, TE const &e)
-//DECL_RET_TYPE((Negate(e)))
-//
-//Zero operator +(Zero const &, Zero const &e)
-//{
-//	return (Zero());
-//}
-//
-//template<typename TE> inline TE const &operator *(TE const &e, One const &)
-//{
-//	return (e);
-//}
-//
-//template<typename TE> inline TE const & operator *(One const &, TE const &e)
-//{
-//	return (e);
-//}
-//
-//template<typename TE> inline Zero operator *(TE const &, Zero const &)
-//{
-//	return (Zero());
-//}
-//
-//template<typename TE> inline Zero operator *(Zero const &, TE const &)
-//{
-//	return (Zero());
-//}
-//
-//template<typename TE> inline Infinity operator /(TE const &e, Zero const &)
-//{
-//	return (Infinity());
-//}
-//
-//template<typename TE> inline Zero operator /(Zero const &, TE const &e)
-//{
-//	return (Zero());
-//}
-//
-//template<typename TE> inline Zero operator /(TE const &, Infinity const &)
-//{
-//	return (Zero());
-//}
-//
-//template<typename TE> inline Infinity operator /(Infinity const &, TE const &e)
-//{
-//	return (Infinity());
-//}
+template<typename TE> inline TE const &
+operator +(TE const &e, Zero const &)
+{
+	return (e);
+}
+
+template<typename TE> inline TE const &
+operator +(Zero const &, TE const &e)
+{
+	return (e);
+}
+
+template<typename TE> inline TE const &
+operator -(TE const &e, Zero const &)
+{
+	return (e);
+}
+
+template<typename TE> inline auto operator -(Zero const &, TE const &e)
+DECL_RET_TYPE (((-e)))
+
+Zero operator +(Zero const &, Zero const &e)
+{
+	return (Zero());
+}
+
+template<typename TE> inline TE const &operator *(TE const &e, One const &)
+{
+	return (e);
+}
+
+template<typename TE> inline TE const & operator *(One const &, TE const &e)
+{
+	return (e);
+}
+
+template<typename TE> inline Zero operator *(TE const &, Zero const &)
+{
+	return (Zero());
+}
+
+template<typename TE> inline Zero operator *(Zero const &, TE const &)
+{
+	return (Zero());
+}
+
+template<typename TE> inline Infinity operator /(TE const &e, Zero const &)
+{
+	return (Infinity());
+}
+
+template<typename TE> inline Zero operator /(Zero const &, TE const &e)
+{
+	return (Zero());
+}
+
+template<typename TE> inline Zero operator /(TE const &, Infinity const &)
+{
+	return (Zero());
+}
+
+template<typename TE> inline Infinity operator /(Infinity const &, TE const &e)
+{
+	return (Infinity());
+}
+
+template<typename TL> inline auto   //
+operator==(TL const & lhs, Zero)
+DECL_RET_TYPE ((lhs))
+
+template<typename TR> inline auto   //
+operator==(Zero, TR const & rhs)
+DECL_RET_TYPE ((rhs))
 
 template<int N, typename TExpr> struct nTuple;
 
@@ -307,10 +276,6 @@ auto index(T const & v, size_t s)->decltype(v[s])
 	return (v[s]);
 }
 
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
-        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
-
 template<bool cond>
 struct c_index
 {
@@ -325,16 +290,16 @@ struct c_index<false>
 	template<typename T> static auto eval(T const & v, size_t)
 	DECL_RET_TYPE(v)
 };
-template<typename TL, typename TR> struct OpMultiplies;
-template<typename TL, typename TR> struct OpDivides;
-template<typename TL, typename TR> struct OpPlus;
-template<typename TL, typename TR> struct OpMinus;
-template<typename TL, typename TR> struct OpModulus;
-template<typename TL, typename TR> struct OpBitwiseXOR;
-template<typename TL, typename TR> struct OpBitwiseAND;
-template<typename TL, typename TR> struct OpBitwiseOR;
+struct OpMultiplies;
+struct OpDivides;
+struct OpPlus;
+struct OpMinus;
+struct OpModulus;
+struct OpBitwiseXOR;
+struct OpBitwiseAND;
+struct OpBitwiseOR;
 
-template<typename > struct OpNegate;
+struct OpNegate;
 
 //template<typename TOP, typename TL>
 //struct UniOp

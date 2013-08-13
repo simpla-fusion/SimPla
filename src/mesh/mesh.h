@@ -1,19 +1,19 @@
 /*
- * grid.h
+ * mesh.h
  *
  *  Created on: 2012-10-26
  *      Author: salmon
  */
 
-#ifndef GRID_H_
-#define GRID_H_
+#ifndef MESH_H_
+#define MESH_H_
 
 namespace simpla
 {
-class BaseGrid
+class BaseMesh
 {
 };
 
 } //namespace simpla
 
-#endif /* GRID_H_ */
+#endif /* MESH_H_ */

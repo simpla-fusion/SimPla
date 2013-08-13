@@ -43,7 +43,7 @@ public:
 	{
 	}
 
-	Field(typename GeometryType::Grid const & g) :
+	Field(typename GeometryType::Mesh const & g) :
 			GeometryType(g), BaseType(TGeometry(g).get_num_of_elements())
 	{
 	}
@@ -67,7 +67,7 @@ public:
 
 	inline ThisType & operator=(ThisType const & rhs)
 	{
-		GeometryType::grid->Assign(*this, rhs);
+		GeometryType::mesh->Assign(*this, rhs);
 		return (*this);
 	}
 
@@ -75,7 +75,7 @@ public:
 	inline typename std::enable_if<is_Field<TR>::value, ThisType &>::type //
 	operator=(TR const & rhs)
 	{
-		GeometryType::grid->Assign(*this, rhs);
+		GeometryType::mesh->Assign(*this, rhs);
 		return (*this);
 	}
 
@@ -93,20 +93,27 @@ struct is_storage_type<Field<TG, T> >
 	static const bool value = is_storage_type<T>::value;
 };
 
-template<typename TL, typename TR> auto get_grid(TL const & l,
+template<typename TL, typename TR> auto get_mesh(TL const & l,
 		TR const & r)
-		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Grid >::type const *
+		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Mesh >::type const *
 {
-	return (l.grid);
+	return (l.mesh);
 }
 
-template<typename TL, typename TR> auto get_grid(TL const & l, TR const & r)
+template<typename TL, typename TR> auto get_mesh(TL const & l, TR const & r)
 -> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
-typename TR::Geometry::Grid>::type const *
+typename TR::Geometry::Mesh>::type const *
 {
-	return (r.grid);
+	return (r.mesh);
 }
 
+template<typename T, typename TR> struct ColneField;
+
+template<typename TG, typename TE, typename TR>
+struct ColneField<Field<TG, TE>, TR>
+{
+	typedef Field<TG, TR> type;
+};
 }
 // namespace simpla
 
