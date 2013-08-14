@@ -126,9 +126,9 @@ template<int N, typename TExpr> struct nTuple;
 
 template<typename TG, typename TExpr> struct Field;
 
-template<typename TOP, typename TL, typename TR> struct BiOp;
+template<template<typename, typename > class TOP, typename TL, typename TR> struct BiOp;
 
-template<typename TOP, typename TL> struct UniOp;
+template<template<typename > class TOP, typename TL> struct UniOp;
 
 template<typename T>
 struct remove_const_reference
@@ -156,39 +156,6 @@ template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
 	static const bool value = true;
 };
 
-// check is_nTuple
-template<typename > struct is_nTuple
-{
-	static const bool value = false;
-};
-
-template<typename T> struct is_nTuple<T&>
-{
-	static const bool value = is_nTuple<T>::value;
-};
-
-template<typename T> struct is_nTuple<const T>
-{
-	static const bool value = is_nTuple<T>::value;
-};
-
-template<int N, typename T> struct is_nTuple<nTuple<N, T> >
-{
-	static const bool value = true;
-};
-
-template<typename TOP, typename TL, typename TR> struct is_nTuple<
-		BiOp<TOP, TL, TR> >
-{
-	static const bool value = (is_nTuple<TL>::value || is_nTuple<TR>::value)
-			&& !(is_Field<TL>::value || is_Field<TR>::value);
-};
-
-template<typename TOP, typename TExpr> struct is_nTuple<UniOp<TOP, TExpr> >
-{
-	static const bool value = is_nTuple<TExpr>::value;
-};
-
 template<typename > struct is_complex
 {
 	static const bool value = false;
@@ -199,7 +166,7 @@ template<typename T> struct is_complex<std::complex<T> >
 	static const bool value = true;
 };
 
-template<typename TOP, typename TL, typename TR> struct is_complex<
+template<template<typename, typename > class TOP, typename TL, typename TR> struct is_complex<
 		BiOp<TOP, TL, TR> >
 {
 	static const bool value = is_complex<TL>::value || is_complex<TR>::value;
@@ -210,18 +177,23 @@ template<typename > struct has_PlaceHolder
 	static const bool value = false;
 };
 
-template<typename TE> struct is_indexable
-{
-	typedef typename remove_const_reference<TE>::type T;
-	static const bool value = is_nTuple<T>::value || is_Field<T>::value
-			|| std::is_pointer<T>::value;
-};
-
 template<typename TL>
 struct is_arithmetic_scalar
 {
 	static const bool value = (std::is_arithmetic<TL>::value
 			|| is_complex<TL>::value || has_PlaceHolder<TL>::value);
+};
+
+template<typename T>
+struct is_primitive
+{
+	static const bool value = is_arithmetic_scalar<T>::value;
+};
+
+template<int N, typename TE>
+struct is_primitive<nTuple<N, TE> >
+{
+	static const bool value = is_arithmetic_scalar<TE>::value;
 };
 
 template<typename T>
@@ -235,12 +207,6 @@ struct is_storage_type<std::complex<T>>
 	static const bool value = false;
 };
 
-template<typename TL>
-struct is_primitive
-{
-	static const bool value = (is_arithmetic_scalar<TL>::value
-			|| is_nTuple<TL>::value || has_PlaceHolder<TL>::value);
-};
 
 template<typename T>
 struct ReferenceTraits
@@ -290,16 +256,16 @@ struct c_index<false>
 	template<typename T> static auto eval(T const & v, size_t)
 	DECL_RET_TYPE(v)
 };
-struct OpMultiplies;
-struct OpDivides;
-struct OpPlus;
-struct OpMinus;
-struct OpModulus;
-struct OpBitwiseXOR;
-struct OpBitwiseAND;
-struct OpBitwiseOR;
+template<typename, typename > struct OpMultiplies;
+template<typename, typename > struct OpDivides;
+template<typename, typename > struct OpPlus;
+template<typename, typename > struct OpMinus;
+template<typename, typename > struct OpModulus;
+template<typename, typename > struct OpBitwiseXOR;
+template<typename, typename > struct OpBitwiseAND;
+template<typename, typename > struct OpBitwiseOR;
 
-struct OpNegate;
+template<typename > struct OpNegate;
 
 //template<typename TOP, typename TL>
 //struct UniOp

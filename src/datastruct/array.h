@@ -141,7 +141,7 @@ private:
 template<typename T>
 struct is_storage_type<Array<T> >
 {
-	static const bool value = is_primitive<T>::value;
+	static const bool value = true;
 };
 
 }  // namespace simpla
