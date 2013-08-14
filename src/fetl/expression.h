@@ -136,25 +136,6 @@ struct remove_const_reference
 	typedef typename std::remove_const<typename std::remove_reference<T>::type>::type type;
 };
 
-// check is_Field
-template<typename > struct is_Field
-{
-	static const bool value = false;
-};
-template<typename T> struct is_Field<T&>
-{
-	static const bool value = is_Field<T>::value;
-};
-
-template<typename T> struct is_Field<const T>
-{
-	static const bool value = is_Field<T>::value;
-};
-
-template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
-{
-	static const bool value = true;
-};
 
 template<typename > struct is_complex
 {

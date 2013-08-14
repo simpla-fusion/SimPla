@@ -71,9 +71,8 @@ public:
 		return (*this);
 	}
 
-	template<typename TR>
-	inline typename std::enable_if<is_Field<TR>::value, ThisType &>::type //
-	operator=(TR const & rhs)
+	template<typename TR> inline ThisType &
+	operator=(Field<TGeometry, TR> const & rhs)
 	{
 		GeometryType::mesh->Assign(*this, rhs);
 		return (*this);
@@ -86,6 +85,15 @@ public:
 //	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
 
 };
+template<typename T> struct is_Field
+{
+	static const bool value = false;
+};
+
+template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
+{
+	static const bool value = true;
+};
 
 template<typename TG, typename T>
 struct is_storage_type<Field<TG, T> >
@@ -93,18 +101,23 @@ struct is_storage_type<Field<TG, T> >
 	static const bool value = is_storage_type<T>::value;
 };
 
-template<typename TL, typename TR> auto get_mesh(TL const & l,
-		TR const & r)
-		-> typename std::enable_if<is_Field<TL>::value,typename TL::Geometry::Mesh >::type const *
+template<typename TM, int IL, typename TL, typename TR> TM const * //
+get_mesh(Field<Geometry<TM, IL>, TL> const & l, TR const & r)
 {
 	return (l.mesh);
 }
 
-template<typename TL, typename TR> auto get_mesh(TL const & l, TR const & r)
--> typename std::enable_if<(!is_Field<TL>::value) && is_Field<TR>::value,
-typename TR::Geometry::Mesh>::type const *
+template<typename TM, typename TL, int IR, typename TR> TM const * //
+get_mesh(TL const & l, Field<Geometry<TM, IR>, TR> const & r)
 {
 	return (r.mesh);
+}
+
+template<typename TM, int IL, typename TL, int IR, typename TR> TM const * //
+get_mesh(Field<Geometry<TM, IL>, TL> const & l,
+		Field<Geometry<TM, IR>, TR> const & r)
+{
+	return (l.mesh);
 }
 
 template<typename T, typename TR> struct ColneField;

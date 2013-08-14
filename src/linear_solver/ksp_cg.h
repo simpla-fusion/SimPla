@@ -18,53 +18,52 @@ namespace simpla
 namespace linear_solver
 {
 
-template<typename TG, int IFORM, typename F1, typename F2, typename F3> //
-void ksp_cg(Field<TG, IFORM, F1> const & Ax, Field<TG, IFORM, F2> const & b,
-		Field<TG, IFORM, F3> & x_, size_t max_iterative_num = 1000,
-		double residual = 1.0e-10)
+template<typename TG1, typename TG2, typename F1, typename F3> //
+void ksp_cg(Field<TG1, F1> const & Ax, Field<TG2, F3> & x,
+		size_t max_iterative_num = 1000, double residual = 1.0e-10)
 {
 //	if (!CheckEquationHasVariable(Ax, x_))
 //	{
 //		LOGIC_ERROR << "Unsolvable Equation!";
 //	}
 
-	typename Field<TG, IFORM, F1>::Grid const & grid = x_.grid;
+	typedef decltype(x[0]) ValueType;
 
-	typedef typename Field<TG, IFORM, F1>::Value Value;
+	typename Field<TG1, F1>::Mesh const * mesh = x.mesh;
 
-	Field<TG, IFORM, Value> r(grid), Ap(grid), x(grid), p(grid);
+	Field<TG1, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
 
 	INFORM << "KSP_CG Solver: Start";
 
-	size_t num_of_elements = x_.grid.get_num_of_elements(IFORM);
+	ValueType rsold, rsnew, alpha;
 
-	Value rsold, rsnew, alpha;
-
-	r = b - Ax;
+	p.clear();
+	p.swap(x);
+	b = Ax;
+	p.swap(x);
+	r.clear();
 	p = r;
-	x = x_;
 
 	rsold = InnerProduct(r, r);
 
 	for (int k = 0; k < max_iterative_num; ++k)
 	{
-		x_ = p;
+		x.swap(p);
 		Ap = Ax;
+		p.swap(x);
 		alpha = rsold / InnerProduct(p, Ap);
 		x = x + alpha * (p);
 		r = r - alpha * Ap;
 
 		rsnew = InnerProduct(r, r);
 
-		if (rsnew < residual * num_of_elements)
+		if (rsnew < residual)
 		{
 			break;
 		}
 		p = r + rsnew / rsold * p;
 		rsold = rsnew;
 	}
-
-	x_ = x;
 
 	INFORM << "KSP_CG Solver: DONE! ";
 

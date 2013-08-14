@@ -202,6 +202,16 @@ struct nTuple
 	}
 };
 
+template<typename T> struct is_nTuple
+{
+	static const bool value = false;
+};
+
+template<int N, typename TE> struct is_nTuple<nTuple<N, TE> >
+{
+	static const bool value = true;
+};
+
 template<int N, typename T>
 struct is_storage_type<nTuple<N, T> >
 {

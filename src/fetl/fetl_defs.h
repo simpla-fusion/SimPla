@@ -63,6 +63,14 @@ typedef Field<Geometry<Mesh,3>, Array<nTuple<3,Complex> > >  CVecThreeForm;     
 typedef Field<Geometry<Mesh,0>, Array<Complex > > CScalarField;                       \
 typedef Field<Geometry<Mesh,0>, Array<nTuple<3,Complex> > > CVecField;
 
-} // namespace simpla
+template<typename T> struct ContainerField;
+
+template<typename TG, typename TE>
+struct ContainerField<Field<TG, Array<TE> > >
+{
+	typedef Field<TG, TE> type;
+};
+}
+// namespace simpla
 
 #endif /* FETL_DEFS_H_ */

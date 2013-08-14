@@ -26,7 +26,7 @@ struct Field<TGeometry, UniOp<TOP, TL> > : public TGeometry
 	{
 	}
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((TOP<TL >::eval(*TGeometry::mesh,l_ ,s)))
+	DECL_RET_TYPE((TOP<TL>::eval(*TGeometry::mesh,l_ ,s)))
 
 };
 
@@ -174,11 +174,11 @@ DECL_RET_TYPE(
 				BiOp<OpFPlus,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator-(Field<TGeo, TL> const & lhs,
-		Field<TGeo, TR> const & rhs)
-				DECL_RET_TYPE(
-						( Field<TGeo ,
-								BiOp<OpFMinus, Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
+DECL_RET_TYPE(
+		( Field<TGeo , BiOp<OpFMinus,
+				Field<TGeo, TL> ,
+				Field<TGeo, TR> > > (lhs, rhs)))
 
 template<typename TG, int IL, typename TL, typename TR> inline auto //
 operator*(Field<Geometry<TG, IL>, TL> const & lhs,
