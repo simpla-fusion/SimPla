@@ -7,17 +7,18 @@
 #include "physical_constants.h"
 namespace simpla
 {
-PhysicalConstants::PhysicalConstants() :
-		type("SI")
+PhysicalConstants::PhysicalConstants(std::string type)
 {
-	Init();
+	SetBaseUnit(type_);
 }
 PhysicalConstants::~PhysicalConstants()
 {
 }
-
-void PhysicalConstants::Init()
+void PhysicalConstants::SetBaseUnit(std::string const & type, Real pm, Real ps,
+		Real pkg, Real pC, Real pK, Real pMol)
 {
+	type_ = type;
+
 	if (type == "SI")
 	{
 		m = 1.0;
@@ -44,6 +45,16 @@ void PhysicalConstants::Init()
 		m = C * C / (SI_permeability_of_free_space * kg);
 		s = m * SI_speed_of_light;
 		mol = 1.0;
+	}
+	else
+	{
+		type_ = type;
+		m = pm;
+		s = ps;
+		kg = pkg;
+		C = pC;
+		K = pK;
+		mol = pMol;
 	}
 
 	q_["kg"] = kg;
@@ -132,8 +143,7 @@ void PhysicalConstants::Init()
 
 }
 
-
-std::string Summary(PhysicalConstants* self)
+std::string PhysicalConstants::Summary() const
 {
 	std::ostringstream os;
 
@@ -141,30 +151,30 @@ std::string Summary(PhysicalConstants* self)
 
 	<< DOUBLELINE << std::endl
 
-	<< "Units " << self->type << " ~ SI" << std::endl
+	<< "Units " << type_ << " ~ SI" << std::endl
 
 	<< SINGLELINE << std::endl
 
-	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*self)["m"] << "[m]"
+	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*this)["m"] << "[m]"
 			<< std::endl
 
-			<< std::setw(40) << "1 [time unit] = " << 1.0 / (*self)["s"]
+			<< std::setw(40) << "1 [time unit] = " << 1.0 / (*this)["s"]
 			<< "[s]" << std::endl
 
-			<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*self)["kg"]
+			<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*this)["kg"]
 			<< "[kg]" << std::endl
 
 			<< std::setw(40) << "1 [electric charge unit] = "
 
-			<< 1.0 / (*self)["C"] << "[C]" << std::endl
+			<< 1.0 / (*this)["C"] << "[C]" << std::endl
 
 			<< std::setw(40) << "1 [temperature unit] = "
 
-			<< 1.0 / (*self)["K"] << "[K]" << std::endl
+			<< 1.0 / (*this)["K"] << "[K]" << std::endl
 
 			<< std::setw(40) << "1 [amount of substance] = "
 
-			<< 1.0 / (*self)["mol"] << "[mole]" << std::endl
+			<< 1.0 / (*this)["mol"] << "[mole]" << std::endl
 
 			<< SINGLELINE << std::endl
 
@@ -174,34 +184,33 @@ std::string Summary(PhysicalConstants* self)
 
 			<< std::setw(40) << "permeability of free space, mu = "
 
-			<< (*self)["permeability_of_free_space"] << std::endl
+			<< (*this)["permeability_of_free_space"] << std::endl
 
 			<< std::setw(40) << "permittivity of free space, epsilon = "
 
-			<< (*self)["permittivity_of_free_space"] << std::endl
+			<< (*this)["permittivity_of_free_space"] << std::endl
 
 			<< std::setw(40) << "speed of light, c = "
 
-			<< (*self)["speed_of_light"] << std::endl
+			<< (*this)["speed_of_light"] << std::endl
 
 			<< std::setw(40) << "elementary charge, e = "
 
-			<< (*self)["elementary_charge"] << std::endl
+			<< (*this)["elementary_charge"] << std::endl
 
 			<< std::setw(40) << "electron mass, m_e = "
 
-			<< (*self)["electron_mass"] << std::endl
+			<< (*this)["electron_mass"] << std::endl
 
 			<< std::setw(40) << "proton mass,m_p = "
 
-			<< (*self)["proton_mass"] << std::endl
+			<< (*this)["proton_mass"] << std::endl
 
 			<< DOUBLELINE << std::endl;
 
 	return os.str();
 
 }
-
 
 }  // namespace simpla
 

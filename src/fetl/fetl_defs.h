@@ -34,7 +34,7 @@ typedef Field<Geometry<Mesh,1>, Array<nTuple<3,Real> > >    VecOneForm;         
 typedef Field<Geometry<Mesh,2>, Array<nTuple<3,Real> > >    VecTwoForm;                             \
 typedef Field<Geometry<Mesh,3>, Array<nTuple<3,Real> > >  VecThreeForm;                         \
                                                                                      \
-typedef Field<Geometry<Mesh,0>,Array<Real> > ScalarField;                             \
+typedef Field<Geometry<Mesh,0>, Array<Real> > ScalarField;                             \
 typedef Field<Geometry<Mesh,0>, Array<nTuple<3,Real> > > VecField;                              \
                                                                                      \
 typedef Field<Geometry<Mesh,0>,Array<Real> >     RZeroForm;                               \
@@ -47,7 +47,7 @@ typedef Field<Geometry<Mesh,1>, Array<nTuple<3,Real> > >   RVecOneForm;         
 typedef Field<Geometry<Mesh,2>, Array<nTuple<3,Real> > >   RVecTwoForm;                           \
 typedef Field<Geometry<Mesh,3>, Array<nTuple<3,Real> > > RVecThreeForm;                       \
                                                                                      \
-typedef Field<Geometry<Mesh,0>,Array<Real> > RScalarField;                            \
+typedef Field<Geometry<Mesh,0>, Array<Real> > RScalarField;                            \
 typedef Field<Geometry<Mesh,0>, Array<nTuple<3,Real> > > RVecField;                            \
                                                                                      \
 typedef Field<Geometry<Mesh,0>, Array<Complex > > CZeroForm;                          \

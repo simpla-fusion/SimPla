@@ -1,7 +1,16 @@
 -- Auto-generated  config file.------------------- --------
 -- Jun 25 2011 14:55:06
-    UNIT_DIMENSIONS = "SI"    
-    c = 2.99792458e8 -- m/s
+
+    Description="For Cold Plasma Dispersion" -- description or other text things.    
+
+
+    UnitSystem = 
+     { 
+       type= "SI"
+     }
+     
+    
+    c = 3.1415926e8 -- m/s
     Btor= 1.0 -- Tesla
     Ti =  0.3 -- KeV
     Te =  0.1 -- KeV
@@ -9,23 +18,33 @@
 --    print(rhoi)
 
     k0 = 25./40.
+    NX = 411
+    NY = 1
+    NZ = 1
     LX = 2.0*math.pi/k0   --2.0*math.pi*1000 * rhoi --0.6
     LY = 2.0*math.pi
     LZ = 2.0*math.pi  -- 2.0*math.pi/18
+    GW = 5 
     n0 = 1.07e17 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
     omega_ci = 9.58e7*Btor -- rad/s
 
-    DESCRIPTION="For Cold Plasma Dispersion" -- description or other text things.    
+    
+    
+    Mesh={
              
-    DIMS={411,1,1} -- number of grid, now only first dimension is valid       
-             
-    GW= {5,1,1}  -- width of ghost points            
-        
-    LENGTH={LX/(DIMS[1]-GW[1]*2-1)*(DIMS[1]-1),LY,LZ}    
-         
-    DT=0.5*LENGTH[1]/ (DIMS[1]-1.0)/c  -- time step     
+      dims={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
+	      
+      gw= {5,1,1},  -- width of ghost points            
+      
+      xmin={0,0,0},
+      
+      xmax={LX/(NX-GW*2-1)*(NX-1),LY,LZ}    ,       
+	      
+      dt=0.5*LX/ (NX-1)/c  -- time step     
+    }
              
     DIAGNOSIS={"E1","B1"}
+    
     SP_LIST= {"HG"} -- the list of species in the simulation        
              
 

@@ -17,19 +17,11 @@
 
 //#include "mpl/typetraits.h"
 
-#include <tr1/memory>
-#include <tr1/functional>
-namespace TR1 = std::tr1;
-
-//#else
-//#	include <boost/shared_ptr.hpp>
-//#	include <boost/function.hpp>
-//#	include <boost/bind.hpp>
-//namespace TR1 = boost;
-//#endif //DONOT_USE_TR1
-//#endif //__GXX_EXPERIMENTAL_CXX0X__
+#include <memory>
+#include <functional>
 
 #include "utilities/log.h"
+
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
 #endif

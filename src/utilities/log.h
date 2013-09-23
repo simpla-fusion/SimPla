@@ -65,6 +65,8 @@ public:
 	}
 	int info_level;
 
+	std::string format;
+
 	std::fstream fs;
 
 };
@@ -110,6 +112,11 @@ public:
 	static void OpenFile(std::string const & fname)
 	{
 		LogStreams::instance().OpenFile(fname);
+	}
+
+	static void setFormat(std::string const & format)
+	{
+		LogStreams::instance().format = format;
 	}
 
 	static std::string Teimstamp()

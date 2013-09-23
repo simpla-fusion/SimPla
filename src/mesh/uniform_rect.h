@@ -14,17 +14,7 @@
 
 #include "include/simpla_defs.h"
 
-//#include "fetl/fetl.h"
-
 #include "fetl/primitives.h"
-
-//#include "fetl/geometry.h"
-
-//#include "fetl/vector_calculus.h"
-
-//#include "fetl/expression.h"
-
-#include "mesh.h"
 
 namespace simpla
 {
@@ -47,7 +37,7 @@ struct UniformRectMesh: public BaseMesh
 
 	typedef Real ValueType;
 	typedef UniformRectMesh Grid;
-	typedef TR1::shared_ptr<Grid> Holder;
+	typedef std::shared_ptr<Grid> Holder;
 	typedef RVec3 CoordinatesType;
 	typedef UniformRectMesh ThisType;
 
@@ -60,7 +50,7 @@ struct UniformRectMesh: public BaseMesh
 
 	typedef RVec3 Coordinate;
 
-	typedef TR1::shared_ptr<ByteType> Storage;
+	typedef std::shared_ptr<ByteType> Storage;
 
 	Real dt;
 	// Geometry
@@ -73,23 +63,28 @@ struct UniformRectMesh: public BaseMesh
 	RVec3 inv_dx;
 	RVec3 dx;
 
-	UniformRectMesh() :
-			dt(0)
+	UniformRectMesh()
 	{
 	}
 	~UniformRectMesh()
 	{
 	}
 
-	void SetGeometry(Real pdt, RVec3 pxmin, RVec3 pxmax, IVec3 pdims, IVec3 pgw)
+	template<typename TCONFIG>
+	void Config(TCONFIG const & vm)
 	{
-		dt = pdt;
-		xmin = pxmin;
-		xmax = pxmax;
-		dims = pdims;
-		gw = pgw;
+		vm["dt"].get(dt);
+		vm["xmin"].get(xmin);
+		vm["xmax"].get(xmax);
+		vm["dims"].get(dims);
+		vm["gw"].get(gw);
 
 		Init();
+	}
+
+	std::string Summary() const
+	{
+		return ("Coder is too lazy to implement it!");
 	}
 
 	void Init()

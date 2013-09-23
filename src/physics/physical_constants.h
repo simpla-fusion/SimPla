@@ -8,8 +8,6 @@
 #ifndef PHYSICAL_CONSTANTS_H_
 #define PHYSICAL_CONSTANTS_H_
 #include "include/simpla_defs.h"
-#include "utilities/properties.h"
-#include "primitives/primitives.h"
 #include "constants.h"
 namespace simpla
 {
@@ -17,12 +15,25 @@ namespace simpla
 class PhysicalConstants
 {
 public:
-	PhysicalConstants();
+	PhysicalConstants(std::string type = "SI");
 	~PhysicalConstants();
 
-	void Parse(ptree const &pt);
+	template<typename TCONFIG>
+	void Config(TCONFIG const & vm)
+	{
+		SetBaseUnit(vm["type"].get_value<std::string>(),
+				vm["m"].get_value<Real>(1.0), //
+				vm["s"].get_value<Real>(1.0), //
+				vm["kg"].get_value<Real>(1.0), //
+				vm["C"].get_value<Real>(1.0), //
+				vm["K"].get_value<Real>(1.0), //
+				vm["Mol"].get_value<Real>(1.0));
+	}
 
-	void Init();
+	std::string Summary() const;
+
+	void SetBaseUnit(std::string const & type_name = "CUSTOM", Real pm = 1,
+			Real ps = 1, Real pkg = 1, Real pC = 1, Real pK = 1, Real pMol = 1);
 
 	inline Real operator[](std::string const &s) const
 	{
@@ -38,29 +49,17 @@ public:
 		{
 			ERROR << "Physical quantity " << s << " is not available!";
 		}
-		return 0;
-	}
 
-	inline void SetBaseUnits(std::string const & type_name, Real pm, Real ps,
-			Real pkg, Real pC, Real pK, Real pMol)
-	{
-		type = type_name;
-		m = pm;
-		s = ps;
-		kg = pkg;
-		C = pC;
-		K = pK;
-		mol = pMol;
-		Init();
+		return 0;
 	}
 
 private:
 	std::map<std::string, Real> q_; //physical quantity
 	std::map<std::string, std::string> unitSymbol_;
 
-	std::string type;
+	std::string type_;
 
-	//SI base unit
+//SI base unit
 	Real m; //<< length [meter]
 	Real s;	//<< time	[second]
 	Real kg; //<< mass	[kilgram]
