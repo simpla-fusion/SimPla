@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
 	po::store(po::parse_command_line(argc, argv, desc), vm_);
 
-	LuaState pt;
+	LuaObject pt;
 
 	if (vm_.count("help") > 0)
 	{
