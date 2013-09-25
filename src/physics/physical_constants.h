@@ -19,26 +19,29 @@ public:
 	~PhysicalConstants();
 
 	template<typename TCONFIG>
-	void Config(TCONFIG const & vm)
+	void Config(TCONFIG vm)
 	{
-		SetBaseUnit(vm["type"].get_value<std::string>(),
-				vm["m"].get_value<Real>(1.0), //
-				vm["s"].get_value<Real>(1.0), //
-				vm["kg"].get_value<Real>(1.0), //
-				vm["C"].get_value<Real>(1.0), //
-				vm["K"].get_value<Real>(1.0), //
-				vm["Mol"].get_value<Real>(1.0));
+
+		SetBaseUnit(
+		vm["type"].template as<std::string>(), //
+				vm["m"].template as<double>(1.0), //
+				vm["s"].template as<double>(1.0), //
+				vm["kg"].template as<double>(1.0), //
+				vm["C"].template as<double>(1.0), //
+				vm["K"].template as<double>(1.0), //
+				vm["Mol"].template as<double>(1.0));
 	}
 
 	std::string Summary() const;
 
-	void SetBaseUnit(std::string const & type_name = "CUSTOM", Real pm = 1,
-			Real ps = 1, Real pkg = 1, Real pC = 1, Real pK = 1, Real pMol = 1);
+	void SetBaseUnit(std::string const & type_name = "CUSTOM", double pm = 1,
+			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
+			double pMol = 1);
 
-	inline Real operator[](std::string const &s) const
+	inline double operator[](std::string const &s) const
 	{
 
-		std::map<std::string, Real>::const_iterator it = q_.find(s);
+		std::map<std::string, double>::const_iterator it = q_.find(s);
 
 		if (it != q_.end())
 		{
@@ -54,18 +57,18 @@ public:
 	}
 
 private:
-	std::map<std::string, Real> q_; //physical quantity
+	std::map<std::string, double> q_; //physical quantity
 	std::map<std::string, std::string> unitSymbol_;
 
 	std::string type_;
 
 //SI base unit
-	Real m; //<< length [meter]
-	Real s;	//<< time	[second]
-	Real kg; //<< mass	[kilgram]
-	Real C;	//<< electric charge	[coulomb]
-	Real K;	//<< temperature [kelvin]
-	Real mol;	//<< amount of substance [mole]
+	double m; //<< length [meter]
+	double s;	//<< time	[second]
+	double kg; //<< mass	[kilgram]
+	double C;	//<< electric charge	[coulomb]
+	double K;	//<< temperature [kelvin]
+	double mol;	//<< amount of substance [mole]
 
 }
 ;

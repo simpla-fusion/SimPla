@@ -12,10 +12,13 @@
 #include "utilities/lua_parser.h"
 #include "physics/physical_constants.h"
 #include "fetl/fetl.h"
+#include "mesh/uniform_rect.h"
 #include <cmath>
 #include <string>
 #include <vector>
 #include <list>
+#include <boost/program_options.hpp>
+#include <omp.h>
 
 using namespace simpla;
 
@@ -53,11 +56,12 @@ int main(int argc, char **argv)
 
 	("gen_config,g", "generate example configure file")
 
+	;
+
 	po::variables_map vm_;
 
 	po::store(po::parse_command_line(argc, argv, desc), vm_);
 
-	LuaState pt;
 
 	if (vm_.count("help") > 0)
 	{
@@ -91,6 +95,9 @@ int main(int argc, char **argv)
 	Log::Verbose(vm_["verbose"].as<int>());
 
 	Log::OpenFile(vm_["log"].as<std::string>());
+
+
+	LuaObject pt;
 
 	if (vm_.count("input") > 0)
 	{
@@ -153,20 +160,15 @@ int main(int argc, char **argv)
 
 	// Main Loop ============================================
 
-	INFORM(">>> Pre-Process DONE! <<<");
-
-	INFORM(">>> Process START! <<<");
+	INFORM<<(">>> Pre-Process DONE! <<<");
+	INFORM<<(">>> Process START! <<<");
 
 	for (int i = 0; i < numOfStep; ++i)
 	{
-		process();
 	}
 
-	INFORM(">>> Process DONE! <<<");
-
-	post_process();
-
-	INFORM(">>> Post-Process DONE! <<<");
+	INFORM<<(">>> Process DONE! <<<");
+	INFORM<<(">>> Post-Process DONE! <<<");
 
 	// Log ============================================
 

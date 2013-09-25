@@ -62,10 +62,12 @@ typedef Field<Geometry<Mesh,3>, Array<nTuple<3,Complex> > >  CVecThreeForm;     
 	                                                                         \
 typedef Field<Geometry<Mesh,0>, Array<Complex > > CScalarField;                       \
 typedef Field<Geometry<Mesh,0>, Array<nTuple<3,Complex> > > CVecField;                         \
-template<typename T> using ZeroForm 	= Field<Geometry<Mesh,0>,Array<T> >;        \
-template<typename T> using OneForm 		= Field<Geometry<Mesh,1>,Array<T> >;        \
-template<typename T> using TwoForm 		= Field<Geometry<Mesh,2>,Array<T> >;        \
-template<typename T> using ThreeForm 	= Field<Geometry<Mesh,3>,Array<T> >;        \
+
+//
+//template<typename T> using ZeroForm 	= Field<Geometry<Mesh,0>,Array<T> >;        \
+//template<typename T> using OneForm 		= Field<Geometry<Mesh,1>,Array<T> >;        \
+//template<typename T> using TwoForm 		= Field<Geometry<Mesh,2>,Array<T> >;        \
+//template<typename T> using ThreeForm 	= Field<Geometry<Mesh,3>,Array<T> >;        \
 
 template<typename T> struct ContainerField;
 

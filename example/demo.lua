@@ -4,7 +4,7 @@
     Description="For Cold Plasma Dispersion" -- description or other text things.    
 
 
-    UnitSystem = 
+    UNIT_SYSTEM = 
      { 
        type= "SI"
      }
@@ -30,13 +30,13 @@
 
     
     
-    Mesh={
+    MESH={
              
       dims={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
 	      
       gw= {5,1,1},  -- width of ghost points            
       
-      xmin={0,0,0},
+      xmin={0.0,0.0,0.0},
       
       xmax={LX/(NX-GW*2-1)*(NX-1),LY,LZ}    ,       
 	      
@@ -47,30 +47,8 @@
     
     SP_LIST= {"HG"} -- the list of species in the simulation        
              
-
-    N0={}  -- initial/background density field of  electron;         
-    B0={}
-    E0={}
-
-	  
-    for x=0,DIMS[1] -1 do        
-     for y=0,DIMS[2] -1 do     
-      for z=0,DIMS[3] -1 do    
-         s=x*DIMS[2]*DIMS[3]+ y*DIMS[3]+z   
-         -- if x> (DIMS[1]-1)/10 and x <(DIMS[1]-1)/10*9  then 
-         --  r=(x-(DIMS[1]-1)*0.1)/(DIMS[1]-1)*10/8.0
-         --  N0[s]= n0 *(1-4*(r-0.5)*(r-0.5))
-         -- end
-         N0[s] = n0
-         r=x/(DIMS[1]-1)
-         B0[s*3+2]=Btor -- *1.2*(1/2.3+(1/1.8-1/2.3)*r)  
-      end    
-     end    
-    end     
     
-    LOAD_FIELD=
-    
-    SPECIES= -- predefine species         
+    SPECIES=        
     {                
          ele	={desc="ele" ,Z=-1.0,   m=1.0/100.0, engine="ColdFluid", Ts=0.0},
    
@@ -84,7 +62,7 @@
           
     } 
 
-   ---[[ uncomment this line, if you need Cycle BC.
+   --[[ uncomment this line, if you need Cycle BC.
     -- set BC(boundary condition), now only first two are valid         
     -- BC >= GW               
     BC= {             

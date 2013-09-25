@@ -7,14 +7,11 @@
  */
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
-
+#include "include/simpla_defs.h"
+#include "fetl/primitives.h"
 #include <vector>
 #include <exception>
 #include <numeric>
-
-#include "include/simpla_defs.h"
-
-#include "fetl/primitives.h"
 
 namespace simpla
 {
@@ -23,7 +20,7 @@ template<typename, int> class Geometry;
 /**
  *  UniformRectMesh -- Uniform rectangular structured grid.
  * */
-struct UniformRectMesh: public BaseMesh
+struct UniformRectMesh
 {
 	static const int NUM_OF_DIMS = 3;
 
@@ -73,18 +70,35 @@ struct UniformRectMesh: public BaseMesh
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
-		vm["dt"].get(dt);
-		vm["xmin"].get(xmin);
-		vm["xmax"].get(xmax);
-		vm["dims"].get(dims);
-		vm["gw"].get(gw);
+		vm["dt"].template get(&dt);
+		vm["xmin"].template get(&xmin);
+		vm["xmax"].template get(&xmax);
+		vm["dims"].template get(&dims);
+		vm["gw"].template get(&gw);
 
 		Init();
 	}
 
 	std::string Summary() const
 	{
-		return ("Coder is too lazy to implement it!");
+		std::ostringstream os;
+
+		os
+
+		<< "[Mesh]"  << std::endl
+
+		<< SINGLELINE << std::endl
+
+		<< std::setw(40) << "dims = " << dims << std::endl
+
+		<< std::setw(40) << "xmin = " << xmin << std::endl
+
+		<< std::setw(40) << "xmax = " << xmax << std::endl
+
+		<< std::setw(40) << "gw = " << gw << std::endl
+
+		;
+		return (os.str());
 	}
 
 	void Init()
@@ -762,7 +776,6 @@ struct UniformRectMesh: public BaseMesh
 
 }
 ;
-
 
 } //namespace simpla
 #endif //UNIFORM_RECT_H_

@@ -14,8 +14,8 @@ PhysicalConstants::PhysicalConstants(std::string type)
 PhysicalConstants::~PhysicalConstants()
 {
 }
-void PhysicalConstants::SetBaseUnit(std::string const & type, Real pm, Real ps,
-		Real pkg, Real pC, Real pK, Real pMol)
+void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps,
+		double pkg, double pC, double pK, double pMol)
 {
 	type_ = type;
 
@@ -151,7 +151,7 @@ std::string PhysicalConstants::Summary() const
 
 	<< DOUBLELINE << std::endl
 
-	<< "Units " << type_ << " ~ SI" << std::endl
+	<< "[Units] " << type_ << " ~ SI" << std::endl
 
 	<< SINGLELINE << std::endl
 

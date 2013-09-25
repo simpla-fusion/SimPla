@@ -6,6 +6,7 @@
  */
 
 #include "lua_parser.h"
+#include "fetl/primitives.h"
 #include <iostream>
 using namespace simpla;
 int main(int argc, char** argv)
@@ -13,7 +14,7 @@ int main(int argc, char** argv)
 	LuaObject lstate;
 
 	lstate.ParseString(
-			"c=100 \n t1={a=5,b=6.0,c=\"text\"} \n t2={e=4,f=true} \n\n"
+			"c=100 \n t1={a=5,b=6.0,c=\"text\"} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
 					"function f(x,y) \n"
 					"    return x+y  \n"
 					"end \n");
@@ -39,6 +40,8 @@ int main(int argc, char** argv)
 	std::cout << "f(3,2.5) \t="<< lstate["f"](3.0, 2.5).as<double>() << std::endl;
 
 	std::cout << "f(3,2.5) \t="<< lstate["f"](3.0, 2.5).as<double>() << std::endl;
+
+	std::cout << "t3 \t="<< lstate["t3"].as<nTuple<3,double>>() << std::endl;
 
 
 
