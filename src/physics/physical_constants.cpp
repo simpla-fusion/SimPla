@@ -97,49 +97,49 @@ void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double 
 
 	q_["Tesla"] = kg / s / C; /*Magnetic induction   */
 
-	q_["speed_of_light"] = SI_speed_of_light * m / s; /*exact*/
+	q_["speed of light"] = SI_speed_of_light * m / s; /*exact*/
 
-	q_["permeability_of_free_space"] = SI_permeability_of_free_space * q_["H"]
+	q_["permeability of free space"] = SI_permeability_of_free_space * q_["H"]
 			/ m; /*exact*/
 
-	q_["permittivity_of_free_space"] = 1.0
-			/ (q_["speed_of_light"] * q_["speed_of_light"]
-					* q_["permeability_of_free_space"]);/*exact*/
+	q_["permittivity of free space"] = 1.0
+			/ (q_["speed of light"] * q_["speed of light"]
+					* q_["permeability of free space"]);/*exact*/
 
-	q_["mu"] = q_["permeability_of_free_space"];
+	q_["mu"] = q_["permeability of free space"];
 
-	q_["epsilon"] = q_["permittivity_of_free_space"];
+	q_["epsilon"] = q_["permittivity of free space"];
 
-	q_["gravitational_constant"] = SI_gravitational_constant * (m * m * m)
+	q_["gravitational constant"] = SI_gravitational_constant * (m * m * m)
 			/ (s * s) / kg; /*1.2e-4*/
 
-	q_["plank_constant"] = SI_plank_constant * q_["J"] * s; /*4.4e-8*/
+	q_["plank constant"] = SI_plank_constant * q_["J"] * s; /*4.4e-8*/
 
-	q_["plank_constant_bar"] = SI_plank_constant_bar * q_["J"] * s;
+	q_["plank constant bar"] = SI_plank_constant_bar * q_["J"] * s;
 
-	q_["elementary_charge"] = SI_elementary_charge * C; /*2.2e-8*/
+	q_["elementary charge"] = SI_elementary_charge * C; /*2.2e-8*/
 
-	q_["electron_mass"] = SI_electron_mass * kg; /*4.4e-8*/
+	q_["electron mass"] = SI_electron_mass * kg; /*4.4e-8*/
 
-	q_["proton_mass"] = SI_proton_mass * kg;
+	q_["proton mass"] = SI_proton_mass * kg;
 
-	q_["proton_electron_mass_ratio"] = SI_proton_electron_mass_ratio;
+	q_["proton electron mass ratio"] = SI_proton_electron_mass_ratio;
 
-	q_["electron_charge_mass_ratio"] = SI_electron_charge_mass_ratio * C / kg;
+	q_["electron charge mass ratio"] = SI_electron_charge_mass_ratio * C / kg;
 
-	q_["fine_structure_constant"] = SI_fine_structure_constant; /*3.23-10*/
+	q_["fine_structure constant"] = SI_fine_structure_constant; /*3.23-10*/
 
-	q_["Rydberg_constant"] = SI_Rydberg_constant / m; /*5e-12*/
+	q_["Rydberg constant"] = SI_Rydberg_constant / m; /*5e-12*/
 
-	q_["Avogadro_constant"] = SI_Avogadro_constant / mol; /*4.4e-8*/
+	q_["Avogadro constant"] = SI_Avogadro_constant / mol; /*4.4e-8*/
 
-	q_["Faraday_constant"] = SI_Faraday_constant * C / mol; /*2.2e-10*/
+	q_["Faraday constant"] = SI_Faraday_constant * C / mol; /*2.2e-10*/
 
-	q_["Boltzmann_constant"] = SI_Boltzmann_constant * q_["J"] / K; /*9.1e-7*/
+	q_["Boltzmann constant"] = SI_Boltzmann_constant * q_["J"] / K; /*9.1e-7*/
 
-	q_["electron_volt"] = SI_electron_volt * q_["J"]; /*2.2e-8*/
+	q_["electron volt"] = SI_electron_volt * q_["J"]; /*2.2e-8*/
 
-	q_["atomic_mass_unit"] = SI_atomic_mass_unit * kg; /*4.4e-8*/
+	q_["atomic mass unit"] = SI_atomic_mass_unit * kg; /*4.4e-8*/
 
 }
 
@@ -184,15 +184,15 @@ std::string PhysicalConstants::Summary() const
 
 			<< std::setw(40) << "permeability of free space, mu = "
 
-			<< (*this)["permeability_of_free_space"] << std::endl
+			<< (*this)["permeability of free space"] << std::endl
 
 			<< std::setw(40) << "permittivity of free space, epsilon = "
 
-			<< (*this)["permittivity_of_free_space"] << std::endl
+			<< (*this)["permittivity of free space"] << std::endl
 
 			<< std::setw(40) << "speed of light, c = "
 
-			<< (*this)["speed_of_light"] << std::endl
+			<< (*this)["speed of light"] << std::endl
 
 			<< std::setw(40) << "elementary charge, e = "
 

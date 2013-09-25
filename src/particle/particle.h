@@ -8,41 +8,24 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 #include "include/simpla_defs.h"
-#include "datastruct/ndarray.h"
-#include "datastruct/pool.h"
+//#include "datastruct/ndarray.h"
+//#include "datastruct/pool.h"
+#include "fetl/fetl.h"
 namespace simpla
 {
-
-template<typename TG, typename TS>
-class Particle: public NdArray
+template<typename TG>
+struct Particle
 {
-public:
+	DEFINE_FIELDS(TG);
 
-	typedef TG Grid;
+	Real m;
+	Real Z;
+	Real T;
 
-	typedef TS ParticleType;
+	ZeroForm n;
+	VecZeroForm J;
 
-	typedef typename Grid::Index Index;
 
-	typedef typename Grid::Coordinates Coordinates;
-
-	typedef Particle<Grid, ParticleType> ThisType;
-
-	const Grid & grid;
-
-	typedef Pool<ParticleType> ParticlePool;
-
-	typename Grid::ZeroForm n;
-
-	Particle(const Grid &pgrid) :
-			grid(pgrid)
-	{
-
-	}
-
-	~Particle()
-	{
-	}
 
 };
 

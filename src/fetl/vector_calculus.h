@@ -139,6 +139,8 @@ DEF_BIOP_CLASS(Plus)
 DEF_BIOP_CLASS(Minus)
 DEF_BIOP_CLASS(Multiplies)
 DEF_BIOP_CLASS(Divides)
+DEF_BIOP_CLASS(Cross)
+DEF_BIOP_CLASS(Dot)
 #undef DEF_BIOP_CLASS
 
 template<typename TGeometry, template<typename, typename > class TOP,
@@ -243,6 +245,8 @@ DECL_RET_TYPE(
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator==(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE((lhs-rhs))
+
+
 
 }
 // namespace simpla

@@ -132,6 +132,7 @@ public:
 			operator[](i) = v;
 		}
 	}
+	void clear(){};
 
 private:
 	size_t num_of_elements_;
