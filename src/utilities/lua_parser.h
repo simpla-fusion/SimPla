@@ -16,6 +16,7 @@
 #include <algorithm>
 
 #include "log.h"
+#include "refcount.h"
 #include "fetl/ntuple.h"
 
 namespace simpla
@@ -23,86 +24,121 @@ namespace simpla
 
 #define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, 1) ;   lua_pop(_L, 1);
 
-template<typename TO, typename TI> class LuaFunction;
+static void stackDump(lua_State *L)
+{
+	int top = lua_gettop(L);
+	for (int i = 1; i < top; ++i)
+	{
+		int t = lua_type(L, i);
+		switch (t)
+		{
+		case LUA_TSTRING:
+			std::cout << "[" << i << "]" << lua_tostring(L,i) << std::endl;
+			break;
+
+		case LUA_TBOOLEAN:
+			std::cout << "[" << i << "]" << std::boolalpha
+					<< lua_toboolean(L, i) << std::endl;
+			break;
+
+		case LUA_TNUMBER:
+			std::cout << "[" << i << "]" << lua_tonumber(L, i) << std::endl;
+			break;
+		case LUA_TTABLE:
+			std::cout << "[" << i << "]" << "is a table" << std::endl;
+			break;
+		default:
+			std::cout << "[" << i << "]" << "is an unknown type" << std::endl;
+		}
+	}
+	std::cout << "===== End the listing =====" << std::endl;
+}
 
 class LuaObject
 {
 	std::shared_ptr<lua_State> lstate_;
-
-	std::shared_ptr<int> idx_;
-	std::string key;
-
+	std::string key_; //for reference counting
+	int parent_;
+	int idx_;
 public:
 
 	LuaObject() :
 			lstate_(luaL_newstate(), lua_close), //
-			idx_(new int(LUA_GLOBALSINDEX)), key("")
+			parent_(0), idx_(LUA_GLOBALSINDEX), key_("")
 	{
 		luaL_openlibs(lstate_.get());
 	}
 
-	LuaObject(std::shared_ptr<lua_State> p, std::shared_ptr<int> pidx,
-			std::string pkey = "") :
-			lstate_(p), idx_(pidx), key(pkey)
+	LuaObject(std::shared_ptr<lua_State> p, int parent, std::string pkey) :
+			lstate_(p), key_(pkey), parent_(parent), idx_(0)
 	{
 	}
 
-	LuaObject(LuaObject && r) :
-			key(r.key.c_str()), lstate_(r.lstate_), idx_(r.idx_)
+	LuaObject(std::shared_ptr<lua_State> p, int idx) :
+			lstate_(p), key_(""), parent_(LUA_GLOBALSINDEX), idx_(idx)
 	{
-		CHECK(key);
-		CHECK(*idx_);
-		r.idx_.reset();
-		r.lstate_.reset();
-		r.key = "";
 	}
-	LuaObject(LuaObject const& r) = delete;
+
 	~LuaObject()
 	{
-		if (idx_.unique() && *idx_ != LUA_GLOBALSINDEX)
+		if (idx_ != LUA_GLOBALSINDEX && idx_ != 0)
 		{
-			lua_pop(lstate_.get(), *idx_);
+			lua_remove(lstate_.get(), idx_);
+		}
+	}
+
+	inline void get_object()
+	{
+		if (idx_ == 0 && parent_ != 0)
+		{
+			lua_getfield(lstate_.get(), parent_, key_.c_str());
+
+			if (lua_isnil(lstate_.get(), -1))
+			{
+				LUA_ERROR(lstate_.get(),
+						"\n Can not find key  [" + key_ + "]! ");
+			}
+			idx_ = lua_gettop(lstate_.get());
 		}
 	}
 
 	LuaObject operator[](std::string const & sub_key)
 	{
-		CHECK(key);
-		CHECK(*idx_);
-		if (!lua_istable(lstate_.get(),*idx_))
+//		if (!lua_istable(lstate_.get(),idx_))
+//		{
+//			ERROR << "Attempt index a non-table value [" << key_ << "."
+//					<< sub_key << "]!!";
+//		}
+
+		get_object();
+
+		if (lua_type(lstate_.get(), idx_) != LUA_TTABLE)
 		{
-			ERROR << "Attempt index a non-table value [" << key << "."
-					<< sub_key << "]!!";
+			ERROR << key_ << "is not a table!!";
 		}
 
-		lua_getfield(lstate_.get(), *idx_, sub_key.c_str());
-
-		std::shared_ptr<int> sub_idx_(new int);
-
-		if (lua_isnil(lstate_.get(), -1))
-		{
-			LUA_ERROR(lstate_.get(), "\n Can not find key  [" + key + "]! ");
-		}
-		else
-		{
-			*sub_idx_ = lua_gettop(lstate_.get());
-			CHECK(*sub_idx_);
-		}
-		return (LuaObject(lstate_, sub_idx_,
-				(key == "") ? sub_key : key + "." + sub_key));
+		return (LuaObject(lstate_, idx_, sub_key));
 	}
 
 public:
+
 	template<typename ... Args>
 	LuaObject operator()(Args const & ... args)
 	{
-		if (lua_type(lstate_.get(), *idx_) != LUA_TFUNCTION)
+		lua_getfield(lstate_.get(), parent_, key_.c_str());
+
+		if (lua_isnil(lstate_.get(), -1))
 		{
-			ERROR << key << " is not a function!!";
+			LUA_ERROR(lstate_.get(), "\n Can not find key  [" + key_ + "]! ");
+		}
+		else if (!lua_isfunction(lstate_.get(), -1))
+		{
+			ERROR << key_ << " is not a function!!";
 		}
 		push_arg(args...);
 		lua_call(lstate_.get(), sizeof...(args), 1);
-		return (LuaObject(lstate_, std::shared_ptr<int>(new int(lua_gettop(lstate_.get())))));
+
+		return (LuaObject(lstate_, lua_gettop(lstate_.get())));
 	}
 private:
 	template<typename T, typename ... Args>
@@ -145,7 +181,11 @@ public:
 	template<typename T>
 	inline void get(T * value)
 	{
-		toValue_(*idx_, value);
+		if (idx_ == 0)
+		{
+			get_object();
+		}
+		toValue_(idx_, value);
 	}
 
 	template<typename T>
@@ -180,7 +220,7 @@ private:
 		}
 		else
 		{
-			ERROR << key + " is not a double!";
+			ERROR << key_ + " is not a double!";
 		}
 	}
 	inline void toValue_(int idx, int *res)
@@ -192,7 +232,7 @@ private:
 		}
 		else
 		{
-			ERROR << (key + " is not a int");
+			ERROR << (key_ + " is not a int");
 		}
 	}
 	inline void toValue_(int idx, bool *res)
@@ -204,7 +244,7 @@ private:
 		}
 		else
 		{
-			ERROR << (key + " is not a boolean value");
+			ERROR << (key_ + " is not a boolean value");
 		}
 	}
 	inline void toValue_(int idx, std::string *res)
@@ -215,7 +255,7 @@ private:
 		}
 		else
 		{
-			ERROR << (key + " is not a std::string");
+			ERROR << (key_ + " is not a std::string");
 		}
 	}
 	template<typename T1, typename T2>
@@ -237,7 +277,7 @@ private:
 		}
 		else
 		{
-			ERROR << (key + " is not a std::pair<T1, T2>");
+			ERROR << (key_ + " is not a std::pair<T1, T2>");
 		}
 	}
 
@@ -258,7 +298,7 @@ private:
 		}
 		else
 		{
-			LUA_ERROR(lstate_.get(), key + " is not a table ");
+			LUA_ERROR(lstate_.get(), key_ + " is not a table ");
 		}
 	}
 
@@ -285,7 +325,7 @@ private:
 		}
 		else
 		{
-			LUA_ERROR(lstate_.get(), key + " is not a std::vector<T>");
+			LUA_ERROR(lstate_.get(), key_ + " is not a std::vector<T>");
 		}
 	}
 	template<typename T>
@@ -309,26 +349,6 @@ private:
 			LUA_ERROR(lstate_.get(), " std::list<T>");
 		}
 	}
-
-//	inline void toValue_(int idx, boost::any *res)
-//	{
-//
-//		switch (lua_type(lstate_.get(), idx))
-//		{
-//		case LUA_TBOOLEAN:
-//			*res = static_cast<bool>(lua_toboolean(lstate_.get(), idx));
-//			break;
-//		case LUA_TNUMBER:
-//			*res = static_cast<double>(lua_tonumber(lstate_.get(), idx));
-//			break;
-//		case LUA_TSTRING:
-//			*res = std::string(lua_tostring(lstate_.get(), idx));
-//			break;
-//		default:
-//			ERROR << (" boost::any");
-//			break;
-//		}
-//	}
 
 	template<typename T>
 	inline void toValue_(int idx, std::map<std::string, T> *res)
@@ -355,7 +375,7 @@ private:
 		}
 		else
 		{
-			ERROR << (key + " is not a std::map<std::string, ValueType>");
+			ERROR << (key_ + " is not a std::map<std::string, ValueType>");
 		}
 		return;
 
