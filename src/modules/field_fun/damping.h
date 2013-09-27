@@ -18,7 +18,7 @@ template<typename TV>
 struct Damping
 {
 
-	Damping(ptree const pt)
+	Damping(PTree const pt)
 	{
 	}
 	~Damping()

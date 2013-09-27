@@ -52,7 +52,7 @@ int main(int argc, char **argv)
 
 	Log::OpenFile(output + "/" + log_file);
 
-	ptree pt;
+	PTree pt;
 
 	read_file(input, pt);
 

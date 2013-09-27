@@ -12,17 +12,18 @@
 #include <map>
 #include <complex>
 #include <boost/property_tree/ptree.hpp>
+#include "parse_config.h"
 namespace simpla
 {
-typedef boost::property_tree::ptree ptree;
+typedef boost::property_tree::ptree PTree;
 
 template<int N, typename T> struct nTuple;
 
 template<class Ext, class Int = std::string> struct pt_trans;
 
-void read_file(std::string const & fname, ptree & pt);
+void read_file(std::string const & fname, PTree & pt);
 
-void write_file(std::string const & fname, ptree const & pt);
+void write_file(std::string const & fname, PTree const & pt);
 
 template<class T>
 struct pt_trans<T, std::string>
@@ -156,6 +157,84 @@ struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
 	}
 
 };
+
+template<typename T2>
+class ParseConfig<PTree, T2> : public PTree, public T2
+{
+public:
+
+	ParseConfig(PTree t1, T2 t2) :
+			PTree(t1), T2(t2)
+	{
+
+	}
+
+	~ParseConfig() = default;
+
+	void ParseFile(std::string const & filename)
+	{
+		int npos = filename.find_last_of('.');
+
+		if (filename.substr(npos) == ".xml")
+		{
+			read_file(*this, filename);
+		}
+
+		T2::template ParseFile(filename);
+	}
+
+	void ParseString(std::string const & str)
+	{
+		T2::template ParseString(str);
+	}
+
+	ParseConfig operator[](std::string const & key) const
+	{
+		return (ParseConfig(PTree::get_child(key), T2::template operator[](key)));
+	}
+
+	template<typename T>
+	inline T Get(std::string const & key)
+	{
+		T res;
+		try
+		{
+			res = PTree::get<T>(key, pt_trans<T, std::string>());
+		} catch (...)
+		{
+			res = T2::template Get<T>(key);
+		}
+		return res;
+	}
+
+	template<typename T>
+	inline T Get(std::string const & key, T const & def)
+	{
+		T res;
+		try
+		{
+			res = PTree::get<T>(key, pt_trans<T, std::string>());
+		} catch (...)
+		{
+			try
+			{
+				res = T2::template Get<T>(key);
+			} catch (...)
+			{
+				res = def;
+			}
+		}
+		return res;
+	}
+
+	template<typename T, typename ... Args>
+	void Function(T* res, Args const & ... args) const
+	{
+		T2::template Function(res, args...);
+	}
+
+};
+
 //class ptree: public boost::property_tree::ptree
 //{
 //public:
@@ -195,5 +274,5 @@ struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
 ////		return reinterpret_cast<ptree const&>(*res);
 ////	}
 //};
-} // namespace simpla
+}// namespace simpla
 #endif /* PROPERTIES_H_ */

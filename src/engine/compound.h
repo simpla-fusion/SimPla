@@ -17,8 +17,10 @@ namespace simpla
 {
 class CompoundObject: public Object
 {
+
+	std::map<std::string, std::shared_ptr<Object> > childs;
+
 public:
-	std::map<std::string, TR1::shared_ptr<Object> > childs;
 
 	CompoundObject();
 
@@ -30,9 +32,6 @@ public:
 		Object::swap(rhs);
 	}
 
-	static TR1::shared_ptr<CompoundObject> Create(BaseContext * ctx,
-			ptree const & pt);
-
 	virtual bool IsEmpty() const
 	{
 		return (childs.empty());
@@ -42,20 +41,46 @@ public:
 		return (tinfo == typeid(CompoundObject));
 	}
 
-	TR1::shared_ptr<Object> operator[](std::string const &name);
 
-	TR1::shared_ptr<Object> operator[](std::string const &name) const;
 
-	bool CheckObjectType(std::string const & name,
-			std::type_info const &) const;
+	boost::optional<std::shared_ptr<Object> > Find(std::string const &name);
 
-	boost::optional<TR1::shared_ptr<Object> > FindObject(
-			std::string const & name);
+	boost::optional<std::shared_ptr<const Object> > Find(
+			std::string const &name) const;
 
-	boost::optional<TR1::shared_ptr<const Object> > FindObject(
-			std::string const & name) const;
 
-	void DeleteObject(std::string const & name);
+	inline boost::optional<Object> operator[](std::string const &name)
+	{
+		return (*Find(name));
+	}
+
+	inline boost::optional<const Object> operator[](
+			std::string const &name) const
+	{
+		return (*Find(name));
+	}
+
+	template<typename T>
+	inline boost::optional<T> get(std::string const & key)
+	{
+		boost::optional<std::shared_ptr<Object> > res = Find(key);
+
+		return boost::optional<T>(!(!res), (*res)->as<T>());
+	}
+
+	template<typename T>
+	inline boost::optional<const T> get(std::string const & key) const
+	{
+		boost::optional<const Object> res = Find(key);
+
+		return boost::optional<const T>(!(!res), res->as<const T>());
+	}
+
+
+
+	void Add(std::string const & name, std::shared_ptr<Object> obj);
+
+	void Delete(std::string const & name);
 
 }
 ;

@@ -55,14 +55,19 @@ public:
 	{
 	}
 
+	virtual ~Field()
+	{
+	}
+
 	void swap(ThisType & rhs)
 	{
 		GeometryType::swap(rhs);
 		BaseType::swap(rhs);
 	}
 
-	virtual ~Field()
+	inline bool CheckType(std::type_info const & tinfo)
 	{
+		return (tinfo == typeid(ThisType));
 	}
 
 	inline ThisType & operator=(ThisType const & rhs)

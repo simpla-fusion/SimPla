@@ -22,7 +22,7 @@ BaseContext::BaseContext() :
 			TR1::placeholders::_1);
 
 }
-void BaseContext::Parse(ptree const&pt)
+void BaseContext::Parse(PTree const&pt)
 {
 	dt = (pt.get("Grid.Time.<xmlattr>.dt", 1.0d)),
 
@@ -30,7 +30,7 @@ void BaseContext::Parse(ptree const&pt)
 
 }
 
-void BaseContext::Process(ptree const&pt)
+void BaseContext::Process(PTree const&pt)
 {
 	flow_control::Loop(this, pt).Eval();
 }

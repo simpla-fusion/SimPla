@@ -32,11 +32,11 @@ public:
 	typedef WriteXDMF<TG> ThisType;
 	typedef TR1::shared_ptr<ThisType> Holder;
 
-	WriteXDMF(Context<TG> * d, const ptree & pt);
+	WriteXDMF(Context<TG> * d, const PTree & pt);
 
 	virtual ~WriteXDMF();
 
-	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	static TR1::function<void()> Create(Context<TG> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));

@@ -22,14 +22,13 @@ public:
 	void Config(TCONFIG vm)
 	{
 
-		SetBaseUnit(
-		vm["type"].template as<std::string>(), //
-				vm["m"].template as<double>(1.0), //
-				vm["s"].template as<double>(1.0), //
-				vm["kg"].template as<double>(1.0), //
-				vm["C"].template as<double>(1.0), //
-				vm["K"].template as<double>(1.0), //
-				vm["Mol"].template as<double>(1.0));
+		SetBaseUnit(vm.template Get<std::string>("type"), //
+		vm.template Get<double>("m", 1.0), //
+		vm.template Get<double>("s", 1.0), //
+		vm.template Get<double>("kg", 1.0), //
+		vm.template Get<double>("C", 1.0), //
+		vm.template Get<double>("K", 1.0), //
+		vm.template Get<double>("Mol", 1.0));
 	}
 
 	std::string Summary() const;
@@ -46,7 +45,6 @@ public:
 		if (it != q_.end())
 		{
 			return it->second;
-
 		}
 		else
 		{

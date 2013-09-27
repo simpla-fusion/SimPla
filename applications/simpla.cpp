@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
 		VecZeroForm Ev(mesh), Bv(mesh), dEvdt(mesh);
 
-		BB = Dot(Bv, Bv);
+		BB = B ^ *B;
 
 		VecZeroForm K_(mesh);
 
@@ -205,8 +205,8 @@ int main(int argc, char **argv)
 		{
 			ZeroForm & ns = v.second.n;
 			VecZeroForm & Js = v.second.J;
-			Real ms = v.second.m * proton_mass;
-			Real Zs = v.second.Z * elementary_charge;
+			Real ms = v.second.properties.get<Real>("m") * proton_mass;
+			Real Zs = v.second.properties.get<Real>("Z") * elementary_charge;
 			ZeroForm as;
 			as.fill(2.0 * ms / (dt * Zs));
 

@@ -34,7 +34,7 @@ public:
 		Real F;
 		Real w;
 	};
-	DeltaF(Domain & d, const ptree & pt);
+	DeltaF(Domain & d, const PTree & pt);
 	virtual ~DeltaF()
 	{
 	}
@@ -66,7 +66,7 @@ private:
 };
 
 template<typename TV, typename TG>
-DeltaF<TV, TG>::DeltaF(Domain & d, const ptree & pt) :
+DeltaF<TV, TG>::DeltaF(Domain & d, const PTree & pt) :
 		Module(d),
 
 		grid(d.grid<UniformRectGrid>()),

@@ -70,11 +70,11 @@ struct UniformRectMesh
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
-		vm["dt"].template get(&dt);
-		vm["xmin"].template get(&xmin);
-		vm["xmax"].template get(&xmax);
-		vm["dims"].template get(&dims);
-		vm["gw"].template get(&gw);
+		vm.get("dt", &dt);
+		vm.get("xmin", &xmin);
+		vm.get("xmax", &xmax);
+		vm.get("dims", &dims);
+		vm.get("gw", &gw);
 
 		Init();
 	}
@@ -85,7 +85,7 @@ struct UniformRectMesh
 
 		os
 
-		<< "[Mesh]"  << std::endl
+		<< "[Mesh]" << std::endl
 
 		<< SINGLELINE << std::endl
 

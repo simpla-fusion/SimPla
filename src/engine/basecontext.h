@@ -27,13 +27,12 @@ namespace simpla
 class BaseContext
 {
 public:
-	//FIXME Need garbage collection of objects!!
 
-	std::map<std::string, TR1::function<TR1::shared_ptr<Object>(ptree const&)> > objFactory_;
+	std::map<std::string, std::function<std::shared_ptr<Object>(PTree const&)> > objFactory_;
 
-	std::map<std::string, TR1::function<TR1::function<void(void)>(ptree const&)> > moduleFactory_;
+	std::map<std::string, std::function<std::function<void(void)>(PTree const&)> > moduleFactory_;
 
-	TR1::shared_ptr<CompoundObject> objects;
+	CompoundObject objects;
 
 	PhysicalConstants PHYS_CONSTANTS;
 
@@ -65,7 +64,7 @@ private:
 	Real dt;
 	size_t counter_;
 	Real timer_;
-	std::list<TR1::shared_ptr<BaseContext> > neighbours_;
+	std::list<std::shared_ptr<BaseContext> > neighbours_;
 }
 ;
 

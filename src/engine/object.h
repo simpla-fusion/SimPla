@@ -12,50 +12,81 @@
 #include <algorithm>
 #include <string>
 #include "utilities/memory_pool.h"
+#include "utilities/properties.h"
 namespace simpla
 {
 class Object
 {
 public:
-	Object()
+
+	PTree properties;
+
+	Object() :
+			data_(nullptr), size_in_bytes_(0)
 	{
 	}
-	Object(size_t size_in_byte, std::string name = "unnamed") :
-			data_(MemoryPool::instance().alloc(size_in_byte)), name_(name)
+	Object(size_t size_in_byte) :
+			data_(MemoryPool::instance().alloc(size_in_byte)), size_in_bytes_(
+					size_in_byte)
+	{
+	}
+	Object(std::shared_ptr<ByteType> d, size_t s = 0) :
+			data_(d), size_in_bytes_(s)
 	{
 	}
 
 	Object(Object const &) = default;
 
-	Object(Object && rhs)
+	Object(Object && rhs) :
+			size_in_bytes_(rhs.size_in_bytes_), properties(rhs.properties)
 	{
 		rhs.data_.swap(rhs.data_);
-		rhs.name_.swap(rhs.name_);
 	}
 
 	inline virtual ~Object()
 	{
 		MEMPOOL.release();
 	}
-
-//	ptree properties;
+	template<typename T>
+	T & as()
+	{
+		if(!CheckType(typeid(T)))
+		{
+			ERROR<<"Can not convert to type "<<typeid(T).name();
+		}
+		return (*dynamic_cast<T>(data_));
+	}
+	template<typename T>
+	T const & as()const
+	{
+		if(!CheckType(typeid(T)))
+		{
+			ERROR<<"Can not convert to type "<<typeid(T).name();
+		}
+		return (*dynamic_cast<const T>(data_));
+	}
 
 	virtual void swap(Object & rhs)
 	{
-		std::swap(data_, rhs.data_);
-		std::swap(name_, rhs.name_);
-//		properties.swap(rhs.properties);
+		properties.swap(rhs.properties);
+
+		data_.swap(rhs.data_);
+		std::swap(size_in_bytes_,rhs.size_in_bytes_);
+
 	}
 
 	// Metadata ------------------------------------------------------------
 
-//	virtual bool CheckType(std::type_info const &) const=0;
+	virtual bool CheckType(std::type_info const &) const=0;
 
-	virtual bool IsEmpty() const=0;
+	bool IsEmpty() const
+	{
+		return (data_.get()==nullptr);
+	}
 
 protected:
-	std::string name_;
 	std::shared_ptr<ByteType> data_;
+	size_t size_in_bytes_;
 
 };
 

@@ -24,7 +24,7 @@ public:
 
 	BaseContext & ctx;
 
-	Clock(BaseContext * d, const ptree & pt) :
+	Clock(BaseContext * d, const PTree & pt) :
 			ctx(*d)
 	{
 	}
@@ -32,7 +32,7 @@ public:
 	virtual ~Clock()
 	{
 	}
-	static TR1::function<void(void)> Create(BaseContext* d, const ptree & pt)
+	static TR1::function<void(void)> Create(BaseContext* d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
@@ -63,10 +63,10 @@ public:
 
 	std::list<TR1::function<void(void)> > modules;
 
-	Loop(BaseContext * d, const ptree & pt) :
+	Loop(BaseContext * d, const PTree & pt) :
 			ctx(*d), maxstep(1)
 	{
-		BOOST_FOREACH(const typename ptree::value_type &v, pt)
+		BOOST_FOREACH(const typename PTree::value_type &v, pt)
 		{
 			if (v.first == "<xmlcomment>" || v.first == "<xmlattr>")
 			{
@@ -76,7 +76,7 @@ public:
 			{
 				modules.push_back(
 						ctx.moduleFactory_[v.first](
-								reinterpret_cast<ptree const &>(v.second)));
+								reinterpret_cast<PTree const &>(v.second)));
 				LOG << "Add module " << v.first << " successed!";
 			}
 			else
@@ -96,7 +96,7 @@ public:
 	virtual ~Loop()
 	{
 	}
-	static TR1::function<void(void)> Create(BaseContext* d, const ptree & pt)
+	static TR1::function<void(void)> Create(BaseContext* d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
