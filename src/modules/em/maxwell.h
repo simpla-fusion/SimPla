@@ -31,7 +31,7 @@ public:
 
 	Context<TG> & ctx;
 
-	Maxwell(Context<TG> * d, ptree const &pt) :
+	Maxwell(Context<TG> * d, PTree const &pt) :
 			BaseModule(d, pt),
 
 			ctx(*d),
@@ -51,7 +51,7 @@ public:
 	{
 	}
 
-	static TR1::function<void()> Create(Context<TG> * d, const ptree & pt)
+	static TR1::function<void()> Create(Context<TG> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));

@@ -10,7 +10,7 @@
 #include "include/simpla_defs.h"
 #include "engine/object.h"
 #include <openmp.h>
-#include <vector>
+#include <iterator>
 
 namespace simpla
 {
@@ -28,129 +28,163 @@ public:
 
 	typedef Pool<Value> ThisType;
 
-	typedef IteratorRange<Value> IteratorRangeType;
+	Pool(size_t n, size_t s = sizeof(Value)) :
+			max_num_(n),
 
-	Pool(size_t value_size = sizeof(Value)) :
-			data_(), value_size_in_bytes(value_size), max_size(0), tail(0)
+			value_size_in_bytes_(s),
+
+			data_(
+					std::shared_ptr<ByteType>(
+							reinterpret_cast<ByteType*>(operator new(
+									max_num_ * value_size_in_bytes_)))),
+
+			begin_(data_, value_size_in_bytes_),
+
+			end_(data_, value_size_in_bytes_,
+					data_.get() + max_num_ * value_size_in_bytes_)
+
 	{
-		// initialize node lists
 	}
 
 	virtual ~Pool()
 	{
 	}
 
-	void Init(size_t maxs)
+	class iterator: public std::iterator<std::input_iterator_tag, T,
+			std::ptrdiff_t, T*, T&>
 	{
-		max_size = maxs;
-		tail = 0;
-		data_(
-				TR1::shared_ptr<ByteType>(
-						reinterpret_cast<ByteType*>(operator new(
-								max_size * value_size_in_bytes))));
+		size_t value_size_in_bytes_;
+		std::shared_ptr<ByteType> data_;
+		T* p_;
 
-	}
-	void Release()
+	public:
+
+		iterator(std::shared_ptr<ByteType> d, size_t s = sizeof(T),
+				ByteType * p = nullptr) :
+				value_size_in_bytes_(s), data_(d), p_(
+						p == nullptr ? d.get() : p)
+		{
+		}
+
+		~iterator()
+		{
+		}
+
+		T & operator*()
+		{
+			return (*reinterpret_cast<T*>(p_));
+		}
+		T const& operator*() const
+		{
+			return (*reinterpret_cast<T const*>(p_));
+		}
+		iterator & operator++()
+		{
+			p_ += value_size_in_bytes_;
+			return *this;
+		}
+
+		bool operator==(iterator const & r)
+		{
+			return (p_ == r.p_);
+		}
+	};
+
+	class const_iterator: public std::iterator<std::output_iterator_tag,
+			const T, std::ptrdiff_t, T const*, T const&>
 	{
-		TR1::shared_ptr<ByteType>().swap(data_);
-		max_size = 0;
-		tail = 0;
-	}
+		std::shared_ptr<const T> data_;
+		T const* p_;
+		size_t value_size_in_bytes_;
+	public:
 
-	IteratorRangeType NewIteratorRange(size_t size)
+		const_iterator(std::shared_ptr<const ByteType> d, size_t s = sizeof(T),
+				ByteType const * p = nullptr) :
+				value_size_in_bytes_(s), data_(d), p_(
+						p == nullptr ? d.get() : p)
+		{
+		}
+
+		~const_iterator()
+		{
+		}
+
+		T const& operator*() const
+		{
+			return (*reinterpret_cast<T const*>(p_));
+		}
+		const_iterator & operator++()
+		{
+			p_ += value_size_in_bytes_;
+			return *this;
+		}
+	};
+
+	inline iterator begin()
 	{
-
-		size_t b = tail, e = (tail + size > max_size) ? max_size : tail + size;
-		tail = e;
-#ifdef _OMP
-
-		size_t b1 = b+(e-b) * (omp_get_thread_num() / omp_get_num_threads());
-		size_t e1 = b+(e-b) *((omp_get_thread_num() + 1 )/ omp_get_num_threads());
-		b=b1;e=e1;
-#endif
-		return (IteratorRangeType(data_, b, e, value_size_in_bytes));
+		return begin_;
 	}
-	IteratorRangeType GetIteratorRange()
+	inline iterator end()
 	{
-		size_t b = 0, e = tail;
-#ifdef _OMP
-		size_t b1 = b+(e-b) * (omp_get_thread_num() / omp_get_num_threads());
-		size_t e1 = b+(e-b) *((omp_get_thread_num() + 1 )/ omp_get_num_threads());
-		b=b1;e=e1;
-#endif
-		return (IteratorRangeType(data_, b, e, value_size_in_bytes));
+		return end_;
 	}
 
-// Metadata ------------------------------------------------------------
-
-	virtual inline bool CheckType(std::type_info const & info) const
+	inline const_iterator begin() const
 	{
-		return (info == typeid(ThisType));
+		return begin_;
+	}
+	inline iterator end() const
+	{
+		return end_;
 	}
 
-	virtual bool IsEmpty() const
-	{
-		return (tail <= 0 || data_ == TR1::shared_ptr<ByteType>());
-	}
+//// Metadata ------------------------------------------------------------
+//
+//	virtual inline bool CheckType(std::type_info const & info) const
+//	{
+//		return (info == typeid(ThisType));
+//	}
+//
+//	virtual bool IsEmpty() const
+//	{
+//		return (tail <= 0 || data_ == std::shared_ptr<ByteType>());
+//	}
+//
+//
+//	Pool NewIteratorRange(size_t size)
+//	{
+//
+//		size_t b = tail, e = (tail + size > max_size) ? max_size : tail + size;
+//		tail = e;
+//#ifdef _OMP
+//
+//		size_t b1 = b+(e-b) * (omp_get_thread_num() / omp_get_num_threads());
+//		size_t e1 = b+(e-b) *((omp_get_thread_num() + 1 )/ omp_get_num_threads());
+//		b=b1;e=e1;
+//#endif
+//		return (IteratorRangeType(data_, b, e, value_size_in_bytes));
+//	}
+//	Pool GetIteratorRange()
+//	{
+//		size_t b = 0, e = tail;
+//#ifdef _OMP
+//		size_t b1 = b+(e-b) * (omp_get_thread_num() / omp_get_num_threads());
+//		size_t e1 = b+(e-b) *((omp_get_thread_num() + 1 )/ omp_get_num_threads());
+//		b=b1;e=e1;
+//#endif
+//		return (IteratorRangeType(data_, b, e, value_size_in_bytes));
+//	}
 private:
-	TR1::shared_ptr<ByteType> data_;
+	const size_t value_size_in_bytes_;
 
-	size_t max_size;
+	size_t max_num_;
 
-	size_t tail;
+	std::shared_ptr<ByteType> data_;
 
-	const size_t value_size_in_bytes;
+	iterator begin_;
+	iterator end_;
 
 };
-template<typename T>
-class IteratorRange<Pool<T> >
-{
 
-public:
-	typedef Pool<T> _Base;
-	typedef T Value;
-	typedef IteratorRange<_Base> ThisType;
-
-	friend class _Base;
-
-	IteratorRange(TR1::shared_ptr<Value> d, size_t begin, size_t end,
-			size_t sb = sizeof(Value)) :
-			base_(d), begin_(begin_), end_(end_), idx_(begin)
-	{
-	}
-	~IteratorRange()
-	{
-
-	}
-
-	bool IsEnd() const
-	{
-		return (idx_ >= end_);
-	}
-
-	ThisType &operator ++()
-	{
-		++idx_;
-		return (*this);
-	}
-	ThisType operator ++(int)
-	{
-		ThisType res = *this;
-		++idx_;
-		return (res);
-	}
-	Value & operator *()
-	{
-		return (*reinterpret_cast<Value*>(&(*base_->data_)
-				+ idx_ * base_->value_size_in_bytes));
-	}
-
-private:
-	typename TR1::shared_ptr<_Base> base_;
-	size_t idx_;
-	size_t begin_;
-	size_t end_;
-
-};
 } // namespace simpla
 #endif /* PARTICLE_POOL_H_ */

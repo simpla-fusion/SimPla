@@ -25,7 +25,7 @@ public:
 
 	typedef typename TG::Value Value;
 
-	typedef TR1::shared_ptr<ThisType> Holder;
+	typedef std::shared_ptr<ThisType> Holder;
 
 	Grid grid;
 
@@ -33,10 +33,10 @@ public:
 
 	virtual ~Context();
 
-	template<typename TOBJ> TR1::shared_ptr<TOBJ> CreateObject();
+	template<typename TOBJ> std::shared_ptr<TOBJ> CreateObject();
 
 	template<typename TOBJ>
-	TR1::shared_ptr<TOBJ> GetObject(std::string const & name = "");
+	std::shared_ptr<TOBJ> GetObject(std::string const & name = "");
 
 private:
 

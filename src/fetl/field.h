@@ -11,19 +11,20 @@
 #include <algorithm> //for swap
 #include <utility>
 #include <type_traits>
+#include "engine/object.h"
 
 namespace simpla
 {
 
 template<typename TGeometry, typename TStorage>
-struct Field: public TGeometry, public TStorage
+struct Field: public TGeometry, public TStorage,public Object
 {
 public:
 	typedef TGeometry GeometryType;
 
-	typedef TStorage BaseType;
+	typedef TStorage StorageType;
 
-	typedef Field<GeometryType, TStorage> ThisType;
+	typedef Field<GeometryType, StorageType> ThisType;
 
 	typedef typename TGeometry::CoordinatesType CoordinatesType;
 
@@ -31,38 +32,46 @@ public:
 	{
 	}
 
-	template<typename TG, typename TE>
-	Field(TG const & g, TE e) :
-			GeometryType(g), BaseType(e)
+	template<typename TG, typename TS>
+	Field(TG const & g, TS const& e) :
+			GeometryType(g), StorageType(e)
 	{
 	}
 
 	template<typename TG, typename TE>
 	Field(Field<TG, TE> const & f) :
-			GeometryType(f), BaseType(f)
+			GeometryType(f), StorageType(f)
 	{
 	}
 
 	Field(typename GeometryType::Mesh const & g) :
-			GeometryType(g), BaseType(TGeometry(g).get_num_of_elements())
+			GeometryType(g), StorageType(TGeometry(g).get_num_of_elements())
 	{
 	}
 
-	Field(ThisType const &) = delete;
+	Field(ThisType const & f) :
+			GeometryType(f), StorageType(f)
+	{
+	}
 
 	Field(ThisType &&rhs) :
-			GeometryType(rhs), BaseType(rhs)
+			GeometryType(rhs), StorageType(rhs)
+	{
+	}
+
+	virtual ~Field()
 	{
 	}
 
 	void swap(ThisType & rhs)
 	{
 		GeometryType::swap(rhs);
-		BaseType::swap(rhs);
+		StorageType::swap(rhs);
 	}
 
-	virtual ~Field()
+	inline bool CheckType(std::type_info const & tinfo) const
 	{
+		return (tinfo == typeid(ThisType));
 	}
 
 	inline ThisType & operator=(ThisType const & rhs)

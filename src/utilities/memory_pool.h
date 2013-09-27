@@ -24,7 +24,7 @@ class MemoryPool: public SingletonHolder<MemoryPool>
 	MemoryMap pool_;
 
 	size_t MAX_POOL_DEPTH_IN_GB;
-
+	const size_t ONE_GIGA = 1024l * 1024l * 1024l;
 public:
 	MemoryPool() :
 			MAX_POOL_DEPTH_IN_GB(2)  //2G
@@ -65,7 +65,10 @@ public:
 
 			} catch (std::bad_alloc const &error)
 			{
-				ERROR_BAD_ALLOC_MEMORY(size, error);
+				Log(-2) << __FILE__ << "[" << __LINE__ << "]:"
+						<< "Can not get enough memory! [ ~" << size / ONE_GIGA
+						<< " GiB ]" << std::endl;
+				throw(error);
 			}
 
 			pool_.insert(MemoryMap::value_type(size, res));
@@ -76,7 +79,6 @@ public:
 	inline void release()
 	{
 		size_t pool_depth = 0;
-		const size_t ONE_GIGA = 1024l * 1024l * 1024l;
 
 		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
 		{

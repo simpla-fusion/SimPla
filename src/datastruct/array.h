@@ -15,7 +15,7 @@
 namespace simpla
 {
 
-template<typename T>
+template<typename T, typename Allocator = std::allocator<T> >
 class Array: public Object
 {
 public:
@@ -26,9 +26,8 @@ public:
 			num_of_elements_(0), ele_size_in_byte_(sizeof(ValueType))
 	{
 	}
-	Array(size_t num, size_t ele_size = sizeof(ValueType)) :
-			Object(num * ele_size, typeid(ThisType).name()), num_of_elements_(
-					num), ele_size_in_byte_(ele_size)
+	Array(size_t num, Allocator const & allcator = Allocator()) :
+			Object(allcator(num)), num_of_elements_(num)
 	{
 	}
 
@@ -132,7 +131,10 @@ public:
 			operator[](i) = v;
 		}
 	}
-	void clear(){};
+	void clear()
+	{
+	}
+	;
 
 private:
 	size_t num_of_elements_;

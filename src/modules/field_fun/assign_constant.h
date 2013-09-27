@@ -24,7 +24,7 @@ struct AssignConstant
 {
 	TV value;
 
-	AssignConstant(ptree const pt) :
+	AssignConstant(PTree const pt) :
 			value(pt.get<TV>("Arguments.value"))
 	{
 	}

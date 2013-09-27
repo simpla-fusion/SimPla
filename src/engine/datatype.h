@@ -19,7 +19,7 @@ public:
 	{
 	}
 
-	typedef TR1::shared_ptr<BaseDataType> Holder;
+	typedef std::shared_ptr<BaseDataType> Holder;
 
 	virtual size_t size_in_bytes() const=0;
 	virtual std::string desc() const=0;

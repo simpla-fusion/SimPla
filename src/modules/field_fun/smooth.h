@@ -20,7 +20,7 @@ template<typename TV>
 struct Smooth
 {
 
-	Smooth(ptree const pt)
+	Smooth(PTree const pt)
 	{
 	}
 	~Smooth()

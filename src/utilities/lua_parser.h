@@ -54,107 +54,82 @@ static void stackDump(lua_State *L)
 	std::cout << "===== End the listing =====" << std::endl;
 }
 
-class LuaObject
+struct LuaStateHolder
 {
-	std::shared_ptr<lua_State> state_holder_;
-	std::string key_; //for reference counting
-	lua_State * lstate_;
-	int parent_;
-	int idx_;
-public:
 
-	LuaObject() :
-			state_holder_(luaL_newstate(), lua_close), //
-			parent_(0), idx_(LUA_GLOBALSINDEX), key_(""), lstate_(
-					state_holder_.get())
+	std::shared_ptr<LuaStateHolder> parent_;
+	std::string key_;
+	int idx_;
+	lua_State * lstate_;
+
+	LuaStateHolder() :
+			idx_(LUA_GLOBALSINDEX), key_(""), lstate_(luaL_newstate())
+
 	{
 		luaL_openlibs(lstate_);
+
+		INFORM << "Construct [Root]";
+	}
+	LuaStateHolder(std::shared_ptr<LuaStateHolder> p, std::string const & key =
+			"") :
+			parent_(p), idx_(0), key_(key), lstate_(p->lstate_)
+	{
+		lua_getfield(lstate_, p->idx_, key.c_str());
+
+		idx_ = lua_gettop(lstate_);
+
+		if (lua_isnil(lstate_ , idx_))
+		{
+			lua_remove(lstate_, idx_);
+			idx_ = 0;
+			ERROR << "\"" << key << "\" is not an element in " << p->Path()
+					<< "!";
+		}
+		else if (lua_isfunction(lstate_,idx_))
+		{
+			lua_remove(lstate_, idx_);
+			idx_ = 0;
+		}
+		else if (!lua_istable(lstate_,idx_))
+		{
+			lua_remove(lstate_, idx_);
+			idx_ = 0;
+			ERROR << key << " is not a table or function!";
+		}
+		INFORM << "Construct " << key_;
 	}
 
-	LuaObject(std::shared_ptr<lua_State> p, int parent, std::string pkey) :
-			state_holder_(p), key_(pkey), parent_(parent), idx_(0), lstate_(
-					p.get())
+	~LuaStateHolder()
 	{
-		lua_getfield(lstate_, parent_, key_.c_str());
 
-		if (lua_isnil(lstate_, -1) || lua_isfunction(lstate_,idx_))
+		if (idx_ == LUA_GLOBALSINDEX)
 		{
-			lua_pop(lstate_, 1);
+			INFORM << "Destroy [Root]";
+			lua_close(lstate_);
+		}
+		else if (idx_ != 0)
+		{
+			INFORM << "Destroy " << key_;
+			lua_remove(lstate_, idx_);
+		}
+
+	}
+
+	inline std::string Path() const
+	{
+		std::string res;
+		if (idx_ == LUA_GLOBALSINDEX)
+		{
+			res = "[root]";
 		}
 		else
 		{
-			idx_ = lua_gettop(lstate_);
+			res = parent_->key_ + "." + key_;
 		}
+		return (res);
 	}
 
-	LuaObject(std::shared_ptr<lua_State> p, int idx) :
-			state_holder_(p), key_(""), parent_(LUA_GLOBALSINDEX), idx_(idx), lstate_(
-					p.get())
-	{
-	}
-
-	~LuaObject()
-	{
-		if (idx_ != LUA_GLOBALSINDEX && idx_ != 0)
-		{
-			lua_remove(lstate_, idx_);
-		}
-	}
-
-	LuaObject operator[](std::string const & sub_key) const
-	{
-
-		if (lua_type(lstate_, idx_) != LUA_TTABLE)
-		{
-			ERROR << key_ << "is not a table!!";
-		}
-
-		return (LuaObject(state_holder_, idx_, sub_key));
-	}
-
-public:
-
-	template<typename ... Args>
-	LuaObject operator()(Args const & ... args) const
-	{
-		lua_getfield(lstate_, parent_, key_.c_str());
-
-		if (lua_isnil(lstate_, -1))
-		{
-			LUA_ERROR(lstate_, "\n Can not find key  [" + key_ + "]! ");
-		}
-		else if (!lua_isfunction(lstate_, -1))
-		{
-			ERROR << key_ << " is not a function!!";
-		}
-		push_arg(args...);
-		lua_call(lstate_, sizeof...(args), 1);
-
-		return (LuaObject(state_holder_, lua_gettop(lstate_)));
-	}
-private:
-	template<typename T, typename ... Args>
-	inline void push_arg(T const & v, Args const & ... rest) const
-	{
-		push_arg(v);
-		push_arg(rest...);
-	}
-
-	inline void push_arg(int const & v) const
-	{
-		lua_pushinteger(lstate_, v);
-	}
-	inline void push_arg(double const & v) const
-	{
-		lua_pushnumber(lstate_, v);
-	}
-	inline void push_arg(std::string const & v) const
-	{
-		lua_pushstring(lstate_, v.c_str());
-	}
-
-public:
-	void ParseFile(std::string const & filename)
+	inline void ParseFile(std::string const & filename)
 	{
 		if (filename != "" && luaL_dofile(lstate_, filename.c_str()))
 		{
@@ -168,124 +143,186 @@ public:
 			LUA_ERROR(lstate_, "Parsing string error! \n\t" + str);
 		}
 	}
+};
 
+class LuaObject
+{
+	std::shared_ptr<LuaStateHolder> holder_;
 public:
-	template<typename T>
-	inline void get(T * value) const
+
+	LuaObject() :
+			holder_(new LuaStateHolder())
 	{
-		toValue_(idx_, value);
+	}
+
+	LuaObject(std::shared_ptr<LuaStateHolder> p, std::string const & key) :
+			holder_(new LuaStateHolder(p, key))
+	{
+	}
+
+	~LuaObject()
+	{
+
+	}
+
+	inline void ParseFile(std::string const & filename)
+	{
+		holder_->ParseFile(filename);
+	}
+	inline void ParseString(std::string const & str)
+	{
+		holder_->ParseString(str);
+	}
+
+	LuaObject operator[](std::string const & sub_key) const
+	{
+		return (LuaObject(holder_, sub_key));
 	}
 
 	template<typename T>
-	inline void get(T * value, T const & def) const
+	T Get(std::string const & key)
 	{
-		if (idx_ != 0)
-		{
-			get(value);
+		T res;
+		Get(key, res);
+		return (res);
+	}
 
+	template<typename T>
+	void Get(std::string const & key, T& res)
+	{
+		lua_getfield(holder_->lstate_, holder_->idx_, key.c_str());
+
+		int idx = lua_gettop(holder_->lstate_);
+
+		if (lua_isnil(holder_->lstate_, idx))
+		{
+			lua_remove(holder_->lstate_, idx);
+
+			ERROR << "\"" << key << "\" is not an element in "
+					<< holder_->Path() << "!";
 		}
 		else
 		{
-			*value = def;
+			toValue_(idx, &res);
+		}
+	}
+
+	template<typename T, typename ... Args>
+	void Function(T* res, Args const & ... args) const
+	{
+
+		if (holder_->idx_ != 0)
+		{
+			ERROR << holder_->Path() << " is not a function!!";
 		}
 
-	}
-	template<typename T>
-	inline T as() const
-	{
-		T res;
-		get(&res);
-		return (res);
+		lua_getfield(holder_->lstate_, holder_->parent_->idx_,
+				holder_->key_.c_str());
 
-	}
-	template<typename T>
-	inline T as(T const &d) const
-	{
-		T res;
-		get(&res, d);
-		return (res);
+		push_arg(args...);
 
+		lua_call(holder_->lstate_, sizeof...(args), 1);
+
+		toValue_(lua_gettop(holder_->lstate_), res);
 	}
 
 private:
+	template<typename T, typename ... Args>
+	inline void push_arg(T const & v, Args const & ... rest) const
+	{
+		push_arg(v);
+		push_arg(rest...);
+	}
+
+	inline void push_arg(int const & v) const
+	{
+		lua_pushinteger(holder_->lstate_, v);
+	}
+	inline void push_arg(double const & v) const
+	{
+		lua_pushnumber(holder_->lstate_, v);
+	}
+	inline void push_arg(std::string const & v) const
+	{
+		lua_pushstring(holder_->lstate_, v.c_str());
+	}
 
 	inline void toValue_(int idx, double *res) const
 	{
-		*res = lua_tonumber(lstate_, idx);
+		*res = lua_tonumber(holder_->lstate_, idx);
 	}
 	inline void toValue_(int idx, int *res) const
 	{
-		*res = lua_tointeger(lstate_, idx);
+		*res = lua_tointeger(holder_->lstate_, idx);
 	}
 
 	inline void toValue_(int idx, long unsigned int *res) const
 	{
-		*res = lua_tointeger(lstate_, idx);
+		*res = lua_tointeger(holder_->lstate_, idx);
 	}
 
 	inline void toValue_(int idx, long int *res) const
 	{
-		*res = lua_tointeger(lstate_, idx);
+		*res = lua_tointeger(holder_->lstate_, idx);
 	}
 
 	inline void toValue_(int idx, bool *res) const
 	{
-		*res = lua_toboolean(lstate_, idx);
+		*res = lua_toboolean(holder_->lstate_, idx);
 	}
 	inline void toValue_(int idx, std::string *res) const
 	{
-		*res = lua_tostring(lstate_, idx);
+		*res = lua_tostring(holder_->lstate_, idx);
 	}
 
 	template<typename T1, typename T2>
 	inline void toValue_(int idx, std::pair<T1, T2> *res) const
 	{
-		if (lua_istable(lstate_, idx))
+		if (lua_istable(holder_->lstate_, idx))
 		{
-			int top = lua_gettop(lstate_);
+			int top = lua_gettop(holder_->lstate_);
 			if (idx < 0)
 			{
 				idx += top + 1;
 			}
-			lua_rawgeti(lstate_, idx, 1);
+			lua_rawgeti(holder_->lstate_, idx, 1);
 			toValue_(-1, res->first);
-			lua_pop(lstate_, 1);
-			lua_rawgeti(lstate_, idx, 2);
+			lua_pop(holder_->lstate_, 1);
+			lua_rawgeti(holder_->lstate_, idx, 2);
 			toValue_(-1, res->second);
-			lua_pop(lstate_, 1);
+			lua_pop(holder_->lstate_, 1);
 		}
 		else
 		{
-			ERROR << (key_ + " is not a std::pair<T1, T2>");
+			ERROR << (holder_->Path() + " is not a std::pair<T1, T2>");
 		}
 	}
-
 	template<typename T, int N> inline
 	void toValue_(int idx, nTuple<N, T> * res) const
 	{
-		if (lua_istable(lstate_, idx))
+		if (lua_istable(holder_->lstate_, idx))
 		{
-			size_t num = lua_objlen(lstate_, idx);
+			size_t num = lua_objlen(holder_->lstate_, idx);
 			for (size_t s = 0; s < N; ++s)
 			{
-				lua_rawgeti(lstate_, idx, s%num+1);
+				lua_rawgeti(holder_->lstate_, idx, s % num + 1);
 				toValue_(-1, &((*res)[s]));
-				lua_pop(lstate_, 1);
+				lua_pop(holder_->lstate_, 1);
 			}
 
 		}
 		else
 		{
-			LUA_ERROR(lstate_, key_ + " is not a table ");
+			LUA_ERROR(holder_->lstate_, holder_->Path() + " is not a table ");
 		}
 	}
 
 	template<typename T>
 	inline void toValue_(int idx, std::vector<T> * array) const
 	{
-		if (lua_istable(lstate_, idx))
+		if (lua_istable(holder_->lstate_, idx))
 		{
-			size_t fnum = lua_objlen(lstate_, idx);
+			size_t fnum = lua_objlen(holder_->lstate_, idx);
 
 			if (fnum > 0)
 			{
@@ -295,51 +332,52 @@ private:
 				}
 				for (size_t s = 0; s < fnum; ++s)
 				{
-					lua_rawgeti(lstate_, idx, s % fnum + 1);
+					lua_rawgeti(holder_->lstate_, idx, s % fnum + 1);
 					toValue_(-1, *array[s]);
-					lua_pop(lstate_, 1);
+					lua_pop(holder_->lstate_, 1);
 				}
 			}
 		}
 		else
 		{
-			LUA_ERROR(lstate_, key_ + " is not a std::vector<T>");
+			LUA_ERROR(holder_->lstate_,
+					holder_->Path() + " is not a std::vector<T>");
 		}
 	}
 	template<typename T>
 	inline void toValue_(int idx, std::list<T> * list) const
 	{
-		if (lua_istable(lstate_, idx))
+		if (lua_istable(holder_->lstate_, idx))
 		{
-			size_t fnum = lua_objlen(lstate_, idx);
+			size_t fnum = lua_objlen(holder_->lstate_, idx);
 
 			for (size_t s = 0; s < fnum; ++s)
 			{
-				lua_rawgeti(lstate_, idx, s % fnum + 1);
+				lua_rawgeti(holder_->lstate_, idx, s % fnum + 1);
 				T tmp;
 				toValue_(-1, tmp);
 				list->push_back(tmp);
-				lua_pop(lstate_, 1);
+				lua_pop(holder_->lstate_, 1);
 			}
 		}
 		else
 		{
-			LUA_ERROR(lstate_, " std::list<T>");
+			LUA_ERROR(holder_->lstate_, " std::list<T>");
 		}
 	}
 
 	template<typename T>
 	inline void toValue_(int idx, std::map<std::string, T> *res) const
 	{
-		if (lua_type(lstate_, idx) == LUA_TTABLE)
+		if (lua_type(holder_->lstate_, idx) == LUA_TTABLE)
 		{
 
 			typedef std::string KeyType;
 			/* table is in the stack at index 'idx' */
-			lua_pushnil(lstate_); /* first key */
+			lua_pushnil(holder_->lstate_); /* first key */
 			T item;
 			KeyType key;
-			while (lua_next(lstate_, -2))
+			while (lua_next(holder_->lstate_, -2))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 
@@ -347,13 +385,15 @@ private:
 				toValue_(-1, &item);
 				(*res)[key] = *item;
 				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(lstate_, 1);
+				lua_pop(holder_->lstate_, 1);
 			}
 
 		}
 		else
 		{
-			ERROR << (key_ + " is not a std::map<std::string, ValueType>");
+			ERROR
+					<< (holder_->Path()
+							+ " is not a std::map<std::string, ValueType>");
 		}
 		return;
 

@@ -25,7 +25,7 @@ public:
 	lua_State * lua_s;
 	std::string funname;
 
-	LuaScript(ptree const &pt) :
+	LuaScript(PTree const &pt) :
 			lua_s(luaL_newstate()), funname(pt.get("Script.<xmlattr>.Name", "Fun"))
 	{
 		luaL_openlibs(lua_s);

@@ -134,20 +134,18 @@ private:
 	}
 };
 //FIXME The operator<< eat first input and transform to integral
-#define ERROR Log(-2)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define ERROR Log(-2)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 #define LOGIC_ERROR Log(-3)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define WARNING Log(-1)<<1 <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define INFORM Log(0)<<1 <<"[I]"
+#define WARNING Log(-1)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define INFORM Log(0)  <<"[I]"
 //#ifdef DEBUG
 //#define LOG Log(2) <<1<<"[L]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 //#else
-#define LOG Log(2) <<1<<"[L]"
+#define LOG Log(2)  <<"[L]"
 //#endif
 
-#define VERBOSE Log(3)<<1 <<"[V]"
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
-        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+#define VERBOSE Log(3)  <<"[V]"
 
 #define CHECK(_MSG_)    Log(0) <<1 << (__FILE__) <<":"<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< _MSG_ <<std::endl

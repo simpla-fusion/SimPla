@@ -13,14 +13,14 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
-template<typename TG, int IFORM>
+template<typename TM, int IFORM>
 class Geometry
 {
 public:
 
-	static const int NUM_OF_DIMS = TG::NUM_OF_DIMS;
+	static const int NUM_OF_DIMS = TM::NUM_OF_DIMS;
 
-	typedef TG Mesh;
+	typedef TM Mesh;
 
 	typedef Geometry<Mesh, IFORM> ThisType;
 
@@ -45,7 +45,10 @@ public:
 			mesh(g.mesh)
 	{
 	}
-	Geometry(ThisType const &) = default;
+	Geometry(ThisType const & r) :
+			mesh(r.mesh)
+	{
+	}
 
 	~Geometry()
 	{
@@ -85,6 +88,12 @@ public:
 	inline size_t get_num_of_center_elements() const
 	{
 		return (mesh->get_num_of_center_elements(IFORM));
+	}
+
+	template<typename T>
+	inline size_t get_cell_num(T const & p) const
+	{
+		return (mesh->get_cell_num(p));
 	}
 
 };

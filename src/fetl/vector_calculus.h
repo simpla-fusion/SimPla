@@ -246,7 +246,16 @@ template<typename TGeo, typename TL, typename TR> inline auto //
 operator==(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE((lhs-rhs))
 
-
+template<typename TG, typename TL, typename TR> inline auto //
+Cross(Field<Geometry<TG, 0>, TL> const & lhs,
+		Field<Geometry<TG, 0>, TR> const & rhs)
+				DECL_RET_TYPE(
+						(Field<Geometry<TG,0> , BiOp<OpFCross,Field<Geometry<TG, 0>, TL> , Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
+template<typename TG, typename TL, typename TR> inline auto //
+Dot(Field<Geometry<TG, 0>, TL> const & lhs,
+		Field<Geometry<TG, 0>, TR> const & rhs)
+				DECL_RET_TYPE(
+						(Field<Geometry<TG,0> , BiOp<OpFDot,Field<Geometry<TG, 0>, TL> , Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
 
 }
 // namespace simpla

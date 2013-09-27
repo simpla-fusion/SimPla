@@ -38,7 +38,7 @@ struct BaseFieldFunction<UniformRectGrid> : public BaseModule
 
 	IVec3 imin, imax;
 
-	BaseFieldFunction(Context<Grid> * d, const ptree & pt) :
+	BaseFieldFunction(Context<Grid> * d, const PTree & pt) :
 			BaseModule(d, pt), ctx(*d), field_name("default")
 	{
 		boost::optional<RVec3> xmin = pt.get_optional<RVec3>("Domain.XMin",
@@ -84,7 +84,7 @@ struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, TFun<TV> > : public 
 
 	FunType fun;
 
-	FieldFunction(Context<Grid> * d, const ptree & pt) :
+	FieldFunction(Context<Grid> * d, const PTree & pt) :
 			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 		LOG << "Create module TFun: " << typeid(TFun<TV> ).name();
@@ -93,7 +93,7 @@ struct FieldFunction<Field<UniformRectGrid, IZeroForm, TV>, TFun<TV> > : public 
 	virtual ~FieldFunction()
 	{
 	}
-	static TR1::function<void(void)> Create(Context<Grid> * d, const ptree & pt)
+	static TR1::function<void(void)> Create(Context<Grid> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
@@ -137,7 +137,7 @@ struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, TFun<TV> > : public
 
 	FunType fun;
 
-	FieldFunction(Context<Grid> * d, const ptree & pt) :
+	FieldFunction(Context<Grid> * d, const PTree & pt) :
 			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 
@@ -146,7 +146,7 @@ struct FieldFunction<Field<UniformRectGrid, IThreeForm, TV>, TFun<TV> > : public
 	virtual ~FieldFunction()
 	{
 	}
-	static TR1::function<void(void)> Create(Context<Grid> * d, const ptree & pt)
+	static TR1::function<void(void)> Create(Context<Grid> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
@@ -193,7 +193,7 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 
 	FunType fun;
 
-	FieldFunction(Context<Grid> *d, const ptree & pt) :
+	FieldFunction(Context<Grid> *d, const PTree & pt) :
 			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 	}
@@ -201,7 +201,7 @@ struct FieldFunction<Field<UniformRectGrid, IOneForm, TV>,
 	virtual ~FieldFunction()
 	{
 	}
-	static TR1::function<void(void)> Create(Context<Grid> * d, const ptree & pt)
+	static TR1::function<void(void)> Create(Context<Grid> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
@@ -258,7 +258,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 
 	FunType fun;
 
-	FieldFunction(Context<Grid> * d, const ptree & pt) :
+	FieldFunction(Context<Grid> * d, const PTree & pt) :
 			BaseFieldFunction<UniformRectGrid>(d, pt), fun(pt)
 	{
 	}
@@ -267,7 +267,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 	{
 
 	}
-	static TR1::function<void(void)> Create(Context<Grid> * d, const ptree & pt)
+	static TR1::function<void(void)> Create(Context<Grid> * d, const PTree & pt)
 	{
 		return TR1::bind(&ThisType::Eval,
 				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
@@ -306,7 +306,7 @@ struct FieldFunction<Field<UniformRectGrid, ITwoForm, TV>,
 
 };
 template<typename TG, template<typename > class TFun> inline TR1::function<
-		void(void)> Create(Context<TG>* ctx, ptree const & pt)
+		void(void)> Create(Context<TG>* ctx, PTree const & pt)
 {
 
 	boost::optional<std::string> field_type = pt.get<std::string>(

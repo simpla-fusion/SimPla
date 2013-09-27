@@ -69,7 +69,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	typename TestFixture::FieldType f( mesh );
 
-	typename TestFixture::FieldType::ValueType a; a= 1.0;
+	typename TestFixture::FieldType::value_type a; a= 1.0;
 
 	size_t num= f.get_num_of_elements();
 
@@ -80,7 +80,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	for (size_t s = 0; s<num; ++s)
 	{
-		typename TestFixture::FieldType::ValueType res;
+		typename TestFixture::FieldType::value_type res;
 		res=a*static_cast<Real>(s);
 		ASSERT_EQ(res,f[s])<<"idx=" << s;
 	}
@@ -94,13 +94,13 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	typename TestFixture::FieldType f1(TestFixture::mesh),f2(TestFixture::mesh);
 
-	typedef typename TestFixture::FieldType::ValueType ValueType;
+	typedef typename TestFixture::FieldType::value_type value_type;
 
 	size_t num= f1.get_num_of_elements();
 
-	ValueType a; a = 3.0;
+	value_type a; a = 3.0;
 
-	f2.fill( a);
+	std::fill(f2.begin(),f2.end(), a);
 
 	for (size_t s = 0; s<num; ++s)
 	{
@@ -117,7 +117,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	for (auto s = geometry.get_center_elements_begin( );
 			s!=geometry.get_center_elements_end( ); ++s)
 	{
-		typename TestFixture::FieldType::ValueType res;
+		typename TestFixture::FieldType::value_type res;
 		res=a*static_cast<Real>(*s);
 		ASSERT_EQ( res,f2[*s])<<"idx="<< *s;
 	}
@@ -134,20 +134,21 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
 
-	typedef typename TestFixture::FieldType::ValueType ValueType;
+	typedef typename TestFixture::FieldType::value_type value_type;
 
-	ValueType va,vb;
+	value_type va,vb;
 
 	va=2.0;vb=3.0;
 
-	f1 .fill( va);
-	f2 .fill( vb);
+	std::fill(f1.begin(),f1.end(), va);
+	std::fill(f2.begin(),f2.end(), vb);
+
 	f3 = - f1*2.0 + f2 * c -f1/b;
 
 	for (auto s = geometry.get_center_elements_begin( );
 			s!=geometry.get_center_elements_end( ); ++s)
 	{
-		ValueType res;
+		value_type res;
 		res= - f1[*s]*2.0 + f2[*s] *c -f1[*s]/b
 		;
 		ASSERT_EQ( res, f3[*s]) << *s;
@@ -164,9 +165,9 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 	RScalarField a(TestFixture::mesh),b(TestFixture::mesh),c(TestFixture::mesh);
 
-	a.fill(1.0);
-	b.fill(3.0);
-	c.fill(5.0);
+	std::fill(a.begin(),a.end(), 1.0);
+	std::fill(b.begin(),b.end(), 3.0);
+	std::fill(c.begin(),c.end(), 5.0);
 
 	size_t count=0;
 
@@ -181,15 +182,11 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	}
 	EXPECT_EQ(a.get_num_of_center_elements(),count);
 
-	typename TestFixture::FieldType::ValueType va,vb,vc;
+	typename TestFixture::FieldType::value_type va,vb,vc;
 
 	va=2.0;
 	vb=3.0;
 	vc=5.0;
-
-	f1.fill(va);
-	f2.fill(vb);
-	f3.fill(vc);
 
 	f4= -(f1^a)-f2/b +f3*c;
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
@@ -210,7 +207,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	for (auto s = f3.get_center_elements_begin( );
 			s!=f3.get_center_elements_end( ); ++s)
 	{
-		typename TestFixture::FieldType::ValueType res;
+		typename TestFixture::FieldType::value_type res;
 		res=
 		-f1[*s]*a[*s/num_of_comp]
 		-f2[*s]/b[*s/num_of_comp]
@@ -439,32 +436,32 @@ public:
 
 	Mesh mesh;
 
-	typedef TP ValueType;
-	typedef Field<Geometry<Mesh, 0>, Array<ValueType> > TZeroForm;
-	typedef Field<Geometry<Mesh, 1>, Array<ValueType> > TOneForm;
-	typedef Field<Geometry<Mesh, 2>, Array<ValueType> > TTwoForm;
+	typedef TP value_type;
+	typedef Field<Geometry<Mesh, 0>, std::vector<value_type> > TZeroForm;
+	typedef Field<Geometry<Mesh, 1>, std::vector<value_type> > TOneForm;
+	typedef Field<Geometry<Mesh, 2>, std::vector<value_type> > TTwoForm;
 
 	double RelativeError(double a, double b)
 	{
 		return (2.0 * fabs((a - b) / (a + b)));
 	}
 
-	void SetValueType(double *v)
+	void Setvalue_type(double *v)
 	{
 		*v = 1.0;
 	}
 
-	void SetValueType(Complex *v)
+	void Setvalue_type(Complex *v)
 	{
 		*v = Complex(1.0, 2.0);
 	}
 
 	template<int N, typename TV>
-	void SetValueType(nTuple<N, TV> *v)
+	void Setvalue_type(nTuple<N, TV> *v)
 	{
 		for (size_t i = 0; i < N; ++i)
 		{
-			SetValueType(&((*v)[i]));
+			Setvalue_type(&((*v)[i]));
 		}
 	}
 };
@@ -478,9 +475,9 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 {
 	Mesh const & mesh = TestFixture::mesh;
 
-	typename TestFixture::ValueType v;
+	typename TestFixture::value_type v;
 
-	TestFixture::SetValueType(&v);
+	TestFixture::Setvalue_type(&v);
 
 	typename TestFixture::TZeroForm sf(mesh);
 	typename TestFixture::TOneForm vf1(mesh);
@@ -524,9 +521,9 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
 
-	typename TestFixture::ValueType v;
+	typename TestFixture::value_type v;
 
-	TestFixture::SetValueType(&v);
+	TestFixture::Setvalue_type(&v);
 
 	for (size_t s = 0; s < vf2.get_num_of_elements(); ++s)
 	{
@@ -581,7 +578,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 ////};
 ////
 ////INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
-////		testing::ValueTypes(10, 20, 50));
+////		testing::value_types(10, 20, 50));
 ////
 ////TEST_P(TestFETLPerformance, error_analyze)
 ////{

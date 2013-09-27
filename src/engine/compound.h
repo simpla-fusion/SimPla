@@ -10,28 +10,29 @@
 
 #include "include/simpla_defs.h"
 #include "object.h"
-
 #include <typeinfo>
-
+#include <map>
+#include <utility>
 namespace simpla
 {
 class CompoundObject: public Object
 {
+
+	std::map<std::string, std::shared_ptr<Object> > childs;
+
 public:
-	std::map<std::string, TR1::shared_ptr<Object> > childs;
 
-	CompoundObject();
+	CompoundObject() = default;
 
-	~CompoundObject();
+	CompoundObject(CompoundObject const &) = default;
+
+	~CompoundObject() = default;
 
 	virtual void swap(CompoundObject & rhs)
 	{
 		childs.swap(rhs.childs);
 		Object::swap(rhs);
 	}
-
-	static TR1::shared_ptr<CompoundObject> Create(BaseContext * ctx,
-			ptree const & pt);
 
 	virtual bool IsEmpty() const
 	{
@@ -42,20 +43,94 @@ public:
 		return (tinfo == typeid(CompoundObject));
 	}
 
-	TR1::shared_ptr<Object> operator[](std::string const &name);
+	inline boost::optional<std::shared_ptr<Object> > Find(
+			std::string const & name)
+	{
+		auto it = childs.find(name);
 
-	TR1::shared_ptr<Object> operator[](std::string const &name) const;
+		if (it != childs.end())
+		{
+			return (boost::none);
+		}
+		else
+		{
+			return boost::optional<std::shared_ptr<Object> >(it->second);
+		}
 
-	bool CheckObjectType(std::string const & name,
-			std::type_info const &) const;
+	}
 
-	boost::optional<TR1::shared_ptr<Object> > FindObject(
-			std::string const & name);
+	inline boost::optional<const std::shared_ptr<Object> > operator[](
+			std::string const &name) const
+	{
+		return (*Find(name));
+	}
 
-	boost::optional<TR1::shared_ptr<const Object> > FindObject(
-			std::string const & name) const;
+	inline boost::optional<const std::shared_ptr<Object> > Find(
+			std::string const & name) const
+	{
 
-	void DeleteObject(std::string const & name);
+		auto it = childs.find(name);
+
+		if (it != childs.end())
+		{
+			return (boost::none);
+		}
+		else
+		{
+			return boost::optional<const std::shared_ptr<Object> >(it->second);
+		}
+	}
+
+	inline boost::optional<std::shared_ptr<Object> > operator[](
+			std::string const &name)
+	{
+		return (*Find(name));
+	}
+
+	template<typename T>
+	inline boost::optional<std::shared_ptr<T>> Get(std::string const & key)
+	{
+		auto res = Find(key);
+		if (!res || !((*res)->CheckType(typeid(T))))
+		{
+			return boost::none;
+		}
+		else
+		{
+			return boost::optional<const std::shared_ptr<T> >(
+					dynamic_cast<T>(*res));
+		}
+	}
+
+	template<typename T>
+	inline boost::optional<const std::shared_ptr<T>> Get(
+			std::string const & key) const
+	{
+		auto res = Find(key);
+		if (!res || !((*res)->CheckType(typeid(T))))
+		{
+			return boost::none;
+		}
+		else
+		{
+			return boost::optional<const std::shared_ptr<T> >(
+					dynamic_cast<const T>(*res));
+		}
+	}
+
+	inline void Add(std::string const & name, std::shared_ptr<Object> obj)
+	{
+		childs.insert(std::make_pair(name, obj));
+	}
+
+	inline void Delete(std::string const & name)
+	{
+		auto it = childs.find(name);
+		if (it != childs.end())
+		{
+			childs.erase(it);
+		}
+	}
 
 }
 ;
