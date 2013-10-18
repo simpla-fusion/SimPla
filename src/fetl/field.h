@@ -17,7 +17,7 @@ namespace simpla
 {
 
 template<typename TGeometry, typename TStorage>
-struct Field: public TGeometry, public TStorage,public Object
+struct Field: public TGeometry, public TStorage, public Object
 {
 public:
 	typedef TGeometry GeometryType;
@@ -70,6 +70,7 @@ public:
 	}
 
 	inline bool CheckType(std::type_info const & tinfo) const
+
 	{
 		return (tinfo == typeid(ThisType));
 	}

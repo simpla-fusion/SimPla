@@ -58,6 +58,24 @@ public:
 //		}
 //		return (*dynamic_cast<const T>(data_));
 //	}
+	template<typename T>
+	T & as()
+	{
+		if(!CheckType(typeid(T)))
+		{
+			ERROR<<"Can not convert to type "<<typeid(T).name();
+		}
+		return (*dynamic_cast<T>(data_));
+	}
+	template<typename T>
+	T const & as() const
+	{
+		if (!CheckType(typeid(T)))
+		{
+			ERROR << "Can not convert to type " << typeid(T).name();
+		}
+		return (*dynamic_cast<const T>(data_));
+	}
 
 	virtual void swap(Object & rhs)
 	{
@@ -73,13 +91,16 @@ public:
 
 	bool IsEmpty() const
 	{
+
 		return (data_.get() == nullptr);
+
 	}
 
 public:
 	PTree properties;
 protected:
 	std::shared_ptr<ByteType> data_;
+	size_t size_in_bytes_;
 
 };
 

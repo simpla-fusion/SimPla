@@ -7,6 +7,7 @@
 
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
+<<<<<<< HEAD
 
 #include "engine/object.h"
 #include <list>
@@ -156,6 +157,22 @@ private:
 
 }
 ;
+=======
+#include "include/simpla_defs.h"
+#include "fetl/fetl.h"
+#include "engine/object.h"
+namespace simpla
+{
+template<typename TG>
+struct Particle:public CompoundObject
+{
+
+	DEFINE_FIELDS(TG)
+	ZeroForm n;
+	VecZeroForm J;
+
+};
+>>>>>>> ddb1baf4864f73bec4047c704d79f5c9a1152544
 
 }
 // namespace simpla

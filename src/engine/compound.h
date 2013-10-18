@@ -43,6 +43,7 @@ public:
 		return (tinfo == typeid(CompoundObject));
 	}
 
+<<<<<<< HEAD
 	inline boost::optional<std::shared_ptr<Object> > Find(
 			std::string const & name)
 	{
@@ -83,11 +84,29 @@ public:
 
 	inline boost::optional<std::shared_ptr<Object> > operator[](
 			std::string const &name)
+=======
+
+
+	boost::optional<std::shared_ptr<Object> > Find(std::string const &name);
+
+	boost::optional<std::shared_ptr<const Object> > Find(
+			std::string const &name) const;
+
+
+	inline boost::optional<Object> operator[](std::string const &name)
+	{
+		return (*Find(name));
+	}
+
+	inline boost::optional<const Object> operator[](
+			std::string const &name) const
+>>>>>>> ddb1baf4864f73bec4047c704d79f5c9a1152544
 	{
 		return (*Find(name));
 	}
 
 	template<typename T>
+<<<<<<< HEAD
 	inline boost::optional<std::shared_ptr<T>> Get(std::string const & key)
 	{
 		auto res = Find(key);
@@ -131,6 +150,28 @@ public:
 			childs.erase(it);
 		}
 	}
+=======
+	inline boost::optional<T> get(std::string const & key)
+	{
+		boost::optional<std::shared_ptr<Object> > res = Find(key);
+
+		return boost::optional<T>(!(!res), (*res)->as<T>());
+	}
+
+	template<typename T>
+	inline boost::optional<const T> get(std::string const & key) const
+	{
+		boost::optional<const Object> res = Find(key);
+
+		return boost::optional<const T>(!(!res), res->as<const T>());
+	}
+
+
+
+	void Add(std::string const & name, std::shared_ptr<Object> obj);
+
+	void Delete(std::string const & name);
+>>>>>>> ddb1baf4864f73bec4047c704d79f5c9a1152544
 
 }
 ;
