@@ -7,44 +7,36 @@
 
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
-<<<<<<< HEAD
 
+#include "include/simpla_defs.h"
 #include "engine/object.h"
 #include <list>
 #include <vector>
-//need  libstdc++
-#include <ext/mt_allocator.h>
-
 namespace simpla
 {
-//struct SampleNode
-//{
-//	typename TGeometry::CoordinateType Z;
-//
-//	TSample f;
-//};
+
+template<typename T> using PIC=std::list<T, SmallObjectAllocator<T> >;
 
 template<typename T, typename TGeometry>
-class Particle: public TGeometry, public std::vector<
-		std::list<T, typename __gnu_cxx::__mt_alloc<T> > >, public Object
+class Particle: public TGeometry,
+		public std::vector<PIC<T> >,
+		public Object
 {
 public:
-	//TODO: default allocator is not enough, we need pool_allocator or __mt_alloc
-
-	typedef typename __gnu_cxx::__mt_alloc<T> allocator_type;
-
-	typedef std::list<T, allocator_type> ParticlesList;
-
-	typedef std::vector<ParticlesList> StorageType;
+	typedef SmallObjectAllocator<T> allocator_type;
 
 	typedef TGeometry Geometry;
 
 	typedef T ValueType;
 
+	typedef PIC<ValueType> pic_type;
+
+	typedef std::vector<PICListType> StorageType;
+
 	typedef Particle<Geometry, ValueType> ThisType;
 
 	Particle() :
-			BaseType(Geometry::get_num_of_ele(), ParticlesList(allocator_))
+			BaseType(Geometry::get_num_of_ele(), pic_type(allocator_))
 	{
 	}
 	Particle(ThisType const & r) :
@@ -71,14 +63,13 @@ public:
 		}
 	}
 
-
 	void sort()
 	{
 		/**
 		 * TODO need review;
 		 *   some particles are sorted twice;
 		 */
-		BaseType tmp(Geometry::get_num_of_ele(), ParticlesList(allocator_))
+		BaseType tmp(Geometry::get_num_of_ele(), pic_type(allocator_))
 
 		for (size_t i = 0, max = StorageType::size(); i < max; ++i)
 		{
@@ -157,22 +148,6 @@ private:
 
 }
 ;
-=======
-#include "include/simpla_defs.h"
-#include "fetl/fetl.h"
-#include "engine/object.h"
-namespace simpla
-{
-template<typename TG>
-struct Particle:public CompoundObject
-{
-
-	DEFINE_FIELDS(TG)
-	ZeroForm n;
-	VecZeroForm J;
-
-};
->>>>>>> ddb1baf4864f73bec4047c704d79f5c9a1152544
 
 }
 // namespace simpla

@@ -41,4 +41,13 @@
 #  define ASSERT(_COND_)    assert(_COND_);
 #endif
 
+
+/**
+ *  Leave all platform dependence here
+ * */
+
+//need  libstdc++
+#include <ext/mt_allocator.h>
+template<typename T> using SmallObjectAllocator= __gnu_cxx::__mt_alloc<T>;
+
 #endif /* SIMPLA_DEFS_H_ */
