@@ -8,19 +8,16 @@
 #ifndef SIMPLA_DEFS_H_
 #define SIMPLA_DEFS_H_
 
-#include <cstddef>
-#include <cassert>
-#include <limits>
-#include <complex>
-#include <stdint.h>
-#include <cassert>
+//#include <stdint.h>
+//#include "utilities/log.h"
+//#include <cassert>
+//#include <complex>
+//#include <cstddef>
+//#include <functional>
+//#include <limits>
+//#include <memory>
 
-//#include "mpl/typetraits.h"
-
-#include <memory>
-#include <functional>
-
-#include "utilities/log.h"
+//#include <cstddef>
 
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"

@@ -13,7 +13,6 @@
 namespace simpla
 {
 
-template<typename T>
 class normal_distribution_icdf: public icdf_distribution
 {
 

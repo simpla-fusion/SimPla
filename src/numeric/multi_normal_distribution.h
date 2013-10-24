@@ -8,8 +8,10 @@
 #ifndef MULTI_NORMAL_DISTRIBUTION_H_
 #define MULTI_NORMAL_DISTRIBUTION_H_
 
-#include "cholesky.h"
+#include <fetl/ntuple.h>
 #include <random>
+#include "normal_distribution_icdf.h"
+#include "cholesky.h"
 
 namespace simpla
 {
@@ -24,7 +26,9 @@ class multi_normal_distribution
 public:
 	static const int NDIMS = N;
 
-	multi_normal_distribution(RealType pT, nTuple<N, RealType> const &pu) :
+	multi_normal_distribution(RealType pT, //
+			nTuple<N, RealType> const &pu =
+			{ 0, 0, 0 }) :
 			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)

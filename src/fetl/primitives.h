@@ -8,7 +8,9 @@
 #ifndef PRIMITIVES_H_
 #define PRIMITIVES_H_
 
+#include <sys/types.h>
 #include <complex>
+#include <limits>
 
 namespace simpla
 {

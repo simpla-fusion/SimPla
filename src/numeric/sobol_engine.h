@@ -12,10 +12,10 @@
 namespace simpla
 {
 /**
- * @brief Numerical Recipes 3rd pp.403, 7.8 Quasi- (that is,
- *  Sub-) Random Sequences
+ * @brief Quasi-Random Sequences
  *
  * @ref: http://web.maths.unsw.edu.au/~fkuo/sobol/index.html
+ *  - Numerical Recipes 3rd pp.403, 7.8
  *  - S. Joe and F. Y. Kuo, Remark on Algorithm 659:
  *     Implementing Sobol's quasirandom sequence generator,
  *     ACM Trans. Math. Softw. 29, 49-57 (2003).

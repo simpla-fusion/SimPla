@@ -14,13 +14,18 @@
 
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
-#include <iostream>
-#include <complex>
-#include <sstream>
 
-#include <utility>
-#include <type_traits>
-#include "expression.h"
+#include <fetl/expression.h>
+#include <fetl/expression2.h>
+#include <cmath>
+#include <complex>
+#include <cstddef>
+//#include <iostream>
+#include <sstream>
+#include <string>
+//#include <type_traits>
+//#include <utility>
+
 namespace simpla
 {
 

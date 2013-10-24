@@ -8,55 +8,52 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include "include/simpla_defs.h"
-#include "engine/object.h"
+#include <engine/object.h>
+#include <ext/mt_allocator.h>
+#include <include/simpla_defs.h>
+#include <cstddef>
 #include <list>
 #include <vector>
+
 namespace simpla
 {
 
 template<typename T> using PIC=std::list<T, SmallObjectAllocator<T> >;
 
 template<typename T, typename TGeometry>
-class Particle: public TGeometry,
-		public std::vector<PIC<T> >,
-		public Object
+class Particle: public TGeometry, public std::vector<PIC<T> >, public Object
 {
 public:
-	typedef SmallObjectAllocator<T> allocator_type;
+	typedef typename SmallObjectAllocator<T>::allocator_type allocator_type;
 
 	typedef TGeometry Geometry;
 
-	typedef T ValueType;
+	typedef T value_type;
 
-	typedef PIC<ValueType> pic_type;
+	typedef PIC<value_type> pic_type;
 
-	typedef std::vector<PICListType> StorageType;
+	typedef std::vector<pic_type> storage_type;
 
-	typedef Particle<Geometry, ValueType> ThisType;
+	typedef Particle<Geometry, value_type> this_type;
 
-	Particle() :
-			BaseType(Geometry::get_num_of_ele(), pic_type(allocator_))
+	Particle(allocator_type allocator = allocator_type()) :
+			storage_type(Geometry::get_num_of_ele(), pic_type(allocator)), allocator_(
+					allocator)
 	{
 	}
-	Particle(ThisType const & r) :
-			BaseType(r), allocator_(r.allocator_)
+	Particle(this_type const & r) :
+			storage_type(r), allocator_(r.allocator_)
 	{
 	}
 	~Particle()
 	{
 	}
 
-	allocator_type get_allocator() const
-	{
-		return allocator_;
-	}
-
 	void push(T && p)
 	{
 		try
 		{
-			StorageType::at(Geometry::get_cell_num(p)).push_back(p);
+			storage_type::at(Geometry::get_cell_num(p)).push_back(Lp);
 		} catch (...)
 		{
 
@@ -69,13 +66,13 @@ public:
 		 * TODO need review;
 		 *   some particles are sorted twice;
 		 */
-		BaseType tmp(Geometry::get_num_of_ele(), pic_type(allocator_))
+		storage_type tmp(Geometry::get_num_of_ele(), pic_type(allocator_))
 
-		for (size_t i = 0, max = StorageType::size(); i < max; ++i)
+		for (size_t i = 0, max = storage_type::size(); i < max; ++i)
 		{
-			auto it = StorageType::at(i).cbegin();
+			auto it = storage_type::at(i).cbegin();
 
-			while (it != StorageType::at(i).cend())
+			while (it != storage_type::at(i).cend())
 			{
 				auto p = it;
 				++it;
@@ -90,22 +87,28 @@ public:
 				{
 					try
 					{
-						tmp.at(j).slice(StorageType::at(j).end(),
-								StorageType::at(i), p);
+						tmp.at(j).slice(storage_type::at(j).end(),
+								storage_type::at(i), p);
 					} catch (...)
 					{
-						StorageType::at(i).erase(p);
+						storage_type::at(i).erase(p);
 					}
 				}
 			}
 		}
-
-		for (auto it1 = StorageType::begin(), it2 = tmp.begin();
-				it1 != StorageType::end(); ++it1, ++it2)
+		auto it1 = storage_type::begin();
+		auto it2 = tmp.begin();
+		for (; it1 != storage_type::end(); ++it1, ++it2)
 		{
 			it1->slice(it1->begin(), it2);
 		}
 	}
+
+	const allocator_type& getAllocator() const
+	{
+		return allocator_;
+	}
+
 private:
 
 	allocator_type allocator_;
