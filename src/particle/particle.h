@@ -8,12 +8,9 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include <engine/object.h>
-#include <ext/mt_allocator.h>
 #include <include/simpla_defs.h>
 #include <cstddef>
 #include <list>
-#include <vector>
 
 namespace simpla
 {
@@ -22,9 +19,7 @@ template<typename T> using PIC=std::list<T, FixedSmallObjectAllocator<T> >;
 //std::map<size_t, T>;
 
 template<typename T, typename TGeometry>
-class Particle: public TGeometry,
-		public TGeometry::Container<PIC<T> >,
-		public Object
+class Particle: public TGeometry, public TGeometry::Container<PIC<T> >
 {
 public:
 	typedef typename PIC<T>::allocator_type allocator_type;
@@ -39,31 +34,26 @@ public:
 
 	typedef Particle<Geometry, value_type> this_type;
 
-	Particle(Geometry const & geometry,
-
-	allocator_type allocator = allocator_type()) :
-
-			Geometry(geometry),
-
-			container_type(geometry.make_container(pic_type(allocator))),
-
-			allocator_(allocator)
-	{
-	}
-	Particle(this_type const & r) :
-			Geometry(r), container_type(r), allocator_(r.allocator_)
-
-	{
-	}
-	~Particle()
+	Particle(Geometry const & geometry, allocator_type allocator =
+			allocator_type()) :
+			Geometry(geometry), container_type(
+					std::move(geometry.make_container(pic_type(allocator)))), allocator_(
+					allocator)
 	{
 	}
 
-	void push(T && p)
+	Particle(this_type const & r) = default;
+	Particle(this_type && r) = default;
+	~Particle() = default;
+
+	void push(T && pp)
 	{
 		try
 		{
-			container_type::at(Geometry::get_cell_num(p)).push_back(Lp);
+			T p(pp);
+
+			container_type::at(Geometry::get_cell_num(p)).push_back_emplace(
+					std::move(p));
 		} catch (...)
 		{
 
@@ -73,32 +63,30 @@ public:
 	void sort()
 	{
 
-		container_type tmp(Geometry::get_num_of_ele(), pic_type(allocator_))
+		container_type tmp(
+				std::move(geometry.makeContainer(pic_type(allocator))))
+		);
 
-		for (size_t i = 0, max = container_type::size(); i < max; ++i)
+		for (auto pt : *this)
 		{
-			auto it = container_type::at(i).cbegin();
+			auto it = pt.cbegin();
 
-			while (it != container_type::at(i).cend())
+			while (it != pt.cend())
 			{
 				auto p = it;
 				++it;
 
-				size_t j = Geometry::get_cell_num(*p);
+				auto j = Geometry::get_cell_num(*p);
 
-				if (j == i)
+				if (this->at(j) != pt)
 				{
-					continue;
-				}
-				else
-				{
+
 					try
 					{
-						tmp.at(j).slice(container_type::at(j).end(),
-								container_type::at(i), p);
+						tmp.at(j).slice(container_type::at(j).end(), pt, p);
 					} catch (...)
 					{
-						container_type::at(i).erase(p);
+						pt.erase(p);
 					}
 				}
 			}
@@ -107,11 +95,11 @@ public:
 		auto it2 = tmp.begin();
 		for (; it1 != container_type::end(); ++it1, ++it2)
 		{
-			it1->slice(it1->begin(), it2);
+			it1->splice(it1->begin(), it2);
 		}
 	}
 
-	const allocator_type& getAllocator() const
+	const allocator_type& get_allocator() const
 	{
 		return allocator_;
 	}

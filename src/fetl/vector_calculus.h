@@ -95,7 +95,8 @@ auto operator*(
 				DECL_RET_TYPE(
 						(typename std::conditional<(IL > 0 && IL <= TG::NUM_OF_DIMS),
 								Field<Geometry<TG, TG::NUM_OF_DIMS - IL>,
-								UniOp<OpFHodgeStar,Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
+								UniOp<OpFHodgeStar
+								,Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
 
 template<typename TG, int IL, typename TL> inline  //
 auto d(Field<Geometry<TG, IL>, TL> const & f)
@@ -151,7 +152,7 @@ struct Field<TGeometry, BiOp<TOP, TL, TR> > : public TGeometry
 	typename ConstReferenceTraits<TR>::type r_;
 
 	Field(TL const & l, TR const & r) :
-			TGeometry(get_mesh(l, r)), l_(l), r_(r)
+			TGeometry(l, r), l_(l), r_(r)
 	{
 	}
 	inline auto operator[](size_t s) const
@@ -165,7 +166,9 @@ operator^(Field<Geometry<TG, IL>, TL> const & lhs,
 				DECL_RET_TYPE(
 						(typename std::conditional<(IL + IR >=0 &&
 										IL+IR <= TG::NUM_OF_DIMS ),
-								Field<Geometry<TG,IL+IR> , BiOp<OpFWedge,Field<Geometry<TG, IL>, TL> , Field<Geometry<TG, IR>, TR> > >
+								Field<Geometry<TG,IL+IR> ,
+								BiOp<OpFWedge,Field<Geometry<TG, IL>, TL> ,
+								Field<Geometry<TG, IR>, TR> > >
 								,Zero>::type
 								(lhs, rhs)))
 
@@ -250,12 +253,16 @@ template<typename TG, typename TL, typename TR> inline auto //
 Cross(Field<Geometry<TG, 0>, TL> const & lhs,
 		Field<Geometry<TG, 0>, TR> const & rhs)
 				DECL_RET_TYPE(
-						(Field<Geometry<TG,0> , BiOp<OpFCross,Field<Geometry<TG, 0>, TL> , Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
+						(Field<Geometry<TG,0> ,
+								BiOp<OpFCross,Field<Geometry<TG, 0>, TL> ,
+								Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
 template<typename TG, typename TL, typename TR> inline auto //
 Dot(Field<Geometry<TG, 0>, TL> const & lhs,
 		Field<Geometry<TG, 0>, TR> const & rhs)
 				DECL_RET_TYPE(
-						(Field<Geometry<TG,0> , BiOp<OpFDot,Field<Geometry<TG, 0>, TL> , Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
+						(Field<Geometry<TG,0> ,
+								BiOp<OpFDot,Field<Geometry<TG, 0>, TL> ,
+								Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
 
 }
 // namespace simpla

@@ -7,7 +7,9 @@
 
 #ifndef EXPRESSION2_H_
 #define EXPRESSION2_H_
-#include <valarray>
+
+#include <cstddef>
+
 namespace simpla
 {
 /**

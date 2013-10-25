@@ -8,10 +8,7 @@
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
 
-#include <bits/shared_ptr.h>
 #include <fetl/expression2.h>
-#include <fetl/field.h>
-#include <fetl/geometry.h>
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
 #include <utilities/log.h>
@@ -26,38 +23,34 @@
 namespace simpla
 {
 template<typename, typename > class Field;
+
 template<typename, int> class Geometry;
+
 /**
- *  UniformRectMesh -- Uniform rectangular structured grid.
+ *  @brief UniformRectMesh -- Uniform rectangular structured grid.
+ *  @ingroup mesh
  * */
+
 struct UniformRectMesh
 {
+
 	static const int NUM_OF_DIMS = 3;
 
-	UniformRectMesh &
-	operator=(const UniformRectMesh&);
+	template<typename Element> using Container = std::vector<Element>;
+
+	typedef size_t index_type;
+
+	typedef RVec3 coordinates_type;
+
+	typedef UniformRectMesh this_type;
+
+	UniformRectMesh & operator=(const UniformRectMesh&);
 
 	IVec3 shift_;
 
 	std::vector<size_t> center_ele_[4];
+
 	std::vector<size_t> ghost_ele_[4];
-
-	typedef Real ValueType;
-	typedef UniformRectMesh Grid;
-	typedef std::shared_ptr<Grid> Holder;
-	typedef RVec3 CoordinatesType;
-	typedef UniformRectMesh ThisType;
-
-	enum
-	{
-		NDIMS = THREE
-	};
-	typedef typename std::vector<size_t>::iterator iterator;
-	typedef typename std::vector<size_t>::const_iterator const_iterator;
-
-	typedef RVec3 Coordinates;
-
-	typedef std::shared_ptr<ByteType> Storage;
 
 	Real dt;
 	// Geometry
@@ -86,7 +79,6 @@ struct UniformRectMesh
 		vm.Get("dims", &dims);
 		vm.Get("gw", &gw);
 
-
 		Init();
 	}
 
@@ -114,7 +106,7 @@ struct UniformRectMesh
 
 	void Init()
 	{
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			gw[i] = (gw[i] * 2 > dims[i]) ? dims[i] / 2 : gw[i];
 			if (dims[i] <= 1)
@@ -163,13 +155,6 @@ struct UniformRectMesh
 
 					}
 				}
-
-	}
-
-	template<int N>
-	Geometry<ThisType, N> get_sub_geometry()
-	{
-		return (Geometry<ThisType, N>(*this));
 
 	}
 
@@ -305,31 +290,18 @@ struct UniformRectMesh
 //		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
 
 		std::vector<size_t> d(ndims);
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			d[i] = dims[i];
 		}
 		if (iform == 1 || iform == 2)
 		{
-			d[NDIMS] = get_num_of_comp(iform);
+			d[NUM_OF_DIMS] = get_num_of_comp(iform);
 		}
 		return (d);
 	}
 
 // Assign Operation --------------------------------------------
-
-	template<int IF, typename TV> inline //
-	void InitEmptyField(Field<Geometry<Grid, IF>, TV> * f) const
-	{
-		if (f->storage == Storage())
-		{
-			f->storage =
-					Storage(
-							reinterpret_cast<ByteType*>(operator new(
-									get_num_of_elements(IF)
-											* (f->value_size_in_bytes))));
-		}
-	}
 
 	template<int IF, typename TV> TV const & //
 	GetConstValue(Field<Geometry<Grid, IF>, TV> const &f, size_t s) const
@@ -606,17 +578,17 @@ struct UniformRectMesh
 	}
 
 	template<int IF, typename TL> inline auto //
-	mapto(Int2Type<IF>, Field<Geometry<ThisType, IF>, TL> const &l,
+	mapto(Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
 			size_t s) const
 			DECL_RET_TYPE((l[s]))
 
 	template<typename TL> inline auto //
-	mapto(Int2Type<1>, Field<Geometry<ThisType, 0>, TL> const &l,
+	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
 					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides[s%3]])*0.5) )
 
 	template<typename TL> inline auto //
-	mapto(Int2Type<2>, Field<Geometry<ThisType, 0>, TL> const &l,
+	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
 					DECL_RET_TYPE(((
 											l[(s-s%3)/3]+
@@ -626,7 +598,7 @@ struct UniformRectMesh
 
 							))
 	template<typename TL> inline auto //
-	mapto(Int2Type<3>, Field<Geometry<ThisType, 0>, TL> const &l,
+	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
 					DECL_RET_TYPE(((
 											l[(s-s%3)/3]+
@@ -646,18 +618,18 @@ struct UniformRectMesh
 //-----------------------------------------
 
 	template<int N, typename TL> inline auto //
-	ExtriorDerivative(Field<Geometry<ThisType, N>, TL> const & f,
+	ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
 			size_t s) const
 			DECL_RET_TYPE((f[s]*inv_dx[s%3]) )
 
 	template<typename TExpr> inline auto //
-	Grad(Field<Geometry<ThisType, 0>, TExpr> const & f, size_t s) const
+	Grad(Field<Geometry<this_type, 0>, TExpr> const & f, size_t s) const
 	DECL_RET_TYPE(
 			(f[(s - s % 3) / 3 + strides[s % 3]]
 					- f[(s - s % 3) / 3]) * inv_dx[s % 3])
 
 	template<typename TExpr> inline auto //
-	Diverge(Field<Geometry<ThisType, 1>, TExpr> const & f, size_t s) const
+	Diverge(Field<Geometry<this_type, 1>, TExpr> const & f, size_t s) const
 	DECL_RET_TYPE(
 
 			(f[s * 3 + 0] - f[s * 3 + 0 - 3 * strides[0]])
@@ -671,7 +643,7 @@ struct UniformRectMesh
 	)
 
 	template<typename TL> inline auto //
-	Curl(Field<Geometry<ThisType, 1>, TL> const & f,
+	Curl(Field<Geometry<this_type, 1>, TL> const & f,
 			size_t s) const
 					DECL_RET_TYPE(
 							(f[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3])
@@ -681,7 +653,7 @@ struct UniformRectMesh
 					)
 
 	template<typename TL> inline auto //
-	Curl(Field<Geometry<ThisType, 2>, TL> const & f,
+	Curl(Field<Geometry<this_type, 2>, TL> const & f,
 			size_t s) const
 					DECL_RET_TYPE(
 							(f[s - s % 3 + (s + 2) % 3]
@@ -701,48 +673,49 @@ struct UniformRectMesh
 					DECL_RET_TYPE( (-expr.rhs_[s-s % 3 + 1 + 3 * strides[2]] + expr.rhs_[s-s % 3 + 1]) * inv_dx[2])
 
 	template<int IL, int IR, typename TL, typename TR> inline auto //
-	Wedge(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, IR>, TR> const &r,
+	Wedge(Field<Geometry<this_type, IL>, TL> const &l,
+			Field<Geometry<this_type, IR>, TR> const &r,
 			size_t s) const
 					DECL_RET_TYPE(
 							(mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s))
 					)
 
 	template<int N, typename TL> inline auto //
-	HodgeStar(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	HodgeStar(Field<Geometry<this_type, N>, TL> const & f, size_t s) const
 	DECL_RET_TYPE( (mapto(Int2Type<NUM_OF_DIMS-N >(),f,s)))
 
 	template<int N, typename TL> inline auto //
-	Negate(Field<Geometry<ThisType, N>, TL> const & f, size_t s) const
+	Negate(Field<Geometry<this_type, N>, TL> const & f, size_t s) const
 	DECL_RET_TYPE( (-f[s]))
 
 	template<int IL, typename TL, typename TR> inline auto //
-	Plus(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
+	Plus(Field<Geometry<this_type, IL>, TL> const &l,
+			Field<Geometry<this_type, IL>, TR> const &r, size_t s) const
 			DECL_RET_TYPE( (l[s]+r[s]) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	Minus(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, IL>, TR> const &r, size_t s) const
+	Minus(Field<Geometry<this_type, IL>, TL> const &l,
+			Field<Geometry<this_type, IL>, TR> const &r, size_t s) const
 			DECL_RET_TYPE( (l[s]-r[s]) )
 
 	template<int IL, int IR, typename TL, typename TR> inline auto //
-	Multiplies(Field<Geometry<ThisType, IL>, TL> const &l,
-			Field<Geometry<ThisType, IR>, TR> const &r,
+	Multiplies(Field<Geometry<this_type, IL>, TL> const &l,
+			Field<Geometry<this_type, IR>, TR> const &r,
 			size_t s) const
 					DECL_RET_TYPE( (mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s)) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	Multiplies(Field<Geometry<ThisType, IL>, TL> const &l, TR r, size_t s) const
-	DECL_RET_TYPE( (l[s]*r) )
+	Multiplies(Field<Geometry<this_type, IL>, TL> const &l, TR r,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]*r) )
 
 	template<int IR, typename TL, typename TR> inline auto //
-	Multiplies(TL l, Field<Geometry<ThisType, IR>, TR> const & r,
+	Multiplies(TL l, Field<Geometry<this_type, IR>, TR> const & r,
 			size_t s) const
 			DECL_RET_TYPE( (l*r[s]) )
 
 	template<int IL, typename TL, typename TR> inline auto //
-	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR const &r,
+	Divides(Field<Geometry<this_type, IL>, TL> const &l, TR const &r,
 			size_t s) const
 			DECL_RET_TYPE((l[s]/mapto(Int2Type<IL>(),r,s)))
 

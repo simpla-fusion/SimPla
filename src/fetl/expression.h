@@ -8,10 +8,14 @@
 #ifndef EXPRESSION_H_
 #define EXPRESSION_H_
 
-#include <type_traits>
-#include <utility>
+#include <fetl/expression2.h>
+#include <fetl/field.h>
+#include <fetl/ntuple.h>
 #include <complex>
-#include <cmath>
+#include <cstddef>
+#include <type_traits>
+
+
 /** !file
  *     Define type-independent expression template
  *     arithmetic operator + - / *
@@ -263,6 +267,7 @@ template<typename, typename > struct OpBitwiseAND;
 template<typename, typename > struct OpBitwiseOR;
 
 template<typename > struct OpNegate;
+
 
 //template<typename TOP, typename TL>
 //struct UniOp

@@ -42,6 +42,7 @@ namespace simpla
  *   template<int n,typename T> struct nTuple;
  *   nTuple<5,double> t={1,2,3,4,5};
  *
+ *	@ingroup ntuple
  * */
 
 template<int N, typename T> struct nTuple;

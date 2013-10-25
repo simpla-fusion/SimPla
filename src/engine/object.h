@@ -29,8 +29,9 @@ public:
 	{
 	}
 
-	Object(std::shared_ptr<ByteType> d) :
-			data_(d)
+	template<typename T>
+	Object(std::shared_ptr<T> d) :
+			data_(std::dynamic_pointer_cast<ByteType>(d))
 	{
 	}
 
@@ -47,29 +48,12 @@ public:
 	{
 	}
 
-//	template<typename T> inline T & as()
-//	{
-//		if(!CheckType(typeid(T)))
-//		{
-//			ERROR<<"Can not convert to type "<<typeid(T).name();
-//		}
-//		return (*dynamic_cast<T>(data_));
-//	}
-//	template<typename T>inline
-//	T const & as()const
-//	{
-//		if(!CheckType(typeid(T)))
-//		{
-//			ERROR<<"Can not convert to type "<<typeid(T).name();
-//		}
-//		return (*dynamic_cast<const T>(data_));
-//	}
 	template<typename T>
 	T & as()
 	{
-		if(!CheckType(typeid(T)))
+		if (!CheckType(typeid(T)))
 		{
-			ERROR<<"Can not convert to type "<<typeid(T).name();
+			ERROR << "This is not a " << typeid(T).name() << " !";
 		}
 		return (*dynamic_cast<T>(data_));
 	}
@@ -108,7 +92,23 @@ protected:
 	std::shared_ptr<ByteType> data_;
 
 };
+template<typename T>
+class ObjectWrapper: public Object
+{
+public:
+	typedef T value_type;
 
+	ObjectWrapper(std::shared_ptr<T> ptr) :
+			Object(ptr)
+	{
+
+	}
+	virtual bool CheckType(std::type_info const &tinfo) const
+	{
+		return tinfo == typeid(T);
+	}
+
+};
 }
 // namespace simpla
 

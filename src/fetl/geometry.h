@@ -7,8 +7,9 @@
 
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
-#include <type_traits>
-#include <utility>
+
+#include <fetl/primitives.h>
+#include <cstddef>
 #include <vector>
 
 namespace simpla
@@ -25,6 +26,10 @@ public:
 	typedef TM Mesh;
 
 	typedef typename Mesh::Coordinates Coordinates;
+
+	template<typename Element> using Container=typename Mesh::template Container<Element>;
+
+	typedef typename Mesh::index_type index_type;
 
 	typedef Geometry<Mesh, IFORM> this_type;
 
@@ -48,6 +53,11 @@ public:
 			mesh(g.mesh)
 	{
 	}
+	template<typename TL, typename TR>
+	Geometry(TL const & l, TR const & r) :
+			mesh(get_mesh(l, r))
+	{
+	}
 	Geometry(this_type const & r) :
 			mesh(r.mesh)
 	{
@@ -57,16 +67,10 @@ public:
 	{
 	}
 
-	template<typename Element> using Container=std::vector<Element>;
-
-	template<typename E> inline Container<E>   makeContainer(E const & d) const
+	template<typename E> inline Container<E> makeContainer(E const & d =
+			E()) const
 	{
 		return std::move(Container<E>(get_num_of_elements(), d));
-	}
-
-	template<typename E> inline Container<E> makeContainer() const
-	{
-		return std::move(Container<E>(get_num_of_elements()));
 	}
 
 	template<typename TE>
@@ -111,7 +115,24 @@ public:
 	{
 		return (mesh->get_cell_num(p));
 	}
+private:
+	template<int IL, typename TR> static Mesh const * //
+	get_mesh(Geometry<Mesh, IL> const & l, TR const & r)
+	{
+		return (l.mesh);
+	}
 
+//	template<typename TL, int IR> static Mesh const * //
+//	get_mesh(TL const & l, Geometry<Mesh, IR> const & r)
+//	{
+//		return (r.mesh);
+//	}
+
+//	template<int IL, int IR> static Mesh const * //
+//	get_mesh(Geometry<Mesh, IL> const & l, Geometry<Mesh, IR> const & r)
+//	{
+//		return (l.mesh);
+//	}
 };
 
 }  // namespace simpla
