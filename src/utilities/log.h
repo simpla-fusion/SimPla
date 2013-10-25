@@ -15,19 +15,17 @@
 
 #ifndef LOG_H_
 #define LOG_H_
-#ifdef  OMP
-#include <omp.h>
-#endif
-#include <time.h>
-#define BOOST_DATE_TIME_POSIX_TIME_STD_CONFIG
-#include <boost/date_time.hpp>
 
-#include <string>
+#include <utilities/singleton_holder.h>
+#include <chrono>
+#include <ctime>
 #include <fstream>
 #include <iostream>
-#include <map>
-#include "utilities/singleton_holder.h"
-//#include <exception>
+#include <memory>
+#include <sstream>
+#include <stdexcept>
+#include <string>
+
 class LogStreams: public SingletonHolder<LogStreams>
 {
 public:
@@ -80,11 +78,10 @@ public:
 			level_(lv)
 	{
 		(*this)
-#ifdef  _OMP
-		<<"["<<omp_get_thread_num()<<"]"
-#endif
-		<< "[" << boost::posix_time::to_simple_string(clock_time()) << "]"
-				<< " ";
+//#ifdef  _OMP
+//		<<"["<<omp_get_thread_num()<<"]"
+//#endif
+		<< "[" << TimeStamp() << "]" << " ";
 
 	}
 	~Log()
@@ -119,19 +116,18 @@ public:
 		LogStreams::instance().format = format;
 	}
 
-	static std::string Teimstamp()
+	static std::string TimeStamp()
 	{
-		return boost::posix_time::to_simple_string(clock_time());
+
+		auto now = std::chrono::system_clock::to_time_t(
+				std::chrono::system_clock::now());
+
+		char mtstr[100];
+		std::strftime(mtstr, 100, "%F %T", std::localtime(&now));
+
+		return std::string(mtstr);
 	}
 private:
-	static boost::posix_time::ptime clock_time()
-	{
-		timespec tv;
-		clock_gettime(CLOCK_REALTIME, &tv);
-
-		return (boost::posix_time::from_time_t(tv.tv_sec)
-				+ boost::posix_time::nanosec(tv.tv_nsec));
-	}
 };
 //FIXME The operator<< eat first input and transform to integral
 #define ERROR Log(-2)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"

@@ -186,7 +186,7 @@ struct UniformRectMesh
 		return (ghost_ele_[iform]);
 	}
 
-	inline bool operator==(Grid const & r) const
+	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
 	}
@@ -304,21 +304,21 @@ struct UniformRectMesh
 // Assign Operation --------------------------------------------
 
 	template<int IF, typename TV> TV const & //
-	GetConstValue(Field<Geometry<Grid, IF>, TV> const &f, size_t s) const
+	GetConstValue(Field<Geometry<this_type, IF>, TV> const &f, size_t s) const
 	{
 		return (*reinterpret_cast<const TV*>(&(*f.storage)
 				+ s * f.value_size_in_bytes));
 	}
 
 	template<int IF, typename TV> TV & //
-	GetValue(Field<Geometry<Grid, IF>, TV> &f, size_t s) const
+	GetValue(Field<Geometry<this_type, IF>, TV> &f, size_t s) const
 	{
 		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
 	}
 
 	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs,
-			Field<Geometry<Grid, IFORM>, TR> const & rhs) const
+	void Assign(Field<Geometry<this_type, IFORM>, TExpr> & lhs,
+			Field<Geometry<this_type, IFORM>, TR> const & rhs) const
 	{
 		size_t ele_num = get_num_of_elements(IFORM);
 
@@ -331,9 +331,9 @@ struct UniformRectMesh
 // @NOTE the propose of this function is to assign constant vector to a field.
 //   It confuses the semantics of nTuple with constant Field, and was discarded.
 //	template<int IFORM, typename TExpr, int NR, typename TR>
-//	void Assign(Field<Geometry<Grid, IFORM>, TExpr> & lhs, nTuple<NR, TR> rhs) const
+//	void Assign(Field<Geometry<this_type, IFORM>, TExpr> & lhs, nTuple<NR, TR> rhs) const
 //	{
-//		ASSERT(lhs.grid==*this);
+//		ASSERT(lhs.this_type==*this);
 //		Index ele_num = get_num_of_elements(IFORM);
 //
 //#pragma omp parallel for
@@ -343,10 +343,10 @@ struct UniformRectMesh
 //		}
 //	}
 //	template<int IFORM, typename TL, typename TR> void //
-//	Assign(Field<Geometry<Grid, IFORM>, TL>& lhs,
-//			Field<Geometry<Grid, IFORM>, TR> const& rhs) const
+//	Assign(Field<Geometry<this_type, IFORM>, TL>& lhs,
+//			Field<Geometry<this_type, IFORM>, TR> const& rhs) const
 //	{
-//		ASSERT(lhs.grid==*this);
+//		ASSERT(lhs.this_type==*this);
 //		{
 //			std::vector<size_t> const & ele_list = get_center_elements(IFORM);
 //			size_t ele_num = ele_list.size();
@@ -361,8 +361,8 @@ struct UniformRectMesh
 //	}
 
 //	template<int IFORM, typename TLExpr, typename TRExpr> inline auto //
-//	InnerProduct(Field<Geometry<Grid, IFORM>, TLExpr> const & lhs,
-//			Field<Geometry<Grid, IFORM>, TRExpr> const & rhs) const
+//	InnerProduct(Field<Geometry<this_type, IFORM>, TLExpr> const & lhs,
+//			Field<Geometry<this_type, IFORM>, TRExpr> const & rhs) const
 //	{
 //		typedef decltype(lhs[0] * rhs[0]) Value;
 //
@@ -381,36 +381,36 @@ struct UniformRectMesh
 //		return (res);
 //
 //	}
-
-	template<int IFORM, typename TL, typename TR>
-	static void //
-	Add(Field<Geometry<Grid, IFORM>, TL> & lhs,
-			Field<Geometry<Grid, IFORM>, TR> const& rhs)
-	{
-		if (lhs.grid == rhs.grid)
-		{
-			size_t size = lhs.size();
-
-			// NOTE this is parallelism of FDTD
-#pragma omp parallel for
-			for (size_t s = 0; s < size; ++s)
-			{
-				lhs[s] += rhs[s];
-			}
-		}
-
-		else
-		{
-			ERROR << "Grid mismatch!" << std::endl;
-			throw(-1);
-		}
-	}
+//
+//	template<int IFORM, typename TL, typename TR>
+//	static void //
+//	Add(Field<Geometry<this_type, IFORM>, TL> & lhs,
+//			Field<Geometry<this_type, IFORM>, TR> const& rhs)
+//	{
+//		if (lhs.grid == rhs.grid)
+//		{
+//			size_t size = lhs.size();
+//
+//			// NOTE this is parallelism of FDTD
+//#pragma omp parallel for
+//			for (size_t s = 0; s < size; ++s)
+//			{
+//				lhs[s] += rhs[s];
+//			}
+//		}
+//
+//		else
+//		{
+//			ERROR << "this_type mismatch!" << std::endl;
+//			throw(-1);
+//		}
+//	}
 
 // Interpolation ----------------------------------------------------------
 
 	template<typename TExpr>
-	inline typename Field<Geometry<Grid, 0>, TExpr>::Value //
-	Gather(Field<Geometry<Grid, 0>, TExpr> const &f, RVec3 x) const
+	inline typename Field<Geometry<this_type, 0>, TExpr>::Value //
+	Gather(Field<Geometry<this_type, 0>, TExpr> const &f, RVec3 x) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -428,10 +428,10 @@ struct UniformRectMesh
 
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Geometry<Grid, 0>, TExpr> & f, RVec3 x,
-			typename Field<Geometry<Grid, 0>, TExpr>::Value const v) const
+	Scatter(Field<Geometry<this_type, 0>, TExpr> & f, RVec3 x,
+			typename Field<Geometry<this_type, 0>, TExpr>::Value const v) const
 	{
-		typename Field<Geometry<Grid, 0>, TExpr>::Value res;
+		typename Field<Geometry<this_type, 0>, TExpr>::Value res;
 		IVec3 idx;
 		Vec3 r;
 		r = (x - xmin) * inv_dx;
@@ -448,10 +448,10 @@ struct UniformRectMesh
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value>    //
-	Gather(Field<Geometry<Grid, 1>, TExpr> const &f, RVec3 x) const
+	inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value>    //
+	Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> res;
+		nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
 
 		IVec3 idx;
 		Vec3 r;
@@ -471,8 +471,8 @@ struct UniformRectMesh
 	}
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Geometry<Grid, 1>, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> const &v) const
+	Scatter(Field<Geometry<this_type, 1>, TExpr> & f, RVec3 x,
+			nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -491,10 +491,10 @@ struct UniformRectMesh
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value>    //
-	Gather(Field<Geometry<Grid, 2>, TExpr> const &f, RVec3 x) const
+	inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value>    //
+	Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
 	{
-		nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> res;
+		nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
 
 		IVec3 idx;
 		Vec3 r;
@@ -519,8 +519,8 @@ struct UniformRectMesh
 
 	template<typename TExpr>
 	inline void //
-	Scatter(Field<Geometry<Grid, 2>, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> const &v) const
+	Scatter(Field<Geometry<this_type, 2>, TExpr> & f, RVec3 x,
+			nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> const &v) const
 	{
 		IVec3 idx;
 		Vec3 r;
@@ -545,7 +545,7 @@ struct UniformRectMesh
 // Mapto ----------------------------------------------------------
 	/**
 	 *    mapto(Int2Type<0> ,   //target topology position
-	 *     Field<Grid,1 , TExpr> const & vl,  //field
+	 *     Field<this_type,1 , TExpr> const & vl,  //field
 	 *      SizeType s   //grid index of point
 	 *      )
 	 * target topology position:
@@ -729,7 +729,7 @@ struct UniformRectMesh
 //	DECL_RET_TYPE( (l[s]/r))
 	//
 //
-//	template<int IPD, typename TExpr> inline auto //	Field<Geometry<Grid, 2>,
+//	template<int IPD, typename TExpr> inline auto //	Field<Geometry<this_type, 2>,
 //	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
 //			size_t  s) const ->
 //			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
@@ -742,7 +742,7 @@ struct UniformRectMesh
 //
 //		size_t idx2 = s - j0;
 //
-//		typename Field<Geometry<Grid, 2>, TExpr>::Value res = 0.0;
+//		typename Field<Geometry<Mesh, 2>, TExpr>::Value res = 0.0;
 ////		if (1 == IPD)
 ////		{
 ////			res = (expr.rhs_[idx2 + 2]

@@ -11,6 +11,14 @@
 namespace simpla
 {
 
+/***
+ *
+ * @brief Field
+ *
+ * @ingroup Field Expression
+ *
+ */
+
 template<typename TGeometry, typename TValue>
 struct Field: public TGeometry, public TGeometry::template Container<TValue>
 
@@ -34,9 +42,9 @@ public:
 
 	Field() = default;
 
-	Field(this_type const & f) = default;
-
-	Field(this_type &&rhs) = default;
+//	Field(this_type const & f) = default;
+//
+//	Field(this_type &&rhs) = default;
 
 	virtual ~Field()
 	{
@@ -48,11 +56,11 @@ public:
 		container_type::swap(rhs);
 	}
 
-//	inline this_type & operator=(this_type const & rhs)
-//	{
-//		geometry_type::mesh->Assign(*this, rhs);
-//		return (*this);
-//	}
+	inline this_type & operator=(this_type const & rhs)
+	{
+		geometry_type::mesh->Assign(*this, rhs);
+		return (*this);
+	}
 
 	template<typename TR> inline this_type &
 	operator=(Field<TGeometry, TR> const & rhs)

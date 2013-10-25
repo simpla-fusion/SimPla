@@ -16,6 +16,12 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
+
+/**
+ * @brief Geometry
+ *
+ * @ingroup Field Expression
+ * */
 template<typename TM, int IFORM>
 class Geometry
 {
@@ -25,7 +31,7 @@ public:
 
 	typedef TM Mesh;
 
-	typedef typename Mesh::Coordinates Coordinates;
+	typedef typename Mesh::coordinates_type Coordinates;
 
 	template<typename Element> using Container=typename Mesh::template Container<Element>;
 
