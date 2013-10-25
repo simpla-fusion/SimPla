@@ -21,6 +21,9 @@ struct GGauge_s
 	Real w[NMATE];
 
 };
+
+
+
 template<typename T, typename XDIST, typename VDIST, typename RNDGenerator>
 class ParticleGenerator;
 template<int NMATE, typename XDIST, typename VDIST, typename RNDGenerator>

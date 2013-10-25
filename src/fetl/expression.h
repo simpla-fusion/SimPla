@@ -136,7 +136,6 @@ struct remove_const_reference
 	typedef typename std::remove_const<typename std::remove_reference<T>::type>::type type;
 };
 
-
 template<typename > struct is_complex
 {
 	static const bool value = false;
@@ -188,7 +187,24 @@ struct is_storage_type<std::complex<T>>
 	static const bool value = false;
 };
 
+template<typename TG, typename T>
+struct is_storage_type<Field<TG, T> >
+{
+	static const bool value = true;
+};
 
+template<typename TG, template<typename, typename > class TOP, typename TL,
+		typename TR>
+struct is_storage_type<Field<TG, BiOp<TOP, TL, TR> > >
+{
+	static const bool value = false;
+};
+
+template<typename TG, template<typename > class TOP, typename TL>
+struct is_storage_type<Field<TG, UniOp<TOP, TL> > >
+{
+	static const bool value = false;
+};
 template<typename T>
 struct ReferenceTraits
 {

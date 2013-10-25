@@ -9,6 +9,8 @@
 #define GEOMETRY_H_
 #include <type_traits>
 #include <utility>
+#include <vector>
+
 namespace simpla
 {
 template<typename, typename > struct Field;
@@ -22,11 +24,12 @@ public:
 
 	typedef TM Mesh;
 
-	typedef Geometry<Mesh, IFORM> ThisType;
+	typedef typename Mesh::Coordinates Coordinates;
 
-	typedef typename Mesh::CoordinatesType CoordinatesType;
+	typedef Geometry<Mesh, IFORM> this_type;
 
 	Mesh const* mesh;
+
 	Geometry() :
 			mesh(NULL)
 	{
@@ -45,7 +48,7 @@ public:
 			mesh(g.mesh)
 	{
 	}
-	Geometry(ThisType const & r) :
+	Geometry(this_type const & r) :
 			mesh(r.mesh)
 	{
 	}
@@ -53,18 +56,31 @@ public:
 	~Geometry()
 	{
 	}
+
+	template<typename Element> using Container=std::vector<Element>;
+
+	template<typename E> inline Container<E>   makeContainer(E const & d) const
+	{
+		return std::move(Container<E>(get_num_of_elements(), d));
+	}
+
+	template<typename E> inline Container<E> makeContainer() const
+	{
+		return std::move(Container<E>(get_num_of_elements()));
+	}
+
 	template<typename TE>
-	inline typename Field<ThisType, TE>::Value IntepolateFrom(
-			Field<ThisType, TE> const & f, CoordinatesType const & s,
+	inline typename Field<this_type, TE>::Value IntepolateFrom(
+			Field<this_type, TE> const & f, Coordinates const & s,
 			Real effect_radius) const
 	{
 		return (f[0]);
 	}
 
 	template<typename TE>
-	inline void IntepolateTo(Field<ThisType, TE> const & f,
-			typename Field<ThisType, TE>::Value const & v,
-			CoordinatesType const & s, Real effect_radius) const
+	inline void IntepolateTo(Field<this_type, TE> const & f,
+			typename Field<this_type, TE>::Value const & v,
+			Coordinates const & s, Real effect_radius) const
 	{
 	}
 	inline size_t get_num_of_elements() const

@@ -7,11 +7,17 @@
 
 #ifndef OBJECT_H_
 #define OBJECT_H_
-#include <typeinfo>
-#include <memory>
-#include <algorithm>
+
+#include <bits/shared_ptr_base.h>
+#include <bits/shared_ptr.h>
+#include <boost/property_tree/ptree.hpp>
+#include <fetl/primitives.h>
+#include <utilities/log.h>
+#include <utilities/properties.h>
+#include <iostream>
 #include <string>
-#include "utilities/properties.h"
+#include <typeinfo>
+#include <include/simpla_defs.h>
 namespace simpla
 {
 class Object
@@ -100,7 +106,6 @@ public:
 	PTree properties;
 protected:
 	std::shared_ptr<ByteType> data_;
-	size_t size_in_bytes_;
 
 };
 

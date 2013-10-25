@@ -7,11 +7,21 @@
  */
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
-#include "include/simpla_defs.h"
-#include "fetl/primitives.h"
+
+#include <bits/shared_ptr.h>
+#include <fetl/expression2.h>
+#include <fetl/field.h>
+#include <fetl/geometry.h>
+#include <fetl/ntuple.h>
+#include <fetl/primitives.h>
+#include <utilities/log.h>
+#include <cmath>
+#include <complex>
+#include <cstddef>
+#include <iomanip>
+#include <sstream>
+#include <string>
 #include <vector>
-#include <exception>
-#include <numeric>
 
 namespace simpla
 {
@@ -45,7 +55,7 @@ struct UniformRectMesh
 	typedef typename std::vector<size_t>::iterator iterator;
 	typedef typename std::vector<size_t>::const_iterator const_iterator;
 
-	typedef RVec3 Coordinate;
+	typedef RVec3 Coordinates;
 
 	typedef std::shared_ptr<ByteType> Storage;
 

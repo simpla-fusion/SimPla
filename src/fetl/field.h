@@ -16,17 +16,20 @@
 namespace simpla
 {
 
-template<typename TGeometry, typename TStorage>
-struct Field: public TGeometry, public TStorage, public Object
+template<typename TGeometry, typename TValue>
+struct Field: public TGeometry,
+		public TGeometry::template Container<TValue>,
+		public Object
 {
 public:
-	typedef TGeometry GeometryType;
 
-	typedef TStorage StorageType;
+	typedef TValue value_type;
 
-	typedef Field<GeometryType, StorageType> ThisType;
+	typedef TGeometry geometry_type;
 
-	typedef typename TGeometry::CoordinatesType CoordinatesType;
+	typedef typename TGeometry::template Container<TValue> container_type;
+
+	typedef Field<geometry_type, value_type> this_type;
 
 	Field()
 	{
@@ -34,57 +37,54 @@ public:
 
 	template<typename TG, typename TS>
 	Field(TG const & g, TS const& e) :
-			GeometryType(g), StorageType(e)
+			geometry_type(g), container_type(e)
 	{
 	}
 
 	template<typename TG, typename TE>
 	Field(Field<TG, TE> const & f) :
-			GeometryType(f), StorageType(f)
+			geometry_type(f), container_type(f)
 	{
 	}
 
-	Field(typename GeometryType::Mesh const & g) :
-			GeometryType(g), StorageType(TGeometry(g).get_num_of_elements())
+	Field(typename geometry_type::Mesh const & g) :
+			geometry_type(g),
+
+			container_type(
+					(geometry_type::template makeContainer<value_type>()))
 	{
 	}
 
-	Field(ThisType const & f) :
-			GeometryType(f), StorageType(f)
-	{
-	}
+	Field(this_type const & f) = default;
 
-	Field(ThisType &&rhs) :
-			GeometryType(rhs), StorageType(rhs)
-	{
-	}
+	Field(this_type &&rhs) = default;
 
 	virtual ~Field()
 	{
 	}
 
-	void swap(ThisType & rhs)
+	void swap(this_type & rhs)
 	{
-		GeometryType::swap(rhs);
-		StorageType::swap(rhs);
+		geometry_type::swap(rhs);
+		container_type::swap(rhs);
 	}
 
 	inline bool CheckType(std::type_info const & tinfo) const
 
 	{
-		return (tinfo == typeid(ThisType));
+		return (tinfo == typeid(this_type));
 	}
 
-	inline ThisType & operator=(ThisType const & rhs)
+	inline this_type & operator=(this_type const & rhs)
 	{
-		GeometryType::mesh->Assign(*this, rhs);
+		geometry_type::mesh->Assign(*this, rhs);
 		return (*this);
 	}
 
-	template<typename TR> inline ThisType &
+	template<typename TR> inline this_type &
 	operator=(Field<TGeometry, TR> const & rhs)
 	{
-		GeometryType::mesh->Assign(*this, rhs);
+		geometry_type::mesh->Assign(*this, rhs);
 		return (*this);
 	}
 
@@ -95,48 +95,35 @@ public:
 //	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
 
 };
-template<typename T> struct is_Field
-{
-	static const bool value = false;
-};
+//template<typename T> struct is_Field
+//{
+//	static const bool value = false;
+//};
+//
+//template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
+//{
+//	static const bool value = true;
+//};
+//
 
-template<typename TG, typename TE> struct is_Field<Field<TG, TE> >
-{
-	static const bool value = true;
-};
-
-template<typename TG, typename T>
-struct is_storage_type<Field<TG, T> >
-{
-	static const bool value = is_storage_type<T>::value;
-};
-
-template<typename TM, int IL, typename TL, typename TR> TM const * //
-get_mesh(Field<Geometry<TM, IL>, TL> const & l, TR const & r)
+template<typename TG, typename TL, typename TR> typename TG::Mesh const * //
+get_mesh(Field<TG, TL> const & l, TR const & r)
 {
 	return (l.mesh);
 }
 
-template<typename TM, typename TL, int IR, typename TR> TM const * //
-get_mesh(TL const & l, Field<Geometry<TM, IR>, TR> const & r)
+template<typename TG, typename TL, int IR, typename TR> typename TG::Mesh const * //
+get_mesh(TL const & l, Field<TG, TR> const & r)
 {
 	return (r.mesh);
 }
 
-template<typename TM, int IL, typename TL, int IR, typename TR> TM const * //
-get_mesh(Field<Geometry<TM, IL>, TL> const & l,
-		Field<Geometry<TM, IR>, TR> const & r)
+template<typename TGL, typename TL, typename TGR, typename TR> typename TGL::Mesh const * //
+get_mesh(Field<TGL, TL> const & l, Field<TGR, TR> const & r)
 {
 	return (l.mesh);
 }
 
-template<typename T, typename TR> struct ColneField;
-
-template<typename TG, typename TE, typename TR>
-struct ColneField<Field<TG, TE>, TR>
-{
-	typedef Field<TG, TR> type;
-};
 }
 // namespace simpla
 

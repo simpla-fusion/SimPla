@@ -6,12 +6,15 @@
  */
 
 #include <gtest/gtest.h>
+#include "utilities/log.h"
+
 #include "mesh/uniform_rect.h"
 #include "fetl.h"
 #include "fetl/primitives.h"
 #include "fetl/ntuple.h"
 #include "fetl/expression.h"
 #include "fetl/vector_calculus.h"
+#include "fetl/geometry.h"
 #include "physics/constants.h"
 using namespace simpla;
 
@@ -90,7 +93,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::mesh);
+	typename TestFixture::FieldType::geometry_type geometry(TestFixture::mesh);
 
 	typename TestFixture::FieldType f1(TestFixture::mesh),f2(TestFixture::mesh);
 
@@ -125,7 +128,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	typename TestFixture::FieldType::GeometryType geometry(TestFixture::mesh);
+	typename TestFixture::FieldType::geometry_type geometry(TestFixture::mesh);
 
 	typename TestFixture::FieldType f1( TestFixture::mesh),f2(TestFixture::mesh),f3(TestFixture::mesh);
 
@@ -234,179 +237,179 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 }
 }
-// test vector_calculus.h
-//template<typename T>
-//class TestFETLVecAlgegbra: public testing::Test
-//{
-//protected:
-//	virtual void SetUp()
-//	{
-//		mesh.dt = 1.0;
-//		mesh.xmin[0] = 0;
-//		mesh.xmin[1] = 0;
-//		mesh.xmin[2] = 0;
-//		mesh.xmax[0] = 1.0;
-//		mesh.xmax[1] = 1.0;
-//		mesh.xmax[2] = 1.0;
-//		mesh.dims[0] = 20;
-//		mesh.dims[1] = 30;
-//		mesh.dims[2] = 40;
-//		mesh.gw[0] = 2;
-//		mesh.gw[1] = 2;
-//		mesh.gw[2] = 2;
-//
-//		mesh.Init();
-//	}
-//public:
-//	mesh mesh;
-//	typedef Field<Geometry<mesh, 0>, Array<T> > ScalarField;
-//	typedef Field<Geometry<mesh, 0>, Array<nTuple<3, T> > > VectorField;
-//};
-//
-//typedef testing::Types<double, Complex> VecFieldTypes;
-//
-//TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
-//
-//TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
-//{
-//	const mesh& mesh = TestFixture::mesh;
-//
-//	Geometry<mesh, 0> geometry(TestFixture::mesh);
-//
-//	Vec3 vc1 =
-//	{	1.0, 2.0, 3.0};
-//	Vec3 vc2 =
-//	{	-1.0, 4.0, 2.0};
-//
-//	Vec3 res_vec;
-//
-//	res_vec = Cross(vc1, vc2);
-//
-//	Real res_scalar;
-//	res_scalar = Dot(vc1, vc2);
-//
-//	typename TestFixture::ScalarField res_scalar_field(mesh);
-//
-//	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
-//			mesh);
-//
-//	va = vc2;
-//
-//	res_scalar_field = Dot(vc1, va);
-//
-//	res_vector_field = Cross(vc1, va);
-//
-//	size_t num_of_comp = geometry.get_num_of_comp( );
-//
-//	for (auto s = geometry.get_center_elements_begin( );
-//			s != geometry.get_center_elements_end( ); ++s)
-//	{
-//		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
-//		;
-//
-//		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
-//		;
-//	}
-//
-//}
-//}
-//TYPED_TEST(TestFETLVecAlgegbra,vector_field){
-//{
-//	using namespace space3;
-//	//FIXME  should test with non-uniform field
-//
-//	mesh const & mesh = TestFixture::mesh;
-//
-//	Geometry<mesh, 0> geometry(mesh);
-//
-//	Vec3 vc1 =
-//	{	1.0, 2.0, 3.0};
-//	Vec3 vc2 =
-//	{	-1.0, 4.0, 2.0};
-//
-//	Vec3 res_vec;
-//
-//	res_vec=Cross(vc1,vc2);
-//
-//	Real res_scalar= Dot(vc1,vc2);
-//
-//	typename TestFixture::VectorField va(mesh), vb(mesh);
-//
-//	typename TestFixture::VectorField res_vector_field(mesh);
-//	typename TestFixture::ScalarField res_scalar_field(mesh);
-//
-//	va = vc1;
+//// test vector_calculus.h
+////template<typename T>
+////class TestFETLVecAlgegbra: public testing::Test
+////{
+////protected:
+////	virtual void SetUp()
+////	{
+////		mesh.dt = 1.0;
+////		mesh.xmin[0] = 0;
+////		mesh.xmin[1] = 0;
+////		mesh.xmin[2] = 0;
+////		mesh.xmax[0] = 1.0;
+////		mesh.xmax[1] = 1.0;
+////		mesh.xmax[2] = 1.0;
+////		mesh.dims[0] = 20;
+////		mesh.dims[1] = 30;
+////		mesh.dims[2] = 40;
+////		mesh.gw[0] = 2;
+////		mesh.gw[1] = 2;
+////		mesh.gw[2] = 2;
+////
+////		mesh.Init();
+////	}
+////public:
+////	mesh mesh;
+////	typedef Field<Geometry<mesh, 0>, Array<T> > ScalarField;
+////	typedef Field<Geometry<mesh, 0>, Array<nTuple<3, T> > > VectorField;
+////};
+////
+////typedef testing::Types<double, Complex> VecFieldTypes;
+////
+////TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
+////
+////TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
+////{
+////	const mesh& mesh = TestFixture::mesh;
+////
+////	Geometry<mesh, 0> geometry(TestFixture::mesh);
+////
+////	Vec3 vc1 =
+////	{	1.0, 2.0, 3.0};
+////	Vec3 vc2 =
+////	{	-1.0, 4.0, 2.0};
+////
+////	Vec3 res_vec;
+////
+////	res_vec = Cross(vc1, vc2);
+////
+////	Real res_scalar;
+////	res_scalar = Dot(vc1, vc2);
+////
+////	typename TestFixture::ScalarField res_scalar_field(mesh);
+////
+////	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+////			mesh);
+////
+////	va = vc2;
+////
+////	res_scalar_field = Dot(vc1, va);
+////
+////	res_vector_field = Cross(vc1, va);
+////
+////	size_t num_of_comp = geometry.get_num_of_comp( );
+////
+////	for (auto s = geometry.get_center_elements_begin( );
+////			s != geometry.get_center_elements_end( ); ++s)
+////	{
+////		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
+////		;
+////
+////		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
+////		;
+////	}
+////
+////}
+////}
+////TYPED_TEST(TestFETLVecAlgegbra,vector_field){
+////{
+////	using namespace space3;
+////	//FIXME  should test with non-uniform field
+////
+////	mesh const & mesh = TestFixture::mesh;
+////
+////	Geometry<mesh, 0> geometry(mesh);
+////
+////	Vec3 vc1 =
+////	{	1.0, 2.0, 3.0};
+////	Vec3 vc2 =
+////	{	-1.0, 4.0, 2.0};
+////
+////	Vec3 res_vec;
+////
+////	res_vec=Cross(vc1,vc2);
+////
+////	Real res_scalar= Dot(vc1,vc2);
+////
+////	typename TestFixture::VectorField va(mesh), vb(mesh);
+////
+////	typename TestFixture::VectorField res_vector_field(mesh);
+////	typename TestFixture::ScalarField res_scalar_field(mesh);
+////
+////	va = vc1;
+//////
+//////	vb = vc2;
+//////
+//////	res_scalar_field = Dot( vb ,va);
+//////
+//////	res_vector_field = Cross(va , vb);
+//////
+//////	size_t num_of_comp =geometry.get_num_of_comp( );
+//////
+//////	for (auto s = geometry.get_center_elements_begin( );
+//////			s!=geometry.get_center_elements_end( ); ++s)
+//////	{
+//////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
+//////
+//////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
+//////
+//////	}
+////
+////}
+////}
+////TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
+////{
+////	//FIXME  should test with non-uniform field
+////
+////	mesh const & mesh = TestFixture::mesh;
+////
+////	Vec3 vc1 =
+////	{	1.0,2.0,3.0};
+////
+////	CVec3 vc2 =
+////	{
+////		Complex( 0.0,0.0) ,
+////		Complex( -0.2,0.2) ,
+////		Complex( 3.0,1.3)};
+////
+////	Complex res_scalar= Dot(vc2,vc1);
+////
+////	CVec3 res_vec;
+////
+////	res_vec=Cross(vc1,vc2);
+////
+////	typename TestFixture::VectorField va(mesh);
+////
+////	typename TestFixture::CVectorField vb(mesh);
+////
+////	va = vc1;
 ////
 ////	vb = vc2;
 ////
-////	res_scalar_field = Dot( vb ,va);
+////	typename TestFixture::CVectorField res_vector_field(mesh);
+////	typename TestFixture::CScalarField res_scalar_field(mesh);
 ////
-////	res_vector_field = Cross(va , vb);
+////	res_scalar_field = Dot(vb, va);
 ////
-////	size_t num_of_comp =geometry.get_num_of_comp( );
+////	res_vector_field = Cross(va, vb);
 ////
-////	for (auto s = geometry.get_center_elements_begin( );
-////			s!=geometry.get_center_elements_end( ); ++s)
+////	size_t num_of_comp =mesh.get_num_of_comp(TestFixture::VectorField::IForm);
+////
+////	for (typename mesh::const_iterator s = mesh.get_center_elements_begin(TestFixture::VectorField::IForm);
+////			s!=mesh.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
 ////	{
 ////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
 ////
 ////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
 ////
 ////	}
-//
-//}
-//}
-//TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
-//{
-//	//FIXME  should test with non-uniform field
-//
-//	mesh const & mesh = TestFixture::mesh;
-//
-//	Vec3 vc1 =
-//	{	1.0,2.0,3.0};
-//
-//	CVec3 vc2 =
-//	{
-//		Complex( 0.0,0.0) ,
-//		Complex( -0.2,0.2) ,
-//		Complex( 3.0,1.3)};
-//
-//	Complex res_scalar= Dot(vc2,vc1);
-//
-//	CVec3 res_vec;
-//
-//	res_vec=Cross(vc1,vc2);
-//
-//	typename TestFixture::VectorField va(mesh);
-//
-//	typename TestFixture::CVectorField vb(mesh);
-//
-//	va = vc1;
-//
-//	vb = vc2;
-//
-//	typename TestFixture::CVectorField res_vector_field(mesh);
-//	typename TestFixture::CScalarField res_scalar_field(mesh);
-//
-//	res_scalar_field = Dot(vb, va);
-//
-//	res_vector_field = Cross(va, vb);
-//
-//	size_t num_of_comp =mesh.get_num_of_comp(TestFixture::VectorField::IForm);
-//
-//	for (typename mesh::const_iterator s = mesh.get_center_elements_begin(TestFixture::VectorField::IForm);
-//			s!=mesh.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
-//	{
-//		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
-//
-//		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
-//
-//	}
-//
-//}
-//}
+////
+////}
+////}
 
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test
@@ -437,9 +440,9 @@ public:
 	Mesh mesh;
 
 	typedef TP value_type;
-	typedef Field<Geometry<Mesh, 0>, std::vector<value_type> > TZeroForm;
-	typedef Field<Geometry<Mesh, 1>, std::vector<value_type> > TOneForm;
-	typedef Field<Geometry<Mesh, 2>, std::vector<value_type> > TTwoForm;
+	typedef Field<Geometry<Mesh, 0>, value_type> TZeroForm;
+	typedef Field<Geometry<Mesh, 1>, value_type> TOneForm;
+	typedef Field<Geometry<Mesh, 2>, value_type> TTwoForm;
 
 	double RelativeError(double a, double b)
 	{
@@ -542,109 +545,109 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 }
 }
 
-////class TestFETLPerformance: public testing::TestWithParam<size_t>
-////{
-////protected:
-////	virtual void SetUp()
-////	{
-////		size_t ratio = GetParam();
-////
-////		mesh.dt = 1.0;
-////		mesh.xmin[0] = 0;
-////		mesh.xmin[1] = 0;
-////		mesh.xmin[2] = 0;
-////		mesh.xmax[0] = 1.0;
-////		mesh.xmax[1] = 1.0;
-////		mesh.xmax[2] = 1.0;
-////		mesh.dims[0] = 2 * ratio;
-////		mesh.dims[1] = 3 * ratio;
-////		mesh.dims[2] = 4 * ratio;
-////		mesh.gw[0] = 2;
-////		mesh.gw[1] = 2;
-////		mesh.gw[2] = 2;
-////
-////		mesh.Init();
-////
-////	}
-////public:
-////	mesh mesh;
-////
-////	static const int NDIMS = 3;
-////
-////	double RelativeError2(double a, double b)
-////	{
-////		return pow(2.0 * (a - b) / (a + b), 2.0);
-////	}
-////};
-////
-////INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
-////		testing::value_types(10, 20, 50));
-////
-////TEST_P(TestFETLPerformance, error_analyze)
-////{
-////
-////	static const double epsilon = 0.01;
-////
-////	ZeroForm sf(mesh), res_sf(mesh);
-////
-////	OneForm res_vf(mesh);
-////
-////	size_t size = mesh.get_num_of_vertex() * mesh.get_num_of_comp(IZeroForm);
-////
-////	Real k0 = 1.0 * TWOPI, k1 = 2.0 * TWOPI, k2 = 3.0 * TWOPI;
-////
-////#pragma omp parallel for
-////	for (size_t i = 0; i < mesh.dims[0]; ++i)
-////	{
-////		for (size_t j = 0; j < mesh.dims[1]; ++j)
-////			for (size_t k = 0; k < mesh.dims[2]; ++k)
-////			{
-////				size_t s = mesh.get_cell_num(i, j, k);
-////				sf[s] = sin(
-////						k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
-////								+ k2 * k * mesh.dx[2]);
-////			}
-////	}
-////	res_vf = Grad(sf);
-////
-////	res_sf = Diverge(Grad(sf));
-////
-////	Real rex = 0.0;
-////	Real rey = 0.0;
-////	Real rez = 0.0;
-////	Real re2 = 0.0;
-////
-////#pragma omp parallel for  reduction(+:rex,rey,rez,re2)
-////	for (size_t i = mesh.gw[0]; i < mesh.dims[0] - mesh.gw[0]; ++i)
-////		for (size_t j = mesh.gw[1]; j < mesh.dims[1] - mesh.gw[1]; ++j)
-////			for (size_t k = mesh.gw[2]; k < mesh.dims[2] - mesh.gw[2]; ++k)
-////			{
-////				size_t s = mesh.get_cell_num(i, j, k);
-////
-////				Real alpha = k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
-////						+ k2 * k * mesh.dx[2];
-////
-////				rex += RelativeError2(k0 * cos(alpha + k0 * 0.5 * mesh.dx[0]),
-////						res_vf[s * 3 + 0]);
-////				rey += RelativeError2(k1 * cos(alpha + k1 * 0.5 * mesh.dx[1]),
-////						res_vf[s * 3 + 1]);
-////				rez += RelativeError2(k2 * cos(alpha + k2 * 0.5 * mesh.dx[2]),
-////						res_vf[s * 3 + 2]);
-////
-////				re2 += RelativeError2(
-////						-(k0 * k0 + k1 * k1 + k2 * k2) * sin(alpha), res_sf[s]);
-////			}
-////
-////	rex /= static_cast<Real>(size);
-////	rey /= static_cast<Real>(size);
-////	rez /= static_cast<Real>(size);
-////	re2 /= static_cast<Real>(size);
-////
-////	EXPECT_LE(rex, pow(k0*mesh.dx[0],2));
-////	EXPECT_LE(rey, pow(k1*mesh.dx[1],2));
-////	EXPECT_LE(rez, pow(k2*mesh.dx[2],2));
-////	EXPECT_LE( re2,
-////			(pow(k0*mesh.dx[0],2)+pow(k1*mesh.dx[1],2)+pow(k2*mesh.dx[2],2))/3.0);
-////
-////}
-
+//////class TestFETLPerformance: public testing::TestWithParam<size_t>
+//////{
+//////protected:
+//////	virtual void SetUp()
+//////	{
+//////		size_t ratio = GetParam();
+//////
+//////		mesh.dt = 1.0;
+//////		mesh.xmin[0] = 0;
+//////		mesh.xmin[1] = 0;
+//////		mesh.xmin[2] = 0;
+//////		mesh.xmax[0] = 1.0;
+//////		mesh.xmax[1] = 1.0;
+//////		mesh.xmax[2] = 1.0;
+//////		mesh.dims[0] = 2 * ratio;
+//////		mesh.dims[1] = 3 * ratio;
+//////		mesh.dims[2] = 4 * ratio;
+//////		mesh.gw[0] = 2;
+//////		mesh.gw[1] = 2;
+//////		mesh.gw[2] = 2;
+//////
+//////		mesh.Init();
+//////
+//////	}
+//////public:
+//////	mesh mesh;
+//////
+//////	static const int NDIMS = 3;
+//////
+//////	double RelativeError2(double a, double b)
+//////	{
+//////		return pow(2.0 * (a - b) / (a + b), 2.0);
+//////	}
+//////};
+//////
+//////INSTANTIATE_TEST_CASE_P(TestPerformance, TestFETLPerformance,
+//////		testing::value_types(10, 20, 50));
+//////
+//////TEST_P(TestFETLPerformance, error_analyze)
+//////{
+//////
+//////	static const double epsilon = 0.01;
+//////
+//////	ZeroForm sf(mesh), res_sf(mesh);
+//////
+//////	OneForm res_vf(mesh);
+//////
+//////	size_t size = mesh.get_num_of_vertex() * mesh.get_num_of_comp(IZeroForm);
+//////
+//////	Real k0 = 1.0 * TWOPI, k1 = 2.0 * TWOPI, k2 = 3.0 * TWOPI;
+//////
+//////#pragma omp parallel for
+//////	for (size_t i = 0; i < mesh.dims[0]; ++i)
+//////	{
+//////		for (size_t j = 0; j < mesh.dims[1]; ++j)
+//////			for (size_t k = 0; k < mesh.dims[2]; ++k)
+//////			{
+//////				size_t s = mesh.get_cell_num(i, j, k);
+//////				sf[s] = sin(
+//////						k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
+//////								+ k2 * k * mesh.dx[2]);
+//////			}
+//////	}
+//////	res_vf = Grad(sf);
+//////
+//////	res_sf = Diverge(Grad(sf));
+//////
+//////	Real rex = 0.0;
+//////	Real rey = 0.0;
+//////	Real rez = 0.0;
+//////	Real re2 = 0.0;
+//////
+//////#pragma omp parallel for  reduction(+:rex,rey,rez,re2)
+//////	for (size_t i = mesh.gw[0]; i < mesh.dims[0] - mesh.gw[0]; ++i)
+//////		for (size_t j = mesh.gw[1]; j < mesh.dims[1] - mesh.gw[1]; ++j)
+//////			for (size_t k = mesh.gw[2]; k < mesh.dims[2] - mesh.gw[2]; ++k)
+//////			{
+//////				size_t s = mesh.get_cell_num(i, j, k);
+//////
+//////				Real alpha = k0 * i * mesh.dx[0] + k1 * j * mesh.dx[1]
+//////						+ k2 * k * mesh.dx[2];
+//////
+//////				rex += RelativeError2(k0 * cos(alpha + k0 * 0.5 * mesh.dx[0]),
+//////						res_vf[s * 3 + 0]);
+//////				rey += RelativeError2(k1 * cos(alpha + k1 * 0.5 * mesh.dx[1]),
+//////						res_vf[s * 3 + 1]);
+//////				rez += RelativeError2(k2 * cos(alpha + k2 * 0.5 * mesh.dx[2]),
+//////						res_vf[s * 3 + 2]);
+//////
+//////				re2 += RelativeError2(
+//////						-(k0 * k0 + k1 * k1 + k2 * k2) * sin(alpha), res_sf[s]);
+//////			}
+//////
+//////	rex /= static_cast<Real>(size);
+//////	rey /= static_cast<Real>(size);
+//////	rez /= static_cast<Real>(size);
+//////	re2 /= static_cast<Real>(size);
+//////
+//////	EXPECT_LE(rex, pow(k0*mesh.dx[0],2));
+//////	EXPECT_LE(rey, pow(k1*mesh.dx[1],2));
+//////	EXPECT_LE(rez, pow(k2*mesh.dx[2],2));
+//////	EXPECT_LE( re2,
+//////			(pow(k0*mesh.dx[0],2)+pow(k1*mesh.dx[1],2)+pow(k2*mesh.dx[2],2))/3.0);
+//////
+//////}
+//
