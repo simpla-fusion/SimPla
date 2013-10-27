@@ -22,10 +22,9 @@ struct GGauge_s
 
 };
 
-
-
 template<typename T, typename XDIST, typename VDIST, typename RNDGenerator>
 class ParticleGenerator;
+
 template<int NMATE, typename XDIST, typename VDIST, typename RNDGenerator>
 class ParticleGenerator<GGauge_s<NMATE>, XDIST, VDIST, RNDGenerator>
 {

@@ -93,12 +93,12 @@ protected:
 
 };
 template<typename T>
-class ObjectWrapper: public Object
+class ObjectTraits: public Object
 {
 public:
 	typedef T value_type;
 
-	ObjectWrapper(std::shared_ptr<T> ptr) :
+	ObjectTraits(std::shared_ptr<T> ptr) :
 			Object(ptr)
 	{
 
