@@ -21,22 +21,33 @@ template<typename, int> struct Geometry;
 template<typename TGeometry, int TOP, typename TL>
 struct Field<TGeometry, UniOp<TOP, TL> > : public TGeometry
 {
+	/***
+	 *
+	 * @NOTE: Function overload do not work at this place.
+	 *    template specialize is necessary.
+	 */
+
 	typename ConstReferenceTraits<TL>::type l_;
-
-//	typedef typename std::result_of<
-//			_Op(Int2Type<TOP>, TL const &, typename TGeometry::index_type)>::type value_type;
-
-	typedef typename TL::value_type value_type;
 
 	Field(TL const & l) :
 			TGeometry(l), l_(l)
 	{
 	}
+
+//	inline auto operator[](typename TGeometry::index_type s) const
+//	DECL_RET_TYPE( (Op<TOP>::eval(l_, s)))
+
+	typedef decltype(
+			Op<TOP>::eval(
+					std::declval<typename std::remove_reference<TL>::type const&>()
+					,std::declval<typename TGeometry::index_type>())
+
+	) value_type;
+
 	inline value_type operator[](typename TGeometry::index_type s) const
 	{
-		return (_Op(Int2Type<TOP>(), l_, s));
+		return (Op<TOP>::eval(l_, s));
 	}
-
 };
 
 template<typename TGeometry, int TOP, typename TL, typename TR>
@@ -50,33 +61,44 @@ struct Field<TGeometry, BiOp<TOP, TL, TR> > : public TGeometry
 			TGeometry(l, r), l_(l), r_(r)
 	{
 	}
-	inline auto operator[](typename TGeometry::index_type s) const
-	DECL_RET_TYPE( (_Op(Int2Type<TOP>(), l_, r_, s)))
 
+//	inline auto operator[](typename TGeometry::index_type s) const
+//	DECL_RET_TYPE((Op<TOP>::eval(l_, r_, s)))
 
-	typedef typename std::result_of<_Op(TL, TR, typename TGeometry::index_type)>::type value_type;
+	typedef decltype(
+			Op<TOP>::eval (
+					std::declval<typename std::remove_reference<TL>::type const&>(),
+					std::declval<typename std::remove_reference<TR>::type const&>(),
+					std::declval<typename TGeometry::index_type>()
+			)
 
-};
+	) value_type;
+	inline value_type operator[](typename TGeometry::index_type s) const
+	{
+		return (Op<TOP>::eval(l_, r_, s));
+	}
 
-template<typename TG, typename TR> inline auto //
-Grad(
+}
+;
+
+template<typename TG, typename TR> inline auto Grad(
 		Field<Geometry<TG, 0>, TR> const & f)
 				DECL_RET_TYPE(
 						(Field<Geometry<TG, 1>, UniOp<GRAD,Field<Geometry<TG, 0>, TR> > >(f)))
 
-template<typename TG, typename TR> inline auto //
-Diverge(Field<Geometry<TG, 1>, TR> const & f)
-DECL_RET_TYPE((Field<Geometry<TG, 0>,
-				UniOp<DIVERGE, Field<Geometry<TG, 1>, TR> > >( f)))
+template<typename TG, typename TR> inline auto Diverge(
+		Field<Geometry<TG, 1>, TR> const & f)
+		DECL_RET_TYPE((Field<Geometry<TG, 0>,
+						UniOp<DIVERGE, Field<Geometry<TG, 1>, TR> > >( f)))
 
-template<typename TG, typename TR> inline auto //
-Curl(Field<Geometry<TG, 1>, TR> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 2>,
-				UniOp<CURL, Field<Geometry<TG, 1>, TR> > >(f)))
-template<typename TG, typename TR> inline auto //
-Curl(Field<Geometry<TG, 2>, TR> const & f)
-DECL_RET_TYPE( (Field<Geometry<TG, 1>,
-				UniOp<CURL, Field<Geometry<TG, 2>, TR> > >(f)))
+template<typename TG, typename TR> inline auto Curl(
+		Field<Geometry<TG, 1>, TR> const & f)
+		DECL_RET_TYPE( (Field<Geometry<TG, 2>,
+						UniOp<CURL, Field<Geometry<TG, 1>, TR> > >(f)))
+template<typename TG, typename TR> inline auto Curl(
+		Field<Geometry<TG, 2>, TR> const & f)
+		DECL_RET_TYPE( (Field<Geometry<TG, 1>,
+						UniOp<CURL, Field<Geometry<TG, 2>, TR> > >(f)))
 
 template<typename TG, int IL, typename TL> inline  //
 auto operator*(Field<Geometry<TG, IL>, TL> const & f)

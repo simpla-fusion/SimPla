@@ -44,6 +44,11 @@ typedef enum
 
 } OpType;
 
+template<int> struct Op
+{
+	template<typename ...Args> static inline void eval(Args...);
+};
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
