@@ -32,7 +32,7 @@ public:
 
 	}
 	template<typename Generator>
-	nTuple<NDIM, double> && operator()(Generator &g)
+	nTuple<NDIM, double> operator()(Generator &g)
 	{
 		nTuple<NDIM, double> res;
 
@@ -44,6 +44,17 @@ public:
 		}
 		return std::move(res);
 
+	}
+
+	template<typename Generator, typename T>
+	void operator()(Generator &g, T& res)
+	{
+		for (int i = 0; i < NDIM; ++i)
+		{
+			res[i] = static_cast<double>(g() - g.min())
+					/ static_cast<double>(g.max() - g.min())
+					* (xmax_[i] - xmin_[i]) + xmin_[i];
+		}
 	}
 private:
 	nTuple<NDIM, double> xmin_;

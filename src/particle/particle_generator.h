@@ -8,19 +8,28 @@
 #ifndef PARTICLE_GENERATOR_H_
 #define PARTICLE_GENERATOR_H_
 
-#include "particle.h"
+#include <particle/particle.h>
+
 namespace simpla
 {
 
-template<typename T, typename XDIST, typename YDIST, typename Generator>
-void GenerateParticle(size_t num, XDIST & xdist, YDIST & ydist, Generator & g,
-		PIC<T> * pic)
+template<typename T, typename XDIST, typename VDIST>
+class ParticleGeneratorTraits
 {
-	for (size_t s = 0; s < num; ++s)
+public:
+
+	ParticleGeneratorTraits()
 	{
-		pic->emplace_back(x_dist(g), v_dist(g));
 	}
-}
+
+	template<typename Generator, typename T>
+	inline void operator()(size_t num, Generator & g, T & res) const
+	{
+		res.x = x_dist(g)
+		res.v = v_dist(g);
+	}
+private:
+};
 
 }  // namespace simpla
 

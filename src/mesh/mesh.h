@@ -60,6 +60,17 @@ struct MeshTraits
 
 	Real get_cell_d_volumn(index_type const &idx) const;
 
+	//  ------------------------------------
+
+	void CoordTransLocal2Global(int form, index_type id,
+			coordinates_type const & r, coordinates_type *x);
+
+	index_type CoordTransGlobal2Local(int form, coordinates_type const & x,
+			index_type vertices[], Real weight[]) const
+	{
+
+	}
+
 	// Interpolation ----------------------------------------------------------
 
 	template<typename TExpr>
@@ -133,7 +144,7 @@ struct MeshTraits
 
 	template<int N, typename TL> inline auto
 	ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
-			size_t s) const;
+			index_type s) const;
 
 	template<typename TExpr> inline auto
 	Grad(Field<Geometry<this_type, 0>, TExpr> const & f, index_type) const;

@@ -25,11 +25,11 @@ struct Field: public TGeometry, public TGeometry::template Container<TValue>
 {
 public:
 
-	typedef TValue value_type;
-
 	typedef TGeometry geometry_type;
 
 	typedef typename TGeometry::template Container<TValue> container_type;
+
+	typedef typename container_type::value_type value_type;
 
 	typedef Field<geometry_type, value_type> this_type;
 

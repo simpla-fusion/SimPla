@@ -9,6 +9,10 @@
 #define GGAUGE_H_
 
 #include <fetl/primitives.h>
+#include <numeric/multi_normal_distribution.h>
+#include <numeric/normal_distribution_icdf.h>
+#include <numeric/rectangle_distribution.h>
+
 namespace simpla
 {
 
@@ -22,46 +26,46 @@ struct GGauge_s
 
 };
 
-template<typename T, typename XDIST, typename VDIST, typename RNDGenerator>
-class ParticleGenerator;
-
-template<int NMATE, typename XDIST, typename VDIST, typename RNDGenerator>
-class ParticleGenerator<GGauge_s<NMATE>, XDIST, VDIST, RNDGenerator>
+/**
+ *
+ * @ingroup Particle Generator
+ * @ingroup GGauge
+ *
+ * */
+template<int NMATE>
+class GGauge_Generator
 {
 public:
 
 	typedef typename GGauge_s<NMATE> value_type;
-	typedef XDIST x_dist_type;
-	typedef VDIST v_dist_type;
-	typedef RNDGenerator generator_type;
+	typedef rectangle_distribution<3> x_dist_type;
+	typedef multi_normal_distribution<3, normal_distribution_icdf> v_dist_type;
 
-	ParticleGenerator(x_dist_type && x_dist, v_dist_type && v_dist,
-			RNDGenerator & g) :
-			x_dist_(x_dist), v_dist_(v_dist), generator_(g)
+	GGauge_Generator(x_dist_type const& x_dist, v_dist_type const& v_dist) :
+			x_dist_(x_dist), v_dist_(v_dist)
 	{
 	}
-	~ParticleGenerator()
+	~GGauge_Generator()
 	{
 	}
 
-	generator_type getGenerator() const
-	{
-		return generator_;
-	}
-
-	value_type operator()()
-	{
-		value_type res =
-		{ x_dist_(generator_), v_dist_(generator_), 1.0 };
-		std::fill(res->w[0], res->w + NMATE, 0);
-		return std::move(res);
-	}
 private:
 	x_dist_type x_dist_;
 	v_dist_type v_dist_;
-	generator_type generator_;
 };
 
 } // namespace simpla
+
+template<typename IT, typename XDIST, typename YDIST, typename Generator>
+void GGauge_Generator(XDIST const xdsit, YDIST const ydist, Generator const & g,
+		IT const & p)
+{
+
+	p->x = x_dist(g)
+	p->v = v_dist(g);
+	p->f = 1.0;
+	std::fill(p->w, p->w + sizeof(p->w) / sizeof(decltype(p->w[0])), 0);
+
+}
 
 #endif /* GGAUGE_H_ */

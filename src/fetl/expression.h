@@ -8,13 +8,10 @@
 #ifndef EXPRESSION_H_
 #define EXPRESSION_H_
 
-#include <fetl/expression2.h>
 #include <fetl/field.h>
-#include <fetl/ntuple.h>
 #include <complex>
 #include <cstddef>
 #include <type_traits>
-
 
 /** !file
  *     Define type-independent expression template
@@ -27,7 +24,28 @@
 namespace simpla
 {
 
+typedef enum
+{
+	PLUS = 1,
+
+	MINUS = 2,
+
+	MULTIPLIES = 3,
+
+	DIVIDES = 4,
+
+	WEDGE, CROSS, DOT,
+
+	MODULUS, BITWISEXOR, BITWISEAND, BITWISEOR,
+
+	GRAD, DIVERGE, CURL, HODGESTAR, EXTRIORDERIVATIVE, NEGATE, CURLPD1, CURLPD2,
+
+	EQUAL, LESS, GREATER
+
+} OpType;
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
+
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
@@ -130,9 +148,9 @@ template<int N, typename TExpr> struct nTuple;
 
 template<typename TG, typename TExpr> struct Field;
 
-template<template<typename, typename > class TOP, typename TL, typename TR> struct BiOp;
+template<int TOP, typename TL, typename TR> struct BiOp;
 
-template<template<typename > class TOP, typename TL> struct UniOp;
+template<int TOP, typename TL> struct UniOp;
 
 template<typename T>
 struct remove_const_reference
@@ -150,8 +168,7 @@ template<typename T> struct is_complex<std::complex<T> >
 	static const bool value = true;
 };
 
-template<template<typename, typename > class TOP, typename TL, typename TR> struct is_complex<
-		BiOp<TOP, TL, TR> >
+template<int TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
 {
 	static const bool value = is_complex<TL>::value || is_complex<TR>::value;
 };
@@ -197,14 +214,13 @@ struct is_storage_type<Field<TG, T> >
 	static const bool value = true;
 };
 
-template<typename TG, template<typename, typename > class TOP, typename TL,
-		typename TR>
+template<typename TG, int TOP, typename TL, typename TR>
 struct is_storage_type<Field<TG, BiOp<TOP, TL, TR> > >
 {
 	static const bool value = false;
 };
 
-template<typename TG, template<typename > class TOP, typename TL>
+template<typename TG, int TOP, typename TL>
 struct is_storage_type<Field<TG, UniOp<TOP, TL> > >
 {
 	static const bool value = false;
@@ -257,17 +273,6 @@ struct c_index<false>
 	template<typename T> static auto eval(T const & v, size_t)
 	DECL_RET_TYPE(v)
 };
-template<typename, typename > struct OpMultiplies;
-template<typename, typename > struct OpDivides;
-template<typename, typename > struct OpPlus;
-template<typename, typename > struct OpMinus;
-template<typename, typename > struct OpModulus;
-template<typename, typename > struct OpBitwiseXOR;
-template<typename, typename > struct OpBitwiseAND;
-template<typename, typename > struct OpBitwiseOR;
-
-template<typename > struct OpNegate;
-
 
 //template<typename TOP, typename TL>
 //struct UniOp

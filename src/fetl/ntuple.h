@@ -16,15 +16,12 @@
 #define INCLUDE_NTUPLE_H_
 
 #include <fetl/expression.h>
-#include <fetl/expression2.h>
+#include <fetl/primitives.h>
 #include <cmath>
 #include <complex>
 #include <cstddef>
-//#include <iostream>
 #include <sstream>
 #include <string>
-//#include <type_traits>
-//#include <utility>
 
 namespace simpla
 {
@@ -322,8 +319,7 @@ template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
 DECL_RET_TYPE( (sqrt(Determinant(m))))
 
 // overloading operators
-template<int N, template<typename, typename > class TOP, typename TL,
-		typename TR>
+template<int N, int TOP, typename TL, typename TR>
 struct nTuple<N, BiOp<TOP, TL, TR> >
 {
 	typename ConstReferenceTraits<TL>::type l_;
@@ -334,61 +330,50 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	{
 	}
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((TOP<TL,TR>::eval(l_,r_,s)))
+	DECL_RET_TYPE((_Op(Int2Type<TOP>(),l_,r_,s)))
 
 };
 
 // Expression template of nTuple
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
-template<typename TL,typename TR> class Op##_NAME_;                                \
 template<int N, typename TL, typename TR>                                           \
-struct Op##_NAME_<nTuple<N, TL>, nTuple<N, TR> >                                    \
-{                                                                                   \
-	static inline auto eval(nTuple<N, TL> const & l, nTuple<N, TR> const &r,        \
+inline auto _Op(Int2Type<_NAME_>,nTuple<N, TL> const & l, nTuple<N, TR> const &r,        \
 			size_t s) DECL_RET_TYPE ((l[s] _OP_ r[s]))                              \
-};                                                                                  \
                                                                                     \
 template<int N, typename TL, typename TR>                                           \
-struct Op##_NAME_<nTuple<N, TL>, TR>                                                \
-{                                                                                   \
-	static inline auto eval(nTuple<N, TL> const & l, TR const &r, size_t s)         \
+inline auto _Op(Int2Type<_NAME_>,nTuple<N, TL> const & l, TR const &r, size_t s)         \
 	DECL_RET_TYPE ((l[s] _OP_ r))                                                   \
                                                                                     \
-};                                                                                  \
-                                                                                    \
 template<int N, typename TL, typename TR>                                           \
-struct Op##_NAME_<TL, nTuple<N, TR> >                                               \
-{                                                                                   \
-	static inline auto eval(TL const & l, nTuple<N, TR> const &r, size_t s)         \
+inline auto _Op(Int2Type<_NAME_>,TL const & l, nTuple<N, TR> const &r, size_t s)         \
 	DECL_RET_TYPE ((l _OP_ r[s]))                                                   \
-};                                                                                  \
-                                                                                    \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)                   \
 DECL_RET_TYPE(                                                                     \
-		(nTuple<N, BiOp<Op##_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
+		(nTuple<N, BiOp<_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,BiOp<Op##_NAME_ ,nTuple<N, TL>,TR > > (lhs,rhs)))                    \
+DECL_RET_TYPE((nTuple<N,BiOp<_NAME_ ,nTuple<N, TL>,TR > > (lhs,rhs)))                    \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,BiOp<Op##_NAME_,TL,nTuple<N, TR> > > (lhs,rhs)))                    \
-                                                                                   \
+DECL_RET_TYPE((nTuple<N,BiOp<_NAME_,TL,nTuple<N, TR> > > (lhs,rhs)))                    \
 
-_DEFINE_BINARY_OPERATOR(Plus, +)
-_DEFINE_BINARY_OPERATOR(Minus, -)
-_DEFINE_BINARY_OPERATOR(Multiplies, *)
-_DEFINE_BINARY_OPERATOR(Divides, /)
-_DEFINE_BINARY_OPERATOR(Modulus, %)
-_DEFINE_BINARY_OPERATOR(BitwiseXOR, ^)
-_DEFINE_BINARY_OPERATOR(BitwiseAND, &)
-_DEFINE_BINARY_OPERATOR(BitwiseOR, |)
+
+_DEFINE_BINARY_OPERATOR(PLUS, +)
+_DEFINE_BINARY_OPERATOR(MINUS, -)
+_DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
+_DEFINE_BINARY_OPERATOR(DIVIDES, /)
+//_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
+//_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
+//_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
+//_DEFINE_BINARY_OPERATOR(MODULUS, %)
+
 #undef _DEFINE_BINARY_OPERATOR
 
-template<int N, template<typename > class TOP, typename TL>
+template<int N, int TOP, typename TL>
 struct nTuple<N, UniOp<TOP, TL> >
 {
 	typename ConstReferenceTraits<TL>::type l_;
@@ -398,38 +383,31 @@ struct nTuple<N, UniOp<TOP, TL> >
 	{
 	}
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((TOP<TL >::eval(l_ ,s)))
+	DECL_RET_TYPE((_Op(Int2Type<TOP>(),l_ ,s)))
 
 };
-template<typename > struct OpNegate;
 template<int N, typename TL>
-struct OpNegate<nTuple<N, TL> >
-{
-	static inline auto eval(nTuple<N, TL> const & l, size_t s)
-	DECL_RET_TYPE ((-l[s] ))
-};
+inline auto _Op(Int2Type<NEGATE>, nTuple<N, TL> const & l, size_t s)
+DECL_RET_TYPE ((-l[s] ))
+
 template<int N, typename TL> inline  //
 auto operator-(nTuple<N, TL> const & f)
-DECL_RET_TYPE(( nTuple<N, UniOp<OpNegate,nTuple<N, TL> > > (f)))
+DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
 
 template<int N, typename TL> inline  //
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
-template<typename, typename > struct OpCross;
 template<int N, typename TL, typename TR>
-struct OpCross<nTuple<N, TL>, nTuple<N, TR> >
-{
-	static inline auto eval(nTuple<N, TL> const & l, nTuple<N, TR> const &r,
-			size_t s)
-					DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
-};
+inline auto _Op(Int2Type<CROSS>, nTuple<N, TL> const & l,
+		nTuple<N, TR> const &r, size_t s)
+		DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 
 template<int N, typename TL, typename TR> inline auto   //
 Cross(nTuple<N, TL> const & lhs,
 		nTuple<N, TR> const & rhs)
 				DECL_RET_TYPE(
-						(nTuple<N,BiOp<OpCross, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
+						(nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
 
 namespace _impl
 {

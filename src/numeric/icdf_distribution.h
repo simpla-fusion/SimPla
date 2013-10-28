@@ -82,6 +82,7 @@ public:
 	{
 		return xmax_;
 	}
+
 	template<typename Generator>
 	inline double operator()(Generator & g) const
 	{

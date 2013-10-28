@@ -46,7 +46,7 @@ public:
 	Particle(this_type && r) = default;
 	~Particle() = default;
 
-	void push(T && pp)
+	void push_back(T && pp)
 	{
 		try
 		{
@@ -102,6 +102,22 @@ public:
 	const allocator_type& get_allocator() const
 	{
 		return allocator_;
+	}
+
+	void init_all(size_t num_pic, typename container_type::iterator const & b,
+			typename container_type::iterator const & e)
+	{
+		for (auto pt = b; pt != e; ++pt)
+		{
+			pt->resize(num_pic);
+
+			for (auto p : *pt)
+			{
+				generator_(p);
+			}
+
+		}
+
 	}
 
 private:

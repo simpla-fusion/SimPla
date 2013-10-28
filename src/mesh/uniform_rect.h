@@ -8,10 +8,8 @@
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
 
-#include <fetl/expression2.h>
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
-#include <utilities/log.h>
 #include <cmath>
 #include <complex>
 #include <cstddef>
@@ -284,22 +282,38 @@ struct UniformRectMesh
 		return (comps[iform]);
 	}
 
-	inline std::vector<size_t> get_field_shape(int iform) const
-	{
-		int ndims = 1;
-//		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
+//	inline std::vector<size_t> get_field_shape(int iform) const
+//	{
+//		int ndims = 1;
+////		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
+//
+//		std::vector<size_t> d(ndims);
+//		for (int i = 0; i < NUM_OF_DIMS; ++i)
+//		{
+//			d[i] = dims[i];
+//		}
+//		if (iform == 1 || iform == 2)
+//		{
+//			d[NUM_OF_DIMS] = get_num_of_comp(iform);
+//		}
+//		return (d);
+//	}
 
-		std::vector<size_t> d(ndims);
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			d[i] = dims[i];
-		}
-		if (iform == 1 || iform == 2)
-		{
-			d[NUM_OF_DIMS] = get_num_of_comp(iform);
-		}
-		return (d);
-	}
+	// Coordinates transformation -------------------------------
+
+//	nTuple<NUM_OF_DIMS, Real> CoordTransLocal2Global(index_type idx,
+//			nTuple<NUM_OF_DIMS, Real> const &lcoord)
+//	{
+//		nTuple<NUM_OF_DIMS, Real> res;
+//
+//		for (int s = 0; s < 3; ++s)
+//		{
+//			res[s] += dx[s] * lcoord[s];
+//		}
+//
+//		return res;
+//
+//	}
 
 // Assign Operation --------------------------------------------
 
@@ -448,7 +462,7 @@ struct UniformRectMesh
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value>    //
+	inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> //
 	Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
@@ -491,7 +505,7 @@ struct UniformRectMesh
 	}
 
 	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value>    //
+	inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> //
 	Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
 	{
 		nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
@@ -613,153 +627,10 @@ struct UniformRectMesh
 									)*0.125
 
 							))
-//-----------------------------------------
-// Vector Arithmetic
-//-----------------------------------------
-
-	template<int N, typename TL> inline auto //
-	ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
-			size_t s) const
-			DECL_RET_TYPE((f[s]*inv_dx[s%3]) )
-
-	template<typename TExpr> inline auto //
-	Grad(Field<Geometry<this_type, 0>, TExpr> const & f, size_t s) const
-	DECL_RET_TYPE(
-			(f[(s - s % 3) / 3 + strides[s % 3]]
-					- f[(s - s % 3) / 3]) * inv_dx[s % 3])
-
-	template<typename TExpr> inline auto //
-	Diverge(Field<Geometry<this_type, 1>, TExpr> const & f, size_t s) const
-	DECL_RET_TYPE(
-
-			(f[s * 3 + 0] - f[s * 3 + 0 - 3 * strides[0]])
-			* inv_dx[0] +
-
-			(f[s * 3 + 1] - f[s * 3 + 1 - 3 * strides[1]])
-			* inv_dx[1] +
-
-			(f[s * 3 + 2] - f[s * 3 + 2 - 3 * strides[2]])
-			* inv_dx[2]
-	)
-
-	template<typename TL> inline auto //
-	Curl(Field<Geometry<this_type, 1>, TL> const & f,
-			size_t s) const
-					DECL_RET_TYPE(
-							(f[s - s %3 + (s + 2) % 3 + 3 * strides[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3])
-							* inv_dx[(s + 1) % 3]
-							- (f[s - s %3 + (s + 1) % 3 + 3 * strides[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3])
-							* inv_dx[(s + 2) % 3]
-					)
-
-	template<typename TL> inline auto //
-	Curl(Field<Geometry<this_type, 2>, TL> const & f,
-			size_t s) const
-					DECL_RET_TYPE(
-							(f[s - s % 3 + (s + 2) % 3]
-									- f[s - s % 3 + (s + 2) % 3 - 3 * strides[(s + 1) % 3]] ) * inv_dx[(s + 1) % 3]
-							-(f[s - s % 3 + (s + 1) % 3]
-									- f[s - s % 3 + (s + 1) % 3 - 3 * strides[(s + 1) % 3]]) * inv_dx[(s + 2) % 3]
-					)
-
-	template<typename TExpr> inline auto //
-	CurlPD(Int2Type<1>, TExpr const & expr,
-			size_t s) const
-					DECL_RET_TYPE( (expr.rhs_[s-s % 3 + 2 + 3 * strides[1]] - expr.rhs_[s-s % 3 + 2]) * inv_dx[1] )
-
-	template<typename TExpr> inline auto //
-	CurlPD(Int2Type<2>, TExpr const & expr,
-			size_t s) const
-					DECL_RET_TYPE( (-expr.rhs_[s-s % 3 + 1 + 3 * strides[2]] + expr.rhs_[s-s % 3 + 1]) * inv_dx[2])
-
-	template<int IL, int IR, typename TL, typename TR> inline auto //
-	Wedge(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IR>, TR> const &r,
-			size_t s) const
-					DECL_RET_TYPE(
-							(mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s))
-					)
-
-	template<int N, typename TL> inline auto //
-	HodgeStar(Field<Geometry<this_type, N>, TL> const & f, size_t s) const
-	DECL_RET_TYPE( (mapto(Int2Type<NUM_OF_DIMS-N >(),f,s)))
-
-	template<int N, typename TL> inline auto //
-	Negate(Field<Geometry<this_type, N>, TL> const & f, size_t s) const
-	DECL_RET_TYPE( (-f[s]))
-
-	template<int IL, typename TL, typename TR> inline auto //
-	Plus(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IL>, TR> const &r, size_t s) const
-			DECL_RET_TYPE( (l[s]+r[s]) )
-
-	template<int IL, typename TL, typename TR> inline auto //
-	Minus(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IL>, TR> const &r, size_t s) const
-			DECL_RET_TYPE( (l[s]-r[s]) )
-
-	template<int IL, int IR, typename TL, typename TR> inline auto //
-	Multiplies(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IR>, TR> const &r,
-			size_t s) const
-					DECL_RET_TYPE( (mapto(Int2Type<IL+IR>(),l,s)*mapto(Int2Type<IL+IR>(),r,s)) )
-
-	template<int IL, typename TL, typename TR> inline auto //
-	Multiplies(Field<Geometry<this_type, IL>, TL> const &l, TR r,
-			size_t s) const
-			DECL_RET_TYPE( (l[s]*r) )
-
-	template<int IR, typename TL, typename TR> inline auto //
-	Multiplies(TL l, Field<Geometry<this_type, IR>, TR> const & r,
-			size_t s) const
-			DECL_RET_TYPE( (l*r[s]) )
-
-	template<int IL, typename TL, typename TR> inline auto //
-	Divides(Field<Geometry<this_type, IL>, TL> const &l, TR const &r,
-			size_t s) const
-			DECL_RET_TYPE((l[s]/mapto(Int2Type<IL>(),r,s)))
-
-//	template<typename TL, typename TR> inline auto //
-//	Divides(Field<Geometry<ThisType, 0>, TL> const &l,
-//			Field<Geometry<ThisType, 0>, TR> const &r, size_t s) const
-//			DECL_RET_TYPE((l[s]/r[s]))
-//
-//	template<int IL, typename TL, typename TR> inline auto //
-//	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR r, size_t s) const
-//	DECL_RET_TYPE( (l[s]/r))
-	//
-//
-//	template<int IPD, typename TExpr> inline auto //	Field<Geometry<this_type, 2>,
-//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
-//			size_t  s) const ->
-//			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
-//	{
-//		if (dims[IPD] == 1)
-//		{
-//			return (0);
-//		}
-//		size_t j0 = s % 3;
-//
-//		size_t idx2 = s - j0;
-//
-//		typename Field<Geometry<Mesh, 2>, TExpr>::Value res = 0.0;
-////		if (1 == IPD)
-////		{
-////			res = (expr.rhs_[idx2 + 2]
-////					- expr.rhs_[idx2 + 2 - 3 * strides[IPD]]) * inv_dx[IPD];
-////
-////		}
-////		else if (2 == IPD)
-////		{
-////			res = (-expr.rhs_[idx2 + 1]
-////					+ expr.rhs_[idx2 + 1 - 3 * strides[IPD]]) * inv_dx[IPD];
-////		}
-//
-//		return (res);
-//	}
 
 }
 ;
 
 } //namespace simpla
+#include "uniform_rect_ops.h"
 #endif //UNIFORM_RECT_H_

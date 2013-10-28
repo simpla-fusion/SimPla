@@ -23,6 +23,7 @@ class multi_normal_distribution
 	nTuple<N, RealType> u_;
 	TNormalGen normal_dist_;
 
+	typedef multi_normal_distribution<N, RealType, TNormalGen> this_type;
 public:
 	static const int NDIMS = N;
 
@@ -72,16 +73,22 @@ public:
 	{
 	}
 
-	template<typename Generator>
-	nTuple<N, RealType> &&operator()(Generator & g)
+	template<typename Generator, typename T> inline
+	void operator()(Generator & g, T & res)
 	{
-		nTuple<N, RealType> res;
 		nTuple<N, RealType> v;
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			v[i] = normal_dist_(g);
 		}
 		res = A_ * v;
+	}
+
+	template<typename Generator> inline nTuple<N, RealType> operator()(
+			Generator & g)
+	{
+		nTuple<N, RealType> res;
+		this_type::operator()(g, res);
 		return std::move(res);
 	}
 
