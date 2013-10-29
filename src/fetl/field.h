@@ -7,7 +7,7 @@
 
 #ifndef FIELD_H_
 #define FIELD_H_
-
+#include "utilities/log.h"
 namespace simpla
 {
 
@@ -21,7 +21,6 @@ namespace simpla
 
 template<typename TGeometry, typename TValue>
 struct Field: public TGeometry, public TGeometry::template Container<TValue>
-
 {
 public:
 
@@ -29,13 +28,12 @@ public:
 
 	typedef typename TGeometry::template Container<TValue> container_type;
 
-	typedef typename geometry_type::index_type index_type;
-
 	typedef typename container_type::value_type value_type;
 
 	typedef Field<geometry_type, value_type> this_type;
 
-	Field(typename geometry_type::Mesh const & g) :
+	template<typename TG>
+	Field(TG const &g) :
 			geometry_type(g),
 
 			container_type(
@@ -56,18 +54,13 @@ public:
 
 	void swap(this_type & rhs)
 	{
-		geometry_type::swap(rhs);
+		geometry_type::swap(rhs.geometry_);
 		container_type::swap(rhs);
-	}
-
-	template<typename Fun> inline void ForEach(Fun const & fun)
-	{
-		geometry_type::ForEach(*this, fun);
 	}
 
 	inline this_type & operator=(this_type const & rhs)
 	{
-		geometry_type::mesh->ForEach("Center",
+		geometry_type::ForEach(
 
 		[this, &rhs](typename geometry_type::index_type s)
 		{
@@ -82,17 +75,30 @@ public:
 	template<typename TR> inline this_type &                                      \
 	operator _OP_(Field<TGeometry, TR> const & rhs)                               \
 	{                                                                             \
-		geometry_type::ForEach([this, &rhs](typename geometry_type::index_type s)         \
+		geometry_type::ForEach([this, &rhs](typename geometry_type::index_type const &s)         \
 		{	(*this)[s] _OP_ rhs[s];});                                            \
 		return (*this);                                                           \
-	}
+	}                                                                             \
+	template<typename TR> inline this_type &                                      \
+		operator _OP_(TR const & rhs)                               \
+		{                                                                             \
+			geometry_type::ForEach([this, &rhs](typename geometry_type::index_type const &s)         \
+			{	(*this)[s] _OP_ rhs ;});                                            \
+			return (*this);                                                           \
+		}
 
-	DECL_SELF_ASSIGN(=)DECL_SELF_ASSIGN(+=)
+	DECL_SELF_ASSIGN(=)
+
+	DECL_SELF_ASSIGN(+=)
+
 	DECL_SELF_ASSIGN(-=)
+
 	DECL_SELF_ASSIGN(*=)
+
 	DECL_SELF_ASSIGN(/=)
 #undef DECL_SELF_ASSIGN
-//	inline auto Get(CoordinatesType const &x,Real effect_radius=0)const
+
+	//	inline auto Get(CoordinatesType const &x,Real effect_radius=0)const
 //	DECL_RET_TYPE( (geometry.IntepolateFrom(*this,x,effect_radius)))
 //
 //	inline auto Put(ValueType const & v,CoordinatesType const &x,Real effect_radius=0)

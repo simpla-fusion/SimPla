@@ -29,19 +29,19 @@ protected:
 	{
 		Log::Verbose(10);
 
-		mesh.dt = 1.0;
-		mesh.xmin[0] = 0;
-		mesh.xmin[1] = 0;
-		mesh.xmin[2] = 0;
-		mesh.xmax[0] = 1.0;
-		mesh.xmax[1] = 1.0;
-		mesh.xmax[2] = 1.0;
-		mesh.dims[0] = 20;
-		mesh.dims[1] = 30;
-		mesh.dims[2] = 40;
-		mesh.gw[0] = 2;
-		mesh.gw[1] = 2;
-		mesh.gw[2] = 2;
+		mesh.dt_ = 1.0;
+		mesh.xmin_[0] = 0;
+		mesh.xmin_[1] = 0;
+		mesh.xmin_[2] = 0;
+		mesh.xmax_[0] = 1.0;
+		mesh.xmax_[1] = 1.0;
+		mesh.xmax_[2] = 1.0;
+		mesh.dims_[0] = 20;
+		mesh.dims_[1] = 30;
+		mesh.dims_[2] = 40;
+		mesh.gw_[0] = 2;
+		mesh.gw_[1] = 2;
+		mesh.gw_[2] = 2;
 
 		mesh.Init();
 
@@ -100,27 +100,45 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	value_type a; a = 3.0;
 
-	std::fill(f2.begin(),f2.end(), a);
+	std::fill(f1.begin(),f1.end(), a);
 
-	for (size_t s = 0, e=f2.size(); s < e; ++s)
+	for (auto p : f1)
 	{
-		ASSERT_EQ(a,f2[s])<<"idx="<< s;
+		ASSERT_EQ(a,p)<<"idx="<< p;
 	}
 
-	for (size_t s = 0, e=f1.size(); s < e; ++s)
-	{
-		f1[s]=a*static_cast<Real>(s);
-	}
+	geometry.ForEach(
+			[&f2,&a](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			{
+				f2[s]=a*static_cast<Real>(s);
+			}
+	)
+	;
+	f1 += f2;
 
-	f2 = f1;
+	geometry.ForEach(
 
-	for (auto s = geometry.get_center_elements_begin( );
-			s!=geometry.get_center_elements_end( ); ++s)
-	{
-		typename TestFixture::FieldType::value_type res;
-		res=a*static_cast<Real>(*s);
-		ASSERT_EQ( res,f2[*s])<<"idx="<< *s;
-	}
+			[&a,&f1](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			{
+				typename TestFixture::FieldType::value_type res;
+				res=a+a*static_cast<Real>(s);
+				ASSERT_EQ( res,f1[s])<<"idx="<< s;
+			}
+
+	);
+
+	f1*=2.0;
+
+	geometry.ForEach(
+
+			[&a,&f1](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			{
+				typename TestFixture::FieldType::value_type res;
+				res=(a+a*static_cast<Real>(s))*2.0;
+				ASSERT_EQ( res,f1[s])<<"idx="<< s;
+			}
+
+	);
 }
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
@@ -146,225 +164,227 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	-f1/b
 	;
 
-	for (size_t s = geometry.get_center_elements_begin( );
-			s!=geometry.get_center_elements_end( ); ++s)
-	{
-		value_type res;
-		res= - f1[*s]*2.0 + f2[*s] *c -f1[*s]/b
-		;
-		ASSERT_EQ( res, f3[*s]) << *s;
-	}
+	geometry.ForEach (
+
+			[&](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			{
+				value_type res;
+				res= - f1[s]*2.0 + f2[s] *c -f1[s]/b
+				;
+				ASSERT_EQ( res, f3[s]) << s;
+			}
+	);
 }
 }
 
-//TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-//{
-//	//FIXME  should test with non-uniform field
-//
-//	typename TestFixture::FieldType f1(typename TestFixture::mesh),f2(typename TestFixture::mesh),
-//	f3(typename TestFixture::mesh),f4(typename TestFixture::mesh);
-//
-//	RScalarField a(typename TestFixture::mesh),b(typename TestFixture::mesh),c(typename TestFixture::mesh);
-//
-//	std::fill(a.begin(),a.end(), 1.0);
-//	std::fill(b.begin(),b.end(), 3.0);
-//	std::fill(c.begin(),c.end(), 5.0);
-//
-//	size_t count=0;
-//
-//	a.ForEach(
-//			[&a,&b,&c,&count](size_t s)
-//			{
-//
-//				if( 1.0 == a[*s] && 3.0== b[*s] && 5.0==c[*s])
-//				{
-//					++count;
-//				}
-//			}
-//	);
-//	EXPECT_EQ(a.size(),count);
-//
-//	typename TestFixture::FieldType::value_type va,vb,vc;
-//
-//	va=2.0;
-//	vb=3.0;
-//	vc=5.0;
-//
-//	f4= -(f1^a)-f2/b +f3*c;
-////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
-//	;
-//	/**           (+)
-//	 *           /   \
-//	 *         (-)    (*)
-//	 *        /   \    | \
-//	 *      (^)    (/) f1 c
-//	 *     /  \   /  \
-//	 *-f1      a f2   b
-//	 *
-//	 * */
-//	count =0;
-//
-//	size_t num_of_comp=f3.get_num_of_comp();
-//
-//	for (auto s = f3.get_center_elements_begin( );
-//			s!=f3.get_center_elements_end( ); ++s)
-//	{
-//		typename TestFixture::FieldType::value_type res;
-//		res=
-//		-f1[*s]*a[*s/num_of_comp]
-//		-f2[*s]/b[*s/num_of_comp]
-//		+f3[*s]*c[*s/num_of_comp]
-//		;
-//
-//		if(res==f4[*s])
-//		{
-//			++count;
-//		}
-//
-////		EXPECT_EQ(res,f4[*s])<<*s
-////		<<" "<<num_of_comp
-////		<<" "<<f1[*s]
-////		<<" "<<f2[*s]
-////		<<" "<<f3[*s]
-////		<<" "<<a[*s/num_of_comp]
-////		<<" "<<b[*s/num_of_comp]
-////		<<" "<<c[*s/num_of_comp]
+////TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+////{
+////	//FIXME  should test with non-uniform field
+////
+////	typename TestFixture::FieldType f1(typename TestFixture::mesh),f2(typename TestFixture::mesh),
+////	f3(typename TestFixture::mesh),f4(typename TestFixture::mesh);
+////
+////	RScalarField a(typename TestFixture::mesh),b(typename TestFixture::mesh),c(typename TestFixture::mesh);
+////
+////	std::fill(a.begin(),a.end(), 1.0);
+////	std::fill(b.begin(),b.end(), 3.0);
+////	std::fill(c.begin(),c.end(), 5.0);
+////
+////	size_t count=0;
+////
+////	a.ForEach(
+////			[&a,&b,&c,&count](size_t s)
+////			{
+////
+////				if( 1.0 == a[*s] && 3.0== b[*s] && 5.0==c[*s])
+////				{
+////					++count;
+////				}
+////			}
+////	);
+////	EXPECT_EQ(a.size(),count);
+////
+////	typename TestFixture::FieldType::value_type va,vb,vc;
+////
+////	va=2.0;
+////	vb=3.0;
+////	vc=5.0;
+////
+////	f4= -(f1^a)-f2/b +f3*c;
+//////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+////	;
+////	/**           (+)
+////	 *           /   \
+////	 *         (-)    (*)
+////	 *        /   \    | \
+////	 *      (^)    (/) f1 c
+////	 *     /  \   /  \
+////	 *-f1      a f2   b
+////	 *
+////	 * */
+////	count =0;
+////
+////	size_t num_of_comp=f3.get_num_of_comp();
+////
+////	for (auto s = f3.get_center_elements_begin( );
+////			s!=f3.get_center_elements_end( ); ++s)
+////	{
+////		typename TestFixture::FieldType::value_type res;
+////		res=
+////		-f1[*s]*a[*s/num_of_comp]
+////		-f2[*s]/b[*s/num_of_comp]
+////		+f3[*s]*c[*s/num_of_comp]
 ////		;
-//
-//	}
-//	EXPECT_EQ(f3.get_num_of_center_elements(),count);
-//
-//}
-//}
-// test vector_calculus.h
-template<typename T>
-class TestFETLVecAlgegbra: public testing::Test
-{
-protected:
-	virtual void SetUp()
-	{
-		mesh.dt = 1.0;
-		mesh.xmin[0] = 0;
-		mesh.xmin[1] = 0;
-		mesh.xmin[2] = 0;
-		mesh.xmax[0] = 1.0;
-		mesh.xmax[1] = 1.0;
-		mesh.xmax[2] = 1.0;
-		mesh.dims[0] = 20;
-		mesh.dims[1] = 30;
-		mesh.dims[2] = 40;
-		mesh.gw[0] = 2;
-		mesh.gw[1] = 2;
-		mesh.gw[2] = 2;
-
-		mesh.Init();
-	}
-public:
-	Mesh mesh;
-	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
-	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
-};
-
-typedef testing::Types<double, Complex> VecFieldTypes;
-
-TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
-
-//TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
+////
+////		if(res==f4[*s])
+////		{
+////			++count;
+////		}
+////
+//////		EXPECT_EQ(res,f4[*s])<<*s
+//////		<<" "<<num_of_comp
+//////		<<" "<<f1[*s]
+//////		<<" "<<f2[*s]
+//////		<<" "<<f3[*s]
+//////		<<" "<<a[*s/num_of_comp]
+//////		<<" "<<b[*s/num_of_comp]
+//////		<<" "<<c[*s/num_of_comp]
+//////		;
+////
+////	}
+////	EXPECT_EQ(f3.get_num_of_center_elements(),count);
+////
+////}
+////}
+//// test vector_calculus.h
+//template<typename T>
+//class TestFETLVecAlgegbra: public testing::Test
 //{
-//	const Mesh& mesh = TestFixture::mesh;
-//
-//	Geometry<Mesh, 0> geometry(TestFixture::mesh);
-//
-//	Vec3 vc1 =
-//	{	1.0, 2.0, 3.0};
-//	Vec3 vc2 =
-//	{	-1.0, 4.0, 2.0};
-//
-//	Vec3 res_vec;
-//
-//	res_vec = Cross(vc1, vc2);
-//
-//	Real res_scalar;
-//	res_scalar = Dot(vc1, vc2);
-//
-//	typename TestFixture::ScalarField res_scalar_field(mesh);
-//
-//	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
-//			mesh);
-//
-//	std::fill(va.begin(),va.end(), vc2);
-//
-//	res_scalar_field = Dot(vc1, va);
-//
-//	res_vector_field = Cross(vc1, va);
-//
-//	size_t num_of_comp = geometry.get_num_of_comp( );
-//
-//	for (auto s = geometry.get_center_elements_begin( );
-//			s != geometry.get_center_elements_end( ); ++s)
+//protected:
+//	virtual void SetUp()
 //	{
-//		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
-//		;
+//		mesh.dt = 1.0;
+//		mesh.xmin[0] = 0;
+//		mesh.xmin[1] = 0;
+//		mesh.xmin[2] = 0;
+//		mesh.xmax[0] = 1.0;
+//		mesh.xmax[1] = 1.0;
+//		mesh.xmax[2] = 1.0;
+//		mesh.dims[0] = 20;
+//		mesh.dims[1] = 30;
+//		mesh.dims[2] = 40;
+//		mesh.gw[0] = 2;
+//		mesh.gw[1] = 2;
+//		mesh.gw[2] = 2;
 //
-//		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
-//		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
-//		;
+//		mesh.Init();
 //	}
+//public:
+//	Mesh mesh;
+//	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
+//	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
+//};
 //
-//}
-//}
+//typedef testing::Types<double, Complex> VecFieldTypes;
 //
-//TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
-//{
-//	//FIXME  should test with non-uniform field
+//TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 //
-//	mesh const & mesh = TestFixture::mesh;
-//
-//	Vec3 vc1 =
-//	{	1.0,2.0,3.0};
-//
-//	CVec3 vc2 =
-//	{
-//		Complex( 0.0,0.0) ,
-//		Complex( -0.2,0.2) ,
-//		Complex( 3.0,1.3)};
-//
-//	Complex res_scalar= Dot(vc2,vc1);
-//
-//	CVec3 res_vec;
-//
-//	res_vec=Cross(vc1,vc2);
-//
-//	typename TestFixture::VectorField va(mesh);
-//
-//	typename TestFixture::CVectorField vb(mesh);
-//
-//	va = vc1;
-//
-//	vb = vc2;
-//
-//	typename TestFixture::CVectorField res_vector_field(mesh);
-//	typename TestFixture::CScalarField res_scalar_field(mesh);
-//
-//	res_scalar_field = Dot(vb, va);
-//
-//	res_vector_field = Cross(va, vb);
-//
-//	size_t num_of_comp =mesh.get_num_of_comp(TestFixture::VectorField::IForm);
-//
-//	for (typename mesh::const_iterator s = mesh.get_center_elements_begin(TestFixture::VectorField::IForm);
-//			s!=mesh.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
-//	{
-//		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
-//
-//		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
-//
-//	}
-//
-//}
-//}
-//
+////TYPED_TEST(TestFETLVecAlgegbra,constant_vector){
+////{
+////	const Mesh& mesh = TestFixture::mesh;
+////
+////	Geometry<Mesh, 0> geometry(TestFixture::mesh);
+////
+////	Vec3 vc1 =
+////	{	1.0, 2.0, 3.0};
+////	Vec3 vc2 =
+////	{	-1.0, 4.0, 2.0};
+////
+////	Vec3 res_vec;
+////
+////	res_vec = Cross(vc1, vc2);
+////
+////	Real res_scalar;
+////	res_scalar = Dot(vc1, vc2);
+////
+////	typename TestFixture::ScalarField res_scalar_field(mesh);
+////
+////	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+////			mesh);
+////
+////	std::fill(va.begin(),va.end(), vc2);
+////
+////	res_scalar_field = Dot(vc1, va);
+////
+////	res_vector_field = Cross(vc1, va);
+////
+////	size_t num_of_comp = geometry.get_num_of_comp( );
+////
+////	for (auto s = geometry.get_center_elements_begin( );
+////			s != geometry.get_center_elements_end( ); ++s)
+////	{
+////		EXPECT_EQ(res_scalar, res_scalar_field[(*s)] )<< "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_scalar_field[(*s)]
+////		;
+////
+////		EXPECT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s)<< " | "
+////		<<va[(*s)] <<" | "<< vc1 << " | "<< res_vector_field[(*s)]
+////		;
+////	}
+////
+////}
+////}
+////
+////TYPED_TEST(TestFETLVecAlgegbra,complex_vector_field){
+////{
+////	//FIXME  should test with non-uniform field
+////
+////	mesh const & mesh = TestFixture::mesh;
+////
+////	Vec3 vc1 =
+////	{	1.0,2.0,3.0};
+////
+////	CVec3 vc2 =
+////	{
+////		Complex( 0.0,0.0) ,
+////		Complex( -0.2,0.2) ,
+////		Complex( 3.0,1.3)};
+////
+////	Complex res_scalar= Dot(vc2,vc1);
+////
+////	CVec3 res_vec;
+////
+////	res_vec=Cross(vc1,vc2);
+////
+////	typename TestFixture::VectorField va(mesh);
+////
+////	typename TestFixture::CVectorField vb(mesh);
+////
+////	va = vc1;
+////
+////	vb = vc2;
+////
+////	typename TestFixture::CVectorField res_vector_field(mesh);
+////	typename TestFixture::CScalarField res_scalar_field(mesh);
+////
+////	res_scalar_field = Dot(vb, va);
+////
+////	res_vector_field = Cross(va, vb);
+////
+////	size_t num_of_comp =mesh.get_num_of_comp(TestFixture::VectorField::IForm);
+////
+////	for (typename mesh::const_iterator s = mesh.get_center_elements_begin(TestFixture::VectorField::IForm);
+////			s!=mesh.get_center_elements_end(TestFixture::VectorField::IForm); ++s)
+////	{
+////		ASSERT_EQ(res_scalar, res_scalar_field[(*s)] ) << "idx=" <<(*s);
+////
+////		ASSERT_EQ(res_vec, (res_vector_field[(*s)])) << "idx=" <<(*s);
+////
+////	}
+////
+////}
+////}
+////
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test
 {
@@ -372,19 +392,19 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		mesh.dt = 1.0;
-		mesh.xmin[0] = 0;
-		mesh.xmin[1] = 0;
-		mesh.xmin[2] = 0;
-		mesh.xmax[0] = 1.0;
-		mesh.xmax[1] = 1.0;
-		mesh.xmax[2] = 1.0;
-		mesh.dims[0] = 20;
-		mesh.dims[1] = 30;
-		mesh.dims[2] = 40;
-		mesh.gw[0] = 2;
-		mesh.gw[1] = 2;
-		mesh.gw[2] = 2;
+		mesh.dt_ = 1.0;
+		mesh.xmin_[0] = 0;
+		mesh.xmin_[1] = 0;
+		mesh.xmin_[2] = 0;
+		mesh.xmax_[0] = 1.0;
+		mesh.xmax_[1] = 1.0;
+		mesh.xmax_[2] = 1.0;
+		mesh.dims_[0] = 20;
+		mesh.dims_[1] = 30;
+		mesh.dims_[2] = 40;
+		mesh.gw_[0] = 2;
+		mesh.gw_[1] = 2;
+		mesh.gw_[2] = 2;
 
 		mesh.Init();
 
@@ -440,32 +460,29 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
 
-	size_t num = mesh.get_num_of_vertex() * mesh.get_num_of_comp(0);
-
-	for (size_t i = 0; i < mesh.dims[0]; ++i)
-	for (size_t j = 0; j < mesh.dims[1]; ++j)
-	for (size_t k = 0; k < mesh.dims[2]; ++k)
-	{
-		size_t s = mesh.get_cell_num(i, j, k);
-		sf[s] = static_cast<double>(s)*v;
-	}
+	mesh.ForEach(0,[&](typename Mesh::index_type const &s)
+			{
+				sf[s] = static_cast<double>(s)*v;
+			}
+	);
 
 	vf1 = Grad(sf);
 
 	vf2 = Curl(Grad(sf));
 
-	Geometry<Mesh,1> geometry1(mesh);
+	mesh.ForEach(1,
+			[&](typename Mesh::index_type const & s)
+			{
+				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
+			}
+	);
 
-//	for (auto s = geometry1.get_center_elements_begin(); s != geometry1.get_center_elements_end( ); ++s)
-//	{
-//
-//		ASSERT_NE(0.0,abs(vf1[(*s)])) << "idx=" << *s;
-//	}
-	Geometry<Mesh,2> geometry2(mesh);
-	for (auto s = geometry2.get_center_elements_begin( ); s != geometry2.get_center_elements_end( ); ++s)
-	{
-		ASSERT_DOUBLE_EQ(0.0,abs(vf2[(*s)])) << "idx=" << *s;
-	}
+	mesh.ForEach(2,
+			[&](typename Mesh::index_type const & s)
+			{
+				ASSERT_DOUBLE_EQ(0.0,abs(vf2[s])) << "idx=" << s;
+			}
+	);
 }
 }
 
@@ -482,18 +499,20 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	TestFixture::Setvalue_type(&v);
 
-	for (size_t s = 0; s < vf2.get_num_of_elements(); ++s)
-	{
-		vf2[s] = v * (s + 1.0);
-	}
+	mesh.ForEach(0,[&](typename Mesh::index_type const &s)
+			{
+				vf2[s] = static_cast<double>(s+1.0)*v;
+//				CHECK(vf2[s]);
+			}
+	);
 
 	vf1 = Curl(vf2);
 	sf = Diverge( Curl(vf2));
 
-	mesh.ForEach(Int2Type<1>(),
+	mesh.ForEach(0,
 			[&sf](typename Mesh::index_type const &s)
 			{
-				ASSERT_DOUBLE_EQ(0.0,abs(sf[s])) << "idx=" << *s;
+				ASSERT_TRUE(1.0e-20 > abs(sf[s])) << "idx=" << s;
 			}
 	);
 

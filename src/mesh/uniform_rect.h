@@ -14,6 +14,7 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <deque>
 #include <iomanip>
 #include <list>
 #include <map>
@@ -50,24 +51,24 @@ struct UniformRectMesh<3>
 
 	typedef UniformRectMesh<3> this_type;
 
-private:
+public:
 	this_type & operator=(const this_type&) = delete;
 
 	IVec3 shift_;
 
 	std::map<std::string, chains_type> sub_domains_;
 
-	Real dt = 0.0;
+	Real dt_ = 0.0;
 	// Geometry
-	coordinates_type xmin;
-	coordinates_type xmax;
+	coordinates_type xmin_;
+	coordinates_type xmax_;
 	// Topology
-	nTuple<NUM_OF_DIMS, size_t> dims;
-	nTuple<NUM_OF_DIMS, size_t> gw;
+	nTuple<NUM_OF_DIMS, size_t> dims_;
+	nTuple<NUM_OF_DIMS, size_t> gw_;
 
-	nTuple<NUM_OF_DIMS, size_t> strides;
-	coordinates_type inv_dx;
-	coordinates_type dx;
+	nTuple<NUM_OF_DIMS, size_t> strides_;
+	coordinates_type inv_dx_;
+	coordinates_type dx_;
 
 public:
 
@@ -75,16 +76,17 @@ public:
 	{
 		Init();
 	}
+
 	~UniformRectMesh() = default;
 
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
-		vm.Get("dt", &dt);
-		vm.Get("xmin", &xmin);
-		vm.Get("xmax", &xmax);
-		vm.Get("dims", &dims);
-		vm.Get("gw", &gw);
+		vm.Get("dt", &dt_);
+		vm.Get("xmin", &xmin_);
+		vm.Get("xmax", &xmax_);
+		vm.Get("dims", &dims_);
+		vm.Get("gw", &gw_);
 
 		Init();
 	}
@@ -99,13 +101,13 @@ public:
 
 		<< SINGLELINE << std::endl
 
-		<< std::setw(40) << "dims = " << dims << std::endl
+		<< std::setw(40) << "dims = " << dims_ << std::endl
 
-		<< std::setw(40) << "xmin = " << xmin << std::endl
+		<< std::setw(40) << "xmin = " << xmin_ << std::endl
 
-		<< std::setw(40) << "xmax = " << xmax << std::endl
+		<< std::setw(40) << "xmax = " << xmax_ << std::endl
 
-		<< std::setw(40) << "gw = " << gw << std::endl
+		<< std::setw(40) << "gw = " << gw_ << std::endl
 
 		;
 		return (os.str());
@@ -115,62 +117,54 @@ public:
 	{
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			gw[i] = (gw[i] * 2 > dims[i]) ? dims[i] / 2 : gw[i];
-			if (dims[i] <= 1)
+			gw_[i] = (gw_[i] * 2 > dims_[i]) ? dims_[i] / 2 : gw_[i];
+			if (dims_[i] <= 1)
 			{
-				dims[i] = 1;
-				xmax[i] = xmin[i];
-				dx[i] = 0.0;
-				inv_dx[i] = 0.0;
+				dims_[i] = 1;
+				xmax_[i] = xmin_[i];
+				dx_[i] = 0.0;
+				inv_dx_[i] = 0.0;
 			}
 			else
 			{
-				dx[i] = (xmax[i] - xmin[i]) / static_cast<Real>(dims[i] - 1);
-				inv_dx[i] = 1.0 / dx[i];
+				dx_[i] = (xmax_[i] - xmin_[i])
+						/ static_cast<Real>(dims_[i] - 1);
+				inv_dx_[i] = 1.0 / dx_[i];
 			}
 		}
 
-		strides[2] = 1;
-		strides[1] = dims[2];
-		strides[0] = dims[1] * dims[2];
+		strides_[2] = 1;
+		strides_[1] = dims_[2];
+		strides_[0] = dims_[1] * dims_[2];
 
-	}
-
-	inline void SetExtent(coordinates_type const & pmin,
-			coordinates_type const & pmax)
-	{
-		xmin = pmin;
-		xmax = pmax;
 	}
 
 	template<typename E> inline Container<E> MakeContainer(int iform,
 			E const & d = E()) const
 	{
-		return Container<E>(GetNumOfElements(iform), d);
+		return std::move(Container<E>(GetNumOfElements(iform), d));
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	template<typename Fun> inline
+	void ForEach(int iform, Fun const &f) const
 	{
-		return std::move(std::make_pair(xmin, xmax));
+		size_t num_of_ele = GetNumOfElements(iform);
+
+		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
+			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
+				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
+				{
+
+					f(i * strides_[0] + j * strides_[1] + k * strides_[2]);
+				}
+
 	}
 
-	template<int IFORM, typename Fun> inline
-	void ForEach(Int2Type<IFORM>, Fun const &f) const
-	{
-		size_t num_of_ele = GetNumOfElements(IFORM);
-
-		for (size_t s = 0; s < num_of_ele; ++s)
-		{
-			f(s);
-		}
-
-	}
-
-	template<int IFORM, typename T, typename Fun> inline
-	void ForEach(Int2Type<IFORM>, T & f, Fun const &fun) const
+	template<typename T, typename Fun> inline
+	void ForEach(int iform, T & f, Fun const &fun) const
 	{
 
-		ForEach(Int2Type<IFORM>(),
+		ForEach(iform,
 
 		[&f,&fun] (index_type const &s)
 		{
@@ -188,12 +182,33 @@ public:
 
 // Property -----------------------------------------------
 
+	inline void SetExtent(coordinates_type const & pmin,
+			coordinates_type const & pmax)
+	{
+		xmin_ = pmin;
+		xmax_ = pmax;
+	}
+
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	{
+		return std::move(std::make_pair(xmin_, xmax_));
+	}
+
+	inline void SetDimension(nTuple<NUM_OF_DIMS, size_t> const & pdims)
+	{
+		dims_ = pdims;
+	}
+	inline nTuple<NUM_OF_DIMS, size_t> GetDimension() const
+	{
+		return dims_;
+	}
+
 	inline size_t GetNumOfVertex() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
-			res *= (dims[i] > 0) ? dims[i] : 1;
+			res *= (dims_[i] > 0) ? dims_[i] : 1;
 		}
 		return (res);
 	}
@@ -211,7 +226,7 @@ public:
 		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
 		{
-			res *= (dims[i] > 1) ? (dims[i] - 1) : 1;
+			res *= (dims_[i] > 1) ? (dims_[i] - 1) : 1;
 		}
 		return (res);
 	}
@@ -225,17 +240,17 @@ public:
 	}
 	inline size_t GetCellNum(IVec3 const & I) const
 	{
-		return (I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]);
+		return (I[0] * strides_[0] + I[1] * strides_[1] + I[2] * strides_[2]);
 	}
 	inline size_t GetCellNum(size_t I0, size_t I1, size_t I2) const
 	{
-		return (I0 * strides[0] + I1 * strides[1] + I2 * strides[2]);
+		return (I0 * strides_[0] + I1 * strides_[1] + I2 * strides_[2]);
 	}
 	inline size_t GetCellNum(RVec3 x) const
 	{
 		IVec3 I;
-		I = (x - xmin) * inv_dx;
-		return ((I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]));
+		I = (x - xmin_) * inv_dx_;
+		return ((I[0] * strides_[0] + I[1] * strides_[1] + I[2] * strides_[2]));
 	}
 
 	inline Real GetCellVolumn(size_t s = 0) const
@@ -243,9 +258,9 @@ public:
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
 		{
-			if (!isinf(dx[i]))
+			if (!isinf(dx_[i]))
 			{
-				res *= (dims[i] - 1) * dx[i];
+				res *= (dims_[i] - 1) * dx_[i];
 			}
 		}
 
@@ -257,9 +272,9 @@ public:
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
 		{
-			if (!isinf(dx[i]) && dx[i] > 0)
+			if (!isinf(dx_[i]) && dx_[i] > 0)
 			{
-				res *= dx[i];
+				res *= dx_[i];
 			}
 		}
 
@@ -460,16 +475,16 @@ public:
 	template<typename TL> inline auto //
 	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
-					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides[s%3]])*0.5) )
+					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides_[s%3]])*0.5) )
 
 	template<typename TL> inline auto //
 	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
 					DECL_RET_TYPE(((
 											l[(s-s%3)/3]+
-											l[(s-s%3)/3+strides[(s+1)%3]]+
-											l[(s-s%3)/3+strides[(s+2)%3]]+
-											l[(s-s%3)/3+strides[(s+1)%3]+strides[(s+2)%3]])*0.25
+											l[(s-s%3)/3+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]])*0.25
 
 							))
 	template<typename TL> inline auto //
@@ -477,13 +492,13 @@ public:
 			size_t s) const
 					DECL_RET_TYPE(((
 											l[(s-s%3)/3]+
-											l[(s-s%3)/3+strides[(s+1)%3]]+
-											l[(s-s%3)/3+strides[(s+2)%3]]+
-											l[(s-s%3)/3+strides[(s+1)%3]+strides[(s+2)%3]]+
-											l[(s-s%3)/3+strides[s%3]]+
-											l[(s-s%3)/3+strides[s%3]+strides[(s+1)%3]]+
-											l[(s-s%3)/3+strides[s%3]+strides[(s+2)%3]]+
-											l[(s-s%3)/3+strides[s%3]+strides[(s+1)%3]+strides[(s+2)%3]]
+											l[(s-s%3)/3+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[s%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]+strides_[(s+2)%3]]
 
 									)*0.125
 

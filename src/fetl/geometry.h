@@ -81,23 +81,28 @@ public:
 	template<typename TExpr, typename Fun>
 	inline void ForEach(Field<this_type, TExpr> & v, Fun const &fun) const
 	{
-		mesh->ForEach(Int2Type<IFORM>(), v, fun);
+		mesh->ForEach(IFORM, v, fun);
 	}
 
-	template<typename TE>
-	inline typename Field<this_type, TE>::Value IntepolateFrom(
-			Field<this_type, TE> const & f, Coordinates const & s,
-			Real effect_radius) const
+	template<typename Fun>
+	inline void ForEach(Fun const &fun) const
 	{
-		return (f[0]);
+		mesh->ForEach(IFORM, fun);
 	}
-
-	template<typename TE>
-	inline void IntepolateTo(Field<this_type, TE> const & f,
-			typename Field<this_type, TE>::Value const & v,
-			Coordinates const & s, Real effect_radius) const
-	{
-	}
+//	template<typename TE>
+//	inline typename Field<this_type, TE>::Value IntepolateFrom(
+//			Field<this_type, TE> const & f, Coordinates const & s,
+//			Real effect_radius) const
+//	{
+//		return (f[0]);
+//	}
+//
+//	template<typename TE>
+//	inline void IntepolateTo(Field<this_type, TE> const & f,
+//			typename Field<this_type, TE>::Value const & v,
+//			Coordinates const & s, Real effect_radius) const
+//	{
+//	}
 
 private:
 	template<int IL, typename TR> static Mesh const * //
