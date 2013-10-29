@@ -10,12 +10,16 @@
 
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
+#include <algorithm>
 #include <cmath>
 #include <complex>
 #include <cstddef>
 #include <iomanip>
+#include <list>
+#include <map>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace simpla
@@ -24,12 +28,14 @@ template<typename, typename > class Field;
 
 template<typename, int> class Geometry;
 
+template<int NDIM> struct UniformRectMesh;
+
 /**
  *  @brief UniformRectMesh -- Uniform rectangular structured grid.
  *  @ingroup mesh
  * */
-
-struct UniformRectMesh
+template<>
+struct UniformRectMesh<3>
 {
 
 	static const int NUM_OF_DIMS = 3;
@@ -38,35 +44,38 @@ struct UniformRectMesh
 
 	typedef size_t index_type;
 
-	typedef RVec3 coordinates_type;
+	typedef nTuple<NUM_OF_DIMS, Real> coordinates_type;
 
-	typedef UniformRectMesh this_type;
+	typedef std::list<index_type> chains_type;
 
-	UniformRectMesh & operator=(const UniformRectMesh&);
+	typedef UniformRectMesh<3> this_type;
+
+private:
+	this_type & operator=(const this_type&) = delete;
 
 	IVec3 shift_;
 
-	std::vector<size_t> center_ele_[4];
+	std::map<std::string, chains_type> sub_domains_;
 
-	std::vector<size_t> ghost_ele_[4];
-
-	Real dt;
+	Real dt = 0.0;
 	// Geometry
-	RVec3 xmin, xmax;
+	coordinates_type xmin;
+	coordinates_type xmax;
 	// Topology
-	IVec3 dims;
-	IVec3 gw;
+	nTuple<NUM_OF_DIMS, size_t> dims;
+	nTuple<NUM_OF_DIMS, size_t> gw;
 
-	IVec3 strides;
-	RVec3 inv_dx;
-	RVec3 dx;
+	nTuple<NUM_OF_DIMS, size_t> strides;
+	coordinates_type inv_dx;
+	coordinates_type dx;
+
+public:
 
 	UniformRectMesh()
 	{
+		Init();
 	}
-	~UniformRectMesh()
-	{
-	}
+	~UniformRectMesh() = default;
 
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
@@ -125,63 +134,51 @@ struct UniformRectMesh
 		strides[1] = dims[2];
 		strides[0] = dims[1] * dims[2];
 
-		//#pragma omp parallel for  << here can not be parallized
-		for (size_t i = 0; i < dims[0]; ++i)
-			for (size_t j = 0; j < dims[1]; ++j)
-				for (size_t k = 0; k < dims[2]; ++k)
-				{
-					size_t s =
-							(i * strides[0] + j * strides[1] + k * strides[2]);
+	}
 
-					for (int f = 0; f < 4; ++f)
-					{
-						size_t num_of_comp = get_num_of_comp(f);
-						for (size_t l = 0; l < num_of_comp; ++l)
-						{
-							if (i < gw[0] || i > dims[0] - gw[0] //
-							|| j < gw[1] || j > dims[1] - gw[1] //
-							|| k < gw[2] || k > dims[2] - gw[2])
-							{
-								ghost_ele_[f].push_back(s * num_of_comp + l);
-							}
-							else
-							{
+	inline void SetExtent(coordinates_type const & pmin,
+			coordinates_type const & pmax)
+	{
+		xmin = pmin;
+		xmax = pmax;
+	}
 
-								center_ele_[f].push_back(s * num_of_comp + l);
-							}
-						}
+	template<typename E> inline Container<E> MakeContainer(int iform,
+			E const & d = E()) const
+	{
+		return Container<E>(GetNumOfElements(iform), d);
+	}
 
-					}
-				}
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	{
+		return std::move(std::make_pair(xmin, xmax));
+	}
+
+	template<int IFORM, typename Fun> inline
+	void ForEach(Int2Type<IFORM>, Fun const &f) const
+	{
+		size_t num_of_ele = GetNumOfElements(IFORM);
+
+		for (size_t s = 0; s < num_of_ele; ++s)
+		{
+			f(s);
+		}
 
 	}
 
-	inline std::vector<size_t> const &
-	get_center_elements(int iform) const
+	template<int IFORM, typename T, typename Fun> inline
+	void ForEach(Int2Type<IFORM>, T & f, Fun const &fun) const
 	{
-		return (center_ele_[iform]);
-	}
 
-	inline std::vector<size_t>::const_iterator get_center_elements_begin(
-			int iform) const
-	{
-		return (center_ele_[iform].begin());
-	}
-	inline std::vector<size_t>::const_iterator get_center_elements_end(
-			int iform) const
-	{
-		return (center_ele_[iform].end());
-	}
+		ForEach(Int2Type<IFORM>(),
 
-	inline size_t get_num_of_center_elements(int iform) const
-	{
-		return (center_ele_[iform].size());
-	}
+		[&f,&fun] (index_type const &s)
+		{
+			fun(f[s]);
+		}
 
-	inline std::vector<size_t> const &
-	get_ghost_elements(int iform) const
-	{
-		return (ghost_ele_[iform]);
+		);
+
 	}
 
 	inline bool operator==(this_type const & r) const
@@ -191,7 +188,7 @@ struct UniformRectMesh
 
 // Property -----------------------------------------------
 
-	inline size_t get_num_of_vertex() const
+	inline size_t GetNumOfVertex() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
@@ -200,16 +197,16 @@ struct UniformRectMesh
 		}
 		return (res);
 	}
-	inline size_t get_num_of_edge() const
+	inline size_t GetNumOfEdge() const
 	{
 
 		return (0);
 	}
-	inline size_t get_num_of_face() const
+	inline size_t GetNumOfFace() const
 	{
 		return (0);
 	}
-	inline size_t get_num_of_cell(int iform = 0) const
+	inline size_t GetNumOfCell(int iform = 0) const
 	{
 		size_t res = 1;
 		for (int i = 0; i < 3; ++i)
@@ -219,29 +216,29 @@ struct UniformRectMesh
 		return (res);
 	}
 
-	inline RVec3 get_cell_center(size_t s) const
+	inline RVec3 GetCellCenter(size_t s) const
 	{
 		//TODO UNIMPLEMENTED!!
 		RVec3 res =
 		{ 0, 0, 0 };
 		return (res);
 	}
-	inline size_t get_cell_num(IVec3 const & I) const
+	inline size_t GetCellNum(IVec3 const & I) const
 	{
 		return (I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]);
 	}
-	inline size_t get_cell_num(size_t I0, size_t I1, size_t I2) const
+	inline size_t GetCellNum(size_t I0, size_t I1, size_t I2) const
 	{
 		return (I0 * strides[0] + I1 * strides[1] + I2 * strides[2]);
 	}
-	inline size_t get_cell_num(RVec3 x) const
+	inline size_t GetCellNum(RVec3 x) const
 	{
 		IVec3 I;
 		I = (x - xmin) * inv_dx;
 		return ((I[0] * strides[0] + I[1] * strides[1] + I[2] * strides[2]));
 	}
 
-	inline Real get_cell_volumn(size_t s = 0) const
+	inline Real GetCellVolumn(size_t s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -255,7 +252,7 @@ struct UniformRectMesh
 		return (res);
 	}
 
-	inline Real get_cell_d_volumn(size_t s = 0) const
+	inline Real GetCellDVolumn(size_t s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -268,13 +265,13 @@ struct UniformRectMesh
 
 		return (res);
 	}
-	inline size_t get_num_of_elements(int iform) const
+	inline size_t GetNumOfElements(int iform) const
 	{
-		return get_num_of_comp(iform) * get_num_of_vertex();
+		return GetNumOfComp(iform) * GetNumOfVertex();
 
 	}
 
-	static inline size_t get_num_of_comp(int iform)
+	static inline size_t GetNumOfComp(int iform)
 	{
 		static const int comps[4] =
 		{ 1, 3, 3, 1 };
@@ -282,7 +279,7 @@ struct UniformRectMesh
 		return (comps[iform]);
 	}
 
-//	inline std::vector<size_t> get_field_shape(int iform) const
+//	inline std::vector<size_t> Get_field_shape(int iform) const
 //	{
 //		int ndims = 1;
 ////		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
@@ -294,12 +291,12 @@ struct UniformRectMesh
 //		}
 //		if (iform == 1 || iform == 2)
 //		{
-//			d[NUM_OF_DIMS] = get_num_of_comp(iform);
+//			d[NUM_OF_DIMS] = Get_numOf_comp(iform);
 //		}
 //		return (d);
 //	}
 
-	// Coordinates transformation -------------------------------
+// Coordinates transformation -------------------------------
 
 //	nTuple<NUM_OF_DIMS, Real> CoordTransLocal2Global(index_type idx,
 //			nTuple<NUM_OF_DIMS, Real> const &lcoord)
@@ -314,41 +311,41 @@ struct UniformRectMesh
 //		return res;
 //
 //	}
-
+//
 // Assign Operation --------------------------------------------
-
-	template<int IF, typename TV> TV const & //
-	GetConstValue(Field<Geometry<this_type, IF>, TV> const &f, size_t s) const
-	{
-		return (*reinterpret_cast<const TV*>(&(*f.storage)
-				+ s * f.value_size_in_bytes));
-	}
-
-	template<int IF, typename TV> TV & //
-	GetValue(Field<Geometry<this_type, IF>, TV> &f, size_t s) const
-	{
-		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
-	}
-
-	template<int IFORM, typename TExpr, typename TR>
-	void Assign(Field<Geometry<this_type, IFORM>, TExpr> & lhs,
-			Field<Geometry<this_type, IFORM>, TR> const & rhs) const
-	{
-		size_t ele_num = get_num_of_elements(IFORM);
-
-		for (size_t i = 0; i < ele_num; ++i)
-		{
-			lhs[i] = rhs[i];
-		}
-	}
-
+//
+//	template<int IF, typename TV> TV const & //
+//	GetConstValue(Field<Geometry<this_type, IF>, TV> const &f, size_t s) const
+//	{
+//		return (*reinterpret_cast<const TV*>(&(*f.storage)
+//				+ s * f.value_size_in_bytes));
+//	}
+//
+//	template<int IF, typename TV> TV & //
+//	GetValue(Field<Geometry<this_type, IF>, TV> &f, size_t s) const
+//	{
+//		return (*reinterpret_cast<TV*>(&(*f.storage) + s * f.value_size_in_bytes));
+//	}
+//
+//	template<int IFORM, typename TExpr, typename TR>
+//	void Assign(Field<Geometry<this_type, IFORM>, TExpr> & lhs,
+//			Field<Geometry<this_type, IFORM>, TR> const & rhs) const
+//	{
+//		size_t ele_num = GetNumOf_elements(IFORM);
+//
+//		for (size_t i = 0; i < ele_num; ++i)
+//		{
+//			lhs[i] = rhs[i];
+//		}
+//	}
+//
 // @NOTE the propose of this function is to assign constant vector to a field.
 //   It confuses the semantics of nTuple with constant Field, and was discarded.
 //	template<int IFORM, typename TExpr, int NR, typename TR>
 //	void Assign(Field<Geometry<this_type, IFORM>, TExpr> & lhs, nTuple<NR, TR> rhs) const
 //	{
 //		ASSERT(lhs.this_type==*this);
-//		Index ele_num = get_num_of_elements(IFORM);
+//		Index ele_num = Get_num_of_elements(IFORM);
 //
 //#pragma omp parallel for
 //		for (Index i = 0; i < ele_num; ++i)
@@ -362,7 +359,7 @@ struct UniformRectMesh
 //	{
 //		ASSERT(lhs.this_type==*this);
 //		{
-//			std::vector<size_t> const & ele_list = get_center_elements(IFORM);
+//			std::vector<size_t> const & ele_list = Get_center_elements(IFORM);
 //			size_t ele_num = ele_list.size();
 //
 //#pragma omp parallel for
@@ -383,7 +380,7 @@ struct UniformRectMesh
 //		Value res;
 //		res = 0;
 //
-//		std::vector<Index> const & ele_list = get_center_elements(IFORM);
+//		std::vector<Index> const & ele_list = Get_center_elements(IFORM);
 //		Index ele_num = ele_list.size();
 //
 //#pragma omp parallel for reduction(+:res)
@@ -420,145 +417,9 @@ struct UniformRectMesh
 //		}
 //	}
 
-// Interpolation ----------------------------------------------------------
-
-	template<typename TExpr>
-	inline typename Field<Geometry<this_type, 0>, TExpr>::Value //
-	Gather(Field<Geometry<this_type, 0>, TExpr> const &f, RVec3 x) const
-	{
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx[0] = static_cast<long>(r[0]);
-		idx[1] = static_cast<long>(r[1]);
-		idx[2] = static_cast<long>(r[2]);
-
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
-	}
-
-	template<typename TExpr>
-	inline void //
-	Scatter(Field<Geometry<this_type, 0>, TExpr> & f, RVec3 x,
-			typename Field<Geometry<this_type, 0>, TExpr>::Value const v) const
-	{
-		typename Field<Geometry<this_type, 0>, TExpr>::Value res;
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx[0] = static_cast<long>(r[0]);
-		idx[1] = static_cast<long>(r[1]);
-		idx[2] = static_cast<long>(r[2]);
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		f.Add(s, v * (1.0 - r[0]));
-		f.Add(s + strides[0], v * r[0]); //FIXME Only for 1-dim
-
-	}
-
-	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> //
-	Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
-	{
-		nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
-
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx = r + 0.5;
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
-				+ f[(s - strides[0]) * 3 + 0] * (0.5 + r[0]));
-		res[1] = (f[(s) * 3 + 1] * (0.5 - r[1])
-				+ f[(s - strides[1]) * 3 + 1] * (0.5 + r[1]));
-		res[2] = (f[(s) * 3 + 2] * (0.5 - r[2])
-				+ f[(s - strides[2]) * 3 + 2] * (0.5 + r[2]));
-		return res;
-	}
-	template<typename TExpr>
-	inline void //
-	Scatter(Field<Geometry<this_type, 1>, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> const &v) const
-	{
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx = r + 0.5;
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
-		f[(s - strides[0]) * 3 + 0] += v[0] * (0.5 + r[0]);
-		f[(s) * 3 + 1] += v[1] * (0.5 - r[1]);
-		f[(s - strides[1]) * 3 + 1] += v[1] * (0.5 + r[1]);
-		f[(s) * 3 + 2] += v[2] * (0.5 - r[2]);
-		f[(s - strides[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
-	}
-
-	template<typename TExpr>
-	inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> //
-	Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
-	{
-		nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
-
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx[0] = static_cast<long>(r[0]);
-		idx[1] = static_cast<long>(r[1]);
-		idx[2] = static_cast<long>(r[2]);
-
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
-				+ f[(s - strides[0]) * 3 + 0] * (r[0]));
-		res[1] = (f[(s) * 3 + 1] * (1.0 - r[1])
-				+ f[(s - strides[1]) * 3 + 1] * (r[1]));
-		res[2] = (f[(s) * 3 + 2] * (1.0 - r[2])
-				+ f[(s - strides[2]) * 3 + 2] * (r[2]));
-		return res;
-
-	}
-
-	template<typename TExpr>
-	inline void //
-	Scatter(Field<Geometry<this_type, 2>, TExpr> & f, RVec3 x,
-			nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> const &v) const
-	{
-		IVec3 idx;
-		Vec3 r;
-		r = (x - xmin) * inv_dx;
-		idx[0] = static_cast<long>(r[0]);
-		idx[1] = static_cast<long>(r[1]);
-		idx[2] = static_cast<long>(r[2]);
-
-		r -= idx;
-		size_t s = idx[0] * strides[0] + idx[1] * strides[1]
-				+ idx[2] * strides[2];
-
-		f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
-		f[(s - strides[0]) * 3 + 0] += v[0] * (r[0]);
-		f[(s) * 3 + 1] += v[1] * (1.0 - r[1]);
-		f[(s - strides[1]) * 3 + 1] += v[1] * (r[1]);
-		f[(s) * 3 + 2] += v[2] * (1.0 - r[2]);
-		f[(s - strides[2]) * 3 + 2] += v[2] * (r[2]);
-
-	}
-
 // Mapto ----------------------------------------------------------
 	/**
-	 *    mapto(Int2Type<0> ,   //target topology position
+	 *    mapto(Int2Type<0> ,   //tarGet topology position
 	 *     Field<this_type,1 , TExpr> const & vl,  //field
 	 *      SizeType s   //grid index of point
 	 *      )

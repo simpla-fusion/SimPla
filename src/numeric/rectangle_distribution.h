@@ -21,7 +21,10 @@ template<int NDIM>
 class rectangle_distribution
 {
 public:
-	template<typename ... Args>
+
+	rectangle_distribution()
+	{
+	}
 	rectangle_distribution(nTuple<NDIM, double> const &xmin,
 			nTuple<NDIM, double> const & xmax) :
 			xmin_(xmin), xmax_(xmax)
@@ -31,6 +34,14 @@ public:
 	{
 
 	}
+
+	inline void Reset(nTuple<NDIM, double> const &xmin,
+			nTuple<NDIM, double> const & xmax)
+	{
+		xmin_ = xmin;
+		xmax_ = xmax;
+	}
+
 	template<typename Generator>
 	nTuple<NDIM, double> operator()(Generator &g)
 	{
@@ -57,8 +68,10 @@ public:
 		}
 	}
 private:
-	nTuple<NDIM, double> xmin_;
-	nTuple<NDIM, double> xmax_;
+	nTuple<NDIM, double> xmin_ =
+	{ 0, 0, 0 };
+	nTuple<NDIM, double> xmax_ =
+	{ 1, 1, 1 };
 };
 
 }  // namespace simpla

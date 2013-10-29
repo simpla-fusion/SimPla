@@ -22,7 +22,6 @@ namespace simpla
 // Vector Arithmetic
 //-----------------------------------------
 
-
 template<int N, typename TL> static inline auto _OpEval(
 		Int2Type<EXTRIORDERIVATIVE>,
 		Field<Geometry<UniformRectMesh, N>, TL> const & f,
@@ -170,5 +169,147 @@ template<int IL, typename TL, typename TR> static inline auto _OpEval(
 //		return (res);
 //	}
 }// namespace simpla
+
+/**
+ *
+ *
+ // Interpolation ----------------------------------------------------------
+
+ template<typename TExpr>
+ inline typename Field<Geometry<this_type, 0>, TExpr>::Value //
+ Gather(Field<Geometry<this_type, 0>, TExpr> const &f, RVec3 x) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ return (f[s] * (1.0 - r[0]) + f[s + strides[0]] * r[0]); //FIXME Only for 1-dim
+ }
+
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 0>, TExpr> & f, RVec3 x,
+ typename Field<Geometry<this_type, 0>, TExpr>::Value const v) const
+ {
+ typename Field<Geometry<this_type, 0>, TExpr>::Value res;
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ f.Add(s, v * (1.0 - r[0]));
+ f.Add(s + strides[0], v * r[0]); //FIXME Only for 1-dim
+
+ }
+
+ template<typename TExpr>
+ inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> //
+ Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
+ {
+ nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
+
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx = r + 0.5;
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
+ + f[(s - strides[0]) * 3 + 0] * (0.5 + r[0]));
+ res[1] = (f[(s) * 3 + 1] * (0.5 - r[1])
+ + f[(s - strides[1]) * 3 + 1] * (0.5 + r[1]));
+ res[2] = (f[(s) * 3 + 2] * (0.5 - r[2])
+ + f[(s - strides[2]) * 3 + 2] * (0.5 + r[2]));
+ return res;
+ }
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 1>, TExpr> & f, RVec3 x,
+ nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> const &v) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx = r + 0.5;
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
+ f[(s - strides[0]) * 3 + 0] += v[0] * (0.5 + r[0]);
+ f[(s) * 3 + 1] += v[1] * (0.5 - r[1]);
+ f[(s - strides[1]) * 3 + 1] += v[1] * (0.5 + r[1]);
+ f[(s) * 3 + 2] += v[2] * (0.5 - r[2]);
+ f[(s - strides[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
+ }
+
+ template<typename TExpr>
+ inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> //
+ Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
+ {
+ nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
+
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
+ + f[(s - strides[0]) * 3 + 0] * (r[0]));
+ res[1] = (f[(s) * 3 + 1] * (1.0 - r[1])
+ + f[(s - strides[1]) * 3 + 1] * (r[1]));
+ res[2] = (f[(s) * 3 + 2] * (1.0 - r[2])
+ + f[(s - strides[2]) * 3 + 2] * (r[2]));
+ return res;
+
+ }
+
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 2>, TExpr> & f, RVec3 x,
+ nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> const &v) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides[0] + idx[1] * strides[1]
+ + idx[2] * strides[2];
+
+ f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
+ f[(s - strides[0]) * 3 + 0] += v[0] * (r[0]);
+ f[(s) * 3 + 1] += v[1] * (1.0 - r[1]);
+ f[(s - strides[1]) * 3 + 1] += v[1] * (r[1]);
+ f[(s) * 3 + 2] += v[2] * (1.0 - r[2]);
+ f[(s - strides[2]) * 3 + 2] += v[2] * (r[2]);
+
+ }
+ *
+ *
+ * */
 
 #endif /* UNIFORM_RECT_OPS_H_ */

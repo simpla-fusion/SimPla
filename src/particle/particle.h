@@ -16,7 +16,6 @@ namespace simpla
 {
 
 template<typename T> using PIC=std::list<T, FixedSmallObjectAllocator<T> >;
-//std::map<size_t, T>;
 
 template<typename T, typename TGeometry>
 class Particle: public TGeometry, public TGeometry::Container<PIC<T> >
@@ -117,48 +116,11 @@ public:
 			}
 
 		}
-
 	}
 
 private:
 
 	allocator_type allocator_;
-
-//	struct iterator
-//	{
-//		typedef typename std::vector<Tree>::iterator t_iterator;
-//		t_iterator t_it;
-//		t_iterator t_end;
-//		typedef typename Tree::iterator l_iterator;
-//		l_iterator l_it;
-//
-//		iterator()
-//		{
-//
-//		}
-//		inline iterator operator ++()
-//		{
-//			++l_it;
-//			if (l_it == t_it.end())
-//			{
-//				++t_it;
-//				if (t_it != t_end)
-//				{
-//					l_it = t_it.front();
-//				}
-//			}
-//			return *this;
-//		}
-//		inline T & operator*()
-//		{
-//			return *l_it;
-//		}
-//		inline T const& operator*() const
-//		{
-//			return *l_it;
-//		}
-//
-//	};
 
 }
 ;

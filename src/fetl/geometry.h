@@ -16,7 +16,6 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
-
 /**
  * @brief Geometry
  *
@@ -73,10 +72,16 @@ public:
 	{
 	}
 
-	template<typename E> inline Container<E> makeContainer(E const & d =
+	template<typename E> inline Container<E> MakeContainer(E const & d =
 			E()) const
 	{
-		return std::move(Container<E>(get_num_of_elements(), d));
+		return std::move(mesh->MakeContainer(IFORM, d));
+	}
+
+	template<typename TExpr, typename Fun>
+	inline void ForEach(Field<this_type, TExpr> & v, Fun const &fun) const
+	{
+		mesh->ForEach(Int2Type<IFORM>(), v, fun);
 	}
 
 	template<typename TE>
@@ -93,34 +98,7 @@ public:
 			Coordinates const & s, Real effect_radius) const
 	{
 	}
-	inline size_t get_num_of_elements() const
-	{
-		return (mesh->get_num_of_elements(IFORM));
-	}
 
-	inline typename std::vector<size_t>::const_iterator get_center_elements_begin() const
-	{
-		return (mesh->center_ele_[IFORM].begin());
-	}
-	inline typename std::vector<size_t>::const_iterator get_center_elements_end() const
-	{
-		return (mesh->center_ele_[IFORM].end());
-	}
-
-	inline size_t get_num_of_comp() const
-	{
-		return (mesh->get_num_of_comp(IFORM));
-	}
-	inline size_t get_num_of_center_elements() const
-	{
-		return (mesh->get_num_of_center_elements(IFORM));
-	}
-
-	template<typename T>
-	inline size_t get_cell_num(T const & p) const
-	{
-		return (mesh->get_cell_num(p));
-	}
 private:
 	template<int IL, typename TR> static Mesh const * //
 	get_mesh(Geometry<Mesh, IL> const & l, TR const & r)

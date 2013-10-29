@@ -9,7 +9,6 @@
 #define VECTOR_CALCULUS_H_
 
 #include <fetl/expression.h>
-#include <fetl/field.h>
 #include <fetl/primitives.h>
 #include <type_traits>
 
@@ -17,6 +16,7 @@ namespace simpla
 {
 
 template<typename, int> struct Geometry;
+template<typename, typename > struct Field;
 
 template<typename TGeometry, int TOP, typename TL>
 struct Field<TGeometry, UniOp<TOP, TL> > : public TGeometry

@@ -37,7 +37,7 @@ class GGauge_Generator
 {
 public:
 
-	typedef typename GGauge_s<NMATE> value_type;
+	typedef GGauge_s<NMATE> value_type;
 	typedef rectangle_distribution<3> x_dist_type;
 	typedef multi_normal_distribution<3, normal_distribution_icdf> v_dist_type;
 
@@ -54,18 +54,16 @@ private:
 	v_dist_type v_dist_;
 };
 
-} // namespace simpla
-
 template<typename IT, typename XDIST, typename YDIST, typename Generator>
 void GGauge_Generator(XDIST const xdsit, YDIST const ydist, Generator const & g,
 		IT const & p)
 {
-
 	p->x = x_dist(g)
 	p->v = v_dist(g);
 	p->f = 1.0;
 	std::fill(p->w, p->w + sizeof(p->w) / sizeof(decltype(p->w[0])), 0);
-
 }
+
+} // namespace simpla
 
 #endif /* GGAUGE_H_ */

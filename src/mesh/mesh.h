@@ -39,26 +39,28 @@ struct MeshTraits
 
 	typedef nTuple<NUM_OF_DIMS, Real> coordinates_type;
 
+	typedef std::list<index_type> chains_type;
+
 	void Init();
 
 	std::string Summary() const;
 
-	size_type get_number_elements(int iform);
+	size_type GetNumberOfElements(int iform);
 
-	coordinates_type get_coordinates(int iform, index_type const &);
+	coordinates_type GetCoordinates(int iform, index_type const &);
 
-	void get_coordinates(int iform, int num, index_type const idxs[],
+	void GetCoordinates(int iform, int num, index_type const idxs[],
 			coordinates_type *x);
 
-	size_t get_cell_number_vertices(int iform, index_type const &idx);
+	size_t GetCellNumberVertices(int iform, index_type const &idx);
 
-	void get_cell_vertices(int iform, index_type const &idx, index_type idxs[]);
+	void GetCellVertices(int iform, index_type const &idx, index_type idxs[]);
 
-	index_type get_cell_index(coordinates_type const &);
+	index_type GetCellIndex(coordinates_type const &);
 
-	Real get_cell_volumn(index_type const &idx) const;
+	Real GetCellVolumn(index_type const &idx) const;
 
-	Real get_cell_d_volumn(index_type const &idx) const;
+	Real GetCellDVolumn(index_type const &idx) const;
 
 	//  ------------------------------------
 
@@ -70,32 +72,6 @@ struct MeshTraits
 	{
 
 	}
-
-	// Interpolation ----------------------------------------------------------
-
-	template<typename TExpr>
-	inline typename Field<Geometry<Grid, 0>, TExpr>::Value //
-	Gather(Field<Geometry<Grid, 0>, TExpr> const &f, coordinates_type) const;
-
-	template<typename TExpr> inline void
-	Scatter(Field<Geometry<Grid, 0>, TExpr> & f, coordinates_type,
-			typename Field<Geometry<Grid, 0>, TExpr>::Value const v) const;
-
-	template<typename TExpr> inline nTuple<THREE,
-			typename Field<Geometry<Grid, 1>, TExpr>::Value>
-	Gather(Field<Geometry<Grid, 1>, TExpr> const &f, coordinates_type) const;
-
-	template<typename TExpr> inline void
-	Scatter(Field<Geometry<Grid, 1>, TExpr> & f, coordinates_type,
-			nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> const &v) const;
-
-	template<typename TExpr> inline nTuple<THREE,
-			typename Field<Geometry<Grid, 2>, TExpr>::Value>
-	Gather(Field<Geometry<Grid, 2>, TExpr> const &f, coordinates_type) const;
-
-	template<typename TExpr> inline void
-	Scatter(Field<Geometry<Grid, 2>, TExpr> & f, coordinates_type,
-			nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> const &v) const;
 
 	// Mapto ----------------------------------------------------------
 	/**
@@ -138,67 +114,98 @@ struct MeshTraits
 	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const;
 
-	//-----------------------------------------
-	// Vector Arithmetic
-	//-----------------------------------------
-
-	template<int N, typename TL> inline auto
-	ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
-			index_type s) const;
-
-	template<typename TExpr> inline auto
-	Grad(Field<Geometry<this_type, 0>, TExpr> const & f, index_type) const;
-
-	template<typename TExpr> inline auto
-	Diverge(Field<Geometry<this_type, 1>, TExpr> const & f, index_type) const;
-
-	template<typename TL> inline auto
-	Curl(Field<Geometry<this_type, 1>, TL> const & f, index_type) const;
-
-	template<typename TL> inline auto
-	Curl(Field<Geometry<this_type, 2>, TL> const & f, index_type) const;
-
-	template<typename TExpr> inline auto
-	CurlPD(Int2Type<1>, TExpr const & expr, index_type) const;
-
-	template<typename TExpr> inline auto
-	CurlPD(Int2Type<2>, TExpr const & expr, index_type) const;
-
-	template<int IL, int IR, typename TL, typename TR> inline auto
-	Wedge(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
-
-	template<int N, typename TL> inline auto
-	HodgeStar(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
-
-	template<int N, typename TL> inline auto
-	Negate(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
-
-	template<int IL, typename TL, typename TR> inline auto
-	Plus(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
-
-	template<int IL, typename TL, typename TR> inline auto
-	Minus(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
-
-	template<int IL, int IR, typename TL, typename TR> inline auto
-	Multiplies(Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
-
-	template<int IL, typename TL, typename TR> inline auto
-	Multiplies(Field<Geometry<this_type, IL>, TL> const &l, TR r,
-			index_type) const;
-
-	template<int IR, typename TL, typename TR> inline auto
-	Multiplies(TL l, Field<Geometry<this_type, IR>, TR> const & r,
-			index_type) const;
-
-	template<int IL, typename TL, typename TR> inline auto
-	Divides(Field<Geometry<this_type, IL>, TL> const &l, TR const &r,
-			index_type) const;
-
 };
+
+/**
+
+ // Interpolation ----------------------------------------------------------
+
+ template<typename TExpr>
+ inline typename Field<Geometry<Grid, 0>, TExpr>::Value //
+ Gather(Field<Geometry<Grid, 0>, TExpr> const &f, coordinates_type) const;
+
+ template<typename TExpr> inline void
+ Scatter(Field<Geometry<Grid, 0>, TExpr> & f, coordinates_type,
+ typename Field<Geometry<Grid, 0>, TExpr>::Value const v) const;
+
+ template<typename TExpr> inline nTuple<THREE,
+ typename Field<Geometry<Grid, 1>, TExpr>::Value>
+ Gather(Field<Geometry<Grid, 1>, TExpr> const &f, coordinates_type) const;
+
+ template<typename TExpr> inline void
+ Scatter(Field<Geometry<Grid, 1>, TExpr> & f, coordinates_type,
+ nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> const &v) const;
+
+ template<typename TExpr> inline nTuple<THREE,
+ typename Field<Geometry<Grid, 2>, TExpr>::Value>
+ Gather(Field<Geometry<Grid, 2>, TExpr> const &f, coordinates_type) const;
+
+ template<typename TExpr> inline void
+ Scatter(Field<Geometry<Grid, 2>, TExpr> & f, coordinates_type,
+ nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> const &v) const;
+
+
+ //-----------------------------------------
+ // Vector Arithmetic
+ //-----------------------------------------
+
+ template<int N, typename TL> inline auto
+ ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
+ index_type s) const;
+
+ template<typename TExpr> inline auto
+ Grad(Field<Geometry<this_type, 0>, TExpr> const & f, index_type) const;
+
+ template<typename TExpr> inline auto
+ Diverge(Field<Geometry<this_type, 1>, TExpr> const & f, index_type) const;
+
+ template<typename TL> inline auto
+ Curl(Field<Geometry<this_type, 1>, TL> const & f, index_type) const;
+
+ template<typename TL> inline auto
+ Curl(Field<Geometry<this_type, 2>, TL> const & f, index_type) const;
+
+ template<typename TExpr> inline auto
+ CurlPD(Int2Type<1>, TExpr const & expr, index_type) const;
+
+ template<typename TExpr> inline auto
+ CurlPD(Int2Type<2>, TExpr const & expr, index_type) const;
+
+ template<int IL, int IR, typename TL, typename TR> inline auto
+ Wedge(Field<Geometry<this_type, IL>, TL> const &l,
+ Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
+
+ template<int N, typename TL> inline auto
+ HodgeStar(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
+
+ template<int N, typename TL> inline auto
+ Negate(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
+
+ template<int IL, typename TL, typename TR> inline auto
+ Plus(Field<Geometry<this_type, IL>, TL> const &l,
+ Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
+
+ template<int IL, typename TL, typename TR> inline auto
+ Minus(Field<Geometry<this_type, IL>, TL> const &l,
+ Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
+
+ template<int IL, int IR, typename TL, typename TR> inline auto
+ Multiplies(Field<Geometry<this_type, IL>, TL> const &l,
+ Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
+
+ template<int IL, typename TL, typename TR> inline auto
+ Multiplies(Field<Geometry<this_type, IL>, TL> const &l, TR r,
+ index_type) const;
+
+ template<int IR, typename TL, typename TR> inline auto
+ Multiplies(TL l, Field<Geometry<this_type, IR>, TR> const & r,
+ index_type) const;
+
+ template<int IL, typename TL, typename TR> inline auto
+ Divides(Field<Geometry<this_type, IL>, TL> const &l, TR const &r,
+ index_type) const;
+
+ * */
 
 } //namespace simpla
 

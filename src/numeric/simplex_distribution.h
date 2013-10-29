@@ -32,8 +32,14 @@ public:
 	{
 
 	}
-	template<typename Generator>
-	nTuple<NDIM, double> && operator()(Generator &g)
+	template<typename ... Args>
+	inline void Reset(Args ... args)
+	{
+		std::swap(nTuple<NDIM + 1, nTuple<NDIM, double>>(args...), pixels_);
+	}
+
+	template<typename Generator> inline nTuple<NDIM, double> operator()(
+			Generator &g) const
 	{
 		xn_[0] = 0;
 		for (int i = 1; i < NDIM; ++i)
@@ -53,7 +59,7 @@ public:
 		{
 			res += xn_[i] * pixels_[i];
 		}
-
+		return res;
 	}
 private:
 	nTuple<NDIM + 1, nTuple<NDIM, double>> pixels_;
