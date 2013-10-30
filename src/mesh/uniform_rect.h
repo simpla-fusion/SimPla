@@ -148,15 +148,17 @@ public:
 	template<typename Fun> inline
 	void ForEach(int iform, Fun const &f) const
 	{
-		size_t num_of_ele = GetNumOfElements(iform);
+		size_t num_of_comp = GetNumOfComp(iform);
 
 		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
 			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
 				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
-				{
-
-					f(i * strides_[0] + j * strides_[1] + k * strides_[2]);
-				}
+					for (size_t m = 0; m < num_of_comp; ++m)
+					{
+						f(
+								(i * strides_[0] + j * strides_[1]
+										+ k * strides_[2]) * num_of_comp + m);
+					}
 
 	}
 

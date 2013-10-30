@@ -17,11 +17,12 @@
 
 #include <fetl/expression.h>
 #include <fetl/primitives.h>
-#include <cmath>
+//#include <cmath>
 #include <complex>
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
 namespace simpla
 {
@@ -309,14 +310,11 @@ Determinant(nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
 		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 ))
 
-template<int N, typename T> auto abs(
-		nTuple<N, T> const & m)-> decltype(std::abs(std::sqrt(Dot(m, m))))
-{
-	return std::abs(std::sqrt(Dot(m, m)));
-}
+template<int N, typename T> auto abs(nTuple<N, T> const & m)
+DECL_RET_TYPE( std::sqrt(std::abs(Dot(m, m))))
 
-template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
-DECL_RET_TYPE( (sqrt(Determinant(m))))
+//template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
+//DECL_RET_TYPE( (sqrt(Determinant(m))))
 
 // overloading operators
 template<int N, int TOP, typename TL, typename TR>
@@ -378,12 +376,16 @@ struct nTuple<N, UniOp<TOP, TL> >
 {
 	typename ConstReferenceTraits<TL>::type l_;
 
+	typedef decltype(_Op(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
+
 	nTuple(TL const & l) :
 			l_(l)
 	{
 	}
-	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((_Op(Int2Type<TOP>(),l_ ,s)))
+	inline value_type operator[](size_t s) const
+	{
+		return _Op(Int2Type<TOP>(), l_, s);
+	}
 
 };
 template<int N, typename TL>
@@ -398,6 +400,17 @@ template<int N, typename TL> inline  //
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
+//template<typename T> inline auto sin(T const & f)
+//DECL_RET_TYPE(( std::sin(f)))
+//
+//template<int N, typename TL>
+//inline auto _Op(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
+//DECL_RET_TYPE ((sin(l[s]) ))
+//
+//template<int N, typename TL> inline  //
+//auto sin(nTuple<N, TL> const & f)
+//DECL_RET_TYPE(( nTuple<N, UniOp<SIN,nTuple<N, TL> > > (f)))
+
 template<int N, typename TL, typename TR>
 inline auto _Op(Int2Type<CROSS>, nTuple<N, TL> const & l,
 		nTuple<N, TR> const &r, size_t s)
@@ -411,22 +424,38 @@ Cross(nTuple<N, TL> const & lhs,
 
 namespace _impl
 {
-template<int M, typename TL, typename TR> struct _dot
+
+template<int M, typename TL, typename TR> struct _dot_s;
+
+template<typename TL, typename TR>
+inline auto _dot(TL const & l, TR const &r)
+DECL_RET_TYPE((l*r))
+
+template<int N, typename TL, typename TR>
+inline auto _dot(nTuple<N, TL> const & l, nTuple<N, TR> const &r)
+DECL_RET_TYPE(( _dot_s<N, nTuple<N, TL>, nTuple<N, TR> >::eval(l,r)))
+
+template<int M, typename TL, typename TR>
+struct _dot_s
 {
-	static inline auto eval(TL const & l, TR const &r)
-	DECL_RET_TYPE((l[M - 1] * r[M - 1] + _dot<M - 1, TL, TR>::eval(l, r)))
+	static inline auto eval(TL const & l,
+			TR const &r)
+					DECL_RET_TYPE((_dot(l[M - 1] , r[M - 1]) + _dot_s<M - 1, TL, TR>::eval(l, r)))
 };
-template<typename TL, typename TR> struct _dot<1, TL, TR>
+template<typename TL, typename TR>
+struct _dot_s<1, TL, TR>
 {
 	static inline auto eval(TL const & l, TR const &r)
-	DECL_RET_TYPE(l[0]*r[0])
+	DECL_RET_TYPE(_dot(l[0],r[0]))
 }
 ;
-}   //namespace _impl
 
-template<int N, typename TL, typename TR> inline auto //
-Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-DECL_RET_TYPE((_impl::_dot<N,nTuple<N, TL>,nTuple<N, TR> >::eval(l,r)))
+}
+//namespace _impl
+
+template<int N, typename TL, typename TR>
+inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+DECL_RET_TYPE((_impl::_dot(l,r)))
 
 template<int N, typename T> using Matrix = nTuple<N,nTuple<N,T> >;
 

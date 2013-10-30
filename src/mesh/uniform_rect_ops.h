@@ -22,19 +22,18 @@ namespace simpla
 // Vector Arithmetic
 //-----------------------------------------
 
-template<int N, typename TL>  inline auto _OpEval(
-		Int2Type<EXTRIORDERIVATIVE>,
+template<int N, typename TL> inline auto _OpEval(Int2Type<EXTRIORDERIVATIVE>,
 		Field<Geometry<UniformRectMesh<3>, N>, TL> const & f,
 		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((f[s]*f.mesh->inv_dx_[s%3]))
 
-template<typename TExpr>  inline auto _OpEval(Int2Type<GRAD>,
+template<typename TExpr> inline auto _OpEval(Int2Type<GRAD>,
 		Field<Geometry<UniformRectMesh<3>, 0>, TExpr> const & f,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE(
 						(f[(s - s % 3) / 3 + f.mesh->strides_[s % 3]] - f[(s - s % 3) / 3]) * f.mesh->inv_dx_[s % 3])
 
-template<typename TExpr>  inline auto _OpEval(Int2Type<DIVERGE>,
+template<typename TExpr> inline auto _OpEval(Int2Type<DIVERGE>,
 		Field<Geometry<UniformRectMesh<3>, 1>, TExpr> const & f,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE(
@@ -45,28 +44,25 @@ template<typename TExpr>  inline auto _OpEval(Int2Type<DIVERGE>,
 
 						(f[s * 3 + 2] - f[s * 3 + 2 - 3 * f.mesh->strides_[2]]) * f.mesh->inv_dx_[2])
 
-template<typename TL>  inline auto _OpEval(Int2Type<CURL>,
+template<typename TL> inline auto _OpEval(Int2Type<CURL>,
 		Field<Geometry<UniformRectMesh<3>, 1>, TL> const & f,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE(
-						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh->strides_[(s + 1) % 3]]
+						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh->strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh->inv_dx_[(s + 1) % 3]
 
-								- f[s - s %3 + (s + 2) % 3]) * f.mesh->inv_dx_[(s + 1) % 3]
+						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh->strides_[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3]) * f.mesh->inv_dx_[(s + 2) % 3]
 
-						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh->strides_[(s + 2) % 3]]
+				)
 
-								- f[s - s %3 + (s + 1) % 3]) * f.mesh->inv_dx_[(s + 2) % 3])
-
-
-template<typename TL>  inline auto _OpEval(Int2Type<CURL>,
+template<typename TL> inline auto _OpEval(Int2Type<CURL>,
 		Field<Geometry<UniformRectMesh<3>, 2>, TL> const & f,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE(
-						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh->strides_[(s + 1) % 3]] )
-						* f.mesh->inv_dx_[(s + 1) % 3]
+						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh->strides_[(s + 1) % 3]] ) * f.mesh->inv_dx_[(s + 1) % 3]
 
-						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh->strides_[(s + 1) % 3]])
-						* f.mesh->inv_dx_[(s + 2) % 3])
+						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh->strides_[(s + 2) % 3]]) * f.mesh->inv_dx_[(s + 2) % 3]
+
+				)
 
 //template<typename TL>  inline auto //
 //_OpEval(<CURLPD1>, Field<Geometry<UniformRectMesh<3>, 1>, TL> const & f,
@@ -80,44 +76,46 @@ template<typename TL>  inline auto _OpEval(Int2Type<CURL>,
 //				DECL_RET_TYPE(
 //						(-f.rhs_[s-s % 3 + 1 + 3 * f.mesh->strides_[2]] + f.rhs_[s-s % 3 + 1]) * f.mesh->inv_dx_[2])
 
-template<int IL, int IR, typename TL, typename TR>  inline auto _OpEval(
+template<int IL, int IR, typename TL, typename TR> inline auto _OpEval(
 		Int2Type<WEDGE>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
 		Field<Geometry<UniformRectMesh<3>, IR>, TR> const &r,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE(
 						(l.mesh->mapto(Int2Type<IL+IR>(),l,s)*r.mesh->mapto(Int2Type<IL+IR>(),r,s)))
 
-template<int N, typename TL>  inline auto _OpEval(Int2Type<HODGESTAR>,
+template<int N, typename TL> inline auto _OpEval(Int2Type<HODGESTAR>,
 		Field<Geometry<UniformRectMesh<3>, N>, TL> const & f,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE((f.mesh->mapto(Int2Type<UniformRectMesh<3>::NUM_OF_DIMS-N >(),f,s)))
 
-template<int N, typename TL>  inline auto _OpEval(Int2Type<NEGATE>,
+template<int N, typename TL> inline auto _OpEval(Int2Type<NEGATE>,
 		Field<Geometry<UniformRectMesh<3>, N>, TL> const & f,
 		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((-f[s]))
 
-template<int IL, typename TL, typename TR>  inline auto _OpEval(
-		Int2Type<PLUS>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
+template<int IL, typename TL, typename TR> inline auto _OpEval(Int2Type<PLUS>,
+		Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
 		Field<Geometry<UniformRectMesh<3>, IL>, TR> const &r,
 		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((l[s]+r[s]))
 
-template<int IL, typename TL, typename TR>  inline auto _OpEval(
-		Int2Type<MINUS>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
+template<int IL, typename TL, typename TR> inline auto _OpEval(Int2Type<MINUS>,
+		Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
 		Field<Geometry<UniformRectMesh<3>, IL>, TR> const &r,
 		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((l[s]-r[s]))
 
 template<int IL, int IR, typename TL, typename TR> inline auto _OpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
+		Int2Type<MULTIPLIES>,
+		Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
 		Field<Geometry<UniformRectMesh<3>, IR>, TR> const &r,
 		typename UniformRectMesh<3>::index_type s)
 				DECL_RET_TYPE( (l.mesh->mapto(Int2Type<IL+IR>(),l,s)*r.mesh->mapto(Int2Type<IL+IR>(),r,s)) )
 
 template<int IL, typename TL, typename TR> inline auto _OpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
-		TR const &r, typename UniformRectMesh<3>::index_type s)
+		Int2Type<MULTIPLIES>,
+		Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l, TR const &r,
+		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((l[s] * r))
 
 template<int IR, typename TL, typename TR> inline auto _OpEval(
@@ -126,7 +124,7 @@ template<int IR, typename TL, typename TR> inline auto _OpEval(
 		typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((l * r[s]))
 
-template<int IL, typename TL, typename TR>  inline auto _OpEval(
+template<int IL, typename TL, typename TR> inline auto _OpEval(
 		Int2Type<DIVIDES>, Field<Geometry<UniformRectMesh<3>, IL>, TL> const &l,
 		TR const &r, typename UniformRectMesh<3>::index_type s)
 		DECL_RET_TYPE((l[s]/l.mesh->mapto(Int2Type<IL>(),r,s)))

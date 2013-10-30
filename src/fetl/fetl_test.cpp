@@ -423,22 +423,22 @@ public:
 		return (2.0 * fabs((a - b) / (a + b)));
 	}
 
-	void Setvalue_type(double *v)
+	void SetValue(double *v)
 	{
 		*v = 1.0;
 	}
 
-	void Setvalue_type(Complex *v)
+	void SetValue(Complex *v)
 	{
 		*v = Complex(1.0, 2.0);
 	}
 
 	template<int N, typename TV>
-	void Setvalue_type(nTuple<N, TV> *v)
+	void SetValue(nTuple<N, TV> *v)
 	{
 		for (size_t i = 0; i < N; ++i)
 		{
-			Setvalue_type(&((*v)[i]));
+			SetValue(&((*v)[i]));
 		}
 	}
 };
@@ -454,13 +454,17 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	typename TestFixture::value_type v;
 
-	TestFixture::Setvalue_type(&v);
+	TestFixture::SetValue(&v);
+
+	size_t count =0;
 
 	typename TestFixture::TZeroForm sf(mesh);
 	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
 
-	mesh.ForEach(0,[&](typename Mesh::index_type const &s)
+	mesh.ForEach(0,
+
+			[&](typename Mesh::index_type const &s)
 			{
 				sf[s] = static_cast<double>(s)*v;
 			}
@@ -470,19 +474,28 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	vf2 = Curl(Grad(sf));
 
+	count=0;
+
 	mesh.ForEach(1,
 			[&](typename Mesh::index_type const & s)
 			{
-				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
+//				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
+				count+=( abs(vf1[s])==0)?1:0;
 			}
 	);
+
+	EXPECT_EQ(0,count)<< "number of zero points =" << count;
 
 	mesh.ForEach(2,
 			[&](typename Mesh::index_type const & s)
 			{
-				ASSERT_DOUBLE_EQ(0.0,abs(vf2[s])) << "idx=" << s;
+
+//				ASSERT_DOUBLE_EQ(0.0,abs(vf2[s])) << "idx=" << s;
+				count+=( abs(vf2[s])>1.0e-20)?1:0;
 			}
 	);
+
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
 }
 }
 
@@ -497,24 +510,27 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	typename TestFixture::value_type v;
 
-	TestFixture::Setvalue_type(&v);
+	TestFixture::SetValue(&v);
 
-	mesh.ForEach(0,[&](typename Mesh::index_type const &s)
+	std::fill(vf2.begin(),vf2.end(),v);
+
+	mesh.ForEach(2,[&](typename Mesh::index_type const &s)
 			{
 				vf2[s] = static_cast<double>(s+1.0)*v;
-//				CHECK(vf2[s]);
 			}
 	);
 
 	vf1 = Curl(vf2);
 	sf = Diverge( Curl(vf2));
 
+	size_t count=0;
 	mesh.ForEach(0,
-			[&sf](typename Mesh::index_type const &s)
+			[&sf,&count](typename Mesh::index_type const &s)
 			{
-				ASSERT_TRUE(1.0e-20 > abs(sf[s])) << "idx=" << s;
+				count+=( abs(sf[s])>1.0e-20)?1:0;
+				ASSERT_DOUBLE_EQ(0.0, abs(sf[s])) << "idx=" << s;
 			}
 	);
-
+	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
 }
 }

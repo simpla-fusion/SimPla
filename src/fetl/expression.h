@@ -40,9 +40,17 @@ typedef enum
 
 	GRAD, DIVERGE, CURL, HODGESTAR, EXTRIORDERIVATIVE, NEGATE, CURLPD1, CURLPD2,
 
-	EQUAL, LESS, GREATER
+	EQUAL, LESS, GREATER,
+
+	NULL_OP
 
 } OpType;
+
+typedef enum
+{
+	SIN = NULL_OP + 1, COS, TAN, CTAN, EXP, LOG10, LOG2, LN, ABS
+
+} MathFunType;
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
@@ -171,6 +179,21 @@ template<typename T> struct is_complex<std::complex<T> >
 template<int TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
 {
 	static const bool value = is_complex<TL>::value || is_complex<TR>::value;
+};
+
+template<typename > struct is_real
+{
+	static const bool value = false;
+};
+
+template<> struct is_real<Real>
+{
+	static const bool value = true;
+};
+
+template<int TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
+{
+	static const bool value = is_real<TL>::value && is_real<TR>::value;
 };
 
 template<typename > struct has_PlaceHolder
