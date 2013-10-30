@@ -59,6 +59,13 @@ public:
 			mesh(g.mesh)
 	{
 	}
+
+	template<int IL, typename TL, int IR, typename TR>
+	Geometry(Field<Geometry<Mesh, IL>, TL> const & l,
+			Field<Geometry<Mesh, IR>, TR> const & r) :
+			mesh(l.mesh)
+	{
+	}
 	template<typename TL, typename TR>
 	Geometry(TL const & l, TR const & r) :
 			mesh(get_mesh(l, r))
@@ -106,17 +113,19 @@ public:
 //	}
 
 private:
-	template<int IL, typename TR> static Mesh const * //
-	get_mesh(Geometry<Mesh, IL> const & l, TR const & r)
+	template<int IL, typename TR> static typename std::enable_if<
+			!std::is_same<Geometry<Mesh, IL>, TR>::value, Mesh const *>::type get_mesh(
+			Geometry<Mesh, IL> const & l, TR const & r)
 	{
 		return (l.mesh);
 	}
 
-//	template<typename TL, int IR> static Mesh const * //
-//	get_mesh(TL const & l, Geometry<Mesh, IR> const & r)
-//	{
-//		return (r.mesh);
-//	}
+	template<int IR, typename TL> static typename std::enable_if<
+			!std::is_same<Geometry<Mesh, IR>, TL>::value, Mesh const *>::type get_mesh(
+			TL const & l, Geometry<Mesh, IR> const & r)
+	{
+		return (r.mesh);
+	}
 
 //	template<int IL, int IR> static Mesh const * //
 //	get_mesh(Geometry<Mesh, IL> const & l, Geometry<Mesh, IR> const & r)

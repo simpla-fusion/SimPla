@@ -127,6 +127,40 @@ template<int IL, typename TL, typename TR> inline auto _OpEval(
 		TR const &r, typename UniformRectMesh::index_type s)
 		DECL_RET_TYPE((l[s]/l.mesh->mapto(Int2Type<IL>(),r,s)))
 
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<DOT>,
+		Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const &r,
+		typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE((Dot(l[s],r[s])) )
+
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<DOT>,
+		Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		nTuple<3, TR> const &r, typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE((Dot(l[s] , r)))
+
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<DOT>,
+		nTuple<3, TL> const & l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const & r,
+		typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE((Dot(l , r[s])))
+
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<CROSS>,
+		Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const &r,
+		typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE( (Cross(l[s],r[s])))
+
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<CROSS>,
+		Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		nTuple<3, TR> const &r, typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE((Cross(l[s] , r)))
+
+template<typename TL, typename TR> inline auto _OpEval(Int2Type<CROSS>,
+		nTuple<3, TL> const & l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const & r,
+		typename UniformRectMesh::index_type s)
+		DECL_RET_TYPE((Cross(l , r[s])))
+
 //template
 //	Divides(Field<Geometry<ThisType, 0>, TL> const &l,
 //			Field<Geometry<ThisType, 0>, TR> const &r, typename UniformRectMesh::index_type  s)
