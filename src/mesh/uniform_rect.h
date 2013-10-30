@@ -38,7 +38,7 @@ struct UniformRectMesh
 
 	static const int NUM_OF_DIMS = 3;
 
-	int NUM_VERTIC_IN_CELL = 8;
+	int num_of_vertices_in_cell_ = 8;
 
 	template<typename Element> using Container = std::vector<Element>;
 
@@ -479,12 +479,13 @@ public:
 	}
 
 	template<typename TF>
-	inline typename TF::value_type Gather(TF const &f,
+	inline typename Field<Geometry<this_type, 0>, TF>::value_type Gather(
+			Field<Geometry<this_type, 0>, TF> const &f,
 			coordinates_type const &x) const
 	{
-		index_type points[NUM_VERTIC_IN_CELL];
+		index_type points[num_of_vertices_in_cell_];
 		coordinates_type pcoords;
-		Real weight[NUM_VERTIC_IN_CELL];
+		Real weight[num_of_vertices_in_cell_];
 		GetVerticesOfCell(SearchCell(x, &pcoords), points);
 		CalcuateWeight(pcoords, weight);
 
@@ -493,26 +494,27 @@ public:
 	}
 
 	template<typename TF>
-	inline typename TF::value_type Gather(TF const &f,
+	inline typename TF::value_type Gather(
+			Field<Geometry<this_type, 0>, TF> const &f,
 			index_type const points[], Real const weight[]) const
 	{
 		typename TF::value_type res;
 
 		res = 0;
 
-		for (int i = 0; i < NUM_VERTIC_IN_CELL; ++i)
+		for (int i = 0; i < num_of_vertices_in_cell_; ++i)
 		{
 			res += f[points[i]] * weight[i];
 		}
 		return std::move(res);
 	}
 
-	template<typename TF>
-	inline void Scatter(typename TF::value_type const & v,
-			coordinates_type const &x, TF &f) const
+	template<typename TV, typename TF>
+	inline void Scatter(TV const & v, coordinates_type const &x,
+			Field<Geometry<this_type, 0>, TF> &f) const
 	{
-		index_type points[NUM_VERTIC_IN_CELL];
-		Real weight[NUM_VERTIC_IN_CELL];
+		index_type points[num_of_vertices_in_cell_];
+		Real weight[num_of_vertices_in_cell_];
 		coordinates_type pcoords;
 
 		GetVerticesOfCell(SearchCell(x, &pcoords), points);
@@ -522,11 +524,11 @@ public:
 
 	}
 
-	template<typename TF>
-	inline void Scatter(typename TF::value_type const &v,
-			index_type const points[], Real const weight[], TF &f) const
+	template<typename TV, typename TF>
+	inline void Scatter(TV const &v, index_type const points[],
+			Real const weight[], Field<Geometry<this_type, 0>, TF> &f) const
 	{
-		for (int i = 0; i < NUM_VERTIC_IN_CELL; ++i)
+		for (int i = 0; i < num_of_vertices_in_cell_; ++i)
 		{
 			f[points[i]] += v * weight[i];
 		}
