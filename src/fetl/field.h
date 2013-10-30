@@ -71,6 +71,19 @@ public:
 		return (*this);
 	}
 
+	template<typename Fun>
+	inline void ForEach(Fun const &fun)
+	{
+		geometry_type::ForEach(
+
+		[this,&fun](typename geometry_type::index_type s)
+		{
+			fun((*this)[s]);
+		}
+
+		);
+	}
+
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
 	operator _OP_(Field<TGeometry, TR> const & rhs)                               \
@@ -89,7 +102,7 @@ public:
 
 	DECL_SELF_ASSIGN(=)
 
-	DECL_SELF_ASSIGN(+=)
+DECL_SELF_ASSIGN	(+=)
 
 	DECL_SELF_ASSIGN(-=)
 

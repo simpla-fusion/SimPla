@@ -26,6 +26,7 @@ class Geometry
 {
 public:
 
+	static const int IForm = IFORM;
 	static const int NUM_OF_DIMS = TM::NUM_OF_DIMS;
 
 	typedef TM Mesh;

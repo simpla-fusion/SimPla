@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <random>
 #include "utilities/log.h"
 
 #include "fetl.h"
@@ -48,6 +49,7 @@ protected:
 	}
 public:
 	typedef TF FieldType;
+	typedef Field<Geometry<Mesh, 0>, Real> RScalarField;
 
 	Mesh mesh;
 
@@ -177,85 +179,76 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 }
 }
 
-////TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-////{
-////	//FIXME  should test with non-uniform field
-////
-////	typename TestFixture::FieldType f1(typename TestFixture::mesh),f2(typename TestFixture::mesh),
-////	f3(typename TestFixture::mesh),f4(typename TestFixture::mesh);
-////
-////	RScalarField a(typename TestFixture::mesh),b(typename TestFixture::mesh),c(typename TestFixture::mesh);
-////
-////	std::fill(a.begin(),a.end(), 1.0);
-////	std::fill(b.begin(),b.end(), 3.0);
-////	std::fill(c.begin(),c.end(), 5.0);
-////
-////	size_t count=0;
-////
-////	a.ForEach(
-////			[&a,&b,&c,&count](size_t s)
-////			{
-////
-////				if( 1.0 == a[*s] && 3.0== b[*s] && 5.0==c[*s])
-////				{
-////					++count;
-////				}
-////			}
-////	);
-////	EXPECT_EQ(a.size(),count);
-////
-////	typename TestFixture::FieldType::value_type va,vb,vc;
-////
-////	va=2.0;
-////	vb=3.0;
-////	vc=5.0;
-////
-////	f4= -(f1^a)-f2/b +f3*c;
-//////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
-////	;
-////	/**           (+)
-////	 *           /   \
-////	 *         (-)    (*)
-////	 *        /   \    | \
-////	 *      (^)    (/) f1 c
-////	 *     /  \   /  \
-////	 *-f1      a f2   b
-////	 *
-////	 * */
-////	count =0;
-////
-////	size_t num_of_comp=f3.get_num_of_comp();
-////
-////	for (auto s = f3.get_center_elements_begin( );
-////			s!=f3.get_center_elements_end( ); ++s)
-////	{
-////		typename TestFixture::FieldType::value_type res;
-////		res=
-////		-f1[*s]*a[*s/num_of_comp]
-////		-f2[*s]/b[*s/num_of_comp]
-////		+f3[*s]*c[*s/num_of_comp]
-////		;
-////
-////		if(res==f4[*s])
-////		{
-////			++count;
-////		}
-////
-//////		EXPECT_EQ(res,f4[*s])<<*s
-//////		<<" "<<num_of_comp
-//////		<<" "<<f1[*s]
-//////		<<" "<<f2[*s]
-//////		<<" "<<f3[*s]
-//////		<<" "<<a[*s/num_of_comp]
-//////		<<" "<<b[*s/num_of_comp]
-//////		<<" "<<c[*s/num_of_comp]
-//////		;
-////
-////	}
-////	EXPECT_EQ(f3.get_num_of_center_elements(),count);
-////
-////}
-////}
+TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+{
+	//FIXME  should test with non-uniform field
+
+	typename TestFixture::FieldType f1( TestFixture::mesh),f2( TestFixture::mesh),
+	f3( TestFixture::mesh),f4( TestFixture::mesh);
+
+	typename TestFixture::RScalarField a( TestFixture::mesh);
+	typename TestFixture::RScalarField b( TestFixture::mesh);
+	typename TestFixture::RScalarField c( TestFixture::mesh);
+
+	Real ra=1.0,rb=2.0,rc=3.0;
+	typename TestFixture::FieldType::value_type va,vb,vc;
+
+	va=ra;
+	vb=rb;
+	vc=rc;
+
+	std::fill(a.begin(),a.end(), ra);
+	std::fill(b.begin(),b.end(), rb);
+	std::fill(c.begin(),c.end(), rc);
+
+	size_t count=0;
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+			[&](typename Mesh::index_type const & s)
+			{
+				f1[s]=va*uniform_dist(gen);
+				f2[s]=vb*uniform_dist(gen);
+				f3[s]=vc*uniform_dist(gen);
+			}
+	);
+
+	f4= -(f1^a)-f2/b +f3*c;
+//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+	;
+	/**           (+)
+	 *           /   \
+	 *         (-)    (*)
+	 *        /   \    | \
+	 *      (^)    (/) f1 c
+	 *     /  \   /  \
+	 *-f1      a f2   b
+	 *
+	 * */
+	count =0;
+
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+			[&](typename Mesh::index_type const & s)
+			{
+				typename TestFixture::FieldType::value_type res;
+				res=
+				-f1[s]*ra
+				-f2[s]/rb
+				+f3[s]*rc
+				;
+
+				if(res!=f4[s])
+				{
+					++count;
+				}
+			}
+	);
+	EXPECT_EQ(0,count)<< "number of error points =" << count;
+
+}
+}
 //// test vector_calculus.h
 //template<typename T>
 //class TestFETLVecAlgegbra: public testing::Test
@@ -402,9 +395,9 @@ protected:
 		mesh.dims_[0] = 20;
 		mesh.dims_[1] = 30;
 		mesh.dims_[2] = 40;
-		mesh.gw_[0] = 2;
-		mesh.gw_[1] = 2;
-		mesh.gw_[2] = 2;
+		mesh.gw_[0] = 4;
+		mesh.gw_[1] = 4;
+		mesh.gw_[2] = 4;
 
 		mesh.Init();
 
@@ -462,13 +455,13 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
 
-	mesh.ForEach(0,
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-			[&](typename Mesh::index_type const &s)
-			{
-				sf[s] = static_cast<double>(s)*v;
-			}
-	);
+	for(auto & p:sf)
+	{
+		p=v*uniform_dist(gen)*0.0;
+	}
 
 	vf1 = Grad(sf);
 
@@ -480,7 +473,7 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 			[&](typename Mesh::index_type const & s)
 			{
 //				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
-				count+=( abs(vf1[s])==0)?1:0;
+				count+=( abs(vf1[s])<1.0e-20)?1:0;
 			}
 	);
 
@@ -512,13 +505,13 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	TestFixture::SetValue(&v);
 
-	std::fill(vf2.begin(),vf2.end(),v);
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	mesh.ForEach(2,[&](typename Mesh::index_type const &s)
-			{
-				vf2[s] = static_cast<double>(s+1.0)*v;
-			}
-	);
+	for(auto p:vf2)
+	{
+		p=v*uniform_dist(gen);
+	}
 
 	vf1 = Curl(vf2);
 	sf = Diverge( Curl(vf2));

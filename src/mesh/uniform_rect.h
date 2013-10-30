@@ -162,18 +162,24 @@ public:
 
 	}
 
-	template<typename T, typename Fun> inline
-	void ForEach(int iform, T & f, Fun const &fun) const
+	template<typename Fun> inline
+	void ForEachBoundary(int iform, Fun const &f) const
 	{
+		size_t num_of_comp = GetNumOfComp(iform);
 
-		ForEach(iform,
+		for (size_t i = -gw_[0]; i < gw_[0]; ++i)
+			for (size_t j = -gw_[1]; j < gw_[1]; ++j)
+				for (size_t k = -gw_[2]; k < gw_[2]; ++k)
+					for (size_t m = 0; m < num_of_comp; ++m)
+					{
+						f(
+								((i + dims_[0]) % dims_[0] * strides_[0] +
 
-		[&f,&fun] (index_type const &s)
-		{
-			fun(f[s]);
-		}
+								(j + dims_[1]) % dims_[1] * strides_[1] +
 
-		);
+								(k + dims_[2]) % dims_[2] * strides_[2])
+										* num_of_comp + m);
+					}
 
 	}
 
