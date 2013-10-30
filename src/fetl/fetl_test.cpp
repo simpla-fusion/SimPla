@@ -453,50 +453,24 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	TestFixture::SetValue(&v);
 
 	typename TestFixture::TZeroForm sf(mesh);
-	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	std::fill(sf.begin(),sf.end(), v*0.0);
-	std::fill(vf1.begin(),vf1.end(), v*0.0);
 	std::fill(vf2.begin(),vf2.end(), v*0.0);
 
 	mesh.ForEach(0,
 			[&](typename Mesh::index_type const & s)
 			{
-//				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
-				sf[s]=v*static_cast<Real>(s);
 				sf[s]=v*uniform_dist(gen);
 			}
 	);
 
-	mesh.Print(sf);
-	mesh.UpdateCyCleBoundary(sf);
-	mesh.Print(sf);
-
-	vf1 = Grad(sf);
-//	mesh.UpdateCyCleBoundary(vf1);
+//	mesh.UpdateCyCleBoundary(sf);
 
 	vf2 = Curl(Grad(sf));
-//	mesh.UpdateCyCleBoundary(vf2);
-
-	mesh.Print(sf);
-	mesh.Print(vf1);
-	mesh.Print(vf2);
-//
-//	Real sum=0.0;
-//
-//	mesh.ForEach(1,
-//			[&](typename Mesh::index_type const & s)
-//			{
-////				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
-//				sum+=( abs(vf1[s])<1.0e-200)?1:0;
-//			}
-//	);
-//
-//	EXPECT_NE(0.0,sum);
 
 	size_t count=0;
 	mesh.ForEach(2,

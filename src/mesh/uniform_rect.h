@@ -226,57 +226,56 @@ public:
 		for (size_t i = 0; i < dims_[0]; ++i)
 			for (size_t j = 0; j < dims_[1]; ++j)
 				for (size_t k = 0; k < dims_[2]; ++k)
-					for (size_t m = 0; m < num_of_comp; ++m)
+				{
+
+					index_type s = i * strides_[0] + j * strides_[1]
+							+ k * strides_[2];
+					index_type t = s;
+
+					if (flag & 1)
 					{
-
-						index_type a = i, b = j, c = k;
-
-//						if (flag & 1)
+						if (i < gw_[0])
 						{
-							if (i < gw_[0])
-							{
-								a += L[0];
-							}
-							else if (i >= dims_[0] - gw_[0])
-							{
-								a -= L[0];
-							}
+							t += L[0] * strides_[0];
 						}
-
-//						if (flag & 2)
+						else if (i >= dims_[0] - gw_[0])
 						{
-							if (j < gw_[1])
-							{
-								b += L[1];
-							}
-							else if (j >= dims_[1] - gw_[1])
-							{
-								b -= L[1];
-							}
+							t -= L[0] * strides_[0];
 						}
-
-//						if (flag & 4)
-						{
-							if (k < gw_[2])
-							{
-								c += L[2];
-							}
-							else if (k >= dims_[2] - gw_[2])
-							{
-								c -= L[2];
-							}
-						}
-						index_type s = (i * strides_[0] + j * strides_[1]
-								+ k * strides_[2]) * num_of_comp + m;
-						index_type t = (a * strides_[0] + b * strides_[1]
-								+ c * strides_[2]) * num_of_comp + m;
-
-						if (s != t)
-						{
-							ma[s] = t;
-						}
-
 					}
+
+					if (flag & 2)
+					{
+						if (j < gw_[1])
+						{
+							t += L[1] * strides_[1];
+						}
+						else if (j >= dims_[1] - gw_[1])
+						{
+							t -= L[1] * strides_[1];
+						}
+					}
+
+					if (flag & 4)
+					{
+						if (k < gw_[2])
+						{
+							t += L[2] * strides_[2];
+						}
+						else if (k >= dims_[2] - gw_[2])
+						{
+							t -= L[2] * strides_[2];
+						}
+					}
+					if (s != t)
+					{
+						for (size_t m = 0; m < num_of_comp; ++m)
+						{
+							ma[s * num_of_comp + m] = t * num_of_comp + m;
+						}
+					}
+
+				}
 	}
 
 	template<int IFORM, typename T1>
