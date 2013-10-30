@@ -29,14 +29,11 @@ template<typename, typename > class Field;
 
 template<typename, int> class Geometry;
 
-template<int NDIM> struct UniformRectMesh;
-
 /**
  *  @brief UniformRectMesh -- Uniform rectangular structured grid.
  *  @ingroup mesh
  * */
-template<>
-struct UniformRectMesh<3>
+struct UniformRectMesh
 {
 
 	static const int NUM_OF_DIMS = 3;
@@ -45,11 +42,11 @@ struct UniformRectMesh<3>
 
 	typedef size_t index_type;
 
-	typedef nTuple<NUM_OF_DIMS, Real> coordinates_type;
+	typedef nTuple<3, Real> coordinates_type;
 
 	typedef std::list<index_type> chains_type;
 
-	typedef UniformRectMesh<3> this_type;
+	typedef UniformRectMesh this_type;
 
 public:
 	this_type & operator=(const this_type&) = delete;
@@ -137,6 +134,14 @@ public:
 		strides_[1] = dims_[2];
 		strides_[0] = dims_[1] * dims_[2];
 
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] == 1)
+			{
+				strides_[i] = 0;
+			}
+		}
+
 	}
 
 	template<typename E> inline Container<E> MakeContainer(int iform,
@@ -162,25 +167,167 @@ public:
 
 	}
 
+//	template<typename Fun> inline
+//	void ForEachCenter(int iform, Fun const &f) const
+//	{
+//		size_t num_of_comp = GetNumOfComp(iform);
+//
+//		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
+//			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
+//				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
+//					for (size_t m = 0; m < num_of_comp; ++m)
+//					{
+//						f((i * strides_[0] + j * strides_[1]
+//										+ k * strides_[2]) * num_of_comp + m);
+//					}
+//
+//	}
+
 	template<typename Fun> inline
 	void ForEachBoundary(int iform, Fun const &f) const
 	{
 		size_t num_of_comp = GetNumOfComp(iform);
 
-		for (size_t i = -gw_[0]; i < gw_[0]; ++i)
-			for (size_t j = -gw_[1]; j < gw_[1]; ++j)
-				for (size_t k = -gw_[2]; k < gw_[2]; ++k)
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
 					for (size_t m = 0; m < num_of_comp; ++m)
 					{
-						f(
-								((i + dims_[0]) % dims_[0] * strides_[0] +
+						if (i >= gw_[0] && i < dims_[0] - gw_[0] &&
 
-								(j + dims_[1]) % dims_[1] * strides_[1] +
+						j >= gw_[1] && j < dims_[1] - gw_[1] &&
 
-								(k + dims_[2]) % dims_[2] * strides_[2])
-										* num_of_comp + m);
+						k >= gw_[2] && k < dims_[2] - gw_[2]
+
+						)
+						{
+							continue;
+						}
+						else
+						{
+							f(
+									(i * strides_[0] + j * strides_[1]
+											+ k * strides_[2]) * num_of_comp
+											+ m);
+						}
+
 					}
 
+	}
+
+	void MakeCycleMap(int iform, std::map<index_type, index_type> &ma,
+			unsigned int flag = 7) const
+	{
+		size_t num_of_comp = GetNumOfComp(iform);
+
+		nTuple<NUM_OF_DIMS, size_t> L =
+		{ dims_[0] - 2 * gw_[0], dims_[1] - 2 * gw_[1], dims_[2] - 2 * gw_[2] };
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+					for (size_t m = 0; m < num_of_comp; ++m)
+					{
+
+						index_type a = i, b = j, c = k;
+
+//						if (flag & 1)
+						{
+							if (i < gw_[0])
+							{
+								a += L[0];
+							}
+							else if (i >= dims_[0] - gw_[0])
+							{
+								a -= L[0];
+							}
+						}
+
+//						if (flag & 2)
+						{
+							if (j < gw_[1])
+							{
+								b += L[1];
+							}
+							else if (j >= dims_[1] - gw_[1])
+							{
+								b -= L[1];
+							}
+						}
+
+//						if (flag & 4)
+						{
+							if (k < gw_[2])
+							{
+								c += L[2];
+							}
+							else if (k >= dims_[2] - gw_[2])
+							{
+								c -= L[2];
+							}
+						}
+						index_type s = (i * strides_[0] + j * strides_[1]
+								+ k * strides_[2]) * num_of_comp + m;
+						index_type t = (a * strides_[0] + b * strides_[1]
+								+ c * strides_[2]) * num_of_comp + m;
+
+						if (s != t)
+						{
+							ma[s] = t;
+						}
+
+					}
+	}
+
+	template<int IFORM, typename T1>
+	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
+	{
+		size_t num_of_comp = GetNumOfComp(IFORM);
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+		{
+			std::cout << "--------------------------------------------------"
+					<< std::endl;
+			for (size_t j = 0; j < dims_[1]; ++j)
+			{
+				std::cout << std::endl;
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					std::cout << "(";
+					for (size_t m = 0; m < num_of_comp; ++m)
+					{
+						std::cout
+								<< f[(i * strides_[0] + j * strides_[1]
+										+ k * strides_[2]) * num_of_comp + m]
+								<< " ";
+					}
+					std::cout << ") ";
+				}
+				std::cout << std::endl;
+			}
+
+		}
+		std::cout << std::endl;
+
+	}
+	template<int IFORM, typename T1, typename T2>
+	void UpdateBoundary(std::map<index_type, index_type> const & m,
+			Field<Geometry<this_type, IFORM>, T1> & src,
+			Field<Geometry<this_type, IFORM>, T2> & dest) const
+	{
+		for (auto & p : m)
+		{
+			dest[p.first] = src[p.second];
+		}
+
+	}
+
+	template<int IFORM, typename T1>
+	void UpdateCyCleBoundary(Field<Geometry<this_type, IFORM>, T1> & f) const
+	{
+		std::map<index_type, index_type> m;
+		MakeCycleMap(IFORM, m);
+		UpdateBoundary(m, f, f);
 	}
 
 	inline bool operator==(this_type const & r) const
@@ -241,7 +388,7 @@ public:
 
 	inline RVec3 GetCellCenter(size_t s) const
 	{
-		//TODO UNIMPLEMENTED!!
+//TODO UNIMPLEMENTED!!
 		RVec3 res =
 		{ 0, 0, 0 };
 		return (res);
@@ -469,7 +616,7 @@ public:
 		return (l);
 	}
 
-	template<int IF, int N, typename TR> inline nTuple<N, TR>                //
+	template<int IF, int N, typename TR> inline nTuple<N, TR>            //
 	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
 	{
 		return (l);

@@ -20,7 +20,7 @@
 
 using namespace simpla;
 
-DEFINE_FIELDS(UniformRectMesh<3>)
+DEFINE_FIELDS(UniformRectMesh)
 
 template<typename TF>
 class TestFETLBasicArithmetic: public testing::Test
@@ -392,12 +392,12 @@ protected:
 		mesh.xmax_[0] = 1.0;
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 20;
-		mesh.dims_[1] = 30;
-		mesh.dims_[2] = 40;
-		mesh.gw_[0] = 4;
-		mesh.gw_[1] = 4;
-		mesh.gw_[2] = 4;
+		mesh.dims_[0] = 1;
+		mesh.dims_[1] = 10;
+		mesh.dims_[2] = 10;
+		mesh.gw_[0] = 2;
+		mesh.gw_[1] = 2;
+		mesh.gw_[2] = 2;
 
 		mesh.Init();
 
@@ -436,8 +436,11 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex, nTuple<3, double>,
-		nTuple<3, nTuple<3, double> > > PrimitiveTypes;
+typedef testing::Types<double
+//		, Complex
+//		,nTuple<3, double>
+//		,nTuple<3, nTuple<3, double>>
+> PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
@@ -449,8 +452,6 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	TestFixture::SetValue(&v);
 
-	size_t count =0;
-
 	typename TestFixture::TZeroForm sf(mesh);
 	typename TestFixture::TOneForm vf1(mesh);
 	typename TestFixture::TTwoForm vf2(mesh);
@@ -458,33 +459,51 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	for(auto & p:sf)
-	{
-		p=v*uniform_dist(gen)*0.0;
-	}
+	std::fill(sf.begin(),sf.end(), v*0.0);
+	std::fill(vf1.begin(),vf1.end(), v*0.0);
+	std::fill(vf2.begin(),vf2.end(), v*0.0);
 
-	vf1 = Grad(sf);
-
-	vf2 = Curl(Grad(sf));
-
-	count=0;
-
-	mesh.ForEach(1,
+	mesh.ForEach(0,
 			[&](typename Mesh::index_type const & s)
 			{
 //				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
-				count+=( abs(vf1[s])<1.0e-20)?1:0;
+				sf[s]=v*static_cast<Real>(s);
+				sf[s]=v*uniform_dist(gen);
 			}
 	);
 
-	EXPECT_EQ(0,count)<< "number of zero points =" << count;
+	mesh.Print(sf);
+	mesh.UpdateCyCleBoundary(sf);
+	mesh.Print(sf);
 
+	vf1 = Grad(sf);
+//	mesh.UpdateCyCleBoundary(vf1);
+
+	vf2 = Curl(Grad(sf));
+//	mesh.UpdateCyCleBoundary(vf2);
+
+	mesh.Print(sf);
+	mesh.Print(vf1);
+	mesh.Print(vf2);
+//
+//	Real sum=0.0;
+//
+//	mesh.ForEach(1,
+//			[&](typename Mesh::index_type const & s)
+//			{
+////				ASSERT_NE(0.0,abs(vf1[s])) << "idx=" << s;
+//				sum+=( abs(vf1[s])<1.0e-200)?1:0;
+//			}
+//	);
+//
+//	EXPECT_NE(0.0,sum);
+
+	size_t count=0;
 	mesh.ForEach(2,
 			[&](typename Mesh::index_type const & s)
 			{
-
-//				ASSERT_DOUBLE_EQ(0.0,abs(vf2[s])) << "idx=" << s;
-				count+=( abs(vf2[s])>1.0e-20)?1:0;
+				count+=( abs(vf2[s])>1.0e-10)?1:0;
+				ASSERT_NEAR(0.0, abs(vf2[s]),1.0e-10) << "idx=" << s;
 			}
 	);
 
@@ -517,11 +536,12 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 	sf = Diverge( Curl(vf2));
 
 	size_t count=0;
+
 	mesh.ForEach(0,
 			[&sf,&count](typename Mesh::index_type const &s)
 			{
-				count+=( abs(sf[s])>1.0e-20)?1:0;
-				ASSERT_DOUBLE_EQ(0.0, abs(sf[s])) << "idx=" << s;
+				count+=( abs(sf[s])>1.0e-15)?1:0;
+				ASSERT_NEAR(0.0, abs(sf[s]),1.0e-14) << "idx=" << s;
 			}
 	);
 	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;

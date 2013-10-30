@@ -58,18 +58,19 @@ public:
 		container_type::swap(rhs);
 	}
 
-	inline this_type & operator=(this_type const & rhs)
+#ifdef DEBUG  // check boundary
+	inline value_type & operator[](typename geometry_type::index_type const &s)
 	{
-		geometry_type::ForEach(
 
-		[this, &rhs](typename geometry_type::index_type s)
-		{
-			(*this)[s]=rhs[s];
-		}
+		return container_type::at(s);
 
-		);
-		return (*this);
 	}
+	inline value_type const & operator[](
+			typename geometry_type::index_type const &s) const
+	{
+		return container_type::at(s);
+	}
+#endif
 
 	template<typename Fun>
 	inline void ForEach(Fun const &fun)
@@ -84,21 +85,36 @@ public:
 		);
 	}
 
+	inline this_type & operator=(this_type const & rhs)
+	{
+		geometry_type::ForEach(
+
+		[this, &rhs](typename geometry_type::index_type s)
+		{
+			(*this)[s]=rhs[s];
+		}
+
+		);
+		return (*this);
+	}
+
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
 	operator _OP_(Field<TGeometry, TR> const & rhs)                               \
 	{                                                                             \
-		geometry_type::ForEach([this, &rhs](typename geometry_type::index_type const &s)         \
+		geometry_type::ForEach(												      \
+		[this, &rhs](typename geometry_type::index_type const &s)                 \
 		{	(*this)[s] _OP_ rhs[s];});                                            \
 		return (*this);                                                           \
 	}                                                                             \
 	template<typename TR> inline this_type &                                      \
-		operator _OP_(TR const & rhs)                               \
-		{                                                                             \
-			geometry_type::ForEach([this, &rhs](typename geometry_type::index_type const &s)         \
-			{	(*this)[s] _OP_ rhs ;});                                            \
-			return (*this);                                                           \
-		}
+	operator _OP_(TR const & rhs)                                                 \
+	{                                                                             \
+		geometry_type::ForEach(									                  \
+		[this, &rhs](typename geometry_type::index_type const &s)                 \
+		{	(*this)[s] _OP_ rhs ;});                                              \
+		return (*this);                                                           \
+	}
 
 	DECL_SELF_ASSIGN(=)
 
