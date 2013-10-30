@@ -8,8 +8,8 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
+#include <fetl/geometry.h>
 #include <include/simpla_defs.h>
-#include <cstddef>
 #include <list>
 
 namespace simpla
@@ -17,13 +17,14 @@ namespace simpla
 
 template<typename T> using PIC=std::list<T, FixedSmallObjectAllocator<T> >;
 
-template<typename T, typename TGeometry>
-class Particle: public TGeometry, public TGeometry::Container<PIC<T> >
+template<typename T, typename TM>
+class Particle: public Geometry<TM, 0>,
+		public Geometry<TM, 0>::Container<PIC<T> >
 {
 public:
 	typedef typename PIC<T>::allocator_type allocator_type;
 
-	typedef TGeometry Geometry;
+	typedef Geometry<TM, 0> Geometry;
 
 	typedef T value_type;
 
@@ -45,51 +46,40 @@ public:
 	Particle(this_type && r) = default;
 	~Particle() = default;
 
-	void push_back(T && pp)
-	{
-		try
-		{
-			T p(pp);
-
-			container_type::at(Geometry::get_cell_num(p)).push_back_emplace(
-					std::move(p));
-		} catch (...)
-		{
-
-		}
-	}
-
 	void sort()
 	{
 
 		container_type tmp(
-				std::move(geometry.makeContainer(pic_type(allocator))))
+				std::move(Geometry::MakeContainer(pic_type(allocator))))
 		);
 
-		for (auto pt : *this)
-		{
-			auto it = pt.cbegin();
+		mesh->ForEachAll(0,
 
-			while (it != pt.cend())
+		[&](index_type const & s)
+		{
+			auto & cell= this->operator[](s);
+
+			auto pt = cell.begin();
+			while (pt != cell.end())
 			{
 				auto p = it;
 				++it;
 
-				auto j = Geometry::get_cell_num(*p);
+				auto j = mesh->GetCellIndex(p->X);
 
-				if (this->at(j) != pt)
+				if (j!=s)
 				{
-
 					try
 					{
-						tmp.at(j).slice(container_type::at(j).end(), pt, p);
-					} catch (...)
+						tmp.at(j).splice(container_type::at(j).end(), cell, p);
+					}
+					catch (...)
 					{
-						pt.erase(p);
+						cell.erase(p);
 					}
 				}
 			}
-		}
+		});
 		auto it1 = container_type::begin();
 		auto it2 = tmp.begin();
 		for (; it1 != container_type::end(); ++it1, ++it2)
@@ -101,21 +91,6 @@ public:
 	const allocator_type& get_allocator() const
 	{
 		return allocator_;
-	}
-
-	void init_all(size_t num_pic, typename container_type::iterator const & b,
-			typename container_type::iterator const & e)
-	{
-		for (auto pt = b; pt != e; ++pt)
-		{
-			pt->resize(num_pic);
-
-			for (auto p : *pt)
-			{
-				generator_(p);
-			}
-
-		}
 	}
 
 private:

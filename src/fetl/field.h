@@ -34,9 +34,7 @@ public:
 
 	template<typename TG>
 	Field(TG const &g) :
-			geometry_type(g),
-
-			container_type(
+			geometry_type(g), container_type(
 					std::move(
 							geometry_type::template MakeContainer<value_type>()))
 	{

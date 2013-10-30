@@ -44,7 +44,7 @@ protected:
 		mesh.gw_[1] = 2;
 		mesh.gw_[2] = 2;
 
-		mesh.Init();
+		mesh.Update();
 
 	}
 public:
@@ -270,7 +270,7 @@ protected:
 		mesh.gw_[1] = 2;
 		mesh.gw_[2] = 2;
 
-		mesh.Init();
+		mesh.Update();
 	}
 public:
 	Mesh mesh;
@@ -357,7 +357,7 @@ protected:
 		mesh.gw_[1] = 2;
 		mesh.gw_[2] = 2;
 
-		mesh.Init();
+		mesh.Update();
 
 	}
 public:

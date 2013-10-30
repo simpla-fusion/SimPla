@@ -38,6 +38,8 @@ struct UniformRectMesh
 
 	static const int NUM_OF_DIMS = 3;
 
+	int NUM_VERTIC_IN_CELL = 8;
+
 	template<typename Element> using Container = std::vector<Element>;
 
 	typedef size_t index_type;
@@ -67,11 +69,17 @@ public:
 	coordinates_type inv_dx_;
 	coordinates_type dx_;
 
+	size_t num_of_cells_ = 0;
+	size_t num_of_grid_points_ = 0;
+
+	const size_t num_comps_per_cell_[4] =
+	{ 1, 3, 3, 1 };
+
 public:
 
 	UniformRectMesh()
 	{
-		Init();
+		Update();
 	}
 
 	~UniformRectMesh() = default;
@@ -85,7 +93,7 @@ public:
 		vm.Get("dims", &dims_);
 		vm.Get("gw", &gw_);
 
-		Init();
+		Update();
 	}
 
 	std::string Summary() const
@@ -110,8 +118,9 @@ public:
 		return (os.str());
 	}
 
-	void Init()
+	void Update()
 	{
+		num_of_cells_ = 1;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			gw_[i] = (gw_[i] * 2 > dims_[i]) ? dims_[i] / 2 : gw_[i];
@@ -127,6 +136,9 @@ public:
 				dx_[i] = (xmax_[i] - xmin_[i])
 						/ static_cast<Real>(dims_[i] - 1);
 				inv_dx_[i] = 1.0 / dx_[i];
+
+				num_of_cells_ *= (dims_[i] - 1);
+				num_of_grid_points_ *= dims_[i];
 			}
 		}
 
@@ -147,7 +159,7 @@ public:
 	template<typename E> inline Container<E> MakeContainer(int iform,
 			E const & d = E()) const
 	{
-		return std::move(Container<E>(GetNumOfElements(iform), d));
+		return std::move(Container<E>(GetNumOfGridPoints(iform), d));
 	}
 
 	template<typename Fun> inline
@@ -167,21 +179,22 @@ public:
 
 	}
 
-//	template<typename Fun> inline
-//	void ForEachCenter(int iform, Fun const &f) const
-//	{
-//		size_t num_of_comp = GetNumOfComp(iform);
-//
-//		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
-//			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
-//				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
-//					for (size_t m = 0; m < num_of_comp; ++m)
-//					{
-//						f((i * strides_[0] + j * strides_[1]
-//										+ k * strides_[2]) * num_of_comp + m);
-//					}
-//
-//	}
+	template<typename Fun> inline
+	void ForEachAll(int iform, Fun const &f) const
+	{
+		size_t num_of_comp = GetNumOfComp(iform);
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+					for (size_t m = 0; m < num_of_comp; ++m)
+					{
+						f(
+								(i * strides_[0] + j * strides_[1]
+										+ k * strides_[2]) * num_of_comp + m);
+					}
+
+	}
 
 	template<typename Fun> inline
 	void ForEachBoundary(int iform, Fun const &f) const
@@ -336,11 +349,45 @@ public:
 
 // Property -----------------------------------------------
 
+	inline size_t GetNumOfComp(int iform) const
+	{
+		return (num_comps_per_cell_[iform]);
+	}
+
+	inline size_t GetNumOfGridPoints(int iform) const
+	{
+
+		return (num_of_grid_points_ * num_comps_per_cell_[iform]);
+	}
+
+	Real GetDt() const
+	{
+		return dt_;
+	}
+
+	void SetDt(Real dt = 0.0)
+	{
+		dt_ = dt;
+		Update();
+	}
+
+	size_t GetNumCompsPerCell(int iform) const
+	{
+		return num_comps_per_cell_[iform];
+	}
+
+	size_t GetNumOfCells() const
+	{
+		return num_of_cells_;
+	}
+
 	inline void SetExtent(coordinates_type const & pmin,
 			coordinates_type const & pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;
+
+		Update();
 	}
 
 	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
@@ -351,63 +398,141 @@ public:
 	inline void SetDimension(nTuple<NUM_OF_DIMS, size_t> const & pdims)
 	{
 		dims_ = pdims;
+
+		Update();
 	}
-	inline nTuple<NUM_OF_DIMS, size_t> GetDimension() const
+	inline nTuple<NUM_OF_DIMS, size_t> const & GetDimension() const
 	{
 		return dims_;
 	}
 
-	inline size_t GetNumOfVertex() const
+	inline void GetVerticesOfCell(index_type idx, index_type points[]) const
 	{
-		size_t res = 1;
-		for (int i = 0; i < 3; ++i)
+		// 0 0 0
+		points[0] = idx;
+		// 0 1 0
+		points[1] = idx + strides_[0];
+		// 0 0 1
+		points[2] = idx + strides_[1];
+		// 0 1 1
+		points[3] = idx + strides_[0] + strides_[1];
+		// 1 0 0
+		points[4] = idx + strides_[2];
+		// 1 1 0
+		points[5] = idx + strides_[0] + strides_[2];
+		// 1 0 1
+		points[6] = idx + strides_[1] + strides_[2];
+		// 1 1 1
+		points[7] = idx + strides_[0] + strides_[1] + strides_[2];
+
+	}
+
+	inline bool SearchCell(index_type hint, coordinates_type const &x,
+			coordinates_type *pcoords = nullptr) const
+	{
+
+		size_t idx = 0;
+
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			res *= (dims_[i] > 0) ? dims_[i] : 1;
+			idx += static_cast<size_t>(std::modf((x[i] - xmin_[i]) * inv_dx_[i],
+					&((*pcoords)[i]))) * strides_[i];
 		}
-		return (res);
+
+		return idx == hint;
 	}
-	inline size_t GetNumOfEdge() const
+
+	/**
+	 * Locate the cell containing a specified point.
+	 * @param x
+	 * @param pcoords local parameter coordinates
+	 * @return index of cell
+	 */
+	inline index_type SearchCell(coordinates_type const &x,
+			coordinates_type *pcoords) const
 	{
 
-		return (0);
-	}
-	inline size_t GetNumOfFace() const
-	{
-		return (0);
-	}
-	inline size_t GetNumOfCell(int iform = 0) const
-	{
-		size_t res = 1;
-		for (int i = 0; i < 3; ++i)
+		size_t idx = 0;
+
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			res *= (dims_[i] > 1) ? (dims_[i] - 1) : 1;
+			idx += static_cast<size_t>(std::modf((x[i] - xmin_[i]) * inv_dx_[i],
+					&((*pcoords)[i]))) * strides_[i];
 		}
-		return (res);
+
+		return idx;
 	}
 
-	inline RVec3 GetCellCenter(size_t s) const
+	inline void CalcuateWeight(coordinates_type const &pcoords,
+			Real *weight) const
 	{
-//TODO UNIMPLEMENTED!!
-		RVec3 res =
-		{ 0, 0, 0 };
-		return (res);
-	}
-	inline size_t GetCellNum(IVec3 const & I) const
-	{
-		return (I[0] * strides_[0] + I[1] * strides_[1] + I[2] * strides_[2]);
-	}
-	inline size_t GetCellNum(size_t I0, size_t I1, size_t I2) const
-	{
-		return (I0 * strides_[0] + I1 * strides_[1] + I2 * strides_[2]);
-	}
-	inline size_t GetCellNum(RVec3 x) const
-	{
-		IVec3 I;
-		I = (x - xmin_) * inv_dx_;
-		return ((I[0] * strides_[0] + I[1] * strides_[1] + I[2] * strides_[2]));
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+
+		weight[0] = (1.0 - r) * (1.0 - s) * (1.0 - t);
+		weight[1] = r * (1.0 - s) * (1.0 - t);
+		weight[2] = (1.0 - r) * s * (1.0 - t);
+		weight[3] = r * s * (1.0 - t);
+		weight[4] = (1.0 - r) * (1.0 - s) * t;
+		weight[5] = r * (1.0 - s) * t;
+		weight[6] = (1.0 - r) * s * t;
+		weight[7] = r * s * t;
 	}
 
-	inline Real GetCellVolumn(size_t s = 0) const
+	template<typename TF>
+	inline typename TF::value_type Gather(TF const &f,
+			coordinates_type const &x) const
+	{
+		index_type points[NUM_VERTIC_IN_CELL];
+		coordinates_type pcoords;
+		Real weight[NUM_VERTIC_IN_CELL];
+		GetVerticesOfCell(SearchCell(x, &pcoords), points);
+		CalcuateWeight(pcoords, weight);
+
+		return std::move(Gather(f, points, weight));
+
+	}
+
+	template<typename TF>
+	inline typename TF::value_type Gather(TF const &f,
+			index_type const points[], Real const weight[]) const
+	{
+		typename TF::value_type res;
+
+		res = 0;
+
+		for (int i = 0; i < NUM_VERTIC_IN_CELL; ++i)
+		{
+			res += f[points[i]] * weight[i];
+		}
+		return std::move(res);
+	}
+
+	template<typename TF>
+	inline void Scatter(typename TF::value_type const & v,
+			coordinates_type const &x, TF &f) const
+	{
+		index_type points[NUM_VERTIC_IN_CELL];
+		Real weight[NUM_VERTIC_IN_CELL];
+		coordinates_type pcoords;
+
+		GetVerticesOfCell(SearchCell(x, &pcoords), points);
+		CalcuateWeight(pcoords, weight);
+
+		Scatter(v, points, weight, f);
+
+	}
+
+	template<typename TF>
+	inline void Scatter(typename TF::value_type const &v,
+			index_type const points[], Real const weight[], TF &f) const
+	{
+		for (int i = 0; i < NUM_VERTIC_IN_CELL; ++i)
+		{
+			f[points[i]] += v * weight[i];
+		}
+	}
+
+	inline Real GetCellVolumn(index_type s = 0) const
 	{
 		Real res = 1.0;
 		for (int i = 0; i < 3; ++i)
@@ -434,20 +559,6 @@ public:
 
 		return (res);
 	}
-	inline size_t GetNumOfElements(int iform) const
-	{
-		return GetNumOfComp(iform) * GetNumOfVertex();
-
-	}
-
-	static inline size_t GetNumOfComp(int iform)
-	{
-		static const int comps[4] =
-		{ 1, 3, 3, 1 };
-
-		return (comps[iform]);
-	}
-
 //	inline std::vector<size_t> Get_field_shape(int iform) const
 //	{
 //		int ndims = 1;

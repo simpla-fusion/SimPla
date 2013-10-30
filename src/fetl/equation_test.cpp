@@ -40,7 +40,7 @@ protected:
 		mesh.gw[1] = 2;
 		mesh.gw[2] = 2;
 
-		mesh.Init();
+		mesh.Update();
 
 	}
 public:
