@@ -20,6 +20,7 @@ namespace simpla
 template<int NDIM>
 class rectangle_distribution
 {
+
 public:
 
 	rectangle_distribution()

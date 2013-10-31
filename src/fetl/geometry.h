@@ -16,6 +16,50 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
+template<typename TM, int IFORM> class Geometry;
+
+template<typename > class GeometryTraits;
+
+template<typename TM>
+struct GeometryTraits<Geometry<TM, 0> >
+{
+
+	template<typename T> using field_value_type = T;
+	typedef Real weight_type;
+	typedef Real scatter_weight_type;
+	typedef Real gather_weight_type;
+};
+template<typename TM>
+struct GeometryTraits<Geometry<TM, 1> >
+{
+
+	template<typename T> using field_value_type = nTuple<3,T>;
+	typedef nTuple<3, Real> weight_type;
+	typedef nTuple<3, Real> scatter_weight_type;
+	typedef nTuple<3, Real> gather_weight_type;
+
+};
+template<typename TM>
+struct GeometryTraits<Geometry<TM, 2> >
+{
+
+	template<typename T> using field_value_type = nTuple<3,T>;
+	typedef nTuple<3, Real> weight_type;
+	typedef nTuple<3, Real> scatter_weight_type;
+	typedef nTuple<3, Real> gather_weight_type;
+
+};
+template<typename TM>
+struct GeometryTraits<Geometry<TM, 3> >
+{
+
+	template<typename T> using field_value_type = T;
+	typedef Real weight_type;
+	typedef Real scatter_weight_type;
+	typedef Real gather_weight_type;
+
+};
+
 /**
  * @brief Geometry
  *
@@ -27,42 +71,46 @@ class Geometry
 public:
 
 	static const int IForm = IFORM;
+
 	static const int NUM_OF_DIMS = TM::NUM_OF_DIMS;
 
-	typedef TM Mesh;
+	typedef TM mesh_type;
 
-	typedef typename Mesh::coordinates_type Coordinates;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	template<typename Element> using Container=typename Mesh::template Container<Element>;
+	template<typename Element> using Container=typename mesh_type::template Container<Element>;
 
-	typedef typename Mesh::index_type index_type;
+	typedef typename mesh_type::index_type index_type;
 
-	typedef Geometry<Mesh, IFORM> this_type;
+	typedef Geometry<mesh_type, IFORM> this_type;
 
-	Mesh const* mesh;
+	template<typename T> using field_value_type=
+	typename GeometryTraits<this_type>::template field_value_type<T>;
+
+	mesh_type const* mesh;
 
 	Geometry() :
 			mesh(NULL)
 	{
 
 	}
-	Geometry(Mesh const & g) :
+	Geometry(mesh_type const & g) :
 			mesh(&g)
 	{
 	}
-	Geometry(Mesh const * g) :
+	Geometry(mesh_type const * g) :
 			mesh(g)
 	{
 	}
 	template<int IF>
-	Geometry(Geometry<Mesh, IF> const & g) :
+	Geometry(Geometry<mesh_type, IF> const & g) :
 			mesh(g.mesh)
 	{
 	}
 
 	template<int IL, typename TL, int IR, typename TR>
-	Geometry(Field<Geometry<Mesh, IL>, TL> const & l,
-			Field<Geometry<Mesh, IR>, TR> const & r) :
+	Geometry(Field<Geometry<mesh_type, IL>, TL> const & l,
+			Field<Geometry<mesh_type, IR>, TR> const & r) :
 			mesh(l.mesh)
 	{
 	}
@@ -112,19 +160,17 @@ public:
 //	{
 //	}
 
-
-
 private:
 	template<int IL, typename TR> static typename std::enable_if<
-			!std::is_same<Geometry<Mesh, IL>, TR>::value, Mesh const *>::type get_mesh(
-			Geometry<Mesh, IL> const & l, TR const & r)
+			!std::is_same<Geometry<mesh_type, IL>, TR>::value, mesh_type const *>::type get_mesh(
+			Geometry<mesh_type, IL> const & l, TR const & r)
 	{
 		return (l.mesh);
 	}
 
 	template<int IR, typename TL> static typename std::enable_if<
-			!std::is_same<Geometry<Mesh, IR>, TL>::value, Mesh const *>::type get_mesh(
-			TL const & l, Geometry<Mesh, IR> const & r)
+			!std::is_same<Geometry<mesh_type, IR>, TL>::value, mesh_type const *>::type get_mesh(
+			TL const & l, Geometry<mesh_type, IR> const & r)
 	{
 		return (r.mesh);
 	}

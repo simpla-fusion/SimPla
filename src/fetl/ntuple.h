@@ -459,6 +459,10 @@ DECL_RET_TYPE((_impl::_dot(l,r)))
 
 template<int N, typename T> using Matrix = nTuple<N,nTuple<N,T> >;
 
+template<typename TL, typename TR>
+inline auto Dot(TL const &l, TR const &r)
+DECL_RET_TYPE((l*r))
+
 }
 //namespace simpla
 

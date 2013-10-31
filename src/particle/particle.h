@@ -14,43 +14,59 @@
 
 namespace simpla
 {
+template<typename TM, typename TV> class Particle;
 
 template<typename T> using PIC=std::list<T, FixedSmallObjectAllocator<T> >;
 
-template<typename T, typename TM>
-class Particle: public Geometry<TM, 0>,
-		public Geometry<TM, 0>::Container<PIC<T> >
+template<typename TM, typename T>
+class ParticleBase: public TM::Container<PIC<T> >
 {
+	TM const & mesh_;
+	static const int GEOMETRY_TYPE = 0;
 public:
-	typedef typename PIC<T>::allocator_type allocator_type;
 
-	typedef Geometry<TM, 0> Geometry;
+	typename TM Mesh;
+
+	typedef typename PIC<T>::allocator_type allocator_type;
 
 	typedef T value_type;
 
-	typedef PIC<value_type> pic_type;
+	typedef PIC<value_type> cell_type;
 
-	typedef typename Geometry::Container<PIC<T> > container_type;
+	typedef typename TM::Container<PIC<T> > container_type;
 
-	typedef Particle<Geometry, value_type> this_type;
+	typedef ParticleBase<Geometry, value_type> this_type;
 
-	Particle(Geometry const & geometry, allocator_type allocator =
-			allocator_type()) :
-			Geometry(geometry), container_type(
-					std::move(geometry.make_container(pic_type(allocator)))), allocator_(
-					allocator)
+	ParticleBase(TM const & m, allocator_type allocator = allocator_type()) :
+
+			container_type(
+					std::move(
+							m.MakeContianer(GEOMETRY_TYPE,
+									cell_type(allocator)))),
+
+			allocator_(allocator), mesh_(m)
 	{
 	}
 
-	Particle(this_type const & r) = default;
-	Particle(this_type && r) = default;
-	~Particle() = default;
+	ParticleBase(this_type const & r) :
+			container_type(r), mesh_(r.mesh_)
+	{
+	}
 
-	void sort()
+	ParticleBase(this_type && r) :
+			container_type(std::move(r)), mesh_(r.mesh_)
+	{
+	}
+
+	~ParticleBase() = default;
+
+	void Sort()
 	{
 
 		container_type tmp(
-				std::move(Geometry::MakeContainer(pic_type(allocator))))
+				std::move(
+						mesh_.MakeContainer(GEOMETRY_TYPE,
+								pic_type(allocator))))
 		);
 
 		mesh->ForEachAll(0,
@@ -65,7 +81,7 @@ public:
 				auto p = it;
 				++it;
 
-				auto j = mesh->GetCellIndex(p->X);
+				auto j = mesh_.SearchCell(s,p->X);
 
 				if (j!=s)
 				{
@@ -86,6 +102,84 @@ public:
 		{
 			it1->splice(it1->begin(), it2);
 		}
+	}
+
+	template<typename ... Args>
+	cell_type MakeCell(Args ... args) const
+	{
+		return std::move(cell_type(std::forward<Args...>(args)..., allocator));
+	}
+
+	/**
+	 *  Traversal particles.
+	 *
+	 * @param fun ( paritlce_type &  )
+	 */
+	template<typename Fun>
+	void ForEachParticle(Fun const & fun)
+	{
+		mesh->ForEachAll(GEOMETRY_TYPE,
+
+		[this,&fun](index_type const & s)
+		{
+			auto & cell= this->operator[](s);
+			for(auto & p:cell)
+			{
+				fun(p);
+			}
+		}
+
+		);
+	}
+
+	/**
+	 *  Traversal particles. (const read only version)
+	 *
+	 * @param fun ( paritlce_type const &  )
+	 */
+	template<typename Fun, typename ...Args>
+	void ForEachParticle(Fun const & fun, Args ... args) const
+	{
+		mesh->ForEachAll(GEOMETRY_TYPE,
+
+		[this,&fun,&args...](index_type const & s)
+		{
+			auto const & cell= this->operator[](s);
+			for(auto const & p:cell)
+			{
+				fun(p,args...);
+			}
+		}
+
+		);
+	}
+
+	/**
+	 *  Traversal each cell, include boundary cells.
+	 *
+	 * @param fun (cell_type & cell,index_type const & s )
+	 */
+	template<typename Fun>
+	void ForEachCell(Fun const & fun)
+	{
+		mesh->ForEachAll(GEOMETRY_TYPE,
+
+		[this,&fun,&args...](index_type const & s)
+		{
+			fun(this->operator[](s),s);
+		});
+
+	}
+	template<typename Fun>
+	void ForEachCell(Fun const & fun) const
+	{
+		mesh->ForEachAll(GEOMETRY_TYPE,
+
+		[this,&fun,&args...](index_type const & s)
+		{
+			fun(this->operator[](s),s);
+		});
+
 	}
 
 	const allocator_type& get_allocator() const
