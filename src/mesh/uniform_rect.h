@@ -35,10 +35,14 @@ template<typename, int> class Geometry;
  * */
 struct UniformRectMesh
 {
+	typedef UniformRectMesh this_type;
 
 	static const int NUM_OF_DIMS = 3;
 
 	template<typename Element> using Container = std::vector<Element>;
+
+	template<int IF> using weight_type =
+	typename GeometryTraits<Geometry<this_type, IF> >::weight_type;
 
 	typedef size_t index_type;
 
@@ -86,6 +90,11 @@ struct UniformRectMesh
 
 	~UniformRectMesh() = default;
 
+	inline bool operator==(this_type const & r) const
+	{
+		return (this == &r);
+	}
+
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
@@ -96,28 +105,6 @@ struct UniformRectMesh
 		vm.Get("gw", &gw_);
 
 		Update();
-	}
-
-	std::string Summary() const
-	{
-		std::ostringstream os;
-
-		os
-
-		<< "[Mesh]" << std::endl
-
-		<< SINGLELINE << std::endl
-
-		<< std::setw(40) << "dims = " << dims_ << std::endl
-
-		<< std::setw(40) << "xmin = " << xmin_ << std::endl
-
-		<< std::setw(40) << "xmax = " << xmax_ << std::endl
-
-		<< std::setw(40) << "gw = " << gw_ << std::endl
-
-		;
-		return (os.str());
 	}
 
 	void Update()
@@ -177,17 +164,71 @@ struct UniformRectMesh
 	template<typename E> inline Container<E> MakeContainer(int iform,
 			E const & d = E()) const
 	{
-		return Container<E>(GetNumOfGridPoints(iform), d);
+		return (Container<E>(GetNumOfGridPoints(iform), d));
+	}
+
+	std::string Summary() const
+	{
+		std::ostringstream os;
+
+		os
+
+		<< "[Mesh]" << std::endl
+
+		<< SINGLELINE << std::endl
+
+		<< std::setw(40) << "dims = " << dims_ << std::endl
+
+		<< std::setw(40) << "xmin = " << xmin_ << std::endl
+
+		<< std::setw(40) << "xmax = " << xmax_ << std::endl
+
+		<< std::setw(40) << "gw = " << gw_ << std::endl
+
+		;
+		return (os.str());
+	}
+
+	template<int IFORM, typename T1>
+	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
+	{
+		size_t num_comp = num_comps_per_cell_[IFORM];
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+		{
+			std::cout << "--------------------------------------------------"
+					<< std::endl;
+			for (size_t j = 0; j < dims_[1]; ++j)
+			{
+				std::cout << std::endl;
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					std::cout << "(";
+					for (size_t m = 0; m < num_comp; ++m)
+					{
+						std::cout
+								<< f[(i * strides_[0] + j * strides_[1]
+										+ k * strides_[2]) * num_comp + m]
+								<< " ";
+					}
+					std::cout << ") ";
+				}
+				std::cout << std::endl;
+			}
+
+		}
+		std::cout << std::endl;
+
 	}
 
 	template<typename Fun> inline
-	void ForEach(int iform, Fun const &f) const
+	void ForAll(int iform, Fun const &f) const
 	{
 		size_t num_comp = num_comps_per_cell_[iform];
 
-		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
-			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
-				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
 					for (size_t m = 0; m < num_comp; ++m)
 					{
 						f(
@@ -198,13 +239,13 @@ struct UniformRectMesh
 	}
 
 	template<typename Fun> inline
-	void ForEachAll(int iform, Fun const &f) const
+	void ForEach(int iform, Fun const &f) const
 	{
 		size_t num_comp = num_comps_per_cell_[iform];
 
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
+		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
+			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
+				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
 					for (size_t m = 0; m < num_comp; ++m)
 					{
 						f(
@@ -308,37 +349,6 @@ struct UniformRectMesh
 				}
 	}
 
-	template<int IFORM, typename T1>
-	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
-	{
-		size_t num_comp = num_comps_per_cell_[IFORM];
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-		{
-			std::cout << "--------------------------------------------------"
-					<< std::endl;
-			for (size_t j = 0; j < dims_[1]; ++j)
-			{
-				std::cout << std::endl;
-				for (size_t k = 0; k < dims_[2]; ++k)
-				{
-					std::cout << "(";
-					for (size_t m = 0; m < num_comp; ++m)
-					{
-						std::cout
-								<< f[(i * strides_[0] + j * strides_[1]
-										+ k * strides_[2]) * num_comp + m]
-								<< " ";
-					}
-					std::cout << ") ";
-				}
-				std::cout << std::endl;
-			}
-
-		}
-		std::cout << std::endl;
-
-	}
 	template<int IFORM, typename T1, typename T2>
 	void UpdateBoundary(std::map<index_type, index_type> const & m,
 			Field<Geometry<this_type, IFORM>, T1> & src,
@@ -357,11 +367,6 @@ struct UniformRectMesh
 		std::map<index_type, index_type> m;
 		MakeCycleMap(IFORM, m);
 		UpdateBoundary(m, f, f);
-	}
-
-	inline bool operator==(this_type const & r) const
-	{
-		return (this == &r);
 	}
 
 	// Properties of UniformRectMesh --------------------------------------
@@ -389,11 +394,17 @@ struct UniformRectMesh
 	{
 		return dims_;
 	}
-// General Property -----------------------------------------------
+	// General Property -----------------------------------------------
 
-	size_t GetNumOfCells() const
+	inline Real GetDt() const
 	{
-		return num_cells_;
+		return dt_;
+	}
+
+	inline void SetDt(Real dt = 0.0)
+	{
+		dt_ = dt;
+		Update();
 	}
 
 	inline size_t GetNumOfGridPoints(int iform) const
@@ -410,16 +421,6 @@ struct UniformRectMesh
 	inline Real GetDCellVolume() const
 	{
 		return d_cell_volume_;
-	}
-	Real GetDt() const
-	{
-		return dt_;
-	}
-
-	void SetDt(Real dt = 0.0)
-	{
-		dt_ = dt;
-		Update();
 	}
 
 	/**
@@ -460,7 +461,20 @@ struct UniformRectMesh
 		return SearchCell(x, pcoords);
 	}
 
-	inline coordinates_type GetGlobalCoordinate(index_type s,
+	inline std::vector<coordinates_type> GetCellShape(index_type s) const
+	{
+		std::vector<coordinates_type> res;
+		coordinates_type r0 =
+		{ 0, 0, 0 };
+		res.push_back(GetGlobalCoordinates(s, r0));
+		coordinates_type r1 =
+		{ 1, 1, 1 };
+		res.push_back(GetGlobalCoordinates(s, r1));
+
+		return r1;
+	}
+
+	inline coordinates_type GetGlobalCoordinates(index_type s,
 			coordinates_type const &r) const
 	{
 		coordinates_type res;
@@ -483,13 +497,7 @@ struct UniformRectMesh
 
 	}
 
-	template<int IFORM>
-	inline int GetNumGetEffectedPoints(Int2Type<IFORM>, index_type) const
-	{
-		return num_vertices_in_cell_;
-	}
-
-	inline void GetEffectedPoints(Int2Type<0>, index_type const & idx,
+	inline void GetAffectedPoints(Int2Type<0>, index_type const & idx,
 			std::vector<index_type> & points, int affect_region = 1) const
 	{
 
@@ -512,8 +520,8 @@ struct UniformRectMesh
 
 	}
 
-	inline void CalcuateWeight(Int2Type<0>, coordinates_type const &pcoords,
-			std::vector<Real> & weight, int affect_region = 1) const
+	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords,
+			std::vector<weight_type<0>> & weight, int affect_region = 1) const
 	{
 
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
@@ -528,10 +536,96 @@ struct UniformRectMesh
 		weight[7] = r * s * t;
 	}
 
+	// Mapto ----------------------------------------------------------
+	/**
+	 *    mapto(Int2Type<0> ,   //tarGet topology position
+	 *     Field<this_type,1 , TExpr> const & vl,  //field
+	 *      SizeType s   //grid index of point
+	 *      )
+	 * target topology position:
+	 *             z 	y 	x
+	 *       000 : 0,	0,	0   vertex
+	 *       001 : 0,	0,1/2   edge
+	 *       010 : 0, 1/2,	0
+	 *       100 : 1/2,	0,	0
+	 *       011 : 0, 1/2,1/2   Face
+	 * */
+
+	template<int IF> inline double //
+	mapto(Int2Type<IF>, double l, size_t s) const
+	{
+		return (l);
+	}
+
+	template<int IF> inline std::complex<double>  //
+	mapto(Int2Type<IF>, std::complex<double> l, size_t s) const
+	{
+		return (l);
+	}
+
+	template<int IF, int N, typename TR> inline nTuple<N, TR>            //
+	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
+	{
+		return (l);
+	}
+
+	template<int IF, typename TL> inline auto //
+	mapto(Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE((l[s]))
+
+	template<typename TL> inline auto //
+	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides_[s%3]])*0.5) )
+
+	template<typename TL> inline auto //
+	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE(((
+											l[(s-s%3)/3]+
+											l[(s-s%3)/3+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]])*0.25
+
+							))
+	template<typename TL> inline auto //
+	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l,
+			size_t s) const
+					DECL_RET_TYPE(((
+											l[(s-s%3)/3]+
+											l[(s-s%3)/3+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[s%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+2)%3]]+
+											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]+strides_[(s+2)%3]]
+
+									)*0.125
+
+							))
+
+	template<typename TF>
+	auto Index(TF const & f, index_type const & s) const->decltype(f[s])
+	{
+		return f[s];
+	}
+
+	template<typename T> inline typename std::enable_if<
+			is_arithmetic_scalar<T>::value, T>::type Index(T const & f,
+			index_type const &) const
+	{
+		return f;
+	}
+
+}
+;
+
 //	inline std::vector<size_t> Get_field_shape(int iform) const
 //	{
 //		int ndims = 1;
-////		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
+// //		FIXME (iform == 1 || iform == 2) ? NDIMS + 1 : NDIMS;
 //
 //		std::vector<size_t> d(ndims);
 //		for (int i = 0; i < NUM_OF_DIMS; ++i)
@@ -666,81 +760,6 @@ struct UniformRectMesh
 //		}
 //	}
 
-// Mapto ----------------------------------------------------------
-	/**
-	 *    mapto(Int2Type<0> ,   //tarGet topology position
-	 *     Field<this_type,1 , TExpr> const & vl,  //field
-	 *      SizeType s   //grid index of point
-	 *      )
-	 * target topology position:
-	 *             z 	y 	x
-	 *       000 : 0,	0,	0   vertex
-	 *       001 : 0,	0,1/2   edge
-	 *       010 : 0, 1/2,	0
-	 *       100 : 1/2,	0,	0
-	 *       011 : 0, 1/2,1/2   Face
-	 * */
-//
-//	template<int IF, typename TR> inline auto //
-//	mapto(Int2Type<IF>, TR const &l, size_t s) const DECL_RET_TYPE((l[s]))
-	template<int IF> inline double //
-	mapto(Int2Type<IF>, double l, size_t s) const
-	{
-		return (l);
-	}
-
-	template<int IF> inline std::complex<double>  //
-	mapto(Int2Type<IF>, std::complex<double> l, size_t s) const
-	{
-		return (l);
-	}
-
-	template<int IF, int N, typename TR> inline nTuple<N, TR>            //
-	mapto(Int2Type<IF>, nTuple<N, TR> l, size_t s) const
-	{
-		return (l);
-	}
-
-	template<int IF, typename TL> inline auto //
-	mapto(Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
-			size_t s) const
-			DECL_RET_TYPE((l[s]))
-
-	template<typename TL> inline auto //
-	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
-			size_t s) const
-					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides_[s%3]])*0.5) )
-
-	template<typename TL> inline auto //
-	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
-			size_t s) const
-					DECL_RET_TYPE(((
-											l[(s-s%3)/3]+
-											l[(s-s%3)/3+strides_[(s+1)%3]]+
-											l[(s-s%3)/3+strides_[(s+2)%3]]+
-											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]])*0.25
-
-							))
-	template<typename TL> inline auto //
-	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l,
-			size_t s) const
-					DECL_RET_TYPE(((
-											l[(s-s%3)/3]+
-											l[(s-s%3)/3+strides_[(s+1)%3]]+
-											l[(s-s%3)/3+strides_[(s+2)%3]]+
-											l[(s-s%3)/3+strides_[(s+1)%3]+strides_[(s+2)%3]]+
-											l[(s-s%3)/3+strides_[s%3]]+
-											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]]+
-											l[(s-s%3)/3+strides_[s%3]+strides_[(s+2)%3]]+
-											l[(s-s%3)/3+strides_[s%3]+strides_[(s+1)%3]+strides_[(s+2)%3]]
-
-									)*0.125
-
-							))
-
-}
-;
-
-} //namespace simpla
+}//namespace simpla
 #include "uniform_rect_ops.h"
 #endif //UNIFORM_RECT_H_

@@ -12,106 +12,83 @@
 #include <numeric/multi_normal_distribution.h>
 #include <numeric/normal_distribution_icdf.h>
 #include <numeric/rectangle_distribution.h>
-#include <particle/particle.h>
 
 namespace simpla
 {
 
 template<typename TM, int NMATE = 8>
-struct GGauge_s
+struct GGauge
 {
-	typename TM::coordinates_type x;
-	Vec3 v;
-	Real f;
-	Real w[NMATE];
+	typedef TM mesh_type;
+	typedef typename mesh_type::index_type index_type;
 
-	GGauge_s() :
-			f(1.0)
+	struct Point_s
 	{
-		std::fill(w, w + NMATE, 0);
-	}
+		typename TM::coordinates_type x;
+		Vec3 v;
+		Real f;
+		Real w[NMATE];
 
-};
-
-template<typename TM, int NMATE>
-class Particle<TM, GGauge_s<TM, NMATE> > : public ParticleBase<TM,
-		GGauge_s<TM, NMATE> >
-{
-public:
-
-	template<typename TM, int NMATE, typename Generator, typename TF>
-	void InitLoad(int pic, Real T, TF const & pn, Generator g = Generator())
-	{
-
-		rectangle_distribution<TM::NUM_OF_DIMS> x_dist;
-
-		multi_normal_distribution<3, Real, normal_distribution_icdf> v_dist(T);
-
-		this->ForEachCell(
-
-		[&]( cell_type & cell, index_type const &s)
+		Point_s() :
+				f(1.0)
 		{
-			Real coeff = static_cast<Real>(pic) * mesh_GetDCellVolume(s);
+			std::fill(w, w + NMATE, 0);
+		}
+	}
+	struct Push
+	{
+		template<typename TB, typename TE>
+		inline void operator()(Point_s & p, TB const & fB, TE const &fE)
+		{
+			auto B = fB(p.x);
+			auto E = fE(p.x);
+		}
+	}
+	struct ScatterJ
+	{
+		template<typename TB, typename TE, typename TJ>
+		inline void operator()(Point_s & p, TB const & pB, TE const &pE,
+				TJ & fJ) const
+		{
+			fJ.Scatter(p.x, p.v);
+		}
+	};
 
-			cell.resize(pic, value_type ());
+	struct Generator
+	{
+		typedef rectangle_distribution<TM::NUM_OF_DIMS> x_dist_type;
 
-			auto n = MakeCache(pn, s);
+		typedef multi_normal_distribution<3, Real, normal_distribution_icdf> v_dist_type;
 
-			for (auto & p : cell)
-			{
-				p.x = mesh_.GetGlobalCoordinates(s, x_dist(g));
-				p.v = v_dist(g);
-				p.f = coeff * n(p.x);
-			}
+		x_dist_type x_dist_;
 
+		v_dist_type v_dist_;
+
+		Generator(x_dist_type const & x_dist, v_dist_type const & v_dist) :
+				x_dist_(x_dist), v_dist_(v_dist)
+		{
 		}
 
-		);
-	}
-
-	template<typename TB, typename TE>
-	inline void Push(TB const & pB, TE const &pE)
-	{
-		ForEachCell(
-
-		[&pB,&pE](cell_type & cell,index_type const &hint_idx)
+		template<typename TTemp, typename TDensity>
+		Generator(
+				std::vector<typename mesh_type::coordinate_type> const& cell_shape,
+				TDensity const & n, TTemp const temp) :
+				x_dist_(cell_shape), v_dist_(temp)
 		{
-			auto fB = MakeCache(pB, hint_idx);
-			auto fE = MakeCache(pE, hint_idx);
+		}
 
-			for (auto const & p : cell)
-			{
-				auto B = fB(p.x);
-				auto E = fE(p.x);
-			}
-		});
-
-		Sort();
-	}
-
-	template<typename TB, typename TE, typename TJ>
-	inline void ScatterJ(TB const & pB, TE const &pE, TJ & pJ) const
-	{
-		ForEachCell(
-
-		[&pB,&pE,&pJ](cell_type & cell,index_type const &hint_idx)
+		template<typename Generator>
+		inline void operator()(Point_s & p, Generator g) const
 		{
-			auto fB = MakeCache(pB, hint_idx);
-			auto fE = MakeCache(pE, hint_idx);
-			auto fJ = MakeCache(pJ, hint_idx);
+			p.x = x_dist_(g);
+			p.v = v_dist_(g);
 
-			for (auto const & p : cell)
-			{
-				fJ.Scatter(p.x, p.v);
-			}
-		});
+			p.f *= n_(p.x);
+		}
 
-		mesh_->UpdateBoundary(pJ);
+	};
 
-	}
-
-}
-;
+};
 
 } // namespace simpla
 
