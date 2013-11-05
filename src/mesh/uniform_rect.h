@@ -8,28 +8,28 @@
 #ifndef UNIFORM_RECT_H_
 #define UNIFORM_RECT_H_
 
+#include <fetl/field.h>
+#include <fetl/geometry.h>
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
 #include <algorithm>
 #include <cmath>
 #include <complex>
 #include <cstddef>
-#include <deque>
 #include <iomanip>
 #include <list>
 #include <map>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace simpla
 {
-template<typename, typename > class Field;
-
-template<typename, int> class Geometry;
 
 /**
+ *
  *  @brief UniformRectMesh -- Uniform rectangular structured grid.
  *  @ingroup mesh
  * */
@@ -41,16 +41,11 @@ struct UniformRectMesh
 
 	template<typename Element> using Container = std::vector<Element>;
 
-	template<int IF> using weight_type =
-	typename GeometryTraits<Geometry<this_type, IF> >::weight_type;
-
 	typedef size_t index_type;
 
 	typedef nTuple<3, Real> coordinates_type;
 
 	typedef std::list<index_type> chains_type;
-
-	typedef UniformRectMesh this_type;
 
 	template<typename Ret, typename ... Args> friend Ret _Op(Args...);
 
@@ -110,6 +105,7 @@ struct UniformRectMesh
 	void Update()
 	{
 		num_cells_ = 1;
+		num_grid_points_ = 1;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			gw_[i] = (gw_[i] * 2 > dims_[i]) ? dims_[i] / 2 : gw_[i];
@@ -130,7 +126,6 @@ struct UniformRectMesh
 				num_grid_points_ *= dims_[i];
 			}
 		}
-
 		strides_[2] = 1;
 		strides_[1] = dims_[2];
 		strides_[0] = dims_[1] * dims_[2];
@@ -164,7 +159,7 @@ struct UniformRectMesh
 	template<typename E> inline Container<E> MakeContainer(int iform,
 			E const & d = E()) const
 	{
-		return (Container<E>(GetNumOfGridPoints(iform), d));
+		return std::move(Container<E>(GetNumOfGridPoints(iform), d));
 	}
 
 	std::string Summary() const
@@ -471,7 +466,7 @@ struct UniformRectMesh
 		{ 1, 1, 1 };
 		res.push_back(GetGlobalCoordinates(s, r1));
 
-		return r1;
+		return res;
 	}
 
 	inline coordinates_type GetGlobalCoordinates(index_type s,
@@ -520,8 +515,9 @@ struct UniformRectMesh
 
 	}
 
+	template<typename TW>
 	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords,
-			std::vector<weight_type<0>> & weight, int affect_region = 1) const
+			TW & weight, int affect_region = 1) const
 	{
 
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
@@ -536,7 +532,7 @@ struct UniformRectMesh
 		weight[7] = r * s * t;
 	}
 
-	// Mapto ----------------------------------------------------------
+// Mapto ----------------------------------------------------------
 	/**
 	 *    mapto(Int2Type<0> ,   //tarGet topology position
 	 *     Field<this_type,1 , TExpr> const & vl,  //field
@@ -569,12 +565,14 @@ struct UniformRectMesh
 		return (l);
 	}
 
-	template<int IF, typename TL> inline auto //
+	template<int IF, typename TL>
+	inline auto //
 	mapto(Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
 			size_t s) const
-			DECL_RET_TYPE((l[s]))
+			DECL_RET_TYPE ((l[s]))
 
-	template<typename TL> inline auto //
+	template<typename TL>
+	inline auto //
 	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
 			size_t s) const
 					DECL_RET_TYPE( ((l[(s-s%3)/3] +l[(s-s%3)/3+strides_[s%3]])*0.5) )
@@ -621,6 +619,53 @@ struct UniformRectMesh
 
 }
 ;
+
+namespace UniformRectMeshDefine
+{
+typedef UniformRectMesh Mesh;
+
+template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
+
+typedef Form<0, Real> ZeroForm;
+typedef Form<1, Real> OneForm;
+typedef Form<2, Real> TwoForm;
+typedef Form<3, Real> ThreeForm;
+
+typedef Form<0, nTuple<3, Real> > VecZeroForm;
+typedef Form<1, nTuple<3, Real> > VecOneForm;
+typedef Form<2, nTuple<3, Real> > VecTwoForm;
+typedef Form<3, nTuple<3, Real> > VecThreeForm;
+
+typedef Form<0, Real> ScalarField;
+typedef Form<0, nTuple<3, Real> > VecField;
+
+typedef Form<0, Real> RZeroForm;
+typedef Form<1, Real> ROneForm;
+typedef Form<2, Real> RTwoForm;
+typedef Form<3, Real> RThreeForm;
+
+typedef Form<0, nTuple<3, Real> > RVecZeroForm;
+typedef Form<1, nTuple<3, Real> > RVecOneForm;
+typedef Form<2, nTuple<3, Real> > RVecTwoForm;
+typedef Form<3, nTuple<3, Real> > RVecThreeForm;
+
+typedef Form<0, Real> RScalarField;
+typedef Form<0, nTuple<3, Real> > RVecField;
+
+typedef Form<0, Complex> CZeroForm;
+typedef Form<1, Complex> COneForm;
+typedef Form<2, Complex> CTwoForm;
+typedef Form<3, Complex> CThreeForm;
+
+typedef Form<0, nTuple<3, Complex> > CVecZeroForm;
+typedef Form<0, nTuple<3, Complex> > CVecOneForm;
+typedef Form<0, nTuple<3, Complex> > CVecTwoForm;
+typedef Form<3, nTuple<3, Complex> > CVecThreeForm;
+
+typedef Form<0, Complex> CScalarField;
+typedef Form<0, nTuple<3, Complex> > CVecField;
+
+}  // namespace UniformRectMeshDefine
 
 //	inline std::vector<size_t> Get_field_shape(int iform) const
 //	{
@@ -760,6 +805,321 @@ struct UniformRectMesh
 //		}
 //	}
 
-}//namespace simpla
-#include "uniform_rect_ops.h"
+//-----------------------------------------
+// Vector Arithmetic
+//-----------------------------------------
+
+template<int N, typename TL, typename TI> inline auto _OpEval(
+		Int2Type<EXTRIORDERIVATIVE>,
+		Field<Geometry<UniformRectMesh, N>, TL> const & f, TI s)
+		DECL_RET_TYPE((f[s]*f.mesh.inv_dx_[s%3]))
+
+template<typename TExpr, typename TI> inline auto _OpEval(Int2Type<GRAD>,
+		Field<Geometry<UniformRectMesh, 0>, TExpr> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[(s - s % 3) / 3 + f.mesh.strides_[s % 3]] - f[(s - s % 3) / 3]) * f.mesh.inv_dx_[s % 3])
+
+template<typename TExpr, typename TI> inline auto _OpEval(Int2Type<DIVERGE>,
+		Field<Geometry<UniformRectMesh, 1>, TExpr> const & f,
+		TI s)
+				DECL_RET_TYPE(
+
+						(f[s * 3 + 0] - f[s * 3 + 0 - 3 * f.mesh.strides_[0]]) * f.mesh.inv_dx_[0] +
+
+						(f[s * 3 + 1] - f[s * 3 + 1 - 3 * f.mesh.strides_[1]]) * f.mesh.inv_dx_[1] +
+
+						(f[s * 3 + 2] - f[s * 3 + 2 - 3 * f.mesh.strides_[2]]) * f.mesh.inv_dx_[2])
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
+		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]
+
+						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3]) * f.mesh.inv_dx_[(s + 2) % 3]
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
+		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]
+
+						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]) * f.mesh.inv_dx_[(s + 2) % 3]
+
+				)
+
+//template<typename TL,typename TI>  inline auto //
+//_OpEval(<CURLPD1>, Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+//		TI s)
+//				DECL_RET_TYPE(
+//						(f.rhs_[s-s % 3 + 2 + 3 * f.mesh.strides_[1]] - f.rhs_[s-s % 3 + 2]) * f.mesh.inv_dx_[1])
+//
+//template<typename TL,typename TI>  inline auto //
+//_OpEval(<CURLPD2>, Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+//		TI s)
+//				DECL_RET_TYPE(
+//						(-f.rhs_[s-s % 3 + 1 + 3 * f.mesh.strides_[2]] + f.rhs_[s-s % 3 + 1]) * f.mesh.inv_dx_[2])
+
+template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<WEDGE>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Field<Geometry<UniformRectMesh, IR>, TR> const &r,
+		TI s)
+				DECL_RET_TYPE(
+						(l.mesh.mapto(Int2Type<IL+IR>(),l,s)*r.mesh.mapto(Int2Type<IL+IR>(),r,s)))
+
+template<int N, typename TL, typename TI> inline auto _OpEval(
+		Int2Type<HODGESTAR>, Field<Geometry<UniformRectMesh, N>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE((f.mesh.mapto(Int2Type<UniformRectMesh::NUM_OF_DIMS-N >(),f,s)))
+
+template<int N, typename TL, typename TI> inline auto _OpEval(Int2Type<NEGATE>,
+		Field<Geometry<UniformRectMesh, N>, TL> const & f, TI s)
+		DECL_RET_TYPE((-f[s]))
+
+template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<PLUS>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Field<Geometry<UniformRectMesh, IL>, TR> const &r, TI s)
+		DECL_RET_TYPE((l[s]+r[s]))
+
+template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<MINUS>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Field<Geometry<UniformRectMesh, IL>, TR> const &r, TI s)
+		DECL_RET_TYPE((l[s]-r[s]))
+
+template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Field<Geometry<UniformRectMesh, IR>, TR> const &r,
+		TI s)
+				DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s)*r.mesh.mapto(Int2Type<IL+IR>(),r,s)) )
+
+template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		TR const &r, TI s)
+		DECL_RET_TYPE((l[s] * r))
+
+template<int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<MULTIPLIES>, TL const & l,
+		Field<Geometry<UniformRectMesh, IR>, TR> const & r, TI s)
+		DECL_RET_TYPE((l * r[s]))
+
+template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<DIVIDES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		TR const &r, TI s)
+		DECL_RET_TYPE((l[s]/l.mesh.mapto(Int2Type<IL>(),r,s)))
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<DOT>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const &r, TI s)
+		DECL_RET_TYPE((Dot(l[s],r[s])) )
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<DOT>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		nTuple<3, TR> const &r, TI s)
+		DECL_RET_TYPE((Dot(l[s] , r)))
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<DOT>, nTuple<3, TL> const & l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const & r, TI s)
+		DECL_RET_TYPE((Dot(l , r[s])))
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<CROSS>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const &r, TI s)
+		DECL_RET_TYPE( (Cross(l[s],r[s])))
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<CROSS>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		nTuple<3, TR> const &r, TI s)
+		DECL_RET_TYPE((Cross(l[s] , r)))
+
+template<typename TL, typename TR, typename TI> inline auto _OpEval(
+		Int2Type<CROSS>, nTuple<3, TL> const & l,
+		Field<Geometry<UniformRectMesh, 0>, TR> const & r, TI s)
+		DECL_RET_TYPE((Cross(l , r[s])))
+
+//template
+//	Divides(Field<Geometry<ThisType, 0>, TL> const &l,
+//			Field<Geometry<ThisType, 0>, TR> const &r, TI  s)
+//			DECL_RET_TYPE((l[s]/r[s]))
+//
+//	template<int IL, typename TL, typename TR,typename TI>  inline auto //
+//	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR r, TI  s)
+//	DECL_RET_TYPE( (l[s]/r))
+//
+//
+//	template<int IPD, typename TExpr,typename TI>  inline auto //	Field<Geometry<this_type, 2>,
+//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
+//			size_t  s) ->
+//			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
+//	{
+//		if (dims[IPD] == 1)
+//		{
+//			return (0);
+//		}
+//		size_t j0 = s % 3;
+//
+//		size_t idx2 = s - j0;
+//
+//		typename Field<Geometry<Mesh, 2>, TExpr>::Value res = 0.0;
+////		if (1 == IPD)
+////		{
+////			res = (expr.rhs_[idx2 + 2]
+////					- expr.rhs_[idx2 + 2 - 3 * strides_[IPD]]) * f.mesh.inv_dx_[IPD];
+////
+////		}
+////		else if (2 == IPD)
+////		{
+////			res = (-expr.rhs_[idx2 + 1]
+////					+ expr.rhs_[idx2 + 1 - 3 * strides_[IPD]]) * f.mesh.inv_dx_[IPD];
+////		}
+//
+//		return (res);
+//	}
+}// namespace simpla
+
+/**
+ *
+ *
+ // Interpolation ----------------------------------------------------------
+
+ template<typename TExpr>
+ inline typename Field<Geometry<this_type, 0>, TExpr>::Value //
+ Gather(Field<Geometry<this_type, 0>, TExpr> const &f, RVec3 x) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ return (f[s] * (1.0 - r[0]) + f[s + strides_[0]] * r[0]); //FIXME Only for 1-dim
+ }
+
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 0>, TExpr> & f, RVec3 x,
+ typename Field<Geometry<this_type, 0>, TExpr>::Value const v) const
+ {
+ typename Field<Geometry<this_type, 0>, TExpr>::Value res;
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ f.Add(s, v * (1.0 - r[0]));
+ f.Add(s + strides_[0], v * r[0]); //FIXME Only for 1-dim
+
+ }
+
+ template<typename TExpr>
+ inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> //
+ Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
+ {
+ nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
+
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx = r + 0.5;
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
+ + f[(s - strides_[0]) * 3 + 0] * (0.5 + r[0]));
+ res[1] = (f[(s) * 3 + 1] * (0.5 - r[1])
+ + f[(s - strides_[1]) * 3 + 1] * (0.5 + r[1]));
+ res[2] = (f[(s) * 3 + 2] * (0.5 - r[2])
+ + f[(s - strides_[2]) * 3 + 2] * (0.5 + r[2]));
+ return res;
+ }
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 1>, TExpr> & f, RVec3 x,
+ nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> const &v) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx = r + 0.5;
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
+ f[(s - strides_[0]) * 3 + 0] += v[0] * (0.5 + r[0]);
+ f[(s) * 3 + 1] += v[1] * (0.5 - r[1]);
+ f[(s - strides_[1]) * 3 + 1] += v[1] * (0.5 + r[1]);
+ f[(s) * 3 + 2] += v[2] * (0.5 - r[2]);
+ f[(s - strides_[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
+ }
+
+ template<typename TExpr>
+ inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> //
+ Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
+ {
+ nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
+
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
+ + f[(s - strides_[0]) * 3 + 0] * (r[0]));
+ res[1] = (f[(s) * 3 + 1] * (1.0 - r[1])
+ + f[(s - strides_[1]) * 3 + 1] * (r[1]));
+ res[2] = (f[(s) * 3 + 2] * (1.0 - r[2])
+ + f[(s - strides_[2]) * 3 + 2] * (r[2]));
+ return res;
+
+ }
+
+ template<typename TExpr>
+ inline void //
+ Scatter(Field<Geometry<this_type, 2>, TExpr> & f, RVec3 x,
+ nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> const &v) const
+ {
+ IVec3 idx;
+ Vec3 r;
+ r = (x - xmin) * inv_dx_;
+ idx[0] = static_cast<long>(r[0]);
+ idx[1] = static_cast<long>(r[1]);
+ idx[2] = static_cast<long>(r[2]);
+
+ r -= idx;
+ size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ + idx[2] * strides_[2];
+
+ f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
+ f[(s - strides_[0]) * 3 + 0] += v[0] * (r[0]);
+ f[(s) * 3 + 1] += v[1] * (1.0 - r[1]);
+ f[(s - strides_[1]) * 3 + 1] += v[1] * (r[1]);
+ f[(s) * 3 + 2] += v[2] * (1.0 - r[2]);
+ f[(s - strides_[2]) * 3 + 2] += v[2] * (r[2]);
+
+ }
+ *
+ *
+ * */
+
 #endif //UNIFORM_RECT_H_

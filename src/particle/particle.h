@@ -8,276 +8,99 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include <ext/mt_allocator.h>
-#include <fetl/geometry.h>
 #include <fetl/primitives.h>
-#include <include/simpla_defs.h>
-#include <cstddef>
-#include <list>
-
+#include "fetl/field_rw_cache.h"
 namespace simpla
 {
-template<typename TM, typename TV> class Particle;
 
-template<typename T> using PIC=std::list<T, FixedSmallObjectAllocator<T> >;
-
-template<typename TM, typename T>
-class ParticleBase: public TM::Container<PIC<T> >
+template<typename Engine, template<typename > class PICContainer>
+class Particle: public PICContainer<typename Engine::Point_s>
 {
-	TM const & mesh_;
-	static const int GEOMETRY_TYPE = 0;
-public:
-
-	typename TM Mesh;
-
-	typedef typename PIC<T>::allocator_type allocator_type;
-
-	typedef T value_type;
-
-	typedef T particle_type;
-
-	typedef PIC<value_type> cell_type;
-
-	typedef typename TM::Container<PIC<T> > container_type;
-
-	typedef ParticleBase<Geometry, value_type> this_type;
-
-	ParticleBase(TM const & m, allocator_type allocator = allocator_type()) :
-
-			container_type(
-					std::move(
-							m.MakeContianer(GEOMETRY_TYPE,
-									cell_type(allocator)))),
-
-			allocator_(allocator), mesh_(m)
-	{
-	}
-
-	ParticleBase(this_type const & r) :
-			container_type(r), mesh_(r.mesh_)
-	{
-	}
-
-	ParticleBase(this_type && r) :
-			container_type(std::move(r)), mesh_(r.mesh_)
-	{
-	}
-
-	~ParticleBase() = default;
-
-	void Sort()
-	{
-
-		container_type tmp(
-				std::move(
-						mesh_.MakeContainer(GEOMETRY_TYPE,
-								pic_type(allocator))))
-		);
-
-		ForAllCell(
-
-		[&](index_type const & s)
-		{
-			auto & cell= this->operator[](s);
-
-			auto pt = cell.begin();
-			while (pt != cell.end())
-			{
-				auto p = it;
-				++it;
-
-				auto j = mesh_.SearchCell(s,p->x);
-
-				if (j!=s)
-				{
-					try
-					{
-						tmp.at(j).splice(container_type::at(j).end(), cell, p);
-					}
-					catch (...)
-					{
-						cell.erase(p);
-					}
-				}
-			}
-		});
-		auto it1 = container_type::begin();
-		auto it2 = tmp.begin();
-		for (; it1 != container_type::end(); ++it1, ++it2)
-		{
-			it1->splice(it1->begin(), it2);
-		}
-	}
-
-	template<typename ... Args>
-	cell_type MakeCell(Args ... args) const
-	{
-		return std::move(cell_type(std::forward<Args...>(args)..., allocator));
-	}
-
-	/**
-	 *  Traversal each cell, include boundary cells.
-	 *
-	 * @param fun (cell_type & cell,index_type const & s )
-	 */
-	template<typename Fun, typename ...Args>
-	void ForAllCell(Fun const & fun, Args ...args)
-	{
-		mesh_->ForAll(GEOMETRY_TYPE,
-
-		[this,&fun,&args...](index_type const & s)
-		{
-			fun(this->operator[](s),s,MAKE_CACHE(args,s)...);
-		}
-
-		);
-
-	}
-	template<typename Fun, typename ... Args>
-	void ForAllCell(Fun const & fun, Args ... args) const
-	{
-		mesh_->ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			fun(this->operator[](s),s, MAKE_CACHE(args,s)...);
-		}
-
-		);
-
-	}
-
-	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args ... args)
-	{
-
-		mesh_->ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(s, fun, MAKE_CACHE(args,s)...);
-		}
-
-		);
-
-	}
-
-	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args ... args) const
-	{
-		mesh_->ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(s, fun, MAKE_CACHE(args,s)...);
-		}
-
-		);
-	}
-
-	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(index_type const &s, Fun const & fun,
-			Args & ... args)
-	{
-		for (auto & p : this->operator[](s))
-		{
-			fun(p, std::forward<Args>(args)...);
-		}
-	}
-
-	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(index_type const &s, Fun const & fun,
-			Args & ... args) const
-	{
-		for (auto const& p : this->operator[](s))
-		{
-			fun(p, std::forward<Args>(args)...);
-		}
-
-	}
-
-	const allocator_type& get_allocator() const
-	{
-		return allocator_;
-	}
 
 private:
-
-	allocator_type allocator_;
-
-}
-;
-
-template<typename TM, typename Engine>
-class Particle: public ParticleBase<TM, typename Engine::Point_s>
-{
+	Real m_, q_;
 public:
-
-	typedef TM mesh_type;
 	typedef Engine engine_type;
-	typedef Particle<mesh_type, engine_type> this_type;
-	typedef ParticleBase<TM, typename Engine::Point_s> base_type;
 
-	template<typename ... Args>
-	Particle(Args ...args) :
-			base_type(std::forward<Args>(args)...)
+	typedef typename engine_type::Point_s particle_type;
+
+	typedef Particle<engine_type, PICContainer> this_type;
+
+	typedef PICContainer<typename Engine::Point_s> base_type;
+
+	template<typename ...Args>
+	Particle(Real m, Real q, Args ... args) :
+			base_type(args...), m_(m), q_(q)
 	{
 	}
-	Particle(this_type const & r) :
-			base_type(r)
+
+	template<typename TP>
+	inline void SetProperties(TP const &p)
 	{
-	}
-	~Particle()
-	{
-
-	}
-
-	template<typename RNDGen, typename ... Args>
-	void InitLoad(size_t pic, RNDGen g, Args ...args)
-	{
-		//TODO need thread-safe RNDGenerator
-
-		base_type::mesh_->ForAll(
-
-		GEOMETRY_TYPE,
-
-				[&](index_type const & s)
-				{
-					particle_type p0;
-
-					p0.f=base_type::mesh_.GetCellVolume(s)/static_cast<Real>(pic);
-
-					this->operator[](s).resize(pic, p0);
-
-					Generator gen(base_type::mesh_->GetCellShape(s),MakeCache(args,s)...);
-
-					for(auto &p:this->operator[](s))
-					{
-						gen(p,g);
-					}
-				}
-
-				);
+		m_ = p.Get<Real>("Mass");
+		q_ = p.Get<Real>("Charge");
 	}
 
-	template<typename ... Args>
-	inline void Push(Args & ... args)
+	template<typename TP>
+	inline void GetProperties(TP &p) const
 	{
-		base_type::ForAllParticle(engine_type::Push(),
-				std::forward<Args>(args) ...);
+		p.Set("Mass", m_);
+		p.Set("Charge", q_);
 	}
-	template<typename ... Args>
-	inline void ScatterJ(Args & ... args)
+
+	void Init(size_t num_pic)
 	{
-		base_type::ForAllParticle(engine_type::ScatterJ(),
-				std::forward<Args>(args) ...);
+		value_type default_value;
+
+		engine_type::SetDefaultValue(default_value);
+
+		base_type::ResizeCells(num_pic, default_value);
+	}
+
+	template<typename TFUN, typename ... Args>
+	inline void ForEach(TFUN const & fun, Args const& ... args)
+	{
+		base_type::ForAllParticle<void(particle_type &, Real, Real, Args...)>(
+				fun, m_, q_, std::forward<Args>(args) ...);
+	}
+
+	template<typename TFUN, typename TJ, typename ... Args>
+	inline void ForEach(TFUN const & fun, TJ & J, Args const & ... args) const
+	{
+		base_type::ForAllParticle<
+				void(particle_type const &, Real, Real, Args...)>(fun, m_, q_,
+				J, std::forward<Args>(args) ...);
 	}
 
 	template<typename ... Args>
-	inline void ScatterN(Args & ... args)
+	inline void Push(Args const& ... args)
 	{
-		base_type::ForAllParticle(engine_type::ScatterN(),
-				std::forward<Args>(args) ...);
+		base_type::ForAllParticle<void(particle_type &, Real, Real, Args...)>(
+				engine_type::Push, m_, q_, std::forward<Args>(args) ...);
+	}
+
+	template<typename TFUN, typename TJ, typename ... Args>
+	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
+	{
+		base_type::ForAllParticle<
+				void(particle_type const &, Real, Real, Args...)>(fun, m_, q_,
+				J, std::forward<Args>(args) ...);
+	}
+
+	template<typename TJ, typename ... Args>
+	inline void ScatterJ(TJ & J, Args const & ... args) const
+	{
+		base_type::ForAllParticle<
+				void(particle_type const &, Real, Real, Args...)>(
+				engine_type::ScatterJ, m_, q_, J, std::forward<Args>(args) ...);
+	}
+
+	template<typename TN, typename ... Args>
+	inline void ScatterN(TN & n, Args & ... args) const
+	{
+		base_type::ForAllParticle<
+				void(particle_type const &, Real, Real, Args...)>(
+				engine_type::ScatterN, m_, q_, n, std::forward<Args>(args) ...);
 	}
 
 };

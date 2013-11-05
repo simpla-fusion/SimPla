@@ -9,57 +9,58 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-#include <fetl/field.h>
-#include <fetl/geometry.h>
-#include <vector>
+#include "./primitives.h"
+#include "./ntuple.h"
+#include "./field.h"
+#include "./ntuple.h"
+#include "./vector_calculus.h"
 
 namespace simpla
 {
 
-template<typename TG, typename TV> class Field;
-
-#define DEFINE_FIELDS(TG)                                                         \
-typedef TG Mesh;                                                                     \
-typedef Field<Geometry<Mesh,0>,Real >     ZeroForm;                                \
-typedef Field<Geometry<Mesh,1>,Real >      OneForm;                                  \
-typedef Field<Geometry<Mesh,2>,Real >      TwoForm;                                  \
-typedef Field<Geometry<Mesh,3>,Real >    ThreeForm;                              \
-                                                                                        \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >   VecZeroForm;                           \
-typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >    VecOneForm;                             \
-typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >    VecTwoForm;                             \
-typedef Field<Geometry<Mesh,3>, nTuple<3,Real> >  VecThreeForm;                         \
-                                                                                     \
-typedef Field<Geometry<Mesh,0>, Real > ScalarField;                             \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > VecField;                              \
-                                                                                     \
-typedef Field<Geometry<Mesh,0>,Real >     RZeroForm;                               \
-typedef Field<Geometry<Mesh,1>,Real >      ROneForm;                                 \
-typedef Field<Geometry<Mesh,2>,Real >      RTwoForm;                                 \
-typedef Field<Geometry<Mesh,3>,Real >    RThreeForm;                             \
-                                                                                     \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >  RVecZeroForm;                         \
-typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >   RVecOneForm;                           \
-typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >   RVecTwoForm;                           \
-typedef Field<Geometry<Mesh,3>, nTuple<3,Real> > RVecThreeForm;                       \
-                                                                                     \
-typedef Field<Geometry<Mesh,0>, Real > RScalarField;                            \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > RVecField;                            \
-                                                                                     \
-typedef Field<Geometry<Mesh,0>, Complex > CZeroForm;                          \
-typedef Field<Geometry<Mesh,1>, Complex >  COneForm;                            \
-typedef Field<Geometry<Mesh,2>, Complex >  CTwoForm;                            \
-typedef Field<Geometry<Mesh,3>, Complex >  CThreeForm;                       \
-	                                                                         \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecZeroForm;                         \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecOneForm;                         \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecTwoForm;                         \
-typedef Field<Geometry<Mesh,3>, nTuple<3,Complex> >  CVecThreeForm;                       \
-	                                                                         \
-typedef Field<Geometry<Mesh,0>, Complex > CScalarField;                       \
-typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> > CVecField;                         \
-template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
-
+#define DEFINE_FIELDS(TG)   using namespace TG##Define;                      \
+//
+//
+//typedef TG Mesh;                                                                     \
+//typedef Field<Geometry<Mesh,0>,Real >     ZeroForm;                                \
+//typedef Field<Geometry<Mesh,1>,Real >      OneForm;                                  \
+//typedef Field<Geometry<Mesh,2>,Real >      TwoForm;                                  \
+//typedef Field<Geometry<Mesh,3>,Real >    ThreeForm;                              \
+//                                                                                        \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >   VecZeroForm;                           \
+//typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >    VecOneForm;                             \
+//typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >    VecTwoForm;                             \
+//typedef Field<Geometry<Mesh,3>, nTuple<3,Real> >  VecThreeForm;                         \
+//                                                                                     \
+//typedef Field<Geometry<Mesh,0>, Real > ScalarField;                             \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > VecField;                              \
+//                                                                                     \
+//typedef Field<Geometry<Mesh,0>,Real >     RZeroForm;                               \
+//typedef Field<Geometry<Mesh,1>,Real >      ROneForm;                                 \
+//typedef Field<Geometry<Mesh,2>,Real >      RTwoForm;                                 \
+//typedef Field<Geometry<Mesh,3>,Real >    RThreeForm;                             \
+//                                                                                     \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >  RVecZeroForm;                         \
+//typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >   RVecOneForm;                           \
+//typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >   RVecTwoForm;                           \
+//typedef Field<Geometry<Mesh,3>, nTuple<3,Real> > RVecThreeForm;                       \
+//                                                                                     \
+//typedef Field<Geometry<Mesh,0>, Real > RScalarField;                            \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > RVecField;                            \
+//                                                                                     \
+//typedef Field<Geometry<Mesh,0>, Complex > CZeroForm;                          \
+//typedef Field<Geometry<Mesh,1>, Complex >  COneForm;                            \
+//typedef Field<Geometry<Mesh,2>, Complex >  CTwoForm;                            \
+//typedef Field<Geometry<Mesh,3>, Complex >  CThreeForm;                       \
+//	                                                                         \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecZeroForm;                         \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecOneForm;                         \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecTwoForm;                         \
+//typedef Field<Geometry<Mesh,3>, nTuple<3,Complex> >  CVecThreeForm;                       \
+//	                                                                         \
+//typedef Field<Geometry<Mesh,0>, Complex > CScalarField;                       \
+//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> > CVecField;                         \
+//template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
 
 }// namespace simpla
 #endif  // FETL_H_

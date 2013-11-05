@@ -14,55 +14,35 @@
 #include <typeinfo>
 #include <utility>
 
-template<typename TF> struct RWCache
+struct CCC
 {
-public:
-	RWCache()
+	static void Foo(double a, int, int)
 	{
-
+		std::cout << "First" << a << std::endl;
 	}
-	~RWCache()
+
+	static void Foo(double b, int)
 	{
-
+		std::cout << "Second" << b << std::endl;
 	}
+
 };
-
-template<typename TF> struct RWCache<TF&> : public RWCache<TF>
+template<typename Fun, typename ... Args>
+void foo(Fun const &fun, Args ... args)
 {
-	RWCache(TF & f)
-	{
-		std::cout << "write cache" << std::endl;
-	}
-};
-
-template<typename TF> struct RWCache<TF const&> : public RWCache<TF>
-{
-	RWCache(TF const& f)
-	{
-		std::cout << "read cache" << std::endl;
-	}
-};
-
-template<typename TF> typename std::enable_if<std::is_const<TF>::value,
-		RWCache<TF const &> >::type MakeCache(const TF&f)
-{
-	return RWCache<TF const&>(f);
+	fun(args...);
 }
 
-template<typename TF> RWCache<TF &> MakeCache(TF & f)
+template<typename ... Args>
+void foo2(Args ... args)
 {
-	return RWCache<TF &>(f);
+	foo<void(double, Args...)>(CCC::Foo, 3.0, args...);
 }
-
 int main()
 {
 
-	double a = 5;
-	double &b = a;
-	double const &c = a;
-
-	MakeCache(a);
-	MakeCache(const_cast<double const&>(b));
+	foo2(1, 1);
+	foo2(1);
 
 }
 

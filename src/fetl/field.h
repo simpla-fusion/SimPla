@@ -9,15 +9,10 @@
 #define FIELD_H_
 
 #include <fetl/primitives.h>
-
-//#include "utilities/log.h"
+#include <vector>
 
 namespace simpla
 {
-
-template<typename > class GeometryTraits;
-template<typename TF> class ReadCache;
-template<typename TF> class WriteCache;
 
 /***
  *
@@ -27,38 +22,40 @@ template<typename TF> class WriteCache;
  *
  */
 
-template<typename TGeometry, typename TValue>
-struct Field: public TGeometry, public TGeometry::template Container<TValue>
+template<typename TG, typename TValue>
+struct Field: public TG::mesh_type::template Container<TValue>
 {
 public:
 
-	typedef TGeometry geometry_type;
+	typedef TG geometry_type;
 
-	typedef typename TGeometry::mesh_type mesh_type;
+	typedef typename geometry_type::mesh_type mesh_type;
 
-	typedef typename TGeometry::template Container<TValue> container_type;
+	static const int IForm = geometry_type::IForm;
 
-	typedef typename TGeometry::index_type index_type;
-
-	typedef typename container_type::value_type value_type;
-
-	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
+	typedef TValue value_type;
 
 	typedef Field<geometry_type, value_type> this_type;
 
-	friend class ReadCache<this_type> ;
+	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
 
-	friend class WriteCache<this_type> ;
+	typedef typename mesh_type::template Container<value_type> base_type;
 
-	template<typename TG>
-	Field(TG const &g) :
-			geometry_type(g), container_type(
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef typename mesh_type::index_type index_type;
+
+	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
+
+	mesh_type const &mesh;
+
+	Field(mesh_type const &pmesh, value_type default_value = value_type()) :
+			base_type(
 					std::move(
-							geometry_type::template MakeContainer<value_type>()))
+							pmesh.template MakeContainer<value_type>(IForm,
+									default_value))), mesh(pmesh)
 	{
 	}
-
-	Field() = default;
 
 	Field(this_type const & f) = delete;
 
@@ -70,30 +67,41 @@ public:
 
 	void swap(this_type & rhs)
 	{
-		geometry_type::swap(rhs.geometry_);
-		container_type::swap(rhs);
+		base_type::swap(rhs);
 	}
 
 #ifdef DEBUG  // check boundary
-	inline value_type & operator[](typename geometry_type::index_type const &s)
+	inline value_type & operator[](index_type const &s)
 	{
 
-		return container_type::at(s);
+		return base_type::at(s);
 
 	}
-	inline value_type const & operator[](
-			typename geometry_type::index_type const &s) const
+	inline value_type const & operator[](index_type const &s) const
 	{
-		return container_type::at(s);
+		return base_type::at(s);
 	}
 #endif
 
 	template<typename Fun>
 	inline void ForEach(Fun const &fun)
 	{
-		geometry_type::ForEach(
+		mesh.ForEach(IForm,
 
-		[this,&fun](typename geometry_type::index_type s)
+		[this,&fun](index_type s)
+		{
+			fun((*this)[s]);
+		}
+
+		);
+	}
+
+	template<typename Fun>
+	inline void ForEach(Fun const &fun) const
+	{
+		mesh.ForEach(IForm,
+
+		[this,&fun](index_type s)
 		{
 			fun((*this)[s]);
 		}
@@ -103,9 +111,9 @@ public:
 
 	inline this_type & operator=(this_type const & rhs)
 	{
-		geometry_type::ForEach(
+		mesh.ForEach(IForm,
 
-		[this, &rhs](typename geometry_type::index_type s)
+		[this, &rhs](index_type s)
 		{
 			(*this)[s]=rhs[s];
 		}
@@ -116,25 +124,25 @@ public:
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
-	operator _OP_(Field<TGeometry, TR> const & rhs)                               \
+	operator _OP_(Field<geometry_type, TR> const & rhs)                               \
 	{                                                                             \
-		geometry_type::ForEach(												      \
-		[this, &rhs](typename geometry_type::index_type const &s)                 \
+		mesh.ForEach(IForm,												      \
+		[this, &rhs](index_type const &s)                 \
 		{	(*this)[s] _OP_ rhs[s];});                                            \
 		return (*this);                                                           \
 	}                                                                             \
 	template<typename TR> inline this_type &                                      \
 	operator _OP_(TR const & rhs)                                                 \
 	{                                                                             \
-		geometry_type::ForEach(									                  \
-		[this, &rhs](typename geometry_type::index_type const &s)                 \
+		mesh.ForEach(IForm,									                  \
+		[this, &rhs](index_type const &s)                 \
 		{	(*this)[s] _OP_ rhs ;});                                              \
 		return (*this);                                                           \
 	}
 
 	DECL_SELF_ASSIGN(=)
 
-DECL_SELF_ASSIGN	(+=)
+	DECL_SELF_ASSIGN(+=)
 
 	DECL_SELF_ASSIGN(-=)
 
@@ -153,24 +161,22 @@ DECL_SELF_ASSIGN	(+=)
 
 		coordinates_type pcoords;
 
-		index_type s = mesh->SearchCell(x, &pcoords);
+		index_type s = mesh.SearchCell(x, &pcoords);
 
 		return std::move(Gather(s, pcoords));
 
 	}
 
-	inline field_value_type Gather( index_type const & s,coordinates_type const &pcoord) const
+	inline field_value_type Gather( index_type const & s,coordinates_type const &pcoords) const
 	{
 
-		int num_of_vertices = mesh->GetCellNumOfVertices(Int2Type<IFORM>(), s);
+		std::vector<index_type> points;
 
-		std::vector<index_type> points(num_of_vertices);
+		std::vector<typename geometry_type::gather_weight_type> weights;
 
-		std::vector<typename GeometryTraits<geometry_type>::gather_weight_type> weights(num_of_vertices);
+		mesh.GetCellVertices(Int2Type<IForm>(), s, points);
 
-		mesh->GetCellVertices(Int2Type<0>(), s, points);
-
-		mesh->CalcuateWeight(Int2Type<0>(), pcoords, weights);
+		mesh.CalcuateWeight(Int2Type<IForm>(), pcoords, weights);
 
 		field_value_type res;
 
@@ -191,26 +197,24 @@ DECL_SELF_ASSIGN	(+=)
 	{
 		coordinates_type pcoords;
 
-		index_type s = mesh->SearchCell(x, &pcoords);
+		index_type s = mesh.SearchCell(x, &pcoords);
 
 		Scatter(v,s,pcoords);
 
 	}
 	template<typename TV >
-	inline void Scatter(TV const & v,index_type const & s,coordinates_type const &pcoord )
+	inline void Scatter(TV const & v,index_type const & s,coordinates_type const &pcoords )
 	{
 
-		int num_of_vertices = mesh->GetCellNumOfVertices(Int2Type<IFORM>(), s);
+		std::vector<index_type> points;
 
-		std::vector<index_type> points(num_of_vertices);
+		std::vector<typename geometry_type::scatter_weight_type> weights;
 
-		std::vector<typename GeometryTraits<geometry_type>::scatter_weight_type> weights(num_of_vertices);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh->GetCellVertices(Int2Type<0>(), s, points);
+		mesh.CalcuateWeight(Int2Type<IForm>(), pcoords, weights);
 
-		mesh->CalcuateWeight(Int2Type<0>(), pcoords, weights);
-
-		std::vector<value_type> cache(num_of_vertices);
+		std::vector<value_type> cache(weights.size());
 
 		for (auto it1=cache.begin(), it2=weights.begin();
 				it1!=cache.end() && it2!=weights.end();++it1,++it2 )
@@ -228,21 +232,22 @@ DECL_SELF_ASSIGN	(+=)
 		//FIXME: this is not thread safe, need a mutex lock
 
 		for (auto it1=points.begin(), it2=cache.begin();
-				it!=points.end()&&it2!=cache.end();++it1,++it2 )
+				it1!=points.end()&&it2!=cache.end();++it1,++it2 )
 		{
 			(*this)[*it1] += *it2;
 		}
 
 	}
-
-	//	inline auto Get(CoordinatesType const &x,Real effect_radius=0)const
-//	DECL_RET_TYPE( (geometry.IntepolateFrom(*this,x,effect_radius)))
-//
-//	inline auto Put(ValueType const & v,CoordinatesType const &x,Real effect_radius=0)
-//	DECL_RET_TYPE(( geometry.IntepolateTo(*this,v,x,effect_radius)))
-
 };
 
+//template<typename TM>
+//struct FieldIterator
+//{
+//	typedef typename TM::index_type index_type;
+//
+//	index_type idx;
+//	bool
+//};
 }
 // namespace simpla
 

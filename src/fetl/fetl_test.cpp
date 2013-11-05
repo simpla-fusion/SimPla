@@ -7,13 +7,11 @@
 
 #include <gtest/gtest.h>
 #include <random>
+
 #include "utilities/log.h"
 
 #include "fetl.h"
-#include "fetl/primitives.h"
-#include "fetl/ntuple.h"
-#include "fetl/expression.h"
-#include "fetl/vector_calculus.h"
+
 #include "physics/constants.h"
 
 #include "mesh/uniform_rect.h"
@@ -49,13 +47,14 @@ protected:
 	}
 public:
 	typedef TF FieldType;
-	typedef Field<Geometry<Mesh, 0>, Real> RScalarField;
+	typedef Form<0, Real> RScalarField;
 
 	Mesh mesh;
 
 };
 
-typedef testing::Types<RZeroForm, ROneForm, RTwoForm, RThreeForm, CZeroForm,
+typedef testing::Types<RZeroForm
+		, ROneForm, RTwoForm, RThreeForm, CZeroForm,
 		COneForm, CTwoForm, CThreeForm, VecZeroForm, VecOneForm, VecTwoForm
 //		,VecThreeForm
 //		,CVecZeroForm, CVecOneForm, CVecTwoForm,CVecThreeForm
@@ -94,7 +93,6 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 TYPED_TEST(TestFETLBasicArithmetic,assign){
 {
-	typename TestFixture::FieldType::geometry_type geometry(TestFixture::mesh);
 
 	typename TestFixture::FieldType f1(TestFixture::mesh),f2(TestFixture::mesh);
 
@@ -109,18 +107,21 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 		ASSERT_EQ(a,p)<<"idx="<< p;
 	}
 
-	geometry.ForEach(
-			[&f2,&a](typename TestFixture::FieldType::geometry_type::index_type const & s)
+	size_t s0=0;
+
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+			[&](typename TestFixture::FieldType::index_type const & s)
 			{
+				s0=s;
 				f2[s]=a*static_cast<Real>(s);
 			}
-	)
-	;
+	);
+
 	f1 += f2;
 
-	geometry.ForEach(
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
 
-			[&a,&f1](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			[&a,&f1](typename TestFixture::FieldType::index_type const & s)
 			{
 				typename TestFixture::FieldType::value_type res;
 				res=a+a*static_cast<Real>(s);
@@ -131,9 +132,9 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	f1*=2.0;
 
-	geometry.ForEach(
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
 
-			[&a,&f1](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			[&a,&f1](typename TestFixture::FieldType::index_type const & s)
 			{
 				typename TestFixture::FieldType::value_type res;
 				res=(a+a*static_cast<Real>(s))*2.0;
@@ -145,7 +146,6 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 {
-	typename TestFixture::FieldType::geometry_type geometry(TestFixture::mesh);
 
 	typename TestFixture::FieldType f1( TestFixture::mesh),f2(TestFixture::mesh),f3(TestFixture::mesh);
 
@@ -161,14 +161,12 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	std::fill(f1.begin(),f1.end(), va);
 	std::fill(f2.begin(),f2.end(), vb);
 
-	f3 = -f1 *2.0
-	+ f2 * c
-	-f1/b
+	f3 = -f1 *2.0 + f2 * c- f1/b
 	;
 
-	geometry.ForEach (
+	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
 
-			[&](typename TestFixture::FieldType::geometry_type::index_type const & s)
+			[&](typename TestFixture::FieldType::index_type const & s)
 			{
 				value_type res;
 				res= - f1[s]*2.0 + f2[s] *c -f1[s]/b
@@ -276,8 +274,8 @@ public:
 	Mesh mesh;
 	typedef T value_type;
 	typedef nTuple<3, value_type> Vec3;
-	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
-	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
+	typedef Form<0, T> ScalarField;
+	typedef Form<0, nTuple<3, T> > VectorField;
 };
 
 typedef testing::Types<double, Complex, nTuple<3, Real>> VecFieldTypes;
@@ -287,8 +285,6 @@ TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 {
 	const Mesh& mesh = TestFixture::mesh;
-
-	Geometry < Mesh, 0 > geometry(TestFixture::mesh);
 
 	typename TestFixture::Vec3 vc1 =
 	{	1.0, 2.0, 3.0};
@@ -365,9 +361,9 @@ public:
 	Mesh mesh;
 
 	typedef TP value_type;
-	typedef Field<Geometry<Mesh, 0>, value_type> TZeroForm;
-	typedef Field<Geometry<Mesh, 1>, value_type> TOneForm;
-	typedef Field<Geometry<Mesh, 2>, value_type> TTwoForm;
+	typedef Form<0, value_type> TZeroForm;
+	typedef Form<1, value_type> TOneForm;
+	typedef Form<2, value_type> TTwoForm;
 
 	double RelativeError(double a, double b)
 	{
@@ -394,8 +390,10 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex, nTuple<3, double>,
-		nTuple<3, nTuple<3, double>> > PrimitiveTypes;
+typedef testing::Types<double
+//		, Complex, nTuple<3, double>,
+//		nTuple<3, nTuple<3, double>>
+> PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 

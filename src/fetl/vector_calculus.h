@@ -8,49 +8,49 @@
 #ifndef VECTOR_CALCULUS_H_
 #define VECTOR_CALCULUS_H_
 
-#include <fetl/expression.h>
+#include <fetl/ntuple.h>
 #include <fetl/primitives.h>
 #include <type_traits>
 
 namespace simpla
 {
 
-template<typename, int> struct Geometry;
-template<typename, typename > struct Field;
-
-template<typename TGeometry, int TOP, typename TL>
-struct Field<TGeometry, UniOp<TOP, TL> > : public TGeometry
+template<typename TM, int IL, int TOP, typename TL>
+struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
 {
+
+	TM const & mesh;
 
 	typename ConstReferenceTraits<TL>::type l_;
 
 	Field(TL const & l) :
-			TGeometry(l), l_(l)
+			mesh(l.mesh), l_(l)
 	{
 	}
 
 	typedef decltype(
 			_OpEval(Int2Type<TOP>(),
 					std::declval<typename std::remove_reference<TL>::type const&>()
-					,std::declval<typename TGeometry::index_type>())
+					,std::declval<typename TM::index_type>())
 
 	) value_type;
 
-	inline value_type operator[](typename TGeometry::index_type s) const
+	inline value_type operator[](typename TM::index_type s) const
 	{
 		return (_OpEval(Int2Type<TOP>(), l_, s));
 	}
 };
 
-template<typename TGeometry, int TOP, typename TL, typename TR>
-struct Field<TGeometry, BiOp<TOP, TL, TR> > : public TGeometry
+template<typename TM, int IFORM, int TOP, typename TL, typename TR>
+struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
 {
+	TM const & mesh;
 	typename ConstReferenceTraits<TL>::type l_;
 	typename ConstReferenceTraits<TR>::type r_;
-	typedef Field<TGeometry, BiOp<TOP, TL, TR> > this_type;
+	typedef Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> > this_type;
 
 	Field(TL const & l, TR const & r) :
-			TGeometry(l, r), l_(l), r_(r)
+			mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 
@@ -58,13 +58,33 @@ struct Field<TGeometry, BiOp<TOP, TL, TR> > : public TGeometry
 			_OpEval(Int2Type<TOP>(),
 					std::declval<typename std::remove_reference<TL>::type const&>(),
 					std::declval<typename std::remove_reference<TR>::type const&>(),
-					std::declval<typename TGeometry::index_type>()
+					std::declval<typename TM::index_type>()
 			)
 
 	) value_type;
-	inline value_type operator[](typename TGeometry::index_type s) const
+
+	inline value_type operator[](typename TM::index_type s) const
 	{
 		return (_OpEval(Int2Type<TOP>(), l_, r_, s));
+	}
+private:
+
+	template<int IL, typename VL, typename VR> static inline TM const & get_mesh(
+			Field<Geometry<TM, IL>, VL> const & l, VR const & r)
+	{
+		return (l.mesh);
+	}
+	template<typename VL, int IR, typename VR> static inline TM const & get_mesh(
+			VL const & l, Field<Geometry<TM, IR>, VR> const & r)
+	{
+		return (r.mesh);
+	}
+
+	template<int IL, typename VL, int IR, typename VR> static inline TM const & get_mesh(
+			Field<Geometry<TM, IL>, VL> const & l,
+			Field<Geometry<TM, IR>, VR> const & r)
+	{
+		return (l.mesh);
 	}
 
 }
@@ -168,9 +188,20 @@ operator*(Field<TG, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE(
 		(Field<TG,BiOp<MULTIPLIES,Field<TG,TL>,TR > > (lhs, rhs)))
 
+template<typename TG, typename TL, int NR, typename TR> inline auto //
+operator*(Field<TG, TL> const & lhs,
+		nTuple<NR, TR> const & rhs)
+				DECL_RET_TYPE(
+						(Field<TG,BiOp<MULTIPLIES,Field<TG,TL>,nTuple<NR,TR> > > (lhs, rhs)))
+
 template<typename TG, typename TL, typename TR> inline auto //
 operator*(TL const & lhs, Field<TG, TR> const & rhs)
 DECL_RET_TYPE((Field<TG,BiOp<MULTIPLIES,TL,Field<TG,TR> > > (lhs, rhs)))
+
+template<int NL, typename TG, typename TL, typename TR> inline auto //
+operator*(nTuple<NL, TL> const & lhs,
+		Field<TG, TR> const & rhs)
+				DECL_RET_TYPE((Field<TG,BiOp<MULTIPLIES,nTuple<NL,TL>,Field<TG,TR> > > (lhs, rhs)))
 
 template<typename TG, int IL, typename TL, typename TR> inline auto //
 operator/(Field<Geometry<TG, IL>, TL> const & lhs,

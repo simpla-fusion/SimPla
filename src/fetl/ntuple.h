@@ -15,14 +15,13 @@
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
 
-#include <fetl/expression.h>
 #include <fetl/primitives.h>
-//#include <cmath>
 #include <complex>
 #include <cstddef>
 #include <sstream>
 #include <string>
-#include <type_traits>
+
+//#include <type_traits>
 
 namespace simpla
 {
@@ -388,6 +387,7 @@ struct nTuple<N, UniOp<TOP, TL> >
 	}
 
 };
+
 template<int N, typename TL>
 inline auto _Op(Int2Type<NEGATE>, nTuple<N, TL> const & l, size_t s)
 DECL_RET_TYPE ((-l[s] ))

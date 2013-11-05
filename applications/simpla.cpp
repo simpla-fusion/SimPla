@@ -7,19 +7,35 @@
  *
  *  */
 
-#include "include/simpla_defs.h"
-#include "utilities/log.h"
-#include "utilities/lua_parser.h"
-#include "physics/physical_constants.h"
-#include "fetl/fetl.h"
-#include "mesh/uniform_rect.h"
-#include "particle/particle.h"
-#include <cmath>
-#include <string>
-#include <vector>
-#include <list>
-#include <boost/program_options.hpp>
+#include <bits/range_access.h>
+#include <boost/function/function_template.hpp>
+#include <boost/program_options/options_description.hpp>
+#include <boost/program_options/parsers.hpp>
+#include <boost/program_options/value_semantic.hpp>
+#include <boost/program_options/variables_map.hpp>
+#include <fetl/fetl.h>
+//#include <fetl/field.h>
+//#include <fetl/geometry.h>
+#include <fetl/ntuple.h>
+#include <fetl/primitives.h>
+#include <fetl/vector_calculus.h>
+//#include <mesh/uniform_rect.h>
 #include <omp.h>
+#include <particle/particle.h>
+#include <physics/physical_constants.h>
+#include <utilities/log.h>
+#include <utilities/lua_parser.h>
+//#include <complex>
+#include <cstddef>
+#include <initializer_list>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+//#include <vector>
 
 using namespace simpla;
 
@@ -110,13 +126,13 @@ int main(int argc, char **argv)
 
 	}
 
-	size_t numOfStep = pt["STEP"].as<size_t>();
+	size_t numOfStep = pt.Get<size_t>("STEP");
 
 	PhysicalConstants phys_const;
 
 	phys_const.Config(pt["UNIT_SYSTEM"]);
 
-	DEFINE_FIELDS(UniformRectMesh)
+	DEFINE_FIELDS (UniformRectMesh)
 
 	Mesh mesh;
 
@@ -205,8 +221,9 @@ int main(int argc, char **argv)
 		{
 			ZeroForm & ns = v.second.n;
 			VecZeroForm & Js = v.second.J;
-			Real ms = v.second.properties.get<Real>("m") * proton_mass;
-			Real Zs = v.second.properties.get<Real>("Z") * elementary_charge;
+			Real ms = v.second.properties.get < Real > ("m") * proton_mass;
+			Real Zs = v.second.properties.get < Real
+					> ("Z") * elementary_charge;
 			ZeroForm as;
 			as.fill(2.0 * ms / (dt * Zs));
 

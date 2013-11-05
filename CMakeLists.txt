@@ -16,6 +16,27 @@ ExternalProject_Get_Property(googletest BINARY_DIR)
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
 LINK_DIRECTORIES(${BINARY_DIR})
 
+
+#ExternalProject_Add(Eigen
+#    PREFIX third_part 
+#    URL  http://bitbucket.org/eigen/eigen/get/3.2.0.tar.bz2
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Eigen
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(Eigen SOURCE_DIR)
+#ExternalProject_Get_Property(Eigen BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+#LINK_DIRECTORIES(${BINARY_DIR})
+
+#ExternalProject_Add(PHG
+#    PREFIX third_part 
+#    URL  http://lsec.cc.ac.cn/phg/download/phg-0.8.6-20120910.tar.bz2
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/Eigen
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(PHG SOURCE_DIR)
+#ExternalProject_Get_Property(PHG BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+#LINK_DIRECTORIES(${BINARY_DIR})
+
 #ExternalProject_Add(Xdmf
 #    PREFIX third_part
 #    #GIT_REPOSITORY git://paraview.org/Xdmf.git
