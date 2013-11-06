@@ -182,8 +182,9 @@ DECL_SELF_ASSIGN	(+=)
 
 		res *= 0;
 
-		for (auto it1=points.begin(), it2=weights.begin();
-				it1!=points.end()&& it2!=weights.end();++it1,++it2 )
+		auto it1=points.begin();
+		auto it2=weights.begin();
+		for(;it1!=points.end() && it2!=weights.end(); ++it1,++it2 )
 		{
 			res += this->operator[](*it1) * (*it2);
 		}
@@ -216,12 +217,15 @@ DECL_SELF_ASSIGN	(+=)
 
 		std::vector<value_type> cache(weights.size());
 
-		for (auto it1=cache.begin(), it2=weights.begin();
-				it1!=cache.end() && it2!=weights.end();++it1,++it2 )
-		{
-			// FIXME: this incorrect for vector field interpolation
-			*it1 += Dot(v ,*it2);
-		}
+                auto it1=cache.begin();
+                auto it2=weights.begin();
+                for(;it1!=cache.end() && it2!=weights.end(); ++it1,++it2 )
+                {
+ 		  // FIXME: this incorrect for vector field interpolation
+                        *it1 += Dot(v ,*it2);
+
+                }
+
 
 		Scatter(points,cache);
 	}
@@ -230,8 +234,9 @@ DECL_SELF_ASSIGN	(+=)
 	{
 		//FIXME: this is not thread safe, need a mutex lock
 
-		for (auto it1=points.begin(), it2=cache.begin();
-				it1!=points.end()&&it2!=cache.end();++it1,++it2 )
+ 		auto it2=cache.begin();
+                auto it1=points.begin();
+                for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
 			(*this)[*it1] += *it2;
 		}

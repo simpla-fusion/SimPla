@@ -131,59 +131,48 @@ public:
 		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
 		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
 		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-
+                **/ 
 		 mesh_.ForAll(GEOMETRY_TYPE,
 
 		 [&](index_type const & s)
 		 {
-		 ForParticlesInCell(s, fun, MakeCache(args,s)...);
+			ForParticlesInCell(this->operator[](s),fun, args...);
 		 }
 
-		 );**/
-		mesh_.ForAllCell(
-		[&](index_type const &s, auto &... args2)
-		{
-			ForParticlesInCell(this->operator[](s),fun,args2...);
-		},
-
-		args...
-
-		);
+		 );
 	}
 	template<typename Fun, typename ...Args>
 	void ForAllParticle(Fun const & fun, Args &... args) const
 	{
+ 	       mesh_.ForAll(GEOMETRY_TYPE,
 
-		mesh_.ForAllCell(
+                 [&](index_type const & s)
+                 {
+                     ForParticlesInCell(this->operator[](s),fun, args...);
+                 }
 
-		[&](index_type const &s, Args2 &... args2)
-		{
-			ForParticlesInCell(this->operator[](s),fun,args2...);
-		},
+                 );
 
-		args...
-
-		);
 	}
 
 private:
 
-	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(cell_type & cell, Fun const & fun, Args & ... args)
+	template<typename TCELL,typename Fun, typename ... Args>
+	void ForParticlesInCell(TCELL & cell, Fun const & fun, Args & ... args)
 	{
 		for (auto & p : cell)
 		{
-			fun(p, std::forward<Args>(args)...);
+			fun(p, args...);
 		}
 	}
 
-	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(cell_type & cell, Fun const & fun,
+	template<typename TCELL,typename Fun, typename ... Args>
+	void ForParticlesInCell(TCELL const& cell, Fun const & fun,
 			Args & ... args) const
 	{
-		for (auto & p : cell)
+		for (auto const& p : cell)
 		{
-			fun(p, std::forward<Args>(args)...);
+			fun(p, args...);
 		}
 	}
 

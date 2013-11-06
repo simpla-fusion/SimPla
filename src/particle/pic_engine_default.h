@@ -36,14 +36,14 @@ struct PICEngineDefault
 	}
 
 	template<typename TB, typename TE, typename TJ>
-	static inline void ScatterJ(Point_s & p, Real m, Real q, TJ & fJ,
+	static inline void ScatterJ(Point_s const& p, Real m, Real q, TJ & fJ,
 			TB const & pB, TE const &pE)
 	{
 		fJ.Scatter(p.v * p.f, p.x);
 	}
 
 	template<typename TN, typename TB, typename TE>
-	static inline void ScatterN(Point_s & p, Real m, Real q, TN & fn,
+	static inline void ScatterN(Point_s const& p, Real m, Real q, TN & fn,
 			TB const & pB, TE const &pE)
 	{
 		fn.Scatter(p.f, p.x);

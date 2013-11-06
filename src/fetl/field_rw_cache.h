@@ -30,7 +30,7 @@ public:
 
 	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 	static const int IForm = geometry_type::IForm;
 
 	typedef Field<geometry_type, value_type> field_type;
@@ -48,7 +48,7 @@ public:
 	RWCache(mesh_type const & m, index_type const &s, int affect_region = 1) :
 			cell_idx_(s), mesh_(m), affect_region_(affect_region)
 	{
-		mesh_.GetEffectedPoints(Int2Type<IForm>(), s, points_, affect_region_);
+		mesh_.GetAffectedPoints(Int2Type<IForm>(), s, points_, affect_region_);
 		zero_value_ *= 0;
 	}
 
@@ -72,7 +72,7 @@ protected:
 
 	std::vector<typename geometry_type::weight_type> weights_;
 
-	coordinate_type pcoords_;
+	coordinates_type pcoords_;
 };
 
 template<typename TGeometry, typename TValue>
@@ -87,7 +87,7 @@ public:
 
 	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 	static const int IForm = geometry_type::IForm;
 
 	typedef Field<geometry_type, value_type> field_type;
@@ -114,11 +114,11 @@ public:
 	~ReadCache()
 	{
 	}
-	inline field_value_type operator()(coordinate_type const &x)
+	inline field_value_type operator()(coordinates_type const &x)
 	{
 		return std::move(Gather(x));
 	}
-	inline field_value_type Gather(coordinate_type const &x)
+	inline field_value_type Gather(coordinates_type const &x)
 	{
 		index_type idx = base_type::mesh_.SearchCell(base_type::cell_idx_, x,
 				base_type::pcoords_);
@@ -156,7 +156,7 @@ public:
 
 	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::coordinate_type coordinate_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 	static const int IForm = geometry_type::IForm;
 
 	typedef Field<geometry_type, value_type> field_type;
@@ -181,7 +181,7 @@ public:
 		f_.Scatter(base_type::points_, base_type::cache_);
 	}
 
-	inline void Scatter(field_value_type const &v, coordinate_type const &x)
+	inline void Scatter(field_value_type const &v, coordinates_type const &x)
 	{
 		index_type idx = base_type::mesh_.SearchCell(base_type::cell_idx_, x,
 				base_type::pcoords_);
@@ -215,12 +215,12 @@ private:
 
 template<typename TF, typename TI> inline TF & MakeCache(TF &f, TI const &s)
 {
-	return std::forward<TF>(f);
+	return f;
 }
 template<typename TF, typename TI> inline TF const& MakeCache(TF const&f,
 		TI const &s)
 {
-	return std::forward<TF>(f);
+	return f;
 }
 
 template<typename TGeometry, typename TValue> inline typename std::enable_if<

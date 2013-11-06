@@ -98,7 +98,7 @@ public:
 	inline void ScatterJ(TJ & J, Args const & ... args) const
 	{
 		base_type::template ForAllParticle<
-				void(particle_type&, Real, Real, TJ &, Args const &...)>(
+				void(particle_type const&, Real, Real, TJ &, Args const &...)>(
 				engine_type::ScatterJ, m_, q_, J, args ...);
 	}
 
@@ -106,7 +106,7 @@ public:
 	inline void ScatterN(TN & n, Args & ... args) const
 	{
 		base_type::template ForAllParticle<
-				void(particle_type&, Real, Real, TN &, Args const &...)>(
+				void(particle_type const&, Real, Real, TN &, Args const &...)>(
 				engine_type::ScatterJ, m_, q_, n, args ...);
 	}
 
