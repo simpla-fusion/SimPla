@@ -42,7 +42,8 @@
  * */
 
 //need  libstdc++
-#include <ext/mt_allocator.h>
-template<typename T> using FixedSmallObjectAllocator= __gnu_cxx::__mt_alloc<T>;
+//#include <ext/mt_allocator.h>
+template<typename T> using FixedSmallObjectAllocator=std::allocator<T>;
+//		__gnu_cxx::__mt_alloc<T>;
 
 #endif /* SIMPLA_DEFS_H_ */

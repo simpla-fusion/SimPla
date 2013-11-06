@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include "utilities/log.h"
 
 namespace simpla
 {
@@ -487,13 +488,14 @@ struct UniformRectMesh
 				res[i] = xmin_[i];
 			}
 		}
+		res += r * dx_;
 
 		return res;
 
 	}
-
+	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<0>, index_type const & idx,
-			std::vector<index_type> & points, int affect_region = 1) const
+			PList & points, int affect_region = 1) const
 	{
 
 		// 0 0 0
@@ -515,6 +517,32 @@ struct UniformRectMesh
 
 	}
 
+	template<typename PList>
+	inline void GetAffectedPoints(Int2Type<1>, index_type const & idx,
+			PList& points, int affect_region = 1) const
+	{
+
+		// 0 0 0
+
+	}
+
+	template<typename PList>
+	inline void GetAffectedPoints(Int2Type<2>, index_type const & idx,
+			PList& points, int affect_region = 1) const
+	{
+
+		// 0 0 0
+
+	}
+	template<typename PList>
+	inline void GetAffectedPoints(Int2Type<3>, index_type const & idx,
+			PList& points, int affect_region = 1) const
+	{
+
+		// 0 0 0
+
+	}
+
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords,
 			TW & weight, int affect_region = 1) const
@@ -530,6 +558,26 @@ struct UniformRectMesh
 		weight[5] = r * (1.0 - s) * t;
 		weight[6] = (1.0 - r) * s * t;
 		weight[7] = r * s * t;
+	}
+	template<typename TW>
+	inline void CalcuateWeights(Int2Type<1>, coordinates_type const &pcoords,
+			TW & weight, int affect_region = 1) const
+	{
+
+	}
+
+	template<typename TW>
+	inline void CalcuateWeights(Int2Type<2>, coordinates_type const &pcoords,
+			TW & weight, int affect_region = 1) const
+	{
+
+	}
+
+	template<typename TW>
+	inline void CalcuateWeights(Int2Type<3>, coordinates_type const &pcoords,
+			TW & weight, int affect_region = 1) const
+	{
+
 	}
 
 // Mapto ----------------------------------------------------------

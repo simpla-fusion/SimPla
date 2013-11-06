@@ -4,4 +4,4 @@
 #add_library(pic  pic.cpp misc.cpp gyro_gauge.cpp delta_f.cpp)
 # 	 	                      
 #TARGET_LINK_LIBRARIES( pic  ${MKL_STATIC_LIBRARIES} )
-#my_test(pic_test ${MKL_STATIC_LIBRARIES} )  
+my_test(particle_test utilities )  

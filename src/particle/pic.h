@@ -8,6 +8,7 @@
 #ifndef PIC_H_
 #define PIC_H_
 
+#include <fetl/field_rw_cache.h>
 #include <include/simpla_defs.h>
 #include <cstddef>
 #include <list>
@@ -16,7 +17,8 @@ namespace simpla
 {
 
 template<typename TM, typename TV>
-class PIC: public TM::Container<std::list<TV, FixedSmallObjectAllocator<TV> > >
+class PIC: public TM::template Container<
+		std::list<TV, FixedSmallObjectAllocator<TV> > >
 {
 
 	TM const & mesh_;
@@ -26,23 +28,26 @@ public:
 
 	typedef TM Mesh;
 
-	typedef typename TV value_type;
+	typedef TV value_type;
 
-	typedef typename TV particle_type;
+	typedef TV particle_type;
+
+	typedef typename TM::index_type index_type;
 
 	typedef std::list<TV, FixedSmallObjectAllocator<TV> > cell_type;
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename TM::Container<cell_type> container_type;
+	typedef typename TM::template Container<cell_type> container_type;
 
 	typedef PIC<Mesh, value_type> this_type;
 
 	PIC(Mesh const & mesh, allocator_type allocator = allocator_type()) :
 			container_type(
 					std::move(
-							mesh.MakeContianer(GEOMETRY_TYPE,
-									cell_type(allocator)))), mesh_(mesh)
+							mesh.template MakeContainer<cell_type>(
+									GEOMETRY_TYPE, cell_type(allocator)))), mesh_(
+					mesh)
 	{
 	}
 
@@ -76,8 +81,8 @@ public:
 			auto pt = cell.begin();
 			while (pt != cell.end())
 			{
-				auto p = it;
-				++it;
+				auto p = pt;
+				++pt;
 
 				auto j = mesh_.SearchCell(s,p->x);
 
@@ -100,7 +105,7 @@ public:
 		auto it2 = tmp.begin();
 		for (; it1 != container_type::end(); ++it1, ++it2)
 		{
-			it1->splice(it1->begin(), it2);
+			it1->splice(it1->begin(), *it2);
 		}
 	}
 
@@ -120,26 +125,49 @@ public:
 	 * @param fun (cell_type & cell,index_type const & s )
 	 */
 	template<typename Fun, typename ...Args>
-	void ForAllCell(Fun const & fun, Args ...args)
+	void ForAllCell(Fun const & fun, Args &...args)
 	{
-		mesh_->ForAll(GEOMETRY_TYPE,
 
-		[this,&fun,&args...](index_type const & s)
+		MakeCache<index_type> make_cache;
+		mesh_.ForAll(GEOMETRY_TYPE,
+
+		[&](index_type const & s)
 		{
-			fun(this->operator[](s),s,MAKE_CACHE(args,s)...);
+			make_cache.SetIndex(s);
+
+			fun(this->operator[](s),s,make_cache.Eval(args)...);
 		}
 
 		);
 
 	}
 	template<typename Fun, typename ... Args>
-	void ForAllCell(Fun const & fun, Args ... args) const
+	void ForAllCell(Fun const & fun, Args &... args) const
 	{
-		mesh_->ForAll(GEOMETRY_TYPE,
+		MakeCache<index_type> make_cache;
+		mesh_.ForAll(GEOMETRY_TYPE,
+
+				[&](index_type const & s)
+				{
+					make_cache.SetIndex(s);
+
+					fun(this->operator[](s),s, make_cache.template Eval<Args>(args)...);
+				}
+
+				);
+
+	}
+
+	template<typename Fun, typename ...Args>
+	void ForAllParticle(Fun const & fun, Args & ... args)
+	{
+		MakeCache<index_type> make_cache;
+		mesh_.ForAll(GEOMETRY_TYPE,
 
 		[&](index_type const & s)
 		{
-			fun(this->operator[](s),s, MAKE_CACHE(args,s)...);
+			make_cache.SetIndex(s);
+			ForParticlesInCell(s, fun, make_cache.template Eval<Args>(args)...);
 		}
 
 		);
@@ -147,28 +175,15 @@ public:
 	}
 
 	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args ... args)
+	void ForAllParticle(Fun const & fun, Args &... args) const
 	{
-
-		mesh_->ForAll(GEOMETRY_TYPE,
+		MakeCache<index_type> make_cache;
+		mesh_.ForAll(GEOMETRY_TYPE,
 
 		[&](index_type const & s)
 		{
-			ForParticlesInCell(s, fun, MAKE_CACHE(args,s)...);
-		}
-
-		);
-
-	}
-
-	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args ... args) const
-	{
-		mesh_->ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(s, fun, MAKE_CACHE(args,s)...);
+			make_cache.SetIndex(s);
+			ForParticlesInCell(s, fun, make_cache.template Eval<Args>(args)...);
 		}
 
 		);

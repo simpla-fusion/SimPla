@@ -31,9 +31,22 @@ public:
 			xmin_(xmin), xmax_(xmax)
 	{
 	}
+
+	template<typename TRANGE>
+	rectangle_distribution(TRANGE const &xrange) :
+			xmin_(xrange[0]), xmax_(xrange[1])
+	{
+	}
 	~rectangle_distribution()
 	{
 
+	}
+
+	template<typename TR>
+	inline void Reset(TR const &xrange)
+	{
+		xmin_ = xrange[0];
+		xmax_ = xrange[1];
 	}
 
 	inline void Reset(nTuple<NDIM, double> const &xmin,
@@ -69,10 +82,8 @@ public:
 		}
 	}
 private:
-	nTuple<NDIM, double> xmin_ =
-	{ 0, 0, 0 };
-	nTuple<NDIM, double> xmax_ =
-	{ 1, 1, 1 };
+	nTuple<NDIM, double> xmin_;
+	nTuple<NDIM, double> xmax_;
 };
 
 }  // namespace simpla

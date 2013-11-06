@@ -81,7 +81,7 @@ public:
 		{
 			v[i] = normal_dist_(g);
 		}
-		res = A_ * v;
+		res = Dot(A_, v);
 	}
 
 	template<typename Generator> inline nTuple<N, RealType> operator()(

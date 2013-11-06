@@ -142,7 +142,7 @@ public:
 
 	DECL_SELF_ASSIGN(=)
 
-	DECL_SELF_ASSIGN(+=)
+DECL_SELF_ASSIGN	(+=)
 
 	DECL_SELF_ASSIGN(-=)
 
@@ -174,9 +174,9 @@ public:
 
 		std::vector<typename geometry_type::gather_weight_type> weights;
 
-		mesh.GetCellVertices(Int2Type<IForm>(), s, points);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh.CalcuateWeight(Int2Type<IForm>(), pcoords, weights);
+		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
 
 		field_value_type res;
 
@@ -212,7 +212,7 @@ public:
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh.CalcuateWeight(Int2Type<IForm>(), pcoords, weights);
+		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
 
 		std::vector<value_type> cache(weights.size());
 
@@ -226,7 +226,6 @@ public:
 		Scatter(points,cache);
 	}
 
-	template<typename TV >
 	inline void Scatter(std::vector<index_type> const & points,std::vector<value_type> & cache)
 	{
 		//FIXME: this is not thread safe, need a mutex lock

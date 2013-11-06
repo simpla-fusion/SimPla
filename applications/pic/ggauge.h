@@ -16,15 +16,14 @@
 namespace simpla
 {
 
-template<typename TM, int NMATE = 8>
+template<typename TX, int NMATE = 8>
 struct GGauge
 {
-	typedef TM mesh_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef TX coordinates_type;
 
 	struct Point_s
 	{
-		typename TM::coordinates_type x;
+		coordinates_type x;
 		Vec3 v;
 		Real f;
 		Real w[NMATE];
