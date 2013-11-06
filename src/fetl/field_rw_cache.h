@@ -9,7 +9,7 @@
 #define FIELD_IO_CACHE_H_
 
 #include <fetl/field.h>
-#include <fetl/geometry.h>
+//#include <fetl/geometry.h>
 #include <fetl/primitives.h>
 #include <type_traits>
 #include <vector>
@@ -26,19 +26,17 @@ class RWCache<Field<TGeometry, TValue> >
 {
 public:
 	typedef TGeometry geometry_type;
+	typedef TValue value_type;
 
-	typedef Field<TGeometry, TValue> field_type;
-
-	typedef typename field_type::mesh_type mesh_type;
-
-	static const int IForm = field_type::IForm;
-
+	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinate_type coordinate_type;
-	typedef typename field_type::value_type value_type;
+	static const int IForm = geometry_type::IForm;
+
+	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
-	typedef RWCache<Field<TGeometry, TValue> > this_type;
+	typedef RWCache<Field<geometry_type, value_type> > this_type;
 
 	RWCache(this_type const & r) :
 			cell_idx_(r.cell_idx_), mesh_(r.mesh_), affect_region_(
@@ -58,7 +56,7 @@ public:
 	{
 	}
 
-private:
+protected:
 
 	index_type cell_idx_;
 
@@ -85,15 +83,18 @@ class ReadCache<Field<TGeometry, TValue> > : public RWCache<
 public:
 
 	typedef TGeometry geometry_type;
-	typedef Field<geometry_type, TValue> field_type;
-	typedef typename field_type::mesh_type mesh_type;
-	static const int IForm = field_type::IForm;
+	typedef TValue value_type;
+
+	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinate_type coordinate_type;
-	typedef typename field_type::value_type value_type;
+	static const int IForm = geometry_type::IForm;
+
+	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
 	typedef RWCache<field_type> base_type;
+
 	typedef ReadCache<field_type> this_type;
 
 	ReadCache(this_type const & r) :
@@ -103,7 +104,7 @@ public:
 	ReadCache(field_type const & f, index_type const &s, int affect_region = 1) :
 			base_type(f.mesh, s, affect_region), f_(f)
 	{
-		for (auto & p : base_type::points_)
+		for (auto const &p : base_type::points_)
 		{
 			base_type::cache_.push_bach(f_[p]);
 		}
@@ -126,7 +127,7 @@ public:
 		{
 			base_type::mesh_.CalcuateWeight(Int2Type<IForm>(),
 					base_type::pcoords_, base_type::weight_,
-					base_type::affect_region_);
+					base_type::affext_region_);
 
 			return std::move(
 					std::inner_product(base_type::weight_.begin(),
@@ -151,12 +152,14 @@ class WriteCache<Field<TGeometry, TValue> > : public RWCache<
 
 public:
 	typedef TGeometry geometry_type;
-	typedef Field<geometry_type, TValue> field_type;
-	typedef typename field_type::mesh_type mesh_type;
-	static const int IForm = field_type::IForm;
+	typedef TValue value_type;
+
+	typedef typename geometry_type::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinate_type coordinate_type;
-	typedef typename field_type::value_type value_type;
+	static const int IForm = geometry_type::IForm;
+
+	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
 	typedef RWCache<field_type> base_type;
@@ -210,55 +213,34 @@ private:
 
 };
 
-template<typename IDX>
-class MakeCache
+template<typename TF, typename TI> inline TF & MakeCache(TF &f, TI const &s)
 {
-	typedef IDX index_type;
-	index_type s_;
-public:
-	MakeCache()
-	{
+	return std::forward<TF>(f);
+}
+template<typename TF, typename TI> inline TF const& MakeCache(TF const&f,
+		TI const &s)
+{
+	return std::forward<TF>(f);
+}
 
-	}
-	MakeCache(index_type const &s) :
-			s_(s)
-	{
-	}
+template<typename TGeometry, typename TValue> inline typename std::enable_if<
+		!std::is_const<Field<TGeometry, TValue> >::value,
+		WriteCache<Field<TGeometry, TValue> > >::type MakeCache(
+		Field<TGeometry, TValue> & f,
+		typename Field<TGeometry, TValue>::index_type const &s)
+{
+	return std::move(WriteCache<Field<TGeometry, TValue> >(f, s));
+}
 
-	~MakeCache()
-	{
-	}
+template<typename TGeometry, typename TValue> inline typename std::enable_if<
+		std::is_const<Field<TGeometry, TValue> >::value,
+		ReadCache<Field<TGeometry, TValue> > >::type MakeCache(
+		Field<TGeometry, TValue> const & f,
+		typename Field<TGeometry, TValue>::index_type const &s)
+{
+	return std::move(ReadCache<Field<TGeometry, TValue> >(f, s));
+}
 
-	inline void SetIndex(index_type const &s)
-	{
-		s_ = s;
-	}
-	inline index_type GetIndex()
-	{
-		return s_;
-	}
-
-	template<typename TF> inline TF & Eval(TF f) const
-	{
-		return std::forward<TF>(f);
-	}
-
-	template<typename TGeometry, typename TValue> inline typename std::enable_if<
-			!std::is_const<Field<TGeometry, TValue> >::value,
-			WriteCache<Field<TGeometry, TValue> > >::type Eval(
-			Field<TGeometry, TValue> & f)
-	{
-		return std::move(WriteCache<Field<TGeometry, TValue> >(f, s_));
-	}
-
-	template<typename TGeometry, typename TValue> inline typename std::enable_if<
-			std::is_const<Field<TGeometry, TValue> >::value,
-			ReadCache<Field<TGeometry, TValue> > >::type Eval(
-			Field<TGeometry, TValue> const & f)
-	{
-		return std::move(ReadCache<Field<TGeometry, TValue> >(f, s_));
-	}
-};
 }  // namespace simpla
 
 #endif /* FIELD_IO_CACHE_H_ */

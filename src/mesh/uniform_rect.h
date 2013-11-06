@@ -217,8 +217,8 @@ struct UniformRectMesh
 
 	}
 
-	template<typename Fun> inline
-	void ForAll(int iform, Fun const &f) const
+	template<typename Fun, typename ... Args> inline
+	void ForAll(int iform, Fun const &f, Args & ... args) const
 	{
 		size_t num_comp = num_comps_per_cell_[iform];
 
@@ -229,8 +229,25 @@ struct UniformRectMesh
 					{
 						f(
 								(i * strides_[0] + j * strides_[1]
-										+ k * strides_[2]) * num_comp + m);
+										+ k * strides_[2]) * num_comp + m,
+								std::forward<Args>(args)...);
 					}
+
+	}
+
+	template<typename Fun, typename ... Args> inline
+	void ForAllCell(Fun const &fun, Args &... args) const
+	{
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					size_t s = (i * strides_[0] + j * strides_[1]
+							+ k * strides_[2]);
+
+					fun(s, MakeCache(args,s)...);
+				}
 
 	}
 

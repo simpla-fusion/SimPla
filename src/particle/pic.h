@@ -72,12 +72,11 @@ public:
 								cell_type(
 										container_type::begin()->get_allocator()))));
 
-		ForAllCell(
+		mesh_.ForAllCell(
 
 		[&](index_type const & s)
 		{
-			auto & cell= this->operator[](s);
-
+			auto & cell=this->operator[](s);
 			auto pt = cell.begin();
 			while (pt != cell.end())
 			{
@@ -124,91 +123,68 @@ public:
 	 *
 	 * @param fun (cell_type & cell,index_type const & s )
 	 */
-	template<typename Fun, typename ...Args>
-	void ForAllCell(Fun const & fun, Args &...args)
-	{
-
-		MakeCache<index_type> make_cache;
-		mesh_.ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			make_cache.SetIndex(s);
-
-			fun(this->operator[](s),s,make_cache.Eval(args)...);
-		}
-
-		);
-
-	}
-	template<typename Fun, typename ... Args>
-	void ForAllCell(Fun const & fun, Args &... args) const
-	{
-		MakeCache<index_type> make_cache;
-		mesh_.ForAll(GEOMETRY_TYPE,
-
-				[&](index_type const & s)
-				{
-					make_cache.SetIndex(s);
-
-					fun(this->operator[](s),s, make_cache.template Eval<Args>(args)...);
-				}
-
-				);
-
-	}
 
 	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args & ... args)
+	void ForAllParticle(Fun const & fun, Args &... args)
 	{
-		MakeCache<index_type> make_cache;
-		mesh_.ForAll(GEOMETRY_TYPE,
+		/***
+		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
+		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
+		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
 
-		[&](index_type const & s)
+		 mesh_.ForAll(GEOMETRY_TYPE,
+
+		 [&](index_type const & s)
+		 {
+		 ForParticlesInCell(s, fun, MakeCache(args,s)...);
+		 }
+
+		 );**/
+		mesh_.ForAllCell(
+		[&](index_type const &s, auto &... args2)
 		{
-			make_cache.SetIndex(s);
-			ForParticlesInCell(s, fun, make_cache.template Eval<Args>(args)...);
-		}
+			ForParticlesInCell(this->operator[](s),fun,args2...);
+		},
+
+		args...
 
 		);
-
 	}
-
 	template<typename Fun, typename ...Args>
 	void ForAllParticle(Fun const & fun, Args &... args) const
 	{
-		MakeCache<index_type> make_cache;
-		mesh_.ForAll(GEOMETRY_TYPE,
 
-		[&](index_type const & s)
+		mesh_.ForAllCell(
+
+		[&](index_type const &s, Args2 &... args2)
 		{
-			make_cache.SetIndex(s);
-			ForParticlesInCell(s, fun, make_cache.template Eval<Args>(args)...);
-		}
+			ForParticlesInCell(this->operator[](s),fun,args2...);
+		},
+
+		args...
 
 		);
 	}
 
 private:
+
 	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(index_type const &s, Fun const & fun,
-			Args & ... args)
+	void ForParticlesInCell(cell_type & cell, Fun const & fun, Args & ... args)
 	{
-		for (auto & p : this->operator[](s))
+		for (auto & p : cell)
 		{
 			fun(p, std::forward<Args>(args)...);
 		}
 	}
 
 	template<typename Fun, typename ... Args>
-	void ForParticlesInCell(index_type const &s, Fun const & fun,
+	void ForParticlesInCell(cell_type & cell, Fun const & fun,
 			Args & ... args) const
 	{
-		for (auto const& p : this->operator[](s))
+		for (auto & p : cell)
 		{
 			fun(p, std::forward<Args>(args)...);
 		}
-
 	}
 
 };
