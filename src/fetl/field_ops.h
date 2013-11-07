@@ -1,12 +1,12 @@
 /*
- *  _fetl_impl::vector_calculus.h
+ *  operations.h
  *
  *  Created on: 2012-3-1
  *      Author: salmon
  */
 
-#ifndef VECTOR_CALCULUS_H_
-#define VECTOR_CALCULUS_H_
+#ifndef OPERATIONS_H_
+#define OPERATIONS_H_
 
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
@@ -14,81 +14,6 @@
 
 namespace simpla
 {
-
-template<typename TM, int IL, int TOP, typename TL>
-struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
-{
-
-	TM const & mesh;
-
-	typename ConstReferenceTraits<TL>::type l_;
-
-	Field(TL const & l) :
-			mesh(l.mesh), l_(l)
-	{
-	}
-
-	typedef decltype(
-			_OpEval(Int2Type<TOP>(),
-					std::declval<typename std::remove_reference<TL>::type const&>()
-					,std::declval<typename TM::index_type>())
-
-	) value_type;
-
-	inline value_type operator[](typename TM::index_type s) const
-	{
-		return (_OpEval(Int2Type<TOP>(), l_, s));
-	}
-};
-
-template<typename TM, int IFORM, int TOP, typename TL, typename TR>
-struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
-{
-	TM const & mesh;
-	typename ConstReferenceTraits<TL>::type l_;
-	typename ConstReferenceTraits<TR>::type r_;
-	typedef Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> > this_type;
-
-	Field(TL const & l, TR const & r) :
-			mesh(get_mesh(l, r)), l_(l), r_(r)
-	{
-	}
-
-	typedef decltype(
-			_OpEval(Int2Type<TOP>(),
-					std::declval<typename std::remove_reference<TL>::type const&>(),
-					std::declval<typename std::remove_reference<TR>::type const&>(),
-					std::declval<typename TM::index_type>()
-			)
-
-	) value_type;
-
-	inline value_type operator[](typename TM::index_type s) const
-	{
-		return (_OpEval(Int2Type<TOP>(), l_, r_, s));
-	}
-private:
-
-	template<int IL, typename VL, typename VR> static inline TM const & get_mesh(
-			Field<Geometry<TM, IL>, VL> const & l, VR const & r)
-	{
-		return (l.mesh);
-	}
-	template<typename VL, int IR, typename VR> static inline TM const & get_mesh(
-			VL const & l, Field<Geometry<TM, IR>, VR> const & r)
-	{
-		return (r.mesh);
-	}
-
-	template<int IL, typename VL, int IR, typename VR> static inline TM const & get_mesh(
-			Field<Geometry<TM, IL>, VL> const & l,
-			Field<Geometry<TM, IR>, VR> const & r)
-	{
-		return (l.mesh);
-	}
-
-}
-;
 
 template<typename TG, typename TR> inline auto Grad(
 		Field<Geometry<TG, 0>, TR> const & f)
@@ -277,4 +202,4 @@ DECL_RET_TYPE(
 
 }
 // namespace simpla
-#endif /* VECTOR_CALCULUS_H_ */
+#endif /* OPERATIONS_H_ */

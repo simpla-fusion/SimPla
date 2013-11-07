@@ -33,6 +33,15 @@ void foo(Fun const &fun, Args ... args)
 	fun(args...);
 }
 
+template<typename Fun, typename ...Args>
+void Foo(Fun fun, Args & ... args)
+{
+	[&](Args & ... args)
+	{
+		fun(args...);
+	}
+}
+
 template<typename ... Args>
 void foo2(Args ... args)
 {
@@ -40,9 +49,15 @@ void foo2(Args ... args)
 }
 int main()
 {
+	for (int i = 0; i < 10; ++i)
+	{
 
-	foo2(1, 1);
-	foo2(1);
+		[&](Args ... args)
+		{
+
+		}
+
+	}
 
 }
 

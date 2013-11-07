@@ -147,7 +147,7 @@ struct nTuple
 //		return (*this);
 //	}
 
-	template<typename TR> inline ThisType & //
+	template<typename TR> inline ThisType &
 	operator =(TR const &rhs)
 	{
 		for (int i = 0; i < N; ++i)
@@ -158,7 +158,7 @@ struct nTuple
 		return (*this);
 	}
 
-	template<typename TR> inline ThisType & //
+	template<typename TR> inline ThisType &
 	operator =(TR rhs[])
 	{
 		for (int i = 0; i < N; ++i)
@@ -168,7 +168,7 @@ struct nTuple
 
 		return (*this);
 	}
-	template<typename TR> inline ThisType & //
+	template<typename TR> inline ThisType &
 	operator =(nTuple<N, TR> const &rhs)
 	{
 		_impl::_assign<N, ThisType, nTuple<N, TR>>::eval(*this, rhs);
@@ -268,46 +268,45 @@ template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 	return (res);
 }
 
-template<typename T> inline auto //
-Determinant(
-		nTuple<3, nTuple<3, T> > const & m) //
-				DECL_RET_TYPE(//
+template<typename T> inline auto Determinant(
+		nTuple<3, nTuple<3, T> > const & m)
+				DECL_RET_TYPE(
 						(
-								m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1]//
+								m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
 								* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
 								* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
 						)
-						//
+
 				)
 
-template<typename T> inline auto //
-Determinant(nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
-		(//
-		m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]//
-		* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
-		+ m[0][1] * m[1][3]//
-		* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
-		- m[0][1]//
-		* m[1][2] * m[2][3] * m[3][0]
-		- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
-		+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
-		* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
-		- m[0][2] * m[1][0]//
-		* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
-		+ m[0][3]//
-		* m[1][1] * m[2][0] * m[3][2]
-		- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
-		- m[0][3] * m[1][0] * m[2][1] * m[3][2]
-		+ m[0][0] * m[1][3] * m[2][1]//
-		* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
-		- m[0][0] * m[1][1]//
-		* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
-		+ m[0][1]//
-		* m[1][2] * m[2][0] * m[3][3]
-		+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
-		- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
-		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
-))
+template<typename T> inline auto Determinant(
+		nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
+				(//
+				m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]
+				* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
+				+ m[0][1] * m[1][3]//
+				* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
+				- m[0][1]//
+				* m[1][2] * m[2][3] * m[3][0]
+				- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+				+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
+				* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
+				- m[0][2] * m[1][0]//
+				* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
+				+ m[0][3]//
+				* m[1][1] * m[2][0] * m[3][2]
+				- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
+				- m[0][3] * m[1][0] * m[2][1] * m[3][2]
+				+ m[0][0] * m[1][3] * m[2][1]//
+				* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
+				- m[0][0] * m[1][1]//
+				* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
+				+ m[0][1]//
+				* m[1][2] * m[2][0] * m[3][3]
+				+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
+				- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
+				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
+		))
 
 template<int N, typename T> auto abs(nTuple<N, T> const & m)
 DECL_RET_TYPE( std::sqrt(std::abs(Dot(m, m))))
@@ -327,22 +326,22 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	{
 	}
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((_Op(Int2Type<TOP>(),l_,r_,s)))
+	DECL_RET_TYPE((_OpEval(Int2Type<TOP>(),l_,r_,s)))
 
 };
 
 // Expression template of nTuple
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
 template<int N, typename TL, typename TR>                                           \
-inline auto _Op(Int2Type<_NAME_>,nTuple<N, TL> const & l, nTuple<N, TR> const &r,        \
+inline auto _OpEval(Int2Type<_NAME_>,nTuple<N, TL> const & l, nTuple<N, TR> const &r,        \
 			size_t s) DECL_RET_TYPE ((l[s] _OP_ r[s]))                              \
                                                                                     \
 template<int N, typename TL, typename TR>                                           \
-inline auto _Op(Int2Type<_NAME_>,nTuple<N, TL> const & l, TR const &r, size_t s)         \
+inline auto _OpEval(Int2Type<_NAME_>,nTuple<N, TL> const & l, TR const &r, size_t s)         \
 	DECL_RET_TYPE ((l[s] _OP_ r))                                                   \
                                                                                     \
 template<int N, typename TL, typename TR>                                           \
-inline auto _Op(Int2Type<_NAME_>,TL const & l, nTuple<N, TR> const &r, size_t s)         \
+inline auto _OpEval(Int2Type<_NAME_>,TL const & l, nTuple<N, TR> const &r, size_t s)         \
 	DECL_RET_TYPE ((l _OP_ r[s]))                                                   \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
@@ -351,7 +350,7 @@ DECL_RET_TYPE(                                                                  
 		(nTuple<N, BiOp<_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
-operator  _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)                              \
+operator  _OP_ (nTuple<N, TL> const & lhs, TL const & rhs)                              \
 DECL_RET_TYPE((nTuple<N,BiOp<_NAME_ ,nTuple<N, TL>,TR > > (lhs,rhs)))                    \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
@@ -375,7 +374,7 @@ struct nTuple<N, UniOp<TOP, TL> >
 {
 	typename ConstReferenceTraits<TL>::type l_;
 
-	typedef decltype(_Op(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
+	typedef decltype(_OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
 
 	nTuple(TL const & l) :
 			l_(l)
@@ -383,20 +382,20 @@ struct nTuple<N, UniOp<TOP, TL> >
 	}
 	inline value_type operator[](size_t s) const
 	{
-		return _Op(Int2Type<TOP>(), l_, s);
+		return _OpEval(Int2Type<TOP>(), l_, s);
 	}
 
 };
 
 template<int N, typename TL>
-inline auto _Op(Int2Type<NEGATE>, nTuple<N, TL> const & l, size_t s)
+inline auto _OpEval(Int2Type<NEGATE>, nTuple<N, TL> const & l, size_t s)
 DECL_RET_TYPE ((-l[s] ))
 
-template<int N, typename TL> inline  //
+template<int N, typename TL> inline
 auto operator-(nTuple<N, TL> const & f)
 DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
 
-template<int N, typename TL> inline  //
+template<int N, typename TL> inline
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
@@ -404,7 +403,7 @@ DECL_RET_TYPE(f)
 //DECL_RET_TYPE(( std::sin(f)))
 //
 //template<int N, typename TL>
-//inline auto _Op(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
+//inline auto _OpEval(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
 //DECL_RET_TYPE ((sin(l[s]) ))
 //
 //template<int N, typename TL> inline  //
@@ -412,12 +411,12 @@ DECL_RET_TYPE(f)
 //DECL_RET_TYPE(( nTuple<N, UniOp<SIN,nTuple<N, TL> > > (f)))
 
 template<int N, typename TL, typename TR>
-inline auto _Op(Int2Type<CROSS>, nTuple<N, TL> const & l,
+inline auto _OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l,
 		nTuple<N, TR> const &r, size_t s)
 		DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 
-template<int N, typename TL, typename TR> inline auto   //
-Cross(nTuple<N, TL> const & lhs,
+template<int N, typename TL, typename TR> inline auto Cross(
+		nTuple<N, TL> const & lhs,
 		nTuple<N, TR> const & rhs)
 				DECL_RET_TYPE(
 						(nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
@@ -459,9 +458,9 @@ DECL_RET_TYPE((_impl::_dot(l,r)))
 
 template<int N, typename T> using Matrix = nTuple<N,nTuple<N,T> >;
 
-template<typename TL, typename TR>
-inline auto Dot(TL const &l, TR const &r)
-DECL_RET_TYPE((l*r))
+//template<typename TL, typename TR>
+//inline auto Dot(TL const &l, TR const &r)
+//DECL_RET_TYPE((l*r))
 
 }
 //namespace simpla

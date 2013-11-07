@@ -63,30 +63,45 @@ enum POSITION
 };
 
 typedef int8_t ByteType; // int8_t
+
 typedef double Real;
+
 typedef long Integral;
 
 typedef std::complex<Real> Complex;
 
 template<int N, typename T> struct nTuple;
+
 template<typename, int> struct Geometry;
+
 template<typename, typename > struct Field;
 
+template<int TOP, typename TL, typename TR> struct BiOp;
+
+template<int TOP, typename TL> struct UniOp;
+
 typedef nTuple<THREE, Real> Vec3;
+
 typedef nTuple<THREE, nTuple<THREE, Real> > Tensor3;
+
 typedef nTuple<FOUR, nTuple<FOUR, Real> > Tensor4;
 
 typedef nTuple<THREE, Integral> IVec3;
+
 typedef nTuple<THREE, Real> RVec3;
+
 typedef nTuple<THREE, Complex> CVec3;
 
 typedef nTuple<THREE, nTuple<THREE, Real> > RTensor3;
+
 typedef nTuple<THREE, nTuple<THREE, Complex> > CTensor3;
 
 typedef nTuple<FOUR, nTuple<FOUR, Real> > RTensor4;
+
 typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
+
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
 typedef enum
@@ -121,103 +136,6 @@ typedef enum
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
-
-struct Zero
-{
-};
-
-struct One
-{
-};
-struct Infinity
-{
-};
-
-struct Undefine
-{
-};
-
-template<typename TE> inline TE const &
-operator +(TE const &e, Zero const &)
-{
-	return (e);
-}
-
-template<typename TE> inline TE const &
-operator +(Zero const &, TE const &e)
-{
-	return (e);
-}
-
-template<typename TE> inline TE const &
-operator -(TE const &e, Zero const &)
-{
-	return (e);
-}
-
-template<typename TE> inline auto operator -(Zero const &, TE const &e)
-DECL_RET_TYPE (((-e)))
-
-Zero operator +(Zero const &, Zero const &e)
-{
-	return (Zero());
-}
-
-template<typename TE> inline TE const &operator *(TE const &e, One const &)
-{
-	return (e);
-}
-
-template<typename TE> inline TE const & operator *(One const &, TE const &e)
-{
-	return (e);
-}
-
-template<typename TE> inline Zero operator *(TE const &, Zero const &)
-{
-	return (Zero());
-}
-
-template<typename TE> inline Zero operator *(Zero const &, TE const &)
-{
-	return (Zero());
-}
-
-template<typename TE> inline Infinity operator /(TE const &e, Zero const &)
-{
-	return (Infinity());
-}
-
-template<typename TE> inline Zero operator /(Zero const &, TE const &e)
-{
-	return (Zero());
-}
-
-template<typename TE> inline Zero operator /(TE const &, Infinity const &)
-{
-	return (Zero());
-}
-
-template<typename TE> inline Infinity operator /(Infinity const &, TE const &e)
-{
-	return (Infinity());
-}
-
-template<typename TL> inline auto   //
-operator==(TL const & lhs, Zero)
-DECL_RET_TYPE ((lhs))
-
-template<typename TR> inline auto   //
-operator==(Zero, TR const & rhs)
-DECL_RET_TYPE ((rhs))
-
-template<int N, typename TExpr> struct nTuple;
-
-template<typename, typename > struct Field;
-
-template<int TOP, typename TL, typename TR> struct BiOp;
-
-template<int TOP, typename TL> struct UniOp;
 
 template<typename T>
 struct remove_const_reference

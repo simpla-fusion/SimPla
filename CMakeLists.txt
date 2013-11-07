@@ -8,7 +8,8 @@ ENABLE_TESTING()
 INCLUDE(ExternalProject)
 ExternalProject_Add(googletest
     PREFIX third_part 
-    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    #    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/gtest-1.7.0.zip
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/googletest
     INSTALL_COMMAND "" )
 ExternalProject_Get_Property(googletest SOURCE_DIR)
@@ -60,10 +61,19 @@ SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE})
 SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/${CMAKE_BUILD_TYPE}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-#FIND_PACKAGE(OpenMP)
-SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} -fPIC -DGTEST_HAS_TR1_TUPLE=0  -std=c++0x ")
+SET(CMAKE_CXX_FLAGS "-fPIC -DGTEST_HAS_TR1_TUPLE=0  -std=c++0x ")
 SET(CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -g")
 SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
+
+if(USE_CLANG)
+  SET(CMAKE_AR      "/usr/bin/llvm-ar")
+  SET(CMAKE_LINKER  "/usr/bin/llvm-ld")
+  SET(CMAKE_NM      "/usr/bin/llvm-nm")
+  SET(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
+  SET(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+  #  SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
+
+endif(USE_CLANG)
 
 set(Boost_USE_STATIC_LIBS       OFF)
 set(Boost_USE_MULTITHREADED     OFF)

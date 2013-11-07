@@ -8,9 +8,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <complex>
-#include "expression.h"
 #include "ntuple.h"
-//#include "operator_overload.h"
 using namespace simpla;
 
 template<typename T> T _real(T const & v)
