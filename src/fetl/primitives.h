@@ -104,39 +104,6 @@ static const Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-typedef enum
-{
-	PLUS = 1,
-
-	MINUS = 2,
-
-	MULTIPLIES = 3,
-
-	DIVIDES = 4,
-
-	WEDGE, CROSS, DOT,
-
-	MODULUS, BITWISEXOR, BITWISEAND, BITWISEOR,
-
-	GRAD, DIVERGE, CURL, HODGESTAR, EXTRIORDERIVATIVE, NEGATE, CURLPD1, CURLPD2,
-
-	EQUAL, LESS, GREATER,
-
-	NULL_OP
-
-} OpType;
-
-typedef enum
-{
-	SIN = NULL_OP + 1, COS, TAN, CTAN, EXP, LOG10, LOG2, LN, ABS
-
-} MathFunType;
-
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-
-#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
-        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
-
 template<typename T>
 struct remove_const_reference
 {
@@ -225,6 +192,19 @@ struct is_storage_type<Field<TG, UniOp<TOP, TL> > >
 {
 	static const bool value = false;
 };
+
+template<typename T>
+struct is_ntuple
+{
+	static const bool value = false;
+};
+
+template<int N, typename T>
+struct is_ntuple<nTuple<N, T>>
+{
+	static const bool value = true;
+};
+
 template<typename T>
 struct ReferenceTraits
 {
@@ -245,34 +225,131 @@ struct ConstReferenceTraits<double>
 {
 	typedef double type;
 };
-inline double index(double v, size_t)
+
+template<class T, typename TI = int>
+struct is_indexable
+{
+	template<typename T1, typename T2>
+	static auto check_index(T1 const& u, T2 const &s) ->typename std::add_const<
+	decltype(const_cast<typename std::remove_cv<T1>::type &>(u)[s])>::type
+	{
+	}
+
+	static std::false_type check_index(...)
+	{
+		return std::false_type();
+	}
+
+public:
+
+	typedef decltype(
+			check_index((std::declval<T>()),
+					std::declval<TI>())) result_type;
+
+	static const bool value =
+			!(std::is_same<result_type, std::false_type>::value);
+
+};
+
+template<typename T, typename TI> inline typename std::enable_if<
+		!is_indexable<T, TI>::value, T>::type index(T const & v, TI const &)
 {
 	return (v);
 }
-inline std::complex<double> index(std::complex<double> v, size_t)
+
+template<typename T, typename TI>
+inline auto index(T const & v, TI const &s)->decltype(v[s])
 {
-	return (v);
-}
-template<typename T> inline
-auto index(T const & v, size_t s)->decltype(v[s])
-{
-	return (v[s]);
+	return v[s];
 }
 
-template<bool cond>
-struct c_index
+template<typename T, typename TI>
+inline auto index(T & v, TI const &s)->decltype(v[s])
 {
-	template<typename T>
-	static auto eval(T const & v, size_t s)
-	DECL_RET_TYPE (v[s])
-};
+	return v[s];
+}
 
-template<>
-struct c_index<false>
+typedef enum
 {
-	template<typename T> static auto eval(T const & v, size_t)
-	DECL_RET_TYPE(v)
-};
+	PLUS = 1,
+
+	MINUS = 2,
+
+	MULTIPLIES = 3,
+
+	DIVIDES = 4,
+
+	NEGATE = 5,
+
+	MODULUS,
+	BITWISEXOR,
+	BITWISEAND,
+	BITWISEOR,
+
+	WEDGE,
+	CROSS,
+	DOT,
+
+	GRAD,
+	DIVERGE,
+	CURL,
+	HODGESTAR,
+	EXTRIORDERIVATIVE,
+	CURLPDX,
+	CURLPDY,
+	CURLPDZ,
+
+	EQUAL,
+	LESS,
+	GREATER,
+
+	NULL_OP
+
+} OpType;
+
+typedef enum
+{
+	SIN = NULL_OP + 1, COS, TAN, CTAN, EXP, LOG10, LOG2, LN, ABS
+
+} MathFunType;
+
+#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
+
+#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
+        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
+#define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                             \
+template<typename TL, typename TR,typename TI>                                           \
+inline auto _OpEval(Int2Type< _NAME_ >, TL const & l, TR const &r, TI const & s)             \
+		DECL_RET_TYPE ((index(l,s) _OP_ index(r,s)))
+
+_DEFINE_BINARY_OPERATOR(PLUS, +)
+_DEFINE_BINARY_OPERATOR(MINUS, -)
+_DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
+_DEFINE_BINARY_OPERATOR(DIVIDES, /)
+//_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
+//_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
+//_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
+//_DEFINE_BINARY_OPERATOR(MODULUS, %)
+
+#undef _DEFINE_BINARY_OPERATOR
+
+//template<typename TL, typename TR, typename TI>
+//inline auto _OpEval(Int2Type<PLUS>, TL const & l, TR const &r, TI const & s)
+//->decltype(((index(l,s) + index(r,s))))
+//{
+//	return ((index(l, s) + index(r, s)));
+//}
+//template<typename TL, typename TR, typename TI>
+//inline auto _OpEval(Int2Type<DIVIDES>, TL const & l, TR const &r, TI const & s)
+//->decltype(((index(l,s) / index(r,s))))
+//{
+//	return ((index(l, s) / index(r, s)));
+//}
+
+template<typename TL, typename TI>
+inline auto _OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
+DECL_RET_TYPE ((-index(l, s) ))
 
 }
 // namespace simpla

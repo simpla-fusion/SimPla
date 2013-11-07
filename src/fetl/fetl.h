@@ -13,8 +13,7 @@
 #include "./ntuple.h"
 #include "./field.h"
 #include "./ntuple.h"
-#include "operations.h"
-
+#include "field_ops.h"
 namespace simpla
 {
 

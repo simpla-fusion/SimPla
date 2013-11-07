@@ -8,6 +8,8 @@
 #ifndef OPERATIONS_H_
 #define OPERATIONS_H_
 
+#include <fetl/constant_ops.h>
+#include <fetl/field.h>
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
 #include <type_traits>

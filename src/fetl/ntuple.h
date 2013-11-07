@@ -332,30 +332,17 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 
 // Expression template of nTuple
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
-template<int N, typename TL, typename TR>                                           \
-inline auto _OpEval(Int2Type<_NAME_>,nTuple<N, TL> const & l, nTuple<N, TR> const &r,        \
-			size_t s) DECL_RET_TYPE ((l[s] _OP_ r[s]))                              \
-                                                                                    \
-template<int N, typename TL, typename TR>                                           \
-inline auto _OpEval(Int2Type<_NAME_>,nTuple<N, TL> const & l, TR const &r, size_t s)         \
-	DECL_RET_TYPE ((l[s] _OP_ r))                                                   \
-                                                                                    \
-template<int N, typename TL, typename TR>                                           \
-inline auto _OpEval(Int2Type<_NAME_>,TL const & l, nTuple<N, TR> const &r, size_t s)         \
-	DECL_RET_TYPE ((l _OP_ r[s]))                                                   \
-                                                                                   \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)                   \
-DECL_RET_TYPE(                                                                     \
-		(nTuple<N, BiOp<_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
+DECL_RET_TYPE((nTuple<N, BiOp<_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
-operator  _OP_ (nTuple<N, TL> const & lhs, TL const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,BiOp<_NAME_ ,nTuple<N, TL>,TR > > (lhs,rhs)))                    \
+operator  _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)                              \
+DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, nTuple<N, TL>, TR> >(lhs, rhs)))                   \
                                                                                    \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)                              \
-DECL_RET_TYPE((nTuple<N,BiOp<_NAME_,TL,nTuple<N, TR> > > (lhs,rhs)))                    \
+DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, TL, nTuple<N, TR> > >(lhs, rhs)))              \
 
 
 _DEFINE_BINARY_OPERATOR(PLUS, +)
@@ -386,10 +373,6 @@ struct nTuple<N, UniOp<TOP, TL> >
 	}
 
 };
-
-template<int N, typename TL>
-inline auto _OpEval(Int2Type<NEGATE>, nTuple<N, TL> const & l, size_t s)
-DECL_RET_TYPE ((-l[s] ))
 
 template<int N, typename TL> inline
 auto operator-(nTuple<N, TL> const & f)
@@ -458,9 +441,9 @@ DECL_RET_TYPE((_impl::_dot(l,r)))
 
 template<int N, typename T> using Matrix = nTuple<N,nTuple<N,T> >;
 
-//template<typename TL, typename TR>
-//inline auto Dot(TL const &l, TR const &r)
-//DECL_RET_TYPE((l*r))
+template<typename TL, typename TR>
+inline auto Dot(TL const &l, TR const &r)
+DECL_RET_TYPE((l*r))
 
 }
 //namespace simpla

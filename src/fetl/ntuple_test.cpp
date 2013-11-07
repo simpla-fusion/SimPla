@@ -9,6 +9,8 @@
 #include <iostream>
 #include <complex>
 #include "ntuple.h"
+#include "primitives.h"
+
 using namespace simpla;
 
 template<typename T> T _real(T const & v)

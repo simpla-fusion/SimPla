@@ -124,19 +124,11 @@ public:
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
-	operator _OP_(Field<geometry_type, TR> const & rhs)                               \
+	operator _OP_(TR const & rhs)                               \
 	{                                                                             \
 		mesh.ForEach(IForm,												      \
 		[this, &rhs](index_type const &s)                 \
-		{	(*this)[s] _OP_ rhs[s];});                                            \
-		return (*this);                                                           \
-	}                                                                             \
-	template<typename TR> inline this_type &                                      \
-	operator _OP_(TR const & rhs)                                                 \
-	{                                                                             \
-		mesh.ForEach(IForm,									                  \
-		[this, &rhs](index_type const &s)                 \
-		{	(*this)[s] _OP_ rhs ;});                                              \
+		{	(*this)[s] _OP_ index(rhs,s);});                                            \
 		return (*this);                                                           \
 	}
 
@@ -217,15 +209,14 @@ DECL_SELF_ASSIGN	(+=)
 
 		std::vector<value_type> cache(weights.size());
 
-                auto it1=cache.begin();
-                auto it2=weights.begin();
-                for(;it1!=cache.end() && it2!=weights.end(); ++it1,++it2 )
-                {
- 		  // FIXME: this incorrect for vector field interpolation
-                        *it1 += Dot(v ,*it2);
+		auto it1=cache.begin();
+		auto it2=weights.begin();
+		for(;it1!=cache.end() && it2!=weights.end(); ++it1,++it2 )
+		{
+			// FIXME: this incorrect for vector field interpolation
+			*it1 += Dot(v ,*it2);
 
-                }
-
+		}
 
 		Scatter(points,cache);
 	}
@@ -234,9 +225,9 @@ DECL_SELF_ASSIGN	(+=)
 	{
 		//FIXME: this is not thread safe, need a mutex lock
 
- 		auto it2=cache.begin();
-                auto it1=points.begin();
-                for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
+		auto it2=cache.begin();
+		auto it1=points.begin();
+		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
 			(*this)[*it1] += *it2;
 		}
