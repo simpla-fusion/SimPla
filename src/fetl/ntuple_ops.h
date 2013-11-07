@@ -101,13 +101,6 @@ struct _inner_product_s<1, TL, TR>
 }
 //namespace _impl
 
-template<int N, typename TL, typename TR>
-inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS!=N),
-		(_impl::_inner_product(l,r)))
-
-template<int N, typename T> using Matrix = nTuple<N,nTuple<N,T> >;
-
 template<typename TL, typename TR>
 inline auto InnerProduct(TL const &l, TR const &r)
 DECL_RET_TYPE((l*r))
@@ -124,18 +117,23 @@ template<int N, typename TL, int M, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<M, TR> const &r)
 DECL_RET_TYPE((InnerProduct(l,r)))
 
-template<int N, int M, typename TL, typename TR>
+template<int N, typename TL, typename TR>
+inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS==1),
+		(_impl::_inner_product(l,r)))
+
+template<int N, int M, int P, typename TL, typename TR>
 inline auto InnerProduct(nTuple<N, nTuple<M, TL>> const & l,
-		nTuple<M, TR> const &r)
+		nTuple<P, TR> const &r)
 		DECL_RET_TYPE(
 				(nTuple<N, BiOp<INNER_PRODUCT,
-						nTuple<N, nTuple<M, TL>>, nTuple<M, TR> > >(l,r)))
+						nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >(l,r)))
 
-template<int N, int M, typename TL, typename TR>
-struct nTuple<N, BiOp<INNER_PRODUCT, nTuple<N, nTuple<M, TL>>, nTuple<M, TR> > >
+template<int N, int M, int P, typename TL, typename TR>
+struct nTuple<N, BiOp<INNER_PRODUCT, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 {
 	typedef nTuple<N, nTuple<M, TL>> left_type;
-	typedef nTuple<M, TR> right_type;
+	typedef nTuple<P, TR> right_type;
 	typename ConstReferenceTraits<left_type>::type l_;
 	typename ConstReferenceTraits<right_type>::type r_;
 	nTuple(left_type const & l, right_type const & r) :
