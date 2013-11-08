@@ -92,9 +92,11 @@ TEST(PARTICLE_TEST,Create)
 		v = uniform_dist(rnd_gen);
 	}
 
+	CHECK(p_ion.size());
+
 	p_ion.Sort();
 	p_ion.Push(E, B);
-//	p_ion.Sort();
+	p_ion.Sort();
 	p_ion.ScatterN(J, E, B);
 	p_ion.ScatterJ(J, E, B);
 

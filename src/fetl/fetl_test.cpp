@@ -278,7 +278,9 @@ public:
 	typedef Form<0, nTuple<3, T> > VectorField;
 };
 
-typedef testing::Types<double, Complex, nTuple<3, Real>> VecFieldTypes;
+typedef testing::Types<double, Complex
+//		, nTuple<3, Real>
+> VecFieldTypes;
 
 TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 
@@ -310,167 +312,167 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 	res_scalar_field = Dot(vc1, va);
 
 	res_vector_field = Cross( va,vc1);
-//
-//	res_scalar_field.ForEach (
-//
-//			[&](typename TestFixture::ScalarField::value_type const & v)
-//			{
-//				ASSERT_EQ(res_scalar, v);
-//			}
-//
-//	);
-//
-//	res_vector_field.ForEach (
-//
-//			[&](typename TestFixture::VectorField::value_type const & v)
-//			{
-//				ASSERT_EQ(res_vec , v);
-//			}
-//
-//	);
+
+	res_scalar_field.ForEach (
+
+			[&](typename TestFixture::ScalarField::value_type const & v)
+			{
+				ASSERT_EQ(res_scalar, v);
+			}
+
+	);
+
+	res_vector_field.ForEach (
+
+			[&](typename TestFixture::VectorField::value_type const & v)
+			{
+				ASSERT_EQ(res_vec , v);
+			}
+
+	);
 
 }
 }
-//
-//template<typename TP>
-//class TestFETLDiffCalcuate: public testing::Test
-//{
-//
-//protected:
-//	virtual void SetUp()
-//	{
-//		mesh.dt_ = 1.0;
-//		mesh.xmin_[0] = 0;
-//		mesh.xmin_[1] = 0;
-//		mesh.xmin_[2] = 0;
-//		mesh.xmax_[0] = 1.0;
-//		mesh.xmax_[1] = 1.0;
-//		mesh.xmax_[2] = 1.0;
-//		mesh.dims_[0] = 1;
-//		mesh.dims_[1] = 10;
-//		mesh.dims_[2] = 10;
-//		mesh.gw_[0] = 2;
-//		mesh.gw_[1] = 2;
-//		mesh.gw_[2] = 2;
-//
-//		mesh.Update();
-//
-//	}
-//public:
-//
-//	Mesh mesh;
-//
-//	typedef TP value_type;
-//	typedef Form<0, value_type> TZeroForm;
-//	typedef Form<1, value_type> TOneForm;
-//	typedef Form<2, value_type> TTwoForm;
-//
-//	double RelativeError(double a, double b)
-//	{
-//		return (2.0 * fabs((a - b) / (a + b)));
-//	}
-//
-//	void SetValue(double *v)
-//	{
-//		*v = 1.0;
-//	}
-//
-//	void SetValue(Complex *v)
-//	{
-//		*v = Complex(1.0, 2.0);
-//	}
-//
-//	template<int N, typename TV>
-//	void SetValue(nTuple<N, TV> *v)
-//	{
-//		for (size_t i = 0; i < N; ++i)
-//		{
-//			SetValue(&((*v)[i]));
-//		}
-//	}
-//};
-//
-//typedef testing::Types<double
-////		, Complex, nTuple<3, double>,
-////		nTuple<3, nTuple<3, double>>
-//> PrimitiveTypes;
-//
-//TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
-//
-//TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
-//{
-//	Mesh const & mesh = TestFixture::mesh;
-//
-//	typename TestFixture::value_type v;
-//
-//	TestFixture::SetValue(&v);
-//
-//	typename TestFixture::TZeroForm sf(mesh);
-//	typename TestFixture::TTwoForm vf2(mesh);
-//
-//	std::mt19937 gen;
-//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-//
-//	std::fill(sf.begin(),sf.end(), v*0.0);
-//	std::fill(vf2.begin(),vf2.end(), v*0.0);
-//
-//	mesh.ForEach(0,
-//			[&](typename Mesh::index_type const & s)
-//			{
-//				sf[s]=v*uniform_dist(gen);
-//			}
-//	);
-//
-////	mesh.UpdateCyCleBoundary(sf);
-//
-//	vf2 = Curl(Grad(sf));
-//
-//	size_t count=0;
-//	mesh.ForEach(2,
-//			[&](typename Mesh::index_type const & s)
-//			{
-//				count+=( abs(vf2[s])>1.0e-10)?1:0;
-//				ASSERT_NEAR(0.0, abs(vf2[s]),1.0e-10) << "idx=" << s;
-//			}
-//	);
-//
-//	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
-//}
-//}
-//
-//TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
-//{
-//
-//	Mesh const & mesh = TestFixture::mesh;
-//
-//	typename TestFixture::TZeroForm sf(mesh);
-//	typename TestFixture::TOneForm vf1(mesh);
-//	typename TestFixture::TTwoForm vf2(mesh);
-//
-//	typename TestFixture::value_type v;
-//
-//	TestFixture::SetValue(&v);
-//
-//	std::mt19937 gen;
-//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-//
-//	for(auto p:vf2)
-//	{
-//		p=v*uniform_dist(gen);
-//	}
-//
-//	vf1 = Curl(vf2);
-//	sf = Diverge( Curl(vf2));
-//
-//	size_t count=0;
-//
-//	mesh.ForEach(0,
-//			[&sf,&count](typename Mesh::index_type const &s)
-//			{
-//				count+=( abs(sf[s])>1.0e-15)?1:0;
-//				ASSERT_NEAR(0.0, abs(sf[s]),1.0e-14) << "idx=" << s;
-//			}
-//	);
-//	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
-//}
-//}
+
+template<typename TP>
+class TestFETLDiffCalcuate: public testing::Test
+{
+
+protected:
+	virtual void SetUp()
+	{
+		mesh.dt_ = 1.0;
+		mesh.xmin_[0] = 0;
+		mesh.xmin_[1] = 0;
+		mesh.xmin_[2] = 0;
+		mesh.xmax_[0] = 1.0;
+		mesh.xmax_[1] = 1.0;
+		mesh.xmax_[2] = 1.0;
+		mesh.dims_[0] = 1;
+		mesh.dims_[1] = 10;
+		mesh.dims_[2] = 10;
+		mesh.gw_[0] = 2;
+		mesh.gw_[1] = 2;
+		mesh.gw_[2] = 2;
+
+		mesh.Update();
+
+	}
+public:
+
+	Mesh mesh;
+
+	typedef TP value_type;
+	typedef Form<0, value_type> TZeroForm;
+	typedef Form<1, value_type> TOneForm;
+	typedef Form<2, value_type> TTwoForm;
+
+	double RelativeError(double a, double b)
+	{
+		return (2.0 * fabs((a - b) / (a + b)));
+	}
+
+	void SetValue(double *v)
+	{
+		*v = 1.0;
+	}
+
+	void SetValue(Complex *v)
+	{
+		*v = Complex(1.0, 2.0);
+	}
+
+	template<int N, typename TV>
+	void SetValue(nTuple<N, TV> *v)
+	{
+		for (size_t i = 0; i < N; ++i)
+		{
+			SetValue(&((*v)[i]));
+		}
+	}
+};
+
+typedef testing::Types<double
+//		, Complex, nTuple<3, double>,
+//		nTuple<3, nTuple<3, double>>
+> PrimitiveTypes;
+
+TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
+
+TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
+{
+	Mesh const & mesh = TestFixture::mesh;
+
+	typename TestFixture::value_type v;
+
+	TestFixture::SetValue(&v);
+
+	typename TestFixture::TZeroForm sf(mesh);
+	typename TestFixture::TTwoForm vf2(mesh);
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	std::fill(sf.begin(),sf.end(), v*0.0);
+	std::fill(vf2.begin(),vf2.end(), v*0.0);
+
+	mesh.ForEach(0,
+			[&](typename Mesh::index_type const & s)
+			{
+				sf[s]=v*uniform_dist(gen);
+			}
+	);
+
+//	mesh.UpdateCyCleBoundary(sf);
+
+	vf2 = Curl(Grad(sf));
+
+	size_t count=0;
+	mesh.ForEach(2,
+			[&](typename Mesh::index_type const & s)
+			{
+				count+=( abs(vf2[s])>1.0e-10)?1:0;
+				ASSERT_NEAR(0.0, abs(vf2[s]),1.0e-10) << "idx=" << s;
+			}
+	);
+
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
+}
+}
+
+TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
+{
+
+	Mesh const & mesh = TestFixture::mesh;
+
+	typename TestFixture::TZeroForm sf(mesh);
+	typename TestFixture::TOneForm vf1(mesh);
+	typename TestFixture::TTwoForm vf2(mesh);
+
+	typename TestFixture::value_type v;
+
+	TestFixture::SetValue(&v);
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	for(auto p:vf2)
+	{
+		p=v*uniform_dist(gen);
+	}
+
+	vf1 = Curl(vf2);
+	sf = Diverge( Curl(vf2));
+
+	size_t count=0;
+
+	mesh.ForEach(0,
+			[&sf,&count](typename Mesh::index_type const &s)
+			{
+				count+=( abs(sf[s])>1.0e-15)?1:0;
+				ASSERT_NEAR(0.0, abs(sf[s]),1.0e-14) << "idx=" << s;
+			}
+	);
+	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
+}
+}
