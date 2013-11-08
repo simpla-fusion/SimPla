@@ -279,7 +279,7 @@ public:
 };
 
 typedef testing::Types<double, Complex
-//		, nTuple<3, Real>
+		, nTuple<3, Real>
 > VecFieldTypes;
 
 TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);

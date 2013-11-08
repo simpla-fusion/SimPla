@@ -106,18 +106,6 @@ inline auto InnerProduct(TL const &l, TR const &r)
 DECL_RET_TYPE((l*r))
 
 template<int N, typename TL, typename TR>
-inline auto Dot(nTuple<N, TL> const &l, TR const &r)
-DECL_RET_TYPE((InnerProduct(l,r)))
-
-template<typename TL, int M, typename TR>
-inline auto Dot(TL const &l, nTuple<M, TR> const &r)
-DECL_RET_TYPE((InnerProduct(l,r)))
-
-template<int N, typename TL, int M, typename TR>
-inline auto Dot(nTuple<N, TL> const &l, nTuple<M, TR> const &r)
-DECL_RET_TYPE((InnerProduct(l,r)))
-
-template<int N, typename TL, typename TR>
 inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS==1),
 		(_impl::_inner_product(l,r)))
@@ -148,26 +136,22 @@ struct nTuple<N, BiOp<INNER_PRODUCT, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 }
 ;
 
-template<typename STREAM, typename T>
-inline STREAM & ShowNumOfDims(STREAM & os, T const &)
-{
-	return os;
-}
-template<typename STREAM, int N, typename T>
-inline STREAM & ShowNumOfDims(STREAM & os, nTuple<N, T> const &v)
-{
-	os << " x " << N;
-	ShowNumOfDims(os, index(v, 0));
-	return os;
-}
+//template<typename STREAM, typename T>
+//inline STREAM & ShowNumOfDims(STREAM & os, T const &)
+//{
+//	return os;
+//}
+//template<typename STREAM, int N, typename T>
+//inline STREAM & ShowNumOfDims(STREAM & os, nTuple<N, T> const &v)
+//{
+//	os << " x " << N;
+//	ShowNumOfDims(os, index(v, 0));
+//	return os;
+//}
 
 template<int N, typename T> std::ostream &
 operator<<(std::ostream& os, const nTuple<N, T> & tv)
 {
-//	os << std::endl << "[" << N;
-//	ShowNumOfDims(os, tv[0]);
-//	os << "]" << std::endl;
-
 	os << "{" << tv[0];
 	for (int i = 1; i < N; ++i)
 	{
@@ -332,6 +316,9 @@ template<int N, typename TL, typename TR> inline auto Cross(
 				DECL_RET_TYPE(
 						(nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
 
+template<int N, typename TL, typename TR>
+inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+DECL_RET_TYPE((_impl::_inner_product(l,r)))
 }
 // namespace simpla
 
