@@ -42,6 +42,6 @@ int main()
 
 	nTuple<3, nTuple<2, nTuple<3, double>>> g =
 	{	1, 2, 3, 4, 5, 6, 7, 8, 9,1, 2, 3, 4, 5, 6, 7, 8, 9};
-	CHECK(InnerProduct(g, c));
+	CHECK(TensorContraction(g, c));
 
 }

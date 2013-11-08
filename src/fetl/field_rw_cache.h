@@ -17,12 +17,11 @@
 namespace simpla
 {
 
+template<typename TF> class _RWCache;
 template<typename TF> class RWCache;
-template<typename TF> class ReadCache;
-template<typename TF> class WriteCache;
 
 template<typename TGeometry, typename TValue>
-class RWCache<Field<TGeometry, TValue> >
+class _RWCache<Field<TGeometry, TValue> >
 {
 public:
 	typedef TGeometry geometry_type;
@@ -36,16 +35,16 @@ public:
 	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
-	typedef RWCache<Field<geometry_type, value_type> > this_type;
+	typedef _RWCache<Field<geometry_type, value_type> > this_type;
 
-	RWCache(this_type const & r) :
-			cell_idx_(r.cell_idx_), mesh_(r.mesh_), affect_region_(
-					r.affect_region_), points_(r.points_)
+	R_WCache(this_type const & r) :
+	cell_idx_(r.cell_idx_), mesh_(r.mesh_), affect_region_(
+			r.affect_region_), points_(r.points_)
 	{
 		zero_value_ *= 0;
 	}
 
-	RWCache(mesh_type const & m, index_type const &s, int affect_region = 1) :
+	_RWCache(mesh_type const & m, index_type const &s, int affect_region = 1) :
 			cell_idx_(s), mesh_(m), affect_region_(affect_region)
 	{
 		mesh_.GetAffectedPoints(Int2Type<IForm>(), s, points_, affect_region_);
@@ -76,7 +75,7 @@ protected:
 };
 
 template<typename TGeometry, typename TValue>
-class ReadCache<Field<TGeometry, TValue> > : public RWCache<
+class RWCache<const Field<TGeometry, TValue> > : public _RWCache<
 		Field<TGeometry, TValue> >
 {
 
@@ -93,15 +92,15 @@ public:
 	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
-	typedef RWCache<field_type> base_type;
+	typedef _RWCache<field_type> base_type;
 
-	typedef ReadCache<field_type> this_type;
+	typedef RWCache<field_type> this_type;
 
-	ReadCache(this_type const & r) :
+	RWCache(this_type const & r) :
 			base_type(r), f_(r.f_)
 	{
 	}
-	ReadCache(field_type const & f, index_type const &s, int affect_region = 1) :
+	RWCache(field_type const & f, index_type const &s, int affect_region = 1) :
 			base_type(f.mesh, s, affect_region), f_(f)
 	{
 		for (auto const &p : base_type::points_)
@@ -111,7 +110,7 @@ public:
 
 	}
 
-	~ReadCache()
+	~RWCache()
 	{
 	}
 	inline field_value_type operator()(coordinates_type const &x)
@@ -146,7 +145,7 @@ private:
 };
 
 template<typename TGeometry, typename TValue>
-class WriteCache<Field<TGeometry, TValue> > : public RWCache<
+class RWCache<Field<TGeometry, TValue> > : public _RWCache<
 		Field<TGeometry, TValue> >
 {
 
@@ -162,21 +161,21 @@ public:
 	typedef Field<geometry_type, value_type> field_type;
 	typedef typename field_type::field_value_type field_value_type;
 
-	typedef RWCache<field_type> base_type;
-	typedef WriteCache<field_type> this_type;
+	typedef _RWCache<field_type> base_type;
+	typedef RWCache<field_type> this_type;
 
-	WriteCache(this_type const & r) :
+	RWCache(this_type const & r) :
 			base_type(r), f_(r.f_)
 	{
 	}
 
-	WriteCache(field_type & f, index_type const &s, int affect_region = 1) :
+	RWCache(field_type & f, index_type const &s, int affect_region = 1) :
 			base_type(f.mesh, s, affect_region), f_(f)
 	{
 		std::fill(base_type::cache_.begin(), base_type::cache_.end(),
 				base_type::zero_value_);
 	}
-	~WriteCache()
+	~RWCache()
 	{
 		f_.Scatter(base_type::points_, base_type::cache_);
 	}
@@ -225,21 +224,22 @@ template<typename TF, typename TI> inline TF const& MakeCache(TF const&f,
 
 template<typename TGeometry, typename TValue> inline typename std::enable_if<
 		!std::is_const<Field<TGeometry, TValue> >::value,
-		WriteCache<Field<TGeometry, TValue> > >::type MakeCache(
-		Field<TGeometry, TValue> & f,
-		typename Field<TGeometry, TValue>::index_type const &s)
+		RWCache<Field<TGeometry, TValue> > >::type MakeCache(
+		Field<TGeometry, TValue> & f)
 {
-	return std::move(WriteCache<Field<TGeometry, TValue> >(f, s));
+	return std::move(RWCache<Field<TGeometry, TValue> >(f));
 }
 
 template<typename TGeometry, typename TValue> inline typename std::enable_if<
 		std::is_const<Field<TGeometry, TValue> >::value,
-		ReadCache<Field<TGeometry, TValue> > >::type MakeCache(
-		Field<TGeometry, TValue> const & f,
-		typename Field<TGeometry, TValue>::index_type const &s)
+		RWCache<const Field<TGeometry, TValue> > >::type MakeCache(
+		Field<TGeometry, TValue> const & f)
 {
-	return std::move(ReadCache<Field<TGeometry, TValue> >(f, s));
+	return std::move(RWCache<const Field<TGeometry, TValue> >(f));
 }
+
+template<typename ... Args>
+void ResetCaches(size_t s )
 
 }  // namespace simpla
 

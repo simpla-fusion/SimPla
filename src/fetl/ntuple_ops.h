@@ -102,23 +102,23 @@ struct _inner_product_s<1, TL, TR>
 //namespace _impl
 
 template<typename TL, typename TR>
-inline auto InnerProduct(TL const &l, TR const &r)
+inline auto TensorContraction(TL const &l, TR const &r)
 DECL_RET_TYPE((l*r))
 
 template<int N, typename TL, typename TR>
-inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+inline auto TensorContraction(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS==1),
 		(_impl::_inner_product(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
-inline auto InnerProduct(nTuple<N, nTuple<M, TL>> const & l,
+inline auto TensorContraction(nTuple<N, nTuple<M, TL>> const & l,
 		nTuple<P, TR> const &r)
 		DECL_RET_TYPE(
-				(nTuple<N, BiOp<INNER_PRODUCT,
+				(nTuple<N, BiOp<TENSOR_CONTRACTION,
 						nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
-struct nTuple<N, BiOp<INNER_PRODUCT, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
+struct nTuple<N, BiOp<TENSOR_CONTRACTION, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 {
 	typedef nTuple<N, nTuple<M, TL>> left_type;
 	typedef nTuple<P, TR> right_type;
@@ -130,7 +130,7 @@ struct nTuple<N, BiOp<INNER_PRODUCT, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 	}
 
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((InnerProduct(index(l_, s), r_)))
+	DECL_RET_TYPE((TensorContraction(index(l_, s), r_)))
 	;
 
 }

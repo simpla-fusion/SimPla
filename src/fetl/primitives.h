@@ -271,20 +271,13 @@ inline auto index(T & v, TI const &s)->decltype(v[s])
 
 typedef enum
 {
-	PLUS = 1,
-	MINUS = 2,
-	MULTIPLIES = 3,
-	DIVIDES = 4,
-	NEGATE = 5,
+	PLUS = 1, MINUS = 2, MULTIPLIES = 3, DIVIDES = 4, NEGATE = 5,
 
-	MODULUS,
-	BITWISEXOR,
-	BITWISEAND,
-	BITWISEOR,
+	MODULUS, BITWISEXOR, BITWISEAND, BITWISEOR,
 
 	// Tensor product
-	TENSOR_PRODUCT,
-	INNER_PRODUCT,
+	TENSOR_PRODUCT, // outer product
+	TENSOR_CONTRACTION,
 
 	WEDGE,
 	CROSS,

@@ -48,8 +48,6 @@ struct UniformRectMesh
 
 	typedef std::list<index_type> chains_type;
 
-	template<typename Ret, typename ... Args> friend Ret _Op(Args...);
-
 	this_type & operator=(const this_type&) = delete;
 
 	nTuple<NUM_OF_DIMS, size_t> shift_;
@@ -246,7 +244,7 @@ struct UniformRectMesh
 					size_t s = (i * strides_[0] + j * strides_[1]
 							+ k * strides_[2]);
 
-					fun(s, MakeCache(args,s)...);
+					fun(s, args...);
 				}
 
 	}

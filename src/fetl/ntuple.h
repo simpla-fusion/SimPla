@@ -37,6 +37,7 @@ namespace simpla
  * */
 
 template<int N, typename T> struct nTuple;
+template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
 namespace _impl
 {
