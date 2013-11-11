@@ -92,7 +92,7 @@ public:
 
 	typedef _RWCache<field_type> base_type;
 
-	typedef RWCache<field_type> this_type;
+	typedef RWCache<const field_type> this_type;
 
 	RWCache(this_type const & r) :
 			base_type(r), f_(r.f_)
@@ -180,7 +180,7 @@ public:
 	}
 
 	template<typename TV>
-	inline void Scatter(TV const &v, coordinates_type const &x)const
+	inline void Scatter(TV const &v, coordinates_type const &x) const
 	{
 //		coordinates_type pcoords;
 //
@@ -234,7 +234,7 @@ struct CacheProxy<const Field<TGeometry, TValue> >
 	typedef RWCache<src_type> type;
 
 	template<typename TI>
-	static inline RWCache<src_type> Eval(src_type const& f, TI const & s)
+	static inline RWCache<src_type> Eval(src_type & f, TI const & s)
 	{
 		return RWCache<src_type>(f, s);
 	}

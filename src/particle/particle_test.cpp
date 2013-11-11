@@ -97,7 +97,7 @@ TEST(PARTICLE_TEST,Create)
 	p_ion.Sort();
 	p_ion.Push(E, B);
 	p_ion.Sort();
-//	p_ion.ScatterN(J, E, B);
+	p_ion.ScatterN(n, E, B);
 	p_ion.ScatterJ(J, E, B);
 
 }

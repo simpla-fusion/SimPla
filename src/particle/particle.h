@@ -181,19 +181,19 @@ public:
 				J, args...);
 	}
 
-//	template<typename TN, typename ... Args>
-//	inline void ScatterN(TN & n, Args & ... args) const
-//	{
-//		ForAllParticle(
-//
-//				[&](particle_type const& p,typename CacheProxy<TN>::type const & n_c,
-//						typename CacheProxy<const Args>::type const& ... args_c)
-//				{
-//					engine_type::ScatterN(p,n_c,args_c...);
-//				},
-//
-//				n, args...);
-//	}
+	template<typename TN, typename ... Args>
+	inline void ScatterN(TN & n, Args const& ... args) const
+	{
+		ForAllParticle(
+
+				[&](particle_type const& p,typename CacheProxy<TN>::type const & n_c,
+						typename CacheProxy<const Args>::type const& ... args_c)
+				{
+					engine_type::ScatterN(p,n_c,args_c...);
+				},
+
+				n, args...);
+	}
 
 	/**
 	 *  Traversal each cell, include boundary cells.

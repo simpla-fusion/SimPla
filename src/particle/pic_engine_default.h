@@ -58,28 +58,29 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p, TB const & fB, TE const &fE)const
+	inline void Push(Point_s & p, TB const & fB, TE const &fE) const
 	{
 		auto B = fB(p.x);
 		auto E = fE(p.x);
-
 	}
 
 	template<typename TJ, typename TB, typename TE>
-	inline void ScatterJ(Point_s const& p, TJ & fJ, TB const & pB, TE const &pE)const
+	inline void ScatterJ(Point_s const& p, TJ & fJ, TB const & pB,
+			TE const &pE) const
 	{
 		fJ.Scatter(p.v * p.f, p.x);
 	}
 
 	template<typename TN, typename TB, typename TE>
-	inline void ScatterN(Point_s const& p, TN & fn, TB const & pB, TE const &pE)const
+	inline void ScatterN(Point_s const& p, TN & fn, TB const & pB,
+			TE const &pE) const
 	{
 		fn.Scatter(p.f, p.x);
 	}
 
 	template<typename TX, typename TV, typename TN, typename ...Args>
 	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n,
-			Args...)const
+			Args...) const
 	{
 		p.x = x;
 		p.v = v;
