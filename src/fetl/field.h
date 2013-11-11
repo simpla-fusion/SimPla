@@ -196,7 +196,7 @@ DECL_SELF_ASSIGN	(+=)
 
 	}
 	template<typename TV >
-	inline void Scatter(TV const & v,index_type const & s,coordinates_type const &pcoords )
+	inline void Scatter(TV const & v,index_type const & s,coordinates_type const &pcoords ,int affected_region=1)
 	{
 
 		std::vector<index_type> points;

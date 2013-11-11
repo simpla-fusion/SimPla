@@ -466,7 +466,8 @@ struct UniformRectMesh
 	 * @param pcoords
 	 * @return
 	 */
-	inline index_type SearchCell(index_type, coordinates_type const &x,
+	inline index_type SearchCell(index_type const &hint_idx,
+			coordinates_type const &x,
 			coordinates_type *pcoords = nullptr) const
 	{
 		return SearchCell(x, pcoords);

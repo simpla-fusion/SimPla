@@ -37,9 +37,9 @@ public:
 
 	typedef _RWCache<Field<geometry_type, value_type> > this_type;
 
-	R_WCache(this_type const & r) :
-	cell_idx_(r.cell_idx_), mesh_(r.mesh_), affect_region_(
-			r.affect_region_), points_(r.points_)
+	_RWCache(this_type const & r) :
+			cell_idx_(r.cell_idx_), mesh_(r.mesh_), affect_region_(
+					r.affect_region_), points_(r.points_)
 	{
 		zero_value_ *= 0;
 	}
@@ -51,11 +51,9 @@ public:
 		zero_value_ *= 0;
 	}
 
-	~RWCache()
+	~_RWCache()
 	{
 	}
-
-protected:
 
 	index_type cell_idx_;
 
@@ -105,7 +103,7 @@ public:
 	{
 		for (auto const &p : base_type::points_)
 		{
-			base_type::cache_.push_bach(f_[p]);
+			base_type::cache_.push_back(f_[p]);
 		}
 
 	}
@@ -113,25 +111,26 @@ public:
 	~RWCache()
 	{
 	}
-	inline field_value_type operator()(coordinates_type const &x)
+	inline field_value_type operator()(coordinates_type const &x) const
 	{
 		return std::move(Gather(x));
 	}
-	inline field_value_type Gather(coordinates_type const &x)
+	inline field_value_type Gather(coordinates_type const &x) const
 	{
+		coordinates_type pcoords_;
 		index_type idx = base_type::mesh_.SearchCell(base_type::cell_idx_, x,
-				base_type::pcoords_);
+				&(pcoords_));
 
 		if (idx == base_type::cell_idx_)
 		{
-			base_type::mesh_.CalcuateWeight(Int2Type<IForm>(),
-					base_type::pcoords_, base_type::weight_,
-					base_type::affext_region_);
+			base_type::mesh_.CalcuateWeights(Int2Type<IForm>(),
+					base_type::pcoords_, base_type::weights_,
+					base_type::affect_region_);
 
 			return std::move(
-					std::inner_product(base_type::weight_.begin(),
-							base_type::weight_.end(), base_type::cache_.begin(),
-							base_type::zero_value_));
+					std::inner_product(base_type::weights_.begin(),
+							base_type::weights_.end(),
+							base_type::cache_.begin(), base_type::zero_value_));
 		}
 		else
 		{
@@ -172,38 +171,42 @@ public:
 	RWCache(field_type & f, index_type const &s, int affect_region = 1) :
 			base_type(f.mesh, s, affect_region), f_(f)
 	{
-		std::fill(base_type::cache_.begin(), base_type::cache_.end(),
-				base_type::zero_value_);
+//		std::fill(base_type::cache_.begin(), base_type::cache_.end(),
+//				base_type::zero_value_);
 	}
 	~RWCache()
 	{
 		f_.Scatter(base_type::points_, base_type::cache_);
 	}
 
-	inline void Scatter(field_value_type const &v, coordinates_type const &x)
+	template<typename TV>
+	inline void Scatter(TV const &v, coordinates_type const &x)const
 	{
-		index_type idx = base_type::mesh_.SearchCell(base_type::cell_idx_, x,
-				base_type::pcoords_);
-
-		if (idx == base_type::cell_idx_)
-		{
-			base_type::mesh_.CalcuateWeight(Int2Type<IForm>(),
-					base_type::pcoords_, base_type::weights_,
-					base_type::affect_region_);
-
-			for (auto it1 = base_type::cache_.begin(), it2 =
-					base_type::weights_.begin();
-					it1 != base_type::cache_.end()
-							&& it2 != base_type::weights_.end(); ++it1, ++it2)
-			{
-				// FIXME: this incorrect for vector field interpolation
-				*it1 += Dot(v, *it2);
-			}
-		}
-		else
-		{
-			f_.Scatter(v, idx, base_type::pcoords_, base_type::affect_region_);
-		}
+//		coordinates_type pcoords;
+//
+//		index_type idx = base_type::mesh_.SearchCell(base_type::cell_idx_, x,
+//				&pcoords);
+//
+//		if (idx == base_type::cell_idx_)
+//		{
+//			base_type::mesh_.CalcuateWeights(Int2Type<IForm>(), pcoords,
+//					base_type::weights_, base_type::affect_region_);
+//
+//			auto it1 = base_type::cache_.begin();
+//			auto it2 = base_type::weights_.begin();
+//
+//			for (;
+//					it1 != base_type::cache_.end()
+//							&& it2 != base_type::weights_.end(); ++it1, ++it2)
+//			{
+//				// FIXME: this incorrect for vector field interpolation
+//				*it1 += Dot(v, *it2);
+//			}
+//		}
+//		else
+//		{
+//			f_.Scatter(v, idx, pcoords, base_type::affect_region_);
+//		}
 	}
 
 private:
@@ -211,35 +214,45 @@ private:
 	field_type & f_;
 
 };
-
-template<typename TF, typename TI> inline TF & MakeCache(TF &f, TI const &s)
+template<typename T>
+struct CacheProxy
 {
-	return f;
-}
-template<typename TF, typename TI> inline TF const& MakeCache(TF const&f,
-		TI const &s)
-{
-	return f;
-}
+	typedef T src_type;
+	typedef T type;
+	template<typename TI>
+	static inline src_type & Eval(T & f, TI const &)
+	{
+		return f;
+	}
+};
 
-template<typename TGeometry, typename TValue> inline typename std::enable_if<
-		!std::is_const<Field<TGeometry, TValue> >::value,
-		RWCache<Field<TGeometry, TValue> > >::type MakeCache(
-		Field<TGeometry, TValue> & f)
+template<typename TGeometry, typename TValue>
+struct CacheProxy<const Field<TGeometry, TValue> >
 {
-	return std::move(RWCache<Field<TGeometry, TValue> >(f));
-}
+	typedef const Field<TGeometry, TValue> src_type;
 
-template<typename TGeometry, typename TValue> inline typename std::enable_if<
-		std::is_const<Field<TGeometry, TValue> >::value,
-		RWCache<const Field<TGeometry, TValue> > >::type MakeCache(
-		Field<TGeometry, TValue> const & f)
+	typedef RWCache<src_type> type;
+
+	template<typename TI>
+	static inline RWCache<src_type> Eval(src_type const& f, TI const & s)
+	{
+		return RWCache<src_type>(f, s);
+	}
+};
+
+template<typename TGeometry, typename TValue>
+struct CacheProxy<Field<TGeometry, TValue> >
 {
-	return std::move(RWCache<const Field<TGeometry, TValue> >(f));
-}
+	typedef Field<TGeometry, TValue> src_type;
 
-template<typename ... Args>
-void ResetCaches(size_t s )
+	typedef RWCache<src_type> type;
+
+	template<typename TI>
+	static inline RWCache<src_type> Eval(src_type & f, TI const & s)
+	{
+		return RWCache<src_type>(f, s);
+	}
+};
 
 }  // namespace simpla
 
