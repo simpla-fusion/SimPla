@@ -10,7 +10,9 @@
 
 #include <fetl/primitives.h>
 #include <cstddef>
+#include <fetl/proxycache.h>
 #include <fetl/field_rw_cache.h>
+
 #include <include/simpla_defs.h>
 #include <cstddef>
 #include <list>
@@ -18,9 +20,10 @@ namespace simpla
 {
 template<typename T> using pic_type =std::list<T, FixedSmallObjectAllocator<T>>;
 
-template<class Engine>
-class Particle: public Engine, public Engine::mesh_type::template Container<
-		pic_type<typename Engine::Point_s>>
+template<class Engine,
+		typename TContainer = typename Engine::mesh_type::template Container<
+				pic_type<typename Engine::Point_s>> >
+class Particle: public Engine, public TContainer
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -49,15 +52,39 @@ public:
 
 	typedef typename mesh_type::template Container<cell_type> container_type;
 
-	Particle(mesh_type const & mesh, allocator_type allocator =
-			allocator_type()) :
+	mesh_type const &mesh;
 
-			engine_type(mesh),
+private:
+	allocator_type allocator_;
+
+public:
+
+	template<typename ...Args>
+	Particle(mesh_type const & pmesh, Args const &... args) :
+
+			engine_type(pmesh, args...),
 
 			container_type(
 					std::move(
-							mesh.template MakeContainer<cell_type>(
-									GEOMETRY_TYPE, cell_type(allocator))))
+							pmesh.template MakeContainer<cell_type>(
+									GEOMETRY_TYPE, cell_type(allocator_)))),
+
+			mesh(pmesh)
+
+	{
+	}
+
+	template<typename ...Args>
+	Particle(mesh_type const & pmesh, allocator_type allocator, Args ... args) :
+
+			engine_type(pmesh, std::forward<Args>(args)...),
+
+			container_type(
+					std::move(
+							pmesh.template MakeContainer<cell_type>(
+									GEOMETRY_TYPE, cell_type(allocator)))),
+
+			mesh(pmesh), allocator_(allocator)
 
 	{
 	}
@@ -86,11 +113,11 @@ public:
 
 		container_type tmp(
 				std::move(
-						engine_type::mesh.MakeContainer(GEOMETRY_TYPE,
+						mesh.MakeContainer(GEOMETRY_TYPE,
 								cell_type(
 										container_type::begin()->get_allocator()))));
 
-		engine_type::mesh.ForAllCell(
+		mesh.ForAllCell(
 
 		[&](index_type const & s)
 		{
@@ -101,7 +128,7 @@ public:
 				auto p = pt;
 				++pt;
 
-				auto j = engine_type::mesh.SearchCell(s,p->x);
+				auto j = mesh.SearchCell(s,p->x);
 
 				if (j!=s)
 				{
@@ -126,33 +153,13 @@ public:
 		}
 	}
 
-	template<typename TFUN, typename ... Args>
-	inline void ForEach(TFUN const & fun, Args const& ... args)
-	{
-//		ForAllParticle<void(particle_type &, Real, Real, Args...)>(fun, m_, q_,
-//				std::forward<Args>(args) ...);
-	}
-
-	template<typename TFUN, typename TJ, typename ... Args>
-	inline void ForEach(TFUN const & fun, TJ & J, Args const & ... args) const
-	{
-//		engine_type::mesh.ForAllCell(
-//
-//		[&](index_type const &s)
-//		{
-//			auto packs=PackParameters(MakeCache(J,s),MakeCache(args,s)...);
-//			for()
-//
-//		});
-	}
-
 	template<typename ... Args>
 	inline void Push(Args const& ... args)
 	{
-		ForAllParticle(
+		ForEach(
 
 		[&](particle_type & p,
-				typename CacheProxy<const Args>::type const& ... args_c)
+				typename ProxyCache<const Args>::type const& ... args_c)
 		{
 			engine_type::Push(p,args_c...);
 		},
@@ -160,39 +167,46 @@ public:
 		args...);
 	}
 
-	template<typename TFUN, typename TJ, typename ... Args>
-	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
-	{
-
-//		ForAllParticle(fun, J, args ...);
-	}
-
 	template<typename TJ, typename ... Args>
 	inline void ScatterJ(TJ & J, Args const & ... args) const
 	{
-		ForAllParticle(
+		ForEach(
 
-				[&](particle_type const& p,typename CacheProxy<TJ>::type const & J_c,
-						typename CacheProxy<const Args>::type const& ... args_c)
-				{
-					engine_type::ScatterJ(p,J_c,args_c...);
-				},
+		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+				typename ProxyCache<const Args>::type const& ... args_c)
+		{
+			engine_type::ScatterJ(p,J_c,args_c...);
+		},
 
-				J, args...);
+		J, args...);
 	}
 
 	template<typename TN, typename ... Args>
 	inline void ScatterN(TN & n, Args const& ... args) const
 	{
-		ForAllParticle(
+		ForEach(
 
-				[&](particle_type const& p,typename CacheProxy<TN>::type const & n_c,
-						typename CacheProxy<const Args>::type const& ... args_c)
-				{
-					engine_type::ScatterN(p,n_c,args_c...);
-				},
+		[&](particle_type const& p,typename ProxyCache<TN>::type & n_c,
+				typename ProxyCache<const Args>::type const& ... args_c)
+		{
+			engine_type::ScatterN(p,n_c,args_c...);
+		},
 
-				n, args...);
+		n, args...);
+	}
+
+	template<typename TFUN, typename TJ, typename ... Args>
+	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
+	{
+		ForEach(
+
+		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+				typename ProxyCache<const Args>::type const& ... args_c)
+		{
+			fun(p,J_c,args_c...);
+		},
+
+		J, args...);
 	}
 
 	/**
@@ -202,32 +216,32 @@ public:
 	 */
 
 	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args &... args)
+	void ForEach(Fun const & fun, Args &... args)
 	{
 		/***
 		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
 		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
 		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
 		 **/
-		engine_type::mesh.ForAll(GEOMETRY_TYPE,
+		mesh.ForAll(GEOMETRY_TYPE,
 
 		[&](index_type const & s)
 		{
 			ForParticlesInCell(this->operator[](s),
-					fun,CacheProxy< Args>::Eval(args,s)...);
+					fun,ProxyCache< Args>::Eval(args,s)...);
 		}
 
 		);
 	}
 	template<typename Fun, typename ...Args>
-	void ForAllParticle(Fun const & fun, Args &... args) const
+	void ForEach(Fun const & fun, Args &... args) const
 	{
-		engine_type::mesh.ForAll(GEOMETRY_TYPE,
+		mesh.ForAll(GEOMETRY_TYPE,
 
 		[&](index_type const & s)
 		{
 			ForParticlesInCell(this->operator[](s),
-					fun, CacheProxy< Args>::Eval(args,s)...);
+					fun, ProxyCache< Args>::Eval(args,s)...);
 		}
 
 		);
@@ -237,7 +251,7 @@ public:
 private:
 
 	template<typename TCELL, typename Fun, typename ... Args>
-	void ForParticlesInCell(TCELL & cell, Fun & fun, Args const& ... args)
+	void ForParticlesInCell(TCELL & cell, Fun & fun, Args && ... args)
 	{
 		for (auto & p : cell)
 		{
@@ -246,8 +260,7 @@ private:
 	}
 
 	template<typename TCELL, typename Fun, typename ... Args>
-	void ForParticlesInCell(TCELL const& cell, Fun & fun,
-			Args const& ... args) const
+	void ForParticlesInCell(TCELL const& cell, Fun & fun, Args &&... args) const
 	{
 		for (auto const& p : cell)
 		{

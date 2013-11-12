@@ -20,8 +20,10 @@ public:
 
 	mesh_type const &mesh;
 
+private:
 	Real m_, q_;
 
+public:
 	struct Point_s
 	{
 		coordinates_type x;
@@ -29,8 +31,8 @@ public:
 		Real f;
 	};
 
-	PICEngineDefault(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0)
+	PICEngineDefault(mesh_type const &pmesh, Real mass, Real charge) :
+			mesh(pmesh), m_(mass), q_(charge)
 	{
 
 	}

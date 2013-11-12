@@ -118,7 +118,8 @@ inline auto TensorContraction(nTuple<N, nTuple<M, TL>> const & l,
 						nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
-struct nTuple<N, BiOp<TENSOR_CONTRACTION, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
+struct nTuple<N,
+		BiOp<TENSOR_CONTRACTION, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 {
 	typedef nTuple<N, nTuple<M, TL>> left_type;
 	typedef nTuple<P, TR> right_type;
@@ -237,6 +238,19 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 			l_(l), r_(r)
 	{
 	}
+
+	typedef decltype(_OpEval(Int2Type<TOP>(),std::declval<TL>() ,std::declval<TR>(),size_t())) value_type;
+
+	inline operator nTuple<N,value_type>() const
+	{
+		nTuple<N, value_type> res;
+		for (int i = 0; i < N; ++i)
+		{
+			res[i] = this->operator[](i);
+		}
+		return res;
+	}
+
 	inline auto operator[](size_t s) const
 	DECL_RET_TYPE((_OpEval(Int2Type<TOP>(),l_,r_,s)))
 
@@ -279,6 +293,18 @@ struct nTuple<N, UniOp<TOP, TL> >
 			l_(l)
 	{
 	}
+
+	inline operator nTuple<N,value_type>() const
+	{
+		nTuple<N, value_type> res;
+		for (int i = 0; i < N; ++i)
+		{
+			res[i] = this->operator[](i);
+		}
+		return res;
+
+	}
+
 	inline value_type operator[](size_t s) const
 	{
 		return _OpEval(Int2Type<TOP>(), l_, s);
@@ -319,6 +345,11 @@ template<int N, typename TL, typename TR> inline auto Cross(
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((_impl::_inner_product(l,r)))
+
+template<typename TL, typename TR>
+inline auto Dot(TL const &l, TR const &r)
+DECL_RET_TYPE((l*r))
+
 }
 // namespace simpla
 

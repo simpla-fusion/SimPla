@@ -9,11 +9,13 @@
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
 
-#include <fetl/primitives.h>
 #include <complex>
 #include <cstddef>
-#include <sstream>
-#include <string>
+#include <initializer_list>
+//#include <sstream>
+//#include <string>
+
+#include "primitives.h"
 
 //#include <type_traits>
 
@@ -94,6 +96,20 @@ struct nTuple
 	typedef T value_type;
 
 	value_type v_[N];
+
+//	nTuple()
+//	{
+//	}
+//	nTuple(std::initializer_list<T> r)
+//	{
+//		int i = 0;
+//		auto it = r.begin();
+//		for (; i < N && it != r.end(); ++it, ++i)
+//		{
+//			v_[i] = *it;
+//		}
+//	}
+//
 
 	inline value_type &
 	operator[](size_t i)

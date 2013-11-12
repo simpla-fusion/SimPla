@@ -239,14 +239,13 @@ template<typename TM, int IL, int TOP, typename TL>
 struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
 {
 
-	TM const & mesh;
+private:
 
 	typename ConstReferenceTraits<TL>::type l_;
 
-	Field(TL const & l) :
-			mesh(l.mesh), l_(l)
-	{
-	}
+public:
+
+	TM const & mesh;
 
 	typedef decltype(
 			_OpEval(Int2Type<TOP>(),
@@ -254,6 +253,17 @@ struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
 					,std::declval<typename TM::index_type>())
 
 	) value_type;
+
+	typedef Geometry<TM, IL> geometry_type;
+
+	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
+
+	typedef Field<Geometry<TM, IL>, UniOp<TOP, TL> > this_type;
+
+	Field(TL const & l) :
+			mesh(l.mesh), l_(l)
+	{
+	}
 
 	inline value_type operator[](typename TM::index_type s) const
 	{
@@ -264,11 +274,14 @@ struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
 template<typename TM, int IFORM, int TOP, typename TL, typename TR>
 struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
 {
-	TM const & mesh;
+
+private:
 	typename ConstReferenceTraits<TL>::type l_;
 	typename ConstReferenceTraits<TR>::type r_;
 	typedef Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> > this_type;
 
+public:
+	TM const & mesh;
 	Field(TL const & l, TR const & r) :
 			mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
@@ -282,6 +295,10 @@ struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
 			)
 
 	) value_type;
+
+	typedef Geometry<TM, IFORM> geometry_type;
+
+	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
 
 	inline value_type operator[](typename TM::index_type s) const
 	{
