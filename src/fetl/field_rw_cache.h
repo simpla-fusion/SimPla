@@ -8,12 +8,11 @@
 #ifndef FIELD_IO_CACHE_H_
 #define FIELD_IO_CACHE_H_
 
-#include <fetl/field.h>
-#include <fetl/primitives.h>
-#include <fetl/proxycache.h>
-#include <type_traits>
-
 #include <vector>
+
+#include "field.h"
+#include "primitives.h"
+#include "proxycache.h"
 
 namespace simpla
 {

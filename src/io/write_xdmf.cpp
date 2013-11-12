@@ -5,44 +5,21 @@
  *      Author: salmon
  */
 
-#include "write_xdmf.h"
-#include <algorithm>
-#include <string>
-#include <list>
-#include <H5Cpp.h>
-#include <hdf5_hl.h>
-#include <fstream>
+//#include "write_xdmf.h"
+
+#include <cstddef>
 #include <sstream>
-#include "grid/uniform_rect.h"
-#include "engine/context.h"
-#include "datastruct/ndarray.h"
-#include "fetl/fetl.h"
-#include <sys/stat.h>
+#include <string>
+
+#include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
+#include "../mesh/uniform_rect.h"
+
 namespace simpla
 {
-namespace io
+
+std::string CreateFileTemplate(UniformRectMesh const & mesh)
 {
-
-template<>
-WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
-		const ptree & pt) :
-		BaseModule(d, pt),
-
-		ctx(*d),
-
-		grid(d->grid),
-
-		file_template(""),
-
-		attrPlaceHolder("<!-- Add Attribute Here -->")
-{
-	BOOST_FOREACH(const typename ptree::value_type &v, pt)
-	{
-		std::string id = v.second.get_value<std::string>();
-		boost::algorithm::trim(id);
-		obj_list_.push_back(id);
-	}
-
 	std::ostringstream ss;
 	ss << "<?xml version='1.0' ?>" << std::endl
 
@@ -52,19 +29,18 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
 
 	<< "<Domain>" << std::endl
 
-	<< "<Grid Name='GRID" << ctx.Counter() << "' GridType='Uniform' >"
-			<< std::endl;
+	<< "<Grid Name='%GRID_NAME%' GridType='Uniform' >" << std::endl;
 
 	int ndims = 0;
 	Real xmin[3], dx[3];
 	size_t dims[3];
 	for (int i = 0; i < 3; ++i)
 	{
-		if (grid.dims[i] > 1)
+		if (mesh.dims_[i] > 1)
 		{
-			xmin[ndims] = grid.xmin[i];
-			dx[ndims] = grid.dx[i];
-			dims[ndims] = grid.dims[i];
+			xmin[ndims] = mesh.xmin_[i];
+			dx[ndims] = mesh.dx_[i];
+			dims[ndims] = mesh.dims_[i];
 			++ndims;
 		}
 	}
@@ -116,7 +92,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
 		<< "  </Geometry>" << std::endl;
 	}
 
-	ss << attrPlaceHolder << std::endl
+	ss << "<!-- ADD_ATTRIBUTE_HERE -->" << std::endl
 
 	<< "</Grid>" << std::endl
 
@@ -124,157 +100,7 @@ WriteXDMF<UniformRectGrid>::WriteXDMF(Context<UniformRectGrid> * d,
 
 	<< "</Xdmf>" << std::endl;
 
-	file_template = ss.str();
-
-	LOG << "Create module WriteXDMF";
-
-	if (boost::optional<size_t> sp = pt.get_optional<size_t>(
-			"<xmlattr>.RecordStep"))
-	{
-		step_ = *sp;
-	}
-	if (boost::optional<std::string> sp = pt.get<std::string>("<xmlattr>.Path"))
-	{
-		out_path = *sp;
-	}
-
-	mkdir(out_path.c_str(), 0777);
+	ss.str();
 }
 
-template<>
-WriteXDMF<UniformRectGrid>::~WriteXDMF()
-{
-}
-template<>
-void WriteXDMF<UniformRectGrid>::Eval()
-{
-	if (ctx.Counter() % step_ != 0)
-	{
-		return;
-	}
-
-	LOG << "Run module WriteXDMF";
-
-	std::string filename;
-
-	{
-		std::ostringstream st;
-		st << std::setw(8) << std::setfill('0') << ctx.Counter();
-		filename = st.str();
-	}
-
-	H5::Group grp =
-			H5::H5File(out_path + "/" + filename + ".h5", H5F_ACC_TRUNC).openGroup(
-					"/");
-
-	std::string xmdf_file(file_template);
-
-	{
-		std::ostringstream ss;
-		ss << "  <Time  Value='" << ctx.Timer() << "' />" << std::endl;
-		xmdf_file.insert(xmdf_file.find(attrPlaceHolder, 0), ss.str());
-	}
-
-	for (std::list<std::string>::const_iterator it = obj_list_.begin();
-			it != obj_list_.end(); ++it)
-	{
-		boost::optional<TR1::shared_ptr<Object> > oit = ctx.objects->FindObject(
-				*it);
-
-		if (!!oit)
-		{
-			NdArray & obj = *TR1::dynamic_pointer_cast<NdArray>(*oit);
-
-			std::string attr_str = "Scalar";
-
-			H5::DataType mdatatype(
-					H5LTtext_to_dtype(obj.get_element_type_desc().c_str(),
-							H5LT_DDL));
-
-			int nd = 0;
-			hsize_t xdmf_dims[MAX_XDMF_NDIMS];
-
-			if (obj.CheckType(typeid(Field<Grid, IZeroForm, Real> ))
-					|| obj.CheckType(typeid(Field<Grid, IZeroForm, Complex> )))
-			{
-			}
-			else if (obj.CheckType(typeid(Field<Grid, IOneForm, Real> ))
-					|| obj.CheckType(typeid(Field<Grid, ITwoForm, Real> ))
-					|| obj.CheckType(typeid(Field<Grid, IOneForm, Complex> ))
-					|| obj.CheckType(typeid(Field<Grid, ITwoForm, Complex> )))
-			{
-				attr_str = "Vector";
-				nd = 1;
-				xdmf_dims[0] = THREE;
-			}
-			else if (obj.CheckType(
-					typeid(Field<Grid, IZeroForm, nTuple<THREE, Real> > )))
-			{
-				attr_str = "Vector";
-
-				mdatatype = H5::PredType::NATIVE_DOUBLE;
-				nd = 1;
-				xdmf_dims[0] = THREE;
-			}
-			else if (obj.CheckType(
-					typeid(Field<Grid, IZeroForm, nTuple<THREE, Complex> > )))
-			{
-				attr_str = "Vector";
-				mdatatype = H5LTtext_to_dtype(
-						DataType<Complex>().desc().c_str(), H5LT_DDL);
-				nd = 1;
-				xdmf_dims[0] = THREE;
-			}
-
-			for (int i = 0; i < THREE; ++i)
-			{
-				if (grid.dims[i] > 1)
-				{
-					xdmf_dims[nd] = grid.dims[i];
-					++nd;
-				}
-			}
-
-			std::ostringstream ss;
-
-			ss << "  <Attribute Name='" << (*it) << "'  AttributeType='"
-					<< attr_str << "' Center='Node' >" << std::endl
-					<< "    <DataItem  NumberType='Float' Precision='8' Format='HDF' Dimensions='";
-
-			for (int i = 0; i < nd; ++i)
-			{
-				ss << xdmf_dims[i] << " ";
-			}
-
-			ss << "' >" << std::endl
-
-			<< filename << ".h5:/" << (*it)
-
-			<< "    </DataItem>" << std::endl
-
-			<< "  </Attribute>" << std::endl;
-
-			xmdf_file.insert(xmdf_file.find(attrPlaceHolder, 0), ss.str());
-
-			hsize_t h5_dims[MAX_XDMF_NDIMS];
-			for (int i = 0; i < nd; ++i)
-			{
-				h5_dims[i] = xdmf_dims[nd - 1 - i];
-			}
-
-			H5::DataSet dataset = grp.createDataSet((*it).c_str(), mdatatype,
-					H5::DataSpace(nd, h5_dims));
-
-			dataset.write(obj.get_data(), mdatatype);
-
-		}
-	}
-
-	std::fstream fs((out_path + "/" + filename + ".xdmf").c_str(),
-			std::fstream::out);
-	fs << xmdf_file;
-	fs.close();
-}
-
-} // namespace io
 } // namespace simpla

@@ -29,9 +29,9 @@ class WriteXDMF2: public Module
 	};
 public:
 
-	typedef TG Grid;
+	typedef TG Mesh;
 	typedef WriteXDMF2<TG> ThisType;
-	typedef TR1::shared_ptr<ThisType> Holder;
+	typedef std::shared_ptr<ThisType> Holder;
 
 	template<typename PT> WriteXDMF2(BaseContext const & d, const PT & pt);
 
@@ -42,7 +42,7 @@ public:
 	virtual void Eval();
 private:
 	BaseContext const & ctx;
-	Grid const & grid;
+	Mesh const & grid;
 
 	size_t step;
 
@@ -56,7 +56,7 @@ template<typename PT>
 WriteXDMF2<TG>::WriteXDMF2(BaseContext const & d, const PT & pt) :
 		ctx(d),
 
-		grid(d.Grid<TG>()),
+		grid(d.Mesh<TG>()),
 
 		step(pt.get("step", 1)),
 

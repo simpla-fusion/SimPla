@@ -4,59 +4,153 @@
 #ifndef SRC_IO_WRITE_XDMF_H_
 #define SRC_IO_WRITE_XDMF_H_
 
-#include "include/simpla_defs.h"
+#include <H5CommonFG.h>
+#include <H5File.h>
+#include <H5Fpublic.h>
+#include <H5Group.h>
+//#include <H5public.h>
+#include <cstddef>
+#include <fstream>
+#include <iostream>
+#include <memory>
+#include <sstream>
+#include <string>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/foreach.hpp>
-#include "engine/context.h"
-#include "engine/basemodule.h"
+#include "../fetl/field.h"
+#include "../fetl/ntuple_ops.h"
+#include "../fetl/primitives.h"
+#include "../mesh/uniform_rect.h"
 
-#include "datastruct/ndarray.h"
-#include "utilities/properties.h"
+namespace H5 { class FileAccPropList; }
+namespace H5 { class FileCreatPropList; }
 
 namespace simpla
 {
 
-namespace io
+template<typename TM>
+class WriteXDMF
 {
-template<typename TG>
-class WriteXDMF:public BaseModule
-{
-	enum
-	{
-		MAX_XDMF_NDIMS = 10
-	};
+
 public:
 
-	typedef TG Grid;
-	typedef WriteXDMF<TG> ThisType;
-	typedef TR1::shared_ptr<ThisType> Holder;
+	typedef TM mesh_type;
+	typedef WriteXDMF<mesh_type> this_type;
+	mesh_type const & mesh;
 
-	WriteXDMF(Context<TG> * d, const PTree & pt);
+	WriteXDMF(mesh_type const &pmesh, std::string const & path) :
+			mesh(pmesh), file_template_(CreateFileTemplate(pmesh)),
 
-	virtual ~WriteXDMF();
+			attr_place_holder_("<!-- ADD_ATTRITUTE_HERE -->"),
 
-	static TR1::function<void()> Create(Context<TG> * d, const PTree & pt)
+			out_path_(path),
+
+			counter_(0),
+
+			xmdf_file_buffer_(file_template_)
 	{
-		return TR1::bind(&ThisType::Eval,
-				TR1::shared_ptr<ThisType>(new ThisType(d, pt)));
 	}
-	virtual void Eval();
+
+	~WriteXDMF()
+	{
+	}
+
+	template<int IFORM, typename TV>
+	void AddAttribute(Field<Geometry<mesh_type, IFORM>, TV> const &f,
+			std::string name)
+	{
+
+		typedef typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type field_value_type;
+
+		std::string attr_str;
+
+		std::ostringstream ss;
+		size_t extents = f.size();
+
+		if (is_ntuple<field_value_type>::value)
+		{
+			ss
+
+			<< "  <Attribute Name='" << name << "' \n"
+
+			<< "      AttributeType='Vector' Center='Node' >\n"
+
+			<< "    <DataItem  NumberType='Float' Precision='8'  "
+
+			<< "Format='HDF' Dimensions='" << extents << " "
+
+			<< nTupleTraits<field_value_type>::NUM_OF_DIMS << "' > \n"
+
+			<< filename_ << ".h5:/" << name
+
+			<< "    </DataItem> \n"
+
+			<< "  </Attribute>\n";
+		}
+		else
+		{
+			ss
+
+			<< "  <Attribute Name='" << name << "' \n"
+
+			<< "      AttributeType='Scalar' Center='Node' >\n"
+
+			<< "    <DataItem  NumberType='Float' Precision='8'  "
+
+			<< "Format='HDF' Dimensions='" << extents << "' > \n"
+
+			<< filename_ << ".h5:/" << name
+
+			<< "    </DataItem> \n"
+
+			<< "  </Attribute>\n";
+		}
+
+		HDF5Write(h5_grp_, name, f);
+
+		xmdf_file_buffer_.insert(xmdf_file_buffer_.find(attr_place_holder_, 0),
+				ss.str());
+
+	}
+
+	void Flush()
+	{
+		std::fstream fs((out_path_ + "/" + filename_ + ".xdmf").c_str(),
+				std::fstream::out);
+
+		fs << xmdf_file_buffer_;
+
+		fs.close();
+
+		++counter_;
+
+	}
+
+	void Init()
+	{
+		xmdf_file_buffer_ = file_template_;
+
+		h5_file_ = H5::H5File(out_path_ + "/" + filename_ + ".h5",
+		H5F_ACC_TRUNC);
+		h5_grp_ = h5_file_.openGroup("/");
+
+	}
+
 private:
-	Context<TG> const & ctx;
-	Grid const & grid;
 
-	size_t step_;
+	std::string file_template_;
+	std::string attr_place_holder_;
 
-	std::list<std::string> obj_list_;
+	std::string out_path_;
+	std::string filename_;
+	std::string xmdf_file_buffer_;
 
-	std::string file_template;
-	std::string attrPlaceHolder;
-
-	std::string out_path;
+	H5::H5File h5_file_;
+	H5::Group h5_grp_;
+	size_t counter_;
 
 };
 
-} // namespace io
+std::string CreateFileTemplate(UniformRectMesh const & mesh);
+
 } // namespace simpla
 #endif  // SRC_IO_WRITE_XDMF_H_

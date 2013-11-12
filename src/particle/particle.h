@@ -8,14 +8,12 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include <fetl/primitives.h>
-#include <cstddef>
-#include <fetl/proxycache.h>
-#include <fetl/field_rw_cache.h>
-
-#include <include/simpla_defs.h>
 #include <cstddef>
 #include <list>
+
+#include "../fetl/proxycache.h"
+#include "../include/simpla_defs.h"
+
 namespace simpla
 {
 

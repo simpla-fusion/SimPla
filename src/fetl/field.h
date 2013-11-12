@@ -8,9 +8,13 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
+#include <iostream>
+#include <stdexcept>
+#include <string>
 #include <type_traits>
 #include <vector>
-#include "utilities/log.h"
+
+#include "../utilities/log.h"
 #include "primitives.h"
 
 namespace simpla
