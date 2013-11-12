@@ -18,12 +18,16 @@
 #include <list>
 namespace simpla
 {
-template<typename T> using pic_type =std::list<T, FixedSmallObjectAllocator<T>>;
 
-template<class Engine,
-		typename TContainer = typename Engine::mesh_type::template Container<
-				pic_type<typename Engine::Point_s>> >
-class Particle: public Engine, public TContainer
+template<class Engine>
+
+class Particle:
+
+public Engine,
+
+public Engine::mesh_type::template Container<
+		std::list<typename Engine::Point_s,
+				FixedSmallObjectAllocator<typename Engine::Point_s>> >::type
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -50,7 +54,7 @@ public:
 
 	typedef std::list<value_type, allocator_type> cell_type;
 
-	typedef typename mesh_type::template Container<cell_type> container_type;
+	typedef typename mesh_type::template Container<cell_type>::type container_type;
 
 	mesh_type const &mesh;
 

@@ -44,6 +44,14 @@ public:
 
 	mesh_type const &mesh;
 
+	Field(this_type && r) :
+			mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(
+					r.affect_region_), f_(r.f_), zero_value_(r.zero_value_), points_(
+					r.points_), cache_(r.cache_)
+	{
+
+	}
+
 	Field(field_type const & f, index_type const &s, int affect_region = 1) :
 			mesh(f.mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
 	{
@@ -134,17 +142,33 @@ public:
 
 	mesh_type const &mesh;
 
+	Field(this_type && r) :
+			mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(
+					r.affect_region_), f_(r.f_), zero_value_(r.zero_value_), points_(
+					r.points_), cache_(r.cache_)
+	{
+
+//		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_,
+//				affect_region_);
+//
+//		for (auto const &p : points_)
+//		{
+//			cache_.push_back(zero_value_);
+//		}
+	}
+
 	Field(field_type & f, index_type const &s, int affect_region = 1) :
 			mesh(f.mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
 	{
+
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_,
 				affect_region_);
-
 		zero_value_ *= 0;
 		for (auto const &p : points_)
 		{
 			cache_.push_back(zero_value_);
 		}
+
 	}
 
 	~Field()
@@ -157,8 +181,7 @@ public:
 	{
 		coordinates_type pcoords;
 
-		std::vector<typename geometry_type::weight_type> weights(
-				points_.size());
+		std::vector<typename geometry_type::weight_type> weights;
 
 		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords);
 

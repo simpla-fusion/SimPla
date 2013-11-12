@@ -40,7 +40,10 @@ struct UniformRectMesh
 
 	static const int NUM_OF_DIMS = 3;
 
-	template<typename Element> using Container = std::vector<Element>;
+	template<typename Element> struct Container
+	{
+		typedef std::vector<Element> type;
+	};
 
 	typedef size_t index_type;
 
@@ -155,10 +158,11 @@ struct UniformRectMesh
 
 	}
 
-	template<typename E> inline Container<E> MakeContainer(int iform,
-			E const & d = E()) const
+	template<typename E> inline typename Container<E>::type MakeContainer(
+			int iform, E const & d = E()) const
 	{
-		return std::move(Container<E>(GetNumOfGridPoints(iform), d));
+		return std::move(
+				typename Container<E>::type(GetNumOfGridPoints(iform), d));
 	}
 
 	std::string Summary() const
@@ -514,6 +518,7 @@ struct UniformRectMesh
 			PList & points, int affect_region = 1) const
 	{
 
+		points.resize(8);
 		// 0 0 0
 		points[0] = idx;
 		// 0 1 0
@@ -561,19 +566,19 @@ struct UniformRectMesh
 
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords,
-			TW & weight, int affect_region = 1) const
+			TW & weights, int affect_region = 1) const
 	{
-
+		weights.resize(8);
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 
-		weight[0] = (1.0 - r) * (1.0 - s) * (1.0 - t);
-		weight[1] = r * (1.0 - s) * (1.0 - t);
-		weight[2] = (1.0 - r) * s * (1.0 - t);
-		weight[3] = r * s * (1.0 - t);
-		weight[4] = (1.0 - r) * (1.0 - s) * t;
-		weight[5] = r * (1.0 - s) * t;
-		weight[6] = (1.0 - r) * s * t;
-		weight[7] = r * s * t;
+		weights[0] = (1.0 - r) * (1.0 - s) * (1.0 - t);
+		weights[1] = r * (1.0 - s) * (1.0 - t);
+		weights[2] = (1.0 - r) * s * (1.0 - t);
+		weights[3] = r * s * (1.0 - t);
+		weights[4] = (1.0 - r) * (1.0 - s) * t;
+		weights[5] = r * (1.0 - s) * t;
+		weights[6] = (1.0 - r) * s * t;
+		weights[7] = r * s * t;
 	}
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<1>, coordinates_type const &pcoords,

@@ -47,7 +47,7 @@ TEST(PARTICLE_TEST,Create)
 
 	typedef Form<0, Real> RScalarField;
 
-	Particle<PICEngineDefault<Mesh>> p_ion(mesh, 1.0, 1.0);
+	Particle<PICEngineDefault<Mesh> > p_ion(mesh, 1.0, 1.0);
 
 	p_ion.Init(100);
 
@@ -96,8 +96,10 @@ TEST(PARTICLE_TEST,Create)
 
 	p_ion.Sort();
 	p_ion.Push(E, B);
-	p_ion.Sort();
+	CHECK("Pushed");
+//	p_ion.Sort();
 	p_ion.ScatterN(n, E, B);
-	p_ion.ScatterJ(J, E, B);
+	CHECK("Scatter");
+//	p_ion.ScatterJ(J, E, B);
 
 }

@@ -73,6 +73,15 @@ class Log: public std::ostringstream
 {
 	int level_;
 public:
+	enum
+	{
+		L_LOGIC_ERROR = -3,
+		L_ERROR = -2,
+		L_WARNING = -1,
+		L_INFORM = 0,
+		L_LOG = 1,
+		L_VERBOSE = 2
+	};
 
 	Log(int lv = 0) :
 			level_(lv)
@@ -90,20 +99,20 @@ public:
 
 		LogStreams::instance().put(level_, (*this).str());
 
-		if (level_ == -3)
+		if (level_ == L_LOGIC_ERROR)
 		{
 			throw(std::logic_error(this->str()));
 		}
-		else if (level_ == -2)
+		else if (level_ == L_ERROR)
 		{
 			throw(std::runtime_error(this->str()));
 		}
 
 	}
 
-	static void Verbose(int l = 1)
+	static void Verbose(int l = L_INFORM)
 	{
-		LogStreams::instance().info_level = l;
+		LogStreams::instance().info_level = L_INFORM;
 	}
 
 	static void OpenFile(std::string const & fname)
@@ -130,22 +139,22 @@ public:
 private:
 };
 //FIXME The operator<< eat first input and transform to integral
-#define ERROR Log(-2)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define LOGIC_ERROR Log(-3)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define ERROR Log(Log::L_ERROR)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define LOGIC_ERROR Log(Log::L_LOGIC_ERROR)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define WARNING Log(-1)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define INFORM Log(0)  <<"[I]"
+#define WARNING Log(Log::L_WARNING)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define INFORM Log(Log::L_INFORM)  <<"[I]"
 //#ifdef DEBUG
 //#define LOG Log(2) <<1<<"[L]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 //#else
-#define LOG Log(2)  <<"[L]"
+#define LOG Log(Log::L_LOG)  <<"[L]"
 //#endif
 
-#define VERBOSE Log(3)  <<"[V]"
+#define VERBOSE Log(Log::L_VERBOSE)  <<"[V]"
 //#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 
-#define CHECK(_MSG_)    Log(0) <<1 << (__FILE__) <<":"<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#define CHECK(_MSG_)    Log(Log::L_INFORM) <<1 << (__FILE__) <<":"<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< _MSG_ <<std::endl
 
 #define DOUBLELINE "================================================================="

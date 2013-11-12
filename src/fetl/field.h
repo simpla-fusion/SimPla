@@ -8,8 +8,10 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
-#include <fetl/primitives.h>
+#include <type_traits>
 #include <vector>
+#include "utilities/log.h"
+#include "primitives.h"
 
 namespace simpla
 {
@@ -23,7 +25,7 @@ namespace simpla
  */
 
 template<typename TG, typename TValue>
-struct Field: public TG::mesh_type::template Container<TValue>
+struct Field: public TG::mesh_type::template Container<TValue>::type
 {
 public:
 
@@ -39,7 +41,7 @@ public:
 
 	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
 
-	typedef typename mesh_type::template Container<value_type> base_type;
+	typedef typename mesh_type::template Container<value_type>::type base_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -178,7 +180,22 @@ DECL_SELF_ASSIGN	(+=)
 		auto it2=weights.begin();
 		for(;it1!=points.end() && it2!=weights.end(); ++it1,++it2 )
 		{
-			res += this->operator[](*it1) * (*it2);
+
+			try
+			{
+				res += this->at(*it1) * (*it2);
+
+			}
+			catch(std::out_of_range const &e)
+			{
+#ifndef NDEBUG
+				WARNING
+#else
+				VERBOSE
+#endif
+				<< e.what() <<"[ idx="<< *it1<<"]";
+			}
+
 		}
 
 		return std::move(res);
@@ -207,18 +224,29 @@ DECL_SELF_ASSIGN	(+=)
 
 		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
 
-		std::vector<value_type> cache(weights.size());
-
-		auto it1=cache.begin();
+		auto it1=points.begin();
 		auto it2=weights.begin();
-		for(;it1!=cache.end() && it2!=weights.end(); ++it1,++it2 )
+		for(;it1!=points.end() && it2!=weights.end(); ++it1,++it2 )
 		{
 			// FIXME: this incorrect for vector field interpolation
-			*it1 += Dot(v ,*it2);
 
+			try
+			{
+
+				this->at(*it1) += Dot(v ,*it2);
+
+			}
+			catch(std::out_of_range const &e)
+			{
+#ifndef NDEBUG
+				WARNING
+#else
+				VERBOSE
+#endif
+				<< e.what() <<"[ idx="<< *it1<<"]";
+			}
 		}
 
-		Scatter(points,cache);
 	}
 
 	inline void Scatter(std::vector<index_type> const & points,std::vector<value_type> & cache)
@@ -229,7 +257,22 @@ DECL_SELF_ASSIGN	(+=)
 		auto it1=points.begin();
 		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
-			(*this)[*it1] += *it2;
+			try
+			{
+
+				this->at(*it1) += *it2;
+
+			}
+			catch(std::out_of_range const &e)
+			{
+#ifndef NDEBUG
+				WARNING
+#else
+				VERBOSE
+#endif
+				<< e.what() <<"[ idx="<< *it1<<"]";
+
+			}
 		}
 
 	}
