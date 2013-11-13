@@ -5,16 +5,22 @@
  *      Author: salmon
  */
 
-#include "include/simpla_defs.h"
-#include "utilities/properties.h"
-#include "grid/uniform_rect.h"
+#include <boost/optional/optional.hpp>
+#include <boost/property_tree/ptree.hpp>
+#include <cstddef>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+#include <string>
+
+#include "../src/fetl/primitives.h"
+#include "../src/utilities/log.h"
+#include "../src/utilities/properties.h"
 
 using namespace simpla;
 
 int main(int argc, char **argv)
 {
-
-	Context<UniformRectGrid> ctx;
 
 	size_t max_step = 1000;
 
@@ -63,7 +69,7 @@ int main(int argc, char **argv)
 		ERROR << "Grid type mismatch";
 	}
 
-	ctx.PHYS_CONSTANTS.SetBaseUnits(
+	PHYS_CONSTANTS.SetBaseUnits(
 			pt.get("Context.PhysConstants.<xmlattr>.Type", "NATURE"),
 			pt.get("Context.PhysConstants.m", 1.0d),
 			pt.get("Context.PhysConstants.s", 1.0d),
@@ -72,7 +78,7 @@ int main(int argc, char **argv)
 			pt.get("Context.PhysConstants.K", 1.0f),
 			pt.get("Context.PhysConstants.mol", 1.0d));
 
-	ctx.grid.SetGeometry(
+	grid.SetGeometry(
 
 	pt.get("Context.Grid.Time.<xmlattr>.dt", 1.0d),
 
@@ -141,7 +147,6 @@ int main(int argc, char **argv)
 //	ctx.Process(pt.get_child("Context.Process"));
 //
 //	INFORM << "====== Done! =======" << std::endl;
-
 
 }
 

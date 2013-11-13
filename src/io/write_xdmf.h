@@ -6,9 +6,9 @@
 
 #include <H5CommonFG.h>
 #include <H5File.h>
-#include <H5Fpublic.h>
+//#include <H5Fpublic.h>
 #include <H5Group.h>
-//#include <H5public.h>
+#include <H5public.h>
 #include <cstddef>
 #include <fstream>
 #include <iostream>

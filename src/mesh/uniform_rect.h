@@ -95,11 +95,11 @@ struct UniformRectMesh
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
-		vm.Get("dt", &dt_);
-		vm.Get("xmin", &xmin_);
-		vm.Get("xmax", &xmax_);
-		vm.Get("dims", &dims_);
-		vm.Get("gw", &gw_);
+		vm.GetValue("dt", dt_);
+		vm.GetValue("xmin", xmin_);
+		vm.GetValue("xmax", xmax_);
+		vm.GetValue("dims", dims_);
+		vm.GetValue("gw", gw_);
 
 		Update();
 	}
@@ -673,6 +673,36 @@ struct UniformRectMesh
 
 							))
 
+	template<typename TL>
+	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
+	template<typename TL>
+	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
+	template<typename TL>
+	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
+	template<typename TL>
+	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
+	template<typename TL>
+	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
+	template<typename TL>
+	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l,
+			size_t s) const
+			DECL_RET_TYPE( (l[s]) )
+
 	template<typename TF>
 	auto Index(TF const & f, index_type const & s) const->decltype(f[s])
 	{
@@ -939,10 +969,10 @@ template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpE
 				DECL_RET_TYPE(
 						(l.mesh.mapto(Int2Type<IL+IR>(),l,s)*r.mesh.mapto(Int2Type<IL+IR>(),r,s)))
 
-template<int N, typename TL, typename TI> inline auto _OpEval(
-		Int2Type<HODGESTAR>, Field<Geometry<UniformRectMesh, N>, TL> const & f,
+template<int IL, typename TL, typename TI> inline auto _OpEval(
+		Int2Type<HODGESTAR>, Field<Geometry<UniformRectMesh, IL>, TL> const & f,
 		TI s)
-				DECL_RET_TYPE((f.mesh.mapto(Int2Type<UniformRectMesh::NUM_OF_DIMS-N >(),f,s)))
+				DECL_RET_TYPE((f.mesh.mapto(Int2Type<UniformRectMesh::NUM_OF_DIMS-IL >(),f,s)))
 
 template<int N, typename TL, typename TI> inline auto _OpEval(Int2Type<NEGATE>,
 		Field<Geometry<UniformRectMesh, N>, TL> const & f, TI s)

@@ -128,6 +128,8 @@ public:
 		return (*this);
 	}
 
+
+
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
 	operator _OP_(TR const & rhs)                               \

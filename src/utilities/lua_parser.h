@@ -180,15 +180,22 @@ public:
 	}
 
 	template<typename T>
-	T Get(std::string const & key)
+	T Get(std::string const & key, T default_value = T())const
 	{
-		T res;
-		Get(key, res);
+
+		T res = default_value;
+		try
+		{
+			GetValue(key, res);
+		} catch (...)
+		{
+		}
+
 		return (res);
 	}
 
 	template<typename T>
-	void Get(std::string const & key, T& res)
+	void GetValue(std::string const & key, T& res) const
 	{
 		lua_getfield(holder_->lstate_, holder_->idx_, key.c_str());
 

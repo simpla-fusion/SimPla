@@ -8,6 +8,8 @@
 #ifndef PIC_ENGINE_DEFAULT_H_
 #define PIC_ENGINE_DEFAULT_H_
 
+#include <fetl/primitives.h>
+
 namespace simpla
 {
 
@@ -54,6 +56,15 @@ public:
 		p.Set("Charge", q_);
 	}
 
+	template<typename TP>
+	inline TP GetProperties() const
+	{
+		TP p;
+		p.Set("Mass", m_);
+		p.Set("Charge", q_);
+		return std::move(p);
+	}
+
 	static void SetDefaultValue(Point_s & p)
 	{
 		p.f = 1.0;
@@ -89,25 +100,27 @@ public:
 		p.f *= n(p.x);
 	}
 };
-template<typename>struct HDF5DataType;
-template<typename TM>
-struct HDF5DataType<typename PICEngineDefault<TM>::Point_s>
-{
-	H5::DataType operator()
-	{
-		char desc[1024];
-		snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
-				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
-				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
-				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
-				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
-				"}", (offsetof(Point_s, X)),
-				(offsetof(Point_s, V)),
-				(offsetof(Point_s, F)),
-				num_of_mate,
-				(offsetof(Point_s, w)));
-	}
-};
-}  // namespace simpla
+
+//#include <H5Cpp.h>
+//template<typename > struct HDF5DataType;
+//template<typename TM>
+//struct HDF5DataType<typename PICEngineDefault<TM>::Point_s>
+//{
+////	H5::DataType operator()
+////	{
+////		char desc[1024];
+////		snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
+////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
+////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
+////				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
+////				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
+////				"}", (offsetof(Point_s, X)),
+////				(offsetof(Point_s, V)),
+////				(offsetof(Point_s, F)),
+////				num_of_mate,
+////				(offsetof(Point_s, w)));
+////	}
+//};
+}// namespace simpla
 
 #endif /* PIC_ENGINE_DEFAULT_H_ */

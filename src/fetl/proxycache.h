@@ -7,7 +7,6 @@
 
 #ifndef PROXYCACHE_H_
 #define PROXYCACHE_H_
-
 namespace simpla
 {
 template<typename T>
@@ -18,7 +17,7 @@ struct ProxyCache
 	template<typename TI>
 	static inline src_type & Eval(src_type & f, TI const &)
 	{
-		return std::forward(f);
+		return f;
 	}
 };
 

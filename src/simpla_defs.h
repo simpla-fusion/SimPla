@@ -8,6 +8,8 @@
 #ifndef SIMPLA_DEFS_H_
 #define SIMPLA_DEFS_H_
 
+#include <memory>
+
 //#include <stdint.h>
 //#include "utilities/log.h"
 //#include <cassert>
@@ -40,10 +42,5 @@
 /**
  *  Leave all platform dependence here
  * */
-
-//need  libstdc++
-//#include <ext/mt_allocator.h>
-template<typename T> using FixedSmallObjectAllocator=std::allocator<T>;
-//		__gnu_cxx::__mt_alloc<T>;
 
 #endif /* SIMPLA_DEFS_H_ */

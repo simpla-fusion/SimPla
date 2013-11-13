@@ -1,36 +1,25 @@
-#include <tuple>
 #include <iostream>
-#include <functional>
+#include <string>
 
-template<int N>
-struct Int2Type
-{
-	static const int NUM = N;
-};
+#include <memory>
 struct C
 {
-	template<typename ... Args>
-	void foo(int a, Args const & ... args) const
+	C()
 	{
-		std::cout << sizeof...(args) << std::endl;
+		std::cout << "Construct" << std::endl;
+	}
+	~C()
+	{
+		std::cout << "Destruct" << std::endl;
 	}
 };
-
-template<typename T>
-T foo(T const &)
-{
-	return T();
-}
-template<typename ...Args>
-void foo2(C const &c, Args const & ...args)
-{
-	std::mem_fn(&C::foo)(c, args...);
-}
-
 int main(void)
 {
-	C c;
-decltype(MakeCache(args,0)...)...
-foo2(c, 1, 3, 4, 5);
+	std::shared_ptr<void> p(
+			std::static_pointer_cast<void>(std::shared_ptr<C>(new C)));
+
+	std::cout << "lalala" << std::endl;
+
+	p = nullptr;
 
 }

@@ -17,55 +17,61 @@
 namespace simpla
 {
 
-template<typename TG, typename TR> inline auto Grad(
+template<typename TG, typename TR>
+inline auto Grad(
 		Field<Geometry<TG, 0>, TR> const & f)
-				DECL_RET_TYPE(
-						(Field<Geometry<TG, 1>, UniOp<GRAD,Field<Geometry<TG, 0>, TR> > >(f)))
+				DECL_RET_TYPE((Field<Geometry<TG, 1>, UniOp<GRAD,Field<Geometry<TG, 0>, TR> > >(f)))
 
-template<typename TG, typename TR> inline auto Diverge(
-		Field<Geometry<TG, 1>, TR> const & f)
-		DECL_RET_TYPE((Field<Geometry<TG, 0>,
-						UniOp<DIVERGE, Field<Geometry<TG, 1>, TR> > >( f)))
+template<typename TG, typename TR>
+inline auto Diverge(Field<Geometry<TG, 1>, TR> const & f)
+DECL_RET_TYPE((Field<Geometry<TG, 0>,
+				UniOp<DIVERGE, Field<Geometry<TG, 1>, TR> > >( f)))
 
-template<typename TG, typename TR> inline auto Curl(
-		Field<Geometry<TG, 1>, TR> const & f)
-		DECL_RET_TYPE( (Field<Geometry<TG, 2>,
-						UniOp<CURL, Field<Geometry<TG, 1>, TR> > >(f)))
-template<typename TG, typename TR> inline auto Curl(
-		Field<Geometry<TG, 2>, TR> const & f)
-		DECL_RET_TYPE( (Field<Geometry<TG, 1>,
-						UniOp<CURL, Field<Geometry<TG, 2>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto Curl(Field<Geometry<TG, 1>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 2>,
+				UniOp<CURL, Field<Geometry<TG, 1>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto Curl(Field<Geometry<TG, 2>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 1>,
+				UniOp<CURL, Field<Geometry<TG, 2>, TR> > >(f)))
 
-template<typename TG, int IL, typename TL> inline  //
-auto operator*(Field<Geometry<TG, IL>, TL> const & f)
+template<typename TG, int IL, typename TL>
+inline auto HodgeStar(Field<Geometry<TG, IL>, TL> const & f)
 DECL_RET_TYPE(
-		(typename std::conditional<(IL > 0 && IL <= TG::NUM_OF_DIMS),
+		(typename std::conditional<(IL >= 0 && IL <= TG::NUM_OF_DIMS),
 				Field<Geometry<TG, TG::NUM_OF_DIMS - IL>,
 				UniOp<HODGESTAR
 				,Field<Geometry<TG, IL>, TL> > >, Zero>::type(f)))
 
-template<typename TG, int IL, typename TL> inline  //
-auto d(Field<Geometry<TG, IL>, TL> const & f)
+template<typename TG, int IL, typename TL>
+inline auto d(Field<Geometry<TG, IL>, TL> const & f)
 DECL_RET_TYPE(
 		(typename std::conditional<(IL > 0 && IL+1 <= TG::NUM_OF_DIMS),
 				Field<Geometry<TG, IL+1>,
 				UniOp<EXTRIORDERIVATIVE,Field<Geometry<TG, IL>, TL> > >
 				, Zero>::type(f)) )
 
-template<typename TG, int IL, int IR, typename TL, typename TR> inline auto //
-operator^(Field<Geometry<TG, IL>, TL> const & lhs,
+template<typename TG, int IL, int IR, typename TL, typename TR>
+inline auto Wedge(Field<Geometry<TG, IL>, TL> const & lhs,
 		Field<Geometry<TG, IR>, TR> const & rhs)
-		DECL_RET_TYPE(
-				(typename std::conditional<(IL + IR >=0 &&
-								IL+IR <= TG::NUM_OF_DIMS ),
-						Field<Geometry<TG,IL+IR> ,
+		DECL_RET_TYPE( ( Field<Geometry<TG,IL+IR> ,
 						BiOp<WEDGE,Field<Geometry<TG, IL>, TL> ,
 						Field<Geometry<TG, IR>, TR> > >
-						,Zero>::type
 						(lhs, rhs)))
 
-template<typename TG, int IL, typename TL> inline  //
-auto operator-(Field<Geometry<TG, IL>, TL> const & f)
+//
+//		DECL_RET_TYPE(
+//				(typename std::conditional<(IL + IR >=0 &&
+//								IL+IR <= TG::NUM_OF_DIMS ),
+//						Field<Geometry<TG,IL+IR> ,
+//						BiOp<WEDGE,Field<Geometry<TG, IL>, TL> ,
+//						Field<Geometry<TG, IR>, TR> > >
+//						,Zero>::type
+//						(lhs, rhs)))
+
+template<typename TG, int IL, typename TL>
+inline auto operator-(Field<Geometry<TG, IL>, TL> const & f)
 DECL_RET_TYPE(
 		( Field<Geometry<TG, IL>,
 				UniOp<NEGATE,Field<Geometry<TG, IL>, TL> > > (f)))

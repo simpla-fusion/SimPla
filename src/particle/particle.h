@@ -8,11 +8,16 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
+#include <fetl/proxycache.h>
 #include <cstddef>
 #include <list>
 
-#include "../fetl/proxycache.h"
-#include "../include/simpla_defs.h"
+
+//need  libstdc++
+//#include <ext/mt_allocator.h>
+//#include <bits/allocator.h>
+//template<typename T> using FixedSmallObjectAllocator=std::allocator<T>;
+//		__gnu_cxx::__mt_alloc<T>;
 
 namespace simpla
 {
@@ -23,9 +28,8 @@ class Particle:
 
 public Engine,
 
-public Engine::mesh_type::template Container<
-		std::list<typename Engine::Point_s,
-				FixedSmallObjectAllocator<typename Engine::Point_s>> >::type
+		public Engine::mesh_type::template Container<
+				std::list<typename Engine::Point_s> >::type
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -48,9 +52,10 @@ public:
 	typedef typename mesh_type::index_type index_type;
 
 	//container
-	typedef FixedSmallObjectAllocator<value_type> allocator_type;
 
-	typedef std::list<value_type, allocator_type> cell_type;
+	typedef std::list<typename Engine::Point_s> cell_type;
+
+	typedef typename cell_type::allocator_type allocator_type;
 
 	typedef typename mesh_type::template Container<cell_type>::type container_type;
 

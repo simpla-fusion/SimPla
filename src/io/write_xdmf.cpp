@@ -100,7 +100,7 @@ std::string CreateFileTemplate(UniformRectMesh const & mesh)
 
 	<< "</Xdmf>" << std::endl;
 
-	ss.str();
+	return ss.str();
 }
 
 } // namespace simpla

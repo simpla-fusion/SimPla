@@ -4,7 +4,16 @@
  *  Created on: 2012-10-17
  *      Author: salmon
  */
-#include "physical_constants.h"
+
+#include <physics/constants.h>
+#include <physics/physical_constants.h>
+#include <iomanip>
+#include <map>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <utility>
+
 namespace simpla
 {
 PhysicalConstants::PhysicalConstants(std::string type)
@@ -14,8 +23,8 @@ PhysicalConstants::PhysicalConstants(std::string type)
 PhysicalConstants::~PhysicalConstants()
 {
 }
-void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps,
-		double pkg, double pC, double pK, double pMol)
+void PhysicalConstants::SetBaseUnit(std::string const & type, double pm,
+		double ps, double pkg, double pC, double pK, double pMol)
 {
 	type_ = type;
 

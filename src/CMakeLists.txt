@@ -20,3 +20,6 @@ ADD_SUBDIRECTORY( particle)
 
 
 
+    
+ADD_EXECUTABLE(simpla  simpla.cpp)
+TARGET_LINK_LIBRARIES(simpla physics ${LUA_LIBRARIES} ${Boost_LIBRARIES})

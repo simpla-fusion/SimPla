@@ -7,8 +7,14 @@
 
 #ifndef PHYSICAL_CONSTANTS_H_
 #define PHYSICAL_CONSTANTS_H_
-#include "include/simpla_defs.h"
-#include "constants.h"
+
+#include <utilities/log.h>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
 namespace simpla
 {
 
