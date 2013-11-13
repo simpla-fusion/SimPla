@@ -13,7 +13,12 @@
 #include "./ntuple.h"
 #include "./field.h"
 #include "./ntuple.h"
-#include "field_ops.h"
+#include "./geometry.h"
+#include "./field_ops.h"
+
+#ifndef NO_FIELD_IO_CACHE
+#  include "./field_rw_cache.h"
+#endif
 namespace simpla
 {
 

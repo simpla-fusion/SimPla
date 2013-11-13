@@ -95,11 +95,11 @@ struct UniformRectMesh
 	template<typename TCONFIG>
 	void Config(TCONFIG const & vm)
 	{
-		vm.GetValue("dt", dt_);
-		vm.GetValue("xmin", xmin_);
-		vm.GetValue("xmax", xmax_);
-		vm.GetValue("dims", dims_);
-		vm.GetValue("gw", gw_);
+		vm.get_value("dt", dt_);
+		vm.get_value("xmin", xmin_);
+		vm.get_value("xmax", xmax_);
+		vm.get_value("dims", dims_);
+		vm.get_value("gw", gw_);
 
 		Update();
 	}
@@ -411,12 +411,12 @@ struct UniformRectMesh
 	}
 	// General Property -----------------------------------------------
 
-	inline Real GetDt() const
+	inline Real get_dt() const
 	{
 		return dt_;
 	}
 
-	inline void SetDt(Real dt = 0.0)
+	inline void set_dt(Real dt = 0.0)
 	{
 		dt_ = dt;
 		Update();

@@ -12,7 +12,6 @@
 #include <cstddef>
 #include <list>
 
-
 //need  libstdc++
 //#include <ext/mt_allocator.h>
 //#include <bits/allocator.h>
@@ -23,13 +22,8 @@ namespace simpla
 {
 
 template<class Engine>
-
-class Particle:
-
-public Engine,
-
-		public Engine::mesh_type::template Container<
-				std::list<typename Engine::Point_s> >::type
+class Particle: public Engine, public Engine::mesh_type::template Container<
+		std::list<typename Engine::Point_s> >::type
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -202,19 +196,33 @@ public:
 		n, args...);
 	}
 
-	template<typename TFUN, typename TJ, typename ... Args>
-	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
+	template<typename TN, typename ... Args>
+	inline void Scatter(TN & n, Args const& ... args) const
 	{
 		ForEach(
 
-		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+		[&](particle_type const& p,typename ProxyCache<TN>::type & n_c,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			fun(p,J_c,args_c...);
+			engine_type::Scatter(p,n_c,args_c...);
 		},
 
-		J, args...);
+		n, args...);
 	}
+
+//	template<typename TFUN, typename TJ, typename ... Args>
+//	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
+//	{
+//		ForEach(
+//
+//		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+//				typename ProxyCache<const Args>::type const& ... args_c)
+//		{
+//			fun(p,J_c,args_c...);
+//		},
+//
+//		J, args...);
+//	}
 
 	/**
 	 *  Traversal each cell, include boundary cells.

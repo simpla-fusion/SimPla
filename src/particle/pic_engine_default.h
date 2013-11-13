@@ -77,18 +77,55 @@ public:
 		auto E = fE(p.x);
 	}
 
-	template<typename TJ, typename TB, typename TE>
-	inline void ScatterJ(Point_s const& p, TJ & fJ, TB const & pB,
-			TE const &pE) const
+//	template<typename TJ, typename TB, typename TE>
+//	inline void ScatterJ(Point_s const& p, TJ & fJ, TB const & pB,
+//			TE const &pE) const
+//	{
+//		fJ.Scatter(p.v * p.f, p.x);
+//	}
+//
+//	template<typename TN, typename TB, typename TE>
+//	inline void ScatterN(Point_s const& p, TN & fn, TB const & pB,
+//			TE const &pE) const
+//	{
+//		fn.Scatter(p.f, p.x);
+//	}
+
+	template<typename TN, typename ... Args>
+	inline void Scatter(
+			typename std::enable_if<
+					TN::IForm == 0
+							&& std::is_same<Real, typename TN::value_type>::value,
+					Point_s>::type const &p,
+
+			TN & n, Args const& ... args) const
 	{
-		fJ.Scatter(p.v * p.f, p.x);
+		n.Scatter(p.f, p.x);
 	}
 
-	template<typename TN, typename TB, typename TE>
-	inline void ScatterN(Point_s const& p, TN & fn, TB const & pB,
-			TE const &pE) const
+	template<typename TN, typename ... Args>
+	inline void Scatter(
+
+			typename std::enable_if<
+					TN::IForm == 0
+							&& std::is_same<nTuple<3, Real>,
+									typename TN::value_type>::value, Point_s>::type const &p,
+
+			TN & n, Args const& ... args) const
 	{
-		fn.Scatter(p.f, p.x);
+		n.Scatter(p.v * p.f, p.x);
+	}
+
+	template<typename TN, typename ... Args>
+	inline void Scatter(
+			typename std::enable_if<
+					TN::IForm == 1
+							&& std::is_same<Real, typename TN::value_type>::value,
+					Point_s>::type const &p,
+
+			TN & n, Args const& ... args) const
+	{
+		n.Scatter(p.v * p.f, p.x);
 	}
 
 	template<typename TX, typename TV, typename TN, typename ...Args>

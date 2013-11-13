@@ -9,14 +9,22 @@
 #include <string>
 
 #include "simpla_defs.h"
-#include "mesh/uniform_rect.h"
-#include "physics/physical_constants.h"
 #include "utilities/log.h"
 #include "utilities/lua_parser.h"
-#include "fetl/fetl.h"
 #include "engine/object.h"
 
+#include "mesh/uniform_rect.h"
+#include "physics/physical_constants.h"
+
+#include "fetl/fetl.h"
+
+#include "particle/particle.h"
+#include "particle/pic_engine_default.h"
 using namespace simpla;
+
+template<int IFORM> using Form = Field<Geometry<UniformRectMesh,IFORM>,Real >;
+
+template<int IFORM> using VecForm = Field<Geometry<UniformRectMesh,IFORM>,nTuple<3,Real> >;
 
 int main(int argc, char **argv)
 {
@@ -119,13 +127,14 @@ int main(int argc, char **argv)
 //
 //	}
 //
-	size_t num_of_step = pt.Get<size_t>("STEP", 1000);
+
+	typedef UniformRectMesh Mesh;
+
+	size_t num_of_step = pt.get<size_t>("STEP", 1000);
 
 	PhysicalConstants phys_const;
 
 	phys_const.Config(pt["UNIT_SYSTEM"]);
-
-	using namespace UniformRectMeshDefine;
 
 	Mesh mesh;
 
@@ -169,103 +178,29 @@ int main(int argc, char **argv)
 	const double proton_mass = phys_const["proton_mass"];
 	const double elementary_charge = phys_const["elementary_charge"];
 
-	OneForm E(mesh);
-	OneForm J(mesh);
-	TwoForm B(mesh);
+	Form<1> E(mesh);
+	Form<1> J(mesh);
+	Form<2> B(mesh);
 
-	Real dt = mesh.GetDt();
+	Real dt = mesh.get_dt();
 
 	std::vector<CompoundObject> sp_list;
 
 	INFORM << (">>> Pre-Process DONE! <<<");
 	INFORM << (">>> Process START! <<<");
 
+//	ColdFluidEM<Mesh> cold_fluid(mesh, phys_const);
+
+	Particle<PICEngineDefault<Mesh> > ion(mesh, 1.0, 1.0);
+
 	for (int i = 0; i < num_of_step; ++i)
 	{
+//		cold_fluid.Eval(E, B, J, sp_list, dt);
+
 		E += (Curl(B / mu0) - J) / epsilon0 * dt;
-
 		B -= Curl(E) * dt;
-
-		ZeroForm BB(mesh);
-
-		VecZeroForm Ev(mesh), Bv(mesh), dEvdt(mesh);
-
-		BB = Wedge(B, HodgeStar(B));
-
-		VecZeroForm K_(mesh);
-
-		VecZeroForm K(mesh);
-
-		K.clear();
-
-		ZeroForm a(mesh);
-		ZeroForm b(mesh);
-		ZeroForm c(mesh);
-		a.clear();
-		b.clear();
-		c.clear();
-
-		for (auto &v : sp_list)
-		{
-			auto & ns = v.at("n").as<ZeroForm>();
-			auto & Js = v.at("J").as<VecZeroForm>();
-			Real ms = v.properties.get<Real>("m") * proton_mass;
-			Real Zs = v.properties.get<Real>("Z") * elementary_charge;
-
-			ZeroForm as(mesh);
-
-			as = 2.0 * ms / (dt * Zs);
-
-			a += ns * Zs / as;
-			b += ns * Zs / (BB + as * as);
-			c += ns * Zs / ((BB + as * as) * as);
-
-			K_ = /* 2.0 * nu * Js*/
-			-2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
-
-			K -= Js + 0.5 * (
-
-			K_ / as
-
-			+ Cross(K_, Bv) / (BB + as * as)
-
-			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
-
-			);
-		}
-
-//		a = a * (0.5 * dt) / epsilon0 - 1.0;
-		b = b * (0.5 * dt) / epsilon0;
-		c = c * (0.5 * dt) / epsilon0;
-
-		K /= epsilon0;
-
-		dEvdt = K / a
-				+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
-				+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
-						/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
-		for (auto &v : sp_list)
-		{
-			auto & ns = v.at("n").as<ZeroForm>();
-			auto & Js = v.at("J").as<VecZeroForm>();
-			Real ms = v.properties.get<Real>("m") * proton_mass;
-			Real Zs = v.properties.get<Real>("Z") * elementary_charge;
-
-			ZeroForm as(mesh);
-			as = 2.0 * ms / (dt * Zs);
-
-			K_ = // 2.0*nu*(Js)
-					-2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
-			Js +=
-
-			K_ / as
-
-			+ Cross(K_, Bv) / (BB + as * as)
-
-			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
-		}
-
-//		J -=  dEvdt;
+		ion.Push(E, B);
+		ion.Scatter(J);
 	}
 
 //	INFORM << (">>> Process DONE! <<<");

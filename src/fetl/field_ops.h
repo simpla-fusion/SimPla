@@ -89,6 +89,14 @@ DECL_RET_TYPE(
 				Field<TGeo, TL> ,
 				Field<TGeo, TR> > > (lhs, rhs)))
 
+template<typename TGeo, typename TL> inline auto //
+operator-(Field<TGeo, TL> const & lhs,
+		typename Field<TGeo, TL>::value_type const & rhs)
+		DECL_RET_TYPE(
+				( Field<TGeo , BiOp<MINUS,
+						Field<TGeo, TL> ,
+						typename Field<TGeo, TL>::value_type > > (lhs, rhs)))
+
 template<typename TG, int IL, typename TL, typename TR> inline auto //
 operator*(Field<Geometry<TG, IL>, TL> const & lhs,
 		Field<Geometry<TG, 0>, TR> const & rhs)

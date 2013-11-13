@@ -28,13 +28,13 @@ public:
 	void Config(TCONFIG vm)
 	{
 
-		SetBaseUnit(vm.template Get<std::string>("type"), //
-		vm.template Get<double>("m", 1.0), //
-		vm.template Get<double>("s", 1.0), //
-		vm.template Get<double>("kg", 1.0), //
-		vm.template Get<double>("C", 1.0), //
-		vm.template Get<double>("K", 1.0), //
-		vm.template Get<double>("Mol", 1.0));
+		SetBaseUnit(vm.template get<std::string>("type"), //
+		vm.template get<double>("m", 1.0), //
+		vm.template get<double>("s", 1.0), //
+		vm.template get<double>("kg", 1.0), //
+		vm.template get<double>("C", 1.0), //
+		vm.template get<double>("K", 1.0), //
+		vm.template get<double>("Mol", 1.0));
 	}
 
 	std::string Summary() const;

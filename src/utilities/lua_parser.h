@@ -15,7 +15,7 @@
 #include <string>
 #include <algorithm>
 
-#include "log.h"
+#include "utilities/log.h"
 #include "refcount.h"
 #include "fetl/ntuple.h"
 
@@ -82,8 +82,9 @@ struct LuaStateHolder
 		{
 			lua_remove(lstate_, idx_);
 			idx_ = 0;
-			ERROR << "\"" << key << "\" is not an element in " << p->Path()
-					<< "!";
+
+			throw std::out_of_range(
+					"\"" + key + "\" is not an element in " + p->Path() + "!");
 		}
 		else if (lua_isfunction(lstate_,idx_))
 		{
@@ -94,7 +95,7 @@ struct LuaStateHolder
 		{
 			lua_remove(lstate_, idx_);
 			idx_ = 0;
-			ERROR << key << " is not a table or function!";
+			throw std::out_of_range(key + " is not a table or function!");
 		}
 		INFORM << "Construct " << key_;
 	}
@@ -179,14 +180,20 @@ public:
 		return (LuaObject(holder_, sub_key));
 	}
 
+	inline LuaObject at(std::string const & key) const
+	{
+
+		return LuaObject(holder_, key);
+	}
+
 	template<typename T>
-	T Get(std::string const & key, T default_value = T())const
+	T get(std::string const & key, T default_value = T()) const
 	{
 
 		T res = default_value;
 		try
 		{
-			GetValue(key, res);
+			get_value(key, res);
 		} catch (...)
 		{
 		}
@@ -195,7 +202,7 @@ public:
 	}
 
 	template<typename T>
-	void GetValue(std::string const & key, T& res) const
+	void get_value(std::string const & key, T& res) const
 	{
 		lua_getfield(holder_->lstate_, holder_->idx_, key.c_str());
 
@@ -205,8 +212,9 @@ public:
 		{
 			lua_remove(holder_->lstate_, idx);
 
-			ERROR << "\"" << key << "\" is not an element in "
-					<< holder_->Path() << "!";
+			throw std::out_of_range(
+					"\"" + key + "\" is not an element in " + holder_->Path()
+							+ "!");
 		}
 		else
 		{

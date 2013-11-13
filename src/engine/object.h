@@ -63,7 +63,7 @@ public:
 	}
 
 	template<typename T>
-	T & as()
+	T & get()
 	{
 		if (!CheckType<T>())
 		{
@@ -72,7 +72,7 @@ public:
 		return (*std::static_pointer_cast<T>(data_));
 	}
 	template<typename T>
-	T const & as() const
+	T const & get() const
 	{
 		if (!CheckType<T>())
 		{
