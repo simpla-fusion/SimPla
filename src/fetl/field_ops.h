@@ -32,9 +32,34 @@ inline auto Curl(Field<Geometry<TG, 1>, TR> const & f)
 DECL_RET_TYPE( (Field<Geometry<TG, 2>,
 				UniOp<CURL, Field<Geometry<TG, 1>, TR> > >(f)))
 template<typename TG, typename TR>
+inline auto CurlPDX(Field<Geometry<TG, 1>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 2>,
+				UniOp<CURLPDX, Field<Geometry<TG, 1>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto CurlPDY(Field<Geometry<TG, 1>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 2>,
+				UniOp<CURLPDY, Field<Geometry<TG, 1>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto CurlPDZ(Field<Geometry<TG, 1>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 2>,
+				UniOp<CURLPDZ, Field<Geometry<TG, 1>, TR> > >(f)))
+
+template<typename TG, typename TR>
 inline auto Curl(Field<Geometry<TG, 2>, TR> const & f)
 DECL_RET_TYPE( (Field<Geometry<TG, 1>,
 				UniOp<CURL, Field<Geometry<TG, 2>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto CurlPDX(Field<Geometry<TG, 2>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 1>,
+				UniOp<CURLPDX, Field<Geometry<TG, 2>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto CurlPDY(Field<Geometry<TG, 2>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 1>,
+				UniOp<CURLPDY, Field<Geometry<TG, 2>, TR> > >(f)))
+template<typename TG, typename TR>
+inline auto CurlPDZ(Field<Geometry<TG, 2>, TR> const & f)
+DECL_RET_TYPE( (Field<Geometry<TG, 1>,
+				UniOp<CURLPDZ, Field<Geometry<TG, 2>, TR> > >(f)))
 
 template<typename TG, int IL, typename TL>
 inline auto HodgeStar(Field<Geometry<TG, IL>, TL> const & f)

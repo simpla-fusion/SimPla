@@ -20,6 +20,8 @@
 
 #include "particle/particle.h"
 #include "particle/pic_engine_default.h"
+
+#include "solver/electromagnetic/pml.h"
 using namespace simpla;
 
 template<int IFORM> using Form = Field<Geometry<UniformRectMesh,IFORM>,Real >;
@@ -130,19 +132,19 @@ int main(int argc, char **argv)
 
 	typedef UniformRectMesh Mesh;
 
-	size_t num_of_step = pt.get<size_t>("STEP", 1000);
+	size_t num_of_step = pt.get<size_t>("STEP", 20);
 
 	PhysicalConstants phys_const;
 
-	phys_const.Config(pt["UNIT_SYSTEM"]);
+//	phys_const.Config(pt["UNIT_SYSTEM"]);
 
 	Mesh mesh;
 
-	mesh.Config(pt["MESH"]);
+//	mesh.Config(pt["MESH"]);
 
-	//  Parse Lua configure file ========================
+//  Parse Lua configure file ========================
 
-	//  Summary    ====================================
+//  Summary    ====================================
 
 	std::cout << std::endl << DOUBLELINE << std::endl;
 
@@ -172,11 +174,11 @@ int main(int argc, char **argv)
 
 // Main Loop ============================================
 
-	const double mu0 = phys_const["permeability_of_free_space"];
-	const double epsilon0 = phys_const["permittivity_of_free_space"];
-	const double speed_of_light = phys_const["speed_of_light"];
-	const double proton_mass = phys_const["proton_mass"];
-	const double elementary_charge = phys_const["elementary_charge"];
+	const double mu0 = phys_const["permeability of free space"];
+	const double epsilon0 = phys_const["permittivity of free space"];
+	const double speed_of_light = phys_const["speed of light"];
+	const double proton_mass = phys_const["proton mass"];
+	const double elementary_charge = phys_const["elementary charge"];
 
 	Form<1> E(mesh);
 	Form<1> J(mesh);
@@ -191,20 +193,30 @@ int main(int argc, char **argv)
 
 //	ColdFluidEM<Mesh> cold_fluid(mesh, phys_const);
 
+	nTuple<6, int> bc =
+	{ 5, 5, 5, 5, 5, 5 };
+	PML<Mesh> pml(mesh, phys_const, bc);
 	Particle<PICEngineDefault<Mesh> > ion(mesh, 1.0, 1.0);
+	ion.Init(100);
 
 	for (int i = 0; i < num_of_step; ++i)
 	{
+		INFORM << ">>> STEP " << i << " Start <<<";
+		pml.Eval(E, B, J, dt);
 //		cold_fluid.Eval(E, B, J, sp_list, dt);
 
-		E += (Curl(B / mu0) - J) / epsilon0 * dt;
-		B -= Curl(E) * dt;
+//		E += (Curl(B / mu0) - J) / epsilon0 * dt;
+//		B -= Curl(E) * dt;
+
+		EXCEPT_EQ(i,0) << "balbalabla";
+
 		ion.Push(E, B);
 		ion.Scatter(J);
+		INFORM << ">>> STEP " << i << " Done <<<";
 	}
 
-//	INFORM << (">>> Process DONE! <<<");
-//	INFORM << (">>> Post-Process DONE! <<<");
+	INFORM << (">>> Process DONE! <<<");
+	INFORM << (">>> Post-Process DONE! <<<");
 //
 //// Log ============================================
 

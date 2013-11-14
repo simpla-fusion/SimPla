@@ -72,19 +72,17 @@ public:
 class Log: public std::ostringstream
 {
 	int level_;
+	bool condition_;
 public:
 	enum
 	{
-		L_LOGIC_ERROR = -3,
-		L_ERROR = -2,
-		L_WARNING = -1,
-		L_INFORM = 0,
-		L_LOG = 1,
-		L_VERBOSE = 2
+		L_LOGIC_ERROR = -3, L_ERROR = -2, L_WARNING = -1,
+
+		L_INFORM = 0, L_LOG = 1, L_VERBOSE = 2, L_DEBUG = 0
 	};
 
-	Log(int lv = 0) :
-			level_(lv)
+	Log(int lv = 0, bool cond = true) :
+			level_(lv), condition_(cond)
 	{
 		(*this)
 //#ifdef  _OMP
@@ -95,19 +93,22 @@ public:
 	}
 	~Log()
 	{
-		(*this) << std::endl;
-
-		LogStreams::instance().put(level_, (*this).str());
-
-		if (level_ == L_LOGIC_ERROR)
+		if (condition_)
 		{
-			throw(std::logic_error(this->str()));
-		}
-		else if (level_ == L_ERROR)
-		{
-			throw(std::runtime_error(this->str()));
-		}
 
+			(*this) << std::endl;
+
+			LogStreams::instance().put(level_, (*this).str());
+
+			if (level_ == L_LOGIC_ERROR)
+			{
+				throw(std::logic_error(this->str()));
+			}
+			else if (level_ == L_ERROR)
+			{
+				throw(std::runtime_error(this->str()));
+			}
+		}
 	}
 
 	static void Verbose(int l = L_INFORM)
@@ -144,9 +145,7 @@ private:
 
 #define WARNING Log(Log::L_WARNING)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 #define INFORM Log(Log::L_INFORM)  <<"[I]"
-//#ifdef DEBUG
-//#define LOG Log(2) <<1<<"[L]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-//#else
+
 #define LOG Log(Log::L_LOG)  <<"[L]"
 //#endif
 
@@ -154,9 +153,17 @@ private:
 //#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 
-#define CHECK(_MSG_)    Log(Log::L_INFORM) <<1 << (__FILE__) <<":"<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(_MSG_)<<"="<< _MSG_ <<std::endl
-
+#ifndef NDEBUG
+#	define CHECK(_MSG_)    Log(Log::L_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
+#	define EXCEPT(_COND_)    Log(Log::L_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+	<<"\n\t"<< __STRING(_COND_)<<"="<< (_COND_)<<" "
+#	define EXCEPT_EQ( actual,expected)    Log(Log::L_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+	<<"\n\t"<< __STRING(actual)<<" = "<< (actual) << " is not  "<< (expected) <<" "
+#else
+#	define CHECK(_MSG_)
+#	define EXCEPT(_COND_)
+#endif
 #define DOUBLELINE "================================================================="
 #define SINGLELINE "-----------------------------------------------------------------"
 

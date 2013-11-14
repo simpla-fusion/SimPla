@@ -205,15 +205,15 @@ std::string PhysicalConstants::Summary() const
 
 			<< std::setw(40) << "elementary charge, e = "
 
-			<< (*this)["elementary_charge"] << std::endl
+			<< (*this)["elementary charge"] << std::endl
 
 			<< std::setw(40) << "electron mass, m_e = "
 
-			<< (*this)["electron_mass"] << std::endl
+			<< (*this)["electron mass"] << std::endl
 
 			<< std::setw(40) << "proton mass,m_p = "
 
-			<< (*this)["proton_mass"] << std::endl
+			<< (*this)["proton mass"] << std::endl
 
 			<< DOUBLELINE << std::endl;
 

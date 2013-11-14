@@ -97,7 +97,6 @@ struct LuaStateHolder
 			idx_ = 0;
 			throw std::out_of_range(key + " is not a table or function!");
 		}
-		INFORM << "Construct " << key_;
 	}
 
 	~LuaStateHolder()
@@ -105,12 +104,10 @@ struct LuaStateHolder
 
 		if (idx_ == LUA_GLOBALSINDEX)
 		{
-			INFORM << "Destroy [Root]";
 			lua_close(lstate_);
 		}
 		else if (idx_ != 0)
 		{
-			INFORM << "Destroy " << key_;
 			lua_remove(lstate_, idx_);
 		}
 

@@ -1,3 +1,3 @@
 #cxx_test(array_test ) 
  
-add_library(engine   basecontext.cpp  compound.cpp ) 	 	                      
+#add_library(engine   basecontext.cpp ) 	 	                      

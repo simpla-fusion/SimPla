@@ -9,8 +9,6 @@ ADD_SUBDIRECTORY( physics)
 
 ADD_SUBDIRECTORY( fetl )
 
-ADD_SUBDIRECTORY( modules)
-
 ADD_SUBDIRECTORY( particle)
 
 #ADD_SUBDIRECTORY( io)
@@ -18,8 +16,4 @@ ADD_SUBDIRECTORY( particle)
 #ADD_SUBDIRECTORY( swig  )
 
 
-
-
     
-ADD_EXECUTABLE(simpla  simpla.cpp)
-TARGET_LINK_LIBRARIES(simpla physics ${LUA_LIBRARIES} ${Boost_LIBRARIES})

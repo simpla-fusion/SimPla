@@ -59,11 +59,15 @@ struct UniformRectMesh
 
 	Real dt_ = 0.0;
 	// Geometry
-	coordinates_type xmin_;
-	coordinates_type xmax_;
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 	// Topology
-	nTuple<NUM_OF_DIMS, size_t> dims_;
-	nTuple<NUM_OF_DIMS, size_t> gw_;
+	nTuple<NUM_OF_DIMS, size_t> dims_ =
+	{ 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> gw_ =
+	{ 2, 2, 2 };
 
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 	coordinates_type inv_dx_;
@@ -950,17 +954,67 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
 
 				)
 
-//template<typename TL,typename TI>  inline auto //
-//_OpEval(<CURLPD1>, Field<Geometry<UniformRectMesh, 1>, TL> const & f,
-//		TI s)
-//				DECL_RET_TYPE(
-//						(f.rhs_[s-s % 3 + 2 + 3 * f.mesh.strides_[1]] - f.rhs_[s-s % 3 + 2]) * f.mesh.inv_dx_[1])
-//
-//template<typename TL,typename TI>  inline auto //
-//_OpEval(<CURLPD2>, Field<Geometry<UniformRectMesh, 2>, TL> const & f,
-//		TI s)
-//				DECL_RET_TYPE(
-//						(-f.rhs_[s-s % 3 + 1 + 3 * f.mesh.strides_[2]] + f.rhs_[s-s % 3 + 1]) * f.mesh.inv_dx_[2])
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
+		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==0?0:1)
+
+						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==0?0:1)
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
+		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		TI s)
+
+				DECL_RET_TYPE(
+						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==1?0:1)
+
+						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==1?0:1)
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
+		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		TI s)
+
+				DECL_RET_TYPE(
+						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==2?0:1)
+
+						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]] - f[s - s %3 + (s + 1) % 3]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==2?0:1)
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
+		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==0?0:1)
+
+						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==0?0:1)
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
+		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==1?0:1)
+
+						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==2?0:1)
+
+				)
+
+template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
+		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		TI s)
+				DECL_RET_TYPE(
+						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==1?0:1)
+
+						-(f[s - s % 3 + (s + 1) % 3] - f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]) * f.mesh.inv_dx_[(s + 2) % 3]*((s+2)%3==2?0:1)
+
+				)
 
 template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
 		Int2Type<WEDGE>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
@@ -1039,45 +1093,7 @@ template<typename TL, typename TR, typename TI> inline auto _OpEval(
 		Field<Geometry<UniformRectMesh, 0>, TR> const & r, TI s)
 		DECL_RET_TYPE((Cross(l , r[s])))
 
-//template
-//	Divides(Field<Geometry<ThisType, 0>, TL> const &l,
-//			Field<Geometry<ThisType, 0>, TR> const &r, TI  s)
-//			DECL_RET_TYPE((l[s]/r[s]))
-//
-//	template<int IL, typename TL, typename TR,typename TI>  inline auto //
-//	Divides(Field<Geometry<ThisType, IL>, TL> const &l, TR r, TI  s)
-//	DECL_RET_TYPE( (l[s]/r))
-//
-//
-//	template<int IPD, typename TExpr,typename TI>  inline auto //	Field<Geometry<this_type, 2>,
-//	OpCurlPD(Int2Type<IPD>, TExpr const & expr,
-//			size_t  s) ->
-//			typename std::enable_if<order_of_form<TExpr>::value==2, decltype(expr[0]) >::type
-//	{
-//		if (dims[IPD] == 1)
-//		{
-//			return (0);
-//		}
-//		size_t j0 = s % 3;
-//
-//		size_t idx2 = s - j0;
-//
-//		typename Field<Geometry<Mesh, 2>, TExpr>::Value res = 0.0;
-////		if (1 == IPD)
-////		{
-////			res = (expr.rhs_[idx2 + 2]
-////					- expr.rhs_[idx2 + 2 - 3 * strides_[IPD]]) * f.mesh.inv_dx_[IPD];
-////
-////		}
-////		else if (2 == IPD)
-////		{
-////			res = (-expr.rhs_[idx2 + 1]
-////					+ expr.rhs_[idx2 + 1 - 3 * strides_[IPD]]) * f.mesh.inv_dx_[IPD];
-////		}
-//
-//		return (res);
-//	}
-}// namespace simpla
+}  // namespace simpla
 
 /**
  *

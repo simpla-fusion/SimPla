@@ -19,10 +19,10 @@
 #ifndef NO_FIELD_IO_CACHE
 #  include "./field_rw_cache.h"
 #endif
-namespace simpla
-{
-
-#define DEFINE_FIELDS(TG)   using namespace TG##Define;                      \
+//namespace simpla
+//{
+//
+//#define DEFINE_FIELDS(TG)   using namespace TG##Define;                      \
 //
 //
 //typedef TG Mesh;                                                                     \
@@ -65,6 +65,6 @@ namespace simpla
 //typedef Field<Geometry<Mesh,0>, Complex > CScalarField;                       \
 //typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> > CVecField;                         \
 //template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
-
-}// namespace simpla
+//
+//}// namespace simpla
 #endif  // FETL_H_
