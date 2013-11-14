@@ -32,7 +32,7 @@ namespace simpla
 /**
  *
  *  @brief UniformRectMesh -- Uniform rectangular structured grid.
- *  @ingroup mesh
+ *  @ingroup mesh asdsadsad
  * */
 struct UniformRectMesh
 {
