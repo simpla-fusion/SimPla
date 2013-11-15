@@ -1,25 +1,26 @@
+#include <Xdmf.h>
 #include <iostream>
-#include <string>
-
-#include <memory>
-struct C
+int main(int argc, char ** argv)
 {
-	C()
-	{
-		std::cout << "Construct" << std::endl;
-	}
-	~C()
-	{
-		std::cout << "Destruct" << std::endl;
-	}
-};
-int main(void)
-{
-	std::shared_ptr<void> p(
-			std::static_pointer_cast<void>(std::shared_ptr<C>(new C)));
 
-	std::cout << "lalala" << std::endl;
+	XdmfDOM DOM;
+	DOM.SetInputFileName(argv[1]);
+	DOM.Parse();
 
-	p = nullptr;
+	std::cout << DOM.GetNumberOfChildren() << std::endl;
+	std::cout << DOM.Serialize() << std::endl;
+	XdmfGrid Grid;
+//
+//	XdmfAttribute *XPos;
+	XdmfXmlNode GridNode = DOM.FindElementByPath("/Xdmf/Domain/Grid[@Name=\"Test\"]");
 
+	Grid.SetDOM(&DOM);
+	Grid.SetElement(GridNode);
+	Grid.UpdateInformation();
+	std::cout << "First Grid has " << Grid.GetNumberOfAttributes()
+			<< " Attributes" << std::endl;
+
+	auto geo = Grid.GetGeometry();
+
+	std::cout << geo->GetGeometryTypeAsString() << std::endl;
 }

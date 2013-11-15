@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
+<Xdmf Version="2.0" xmlns:xi="http://www.w3.org/2003/XInclude">	
+	<Domain>
+		<xi:include href="./mesh.xmf"/>
+		<Grid Name="Test">
+			<Topology Reference="/Xdmf/Domain/Grid[@Name='Main Grid']/Topology" />
+			<Geometry Reference="/Xdmf/Domain/Grid[@Name='Main Grid']/Geometry" />
+			
+			<Attribute Name="NodeValues" Center="Node">
+			   <DataItem Format="XML" DataType="Float" Precision="8"
+			               Dimensions="12" >
+			               100 200 300
+			               300 400 500
+			               300 400 500
+			               500 600 700
+			       </DataItem>
+			</Attribute>
+			<Attribute Name="CellValues" Center="Cell">
+			   <DataItem Format="XML" DataType="Float" Precision="8"
+			           Dimensions="2" >
+			           100 200
+			   </DataItem>
+			</Attribute>
+		</Grid>
+	</Domain>
+</Xdmf>

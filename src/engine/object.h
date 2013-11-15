@@ -23,6 +23,10 @@ namespace simpla
 class Object
 {
 public:
+	enum
+	{
+		UNKNOWN = 0, PARTICLE, FIELD, MESH
+	};
 
 	Object() :
 			data_(nullptr), type_id_(std::type_index(typeid(void)))
@@ -105,7 +109,6 @@ public:
 private:
 	std::shared_ptr<void> data_;
 	std::type_index type_id_;
-
 };
 
 template<typename T, typename ... Args>
