@@ -8,9 +8,12 @@
 #ifndef MESH_H_
 #define MESH_H_
 
+#include <fetl/field.h>
 #include <fetl/ntuple.h>
 #include <fetl/primitives.h>
 #include <cstddef>
+#include <map>
+#include <string>
 #include <vector>
 
 namespace simpla

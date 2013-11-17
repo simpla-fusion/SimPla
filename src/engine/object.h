@@ -105,7 +105,12 @@ public:
 		return (data_.get() == nullptr);
 	}
 
-	PTree properties;
+	virtual void SetProperties(Properties const & pt)
+	{
+	}
+	virtual void GetProperties(Properties & pt)
+	{
+	}
 private:
 	std::shared_ptr<void> data_;
 	std::type_index type_id_;

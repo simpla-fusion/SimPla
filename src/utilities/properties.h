@@ -9,232 +9,39 @@
 #define PROPERTIES_H_
 #include <string>
 #include <sstream>
-#include <map>
-#include <complex>
-#include <boost/property_tree/ptree.hpp>
-#include "parse_config.h"
+
+
 namespace simpla
 {
-typedef boost::property_tree::ptree PTree;
-
-template<int N, typename T> struct nTuple;
-
-template<class Ext, class Int = std::string> struct pt_trans;
-
-void read_file(std::string const & fname, PTree & pt);
-
-void write_file(std::string const & fname, PTree const & pt);
-
-template<class T>
-struct pt_trans<T, std::string>
-{
-	typedef T external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		std::istringstream is(value);
-		external_type tv;
-		is >> tv;
-		return tv;
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		std::ostringstream os;
-
-		os << " " << value;
-
-		return os.str();
-	}
-
-};
-
-template<>
-struct pt_trans<std::string, std::string>
-{
-	typedef std::string external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		return value;
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		return value;
-	}
-
-};
-
-template<class T>
-struct pt_trans<std::complex<T>, std::string>
-{
-	typedef std::complex<T> external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		std::istringstream is(value);
-
-		T r, i;
-		is >> r >> i;
-
-		return external_type(r, i);
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		std::ostringstream os;
-
-		os << " " << value;
-
-		return os.str();
-	}
-
-};
-template<int N, class T>
-struct pt_trans<nTuple<N, T>, std::string>
-{
-	typedef nTuple<N, T> external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		std::istringstream is(value);
-		nTuple<N, T> tv;
-		for (int i = 0; i < N && is; ++i)
-		{
-			is >> tv[i];
-		}
-		return tv;
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		std::ostringstream os;
-
-		for (int i = 0; i < N; ++i)
-		{
-			os << " " << value[i];
-		}
-		return os.str();
-	}
-
-};
-
-template<int M, int N, class T>
-struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
-{
-	typedef nTuple<M, nTuple<N, T> > external_type;
-	typedef std::string internal_type;
-
-	external_type get_value(const internal_type &value) const
-	{
-		std::istringstream is(value);
-		external_type tv;
-
-		for (int i = 0; i < M; ++i)
-			for (int j = 0; j < N; ++j)
-			{
-				is >> tv[i][j];
-			}
-
-		return tv;
-	}
-
-	internal_type put_value(const external_type &value) const
-	{
-		std::ostringstream os;
-
-		for (int i = 0; i < M; ++i)
-			for (int j = 0; j < N; ++j)
-			{
-				os << " " << value[i][j];
-			}
-		return os.str();
-	}
-
-};
-
-template<typename T2>
-class ParseConfig<PTree, T2> : public PTree, public T2
+template<typename ... Types>
+class Properties
 {
 public:
-
-	ParseConfig(PTree t1, T2 t2) :
-			PTree(t1), T2(t2)
+	template<typename ...Args>
+	Properties(Args& ... args)
 	{
-
 	}
 
-	~ParseConfig() = default;
-
-	void ParseFile(std::string const & filename)
-	{
-		int npos = filename.find_last_of('.');
-
-		if (filename.substr(npos) == ".xml")
-		{
-			read_file(*this, filename);
-		}
-
-		T2::template ParseFile(filename);
-	}
-
-	void ParseString(std::string const & str)
-	{
-		T2::template ParseString(str);
-	}
-
-	ParseConfig operator[](std::string const & key) const
-	{
-		return (ParseConfig(PTree::get_child(key), T2::template operator[](key)));
-	}
+	void ParseFile();
+	void ParseString();
 
 	template<typename T>
-	inline T Get(std::string const & key)
+	inline T Get(std::string const & key, T const & default_value = T())
 	{
-		T res;
-		try
-		{
-			res = PTree::get<T>(key, pt_trans<T, std::string>());
-		} catch (...)
-		{
-			res = T2::template Get<T>(key);
-		}
-		return res;
-	}
+		return default_value;
 
+	}
 	template<typename T>
-	inline T Get(std::string const & key, T const & def)
+	inline void Set(std::string const & key, T const & default_value)
 	{
-		T res;
-		try
-		{
-			res = PTree::get<T>(key, pt_trans<T, std::string>());
-		} catch (...)
-		{
-			try
-			{
-				res = T2::template Get<T>(key);
-			} catch (...)
-			{
-				res = def;
-			}
-		}
-		return res;
-	}
-
-	template<typename T, typename ... Args>
-	void Function(T* res, Args const & ... args) const
-	{
-		T2::template Function(res, args...);
 	}
 
 };
 
+
+//void read_file(std::string const & fname, Properties & pt);
+//
+//void write_file(std::string const & fname, Properties const & pt);
 //class ptree: public boost::property_tree::ptree
 //{
 //public:
