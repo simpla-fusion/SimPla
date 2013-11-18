@@ -1,10 +1,3 @@
-/build
-/gtest-1.6.0
-/gtest-build
-/gtest-build-gcc
-/gtest-build-intel
-/third_part
-/build-gcc
-/build-intel
-/build-lvml
-/build-clang
+/build*
+/third_part/src
+/third_part/googletest

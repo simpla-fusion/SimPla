@@ -97,16 +97,52 @@ struct UniformRectMesh
 	}
 
 	template<typename TCONFIG>
-	void Config(TCONFIG const & vm)
+	TCONFIG const& Deserlize(TCONFIG const& vm)
 	{
-		vm.get_value("dt", dt_);
-		vm.get_value("xmin", xmin_);
-		vm.get_value("xmax", xmax_);
-		vm.get_value("dims", dims_);
-		vm.get_value("gw", gw_);
+		vm.Get("dt", dt_);
+		vm.Get("xmin", xmin_);
+		vm.Get("xmax", xmax_);
+		vm.Get("dims", dims_);
+		vm.Get("gw", gw_);
 
 		Update();
+		return vm;
 	}
+
+	template<typename TCONFIG>
+	TCONFIG & Serlize(TCONFIG & vm)
+	{
+		vm.Set("dt", dt_);
+		vm.Set("xmin", xmin_);
+		vm.Set("xmax", xmax_);
+		vm.Set("dims", dims_);
+		vm.Set("gw", gw_);
+
+		Update();
+		return vm;
+	}
+
+//	std::string Summary() const
+//	{
+//		std::ostringstream os;
+//
+//		os
+//
+//		<< "[Mesh]" << std::endl
+//
+//		<< SINGLELINE << std::endl
+//
+//		<< std::setw(40) << "dims = " << dims_ << std::endl
+//
+//		<< std::setw(40) << "xmin = " << xmin_ << std::endl
+//
+//		<< std::setw(40) << "xmax = " << xmax_ << std::endl
+//
+//		<< std::setw(40) << "gw = " << gw_ << std::endl
+//
+//		;
+//		return (os.str());
+//	}
 
 	void Update()
 	{
@@ -167,28 +203,6 @@ struct UniformRectMesh
 	{
 		return std::move(
 				typename Container<E>::type(GetNumOfGridPoints(iform), d));
-	}
-
-	std::string Summary() const
-	{
-		std::ostringstream os;
-
-		os
-
-		<< "[Mesh]" << std::endl
-
-		<< SINGLELINE << std::endl
-
-		<< std::setw(40) << "dims = " << dims_ << std::endl
-
-		<< std::setw(40) << "xmin = " << xmin_ << std::endl
-
-		<< std::setw(40) << "xmax = " << xmax_ << std::endl
-
-		<< std::setw(40) << "gw = " << gw_ << std::endl
-
-		;
-		return (os.str());
 	}
 
 	template<int IFORM, typename T1>
@@ -415,12 +429,12 @@ struct UniformRectMesh
 	}
 	// General Property -----------------------------------------------
 
-	inline Real get_dt() const
+	inline Real GetDt() const
 	{
 		return dt_;
 	}
 
-	inline void set_dt(Real dt = 0.0)
+	inline void SetDt(Real dt = 0.0)
 	{
 		dt_ = dt;
 		Update();
