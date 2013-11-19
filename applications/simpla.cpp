@@ -10,7 +10,7 @@
 
 #include "simpla_defs.h"
 #include "utilities/log.h"
-#include "utilities/lua_parser.h"
+#include "utilities/lua_state.h"
 #include "engine/object.h"
 
 #include "mesh/uniform_rect.h"
@@ -32,117 +32,66 @@ int main(int argc, char **argv)
 {
 
 	Log::Verbose(0);
-//
-////	//===========================================================
-////	//  Command Line
-//////	namespace po = boost::program_options;
-//////
-//////	po::options_description desc;
-//////
-//////	desc.add_options()
-//////
-//////	("help,h", "produce help message")
-//////
-//////	("long_help,H", "produce long help message")
-//////
-//////	("version,V", "display copyright and  version information")
-//////
-//////	("verbose,v", po::value<int>()->default_value(0), "verbose level")
-//////
-//////	("log,l", po::value<std::string>()->default_value(""), "Log file")
-//////
-//////	("input,i", po::value<std::string>()->default_value(""),
-//////			"Input configure file [xxx.lua]")
-//////
-//////	("command,c", po::value<std::string>()->default_value(""),
-//////			"command | script")
-//////
-//////	("output,o", po::value<std::string>()->default_value("untitle"),
-//////			"Output file, diagnose information")
-//////
-//////	("gen_config,g", "generate example configure file")
-//////
-//////	;
-//////
-//////	po::variables_map vm_;
-//////
-//////	po::store(po::parse_command_line(argc, argv, desc), vm_);
-//////
-//////	if (vm_.count("help") > 0)
-//////	{
-//////
-//////		std::cout << SIMPLA_LOGO << std::endl;
-//////		std::cout << desc << std::endl;
-//////		return (1);
-//////
-//////	}
-//////	else if (vm_.count("long_help") > 0)
-//////	{
-//////
-//////		std::cout << SIMPLA_LOGO << std::endl;
-//////		std::cout << desc << std::endl;
-//////		std::cout << DOUBLELINE << std::endl;
-//////		return (1);
-//////
-//////	}
-//////	else if (vm_.count("gen_config") > 0)
-//////	{
-//////		return (1);
-//////
-//////	}
-//////	else if (vm_.count("version") > 0)
-//////	{
-//////		std::cout << SIMPLA_LOGO << std::endl;
-//////		return (1);
-//////
-//////	}
-////
-//////	Log::Verbose(vm_["verbose"].as<int>());
-//////
-//////	Log::OpenFile(vm_["log"].as<std::string>());
-//////
+
 	LuaObject pt;
-//
-//	for (int i = 1; i < argc; ++i)
-//	{
-//		switch (argv[i][1])
-//		{
-//		case 'n':
-//			max_step = atoi(argv[i] + 2);
-//			break;
-//		case 's':
-//			record_stride = atoi(argv[i] + 2);
-//			break;
-//		case 'o':
-//			output = argv[i] + 2;
-//			break;
-//		case 'i':
-//			input = argv[i] + 2;
-//			break;
-//		case 'l':
-//			log_file = std::string(argv[i] + 2);
-//			break;
-//		case 'v':
-//			Log::Verbose(atof(argv[i] + 2));
-//			break;
-//		}
-//
-//	}
-//
 
-	typedef UniformRectMesh Mesh;
+	size_t num_of_step;
 
-	size_t num_of_step = pt.get<size_t>("STEP", 20);
+	size_t record_stride;
+
+	std::string workspace_path;
+
+	for (int i = 1; i < argc; ++i)
+	{
+		char opt = *(argv[i] + 1);
+		char * value = argv[i] + 2;
+
+		switch (opt)
+		{
+		case 'n':
+			num_of_step = atoi(value);
+			break;
+		case 's':
+			record_stride = atoi(value);
+			break;
+		case 'o':
+			workspace_path = value;
+			break;
+		case 'i':
+			pt.ParseFile(value);
+			break;
+		case 'l':
+			Log::OpenFile(value);
+			break;
+		case 'v':
+			Log::Verbose(atof(value));
+			break;
+		case 'h':
+
+			std::cout << SIMPLA_LOGO << std::endl;
+			std::cout << "Too lazy to write a complete help information\n"
+					"\t -n<NUM>\t number of steps\n"
+					"\t -s<NUM>\t recorder per <NUM> steps\n"
+					"\t -o<STRING>\t output directory\n"
+					"\t -i<STRING>\t configure file "
+					"\n" << std::endl;
+			exit(1);
+			break;
+		default:
+			std::cout << SIMPLA_LOGO << std::endl;
+
+		}
+
+	}
 
 	PhysicalConstants phys_const;
 
-//	phys_const.Config(pt["UNIT_SYSTEM"]);
+	phys_const.Deserialize(pt.GetChild("UnitSystem"));
 
+	typedef UniformRectMesh Mesh;
 	Mesh mesh;
 
-//	mesh.Config(pt["MESH"]);
-
-//  Parse Lua configure file ========================
+	mesh.Deserialize(pt.GetChild("Grid"));
 
 //  Summary    ====================================
 
@@ -162,15 +111,15 @@ int main(int argc, char **argv)
 //
 	std::cout << SINGLELINE << std::endl;
 
-	std::cout << phys_const.Summary() << std::endl;
+	phys_const.Print(std::cout);
 
 	std::cout << SINGLELINE << std::endl;
 
-	std::cout << mesh.Summary() << std::endl;
+	mesh.Print(std::cout);
 
 	std::cout << SINGLELINE << std::endl;
 
-	std::cout << std::endl << DOUBLELINE << std::endl;
+//	std::cout << std::endl << DOUBLELINE << std::endl;
 
 // Main Loop ============================================
 
@@ -184,9 +133,9 @@ int main(int argc, char **argv)
 	Form<1> J(mesh);
 	Form<2> B(mesh);
 
-	Real dt = mesh.get_dt();
+	Real dt = mesh.GetDt();
 
-	std::vector<CompoundObject> sp_list;
+	std::vector<Object> sp_list;
 
 	INFORM << (">>> Pre-Process DONE! <<<");
 	INFORM << (">>> Process START! <<<");
@@ -207,8 +156,6 @@ int main(int argc, char **argv)
 
 //		E += (Curl(B / mu0) - J) / epsilon0 * dt;
 //		B -= Curl(E) * dt;
-
-		EXCEPT_EQ(i,0) << "balbalabla";
 
 		ion.Push(E, B);
 		ion.Scatter(J);

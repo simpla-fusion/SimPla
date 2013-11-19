@@ -64,10 +64,8 @@ struct UniformRectMesh
 	coordinates_type xmax_ =
 	{ 10, 10, 10 };
 	// Topology
-	nTuple<NUM_OF_DIMS, size_t> dims_ =
-	{ 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> gw_ =
-	{ 2, 2, 2 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
+	nTuple<NUM_OF_DIMS, size_t> gw_ /*={ 2, 2, 2 }*/;
 
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 	coordinates_type inv_dx_;
@@ -104,40 +102,42 @@ struct UniformRectMesh
 
 	}
 
-	void SetTopology(nTuple<THREE, size_t> const &dims,
-			nTuple<THREE, size_t> const &gw)
+	template<typename PT>
+	inline void Deserialize(PT const &vm)
 	{
-		dims_ = dims;
-		gw_ = gw;
-	}
-	void SetGeometry(nTuple<THREE, Real> const& xmin,
-			nTuple<THREE, Real> const& dx)
-	{
-		xmin_ = xmin;
-		xmax_ = dx * dims_;
+		vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
+		vm.GetChild("Topology").template GetValue("GhostWidth", &gw_);
+		vm.GetChild("Geometry").template GetValue("Origin", &xmin_);
+		vm.GetChild("Geometry").template GetValue("DxDyDz", &dx_);
+		xmax_ = dx_ * dims_;
+		Update();
 	}
 
-//	std::string Summary() const
-//	{
-//		std::ostringstream os;
-//
-//		os
-//
-//		<< "[Mesh]" << std::endl
-//
-//		<< SINGLELINE << std::endl
-//
-//		<< std::setw(40) << "dims = " << dims_ << std::endl
-//
-//		<< std::setw(40) << "xmin = " << xmin_ << std::endl
-//
-//		<< std::setw(40) << "xmax = " << xmax_ << std::endl
-//
-//		<< std::setw(40) << "gw = " << gw_ << std::endl
-//
-//		;
-//		return (os.str());
-//	}
+	template<typename PT>
+	inline void Serialize(PT &vm) const
+	{
+		vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
+		vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
+		vm.GetChild("Geometry").template SetValue("Origin", &xmin_);
+		vm.GetChild("Geometry").template SetValue("DxDyDz", &dx_);
+	}
+	template<typename TStream>
+	void Print(TStream &os) const
+	{
+		os
+
+		<< "[Mesh]" << std::endl
+
+		<< std::setw(40) << "dims = " << dims_ << std::endl
+
+		<< std::setw(40) << "xmin = " << xmin_ << std::endl
+
+		<< std::setw(40) << "xmax = " << xmax_ << std::endl
+
+		<< std::setw(40) << "gw = " << gw_ << std::endl
+
+		;
+	}
 
 	void Update()
 	{

@@ -3,13 +3,8 @@
 
     Description="For Cold Plasma Dispersion" -- description or other text things.    
 
-
-    UNIT_SYSTEM = 
-     { 
-       type= "SI"
-     }
-     
-    
+    UnitSystem={Type="Nature"}
+   
     c = 3.1415926e8 -- m/s
     Btor= 1.0 -- Tesla
     Ti =  0.3 -- KeV
@@ -28,40 +23,30 @@
     n0 = 1.07e17 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
     omega_ci = 9.58e7*Btor -- rad/s
 
-    
-    
-    MESH={
-             
-      dims={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
-	      
-      gw= {5,1,1},  -- width of ghost points            
-      
-      xmin={0.0,0.0,0.0},
-      
-      xmax={LX/(NX-GW*2-1)*(NX-1),LY,LZ}    ,       
-	      
-      dt=0.5*LX/ (NX-1)/c  -- time step     
-    }
-             
-    DIAGNOSIS={"E1","B1"}
-    
-    SP_LIST= {"HG"} -- the list of species in the simulation        
-             
-    
-    SPECIES=        
-    {                
-         ele	={desc="ele" ,Z=-1.0,   m=1.0/100.0, engine="ColdFluid", Ts=0.0},
-   
-         eleG	={desc="ele" ,Z=-1.0,	m=1.0/100.0, engine="GyroGauge", Ts=Te, numOfMate=4,PIC=20 },
-             
-         HC		={desc="H"    ,Z=1.0,   m=1, 	engine="ColdFluid", 	Ts=0.0},       
-             
-         HG		={desc="H"    ,Z=1.0,   m=1, 	engine="GyroGauge", Ts=Ti, numOfMate=20,    PIC=20},
-             
-         HD		={desc="H"    ,Z=1.0,   m=1,  	engine="DeltaF", 	Ts=Ti, numOfMate=1,     PIC=200},
-          
-    } 
 
+    
+    Grid=
+    {
+      Topology=
+      {       
+          Type="3DCoRectMesh",
+          Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
+          GhostWidth= {5,1,1},  -- width of ghost points            
+      },
+      Geometry=
+      {
+          Type="Origin_DxDyDz",
+          Origin={0.0,0.0,0.0}, 
+          DxDyDz={LX/(NX-GW*2-1)*(NX-1),LY/(NY-1),LZ/(NZ-1)},           	  
+          dt=0.5*LX/ (NX-1)/c  -- time step     
+      },
+      Attribute=
+      {
+       {Name="n0",AttributeType="Scalar",Center="Node",Value=""}
+
+      }
+    }
+ 
    --[[ uncomment this line, if you need Cycle BC.
     -- set BC(boundary condition), now only first two are valid         
     -- BC >= GW               

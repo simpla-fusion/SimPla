@@ -1,28 +1,44 @@
 <?xml version="1.0" ?>
 <!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>
 <Xdmf><Domain>
+
+
+
+<Information Name="UnitSystem" Type="SI" />
+
+<Information Name='GlobalVariable' >			
+	<Variable Name="n0" Value='10'/>
+	<Variable Name="T0" Value='1.0'/>
+</Information>
+
+<Information Name="Workspace" >	 ./	</Information>
+
 <Grid Name="Test">
-	<Information Name="UnitSystem" Type="SI" />
+
+	<Time Value="0">0.0025</Time>
+	
+	<Information Name='Boundary' BoundartType='Cycle' />			
 
 	<Topology Type="3DCoRectMesh" Dimensions="201 201 11" Ghostwidth="2 2 2" />	
-	<Geometry Type="Origin_DxDyDz" dt="1.0">
+	<Geometry Type="Origin_DxDyDz" >
 		<DataItem Format='XML' Dimensions='3'> 0  0  0 </DataItem>
 	 	<DataItem Format='XML' Dimensions='3'> 1  1  1 </DataItem>
 	</Geometry>
-
-	<Information Name='Boundary' Type='Cycle' />			
-
-	<Time Value="0">0.0025</Time>
-
-	<Information Name='GlobalVariable' >			
-		<Variable Name="n0" Value='10'/>
-		<Variable Name="T0" Value='1.0'/>
-	</Information>
-
-	<Information Name="Workspace" >	 ./	</Information>
+	<Information Name="dt"> 1.0  </Information>
 	
 	<Attribute Name="n0" AttributeType="Scalar" Center="Node">
-		<DataItem Format="Function" Praameter="x y z">n0* sin(x)</DataItem>	   
+		<Information  Type="LuaScript">
+		local f0=1.9
+        local k={0,1,1}
+        local alpha=1.0e32
+        local A={1,0,0}
+        return function(x,y,z,t)
+            wt=t*f0+x*k[1]+y*k[2]+z*k[3]
+            a=(1-math.exp(-t*alpha))*math.sin(wt)
+            r={A[1]*a,A[2]*a,A[3]*a}
+            return r
+        end
+		</Information>	   
 	</Attribute>
 
 	<Attribute Name="E" AttributeType="Scalar" Center="Edge" />	  

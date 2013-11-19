@@ -8,16 +8,21 @@
 
 #ifndef INCLUDE_LUA_PARSER_H_
 #define INCLUDE_LUA_PARSER_H_
-#include "lua.hpp"
-#include <map>
-#include <list>
-#include <vector>
-#include <string>
-#include <algorithm>
 
-#include "utilities/log.h"
-#include "refcount.h"
-#include "fetl/ntuple.h"
+#include <fetl/ntuple.h>
+#include <lua5.1/lua.h>
+#include <lua5.1/lua.hpp>
+#include <utilities/log.h>
+#include <cstddef>
+#include <iostream>
+#include <list>
+#include <map>
+#include <memory>
+#include <new>
+#include <stdexcept>
+#include <string>
+#include <utility>
+#include <vector>
 
 namespace simpla
 {
@@ -172,25 +177,20 @@ public:
 		holder_->ParseString(str);
 	}
 
-	LuaObject operator[](std::string const & sub_key) const
-	{
-		return (LuaObject(holder_, sub_key));
-	}
-
-	inline LuaObject at(std::string const & key) const
+	inline LuaObject GetChild(std::string const & key) const
 	{
 
 		return LuaObject(holder_, key);
 	}
 
 	template<typename T>
-	T get(std::string const & key, T default_value = T()) const
+	T Get(std::string const & key, T default_value = T()) const
 	{
 
 		T res = default_value;
 		try
 		{
-			get_value(key, res);
+			GetValue(key, &res);
 		} catch (...)
 		{
 		}
@@ -199,7 +199,14 @@ public:
 	}
 
 	template<typename T>
-	void get_value(std::string const & key, T& res) const
+	void SetValue(std::string const &name, T const &v)
+	{
+		push_value(v);
+		lua_setfield(holder_->lstate_, holder_->idx_, name.c_str());
+	}
+
+	template<typename T>
+	void GetValue(std::string const & key, T* res) const
 	{
 		lua_getfield(holder_->lstate_, holder_->idx_, key.c_str());
 
@@ -215,14 +222,15 @@ public:
 		}
 		else
 		{
-			toValue_(idx, &res);
+			toValue_(idx, res);
 		}
 	}
 
 	template<typename T, typename ... Args>
-	void Function(T* res, Args const & ... args) const
+	T Function(Args const & ... args) const
 	{
 
+		T res;
 		if (holder_->idx_ != 0)
 		{
 			ERROR << holder_->Path() << " is not a function!!";
@@ -231,30 +239,32 @@ public:
 		lua_getfield(holder_->lstate_, holder_->parent_->idx_,
 				holder_->key_.c_str());
 
-		push_arg(args...);
+		push_value(args...);
 
 		lua_call(holder_->lstate_, sizeof...(args), 1);
 
-		toValue_(lua_gettop(holder_->lstate_), res);
+		toValue_(lua_gettop(holder_->lstate_), &res);
+
+		return res;
 	}
 
 private:
 	template<typename T, typename ... Args>
-	inline void push_arg(T const & v, Args const & ... rest) const
+	inline void push_value(T const & v, Args const & ... rest) const
 	{
-		push_arg(v);
-		push_arg(rest...);
+		push_value(v);
+		push_value(rest...);
 	}
 
-	inline void push_arg(int const & v) const
+	inline void push_value(int const & v) const
 	{
 		lua_pushinteger(holder_->lstate_, v);
 	}
-	inline void push_arg(double const & v) const
+	inline void push_value(double const & v) const
 	{
 		lua_pushnumber(holder_->lstate_, v);
 	}
-	inline void push_arg(std::string const & v) const
+	inline void push_value(std::string const & v) const
 	{
 		lua_pushstring(holder_->lstate_, v.c_str());
 	}

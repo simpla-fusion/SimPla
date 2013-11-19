@@ -21,7 +21,7 @@ class Object
 {
 public:
 
-	typedef std::multimap<std::string, Object> children_type
+	typedef std::multimap<std::string, Object> children_type;
 
 	Object() :
 			data_(nullptr), type_id_(std::type_index(typeid(void)))

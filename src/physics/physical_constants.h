@@ -25,19 +25,32 @@ public:
 	~PhysicalConstants();
 
 	template<typename TCONFIG>
-	void Config(TCONFIG vm)
+	void Deserialize(TCONFIG vm)
 	{
 
-		SetBaseUnit(vm.template get<std::string>("type"), //
-		vm.template get<double>("m", 1.0), //
-		vm.template get<double>("s", 1.0), //
-		vm.template get<double>("kg", 1.0), //
-		vm.template get<double>("C", 1.0), //
-		vm.template get<double>("K", 1.0), //
-		vm.template get<double>("Mol", 1.0));
+		SetBaseUnit(vm.template Get<std::string>("Type"), //
+		vm.template Get<double>("m", 1.0), //
+		vm.template Get<double>("s", 1.0), //
+		vm.template Get<double>("kg", 1.0), //
+		vm.template Get<double>("C", 1.0), //
+		vm.template Get<double>("K", 1.0), //
+		vm.template Get<double>("mol", 1.0));
 	}
 
-	std::string Summary() const;
+	template<typename TCONFIG>
+	void Serialize(TCONFIG vm)
+	{
+
+		vm.template SetValue<std::string>("Type", type_);
+		vm.template SetValue<double>("m", m_);
+		vm.template SetValue<double>("s", s_);
+		vm.template SetValue<double>("kg", kg_);
+		vm.template SetValue<double>("C", C_);
+		vm.template SetValue<double>("K", K_);
+		vm.template SetValue<double>("mol", mol_);
+	}
+
+	void Print(std::ostream & os) const;
 
 	void SetBaseUnit(std::string const & type_name = "CUSTOM", double pm = 1,
 			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
@@ -67,16 +80,15 @@ private:
 	std::string type_;
 
 //SI base unit
-	double m; //<< length [meter]
-	double s;	//<< time	[second]
-	double kg; //<< mass	[kilgram]
-	double C;	//<< electric charge	[coulomb]
-	double K;	//<< temperature [kelvin]
-	double mol;	//<< amount of substance [mole]
+	double m_; //<< length [meter]
+	double s_;	//<< time	[second]
+	double kg_; //<< mass	[kilgram]
+	double C_;	//<< electric charge	[coulomb]
+	double K_;	//<< temperature [kelvin]
+	double mol_;	//<< amount of substance [mole]
 
 }
 ;
-std::string Summary(PhysicalConstants const & self);
 
 }  // namespace simpla
 

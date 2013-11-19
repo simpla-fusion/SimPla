@@ -9,11 +9,13 @@
 #define ENGINE_H_
 #include "third_part/pugixml/src/pugixml.hpp"
 #include <string>
+#include "utilities/lua_state.h"
 namespace simpla
 {
 
 class Engine
 {
+	LuaObject lua_root_;
 	pugi::xml_document doc_;
 public:
 	Engine()
