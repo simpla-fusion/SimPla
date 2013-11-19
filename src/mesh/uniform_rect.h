@@ -97,29 +97,24 @@ struct UniformRectMesh
 	}
 
 	template<typename TCONFIG>
-	TCONFIG const& Deserlize(TCONFIG const& vm)
+	void GetTopology(TCONFIG & vm)
 	{
-		vm.Get("dt", dt_);
-		vm.Get("xmin", xmin_);
-		vm.Get("xmax", xmax_);
-		vm.Get("dims", dims_);
-		vm.Get("gw", gw_);
-
-		Update();
-		return vm;
-	}
-
-	template<typename TCONFIG>
-	TCONFIG & Serlize(TCONFIG & vm)
-	{
-		vm.Set("dt", dt_);
-		vm.Set("xmin", xmin_);
-		vm.Set("xmax", xmax_);
 		vm.Set("dims", dims_);
 		vm.Set("gw", gw_);
 
-		Update();
-		return vm;
+	}
+
+	void SetTopology(nTuple<THREE, size_t> const &dims,
+			nTuple<THREE, size_t> const &gw)
+	{
+		dims_ = dims;
+		gw_ = gw;
+	}
+	void SetGeometry(nTuple<THREE, Real> const& xmin,
+			nTuple<THREE, Real> const& dx)
+	{
+		xmin_ = xmin;
+		xmax_ = dx * dims_;
 	}
 
 //	std::string Summary() const

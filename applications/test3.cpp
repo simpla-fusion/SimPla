@@ -5,43 +5,31 @@
  *      Author: salmon
  */
 
+#include <boost/property_tree/ptree.hpp>
+#include <boost/property_tree/xml_parser.hpp>
 #include <iostream>
-#include "fetl/ntuple.h"
-#include "fetl/ntuple_ops.h"
-#include "utilities/log.h"
 
-using namespace simpla;
-
-int main()
+int main(int argc, char** argv)
 {
-	nTuple<2, nTuple<2, double>> a =
-	{ 1, 2, 3, 4 };
-	nTuple<2, nTuple<2, double>> b =
-	{ 0, 5, 6, 7 };
-	CHECK(TensorProduct(a, b));
+	using boost::property_tree::ptree;
+//	ptree pt;
+//	ptree pt_grid;
+//
+//	pt_grid.put("<xmlattr>.Name", "Test");
+//
+//	pt.put_child("Grid", pt_grid);
+//
+//	boost::property_tree::write_xml("test.xml", pt, std::locale());
+//
+	ptree pt2;
 
-	nTuple<2, nTuple<2, nTuple<2, double>>> e =
-	{	1,2,3,4,5,6,7,8};
-	nTuple<2, nTuple<2, nTuple<2, double>>> f =
-	{	1,2,3,4,5,6,7,8};
-	CHECK(TensorProduct(e, f));
+	boost::property_tree::read_xml(argv[1], pt2);
 
-	nTuple<3, double> c =
-	{ 1, 2, 3 };
-	nTuple<1, nTuple<3, double>> d =
-	{ 4, 5, 6 };
-	CHECK(c);
-	CHECK(d);
+	auto it_range = pt2.get_child("Xdmf.Domain.Grid.").equal_range("Attribute");
 
-	CHECK(TensorProduct(c, c));
-	CHECK(TensorProduct(2, c));
-	CHECK(TensorProduct(c, 2));
-	CHECK(TensorProduct(c, d));
-
-	CHECK(TensorProduct(d, c));
-
-	nTuple<3, nTuple<2, nTuple<3, double>>> g =
-	{	1, 2, 3, 4, 5, 6, 7, 8, 9,1, 2, 3, 4, 5, 6, 7, 8, 9};
-	CHECK(TensorContraction(g, c));
+	for (auto it = it_range.first; it != it_range.second; ++it)
+	{
+		std::cout << it->second.get<std::string>("<xmlattr>.Name") << std::endl;
+	}
 
 }

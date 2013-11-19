@@ -10,23 +10,29 @@
 #include <string>
 #include <sstream>
 
-
 namespace simpla
 {
 template<typename ... Types>
 class Properties
 {
 public:
+
+	typedef Properties<Types...> this_type;
 	template<typename ...Args>
 	Properties(Args& ... args)
 	{
 	}
 
-	void ParseFile();
-	void ParseString();
+	void ParseFile(std::string const &);
+	void ParseString(std::string const &);
+
+	this_type GetChild(std::string const & key) const
+	{
+		return std::move(this_type());
+	}
 
 	template<typename T>
-	inline T Get(std::string const & key, T const & default_value = T())
+	inline T Get(std::string const &, T const & default_value = T())
 	{
 		return default_value;
 
@@ -38,6 +44,11 @@ public:
 
 };
 
+template<typename T>
+Properties<T> CreateProperties(T const & pt)
+{
+	return Properties<T>(pt);
+}
 
 //void read_file(std::string const & fname, Properties & pt);
 //

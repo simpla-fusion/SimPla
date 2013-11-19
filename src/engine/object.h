@@ -7,10 +7,7 @@
 
 #ifndef OBJECT_H_
 #define OBJECT_H_
-
-#include <utilities/log.h>
-#include <utilities/properties.h>
-#include <iostream>
+#include "utilities/log.h"
 #include <map>
 #include <memory>
 #include <string>
@@ -23,10 +20,8 @@ namespace simpla
 class Object
 {
 public:
-	enum
-	{
-		UNKNOWN = 0, PARTICLE, FIELD, MESH
-	};
+
+	typedef std::multimap<std::string, Object> children_type
 
 	Object() :
 			data_(nullptr), type_id_(std::type_index(typeid(void)))
@@ -67,22 +62,22 @@ public:
 	}
 
 	template<typename T>
-	T & get()
+	std::shared_ptr<T> as()
 	{
 		if (!CheckType<T>())
 		{
 			ERROR << "This is not a " << typeid(T).name() << " !";
 		}
-		return (*std::static_pointer_cast<T>(data_));
+		return (std::static_pointer_cast<T>(data_));
 	}
 	template<typename T>
-	T const & get() const
+	std::shared_ptr<const T> as() const
 	{
 		if (!CheckType<T>())
 		{
 			ERROR << "Can not convert to type " << typeid(T).name();
 		}
-		return (*std::static_pointer_cast<const T>(data_));
+		return (std::static_pointer_cast<const T>(data_));
 	}
 
 	virtual void swap(Object & rhs)
@@ -105,53 +100,30 @@ public:
 		return (data_.get() == nullptr);
 	}
 
-	virtual void SetProperties(Properties const & pt)
+	inline children_type & GetChildren()
 	{
+		return children_;
 	}
-	virtual void GetProperties(Properties & pt)
+
+	inline children_type const & GetChildren() const
 	{
+		return children_;
 	}
-private:
+
 	std::shared_ptr<void> data_;
 	std::type_index type_id_;
+	std::string name_;
+	children_type children_;
 };
 
 template<typename T, typename ... Args>
-Object CreateObjec(Args &... args)
+inline Object CreateObjec(Args &... args)
 {
 	return Object(new T(std::forward<Args>(args)...));
 }
 
-class CompoundObject: public Object, public std::map<std::string, Object>
-{
-public:
-
-	typedef std::map<std::string, Object> base_type;
-	typedef CompoundObject this_type;
-	CompoundObject() :
-			Object(typeid(this_type))
-	{
-	}
-
-	CompoundObject(CompoundObject const &r) :
-			Object(r)
-	{
-	}
-
-	~CompoundObject()
-	{
-	}
-
-	virtual void swap(CompoundObject & rhs)
-	{
-
-		Object::swap(rhs);
-		base_type::swap(rhs);
-	}
 }
-;
-
-}
+template<typename T> class ObjectWrapper;
 // namespace simpla
 
 #endif /* OBJECT_H_ */

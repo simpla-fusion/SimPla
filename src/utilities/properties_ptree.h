@@ -60,7 +60,7 @@ public:
 	}
 
 	template<typename T>
-	inline T GetValue(std::string const & key, T const & default_value = T())
+	inline T Get(std::string const & key, T const & default_value = T())
 	{
 		T res = default_value;
 		try
@@ -74,7 +74,7 @@ public:
 	}
 
 	template<typename T>
-	inline void SetValue(std::string const & key, T const & default_value)
+	inline void Set(std::string const & key, T const & default_value)
 	{
 
 	}

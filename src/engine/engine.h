@@ -7,10 +7,29 @@
 
 #ifndef ENGINE_H_
 #define ENGINE_H_
+#include "third_part/pugixml/src/pugixml.hpp"
+#include <string>
+namespace simpla
+{
 
-#include "engine/context.h"
-#include "engine/local_comm.h"
+class Engine
+{
+	pugi::xml_document doc_;
+public:
+	Engine()
+	{
 
-Context::Holder parseConfigFile(std::string const &cFile);
+	}
+	void ParseXML(std::string const &filename)
+	{
+		doc_.load_file(filename.c_str());
+	}
+	Object Evaluate()
+	{
+
+	}
+};
+
+}  // namespace simpla
 
 #endif /* ENGINE_H_ */
