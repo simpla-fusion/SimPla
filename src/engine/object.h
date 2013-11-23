@@ -24,35 +24,35 @@ public:
 	typedef std::multimap<std::string, Object> children_type;
 
 	Object() :
-			data_(nullptr), type_id_(std::type_index(typeid(void)))
+			data_(nullptr), type_index_(std::type_index(typeid(void)))
 	{
 	}
 
 	Object(std::type_info const & tinfo) :
-			data_(nullptr), type_id_(std::type_index(tinfo))
+			data_(nullptr), type_index_(std::type_index(tinfo))
 	{
 	}
 
 	Object(Object const & r) :
-			data_(r.data_), type_id_(r.type_id_)
+			data_(r.data_), type_index_(r.type_index_)
 	{
 	}
 
 	Object(Object &&r) :
-			data_(r.data_), type_id_(r.type_id_)
+			data_(r.data_), type_index_(r.type_index_)
 	{
 	}
 
 	template<typename T>
 	Object(std::shared_ptr<T> d) :
-			data_(std::static_pointer_cast<void>(d)), type_id_(
+			data_(std::static_pointer_cast<void>(d)), type_index_(
 					std::type_index(typeid(T)))
 	{
 	}
 
 	template<typename T>
 	Object(T* d) :
-			data_(std::static_pointer_cast<void>(std::shared_ptr<T>(d))), type_id_(
+			data_(std::static_pointer_cast<void>(std::shared_ptr<T>(d))), type_index_(
 					std::type_index(typeid(T)))
 	{
 	}
@@ -92,7 +92,11 @@ public:
 	template<typename T>
 	inline bool CheckType() const
 	{
-		return std::type_index(typeid(T)) == type_id_;
+		return std::type_index(typeid(T)) == type_index_;
+	}
+	std::type_index GetTypeIndex() const
+	{
+		return type_index_;
 	}
 
 	bool IsEmpty() const
@@ -111,7 +115,7 @@ public:
 	}
 
 	std::shared_ptr<void> data_;
-	std::type_index type_id_;
+	std::type_index type_index_;
 	std::string name_;
 	children_type children_;
 };

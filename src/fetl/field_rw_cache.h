@@ -9,7 +9,7 @@
 #define FIELD_IO_CACHE_H_
 
 #include <vector>
-
+#include <algorithm>
 #include "field.h"
 #include "primitives.h"
 #include "proxycache.h"

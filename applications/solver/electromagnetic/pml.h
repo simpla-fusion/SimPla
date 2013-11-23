@@ -8,7 +8,7 @@
 
 #include "fetl/fetl.h"
 #include "mesh/uniform_rect.h"
-
+#include "physics/physical_constants.h"
 namespace simpla
 {
 
@@ -47,16 +47,15 @@ public:
 
 	nTuple<6, int> bc_;
 
-	template<typename PHYS>
-	PML(mesh_type const & pmesh, const PHYS & phys, nTuple<SIX, int> const & bc) :
-
+	template<typename PT>
+	PML(mesh_type const & pmesh, const PT & phys) :
 			mesh(pmesh),
 
-			mu0(phys["permeability of free space"]),
+			mu0(mesh.phys_constants["permeability of free space"]),
 
-			epsilon0(phys["permittivity of free space"]),
+			epsilon0(mesh.phys_constants["permittivity of free space"]),
 
-			speed_of_light(phys["speed of light"]),
+			speed_of_light(mesh.phys_constants["speed of light"]),
 
 			a0(mesh), a1(mesh), a2(mesh),
 
@@ -65,12 +64,8 @@ public:
 			X10(mesh), X11(mesh), X12(mesh),
 
 			X20(mesh), X21(mesh), X22(mesh)
-	{
 
-		for (int i = 0; i < 6; ++i)
-		{
-			bc_[i] = bc[i];
-		}
+	{
 
 		Real dB = 100, expN = 2;
 
@@ -151,8 +146,7 @@ public:
 
 	}
 
-	template<typename TE, typename TB, typename TJ>
-	void Eval(TE &E1, TB &B1, TJ const &J1, Real dt)
+	void Eval(Form<1> &E1, Form<2> &B1, Form<1> const &J1, Real dt)
 	{
 		LOG << "Run module PML";
 

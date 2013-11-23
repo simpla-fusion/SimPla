@@ -1,7 +1,7 @@
 /*
- * simpla.cpp
+ * demo.cpp
  *
- *  Created on: 2013年11月13日
+ *  Created on: 2013年11月23日
  *      Author: salmon
  */
 
@@ -23,12 +23,9 @@
 #include "utilities/log.h"
 #include "utilities/lua_state.h"
 
-#include "engine/object.h"
-#include "particle/particle.h"
-#include "particle/pic_engine_default.h"
-#include "../applications/solver/electromagnetic/pml.h"
 
 using namespace simpla;
+
 typedef UniformRectMesh Mesh;
 template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
 template<int IFORM> using VecForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
@@ -131,64 +128,22 @@ int main(int argc, char **argv)
 
 	Real dt = mesh.GetDt();
 
-	std::vector<Object> sp_list;
-
 	INFORM << (">>> Pre-Process DONE! <<<");
 	INFORM << (">>> Process START! <<<");
-
-	std::function<void(Form<1>&, Form<2>&, Form<1> const &, Real)> field_solver;
-
-	auto solver_type = pt.GetChild("FieldSolver").template Get<std::string>(
-			"Type");
-	if (solver_type == "PML")
-	{
-		using namespace std::placeholders;
-		field_solver = std::bind(&PML<Mesh>::Eval,
-				std::shared_ptr<PML<Mesh>>(
-						new PML<Mesh>(mesh, pt.GetChild("FieldSolver"))), _1,
-				_2, _3, _4);
-	}
-	else
-	{
-		field_solver =
-				[mu0,epsilon0](Form<1>&E1, Form<2>&B1, Form<1> const & J1, Real dt)
-				{
-					E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
-					B1 -= Curl(E1) * dt;
-					//TODO add boundary condition
-				};
-	}
 
 	Particle<Mesh, PICEngineDefault<Mesh> > ion(mesh,
 			pt.GetChild("Particles").GetChild("ion"));
 
-//	std::map<std::string, Object> particle_list;
-//
-//	for (auto pt_child : pt.GetChild("Particles"))
-//	{
-//		std::string engine_type = pt_child.Get<std::string>("Engine");
-//		std::string name = pt_child.Get<std::string>("Name");
-//
-//		if (engine_type == "Default")
-//		{
-//
-//		}
-////		else if (engine_type == "GGauge8")
-////		{
-////			particle_list[name] = Object(
-////					new Particle<Mesh, PICEngineGGauge<Mesh,8> >(mesh,
-////							pt_child));
-////		}
-//	}
-
 	for (int i = 0; i < num_of_step; ++i)
 	{
-		INFORM << ">>> STEP " << i << " Start <<<";
-		field_solver(E, B, J, dt);
+		INFORM << ">>> STEP [" << i << " ]<<<";
+
+		B -= Curl(E) * (dt * 0.5);
+		E += (Curl(B / mu0) - J) / epsilon0 * dt;
+		B -= Curl(E) * (dt * 0.5);
 
 		ion.Push(E, B);
-		ion.Collect<1>(J);
-		INFORM << ">>> STEP " << i << " Done <<<";
+		ion.Collcet(J);
 	}
 
 	INFORM << (">>> Process DONE! <<<");

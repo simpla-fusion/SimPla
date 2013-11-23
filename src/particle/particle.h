@@ -11,7 +11,7 @@
 #include <fetl/proxycache.h>
 #include <cstddef>
 #include <list>
-
+#include "utilities/container.h"
 //need  libstdc++
 //#include <ext/mt_allocator.h>
 //#include <bits/allocator.h>
@@ -20,26 +20,27 @@
 
 namespace simpla
 {
+template<typename, typename > struct Field;
+template<typename, int> struct Geometry;
 
-template<class Engine>
-class Particle: public Engine, public Engine::mesh_type::template Container<
+template<typename TM, class Engine>
+class Particle: public Engine, public Container<
 		std::list<typename Engine::Point_s> >::type
 {
 	static const int GEOMETRY_TYPE = 0;
 
 public:
 
+	typedef TM mesh_type;
 	typedef Engine engine_type;
 
-	typedef Particle<engine_type> this_type;
+	typedef Particle<mesh_type, engine_type> this_type;
 
 	typedef typename engine_type::Point_s particle_type;
 
 	typedef particle_type value_type;
 
 	//mesh
-
-	typedef typename engine_type::mesh_type mesh_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -51,12 +52,9 @@ public:
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename mesh_type::template Container<cell_type>::type container_type;
+	typedef typename   Container<cell_type>::type container_type;
 
 	mesh_type const &mesh;
-
-private:
-	allocator_type allocator_;
 
 public:
 
@@ -68,25 +66,14 @@ public:
 			container_type(
 					std::move(
 							pmesh.template MakeContainer<cell_type>(
-									GEOMETRY_TYPE, cell_type(allocator_)))),
+									GEOMETRY_TYPE))),
 
 			mesh(pmesh)
 
 	{
 	}
 
-	template<typename ...Args>
-	Particle(mesh_type const & pmesh, allocator_type allocator, Args ... args) :
-
-			engine_type(pmesh, std::forward<Args>(args)...),
-
-			container_type(
-					std::move(
-							pmesh.template MakeContainer<cell_type>(
-									GEOMETRY_TYPE, cell_type(allocator)))),
-
-			mesh(pmesh), allocator_(allocator)
-
+	~Particle()
 	{
 	}
 
@@ -157,7 +144,7 @@ public:
 	template<typename ... Args>
 	inline void Push(Args const& ... args)
 	{
-		ForEach(
+		ForEachCell(
 
 		[&](particle_type & p,
 				typename ProxyCache<const Args>::type const& ... args_c)
@@ -168,61 +155,48 @@ public:
 		args...);
 	}
 
-	template<typename TJ, typename ... Args>
-	inline void ScatterJ(TJ & J, Args const & ... args) const
+	template<int I, typename TJ, typename ... Args>
+	inline void Collect(TJ & J, Args const & ... args) const
 	{
-		ForEach(
+		ForEachCell(
 
 		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			engine_type::ScatterJ(p,J_c,args_c...);
+			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
 		},
 
 		J, args...);
 	}
 
-	template<typename TN, typename ... Args>
-	inline void ScatterN(TN & n, Args const& ... args) const
+	template<int I, typename TJ, typename ... Args>
+	inline void PushAndCollect(Int2Type<I>, TJ & J, Args const& ... args)
 	{
-		ForEach(
+		ForEachCell(
 
-		[&](particle_type const& p,typename ProxyCache<TN>::type & n_c,
+		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			engine_type::ScatterN(p,n_c,args_c...);
+			engine_type::Push(Int2Type<I>(),p, args_c...);
+			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
 		},
 
-		n, args...);
+		J, args...);
 	}
 
-	template<typename TN, typename ... Args>
-	inline void Scatter(TN & n, Args const& ... args) const
+	template<typename TFun, typename ... Args>
+	inline void Function(TFun &fun, Args const& ... args)
 	{
-		ForEach(
+		ForEachCell(
 
-		[&](particle_type const& p,typename ProxyCache<TN>::type & n_c,
+		[&](particle_type & p,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			engine_type::Scatter(p,n_c,args_c...);
+			fun(p,args_c...);
 		},
 
-		n, args...);
+		args...);
 	}
-
-//	template<typename TFUN, typename TJ, typename ... Args>
-//	inline void Scatter(TFUN const & fun, TJ & J, Args const & ... args) const
-//	{
-//		ForEach(
-//
-//		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
-//				typename ProxyCache<const Args>::type const& ... args_c)
-//		{
-//			fun(p,J_c,args_c...);
-//		},
-//
-//		J, args...);
-//	}
 
 	/**
 	 *  Traversal each cell, include boundary cells.
@@ -231,7 +205,7 @@ public:
 	 */
 
 	template<typename Fun, typename ...Args>
-	void ForEach(Fun const & fun, Args &... args)
+	void ForEachCell(Fun const & fun, Args &... args)
 	{
 		/***
 		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
@@ -249,7 +223,7 @@ public:
 		);
 	}
 	template<typename Fun, typename ...Args>
-	void ForEach(Fun const & fun, Args &... args) const
+	void ForEachCell(Fun const & fun, Args &... args) const
 	{
 		mesh.ForAll(GEOMETRY_TYPE,
 

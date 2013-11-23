@@ -27,6 +27,7 @@
     
     Grid=
     {
+      UnitSystem={Type="Nature"},
       Topology=
       {       
           Type="3DCoRectMesh",
@@ -46,6 +47,7 @@
 
       }
     }
+    FieldSolver= {Type="Default",bc={5,5,5,5,5,5}}
  
    --[[ uncomment this line, if you need Cycle BC.
     -- set BC(boundary condition), now only first two are valid         

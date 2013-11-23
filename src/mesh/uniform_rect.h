@@ -25,7 +25,7 @@
 #include <utility>
 #include <vector>
 #include "utilities/log.h"
-
+#include "physics/physical_constants.h"
 namespace simpla
 {
 
@@ -40,16 +40,13 @@ struct UniformRectMesh
 
 	static const int NUM_OF_DIMS = 3;
 
-	template<typename Element> struct Container
-	{
-		typedef std::vector<Element> type;
-	};
-
 	typedef size_t index_type;
 
 	typedef nTuple<3, Real> coordinates_type;
 
 	typedef std::list<index_type> chains_type;
+
+	PhysicalConstants phys_constants;
 
 	this_type & operator=(const this_type&) = delete;
 
@@ -110,6 +107,7 @@ struct UniformRectMesh
 		vm.GetChild("Geometry").template GetValue("Origin", &xmin_);
 		vm.GetChild("Geometry").template GetValue("DxDyDz", &dx_);
 		xmax_ = dx_ * dims_;
+		phys_constants.Deserialize(vm.GetChild("UnitSystem"));
 		Update();
 	}
 
@@ -120,6 +118,8 @@ struct UniformRectMesh
 		vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
 		vm.GetChild("Geometry").template SetValue("Origin", &xmin_);
 		vm.GetChild("Geometry").template SetValue("DxDyDz", &dx_);
+
+		phys_constants.Serialize(vm.GetChild("UnitSystem"));
 	}
 	template<typename TStream>
 	void Print(TStream &os) const
@@ -194,10 +194,9 @@ struct UniformRectMesh
 	}
 
 	template<typename E> inline typename Container<E>::type MakeContainer(
-			int iform, E const & d = E()) const
+			int iform) const
 	{
-		return std::move(
-				typename Container<E>::type(GetNumOfGridPoints(iform), d));
+		return std::move(Container<E>::Create(GetNumOfGridPoints(iform)));
 	}
 
 	template<int IFORM, typename T1>

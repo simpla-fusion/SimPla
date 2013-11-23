@@ -72,8 +72,6 @@ struct LuaStateHolder
 
 	{
 		luaL_openlibs(lstate_);
-
-		INFORM << "Construct [Root]";
 	}
 	LuaStateHolder(std::shared_ptr<LuaStateHolder> p, std::string const & key =
 			"") :

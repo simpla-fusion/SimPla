@@ -9,25 +9,27 @@
 #define DOMAIN_H_
 
 #include "include/simpla_defs.h"
-#include "basecontext.h"
-#include "fetl/fetl_defs.h"
-#include "utilities/properties.h"
+#include "fetl/fetl.h"
 namespace simpla
 {
 
-template<typename TG>
-class Context: public BaseContext
+template<typename TM>
+class Context
 {
 public:
-	DEFINE_FIELDS(TG)
+	typedef TM mesh_type;
 
-	typedef Context<TG> ThisType;
+	typedef Context<TM> this_type;
 
-	typedef typename TG::Value Value;
+	template<int IFORM> using Form = Field<Geometry<TM,IFORM>,Real >;
+	template<int IFORM> using VecForm = Field<Geometry<TM,IFORM>,nTuple<3,Real> >;
+	template<int IFORM> using TensorForm = Field<Geometry<TM,IFORM>,nTuple<3,nTuple<3,Real> > >;
 
-	typedef std::shared_ptr<ThisType> Holder;
+	std::map<size_t,
+			std::function<
+					void(Object const &, Form<1> const &, Form<2> const&, Real)>> method_dispatch_push_;
 
-	Grid grid;
+	mesh_type mesh_;
 
 	Context();
 
@@ -40,9 +42,24 @@ public:
 
 private:
 
-	Context(ThisType const &);
+	Context & operator=(this_type const &);
 
-	Context & operator=(ThisType const &);
+	template<typename T>
+	void Push(Object const & obj, Form<1> const &E, Form<2> const&B, Real dt)
+	{
+		method_dispatch_push_[obj.GetTypeIndex()](obj, E, B, dt);
+	}
+
+	template<typename T>
+	void RegisterParticle()
+	{
+		method_dispatch_push_[typeid(T).hash_code()] =
+				[](Object const & obj, Form<1> const &E, Form<2> const&B, Real dt)
+				{
+					obj.as<T>()->Push(E,B,dt);
+				}
+
+	}
 
 }
 ;

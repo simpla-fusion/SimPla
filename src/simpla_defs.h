@@ -8,17 +8,6 @@
 #ifndef SIMPLA_DEFS_H_
 #define SIMPLA_DEFS_H_
 
-#include <memory>
-
-//#include <stdint.h>
-//#include "utilities/log.h"
-//#include <cassert>
-//#include <complex>
-//#include <cstddef>
-//#include <functional>
-//#include <limits>
-//#include <cstddef>
-
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
 #endif
@@ -31,7 +20,7 @@
 " SimPla, Plasma Simulation        \n"\
 " Build Date: " __DATE__ " " __TIME__"                   \n"\
 " ID:" IDENTIFY  "                                        \n"\
-" Copyright (C) 2007-2012 YU Zhi. All rights reserved.           \n"
+" Copyright (C) 2007-2013 YU Zhi. All rights reserved.           \n"
 
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)

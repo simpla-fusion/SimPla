@@ -14,9 +14,9 @@
 #include <type_traits>
 #include <vector>
 
-#include "../utilities/log.h"
 #include "primitives.h"
-
+#include "../utilities/log.h"
+#include "../utilities/container.h"
 namespace simpla
 {
 
@@ -29,7 +29,7 @@ namespace simpla
  */
 
 template<typename TG, typename TValue>
-struct Field: public TG::mesh_type::template Container<TValue>::type
+struct Field: public Container<TValue>::type
 {
 public:
 
@@ -45,7 +45,7 @@ public:
 
 	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
 
-	typedef typename mesh_type::template Container<value_type>::type base_type;
+	typedef typename Container<value_type>::type base_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -55,11 +55,10 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh, value_type default_value = value_type()) :
+	Field(mesh_type const &pmesh) :
 			base_type(
-					std::move(
-							pmesh.template MakeContainer<value_type>(IForm,
-									default_value))), mesh(pmesh)
+					std::move(pmesh.template MakeContainer<value_type>(IForm))), mesh(
+					pmesh)
 	{
 	}
 
@@ -127,8 +126,6 @@ public:
 		);
 		return (*this);
 	}
-
-
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                  \
 	template<typename TR> inline this_type &                                      \
