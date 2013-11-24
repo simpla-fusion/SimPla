@@ -8,6 +8,7 @@
 #include "lua_state.h"
 #include "fetl/primitives.h"
 #include <iostream>
+#include <map>
 using namespace simpla;
 int main(int argc, char** argv)
 {
@@ -68,15 +69,21 @@ int main(int argc, char** argv)
 
 	delete e;
 
-	for (auto const & p : pt.GetChild("tt"))
-	{
-		std::cout << p.as<int>() << std::endl;
-		std::cout << p.as<int>() << std::endl;
-	}
+//	auto it = pt.GetChild("tt").begin();
+//	std::cout << (*it).first.as<std::string>() << std::endl;
+//	std::cout << (*it).second.as<int>() << std::endl;
+//	++it;
+//	std::cout << (*it).second.as<int>() << std::endl;
+//	++it;
+//	std::cout << (*it).second.as<int>() << std::endl;
 
-	for (auto const & p : pt.GetChild("tt"))
+	pt.GetChild("tt").ForEach(
+
+	[&](LuaObject const& key,LuaObject const&value)
 	{
-		std::cout << p.as<int>() << std::endl;
-	}
+
+		std::cout << key.as<int>() << std::endl;
+		std::cout << value.as<int>() << std::endl;
+	});
 }
 

@@ -140,6 +140,7 @@ int main(int argc, char **argv)
 
 	auto solver_type = pt.GetChild("FieldSolver").template Get<std::string>(
 			"Type");
+
 	if (solver_type == "PML")
 	{
 		using namespace std::placeholders;
@@ -164,22 +165,23 @@ int main(int argc, char **argv)
 
 //	std::map<std::string, Object> particle_list;
 //
-//	for (auto pt_child : pt.GetChild("Particles"))
-//	{
-//		std::string engine_type = pt_child.Get<std::string>("Engine");
-//		std::string name = pt_child.Get<std::string>("Name");
-//
-//		if (engine_type == "Default")
+	for (auto pt_child : pt.GetChild("Particles"))
+	{
+		std::string engine_type = pt_child.Get<std::string>("Engine");
+		std::string name = pt_child.Get<std::string>("Name");
+
+		std::cout << p["Name"].as<std::string>() << std::endl;
+		if (engine_type == "Default")
+		{
+
+		}
+//		else if (engine_type == "GGauge8")
 //		{
-//
+//			particle_list[name] = Object(
+//					new Particle<Mesh, PICEngineGGauge<Mesh,8> >(mesh,
+//							pt_child));
 //		}
-////		else if (engine_type == "GGauge8")
-////		{
-////			particle_list[name] = Object(
-////					new Particle<Mesh, PICEngineGGauge<Mesh,8> >(mesh,
-////							pt_child));
-////		}
-//	}
+	}
 
 	for (int i = 0; i < num_of_step; ++i)
 	{
