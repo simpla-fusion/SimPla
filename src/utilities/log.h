@@ -76,9 +76,15 @@ class Log: public std::ostringstream
 public:
 	enum
 	{
-		L_LOGIC_ERROR = -3, L_ERROR = -2, L_WARNING = -1,
+		L_OUT_RANGE_ERROR = -4,
+		L_LOGIC_ERROR = -3,
+		L_ERROR = -2,
+		L_WARNING = -1,
 
-		L_INFORM = 0, L_LOG = 1, L_VERBOSE = 2, L_DEBUG = 0
+		L_INFORM = 0,
+		L_LOG = 1,
+		L_VERBOSE = 2,
+		L_DEBUG = 0
 	};
 
 	Log(int lv = 0, bool cond = true) :
@@ -98,8 +104,6 @@ public:
 
 			(*this) << std::endl;
 
-			LogStreams::instance().put(level_, (*this).str());
-
 			if (level_ == L_LOGIC_ERROR)
 			{
 				throw(std::logic_error(this->str()));
@@ -107,6 +111,14 @@ public:
 			else if (level_ == L_ERROR)
 			{
 				throw(std::runtime_error(this->str()));
+			}
+			else if (level_ == L_OUT_RANGE_ERROR)
+			{
+				throw(std::out_of_range(this->str()));
+			}
+			else
+			{
+				LogStreams::instance().put(level_, (*this).str());
 			}
 		}
 	}
@@ -142,6 +154,8 @@ private:
 //FIXME The operator<< eat first input and transform to integral
 #define ERROR Log(Log::L_ERROR)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 #define LOGIC_ERROR Log(Log::L_LOGIC_ERROR)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+
+#define OUT_RANGE_ERROR Log(Log::L_OUT_RANGE_ERROR)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
 #define WARNING Log(Log::L_WARNING)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 #define INFORM Log(Log::L_INFORM)  <<"[I]"

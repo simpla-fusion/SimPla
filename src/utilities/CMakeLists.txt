@@ -1,3 +1,2 @@
-my_test(lua_parser_test utilities)
-add_library(utilities   properties)
-TARGET_LINK_LIBRARIES(utilities ${LUA_LIBRARIES}  )
+ADD_EXECUTABLE(lua_state_test lua_state_test.cpp)
+TARGET_LINK_LIBRARIES(lua_state_test   ${LUA_LIBRARIES}  )
