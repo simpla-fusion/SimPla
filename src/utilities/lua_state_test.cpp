@@ -22,7 +22,7 @@ int main(int argc, char** argv)
 	{
 		pt.ParseString(
 				"c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
-						"tt={10,12,13} \n"
+						"tt={10,12,13,h=2} \n"
 						"function f(x,y) \n"
 						"    return x+y  \n"
 						"end \n");
@@ -76,6 +76,8 @@ int main(int argc, char** argv)
 //	std::cout << (*it).second.as<int>() << std::endl;
 //	++it;
 //	std::cout << (*it).second.as<int>() << std::endl;
+
+	std::cout << pt.GetChild("tt")[1].as<int>() << std::endl;
 
 	pt.GetChild("tt").ForEach(
 

@@ -31,11 +31,7 @@
 
 namespace simpla
 {
-//template<typename T>
-//struct LuaValueTrans
-//{
-//	static ToLua
-//};
+
 #define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, 1) ;   lua_pop(_L, 1);
 
 static void stackDump(lua_State *L)
@@ -76,26 +72,35 @@ struct LuaState
 	std::shared_ptr<lua_State> lstate_;
 	int idx_;
 	std::string path_;
-
+	bool is_weak_;
 	LuaState() :
 			lstate_(luaL_newstate(), lua_close), idx_(LUA_GLOBALSINDEX), path_(
-					"[root]")
+					"[root]"), is_weak_(false)
 	{
 		luaL_openlibs(lstate_.get());
 	}
 
-	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path) :
-			parent_(p), lstate_(p->lstate_), idx_(idx), path_(path)
+	LuaState(LuaState const &r) :
+			parent_(r.parent_), lstate_(r.lstate_), idx_(r.idx_), path_(
+					r.path_), is_weak_(r.is_weak_)
+	{
+
+	}
+	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path,
+			bool is_weak = false) :
+			parent_(p), lstate_(p->lstate_), idx_(idx), path_(path), is_weak_(
+					is_weak)
 	{
 	}
 
-	LuaState(std::shared_ptr<lua_State> l, int idx) :
-			lstate_(l), idx_(idx), path_("<GLOBAL>.[" + ToString(idx) + "]")
+	LuaState(std::shared_ptr<lua_State> l, int idx, bool is_weak = false) :
+			lstate_(l), idx_(idx), path_("<GLOBAL>.[" + ToString(idx) + "]"), is_weak_(
+					is_weak)
 	{
 	}
 	~LuaState()
 	{
-		if (idx_ != 0 && idx_ != LUA_GLOBALSINDEX)
+		if (!is_weak_ && idx_ != 0 && idx_ != LUA_GLOBALSINDEX)
 		{
 			lua_remove(lstate_.get(), idx_);
 		}
@@ -284,17 +289,18 @@ public:
 		{
 			/* table is in the stack at index 'idx' */
 			lua_pushnil(lstate_); /* first key */
-			LuaObject key;
 			while (lua_next(lstate_, self_->idx_))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
-				int top = lua_gettop(lstate_);
-				key = LuaObject(
-						new LuaState(self_, top - 2, self_->path_ + "[key]"));
-				fun(key,
+				fun(
 						LuaObject(
-								new LuaState(self_, top - 1,
-										self_->path_ + "[value]")));
+								new LuaState(self_, -2, self_->path_ + "[key]",
+										true)),
+						LuaObject(
+								new LuaState(self_, -1,
+										self_->path_ + "[value]", true)));
+
+				lua_pop(lstate_, 1);
 			}
 		}
 	}
@@ -340,11 +346,11 @@ public:
 
 	inline LuaObject operator[](int s) const
 	{
-		lua_rawgeti(lstate_, self_->idx_, s);
+		lua_rawgeti(lstate_, self_->idx_, s + 1);
 
 		return LuaObject(
 				new LuaState(self_, lua_gettop(lstate_),
-						self_->path_ + "[" + ToString(s) + "]"));
+						self_->path_ + "[" + ToString(s + 1) + "]"));
 	}
 
 	inline LuaObject at(int s) const
@@ -358,11 +364,11 @@ public:
 
 		if (s > max_length)
 		{
-			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s << ">="
+			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s + 1 << ">="
 					<< max_length;
 
 		}
-		return std::move(this->operator[](s));
+		return std::move(this->operator[](s + 1));
 	}
 
 	template<typename ...Args>
