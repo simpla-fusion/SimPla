@@ -80,57 +80,15 @@ struct LuaState
 		luaL_openlibs(lstate_.get());
 	}
 
-	LuaState(std::shared_ptr<lua_State> lstate, int idx, std::string path) :
-			lstate_(lstate), idx_(idx), path_(path)
+	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path) :
+			parent_(p), lstate_(p->lstate_), idx_(idx), path_(path)
 	{
 	}
 
-	LuaState(std::shared_ptr<LuaState> p, std::string const & key) :
-			parent_(p), lstate_(p->lstate_), idx_(0)
+	LuaState(std::shared_ptr<lua_State> l, int idx) :
+			lstate_(l), idx_(idx), path_("<GLOBAL>.[" + ToString(idx) + "]")
 	{
-		lua_getfield(lstate_.get(), p->idx_, key.c_str());
-
-		idx_ = lua_gettop(lstate_.get());
-
-		path_ = p->path_ + "." + key;
-
-		if (lua_isnil(lstate_.get() , idx_))
-		{
-			lua_remove(lstate_.get(), idx_);
-
-			std::out_of_range(
-					"\"" + key + "\" is not an element in [" + p->path_
-							+ "] !");
-		}
 	}
-
-	LuaState(std::shared_ptr<LuaState> p, int s) :
-			parent_(p), lstate_(p->lstate_), idx_(0)
-	{
-		if (!lua_istable(lstate_.get(), p->idx_))
-		{
-			idx_ = 0;
-			LOGIC_ERROR << "Object [" << p->path_ << "] is not indexable!";
-		}
-
-		size_t max_length = lua_objlen(lstate_.get(), p->idx_);
-
-		if (s > max_length)
-		{
-			idx_ = 0;
-			OUT_RANGE_ERROR << "Object " << p->path_ << " " << s << ">="
-					<< max_length;
-
-		}
-
-		lua_rawgeti(lstate_.get(), p->idx_, s);
-
-		idx_ = lua_gettop(lstate_.get());
-
-		path_ = p->path_ + "[" + ToString(s) + "]";
-
-	}
-
 	~LuaState()
 	{
 		if (idx_ != 0 && idx_ != LUA_GLOBALSINDEX)
@@ -154,6 +112,11 @@ public:
 
 	{
 	}
+	LuaObject(LuaObject const & r) :
+			self_(r.self_), lstate_(r.lstate_)
+	{
+
+	}
 
 	LuaObject(std::shared_ptr<LuaState> lstate) :
 			self_(lstate), lstate_(self_->lstate_.get())
@@ -170,6 +133,10 @@ public:
 	{
 	}
 
+	lua_State * GetState()
+	{
+		return self_->lstate_.get();
+	}
 	inline void ParseFile(std::string const & filename)
 	{
 		if (filename != "" && luaL_dofile(lstate_, filename.c_str()))
@@ -218,7 +185,11 @@ public:
 		}
 		LuaObject operator*()
 		{
-			return LuaObject(new LuaState(self_, s_ + 1));
+			lua_rawgeti(self_->lstate_.get(), self_->idx_, s_ + 1);
+
+			return LuaObject(
+					new LuaState(self_, lua_gettop(self_->lstate_.get()),
+							self_->path_ + "[" + ToString(s_) + "]"));
 		}
 
 		iterator & operator++()
@@ -240,19 +211,60 @@ public:
 	template<typename T>
 	inline LuaObject GetChild(T const & key) const
 	{
-		return LuaObject(new LuaState(self_, key));
+		return at(key);
 	}
 
-	template<typename T>
-	inline LuaObject operator[](T const & s) const
+	inline LuaObject operator[](std::string const & s) const
 	{
-		return LuaObject(new LuaState(self_, s, false));
+
+		lua_getfield(lstate_, self_->idx_, s.c_str());
+
+		return LuaObject(
+				new LuaState(self_, lua_gettop(lstate_),
+						self_->path_ + "." + s));
 	}
 
-	template<typename T>
-	inline LuaObject at(T const & s) const
+	inline LuaObject at(std::string const & s) const
 	{
-		return LuaObject(new LuaState(self_, s, true));
+		lua_getfield(lstate_, self_->idx_, s.c_str());
+
+		int idx = lua_gettop(lstate_);
+		if (lua_isnil( lstate_ , idx))
+		{
+			lua_remove(lstate_, idx);
+			throw(std::out_of_range(
+					"\"" + s + "\" is not an element in [" + self_->path_
+							+ "] !"));
+		}
+
+		return LuaObject(new LuaState(self_, idx, self_->path_ + "." + s));
+	}
+
+	inline LuaObject operator[](int s) const
+	{
+		lua_rawgeti(lstate_, self_->idx_, s);
+
+		return LuaObject(
+				new LuaState(self_, lua_gettop(lstate_),
+						self_->path_ + "[" + ToString(s) + "]"));
+	}
+
+	inline LuaObject at(int s) const
+	{
+		if (!lua_istable(lstate_, self_->idx_))
+		{
+			LOGIC_ERROR << "Object [" << self_->path_ << "] is not indexable!";
+		}
+
+		size_t max_length = lua_objlen(lstate_, self_->idx_);
+
+		if (s > max_length)
+		{
+			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s << ">="
+					<< max_length;
+
+		}
+		return std::move(this->operator[](s));
 	}
 
 	template<typename ...Args>
@@ -269,7 +281,9 @@ public:
 
 		lua_call(lstate_, sizeof...(args), 1);
 
-		return LuaObject(new LuaState(self_->lstate_, lua_gettop(lstate_)));
+		int idx = lua_gettop(lstate_);
+
+		return LuaObject(new LuaState(self_->lstate_, idx));
 
 	}
 
@@ -294,7 +308,8 @@ public:
 		T res;
 		try
 		{
-			res = GetChild(name).as<T>();
+
+			res = at(name).as<T>();
 
 		} catch (...)
 		{

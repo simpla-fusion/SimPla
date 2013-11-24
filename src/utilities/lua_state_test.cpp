@@ -27,6 +27,8 @@ int main(int argc, char** argv)
 						"end \n");
 	}
 
+	stackDump(pt.GetState());
+
 	std::cout << "c \t=" << pt.GetChild("c").as<double>() << std::endl;
 
 	std::cout << "c \t=" << pt.GetChild("c").as<int>() << std::endl;
@@ -35,10 +37,12 @@ int main(int argc, char** argv)
 
 	std::cout << "b \t=" << pt.Get("b", 120) << std::endl;
 
-	std::cout << "t1.a \t=" << pt.GetChild("t1").as<double>() << std::endl;
+	auto tt1 = pt.at("t1");
 
-	std::cout << "t2.f \t=" << std::boolalpha << pt.GetChild("t1").as<double>()
-			<< std::endl;
+	std::cout << "t1 \t=" << tt1.as<double>() << std::endl;
+
+	std::cout << "t2.f \t=" << std::boolalpha
+			<< pt.GetChild("t2")["f"].as<bool>() << std::endl;
 
 	double res;
 
