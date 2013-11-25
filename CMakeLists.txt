@@ -96,7 +96,7 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 #FIND_PACKAGE(Boost  COMPONENTS date_time program_options )
 #INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
-find_package(Lua51)
+find_package(Lua52)
 
 #FIND_PACKAGE(XDMF)
 #MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 

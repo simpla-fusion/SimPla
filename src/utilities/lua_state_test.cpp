@@ -22,30 +22,26 @@ int main(int argc, char** argv)
 	{
 		pt.ParseString(
 				"c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
-						"tt={10,12,13,h=2} \n"
+						"tt={e=12,d=13,h=2} \n"
 						"function f(x,y) \n"
 						"    return x+y  \n"
 						"end \n");
 	}
 
-	stackDump(pt.GetState());
+	std::cout << "c \t=" << pt["c"].as<double>() << std::endl;
+
+	std::cout << "c \t=" << pt.at("c").as<int>() << std::endl;
 
 	std::cout << "c \t=" << pt.GetChild("c").as<double>() << std::endl;
-
-	std::cout << "c \t=" << pt.GetChild("c").as<int>() << std::endl;
-
-	std::cout << "c \t=" << pt.Get("c", 1) << std::endl;
 
 	std::cout << "b \t=" << pt.Get("b", 120) << std::endl;
 
 	auto tt1 = pt.at("t1");
 
-	std::cout << "t1 \t=" << tt1.as<double>() << std::endl;
+//	std::cout << "t1 \t=" << tt1.as<double>() << std::endl;
 
-	std::cout << "t2.f \t=" << std::boolalpha
-			<< pt.GetChild("t2")["f"].as<bool>() << std::endl;
-
-	double res;
+//	std::cout << "t2.f \t=" << std::boolalpha
+//			<< pt.GetChild("t2")["f"].as<bool>() << std::endl;
 
 	std::cout << "f(2,2.5) \t=" << pt["f"](2.0, 2.5).as<double>() << std::endl;
 
@@ -77,15 +73,14 @@ int main(int argc, char** argv)
 //	++it;
 //	std::cout << (*it).second.as<int>() << std::endl;
 
-	std::cout << pt.GetChild("tt")[1].as<int>() << std::endl;
+	std::cout << pt.GetChild("tt")[1].as(10) << std::endl;
 
 	pt.GetChild("tt").ForEach(
 
 	[&](LuaObject const& key,LuaObject const&value)
 	{
-
-		std::cout << key.as<int>() << std::endl;
-		std::cout << value.as<int>() << std::endl;
+		std::cout << key.as<std::string>()
+		<<" = "<< value.as<int>() << std::endl;
 	});
 }
 

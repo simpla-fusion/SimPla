@@ -9,10 +9,7 @@
 #ifndef INCLUDE_LUA_PARSER_H_
 #define INCLUDE_LUA_PARSER_H_
 
-#include <lua5.1/lauxlib.h>
-#include <lua5.1/lua.h>
-#include <lua5.1/lua.hpp>
-#include <lua5.1/lualib.h>
+#include <lua5.2/lua.hpp>
 #include <cstddef>
 #include <iostream>
 #include <list>
@@ -65,6 +62,30 @@ static void stackDump(lua_State *L)
 }
 
 class LuaIterator;
+class LuaObject;
+
+template<typename T> struct LuaTrans;
+
+inline void ToLua(lua_State*L)
+{
+}
+template<typename T, typename ... Args>
+inline void ToLua(lua_State*L, T const & v, Args const & ... rest)
+{
+	LuaTrans<T>::To(L, v);
+	ToLua(L, rest...);
+}
+
+inline void FromLua(lua_State*L, int)
+{
+}
+
+template<typename T, typename ... Args>
+inline void FromLua(lua_State*L, int idx, T & v, Args & ... rest)
+{
+	LuaTrans<T>::From(L, idx, v);
+	FromLua(L, idx + 1, rest...);
+}
 
 struct LuaState
 {
@@ -74,7 +95,7 @@ struct LuaState
 	std::string path_;
 	bool is_weak_;
 	LuaState() :
-			lstate_(luaL_newstate(), lua_close), idx_(LUA_GLOBALSINDEX), path_(
+			lstate_(luaL_newstate(), lua_close), idx_(LUA_RIDX_GLOBALS), path_(
 					"[root]"), is_weak_(false)
 	{
 		luaL_openlibs(lstate_.get());
@@ -88,8 +109,8 @@ struct LuaState
 	}
 	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path,
 			bool is_weak = false) :
-			parent_(p), lstate_(p->lstate_), idx_(idx), path_(path), is_weak_(
-					is_weak)
+			parent_(p), lstate_(p->lstate_), idx_(idx), path_(
+					p->path_ + "." + path), is_weak_(is_weak)
 	{
 	}
 
@@ -100,7 +121,7 @@ struct LuaState
 	}
 	~LuaState()
 	{
-		if (!is_weak_ && idx_ != 0 && idx_ != LUA_GLOBALSINDEX)
+		if (!is_weak_ && idx_ != 0 && idx_ != LUA_RIDX_GLOBALS)
 		{
 			lua_remove(lstate_.get(), idx_);
 		}
@@ -113,16 +134,16 @@ class LuaObject
 	std::shared_ptr<LuaState> self_;
 
 	lua_State* lstate_;
-	void InitIfEmpty()
+
+	void Init()
 	{
 		if (self_ == nullptr)
 		{
-			self_ = std::shared_ptr<LuaState>(new LuaState());
+			self_ = std::shared_ptr<LuaState>(new LuaState);
 			lstate_ = self_->lstate_.get();
 		}
 
 	}
-
 public:
 
 	LuaObject() :
@@ -157,7 +178,7 @@ public:
 	}
 	inline void ParseFile(std::string const & filename)
 	{
-		InitIfEmpty();
+		Init();
 		if (filename != "" && luaL_dofile(lstate_, filename.c_str()))
 		{
 			LUA_ERROR(lstate_, "Can not parse file " + filename + " ! ");
@@ -165,8 +186,8 @@ public:
 	}
 	inline void ParseString(std::string const & str)
 	{
-		InitIfEmpty();
-		if (luaL_dostring(lstate_, str.c_str()))
+		Init();
+		if (luaL_dostring(self_->lstate_.get(), str.c_str()))
 		{
 			LUA_ERROR(lstate_, "Parsing string error! \n\t" + str);
 		}
@@ -177,110 +198,109 @@ public:
 		return self_ == r.self_;
 	}
 
-//	class iterator
-//	{
-//		std::shared_ptr<LuaState> parent_;
-//		std::shared_ptr<LuaState> key_;
-//		std::shared_ptr<LuaState> value_;
-//		lua_State *lstate_;
-//
-//		void Next()
-//		{
-//			if (key_ == nullptr)
-//			{
-//				lua_pushnil(lstate_);
-//			}
-//			else
-//			{
-//				lua_pushvalue(lstate_, key_->idx_);
-//			}
-//
-//			if (lua_next(lstate_, parent_->idx_))
-//			{
-//				int top = lua_gettop(lstate_);
-//
-//				key_ = std::shared_ptr<LuaState>(
-//						new LuaState(parent_, top - 1,
-//								parent_->path_ + "[key]"));
-//
-//				value_ = std::shared_ptr<LuaState>(
-//						new LuaState(parent_, top - 0,
-//								parent_->path_ + "[key]"));
-//
-//			}
-//			else
-//			{
-//				parent_ = nullptr;
-//				key_ = nullptr;
-//				value_ = nullptr;
-//			}
-//
-//		}
-//	public:
-//		iterator() :
-//				parent_(nullptr), key_(nullptr), value_(nullptr), lstate_(
-//						nullptr)
-//		{
-//
-//			CHECK("Empty Iterator Construct ");
-//		}
-//		iterator(std::shared_ptr<LuaState> p) :
-//				parent_(p), key_(nullptr), value_(nullptr), lstate_(
-//						parent_->lstate_.get())
-//		{
-//			CHECK("Begin Iterator Construct ");
-//
-//			if (!lua_istable(lstate_, parent_->idx_))
-//			{
-//				LOGIC_ERROR << "Object [" << parent_->path_
-//						<< "] is not indexable!";
-//			}
-//			else
-//			{
-//				Next();
-//			}
-//			CHECK("Begin Iterator Construct Done ");
-//
-//		}
-//
-//		~iterator()
-//		{
-//			CHECK("  Iterator Destruct ");
-//
-//		}
-//
-//		bool operator!=(iterator const & r) const
-//		{
-//			CHECK("Compare NEQ");
-//			return (r.key_ != key_);
-//		}
-//		std::pair<LuaObject, LuaObject> operator*()
-//		{
-//			CHECK(key_->idx_);
-//			if (key_ == nullptr || value_ == nullptr)
-//			{
-//				LOGIC_ERROR << "the value of this iterator is invalid!";
-//			}
-//			return std::make_pair(LuaObject(key_), LuaObject(value_));
-//		}
-//
-//		iterator & operator++()
-//		{
-//			Next();
-//			return *this;
-//		}
-//	}
-//	;
-//
-//
-//	iterator begin()
-//	{
-//		return iterator(self_);
-//	}
-//	iterator end()
-//	{
-//		return iterator();
-//	}
+	class iterator
+	{
+		std::shared_ptr<LuaState> parent_;
+		std::shared_ptr<LuaState> key_;
+		std::shared_ptr<LuaState> value_;
+		lua_State *lstate_;
+
+		void Next()
+		{
+			if (key_ == nullptr)
+			{
+				lua_pushnil(lstate_);
+			}
+			else
+			{
+				lua_pushvalue(lstate_, key_->idx_);
+			}
+
+			if (lua_next(lstate_, parent_->idx_))
+			{
+				int top = lua_gettop(lstate_);
+
+				key_ = std::shared_ptr<LuaState>(
+						new LuaState(parent_, top - 1,
+								parent_->path_ + "[key]"));
+
+				value_ = std::shared_ptr<LuaState>(
+						new LuaState(parent_, top - 0,
+								parent_->path_ + "[key]"));
+
+			}
+			else
+			{
+				parent_ = nullptr;
+				key_ = nullptr;
+				value_ = nullptr;
+			}
+
+		}
+	public:
+		iterator() :
+				parent_(nullptr), key_(nullptr), value_(nullptr), lstate_(
+						nullptr)
+		{
+
+			CHECK("Empty Iterator Construct ");
+		}
+		iterator(std::shared_ptr<LuaState> p) :
+				parent_(p), key_(nullptr), value_(nullptr), lstate_(
+						parent_->lstate_.get())
+		{
+			CHECK("Begin Iterator Construct ");
+
+			if (!lua_istable(lstate_, parent_->idx_))
+			{
+				LOGIC_ERROR << "Object [" << parent_->path_
+						<< "] is not indexable!";
+			}
+			else
+			{
+				Next();
+			}
+			CHECK("Begin Iterator Construct Done ");
+
+		}
+
+		~iterator()
+		{
+			CHECK("  Iterator Destruct ");
+
+		}
+
+		bool operator!=(iterator const & r) const
+		{
+			CHECK("Compare NEQ");
+			return (r.key_ != key_);
+		}
+		std::pair<LuaObject, LuaObject> operator*()
+		{
+			CHECK(key_->idx_);
+			if (key_ == nullptr || value_ == nullptr)
+			{
+				LOGIC_ERROR << "the value of this iterator is invalid!";
+			}
+			return std::make_pair(LuaObject(key_), LuaObject(value_));
+		}
+
+		iterator & operator++()
+		{
+			Next();
+			return *this;
+		}
+	}
+	;
+
+	iterator begin()
+	{
+		return iterator(self_);
+	}
+	iterator end()
+	{
+		return iterator();
+	}
 
 	template<typename TFun>
 	void ForEach(TFun const &fun)
@@ -311,37 +331,37 @@ public:
 		return at(key);
 	}
 
-	template<typename T>
-	inline LuaObject operator[](T const & s) const
+	inline LuaObject operator[](std::string const & s) const
 	{
 
-		ToLua(s);
+		if (self_->idx_ == LUA_RIDX_GLOBALS)
+		{
+			lua_getglobal(lstate_, s.c_str());
 
-		lua_gettable(lstate_, self_->idx_);
+		}
+		else
+		{
+			lua_getfield(lstate_, self_->idx_, s.c_str());
 
-		return LuaObject(
-				new LuaState(self_, lua_gettop(lstate_),
-						self_->path_ + "." + s));
+		}
+		return LuaObject(new LuaState(self_, lua_gettop(lstate_), ToString(s)));
 	}
 
 	template<typename T>
 	inline LuaObject at(T const & s) const
 	{
-		ToLua(s);
+		LuaObject res = this->operator[](s);
 
-		lua_gettable(lstate_, self_->idx_);
-
-		int idx = lua_gettop(lstate_);
-		if (lua_isnil( lstate_ , idx))
+		if (lua_isnil( lstate_ , res.self_->idx_))
 		{
-			lua_remove(lstate_, idx);
 			throw(std::out_of_range(
 					"\"" + ToString(s) + "\" is not an element in ["
 							+ self_->path_ + "] !"));
 
+			res = LuaObject();
 		}
 
-		return LuaObject(new LuaState(self_, idx, self_->path_ + "." + s));
+		return std::move(res);
 	}
 
 	inline LuaObject operator[](int s) const
@@ -350,7 +370,7 @@ public:
 
 		return LuaObject(
 				new LuaState(self_, lua_gettop(lstate_),
-						self_->path_ + "[" + ToString(s + 1) + "]"));
+						"[" + ToString(s) + "]"));
 	}
 
 	inline LuaObject at(int s) const
@@ -360,17 +380,18 @@ public:
 			LOGIC_ERROR << "Object [" << self_->path_ << "] is not indexable!";
 		}
 
-		size_t max_length = lua_objlen(lstate_, self_->idx_);
-
-		if (s > max_length)
+		if (s > GetLength())
 		{
-			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s + 1 << ">="
-					<< max_length;
+			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s << ">="
+					<< GetLength();
 
 		}
-		return std::move(this->operator[](s + 1));
+		return std::move(this->operator[](s));
 	}
-
+	inline size_t GetLength() const
+	{
+		return lua_rawlen(lstate_, self_->idx_);
+	}
 	template<typename ...Args>
 	LuaObject operator()(Args const &... args) const
 	{
@@ -381,7 +402,7 @@ public:
 
 		lua_pushvalue(lstate_, self_->idx_);
 
-		ToLua(args...);
+		ToLua(lstate_, args...);
 
 		lua_call(lstate_, sizeof...(args), 1);
 
@@ -389,15 +410,6 @@ public:
 
 		return LuaObject(new LuaState(self_->lstate_, idx));
 
-	}
-
-	template<typename T>
-	T as() const
-	{
-
-		T res;
-		FromLua(self_->idx_, &res);
-		return (res);
 	}
 
 	template<typename T>
@@ -412,7 +424,6 @@ public:
 		T res;
 		try
 		{
-
 			res = at(name).as<T>();
 
 		} catch (...)
@@ -424,207 +435,248 @@ public:
 	}
 
 	template<typename T>
+	T as() const
+	{
+		T res;
+		FromLua(lstate_, self_->idx_, res);
+		return (res);
+	}
+
+	template<typename T>
+	T as(T const & default_value) const
+	{
+		T res;
+		try
+		{
+			res = as<T>();
+
+		} catch (...)
+		{
+			res = default_value;
+		}
+		return (res);
+	}
+
+	template<typename T>
 	void SetValue(std::string const &name, T const &v)
 	{
-		ToLua(v);
+		ToLua(lstate_, v);
 		lua_setfield(lstate_, self_->idx_, name.c_str());
-	}
-
-private:
-	template<typename T, typename ... Args>
-	inline void ToLua(T const & v, Args const & ... rest) const
-	{
-		ToLua(v);
-		ToLua(rest...);
-	}
-
-	inline void ToLua(int const & v) const
-	{
-		lua_pushinteger(lstate_, v);
-	}
-	inline void ToLua(double const & v) const
-	{
-		lua_pushnumber(lstate_, v);
-	}
-
-	inline void ToLua(char const s[]) const
-	{
-		lua_pushstring(lstate_, s);
-	}
-	inline void ToLua(std::string const & v) const
-	{
-		lua_pushstring(lstate_, v.c_str());
-	}
-
-	template<int N, typename T>
-	inline void ToLua(nTuple<N, T> const & v) const
-	{
-	}
-
-	template<typename T1, typename T2>
-	inline void ToLua(std::map<T1, T2> const & v) const
-	{
-	}
-
-	inline void FromLua(int idx, LuaObject *res) const
-	{
-		*res = LuaObject(new LuaState(self_, idx, ""));
-	}
-
-	inline void FromLua(int idx, double *res) const
-	{
-		*res = lua_tonumber(lstate_, idx);
-	}
-	inline void FromLua(int idx, int *res) const
-	{
-		*res = lua_tointeger(lstate_, idx);
-	}
-
-	inline void FromLua(int idx, long unsigned int *res) const
-	{
-		*res = lua_tointeger(lstate_, idx);
-	}
-
-	inline void FromLua(int idx, long int *res) const
-	{
-		*res = lua_tointeger(lstate_, idx);
-	}
-
-	inline void FromLua(int idx, bool *res) const
-	{
-		*res = lua_toboolean(lstate_, idx);
-	}
-	inline void FromLua(int idx, std::string *res) const
-	{
-		*res = lua_tostring(lstate_, idx);
-	}
-
-	template<typename T1, typename T2>
-	inline void FromLua(int idx, std::pair<T1, T2> *res) const
-	{
-		if (lua_istable(lstate_, idx))
-		{
-			int top = lua_gettop(lstate_);
-			if (idx < 0)
-			{
-				idx += top + 1;
-			}
-			lua_rawgeti(lstate_, idx, 1);
-			FromLua(-1, res->first);
-			lua_pop(lstate_, 1);
-			lua_rawgeti(lstate_, idx, 2);
-			FromLua(-1, res->second);
-			lua_pop(lstate_, 1);
-		}
-		else
-		{
-			ERROR << (self_->path_ + " is not a std::pair<T1, T2>");
-		}
-	}
-	template<typename T, int N> inline
-	void FromLua(int idx, nTuple<N, T> * res) const
-	{
-		if (lua_istable(lstate_, idx))
-		{
-			size_t num = lua_objlen(lstate_, idx);
-			for (size_t s = 0; s < N; ++s)
-			{
-				lua_rawgeti(lstate_, idx, s % num + 1);
-				FromLua(-1, &((*res)[s]));
-				lua_pop(lstate_, 1);
-			}
-
-		}
-		else
-		{
-			LUA_ERROR(lstate_, self_->path_ + " is not a table ");
-		}
-	}
-
-	template<typename T>
-	inline void FromLua(int idx, std::vector<T> * array) const
-	{
-		if (lua_istable(lstate_, idx))
-		{
-			size_t fnum = lua_objlen(lstate_, idx);
-
-			if (fnum > 0)
-			{
-				if (array->size() < fnum)
-				{
-					array->resize(fnum);
-				}
-				for (size_t s = 0; s < fnum; ++s)
-				{
-					lua_rawgeti(lstate_, idx, s % fnum + 1);
-					FromLua(-1, *array[s]);
-					lua_pop(lstate_, 1);
-				}
-			}
-		}
-		else
-		{
-			LUA_ERROR(lstate_, self_->path_ + " is not a std::vector<T>");
-		}
-	}
-	template<typename T>
-	inline void FromLua(int idx, std::list<T> * list) const
-	{
-		if (lua_istable(lstate_, idx))
-		{
-			size_t fnum = lua_objlen(lstate_, idx);
-
-			for (size_t s = 0; s < fnum; ++s)
-			{
-				lua_rawgeti(lstate_, idx, s % fnum + 1);
-				T tmp;
-				FromLua(-1, tmp);
-				list->push_back(tmp);
-				lua_pop(lstate_, 1);
-			}
-		}
-		else
-		{
-			LUA_ERROR(lstate_, " std::list<T>");
-		}
-	}
-
-	template<typename T1, typename T2>
-	inline void FromLua(int idx, std::map<T1, T2> *res) const
-	{
-		if (lua_type(lstate_, idx) == LUA_TTABLE)
-		{
-
-			/* table is in the stack at index 'idx' */
-			lua_pushnil(lstate_); /* first key */
-
-			T1 key;
-			T2 value;
-
-			while (lua_next(lstate_, self_->idx_))
-			{
-				/* uses 'key' (at index -2) and 'value' (at index -1) */
-
-				FromLua(-2, &key);
-				FromLua(-1, &value);
-				(*res)[key] = value;
-				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(lstate_, 1);
-			}
-
-		}
-		else
-		{
-			ERROR
-					<< (self_->path_
-							+ " is not a std::map<std::string, ValueType>");
-		}
-		return;
-
 	}
 
 }
 ;
+
+#define DEF_LUA_TRANS(_TYPE_,_TO_FUN_,_FROM_FUN_,_CHECK_FUN_)                                     \
+template<> struct LuaTrans<_TYPE_>                                                    \
+{                                                                                     \
+	typedef _TYPE_ value_type;                                                        \
+                                                                                      \
+	static inline void From(lua_State*L, int idx, value_type & v)                  \
+	{                                                                                 \
+		if (_CHECK_FUN_(L, idx))                                                     \
+		{                                                                             \
+			v = _FROM_FUN_(L, idx);                                                   \
+		}                                                                             \
+		else                                                                          \
+		{                                                                             \
+			LOGIC_ERROR << "Can not convert type "                                    \
+					<< lua_typename(L, lua_type(L, idx))                              \
+                    << " to "<<  __STRING(_TYPE_) <<"!";                              \
+		}                                                                             \
+	}                                                                                 \
+	static inline void To(lua_State*L, value_type const & v)                       \
+	{                                                                                 \
+		_TO_FUN_(L, v);                                                               \
+	}                                                                                 \
+};                                                                                    \
+
+DEF_LUA_TRANS(double, lua_pushnumber, lua_tonumber, lua_isnumber)
+DEF_LUA_TRANS(int, lua_pushinteger, lua_tointeger, lua_isnumber)
+DEF_LUA_TRANS(unsigned int, lua_pushunsigned, lua_tounsigned, lua_isnumber)
+DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
+DEF_LUA_TRANS(unsigned long, lua_pushunsigned, lua_tounsigned, lua_isnumber)
+DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
+#undef DEF_LUA_TRANS
+
+template<> struct LuaTrans<std::string>
+{
+	typedef std::string value_type;
+
+	static inline void From(lua_State*L, int idx, value_type & v)
+	{
+		if (lua_isstring(L, idx))
+		{
+			v = lua_tostring(L, idx);
+		}
+		else
+		{
+			LOGIC_ERROR << "Can not convert type "
+					<< lua_typename(L, lua_type(L, idx)) << " to double !";
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		lua_pushstring(L, v.c_str());
+	}
+};
+
+//template<typename T1, typename T2>
+//inline void From(int idx, std::pair<T1, T2> *res) const
+//{
+//	if (lua_istable(lstate_, idx))
+//	{
+//		int top = lua_gettop(lstate_);
+//		if (idx < 0)
+//		{
+//			idx += top + 1;
+//		}
+//		lua_rawgeti(lstate_, idx, 1);
+//		From(-1, res->first);
+//		lua_pop(lstate_, 1);
+//		lua_rawgeti(lstate_, idx, 2);
+//		From(-1, res->second);
+//		lua_pop(lstate_, 1);
+//	}
+//	else
+//	{
+//		ERROR << (self_->path_ + " is not a std::pair<T1, T2>");
+//	}
+//}
+
+template<int N, typename T> struct LuaTrans<nTuple<N, T>>
+{
+	typedef nTuple<N, T> value_type;
+
+	static inline void From(lua_State*L, int idx, value_type & v)
+	{
+		if (lua_istable(L, idx))
+		{
+			size_t num = lua_rawlen(L, idx);
+			for (size_t s = 0; s < N; ++s)
+			{
+				lua_rawgeti(L, idx, s % num + 1);
+				FromLua(L, -1, (v[s]));
+				lua_pop(L, 1);
+			}
+
+		}
+		else
+		{
+			LOGIC_ERROR << "Can not convert type "
+					<< lua_typename(L, lua_type(L, idx)) << " to nTuple !";
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		LOGIC_ERROR << " UNIMPLEMENTED!!";
+	}
+};
+
+template<typename T> struct LuaTrans<std::vector<T> >
+{
+	typedef std::vector<T> value_type;
+
+	static inline void From(lua_State*L, int idx, value_type & v)
+	{
+		if (lua_istable(L, idx))
+		{
+			size_t fnum = lua_rawlen(L, idx);
+
+			if (fnum > 0)
+			{
+				if (v.size() < fnum)
+				{
+					v.resize(fnum);
+				}
+				for (size_t s = 0; s < fnum; ++s)
+				{
+					lua_rawgeti(L, idx, s % fnum + 1);
+					FromLua(L, -1, v[s]);
+					lua_pop(L, 1);
+				}
+			}
+
+		}
+		else
+		{
+			LOGIC_ERROR << "Can not convert type "
+					<< lua_typename(L, lua_type(L, idx)) << " to vector !";
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		LOGIC_ERROR << " UNIMPLEMENTED!!";
+	}
+};
+template<typename T> struct LuaTrans<std::list<T> >
+{
+	typedef std::list<T> value_type;
+
+	static inline void From(lua_State*L, int idx, value_type & v)
+	{
+		if (lua_istable(L, idx))
+		{
+			size_t fnum = lua_rawlen(L, idx);
+
+			for (size_t s = 0; s < fnum; ++s)
+			{
+				lua_rawgeti(L, idx, s % fnum + 1);
+				T tmp;
+				FromLua(L, -1, tmp);
+				v.push_back(tmp);
+				lua_pop(L, 1);
+			}
+
+		}
+		else
+		{
+			LOGIC_ERROR << "Can not convert type "
+					<< lua_typename(L, lua_type(L, idx)) << " to list !";
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		LOGIC_ERROR << " UNIMPLEMENTED!!";
+	}
+};
+
+template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
+{
+	typedef std::map<T1, T2> value_type;
+
+	static inline void From(lua_State*L, int idx, value_type & v)
+	{
+		if (lua_istable(L, idx))
+		{
+			lua_pushnil(L); /* first key */
+
+			T1 key;
+			T2 value;
+
+			while (lua_next(L, idx))
+			{
+				/* uses 'key' (at index -2) and 'value' (at index -1) */
+
+				FromLua(L, -2, &key);
+				FromLua(L, -1, &value);
+				v[key] = value;
+				/* removes 'value'; keeps 'key' for next iteration */
+				lua_pop(L, 1);
+			}
+
+		}
+		else
+		{
+			LOGIC_ERROR << "Can not convert type "
+					<< lua_typename(L, lua_type(L, idx)) << " to map !";
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		LOGIC_ERROR << " UNIMPLEMENTED!!";
+	}
+};
 
 } // namespace simpla
 
@@ -731,7 +783,7 @@ private:
  *
  * */
 //template<typename T>
-//	inline void FromLua(int idx, T *res)
+//	inline void From(int idx, T *res)
 //	{
 //		switch (lua_type(lstate.get(), idx))
 //		{
@@ -753,8 +805,8 @@ private:
 //			//			while (lua_next(lstate.get(), -2))
 //			//			{
 //			//				/* uses 'key' (at index -2) and 'value' (at index -1) */
-//			//				FromLua(-1, item);
-//			//				FromLua(-2, key);
+//			//				From(-1, item);
+//			//				From(-2, key);
 //			//				Reference<T>::index(res, key) = item;
 //			//				/* removes 'value'; keeps 'key' for next iteration */
 //			//				lua_pop(lstate.get(), 1);
