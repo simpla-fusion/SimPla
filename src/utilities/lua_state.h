@@ -87,244 +87,245 @@ inline void FromLua(lua_State*L, int idx, T & v, Args & ... rest)
 	FromLua(L, idx + 1, rest...);
 }
 
-struct LuaState
-{
-	std::shared_ptr<LuaState> parent_;
-	std::shared_ptr<lua_State> lstate_;
-	int idx_;
-	std::string path_;
-	bool is_weak_;
-	LuaState() :
-			lstate_(luaL_newstate(), lua_close), idx_(LUA_RIDX_GLOBALS), path_(
-					"[root]"), is_weak_(false)
-	{
-		luaL_openlibs(lstate_.get());
-	}
-
-	LuaState(LuaState const &r) :
-			parent_(r.parent_), lstate_(r.lstate_), idx_(r.idx_), path_(
-					r.path_), is_weak_(r.is_weak_)
-	{
-
-	}
-	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path,
-			bool is_weak = false) :
-			parent_(p), lstate_(p->lstate_), idx_(idx), path_(
-					p->path_ + "." + path), is_weak_(is_weak)
-	{
-	}
-
-	LuaState(std::shared_ptr<lua_State> l, int idx, bool is_weak = false) :
-			lstate_(l), idx_(idx), path_("<GLOBAL>.[" + ToString(idx) + "]"), is_weak_(
-					is_weak)
-	{
-	}
-	~LuaState()
-	{
-		if (!is_weak_ && idx_ != 0 && idx_ != LUA_RIDX_GLOBALS)
-		{
-			lua_remove(lstate_.get(), idx_);
-		}
-
-	}
-};
+//struct LuaState
+//{
+//	std::shared_ptr<lua_State> lstate_;
+//
+//	std::shared_ptr<LuaState> parent_;
+//
+//	int idx_;
+//
+//	std::string path_;
+//
+//	static int SIMPLA_IDX;
+//
+//	LuaState() :
+//	, idx_(0), path_("[root]")
+//	{
+//
+//	}
+//
+//	LuaState(LuaState const &r) :
+//			parent_(r.parent_), lstate_(r.lstate_), idx_(r.idx_), path_(r.path_)
+//	{
+//
+//	}
+//	LuaState(std::shared_ptr<LuaState> p, int idx, std::string path) :
+//			parent_(p), lstate_(p->lstate_), idx_(idx), path_(
+//					p->path_ + "." + path)
+//	{
+//	}
+//
+//	LuaState(std::shared_ptr<lua_State> l, int idx) :
+//			lstate_(l), idx_(idx), path_("<GLOBAL>.[" + ToString(idx) + "]")
+//	{
+//	}
+//	~LuaState()
+//	{
+//		if (idx_ != 0)
+//		{
+//			luaL_unref(lstate_.get(), SIMPLA_IDX, idx_);
+//		}
+//
+//	}
+//};
 
 class LuaObject
 {
-	std::shared_ptr<LuaState> self_;
+	int GLOBAL_IDX_;
+	int self_;
 
-	lua_State* lstate_;
+	std::string path_;
 
-	void Init()
-	{
-		if (self_ == nullptr)
-		{
-			self_ = std::shared_ptr<LuaState>(new LuaState);
-			lstate_ = self_->lstate_.get();
-		}
+	std::shared_ptr<lua_State> L_;
 
-	}
 public:
 
 	LuaObject() :
-			self_(nullptr), lstate_(nullptr)
+			L_(nullptr), self_(0)
 
 	{
 	}
-	LuaObject(LuaObject const & r) :
-			self_(r.self_), lstate_(r.lstate_)
-	{
-
-	}
-
-	LuaObject(std::shared_ptr<LuaState> lstate) :
-			self_(lstate), lstate_(self_->lstate_.get())
-	{
-
-	}
-	LuaObject(LuaState* lstate) :
-			self_(lstate), lstate_(self_->lstate_.get())
+	LuaObject(std::shared_ptr<lua_State> l, int G, int s,
+			std::string const & path) :
+			L_(l), GLOBAL_IDX_(G), self_(s), path_(path)
 	{
 
 	}
 
 	~LuaObject()
 	{
+		if (self_ > 0)
+		{
+			luaL_unref(L_.get(), GLOBAL_IDX_, self_);
+		}
 	}
 
-	lua_State * GetState()
+	void Init()
 	{
-		return self_->lstate_.get();
+		if (self_ == 0)
+		{
+			L_ = std::shared_ptr<lua_State>(luaL_newstate(), lua_close);
+
+			luaL_openlibs(L_.get());
+
+			lua_newtable(L_.get());  // new table on stack
+
+			self_ = -1;
+
+			GLOBAL_IDX_ = lua_gettop(L_.get());
+
+			lua_newtable(L_.get());
+
+			path_ = "<GLOBAL>";
+
+		}
 	}
+
 	inline void ParseFile(std::string const & filename)
 	{
 		Init();
-		if (filename != "" && luaL_dofile(lstate_, filename.c_str()))
+		if (filename != "" && luaL_dofile(L_.get(), filename.c_str()))
 		{
-			LUA_ERROR(lstate_, "Can not parse file " + filename + " ! ");
+			LUA_ERROR(L_.get(), "Can not parse file " + filename + " ! ");
 		}
 	}
 	inline void ParseString(std::string const & str)
 	{
 		Init();
-		if (luaL_dostring(self_->lstate_.get(), str.c_str()))
+		if (luaL_dostring(L_.get(), str.c_str()))
 		{
-			LUA_ERROR(lstate_, "Parsing string error! \n\t" + str);
+			LUA_ERROR(L_.get(), "Parsing string error! \n\t" + str);
 		}
 	}
 
-	inline bool operator==(LuaObject const &r)
-	{
-		return self_ == r.self_;
-	}
-
-	class iterator
-	{
-		std::shared_ptr<LuaState> parent_;
-		std::shared_ptr<LuaState> key_;
-		std::shared_ptr<LuaState> value_;
-		lua_State *lstate_;
-
-		void Next()
-		{
-			if (key_ == nullptr)
-			{
-				lua_pushnil(lstate_);
-			}
-			else
-			{
-				lua_pushvalue(lstate_, key_->idx_);
-			}
-
-			if (lua_next(lstate_, parent_->idx_))
-			{
-				int top = lua_gettop(lstate_);
-
-				key_ = std::shared_ptr<LuaState>(
-						new LuaState(parent_, top - 1,
-								parent_->path_ + "[key]"));
-
-				value_ = std::shared_ptr<LuaState>(
-						new LuaState(parent_, top - 0,
-								parent_->path_ + "[key]"));
-
-			}
-			else
-			{
-				parent_ = nullptr;
-				key_ = nullptr;
-				value_ = nullptr;
-			}
-
-		}
-	public:
-		iterator() :
-				parent_(nullptr), key_(nullptr), value_(nullptr), lstate_(
-						nullptr)
-		{
-
-			CHECK("Empty Iterator Construct ");
-		}
-		iterator(std::shared_ptr<LuaState> p) :
-				parent_(p), key_(nullptr), value_(nullptr), lstate_(
-						parent_->lstate_.get())
-		{
-			CHECK("Begin Iterator Construct ");
-
-			if (!lua_istable(lstate_, parent_->idx_))
-			{
-				LOGIC_ERROR << "Object [" << parent_->path_
-						<< "] is not indexable!";
-			}
-			else
-			{
-				Next();
-			}
-			CHECK("Begin Iterator Construct Done ");
-
-		}
-
-		~iterator()
-		{
-			CHECK("  Iterator Destruct ");
-
-		}
-
-		bool operator!=(iterator const & r) const
-		{
-			CHECK("Compare NEQ");
-			return (r.key_ != key_);
-		}
-		std::pair<LuaObject, LuaObject> operator*()
-		{
-			CHECK(key_->idx_);
-			if (key_ == nullptr || value_ == nullptr)
-			{
-				LOGIC_ERROR << "the value of this iterator is invalid!";
-			}
-			return std::make_pair(LuaObject(key_), LuaObject(value_));
-		}
-
-		iterator & operator++()
-		{
-			Next();
-			return *this;
-		}
-	}
-	;
-
-	iterator begin()
-	{
-		return iterator(self_);
-	}
-	iterator end()
-	{
-		return iterator();
-	}
-
-	template<typename TFun>
-	void ForEach(TFun const &fun)
-	{
-		if (lua_type(lstate_, self_->idx_) == LUA_TTABLE)
-		{
-			/* table is in the stack at index 'idx' */
-			lua_pushnil(lstate_); /* first key */
-			while (lua_next(lstate_, self_->idx_))
-			{
-				/* uses 'key' (at index -2) and 'value' (at index -1) */
-				fun(
-						LuaObject(
-								new LuaState(self_, -2, self_->path_ + "[key]",
-										true)),
-						LuaObject(
-								new LuaState(self_, -1,
-										self_->path_ + "[value]", true)));
-
-				lua_pop(lstate_, 1);
-			}
-		}
-	}
-
+////	class iterator
+////	{
+////		std::shared_ptr<LuaState> parent_;
+////		std::shared_ptr<LuaState> key_;
+////		std::shared_ptr<LuaState> value_;
+////		lua_State *lstate_;
+////
+////		void Next()
+////		{
+////			if (key_ == nullptr)
+////			{
+////				lua_pushnil(lstate_);
+////			}
+////			else
+////			{
+////				lua_pushvalue(lstate_, key_->idx_);
+////			}
+////
+////			if (lua_next(lstate_, parent_->idx_))
+////			{
+////				int top = lua_gettop(lstate_);
+////
+////				key_ = std::shared_ptr<LuaState>(
+////						new LuaState(parent_, top - 1,
+////								parent_->path_ + "[key]"));
+////
+////				value_ = std::shared_ptr<LuaState>(
+////						new LuaState(parent_, top - 0,
+////								parent_->path_ + "[key]"));
+////
+////			}
+////			else
+////			{
+////				parent_ = nullptr;
+////				key_ = nullptr;
+////				value_ = nullptr;
+////			}
+////
+////		}
+////	public:
+////		iterator() :
+////				parent_(nullptr), key_(nullptr), value_(nullptr), lstate_(
+////						nullptr)
+////		{
+////
+////			CHECK("Empty Iterator Construct ");
+////		}
+////		iterator(std::shared_ptr<LuaState> p) :
+////				parent_(p), key_(nullptr), value_(nullptr), lstate_(
+////						parent_->lstate_.get())
+////		{
+////			CHECK("Begin Iterator Construct ");
+////
+////			if (!lua_istable(lstate_, parent_->idx_))
+////			{
+////				LOGIC_ERROR << "Object [" << parent_->path_
+////						<< "] is not indexable!";
+////			}
+////			else
+////			{
+////				Next();
+////			}
+////			CHECK("Begin Iterator Construct Done ");
+////
+////		}
+////
+////		~iterator()
+////		{
+////			CHECK("  Iterator Destruct ");
+////
+////		}
+////
+////		bool operator!=(iterator const & r) const
+////		{
+////			CHECK("Compare NEQ");
+////			return (r.key_ != key_);
+////		}
+////		std::pair<LuaObject, LuaObject> operator*()
+////		{
+////			CHECK(key_->idx_);
+////			if (key_ == nullptr || value_ == nullptr)
+////			{
+////				LOGIC_ERROR << "the value of this iterator is invalid!";
+////			}
+////			return std::make_pair(LuaObject(key_), LuaObject(value_));
+////		}
+////
+////		iterator & operator++()
+////		{
+////			Next();
+////			return *this;
+////		}
+////	}
+////	;
+////
+////	iterator begin()
+////	{
+////		return iterator(self_);
+////	}
+////	iterator end()
+////	{
+////		return iterator();
+////	}
+//
+//	template<typename TFun>
+//	void ForEach(TFun const &fun)
+//	{
+//		if (lua_type(L_, self_->idx_) == LUA_TTABLE)
+//		{
+//			/* table is in the stack at index 'idx' */
+//			lua_pushnil(L_); /* first key */
+//			while (lua_next(L_, self_->idx_))
+//			{
+//				/* uses 'key' (at index -2) and 'value' (at index -1) */
+//				fun(
+//						LuaObject(
+//								new LuaState(self_, -2, self_->path_ + "[key]",
+//										true)),
+//						LuaObject(
+//								new LuaState(self_, -1,
+//										self_->path_ + "[value]", true)));
+//
+//				lua_pop(L_, 1);
+//			}
+//		}
+//	}
+//
 	template<typename T>
 	inline LuaObject GetChild(T const & key) const
 	{
@@ -333,89 +334,116 @@ public:
 
 	inline LuaObject operator[](std::string const & s) const
 	{
-
-		if (self_->idx_ == LUA_RIDX_GLOBALS)
+		LuaObject res;
+		bool is_global = (self_ < 0);
+		if (is_global)
 		{
-			lua_getglobal(lstate_, s.c_str());
+			lua_getglobal(L_.get(), s.c_str());
 
 		}
 		else
 		{
-			lua_getfield(lstate_, self_->idx_, s.c_str());
 
+			lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+			lua_getfield(L_.get(), -1, s.c_str());
 		}
-		return LuaObject(new LuaState(self_, lua_gettop(lstate_), ToString(s)));
-	}
 
-	template<typename T>
-	inline LuaObject at(T const & s) const
-	{
-		LuaObject res = this->operator[](s);
+		res = LuaObject(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+				path_ + "." + ToString(s));
 
-		if (lua_isnil( lstate_ , res.self_->idx_))
+		if (!is_global)
 		{
-			throw(std::out_of_range(
-					"\"" + ToString(s) + "\" is not an element in ["
-							+ self_->path_ + "] !"));
+			lua_pop(L_.get(), 1);
 
-			res = LuaObject();
 		}
-
 		return std::move(res);
 	}
 
-	inline LuaObject operator[](int s) const
+	inline LuaObject at(std::string const & s,
+			bool boundary_check = true) const
 	{
-		lua_rawgeti(lstate_, self_->idx_, s + 1);
 
-		return LuaObject(
-				new LuaState(self_, lua_gettop(lstate_),
-						"[" + ToString(s) + "]"));
-	}
-
-	inline LuaObject at(int s) const
-	{
-		if (!lua_istable(lstate_, self_->idx_))
+		LuaObject res;
+		bool is_global = (self_ < 0);
+		if (is_global)
 		{
-			LOGIC_ERROR << "Object [" << self_->path_ << "] is not indexable!";
-		}
-
-		if (s > GetLength())
-		{
-			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s << ">="
-					<< GetLength();
+			lua_getglobal(L_.get(), s.c_str());
 
 		}
-		return std::move(this->operator[](s));
+		else
+		{
+
+			lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+			lua_getfield(L_.get(), -1, s.c_str());
+		}
+
+		res = LuaObject(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+				path_ + "." + ToString(s));
+
+		if (!is_global)
+		{
+			lua_pop(L_.get(), 1);
+
+		}
+		return std::move(res);
+
+		if (boundary_check && lua_isnil(L_.get(),lua_gettop(L_.get())))
+		{
+			throw(std::out_of_range(
+					ToString(s) + "\" is not an element in " + path_));
+		}
+
+		LuaObject res(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+				path_ + "." + ToString(s));
+
+		lua_pop(L_.get(), 1);
+
+		return std::move(res);
 	}
-	inline size_t GetLength() const
-	{
-		return lua_rawlen(lstate_, self_->idx_);
-	}
+//
+//	inline LuaObject operator[](int s) const
+//	{
+//		lua_rawgeti(L_, self_->idx_, s + 1);
+//
+//		return LuaObject(
+//				new LuaState(self_, lua_gettop(L_), "[" + ToString(s) + "]"));
+//	}
+//
+//	inline LuaObject at(int s) const
+//	{
+//		if (!lua_istable(L_, self_->idx_))
+//		{
+//			LOGIC_ERROR << "Object [" << self_->path_ << "] is not indexable!";
+//		}
+//
+//		if (s > GetLength())
+//		{
+//			OUT_RANGE_ERROR << "Object " << self_->path_ << " " << s << ">="
+//					<< GetLength();
+//
+//		}
+//		return std::move(this->operator[](s));
+//	}
+
 	template<typename ...Args>
 	LuaObject operator()(Args const &... args) const
 	{
-		if (!lua_isfunction(lstate_,self_->idx_))
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+
+		int idx = lua_gettop(L_.get());
+
+		if (!lua_isfunction(L_.get(),idx))
 		{
-			LOGIC_ERROR << self_->path_ << " is not  a function!";
+			LOGIC_ERROR << path_ << " is not  a function!";
 		}
 
-		lua_pushvalue(lstate_, self_->idx_);
+		ToLua(L_.get(), args...);
 
-		ToLua(lstate_, args...);
+		lua_pcall(L_.get(), sizeof...(args), 1, 0);
 
-		lua_call(lstate_, sizeof...(args), 1);
+		return LuaObject(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+				path_ + "[ret]");
 
-		int idx = lua_gettop(lstate_);
-
-		return LuaObject(new LuaState(self_->lstate_, idx));
-
-	}
-
-	template<typename T>
-	inline void GetValue(std::string const & name, T*res) const
-	{
-		*res = GetChild(name).as<T>();
 	}
 
 	template<typename T>
@@ -435,33 +463,15 @@ public:
 	}
 
 	template<typename T>
-	T as() const
+	inline T as() const
 	{
 		T res;
-		FromLua(lstate_, self_->idx_, res);
+
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		LuaTrans<T>::From(L_.get(), lua_gettop(L_.get()), res);
+		lua_pop(L_.get(), 1);
+
 		return (res);
-	}
-
-	template<typename T>
-	T as(T const & default_value) const
-	{
-		T res;
-		try
-		{
-			res = as<T>();
-
-		} catch (...)
-		{
-			res = default_value;
-		}
-		return (res);
-	}
-
-	template<typename T>
-	void SetValue(std::string const &name, T const &v)
-	{
-		ToLua(lstate_, v);
-		lua_setfield(lstate_, self_->idx_, name.c_str());
 	}
 
 }
@@ -472,17 +482,14 @@ template<> struct LuaTrans<_TYPE_>                                              
 {                                                                                     \
 	typedef _TYPE_ value_type;                                                        \
                                                                                       \
-	static inline void From(lua_State*L, int idx, value_type & v)                  \
+	static inline void From(lua_State*L, int idx, value_type & v,value_type const &default_value=value_type())                  \
 	{                                                                                 \
 		if (_CHECK_FUN_(L, idx))                                                     \
 		{                                                                             \
 			v = _FROM_FUN_(L, idx);                                                   \
 		}                                                                             \
 		else                                                                          \
-		{                                                                             \
-			LOGIC_ERROR << "Can not convert type "                                    \
-					<< lua_typename(L, lua_type(L, idx))                              \
-                    << " to "<<  __STRING(_TYPE_) <<"!";                              \
+		{   v = default_value;                                                                         \
 		}                                                                             \
 	}                                                                                 \
 	static inline void To(lua_State*L, value_type const & v)                       \
@@ -498,12 +505,13 @@ DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
 DEF_LUA_TRANS(unsigned long, lua_pushunsigned, lua_tounsigned, lua_isnumber)
 DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
 #undef DEF_LUA_TRANS
-
+//"                           ToString(lua_typename(L, lua_type(L, idx)))                      " to "+  __STRING(_TYPE_) <<"!")
 template<> struct LuaTrans<std::string>
 {
 	typedef std::string value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v)
+	static inline void From(lua_State*L, int idx, value_type & v,
+			value_type const &default_value = value_type())
 	{
 		if (lua_isstring(L, idx))
 		{
@@ -511,8 +519,9 @@ template<> struct LuaTrans<std::string>
 		}
 		else
 		{
-			LOGIC_ERROR << "Can not convert type "
-					<< lua_typename(L, lua_type(L, idx)) << " to double !";
+			v = default_value;
+//			LOGIC_ERROR << "Can not convert type "
+//					<< lua_typename(L, lua_type(L, idx)) << " to double !";
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -521,34 +530,12 @@ template<> struct LuaTrans<std::string>
 	}
 };
 
-//template<typename T1, typename T2>
-//inline void From(int idx, std::pair<T1, T2> *res) const
-//{
-//	if (lua_istable(lstate_, idx))
-//	{
-//		int top = lua_gettop(lstate_);
-//		if (idx < 0)
-//		{
-//			idx += top + 1;
-//		}
-//		lua_rawgeti(lstate_, idx, 1);
-//		From(-1, res->first);
-//		lua_pop(lstate_, 1);
-//		lua_rawgeti(lstate_, idx, 2);
-//		From(-1, res->second);
-//		lua_pop(lstate_, 1);
-//	}
-//	else
-//	{
-//		ERROR << (self_->path_ + " is not a std::pair<T1, T2>");
-//	}
-//}
-
 template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 {
 	typedef nTuple<N, T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v)
+	static inline void From(lua_State*L, int idx, value_type & v,
+			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -563,8 +550,7 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 		}
 		else
 		{
-			LOGIC_ERROR << "Can not convert type "
-					<< lua_typename(L, lua_type(L, idx)) << " to nTuple !";
+			v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -577,7 +563,8 @@ template<typename T> struct LuaTrans<std::vector<T> >
 {
 	typedef std::vector<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v)
+	static inline void From(lua_State*L, int idx, value_type & v,
+			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -600,8 +587,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 		}
 		else
 		{
-			LOGIC_ERROR << "Can not convert type "
-					<< lua_typename(L, lua_type(L, idx)) << " to vector !";
+			v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -613,7 +599,8 @@ template<typename T> struct LuaTrans<std::list<T> >
 {
 	typedef std::list<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v)
+	static inline void From(lua_State*L, int idx, value_type & v,
+			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -631,8 +618,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 		}
 		else
 		{
-			LOGIC_ERROR << "Can not convert type "
-					<< lua_typename(L, lua_type(L, idx)) << " to list !";
+			v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -645,7 +631,8 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 {
 	typedef std::map<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v)
+	static inline void From(lua_State*L, int idx, value_type & v,
+			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -668,8 +655,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 		}
 		else
 		{
-			LOGIC_ERROR << "Can not convert type "
-					<< lua_typename(L, lua_type(L, idx)) << " to map !";
+			v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
