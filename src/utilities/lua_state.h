@@ -81,7 +81,7 @@ inline void FromLua(lua_State*L, int)
 }
 
 template<typename T, typename ... Args>
-inline void FromLua(lua_State*L, int idx, T & v, Args & ... rest)
+inline void FromLua(lua_State*L, int idx, T * v, Args * ... rest)
 {
 	LuaTrans<T>::From(L, idx, v);
 	FromLua(L, idx + 1, rest...);
@@ -488,6 +488,11 @@ public:
 	}
 
 	template<typename T>
+	inline void GetValue(std::string const & name, T *v) const
+	{
+		*v = at(name).as<T>();
+	}
+	template<typename T>
 	inline T Get(std::string const & name, T const & default_value = T()) const
 	{
 		T res;
@@ -509,7 +514,7 @@ public:
 		T res;
 
 		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
-		LuaTrans<T>::From(L_.get(), lua_gettop(L_.get()), res);
+		LuaTrans<T>::From(L_.get(), lua_gettop(L_.get()), &res);
 		lua_pop(L_.get(), 1);
 
 		return (res);
@@ -523,14 +528,15 @@ template<> struct LuaTrans<_TYPE_>                                              
 {                                                                                     \
 	typedef _TYPE_ value_type;                                                        \
                                                                                       \
-	static inline void From(lua_State*L, int idx, value_type & v,value_type const &default_value=value_type())                  \
+	static inline void From(lua_State*L, int idx, value_type * v,                    \
+            value_type const &default_value=value_type())                            \
 	{                                                                                 \
 		if (_CHECK_FUN_(L, idx))                                                     \
 		{                                                                             \
-			v = _FROM_FUN_(L, idx);                                                   \
+			*v = _FROM_FUN_(L, idx);                                                   \
 		}                                                                             \
 		else                                                                          \
-		{   v = default_value;                                                                         \
+		{   *v = default_value;                                                                         \
 		}                                                                             \
 	}                                                                                 \
 	static inline void To(lua_State*L, value_type const & v)                       \
@@ -551,16 +557,16 @@ template<> struct LuaTrans<std::string>
 {
 	typedef std::string value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State*L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_isstring(L, idx))
 		{
-			v = lua_tostring(L, idx);
+			*v = lua_tostring(L, idx);
 		}
 		else
 		{
-			v = default_value;
+			*v = default_value;
 //			LOGIC_ERROR << "Can not convert type "
 //					<< lua_typename(L, lua_type(L, idx)) << " to double !";
 		}
@@ -575,7 +581,7 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 {
 	typedef nTuple<N, T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State*L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
@@ -584,14 +590,14 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 			for (size_t s = 0; s < N; ++s)
 			{
 				lua_rawgeti(L, idx, s % num + 1);
-				FromLua(L, -1, (v[s]));
+				FromLua(L, -1, &((*v)[s]));
 				lua_pop(L, 1);
 			}
 
 		}
 		else
 		{
-			v = default_value;
+			*v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -604,7 +610,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 {
 	typedef std::vector<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State* L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
@@ -613,14 +619,14 @@ template<typename T> struct LuaTrans<std::vector<T> >
 
 			if (fnum > 0)
 			{
-				if (v.size() < fnum)
+				if (v->size() < fnum)
 				{
-					v.resize(fnum);
+					v->resize(fnum);
 				}
 				for (size_t s = 0; s < fnum; ++s)
 				{
 					lua_rawgeti(L, idx, s % fnum + 1);
-					FromLua(L, -1, v[s]);
+					FromLua(L, -1, &(v[s]));
 					lua_pop(L, 1);
 				}
 			}
@@ -640,7 +646,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 {
 	typedef std::list<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State*L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
@@ -652,7 +658,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 				lua_rawgeti(L, idx, s % fnum + 1);
 				T tmp;
 				FromLua(L, -1, tmp);
-				v.push_back(tmp);
+				v->push_back(tmp);
 				lua_pop(L, 1);
 			}
 
@@ -672,7 +678,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 {
 	typedef std::map<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State*L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
@@ -686,9 +692,9 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 
-				FromLua(L, -2, key);
-				FromLua(L, -1, value);
-				v[key] = value;
+				FromLua(L, -2, &key);
+				FromLua(L, -1, &value);
+				(*v)[key] = value;
 				/* removes 'value'; keeps 'key' for next iteration */
 				lua_pop(L, 1);
 			}
@@ -709,7 +715,7 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 {
 	typedef std::pair<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type & v,
+	static inline void From(lua_State*L, int idx, value_type * v,
 			value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
@@ -719,8 +725,8 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 
-				FromLua(L, -2, (v.first));
-				FromLua(L, -1, (v.second));
+				FromLua(L, -2, &(v->first));
+				FromLua(L, -1, &(v->second));
 				/* removes 'value'; keeps 'key' for next iteration */
 				lua_pop(L, 1);
 			}

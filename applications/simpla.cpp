@@ -165,12 +165,12 @@ int main(int argc, char **argv)
 
 //	std::map<std::string, Object> particle_list;
 //
-	for (auto pt_child : pt.GetChild("Particles"))
+	for (auto const &pt_child : pt.GetChild("Particles"))
 	{
-		std::string engine_type = pt_child.Get<std::string>("Engine");
-		std::string name = pt_child.Get<std::string>("Name");
+		std::string engine_type = pt_child.second.Get<std::string>("Engine");
+		std::string name = pt_child.second.Get<std::string>("Name");
 
-		std::cout << p["Name"].as<std::string>() << std::endl;
+		std::cout << pt_child.first.as<std::string>() << std::endl;
 		if (engine_type == "Default")
 		{
 
