@@ -23,7 +23,7 @@ int main(int argc, char** argv)
 	{
 		pt.ParseString(
 				"c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
-						"tt={e=12, d=13,h=2,5,6,7} \n"
+						"tt={6,6,7,3,e=12, d=13,h=2} \n"
 						"function f(x,y) \n"
 						"    return x+y  \n"
 						"end \n");
@@ -77,32 +77,58 @@ int main(int argc, char** argv)
 
 	delete e;
 
-//	auto it = pt.GetChild("tt").begin();
-//	std::cout << (*it).first.as<std::string>() << std::endl;
-//	std::cout << (*it).second.as<int>() << std::endl;
-//	++it;
-//	std::cout << (*it).second.as<int>() << std::endl;
-//	++it;
-//	std::cout << (*it).second.as<int>() << std::endl;
-
-	pt.GetChild("tt").ForEach(
-
-	[&](LuaObject const& key,LuaObject const&value)
+	for (auto it = pt.GetChild("tt").begin(), e = pt.GetChild("tt").end();
+			it != e; ++it)
 	{
-		std::cout << key.as<std::string>()
-		<<" = "<< value.as<int>() << std::endl;
-	}
+		std::cout << (*it).first.as<std::string>() << " = "
+				<< (*it).second.as<int>() << std::endl;
 
-	);
-	auto obj = pt.GetChild("tt");
-	size_t num = obj.GetLength();
-	for (size_t i = 0; i < num; ++i)
+	}
+	std::cout << "============================" << std::endl;
+	auto pp = pt.GetChild("tt");
+
+	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
 	{
-		auto p = obj[i].as<std::pair<std::string, int>>();
+		std::cout << (*it).first.as<std::string>() << " = "
+				<< (*it).second.as<int>() << std::endl;
 
-		std::cout << p.first << " = " << p.second << std::endl;
 	}
+	std::cout << "============================" << std::endl;
+	pt.ParseString("tt.e=1000");
 
+	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
+	{
+		std::cout << (*it).first.as<std::string>() << " = "
+				<< (*it).second.as<int>() << std::endl;
+
+	}
+	std::cout << "============================" << std::endl;
+	//	pt.GetChild("tt").ForEach(
+//
+//	[&](LuaObject const& key,LuaObject const&value)
+//	{
+//		std::cout << key.as<std::string>()
+//		<<" = "<< value.as<int>() << std::endl;
+//	}
+//
+//	);
+//	auto obj = pt.GetChild("tt");
+//	size_t num = obj.GetLength();
+//	for (size_t i = 0; i < num; ++i)
+//	{
+//		std::cout << obj[i].as<int>() << std::endl;
+//	}
+//
+//	for (auto const &p : pt.GetChild("tt"))
+//	{
+//		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
+//				<< std::endl;
+//	}
+//	for (auto const &p : pt.GetChild("tt"))
+//	{
+//		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
+//				<< std::endl;
+//	}
 	for (auto const &p : pt.GetChild("tt"))
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
