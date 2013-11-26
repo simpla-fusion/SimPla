@@ -26,9 +26,13 @@
 #include "engine/object.h"
 #include "particle/particle.h"
 #include "particle/pic_engine_default.h"
+
 #include "../applications/solver/electromagnetic/pml.h"
+#include "../applications/pic/pic_gauge.h"
+#include "../applications/pic/pic_delta_f.h"
 
 using namespace simpla;
+
 typedef UniformRectMesh Mesh;
 template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
 template<int IFORM> using VecForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
@@ -141,10 +145,10 @@ int main(int argc, char **argv)
 	if (solver_type == "PML")
 	{
 		using namespace std::placeholders;
+		auto *solver = new PML<Mesh>(mesh);
+		solver->Deserialize(pt.GetChild("FieldSolver"));
 		field_solver = std::bind(&PML<Mesh>::Eval,
-				std::shared_ptr<PML<Mesh>>(
-						new PML<Mesh>(mesh, pt.GetChild("FieldSolver"))), _1,
-				_2, _3, _4);
+				std::shared_ptr<PML<Mesh>>(solver), _1, _2, _3, _4);
 	}
 	else
 	{
@@ -164,6 +168,8 @@ int main(int argc, char **argv)
 		std::string engine_type = pt_child.second.Get<std::string>("Engine");
 		std::string name = pt_child.second.Get<std::string>("Name");
 
+		std::shared_ptr<ParticleBase<Mesh> > point;
+
 		if (engine_type == "Default")
 		{
 			std::shared_ptr<Particle<Mesh, PICEngineDefault<Mesh>> > p(
@@ -171,16 +177,38 @@ int main(int argc, char **argv)
 
 			p->Deserialize(pt_child.second);
 
-			particle_list.insert(
-					std::make_pair(name,
-							std::dynamic_pointer_cast<ParticleBase<Mesh> >(p)));
+			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+
 		}
-//		else if (engine_type == "GGauge8")
-//		{
-//			particle_list[name] = Object(
-//					new Particle<Mesh, PICEngineGGauge<Mesh,8> >(mesh,
-//							pt_child));
-//		}
+		else if (engine_type == "Deltaf")
+		{
+			std::shared_ptr<Particle<Mesh, PICEngineDeltaF<Mesh>> > p(
+					new Particle<Mesh, PICEngineDeltaF<Mesh>>(mesh));
+
+			p->Deserialize(pt_child.second);
+
+			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+
+		}
+		else if (engine_type == "GGauge8")
+		{
+			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 8>> > p(
+					new Particle<Mesh, PICEngineGGauge<Mesh, 8> >(mesh));
+			p->Deserialize(pt_child.second);
+
+			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+		}
+		else if (engine_type == "GGauge32")
+		{
+			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 32>> > p(
+					new Particle<Mesh, PICEngineGGauge<Mesh, 32> >(mesh));
+			p->Deserialize(pt_child.second);
+
+			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+		}
+
+		particle_list.insert(std::make_pair(name, point));
+
 	}
 
 	INFORM << (">>> Pre-Process DONE! <<<");

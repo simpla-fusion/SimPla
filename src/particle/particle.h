@@ -50,6 +50,11 @@ public:
 				std::forward<Args const &>(args)...);
 	}
 
+	virtual std::string TypeName()
+	{
+		return "UNNAMED";
+	}
+
 private:
 
 	//========================================================================
@@ -146,6 +151,12 @@ public:
 	virtual ~Particle()
 	{
 	}
+
+	virtual std::string TypeName()
+	{
+		return engine_type::TypeName();
+	}
+
 
 	template<typename PT>
 	inline void Deserialize(PT const &vm)

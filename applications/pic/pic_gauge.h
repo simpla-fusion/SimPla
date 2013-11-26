@@ -1,20 +1,20 @@
 /*
- * pic_engine_default.h
+ * pic_gague.h
  *
- *  Created on: 2013年11月6日
+ *  Created on: 2013年10月15日
  *      Author: salmon
  */
 
-#ifndef PIC_ENGINE_DEFAULT_H_
-#define PIC_ENGINE_DEFAULT_H_
+#ifndef PIC_GAGUE_H_
+#define PIC_GAGUE_H_
 
 #include <fetl/primitives.h>
 
 namespace simpla
 {
 
-template<typename TM>
-struct PICEngineDefault
+template<typename TM, int N>
+struct PICEngineGGauge
 {
 
 private:
@@ -26,28 +26,33 @@ public:
 	typedef typename mesh_type::scalar scalar;
 
 public:
+	enum
+	{
+		NUM_OF_MATE = N
+	};
 
 	mesh_type const &mesh;
 
 	struct Point_s
 	{
 		coordinates_type x;
-		Vec3 v;
-		scalar f;
+		nTuple<3, Real> v;
+		Real f;
+		scalar w[];
 	};
 
-	PICEngineDefault(mesh_type const &pmesh) :
+	PICEngineGGauge(mesh_type const &pmesh) :
 			mesh(pmesh), m_(1.0), q_(1.0)
 	{
 
 	}
-	~PICEngineDefault()
+	~PICEngineGGauge()
 	{
 	}
 
-	static inline std::string TypeName()
+	inline std::string TypeName()
 	{
-		return "Default";
+		return "GGauge" + ToString(NUM_OF_MATE);
 	}
 
 	template<typename PT>
@@ -68,6 +73,7 @@ public:
 	{
 		Point_s p;
 		p.f = 1.0;
+		std::fill(p.w, p.w + NUM_OF_MATE, 0);
 		return std::move(p);
 	}
 
@@ -106,26 +112,6 @@ public:
 	}
 };
 
-//#include <H5Cpp.h>
-//template<typename > struct HDF5DataType;
-//template<typename TM>
-//struct HDF5DataType<typename PICEngineDefault<TM>::Point_s>
-//{
-////	H5::DataType operator()
-////	{
-////		char desc[1024];
-////		snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
-////				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
-////				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
-////				"}", (offsetof(Point_s, X)),
-////				(offsetof(Point_s, V)),
-////				(offsetof(Point_s, F)),
-////				num_of_mate,
-////				(offsetof(Point_s, w)));
-////	}
-//};
-}// namespace simpla
+}  // namespace simpla
 
-#endif /* PIC_ENGINE_DEFAULT_H_ */
+#endif /* PIC_GAGUE_H_ */

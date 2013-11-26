@@ -33,9 +33,9 @@ public:
 
 	mesh_type const & mesh;
 
-	const Real mu0;
-	const Real epsilon0;
-	const Real speed_of_light;
+	Real mu0;
+	Real epsilon0;
+	Real speed_of_light;
 
 	Form<2> X10, X11, X12;
 	Form<1> X20, X21, X22;
@@ -47,8 +47,7 @@ public:
 
 	nTuple<6, int> bc_;
 
-	template<typename PT>
-	PML(mesh_type const & pmesh, const PT & phys) :
+	PML(mesh_type const & pmesh) :
 			mesh(pmesh),
 
 			mu0(mesh.phys_constants["permeability of free space"]),
@@ -64,9 +63,21 @@ public:
 			X10(mesh), X11(mesh), X12(mesh),
 
 			X20(mesh), X21(mesh), X22(mesh)
-
 	{
+	}
+	template<typename PT>
+	inline void Deserialize(const PT & pt)
+	{
+		pt.GetValue("BC", &bc_);
+	}
+	template<typename PT>
+	inline void Serialize(PT & pt) const
+	{
+		pt.SetValue("BC", bc_);
+	}
 
+	void Init()
+	{
 		Real dB = 100, expN = 2;
 
 		a0 = 1.0;
