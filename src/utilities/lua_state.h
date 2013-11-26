@@ -140,6 +140,32 @@ public:
 //		}
 	}
 
+#define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
+	inline bool _FUN_NAME_() const                                             \
+	{                                                                          \
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);                             \
+		bool res = _LUA_FUN_(L_.get(), -1);                                    \
+		lua_pop(L_.get(), 1);                                                  \
+		return res;                                                            \
+	}
+
+	DEF_TYPE_CHECK(is_nil,lua_isnil)
+	DEF_TYPE_CHECK(is_number,lua_isnumber)
+	DEF_TYPE_CHECK(is_string,lua_isstring)
+	DEF_TYPE_CHECK(is_boolean,lua_isboolean)
+	DEF_TYPE_CHECK(is_lightuserdata,lua_islightuserdata)
+	DEF_TYPE_CHECK(is_function,lua_isfunction)
+	DEF_TYPE_CHECK(is_thread,lua_isthread)
+#undef DEF_TYPE_CHECK
+
+	inline std::string GetTypeName() const
+	{
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		std::string res = lua_typename(L_.get(), -1);
+		lua_pop(L_.get(), 1);
+		return res;
+	}
+
 	void Init()
 	{
 		if (self_ == 0)
