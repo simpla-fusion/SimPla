@@ -514,11 +514,6 @@ public:
 	}
 
 	template<typename T>
-	inline void GetValue(std::string const & name, T *v) const
-	{
-		*v = at(name).as<T>();
-	}
-	template<typename T>
 	inline T Get(std::string const & name, T const & default_value = T()) const
 	{
 		T res;
@@ -546,6 +541,83 @@ public:
 		return (res);
 	}
 
+	template<typename T>
+	inline void GetValue(std::string const & name, T *v) const
+	{
+		*v = at(name).as<T>();
+	}
+
+	template<typename T>
+	inline void GetValue(int s, T *v) const
+	{
+		*v = at(s).as<T>();
+	}
+
+	template<typename T>
+	inline void SetValue(std::string const & name, T const &v) const
+	{
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		LuaTrans<T>::To(L_.get(), v);
+		lua_setfield(L_.get(), -2, name.c_str());
+		lua_pop(L_.get(), 1);
+	}
+
+	template<typename T>
+	inline void SetValue(int s, T const &v) const
+	{
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		LuaTrans<T>::To(L_.get(), v);
+		lua_rawseti(L_.get(), -2, s);
+		lua_pop(L_.get(), 1);
+	}
+
+	template<typename T>
+	inline void AddValue(T const &v) const
+	{
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		LuaTrans<T>::To(L_.get(), v);
+		size_t len = lua_rawlen(L_.get(), -1);
+		lua_rawseti(L_.get(), -2, len + 1);
+		lua_pop(L_.get(), 1);
+	}
+
+	/**
+	 *
+	 * @param name the field name of table ,if name=="" use lua_settable, else append
+	 *        new table to the end of parent table
+	 * @param narr is a hint for how many elements the table will have as a sequence;
+	 * @param nrec is a hint for how many other elements the table will have.
+	 * @return a LuaObject of new table
+	 *
+	 * Lua may use these hints to preallocate memory for the new table.
+	 *  This pre-allocation is useful for performance when you know in advance how
+	 *   many elements the table will have.
+	 *
+	 *  @url http://www.lua.org/manual/5.2/manual.html#lua_createtable
+	 */
+	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec =
+			0)
+	{
+
+		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		int tidx = lua_gettop(L_.get());
+		lua_createtable(L_.get(), narr, nrec);
+		if (name == "")
+		{
+			int len = lua_rawlen(L_.get(), tidx);
+			lua_rawseti(L_.get(), tidx, len + 1);
+			lua_rawgeti(L_.get(), tidx, len + 1);
+		}
+		else
+		{
+			lua_setfield(L_.get(), tidx, name.c_str());
+			lua_getfield(L_.get(), tidx, name.c_str());
+		}
+		LuaObject res(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+				path_ + "." + name);
+		lua_pop(L_.get(), 1);
+		return std::move(res);
+	}
 }
 ;
 
@@ -578,7 +650,7 @@ DEF_LUA_TRANS(long, lua_pushinteger, lua_tointeger, lua_isnumber)
 DEF_LUA_TRANS(unsigned long, lua_pushunsigned, lua_tounsigned, lua_isnumber)
 DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
 #undef DEF_LUA_TRANS
-//"                           ToString(lua_typename(L, lua_type(L, idx)))                      " to "+  __STRING(_TYPE_) <<"!")
+
 template<> struct LuaTrans<std::string>
 {
 	typedef std::string value_type;
@@ -771,185 +843,4 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 
 } // namespace simpla
 
-/*
- *
- *
- * struct LuaStateHolder
- {
-
- std::shared_ptr<LuaStateHolder> parent_;
- std::string key_;
- int self_->idx_;
- lua_State * lstate_;
-
- LuaStateHolder() :
- idx_(LUA_GLOBALSINDEX), key_(""), lstate_(luaL_newstate())
-
- {
- luaL_openlibs(lstate_);
- }
- LuaStateHolder(std::shared_ptr<LuaStateHolder> p, std::string const & key =
- "") :
- parent_(p), idx_(0), key_(key), lstate_(p->lstate_)
- {
- lua_getfield(lstate_, p->idx_, key.c_str());
-
- idx_ = lua_gettop(lstate_);
-
- if (lua_isnil(lstate_ , idx_))
- {
- lua_remove(lstate_, idx_);
- idx_ = 0;
-
- throw std::out_of_range(
- "\"" + key + "\" is not an element in " + p->Path() + "!");
- }
- else if (lua_isfunction(lstate_,idx_))
- {
- lua_remove(lstate_, idx_);
- idx_ = 0;
- }
- else if (!lua_istable(lstate_,idx_))
- {
- lua_remove(lstate_, idx_);
- idx_ = 0;
- throw std::out_of_range(key + " is not a table or function!");
- }
- }
-
- LuaStateHolder(std::shared_ptr<LuaStateHolder> p, int idx) :
- parent_(p), idx_(idx), key_(""), lstate_(p->lstate_)
- {
- }
-
- ~LuaStateHolder()
- {
-
- if (idx_ == LUA_GLOBALSINDEX)
- {
- lua_close(lstate_);
- }
- else if (idx_ != 0)
- {
- lua_remove(lstate_, idx_);
- }
-
- }
-
- inline std::string Path() const
- {
- std::string res;
- if (idx_ == LUA_GLOBALSINDEX)
- {
- res = "[root]";
- }
- else
- {
- if (key_ != "")
- {
- res = parent_->key_ + "." + key_;
- }
- else
- {
- //				char tmp[20];
- //				itoa(idx_, tmp,10);
- //				res = parent_->key_ + ".[" + tmp + "]";
- }
- }
- return (res);
- }
-
- };
-
- class LuaIterator
- {
- std::shared_ptr<LuaStateHolder> holder_;
- public:
-
- LuaObject operator*()
- {
- return LuaObject(holder_);
- }
- };
- *
- * */
-//template<typename T>
-//	inline void From(int idx, T *res)
-//	{
-//		switch (lua_type(lstate.get(), idx))
-//		{
-//		case LUA_TBOOLEAN:
-//			*res = lua_toboolean(lstate.get(), idx);
-//			break;
-//		case LUA_TNUMBER:
-//			*res = lua_tonumber(lstate.get(), idx);
-//			break;
-//		case LUA_TTABLE:
-//		{
-//			//			typedef typename Reference<T>::KeyType KeyType;
-//			//			typedef typename Reference<T>::ValueType ValueType;
-//			//
-//			//			/* table is in the stack at index 'idx' */
-//			//			lua_pushnil(lstate.get()); /* first key */
-//			//			ValueType item;
-//			//			KeyType key;
-//			//			while (lua_next(lstate.get(), -2))
-//			//			{
-//			//				/* uses 'key' (at index -2) and 'value' (at index -1) */
-//			//				From(-1, item);
-//			//				From(-2, key);
-//			//				Reference<T>::index(res, key) = item;
-//			//				/* removes 'value'; keeps 'key' for next iteration */
-//			//				lua_pop(lstate.get(), 1);
-//			//
-//			//			}
-//			break;
-//		}
-//		}
-//	}
-//	template<typename T>
-//	inline void getExprTo(std::string const & expr, T * v)
-//	{
-//		std::string e = std::string("__evalExpr=") + expr;
-//
-//		if (luaL_dostring(lstate.get(), e.c_str()))
-//		{
-//			LUA_ERROR(lstate.get(), e);
-//		}
-//
-//		GetValue2("__evalExpr", v);
-//	}
-//
-//	template<typename T>
-//	inline void getExprToArray(std::string const & expr, std::shared_ptr<T> v)
-//	{
-//		std::string e = std::string("__evalExpr=") + expr;
-//
-//		if (luaL_dostring(lstate.get(), e.c_str()))
-//		{
-//			LUA_ERROR(lstate.get(), e);
-//		}
-//
-//		fillArray2("__evalExpr", v);
-//	}
-//	template<typename T>
-//	inline void fillArray(std::string const& key, T & array)
-//	{
-//		lua_getfield(lstate.get(), LUA_GLOBALSINDEX, key.c_str());
-//		int idx = lua_gettop(lstate.get());
-//		try
-//		{
-//			lua_fillArray(idx, array, 0);
-//		} catch (std::string const & e)
-//		{
-//			ERROR << ("Can not parse \"" + key + "\" to " + e + " !");
-//		}
-//		lua_pop(lstate.get(), 1);
-//
-//	}
-//	template<typename T>
-//	inline void fillArray2(std::string const & key, std::shared_ptr<T> array)
-//	{
-//		fillArray(key, *array);
-//	}
 #endif  // INCLUDE_LUA_PARSER_H_

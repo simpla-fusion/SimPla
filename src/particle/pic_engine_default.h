@@ -16,26 +16,28 @@ namespace simpla
 template<typename TM>
 struct PICEngineDefault
 {
-public:
-	typedef TM mesh_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	mesh_type const &mesh;
 
 private:
 	Real m_, q_;
 
 public:
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::scalar scalar;
+
+public:
+
+	mesh_type const &mesh;
+
 	struct Point_s
 	{
 		coordinates_type x;
 		Vec3 v;
-		Real f;
+		scalar f;
 	};
 
-	template<typename TP>
-	PICEngineDefault(mesh_type const &pmesh, TP const & pt) :
-			mesh(pmesh)
+	PICEngineDefault(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0)
 	{
 
 	}
@@ -43,32 +45,25 @@ public:
 	{
 	}
 
-	template<typename TP>
-	inline void SetProperties(TP const &p)
+	template<typename PT>
+	inline void Deserialize(PT const &vm)
 	{
-		m_ = p.template Get<Real>("Mass");
-		q_ = p.template Get<Real>("Charge");
+		vm.template GetValue<Real>("Mass", &m_);
+		vm.template GetValue<Real>("Charge", &q_);
 	}
 
-	template<typename TP>
-	inline void GetProperties(TP &p) const
+	template<typename PT>
+	inline void Serialize(PT &vm) const
 	{
-		p.Set("Mass", m_);
-		p.Set("Charge", q_);
+		vm.template SetValue<Real>("Mass", m_);
+		vm.template SetValue<Real>("Charge", q_);
 	}
 
-	template<typename TP>
-	inline TP GetProperties() const
+	static inline Point_s DefaultValue()
 	{
-		TP p;
-		p.Set("Mass", m_);
-		p.Set("Charge", q_);
-		return std::move(p);
-	}
-
-	static void SetDefaultValue(Point_s & p)
-	{
+		Point_s p;
 		p.f = 1.0;
+		return std::move(p);
 	}
 
 	template<typename TB, typename TE>
@@ -89,9 +84,13 @@ public:
 	inline void Collect(Int2Type<0>, Point_s const &p, TN & n,
 			Args const& ... args) const
 	{
-		n.Scatter(p.v * p.f, p.x);
+		n.Scatter(p.f, p.x);
 	}
-
+	template<typename TN, typename ... Args>
+	inline void Collect(Int2Type<2>, Point_s const &p, TN & n,
+			Args const& ... args) const
+	{
+	}
 	template<typename TX, typename TV, typename TN, typename ...Args>
 	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n,
 			Args...) const

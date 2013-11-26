@@ -131,10 +131,7 @@ int main(int argc, char **argv)
 
 	Real dt = mesh.GetDt();
 
-	std::vector<Object> sp_list;
-
-	INFORM << (">>> Pre-Process DONE! <<<");
-	INFORM << (">>> Process START! <<<");
+	INFORM << (">>> Pre-Process Start! <<<");
 
 	std::function<void(Form<1>&, Form<2>&, Form<1> const &, Real)> field_solver;
 
@@ -160,20 +157,23 @@ int main(int argc, char **argv)
 				};
 	}
 
-	Particle<Mesh, PICEngineDefault<Mesh> > ion(mesh,
-			pt.GetChild("Particles").GetChild("ion"));
+	std::map<std::string, std::shared_ptr<ParticleBase<Mesh> >> particle_list;
 
-//	std::map<std::string, Object> particle_list;
-//
 	for (auto const &pt_child : pt.GetChild("Particles"))
 	{
 		std::string engine_type = pt_child.second.Get<std::string>("Engine");
 		std::string name = pt_child.second.Get<std::string>("Name");
 
-		std::cout << pt_child.first.as<std::string>() << std::endl;
 		if (engine_type == "Default")
 		{
+			std::shared_ptr<Particle<Mesh, PICEngineDefault<Mesh>> > p(
+					new Particle<Mesh, PICEngineDefault<Mesh>>(mesh));
 
+			p->Deserialize(pt_child.second);
+
+			particle_list.insert(
+					std::make_pair(name,
+							std::dynamic_pointer_cast<ParticleBase<Mesh> >(p)));
 		}
 //		else if (engine_type == "GGauge8")
 //		{
@@ -183,13 +183,23 @@ int main(int argc, char **argv)
 //		}
 	}
 
+	INFORM << (">>> Pre-Process DONE! <<<");
+	INFORM << (">>> Process START! <<<");
+
 	for (int i = 0; i < num_of_step; ++i)
 	{
 		INFORM << ">>> STEP " << i << " Start <<<";
+
 		field_solver(E, B, J, dt);
 
-		ion.Push(E, B);
-		ion.Collect<1>(J);
+		for (auto & p : particle_list)
+		{
+			INFORM << "Push Particle " << p.first;
+			p.second->Push(E, B);
+			INFORM << "Collect Current J from Particle " << p.first;
+			p.second->Collect<1>(J, E, B);
+		}
+
 		INFORM << ">>> STEP " << i << " Done <<<";
 	}
 

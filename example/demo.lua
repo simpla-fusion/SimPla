@@ -50,8 +50,8 @@
     FieldSolver= {Type="Default",bc={5,5,5,5,5,5}}
     Particles=
 	{
-         {Name="ion",Mass=1.0,Charge=1.0,Engine="GGauge"},
-         {Name="ele",Mass=1.0,Charge=-1.0,Engine="Default"}
+         {Name="ion",Mass=1.0,Charge=1.0,Engine="GGauge",PIC=100},
+         {Name="ele",Mass=1.0,Charge=-1.0,Engine="Default",PIC=100}
          
 	}
    --[[ uncomment this line, if you need Cycle BC.

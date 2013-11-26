@@ -1,81 +1,44 @@
-#include "pugixml.hpp"
-#include "exprtk.hpp"
+#include "../src/fetl/primitives.h"
+
 #include <iostream>
 
-template<typename T>
-struct Function
+using namespace simpla;
+
+struct B
 {
-
-	T x_, y_, z_;
-	exprtk::symbol_table<T> symbol_table;
-	exprtk::expression<T> expression;
-	std::map<std::string, T> constants_;
-
-	Function()
+	virtual ~B()
 	{
-		symbol_table.add_variable("x", x_);
-		symbol_table.add_variable("y", y_);
-		symbol_table.add_variable("z", z_);
-		symbol_table.add_constants();
-	}
-	void AddConstant(std::string const &name, T const & v)
-	{
-		constants_[name] = v;
-		symbol_table.add_constant(name, constants_[name]);
 	}
 
-	void Register(std::string const &expression_string)
-	{
-		expression.register_symbol_table(symbol_table);
-		exprtk::parser<T>().compile(expression_string, expression);
-	}
-
-	template<typename TX, typename TY, typename TZ>
-	inline T operator()(TX const & px, TY const & py, TZ const & pz)
-	{
-		x_ = px;
-		y_ = py;
-		z_ = pz;
-		return expression.value();
-	}
+	virtual void Foo(Int2Type<0>)=0;
+	virtual void Foo(Int2Type<1>)=0;
 
 };
 
-int main(int argc, char** argv)
+class A: public B
 {
-	pugi::xml_document doc;
-	doc.load_file(argv[1]);
-	doc.print(std::cout);
-
-	double n0 =
-
-			doc.select_single_node(
-					"/Xdmf/Domain/Grid/Information[@Name='GlobalVaraible']/Parameter[@Name='n0']").node().attribute(
-					"Value").as_double();
-
-	std::cout << n0 << std::endl;
-
-	std::string expr_str =
-			doc.select_single_node(
-					"/Xdmf/Domain/Grid/Attribute[@Name='B0']/DataItem").node().text().get();
-
-	std::cout << expr_str << std::endl;
-
-	Function<double> fun;
-	fun.AddConstant("n0", n0);
-
-	fun.Register(expr_str);
-	for (double x = 0.1; x < 2.0; x += 0.1)
+	template<int N> void Foo(Int2Type<N>)
 	{
-		std::cout << fun(x, 0, 0) << std::endl;
-
+		std::cout << N << std::endl;
 	}
 
-//	for (auto & p : nodes)
-//	{
-//		p.node().print(std::cout);
-//	}
+	void Foo(Int2Type<0>)
+	{
+		std::cout << 0 << std::endl;
+	}
+	void Foo(Int2Type<1>)
+	{
+		std::cout << 1 << std::endl;
+	}
+};
+int main(int argc, char** argv)
+{
+	A a;
+	B* b = dynamic_cast<B*>(&a);
 
+	b->Foo(Int2Type<0>());
+	b->Foo(Int2Type<1>());
+	a.Foo(Int2Type<1>());
 }
 
 // vim:et

@@ -119,16 +119,16 @@ int main(int argc, char** argv)
 //		std::cout << obj[i].as<int>() << std::endl;
 //	}
 //
-//	for (auto const &p : pt.GetChild("tt"))
-//	{
-//		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
-//				<< std::endl;
-//	}
-//	for (auto const &p : pt.GetChild("tt"))
-//	{
-//		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
-//				<< std::endl;
-//	}
+	for (auto const &p : pt.GetChild("tt"))
+	{
+		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
+				<< std::endl;
+	}
+	for (auto const &p : pt.GetChild("tt"))
+	{
+		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
+				<< std::endl;
+	}
 	for (auto const &p : pt.GetChild("tt"))
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()

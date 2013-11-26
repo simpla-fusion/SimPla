@@ -42,7 +42,9 @@ struct UniformRectMesh
 
 	typedef size_t index_type;
 
-	typedef nTuple<3, Real> coordinates_type;
+	typedef Real scalar;
+
+	typedef nTuple<3, scalar> coordinates_type;
 
 	typedef std::list<index_type> chains_type;
 
@@ -128,13 +130,13 @@ struct UniformRectMesh
 
 		<< "[Mesh]" << std::endl
 
-		<< std::setw(40) << "dims = " << dims_ << std::endl
+		<< std::setw(20) << "dims = " << dims_ << std::endl
 
-		<< std::setw(40) << "xmin = " << xmin_ << std::endl
+		<< std::setw(20) << "xmin = " << xmin_ << std::endl
 
-		<< std::setw(40) << "xmax = " << xmax_ << std::endl
+		<< std::setw(20) << "xmax = " << xmax_ << std::endl
 
-		<< std::setw(40) << "gw = " << gw_ << std::endl
+		<< std::setw(20) << "gw = " << gw_ << std::endl
 
 		;
 	}

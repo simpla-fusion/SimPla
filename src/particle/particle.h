@@ -23,9 +23,77 @@ namespace simpla
 template<typename, typename > struct Field;
 template<typename, int> struct Geometry;
 
+template<typename TM>
+class ParticleBase
+{
+
+public:
+	ParticleBase()
+	{
+
+	}
+	virtual ~ParticleBase()
+	{
+
+	}
+
+	template<typename ... Args>
+	inline void Push(Args const & ... args)
+	{
+		_Push(std::forward<Args const &>(args)...);
+
+	}
+	template<int N, typename TJ, typename ... Args>
+	inline void Collect(TJ &J, Args const &... args)
+	{
+		_Collect(Int2Type<N>(), std::forward<TJ &>(J),
+				std::forward<Args const &>(args)...);
+	}
+
+private:
+
+	//========================================================================
+	// interface
+	typedef typename TM::scalar scalar;
+	template<int N> using Form=Field<Geometry<TM,N>,scalar >;
+	template<int N> using VForm=Field<Geometry<TM,N>,nTuple<3,scalar> >;
+	template<int N> using TForm=Field<Geometry<TM,N>,nTuple<3,nTuple<3,scalar>> >;
+
+	virtual void _Push(Form<1> const &, Form<2> const &)
+	{
+	}
+
+	virtual void _Push(VForm<0> const &, VForm<0> const &)
+	{
+	}
+
+#define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, Form<1> const &,	Form<2> const &) {}				\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, VForm<0> const & ,	VForm<0> const &) {}		\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &) {}
+
+	DEF_COLLECT_INTERFACE(0 , Form, 0 )
+	DEF_COLLECT_INTERFACE(0 , Form, 3 )
+	DEF_COLLECT_INTERFACE(1, VForm , 0 )
+	DEF_COLLECT_INTERFACE(1, Form , 1 )
+	DEF_COLLECT_INTERFACE(1, Form , 2 )
+	DEF_COLLECT_INTERFACE(1, VForm , 3 )
+	DEF_COLLECT_INTERFACE(2, TForm , 0 )
+	DEF_COLLECT_INTERFACE(2, VForm , 1 )
+	DEF_COLLECT_INTERFACE(2, VForm , 2 )
+	DEF_COLLECT_INTERFACE(2, TForm , 3 )
+
+#undef DEF_COLLECT_INTERFACE
+
+};
+
 template<typename TM, class Engine>
-class Particle: public Engine, public Container<
-		std::list<typename Engine::Point_s> >::type
+class Particle: public Engine,
+
+public Container<std::list<typename Engine::Point_s> >::type,
+
+public ParticleBase<TM>
+
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -40,6 +108,8 @@ public:
 
 	typedef particle_type value_type;
 
+	typedef typename mesh_type::scalar scalar;
+
 	//mesh
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -52,16 +122,16 @@ public:
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename   Container<cell_type>::type container_type;
+	typedef typename Container<cell_type>::type container_type;
 
 	mesh_type const &mesh;
 
 public:
 
 	template<typename ...Args>
-	Particle(mesh_type const & pmesh, Args const &... args) :
+	Particle(mesh_type const & pmesh) :
 
-			engine_type(pmesh, args...),
+			engine_type(pmesh),
 
 			container_type(
 					std::move(
@@ -73,17 +143,28 @@ public:
 	{
 	}
 
-	~Particle()
+	virtual ~Particle()
 	{
 	}
 
-	void Init(size_t num_pic)
+	template<typename PT>
+	inline void Deserialize(PT const &vm)
 	{
-		value_type default_value;
+		engine_type::Deserialize(vm);
 
-		engine_type::SetDefaultValue(default_value);
+		size_t num_pic;
+
+		vm.template GetValue<size_t>("PIC", &num_pic);
+
+		value_type default_value = engine_type::DefaultValue();
 
 		ResizeCells(num_pic, default_value);
+	}
+
+	template<typename PT>
+	inline void Serialize(PT &vm) const
+	{
+		engine_type::Serialize(vm);
 	}
 
 	inline void ResizeCells(size_t num_pic,
@@ -169,20 +250,20 @@ public:
 		J, args...);
 	}
 
-	template<int I, typename TJ, typename ... Args>
-	inline void PushAndCollect(Int2Type<I>, TJ & J, Args const& ... args)
-	{
-		ForEachCell(
-
-		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
-				typename ProxyCache<const Args>::type const& ... args_c)
-		{
-			engine_type::Push(Int2Type<I>(),p, args_c...);
-			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
-		},
-
-		J, args...);
-	}
+//	template<int I, typename TJ, typename ... Args>
+//	inline void PushAndCollect(TJ & J, Args const& ... args)
+//	{
+//		ForEachCell(
+//
+//		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+//				typename ProxyCache<const Args>::type const& ... args_c)
+//		{
+//			engine_type::Push(p, args_c...);
+//			engine_type::Collect<I>(p,J_c,args_c...);
+//		},
+//
+//		J, args...);
+//	}
 
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
@@ -256,7 +337,42 @@ private:
 			fun(p, args...);
 		}
 	}
+private:
 
+	//========================================================================
+	// interface
+
+	template<int N> using Form=Field<Geometry<TM,N>,scalar >;
+	template<int N> using VForm=Field<Geometry<TM,N>,nTuple<3,scalar> >;
+	template<int N> using TForm=Field<Geometry<TM,N>,nTuple<3,nTuple<3,scalar>> >;
+
+	virtual void _Push(Form<1> const & E, Form<2> const &B)
+	{
+		Push(E, B);
+	}
+
+	virtual void _Push(VForm<0> const &E, VForm<0> const & B)
+	{
+		Push(E, B);
+	}
+
+#define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, Form<1> const & E,	Form<2> const & B)const {Collect<_N_>(J,E,B);}	\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, VForm<0> const & E,	VForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J)const {Collect<_N_>(J);}
+
+	DEF_COLLECT_INTERFACE(0 , Form, 0 )
+	DEF_COLLECT_INTERFACE(0 , Form, 3 )
+	DEF_COLLECT_INTERFACE(1, VForm , 0 )
+	DEF_COLLECT_INTERFACE(1, Form , 1 )
+	DEF_COLLECT_INTERFACE(1, Form , 2 )
+	DEF_COLLECT_INTERFACE(1, VForm , 3 )
+	DEF_COLLECT_INTERFACE(2, TForm , 0 )
+	DEF_COLLECT_INTERFACE(2, VForm , 1 )
+	DEF_COLLECT_INTERFACE(2, VForm , 2 )
+	DEF_COLLECT_INTERFACE(2, TForm , 3 )
+
+#undef DEF_COLLECT_INTERFACE
 };
 
 }

@@ -8,7 +8,7 @@
 #ifndef EM_H_
 #define EM_H_
 
-#include "include/simpla_defs.h"
+#include "simpla_defs.h"
 #include "engine/context.h"
 
 #include "maxwell.h"
