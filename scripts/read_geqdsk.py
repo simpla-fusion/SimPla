@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 import numpy as np
-    
+import matplotlib.pyplot as plt
 def read_geqdsk(filename):
     """
     'desc'    :desc,  
-    'nw'      :nw,    # Numver of horizontal R grid  points
+    'nw'      :nw,    # Number of horizontal R grid  points
     'nh'      :nh,    # Number of vertical Z grid points
     'rdim'    :rdim,  # Horizontal dimension in meter of computational box
     'zdim'    :zdim,  # Vertical dimension in meter of computational box
@@ -36,7 +36,7 @@ def read_geqdsk(filename):
     """
     d=open(filename,"r").read().replace("\n","");
     desc	= d[0:48]
-   # idum	= int(d[48:52])
+    # idum	= int(d[48:52])
     nw	     = int(d[52:56])
     nh	     = int(d[56:60])
     it=60
@@ -55,7 +55,7 @@ def read_geqdsk(filename):
     ffprim=np.array([float(d[it+i*16:it+(i+1)*16]) for i in range(nw)]);
     it+=nw*16;
     
-    pprime=np.array([float(d[it+i*16:it+(i+1)*16]) for i in range(nw)]);
+    pprim=np.array([float(d[it+i*16:it+(i+1)*16]) for i in range(nw)]);
     it+=nw*16;
     
     psirz=np.reshape(np.array([float(d[it+i*16:it+(i+1)*16]) for i in range(nw*nh)]),(nw,nh));
@@ -74,7 +74,18 @@ def read_geqdsk(filename):
     
     rlim=np.array([float(d[it+i*32:it+i*32+16]) for i in range(limitr)]);
     zlim=np.array([float(d[it+i*32+16:it+i*32+32]) for i in range(limitr)]);
-    
+
+    print(current)
+    print(sibry)
+    print(nbbbs)
+    plt.contour(psirz.reshape([nh,nw]),[(sibry-simag)/10.0*i+simag for i in range(10)])
+     
+    plt.plot((rlim -rleft)/rdim*nw,zlim /zdim*nh+nh/2)
+     
+    #plt.plot((rbbbs-rleft)/rdim*nw,zbbbs/zdim*nh+nh/2)
+     
+    plt.show()
+
     
     return {
     'desc'    :desc,  
@@ -103,18 +114,9 @@ def read_geqdsk(filename):
     'rbbbs'   :rbbbs, # R of boundary points in meter
     'zbbbs'   :zbbbs, # Z of boundary points in meter
     'rlim'    :rlim,  # R of surrounding limiter contour in meter
-    'rlim'    :zlim,  # R of surrounding limiter contour in meter
+    'zlim'    :zlim,  # Z of surrounding limiter contour in meter
     }
-def geqdsk2gmsh(data,filename):
-    f=open(filename,"w");
-    
-        
-    return
-#     plt.contour(psirz.reshape([nh,nw]),[(sibry-simag)/10.0*i+simag for i in range(10)])
-#     
-#     plt.plot((rlims-rleft)/rdim*nw,zlims/zdim*nh+nh/2)
-#     
-#     plt.plot((rbbbs-rleft)/rdim*nw,zbbbs/zdim*nh+nh/2)
-#     
-#     plt.show()
+
+read_geqdsk('g033068.02750')
+
 
