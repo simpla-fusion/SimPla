@@ -268,6 +268,23 @@ inline auto index(T & v, TI const &s)->decltype(v[s])
 {
 	return v[s];
 }
+/**
+ *  index function for field
+ *
+ * */
+template<typename TG, typename TL, typename TI>
+inline auto findex(Field<TG, TL> const & v, TI const &s)->decltype(v[s])
+{
+	return v[s];
+}
+/**
+ *  index function for not field
+ * */
+template<typename T, typename TI>
+inline T findex(T const & v, TI const &)
+{
+	return v;
+}
 
 typedef enum
 {

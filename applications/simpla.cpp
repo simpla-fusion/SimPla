@@ -43,7 +43,7 @@ void help_mesage()
 			"\n" << std::endl;
 }
 
-DEFINE_FIELDS(CoRectMesh)
+DEFINE_FIELDS(CoRectMesh<>)
 
 int main(int argc, char **argv)
 {
@@ -114,7 +114,7 @@ int main(int argc, char **argv)
 
 	std::cout << SINGLELINE << std::endl;
 
-	mesh.Print(std::cout);
+//	mesh.Print(std::cout);
 
 	std::cout << SINGLELINE << std::endl;
 
