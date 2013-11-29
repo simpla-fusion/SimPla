@@ -18,7 +18,7 @@
 #include "simpla_defs.h"
 
 #include "fetl/fetl.h"
-#include "mesh/uniform_rect.h"
+#include "mesh/co_rect_mesh.h"
 
 #include "utilities/log.h"
 #include "utilities/lua_state.h"
@@ -33,10 +33,6 @@
 
 using namespace simpla;
 
-typedef UniformRectMesh Mesh;
-template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
-template<int IFORM> using VecForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
-
 void help_mesage()
 {
 	std::cout << "Too lazy to write a complete help information\n"
@@ -46,6 +42,9 @@ void help_mesage()
 			"\t -i<STRING>\t configure file "
 			"\n" << std::endl;
 }
+
+DEFINE_FIELDS(CoRectMesh)
+
 int main(int argc, char **argv)
 {
 
@@ -102,8 +101,6 @@ int main(int argc, char **argv)
 		}
 
 	}
-
-	typedef UniformRectMesh Mesh;
 
 	Mesh mesh;
 

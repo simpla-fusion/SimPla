@@ -117,7 +117,7 @@ Object Engine::Evaluate()
 
 	if (topology.attribute("Type").as_string() == "3DCoRectMesh")
 	{
-		UniformRectMesh * mesh = new UniformRectMesh();
+		CoRectMesh * mesh = new CoRectMesh();
 
 		mesh->SetTopology(
 				nTupleFromString<3, size_t>(

@@ -26,7 +26,7 @@
 
 using namespace simpla;
 
-typedef UniformRectMesh Mesh;
+typedef CoRectMesh Mesh;
 template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
 template<int IFORM> using VecForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
 
@@ -96,7 +96,7 @@ int main(int argc, char **argv)
 
 	}
 
-	typedef UniformRectMesh Mesh;
+	typedef CoRectMesh Mesh;
 
 	Mesh mesh;
 

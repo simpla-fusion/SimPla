@@ -18,7 +18,7 @@
 namespace simpla
 {
 
-std::string CreateFileTemplate(UniformRectMesh const & mesh)
+std::string CreateFileTemplate(CoRectMesh const & mesh)
 {
 	std::ostringstream ss;
 	ss << "<?xml version='1.0' ?>" << std::endl

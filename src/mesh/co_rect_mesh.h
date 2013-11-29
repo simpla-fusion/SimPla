@@ -34,9 +34,10 @@ namespace simpla
  *  @brief UniformRectMesh -- Uniform rectangular structured grid.
  *  @ingroup mesh 
  * */
-struct UniformRectMesh
+
+struct CoRectMesh
 {
-	typedef UniformRectMesh this_type;
+	typedef CoRectMesh this_type;
 
 	static const int NUM_OF_DIMS = 3;
 
@@ -81,12 +82,12 @@ struct UniformRectMesh
 	const size_t num_comps_per_cell_[4] =
 	{ 1, 3, 3, 1 };
 
-	UniformRectMesh()
+	CoRectMesh()
 	{
 		Update();
 	}
 
-	~UniformRectMesh() = default;
+	~CoRectMesh() = default;
 
 	inline bool operator==(this_type const & r) const
 	{
@@ -732,53 +733,53 @@ struct UniformRectMesh
 
 }
 ;
-
-namespace UniformRectMeshDefine
-{
-typedef UniformRectMesh Mesh;
-
-template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
-
-typedef Form<0, Real> ZeroForm;
-typedef Form<1, Real> OneForm;
-typedef Form<2, Real> TwoForm;
-typedef Form<3, Real> ThreeForm;
-
-typedef Form<0, nTuple<3, Real> > VecZeroForm;
-typedef Form<1, nTuple<3, Real> > VecOneForm;
-typedef Form<2, nTuple<3, Real> > VecTwoForm;
-typedef Form<3, nTuple<3, Real> > VecThreeForm;
-
-typedef Form<0, Real> ScalarField;
-typedef Form<0, nTuple<3, Real> > VecField;
-
-typedef Form<0, Real> RZeroForm;
-typedef Form<1, Real> ROneForm;
-typedef Form<2, Real> RTwoForm;
-typedef Form<3, Real> RThreeForm;
-
-typedef Form<0, nTuple<3, Real> > RVecZeroForm;
-typedef Form<1, nTuple<3, Real> > RVecOneForm;
-typedef Form<2, nTuple<3, Real> > RVecTwoForm;
-typedef Form<3, nTuple<3, Real> > RVecThreeForm;
-
-typedef Form<0, Real> RScalarField;
-typedef Form<0, nTuple<3, Real> > RVecField;
-
-typedef Form<0, Complex> CZeroForm;
-typedef Form<1, Complex> COneForm;
-typedef Form<2, Complex> CTwoForm;
-typedef Form<3, Complex> CThreeForm;
-
-typedef Form<0, nTuple<3, Complex> > CVecZeroForm;
-typedef Form<0, nTuple<3, Complex> > CVecOneForm;
-typedef Form<0, nTuple<3, Complex> > CVecTwoForm;
-typedef Form<3, nTuple<3, Complex> > CVecThreeForm;
-
-typedef Form<0, Complex> CScalarField;
-typedef Form<0, nTuple<3, Complex> > CVecField;
-
-}  // namespace UniformRectMeshDefine
+//
+//namespace UniformRectMeshDefine
+//{
+//typedef CoRectMesh Mesh;
+//
+//template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
+//
+//typedef Form<0, Real> ZeroForm;
+//typedef Form<1, Real> OneForm;
+//typedef Form<2, Real> TwoForm;
+//typedef Form<3, Real> ThreeForm;
+//
+//typedef Form<0, nTuple<3, Real> > VecZeroForm;
+//typedef Form<1, nTuple<3, Real> > VecOneForm;
+//typedef Form<2, nTuple<3, Real> > VecTwoForm;
+//typedef Form<3, nTuple<3, Real> > VecThreeForm;
+//
+//typedef Form<0, Real> ScalarField;
+//typedef Form<0, nTuple<3, Real> > VecField;
+//
+//typedef Form<0, Real> RZeroForm;
+//typedef Form<1, Real> ROneForm;
+//typedef Form<2, Real> RTwoForm;
+//typedef Form<3, Real> RThreeForm;
+//
+//typedef Form<0, nTuple<3, Real> > RVecZeroForm;
+//typedef Form<1, nTuple<3, Real> > RVecOneForm;
+//typedef Form<2, nTuple<3, Real> > RVecTwoForm;
+//typedef Form<3, nTuple<3, Real> > RVecThreeForm;
+//
+//typedef Form<0, Real> RScalarField;
+//typedef Form<0, nTuple<3, Real> > RVecField;
+//
+//typedef Form<0, Complex> CZeroForm;
+//typedef Form<1, Complex> COneForm;
+//typedef Form<2, Complex> CTwoForm;
+//typedef Form<3, Complex> CThreeForm;
+//
+//typedef Form<0, nTuple<3, Complex> > CVecZeroForm;
+//typedef Form<0, nTuple<3, Complex> > CVecOneForm;
+//typedef Form<0, nTuple<3, Complex> > CVecTwoForm;
+//typedef Form<3, nTuple<3, Complex> > CVecThreeForm;
+//
+//typedef Form<0, Complex> CScalarField;
+//typedef Form<0, nTuple<3, Complex> > CVecField;
+//
+//}  // namespace UniformRectMeshDefine
 
 //	inline std::vector<size_t> Get_field_shape(int iform) const
 //	{
@@ -924,17 +925,17 @@ typedef Form<0, nTuple<3, Complex> > CVecField;
 
 template<int N, typename TL, typename TI> inline auto _OpEval(
 		Int2Type<EXTRIORDERIVATIVE>,
-		Field<Geometry<UniformRectMesh, N>, TL> const & f, TI s)
+		Field<Geometry<CoRectMesh, N>, TL> const & f, TI s)
 		DECL_RET_TYPE((f[s]*f.mesh.inv_dx_[s%3]))
 
 template<typename TExpr, typename TI> inline auto _OpEval(Int2Type<GRAD>,
-		Field<Geometry<UniformRectMesh, 0>, TExpr> const & f,
+		Field<Geometry<CoRectMesh, 0>, TExpr> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[(s - s % 3) / 3 + f.mesh.strides_[s % 3]] - f[(s - s % 3) / 3]) * f.mesh.inv_dx_[s % 3])
 
 template<typename TExpr, typename TI> inline auto _OpEval(Int2Type<DIVERGE>,
-		Field<Geometry<UniformRectMesh, 1>, TExpr> const & f,
+		Field<Geometry<CoRectMesh, 1>, TExpr> const & f,
 		TI s)
 				DECL_RET_TYPE(
 
@@ -945,7 +946,7 @@ template<typename TExpr, typename TI> inline auto _OpEval(Int2Type<DIVERGE>,
 						(f[s * 3 + 2] - f[s * 3 + 2 - 3 * f.mesh.strides_[2]]) * f.mesh.inv_dx_[2])
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
-		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		Field<Geometry<CoRectMesh, 1>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]
@@ -955,7 +956,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
-		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		Field<Geometry<CoRectMesh, 2>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]
@@ -965,7 +966,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURL>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
-		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		Field<Geometry<CoRectMesh, 1>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]] - f[s - s %3 + (s + 2) % 3]) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==0?0:1)
@@ -975,7 +976,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
-		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		Field<Geometry<CoRectMesh, 1>, TL> const & f,
 		TI s)
 
 				DECL_RET_TYPE(
@@ -986,7 +987,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
-		Field<Geometry<UniformRectMesh, 1>, TL> const & f,
+		Field<Geometry<CoRectMesh, 1>, TL> const & f,
 		TI s)
 
 				DECL_RET_TYPE(
@@ -997,7 +998,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
-		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		Field<Geometry<CoRectMesh, 2>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==0?0:1)
@@ -1007,7 +1008,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDX>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
-		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		Field<Geometry<CoRectMesh, 2>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==1?0:1)
@@ -1017,7 +1018,7 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDY>,
 				)
 
 template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
-		Field<Geometry<UniformRectMesh, 2>, TL> const & f,
+		Field<Geometry<CoRectMesh, 2>, TL> const & f,
 		TI s)
 				DECL_RET_TYPE(
 						(f[s - s % 3 + (s + 2) % 3] - f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]] ) * f.mesh.inv_dx_[(s + 1) % 3]*((s+1)%3==1?0:1)
@@ -1027,80 +1028,80 @@ template<typename TL, typename TI> inline auto _OpEval(Int2Type<CURLPDZ>,
 				)
 
 template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<WEDGE>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
-		Field<Geometry<UniformRectMesh, IR>, TR> const &r,
+		Int2Type<WEDGE>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
+		Field<Geometry<CoRectMesh, IR>, TR> const &r,
 		TI s)
 				DECL_RET_TYPE(
 						(l.mesh.mapto(Int2Type<IL+IR>(),l,s)*r.mesh.mapto(Int2Type<IL+IR>(),r,s)))
 
 template<int IL, typename TL, typename TI> inline auto _OpEval(
-		Int2Type<HODGESTAR>, Field<Geometry<UniformRectMesh, IL>, TL> const & f,
+		Int2Type<HODGESTAR>, Field<Geometry<CoRectMesh, IL>, TL> const & f,
 		TI s)
-				DECL_RET_TYPE((f.mesh.mapto(Int2Type<UniformRectMesh::NUM_OF_DIMS-IL >(),f,s)))
+				DECL_RET_TYPE((f.mesh.mapto(Int2Type<CoRectMesh::NUM_OF_DIMS-IL >(),f,s)))
 
 template<int N, typename TL, typename TI> inline auto _OpEval(Int2Type<NEGATE>,
-		Field<Geometry<UniformRectMesh, N>, TL> const & f, TI s)
+		Field<Geometry<CoRectMesh, N>, TL> const & f, TI s)
 		DECL_RET_TYPE((-f[s]))
 
 template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<PLUS>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
-		Field<Geometry<UniformRectMesh, IL>, TR> const &r, TI s)
+		Int2Type<PLUS>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
+		Field<Geometry<CoRectMesh, IL>, TR> const &r, TI s)
 		DECL_RET_TYPE((l[s]+r[s]))
 
 template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<MINUS>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
-		Field<Geometry<UniformRectMesh, IL>, TR> const &r, TI s)
+		Int2Type<MINUS>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
+		Field<Geometry<CoRectMesh, IL>, TR> const &r, TI s)
 		DECL_RET_TYPE((l[s]-r[s]))
 
 template<int IL, int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
-		Field<Geometry<UniformRectMesh, IR>, TR> const &r,
+		Int2Type<MULTIPLIES>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
+		Field<Geometry<CoRectMesh, IR>, TR> const &r,
 		TI s)
 				DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s)*r.mesh.mapto(Int2Type<IL+IR>(),r,s)) )
 
 template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Int2Type<MULTIPLIES>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
 		TR const &r, TI s)
 		DECL_RET_TYPE((l[s] * r))
 
 template<int IR, typename TL, typename TR, typename TI> inline auto _OpEval(
 		Int2Type<MULTIPLIES>, TL const & l,
-		Field<Geometry<UniformRectMesh, IR>, TR> const & r, TI s)
+		Field<Geometry<CoRectMesh, IR>, TR> const & r, TI s)
 		DECL_RET_TYPE((l * r[s]))
 
 template<int IL, typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<DIVIDES>, Field<Geometry<UniformRectMesh, IL>, TL> const &l,
+		Int2Type<DIVIDES>, Field<Geometry<CoRectMesh, IL>, TL> const &l,
 		TR const &r, TI s)
 		DECL_RET_TYPE((l[s]/l.mesh.mapto(Int2Type<IL>(),r,s)))
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<DOT>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
-		Field<Geometry<UniformRectMesh, 0>, TR> const &r, TI s)
+		Int2Type<DOT>, Field<Geometry<CoRectMesh, 0>, TL> const &l,
+		Field<Geometry<CoRectMesh, 0>, TR> const &r, TI s)
 		DECL_RET_TYPE((Dot(l[s],r[s])) )
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<DOT>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Int2Type<DOT>, Field<Geometry<CoRectMesh, 0>, TL> const &l,
 		nTuple<3, TR> const &r, TI s)
 		DECL_RET_TYPE((Dot(l[s] , r)))
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
 		Int2Type<DOT>, nTuple<3, TL> const & l,
-		Field<Geometry<UniformRectMesh, 0>, TR> const & r, TI s)
+		Field<Geometry<CoRectMesh, 0>, TR> const & r, TI s)
 		DECL_RET_TYPE((Dot(l , r[s])))
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<CROSS>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
-		Field<Geometry<UniformRectMesh, 0>, TR> const &r, TI s)
+		Int2Type<CROSS>, Field<Geometry<CoRectMesh, 0>, TL> const &l,
+		Field<Geometry<CoRectMesh, 0>, TR> const &r, TI s)
 		DECL_RET_TYPE( (Cross(l[s],r[s])))
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
-		Int2Type<CROSS>, Field<Geometry<UniformRectMesh, 0>, TL> const &l,
+		Int2Type<CROSS>, Field<Geometry<CoRectMesh, 0>, TL> const &l,
 		nTuple<3, TR> const &r, TI s)
 		DECL_RET_TYPE((Cross(l[s] , r)))
 
 template<typename TL, typename TR, typename TI> inline auto _OpEval(
 		Int2Type<CROSS>, nTuple<3, TL> const & l,
-		Field<Geometry<UniformRectMesh, 0>, TR> const & r, TI s)
+		Field<Geometry<CoRectMesh, 0>, TR> const & r, TI s)
 		DECL_RET_TYPE((Cross(l , r[s])))
 
 }  // namespace simpla

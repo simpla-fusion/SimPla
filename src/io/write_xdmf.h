@@ -150,7 +150,7 @@ private:
 
 };
 
-std::string CreateFileTemplate(UniformRectMesh const & mesh);
+std::string CreateFileTemplate(CoRectMesh const & mesh);
 
 } // namespace simpla
 #endif  // SRC_IO_WRITE_XDMF_H_

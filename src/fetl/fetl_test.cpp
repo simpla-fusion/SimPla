@@ -12,13 +12,11 @@
 
 #include "fetl/fetl.h"
 
-#include "physics/constants.h"
-
-#include "mesh/uniform_rect.h"
+#include "mesh/co_rect_mesh.h"
 
 using namespace simpla;
 
-DEFINE_FIELDS(UniformRectMesh)
+DEFINE_FIELDS(CoRectMesh)
 
 template<typename TF>
 class TestFETLBasicArithmetic: public testing::Test
@@ -47,18 +45,17 @@ protected:
 	}
 public:
 	typedef TF FieldType;
-	typedef Form<0, Real> RScalarField;
+	typedef Form<0> RScalarField;
 
 	Mesh mesh;
 
 };
 
-typedef testing::Types<RZeroForm
-		, ROneForm, RTwoForm, RThreeForm, CZeroForm,
-		COneForm, CTwoForm, CThreeForm, VecZeroForm, VecOneForm, VecTwoForm
-//		,VecThreeForm
-//		,CVecZeroForm, CVecOneForm, CVecTwoForm,CVecThreeForm
-> AllFieldTypes;
+typedef testing::Types<Form<0>, Form<1>, Form<2>, Form<3>,
+
+CForm<0>, CForm<1>, CForm<2>, CForm<3>,
+
+VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3> > AllFieldTypes;
 
 //, VecThreeForm
 
@@ -213,7 +210,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 			}
 	);
 
-	f4= -(f1^a)-f2/b +f3*c;
+	f4= -Wedge(f1,a)-f2/b +f3*c;
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
 	/**           (+)
@@ -274,13 +271,11 @@ public:
 	Mesh mesh;
 	typedef T value_type;
 	typedef nTuple<3, value_type> Vec3;
-	typedef Form<0, T> ScalarField;
-	typedef Form<0, nTuple<3, T> > VectorField;
+	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
+	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
 };
 
-typedef testing::Types<double, Complex
-		, nTuple<3, Real>
-> VecFieldTypes;
+typedef testing::Types<double, Complex, nTuple<3, Real> > VecFieldTypes;
 
 TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 
@@ -363,9 +358,9 @@ public:
 	Mesh mesh;
 
 	typedef TP value_type;
-	typedef Form<0, value_type> TZeroForm;
-	typedef Form<1, value_type> TOneForm;
-	typedef Form<2, value_type> TTwoForm;
+	typedef Field<Geometry<Mesh, 0>, value_type> TZeroForm;
+	typedef Field<Geometry<Mesh, 1>, value_type> TOneForm;
+	typedef Field<Geometry<Mesh, 2>, value_type> TTwoForm;
 
 	double RelativeError(double a, double b)
 	{

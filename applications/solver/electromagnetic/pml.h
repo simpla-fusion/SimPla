@@ -7,7 +7,7 @@
  */
 
 #include "fetl/fetl.h"
-#include "mesh/uniform_rect.h"
+#include "mesh/co_rect_mesh.h"
 #include "physics/physical_constants.h"
 namespace simpla
 {
@@ -26,12 +26,19 @@ class PML
 {
 
 public:
-	typedef TMesh mesh_type;
+//	DEFINE_FIELDS(TMesh)
 
-	template<int IFORM> using Form = Field<Geometry<mesh_type,IFORM>,Real >;
-	template<int IFORM> using VForm = Field<Geometry<mesh_type,IFORM>,nTuple<3,Real> >;
+	typedef TMesh Mesh;
+	template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
+	template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
+	template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real>> >;
+	template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;
+	template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;
+	template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex>> >;
 
-	mesh_type const & mesh;
+	typedef Mesh mesh_type;
+
+	Mesh const & mesh;
 
 	Real mu0;
 	Real epsilon0;
