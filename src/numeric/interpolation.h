@@ -19,16 +19,23 @@ namespace simpla
  *
  *
  */
+template<typename TX, typename TY, typename TInterpolate>
+inline Interpolation<TX, TY, TInterpolate> MakeInterpolator(
+		std::map<TX, TY> const &xy)
+{
+	return std::move(Interpolation<TX, TY, TInterpolate>(xy));
+}
+
 struct LinearInterpolation;
 
-template<typename TK, typename TY, typename TInterpolator = LinearInterpolation>
-struct Interpolation: public std::map<TK, TY>
+template<typename TX, typename TY, typename TInterpolator = LinearInterpolation>
+struct Interpolation: public std::map<TX, TY>
 {
 
 	TInterpolator interpolate_op_;
 public:
-	typedef Interpolation<TK, TY, TInterpolator> this_type;
-	typedef std::map<TK, TY> container_type;
+	typedef Interpolation<TX, TY, TInterpolator> this_type;
+	typedef std::map<TX, TY> container_type;
 	typedef typename container_type::iterator iterator;
 	typedef typename container_type::key_type key_type;
 	typedef typename iterator::value_type value_type;
