@@ -98,6 +98,9 @@ set(Boost_USE_STATIC_RUNTIME    OFF)
 
 find_package(Lua52)
 
+
+find_package(HDF5)
+
 #FIND_PACKAGE(XDMF)
 #MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
 

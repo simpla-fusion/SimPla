@@ -8,8 +8,7 @@
 #ifndef NTUPLE_OPS_H_
 #define NTUPLE_OPS_H_
 
-#include <fetl/ntuple.h>
-#include <fetl/primitives.h>
+#include "primitives.h"
 #include <cstddef>
 #include <sstream>
 #include <string>
@@ -24,11 +23,13 @@ template<typename T>
 struct nTupleTraits
 {
 	static const int NUM_OF_DIMS = 1;
+	typedef T value_type;
 };
 template<int N, typename T>
 struct nTupleTraits<nTuple<N, T>>
 {
 	static const int NUM_OF_DIMS = N;
+	typedef T value_type;
 };
 
 template<typename TL, typename TR>
@@ -153,12 +154,10 @@ struct nTuple<N,
 template<int N, typename T> std::ostream &
 operator<<(std::ostream& os, const nTuple<N, T> & tv)
 {
-	os << "{" << tv[0];
-	for (int i = 1; i < N; ++i)
+	for (int i = 0; i < N; ++i)
 	{
-		os << "," << tv[i];
+		os << " " << tv[i];
 	}
-	os << "} ";
 	return (os);
 }
 

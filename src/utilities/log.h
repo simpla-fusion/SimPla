@@ -16,7 +16,8 @@
 #ifndef LOG_H_
 #define LOG_H_
 
-#include <utilities/singleton_holder.h>
+#include "singleton_holder.h"
+
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -166,6 +167,14 @@ private:
 #define VERBOSE Log(Log::L_VERBOSE)  <<"[V]"
 //#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
 //        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+
+#include <cassert>
+#ifdef NDEBUG
+#  define ASSERT(_EXP_)
+#else
+#  define ASSERT(_COND_)    assert(_COND_);
+#endif
+
 
 #ifndef NDEBUG
 #	define CHECK(_MSG_)    Log(Log::L_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
