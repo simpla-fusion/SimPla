@@ -75,18 +75,18 @@ public:
 		base_type::swap(rhs);
 	}
 
-#ifdef DEBUG  // check boundary
-	inline value_type & operator[](index_type const &s)
-	{
-
-		return base_type::at(s);
-
-	}
-	inline value_type const & operator[](index_type const &s) const
-	{
-		return base_type::at(s);
-	}
-#endif
+//#ifdef DEBUG  // check boundary
+//	inline value_type & operator[](index_type const &s)
+//	{
+//
+//		return base_type::at(s);
+//
+//	}
+//	inline value_type const & operator[](index_type const &s) const
+//	{
+//		return base_type::at(s);
+//	}
+//#endif
 
 	template<typename Fun>
 	inline void ForEach(Fun const &fun)

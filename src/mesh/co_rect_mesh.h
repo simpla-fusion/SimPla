@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <set>
 #include "utilities/log.h"
 #include "physics/physical_constants.h"
 namespace simpla
@@ -47,6 +48,8 @@ struct CoRectMesh
 	typedef TS scalar;
 
 	typedef nTuple<3, Real> coordinates_type;
+
+	typedef unsigned int tag_type;
 
 	PhysicalConstants phys_constants;
 
@@ -78,6 +81,10 @@ struct CoRectMesh
 
 	const size_t num_comps_per_cell_[4] =
 	{ 1, 3, 3, 1 };
+
+	std::vector<unsigned int> media_tag_;
+	std::vector<index_type> element_in_boundary_[4];
+	std::vector<index_type> element_on_boundary_[4];
 
 	CoRectMesh()
 	{
@@ -182,6 +189,8 @@ struct CoRectMesh
 			}
 		}
 
+		media_tag_.resize(num_grid_points_, 0);
+
 	}
 
 	template<typename E> inline typename Container<E>::type MakeContainer(
@@ -189,6 +198,292 @@ struct CoRectMesh
 	{
 		return std::move(Container<E>::Create(GetNumOfGridPoints(iform)));
 	}
+
+	/**
+	 *
+	 * @param fun if fun(x)==true , vertex(x) is set to meida (media_idx)
+	 * @param media_idx > 0
+	 */
+	template<typename TFUN>
+	void AssignDomainMedia(TFUN const &fun, tag_type media_tag)
+	{
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					size_t s = (i * strides_[0] + j * strides_[1]
+							+ k * strides_[2]);
+
+					coordinates_type x = xmin_;
+					x[0] += dx_[0] * i;
+					x[1] += dx_[0] * j;
+					x[2] += dx_[0] * k;
+
+					if (fun(x) == true)
+					{
+						media_tag_[s] = media_tag;
+					}
+				}
+
+	}
+	enum
+	{
+		PARALLEL, PERPENDICULAR
+	};
+
+	template<int IFORM, int DIRECTION>
+	void GetElementOnInterface(tag_type in, tag_type out,
+			std::vector<index_type>*res)
+	{
+		std::set<index_type> tmp_res;
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					size_t s0 = (i * strides_[0] + j * strides_[1]
+							+ k * strides_[2]);
+
+					tag_type v[8];
+
+					/** @ref The Visualization Toolkit 4th Ed. p.273
+					 *
+					 *                ^y
+					 *               /
+					 *        z     /
+					 *        ^
+					 *        |   6---------------7
+					 *        |  /|              /|
+					 *          / |             / |
+					 *         /  |            /  |
+					 *        4---|-----------5   |
+					 *        | --> B0        |   |
+					 *        |   2-----------|---3
+					 *        E2 /    ^B2       |  /
+					 *        | E1    |     | /
+					 *        |/              |/
+					 *        0------E0-------1   ---> x
+					 *
+					 *
+					 */
+
+					v[0] = media_tag_[s0];
+					v[1] = media_tag_[s0 + strides_[0]];
+					v[2] = media_tag_[s0 + strides_[1]];
+					v[3] = media_tag_[s0 + strides_[0] + strides_[1]];
+
+					v[4] = media_tag_[s0 + strides_[2]];
+					v[5] = media_tag_[s0 + strides_[2] + strides_[0]];
+					v[6] = media_tag_[s0 + strides_[2] + strides_[1]];
+					v[7] = media_tag_[s0 + strides_[2] + strides_[0]
+							+ strides_[1]];
+
+					// not interface
+					if (((v[0] = v[1]) && (v[1] = v[2]) && (v[2] = v[3])
+							&& (v[3] = v[4]) && (v[4] = v[5]) && (v[5] = v[6])
+							&& (v[6] = v[7]))
+
+							|| ((v[0] != in) && (v[1] != in) && (v[2] != in)
+									&& (v[3] != in) && (v[4] != in)
+									&& (v[5] != in) && (v[6] != in)
+									&& (v[7] != in))
+
+							|| ((v[0] != out) && (v[1] != out) && (v[2] != out)
+									&& (v[3] != out) && (v[4] != out)
+									&& (v[5] != out) && (v[6] != out)
+									&& (v[7] != out)))
+						continue;
+
+					_SetInterface(Int2Type<IFORM>(), Int2Type<DIRECTION>(), s0,
+							in, v, &tmp_res);
+
+				}
+
+		res->clear();
+		std::copy(tmp_res.begin(), tmp_res.end(), std::back_inserter(*res));
+
+	}
+
+private:
+
+	template<int DIRECTION>
+	void _SetInterface(Int2Type<0>, Int2Type<DIRECTION>, index_type s0,
+			tag_type in, tag_type const* v, std::set<index_type> *res)
+	{
+		if (v[0] == in)
+			res->insert((s0));
+	}
+	void _SetInterface(Int2Type<1>, Int2Type<PARALLEL>, index_type s0,
+			tag_type in, tag_type const* v, std::set<index_type> *res)
+	{
+		if ((v[0] == in) && (v[0] == v[1]))
+			res->insert((s0) * 3 + 0);
+
+		if ((v[2] == v[3]) && (v[3] == in))
+			res->insert((s0 + strides_[1]) * 3 + 0);
+
+		if ((v[4] == v[5]) && (v[4] == in))
+			res->insert((s0 + strides_[2]) * 3 + 0);
+
+		if ((v[6] == v[7]) && (v[7] == in))
+			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+
+		//
+
+		if ((v[0] == v[2]) && (v[2] == in))
+			res->insert((s0) * 3 + 1);
+
+		if ((v[1] == v[3]) && (v[1] == in))
+			res->insert((s0 + strides_[0]) * 3 + 1);
+
+		if ((v[4] == v[6]) && (v[6] == in))
+			res->insert((s0 + strides_[2]) * 3 + 1);
+
+		if ((v[5] == v[7]) && (v[5] == in))
+			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+
+		//
+
+		if ((v[0] == v[4]) && (v[0] == in))
+			res->insert((s0) * 3 + 2);
+
+		if ((v[1] == v[5]) && (v[1] == in))
+			res->insert((s0 + strides_[0]) * 3 + 2);
+
+		if ((v[2] == v[6]) && (v[2] == in))
+			res->insert((s0 + strides_[1]) * 3 + 2);
+
+		if ((v[3] == v[7]) && (v[3] == in))
+			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+
+	}
+	void _SetInterface(Int2Type<1>, Int2Type<PERPENDICULAR>, index_type s0,
+			tag_type in, tag_type const* v, std::set<index_type> *res)
+	{
+		if ((v[0] != v[1]))
+			res->insert((s0) * 3 + 0);
+
+		if ((v[2] != v[3]))
+			res->insert((s0 + strides_[1]) * 3 + 0);
+
+		if ((v[4] != v[5]))
+			res->insert((s0 + strides_[2]) * 3 + 0);
+
+		if ((v[6] != v[7]))
+			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+
+		//
+
+		if ((v[0] != v[2]))
+			res->insert((s0) * 3 + 1);
+
+		if ((v[1] != v[3]))
+			res->insert((s0 + strides_[0]) * 3 + 1);
+
+		if ((v[4] != v[6]))
+			res->insert((s0 + strides_[2]) * 3 + 1);
+
+		if ((v[5] != v[7]))
+			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+
+		//
+
+		if ((v[0] != v[4]))
+			res->insert((s0) * 3 + 2);
+
+		if ((v[1] != v[5]))
+			res->insert((s0 + strides_[0]) * 3 + 2);
+
+		if ((v[2] != v[6]))
+			res->insert((s0 + strides_[1]) * 3 + 2);
+
+		if ((v[3] != v[7]))
+			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+
+	}
+
+	void _SetInterface(Int2Type<2>, Int2Type<PARALLEL>, index_type s0,
+			tag_type in, tag_type const* v, std::set<index_type> *res)
+	{
+
+		if (!((v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3])))
+			res->insert((s0) * 3 + 2);
+		if (!((v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7])))
+			res->insert((s0 + strides_[2]) * 3 + 2);
+
+		if (!((v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5])))
+			res->insert((s0) * 3 + 1);
+		if (!((v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7])))
+			res->insert((s0 + strides_[1]) * 3 + 1);
+
+		if (!((v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6])))
+			res->insert((s0) * 3 + 0);
+		if (!((v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7])))
+			res->insert((s0 + strides_[0]) * 3 + 1);
+
+	}
+
+	void _SetInterface(Int2Type<2>, Int2Type<PERPENDICULAR>, index_type s0,
+			tag_type in, tag_type const* v, std::set<index_type> *res)
+	{
+
+		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
+			res->insert((s0) * 3 + 2);
+		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
+			res->insert((s0 + strides_[2]) * 3 + 2);
+
+		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
+			res->insert((s0) * 3 + 1);
+		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
+			res->insert((s0 + strides_[1]) * 3 + 1);
+
+		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
+			res->insert((s0) * 3 + 0);
+		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
+			res->insert((s0 + strides_[0]) * 3 + 1);
+
+	}
+
+	void _SetInterface(Int2Type<3>, index_type s0, tag_type in,
+			tag_type const* v, std::set<index_type> *res)
+	{
+
+		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
+			res->insert((s0 - strides_[2]));
+		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
+			res->insert((s0 + strides_[2]));
+
+		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
+			res->insert((s0 - strides_[1]));
+		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
+			res->insert((s0 + strides_[1]));
+
+		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
+			res->insert((s0 + strides_[0]));
+		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
+			res->insert((s0 + strides_[0]));
+
+		WARNING
+				<< "This implement is incorrect when the boundary has too sharp corner";
+
+		/**
+		 *  FIXME this is incorrect when the boundary has too sharp corner
+		 *  for example
+		 *                  ^    out
+		 *                 / \
+		 *       @--------/-@-\----------@
+		 *       |       /  |  \         |
+		 *       |      /   |   \        |
+		 *       |     /    |    \       |
+		 *       |    /     |     \      |
+		 *       @---/------@------\-----@
+		 *          /               \
+		 *         /       in        \
+		 */
+
+	}
+public:
 //
 //	template<int IFORM, typename T1>
 //	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
@@ -222,10 +517,10 @@ struct CoRectMesh
 //
 //	}
 
-	template<typename Fun, typename ... Args> inline
-	void ForAll(int iform, Fun const &f, Args & ... args) const
+	template<int IFORM, typename Fun, typename ... Args> inline
+	void ForAll(Fun const &f, Args & ... args) const
 	{
-		size_t num_comp = num_comps_per_cell_[iform];
+		size_t num_comp = num_comps_per_cell_[IFORM];
 
 		for (size_t i = 0; i < dims_[0]; ++i)
 			for (size_t j = 0; j < dims_[1]; ++j)
@@ -255,7 +550,25 @@ struct CoRectMesh
 				}
 
 	}
+	template<typename Fun, typename ... Args> inline
+	void ForAllVertex(Fun const &fun, Args &... args) const
+	{
 
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+				{
+					size_t s = (i * strides_[0] + j * strides_[1]
+							+ k * strides_[2]);
+
+					coordinates_type x = xmin_;
+					x[0] += dx_[0] * i;
+					x[1] += dx_[0] * j;
+					x[2] += dx_[0] * k;
+					fun(s, x, args...);
+				}
+
+	}
 	template<typename Fun> inline
 	void ForEach(int iform, Fun const &f) const
 	{
@@ -270,6 +583,16 @@ struct CoRectMesh
 								(i * strides_[0] + j * strides_[1]
 										+ k * strides_[2]) * num_comp + m);
 					}
+
+	}
+
+	template<int IFORM, typename Fun, typename ...Args> inline
+	void ForEachElement(Fun const &f, Args &...args) const
+	{
+		for (auto const & v : element_in_boundary_[IFORM])
+		{
+			f(v, std::forward<Args>(args)...);
+		}
 
 	}
 
@@ -298,6 +621,11 @@ struct CoRectMesh
 	{
 		return dims_;
 	}
+	inline nTuple<NUM_OF_DIMS, size_t> const & GetStrides() const
+	{
+		return strides_;
+	}
+
 	// General Property -----------------------------------------------
 
 	inline Real GetDt() const
@@ -315,6 +643,12 @@ struct CoRectMesh
 	{
 
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
+	}
+
+	inline size_t GetNumOfVertex() const
+	{
+
+		return (num_grid_points_);
 	}
 
 	inline Real GetCellVolume() const

@@ -304,7 +304,6 @@ void GEqdsk::Write(std::string const &fname, int flag)
 				;
 
 		ss
-
 		<< "</Domain>" << std::endl << "</Xdmf>" << std::endl;
 
 		h5s << HDF5::OpenDataSet("psi") << HDF5::SetDims(dims_) << psirz_.data()

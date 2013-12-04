@@ -1,44 +1,30 @@
-#include "../src/fetl/primitives.h"
-
 #include <iostream>
+#include <iomanip>
 
-using namespace simpla;
-
-struct B
+void C(bool f0, bool f1, bool f2, bool f3)
 {
-	virtual ~B()
-	{
-	}
+	std::cout << std::boolalpha << f0 << " " << f1 << " " << f2 << " " << f3
+			<< " \t\t  =>  " << ((f0 == f1) && (f1 == f2) && (f2 == f3))
+			<< std::endl;
 
-	virtual void Foo(Int2Type<0>)=0;
-	virtual void Foo(Int2Type<1>)=0;
+	;
+}
 
-};
-
-class A: public B
-{
-	template<int N> void Foo(Int2Type<N>)
-	{
-		std::cout << N << std::endl;
-	}
-
-	void Foo(Int2Type<0>)
-	{
-		std::cout << 0 << std::endl;
-	}
-	void Foo(Int2Type<1>)
-	{
-		std::cout << 1 << std::endl;
-	}
-};
 int main(int argc, char** argv)
 {
-	A a;
-	B* b = dynamic_cast<B*>(&a);
+	C(true, true, true, true);
+	C(false, false, false, false);
+	C(true, true, true, false);
+	C(true, true, false, true);
+	C(true, false, true, true);
+	C(false, true, true, true);
 
-	b->Foo(Int2Type<0>());
-	b->Foo(Int2Type<1>());
-	a.Foo(Int2Type<1>());
+	C(false, true, true, false);
+	C(true, false, false, true);
+	C(true, false, true, false);
+	C(false, false, true, true);
+	C(true, true, false, false);
+
 }
 
 // vim:et
