@@ -362,6 +362,8 @@ template<typename TL, typename TI>
 inline auto _OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
 DECL_RET_TYPE ((-index(l, s) ))
 
+template<int TOP, typename TL, typename TR> struct OpTraits;
+
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

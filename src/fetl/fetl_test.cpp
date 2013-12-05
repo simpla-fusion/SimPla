@@ -51,11 +51,17 @@ public:
 
 };
 
-typedef testing::Types<Form<0>, Form<1>, Form<2>, Form<3>,
+typedef testing::Types<Form<0>
 
-CForm<0>, CForm<1>, CForm<2>, CForm<3>,
+, Form<1>
+//, Form<2>, Form<3>
+//
+//,CForm<0>, CForm<1>, CForm<2>, CForm<3>
+//
+//,VectorForm<0>
+//, VectorForm<1>, VectorForm<2>, VectorForm<3>
 
-VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3> > AllFieldTypes;
+> AllFieldTypes;
 
 //, VecThreeForm
 
@@ -104,40 +110,44 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 		ASSERT_EQ(a,p)<<"idx="<< p;
 	}
 
-	size_t s0=0;
-
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
-			[&](typename TestFixture::FieldType::index_type const & s)
+	size_t s=0;
+	TestFixture::mesh.ForEach(
+			[&](typename TestFixture::FieldType::value_type & v)
 			{
-				s0=s;
-				f2[s]=a*static_cast<Real>(s);
+				++s;
+				v=a*static_cast<Real>(s);
 			}
+			,&f1
 	);
 
 	f1 += f2;
 
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+	s=0;
+	TestFixture::mesh.ForEach(
 
-			[&a,&f1](typename TestFixture::FieldType::index_type const & s)
+			[& ](typename TestFixture::FieldType::value_type v)
 			{
+				++s;
 				typename TestFixture::FieldType::value_type res;
 				res=a+a*static_cast<Real>(s);
-				ASSERT_EQ( res,f1[s])<<"idx="<< s;
+				ASSERT_EQ( res,v)<<"idx="<< s;
 			}
-
+			,f1
 	);
 
 	f1*=2.0;
 
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+	s=0;
+	TestFixture::mesh.ForEach(
 
-			[&a,&f1](typename TestFixture::FieldType::index_type const & s)
+			[& ](typename TestFixture::FieldType::value_type v)
 			{
+				++s;
 				typename TestFixture::FieldType::value_type res;
 				res=(a+a*static_cast<Real>(s))*2.0;
-				ASSERT_EQ( res,f1[s])<<"idx="<< s;
-			}
-
+				ASSERT_EQ( res,v);
+			},
+			f1
 	);
 }
 }
@@ -158,18 +168,19 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	std::fill(f1.begin(),f1.end(), va);
 	std::fill(f2.begin(),f2.end(), vb);
 
-	f3 = -f1 *2.0 + f2 * c- f1/b
-	;
+	f3 = - f1 + f2 * c - f1/b;
 
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
+	TestFixture::mesh.ForEach(
 
-			[&](typename TestFixture::FieldType::index_type const & s)
+			[&](typename TestFixture::FieldType::value_type v1,
+					typename TestFixture::FieldType::value_type v2,
+					typename TestFixture::FieldType::value_type v3)
 			{
+
 				value_type res;
-				res= - f1[s]*2.0 + f2[s] *c -f1[s]/b
-				;
-				ASSERT_EQ( res, f3[s]) << s;
-			}
+				res= - v1*2.0 + v2 *c -v1/b;
+				ASSERT_EQ( res, v3);
+			},f1,f2,f3
 	);
 }
 }
@@ -177,6 +188,8 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 {
 	//FIXME  should test with non-uniform field
+
+	typedef typename TestFixture::FieldType::value_type value_type;
 
 	typename TestFixture::FieldType f1( TestFixture::mesh),f2( TestFixture::mesh),
 	f3( TestFixture::mesh),f4( TestFixture::mesh);
@@ -201,16 +214,35 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
-			[&](typename Mesh::index_type const & s)
+	TestFixture::mesh.ForEach(
+
+			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				f1[s]=va*uniform_dist(gen);
-				f2[s]=vb*uniform_dist(gen);
-				f3[s]=vc*uniform_dist(gen);
-			}
+				v1=va*uniform_dist(gen);
+
+			},&f1
 	);
 
-	f4= -Wedge(f1,a)-f2/b +f3*c;
+	TestFixture::mesh.ForEach(
+
+			[&](typename TestFixture::FieldType::value_type & v1 )
+			{
+				v1=vb*uniform_dist(gen);
+
+			},&f2
+	);
+
+	TestFixture::mesh.ForEach(
+
+			[&](typename TestFixture::FieldType::value_type & v1 )
+			{
+				v1=vc*uniform_dist(gen);
+
+			},&f3
+	);
+
+	f4= - Wedge(f1,a) - f2/b +f3*c;
+
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
 	/**           (+)
@@ -224,27 +256,28 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	 * */
 	count =0;
 
-	TestFixture::mesh.ForEach(TestFixture::FieldType::IForm,
-			[&](typename Mesh::index_type const & s)
+	TestFixture::mesh.ForEach(
+			[&](value_type s1,value_type s2 ,value_type s3,value_type s4)
 			{
 				typename TestFixture::FieldType::value_type res;
 				res=
-				-f1[s]*ra
-				-f2[s]/rb
-				+f3[s]*rc
+				-s1*ra
+				-s2/rb
+				+s3*rc
 				;
 
-				if(res!=f4[s])
+				if(res!=s4)
 				{
 					++count;
 				}
 			}
+			,f1,f2,f3,f4
 	);
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
 }
 }
-////// test vector_calculus.h
+
 template<typename T>
 class TestFETLVecAlgegbra: public testing::Test
 {
@@ -308,21 +341,21 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	res_vector_field = Cross( va,vc1);
 
-	res_scalar_field.ForEach (
+	mesh.ForEach (
 
 			[&](typename TestFixture::ScalarField::value_type const & v)
 			{
 				ASSERT_EQ(res_scalar, v);
-			}
+			},res_scalar_field
 
 	);
 
-	res_vector_field.ForEach (
+	mesh.ForEach (
 
 			[&](typename TestFixture::VectorField::value_type const & v)
 			{
 				ASSERT_EQ(res_vec , v);
-			}
+			},res_vector_field
 
 	);
 
@@ -387,11 +420,8 @@ public:
 	}
 };
 
-typedef testing::Types<double
-		,Complex
-		,nTuple<3, double>
-		,nTuple<3, nTuple<3, double>>
-		> PrimitiveTypes;
+typedef testing::Types<double, Complex, nTuple<3, double>,
+		nTuple<3, nTuple<3, double>> > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
@@ -412,11 +442,11 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	std::fill(sf.begin(),sf.end(), v*0.0);
 	std::fill(vf2.begin(),vf2.end(), v*0.0);
 
-	mesh.ForEach(0,
-			[&](typename Mesh::index_type const & s)
+	mesh.ForEach(
+			[&](typename TestFixture::TZeroForm::value_type & s)
 			{
-				sf[s]=v*uniform_dist(gen);
-			}
+				s=v*uniform_dist(gen);
+			},&sf
 	);
 
 //	mesh.UpdateCyCleBoundary(sf);
@@ -424,12 +454,13 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	vf2 = Curl(Grad(sf));
 
 	size_t count=0;
-	mesh.ForEach(2,
-			[&](typename Mesh::index_type const & s)
+	mesh.ForEach(
+			[&](typename TestFixture::TTwoForm::value_type const & u)
 			{
-				count+=( abs(vf2[s])>1.0e-10)?1:0;
-				ASSERT_NEAR(0.0, abs(vf2[s]),1.0e-10) << "idx=" << s;
-			}
+				count+=( abs(u)>1.0e-10)?1:0;
+				ASSERT_NEAR(0.0, abs(u),1.0e-10);
+			},
+			vf2
 	);
 
 	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
@@ -457,17 +488,17 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 		p=v*uniform_dist(gen);
 	}
 
-	vf1 = Curl(vf2);
+//	vf1 = Curl(vf2);
 	sf = Diverge( Curl(vf2));
 
 	size_t count=0;
 
-	mesh.ForEach(0,
-			[&sf,&count](typename Mesh::index_type const &s)
+	mesh.ForEach(
+			[&](typename TestFixture::TZeroForm::value_type const &s)
 			{
-				count+=( abs(sf[s])>1.0e-15)?1:0;
-				ASSERT_NEAR(0.0, abs(sf[s]),1.0e-14) << "idx=" << s;
-			}
+				count+=( abs(s)>1.0e-15)?1:0;
+				ASSERT_NEAR(0.0, abs(s),1.0e-14);
+			},sf
 	);
 	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
 }
