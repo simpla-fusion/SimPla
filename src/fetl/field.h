@@ -119,6 +119,15 @@ public:
 		base_type::swap(rhs);
 	}
 
+	inline value_type & operator[](size_t s)
+	{
+		return base_type::operator[](s);
+	}
+	inline value_type const & operator[](size_t s) const
+	{
+		return base_type::operator[](s);
+	}
+
 	template<typename ... TI>
 	inline value_type & index(TI ...s)
 	{
@@ -331,7 +340,7 @@ public:
 //	template<typename ... TI> inline auto index(TI ... s) const
 //	DECL_RET_TYPE((_FieldOpEval(Int2Type<TOP>(), l_, s...)))
 
-	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),0,0,0,0)) value_type;
+	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),0 )) value_type;
 
 };
 
@@ -359,7 +368,7 @@ public:
 	template<typename ... TI> inline auto index(TI ... s) const
 	DECL_RET_TYPE((_FieldOpEval(Int2Type<TOP>(), l_, r_, s...)))
 
-	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),std::declval<TR>(),0,0,0,0)) value_type;
+	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),std::declval<TR>(),0 )) value_type;
 
 private:
 

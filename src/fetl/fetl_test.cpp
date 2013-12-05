@@ -51,27 +51,18 @@ public:
 
 };
 
-typedef testing::Types<Form<0>
+typedef testing::Types<Form<0>, Form<1>, Form<2>, Form<3>
 
-, Form<1>
-//, Form<2>, Form<3>
-//
-//,CForm<0>, CForm<1>, CForm<2>, CForm<3>
-//
-//,VectorForm<0>
-//, VectorForm<1>, VectorForm<2>, VectorForm<3>
+, CForm<0>, CForm<1>, CForm<2>, CForm<3>
+
+, VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3>
 
 > AllFieldTypes;
 
-//, VecThreeForm
-
-// test arithmetic.h
 TYPED_TEST_CASE(TestFETLBasicArithmetic, AllFieldTypes);
 
 TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 {
-
-	Log::Verbose(10);
 
 	Mesh const & mesh = TestFixture::mesh;
 
@@ -103,9 +94,9 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	value_type a; a = 3.0;
 
-	std::fill(f1.begin(),f1.end(), a);
+	std::fill(f2.begin(),f2.end(), a);
 
-	for (auto p : f1)
+	for (auto p : f2)
 	{
 		ASSERT_EQ(a,p)<<"idx="<< p;
 	}
@@ -114,8 +105,9 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	TestFixture::mesh.ForEach(
 			[&](typename TestFixture::FieldType::value_type & v)
 			{
-				++s;
+
 				v=a*static_cast<Real>(s);
+				++s;
 			}
 			,&f1
 	);
@@ -127,10 +119,11 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 			[& ](typename TestFixture::FieldType::value_type v)
 			{
-				++s;
+
 				typename TestFixture::FieldType::value_type res;
 				res=a+a*static_cast<Real>(s);
-				ASSERT_EQ( res,v)<<"idx="<< s;
+				ASSERT_EQ( res,v)<<s;
+				++s;
 			}
 			,f1
 	);
@@ -142,10 +135,11 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 			[& ](typename TestFixture::FieldType::value_type v)
 			{
-				++s;
+
 				typename TestFixture::FieldType::value_type res;
 				res=(a+a*static_cast<Real>(s))*2.0;
-				ASSERT_EQ( res,v);
+				ASSERT_EQ( res,v)<<s;
+				++s;
 			},
 			f1
 	);
@@ -168,7 +162,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	std::fill(f1.begin(),f1.end(), va);
 	std::fill(f2.begin(),f2.end(), vb);
 
-	f3 = - f1 + f2 * c - f1/b;
+	f3 = - f1*2.0 + f2 * c - f1/b;
 
 	TestFixture::mesh.ForEach(
 
@@ -176,7 +170,6 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 					typename TestFixture::FieldType::value_type v2,
 					typename TestFixture::FieldType::value_type v3)
 			{
-
 				value_type res;
 				res= - v1*2.0 + v2 *c -v1/b;
 				ASSERT_EQ( res, v3);
@@ -257,19 +250,21 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	count =0;
 
 	TestFixture::mesh.ForEach(
-			[&](value_type s1,value_type s2 ,value_type s3,value_type s4)
+			[&](value_type const &s1,value_type const &s2 ,
+					value_type const &s3,value_type const &s4)
 			{
 				typename TestFixture::FieldType::value_type res;
 				res=
-				-s1*ra
-				-s2/rb
-				+s3*rc
+				-s1*va
+				-s2/vb
+				+s3*vc
 				;
 
 				if(res!=s4)
 				{
 					++count;
 				}
+
 			}
 			,f1,f2,f3,f4
 	);
@@ -488,7 +483,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 		p=v*uniform_dist(gen);
 	}
 
-//	vf1 = Curl(vf2);
+	vf1 = Curl(vf2);
 	sf = Diverge( Curl(vf2));
 
 	size_t count=0;
