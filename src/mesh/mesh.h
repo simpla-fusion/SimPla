@@ -52,7 +52,7 @@ struct mesh_has_op<TM, TOP, TL, std::nullptr_t>
 {
 	template<typename T1, typename T2>
 	static auto check_op(Int2Type<TOP>, T1 const& m, T2 const &l)
-	->decltype(m.template OpEval(Int2Type<TOP>(),l) )
+	->decltype(m.template OpEval(Int2Type<TOP>(),l,0) )
 	{
 	}
 

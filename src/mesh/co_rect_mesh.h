@@ -562,6 +562,11 @@ public:
 				+ (k % period_[2]) * strides_[2]) * num_comps_per_cell_[IFORM]
 				+ m;
 	}
+	template<typename IFORM> inline size_t shift(int s, index_type m,
+			index_type i = 0, index_type j = 0, index_type k = 0)
+	{
+
+	}
 
 	template<typename T, typename ... TI>
 	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l,
@@ -574,7 +579,7 @@ public:
 			Geometry<this_type, IFORM>, TL>::value_type & get(
 			Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
 	{
-		return (*l)[GetIndex<IFORM>(s...)];
+		return l->get(s...);
 	}
 
 	template<int IFORM, typename TL, typename ... TI>
@@ -1028,8 +1033,8 @@ public:
 			size_t i = 0, size_t j = 0,
 			size_t k = 0) const
 					DECL_RET_TYPE(
-							( get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[0][m]
-									+get(f,0,i,j,k)* dS_[0][m] ))
+							( get(f,0,i,j,k)* dS_[0][0]
+									+get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[1][0] ))
 
 	template<typename TExpr> inline auto OpEval(Int2Type<DIVERGE>,
 			Field<Geometry<this_type, 1>, TExpr> const & f, size_t m = 0,
@@ -1049,13 +1054,13 @@ public:
 			size_t m = 0, size_t i = 0, size_t j = 0,
 			size_t k = 0) const
 					DECL_RET_TYPE((
-									get(f,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * dS_[0][(m + 1) % 3]
+									get(f,(m+2)%3,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0)) * dS_[0][(m + 1) % 3]
 
-									+ get(f,i,j,k,(m+2)%3)* dS_[1][(m + 1) % 3]
+									+ get(f,(m+2)%3,i,j,k)* dS_[1][(m + 1) % 3]
 
-									- get(f,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
 
-									- get(f,i,j,k,(m+1)%3)* dS_[1][(m + 2) % 3]
+									- get(f,(m+1)%3,i,j,k)* dS_[1][(m + 2) % 3]
 							))
 
 	template<typename TL> inline auto OpEval(Int2Type<CURL>,
@@ -1063,13 +1068,13 @@ public:
 			size_t i = 0, size_t j = 0,
 			size_t k = 0) const
 					DECL_RET_TYPE((
-									get(f,i,j,k,(m+2)%3)* dS_[0][(m + 1) % 3]
+									get(f,(m+2)%3,i,j,k)* dS_[0][(m + 1) % 3]
 
-									+ get(f,i-((m+1)%3==0?1:0),j-((m+1)%3==1?1:0),k-((m+1)%3==2?1:0),(m+2)%3) * dS_[1][(m + 1) % 3]
+									+ get(f,(m+2)%3,i-((m+1)%3==0?1:0),j-((m+1)%3==1?1:0),k-((m+1)%3==2?1:0)) * dS_[1][(m + 1) % 3]
 
-									- get(f,i,j,k,(m+1)%3)* dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,i,j,k)* dS_[0][(m + 2) % 3]
 
-									- get(f,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
 
 							))
 
@@ -1079,13 +1084,13 @@ public:
 			size_t k = 0) const
 					DECL_RET_TYPE((
 
-									(get(f,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * dS_[0][(m + 1) % 3]
+									(get(f,(m+2)%3,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0)) * dS_[0][(m + 1) % 3]
 
-											+ get(f,i,j,k,(m+2)%3)* dS_[1][(m + 1) % 3])*((m+1)%3== 1?0:1)
+											+ get(f,(m+2)%3,i,j,k)* dS_[1][(m + 1) % 3])*((m+1)%3== 1?0:1)
 
-									-( get(f,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+									-( get(f,(m+1)%3,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
 
-											+ get(f,i,j,k,(m+1)%3)* dS_[1][(m + 2) % 3]) *((m+2)%3==1?0:1)
+											+ get(f,(m+1)%3,i,j,k)* dS_[1][(m + 2) % 3]) *((m+2)%3==1?0:1)
 
 							))
 

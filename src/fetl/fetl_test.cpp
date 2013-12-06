@@ -212,8 +212,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=va
-				//		*uniform_dist(gen)
+				v1=va *uniform_dist(gen)
 				;
 
 			},&f1
@@ -223,8 +222,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vb
-				//		*uniform_dist(gen)
+				v1=vb *uniform_dist(gen)
 				;
 
 			},&f2
@@ -234,8 +232,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vc
-				//		*uniform_dist(gen)
+				v1=vc *uniform_dist(gen)
 				;
 
 			},&f3
@@ -271,7 +268,6 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 			}
 			,f1,f2,f3,f4
 	);
-
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
