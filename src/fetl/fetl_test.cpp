@@ -192,7 +192,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	typename TestFixture::RScalarField b( TestFixture::mesh);
 	typename TestFixture::RScalarField c( TestFixture::mesh);
 
-	Real ra=1.0,rb=2.0,rc=3.0;
+	Real ra=1.0,rb=10.0,rc=100.0;
 	typename TestFixture::FieldType::value_type va,vb,vc;
 
 	va=ra;
@@ -208,34 +208,40 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.ForAll(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=va*uniform_dist(gen);
+				v1=va
+				//		*uniform_dist(gen)
+				;
 
 			},&f1
 	);
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.ForAll(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vb*uniform_dist(gen);
+				v1=vb
+				//		*uniform_dist(gen)
+				;
 
 			},&f2
 	);
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.ForAll(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vc*uniform_dist(gen);
+				v1=vc
+				//		*uniform_dist(gen)
+				;
 
 			},&f3
 	);
 
-	f4= -Wedge(f1,a) - f2/b +f3*c;
+	f4= ( -f1*a +f2*b ) -f3/c -f1;
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
@@ -255,11 +261,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 					value_type const &s3,value_type const &s4)
 			{
 				typename TestFixture::FieldType::value_type res;
-				res=
-				-s1*va
-				-s2/vb
-				+s3*vc
-				;
+				res=( -s1*ra +s2*rb ) -s3/rc -s1;
 
 				if(res!=s4)
 				{
@@ -269,94 +271,96 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 			}
 			,f1,f2,f3,f4
 	);
+
+
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
 }
 }
 
-//template<typename T>
-//class TestFETLVecAlgegbra: public testing::Test
-//{
-//protected:
-//	virtual void SetUp()
-//	{
-//		mesh.dt_ = 1.0;
-//		mesh.xmin_[0] = 0;
-//		mesh.xmin_[1] = 0;
-//		mesh.xmin_[2] = 0;
-//		mesh.xmax_[0] = 1.0;
-//		mesh.xmax_[1] = 1.0;
-//		mesh.xmax_[2] = 1.0;
-//		mesh.dims_[0] = 1;
-//		mesh.dims_[1] = 10;
-//		mesh.dims_[2] = 10;
-//		mesh.gw_[0] = 2;
-//		mesh.gw_[1] = 2;
-//		mesh.gw_[2] = 2;
+template<typename T>
+class TestFETLVecAlgegbra: public testing::Test
+{
+protected:
+	virtual void SetUp()
+	{
+		mesh.dt_ = 1.0;
+		mesh.xmin_[0] = 0;
+		mesh.xmin_[1] = 0;
+		mesh.xmin_[2] = 0;
+		mesh.xmax_[0] = 1.0;
+		mesh.xmax_[1] = 1.0;
+		mesh.xmax_[2] = 1.0;
+		mesh.dims_[0] = 1;
+		mesh.dims_[1] = 10;
+		mesh.dims_[2] = 10;
+		mesh.gw_[0] = 2;
+		mesh.gw_[1] = 2;
+		mesh.gw_[2] = 2;
+
+		mesh.Update();
+	}
+public:
+	Mesh mesh;
+	typedef T value_type;
+	typedef nTuple<3, value_type> Vec3;
+	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
+	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
+};
+
+typedef testing::Types<double, Complex, nTuple<3, Real> > VecFieldTypes;
+
+TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
+
+TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
+{
+	const Mesh& mesh = TestFixture::mesh;
+
+	typename TestFixture::Vec3 vc1 =
+	{	1.0, 2.0, 3.0};
+
+	typename TestFixture::Vec3 vc2 =
+	{	-1.0, 4.0, 2.0};
+
+	typename TestFixture::Vec3 res_vec;
+
+	res_vec = Cross(vc2,vc1);
+
+	typename TestFixture::value_type res_scalar;
+
+	res_scalar = Dot(vc1, vc2);
+
+	typename TestFixture::ScalarField res_scalar_field(mesh);
+
+	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+			mesh);
+
+	std::fill(va.begin(), va.end(), vc2);
+
+	res_scalar_field = Dot(vc1, va);
 //
-//		mesh.Update();
-//	}
-//public:
-//	Mesh mesh;
-//	typedef T value_type;
-//	typedef nTuple<3, value_type> Vec3;
-//	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
-//	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
-//};
+//	res_vector_field = Cross( va,vc1);
 //
-//typedef testing::Types<double, Complex, nTuple<3, Real> > VecFieldTypes;
+//	mesh.ForEach (
 //
-//TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
+//			[&](typename TestFixture::ScalarField::value_type const & v)
+//			{
+//				ASSERT_EQ(res_scalar, v);
+//			},res_scalar_field
 //
-//TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
-//{
-//	const Mesh& mesh = TestFixture::mesh;
+//	);
 //
-//	typename TestFixture::Vec3 vc1 =
-//	{	1.0, 2.0, 3.0};
+//	mesh.ForEach (
 //
-//	typename TestFixture::Vec3 vc2 =
-//	{	-1.0, 4.0, 2.0};
+//			[&](typename TestFixture::VectorField::value_type const & v)
+//			{
+//				ASSERT_EQ(res_vec , v);
+//			},res_vector_field
 //
-//	typename TestFixture::Vec3 res_vec;
-//
-//	res_vec = Cross(vc2,vc1);
-//
-//	typename TestFixture::value_type res_scalar;
-//
-//	res_scalar = Dot(vc1, vc2);
-//
-//	typename TestFixture::ScalarField res_scalar_field(mesh);
-//
-//	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
-//			mesh);
-//
-//	std::fill(va.begin(), va.end(), vc2);
-//
-//	res_scalar_field = Dot(vc1, va);
-////
-////	res_vector_field = Cross( va,vc1);
-////
-////	mesh.ForEach (
-////
-////			[&](typename TestFixture::ScalarField::value_type const & v)
-////			{
-////				ASSERT_EQ(res_scalar, v);
-////			},res_scalar_field
-////
-////	);
-////
-////	mesh.ForEach (
-////
-////			[&](typename TestFixture::VectorField::value_type const & v)
-////			{
-////				ASSERT_EQ(res_vec , v);
-////			},res_vector_field
-////
-////	);
-//
-//}
-//}
+//	);
+
+}
+}
 
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test

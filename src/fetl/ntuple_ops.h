@@ -229,21 +229,21 @@ DECL_RET_TYPE( std::sqrt(std::abs(Dot(m, m))))
 namespace ntuple_impl
 {
 
-template<typename T, typename ... TI> inline T index(T const & v, TI...)
+template<typename T> inline T index(T const & v, size_t)
 {
 	return (v);
 }
 
 template<int N, typename T>
-inline auto index(nTuple<N, T> const & v, size_t const &s)->decltype(v[s])
+inline auto index(nTuple<N, T> const & v, size_t s)->decltype(v[s])
 {
 	return v[s];
 }
 
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                             \
-	template<typename TL, typename TR,typename ...TI>                                           \
-	inline auto OpEval(Int2Type< _NAME_ >, TL const & l, TR const &r, TI ... s)             \
-			DECL_RET_TYPE ((index(l,s...) _OP_ index(r,s...)))
+	template<typename TL, typename TR >                                           \
+	inline auto OpEval(Int2Type< _NAME_ >, TL const & l, TR const &r, size_t s)             \
+			DECL_RET_TYPE ((index(l,s) _OP_ index(r,s)))
 
 _DEFINE_BINARY_OPERATOR(PLUS, +)
 _DEFINE_BINARY_OPERATOR(MINUS, -)
@@ -255,19 +255,6 @@ _DEFINE_BINARY_OPERATOR(DIVIDES, /)
 //_DEFINE_BINARY_OPERATOR(MODULUS, %)
 
 #undef _DEFINE_BINARY_OPERATOR
-
-//template<typename TL, typename TR, typename TI>
-//inline auto OpEval(Int2Type<PLUS>, TL const & l, TR const &r, TI const & s)
-//->decltype(((index(l,s) + index(r,s))))
-//{
-//	return ((index(l, s) + index(r, s)));
-//}
-//template<typename TL, typename TR, typename TI>
-//inline auto OpEval(Int2Type<DIVIDES>, TL const & l, TR const &r, TI const & s)
-//->decltype(((index(l,s) / index(r,s))))
-//{
-//	return ((index(l, s) / index(r, s)));
-//}
 
 template<typename TL, typename TI>
 inline auto OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
@@ -310,6 +297,7 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 };
 
 // Expression template of nTuple
+
 #define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
 template<int N, typename TL, typename TR> inline auto                              \
 operator  _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)                   \
@@ -327,21 +315,13 @@ DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, TL, nTuple<N, TR> > >(lhs, rhs)))         
 _DEFINE_BINARY_OPERATOR(PLUS, +)
 _DEFINE_BINARY_OPERATOR(MINUS, -)
 _DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
-//_DEFINE_BINARY_OPERATOR(DIVIDES, /)
+_DEFINE_BINARY_OPERATOR(DIVIDES, /)
 //_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
 //_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
 //_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
 //_DEFINE_BINARY_OPERATOR(MODULUS, %)
 
 #undef _DEFINE_BINARY_OPERATOR
-
-template<int N, typename TL, typename TR> inline auto operator /(
-		nTuple<N, TL> const & lhs,
-		TR const & rhs)
-		->decltype(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs)));
-}
 
 template<int N, int TOP, typename TL>
 struct nTuple<N, UniOp<TOP, TL> >
@@ -405,6 +385,24 @@ DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 template<typename TL, typename TR>
 inline auto Dot(TL const &l, TR const &r)
 DECL_RET_TYPE((l*r))
+
+template<int N, typename T>
+struct ConstReferenceTraits<nTuple<N, T>>
+{
+	typedef nTuple<N, T> const &type;
+};
+
+template<int N, int TOP, typename TL, typename TR>
+struct ConstReferenceTraits<nTuple<N, BiOp<TOP, TL, TR> > >
+{
+	typedef const nTuple<N, BiOp<TOP, TL, TR> > type;
+};
+
+template<int N, int TOP, typename TL>
+struct ConstReferenceTraits<nTuple<N, UniOp<TOP, TL> > >
+{
+	typedef const nTuple<N, UniOp<TOP, TL> > type;
+};
 
 }
 // namespace simpla

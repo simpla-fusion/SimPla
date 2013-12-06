@@ -210,6 +210,10 @@ DECL_RET_TYPE(
 		( Field<Geometry<TG, IL>,
 				UniOp<NEGATE,Field<Geometry<TG, IL>, TL> > > (f)))
 
+template<typename TG, int IL, typename TL>
+inline auto operator+(Field<Geometry<TG, IL>, TL> const & f)
+DECL_RET_TYPE( f)
+
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator+(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE(

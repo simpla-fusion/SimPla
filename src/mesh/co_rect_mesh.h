@@ -522,24 +522,6 @@ public:
 //
 //	}
 
-	template<int IFORM, typename Fun, typename ... Args> inline
-	void ForAll(Fun const &f, Args & ... args) const
-	{
-		size_t num_comp = num_comps_per_cell_[IFORM];
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
-					for (size_t m = 0; m < num_comp; ++m)
-					{
-						f(
-								(i * strides_[0] + j * strides_[1]
-										+ k * strides_[2]) * num_comp + m,
-								std::forward<Args>(args)...);
-					}
-
-	}
-
 	template<typename Fun, typename ... Args> inline
 	void ForAllCell(Fun const &fun, Args &... args) const
 	{
@@ -597,8 +579,24 @@ public:
 	}
 
 	template<int IFORM, typename TL, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, TL>::value_type get(
+	typename Field<Geometry<this_type, IFORM>, TL>::value_type const &get(
 			Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
+	{
+		return (l.get(s...));
+	}
+
+	template<int IFORM, int TOP, typename TL, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> >::value_type get(
+			Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> > const & l,
+			TI ...s) const
+	{
+		return (l.get(s...));
+	}
+
+	template<int IFORM, int TOP, typename TL, typename TR, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> >::value_type get(
+			Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> > const & l,
+			TI ...s) const
 	{
 		return (l.get(s...));
 	}
@@ -626,6 +624,35 @@ public:
 		BACK // 0 0 0
 
 	};
+
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
+	{
+
+		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+					for (size_t m = 0; m < num_comp; ++m)
+					{
+						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
+					}
+	}
+
+	template<typename Fun, typename TF, typename ...Args> inline
+	void ForAll(Fun const &fun, TF * l, Args const & ... args) const
+	{
+		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
+
+		for (size_t i = 0; i < dims_[0]; ++i)
+			for (size_t j = 0; j < dims_[1]; ++j)
+				for (size_t k = 0; k < dims_[2]; ++k)
+					for (size_t m = 0; m < num_comp; ++m)
+					{
+						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
+					}
+	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const

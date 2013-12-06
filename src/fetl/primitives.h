@@ -220,11 +220,6 @@ struct ConstReferenceTraits
 			const TL>::type type;
 };
 
-template<>
-struct ConstReferenceTraits<double>
-{
-	typedef double type;
-};
 
 template<class T, typename TI = int>
 struct is_indexable
