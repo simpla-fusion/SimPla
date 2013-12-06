@@ -162,7 +162,8 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	std::fill(f1.begin(),f1.end(), va);
 	std::fill(f2.begin(),f2.end(), vb);
 
-	f3 = - f1*2.0 + f2 * c - f1/b;
+	f3 = - f1 *2.0 + f2*c - f1/b
+	;
 
 	TestFixture::mesh.ForEach(
 
@@ -234,7 +235,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 			},&f3
 	);
 
-	f4= - Wedge(f1,a) - f2/b +f3*c;
+	f4= -Wedge(f1,a) - f2/b +f3*c;
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
@@ -273,89 +274,89 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 }
 }
 
-template<typename T>
-class TestFETLVecAlgegbra: public testing::Test
-{
-protected:
-	virtual void SetUp()
-	{
-		mesh.dt_ = 1.0;
-		mesh.xmin_[0] = 0;
-		mesh.xmin_[1] = 0;
-		mesh.xmin_[2] = 0;
-		mesh.xmax_[0] = 1.0;
-		mesh.xmax_[1] = 1.0;
-		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 1;
-		mesh.dims_[1] = 10;
-		mesh.dims_[2] = 10;
-		mesh.gw_[0] = 2;
-		mesh.gw_[1] = 2;
-		mesh.gw_[2] = 2;
-
-		mesh.Update();
-	}
-public:
-	Mesh mesh;
-	typedef T value_type;
-	typedef nTuple<3, value_type> Vec3;
-	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
-	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
-};
-
-typedef testing::Types<double, Complex, nTuple<3, Real> > VecFieldTypes;
-
-TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
-
-TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
-{
-	const Mesh& mesh = TestFixture::mesh;
-
-	typename TestFixture::Vec3 vc1 =
-	{	1.0, 2.0, 3.0};
-
-	typename TestFixture::Vec3 vc2 =
-	{	-1.0, 4.0, 2.0};
-
-	typename TestFixture::Vec3 res_vec;
-
-	res_vec = Cross(vc2,vc1);
-
-	typename TestFixture::value_type res_scalar;
-
-	res_scalar = Dot(vc1, vc2);
-
-	typename TestFixture::ScalarField res_scalar_field(mesh);
-
-	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
-			mesh);
-
-	std::fill(va.begin(), va.end(), vc2);
-
-	res_scalar_field = Dot(vc1, va);
-
-	res_vector_field = Cross( va,vc1);
-
-	mesh.ForEach (
-
-			[&](typename TestFixture::ScalarField::value_type const & v)
-			{
-				ASSERT_EQ(res_scalar, v);
-			},res_scalar_field
-
-	);
-
-	mesh.ForEach (
-
-			[&](typename TestFixture::VectorField::value_type const & v)
-			{
-				ASSERT_EQ(res_vec , v);
-			},res_vector_field
-
-	);
-
-}
-}
+//template<typename T>
+//class TestFETLVecAlgegbra: public testing::Test
+//{
+//protected:
+//	virtual void SetUp()
+//	{
+//		mesh.dt_ = 1.0;
+//		mesh.xmin_[0] = 0;
+//		mesh.xmin_[1] = 0;
+//		mesh.xmin_[2] = 0;
+//		mesh.xmax_[0] = 1.0;
+//		mesh.xmax_[1] = 1.0;
+//		mesh.xmax_[2] = 1.0;
+//		mesh.dims_[0] = 1;
+//		mesh.dims_[1] = 10;
+//		mesh.dims_[2] = 10;
+//		mesh.gw_[0] = 2;
+//		mesh.gw_[1] = 2;
+//		mesh.gw_[2] = 2;
+//
+//		mesh.Update();
+//	}
+//public:
+//	Mesh mesh;
+//	typedef T value_type;
+//	typedef nTuple<3, value_type> Vec3;
+//	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
+//	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
+//};
+//
+//typedef testing::Types<double, Complex, nTuple<3, Real> > VecFieldTypes;
+//
+//TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
+//
+//TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
+//{
+//	const Mesh& mesh = TestFixture::mesh;
+//
+//	typename TestFixture::Vec3 vc1 =
+//	{	1.0, 2.0, 3.0};
+//
+//	typename TestFixture::Vec3 vc2 =
+//	{	-1.0, 4.0, 2.0};
+//
+//	typename TestFixture::Vec3 res_vec;
+//
+//	res_vec = Cross(vc2,vc1);
+//
+//	typename TestFixture::value_type res_scalar;
+//
+//	res_scalar = Dot(vc1, vc2);
+//
+//	typename TestFixture::ScalarField res_scalar_field(mesh);
+//
+//	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+//			mesh);
+//
+//	std::fill(va.begin(), va.end(), vc2);
+//
+//	res_scalar_field = Dot(vc1, va);
+////
+////	res_vector_field = Cross( va,vc1);
+////
+////	mesh.ForEach (
+////
+////			[&](typename TestFixture::ScalarField::value_type const & v)
+////			{
+////				ASSERT_EQ(res_scalar, v);
+////			},res_scalar_field
+////
+////	);
+////
+////	mesh.ForEach (
+////
+////			[&](typename TestFixture::VectorField::value_type const & v)
+////			{
+////				ASSERT_EQ(res_vec , v);
+////			},res_vector_field
+////
+////	);
+//
+//}
+//}
 
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test

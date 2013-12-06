@@ -41,7 +41,7 @@ namespace simpla
 template<int N, typename T> struct nTuple;
 template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
-namespace _impl
+namespace ntuple_impl
 {
 
 template<int M, typename TL, typename TR> struct _swap
@@ -127,19 +127,19 @@ struct nTuple
 	inline operator nTuple<N,TR>() const
 	{
 		nTuple<N, TR> res;
-		_impl::_assign<N, nTuple<N, TR>, this_type>::eval(res, v_);
+		ntuple_impl::_assign<N, nTuple<N, TR>, this_type>::eval(res, v_);
 		return (res);
 	}
 
 	inline void swap(this_type & rhs)
 	{
-		_impl::_swap<N, this_type, this_type>::eval(*this, rhs);
+		ntuple_impl::_swap<N, this_type, this_type>::eval(*this, rhs);
 	}
 
 	template<typename TR>
 	inline bool operator ==(TR const &rhs) const
 	{
-		return (_impl::_equal<N, this_type, TR>::eval(*this, rhs));
+		return (ntuple_impl::_equal<N, this_type, TR>::eval(*this, rhs));
 	}
 
 	template<typename TExpr>
@@ -182,7 +182,7 @@ struct nTuple
 	template<typename TR> inline this_type &
 	operator =(nTuple<N, TR> const &rhs)
 	{
-		_impl::_assign<N, this_type, nTuple<N, TR>>::eval(*this, rhs);
+		ntuple_impl::_assign<N, this_type, nTuple<N, TR>>::eval(*this, rhs);
 
 		return (*this);
 	}

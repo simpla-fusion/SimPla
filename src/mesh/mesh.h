@@ -8,13 +8,12 @@
 #ifndef MESH_H_
 #define MESH_H_
 
-#include <fetl/field.h>
-#include <fetl/ntuple.h>
-#include <fetl/primitives.h>
 #include <cstddef>
 #include <map>
 #include <string>
 #include <vector>
+#include <type_traits>
+#include "fetl/primitives.h"
 
 namespace simpla
 {
@@ -22,192 +21,56 @@ namespace simpla
 template<typename, int> class Geometry;
 template<typename, typename > class Field;
 
-/**
- * @brief  Uniform interface to all mesh.
- * @ingroup Field Expression
- *
- */
-template<typename _Mesh>
-struct MeshTraits
+template<typename TM, int TOP, typename TL, typename TR = std::nullptr_t>
+struct mesh_has_op
 {
-	typedef MeshTraits<_Mesh> this_type;
+	template<typename T1, typename T2, typename T3>
+	static auto check_op(Int2Type<TOP>, T1 const& m, T2 const &l, T3 const &r)
+	->decltype(m.template OpEval(Int2Type<TOP>(),l,r,0) )
+	{
+	}
 
-	static const int NUM_OF_DIMS = 3;
+	static std::false_type check_op(...)
+	{
+		return std::false_type();
+	}
+	typedef decltype(
+			check_op(Int2Type<TOP>(),std::declval<TM>(),
+					std::declval<TL>(),
+					std::declval<TR>())
+	) result_type;
 
-	template<typename Element> using Container = std::vector<Element>;
+public:
 
-	template<int IF> using weight_type =
-	typename GeometryTraits<Geometry<this_type, IF> >::weight_type;
+	static const bool value =
+			!(std::is_same<result_type, std::false_type>::value);
 
-	typedef size_t index_type;
+}
+;
+template<typename TM, int TOP, typename TL>
+struct mesh_has_op<TM, TOP, TL, std::nullptr_t>
+{
+	template<typename T1, typename T2>
+	static auto check_op(Int2Type<TOP>, T1 const& m, T2 const &l)
+	->decltype(m.template OpEval(Int2Type<TOP>(),l) )
+	{
+	}
 
-	typedef nTuple<3, Real> coordinates_type;
+	static std::false_type check_op(...)
+	{
+		return std::false_type();
+	}
+	typedef decltype( check_op (Int2Type<TOP>(),std::declval<TM>(), std::declval<TL>()) ) result_type;
 
-	this_type & operator=(const this_type&) = delete;
+public:
 
-	Real dt_ = 0.0;
-
-	MeshTraits();
-
-	~MeshTraits() = default;
-
-	inline bool operator==(this_type const & r) const;
-
-	template<typename TCONFIG> void Config(TCONFIG const & vm);
-
-	void Update();
-
-	std::string Summary() const;
-
-	template<int IFORM, typename T1>
-	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const;
-
-	template<typename E> inline Container<E>
-	MakeContainer(int iform, E const & d = E()) const;
-
-	void MakeCycleMap(int iform, std::map<index_type, index_type> &ma,
-			unsigned int flag = 7) const;
-
-	template<typename Fun> inline
-	void ForAll(int iform, Fun const &f) const;
-
-	template<typename Fun> inline
-	void ForEach(int iform, Fun const &f) const;
-
-	template<typename Fun> inline
-	void ForEachBoundary(int iform, Fun const &f) const;
-
-	template<int IFORM, typename T1, typename T2>
-	void UpdateBoundary(std::map<index_type, index_type> const & m,
-			Field<Geometry<this_type, IFORM>, T1> & src,
-			Field<Geometry<this_type, IFORM>, T2> & dest) const;
-
-	template<int IFORM, typename T1>
-	void UpdateCyCleBoundary(Field<Geometry<this_type, IFORM>, T1> & f) const;
-
-	// General Property -----------------------------------------------
-
-	Real GetDt() const;
-
-	void SetDt(Real dt = 0.0);
-
-	inline size_t GetNumOfGridPoints(int iform) const;
-
-	template<int IF> inline Real GetCellVolume(Int2Type<IF>) const;
-
-	template<int IF> inline Real GetDCellVolume(Int2Type<IF>) const;
-
-	// Searching Cell
-	inline index_type SearchCell(coordinates_type const &x,
-			coordinates_type *pcoords = nullptr) const;
-
-	inline index_type SearchCell(index_type hint, coordinates_type const &x,
-			coordinates_type *pcoords = nullptr) const;
-
-	inline coordinates_type GetGlobalCoordinate(index_type s,
-			coordinates_type const &r) const;
-
-	template<int IF>
-	inline void GetAffectedPoints(Int2Type<IF>, index_type const & idx,
-			std::vector<index_type> & points, int affect_region = 1) const;
-
-	template<int IF>
-	inline void CalcuateWeights(Int2Type<IF>, coordinates_type const &pcoords,
-			std::vector<weight_type<IF>> & weight, int affect_region = 1) const;
+	static const bool value =
+			!(std::is_same<result_type, std::false_type>::value);
 
 };
 
-/**
 
- // Interpolation ----------------------------------------------------------
-
- template<typename TExpr>
- inline typename Field<Geometry<Grid, 0>, TExpr>::Value //
- Gather(Field<Geometry<Grid, 0>, TExpr> const &f, coordinates_type) const;
-
- template<typename TExpr> inline void
- Scatter(Field<Geometry<Grid, 0>, TExpr> & f, coordinates_type,
- typename Field<Geometry<Grid, 0>, TExpr>::Value const v) const;
-
- template<typename TExpr> inline nTuple<THREE,
- typename Field<Geometry<Grid, 1>, TExpr>::Value>
- Gather(Field<Geometry<Grid, 1>, TExpr> const &f, coordinates_type) const;
-
- template<typename TExpr> inline void
- Scatter(Field<Geometry<Grid, 1>, TExpr> & f, coordinates_type,
- nTuple<THREE, typename Field<Geometry<Grid, 1>, TExpr>::Value> const &v) const;
-
- template<typename TExpr> inline nTuple<THREE,
- typename Field<Geometry<Grid, 2>, TExpr>::Value>
- Gather(Field<Geometry<Grid, 2>, TExpr> const &f, coordinates_type) const;
-
- template<typename TExpr> inline void
- Scatter(Field<Geometry<Grid, 2>, TExpr> & f, coordinates_type,
- nTuple<THREE, typename Field<Geometry<Grid, 2>, TExpr>::Value> const &v) const;
-
-
- //-----------------------------------------
- // Vector Arithmetic
- //-----------------------------------------
-
- template<int N, typename TL> inline auto
- ExtriorDerivative(Field<Geometry<this_type, N>, TL> const & f,
- index_type s) const;
-
- template<typename TExpr> inline auto
- Grad(Field<Geometry<this_type, 0>, TExpr> const & f, index_type) const;
-
- template<typename TExpr> inline auto
- Diverge(Field<Geometry<this_type, 1>, TExpr> const & f, index_type) const;
-
- template<typename TL> inline auto
- Curl(Field<Geometry<this_type, 1>, TL> const & f, index_type) const;
-
- template<typename TL> inline auto
- Curl(Field<Geometry<this_type, 2>, TL> const & f, index_type) const;
-
- template<typename TExpr> inline auto
- CurlPD(Int2Type<1>, TExpr const & expr, index_type) const;
-
- template<typename TExpr> inline auto
- CurlPD(Int2Type<2>, TExpr const & expr, index_type) const;
-
- template<int IL, int IR, typename TL, typename TR> inline auto
- Wedge(Field<Geometry<this_type, IL>, TL> const &l,
- Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
-
- template<int N, typename TL> inline auto
- HodgeStar(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
-
- template<int N, typename TL> inline auto
- Negate(Field<Geometry<this_type, N>, TL> const & f, index_type) const;
-
- template<int IL, typename TL, typename TR> inline auto
- Plus(Field<Geometry<this_type, IL>, TL> const &l,
- Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
-
- template<int IL, typename TL, typename TR> inline auto
- Minus(Field<Geometry<this_type, IL>, TL> const &l,
- Field<Geometry<this_type, IL>, TR> const &r, index_type) const;
-
- template<int IL, int IR, typename TL, typename TR> inline auto
- Multiplies(Field<Geometry<this_type, IL>, TL> const &l,
- Field<Geometry<this_type, IR>, TR> const &r, index_type) const;
-
- template<int IL, typename TL, typename TR> inline auto
- Multiplies(Field<Geometry<this_type, IL>, TL> const &l, TR r,
- index_type) const;
-
- template<int IR, typename TL, typename TR> inline auto
- Multiplies(TL l, Field<Geometry<this_type, IR>, TR> const & r,
- index_type) const;
-
- template<int IL, typename TL, typename TR> inline auto
- Divides(Field<Geometry<this_type, IL>, TL> const &l, TR const &r,
- index_type) const;
-
- * */
-
-} //namespace simpla
+}
+//namespace simpla
 
 #endif /* MESH_H_ */

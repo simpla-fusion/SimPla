@@ -5,31 +5,54 @@
  *      Author: salmon
  */
 
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/xml_parser.hpp>
-#include <iostream>
+#include <random>
 
+#include "utilities/log.h"
+
+#include "fetl/fetl.h"
+
+#include "mesh/co_rect_mesh.h"
+
+using namespace simpla;
+
+DEFINE_FIELDS(CoRectMesh<>)
 int main(int argc, char** argv)
 {
-	using boost::property_tree::ptree;
-//	ptree pt;
-//	ptree pt_grid;
-//
-//	pt_grid.put("<xmlattr>.Name", "Test");
-//
-//	pt.put_child("Grid", pt_grid);
-//
-//	boost::property_tree::write_xml("test.xml", pt, std::locale());
-//
-	ptree pt2;
+	typedef VectorForm<0> FieldType;
+	typedef Form<0> RScalarField;
 
-	boost::property_tree::read_xml(argv[1], pt2);
+	Mesh mesh;
+	mesh.dt_ = 1.0;
+	mesh.xmin_[0] = 0;
+	mesh.xmin_[1] = 0;
+	mesh.xmin_[2] = 0;
+	mesh.xmax_[0] = 1.0;
+	mesh.xmax_[1] = 1.0;
+	mesh.xmax_[2] = 1.0;
+	mesh.dims_[0] = 20;
+	mesh.dims_[1] = 30;
+	mesh.dims_[2] = 40;
+	mesh.gw_[0] = 2;
+	mesh.gw_[1] = 2;
+	mesh.gw_[2] = 2;
 
-	auto it_range = pt2.get_child("Xdmf.Domain.Grid.").equal_range("Attribute");
+	mesh.Update();
 
-	for (auto it = it_range.first; it != it_range.second; ++it)
-	{
-		std::cout << it->second.get<std::string>("<xmlattr>.Name") << std::endl;
-	}
+	FieldType f1(mesh), f2(mesh), f3(mesh);
 
+	Real a, b, c;
+	a = 1.0, b = -2.0, c = 3.0;
+
+	typedef typename FieldType::value_type value_type;
+
+	value_type va, vb;
+
+	va = 2.0;
+	vb = 3.0;
+
+	std::fill(f1.begin(), f1.end(), va);
+	std::fill(f2.begin(), f2.end(), vb);
+
+	auto vv = f1.get(0, 0, 0, 0) / 2.0;
+	f3 = -f2 + f2 / c - f1 * a;
 }

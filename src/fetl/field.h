@@ -11,6 +11,7 @@
 #include "primitives.h"
 #include "../utilities/container.h"
 #include "../utilities/log.h"
+#include "../mesh/mesh.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -20,46 +21,7 @@
 namespace simpla
 {
 template<typename TG, typename TValue> struct Field;
-template<typename, int> struct Geometry;
 
-template<typename T>
-struct FieldTraits
-{
-	enum
-	{
-		is_field = false
-	};
-
-	enum
-	{
-		IForm = 0
-	}
-	;
-	typedef T value_type;
-};
-
-template<typename TM, int IFORM, typename TExpr>
-struct FieldTraits<Field<Geometry<TM, IFORM>, TExpr> >
-{
-	typedef Field<Geometry<TM, IFORM>, TExpr> this_type;
-	enum
-	{
-		is_field = true
-	};
-
-	enum
-	{
-		IForm = IFORM
-	}
-	;
-	typedef typename this_type::value_type value_type;
-};
-
-template<typename TL>
-struct is_field
-{
-	static const bool value = FieldTraits<TL>::is_field;
-};
 /***
  *
  * @brief Field
@@ -129,14 +91,14 @@ public:
 	}
 
 	template<typename ... TI>
-	inline value_type & index(TI ...s)
+	inline value_type & get(TI ...s)
 	{
-		return mesh.index(*this, s...);
+		return base_type::operator[](mesh.template GetIndex<IForm>(s...));
 	}
 	template<typename ...TI>
-	inline value_type index(TI ...s) const
+	inline value_type const & get(TI ...s) const
 	{
-		return mesh.index(*this, s...);
+		return base_type::operator[](mesh.template GetIndex<IForm>(s...));
 	}
 
 	inline this_type & operator=(this_type const & rhs)
@@ -311,87 +273,6 @@ DECL_SELF_ASSIGN	(+=)
 //
 //	}
 };
-
-template<typename TM, int IL, int TOP, typename TL>
-struct Field<Geometry<TM, IL>, UniOp<TOP, TL> >
-{
-
-private:
-
-	typename ConstReferenceTraits<TL>::type l_;
-
-public:
-
-	typedef Field<Geometry<TM, IL>, UniOp<TOP, TL> > this_type;
-	TM const & mesh;
-
-	enum
-	{
-		IForm = IL
-	};
-
-	Field(TL const & l) :
-			mesh(l.mesh), l_(l)
-	{
-	}
-	template<typename ... TI> inline auto index(TI ... s) const
-	DECL_RET_TYPE((_FieldOpEval(Int2Type<TOP>(), l_, s...)))
-//
-//	template<typename ... TI> inline auto index(TI ... s) const
-//	DECL_RET_TYPE((_FieldOpEval(Int2Type<TOP>(), l_, s...)))
-
-	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),0 )) value_type;
-
-};
-
-template<typename TM, int IFORM, int TOP, typename TL, typename TR>
-struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
-{
-
-private:
-	typename ConstReferenceTraits<TL>::type l_;
-	typename ConstReferenceTraits<TR>::type r_;
-
-public:
-	TM const & mesh;
-	typedef Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> > this_type;
-	enum
-	{
-		IForm = IFORM
-	};
-
-	Field(TL const & l, TR const & r) :
-			mesh(get_mesh(l, r)), l_(l), r_(r)
-	{
-	}
-
-	template<typename ... TI> inline auto index(TI ... s) const
-	DECL_RET_TYPE((_FieldOpEval(Int2Type<TOP>(), l_, r_, s...)))
-
-	typedef decltype(_FieldOpEval(Int2Type<TOP>(),std::declval<TL>(),std::declval<TR>(),0 )) value_type;
-
-private:
-
-	template<int IL, typename VL, typename VR> static inline TM const & get_mesh(
-			Field<Geometry<TM, IL>, VL> const & l, VR const & r)
-	{
-		return (l.mesh);
-	}
-	template<typename VL, int IR, typename VR> static inline TM const & get_mesh(
-			VL const & l, Field<Geometry<TM, IR>, VR> const & r)
-	{
-		return (r.mesh);
-	}
-
-	template<int IL, typename VL, int IR, typename VR> static inline TM const & get_mesh(
-			Field<Geometry<TM, IL>, VL> const & l,
-			Field<Geometry<TM, IR>, VR> const & r)
-	{
-		return (l.mesh);
-	}
-
-}
-;
 
 }
 // namespace simpla

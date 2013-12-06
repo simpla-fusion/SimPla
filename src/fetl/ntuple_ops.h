@@ -71,7 +71,7 @@ struct nTuple<N, BiOp<TENSOR_PRODUCT, TL, TR> >
 }
 ;
 
-namespace _impl
+namespace ntuple_impl
 {
 
 template<int M, typename TL, typename TR> struct _inner_product_s;
@@ -100,7 +100,7 @@ struct _inner_product_s<1, TL, TR>
 ;
 
 }
-//namespace _impl
+//namespace ntuple_impl
 
 template<typename TL, typename TR>
 inline auto TensorContraction(TL const &l, TR const &r)
@@ -109,7 +109,7 @@ DECL_RET_TYPE((l*r))
 template<int N, typename TL, typename TR>
 inline auto TensorContraction(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS==1),
-		(_impl::_inner_product(l,r)))
+		(ntuple_impl::_inner_product(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
 inline auto TensorContraction(nTuple<N, nTuple<M, TL>> const & l,
@@ -225,8 +225,61 @@ DECL_RET_TYPE( std::sqrt(std::abs(Dot(m, m))))
 
 //template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
 //DECL_RET_TYPE( (sqrt(Determinant(m))))
-
 // overloading operators
+namespace ntuple_impl
+{
+
+template<typename T, typename ... TI> inline T index(T const & v, TI...)
+{
+	return (v);
+}
+
+template<int N, typename T>
+inline auto index(nTuple<N, T> const & v, size_t const &s)->decltype(v[s])
+{
+	return v[s];
+}
+
+#define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                             \
+	template<typename TL, typename TR,typename ...TI>                                           \
+	inline auto OpEval(Int2Type< _NAME_ >, TL const & l, TR const &r, TI ... s)             \
+			DECL_RET_TYPE ((index(l,s...) _OP_ index(r,s...)))
+
+_DEFINE_BINARY_OPERATOR(PLUS, +)
+_DEFINE_BINARY_OPERATOR(MINUS, -)
+_DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
+_DEFINE_BINARY_OPERATOR(DIVIDES, /)
+//_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
+//_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
+//_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
+//_DEFINE_BINARY_OPERATOR(MODULUS, %)
+
+#undef _DEFINE_BINARY_OPERATOR
+
+//template<typename TL, typename TR, typename TI>
+//inline auto OpEval(Int2Type<PLUS>, TL const & l, TR const &r, TI const & s)
+//->decltype(((index(l,s) + index(r,s))))
+//{
+//	return ((index(l, s) + index(r, s)));
+//}
+//template<typename TL, typename TR, typename TI>
+//inline auto OpEval(Int2Type<DIVIDES>, TL const & l, TR const &r, TI const & s)
+//->decltype(((index(l,s) / index(r,s))))
+//{
+//	return ((index(l, s) / index(r, s)));
+//}
+
+template<typename TL, typename TI>
+inline auto OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
+DECL_RET_TYPE ((-index(l, s) ))
+
+template<int N, typename TL, typename TR>
+inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l,
+		nTuple<N, TR> const &r, size_t s)
+		DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
+
+}  // namespace ntuple_impl
+
 template<int N, int TOP, typename TL, typename TR>
 struct nTuple<N, BiOp<TOP, TL, TR> >
 {
@@ -238,7 +291,8 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	{
 	}
 
-	typedef decltype(_OpEval(Int2Type<TOP>(),std::declval<TL>() ,std::declval<TR>(),size_t())) value_type;
+	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),
+					std::declval<TL>() ,std::declval<TR>(),size_t())) value_type;
 
 	inline operator nTuple<N,value_type>() const
 	{
@@ -251,7 +305,7 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	}
 
 	inline auto operator[](size_t s) const
-	DECL_RET_TYPE((_OpEval(Int2Type<TOP>(),l_,r_,s)))
+	DECL_RET_TYPE((ntuple_impl::OpEval(Int2Type<TOP>(),l_,r_,s)))
 
 };
 
@@ -273,7 +327,7 @@ DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, TL, nTuple<N, TR> > >(lhs, rhs)))         
 _DEFINE_BINARY_OPERATOR(PLUS, +)
 _DEFINE_BINARY_OPERATOR(MINUS, -)
 _DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
-_DEFINE_BINARY_OPERATOR(DIVIDES, /)
+//_DEFINE_BINARY_OPERATOR(DIVIDES, /)
 //_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
 //_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
 //_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
@@ -281,12 +335,20 @@ _DEFINE_BINARY_OPERATOR(DIVIDES, /)
 
 #undef _DEFINE_BINARY_OPERATOR
 
+template<int N, typename TL, typename TR> inline auto operator /(
+		nTuple<N, TL> const & lhs,
+		TR const & rhs)
+		->decltype(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs))))
+{
+	return ((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs)));
+}
+
 template<int N, int TOP, typename TL>
 struct nTuple<N, UniOp<TOP, TL> >
 {
 	typename ConstReferenceTraits<TL>::type l_;
 
-	typedef decltype(_OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
+	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
 
 	nTuple(TL const & l) :
 			l_(l)
@@ -306,7 +368,7 @@ struct nTuple<N, UniOp<TOP, TL> >
 
 	inline value_type operator[](size_t s) const
 	{
-		return _OpEval(Int2Type<TOP>(), l_, s);
+		return ntuple_impl::OpEval(Int2Type<TOP>(), l_, s);
 	}
 
 };
@@ -323,17 +385,12 @@ DECL_RET_TYPE(f)
 //DECL_RET_TYPE(( std::sin(f)))
 //
 //template<int N, typename TL>
-//inline auto _OpEval(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
+//inline auto ntuple_impl::OpEval(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
 //DECL_RET_TYPE ((sin(l[s]) ))
 //
 //template<int N, typename TL> inline  //
 //auto sin(nTuple<N, TL> const & f)
 //DECL_RET_TYPE(( nTuple<N, UniOp<SIN,nTuple<N, TL> > > (f)))
-
-template<int N, typename TL, typename TR>
-inline auto _OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l,
-		nTuple<N, TR> const &r, size_t s)
-		DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 
 template<int N, typename TL, typename TR> inline auto Cross(
 		nTuple<N, TL> const & lhs,
@@ -343,7 +400,7 @@ template<int N, typename TL, typename TR> inline auto Cross(
 
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-DECL_RET_TYPE((_impl::_inner_product(l,r)))
+DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 
 template<typename TL, typename TR>
 inline auto Dot(TL const &l, TR const &r)

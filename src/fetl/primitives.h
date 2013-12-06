@@ -251,40 +251,6 @@ public:
 
 };
 
-template<typename T, typename TI> inline typename std::enable_if<
-		!is_indexable<T, TI>::value, T>::type index(T const & v, TI const &)
-{
-	return (v);
-}
-
-template<typename T, typename TI>
-inline auto index(T const & v, TI const &s)->decltype(v[s])
-{
-	return v[s];
-}
-
-template<typename T, typename TI>
-inline auto index(T & v, TI const &s)->decltype(v[s])
-{
-	return v[s];
-}
-/**
- *  index function for field
- *
- * */
-template<typename TG, typename TL, typename TI>
-inline auto findex(Field<TG, TL> const & v, TI const &s)->decltype(v[s])
-{
-	return v[s];
-}
-/**
- *  index function for not field
- * */
-template<typename T, typename TI>
-inline T findex(T const & v, TI const &)
-{
-	return v;
-}
 
 typedef enum
 {
@@ -303,7 +269,7 @@ typedef enum
 	CROSS,
 	DOT,
 
-	GRAD,
+	GRAD = 20,
 	DIVERGE,
 	CURL,
 	CURLPDX,
@@ -329,41 +295,46 @@ typedef enum
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
-#define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                             \
-template<typename TL, typename TR,typename TI>                                           \
-inline auto _OpEval(Int2Type< _NAME_ >, TL const & l, TR const &r, TI const & s)             \
-		DECL_RET_TYPE ((index(l,s) _OP_ index(r,s)))
-
-_DEFINE_BINARY_OPERATOR(PLUS, +)
-_DEFINE_BINARY_OPERATOR(MINUS, -)
-_DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
-_DEFINE_BINARY_OPERATOR(DIVIDES, /)
-//_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
-//_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
-//_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
-//_DEFINE_BINARY_OPERATOR(MODULUS, %)
-
-#undef _DEFINE_BINARY_OPERATOR
-
-//template<typename TL, typename TR, typename TI>
-//inline auto _OpEval(Int2Type<PLUS>, TL const & l, TR const &r, TI const & s)
-//->decltype(((index(l,s) + index(r,s))))
-//{
-//	return ((index(l, s) + index(r, s)));
-//}
-//template<typename TL, typename TR, typename TI>
-//inline auto _OpEval(Int2Type<DIVIDES>, TL const & l, TR const &r, TI const & s)
-//->decltype(((index(l,s) / index(r,s))))
-//{
-//	return ((index(l, s) / index(r, s)));
-//}
-
-template<typename TL, typename TI>
-inline auto _OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
-DECL_RET_TYPE ((-index(l, s) ))
 
 template<int TOP, typename TL, typename TR> struct OpTraits;
+template<typename T>
+struct FieldTraits
+{
+	enum
+	{
+		is_field = false
+	};
 
+	enum
+	{
+		IForm = 0
+	}
+	;
+	typedef T value_type;
+};
+
+template<typename TM, int IFORM, typename TExpr>
+struct FieldTraits<Field<Geometry<TM, IFORM>, TExpr> >
+{
+	typedef Field<Geometry<TM, IFORM>, TExpr> this_type;
+	enum
+	{
+		is_field = true
+	};
+
+	enum
+	{
+		IForm = IFORM
+	}
+	;
+	typedef typename this_type::value_type value_type;
+};
+
+template<typename TL>
+struct is_field
+{
+	static const bool value = FieldTraits<TL>::is_field;
+};
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

@@ -27,6 +27,7 @@
 #include <set>
 #include "utilities/log.h"
 #include "physics/physical_constants.h"
+#include "mesh.h"
 namespace simpla
 {
 
@@ -582,41 +583,49 @@ public:
 	}
 
 	template<typename T, typename ... TI>
-	inline typename std::enable_if<!is_field<T>::value, T>::type index(
-			T const &l, TI ...) const
+	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l,
+			TI ...) const
 	{
 		return std::move(l);
 	}
 
 	template<int IFORM, typename TL, typename ...TI> inline typename Field<
-			Geometry<this_type, IFORM>, TL>::value_type & index(
+			Geometry<this_type, IFORM>, TL>::value_type & get(
 			Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
 	{
 		return (*l)[GetIndex<IFORM>(s...)];
 	}
 
-	template<int IFORM, typename TL, typename ...TI> inline typename Field<
-			Geometry<this_type, IFORM>, TL>::value_type const& index(
-			Field<Geometry<this_type, IFORM>, TL> const &l, TI ... s) const
+	template<int IFORM, typename TL, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, TL>::value_type get(
+			Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
 	{
-		return l[GetIndex<IFORM>(s...)];
+		return (l.get(s...));
 	}
 
-	template<int IFORM, int TOP, typename TL, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> >::value_type index(
-			Field<Geometry<this_type, IFORM>, UniOp<TOP, TL>> const & l,
-			TI ...s) const
+	enum
 	{
-		return (l.index(s...));
-	}
+		/**
+		 *  00
+		 *  01 +
+		 *  10 -
+		 */
 
-	template<int IFORM, int TOP, typename TL, typename TR, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> >::value_type index(
-			Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR>> const & l,
-			TI ...s) const
-	{
-		return (l.index(s...));
-	}
+		ZERO,  // 0 0 0
+
+		LEFT, // 0 0 0
+
+		RIGHT, // 0 0 0
+
+		UP, // 0 0 0
+
+		DOWN, // 0 0 0
+
+		FRONT, // 0 0 0
+
+		BACK // 0 0 0
+
+	};
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
@@ -629,9 +638,7 @@ public:
 				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
 					for (size_t m = 0; m < num_comp; ++m)
 					{
-						fun(this->index(l, m, i, j, k),
-
-						this->index(args, m,i, j, k)...);
+						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
 					}
 	}
 
@@ -645,11 +652,7 @@ public:
 				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
 					for (size_t m = 0; m < num_comp; ++m)
 					{
-						fun(
-
-						this->index(l, m, i, j, k),
-
-						this->index(args, m,i, j, k)...);
+						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
 					}
 	}
 
@@ -906,20 +909,8 @@ public:
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
-	template<int IF, typename ...TI> inline double //
-	mapto(Int2Type<IF>, double l, TI ... s) const
-	{
-		return (l);
-	}
-
-	template<int IF, typename ...TI> inline std::complex<double>  //
-	mapto(Int2Type<IF>, std::complex<double> l, TI ... s) const
-	{
-		return (l);
-	}
-
-	template<int IF, int N, typename TR, typename ...TI> inline nTuple<N, TR> //
-	mapto(Int2Type<IF>, nTuple<N, TR> l, TI ... s) const
+	template<int IF, typename T, typename ...TI> inline double //
+	mapto(Int2Type<IF>, T const &l, TI ... s) const
 	{
 		return (l);
 	}
@@ -927,13 +918,13 @@ public:
 	template<int IF, typename TL, typename ...TI> inline auto mapto(
 			Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
 			TI ... s) const
-			DECL_RET_TYPE ((l.index(s...)))
+			DECL_RET_TYPE ((get(l,s...)))
 
 	template<typename TL> inline auto mapto(Int2Type<1>,
 			Field<Geometry<this_type, 0>, TL> const &l, index_type m = 0,
 			index_type i = 0, index_type j = 0,
 			index_type k = 0) const
-					DECL_RET_TYPE( ((l.index(m,i+((m==0)?1:0),j+((m==1)?1:0),k+((m==2)?1:0)) + l.index(m,i,j,k))*0.5) )
+					DECL_RET_TYPE( ((get(l,m,i+((m==0)?1:0),j+((m==1)?1:0),k+((m==2)?1:0)) + get(l,m,i,j,k))*0.5) )
 
 	template<typename TL> inline auto //
 	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
@@ -941,10 +932,10 @@ public:
 			index_type k = 0) const
 					DECL_RET_TYPE((
 									(
-											l.index(0,i,j,k)+
-											l.index(0,i+((m+1)%3!=0?1:0),j+((m+1)%3!=1?1:0),k+((m+1)%3!=2?1:0))+
-											l.index(0,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0))+
-											l.index(0,i+(m!=0?1:0),j+(m!=1?1:0),k+(m!=2?1:0))
+											get(l,0,i,j,k)+
+											get(l,0,i+((m+1)%3!=0?1:0),j+((m+1)%3!=1?1:0),k+((m+1)%3!=2?1:0))+
+											get(l,0,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0))+
+											get(l,0,i+(m!=0?1:0),j+(m!=1?1:0),k+(m!=2?1:0))
 									)*0.25
 
 							))
@@ -953,15 +944,15 @@ public:
 			index_type m = 0, index_type i = 0, index_type j = 0, index_type k =
 					0) const
 			DECL_RET_TYPE(( (
-									l.index(0,i,j,k)+
-									l.index(0,i+1,j,k)+
-									l.index(0,i,j+1,k)+
-									l.index(0,i,j,k+1)+
+									get(l,0,i,j,k)+
+									get(l,0,i+1,j,k)+
+									get(l,0,i,j+1,k)+
+									get(l,0,i,j,k+1)+
 
-									l.index(0,i,j+1,k+1)+
-									l.index(0,i+1,j,k+1)+
-									l.index(0,i+1,j+1,k)+
-									l.index(0,i+1,j+1,k+1)
+									get(l,0,i,j+1,k+1)+
+									get(l,0,i+1,j,k+1)+
+									get(l,0,i+1,j+1,k)+
+									get(l,0,i+1,j+1,k+1)
 
 							)*0.125
 
@@ -970,294 +961,161 @@ public:
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l,
 			TI ... s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l,
 			TI ...s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l,
 			TI ... s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l,
 			TI ...s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l,
 			TI ...s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l,
 			TI ... s) const
-			DECL_RET_TYPE( (this->index(l,s...)) )
+			DECL_RET_TYPE( (get(l,s...)) )
 
+	//-----------------------------------------
+	// Vector Arithmetic
+	//-----------------------------------------
+
+	//template<int N, typename TL, typename TI> inline auto _FieldOpEval(
+	//		Int2Type<EXTRIORDERIVATIVE>,
+	//		Field<Geometry<this_type, N>, TL> const & f, TI const & s)
+	//		DECL_RET_TYPE((f[s]*dS_[s%3]))
+
+	template<typename TExpr> inline auto OpEval(Int2Type<GRAD>,
+			Field<Geometry<this_type, 0>, TExpr> const & f, size_t m = 0,
+			size_t i = 0, size_t j = 0,
+			size_t k = 0) const
+					DECL_RET_TYPE(
+							( get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[0][m]
+									+get(f,0,i,j,k)* dS_[0][m] ))
+
+	template<typename TExpr> inline auto OpEval(Int2Type<DIVERGE>,
+			Field<Geometry<this_type, 1>, TExpr> const & f, size_t m = 0,
+			size_t i = 0, size_t j = 0,
+			size_t k = 0) const
+					DECL_RET_TYPE((
+
+									(get(f,0,i,j,k) * dS_[0][0] + get(f,0,i-1,j,k)* dS_[1][0]) +
+
+									(get(f,1,i,j,k) * dS_[0][1] + get(f,1,i,j-1,k)* dS_[1][1]) +
+
+									(get(f,2,i,j,k) * dS_[0][2] + get(f,2,i,j,k-1)* dS_[1][2])
+							))
+
+	template<typename TL> inline auto OpEval(Int2Type<CURL>,
+			Field<Geometry<this_type, 1>, TL> const & f, //
+			size_t m = 0, size_t i = 0, size_t j = 0,
+			size_t k = 0) const
+					DECL_RET_TYPE((
+									get(f,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * dS_[0][(m + 1) % 3]
+
+									+ get(f,i,j,k,(m+2)%3)* dS_[1][(m + 1) % 3]
+
+									- get(f,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+
+									- get(f,i,j,k,(m+1)%3)* dS_[1][(m + 2) % 3]
+							))
+
+	template<typename TL> inline auto OpEval(Int2Type<CURL>,
+			Field<Geometry<this_type, 2>, TL> const & f, size_t m = 0,
+			size_t i = 0, size_t j = 0,
+			size_t k = 0) const
+					DECL_RET_TYPE((
+									get(f,i,j,k,(m+2)%3)* dS_[0][(m + 1) % 3]
+
+									+ get(f,i-((m+1)%3==0?1:0),j-((m+1)%3==1?1:0),k-((m+1)%3==2?1:0),(m+2)%3) * dS_[1][(m + 1) % 3]
+
+									- get(f,i,j,k,(m+1)%3)* dS_[0][(m + 2) % 3]
+
+									- get(f,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+
+							))
+
+	template<typename TL> inline auto OpEval(Int2Type<CURLPDX>,
+			Field<Geometry<this_type, 1>, TL> const & f, size_t m = 0,
+			size_t i = 0, size_t j = 0,
+			size_t k = 0) const
+					DECL_RET_TYPE((
+
+									(get(f,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * dS_[0][(m + 1) % 3]
+
+											+ get(f,i,j,k,(m+2)%3)* dS_[1][(m + 1) % 3])*((m+1)%3== 1?0:1)
+
+									-( get(f,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * dS_[0][(m + 2) % 3]
+
+											+ get(f,i,j,k,(m+1)%3)* dS_[1][(m + 2) % 3]) *((m+2)%3==1?0:1)
+
+							))
+
+	template<int IL, int IR, typename TL, typename TR, typename ...TI> inline auto OpEval(
+			Int2Type<WEDGE>, Field<Geometry<this_type, IL>, TL> const &l,
+			Field<Geometry<this_type, IR>, TR> const &r, TI ... s) const
+			DECL_RET_TYPE( ( mapto(Int2Type<IL+IR>(),l,s...)*
+							mapto(Int2Type<IL+IR>(),r,s...)))
+
+	template<int IL, typename TL, typename ...TI> inline auto OpEval(
+			Int2Type<HODGESTAR>, Field<Geometry<this_type, IL>, TL> const & f,
+			TI ... s) const
+					DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
 }
 ;
 
-//template<int TOP, typename TL, typename TR> struct OpTraits;
-//
-//template<int TOP, typename TS, int IL, typename TL>
-//struct OpTraits<TOP, Field<Geometry<CoRectMesh<TS>, IL>, TL>, std::nullptr_t>
-//{
-//	typedef decltype(
-//			_FieldOpEval(Int2Type<TOP>(),
-//					std::declval<typename std::remove_reference<Field<Geometry<CoRectMesh<TS>, IL>, TL>>::type const&>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>())
-//
-//	) value_type;
-//
-//};
-//
-//template<int TOP, typename TS, int IL, typename TL, typename TR>
-//struct OpTraits<TOP, Field<Geometry<CoRectMesh<TS>, IL>, TL>, TR>
-//{
-//	typedef decltype(
-//			_FieldOpEval(Int2Type<TOP>(),
-//					std::declval<typename std::remove_reference<Field<Geometry<CoRectMesh<TS>, IL>, TL>>::type const&>(),
-//					std::declval<typename std::remove_reference<TR>::type const&>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>())
-//
-//	) value_type;
-//
-//};
-//
-//template<int TOP, typename TS, typename TL, int IR, typename TR>
-//struct OpTraits<TOP, TL, Field<Geometry<CoRectMesh<TS>, IR>, TR>>
-//{
-//	typedef decltype(
-//			_FieldOpEval(Int2Type<TOP>(),
-//					std::declval<typename std::remove_reference<TL>::type const&>(),
-//					std::declval<typename std::remove_reference<Field<Geometry<CoRectMesh<TS>, IR>, TR>>::type const&>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>())
-//
-//	) value_type;
-//
-//};
-//
-//template<int TOP, typename TS, int IL, typename TL, int IR, typename TR>
-//struct OpTraits<TOP, Field<Geometry<CoRectMesh<TS>, IL>, TL>,
-//		Field<Geometry<CoRectMesh<TS>, IR>, TR>>
-//{
-//	typedef decltype(
-//			_FieldOpEval(Int2Type<TOP>(),
-//					std::declval<typename std::remove_reference<Field<Geometry<CoRectMesh<TS>, IL>, TL>>::type const&>(),
-//					std::declval<typename std::remove_reference<Field<Geometry<CoRectMesh<TS>, IR>, TR>>::type const&>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>(),
-//					std::declval<typename CoRectMesh<TS>::index_type>())
-//
-//	) value_type;
-//
-//};
-//-----------------------------------------
-// Vector Arithmetic
-//-----------------------------------------
-
-//template<int N, typename TL, typename TI, typename TS> inline auto _FieldOpEval(
-//		Int2Type<EXTRIORDERIVATIVE>,
-//		Field<Geometry<CoRectMesh<TS>, N>, TL> const & f, TI const & s)
-//		DECL_RET_TYPE((f[s]*f.mesh.dS_[s%3]))
-
-template<typename TExpr, typename TS> inline auto _FieldOpEval(Int2Type<GRAD>,
-		Field<Geometry<CoRectMesh<TS>, 0>, TExpr> const & f, size_t m = 0,
-		size_t i = 0, size_t j = 0,
-		size_t k = 0)
-				DECL_RET_TYPE(
-						( f.index(i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* f.mesh.dS_[0][m]
-								+f.index(i,j,k)* f.mesh.dS_[0][m] ))
-
-template<typename TExpr, typename TS> inline auto _FieldOpEval(
-		Int2Type<DIVERGE>, Field<Geometry<CoRectMesh<TS>, 1>, TExpr> const & f,
-		size_t m = 0, size_t i = 0, size_t j = 0,
-		size_t k = 0)
-				DECL_RET_TYPE((
-
-								(f.index(0,i,j,k) * f.mesh.dS_[0][0] + f.index(0,i-1,j,k)* f.mesh.dS_[1][0]) +
-
-								(f.index(1,i,j,k) * f.mesh.dS_[0][1] + f.index(1,i,j-1,k)* f.mesh.dS_[1][1]) +
-
-								(f.index(2,i,j,k) * f.mesh.dS_[0][2] + f.index(2,i,j,k-1)* f.mesh.dS_[1][2])
-						))
-
-template<typename TL, typename TS> inline auto _FieldOpEval(Int2Type<CURL>,
-		Field<Geometry<CoRectMesh<TS>, 1>, TL> const & f, //
-		size_t m = 0, size_t i = 0, size_t j = 0,
-		size_t k = 0)
-				DECL_RET_TYPE((
-								f.index(i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * f.mesh.dS_[0][(m + 1) % 3]
-
-								+ f.index(i,j,k,(m+2)%3)* f.mesh.dS_[1][(m + 1) % 3]
-
-								- f.index(i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * f.mesh.dS_[0][(m + 2) % 3]
-
-								- f.index(i,j,k,(m+1)%3)* f.mesh.dS_[1][(m + 2) % 3]
-						))
-
-template<typename TL, typename TS> inline auto _FieldOpEval(Int2Type<CURL>,
-		Field<Geometry<CoRectMesh<TS>, 2>, TL> const & f, size_t m = 0,
-		size_t i = 0, size_t j = 0,
-		size_t k = 0)
-
-				DECL_RET_TYPE((
-								f.index(i,j,k,(m+2)%3)* f.mesh.dS_[0][(m + 1) % 3]
-
-								+ f.index(i-((m+1)%3==0?1:0),j-((m+1)%3==1?1:0),k-((m+1)%3==2?1:0),(m+2)%3) * f.mesh.dS_[1][(m + 1) % 3]
-
-								- f.index(i,j,k,(m+1)%3)* f.mesh.dS_[0][(m + 2) % 3]
-
-								- f.index(i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0),(m+1)%3) * f.mesh.dS_[0][(m + 2) % 3]
-
-						))
-
-template<typename TL, typename TS> inline auto _FieldOpEval(Int2Type<CURLPDX>,
-		Field<Geometry<CoRectMesh<TS>, 1>, TL> const & f, size_t m = 0,
-		size_t i = 0, size_t j = 0,
-		size_t k = 0)
-				DECL_RET_TYPE((
-
-								(f.index(i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0),(m+2)%3) * f.mesh.dS_[0][(m + 1) % 3]
-
-										+ f.index(i,j,k,(m+2)%3)* f.mesh.dS_[1][(m + 1) % 3])*((m+1)%3== 1?0:1)
-
-								-( f.index(i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0),(m+1)%3) * f.mesh.dS_[0][(m + 2) % 3]
-
-										+ f.index(i,j,k,(m+1)%3)* f.mesh.dS_[1][(m + 2) % 3]) *((m+2)%3==1?0:1)
-
-						))
-
-//template<typename TL, typename TS> inline auto _FieldOpEval(
-//		Int2Type<CURLPDY>, Field<Geometry<CoRectMesh<TS>, 1>, TL> const & f,
+//template<typename TL> inline auto _FieldOpEval(
+//		Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
 //		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]]* f.mesh.dS_[0][(s + 1) % 3]
+//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * strides_[(s + 1) % 3]]* dS_[0][(s + 1) % 3]
 //
-//								+ f[s - s %3 + (s + 2) % 3]* f.mesh.dS_[1][(s + 1) % 3]) *((s+1)%3==1?0:1)
+//								+ f[s - s %3 + (s + 2) % 3]* dS_[1][(s + 1) % 3]) *((s+1)%3==1?0:1)
 //
-//						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]]* f.mesh.dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* f.mesh.dS_[1][(s + 2) % 3]) *((s+2)%3==1?0:1)
+//						- (f[s - s %3 + (s + 1) % 3 + 3 * strides_[(s + 2) % 3]]* dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* dS_[1][(s + 2) % 3]) *((s+2)%3==1?0:1)
 //
 //				)
 //
-//template<typename TL, typename TS> inline auto _FieldOpEval(
-//		Int2Type<CURLPDZ>, Field<Geometry<CoRectMesh<TS>, 1>, TL> const & f,
+//template<typename TL> inline auto _FieldOpEval(
+//		Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
 //		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * f.mesh.strides_[(s + 1) % 3]]* f.mesh.dS_[0][(s + 1) % 3] + f[s - s %3 + (s + 2) % 3]* f.mesh.dS_[1][(s + 1) % 3]) *((s+1)%3==2?0:1)
+//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * strides_[(s + 1) % 3]]* dS_[0][(s + 1) % 3] + f[s - s %3 + (s + 2) % 3]* dS_[1][(s + 1) % 3]) *((s+1)%3==2?0:1)
 //
-//						- (f[s - s %3 + (s + 1) % 3 + 3 * f.mesh.strides_[(s + 2) % 3]] * f.mesh.dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* f.mesh.dS_[(s + 2) % 3]) *((s+2)%3==2?0:1) )
+//						- (f[s - s %3 + (s + 1) % 3 + 3 * strides_[(s + 2) % 3]] * dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* dS_[(s + 2) % 3]) *((s+2)%3==2?0:1) )
 //
-//template<typename TL, typename TS> inline auto _FieldOpEval(
-//		Int2Type<CURLPDX>, Field<Geometry<CoRectMesh<TS>, 2>, TL> const & f,
+//template<typename TL> inline auto _FieldOpEval(
+//		Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
 //		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* f.mesh.dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]]* f.mesh.dS_[1][(s + 1) % 3] ) *((s+1)%3==0?0:1)
+//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==0?0:1)
 //
-//						-(f[s - s % 3 + (s + 1) % 3]* f.mesh.dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]* f.mesh.dS_[1][(s + 2) % 3]) *((s+2)%3==0?0:1) )
+//						-(f[s - s % 3 + (s + 1) % 3]* dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==0?0:1) )
 //
-//template<typename TL, typename TS> inline auto _FieldOpEval(
-//		Int2Type<CURLPDY>, Field<Geometry<CoRectMesh<TS>, 2>, TL> const & f,
+//template<typename TL> inline auto _FieldOpEval(
+//		Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
 //		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* f.mesh.dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]]* f.mesh.dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
+//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
 //
-//						-(f[s - s % 3 + (s + 1) % 3] * f.mesh.dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]* f.mesh.dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1)
+//						-(f[s - s % 3 + (s + 1) % 3] * dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1)
 //
 //				)
 //
-//template<typename TL, typename TS> inline auto _FieldOpEval(
-//		Int2Type<CURLPDZ>, Field<Geometry<CoRectMesh<TS>, 2>, TL> const & f,
+//template<typename TL> inline auto _FieldOpEval(
+//		Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
 //		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3] * f.mesh.dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * f.mesh.strides_[(s + 1) % 3]]* f.mesh.dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
+//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3] * dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
 //
-//						-(f[s - s % 3 + (s + 1) % 3] * f.mesh.dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * f.mesh.strides_[(s + 2) % 3]]* f.mesh.dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1) )
-
-template<int IL, int IR, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<WEDGE>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, IR>, TR> const &r, TI ... s)
-		DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)*
-						r.mesh.mapto(Int2Type<IL+IR>(),r,s...)))
-
-template<int IL, typename TL, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<HODGESTAR>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const & f,
-		TI ... s)
-				DECL_RET_TYPE((f.mesh.mapto(Int2Type<CoRectMesh<TS>::NUM_OF_DIMS-IL >(),f,s...)))
-
-template<int N, typename TL, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<NEGATE>, Field<Geometry<CoRectMesh<TS>, N>, TL> const & f,
-		TI ... s)
-		DECL_RET_TYPE((-f.index(s...)) )
-
-template<int IL, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<PLUS>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, IL>, TR> const &r, TI ... s)
-		DECL_RET_TYPE((l.index(s...)+r.index(s...)))
-
-template<int IL, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<MINUS>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, IL>, TR> const &r, TI ... s)
-		DECL_RET_TYPE((l.index(s...)-r.index(s...)))
-
-template<int IL, int IR, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, IR>, TR> const &r, TI ... s)
-		DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)
-						*r.mesh.mapto(Int2Type<IL+IR>(),r,s...)) )
-
-template<int IL, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<MULTIPLIES>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		TR const &r, TI ... s)
-		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value) ,(l.index(s...) * r))
-
-template<int IR, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<MULTIPLIES>, TL const & l,
-		Field<Geometry<CoRectMesh<TS>, IR>, TR> const & r, TI ... s)
-		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value), (l * r.index(s...)))
-
-template<int IL, typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<DIVIDES>, Field<Geometry<CoRectMesh<TS>, IL>, TL> const &l,
-		TR const &r, TI ... s)
-		DECL_RET_TYPE((l.index(s...) /l.mesh.mapto(Int2Type<IL>(),r,s...)))
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<DOT>, Field<Geometry<CoRectMesh<TS>, 0>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, 0>, TR> const &r, TI ... s)
-		DECL_RET_TYPE((Dot(l.index(s...),r.index(s...))) )
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<DOT>, Field<Geometry<CoRectMesh<TS>, 0>, TL> const &l,
-		nTuple<3, TR> const &r, TI ... s)
-		DECL_RET_TYPE((Dot(l.index(s...) , r)))
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<DOT>, nTuple<3, TL> const & l,
-		Field<Geometry<CoRectMesh<TS>, 0>, TR> const & r, TI ... s)
-		DECL_RET_TYPE((Dot(l , r.index(s...))))
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<CROSS>, Field<Geometry<CoRectMesh<TS>, 0>, TL> const &l,
-		Field<Geometry<CoRectMesh<TS>, 0>, TR> const &r, TI ... s)
-		DECL_RET_TYPE( (Cross(l.index(s...),r.index(s...))))
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<CROSS>, Field<Geometry<CoRectMesh<TS>, 0>, TL> const &l,
-		nTuple<3, TR> const &r, TI ... s)
-		DECL_RET_TYPE((Cross(l.index(s...) , r)))
-
-template<typename TL, typename TR, typename TS, typename ...TI> inline auto _FieldOpEval(
-		Int2Type<CROSS>, nTuple<3, TL> const & l,
-		Field<Geometry<CoRectMesh<TS>, 0>, TR> const & r, TI ... s)
-		DECL_RET_TYPE((Cross(l , r.index(s...))))
+//						-(f[s - s % 3 + (s + 1) % 3] * dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1) )
 
 }
 // namespace simpla
