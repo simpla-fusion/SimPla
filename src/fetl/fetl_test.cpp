@@ -338,26 +338,26 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 	std::fill(va.begin(), va.end(), vc2);
 
 	res_scalar_field = Dot(vc1, va);
-//
-//	res_vector_field = Cross( va,vc1);
-//
-//	mesh.ForEach (
-//
-//			[&](typename TestFixture::ScalarField::value_type const & v)
-//			{
-//				ASSERT_EQ(res_scalar, v);
-//			},res_scalar_field
-//
-//	);
-//
-//	mesh.ForEach (
-//
-//			[&](typename TestFixture::VectorField::value_type const & v)
-//			{
-//				ASSERT_EQ(res_vec , v);
-//			},res_vector_field
-//
-//	);
+
+	res_vector_field = Cross( va,vc1);
+
+	mesh.ForEach (
+
+			[&](typename TestFixture::ScalarField::value_type const & v)
+			{
+				ASSERT_EQ(res_scalar, v);
+			},res_scalar_field
+
+	);
+
+	mesh.ForEach (
+
+			[&](typename TestFixture::VectorField::value_type const & v)
+			{
+				ASSERT_EQ(res_vec , v);
+			},res_vector_field
+
+	);
 
 }
 }

@@ -55,34 +55,34 @@ template<int IL, typename TL, typename TR, typename TM, typename ...TI> inline a
 		TI ... s)
 		DECL_RET_TYPE( (l.get(s...)/ l.mesh.get(r,s...)) )
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-		Int2Type<DOT>, Field<Geometry<TM, 0>, TL> const &l,
-		Field<Geometry<TM, 0>, TR> const &r, TI ... s)
+template<int I, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+		Int2Type<DOT>, Field<Geometry<TM, I>, TL> const &l,
+		Field<Geometry<TM, I>, TR> const &r, TI ... s)
 		DECL_RET_TYPE((Dot(l.get(s...),r.get(s...))) )
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-		Int2Type<DOT>, Field<Geometry<TM, 0>, TL> const &l,
+template<int IL, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+		Int2Type<DOT>, Field<Geometry<TM, IL>, TL> const &l,
 		nTuple<3, TR> const &r, TI ... s)
 		DECL_RET_TYPE((Dot(l.get(s...) , r)))
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+template<typename TL, int IR, typename TR, typename TM, typename ...TI> inline auto OpEval(
 		Int2Type<DOT>, nTuple<3, TL> const & l,
-		Field<Geometry<TM, 0>, TR> const & r, TI ... s)
+		Field<Geometry<TM, IR>, TR> const & r, TI ... s)
 		DECL_RET_TYPE((Dot(l , r.get(s...))))
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-		Int2Type<CROSS>, Field<Geometry<TM, 0>, TL> const &l,
-		Field<Geometry<TM, 0>, TR> const &r, TI ... s)
+template<int I, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+		Int2Type<CROSS>, Field<Geometry<TM, I>, TL> const &l,
+		Field<Geometry<TM, I>, TR> const &r, TI ... s)
 		DECL_RET_TYPE( (Cross(l.get(s...),r.get(s...))))
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-		Int2Type<CROSS>, Field<Geometry<TM, 0>, TL> const &l,
+template<int IL, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+		Int2Type<CROSS>, Field<Geometry<TM, IL>, TL> const &l,
 		nTuple<3, TR> const &r, TI ... s)
 		DECL_RET_TYPE((Cross(l.get(s...) , r)))
 
-template<typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
+template<typename TL, int IR, typename TR, typename TM, typename ...TI> inline auto OpEval(
 		Int2Type<CROSS>, nTuple<3, TL> const & l,
-		Field<Geometry<TM, 0>, TR> const & r, TI ... s)
+		Field<Geometry<TM, IR>, TR> const & r, TI ... s)
 		DECL_RET_TYPE((Cross(l , r.get(s...))))
 
 // Check the availability of member function OpEval
@@ -304,12 +304,12 @@ Dot(Field<Geometry<TG, IL>, TL> const & lhs,
 						BiOp<DOT,Field<Geometry<TG, IL>, TL> ,
 						Field<Geometry<TG, IL>, TR> > >(lhs, rhs)))
 
-template<typename TG, int IL, typename TL, typename TR> inline auto //
-Dot(nTuple<3, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)
+template<typename TG, typename TL, int IR, typename TR> inline auto //
+Dot(nTuple<3, TL> const & lhs, Field<Geometry<TG, IR>, TR> const & rhs)
 DECL_RET_TYPE(
-		(Field<Geometry<TG,IL> ,
+		(Field<Geometry<TG,IR> ,
 				BiOp<DOT,nTuple<3,TL> ,
-				Field<Geometry<TG, IL>, TR> > >(lhs, rhs)))
+				Field<Geometry<TG, IR>, TR> > >(lhs, rhs)))
 
 template<typename TG, int IL, typename TL, typename TR> inline auto //
 Dot(Field<Geometry<TG, IL>, TL> const & lhs, nTuple<3, TR> const & rhs)

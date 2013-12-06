@@ -99,7 +99,6 @@ struct CoRectMesh
 
 	CoRectMesh()
 	{
-		Update();
 	}
 
 	~CoRectMesh()

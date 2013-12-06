@@ -382,10 +382,6 @@ template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 
-template<typename TL, typename TR>
-inline auto Dot(TL const &l, TR const &r)
-DECL_RET_TYPE((l*r))
-
 template<int N, typename T>
 struct ConstReferenceTraits<nTuple<N, T>>
 {
