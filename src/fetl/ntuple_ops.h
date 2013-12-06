@@ -220,9 +220,6 @@ template<typename T> inline auto Determinant(
 				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 		))
 
-template<int N, typename T> auto abs(nTuple<N, T> const & m)
-DECL_RET_TYPE( std::sqrt(std::abs(Dot(m, m))))
-
 //template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
 //DECL_RET_TYPE( (sqrt(Determinant(m))))
 // overloading operators
@@ -399,6 +396,9 @@ struct ConstReferenceTraits<nTuple<N, UniOp<TOP, TL> > >
 {
 	typedef const nTuple<N, UniOp<TOP, TL> > type;
 };
+
+template<int N, typename T> auto abs(simpla::nTuple<N, T> const & m)
+DECL_RET_TYPE((std::sqrt(std::abs(Dot(m, m)))))
 
 }
 // namespace simpla

@@ -372,12 +372,12 @@ protected:
 		mesh.xmax_[0] = 1.0;
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 1;
-		mesh.dims_[1] = 10;
-		mesh.dims_[2] = 10;
-		mesh.gw_[0] = 2;
-		mesh.gw_[1] = 2;
-		mesh.gw_[2] = 2;
+		mesh.dims_[0] = 20;
+		mesh.dims_[1] = 30;
+		mesh.dims_[2] = 40;
+		mesh.gw_[0] = 4;
+		mesh.gw_[1] = 4;
+		mesh.gw_[2] = 4;
 
 		mesh.Update();
 
@@ -435,31 +435,34 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	std::fill(sf.begin(),sf.end(), v*0.0);
-	std::fill(vf2.begin(),vf2.end(), v*0.0);
+	std::fill(sf.begin(),sf.end(), 0.0);
+	std::fill(vf2.begin(),vf2.end(), 0.0);
 
-	mesh.ForEach(
-			[&](typename TestFixture::TZeroForm::value_type & s)
-			{
-				s=v*uniform_dist(gen);
-			},&sf
-	);
+	Real m=0.0;
 
-//	mesh.UpdateCyCleBoundary(sf);
+	for(auto & p:sf)
+	{
+		p = uniform_dist(gen);
+		m+= abs(p);
+	}
+
+	m/=sf.size();
 
 	vf2 = Curl(Grad(sf));
 
 	size_t count=0;
+	Real relative_error=0;
 	mesh.ForEach(
 			[&](typename TestFixture::TTwoForm::value_type const & u)
-			{
+			{	relative_error+=abs(u);
 				count+=( abs(u)>1.0e-10)?1:0;
-				ASSERT_NEAR(0.0, abs(u),1.0e-10);
 			},
 			vf2
 	);
-
+	relative_error=relative_error/m;
+	EXPECT_GT(1.0e-8,relative_error);
 	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
+
 }
 }
 
@@ -476,12 +479,14 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	TestFixture::SetValue(&v);
 
+	v=1.0;
+
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	for(auto p:vf2)
+	for(auto &p:vf2)
 	{
-		p=v*uniform_dist(gen);
+		p= uniform_dist(gen);
 	}
 
 	vf1 = Curl(vf2);
@@ -489,13 +494,27 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	size_t count=0;
 
+	Real m=0.0;
+
+	for(auto const &p:vf2)
+	{
+		m+=abs(p);
+	}
+	m/=vf2.size();
+
+	Real relative_error=0;
+	size_t num=0;
 	mesh.ForEach(
 			[&](typename TestFixture::TZeroForm::value_type const &s)
 			{
-				count+=( abs(s)>1.0e-15)?1:0;
-				ASSERT_NEAR(0.0, abs(s),1.0e-14);
+				relative_error+=abs(s);
+				count+=( abs(s)>1.0e-10*m)?1:0;
 			},sf
 	);
+
+	relative_error=relative_error/m;
+	EXPECT_GT(1.0e-8,relative_error);
 	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
+
 }
 }

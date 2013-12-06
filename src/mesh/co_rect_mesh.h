@@ -605,29 +605,6 @@ public:
 		return (l.get(s...));
 	}
 
-	enum
-	{
-		/**
-		 *  00
-		 *  01 +
-		 *  10 -
-		 */
-
-		ZERO,  // 0 0 0
-
-		LEFT, // 0 0 0
-
-		RIGHT, // 0 0 0
-
-		UP, // 0 0 0
-
-		DOWN, // 0 0 0
-
-		FRONT, // 0 0 0
-
-		BACK // 0 0 0
-
-	};
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
@@ -1033,8 +1010,8 @@ public:
 			size_t i = 0, size_t j = 0,
 			size_t k = 0) const
 					DECL_RET_TYPE(
-							( get(f,0,i,j,k)* dS_[0][0]
-									+get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[1][0] ))
+							( get(f,0,i,j,k)* dS_[0][m]
+									+get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[1][m] ))
 
 	template<typename TExpr> inline auto OpEval(Int2Type<DIVERGE>,
 			Field<Geometry<this_type, 1>, TExpr> const & f, size_t m = 0,
@@ -1074,7 +1051,7 @@ public:
 
 									- get(f,(m+1)%3,i,j,k)* dS_[0][(m + 2) % 3]
 
-									- get(f,(m+1)%3,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0)) * dS_[1][(m + 2) % 3]
 
 							))
 

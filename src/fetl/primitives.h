@@ -330,6 +330,11 @@ struct is_field
 {
 	static const bool value = FieldTraits<TL>::is_field;
 };
+
+
+template<typename T> auto abs(T const & m)
+DECL_RET_TYPE((std::abs(m)))
+
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

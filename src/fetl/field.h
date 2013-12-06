@@ -103,7 +103,7 @@ public:
 
 	inline this_type & operator=(this_type const & rhs)
 	{
-		mesh.ForEach(
+		mesh.ForA;;(
 
 		[](value_type &l, value_type const &r)
 		{	l = r;},
@@ -119,13 +119,13 @@ public:
 	operator _OP_(Field<geometry_type, TR> const & rhs)                                            \
 	{                                                                                              \
 	typedef typename Field<geometry_type, TR>::value_type r_value_type;                            \
-		mesh.ForEach( [](value_type &l, r_value_type const& r) { l _OP_ r;},this,rhs);             \
+		mesh.ForAll( [](value_type &l, r_value_type const& r) { l _OP_ r;},this,rhs);             \
 		return (*this);                                                                            \
 	}                                                                                              \
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
 	{                                                                                              \
-		mesh.ForEach( [](value_type &l, TR const & r){	l _OP_ r;}  ,this, rhs);                   \
+		mesh.ForAll( [](value_type &l, TR const & r){	l _OP_ r;}  ,this, rhs);                   \
 		return (*this);                                                                            \
 	}                                                                                              \
 
