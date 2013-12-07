@@ -93,6 +93,8 @@ struct CoRectMesh
 	const size_t num_comps_per_cell_[4] =
 	{ 1, 3, 3, 1 };
 
+	size_t idx_shift_[8];
+
 	std::vector<tag_type> media_tag_;
 	std::vector<index_type> element_in_boundary_[4];
 	std::vector<index_type> element_on_boundary_[4];
@@ -555,19 +557,78 @@ public:
 				}
 
 	}
-	template<int IFORM> inline size_t GetIndex(index_type m = 0, index_type i =
-			0, index_type j = 0, index_type k = 0) const
+
+	inline size_t GetIndex(index_type i, index_type j, index_type k) const
 	{
 		return ((i % period_[0]) * strides_[0] + (j % period_[1]) * strides_[1]
-				+ (k % period_[2]) * strides_[2]) * num_comps_per_cell_[IFORM]
-				+ m;
+				+ (k % period_[2]) * strides_[2]);
 	}
-	template<typename IFORM> inline size_t shift(int s, index_type m,
-			index_type i = 0, index_type j = 0, index_type k = 0)
+	inline size_t GetIndex(index_type s) const
+	{
+		return s;
+	}
+	template<int IFORM, typename ... IDXS>
+	inline size_t Component(int m, IDXS ... s) const
+	{
+		return GetIndex(s...) * num_comps_per_cell_[IFORM] + m;
+	}
+
+private:
+
+	enum
+	{
+		NIL = 0, // 00 00 00
+		X = 1,   // 00 00 01
+		NX = 2,   // 00 00 10
+		Y = 4,   // 00 01 00
+		NY = 8,   // 00 10 00
+		Z = 16,  // 01 00 00
+		NZ = 32   // 10 00 00
+	};
+	inline size_t INC(int m) const
+	{
+		return 1 << (m % 3) * 2;
+	}
+	inline size_t DES(int m) const
+	{
+		return 2 << (m % 3) * 2;
+	}
+
+public:
+
+	/**
+	 * (((d & 3) + 1) % 3 - 1)
+	 *
+	 * 00 -> 0
+	 * 01 -> 1
+	 * 10 -> -1
+	 *
+	 */
+	template<typename ... IDXS>
+	inline size_t Shift(int d, IDXS ... s) const
 	{
 
+		return GetIndex(s...)
+
+		+ ((((d >> 4) & 3) + 1) % 3 - 1) * strides_[2]
+
+		+ ((((d >> 2) & 3) + 1) % 3 - 1) * strides_[1]
+
+		+ (((d & 3) + 1) % 3 - 1) * strides_[0];
+
+		;
 	}
 
+	inline size_t Shift(int d, index_type i, index_type j, index_type k) const
+	{
+		return
+
+		(((i + (((d & 3) + 1) % 3 - 1)) % period_[0]) * strides_[0]
+
+		+ ((j + ((((d >> 2) & 3) + 1) % 3 - 1)) % period_[1]) * strides_[1]
+
+		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % period_[2]) * strides_[2]);
+	}
 	template<typename T, typename ... TI>
 	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l,
 			TI ...) const
@@ -604,7 +665,6 @@ public:
 	{
 		return (l.get(s...));
 	}
-
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
@@ -928,39 +988,36 @@ public:
 			TI ... s) const
 			DECL_RET_TYPE ((get(l,s...)))
 
-	template<typename TL> inline auto mapto(Int2Type<1>,
-			Field<Geometry<this_type, 0>, TL> const &l, index_type m = 0,
-			index_type i = 0, index_type j = 0,
-			index_type k = 0) const
-					DECL_RET_TYPE( ((get(l,m,i+((m==0)?1:0),j+((m==1)?1:0),k+((m==2)?1:0)) + get(l,m,i,j,k))*0.5) )
+	template<typename TL, typename ...IDXS> inline auto mapto(Int2Type<1>,
+			Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+			IDXS ... s) const
+					DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
 
-	template<typename TL> inline auto //
-	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l,
-			index_type m = 0, index_type i = 0, index_type j = 0,
-			index_type k = 0) const
+	template<typename TL, typename ...IDXS> inline auto //
+	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+			IDXS ...s) const
 					DECL_RET_TYPE((
 									(
-											get(l,0,i,j,k)+
-											get(l,0,i+((m+1)%3!=0?1:0),j+((m+1)%3!=1?1:0),k+((m+1)%3!=2?1:0))+
-											get(l,0,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0))+
-											get(l,0,i+(m!=0?1:0),j+(m!=1?1:0),k+(m!=2?1:0))
+											get(l,0,s...)+
+											get(l,0,Shift(INC(m+1),s...))+
+											get(l,0,Shift(INC(m+2),s...))+
+											get(l,0,Shift(INC(m+1) | INC(m+2) ,s...))
 									)*0.25
 
 							))
-	template<typename TL> inline auto //
-	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l,
-			index_type m = 0, index_type i = 0, index_type j = 0, index_type k =
-					0) const
+	template<typename TL, typename ...IDXS> inline auto //
+	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+			IDXS ...s) const
 			DECL_RET_TYPE(( (
-									get(l,0,i,j,k)+
-									get(l,0,i+1,j,k)+
-									get(l,0,i,j+1,k)+
-									get(l,0,i,j,k+1)+
+									get(l,0,s...)+
+									get(l,0,Shift(X,s...))+
+									get(l,0,Shift(Y,s...))+
+									get(l,0,Shift(Z,s...))+
 
-									get(l,0,i,j+1,k+1)+
-									get(l,0,i+1,j,k+1)+
-									get(l,0,i+1,j+1,k)+
-									get(l,0,i+1,j+1,k+1)
+									get(l,0,Shift(X|Y,s...))+
+									get(l,0,Shift(Z|X,s...))+
+									get(l,0,Shift(Z|Y,s...))+
+									get(l,0,Shift(Z|X|Y,s...))
 
 							)*0.125
 
@@ -996,80 +1053,115 @@ public:
 			TI ... s) const
 			DECL_RET_TYPE( (get(l,s...)) )
 
-	//-----------------------------------------
-	// Vector Arithmetic
-	//-----------------------------------------
+//-----------------------------------------
+// Vector Arithmetic
+//-----------------------------------------
 
-	//template<int N, typename TL, typename TI> inline auto _FieldOpEval(
-	//		Int2Type<EXTRIORDERIVATIVE>,
-	//		Field<Geometry<this_type, N>, TL> const & f, TI const & s)
-	//		DECL_RET_TYPE((f[s]*dS_[s%3]))
+	template<typename TExpr, typename ... IDXS> inline auto OpEval(
+			Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f,
+			size_t m, IDXS ... s) const
+			DECL_RET_TYPE(
+					( get(f,0,Shift(INC(m),s...))* dS_[0][m] )
+					+get(f,0,s...)* dS_[1][m])
 
-	template<typename TExpr> inline auto OpEval(Int2Type<GRAD>,
-			Field<Geometry<this_type, 0>, TExpr> const & f, size_t m = 0,
-			size_t i = 0, size_t j = 0,
-			size_t k = 0) const
-					DECL_RET_TYPE(
-							( get(f,0,i,j,k)* dS_[0][m]
-									+get(f,0,i+(m==0?1:0),j+(m==1?1:0),k+(m==2?1:0))* dS_[1][m] ))
-
-	template<typename TExpr> inline auto OpEval(Int2Type<DIVERGE>,
-			Field<Geometry<this_type, 1>, TExpr> const & f, size_t m = 0,
-			size_t i = 0, size_t j = 0,
-			size_t k = 0) const
+	template<typename TExpr, typename ...IDX> inline auto OpEval(
+			Int2Type<DIVERGE>, Field<Geometry<this_type, 1>, TExpr> const & f,
+			size_t m,
+			IDX ...s) const
 					DECL_RET_TYPE((
 
-									(get(f,0,i,j,k) * dS_[0][0] + get(f,0,i-1,j,k)* dS_[1][0]) +
+									(get(f,0,s...)* dS_[0][0] + get(f,0,Shift( NX,s...))* dS_[1][0]) +
 
-									(get(f,1,i,j,k) * dS_[0][1] + get(f,1,i,j-1,k)* dS_[1][1]) +
+									(get(f,1,s...) * dS_[0][1] + get(f,1,Shift( NY,s...))* dS_[1][1]) +
 
-									(get(f,2,i,j,k) * dS_[0][2] + get(f,2,i,j,k-1)* dS_[1][2])
+									(get(f,2,s...) * dS_[0][2] + get(f,2,Shift( NZ,s...))* dS_[1][2])
 							))
 
-	template<typename TL> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 1>, TL> const & f, //
-			size_t m = 0, size_t i = 0, size_t j = 0,
-			size_t k = 0) const
+	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
+			Field<Geometry<this_type, 1>, TL> const & f, size_t m,
+			IDXS ...s) const
 					DECL_RET_TYPE((
-									get(f,(m+2)%3,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0)) * dS_[0][(m + 1) % 3]
+									get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
 
-									+ get(f,(m+2)%3,i,j,k)* dS_[1][(m + 1) % 3]
+									+ get(f,(m+2)%3,s...)* dS_[1][(m + 1) % 3]
 
-									- get(f,(m+1)%3,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,Shift(INC(m+2) ,s...)) * dS_[0][(m + 2) % 3]
 
-									- get(f,(m+1)%3,i,j,k)* dS_[1][(m + 2) % 3]
-							))
+									- get(f,(m+1)%3,s...)* dS_[1][(m + 2) % 3]
+							)
+					)
 
-	template<typename TL> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 2>, TL> const & f, size_t m = 0,
-			size_t i = 0, size_t j = 0,
-			size_t k = 0) const
+	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
+			Field<Geometry<this_type, 2>, TL> const & f, size_t m,
+			IDXS ...s) const
 					DECL_RET_TYPE((
-									get(f,(m+2)%3,i,j,k)* dS_[0][(m + 1) % 3]
+									get(f,(m+2)%3,s...)* dS_[0][(m + 1) % 3]
 
-									+ get(f,(m+2)%3,i-((m+1)%3==0?1:0),j-((m+1)%3==1?1:0),k-((m+1)%3==2?1:0)) * dS_[1][(m + 1) % 3]
+									+ get(f,(m+2)%3,Shift(DES(m+1),s...)) * dS_[1][(m + 1) % 3]
 
-									- get(f,(m+1)%3,i,j,k)* dS_[0][(m + 2) % 3]
+									- get(f,(m+1)%3,s...)* dS_[0][(m + 2) % 3]
 
-									- get(f,(m+1)%3,i-((m+2)%3==0?1:0),j-((m+2)%3==1?1:0),k-((m+2)%3==2?1:0)) * dS_[1][(m + 2) % 3]
+									- get(f,(m+1)%3,Shift(DES(m+2),s...)) * dS_[1][(m + 2) % 3]
 
 							))
 
-	template<typename TL> inline auto OpEval(Int2Type<CURLPDX>,
-			Field<Geometry<this_type, 1>, TL> const & f, size_t m = 0,
-			size_t i = 0, size_t j = 0,
-			size_t k = 0) const
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDX>, Field<Geometry<this_type, 1>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
 					DECL_RET_TYPE((
-
-									(get(f,(m+2)%3,i+((m+1)%3==0?1:0),j+((m+1)%3==1?1:0),k+((m+1)%3==2?1:0)) * dS_[0][(m + 1) % 3]
-
-											+ get(f,(m+2)%3,i,j,k)* dS_[1][(m + 1) % 3])*((m+1)%3== 1?0:1)
-
-									-( get(f,(m+1)%3,i+((m+2)%3==0?1:0),j+((m+2)%3==1?1:0),k+((m+2)%3==2?1:0)) * dS_[0][(m + 2) % 3]
-
-											+ get(f,(m+1)%3,i,j,k)* dS_[1][(m + 2) % 3]) *((m+2)%3==1?0:1)
-
+									(get(f,(m==0?0:(m==1?2:1)),Shift(X,s...)) * dS_[0][0]
+											+ get(f,(m==0?0:(m==1?2:1)),s...)* dS_[1][0])*(m==0?0:(m==1?-1:1))
 							))
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
+					DECL_RET_TYPE((
+									(get(f,(m==1?0:(m==2?0:2)),Shift(Y,s...)) * dS_[0][1]
+											+ get(f,(m==1?0:(m==2?0:2)),s...)* dS_[1][1])*(m==1?0:(m==2?-1:1))
+							))
+
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
+					DECL_RET_TYPE((
+									(get(f,(m==2?0:(m==0?1:0)),Shift(Z,s...)) * dS_[0][2]
+											+ get(f,(m==2?0:(m==0?1:0)),s...)* dS_[1][2])*(m==2?0:(m==0?-1:1))
+							))
+
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
+					DECL_RET_TYPE((
+									(get(f,(m==0?0:(m==1?2:1)),s...) * dS_[0][0]
+											+ get(f,(m==0?0:(m==1?2:1)),Shift(NX,s...))* dS_[1][0])*(m==0?0:(m==1?-1:1))
+							))
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
+					DECL_RET_TYPE((
+									(get(f,(m==1?0:(m==2?0:2)),s...) * dS_[0][1]
+											+ get(f,(m==1?0:(m==2?0:2)),Shift(NY,s...))* dS_[1][1])*(m==1?0:(m==2?-1:1))
+							))
+
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+			Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
+			size_t m,
+			IDXS ...s) const
+					DECL_RET_TYPE((
+									(get(f,(m==2?0:(m==0?1:0)),s...) * dS_[0][2]
+											+ get(f,(m==2?0:(m==0?1:0)),Shift(NZ,s...))
+											* dS_[1][2])*(m==2?0:(m==0?-1:1))
+							))
+
+	template<int N, typename TL, typename ... IDXS> inline auto OpEval(
+			Int2Type<EXTRIORDERIVATIVE>,
+			Field<Geometry<this_type, N>, TL> const & f, int m, IDXS ... s)
+			DECL_RET_TYPE((get(f,m,s...)*dS_[m]))
 
 	template<int IL, int IR, typename TL, typename TR, typename ...TI> inline auto OpEval(
 			Int2Type<WEDGE>, Field<Geometry<this_type, IL>, TL> const &l,

@@ -93,12 +93,12 @@ public:
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		return base_type::operator[](mesh.template GetIndex<IForm>(s...));
+		return base_type::operator[](mesh.template Component<IForm>(s...));
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
 	{
-		return base_type::operator[](mesh.template GetIndex<IForm>(s...));
+		return base_type::operator[](mesh.template Component<IForm>(s...));
 	}
 
 	inline this_type & operator=(this_type const & rhs)
