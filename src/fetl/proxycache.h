@@ -17,20 +17,20 @@ namespace simpla
  *
  * for Example:
  *
-    template<typename TGeometry, typename TValue>
-	struct ProxyCache<const Field<TGeometry, TValue> >
-	{
-		typedef const Field<TGeometry, TValue> src_type;
+ template<typename TGeometry, typename TValue>
+ struct ProxyCache<const Field<TGeometry, TValue> >
+ {
+ typedef const Field<TGeometry, TValue> src_type;
 
-		typedef Field<TGeometry, ProxyCache<src_type> > type;
+ typedef Field<TGeometry, ProxyCache<src_type> > type;
 
-		template<typename TI>
-		static inline type Eval(src_type & f, TI const &hint_idx)
-		{
-			return std::move(type(f, hint_idx));
-		}
+ template<typename TI>
+ static inline type Eval(src_type & f, TI const &hint_idx)
+ {
+ return std::move(type(f, hint_idx));
+ }
 
-	};
+ };
  *
  * where Field<TGeometry, ProxyCache<src_type> > is the cached version
  * Field.
@@ -42,8 +42,8 @@ struct ProxyCache
 {
 	typedef T src_type;
 	typedef T type;
-	template<typename TI>
-	static inline src_type & Eval(src_type & f, TI const &)
+	template<typename ...TI>
+	static inline src_type & Eval(src_type & f, TI ...)
 	{
 		return f;
 	}

@@ -226,10 +226,10 @@ struct ProxyCache<const Field<TGeometry, TValue> >
 
 	typedef Field<TGeometry, ProxyCache<src_type> > type;
 
-	template<typename TI>
-	static inline type Eval(src_type & f, TI const &hint_idx)
+	template<typename ...TI>
+	static inline type Eval(src_type & f, TI ... hint_idx)
 	{
-		return std::move(type(f, hint_idx));
+		return std::move(type(f, hint_idx...));
 	}
 
 };
@@ -241,10 +241,10 @@ struct ProxyCache<Field<TGeometry, TValue> >
 
 	typedef Field<TGeometry, ProxyCache<src_type> > type;
 
-	template<typename TI>
-	static inline type Eval(src_type & f, TI const & hint_idx)
+	template<typename ... TI>
+	static inline type Eval(src_type & f, TI ... hint_idx)
 	{
-		return std::move(type(f, hint_idx));
+		return std::move(type(f, hint_idx...));
 	}
 };
 

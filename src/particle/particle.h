@@ -8,10 +8,16 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include <fetl/proxycache.h>
 #include <cstddef>
 #include <list>
-#include "utilities/container.h"
+#include <string>
+
+#include "../fetl/field.h"
+#include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
+#include "../fetl/proxycache.h"
+#include "../utilities/container.h"
+
 //need  libstdc++
 //#include <ext/mt_allocator.h>
 //#include <bits/allocator.h>
@@ -140,8 +146,8 @@ public:
 
 			container_type(
 					std::move(
-							pmesh.template MakeContainer<cell_type>(
-									GEOMETRY_TYPE))),
+							pmesh.template MakeContainer<GEOMETRY_TYPE,
+									cell_type>())),
 
 			mesh(pmesh)
 
@@ -156,7 +162,6 @@ public:
 	{
 		return engine_type::TypeName();
 	}
-
 
 	template<typename PT>
 	inline void Deserialize(PT const &vm)
@@ -317,7 +322,7 @@ public:
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args) const
 	{
-		mesh.ForAll(GEOMETRY_TYPE,
+		mesh.ForAll(
 
 		[&](index_type const & s)
 		{

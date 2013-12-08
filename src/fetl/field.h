@@ -103,7 +103,7 @@ public:
 
 	inline this_type & operator=(this_type const & rhs)
 	{
-		mesh.ForA;;(
+		mesh.ForAll(
 
 		[](value_type &l, value_type const &r)
 		{	l = r;},

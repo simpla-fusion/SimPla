@@ -85,26 +85,25 @@ if(USE_CLANG)
   SET(CMAKE_NM      "/usr/bin/llvm-nm")
   SET(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
   SET(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
-  #  SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
+  #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
 endif(USE_CLANG)
 
-set(Boost_USE_STATIC_LIBS       OFF)
-set(Boost_USE_MULTITHREADED     OFF)
-set(Boost_USE_STATIC_RUNTIME    OFF)
+#set(Boost_USE_STATIC_LIBS       OFF)
+#set(Boost_USE_MULTITHREADED     OFF)
+#set(Boost_USE_STATIC_RUNTIME    OFF)
 
 #FIND_PACKAGE(Boost  COMPONENTS date_time program_options )
 #INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 find_package(Lua52)
+INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
 
 find_package(HDF5)
 
 #FIND_PACKAGE(XDMF)
 #MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
-
-INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
 execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      
@@ -116,7 +115,7 @@ MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
  
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
 
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 
 

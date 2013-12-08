@@ -6,9 +6,16 @@
  *      Author: salmon
  */
 
-#include "fetl/fetl.h"
-#include "mesh/co_rect_mesh.h"
-#include "physics/physical_constants.h"
+#include <cmath>
+#include <cstddef>
+#include <iostream>
+#include <string>
+
+#include "../../../src/fetl/field.h"
+#include "../../../src/fetl/ntuple.h"
+#include "../../../src/fetl/primitives.h"
+#include "../../../src/utilities/log.h"
+
 namespace simpla
 {
 

@@ -8,8 +8,8 @@
 #ifndef GEOMETRY_H_
 #define GEOMETRY_H_
 
-#include <fetl/ntuple.h>
-#include <fetl/primitives.h>
+#include "ntuple.h"
+#include "primitives.h"
 
 namespace simpla
 {

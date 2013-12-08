@@ -8,7 +8,9 @@
 #ifndef PIC_ENGINE_DEFAULT_H_
 #define PIC_ENGINE_DEFAULT_H_
 
-#include <fetl/primitives.h>
+#include <string>
+
+#include "../fetl/primitives.h"
 
 namespace simpla
 {

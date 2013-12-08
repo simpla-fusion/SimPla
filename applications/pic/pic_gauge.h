@@ -8,7 +8,10 @@
 #ifndef PIC_GAGUE_H_
 #define PIC_GAGUE_H_
 
-#include <fetl/primitives.h>
+#include <string>
+
+#include "../../src/fetl/ntuple.h"
+#include "../../src/fetl/primitives.h"
 
 namespace simpla
 {

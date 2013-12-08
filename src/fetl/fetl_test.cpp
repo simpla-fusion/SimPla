@@ -8,11 +8,9 @@
 #include <gtest/gtest.h>
 #include <random>
 
-#include "utilities/log.h"
-
-#include "fetl/fetl.h"
-
-#include "mesh/co_rect_mesh.h"
+#include "fetl.h"
+#include "../utilities/log.h"
+#include "../mesh/co_rect_mesh.h"
 
 using namespace simpla;
 

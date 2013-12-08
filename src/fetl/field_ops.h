@@ -8,12 +8,15 @@
 #ifndef OPERATIONS_H_
 #define OPERATIONS_H_
 
-#include <fetl/constant_ops.h>
-#include <fetl/field.h>
-#include <fetl/ntuple.h>
-#include <fetl/primitives.h>
+#include <cstddef>
 #include <type_traits>
+
 #include "../mesh/mesh.h"
+#include "constant_ops.h"
+#include "field.h"
+#include "ntuple.h"
+#include "primitives.h"
+
 namespace simpla
 {
 
@@ -144,7 +147,7 @@ public:
 	}
 
 	typedef decltype(fetl_impl::FieldUniOpEval(Int2Type<TOP>(), std::declval<TM>(),
-					std::declval<TL>(),size_t())) value_type;
+					std::declval<TL>(),0)) value_type;
 
 	template<typename ... TI> inline value_type get(TI ... s) const
 	{
@@ -174,7 +177,7 @@ public:
 	}
 
 	typedef decltype(fetl_impl::FieldBiOpEval(Int2Type<TOP>(),std::declval<TM>(),
-					std::declval<TL>(),std::declval<TR>(),size_t())) value_type;
+					std::declval<TL>(),std::declval<TR>(),0)) value_type;
 
 	template<typename ... TI> inline value_type get(TI ... s) const
 	{

@@ -15,17 +15,17 @@
 #include <utility>
 #include <vector>
 
-#include "simpla_defs.h"
+#include "../src/simpla_defs.h"
 
-#include "fetl/fetl.h"
-#include "mesh/co_rect_mesh.h"
+#include "../src/fetl/fetl.h"
+#include "../src/mesh/co_rect_mesh.h"
 
-#include "utilities/log.h"
-#include "utilities/lua_state.h"
+#include "../src/utilities/log.h"
+#include "../src/utilities/lua_state.h"
 
-#include "engine/object.h"
-#include "particle/particle.h"
-#include "particle/pic_engine_default.h"
+#include "../src/engine/object.h"
+#include "../src/particle/particle.h"
+#include "../src/particle/pic_engine_default.h"
 
 #include "../applications/solver/electromagnetic/pml.h"
 #include "../applications/pic/pic_gauge.h"

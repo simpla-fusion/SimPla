@@ -7,13 +7,16 @@
 
 #ifndef OBJECT_H_
 #define OBJECT_H_
-#include "utilities/log.h"
+
+#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
 #include <typeindex>
 #include <typeinfo>
 #include <utility>
+
+#include "../utilities/log.h"
 
 namespace simpla
 {
