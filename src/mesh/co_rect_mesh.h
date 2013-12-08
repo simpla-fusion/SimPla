@@ -90,7 +90,7 @@ struct CoRectMesh
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const size_t num_comps_per_cell_[4] =
+	const int num_comps_per_cell_[4] =
 	{ 1, 3, 3, 1 };
 
 	size_t idx_shift_[8];
@@ -214,11 +214,11 @@ struct CoRectMesh
 	void AssignDomainMedia(TFUN const &fun, tag_type media_tag)
 	{
 
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
+		for (index_type i = 0; i < dims_[0]; ++i)
+			for (index_type j = 0; j < dims_[1]; ++j)
+				for (index_type k = 0; k < dims_[2]; ++k)
 				{
-					size_t s = (i * strides_[0] + j * strides_[1]
+					index_type s = (i * strides_[0] + j * strides_[1]
 							+ k * strides_[2]);
 
 					coordinates_type x = xmin_;
@@ -244,11 +244,11 @@ struct CoRectMesh
 	{
 		std::set<index_type> tmp_res;
 
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
+		for (index_type i = 0; i < dims_[0]; ++i)
+			for (index_type j = 0; j < dims_[1]; ++j)
+				for (index_type k = 0; k < dims_[2]; ++k)
 				{
-					size_t s0 = (i * strides_[0] + j * strides_[1]
+					index_type s0 = (i * strides_[0] + j * strides_[1]
 							+ k * strides_[2]);
 
 					tag_type v[8];
@@ -506,7 +506,7 @@ public:
 //				for (size_t k = 0; k < dims_[2]; ++k)
 //				{
 //					std::cout << "(";
-//					for (size_t m = 0; m < num_comp; ++m)
+//					for (int m = 0; m < num_comp; ++m)
 //					{
 //						std::cout
 //								<< f[(i * strides_[0] + j * strides_[1]
@@ -522,41 +522,6 @@ public:
 //		std::cout << std::endl;
 //
 //	}
-
-	template<typename Fun, typename ... Args> inline
-	void ForAllCell(Fun const &fun, Args &... args) const
-	{
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
-				{
-					size_t s = (i * strides_[0] + j * strides_[1]
-							+ k * strides_[2]);
-
-					fun(s, args...);
-				}
-
-	}
-	template<typename Fun, typename ... Args> inline
-	void ForAllVertex(Fun const &fun, Args &... args) const
-	{
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
-				{
-					size_t s = (i * strides_[0] + j * strides_[1]
-							+ k * strides_[2]);
-
-					coordinates_type x = xmin_;
-					x[0] += dx_[0] * i;
-					x[1] += dx_[0] * j;
-					x[2] += dx_[0] * k;
-					fun(s, x, args...);
-				}
-
-	}
 
 	inline size_t GetIndex(index_type i, index_type j, index_type k) const
 	{
@@ -578,12 +543,12 @@ private:
 	enum
 	{
 		NIL = 0, // 00 00 00
-		X = 1,   // 00 00 01
-		NX = 2,   // 00 00 10
-		Y = 4,   // 00 01 00
-		NY = 8,   // 00 10 00
-		Z = 16,  // 01 00 00
-		NZ = 32   // 10 00 00
+		X = 1, // 00 00 01
+		NX = 2, // 00 00 10
+		Y = 4, // 00 01 00
+		NY = 8, // 00 10 00
+		Z = 16, // 01 00 00
+		NZ = 32 // 10 00 00
 	};
 	inline size_t INC(int m) const
 	{
@@ -666,35 +631,86 @@ public:
 		return (l.get(s...));
 	}
 
-	/// Traversal
+/// Traversal
 	enum
 	{
 		WITH_GHOSTS = 1, NO_GHOSTS = 0
 	};
 
 	void Traversal(int IFORM,
-			std::function<void(size_t, size_t, size_t, size_t)> const &fun,
+			std::function<void(int, index_type, index_type, index_type)> const &fun,
 			int flag = NO_GHOSTS) const
 	{
-		size_t ib = (flag != NO_GHOSTS) ? 0 : gw_[0];
-		size_t ie = (flag != NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
+		index_type ib = (flag != NO_GHOSTS) ? 0 : gw_[0];
+		index_type ie = (flag != NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
 
-		size_t jb = (flag != NO_GHOSTS) ? 0 : gw_[1];
-		size_t je = (flag != NO_GHOSTS) ? dims_[1] : dims_[1] - gw_[1];
+		index_type jb = (flag != NO_GHOSTS) ? 0 : gw_[1];
+		index_type je = (flag != NO_GHOSTS) ? dims_[1] : dims_[1] - gw_[1];
 
-		size_t kb = (flag != NO_GHOSTS) ? 0 : gw_[2];
-		size_t ke = (flag != NO_GHOSTS) ? dims_[2] : dims_[2] - gw_[2];
+		index_type kb = (flag != NO_GHOSTS) ? 0 : gw_[2];
+		index_type ke = (flag != NO_GHOSTS) ? dims_[2] : dims_[2] - gw_[2];
 
-		size_t mb = 0;
-		size_t me = num_comps_per_cell_[IFORM];
+		int mb = 0;
+		int me = num_comps_per_cell_[IFORM];
 
-		for (size_t i = ib; i < ie; ++i)
-			for (size_t j = jb; j < je; ++j)
-				for (size_t k = kb; k < ke; ++k)
-					for (size_t m = mb; m < me; ++m)
+		for (index_type i = ib; i < ie; ++i)
+			for (index_type j = jb; j < je; ++j)
+				for (index_type k = kb; k < ke; ++k)
+					for (int m = mb; m < me; ++m)
 					{
 						fun(m, i, j, k);
 					}
+
+	}
+
+	inline void Traversal2(int IFORM,
+			std::function<void(int, index_type)> const &fun, int flag =
+					NO_GHOSTS) const
+	{
+		int num = num_comps_per_cell_[IFORM];
+		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+		{
+			fun(this->GetIndex(i,j,k)*num+m);
+		}, flag);
+
+	}
+
+	inline void Traversal3(int IFORM,
+			std::function<void(int, index_type)> const &fun, int flag =
+					NO_GHOSTS) const
+	{
+		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+		{
+			fun(m,this->GetIndex(i,j,k));
+		}, flag);
+
+	}
+
+	template<typename Fun, typename ... Args> inline
+	void ForAllCell(Fun const &fun, Args &... args) const
+	{
+
+		Traversal2(0, [&]( index_type s)
+		{	fun(s,args...);}, NO_GHOSTS);
+
+	}
+	template<typename Fun, typename ... Args> inline
+	void ForAllVertex(Fun const &fun, Args &... args) const
+	{
+
+		for (index_type i = 0; i < dims_[0]; ++i)
+			for (index_type j = 0; j < dims_[1]; ++j)
+				for (index_type k = 0; k < dims_[2]; ++k)
+				{
+					index_type s = (i * strides_[0] + j * strides_[1]
+							+ k * strides_[2]);
+
+					coordinates_type x = xmin_;
+					x[0] += dx_[0] * i;
+					x[1] += dx_[0] * j;
+					x[2] += dx_[0] * k;
+					fun(s, x, args...);
+				}
 
 	}
 
@@ -702,7 +718,7 @@ public:
 	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm,
-				[&](size_t m,size_t i,size_t j,size_t k)
+				[&](int m,index_type i,index_type j,index_type k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
 				WITH_GHOSTS);
 	}
@@ -711,7 +727,7 @@ public:
 	void ForAll(Fun const &fun, TF * l, Args const & ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm,
-				[&](size_t m,size_t i,size_t j,size_t k)
+				[&](int m,index_type i,index_type j,index_type k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
 				WITH_GHOSTS);
 	}
@@ -719,9 +735,8 @@ public:
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForEach(Fun const &fun, TF & l, Args const& ... args) const
 	{
-
 		Traversal(FieldTraits<TF>::IForm,
-				[&](size_t m,size_t i,size_t j,size_t k)
+				[&](int m,index_type i,index_type j,index_type k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
 				NO_GHOSTS);
 	}
@@ -730,12 +745,12 @@ public:
 	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm,
-				[&](size_t m,size_t i,size_t j,size_t k)
+				[&](int m,index_type i,index_type j,index_type k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
 				NO_GHOSTS);
 	}
 
-	// Properties of UniformRectMesh --------------------------------------
+// Properties of UniformRectMesh --------------------------------------
 	inline void SetPeriodicBoundary(int i)
 	{
 		period_[i] = dims_[i];
@@ -988,11 +1003,9 @@ public:
 	 *       011 : 0, 1/2,1/2   Face
 	 * */
 
-	template<int IF, typename T, typename ...TI> inline double //
-	mapto(Int2Type<IF>, T const &l, TI ... s) const
-	{
-		return (l);
-	}
+	template<int IF, typename T> inline auto //
+	mapto(Int2Type<IF>, T const &l, ...) const
+	ENABLE_IF_DECL_RET_TYPE(is_primitive<T>::value,l)
 
 	template<int IF, typename TL, typename ...TI> inline auto mapto(
 			Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
@@ -1000,12 +1013,12 @@ public:
 			DECL_RET_TYPE ((get(l,s...)))
 
 	template<typename TL, typename ...IDXS> inline auto mapto(Int2Type<1>,
-			Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+			Field<Geometry<this_type, 0>, TL> const &l, int m,
 			IDXS ... s) const
 					DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
 
 	template<typename TL, typename ...IDXS> inline auto //
-	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(
@@ -1017,7 +1030,7 @@ public:
 
 							))
 	template<typename TL, typename ...IDXS> inline auto //
-	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l, index_type m,
+	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l, int m,
 			IDXS ...s) const
 			DECL_RET_TYPE(( (
 									get(l,0,s...)+
@@ -1070,14 +1083,14 @@ public:
 
 	template<typename TExpr, typename ... IDXS> inline auto OpEval(
 			Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f,
-			size_t m, IDXS ... s) const
+			int m, IDXS ... s) const
 			DECL_RET_TYPE(
 					( get(f,0,Shift(INC(m),s...))* dS_[0][m] )
 					+get(f,0,s...)* dS_[1][m])
 
 	template<typename TExpr, typename ...IDX> inline auto OpEval(
 			Int2Type<DIVERGE>, Field<Geometry<this_type, 1>, TExpr> const & f,
-			size_t m,
+			int m,
 			IDX ...s) const
 					DECL_RET_TYPE((
 
@@ -1089,7 +1102,7 @@ public:
 							))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 1>, TL> const & f, size_t m,
+			Field<Geometry<this_type, 1>, TL> const & f, int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
@@ -1103,7 +1116,7 @@ public:
 					)
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 2>, TL> const & f, size_t m,
+			Field<Geometry<this_type, 2>, TL> const & f, int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									get(f,(m+2)%3,s...)* dS_[0][(m + 1) % 3]
@@ -1118,7 +1131,7 @@ public:
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDX>, Field<Geometry<this_type, 1>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==0?0:(m==1?2:1)),Shift(X,s...)) * dS_[0][0]
@@ -1126,7 +1139,7 @@ public:
 							))
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==1?0:(m==2?0:2)),Shift(Y,s...)) * dS_[0][1]
@@ -1135,7 +1148,7 @@ public:
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==2?0:(m==0?1:0)),Shift(Z,s...)) * dS_[0][2]
@@ -1144,7 +1157,7 @@ public:
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==0?0:(m==1?2:1)),s...) * dS_[0][0]
@@ -1152,7 +1165,7 @@ public:
 							))
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==1?0:(m==2?0:2)),s...) * dS_[0][1]
@@ -1161,7 +1174,7 @@ public:
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
 			Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
-			size_t m,
+			int m,
 			IDXS ...s) const
 					DECL_RET_TYPE((
 									(get(f,(m==2?0:(m==0?1:0)),s...) * dS_[0][2]
@@ -1187,47 +1200,6 @@ public:
 }
 ;
 
-//template<typename TL> inline auto _FieldOpEval(
-//		Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
-//		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * strides_[(s + 1) % 3]]* dS_[0][(s + 1) % 3]
-//
-//								+ f[s - s %3 + (s + 2) % 3]* dS_[1][(s + 1) % 3]) *((s+1)%3==1?0:1)
-//
-//						- (f[s - s %3 + (s + 1) % 3 + 3 * strides_[(s + 2) % 3]]* dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* dS_[1][(s + 2) % 3]) *((s+2)%3==1?0:1)
-//
-//				)
-//
-//template<typename TL> inline auto _FieldOpEval(
-//		Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
-//		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s %3 + (s + 2) % 3 + 3 * strides_[(s + 1) % 3]]* dS_[0][(s + 1) % 3] + f[s - s %3 + (s + 2) % 3]* dS_[1][(s + 1) % 3]) *((s+1)%3==2?0:1)
-//
-//						- (f[s - s %3 + (s + 1) % 3 + 3 * strides_[(s + 2) % 3]] * dS_[0][(s + 2) % 3] + f[s - s %3 + (s + 1) % 3]* dS_[(s + 2) % 3]) *((s+2)%3==2?0:1) )
-//
-//template<typename TL> inline auto _FieldOpEval(
-//		Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
-//		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==0?0:1)
-//
-//						-(f[s - s % 3 + (s + 1) % 3]* dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==0?0:1) )
-//
-//template<typename TL> inline auto _FieldOpEval(
-//		Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
-//		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3]* dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
-//
-//						-(f[s - s % 3 + (s + 1) % 3] * dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1)
-//
-//				)
-//
-//template<typename TL> inline auto _FieldOpEval(
-//		Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
-//		size_t const & s)
-//				DECL_RET_TYPE( (f[s - s % 3 + (s + 2) % 3] * dS_[0][(s + 1) % 3] + f[s - s % 3 + (s + 2) % 3 - 3 * strides_[(s + 1) % 3]]* dS_[1][(s + 1) % 3] ) *((s+1)%3==1?0:1)
-//
-//						-(f[s - s % 3 + (s + 1) % 3] * dS_[0][(s + 2) % 3] + f[s - s % 3 + (s + 1) % 3 - 3 * strides_[(s + 2) % 3]]* dS_[1][(s + 2) % 3]) *((s+2)%3==2?0:1) )
-
 }
 // namespace simpla
 
@@ -1244,7 +1216,7 @@ public:
 //	for (size_t i = 0; i < dims_[0]; ++i)
 //		for (size_t j = 0; j < dims_[1]; ++j)
 //			for (size_t k = 0; k < dims_[2]; ++k)
-//				for (size_t m = 0; m < num_comp; ++m)
+//				for (int m = 0; m < num_comp; ++m)
 //				{
 //					if (i >= gw_[0] && i < dims_[0] - gw_[0] &&
 //
@@ -1321,7 +1293,7 @@ public:
 //				}
 //				if (s != t)
 //				{
-//					for (size_t m = 0; m < num_comp; ++m)
+//					for (int m = 0; m < num_comp; ++m)
 //					{
 //						ma[s * num_comp + m] = t * num_comp + m;
 //					}
