@@ -93,6 +93,8 @@ struct CoRectMesh
 	const int num_comps_per_cell_[4] =
 	{ 1, 3, 3, 1 };
 
+	coordinates_type coordinates_shift_[4][3];
+
 	size_t idx_shift_[8];
 
 	std::vector<tag_type> media_tag_;
@@ -197,6 +199,38 @@ struct CoRectMesh
 			UnSetPeriodicBoundary(i);
 		}
 		media_tag_.resize(num_grid_points_, 0);
+
+		coordinates_shift_[0][0][0] = 0.0;
+		coordinates_shift_[0][0][1] = 0.0;
+		coordinates_shift_[0][0][2] = 0.0;
+
+		coordinates_shift_[3][0][0] = 0.0;
+		coordinates_shift_[3][0][1] = 0.0;
+		coordinates_shift_[3][0][2] = 0.0;
+
+		coordinates_shift_[1][0][0] = 0.5 * dx_[0];
+		coordinates_shift_[1][0][1] = 0.0;
+		coordinates_shift_[1][0][2] = 0.0;
+
+		coordinates_shift_[1][1][0] = 0.0;
+		coordinates_shift_[1][1][1] = 0.5 * dx_[1];
+		coordinates_shift_[1][1][2] = 0.0;
+
+		coordinates_shift_[1][2][0] = 0.0;
+		coordinates_shift_[1][2][1] = 0.0;
+		coordinates_shift_[1][2][2] = 0.5 * dx_[2];
+
+		coordinates_shift_[2][0][0] = 0.0;
+		coordinates_shift_[2][0][1] = 0.5 * dx_[1];
+		coordinates_shift_[2][0][2] = 0.5 * dx_[2];
+
+		coordinates_shift_[2][1][0] = 0.5 * dx_[0];
+		coordinates_shift_[2][1][1] = 0.0;
+		coordinates_shift_[2][1][2] = 0.5 * dx_[2];
+
+		coordinates_shift_[2][2][0] = 0.5 * dx_[0];
+		coordinates_shift_[2][2][1] = 0.5 * dx_[1];
+		coordinates_shift_[2][2][2] = 0.0;
 
 	}
 
@@ -523,6 +557,41 @@ public:
 //
 //	}
 
+	inline coordinates_type GetCoordinates(int IFORM, int m, index_type i,
+			index_type j, index_type k) const
+	{
+
+		coordinates_type res = xmin_;
+		res[0] += i * dx_[0] + coordinates_shift_[IFORM][m][0];
+		res[1] += i * dx_[1] + coordinates_shift_[IFORM][m][1];
+		res[2] += i * dx_[2] + coordinates_shift_[IFORM][m][2];
+		return std::move(res);
+	}
+
+	inline coordinates_type GetGlobalCoordinates(index_type s,
+			coordinates_type const &r) const
+	{
+		coordinates_type res;
+
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (strides_[i] != 0)
+			{
+				res[i] = (s / strides_[i]) * dx_[i] + xmin_[i];
+
+				s %= strides_[i];
+			}
+			else
+			{
+				res[i] = xmin_[i];
+			}
+		}
+		res += r * dx_;
+
+		return res;
+
+	}
+
 	inline size_t GetIndex(index_type i, index_type j, index_type k) const
 	{
 		return ((i % period_[0]) * strides_[0] + (j % period_[1]) * strides_[1]
@@ -663,9 +732,9 @@ public:
 
 	}
 
-	inline void Traversal2(int IFORM,
-			std::function<void(int, index_type)> const &fun, int flag =
-					NO_GHOSTS) const
+	inline void TraversalOnIndex(int IFORM,
+			std::function<void(index_type)> const &fun,
+			int flag = NO_GHOSTS) const
 	{
 		int num = num_comps_per_cell_[IFORM];
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
@@ -675,42 +744,16 @@ public:
 
 	}
 
-	inline void Traversal3(int IFORM,
-			std::function<void(int, index_type)> const &fun, int flag =
-					NO_GHOSTS) const
+	inline void TraversalOnCoordinates(int IFORM,
+			std::function<void(index_type, coordinates_type)> const &fun,
+			int flag = NO_GHOSTS) const
 	{
-		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-		{
-			fun(m,this->GetIndex(i,j,k));
-		}, flag);
-
-	}
-
-	template<typename Fun, typename ... Args> inline
-	void ForAllCell(Fun const &fun, Args &... args) const
-	{
-
-		Traversal2(0, [&]( index_type s)
-		{	fun(s,args...);}, NO_GHOSTS);
-
-	}
-	template<typename Fun, typename ... Args> inline
-	void ForAllVertex(Fun const &fun, Args &... args) const
-	{
-
-		for (index_type i = 0; i < dims_[0]; ++i)
-			for (index_type j = 0; j < dims_[1]; ++j)
-				for (index_type k = 0; k < dims_[2]; ++k)
+		int num = num_comps_per_cell_[IFORM];
+		Traversal(IFORM,
+				[&](int m,index_type i,index_type j,index_type k)
 				{
-					index_type s = (i * strides_[0] + j * strides_[1]
-							+ k * strides_[2]);
-
-					coordinates_type x = xmin_;
-					x[0] += dx_[0] * i;
-					x[1] += dx_[0] * j;
-					x[2] += dx_[0] * k;
-					fun(s, x, args...);
-				}
+					fun(this->GetIndex(i,j,k)*num+m,this->GetCoordinates(IFORM,m,i,j,k));
+				}, flag);
 
 	}
 
@@ -877,29 +920,6 @@ public:
 		return res;
 	}
 
-	inline coordinates_type GetGlobalCoordinates(index_type s,
-			coordinates_type const &r) const
-	{
-		coordinates_type res;
-
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			if (strides_[i] != 0)
-			{
-				res[i] = (s / strides_[i]) * dx_[i] + xmin_[i];
-
-				s %= strides_[i];
-			}
-			else
-			{
-				res[i] = xmin_[i];
-			}
-		}
-		res += r * dx_;
-
-		return res;
-
-	}
 	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<0>, index_type const & idx,
 			PList & points, int affect_region = 1) const

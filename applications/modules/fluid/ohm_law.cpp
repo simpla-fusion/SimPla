@@ -12,16 +12,12 @@
 
 namespace simpla
 {
-namespace Fluid
-{
-using namespace fetl;
 
 template<typename TV, typename TG, typename TBUNBLE>
 void ColdFluid(Field<IZeroForm, nTuple<THREE, TV>, TG> & Bv,
 		Field<IZeroForm, nTuple<THREE, TV>, TG> &Ev,
 		Field<IZeroForm, nTuple<THREE, TV>, TG> &Jv, TBUNBLE &ps, Real dt)
 {
-	DEFINE_FIELDS(TV, TG);
 
 	const Real epsilon0 = 1.0;
 	const Real protonMass = 1.0;
@@ -108,5 +104,4 @@ void ColdFluid(Field<IZeroForm, nTuple<THREE, TV>, TG> & Bv,
 	}
 
 }
-} // namespace Fluid
 }  // namespace simpla
