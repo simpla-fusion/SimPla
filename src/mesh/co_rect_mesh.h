@@ -676,14 +676,14 @@ public:
 			std::function<void(size_t, size_t, size_t, size_t)> const &fun,
 			int flag = NO_GHOSTS) const
 	{
-		size_t ib = (flag == NO_GHOSTS) ? 0 : gw_[0];
-		size_t ie = (flag == NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
+		size_t ib = (flag != NO_GHOSTS) ? 0 : gw_[0];
+		size_t ie = (flag != NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
 
-		size_t jb = (flag == NO_GHOSTS) ? 0 : gw_[1];
-		size_t je = (flag == NO_GHOSTS) ? dims_[1] : dims_[1] - gw_[1];
+		size_t jb = (flag != NO_GHOSTS) ? 0 : gw_[1];
+		size_t je = (flag != NO_GHOSTS) ? dims_[1] : dims_[1] - gw_[1];
 
-		size_t kb = (flag == NO_GHOSTS) ? 0 : gw_[2];
-		size_t ke = (flag == NO_GHOSTS) ? dims_[2] : dims_[2] - gw_[2];
+		size_t kb = (flag != NO_GHOSTS) ? 0 : gw_[2];
+		size_t ke = (flag != NO_GHOSTS) ? dims_[2] : dims_[2] - gw_[2];
 
 		size_t mb = 0;
 		size_t me = num_comps_per_cell_[IFORM];
@@ -701,71 +701,23 @@ public:
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
 	{
-
-		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
-					for (size_t m = 0; m < num_comp; ++m)
-					{
-						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
-					}
+		Traversal(FieldTraits<TF>::IForm,
+				[&](size_t m,size_t i,size_t j,size_t k)
+				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+				WITH_GHOSTS);
 	}
 
 	template<typename Fun, typename TF, typename ...Args> inline
 	void ForAll(Fun const &fun, TF * l, Args const & ... args) const
 	{
-		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
-
-		for (size_t i = 0; i < dims_[0]; ++i)
-			for (size_t j = 0; j < dims_[1]; ++j)
-				for (size_t k = 0; k < dims_[2]; ++k)
-					for (size_t m = 0; m < num_comp; ++m)
-					{
-						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
-					}
-	}
-
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
-//	{
-//
-//		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
-//
-//		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
-//			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
-//				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
-//					for (size_t m = 0; m < num_comp; ++m)
-//					{
-//						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
-//					}
-//	}
-//
-//	template<typename Fun, typename TF, typename ...Args> inline
-//	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
-//	{
-//		int num_comp = num_comps_per_cell_[FieldTraits<TF>::IForm];
-//
-//		for (size_t i = gw_[0]; i < dims_[0] - gw_[0]; ++i)
-//			for (size_t j = gw_[1]; j < dims_[1] - gw_[1]; ++j)
-//				for (size_t k = gw_[2]; k < dims_[2] - gw_[2]; ++k)
-//					for (size_t m = 0; m < num_comp; ++m)
-//					{
-//						fun(get(l, m, i, j, k), get(args, m,i, j, k)...);
-//					}
-//	}
-
-	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, TF * l, Args const& ... args) const
-	{
 		Traversal(FieldTraits<TF>::IForm,
 				[&](size_t m,size_t i,size_t j,size_t k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
-				NO_GHOSTS);
+				WITH_GHOSTS);
 	}
+
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
+	void ForEach(Fun const &fun, TF & l, Args const& ... args) const
 	{
 
 		Traversal(FieldTraits<TF>::IForm,
@@ -774,7 +726,16 @@ public:
 				NO_GHOSTS);
 	}
 
-// Properties of UniformRectMesh --------------------------------------
+	template<typename Fun, typename TF, typename ...Args> inline
+	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
+	{
+		Traversal(FieldTraits<TF>::IForm,
+				[&](size_t m,size_t i,size_t j,size_t k)
+				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+				NO_GHOSTS);
+	}
+
+	// Properties of UniformRectMesh --------------------------------------
 	inline void SetPeriodicBoundary(int i)
 	{
 		period_[i] = dims_[i];
