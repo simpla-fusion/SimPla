@@ -52,7 +52,7 @@ struct CoRectMesh
 
 	typedef unsigned int tag_type;
 
-	PhysicalConstants phys_constants;
+	PhysicalConstants constants;
 
 	this_type & operator=(const this_type&) = delete;
 
@@ -117,7 +117,7 @@ struct CoRectMesh
 	template<typename PT>
 	inline void Deserialize(PT const &vm)
 	{
-		phys_constants.Deserialize(vm.GetChild("UnitSystem"));
+		constants.Deserialize(vm.GetChild("UnitSystem"));
 
 		vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
 		vm.GetChild("Topology").template GetValue("GhostWidth", &gw_);
@@ -135,7 +135,7 @@ struct CoRectMesh
 		vm.GetChild("Geometry").template SetValue("Min", &xmin_);
 		vm.GetChild("Geometry").template SetValue("Max", &xmax_);
 
-		phys_constants.Serialize(vm.GetChild("UnitSystem"));
+		constants.Serialize(vm.GetChild("UnitSystem"));
 	}
 
 	inline void _SetImaginaryPart(Real i, Real * v)
@@ -234,9 +234,12 @@ struct CoRectMesh
 
 	}
 
-	template<int iform, typename E> inline typename Container<E>::type MakeContainer() const
+	template<int iform, typename E> inline typename ContainerTraits<E>::type MakeContainer(
+			E defalut_value = E()) const
 	{
-		return std::move(Container<E>::Create(GetNumOfGridPoints(iform)));
+		return std::move(
+				ContainerTraits<E>::Create(GetNumOfElements(iform),
+						defalut_value));
 	}
 
 	/**
@@ -670,6 +673,14 @@ public:
 		return std::move(l);
 	}
 
+	template<int IFORM, typename TL> inline typename Field<
+			Geometry<this_type, IFORM>, TL>::value_type & get(
+			Field<Geometry<this_type, IFORM>, TL> *l, size_t s) const
+	{
+		return l->get(s % num_comps_per_cell_[IFORM],
+				s / num_comps_per_cell_[IFORM]);
+	}
+
 	template<int IFORM, typename TL, typename ...TI> inline typename Field<
 			Geometry<this_type, IFORM>, TL>::value_type & get(
 			Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
@@ -732,19 +743,18 @@ public:
 
 	}
 
-	inline void TraversalOnIndex(int IFORM,
-			std::function<void(index_type)> const &fun,
-			int flag = NO_GHOSTS) const
+	inline void TraversalIndex(int IFORM,
+			std::function<void(int, index_type)> const &fun, int flag =
+					NO_GHOSTS) const
 	{
-		int num = num_comps_per_cell_[IFORM];
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
-			fun(this->GetIndex(i,j,k)*num+m);
+			fun(m,this->GetIndex(i,j,k));
 		}, flag);
 
 	}
 
-	inline void TraversalOnCoordinates(int IFORM,
+	inline void TraversalCoordinates(int IFORM,
 			std::function<void(index_type, coordinates_type)> const &fun,
 			int flag = NO_GHOSTS) const
 	{
@@ -791,6 +801,28 @@ public:
 				[&](int m,index_type i,index_type j,index_type k)
 				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
 				NO_GHOSTS);
+	}
+
+	template<typename TL, typename TR>
+	void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
+	{
+		if (lhs->empty())
+		{
+			lhs->reserve(GetNumOfElements(IFORM));
+			TraversalIndex(IFORM, [&](int m,size_t s)
+			{
+				typename FieldTraits<TL>::value_type v;
+				v=get(rhs,m,s);
+				lhs->base_type::push_back(v);
+			}, WITH_GHOSTS);
+		}
+		else
+		{
+			ForAll([](typename FieldTraits<TL>::value_type &l,
+					typename FieldTraits<TR>::value_type const & r)
+			{	l = r;}, lhs, rhs);
+		}
+
 	}
 
 // Properties of UniformRectMesh --------------------------------------
@@ -845,7 +877,7 @@ public:
 		Update();
 	}
 
-	inline size_t GetNumOfGridPoints(int iform) const
+	inline size_t GetNumOfElements(int iform) const
 	{
 
 		return (num_grid_points_ * num_comps_per_cell_[iform]);

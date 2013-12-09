@@ -12,22 +12,22 @@
 #include <list>
 #include <memory>
 #include <vector>
-
+#include "allocator_mempool.h"
 namespace simpla
 {
-template<typename T> struct Container
+template<typename T> struct ContainerTraits
 {
-	typedef std::vector<T> type;
+	typedef std::vector<T, MemPoolAllocator<T> > type;
 
-	static type Create(size_t num)
+	static type Create(size_t num, T const & default_value = T())
 	{
-		return std::move(type(num, T()));
+		return std::move(type(num, default_value));
 	}
 };
 
 template<typename T> using FixedSizeSmallObjectAllocater = std::allocator<T>;
 
-template<typename T> struct Container<std::list<T> >
+template<typename T> struct ContainerTraits<std::list<T> >
 {
 	typedef std::list<T, FixedSizeSmallObjectAllocater<T> > ele_type;
 	typedef std::vector<ele_type> type;

@@ -31,7 +31,7 @@ template<typename TG, typename TValue> struct Field;
  */
 
 template<typename TG, typename TValue>
-struct Field: public Container<TValue>::type
+struct Field: public ContainerTraits<TValue>::type
 {
 public:
 
@@ -50,7 +50,7 @@ public:
 
 	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
 
-	typedef typename Container<value_type>::type base_type;
+	typedef typename ContainerTraits<value_type>::type base_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -61,11 +61,16 @@ public:
 	mesh_type const &mesh;
 
 	Field(mesh_type const &pmesh) :
-			base_type(
-					std::move(
-							pmesh.template MakeContainer<IForm, value_type>())), mesh(
-					pmesh)
+			mesh(pmesh)
 	{
+	}
+
+	Field(mesh_type const &pmesh, value_type default_value) :
+			base_type(
+					pmesh.template MakeContainer<IForm, value_type>(
+							default_value)), mesh(pmesh)
+	{
+
 	}
 
 	Field(this_type const & f) = delete;
@@ -101,40 +106,31 @@ public:
 		return base_type::operator[](mesh.template Component<IForm>(s...));
 	}
 
-	inline this_type & operator=(this_type const & rhs)
+	inline this_type &
+	operator =(this_type const & rhs)
 	{
-		mesh.ForAll(
+		mesh.AssignContainer(IForm, this, rhs);
+		return (*this);
+	}
 
-		[](value_type &l, value_type const &r)
-		{	l = r;},
-
-		this, rhs);
-
+	template<typename TR> inline this_type &
+	operator =(TR const & rhs)
+	{
+		mesh.AssignContainer(IForm, this, rhs);
 		return (*this);
 	}
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
-	                                                                                               \
-	template<typename TR> inline this_type &                                                       \
-	operator _OP_(Field<geometry_type, TR> const & rhs)                                            \
-	{                                                                                              \
-	typedef typename Field<geometry_type, TR>::value_type r_value_type;                            \
-		mesh.ForAll( [](value_type &l, r_value_type const& r) { l _OP_ r;},this,rhs);             \
-		return (*this);                                                                            \
-	}                                                                                              \
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
 	{                                                                                              \
-		mesh.ForAll( [](value_type &l, TR const & r){	l _OP_ r;}  ,this, rhs);                   \
-		return (*this);                                                                            \
-	}                                                                                              \
+		mesh.ForAll( [](value_type &l,typename FieldTraits<TR>::value_type const & r)              \
+	            {	l _OP_ r;},this, rhs);                                                         \
+	return (*this);}
 
+	DECL_SELF_ASSIGN (+=)
 
-	DECL_SELF_ASSIGN(=)
-
-DECL_SELF_ASSIGN	(+=)
-
-	DECL_SELF_ASSIGN (-=)
+DECL_SELF_ASSIGN	(-=)
 
 	DECL_SELF_ASSIGN (*=)
 

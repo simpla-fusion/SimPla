@@ -10,101 +10,185 @@
 #include <map>
 #include <memory>
 #include "singleton_holder.h"
-#include "utilities/log.h"
+#include "log.h"
 
 class MemoryPool: public SingletonHolder<MemoryPool>
 {
+private:
 	enum
 	{
 		MAX_POOL_DEPTH = 128
 	};
 
-	typedef std::multimap<size_t, std::shared_ptr<int8_t> > MemoryMap;
+	std::map<size_t, std::shared_ptr<void>> released_raw_ptr_;
 
-	MemoryMap pool_;
+	std::multimap<size_t, std::shared_ptr<void> > pool_;
 
-	size_t MAX_POOL_DEPTH_IN_GB;
+	typedef int8_t byte_t;
+
+	size_t MAX_POOL_SIZE;
+
 	const size_t ONE_GIGA = 1024l * 1024l * 1024l;
+
+	size_t ratio_; /// allocatro release free memory block when "demanded size"< block size < ratio_ * "demanded size"
+
 public:
+
 	MemoryPool() :
-			MAX_POOL_DEPTH_IN_GB(2)  //2G
+			MAX_POOL_SIZE(2), ratio_(2) //2G
 	{
 	}
 	~MemoryPool()
 	{
 	}
-	void set_pool_depth_in_GB(size_t s)
+
+	// unused memory will be freed when total memory size >= pool size
+	void SetPoolSizeInGB(size_t s)
 	{
-		MAX_POOL_DEPTH_IN_GB = s;
+		MAX_POOL_SIZE = s * ONE_GIGA;
 	}
-	inline std::shared_ptr<int8_t> alloc(size_t size)
+
+	/**
+	 *
+	 * @param not_used
+	 * @param in_used
+	 * @return
+	 */
+	size_t GetMemorySize(size_t * p_unused = nullptr,
+			size_t * p_used = nullptr) const
 	{
-		std::shared_ptr<int8_t> res;
-
-		bool isFound = false;
-
-		std::pair<MemoryMap::iterator, MemoryMap::iterator> pt =
-				pool_.equal_range(size);
-		if (pt.first != pool_.end())
+		size_t unused_memory = 0;
+		size_t used_memory = 0;
+		for (auto const & p : pool_)
 		{
-			for (MemoryMap::iterator it = pt.first; it != pt.second; ++it)
+			if (p.second.unique())
 			{
-				if (it->second.unique())
-				{
-					std::shared_ptr<int8_t>(it->second).swap(res);
-					isFound = true;
-					break;
-				}
+				unused_memory += p.first;
+			}
+			else
+			{
+				used_memory += p.first;
 			}
 		}
-		if (!isFound)
+		if (p_unused != nullptr)
+		{
+			*p_unused = used_memory;
+		}
+		if (p_used != nullptr)
+		{
+			*p_used = used_memory;
+		}
+
+		return unused_memory + used_memory;
+	}
+
+	double GetMemorySizeInGB(double * p_unused = nullptr, double * p_used =
+			nullptr) const
+	{
+		size_t unused_memory = 0;
+		size_t used_memory = 0;
+		size_t total = GetMemorySize(&unused_memory, &used_memory);
+
+		if (p_unused != nullptr)
+		{
+			*p_unused = static_cast<double>(unused_memory)
+					/ static_cast<double>(ONE_GIGA);
+		}
+
+		if (p_used != nullptr)
+		{
+			*p_used = static_cast<double>(used_memory)
+					/ static_cast<double>(ONE_GIGA);
+		}
+
+		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
+	}
+
+	inline std::shared_ptr<void> allocate_shared_ptr(size_t demand)
+	{
+		std::shared_ptr<void> res(nullptr);
+
+		// find memory block which is not smaller than demand size
+		auto pt = pool_.lower_bound(demand);
+
+		for (auto & p : pool_)
+		{
+			//release memory if block is free and size < ratio_ * demand
+			if (p.second.unique() && p.first < ratio_ * demand)
+			{
+				res = p.second;
+				break;
+			}
+		}
+
+		// if there is no proper memory block available , allocate new memory block
+		if (res == nullptr)
 		{
 			try
 			{
-				std::shared_ptr<int8_t>(new int8_t[size]).swap(res);
-
+				res = std::shared_ptr<void>(new byte_t[demand]);
 			} catch (std::bad_alloc const &error)
 			{
 				Log(-2) << __FILE__ << "[" << __LINE__ << "]:"
-						<< "Can not get enough memory! [ ~" << size / ONE_GIGA
+						<< "Can not get enough memory! [ ~" << demand / ONE_GIGA
 						<< " GiB ]" << std::endl;
 				throw(error);
 			}
 
-			pool_.insert(MemoryMap::value_type(size, res));
+			// put new memory into pool
+			pool_.insert(std::make_pair(demand, res));
 		}
 		return res;
 	}
 
-	inline void release()
+	inline void * allocate(size_t size)
 	{
-		size_t pool_depth = 0;
+		std::shared_ptr<void> res = allocate_shared_ptr(size);
 
-		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
+		released_raw_ptr_[std::hash<std::shared_ptr<void>>()(res)] = res;
+
+		return res.get();
+
+	}
+
+	inline void deallocate(void * p, size_t size = 0)
+	{
+		auto it = released_raw_ptr_.find(std::hash<void *>()(p));
+
+		if (it != released_raw_ptr_.end())
 		{
-			if (it->second.unique())
-			{
-				if (pool_depth > MAX_POOL_DEPTH_IN_GB * ONE_GIGA)
-				{
-					pool_.erase(it);
-				}
-				else
-				{
-					pool_depth += it->first;
-				}
-			}
+			it->second.reset();
 		}
+		ReleaseMemory();
+	}
 
-		for (MemoryMap::iterator it = pool_.begin(); it != pool_.end(); ++it)
+	inline void deallocate(std::shared_ptr<void>& p, size_t size = 0)
+	{
+		p.reset();
+		ReleaseMemory();
+	}
+
+private:
+	inline void ReleaseMemory()
+	{
+		// the size of allocated memory
+		size_t total_size = GetMemorySize();
+
+		auto it = pool_.begin();
+
+		// release free memory until total_size < MAX_POOL_SIZE or no free memory is avaible
+		while (total_size > MAX_POOL_SIZE && it != pool_.end())
 		{
 			if (it->second.unique())
 			{
-				if (pool_depth > MAX_POOL_DEPTH_IN_GB * ONE_GIGA)
-				{
-					pool_.erase(it);
-					pool_depth -= it->first;
-				}
+				total_size -= it->first;
+				it = pool_.erase(it);
 			}
+			else
+			{
+				++it;
+			}
+
 		}
 	}
 };

@@ -101,7 +101,7 @@ private:
 template<typename TM, class Engine>
 class Particle: public Engine,
 
-public Container<std::list<typename Engine::Point_s> >::type,
+public ContainerTraits<std::list<typename Engine::Point_s> >::type,
 
 public ParticleBase<TM>
 
@@ -133,7 +133,7 @@ public:
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename Container<cell_type>::type container_type;
+	typedef typename ContainerTraits<cell_type>::type container_type;
 
 	mesh_type const &mesh;
 

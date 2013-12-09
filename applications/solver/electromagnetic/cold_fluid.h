@@ -8,7 +8,7 @@
 #ifndef COLD_FLUID_H_
 #define COLD_FLUID_H_
 
-#include "fetl/fetl.h"
+#include "../../src/fetl/fetl.h"
 
 namespace simpla
 {
@@ -16,67 +16,69 @@ namespace simpla
 template<typename TM>
 class ColdFluidEM
 {
-	typedef TM mesh_type;
+public:
+	typedef TM Mesh;
+	template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
+	template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
+	template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;
+	template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;
+	template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;
+	template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;
 
-	template<int IFORM> using Form = Field<Geometry<mesh_type,IFORM>,Real >;
-	template<int IFORM> using VForm = Field<Geometry<mesh_type,IFORM>,nTuple<3,Real> >;
+	typedef Mesh mesh_type;
+
+private:
+
+	struct Species
+	{
+		std::string name;
+		Real m;
+		Real Z;
+		Form<0> n;
+		VectorForm<0> J;
+	};
+	std::list<Species> sp_list_;
+public:
 
 	mesh_type const & mesh;
 
-	const double mu0;
-	const double epsilon0;
-	const double speed_of_light;
-	const double proton_mass;
-	const double elementary_charge;
+	template<typename TConfig>
+	ColdFluidEM(mesh_type const & pmesh, TConfig const &phys) :
+			mesh(pmesh)
 
-	ColdFluidEM(mesh_type const & pm, PhysicalConstants const &phys) :
-			mesh(pm)
-
-			, mu0(phys["permeability_of_free_space"])
-
-			, epsilon0(phys["permittivity_of_free_space"])
-
-			, speed_of_light(phys["speed_of_light"])
-
-			, proton_mass(phys["proton_mass"])
-
-			, elementary_charge(phys["elementary_charge"])
-
-			, K_(mesh), K(mesh), a(mesh), b(mesh), c(mesh)
-
-			, BB(mesh), Ev(mesh), Bv(mesh), dEvdt(mesh)
 	{
 	}
 
-	Form<0, nTuple<3, Real> > K_;
-	Form<0, nTuple<3, Real> > K;
-	Form<0> a;
-	Form<0> b;
-	Form<0> c;
-	Form<0> BB;
-	Form<0, Vec3> Ev, Bv, dEvdt;
-
-	template<typename TE, typename TB, typename TJ, typename TS>
-	void Eval(TE const &E, TB const &B, TJ const &J, TS & sp_list, Real dt)
+	template<typename TJ, typename TE, typename TB> inline
+	void Eval(Real dt, TJ const &J, TE const *E, TB const *B)
 	{
-		E += (Curl(B / mu0) - J) / epsilon0 * dt;
 
-		B -= Curl(E) * dt;
+		const double mu0 = mesh.constants["permeability of free space"];
+		const double epsilon0 = mesh.constants["permittivity of free space"];
+		const double speed_of_light = mesh.constants["speed of light"];
+		const double proton_mass = mesh.constants["proton mass"];
+		const double elementary_charge = mesh.constants["elementary charge"];
 
-		a.clear();
-		b.clear();
-		c.clear();
-		K.clear();
+		*E += (Curl((*B) / mu0) - J) / epsilon0 * dt;
+		*B -= Curl(*E) * dt;
+
+		VectorForm<0> K_(mesh);
+		VectorForm<0> K(mesh);
+		Form<0> a(mesh);
+		Form<0> b(mesh);
+		Form<0> c(mesh);
+		Form<0> BB(mesh);
+		VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
 
 		BB = Wedge(B, HodgeStar(B));
 
-		for (auto &v : sp_list)
+		for (auto &v : sp_list_)
 		{
 
-			auto & ns = v.get<Form<0> >("n");
-			auto & Js = v.get<VForm<0> >("J");
-			auto ms = v.properties.get<Real>("m") * proton_mass;
-			auto Zs = v.properties.get<Real>("Z") * elementary_charge;
+			auto & ns = v.n;
+			auto & Js = v.J;
+			auto ms = v.m * proton_mass;
+			auto Zs = v.Z * elementary_charge;
 
 			Form<0> as(mesh);
 
@@ -110,14 +112,16 @@ class ColdFluidEM
 				+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
 				+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
 						/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
-		for (auto &v : sp_list)
+
+		for (auto &v : sp_list_)
 		{
-			auto & ns = v.get<Form<0> >("n");
-			auto & Js = v.get<VForm<0> >("J");
-			Real ms = v.properties.get<Real>("m") * proton_mass;
-			Real Zs = v.properties.get<Real>("Z") * elementary_charge;
+			auto & ns = v.n;
+			auto & Js = v.J;
+			auto ms = v.m * proton_mass;
+			auto Zs = v.Z * elementary_charge;
 
 			Form<0> as(mesh);
+
 			as = 2.0 * ms / (dt * Zs);
 
 			K_ = // 2.0*nu*(Js)

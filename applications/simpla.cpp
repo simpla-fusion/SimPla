@@ -111,11 +111,11 @@ int main(int argc, char **argv)
 
 // Main Loop ============================================
 
-	const double mu0 = mesh.phys_constants["permeability of free space"];
-	const double epsilon0 = mesh.phys_constants["permittivity of free space"];
-	const double speed_of_light = mesh.phys_constants["speed of light"];
-	const double proton_mass = mesh.phys_constants["proton mass"];
-	const double elementary_charge = mesh.phys_constants["elementary charge"];
+	const double mu0 = mesh.constants["permeability of free space"];
+	const double epsilon0 = mesh.constants["permittivity of free space"];
+	const double speed_of_light = mesh.constants["speed of light"];
+	const double proton_mass = mesh.constants["proton mass"];
+	const double elementary_charge = mesh.constants["elementary charge"];
 
 	Form<1> E(mesh);
 	Form<1> J(mesh);

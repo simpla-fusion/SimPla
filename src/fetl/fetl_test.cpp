@@ -68,6 +68,8 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	typename TestFixture::FieldType::value_type a; a= 1.0;
 
+	f=0.0;
+
 	for (size_t s = 0, e=f.size(); s < e; ++s)
 	{
 		f[s] = a*static_cast<double>(s);
@@ -92,7 +94,8 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	value_type a; a = 3.0;
 
-	std::fill(f2.begin(),f2.end(), a);
+	f2 = a;
+	f1 = 0;
 
 	for (auto p : f2)
 	{
@@ -157,8 +160,8 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 	va=2.0;vb=3.0;
 
-	std::fill(f1.begin(),f1.end(), va);
-	std::fill(f2.begin(),f2.end(), vb);
+	f1=va;
+	f2=vb;
 
 	f3 = - f1 *2.0 + f2*c - f1/b
 	;
@@ -196,10 +199,12 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	va=ra;
 	vb=rb;
 	vc=rc;
-
-	std::fill(a.begin(),a.end(), ra);
-	std::fill(b.begin(),b.end(), rb);
-	std::fill(c.begin(),c.end(), rc);
+	a=ra;
+	b=rb;
+	c=rc;
+	f1=0.0;
+	f2=0.0;
+	f3=0.0;
 
 	size_t count=0;
 
@@ -326,10 +331,8 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	typename TestFixture::ScalarField res_scalar_field(mesh);
 
-	typename TestFixture::VectorField va(mesh), vb(mesh), res_vector_field(
+	typename TestFixture::VectorField va(mesh,vc2), vb(mesh), res_vector_field(
 			mesh);
-
-	std::fill(va.begin(), va.end(), vc2);
 
 	res_scalar_field = Dot(vc1, va);
 
@@ -427,14 +430,11 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	TestFixture::SetValue(&v);
 
-	typename TestFixture::TZeroForm sf(mesh);
-	typename TestFixture::TTwoForm vf2(mesh);
+	typename TestFixture::TZeroForm sf(mesh,v);
+	typename TestFixture::TTwoForm vf2(mesh,v);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-
-	std::fill(sf.begin(),sf.end(), 0.0);
-	std::fill(vf2.begin(),vf2.end(), 0.0);
 
 	Real m=0.0;
 
@@ -469,22 +469,20 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	Mesh const & mesh = TestFixture::mesh;
 
-	typename TestFixture::TZeroForm sf(mesh);
-	typename TestFixture::TOneForm vf1(mesh);
-	typename TestFixture::TTwoForm vf2(mesh);
-
 	typename TestFixture::value_type v;
 
-	TestFixture::SetValue(&v);
-
 	v=1.0;
+
+	typename TestFixture::TZeroForm sf(mesh);
+	typename TestFixture::TOneForm vf1(mesh);
+	typename TestFixture::TTwoForm vf2(mesh,v);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	for(auto &p:vf2)
 	{
-		p= uniform_dist(gen);
+		p*= uniform_dist(gen);
 	}
 
 	vf1 = Curl(vf2);
