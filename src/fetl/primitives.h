@@ -220,7 +220,6 @@ struct ConstReferenceTraits
 			const TL>::type type;
 };
 
-
 template<class T, typename TI = int>
 struct is_indexable
 {
@@ -246,7 +245,6 @@ public:
 
 };
 
-
 typedef enum
 {
 	PLUS = 1, MINUS = 2, MULTIPLIES = 3, DIVIDES = 4, NEGATE = 5,
@@ -271,6 +269,11 @@ typedef enum
 	CURLPDY,
 	CURLPDZ,
 
+	MAPTO0,
+	MAPTO1,
+	MAPTO2,
+	MAPTO3,
+
 	EQUAL,
 	LESS,
 	GREATER,
@@ -289,7 +292,6 @@ typedef enum
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
-
 
 template<int TOP, typename TL, typename TR> struct OpTraits;
 template<typename T>
@@ -330,7 +332,6 @@ struct is_field
 {
 	static const bool value = FieldTraits<TL>::is_field;
 };
-
 
 template<typename T> auto abs(T const & m)
 DECL_RET_TYPE((std::abs(m)))
