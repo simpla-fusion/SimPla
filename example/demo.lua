@@ -47,13 +47,18 @@
 
       }
     }
-    FieldSolver= {Type="Default",bc={5,5,5,5,5,5}}
+    
+    FieldSolver= 
+      {
+           Type="Default"
+           -- Type="PML",  bc={5,5,5,5,5,5}
+      }
     Particles=
-	{
-         {Name="ion",Mass=1.0,Charge=1.0,Engine="GGauge",PIC=100},
-         {Name="ele",Mass=1.0,Charge=-1.0,Engine="Default",PIC=100}
-         
-	}
+	   {
+         {Name="ion",Mass=1.0,Charge=1.0,Engine="ColdFluid"},
+         {Name="ele",Mass=1.0,Charge=-1.0,Engine="ColdFluid"}         
+	   }
+
    --[[ uncomment this line, if you need Cycle BC.
     -- set BC(boundary condition), now only first two are valid         
     -- BC >= GW               

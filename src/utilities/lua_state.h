@@ -91,32 +91,33 @@ class LuaObject
 {
 	std::shared_ptr<lua_State> L_;
 
-	int GLOBAL_IDX_;
+	int GLOBAL_REF_IDX_;
 	int self_;
 	std::string path_;
 
 public:
 
 	LuaObject() :
-			L_(nullptr), self_(0), GLOBAL_IDX_(0)
+			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 	LuaObject(std::shared_ptr<lua_State> l, int G, int s,
 			std::string const & path) :
-			L_(l), GLOBAL_IDX_(G), self_(s), path_(path)
+			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
 	LuaObject(LuaObject const & r) :
-			L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), path_(r.path_)
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
 
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, r.self_);
-		self_ = luaL_ref(L_.get(), GLOBAL_IDX_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
+		self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 	}
 
 	LuaObject(LuaObject && r) :
-			L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), self_(r.self_), path_(r.path_)
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
+					r.path_)
 	{
 		r.self_ = 0;
 	}
@@ -126,12 +127,12 @@ public:
 
 		if (self_ > 0)
 		{
-			luaL_unref(L_.get(), GLOBAL_IDX_, self_);
+			luaL_unref(L_.get(), GLOBAL_REF_IDX_, self_);
 		}
 
 		if (L_.unique())
 		{
-			lua_remove(L_.get(), GLOBAL_IDX_);
+			lua_remove(L_.get(), GLOBAL_REF_IDX_);
 		}
 //		if (L_ != nullptr)
 //		{
@@ -143,7 +144,7 @@ public:
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
 	inline bool _FUN_NAME_() const                                             \
 	{                                                                          \
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);                             \
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);                             \
 		bool res = _LUA_FUN_(L_.get(), -1);                                    \
 		lua_pop(L_.get(), 1);                                                  \
 		return res;                                                            \
@@ -160,7 +161,7 @@ public:
 
 	inline std::string GetTypeName() const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		std::string res = lua_typename(L_.get(), -1);
 		lua_pop(L_.get(), 1);
 		return res;
@@ -176,7 +177,7 @@ public:
 
 			lua_newtable(L_.get());  // new table on stack
 
-			GLOBAL_IDX_ = lua_gettop(L_.get());
+			GLOBAL_REF_IDX_ = lua_gettop(L_.get());
 
 			self_ = -1;
 
@@ -360,7 +361,7 @@ public:
 
 	iterator begin()
 	{
-		return iterator(L_, GLOBAL_IDX_, self_, path_);
+		return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
 	}
 	iterator end()
 	{
@@ -370,7 +371,7 @@ public:
 	template<typename TFun>
 	void ForEach(TFun const &fun)
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int idx = lua_gettop(L_.get());
 		if (lua_type(L_.get(), idx) == LUA_TTABLE)
 		{
@@ -379,11 +380,12 @@ public:
 			while (lua_next(L_.get(), idx))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
-				int value = luaL_ref(L_.get(), GLOBAL_IDX_);
+				int value = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 				lua_pushvalue(L_.get(), lua_gettop(L_.get()));
-				int key = luaL_ref(L_.get(), GLOBAL_IDX_);
-				fun(LuaObject(L_, GLOBAL_IDX_, key, path_ + "[key]"),
-						LuaObject(L_, GLOBAL_IDX_, value, path_ + "[value]"));
+				int key = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+				fun(LuaObject(L_, GLOBAL_REF_IDX_, key, path_ + "[key]"),
+						LuaObject(L_, GLOBAL_REF_IDX_, value,
+								path_ + "[value]"));
 
 			}
 		}
@@ -408,11 +410,11 @@ public:
 		else
 		{
 
-			lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 			lua_getfield(L_.get(), -1, s.c_str());
 		}
 
-		int id = luaL_ref(L_.get(), GLOBAL_IDX_);
+		int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 
 		if (!is_global)
 		{
@@ -420,7 +422,7 @@ public:
 
 		}
 		return std::move(
-				LuaObject(L_, GLOBAL_IDX_, id, path_ + "." + ToString(s)));
+				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
 	}
 
 	inline LuaObject at(std::string const & s, bool boundary_check = true) const
@@ -434,7 +436,7 @@ public:
 		else
 		{
 
-			lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 			lua_getfield(L_.get(), -1, s.c_str());
 		}
 
@@ -445,7 +447,7 @@ public:
 					ToString(s) + "\" is not an element in " + path_));
 		}
 
-		int id = luaL_ref(L_.get(), GLOBAL_IDX_);
+		int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 
 		if (!is_global)
 		{
@@ -453,7 +455,7 @@ public:
 		}
 
 		return std::move(
-				LuaObject(L_, GLOBAL_IDX_, id, path_ + "." + ToString(s)));
+				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
 	}
 
 	inline LuaObject operator[](int s) const
@@ -462,19 +464,19 @@ public:
 		{
 			LOGIC_ERROR << path_ << " is not indexable!";
 		}
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int tidx = lua_gettop(L_.get());
 		lua_rawgeti(L_.get(), tidx, s + 1);
-		int res = luaL_ref(L_.get(), GLOBAL_IDX_);
+		int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 		lua_pop(L_.get(), 1);
 		return std::move(
-				LuaObject(L_, GLOBAL_IDX_, res,
+				LuaObject(L_, GLOBAL_REF_IDX_, res,
 						path_ + "[" + ToString(s) + "]"));
 	}
 
 	size_t GetLength() const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		size_t res = lua_rawlen(L_.get(), -1);
 		lua_pop(L_.get(), 1);
 		return std::move(res);
@@ -495,7 +497,7 @@ public:
 	template<typename ...Args>
 	LuaObject operator()(Args const &... args) const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 
 		int idx = lua_gettop(L_.get());
 
@@ -508,8 +510,8 @@ public:
 
 		lua_pcall(L_.get(), sizeof...(args), 1, 0);
 
-		return LuaObject(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
-				path_ + "[ret]");
+		return LuaObject(L_, GLOBAL_REF_IDX_,
+				luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
 
 	}
 
@@ -533,31 +535,36 @@ public:
 	inline T as() const
 	{
 		T res;
-
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
-		LuaTrans<T>::From(L_.get(), lua_gettop(L_.get()), &res);
-		lua_pop(L_.get(), 1);
-
+		as(&res);
 		return (res);
+	}
+
+	template<typename T>
+	inline void as(T* res) const
+	{
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		FromLua(L_.get(), lua_gettop(L_.get()), res);
+		lua_pop(L_.get(), 1);
 	}
 
 	template<typename T>
 	inline void GetValue(std::string const & name, T *v) const
 	{
-		*v = at(name).as<T>();
+		at(name).as(v);
 	}
 
 	template<typename T>
 	inline void GetValue(int s, T *v) const
 	{
-		*v = at(s).as<T>();
+		at(s).as(v);
 	}
 
 	template<typename T>
 	inline void SetValue(std::string const & name, T const &v) const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
-		LuaTrans<T>::To(L_.get(), v);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		ToLua(L_.get(), v);
+//		LuaTrans<T>::To(L_.get(), v);
 		lua_setfield(L_.get(), -2, name.c_str());
 		lua_pop(L_.get(), 1);
 	}
@@ -565,8 +572,9 @@ public:
 	template<typename T>
 	inline void SetValue(int s, T const &v) const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
-		LuaTrans<T>::To(L_.get(), v);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		ToLua(L_.get(), v);
+//		LuaTrans<T>::To(L_.get(), v);
 		lua_rawseti(L_.get(), -2, s);
 		lua_pop(L_.get(), 1);
 	}
@@ -574,8 +582,9 @@ public:
 	template<typename T>
 	inline void AddValue(T const &v) const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
-		LuaTrans<T>::To(L_.get(), v);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		ToLua(L_.get(), v);
+//		LuaTrans<T>::To(L_.get(), v);
 		size_t len = lua_rawlen(L_.get(), -1);
 		lua_rawseti(L_.get(), -2, len + 1);
 		lua_pop(L_.get(), 1);
@@ -599,7 +608,7 @@ public:
 			0)
 	{
 
-		lua_rawgeti(L_.get(), GLOBAL_IDX_, self_);
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int tidx = lua_gettop(L_.get());
 		lua_createtable(L_.get(), narr, nrec);
 		if (name == "")
@@ -613,7 +622,7 @@ public:
 			lua_setfield(L_.get(), tidx, name.c_str());
 			lua_getfield(L_.get(), tidx, name.c_str());
 		}
-		LuaObject res(L_, GLOBAL_IDX_, luaL_ref(L_.get(), GLOBAL_IDX_),
+		LuaObject res(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_),
 				path_ + "." + name);
 		lua_pop(L_.get(), 1);
 		return std::move(res);

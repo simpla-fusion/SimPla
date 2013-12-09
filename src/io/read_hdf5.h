@@ -7,15 +7,26 @@
 
 #ifndef READ_HDF5_H_
 #define READ_HDF5_H_
-#include <algorithm>
+
+#include <string>
+#include <vector>
+
 #include "include/simpla_defs.h"
-#include "datastruct/ndarray.h"
+
 namespace simpla
 {
-namespace io
+template<typename TV>
+void HDF5Read(std::string const & name, std::vector<TV> *v)
 {
-void ReadData(std::string const & name, TR1::shared_ptr<NdArray> obj);
-}  // namespace io
+
+}
+
+template<typename TV>
+inline void HDF5Read(H5::Group & grp, std::string const & name,
+		std::vector<TV> *v)
+{
+
+}
 
 }  // namespace simpla
 

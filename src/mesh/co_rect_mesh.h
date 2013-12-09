@@ -25,7 +25,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../physics/physical_constants.h"
-#include "../utilities/container.h"
+#include "../utilities/allocator_mempool.h"
 #include "../utilities/log.h"
 
 namespace simpla
@@ -112,6 +112,14 @@ struct CoRectMesh
 	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
+	}
+
+	template<typename TV> using Container=std::vector<TV,MemPoolAllocator<TV> >;
+
+	template<int iform, typename TV> inline Container<TV> MakeContainer(
+			TV defalut_value = TV()) const
+	{
+		return std::move(Container<TV>(GetNumOfElements(iform), defalut_value));
 	}
 
 	template<typename PT>
@@ -232,14 +240,6 @@ struct CoRectMesh
 		coordinates_shift_[2][2][1] = 0.5 * dx_[1];
 		coordinates_shift_[2][2][2] = 0.0;
 
-	}
-
-	template<int iform, typename E> inline typename ContainerTraits<E>::type MakeContainer(
-			E defalut_value = E()) const
-	{
-		return std::move(
-				ContainerTraits<E>::Create(GetNumOfElements(iform),
-						defalut_value));
 	}
 
 	/**
@@ -603,6 +603,12 @@ public:
 	inline size_t GetIndex(index_type s) const
 	{
 		return s;
+	}
+
+	template<int IFORM>
+	inline size_t GetSubComponent(size_t s) const
+	{
+		return s % num_comps_per_cell_[IFORM];
 	}
 	template<int IFORM, typename ... IDXS>
 	inline size_t Component(int m, IDXS ... s) const

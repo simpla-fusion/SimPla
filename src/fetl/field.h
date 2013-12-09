@@ -9,9 +9,7 @@
 #define FIELD_H_
 
 #include "primitives.h"
-#include "../utilities/container.h"
 #include "../utilities/log.h"
-#include "../mesh/mesh.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -31,7 +29,7 @@ template<typename TG, typename TValue> struct Field;
  */
 
 template<typename TG, typename TValue>
-struct Field: public ContainerTraits<TValue>::type
+struct Field: public TG::mesh_type::template Container<TValue>
 {
 public:
 
@@ -48,9 +46,9 @@ public:
 
 	typedef Field<geometry_type, value_type> this_type;
 
-	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
+	typedef typename mesh_type::template Container<value_type> base_type;
 
-	typedef typename ContainerTraits<value_type>::type base_type;
+	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -104,6 +102,11 @@ public:
 	inline value_type const & get(TI ...s) const
 	{
 		return base_type::operator[](mesh.template Component<IForm>(s...));
+	}
+
+	void Init()
+	{
+		mesh.AssignContainer(IForm, this, 0.0);
 	}
 
 	inline this_type &

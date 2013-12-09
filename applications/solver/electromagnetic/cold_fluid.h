@@ -9,7 +9,7 @@
 #define COLD_FLUID_H_
 
 #include "../../src/fetl/fetl.h"
-
+#include "../../src/utilites/load_field.h"
 namespace simpla
 {
 
@@ -17,13 +17,7 @@ template<typename TM>
 class ColdFluidEM
 {
 public:
-	typedef TM Mesh;
-	template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
-	template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
-	template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;
-	template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;
-	template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;
-	template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;
+	DEFINE_FIELDS(TM)
 
 	typedef Mesh mesh_type;
 
@@ -31,26 +25,67 @@ private:
 
 	struct Species
 	{
-		std::string name;
 		Real m;
 		Real Z;
 		Form<0> n;
 		VectorForm<0> J;
+
+		Species(Real pm, Real pZ, mesh_type const &mesh) :
+				m(pm), Z(pZ), n(mesh), J(mesh)
+		{
+		}
+		~Species()
+		{
+		}
+
 	};
-	std::list<Species> sp_list_;
+	std::list<std::string, Species> sp_list_;
 public:
 
 	mesh_type const & mesh;
 
-	template<typename TConfig>
-	ColdFluidEM(mesh_type const & pmesh, TConfig const &phys) :
+	ColdFluidEM(mesh_type const & pmesh) :
 			mesh(pmesh)
-
 	{
 	}
 
+	template<typename TConfig>
+	ColdFluidEM(mesh_type const & pmesh, TConfig const & cfg) :
+			mesh(pmesh)
+	{
+		Deserialize(cfg);
+	}
+
+	~ColdFluidEM()
+	{
+	}
+
+	template<typename PT>
+	inline void Deserialize(PT const &cfg)
+	{
+		for (auto const & p : cfg)
+		{
+			if (p.second["Engine"].as<std::string>() == "ColdFluid")
+			{
+				auto res = sp_list_.emplace(
+						std::make_pair(p.first.as<std::string>(),
+								Species(p.second["m"].as<Real>(),
+										p.second["Z"].as<Real>(), mesh)));
+
+				LoadField(p.second.at("n"), &(res->first.n));
+				LoadField(p.second.at("J"), &(res->first.J));
+			}
+		}
+	}
+
+	template<typename PT>
+	inline void Serialize(PT &cfg) const
+	{
+
+	}
+
 	template<typename TJ, typename TE, typename TB> inline
-	void Eval(Real dt, TJ const &J, TE const *E, TB const *B)
+	void Eval(Real dt, TJ const &J, TE *E, TB *B)
 	{
 
 		const double mu0 = mesh.constants["permeability of free space"];
@@ -64,21 +99,24 @@ public:
 
 		VectorForm<0> K_(mesh);
 		VectorForm<0> K(mesh);
-		Form<0> a(mesh);
-		Form<0> b(mesh);
-		Form<0> c(mesh);
-		Form<0> BB(mesh);
-		VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
 
-		BB = Wedge(B, HodgeStar(B));
+		Form<0> a(mesh, 0.0);
+		Form<0> b(mesh, 0.0);
+		Form<0> c(mesh, 0.0);
+
+		Form<0> BB(mesh);
+
+		BB = Dot(B, B);
+
+		VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
 
 		for (auto &v : sp_list_)
 		{
 
-			auto & ns = v.n;
-			auto & Js = v.J;
-			auto ms = v.m * proton_mass;
-			auto Zs = v.Z * elementary_charge;
+			auto & ns = v.second.n;
+			auto & Js = v.second.J;
+			auto ms = v.second.m * proton_mass;
+			auto Zs = v.second.Z * elementary_charge;
 
 			Form<0> as(mesh);
 
@@ -115,10 +153,10 @@ public:
 
 		for (auto &v : sp_list_)
 		{
-			auto & ns = v.n;
-			auto & Js = v.J;
-			auto ms = v.m * proton_mass;
-			auto Zs = v.Z * elementary_charge;
+			auto & ns = v.second.n;
+			auto & Js = v.second.J;
+			auto ms = v.second.m * proton_mass;
+			auto Zs = v.second.Z * elementary_charge;
 
 			Form<0> as(mesh);
 

@@ -6,7 +6,7 @@
  */
 
 #include "lua_state.h"
-#include "fetl/primitives.h"
+#include "../fetl/primitives.h"
 #include <iostream>
 #include <map>
 using namespace simpla;

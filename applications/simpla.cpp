@@ -24,7 +24,7 @@
 
 using namespace simpla;
 
-DEFINE_FIELDS(CoRectMesh<>)
+DEFINE_FIELDS(CoRectMesh<Real>)
 
 void help_mesage()
 {
@@ -111,117 +111,117 @@ int main(int argc, char **argv)
 
 // Main Loop ============================================
 
-	const double mu0 = mesh.constants["permeability of free space"];
-	const double epsilon0 = mesh.constants["permittivity of free space"];
-	const double speed_of_light = mesh.constants["speed of light"];
-	const double proton_mass = mesh.constants["proton mass"];
-	const double elementary_charge = mesh.constants["elementary charge"];
-
-	Form<1> E(mesh);
-	Form<1> J(mesh);
-	Form<2> B(mesh);
-
-	Real dt = mesh.GetDt();
-
-	INFORM << (">>> Pre-Process Start! <<<");
-
-	std::function<void(Form<1>&, Form<2>&, Form<1> const &, Real)> field_solver;
-
-	auto solver_type = pt.GetChild("FieldSolver").template Get<std::string>(
-			"Type");
-
-//	if (solver_type == "PML")
+//	const double mu0 = mesh.constants["permeability of free space"];
+//	const double epsilon0 = mesh.constants["permittivity of free space"];
+//	const double speed_of_light = mesh.constants["speed of light"];
+//	const double proton_mass = mesh.constants["proton mass"];
+//	const double elementary_charge = mesh.constants["elementary charge"];
+//
+//	Form<1> E(mesh);
+//	Form<1> J(mesh);
+//	Form<2> B(mesh);
+//
+//	Real dt = mesh.GetDt();
+//
+//	INFORM << (">>> Pre-Process Start! <<<");
+//
+//	std::function<void(Form<1>&, Form<2>&, Form<1> const &, Real)> field_solver;
+//
+//	auto solver_type = pt.GetChild("FieldSolver").template Get<std::string>(
+//			"Type");
+//
+////	if (solver_type == "PML")
+////	{
+////		using namespace std::placeholders;
+////		auto *solver = new PML<Mesh>(mesh);
+////		solver->Deserialize(pt.GetChild("FieldSolver"));
+////		field_solver = std::bind(&PML<Mesh>::Eval,
+////				std::shared_ptr<PML<Mesh>>(solver), _1, _2, _3, _4);
+////	}
+////	else
 //	{
-//		using namespace std::placeholders;
-//		auto *solver = new PML<Mesh>(mesh);
-//		solver->Deserialize(pt.GetChild("FieldSolver"));
-//		field_solver = std::bind(&PML<Mesh>::Eval,
-//				std::shared_ptr<PML<Mesh>>(solver), _1, _2, _3, _4);
+//		field_solver =
+//				[mu0,epsilon0](Form<1>&E1, Form<2>&B1, Form<1> const & J1, Real dt)
+//				{
+//					E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
+//					B1 -= Curl(E1) * dt;
+//					//TODO add boundary condition
+//				};
 //	}
-//	else
-	{
-		field_solver =
-				[mu0,epsilon0](Form<1>&E1, Form<2>&B1, Form<1> const & J1, Real dt)
-				{
-					E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
-					B1 -= Curl(E1) * dt;
-					//TODO add boundary condition
-				};
-	}
-
-//	std::map<std::string, std::shared_ptr<ParticleBase<Mesh> >> particle_list;
 //
-//	for (auto const &pt_child : pt.GetChild("Particles"))
+////	std::map<std::string, std::shared_ptr<ParticleBase<Mesh> >> particle_list;
+////
+////	for (auto const &pt_child : pt.GetChild("Particles"))
+////	{
+////		std::string engine_type = pt_child.second.Get<std::string>("Engine");
+////		std::string name = pt_child.second.Get<std::string>("Name");
+////
+////		std::shared_ptr<ParticleBase<Mesh> > point;
+////
+////		if (engine_type == "Default")
+////		{
+////			std::shared_ptr<Particle<Mesh, PICEngineDefault<Mesh>> > p(
+////					new Particle<Mesh, PICEngineDefault<Mesh>>(mesh));
+////
+////			p->Deserialize(pt_child.second);
+////
+////			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+////
+////		}
+////		else if (engine_type == "Deltaf")
+////		{
+////			std::shared_ptr<Particle<Mesh, PICEngineDeltaF<Mesh>> > p(
+////					new Particle<Mesh, PICEngineDeltaF<Mesh>>(mesh));
+////
+////			p->Deserialize(pt_child.second);
+////
+////			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+////
+////		}
+////		else if (engine_type == "GGauge8")
+////		{
+////			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 8>> > p(
+////					new Particle<Mesh, PICEngineGGauge<Mesh, 8> >(mesh));
+////			p->Deserialize(pt_child.second);
+////
+////			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+////		}
+////		else if (engine_type == "GGauge32")
+////		{
+////			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 32>> > p(
+////					new Particle<Mesh, PICEngineGGauge<Mesh, 32> >(mesh));
+////			p->Deserialize(pt_child.second);
+////
+////			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
+////		}
+////
+////		particle_list.insert(std::make_pair(name, point));
+////
+////	}
+//
+//	INFORM << (">>> Pre-Process DONE! <<<");
+//	INFORM << (">>> Process START! <<<");
+//
+//	for (int i = 0; i < num_of_step; ++i)
 //	{
-//		std::string engine_type = pt_child.second.Get<std::string>("Engine");
-//		std::string name = pt_child.second.Get<std::string>("Name");
+//		INFORM << ">>> STEP " << i << " Start <<<";
 //
-//		std::shared_ptr<ParticleBase<Mesh> > point;
-//
-//		if (engine_type == "Default")
-//		{
-//			std::shared_ptr<Particle<Mesh, PICEngineDefault<Mesh>> > p(
-//					new Particle<Mesh, PICEngineDefault<Mesh>>(mesh));
-//
-//			p->Deserialize(pt_child.second);
-//
-//			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
-//
-//		}
-//		else if (engine_type == "Deltaf")
-//		{
-//			std::shared_ptr<Particle<Mesh, PICEngineDeltaF<Mesh>> > p(
-//					new Particle<Mesh, PICEngineDeltaF<Mesh>>(mesh));
-//
-//			p->Deserialize(pt_child.second);
-//
-//			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
-//
-//		}
-//		else if (engine_type == "GGauge8")
-//		{
-//			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 8>> > p(
-//					new Particle<Mesh, PICEngineGGauge<Mesh, 8> >(mesh));
-//			p->Deserialize(pt_child.second);
-//
-//			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
-//		}
-//		else if (engine_type == "GGauge32")
-//		{
-//			std::shared_ptr<Particle<Mesh, PICEngineGGauge<Mesh, 32>> > p(
-//					new Particle<Mesh, PICEngineGGauge<Mesh, 32> >(mesh));
-//			p->Deserialize(pt_child.second);
-//
-//			point = std::dynamic_pointer_cast<ParticleBase<Mesh> >(p);
-//		}
-//
-//		particle_list.insert(std::make_pair(name, point));
-//
+//		field_solver(E, B, J, dt);
+////
+////		for (auto & p : particle_list)
+////		{
+////			INFORM << "Push Particle " << p.first;
+////			p.second->Push(E, B);
+////			INFORM << "Collect Current J from Particle " << p.first;
+////			p.second->Collect<1>(J, E, B);
+////		}
+////
+//		INFORM << ">>> STEP " << i << " Done <<<";
 //	}
-
-	INFORM << (">>> Pre-Process DONE! <<<");
-	INFORM << (">>> Process START! <<<");
-
-	for (int i = 0; i < num_of_step; ++i)
-	{
-		INFORM << ">>> STEP " << i << " Start <<<";
-
-		field_solver(E, B, J, dt);
 //
-//		for (auto & p : particle_list)
-//		{
-//			INFORM << "Push Particle " << p.first;
-//			p.second->Push(E, B);
-//			INFORM << "Collect Current J from Particle " << p.first;
-//			p.second->Collect<1>(J, E, B);
-//		}
-//
-		INFORM << ">>> STEP " << i << " Done <<<";
-	}
-
-	INFORM << (">>> Process DONE! <<<");
-	INFORM << (">>> Post-Process DONE! <<<");
-//
-//// Log ============================================
+//	INFORM << (">>> Process DONE! <<<");
+//	INFORM << (">>> Post-Process DONE! <<<");
+////
+////// Log ============================================
 
 }
