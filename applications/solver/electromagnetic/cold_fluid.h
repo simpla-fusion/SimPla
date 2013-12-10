@@ -8,8 +8,8 @@
 #ifndef COLD_FLUID_H_
 #define COLD_FLUID_H_
 
-#include "../../src/fetl/fetl.h"
-#include "../../src/utilites/load_field.h"
+#include "../../../src/fetl/fetl.h"
+#include "../../../src/utilities/load_field.h"
 namespace simpla
 {
 
@@ -39,7 +39,7 @@ private:
 		}
 
 	};
-	std::list<std::string, Species> sp_list_;
+	std::map<std::string, std::shared_ptr<Species>> sp_list_;
 public:
 
 	mesh_type const & mesh;
@@ -60,28 +60,35 @@ public:
 	{
 	}
 
-	template<typename PT>
-	inline void Deserialize(PT const &cfg)
+	inline void Deserialize(LuaObject const &cfg)
 	{
-		for (auto const & p : cfg)
+		cfg.ForEach([&](LuaObject const & k,LuaObject const & v )
 		{
-			if (p.second["Engine"].as<std::string>() == "ColdFluid")
+			if (v["Engine"].template as<std::string>() == "ColdFluid")
 			{
-				auto res = sp_list_.emplace(
-						std::make_pair(p.first.as<std::string>(),
-								Species(p.second["m"].as<Real>(),
-										p.second["Z"].as<Real>(), mesh)));
+				std::shared_ptr<Species> sp(
+						new Species( v["m"].template as< Real>(),
+								v["Z"].template as< Real>(),
+								mesh));
+				auto res =
+				sp_list_.emplace(
+						std::make_pair( k.template as<std::string>(), sp ));
 
-				LoadField(p.second.at("n"), &(res->first.n));
-				LoadField(p.second.at("J"), &(res->first.J));
+				LoadField(v.at("n"), &(sp->n));
+				LoadField(v.at("J"), &(sp->J));
 			}
-		}
+		});
+
 	}
 
 	template<typename PT>
 	inline void Serialize(PT &cfg) const
 	{
 
+	}
+
+	inline void Eval(...)
+	{
 	}
 
 	template<typename TJ, typename TE, typename TB> inline
@@ -113,10 +120,10 @@ public:
 		for (auto &v : sp_list_)
 		{
 
-			auto & ns = v.second.n;
-			auto & Js = v.second.J;
-			auto ms = v.second.m * proton_mass;
-			auto Zs = v.second.Z * elementary_charge;
+			auto & ns = v.second->n;
+			auto & Js = v.second->J;
+			auto ms = v.second->m * proton_mass;
+			auto Zs = v.second->Z * elementary_charge;
 
 			Form<0> as(mesh);
 
@@ -153,10 +160,10 @@ public:
 
 		for (auto &v : sp_list_)
 		{
-			auto & ns = v.second.n;
-			auto & Js = v.second.J;
-			auto ms = v.second.m * proton_mass;
-			auto Zs = v.second.Z * elementary_charge;
+			auto & ns = v.second->n;
+			auto & Js = v.second->J;
+			auto ms = v.second->m * proton_mass;
+			auto Zs = v.second->Z * elementary_charge;
 
 			Form<0> as(mesh);
 
@@ -176,7 +183,8 @@ public:
 		//		J -=  dEvdt;
 	}
 
-};
+}
+;
 }  // namespace simpla
 
 #endif /* COLD_FLUID_H_ */

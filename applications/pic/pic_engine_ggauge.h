@@ -46,6 +46,15 @@ public:
 	{
 	}
 
+	inline Real GetMass() const
+	{
+		return m_;
+	}
+
+	inline Real GetCharge() const
+	{
+		return q_;
+	}
 	static inline std::string TypeName()
 	{
 		return "Default";
@@ -72,28 +81,24 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE, typename ...Args>
-	inline void Push(Point_s & p, TB const & fB, TE const & fE,
-			Args const & ...) const
+	template<typename TB, typename TE>
+	inline void Push(Point_s & p, TB const & fB, TE const &fE) const
 	{
-		auto B = fB(p.x);
-		auto E = fE(p.x);
 	}
 
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<1>, Point_s const &p, TN * n,
+	inline void Collect(Int2Type<1>, Point_s const &p, TN & n,
 			Args const& ... args) const
 	{
 	}
 
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<0>, Point_s const &p, TN * n,
+	inline void Collect(Int2Type<0>, Point_s const &p, TN & n,
 			Args const& ... args) const
 	{
-		n->Scatter(p.f, p.x);
 	}
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<2>, Point_s const &p, TN * n,
+	inline void Collect(Int2Type<2>, Point_s const &p, TN & n,
 			Args const& ... args) const
 	{
 	}
@@ -101,10 +106,8 @@ public:
 	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n,
 			Args...) const
 	{
-
 	}
 };
-
 //template<typename TX, int NMATE = 8>
 //struct GGauge
 //{

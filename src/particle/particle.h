@@ -10,13 +10,14 @@
 
 #include <cstddef>
 #include <list>
+#include <map>
 #include <string>
 
 #include "../fetl/field.h"
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../fetl/proxycache.h"
-
+#include "../utilities/lua_state.h"
 //need  libstdc++
 //#include <ext/mt_allocator.h>
 //#include <bits/allocator.h>
@@ -27,12 +28,15 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 template<typename, int> struct Geometry;
+struct LuaObject;
 
 template<typename TM>
 class ParticleBase
 {
 
 public:
+	typedef TM mesh_type;
+
 	ParticleBase()
 	{
 
@@ -64,46 +68,45 @@ private:
 	//========================================================================
 	// interface
 	typedef typename TM::scalar scalar;
-	template<int N> using Form=Field<Geometry<TM,N>,scalar >;
-	template<int N> using VForm=Field<Geometry<TM,N>,nTuple<3,scalar> >;
-	template<int N> using TForm=Field<Geometry<TM,N>,nTuple<3,nTuple<3,scalar>> >;
+	DEFINE_FIELDS (mesh_type)
 
 	virtual void _Push(Form<1> const &, Form<2> const &)
 	{
 	}
 
-	virtual void _Push(VForm<0> const &, VForm<0> const &)
+	virtual void _Push(VectorForm<0> const &, VectorForm<0> const &)
 	{
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
 	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, Form<1> const &,	Form<2> const &) {}				\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, VForm<0> const & ,	VForm<0> const &) {}		\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, VectorForm<0> const & ,	VectorForm<0> const &) {}		\
 	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &) {}
 
 	DEF_COLLECT_INTERFACE(0 , Form, 0 )
 	DEF_COLLECT_INTERFACE(0 , Form, 3 )
-	DEF_COLLECT_INTERFACE(1, VForm , 0 )
+	DEF_COLLECT_INTERFACE(1, VectorForm , 0 )
 	DEF_COLLECT_INTERFACE(1, Form , 1 )
 	DEF_COLLECT_INTERFACE(1, Form , 2 )
-	DEF_COLLECT_INTERFACE(1, VForm , 3 )
-	DEF_COLLECT_INTERFACE(2, TForm , 0 )
-	DEF_COLLECT_INTERFACE(2, VForm , 1 )
-	DEF_COLLECT_INTERFACE(2, VForm , 2 )
-	DEF_COLLECT_INTERFACE(2, TForm , 3 )
+	DEF_COLLECT_INTERFACE(1, VectorForm , 3 )
+	DEF_COLLECT_INTERFACE(2, TensorForm , 0 )
+	DEF_COLLECT_INTERFACE(2, VectorForm , 1 )
+	DEF_COLLECT_INTERFACE(2, VectorForm , 2 )
+	DEF_COLLECT_INTERFACE(2, TensorForm , 3 )
 
 #undef DEF_COLLECT_INTERFACE
 
 };
 
-template<typename TM, class Engine>
+template<class Engine>
 class Particle:
 
 public Engine,
 
-public TM::template Container<std::list<typename Engine::Point_s> >,
+		public Engine::mesh_type::template Container<
+				std::list<typename Engine::Point_s> >,
 
-public ParticleBase<TM>
+		public ParticleBase<typename Engine::mesh_type>
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -111,10 +114,11 @@ public ParticleBase<TM>
 
 public:
 
-	typedef TM mesh_type;
 	typedef Engine engine_type;
 
-	typedef Particle<mesh_type, engine_type> this_type;
+	typedef typename engine_type::mesh_type mesh_type;
+
+	typedef Particle<engine_type> this_type;
 
 	typedef typename engine_type::Point_s particle_type;
 
@@ -345,37 +349,137 @@ private:
 	//========================================================================
 	// interface
 
-	template<int N> using Form=Field<Geometry<TM,N>,scalar >;
-	template<int N> using VForm=Field<Geometry<TM,N>,nTuple<3,scalar> >;
-	template<int N> using TForm=Field<Geometry<TM,N>,nTuple<3,nTuple<3,scalar>> >;
+	DEFINE_FIELDS (mesh_type)
 
 	virtual void _Push(Form<1> const & E, Form<2> const &B)
 	{
 		Push(E, B);
 	}
 
-	virtual void _Push(VForm<0> const &E, VForm<0> const & B)
+	virtual void _Push(VectorForm<0> const &E, VectorForm<0> const & B)
 	{
 		Push(E, B);
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
 	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, Form<1> const & E,	Form<2> const & B)const {Collect<_N_>(J,E,B);}	\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, VForm<0> const & E,	VForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, VectorForm<0> const & E,	VectorForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
 	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J)const {Collect<_N_>(J);}
 
 	DEF_COLLECT_INTERFACE(0 , Form, 0 )
 	DEF_COLLECT_INTERFACE(0 , Form, 3 )
-	DEF_COLLECT_INTERFACE(1, VForm , 0 )
+	DEF_COLLECT_INTERFACE(1, VectorForm , 0 )
 	DEF_COLLECT_INTERFACE(1, Form , 1 )
 	DEF_COLLECT_INTERFACE(1, Form , 2 )
-	DEF_COLLECT_INTERFACE(1, VForm , 3 )
-	DEF_COLLECT_INTERFACE(2, TForm , 0 )
-	DEF_COLLECT_INTERFACE(2, VForm , 1 )
-	DEF_COLLECT_INTERFACE(2, VForm , 2 )
-	DEF_COLLECT_INTERFACE(2, TForm , 3 )
+	DEF_COLLECT_INTERFACE(1, VectorForm , 3 )
+	DEF_COLLECT_INTERFACE(2, TensorForm , 0 )
+	DEF_COLLECT_INTERFACE(2, VectorForm , 1 )
+	DEF_COLLECT_INTERFACE(2, VectorForm , 2 )
+	DEF_COLLECT_INTERFACE(2, TensorForm , 3 )
 
 #undef DEF_COLLECT_INTERFACE
+};
+
+template<typename TParticleEngine>
+std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
+		typename TParticleEngine::mesh_type const & mesh, LuaObject const &cfg)
+{
+
+	typedef Particle<TParticleEngine> particle_type;
+	typedef typename TParticleEngine::mesh_type mesh_type;
+
+	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+}
+
+template<typename TM>
+class ParticleCollection: public std::map<std::string,
+		std::shared_ptr<ParticleBase<TM> > >
+{
+public:
+	typedef TM mesh_type;
+
+	typedef ParticleBase<mesh_type> particle_type;
+
+	typedef LuaObject configure_type;
+
+	typedef std::map<std::string, std::shared_ptr<particle_type> > base_type;
+
+	typedef std::function<
+			std::shared_ptr<particle_type>(mesh_type const &,
+					configure_type const &)> create_fun;
+
+private:
+	std::map<std::string, create_fun> factory_;
+public:
+
+	mesh_type const & mesh;
+
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
+	{
+	}
+	~ParticleCollection()
+	{
+	}
+
+	inline void Deserialize(configure_type const &cfg)
+	{
+		cfg.ForEach([&](configure_type const& k,configure_type const& v )
+		{
+			std::string key=k.as<std::string>();
+
+			std::shared_ptr<particle_type> p;
+
+			try
+			{
+				p= factory_.at(v.at("Engine").as<std::string>())(mesh,v);
+			}
+			catch(...)
+			{
+				WARNING<<"I do not know how to create \""<< key<<"\" particle!";
+				return;
+			}
+
+			base_type::emplace( std::make_pair(key,p ));
+		});
+
+	}
+
+	void RegisterFactory(std::string const &engine_name, create_fun const &fun)
+	{
+		factory_.emplace(std::make_pair(engine_name, fun));
+	}
+	template<typename TEngine>
+	void RegisterFactory(std::string const &engine_name)
+	{
+		factory_.emplace(std::make_pair(engine_name, &CreateParticle<TEngine>));
+	}
+
+	template<typename PT>
+	inline void Serialize(PT &vm) const
+	{
+		WARNING << "UNIMPLEMENT!!";
+	}
+
+	template<typename ... Args>
+	void PushAll(Args const & ... args)
+	{
+		for (auto & p : *this)
+		{
+			p.second->push(std::forward<Args const &>(args)...);
+		}
+	}
+
+	template<typename TJ, typename ... Args>
+	void CollectAll(TJ *J, Args const & ... args)
+	{
+		for (auto & p : *this)
+		{
+			p.second->Collect(J, std::forward<Args const &>(args)...);
+		}
+	}
+
 };
 
 }

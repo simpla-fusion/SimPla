@@ -8,65 +8,41 @@
 #ifndef BASECONTEXT_H_
 #define BASECONTEXT_H_
 
-#include "include/simpla_defs.h"
-#include "object.h"
-#include "compound.h"
-#include <list>
-#include <string>
-#include <map>
-#include <typeinfo>
-#include <boost/foreach.hpp>
-#include <boost/optional.hpp>
-
-#include "primitives/primitives.h"
-#include "physics/physical_constants.h"
+#include <cstddef>
 
 namespace simpla
 {
+class LuaObject;
 
 class BaseContext
 {
+	size_t step_count_;
 public:
-
-	std::map<std::string, std::function<std::shared_ptr<Object>(PTree const&)> > objFactory_;
-
-	std::map<std::string, std::function<std::function<void(void)>(PTree const&)> > moduleFactory_;
-
-	CompoundObject objects;
-
-	PhysicalConstants PHYS_CONSTANTS;
-
-	BaseContext();
-
-
-	virtual ~BaseContext();
-
-
-	inline size_t Counter() const
+	BaseContext() :
+			step_count_(0)
 	{
-		return (counter_);
+	}
+	virtual ~BaseContext()
+	{
 	}
 
-	inline Real Timer() const
+	inline size_t GetStepCount() const
 	{
-		return (timer_);
+		return step_count_;
 	}
-
-	inline void PushClock()
+	virtual void Deserialize(LuaObject const & cfg)
 	{
-		timer_ += dt;
-		++counter_;
 	}
-
-
-
-private:
-	Real dt;
-	size_t counter_;
-	Real timer_;
-	std::list<std::shared_ptr<BaseContext> > neighbours_;
-}
-;
-
+	virtual void Serialize(LuaObject * cfg) const
+	{
+	}
+	virtual void OneStep()
+	{
+		++step_count_;
+	}
+	virtual void DumpData()
+	{
+	}
+};
 }  // namespace simpla
 #endif /* BASECONTEXT_H_ */

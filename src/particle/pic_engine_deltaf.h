@@ -1,22 +1,18 @@
 /*
- * pic_engine_default.h
+ * pic_engine_deltaf.h
  *
- *  Created on: 2013年11月6日
+ *  Created on: 2013年12月10日
  *      Author: salmon
  */
 
-#ifndef PIC_ENGINE_DEFAULT_H_
-#define PIC_ENGINE_DEFAULT_H_
-
-#include <string>
-
-#include "../fetl/primitives.h"
+#ifndef PIC_ENGINE_DELTAF_H_
+#define PIC_ENGINE_DELTAF_H_
 
 namespace simpla
 {
 
 template<typename TM>
-struct PICEngineDefault
+struct PICEngineDeltaF
 {
 
 private:
@@ -27,8 +23,6 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar scalar;
 
-public:
-
 	mesh_type const &mesh;
 
 	struct Point_s
@@ -38,12 +32,13 @@ public:
 		scalar f;
 	};
 
-	PICEngineDefault(mesh_type const &pmesh) :
+	PICEngineDeltaF(mesh_type const &pmesh) :
 			mesh(pmesh), m_(1.0), q_(1.0)
 	{
 
 	}
-	~PICEngineDefault()
+
+	~PICEngineDeltaF()
 	{
 	}
 
@@ -56,7 +51,6 @@ public:
 	{
 		return q_;
 	}
-
 	static inline std::string TypeName()
 	{
 		return "Default";
@@ -117,27 +111,5 @@ public:
 		p.f *= n(p.x);
 	}
 };
-
-//#include <H5Cpp.h>
-//template<typename > struct HDF5DataType;
-//template<typename TM>
-//struct HDF5DataType<typename PICEngineDefault<TM>::Point_s>
-//{
-////	H5::DataType operator()
-////	{
-////		char desc[1024];
-////		snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
-////				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
-////				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
-////				"}", (offsetof(Point_s, X)),
-////				(offsetof(Point_s, V)),
-////				(offsetof(Point_s, F)),
-////				num_of_mate,
-////				(offsetof(Point_s, w)));
-////	}
-//};
-}// namespace simpla
-
-#endif /* PIC_ENGINE_DEFAULT_H_ */
+} //namespace simpla
+#endif /* PIC_ENGINE_DELTAF_H_ */

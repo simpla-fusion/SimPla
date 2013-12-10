@@ -141,6 +141,11 @@ public:
 //		}
 	}
 
+	inline bool isNull() const
+	{
+		return L_ == nullptr;
+	}
+
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
 	inline bool _FUN_NAME_() const                                             \
 	{                                                                          \
@@ -369,7 +374,7 @@ public:
 	}
 
 	template<typename TFun>
-	void ForEach(TFun const &fun)
+	void ForEach(TFun const &fun) const
 	{
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int idx = lua_gettop(L_.get());
@@ -443,19 +448,25 @@ public:
 		if (boundary_check && lua_isnil(L_.get(),lua_gettop(L_.get())))
 		{
 			lua_pop(L_.get(), 1);
-			throw(std::out_of_range(
-					ToString(s) + "\" is not an element in " + path_));
+//			throw(std::out_of_range(
+//					ToString(s) + "\" is not an element in " + path_));
+//
+			return std::move(LuaObject());
 		}
-
-		int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-
-		if (!is_global)
+		else
 		{
-			lua_pop(L_.get(), 1);
-		}
 
-		return std::move(
-				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
+			int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+
+			if (!is_global)
+			{
+				lua_pop(L_.get(), 1);
+			}
+
+			return std::move(
+					LuaObject(L_, GLOBAL_REF_IDX_, id,
+							path_ + "." + ToString(s)));
+		}
 	}
 
 	inline LuaObject operator[](int s) const
@@ -518,17 +529,17 @@ public:
 	template<typename T>
 	inline T Get(std::string const & name, T const & default_value = T()) const
 	{
-		T res;
-		try
-		{
-			res = at(name).as<T>();
+		LuaObject res = at(name);
 
-		} catch (...)
+		if (res.isNull())
 		{
-			res = default_value;
+			return default_value;
 		}
+		else
+		{
 
-		return std::move(res);
+			return std::move(res.as<T>());
+		}
 	}
 
 	template<typename T>
@@ -810,6 +821,46 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 		else
 		{
 			v = default_value;
+		}
+	}
+	static inline void To(lua_State*L, value_type const & v)
+	{
+		LOGIC_ERROR << " UNIMPLEMENTED!!";
+	}
+};
+
+template<typename T> struct LuaTrans<std::complex<T> >
+{
+	typedef std::complex<T> value_type;
+
+	static inline void From(lua_State*L, int idx, value_type * v,
+			value_type const &default_value = value_type())
+	{
+		if (lua_istable(L, idx))
+		{
+			lua_pushnil(L); /* first key */
+			while (lua_next(L, idx))
+			{
+				/* uses 'key' (at index -2) and 'value' (at index -1) */
+				T r, i;
+				FromLua(L, -2, &r);
+				FromLua(L, -1, &i);
+				/* removes 'value'; keeps 'key' for next iteration */
+				lua_pop(L, 1);
+
+				*v = std::complex<T>(r, i);
+			}
+
+		}
+		else if (lua_isnumber(L, idx))
+		{
+			T r;
+			FromLua(L, idx, &r);
+			*v = std::complex<T>(r, 0);
+		}
+		else
+		{
+			*v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)

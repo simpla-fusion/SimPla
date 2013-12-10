@@ -8,16 +8,22 @@
 #ifndef LOAD_FIELD_H_
 #define LOAD_FIELD_H_
 
-#include "lua_state.h"
+#include <cstddef>
+#include <iostream>
+#include <string>
+
+#include "../fetl/field.h"
 #include "log.h"
-#include "../fetl/fetl.h"
+#include "lua_state.h"
 
 namespace simpla
 {
 
 template<int IFORM, typename TM, typename TV>
-void LoadField(LuaObject &obj, Field<Geometry<TM, IFORM>, TV> *f)
+void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 {
+	if (obj.isNull())
+		return;
 
 	typedef TM mesh_type;
 
@@ -30,11 +36,12 @@ void LoadField(LuaObject &obj, Field<Geometry<TM, IFORM>, TV> *f)
 				{
 					if(IFORM==1 || IFORM==2)
 					{
-						(*f)[s]=n_obj(mesh.GetSubComponent<IFORM>(s),x[0],x[1],x[2]).as<TV>();
+						(*f)[s]=obj(mesh.template GetSubComponent<IFORM>(s),x[0],x[1],x[2]).
+						template as<TV>();
 					}
 					else
 					{
-						(*f)[s]=n_obj(x[0],x[1],x[2]).as<TV>();
+						(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
 					}
 
 				}, mesh_type::WITH_GHOSTS);
@@ -43,7 +50,7 @@ void LoadField(LuaObject &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	{
 		std::string url = obj.as<std::string>();
 		//TODO Read field from data file
-		WARNING << "UNIMPLEMENT :Read field from data file."
+		WARNING << "UNIMPLEMENT :Read field from data file.";
 	}
 	else
 	{
