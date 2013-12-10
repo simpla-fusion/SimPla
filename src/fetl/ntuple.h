@@ -204,7 +204,7 @@ struct nTuple
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		*this = *this * rhs;
+		*this = (*this) * rhs;
 		return (*this);
 	}
 

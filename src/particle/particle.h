@@ -16,7 +16,6 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../fetl/proxycache.h"
-#include "../utilities/container.h"
 
 //need  libstdc++
 //#include <ext/mt_allocator.h>
@@ -50,10 +49,9 @@ public:
 
 	}
 	template<int N, typename TJ, typename ... Args>
-	inline void Collect(TJ &J, Args const &... args)
+	inline void Collect(TJ *J, Args const &... args)
 	{
-		_Collect(Int2Type<N>(), std::forward<TJ &>(J),
-				std::forward<Args const &>(args)...);
+		_Collect(Int2Type<N>(), J, std::forward<Args const &>(args)...);
 	}
 
 	virtual std::string TypeName()
@@ -259,31 +257,16 @@ public:
 	template<int I, typename TJ, typename ... Args>
 	inline void Collect(TJ & J, Args const & ... args) const
 	{
-		ForEachCell(
-
-		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
-				typename ProxyCache<const Args>::type const& ... args_c)
-		{
-			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
-		},
-
-		J, args...);
-	}
-
-//	template<int I, typename TJ, typename ... Args>
-//	inline void PushAndCollect(TJ & J, Args const& ... args)
-//	{
 //		ForEachCell(
 //
 //		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
 //				typename ProxyCache<const Args>::type const& ... args_c)
 //		{
-//			engine_type::Push(p, args_c...);
-//			engine_type::Collect<I>(p,J_c,args_c...);
+//			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
 //		},
 //
 //		J, args...);
-//	}
+	}
 
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
@@ -313,28 +296,28 @@ public:
 		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
 		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
 		 **/
-		mesh.ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(this->operator[](s),
-					fun,ProxyCache< Args>::Eval(args,s)...);
-		}
-
-		);
+//		mesh.ForAll(GEOMETRY_TYPE,
+//
+//		[&](index_type const & s)
+//		{
+//			ForParticlesInCell(this->operator[](s),
+//					fun,ProxyCache< Args>::Eval(args,s)...);
+//		}
+//
+//		);
 	}
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args) const
 	{
-		mesh.ForAll(
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(this->operator[](s),
-					fun, ProxyCache< Args>::Eval(args,s)...);
-		}
-
-		);
+//		mesh.ForAll(
+//
+//		[&](index_type const & s)
+//		{
+//			ForParticlesInCell(this->operator[](s),
+//					fun, ProxyCache< Args>::Eval(args,s)...);
+//		}
+//
+//		);
 
 	}
 

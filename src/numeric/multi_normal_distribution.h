@@ -8,8 +8,8 @@
 #ifndef MULTI_NORMAL_DISTRIBUTION_H_
 #define MULTI_NORMAL_DISTRIBUTION_H_
 
-#include <fetl/ntuple.h>
 #include <random>
+#include "../fetl/ntuple.h"
 #include "normal_distribution_icdf.h"
 #include "cholesky.h"
 

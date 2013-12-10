@@ -10,6 +10,7 @@
 
 #include "interpolation.h"
 #include "inverse_function.h"
+#include "integration.h"
 namespace simpla
 {
 

@@ -317,7 +317,7 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
 			XdmfInt64 dims[2] =
-			{ static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+			{ static_cast<XdmfInt64>(rzlim_.size()), 2 };
 			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 			grid.GetTopology()->Set("NodesPerElement", "2");
 			grid.GetTopology()->SetNumberOfElements(rzlim_.size());

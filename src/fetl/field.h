@@ -145,31 +145,31 @@ DECL_SELF_ASSIGN	(-=)
 		return std::move(Gather(x));
 	}
 
-//	inline field_value_type Gather(coordinates_type const &x) const
-//	{
-//
-//		coordinates_type pcoords;
-//
-//		index_type s = mesh.SearchCell(x, &pcoords);
-//
-//		return std::move(Gather(s, pcoords));
-//
-//	}
-//
-//	inline field_value_type Gather(index_type const & s,
-//			coordinates_type const &pcoords) const
-//	{
-//
-//		std::vector<index_type> points;
-//
-//		std::vector<typename geometry_type::gather_weight_type> weights;
-//
-//		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
-//
-//		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
-//
-//		field_value_type res;
-//
+	inline field_value_type Gather(coordinates_type const &x) const
+	{
+
+		coordinates_type pcoords;
+
+		index_type s = mesh.SearchCell(x, &pcoords);
+
+		return std::move(Gather(s, pcoords));
+
+	}
+
+	inline field_value_type Gather(index_type const & s,
+			coordinates_type const &pcoords) const
+	{
+
+		std::vector<index_type> points;
+
+		std::vector<typename geometry_type::gather_weight_type> weights;
+
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
+
+		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+
+		field_value_type res;
+
 //		res *= 0;
 //
 //		auto it1 = points.begin();
@@ -181,21 +181,22 @@ DECL_SELF_ASSIGN	(-=)
 //			{
 //				res += this->at(*it1) * (*it2);
 //
-//			} catch (std::out_of_range const &e)
+//			}
+//			catch (std::out_of_range const &e)
 //			{
 //#ifndef NDEBUG
 //				WARNING
 //#else
-//						VERBOSE
+//				VERBOSE
 //#endif
-//<<				e.what() <<"[ idx="<< *it1<<"]";
+//				<< e.what() <<"[ idx="<< *it1<<"]";
 //			}
 //
 //		}
-//
-//		return std::move(res);
-//
-//	}
+
+		return std::move(res);
+
+	}
 //
 //	template<typename TV>
 //	inline void Scatter(TV const & v, coordinates_type const &x)

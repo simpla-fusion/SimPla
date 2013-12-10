@@ -71,10 +71,10 @@ public:
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return std::move(Gather(x));
+		return std::move(Collect(x));
 	}
 
-	inline field_value_type Gather(coordinates_type const &x) const
+	inline field_value_type Collect(coordinates_type const &x) const
 	{
 		coordinates_type pcoords;
 
@@ -94,7 +94,7 @@ public:
 		}
 		else
 		{
-			return std::move(f_.Gather(idx, pcoords));
+			return std::move(f_.Collect(idx, pcoords));
 		}
 
 	}

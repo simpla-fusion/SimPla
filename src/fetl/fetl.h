@@ -16,64 +16,24 @@
 #include "./geometry.h"
 #include "./field_ops.h"
 
-#ifndef NO_FIELD_IO_CACHE
-#  include "./field_rw_cache.h"
-#endif
-
+//#ifndef NO_FIELD_IO_CACHE
+//#  include "./field_rw_cache.h"
+//#endif
 
 namespace simpla
 {
 
-#define DEFINE_FIELDS(TG)                                                                                                   \
-typedef TG Mesh;                                                                                                            \
-template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;                                                         \
-template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;                                         \
-template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;                               \
-template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;                                                     \
-template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;                                     \
-template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;                           \
+#define DEFINE_FIELDS(TG)                                                                                          \
+typedef TG Mesh;                                                                                                   \
+template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,typename Mesh::scalar >;                               \
+template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,typename Mesh::scalar> >;               \
+template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,typename Mesh::scalar> > >;    \
+template<int IFORM> using RForm = Field<Geometry<Mesh,IFORM>,Real >;                                               \
+template<int IFORM> using RVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;                               \
+template<int IFORM> using RTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;                    \
+template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;                                            \
+template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;                            \
+template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;                 \
 
-//
-//typedef TG Mesh;                                                                     \
-//typedef Field<Geometry<Mesh,0>,Real >     ZeroForm;                                \
-//typedef Field<Geometry<Mesh,1>,Real >      OneForm;                                  \
-//typedef Field<Geometry<Mesh,2>,Real >      TwoForm;                                  \
-//typedef Field<Geometry<Mesh,3>,Real >    ThreeForm;                              \
-//                                                                                        \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >   VecZeroForm;                           \
-//typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >    VecOneForm;                             \
-//typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >    VecTwoForm;                             \
-//typedef Field<Geometry<Mesh,3>, nTuple<3,Real> >  VecThreeForm;                         \
-//                                                                                     \
-//typedef Field<Geometry<Mesh,0>, Real > ScalarField;                             \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > VecField;                              \
-//                                                                                     \
-//typedef Field<Geometry<Mesh,0>,Real >     RZeroForm;                               \
-//typedef Field<Geometry<Mesh,1>,Real >      ROneForm;                                 \
-//typedef Field<Geometry<Mesh,2>,Real >      RTwoForm;                                 \
-//typedef Field<Geometry<Mesh,3>,Real >    RThreeForm;                             \
-//                                                                                     \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> >  RVecZeroForm;                         \
-//typedef Field<Geometry<Mesh,1>, nTuple<3,Real> >   RVecOneForm;                           \
-//typedef Field<Geometry<Mesh,2>, nTuple<3,Real> >   RVecTwoForm;                           \
-//typedef Field<Geometry<Mesh,3>, nTuple<3,Real> > RVecThreeForm;                       \
-//                                                                                     \
-//typedef Field<Geometry<Mesh,0>, Real > RScalarField;                            \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Real> > RVecField;                            \
-//                                                                                     \
-//typedef Field<Geometry<Mesh,0>, Complex > CZeroForm;                          \
-//typedef Field<Geometry<Mesh,1>, Complex >  COneForm;                            \
-//typedef Field<Geometry<Mesh,2>, Complex >  CTwoForm;                            \
-//typedef Field<Geometry<Mesh,3>, Complex >  CThreeForm;                       \
-//	                                                                         \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecZeroForm;                         \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecOneForm;                         \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> >   CVecTwoForm;                         \
-//typedef Field<Geometry<Mesh,3>, nTuple<3,Complex> >  CVecThreeForm;                       \
-//	                                                                         \
-//typedef Field<Geometry<Mesh,0>, Complex > CScalarField;                       \
-//typedef Field<Geometry<Mesh,0>, nTuple<3,Complex> > CVecField;                         \
-//template<int IFORM, typename T> using Form = Field<Geometry<Mesh,IFORM>,T >;
-//
-}// namespace simpla
+} // namespace simpla
 #endif  // FETL_H_

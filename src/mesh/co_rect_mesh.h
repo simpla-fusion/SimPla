@@ -85,7 +85,7 @@ struct CoRectMesh
 	coordinates_type xmax_ =
 	{ 10, 10, 10 };
 	nTuple<NUM_OF_DIMS, scalar> dS_[2];
-	nTuple<NUM_OF_DIMS, scalar> dx_;
+	coordinates_type dx_;
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
@@ -917,17 +917,17 @@ public:
 
 		size_t idx = 0;
 
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			double e;
-
-			idx +=
-					static_cast<size_t>(std::modf((x[i] - xmin_[i]) * dS_[i],
-							&e)) * strides_[i];
-
-			if (pcoords != nullptr)
-				(*pcoords)[i] = e;
-		}
+//		for (int i = 0; i < NUM_OF_DIMS; ++i)
+//		{
+//			double e;
+//
+//			idx +=
+//					static_cast<size_t>(std::modf((x[i] - xmin_[i]) * dS_[i],
+//							&e)) * strides_[i];
+//
+//			if (pcoords != nullptr)
+//				(*pcoords)[i] = e;
+//		}
 
 		return idx;
 	}

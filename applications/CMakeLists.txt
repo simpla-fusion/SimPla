@@ -30,3 +30,6 @@ TARGET_LINK_LIBRARIES(ggauge    engine physics io field_fun
               
 ADD_EXECUTABLE(simpla  simpla.cpp)
 TARGET_LINK_LIBRARIES(simpla physics ${LUA_LIBRARIES} ${Boost_LIBRARIES})
+
+ADD_EXECUTABLE(2omega  2omega.cpp)
+TARGET_LINK_LIBRARIES(2omega physics )
