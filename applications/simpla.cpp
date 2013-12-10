@@ -102,7 +102,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	LoadField(cfg.GetChild("B0"), &B0);
 	LoadField(cfg.GetChild("E1"), &E1);
 	LoadField(cfg.GetChild("B1"), &B1);
-	LoadField(cfg.GetChild("E1"), &J1);
+	LoadField(cfg.GetChild("J1"), &J1);
 }
 
 template<typename TM>
