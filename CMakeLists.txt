@@ -100,7 +100,9 @@ find_package(Lua52)
 INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
 
 
-find_package(HDF5)
+find_package(MPI)
+INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+#find_package(HDF5)
 
 #FIND_PACKAGE(XDMF)
 #MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 

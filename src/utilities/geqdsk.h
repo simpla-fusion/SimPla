@@ -82,11 +82,11 @@ public:
 
 	enum
 	{
-		XDMF = 1, XDMF_WITHOUT_HDF5 = 2, HDF5 = 3
+		XDMF = 1, HDF5 = 2
 	};
 
 	void Read(std::string const &fname);
-	void Write(std::string const &fname, int format = XDMF_WITHOUT_HDF5);
+	void Write(std::string const &fname, int format = XDMF);
 
 	std::ostream & Print(std::ostream & os);
 

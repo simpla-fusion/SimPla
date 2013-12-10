@@ -5,16 +5,36 @@
  *      Author: salmon
  */
 
-#include "pertty_ostream.h"
 #include "geqdsk.h"
-#include "../io/hdf5_stream.h"
+
+//#include <XdmfArray.h>
+#include <XdmfAttribute.h>
+#include <XdmfDataDesc.h>
+//#include <XdmfDataItem.h>
+#include <XdmfDOM.h>
+#include <XdmfDomain.h>
+#include <XdmfElement.h>
+#include <XdmfGeometry.h>
+#include <XdmfGrid.h>
+#include <XdmfLightData.h>
+#include <XdmfObject.h>
+#include <XdmfRoot.h>
+#include <XdmfTopology.h>
+#include <cstddef>
 #include <fstream>
-#include <iostream>
 #include <iomanip>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
+#include "../io/xdmf_io.h"
+#include "pertty_ostream.h"
+#include "utilities.h"
+class XdmfArray;
 
 namespace simpla
 {
@@ -197,120 +217,269 @@ void GEqdsk::Write(std::string const &fname, int flag)
 
 	if (flag == XDMF)
 	{
+
+		XdmfDOM dom;
+		XdmfRoot root;
+		root.SetDOM(&dom);
+		root.SetVersion(2.0);
+		root.Build();
+
+		XdmfDomain domain;
+		root.Insert(&domain);
+
+		{
+			XdmfGrid grid;
+			domain.Insert(&grid);
+
+			grid.SetName("G-Eqdsk");
+			grid.SetGridType(XDMF_GRID_UNIFORM);
+			grid.GetTopology()->SetTopologyTypeFromString("2DCoRectMesh");
+
+			XdmfInt64 dims[2] =
+					{ static_cast<XdmfInt64>(dims_[1]),
+							static_cast<XdmfInt64>(dims_[0]) };
+			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+
+			grid.GetGeometry()->SetGeometryTypeFromString("Origin_DxDy");
+			grid.GetGeometry()->SetOrigin(rzmin_[1], rzmin_[0], 0);
+			grid.GetGeometry()->SetDxDyDz(
+					(rzmax_[1] - rzmin_[1]) / static_cast<Real>(dims_[1] - 1),
+					(rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1),
+					0);
+
+			XdmfAttribute myAttribute;
+			grid.Insert(&myAttribute);
+
+			myAttribute.SetName("Psi");
+			myAttribute.SetAttributeTypeFromString("Scalar");
+			myAttribute.SetAttributeCenterFromString("Node");
+
+			XdmfDataItem data;
+			myAttribute.Insert(&data);
+
+			InsertDataItem(&data, 2, dims, &(psirz_.data()[0]),
+					fname + ".h5:/Psi");
+			grid.Build();
+		}
+		{
+			XdmfGrid grid;
+			domain.Insert(&grid);
+			grid.SetName("Boundary");
+			grid.SetGridType(XDMF_GRID_UNIFORM);
+			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
+
+			XdmfInt64 dims[2] =
+			{ static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+			grid.GetTopology()->Set("NodesPerElement", "2");
+			grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
+
+			XdmfDataItem * data = new XdmfDataItem;
+
+			grid.GetTopology()->Insert(data);
+
+			InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)->unsigned int
+			{
+				return d[1]==0?d[0]:(d[0]+1)%dims[0];
+			},
+
+			fname + ".h5:/Boundary/Topology");
+
+			grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
+
+			data = new XdmfDataItem;
+			data->SetHeavyDataSetName((fname + ".h5:/Boundary/Points").c_str());
+
+			grid.GetGeometry()->Insert(data);
+
+			XdmfArray *points = grid.GetGeometry()->GetPoints();
+
+			dims[1] = 3;
+			points->SetShape(2, dims);
+
+			XdmfInt64 s = 0;
+			for (auto const &v : rzbbb_)
+			{
+				points->SetValue(s * 3, 0);
+				points->SetValue(s * 3 + 1, v[0]);
+				points->SetValue(s * 3 + 2, v[1]);
+
+				++s;
+			}
+
+			grid.Build();
+		}
+		{
+			XdmfGrid grid;
+			domain.Insert(&grid);
+			grid.SetName("Limter");
+			grid.SetGridType(XDMF_GRID_UNIFORM);
+			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
+
+			XdmfInt64 dims[2] =
+			{ static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
+			grid.GetTopology()->Set("NodesPerElement", "2");
+			grid.GetTopology()->SetNumberOfElements(rzlim_.size());
+
+			XdmfDataItem * data = new XdmfDataItem;
+
+			grid.GetTopology()->Insert(data);
+
+			InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)->unsigned int
+			{
+				return d[1]==0?d[0]:(d[0]+1)%dims[0];
+			},
+
+			fname + ".h5:/Limter/Topology");
+
+			grid.GetGeometry()->SetGeometryTypeFromString("XYZ");
+
+			data = new XdmfDataItem;
+			data->SetHeavyDataSetName((fname + ".h5:/Limter/Points").c_str());
+
+			grid.GetGeometry()->Insert(data);
+
+			XdmfArray *points = grid.GetGeometry()->GetPoints();
+
+			dims[1] = 3;
+			points->SetShape(2, dims);
+
+			XdmfInt64 s = 0;
+			for (auto const &v : rzlim_)
+			{
+				points->SetValue(s * 3, 0);
+				points->SetValue(s * 3 + 1, v[0]);
+				points->SetValue(s * 3 + 2, v[1]);
+
+				++s;
+			}
+
+			grid.Build();
+		}
+
+//		root.Build();
 		std::ofstream ss(fname + ".xmf");
+		ss << dom.Serialize() << endl;
 
-		std::string h5name = fname + ".h5";
-
-		HDF5::H5OutStream h5s(h5name);
-
-		ss
-				<< "<?xml version='1.0' ?>                                              \n"
-				<< "<!DOCTYPE Xdmf SYSTEM 'Xdmf.dtd' []>                                \n"
-				<< "<Xdmf Version='2.0'>                                                \n"
-				<< "<Domain>                                                         \n";
-
-		// psi
-		ss
-
-		<< "<Grid Name='G_EQDSK' GridType='Uniform' >                     \n"
-
-		<< "  <Topology TopologyType='2DCoRectMesh'  Dimensions='" << dims_
-				<< "'>" << "   </Topology>\n"
-
-				<< "  <Geometry Type='Origin_DxDy'>                                 \n"
-				<< "     <DataItem Format='XML' Dimensions='2'> " << rzmin_[1]
-				<< " " << rzmin_[0] << "</DataItem>\n"
-				<< "     <DataItem Format='XML' Dimensions='2'>"
-				<< (rzmax_[1] - rzmin_[1]) / static_cast<Real>(dims_[1] - 1)
-				<< " "
-				<< (rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1)
-				<< "     </DataItem>\n"
-				<< "  </Geometry>                                                   \n"
-
-				<< "<!-- ADD_ATTRIBUTE_START -->                                        \n"
-
-				<< "  <Attribute Name='psi'  AttributeType='Scalar' Center='Node' >     \n"
-				<< "    <DataItem Format=\"HDF\"  NumberType='Float'"
-				<< " Precision='8'  Dimensions='" << dims_ << "'>          \n"
-				<< h5name << ":/psi"
-				<< "    </DataItem>                                                     \n"
-				<< "  </Attribute>                                                      \n"
-
-				<< "<!-- ADD_ATTRIBUTE_DONE -->                                         \n"
-
-				<< "</Grid>                                                             \n";
-
-		// boundary
-		ss
-				<< "<Grid Name=\"Boundary\" GridType=\"Uniform\">                       \n"
-				<< "   <Topology TopologyType=\"Polyline\" NodesPerElement='2'	"
-				<< "  NumberOfElements = '" << rzbbb_.size() << "' >  \n"
-				<< "       <DataItem Format=\"XML\"  Dimensions=\""
-				<< rzbbb_.size() << " 2\"   NumberType=\"UInt\">\n";
-		for (size_t s = 0, s_end = rzbbb_.size() - 1; s < s_end; ++s)
-		{
-			ss << s << " " << s + 1 << " ";
-		}
-
-		ss << rzbbb_.size() - 1 << " " << 0 << std::endl;
-
-		ss << "  </DataItem> </Topology>                 \n"
-
-				<< "   <Geometry Type=\"XYZ\">                                           \n"
-				<< "       <DataItem Format=\"XML\"  NumberType=\"Float\"  Dimensions=\""
-				<< rzbbb_.size() << " 3\"" << "> \n";
-		for (auto & v : rzbbb_)
-		{
-
-			ss << " 0 " << v[0] << " " << v[1] << std::endl;
-		}
-
-		ss
-				<< "      </DataItem>                                                   \n"
-				<< "   </Geometry>                                                      \n"
-
-				<< "</Grid>                                                             \n";
-
-		// limiter
-		ss
-				<< "<Grid Name=\"limiter\" GridType=\"Uniform\">                        \n"
-				<< "   <Topology TopologyType=\"Polyline\"  NodesPerElement='2'	"
-				<< "  NumberOfElements = '" << rzlim_.size() << "' >  \n"
-				<< "     <DataItem	Format = \"XML\"  Dimensions=\""
-				<< rzlim_.size() << " 2\"   NumberType=\"UInt\"> \n";
-
-		for (size_t s = 0, s_end = rzlim_.size() - 1; s < s_end; ++s)
-		{
-			ss << s << " " << s + 1 << " ";
-		}
-		ss << rzlim_.size() - 1 << " " << 0 << " " << std::endl;
-
-		ss << "  </DataItem> </Topology>                 \n"
-
-				<< "<Geometry Type=\"XYZ\">                                           \n"
-				<< "  <DataItem Format=\"XML\"  NumberType=\"Float\" Dimensions=\""
-				<< rzlim_.size() << " 3\" > \n";
-
-		for (auto & v : rzlim_)
-		{
-			ss << " 0 " << v[0] << " " << v[1] << std::endl;
-		}
-
-		ss
-				<< "  </DataItem>                                                  \n"
-				<< "</Geometry>                                                      \n"
-				<< "</Grid>                                                             \n"
-
-				;
-
-		ss
-		<< "</Domain>" << std::endl << "</Xdmf>" << std::endl;
-
-		h5s << HDF5::OpenDataSet("psi") << HDF5::SetDims(dims_) << psirz_.data()
-				<< HDF5::CloseDataSet();
-		//h5s << HDF5::OpenDataSet("rzbbb") << rzbbb_ << HDF5::CloseDataSet();
-		//h5s << HDF5::OpenDataSet("rzlim") << rzlim_ << HDF5::CloseDataSet();
 	}
+
+//	if (flag == XDMF)
+//	{
+//		std::ofstream ss(fname + ".xmf");
+//
+//		std::string h5name = fname + ".h5";
+//
+//		HDF5::H5OutStream h5s(h5name);
+//
+//		ss
+//				<< "<?xml version='1.0' ?>                                              \n"
+//				<< "<!DOCTYPE Xdmf SYSTEM 'Xdmf.dtd' []>                                \n"
+//				<< "<Xdmf Version='2.0'>                                                \n"
+//				<< "<Domain>                                                         \n";
+//
+//		// psi
+//		ss
+//
+//		<< "<Grid Name='G_EQDSK' GridType='Uniform' >                     \n"
+//
+//		<< "  <Topology TopologyType='2DCoRectMesh'  Dimensions='" << dims_
+//				<< "'>" << "   </Topology>\n"
+//
+//				<< "  <Geometry Type='Origin_DxDy'>                                 \n"
+//				<< "     <DataItem Format='XML' Dimensions='2'> " << rzmin_[1]
+//				<< " " << rzmin_[0] << "</DataItem>\n"
+//				<< "     <DataItem Format='XML' Dimensions='2'>"
+//				<< (rzmax_[1] - rzmin_[1]) / static_cast<Real>(dims_[1] - 1)
+//				<< " "
+//				<< (rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1)
+//				<< "     </DataItem>\n"
+//				<< "  </Geometry>                                                   \n"
+//
+//				<< "<!-- ADD_ATTRIBUTE_START -->                                        \n"
+//
+//				<< "  <Attribute Name='psi'  AttributeType='Scalar' Center='Node' >     \n"
+//				<< "    <DataItem Format=\"HDF\"  NumberType='Float'"
+//				<< " Precision='8'  Dimensions='" << dims_ << "'>          \n"
+//				<< h5name << ":/psi"
+//				<< "    </DataItem>                                                     \n"
+//				<< "  </Attribute>                                                      \n"
+//
+//				<< "<!-- ADD_ATTRIBUTE_DONE -->                                         \n"
+//
+//				<< "</Grid>                                                             \n";
+//
+//		// boundary
+//		ss
+//				<< "<Grid Name=\"Boundary\" GridType=\"Uniform\">                       \n"
+//				<< "   <Topology TopologyType=\"Polyline\" NodesPerElement='2'	"
+//				<< "  NumberOfElements = '" << rzbbb_.size() << "' >  \n"
+//				<< "       <DataItem Format=\"XML\"  Dimensions=\""
+//				<< rzbbb_.size() << " 2\"   NumberType=\"UInt\">\n";
+//		for (size_t s = 0, s_end = rzbbb_.size() - 1; s < s_end; ++s)
+//		{
+//			ss << s << " " << s + 1 << " ";
+//		}
+//
+//		ss << rzbbb_.size() - 1 << " " << 0 << std::endl;
+//
+//		ss << "  </DataItem> </Topology>                 \n"
+//
+//				<< "   <Geometry Type=\"XYZ\">                                           \n"
+//				<< "       <DataItem Format=\"XML\"  NumberType=\"Float\"  Dimensions=\""
+//				<< rzbbb_.size() << " 3\"" << "> \n";
+//		for (auto & v : rzbbb_)
+//		{
+//
+//			ss << " 0 " << v[0] << " " << v[1] << std::endl;
+//		}
+//
+//		ss
+//				<< "      </DataItem>                                                   \n"
+//				<< "   </Geometry>                                                      \n"
+//
+//				<< "</Grid>                                                             \n";
+//
+//		// limiter
+//		ss
+//				<< "<Grid Name=\"limiter\" GridType=\"Uniform\">                        \n"
+//				<< "   <Topology TopologyType=\"Polyline\"  NodesPerElement='2'	"
+//				<< "  NumberOfElements = '" << rzlim_.size() << "' >  \n"
+//				<< "     <DataItem	Format = \"XML\"  Dimensions=\""
+//				<< rzlim_.size() << " 2\"   NumberType=\"UInt\"> \n";
+//
+//		for (size_t s = 0, s_end = rzlim_.size() - 1; s < s_end; ++s)
+//		{
+//			ss << s << " " << s + 1 << " ";
+//		}
+//		ss << rzlim_.size() - 1 << " " << 0 << " " << std::endl;
+//
+//		ss << "  </DataItem> </Topology>                 \n"
+//
+//				<< "<Geometry Type=\"XYZ\">                                           \n"
+//				<< "  <DataItem Format=\"XML\"  NumberType=\"Float\" Dimensions=\""
+//				<< rzlim_.size() << " 3\" > \n";
+//
+//		for (auto & v : rzlim_)
+//		{
+//			ss << " 0 " << v[0] << " " << v[1] << std::endl;
+//		}
+//
+//		ss
+//				<< "  </DataItem>                                                  \n"
+//				<< "</Geometry>                                                      \n"
+//				<< "</Grid>                                                             \n"
+//
+//				;
+//
+//		ss
+//		<< "</Domain>" << std::endl << "</Xdmf>" << std::endl;
+//
+//		h5s << HDF5::OpenDataSet("psi") << HDF5::SetDims(dims_) << psirz_.data()
+//				<< HDF5::CloseDataSet();
+//		//h5s << HDF5::OpenDataSet("rzbbb") << rzbbb_ << HDF5::CloseDataSet();
+//		//h5s << HDF5::OpenDataSet("rzlim") << rzlim_ << HDF5::CloseDataSet();
+//	}
 
 }
 }  // namespace simpla
