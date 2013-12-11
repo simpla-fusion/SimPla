@@ -16,7 +16,8 @@
 
 namespace simpla
 {
-PhysicalConstants::PhysicalConstants(std::string type)
+PhysicalConstants::PhysicalConstants(std::string type) :
+		type_(type)
 {
 	SetBaseUnit(type_);
 }

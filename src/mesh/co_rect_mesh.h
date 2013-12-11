@@ -146,6 +146,49 @@ struct CoRectMesh
 		constants.Serialize(vm.GetChild("UnitSystem"));
 	}
 
+	inline std::ostream & Serialize(std::ostream &os) const
+	{
+		os << SINGLELINE << std::endl
+
+		<< "# Mesh" << std::endl;
+
+		constants.Serialize(os);
+		return os;
+	}
+
+	//
+	//	template<int IFORM, typename T1>
+	//	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
+	//	{
+	//		size_t num_comp = num_comps_per_cell_[IFORM];
+	//
+	//		for (size_t i = 0; i < dims_[0]; ++i)
+	//		{
+	//			std::cout << "--------------------------------------------------"
+	//					<< std::endl;
+	//			for (size_t j = 0; j < dims_[1]; ++j)
+	//			{
+	//				std::cout << std::endl;
+	//				for (size_t k = 0; k < dims_[2]; ++k)
+	//				{
+	//					std::cout << "(";
+	//					for (int m = 0; m < num_comp; ++m)
+	//					{
+	//						std::cout
+	//								<< f[(i * strides_[0] + j * strides_[1]
+	//										+ k * strides_[2]) * num_comp + m]
+	//								<< " ";
+	//					}
+	//					std::cout << ") ";
+	//				}
+	//				std::cout << std::endl;
+	//			}
+	//
+	//		}
+	//		std::cout << std::endl;
+	//
+	//	}
+
 	inline void _SetImaginaryPart(Real i, Real * v)
 	{
 	}
@@ -527,38 +570,6 @@ private:
 
 	}
 public:
-//
-//	template<int IFORM, typename T1>
-//	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
-//	{
-//		size_t num_comp = num_comps_per_cell_[IFORM];
-//
-//		for (size_t i = 0; i < dims_[0]; ++i)
-//		{
-//			std::cout << "--------------------------------------------------"
-//					<< std::endl;
-//			for (size_t j = 0; j < dims_[1]; ++j)
-//			{
-//				std::cout << std::endl;
-//				for (size_t k = 0; k < dims_[2]; ++k)
-//				{
-//					std::cout << "(";
-//					for (int m = 0; m < num_comp; ++m)
-//					{
-//						std::cout
-//								<< f[(i * strides_[0] + j * strides_[1]
-//										+ k * strides_[2]) * num_comp + m]
-//								<< " ";
-//					}
-//					std::cout << ") ";
-//				}
-//				std::cout << std::endl;
-//			}
-//
-//		}
-//		std::cout << std::endl;
-//
-//	}
 
 	inline coordinates_type GetCoordinates(int IFORM, int m, index_type i,
 			index_type j, index_type k) const

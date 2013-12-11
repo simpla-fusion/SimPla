@@ -36,6 +36,10 @@ public:
 	virtual void Serialize(LuaObject * cfg) const
 	{
 	}
+	virtual std::basic_ostream<char> & Serialize(std::basic_ostream<char> & os) const
+	{
+		return os;
+	}
 	virtual void OneStep()
 	{
 		++step_count_;

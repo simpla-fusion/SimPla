@@ -27,6 +27,7 @@
     
     Grid=
     {
+      Type="CoRectMesh",
       UnitSystem={Type="Nature"},
       Topology=
       {       

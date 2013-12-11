@@ -50,7 +50,34 @@ public:
 		vm.template SetValue<double>("mol", mol_);
 	}
 
-	void Print(std::ostream & os) const;
+	inline std::basic_ostream<char> & Serialize(
+			std::basic_ostream<char> &os) const
+	{
+		os
+
+		<< SINGLELINE << std::endl
+
+		<< "--# Unit System" << std::endl
+
+		<< "Type" << "\t= " << type_ << std::endl
+
+		<< "m" << "\t= " << m_ << std::endl
+
+		<< "s" << "\t= " << s_ << std::endl
+
+		<< "kg" << "\t= " << kg_ << std::endl
+
+		<< "C" << "\t= " << C_ << std::endl
+
+		<< "K" << "\t= " << K_ << std::endl
+
+		<< "mol" << "\t= " << mol_ << std::endl
+
+		<< "--" << SINGLELINE << std::endl;
+		return os;
+	}
+
+	void Print(std::basic_ostream<char> & os) const;
 
 	void SetBaseUnit(std::string const & type_name = "CUSTOM", double pm = 1,
 			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,

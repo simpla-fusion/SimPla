@@ -43,6 +43,7 @@ public:
 	~Context();
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
+	std::basic_ostream<char> & Serialize(std::basic_ostream<char> & os) const;
 	void OneStep();
 	void DumpData(std::string const &) const;
 
@@ -110,6 +111,13 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 template<typename TM>
 void Context<TM>::Serialize(configure_type * cfg) const
 {
+}
+template<typename TM>
+std::basic_ostream<char> & Context<TM>::Serialize(
+		std::basic_ostream<char> & os) const
+{
+	mesh.Serialize(os);
+	return os;
 }
 
 template<typename TM>
@@ -246,41 +254,37 @@ int main(int argc, char **argv)
 
 	try
 	{
-		auto mesh_type = pt.GetChild("Grid").as<std::string>();
+		auto mesh_type = pt.GetChild("Grid").GetChild("Type").as<std::string>();
 
 		if (mesh_type == "CoRectMesh")
 		{
-
 			typedef CoRectMesh<Complex> mesh_type;
 			std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
 			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-
+			ctx->Deserialize(pt);
 		}
 	} catch (...)
 	{
-		pt.Dump(ERROR << "Configure Error!");
+//		pt.Serialize(std::cout);
+		ERROR << "Configure Error!";
 	}
 
 //  Summary    ====================================
 
-	INFORM << std::endl << DOUBLELINE << std::endl;
+	LOG << std::endl << DOUBLELINE << std::endl;
 
-	INFORM << "[Main Control]" << std::endl;
+	LOG << "[Main Control]" << std::endl;
 
-	INFORM << SINGLELINE << std::endl;
-
-//	mesh.Print(INFORM);
-
-	INFORM << SINGLELINE << std::endl;
+	ctx->Serialize(std::cout);
 
 // Main Loop ============================================
 
+	LOG << std::endl << DOUBLELINE << std::endl;
 	LOG << (">>> Pre-Process DONE! <<<");
-	ctx->Deserialize(pt);
-	LOG << (">>> Process START! <<<");
 
 	if (!just_a_test)
 	{
+		LOG << (">>> Process START! <<<");
 		for (int i = 0; i < num_of_step; ++i)
 		{
 			LOG << ">>> STEP " << i << " Start <<<";
@@ -293,12 +297,11 @@ int main(int argc, char **argv)
 			}
 			LOG << ">>> STEP " << i << " Done <<<";
 		}
+		LOG << (">>> Process DONE! <<<");
+		//	ctx->Serialize(std::cout);
+		LOG << (">>> Post-Process DONE! <<<");
 	}
-	LOG << (">>> Process DONE! <<<");
-	LuaObject dump;
-	ctx->Serialize(&dump);
-	dump.Dump(INFORM);
-	LOG << (">>> Post-Process DONE! <<<");
+
 ////
 ////// Log ============================================
 

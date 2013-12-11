@@ -31,36 +31,6 @@ namespace simpla
 
 #define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, 1) ;   lua_pop(_L, 1);
 
-static void stackDump(lua_State *L)
-{
-	int top = lua_gettop(L);
-	for (int i = 1; i < top; ++i)
-	{
-		int t = lua_type(L, i);
-		switch (t)
-		{
-		case LUA_TSTRING:
-			std::cout << "[" << i << "]" << lua_tostring(L,i) << std::endl;
-			break;
-
-		case LUA_TBOOLEAN:
-			std::cout << "[" << i << "]" << std::boolalpha
-					<< lua_toboolean(L, i) << std::endl;
-			break;
-
-		case LUA_TNUMBER:
-			std::cout << "[" << i << "]" << lua_tonumber(L, i) << std::endl;
-			break;
-		case LUA_TTABLE:
-			std::cout << "[" << i << "]" << "is a table" << std::endl;
-			break;
-		default:
-			std::cout << "[" << i << "]" << "is an unknown type" << std::endl;
-		}
-	}
-	std::cout << "===== End the listing =====" << std::endl;
-}
-
 class LuaIterator;
 class LuaObject;
 
@@ -137,10 +107,36 @@ public:
 		}
 	}
 
-	template<typename OStream>
-	OStream const& Dump(OStream const& os)
+	inline std::basic_ostream<char> & Serialize(std::basic_ostream<char> &os)
 	{
-		UNIMPLEMENT;
+		int top = lua_gettop(L_.get());
+		for (int i = 1; i < top; ++i)
+		{
+			int t = lua_type(L_.get(), i);
+			switch (t)
+			{
+			case LUA_TSTRING:
+				os << "[" << i << "]=" << lua_tostring(L_.get(),i) << std::endl;
+				break;
+
+			case LUA_TBOOLEAN:
+				os << "[" << i << "]=" << std::boolalpha
+						<< lua_toboolean(L_.get(), i) << std::endl;
+				break;
+
+			case LUA_TNUMBER:
+				os << "[" << i << "]=" << lua_tonumber(L_.get(), i)
+						<< std::endl;
+				break;
+			case LUA_TTABLE:
+				os << "[" << i << "]=" << "is a table" << std::endl;
+				break;
+			default:
+				os << "[" << i << "]=" << "is an unknown type" << std::endl;
+			}
+		}
+		os << "--  End the listing --" << std::endl;
+
 		return os;
 	}
 
