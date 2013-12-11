@@ -11,7 +11,6 @@
 #include "../utilities/log.h"
 #include "../simpla_defs.h"
 #include "../fetl/ntuple.h"
-#include <H5Cpp.h>
 #include <hdf5.h>
 #include <hdf5_hl.h>
 #include <cstddef>
@@ -59,14 +58,15 @@ template<> struct HDF5DataType<long double>
 	}
 };
 
-void HDF5Write(hid_t &grp, std::string const & name, void const * v,
-		hid_t const &mdtype, int n, size_t * dims, bool append_enable);
+void HDF5Write(hid_t grp, void const * v, std::string const & name,
+		hid_t mdtype, int n, size_t * dims, bool append_enable);
 
 template<typename TV>
-inline void HDF5Write(hid_t & grp, std::string const & name,
-		std::vector<TV> const &v, int n = 0, size_t * d = nullptr,
+inline void HDF5Write(hid_t grp, std::vector<TV> const &v,
+		std::string const & name = "unnamed", int n = 0, size_t * d = nullptr,
 		bool append_enable = false)
 {
+
 	size_t dims[n + 2];
 
 	hid_t mdtype;
@@ -86,7 +86,7 @@ inline void HDF5Write(hid_t & grp, std::string const & name,
 		++n;
 	}
 
-	HDF5Write(grp, name, reinterpret_cast<void const*>(&v[0]),
+	HDF5Write(grp, reinterpret_cast<void const*>(&v[0]),
 			HDF5DataType<typename nTupleTraits<TV>::value_type>().type(), n,
 			dims, append_enable);
 

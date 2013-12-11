@@ -44,6 +44,21 @@ inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
 	return (os.str());
 }
 
+inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
+		size_t count = 0, int width = 4)
+{
+	std::string res("");
+	while (!fun(res))
+	{
+		std::ostringstream os;
+
+		os << std::setw(width) << std::setfill('0') << count;
+		++count;
+		res = os.str();
+	}
+	return res;
+}
+
 }  // namespace simpla
 
 #endif /* UTILITIES_H_ */

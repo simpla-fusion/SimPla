@@ -5,22 +5,32 @@
  *      Author: salmon
  */
 
+#include <bits/shared_ptr_base.h>
+#include <bits/shared_ptr.h>
 #include <complex>
 #include <cstddef>
 #include <cstdlib>
+#include <functional>
 #include <iostream>
 #include <memory>
+#include <new>
 #include <string>
 
-#include "../src/simpla_defs.h"
-#include "../src/fetl/fetl.h"
+#include "../src/engine/basecontext.h"
+#include "../src/fetl/field.h"
+#include "../src/fetl/ntuple.h"
+#include "../src/fetl/primitives.h"
+#include "../src/io/hdf5_data_dump.h"
+#include "../src/mesh/co_rect_mesh.h"
 #include "../src/particle/particle.h"
 #include "../src/particle/pic_engine_default.h"
 #include "../src/particle/pic_engine_deltaf.h"
+#include "../src/simpla_defs.h"
+#include "../src/utilities/log.h"
 #include "../src/utilities/lua_state.h"
-#include "../src/mesh/co_rect_mesh.h"
-#include "../src/engine/basecontext.h"
 #include "../src/utilities/parse_command_line.h"
+#include "../src/utilities/singleton_holder.h"
+#include "../src/utilities/utilities.h"
 #include "pic/pic_engine_ggauge.h"
 #include "solver/electromagnetic/cold_fluid.h"
 
@@ -137,11 +147,21 @@ template<typename TM> std::ostream & operator<<(std::ostream & os,
 
 	os
 
-	<< self.mesh << std::endl
+	<< self.mesh << "\n"
 
-	<< self.cold_fluid_ << std::endl
+	<< self.cold_fluid_ << "\n"
 
-	<< self.particle_collection_ << std::endl;
+	<< self.particle_collection_ << "\n"
+
+	<< Data(self.E1, "E1") << "\n"
+
+	<< Data(self.B1, "B1") << "\n"
+
+	<< Data(self.J1, "J1") << "\n"
+
+	<< Data(self.B0, "B0") << "\n"
+
+	;
 
 	return os;
 }
@@ -175,9 +195,9 @@ int main(int argc, char **argv)
 				{
 					record_stride =ToValue<size_t>(value);
 				}
-				else if(opt=="o"||opt=="output")
+				else if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 				{
-					work_path =value;
+					H5DataDump.SetPrefix(value);
 				}
 				else if(opt=="i"||opt=="input")
 				{

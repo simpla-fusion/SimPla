@@ -30,8 +30,6 @@ class H5OutStream
 {
 	hid_t h5_file_;
 	hid_t grp_;
-	hid_t ds_;
-	hid_t dspace_;
 	std::string ds_name_;
 	std::string default_ds_name_;
 	size_t write_count_;
@@ -41,8 +39,10 @@ class H5OutStream
 public:
 	H5OutStream(std::string const & filename, std::string const & dsname =
 			"unnamed") :
-			default_ds_name_(dsname), write_count_(0), append_enabled_(false), dims_setted_(
-					false)
+
+			default_ds_name_(dsname), write_count_(0),
+
+			append_enabled_(false), dims_setted_(false)
 	{
 		h5_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT,
 		H5P_DEFAULT);
@@ -50,20 +50,29 @@ public:
 		grp_ = H5Gcreate(h5_file_, "/", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 	}
+
+	~H5OutStream()
+	{
+		H5Gclose(grp_);
+		H5Fclose(h5_file_);
+	}
 	inline void SetAppendEnabled(bool flag)
 	{
 		append_enabled_ = flag;
 	}
 	void OpenGroup(std::string const & name)
 	{
-		hid_t fg = grp_;
-
 		if (name[0] == '/') /// absolute path
 		{
-			fg = H5Gopen(h5_file_, "/", H5P_DEFAULT);
+			H5Gclose(grp_);
+			grp_ = H5Gopen(h5_file_, "/", H5P_DEFAULT);
 		}
-
-		grp_ = H5Gopen(fg, name.c_str(), H5P_DEFAULT);
+		else
+		{
+			hid_t fg = H5Gopen(grp_, name.c_str(), H5P_DEFAULT);
+			H5Gclose(grp_);
+			grp_ = fg;
+		}
 
 	}
 	void OpenDataSet(std::string const & name)
