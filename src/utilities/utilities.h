@@ -8,8 +8,13 @@
 #ifndef UTILITIES_H_
 #define UTILITIES_H_
 
+#include <cstddef>
+#include <functional>
+#include <iomanip>
 #include <sstream>
 #include <string>
+
+#include "../fetl/ntuple.h"
 
 namespace simpla
 {

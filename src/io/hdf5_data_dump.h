@@ -19,6 +19,7 @@
 extern "C"
 {
 #include <hdf5.h>
+#include <hdf5_hl.h>
 
 }
 
@@ -35,16 +36,15 @@ class HDF5DataDump: public SingletonHolder<HDF5DataDump>
 {
 	std::string prefix_;
 	int suffix_width_;
-	size_t count_;
 
 	std::string filename_;
 	std::string grpname_;
 	hid_t file_;
-	hid_t group_
+	hid_t group_;
 public:
 
 	HDF5DataDump() :
-			prefix_("unnamed"), file_(0), group_(0), suffix_width_(4), count_()
+			prefix_("simpla_unnamed"), file_(0), group_(0), suffix_width_(4)
 	{
 	}
 
@@ -57,42 +57,59 @@ public:
 	{
 		return file_;
 	}
+	inline hid_t GetGroupID()
+	{
+		return group_;
+	}
+
 	inline void OpenGroup(std::string const & gname)
 	{
 		CloseGroup();
 
-		grpname_ = (gname == "" ? "unnamed" : gname) +
+		grpname_ = gname + "/";
 
 		group_ = H5Gopen(file_, grpname_.c_str(), H5P_DEFAULT);
 
-		if (group_ < 0)
+		if (group_ <= 0)
 		{
 			group_ = H5Gcreate(file_, grpname_.c_str(), H5P_DEFAULT,
 			H5P_DEFAULT, H5P_DEFAULT);
 		}
+		if (group_ <= 0)
+		{
+			ERROR << "Can not open group " << grpname_ << " in file "
+					<< prefix_;
+		}
+
 	}
 
-	inline void OpenFile(std::string fname = "")
+	inline void OpenFile(std::string const &fname = "")
 	{
 
 		CloseFile();
+		if (fname != "")
+			prefix_ = fname;
 
-		if (fname == "")
+		if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
 		{
-			filename_ = prefix_ + "/" + ToString(count_);
-		}
-		else if (fname[0] != "/")
-		{
-			filename_ = prefix_ + "/" + fname;
-
+			prefix_ = fname.substr(0, fname.size() - 3);
 		}
 
-		file_ = H5Fcreate(filename_.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT,
-		H5P_DEFAULT);
+		filename_ = prefix_ +
 
-		grpname_ = "/";
-		group_ = H5Gopen(file_, "/", H5P_DEFAULT);
+		AutoIncrease(
 
+		[&](std::string const & suffix)->bool
+		{
+			file_ = H5Fcreate((prefix_+suffix+".h5").c_str(),
+					H5F_ACC_EXCL, H5P_DEFAULT,
+					H5P_DEFAULT );
+			return file_>0;
+		}
+
+		) + ".h5";
+
+		OpenGroup("");
 	}
 
 	void CloseGroup()
@@ -114,12 +131,12 @@ public:
 		file_ = 0;
 		filename_ = "";
 	}
-	inline std::string const & GetCurrentPath() const
+	inline std::string GetCurrentPath() const
 	{
 		return filename_ + ":" + grpname_;
 	}
 
-	inline const std::string& GetPrefix() const
+	inline std::string GetPrefix() const
 	{
 		return prefix_;
 	}
@@ -138,10 +155,6 @@ public:
 	{
 		suffix_width_ = suffixWidth;
 	}
-	inline hid_t GetGroupID()
-	{
-		return group_;
-	}
 };
 
 #define H5DataDump HDF5DataDump::instance()
@@ -159,7 +172,7 @@ public:
 	friend std::ostream & operator<<(std::ostream &, HeavyData<U> const &);
 
 	HeavyData(T const & d, std::string const &name = "unnamed",
-			std::string const grp = "/", int rank = 1, size_t * dims = nullptr) :
+			std::string const grp = "", int rank = 1, size_t * dims = nullptr) :
 			data_(d), name_(name), appendable_(false)
 	{
 		if (dims != nullptr && rank > 0)
@@ -199,26 +212,19 @@ template<typename T, typename ... Args> inline HeavyData<T> Data(T const & d,
 	return std::move(HeavyData<T>(d, std::forward<Args const &>(args)...));
 }
 template<typename U>
-std::ostream & operator<<(std::ostream & os, HeavyData<U> const &)
-{
-	UNIMPLEMENT;
-}
-template<typename U>
-std::ostream & operator<<(std::ostream & os, HeavyData<std::vector<U>> const &d)
+std::ostream & operator<<(std::ostream & os, HeavyData<U> const &d)
 {
 	int rank = 0;
-	size_t & dims = nullptr;
+	size_t const * dims = nullptr;
 	if (!d.dims_.empty())
 	{
 		rank = d.dims_.size();
-		dims = &d.dims_[9]
+		dims = &d.dims_[0];
 	}
-
-	std::string dsname =
 
 	os
 
-	<< H5DataDump.GetCurrentPath() <<"/"
+	<< H5DataDump.GetCurrentPath()
 
 	<< HDF5Write(H5DataDump.GetGroupID(), d.data_, d.name_,rank , dims,d.appendable_)
 	;
@@ -230,15 +236,28 @@ std::ostream & operator<<(std::ostream & os, HeavyData<std::vector<U>> const &d)
 template<typename U>
 std::ostream & operator<<(std::ostream & os, std::vector<U> const &d)
 {
-	std::string dsname = HDF5Write(H5DataDump.GetGroupID(), d.data_ );
+	os
 
+	<< H5DataDump.GetCurrentPath()
+
+	<< HDF5Write(H5DataDump.GetGroupID(), d)
+	;
+
+	return os;
 }
 
-template<typename > struct HDF5DataType;
+template<typename T> struct HDF5DataType
+{
+	hid_t type() const
+	{
+		return H5T_NATIVE_INT;
+	}
+
+};
 
 template<> struct HDF5DataType<int>
 {
-	hid_t type()
+	hid_t type() const
 	{
 		return H5T_NATIVE_INT;
 	}
@@ -246,7 +265,7 @@ template<> struct HDF5DataType<int>
 
 template<> struct HDF5DataType<float>
 {
-	hid_t type()
+	hid_t type() const
 	{
 		return H5T_NATIVE_FLOAT;
 	}
@@ -254,7 +273,7 @@ template<> struct HDF5DataType<float>
 
 template<> struct HDF5DataType<double>
 {
-	hid_t type()
+	hid_t type() const
 	{
 		return H5T_NATIVE_DOUBLE;
 	}
@@ -262,21 +281,23 @@ template<> struct HDF5DataType<double>
 
 template<> struct HDF5DataType<long double>
 {
-	hid_t type()
+	hid_t type() const
 	{
 		return H5T_NATIVE_LDOUBLE;
 	}
 };
 
-template<typename TV>
-inline std::string HDF5Write(hid_t grp, std::vector<TV> const &v,
-		std::string const & name = "unnamed", int rank = 0,
-		size_t * d = nullptr, bool append_enable = false)
+template<typename TV, typename ...TOther>
+std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
+		std::string const & name = "unnamed", int rank = 0, size_t const* d =
+				nullptr, bool append_enable = false)
 {
-
+	if (grp <= 0)
+	{
+		WARNING << "HDF5 file is not opened! No data is saved!";
+		return "";
+	}
 	size_t dims[rank + 2];
-
-	hid_t mdtype;
 
 	if (rank == 0 || d == nullptr)
 	{
@@ -292,6 +313,12 @@ inline std::string HDF5Write(hid_t grp, std::vector<TV> const &v,
 		dims[rank] = nTupleTraits<TV>::NUM_OF_DIMS;
 		++rank;
 	}
+
+	CHECK(dims[0]);
+	CHECK(dims[1]);
+	CHECK(dims[2]);
+
+	hid_t mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>().type();
 
 	std::string dsname = name +
 
@@ -311,7 +338,8 @@ inline std::string HDF5Write(hid_t grp, std::vector<TV> const &v,
 		hid_t dset = H5Dcreate(grp, dsname.c_str(), mdtype, dspace, H5P_DEFAULT,
 		H5P_DEFAULT, H5P_DEFAULT);
 
-		H5Dwrite(dset, mdtype, dspace, dspace, H5P_DEFAULT, v);
+		H5Dwrite(dset, mdtype, dspace, dspace, H5P_DEFAULT,
+				static_cast<void const*>(&v[0]));
 
 		H5Dclose(dset);
 		H5Dclose(dspace);
@@ -367,7 +395,8 @@ inline std::string HDF5Write(hid_t grp, std::vector<TV> const &v,
 		H5Sselect_hyperslab(fspace, H5S_SELECT_SET, mdims, start, H5P_DEFAULT,
 		H5P_DEFAULT);
 
-		H5Dwrite(dset, mdtype, mspace, fspace, H5P_DEFAULT, v);
+		H5Dwrite(dset, mdtype, mspace, fspace, H5P_DEFAULT,
+				static_cast<void const*>(&v[0]));
 
 		H5Sclose(mspace);
 		H5Sclose(fspace);

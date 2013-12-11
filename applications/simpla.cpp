@@ -5,8 +5,6 @@
  *      Author: salmon
  */
 
-#include <bits/shared_ptr_base.h>
-#include <bits/shared_ptr.h>
 #include <complex>
 #include <cstddef>
 #include <cstdlib>
@@ -118,11 +116,12 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	LOG << " Load Particles Done!";
 
-	LoadField(cfg["n0"], &n0);
-	LoadField(cfg["B0"], &B0);
-	LoadField(cfg["E1"], &E1);
-	LoadField(cfg["B1"], &B1);
-	LoadField(cfg["J1"], &J1);
+	auto init_value = cfg["InitValue"];
+	LoadField(init_value["n0"], &n0);
+	LoadField(init_value["B0"], &B0);
+	LoadField(init_value["E1"], &E1);
+	LoadField(init_value["B1"], &B1);
+	LoadField(init_value["J1"], &J1);
 }
 
 template<typename TM>
@@ -197,7 +196,7 @@ int main(int argc, char **argv)
 				}
 				else if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 				{
-					H5DataDump.SetPrefix(value);
+					H5DataDump.OpenFile(value);
 				}
 				else if(opt=="i"||opt=="input")
 				{

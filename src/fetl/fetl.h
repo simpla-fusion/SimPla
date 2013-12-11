@@ -9,12 +9,13 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-#include "./primitives.h"
-#include "./ntuple.h"
-#include "./field.h"
-#include "./ntuple.h"
-#include "./geometry.h"
-#include "./field_ops.h"
+#include "primitives.h"
+#include "ntuple.h"
+#include "field.h"
+#include "ntuple.h"
+#include "geometry.h"
+#include "field_ops.h"
+#include "proxycache.h"
 
 //#ifndef NO_FIELD_IO_CACHE
 //#  include "./field_rw_cache.h"

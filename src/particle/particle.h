@@ -13,10 +13,7 @@
 #include <map>
 #include <string>
 
-#include "../fetl/field.h"
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
-#include "../fetl/proxycache.h"
+#include "../fetl/fetl.h"
 #include "../utilities/lua_state.h"
 //need  libstdc++
 //#include <ext/mt_allocator.h>
