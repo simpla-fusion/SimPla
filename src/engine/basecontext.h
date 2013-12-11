@@ -40,7 +40,7 @@ public:
 	{
 		++step_count_;
 	}
-	virtual void DumpData()
+	virtual void DumpData(std::string const & path)
 	{
 	}
 };

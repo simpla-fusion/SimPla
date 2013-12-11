@@ -21,6 +21,14 @@ inline std::string ToString(T const & v)
 	os << v;
 	return os.str();
 }
+template<typename T>
+inline T ToValue(std::string const & str)
+{
+	T v;
+	std::istringstream os(str);
+	os >> v;
+	return std::move(v);
+}
 
 }  // namespace simpla
 

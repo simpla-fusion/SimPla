@@ -27,14 +27,22 @@
 #include <stdexcept>
 #include <string>
 
+enum
+{
+	LOG_OUT_RANGE_ERROR = -4, LOG_LOGIC_ERROR = -3, LOG_ERROR = -2,
+
+	LOG_WARNING = -1,
+
+	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 2, LOG_DEBUG = 0
+};
 class LogStreams: public SingletonHolder<LogStreams>
 {
 public:
 
 	// TODO add multi_stream support
 
-	LogStreams() :
-			info_level(0)
+	LogStreams(int l = LOG_VERBOSE) :
+			std_out_visable_level_(l)
 	{
 	}
 	~LogStreams()
@@ -53,7 +61,7 @@ public:
 	}
 	void put(int level, std::string const & msg)
 	{
-		if (level <= info_level)
+		if (level <= std_out_visable_level_)
 		{
 			std::cout << msg;
 		}
@@ -62,9 +70,12 @@ public:
 			fs << msg;
 		}
 	}
-	int info_level;
-
-	std::string format;
+	inline void SetStdOutVisableLevel(int l)
+	{
+		std_out_visable_level_ = l;
+	}
+private:
+	int std_out_visable_level_;
 
 	std::fstream fs;
 
@@ -73,70 +84,69 @@ public:
 class Log: public std::ostringstream
 {
 	int level_;
-	bool condition_;
+	bool isVisable_;
 public:
-	enum
-	{
-		L_OUT_RANGE_ERROR = -4,
-		L_LOGIC_ERROR = -3,
-		L_ERROR = -2,
-		L_WARNING = -1,
-
-		L_INFORM = 0,
-		L_LOG = 1,
-		L_VERBOSE = 2,
-		L_DEBUG = 0
-	};
 
 	Log(int lv = 0, bool cond = true) :
-			level_(lv), condition_(cond)
+			level_(lv), isVisable_(cond)
 	{
-		(*this)
-//#ifdef  _OMP
-//		<<"["<<omp_get_thread_num()<<"]"
-//#endif
-		<< "[" << TimeStamp() << "]" << " ";
+
+		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR
+				|| level_ == LOG_OUT_RANGE_ERROR)
+		{
+			*this << "[E]";
+		}
+		else if (level_ == LOG_WARNING)
+		{
+			*this << "[W]";
+		}
+		else if (level_ == LOG_LOG)
+		{
+			*this << "[L]" << "[" << TimeStamp() << "]" << " ";
+		}
+		else if (level_ == LOG_INFORM)
+		{
+		}
+		else if (level_ == LOG_DEBUG)
+		{
+			*this << "[D]";
+		}
 
 	}
 	~Log()
 	{
-		if (condition_)
+		if (isVisable_)
 		{
 
 			(*this) << std::endl;
 
-			if (level_ == L_LOGIC_ERROR)
+			if (level_ == LOG_LOGIC_ERROR)
 			{
 				throw(std::logic_error(this->str()));
 			}
-			else if (level_ == L_ERROR)
+			else if (level_ == LOG_ERROR)
 			{
 				throw(std::runtime_error(this->str()));
 			}
-			else if (level_ == L_OUT_RANGE_ERROR)
+			else if (level_ == LOG_OUT_RANGE_ERROR)
 			{
 				throw(std::out_of_range(this->str()));
 			}
 			else
 			{
-				LogStreams::instance().put(level_, (*this).str());
+				LogStreams::instance().put(level_, this->str());
 			}
 		}
 	}
 
-	static void Verbose(int l = L_INFORM)
+	static void Verbose(int l = LOG_VERBOSE)
 	{
-		LogStreams::instance().info_level = L_INFORM;
+		LogStreams::instance().SetStdOutVisableLevel(l);
 	}
 
-	static void OpenFile(std::string const & fname)
+	static void OpenFile(std::string const & fname = "simpla_untitled.log")
 	{
 		LogStreams::instance().OpenFile(fname);
-	}
-
-	static void setFormat(std::string const & format)
-	{
-		LogStreams::instance().format = format;
 	}
 
 	static std::string TimeStamp()
@@ -152,22 +162,30 @@ public:
 	}
 private:
 };
+
 //FIXME The operator<< eat first input and transform to integral
-#define ERROR Log(Log::L_ERROR)<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define LOGIC_ERROR Log(Log::L_LOGIC_ERROR)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define ERROR Log(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define OUT_RANGE_ERROR Log(Log::L_OUT_RANGE_ERROR)<<1<<"[E]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define LOGIC_ERROR Log(LOG_LOGIC_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define WARNING Log(Log::L_WARNING)  <<"[W]["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-#define INFORM Log(Log::L_INFORM)  <<"[I]"
+#define OUT_RANGE_ERROR Log(LOG_OUT_RANGE_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define LOG Log(Log::L_LOG)  <<"[L]"
-//#endif
+#define WARNING Log(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define VERBOSE Log(Log::L_VERBOSE)  <<"[V]"
-//#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(-2)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
-//        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+#define INFORM Log(LOG_INFORM)
 
+#define UNIMPLEMENT Log(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "This is a new year wish. Try again next year, good luck!"
+
+#define DEADEND Log(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+        << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
+
+#define LOG Log(LOG_LOG)
+
+#define VERBOSE Log(LOG_VERBOSE)
+
+#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
+        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 #include <cassert>
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)
@@ -175,13 +193,12 @@ private:
 #  define ASSERT(_COND_)    assert(_COND_);
 #endif
 
-
 #ifndef NDEBUG
-#	define CHECK(_MSG_)    Log(Log::L_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define CHECK(_MSG_)    Log(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
-#	define EXCEPT(_COND_)    Log(Log::L_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define EXCEPT(_COND_)    Log(LOG_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_COND_)<<"="<< (_COND_)<<" "
-#	define EXCEPT_EQ( actual,expected)    Log(Log::L_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define EXCEPT_EQ( actual,expected)    Log(LOG_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(actual)<<" = "<< (actual) << " is not  "<< (expected) <<" "
 #else
 #	define CHECK(_MSG_)

@@ -127,12 +127,10 @@ public:
 			try
 			{
 				res = std::shared_ptr<void>(new byte_t[demand]);
+
 			} catch (std::bad_alloc const &error)
 			{
-				Log(-2) << __FILE__ << "[" << __LINE__ << "]:"
-						<< "Can not get enough memory! [ ~" << demand / ONE_GIGA
-						<< " GiB ]" << std::endl;
-				throw(error);
+				ERROR_BAD_ALLOC_MEMORY(demand, error);
 			}
 
 			// put new memory into pool

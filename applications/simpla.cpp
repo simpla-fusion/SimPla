@@ -20,6 +20,7 @@
 #include "../src/utilities/lua_state.h"
 #include "../src/mesh/co_rect_mesh.h"
 #include "../src/engine/basecontext.h"
+#include "../src/utilities/parse_command_line.h"
 #include "pic/pic_engine_ggauge.h"
 #include "solver/electromagnetic/cold_fluid.h"
 
@@ -43,7 +44,8 @@ public:
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
 	void OneStep();
-	void DumpData() const;
+	void DumpData(std::string const &) const;
+
 	inline ParticleCollection<mesh_type> &
 	GetParticleCollection()
 	{
@@ -117,7 +119,7 @@ void Context<TM>::OneStep()
 }
 
 template<typename TM>
-void Context<TM>::DumpData() const
+void Context<TM>::DumpData(std::string const &) const
 {
 }
 
@@ -125,22 +127,10 @@ void Context<TM>::DumpData() const
 
 using namespace simpla;
 
-void help_mesage()
-{
-	std::cout << "Too lazy to write a complete help information\n"
-			"\t -n<NUM>\t number of steps\n"
-			"\t -s<NUM>\t recorder per <NUM> steps\n"
-			"\t -o<STRING>\t output directory\n"
-			"\t -i<STRING>\t configure file "
-			"\n" << std::endl;
-}
-
 int main(int argc, char **argv)
 {
 
-	std::cout << SIMPLA_LOGO << std::endl;
-
-	Log::Verbose(0);
+	Log::Verbose(10);
 
 	LuaObject pt;
 
@@ -148,94 +138,167 @@ int main(int argc, char **argv)
 
 	size_t record_stride;
 
-	std::string workspace_path;
+	std::string work_path = "./";
 
-	if (argc <= 1)
+	bool just_a_test = false;
+
+	ParseCmdLine(argc, argv,
+			[&](std::string const & opt,std::string const & value)->int
+			{
+				if(opt=="n"||opt=="num_of_step")
+				{
+					num_of_step =ToValue<size_t>(value);
+				}
+				else if(opt=="s"||opt=="record_stride")
+				{
+					record_stride =ToValue<size_t>(value);
+				}
+				else if(opt=="o"||opt=="output")
+				{
+					work_path =value;
+				}
+				else if(opt=="i"||opt=="input")
+				{
+					pt.ParseFile(value);
+				}
+				else if(opt=="c"|| opt=="command")
+				{
+					pt.ParseString(value);
+				}
+				else if(opt=="l"|| opt=="log")
+				{
+					Log::OpenFile (value);
+				}
+				else if(opt=="v"|| opt=="verbose")
+				{
+					Log::Verbose(ToValue<int>(value));
+				}
+				else if(opt=="q"|| opt=="quiet")
+				{
+					Log::Verbose(ToValue<int>(value));
+				}
+				else if(opt=="g"|| opt=="generator")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
+					<< "Too lazy to implemented it\n"<< std::endl;
+					exit(1);
+				}
+				else if(opt=="t")
+				{
+					just_a_test=true;
+				}
+				else if(opt=="V")
+				{
+					INFORM<<ShowShortVersion()<< std::endl;
+					exit(1);
+				}
+
+				else if(opt=="version")
+				{
+					INFORM<<ShowVersion()<< std::endl;
+					exit(1);
+				}
+				else if(opt=="help")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
+					<< "Too lazy to write a complete help information\n"<< std::endl;
+					exit(1);
+
+				}
+				else
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
+					<<
+					" -h        \t print this information\n"
+					" -n<NUM>   \t number of steps\n"
+					" -s<NUM>   \t recorder per <NUM> steps\n"
+					" -o<STRING>\t output directory\n"
+					" -i<STRING>\t configure file \n"
+					" -c,--config <STRING>\t Lua script passed in as string \n"
+					" -t        \t only read and parse input file, but do not process  \n"
+					" -g,--generator   \t generator a demo input script file \n"
+					" -v<NUM>   \t verbose  \n"
+					" -V        \t print version  \n"
+					" -q        \t quiet mode, standard out  \n"
+					;
+					exit(1);
+				}
+				return CONTINUE;
+
+			}
+
+			);
+
+	INFORM << SIMPLA_LOGO << std::endl;
+
+	LOG << "Parse Command Line: Done!";
+
+	if (pt.isNull())
 	{
-		help_mesage();
+		LOG << "Nothing to do !!";
 		exit(1);
 	}
 
-	for (int i = 1; i < argc; ++i)
-	{
-		char opt = *(argv[i] + 1);
-		char * value = argv[i] + 2;
+	std::shared_ptr<BaseContext> ctx;
 
-		switch (opt)
+	try
+	{
+		auto mesh_type = pt.GetChild("Grid").as<std::string>();
+
+		if (mesh_type == "CoRectMesh")
 		{
-		case 'n':
-			num_of_step = atoi(value);
-			break;
-		case 's':
-			record_stride = atoi(value);
-			break;
-		case 'o':
-			workspace_path = value;
-			break;
-		case 'i':
-			pt.ParseFile(value);
-			break;
-		case 'l':
-			Log::OpenFile(value);
-			break;
-		case 'v':
-			Log::Verbose(atof(value));
-			break;
-		case 'h':
-			help_mesage();
-			exit(1);
-			break;
-		default:
-			std::cout << SIMPLA_LOGO << std::endl;
+
+			typedef CoRectMesh<Complex> mesh_type;
+			std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
+			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 
 		}
-
-	}
-	std::shared_ptr<BaseContext> ctx;
-	auto grid = pt.GetChild("Grid");
-	if (grid.at("Type").as<std::string>() == "CoRectMesh")
+	} catch (...)
 	{
-		typedef CoRectMesh<Complex> mesh_type;
-		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
-
-		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
+		pt.Dump(ERROR << "Configure Error!");
 	}
 
 //  Summary    ====================================
 
-	std::cout << std::endl << DOUBLELINE << std::endl;
+	INFORM << std::endl << DOUBLELINE << std::endl;
 
-	std::cout << "[Main Control]" << std::endl;
+	INFORM << "[Main Control]" << std::endl;
 
-	std::cout << SINGLELINE << std::endl;
+	INFORM << SINGLELINE << std::endl;
 
-//	mesh.Print(std::cout);
+//	mesh.Print(INFORM);
 
-	std::cout << SINGLELINE << std::endl;
+	INFORM << SINGLELINE << std::endl;
 
 // Main Loop ============================================
 
-	INFORM << (">>> Pre-Process DONE! <<<");
+	LOG << (">>> Pre-Process DONE! <<<");
 	ctx->Deserialize(pt);
-	INFORM << (">>> Process START! <<<");
+	LOG << (">>> Process START! <<<");
 
-	for (int i = 0; i < num_of_step; ++i)
+	if (!just_a_test)
 	{
-		INFORM << ">>> STEP " << i << " Start <<<";
-
-		ctx->OneStep();
-
-		if (i % record_stride == 0)
+		for (int i = 0; i < num_of_step; ++i)
 		{
+			LOG << ">>> STEP " << i << " Start <<<";
 
+			ctx->OneStep();
+
+			if (i % record_stride == 0)
+			{
+				ctx->DumpData(work_path);
+			}
+			LOG << ">>> STEP " << i << " Done <<<";
 		}
-		INFORM << ">>> STEP " << i << " Done <<<";
 	}
-
-	INFORM << (">>> Process DONE! <<<");
+	LOG << (">>> Process DONE! <<<");
 	LuaObject dump;
 	ctx->Serialize(&dump);
-	INFORM << (">>> Post-Process DONE! <<<");
+	dump.Dump(INFORM);
+	LOG << (">>> Post-Process DONE! <<<");
 ////
 ////// Log ============================================
 

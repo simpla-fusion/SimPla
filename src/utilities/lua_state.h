@@ -102,8 +102,9 @@ public:
 
 	{
 	}
+
 	LuaObject(std::shared_ptr<lua_State> l, int G, int s,
-			std::string const & path) :
+			std::string const & path = "") :
 			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
@@ -134,11 +135,13 @@ public:
 		{
 			lua_remove(L_.get(), GLOBAL_REF_IDX_);
 		}
-//		if (L_ != nullptr)
-//		{
-//			CHECK(lua_rawlen(L_.get(), GLOBAL_IDX_));
-//			CHECK(lua_gettop(L_.get()));
-//		}
+	}
+
+	template<typename OStream>
+	OStream const& Dump(OStream const& os)
+	{
+		UNIMPLEMENT;
+		return os;
 	}
 
 	inline bool isNull() const
@@ -403,34 +406,42 @@ public:
 		return std::move(at(key));
 	}
 
-	inline LuaObject operator[](std::string const & s) const
+	size_t GetLength() const
 	{
-		LuaObject res;
-		bool is_global = (self_ < 0);
-		if (is_global)
-		{
-			lua_getglobal(L_.get(), s.c_str());
-
-		}
-		else
-		{
-
-			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-			lua_getfield(L_.get(), -1, s.c_str());
-		}
-
-		int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-
-		if (!is_global)
-		{
-			lua_pop(L_.get(), 1);
-
-		}
-		return std::move(
-				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		size_t res = lua_rawlen(L_.get(), -1);
+		lua_pop(L_.get(), 1);
+		return std::move(res);
 	}
 
-	inline LuaObject at(std::string const & s, bool boundary_check = true) const
+//	inline LuaObject operator[](std::string const & s) const
+//	{
+//		LuaObject res;
+//		bool is_global = (self_ < 0);
+//		if (is_global)
+//		{
+//			lua_getglobal(L_.get(), s.c_str());
+//
+//		}
+//		else
+//		{
+//
+//			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+//			lua_getfield(L_.get(), -1, s.c_str());
+//		}
+//
+//		int id = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+//
+//		if (!is_global)
+//		{
+//			lua_pop(L_.get(), 1);
+//
+//		}
+//		return std::move(
+//				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
+//	}
+
+	inline LuaObject operator[](std::string const & s) const noexcept
 	{
 
 		bool is_global = (self_ < 0);
@@ -445,12 +456,9 @@ public:
 			lua_getfield(L_.get(), -1, s.c_str());
 		}
 
-		if (boundary_check && lua_isnil(L_.get(),lua_gettop(L_.get())))
+		if (lua_isnil(L_.get(),lua_gettop(L_.get())))
 		{
 			lua_pop(L_.get(), 1);
-//			throw(std::out_of_range(
-//					ToString(s) + "\" is not an element in " + path_));
-//
 			return std::move(LuaObject());
 		}
 		else
@@ -469,9 +477,10 @@ public:
 		}
 	}
 
-	inline LuaObject operator[](int s) const
+	// unsafe fast access, no boundary check, no path information
+	inline LuaObject operator[](int s) const noexcept
 	{
-		if (self_ < 0)
+		if (self_ < 0 || L_ == nullptr)
 		{
 			LOGIC_ERROR << path_ << " is not indexable!";
 		}
@@ -480,29 +489,52 @@ public:
 		lua_rawgeti(L_.get(), tidx, s + 1);
 		int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 		lua_pop(L_.get(), 1);
+
+		return std::move(LuaObject(L_, GLOBAL_REF_IDX_, res));
+
+	}
+
+	// index operator with out_of_range exception
+	template<typename TIDX>
+	inline LuaObject at(TIDX const & s) const
+	{
+		LuaObject res = this->operator[](s);
+		if (res.isNull())
+		{
+
+			throw(std::out_of_range(
+					ToString(s) + "\" is not an element in " + path_));
+		}
+
+		return std::move(res);
+
+	}
+
+	// safe access, with boundary check, no path information
+	inline LuaObject at(int s) const
+	{
+		if (self_ < 0 || L_ == nullptr)
+		{
+			LOGIC_ERROR << path_ << " is not indexable!";
+		}
+
+		if (s > GetLength())
+		{
+			throw(std::out_of_range(
+					"index out of range! " + path_ + "[" + ToString(s) + " > "
+							+ ToString(GetLength()) + " ]"));
+		}
+
+		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+		int tidx = lua_gettop(L_.get());
+		lua_rawgeti(L_.get(), tidx, s + 1);
+		int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
+		lua_pop(L_.get(), 1);
+
 		return std::move(
 				LuaObject(L_, GLOBAL_REF_IDX_, res,
 						path_ + "[" + ToString(s) + "]"));
-	}
 
-	size_t GetLength() const
-	{
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		size_t res = lua_rawlen(L_.get(), -1);
-		lua_pop(L_.get(), 1);
-		return std::move(res);
-	}
-	inline LuaObject at(int s) const
-	{
-		size_t max_length = GetLength();
-
-		if (s > max_length)
-		{
-			OUT_RANGE_ERROR << path_ << " out of range! " << s << ">"
-					<< max_length;
-		}
-
-		return std::move(this->operator[](s));
 	}
 
 	template<typename ...Args>
@@ -527,9 +559,9 @@ public:
 	}
 
 	template<typename T>
-	inline T Get(std::string const & name, T const & default_value = T()) const
+	inline T Get(std::string const & name, T const & default_value = T()) const noexcept
 	{
-		LuaObject res = at(name);
+		LuaObject res = this->operator[](name);
 
 		if (res.isNull())
 		{

@@ -22,7 +22,18 @@
 " ID:" IDENTIFY  "                                        \n"\
 " Copyright (C) 2007-2013 YU Zhi. All rights reserved.           \n"
 
-
+inline std::string ShowShortVersion()
+{
+	return IDENTIFY;
+}
+inline std::string ShowVersion()
+{
+	return SIMPLA_LOGO;
+}
+inline std::string ShowCopyRight()
+{
+	return SIMPLA_LOGO;
+}
 
 /**
  *  Leave all platform dependence here
