@@ -29,47 +29,47 @@ template<typename > struct HDF5DataType;
 
 template<> struct HDF5DataType<int>
 {
-	H5::DataType type()
+	hid_t type()
 	{
-		return H5::PredType::NATIVE_INT;
+		return H5T_NATIVE_INT;
 	}
 };
 
 template<> struct HDF5DataType<float>
 {
-	H5::DataType type()
+	hid_t type()
 	{
-		return H5::PredType::NATIVE_FLOAT;
+		return H5T_NATIVE_FLOAT;
 	}
 };
 
 template<> struct HDF5DataType<double>
 {
-	H5::DataType type()
+	hid_t type()
 	{
-		return H5::PredType::NATIVE_DOUBLE;
+		return H5T_NATIVE_DOUBLE;
 	}
 };
 
 template<> struct HDF5DataType<long double>
 {
-	H5::DataType type()
+	hid_t type()
 	{
-		return H5::PredType::NATIVE_LDOUBLE;
+		return H5T_NATIVE_LDOUBLE;
 	}
 };
 
-void HDF5Write(H5::Group &grp, std::string const & name, void const * v,
-		H5::DataType const &mdtype, int n, size_t * dims, bool append_enable);
+void HDF5Write(hid_t &grp, std::string const & name, void const * v,
+		hid_t const &mdtype, int n, size_t * dims, bool append_enable);
 
 template<typename TV>
-inline void HDF5Write(H5::Group & grp, std::string const & name,
+inline void HDF5Write(hid_t & grp, std::string const & name,
 		std::vector<TV> const &v, int n = 0, size_t * d = nullptr,
 		bool append_enable = false)
 {
 	size_t dims[n + 2];
 
-	H5::DataType mdtype;
+	hid_t mdtype;
 
 	if (n == 0 || d == nullptr)
 	{

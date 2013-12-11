@@ -10,10 +10,15 @@
 
 #include "write_hdf5.h"
 #include "../utilities/utilities.h"
-#include <H5Cpp.h>
+
 #include <cstddef>
 #include <memory>
 #include <string>
+
+extern "C"
+{
+#include <hdf5.h>
+}
 
 namespace simpla
 {
@@ -23,10 +28,10 @@ namespace HDF5
 
 class H5OutStream
 {
-	H5::H5File h5_file_;
-	H5::Group grp_;
-	H5::DataSet ds_;
-	H5::DataSpace dspace_;
+	hid_t h5_file_;
+	hid_t grp_;
+	hid_t ds_;
+	hid_t dspace_;
 	std::string ds_name_;
 	std::string default_ds_name_;
 	size_t write_count_;
@@ -36,16 +41,14 @@ class H5OutStream
 public:
 	H5OutStream(std::string const & filename, std::string const & dsname =
 			"unnamed") :
-			h5_file_(filename, H5F_ACC_TRUNC), grp_(h5_file_.openGroup("/")),
-
-			default_ds_name_(dsname),
-
-			write_count_(0),
-
-			append_enabled_(false),
-
-			dims_setted_(false)
+			default_ds_name_(dsname), write_count_(0), append_enabled_(false), dims_setted_(
+					false)
 	{
+		h5_file_ = H5Fcreate(filename.c_str(), H5F_ACC_TRUNC, H5P_DEFAULT,
+		H5P_DEFAULT);
+
+		grp_ = H5Gcreate(h5_file_, "/", H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
 	}
 	inline void SetAppendEnabled(bool flag)
 	{
@@ -53,25 +56,19 @@ public:
 	}
 	void OpenGroup(std::string const & name)
 	{
-		H5::Group fg = grp_;
+		hid_t fg = grp_;
 
 		if (name[0] == '/') /// absolute path
 		{
-			fg = h5_file_.openGroup("/");
+			fg = H5Gopen(h5_file_, "/", H5P_DEFAULT);
 		}
 
-		try
-		{
-			grp_ = fg.openGroup(name.c_str());
-		} catch (...)
-		{
-			grp_ = fg.createGroup(name.c_str());
-		}
+		grp_ = H5Gopen(fg, name.c_str(), H5P_DEFAULT);
+
 	}
 	void OpenDataSet(std::string const & name)
 	{
 		ds_name_ = name;
-//		append_enabled_ = true;
 	}
 	void CloseDataSet()
 	{
