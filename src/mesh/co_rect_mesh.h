@@ -58,6 +58,9 @@ struct CoRectMesh
 
 	Real dt_ = 0.0;
 
+	template<typename U>
+	friend std::ostream & operator<<(std::ostream &os, CoRectMesh<U> const &);
+
 	enum
 	{
 		DEFAULT_GHOST_WIDTH = 2
@@ -144,16 +147,6 @@ struct CoRectMesh
 		vm.GetChild("Geometry").template SetValue("Max", &xmax_);
 
 		constants.Serialize(vm.GetChild("UnitSystem"));
-	}
-
-	inline std::ostream & Serialize(std::ostream &os) const
-	{
-		os << SINGLELINE << std::endl
-
-		<< "# Mesh" << std::endl;
-
-		constants.Serialize(os);
-		return os;
 	}
 
 	//
@@ -1268,6 +1261,46 @@ public:
 					DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
 }
 ;
+
+template<typename TS>
+inline std::ostream & operator<<(std::ostream &os, CoRectMesh<TS> const & mesh)
+{
+	os
+
+	<< "--  Grid " << std::endl
+
+	<< "Grid={" << std::endl
+
+	<< "	Topology={" << std::endl
+
+	<< "		Type       = \"CoRectMesh\"}," << std::endl
+
+	<< "		Dimensions = {" << ToString(mesh.dims_, ",") << "}," << std::endl
+
+	<< "		GhostsWidth= {" << ToString(mesh.gw_, ",") << "}," << std::endl
+
+	<< "	}," << std::endl
+
+	<< "	Geometry={" << std::endl
+
+	<< "		Type    = \"Origin_DxDyDz\"," << std::endl
+
+	<< "		Origin  = {" << ToString(mesh.xmin_, ",") << "}," << std::endl
+
+	<< "		DxDyDz  = {" << ToString(mesh.dx_, ",") << "}," << std::endl
+
+	<< "		Min     = {" << ToString(mesh.xmin_, ",") << "}," << std::endl
+
+	<< "		Max     = {" << ToString(mesh.xmax_, ",") << "}," << std::endl
+
+	<< "	}," << std::endl
+
+	<< "\t" << mesh.constants << std::endl
+
+	<< "}" << std::endl;
+
+	return os;
+}
 
 }
 // namespace simpla

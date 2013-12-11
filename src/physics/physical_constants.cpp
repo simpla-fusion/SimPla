@@ -152,6 +152,32 @@ void PhysicalConstants::SetBaseUnit(std::string const & type, double pm,
 	q_["atomic mass unit"] = SI_atomic_mass_unit * kg_; /*4.4e-8*/
 
 }
+
+std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self)
+{
+	os
+
+	<< "UnitSystem= { "
+
+	<< "Type = \"" << self.type_ << "\" , "
+
+	<< "m = " << self.m_ << " , "
+
+	<< "s = " << self.s_ << " , "
+
+	<< "kg = " << self.kg_ << " , "
+
+	<< "C = " << self.C_ << " , "
+
+	<< "K  = " << self.K_ << " , "
+
+	<< "mol = " << self.mol_
+
+	<< "}" << std::endl
+
+	;
+	return os;
+}
 void PhysicalConstants::Print(std::ostream & os) const
 {
 	os

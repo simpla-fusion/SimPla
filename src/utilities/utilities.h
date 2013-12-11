@@ -30,6 +30,20 @@ inline T ToValue(std::string const & str)
 	return std::move(v);
 }
 
+template<int N, typename T>
+inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
+		" ")
+{
+
+	std::ostringstream os;
+	for (int i = 0; i < N - 1; ++i)
+	{
+		os << v[i] << sep;
+	}
+	os << v[N - 1];
+	return (os.str());
+}
+
 }  // namespace simpla
 
 #endif /* UTILITIES_H_ */

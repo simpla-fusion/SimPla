@@ -21,6 +21,8 @@ public:
 
 	typedef Mesh mesh_type;
 
+	typedef ColdFluidEM<mesh_type> this_type;
+
 private:
 
 	struct Species
@@ -44,6 +46,10 @@ public:
 
 	mesh_type const & mesh;
 
+	template<typename U>
+	friend std::ostream & operator<<(std::ostream & os,
+			ColdFluidEM<U> const &self);
+
 	ColdFluidEM(mesh_type const & pmesh) :
 			mesh(pmesh)
 	{
@@ -60,24 +66,40 @@ public:
 	{
 	}
 
-	inline void Deserialize(LuaObject const &cfg)
+	inline void Deserialize(LuaObject const&cfg)
 	{
-		cfg.ForEach([&](LuaObject const & k,LuaObject const & v )
-		{
-			if (v["Engine"].template as<std::string>() == "ColdFluid")
-			{
-				std::shared_ptr<Species> sp(
-						new Species( v["m"].template as< Real>(),
-								v["Z"].template as< Real>(),
-								mesh));
-				auto res =
-				sp_list_.emplace(
-						std::make_pair( k.template as<std::string>(), sp ));
+		if (cfg.isNull())
+			return;
 
-				LoadField(v.at("n"), &(sp->n));
-				LoadField(v.at("J"), &(sp->J));
+		for (auto const & p : cfg)
+		{
+
+			std::string key;
+
+			if (!p.first.is_number())
+			{
+				key = p.first.as<std::string>();
 			}
-		});
+			else
+			{
+				p.second.GetValue("Name", &key);
+			}
+
+			std::string engine = p.second.at("Engine").as<std::string>();
+
+			if (engine == "ColdFluid")
+			{
+
+				std::shared_ptr<Species> sp(
+						new Species(p.second["m"].template as<Real>(1.0),
+								p.second["Z"].template as<Real>(1.0), mesh));
+
+				sp_list_.emplace(std::make_pair(key, sp));
+
+				LoadField(p.second["n"], &(sp->n));
+				LoadField(p.second["J"], &(sp->J));
+			}
+		}
 
 	}
 
@@ -185,6 +207,35 @@ public:
 
 }
 ;
+
+template<typename TM>
+inline std::ostream & operator<<(std::ostream & os, ColdFluidEM<TM> const &self)
+{
+	os << "-- Cold Fluid -------------------" << std::endl;
+	os << "Particles={" << std::endl;
+
+	for (auto const & p : self.sp_list_)
+	{
+		os << "\t" << p.first
+
+		<< " = { "
+
+		<< "Type=\"ColdFluid\","
+
+		<< " m =" << p.second->m << ","
+
+		<< " Z =" << p.second->Z << ","
+
+		<< " n0 = {},  J0 = {}"
+
+		<< "},"
+
+		<< std::endl;
+	}
+	os << "}" << std::endl;
+	return os;
+
+}
 }  // namespace simpla
 
 #endif /* COLD_FLUID_H_ */

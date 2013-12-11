@@ -21,8 +21,14 @@ namespace simpla
 class PhysicalConstants
 {
 public:
+
+	typedef PhysicalConstants this_type;
+
 	PhysicalConstants(std::string type = "SI");
+
 	~PhysicalConstants();
+
+	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
 
 	template<typename TCONFIG>
 	void Deserialize(TCONFIG vm)
@@ -48,33 +54,6 @@ public:
 		vm.template SetValue<double>("C", C_);
 		vm.template SetValue<double>("K", K_);
 		vm.template SetValue<double>("mol", mol_);
-	}
-
-	inline std::basic_ostream<char> & Serialize(
-			std::basic_ostream<char> &os) const
-	{
-		os
-
-		<< SINGLELINE << std::endl
-
-		<< "--# Unit System" << std::endl
-
-		<< "Type" << "\t= " << type_ << std::endl
-
-		<< "m" << "\t= " << m_ << std::endl
-
-		<< "s" << "\t= " << s_ << std::endl
-
-		<< "kg" << "\t= " << kg_ << std::endl
-
-		<< "C" << "\t= " << C_ << std::endl
-
-		<< "K" << "\t= " << K_ << std::endl
-
-		<< "mol" << "\t= " << mol_ << std::endl
-
-		<< "--" << SINGLELINE << std::endl;
-		return os;
 	}
 
 	void Print(std::basic_ostream<char> & os) const;
@@ -116,7 +95,7 @@ private:
 
 }
 ;
-
+std::ostream & operator<<(std::ostream &, PhysicalConstants const &);
 }  // namespace simpla
 
 #endif /* PHYSICAL_CONSTANTS_H_ */

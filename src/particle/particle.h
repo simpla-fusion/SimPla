@@ -63,6 +63,11 @@ public:
 		return "UNNAMED";
 	}
 
+	virtual std::ostream & Serialize(std::ostream & os) const
+	{
+		return os;
+	}
+
 private:
 
 	//========================================================================
@@ -187,6 +192,12 @@ public:
 	inline void Serialize(PT &vm) const
 	{
 		engine_type::Serialize(vm);
+	}
+
+	std::ostream & Serialize(std::ostream & os) const
+	{
+		engine_type::Serialize(os);
+		return os;
 	}
 
 	inline void ResizeCells(size_t num_pic,
@@ -409,11 +420,17 @@ public:
 			std::shared_ptr<particle_type>(mesh_type const &,
 					configure_type const &)> create_fun;
 
+	typedef ParticleCollection<mesh_type> this_type;
+
 private:
 	std::map<std::string, create_fun> factory_;
 public:
 
 	mesh_type const & mesh;
+
+	template<typename U>
+	friend std::ostream & operator<<(std::ostream & os,
+			ParticleCollection<U> const &self);
 
 	ParticleCollection(mesh_type const & pmesh) :
 			mesh(pmesh)
@@ -425,24 +442,45 @@ public:
 
 	inline void Deserialize(configure_type const &cfg)
 	{
-		cfg.ForEach([&](configure_type const& k,configure_type const& v )
-		{
-			std::string key=k.as<std::string>();
+		if (cfg.isNull())
+			return;
 
-			std::shared_ptr<particle_type> p;
+		for (auto const &p : cfg)
+		{
+			std::string key;
+
+			if (!p.first.is_number())
+			{
+				key = p.first.as<std::string>();
+			}
+			else
+			{
+				p.second.GetValue("Name", &key);
+			}
+
+			std::string engine = p.second.at("Engine").as<std::string>();
 
 			try
 			{
-				p= factory_.at(v.at("Engine").as<std::string>())(mesh,v);
-			}
-			catch(...)
+
+				auto it = factory_.find(engine);
+
+				if (it != factory_.end())
+				{
+
+					this->emplace(
+							std::make_pair(key, it->second(mesh, p.second)));
+				}
+
+			} catch (...)
 			{
-				WARNING<<"I do not know how to create \""<< key<<"\" particle!";
+				WARNING << "I do not know how to create \"" << key
+						<< "\" particle! [engine=" << engine << "]";
+
 				return;
 			}
 
-			base_type::emplace( std::make_pair(key,p ));
-		});
+		}
 
 	}
 
@@ -481,6 +519,24 @@ public:
 	}
 
 };
+
+template<typename TM>
+std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
+{
+	os << "-- Particle Collection " << std::endl;
+	os << "{";
+
+	for (auto const & p : self)
+	{
+		os << p.first << " =  ";
+		p.second->Serialize(os);
+
+		os << ",";
+	}
+	os << "}" << std::endl;
+	return os;
+
+}
 
 }
 // namespace simpla

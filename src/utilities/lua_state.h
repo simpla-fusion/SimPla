@@ -371,39 +371,29 @@ public:
 	{
 		return iterator();
 	}
-
-	template<typename TFun>
-	void ForEach(TFun const &fun) const
+	iterator begin() const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		int idx = lua_gettop(L_.get());
-		if (lua_type(L_.get(), idx) == LUA_TTABLE)
-		{
-			/* table is in the stack at index 'idx' */
-			lua_pushnil(L_.get()); /* first key */
-			while (lua_next(L_.get(), idx))
-			{
-				/* uses 'key' (at index -2) and 'value' (at index -1) */
-				int value = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-				lua_pushvalue(L_.get(), lua_gettop(L_.get()));
-				int key = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
-				fun(LuaObject(L_, GLOBAL_REF_IDX_, key, path_ + "[key]"),
-						LuaObject(L_, GLOBAL_REF_IDX_, value,
-								path_ + "[value]"));
-
-			}
-		}
-		lua_pop(L_.get(), 1);
+		return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
+	}
+	iterator end() const
+	{
+		return iterator();
 	}
 
 	template<typename T>
 	inline LuaObject GetChild(T const & key) const
 	{
+		if (isNull())
+			return LuaObject();
+
 		return std::move(at(key));
 	}
 
 	size_t GetLength() const
 	{
+		if (isNull())
+			return 0;
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		size_t res = lua_rawlen(L_.get(), -1);
 		lua_pop(L_.get(), 1);
@@ -439,6 +429,8 @@ public:
 
 	inline LuaObject operator[](std::string const & s) const noexcept
 	{
+		if (isNull())
+			return LuaObject();
 
 		bool is_global = (self_ < 0);
 		if (is_global)
@@ -476,6 +468,9 @@ public:
 	// unsafe fast access, no boundary check, no path information
 	inline LuaObject operator[](int s) const noexcept
 	{
+		if (isNull())
+			return LuaObject();
+
 		if (self_ < 0 || L_ == nullptr)
 		{
 			LOGIC_ERROR << path_ << " is not indexable!";
@@ -494,6 +489,8 @@ public:
 	template<typename TIDX>
 	inline LuaObject at(TIDX const & s) const
 	{
+		if (isNull())
+			return LuaObject();
 		LuaObject res = this->operator[](s);
 		if (res.isNull())
 		{
@@ -509,6 +506,9 @@ public:
 	// safe access, with boundary check, no path information
 	inline LuaObject at(int s) const
 	{
+		if (isNull())
+			return LuaObject();
+
 		if (self_ < 0 || L_ == nullptr)
 		{
 			LOGIC_ERROR << path_ << " is not indexable!";
@@ -536,6 +536,9 @@ public:
 	template<typename ...Args>
 	LuaObject operator()(Args const &... args) const
 	{
+		if (isNull())
+			return LuaObject();
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 
 		int idx = lua_gettop(L_.get());
@@ -579,11 +582,22 @@ public:
 	}
 
 	template<typename T>
+	inline T as(T const &default_value) const
+	{
+		T res = default_value;
+		as(&res);
+		return (res);
+	}
+
+	template<typename T>
 	inline void as(T* res) const
 	{
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		FromLua(L_.get(), lua_gettop(L_.get()), res);
-		lua_pop(L_.get(), 1);
+		if (!isNull())
+		{
+			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+			FromLua(L_.get(), lua_gettop(L_.get()), res);
+			lua_pop(L_.get(), 1);
+		}
 	}
 
 	template<typename T>
@@ -601,6 +615,9 @@ public:
 	template<typename T>
 	inline void SetValue(std::string const & name, T const &v) const
 	{
+		if (isNull())
+			return;
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
 //		LuaTrans<T>::To(L_.get(), v);
@@ -611,6 +628,9 @@ public:
 	template<typename T>
 	inline void SetValue(int s, T const &v) const
 	{
+		if (isNull())
+			return;
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
 //		LuaTrans<T>::To(L_.get(), v);
@@ -621,6 +641,9 @@ public:
 	template<typename T>
 	inline void AddValue(T const &v) const
 	{
+		if (isNull())
+			return;
+
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
 //		LuaTrans<T>::To(L_.get(), v);
@@ -646,6 +669,8 @@ public:
 	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec =
 			0)
 	{
+		if (isNull())
+			return LuaObject();
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int tidx = lua_gettop(L_.get());

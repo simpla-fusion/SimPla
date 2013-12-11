@@ -38,12 +38,15 @@ public:
 
 	DEFINE_FIELDS(TM)
 public:
+	typedef Context<TM> this_type;
+
+	template<typename U>
+	friend std::ostream & operator<<(std::ostream & os, Context<U> const &self);
 
 	Context();
 	~Context();
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
-	std::basic_ostream<char> & Serialize(std::basic_ostream<char> & os) const;
 	void OneStep();
 	void DumpData(std::string const &) const;
 
@@ -95,29 +98,26 @@ template<typename TM>
 void Context<TM>::Deserialize(LuaObject const & cfg)
 {
 
-	mesh.Deserialize(cfg.GetChild("Grid"));
+	mesh.Deserialize(cfg["Grid"]);
 
-	cold_fluid_.Deserialize(cfg.GetChild("Particles"));
+	cold_fluid_.Deserialize(cfg["Particles"]);
 
-	particle_collection_.Deserialize(cfg.GetChild("Particles"));
+	LOG << " Load Cold Fluid Done!";
 
-	LoadField(cfg.GetChild("n0"), &n0);
-	LoadField(cfg.GetChild("B0"), &B0);
-	LoadField(cfg.GetChild("E1"), &E1);
-	LoadField(cfg.GetChild("B1"), &B1);
-	LoadField(cfg.GetChild("J1"), &J1);
+	particle_collection_.Deserialize(cfg["Particles"]);
+
+	LOG << " Load Particles Done!";
+
+	LoadField(cfg["n0"], &n0);
+	LoadField(cfg["B0"], &B0);
+	LoadField(cfg["E1"], &E1);
+	LoadField(cfg["B1"], &B1);
+	LoadField(cfg["J1"], &J1);
 }
 
 template<typename TM>
 void Context<TM>::Serialize(configure_type * cfg) const
 {
-}
-template<typename TM>
-std::basic_ostream<char> & Context<TM>::Serialize(
-		std::basic_ostream<char> & os) const
-{
-	mesh.Serialize(os);
-	return os;
 }
 
 template<typename TM>
@@ -130,7 +130,21 @@ template<typename TM>
 void Context<TM>::DumpData(std::string const &) const
 {
 }
+template<typename TM> std::ostream & operator<<(std::ostream & os,
+		Context<TM> const &self)
 
+{
+
+	os
+
+	<< self.mesh << std::endl
+
+	<< self.cold_fluid_ << std::endl
+
+	<< self.particle_collection_ << std::endl;
+
+	return os;
+}
 }  // namespace simpla
 
 using namespace simpla;
@@ -252,30 +266,31 @@ int main(int argc, char **argv)
 
 	std::shared_ptr<BaseContext> ctx;
 
-	try
-	{
-		auto mesh_type = pt.GetChild("Grid").GetChild("Type").as<std::string>();
+//	try
+//	{
+	auto mesh_type = pt.GetChild("Grid").GetChild("Type").as<std::string>();
 
-		if (mesh_type == "CoRectMesh")
-		{
-			typedef CoRectMesh<Complex> mesh_type;
-			std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
-			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-			ctx->Deserialize(pt);
-		}
-	} catch (...)
+	if (mesh_type == "CoRectMesh")
 	{
-//		pt.Serialize(std::cout);
-		ERROR << "Configure Error!";
+		typedef CoRectMesh<Complex> mesh_type;
+		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
+		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
+		ctx->Deserialize(pt);
+
+		std::cout << (*ctx_ptr);
+
 	}
+//	} catch (...)
+//	{
+////		pt.Serialize(std::cout);
+//		ERROR << "Configure Error!";
+//	}
 
 //  Summary    ====================================
 
 	LOG << std::endl << DOUBLELINE << std::endl;
 
 	LOG << "[Main Control]" << std::endl;
-
-	ctx->Serialize(std::cout);
 
 // Main Loop ============================================
 

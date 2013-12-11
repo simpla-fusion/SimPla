@@ -70,6 +70,20 @@ public:
 		vm.template SetValue<Real>("Charge", q_);
 	}
 
+	std::ostream & Serialize(std::ostream & os) const
+	{
+		os << "{"
+
+		<< "Engine = 'DeltaF' ,"
+
+		<< "m = " << m_ << " , "
+
+		<< "q = " << q_ << ","
+
+		<< "}";
+
+		return os;
+	}
 	static inline Point_s DefaultValue()
 	{
 		Point_s p;

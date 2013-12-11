@@ -74,6 +74,23 @@ public:
 		vm.template SetValue<Real>("Charge", q_);
 	}
 
+	std::ostream & Serialize(std::ostream & os) const
+	{
+		os << "{"
+
+		<< "Engine = 'GGauge' ,"
+
+		<< "NumOfMate = " << NMATE << " ,"
+
+		<< "Mass = " << m_ << " , "
+
+		<< "Charge = " << q_ << ","
+
+		<< "}";
+
+		return os;
+	}
+
 	static inline Point_s DefaultValue()
 	{
 		Point_s p;

@@ -46,15 +46,16 @@ void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 
 				}, mesh_type::WITH_GHOSTS);
 	}
-	else if (obj.is_string())
+	else if (obj.is_number())
 	{
-		std::string url = obj.as<std::string>();
-		//TODO Read field from data file
-		WARNING << "UNIMPLEMENT :Read field from data file.";
+		*f = obj.as<TV>();
 	}
 	else
 	{
-		*f = obj.as<TV>();
+		std::string url = obj.as<std::string>();
+		//TODO Read field from data file
+		UNIMPLEMENT;
+
 	}
 }
 }  // namespace simpla
