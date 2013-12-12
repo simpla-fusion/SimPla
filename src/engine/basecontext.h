@@ -9,6 +9,8 @@
 #define BASECONTEXT_H_
 
 #include <cstddef>
+#include <iostream>
+#include <string>
 
 namespace simpla
 {
@@ -18,6 +20,10 @@ class BaseContext
 {
 	size_t step_count_;
 public:
+
+	friend std::ostream & operator<<(std::ostream & os,
+			BaseContext const &self);
+
 	BaseContext() :
 			step_count_(0)
 	{
@@ -36,13 +42,24 @@ public:
 	virtual void Serialize(LuaObject * cfg) const
 	{
 	}
-	virtual void OneStep()
+	virtual void DumpData() const
+	{
+	}
+	virtual std::ostream & Serialize(std::ostream & os) const
+	{
+		return os;
+	}
+	virtual void NextTimeStep()
 	{
 		++step_count_;
 	}
-	virtual void DumpData(std::string const & path)
-	{
-	}
 };
+
+std::ostream & operator<<(std::ostream & os, BaseContext const &self)
+{
+
+	return self.Serialize(os);
+}
+
 }  // namespace simpla
 #endif /* BASECONTEXT_H_ */

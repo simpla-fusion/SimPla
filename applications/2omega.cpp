@@ -146,10 +146,10 @@ int main(int argc, char **argv)
 			workspace_path = value;
 			break;
 		case 'l':
-			Log::OpenFile(value);
+			Logger::OpenFile(value);
 			break;
 		case 'v':
-			Log::Verbose(atof(value));
+			Logger::Verbose(atof(value));
 			break;
 		case 'h':
 			help_mesage();
@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 
 	std::cout << SIMPLA_LOGO << std::endl;
 
-	Log::Verbose(0);
+	Logger::Verbose(0);
 
 	simpla::Context2Omega<simpla::CoRectMesh<std::complex<double>> > ctx(argc,
 			argv);

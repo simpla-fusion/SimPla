@@ -42,7 +42,10 @@ struct CoRectMesh
 {
 	typedef CoRectMesh this_type;
 
-	static const int NUM_OF_DIMS = 3;
+	enum
+	{
+		NUM_OF_DIMS = 3
+	};
 
 	typedef size_t index_type;
 
@@ -868,6 +871,22 @@ public:
 	inline nTuple<NUM_OF_DIMS, size_t> const & GetDimension() const
 	{
 		return dims_;
+	}
+
+	inline std::vector<size_t> GetShape(int IFORM) const
+	{
+		std::vector<size_t> res;
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				res.push_back(dims_[i]);
+		}
+		if (num_comps_per_cell_[IFORM] > 1)
+		{
+			res.push_back(num_comps_per_cell_[IFORM]);
+		}
+
+		return std::move(res);
 	}
 	inline nTuple<NUM_OF_DIMS, size_t> const & GetStrides() const
 	{

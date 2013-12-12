@@ -62,11 +62,10 @@ public:
 	inline void OpenGroup(std::string const & gname)
 	{
 		hid_t h5fg = file_;
+		CloseGroup();
 		if (gname[0] == '/')
 		{
-			CloseGroup();
 			grpname_ = gname;
-
 		}
 		else
 		{
@@ -79,7 +78,10 @@ public:
 		{
 			grpname_ = grpname_ + "/";
 		}
-		if (H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT) <= 0)
+
+		auto res = H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT);
+
+		if (grpname_ == "/" || res != 0)
 		{
 			H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
 		}
@@ -114,7 +116,12 @@ public:
 
 		[&](std::string const & suffix)->bool
 		{
-			return CheckFileExists(prefix_ + suffix + ".h5");
+			std::string fname=(prefix_+suffix);
+			CHECK(fname);
+			return
+			fname==""
+			|| *(fname.rbegin())=='/'
+			|| (CheckFileExists(fname + ".h5"));
 		}
 
 		) + ".h5";
@@ -136,7 +143,6 @@ public:
 			H5Gclose(group_);
 		}
 		group_ = -1;
-		grpname_ = "";
 	}
 	void CloseFile()
 	{
@@ -146,7 +152,6 @@ public:
 			H5Fclose(file_);
 		}
 		file_ = -1;
-		filename_ = "";
 	}
 	inline std::string GetCurrentPath() const
 	{
@@ -190,15 +195,20 @@ class DataSet
 
 	T const & data_;
 	std::string name_;
-	bool appendable_;
+	bool APPEND_;
 	std::vector<size_t> dims_;
 public:
 
 	static const size_t LIGHT_DATA_LIMIT = 256;
 
+	DataSet(T const & d, std::string const &name = "unnamed", bool flag = false) :
+			data_(d), name_(name), APPEND_(flag)
+	{
+	}
+
 	DataSet(T const & d, std::string const &name = "unnamed", int rank = 1,
-			size_t * dims = nullptr) :
-			data_(d), name_(name), appendable_(false)
+			size_t const* dims = nullptr, bool flag = false) :
+			data_(d), name_(name), APPEND_(flag)
 	{
 		if (dims != nullptr && rank > 0)
 		{
@@ -213,9 +223,32 @@ public:
 			dims_.push_back(d.size());
 		}
 	}
+
+	template<int N, typename TI>
+	DataSet(T const & d, std::string const &name, nTuple<N, TI> const & dims,
+			bool flag = false) :
+			data_(d), name_(name), APPEND_(flag)
+	{
+		for (size_t i = 0; i < N; ++i)
+		{
+			dims_.push_back(dims[i]);
+		}
+	}
+
+	DataSet(T const & d, std::string const &name,
+			std::vector<size_t> const & dims, bool flag = false) :
+			data_(d), name_(name), dims_(dims), APPEND_(flag)
+	{
+	}
+
+	DataSet(T const & d, std::string &&name, std::vector<size_t> && dims,
+			bool flag = false) :
+			data_(d), name_(name), dims_(dims), APPEND_(flag)
+	{
+	}
+
 	DataSet(DataSet && r) :
-			data_(r.data_), name_(r.name_), appendable_(r.appendable_), dims_(
-					r.dims_)
+			data_(r.data_), name_(r.name_), APPEND_(r.APPEND_), dims_(r.dims_)
 	{
 
 	}
@@ -235,7 +268,7 @@ public:
 
 	bool IsAppendable() const
 	{
-		return appendable_;
+		return APPEND_;
 	}
 
 	const std::string& GetName() const
@@ -257,14 +290,6 @@ template<typename T, typename ... Args> inline DataSet<T> Data(T const & d,
 template<typename U>
 std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {
-	int rank = 0;
-	size_t const * dims = nullptr;
-	if (!d.GetDims().empty())
-	{
-		rank = d.GetDims().size();
-		dims = &d.GetDims()[0];
-	}
-
 	if (!d.IsHeavyData())
 	{
 		os << "{" << d.GetData() << "}";
@@ -337,131 +362,49 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 		return complex_id;
 	}
 };
-template<typename U>
-std::string HDF5Write(hid_t grp, DataSet<U> const & d)
+
+std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
+		hid_t mdtype, int rank, size_t const *dims, bool is_apppendable);
+
+template<typename U, typename ... Args>
+std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
 {
+
 	return std::move(
 			HDF5Write(grp, d.GetData(), d.GetName(), d.GetDims(),
-					d.IsAppendable()));
+					d.IsAppendable()), std::forward<Args const &>(args)...);
 }
-
-template<typename TV, typename ...TOther>
-std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
-		std::string const &name, std::vector<size_t> d, bool is_apppendable =
-				false)
+template<typename TV, typename ...Others>
+std::string HDF5Write(hid_t grp, std::vector<TV, Others...> const &v,
+		std::string const &name, std::vector<size_t> const &d, bool APPEND)
 {
-	std::string dsname = name;
 
-	if (grp <= 0)
+	std::vector<size_t> dims;
+
+	if (!d.empty())
 	{
-		WARNING << "HDF5 file is not opened! No data is saved!";
-		return "";
+		std::vector<size_t>(d).swap(dims);
 	}
-
-	int rank = d.size();
-
-	size_t dims[rank + 2];
-
-	std::copy(d.begin(), d.end(), dims);
+	else
+	{
+		dims.push_back(v.size());
+	}
 
 	if (is_nTuple<TV>::value)
 	{
-		dims[rank] = nTupleTraits<TV>::NUM_OF_DIMS;
-		++rank;
-
+		dims.push_back(nTupleTraits<TV>::NUM_OF_DIMS);
 	}
 
 	hid_t mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>().type();
 
-	if (!is_apppendable)
-	{
+	std::string res = HDF5Write(grp, static_cast<void const*>(&v[0]), name,
+			mdtype, dims.size(), &dims[0], APPEND);
 
-		dsname = name +
+	H5Tclose(mdtype);
 
-		AutoIncrease([&](std::string const & s )->bool
-		{
-			return H5Lexists(grp, (name + s ).c_str(), H5P_DEFAULT) > 0;
-		}, 0, 4);
-
-		hsize_t mdims[rank];
-
-		std::copy(dims, dims + rank, mdims);
-
-		hid_t dspace = H5Screate_simple(rank, mdims, nullptr);
-
-		hid_t dset = H5Dcreate(grp, dsname.c_str(), mdtype, dspace, H5P_DEFAULT,
-		H5P_DEFAULT, H5P_DEFAULT);
-
-		H5Dwrite(dset, mdtype, dspace, dspace, H5P_DEFAULT,
-				static_cast<void const*>(&v[0]));
-
-		H5_ERROR(H5Dclose(dset));
-		H5_ERROR(H5Sclose(dspace));
-
-	}
-	else
-	{
-		hid_t dset;
-		hid_t fspace;
-		hid_t mspace;
-
-		int ndims = rank + 1;
-
-		hsize_t start[ndims];
-		std::fill(start, start + ndims, 0);
-
-		hsize_t mdims[ndims];
-		mdims[0] = 1;
-		std::copy(dims, dims + rank, mdims + 1);
-		hsize_t fdims[ndims];
-		fdims[0] = H5S_UNLIMITED;
-		std::copy(dims, dims + rank, fdims + 1);
-
-		mspace = H5Screate_simple(ndims, mdims, mdims);
-
-		if (H5Lexists(grp, dsname.c_str(), H5P_DEFAULT))
-		{
-			dset = H5Dopen(grp, dsname.c_str(), H5P_DEFAULT);
-			fspace = H5Dget_space(dset);
-			H5Sset_extent_simple(fspace, ndims, mdims, fdims);
-		}
-		else
-		{
-			hid_t plist = H5Pcreate(H5P_DATASET_CREATE);
-			H5Pset_chunk(plist, ndims, mdims);
-			fspace = H5Screate_simple(ndims, mdims, fdims);
-			dset = H5Dcreate(grp, dsname.c_str(), mdtype, fspace, plist,
-			H5P_DEFAULT, H5P_DEFAULT);
-			fdims[0] = 0;
-			H5Pclose(plist);
-		}
-
-		start[0] = fdims[0];
-
-		++fdims[0];
-
-		H5Dextend(dset, fdims);
-
-		H5Fflush(grp, H5F_SCOPE_GLOBAL);
-
-		fspace = H5Dget_space(dset);
-
-		H5Sselect_hyperslab(fspace, H5S_SELECT_SET, mdims, start,
-		H5P_DEFAULT,
-		H5P_DEFAULT);
-
-		H5Dwrite(dset, mdtype, mspace, fspace, H5P_DEFAULT,
-				static_cast<void const*>(&v[0]));
-
-		H5Dclose(dset);
-		H5Sclose(mspace);
-		H5Sclose(fspace);
-	}
-
-	return dsname;
+	return res;
 
 }
-
 }
 // namespace simpla
 

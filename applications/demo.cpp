@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
 	std::cout << SIMPLA_LOGO << std::endl;
 
-	Log::Verbose(0);
+	Logger::Verbose(0);
 
 	LuaObject pt;
 
@@ -80,10 +80,10 @@ int main(int argc, char **argv)
 			pt.ParseFile(value);
 			break;
 		case 'l':
-			Log::OpenFile(value);
+			Logger::OpenFile(value);
 			break;
 		case 'v':
-			Log::Verbose(atof(value));
+			Logger::Verbose(atof(value));
 			break;
 		case 'h':
 			help_mesage();

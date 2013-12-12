@@ -35,17 +35,17 @@ enum
 
 	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 2, LOG_DEBUG = 0
 };
-class LogStreams: public SingletonHolder<LogStreams>
+class LoggerStreams: public SingletonHolder<LoggerStreams>
 {
 public:
 
 	// TODO add multi_stream support
 
-	LogStreams(int l = LOG_VERBOSE) :
+	LoggerStreams(int l = LOG_VERBOSE) :
 			std_out_visable_level_(l)
 	{
 	}
-	~LogStreams()
+	~LoggerStreams()
 	{
 		fs.close();
 	}
@@ -81,13 +81,18 @@ private:
 
 };
 
-class Log: public std::ostringstream
+/***
+ *
+ * matain log message,
+ *
+ */
+class Logger: public std::ostringstream
 {
 	int level_;
 	bool isVisable_;
 public:
 
-	Log(int lv = 0, bool cond = true) :
+	Logger(int lv = 0, bool cond = true) :
 			level_(lv), isVisable_(cond)
 	{
 
@@ -113,7 +118,7 @@ public:
 		}
 
 	}
-	~Log()
+	~Logger()
 	{
 		if (isVisable_)
 		{
@@ -134,19 +139,19 @@ public:
 			}
 			else
 			{
-				LogStreams::instance().put(level_, this->str());
+				LoggerStreams::instance().put(level_, this->str());
 			}
 		}
 	}
 
 	static void Verbose(int l = LOG_VERBOSE)
 	{
-		LogStreams::instance().SetStdOutVisableLevel(l);
+		LoggerStreams::instance().SetStdOutVisableLevel(l);
 	}
 
 	static void OpenFile(std::string const & fname = "simpla_untitled.log")
 	{
-		LogStreams::instance().OpenFile(fname);
+		LoggerStreams::instance().OpenFile(fname);
 	}
 
 	static std::string TimeStamp()
@@ -164,27 +169,27 @@ private:
 };
 
 //FIXME The operator<< eat first input and transform to integral
-#define ERROR Log(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define ERROR Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define LOGIC_ERROR Log(LOG_LOGIC_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define LOGIC_ERROR Logger(LOG_LOGIC_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define OUT_RANGE_ERROR Log(LOG_OUT_RANGE_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define OUT_RANGE_ERROR Logger(LOG_OUT_RANGE_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define WARNING Log(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+#define WARNING Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
-#define INFORM Log(LOG_INFORM)
+#define INFORM Logger(LOG_INFORM)
 
-#define UNIMPLEMENT Log(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+#define UNIMPLEMENT Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "This is a new year wish. Try again next year, good luck!"
 
-#define DEADEND Log(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+#define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
 
-#define LOG Log(LOG_LOG)
+#define LOGGER Logger(LOG_LOG)
 
-#define VERBOSE Log(LOG_VERBOSE)
+#define VERBOSE Logger(LOG_VERBOSE)
 
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Log(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
+#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
         << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 #include <cassert>
 #ifdef NDEBUG
@@ -194,11 +199,11 @@ private:
 #endif
 
 #ifndef NDEBUG
-#	define CHECK(_MSG_)    Log(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
-#	define EXCEPT(_COND_)    Log(LOG_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define EXCEPT(_COND_)    Logger(LOG_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_COND_)<<"="<< (_COND_)<<" "
-#	define EXCEPT_EQ( actual,expected)    Log(LOG_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define EXCEPT_EQ( actual,expected)    Logger(LOG_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(actual)<<" = "<< (actual) << " is not  "<< (expected) <<" "
 #else
 #	define CHECK(_MSG_)

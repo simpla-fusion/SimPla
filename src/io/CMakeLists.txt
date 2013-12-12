@@ -5,8 +5,8 @@ include_directories(BEFORE ${HDF5_INCLUDE_DIR} )
 #my_test(io_test io ${HDF5_CXX_LIBRARIES_RELEASE} ${HDF5_HL_LIBRARIES_RELEASE} z)
 
 
-add_library(io   write_xdmf.cpp   read_hdf5.cpp  )
+add_library(io   data_stream.cpp)
 
-TARGET_LINK_LIBRARIES(io ${HDF5_CXX_LIBRARIES_RELEASE} ${HDF5_HL_LIBRARIES_RELEASE} z)
+TARGET_LINK_LIBRARIES(io ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} hdf5 hdf5_hl)
 
 

@@ -84,6 +84,11 @@ public:
 		base_type::swap(rhs);
 	}
 
+	inline std::vector<size_t> GetShape() const
+	{
+		return std::move(mesh.GetShape(IForm));
+	}
+
 	inline value_type & operator[](size_t s)
 	{
 		return base_type::operator[](s);

@@ -16,7 +16,7 @@ using namespace simpla;
 using namespace simpla::fetl;
 int main(int argc, char **argv)
 {
-	Log::info_level = 0;
+	Logger::info_level = 0;
 
 	IVec3 dims =
 	{ 201, 101, 1 };
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 			T = atof(argv[i] + 2);
 			break;
 		case 'v':
-			Log::Verbose(atof(argv[i] + 2));
+			Logger::Verbose(atof(argv[i] + 2));
 			break;
 		case 'i':
 			iter_num = atoi(argv[i] + 2);

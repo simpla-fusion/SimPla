@@ -24,7 +24,7 @@ class TestFETLBasicArithmetic: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		Log::Verbose(10);
+		Logger::Verbose(10);
 
 		mesh.dt = 1.0;
 		mesh.xmin[0] = 0;

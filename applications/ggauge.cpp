@@ -50,13 +50,13 @@ int main(int argc, char **argv)
 			log_file = std::string(argv[i] + 2);
 			break;
 		case 'v':
-			Log::Verbose(atof(argv[i] + 2));
+			Logger::Verbose(atof(argv[i] + 2));
 			break;
 		}
 
 	}
 
-	Log::OpenFile(output + "/" + log_file);
+	Logger::OpenFile(output + "/" + log_file);
 
 	PTree pt;
 
