@@ -32,7 +32,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../io/xdmf_io.h"
-#include "pertty_ostream.h"
+#include "pertty_stream.h"
 #include "utilities.h"
 class XdmfArray;
 

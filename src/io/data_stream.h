@@ -1,12 +1,12 @@
 /*
- * hdf5_data_dump.h
+ * data_stream.h
  *
  *  Created on: 2013年12月11日
  *      Author: salmon
  */
 
-#ifndef HDF5_DATA_DUMP_H_
-#define HDF5_DATA_DUMP_H_
+#ifndef DATA_STREAM_
+#define DATA_STREAM_
 
 #include <algorithm>
 #include <cstddef>
@@ -28,11 +28,11 @@ extern "C"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/utilities.h"
+#include "../utilities/pertty_stream.h"
 
 namespace simpla
 {
-
-class HDF5DataDump: public SingletonHolder<HDF5DataDump>
+class DataStream: public SingletonHolder<DataStream>
 {
 	std::string prefix_;
 	int suffix_width_;
@@ -41,25 +41,17 @@ class HDF5DataDump: public SingletonHolder<HDF5DataDump>
 	std::string grpname_;
 	hid_t file_;
 	hid_t group_;
+
 public:
 
-	HDF5DataDump() :
+	DataStream() :
 			prefix_("simpla_unnamed"), file_(0), group_(0), suffix_width_(4)
 	{
 	}
 
-	~HDF5DataDump()
+	~DataStream()
 	{
 		CloseFile();
-	}
-
-	inline hid_t GetH5FileID()
-	{
-		return file_;
-	}
-	inline hid_t GetGroupID()
-	{
-		return group_;
 	}
 
 	inline void OpenGroup(std::string const & gname)
@@ -155,12 +147,19 @@ public:
 	{
 		suffix_width_ = suffixWidth;
 	}
+
+	template<typename ...Args>
+	std::string Write(Args const &... args) const
+	{
+		return HDF5Write(group_, std::forward<Args const &>(args)...);
+	}
+
 };
 
-#define H5DataDump HDF5DataDump::instance()
+#define GLOBAL_DATA_STREAM DataStream::instance()
 
 template<typename T>
-class HeavyData
+class DataSet
 {
 
 	T const & data_;
@@ -168,11 +167,11 @@ class HeavyData
 	bool appendable_;
 	std::vector<size_t> dims_;
 public:
-	template<typename U>
-	friend std::ostream & operator<<(std::ostream &, HeavyData<U> const &);
 
-	HeavyData(T const & d, std::string const &name = "unnamed",
-			std::string const grp = "", int rank = 1, size_t * dims = nullptr) :
+	static const size_t LIGHT_DATA_LIMIT = 256;
+
+	DataSet(T const & d, std::string const &name = "unnamed", int rank = 1,
+			size_t * dims = nullptr) :
 			data_(d), name_(name), appendable_(false)
 	{
 		if (dims != nullptr && rank > 0)
@@ -184,66 +183,78 @@ public:
 
 		}
 	}
-	HeavyData(HeavyData && r) :
+	DataSet(DataSet && r) :
 			data_(r.data_), name_(r.name_), appendable_(r.appendable_), dims_(
 					r.dims_)
 	{
 
 	}
-	~HeavyData()
+	~DataSet()
 	{
 
 	}
 
-	bool isAppendable() const
+	bool IsHeavyData() const
+	{
+		return data_.size() > LIGHT_DATA_LIMIT;
+	}
+	inline T const & GetData() const
+	{
+		return data_;
+	}
+
+	bool IsAppendable() const
 	{
 		return appendable_;
 	}
-	void SetAppendable(bool flag) const
-	{
-		appendable_ = flag;
-	}
 
+	const std::string& GetName() const
+	{
+		return name_;
+	}
+	const std::vector<size_t>& GetDims() const
+	{
+		return dims_;
+	}
 };
 
-template<typename T, typename ... Args> inline HeavyData<T> Data(T const & d,
+template<typename T, typename ... Args> inline DataSet<T> Data(T const & d,
 		Args const & ... args)
 {
-	return std::move(HeavyData<T>(d, std::forward<Args const &>(args)...));
+	return std::move(DataSet<T>(d, std::forward<Args const &>(args)...));
 }
+
 template<typename U>
-std::ostream & operator<<(std::ostream & os, HeavyData<U> const &d)
+std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {
 	int rank = 0;
 	size_t const * dims = nullptr;
-	if (!d.dims_.empty())
+	if (!d.GetDims().empty())
 	{
-		rank = d.dims_.size();
-		dims = &d.dims_[0];
+		rank = d.GetDims().size();
+		dims = &d.GetDims()[0];
 	}
 
-	os
+	if (!d.IsHeavyData())
+	{
+		os << "{" << d.GetData() << "}";
+	}
+	else
+	{
 
-	<< H5DataDump.GetCurrentPath()
+		os
 
-	<< HDF5Write(H5DataDump.GetGroupID(), d.data_, d.name_,rank , dims,d.appendable_)
-	;
+		<< "\""
 
-	return os;
+		<< GLOBAL_DATA_STREAM.GetCurrentPath()
 
-}
+		<< GLOBAL_DATA_STREAM.Write(d)
 
-template<typename U>
-std::ostream & operator<<(std::ostream & os, std::vector<U> const &d)
-{
-	os
-
-	<< H5DataDump.GetCurrentPath()
-
-	<< HDF5Write(H5DataDump.GetGroupID(), d)
-	;
+		<< "\"";
+	}
 
 	return os;
+
 }
 
 template<typename T> struct HDF5DataType
@@ -287,36 +298,36 @@ template<> struct HDF5DataType<long double>
 	}
 };
 
+template<typename U>
+std::string HDF5Write(hid_t grp, DataSet<U> const & d)
+{
+	return std::move(
+			HDF5Write(grp, d.GetData(), d.GetName(), d.GetDims(),
+					d.IsAppendable()));
+}
+
 template<typename TV, typename ...TOther>
 std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
-		std::string const & name = "unnamed", int rank = 0, size_t const* d =
-				nullptr, bool append_enable = false)
+		std::string const &name, std::vector<size_t> d, bool is_apppendable =
+				false)
 {
 	if (grp <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 		return "";
 	}
+
+	int rank = d.size();
+
 	size_t dims[rank + 2];
 
-	if (rank == 0 || d == nullptr)
-	{
-		dims[0] = v.size();
-		rank = 1;
-	}
-	else
-	{
-		std::copy(d, d + rank, dims);
-	}
+	std::copy(d.begin(), d.end(), dims);
+
 	if (is_nTuple<TV>::value)
 	{
 		dims[rank] = nTupleTraits<TV>::NUM_OF_DIMS;
 		++rank;
 	}
-
-	CHECK(dims[0]);
-	CHECK(dims[1]);
-	CHECK(dims[2]);
 
 	hid_t mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>().type();
 
@@ -324,10 +335,11 @@ std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
 
 	AutoIncrease([&](std::string const & s )->bool
 	{
-		return H5Gget_objinfo(grp, (dsname + s ).c_str(), false, nullptr) < 0;
+		return H5Gget_objinfo(grp,
+				(name + s ).c_str(), false, nullptr) < 0;
 	}, 0, 4);
 
-	if (!append_enable)
+	if (!is_apppendable)
 	{
 
 		hsize_t mdims[rank];
@@ -410,4 +422,4 @@ std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
 }
 // namespace simpla
 
-#endif /* HDF5_DATA_DUMP_H_ */
+#endif /* DATA_STREAM_ */

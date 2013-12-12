@@ -8,6 +8,8 @@
 #ifndef SIMPLA_DEFS_H_
 #define SIMPLA_DEFS_H_
 
+#include <string>
+
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
 #endif
@@ -21,6 +23,7 @@
 " Build Date: " __DATE__ " " __TIME__"                   \n"\
 " ID:" IDENTIFY  "                                        \n"\
 " Copyright (C) 2007-2013 YU Zhi. All rights reserved.           \n"
+
 
 inline std::string ShowShortVersion()
 {

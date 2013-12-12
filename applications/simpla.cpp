@@ -14,21 +14,23 @@
 #include <new>
 #include <string>
 
+#include "../src/simpla_defs.h"
+
 #include "../src/engine/basecontext.h"
-#include "../src/fetl/field.h"
-#include "../src/fetl/ntuple.h"
-#include "../src/fetl/primitives.h"
-#include "../src/io/hdf5_data_dump.h"
+#include "../src/fetl/fetl.h"
+#include "../src/io/data_stream.h"
+
 #include "../src/mesh/co_rect_mesh.h"
+
 #include "../src/particle/particle.h"
 #include "../src/particle/pic_engine_default.h"
 #include "../src/particle/pic_engine_deltaf.h"
-#include "../src/simpla_defs.h"
+
 #include "../src/utilities/log.h"
 #include "../src/utilities/lua_state.h"
 #include "../src/utilities/parse_command_line.h"
-#include "../src/utilities/singleton_holder.h"
 #include "../src/utilities/utilities.h"
+
 #include "pic/pic_engine_ggauge.h"
 #include "solver/electromagnetic/cold_fluid.h"
 
@@ -196,7 +198,7 @@ int main(int argc, char **argv)
 				}
 				else if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 				{
-					H5DataDump.OpenFile(value);
+					GLOBAL_DATA_STREAM.OpenFile(value);
 				}
 				else if(opt=="i"||opt=="input")
 				{
