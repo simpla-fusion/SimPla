@@ -23,7 +23,6 @@ extern "C"
 
 }
 
-#include "../fetl/ntuple_ops.h"
 #include "../fetl/ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
@@ -32,6 +31,9 @@ extern "C"
 
 namespace simpla
 {
+
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ /*H5Eprint(H5E_DEFAULT, stderr);*/}
+
 class DataStream: public SingletonHolder<DataStream>
 {
 	std::string prefix_;
@@ -45,7 +47,8 @@ class DataStream: public SingletonHolder<DataStream>
 public:
 
 	DataStream() :
-			prefix_("simpla_unnamed"), file_(0), group_(0), suffix_width_(4)
+			prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""), file_(
+					-1), group_(-1), suffix_width_(4)
 	{
 		hid_t error_stack = H5Eget_current_stack();
 		H5Eset_auto(error_stack, NULL, NULL);
@@ -68,24 +71,23 @@ public:
 		else
 		{
 			grpname_ += gname;
-			h5fg = group_;
+			if (group_ > 0)
+				h5fg = group_;
 		}
 
 		if (grpname_[grpname_.size() - 1] != '/')
 		{
 			grpname_ = grpname_ + "/";
 		}
-
 		if (H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT) <= 0)
 		{
-			group_ = H5Gopen(file_, grpname_.c_str(), H5P_DEFAULT);
+			H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
 		}
 		else
 		{
-			group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT,
-			H5P_DEFAULT, H5P_DEFAULT);
+			H5_ERROR(
+					group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 		}
-
 		if (group_ <= 0)
 		{
 			ERROR << "Can not open group " << grpname_ << " in file "
@@ -94,7 +96,7 @@ public:
 
 	}
 
-	inline void OpenFile(std::string const &fname = "")
+	inline void OpenFile(std::string const &fname = "unnamed")
 	{
 
 		CloseFile();
@@ -117,9 +119,13 @@ public:
 
 		) + ".h5";
 
-		file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT,
-		H5P_DEFAULT);
-
+		H5_ERROR(
+				file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+		if (file_ < 0)
+		{
+			ERROR << "Create HDF5 file " << filename_ << " failed!"
+					<< std::endl;
+		}
 		OpenGroup("");
 	}
 
@@ -129,7 +135,7 @@ public:
 		{
 			H5Gclose(group_);
 		}
-		group_ = 0;
+		group_ = -1;
 		grpname_ = "";
 	}
 	void CloseFile()
@@ -139,7 +145,7 @@ public:
 		{
 			H5Fclose(file_);
 		}
-		file_ = 0;
+		file_ = -1;
 		filename_ = "";
 	}
 	inline std::string GetCurrentPath() const
@@ -339,7 +345,6 @@ std::string HDF5Write(hid_t grp, DataSet<U> const & d)
 					d.IsAppendable()));
 }
 
-#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ /*H5Eprint(H5E_DEFAULT, stderr);*/}
 template<typename TV, typename ...TOther>
 std::string HDF5Write(hid_t grp, std::vector<TV, TOther...> const &v,
 		std::string const &name, std::vector<size_t> d, bool is_apppendable =
