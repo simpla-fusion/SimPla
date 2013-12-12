@@ -8,18 +8,57 @@
 #ifndef PERTTY_STREAM_H_
 #define PERTTY_STREAM_H_
 
-#include <array>
 #include <cstddef>
-#include <iostream>
 #include <iterator>
 #include <list>
 #include <map>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include "../fetl/ntuple.h"
+
 namespace simpla
 {
+
+template<int N, typename T> std::ostream &
+operator<<(std::ostream& os, const nTuple<N, T> & tv)
+{
+	os << "{" << tv[0];
+	for (int i = 1; i < N; ++i)
+	{
+		os << "," << tv[i];
+	}
+	os << "}";
+	return (os);
+}
+
+template<typename T> std::ostream &
+operator<<(std::ostream& os, const std::complex<T> & tv)
+{
+	os << "{" << tv.real() << "," << tv.imag() << "}";
+	return (os);
+}
+
+template<int N, typename T> std::istream &
+operator>>(std::istream& is, nTuple<N, T> & tv)
+{
+	for (int i = 0; i < N && is; ++i)
+	{
+		is >> tv[i];
+	}
+
+	return (is);
+}
+
+template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
+{
+	std::istringstream ss(str);
+	nTuple<N, T> res;
+	ss >> res;
+	return (res);
+}
 
 template<typename TV, typename ...Others> std::istream&
 operator>>(std::istream& is, std::vector<TV, Others...> & a)

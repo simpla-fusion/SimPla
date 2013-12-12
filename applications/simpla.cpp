@@ -112,18 +112,26 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	cold_fluid_.Deserialize(cfg["Particles"]);
 
-	LOG << " Load Cold Fluid Done!";
+	LOG << " Load Cold Fluid [Done]!";
 
 	particle_collection_.Deserialize(cfg["Particles"]);
 
-	LOG << " Load Particles Done!";
+	LOG << " Load Particles [Done]!";
 
 	auto init_value = cfg["InitValue"];
+
+	n0.Init();
 	LoadField(init_value["n0"], &n0);
+	B0.Init();
 	LoadField(init_value["B0"], &B0);
+	E1.Init();
 	LoadField(init_value["E1"], &E1);
+	B1.Init();
 	LoadField(init_value["B1"], &B1);
+	J1.Init();
 	LoadField(init_value["J1"], &J1);
+
+	LOG << " Load Initial Fields [Done]!";
 }
 
 template<typename TM>
@@ -154,13 +162,19 @@ template<typename TM> std::ostream & operator<<(std::ostream & os,
 
 	<< self.particle_collection_ << "\n"
 
-	<< Data(self.E1, "E1") << "\n"
+	<< "InitValue={" << "\n"
 
-	<< Data(self.B1, "B1") << "\n"
+	<< " n0=" << Data(self.n0, "n0") << ",\n"
 
-	<< Data(self.J1, "J1") << "\n"
+	<< " E1=" << Data(self.E1, "E1") << ",\n"
 
-	<< Data(self.B0, "B0") << "\n"
+	<< " B1=" << Data(self.B1, "B1") << ",\n"
+
+	<< " J1=" << Data(self.J1, "J1") << ",\n"
+
+	<< " B0=" << Data(self.B0, "B0") << "\n"
+
+	<< "}" << "\n"
 
 	;
 
@@ -277,7 +291,7 @@ int main(int argc, char **argv)
 
 	INFORM << SIMPLA_LOGO << std::endl;
 
-	LOG << "Parse Command Line: Done!";
+	LOG << "Parse Command Line: [Done]!";
 
 	if (pt.isNull())
 	{
@@ -316,11 +330,11 @@ int main(int argc, char **argv)
 // Main Loop ============================================
 
 	LOG << std::endl << DOUBLELINE << std::endl;
-	LOG << (">>> Pre-Process DONE! <<<");
+	LOG << (">>> Pre-Process [Done]! <<<");
 
 	if (!just_a_test)
 	{
-		LOG << (">>> Process START! <<<");
+		LOG << (">>> Process [Start]! <<<");
 		for (int i = 0; i < num_of_step; ++i)
 		{
 			LOG << ">>> STEP " << i << " Start <<<";
@@ -331,11 +345,11 @@ int main(int argc, char **argv)
 			{
 				ctx->DumpData(work_path);
 			}
-			LOG << ">>> STEP " << i << " Done <<<";
+			LOG << ">>> STEP " << i << " [Done] <<<";
 		}
-		LOG << (">>> Process DONE! <<<");
+		LOG << (">>> Process [Done]! <<<");
 		//	ctx->Serialize(std::cout);
-		LOG << (">>> Post-Process DONE! <<<");
+		LOG << (">>> Post-Process [Done]! <<<");
 	}
 
 ////

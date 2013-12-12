@@ -9,6 +9,7 @@
 #define UTILITIES_H_
 
 #include <cstddef>
+#include <cstdio>
 #include <functional>
 #include <iomanip>
 #include <sstream>
@@ -53,7 +54,7 @@ inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
 		size_t count = 0, int width = 4)
 {
 	std::string res("");
-	while (!fun(res))
+	while (fun(res))
 	{
 		std::ostringstream os;
 
@@ -62,6 +63,19 @@ inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
 		res = os.str();
 	}
 	return res;
+}
+
+inline bool CheckFileExists(std::string const & name)
+{
+	if (FILE *file = fopen(name.c_str(), "r"))
+	{
+		fclose(file);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 }  // namespace simpla

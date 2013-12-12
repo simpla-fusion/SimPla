@@ -55,7 +55,6 @@ void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 		std::string url = obj.as<std::string>();
 		//TODO Read field from data file
 		UNIMPLEMENT;
-
 	}
 }
 }  // namespace simpla

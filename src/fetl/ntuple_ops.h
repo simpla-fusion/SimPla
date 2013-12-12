@@ -151,34 +151,6 @@ struct nTuple<N,
 //	return os;
 //}
 
-template<int N, typename T> std::ostream &
-operator<<(std::ostream& os, const nTuple<N, T> & tv)
-{
-	for (int i = 0; i < N; ++i)
-	{
-		os << " " << tv[i];
-	}
-	return (os);
-}
-
-template<int N, typename T> std::istream &
-operator>>(std::istream& is, nTuple<N, T> & tv)
-{
-	for (int i = 0; i < N && is; ++i)
-	{
-		is >> tv[i];
-	}
-
-	return (is);
-}
-
-template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
-{
-	std::istringstream ss(str);
-	nTuple<N, T> res;
-	ss >> res;
-	return (res);
-}
 
 template<typename T> inline auto Determinant(
 		nTuple<3, nTuple<3, T> > const & m)
