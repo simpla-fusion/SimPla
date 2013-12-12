@@ -25,6 +25,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../physics/physical_constants.h"
+#include "../physics/constants.h"
 #include "../utilities/allocator_mempool.h"
 #include "../utilities/log.h"
 
@@ -74,7 +75,7 @@ struct CoRectMesh
 	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
 
 	nTuple<NUM_OF_DIMS, size_t> gw_ =
-	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	        { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
 
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 
@@ -87,17 +88,18 @@ struct CoRectMesh
 
 	// Geometry
 	coordinates_type xmin_ =
-	{ 0, 0, 0 };
+	        { 0, 0, 0 };
 	coordinates_type xmax_ =
-	{ 10, 10, 10 };
+	        { 10, 10, 10 };
 	nTuple<NUM_OF_DIMS, scalar> dS_[2];
+	nTuple<NUM_OF_DIMS, scalar> k_;
 	coordinates_type dx_;
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
 	const int num_comps_per_cell_[4] =
-	{ 1, 3, 3, 1 };
+	        { 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[4][3];
 
@@ -116,74 +118,67 @@ struct CoRectMesh
 	}
 
 	inline bool operator==(this_type const & r) const
-	{
+	        {
 		return (this == &r);
+	}
+
+	inline std::string GetTypeName() const
+	{
+		if (std::is_same<TS, std::complex<Real>>::value)
+		{
+			return "CoRectMeshComplex";
+		}
+		else
+		{
+			return "CoRectMesh";
+		}
+
 	}
 
 	template<typename TV> using Container=std::vector<TV,MemPoolAllocator<TV> >;
 
 	template<int iform, typename TV> inline Container<TV> MakeContainer(
-			TV defalut_value = TV()) const
-	{
+	        TV defalut_value = TV()) const
+	                {
 		return std::move(Container<TV>(GetNumOfElements(iform), defalut_value));
 	}
 
-	template<typename PT>
-	inline void Deserialize(PT const &vm)
-	{
-		constants.Deserialize(vm.GetChild("UnitSystem"));
+	template<typename PT> inline void Deserialize(PT const &vm);
 
-		vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
-		vm.GetChild("Topology").template GetValue("GhostWidth", &gw_);
-		vm.GetChild("Geometry").template GetValue("Min", &xmin_);
-		vm.GetChild("Geometry").template GetValue("Max", &xmax_);
+	template<typename PT> inline void Serialize(PT &vm) const;
 
-		Update();
-	}
-
-	template<typename PT>
-	inline void Serialize(PT &vm) const
-	{
-		vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
-		vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
-		vm.GetChild("Geometry").template SetValue("Min", &xmin_);
-		vm.GetChild("Geometry").template SetValue("Max", &xmax_);
-
-		constants.Serialize(vm.GetChild("UnitSystem"));
-	}
-
-	//
-	//	template<int IFORM, typename T1>
-	//	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
-	//	{
-	//		size_t num_comp = num_comps_per_cell_[IFORM];
-	//
-	//		for (size_t i = 0; i < dims_[0]; ++i)
-	//		{
-	//			std::cout << "--------------------------------------------------"
-	//					<< std::endl;
-	//			for (size_t j = 0; j < dims_[1]; ++j)
-	//			{
-	//				std::cout << std::endl;
-	//				for (size_t k = 0; k < dims_[2]; ++k)
-	//				{
-	//					std::cout << "(";
-	//					for (int m = 0; m < num_comp; ++m)
-	//					{
-	//						std::cout
-	//								<< f[(i * strides_[0] + j * strides_[1]
-	//										+ k * strides_[2]) * num_comp + m]
-	//								<< " ";
-	//					}
-	//					std::cout << ") ";
-	//				}
-	//				std::cout << std::endl;
-	//			}
-	//
-	//		}
-	//		std::cout << std::endl;
-	//
-	//	}
+//
+//	template<int IFORM, typename T1>
+//	void Print(Field<Geometry<this_type, IFORM>, T1> const & f) const
+//	{
+//		size_t num_comp = num_comps_per_cell_[IFORM];
+//
+//		for (size_t i = 0; i < dims_[0]; ++i)
+//		{
+//			std::cout << "--------------------------------------------------"
+//					<< std::endl;
+//			for (size_t j = 0; j < dims_[1]; ++j)
+//			{
+//				std::cout << std::endl;
+//				for (size_t k = 0; k < dims_[2]; ++k)
+//				{
+//					std::cout << "(";
+//					for (int m = 0; m < num_comp; ++m)
+//					{
+//						std::cout
+//								<< f[(i * strides_[0] + j * strides_[1]
+//										+ k * strides_[2]) * num_comp + m]
+//								<< " ";
+//					}
+//					std::cout << ") ";
+//				}
+//				std::cout << std::endl;
+//			}
+//
+//		}
+//		std::cout << std::endl;
+//
+//	}
 
 	inline void _SetImaginaryPart(Real i, Real * v)
 	{
@@ -207,19 +202,23 @@ struct CoRectMesh
 
 				dS_[0][i] = 0.0;
 				_SetImaginaryPart(
-						xmax_[i] == xmin_[i] ? 0 : 1.0 / (xmax_[i] - xmin_[i]),
-						&dS_[0][i]);
+				        xmax_[i] == xmin_[i] ? 0 : 1.0 / (xmax_[i] - xmin_[i]),
+				        &dS_[0][i]);
 				dS_[1][i] = 0.0;
+
+				k_[i] = TWOPI * dS_[0][i];
 			}
 			else
 			{
 				dx_[i] = (xmax_[i] - xmin_[i])
-						/ static_cast<Real>(dims_[i] - 1);
+				        / static_cast<Real>(dims_[i] - 1);
 				dS_[0][i] = 1.0 / dx_[i];
 				dS_[1][i] = -1.0 / dx_[i];
 
 				num_cells_ *= (dims_[i] - 1);
 				num_grid_points_ *= dims_[i];
+
+				k_[i] = 0.0;
 			}
 		}
 		strides_[2] = 1;
@@ -295,7 +294,7 @@ struct CoRectMesh
 				for (index_type k = 0; k < dims_[2]; ++k)
 				{
 					index_type s = (i * strides_[0] + j * strides_[1]
-							+ k * strides_[2]);
+					        + k * strides_[2]);
 
 					coordinates_type x = xmin_;
 					x[0] += dx_[0] * i;
@@ -316,7 +315,7 @@ struct CoRectMesh
 
 	template<int IFORM, int DIRECTION>
 	void GetElementOnInterface(tag_type in, tag_type out,
-			std::vector<index_type>*res)
+	        std::vector<index_type>*res)
 	{
 		std::set<index_type> tmp_res;
 
@@ -325,7 +324,7 @@ struct CoRectMesh
 				for (index_type k = 0; k < dims_[2]; ++k)
 				{
 					index_type s0 = (i * strides_[0] + j * strides_[1]
-							+ k * strides_[2]);
+					        + k * strides_[2]);
 
 					tag_type v[8];
 
@@ -359,26 +358,26 @@ struct CoRectMesh
 					v[5] = media_tag_[s0 + strides_[2] + strides_[0]];
 					v[6] = media_tag_[s0 + strides_[2] + strides_[1]];
 					v[7] = media_tag_[s0 + strides_[2] + strides_[0]
-							+ strides_[1]];
+					        + strides_[1]];
 
 					// not interface
 					if (((v[0] = v[1]) && (v[1] = v[2]) && (v[2] = v[3])
-							&& (v[3] = v[4]) && (v[4] = v[5]) && (v[5] = v[6])
-							&& (v[6] = v[7]))
+					        && (v[3] = v[4]) && (v[4] = v[5]) && (v[5] = v[6])
+					        && (v[6] = v[7]))
 
-							|| ((v[0] != in) && (v[1] != in) && (v[2] != in)
-									&& (v[3] != in) && (v[4] != in)
-									&& (v[5] != in) && (v[6] != in)
-									&& (v[7] != in))
+					|| ((v[0] != in) && (v[1] != in) && (v[2] != in)
+					        && (v[3] != in) && (v[4] != in)
+					        && (v[5] != in) && (v[6] != in)
+					        && (v[7] != in))
 
-							|| ((v[0] != out) && (v[1] != out) && (v[2] != out)
-									&& (v[3] != out) && (v[4] != out)
-									&& (v[5] != out) && (v[6] != out)
-									&& (v[7] != out)))
-						continue;
+					|| ((v[0] != out) && (v[1] != out) && (v[2] != out)
+					        && (v[3] != out) && (v[4] != out)
+					        && (v[5] != out) && (v[6] != out)
+					        && (v[7] != out)))
+					continue;
 
 					_SetInterface(Int2Type<IFORM>(), Int2Type<DIRECTION>(), s0,
-							in, v, &tmp_res);
+					        in, v, &tmp_res);
 
 				}
 
@@ -391,163 +390,163 @@ private:
 
 	template<int DIRECTION>
 	void _SetInterface(Int2Type<0>, Int2Type<DIRECTION>, index_type s0,
-			tag_type in, tag_type const* v, std::set<index_type> *res)
+	        tag_type in, tag_type const* v, std::set<index_type> *res)
 	{
 		if (v[0] == in)
-			res->insert((s0));
+		res->insert((s0));
 	}
 	void _SetInterface(Int2Type<1>, Int2Type<PARALLEL>, index_type s0,
-			tag_type in, tag_type const* v, std::set<index_type> *res)
+	        tag_type in, tag_type const* v, std::set<index_type> *res)
 	{
 		if ((v[0] == in) && (v[0] == v[1]))
-			res->insert((s0) * 3 + 0);
+		res->insert((s0) * 3 + 0);
 
 		if ((v[2] == v[3]) && (v[3] == in))
-			res->insert((s0 + strides_[1]) * 3 + 0);
+		res->insert((s0 + strides_[1]) * 3 + 0);
 
 		if ((v[4] == v[5]) && (v[4] == in))
-			res->insert((s0 + strides_[2]) * 3 + 0);
+		res->insert((s0 + strides_[2]) * 3 + 0);
 
 		if ((v[6] == v[7]) && (v[7] == in))
-			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+		res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
 
 		//
 
 		if ((v[0] == v[2]) && (v[2] == in))
-			res->insert((s0) * 3 + 1);
+		res->insert((s0) * 3 + 1);
 
 		if ((v[1] == v[3]) && (v[1] == in))
-			res->insert((s0 + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[0]) * 3 + 1);
 
 		if ((v[4] == v[6]) && (v[6] == in))
-			res->insert((s0 + strides_[2]) * 3 + 1);
+		res->insert((s0 + strides_[2]) * 3 + 1);
 
 		if ((v[5] == v[7]) && (v[5] == in))
-			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
 
 		//
 
 		if ((v[0] == v[4]) && (v[0] == in))
-			res->insert((s0) * 3 + 2);
+		res->insert((s0) * 3 + 2);
 
 		if ((v[1] == v[5]) && (v[1] == in))
-			res->insert((s0 + strides_[0]) * 3 + 2);
+		res->insert((s0 + strides_[0]) * 3 + 2);
 
 		if ((v[2] == v[6]) && (v[2] == in))
-			res->insert((s0 + strides_[1]) * 3 + 2);
+		res->insert((s0 + strides_[1]) * 3 + 2);
 
 		if ((v[3] == v[7]) && (v[3] == in))
-			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+		res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
 
 	}
 	void _SetInterface(Int2Type<1>, Int2Type<PERPENDICULAR>, index_type s0,
-			tag_type in, tag_type const* v, std::set<index_type> *res)
+	        tag_type in, tag_type const* v, std::set<index_type> *res)
 	{
 		if ((v[0] != v[1]))
-			res->insert((s0) * 3 + 0);
+		res->insert((s0) * 3 + 0);
 
 		if ((v[2] != v[3]))
-			res->insert((s0 + strides_[1]) * 3 + 0);
+		res->insert((s0 + strides_[1]) * 3 + 0);
 
 		if ((v[4] != v[5]))
-			res->insert((s0 + strides_[2]) * 3 + 0);
+		res->insert((s0 + strides_[2]) * 3 + 0);
 
 		if ((v[6] != v[7]))
-			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+		res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
 
 		//
 
 		if ((v[0] != v[2]))
-			res->insert((s0) * 3 + 1);
+		res->insert((s0) * 3 + 1);
 
 		if ((v[1] != v[3]))
-			res->insert((s0 + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[0]) * 3 + 1);
 
 		if ((v[4] != v[6]))
-			res->insert((s0 + strides_[2]) * 3 + 1);
+		res->insert((s0 + strides_[2]) * 3 + 1);
 
 		if ((v[5] != v[7]))
-			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
 
 		//
 
 		if ((v[0] != v[4]))
-			res->insert((s0) * 3 + 2);
+		res->insert((s0) * 3 + 2);
 
 		if ((v[1] != v[5]))
-			res->insert((s0 + strides_[0]) * 3 + 2);
+		res->insert((s0 + strides_[0]) * 3 + 2);
 
 		if ((v[2] != v[6]))
-			res->insert((s0 + strides_[1]) * 3 + 2);
+		res->insert((s0 + strides_[1]) * 3 + 2);
 
 		if ((v[3] != v[7]))
-			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+		res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
 
 	}
 
 	void _SetInterface(Int2Type<2>, Int2Type<PARALLEL>, index_type s0,
-			tag_type in, tag_type const* v, std::set<index_type> *res)
+	        tag_type in, tag_type const* v, std::set<index_type> *res)
 	{
 
 		if (!((v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3])))
-			res->insert((s0) * 3 + 2);
+		res->insert((s0) * 3 + 2);
 		if (!((v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7])))
-			res->insert((s0 + strides_[2]) * 3 + 2);
+		res->insert((s0 + strides_[2]) * 3 + 2);
 
 		if (!((v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5])))
-			res->insert((s0) * 3 + 1);
+		res->insert((s0) * 3 + 1);
 		if (!((v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7])))
-			res->insert((s0 + strides_[1]) * 3 + 1);
+		res->insert((s0 + strides_[1]) * 3 + 1);
 
 		if (!((v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6])))
-			res->insert((s0) * 3 + 0);
+		res->insert((s0) * 3 + 0);
 		if (!((v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7])))
-			res->insert((s0 + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[0]) * 3 + 1);
 
 	}
 
 	void _SetInterface(Int2Type<2>, Int2Type<PERPENDICULAR>, index_type s0,
-			tag_type in, tag_type const* v, std::set<index_type> *res)
+	        tag_type in, tag_type const* v, std::set<index_type> *res)
 	{
 
 		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
-			res->insert((s0) * 3 + 2);
+		res->insert((s0) * 3 + 2);
 		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[2]) * 3 + 2);
+		res->insert((s0 + strides_[2]) * 3 + 2);
 
 		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
-			res->insert((s0) * 3 + 1);
+		res->insert((s0) * 3 + 1);
 		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[1]) * 3 + 1);
+		res->insert((s0 + strides_[1]) * 3 + 1);
 
 		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
-			res->insert((s0) * 3 + 0);
+		res->insert((s0) * 3 + 0);
 		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
-			res->insert((s0 + strides_[0]) * 3 + 1);
+		res->insert((s0 + strides_[0]) * 3 + 1);
 
 	}
 
 	void _SetInterface(Int2Type<3>, index_type s0, tag_type in,
-			tag_type const* v, std::set<index_type> *res)
+	        tag_type const* v, std::set<index_type> *res)
 	{
 
 		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
-			res->insert((s0 - strides_[2]));
+		res->insert((s0 - strides_[2]));
 		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[2]));
+		res->insert((s0 + strides_[2]));
 
 		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
-			res->insert((s0 - strides_[1]));
+		res->insert((s0 - strides_[1]));
 		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[1]));
+		res->insert((s0 + strides_[1]));
 
 		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
-			res->insert((s0 + strides_[0]));
+		res->insert((s0 + strides_[0]));
 		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
-			res->insert((s0 + strides_[0]));
+		res->insert((s0 + strides_[0]));
 
 		WARNING
-				<< "This implement is incorrect when the boundary has too sharp corner";
+		<< "This implement is incorrect when the boundary has too sharp corner";
 
 		/**
 		 *  FIXME this is incorrect when the boundary has too sharp corner
@@ -568,8 +567,8 @@ private:
 public:
 
 	inline coordinates_type GetCoordinates(int IFORM, int m, index_type i,
-			index_type j, index_type k) const
-	{
+	        index_type j, index_type k) const
+	        {
 
 		coordinates_type res = xmin_;
 		res[0] += i * dx_[0] + coordinates_shift_[IFORM][m][0];
@@ -579,8 +578,8 @@ public:
 	}
 
 	inline coordinates_type GetGlobalCoordinates(index_type s,
-			coordinates_type const &r) const
-	{
+	        coordinates_type const &r) const
+	        {
 		coordinates_type res;
 
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
@@ -603,23 +602,23 @@ public:
 	}
 
 	inline size_t GetIndex(index_type i, index_type j, index_type k) const
-	{
+	        {
 		return ((i % period_[0]) * strides_[0] + (j % period_[1]) * strides_[1]
-				+ (k % period_[2]) * strides_[2]);
+		        + (k % period_[2]) * strides_[2]);
 	}
 	inline size_t GetIndex(index_type s) const
-	{
+	        {
 		return s;
 	}
 
 	template<int IFORM>
 	inline size_t GetSubComponent(size_t s) const
-	{
+	        {
 		return s % num_comps_per_cell_[IFORM];
 	}
 	template<int IFORM, typename ... IDXS>
 	inline size_t Component(int m, IDXS ... s) const
-	{
+	        {
 		return GetIndex(s...) * num_comps_per_cell_[IFORM] + m;
 	}
 
@@ -636,11 +635,11 @@ private:
 		NZ = 32 // 10 00 00
 	};
 	inline size_t INC(int m) const
-	{
+	        {
 		return 1 << (m % 3) * 2;
 	}
 	inline size_t DES(int m) const
-	{
+	        {
 		return 2 << (m % 3) * 2;
 	}
 
@@ -656,7 +655,7 @@ public:
 	 */
 	template<typename ... IDXS>
 	inline size_t Shift(int d, IDXS ... s) const
-	{
+	        {
 
 		return GetIndex(s...)
 
@@ -670,7 +669,7 @@ public:
 	}
 
 	inline size_t Shift(int d, index_type i, index_type j, index_type k) const
-	{
+	        {
 		return
 
 		(((i + (((d & 3) + 1) % 3 - 1)) % period_[0]) * strides_[0]
@@ -681,46 +680,46 @@ public:
 	}
 	template<typename T, typename ... TI>
 	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l,
-			TI ...) const
-	{
+	        TI ...) const
+	        {
 		return std::move(l);
 	}
 
 	template<int IFORM, typename TL> inline typename Field<
-			Geometry<this_type, IFORM>, TL>::value_type & get(
-			Field<Geometry<this_type, IFORM>, TL> *l, size_t s) const
-	{
+	        Geometry<this_type, IFORM>, TL>::value_type & get(
+	        Field<Geometry<this_type, IFORM>, TL> *l, size_t s) const
+	        {
 		return l->get(s % num_comps_per_cell_[IFORM],
-				s / num_comps_per_cell_[IFORM]);
+		        s / num_comps_per_cell_[IFORM]);
 	}
 
 	template<int IFORM, typename TL, typename ...TI> inline typename Field<
-			Geometry<this_type, IFORM>, TL>::value_type & get(
-			Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
-	{
+	        Geometry<this_type, IFORM>, TL>::value_type & get(
+	        Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
+	        {
 		return l->get(s...);
 	}
 
 	template<int IFORM, typename TL, typename ... TI>
 	typename Field<Geometry<this_type, IFORM>, TL>::value_type const &get(
-			Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
-	{
+	        Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
+	        {
 		return (l.get(s...));
 	}
 
 	template<int IFORM, int TOP, typename TL, typename ... TI>
 	typename Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> >::value_type get(
-			Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> > const & l,
-			TI ...s) const
-	{
+	        Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> > const & l,
+	        TI ...s) const
+	        {
 		return (l.get(s...));
 	}
 
 	template<int IFORM, int TOP, typename TL, typename TR, typename ... TI>
 	typename Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> >::value_type get(
-			Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> > const & l,
-			TI ...s) const
-	{
+	        Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> > const & l,
+	        TI ...s) const
+	        {
 		return (l.get(s...));
 	}
 
@@ -731,9 +730,9 @@ public:
 	};
 
 	void Traversal(int IFORM,
-			std::function<void(int, index_type, index_type, index_type)> const &fun,
-			int flag = NO_GHOSTS) const
-	{
+	        std::function<void(int, index_type, index_type, index_type)> const &fun,
+	        int flag = NO_GHOSTS) const
+	        {
 		index_type ib = (flag != NO_GHOSTS) ? 0 : gw_[0];
 		index_type ie = (flag != NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
 
@@ -757,9 +756,9 @@ public:
 	}
 
 	inline void TraversalIndex(int IFORM,
-			std::function<void(int, index_type)> const &fun, int flag =
-					NO_GHOSTS) const
-	{
+	        std::function<void(int, index_type)> const &fun, int flag =
+	                NO_GHOSTS) const
+	        {
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
 			fun(m,this->GetIndex(i,j,k));
@@ -768,57 +767,57 @@ public:
 	}
 
 	inline void TraversalCoordinates(int IFORM,
-			std::function<void(index_type, coordinates_type)> const &fun,
-			int flag = NO_GHOSTS) const
-	{
+	        std::function<void(index_type, coordinates_type)> const &fun,
+	        int flag = NO_GHOSTS) const
+	        {
 		int num = num_comps_per_cell_[IFORM];
 		Traversal(IFORM,
-				[&](int m,index_type i,index_type j,index_type k)
-				{
-					fun(this->GetIndex(i,j,k)*num+m,this->GetCoordinates(IFORM,m,i,j,k));
-				}, flag);
+		        [&](int m,index_type i,index_type j,index_type k)
+		        {
+			        fun(this->GetIndex(i,j,k)*num+m,this->GetCoordinates(IFORM,m,i,j,k));
+		        }, flag);
 
 	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
-	{
+	        {
 		Traversal(FieldTraits<TF>::IForm,
-				[&](int m,index_type i,index_type j,index_type k)
-				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
-				WITH_GHOSTS);
+		        [&](int m,index_type i,index_type j,index_type k)
+		        {	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+		        WITH_GHOSTS);
 	}
 
 	template<typename Fun, typename TF, typename ...Args> inline
 	void ForAll(Fun const &fun, TF * l, Args const & ... args) const
-	{
+	        {
 		Traversal(FieldTraits<TF>::IForm,
-				[&](int m,index_type i,index_type j,index_type k)
-				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
-				WITH_GHOSTS);
+		        [&](int m,index_type i,index_type j,index_type k)
+		        {	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+		        WITH_GHOSTS);
 	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForEach(Fun const &fun, TF & l, Args const& ... args) const
-	{
+	        {
 		Traversal(FieldTraits<TF>::IForm,
-				[&](int m,index_type i,index_type j,index_type k)
-				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
-				NO_GHOSTS);
+		        [&](int m,index_type i,index_type j,index_type k)
+		        {	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+		        NO_GHOSTS);
 	}
 
 	template<typename Fun, typename TF, typename ...Args> inline
 	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
-	{
+	        {
 		Traversal(FieldTraits<TF>::IForm,
-				[&](int m,index_type i,index_type j,index_type k)
-				{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
-				NO_GHOSTS);
+		        [&](int m,index_type i,index_type j,index_type k)
+		        {	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);},
+		        NO_GHOSTS);
 	}
 
 	template<typename TL, typename TR>
 	void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
-	{
+	        {
 		if (lhs->empty())
 		{
 			lhs->reserve(GetNumOfElements(IFORM));
@@ -849,7 +848,7 @@ public:
 	}
 
 	inline void SetExtent(coordinates_type const & pmin,
-			coordinates_type const & pmax)
+	        coordinates_type const & pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;
@@ -874,12 +873,12 @@ public:
 	}
 
 	inline std::vector<size_t> GetShape(int IFORM) const
-	{
+	        {
 		std::vector<size_t> res;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			if (dims_[i] > 1)
-				res.push_back(dims_[i]);
+			res.push_back(dims_[i]);
 		}
 		if (num_comps_per_cell_[IFORM] > 1)
 		{
@@ -907,7 +906,7 @@ public:
 	}
 
 	inline size_t GetNumOfElements(int iform) const
-	{
+	        {
 
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
 	}
@@ -935,8 +934,8 @@ public:
 	 * @return index of cell
 	 */
 	inline index_type SearchCell(coordinates_type const &x,
-			coordinates_type *pcoords = nullptr) const
-	{
+	        coordinates_type *pcoords = nullptr) const
+	        {
 
 		size_t idx = 0;
 
@@ -962,20 +961,20 @@ public:
 	 * @return
 	 */
 	inline index_type SearchCell(index_type const &hint_idx,
-			coordinates_type const &x,
-			coordinates_type *pcoords = nullptr) const
-	{
+	        coordinates_type const &x,
+	        coordinates_type *pcoords = nullptr) const
+	        {
 		return SearchCell(x, pcoords);
 	}
 
 	inline std::vector<coordinates_type> GetCellShape(index_type s) const
-	{
+	        {
 		std::vector<coordinates_type> res;
 		coordinates_type r0 =
-		{ 0, 0, 0 };
+		        { 0, 0, 0 };
 		res.push_back(GetGlobalCoordinates(s, r0));
 		coordinates_type r1 =
-		{ 1, 1, 1 };
+		        { 1, 1, 1 };
 		res.push_back(GetGlobalCoordinates(s, r1));
 
 		return res;
@@ -983,8 +982,8 @@ public:
 
 	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<0>, index_type const & idx,
-			PList & points, int affect_region = 1) const
-	{
+	        PList & points, int affect_region = 1) const
+	        {
 
 		points.resize(8);
 		// 0 0 0
@@ -1008,8 +1007,8 @@ public:
 
 	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<1>, index_type const & idx,
-			PList& points, int affect_region = 1) const
-	{
+	        PList& points, int affect_region = 1) const
+	        {
 
 		// 0 0 0
 
@@ -1017,16 +1016,16 @@ public:
 
 	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<2>, index_type const & idx,
-			PList& points, int affect_region = 1) const
-	{
+	        PList& points, int affect_region = 1) const
+	        {
 
 		// 0 0 0
 
 	}
 	template<typename PList>
 	inline void GetAffectedPoints(Int2Type<3>, index_type const & idx,
-			PList& points, int affect_region = 1) const
-	{
+	        PList& points, int affect_region = 1) const
+	        {
 
 		// 0 0 0
 
@@ -1034,8 +1033,8 @@ public:
 
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords,
-			TW & weights, int affect_region = 1) const
-	{
+	        TW & weights, int affect_region = 1) const
+	        {
 		weights.resize(8);
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 
@@ -1050,22 +1049,22 @@ public:
 	}
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<1>, coordinates_type const &pcoords,
-			TW & weight, int affect_region = 1) const
-	{
+	        TW & weight, int affect_region = 1) const
+	        {
 
 	}
 
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<2>, coordinates_type const &pcoords,
-			TW & weight, int affect_region = 1) const
-	{
+	        TW & weight, int affect_region = 1) const
+	        {
 
 	}
 
 	template<typename TW>
 	inline void CalcuateWeights(Int2Type<3>, coordinates_type const &pcoords,
-			TW & weight, int affect_region = 1) const
-	{
+	        TW & weight, int affect_region = 1) const
+	        {
 
 	}
 
@@ -1089,234 +1088,267 @@ public:
 	ENABLE_IF_DECL_RET_TYPE(is_primitive<T>::value,l)
 
 	template<int IF, typename TL, typename ...TI> inline auto mapto(
-			Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
-			TI ... s) const
-			DECL_RET_TYPE ((get(l,s...)))
+	        Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l,
+	        TI ... s) const
+	        DECL_RET_TYPE ((get(l,s...)))
 
 	template<typename TL, typename ...IDXS> inline auto mapto(Int2Type<1>,
-			Field<Geometry<this_type, 0>, TL> const &l, int m,
-			IDXS ... s) const
-					DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
+	        Field<Geometry<this_type, 0>, TL> const &l, int m,
+	        IDXS ... s) const
+	        DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
 
 	template<typename TL, typename ...IDXS> inline auto //
 	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(
-											get(l,0,s...)+
-											get(l,0,Shift(INC(m+1),s...))+
-											get(l,0,Shift(INC(m+2),s...))+
-											get(l,0,Shift(INC(m+1) | INC(m+2) ,s...))
-									)*0.25
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (
+							        get(l,0,s...)+
+							        get(l,0,Shift(INC(m+1),s...))+
+							        get(l,0,Shift(INC(m+2),s...))+
+							        get(l,0,Shift(INC(m+1) | INC(m+2) ,s...))
+					        )*0.25
 
-							))
+			        ))
 	template<typename TL, typename ...IDXS> inline auto //
 	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l, int m,
-			IDXS ...s) const
-			DECL_RET_TYPE(( (
-									get(l,0,s...)+
-									get(l,0,Shift(X,s...))+
-									get(l,0,Shift(Y,s...))+
-									get(l,0,Shift(Z,s...))+
+	        IDXS ...s) const
+	        DECL_RET_TYPE(( (
+							        get(l,0,s...)+
+							        get(l,0,Shift(X,s...))+
+							        get(l,0,Shift(Y,s...))+
+							        get(l,0,Shift(Z,s...))+
 
-									get(l,0,Shift(X|Y,s...))+
-									get(l,0,Shift(Z|X,s...))+
-									get(l,0,Shift(Z|Y,s...))+
-									get(l,0,Shift(Z|X|Y,s...))
+							        get(l,0,Shift(X|Y,s...))+
+							        get(l,0,Shift(Z|X,s...))+
+							        get(l,0,Shift(Z|Y,s...))+
+							        get(l,0,Shift(Z|X|Y,s...))
 
-							)*0.125
+					        )*0.125
 
-					))
+			        ))
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l,
-			TI ... s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ... s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l,
-			TI ...s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ...s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l,
-			TI ... s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ... s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l,
-			TI ...s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ...s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l,
-			TI ...s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ...s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 	template<typename TL, typename ...TI>
 	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l,
-			TI ... s) const
-			DECL_RET_TYPE( (get(l,s...)) )
+	        TI ... s) const
+	        DECL_RET_TYPE( (get(l,s...)) )
 
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
 
 	template<typename TExpr, typename ... IDXS> inline auto OpEval(
-			Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f,
-			int m, IDXS ... s) const
-			DECL_RET_TYPE(
-					( get(f,0,Shift(INC(m),s...))* dS_[0][m] )
-					+get(f,0,s...)* dS_[1][m])
+	        Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f,
+	        int m, IDXS ... s) const
+	        DECL_RET_TYPE(
+			        ( get(f,0,Shift(INC(m),s...))* dS_[0][m] )
+			        +get(f,0,s...)* dS_[1][m])
 
 	template<typename TExpr, typename ...IDX> inline auto OpEval(
-			Int2Type<DIVERGE>, Field<Geometry<this_type, 1>, TExpr> const & f,
-			int m,
-			IDX ...s) const
-					DECL_RET_TYPE((
+	        Int2Type<DIVERGE>, Field<Geometry<this_type, 1>, TExpr> const & f,
+	        int m,
+	        IDX ...s) const
+	        DECL_RET_TYPE((
 
-									(get(f,0,s...)* dS_[0][0] + get(f,0,Shift( NX,s...))* dS_[1][0]) +
+					        (get(f,0,s...)* dS_[0][0] + get(f,0,Shift( NX,s...))* dS_[1][0]) +
 
-									(get(f,1,s...) * dS_[0][1] + get(f,1,Shift( NY,s...))* dS_[1][1]) +
+					        (get(f,1,s...) * dS_[0][1] + get(f,1,Shift( NY,s...))* dS_[1][1]) +
 
-									(get(f,2,s...) * dS_[0][2] + get(f,2,Shift( NZ,s...))* dS_[1][2])
-							))
-
-	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 1>, TL> const & f, int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
-
-									+ get(f,(m+2)%3,s...)* dS_[1][(m + 1) % 3]
-
-									- get(f,(m+1)%3,Shift(INC(m+2) ,s...)) * dS_[0][(m + 2) % 3]
-
-									- get(f,(m+1)%3,s...)* dS_[1][(m + 2) % 3]
-							)
-					)
+					        (get(f,2,s...) * dS_[0][2] + get(f,2,Shift( NZ,s...))* dS_[1][2])
+			        ))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-			Field<Geometry<this_type, 2>, TL> const & f, int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									get(f,(m+2)%3,s...)* dS_[0][(m + 1) % 3]
+	        Field<Geometry<this_type, 1>, TL> const & f, int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
 
-									+ get(f,(m+2)%3,Shift(DES(m+1),s...)) * dS_[1][(m + 1) % 3]
+					        + get(f,(m+2)%3,s...)* dS_[1][(m + 1) % 3]
 
-									- get(f,(m+1)%3,s...)* dS_[0][(m + 2) % 3]
+					        - get(f,(m+1)%3,Shift(INC(m+2) ,s...)) * dS_[0][(m + 2) % 3]
 
-									- get(f,(m+1)%3,Shift(DES(m+2),s...)) * dS_[1][(m + 2) % 3]
+					        - get(f,(m+1)%3,s...)* dS_[1][(m + 2) % 3]
+			        )
+	        )
 
-							))
+	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
+	        Field<Geometry<this_type, 2>, TL> const & f, int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        get(f,(m+2)%3,s...)* dS_[0][(m + 1) % 3]
 
-	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDX>, Field<Geometry<this_type, 1>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==0?0:(m==1?2:1)),Shift(X,s...)) * dS_[0][0]
-											+ get(f,(m==0?0:(m==1?2:1)),s...)* dS_[1][0])*(m==0?0:(m==1?-1:1))
-							))
-	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==1?0:(m==2?0:2)),Shift(Y,s...)) * dS_[0][1]
-											+ get(f,(m==1?0:(m==2?0:2)),s...)* dS_[1][1])*(m==1?0:(m==2?-1:1))
-							))
+					        + get(f,(m+2)%3,Shift(DES(m+1),s...)) * dS_[1][(m + 1) % 3]
+
+					        - get(f,(m+1)%3,s...)* dS_[0][(m + 2) % 3]
+
+					        - get(f,(m+1)%3,Shift(DES(m+2),s...)) * dS_[1][(m + 2) % 3]
+
+			        ))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==2?0:(m==0?1:0)),Shift(Z,s...)) * dS_[0][2]
-											+ get(f,(m==2?0:(m==0?1:0)),s...)* dS_[1][2])*(m==2?0:(m==0?-1:1))
-							))
+	        Int2Type<CURLPDX>, Field<Geometry<this_type, 1>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==0?0:(m==1?2:1)),Shift(X,s...)) * dS_[0][0]
+							        + get(f,(m==0?0:(m==1?2:1)),s...)* dS_[1][0])*(m==0?0:(m==1?-1:1))
+			        ))
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+	        Int2Type<CURLPDY>, Field<Geometry<this_type, 1>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==1?0:(m==2?0:2)),Shift(Y,s...)) * dS_[0][1]
+							        + get(f,(m==1?0:(m==2?0:2)),s...)* dS_[1][1])*(m==1?0:(m==2?-1:1))
+			        ))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==0?0:(m==1?2:1)),s...) * dS_[0][0]
-											+ get(f,(m==0?0:(m==1?2:1)),Shift(NX,s...))* dS_[1][0])*(m==0?0:(m==1?-1:1))
-							))
-	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==1?0:(m==2?0:2)),s...) * dS_[0][1]
-											+ get(f,(m==1?0:(m==2?0:2)),Shift(NY,s...))* dS_[1][1])*(m==1?0:(m==2?-1:1))
-							))
+	        Int2Type<CURLPDZ>, Field<Geometry<this_type, 1>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==2?0:(m==0?1:0)),Shift(Z,s...)) * dS_[0][2]
+							        + get(f,(m==2?0:(m==0?1:0)),s...)* dS_[1][2])*(m==2?0:(m==0?-1:1))
+			        ))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(
-			Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
-			int m,
-			IDXS ...s) const
-					DECL_RET_TYPE((
-									(get(f,(m==2?0:(m==0?1:0)),s...) * dS_[0][2]
-											+ get(f,(m==2?0:(m==0?1:0)),Shift(NZ,s...))
-											* dS_[1][2])*(m==2?0:(m==0?-1:1))
-							))
+	        Int2Type<CURLPDX>, Field<Geometry<this_type, 2>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==0?0:(m==1?2:1)),s...) * dS_[0][0]
+							        + get(f,(m==0?0:(m==1?2:1)),Shift(NX,s...))* dS_[1][0])*(m==0?0:(m==1?-1:1))
+			        ))
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+	        Int2Type<CURLPDY>, Field<Geometry<this_type, 2>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==1?0:(m==2?0:2)),s...) * dS_[0][1]
+							        + get(f,(m==1?0:(m==2?0:2)),Shift(NY,s...))* dS_[1][1])*(m==1?0:(m==2?-1:1))
+			        ))
+
+	template<typename TL, typename ...IDXS> inline auto OpEval(
+	        Int2Type<CURLPDZ>, Field<Geometry<this_type, 2>, TL> const & f,
+	        int m,
+	        IDXS ...s) const
+	        DECL_RET_TYPE((
+					        (get(f,(m==2?0:(m==0?1:0)),s...) * dS_[0][2]
+							        + get(f,(m==2?0:(m==0?1:0)),Shift(NZ,s...))
+							        * dS_[1][2])*(m==2?0:(m==0?-1:1))
+			        ))
 
 	template<int N, typename TL, typename ... IDXS> inline auto OpEval(
-			Int2Type<EXTRIORDERIVATIVE>,
-			Field<Geometry<this_type, N>, TL> const & f, int m, IDXS ... s)
-			DECL_RET_TYPE((get(f,m,s...)*dS_[m]))
+	        Int2Type<EXTRIORDERIVATIVE>,
+	        Field<Geometry<this_type, N>, TL> const & f, int m, IDXS ... s)
+	        DECL_RET_TYPE((get(f,m,s...)*dS_[m]))
 
 	template<int IL, int IR, typename TL, typename TR, typename ...TI> inline auto OpEval(
-			Int2Type<WEDGE>, Field<Geometry<this_type, IL>, TL> const &l,
-			Field<Geometry<this_type, IR>, TR> const &r, TI ... s) const
-			DECL_RET_TYPE( ( mapto(Int2Type<IL+IR>(),l,s...)*
-							mapto(Int2Type<IL+IR>(),r,s...)))
+	        Int2Type<WEDGE>, Field<Geometry<this_type, IL>, TL> const &l,
+	        Field<Geometry<this_type, IR>, TR> const &r, TI ... s) const
+	        DECL_RET_TYPE( ( mapto(Int2Type<IL+IR>(),l,s...)*
+					        mapto(Int2Type<IL+IR>(),r,s...)))
 
 	template<int IL, typename TL, typename ...TI> inline auto OpEval(
-			Int2Type<HODGESTAR>, Field<Geometry<this_type, IL>, TL> const & f,
-			TI ... s) const
-					DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
+	        Int2Type<HODGESTAR>, Field<Geometry<this_type, IL>, TL> const & f,
+	        TI ... s) const
+	        DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
 }
 ;
 
 template<typename TS>
+template<typename PT>
+inline void CoRectMesh<TS>::Deserialize(PT const &vm)
+{
+	constants.Deserialize(vm.GetChild("UnitSystem"));
+
+	vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
+	vm.GetChild("Topology").template GetValue("GhostWidth", &gw_);
+	vm.GetChild("Geometry").template GetValue("Min", &xmin_);
+	vm.GetChild("Geometry").template GetValue("Max", &xmax_);
+	vm.GetChild("Geometry").template GetValue("dt", &dt_);
+
+	Update();
+}
+
+template<typename TS>
+
+template<typename PT>
+inline void CoRectMesh<TS>::Serialize(PT &vm) const
+        {
+	vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
+	vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
+	vm.GetChild("Geometry").template SetValue("Min", &xmin_);
+	vm.GetChild("Geometry").template SetValue("Max", &xmax_);
+
+	constants.Serialize(vm.GetChild("UnitSystem"));
+}
+
+template<typename TS>
 inline std::ostream & operator<<(std::ostream &os, CoRectMesh<TS> const & mesh)
 {
+
 	os
 
-	<< "--  Grid " << std::endl
+	<< "--  Grid " << "\n"
 
-	<< "Grid={" << std::endl
+	<< "Grid={" << "\n"
 
-	<< "	Topology={" << std::endl
+	<< "	Topology={ \n "
 
-	<< "		Type       = \"CoRectMesh\"}," << std::endl
+	<< "        Type = \"" << mesh.GetTypeName() << "\", \n"
 
-	<< "		Dimensions = {" << ToString(mesh.dims_, ",") << "}," << std::endl
+	<< "		Dimensions = {" << ToString(mesh.dims_, ",") << "}, \n "
 
-	<< "		GhostsWidth= {" << ToString(mesh.gw_, ",") << "}," << std::endl
+	<< "		GhostsWidth= {" << ToString(mesh.gw_, ",") << "}, \n "
 
-	<< "	}," << std::endl
+	<< "	}, \n "
 
-	<< "	Geometry={" << std::endl
+	<< "	Geometry={ \n "
 
-	<< "		Type    = \"Origin_DxDyDz\"," << std::endl
+	<< "		Type    = \"Origin_DxDyDz\", \n "
 
-	<< "		Origin  = {" << ToString(mesh.xmin_, ",") << "}," << std::endl
+	<< "		Origin  = {" << ToString(mesh.xmin_, ",") << "}, \n "
 
-	<< "		DxDyDz  = {" << ToString(mesh.dx_, ",") << "}," << std::endl
+	<< "		DxDyDz  = {" << ToString(mesh.dx_, ",") << "}, \n "
 
-	<< "		Min     = {" << ToString(mesh.xmin_, ",") << "}," << std::endl
+	<< "		Min     = {" << ToString(mesh.xmin_, ",") << "}, \n "
 
-	<< "		Max     = {" << ToString(mesh.xmax_, ",") << "}," << std::endl
+	<< "		Max     = {" << ToString(mesh.xmax_, ",") << "}, \n "
 
-	<< "	}," << std::endl
+	<< "		k       = {" << ToString(mesh.k_, ",") << "}, \n "
 
-	<< "\t" << mesh.constants << std::endl
+	<< "	}, \n "
 
-	<< "}" << std::endl;
+	<< "	dt = " << mesh.GetDt() << ",\n"
+
+	<< "\t" << mesh.constants << "\n"
+
+	<< "} \n ";
 
 	return os;
 }

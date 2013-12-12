@@ -9,7 +9,9 @@
 #define RECT_MESH_H_
 
 #include <iostream>
+#include <limits>
 #include <string>
+#include <cmath>
 
 #include "../../src/engine/basecontext.h"
 #include "../../src/fetl/fetl.h"
@@ -17,11 +19,9 @@
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_default.h"
 #include "../../src/particle/pic_engine_deltaf.h"
-
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
 #include "../../src/utilities/singleton_holder.h"
-
 #include "../pic/pic_engine_ggauge.h"
 #include "../solver/electromagnetic/cold_fluid.h"
 
@@ -37,18 +37,18 @@ public:
 	typedef LuaObject configure_type;
 
 	DEFINE_FIELDS (TM)
-public:
+	public:
 	typedef Context<TM> this_type;
 
 	Context();
 	~Context();
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
-	void NextTimeStep();
+	void NextTimeStep(double dt);
 	std::ostream & Serialize(std::ostream & os) const;
 	void DumpData() const;
-	inline ParticleCollection<mesh_type> &
-	GetParticleCollection()
+
+	inline ParticleCollection<mesh_type> & GetParticleCollection()
 	{
 		return particle_collection_;
 	}
@@ -65,26 +65,23 @@ public:
 	ParticleCollection<mesh_type> particle_collection_;
 
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
+
+	bool dumpInOneDataSet_;
 }
 ;
 
 template<typename TM>
-Context<TM>::Context() :
-		E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
-
-		cold_fluid_(mesh), particle_collection_(mesh)
+Context<TM>::Context()
+		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
+		        cold_fluid_(mesh), particle_collection_(mesh),
+		        dumpInOneDataSet_(true)
 {
 
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>(
-			"GuidingCenter");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>(
-			"GGauge8");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>(
-			"GGauge32");
-	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >(
-			"Default");
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >(
-			"DeltaF");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
+	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
 }
 
 template<typename TM>
@@ -94,6 +91,7 @@ Context<TM>::~Context()
 template<typename TM>
 void Context<TM>::Deserialize(LuaObject const & cfg)
 {
+	base_type::description = cfg["Description"].as<std::string>();
 
 	mesh.Deserialize(cfg["Grid"]);
 
@@ -123,32 +121,37 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 template<typename TM>
 void Context<TM>::Serialize(configure_type * cfg) const
-{
+        {
 }
 template<typename TM>
 std::ostream & Context<TM>::Serialize(std::ostream & os) const
-{
-	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
+        {
 
 	os
+
+	<< "Descrition=\"" << base_type::description << "\" \n"
 
 	<< mesh << "\n"
 
 	<< cold_fluid_ << "\n"
 
-	<< particle_collection_ << "\n"
+	<< particle_collection_ << "\n";
+
+	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
+
+	os
 
 	<< "InitValue={" << "\n"
 
-	<< " n0=" << Data(n0, "n0", n0.GetShape()) << ",\n"
+	<< "	n0 = " << Data(n0, "n0", n0.GetShape()) << ",\n"
 
-	<< " E1=" << Data(E1, "E1", E1.GetShape()) << ",\n"
+	<< "	E1 = " << Data(E1, "E1", E1.GetShape()) << ",\n"
 
-	<< " B1=" << Data(B1, "B1", B1.GetShape()) << ",\n"
+	<< "	B1 = " << Data(B1, "B1", B1.GetShape()) << ",\n"
 
-	<< " J1=" << Data(J1, "J1", J1.GetShape()) << ",\n"
+	<< "	J1 = " << Data(J1, "J1", J1.GetShape()) << ",\n"
 
-	<< " B0=" << Data(B0, "B0", n0.GetShape()) << "\n"
+	<< "	B0 = " << Data(B0, "B0", n0.GetShape()) << "\n"
 
 	<< "}" << "\n"
 
@@ -156,24 +159,31 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 	return os;
 }
 template<typename TM>
-void Context<TM>::NextTimeStep()
+void Context<TM>::NextTimeStep(double dt)
 {
-	base_type::NextTimeStep();
+
+	dt = std::isnan(dt) ? mesh.GetDt() : dt;
+
+	base_type::NextTimeStep(dt);
+
+	LOGGER
+
+	<< " SimTime = "
+
+	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
+
+	<< " dt = " << (dt / mesh.constants["s"]) << "[s]";
 }
 template<typename TM>
 void Context<TM>::DumpData() const
 {
 	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
-	LOGGER
+	LOGGER << "Dump E1 to " << Data(E1, "E1", E1.GetShape(), dumpInOneDataSet_);
 
-	<< "Dump E1 to " << Data(E1, "E1", E1.GetShape(), true) << "\n"
+	LOGGER << "Dump B1 to " << Data(B1, "B1", B1.GetShape(), dumpInOneDataSet_);
 
-	<< "Dump B1 to " << Data(B1, "B1", B1.GetShape(), true) << "\n"
-
-	<< "Dump J1 to " << Data(J1, "J1", J1.GetShape(), true) << "\n"
-
-	;
+	LOGGER << "Dump J1 to " << Data(J1, "J1", J1.GetShape(), dumpInOneDataSet_);
 
 }
 }

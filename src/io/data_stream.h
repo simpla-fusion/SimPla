@@ -110,6 +110,8 @@ public:
 			prefix_ = fname.substr(0, fname.size() - 3);
 		}
 
+		/// @TODO auto mkdir directory
+
 		filename_ = prefix_ +
 
 		AutoIncrease(
@@ -117,7 +119,6 @@ public:
 		[&](std::string const & suffix)->bool
 		{
 			std::string fname=(prefix_+suffix);
-			CHECK(fname);
 			return
 			fname==""
 			|| *(fname.rbegin())=='/'
@@ -354,12 +355,22 @@ template<> struct HDF5DataType<long double>
 };
 template<typename T> struct HDF5DataType<std::complex<T>>
 {
+	hid_t type_;
+	HDF5DataType()
+	{
+		type_ = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<T>));
+		H5Tinsert(type_, "real", 0, HDF5DataType<T>().type());
+		H5Tinsert(type_, "imaginary", sizeof(T), HDF5DataType<T>().type());
+	}
+
+	~ HDF5DataType()
+	{
+		H5Tclose(type_);
+	}
+
 	hid_t type() const
 	{
-		hid_t complex_id = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<T>));
-		H5Tinsert(complex_id, "real", 0, HDF5DataType<T>().type());
-		H5Tinsert(complex_id, "imaginary", sizeof(T), HDF5DataType<T>().type());
-		return complex_id;
+		return type_;
 	}
 };
 
@@ -395,12 +406,13 @@ std::string HDF5Write(hid_t grp, std::vector<TV, Others...> const &v,
 		dims.push_back(nTupleTraits<TV>::NUM_OF_DIMS);
 	}
 
-	hid_t mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>().type();
+//	auto mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>();
 
 	std::string res = HDF5Write(grp, static_cast<void const*>(&v[0]), name,
-			mdtype, dims.size(), &dims[0], APPEND);
 
-	H5Tclose(mdtype);
+	HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
+
+	dims.size(), &dims[0], APPEND);
 
 	return res;
 

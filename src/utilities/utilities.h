@@ -38,7 +38,7 @@ inline T ToValue(std::string const & str)
 
 template<int N, typename T>
 inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
-		" ")
+        " ")
 {
 
 	std::ostringstream os;
@@ -51,7 +51,7 @@ inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
 }
 
 inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
-		size_t count = 0, int width = 4)
+        size_t count = 0, int width = 4)
 {
 	std::string res("");
 	while (fun(res))
@@ -76,6 +76,36 @@ inline bool CheckFileExists(std::string const & name)
 	{
 		return false;
 	}
+}
+inline void TheEnd(int flag = 1)
+{
+	switch (flag)
+	{
+	case -2:
+		INFORM << "Oop! Some thing wrong! Don't worry, maybe not your fault!\n"
+				" Just maybe! Please Check your configure file again! ";
+		break;
+	case -1:
+		INFORM << "Sorry! I can't help you now! Please, Try again later!";
+		break;
+	case 0:
+		INFORM << "See you! ";
+		break;
+	case 1:
+		default:
+		LOGGER << "MISSION COMPLETED! ";
+
+		INFORM << std::setw(80) << std::setfill('=') << "=";
+		INFORM << "\t!!MISSION COMPLETED!! ";
+		INFORM << std::setw(80) << std::setfill('=') << "=";
+
+		VERBOSE << "Job is Done!! ";
+		VERBOSE << "	I'm so GOOD!";
+		VERBOSE << "		Thanks me please!";
+		VERBOSE << "			Thanks me please!";
+		VERBOSE << "You are welcome!";
+	}
+	exit(1);
 }
 
 }  // namespace simpla

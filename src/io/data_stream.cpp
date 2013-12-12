@@ -10,7 +10,7 @@ namespace simpla
 {
 
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
-		hid_t mdtype, int rank, size_t const *dims, bool APPEND)
+        hid_t mdtype, int rank, size_t const *dims, bool APPEND)
 {
 	if (grp <= 0)
 	{
@@ -69,7 +69,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 			H5Pset_chunk(dcpl_id, ndims, chunk_dims);
 
 			dset = H5Dcreate(grp, dsname.c_str(), mdtype, fspace, H5P_DEFAULT,
-					dcpl_id, H5P_DEFAULT);
+			        dcpl_id, H5P_DEFAULT);
 
 			H5Dwrite(dset, mdtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, v);
 
@@ -108,7 +108,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 			fspace = H5Dget_space(dset);
 
 			H5Sselect_hyperslab(fspace, H5S_SELECT_SET, offset, nullptr,
-					chunk_dims, nullptr);
+			        chunk_dims, nullptr);
 
 			hid_t mspace = H5Screate_simple(ndims, chunk_dims, nullptr);
 
