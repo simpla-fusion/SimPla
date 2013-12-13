@@ -108,7 +108,8 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	auto init_value = cfg["InitValue"];
 
 	auto gfile = cfg["GFile"];
-	if (!gfile.IsNull())
+
+	if (gfile.IsNull())
 	{
 		n0.Init();
 		LoadField(init_value["n0"], &n0);
@@ -127,6 +128,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	}
 
 	auto jsrc = cfg["CurrentSrc"];
+
 	if (!jsrc.IsNull())
 	{
 		typedef typename mesh_type::coordinates_type coordinates_type;
@@ -135,14 +137,14 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		{
 			std::vector<coordinates_type> points_;
 			jsrc[1].as(&points_);
-			j_src_.SetDefineDomain(mesh,points_);
+			j_src_.SetDefineDomain(mesh, points_);
 		}
 		else
 		{
-			j_src_.SetDefineDomain(mesh, jsrc[1].as<coordinates_type>());
+			j_src_.SetDefineDomain(mesh, jsrc["Points"].as<coordinates_type>());
 		}
 
-		j_src_.SetFunction(jsrc[2]);
+		j_src_.SetFunction(jsrc["Fun"]);
 	}
 
 	LOGGER << " Load Initial Fields [Done]!";
@@ -195,7 +197,30 @@ void Context<TM>::NextTimeStep(double dt)
 
 	base_type::NextTimeStep(dt);
 
+	J1 = 0;
+
 	j_src_(&J1, base_type::GetTime());
+
+//	particle_collection_.CollectAll(dt, &J1, E1, B1);
+//
+//	if (!cold_fluid_.IsEmpty())
+//	{
+//		cold_fluid_.Eval(dt, J1, &E1, &B1);
+//	}
+//	else
+	{
+		const double mu0 = mesh.constants["permeability of free space"];
+		const double epsilon0 = mesh.constants["permittivity of free space"];
+		const double speed_of_light = mesh.constants["speed of light"];
+		const double proton_mass = mesh.constants["proton mass"];
+		const double elementary_charge = mesh.constants["elementary charge"];
+
+		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * mesh.GetDt();
+		B1 -= Curl(E1) * dt;
+	}
+
+//
+//	particle_collection_.Push(dt, E1, B1);
 
 	LOGGER
 

@@ -32,8 +32,8 @@ private:
 		Form<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh) :
-				m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh)
+				: m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -47,23 +47,27 @@ public:
 	mesh_type const & mesh;
 
 	template<typename U>
-	friend std::ostream & operator<<(std::ostream & os,
-			ColdFluidEM<U> const &self);
+	friend std::ostream & operator<<(std::ostream & os, ColdFluidEM<U> const &self);
 
-	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ColdFluidEM(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 
 	template<typename TConfig>
-	ColdFluidEM(mesh_type const & pmesh, TConfig const & cfg) :
-			mesh(pmesh)
+	ColdFluidEM(mesh_type const & pmesh, TConfig const & cfg)
+			: mesh(pmesh)
 	{
 		Deserialize(cfg);
 	}
 
 	~ColdFluidEM()
 	{
+	}
+
+	inline bool IsEmpty()
+	{
+		return sp_list_.empty();
 	}
 
 	inline void Deserialize(LuaObject const&cfg)
@@ -91,8 +95,7 @@ public:
 			{
 
 				std::shared_ptr<Species> sp(
-						new Species(p.second["m"].template as<Real>(1.0),
-								p.second["Z"].template as<Real>(1.0), mesh));
+				        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
 				sp_list_.emplace(std::make_pair(key, sp));
 
@@ -175,10 +178,9 @@ public:
 
 		K /= epsilon0;
 
-		dEvdt = K / a
-				+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
-				+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
-						/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
+		dEvdt = K / a + Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+		        + Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
+		                / (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
 
 		for (auto &v : sp_list_)
 		{
@@ -192,7 +194,7 @@ public:
 			as = 2.0 * ms / (dt * Zs);
 
 			K_ = // 2.0*nu*(Js)
-					-2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+			        -2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
 			Js +=
 
 			K_ / as
