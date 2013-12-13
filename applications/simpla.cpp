@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 
 	std::shared_ptr<BaseContext> ctx;
 
-	auto mesh_type = pt["Grid"]["Topology"]["Type"].as<std::string>();
+	auto mesh_type = pt["Grid"]["Type"].as<std::string>();
 
 	if (mesh_type == "CoRectMeshComplex")
 	{
