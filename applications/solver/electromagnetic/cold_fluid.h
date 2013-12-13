@@ -68,7 +68,7 @@ public:
 
 	inline void Deserialize(LuaObject const&cfg)
 	{
-		if (cfg.isNull())
+		if (cfg.IsNull())
 			return;
 
 		for (auto const & p : cfg)

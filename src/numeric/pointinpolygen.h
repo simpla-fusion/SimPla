@@ -19,7 +19,7 @@ class PointInPolygen
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
-
+public:
 	PointInPolygen(std::vector<TV> const &polygen) :
 			polygen_(polygen), num_of_vertex_(polygen.size()), constant_(
 					num_of_vertex_), multiple_(num_of_vertex_)

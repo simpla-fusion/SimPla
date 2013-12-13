@@ -25,8 +25,6 @@
 #include "../src/utilities/utilities.h"
 #include "contexts/rect_mesh.h"
 
-//#include "contexts/rect_mesh.h"
-
 using namespace simpla;
 
 int main(int argc, char **argv)
@@ -134,7 +132,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Parse Command Line: [Done]!";
 
-	if (pt.isNull())
+	if (pt.IsNull())
 	{
 		LOGGER << "Nothing to do !!";
 		TheEnd(-1);
@@ -151,9 +149,6 @@ int main(int argc, char **argv)
 		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
 
 		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-
-		ctx->Deserialize(pt);
-
 	}
 	else if (mesh_type == "CoRectMesh")
 	{
@@ -162,15 +157,14 @@ int main(int argc, char **argv)
 		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
 
 		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-
-		ctx->Deserialize(pt);
-
 	}
 	else
 	{
 		INFORM << "I don't know  what is " << mesh_type;
 		TheEnd(-2);
 	}
+
+	ctx->Deserialize(pt);
 
 //  Summary    ====================================
 

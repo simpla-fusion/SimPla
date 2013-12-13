@@ -28,16 +28,7 @@ struct EmptyType
 
 enum CONST_NUMBER
 {
-	ZERO = 0,
-	ONE = 1,
-	TWO = 2,
-	THREE = 3,
-	FOUR = 4,
-	FIVE = 5,
-	SIX = 6,
-	SEVEN = 7,
-	EIGHT = 8,
-	NINE = 9
+	ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9
 };
 
 enum POSITION
@@ -52,14 +43,7 @@ enum POSITION
 	 BACK = 16, // 00010000
 	 FRONT = 32 //00100000
 	 */
-	FULL = -1,
-	CENTER = 0,
-	LEFT = 1,
-	RIGHT = 2,
-	DOWN = 4,
-	UP = 8,
-	BACK = 16,
-	FRONT = 32
+	FULL = -1, CENTER = 0, LEFT = 1, RIGHT = 2, DOWN = 4, UP = 8, BACK = 16, FRONT = 32
 };
 
 typedef int8_t ByteType; // int8_t
@@ -148,8 +132,7 @@ template<typename > struct has_PlaceHolder
 template<typename TL>
 struct is_arithmetic_scalar
 {
-	static const bool value = (std::is_arithmetic<TL>::value
-			|| is_complex<TL>::value || has_PlaceHolder<TL>::value);
+	static const bool value = (std::is_arithmetic<TL>::value || is_complex<TL>::value || has_PlaceHolder<TL>::value);
 };
 
 template<typename T>
@@ -216,8 +199,7 @@ template<typename T>
 struct ConstReferenceTraits
 {
 	typedef typename remove_const_reference<T>::type TL;
-	typedef typename std::conditional<is_storage_type<TL>::value, TL const &,
-			const TL>::type type;
+	typedef typename std::conditional<is_storage_type<TL>::value, TL const &, const TL>::type type;
 };
 
 template<class T, typename TI = int>
@@ -240,8 +222,7 @@ public:
 			check_index((std::declval<T>()),
 					std::declval<TI>())) result_type;
 
-	static const bool value =
-			!(std::is_same<result_type, std::false_type>::value);
+	static const bool value = !(std::is_same<result_type, std::false_type>::value);
 
 };
 
@@ -336,6 +317,10 @@ struct is_field
 template<typename T> auto abs(T const & m)
 DECL_RET_TYPE((std::abs(m)))
 
+template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
+{
+	return std::move(static_cast<TV>(obj));
+}
 }
 // namespace simpla
 #endif /* PRIMITIVES_H_ */

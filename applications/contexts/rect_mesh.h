@@ -15,6 +15,7 @@
 
 #include "../../src/engine/basecontext.h"
 #include "../../src/fetl/fetl.h"
+#include "../../src/fetl/field_function.h"
 #include "../../src/io/data_stream.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_default.h"
@@ -37,7 +38,7 @@ public:
 	typedef LuaObject configure_type;
 
 	DEFINE_FIELDS (TM)
-	public:
+public:
 	typedef Context<TM> this_type;
 
 	Context();
@@ -67,14 +68,15 @@ public:
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
 
 	bool dumpInOneDataSet_;
+
+	FieldFunction<decltype(J1), LuaObject> j_src_;
 }
 ;
 
 template<typename TM>
 Context<TM>::Context()
-		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
-		        cold_fluid_(mesh), particle_collection_(mesh),
-		        dumpInOneDataSet_(true)
+		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(mesh), dumpInOneDataSet_(
+		        true)
 {
 
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
@@ -105,27 +107,54 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	auto init_value = cfg["InitValue"];
 
-	n0.Init();
-	LoadField(init_value["n0"], &n0);
-	B0.Init();
-	LoadField(init_value["B0"], &B0);
-	E1.Init();
-	LoadField(init_value["E1"], &E1);
-	B1.Init();
-	LoadField(init_value["B1"], &B1);
-	J1.Init();
-	LoadField(init_value["J1"], &J1);
+	auto gfile = cfg["GFile"];
+	if (!gfile.IsNull())
+	{
+		n0.Init();
+		LoadField(init_value["n0"], &n0);
+		B0.Init();
+		LoadField(init_value["B0"], &B0);
+		E1.Init();
+		LoadField(init_value["E1"], &E1);
+		B1.Init();
+		LoadField(init_value["B1"], &B1);
+		J1.Init();
+		LoadField(init_value["J1"], &J1);
+	}
+	else
+	{
+		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
+	}
+
+	auto jsrc = cfg["CurrentSrc"];
+	if (!jsrc.IsNull())
+	{
+		typedef typename mesh_type::coordinates_type coordinates_type;
+		auto def_domain = jsrc[1];
+		if (def_domain.GetSize() > 1)
+		{
+			std::vector<coordinates_type> points_;
+			jsrc[1].as(&points_);
+			j_src_.SetDefineDomain(mesh,points_);
+		}
+		else
+		{
+			j_src_.SetDefineDomain(mesh, jsrc[1].as<coordinates_type>());
+		}
+
+		j_src_.SetFunction(jsrc[2]);
+	}
 
 	LOGGER << " Load Initial Fields [Done]!";
 }
 
 template<typename TM>
 void Context<TM>::Serialize(configure_type * cfg) const
-        {
+{
 }
 template<typename TM>
 std::ostream & Context<TM>::Serialize(std::ostream & os) const
-        {
+{
 
 	os
 
@@ -165,6 +194,8 @@ void Context<TM>::NextTimeStep(double dt)
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
 	base_type::NextTimeStep(dt);
+
+	j_src_(&J1, base_type::GetTime());
 
 	LOGGER
 

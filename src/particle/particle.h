@@ -439,7 +439,7 @@ public:
 
 	inline void Deserialize(configure_type const &cfg)
 	{
-		if (cfg.isNull())
+		if (cfg.IsNull())
 			return;
 
 		for (auto const &p : cfg)

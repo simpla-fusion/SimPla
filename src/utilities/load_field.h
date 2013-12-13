@@ -22,7 +22,7 @@ namespace simpla
 template<int IFORM, typename TM, typename TV>
 void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 {
-	if (obj.isNull())
+	if (obj.IsNull())
 		return;
 
 	typedef TM mesh_type;
