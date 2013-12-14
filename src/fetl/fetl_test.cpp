@@ -11,6 +11,7 @@
 #include "fetl.h"
 #include "../utilities/log.h"
 #include "../mesh/co_rect_mesh.h"
+#include "../utilities/pretty_stream.h"
 
 using namespace simpla;
 
@@ -109,8 +110,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 				v=a*static_cast<Real>(s);
 				++s;
-			}
-			,&f1
+			},0 ,&f1
 	);
 
 	f1 += f2;
@@ -125,7 +125,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 				res=a+a*static_cast<Real>(s);
 				ASSERT_EQ( res,v)<<s;
 				++s;
-			}
+			}, 0
 			,f1
 	);
 
@@ -141,7 +141,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 				res=(a+a*static_cast<Real>(s))*2.0;
 				ASSERT_EQ( res,v)<<s;
 				++s;
-			},
+			},0,
 			f1
 	);
 }
@@ -175,7 +175,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 				value_type res;
 				res= - v1*2.0 + v2 *c -v1/b;
 				ASSERT_EQ( res, v3);
-			},f1,f2,f3
+			},0,f1,f2,f3
 	);
 }
 }
@@ -211,34 +211,34 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	TestFixture::mesh.ForAll(
+	TestFixture::mesh.ForEach(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
 				v1=va *uniform_dist(gen)
 				;
 
-			},&f1
+			}, Mesh::WITH_GHOSTS,&f1
 	);
 
-	TestFixture::mesh.ForAll(
+	TestFixture::mesh.ForEach(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
 				v1=vb *uniform_dist(gen)
 				;
 
-			},&f2
+			},Mesh::WITH_GHOSTS,&f2
 	);
 
-	TestFixture::mesh.ForAll(
+	TestFixture::mesh.ForEach(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
 				v1=vc *uniform_dist(gen)
 				;
 
-			},&f3
+			},Mesh::WITH_GHOSTS,&f3
 	);
 
 	f4= ( -f1*a +f2*b ) -f3/c -f1;
@@ -268,7 +268,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 					++count;
 				}
 
-			}
+			},0
 			,f1,f2,f3,f4
 	);
 
@@ -343,7 +343,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 			[&](typename TestFixture::ScalarField::value_type const & v)
 			{
 				ASSERT_EQ(res_scalar, v);
-			},res_scalar_field
+			},0,res_scalar_field
 
 	);
 
@@ -352,7 +352,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 			[&](typename TestFixture::VectorField::value_type const & v)
 			{
 				ASSERT_EQ(res_vec , v);
-			},res_vector_field
+			},0,res_vector_field
 
 	);
 
@@ -417,8 +417,7 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex, nTuple<3, double>,
-		nTuple<3, nTuple<3, double>> > PrimitiveTypes;
+typedef testing::Types<double, Complex, nTuple<3, double>, nTuple<3, nTuple<3, double>> > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
@@ -454,7 +453,7 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 			[&](typename TestFixture::TTwoForm::value_type const & u)
 			{	relative_error+=abs(u);
 				count+=( abs(u)>1.0e-10)?1:0;
-			},
+			},0,
 			vf2
 	);
 	relative_error=relative_error/m;
@@ -505,7 +504,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 			{
 				relative_error+=abs(s);
 				count+=( abs(s)>1.0e-10*m)?1:0;
-			},sf
+			},0,sf
 	);
 
 	relative_error=relative_error/m;

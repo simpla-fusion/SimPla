@@ -741,6 +741,17 @@ public:
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
 		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
 	}
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ForEach(Fun const &fun, unsigned int flag, TF *l, Args const& ... args) const
+	{
+		if (l->empty())
+		{
+			ERROR << "Assign value to an uninitilized container!";
+		}
+
+		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
+	}
 
 //	template<typename Fun, typename TF, typename ... Args> inline
 //	void ForAll(unsigned int flag, Fun const &fun, TF const & l, Args const& ... args) const

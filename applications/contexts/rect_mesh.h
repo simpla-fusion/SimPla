@@ -132,16 +132,16 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	if (!jsrc.IsNull())
 	{
 		typedef typename mesh_type::coordinates_type coordinates_type;
-		auto def_domain = jsrc[1];
+		auto def_domain = jsrc["Points"];
 		if (def_domain.GetSize() > 1)
 		{
 			std::vector<coordinates_type> points_;
-			jsrc[1].as(&points_);
+			jsrc["Points"].as(&points_);
 			j_src_.SetDefineDomain(mesh, points_);
 		}
 		else
 		{
-			j_src_.SetDefineDomain(mesh, jsrc["Points"].as<coordinates_type>());
+			j_src_.SetDefineDomain(mesh, jsrc["Points"][0].as<coordinates_type>());
 		}
 
 		j_src_.SetFunction(jsrc["Fun"]);
@@ -217,7 +217,7 @@ void Context<TM>::NextTimeStep(double dt)
 		const double proton_mass = mesh.constants["proton mass"];
 		const double elementary_charge = mesh.constants["elementary charge"];
 
-		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * mesh.GetDt();
+		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
 		B1 -= Curl(E1) * dt;
 	}
 

@@ -13,11 +13,11 @@ rhoi = 4.57*1e-3 * math.sqrt(Ti)/Btor  --1.02 * math.sqrt(Ti)/(1e4*Btor) -- m
 --    print(rhoi)
 
 k0 = 25./40.
-NX = 501
+NX = 101
 NY = 1
 NZ = 1
-LX = 0.06   --2.0*math.pi*1000 * rhoi --0.6
-LY = 2.0*math.pi/k0
+LX = 100 --0.6
+LY = 0 --2.0*math.pi/k0
 LZ = 0  -- 2.0*math.pi/18
 GW = 5 
 N0 = 0.8*0.25e18 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
@@ -54,6 +54,7 @@ InitValue={
 Grid=
 {
   Type="CoRectMesh",
+  ScalarType="Complex",
   UnitSystem={Type="SI"},
   Topology=
   {       
@@ -66,6 +67,7 @@ Grid=
       Type="Origin_DxDyDz",
       Min={0.0,0.0,0.0},
       Max={LX,LY,LZ},
+--      dt= 2.0*math.pi/omega_ci/100.0
       dt=0.5*LX/ (NX-1)/c  -- time step     
   }
 }
@@ -84,11 +86,11 @@ Particles=
 
 CurrentSrc=
  { 
-  Points={{0.0,0.0,0.0}},
+  Points={{LX/2.0,0.0,0.0},},
   Fun=function(x,y,z,t)
         local tau = t*omega_ci
 --        print(tau)
-        return {math.sin(tau)*(1-math.exp(-0.01*tau*tau)),0,0}   
+      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
  }
 

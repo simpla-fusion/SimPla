@@ -78,7 +78,7 @@ public:
 		}
 		else if (polyline.size() == 1)
 		{
-			SetDefineDomain(mesh, polyline[9]);
+			SetDefineDomain(mesh, polyline[0]);
 		}
 		else
 		{

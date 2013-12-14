@@ -950,6 +950,11 @@ template<typename TV> inline TV TypeCast(LuaObject const & obj)
 {
 	return std::move(obj.as<TV>());
 }
+inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
+{
+	os << obj.as<std::string>();
+	return os;
+}
 
 } // namespace simpla
 
