@@ -21,7 +21,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
+#include <thread>
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../physics/physical_constants.h"
@@ -137,9 +137,9 @@ struct CoRectMesh
 		return std::move(Container<TV>(GetNumOfElements(iform), defalut_value));
 	}
 
-	template<typename PT> inline void Deserialize(PT const &vm);
+	template<typename ISTREAM> void Deserialize(ISTREAM const &vm);
 
-	template<typename PT> inline void Serialize(PT &vm) const;
+	template<typename OSTREAM> OSTREAM& Serialize(OSTREAM &vm) const;
 
 //
 //	template<int IFORM, typename T1>
@@ -718,13 +718,32 @@ public:
 		int mb = 0;
 		int me = num_comps_per_cell_[IFORM];
 
-		for (index_type i = ib; i < ie; ++i)
-			for (index_type j = jb; j < je; ++j)
-				for (index_type k = kb; k < ke; ++k)
-					for (int m = mb; m < me; ++m)
-					{
-						fun(m, i, j, k);
-					}
+//		const unsigned int num_threads = std::thread::hardware_concurrency();
+//
+//		std::vector<std::thread> threads;
+//
+//		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+//		{
+//			threads.push_back(std::thread(
+//
+//			[&]()
+//			{
+//				for (index_type i = ib+thread_id; i < ie; i+=num_threads)
+//				for (index_type j = jb; j < je; ++j)
+//				for (index_type k = kb; k < ke; ++k)
+//				for (int m = mb; m < me; ++m)
+//				{
+//					fun(m, i, j, k);
+//				}
+//			}
+//
+//			));
+//		}
+//
+//		for (auto & t : threads)
+//		{
+//			t.join();
+//		}
 
 	}
 
@@ -749,7 +768,7 @@ public:
 	}
 
 	template<typename TFUN>
-	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun)const
+	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
 	{
 		int num = num_comps_per_cell_[IFORM];
 		for (int i = 0; i < num; ++i)
@@ -1207,10 +1226,8 @@ public:
 	        DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
 }
 ;
-
 template<typename TS>
-template<typename PT>
-inline void CoRectMesh<TS>::Deserialize(PT const &vm)
+template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const &vm)
 {
 	constants.Deserialize(vm.GetChild("UnitSystem"));
 
@@ -1222,23 +1239,16 @@ inline void CoRectMesh<TS>::Deserialize(PT const &vm)
 
 	Update();
 }
-
 template<typename TS>
-
-template<typename PT>
-inline void CoRectMesh<TS>::Serialize(PT &vm) const
+template<typename OSTREAM> inline OSTREAM &
+CoRectMesh<TS>::Serialize(OSTREAM &os) const
 {
-	vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
-	vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
-	vm.GetChild("Geometry").template SetValue("Min", &xmin_);
-	vm.GetChild("Geometry").template SetValue("Max", &xmax_);
-
-	constants.Serialize(vm.GetChild("UnitSystem"));
-}
-
-template<typename TS>
-inline std::ostream & operator<<(std::ostream &os, CoRectMesh<TS> const & mesh)
-{
+//	vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
+//	vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
+//	vm.GetChild("Geometry").template SetValue("Min", &xmin_);
+//	vm.GetChild("Geometry").template SetValue("Max", &xmax_);
+//
+//	constants.Serialize(vm.GetChild("UnitSystem"));
 
 	os
 
@@ -1248,11 +1258,11 @@ inline std::ostream & operator<<(std::ostream &os, CoRectMesh<TS> const & mesh)
 
 	<< "	Topology={ \n "
 
-	<< "        Type = \"" << mesh.GetTypeName() << "\", \n"
+	<< "        Type = \"" << GetTypeName() << "\", \n"
 
-	<< "		Dimensions = {" << ToString(mesh.dims_, ",") << "}, \n "
+	<< "		Dimensions = {" << ToString(dims_, ",") << "}, \n "
 
-	<< "		GhostsWidth= {" << ToString(mesh.gw_, ",") << "}, \n "
+	<< "		GhostsWidth= {" << ToString(gw_, ",") << "}, \n "
 
 	<< "	}, \n "
 
@@ -1260,24 +1270,31 @@ inline std::ostream & operator<<(std::ostream &os, CoRectMesh<TS> const & mesh)
 
 	<< "		Type    = \"Origin_DxDyDz\", \n "
 
-	<< "		Origin  = {" << ToString(mesh.xmin_, ",") << "}, \n "
+	<< "		Origin  = {" << ToString(xmin_, ",") << "}, \n "
 
-	<< "		DxDyDz  = {" << ToString(mesh.dx_, ",") << "}, \n "
+	<< "		DxDyDz  = {" << ToString(dx_, ",") << "}, \n "
 
-	<< "		Min     = {" << ToString(mesh.xmin_, ",") << "}, \n "
+	<< "		Min     = {" << ToString(xmin_, ",") << "}, \n "
 
-	<< "		Max     = {" << ToString(mesh.xmax_, ",") << "}, \n "
+	<< "		Max     = {" << ToString(xmax_, ",") << "}, \n "
 
-	<< "		k       = {" << ToString(mesh.k_, ",") << "}, \n "
+	<< "		k       = {" << ToString(k_, ",") << "}, \n "
 
 	<< "	}, \n "
 
-	<< "	dt = " << mesh.GetDt() << ",\n"
+	<< "	dt = " << GetDt() << ",\n"
 
-	<< "\t" << mesh.constants << "\n"
+	<< "\t" << constants << "\n"
 
 	<< "} \n ";
 
+	return os;
+}
+
+template<typename TS> inline std::ostream &
+operator<<(std::ostream & os, CoRectMesh<TS> const & d)
+{
+	d.Serialize(os);
 	return os;
 }
 

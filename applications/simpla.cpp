@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 
 	INFORM << SIMPLA_LOGO << std::endl;
 
-	LOGGER << "Parse Command Line: [Done]!";
+	LOGGER << " Parse Command Line: [Done]!";
 
 	if (pt.IsNull())
 	{

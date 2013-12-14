@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <complex>
 #include <limits>
+#include "../utilities/type_utilites.h"
 
 namespace simpla
 {
@@ -202,27 +203,38 @@ struct ConstReferenceTraits
 	typedef typename std::conditional<is_storage_type<TL>::value, TL const &, const TL>::type type;
 };
 
-template<class T, typename TI = int>
-struct is_indexable
-{
-	template<typename T1, typename T2>
-	static auto check_index(T1 const& u, T2 const &s) ->typename std::add_const<
-	decltype(const_cast<typename std::remove_cv<T1>::type &>(u)[s])>::type
-	{
-	}
+//template<class T, typename TI = int>
+//struct is_indexable
+//{
+//	template<typename T1, typename T2>
+//	static auto check_index(T1 const& u, T2 const &s) ->typename std::add_const<
+//	decltype(const_cast<typename std::remove_cv<T1>::type &>(u)[s])>::type
+//	{
+//	}
+//
+//	static std::false_type check_index(...)
+//	{
+//		return std::false_type();
+//	}
+//
+//public:
+//
+//	typedef decltype(
+//			check_index((std::declval<T>()),
+//					std::declval<TI>())) result_type;
+//
+//	static const bool value = !(std::is_same<result_type, std::false_type>::value);
+//
+//};
 
-	static std::false_type check_index(...)
-	{
-		return std::false_type();
-	}
+template<class T, typename TI = int>
+class is_indexable
+{
+	HAS_OPERATOR(index, []);
 
 public:
 
-	typedef decltype(
-			check_index((std::declval<T>()),
-					std::declval<TI>())) result_type;
-
-	static const bool value = !(std::is_same<result_type, std::false_type>::value);
+	static const bool value = has_operator_index<T, TI>::value;
 
 };
 
@@ -268,11 +280,6 @@ typedef enum
 	SIN = NULL_OP + 1, COS, TAN, CTAN, EXP, LOG10, LOG2, LN, ABS
 
 } MathFunType;
-
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
-
-#define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
-        ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
 template<int TOP, typename TL, typename TR> struct OpTraits;
 template<typename T>

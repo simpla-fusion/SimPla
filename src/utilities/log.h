@@ -17,7 +17,7 @@
 #define LOG_H_
 
 #include "singleton_holder.h"
-
+#include <ios>
 #include <chrono>
 #include <ctime>
 #include <fstream>
@@ -41,8 +41,8 @@ public:
 
 	// TODO add multi_stream support
 
-	LoggerStreams(int l = LOG_VERBOSE) :
-			std_out_visable_level_(l)
+	LoggerStreams(int l = LOG_VERBOSE)
+			: std_out_visable_level_(l)
 	{
 	}
 	~LoggerStreams()
@@ -83,38 +83,40 @@ private:
 
 /***
  *
- * matain log message,
+ *  log message buffer,
  *
  */
-class Logger: public std::ostringstream
+class Logger
 {
+	typedef std::ostringstream buffer_type;
 	int level_;
 	bool isVisable_;
+	std::ostringstream *buffer_;
 public:
+	typedef Logger this_type;
 
-	Logger(int lv = 0, bool cond = true) :
-			level_(lv), isVisable_(cond)
+	Logger(int lv = 0, bool cond = true)
+			: level_(lv), isVisable_(cond), buffer_(new buffer_type)
 	{
 
-		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR
-				|| level_ == LOG_OUT_RANGE_ERROR)
+		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
 		{
-			*this << "[E]";
+			*static_cast<buffer_type*>(buffer_) << "[E]";
 		}
 		else if (level_ == LOG_WARNING)
 		{
-			*this << "[W]";
+			*static_cast<buffer_type*>(buffer_) << "[W]";
 		}
 		else if (level_ == LOG_LOG)
 		{
-			*this << "[L]" << "[" << TimeStamp() << "]" << " ";
+			*static_cast<buffer_type*>(buffer_) << "[L]" << "[" << TimeStamp() << "]" << " ";
 		}
 		else if (level_ == LOG_INFORM)
 		{
 		}
 		else if (level_ == LOG_DEBUG)
 		{
-			*this << "[D]";
+			*static_cast<buffer_type*>(buffer_) << "[D]";
 		}
 
 	}
@@ -123,25 +125,75 @@ public:
 		if (isVisable_)
 		{
 
-			(*this) << std::endl;
+			*static_cast<buffer_type*>(buffer_) << std::endl;
 
 			if (level_ == LOG_LOGIC_ERROR)
 			{
-				throw(std::logic_error(this->str()));
+				throw(std::logic_error(buffer_->str()));
 			}
 			else if (level_ == LOG_ERROR)
 			{
-				throw(std::runtime_error(this->str()));
+				throw(std::runtime_error(buffer_->str()));
 			}
 			else if (level_ == LOG_OUT_RANGE_ERROR)
 			{
-				throw(std::out_of_range(this->str()));
+				throw(std::out_of_range(buffer_->str()));
 			}
 			else
 			{
-				LoggerStreams::instance().put(level_, this->str());
+				LoggerStreams::instance().put(level_, buffer_->str());
 			}
 		}
+
+		delete buffer_;
+	}
+
+	template<typename T> inline this_type const & operator<<(T const & value) const
+	{
+		*static_cast<buffer_type*>(buffer_) << value;
+		return *this;
+	}
+
+	this_type const & operator<<(bool value) const
+	{
+		*static_cast<buffer_type*>(buffer_) << std::boolalpha << value;
+		return *static_cast<this_type const*>(this);
+	}
+
+	typedef this_type const& (*LoggerStreamManipulator)(this_type const&);
+
+	// take in a function with the custom signature
+	this_type const& operator<<(LoggerStreamManipulator manip) const
+	{
+		// call the function, and return it's value
+		return manip(*this);
+	}
+
+	//	// define the custom endl for this stream.
+	//	// note how it matches the `LoggerStreamManipulator`
+	//	// function signature
+	//	static this_type& endl(this_type& stream)
+	//	{
+	//		// print a new line
+	//		std::cout << std::endl;
+	//
+	//		// do other stuff with the stream
+	//		// std::cout, for example, will flush the stream
+	//		stream << "Called Logger::endl!" << std::endl;
+	//
+	//		return stream;
+	//	}
+
+	// this is the function signature of std::endl
+	typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
+	typedef StdCoutType& (*StandardEndLine)(StdCoutType&);
+
+	// define an operator<< to take in std::endl
+	this_type const& operator<<(StandardEndLine manip) const
+	{
+		// call the function, but we cannot return it's value
+		manip(*static_cast<buffer_type*>(buffer_));
+		return *this;
 	}
 
 	static void Verbose(int l = LOG_VERBOSE)
@@ -157,8 +209,7 @@ public:
 	static std::string TimeStamp()
 	{
 
-		auto now = std::chrono::system_clock::to_time_t(
-				std::chrono::system_clock::now());
+		auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
 
 		char mtstr[100];
 		std::strftime(mtstr, 100, "%F %T", std::localtime(&now));

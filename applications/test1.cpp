@@ -5,45 +5,32 @@
  *      Author: salmon
  */
 
+#include <ios>
 #include <iostream>
+#include <type_traits>
+#include "../src/utilities/log.h"
+#include "../src/utilities/type_utilites.h"
 
-namespace Bar
+HAS_MEMBER_FUNCTION(size);
+HAS_OPERATOR(index, []);
+struct Foo
 {
 
-template<typename T>
-class Foo
-{
-public:
-	template<typename U>
-	friend std::ostream& operator<<(std::ostream& os, const Foo<U>& foo);
+	void size(int);
+	void operator[](int);
 
-	Foo(T x) :
-			_x(x)
-	{
-	}
-
-	T x() const
-	{
-		return _x;
-	}
-
-private:
-
-	T _x;
 };
 
-template<typename T>
-std::ostream& operator <<(std::ostream& os, const Foo<T>& foo)
+struct Foo2
 {
-	os << foo._x;
-	return os;
-}
+	void size();
+};
 
-}
-int main(int argc, char **argv)
+int main()
 {
+	CHECK((has_member_function_size<Foo, double>::value));
+	CHECK((has_member_function_size<Foo, Foo>::value));
+	CHECK((has_operator_index<Foo, int>::value));
+	CHECK((has_operator_index<Foo2, int>::value));
 
-	Bar::Foo<int> foo(5);
-	std::cout << foo << std::endl;
 }
-

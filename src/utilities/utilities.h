@@ -37,8 +37,7 @@ inline T ToValue(std::string const & str)
 }
 
 template<int N, typename T>
-inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
-        " ")
+inline std::string ToString(nTuple<N, T> const & v, std::string const & sep = " ")
 {
 
 	std::ostringstream os;
@@ -50,8 +49,7 @@ inline std::string ToString(nTuple<N, T> const & v, std::string const & sep =
 	return (os.str());
 }
 
-inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
-        size_t count = 0, int width = 4)
+inline std::string AutoIncrease(std::function<bool(std::string)> const & fun, size_t count = 0, int width = 4)
 {
 	std::string res("");
 	while (fun(res))
@@ -92,7 +90,7 @@ inline void TheEnd(int flag = 1)
 		INFORM << "See you! ";
 		break;
 	case 1:
-		default:
+	default:
 		LOGGER << "MISSION COMPLETED! ";
 
 		INFORM << std::setw(80) << std::setfill('=') << "=";

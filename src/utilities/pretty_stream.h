@@ -1,12 +1,12 @@
 /*
- * pertty_stream.h
+ * pretty_stream.h
  *
  *  Created on: 2013年11月29日
  *      Author: salmon
  */
 
-#ifndef PERTTY_STREAM_H_
-#define PERTTY_STREAM_H_
+#ifndef PRETTY_STREAM_H_
+#define PRETTY_STREAM_H_
 
 #include <cstddef>
 #include <iterator>
@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "../fetl/ntuple.h"
+#include "type_utilites.h"
 
 namespace simpla
 {
@@ -64,8 +65,7 @@ template<typename TV, typename ...Others> std::istream&
 operator>>(std::istream& is, std::vector<TV, Others...> & a)
 {
 
-	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(),
-			std::back_inserter(a));
+	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
 	return is;
 
 }
@@ -123,8 +123,7 @@ std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os,
-		std::multiset<U, Others...> const &d)
+std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &d)
 {
 	return ContainerOutPut1(os, d.begin(), d.end());
 }
@@ -153,6 +152,28 @@ operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
 	return ContainerOutPut2(os, d.begin(), d.end());
 }
 
-}  // namespace simpla
+//namespace _impl
+//{
+//
+//HAS_MEMBER_FUNCTION(Serialize)
+//
+//}  // namespace _impl
+//
+//template<typename TOS, typename TD>
+//auto PrettyOutput(TOS & os, TD const &d)
+//ENABLE_IF_DECL_RET_TYPE( (_impl::has_member_function_Serialize<TD,TOS>::value), d.Serialize(os))
+//
+//template<typename TOS, typename TD>
+//auto PrettyOutput(TOS & os, TD const &d)
+//ENABLE_IF_DECL_RET_TYPE( (!_impl::has_member_function_Serialize<TD,TOS>::value), Serialize(os,d))
+//
+//template<typename TOS, typename TD>
+//TOS & operator<<(TOS & os, TD const &d)
+//{
+//	return PrettyOutput(os, d);
+//}
 
-#endif /* PERTTY_STREAM_H_ */
+}
+// namespace simpla
+
+#endif /* PRETTY_STREAM_H_ */

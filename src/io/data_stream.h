@@ -27,7 +27,7 @@ extern "C"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/utilities.h"
-#include "../utilities/pertty_stream.h"
+#include "../utilities/pretty_stream.h"
 
 namespace simpla
 {
