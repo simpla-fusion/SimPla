@@ -5,32 +5,39 @@
  *      Author: salmon
  */
 
-#include <ios>
-#include <iostream>
-#include <type_traits>
+#include <chrono>
+#include <ratio>
+#include <thread>
+#include <vector>
+
 #include "../src/utilities/log.h"
-#include "../src/utilities/type_utilites.h"
-
-HAS_MEMBER_FUNCTION(size);
-HAS_OPERATOR(index, []);
-struct Foo
-{
-
-	void size(int);
-	void operator[](int);
-
-};
-
-struct Foo2
-{
-	void size();
-};
 
 int main()
 {
-	CHECK((has_member_function_size<Foo, double>::value));
-	CHECK((has_member_function_size<Foo, Foo>::value));
-	CHECK((has_operator_index<Foo, int>::value));
-	CHECK((has_operator_index<Foo2, int>::value));
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
+	CHECK(num_threads);
+	std::vector<std::thread> threads(num_threads);
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		CHECK(thread_id);
+		threads[thread_id] =
+
+		std::thread(
+
+		[&,thread_id]()
+		{
+			CHECK(std::this_thread::get_id())<<"["<< thread_id <<"]";
+		}
+
+		);
+	}
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+
+		threads[thread_id].join();
+	}
 }
+

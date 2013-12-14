@@ -101,9 +101,9 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	LOGGER << " Load Cold Fluid [Done]!";
 
-	particle_collection_.Deserialize(cfg["Particles"]);
-
-	LOGGER << " Load Particles [Done]!";
+//	particle_collection_.Deserialize(cfg["Particles"]);
+//
+//	LOGGER << " Load Particles [Done]!";
 
 	auto init_value = cfg["InitValue"];
 
@@ -158,38 +158,37 @@ template<typename TM>
 std::ostream & Context<TM>::Serialize(std::ostream & os) const
 {
 
-	CHECK("sdfsdfsd");
 	os
 
 	<< "Descrition=\"" << base_type::description << "\" \n"
 
 	<< mesh << "\n"
-//
-//	<< cold_fluid_ << "\n"
-//
-//	<< particle_collection_ << "\n"
+
+	<< cold_fluid_ << "\n"
+
+	<< particle_collection_ << "\n"
 
 	;
 
-//	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
-//
-//	os
-//
-//	<< "InitValue={" << "\n"
-//
-//	<< "	n0 = " << Data(n0, "n0", n0.GetShape()) << ",\n"
-//
-//	<< "	E1 = " << Data(E1, "E1", E1.GetShape()) << ",\n"
-//
-//	<< "	B1 = " << Data(B1, "B1", B1.GetShape()) << ",\n"
-//
-//	<< "	J1 = " << Data(J1, "J1", J1.GetShape()) << ",\n"
-//
-//	<< "	B0 = " << Data(B0, "B0", n0.GetShape()) << "\n"
-//
-//	<< "}" << "\n"
-//
-//	;
+	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
+
+	os
+
+	<< "InitValue={" << "\n"
+
+	<< "	n0 = " << Data(n0, "n0", n0.GetShape()) << ",\n"
+
+	<< "	E1 = " << Data(E1, "E1", E1.GetShape()) << ",\n"
+
+	<< "	B1 = " << Data(B1, "B1", B1.GetShape()) << ",\n"
+
+	<< "	J1 = " << Data(J1, "J1", J1.GetShape()) << ",\n"
+
+	<< "	B0 = " << Data(B0, "B0", n0.GetShape()) << "\n"
+
+	<< "}" << "\n"
+
+	;
 	return os;
 }
 template<typename TM>

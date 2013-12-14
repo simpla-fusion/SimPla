@@ -58,15 +58,13 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type default_value) :
-			base_type(
-					pmesh.template MakeContainer<IForm, value_type>(
-							default_value)), mesh(pmesh)
+	Field(mesh_type const &pmesh, value_type default_value)
+			: base_type(pmesh.template MakeContainer<IForm, value_type>(default_value)), mesh(pmesh)
 	{
 
 	}
@@ -132,48 +130,48 @@ public:
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
 	{                                                                                              \
-		mesh.ForAll( [](value_type &l,typename FieldTraits<TR>::value_type const & r)              \
-	            {	l _OP_ r;},this, rhs);                                                         \
-	return (*this);}
+		mesh.ForEach(                           \
+	      [](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
+	            {	l _OP_ r;},	mesh_type::WITH_GHOSTS|mesh_type::DO_PARALLEL,	this,rhs);return (*this);}
 
-	DECL_SELF_ASSIGN (+=)
+DECL_SELF_ASSIGN (+=)
 
-DECL_SELF_ASSIGN	(-=)
+DECL_SELF_ASSIGN (-=)
 
-	DECL_SELF_ASSIGN (*=)
+DECL_SELF_ASSIGN (*=)
 
-	DECL_SELF_ASSIGN(/=)
+DECL_SELF_ASSIGN(/=)
 #undef DECL_SELF_ASSIGN
 
-	inline field_value_type operator()(coordinates_type const &x) const
-	{
-		return std::move(Gather(x));
-	}
+inline field_value_type operator()(coordinates_type const &x) const
+{
+	return std::move(Gather(x));
+}
 
-	inline field_value_type Gather(coordinates_type const &x) const
-	{
+inline field_value_type Gather(coordinates_type const &x) const
+{
 
-		coordinates_type pcoords;
+	coordinates_type pcoords;
 
-		index_type s = mesh.SearchCell(x, &pcoords);
+	index_type s = mesh.SearchCell(x, &pcoords);
 
-		return std::move(Gather(s, pcoords));
+	return std::move(Gather(s, pcoords));
 
-	}
+}
 
-	inline field_value_type Gather(index_type const & s,
-			coordinates_type const &pcoords) const
-	{
+inline field_value_type Gather(index_type const & s,
+		coordinates_type const &pcoords) const
+{
 
-		std::vector<index_type> points;
+	std::vector<index_type> points;
 
-		std::vector<typename geometry_type::gather_weight_type> weights;
+	std::vector<typename geometry_type::gather_weight_type> weights;
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
+	mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+	mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
 
-		field_value_type res;
+	field_value_type res;
 
 //		res *= 0;
 //
@@ -199,9 +197,9 @@ DECL_SELF_ASSIGN	(-=)
 //
 //		}
 
-		return std::move(res);
+	return std::move(res);
 
-	}
+}
 //
 //	template<typename TV>
 //	inline void Scatter(TV const & v, coordinates_type const &x)

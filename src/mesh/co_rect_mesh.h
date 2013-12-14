@@ -104,6 +104,8 @@ struct CoRectMesh
 	std::vector<index_type> element_in_boundary_[4];
 	std::vector<index_type> element_on_boundary_[4];
 
+	bool doParallel_;
+
 	CoRectMesh()
 	{
 	}
@@ -117,17 +119,14 @@ struct CoRectMesh
 		return (this == &r);
 	}
 
-	inline std::string GetTypeName() const
+	static inline std::string GetTypeName()
 	{
-		if (std::is_same<TS, std::complex<Real>>::value)
-		{
-			return "CoRectMeshComplex";
-		}
-		else
-		{
-			return "CoRectMesh";
-		}
+		return "CoRectMesh";
+	}
 
+	inline std::string GetTopologyTypeAsString() const
+	{
+		return ToString(GetRealNumDimension()) + "DCoRectMesh";
 	}
 
 	template<typename TV> using Container=std::vector<TV,MemPoolAllocator<TV> >;
@@ -700,54 +699,13 @@ public:
 /// Traversal
 	enum
 	{
-		WITH_GHOSTS = 1, NO_GHOSTS = 0
+		WITH_GHOSTS = 1, DO_PARALLEL = 2
 	};
 
-	void Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun, int flag =
-	        NO_GHOSTS) const
-	{
-		index_type ib = (flag != NO_GHOSTS) ? 0 : gw_[0];
-		index_type ie = (flag != NO_GHOSTS) ? dims_[0] : dims_[0] - gw_[0];
+	void Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
+	        unsigned int flag = 0) const;
 
-		index_type jb = (flag != NO_GHOSTS) ? 0 : gw_[1];
-		index_type je = (flag != NO_GHOSTS) ? dims_[1] : dims_[1] - gw_[1];
-
-		index_type kb = (flag != NO_GHOSTS) ? 0 : gw_[2];
-		index_type ke = (flag != NO_GHOSTS) ? dims_[2] : dims_[2] - gw_[2];
-
-		int mb = 0;
-		int me = num_comps_per_cell_[IFORM];
-
-//		const unsigned int num_threads = std::thread::hardware_concurrency();
-//
-//		std::vector<std::thread> threads;
-//
-//		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-//		{
-//			threads.push_back(std::thread(
-//
-//			[&]()
-//			{
-//				for (index_type i = ib+thread_id; i < ie; i+=num_threads)
-//				for (index_type j = jb; j < je; ++j)
-//				for (index_type k = kb; k < ke; ++k)
-//				for (int m = mb; m < me; ++m)
-//				{
-//					fun(m, i, j, k);
-//				}
-//			}
-//
-//			));
-//		}
-//
-//		for (auto & t : threads)
-//		{
-//			t.join();
-//		}
-
-	}
-
-	inline void TraversalIndex(int IFORM, std::function<void(int, index_type)> const &fun, int flag = NO_GHOSTS) const
+	inline void TraversalIndex(int IFORM, std::function<void(int, index_type)> const &fun, unsigned int flag = 0) const
 	{
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
@@ -756,8 +714,8 @@ public:
 
 	}
 
-	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun, int flag =
-	        NO_GHOSTS) const
+	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
+	        unsigned int flag = 0) const
 	{
 		int num = num_comps_per_cell_[IFORM];
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
@@ -778,32 +736,39 @@ public:
 	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForAll(Fun const &fun, TF const & l, Args const& ... args) const
+	void ForEach(Fun const &fun, unsigned int flag, TF const & l, Args const& ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, WITH_GHOSTS);
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
 	}
 
-	template<typename Fun, typename TF, typename ...Args> inline
-	void ForAll(Fun const &fun, TF * l, Args const & ... args) const
-	{
-		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, WITH_GHOSTS);
-	}
+//	template<typename Fun, typename TF, typename ... Args> inline
+//	void ForAll(unsigned int flag, Fun const &fun, TF const & l, Args const& ... args) const
+//	{
+//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
+//	}
+//
+//	template<typename Fun, typename TF, typename ...Args> inline
+//	void ForAll(unsigned int flag, Fun const &fun, TF * l, Args const & ... args) const
+//	{
+//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
+//	}
 
-	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, TF & l, Args const& ... args) const
-	{
-		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, NO_GHOSTS);
-	}
-
-	template<typename Fun, typename TF, typename ...Args> inline
-	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
-	{
-		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, NO_GHOSTS);
-	}
+//	template<typename Fun, typename TF, typename ... Args> inline
+//	void ForEach(Fun const &fun, TF & l, Args const& ... args, unsigned int flag = 0) const
+//	{
+//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, 0);
+//	}
+//
+//	template<typename Fun, typename TF, typename ...Args> inline
+//	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
+//	{
+//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, 0);
+//	}
 
 	template<typename TL, typename TR>
 	void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
@@ -820,9 +785,15 @@ public:
 		}
 		else
 		{
-			ForAll([](typename FieldTraits<TL>::value_type &l,
+			ForEach(
+
+			[](typename FieldTraits<TL>::value_type &l,
 					typename FieldTraits<TR>::value_type const & r)
-			{	l = r;}, lhs, rhs);
+			{	l = r;},
+
+			(DO_PARALLEL),
+
+			lhs, rhs);
 		}
 
 	}
@@ -861,6 +832,16 @@ public:
 		return dims_;
 	}
 
+	inline int GetRealNumDimension() const
+	{
+		int n = 0;
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				++n;
+		}
+		return n;
+	}
 	inline std::vector<size_t> GetShape(int IFORM) const
 	{
 		std::vector<size_t> res;
@@ -1256,9 +1237,13 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 
 	<< "Grid={" << "\n"
 
+	<< "        Type = \"" << GetTypeName() << "\", \n"
+
+	<< "        ScalarType = \"" << ((std::is_same<TS, Complex>::value) ? "Complex" : "Real") << "\", \n"
+
 	<< "	Topology={ \n "
 
-	<< "        Type = \"" << GetTypeName() << "\", \n"
+	<< "        Type = \"" << GetTopologyTypeAsString() << "\", \n"
 
 	<< "		Dimensions = {" << ToString(dims_, ",") << "}, \n "
 
@@ -1296,6 +1281,63 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 {
 	d.Serialize(os);
 	return os;
+}
+
+template<typename TS>
+void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
+        unsigned int flags) const
+{
+	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[0];
+	index_type ie = ((flags & WITH_GHOSTS) > 0) ? dims_[0] : dims_[0] - gw_[0];
+
+	index_type jb = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[1];
+	index_type je = ((flags & WITH_GHOSTS) > 0) ? dims_[1] : dims_[1] - gw_[1];
+
+	index_type kb = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[2];
+	index_type ke = ((flags & WITH_GHOSTS) > 0) ? dims_[2] : dims_[2] - gw_[2];
+
+	int mb = 0;
+	int me = num_comps_per_cell_[IFORM];
+
+	auto thread_fun = [&](index_type const & tb,index_type const &te)
+	{
+		for (index_type i = tb; i < te; ++i)
+		for (index_type j = jb; j < je; ++j)
+		for (index_type k = kb; k < ke; ++k)
+		for (int m = mb; m < me; ++m)
+		{
+			fun(m, i, j, k);
+		}
+	}
+
+	;
+
+	if ((flags & DO_PARALLEL) > 0)
+	{
+
+		const unsigned int num_threads = std::thread::hardware_concurrency();
+
+		std::vector<std::thread> threads;
+
+		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+		{
+
+			size_t len = ie - ib;
+			index_type tb = ib + len * thread_id / num_threads;
+			index_type te = ib + len * (thread_id + 1) / num_threads;
+
+			threads.emplace_back(std::thread(thread_fun, tb, te));
+		}
+
+		for (auto & t : threads)
+		{
+			t.join();
+		}
+	}
+	else
+	{
+		thread_fun(ib, ie);
+	}
 }
 
 }
