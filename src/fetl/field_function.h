@@ -39,22 +39,22 @@ public:
 	{
 	}
 
-	FieldFunction(FieldFunction const& r)
-			: def_domain_(r.def_domain_), fun_(r.fun_)
+	FieldFunction(FieldFunction const& r) :
+			def_domain_(r.def_domain_), fun_(r.fun_)
 	{
 	}
 
-	FieldFunction(FieldFunction&& r)
-			: def_domain_(r.def_domain_), fun_(r.fun_)
+	FieldFunction(FieldFunction&& r) :
+			def_domain_(r.def_domain_), fun_(r.fun_)
 	{
 	}
 
-	FieldFunction(fun_type const & fun, std::vector<index_type>const& idx)
-			: def_domain_(idx), fun_(fun)
+	FieldFunction(fun_type const & fun, std::vector<index_type>const& idx) :
+			def_domain_(idx), fun_(fun)
 	{
 	}
-	FieldFunction(fun_type const & fun, std::vector<index_type>&& idx)
-			: def_domain_(idx), fun_(fun)
+	FieldFunction(fun_type const & fun, std::vector<index_type>&& idx) :
+			def_domain_(idx), fun_(fun)
 	{
 	}
 
@@ -63,33 +63,17 @@ public:
 		return def_domain_.empty();
 	}
 
-	inline void SetDefineDomain(mesh_type const & mesh, std::vector<coordinates_type>const& polyline)
+	inline void SetDefineDomain(mesh_type const & mesh,
+			std::vector<coordinates_type>const& polyline)
 	{
-		if (polyline.size() > 3)
-		{
-			SelectPointsInPolygen(mesh, polyline,
+		SelectPointsInRegion(
 
-			[&](index_type const & s, coordinates_type const &)
-			{
-				mesh.TraversalSubComponent(IForm,s, [&](index_type s)
-						{	def_domain_.push_back(s);}
-				);
-			});
-		}
-		else if (polyline.size() == 1)
+		[&](index_type const & s, coordinates_type const &)
 		{
-			SetDefineDomain(mesh, polyline[0]);
-		}
-		else
-		{
-			UNIMPLEMENT;
-		}
-	}
-
-	inline void SetDefineDomain(mesh_type const & mesh, coordinates_type const& x)
-	{
-		mesh.TraversalSubComponent(IForm, mesh.GetNearestPoint(x), [&](index_type s)
-		{	def_domain_.push_back(s);});
+			mesh.TraversalSubComponent(IForm,s, [&](index_type s)
+					{	def_domain_.push_back(s);}
+			);
+		}, mesh, polyline);
 
 	}
 	inline std::vector<index_type> const & GetDefineDomain() const
@@ -120,7 +104,9 @@ public:
 			coordinates_type x = f->mesh.GetCoordinates(1, s);
 
 			(*f)[s] = f->mesh.template GetWeightOnElement<IForm>(
-			        TypeCast<field_value_type>(fun_(x[0], x[1], x[2], std::forward<Args const&>(args)...)), s);
+					TypeCast<field_value_type>(
+							fun_(x[0], x[1], x[2],
+									std::forward<Args const&>(args)...)), s);
 		}
 
 	}

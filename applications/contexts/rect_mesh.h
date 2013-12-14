@@ -69,21 +69,30 @@ public:
 
 	bool dumpInOneDataSet_;
 
-	FieldFunction<decltype(J1), LuaObject> j_src_;
+	typedef typename Form<1>::field_value_type field_value_type;
+	typedef std::function<field_value_type(Real, Real, Real)> field_function;
+
+	FieldFunction<decltype(J1), field_function> j_src_;
+	FieldFunction<decltype(E1), field_function> pec_boundary_;
 }
 ;
 
 template<typename TM>
-Context<TM>::Context()
-		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(mesh), dumpInOneDataSet_(
-		        true)
+Context<TM>::Context() :
+		E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(
+				mesh), dumpInOneDataSet_(true)
 {
 
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
-	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>(
+			"GuidingCenter");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>(
+			"GGauge8");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>(
+			"GGauge32");
+	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >(
+			"Default");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >(
+			"DeltaF");
 }
 
 template<typename TM>
@@ -124,27 +133,28 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	}
 	else
 	{
-		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
+		UNIMPLEMENT
+				<< "TODO: use g-file initialize field, set boundary condition!";
 	}
 
-	auto jsrc = cfg["CurrentSrc"];
+	auto jSrcCfg = cfg["CurrentSrc"];
 
-	if (!jsrc.IsNull())
+	if (!jSrcCfg.IsNull())
 	{
 		typedef typename mesh_type::coordinates_type coordinates_type;
-		auto def_domain = jsrc["Points"];
-		if (def_domain.GetSize() > 1)
-		{
-			std::vector<coordinates_type> points_;
-			jsrc["Points"].as(&points_);
-			j_src_.SetDefineDomain(mesh, points_);
-		}
-		else
-		{
-			j_src_.SetDefineDomain(mesh, jsrc["Points"][0].as<coordinates_type>());
-		}
 
-		j_src_.SetFunction(jsrc["Fun"]);
+		auto fun = jSrcCfg["Fun"];
+
+		j_src_ = FieldFunction<decltype(J1), field_function>(
+
+		[&](Real x, Real y,Real z,Real t)->field_value_type
+		{
+			return TypeCast<field_value_type>(fun(x,y,z,t));
+		});
+
+		j_src_.SetDefineDomain(mesh,
+				jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+
 	}
 
 	LOGGER << " Load Initial Fields [Done]!";
@@ -160,7 +170,7 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	os
 
-	<< "Descrition=\"" << base_type::description << "\" \n"
+	<< "Description=\"" << base_type::description << "\" \n"
 
 	<< mesh << "\n"
 
