@@ -9,10 +9,7 @@
 #ifndef INCLUDE_LUA_PARSER_H_
 #define INCLUDE_LUA_PARSER_H_
 
-#include <lauxlib.h>
-#include <lua.h>
-//#include <lua5.2/lua.hpp>
-#include <lualib.h>
+#include <lua5.2/lua.hpp>
 #include <algorithm>
 #include <complex>
 #include <cstddef>
@@ -602,11 +599,12 @@ public:
 	}
 
 	template<typename TRect, typename ...Args>
-	std::function<TRect(Args...)> AsFunction() const
+	void as(std::function<TRect(Args...)> *res) const
 	{
-		return [this](Args const &...args)->TRect
+		*res = [this](Args const &...args)->TRect
 		{
-			return TypeCast<TRect>(const_cast<this_type*>(this)->operator()(std::forward<Args>(args)...));
+			return TypeCast<TRect>(
+					const_cast<this_type*>(this)->operator()(args...));
 		};
 	}
 

@@ -144,21 +144,11 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	{
 		typedef typename mesh_type::coordinates_type coordinates_type;
 
-		auto fun = jSrcCfg["Fun"].AsFunction<function_type>();
+		j_src_.SetFunction(jSrcCfg["Fun"].as<field_function>());
 
-//		LuaObject lobj = jSrcCfg["Fun"];
-//		auto fun = [&](Real x, Real y,Real z,Real t)->field_value_type
-//		{
-//			return TypeCast<field_value_type>(lobj(x,y,z,t));
-//		}
-//		CHECK(fun);
-		j_src_.SetFunction(fun);
+		j_src_.SetDefineDomain(mesh,
+				jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
-		std::vector<coordinates_type> points;
-
-		jSrcCfg["Points"].as<>(&points);
-		INFORM << points.size();
-		j_src_.SetDefineDomain(mesh, points);
 		LOGGER << " Load Current Source [Done]!";
 	}
 
