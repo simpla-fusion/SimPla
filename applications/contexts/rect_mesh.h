@@ -71,7 +71,7 @@ public:
 
 	typedef typename Form<1>::field_value_type field_value_type;
 	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
-
+//	typedef LuaObject field_function;
 	FieldFunction<decltype(J1), field_function> j_src_;
 	FieldFunction<decltype(E1), field_function> pec_boundary_;
 }
@@ -136,28 +136,32 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		UNIMPLEMENT
 				<< "TODO: use g-file initialize field, set boundary condition!";
 	}
+	LOGGER << " Load Initial Fields [Done]!";
 
-	auto jSrcCfg = cfg["CurrentSrc"];
+	LuaObject jSrcCfg = cfg["CurrentSrc"];
 
 	if (!jSrcCfg.IsNull())
 	{
 		typedef typename mesh_type::coordinates_type coordinates_type;
 
-		auto fun = jSrcCfg["Fun"];
+		auto fun = jSrcCfg["Fun"].AsFunction<function_type>();
 
-		j_src_ = FieldFunction<decltype(J1), field_function>(
+//		LuaObject lobj = jSrcCfg["Fun"];
+//		auto fun = [&](Real x, Real y,Real z,Real t)->field_value_type
+//		{
+//			return TypeCast<field_value_type>(lobj(x,y,z,t));
+//		}
+//		CHECK(fun);
+		j_src_.SetFunction(fun);
 
-		[&](Real x, Real y,Real z,Real t)->field_value_type
-		{
-			return TypeCast<field_value_type>(fun(x,y,z,t));
-		});
+		std::vector<coordinates_type> points;
 
-		j_src_.SetDefineDomain(mesh,
-				jSrcCfg["Points"].as<std::vector<coordinates_type>>());
-
+		jSrcCfg["Points"].as<>(&points);
+		INFORM << points.size();
+		j_src_.SetDefineDomain(mesh, points);
+		LOGGER << " Load Current Source [Done]!";
 	}
 
-	LOGGER << " Load Initial Fields [Done]!";
 }
 
 template<typename TM>
