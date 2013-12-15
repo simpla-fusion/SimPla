@@ -99,12 +99,12 @@ public:
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		return base_type::operator[](mesh.template Component<IForm>(s...));
+		return base_type::operator[](mesh.GetComponentIndex(IForm, s...));
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
 	{
-		return base_type::operator[](mesh.template Component<IForm>(s...));
+		return base_type::operator[](mesh.GetComponentIndex(IForm, s...));
 	}
 
 	void Init()

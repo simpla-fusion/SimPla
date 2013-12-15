@@ -40,17 +40,17 @@ public:
 	}
 
 	template<typename F>
-	explicit FieldFunction(F const & f) :
-			fun_( f )
+	explicit FieldFunction(F const & f)
+			: fun_(f)
 	{
 	}
 
-	FieldFunction(fun_type const & fun, std::vector<index_type>const& idx) :
-			def_domain_(idx), fun_(fun)
+	FieldFunction(fun_type const & fun, std::vector<index_type>const& idx)
+			: def_domain_(idx), fun_(fun)
 	{
 	}
-	FieldFunction(fun_type const & fun, std::vector<index_type>&& idx) :
-			def_domain_(idx), fun_(fun)
+	FieldFunction(fun_type const & fun, std::vector<index_type>&& idx)
+			: def_domain_(idx), fun_(fun)
 	{
 	}
 
@@ -59,10 +59,9 @@ public:
 		return def_domain_.empty();
 	}
 
-	inline void SetDefineDomain(mesh_type const & mesh,
-			std::vector<coordinates_type>const& polyline)
+	inline void SetDefineDomain(mesh_type const & mesh, std::vector<coordinates_type>const& polyline)
 	{
-		SelectPointsInRegion(
+		SelectVerticsInRegion(
 
 		[&](index_type const & s, coordinates_type const &)
 		{
@@ -97,12 +96,10 @@ public:
 
 		for (auto const & s : def_domain_)
 		{
-			coordinates_type x = f->mesh.GetCoordinates(1, s);
+			coordinates_type x = f->mesh.GetCoordinates(IForm, s);
 
 			(*f)[s] = f->mesh.template GetWeightOnElement<IForm>(
-					TypeCast<field_value_type>(
-							fun_(x[0], x[1], x[2],
-									std::forward<Args const&>(args)...)), s);
+			        TypeCast<field_value_type>(fun_(x[0], x[1], x[2], std::forward<Args const&>(args)...)), s);
 		}
 
 	}

@@ -32,13 +32,9 @@ namespace simpla
  */
 
 template<typename TM>
-void SelectPointsInRegion(
-		std::function<
-				void(typename TM::index_type const &,
-						typename TM::coordinates_type const &)> const &fun,
-		TM const & mesh,
-		std::vector<typename TM::coordinates_type> const points,
-		unsigned int Z = 2)
+void SelectVerticsInRegion(
+        std::function<void(typename TM::index_type const &, typename TM::coordinates_type const &)> const &fun,
+        TM const & mesh, std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
 	typedef TM mesh_type;
@@ -47,7 +43,7 @@ void SelectPointsInRegion(
 
 	if (points.size() == 1)
 	{
-		index_type s = mesh.GetNearestPoint(points[0]);
+		index_type s = mesh.GetNearestVertex(points[0]);
 		fun(s, mesh.GetCoordinates(0, s));
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
@@ -73,8 +69,7 @@ void SelectPointsInRegion(
 	else if (Z < 3) //select points in polyline
 	{
 
-		PointInPolygen<typename mesh_type::coordinates_type> checkPointsInPolygen(
-				points, Z);
+		PointInPolygen<typename mesh_type::coordinates_type> checkPointsInPolygen(points, Z);
 
 		mesh.TraversalCoordinates(0,
 
@@ -100,6 +95,260 @@ void SelectPointsInRegion(
 
 }
 
-}  // namespace simpla
+//namespace _impl
+//{
+//enum
+//{
+//	PARALLEL, PERPENDICULAR
+//};
+//
+//typedef typename mesh_type::index_type index_type;
+//template<int DIRECTION>
+//void _SetInterface(Int2Type<0>, Int2Type<DIRECTION>, index_type s0, tag_type in, tag_type const* v,
+//        std::set<index_type> *res)
+//{
+//	if (v[0] == in)
+//		res->insert((s0));
+//}
+//void _SetInterface(Int2Type<1>, Int2Type<PARALLEL>, index_type s0, tag_type in, tag_type const* v,
+//        std::set<index_type> *res)
+//{
+//	if ((v[0] == in) && (v[0] == v[1]))
+//		res->insert((s0) * 3 + 0);
+//
+//	if ((v[2] == v[3]) && (v[3] == in))
+//		res->insert((s0 + strides_[1]) * 3 + 0);
+//
+//	if ((v[4] == v[5]) && (v[4] == in))
+//		res->insert((s0 + strides_[2]) * 3 + 0);
+//
+//	if ((v[6] == v[7]) && (v[7] == in))
+//		res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+//
+//	//
+//
+//	if ((v[0] == v[2]) && (v[2] == in))
+//		res->insert((s0) * 3 + 1);
+//
+//	if ((v[1] == v[3]) && (v[1] == in))
+//		res->insert((s0 + strides_[0]) * 3 + 1);
+//
+//	if ((v[4] == v[6]) && (v[6] == in))
+//		res->insert((s0 + strides_[2]) * 3 + 1);
+//
+//	if ((v[5] == v[7]) && (v[5] == in))
+//		res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+//
+//	//
+//
+//	if ((v[0] == v[4]) && (v[0] == in))
+//		res->insert((s0) * 3 + 2);
+//
+//	if ((v[1] == v[5]) && (v[1] == in))
+//		res->insert((s0 + strides_[0]) * 3 + 2);
+//
+//	if ((v[2] == v[6]) && (v[2] == in))
+//		res->insert((s0 + strides_[1]) * 3 + 2);
+//
+//	if ((v[3] == v[7]) && (v[3] == in))
+//		res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+//
+//}
+//void _SetInterface(Int2Type<1>, Int2Type<PERPENDICULAR>, index_type s0, tag_type in, tag_type const* v,
+//        std::set<index_type> *res)
+//{
+//	if ((v[0] != v[1]))
+//		res->insert((s0) * 3 + 0);
+//
+//	if ((v[2] != v[3]))
+//		res->insert((s0 + strides_[1]) * 3 + 0);
+//
+//	if ((v[4] != v[5]))
+//		res->insert((s0 + strides_[2]) * 3 + 0);
+//
+//	if ((v[6] != v[7]))
+//		res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
+//
+//	//
+//
+//	if ((v[0] != v[2]))
+//		res->insert((s0) * 3 + 1);
+//
+//	if ((v[1] != v[3]))
+//		res->insert((s0 + strides_[0]) * 3 + 1);
+//
+//	if ((v[4] != v[6]))
+//		res->insert((s0 + strides_[2]) * 3 + 1);
+//
+//	if ((v[5] != v[7]))
+//		res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
+//
+//	//
+//
+//	if ((v[0] != v[4]))
+//		res->insert((s0) * 3 + 2);
+//
+//	if ((v[1] != v[5]))
+//		res->insert((s0 + strides_[0]) * 3 + 2);
+//
+//	if ((v[2] != v[6]))
+//		res->insert((s0 + strides_[1]) * 3 + 2);
+//
+//	if ((v[3] != v[7]))
+//		res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
+//
+//}
+//
+//void _SetInterface(Int2Type<2>, Int2Type<PARALLEL>, index_type s0, tag_type in, tag_type const* v,
+//        std::set<index_type> *res)
+//{
+//
+//	if (!((v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3])))
+//		res->insert((s0) * 3 + 2);
+//	if (!((v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7])))
+//		res->insert((s0 + strides_[2]) * 3 + 2);
+//
+//	if (!((v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5])))
+//		res->insert((s0) * 3 + 1);
+//	if (!((v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7])))
+//		res->insert((s0 + strides_[1]) * 3 + 1);
+//
+//	if (!((v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6])))
+//		res->insert((s0) * 3 + 0);
+//	if (!((v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7])))
+//		res->insert((s0 + strides_[0]) * 3 + 1);
+//
+//}
+//
+//void _SetInterface(Int2Type<2>, Int2Type<PERPENDICULAR>, index_type s0, tag_type in, tag_type const* v,
+//        std::set<index_type> *res)
+//{
+//
+//	if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
+//		res->insert((s0) * 3 + 2);
+//	if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
+//		res->insert((s0 + strides_[2]) * 3 + 2);
+//
+//	if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
+//		res->insert((s0) * 3 + 1);
+//	if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
+//		res->insert((s0 + strides_[1]) * 3 + 1);
+//
+//	if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
+//		res->insert((s0) * 3 + 0);
+//	if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
+//		res->insert((s0 + strides_[0]) * 3 + 1);
+//
+//}
+//
+//void _SetInterface(Int2Type<3>, index_type s0, tag_type in, tag_type const* v, std::set<index_type> *res)
+//{
+//
+//	if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
+//		res->insert((s0 - strides_[2]));
+//	if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
+//		res->insert((s0 + strides_[2]));
+//
+//	if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
+//		res->insert((s0 - strides_[1]));
+//	if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
+//		res->insert((s0 + strides_[1]));
+//
+//	if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
+//		res->insert((s0 + strides_[0]));
+//	if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
+//		res->insert((s0 + strides_[0]));
+//
+//	WARNING << "This implement is incorrect when the boundary has too sharp corner";
+//
+//	/**
+//	 *  FIXME this is incorrect when the boundary has too sharp corner
+//	 *  for example
+//	 *                  ^    out
+//	 *                 / \
+//	 *       @--------/-@-\----------@
+//	 *       |       /  |  \         |
+//	 *       |      /   |   \        |
+//	 *       |     /    |    \       |
+//	 *       |    /     |     \      |
+//	 *       @---/------@------\-----@
+//	 *          /               \
+//		 *         /       in        \
+//		 */
+//
+//}
+//
+//}  // namespace _impl
+//
+//template<typename TM, int IFORM, int DIRECTION>
+//void SelectPointsOnInterface(TM const &mesh, int IForm,
+//
+//typename TM::Container<typename TM::tag_type> const & tags,
+//
+//typename TM::tag_type in, typename TM::tag_type out,
+//
+//std::vector<typename TM::index_type>*res) const
+//{
+//	typedef TM mesh_type;
+//	typedef typename mesh_type::index_type index_type;
+//	typedef typename mesh_type::tag_type tag_type;
+//
+//	auto const & dims_ = mesh.GetDemensions();
+//	auto const & strides_ = mesh.GetStrides();
+//
+//	constexpr int num_verte_per_cell = mesh_type::MAX_NUM_VERTEX_PER_CEL;
+//
+//	std::set<index_type> tmp_res;
+//
+//	std::vector<tag_type> mtags;
+//
+//	mesh.TraversalIndex(IForm, [&](int m,index_type const & s)
+//	{
+//		tag_type v[num_verte_per_cell];
+//
+//		/** @ref The Visualization Toolkit 4th Ed. p.273
+//		 *
+//		 *                ^y
+//		 *               /
+//		 *        z     /
+//		 *        ^
+//		 *        |   6---------------7
+//		 *        |  /|              /|
+//		 *          / |             / |
+//		 *         /  |            /  |
+//		 *        4---|-----------5   |
+//		 *        | --> B0        |   |
+//		 *        |   2-----------|---3
+//		 *        E2 /    ^B2       |  /
+//		 *        | E1    |     | /
+//		 *        |/              |/
+//		 *        0------E0-------1   ---> x
+//		 *
+//		 *
+//		 */
+//
+//		mesh.GetComponents(v,m,s);
+//
+//		// not interface
+//		    if (((v[0] = v[1]) && (v[1] = v[2]) && (v[2] = v[3]) && (v[3] = v[4]) && (v[4] = v[5]) && (v[5] = v[6])
+//						    && (v[6] = v[7]))
+//
+//				    || ((v[0] != in) && (v[1] != in) && (v[2] != in) && (v[3] != in) && (v[4] != in) && (v[5] != in)
+//						    && (v[6] != in) && (v[7] != in))
+//
+//				    || ((v[0] != out) && (v[1] != out) && (v[2] != out) && (v[3] != out) && (v[4] != out)
+//						    && (v[5] != out) && (v[6] != out) && (v[7] != out)))
+//		    continue;
+//
+////		    _SetInterface(Int2Type<IFORM>(), Int2Type<DIRECTION>(), s, in, v, &tmp_res);
+//
+//	    });
+//	res->clear();
+//	std::copy(tmp_res.begin(), tmp_res.end(), std::back_inserter(*res));
+//
+//}
+
+}
+// namespace simpla
 
 #endif /* MESH_ALGORITHM_H_ */

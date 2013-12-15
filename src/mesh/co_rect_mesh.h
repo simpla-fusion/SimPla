@@ -43,10 +43,10 @@ struct CoRectMesh
 {
 	typedef CoRectMesh this_type;
 
-	enum
-	{
-		NUM_OF_DIMS = 3
-	};
+	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
+	static constexpr unsigned int NUM_OF_DIMS = 3;
+	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
+	static constexpr unsigned int DEFAULT_GHOST_WIDTH = 2;
 
 	typedef size_t index_type;
 
@@ -65,10 +65,6 @@ struct CoRectMesh
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream &os, CoRectMesh<U> const &);
 
-	enum
-	{
-		DEFAULT_GHOST_WIDTH = 2
-	};
 	// Topology
 	nTuple<NUM_OF_DIMS, size_t> shift_;
 
@@ -79,8 +75,6 @@ struct CoRectMesh
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 
 	nTuple<NUM_OF_DIMS, size_t> period_;
-
-	static const int num_vertices_in_cell_ = 8;
 
 	size_t num_cells_ = 0;
 	size_t num_grid_points_ = 0;
@@ -95,16 +89,9 @@ struct CoRectMesh
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[4] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
 
-	coordinates_type coordinates_shift_[4][3];
-
-	size_t idx_shift_[8];
-
-	std::vector<index_type> element_in_boundary_[4];
-	std::vector<index_type> element_on_boundary_[4];
-
-	bool doParallel_;
+	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
 	CoRectMesh()
 	{
@@ -269,252 +256,6 @@ struct CoRectMesh
 
 	}
 
-	enum
-	{
-		PARALLEL, PERPENDICULAR
-	};
-
-	template<int IFORM, int DIRECTION>
-	void GetElementOnInterface(Container<tag_type> const & tags, tag_type in, tag_type out,
-	        std::vector<index_type>*res) const
-	{
-		std::set<index_type> tmp_res;
-
-		for (index_type i = 0; i < dims_[0]; ++i)
-			for (index_type j = 0; j < dims_[1]; ++j)
-				for (index_type k = 0; k < dims_[2]; ++k)
-				{
-					index_type s0 = (i * strides_[0] + j * strides_[1] + k * strides_[2]);
-
-					tag_type v[8];
-
-					/** @ref The Visualization Toolkit 4th Ed. p.273
-					 *
-					 *                ^y
-					 *               /
-					 *        z     /
-					 *        ^
-					 *        |   6---------------7
-					 *        |  /|              /|
-					 *          / |             / |
-					 *         /  |            /  |
-					 *        4---|-----------5   |
-					 *        | --> B0        |   |
-					 *        |   2-----------|---3
-					 *        E2 /    ^B2       |  /
-					 *        | E1    |     | /
-					 *        |/              |/
-					 *        0------E0-------1   ---> x
-					 *
-					 *
-					 */
-
-					v[0] = tags[s0];
-					v[1] = tags[s0 + strides_[0]];
-					v[2] = tags[s0 + strides_[1]];
-					v[3] = tags[s0 + strides_[0] + strides_[1]];
-
-					v[4] = tags[s0 + strides_[2]];
-					v[5] = tags[s0 + strides_[2] + strides_[0]];
-					v[6] = tags[s0 + strides_[2] + strides_[1]];
-					v[7] = tags[s0 + strides_[2] + strides_[0] + strides_[1]];
-
-					// not interface
-					if (((v[0] = v[1]) && (v[1] = v[2]) && (v[2] = v[3]) && (v[3] = v[4]) && (v[4] = v[5]) && (v[5] =
-					        v[6]) && (v[6] = v[7]))
-
-					        || ((v[0] != in) && (v[1] != in) && (v[2] != in) && (v[3] != in) && (v[4] != in)
-					                && (v[5] != in) && (v[6] != in) && (v[7] != in))
-
-					        || ((v[0] != out) && (v[1] != out) && (v[2] != out) && (v[3] != out) && (v[4] != out)
-					                && (v[5] != out) && (v[6] != out) && (v[7] != out)))
-						continue;
-
-					_SetInterface(Int2Type<IFORM>(), Int2Type<DIRECTION>(), s0, in, v, &tmp_res);
-
-				}
-
-		res->clear();
-		std::copy(tmp_res.begin(), tmp_res.end(), std::back_inserter(*res));
-
-	}
-
-private:
-
-	template<int DIRECTION>
-	void _SetInterface(Int2Type<0>, Int2Type<DIRECTION>, index_type s0, tag_type in, tag_type const* v,
-	        std::set<index_type> *res)
-	{
-		if (v[0] == in)
-			res->insert((s0));
-	}
-	void _SetInterface(Int2Type<1>, Int2Type<PARALLEL>, index_type s0, tag_type in, tag_type const* v,
-	        std::set<index_type> *res)
-	{
-		if ((v[0] == in) && (v[0] == v[1]))
-			res->insert((s0) * 3 + 0);
-
-		if ((v[2] == v[3]) && (v[3] == in))
-			res->insert((s0 + strides_[1]) * 3 + 0);
-
-		if ((v[4] == v[5]) && (v[4] == in))
-			res->insert((s0 + strides_[2]) * 3 + 0);
-
-		if ((v[6] == v[7]) && (v[7] == in))
-			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
-
-		//
-
-		if ((v[0] == v[2]) && (v[2] == in))
-			res->insert((s0) * 3 + 1);
-
-		if ((v[1] == v[3]) && (v[1] == in))
-			res->insert((s0 + strides_[0]) * 3 + 1);
-
-		if ((v[4] == v[6]) && (v[6] == in))
-			res->insert((s0 + strides_[2]) * 3 + 1);
-
-		if ((v[5] == v[7]) && (v[5] == in))
-			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
-
-		//
-
-		if ((v[0] == v[4]) && (v[0] == in))
-			res->insert((s0) * 3 + 2);
-
-		if ((v[1] == v[5]) && (v[1] == in))
-			res->insert((s0 + strides_[0]) * 3 + 2);
-
-		if ((v[2] == v[6]) && (v[2] == in))
-			res->insert((s0 + strides_[1]) * 3 + 2);
-
-		if ((v[3] == v[7]) && (v[3] == in))
-			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
-
-	}
-	void _SetInterface(Int2Type<1>, Int2Type<PERPENDICULAR>, index_type s0, tag_type in, tag_type const* v,
-	        std::set<index_type> *res)
-	{
-		if ((v[0] != v[1]))
-			res->insert((s0) * 3 + 0);
-
-		if ((v[2] != v[3]))
-			res->insert((s0 + strides_[1]) * 3 + 0);
-
-		if ((v[4] != v[5]))
-			res->insert((s0 + strides_[2]) * 3 + 0);
-
-		if ((v[6] != v[7]))
-			res->insert((s0 + strides_[2] + strides_[1]) * 3 + 0);
-
-		//
-
-		if ((v[0] != v[2]))
-			res->insert((s0) * 3 + 1);
-
-		if ((v[1] != v[3]))
-			res->insert((s0 + strides_[0]) * 3 + 1);
-
-		if ((v[4] != v[6]))
-			res->insert((s0 + strides_[2]) * 3 + 1);
-
-		if ((v[5] != v[7]))
-			res->insert((s0 + strides_[2] + strides_[0]) * 3 + 1);
-
-		//
-
-		if ((v[0] != v[4]))
-			res->insert((s0) * 3 + 2);
-
-		if ((v[1] != v[5]))
-			res->insert((s0 + strides_[0]) * 3 + 2);
-
-		if ((v[2] != v[6]))
-			res->insert((s0 + strides_[1]) * 3 + 2);
-
-		if ((v[3] != v[7]))
-			res->insert((s0 + strides_[0] + strides_[1]) * 3 + 2);
-
-	}
-
-	void _SetInterface(Int2Type<2>, Int2Type<PARALLEL>, index_type s0, tag_type in, tag_type const* v,
-	        std::set<index_type> *res)
-	{
-
-		if (!((v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3])))
-			res->insert((s0) * 3 + 2);
-		if (!((v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7])))
-			res->insert((s0 + strides_[2]) * 3 + 2);
-
-		if (!((v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5])))
-			res->insert((s0) * 3 + 1);
-		if (!((v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7])))
-			res->insert((s0 + strides_[1]) * 3 + 1);
-
-		if (!((v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6])))
-			res->insert((s0) * 3 + 0);
-		if (!((v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7])))
-			res->insert((s0 + strides_[0]) * 3 + 1);
-
-	}
-
-	void _SetInterface(Int2Type<2>, Int2Type<PERPENDICULAR>, index_type s0, tag_type in, tag_type const* v,
-	        std::set<index_type> *res)
-	{
-
-		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
-			res->insert((s0) * 3 + 2);
-		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[2]) * 3 + 2);
-
-		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
-			res->insert((s0) * 3 + 1);
-		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[1]) * 3 + 1);
-
-		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
-			res->insert((s0) * 3 + 0);
-		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
-			res->insert((s0 + strides_[0]) * 3 + 1);
-
-	}
-
-	void _SetInterface(Int2Type<3>, index_type s0, tag_type in, tag_type const* v, std::set<index_type> *res)
-	{
-
-		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[2]) && (v[2] == v[3]))
-			res->insert((s0 - strides_[2]));
-		if ((v[4] == in) && (v[4] == v[5]) && (v[5] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[2]));
-
-		if ((v[0] == in) && (v[0] == v[1]) && (v[1] == v[4]) && (v[4] == v[5]))
-			res->insert((s0 - strides_[1]));
-		if ((v[2] == in) && (v[2] == v[3]) && (v[3] == v[6]) && (v[6] == v[7]))
-			res->insert((s0 + strides_[1]));
-
-		if ((v[0] == in) && (v[0] == v[2]) && (v[2] == v[4]) && (v[4] == v[6]))
-			res->insert((s0 + strides_[0]));
-		if ((v[1] == in) && (v[1] == v[3]) && (v[3] == v[5]) && (v[5] == v[7]))
-			res->insert((s0 + strides_[0]));
-
-		WARNING << "This implement is incorrect when the boundary has too sharp corner";
-
-		/**
-		 *  FIXME this is incorrect when the boundary has too sharp corner
-		 *  for example
-		 *                  ^    out
-		 *                 / \
-		 *       @--------/-@-\----------@
-		 *       |       /  |  \         |
-		 *       |      /   |   \        |
-		 *       |     /    |    \       |
-		 *       |    /     |     \      |
-		 *       @---/------@------\-----@
-		 *          /               \
-		 *         /       in        \
-		 */
-
-	}
 public:
 
 	inline coordinates_type GetCoordinates(int IFORM, int m, index_type i, index_type j, index_type k) const
@@ -569,8 +310,8 @@ public:
 	{
 		return s % num_comps_per_cell_[IFORM];
 	}
-	template<int IFORM, typename ... IDXS>
-	inline size_t Component(int m, IDXS ... s) const
+	template<typename ... IDXS>
+	inline size_t GetComponentIndex(int IFORM, int m, IDXS ... s) const
 	{
 		return GetIndex(s...) * num_comps_per_cell_[IFORM] + m;
 	}
@@ -587,7 +328,7 @@ public:
 		return v[GetSubComponent<IFORM>(s)];
 	}
 
-	inline index_type GetNearestPoint(coordinates_type const &x) const
+	inline index_type GetNearestVertex(coordinates_type const &x) const
 	{
 		index_type s = 0;
 
@@ -599,6 +340,62 @@ public:
 			}
 		}
 		return s;
+	}
+
+private:
+	template<typename ... Args>
+	inline int _GetVerticesOfElement(Int2Type<0>, index_type *v, int m, Args ... s) const
+	{
+		if (v != nullptr)
+			v[0] = GetIndex(s...);
+		return 1;
+	}
+
+	template<typename ... Args>
+	inline int _GetVerticesOfElement(Int2Type<1>, index_type *v, int m, Args ... s) const
+	{
+		v[0] = GetIndex(s...);
+		v[1] = Shift(INC(m), s...);
+		return 2;
+	}
+
+	template<typename ... Args>
+	inline int _GetVerticesOfElement(Int2Type<2>, index_type *v, int m, Args ... s) const
+	{
+		if (v != nullptr)
+		{
+			v[0] = GetIndex(s...);
+			v[1] = Shift(INC(m + 1), s...);
+			v[2] = Shift(INC(m + 1), s...);
+			v[3] = Shift(INC(m + 1) | INC(m + 2), s...);
+		}
+		return 4;
+	}
+
+	template<typename ... Args>
+	inline int _GetVerticesOfElement(Int2Type<3>, index_type *v, int m, Args ... s) const
+	{
+		if (v != nullptr)
+		{
+			v[0] = GetIndex(s...);
+			v[1] = Shift(INC(m + 1), s...);
+			v[2] = Shift(INC(m + 2), s...);
+			v[3] = Shift(INC(m + 1) | INC(m + 2), s...);
+
+			v[4] = GetIndex(s...);
+			v[5] = Shift(INC(m) | INC(m + 1), s...);
+			v[6] = Shift(INC(m) | INC(m + 2), s...);
+			v[7] = Shift(INC(m) | INC(m + 1) | INC(m + 2), s...);
+		}
+		return 8;
+	}
+
+public:
+	template<int IForm, typename ... Args>
+	inline index_type GetVerticesOfCell(index_type *v, int m, Args ... s) const
+	{
+		return _GetVerticesOfElement(Int2Type<IForm>(), v, m, s...);
+
 	}
 
 private:
@@ -714,13 +511,23 @@ public:
 
 	}
 
+	inline void TraversalElementIndex(int IFORM, std::function<void(index_type)> const &fun,
+	        unsigned int flag = 0) const
+	{
+		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+		{
+			fun(m,this->GetIndex(i,j,k));
+		}, flag);
+
+	}
+
 	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
 	        unsigned int flag = 0) const
 	{
 		int num = num_comps_per_cell_[IFORM];
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
-			fun(this->GetIndex(i,j,k)*num+m,this->GetCoordinates(IFORM,m,i,j,k));
+			fun(GetComponentIndex(IFORM,m,i,j,k),this->GetCoordinates(IFORM,m,i,j,k));
 		}, flag);
 
 	}
@@ -892,7 +699,7 @@ public:
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
 	}
 
-	inline size_t GetNumOfVertex() const
+	inline size_t GetNumOfVertices() const
 	{
 
 		return (num_grid_points_);
