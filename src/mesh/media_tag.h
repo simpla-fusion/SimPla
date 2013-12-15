@@ -33,11 +33,9 @@ private:
 	typename mesh_type::template Container<tag_type> tags_[mesh_type::NUM_OF_COMPONENT_TYPE];
 public:
 
-	static unsigned int NULL_TAG = std::numeric_limits<unsigned int>::max();
-
 	enum
 	{
-		DEFAULT = 0, VACUUM = 0, PLASMA = 1, CORE = 2, BOUNDARY = 3, PLATEAU = 4,
+		NULL_TAG = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU,
 		// @NOTE: add tags for different physical area or media
 		CUSTOM = 20
 	};
@@ -57,6 +55,16 @@ public:
 		return std::move(res);
 	}
 
+	void ClearAll()
+	{
+		for (auto &v : tags_[0])
+		{
+			v.reset();
+		}
+
+		Update();
+	}
+
 	/**
 	 * Set media tag on vertics
 	 * @param tag media tag is  set to 1<<tag
@@ -64,19 +72,33 @@ public:
 	 *      SelectVerticsInRegion(<lambda function>,*this,args)
 	 */
 	template<typename ...Args>
-	void SetMediaTag(unsigned int tag_pos, Args const & ... args)
+	void Set(unsigned int media_tag, Args const & ... args)
 	{
-		if (tags_[0].empty())
-			tags_[0].resize(mesh.GetNumOfElements(0), GetTag(VACUUM));
 
-		SelectVericsInRegion(
+		tag_type m_tag;
 
-		[&](index_type const &s)
-		{
-			tags_[0][s].set(tag_pos);
-		},
+		m_tag.set(media_tag);
 
-		nullptr,
+		_ForEachVertics(
+
+		[&](bool isSelected,tag_type &v)
+		{	if(isSelected) v&=m_tag;},
+
+		*this, std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
+	void InverseSet(unsigned int media_tag, Args const & ... args)
+	{
+
+		tag_type m_tag;
+
+		m_tag.set(media_tag);
+
+		_ForEachVertics(
+
+		[&](bool isSelected,tag_type &v)
+		{	if(! isSelected) v&=m_tag;},
 
 		*this, std::forward<Args>(args)...);
 	}
@@ -85,31 +107,75 @@ public:
 	void SetInterface(unsigned int in_tag_pos, unsigned int out_tag_pos, Args const & ... args)
 	{
 
+		tag_type in_tag;
+		in_tag.set(in_tag_pos);
+
+		tag_type out_tag;
+		out_tag.set(out_tag_pos);
+
 		_ForEachVertics(
 
-		[&](index_type const &s)
+		[&](bool isSelected,tag_type &v)
 		{
-			tags_[0][s].set(in_tag_pos);
-		},
+			if( isSelected)
+			{
+				v&=in_tag;
+			}
+			else
+			{
+				v&=out_tag_pos;
+			}
 
-		[&](index_type const &s)
-		{
-			tags_[0][s].set(out_tag_pos);
 		},
 
 		*this, std::forward<Args>(args)...);
 
 	}
 
+	template<typename ...Args>
+	void Add(unsigned int media_tag, Args const & ... args)
+	{
+
+		tag_type m_tag;
+
+		m_tag.set(media_tag);
+
+		_ForEachVertics(
+
+		[&](bool isSelected,tag_type &v)
+		{	if( isSelected) v.set(media_tag);},
+
+		*this, std::forward<Args>(args)...);
+	}
+
+	template<typename ...Args>
+	void Remove(unsigned int media_tag, Args const & ... args)
+	{
+
+		tag_type m_tag;
+
+		m_tag.set(media_tag);
+
+		_ForEachVertics(
+
+		[&](bool isSelected,tag_type &v)
+		{	if(isSelected) v.reset(media_tag);},
+
+		*this, std::forward<Args>(args)...);
+	}
+
 	/**
 	 *  Update media tag on edge ,face and cell, base on media tag on vertics
 	 */
-	void UpdateMediaTags()
+	void Update()
 	{
-		_UpdateMediaTags<1>();
-		_UpdateMediaTags<2>();
-		_UpdateMediaTags<3>();
+		_UpdateTags<1>();
+		_UpdateTags<2>();
+		_UpdateTags<3>();
 	}
+
+
+
 
 	/**
 	 *  Choice elements that most close to and out of the interface,
@@ -150,32 +216,22 @@ private:
 	 *      SelectVerticsInRegion(<lambda function>,*this,args)
 	 */
 	template<typename ...Args>
-	void _ForEachVertics(std::function<void(tag_type&)> in_ops, std::function<void(tag_type&)> out_ops,
-	        Args const & ... args)
+	void _ForEachVertics(std::function<void(bool, tag_type&)> fun, Args const & ... args)
 	{
 		if (tags_[0].empty())
 			tags_[0].resize(mesh.GetNumOfElements(0), GetTag(VACUUM));
 
-		std::function<void(index_type const &s)> in_fun = nullptr;
-		std::function<void(index_type const &s)> out_fun = nullptr;
+		SelectVericsInRegion(
 
-		if (in_ops != nullptr)
-			in_fun = [&](index_type const &s)
-			{
-				in_ops(tags_[0][s]);
-			};
+		[&](bool in,index_type const &s)
+		{
+			fun(in,tags_[0][s]);
 
-		if (out_ops != nullptr)
-			out_fun = [&](index_type const &s)
-			{
-				out_ops(tags_[0][s]);
-			};
-
-		SelectVericsInRegion(in_fun, out_fun, *this, std::forward<Args>(args)...);
+		}, *this, std::forward<Args>(args)...);
 	}
 
 	template<int I>
-	void _UpdateMediaTags()
+	void _UpdateTags()
 	{
 		if (tags_[I].empty())
 			tags_[I].resize(mesh.GetNumOfElements(I), 0);

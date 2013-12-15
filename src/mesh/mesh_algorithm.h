@@ -30,8 +30,7 @@ namespace simpla
  *           Z>=3
  */
 template<typename TM>
-void SelectVericsInRegion(std::function<void(typename TM::index_type const &)> const & fun_in_circle,
-        std::function<void(typename TM::index_type const &)> const & fun_out_circle, TM const & mesh,
+void SelectVericsInRegion(std::function<void(bool, typename TM::index_type const &)> const & fun, TM const & mesh,
         std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
@@ -43,12 +42,8 @@ void SelectVericsInRegion(std::function<void(typename TM::index_type const &)> c
 	{
 		index_type idx = mesh.GetNearestVertex(points[0]);
 
-		if (fun_in_circle)
-			fun_in_circle(idx);
-
-		if (fun_out_circle)
-			mesh.TraversalCoordinates(0, [&]( index_type const&s , coordinates_type const &x)
-			{	if(s!=idx) fun_out_circle(s );}, mesh.WITH_GHOSTS);
+		mesh.TraversalCoordinates(0, [&]( index_type const&s , coordinates_type const &x)
+		{	fun(s==idx,idx);}, mesh.WITH_GHOSTS);
 
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
@@ -60,19 +55,12 @@ void SelectVericsInRegion(std::function<void(typename TM::index_type const &)> c
 		[&](typename mesh_type::index_type const&s ,
 				typename mesh_type:: coordinates_type const &x)
 		{
-			if(
+			fun(
 					(((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
 					(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
 					(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
-			)
-			{
-				if(fun_in_circle) fun_in_circle(s);
-			}
-			else
-			{
-				if(fun_out_circle)fun_out_circle(s);
-			}
-
+					,
+					s);
 		},
 
 		mesh.WITH_GHOSTS);
@@ -87,14 +75,7 @@ void SelectVericsInRegion(std::function<void(typename TM::index_type const &)> c
 		[&](typename mesh_type::index_type const&s ,
 				typename mesh_type:: coordinates_type const &x)
 		{
-			if(checkPointsInPolygen(x))
-			{
-				if(fun_in_circle) fun_in_circle(s);
-			}
-			else
-			{
-				if(fun_out_circle)fun_out_circle(s);
-			}
+			fun(checkPointsInPolygen(x), s);
 
 		},
 

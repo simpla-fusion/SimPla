@@ -677,7 +677,7 @@ private:
 		 *                ^y
 		 *               /
 		 *        z     /
-		 *        ^
+		 *        ^    /
 		 *        |   6---------------7
 		 *        |  /|              /|
 		 *        | / |    5        / |
@@ -708,12 +708,6 @@ private:
 	}
 
 public:
-//	template<int IForm, typename ... Args>
-//	inline index_type GetVerticesOfCell(index_type *v, int m, Args ... s) const
-//	{
-//		return _GetVerticesOfElement(Int2Type<IForm>(), v, m, s...);
-//
-//	}
 
 	template<int IN, int OUT, typename ... Args>
 	inline index_type GetConnectedElement(Int2Type<IN>, Int2Type<OUT>, index_type *v, int m, Args ... s) const
