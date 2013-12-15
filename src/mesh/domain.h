@@ -8,9 +8,12 @@
 #ifndef DOMAIN_H_
 #define DOMAIN_H_
 
-#include <vector>
+#include <bitset>
+#include <cstddef>
+//#include <vector>
 
 #include "../fetl/primitives.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
@@ -59,25 +62,6 @@ public:
 		}, *this, this, std::forward<Args>(args)...);
 	}
 
-	/**
-	 *  Update media tag on edge ,face and cell, base on media tag on vertics
-	 */
-	void UpdateMediaTags()
-	{
-		_UpdateMediaTags<1>();
-		_UpdateMediaTags<2>();
-		_UpdateMediaTags<3>();
-	}
-	enum
-	{
-		IN_INTERFACE, OUT_INTERFACE, THROUGH_INTERFACE
-	};
-	template<int IFORM, typename TFUN>
-	void ForEachElementOnInterface(TFUN const &fun, int type = THROUGH_INTERFACE)
-	{
-
-	}
-
 private:
 	template<int I>
 	void _UpdateMediaTags()
@@ -102,22 +86,99 @@ private:
 		}, mesh_type::DO_PARALLEL);
 	}
 
-	template<typename TFUN>
-	void _ForEachElementOnInterface(Int2Type<0>, std::function<void(index_type)> const &fun, unsigned int in_tag,
-	        unsigned int out_tag, int flag)
+	/**
+	 *  Choice element most close and out of the boundary
+	 * @param
+	 * @param fun
+	 * @param in_tag
+	 * @param out_tag
+	 * @param flag
+	 */
+	template<int IFORM>
+	void _ForEachElementOnInterface(Int2Type<IFORM>, std::function<void(int, index_type)> const &fun,
+	        unsigned int in_tag, unsigned int out_tag, int flag)
 	{
-		mesh.TraversalIndex(0,
+		mesh.TraversalIndex(IFORM,
 
-		[&](index_type s)
+		[&](int m,index_type s)
 		{
-			if(tags_[3][meshs].count()>1)
+
+			size_t idx = mesh.GetComponentIndex(IFORM,m,s);
+			auto tag=tags_[IFORM][idx];
+
+			if( (tag[out_tag] && !tag[in_tag]) )
 			{
-				fun(mesh.GetComponentIndex(0,m,s));
+				index_type cells[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+				int num=mesh.GetConnectedElement<3>(IFORM,idx,cells);
+				for(int i=0;i<num;++i)
+				{
+					auto t=tags_[3][cells[i]];
+					if(t[in_tag]!=t[out_tag])
+					{
+						fun(m,s);
+					}
+				}
+
 			}
+
 		},
 
-		mesh_type::DO_PARALLEL)
+		flag)
 
+	}
+
+	template<int IFORM>
+	void _ForEachElementCrossInterface(Int2Type<IFORM>, std::function<void(int, index_type)> const &fun,
+	        unsigned int in, unsigned int out, unsigned int flag)
+	{
+
+		mesh.TraversalIndex(IFORM,
+
+		[&](int m,index_type s)
+		{
+			size_t idx = mesh.GetComponentIndex(IFORM,m,s);
+			auto tag=tags_[IFORM][idx];
+
+			if( (tag[in] != tag[out]) )
+			{
+				fun(m,s);
+			}
+		}, mesh_type::DO_PARALLEL)
+	}
+
+	void _ForEachElementCrossInterface(Int2Type<0>, std::function<void(int, index_type)> const &fun, unsigned int in,
+	        unsigned int out, unsigned int)
+	{
+		DEADEND << "the volume of point is zero, therefor vertex only "
+				"can have one media tag, and can not cross interface!";
+	}
+
+public:
+	/**
+	 *  Update media tag on edge ,face and cell, base on media tag on vertics
+	 */
+	void UpdateMediaTags()
+	{
+		_UpdateMediaTags<1>();
+		_UpdateMediaTags<2>();
+		_UpdateMediaTags<3>();
+	}
+	enum
+	{
+		IN_INTERFACE, OUT_INTERFACE, THROUGH_INTERFACE
+	};
+	template<int IFORM>
+	void ForEachElementOnInterface(std::function<void(int, index_type)> const &fun, unsigned int in, unsigned int out,
+	        unsigned int flag = 0)
+	{
+		_ForEachElementOnInterface(Int2Type<IFORM>(), fun, in, out, flag);
+	}
+
+	template<int IFORM>
+	void ForEachElementCrossInterface(std::function<void(int, index_type)> const &fun, unsigned int in,
+	        unsigned int out, unsigned int flag = 0)
+	{
+		_ForEachElementCrossInterface(Int2Type<IFORM>(), fun, in, out, flag);
 	}
 
 };

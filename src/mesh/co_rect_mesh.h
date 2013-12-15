@@ -43,7 +43,8 @@ struct CoRectMesh
 {
 	typedef CoRectMesh this_type;
 
-	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
+	static constexpr unsigned int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
+	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr unsigned int NUM_OF_DIMS = 3;
 	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
 	static constexpr unsigned int DEFAULT_GHOST_WIDTH = 2;
@@ -343,8 +344,18 @@ public:
 	}
 
 private:
-	template<typename ... Args>
-	inline int _GetVerticesOfElement(Int2Type<0>, index_type *v, int m, Args ... s) const
+
+	/**
+	 *
+	 * @param
+	 * @param
+	 * @param v
+	 * @param m
+	 * @param s
+	 * @return
+	 */
+	template<int I, typename ... Args>
+	inline int _GetConnectedElement(Int2Type<I>, Int2Type<I>, index_type *v, int m, Args ... s) const
 	{
 		if (v != nullptr)
 			v[0] = GetIndex(s...);
@@ -352,7 +363,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetVerticesOfElement(Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetConnectedElement(Int2Type<1>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
 		v[0] = GetIndex(s...);
 		v[1] = Shift(INC(m), s...);
@@ -360,41 +371,354 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetVerticesOfElement(Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetConnectedElement(Int2Type<2>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   2---------------*
+		 *        |  /|              /|
+		 *          / |             / |
+		 *         /  |            /  |
+		 *        3---|-----------*   |
+		 *        | m |           |   |
+		 *        |   1-----------|---*
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 *        0---------------*---> x
+		 *
+		 *
+		 */
+
 		if (v != nullptr)
 		{
 			v[0] = GetIndex(s...);
 			v[1] = Shift(INC(m + 1), s...);
-			v[2] = Shift(INC(m + 1), s...);
-			v[3] = Shift(INC(m + 1) | INC(m + 2), s...);
+			v[2] = Shift(INC(m + 1) | INC(m + 2), s...);
+			v[3] = Shift(INC(m + 2), s...);
 		}
 		return 4;
 	}
 
 	template<typename ... Args>
-	inline int _GetVerticesOfElement(Int2Type<3>, index_type *v, int m, Args ... s) const
+	inline int _GetConnectedElement(Int2Type<3>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *          / |             / |
+		 *         /  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 *        0---------------1   ---> x
+		 *
+		 *
+		 */
+
 		if (v != nullptr)
 		{
 			v[0] = GetIndex(s...);
-			v[1] = Shift(INC(m + 1), s...);
-			v[2] = Shift(INC(m + 2), s...);
-			v[3] = Shift(INC(m + 1) | INC(m + 2), s...);
+			v[1] = Shift(INC(0), s...);
+			v[2] = Shift(INC(1) | INC(1), s...);
+			v[3] = Shift(INC(1), s...);
 
-			v[4] = GetIndex(s...);
-			v[5] = Shift(INC(m) | INC(m + 1), s...);
-			v[6] = Shift(INC(m) | INC(m + 2), s...);
-			v[7] = Shift(INC(m) | INC(m + 1) | INC(m + 2), s...);
+			v[4] = Shift(INC(2), s...);
+			v[5] = Shift(INC(2) | INC(0), s...);
+			v[6] = Shift(INC(2) | INC(1) | INC(1), s...);
+			v[7] = Shift(INC(2) | INC(1), s...);
 		}
 		return 8;
 	}
 
-public:
-	template<int IForm, typename ... Args>
-	inline index_type GetVerticesOfCell(index_type *v, int m, Args ... s) const
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<0>, Int2Type<1>, index_type *v, int m, Args ... s) const
 	{
-		return _GetVerticesOfElement(Int2Type<IForm>(), v, m, s...);
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *          2 |             / |
+		 *         /  1            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        3  /            |  /
+		 *        | 0             | /
+		 *        |/              |/
+		 *        0------E0-------1   ---> x
+		 *
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(1, 0, s...);
+			v[1] = GetComponentIndex(1, 1, s...);
+			v[2] = GetComponentIndex(1, 2, s...);
+			v[3] = GetComponentIndex(1, 0, Shift(DES(0), s...));
+			v[4] = GetComponentIndex(1, 1, Shift(DES(1), s...));
+			v[5] = GetComponentIndex(1, 2, Shift(DES(2), s...));
+		}
+		return 6;
+	}
+
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<2>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *          2 |             / |
+		 *         /  1            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        3  /            |  /
+		 *        | 0             | /
+		 *        |/              |/
+		 *        0---------------1   ---> x
+		 *
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(1, (m + 1) % 3, s...);
+			v[1] = GetComponentIndex(1, (m + 2) % 3, s...);
+			v[2] = GetComponentIndex(1, (m + 2) % 3, Shift(INC(m + 1), s...));
+			v[2] = GetComponentIndex(1, (m + 1) % 3, Shift(INC(m + 2), s...));
+		}
+		return 4;
+	}
+
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<3>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6------10-------7
+		 *        |  /|              /|
+		 *         11 |             9 |
+		 *         /  7            /  6
+		 *        4---|---8-------5   |
+		 *        |   |           |   |
+		 *        |   2-------2---|---3
+		 *        4  /            5  /
+		 *        | 3             | 1
+		 *        |/              |/
+		 *        0-------0-------1   ---> x
+		 *
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(1, 0, s...);
+			v[1] = GetComponentIndex(1, 1, Shift(INC(0), s...));
+			v[2] = GetComponentIndex(1, 0, Shift(INC(1), s...));
+			v[3] = GetComponentIndex(1, 1, s...);
+
+			v[4] = GetComponentIndex(1, 2, s...);
+			v[5] = GetComponentIndex(1, 2, Shift(INC(0), s...));
+			v[6] = GetComponentIndex(1, 2, Shift(INC(1), s...));
+			v[7] = GetComponentIndex(1, 2, s...);
+
+			v[8] = GetComponentIndex(1, 0, Shift(INC(2), s...));
+			v[9] = GetComponentIndex(1, 1, Shift(INC(2) | INC(0), s...));
+			v[10] = GetComponentIndex(1, 0, Shift(INC(2) | INC(1), s...));
+			v[11] = GetComponentIndex(1, 1, Shift(INC(2), s...));
+
+		}
+		return 12;
+	}
+
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<0>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	{
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        | 0 2-----------|---3
+		 *        |  /            |  /
+		 *   11   | /      8      | /
+		 *      3 |/              |/
+		 * -------0---------------1   ---> x
+		 *       /| 1
+		 *10    / |     9
+		 *     /  |
+		 *      2 |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(2, 0, s...);
+			v[1] = GetComponentIndex(2, 0, Shift(DES(2), s...));
+			v[2] = GetComponentIndex(2, 0, Shift(DES(2) | DES(1), s...));
+			v[3] = GetComponentIndex(2, 0, Shift(DES(1), s...));
+
+			v[4] = GetComponentIndex(2, 1, s...);
+			v[5] = GetComponentIndex(2, 1, Shift(DES(2), s...));
+			v[6] = GetComponentIndex(2, 1, Shift(DES(0) | DES(2), s...));
+			v[7] = GetComponentIndex(2, 1, Shift(DES(0), s...));
+
+			v[8] = GetComponentIndex(2, 2, s...);
+			v[9] = GetComponentIndex(2, 2, Shift(DES(1), s...));
+			v[10] = GetComponentIndex(2, 2, Shift(DES(1) | DES(0), s...));
+			v[11] = GetComponentIndex(2, 2, Shift(DES(0), s...));
+
+		}
+		return 12;
+	}
+
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<1>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        |  /  0         |  /
+		 *        | /      1      | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *      / |   3
+		 *     /  |       2
+		 *        |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(2, (m + 1) % 3, s...);
+			v[1] = GetComponentIndex(2, (m + 2) % 3, s...);
+			v[2] = GetComponentIndex(2, (m + 1) % 3, Shift(DES(m + 2), s...));
+			v[2] = GetComponentIndex(2, (m + 2) % 3, Shift(DES(m + 1), s...));
+		}
+		return 4;
+	}
+
+	template<typename ... Args>
+	inline int _GetConnectedElement(Int2Type<3>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |    5        / |
+		 *        |/  |     1      /  |
+		 *        4---|-----------5   |
+		 *        | 0 |           | 2 |
+		 *        |   2-----------|---3
+		 *        |  /    3       |  /
+		 *        | /       4     | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *
+		 */
+
+		if (v != nullptr)
+		{
+			v[0] = GetComponentIndex(2, 0, s...);
+			v[1] = GetComponentIndex(2, 1, Shift(INC(1), s...));
+			v[2] = GetComponentIndex(2, 0, Shift(INC(0), s...));
+			v[3] = GetComponentIndex(2, 1, s...);
+
+			v[4] = GetComponentIndex(2, 2, s...);
+			v[5] = GetComponentIndex(2, 2, Shift(INC(0), s...));
+
+		}
+		return 6;
+	}
+
+public:
+//	template<int IForm, typename ... Args>
+//	inline index_type GetVerticesOfCell(index_type *v, int m, Args ... s) const
+//	{
+//		return _GetVerticesOfElement(Int2Type<IForm>(), v, m, s...);
+//
+//	}
+
+	template<int IN, int OUT, typename ... Args>
+	inline index_type GetConnectedElement(Int2Type<IN>, Int2Type<OUT>, index_type *v, int m, Args ... s) const
+	{
+		return _GetVerticesOfElement(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
 
 	}
 
