@@ -84,11 +84,12 @@ Particles=
      {Name="ele",Mass=1.0/1836.2,Charge=-1.0,Engine="ColdFluid",T=Te}         
  }
 
-MediaTag=
+Media=
 {
-  DefaultTag="Vacuum",
-  {Region={{0.05*LX,0.0,0.0},{LX,0.0,0.0}},Type="Plasma"}
+  { Region="Default",Type="Vacuum"},
+  { Region={{0.05*LX,0.0,0.0},{LX,0.0,0.0}}, Type="Plasma",OutType="Vacuum"},
 }
+
 Interface
 {
    {In="Plasma",Out="Vacuum",Type="PEC"},

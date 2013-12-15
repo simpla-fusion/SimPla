@@ -8,9 +8,10 @@
 #ifndef MEDIA_TAG_H_
 #define MEDIA_TAG_H_
 
+#include <algorithm>
 #include <bitset>
 #include <cstddef>
-//#include <vector>
+#include <functional>
 
 #include "../fetl/primitives.h"
 #include "../utilities/log.h"
@@ -174,9 +175,6 @@ public:
 		_UpdateTags<3>();
 	}
 
-
-
-
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -305,12 +303,11 @@ private:
 		}, mesh_type::DO_PARALLEL)
 	}
 
-//	void _ForEachElementCrossInterface(Int2Type<0>, std::function<void(int, index_type)> const &fun, unsigned int in,
-//	        unsigned int out, unsigned int) const
-//	{
-//		DEADEND << "the volume of point is zero, vertex only "
-//				"can have one media tag, and can not cross interface!";
-//	}
+	void _ForEachElementCrossInterface(Int2Type<0>, std::function<void(int, index_type)> const &fun, unsigned int in,
+	        unsigned int out, unsigned int) const
+	{
+		DEADEND << "the volume of point is zero, which can not cross interface!";
+	}
 
 };
 
