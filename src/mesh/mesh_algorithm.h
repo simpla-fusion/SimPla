@@ -10,7 +10,6 @@
 #include "pointinpolygen.h"
 namespace simpla
 {
-
 /**
  *
  * @param mesh mesh
@@ -30,11 +29,10 @@ namespace simpla
  *           Z==2    polyline on xy-plane
  *           Z>=3
  */
-
 template<typename TM>
-void SelectVerticsInRegion(
-        std::function<void(typename TM::index_type const &, typename TM::coordinates_type const &)> const &fun,
-        TM const & mesh, std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
+void SelectVericsInRegion(std::function<void(typename TM::index_type const &)> const & fun_in_circle,
+        std::function<void(typename TM::index_type const &)> const & fun_out_circle, TM const & mesh,
+        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
 	typedef TM mesh_type;
@@ -43,8 +41,15 @@ void SelectVerticsInRegion(
 
 	if (points.size() == 1)
 	{
-		index_type s = mesh.GetNearestVertex(points[0]);
-		fun(s, mesh.GetCoordinates(0, s));
+		index_type idx = mesh.GetNearestVertex(points[0]);
+
+		if (fun_in_circle)
+			fun_in_circle(idx);
+
+		if (fun_out_circle)
+			mesh.TraversalCoordinates(0, [&]( index_type const&s , coordinates_type const &x)
+			{	if(s!=idx) fun_out_circle(s );}, mesh.WITH_GHOSTS);
+
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
@@ -55,13 +60,19 @@ void SelectVerticsInRegion(
 		[&](typename mesh_type::index_type const&s ,
 				typename mesh_type:: coordinates_type const &x)
 		{
-			if((((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
+			if(
+					(((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
 					(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
 					(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
 			)
 			{
-				fun(s,x);
+				if(fun_in_circle) fun_in_circle(s);
 			}
+			else
+			{
+				if(fun_out_circle)fun_out_circle(s);
+			}
+
 		},
 
 		mesh.WITH_GHOSTS);
@@ -78,8 +89,13 @@ void SelectVerticsInRegion(
 		{
 			if(checkPointsInPolygen(x))
 			{
-				fun(s,x);
+				if(fun_in_circle) fun_in_circle(s);
 			}
+			else
+			{
+				if(fun_out_circle)fun_out_circle(s);
+			}
+
 		},
 
 		mesh.WITH_GHOSTS);
