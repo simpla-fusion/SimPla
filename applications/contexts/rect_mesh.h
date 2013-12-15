@@ -70,7 +70,7 @@ public:
 	bool dumpInOneDataSet_;
 
 	typedef typename Form<1>::field_value_type field_value_type;
-	typedef std::function<field_value_type(Real, Real, Real)> field_function;
+	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
 
 	FieldFunction<decltype(J1), field_function> j_src_;
 	FieldFunction<decltype(E1), field_function> pec_boundary_;

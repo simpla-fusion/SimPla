@@ -39,13 +39,9 @@ public:
 	{
 	}
 
-	FieldFunction(FieldFunction const& r) :
-			def_domain_(r.def_domain_), fun_(r.fun_)
-	{
-	}
-
-	FieldFunction(FieldFunction&& r) :
-			def_domain_(r.def_domain_), fun_(r.fun_)
+	template<typename F>
+	explicit FieldFunction(F const & f) :
+			fun_( f )
 	{
 	}
 

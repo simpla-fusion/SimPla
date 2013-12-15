@@ -47,25 +47,22 @@ void SelectPointsInRegion(
 
 	if (points.size() == 1)
 	{
-		index_type s = mesh.GetNearestPoints(points[0]);
+		index_type s = mesh.GetNearestPoint(points[0]);
 		fun(s, mesh.GetCoordinates(0, s));
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
 		coordinates_type v0 = points[0];
 		coordinates_type v1 = points[1];
-		TraversalCoordinates(0,
+		mesh.TraversalCoordinates(0,
 
 		[&](typename mesh_type::index_type const&s ,
 				typename mesh_type:: coordinates_type const &x)
 		{
-			bool flag=true;
-			for(int i=0;i<3;++i)
-			{
-				if(v0[i]!=v1[i])
-				flag&=((v0[i]-x[i])*(x[i]-v1[i])>=0));
-			}
-			if(flag)
+			if((((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
+					(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
+					(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
+			)
 			{
 				fun(s,x);
 			}
