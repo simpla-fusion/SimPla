@@ -91,55 +91,45 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	typedef typename TestFixture::FieldType::value_type value_type;
 
 	value_type a; a = 3.0;
-	f1.Init();
-//
-//	for(auto &v:f1)
-//	{
-//		v=0;
-//	}
 
-	f2.Init();
-	for(auto &v:f2)
-	{
-		v=a;
-	}
+	TestFixture::mesh.TraversalIndex(
+
+			TestFixture::FieldType::IForm,
+
+			[&](typename Mesh::index_type const &s)
+			{
+				f1[s]=0;
+				f2[s]=a;
+			}
+	);
 
 	TestFixture::mesh.ForEach( [&](value_type const & v)
 			{	ASSERT_EQ(a,v)<<"idx="<< v;},f2 );
 
-	size_t s=0;
 	TestFixture::mesh.ForEach( [&](value_type & v)
 			{	v=a*2.0;},&f1 );
 
 	f1 += f2;
 
-	s=0;
-	TestFixture::mesh.ForEach(
+	typename TestFixture::FieldType::value_type res;
 
+	res=a+a*2.0;
+
+	size_t count=0;
+
+	TestFixture::mesh.ForEach(
 			[& ](typename TestFixture::FieldType::value_type v)
-			{
-				typename TestFixture::FieldType::value_type res;
-				res=a+a*2.0;
-				ASSERT_EQ( res,v);
-			}
-			,f1
-	);
+			{	count+=(res!=v?1:0);},f1 );
+
+	ASSERT_EQ(count,0);
 
 	f1*=2.0;
 
-	s=0;
+	res=(a+a*2.0)*2.0;
+
 	TestFixture::mesh.ForEach(
-
 			[& ](typename TestFixture::FieldType::value_type v)
-			{
-
-				typename TestFixture::FieldType::value_type res;
-				res=(a+a*2.0)*2.0;
-				ASSERT_EQ( res,v);
-				++s;
-			},
-			f1
-	);
+			{	ASSERT_EQ( res,v);}, f1 );
 }
 }
 TYPED_TEST(TestFETLBasicArithmetic, constant_real){

@@ -61,14 +61,8 @@ public:
 
 	inline void SetDefineDomain(mesh_type const & mesh, std::vector<coordinates_type>const& polyline)
 	{
-		SelectVerticsInRegion(
-
-		[&](index_type const & s, coordinates_type const &)
-		{
-			mesh.TraversalSubComponent(IForm,s, [&](index_type s)
-					{	def_domain_.push_back(s);}
-			);
-		}, mesh, polyline);
+		SelectCellsInRegion([&](bool isSelected,index_type const & s )
+		{	if(isSelected) def_domain_.push_back(s);}, mesh, polyline);
 
 	}
 	inline std::vector<index_type> const & GetDefineDomain() const

@@ -11,7 +11,11 @@
 #include <memory>
 #include "singleton_holder.h"
 #include "log.h"
+namespace simpla
+{
 
+typedef int8_t byte_type;
+void deallocate_m(void *p);
 class MemoryPool: public SingletonHolder<MemoryPool>
 {
 private:
@@ -24,8 +28,6 @@ private:
 
 	std::multimap<size_t, std::shared_ptr<void> > pool_;
 
-	typedef int8_t byte_t;
-
 	size_t MAX_POOL_SIZE;
 
 	const size_t ONE_GIGA = 1024l * 1024l * 1024l;
@@ -34,8 +36,8 @@ private:
 
 public:
 
-	MemoryPool() :
-			MAX_POOL_SIZE(2), ratio_(2) //2G
+	MemoryPool()
+			: MAX_POOL_SIZE(2), ratio_(2) //2G
 	{
 	}
 	~MemoryPool()
@@ -54,8 +56,7 @@ public:
 	 * @param in_used
 	 * @return
 	 */
-	size_t GetMemorySize(size_t * p_unused = nullptr,
-			size_t * p_used = nullptr) const
+	size_t GetMemorySize(size_t * p_unused = nullptr, size_t * p_used = nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
@@ -82,8 +83,7 @@ public:
 		return unused_memory + used_memory;
 	}
 
-	double GetMemorySizeInGB(double * p_unused = nullptr, double * p_used =
-			nullptr) const
+	double GetMemorySizeInGB(double * p_unused = nullptr, double * p_used = nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
@@ -91,57 +91,20 @@ public:
 
 		if (p_unused != nullptr)
 		{
-			*p_unused = static_cast<double>(unused_memory)
-					/ static_cast<double>(ONE_GIGA);
+			*p_unused = static_cast<double>(unused_memory) / static_cast<double>(ONE_GIGA);
 		}
 
 		if (p_used != nullptr)
 		{
-			*p_used = static_cast<double>(used_memory)
-					/ static_cast<double>(ONE_GIGA);
+			*p_used = static_cast<double>(used_memory) / static_cast<double>(ONE_GIGA);
 		}
 
 		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
 	}
 
-	inline std::shared_ptr<void> allocate_shared_ptr(size_t demand)
-	{
-		std::shared_ptr<void> res(nullptr);
-
-		// find memory block which is not smaller than demand size
-		auto pt = pool_.lower_bound(demand);
-
-		for (auto & p : pool_)
-		{
-			//release memory if block is free and size < ratio_ * demand
-			if (p.second.unique() && p.first < ratio_ * demand)
-			{
-				res = p.second;
-				break;
-			}
-		}
-
-		// if there is no proper memory block available , allocate new memory block
-		if (res == nullptr)
-		{
-			try
-			{
-				res = std::shared_ptr<void>(new byte_t[demand]);
-
-			} catch (std::bad_alloc const &error)
-			{
-				ERROR_BAD_ALLOC_MEMORY(demand, error);
-			}
-
-			// put new memory into pool
-			pool_.insert(std::make_pair(demand, res));
-		}
-		return res;
-	}
-
 	inline void * allocate(size_t size)
 	{
-		std::shared_ptr<void> res = allocate_shared_ptr(size);
+		std::shared_ptr<void> res = _allocate_shared_ptr(size);
 
 		released_raw_ptr_[std::hash<std::shared_ptr<void>>()(res)] = res;
 
@@ -166,7 +129,48 @@ public:
 		ReleaseMemory();
 	}
 
+	template<typename TV>
+	inline std::shared_ptr<TV> allocate_shared_ptr(size_t demand)
+	{
+		return std::shared_ptr<TV>(reinterpret_cast<TV*>(allocate(demand * sizeof(TV))), deallocate_m);
+	}
+
 private:
+
+	inline std::shared_ptr<void> _allocate_shared_ptr(size_t demand)
+	{
+		std::shared_ptr<void> res(nullptr);
+
+		// find memory block which is not smaller than demand size
+		auto pt = pool_.lower_bound(demand);
+
+		for (auto & p : pool_)
+		{
+			//release memory if block is free and size < ratio_ * demand
+			if (p.second.unique() && p.first < ratio_ * demand)
+			{
+				res = p.second;
+				break;
+			}
+		}
+
+		// if there is no proper memory block available , allocate new memory block
+		if (res == nullptr)
+		{
+			try
+			{
+				res = std::shared_ptr<void>(new byte_type[demand]);
+
+			} catch (std::bad_alloc const &error)
+			{
+				ERROR_BAD_ALLOC_MEMORY(demand, error);
+			}
+
+			// put new memory into pool
+			pool_.insert(std::make_pair(demand, res));
+		}
+		return res;
+	}
 	inline void ReleaseMemory()
 	{
 		// the size of allocated memory
@@ -192,4 +196,11 @@ private:
 };
 
 #define MEMPOOL MemoryPool::instance()
+
+inline void deallocate_m(void *p)
+{
+	MemoryPool::instance().deallocate(p);
+}
+}  // namespace simpla
+
 #endif  // INCLUDE_MEMORY_POOL_H_

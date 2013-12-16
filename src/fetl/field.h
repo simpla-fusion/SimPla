@@ -29,7 +29,7 @@ template<typename TG, typename TValue> struct Field;
  */
 
 template<typename TG, typename TValue>
-struct Field: public TG::mesh_type::template Container<TValue>
+struct Field
 {
 public:
 
@@ -56,22 +56,29 @@ public:
 
 	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
 
+	typedef typename mesh_type::template Container<value_type> container_type;
+
+private:
+	container_type data_;
+public:
+
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
+	Field(mesh_type const &pmesh, value_type d_value = value_type())
 			: mesh(pmesh)
 	{
+		*this = d_value;
 	}
 
-	Field(mesh_type const &pmesh, value_type default_value)
-			: base_type(pmesh.template MakeContainer<IForm, value_type>(default_value)), mesh(pmesh)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(rhs.data_)
 	{
-
 	}
 
-	Field(this_type const & f) = delete;
-
-	Field(this_type &&rhs) = delete;
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_)
+	{
+	}
 
 	virtual ~Field()
 	{
@@ -82,6 +89,40 @@ public:
 		base_type::swap(rhs);
 	}
 
+	container_type & data()
+	{
+		return data_;
+	}
+
+	const container_type & data() const
+	{
+		return data_;
+	}
+	size_t size() const
+	{
+		return (data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
+	}
+
+	typedef value_type* iterator;
+
+	iterator begin()
+	{
+		return &mesh.get_value(data_, 0);
+	}
+	iterator end()
+	{
+		return &mesh.get_value(data_, size());
+	}
+
+	const iterator begin() const
+	{
+		return &mesh.get_value(data_, 0);
+	}
+	const iterator end() const
+	{
+		return &mesh.get_value(data_, size());
+	}
+
 	inline std::vector<size_t> GetShape() const
 	{
 		return std::move(mesh.GetShape(IForm));
@@ -89,36 +130,35 @@ public:
 
 	inline value_type & operator[](size_t s)
 	{
-		return base_type::operator[](s);
+		return mesh.get_value(data_, s);
 	}
 	inline value_type const & operator[](size_t s) const
 	{
-		return base_type::operator[](s);
+		return mesh.get_value(data_, s);
 	}
 
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		return base_type::operator[](mesh.GetComponentIndex(IForm, s...));
+		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
 	{
-		return base_type::operator[](mesh.GetComponentIndex(IForm, s...));
+		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
 	}
 
 	void Init()
 	{
-		value_type default_value;
-		default_value = 0;
-		if (this->empty())
-			this->resize(mesh.GetNumOfElements(IForm), default_value);
+		if (data_ == nullptr)
+			data_ = mesh.template MakeContainer<IForm, value_type>();
 
 	}
 
 	inline this_type &
 	operator =(this_type const & rhs)
 	{
+		Init();
 		mesh.AssignContainer(IForm, this, rhs);
 		return (*this);
 	}
@@ -126,6 +166,7 @@ public:
 	template<typename TR> inline this_type &
 	operator =(TR const & rhs)
 	{
+		Init();
 		mesh.AssignContainer(IForm, this, rhs);
 		return (*this);
 	}
@@ -133,11 +174,9 @@ public:
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
-	{                                                                                              \
-		mesh.ForEach(                                                                              \
-	      [](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
-	            {	l _OP_ r;},	 this,rhs);                                 \
-	            return (*this);}
+	{   Init();                                                                                    \
+		mesh.ForEach(   [](value_type &l,typename FieldTraits<TR>::value_type const & r)           \
+	            {	l _OP_ r;},	 this,rhs);     return (*this);}
 
 	DECL_SELF_ASSIGN (+=)
 

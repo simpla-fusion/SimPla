@@ -185,25 +185,27 @@ public:
 
 #define GLOBAL_DATA_STREAM DataStream::instance()
 
-template<typename T>
+template<typename TV>
 class DataSet
 {
 
-	T const & data_;
+	std::shared_ptr<TV> data_;
 	std::string name_;
 	bool APPEND_;
 	std::vector<size_t> dims_;
 public:
 
+	typedef TV value_type;
+
 	static const size_t LIGHT_DATA_LIMIT = 256;
 
-	DataSet(T const & d, std::string const &name = "unnamed", bool flag = false)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", bool flag = false)
 			: data_(d), name_(name), APPEND_(flag)
 	{
 	}
 
-	DataSet(T const & d, std::string const &name = "unnamed", int rank = 1, size_t const* dims = nullptr, bool flag =
-	        false)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", int rank = 1, size_t const* dims =
+	        nullptr, bool flag = false)
 			: data_(d), name_(name), APPEND_(flag)
 	{
 		if (dims != nullptr && rank > 0)
@@ -221,7 +223,7 @@ public:
 	}
 
 	template<int N, typename TI>
-	DataSet(T const & d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
 			: data_(d), name_(name), APPEND_(flag)
 	{
 		for (size_t i = 0; i < N; ++i)
@@ -230,12 +232,12 @@ public:
 		}
 	}
 
-	DataSet(T const & d, std::string const &name, std::vector<size_t> const & dims, bool flag = false)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name, std::vector<size_t> const & dims, bool flag = false)
 			: data_(d), name_(name), dims_(dims), APPEND_(flag)
 	{
 	}
 
-	DataSet(T const & d, std::string &&name, std::vector<size_t> && dims, bool flag = false)
+	DataSet(std::shared_ptr<TV> const & d, std::string &&name, std::vector<size_t> && dims, bool flag = false)
 			: data_(d), name_(name), dims_(dims), APPEND_(flag)
 	{
 	}
@@ -249,14 +251,28 @@ public:
 	{
 
 	}
+	inline size_t size() const
+	{
+		size_t s = 1;
+		for (auto const &d : dims_)
+		{
+			s *= d;
+		}
+		return s;
 
+	}
 	bool IsHeavyData() const
 	{
-		return data_.size() > LIGHT_DATA_LIMIT;
+		return size() > LIGHT_DATA_LIMIT;
 	}
-	inline T const & GetData() const
+	inline const std::shared_ptr<value_type> data() const
 	{
 		return data_;
+	}
+
+	inline const value_type* get() const
+	{
+		return data_.get();
 	}
 
 	bool IsAppendable() const
@@ -274,9 +290,17 @@ public:
 	}
 };
 
-template<typename T, typename ... Args> inline DataSet<T> Data(T const & d, Args const & ... args)
+template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
 {
-	return std::move(DataSet<T>(d, std::forward<Args const &>(args)...));
+	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
+}
+template<typename, typename > class Field;
+
+template<typename TG, typename TV, typename ... Args> inline DataSet<TV> Data(Field<TG, TV> const & d,
+        Args const & ... args)
+
+{
+	return std::move(DataSet<TV>(d.data(), std::forward<Args const &>(args)...));
 }
 
 template<typename U>
@@ -284,7 +308,7 @@ std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {
 	if (!d.IsHeavyData())
 	{
-		os << "{" << d.GetData() << "}";
+		os << "{" << "!!UNIMPLEMENT!! print small array" << "}";
 	}
 	else
 	{
@@ -368,28 +392,18 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
         bool is_apppendable);
 
-template<typename U, typename ... Args>
-std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
-{
-
-	return std::move(HDF5Write(grp, d.GetData(), d.GetName(), d.GetDims(), d.IsAppendable()),
-	        std::forward<Args const &>(args)...);
-}
-template<typename TV, typename ...Others>
-std::string HDF5Write(hid_t grp, std::vector<TV, Others...> const &v, std::string const &name,
-        std::vector<size_t> const &d, bool APPEND)
+template<typename TV>
+std::string HDF5Write(hid_t grp, TV const *v, std::string const &name, std::vector<size_t> const &d, bool APPEND)
 {
 
 	std::vector<size_t> dims;
 
 	if (!d.empty())
 	{
-		std::vector<size_t>(d).swap(dims);
+		ERROR << "Unknown size dataset! ";
 	}
-	else
-	{
-		dims.push_back(v.size());
-	}
+
+	std::vector<size_t>(d).swap(dims);
 
 	if (is_nTuple<TV>::value)
 	{
@@ -398,7 +412,7 @@ std::string HDF5Write(hid_t grp, std::vector<TV, Others...> const &v, std::strin
 
 //	auto mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>();
 
-	std::string res = HDF5Write(grp, static_cast<void const*>(&v[0]), name,
+	std::string res = HDF5Write(grp, reinterpret_cast<void const*>(v), name,
 
 	HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
 
@@ -406,6 +420,14 @@ std::string HDF5Write(hid_t grp, std::vector<TV, Others...> const &v, std::strin
 
 	return res;
 
+}
+
+template<typename U, typename ... Args>
+std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
+{
+
+	return std::move(HDF5Write(grp, d.get(), d.GetName(), d.GetDims(), d.IsAppendable()),
+	        std::forward<Args const &>(args)...);
 }
 }
 // namespace simpla
