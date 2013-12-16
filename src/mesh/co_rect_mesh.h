@@ -1138,11 +1138,12 @@ public:
 	mapto(Int2Type<IF>, T const &l, ...) const
 	ENABLE_IF_DECL_RET_TYPE(is_primitive<T>::value,l)
 
-	template<int IF, typename TL, typename ...TI> inline auto mapto(Int2Type<IF>,
-	Field<Geometry<this_type, IF>, TL> const &l, TI ... s) const
+	template<int IF, typename TL, typename ...TI> inline auto
+	mapto(Int2Type<IF>, Field<Geometry<this_type, IF>, TL> const &l, TI ... s) const
 	DECL_RET_TYPE ((get(l,s...)))
 
-	template<typename TL, typename ...IDXS> inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
+	template<typename TL, typename ...IDXS> inline auto
+	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
 	int m, IDXS ... s) const
 	DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
 
@@ -1175,41 +1176,96 @@ public:
 	))
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l, TI ... s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l, int m,TI ...s) const
+	DECL_RET_TYPE( (get(l,m,s...)+get(l,m,Shift(DES(m),s...)))*0.5 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l, TI ...s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l,int m, TI ...s) const
+	DECL_RET_TYPE( (get(l,m,s...)+
+			get(l,m,Shift(INC(m+1),s...))+
+			get(l,m,Shift(INC(m+2),s...))+
+			get(l,m,Shift(INC(m+1)|INC(m+2),s...))+
+
+			get(l,m,Shift(DES(m),s...))+
+			get(l,m,Shift(DES(m)|INC(m+1),s...))+
+			get(l,m,Shift(DES(m)|INC(m+2),s...))+
+			get(l,m,Shift(DES(m)|INC(m+1)|INC(m+2),s...))
+	)*0.125 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l, TI ... s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l,int m, TI ... s) const
+	DECL_RET_TYPE( (get(l,m,s...)+
+			get(l,m,Shift(INC(m+1),s...))+
+			get(l,m,Shift(INC(m+2),s...))+
+			get(l,m,Shift(INC(m+1)|INC(m+2),s...))
+	)*0.25 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l, TI ...s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l, int m,TI ... s) const
+	DECL_RET_TYPE( (get(l,m,s...)+
+			get(l,m,Shift(DES(m+1),s...))+
+			get(l,m,Shift(DES(m+2),s...))+
+			get(l,m,Shift(DES(m+1)|DES(m+2),s...))
+	)*0.25 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l, TI ...s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l, int m,TI ... s) const
+	DECL_RET_TYPE( (
+			get(l,m,s...)+
+			get(l,m,Shift(DES(m+1),s...))+
+			get(l,m,Shift(DES(m+2),s...))+
+			get(l,m,Shift(DES(m+1)|DES(m+2),s...))+
+
+			get(l,m,Shift(INC(m),s...))+
+			get(l,m,Shift(INC(m)|DES(m+1),s...))+
+			get(l,m,Shift(INC(m)|DES(m+2),s...))+
+			get(l,m,Shift(INC(m)|DES(m+1)|DES(m+2),s...))
+	)*0.125 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l, TI ... s) const
-	DECL_RET_TYPE( (get(l,s...)) )
+	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l,int m, TI ... s) const
+	DECL_RET_TYPE( (get(l,m,s...)+ get(l,m,Shift(INC(m),s...)) )*0.5 )
+
+	template<typename TL, typename ...TI>
+	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 3>, TL> const &l, int m,TI ...s) const
+	DECL_RET_TYPE(
+	(
+			get(l,m,s...)+
+			get(l,m,Shift(DES(0),s...))+
+			get(l,m,Shift(DES(1),s...))+
+			get(l,m,Shift(DES(0)|DES(1),s...))+
+
+			get(l,m,Shift(DES(2),s...))+
+			get(l,m,Shift(DES(2)|DES(0),s...))+
+			get(l,m,Shift(DES(2)|DES(1),s...))+
+			get(l,m,Shift(DES(2)|DES(0)|DES(1),s...))
+	)*0.125 )
+
+	template<typename TL, typename ...TI>
+	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 3>, TL> const &l, int m,TI ...s) const
+	DECL_RET_TYPE(
+	(
+			get(l,m,s...)+
+			get(l,m,Shift(DES(m+1),s...))+
+			get(l,m,Shift(DES(m+2),s...))+
+			get(l,m,Shift(DES(m+1)|DES(m+2),s...))
+
+	)*0.25 )
+
+	template<typename TL, typename ...TI>
+	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 3>, TL> const &l,int m, TI ... s) const
+	DECL_RET_TYPE( (get(l,m,s...)+ get(l,m,Shift(DES(m),s...)) )*0.5 )
 
 //-----------------------------------------
 // Vector Arithmetic
 //-----------------------------------------
 
-	template<typename TExpr, typename ... IDXS> inline auto OpEval(Int2Type<GRAD>,
-	Field<Geometry<this_type, 0>, TExpr> const & f, int m, IDXS ... s) const
-	DECL_RET_TYPE(
-	( get(f,0,Shift(INC(m),s...))* dS_[0][m] )
-	+get(f,0,s...)* dS_[1][m])
+	template<typename TExpr, typename ... IDXS> inline auto
+	OpEval(Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f, int m, IDXS ... s) const
+	DECL_RET_TYPE( ( get(f,0,Shift(INC(m),s...))* dS_[0][m] ) +get(f,0,s...)* dS_[1][m])
 
-	template<typename TExpr, typename ...IDX> inline auto OpEval(Int2Type<DIVERGE>,
-	Field<Geometry<this_type, 1>, TExpr> const & f, int m, IDX ...s) const
+	template<typename TExpr, typename ...IDX> inline auto
+	OpEval(Int2Type<DIVERGE>,Field<Geometry<this_type, 1>, TExpr> const & f, int m, IDX ...s) const
 	DECL_RET_TYPE((
 
 			(get(f,0,s...)* dS_[0][0] + get(f,0,Shift( NX,s...))* dS_[1][0]) +
@@ -1298,6 +1354,27 @@ public:
 	template<int IL, typename TL, typename ...TI> inline auto OpEval(Int2Type<HODGESTAR>,
 	Field<Geometry<this_type, IL>, TL> const & f, TI ... s) const
 	DECL_RET_TYPE(( mapto(Int2Type<this_type::NUM_OF_DIMS-IL >(),f,s...)))
+
+	/**
+	 * non-standard Vector Field operator
+	 *
+	 */
+	template< typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<DOT>,
+	Field<Geometry<this_type, 1>, TL> const &l, Field<Geometry<this_type, 1>, TR> const &r,int m, TI ... s) const
+	DECL_RET_TYPE( (
+			mapto(Int2Type<0>(),l,0,s...)* mapto(Int2Type<0>(),r,0,s...)+
+			mapto(Int2Type<0>(),l,1,s...)* mapto(Int2Type<0>(),r,1,s...)+
+			mapto(Int2Type<0>(),l,2,s...)* mapto(Int2Type<0>(),r,2,s...)
+	))
+
+	template< typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<DOT>,
+	Field<Geometry<this_type, 2>, TL> const &l, Field<Geometry<this_type, 2>, TR> const &r,int m, TI ... s) const
+	DECL_RET_TYPE( (
+			mapto(Int2Type<0>(),l,0,s...)* mapto(Int2Type<0>(),r,0,s...)+
+			mapto(Int2Type<0>(),l,1,s...)* mapto(Int2Type<0>(),r,1,s...)+
+			mapto(Int2Type<0>(),l,2,s...)* mapto(Int2Type<0>(),r,2,s...)
+	))
+
 }
 ;
 template<typename TS>

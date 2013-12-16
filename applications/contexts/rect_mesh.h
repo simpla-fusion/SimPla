@@ -168,7 +168,9 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	os << cold_fluid_ << "\n";
 
-	os << particle_collection_ << "\n";
+//	os << particle_collection_ << "\n"
+
+	;
 
 	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
 
@@ -186,9 +188,9 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< "	B0 = " << Data(B0.data(), "B0", n0.GetShape()) << "\n"
 
-			<< "}" << "\n"
+	<< "}" << "\n"
 
-			;
+	;
 	return os;
 }
 template<typename TM>
@@ -205,11 +207,7 @@ void Context<TM>::NextTimeStep(double dt)
 
 //	particle_collection_.CollectAll(dt, &J1, E1, B1);
 //
-//	if (!cold_fluid_.IsEmpty())
-//	{
-//		cold_fluid_.Eval(dt, J1, &E1, &B1);
-//	}
-//	else
+	if (cold_fluid_.IsEmpty())
 	{
 		const double mu0 = mesh.constants["permeability of free space"];
 		const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -220,8 +218,11 @@ void Context<TM>::NextTimeStep(double dt)
 		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
 		B1 -= Curl(E1) * dt;
 	}
+	else
+	{
+		cold_fluid_.Eval(dt, J1, &E1, &B1);
+	}
 
-//
 //	particle_collection_.Push(dt, E1, B1);
 
 	LOGGER
