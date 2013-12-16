@@ -47,7 +47,7 @@ struct CoRectMesh
 	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr unsigned int NUM_OF_DIMS = 3;
 	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
-	static constexpr unsigned int DEFAULT_GHOST_WIDTH = 2;
+	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
 	typedef size_t index_type;
 
@@ -71,13 +71,12 @@ struct CoRectMesh
 
 	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
 
-	nTuple<NUM_OF_DIMS, size_t> gw_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 
 	nTuple<NUM_OF_DIMS, size_t> period_;
 
 	size_t num_cells_ = 0;
+
 	size_t num_grid_points_ = 0;
 
 	// Geometry
@@ -175,7 +174,6 @@ struct CoRectMesh
 		num_grid_points_ = 1;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			gw_[i] = (gw_[i] * 2 > dims_[i]) ? dims_[i] / 2 : gw_[i];
 			if (dims_[i] <= 1)
 			{
 				dims_[i] = 1;
@@ -861,13 +859,13 @@ public:
 	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, unsigned int flag, TF const & l, Args const& ... args) const
+	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);} /*, DO_PARALLEL*/);
 	}
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, unsigned int flag, TF *l, Args const& ... args) const
+	void ForEach(Fun const &fun, TF *l, Args const& ... args) const
 	{
 		if (l->empty())
 		{
@@ -875,7 +873,7 @@ public:
 		}
 
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}/*, DO_PARALLEL*/);
 	}
 
 //	template<typename Fun, typename TF, typename ... Args> inline
@@ -906,33 +904,7 @@ public:
 //		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, 0);
 //	}
 
-	template<typename TL, typename TR>
-	void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
-	{
-		if (lhs->empty())
-		{
-			lhs->reserve(GetNumOfElements(IFORM));
-			TraversalIndex(IFORM, [&](int m,size_t s)
-			{
-				typename FieldTraits<TL>::value_type v;
-				v=get(rhs,m,s);
-				lhs->base_type::push_back(v);
-			}, WITH_GHOSTS);
-		}
-		else
-		{
-			ForEach(
-
-			[](typename FieldTraits<TL>::value_type &l,
-					typename FieldTraits<TR>::value_type const & r)
-			{	l = r;},
-
-			(DO_PARALLEL),
-
-			lhs, rhs);
-		}
-
-	}
+	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const;
 
 // Properties of UniformRectMesh --------------------------------------
 	inline void SetPeriodicBoundary(int i)
@@ -1349,7 +1321,6 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 	constants.Deserialize(vm.GetChild("UnitSystem"));
 
 	vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
-	vm.GetChild("Topology").template GetValue("GhostWidth", &gw_);
 	vm.GetChild("Geometry").template GetValue("Min", &xmin_);
 	vm.GetChild("Geometry").template GetValue("Max", &xmax_);
 	vm.GetChild("Geometry").template GetValue("dt", &dt_);
@@ -1382,8 +1353,6 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 	<< "        Type = \"" << GetTopologyTypeAsString() << "\", \n"
 
 	<< "		Dimensions = {" << ToString(dims_, ",") << "}, \n "
-
-	<< "		GhostsWidth= {" << ToString(gw_, ",") << "}, \n "
 
 	<< "	}, \n "
 
@@ -1423,14 +1392,26 @@ template<typename TS>
 void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
         unsigned int flags) const
 {
-	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[0];
-	index_type ie = ((flags & WITH_GHOSTS) > 0) ? dims_[0] : dims_[0] - gw_[0];
+	index_type ib =
+	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
+	                0 : DEFAULT_GHOST_WIDTH;
+	index_type ie =
+	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
+	                dims_[0] : dims_[0] - DEFAULT_GHOST_WIDTH;
 
-	index_type jb = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[1];
-	index_type je = ((flags & WITH_GHOSTS) > 0) ? dims_[1] : dims_[1] - gw_[1];
+	index_type jb =
+	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
+	                0 : DEFAULT_GHOST_WIDTH;
+	index_type je =
+	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
+	                dims_[1] : dims_[1] - DEFAULT_GHOST_WIDTH;
 
-	index_type kb = ((flags & WITH_GHOSTS) > 0) ? 0 : gw_[2];
-	index_type ke = ((flags & WITH_GHOSTS) > 0) ? dims_[2] : dims_[2] - gw_[2];
+	index_type kb =
+	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
+	                0 : DEFAULT_GHOST_WIDTH;
+	index_type ke =
+	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
+	                dims_[2] : dims_[2] - DEFAULT_GHOST_WIDTH;
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];
@@ -1474,6 +1455,32 @@ void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, in
 	{
 		thread_fun(ib, ie);
 	}
+}
+template<typename TS>
+template<typename TL, typename TR>
+void CoRectMesh<TS>::AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
+{
+	if (lhs->empty())
+	{
+		lhs->reserve(GetNumOfElements(IFORM));
+		TraversalIndex(IFORM, [&](int m,size_t s)
+		{
+			typename FieldTraits<TL>::value_type v;
+			v=get(rhs,m,s);
+			lhs->base_type::push_back(v);
+		}, WITH_GHOSTS);
+	}
+	else
+	{
+		ForEach(
+
+		[](typename FieldTraits<TL>::value_type &l,
+				typename FieldTraits<TR>::value_type const & r)
+		{	l = r;},
+
+		lhs, rhs);
+	}
+
 }
 
 }

@@ -129,11 +129,8 @@ public:
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
-	{                                                                                              \
-		mesh.ForEach(                                                                              \
-	      [](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
-	            {	l _OP_ r;},	mesh_type::DO_PARALLEL,	this,rhs);                                 \
-	            return (*this);}
+	{mesh.ForEach([](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
+	            {l _OP_ r;}, this,rhs); return (*this);}
 
 	DECL_SELF_ASSIGN (+=)
 

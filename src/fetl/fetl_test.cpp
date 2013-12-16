@@ -35,9 +35,6 @@ protected:
 		mesh.dims_[0] = 20;
 		mesh.dims_[1] = 30;
 		mesh.dims_[2] = 40;
-		mesh.gw_[0] = 2;
-		mesh.gw_[1] = 2;
-		mesh.gw_[2] = 2;
 
 		mesh.Update();
 
@@ -104,14 +101,8 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	}
 
 	size_t s=0;
-	TestFixture::mesh.ForEach(
-			[&](typename TestFixture::FieldType::value_type & v)
-			{
-
-				v=a*static_cast<Real>(s);
-				++s;
-			},0 ,&f1
-	);
+	TestFixture::mesh.ForEach( [&](value_type & v)
+			{	v=a*static_cast<Real>(s); ++s;},&f1 );
 
 	f1 += f2;
 
@@ -125,7 +116,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 				res=a+a*static_cast<Real>(s);
 				ASSERT_EQ( res,v)<<s;
 				++s;
-			}, 0
+			}
 			,f1
 	);
 
@@ -141,7 +132,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 				res=(a+a*static_cast<Real>(s))*2.0;
 				ASSERT_EQ( res,v)<<s;
 				++s;
-			},0,
+			},
 			f1
 	);
 }
@@ -175,7 +166,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 				value_type res;
 				res= - v1*2.0 + v2 *c -v1/b;
 				ASSERT_EQ( res, v3);
-			},0,f1,f2,f3
+			},f1,f2,f3
 	);
 }
 }
@@ -215,30 +206,27 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=va *uniform_dist(gen)
-				;
+				v1=va *uniform_dist(gen);
 
-			}, Mesh::WITH_GHOSTS,&f1
+			}, &f1
 	);
 
 	TestFixture::mesh.ForEach(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vb *uniform_dist(gen)
-				;
+				v1=vb *uniform_dist(gen);
 
-			},Mesh::WITH_GHOSTS,&f2
+			},&f2
 	);
 
 	TestFixture::mesh.ForEach(
 
 			[&](typename TestFixture::FieldType::value_type & v1 )
 			{
-				v1=vc *uniform_dist(gen)
-				;
+				v1=vc *uniform_dist(gen);
 
-			},Mesh::WITH_GHOSTS,&f3
+			},&f3
 	);
 
 	f4= ( -f1*a +f2*b ) -f3/c -f1;
@@ -268,8 +256,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 					++count;
 				}
 
-			},0
-			,f1,f2,f3,f4
+			},f1,f2,f3,f4
 	);
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
@@ -293,9 +280,6 @@ protected:
 		mesh.dims_[0] = 1;
 		mesh.dims_[1] = 10;
 		mesh.dims_[2] = 10;
-		mesh.gw_[0] = 2;
-		mesh.gw_[1] = 2;
-		mesh.gw_[2] = 2;
 
 		mesh.Update();
 	}
@@ -343,7 +327,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 			[&](typename TestFixture::ScalarField::value_type const & v)
 			{
 				ASSERT_EQ(res_scalar, v);
-			},0,res_scalar_field
+			},res_scalar_field
 
 	);
 
@@ -352,7 +336,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 			[&](typename TestFixture::VectorField::value_type const & v)
 			{
 				ASSERT_EQ(res_vec , v);
-			},0,res_vector_field
+			},res_vector_field
 
 	);
 
@@ -376,9 +360,6 @@ protected:
 		mesh.dims_[0] = 20;
 		mesh.dims_[1] = 30;
 		mesh.dims_[2] = 40;
-		mesh.gw_[0] = 4;
-		mesh.gw_[1] = 4;
-		mesh.gw_[2] = 4;
 
 		mesh.Update();
 
@@ -453,7 +434,7 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 			[&](typename TestFixture::TTwoForm::value_type const & u)
 			{	relative_error+=abs(u);
 				count+=( abs(u)>1.0e-10)?1:0;
-			},0,
+			},
 			vf2
 	);
 	relative_error=relative_error/m;
@@ -504,7 +485,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 			{
 				relative_error+=abs(s);
 				count+=( abs(s)>1.0e-10*m)?1:0;
-			},0,sf
+			},sf
 	);
 
 	relative_error=relative_error/m;
