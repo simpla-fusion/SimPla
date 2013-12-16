@@ -247,7 +247,7 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	{
 	}
 
-	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),
+	typedef decltype(ntuple_impl::template OpEval(Int2Type<TOP>(),
 					std::declval<TL>() ,std::declval<TR>(),size_t())) value_type;
 
 	inline operator nTuple<N,value_type>() const

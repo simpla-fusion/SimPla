@@ -121,28 +121,31 @@ public:
 
 		Form<0> BB(mesh);
 
-		BB = Dot(B, B);
+		BB = Dot(*B, *B);
 
 		VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
 
-//		for (auto &v : sp_list_)
-//		{
-//
-//			auto & ns = v.second->n;
-//			auto & Js = v.second->J;
-//			auto ms = v.second->m * proton_mass;
-//			auto Zs = v.second->Z * elementary_charge;
-//
-//			Form<0> as(mesh);
-//
-//			as = 2.0 * ms / (dt * Zs);
-//
-//			a += ns * Zs / as;
-//			b += ns * Zs / (BB + as * as);
-//			c += ns * Zs / ((BB + as * as) * as);
-//
-//			K_ = /* 2.0 * nu * Js*/
-//			-2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
+		for (auto &v : sp_list_)
+		{
+
+			auto & ns = v.second->n;
+			auto & Js = v.second->J;
+			auto ms = v.second->m * proton_mass;
+			auto Zs = v.second->Z * elementary_charge;
+
+			Form<0> as(mesh);
+
+			as = 2.0 * ms / (dt * Zs);
+
+			a += ns * Zs / as;
+			b += ns * Zs / (BB + as * as);
+			c += ns * Zs / ((BB + as * as) * as);
+
+			K_ = /* 2.0 * nu * Js*/
+//			-2.0 *
+			Cross(Js, Bv)
+//			- (Ev * ns) * (2.0 * Zs)
+			;
 //
 //			K -= Js + 0.5 * (
 //
@@ -153,8 +156,8 @@ public:
 //			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
 //
 //			);
-//		}
-//
+		}
+
 //		a = a * (0.5 * dt) / epsilon0 - 1.0;
 //		b = b * (0.5 * dt) / epsilon0;
 //		c = c * (0.5 * dt) / epsilon0;
