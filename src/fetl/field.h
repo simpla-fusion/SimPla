@@ -109,7 +109,11 @@ public:
 
 	void Init()
 	{
-		mesh.AssignContainer(IForm, this, 0.0);
+		value_type default_value;
+		default_value = 0;
+		if (this->empty())
+			this->resize(mesh.GetNumOfElements(IForm), default_value);
+
 	}
 
 	inline this_type &
@@ -129,8 +133,11 @@ public:
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
-	{mesh.ForEach([](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
-	            {l _OP_ r;}, this,rhs); return (*this);}
+	{                                                                                              \
+		mesh.ForEach(                                                                              \
+	      [](value_type &l,typename FieldTraits<TR>::value_type const & r)                         \
+	            {	l _OP_ r;},	 this,rhs);                                 \
+	            return (*this);}
 
 	DECL_SELF_ASSIGN (+=)
 

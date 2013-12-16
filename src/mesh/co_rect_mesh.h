@@ -818,24 +818,24 @@ public:
 	void Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
 	        unsigned int flag = 0) const;
 
-	inline void TraversalIndex(int IFORM, std::function<void(int, index_type)> const &fun, unsigned int flag = 0) const
+	inline void TraversalIndex(int IFORM, std::function<void(index_type)> const &fun, unsigned int flag = 0) const
 	{
 		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
-			fun(m,this->GetIndex(i,j,k));
+			fun(GetComponentIndex(IFORM,m,i,j,k));
 		}, flag);
 
 	}
 
-	inline void TraversalElementIndex(int IFORM, std::function<void(index_type)> const &fun,
-	        unsigned int flag = 0) const
-	{
-		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-		{
-			fun(m,this->GetIndex(i,j,k));
-		}, flag);
-
-	}
+//	inline void TraversalElementIndex(int IFORM, std::function<void(index_type)> const &fun,
+//	        unsigned int flag = 0) const
+//	{
+//		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+//		{
+//			fun(m,this->GetIndex(i,j,k));
+//		}, flag);
+//
+//	}
 
 	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
 	        unsigned int flag = 0) const
@@ -862,18 +862,16 @@ public:
 	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
 	{
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);} /*, DO_PARALLEL*/);
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, DO_PARALLEL);
 	}
 	template<typename Fun, typename TF, typename ... Args> inline
 	void ForEach(Fun const &fun, TF *l, Args const& ... args) const
 	{
 		if (l->empty())
-		{
-			ERROR << "Assign value to an uninitilized container!";
-		}
+			ERROR << "Access value to an uninitilized container!";
 
 		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}/*, DO_PARALLEL*/);
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, DO_PARALLEL);
 	}
 
 //	template<typename Fun, typename TF, typename ... Args> inline
@@ -1460,25 +1458,20 @@ template<typename TS>
 template<typename TL, typename TR>
 void CoRectMesh<TS>::AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
 {
-	if (lhs->empty())
+	lhs->Init();
+//	{
+//		lhs->reserve(GetNumOfElements(IFORM));
+//		Traversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
+//		{
+//			typename FieldTraits<TL>::value_type v;
+//			v=get(rhs,m,x,y,z);
+//			lhs->base_type::push_back(v);
+//		}, WITH_GHOSTS);
+//	}
+//	else
 	{
-		lhs->reserve(GetNumOfElements(IFORM));
-		TraversalIndex(IFORM, [&](int m,size_t s)
-		{
-			typename FieldTraits<TL>::value_type v;
-			v=get(rhs,m,s);
-			lhs->base_type::push_back(v);
-		}, WITH_GHOSTS);
-	}
-	else
-	{
-		ForEach(
-
-		[](typename FieldTraits<TL>::value_type &l,
-				typename FieldTraits<TR>::value_type const & r)
-		{	l = r;},
-
-		lhs, rhs);
+		Traversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
+		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL);
 	}
 
 }
