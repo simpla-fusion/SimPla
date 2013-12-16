@@ -64,19 +64,24 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh, value_type d_value = value_type())
-			: mesh(pmesh)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
+	{
+	}
+
+	Field(mesh_type const &pmesh, value_type d_value) :
+			mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 

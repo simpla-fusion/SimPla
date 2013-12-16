@@ -78,16 +78,21 @@ public:
 ;
 
 template<typename TM>
-Context<TM>::Context()
-		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(mesh), dumpInOneDataSet_(
-		        true)
+Context<TM>::Context() :
+		E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(
+				mesh), dumpInOneDataSet_(true)
 {
 
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
-	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>(
+			"GuidingCenter");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>(
+			"GGauge8");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>(
+			"GGauge32");
+	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >(
+			"Default");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >(
+			"DeltaF");
 }
 
 template<typename TM>
@@ -128,7 +133,8 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	}
 	else
 	{
-		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
+		UNIMPLEMENT
+				<< "TODO: use g-file initialize field, set boundary condition!";
 	}
 	LOGGER << " Load Initial Fields [Done]!";
 
@@ -140,7 +146,8 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 		j_src_.SetFunction(jSrcCfg["Fun"]);
 
-		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+		j_src_.SetDefineDomain(mesh,
+				jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
 		LOGGER << " Load Current Source [Done]!";
 	}
@@ -155,17 +162,13 @@ template<typename TM>
 std::ostream & Context<TM>::Serialize(std::ostream & os) const
 {
 
-	os
+	os << "Description=\"" << base_type::description << "\" \n";
 
-	<< "Description=\"" << base_type::description << "\" \n"
+	os << mesh << "\n";
 
-	<< mesh << "\n"
+	os << cold_fluid_ << "\n";
 
-	<< cold_fluid_ << "\n"
-
-	<< particle_collection_ << "\n"
-
-	;
+	os << particle_collection_ << "\n";
 
 	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
 
@@ -173,19 +176,19 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< "InitValue={" << "\n"
 
-	<< "	n0 = " << Data(n0, "n0", n0.GetShape()) << ",\n"
+	<< "	n0 = " << Data(n0.data(), "n0", n0.GetShape()) << ",\n"
 
-	<< "	E1 = " << Data(E1, "E1", E1.GetShape()) << ",\n"
+	<< "	E1 = " << Data(E1.data(), "E1", E1.GetShape()) << ",\n"
 
-	<< "	B1 = " << Data(B1, "B1", B1.GetShape()) << ",\n"
+	<< "	B1 = " << Data(B1.data(), "B1", B1.GetShape()) << ",\n"
 
-	<< "	J1 = " << Data(J1, "J1", J1.GetShape()) << ",\n"
+	<< "	J1 = " << Data(J1.data(), "J1", J1.GetShape()) << ",\n"
 
-	<< "	B0 = " << Data(B0, "B0", n0.GetShape()) << "\n"
+	<< "	B0 = " << Data(B0.data(), "B0", n0.GetShape()) << "\n"
 
-	<< "}" << "\n"
+			<< "}" << "\n"
 
-	;
+			;
 	return os;
 }
 template<typename TM>
@@ -234,11 +237,11 @@ void Context<TM>::DumpData() const
 {
 	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
-	LOGGER << "Dump E1 to " << Data(E1, "E1", E1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump E1 to " << Data(E1.data(), "E1", E1.GetShape(), dumpInOneDataSet_);
 
-	LOGGER << "Dump B1 to " << Data(B1, "B1", B1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump B1 to " << Data(B1.data(), "B1", B1.GetShape(), dumpInOneDataSet_);
 
-	LOGGER << "Dump J1 to " << Data(J1, "J1", J1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump J1 to " << Data(J1.data(), "J1", J1.GetShape(), dumpInOneDataSet_);
 
 }
 }

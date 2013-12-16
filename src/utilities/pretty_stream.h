@@ -22,6 +22,42 @@
 
 namespace simpla
 {
+template<typename TV> inline TV const *
+PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d,
+		std::string const & left_brace = "{", std::string const & sep = ",",
+		std::string const & right_brace = "}")
+{
+	if (rank == 1)
+	{
+		os << left_brace << *v;
+		++v;
+		for (int s = 1; s < d[0]; ++s)
+		{
+			os << sep << "\t";
+			if (s % 5 == 0)
+				os << std::endl;
+			os << (*v);
+			++v;
+		}
+		os << right_brace << std::endl;
+		return v;
+	}
+	else
+	{
+
+		os << left_brace;
+		v = PrintNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
+
+		for (int s = 1; s < d[0]; ++s)
+		{
+			os << sep << std::endl;
+			v = PrintNdArray(os, v, rank - 1, d + 1, left_brace, sep,
+					right_brace);
+		}
+		os << right_brace << std::endl;
+		return (v);
+	}
+}
 
 template<int N, typename T> std::ostream &
 operator<<(std::ostream& os, const nTuple<N, T> & tv)
@@ -65,7 +101,8 @@ template<typename TV, typename ...Others> std::istream&
 operator>>(std::istream& is, std::vector<TV, Others...> & a)
 {
 
-	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
+	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(),
+			std::back_inserter(a));
 	return is;
 
 }
@@ -123,7 +160,8 @@ std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &d)
+std::ostream & operator<<(std::ostream & os,
+		std::multiset<U, Others...> const &d)
 {
 	return ContainerOutPut1(os, d.begin(), d.end());
 }

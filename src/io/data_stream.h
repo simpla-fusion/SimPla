@@ -46,8 +46,9 @@ class DataStream: public SingletonHolder<DataStream>
 
 public:
 
-	DataStream()
-			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""), file_(-1), group_(-1), suffix_width_(4)
+	DataStream() :
+			prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""), file_(
+					-1), group_(-1), suffix_width_(4)
 	{
 		hid_t error_stack = H5Eget_current_stack();
 		H5Eset_auto(error_stack, NULL, NULL);
@@ -86,11 +87,13 @@ public:
 		}
 		else
 		{
-			H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+			H5_ERROR(
+					group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 		}
 		if (group_ <= 0)
 		{
-			ERROR << "Can not open group " << grpname_ << " in file " << prefix_;
+			ERROR << "Can not open group " << grpname_ << " in file "
+					<< prefix_;
 		}
 
 	}
@@ -124,10 +127,12 @@ public:
 
 		) + ".h5";
 
-		H5_ERROR(file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+		H5_ERROR(
+				file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
 		if (file_ < 0)
 		{
-			ERROR << "Create HDF5 file " << filename_ << " failed!" << std::endl;
+			ERROR << "Create HDF5 file " << filename_ << " failed!"
+					<< std::endl;
 		}
 		OpenGroup("");
 	}
@@ -177,7 +182,7 @@ public:
 	template<typename ...Args>
 	std::string Write(Args const &... args) const
 	{
-		return HDF5Write(group_, std::forward<Args const &>(args)...);
+		return HDF5Write(group_, std::forward<Args const&>(args)...);
 	}
 
 }
@@ -191,7 +196,7 @@ class DataSet
 
 	std::shared_ptr<TV> data_;
 	std::string name_;
-	bool APPEND_;
+	bool is_compact_store_;
 	std::vector<size_t> dims_;
 public:
 
@@ -199,14 +204,9 @@ public:
 
 	static const size_t LIGHT_DATA_LIMIT = 256;
 
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", bool flag = false)
-			: data_(d), name_(name), APPEND_(flag)
-	{
-	}
-
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", int rank = 1, size_t const* dims =
-	        nullptr, bool flag = false)
-			: data_(d), name_(name), APPEND_(flag)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed",
+			int rank = 1, size_t const* dims = nullptr, bool flag = false) :
+			data_(d), name_(name), is_compact_store_(flag)
 	{
 		if (dims != nullptr && rank > 0)
 		{
@@ -218,13 +218,15 @@ public:
 		}
 		else
 		{
-			dims_.push_back(d.size());
+			ERROR << "Illegal input! [dims == nullptr or rank <=0] ";
 		}
+
 	}
 
 	template<int N, typename TI>
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
-			: data_(d), name_(name), APPEND_(flag)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name,
+			nTuple<N, TI> const & dims, bool flag = false) :
+			data_(d), name_(name), is_compact_store_(flag)
 	{
 		for (size_t i = 0; i < N; ++i)
 		{
@@ -232,18 +234,15 @@ public:
 		}
 	}
 
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name, std::vector<size_t> const & dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims), APPEND_(flag)
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name,
+			std::vector<size_t> const & dims, bool flag = false) :
+			data_(d), name_(name), dims_(dims), is_compact_store_(flag)
 	{
 	}
 
-	DataSet(std::shared_ptr<TV> const & d, std::string &&name, std::vector<size_t> && dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims), APPEND_(flag)
-	{
-	}
-
-	DataSet(DataSet && r)
-			: data_(r.data_), name_(r.name_), APPEND_(r.APPEND_), dims_(r.dims_)
+	DataSet(DataSet && r) :
+			data_(r.data_), name_(r.name_), is_compact_store_(
+					r.is_compact_store_), dims_(r.dims_)
 	{
 
 	}
@@ -265,6 +264,10 @@ public:
 	{
 		return size() > LIGHT_DATA_LIMIT;
 	}
+	bool IsCompactStored() const
+	{
+		return is_compact_store_;
+	}
 	inline const std::shared_ptr<value_type> data() const
 	{
 		return data_;
@@ -277,7 +280,7 @@ public:
 
 	bool IsAppendable() const
 	{
-		return APPEND_;
+		return is_compact_store_;
 	}
 
 	const std::string& GetName() const
@@ -290,25 +293,18 @@ public:
 	}
 };
 
-template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
+template<typename TV, typename ... Args> inline DataSet<TV> Data(
+		std::shared_ptr<TV> const & d, Args const & ... args)
 {
 	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
-}
-template<typename, typename > class Field;
-
-template<typename TG, typename TV, typename ... Args> inline DataSet<TV> Data(Field<TG, TV> const & d,
-        Args const & ... args)
-
-{
-	return std::move(DataSet<TV>(d.data(), std::forward<Args const &>(args)...));
 }
 
 template<typename U>
 std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {
-	if (!d.IsHeavyData())
+	if (!d.IsHeavyData() && (!d.IsCompactStored()))
 	{
-		os << "{" << "!!UNIMPLEMENT!! print small array" << "}";
+		PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
 	}
 	else
 	{
@@ -389,19 +385,27 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 	}
 };
 
-std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_apppendable);
+std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
+		hid_t mdtype, int rank, size_t const *dims, bool is_apppendable);
 
 template<typename TV>
-std::string HDF5Write(hid_t grp, TV const *v, std::string const &name, std::vector<size_t> const &d, bool APPEND)
+std::string HDF5Write(hid_t grp, TV const *v, std::string const &name,
+		std::vector<size_t> const &d, bool APPEND)
 {
 
-	std::vector<size_t> dims;
-
-	if (!d.empty())
+	if (v == nullptr)
 	{
-		ERROR << "Unknown size dataset! ";
+		WARNING << "empty data";
+		return "empty data";
 	}
+
+	if (d.empty())
+	{
+		WARNING << "Unknown  size of dataset! ";
+		return "Unknown  size of dataset";
+	}
+
+	std::vector<size_t> dims;
 
 	std::vector<size_t>(d).swap(dims);
 
@@ -426,8 +430,9 @@ template<typename U, typename ... Args>
 std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
 {
 
-	return std::move(HDF5Write(grp, d.get(), d.GetName(), d.GetDims(), d.IsAppendable()),
-	        std::forward<Args const &>(args)...);
+	return std::move(
+			HDF5Write(grp, d.get(), d.GetName(), d.GetDims(), d.IsAppendable()),
+			std::forward<Args const &>(args)...);
 }
 }
 // namespace simpla

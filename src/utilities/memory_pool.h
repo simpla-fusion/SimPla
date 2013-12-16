@@ -37,7 +37,7 @@ private:
 public:
 
 	MemoryPool()
-			: MAX_POOL_SIZE(2), ratio_(2) //2G
+			: MAX_POOL_SIZE(4), ratio_(2) //2G
 	{
 	}
 	~MemoryPool()

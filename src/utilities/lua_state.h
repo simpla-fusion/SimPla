@@ -595,7 +595,7 @@ public:
 	{
 		T res;
 		as(&res);
-		return (res);
+		return std::move(res);
 	}
 
 	template<typename TRect, typename ...Args>
