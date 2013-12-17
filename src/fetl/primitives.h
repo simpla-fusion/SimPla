@@ -151,19 +151,19 @@ struct is_primitive<nTuple<N, TE> >
 template<typename T>
 struct is_storage_type
 {
-	static const bool value = false;
-};
-template<typename T>
-struct is_storage_type<std::complex<T>>
-{
 	static const bool value = true;
 };
-
-template<typename TG, typename T>
-struct is_storage_type<Field<TG, T> >
-{
-	static const bool value = is_storage_type<T>::value;
-};
+//template<typename T>
+//struct is_storage_type<std::complex<T>>
+//{
+//	static const bool value = false;
+//};
+//
+//template<typename TG, typename T>
+//struct is_storage_type<Field<TG, T> >
+//{
+//	static const bool value = is_storage_type<T>::value;
+//};
 
 template<typename TG, int TOP, typename TL, typename TR>
 struct is_storage_type<Field<TG, BiOp<TOP, TL, TR> > >

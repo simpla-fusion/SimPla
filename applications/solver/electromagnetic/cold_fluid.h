@@ -32,8 +32,8 @@ private:
 		Form<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh) :
-				m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh)
+				: m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -46,8 +46,8 @@ public:
 
 	mesh_type const & mesh;
 
-	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ColdFluidEM(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 
@@ -88,8 +88,7 @@ public:
 			{
 
 				std::shared_ptr<Species> sp(
-						new Species(p.second["m"].template as<Real>(1.0),
-								p.second["Z"].template as<Real>(1.0), mesh));
+				        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
 				sp_list_.emplace(std::make_pair(key, sp));
 
@@ -142,54 +141,50 @@ public:
 			c += ns * Zs / ((BB + as * as) * as);
 
 			K_ = /* 2.0 * nu * Js*/
-//			-2.0 *
-			Cross(Js, Bv)
-//			- (Ev * ns) * (2.0 * Zs)
-			;
-//
-//			K -= Js + 0.5 * (
-//
-//			K_ / as
-//
-//			+ Cross(K_, Bv) / (BB + as * as)
-//
-//			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
-//
-//			);
+			-2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
+
+			K -= Js + 0.5 * (
+
+			K_ / as
+
+			+ Cross(K_, Bv) / (BB + as * as)
+
+			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
+
+			);
 		}
 
-//		a = a * (0.5 * dt) / epsilon0 - 1.0;
-//		b = b * (0.5 * dt) / epsilon0;
-//		c = c * (0.5 * dt) / epsilon0;
-//
-//		K /= epsilon0;
-//
-//		dEvdt = K / a
-//				+ Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
-//				+ Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
-//						/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
-//
-//		for (auto &v : sp_list_)
-//		{
-//			auto & ns = v.second->n;
-//			auto & Js = v.second->J;
-//			auto ms = v.second->m * proton_mass;
-//			auto Zs = v.second->Z * elementary_charge;
-//
-//			Form<0> as(mesh);
-//
-//			as = 2.0 * ms / (dt * Zs);
-//
-//			K_ = // 2.0*nu*(Js)
-//					-2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
-//			Js +=
-//
-//			K_ / as
-//
-//			+ Cross(K_, Bv) / (BB + as * as)
-//
-//			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
-//		}
+		a = a * (0.5 * dt) / epsilon0 - 1.0;
+		b = b * (0.5 * dt) / epsilon0;
+		c = c * (0.5 * dt) / epsilon0;
+
+		K /= epsilon0;
+
+		dEvdt = K / a + Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+		        + Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
+		                / (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
+
+		for (auto &v : sp_list_)
+		{
+			auto & ns = v.second->n;
+			auto & Js = v.second->J;
+			auto ms = v.second->m * proton_mass;
+			auto Zs = v.second->Z * elementary_charge;
+
+			Form<0> as(mesh);
+
+			as = 2.0 * ms / (dt * Zs);
+
+			K_ = // 2.0*nu*(Js)
+			        -2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+			Js +=
+
+			K_ / as
+
+			+ Cross(K_, Bv) / (BB + as * as)
+
+			+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
+		}
 
 		//		J -=  dEvdt;
 	}

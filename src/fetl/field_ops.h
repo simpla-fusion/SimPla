@@ -14,12 +14,13 @@
 #include "../mesh/mesh.h"
 #include "constant_ops.h"
 #include "field.h"
-#include "ntuple.h"
 #include "primitives.h"
 #include "../utilities/type_utilites.h"
 
 namespace simpla
 {
+
+template<int, typename > class nTuple;
 
 namespace fetl_impl
 {
@@ -49,21 +50,36 @@ template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inlin
         DECL_RET_TYPE((l.get(s...)+r.get(s...)))
 }  // namespace fetl_impl
 
-template<typename TMeo, typename TL, typename TR> inline auto //
-operator+(Field<TMeo, TL> const & lhs, Field<TMeo, TR> const & rhs)
-DECL_RET_TYPE( ( Field<TMeo , BiOp<PLUS,Field<TMeo, TL> , Field<TMeo, TR> > > (lhs, rhs)))
+template<typename TGeo, typename TL, typename TR> inline auto //
+operator+(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
+DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
 //****************************************************************************************************
 namespace fetl_impl
 {
 template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<MINUS>,
         Field<Geometry<TM, IFORM>, TL> const &l, Field<Geometry<TM, IFORM>, TR> const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...)-r.get(s...)))
+
+//template<typename TG, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<MINUS>, TL const &l,
+//        Field<TG, TR> const &r, TI ... s)
+//        DECL_RET_TYPE((l -r.get(s...)))
+
+template<typename TG, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<MINUS>,
+        Field<TG, TL> const &l, TR const &r, TI ... s)
+        DECL_RET_TYPE((l.get(s...)-r))
+
 }  // namespace fetl_impl
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
-DECL_RET_TYPE(
-		( Field<TGeo ,
-				BiOp<MINUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+
+template<typename TGeo, typename TL, typename TR> inline auto //
+operator-(Field<TGeo, TL> const & lhs, TR const & rhs)
+DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
+
+//template<typename TGeo, typename TL, typename TR> inline auto //
+//operator-(TL const & lhs, Field<TGeo, TR> const & rhs)
+//DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
 
 // *****************************************************************
 
@@ -72,16 +88,24 @@ namespace fetl_impl
 
 template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<MULTIPLIES>,
         Field<Geometry<TM, IFORM>, TL> const &l, TR const &r, TI ... s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value) ,(l.get(s...) * r))
+        DECL_RET_TYPE((l.get(s...) * r))
 
 template<int IR, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<MULTIPLIES>,
         TL const & l, Field<Geometry<TM, IR>, TR> const & r, TI ... s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TL>::value), (l * r.get(s...)))
+        DECL_RET_TYPE((l * r.get(s...)))
 
-template<int IFORM, int IR, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-        Int2Type<MULTIPLIES>, Field<Geometry<TM, IFORM>, TL> const &l, Field<Geometry<TM, IR>, TR> const &r, TI ... s)
-        DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IFORM+IR>(),l,s...)*
-				        r.mesh.mapto(Int2Type<IFORM+IR>(),r,s...)) )
+template<typename TM, int IL, typename TL, int IR, typename TR, typename ...TI> inline auto OpEval(Int2Type<MULTIPLIES>,
+        Field<Geometry<TM, IL>, TL> const &l, nTuple<IR, TR> const &r, TI ... s)
+        DECL_RET_TYPE((l.get(s...) * r))
+
+template<typename TM, int IL, typename TL, int IR, typename TR, typename ...TI> inline auto OpEval(Int2Type<MULTIPLIES>,
+        nTuple<IL, TL> const & l, Field<Geometry<TM, IR>, TR> const & r, TI ... s)
+        DECL_RET_TYPE((l * r.get(s...)))
+
+template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<MULTIPLIES>,
+        Field<Geometry<TM, IL>, TL> const &l, Field<Geometry<TM, IR>, TR> const &r, TI ... s)
+        DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)*
+				        r.mesh.mapto(Int2Type<IL+IR>(),r,s...)) )
 
 }  // namespace fetl_impl
 
@@ -97,8 +121,8 @@ DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,Field<TGeo,TL>,TR > > (lhs, rhs)))
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator*(TL const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,TL,Field<TGeo,TR> > > (lhs, rhs)))
-
-// To remve the ambiguity of operator define
+//
+//// To remve the ambiguity of operator define
 template<typename TG, typename TL, int NR, typename TR> inline auto //
 operator*(Field<TG, TL> const & lhs, nTuple<NR, TR> const & rhs)
 DECL_RET_TYPE((Field<TG,
@@ -142,22 +166,19 @@ DECL_RET_TYPE((lhs-rhs))
 namespace fetl_impl
 {
 
-//template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-//		Int2Type<CROSS>, Field<Geometry<TM, IFORM>, TL> const &l,
-//		Field<Geometry<TM, IFORM>, TR> const &r, TI ... s)
-//		DECL_RET_TYPE( (Cross(l.get(s...),r.get(s...))))
-//
-//template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(
-//		Int2Type<CROSS>, Field<Geometry<TM, IFORM>, TL> const &l,
-//		nTuple<3, TR> const &r, TI ... s)
-//		DECL_RET_TYPE((Cross(l.get(s...) , r)))
-//
-//template<typename TL, int IR, typename TR, typename TM, typename ...TI> inline auto OpEval(
-//		Int2Type<CROSS>, nTuple<3, TL> const & l,
-//		Field<Geometry<TM, IR>, TR> const & r, TI ... s)
-//		DECL_RET_TYPE((Cross(l , r.get(s...))))
+template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<CROSS>,
+        Field<Geometry<TM, IFORM>, TL> const &l, Field<Geometry<TM, IFORM>, TR> const &r, TI ... s)
+        DECL_RET_TYPE( (Cross(l.get(s...),r.get(s...))))
 
-}// namespace fetl_impl
+template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<CROSS>,
+        Field<Geometry<TM, IFORM>, TL> const &l, nTuple<3, TR> const &r, TI ... s)
+        DECL_RET_TYPE((Cross(l.get(s...) , r)))
+
+template<typename TL, int IR, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<CROSS>,
+        nTuple<3, TL> const & l, Field<Geometry<TM, IR>, TR> const & r, TI ... s)
+        DECL_RET_TYPE((Cross(l , r.get(s...))))
+
+} // namespace fetl_impl
 template<typename TG, typename TL, typename TR> inline auto //
 Cross(Field<Geometry<TG, 0>, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)
 DECL_RET_TYPE(
@@ -376,20 +397,21 @@ public:
 
 };
 
-template<typename TM, int IFORM, int TOP, typename TL, typename TR>
-struct Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> >
+template<typename TGeo, int TOP, typename TL, typename TR>
+struct Field<TGeo, BiOp<TOP, TL, TR> >
 {
 
 public:
 	typename ConstReferenceTraits<TL>::type l_;
 	typename ConstReferenceTraits<TR>::type r_;
+	typedef TGeo geometry_type;
+	typedef typename geometry_type::mesh_type mesh_type;
 
-	TM const & mesh;
-	typedef Field<Geometry<TM, IFORM>, BiOp<TOP, TL, TR> > this_type;
-	enum
-	{
-		IForm = IFORM
-	};
+	typedef Field<geometry_type, BiOp<TOP, TL, TR> > this_type;
+
+	static constexpr int IForm = geometry_type::IForm;
+
+	mesh_type const & mesh;
 
 	Field(TL const & l, TR const & r)
 			: mesh(get_mesh(l, r)), l_(l), r_(r)
@@ -397,10 +419,14 @@ public:
 	}
 	size_t size() const
 	{
-		return mesh.GetNumOfElements(IFORM);
+		return mesh.GetNumOfElements(IForm);
 	}
-	typedef decltype(fetl_impl::FieldBiOpEval(Int2Type<TOP>(),std::declval<TM>(),
-					std::declval<TL>(),std::declval<TR>(),0)) value_type;
+private:
+	typedef typename std::remove_cv<typename std::remove_reference<TL>::type>::type L_type;
+	typedef typename std::remove_cv<typename std::remove_reference<TR>::type>::type R_type;
+public:
+	typedef decltype(fetl_impl::FieldBiOpEval(Int2Type<TOP>(),std::declval<mesh_type>(),
+					std::declval<L_type>(),std::declval<R_type>(),0)) value_type;
 
 	template<typename ... TI> inline value_type get(TI ... s) const
 	{
@@ -409,19 +435,19 @@ public:
 
 private:
 
-	template<int IL, typename VL, typename VR> static inline TM const & get_mesh(Field<Geometry<TM, IL>, VL> const & l,
-	        VR const & r)
+	template<int IL, typename VL, typename VR> static inline mesh_type const &
+	get_mesh(Field<Geometry<mesh_type, IL>, VL> const & l, VR const & r)
 	{
 		return (l.mesh);
 	}
-	template<typename VL, int IR, typename VR> static inline TM const & get_mesh(VL const & l,
-	        Field<Geometry<TM, IR>, VR> const & r)
+	template<typename VL, int IR, typename VR> static inline mesh_type const &
+	get_mesh(VL const & l, Field<Geometry<mesh_type, IR>, VR> const & r)
 	{
 		return (r.mesh);
 	}
 
-	template<int IL, typename VL, int IR, typename VR> static inline TM const & get_mesh(
-	        Field<Geometry<TM, IL>, VL> const & l, Field<Geometry<TM, IR>, VR> const & r)
+	template<int IL, typename VL, int IR, typename VR> static inline mesh_type const &
+	get_mesh(Field<Geometry<mesh_type, IL>, VL> const & l, Field<Geometry<mesh_type, IR>, VR> const & r)
 	{
 		return (l.mesh);
 	}

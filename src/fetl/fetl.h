@@ -10,11 +10,12 @@
 #define FETL_H_
 
 #include "primitives.h"
-#include "ntuple.h"
-#include "field.h"
-#include "ntuple.h"
 #include "geometry.h"
+
+#include "ntuple.h"
 #include "field_ops.h"
+#include "ntuple_ops.h"
+#include "constant_ops.h"
 #include "proxycache.h"
 
 //#ifndef NO_FIELD_IO_CACHE

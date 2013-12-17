@@ -1,6 +1,4 @@
-my_test(fetl_test   physics)
-my_test(fetl_test2  physics)
-my_test(fetl_test3  physics)
+my_test(fetl_test   physics fetl_test2.cpp fetl_test3.cpp)
 
 my_test(ntuple_test  physics )
 #my_test(equation_test   physics)

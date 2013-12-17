@@ -12,26 +12,15 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include "ntuple.h"
 //#include "constant_ops.h"
 //#include <utility>
 
 namespace simpla
 {
 // Expression template of nTuple
-template<int, typename > struct nTuple;
 
-template<typename T>
-struct nTupleTraits
-{
-	static const int NUM_OF_DIMS = 1;
-	typedef T value_type;
-};
-template<int N, typename T>
-struct nTupleTraits<nTuple<N, T>>
-{
-	static const int NUM_OF_DIMS = N;
-	typedef T value_type;
-};
+
 //***********************************************************************************
 
 namespace ntuple_impl

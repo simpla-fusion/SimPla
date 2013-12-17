@@ -226,11 +226,23 @@ template<int N, typename T> struct is_nTuple<nTuple<N, T> >
 	static const bool value = true;
 };
 
-
 template<int N, typename T>
 struct is_storage_type<nTuple<N, T> >
 {
 	static const bool value = is_storage_type<T>::value;
+};
+
+template<typename T>
+struct nTupleTraits
+{
+	static const int NUM_OF_DIMS = 1;
+	typedef T value_type;
+};
+template<int N, typename T>
+struct nTupleTraits<nTuple<N, T>>
+{
+	static const int NUM_OF_DIMS = N;
+	typedef T value_type;
 };
 
 //template<int N>
@@ -252,5 +264,4 @@ struct is_storage_type<nTuple<N, T> >
 
 }
 //namespace simpla
-#include "ntuple_ops.h"
 #endif  // INCLUDE_NTUPLE_H_
