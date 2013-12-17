@@ -130,6 +130,10 @@ template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES
         nTuple<N, TR> const & r, size_t s)
         DECL_RET_TYPE((l[s]*r[s]))
 
+template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, TL const & l,
+        nTuple<N, TR> const & r, size_t s)
+        DECL_RET_TYPE((l/r[s]))
+
 template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, nTuple<N, TL> const & l, TR const & r,
         size_t s)
         DECL_RET_TYPE((l[s] / r))
@@ -148,12 +152,6 @@ template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> c
 DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N,TL> , nTuple<N, TR> > >(lhs, rhs))))
 template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & lhs, TR const &rhs)
 DECL_RET_TYPE(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR > >(lhs, rhs))))
-
-template<int N, typename TL, typename TR> inline void //
-operator *(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-{
-
-}
 
 //***********************************************************************************
 

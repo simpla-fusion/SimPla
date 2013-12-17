@@ -39,6 +39,7 @@ DECL_RET_TYPE(
 template<typename TM, int IFORM, typename TL>
 inline auto operator+(Field<Geometry<TM, IFORM>, TL> const & f)
 DECL_RET_TYPE( (f))
+
 //****************************************************************************************************
 namespace fetl_impl
 {
@@ -50,17 +51,13 @@ template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inlin
 
 template<typename TMeo, typename TL, typename TR> inline auto //
 operator+(Field<TMeo, TL> const & lhs, Field<TMeo, TR> const & rhs)
-DECL_RET_TYPE(
-		( Field<TMeo ,
-				BiOp<PLUS,Field<TMeo, TL> , Field<TMeo, TR> > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TMeo , BiOp<PLUS,Field<TMeo, TL> , Field<TMeo, TR> > > (lhs, rhs)))
 //****************************************************************************************************
 namespace fetl_impl
 {
-
 template<int IFORM, typename TL, typename TR, typename TM, typename ...TI> inline auto OpEval(Int2Type<MINUS>,
         Field<Geometry<TM, IFORM>, TL> const &l, Field<Geometry<TM, IFORM>, TR> const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...)-r.get(s...)))
-
 }  // namespace fetl_impl
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
@@ -88,11 +85,10 @@ template<int IFORM, int IR, typename TL, typename TR, typename TM, typename ...T
 
 }  // namespace fetl_impl
 
-template<typename TM, int IFORM, int IR, typename TL, typename TR> inline auto //
-operator*(Field<Geometry<TM, IFORM>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
-DECL_RET_TYPE((Field<Geometry<TM,IFORM+IR>,BiOp<MULTIPLIES,
-				Field<Geometry<TM,IFORM>,TL>,
-				Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
+template<typename TM, int IL, int IR, typename TL, typename TR> inline auto //
+operator*(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
+DECL_RET_TYPE((Field<Geometry<TM,IL+IR>,BiOp<MULTIPLIES,
+				Field<Geometry<TM,IL>,TL>, Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator*(Field<TGeo, TL> const & lhs, TR const & rhs)
