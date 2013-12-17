@@ -9,6 +9,7 @@
 #include <random>
 
 #include "fetl.h"
+
 #include "../utilities/log.h"
 #include "../mesh/co_rect_mesh.h"
 #include "../utilities/pretty_stream.h"
@@ -55,21 +56,21 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 {
 	const Mesh& mesh = TestFixture::mesh;
 
-	typename TestFixture::Vec3 vc1 =
-	{	1.0, 2.0, 3.0};
-
-	typename TestFixture::Vec3 vc2 =
-	{	-1.0, 4.0, 2.0};
-
-	typename TestFixture::Vec3 res_vec;
-
-	res_vec = Cross(vc2,vc1);
-
-	typename TestFixture::value_type res_scalar;
-
-	res_scalar = Dot(vc1, vc2);
-
-	typename TestFixture::ScalarField res_scalar_field(mesh);
+//	typename TestFixture::Vec3 vc1 =
+//	{	1.0, 2.0, 3.0};
+//
+//	typename TestFixture::Vec3 vc2 =
+//	{	-1.0, 4.0, 2.0};
+//
+//	typename TestFixture::Vec3 res_vec;
+//
+//	res_vec = Cross(vc2,vc1);
+//
+//	typename TestFixture::value_type res_scalar;
+//
+//	res_scalar = Dot(vc1, vc2);
+//
+//	typename TestFixture::ScalarField res_scalar_field(mesh);
 
 	typename TestFixture::VectorField va(mesh), vb(mesh),vc(mesh),
 

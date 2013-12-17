@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <complex>
-#include "ntuple.h"
+#include "fetl.h"
 #include "primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
@@ -24,7 +24,7 @@ template<typename T> T _real(std::complex<T> const & v)
 {
 	return (real(v));
 }
-#define EQUATION(_A,_B,_C)  ( -TestFixture::_A /TestFixture::a + TestFixture::a * TestFixture::_A   -  TestFixture::_B / TestFixture::b   - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( -TestFixture::_A  *TestFixture::a  + TestFixture::a * TestFixture::_A   -   TestFixture::_B /TestFixture::b   - TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test
@@ -40,7 +40,6 @@ protected:
 
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-
 			aA[i] = i * 2;
 			aB[i] = 5 - i;
 			aC[i] = i * 5 + 1;
@@ -49,7 +48,6 @@ protected:
 			vB[i] = aB[i];
 			vC[i] = aC[i];
 			vD[i] = 0;
-
 		}
 
 		m = static_cast<value_type>(loop_num);
@@ -68,9 +66,12 @@ public:
 };
 
 typedef testing::Types<
-        //
-        nTuple<3, double>, nTuple<3, int>, nTuple<3, std::complex<double> >, nTuple<10, double>, nTuple<10, int>,
-        nTuple<10, std::complex<double> >, nTuple<20, double>, nTuple<20, int>, nTuple<20, std::complex<double> >
+
+nTuple<3, double>, nTuple<10, double>, nTuple<20, double>
+
+, nTuple<10, std::complex<double> >, nTuple<3, std::complex<double> >, nTuple<20, std::complex<double> >
+
+, nTuple<3, int>, nTuple<10, int>, nTuple<20, int>
 
 > MyTypes;
 

@@ -319,7 +319,13 @@ struct FieldTraits<Field<Geometry<TM, IFORM>, TExpr> >
 template<typename TL>
 struct is_field
 {
-	static const bool value = FieldTraits<TL>::is_field;
+	static const bool value = false;
+};
+
+template<typename TG, typename TL>
+struct is_field<Field<TG, TL>>
+{
+	static const bool value = true;
 };
 
 template<typename T> auto abs(T const & m)
