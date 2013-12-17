@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+//#include "constant_ops.h"
 //#include <utility>
 
 namespace simpla
@@ -37,19 +38,16 @@ inline auto TensorProduct(TL const & l, TR const &r)
 DECL_RET_TYPE((l*r))
 
 template<int N, typename TL, typename TR>
-inline auto TensorProduct(TL const & l,
-		nTuple<N, TR> const &r)
-				DECL_RET_TYPE((nTuple<nTupleTraits<TL>::NUM_OF_DIMS*N, BiOp<TENSOR_PRODUCT, TL, nTuple<N, TR> > >(l,r) ))
+inline auto TensorProduct(TL const & l, nTuple<N, TR> const &r)
+DECL_RET_TYPE((nTuple<nTupleTraits<TL>::NUM_OF_DIMS*N, BiOp<TENSOR_PRODUCT, TL, nTuple<N, TR> > >(l,r) ))
 
 template<int N, typename TL, typename TR>
-inline auto TensorProduct(nTuple<N, TL> const & l,
-		TR const &r)
-				DECL_RET_TYPE((nTuple<N*nTupleTraits<TR>::NUM_OF_DIMS, BiOp<TENSOR_PRODUCT, nTuple<N, TL>,TR > >(l,r) ))
+inline auto TensorProduct(nTuple<N, TL> const & l, TR const &r)
+DECL_RET_TYPE((nTuple<N*nTupleTraits<TR>::NUM_OF_DIMS, BiOp<TENSOR_PRODUCT, nTuple<N, TL>,TR > >(l,r) ))
 
 template<int N, typename TL, int M, typename TR>
-inline auto TensorProduct(nTuple<N, TL> const & l,
-		nTuple<M, TR> const &r)
-				DECL_RET_TYPE((nTuple<N*M, BiOp<TENSOR_PRODUCT, nTuple<N, TL>,nTuple<M,TR> > >(l,r) ))
+inline auto TensorProduct(nTuple<N, TL> const & l, nTuple<M, TR> const &r)
+DECL_RET_TYPE((nTuple<N*M, BiOp<TENSOR_PRODUCT, nTuple<N, TL>,nTuple<M,TR> > >(l,r) ))
 
 template<int N, typename TL, typename TR>
 struct nTuple<N, BiOp<TENSOR_PRODUCT, TL, TR> >
@@ -59,8 +57,8 @@ struct nTuple<N, BiOp<TENSOR_PRODUCT, TL, TR> >
 	typename ConstReferenceTraits<left_type>::type l_;
 	typename ConstReferenceTraits<right_type>::type r_;
 	static const int M = nTupleTraits<right_type>::NUM_OF_DIMS;
-	nTuple(left_type const & l, right_type const & r) :
-			l_(l), r_(r)
+	nTuple(left_type const & l, right_type const & r)
+			: l_(l), r_(r)
 	{
 	}
 
@@ -87,9 +85,8 @@ DECL_RET_TYPE(( _inner_product_s<N, nTuple<N, TL>, nTuple<N, TR> >::eval(l,r)))
 template<int M, typename TL, typename TR>
 struct _inner_product_s
 {
-	static inline auto eval(TL const & l,
-			TR const &r)
-					DECL_RET_TYPE((_inner_product(l[M - 1] , r[M - 1]) + _inner_product_s<M - 1, TL, TR>::eval(l, r)))
+	static inline auto eval(TL const & l, TR const &r)
+	DECL_RET_TYPE((_inner_product(l[M - 1] , r[M - 1]) + _inner_product_s<M - 1, TL, TR>::eval(l, r)))
 };
 template<typename TL, typename TR>
 struct _inner_product_s<1, TL, TR>
@@ -112,22 +109,20 @@ ENABLE_IF_DECL_RET_TYPE((nTupleTraits<TL>::NUM_OF_DIMS==1),
 		(ntuple_impl::_inner_product(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
-inline auto TensorContraction(nTuple<N, nTuple<M, TL>> const & l,
-		nTuple<P, TR> const &r)
-		DECL_RET_TYPE(
-				(nTuple<N, BiOp<TENSOR_CONTRACTION,
-						nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >(l,r)))
+inline auto TensorContraction(nTuple<N, nTuple<M, TL>> const & l, nTuple<P, TR> const &r)
+DECL_RET_TYPE(
+		(nTuple<N, BiOp<TENSOR_CONTRACTION,
+				nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >(l,r)))
 
 template<int N, int M, int P, typename TL, typename TR>
-struct nTuple<N,
-		BiOp<TENSOR_CONTRACTION, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
+struct nTuple<N, BiOp<TENSOR_CONTRACTION, nTuple<N, nTuple<M, TL>>, nTuple<P, TR> > >
 {
 	typedef nTuple<N, nTuple<M, TL>> left_type;
 	typedef nTuple<P, TR> right_type;
 	typename ConstReferenceTraits<left_type>::type l_;
 	typename ConstReferenceTraits<right_type>::type r_;
-	nTuple(left_type const & l, right_type const & r) :
-			l_(l), r_(r)
+	nTuple(left_type const & l, right_type const & r)
+			: l_(l), r_(r)
 	{
 	}
 
@@ -151,46 +146,43 @@ struct nTuple<N,
 //	return os;
 //}
 
+template<typename T> inline auto Determinant(nTuple<3, nTuple<3, T> > const & m)
+DECL_RET_TYPE(
+		(
+				m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
+		* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
+		* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
+)
 
-template<typename T> inline auto Determinant(
-		nTuple<3, nTuple<3, T> > const & m)
-				DECL_RET_TYPE(
-						(
-								m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
-								* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
-								* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
-						)
+)
 
-				)
-
-template<typename T> inline auto Determinant(
-		nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
-				(//
-				m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]
-				* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
-				+ m[0][1] * m[1][3]//
-				* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
-				- m[0][1]//
-				* m[1][2] * m[2][3] * m[3][0]
-				- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
-				+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
-				* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
-				- m[0][2] * m[1][0]//
-				* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
-				+ m[0][3]//
-				* m[1][1] * m[2][0] * m[3][2]
-				- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
-				- m[0][3] * m[1][0] * m[2][1] * m[3][2]
-				+ m[0][0] * m[1][3] * m[2][1]//
-				* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
-				- m[0][0] * m[1][1]//
-				* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
-				+ m[0][1]//
-				* m[1][2] * m[2][0] * m[3][3]
-				+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
-				- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
-				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
-		))
+template<typename T> inline auto Determinant(nTuple<4, nTuple<4, T> > const & m) DECL_RET_TYPE(
+		(//
+		m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]
+		* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
+		+ m[0][1] * m[1][3]//
+		* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
+		- m[0][1]//
+		* m[1][2] * m[2][3] * m[3][0]
+		- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+		+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
+		* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
+		- m[0][2] * m[1][0]//
+		* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
+		+ m[0][3]//
+		* m[1][1] * m[2][0] * m[3][2]
+		- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
+		- m[0][3] * m[1][0] * m[2][1] * m[3][2]
+		+ m[0][0] * m[1][3] * m[2][1]//
+		* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
+		- m[0][0] * m[1][1]//
+		* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
+		+ m[0][1]//
+		* m[1][2] * m[2][0] * m[3][3]
+		+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
+		- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
+		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
+))
 
 //template<int N, typename T> auto abs(nTuple<N, nTuple<N, T> > const & m)
 //DECL_RET_TYPE( (sqrt(Determinant(m))))
@@ -230,9 +222,8 @@ inline auto OpEval(Int2Type<NEGATE>, TL const & l, TI const & s)
 DECL_RET_TYPE ((-index(l, s) ))
 
 template<int N, typename TL, typename TR>
-inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l,
-		nTuple<N, TR> const &r, size_t s)
-		DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
+inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
+DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 
 }  // namespace ntuple_impl
 
@@ -242,8 +233,8 @@ struct nTuple<N, BiOp<TOP, TL, TR> >
 	typename ConstReferenceTraits<TL>::type l_;
 	typename ConstReferenceTraits<TR>::type r_;
 
-	nTuple(TL const & l, TR const & r) :
-			l_(l), r_(r)
+	nTuple(TL const & l, TR const & r)
+			: l_(l), r_(r)
 	{
 	}
 
@@ -299,8 +290,8 @@ struct nTuple<N, UniOp<TOP, TL> >
 
 	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
 
-	nTuple(TL const & l) :
-			l_(l)
+	nTuple(TL const & l)
+			: l_(l)
 	{
 	}
 
@@ -330,22 +321,12 @@ template<int N, typename TL> inline
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
-//template<typename T> inline auto sin(T const & f)
-//DECL_RET_TYPE(( std::sin(f)))
-//
-//template<int N, typename TL>
-//inline auto ntuple_impl::OpEval(Int2Type<SIN>, nTuple<N, TL> const & l, size_t s)
-//DECL_RET_TYPE ((sin(l[s]) ))
-//
-//template<int N, typename TL> inline  //
-//auto sin(nTuple<N, TL> const & f)
-//DECL_RET_TYPE(( nTuple<N, UniOp<SIN,nTuple<N, TL> > > (f)))
+//template<int N, typename TL> inline auto operator -(Zero const &, nTuple<N, TL> const &f)
+//DECL_RET_TYPE (( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
 
-template<int N, typename TL, typename TR> inline auto Cross(
-		nTuple<N, TL> const & lhs,
-		nTuple<N, TR> const & rhs)
-				DECL_RET_TYPE(
-						(nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
+template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
+DECL_RET_TYPE(
+		(nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
 
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)

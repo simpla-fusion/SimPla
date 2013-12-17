@@ -46,8 +46,8 @@ operator -(TE const &e, Zero const &)
 	return (e);
 }
 
-template<typename TE> inline auto operator -(Zero const &, TE const &e)
-DECL_RET_TYPE (((-e)))
+//template<typename TE> inline auto operator -(Zero const &, TE const &e)
+//DECL_RET_TYPE (((-e)))
 
 Zero operator +(Zero const &, Zero const &e)
 {

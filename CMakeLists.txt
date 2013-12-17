@@ -14,21 +14,20 @@ ExternalProject_Add(googletest
     INSTALL_COMMAND "" )
 ExternalProject_Get_Property(googletest SOURCE_DIR)
 ExternalProject_Get_Property(googletest BINARY_DIR)
-
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
 LINK_DIRECTORIES(${BINARY_DIR})
 
 
-ExternalProject_Add(pugixml
-    PREFIX third_part 
-    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz
-    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/pugixml-1.2.tar.gz
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/pugixml
-    INSTALL_COMMAND "" )
-ExternalProject_Get_Property(pugixml SOURCE_DIR)
-ExternalProject_Get_Property(pugixml BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-LINK_DIRECTORIES(${BINARY_DIR})
+#ExternalProject_Add(pugixml
+#    PREFIX third_part 
+#    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz
+#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/pugixml-1.2.tar.gz
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/pugixml
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(pugixml SOURCE_DIR)
+#ExternalProject_Get_Property(pugixml BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+#LINK_DIRECTORIES(${BINARY_DIR})
 
 
 

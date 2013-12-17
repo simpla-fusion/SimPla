@@ -93,7 +93,7 @@ struct nTuple
 {
 	static const int NUM_OF_DIMS = N;
 	typedef nTuple<NUM_OF_DIMS, T> this_type;
-	typedef T value_type;
+	typedef typename std::remove_reference<T>::type value_type;
 
 	value_type v_[N];
 
@@ -221,10 +221,11 @@ template<typename T> struct is_nTuple
 	static const bool value = false;
 };
 
-template<int N, typename TE> struct is_nTuple<nTuple<N, TE> >
+template<int N, typename T> struct is_nTuple<nTuple<N, T> >
 {
 	static const bool value = true;
 };
+
 
 template<int N, typename T>
 struct is_storage_type<nTuple<N, T> >
@@ -232,22 +233,22 @@ struct is_storage_type<nTuple<N, T> >
 	static const bool value = is_storage_type<T>::value;
 };
 
-template<int N>
-struct is_storage_type<nTuple<N, double> >
-{
-	static const bool value = true;
-};
-
-template<int N>
-struct is_storage_type<nTuple<N, int> >
-{
-	static const bool value = true;
-};
-template<int N>
-struct is_storage_type<nTuple<N, std::complex<double> > >
-{
-	static const bool value = true;
-};
+//template<int N>
+//struct is_storage_type<nTuple<N, double> >
+//{
+//	static const bool value = true;
+//};
+//
+//template<int N>
+//struct is_storage_type<nTuple<N, int> >
+//{
+//	static const bool value = true;
+//};
+//template<int N>
+//struct is_storage_type<nTuple<N, std::complex<double> > >
+//{
+//	static const bool value = true;
+//};
 
 }
 //namespace simpla

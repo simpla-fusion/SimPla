@@ -10,6 +10,8 @@
 #include <complex>
 #include "ntuple.h"
 #include "primitives.h"
+#include "../utilities/log.h"
+#include "../utilities/pretty_stream.h"
 
 using namespace simpla;
 
@@ -66,10 +68,9 @@ public:
 };
 
 typedef testing::Types<
-		//
-		nTuple<3, double>, nTuple<3, int>, nTuple<3, std::complex<double> >,
-		nTuple<10, double>, nTuple<10, int>, nTuple<10, std::complex<double> >,
-		nTuple<20, double>, nTuple<20, int>, nTuple<20, std::complex<double> >
+        //
+        nTuple<3, double>, nTuple<3, int>, nTuple<3, std::complex<double> >, nTuple<10, double>, nTuple<10, int>,
+        nTuple<10, std::complex<double> >, nTuple<20, double>, nTuple<20, int>, nTuple<20, std::complex<double> >
 
 > MyTypes;
 
@@ -128,7 +129,7 @@ TYPED_TEST(TestNtuple, Dot){
 
 TYPED_TEST(TestNtuple, Cross){
 {
-	nTuple<3, typename TestFixture::value_type> vA, vB, vD;
+	nTuple<3, typename TestFixture::value_type> vA, vB,vC ,vD;
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -142,7 +143,9 @@ TYPED_TEST(TestNtuple, Cross){
 		- vA[(i + 2) % 3] * vB[(i + 1) % 3];
 	}
 
-	EXPECT_EQ(vD,Cross(vA,vB) );
+	vC=Cross(vA,vB);
+
+	EXPECT_EQ(vD ,vC);
 }}
 
 TYPED_TEST(TestNtuple, performance_rawarray){

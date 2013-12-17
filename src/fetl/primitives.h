@@ -156,13 +156,13 @@ struct is_storage_type
 template<typename T>
 struct is_storage_type<std::complex<T>>
 {
-	static const bool value = false;
+	static const bool value = true;
 };
 
 template<typename TG, typename T>
 struct is_storage_type<Field<TG, T> >
 {
-	static const bool value = true;
+	static const bool value = is_storage_type<T>::value;
 };
 
 template<typename TG, int TOP, typename TL, typename TR>
@@ -282,6 +282,7 @@ typedef enum
 } MathFunType;
 
 template<int TOP, typename TL, typename TR> struct OpTraits;
+
 template<typename T>
 struct FieldTraits
 {
