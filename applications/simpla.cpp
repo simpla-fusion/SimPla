@@ -172,7 +172,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "\n" << DOUBLELINE << "\n";
 
-	LOGGER << "\n-- [Configure]" << "\n" << (*ctx);
+	INFORM << "\n-- [Configure]" << "\n" << (*ctx);
 
 // Main Loop ============================================
 

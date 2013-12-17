@@ -20,10 +20,13 @@ namespace simpla
 {
 
 template<int IFORM, typename TM, typename TV>
-void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
+bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 {
 	if (obj.IsNull())
-		return;
+		return false;
+
+	if (f->empty())
+		f->Init();
 
 	typedef TM mesh_type;
 
@@ -53,8 +56,11 @@ void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	{
 		std::string url = obj.as<std::string>();
 		//TODO Read field from data file
-		UNIMPLEMENT;
+		UNIMPLEMENT << "Read field from data file or other URI";
+		return false;
 	}
+
+	return true;
 }
 }  // namespace simpla
 

@@ -45,8 +45,8 @@ public:
 	~Context();
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
-	void NextTimeStep(double dt);
 	std::ostream & Serialize(std::ostream & os) const;
+	void NextTimeStep(double dt);
 	void DumpData() const;
 
 	inline ParticleCollection<mesh_type> & GetParticleCollection()
@@ -67,7 +67,7 @@ public:
 
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
 
-	bool dumpInOneDataSet_;
+	bool isCompactStored_;
 
 //	typedef typename Form<1>::field_value_type field_value_type;
 //	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
@@ -78,21 +78,16 @@ public:
 ;
 
 template<typename TM>
-Context<TM>::Context() :
-		E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(
-				mesh), dumpInOneDataSet_(true)
+Context<TM>::Context()
+		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(
+		        true)
 {
 
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>(
-			"GuidingCenter");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>(
-			"GGauge8");
-	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>(
-			"GGauge32");
-	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >(
-			"Default");
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >(
-			"DeltaF");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
+	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
+	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
 }
 
 template<typename TM>
@@ -133,8 +128,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	}
 	else
 	{
-		UNIMPLEMENT
-				<< "TODO: use g-file initialize field, set boundary condition!";
+		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
 	LOGGER << " Load Initial Fields [Done]!";
 
@@ -146,8 +140,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 		j_src_.SetFunction(jSrcCfg["Fun"]);
 
-		j_src_.SetDefineDomain(mesh,
-				jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
 		LOGGER << " Load Current Source [Done]!";
 	}
@@ -196,10 +189,17 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 template<typename TM>
 void Context<TM>::NextTimeStep(double dt)
 {
-
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
 	base_type::NextTimeStep(dt);
+
+	LOGGER
+
+	<< " SimTime = "
+
+	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
+
+	<< " dt = " << (dt / mesh.constants["s"]) << "[s]";
 
 	J1 = 0;
 
@@ -220,29 +220,26 @@ void Context<TM>::NextTimeStep(double dt)
 	}
 	else
 	{
-		cold_fluid_.Eval(dt, J1, &E1, &B1);
+		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
 	}
 
 //	particle_collection_.Push(dt, E1, B1);
 
-	LOGGER
-
-	<< " SimTime = "
-
-	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
-
-	<< " dt = " << (dt / mesh.constants["s"]) << "[s]";
 }
 template<typename TM>
 void Context<TM>::DumpData() const
 {
 	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
-	LOGGER << "Dump E1 to " << Data(E1.data(), "E1", E1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump E1 to " << Data(E1.data(), "E1", E1.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump B1 to " << Data(B1.data(), "B1", B1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump B1 to " << Data(B1.data(), "B1", B1.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump J1 to " << Data(J1.data(), "J1", J1.GetShape(), dumpInOneDataSet_);
+	LOGGER << "Dump J1 to " << Data(J1.data(), "J1", J1.GetShape(), isCompactStored_);
+
+	cold_fluid_.DumpData();
+
+//	particle_collection_.DumpData();
 
 }
 }

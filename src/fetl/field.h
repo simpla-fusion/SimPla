@@ -60,28 +60,29 @@ public:
 
 private:
 	container_type data_;
+	size_t num_of_eles_;
 public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh, value_type d_value)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 		*this = d_value;
 	}
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
@@ -92,6 +93,7 @@ public:
 	void swap(this_type & rhs)
 	{
 		base_type::swap(rhs);
+		std::swap(rhs.num_of_eles_, num_of_eles_);
 	}
 
 	container_type & data()
@@ -106,6 +108,10 @@ public:
 	size_t size() const
 	{
 		return (data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
+	}
+	bool empty() const
+	{
+		return size() <= 0;
 	}
 
 	typedef value_type* iterator;
@@ -135,6 +141,7 @@ public:
 
 	inline value_type & operator[](size_t s)
 	{
+		ASSERT(s < num_of_eles_)
 		return mesh.get_value(data_, s);
 	}
 	inline value_type const & operator[](size_t s) const
@@ -145,7 +152,9 @@ public:
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
+		size_t ts = mesh.GetComponentIndex(IForm, s...);
+		ASSERT(ts < num_of_eles_)
+		return mesh.get_value(data_, ts);
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
@@ -156,7 +165,10 @@ public:
 	void Init()
 	{
 		if (data_ == nullptr)
+		{
 			data_ = mesh.template MakeContainer<IForm, value_type>();
+			num_of_eles_ = size();
+		}
 
 	}
 

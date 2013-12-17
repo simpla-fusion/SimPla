@@ -293,6 +293,8 @@ DECL_RET_TYPE( ( Field<Geometry<TM,IFORM+IR> ,
 				Field<Geometry<TM, IR>, TR> > >
 				(lhs, rhs)))
 
+//****************************************************************************************************
+
 namespace fetl_impl
 {
 
@@ -343,6 +345,7 @@ public:
 	typename ConstReferenceTraits<TL>::type l_;
 
 	typedef TGeo geometry_type;
+
 	typedef typename geometry_type::mesh_type mesh_type;
 
 	typedef Field<geometry_type, UniOp<TOP, TL> > this_type;
@@ -427,6 +430,8 @@ private:
 
 }
 ;
+
+//****************************************************************************************************
 
 }
 // namespace simpla
