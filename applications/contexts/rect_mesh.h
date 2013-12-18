@@ -93,7 +93,7 @@ public:
 	typedef LuaObject field_function;
 	FieldFunction<decltype(J1), field_function> j_src_;
 
-	std::unordered_multimap<std::string, std::function<void()> > fun_;
+	std::map<std::string, std::function<void()> > fun_;
 }
 ;
 
@@ -137,15 +137,10 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	if (gfile.empty())
 	{
-		n0.Init();
 		LoadField(init_value["n0"], &n0);
-		B0.Init();
 		LoadField(init_value["B0"], &B0);
-		E1.Init();
 		LoadField(init_value["E1"], &E1);
-		B1.Init();
 		LoadField(init_value["B1"], &B1);
-		J1.Init();
 		LoadField(init_value["J1"], &J1);
 	}
 	else
@@ -184,7 +179,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		{
 			fun_.emplace(
 
-			"Set PEC boundary on E1",
+			"PEC",
 
 			[in,out,this]()
 			{
@@ -192,11 +187,10 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 				media_tag.template SelectBoundaryCell<1>(
 						[this](index_type const &s)
 						{
-							CHECK(s);
 							(this->E1)[s]=0;
 						}
-						,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL
-				);
+						,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL );
+
 			}
 
 			);
@@ -284,7 +278,7 @@ void Context<TM>::NextTimeStep(double dt)
 
 //	particle_collection_.CollectAll(dt, &J1, E1, B1);
 //
-//	if (cold_fluid_.IsEmpty())
+	if (cold_fluid_.IsEmpty())
 	{
 		const double mu0 = mesh.constants["permeability of free space"];
 		const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -292,19 +286,26 @@ void Context<TM>::NextTimeStep(double dt)
 		const double proton_mass = mesh.constants["proton mass"];
 		const double elementary_charge = mesh.constants["elementary charge"];
 
-		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
-		B1 -= Curl(E1) * dt;
-	}
-//	else
-//	{
-//		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
-//	}
+		B1 -= Curl(E1) * (0.5 * dt);
 
-	for (auto const & p : fun_)
-	{
-		p.second();
-		LOGGER << p.first << " Done!";
+		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
+		fun_["PEC"]();
+
+		B1 -= Curl(E1) * (0.5 * dt);
 	}
+	else
+	{
+		B1 -= Curl(E1) * (0.5 * dt);
+		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
+		fun_["PEC"]();
+		B1 -= Curl(E1) * (0.5 * dt);
+	}
+
+//	for (auto const & p : fun_)
+//	{
+//		p.second();
+//		LOGGER << p.first << " Done!";
+//	}
 
 //	particle_collection_.Push(dt, E1, B1);
 

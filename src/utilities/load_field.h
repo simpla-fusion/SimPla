@@ -26,7 +26,9 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 		return false;
 
 	if (f->empty())
-		f->Init();
+	{
+		f->Init(true);
+	}
 
 	typedef TM mesh_type;
 
