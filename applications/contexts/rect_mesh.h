@@ -284,7 +284,7 @@ void Context<TM>::NextTimeStep(double dt)
 
 //	particle_collection_.CollectAll(dt, &J1, E1, B1);
 //
-	if (cold_fluid_.IsEmpty())
+//	if (cold_fluid_.IsEmpty())
 	{
 		const double mu0 = mesh.constants["permeability of free space"];
 		const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -295,10 +295,10 @@ void Context<TM>::NextTimeStep(double dt)
 		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
 		B1 -= Curl(E1) * dt;
 	}
-	else
-	{
-		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
-	}
+//	else
+//	{
+//		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
+//	}
 
 	for (auto const & p : fun_)
 	{

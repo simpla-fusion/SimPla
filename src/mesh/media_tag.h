@@ -53,46 +53,35 @@ public:
 	MediaTag(mesh_type const & m)
 			: mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
 	{
+		register_tag_.insert(std::make_pair("NONE", none));
+		register_tag_.insert(std::make_pair("Vacuum", tag_type(1 << VACUUM)));
+		register_tag_.insert(std::make_pair("Plasma", tag_type(1 << PLASMA)));
+		register_tag_.insert(std::make_pair("Core", tag_type(1 << CORE)));
+		register_tag_.insert(std::make_pair("Boundary", tag_type(1 << BOUNDARY)));
+		register_tag_.insert(std::make_pair("Plateau", tag_type(1 << PLATEAU)));
+		register_tag_.insert(std::make_pair("Limter", tag_type(1 << PLATEAU)));
+
 	}
 	~MediaTag()
 	{
 	}
 
-	tag_type RegisterTag(std::string const & name = "", unsigned int tag_pos = 0)
+	tag_type RegisterTag(std::string const & name)
 	{
 		tag_type res;
-		if (name == "")
-		{
-			tag_type t;
-
-			register_tag_.emplace("NONE", tag_type(1 << NONE));
-			register_tag_.emplace("Vacuum", tag_type(1 << VACUUM));
-			register_tag_.emplace("Plasma", tag_type(1 << PLASMA));
-			register_tag_.emplace("Core", tag_type(1 << CORE));
-			register_tag_.emplace("Boundary", tag_type(1 << BOUNDARY));
-			register_tag_.emplace("Plateau", tag_type(1 << PLATEAU));
-			register_tag_.emplace("Limter", tag_type(1 << PLATEAU));
-
-		}
-		else if (register_tag_.find(name) != register_tag_.end())
+		if (register_tag_.find(name) != register_tag_.end())
 		{
 			res = register_tag_[name];
 		}
-		else if (tag_pos == 0 && tag_pos < MAX_NUM_OF_MEIDA_TYPE)
+		else if (max_tag_ < MAX_NUM_OF_MEIDA_TYPE)
 		{
 			res.set(max_tag_);
 			++max_tag_;
 		}
-		else if (tag_pos > 0 && tag_pos < MAX_NUM_OF_MEIDA_TYPE)
-		{
-			register_tag_.emplace(name, tag_type(1 << tag_pos));
-		}
-
 		else
 		{
 			ERROR << "Too much media Type";
 		}
-
 		return res;
 	}
 
@@ -207,8 +196,6 @@ public:
 		std::vector<coordinates_type> region;
 
 		cmd["Region"].as(&region);
-
-		CHECK(type) << op << " " << region;
 
 		if (op == "Set")
 		{
@@ -355,7 +342,6 @@ private:
 		if (tags_[0].empty())
 			tags_[0].resize(mesh.GetNumOfElements(0), none);
 
-		CHECK(tags_[0].size());
 		SelectVericsInRegion(
 
 		[&](bool is_selected,index_type const &s)
@@ -451,56 +437,67 @@ private:
 
 			A &= (~B);
 		}
+
+		/**
+		 * 	            +----------+
+		 *              |          |
+		 *   +-------+  |          |
+		 *   |       |  |          |
+		 *   |   B   |  |    A     |
+		 *   |       |  |          |
+		 *   +-------+  |          |
+		 *              |          |
+		 *              +----------+
+		 */
+
 		tag_type AB = A | B;
-		if (AB.none())
+
+		if (!AB.none())
 		{
-			/**
-			 * 	            +----------+
-			 *              |          |
-			 *   +-------+  |          |
-			 *   |       |  |          |
-			 *   |   B   |  |    A     |
-			 *   |       |  |          |
-			 *   +-------+  |          |
-			 *              |          |
-			 *              +----------+
-			 */
-			return;
-		}
 
+			mesh.Traversal(IFORM,
 
-		mesh.TraversalIndex(IFORM,
-
-		[&]( index_type s)
-		{
-			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
-
-			if(flag==ON_BOUNDARY)
+			[&](int m, index_type x,index_type y,index_type z)
 			{
-				int num=mesh.GetNeighbourCell(Int2Type<3>(),Int2Type<IFORM>(),neighbours,s);
+				index_type s=mesh.GetComponentIndex(IFORM,m,x,y,z);
 
-				if((tags_[IFORM][s]&(~AB)).all()) return;
+				if((tags_[IFORM][s]&(B)).none()) return;
 
-				for(int i=0;i<num;++i)
+				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+				if(flag==ON_BOUNDARY)
 				{
-					if((tags_[m][neighbours[i]]&(~AB)).all())
+
+					int num=mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<3>(),neighbours,m,x,y,z);
+
+					for(int i=0;i<num;++i)
 					{
-						fun(s);
-						break;
+						if((tags_[3].at(neighbours[i])&A).any())
+						{
+							fun(s);
+							break;
+						}
+					}
+
+				}
+				else
+				{
+					int num=mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<0>(),neighbours,m,x,y,z);
+
+					for(int i=0;i<num;++i)
+					{
+						if((tags_[0].at(neighbours[i])&A).any())
+						{
+							fun(s);
+							break;
+						}
 					}
 				}
+			},
 
-			}
-			else
-			{
-				num=mesh.GetNeighbourCell(Int2Type<0>(),Int2Type<IFORM>(),neighbours,s);
-				m=0;
-			}
-		},
-
-		parallel_traversal);
+			0);
+		}
 	}
-
 };
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
