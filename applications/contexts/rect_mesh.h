@@ -8,15 +8,26 @@
 #ifndef RECT_MESH_H_
 #define RECT_MESH_H_
 
-#include <iostream>
-#include <limits>
-#include <string>
 #include <cmath>
-
+#include <functional>
+#include <initializer_list>
+#include <iostream>
+//#include <limits>
+#include <memory>
+#include <string>
+#include <utility>
+#include <valarray>
+#include <vector>
+#include <map>
+#include <unordered_map>
 #include "../../src/engine/basecontext.h"
-#include "../../src/fetl/fetl.h"
+//#include "../../src/fetl/fetl.h"
 #include "../../src/fetl/field_function.h"
+#include "../../src/fetl/field.h"
+#include "../../src/fetl/ntuple.h"
+#include "../../src/fetl/primitives.h"
 #include "../../src/io/data_stream.h"
+#include "../../src/mesh/media_tag.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_default.h"
 #include "../../src/particle/pic_engine_deltaf.h"
@@ -54,7 +65,15 @@ public:
 		return particle_collection_;
 	}
 public:
+
 	mesh_type mesh;
+	typedef typename mesh_type::scalar_type scalar_type;
+	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef MediaTag<mesh_type> mediatag_type;
+	typedef typename mediatag_type::tag_type tag_type;
+
+	mediatag_type media_tag;
 
 	Form<1> E1;
 	Form<1> J1;
@@ -73,7 +92,8 @@ public:
 //	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
 	typedef LuaObject field_function;
 	FieldFunction<decltype(J1), field_function> j_src_;
-	FieldFunction<decltype(E1), field_function> pec_boundary_;
+
+	std::unordered_multimap<std::string, std::function<void()> > fun_;
 }
 ;
 
@@ -81,7 +101,10 @@ template<typename TM>
 Context<TM>::Context()
 		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
 
-		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true)
+		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true),
+
+		media_tag(mesh)
+
 {
 
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
@@ -104,8 +127,6 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	cold_fluid_.Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 
-	LOGGER << " Load Cold Fluid [Done]!";
-
 //	particle_collection_.Deserialize(cfg["Particles"]);
 //
 //	LOGGER << " Load Particles [Done]!";
@@ -114,7 +135,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	auto gfile = cfg["GFile"];
 
-	if (gfile.IsNull())
+	if (gfile.empty())
 	{
 		n0.Init();
 		LoadField(init_value["n0"], &n0);
@@ -135,16 +156,58 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	LuaObject jSrcCfg = cfg["CurrentSrc"];
 
-	if (!jSrcCfg.IsNull())
+	if (!jSrcCfg.empty())
 	{
-		typedef typename mesh_type::coordinates_type coordinates_type;
-
 		j_src_.SetFunction(jSrcCfg["Fun"]);
 
 		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
 		LOGGER << " Load Current Source [Done]!";
 	}
+
+	media_tag.Deserialize(cfg["Media"]);
+
+	LuaObject boundary = cfg["Boundary"];
+
+	for (auto const & obj : boundary)
+	{
+		std::string type = "";
+
+		obj.second["Type"].as<std::string>(&type);
+
+		CHECK(type);
+
+		tag_type in = media_tag.GetTagFromString(obj.second["In"].as<std::string>());
+		tag_type out = media_tag.GetTagFromString(obj.second["Out"].as<std::string>());
+
+		if (type == "PEC")
+		{
+			fun_.emplace(
+
+			"Set PEC boundary on E1",
+
+			[in,out,this]()
+			{
+
+				media_tag.template SelectBoundaryCell<1>(
+						[this](index_type const &s)
+						{
+							CHECK(s);
+							(this->E1)[s]=0;
+						}
+						,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL
+				);
+			}
+
+			);
+		}
+		else
+		{
+			UNIMPLEMENT << "Unknown boundary type [" << type << "]";
+		}
+	}
+
+	LOGGER << " Load Boundary [Done]!";
 
 }
 
@@ -158,9 +221,11 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	os << "Description=\"" << base_type::description << "\" \n";
 
-	os << mesh << "\n";
+	os << mesh << "\n"
 
-	os << " FieldSolver={ \n"
+	<< media_tag << "\n"
+
+	<< " FieldSolver={ \n"
 
 	<< cold_fluid_ << "\n"
 
@@ -169,6 +234,13 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 //	os << particle_collection_ << "\n"
 
 	;
+
+	os << "Function={";
+	for (auto const & p : fun_)
+	{
+		os << "\"" << p.first << "\",\n";
+	}
+	os << "}\n";
 
 	GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
 
@@ -226,6 +298,12 @@ void Context<TM>::NextTimeStep(double dt)
 	else
 	{
 		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
+	}
+
+	for (auto const & p : fun_)
+	{
+		p.second();
+		LOGGER << p.first << " Done!";
 	}
 
 //	particle_collection_.Push(dt, E1, B1);

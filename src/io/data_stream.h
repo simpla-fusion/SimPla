@@ -301,7 +301,10 @@ template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr
 {
 	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
 }
-
+template<typename TV, typename ... Args> inline DataSet<TV> Data(TV* d, Args const & ... args)
+{
+	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
+}
 template<typename U>
 std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {

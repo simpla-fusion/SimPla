@@ -53,6 +53,8 @@ struct CoRectMesh
 
 	typedef TS scalar;
 
+	typedef TS scalar_type;
+
 	typedef nTuple<3, Real> coordinates_type;
 
 	typedef unsigned int tag_type;
@@ -74,6 +76,8 @@ struct CoRectMesh
 	nTuple<NUM_OF_DIMS, size_t> strides_;
 
 	nTuple<NUM_OF_DIMS, size_t> period_;
+
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_;
 
 	size_t num_cells_ = 0;
 
@@ -185,7 +189,15 @@ struct CoRectMesh
 				d_cell_volume_ *= dx_[i];
 			}
 
-			UnSetPeriodicBoundary(i);
+			if(ghost_width_[i]==0)
+			{
+				SetPeriodicBoundary(i);
+			}
+			else
+			{
+				UnSetPeriodicBoundary(i);
+			}
+
 		}
 
 		coordinates_shift_[0][0][0] = 0.0;
@@ -340,15 +352,15 @@ private:
 
 	/**
 	 *
-	 * @param
-	 * @param
+	 * @param IN
+	 * @param OUT
 	 * @param v
 	 * @param m
 	 * @param s
 	 * @return
 	 */
 	template<int I, typename ... Args>
-	inline int _GetConnectedElement(Int2Type<I>, Int2Type<I>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<I>, Int2Type<I>, index_type *v, int m, Args ... s) const
 	{
 		if (v != nullptr)
 		v[0] = GetIndex(s...);
@@ -356,7 +368,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<1>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<1>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
 		v[0] = GetIndex(s...);
 		v[1] = Shift(INC(m), s...);
@@ -364,7 +376,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<2>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<2>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -398,7 +410,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<3>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<0>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -437,7 +449,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<0>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<0>, Int2Type<1>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -473,7 +485,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<2>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<2>, Int2Type<1>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -508,7 +520,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<3>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<1>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -554,7 +566,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<0>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<0>, Int2Type<2>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -613,7 +625,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<1>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<1>, Int2Type<2>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -662,7 +674,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetConnectedElement(Int2Type<3>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<2>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -702,12 +714,27 @@ private:
 
 public:
 
-	template<int IN, int OUT, typename ... Args>
-	inline index_type GetConnectedElement(Int2Type<IN>, Int2Type<OUT>, index_type *v, int m, Args ... s) const
+	template<int IN, int OUT>
+	inline index_type GetNeighbourCell(Int2Type<IN>, Int2Type<OUT>, index_type *v, index_type s) const
 	{
-		return _GetVerticesOfElement(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
+		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v,
+		s%num_comps_per_cell_[IN],
+		(s-s%num_comps_per_cell_[IN])/num_comps_per_cell_[IN]);
 
 	}
+
+	template<int IN, int OUT,typename ... Args>
+	inline index_type GetNeighbourCell(Int2Type<IN>, Int2Type<OUT>, index_type *v, int m,Args const &... s) const
+	{
+		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
+	}
+
+//	template<int IN, int OUT, typename ... Args>
+//	inline index_type GetNeighbourCell(Int2Type<IN>, Int2Type<OUT>, index_type *v, int m, Args ... s) const
+//	{
+//		return _GetVerticesOfElement(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
+//
+//	}
 
 private:
 
@@ -832,16 +859,6 @@ public:
 		}, flag);
 
 	}
-
-//	inline void TraversalElementIndex(int IFORM, std::function<void(index_type)> const &fun,
-//	        unsigned int flag = 0) const
-//	{
-//		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-//		{
-//			fun(m,this->GetIndex(i,j,k));
-//		}, flag);
-//
-//	}
 
 	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
 	unsigned int flag = 0) const
@@ -1416,6 +1433,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 	constants.Deserialize(vm.GetChild("UnitSystem"));
 
 	vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
+	vm.GetChild("Topology").template GetValue("GhostWidth", &ghost_width_);
 	vm.GetChild("Geometry").template GetValue("Min", &xmin_);
 	vm.GetChild("Geometry").template GetValue("Max", &xmax_);
 	vm.GetChild("Geometry").template GetValue("dt", &dt_);
@@ -1490,25 +1508,25 @@ void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, in
         unsigned int flags) const
 {
 	index_type ib =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || ghost_width_[0] > dims_[0] / 2) ?
+	                0 : ghost_width_[0];
 	index_type ie =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                dims_[0] : dims_[0] - DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || ghost_width_[0] > dims_[0] / 2) ?
+	                dims_[0] : dims_[0] - ghost_width_[0];
 
 	index_type jb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || ghost_width_[1] > dims_[1] / 2) ?
+	                0 : ghost_width_[1];
 	index_type je =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                dims_[1] : dims_[1] - DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || ghost_width_[1] > dims_[1] / 2) ?
+	                dims_[1] : dims_[1] - ghost_width_[1];
 
 	index_type kb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || ghost_width_[2] > dims_[2] / 2) ?
+	                0 : ghost_width_[2];
 	index_type ke =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                dims_[2] : dims_[2] - DEFAULT_GHOST_WIDTH;
+	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || ghost_width_[2] > dims_[2] / 2) ?
+	                dims_[2] : dims_[2] - ghost_width_[2];
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];

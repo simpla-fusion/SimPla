@@ -61,7 +61,7 @@ public:
 
 	inline void SetDefineDomain(mesh_type const & mesh, std::vector<coordinates_type>const& polyline)
 	{
-		SelectCellsInRegion([&](bool isSelected,index_type const & s )
+		SelectVericsInRegion([&](bool isSelected,index_type const & s )
 		{	if(isSelected) def_domain_.push_back(s);}, mesh, polyline);
 
 	}
@@ -87,6 +87,7 @@ public:
 	template<typename ...Args>
 	void operator()(field_type* f, Args const & ...args)
 	{
+		LOGGER << "Apply field function";
 
 		for (auto const & s : def_domain_)
 		{

@@ -30,7 +30,7 @@ namespace simpla
  *           Z>=3
  */
 template<typename TM>
-void SelectCellsInRegion(std::function<void(bool, typename TM::index_type const &)> const & fun, TM const & mesh,
+void SelectVericsInRegion(std::function<void(bool, typename TM::index_type const &)> const & fun, TM const & mesh,
         std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
@@ -76,7 +76,6 @@ void SelectCellsInRegion(std::function<void(bool, typename TM::index_type const 
 				typename mesh_type:: coordinates_type const &x)
 		{
 			fun(checkPointsInPolygen(x), s);
-
 		},
 
 		mesh.WITH_GHOSTS);

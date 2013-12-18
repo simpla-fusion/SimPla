@@ -218,7 +218,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		sp_list_.emplace(std::make_pair(key, sp));
 
 	}
-
+	LOGGER << " Load Cold Fluid [Done]!";
 }
 
 template<typename TM>

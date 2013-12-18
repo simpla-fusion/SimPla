@@ -70,28 +70,26 @@ public:
 
 	typedef LuaObject this_type;
 
-	LuaObject() :
-			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+	LuaObject()
+			: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 
-	LuaObject(std::shared_ptr<lua_State> l, int G, int s,
-			std::string const & path = "") :
-			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+	LuaObject(std::shared_ptr<lua_State> l, int G, int s, std::string const & path = "")
+			: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
-	LuaObject(LuaObject const & r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+	LuaObject(LuaObject const & r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
 		self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 	}
 
-	LuaObject(LuaObject && r) :
-			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(
-					r.path_)
+	LuaObject(LuaObject && r)
+			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_)
 	{
 		r.self_ = 0;
 	}
@@ -133,13 +131,11 @@ public:
 				break;
 
 			case LUA_TBOOLEAN:
-				os << "[" << i << "]=" << std::boolalpha
-						<< lua_toboolean(L_.get(), i) << std::endl;
+				os << "[" << i << "]=" << std::boolalpha << lua_toboolean(L_.get(), i) << std::endl;
 				break;
 
 			case LUA_TNUMBER:
-				os << "[" << i << "]=" << lua_tonumber(L_.get(), i)
-						<< std::endl;
+				os << "[" << i << "]=" << lua_tonumber(L_.get(), i) << std::endl;
 				break;
 			case LUA_TTABLE:
 				os << "[" << i << "]=" << "is a table" << std::endl;
@@ -154,6 +150,10 @@ public:
 	}
 
 	inline bool IsNull() const
+	{
+		return L_ == nullptr;
+	}
+	inline bool empty() const // STL style
 	{
 		return L_ == nullptr;
 	}
@@ -272,14 +272,14 @@ public:
 			lua_pop(L_.get(), 1);
 		}
 	public:
-		iterator() :
-				L_(nullptr), GLOBAL_IDX_(0), parent_( LUA_NOREF), key_(
+		iterator()
+				: L_(nullptr), GLOBAL_IDX_(0), parent_( LUA_NOREF), key_(
 				LUA_NOREF), value_( LUA_NOREF)
 		{
 
 		}
-		iterator(iterator const& r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+		iterator(iterator const& r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 		{
 
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
@@ -295,16 +295,15 @@ public:
 			value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 		}
-		iterator(iterator && r) :
-				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(
-						r.key_), value_(r.value_)
+		iterator(iterator && r)
+				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(r.value_)
 		{
 			r.parent_ = LUA_NOREF;
 			r.key_ = LUA_NOREF;
 			r.value_ = LUA_NOREF;
 		}
-		iterator(std::shared_ptr<lua_State> L, int G, int p, std::string path) :
-				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+		iterator(std::shared_ptr<lua_State> L, int G, int p, std::string path)
+				: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 				LUA_NOREF), path_(path + "[iterator]")
 		{
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
@@ -363,9 +362,8 @@ public:
 
 			int value = luaL_ref(L_.get(), GLOBAL_IDX_);
 
-			return std::make_pair(
-					LuaObject(L_, GLOBAL_IDX_, key, path_ + ".key"),
-					LuaObject(L_, GLOBAL_IDX_, value, path_ + ".value"));
+			return std::make_pair(LuaObject(L_, GLOBAL_IDX_, key, path_ + ".key"),
+			        LuaObject(L_, GLOBAL_IDX_, value, path_ + ".value"));
 		}
 
 		iterator & operator++()
@@ -476,9 +474,7 @@ public:
 				lua_pop(L_.get(), 1);
 			}
 
-			return std::move(
-					LuaObject(L_, GLOBAL_REF_IDX_, id,
-							path_ + "." + ToString(s)));
+			return std::move(LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
 		}
 	}
 
@@ -512,8 +508,7 @@ public:
 		if (res.IsNull())
 		{
 
-			throw(std::out_of_range(
-					ToString(s) + "\" is not an element in " + path_));
+			throw(std::out_of_range(ToString(s) + "\" is not an element in " + path_));
 		}
 
 		return std::move(res);
@@ -534,8 +529,7 @@ public:
 		if (s > GetSize())
 		{
 			throw(std::out_of_range(
-					"index out of range! " + path_ + "[" + ToString(s) + " > "
-							+ ToString(GetSize()) + " ]"));
+			        "index out of range! " + path_ + "[" + ToString(s) + " > " + ToString(GetSize()) + " ]"));
 		}
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
@@ -544,9 +538,7 @@ public:
 		int res = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 		lua_pop(L_.get(), 1);
 
-		return std::move(
-				LuaObject(L_, GLOBAL_REF_IDX_, res,
-						path_ + "[" + ToString(s) + "]"));
+		return std::move(LuaObject(L_, GLOBAL_REF_IDX_, res, path_ + "[" + ToString(s) + "]"));
 
 	}
 
@@ -569,8 +561,7 @@ public:
 
 		lua_pcall(L_.get(), sizeof...(args), 1, 0);
 
-		return LuaObject(L_, GLOBAL_REF_IDX_,
-				luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
+		return LuaObject(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
 
 	}
 
@@ -693,8 +684,7 @@ public:
 	 *
 	 *  @url http://www.lua.org/manual/5.2/manual.html#lua_createtable
 	 */
-	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec =
-			0)
+	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec = 0)
 	{
 		if (IsNull())
 			return LuaObject();
@@ -713,8 +703,7 @@ public:
 			lua_setfield(L_.get(), tidx, name.c_str());
 			lua_getfield(L_.get(), tidx, name.c_str());
 		}
-		LuaObject res(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_),
-				path_ + "." + name);
+		LuaObject res(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "." + name);
 		lua_pop(L_.get(), 1);
 		return std::move(res);
 	}
@@ -755,8 +744,7 @@ template<> struct LuaTrans<std::string>
 {
 	typedef std::string value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_isstring(L, idx))
 		{
@@ -779,8 +767,7 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 {
 	typedef nTuple<N, T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -808,8 +795,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 {
 	typedef std::vector<T> value_type;
 
-	static inline void From(lua_State* L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State* L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -843,8 +829,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 {
 	typedef std::list<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -875,8 +860,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 {
 	typedef std::map<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -912,8 +896,7 @@ template<typename T> struct LuaTrans<std::complex<T> >
 {
 	typedef std::complex<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{
@@ -952,8 +935,7 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 {
 	typedef std::pair<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v,
-			value_type const &default_value = value_type())
+	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
 	{
 		if (lua_istable(L, idx))
 		{

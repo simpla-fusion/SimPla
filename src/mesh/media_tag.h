@@ -10,12 +10,17 @@
 
 #include <algorithm>
 #include <bitset>
-#include <cstddef>
 #include <functional>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "../fetl/primitives.h"
 #include "../utilities/log.h"
-
+#include "../utilities/pretty_stream.h"
+#include "mesh_algorithm.h"
 namespace simpla
 {
 template<typename TM>
@@ -31,29 +36,93 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 private:
 	mesh_type const &mesh;
-	typename mesh_type::template Container<tag_type> tags_[mesh_type::NUM_OF_COMPONENT_TYPE];
+	std::vector<tag_type> tags_[mesh_type::NUM_OF_COMPONENT_TYPE];
+	std::map<std::string, tag_type> register_tag_;
+	unsigned int max_tag_;
 public:
+
+	const tag_type none;
 
 	enum
 	{
-		NULL_TAG = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU,
+		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU,
 		// @NOTE: add tags for different physical area or media
 		CUSTOM = 20
 	};
 
 	MediaTag(mesh_type const & m)
-			: mesh(m), tags_(mesh.MakeContainer<0, tag_type>(0))
+			: mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
 	{
 	}
 	~MediaTag()
 	{
 	}
 
-	tag_type GetTag(unsigned int tag_pos) const
+	tag_type RegisterTag(std::string const & name = "", unsigned int tag_pos = 0)
+	{
+		tag_type res;
+		if (name == "")
+		{
+			tag_type t;
+
+			register_tag_.emplace("NONE", tag_type(1 << NONE));
+			register_tag_.emplace("Vacuum", tag_type(1 << VACUUM));
+			register_tag_.emplace("Plasma", tag_type(1 << PLASMA));
+			register_tag_.emplace("Core", tag_type(1 << CORE));
+			register_tag_.emplace("Boundary", tag_type(1 << BOUNDARY));
+			register_tag_.emplace("Plateau", tag_type(1 << PLATEAU));
+			register_tag_.emplace("Limter", tag_type(1 << PLATEAU));
+
+		}
+		else if (register_tag_.find(name) != register_tag_.end())
+		{
+			res = register_tag_[name];
+		}
+		else if (tag_pos == 0 && tag_pos < MAX_NUM_OF_MEIDA_TYPE)
+		{
+			res.set(max_tag_);
+			++max_tag_;
+		}
+		else if (tag_pos > 0 && tag_pos < MAX_NUM_OF_MEIDA_TYPE)
+		{
+			register_tag_.emplace(name, tag_type(1 << tag_pos));
+		}
+
+		else
+		{
+			ERROR << "Too much media Type";
+		}
+
+		return res;
+	}
+
+	unsigned int GetNumMediaType() const
+	{
+		return max_tag_;
+	}
+	tag_type GetTagFromNumber(unsigned int tag_pos) const
 	{
 		tag_type res;
 		res.set(tag_pos);
 		return std::move(res);
+	}
+	tag_type GetTagFromString(std::string const &name) const
+	{
+		return std::move(register_tag_.at(name));
+	}
+	tag_type GetTagFromString(std::string const &name)
+	{
+		return std::move(RegisterTag(name));
+	}
+	tag_type operator[](std::string const &name)
+	{
+		auto it = register_tag_.find(name);
+		if (it != register_tag_.end())
+		{
+			RegisterTag(name);
+		}
+
+		return std::move(register_tag_.at(name));
 	}
 
 	void ClearAll()
@@ -66,103 +135,179 @@ public:
 		Update();
 	}
 
+	template<typename TCfg>
+	void Deserialize(TCfg const & cfg)
+	{
+		if (cfg.empty())
+			return;
+
+		for (auto const & p : cfg)
+		{
+			Modify(p.second);
+		}
+
+		Update();
+		LOGGER << " Load Media [Done]!";
+
+	}
+	std::ostream & Serialize(std::ostream &os) const
+	{
+//		std::vector<unsigned long> tmp[4];
+//
+//		for (auto const & v : tags_[0])
+//		{
+//			tmp[0].emplace_back(v.to_ulong());
+//		}
+//
+//		for (auto const & v : tags_[1])
+//		{
+//			tmp[1].emplace_back(v.to_ulong());
+//		}
+//
+//		for (auto const & v : tags_[2])
+//		{
+//			tmp[2].emplace_back(v.to_ulong());
+//		}
+//
+//		for (auto const & v : tags_[3])
+//		{
+//			tmp[3].emplace_back(v.to_ulong());
+//		}
+
+		os << "Media={ "
+
+//		<< Data(&tmp[0][0], "tag0", mesh.GetShape(0)) << ","
+//
+//		<< Data(&tmp[1][0], "tag1", mesh.GetShape(1)) << ","
+//
+//		<< Data(&tmp[2][0], "tag2", mesh.GetShape(2)) << ","
+//
+//		<< Data(&tmp[3][0], "tag3", mesh.GetShape(3)) << ",";
+
+		        << " UNIMPLEMENT!}\n"
+
+		        ;
+		return os;
+	}
+
+	template<typename TCmd>
+	void Modify(TCmd const& cmd)
+	{
+		std::string op = "";
+		std::string type = "";
+
+		cmd["Op"].template as<std::string>(&op);
+		cmd["Type"].template as<std::string>(&type);
+
+		if (type == "")
+		{
+			WARNING << "Illegal input! [ undefine type ]";
+			return;
+		}
+		std::vector<coordinates_type> region;
+
+		cmd["Region"].as(&region);
+
+		CHECK(type) << op << " " << region;
+
+		if (op == "Set")
+		{
+			Set(type, region);
+		}
+		else if (op == "Remove")
+		{
+			Remove(type, region);
+		}
+		else if (op == "Add")
+		{
+			Add(type, region);
+		}
+	}
+
+	template<typename ...Args> inline
+	void Set(std::string media_tag, Args const & ... args)
+	{
+		Set(GetTagFromString(media_tag), std::forward<Args const &>(args)...);
+	}
+	template<typename ...Args> inline
+	void Set(unsigned int media_tag, Args const & ... args)
+	{
+		Set(GetTagFromNumber(media_tag), std::forward<Args const &>(args)...);
+	}
+
+	template<typename ...Args> inline
+	void Add(std::string media_tag, Args const & ... args)
+	{
+		Add(GetTagFromString(media_tag), std::forward<Args const &>(args)...);
+	}
+	template<typename ...Args> inline
+	void Add(unsigned int media_tag, Args const & ... args)
+	{
+		Add(GetTagFromNumber(media_tag), std::forward<Args const &>(args)...);
+	}
+
+	template<typename ...Args> inline
+	void Remove(std::string media_tag, Args const & ... args)
+	{
+		Set(GetTagFromString(media_tag), std::forward<Args const &>(args)...);
+	}
+	template<typename ...Args> inline
+	void Remove(unsigned int media_tag, Args const & ... args)
+	{
+		Set(GetTagFromNumber(media_tag), std::forward<Args const &>(args)...);
+	}
+
 	/**
 	 * Set media tag on vertics
 	 * @param tag media tag is  set to 1<<tag
 	 * @param args args are trans-forward to
-	 *      SelectVerticsInRegion(<lambda function>,*this,args)
+	 *      SelectVerticsInRegion(<lambda function>,mesh,args)
 	 */
 	template<typename ...Args>
-	void Set(unsigned int media_tag, Args const & ... args)
+	void Set(tag_type media_tag, Args const & ... args)
 	{
-
-		tag_type m_tag;
-
-		m_tag.set(media_tag);
-
 		_ForEachVertics(
 
 		[&](bool isSelected,tag_type &v)
-		{	if(isSelected) v&=m_tag;},
+		{	if(isSelected) v=media_tag;},
 
-		*this, std::forward<Args>(args)...);
+		mesh, std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
-	void InverseSet(unsigned int media_tag, Args const & ... args)
+	void InverseSet(tag_type media_tag, Args const & ... args)
 	{
-
-		tag_type m_tag;
-
-		m_tag.set(media_tag);
 
 		_ForEachVertics(
 
 		[&](bool isSelected,tag_type &v)
-		{	if(! isSelected) v&=m_tag;},
+		{	if(! isSelected) v =media_tag;},
 
-		*this, std::forward<Args>(args)...);
+		mesh, std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
-	void SetInterface(unsigned int in_tag_pos, unsigned int out_tag_pos, Args const & ... args)
+	void Add(tag_type media_tag, Args const & ... args)
 	{
-
-		tag_type in_tag;
-		in_tag.set(in_tag_pos);
-
-		tag_type out_tag;
-		out_tag.set(out_tag_pos);
 
 		_ForEachVertics(
 
 		[&](bool isSelected,tag_type &v)
-		{
-			if( isSelected)
-			{
-				v&=in_tag;
-			}
-			else
-			{
-				v&=out_tag_pos;
-			}
+		{	if( isSelected) v|=media_tag;},
 
-		},
-
-		*this, std::forward<Args>(args)...);
-
+		mesh, std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
-	void Add(unsigned int media_tag, Args const & ... args)
+	void Remove(tag_type media_tag, Args const & ... args)
 	{
-
-		tag_type m_tag;
-
-		m_tag.set(media_tag);
 
 		_ForEachVertics(
 
 		[&](bool isSelected,tag_type &v)
-		{	if( isSelected) v.set(media_tag);},
+		{	if(isSelected) v^=media_tag;},
 
-		*this, std::forward<Args>(args)...);
-	}
-
-	template<typename ...Args>
-	void Remove(unsigned int media_tag, Args const & ... args)
-	{
-
-		tag_type m_tag;
-
-		m_tag.set(media_tag);
-
-		_ForEachVertics(
-
-		[&](bool isSelected,tag_type &v)
-		{	if(isSelected) v.reset(media_tag);},
-
-		*this, std::forward<Args>(args)...);
+		mesh, std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -175,6 +320,11 @@ public:
 		_UpdateTags<3>();
 	}
 
+	enum
+	{
+		CROSS_BOUNDAR, ON_BOUNDARY
+	};
+
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -185,24 +335,10 @@ public:
 	 * @param flag
 	 */
 	template<int IFORM> inline
-	void ForEachElementOnInterface(std::function<void(int, index_type)> const &fun, unsigned int in, unsigned int out,
-	        unsigned int flag = 0) const
+	void SelectBoundaryCell(std::function<void(index_type)> const &fun, tag_type in, tag_type out, unsigned int flag =
+	        ON_BOUNDARY, int flag2 = 0) const
 	{
-		_ForEachElementOnInterface(Int2Type<IFORM>(), fun, in, out, flag);
-	}
-
-	/**
-	 *   Choice elements which cross interface.
-	 * @param fun
-	 * @param in
-	 * @param out
-	 * @param flag
-	 */
-	template<int IFORM> inline
-	void ForEachElementCrossInterface(std::function<void(int, index_type)> const &fun, unsigned int in,
-	        unsigned int out, unsigned int flag = 0) const
-	{
-		_ForEachElementCrossInterface(Int2Type<IFORM>(), fun, in, out, flag);
+		_SelectBoundaryCell(Int2Type<IFORM>(), fun, in, out, flag, flag2);
 	}
 
 private:
@@ -211,106 +347,166 @@ private:
 	 * Set media tag on vertics
 	 * @param tag media tag is  set to 1<<tag
 	 * @param args args are trans-forward to
-	 *      SelectVerticsInRegion(<lambda function>,*this,args)
+	 *      SelectVerticsInRegion(<lambda function>,mesh,args)
 	 */
 	template<typename ...Args>
 	void _ForEachVertics(std::function<void(bool, tag_type&)> fun, Args const & ... args)
 	{
 		if (tags_[0].empty())
-			tags_[0].resize(mesh.GetNumOfElements(0), GetTag(VACUUM));
+			tags_[0].resize(mesh.GetNumOfElements(0), none);
 
+		CHECK(tags_[0].size());
 		SelectVericsInRegion(
 
-		[&](bool in,index_type const &s)
+		[&](bool is_selected,index_type const &s)
 		{
-			fun(in,tags_[0][s]);
-
-		}, *this, std::forward<Args>(args)...);
+			fun(is_selected,tags_[0][s]);
+		}, std::forward<Args const&>(args)...);
 	}
 
 	template<int I>
 	void _UpdateTags()
 	{
 		if (tags_[I].empty())
-			tags_[I].resize(mesh.GetNumOfElements(I), 0);
+			tags_[I].resize(mesh.GetNumOfElements(I), none);
 
 		mesh.TraversalIndex(I,
 
-		[&](int m, index_type const & s )
+		[&](index_type const & s )
 		{
 			index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
-			int n=GetVerticesOfCell<I>(v,m,s);
+			int n=mesh.template GetNeighbourCell(Int2Type<I>(),Int2Type<0>(),v,s);
 			tag_type flag = 0;
 			for(int i=0;i<n;++i)
 			{
-				flag!=tags_[0][v[i]];
+				flag|=tags_[0][v[i]];
 			}
-			tags_[I][mesh.GetComponentIndex<I>(m,s)]=flag;
+			tags_[I][s]=flag;
 
 		}, mesh_type::DO_PARALLEL);
 	}
 
 	template<int IFORM>
-	void _ForEachElementOnInterface(Int2Type<IFORM>, std::function<void(int, index_type)> const &fun,
-	        unsigned int in_tag, unsigned int out_tag, int flag) const
+	void _SelectBoundaryCell(Int2Type<IFORM>, std::function<void(index_type)> const &fun, tag_type A, tag_type B,
+	        int flag = ON_BOUNDARY, int parallel_traversal = 0) const
 	{
+
+		if ((B & (~A)).any())
+		{
+			/**
+			 *   +----------#----------+
+			 *   |          #          |
+			 *   |    A     #-> B   C  |
+			 *   |          #          |
+			 *   +----------#----------+
+			 *
+			 *   +--------------------+
+			 *   |         ^          |
+			 *   |       B |     C    |
+			 *   |     ########       |
+			 *   |     #      #       |
+			 *   |     #  A   #       |
+			 *   |     #      #       |
+			 *   |     ########       |
+			 *   +--------------------+
+			 *
+			 *   			+----------+
+			 *              |      C    |
+			 *   +----------######     |
+			 *   |          | A  #     |
+			 *   |    A     | &  #  B  |
+			 *   |          | B  #->   |
+			 *   +----------######     |
+			 *              |          |
+			 *              +----------+
+			 *
+			 *   			+----------+
+			 *         C     |          |
+			 *   +----------#----+     |
+			 *   |          # A  |     |
+			 *   |    B   <-# &  |  A  |
+			 *   |          # B  |     |
+			 *   +----------#----+     |
+			 *              |          |
+			 *              +----------+
+			 */
+
+			B &= (~A);
+		}
+		else
+		{
+			/**
+			 *   +--------------------+
+			 *   |                    |
+			 *   |        A           |
+			 *   |     ########       |
+			 *   |     #      #       |
+			 *   |     #->B C #       |
+			 *   |     #      #       |
+			 *   |     ########       |
+			 *   +--------------------+
+			 *
+			 */
+
+			A &= (~B);
+		}
+		tag_type AB = A | B;
+		if (AB.none())
+		{
+			/**
+			 * 	            +----------+
+			 *              |          |
+			 *   +-------+  |          |
+			 *   |       |  |          |
+			 *   |   B   |  |    A     |
+			 *   |       |  |          |
+			 *   +-------+  |          |
+			 *              |          |
+			 *              +----------+
+			 */
+			return;
+		}
+
+
 		mesh.TraversalIndex(IFORM,
 
-		[&](int m,index_type s)
+		[&]( index_type s)
 		{
+			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-			size_t idx = mesh.GetComponentIndex(IFORM,m,s);
-			auto tag=tags_[IFORM][idx];
-
-			if( (tag[out_tag] && !tag[in_tag]) )
+			if(flag==ON_BOUNDARY)
 			{
-				index_type cells[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
-				int num=mesh.GetConnectedElement<3>(IFORM,idx,cells);
+				int num=mesh.GetNeighbourCell(Int2Type<3>(),Int2Type<IFORM>(),neighbours,s);
+
+				if((tags_[IFORM][s]&(~AB)).all()) return;
+
 				for(int i=0;i<num;++i)
 				{
-					auto t=tags_[3][cells[i]];
-					if(t[in_tag]!=t[out_tag])
+					if((tags_[m][neighbours[i]]&(~AB)).all())
 					{
-						fun(m,s);
+						fun(s);
+						break;
 					}
 				}
 
 			}
-
+			else
+			{
+				num=mesh.GetNeighbourCell(Int2Type<0>(),Int2Type<IFORM>(),neighbours,s);
+				m=0;
+			}
 		},
 
-		flag)
-
-	}
-
-	template<int IFORM>
-	void _ForEachElementCrossInterface(Int2Type<IFORM>, std::function<void(int, index_type)> const &fun,
-	        unsigned int in, unsigned int out, unsigned int flag) const
-	{
-
-		mesh.TraversalIndex(IFORM,
-
-		[&](int m,index_type s)
-		{
-			size_t idx = mesh.GetComponentIndex(IFORM,m,s);
-			auto tag=tags_[IFORM][idx];
-
-			if( (tag[in] && tag[out]) )
-			{
-				fun(m,s);
-			}
-		}, mesh_type::DO_PARALLEL)
-	}
-
-	void _ForEachElementCrossInterface(Int2Type<0>, std::function<void(int, index_type)> const &fun, unsigned int in,
-	        unsigned int out, unsigned int) const
-	{
-		DEADEND << "the volume of point is zero, which can not cross interface!";
+		parallel_traversal);
 	}
 
 };
-
+template<typename TM>
+inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
+{
+	return self.Serialize(os);
+}
 }  // namespace simpla
 
 #endif /* MEDIA_TAG_H_ */
