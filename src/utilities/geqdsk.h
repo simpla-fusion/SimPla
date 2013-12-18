@@ -121,7 +121,6 @@ public:
 	template<typename ...Args>
 	nTuple<3,Real> B(Args const &...x)
 	{
-
 	}
 
 };

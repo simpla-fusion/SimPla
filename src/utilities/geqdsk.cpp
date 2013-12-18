@@ -7,10 +7,10 @@
 
 #include "geqdsk.h"
 
-//#include <XdmfArray.h>
+#include <XdmfArray.h>
 #include <XdmfAttribute.h>
 #include <XdmfDataDesc.h>
-//#include <XdmfDataItem.h>
+#include <XdmfDataItem.h>
 #include <XdmfDOM.h>
 #include <XdmfDomain.h>
 #include <XdmfElement.h>
@@ -25,6 +25,7 @@
 #include <iomanip>
 #include <map>
 #include <memory>
+#include <new>
 #include <string>
 #include <utility>
 #include <vector>
@@ -32,8 +33,8 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../io/xdmf_io.h"
-#include "pertty_stream.h"
-#include "utilities.h"
+#include "../numeric/interpolation.h"
+#include "pretty_stream.h"
 class XdmfArray;
 
 namespace simpla
@@ -102,9 +103,9 @@ void GEqdsk::Read(std::string const &fname)
 
 #undef INPUT_VALUE
 
-	size_t nbbbs, limitr;
+	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
-
+	CHECK(nbbbs);
 	rzbbb_.resize(nbbbs);
 	rzlim_.resize(limitr);
 
@@ -169,30 +170,30 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 			<< "\t-- Plasma current in Ampere                                          "
 			<< std::endl;
 
-	std::cout << "fpol" << "\t= "
-			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
-			<< std::endl << fpol_.data() << std::endl;
-
-	std::cout << "pres" << "\t= "
-			<< "\t-- Plasma pressure in $nt/m^2$ on uniform flux grid                   "
-			<< std::endl << pres_.data() << std::endl;
-
-	std::cout << "ffprim" << "\t= "
-			<< "\t-- $FF^\\prime(\\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid     "
-			<< std::endl << ffprim_.data() << std::endl;
-
-	std::cout << "pprim" << "\t= "
-			<< "\t-- $P^\\prime(\\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid    "
-			<< std::endl << pprim_.data() << std::endl;
-
-	std::cout << "psizr"
-			<< "\t-- Poloidal flus in Webber/rad on the rectangular grid points         "
-			<< std::endl << psirz_.data() << std::endl;
-
-	std::cout << "qpsi" << "\t= "
-			<< "\t-- q values on uniform flux grid from axis to boundary                "
-			<< std::endl << qpsi_.data() << std::endl;
-
+//	std::cout << "fpol" << "\t= "
+//			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
+//			<< std::endl << fpol_.data() << std::endl;
+//
+//	std::cout << "pres" << "\t= "
+//			<< "\t-- Plasma pressure in $nt/m^2$ on uniform flux grid                   "
+//			<< std::endl << pres_.data() << std::endl;
+//
+//	std::cout << "ffprim" << "\t= "
+//			<< "\t-- $FF^\\prime(\\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid     "
+//			<< std::endl << ffprim_.data() << std::endl;
+//
+//	std::cout << "pprim" << "\t= "
+//			<< "\t-- $P^\\prime(\\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid    "
+//			<< std::endl << pprim_.data() << std::endl;
+//
+//	std::cout << "psizr"
+//			<< "\t-- Poloidal flus in Webber/rad on the rectangular grid points         "
+//			<< std::endl << psirz_.data() << std::endl;
+//
+//	std::cout << "qpsi" << "\t= "
+//			<< "\t-- q values on uniform flux grid from axis to boundary                "
+//			<< std::endl << qpsi_.data() << std::endl;
+//
 //	std::cout << "nbbbs" << "\t= " << nbbbs
 //			<< "\t-- Number of boundary points                                          "
 //			<< std::endl;
@@ -200,14 +201,14 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //	std::cout << "limitr" << "\t= " << limitr
 //			<< "\t-- Number of limiter points                                           "
 //			<< std::endl;
-
-	std::cout << "rzbbbs" << "\t= "
-			<< "\t-- R of boundary points in meter                                      "
-			<< std::endl << rzbbb_ << std::endl;
-
-	std::cout << "rzlim" << "\t= "
-			<< "\t-- R of surrounding limiter contour in meter                          "
-			<< std::endl << rzlim_ << std::endl;
+//
+//	std::cout << "rzbbbs" << "\t= "
+//			<< "\t-- R of boundary points in meter                                      "
+//			<< std::endl << rzbbb_ << std::endl;
+//
+//	std::cout << "rzlim" << "\t= "
+//			<< "\t-- R of surrounding limiter contour in meter                          "
+//			<< std::endl << rzlim_ << std::endl;
 
 	return os;
 }
@@ -267,6 +268,7 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			grid.SetName("Boundary");
 			grid.SetGridType(XDMF_GRID_UNIFORM);
 			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
+
 
 			XdmfInt64 dims[2] =
 			{ static_cast<XdmfInt64>(rzbbb_.size()), 2 };
