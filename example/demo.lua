@@ -26,8 +26,7 @@ omega_ci = 9.578309e7 * Btor -- e/m_p B0 rad/s
 
 -- From Gan
 
-InitValue={
-  n0=function(x,y,z)
+InitN0=function(x,y,z)
       local X0 = 12*LX/NX;
       local DEN_JUMP = 0.4*LX;
       local DEN_GRAD = 0.2*LX;
@@ -36,7 +35,9 @@ InitValue={
       local DenCof = 1./(AtLX-AtX0);
       local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
       return dens1*N0
-     end   
+     end 
+InitValue={
+  n0= InitN0 
      ,
   B0=function(x,y,z)
 --[[  
@@ -73,35 +74,25 @@ Grid=
 }
 
 FieldSolver= 
-  {
-       Type="Default"
-       -- Type="PML",  bc={5,5,5,5,5,5}
-  }
-
-Particles=
- {
-     {Name="ion",Mass=1.0,Charge=1.0,Engine="ColdFluid",T= Ti},
-     {Name="ele",Mass=1.0/1836.2,Charge=-1.0,Engine="ColdFluid",T=Te}         
- }
-
-Media=
 {
-  { Region="Default",Type="Vacuum"},
-  { Region={{0.05*LX,0.0,0.0},{LX,0.0,0.0}}, Type="Plasma",OutType="Vacuum"},
+    ColdFluid=
+    {
+     {Name="ion",m=1.0,Z=1.0,T= Ti,
+       n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
+       J=0},
+     {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,
+       n=InitN0, J=0}         
+    }
 }
 
-Interface
-{
-   {In="Plasma",Out="Vacuum",Type="PEC"},
-   {In="Vacuum",Out="NONE",Type="PML"} 
-}
+
 
 CurrentSrc=
  { 
   Points={{LX/2.0,0.0,0.0},},
   Fun=function(x,y,z,t)
         local tau = t*omega_ci
---        print(tau)
+       -- print(tau)
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
  }

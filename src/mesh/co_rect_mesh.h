@@ -308,6 +308,34 @@ public:
 		return s;
 	}
 
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,1> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
+	{
+		(*f)[s*3]=v[0];
+		(*f)[s*3+1]=v[1];
+		(*f)[s*3+2]=v[2];
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,2> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
+	{
+		(*f)[s*3]=v[0];
+		(*f)[s*3+1]=v[1];
+		(*f)[s*3+2]=v[2];
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,0> ,TV> * f,TV const &v,index_type s)const
+	{
+		(*f)[s]=v;
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,3> ,TV> * f,TV const &v,index_type s)const
+	{
+		(*f)[s]=v;
+	}
+
 private:
 
 	/**

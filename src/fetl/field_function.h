@@ -92,8 +92,10 @@ public:
 		{
 			coordinates_type x = f->mesh.GetCoordinates(IForm, s);
 
-			(*f)[s] = f->mesh.template GetWeightOnElement<IForm>(
-			        TypeCast<field_value_type>(fun_(x[0], x[1], x[2], std::forward<Args const&>(args)...)), s);
+			f->mesh.template SetFieldValue(f, TypeCast<field_value_type>(
+
+			fun_(x[0], x[1], x[2], std::forward<Args const&>(args)...)), s);
+
 		}
 
 	}

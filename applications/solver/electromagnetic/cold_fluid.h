@@ -9,6 +9,7 @@
 #define COLD_FLUID_H_
 
 #include "../../../src/fetl/fetl.h"
+#include "../../../src/engine/fieldsolver.h"
 #include "../../../src/utilities/load_field.h"
 #include "../../../src/utilities/log.h"
 #include "../../../src/utilities/pretty_stream.h"
@@ -198,30 +199,24 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 			p.second.GetValue("Name", &key);
 		}
 
-		std::string engine = p.second.at("Engine").as<std::string>();
+		std::shared_ptr<Species> sp(
+		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
-		if (engine == "ColdFluid")
+		sp->n.Init();
+		sp->J.Init();
+
+		if (!LoadField(p.second["n"], &(sp->n)))
 		{
-
-			std::shared_ptr<Species> sp(
-			        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
-
-			sp->n.Init();
-			sp->J.Init();
-
-			if (!LoadField(p.second["n"], &(sp->n)))
-			{
-				WARNING << "[" << key << "] plasma density is not initialized";
-			}
-
-			if (!LoadField(p.second["J"], &(sp->J)))
-			{
-				WARNING << "[" << key << "] plasma current is not initialized";
-			}
-
-			sp_list_.emplace(std::make_pair(key, sp));
-
+			WARNING << "[" << key << "] plasma density is not initialized";
 		}
+
+		if (!LoadField(p.second["J"], &(sp->J)))
+		{
+			WARNING << "[" << key << "] plasma current is not initialized";
+		}
+
+		sp_list_.emplace(std::make_pair(key, sp));
+
 	}
 
 }
@@ -245,13 +240,13 @@ template<typename TM>
 std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 {
 	os << "-- Cold Fluid -------------------\n";
-	os << "Particles={\n";
+	os << "  ColdFluid={\n";
 
 	for (auto const & p : sp_list_)
 	{
 		os << "\t" << p.first
 
-		<< " = { " << "Type=\"ColdFluid\"," << " m =" << p.second->m << "," << " Z =" << p.second->Z << ",\n"
+		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->Z << ",\n"
 
 		<< "\t n0 = " << Data(p.second->n.data(), p.first + ".n", p.second->n.GetShape()) << "\n"
 

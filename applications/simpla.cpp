@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	std::shared_ptr<BaseContext> ctx;
 
 	auto mesh_type = pt["Grid"]["Type"].as<std::string>();
-	auto scalar_type = pt["Grid"]["ScalarType"].as<std::string>();
+	auto scalar_type = pt["Grid"]["ScalarType"].as<std::string>("Real");
 
 	if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
 	{

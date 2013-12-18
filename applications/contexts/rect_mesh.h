@@ -79,8 +79,9 @@ public:
 
 template<typename TM>
 Context<TM>::Context()
-		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh), cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(
-		        true)
+		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
+
+		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true)
 {
 
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
@@ -101,7 +102,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	mesh.Deserialize(cfg["Grid"]);
 
-	cold_fluid_.Deserialize(cfg["Particles"]);
+	cold_fluid_.Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 
 	LOGGER << " Load Cold Fluid [Done]!";
 
@@ -159,7 +160,11 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	os << mesh << "\n";
 
-	os << cold_fluid_ << "\n";
+	os << " FieldSolver={ \n"
+
+	<< cold_fluid_ << "\n"
+
+	<< "} \n";
 
 //	os << particle_collection_ << "\n"
 
