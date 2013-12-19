@@ -80,15 +80,15 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 	if (sp_list_.empty())
 		return;
 
-	LOGGER << "Push Cold Fluid.";
-	if (Ev.empty())
-		MapTo(E, &Ev);
-
 	const double mu0 = mesh.constants["permeability of free space"];
 	const double epsilon0 = mesh.constants["permittivity of free space"];
 	const double speed_of_light = mesh.constants["speed of light"];
 	const double proton_mass = mesh.constants["proton mass"];
 	const double elementary_charge = mesh.constants["elementary charge"];
+
+	LOGGER << "Push Cold Fluid.";
+	if (Ev.empty())
+		MapTo(E, &Ev);
 
 	VectorForm<0> K(mesh);
 

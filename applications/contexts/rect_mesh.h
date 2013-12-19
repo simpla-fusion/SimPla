@@ -20,23 +20,26 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+
 #include "../../src/engine/basecontext.h"
-//#include "../../src/fetl/fetl.h"
-#include "../../src/fetl/field_function.h"
-#include "../../src/fetl/field.h"
-#include "../../src/fetl/ntuple.h"
-#include "../../src/fetl/primitives.h"
-#include "../../src/io/data_stream.h"
+
+#include "../../src/fetl/fetl.h"
+
 #include "../../src/mesh/media_tag.h"
+
+#include "../../src/fetl/field_function.h"
+
+#include "../../src/utilities/log.h"
+#include "../../src/utilities/lua_state.h"
+#include "../../src/io/data_stream.h"
+
+#include "../pic/pic_engine_ggauge.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_default.h"
 #include "../../src/particle/pic_engine_deltaf.h"
-#include "../../src/utilities/log.h"
-#include "../../src/utilities/lua_state.h"
-#include "../../src/utilities/singleton_holder.h"
-#include "../pic/pic_engine_ggauge.h"
-#include "../solver/electromagnetic/cold_fluid.h"
 
+#include "../solver/electromagnetic/cold_fluid.h"
+#include "../solver/electromagnetic/pml.h"
 namespace simpla
 {
 template<typename TM>
@@ -67,6 +70,7 @@ public:
 public:
 
 	mesh_type mesh;
+
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -75,13 +79,14 @@ public:
 
 	mediatag_type media_tag;
 
-	Form<1> E;
-	Form<1> J;
-	Form<2> B;
+	Form<1> E, dE;
+	Form<1> Jext;
+	Form<2> B, dB;
 	RVectorForm<0> B0;
 	RForm<0> n0;
 
 	ColdFluidEM<mesh_type> cold_fluid_;
+	PML<mesh_type> pml_;
 	ParticleCollection<mesh_type> particle_collection_;
 
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
@@ -91,7 +96,7 @@ public:
 //	typedef typename Form<1>::field_value_type field_value_type;
 //	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
 	typedef LuaObject field_function;
-	FieldFunction<decltype(J), field_function> j_src_;
+	FieldFunction<decltype(Jext), field_function> j_src_;
 
 	std::map<std::string, std::function<void()> > function_;
 }
@@ -99,9 +104,15 @@ public:
 
 template<typename TM>
 Context<TM>::Context() :
-		E(mesh), B(mesh), J(mesh), B0(mesh), n0(mesh),
+		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
-		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true),
+		cold_fluid_(mesh),
+
+		pml_(mesh),
+
+		particle_collection_(mesh),
+
+		isCompactStored_(true),
 
 		media_tag(mesh)
 
@@ -127,19 +138,23 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	cold_fluid_.Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 
+	pml_.Deserialize(cfg["FieldSolver"]["PML"]);
+
 //	particle_collection_.Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 
 	auto gfile = cfg["GFile"];
 
+	dE.Init();
+	dB.Init();
 	if (gfile.empty())
 	{
 		LoadField(init_value["n0"], &n0);
 		LoadField(init_value["B0"], &B0);
 		LoadField(init_value["E"], &E);
 		LoadField(init_value["B"], &B);
-		LoadField(init_value["J"], &J);
+		LoadField(init_value["J"], &Jext);
 
 		LOGGER << "Load Initial Fields." << DONE;
 	}
@@ -229,9 +244,9 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< " FieldSolver={ \n"
 
-	<< cold_fluid_ << "\n"
+	<< cold_fluid_ << ",\n"
 
-	<< "} \n";
+	<< pml_ << ",\n" << "} \n";
 
 //	os << particle_collection_ << "\n"
 
@@ -256,7 +271,7 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< "	B = " << DUMP(B) << ",\n"
 
-	<< "	J = " << DUMP(J) << ",\n"
+	<< "	J = " << DUMP(Jext) << ",\n"
 
 	<< "	B0 = " << DUMP(B0) << "\n"
 
@@ -298,12 +313,22 @@ void Context<TM>::NextTimeStep(double dt)
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	//	particle_collection_.CollectAll(dt, &Jext, E, B);
 
-	Form<1> dE(mesh);
+	if (dB.empty())
+	{
+		dB = -Curl(E) * dt;
+	}
 
 	// B(t=0 -> 1/2)
-	LOG_CMD(B -= Curl(E) * (0.5 * dt));
+	LOG_CMD(B += dB * 0.5);
 
-	LOG_CMD(dE = (Curl(B) / mu0 - Jext) * (dt / epsilon0));
+	if (pml_.empty())
+	{
+		pml_.NextTimeStepE(dt, B, &dE);
+	}
+	else
+	{
+		LOG_CMD(dE = (Curl(B) / mu0 - Jext) * (dt / epsilon0));
+	}
 
 	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
 	if (!cold_fluid_.IsEmpty())
@@ -325,8 +350,17 @@ void Context<TM>::NextTimeStep(double dt)
 	{
 		LOG_CMD(function_["PEC"]());
 	}
+	if (pml_.empty())
+	{
+		pml_.NextTimeStepB(dt, E, &dB);
+	}
+	else
+	{
+		LOG_CMD(dB = -Curl(E) * dt);
+	}
+
 	//  B(t=1/2 -> 1)
-	LOG_CMD(B -= Curl(E) * (0.5 * dt));
+	LOG_CMD(B += dB * 0.5);
 
 }
 template<typename TM>
@@ -338,7 +372,7 @@ void Context<TM>::DumpData() const
 
 	LOGGER << "Dump B to " << Data(B.data(), "B", B.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump J to " << Data(J.data(), "J", J.GetShape(), isCompactStored_);
+	LOGGER << "Dump J to " << Data(Jext.data(), "J", Jext.GetShape(), isCompactStored_);
 
 	cold_fluid_.DumpData();
 

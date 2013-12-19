@@ -20,7 +20,7 @@ LX = 100 --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0  -- 2.0*math.pi/18
 GW = 5 
-N0 = 0.8*0.25e18 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
+N0 = 2.4e18 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
 
 omega_ci = 9.578309e7 * Btor -- e/m_p B0 rad/s
 
@@ -61,7 +61,7 @@ Grid=
   {       
       Type="3DCoRectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
-      GhostWidth= {0,0,0},  -- width of ghost points  , if gw=0, coordinate is 
+      GhostWidth= {2,0,0},  -- width of ghost points  , if gw=0, coordinate is 
                               -- Periodic at this direction          
   },
   Geometry=
@@ -91,25 +91,24 @@ Boundary={
    -- { Type="PEC", In="Plasma",Out="NONE"},
 }
 --]]
+
 FieldSolver= 
 {
 
    ColdFluid=
     {
      {Name="ion",m=1.0,Z=1.0,T= Ti,
-       n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
-       J=0},
-     {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,
-       n=InitN0, J=0}         
+       --n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
+       n=InitN0, J=0},
+     {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,   n=InitN0, J=0}         
     }
 
 }
 
 
-
 CurrentSrc=
  { 
-  Points={{LX/2.0,0.0,0.0},},
+  Points={{0.2*LX,0.0,0.0},},
   Fun=function(x,y,z,t)
       local tau = t*omega_ci
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   

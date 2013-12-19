@@ -9,15 +9,14 @@
 #include <cmath>
 #include <cstddef>
 #include <iostream>
-#include <string>
 
-#include "../../../src/fetl/field.h"
-#include "../../../src/fetl/ntuple.h"
-#include "../../../src/fetl/primitives.h"
+#include "../../../src/fetl/fetl.h"
 #include "../../../src/utilities/log.h"
 
 namespace simpla
 {
+
+class LuaObject;
 
 inline Real sigma_(Real r, Real expN, Real dB)
 {
@@ -28,31 +27,20 @@ inline Real alpha_(Real r, Real expN, Real dB)
 	return (1.0 + 2.0 * pow(r, expN));
 }
 
-template<typename TMesh>
+template<typename TM>
 class PML
 {
 
 public:
-//	DEFINE_FIELDS(TMesh)
-
-	typedef TMesh Mesh;
-	template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,Real >;
-	template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;
-	template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real>> >;
-	template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;
-	template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;
-	template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex>> >;
+	DEFINE_FIELDS (TM)
 
 	typedef Mesh mesh_type;
 
 	Mesh const & mesh;
 
-	Real mu0;
-	Real epsilon0;
-	Real speed_of_light;
-
-	Form<2> X10, X11, X12;
-	Form<1> X20, X21, X22;
+private:
+	Form<1> X10, X11, X12;
+	Form<2> X20, X21, X22;
 
 	// alpha
 	Form<0> a0, a1, a2;
@@ -61,150 +49,196 @@ public:
 
 	nTuple<6, int> bc_;
 
-	PML(mesh_type const & pmesh) :
-			mesh(pmesh),
+	bool isInitilized_;
+public:
+	PML(mesh_type const & pmesh);
+	~PML();
 
-			mu0(mesh.phys_constants["permeability of free space"]),
-
-			epsilon0(mesh.phys_constants["permittivity of free space"]),
-
-			speed_of_light(mesh.phys_constants["speed of light"]),
-
-			a0(mesh), a1(mesh), a2(mesh),
-
-			s0(mesh), s1(mesh), s2(mesh),
-
-			X10(mesh), X11(mesh), X12(mesh),
-
-			X20(mesh), X21(mesh), X22(mesh)
+	void Init();
+	bool empty() const
 	{
+		return !isInitilized_;
 	}
-	template<typename PT>
-	inline void Deserialize(const PT & pt)
-	{
-		pt.GetValue("BC", &bc_);
-	}
-	template<typename PT>
-	inline void Serialize(PT & pt) const
-	{
-		pt.SetValue("BC", bc_);
-	}
+	void Deserialize(LuaObject const&cfg);
+	std::ostream & Serialize(std::ostream & os) const;
 
-	void Init()
-	{
-		Real dB = 100, expN = 2;
+	void NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE);
+	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB);
 
-		a0 = 1.0;
-		a1 = 1.0;
-		a2 = 1.0;
-		s0 = 0.0;
-		s1 = 0.0;
-		s2 = 0.0;
-		X10 = 0.0;
-		X11 = 0.0;
-		X12 = 0.0;
-		X20 = 0.0;
-		X21 = 0.0;
-		X22 = 0.0;
+	void DumpData() const;
+};
 
-		auto const & dims = mesh.dims_;
-		auto const & st = mesh.strides_;
+template<typename TM>
+inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
+{
+	return self.Serialize(os);
+}
 
-		for (size_t ix = 0; ix < dims[0]; ++ix)
-			for (size_t iy = 0; iy < dims[1]; ++iy)
-				for (size_t iz = 0; iz < dims[2]; ++iz)
+template<typename TM>
+PML<TM>::PML(mesh_type const & pmesh) :
+		mesh(pmesh),
+
+		a0(pmesh), a1(pmesh), a2(pmesh),
+
+		s0(pmesh), s1(pmesh), s2(pmesh),
+
+		X10(pmesh), X11(pmesh), X12(pmesh),
+
+		X20(pmesh), X21(pmesh), X22(pmesh),
+
+		isInitilized_(false)
+{
+}
+
+template<typename TM>
+PML<TM>::~PML()
+{
+}
+
+template<typename TM>
+void PML<TM>::Init()
+{
+	isInitilized_ = true;
+	const double mu0 = mesh.constants["permeability of free space"];
+	const double epsilon0 = mesh.constants["permittivity of free space"];
+	const double speed_of_light = mesh.constants["speed of light"];
+	const double proton_mass = mesh.constants["proton mass"];
+	const double elementary_charge = mesh.constants["elementary charge"];
+
+	Real dB = 100, expN = 2;
+
+	a0.Fill(1.0);
+	a1.Fill(1.0);
+	a2.Fill(1.0);
+	s0.Fill(0.0);
+	s1.Fill(0.0);
+	s2.Fill(0.0);
+	X10.Fill(0.0);
+	X11.Fill(0.0);
+	X12.Fill(0.0);
+	X20.Fill(0.0);
+	X21.Fill(0.0);
+	X22.Fill(0.0);
+
+	auto const & dims = mesh.dims_;
+	auto const & st = mesh.strides_;
+
+	for (size_t ix = 0; ix < dims[0]; ++ix)
+		for (size_t iy = 0; iy < dims[1]; ++iy)
+			for (size_t iz = 0; iz < dims[2]; ++iz)
+			{
+				size_t s = ix * st[0] + iy * st[1] + iz * st[2];
+				if (ix < bc_[0])
 				{
-					size_t s = ix * st[0] + iy * st[1] + iz * st[2];
-					if (ix < bc_[0])
-					{
-						Real r = static_cast<Real>(bc_[0] - ix)
-								/ static_cast<Real>(bc_[0]);
-						a0[s] = alpha_(r, expN, dB);
-						s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0]
-								* mesh.inv_dx_[0];
-					}
-					else if (ix > dims[0] - bc_[0 + 1])
-					{
-						Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1]))
-								/ static_cast<Real>(bc_[0 + 1]);
-						a0[s] = alpha_(r, expN, dB);
-						s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1]
-								* mesh.inv_dx_[0];
-					}
+					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
+					a0[s] = alpha_(r, expN, dB);
+					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * mesh.inv_dx_[0];
+				}
+				else if (ix > dims[0] - bc_[0 + 1])
+				{
+					Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1])) / static_cast<Real>(bc_[0 + 1]);
+					a0[s] = alpha_(r, expN, dB);
+					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * mesh.inv_dx_[0];
+				};
 
-					if (iy < bc_[2])
-					{
-						Real r = static_cast<Real>(bc_[2] - iy)
-								/ static_cast<Real>(bc_[2]);
-						a1[s] = alpha_(r, expN, dB);
-						s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2]
-								* mesh.inv_dx_[1];
-					}
-					else if (iy > dims[1] - bc_[2 + 1])
-					{
-						Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1]))
-								/ static_cast<Real>(bc_[2 + 1]);
-						a1[s] = alpha_(r, expN, dB);
-						s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3]
-								* mesh.inv_dx_[1];
-					}
-
-					if (iz < bc_[4])
-					{
-						Real r = static_cast<Real>(bc_[4] - iz)
-								/ static_cast<Real>(bc_[4]);
-
-						a2[s] = alpha_(r, expN, dB);
-						s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4]
-								* mesh.inv_dx_[2];
-					}
-					else if (iz > dims[2] - bc_[4 + 1])
-					{
-						Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1]))
-								/ static_cast<Real>(bc_[4 + 1]);
-
-						a2[s] = alpha_(r, expN, dB);
-						s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5]
-								* mesh.inv_dx_[2];
-					}
+				if (iy < bc_[2])
+				{
+					Real r = static_cast<Real>(bc_[2] - iy) / static_cast<Real>(bc_[2]);
+					a1[s] = alpha_(r, expN, dB);
+					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * mesh.inv_dx_[1];
+				}
+				else if (iy > dims[1] - bc_[2 + 1])
+				{
+					Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1])) / static_cast<Real>(bc_[2 + 1]);
+					a1[s] = alpha_(r, expN, dB);
+					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * mesh.inv_dx_[1];
 				}
 
-	}
+				if (iz < bc_[4])
+				{
+					Real r = static_cast<Real>(bc_[4] - iz) / static_cast<Real>(bc_[4]);
 
-	void Eval(Form<1> &E1, Form<2> &B1, Form<1> const &J1, Real dt)
-	{
-		LOG << "Run module PML";
+					a2[s] = alpha_(r, expN, dB);
+					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * mesh.inv_dx_[2];
+				}
+				else if (iz > dims[2] - bc_[4 + 1])
+				{
+					Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1])) / static_cast<Real>(bc_[4 + 1]);
 
-		Form<1> dX2(mesh);
+					a2[s] = alpha_(r, expN, dB);
+					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * mesh.inv_dx_[2];
+				}
+			}
 
-		dX2 = (-2.0 * s0 * X20 + CurlPDX(B1 / mu0)) / (a0 / dt + s0);
-		X20 += dX2;
-		E1 += dX2 / epsilon0;
+}
+template<typename TM>
+void PML<TM>::Deserialize(LuaObject const&cfg)
+{
+	cfg["Width"].as(&bc_);
+}
+template<typename TM>
 
-		dX2 = (-2.0 * s1 * X21 + CurlPDY(B1 / mu0)) / (a1 / dt + s1);
-		X21 += dX2;
-		E1 += dX2 / epsilon0;
+std::ostream & PML<TM>::Serialize(std::ostream & os) const
+{
+	os << "PML={  Width={" << ToString(bc_, ",") << " } }\n";
+	return os;
+}
 
-		dX2 = (-2.0 * s2 * X22 + CurlPDZ(B1 / mu0)) / (a2 / dt + s2);
-		X22 += dX2;
-		E1 += dX2 / epsilon0;
+template<typename TM>
+void PML<TM>::DumpData() const
+{
+}
 
-		E1 -= J1 / epsilon0 * dt;
+template<typename TM>
+void PML<TM>::NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE)
+{
+	LOGGER << "PML push E";
+	dE->Init();
+	const double mu0 = mesh.constants["permeability of free space"];
+	const double epsilon0 = mesh.constants["permittivity of free space"];
+	const double speed_of_light = mesh.constants["speed of light"];
+	const double proton_mass = mesh.constants["proton mass"];
+	const double elementary_charge = mesh.constants["elementary charge"];
 
-		Form<2> dX1(mesh);
+	Form<1> dX1(mesh);
 
-		dX1 = (-2.0 * s0 * X10 + CurlPDX(E1)) / (a0 / dt + s0);
-		X10 += dX1;
-		B1 -= dX1;
+	dX1 = (-2.0 * s0 * X10 + CurlPDX(B1 / mu0)) / (a0 / dt + s0);
+	X10 += dX1;
+	*dE = dX1 / epsilon0;
 
-		dX1 = (-2.0 * s1 * X11 + CurlPDY(E1)) / (a1 / dt + s1);
-		X11 += dX1;
-		B1 -= dX1;
+	dX1 = (-2.0 * s1 * X11 + CurlPDY(B1 / mu0)) / (a1 / dt + s1);
+	X11 += dX1;
+	*dE += dX1 / epsilon0;
 
-		dX1 = (-2.0 * s2 * X12 + CurlPDZ(E1)) / (a2 / dt + s2);
-		X12 += dX1;
-		B1 -= dX1;
+	dX1 = (-2.0 * s2 * X12 + CurlPDZ(B1 / mu0)) / (a2 / dt + s2);
+	X12 += dX1;
+	*dE += dX1 / epsilon0;
+}
 
-	}
-};
+template<typename TM>
+void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB)
+{
+	LOGGER << "PML Push B";
+	dB->Init();
+	const double mu0 = mesh.constants["permeability of free space"];
+	const double epsilon0 = mesh.constants["permittivity of free space"];
+	const double speed_of_light = mesh.constants["speed of light"];
+	const double proton_mass = mesh.constants["proton mass"];
+	const double elementary_charge = mesh.constants["elementary charge"];
+
+	Form<2> dX2(mesh);
+
+	dX2 = (-2.0 * s0 * X20 + CurlPDX(E1)) / (a0 / dt + s0);
+	X20 += dX2;
+	*dB = -dX2;
+
+	dX2 = (-2.0 * s1 * X21 + CurlPDY(E1)) / (a1 / dt + s1);
+	X21 += dX2;
+	*dB -= dX2;
+
+	dX2 = (-2.0 * s2 * X22 + CurlPDZ(E1)) / (a2 / dt + s2);
+	X22 += dX2;
+	*dB -= dX2;
+}
+
 } //namespace simpla
