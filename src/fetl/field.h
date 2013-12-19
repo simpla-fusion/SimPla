@@ -162,19 +162,22 @@ public:
 		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
 	}
 
-	void Init(bool clearInit = false)
+	void Init()
 	{
 		if (data_ == nullptr)
 		{
 			data_ = mesh.template MakeContainer<IForm, value_type>();
 			num_of_eles_ = size();
-			if (clearInit)
-			{
-				for (size_t s = 0; s < num_of_eles_; ++s)
-				{
-					mesh.get_value(data_, s) = 0;
-				}
-			}
+		}
+	}
+
+	template<typename TD>
+	void Fill(TD default_value)
+	{
+		Init();
+		for (size_t s = 0; s < num_of_eles_; ++s)
+		{
+			mesh.get_value(data_, s) = default_value;
 		}
 
 	}

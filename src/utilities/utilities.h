@@ -75,6 +75,18 @@ inline bool CheckFileExists(std::string const & name)
 		return false;
 	}
 }
+inline void TheStart(int flag = 1)
+{
+	switch (flag)
+	{
+	default:
+		LOGGER << "MISSION START!";
+		INFORM << SINGLELINE;
+		VERBOSE << "So far so good, let's start work! ";
+		INFORM << "[MISSOIN     START]: " << TimeStamp;
+		INFORM << SINGLELINE;
+	}
+}
 inline void TheEnd(int flag = 1)
 {
 	switch (flag)
@@ -91,17 +103,17 @@ inline void TheEnd(int flag = 1)
 		break;
 	case 1:
 	default:
-		LOGGER << "MISSION COMPLETED! ";
+		LOGGER << "MISSION COMPLETED!";
 
-		INFORM << std::setw(80) << std::setfill('=') << "=";
-		INFORM << "\t!!MISSION COMPLETED!! ";
-		INFORM << std::setw(80) << std::setfill('=') << "=";
-
+		INFORM << SINGLELINE;
+		INFORM << "[MISSION COMPLETED]: " << TimeStamp;
 		VERBOSE << "Job is Done!! ";
 		VERBOSE << "	I'm so GOOD!";
 		VERBOSE << "		Thanks me please!";
 		VERBOSE << "			Thanks me please!";
 		VERBOSE << "You are welcome!";
+		INFORM << SINGLELINE;
+
 	}
 	exit(1);
 }

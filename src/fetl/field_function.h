@@ -56,6 +56,11 @@ public:
 
 	bool IsDefined() const
 	{
+		return !def_domain_.empty();
+	}
+
+	bool empty() const // STL style
+	{
 		return def_domain_.empty();
 	}
 

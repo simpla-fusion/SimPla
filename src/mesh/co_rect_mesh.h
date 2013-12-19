@@ -47,7 +47,6 @@ struct CoRectMesh
 	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr unsigned int NUM_OF_DIMS = 3;
 	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
-	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
 	typedef size_t index_type;
 
@@ -69,12 +68,12 @@ struct CoRectMesh
 	friend std::ostream & operator<<(std::ostream &os, CoRectMesh<U> const &);
 
 	// Topology
+	unsigned int DEFAULT_GHOST_WIDTH = 2;
+
 	nTuple<NUM_OF_DIMS, size_t> shift_;
-
 	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
-
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_;
 	nTuple<NUM_OF_DIMS, size_t> strides_;
-
 	nTuple<NUM_OF_DIMS, size_t> period_;
 
 	size_t num_cells_ = 0;
@@ -141,8 +140,12 @@ struct CoRectMesh
 	{
 		num_cells_ = 1;
 		num_grid_points_ = 1;
+		cell_volume_=1.0;
+		d_cell_volume_=1.0;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
+			period_[i] = std::numeric_limits<index_type>::max();
+
 			if (dims_[i] <= 1)
 			{
 				dims_[i] = 1;
@@ -153,6 +156,11 @@ struct CoRectMesh
 				dS_[1][i] = 0.0;
 
 				k_[i] = TWOPI * dS_[0][i];
+
+				dims_[i] = 1;
+
+				ghost_width_[i]=0;
+
 			}
 			else
 			{
@@ -164,17 +172,9 @@ struct CoRectMesh
 				num_grid_points_ *= dims_[i];
 
 				k_[i] = 0.0;
-			}
-		}
-		strides_[2] = 1;
-		strides_[1] = dims_[2];
-		strides_[0] = dims_[1] * dims_[2];
 
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			if (dims_[i] == 1)
-			{
-				strides_[i] = 0;
+				if(ghost_width_[i]==0) period_[i]=dims_[i];
+
 			}
 
 			if (!isinf(dx_[i]))
@@ -187,7 +187,15 @@ struct CoRectMesh
 				d_cell_volume_ *= dx_[i];
 			}
 
-			UnSetPeriodicBoundary(i);
+		}
+
+		strides_[2] = 1;
+		strides_[1] = dims_[2];
+		strides_[0] = dims_[1] * dims_[2];
+
+		for(int i=0;i<NUM_OF_DIMS;++i)
+		{
+			if(dims_[i]<=1)strides_[i]=0;
 		}
 
 		coordinates_shift_[0][0][0] = 0.0;
@@ -1562,22 +1570,21 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 	constants.Deserialize(vm.GetChild("UnitSystem"));
 
 	vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
+	vm.GetChild("Topology").template GetValue("GhostWidth", &ghost_width_);
+
 	vm.GetChild("Geometry").template GetValue("Min", &xmin_);
 	vm.GetChild("Geometry").template GetValue("Max", &xmax_);
 	vm.GetChild("Geometry").template GetValue("dt", &dt_);
 
 	Update();
+
+	LOGGER << "Load Mesh " << GetTypeName() << DONE;
+
 }
 template<typename TS>
 template<typename OSTREAM> inline OSTREAM &
 CoRectMesh<TS>::Serialize(OSTREAM &os) const
 {
-//	vm.GetChild("Topology").template SetValue("Dimensions", &dims_);
-//	vm.GetChild("Topology").template SetValue("GhostWidth", &gw_);
-//	vm.GetChild("Geometry").template SetValue("Min", &xmin_);
-//	vm.GetChild("Geometry").template SetValue("Max", &xmax_);
-//
-//	constants.Serialize(vm.GetChild("UnitSystem"));
 
 	os
 
@@ -1596,6 +1603,8 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 	<< "        Type = \"" << GetTopologyTypeAsString() << "\", \n"
 
 	<< "		Dimensions = {" << ToString(dims_, ",") << "}, \n "
+
+	<< "		GhostWidth = {" << ToString(ghost_width_, ",") << "}, \n "
 
 	<< "	}, \n "
 

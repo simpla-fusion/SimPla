@@ -65,22 +65,24 @@ public:
 
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
+
 	template<typename TJ, typename TE, typename TB> inline
-	void NextTimeStep(double dt, TJ const &J, TE *E, TB *B);
+	void NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J);
+
 	void DumpData() const;
 
 }
 ;
 template<typename TM>
 template<typename TJ, typename TE, typename TB> inline
-void ColdFluidEM<TM>::NextTimeStep(Real dt, TJ const &J, TE *E, TB *B)
+void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 {
 	if (sp_list_.empty())
 	{
 		return;
 	}
 
-	LOGGER << "Cold Fluid Push E,M";
+	LOGGER << "Push Cold Fluid [Start]!";
 
 	const double mu0 = mesh.constants["permeability of free space"];
 	const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -97,14 +99,14 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TJ const &J, TE *E, TB *B)
 
 	Form<0> BB(mesh);
 
-	BB = Dot(*B, *B);
+	BB = Dot(B, B);
 
 	VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
 	Ev.Init();
 	Bv.Init();
 
-	MapTo(*E, &Ev);
-	MapTo(*B, &Bv);
+	MapTo(E, &Ev);
+	MapTo(B, &Bv);
 
 	for (auto &v : sp_list_)
 	{
@@ -168,21 +170,19 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TJ const &J, TE *E, TB *B)
 		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-	MapTo(Ev, E);
-	MapTo(Bv, B);
+	dEvdt *= epsilon0;
 
-	//		J -=  dEvdt;
-	LOGGER << "Cold Fluid Push Done";
+	MapTo(dEvdt, J);
+
+	LOGGER << "Push Cold Fluid." << DONE;
 
 }
 
 template<typename TM>
 inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 {
-	if (cfg.IsNull())
-	{
+	if (cfg.empty())
 		return;
-	}
 
 	for (auto const & p : cfg)
 	{

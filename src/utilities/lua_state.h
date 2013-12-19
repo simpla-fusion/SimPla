@@ -619,15 +619,15 @@ public:
 	}
 
 	template<typename T>
-	inline void GetValue(std::string const & name, T *v) const
+	inline void GetValue(std::string const & name, T *v) const noexcept
 	{
-		at(name).as(v);
+		operator[](name).as(v);
 	}
 
 	template<typename T>
-	inline void GetValue(int s, T *v) const
+	inline void GetValue(int s, T *v) const noexcept
 	{
-		at(s).as(v);
+		operator[](s).as(v);
 	}
 
 	template<typename T>
@@ -638,7 +638,7 @@ public:
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
-//		LuaTrans<T>::To(L_.get(), v);
+		LuaTrans<T>::To(L_.get(), v);
 		lua_setfield(L_.get(), -2, name.c_str());
 		lua_pop(L_.get(), 1);
 	}
@@ -651,7 +651,6 @@ public:
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
-//		LuaTrans<T>::To(L_.get(), v);
 		lua_rawseti(L_.get(), -2, s);
 		lua_pop(L_.get(), 1);
 	}
@@ -664,7 +663,6 @@ public:
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
-//		LuaTrans<T>::To(L_.get(), v);
 		size_t len = lua_rawlen(L_.get(), -1);
 		lua_rawseti(L_.get(), -2, len + 1);
 		lua_pop(L_.get(), 1);

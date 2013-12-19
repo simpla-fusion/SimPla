@@ -127,15 +127,17 @@ int main(int argc, char **argv)
 
 	);
 
-	INFORM << SIMPLA_LOGO << std::endl;
+	INFORM << SIMPLA_LOGO;
 
-	LOGGER << "Parse Command Line: [Done]!";
+	LOGGER << "Parse Command Line." << DONE;
 
 	if (pt.IsNull())
 	{
 		LOGGER << "Nothing to do !!";
 		TheEnd(-1);
 	}
+
+	LOGGER << "Pre-Process" << START;
 
 	std::shared_ptr<BaseContext> ctx;
 
@@ -170,21 +172,28 @@ int main(int argc, char **argv)
 
 //  Summary    ====================================
 
-	INFORM << "\n" << SINGLELINE << "\n";
+	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	INFORM << "\n-- [Configure]" << "\n" << (*ctx);
+	LOGGER << "\n-- [Configure]" << "\n" << (*ctx);
 
 // Main Loop ============================================
 
-	LOGGER << "\n" << SINGLELINE << "\n";
-	LOGGER << (">>> Pre-Process [Done]! <<<");
+	LOGGER << "\n" << SINGLELINE<< "\n";
+	LOGGER << "Pre-Process" << DONE;
 
-	if (!just_a_test)
+	LOGGER << "Process " << START;
+
+	TheStart();
+	if (just_a_test)
 	{
-		LOGGER << (">>> Process [Start]! <<<");
+		LOGGER << "Just test configure files";
+	}
+	else
+	{
+
 		for (int i = 0; i < num_of_step; ++i)
 		{
-			LOGGER << ">>> STEP " << i << " Start <<<";
+			LOGGER << "STEP: " << i << START;
 
 			ctx->NextTimeStep();
 
@@ -192,12 +201,12 @@ int main(int argc, char **argv)
 			{
 				ctx->DumpData();
 			}
-			LOGGER << ">>> STEP " << i << " [Done] <<<";
+			LOGGER << "STEP: " << i << DONE << "<<<";
 		}
-		LOGGER << (">>> Process [Done]! <<<");
-		//	ctx->Serialize(std::cout);
-		LOGGER << (">>> Post-Process [Done]! <<<");
 	}
+	LOGGER << "Process" << DONE;
+	LOGGER << "Post-Process" << START;
+	LOGGER << "Post-Process" << DONE;
 
 	TheEnd();
 

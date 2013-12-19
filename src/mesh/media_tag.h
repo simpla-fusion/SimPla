@@ -67,6 +67,11 @@ public:
 	{
 	}
 
+	bool empty() const
+	{
+		return tags_[0].empty();
+	}
+
 	tag_type RegisterTag(std::string const & name)
 	{
 		tag_type res;
@@ -130,12 +135,10 @@ public:
 	{
 		if (cfg.empty())
 			return;
-
 		for (auto const & p : cfg)
 		{
 			Modify(p.second);
 		}
-
 		Update();
 
 	}
@@ -235,7 +238,7 @@ public:
 			}
 		}
 
-		LOGGER << op << " media " << type << " [Done]!";
+		LOGGER << op << " media " << type << DONE;
 	}
 
 	template<typename ...Args> inline

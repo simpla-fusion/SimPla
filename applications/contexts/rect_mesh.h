@@ -75,9 +75,9 @@ public:
 
 	mediatag_type media_tag;
 
-	Form<1> E1;
-	Form<1> J1;
-	Form<2> B1;
+	Form<1> E;
+	Form<1> J;
+	Form<2> B;
 	RVectorForm<0> B0;
 	RForm<0> n0;
 
@@ -91,15 +91,15 @@ public:
 //	typedef typename Form<1>::field_value_type field_value_type;
 //	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
 	typedef LuaObject field_function;
-	FieldFunction<decltype(J1), field_function> j_src_;
+	FieldFunction<decltype(J), field_function> j_src_;
 
-	std::map<std::string, std::function<void()> > fun_;
+	std::map<std::string, std::function<void()> > function_;
 }
 ;
 
 template<typename TM>
 Context<TM>::Context()
-		: E1(mesh), B1(mesh), J1(mesh), B0(mesh), n0(mesh),
+		: E(mesh), B(mesh), J(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true),
 
@@ -128,8 +128,6 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	cold_fluid_.Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 
 //	particle_collection_.Deserialize(cfg["Particles"]);
-//
-//	LOGGER << "Load Particles [Done]!";
 
 	auto init_value = cfg["InitValue"];
 
@@ -139,69 +137,79 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 	{
 		LoadField(init_value["n0"], &n0);
 		LoadField(init_value["B0"], &B0);
-		LoadField(init_value["E1"], &E1);
-		LoadField(init_value["B1"], &B1);
-		LoadField(init_value["J1"], &J1);
+		LoadField(init_value["E"], &E);
+		LoadField(init_value["B"], &B);
+		LoadField(init_value["J"], &J);
 
-		LOGGER << "Load Initial Fields [Done]!";
+		LOGGER << "Load Initial Fields." << DONE;
 	}
 	else
 	{
 		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
 
-	LuaObject jSrcCfg = cfg["CurrentSrc"];
-
-	if (!jSrcCfg.empty())
 	{
-		j_src_.SetFunction(jSrcCfg["Fun"]);
+		LuaObject jSrcCfg = cfg["CurrentSrc"];
 
-		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+		if (!jSrcCfg.empty())
+		{
+			j_src_.SetFunction(jSrcCfg["Fun"]);
 
-		LOGGER << "Load Current Source [Done]!";
+			j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+
+			LOGGER << "Load Current Source ." << DONE;
+		}
 	}
 
-	media_tag.Deserialize(cfg["Media"]);
-
-	LuaObject boundary = cfg["Boundary"];
-
-	for (auto const & obj : boundary)
 	{
-		std::string type = "";
 
-		obj.second["Type"].as<std::string>(&type);
+		media_tag.Deserialize(cfg["Media"]);
 
-		tag_type in = media_tag.GetTagFromString(obj.second["In"].as<std::string>());
-		tag_type out = media_tag.GetTagFromString(obj.second["Out"].as<std::string>());
-
-		if (type == "PEC")
+		if (!media_tag.empty())
 		{
-			fun_.emplace(
+			LuaObject boundary = cfg["Boundary"];
 
-			"PEC",
-
-			[in,out,this]()
+			for (auto const & obj : boundary)
 			{
+				std::string type = "";
 
-				media_tag.template SelectBoundaryCell<1>(
-						[this](index_type const &s)
-						{
-							(this->E1)[s]=0;
-						}
-						,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL );
+				obj.second["Type"].as<std::string>(&type);
+
+				tag_type in = media_tag.GetTagFromString(obj.second["In"].as<std::string>());
+				tag_type out = media_tag.GetTagFromString(obj.second["Out"].as<std::string>());
+
+				if (type == "PEC")
+				{
+					function_.emplace(
+
+					"PEC",
+
+					[in,out,this]()
+					{
+
+						media_tag.template SelectBoundaryCell<1>(
+								[this](index_type const &s)
+								{
+									(this->E)[s]=0;
+								}
+								,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL );
+
+					}
+
+					);
+				}
+				else
+				{
+					UNIMPLEMENT << "Unknown boundary type [" << type << "]";
+				}
+
+				LOGGER << "Load Boundary " << type << DONE;
 
 			}
-
-			);
 		}
-		else
-		{
-			UNIMPLEMENT << "Unknown boundary type [" << type << "]";
-		}
-
-		LOGGER << "Load Boundary " << type << " [Done]!";
-
 	}
+
+	LOGGER << ">>>>>>> Initialization  Complete! <<<<<<<< ";
 
 }
 
@@ -230,7 +238,7 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 	;
 
 	os << "Function={";
-	for (auto const & p : fun_)
+	for (auto const & p : function_)
 	{
 		os << "\"" << p.first << "\",\n";
 	}
@@ -244,11 +252,11 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< "	n0 = " << Data(n0.data(), "n0", n0.GetShape()) << ",\n"
 
-	<< "	E1 = " << Data(E1.data(), "E1", E1.GetShape()) << ",\n"
+	<< "	E = " << Data(E.data(), "E", E.GetShape()) << ",\n"
 
-	<< "	B1 = " << Data(B1.data(), "B1", B1.GetShape()) << ",\n"
+	<< "	B = " << Data(B.data(), "B", B.GetShape()) << ",\n"
 
-	<< "	J1 = " << Data(J1.data(), "J1", J1.GetShape()) << ",\n"
+	<< "	J = " << Data(J.data(), "J", J.GetShape()) << ",\n"
 
 	<< "	B0 = " << Data(B0.data(), "B0", n0.GetShape()) << "\n"
 
@@ -272,42 +280,50 @@ void Context<TM>::NextTimeStep(double dt)
 
 	<< " dt = " << (dt / mesh.constants["s"]) << "[s]";
 
-	J1 = 0;
+	Form<1> Jext(mesh);
 
-	j_src_(&J1, base_type::GetTime());
+	Jext.Fill(0);
 
-//	particle_collection_.CollectAll(dt, &J1, E1, B1);
-//
-	if (cold_fluid_.IsEmpty())
+	if (!j_src_.empty())
+		j_src_(&Jext, base_type::GetTime());
+
+	const double mu0 = mesh.constants["permeability of free space"];
+	const double epsilon0 = mesh.constants["permittivity of free space"];
+	const double speed_of_light = mesh.constants["speed of light"];
+	const double proton_mass = mesh.constants["proton mass"];
+	const double elementary_charge = mesh.constants["elementary charge"];
+
+	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+	//	particle_collection_.CollectAll(dt, &Jext, E, B);
+
+	// B(t=0 -> 1/2)
+	B -= Curl(E) * (0.5 * dt);
+
+	// E(t=0 -> 1/2-)
+	E += (Curl(B / mu0) - Jext) / epsilon0 * (0.5 * dt);
+
+	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dts
+	if (!cold_fluid_.IsEmpty())
+		cold_fluid_.NextTimeStep(dt, E, B, &J);
+
+	// E(t=1/2-  -> 1/2 +)
+	E += (-J) / epsilon0 * (0.5 * dt);
+
+	//  particle(t=0 -> 1)
+	//	particle_collection_.Push(dt, E, B);
+
+	//  E(t=1/2+ -> 1)
+	E += (Curl(B / mu0) - Jext - J) / epsilon0 * (0.5 * dt);
+
+	try
 	{
-		const double mu0 = mesh.constants["permeability of free space"];
-		const double epsilon0 = mesh.constants["permittivity of free space"];
-		const double speed_of_light = mesh.constants["speed of light"];
-		const double proton_mass = mesh.constants["proton mass"];
-		const double elementary_charge = mesh.constants["elementary charge"];
-
-		B1 -= Curl(E1) * (0.5 * dt);
-
-		E1 += (Curl(B1 / mu0) - J1) / epsilon0 * dt;
-		fun_["PEC"]();
-
-		B1 -= Curl(E1) * (0.5 * dt);
-	}
-	else
+		function_.at("PEC")();
+	} catch (...)
 	{
-		B1 -= Curl(E1) * (0.5 * dt);
-		cold_fluid_.NextTimeStep(dt, J1, &E1, &B1);
-		fun_["PEC"]();
-		B1 -= Curl(E1) * (0.5 * dt);
 	}
 
-//	for (auto const & p : fun_)
-//	{
-//		p.second();
-//		LOGGER << p.first << " Done!";
-//	}
-
-//	particle_collection_.Push(dt, E1, B1);
+	//  B(t=1/2 -> 1)
+	B -= Curl(E) * (0.5 * dt);
 
 }
 template<typename TM>
@@ -315,11 +331,11 @@ void Context<TM>::DumpData() const
 {
 	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
-	LOGGER << "Dump E1 to " << Data(E1.data(), "E1", E1.GetShape(), isCompactStored_);
+	LOGGER << "Dump E to " << Data(E.data(), "E", E.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump B1 to " << Data(B1.data(), "B1", B1.GetShape(), isCompactStored_);
+	LOGGER << "Dump B to " << Data(B.data(), "B", B.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump J1 to " << Data(J1.data(), "J1", J1.GetShape(), isCompactStored_);
+	LOGGER << "Dump J to " << Data(J.data(), "J", J.GetShape(), isCompactStored_);
 
 	cold_fluid_.DumpData();
 
@@ -327,6 +343,6 @@ void Context<TM>::DumpData() const
 
 }
 }
- // namespace simpla
+	// namespace simpla
 
 #endif /* RECT_MESH_H_ */
