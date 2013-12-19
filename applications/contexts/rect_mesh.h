@@ -297,33 +297,32 @@ void Context<TM>::NextTimeStep(double dt)
 	//	particle_collection_.CollectAll(dt, &Jext, E, B);
 
 	// B(t=0 -> 1/2)
-	B -= Curl(E) * (0.5 * dt);
+	LOG_CMD(B -= Curl(E) * (0.5 * dt));
 
 	// E(t=0 -> 1/2-)
-	E += (Curl(B / mu0) - Jext) / epsilon0 * (0.5 * dt);
+	LOG_CMD(E += (Curl(B / mu0) - Jext) / epsilon0 * (0.5 * dt));
 
 	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dts
 	if (!cold_fluid_.IsEmpty())
-		cold_fluid_.NextTimeStep(dt, E, B, &J);
+	{
+		LOG_CMD(cold_fluid_.NextTimeStep(dt, E, B, &J));
+	}
 
 	// E(t=1/2-  -> 1/2 +)
-	E += (-J) / epsilon0 * (0.5 * dt);
+	LOG_CMD(E += (-J) / epsilon0 * (0.5 * dt));
 
 	//  particle(t=0 -> 1)
 	//	particle_collection_.Push(dt, E, B);
 
 	//  E(t=1/2+ -> 1)
-	E += (Curl(B / mu0) - Jext - J) / epsilon0 * (0.5 * dt);
+	LOG_CMD(E += (Curl(B / mu0) - Jext - J) / epsilon0 * (0.5 * dt));
 
-	try
+	if (function_.find("PEC") != function_.end())
 	{
-		function_.at("PEC")();
-	} catch (...)
-	{
+		LOG_CMD(function_["PEC"]());
 	}
-
 	//  B(t=1/2 -> 1)
-	B -= Curl(E) * (0.5 * dt);
+	LOG_CMD(B -= Curl(E) * (0.5 * dt));
 
 }
 template<typename TM>

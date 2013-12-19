@@ -303,6 +303,8 @@ private:
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
+#define LOG_CMD(_CMD_) Logger(LOG_LOG)<<__STRING(_CMD_); _CMD_
+
 inline Logger & DONE(Logger & self)
 {
 	//TODO: trigger timer
