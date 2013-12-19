@@ -124,15 +124,13 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 		Real as = 2.0 * ms / (dt * Zs);
 
-		CHECK(as);
-
 		a += ns * Zs / as;
 		b += ns * Zs / (BB + as * as);
 		c += ns * Zs / ((BB + as * as) * as);
 
-		VectorForm<0> K_(mesh);
+//		VectorForm<0> K_(mesh);
 
-		K_ = Cross(Js, Bv) + (Ev * ns) * Zs;
+		auto K_ = Cross(Js, Bv) + (Ev * ns) * Zs;
 
 		K -=
 
@@ -168,9 +166,7 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 		Real as = 2.0 * ms / (dt * Zs);
 
-		VectorForm<0> K_(mesh);
-
-		K_ = Cross(Js, Bv) + E1v * ns * Zs;
+		auto K_ = Cross(Js, Bv) + E1v * ns * Zs;
 
 		Js =
 
@@ -185,7 +181,7 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 	MapTo(E1v, &E1);
 
-	*J = -(E1 - E0) * epsilon0 / dt;
+	*J = (E1 - E0) * epsilon0 / dt;
 
 	LOGGER << "Push Cold Fluid." << DONE;
 
