@@ -317,13 +317,13 @@ void Context<TM>::NextTimeStep(double dt)
 	}
 
 	// E(t=1/2-  -> 1/2 +)
-	LOG_CMD(E += (-J) / epsilon0 * (0.5 * dt));
+	LOG_CMD(E += -J * (0.5 * dt / epsilon0));
 
 	//  particle(t=0 -> 1)
 	//	particle_collection_.Push(dt, E, B);
 
 	//  E(t=1/2+ -> 1)
-	LOG_CMD(E += (Curl(B / mu0) - Jext - J) / epsilon0 * (0.5 * dt));
+	LOG_CMD(E += (Curl(B / mu0) - Jext - J) * (0.5 * dt / epsilon0));
 
 	if (function_.find("PEC") != function_.end())
 	{

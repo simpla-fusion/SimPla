@@ -67,7 +67,7 @@ public:
 	std::ostream & Serialize(std::ostream & os) const;
 
 	template<typename TJ, typename TE, typename TB> inline
-	void NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J);
+	void NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J);
 
 	void DumpData() const;
 
@@ -75,7 +75,7 @@ public:
 ;
 template<typename TM>
 template<typename TJ, typename TE, typename TB> inline
-void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
+void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 {
 	if (sp_list_.empty())
 	{
@@ -98,21 +98,21 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 
 	Form<0> BB(mesh);
 
-	BB = Dot(B, B);
+	BB = Dot(B0, B0);
 
-	VectorForm<0> Ev(mesh), Bv(mesh), dEvdt(mesh);
+	VectorForm<0> Ev(mesh), Bv(mesh), E1v(mesh);
 	Ev.Init();
 	Bv.Init();
 
-	MapTo(E, &Ev);
-	MapTo(B, &Bv);
+	MapTo(E0, &Ev);
+	MapTo(B0, &Bv);
 
 	a.Fill(0);
 	b.Fill(0);
 	c.Fill(0);
 	K.Fill(0);
 
-	dEvdt = Ev / dt;
+	K = Ev;
 
 	for (auto &v : sp_list_)
 	{
@@ -132,28 +132,32 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 
 		VectorForm<0> K_(mesh);
 
-		K_ = -2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
+		K_ = Cross(Js, Bv) + (Ev * ns) * Zs;
 
-		K -= Js
+		K -=
 
-		+ 0.5 * (K_ / as
+		(Js
+
+		+ (K_ / as
 
 		+ Cross(K_, Bv) / (BB + as * as)
 
 		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
 
-		);
+		)
+
+		) * ((0.5 * dt) / epsilon0);
 
 	}
 	a = a * (0.5 * dt) / epsilon0 - 1.0;
 	b = b * (0.5 * dt) / epsilon0;
 	c = c * (0.5 * dt) / epsilon0;
 
-	K /= epsilon0;
+	E1v = K / a
 
-	dEvdt = K / a + Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
-	        + Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b)
-	                / (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
+	- Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+
+	- Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b) / (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
 
 	for (auto &v : sp_list_)
 	{
@@ -166,22 +170,22 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 
 		VectorForm<0> K_(mesh);
 
-		K_ = -2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+		K_ = Cross(Js, Bv) + E1v * ns * Zs;
 
-		Js +=
+		Js =
 
 		K_ / as
 
-		+ Cross(K_, Bv) / (BB + as * as)
+		- Cross(K_, Bv) / (BB + as * as)
 
-		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
+		- Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-	Form<1> E_(mesh);
+	Form<1> E1(mesh);
 
-	MapTo(dEvdt, &E_);
+	MapTo(E1v, &E1);
 
-	*J = E_ * epsilon0 / dt;
+	*J = -(E1 - E0) * epsilon0 / dt;
 
 	LOGGER << "Push Cold Fluid." << DONE;
 

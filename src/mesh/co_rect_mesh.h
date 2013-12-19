@@ -1068,6 +1068,12 @@ public:
 		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL);
 
 	}
+	template<typename TL> void AssignContainer(int IFORM, TL * lhs, TL const &rhs) const
+	{
+		Traversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
+		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL|WITH_GHOSTS);
+
+	}
 // Properties of UniformRectMesh --------------------------------------
 	inline void SetPeriodicBoundary(int i)
 	{
