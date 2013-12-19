@@ -145,14 +145,6 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 		);
 
 	}
-//	LOGGER << DUMP(BB);
-//	LOGGER << DUMP(Ev);
-//	LOGGER << DUMP(Bv);
-//
-//	LOGGER << DUMP(a);
-//	LOGGER << DUMP(b);
-//	LOGGER << DUMP(c);
-
 	a = a * (0.5 * dt) / epsilon0 - 1.0;
 	b = b * (0.5 * dt) / epsilon0;
 	c = c * (0.5 * dt) / epsilon0;
@@ -189,7 +181,7 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 
 	MapTo(dEvdt, &E_);
 
-	*J += E_ * epsilon0;
+	*J = E_ * epsilon0 / dt;
 
 	LOGGER << "Push Cold Fluid." << DONE;
 
