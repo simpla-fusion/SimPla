@@ -81,8 +81,10 @@ struct CoRectMesh
 	size_t num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 	nTuple<NUM_OF_DIMS, scalar> dS_[2];
 	nTuple<NUM_OF_DIMS, scalar> k_;
 	coordinates_type dx_;
@@ -90,7 +92,8 @@ struct CoRectMesh
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -121,7 +124,8 @@ struct CoRectMesh
 
 	template<int iform, typename TV> inline Container<TV> MakeContainer() const
 	{
-		return std::move(MEMPOOL.allocate_shared_ptr<TV>(GetNumOfElements(iform)));
+
+		return (MEMPOOL.allocate_shared_ptr<TV>(GetNumOfElements(iform)));
 	}
 
 	template<typename ISTREAM> void Deserialize(ISTREAM const &vm);
@@ -864,7 +868,7 @@ public:
 		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
 	}
 
-private:
+
 
 	enum
 	{
@@ -885,7 +889,6 @@ private:
 		return 2 << (m % 3) * 2;
 	}
 
-public:
 
 	/**
 	 * (((d & 3) + 1) % 3 - 1)
@@ -1328,8 +1331,7 @@ public:
 	DECL_RET_TYPE ((get(l,s...)))
 
 	template<typename TL, typename ...IDXS> inline auto
-	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l,
-	int m, IDXS ... s) const
+	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ... s) const
 	DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
 
 	template<typename TL, typename ...IDXS> inline auto//
@@ -1612,6 +1614,8 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 
 	<< "		GhostWidth = {" << ToString(ghost_width_, ",") << "}, \n "
 
+	<< "		Period 	   = {" << ToString(period_, ",") << "}, \n "
+
 	<< "	}, \n "
 
 	<< "	Geometry={ \n "
@@ -1648,28 +1652,28 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
-        unsigned int flags) const
+		unsigned int flags) const
 {
 	index_type ib =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
+					0 : DEFAULT_GHOST_WIDTH;
 	index_type ie =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                dims_[0] : dims_[0] - DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
+					dims_[0] : dims_[0] - DEFAULT_GHOST_WIDTH;
 
 	index_type jb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
+					0 : DEFAULT_GHOST_WIDTH;
 	index_type je =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                dims_[1] : dims_[1] - DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
+					dims_[1] : dims_[1] - DEFAULT_GHOST_WIDTH;
 
 	index_type kb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
+					0 : DEFAULT_GHOST_WIDTH;
 	index_type ke =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                dims_[2] : dims_[2] - DEFAULT_GHOST_WIDTH;
+			((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
+					dims_[2] : dims_[2] - DEFAULT_GHOST_WIDTH;
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];

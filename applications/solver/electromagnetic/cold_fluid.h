@@ -26,6 +26,7 @@ public:
 
 	typedef ColdFluidEM<mesh_type> this_type;
 
+	mesh_type const & mesh;
 private:
 
 	struct Species
@@ -35,8 +36,8 @@ private:
 		Form<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh)
-				: m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh) :
+				m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -45,12 +46,11 @@ private:
 
 	};
 	std::map<std::string, std::shared_ptr<Species>> sp_list_;
+	VectorForm<0> Ev;
 public:
 
-	mesh_type const & mesh;
-
-	ColdFluidEM(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ColdFluidEM(mesh_type const & pmesh) :
+			mesh(pmesh), Ev(pmesh)
 	{
 	}
 
@@ -66,23 +66,23 @@ public:
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
 
-	template<typename TJ, typename TE, typename TB> inline
-	void NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J);
+	template<typename TE, typename TB> inline
+	void NextTimeStep(Real dt, TE const &dE, TB const &B0, TE *E);
 
 	void DumpData() const;
 
 }
 ;
 template<typename TM>
-template<typename TJ, typename TE, typename TB> inline
-void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
+template<typename TE, typename TB> inline
+void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 {
 	if (sp_list_.empty())
-	{
 		return;
-	}
 
-	LOGGER << "Push Cold Fluid" << START;
+	LOGGER << "Push Cold Fluid.";
+	if (Ev.empty())
+		MapTo(E, &Ev);
 
 	const double mu0 = mesh.constants["permeability of free space"];
 	const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -100,17 +100,19 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 	BB = Dot(B0, B0);
 
-	VectorForm<0> Ev(mesh), Bv(mesh), E1v(mesh);
-	Ev.Init();
-	Bv.Init();
+	VectorForm<0> B0v(mesh);
 
-	MapTo(E0, &Ev);
-	MapTo(B0, &Bv);
+	MapTo(B0, &B0v);
 
-	a.Fill(0);
+	a.Fill(1.0);
 	b.Fill(0);
 	c.Fill(0);
-	K.Fill(0);
+
+	VectorForm<0> dEv(mesh);
+
+	MapTo(*dE, &dEv);
+
+	Ev += dEv * 0.5;
 
 	K = Ev;
 
@@ -124,38 +126,35 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 		Real as = 2.0 * ms / (dt * Zs);
 
-		a += ns * Zs / as;
-		b += ns * Zs / (BB + as * as);
-		c += ns * Zs / ((BB + as * as) * as);
+		a += ns * Zs / as * (0.5 * dt) / epsilon0;
 
-//		VectorForm<0> K_(mesh);
+		b += ns * Zs / (BB + as * as) * (0.5 * dt) / epsilon0;
 
-		auto K_ = Cross(Js, Bv) + (Ev * ns) * Zs;
+		c += ns * Zs / ((BB + as * as) * as) * (0.5 * dt) / epsilon0;
 
-		K -=
+		auto K_ = Cross(Js, B0v) + (Ev * ns) * Zs;
 
-		(Js
+		K -= (Js
 
 		+ (K_ / as
 
-		+ Cross(K_, Bv) / (BB + as * as)
+		+ Cross(K_, B0v) / (BB + as * as)
 
-		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
+		+ Cross(Cross(K_, B0v), B0v) / (as * (BB + as * as)))
 
-		)
-
-		) * ((0.5 * dt) / epsilon0);
+		) * (0.5 * dt / epsilon0);
 
 	}
-	a = a * (0.5 * dt) / epsilon0 - 1.0;
-	b = b * (0.5 * dt) / epsilon0;
-	c = c * (0.5 * dt) / epsilon0;
 
-	E1v = K / a
+	Ev = K / a
 
-	- Cross(K, Bv) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+	- Cross(K, B0v) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
 
-	- Cross(Cross(K, Bv), Bv) * (-c * c * BB + c * a - b * b) / (a * ((c * BB - a) * (c * BB - a) + b * b * BB));
+	- Cross(Cross(K, B0v), B0v) * (-c * c * BB + c * a - b * b)
+
+	/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB))
+
+	;
 
 	for (auto &v : sp_list_)
 	{
@@ -166,24 +165,21 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E0, TB const &B0, TJ *J)
 
 		Real as = 2.0 * ms / (dt * Zs);
 
-		auto K_ = Cross(Js, Bv) + E1v * ns * Zs;
+		auto K_ = Cross(Js, B0v) + Ev * ns * Zs;
 
-		Js =
+		Js = K_ / as
 
-		K_ / as
+		- Cross(K_, B0v) / (BB + as * as)
 
-		- Cross(K_, Bv) / (BB + as * as)
+		- Cross(Cross(K_, B0v), B0v) / (as * (BB + as * as));
 
-		- Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-	Form<1> E1(mesh);
+	Ev += dEv * (0.5);
 
-	MapTo(E1v, &E1);
+	MapTo(Ev, dE);
 
-	*J = (E1 - E0) * epsilon0 / dt;
-
-	LOGGER << "Push Cold Fluid." << DONE;
+	*dE -= E;
 
 }
 
@@ -208,7 +204,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		}
 
 		std::shared_ptr<Species> sp(
-		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+				new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
 		sp->n.Init();
 		sp->J.Init();
@@ -222,6 +218,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		sp_list_.emplace(std::make_pair(key, sp));
 
 	}
+
 	LOGGER << " Load Cold Fluid [Done]!";
 }
 
@@ -233,10 +230,10 @@ void ColdFluidEM<TM>::DumpData() const
 	for (auto const & p : sp_list_)
 	{
 		LOGGER << "Dump " << "n_" + p.first << " to "
-		        << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
+				<< Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
 
 		LOGGER << "Dump " << "J_" + p.first << " to "
-		        << Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
+				<< Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
 	}
 }
 

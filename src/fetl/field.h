@@ -65,24 +65,24 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh, value_type d_value) :
+			mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 		*this = d_value;
 	}
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
@@ -167,7 +167,7 @@ public:
 		if (data_ == nullptr)
 		{
 			data_ = mesh.template MakeContainer<IForm, value_type>();
-			num_of_eles_ = size();
+			num_of_eles_ = mesh.GetNumOfElements(IForm);
 		}
 	}
 

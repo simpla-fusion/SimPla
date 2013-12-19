@@ -39,7 +39,7 @@ InitN0=function(x,y,z)
 InitValue={
   n0= InitN0 
      ,
-  B0=function(x,y,z)
+  B=function(x,y,z)
 --[[  
       local omega_ci_x0 = 1/1.55*omega;
       local omega_ci_lx = 1/1.45*omega;
@@ -49,19 +49,20 @@ InitValue={
       return {Btor,0,0}  
      end
       ,
-  E0=0.0, E1=0.0, B1=0.0,J1=0.0
+  E=0.0, J=0.0
 }
 -- GFile
 Grid=
 {
   Type="CoRectMesh",
-  ScalarType="Complex",
+--  ScalarType="Complex",
   UnitSystem={Type="SI"},
   Topology=
   {       
       Type="3DCoRectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
-      GhostWidth= {GW,GW,GW},  -- width of ghost points            
+      GhostWidth= {0,0,0},  -- width of ghost points  , if gw=0, coordinate is 
+                              -- Periodic at this direction          
   },
   Geometry=
   {
@@ -70,12 +71,30 @@ Grid=
       Max={LX,LY,LZ},
 --      dt= 2.0*math.pi/omega_ci/100.0
       dt=0.5*LX/ (NX-1)/c  -- time step     
-  }
+  },
+  
+}
+--[[
+Media=
+{
+   {Type="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+
+   {Type="Plasma",
+     Select=function(x,y,z)
+          return x>1.0 and x<2.0
+        end
+     ,Op="Set"},
 }
 
+Boundary={
+   --   { Type="PEC", In="Vacuum",Out="NONE"},
+   -- { Type="PEC", In="Plasma",Out="NONE"},
+}
+--]]
 FieldSolver= 
 {
-    ColdFluid=
+
+   ColdFluid=
     {
      {Name="ion",m=1.0,Z=1.0,T= Ti,
        n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
@@ -83,6 +102,7 @@ FieldSolver=
      {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,
        n=InitN0, J=0}         
     }
+
 }
 
 
@@ -91,8 +111,7 @@ CurrentSrc=
  { 
   Points={{LX/2.0,0.0,0.0},},
   Fun=function(x,y,z,t)
-        local tau = t*omega_ci
-       -- print(tau)
+      local tau = t*omega_ci
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
  }

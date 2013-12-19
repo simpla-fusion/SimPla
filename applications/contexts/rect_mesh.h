@@ -98,8 +98,8 @@ public:
 ;
 
 template<typename TM>
-Context<TM>::Context()
-		: E(mesh), B(mesh), J(mesh), B0(mesh), n0(mesh),
+Context<TM>::Context() :
+		E(mesh), B(mesh), J(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh), particle_collection_(mesh), isCompactStored_(true),
 
@@ -298,32 +298,28 @@ void Context<TM>::NextTimeStep(double dt)
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	//	particle_collection_.CollectAll(dt, &Jext, E, B);
 
-	LOGGER << Data(E.data(), "E_0", E.GetShape(), true);
-	LOGGER << Data(B.data(), "B_0", B.GetShape(), true);
+	Form<1> dE(mesh);
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B -= Curl(E) * (0.5 * dt));
 
-	LOGGER << Data(E.data(), "E_1", E.GetShape(), true);
-	LOGGER << Data(B.data(), "B_1", B.GetShape(), true);
+	LOG_CMD(dE = (Curl(B) / mu0 - Jext) * (dt / epsilon0));
 
-	// E(t=0 -> 1/2-)
-	LOG_CMD(E += (Curl(B / mu0) - Jext) / epsilon0 * (0.5 * dt));
-
-	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dts
+	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
 	if (!cold_fluid_.IsEmpty())
 	{
-		cold_fluid_.NextTimeStep(dt, E, B, &J);
+		cold_fluid_.NextTimeStep(dt, E, B, &dE);
 	}
-
-	// E(t=1/2-  -> 1/2 +)
-	LOG_CMD(E += -J * (0.5 * dt / epsilon0));
+	// E(t=0  -> 1/2  )
+	LOG_CMD(E += dE * 0.5);
 
 	//  particle(t=0 -> 1)
 	//	particle_collection_.Push(dt, E, B);
 
-	//  E(t=1/2+ -> 1)
-	LOG_CMD(E += (Curl(B / mu0) - Jext - J) * (0.5 * dt / epsilon0));
+	//  E(t=1/2  -> 1)
+	LOG_CMD(E += dE * 0.5);
+
+	//	LOG_CMD(E += (Curl(B / mu0) - Jext - J) * (0.5 * dt / epsilon0));
 
 	if (function_.find("PEC") != function_.end())
 	{
