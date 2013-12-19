@@ -53,13 +53,14 @@ public:
 	MediaTag(mesh_type const & m)
 			: mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
 	{
-		register_tag_.insert(std::make_pair("NONE", none));
-		register_tag_.insert(std::make_pair("Vacuum", tag_type(1 << VACUUM)));
-		register_tag_.insert(std::make_pair("Plasma", tag_type(1 << PLASMA)));
-		register_tag_.insert(std::make_pair("Core", tag_type(1 << CORE)));
-		register_tag_.insert(std::make_pair("Boundary", tag_type(1 << BOUNDARY)));
-		register_tag_.insert(std::make_pair("Plateau", tag_type(1 << PLATEAU)));
-		register_tag_.insert(std::make_pair("Limter", tag_type(1 << PLATEAU)));
+		register_tag_.emplace("NONE", none);
+
+		register_tag_.emplace("Vacuum", tag_type(1 << VACUUM));
+		register_tag_.emplace("Plasma", tag_type(1 << PLASMA));
+		register_tag_.emplace("Core", tag_type(1 << CORE));
+		register_tag_.emplace("Boundary", tag_type(1 << BOUNDARY));
+		register_tag_.emplace("Plateau", tag_type(1 << PLATEAU));
+		register_tag_.emplace("Limter", tag_type(1 << PLATEAU));
 
 	}
 	~MediaTag()
@@ -136,7 +137,6 @@ public:
 		}
 
 		Update();
-		LOGGER << " Load Media [Done]!";
 
 	}
 	std::ostream & Serialize(std::ostream &os) const
@@ -163,7 +163,12 @@ public:
 //			tmp[3].emplace_back(v.to_ulong());
 //		}
 
-		os << "Media={ "
+		os << "Media={ \n" << "\t -- register media type\n";
+
+		for (auto const& p : register_tag_)
+		{
+			os << "\t" << p.first << " = " << p.second.to_ulong() << ", \n";
+		}
 
 //		<< Data(&tmp[0][0], "tag0", mesh.GetShape(0)) << ","
 //
@@ -173,9 +178,9 @@ public:
 //
 //		<< Data(&tmp[3][0], "tag3", mesh.GetShape(3)) << ",";
 
-		        << " UNIMPLEMENT!}\n"
+		os << " }\n"
 
-		        ;
+		;
 		return os;
 	}
 
@@ -193,22 +198,44 @@ public:
 			WARNING << "Illegal input! [ undefine type ]";
 			return;
 		}
-		std::vector<coordinates_type> region;
 
-		cmd["Region"].as(&region);
+		auto select = cmd["Select"];
+		if (select.empty())
+		{
+			std::vector<coordinates_type> region;
 
-		if (op == "Set")
-		{
-			Set(type, region);
+			cmd["Region"].as(&region);
+
+			if (op == "Set")
+			{
+				Set(type, region);
+			}
+			else if (op == "Remove")
+			{
+				Remove(type, region);
+			}
+			else if (op == "Add")
+			{
+				Add(type, region);
+			}
 		}
-		else if (op == "Remove")
+		else
 		{
-			Remove(type, region);
+			if (op == "Set")
+			{
+				Set(type, select);
+			}
+			else if (op == "Remove")
+			{
+				Remove(type, select);
+			}
+			else if (op == "Add")
+			{
+				Add(type, select);
+			}
 		}
-		else if (op == "Add")
-		{
-			Add(type, region);
-		}
+
+		LOGGER << op << " media " << type << " [Done]!";
 	}
 
 	template<typename ...Args> inline
@@ -258,7 +285,7 @@ public:
 		[&](bool isSelected,tag_type &v)
 		{	if(isSelected) v=media_tag;},
 
-		mesh, std::forward<Args const &>(args)...);
+		std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
@@ -270,7 +297,7 @@ public:
 		[&](bool isSelected,tag_type &v)
 		{	if(! isSelected) v =media_tag;},
 
-		mesh, std::forward<Args const &>(args)...);
+		std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
@@ -282,7 +309,7 @@ public:
 		[&](bool isSelected,tag_type &v)
 		{	if( isSelected) v|=media_tag;},
 
-		mesh, std::forward<Args const &>(args)...);
+		std::forward<Args const &>(args)...);
 	}
 
 	template<typename ...Args>
@@ -294,7 +321,7 @@ public:
 		[&](bool isSelected,tag_type &v)
 		{	if(isSelected) v^=media_tag;},
 
-		mesh, std::forward<Args const &>(args)...);
+		std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -342,7 +369,7 @@ private:
 		if (tags_[0].empty())
 			tags_[0].resize(mesh.GetNumOfElements(0), none);
 
-		SelectVericsInRegion(
+		SelectVericsInRegion(mesh,
 
 		[&](bool is_selected,index_type const &s)
 		{

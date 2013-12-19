@@ -181,7 +181,6 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 {
 	if (cfg.IsNull())
 	{
-		WARNING << "No configure information!";
 		return;
 	}
 

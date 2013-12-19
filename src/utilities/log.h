@@ -260,7 +260,11 @@ private:
 #	define CHECK(_MSG_)
 #	define EXCEPT(_COND_)
 #endif
-#define DOUBLELINE "--=============================================================--"
-#define SINGLELINE "-----------------------------------------------------------------"
+#define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
+//"--=============================================================--"
+#define SINGLELINE  std::setw(80) << std::setfill('-') << "-"
+
+#define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
+//"-----------------------------------------------------------------"
 
 #endif /* LOG_H_ */

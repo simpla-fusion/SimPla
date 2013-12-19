@@ -129,7 +129,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 //	particle_collection_.Deserialize(cfg["Particles"]);
 //
-//	LOGGER << " Load Particles [Done]!";
+//	LOGGER << "Load Particles [Done]!";
 
 	auto init_value = cfg["InitValue"];
 
@@ -142,12 +142,13 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		LoadField(init_value["E1"], &E1);
 		LoadField(init_value["B1"], &B1);
 		LoadField(init_value["J1"], &J1);
+
+		LOGGER << "Load Initial Fields [Done]!";
 	}
 	else
 	{
 		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
-	LOGGER << " Load Initial Fields [Done]!";
 
 	LuaObject jSrcCfg = cfg["CurrentSrc"];
 
@@ -157,7 +158,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
-		LOGGER << " Load Current Source [Done]!";
+		LOGGER << "Load Current Source [Done]!";
 	}
 
 	media_tag.Deserialize(cfg["Media"]);
@@ -169,8 +170,6 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		std::string type = "";
 
 		obj.second["Type"].as<std::string>(&type);
-
-		CHECK(type);
 
 		tag_type in = media_tag.GetTagFromString(obj.second["In"].as<std::string>());
 		tag_type out = media_tag.GetTagFromString(obj.second["Out"].as<std::string>());
@@ -199,9 +198,10 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 		{
 			UNIMPLEMENT << "Unknown boundary type [" << type << "]";
 		}
-	}
 
-	LOGGER << " Load Boundary [Done]!";
+		LOGGER << "Load Boundary " << type << " [Done]!";
+
+	}
 
 }
 

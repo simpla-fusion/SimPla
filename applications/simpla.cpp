@@ -129,7 +129,7 @@ int main(int argc, char **argv)
 
 	INFORM << SIMPLA_LOGO << std::endl;
 
-	LOGGER << " Parse Command Line: [Done]!";
+	LOGGER << "Parse Command Line: [Done]!";
 
 	if (pt.IsNull())
 	{
@@ -170,13 +170,13 @@ int main(int argc, char **argv)
 
 //  Summary    ====================================
 
-	LOGGER << "\n" << DOUBLELINE << "\n";
+	INFORM << "\n" << SINGLELINE << "\n";
 
 	INFORM << "\n-- [Configure]" << "\n" << (*ctx);
 
 // Main Loop ============================================
 
-	LOGGER << "\n" << DOUBLELINE << "\n";
+	LOGGER << "\n" << SINGLELINE << "\n";
 	LOGGER << (">>> Pre-Process [Done]! <<<");
 
 	if (!just_a_test)

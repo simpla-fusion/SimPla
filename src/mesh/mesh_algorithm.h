@@ -7,9 +7,15 @@
 
 #ifndef MESH_ALGORITHM_H_
 #define MESH_ALGORITHM_H_
+
+#include <vector>
+
+#include "../utilities/log.h"
 #include "pointinpolygen.h"
+
 namespace simpla
 {
+class LuaObject;
 /**
  *
  * @param mesh mesh
@@ -30,8 +36,8 @@ namespace simpla
  *           Z>=3
  */
 template<typename TM>
-void SelectVericsInRegion(std::function<void(bool, typename TM::index_type const &)> const & fun, TM const & mesh,
-        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2, int flag = TM::WITH_GHOSTS)
 {
 
 	typedef TM mesh_type;
@@ -42,43 +48,38 @@ void SelectVericsInRegion(std::function<void(bool, typename TM::index_type const
 	{
 		index_type idx = mesh.GetNearestVertex(points[0]);
 
-		mesh.TraversalCoordinates(0, [&]( index_type const&s , coordinates_type const &x)
-		{	fun(s==idx,idx);}, mesh.WITH_GHOSTS);
+		SelectVericsInRegion(mesh, op,
+
+		[idx](index_type s)->bool
+		{
+			return (s==idx);
+
+		}, flag);
 
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
 		coordinates_type v0 = points[0];
 		coordinates_type v1 = points[1];
-		mesh.TraversalCoordinates(0,
 
-		[&](typename mesh_type::index_type const&s ,
-				typename mesh_type:: coordinates_type const &x)
+		SelectVericsInRegion(mesh, op,
+
+		[v0,v1](index_type s, coordinates_type x )->bool
 		{
-			fun(
-					(((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
-					(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
-					(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
-					,
-					s);
-		},
+			return (((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
+			(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
+			(((v0[2]-x[2])*(x[2]-v1[2]))>=0);
 
-		mesh.WITH_GHOSTS);
+		}, flag);
 	}
 	else if (Z < 3) //select points in polyline
 	{
 
 		PointInPolygen<typename mesh_type::coordinates_type> checkPointsInPolygen(points, Z);
 
-		mesh.TraversalCoordinates(0,
+		SelectVericsInRegion(mesh, op, [&](index_type s, coordinates_type x )->bool
+		{	return checkPointsInPolygen(x);}, flag);
 
-		[&](typename mesh_type::index_type const&s ,
-				typename mesh_type:: coordinates_type const &x)
-		{
-			fun(checkPointsInPolygen(x), s);
-		},
-
-		mesh.WITH_GHOSTS);
 	}
 	else if (points.size() >= 4 && Z >= 3)
 	{
@@ -90,6 +91,92 @@ void SelectVericsInRegion(std::function<void(bool, typename TM::index_type const
 	}
 
 }
+
+template<typename TM>
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        std::function<bool(typename TM::index_type, typename TM::coordinates_type const &)> const & select,
+        int flag = 0)
+{
+	typedef TM mesh_type;
+	mesh.TraversalCoordinates(0,
+
+	[&](typename mesh_type::index_type const&s ,
+			typename mesh_type::coordinates_type const &x)
+	{
+		op(select(s,x), s);
+	},
+
+	flag);
+
+}
+
+template<typename TM>
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        std::function<bool(typename TM::index_type)> const & select, int flag = 0)
+{
+	typedef TM mesh_type;
+	mesh.TraversalCoordinates(0,
+
+	[&](typename mesh_type::index_type const&s ,
+			typename mesh_type::coordinates_type const &x)
+	{
+		op(select(s), s);
+	},
+
+	flag);
+
+}
+
+template<typename TM>
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        std::function<bool(typename TM::coordinates_type const &)> const & select, int flag = 0)
+{
+	typedef TM mesh_type;
+	mesh.TraversalCoordinates(0,
+
+	[&](typename mesh_type::index_type const&s ,
+			typename mesh_type::coordinates_type const &x)
+	{
+		op(select(x), s);
+	},
+
+	flag);
+
+}
+
+template<typename TM>
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        LuaObject const & select, int flag = 0)
+{
+	typedef TM mesh_type;
+	mesh.TraversalCoordinates(0,
+
+	[&](typename mesh_type::index_type const&s ,
+			typename mesh_type::coordinates_type const &x)
+	{
+		op(select(x[0],x[1],x[2]).template as<bool>(), s);
+	},
+
+	flag);
+
+}
+
+//template<typename TM, typename ...Args>
+//void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+//        std::function<bool(Args const &...)> const & select, int flag = 0)
+//{
+//	typedef TM mesh_type;
+//	mesh.TraversalCoordinates(0,
+//
+//	[&](typename mesh_type::index_type const&s ,
+//			typename mesh_type::coordinates_type const &x)
+//	{
+//		op(select(std::forward<Args const&>(args)...), s);
+//	},
+//
+//	flag);
+//
+//}
 
 //namespace _impl
 //{

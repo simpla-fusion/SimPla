@@ -59,10 +59,11 @@ public:
 		return def_domain_.empty();
 	}
 
-	inline void SetDefineDomain(mesh_type const & mesh, std::vector<coordinates_type>const& polyline)
+	template<typename ... Args>
+	inline void SetDefineDomain(mesh_type const & mesh, Args const & ... args)
 	{
-		SelectVericsInRegion([&](bool isSelected,index_type const & s )
-		{	if(isSelected) def_domain_.push_back(s);}, mesh, polyline);
+		SelectVericsInRegion(mesh, [&](bool isSelected,index_type const & s )
+		{	if(isSelected) def_domain_.push_back(s);}, std::forward<Args const &>(args)...);
 
 	}
 	inline std::vector<index_type> const & GetDefineDomain() const
