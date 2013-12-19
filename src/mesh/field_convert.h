@@ -20,8 +20,8 @@ template<typename TS, int IL, typename T>
 typename std::enable_if<IL == 1 || IL == 2, void>::type //
 MapTo(Field<Geometry<CoRectMesh<TS>, IL>, T> const & l, Field<Geometry<CoRectMesh<TS>, 0>, nTuple<3, T>> * r)
 {
-	if (r->size() <= 0)
-		r->Init();
+	r->Init();
+
 	typedef CoRectMesh<TS> mesh_type;
 	mesh_type const &mesh = r->mesh;
 
@@ -40,8 +40,7 @@ template<typename TS, int IR, typename T>
 typename std::enable_if<IR == 1 || IR == 2, void>::type //
 MapTo(Field<Geometry<CoRectMesh<TS>, 0>, nTuple<3, T>> const & l, Field<Geometry<CoRectMesh<TS>, IR>, T> * r)
 {
-	if (r->size() <= 0)
-		r->Init();
+	r->Init();
 
 	typedef CoRectMesh<TS> mesh_type;
 

@@ -296,6 +296,13 @@ public:
 		return dims_;
 	}
 };
+template<typename TG, typename TV> class Field;
+
+template<typename TG, typename TV, typename Other> inline DataSet<TV> Data(Field<TG, TV> const & d,
+        std::string const & name, Other const &, bool flag)
+{
+	return std::move(DataSet<TV>(d.data(), name, d.GetShape(), flag));
+}
 
 template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
 {
@@ -438,6 +445,13 @@ std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
 	return std::move(HDF5Write(grp, d.get(), d.GetName(), d.GetDims(), d.IsAppendable()),
 	        std::forward<Args const &>(args)...);
 }
+
+#define DUMP(_F_) Data(_F_,__STRING(_F_),_F_.GetShape(),true)
+#ifndef NDEBUG
+#	define DEBUG_DUMP(_F_) Data(_F_,__STRING(_F_),_F_.GetShape(),true)
+#else
+#   define DEBUG_DUMP(_F_) ""
+#endif
 }
 // namespace simpla
 

@@ -250,15 +250,15 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< "InitValue={" << "\n"
 
-	<< "	n0 = " << Data(n0.data(), "n0", n0.GetShape()) << ",\n"
+	<< "	n0 = " << DUMP(n0) << ",\n"
 
-	<< "	E = " << Data(E.data(), "E", E.GetShape()) << ",\n"
+	<< "	E = " << DUMP(E) << ",\n"
 
-	<< "	B = " << Data(B.data(), "B", B.GetShape()) << ",\n"
+	<< "	B = " << DUMP(B) << ",\n"
 
-	<< "	J = " << Data(J.data(), "J", J.GetShape()) << ",\n"
+	<< "	J = " << DUMP(J) << ",\n"
 
-	<< "	B0 = " << Data(B0.data(), "B0", n0.GetShape()) << "\n"
+	<< "	B0 = " << DUMP(B0) << "\n"
 
 	<< "}" << "\n"
 
@@ -287,6 +287,8 @@ void Context<TM>::NextTimeStep(double dt)
 	if (!j_src_.empty())
 		j_src_(&Jext, base_type::GetTime());
 
+	LOGGER << DUMP(Jext);
+
 	const double mu0 = mesh.constants["permeability of free space"];
 	const double epsilon0 = mesh.constants["permittivity of free space"];
 	const double speed_of_light = mesh.constants["speed of light"];
@@ -296,8 +298,14 @@ void Context<TM>::NextTimeStep(double dt)
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	//	particle_collection_.CollectAll(dt, &Jext, E, B);
 
+	LOGGER << Data(E.data(), "E_0", E.GetShape(), true);
+	LOGGER << Data(B.data(), "B_0", B.GetShape(), true);
+
 	// B(t=0 -> 1/2)
 	LOG_CMD(B -= Curl(E) * (0.5 * dt));
+
+	LOGGER << Data(E.data(), "E_1", E.GetShape(), true);
+	LOGGER << Data(B.data(), "B_1", B.GetShape(), true);
 
 	// E(t=0 -> 1/2-)
 	LOG_CMD(E += (Curl(B / mu0) - Jext) / epsilon0 * (0.5 * dt));
@@ -305,7 +313,7 @@ void Context<TM>::NextTimeStep(double dt)
 	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dts
 	if (!cold_fluid_.IsEmpty())
 	{
-		LOG_CMD(cold_fluid_.NextTimeStep(dt, E, B, &J));
+		cold_fluid_.NextTimeStep(dt, E, B, &J);
 	}
 
 	// E(t=1/2-  -> 1/2 +)

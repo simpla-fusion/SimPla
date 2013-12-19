@@ -37,8 +37,8 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 		{
 			if(IFORM==1 || IFORM==2)
 			{
-				(*f)[s]=obj(mesh.template GetSubComponent<IFORM>(s),x[0],x[1],x[2]).
-				template as<TV>();
+				(*f)[s]=mesh.template GetWeightOnElement<IFORM>(
+						obj(x[0],x[1],x[2]).template as<nTuple<3,TV>>(),s);
 			}
 			else
 			{

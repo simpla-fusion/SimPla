@@ -82,7 +82,7 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 		return;
 	}
 
-	LOGGER << "Push Cold Fluid [Start]!";
+	LOGGER << "Push Cold Fluid" << START;
 
 	const double mu0 = mesh.constants["permeability of free space"];
 	const double epsilon0 = mesh.constants["permittivity of free space"];
@@ -90,7 +90,6 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 	const double proton_mass = mesh.constants["proton mass"];
 	const double elementary_charge = mesh.constants["elementary charge"];
 
-	VectorForm<0> K_(mesh);
 	VectorForm<0> K(mesh);
 
 	Form<0> a(mesh);
@@ -108,6 +107,13 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 	MapTo(E, &Ev);
 	MapTo(B, &Bv);
 
+	a.Fill(0);
+	b.Fill(0);
+	c.Fill(0);
+	K.Fill(0);
+
+	dEvdt = Ev / dt;
+
 	for (auto &v : sp_list_)
 	{
 
@@ -116,27 +122,36 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 		auto ms = v.second->m * proton_mass;
 		auto Zs = v.second->Z * elementary_charge;
 
-		Form<0> as(mesh);
+		Real as = 2.0 * ms / (dt * Zs);
 
-		as = 2.0 * ms / (dt * Zs);
+		CHECK(as);
 
 		a += ns * Zs / as;
 		b += ns * Zs / (BB + as * as);
 		c += ns * Zs / ((BB + as * as) * as);
 
-		K_ = /* 2.0 * nu * Js*/
-		-2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
+		VectorForm<0> K_(mesh);
 
-		K -= Js + 0.5 * (
+		K_ = -2.0 * Cross(Js, Bv) - (Ev * ns) * (2.0 * Zs);
 
-		K_ / as
+		K -= Js
+
+		+ 0.5 * (K_ / as
 
 		+ Cross(K_, Bv) / (BB + as * as)
 
 		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as))
 
 		);
+
 	}
+//	LOGGER << DUMP(BB);
+//	LOGGER << DUMP(Ev);
+//	LOGGER << DUMP(Bv);
+//
+//	LOGGER << DUMP(a);
+//	LOGGER << DUMP(b);
+//	LOGGER << DUMP(c);
 
 	a = a * (0.5 * dt) / epsilon0 - 1.0;
 	b = b * (0.5 * dt) / epsilon0;
@@ -155,12 +170,12 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 		auto ms = v.second->m * proton_mass;
 		auto Zs = v.second->Z * elementary_charge;
 
-		Form<0> as(mesh);
+		Real as = 2.0 * ms / (dt * Zs);
 
-		as = 2.0 * ms / (dt * Zs);
+		VectorForm<0> K_(mesh);
 
-		K_ = // 2.0*nu*(Js)
-		        -2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+		K_ = -2.0 * Cross(Js, Bv) - (2.0 * Ev + dEvdt * dt) * ns * Zs;
+
 		Js +=
 
 		K_ / as
@@ -170,9 +185,11 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TJ *J)
 		+ Cross(Cross(K_, Bv), Bv) / (as * (BB + as * as));
 	}
 
-	dEvdt *= epsilon0;
+	Form<1> E_(mesh);
 
-	MapTo(dEvdt, J);
+	MapTo(dEvdt, &E_);
+
+	*J += E_ * epsilon0;
 
 	LOGGER << "Push Cold Fluid." << DONE;
 
@@ -205,14 +222,10 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		sp->J.Init();
 
 		if (!LoadField(p.second["n"], &(sp->n)))
-		{
-			WARNING << "[" << key << "] plasma density is not initialized";
-		}
+			sp->n.Fill(0);
 
 		if (!LoadField(p.second["J"], &(sp->J)))
-		{
-			WARNING << "[" << key << "] plasma current is not initialized";
-		}
+			sp->J.Fill(0);
 
 		sp_list_.emplace(std::make_pair(key, sp));
 
@@ -227,11 +240,11 @@ void ColdFluidEM<TM>::DumpData() const
 
 	for (auto const & p : sp_list_)
 	{
-		LOGGER << "Dump " << p.first + ".n" << " to "
-		        << Data(p.second->n.data(), p.first + ".n", p.second->n.GetShape(), true);
+		LOGGER << "Dump " << "n_" + p.first << " to "
+		        << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
 
-		LOGGER << "Dump " << p.first + ".J" << " to "
-		        << Data(p.second->n.data(), p.first + ".J", p.second->n.GetShape(), true);
+		LOGGER << "Dump " << "J_" + p.first << " to "
+		        << Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
 	}
 }
 
@@ -247,9 +260,9 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 
 		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->Z << ",\n"
 
-		<< "\t n0 = " << Data(p.second->n.data(), p.first + ".n", p.second->n.GetShape()) << "\n"
+		<< "\t n0 = " << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape()) << "\n"
 
-		<< "\t J0 = " << Data(p.second->J.data(), p.first + ".J", p.second->J.GetShape()) << "\n"
+		<< "\t J0 = " << Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape()) << "\n"
 
 		<< "\t},\n";
 	}

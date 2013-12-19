@@ -30,7 +30,7 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-	Logger::Verbose(10);
+	Logger::Verbose(0);
 
 	LuaObject pt;
 
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
 			{
 				ctx->DumpData();
 			}
-			LOGGER << "STEP: " << i << DONE << "<<<";
+			LOGGER << "STEP: " << i << DONE;
 		}
 	}
 	LOGGER << "Process" << DONE;

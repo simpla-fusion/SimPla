@@ -51,11 +51,27 @@ namespace fetl_impl
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<PLUS>,
         Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...)+r.get(s...)))
+
+//template<typename TG, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<PLUS>, TL const &l,
+//        Field<TG, TR> const &r, TI ... s)
+//        DECL_RET_TYPE((l +r.get(s...)))
+
+template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<PLUS>,
+        Field<TGeo, TL> const &l, TR const &r, TI ... s)
+        DECL_RET_TYPE((l.get(s...)+r))
 }  // namespace fetl_impl
 
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator+(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
+
+//template<typename TGeo, typename TL, typename TR> inline auto //
+//operator+(TL const & lhs, Field<TGeo, TR> const & rhs)
+//DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
+
+template<typename TGeo, typename TL, typename TR> inline auto //
+operator+(Field<TGeo, TL> const & lhs, TR const & rhs)
+DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 //****************************************************************************************************
 namespace fetl_impl
 {
@@ -76,13 +92,14 @@ template<typename TGeo, typename TL, typename TR> inline auto //
 operator-(Field<TGeo, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs, rhs)))
 
+//template<typename TGeo, typename TL, typename TR> inline auto //
+//operator-(TL const & lhs, Field<TGeo, TR> const & rhs)
+//DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
+
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator-(Field<TGeo, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 
-//template<typename TGeo, typename TL, typename TR> inline auto //
-//operator-(TL const & lhs, Field<TGeo, TR> const & rhs)
-//DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
 
 // *****************************************************************
 

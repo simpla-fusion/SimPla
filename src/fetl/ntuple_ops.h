@@ -20,21 +20,30 @@ namespace simpla
 {
 // Expression template of nTuple
 
-
 //***********************************************************************************
 
-namespace ntuple_impl
-{
-
-template<int N, typename T, typename TI>
-inline auto OpEval(Int2Type<NEGATE>, nTuple<N, T> const & l, TI const & s)
-DECL_RET_TYPE ((-l[s] ))
-
-}  // namespace ntuple_impl
+//namespace ntuple_impl
+//{
+//
+//template<int N, typename T, typename TI>
+//inline auto OpEval(Int2Type<NEGATE>, nTuple<N, T> const & l, TI const & s)
+//DECL_RET_TYPE ((-l[s] ))
+//
+//}  // namespace ntuple_impl
 
 template<int N, typename TL> inline
-auto operator-(nTuple<N, TL> const & f)
-DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
+auto operator-(nTuple<N, TL> const & l)
+//DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
+        ->nTuple<N,decltype(-l[0])>
+{
+	nTuple<N, decltype(-l[0])> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = -l[i];
+	}
+	return std::move(res);
+
+}
 //***********************************************************************************
 template<int N, typename TL> inline
 auto operator+(nTuple<N, TL> const & f)
@@ -73,150 +82,219 @@ template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 //***********************************************************************************
-namespace ntuple_impl
-{
-template<int N, typename TL, typename TR>
-inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
-DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
-}  // namespace ntuple_impl
+//namespace ntuple_impl
+//{
+//template<int N, typename TL, typename TR>
+//inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
+//DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
+//}  // namespace ntuple_impl
 
-template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
+template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+->nTuple<N,decltype(l[0]*r[0])>
+{
+	nTuple<N, decltype(l[0]*r[0])> res = {
+
+	l[1] * r[2] - l[2] * r[1],
+
+	l[2] * r[0] - l[0] * r[2],
+
+	l[0] * r[1] - l[1] * r[0] };
+	return std::move(res);
+
+}
+
+//DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
 
 //***********************************************************************************
 // overloading operators
-namespace ntuple_impl
-{
-template<typename TL, typename TR>
-inline auto OpEval(Int2Type<PLUS>, TL const & l, TR const &r, size_t s)
-DECL_RET_TYPE(((l[s] + r[s])))
-
-template<typename TL, typename TR>
-inline auto OpEval(Int2Type<MINUS>, TL const & l, TR const &r, size_t s)
-DECL_RET_TYPE(((l[s] - r[s])))
-
-}  // namespace ntuple_impl
-
-template<int N, typename TL, typename TR> inline auto //
-operator +(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<PLUS ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
+//namespace ntuple_impl
+//{
+//template<typename TL, typename TR>
+//inline auto OpEval(Int2Type<PLUS>, TL const & l, TR const &r, size_t s)
+//DECL_RET_TYPE(((l[s] + r[s])))
+//
+//template<typename TL, typename TR>
+//inline auto OpEval(Int2Type<MINUS>, TL const & l, TR const &r, size_t s)
+//DECL_RET_TYPE(((l[s] - r[s])))
+//
+//}  // namespace ntuple_impl
 
 template<int N, typename TL, typename TR> inline auto //
-operator -(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<MINUS ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
-
-namespace ntuple_impl
+operator +(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<PLUS ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
+        ->nTuple<N,decltype(l[0]+r[0])>
 {
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, nTuple<N, TL> const & l,
-        TR const & r, size_t s)
-        DECL_RET_TYPE((l[s] * r))
-
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, TL const & l,
-        nTuple<N, TR> const & r, size_t s)
-        DECL_RET_TYPE((l*r[s]))
-
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, nTuple<N, TL> const & l,
-        nTuple<N, TR> const & r, size_t s)
-        DECL_RET_TYPE((l[s]*r[s]))
-
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, TL const & l,
-        nTuple<N, TR> const & r, size_t s)
-        DECL_RET_TYPE((l/r[s]))
-
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, nTuple<N, TL> const & l, TR const & r,
-        size_t s)
-        DECL_RET_TYPE((l[s] / r))
-
-template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, nTuple<N, TL> const & l,
-        nTuple<N, TR> const & r, size_t s)
-        DECL_RET_TYPE((l[s] / r[s]))
-
-} // namespace ntuple_impl
-
-template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & lhs, TR const & rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, TR > >(lhs, rhs))))
-template<int N, typename TL, typename TR> inline auto operator *(TL const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, TL , nTuple<N, TR> > >(lhs, rhs))))
-template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N,TL> , nTuple<N, TR> > >(lhs, rhs))))
-template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & lhs, TR const &rhs)
-DECL_RET_TYPE(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR > >(lhs, rhs))))
-
-//***********************************************************************************
-
-template<int N, typename T>
-struct ConstReferenceTraits<nTuple<N, T>>
-{
-	typedef nTuple<N, T> const &type;
-};
-
-template<int N, int TOP, typename TL, typename TR>
-struct ConstReferenceTraits<nTuple<N, BiOp<TOP, TL, TR> > >
-{
-	typedef const nTuple<N, BiOp<TOP, TL, TR> > type;
-};
-
-template<int N, int TOP, typename TL>
-struct ConstReferenceTraits<nTuple<N, UniOp<TOP, TL> > >
-{
-	typedef const nTuple<N, UniOp<TOP, TL> > type;
-};
-
-template<int N, int TOP, typename TL, typename TR>
-struct nTuple<N, BiOp<TOP, TL, TR> >
-{
-	typename ConstReferenceTraits<TL>::type l_;
-	typename ConstReferenceTraits<TR>::type r_;
-
-	nTuple(TL const & l, TR const & r)
-			: l_(l), r_(r)
+	nTuple<N, decltype(l[0]+r[0])> res;
+	for (int i = 0; i < N; ++i)
 	{
+		res[i] = l[i] + r[i];
 	}
+	return std::move(res);
+}
 
-	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,std::declval<TR>(),0)) value_type;
-
-	inline operator nTuple<N,value_type>() const
-	{
-		nTuple<N, value_type> res;
-		for (int i = 0; i < N; ++i)
-		{
-			res[i] = this->operator[](i);
-		}
-		return res;
-	}
-
-	inline auto operator[](size_t s) const DECL_RET_TYPE((ntuple_impl::OpEval(Int2Type<TOP>(),l_,r_,s)))
-};
-
-template<int N, int TOP, typename TL>
-struct nTuple<N, UniOp<TOP, TL> >
+template<int N, typename TL, typename TR> inline auto //
+operator -(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<MINUS ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
+        ->nTuple<N,decltype(l[0]-r[0])>
 {
-	typename ConstReferenceTraits<TL>::type l_;
-
-	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
-
-	nTuple(TL const & l)
-			: l_(l)
+	nTuple<N, decltype(l[0]-r[0])> res;
+	for (int i = 0; i < N; ++i)
 	{
+		res[i] = l[i] - r[i];
 	}
+	return std::move(res);
+}
 
-	inline operator nTuple<N,value_type>() const
+//namespace ntuple_impl
+//{
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, nTuple<N, TL> const & l,
+//        TR const & r, size_t s)
+//        DECL_RET_TYPE((l[s] * r))
+//
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, TL const & l,
+//        nTuple<N, TR> const & r, size_t s)
+//        DECL_RET_TYPE((l*r[s]))
+//
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<MULTIPLIES>, nTuple<N, TL> const & l,
+//        nTuple<N, TR> const & r, size_t s)
+//        DECL_RET_TYPE((l[s]*r[s]))
+//
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, TL const & l, nTuple<N, TR> const & r,
+//        size_t s)
+//        DECL_RET_TYPE((l/r[s]))
+//
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, nTuple<N, TL> const & l, TR const & r,
+//        size_t s)
+//        DECL_RET_TYPE((l[s] / r))
+//
+//template<int N, typename TL, typename TR> inline auto OpEval(Int2Type<DIVIDES>, nTuple<N, TL> const & l,
+//        nTuple<N, TR> const & r, size_t s)
+//        DECL_RET_TYPE((l[s] / r[s]))
+//
+//} // namespace ntuple_impl
+
+template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & l, TR const & r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, TR > >(l, r))))
+        ->nTuple<N,decltype(l[0]*r)>
+{
+	nTuple<N, decltype(l[0]/r)> res;
+	for (int i = 0; i < N; ++i)
 	{
-		nTuple<N, value_type> res;
-		for (int i = 0; i < N; ++i)
-		{
-			res[i] = this->operator[](i);
-		}
-		return res;
-
+		res[i] = l[i] * r;
 	}
+	return std::move(res);
+}
 
-	inline value_type operator[](size_t s) const
+template<int N, typename TL, typename TR> inline auto operator *(TL const & l, nTuple<N, TR> const & r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, TL , nTuple<N, TR> > >(l, r))))
+        ->nTuple<N,decltype(l*r[0])>
+{
+	nTuple<N, decltype(l*r[0])> res;
+	for (int i = 0; i < N; ++i)
 	{
-		return ntuple_impl::OpEval(Int2Type<TOP>(), l_, s);
+		res[i] = l * r[i];
 	}
+	return std::move(res);
+}
+template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N,TL> , nTuple<N, TR> > >(l, r))))
+        ->nTuple<N,decltype(l[0]*r[0])>
+{
+	nTuple<N, decltype(l[0]*r[0])> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = l[0] * r[i];
+	}
+	return std::move(res);
+}
+template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & l, TR const &r)
+//DECL_RET_TYPE(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR > >(l, r))))
+        ->nTuple<N,decltype(l[0]/r)>
+{
+	nTuple<N, decltype(l[0]/r)> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = l[i] / r;
+	}
+	return std::move(res);
 
-};
+}
+
+////***********************************************************************************
+//
+//template<int N, typename T>
+//struct ConstReferenceTraits<nTuple<N, T>>
+//{
+//	typedef nTuple<N, T> const &type;
+//};
+//
+//template<int N, int TOP, typename TL, typename TR>
+//struct ConstReferenceTraits<nTuple<N, BiOp<TOP, TL, TR> > >
+//{
+//	typedef const nTuple<N, BiOp<TOP, TL, TR> > type;
+//};
+//
+//template<int N, int TOP, typename TL>
+//struct ConstReferenceTraits<nTuple<N, UniOp<TOP, TL> > >
+//{
+//	typedef const nTuple<N, UniOp<TOP, TL> > type;
+//};
+//
+//template<int N, int TOP, typename TL, typename TR>
+//struct nTuple<N, BiOp<TOP, TL, TR> >
+//{
+//	typename ConstReferenceTraits<TL>::type l_;
+//	typename ConstReferenceTraits<TR>::type r_;
+//
+//	nTuple(TL const & l, TR const & r)
+//			: l_(l), r_(r)
+//	{
+//	}
+//
+//	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,std::declval<TR>(),0)) value_type;
+//
+//	inline operator nTuple<N,value_type>() const
+//	{
+//		nTuple<N, value_type> res;
+//		for (int i = 0; i < N; ++i)
+//		{
+//			res[i] = this->operator[](i);
+//		}
+//		return res;
+//	}
+//
+//	inline auto operator[](size_t s) const DECL_RET_TYPE((ntuple_impl::OpEval(Int2Type<TOP>(),l_,r_,s)))
+//};
+//
+//template<int N, int TOP, typename TL>
+//struct nTuple<N, UniOp<TOP, TL> >
+//{
+//	typename ConstReferenceTraits<TL>::type l_;
+//
+//	typedef decltype(ntuple_impl::OpEval(Int2Type<TOP>(),std::declval<TL>() ,size_t ())) value_type;
+//
+//	nTuple(TL const & l)
+//			: l_(l)
+//	{
+//	}
+//
+//	inline operator nTuple<N,value_type>() const
+//	{
+//		nTuple<N, value_type> res;
+//		for (int i = 0; i < N; ++i)
+//		{
+//			res[i] = this->operator[](i);
+//		}
+//		return res;
+//
+//	}
+//
+//	inline value_type operator[](size_t s) const
+//	{
+//		return ntuple_impl::OpEval(Int2Type<TOP>(), l_, s);
+//	}
+//
+//};
 
 //***********************************************************************************
 
