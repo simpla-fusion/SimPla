@@ -109,7 +109,7 @@ private:
 template<class Engine>
 class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
-	static const int GEOMETRY_TYPE = 0;
+	static const int IForm = 0;
 
 	std::list<typename Engine::Point_s> pool_;
 
@@ -148,8 +148,8 @@ public:
 public:
 
 	template<typename ...Args>
-	Particle(mesh_type const & pmesh)
-			: engine_type(pmesh), mesh(pmesh)
+	Particle(mesh_type const & pmesh) :
+			engine_type(pmesh), mesh(pmesh)
 	{
 	}
 
@@ -205,7 +205,7 @@ public:
 	void Sort()
 	{
 
-		container_type tmp(std::move(mesh.MakeContainer(GEOMETRY_TYPE,
+		container_type tmp(std::move(mesh.MakeContainer(IForm,
 
 		cell_type(container_type::begin()->get_allocator()))));
 
@@ -248,12 +248,16 @@ public:
 	template<typename ... Args>
 	inline void Push(Real dt, Args const& ... args)
 	{
+		if (data_.empty())
+		{
+			WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
+			return;
+		}
 		LOGGER << "Push particle [" << engine_type::name_ << "]!";
 
 		ForEachCell(
 
-		[&](particle_type & p,
-				typename ProxyCache<const Args>::type const& ... args_c)
+		[&](particle_type & p, typename ProxyCache<const Args>::type const& ... args_c)
 		{
 			engine_type::Push(p,dt,args_c...);
 		},
@@ -265,31 +269,26 @@ public:
 	template<int I, typename TJ, typename ... Args>
 	inline void Collect(TJ * J, Args const & ... args) const
 	{
+		if (data_.empty())
+		{
+			WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
+			return;
+		}
+
 		LOGGER << "Collect particle [" << engine_type::name_ << "]!";
 
 		ForEachCell(
 
 		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
 				typename ProxyCache<const Args>::type const& ... args_c)
-		{
-			engine_type::Collect(Int2Type<I>(),p,&J_c,args_c...);
-		},
-
-		*J, args...);
+		{	engine_type::Collect(Int2Type<I>(),p,&J_c,args_c...);}, *J, args...);
 	}
 
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
 	{
-		ForEachCell(
-
-		[&](particle_type & p,
-				typename ProxyCache<const Args>::type const& ... args_c)
-		{
-			fun(p,args_c...);
-		},
-
-		args...);
+		ForEachCell([&](particle_type & p, typename ProxyCache<const Args>::type const& ... args_c)
+		{	fun(p,args_c...);}, args...);
 	}
 
 	/**
@@ -306,28 +305,14 @@ public:
 		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
 		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
 		 **/
-		mesh.ForAll(GEOMETRY_TYPE,
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(this->operator[](s),
-					fun,ProxyCache< Args>::Eval(args,s)...);
-		}
-
-		);
+		mesh.TraversalIndex(IForm, [&](index_type const & s)
+		{	ForParticlesInCell(data_[s], fun,ProxyCache< Args>::Eval(args,s)...);});
 	}
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args) const
 	{
-		mesh.ForAll(
-
-		[&](index_type const & s)
-		{
-			ForParticlesInCell(this->operator[](s),
-					fun, ProxyCache< Args>::Eval(args,s)...);
-		}
-
-		);
+		mesh.TraversalIndex(IForm, [&](index_type const & s)
+		{	ForParticlesInCell(data_[s], fun, ProxyCache< Args>::Eval(args,s)...);});
 
 	}
 
@@ -388,14 +373,14 @@ private:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh)
+		typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 template<typename TM>
@@ -423,8 +408,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
@@ -476,9 +461,7 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 {
 	if (cfg.empty())
 		return;
-
-	LOGGER << "Load Particles ";
-
+	LOGGER << "Load Particles " << START;
 	for (auto const &p : cfg)
 	{
 		std::string key;
@@ -512,6 +495,7 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 		}
 
 	}
+	LOGGER << "Load Particles " << DONE;
 
 }
 template<typename TM>

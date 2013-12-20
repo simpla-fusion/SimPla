@@ -46,10 +46,12 @@ InitValue={
       local Bf_lx = omega_ci_lx*ionmass/ioncharge
       local Bf_x0 = omega_ci_x0*ionmass/ioncharge
 --]]
-      return {Btor,0,0}  
+      return {0,0,Btor}  
      end
       ,
-  E=0.0, J=0.0
+  E=0.0, J=0.0,
+  B0={0,0,1.0}
+
 }
 -- GFile
 Grid=
@@ -61,7 +63,7 @@ Grid=
   {       
       Type="3DCoRectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
-      GhostWidth= {2,0,0},  -- width of ghost points  , if gw=0, coordinate is 
+      GhostWidth= {5,0,0},  -- width of ghost points  , if gw=0, coordinate is 
                               -- Periodic at this direction          
   },
   Geometry=
@@ -92,23 +94,30 @@ Boundary={
 }
 --]]
 
+Particles={
+  {Name="H",Engine="DeltaF",m=1.0,Z=1.0,PIC=100}
+}
+
 FieldSolver= 
 {
 
+--[[
    ColdFluid=
     {
      {Name="ion",m=1.0,Z=1.0,T= Ti,
        --n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
        n=InitN0, J=0},
      {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,   n=InitN0, J=0}         
-    }
+    },
+--]]
+    PML=  {Width={15,15,0,0,0,0}}
 
 }
 
 
 CurrentSrc=
  { 
-  Points={{0.2*LX,0.0,0.0},},
+  Points={{0.5*LX,0.0,0.0},},
   Fun=function(x,y,z,t)
       local tau = t*omega_ci
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
