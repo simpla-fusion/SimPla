@@ -97,96 +97,96 @@ struct remove_const_reference
 
 template<typename > struct is_complex
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<typename T> struct is_complex<std::complex<T> >
 {
-	static const bool value = true;
+	static constexpr bool value = true;
 };
 
 template<int TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
 {
-	static const bool value = is_complex<TL>::value || is_complex<TR>::value;
+	static constexpr bool value = is_complex<TL>::value || is_complex<TR>::value;
 };
 
 template<typename > struct is_real
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<> struct is_real<Real>
 {
-	static const bool value = true;
+	static constexpr bool value = true;
 };
 
 template<int TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
 {
-	static const bool value = is_real<TL>::value && is_real<TR>::value;
+	static constexpr bool value = is_real<TL>::value && is_real<TR>::value;
 };
 
 template<typename > struct has_PlaceHolder
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<typename TL>
 struct is_arithmetic_scalar
 {
-	static const bool value = (std::is_arithmetic<TL>::value || is_complex<TL>::value || has_PlaceHolder<TL>::value);
+	static constexpr bool value = (std::is_arithmetic<TL>::value || is_complex<TL>::value || has_PlaceHolder<TL>::value);
 };
 
 template<typename T>
 struct is_primitive
 {
-	static const bool value = is_arithmetic_scalar<T>::value;
+	static constexpr bool value = is_arithmetic_scalar<T>::value;
 };
 
 template<int N, typename TE>
 struct is_primitive<nTuple<N, TE> >
 {
-	static const bool value = is_arithmetic_scalar<TE>::value;
+	static constexpr bool value = is_arithmetic_scalar<TE>::value;
 };
 
 template<typename T>
 struct is_storage_type
 {
-	static const bool value = true;
+	static constexpr bool value = true;
 };
 //template<typename T>
 //struct is_storage_type<std::complex<T>>
 //{
-//	static const bool value = false;
+//	static constexpr  bool value = false;
 //};
 //
 //template<typename TG, typename T>
 //struct is_storage_type<Field<TG, T> >
 //{
-//	static const bool value = is_storage_type<T>::value;
+//	static constexpr  bool value = is_storage_type<T>::value;
 //};
 
 template<typename TG, int TOP, typename TL, typename TR>
 struct is_storage_type<Field<TG, BiOp<TOP, TL, TR> > >
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<typename TG, int TOP, typename TL>
 struct is_storage_type<Field<TG, UniOp<TOP, TL> > >
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<typename T>
 struct is_ntuple
 {
-	static const bool value = false;
+	static constexpr bool value = false;
 };
 
 template<int N, typename T>
 struct is_ntuple<nTuple<N, T>>
 {
-	static const bool value = true;
+	static constexpr bool value = true;
 };
 
 template<typename T>

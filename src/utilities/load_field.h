@@ -12,17 +12,17 @@
 #include <iostream>
 #include <string>
 
-#include "../fetl/field.h"
+#include "../fetl/primitives.h"
 #include "log.h"
 #include "lua_state.h"
 
 namespace simpla
 {
-
+template<typename, typename > class Field;
 template<int IFORM, typename TM, typename TV>
 bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 {
-	if (obj.IsNull())
+	if (obj.empty())
 		return false;
 
 	f->Init();
@@ -49,15 +49,16 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 
 		}, mesh_type::WITH_GHOSTS | (!mesh_type::DO_PARALLEL));
 	}
+
 	else if (obj.is_number())
 	{
-		*f = obj.as<value_type>();
+		*f = obj.as<Real>();
 	}
-	else if (obj.is_table() && obj.size() == sizeof(field_value_type) / sizeof(value_type))
+	else if (obj.is_table())
 	{
 		mesh.AssignContainer(f, obj.as<field_value_type>());
 	}
-	else
+	else //if (obj.is_string())
 	{
 		std::string url = obj.as<std::string>();
 		//TODO Read field from data file

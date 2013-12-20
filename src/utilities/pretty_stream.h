@@ -122,8 +122,12 @@ get(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 }
 
 template<typename TI>
-std::ostream & ContainerOutPut1(std::ostream & os, TI it, TI ie)
+std::ostream & ContainerOutPut1(std::ostream & os, TI const ib, TI const ie)
 {
+	if (ib == ie)
+		return os;
+
+	TI it = ib;
 
 	os << *it;
 
@@ -166,13 +170,20 @@ std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &
 }
 
 template<typename TI>
-std::ostream & ContainerOutPut2(std::ostream & os, TI it, TI ie)
+std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
 {
+	if (ib == ie)
+		return os;
+
+	TI it = ib;
+
 	os << it->first << "=" << it->second;
 
-	for (++it; it != ie; ++it)
+	++it;
+
+	for (; it != ie; ++it)
 	{
-		os << " , " << it->first << " = " << it->second;
+		os << " , " << it->first << " = " << it->second << "\n";
 	}
 	return os;
 }
@@ -187,6 +198,26 @@ template<typename TX, typename TY, typename ...Others> std::ostream&
 operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
 {
 	return ContainerOutPut2(os, d.begin(), d.end());
+}
+
+template<typename TI, typename TFUN>
+std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie, TFUN const& fun)
+{
+	if (ib == ie)
+		return os;
+
+	TI it = ib;
+
+	fun(os, it);
+
+	++it;
+
+	for (; it != ie; ++it)
+	{
+		os << " , ";
+		fun(os, it);
+	}
+	return os;
 }
 
 //namespace _impl

@@ -44,9 +44,9 @@ public:
 	}
 
 	template<typename ... Args>
-	inline void Push(Args const & ... args)
+	inline void Push(Real dt, Args const & ... args)
 	{
-		_Push(std::forward<Args const &>(args)...);
+		_Push(dt, std::forward<Args const &>(args)...);
 
 	}
 	template<int N, typename TJ, typename ... Args>
@@ -78,10 +78,12 @@ private:
 
 	virtual void _Push(Real dt, Form<1> const &, Form<2> const &)
 	{
+		UNIMPLEMENT << " Particle Push operation";
 	}
 
 	virtual void _Push(Real dt, VectorForm<0> const &, VectorForm<0> const &)
 	{
+		UNIMPLEMENT << " Particle Push operation";
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
@@ -162,11 +164,14 @@ public:
 
 	virtual void Deserialize(LuaObject const &cfg)
 	{
+		if (cfg.empty())
+			return;
+
 		LOGGER
 
 		<< "\t Load Particle:[ Name=" << cfg["Name"].as<std::string>()
 
-		<< ", Engine=" << cfg["Name"].as<std::string>() << "]";
+		<< ", Engine=" << cfg["Engine"].as<std::string>() << "]";
 
 		engine_type::Deserialize(cfg);
 
@@ -179,7 +184,10 @@ public:
 
 	std::ostream & Serialize(std::ostream & os) const
 	{
-		engine_type::Serialize(os);
+		os << "{ ";
+
+		engine_type::Serialize(os) << ", data=\"UNIMPLEMENTED\" }";
+
 		return os;
 	}
 
@@ -238,22 +246,27 @@ public:
 	}
 
 	template<typename ... Args>
-	inline void Push(Args const& ... args)
+	inline void Push(Real dt, Args const& ... args)
 	{
+		LOGGER << "Push particle [" << engine_type::name_ << "]!";
+
 		ForEachCell(
 
 		[&](particle_type & p,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			engine_type::Push(p,args_c...);
+			engine_type::Push(p,dt,args_c...);
 		},
 
 		args...);
+
 	}
 
 	template<int I, typename TJ, typename ... Args>
 	inline void Collect(TJ * J, Args const & ... args) const
 	{
+		LOGGER << "Collect particle [" << engine_type::name_ << "]!";
+
 		ForEachCell(
 
 		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
@@ -288,33 +301,33 @@ public:
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args)
 	{
-//		/***
-//		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
-//		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
-//		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-//		 **/
-//		mesh.ForAll(GEOMETRY_TYPE,
-//
-//		[&](index_type const & s)
-//		{
-//			ForParticlesInCell(this->operator[](s),
-//					fun,ProxyCache< Args>::Eval(args,s)...);
-//		}
-//
-//		);
+		/***
+		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
+		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
+		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
+		 **/
+		mesh.ForAll(GEOMETRY_TYPE,
+
+		[&](index_type const & s)
+		{
+			ForParticlesInCell(this->operator[](s),
+					fun,ProxyCache< Args>::Eval(args,s)...);
+		}
+
+		);
 	}
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args) const
 	{
-//		mesh.ForAll(
-//
-//		[&](index_type const & s)
-//		{
-//			ForParticlesInCell(this->operator[](s),
-//					fun, ProxyCache< Args>::Eval(args,s)...);
-//		}
-//
-//		);
+		mesh.ForAll(
+
+		[&](index_type const & s)
+		{
+			ForParticlesInCell(this->operator[](s),
+					fun, ProxyCache< Args>::Eval(args,s)...);
+		}
+
+		);
 
 	}
 
@@ -344,14 +357,14 @@ private:
 
 	DEFINE_FIELDS (mesh_type)
 
-	virtual void _Push(Form<1> const & E, Form<2> const &B)
+	virtual void _Push(Real dt, Form<1> const & E, Form<2> const &B)
 	{
-		Push(E, B);
+		Push(dt, E, B);
 	}
 
-	virtual void _Push(VectorForm<0> const &E, VectorForm<0> const & B)
+	virtual void _Push(Real dt, VectorForm<0> const &E, VectorForm<0> const & B)
 	{
-		Push(E, B);
+		Push(dt, E, B);
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
@@ -375,7 +388,7 @@ private:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh, LuaObject const &cfg)
+        typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
@@ -397,7 +410,7 @@ public:
 
 	typedef std::map<std::string, std::shared_ptr<particle_type> > base_type;
 
-	typedef std::function<std::shared_ptr<particle_type>(mesh_type const &, configure_type const &)> create_fun;
+	typedef std::function<std::shared_ptr<particle_type>(mesh_type const &)> create_fun;
 
 	typedef ParticleCollection<mesh_type> this_type;
 
@@ -420,12 +433,12 @@ public:
 
 	void RegisterFactory(std::string const &engine_name, create_fun const &fun)
 	{
-		factory_.emplace(std::make_pair(engine_name, fun));
+		factory_.emplace(engine_name, fun);
 	}
 	template<typename TEngine>
 	void RegisterFactory(std::string const &engine_name)
 	{
-		factory_.emplace(std::make_pair(engine_name, &CreateParticle<TEngine>));
+		RegisterFactory(engine_name, create_fun(&CreateParticle<TEngine>));
 	}
 
 	void Deserialize(configure_type const &cfg);
@@ -448,7 +461,7 @@ public:
 	}
 
 	template<typename TJ, typename ... Args>
-	void CollectAll(TJ *J, Args const & ... args) const
+	void Collect(TJ *J, Args const & ... args) const
 	{
 		for (auto & p : *this)
 		{
@@ -485,8 +498,11 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 
 		if (it != factory_.end())
 		{
+			auto t = it->second(mesh);
 
-			this->emplace(key, it->second(mesh, p.second));
+			t->Deserialize(p.second);
+
+			this->emplace(key, t);
 		}
 		else
 		{
@@ -502,17 +518,18 @@ template<typename TM>
 
 std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
 {
-	os << "Load Particle Collection " << std::endl;
-	os << "{";
 
-	for (auto const & p : *this)
+	os << "Particles={ \n";
+
+	ContainerOutPut3(os, this->begin(), this->end(),
+
+	[&](std::ostream & oos, decltype(this->begin()) const &it)->std::ostream &
 	{
-		os << p.first << " =  ";
-		p.second->Serialize(os);
+		return it->second->Serialize(oos)<<"\n";
+	});
 
-		os << ",";
-	}
-	os << "}" << std::endl;
+	os << "} \n";
+
 	return os;
 }
 

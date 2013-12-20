@@ -16,9 +16,9 @@ namespace simpla
 template<typename TM, int NMATE = 8>
 struct GGauge
 {
-private:
+protected:
 	Real m_, q_;
-
+	std::string name_;
 public:
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -99,7 +99,7 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p, TB const & fB, TE const &fE) const
+	inline void Push(Point_s & p,Real dt, TB const & fB, TE const &fE) const
 	{
 	}
 

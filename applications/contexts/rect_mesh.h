@@ -309,12 +309,12 @@ void Context<TM>::NextTimeStep(double dt)
 
 	if (!j_src_.empty())
 	{
-		LOGGER << "Apply Current Source:" << DUMP(Jext);
+		LOGGER << "Current Source:" << DUMP(Jext);
 		j_src_(&Jext, base_type::GetTime());
 	}
 
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-	particle_collection_.CollectAll(&Jext, E, B);
+	particle_collection_.Collect(&Jext, E, B);
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
@@ -358,9 +358,6 @@ void Context<TM>::NextTimeStep(double dt)
 	{
 		LOG_CMD(dB = -Curl(E) * dt);
 	}
-
-	LOGGER << DUMP(dB);
-	LOGGER << DUMP(dE);
 
 	//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);

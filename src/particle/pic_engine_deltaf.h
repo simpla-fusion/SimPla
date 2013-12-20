@@ -15,9 +15,9 @@ template<typename TM>
 struct PICEngineDeltaF
 {
 
-private:
+protected:
 	Real m_, q_;
-
+	std::string name_;
 public:
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -59,28 +59,33 @@ public:
 	template<typename PT>
 	inline void Deserialize(PT const &vm)
 	{
+		if (vm.empty())
+			return;
+
+		ASSERT("DeltaF" == vm["Engine"].template as<std::string>());
+
 		vm.template GetValue<Real>("Mass", &m_);
 		vm.template GetValue<Real>("Charge", &q_);
+		name_ = vm["Name"].template as<std::string>();
 	}
 
 	template<typename PT>
 	inline void Serialize(PT &vm) const
 	{
+
 		vm.template SetValue<Real>("Mass", m_);
 		vm.template SetValue<Real>("Charge", q_);
 	}
 
 	std::ostream & Serialize(std::ostream & os) const
 	{
-		os << "{"
+		os << "Name = \"" << name_ << "\","
 
 		<< "Engine = 'DeltaF' ,"
 
 		<< "m = " << m_ << " , "
 
-		<< "q = " << q_ << ","
-
-		<< "}";
+		<< "q = " << q_;
 
 		return os;
 	}
@@ -92,7 +97,7 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p, TB const & fB, TE const &fE) const
+	inline void Push(Point_s & p, Real dt, TB const & fB, TE const &fE) const
 	{
 		auto B = fB(p.x);
 		auto E = fE(p.x);

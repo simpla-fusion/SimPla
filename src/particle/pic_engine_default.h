@@ -19,9 +19,9 @@ template<typename TM>
 struct PICEngineDefault
 {
 
-private:
+protected:
 	Real m_, q_;
-
+	std::string name_;
 public:
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -99,7 +99,7 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p, TB const & fB, TE const &fE) const
+	inline void Push(Point_s & p, Real dt, TB const & fB, TE const &fE) const
 	{
 		auto B = fB(p.x);
 		auto E = fE(p.x);
