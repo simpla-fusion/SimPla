@@ -37,8 +37,8 @@ public:
 
 	mesh_type const &mesh;
 
-	GGauge(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0)
+	GGauge(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0)
 	{
 
 	}
@@ -104,24 +104,21 @@ public:
 	}
 
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<1>, Point_s const &p, TN & n,
-			Args const& ... args) const
+	inline void Collect(Int2Type<0>, Point_s const &p, TN * n, Args const& ... args) const
 	{
 	}
 
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<0>, Point_s const &p, TN & n,
-			Args const& ... args) const
+	inline void Collect(Int2Type<1>, Point_s const &p, TN * J, Args const& ... args) const
 	{
 	}
+
 	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<2>, Point_s const &p, TN & n,
-			Args const& ... args) const
+	inline void Collect(Int2Type<2>, Point_s const &p, TN * n, Args const& ... args) const
 	{
 	}
 	template<typename TX, typename TV, typename TN, typename ...Args>
-	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n,
-			Args...) const
+	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n, Args...) const
 	{
 	}
 };

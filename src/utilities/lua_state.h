@@ -174,6 +174,7 @@ public:
 	DEF_TYPE_CHECK(is_lightuserdata,lua_islightuserdata)
 	DEF_TYPE_CHECK(is_function,lua_isfunction)
 	DEF_TYPE_CHECK(is_thread,lua_isthread)
+	DEF_TYPE_CHECK(is_table,lua_istable)
 #undef DEF_TYPE_CHECK
 
 	inline std::string GetTypeName() const

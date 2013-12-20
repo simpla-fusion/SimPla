@@ -60,6 +60,11 @@ public:
 		return "UNNAMED";
 	}
 
+	virtual void Deserialize(LuaObject const &cfg)
+	{
+
+	}
+
 	virtual std::ostream & Serialize(std::ostream & os) const
 	{
 		return os;
@@ -100,13 +105,7 @@ private:
 };
 
 template<class Engine>
-class Particle:
-
-public Engine,
-
-public Engine::mesh_type::template Container<std::list<typename Engine::Point_s> >,
-
-public ParticleBase<typename Engine::mesh_type>
+class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -138,22 +137,17 @@ public:
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename mesh_type::template Container<std::list<typename Engine::Point_s> > container_type;
+	typedef std::vector<std::list<typename Engine::Point_s> > container_type;
 
 	mesh_type const &mesh;
+
+	container_type data_;
 
 public:
 
 	template<typename ...Args>
 	Particle(mesh_type const & pmesh)
-			:
-
-			engine_type(pmesh),
-
-			container_type(std::move(pmesh.template MakeContainer<GEOMETRY_TYPE, cell_type>())),
-
-			mesh(pmesh)
-
+			: engine_type(pmesh), mesh(pmesh)
 	{
 	}
 
@@ -166,24 +160,21 @@ public:
 		return engine_type::TypeName();
 	}
 
-	template<typename PT>
-	inline void Deserialize(PT const &vm)
+	virtual void Deserialize(LuaObject const &cfg)
 	{
-		engine_type::Deserialize(vm);
+		LOGGER
+
+		<< "\t Load Particle:[ Name=" << cfg["Name"].as<std::string>()
+
+		<< ", Engine=" << cfg["Name"].as<std::string>() << "]";
+
+		engine_type::Deserialize(cfg);
 
 		size_t num_pic;
 
-		vm.template GetValue<size_t>("PIC", &num_pic);
+		cfg.template GetValue<size_t>("PIC", &num_pic);
 
-		value_type default_value = engine_type::DefaultValue();
-
-		ResizeCells(num_pic, default_value);
-	}
-
-	template<typename PT>
-	inline void Serialize(PT &vm) const
-	{
-		engine_type::Serialize(vm);
+		Update(num_pic);
 	}
 
 	std::ostream & Serialize(std::ostream & os) const
@@ -192,9 +183,11 @@ public:
 		return os;
 	}
 
-	inline void ResizeCells(size_t num_pic, particle_type const & default_value = particle_type())
+	inline void Update(size_t num_pic)
 	{
-		for (auto & cell : *this)
+		value_type default_value = engine_type::DefaultValue();
+
+		for (auto & cell : data_)
 		{
 			cell.resize(num_pic, default_value);
 		}
@@ -204,8 +197,9 @@ public:
 	void Sort()
 	{
 
-		container_type tmp(
-		        std::move(mesh.MakeContainer(GEOMETRY_TYPE, cell_type(container_type::begin()->get_allocator()))));
+		container_type tmp(std::move(mesh.MakeContainer(GEOMETRY_TYPE,
+
+		cell_type(container_type::begin()->get_allocator()))));
 
 		mesh.ForAllCell(
 
@@ -258,17 +252,17 @@ public:
 	}
 
 	template<int I, typename TJ, typename ... Args>
-	inline void Collect(TJ & J, Args const & ... args) const
+	inline void Collect(TJ * J, Args const & ... args) const
 	{
 		ForEachCell(
 
 		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
 				typename ProxyCache<const Args>::type const& ... args_c)
 		{
-			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
+			engine_type::Collect(Int2Type<I>(),p,&J_c,args_c...);
 		},
 
-		J, args...);
+		*J, args...);
 	}
 
 	template<typename TFun, typename ... Args>
@@ -294,11 +288,11 @@ public:
 	template<typename Fun, typename ...Args>
 	void ForEachCell(Fun const & fun, Args &... args)
 	{
-		/***
-		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
-		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
-		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-		 **/
+//		/***
+//		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
+//		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
+//		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
+//		 **/
 //		mesh.ForAll(GEOMETRY_TYPE,
 //
 //		[&](index_type const & s)
@@ -361,9 +355,9 @@ private:
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, Form<1> const & E,	Form<2> const & B)const {Collect<_N_>(J,E,B);}	\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J, VectorForm<0> const & E,	VectorForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> & J)const {Collect<_N_>(J);}
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J, Form<1> const & E,	Form<2> const & B)const {Collect<_N_>(J,E,B);}	\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J, VectorForm<0> const & E,	VectorForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J)const {Collect<_N_>(J);}
 
 	DEF_COLLECT_INTERFACE(0 , Form, 0 )
 	DEF_COLLECT_INTERFACE(0 , Form, 3 )
@@ -467,8 +461,10 @@ public:
 template<typename TM>
 void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 {
-	if (cfg.IsNull())
+	if (cfg.empty())
 		return;
+
+	LOGGER << "Load Particles ";
 
 	for (auto const &p : cfg)
 	{
@@ -485,18 +481,14 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 
 		std::string engine = p.second.at("Engine").as<std::string>();
 
-		try
+		auto it = factory_.find(engine);
+
+		if (it != factory_.end())
 		{
 
-			auto it = factory_.find(engine);
-
-			if (it != factory_.end())
-			{
-
-				this->emplace(std::make_pair(key, it->second(mesh, p.second)));
-			}
-
-		} catch (...)
+			this->emplace(key, it->second(mesh, p.second));
+		}
+		else
 		{
 			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
 

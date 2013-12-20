@@ -1084,6 +1084,33 @@ public:
 		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL|WITH_GHOSTS);
 
 	}
+
+	template<typename TL,int IL>
+	typename std::enable_if<IL==1|IL==2,void>::type AssignContainer(Field<Geometry<this_type,IL> ,TL> * lhs,
+	typename Field<Geometry<this_type,IL> ,TL>::field_value_type const &rhs) const
+	{
+		Traversal(0,
+		[&](int m, index_type x, index_type y, index_type z)
+		{
+			get(lhs,0,x,y,z)=rhs[0];
+			get(lhs,1,x,y,z)=rhs[1];
+			get(lhs,2,x,y,z)=rhs[2];
+
+		}, DO_PARALLEL|WITH_GHOSTS);
+	}
+
+	template<typename TL,int IL>
+	typename std::enable_if<IL==0|IL==3,void>::type AssignContainer(Field<Geometry<this_type,IL> ,TL> * lhs,
+	typename Field<Geometry<this_type,IL> ,TL>::field_value_type const &rhs) const
+	{
+		Traversal(0,
+		[&](int m, index_type x, index_type y, index_type z)
+		{
+			get(lhs,0,x,y,z)=rhs;
+
+		}, DO_PARALLEL|WITH_GHOSTS);
+	}
+
 // Properties of UniformRectMesh --------------------------------------
 	inline void SetGhostWidth(int i,size_t v)
 	{
@@ -1682,14 +1709,14 @@ template<typename TS>
 void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
         unsigned int flags) const
 {
-	index_type ib = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[0] : 0;
-	index_type ie = ((flags & WITH_GHOSTS) <=0) ? dims_[0] - ghost_width_[0] : dims_[0];
+	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
+	index_type ie = ((flags & WITH_GHOSTS) <= 0) ? dims_[0] - ghost_width_[0] : dims_[0];
 
-	index_type jb = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[1] : 0;
-	index_type je = ((flags & WITH_GHOSTS) <=0) ? dims_[1] - ghost_width_[1] : dims_[1];
+	index_type jb = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[1] : 0;
+	index_type je = ((flags & WITH_GHOSTS) <= 0) ? dims_[1] - ghost_width_[1] : dims_[1];
 
-	index_type kb = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[2] : 0;
-	index_type ke = ((flags & WITH_GHOSTS) <=0) ? dims_[2] - ghost_width_[2] : dims_[2];
+	index_type kb = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[2] : 0;
+	index_type ke = ((flags & WITH_GHOSTS) <= 0) ? dims_[2] - ghost_width_[2] : dims_[2];
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];

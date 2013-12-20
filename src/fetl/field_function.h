@@ -93,18 +93,16 @@ public:
 	template<typename ...Args>
 	void operator()(field_type* f, Args const & ...args)
 	{
-		LOGGER << "Apply field function";
-
 		for (auto const & s : def_domain_)
 		{
 			coordinates_type x = f->mesh.GetCoordinates(IForm, s);
 
-			f->mesh.template SetFieldValue(f, TypeCast<field_value_type>(
+			f->mesh.template SetFieldValue(f,
 
-			fun_(x[0], x[1], x[2], std::forward<Args const&>(args)...)), s);
+			TypeCast<field_value_type>(fun_(x[0], x[1], x[2],
 
+			std::forward<Args const&>(args)...)), s);
 		}
-
 	}
 
 };

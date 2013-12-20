@@ -65,24 +65,24 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value) :
-			mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh, value_type d_value)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 		*this = d_value;
 	}
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
@@ -271,69 +271,41 @@ DECL_SELF_ASSIGN	(-=)
 		return std::move(res);
 
 	}
-//
-//	template<typename TV>
-//	inline void Scatter(TV const & v, coordinates_type const &x)
-//	{
-//		coordinates_type pcoords;
-//
-//		index_type s = mesh.SearchCell(x, &pcoords);
-//
-//		Scatter(v, s, pcoords);
-//
-//	}
-//	template<typename TV>
-//	inline void Scatter(TV const & v, index_type const & s,
-//			coordinates_type const &pcoords, int affected_region = 1)
-//	{
-//
-//		std::vector<index_type> points;
-//
-//		std::vector<typename geometry_type::scatter_weight_type> weights;
-//
-//		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
-//
-//		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
-//
-//		auto it1 = points.begin();
-//		auto it2 = weights.begin();
-//		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
-//		{
-//			// FIXME: this incorrect for vector field interpolation
-//
+
+	template<typename TV>
+	inline void Scatter(TV const & v, coordinates_type const &x)
+	{
+		coordinates_type pcoords;
+
+		index_type s = mesh.SearchCell(x, &pcoords);
+
+		Scatter(v, s, pcoords);
+
+	}
+	template<typename TV>
+	inline void Scatter(TV const & v, index_type const & s,
+			coordinates_type const &pcoords, int affected_region = 1)
+	{
+
+		std::vector<index_type> points;
+
+		std::vector<typename geometry_type::scatter_weight_type> weights;
+
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
+
+		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+
+		auto it1 = points.begin();
+		auto it2 = weights.begin();
+		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
+		{
+			// FIXME: this incorrect for vector field interpolation
+
 //			try
 //			{
-//
-//				this->at(*it1) += Dot(v, *it2);
-//
-//			} catch (std::out_of_range const &e)
-//			{
-//#ifndef NDEBUG
-//				WARNING
-//#else
-//						VERBOSE
-//#endif
-//<<				e.what() <<"[ idx="<< *it1<<"]";
+//				this->get(*it1) += Dot(v, *it2);
 //			}
-//		}
-//
-//	}
-//
-//	inline void Scatter(std::vector<index_type> const & points,std::vector<value_type> & cache)
-//	{
-//		//FIXME: this is not thread safe, need a mutex lock
-//
-//		auto it2=cache.begin();
-//		auto it1=points.begin();
-//		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
-//		{
-//			try
-//			{
-//
-//				this->at(*it1) += *it2;
-//
-//			}
-//			catch(std::out_of_range const &e)
+//			catch (std::out_of_range const &e)
 //			{
 //#ifndef NDEBUG
 //				WARNING
@@ -341,11 +313,36 @@ DECL_SELF_ASSIGN	(-=)
 //				VERBOSE
 //#endif
 //				<< e.what() <<"[ idx="<< *it1<<"]";
-//
 //			}
-//		}
-//
-//	}
+		}
+
+	}
+
+	inline void Scatter(std::vector<index_type> const & points,std::vector<value_type> & cache)
+	{
+		//FIXME: this is not thread safe, need a mutex lock
+
+		auto it2=cache.begin();
+		auto it1=points.begin();
+		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
+		{
+			try
+			{
+				this->get(*it1) += *it2;
+			}
+			catch(std::out_of_range const &e)
+			{
+#ifndef NDEBUG
+				WARNING
+#else
+				VERBOSE
+#endif
+				<< e.what() <<"[ idx="<< *it1<<"]";
+
+			}
+		}
+
+	}
 };
 
 }

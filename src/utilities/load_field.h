@@ -28,6 +28,8 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	f->Init();
 
 	typedef TM mesh_type;
+	typedef typename Field<Geometry<TM, IFORM>, TV>::value_type value_type;
+	typedef typename Field<Geometry<TM, IFORM>, TV>::field_value_type field_value_type;
 
 	mesh_type const &mesh = f->mesh;
 
@@ -49,7 +51,11 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	}
 	else if (obj.is_number())
 	{
-		*f = obj.as<TV>();
+		*f = obj.as<value_type>();
+	}
+	else if (obj.is_table() && obj.size() == sizeof(field_value_type) / sizeof(value_type))
+	{
+		mesh.AssignContainer(f, obj.as<field_value_type>());
 	}
 	else
 	{

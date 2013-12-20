@@ -116,12 +116,12 @@ Context<TM>::Context()
 		media_tag(mesh)
 
 {
+	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
 
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
 	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
-	particle_collection_.template RegisterFactory<PICEngineDefault<mesh_type> >("Default");
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >("DeltaF");
 }
 
 template<typename TM>
@@ -308,12 +308,14 @@ void Context<TM>::NextTimeStep(double dt)
 	//************************************************************
 
 	if (!j_src_.empty())
+	{
+		LOGGER << "Apply Current Source:" << DUMP(Jext);
 		j_src_(&Jext, base_type::GetTime());
+	}
 
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	particle_collection_.CollectAll(&Jext, E, B);
 
-	LOGGER << DUMP(Jext);
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
