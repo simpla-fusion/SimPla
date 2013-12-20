@@ -99,11 +99,34 @@ template<typename TM>
 void PML<TM>::Update()
 {
 	isInitilized_ = true;
-	const double mu0 = mesh.constants["permeability of free space"];
-	const double epsilon0 = mesh.constants["permittivity of free space"];
-	const double speed_of_light = mesh.constants["speed of light"];
-	const double proton_mass = mesh.constants["proton mass"];
-	const double elementary_charge = mesh.constants["elementary charge"];
+
+	nTuple<3, size_t> const &gw = mesh.GetGhostWidth();
+
+	for (int i = 0; i < 3; ++i)
+	{
+
+		if (bc_[i * 2] < gw[i] || bc_[i * 2 + 1] < gw[i])
+		{
+			ERROR << "Illegal configuration! Ghostpoint with is larger than PML points width."
+
+			<< "\n\t[ mesh.GhostWidth = {" << ToString(gw, ",") << "}"
+
+			<< " PML.Width = {" << ToString(bc_, ",") << "} ]";
+		}
+
+		else if (bc_[i * 2] + bc_[i * 2 + 1] > 0 && gw[i] < 2)
+
+		{
+			ERROR << "Illegal configuration! PML need at least 2 point ghost width."
+
+			<< "\n\t[ mesh.GhostWidth = {" << ToString(gw, ",") << "}"
+
+			<< " PML.Width = {" << ToString(bc_, ",") << "} ]";
+		}
+
+	}
+
+	DEFINE_PHYSICAL_CONST(mesh.constants);
 
 	Real dB = 100, expN = 2;
 

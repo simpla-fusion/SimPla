@@ -74,7 +74,6 @@ struct CoRectMesh
 	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
 	nTuple<NUM_OF_DIMS, size_t> ghost_width_;
 	nTuple<NUM_OF_DIMS, size_t> strides_;
-	nTuple<NUM_OF_DIMS, size_t> period_;
 
 	size_t num_cells_ = 0;
 
@@ -145,8 +144,6 @@ struct CoRectMesh
 		d_cell_volume_=1.0;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			period_[i] = std::numeric_limits<index_type>::max();
-
 			if (dims_[i] <= 1)
 			{
 				dims_[i] = 1;
@@ -173,8 +170,6 @@ struct CoRectMesh
 				num_grid_points_ *= dims_[i];
 
 				k_[i] = 0.0;
-
-				if(ghost_width_[i]==0) period_[i]=dims_[i];
 
 			}
 
@@ -271,15 +266,6 @@ public:
 	inline coordinates_type GetGlobalCoordinates(index_type s, coordinates_type const &r) const
 	{
 		return GetCoordinates(0, s) + r * dx_;
-	}
-
-	inline size_t GetIndex(index_type i, index_type j, index_type k) const
-	{
-		return ((i % period_[0]) * strides_[0] + (j % period_[1]) * strides_[1] + (k % period_[2]) * strides_[2]);
-	}
-	inline size_t GetIndex(index_type s) const
-	{
-		return s;
 	}
 
 	template<int IFORM>
@@ -884,6 +870,21 @@ public:
 		return 2 << (m % 3) * 2;
 	}
 
+	void UnpackIndex(index_type *i,index_type *j,index_type *k,size_t s)const
+	{
+		*i =(strides_[0]==0)?0:(s/strides_[0]);
+		s-=(*i)*strides_[0];
+		*j =(strides_[1]==0)?0:(s/strides_[1]);
+		s-=(*j)*strides_[1];
+		*k =s;
+	}
+//	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type i1,index_type j1,index_type k1 )
+//	{
+//		*i=i1;
+//		*j=j1;
+//		*k=k1;
+//	}
+
 	/**
 	 * (((d & 3) + 1) % 3 - 1)
 	 *
@@ -895,14 +896,17 @@ public:
 	template<typename ... IDXS>
 	inline size_t Shift(int d, IDXS ... s) const
 	{
+		index_type i,j,k;
+		UnpackIndex(&i,&j,&k,s...);
+		return Shift(d,i,j,k);
 
-		return GetIndex(s...)
-
-		+ ((((d >> 4) & 3) + 1) % 3 - 1) * strides_[2]
-
-		+ ((((d >> 2) & 3) + 1) % 3 - 1) * strides_[1]
-
-		+ (((d & 3) + 1) % 3 - 1) * strides_[0];
+//		return GetIndex(s...)
+//
+//		+ ((((d >> 4) & 3) + 1) % 3 - 1) * strides_[2]
+//
+//		+ ((((d >> 2) & 3) + 1) % 3 - 1) * strides_[1]
+//
+//		+ (((d & 3) + 1) % 3 - 1) * strides_[0];
 
 	}
 
@@ -910,11 +914,20 @@ public:
 	{
 		return
 
-		(((i + (((d & 3) + 1) % 3 - 1)) % period_[0]) * strides_[0]
+		(((i + (((d & 3) + 1) % 3 - 1)) % dims_[0]) * strides_[0]
 
-		+ ((j + ((((d >> 2) & 3) + 1) % 3 - 1)) % period_[1]) * strides_[1]
+		+ ((j + ((((d >> 2) & 3) + 1) % 3 - 1)) % dims_[1]) * strides_[1]
 
-		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % period_[2]) * strides_[2]);
+		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % dims_[2]) * strides_[2]);
+	}
+
+	inline size_t GetIndex(index_type i, index_type j, index_type k) const
+	{
+		return ((i % dims_[0]) * strides_[0] + (j % dims_[1]) * strides_[1] + (k % dims_[2]) * strides_[2]);
+	}
+	inline size_t GetIndex(index_type s) const
+	{
+		return s;
 	}
 	template<typename T, typename ... TI>
 	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l, TI ...) const
@@ -1072,13 +1085,14 @@ public:
 
 	}
 // Properties of UniformRectMesh --------------------------------------
-	inline void SetPeriodicBoundary(int i)
+	inline void SetGhostWidth(int i,size_t v)
 	{
-		period_[i] = dims_[i];
+		ghost_width_[i% NUM_OF_DIMS]=v;
 	}
-	inline void UnSetPeriodicBoundary(int i)
+
+	inline nTuple<NUM_OF_DIMS,size_t> const&GetGhostWidth( )const
 	{
-		period_[i] = std::numeric_limits<index_type>::max();
+		return ghost_width_;
 	}
 
 	inline void SetExtent(coordinates_type const & pmin, coordinates_type const & pmax)
@@ -1630,8 +1644,6 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 
 	<< "		GhostWidth = {" << ToString(ghost_width_, ",") << "}, \n "
 
-	<< "		Period 	   = {" << ToString(period_, ",") << "}, \n "
-
 	<< "	}, \n "
 
 	<< "	Geometry={ \n "
@@ -1670,26 +1682,14 @@ template<typename TS>
 void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
         unsigned int flags) const
 {
-	index_type ib =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
-	index_type ie =
-	        ((flags & WITH_GHOSTS) > 0 || period_[0] == dims_[0] || DEFAULT_GHOST_WIDTH > dims_[0] / 2) ?
-	                dims_[0] : dims_[0] - DEFAULT_GHOST_WIDTH;
+	index_type ib = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[0] : 0;
+	index_type ie = ((flags & WITH_GHOSTS) <=0) ? dims_[0] - ghost_width_[0] : dims_[0];
 
-	index_type jb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
-	index_type je =
-	        ((flags & WITH_GHOSTS) > 0 || period_[1] == dims_[1] || DEFAULT_GHOST_WIDTH > dims_[1] / 2) ?
-	                dims_[1] : dims_[1] - DEFAULT_GHOST_WIDTH;
+	index_type jb = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[1] : 0;
+	index_type je = ((flags & WITH_GHOSTS) <=0) ? dims_[1] - ghost_width_[1] : dims_[1];
 
-	index_type kb =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                0 : DEFAULT_GHOST_WIDTH;
-	index_type ke =
-	        ((flags & WITH_GHOSTS) > 0 || period_[2] == dims_[2] || DEFAULT_GHOST_WIDTH > dims_[2] / 2) ?
-	                dims_[2] : dims_[2] - DEFAULT_GHOST_WIDTH;
+	index_type kb = ((flags & WITH_GHOSTS) <=0) ? ghost_width_[2] : 0;
+	index_type ke = ((flags & WITH_GHOSTS) <=0) ? dims_[2] - ghost_width_[2] : dims_[2];
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];
