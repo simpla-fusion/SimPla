@@ -66,9 +66,13 @@ int main(int argc, char **argv)
 		{
 			Logger::OpenFile (value);
 		}
-		else if(opt=="v"|| opt=="verbose")
+		else if(opt=="v")
 		{
 			Logger::Verbose(ToValue<int>(value));
+		}
+		else if( opt=="verbose")
+		{
+			Logger::Verbose(10);
 		}
 		else if(opt=="q"|| opt=="quiet")
 		{
