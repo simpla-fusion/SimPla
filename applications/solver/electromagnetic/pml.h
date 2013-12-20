@@ -54,7 +54,7 @@ public:
 	PML(mesh_type const & pmesh);
 	~PML();
 
-	void Init();
+	void Update();
 	bool empty() const
 	{
 		return !isInitilized_;
@@ -75,8 +75,8 @@ inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh) :
-		mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh)
+		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -96,7 +96,7 @@ PML<TM>::~PML()
 }
 
 template<typename TM>
-void PML<TM>::Init()
+void PML<TM>::Update()
 {
 	isInitilized_ = true;
 	const double mu0 = mesh.constants["permeability of free space"];
@@ -120,8 +120,18 @@ void PML<TM>::Init()
 	X21.Fill(0.0);
 	X22.Fill(0.0);
 
-	auto const & dims = mesh.dims_;
-	auto const & st = mesh.strides_;
+	auto const & dims = mesh.GetDimension();
+	auto const & st = mesh.GetStrides();
+	auto const & L = mesh.GetExtent();
+	Real inv_dx[3];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		if (dims[i] > 1)
+			inv_dx[i] = (L.second[i] - L.first[i]) / static_cast<Real>(dims[i] - 1);
+		else
+			inv_dx[i] = 0;
+	}
 
 	for (size_t ix = 0; ix < dims[0]; ++ix)
 		for (size_t iy = 0; iy < dims[1]; ++iy)
@@ -132,26 +142,26 @@ void PML<TM>::Init()
 				{
 					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
 					a0[s] = alpha_(r, expN, dB);
-					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * mesh.inv_dx_[0];
+					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * inv_dx[0];
 				}
 				else if (ix > dims[0] - bc_[0 + 1])
 				{
 					Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1])) / static_cast<Real>(bc_[0 + 1]);
 					a0[s] = alpha_(r, expN, dB);
-					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * mesh.inv_dx_[0];
+					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * inv_dx[0];
 				};
 
 				if (iy < bc_[2])
 				{
 					Real r = static_cast<Real>(bc_[2] - iy) / static_cast<Real>(bc_[2]);
 					a1[s] = alpha_(r, expN, dB);
-					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * mesh.inv_dx_[1];
+					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * inv_dx[1];
 				}
 				else if (iy > dims[1] - bc_[2 + 1])
 				{
 					Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1])) / static_cast<Real>(bc_[2 + 1]);
 					a1[s] = alpha_(r, expN, dB);
-					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * mesh.inv_dx_[1];
+					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * inv_dx[1];
 				}
 
 				if (iz < bc_[4])
@@ -159,14 +169,14 @@ void PML<TM>::Init()
 					Real r = static_cast<Real>(bc_[4] - iz) / static_cast<Real>(bc_[4]);
 
 					a2[s] = alpha_(r, expN, dB);
-					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * mesh.inv_dx_[2];
+					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * inv_dx[2];
 				}
 				else if (iz > dims[2] - bc_[4 + 1])
 				{
 					Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1])) / static_cast<Real>(bc_[4 + 1]);
 
 					a2[s] = alpha_(r, expN, dB);
-					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * mesh.inv_dx_[2];
+					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * inv_dx[2];
 				}
 			}
 
@@ -174,7 +184,11 @@ void PML<TM>::Init()
 template<typename TM>
 void PML<TM>::Deserialize(LuaObject const&cfg)
 {
+	if (cfg.empty())
+		return;
 	cfg["Width"].as(&bc_);
+	Update();
+	LOGGER << "Load PML solver" << DONE;
 }
 template<typename TM>
 
@@ -193,12 +207,9 @@ template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE)
 {
 	LOGGER << "PML push E";
-	dE->Init();
-	const double mu0 = mesh.constants["permeability of free space"];
-	const double epsilon0 = mesh.constants["permittivity of free space"];
-	const double speed_of_light = mesh.constants["speed of light"];
-	const double proton_mass = mesh.constants["proton mass"];
-	const double elementary_charge = mesh.constants["elementary charge"];
+	dE->Fill(0);
+
+	DEFINE_PHYSICAL_CONST(mesh.constants);
 
 	Form<1> dX1(mesh);
 
@@ -219,12 +230,9 @@ template<typename TM>
 void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB)
 {
 	LOGGER << "PML Push B";
-	dB->Init();
-	const double mu0 = mesh.constants["permeability of free space"];
-	const double epsilon0 = mesh.constants["permittivity of free space"];
-	const double speed_of_light = mesh.constants["speed of light"];
-	const double proton_mass = mesh.constants["proton mass"];
-	const double elementary_charge = mesh.constants["elementary charge"];
+	dB->Fill(0);
+
+	DEFINE_PHYSICAL_CONST(mesh.constants);
 
 	Form<2> dX2(mesh);
 

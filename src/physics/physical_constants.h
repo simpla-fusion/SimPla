@@ -96,6 +96,14 @@ private:
 }
 ;
 std::ostream & operator<<(std::ostream &, PhysicalConstants const &);
+
+#define DEFINE_PHYSICAL_CONST(_UNIT_SYS_)                                                \
+const double mu0 = _UNIT_SYS_["permeability of free space"];                            \
+const double epsilon0 = _UNIT_SYS_["permittivity of free space"];                       \
+const double speed_of_light = _UNIT_SYS_["speed of light"];                             \
+const double proton_mass = _UNIT_SYS_["proton mass"];                                   \
+const double elementary_charge = _UNIT_SYS_["elementary charge"];
+
 }  // namespace simpla
 
 #endif /* PHYSICAL_CONSTANTS_H_ */

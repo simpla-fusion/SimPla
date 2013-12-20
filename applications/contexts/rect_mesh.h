@@ -103,8 +103,8 @@ public:
 ;
 
 template<typename TM>
-Context<TM>::Context() :
-		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
+Context<TM>::Context()
+		: E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh),
 
@@ -287,9 +287,11 @@ void Context<TM>::NextTimeStep(double dt)
 
 	base_type::NextTimeStep(dt);
 
+	DEFINE_PHYSICAL_CONST(mesh.constants);
+
 	LOGGER
 
-	<< " SimTime = "
+	<< "Simlation Time = "
 
 	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
 
@@ -299,39 +301,36 @@ void Context<TM>::NextTimeStep(double dt)
 
 	Jext.Fill(0);
 
+	if (dB.empty())
+		dB = -Curl(E) * dt;
+
+	//************************************************************
+	// Compute Cycle Begin
+	//************************************************************
+
 	if (!j_src_.empty())
 		j_src_(&Jext, base_type::GetTime());
-
-	LOGGER << DUMP(Jext);
-
-	const double mu0 = mesh.constants["permeability of free space"];
-	const double epsilon0 = mesh.constants["permittivity of free space"];
-	const double speed_of_light = mesh.constants["speed of light"];
-	const double proton_mass = mesh.constants["proton mass"];
-	const double elementary_charge = mesh.constants["elementary charge"];
 
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	//	particle_collection_.CollectAll(dt, &Jext, E, B);
 
-	if (dB.empty())
-	{
-		dB = -Curl(E) * dt;
-	}
-
+	LOGGER << DUMP(Jext);
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
-	if (pml_.empty())
+	if (!pml_.empty())
 	{
 		pml_.NextTimeStepE(dt, B, &dE);
 	}
 	else
 	{
-		LOG_CMD(dE = (Curl(B) / mu0 - Jext) * (dt / epsilon0));
+		LOG_CMD(dE = (Curl(B) / mu0) * (dt / epsilon0));
 	}
 
+	LOG_CMD(dE -= Jext * (dt / epsilon0));
+
 	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
-	if (!cold_fluid_.IsEmpty())
+	if (!cold_fluid_.empty())
 	{
 		cold_fluid_.NextTimeStep(dt, E, B, &dE);
 	}
@@ -350,7 +349,7 @@ void Context<TM>::NextTimeStep(double dt)
 	{
 		LOG_CMD(function_["PEC"]());
 	}
-	if (pml_.empty())
+	if (!pml_.empty())
 	{
 		pml_.NextTimeStepB(dt, E, &dB);
 	}
@@ -359,8 +358,15 @@ void Context<TM>::NextTimeStep(double dt)
 		LOG_CMD(dB = -Curl(E) * dt);
 	}
 
+	LOGGER << DUMP(dB);
+	LOGGER << DUMP(dE);
+
 	//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);
+
+	//************************************************************
+	// Compute Cycle End
+	//************************************************************
 
 }
 template<typename TM>
@@ -380,6 +386,6 @@ void Context<TM>::DumpData() const
 
 }
 }
-	// namespace simpla
+		// namespace simpla
 
 #endif /* RECT_MESH_H_ */

@@ -36,8 +36,8 @@ private:
 		Form<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh) :
-				m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh)
+				: m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -49,8 +49,8 @@ private:
 	VectorForm<0> Ev;
 public:
 
-	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), Ev(pmesh)
+	ColdFluidEM(mesh_type const & pmesh)
+			: mesh(pmesh), Ev(pmesh)
 	{
 	}
 
@@ -62,7 +62,10 @@ public:
 	{
 		return sp_list_.empty();
 	}
-
+	inline bool empty() // STL style
+	{
+		return sp_list_.empty();
+	}
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
 
@@ -204,7 +207,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		}
 
 		std::shared_ptr<Species> sp(
-				new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
 		sp->n.Init();
 		sp->J.Init();
@@ -219,7 +222,8 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 
 	}
 
-	LOGGER << " Load Cold Fluid [Done]!";
+	LOGGER << "Load Cold Fluid solver" << DONE;
+
 }
 
 template<typename TM>
@@ -230,10 +234,10 @@ void ColdFluidEM<TM>::DumpData() const
 	for (auto const & p : sp_list_)
 	{
 		LOGGER << "Dump " << "n_" + p.first << " to "
-				<< Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
+		        << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
 
 		LOGGER << "Dump " << "J_" + p.first << " to "
-				<< Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
+		        << Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
 	}
 }
 
