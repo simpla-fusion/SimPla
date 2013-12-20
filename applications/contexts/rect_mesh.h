@@ -93,9 +93,8 @@ public:
 
 	bool isCompactStored_;
 
-//	typedef typename Form<1>::field_value_type field_value_type;
-//	typedef std::function<field_value_type(Real, Real, Real, Real)> field_function;
 	typedef LuaObject field_function;
+
 	FieldFunction<decltype(Jext), field_function> j_src_;
 
 	std::map<std::string, std::function<void()> > function_;
@@ -140,7 +139,7 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 
 	pml_.Deserialize(cfg["FieldSolver"]["PML"]);
 
-//	particle_collection_.Deserialize(cfg["Particles"]);
+	particle_collection_.Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 
@@ -246,9 +245,9 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 
 	<< cold_fluid_ << ",\n"
 
-	<< pml_ << ",\n" << "} \n";
+	<< pml_ << ",\n" << "} \n"
 
-//	os << particle_collection_ << "\n"
+	<< particle_collection_ << "\n"
 
 	;
 
@@ -312,7 +311,7 @@ void Context<TM>::NextTimeStep(double dt)
 		j_src_(&Jext, base_type::GetTime());
 
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-	//	particle_collection_.CollectAll(dt, &Jext, E, B);
+	particle_collection_.CollectAll(&Jext, E, B);
 
 	LOGGER << DUMP(Jext);
 	// B(t=0 -> 1/2)
@@ -338,7 +337,7 @@ void Context<TM>::NextTimeStep(double dt)
 	LOG_CMD(E += dE * 0.5);
 
 	//  particle(t=0 -> 1)
-	//	particle_collection_.Push(dt, E, B);
+	particle_collection_.NextTimeStep(dt, E, B);
 
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
@@ -386,6 +385,6 @@ void Context<TM>::DumpData() const
 
 }
 }
-		// namespace simpla
+	// namespace simpla
 
 #endif /* RECT_MESH_H_ */

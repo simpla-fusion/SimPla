@@ -50,7 +50,7 @@ public:
 
 	}
 	template<int N, typename TJ, typename ... Args>
-	inline void Collect(TJ *J, Args const &... args)
+	inline void Collect(TJ *J, Args const &... args) const
 	{
 		_Collect(Int2Type<N>(), J, std::forward<Args const &>(args)...);
 	}
@@ -69,21 +69,20 @@ private:
 
 	//========================================================================
 	// interface
-	typedef typename TM::scalar scalar;
-	DEFINE_FIELDS (mesh_type)
+	typedef typename TM::scalar scalar;DEFINE_FIELDS (mesh_type)
 
-	virtual void _Push(Form<1> const &, Form<2> const &)
+	virtual void _Push(Real dt, Form<1> const &, Form<2> const &)
 	{
 	}
 
-	virtual void _Push(VectorForm<0> const &, VectorForm<0> const &)
+	virtual void _Push(Real dt, VectorForm<0> const &, VectorForm<0> const &)
 	{
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, Form<1> const &,	Form<2> const &) {}				\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &, VectorForm<0> const & ,	VectorForm<0> const &) {}		\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> &) {}
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *, Form<1> const &,Form<2> const &)const {}			\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *, VectorForm<0> const & ,VectorForm<0> const &)const {}\
+	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *)const {}
 
 	DEF_COLLECT_INTERFACE(0 , Form, 0 )
 	DEF_COLLECT_INTERFACE(0 , Form, 3 )
@@ -105,10 +104,9 @@ class Particle:
 
 public Engine,
 
-		public Engine::mesh_type::template Container<
-				std::list<typename Engine::Point_s> >,
+public Engine::mesh_type::template Container<std::list<typename Engine::Point_s> >,
 
-		public ParticleBase<typename Engine::mesh_type>
+public ParticleBase<typename Engine::mesh_type>
 {
 	static const int GEOMETRY_TYPE = 0;
 
@@ -140,22 +138,19 @@ public:
 
 	typedef typename cell_type::allocator_type allocator_type;
 
-	typedef typename mesh_type::template Container<
-			std::list<typename Engine::Point_s> > container_type;
+	typedef typename mesh_type::template Container<std::list<typename Engine::Point_s> > container_type;
 
 	mesh_type const &mesh;
 
 public:
 
 	template<typename ...Args>
-	Particle(mesh_type const & pmesh) :
+	Particle(mesh_type const & pmesh)
+			:
 
 			engine_type(pmesh),
 
-			container_type(
-					std::move(
-							pmesh.template MakeContainer<GEOMETRY_TYPE,
-									cell_type>())),
+			container_type(std::move(pmesh.template MakeContainer<GEOMETRY_TYPE, cell_type>())),
 
 			mesh(pmesh)
 
@@ -197,8 +192,7 @@ public:
 		return os;
 	}
 
-	inline void ResizeCells(size_t num_pic,
-			particle_type const & default_value = particle_type())
+	inline void ResizeCells(size_t num_pic, particle_type const & default_value = particle_type())
 	{
 		for (auto & cell : *this)
 		{
@@ -211,10 +205,7 @@ public:
 	{
 
 		container_type tmp(
-				std::move(
-						mesh.MakeContainer(GEOMETRY_TYPE,
-								cell_type(
-										container_type::begin()->get_allocator()))));
+		        std::move(mesh.MakeContainer(GEOMETRY_TYPE, cell_type(container_type::begin()->get_allocator()))));
 
 		mesh.ForAllCell(
 
@@ -269,15 +260,15 @@ public:
 	template<int I, typename TJ, typename ... Args>
 	inline void Collect(TJ & J, Args const & ... args) const
 	{
-//		ForEachCell(
-//
-//		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
-//				typename ProxyCache<const Args>::type const& ... args_c)
-//		{
-//			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
-//		},
-//
-//		J, args...);
+		ForEachCell(
+
+		[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
+				typename ProxyCache<const Args>::type const& ... args_c)
+		{
+			engine_type::Collect(Int2Type<I>(),p,J_c,args_c...);
+		},
+
+		J, args...);
 	}
 
 	template<typename TFun, typename ... Args>
@@ -390,19 +381,18 @@ private:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-		typename TParticleEngine::mesh_type const & mesh, LuaObject const &cfg)
+        typename TParticleEngine::mesh_type const & mesh, LuaObject const &cfg)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 template<typename TM>
-class ParticleCollection: public std::map<std::string,
-		std::shared_ptr<ParticleBase<TM> > >
+class ParticleCollection: public std::map<std::string, std::shared_ptr<ParticleBase<TM> > >
 {
 public:
 	typedef TM mesh_type;
@@ -413,9 +403,7 @@ public:
 
 	typedef std::map<std::string, std::shared_ptr<particle_type> > base_type;
 
-	typedef std::function<
-			std::shared_ptr<particle_type>(mesh_type const &,
-					configure_type const &)> create_fun;
+	typedef std::function<std::shared_ptr<particle_type>(mesh_type const &, configure_type const &)> create_fun;
 
 	typedef ParticleCollection<mesh_type> this_type;
 
@@ -426,59 +414,14 @@ public:
 	mesh_type const & mesh;
 
 	template<typename U>
-	friend std::ostream & operator<<(std::ostream & os,
-			ParticleCollection<U> const &self);
+	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
 	{
-	}
-
-	inline void Deserialize(configure_type const &cfg)
-	{
-		if (cfg.IsNull())
-			return;
-
-		for (auto const &p : cfg)
-		{
-			std::string key;
-
-			if (!p.first.is_number())
-			{
-				key = p.first.as<std::string>();
-			}
-			else
-			{
-				p.second.GetValue("Name", &key);
-			}
-
-			std::string engine = p.second.at("Engine").as<std::string>();
-
-			try
-			{
-
-				auto it = factory_.find(engine);
-
-				if (it != factory_.end())
-				{
-
-					this->emplace(
-							std::make_pair(key, it->second(mesh, p.second)));
-				}
-
-			} catch (...)
-			{
-				WARNING << "I do not know how to create \"" << key
-						<< "\" particle! [engine=" << engine << "]";
-
-				return;
-			}
-
-		}
-
 	}
 
 	void RegisterFactory(std::string const &engine_name, create_fun const &fun)
@@ -491,6 +434,10 @@ public:
 		factory_.emplace(std::make_pair(engine_name, &CreateParticle<TEngine>));
 	}
 
+	void Deserialize(configure_type const &cfg);
+
+	std::ostream & Serialize(std::ostream & os) const;
+
 	template<typename PT>
 	inline void Serialize(PT &vm) const
 	{
@@ -498,32 +445,75 @@ public:
 	}
 
 	template<typename ... Args>
-	void PushAll(Args const & ... args)
+	void NextTimeStep(Args const & ... args)
 	{
 		for (auto & p : *this)
 		{
-			p.second->push(std::forward<Args const &>(args)...);
+			p.second->Push(std::forward<Args const &>(args)...);
 		}
 	}
 
 	template<typename TJ, typename ... Args>
-	void CollectAll(TJ *J, Args const & ... args)
+	void CollectAll(TJ *J, Args const & ... args) const
 	{
 		for (auto & p : *this)
 		{
-			p.second->Collect(J, std::forward<Args const &>(args)...);
+			p.second->template Collect<TJ::IForm>(J, std::forward<Args const &>(args)...);
 		}
 	}
 
 };
 
 template<typename TM>
-std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
+void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 {
-	os << "-- Particle Collection " << std::endl;
+	if (cfg.IsNull())
+		return;
+
+	for (auto const &p : cfg)
+	{
+		std::string key;
+
+		if (!p.first.is_number())
+		{
+			key = p.first.as<std::string>();
+		}
+		else
+		{
+			p.second.GetValue("Name", &key);
+		}
+
+		std::string engine = p.second.at("Engine").as<std::string>();
+
+		try
+		{
+
+			auto it = factory_.find(engine);
+
+			if (it != factory_.end())
+			{
+
+				this->emplace(std::make_pair(key, it->second(mesh, p.second)));
+			}
+
+		} catch (...)
+		{
+			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
+
+			return;
+		}
+
+	}
+
+}
+template<typename TM>
+
+std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
+{
+	os << "Load Particle Collection " << std::endl;
 	os << "{";
 
-	for (auto const & p : self)
+	for (auto const & p : *this)
 	{
 		os << p.first << " =  ";
 		p.second->Serialize(os);
@@ -532,7 +522,12 @@ std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
 	}
 	os << "}" << std::endl;
 	return os;
+}
 
+template<typename TM>
+std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
+{
+	return self.Serialize(os);
 }
 
 }
