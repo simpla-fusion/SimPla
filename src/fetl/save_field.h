@@ -14,12 +14,10 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
-template<typename TG, typename TV, typename Other> inline DataSet<TV> Data(Field<TG, TV> const & d,
-        std::string const & name, Other const &, bool flag)
+template<typename TG, typename TV> inline DataSet<TV> Data(Field<TG, TV> const & d, std::string const & name, bool flag)
 {
 	return std::move(DataSet<TV>(d.data(), name, d.GetShape(), flag));
 }
-
 }  // namespace simpla
 
 #endif /* SAVE_FIELD_H_ */

@@ -9,8 +9,106 @@
 namespace simpla
 {
 
-std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
-        hid_t mdtype, int rank, size_t const *dims, bool APPEND)
+void DataStream::OpenGroup(std::string const & gname)
+{
+	hid_t h5fg = file_;
+	CloseGroup();
+	if (gname[0] == '/')
+	{
+		grpname_ = gname;
+	}
+	else
+	{
+		grpname_ += gname;
+		if (group_ > 0)
+			h5fg = group_;
+	}
+
+	if (grpname_[grpname_.size() - 1] != '/')
+	{
+		grpname_ = grpname_ + "/";
+	}
+
+	auto res = H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT);
+
+	if (grpname_ == "/" || res != 0)
+	{
+		H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
+	}
+	else
+	{
+		H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+	}
+	if (group_ <= 0)
+	{
+		ERROR << "Can not open group " << grpname_ << " in file " << prefix_;
+	}
+
+}
+
+void DataStream::OpenFile(std::string const &fname)
+{
+
+	CloseFile();
+	if (fname != "")
+		prefix_ = fname;
+
+	if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
+	{
+		prefix_ = fname.substr(0, fname.size() - 3);
+	}
+
+	/// @TODO auto mkdir directory
+
+	filename_ = prefix_ +
+
+	AutoIncrease(
+
+	[&](std::string const & suffix)->bool
+	{
+		std::string fname=(prefix_+suffix);
+		return
+		fname==""
+		|| *(fname.rbegin())=='/'
+		|| (CheckFileExists(fname + ".h5"));
+	}
+
+	) + ".h5";
+
+	H5_ERROR(file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+	if (file_ < 0)
+	{
+		ERROR << "Create HDF5 file " << filename_ << " failed!" << std::endl;
+	}
+	OpenGroup("");
+}
+
+void DataStream::CloseGroup()
+{
+	if (group_ > 0)
+	{
+		H5Gclose(group_);
+	}
+	group_ = -1;
+}
+void DataStream::CloseFile()
+{
+	CloseGroup();
+	if (file_ > 0)
+	{
+		H5Fclose(file_);
+	}
+	file_ = -1;
+}
+
+std::string DataStream::Write(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
+        bool is_compact_store) const
+{
+	return HDF5Write(group_, v, name, mdtype, rank, dims, is_compact_store);
+}
+
+std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
+        bool is_compact_store)
 {
 
 	if (grp <= 0)
@@ -19,7 +117,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 		return "";
 	}
 
-	if(v==nullptr)
+	if (v == nullptr)
 	{
 		ERROR << "Can not write null data!";
 		return "";
@@ -27,7 +125,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 	}
 	std::string dsname = name;
 
-	if (!APPEND)
+	if (!is_compact_store)
 	{
 
 		dsname = name +
@@ -76,8 +174,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 
 			H5Pset_chunk(dcpl_id, ndims, chunk_dims);
 
-			dset = H5Dcreate(grp, dsname.c_str(), mdtype, fspace, H5P_DEFAULT,
-			        dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(grp, dsname.c_str(), mdtype, fspace, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
 			H5Dwrite(dset, mdtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, v);
 
@@ -115,8 +212,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name,
 
 			fspace = H5Dget_space(dset);
 
-			H5Sselect_hyperslab(fspace, H5S_SELECT_SET, offset, nullptr,
-			        chunk_dims, nullptr);
+			H5Sselect_hyperslab(fspace, H5S_SELECT_SET, offset, nullptr, chunk_dims, nullptr);
 
 			hid_t mspace = H5Screate_simple(ndims, chunk_dims, nullptr);
 

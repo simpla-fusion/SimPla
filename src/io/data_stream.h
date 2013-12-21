@@ -32,173 +32,6 @@ extern "C"
 namespace simpla
 {
 
-#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ /*H5Eprint(H5E_DEFAULT, stderr);*/}
-
-class DataStream: public SingletonHolder<DataStream>
-{
-	std::string prefix_;
-	int suffix_width_;
-
-	std::string filename_;
-	std::string grpname_;
-	hid_t file_;
-	hid_t group_;
-	size_t LIGHT_DATA_LIMIT_;
-public:
-
-	DataStream()
-			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
-
-			file_(-1), group_(-1),
-
-			suffix_width_(4),
-
-			LIGHT_DATA_LIMIT_(20)
-
-	{
-		hid_t error_stack = H5Eget_current_stack();
-		H5Eset_auto(error_stack, NULL, NULL);
-	}
-
-	~DataStream()
-	{
-		CloseFile();
-	}
-	void SetLightDatLimit(size_t s)
-	{
-		LIGHT_DATA_LIMIT_ = s;
-	}
-	size_t GetLightDatLimit() const
-	{
-		return LIGHT_DATA_LIMIT_;
-	}
-	inline void OpenGroup(std::string const & gname)
-	{
-		hid_t h5fg = file_;
-		CloseGroup();
-		if (gname[0] == '/')
-		{
-			grpname_ = gname;
-		}
-		else
-		{
-			grpname_ += gname;
-			if (group_ > 0)
-				h5fg = group_;
-		}
-
-		if (grpname_[grpname_.size() - 1] != '/')
-		{
-			grpname_ = grpname_ + "/";
-		}
-
-		auto res = H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT);
-
-		if (grpname_ == "/" || res != 0)
-		{
-			H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
-		}
-		else
-		{
-			H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-		}
-		if (group_ <= 0)
-		{
-			ERROR << "Can not open group " << grpname_ << " in file " << prefix_;
-		}
-
-	}
-
-	inline void OpenFile(std::string const &fname = "unnamed")
-	{
-
-		CloseFile();
-		if (fname != "")
-			prefix_ = fname;
-
-		if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
-		{
-			prefix_ = fname.substr(0, fname.size() - 3);
-		}
-
-		/// @TODO auto mkdir directory
-
-		filename_ = prefix_ +
-
-		AutoIncrease(
-
-		[&](std::string const & suffix)->bool
-		{
-			std::string fname=(prefix_+suffix);
-			return
-			fname==""
-			|| *(fname.rbegin())=='/'
-			|| (CheckFileExists(fname + ".h5"));
-		}
-
-		) + ".h5";
-
-		H5_ERROR(file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
-		if (file_ < 0)
-		{
-			ERROR << "Create HDF5 file " << filename_ << " failed!" << std::endl;
-		}
-		OpenGroup("");
-	}
-
-	void CloseGroup()
-	{
-		if (group_ > 0)
-		{
-			H5Gclose(group_);
-		}
-		group_ = -1;
-	}
-	void CloseFile()
-	{
-		CloseGroup();
-		if (file_ > 0)
-		{
-			H5Fclose(file_);
-		}
-		file_ = -1;
-	}
-	inline std::string GetCurrentPath() const
-	{
-		return filename_ + ":" + grpname_;
-	}
-
-	inline std::string GetPrefix() const
-	{
-		return prefix_;
-	}
-
-	inline void SetPrefix(const std::string& prefix)
-	{
-		prefix_ = prefix;
-	}
-
-	int GetSuffixWidth() const
-	{
-		return suffix_width_;
-	}
-
-	void SetSuffixWidth(int suffixWidth)
-	{
-		suffix_width_ = suffixWidth;
-	}
-
-	template<typename ...Args>
-	std::string Write(Args const &... args) const
-	{
-		return HDF5Write(group_, std::forward<Args const&>(args)...);
-	}
-
-}
-;
-
-#define GLOBAL_DATA_STREAM DataStream::instance()
-
 template<typename TV>
 class DataSet
 {
@@ -262,12 +95,8 @@ public:
 			s *= d;
 		}
 		return s;
+	}
 
-	}
-	bool IsHeavyData() const
-	{
-		return size() > GLOBAL_DATA_STREAM.GetLightDatLimit();
-	}
 	bool IsCompactStored() const
 	{
 		return is_compact_store_;
@@ -297,7 +126,6 @@ public:
 	}
 };
 
-
 template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
 {
 	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
@@ -306,31 +134,8 @@ template<typename TV, typename ... Args> inline DataSet<TV> Data(TV* d, Args con
 {
 	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
 }
-template<typename U>
-std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
-{
-	if (!d.IsHeavyData() && (!d.IsCompactStored()))
-	{
-		PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
-	}
-	else
-	{
 
-		os
-
-		<< "\""
-
-		<< GLOBAL_DATA_STREAM.GetCurrentPath()
-
-		<< GLOBAL_DATA_STREAM.Write(d)
-
-		<< "\"";
-	}
-
-	return os;
-
-}
-
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ /*H5Eprint(H5E_DEFAULT, stderr);*/}
 template<typename T> struct HDF5DataType
 {
 	hid_t type() const
@@ -394,55 +199,178 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
         bool is_apppendable);
-
-template<typename TV>
-std::string HDF5Write(hid_t grp, TV const *v, std::string const &name, std::vector<size_t> const &d, bool APPEND)
+template<typename ...Args>
+std::string DataStreamWrite(Args const &... args)
 {
+	UNIMPLEMENT;
+	return "";
+}
 
-	if (v == nullptr)
+class DataStream: public SingletonHolder<DataStream>
+{
+	std::string prefix_;
+	int suffix_width_;
+
+	std::string filename_;
+	std::string grpname_;
+	hid_t file_;
+	hid_t group_;
+	size_t LIGHT_DATA_LIMIT_;
+	bool is_compact_storable_;
+public:
+
+	DataStream()
+			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+
+			file_(-1), group_(-1),
+
+			suffix_width_(4),
+
+			LIGHT_DATA_LIMIT_(20),
+
+			is_compact_storable_(true)
+
 	{
-		WARNING << "empty data";
-		return "empty data";
+		hid_t error_stack = H5Eget_current_stack();
+		H5Eset_auto(error_stack, NULL, NULL);
 	}
 
-	if (d.empty())
+	~DataStream()
 	{
-		WARNING << "Unknown  size of dataset! ";
-		return "Unknown  size of dataset";
+		CloseFile();
+	}
+	void SetLightDatLimit(size_t s)
+	{
+		LIGHT_DATA_LIMIT_ = s;
+	}
+	size_t GetLightDatLimit() const
+	{
+		return LIGHT_DATA_LIMIT_;
 	}
 
-	std::vector<size_t> dims;
-
-	std::vector<size_t>(d).swap(dims);
-
-	if (is_nTuple<TV>::value)
+	void EnableCompactStorable()
 	{
-		dims.push_back(nTupleTraits<TV>::NUM_OF_DIMS);
+		is_compact_storable_ = true;
+	}
+	void DisableCompactStorable()
+	{
+		is_compact_storable_ = false;
 	}
 
-//	auto mdtype = HDF5DataType<typename nTupleTraits<TV>::value_type>();
+	bool CheckCompactStorable() const
+	{
+		return is_compact_storable_;
+	}
 
-	std::string res = HDF5Write(grp, reinterpret_cast<void const*>(v), name,
+	inline std::string GetCurrentPath() const
+	{
+		return filename_ + ":" + grpname_;
+	}
 
-	HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
+	inline std::string GetPrefix() const
+	{
+		return prefix_;
+	}
 
-	dims.size(), &dims[0], APPEND);
+	inline void SetPrefix(const std::string& prefix)
+	{
+		prefix_ = prefix;
+	}
 
-	return res;
+	int GetSuffixWidth() const
+	{
+		return suffix_width_;
+	}
+
+	void SetSuffixWidth(int suffixWidth)
+	{
+		suffix_width_ = suffixWidth;
+	}
+	template<typename U>
+	std::ostream & Serialize(std::ostream & os, DataSet<U> const & d)
+	{
+		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
+		{
+			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
+		}
+		else
+		{
+			os << "\"" << GetCurrentPath() << Write(d) << "\"";
+		}
+		return os;
+	}
+
+	void OpenGroup(std::string const & gname);
+	void OpenFile(std::string const &fname = "unnamed");
+	void CloseGroup();
+	void CloseFile();
+
+//	template<typename ...Args>
+//	std::string Write(Args const &... args) const
+//	{
+//		return DataStreamWrite(group_, std::forward<Args const&>(args)...);
+//	}
+
+	template<typename U>
+	std::string Write(DataSet<U> const & d) const
+	{
+		return std::move(Write(d.get(), d.GetName(), d.GetDims(), d.IsCompactStored()));
+	}
+
+	template<typename TV>
+	std::string Write(TV const *v, std::string const &name, std::vector<size_t> const &d, bool is_compact_stored) const
+	{
+
+		if (v == nullptr)
+		{
+			WARNING << "empty data";
+			return "empty data";
+		}
+
+		if (d.empty())
+		{
+			WARNING << "Unknown  size of dataset! ";
+			return "Unknown  size of dataset";
+		}
+
+		std::vector<size_t> dims;
+
+		std::vector<size_t>(d).swap(dims);
+
+		if (is_nTuple<TV>::value)
+		{
+			dims.push_back(nTupleTraits<TV>::NUM_OF_DIMS);
+		}
+
+		std::string res = Write(reinterpret_cast<void const*>(v), name,
+
+		HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
+
+		dims.size(), &dims[0], is_compact_stored);
+
+		return res;
+
+	}
+
+	std::string Write(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
+	        bool is_compact_stored) const;
+
+}
+;
+
+#define GLOBAL_DATA_STREAM DataStream::instance()
+
+template<typename U>
+std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
+{
+	DataStream::instance().Serialize(os, d);
+	return os;
 
 }
 
-template<typename U, typename ... Args>
-std::string HDF5Write(hid_t grp, DataSet<U> const & d, Args const &... args)
-{
-
-	return std::move(HDF5Write(grp, d.get(), d.GetName(), d.GetDims(), d.IsAppendable()),
-	        std::forward<Args const &>(args)...);
-}
-
-#define DUMP(_F_) Data(_F_,__STRING(_F_),_F_.GetShape(),true)
+#define DUMP(_F_) Data(_F_,__STRING(_F_) ,true)
 #ifndef NDEBUG
-#	define DEBUG_DUMP(_F_) Data(_F_,__STRING(_F_),_F_.GetShape(),true)
+#	define DEBUG_DUMP(_F_) Data(_F_,__STRING(_F_),true)
 #else
 #   define DEBUG_DUMP(_F_) ""
 #endif
