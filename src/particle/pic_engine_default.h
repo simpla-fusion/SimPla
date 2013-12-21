@@ -27,11 +27,31 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
+	typedef nTuple<7, Real> storage_value_type;
+
 	struct Point_s
 	{
 		coordinates_type x;
 		Vec3 v;
 		scalar_type f;
+
+		static std::string DataTypeDesc()
+		{
+			std::ostringstream os;
+			os
+
+			<< "H5T_COMPOUND {          "
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+			<< "}";
+
+			return os.str();
+		}
 	};
 
 	PICEngineDefault(mesh_type const &pmesh)
@@ -101,28 +121,17 @@ public:
 		p.v = v;
 		p.f *= n(p.x);
 	}
+
 };
 
-//#include <H5Cpp.h>
-//template<typename > struct HDF5DataType;
-//template<typename TM>
-//struct HDF5DataType<typename PICEngineDefault<TM>::Point_s>
-//{
-////	H5::DataType operator()
-////	{
-////		char desc[1024];
-////		snprintf(desc, sizeof(desc), "H5T_COMPOUND {          "
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"X\" : %ul;"
-////				"   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"V\" : %ul;"
-////				"   H5T_NATIVE_DOUBLE    \"F\" : %u;"
-////				"   H5T_ARRAY { [%d] H5T_NATIVE_DOUBLE}    \"w\" : %d;"
-////				"}", (offsetof(Point_s, X)),
-////				(offsetof(Point_s, V)),
-////				(offsetof(Point_s, F)),
-////				num_of_mate,
-////				(offsetof(Point_s, w)));
-////	}
-//};
-}// namespace simpla
+template<typename TM> std::ostream&
+operator<<(std::ostream& os, typename PICEngineDefault<TM>::Point_s const & p)
+{
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
+
+	return os;
+}
+
+} // namespace simpla
 
 #endif /* PIC_ENGINE_DEFAULT_H_ */

@@ -97,7 +97,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	f1.Init();
 	f2.Init();
 
-	TestFixture::mesh.TraversalIndex(
+	TestFixture::mesh.Traversal(
 
 			TestFixture::FieldType::IForm,
 
@@ -231,7 +231,6 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	}
 
 	f4= ( -f1*a +f2*b ) -f3/c -f1;
-
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;

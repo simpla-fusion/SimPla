@@ -11,12 +11,18 @@
 #ifndef DATA_STREAM_
 #define DATA_STREAM_
 
-#include <algorithm>
+//#include <H5Epublic.h>
+//#include <H5Ipublic.h>
+//#include <H5LTpublic.h>
+//#include <H5public.h>
+//#include <H5Tpublic.h>
+#include <complex>
 #include <cstddef>
 #include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 extern "C"
@@ -138,14 +144,35 @@ template<typename TV, typename ... Args> inline DataSet<TV> Data(TV* d, Args con
 	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
 }
 
-#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ /*H5Eprint(H5E_DEFAULT, stderr);*/}
-template<typename T> struct HDF5DataType
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_INT;
-	}
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 
+namespace _impl
+{
+
+HAS_STATIC_MEMBER_FUNCTION(DataTypeDesc);
+
+template<typename T>
+typename std::enable_if<has_static_member_function_DataTypeDesc<T>::value, hid_t>::type GetH5Type()
+{
+	hid_t res;
+	H5_ERROR(res = H5LTtext_to_dtype(T::DataTypeDesc().c_str(), H5LT_DDL));
+	return res;
+}
+template<typename T>
+typename std::enable_if<!has_static_member_function_DataTypeDesc<T>::value, hid_t>::type GetH5Type()
+{
+	return H5T_OPAQUE;
+}
+
+}  // namespace _impl
+
+template<typename T>
+struct HDF5DataType
+{
+	hid_t type(...) const
+	{
+		return _impl::GetH5Type<T>();
+	}
 };
 
 template<> struct HDF5DataType<int>
@@ -292,11 +319,11 @@ public:
 	template<typename U>
 	std::ostream & Serialize(std::ostream & os, DataSet<U> const & d)
 	{
-		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
-		{
-			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
-		}
-		else
+//		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
+//		{
+//			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
+//		}
+//		else
 		{
 			os << "\"" << GetCurrentPath() << Write(d) << "\"";
 		}
@@ -368,7 +395,6 @@ std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
 {
 	DataStream::instance().Serialize(os, d);
 	return os;
-
 }
 
 #define DUMP(_F_) Data(_F_,__STRING(_F_) ,true)

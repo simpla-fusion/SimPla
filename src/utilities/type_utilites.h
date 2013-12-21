@@ -33,6 +33,34 @@ public:                                                                         
 	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                     \
 };
 
+
+#define HAS_STATIC_MEMBER_FUNCTION(_NAME_)                                                                   \
+template<typename _T, typename ..._Args>                                                                \
+struct has_static_member_function_##_NAME_                                                                    \
+{                                                                                                     \
+private:                                                                                              \
+	typedef std::true_type yes;                                                                       \
+	typedef std::false_type no;                                                                       \
+                                                                                                      \
+	template<typename U>                                                                              \
+	static auto test(int) ->                                                                          \
+	typename std::enable_if< sizeof...(_Args)==0,                                                      \
+	decltype(U::_NAME_() )>::type;                                                       \
+                                                                                                      \
+	template<typename U>                                                                              \
+	static auto test(int) ->                                                                          \
+	typename std::enable_if< ( sizeof...(_Args) >0),                                                   \
+	decltype(U::_NAME_(std::declval<_Args>()...) )>::type;                            \
+                                                                                                      \
+	template<typename > static no test(...);                                                          \
+                                                                                                      \
+public:                                                                                               \
+                                                                                                      \
+	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                     \
+};
+
+
+
 #define HAS_OPERATOR(_NAME_,_OP_)                                                                   \
 template<typename _T, typename ... _Args>                                                                \
 struct has_operator_##_NAME_                                                                    \
@@ -57,6 +85,16 @@ public:                                                                         
                                                                                                       \
 	static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;                     \
 };
+
+
+
+
+
+
+
+
+
+
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 

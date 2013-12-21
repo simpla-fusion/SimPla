@@ -10,6 +10,7 @@
 
 #include <memory>
 #include "../utilities/log.h"
+#include "../io/data_stream.h"
 namespace simpla
 {
 
@@ -19,11 +20,9 @@ template<typename > class Particle;
 template<typename TEngine> inline DataSet<typename TEngine::Point_s> //
 Data(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
 {
-	size_t s = d.size();
-	return std::move(
-	        DataSet<typename TEngine::Point_s>(std::shared_ptr<typename TEngine::Point_s>(nullptr), name, 1, &s,
-	                is_compact_store));
-	UNIMPLEMENT;
+	auto t = d.DumpData();
+	return std::move(DataSet<typename TEngine::Point_s>(t.first, name, 1, &(t.second), is_compact_store));
+
 }
 
 }  // namespace simpla

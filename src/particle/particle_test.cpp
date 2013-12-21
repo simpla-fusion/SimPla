@@ -8,6 +8,12 @@
 #include <random>
 #include <gtest/gtest.h>
 
+#include "particle.h"
+#include "pic_engine_default.h"
+#include "../io/data_stream.h"
+#include "save_particle.h"
+#include "load_particle.h"
+
 #include "../fetl/fetl.h"
 #include "../utilities/log.h"
 #include "../mesh/co_rect_mesh.h"
@@ -15,10 +21,6 @@
 
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
-
-#include "particle.h"
-#include "pic_engine_default.h"
-#include "pic_engine_deltaf.h"
 
 using namespace simpla;
 
@@ -44,6 +46,8 @@ protected:
 		mesh.dims_[2] = 10;
 
 		mesh.Update();
+
+		GLOBAL_DATA_STREAM.OpenFile("");
 
 	}
 public:
@@ -78,6 +82,7 @@ TYPED_TEST_CASE(TestParticle, AllEngineTypes);
 
 TYPED_TEST(TestParticle,Create){
 {
+
 	typedef typename TestFixture::mesh_type mesh_type;
 
 	typedef typename TestFixture::particle_pool_type pool_type;
@@ -104,7 +109,7 @@ TYPED_TEST(TestParticle,Create){
 
 	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
 
-	mesh.TraversalIndex(pool_type::IForm,
+	mesh.Traversal(pool_type::IForm,
 
 			[&](typename mesh_type::index_type const & s)
 			{
@@ -142,7 +147,7 @@ TYPED_TEST(TestParticle,Create){
 
 	CHECK(ion.size());
 
-	LOGGER << ion;
+	LOGGER << Data(ion,"ion");
 
 	ion.Sort();
 

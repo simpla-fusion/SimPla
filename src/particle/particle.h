@@ -20,9 +20,7 @@
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
-#include "../io/data_stream.h"
-#include "load_particle.h"
-#include "save_particle.h"
+#include "../utilities/memory_pool.h"
 
 #ifndef NO_STD_CXX
 
@@ -103,8 +101,22 @@ public:
 
 	size_t size() const
 	{
-		return data_.size();
+		size_t res = 0;
+
+		for (auto const & v : data_)
+		{
+			res += v.size();
+		}
+		return res;
 	}
+
+	/**
+	 *  Dump particles to a continue memory block
+	 *  !!!this is a heavy operation!!!
+	 *
+	 * @return <datapoint , number of particles>
+	 */
+	std::pair<std::shared_ptr<value_type>, size_t> DumpData() const;
 
 	allocator_type GetAllocator()
 	{
@@ -257,6 +269,23 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 	engine_type::Deserialize(cfg);
 
 	size_t num_pic;
+
+}
+template<class Engine>
+std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
+{
+	size_t num = size();
+
+	std::shared_ptr<value_type> res = (MEMPOOL.allocate_shared_ptr<value_type>(num));
+
+	value_type * it = res.get();
+
+	for (auto const & l : data_)
+	{
+		it = std::copy(l.begin(), l.end(), it);
+	}
+
+	return std::make_pair(res, num);
 
 }
 
