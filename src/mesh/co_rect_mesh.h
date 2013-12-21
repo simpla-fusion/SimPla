@@ -244,21 +244,20 @@ public:
 
 		coordinates_type res = xmin_;
 
+		index_type idx[3];
+
+		UnpackIndex(idx,s);
+
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
-			if (strides_[i] != 0)
-			{
-				res[i] += (s / strides_[i]) * dx_[i];
-
-				s %= strides_[i];
-			}
-			res[0] += coordinates_shift_[IFORM][m][0];
+			res[i] =idx[i]*dx_[i]+ coordinates_shift_[IFORM][m][i];
 		}
 		return std::move(res);
 	}
+
 	inline coordinates_type GetCoordinates(int iform, index_type s) const
 	{
-		return std::move(GetCoordinates(iform, int(s % 3), s / 3));
+		return std::move(GetCoordinates(iform, int(s % num_comps_per_cell_[iform]), s / num_comps_per_cell_[iform]));
 
 	}
 
@@ -869,6 +868,10 @@ public:
 		return 2 << (m % 3) * 2;
 	}
 
+	void UnpackIndex(index_type *idx,size_t s)const
+	{
+		UnpackIndex(idx,idx+1,idx+2, s);
+	}
 	void UnpackIndex(index_type *i,index_type *j,index_type *k,size_t s)const
 	{
 		*i =(strides_[0]==0)?0:(s/strides_[0]);

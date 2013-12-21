@@ -42,8 +42,8 @@ protected:
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
 		mesh.dims_[0] = 5;
-		mesh.dims_[1] = 10;
-		mesh.dims_[2] = 10;
+		mesh.dims_[1] = 11;
+		mesh.dims_[2] = 11;
 
 		mesh.Update();
 
@@ -125,7 +125,6 @@ TYPED_TEST(TestParticle,Create){
 					ion[s].push_back(t);
 				}
 			}
-			,mesh_type::DO_PARALLEL
 	);
 
 	Form<0> n(mesh);
