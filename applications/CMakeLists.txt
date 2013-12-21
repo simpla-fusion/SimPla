@@ -20,13 +20,6 @@
 #                 dl rt 
 #                  )
 #ADD_EXECUTABLE(WriteXDMF  WriteXDMF.cpp)
-
-SET(MKL_LIBRARY_DIR   /opt/intel/composerxe/mkl/lib)
-FIND_PACKAGE(IntelMKL)
-
-ADD_EXECUTABLE(ggauge  ggauge.cpp)
-TARGET_LINK_LIBRARIES(ggauge    engine physics io field_fun
-              utilities  em ${MKL_STATIC_LIBRARIES} ${LUA_LIBRARIES})
               
 ADD_EXECUTABLE(simpla  simpla.cpp)
 TARGET_LINK_LIBRARIES(simpla physics ${LUA_LIBRARIES} io)

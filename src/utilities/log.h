@@ -371,12 +371,6 @@ inline Logger & START(Logger & self)
 	return self;
 }
 
-inline Logger & FAIL(Logger & self)
-{
-	//TODO: trigger timer
-	self.surffix("[FAIL]");
-	return self;
-}
 
 inline Logger & flush(Logger & self)
 {

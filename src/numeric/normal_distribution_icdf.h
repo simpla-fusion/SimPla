@@ -13,20 +13,12 @@
 namespace simpla
 {
 
-class normal_distribution_icdf: public icdf_distribution
+class normal_distribution_icdf
 {
 
 public:
 private:
-	normal_distribution_icdf(double mean, double stddev) :
-			icdf_distribution(-3.0 * stddev, 3.0 * stddev,
-					[mean,stddev](double x)
-					{
-						return
-						std::exp(
-								-0.5*std::pow((x-mean)/stddev,2.0)
-						) /(stddev*std::sqrt(2.0*3.141592653589793));
-					})
+	normal_distribution_icdf(double mean, double stddev)
 	{
 
 	}

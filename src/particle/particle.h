@@ -29,7 +29,6 @@
 //need  libstdc++
 
 #include <ext/mt_allocator.h>
-
 template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 
 #endif
@@ -47,9 +46,10 @@ template<typename TM> class ParticleBase;
 template<class Engine>
 class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
-	static const int IForm = 0;
 
 public:
+
+	static const int IForm = 0;
 
 	typedef Engine engine_type;
 
@@ -72,7 +72,9 @@ public:
 	//container
 
 	typedef std::list<value_type
-//			, FixedSmallSizeAlloc<value_type>
+
+	, FixedSmallSizeAlloc<value_type>
+
 	> cell_type;
 
 	typedef typename cell_type::allocator_type allocator_type;
@@ -101,7 +103,7 @@ public:
 
 	size_t size() const
 	{
-		return 0;
+		return data_.size();
 	}
 
 	allocator_type GetAllocator()
@@ -109,11 +111,22 @@ public:
 		return pool_.get_allocator();
 	}
 
+	cell_type & operator[](size_t s)
+	{
+		return data_.at(s);
+	}
+	cell_type const & operator[](size_t s) const
+	{
+		return data_.at(s);
+	}
+
+	void Update();
+
+	void Sort();
+
 	void Deserialize(LuaObject const &cfg);
 
 	std::ostream & Serialize(std::ostream & os) const;
-
-	void Sort();
 
 	template<typename ... Args> void Push(Real dt, Args const& ... args);
 
@@ -252,11 +265,21 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 {
 	os << "{ ";
 
-//	engine_type::Serialize(os) << Data(*this, engine_type::name_);
+	engine_type::Serialize(os)
+
+//	<< Data(*this, engine_type::name_)
+
+	        ;
 
 	os << "} ";
 
 	return os;
+}
+
+template<class Engine>
+void Particle<Engine>::Update()
+{
+	data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 }
 
 template<class Engine>
@@ -337,7 +360,8 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 		return;
 	}
 
-	LOGGER << "Collect particle [" << engine_type::name_ << "]!";
+	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << I << ","
+	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	_ForEachCell(
 
@@ -348,6 +372,95 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 
 	}, *J, args...);
 }
+
+template<typename TM>
+std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
+{
+	return self.Serialize(os);
+}
+
+//*******************************************************************************************************
+template<typename TM>
+struct PICEngineBase
+{
+
+protected:
+	Real m_, q_;
+	std::string name_;
+public:
+	typedef TM mesh_type;
+
+public:
+
+	mesh_type const &mesh;
+
+	PICEngineBase(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	{
+
+	}
+	~PICEngineBase()
+	{
+	}
+
+	virtual std::string TypeName() const
+	{
+		return "Default";
+	}
+
+	inline Real GetMass() const
+	{
+		return m_;
+	}
+
+	inline Real GetCharge() const
+	{
+		return q_;
+	}
+
+	inline void SetMass(Real m)
+	{
+		m_ = m;
+	}
+
+	inline void SetCharge(Real q)
+	{
+		q_ = q;
+	}
+
+	const std::string& GetName() const
+	{
+		return name_;
+	}
+
+	void SetName(const std::string& name)
+	{
+		name_ = name;
+	}
+
+	virtual void Deserialize(LuaObject const &vm)
+	{
+		vm.template GetValue("Mass", &m_);
+		vm.template GetValue("Charge", &q_);
+		vm.template GetValue("Name", &name_);
+	}
+
+	virtual std::ostream & Serialize(std::ostream & os) const
+	{
+		os
+
+		<< "Name = " << name_ << " ,"
+
+		<< "Mass = " << m_ << " , "
+
+		<< "Charge = " << q_ << ","
+
+		;
+
+		return os;
+	}
+
+};
 
 //*******************************************************************************************************
 

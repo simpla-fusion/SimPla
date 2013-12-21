@@ -15,31 +15,27 @@
 namespace simpla
 {
 
-template<typename TM>
-struct PICEngineDefault
-{
+template<typename > class PICEngineBase;
 
-protected:
-	Real m_, q_;
-	std::string name_;
+template<typename TM>
+struct PICEngineDefault: public PICEngineBase<TM>
+{
 public:
+	typedef PICEngineBase<TM> base_type;
+	typedef PICEngineDefault<TM> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::scalar scalar;
-
-public:
-
-	mesh_type const &mesh;
+	typedef typename mesh_type::scalar_type scalar_type;
 
 	struct Point_s
 	{
 		coordinates_type x;
 		Vec3 v;
-		scalar f;
+		scalar_type f;
 	};
 
 	PICEngineDefault(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0)
+			: base_type(pmesh)
 	{
 
 	}
@@ -47,46 +43,22 @@ public:
 	{
 	}
 
-	inline Real GetMass() const
-	{
-		return m_;
-	}
-
-	inline Real GetCharge() const
-	{
-		return q_;
-	}
-
-	static inline std::string TypeName()
+	inline std::string TypeName() const
 	{
 		return "Default";
 	}
 
-	template<typename PT>
-	inline void Deserialize(PT const &vm)
+	inline void Deserialize(LuaObject const &obj)
 	{
-		vm.template GetValue<Real>("Mass", &m_);
-		vm.template GetValue<Real>("Charge", &q_);
-	}
-
-	template<typename PT>
-	inline void Serialize(PT &vm) const
-	{
-		vm.template SetValue<Real>("Mass", m_);
-		vm.template SetValue<Real>("Charge", q_);
+		base_type::Deserialize(obj);
 	}
 
 	std::ostream & Serialize(std::ostream & os) const
 	{
-		os << "{"
 
-		<< "Engine = 'Default' ,"
+		os << "Engine = 'Default' ,";
 
-		<< "Mass = " << m_ << " , "
-
-		<< "Charge = " << q_ << ","
-
-		<< "}";
+		base_type::Serialize(os);
 
 		return os;
 	}

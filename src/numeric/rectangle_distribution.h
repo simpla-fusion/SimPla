@@ -8,12 +8,11 @@
 #ifndef RECTANGLE_DISTRIBUTION_H_
 #define RECTANGLE_DISTRIBUTION_H_
 
-#include <fetl/ntuple.h>
 #include <algorithm>
 #include <iterator>
 #include <numeric>
 #include <vector>
-
+#include "../fetl/ntuple.h"
 namespace simpla
 {
 

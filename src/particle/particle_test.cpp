@@ -6,79 +6,127 @@
  */
 
 #include <random>
-#include <fetl/fetl.h>
-#include <fetl/ntuple.h>
-#include <fetl/primitives.h>
 #include <gtest/gtest.h>
-#include <gtest/internal/gtest-internal.h>
-#include <mesh/uniform_rect.h>
-#include <numeric/multi_normal_distribution.h>
-#include <numeric/rectangle_distribution.h>
-//#include <numeric/sobol_engine.h>
-#include <particle/particle.h>
-#include <particle/pic_engine_default.h>
-#include <utilities/log.h>
+
+#include "../fetl/fetl.h"
+#include "../utilities/log.h"
+#include "../mesh/co_rect_mesh.h"
+#include "../utilities/pretty_stream.h"
+
+#include "../numeric/multi_normal_distribution.h"
+#include "../numeric/rectangle_distribution.h"
+
+#include "particle.h"
+#include "pic_engine_default.h"
+#include "pic_engine_deltaf.h"
 
 using namespace simpla;
 
-TEST(PARTICLE_TEST,Create)
+DEFINE_FIELDS(CoRectMesh<Real>)
+
+template<typename TEngine>
+class TestParticle: public testing::Test
 {
-	DEFINE_FIELDS(UniformRectMesh)
+protected:
+	virtual void SetUp()
+	{
+		Logger::Verbose(10);
 
-	Mesh mesh;
+		mesh.dt_ = 1.0;
+		mesh.xmin_[0] = 0;
+		mesh.xmin_[1] = 0;
+		mesh.xmin_[2] = 0;
+		mesh.xmax_[0] = 1.0;
+		mesh.xmax_[1] = 1.0;
+		mesh.xmax_[2] = 1.0;
+		mesh.dims_[0] = 5;
+		mesh.dims_[1] = 10;
+		mesh.dims_[2] = 10;
 
-	Log::Verbose(10);
+		mesh.Update();
 
-	mesh.dt_ = 1.0;
-	mesh.xmin_[0] = 0;
-	mesh.xmin_[1] = 0;
-	mesh.xmin_[2] = 0;
-	mesh.xmax_[0] = 1.0;
-	mesh.xmax_[1] = 1.0;
-	mesh.xmax_[2] = 1.0;
-	mesh.dims_[0] = 5;
-	mesh.dims_[1] = 5;
-	mesh.dims_[2] = 5;
-	mesh.gw_[0] = 1;
-	mesh.gw_[1] = 1;
-	mesh.gw_[2] = 1;
+	}
+public:
+	typedef TEngine engine_type;
 
-	mesh.Update();
+	typedef Particle<TEngine> particle_pool_type;
 
-	typedef Form<0, Real> RScalarField;
+	typedef typename TEngine::mesh_type mesh_type;
 
-	Particle<PICEngineDefault<Mesh> > p_ion(mesh, 1.0, 1.0);
+	typedef typename TEngine::Point_s Point_s;
 
-	p_ion.Init(100);
+	mesh_type mesh;
+
+	static const size_t pic = 100;
+
+};
+
+typedef testing::Types<
+
+PICEngineDefault<Mesh>
+//,
+//
+//PICEngineDeltaF<CoRectMesh<Complex>>,
+//
+//PICEngineDefault<CoRectMesh<Real>>,
+//
+//PICEngineDefault<CoRectMesh<Complex>>
+
+> AllEngineTypes;
+
+TYPED_TEST_CASE(TestParticle, AllEngineTypes);
+
+TYPED_TEST(TestParticle,Create){
+{
+	typedef typename TestFixture::mesh_type mesh_type;
+
+	typedef typename TestFixture::particle_pool_type pool_type;
+
+	typedef typename TestFixture::Point_s Point_s;
+
+	mesh_type const & mesh = TestFixture::mesh;
+
+	pool_type ion(mesh);
+
+	ion.SetMass(1.0);
+
+	ion.SetCharge(1.0);
+
+	ion.SetName("H");
+
+	ion.Update();
 
 	Real T = 1.0;
 
 	std::mt19937 rnd_gen(1);
 
-	rectangle_distribution<Mesh::NUM_OF_DIMS> x_dist;
-	multi_normal_distribution<Mesh::NUM_OF_DIMS> v_dist(1.0);
+	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
 
-	mesh.ForAll(0,
+	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
 
-	[&](typename Mesh::index_type const & s)
-	{
+	mesh.TraversalIndex(pool_type::IForm,
 
-		x_dist.Reset(mesh.GetCellShape(s));
+			[&](typename mesh_type::index_type const & s)
+			{
+				x_dist.Reset(mesh.GetCellShape(s));
 
-		for(auto & p : p_ion[s])
-		{
-			x_dist(rnd_gen,p.x);
-			v_dist(rnd_gen,p.v);
-			p.f=1.0;
-		}
-	}
+				Point_s t;
 
+				for(int i=0;i<TestFixture::pic;++i)
+				{
+					x_dist(rnd_gen,t.x);
+					v_dist(rnd_gen,t.v);
+					t.f=1.0;
+					ion[s].push_back(t);
+				}
+			}
+			,mesh_type::DO_PARALLEL
 	);
 
-	Form<0, Real> n(mesh);
-	Form<1, Real> J(mesh);
-	Form<1, Real> E(mesh);
-	Form<2, Real> B(mesh);
+	Form<0> n(mesh);
+	Form<1> J(mesh);
+	Form<1> E(mesh);
+	Form<2> B(mesh);
 
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -92,14 +140,17 @@ TEST(PARTICLE_TEST,Create)
 		v = uniform_dist(rnd_gen);
 	}
 
-	CHECK(p_ion.size());
+	CHECK(ion.size());
 
-	p_ion.Sort();
-	p_ion.Push(E, B);
-	CHECK("Pushed");
-//	p_ion.Sort();
-	p_ion.ScatterN(n, E, B);
-	CHECK("Scatter");
-//	p_ion.ScatterJ(J, E, B);
+	LOGGER << ion;
 
+	ion.Sort();
+
+	ion.Push(1.0,E, B);
+
+	ion.template Collect<0>(&n, E, B);
+
+	ion.template Collect<1>(&J, E, B);
+
+}
 }
