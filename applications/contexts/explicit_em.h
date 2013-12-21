@@ -1,12 +1,12 @@
 /*
- * CoRectMesh.h
+ * \file explicit_em.h
  *
  *  Created on: 2013年12月12日
  *      Author: salmon
  */
 
-#ifndef RECT_MESH_H_
-#define RECT_MESH_H_
+#ifndef EXPLICIT_EM_H_
+#define EXPLICIT_EM_H_
 
 #include <cmath>
 #include <functional>
@@ -24,6 +24,8 @@
 #include "../../src/engine/basecontext.h"
 
 #include "../../src/fetl/fetl.h"
+#include "../../src/fetl/load_field.h"
+#include "../../src/fetl/save_field.h"
 
 #include "../../src/mesh/media_tag.h"
 
@@ -43,7 +45,7 @@
 namespace simpla
 {
 template<typename TM>
-struct Context: public BaseContext
+struct ExplicitEMContext: public BaseContext
 {
 public:
 	typedef BaseContext base_type;
@@ -53,10 +55,10 @@ public:
 
 	DEFINE_FIELDS (TM)
 public:
-	typedef Context<TM> this_type;
+	typedef ExplicitEMContext<TM> this_type;
 
-	Context();
-	~Context();
+	ExplicitEMContext();
+	~ExplicitEMContext();
 	void Deserialize(configure_type const & cfg);
 	void Serialize(configure_type * cfg) const;
 	std::ostream & Serialize(std::ostream & os) const;
@@ -102,7 +104,7 @@ public:
 ;
 
 template<typename TM>
-Context<TM>::Context()
+ExplicitEMContext<TM>::ExplicitEMContext()
 		: E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh),
@@ -125,11 +127,11 @@ Context<TM>::Context()
 }
 
 template<typename TM>
-Context<TM>::~Context()
+ExplicitEMContext<TM>::~ExplicitEMContext()
 {
 }
 template<typename TM>
-void Context<TM>::Deserialize(LuaObject const & cfg)
+void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 {
 	base_type::description = cfg["Description"].as<std::string>();
 
@@ -228,11 +230,11 @@ void Context<TM>::Deserialize(LuaObject const & cfg)
 }
 
 template<typename TM>
-void Context<TM>::Serialize(configure_type * cfg) const
+void ExplicitEMContext<TM>::Serialize(configure_type * cfg) const
 {
 }
 template<typename TM>
-std::ostream & Context<TM>::Serialize(std::ostream & os) const
+std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 {
 
 	os << "Description=\"" << base_type::description << "\" \n";
@@ -280,7 +282,7 @@ std::ostream & Context<TM>::Serialize(std::ostream & os) const
 	return os;
 }
 template<typename TM>
-void Context<TM>::NextTimeStep(double dt)
+void ExplicitEMContext<TM>::NextTimeStep(double dt)
 {
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
@@ -368,7 +370,7 @@ void Context<TM>::NextTimeStep(double dt)
 
 }
 template<typename TM>
-void Context<TM>::DumpData() const
+void ExplicitEMContext<TM>::DumpData() const
 {
 	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
@@ -386,4 +388,4 @@ void Context<TM>::DumpData() const
 }
 	// namespace simpla
 
-#endif /* RECT_MESH_H_ */
+#endif /* EXPLICIT_EM_H_ */

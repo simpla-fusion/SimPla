@@ -8,11 +8,19 @@
 #ifndef COLD_FLUID_H_
 #define COLD_FLUID_H_
 
+#include <iostream>
+#include <map>
+#include <string>
+#include <utility>
+#include <memory>
+
 #include "../../../src/fetl/fetl.h"
-#include "../../../src/engine/fieldsolver.h"
-#include "../../../src/utilities/load_field.h"
+#include "../../../src/fetl/load_field.h"
+#include "../../../src/fetl/save_field.h"
 #include "../../../src/utilities/log.h"
+#include "../../../src/utilities/lua_state.h"
 #include "../../../src/utilities/pretty_stream.h"
+
 namespace simpla
 {
 

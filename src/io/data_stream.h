@@ -296,13 +296,7 @@ public:
 		return dims_;
 	}
 };
-template<typename TG, typename TV> class Field;
 
-template<typename TG, typename TV, typename Other> inline DataSet<TV> Data(Field<TG, TV> const & d,
-        std::string const & name, Other const &, bool flag)
-{
-	return std::move(DataSet<TV>(d.data(), name, d.GetShape(), flag));
-}
 
 template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
 {

@@ -23,7 +23,8 @@
 #include "../src/utilities/parse_command_line.h"
 #include "../src/utilities/singleton_holder.h"
 #include "../src/utilities/utilities.h"
-#include "contexts/rect_mesh.h"
+
+#include "contexts/explicit_em.h"
 
 using namespace simpla;
 
@@ -153,7 +154,7 @@ int main(int argc, char **argv)
 
 		typedef CoRectMesh<Complex> mesh_type;
 
-		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
+		std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
 
 		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 	}
@@ -161,7 +162,7 @@ int main(int argc, char **argv)
 	{
 		typedef CoRectMesh<Real> mesh_type;
 
-		std::shared_ptr<Context<mesh_type>> ctx_ptr(new Context<mesh_type>);
+		std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
 
 		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 	}

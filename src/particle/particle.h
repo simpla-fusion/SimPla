@@ -169,7 +169,7 @@ public:
 
 		LOGGER
 
-		<< "\t Load Particle:[ Name=" << cfg["Name"].as<std::string>()
+		<< "Load Particle:[ Name=" << cfg["Name"].as<std::string>()
 
 		<< ", Engine=" << cfg["Engine"].as<std::string>() << "]";
 
@@ -464,48 +464,42 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 
 	Logger logger(LOG_LOG);
 
-	logger << "Load Particles " << endl << flush;
+	logger << "Load Particles " << endl << flush << indent;
 
-//	for (auto const &p : cfg)
-//	{
-//		std::string key;
-//
-//		if (!p.first.is_number())
-//		{
-//			key = p.first.as<std::string>();
-//		}
-//		else
-//		{
-//			p.second.GetValue("Name", &key);
-//		}
-//
-//		std::string engine = p.second.at("Engine").as<std::string>();
-//
-//		auto it = factory_.find(engine);
-//
-//		if (it != factory_.end())
-//		{
-//			auto t = it->second(mesh);
-//
-//			t->Deserialize(p.second);
-//
-//			this->emplace(key, t);
-//		}
-//		else
-//		{
-//			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
-//
-//			return;
-//		}
-//
-//	}
-
-	for (size_t s = 0; s < 2000; ++s)
+	for (auto const &p : cfg)
 	{
-		logger << "." << flush;
+		std::string key;
+
+		if (!p.first.is_number())
+		{
+			key = p.first.as<std::string>();
+		}
+		else
+		{
+			p.second.GetValue("Name", &key);
+		}
+
+		std::string engine = p.second.at("Engine").as<std::string>();
+
+		auto it = factory_.find(engine);
+
+		if (it != factory_.end())
+		{
+			auto t = it->second(mesh);
+
+			t->Deserialize(p.second);
+
+			this->emplace(key, t);
+		}
+		else
+		{
+			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
+
+			return;
+		}
+
 	}
 
-//	LOGGER << "Load Particles " << DONE;
 	logger << DONE;
 
 }

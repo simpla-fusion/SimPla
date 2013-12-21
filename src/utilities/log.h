@@ -39,12 +39,13 @@ enum
 class LoggerStreams: public SingletonHolder<LoggerStreams>
 {
 	size_t line_width_;
+	size_t indent_;
 public:
 
 	// TODO add multi_stream support
 
 	LoggerStreams(int l = LOG_VERBOSE)
-			: std_out_visable_level_(l), line_width_(80)
+			: std_out_visable_level_(l), line_width_(80), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -77,6 +78,21 @@ public:
 	{
 		return line_width_;
 	}
+	void IncreaseIndent(size_t n = 1)
+	{
+		indent_ += n;
+	}
+	void DecreaseIndent(size_t n = 1)
+	{
+		if (indent_ > n)
+			indent_ -= n;
+		else
+			indent_ = 0;
+	}
+	size_t GetIndent() const
+	{
+		return indent_;
+	}
 
 	void SetLineWidth(size_t lineWidth)
 	{
@@ -101,33 +117,42 @@ class Logger
 	int level_;
 	std::ostringstream buffer_;
 	size_t current_line_char_count_;
+	size_t indent_;
 public:
 	typedef Logger this_type;
 
-	Logger(int lv = 0)
-			: level_(lv), current_line_char_count_(0)
+	Logger(int lv = 0, size_t indent = 0)
+			: level_(lv), current_line_char_count_(0), indent_(indent)
 	{
-		(*this) << std::boolalpha;
+		buffer_ << std::boolalpha;
 
 		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
 		{
-			(*this) << "[E]";
+			buffer_ << "[E]";
 		}
 		else if (level_ == LOG_WARNING)
 		{
-			(*this) << "[W]";
+			buffer_ << "[W]";
 		}
 		else if (level_ == LOG_LOG)
 		{
-			(*this) << "[L]" << "[" << TimeStamp() << "]" << " ";
+			buffer_ << "[L]" << "[" << TimeStamp() << "]" << " ";
 		}
 		else if (level_ == LOG_INFORM)
 		{
 		}
 		else if (level_ == LOG_DEBUG)
 		{
-			(*this) << "[D]";
+			buffer_ << "[D]";
 		}
+
+		size_t indent_width = LoggerStreams::instance().GetIndent();
+		if (indent_width > 0)
+			buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
+
+		SetIndent(indent_);
+
+		current_line_char_count_ = GetBufferLength();
 	}
 	~Logger()
 	{
@@ -151,7 +176,22 @@ public:
 			LoggerStreams::instance().put(level_, buffer_.str());
 		}
 
+		UnsetIndent(indent_);
+
 	}
+
+	void SetIndent(size_t n = 1)
+	{
+		LoggerStreams::instance().IncreaseIndent(n);
+		indent_ += n;
+	}
+	void UnsetIndent(size_t n = 1)
+	{
+		if (indent_ >= n)
+			LoggerStreams::instance().DecreaseIndent(n);
+		indent_ -= n;
+	}
+
 	size_t GetBufferLength() const
 	{
 		return buffer_.str().size();
@@ -349,6 +389,13 @@ inline Logger & endl(Logger & self)
 {
 	//TODO: trigger timer
 	self.endl();
+	return self;
+}
+
+inline Logger & indent(Logger & self)
+{
+	//TODO: trigger timer
+	self.SetIndent();
 	return self;
 }
 
