@@ -25,14 +25,14 @@ public:
 	rectangle_distribution()
 	{
 	}
-	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
-			: xmin_(xmin), xmax_(xmax)
+	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax) :
+			xmin_(xmin), xmax_(xmax)
 	{
 	}
 
 	template<typename TRANGE>
-	rectangle_distribution(TRANGE const &xrange)
-			: xmin_(xrange[0]), xmax_(xrange[1])
+	rectangle_distribution(TRANGE const &xrange) :
+			xmin_(xrange[0]), xmax_(xrange[1])
 	{
 	}
 	~rectangle_distribution()
@@ -42,6 +42,11 @@ public:
 
 	template<typename TR>
 	inline void Reset(TR const &xrange)
+	{
+		Reset(xrange[0], xrange[1]);
+	}
+
+	inline void Reset(nTuple<NDIM, double> const *xrange)
 	{
 		Reset(xrange[0], xrange[1]);
 	}
@@ -64,7 +69,7 @@ public:
 	{
 		nTuple<NDIM, double> res;
 
-		this->operator(g,res);
+		this->operator()(g, res);
 
 		return std::move(res);
 

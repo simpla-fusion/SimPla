@@ -109,11 +109,16 @@ TYPED_TEST(TestParticle,Create){
 
 	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
 
-	mesh.Traversal(pool_type::IForm,
+	mesh.ParallelTraversal(pool_type::IForm,
 
 			[&](typename mesh_type::index_type const & s)
 			{
-				x_dist.Reset(mesh.GetCellShape(s));
+
+				typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
+
+				mesh.GetCellShape(s,xrange);
+
+				x_dist.Reset(xrange);
 
 				Point_s t;
 
@@ -125,6 +130,7 @@ TYPED_TEST(TestParticle,Create){
 					ion[s].push_back(t);
 				}
 			}
+
 	);
 
 	Form<0> n(mesh);

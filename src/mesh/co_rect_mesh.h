@@ -70,26 +70,36 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> shift_ =
+	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ =
+	{ 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_ =
+	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, size_t> strides_ =
+	{ 0, 0, 0 };
 
 	size_t num_cells_ = 0;
 
 	size_t num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
-	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
-	coordinates_type dx_ = { 0, 0, 0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
+	nTuple<NUM_OF_DIMS, scalar> dS_[2] =
+	{ 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> k_ =
+	{ 0, 0, 0 };
+	coordinates_type dx_ =
+	{ 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -1273,14 +1283,22 @@ public:
 	inline std::vector<coordinates_type> GetCellShape(index_type s) const
 	{
 		std::vector<coordinates_type> res;
-		coordinates_type r0 =
-		{	0, 0, 0};
-		res.push_back(GetGlobalCoordinates(s, r0));
-		coordinates_type r1 =
-		{	1, 1, 1};
-		res.push_back(GetGlobalCoordinates(s, r1));
-
+		coordinates_type x0,x1;
+		x0=GetCoordinates(0,s);
+		x1=x0+dx_;
+		res.push_back(x0);
+		res.push_back(x1);
 		return res;
+	}
+
+	inline int GetCellShape(index_type s, coordinates_type * x=nullptr) const
+	{
+		if(x!=nullptr)
+		{
+			x[0]=GetCoordinates(0,s);
+			x[1] =x[0]+dx_;
+		}
+		return 2;
 	}
 
 	template<typename PList>
@@ -1728,7 +1746,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
-        unsigned int flags) const
+		unsigned int flags) const
 {
 	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
 	index_type ie = ((flags & WITH_GHOSTS) <= 0) ? dims_[0] - ghost_width_[0] : dims_[0];
