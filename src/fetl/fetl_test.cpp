@@ -97,7 +97,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	f1.Init();
 	f2.Init();
 
-	TestFixture::mesh.Traversal(
+	TestFixture::mesh.ParallelTraversal(
 
 			TestFixture::FieldType::IForm,
 
@@ -108,10 +108,10 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 			}
 	);
 
-	TestFixture::mesh.ForEach( [&](value_type const & v)
+	TestFixture::mesh.ParallelForEach( [&](value_type const & v)
 			{	ASSERT_EQ(a,v)<<"idx="<< v;},f2 );
 
-	TestFixture::mesh.ForEach( [&](value_type & v)
+	TestFixture::mesh.ParallelForEach( [&](value_type & v)
 			{	v=a*2.0;},&f1 );
 
 	f1 += f2;
@@ -122,7 +122,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	size_t count=0;
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.SerialForEach(
 			[& ](typename TestFixture::FieldType::value_type v)
 			{	count+=(res!=v?1:0);},f1 );
 
@@ -132,7 +132,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	res=(a+a*2.0)*2.0;
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.ParallelForEach(
 			[& ](typename TestFixture::FieldType::value_type v)
 			{	ASSERT_EQ( res,v);}, f1 );
 }
@@ -156,7 +156,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 
 	f3 = - f1 *2.0 + f2*c - f1/b;
 
-	TestFixture::mesh.ForEach(
+	TestFixture::mesh.ParallelForEach(
 
 			[&](typename TestFixture::FieldType::value_type v1,
 					typename TestFixture::FieldType::value_type v2,

@@ -994,60 +994,56 @@ public:
 /// Traversal
 	enum
 	{
-		WITH_GHOSTS = 1, DO_PARALLEL = 2
+		WITH_GHOSTS = 1
 	};
 
-	void Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
-	unsigned int flag = 0) const;
+	bool default_parallel_=true;
 
-	inline void Traversal(int IFORM, std::function<void(index_type)> const &fun, unsigned int flag = 0) const
+	template<typename ... Args>
+	void Traversal(Args const &...args) const
 	{
-		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+		if (default_parallel_)
+		{
+			ParallelTraversal(std::forward<Args const &>(args)... );
+		}
+		else
+		{
+			SerialTraversal(std::forward<Args const &>(args)... );
+		}
+	}
+
+	template<typename ...Args> void ParallelTraversal(Args const &...args)const;
+
+	template<typename ...Args> void SerialTraversal(Args const &...args)const;
+
+private:
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags=0) const;
+
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(index_type)> const &fun, unsigned int flag = 0) const
+	{
+		_Traversal(num_threads,thread_id,
+		IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
 			fun(GetComponentIndex(IFORM,m,i,j,k));
 		}, flag);
 
 	}
-	inline void Traversal(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
-	unsigned int flag = 0) const
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(index_type, coordinates_type)> const &fun, unsigned int flag = 0) const
 	{
 		int num = num_comps_per_cell_[IFORM];
-		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
+
+		_Traversal(num_threads,thread_id,
+		IFORM, [&](int m,index_type i,index_type j,index_type k)
 		{
 			fun(GetComponentIndex(IFORM,m,i,j,k),this->GetCoordinates(IFORM,m,i,j,k));
 		}, flag);
 
 	}
 
-//	inline void TraversalIndex(int IFORM, std::function<void(index_type)> const &fun, unsigned int flag = 0) const
-//	{
-//		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-//		{
-//			fun(GetComponentIndex(IFORM,m,i,j,k));
-//		}, flag);
-//
-//	}
-//
-////	inline void TraversalElementIndex(int IFORM, std::function<void(index_type)> const &fun,
-////	        unsigned int flag = 0) const
-////	{
-////		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-////		{
-////			fun(m,this->GetIndex(i,j,k));
-////		}, flag);
-////
-////	}
-//
-//	inline void TraversalCoordinates(int IFORM, std::function<void(index_type, coordinates_type)> const &fun,
-//	unsigned int flag = 0) const
-//	{
-//		int num = num_comps_per_cell_[IFORM];
-//		Traversal(IFORM, [&](int m,index_type i,index_type j,index_type k)
-//		{
-//			fun(GetComponentIndex(IFORM,m,i,j,k),this->GetCoordinates(IFORM,m,i,j,k));
-//		}, flag);
-//
-//	}
+public:
 
 	template<typename TFUN>
 	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
@@ -1059,20 +1055,50 @@ public:
 		}
 	}
 
+
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
+	void SerialForEach(Fun const &fun, TF const & l, Args const& ... args) const
 	{
-		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, DO_PARALLEL);
+		SerialTraversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);});
 	}
+
 	template<typename Fun, typename TF, typename ... Args> inline
-	void ForEach(Fun const &fun, TF *l, Args const& ... args) const
+	void SerialForEach(Fun const &fun, TF *l, Args const& ... args) const
 	{
 		if (l==nullptr)
 		ERROR << "Access value to an uninitilized container!";
 
-		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, DO_PARALLEL);
+		SerialTraversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);});
+	}
+
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ParallelForEach(Fun const &fun, TF const & l, Args const& ... args) const
+	{
+		ParallelTraversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);});
+	}
+
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ParallelForEach(Fun const &fun, TF *l, Args const& ... args) const
+	{
+		if (l==nullptr)
+		ERROR << "Access value to an uninitilized container!";
+
+		ParallelTraversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
+		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);});
+	}
+
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
+	{
+		ParallelForEach(fun,l,std::forward<Args const &>(args)...);
+	}
+	template<typename Fun, typename TF, typename ... Args> inline
+	void ForEach(Fun const &fun, TF *l, Args const& ... args) const
+	{
+		ParallelForEach(fun,l,std::forward<Args const &>(args)...);
 	}
 
 //	template<typename Fun, typename TF, typename ... Args> inline
@@ -1105,14 +1131,14 @@ public:
 
 	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
 	{
-		Traversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
-		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL);
+		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
+		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);});
 
 	}
 	template<typename TL> void AssignContainer(int IFORM, TL * lhs, TL const &rhs) const
 	{
-		Traversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
-		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);}, DO_PARALLEL|WITH_GHOSTS);
+		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
+		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);},WITH_GHOSTS);
 
 	}
 
@@ -1120,26 +1146,21 @@ public:
 	typename std::enable_if<IL==1|IL==2,void>::type AssignContainer(Field<Geometry<this_type,IL> ,TL> * lhs,
 	typename Field<Geometry<this_type,IL> ,TL>::field_value_type const &rhs) const
 	{
-		Traversal(0,
-		[&](int m, index_type x, index_type y, index_type z)
+		ParallelTraversal(0, [&](int m, index_type x, index_type y, index_type z)
 		{
 			get(lhs,0,x,y,z)=rhs[0];
 			get(lhs,1,x,y,z)=rhs[1];
 			get(lhs,2,x,y,z)=rhs[2];
 
-		}, DO_PARALLEL|WITH_GHOSTS);
+		}, WITH_GHOSTS);
 	}
 
 	template<typename TL,int IL>
 	typename std::enable_if<IL==0|IL==3,void>::type AssignContainer(Field<Geometry<this_type,IL> ,TL> * lhs,
 	typename Field<Geometry<this_type,IL> ,TL>::field_value_type const &rhs) const
 	{
-		Traversal(0,
-		[&](int m, index_type x, index_type y, index_type z)
-		{
-			get(lhs,0,x,y,z)=rhs;
-
-		}, DO_PARALLEL|WITH_GHOSTS);
+		ParallelTraversal(0, [&](int m, index_type x, index_type y, index_type z)
+		{	get(lhs,0,x,y,z)=rhs;}, WITH_GHOSTS);
 	}
 
 // Properties of UniformRectMesh --------------------------------------
@@ -1745,9 +1766,10 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 }
 
 template<typename TS>
-void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, index_type, index_type)> const &fun,
-		unsigned int flags) const
+void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+		std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
 {
+
 	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
 	index_type ie = ((flags & WITH_GHOSTS) <= 0) ? dims_[0] - ghost_width_[0] : dims_[0];
 
@@ -1760,45 +1782,48 @@ void CoRectMesh<TS>::Traversal(int IFORM, std::function<void(int, index_type, in
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];
 
-	auto thread_fun = [&](index_type const & tb,index_type const &te)
-	{
-		for (index_type i = tb; i < te; ++i)
+	size_t len = ie - ib;
+	index_type tb = ib + len * thread_id / num_threads;
+	index_type te = ib + len * (thread_id + 1) / num_threads;
+
+	for (index_type i = tb; i < te; ++i)
 		for (index_type j = jb; j < je; ++j)
-		for (index_type k = kb; k < ke; ++k)
-		for (int m = mb; m < me; ++m)
-		{
-			fun(m, i, j, k);
-		}
-	}
+			for (index_type k = kb; k < ke; ++k)
+				for (int m = mb; m < me; ++m)
+				{
+					fun(m, i, j, k);
+				}
 
-	;
+}
 
-	if ((flags & DO_PARALLEL) > 0)
+template<typename TS>
+template<typename ...Args>
+void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
+{
+	const unsigned int num_threads = std::thread::hardware_concurrency();
+
+	std::vector<std::thread> threads;
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-
-		const unsigned int num_threads = std::thread::hardware_concurrency();
-
-		std::vector<std::thread> threads;
-
-		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-		{
-
-			size_t len = ie - ib;
-			index_type tb = ib + len * thread_id / num_threads;
-			index_type te = ib + len * (thread_id + 1) / num_threads;
-
-			threads.emplace_back(std::thread(thread_fun, tb, te));
-		}
-
-		for (auto & t : threads)
-		{
-			t.join();
-		}
+		threads.emplace_back(
+				std::thread([num_threads,thread_id,this](Args const & ...args2)
+				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+						std::forward<Args const &>(args)...));
 	}
-	else
+
+	for (auto & t : threads)
 	{
-		thread_fun(ib, ie);
+		t.join();
 	}
+
+}
+
+template<typename TS>
+template<typename ...Args>
+void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
+{
+	_Traversal(1, 0, std::forward<Args const&>( args)...);
 }
 
 }

@@ -104,7 +104,7 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	size_t count=0;
 	Real relative_error=0;
-	mesh.ForEach(
+	mesh.SerialForEach(
 			[&](typename TestFixture::TTwoForm::value_type const & u)
 			{	relative_error+=abs(u);
 
@@ -159,7 +159,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	Real relative_error=0;
 	size_t num=0;
-	mesh.ForEach(
+	mesh.SerialForEach(
 			[&](typename TestFixture::TZeroForm::value_type const &s)
 			{
 				relative_error+=abs(s);
