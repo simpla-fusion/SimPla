@@ -48,18 +48,15 @@ public:
 
 	inline void Reset(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
 	{
-		CHECK(xmin);
-		CHECK(xmax);
 		xmin_ = xmin;
 		xmax_ = xmax;
 		for (int i = 0; i < NDIM; ++i)
 		{
 			if (abs((xmax_[i] - xmin_[i]) / (xmin_[i] + xmax_[i])) > 1.0e-10)
-				l_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+				l_[i] = (xmax_[i] - xmin_[i]);
 			else
 				l_[i] = 0;
 		}
-		CHECK(l_);
 	}
 
 	template<typename Generator>
@@ -67,18 +64,8 @@ public:
 	{
 		nTuple<NDIM, double> res;
 
-		for (int i = 0; i < NDIM; ++i)
-		{
-			if (l_[i] > 0)
-			{
-				res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min())
-				        * (xmax_[i] - xmin_[i]) + xmin_[i];
-			}
-			else
-			{
-				res[i] = xmin_[i];
-			}
-		}
+		this->operator(g,res);
+
 		return std::move(res);
 
 	}
@@ -88,8 +75,7 @@ public:
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{
-			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * (xmax_[i] - xmin_[i])
-			        + xmin_[i];
+			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
 		}
 	}
 private:
