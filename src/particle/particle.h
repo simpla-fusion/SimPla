@@ -156,7 +156,7 @@ private:
 		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
 		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
 		 **/
-		mesh.TraversalIndex(IForm,
+		mesh.Traversal(IForm,
 
 		[&](index_type const & s)
 		{
@@ -169,7 +169,7 @@ private:
 	template<typename Fun, typename ...Args>
 	void _ForEachCell(Fun const & fun, Args &... args) const
 	{
-		mesh.TraversalIndex(IForm, [&](index_type const & s)
+		mesh.Traversal(IForm, [&](index_type const & s)
 		{
 			_ForParticlesInCell(data_[s], fun,
 					ProxyCache< Args>::Eval(args,s)...);
@@ -290,7 +290,7 @@ void Particle<Engine>::Sort()
 
 	tmp.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 
-	mesh.TraversalIndex(IForm,
+	mesh.Traversal(IForm,
 
 	[&](index_type const & s)
 	{

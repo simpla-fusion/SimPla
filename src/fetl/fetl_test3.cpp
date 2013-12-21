@@ -107,7 +107,12 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	mesh.ForEach(
 			[&](typename TestFixture::TTwoForm::value_type const & u)
 			{	relative_error+=abs(u);
-				count+=( abs(u)>1.0e-10)?1:0;
+
+				if(abs(u)>1.0e-10)
+				{
+					CHECK(u);
+					++count;
+				}
 			},
 			vf2
 	);
@@ -158,7 +163,11 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 			[&](typename TestFixture::TZeroForm::value_type const &s)
 			{
 				relative_error+=abs(s);
-				count+=( abs(s)>1.0e-10*m)?1:0;
+				if(abs(s)>1.0e-10*m)
+				{
+					CHECK(s);
+					++count;
+				}
 			},sf
 	);
 

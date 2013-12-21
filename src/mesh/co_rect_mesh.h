@@ -70,10 +70,10 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_;
-	nTuple<NUM_OF_DIMS, size_t> dims_ /*={ 11, 11, 11 }*/;
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_;
-	nTuple<NUM_OF_DIMS, size_t> strides_;
+	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
 
 	size_t num_cells_ = 0;
 
@@ -82,9 +82,9 @@ struct CoRectMesh
 	// Geometry
 	coordinates_type xmin_ = { 0, 0, 0 };
 	coordinates_type xmax_ = { 10, 10, 10 };
-	nTuple<NUM_OF_DIMS, scalar> dS_[2];
-	nTuple<NUM_OF_DIMS, scalar> k_;
-	coordinates_type dx_;
+	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
+	coordinates_type dx_ = { 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
