@@ -12,7 +12,7 @@
 #include <list>
 #include <map>
 #include <string>
-
+#include <unistd.h> // for sleep
 #include "../fetl/fetl.h"
 #include "../utilities/lua_state.h"
 //need  libstdc++
@@ -148,8 +148,8 @@ public:
 public:
 
 	template<typename ...Args>
-	Particle(mesh_type const & pmesh) :
-			engine_type(pmesh), mesh(pmesh)
+	Particle(mesh_type const & pmesh)
+			: engine_type(pmesh), mesh(pmesh)
 	{
 	}
 
@@ -373,14 +373,14 @@ private:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-		typename TParticleEngine::mesh_type const & mesh)
+        typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 template<typename TM>
@@ -408,8 +408,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
@@ -461,41 +461,52 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 {
 	if (cfg.empty())
 		return;
-	LOGGER << "Load Particles " << START;
-	for (auto const &p : cfg)
+
+	Logger logger(LOG_LOG);
+
+	logger << "Load Particles " << endl << flush;
+
+//	for (auto const &p : cfg)
+//	{
+//		std::string key;
+//
+//		if (!p.first.is_number())
+//		{
+//			key = p.first.as<std::string>();
+//		}
+//		else
+//		{
+//			p.second.GetValue("Name", &key);
+//		}
+//
+//		std::string engine = p.second.at("Engine").as<std::string>();
+//
+//		auto it = factory_.find(engine);
+//
+//		if (it != factory_.end())
+//		{
+//			auto t = it->second(mesh);
+//
+//			t->Deserialize(p.second);
+//
+//			this->emplace(key, t);
+//		}
+//		else
+//		{
+//			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
+//
+//			return;
+//		}
+//
+//	}
+
+	for (size_t s = 0; s < 2000; ++s)
 	{
-		std::string key;
-
-		if (!p.first.is_number())
-		{
-			key = p.first.as<std::string>();
-		}
-		else
-		{
-			p.second.GetValue("Name", &key);
-		}
-
-		std::string engine = p.second.at("Engine").as<std::string>();
-
-		auto it = factory_.find(engine);
-
-		if (it != factory_.end())
-		{
-			auto t = it->second(mesh);
-
-			t->Deserialize(p.second);
-
-			this->emplace(key, t);
-		}
-		else
-		{
-			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
-
-			return;
-		}
-
+		logger << "." << flush;
 	}
-	LOGGER << "Load Particles " << DONE;
+
+//	LOGGER << "Load Particles " << DONE;
+	logger << DONE;
 
 }
 template<typename TM>

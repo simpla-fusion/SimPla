@@ -38,12 +38,13 @@ enum
 };
 class LoggerStreams: public SingletonHolder<LoggerStreams>
 {
+	size_t line_width_;
 public:
 
 	// TODO add multi_stream support
 
 	LoggerStreams(int l = LOG_VERBOSE)
-			: std_out_visable_level_(l)
+			: std_out_visable_level_(l), line_width_(80)
 	{
 	}
 	~LoggerStreams()
@@ -54,38 +55,34 @@ public:
 	inline void OpenFile(std::string const & name)
 	{
 		if (fs.is_open())
-		{
 			fs.close();
-		}
 
 		fs.open(name.c_str(), std::ios_base::out);
 	}
 
-	void put(int level, std::string const & msg, std::string const & surffix)
+	void put(int level, std::string const & msg)
 	{
 		if (level <= std_out_visable_level_)
-		{
+			std::cout << msg << std::flush;
 
-			if (surffix != "")
-			{
-				std::cout << std::setfill('.') << std::setw(80) << std::left << msg << std::right << surffix
-				        << std::setfill(' ') << std::endl;
-			}
-			else
-			{
-				std::cout << std::setw(80) << std::left << msg << std::endl;
-			}
-
-		}
 		if (fs.good())
-		{
-			fs << msg << surffix << std::endl;
-		}
+			fs << msg;
 	}
 	inline void SetStdOutVisableLevel(int l)
 	{
 		std_out_visable_level_ = l;
 	}
+
+	size_t GetLineWidth() const
+	{
+		return line_width_;
+	}
+
+	void SetLineWidth(size_t lineWidth)
+	{
+		line_width_ = lineWidth;
+	}
+
 private:
 	int std_out_visable_level_;
 
@@ -102,89 +99,104 @@ class Logger
 {
 	typedef std::ostringstream buffer_type;
 	int level_;
-	bool isVisable_;
 	std::ostringstream buffer_;
-	std::string surffix_;
+	size_t current_line_char_count_;
 public:
 	typedef Logger this_type;
 
-	Logger(int lv = 0, bool cond = true)
-			: level_(lv), isVisable_(cond), surffix_("")
+	Logger(int lv = 0)
+			: level_(lv), current_line_char_count_(0)
 	{
+		(*this) << std::boolalpha;
 
 		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
 		{
-			buffer_ << "[E]";
+			(*this) << "[E]";
 		}
 		else if (level_ == LOG_WARNING)
 		{
-			buffer_ << "[W]";
+			(*this) << "[W]";
 		}
 		else if (level_ == LOG_LOG)
 		{
-			buffer_ << "[L]" << "[" << TimeStamp() << "]" << " ";
+			(*this) << "[L]" << "[" << TimeStamp() << "]" << " ";
 		}
 		else if (level_ == LOG_INFORM)
 		{
 		}
 		else if (level_ == LOG_DEBUG)
 		{
-			buffer_ << "[D]";
+			(*this) << "[D]";
 		}
-
 	}
 	~Logger()
 	{
-		if (isVisable_)
+
+		if (level_ == LOG_LOGIC_ERROR)
 		{
-
-//			buffer_ << std::endl;
-
-			if (level_ == LOG_LOGIC_ERROR)
-			{
-				throw(std::logic_error(buffer_.str()));
-			}
-			else if (level_ == LOG_ERROR)
-			{
-				throw(std::runtime_error(buffer_.str()));
-			}
-			else if (level_ == LOG_OUT_RANGE_ERROR)
-			{
-				throw(std::out_of_range(buffer_.str()));
-			}
-			else
-			{
-				LoggerStreams::instance().put(level_, buffer_.str(), surffix_);
-			}
+			throw(std::logic_error(buffer_.str()));
+		}
+		else if (level_ == LOG_ERROR)
+		{
+			throw(std::runtime_error(buffer_.str()));
+		}
+		else if (level_ == LOG_OUT_RANGE_ERROR)
+		{
+			throw(std::out_of_range(buffer_.str()));
+		}
+		else
+		{
+			if (current_line_char_count_ > 0)
+				buffer_ << std::endl;
+			LoggerStreams::instance().put(level_, buffer_.str());
 		}
 
 	}
-
-	void SetSurffix(std::string const &s)
+	size_t GetBufferLength() const
 	{
-		surffix_ = s;
+		return buffer_.str().size();
+	}
+	void flush()
+	{
+		LoggerStreams::instance().put(level_, buffer_.str());
+		buffer_.str("");
+	}
+	void surffix(std::string const & s)
+	{
+		const_cast<this_type*>(this)->buffer_ << std::setfill('.')
+
+		<< std::setw(LoggerStreams::instance().GetLineWidth() - current_line_char_count_)
+
+		<< std::right << s << std::left;
+
+		endl();
+
+		flush();
 	}
 
-	void SetSurffix(const char s[])
+	void endl()
 	{
-		surffix_ = s;
+		const_cast<this_type*>(this)->buffer_ << std::endl;
+		current_line_char_count_ = 0;
 	}
 
 	template<typename T> inline this_type & operator<<(T const& value)
 	{
-		const_cast<this_type*>(this)->buffer_ << value;
-		return *this;
-	}
+		current_line_char_count_ -= GetBufferLength();
 
-	this_type const & operator<<(bool value) const
-	{
-		const_cast<this_type*>(this)->buffer_ << std::boolalpha << value;
-		return *static_cast<this_type const*>(this);
+		const_cast<this_type*>(this)->buffer_ << value;
+
+		current_line_char_count_ += GetBufferLength();
+
+		if (current_line_char_count_ > LoggerStreams::instance().GetLineWidth())
+			endl();
+
+		return *this;
 	}
 
 	typedef Logger & (*LoggerStreamManipulator)(Logger &);
 
-	// take in a function with the custom signature
+// take in a function with the custom signature
 	Logger const& operator<<(LoggerStreamManipulator manip) const
 	{
 		// call the function, and return it's value
@@ -196,26 +208,26 @@ public:
 		return manip(*this);
 	}
 
-	//	// define the custom endl for this stream.
-	//	// note how it matches the `LoggerStreamManipulator`
-	//	// function signature
-	//	static this_type& endl(this_type& stream)
-	//	{
-	//		// print a new line
-	//		std::cout << std::endl;
-	//
-	//		// do other stuff with the stream
-	//		// std::cout, for example, will flush the stream
-	//		stream << "Called Logger::endl!" << std::endl;
-	//
-	//		return stream;
-	//	}
+//	// define the custom endl for this stream.
+//	// note how it matches the `LoggerStreamManipulator`
+//	// function signature
+//	static this_type& endl(this_type& stream)
+//	{
+//		// print a new line
+//		std::cout << std::endl;
+//
+//		// do other stuff with the stream
+//		// std::cout, for example, will flush the stream
+//		stream << "Called Logger::endl!" << std::endl;
+//
+//		return stream;
+//	}
 
-	// this is the function signature of std::endl
+// this is the function signature of std::endl
 	typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
 	typedef StdCoutType& (*StandardEndLine)(StdCoutType&);
 
-	// define an operator<< to take in std::endl
+// define an operator<< to take in std::endl
 	this_type const& operator<<(StandardEndLine manip) const
 	{
 		// call the function, but we cannot return it's value
@@ -308,21 +320,35 @@ private:
 inline Logger & DONE(Logger & self)
 {
 	//TODO: trigger timer
-	self.SetSurffix("[DONE]");
+	self.surffix("[DONE]");
 	return self;
 }
 
 inline Logger & START(Logger & self)
 {
 	//TODO: trigger timer
-	self.SetSurffix("[START]");
+	self.surffix("[START]");
 	return self;
 }
 
 inline Logger & FAIL(Logger & self)
 {
 	//TODO: trigger timer
-	self.SetSurffix("[FAIL]");
+	self.surffix("[FAIL]");
+	return self;
+}
+
+inline Logger & flush(Logger & self)
+{
+	//TODO: trigger timer
+	self.flush();
+	return self;
+}
+
+inline Logger & endl(Logger & self)
+{
+	//TODO: trigger timer
+	self.endl();
 	return self;
 }
 
