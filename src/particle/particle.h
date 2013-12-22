@@ -426,7 +426,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 		WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
 		return;
 	}
-	LOGGER << "Push particle [" << engine_type::name_ << "]!";
+	LOGGER << "Move particle [" << engine_type::name_ << "]!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -653,9 +653,9 @@ public:
 	}
 
 	template<typename ... Args>
-	inline void Push(Real dt, Args const & ... args)
+	inline void NextTimeStep(Real dt, Args const & ... args)
 	{
-		_Push(dt, std::forward<Args const &>(args)...);
+		_NextTimeStep(dt, std::forward<Args const &>(args)...);
 
 	}
 	template<int N, typename TJ, typename ... Args>
@@ -687,12 +687,12 @@ private:
 
 	virtual void _NextTimeStep(Real dt, Form<1> const &, Form<2> const &)
 	{
-		UNIMPLEMENT << " Particle Push operation";
+		UNIMPLEMENT << "Move particle to next time step";
 	}
 
 	virtual void _NextTimeStep(Real dt, VectorForm<0> const &, VectorForm<0> const &)
 	{
-		UNIMPLEMENT << " Particle Push operation";
+		UNIMPLEMENT << "Move particle to next time step";
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
@@ -774,7 +774,7 @@ public:
 	{
 		for (auto & p : *this)
 		{
-			p.second->Push(std::forward<Args const &>(args)...);
+			p.second->NextTimeStep(std::forward<Args const &>(args)...);
 		}
 	}
 

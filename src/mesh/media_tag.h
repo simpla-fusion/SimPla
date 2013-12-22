@@ -386,7 +386,7 @@ private:
 		if (tags_[I].empty())
 			tags_[I].resize(mesh.GetNumOfElements(I), none);
 
-		mesh.TraversalIndex(I,
+		mesh.ParallelTraversal(I,
 
 		[&](index_type const & s )
 		{
@@ -400,7 +400,7 @@ private:
 			}
 			tags_[I][s]=flag;
 
-		}, mesh_type::DO_PARALLEL);
+		});
 	}
 
 	template<int IFORM>
@@ -485,7 +485,7 @@ private:
 		if (!AB.none())
 		{
 
-			mesh.Traversal(IFORM,
+			mesh.SerialTraversal(IFORM,
 
 			[&](int m, index_type x,index_type y,index_type z)
 			{

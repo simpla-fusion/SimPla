@@ -98,7 +98,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
         int flag = 0)
 {
 	typedef TM mesh_type;
-	mesh.TraversalCoordinates(0,
+	mesh.Traversal(0,
 
 	[&](typename mesh_type::index_type const&s ,
 			typename mesh_type::coordinates_type const &x)
@@ -115,7 +115,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
         std::function<bool(typename TM::index_type)> const & select, int flag = 0)
 {
 	typedef TM mesh_type;
-	mesh.TraversalCoordinates(0,
+	mesh.Traversal(0,
 
 	[&](typename mesh_type::index_type const&s ,
 			typename mesh_type::coordinates_type const &x)
@@ -132,7 +132,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
         std::function<bool(typename TM::coordinates_type const &)> const & select, int flag = 0)
 {
 	typedef TM mesh_type;
-	mesh.TraversalCoordinates(0,
+	mesh.Traversal(0,
 
 	[&](typename mesh_type::index_type const&s ,
 			typename mesh_type::coordinates_type const &x)
@@ -149,7 +149,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
         LuaObject const & select, int flag = 0)
 {
 	typedef TM mesh_type;
-	mesh.TraversalCoordinates(0,
+	mesh.Traversal(0,
 
 	[&](typename mesh_type::index_type const&s ,
 			typename mesh_type::coordinates_type const &x)
@@ -166,7 +166,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 //        std::function<bool(Args const &...)> const & select, int flag = 0)
 //{
 //	typedef TM mesh_type;
-//	mesh.TraversalCoordinates(0,
+//	mesh.Traversal(0,
 //
 //	[&](typename mesh_type::index_type const&s ,
 //			typename mesh_type::coordinates_type const &x)

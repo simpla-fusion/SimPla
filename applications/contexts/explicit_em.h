@@ -208,7 +208,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 								{
 									(this->E)[s]=0;
 								}
-								,in,out,mediatag_type::ON_BOUNDARY,mesh_type::DO_PARALLEL );
+								,in,out,mediatag_type::ON_BOUNDARY );
 
 					}
 

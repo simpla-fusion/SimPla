@@ -26,7 +26,7 @@ MapTo(Field<Geometry<CoRectMesh<TS>, IL>, T> const & l, Field<Geometry<CoRectMes
 	mesh_type const &mesh = r->mesh;
 
 	typedef typename mesh_type::index_type index_type;
-	r->mesh.Traversal(0,
+	r->mesh.ParallelTraversal(0,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
@@ -35,7 +35,7 @@ MapTo(Field<Geometry<CoRectMesh<TS>, IL>, T> const & l, Field<Geometry<CoRectMes
 		v[1]=(mesh.get(l,1,x,y,z)+mesh.get(l,1,mesh.Shift(mesh.DES(1),x,y,z)))*0.5;
 		v[2]=(mesh.get(l,2,x,y,z)+mesh.get(l,2,mesh.Shift(mesh.DES(2),x,y,z)))*0.5;
 
-	}, mesh_type::DO_PARALLEL);
+	});
 
 }
 
@@ -49,7 +49,7 @@ MapTo(Field<Geometry<CoRectMesh<TS>, 0>, nTuple<3, T>> const & l, Field<Geometry
 
 	mesh_type const &mesh = l.mesh;
 
-	mesh.TraversalIndex(0, [&](typename mesh_type::index_type const &s)
+	mesh.ParallelTraversal(0, [&](typename mesh_type::index_type const &s)
 	{
 		r->get(0,s)=(l[s][0]+l[mesh.Shift(mesh.INC(0),s)][0])*0.5;
 		r->get(1,s)=(l[s][1]+l[mesh.Shift(mesh.INC(1),s)][1])*0.5;
@@ -58,7 +58,7 @@ MapTo(Field<Geometry<CoRectMesh<TS>, 0>, nTuple<3, T>> const & l, Field<Geometry
 //		r->get(1,s)=mesh.mapto(Int2Type<IR>(),l,1,s)[1];
 //		r->get(2,s)=mesh.mapto(Int2Type<IR>(),l,2,s)[2];
 
-		}, mesh_type::DO_PARALLEL);
+	    });
 
 }
 

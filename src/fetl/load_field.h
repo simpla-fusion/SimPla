@@ -37,7 +37,7 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 
 	if (obj.is_function())
 	{
-		mesh.TraversalCoordinates(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
+		mesh.SerialTraversal(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
 		{
 			if(IFORM==1 || IFORM==2)
 			{
@@ -49,7 +49,7 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 				(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
 			}
 
-		}, mesh_type::WITH_GHOSTS | (!mesh_type::DO_PARALLEL));
+		}, mesh_type::WITH_GHOSTS);
 	}
 
 	else if (obj.is_number())
