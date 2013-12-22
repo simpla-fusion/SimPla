@@ -286,17 +286,17 @@ DECL_SELF_ASSIGN	(-=)
 	}
 
 	template<typename TV>
-	inline void Scatter(TV const & v, coordinates_type const &x)
+	inline void Collect(TV const & v, coordinates_type const &x)
 	{
 		coordinates_type pcoords;
 
 		index_type s = mesh.SearchCell(x, &pcoords);
 
-		Scatter(v, s, pcoords);
+		Collect(v, s, pcoords);
 
 	}
 	template<typename TV>
-	inline void Scatter(TV const & v, index_type const & s,
+	inline void Collect(TV const & v, index_type const & s,
 			coordinates_type const &pcoords, int affected_region = 1)
 	{
 
@@ -331,7 +331,7 @@ DECL_SELF_ASSIGN	(-=)
 
 	}
 
-	inline void Scatter(std::vector<index_type> const & points,std::vector<value_type> & cache)
+	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> & cache)
 	{
 		//FIXME: this is not thread safe, need a mutex lock
 

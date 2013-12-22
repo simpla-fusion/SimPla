@@ -21,6 +21,6 @@
 #                  )
 #ADD_EXECUTABLE(WriteXDMF  WriteXDMF.cpp)
               
-ADD_EXECUTABLE(simpla  simpla.cpp)
+ADD_EXECUTABLE(simpla  simpla.cpp )
 TARGET_LINK_LIBRARIES(simpla physics ${LUA_LIBRARIES} io)
 

@@ -33,7 +33,6 @@ public:                                                                         
 	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                     \
 };
 
-
 #define HAS_STATIC_MEMBER_FUNCTION(_NAME_)                                                                   \
 template<typename _T, typename ..._Args>                                                                \
 struct has_static_member_function_##_NAME_                                                                    \
@@ -58,8 +57,6 @@ public:                                                                         
                                                                                                       \
 	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                     \
 };
-
-
 
 #define HAS_OPERATOR(_NAME_,_OP_)                                                                   \
 template<typename _T, typename ... _Args>                                                                \
@@ -86,19 +83,38 @@ public:                                                                         
 	static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;                     \
 };
 
-
-
-
-
-
-
-
-
-
-
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
+struct VistorBase
+{
+	VistorBase()
+	{
+	}
+	virtual ~VistorBase()
+	{
+	}
+	virtual void vist(void *obj)=0;
+};
+
+// Unpack tuple to args...
+//@ref http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+
+template<int...>
+struct Seq
+{};
+
+template<int N, int ...S>
+struct GenSeq: GenSeq<N - 1, N - 1, S...>
+{
+};
+
+template<int ...S>
+struct GenSeq<0, S...>
+{
+	typedef Seq<S...> type;
+};
 
 #endif /* TYPE_UTILITES_H_ */

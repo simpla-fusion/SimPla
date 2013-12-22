@@ -73,11 +73,7 @@ public:
 
 	//container
 
-	typedef std::list<value_type
-
-	, FixedSmallSizeAlloc<value_type>
-
-	> cell_type;
+	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
 	typedef typename cell_type::allocator_type allocator_type;
 
@@ -116,6 +112,16 @@ public:
 		return res;
 	}
 
+	void accept(ParticleVistor* vistor) const
+	{
+		vistor->vist(this);
+	}
+
+	void accept(ParticleVistor* vistor)
+	{
+		vistor->vist(this);
+	}
+
 	/**
 	 *  Dump particles to a continue memory block
 	 *  !!!this is a heavy operation!!!
@@ -146,7 +152,7 @@ public:
 
 	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
 
-	template<int I, typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
+	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
 
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
@@ -163,93 +169,6 @@ public:
 
 	void Sort();
 
-private:
-
-//	/**
-//	 *  Traversal each cell, include boundary cells.
-//	 *
-//	 * @param fun (cell_type & cell,index_type const & s )
-//	 */
-//
-//	template<typename Fun, typename ...Args>
-//	void _ForEachCell(Fun const & fun, Args &... args)
-//	{
-//		/***
-//		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
-//		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
-//		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-//		 **/
-//		mesh.Traversal(IForm,
-//
-//		[&](index_type const & s)
-//		{
-//			_ForParticlesInCell(data_[s], fun,
-//					ProxyCache< Args>::Eval(args,s)...);
-//
-//		});
-//	}
-//
-//	template<typename Fun, typename ...Args>
-//	void _ForEachCell(Fun const & fun, Args &... args) const
-//	{
-//		mesh.Traversal(IForm, [&](index_type const & s)
-//		{
-//			_ForParticlesInCell(data_[s], fun,
-//					ProxyCache< Args>::Eval(args,s)...);
-//		});
-//
-//	}
-//
-//	template<typename TCELL, typename Fun, typename ... Args>
-//	void _ForParticlesInCell(TCELL & cell, Fun & fun, Args && ... args)
-//	{
-//		for (auto & p : cell)
-//		{
-//			fun(p, args...);
-//		}
-//	}
-//
-//	template<typename TCELL, typename Fun, typename ... Args>
-//	void _ForParticlesInCell(TCELL const& cell, Fun & fun, Args &&... args) const
-//	{
-//		for (auto const& p : cell)
-//		{
-//			fun(p, args...);
-//		}
-//	}
-
-	//========================================================================
-	// interface
-
-	DEFINE_FIELDS (mesh_type)
-
-	virtual void _NextTimeStep(Real dt, Form<1> const & E, Form<2> const &B)
-	{
-		NextTimeStep(dt, E, B);
-	}
-
-	virtual void _NextTimeStep(Real dt, VectorForm<0> const &E, VectorForm<0> const & B)
-	{
-		NextTimeStep(dt, E, B);
-	}
-
-#define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J, Form<1> const & E,	Form<2> const & B)const {Collect<_N_>(J,E,B);}	\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J, VectorForm<0> const & E,	VectorForm<0> const & B)const {Collect<_N_>(J,E,B);}	\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> * J)const {Collect<_N_>(J);}
-
-	DEF_COLLECT_INTERFACE(0 , Form, 0 )
-	DEF_COLLECT_INTERFACE(0 , Form, 3 )
-	DEF_COLLECT_INTERFACE(1, VectorForm , 0 )
-	DEF_COLLECT_INTERFACE(1, Form , 1 )
-	DEF_COLLECT_INTERFACE(1, Form , 2 )
-	DEF_COLLECT_INTERFACE(1, VectorForm , 3 )
-	DEF_COLLECT_INTERFACE(2, TensorForm , 0 )
-	DEF_COLLECT_INTERFACE(2, VectorForm , 1 )
-	DEF_COLLECT_INTERFACE(2, VectorForm , 2 )
-	DEF_COLLECT_INTERFACE(2, TensorForm , 3 )
-
-#undef DEF_COLLECT_INTERFACE
 };
 
 template<class Engine>
@@ -467,7 +386,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 }
 
 template<class Engine>
-template<int I, typename TJ, typename ...Args>
+template<typename TJ, typename ...Args>
 void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
@@ -476,7 +395,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 		return;
 	}
 
-	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << I << ","
+	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
 	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -501,7 +420,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 				{
 					for (auto const& p : this->data_[s])
 					{
-						engine_type::Collect(Int2Type<I>(),p, &J_c,args_c...);
+						engine_type::Collect(p, &J_c,args_c...);
 					}
 				},mesh_type::WITH_GHOSTS
 
@@ -561,9 +480,14 @@ public:
 	{
 	}
 
-	virtual std::string TypeName() const
+	std::string TypeName()
 	{
-		return "Default";
+		return _TypeName();
+	}
+
+	virtual std::string _TypeName() const
+	{
+		return "unknown";
 	}
 
 	inline Real GetMass() const
@@ -594,6 +518,10 @@ public:
 	void SetName(const std::string& name)
 	{
 		name_ = name;
+	}
+
+	virtual void Update()
+	{
 	}
 
 	virtual void Deserialize(LuaObject const &vm)
@@ -652,17 +580,7 @@ public:
 
 	}
 
-	template<typename ... Args>
-	inline void NextTimeStep(Real dt, Args const & ... args)
-	{
-		_NextTimeStep(dt, std::forward<Args const &>(args)...);
-
-	}
-	template<int N, typename TJ, typename ... Args>
-	inline void Collect(TJ *J, Args const &... args) const
-	{
-		_Collect(Int2Type<N>(), J, std::forward<Args const &>(args)...);
-	}
+//	virtual void accept(VistorBase*)=0;
 
 	virtual std::string TypeName()
 	{
@@ -678,40 +596,6 @@ public:
 	{
 		return os;
 	}
-
-private:
-
-//========================================================================
-// interface
-	typedef typename TM::scalar scalar;DEFINE_FIELDS (mesh_type)
-
-	virtual void _NextTimeStep(Real dt, Form<1> const &, Form<2> const &)
-	{
-		UNIMPLEMENT << "Move particle to next time step";
-	}
-
-	virtual void _NextTimeStep(Real dt, VectorForm<0> const &, VectorForm<0> const &)
-	{
-		UNIMPLEMENT << "Move particle to next time step";
-	}
-
-#define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *, Form<1> const &,Form<2> const &)const {}			\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *, VectorForm<0> const & ,VectorForm<0> const &)const {}\
-	virtual void _Collect(Int2Type< _N_ >, _TJ_ <_M_> *)const {}
-
-	DEF_COLLECT_INTERFACE(0 , Form, 0 )
-	DEF_COLLECT_INTERFACE(0 , Form, 3 )
-	DEF_COLLECT_INTERFACE(1, VectorForm , 0 )
-	DEF_COLLECT_INTERFACE(1, Form , 1 )
-	DEF_COLLECT_INTERFACE(1, Form , 2 )
-	DEF_COLLECT_INTERFACE(1, VectorForm , 3 )
-	DEF_COLLECT_INTERFACE(2, TensorForm , 0 )
-	DEF_COLLECT_INTERFACE(2, VectorForm , 1 )
-	DEF_COLLECT_INTERFACE(2, VectorForm , 2 )
-	DEF_COLLECT_INTERFACE(2, TensorForm , 3 )
-
-#undef DEF_COLLECT_INTERFACE
 
 };
 
@@ -754,8 +638,11 @@ public:
 		factory_.emplace(engine_name, fun);
 	}
 	template<typename TEngine>
-	void RegisterFactory(std::string const &engine_name)
+	void RegisterFactory(std::string engine_name = "")
 	{
+		if (engine_name == "")
+			engine_name = TEngine::TypeName();
+
 		RegisterFactory(engine_name, create_fun(&CreateParticle<TEngine>));
 	}
 
@@ -769,24 +656,9 @@ public:
 		WARNING << "UNIMPLEMENT!!";
 	}
 
-	template<typename ... Args>
-	void NextTimeStep(Args const & ... args)
-	{
-		for (auto & p : *this)
-		{
-			p.second->NextTimeStep(std::forward<Args const &>(args)...);
-		}
-	}
+	template<typename ... Args> void NextTimeStep(Args const & ... args);
 
-	template<typename TJ, typename ... Args>
-	void Collect(TJ *J, Args const & ... args) const
-	{
-		for (auto & p : *this)
-		{
-			p.second->template Collect<TJ::IForm>(J, std::forward<Args const &>(args)...);
-		}
-	}
-
+	template<typename TJ, typename ... Args> void Collect(TJ *J, Args const & ... args) const;
 };
 
 template<typename TM>
@@ -853,6 +725,25 @@ std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
 	os << "} \n";
 
 	return os;
+}
+
+template<typename TM>
+template<typename ... Args>
+void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
+{
+	for (auto & p : *this)
+	{
+		p.second->NextTimeStep(std::forward<Args const &>(args)...);
+	}
+}
+template<typename TM>
+template<typename TJ, typename ... Args>
+void ParticleCollection<TM>::Collect(TJ *J, Args const & ... args) const
+{
+	for (auto & p : *this)
+	{
+		p.second->Collect(J, std::forward<Args const &>(args)...);
+	}
 }
 
 template<typename TM>

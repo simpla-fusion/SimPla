@@ -25,11 +25,10 @@ public:
 
 	std::string description;
 
-	friend std::ostream & operator<<(std::ostream & os,
-			BaseContext const &self);
+	friend std::ostream & operator<<(std::ostream & os, BaseContext const &self);
 
-	BaseContext() :
-			step_count_(0), sim_clock_(0)
+	BaseContext()
+			: step_count_(0), sim_clock_(0)
 	{
 	}
 	virtual ~BaseContext()
@@ -49,8 +48,7 @@ public:
 	{
 		return os;
 	}
-	virtual void NextTimeStep(double dt =
-			std::numeric_limits<double>::quiet_NaN())
+	virtual void NextTimeStep(double dt = std::numeric_limits<double>::quiet_NaN())
 	{
 		if (!std::isnan(dt))
 		{
@@ -77,9 +75,8 @@ public:
 
 };
 
-std::ostream & operator<<(std::ostream & os, BaseContext const &self)
+inline std::ostream & operator<<(std::ostream & os, BaseContext const &self)
 {
-
 	return self.Serialize(os);
 }
 

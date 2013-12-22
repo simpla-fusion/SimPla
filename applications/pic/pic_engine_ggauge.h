@@ -57,7 +57,7 @@ public:
 	}
 	static inline std::string TypeName()
 	{
-		return "Default";
+		return "GGauge" + ToString(NMATE);
 	}
 
 	template<typename PT>
@@ -99,7 +99,7 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p,Real dt, TB const & fB, TE const &fE) const
+	inline void Push(Point_s & p, Real dt, TB const & fB, TE const &fE) const
 	{
 	}
 

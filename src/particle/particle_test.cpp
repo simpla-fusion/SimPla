@@ -67,7 +67,7 @@ public:
 
 typedef testing::Types<
 
-PICEngineDefault<Mesh>
+PICEngineFull<Mesh>
 //,
 //
 //PICEngineDeltaF<CoRectMesh<Complex>>,

@@ -1,12 +1,12 @@
 /*
- * pic_engine_default.h
+ * pic_engine_full.h
  *
  *  Created on: 2013年11月6日
  *      Author: salmon
  */
 
-#ifndef PIC_ENGINE_DEFAULT_H_
-#define PIC_ENGINE_DEFAULT_H_
+#ifndef PIC_ENGINE_FULL_H_
+#define PIC_ENGINE_FULL_H_
 
 #include <string>
 
@@ -18,11 +18,12 @@ namespace simpla
 template<typename > class PICEngineBase;
 
 template<typename TM>
-struct PICEngineDefault: public PICEngineBase<TM>
+struct PICEngineFull: public PICEngineBase<TM>
 {
+	Real cmr_, q_;
 public:
 	typedef PICEngineBase<TM> base_type;
-	typedef PICEngineDefault<TM> this_type;
+	typedef PICEngineFull<TM> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
@@ -62,25 +63,35 @@ public:
 		}
 	};
 
-	PICEngineDefault(mesh_type const &pmesh)
-			: base_type(pmesh)
+	PICEngineFull(mesh_type const &pmesh)
+			: base_type(pmesh), cmr_(1.0), q_(1.0)
 	{
 
 	}
-	~PICEngineDefault()
+	~PICEngineFull()
 	{
 	}
 
-	inline std::string TypeName() const
+	static inline std::string TypeName()
 	{
-		return "Default";
+		return "Full";
+	}
+
+	virtual inline std::string _TypeName() const
+	{
+		return this_type::TypeName();
 	}
 
 	inline void Deserialize(LuaObject const &obj)
 	{
 		base_type::Deserialize(obj);
-	}
 
+	}
+	void Update()
+	{
+		cmr_ = base_type::q_ / base_type::m_;
+		q_ = base_type::q_;
+	}
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
@@ -101,30 +112,42 @@ public:
 	template<typename TB, typename TE>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE) const
 	{
+		// keep x,v at same time step
+		p->x += p->v * 0.5 * dt;
 
-		auto B = fB(p->x);
-		auto E = fE(p->x);
+		auto B = real(fB(p->x));
+		auto E = real(fE(p->x));
+
+		///  @ref  Birdsall(1991)   p.62
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		p->v += Cross(v_, t) * (2.0 / (Dot(t, t) + 1.0));
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * 0.5 * dt;
 	}
 
-	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<0>, Point_s const &p, TN * n, Args const& ... args) const
+	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, ...) const
 	{
-		n->Scatter(p.f, p.x);
+		Collect(p.f, p.x, n);
 	}
 
-	template<typename TJ, typename ... Args>
-	inline void Collect(Int2Type<1>, Point_s const &p, TJ * J, Args const& ... args) const
+	template<int IFORM, typename TV>
+	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, ...) const
 	{
-		J->Scatter(p.v * p.f, p.x);
+		Collect(p.v * p.f, p.x, J);
 	}
 
-	template<typename TN, typename ... Args>
-	inline void Collect(Int2Type<2>, Point_s const &p, TN * n, Args const& ... args) const
-	{
-	}
-
-	template<typename TX, typename TV, typename TN, typename ...Args>
-	inline Point_s Trans(TX const & x, TV const &v, TN const & n, Args...) const
+	template<typename TX, typename TV, typename TN>
+	inline Point_s Trans(TX const & x, TV const &v, TN const & n, ...) const
 	{
 		Point_s p;
 		p.x = x;
@@ -146,7 +169,7 @@ public:
 };
 
 template<typename TM> std::ostream&
-operator<<(std::ostream& os, typename PICEngineDefault<TM>::Point_s const & p)
+operator<<(std::ostream& os, typename PICEngineFull<TM>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
 
@@ -155,4 +178,4 @@ operator<<(std::ostream& os, typename PICEngineDefault<TM>::Point_s const & p)
 
 } // namespace simpla
 
-#endif /* PIC_ENGINE_DEFAULT_H_ */
+#endif /* PIC_ENGINE_FULL_H_ */

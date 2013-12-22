@@ -82,9 +82,12 @@ struct CoRectMesh
 	// Geometry
 	coordinates_type xmin_ = { 0, 0, 0 };
 	coordinates_type xmax_ = { 10, 10, 10 };
+
 	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
 	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
+
 	coordinates_type dx_ = { 0, 0, 0 };
+	coordinates_type inv_dx_ = { 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
@@ -147,9 +150,12 @@ struct CoRectMesh
 			{
 				dims_[i] = 1;
 				dx_[i] = 0.0;
+				inv_dx_[i] = 0.0;
 
 				dS_[0][i] = 0.0;
+
 				_SetImaginaryPart(xmax_[i] == xmin_[i] ? 0 : 1.0 / (xmax_[i] - xmin_[i]), &dS_[0][i]);
+
 				dS_[1][i] = 0.0;
 
 				k_[i] = TWOPI * dS_[0][i];
@@ -162,10 +168,15 @@ struct CoRectMesh
 			else
 			{
 				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i] - 1);
+
+				inv_dx_[i]=1.0/dx_[i];
+
 				dS_[0][i] = 1.0 / dx_[i];
+
 				dS_[1][i] = -1.0 / dx_[i];
 
 				num_cells_ *= (dims_[i] - 1);
+
 				num_grid_points_ *= dims_[i];
 
 				k_[i] = 0.0;
@@ -1235,18 +1246,18 @@ public:
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
 	}
 
-	inline size_t GetNumOfVertices() const
+	inline size_t GetNumOfVertices(...) const
 	{
 
 		return (num_grid_points_);
 	}
 
-	inline Real GetCellVolume() const
+	inline Real GetCellVolume(...) const
 	{
 		return cell_volume_;
 	}
 
-	inline Real GetDCellVolume() const
+	inline Real GetDCellVolume(...) const
 	{
 		return d_cell_volume_;
 	}
@@ -1257,31 +1268,36 @@ public:
 	 * @param pcoords local parameter coordinates
 	 * @return index of cell
 	 */
-	inline index_type SearchCell(coordinates_type const &x, coordinates_type *pcoords = nullptr) const
+	template<typename TX>
+	inline index_type SearchCell(coordinates_type const &x, TX *pcoords = nullptr) const
 	{
 
 		size_t idx = 0;
 
-//		for (int i = 0; i < NUM_OF_DIMS; ++i)
-//		{
-//			double e;
-//
-//			idx +=
-//					static_cast<size_t>(std::modf((x[i] - xmin_[i]) * dS_[i],
-//							&e)) * strides_[i];
-//
-//			if (pcoords != nullptr)
-//				(*pcoords)[i] = e;
-//		}
+		index_type i,j,k;
 
-		return idx;
+		Real e[3]=
+		{	0,0,0};
+
+		i= (dims_[0]<=1)?0:static_cast<size_t>(std::modf((x[0] - xmin_[0]) * inv_dx_[0],e));
+		j= (dims_[1]<=1)?0:static_cast<size_t>(std::modf((x[1] - xmin_[1]) * inv_dx_[1],e));
+		k= (dims_[2]<=1)?0:static_cast<size_t>(std::modf((x[2] - xmin_[2]) * inv_dx_[2],e));
+
+		if (pcoords != nullptr)
+		{
+			pcoords[0] = e[0];
+			pcoords[1] = e[1];
+			pcoords[2] = e[2];
+		}
+
+		return GetIndex(i,j,k);
 	}
 	/**
-	 *  Speed up version SearchCell
+	 *  Speed up version SearchCell, restain for curvline or unstructured grid
 	 * @param
 	 * @param x
 	 * @param pcoords
-	 * @return
+	 * @return index of cell
 	 */
 	inline index_type SearchCell(index_type const &hint_idx, coordinates_type const &x, coordinates_type *pcoords =
 	nullptr) const
@@ -1289,6 +1305,14 @@ public:
 		return SearchCell(x, pcoords);
 	}
 
+	/**
+	 *
+	 * @param s
+	 * @param x
+	 * @return number vertex
+	 * 	     2 for uniform rectangle
+	 * 	     4 for Tetrahedron
+	 */
 	inline int GetCellShape(index_type s, coordinates_type * x=nullptr) const
 	{
 		if(x!=nullptr)

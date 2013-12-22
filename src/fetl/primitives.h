@@ -57,6 +57,54 @@ typedef std::complex<Real> Complex;
 
 template<int N, typename T> struct nTuple;
 
+template<typename T> inline constexpr T real(T const &v)
+{
+	return v;
+}
+template<typename T> inline constexpr T imag(T const &)
+{
+	return 0;
+}
+
+template<typename T> inline constexpr T real(std::complex<T> const &v)
+{
+	return v.real();
+}
+template<typename T> inline constexpr T imag(std::complex<T> const &v)
+{
+	return v.imag();
+}
+
+template<typename T> inline constexpr nTuple<3, T> real(nTuple<3, std::complex<T>> const &v)
+{
+	return std::move(nTuple<3, T>( { v[0].real(), v[1].real(), v[2].real() }));
+}
+
+template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T>> const &v)
+{
+	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
+}
+
+template<int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
+{
+	nTuple<N, T> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = v[i].real();
+	}
+	return std::move(res);
+}
+
+template<int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> const &v)
+{
+	nTuple<N, T> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = v[i].imag();
+	}
+	return std::move(res);
+}
+
 template<typename, int> struct Geometry;
 
 template<typename, typename > struct Field;
