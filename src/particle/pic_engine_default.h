@@ -52,6 +52,14 @@ public:
 
 			return os.str();
 		}
+
+		template<typename TX, typename TV, typename TF> inline
+		static void Trans(Point_s *p, TX const &x, TV const &v, TF f)
+		{
+			p->x = x;
+			p->v = v;
+			p->f = f;
+		}
 	};
 
 	PICEngineDefault(mesh_type const &pmesh)
@@ -91,10 +99,11 @@ public:
 	}
 
 	template<typename TB, typename TE>
-	inline void Push(Point_s & p, Real dt, TB const & fB, TE const &fE) const
+	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE) const
 	{
-		auto B = fB(p.x);
-		auto E = fE(p.x);
+
+		auto B = fB(p->x);
+		auto E = fE(p->x);
 	}
 
 	template<typename TN, typename ... Args>
@@ -115,11 +124,23 @@ public:
 	}
 
 	template<typename TX, typename TV, typename TN, typename ...Args>
-	inline void CoordTrans(Point_s & p, TX const & x, TV const &v, TN const & n, Args...) const
+	inline Point_s Trans(TX const & x, TV const &v, TN const & n, Args...) const
 	{
+		Point_s p;
 		p.x = x;
 		p.v = v;
-		p.f *= n(p.x);
+		p.f = n(p.x);
+		return std::move(p);
+	}
+
+	template<typename TX, typename TV>
+	inline Point_s Trans(TX const & x, TV const &v, scalar_type f) const
+	{
+		Point_s p;
+		p.x = x;
+		p.v = v;
+		p.f = f;
+		return std::move(p);
 	}
 
 };

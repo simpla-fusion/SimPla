@@ -120,14 +120,13 @@ TYPED_TEST(TestParticle,Create){
 
 				x_dist.Reset(xrange);
 
-				Point_s t;
+				nTuple<3,Real> x,v;
 
 				for(int i=0;i<TestFixture::pic;++i)
 				{
-					x_dist(rnd_gen,t.x);
-					v_dist(rnd_gen,t.v);
-					t.f=1.0;
-					ion[s].push_back(t);
+					x_dist(rnd_gen,x);
+					v_dist(rnd_gen,v);
+					ion.Insert(s,x,v,1.0);
 				}
 			}
 
@@ -156,7 +155,7 @@ TYPED_TEST(TestParticle,Create){
 
 	ion.Sort();
 
-	ion.Push(1.0,E, B);
+	ion.NextTimeStep(1.0,E, B);
 
 	ion.template Collect<0>(&n, E, B);
 

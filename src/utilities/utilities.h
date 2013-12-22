@@ -10,12 +10,14 @@
 
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <functional>
 #include <iomanip>
 #include <sstream>
 #include <string>
 
 #include "../fetl/ntuple.h"
+#include "log.h"
 
 namespace simpla
 {

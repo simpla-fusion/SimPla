@@ -76,11 +76,24 @@ public:
 		*this = d_value;
 	}
 
+	/**
+	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
+	 *  initializie stl containers, such as std::vector
+	 *    \code
+	 *       Field<...> default_value(mesh);
+	 *       std::vector<Field<...> > v(4,default_value);
+	 *    \endcode
+	 *  the element in v have same mesh reference.
+	 *
+	 * @param rhs
+	 */
+
 	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+			: mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
+	/// Move Construct copy mesh, and move data,
 	Field(this_type &&rhs)
 			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{

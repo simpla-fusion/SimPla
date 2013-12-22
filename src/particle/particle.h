@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <thread>
 
 #include "../fetl/fetl.h"
 
@@ -47,7 +48,10 @@ class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 
 public:
 
-	static const int IForm = 0;
+	enum
+	{
+		IForm = 3
+	};
 
 	typedef Engine engine_type;
 
@@ -87,6 +91,8 @@ private:
 	cell_type pool_;
 
 	container_type data_;
+
+	std::vector<container_type> mt_data_; // for sort
 
 public:
 
@@ -134,13 +140,11 @@ public:
 
 	void Update();
 
-	void Sort();
-
 	void Deserialize(LuaObject const &cfg);
 
 	std::ostream & Serialize(std::ostream & os) const;
 
-	template<typename ... Args> void Push(Real dt, Args const& ... args);
+	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
 
 	template<int I, typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
 
@@ -152,74 +156,81 @@ public:
 		{	fun(p,args_c...);}, args...);
 	}
 
+	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
+	{
+		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
+	}
+
+	void Sort();
+
 private:
 
-	/**
-	 *  Traversal each cell, include boundary cells.
-	 *
-	 * @param fun (cell_type & cell,index_type const & s )
-	 */
-
-	template<typename Fun, typename ...Args>
-	void _ForEachCell(Fun const & fun, Args &... args)
-	{
-		/***
-		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
-		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
-		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
-		 **/
-		mesh.Traversal(IForm,
-
-		[&](index_type const & s)
-		{
-			_ForParticlesInCell(data_[s], fun,
-					ProxyCache< Args>::Eval(args,s)...);
-
-		});
-	}
-
-	template<typename Fun, typename ...Args>
-	void _ForEachCell(Fun const & fun, Args &... args) const
-	{
-		mesh.Traversal(IForm, [&](index_type const & s)
-		{
-			_ForParticlesInCell(data_[s], fun,
-					ProxyCache< Args>::Eval(args,s)...);
-		});
-
-	}
-
-	template<typename TCELL, typename Fun, typename ... Args>
-	void _ForParticlesInCell(TCELL & cell, Fun & fun, Args && ... args)
-	{
-		for (auto & p : cell)
-		{
-			fun(p, args...);
-		}
-	}
-
-	template<typename TCELL, typename Fun, typename ... Args>
-	void _ForParticlesInCell(TCELL const& cell, Fun & fun, Args &&... args) const
-	{
-		for (auto const& p : cell)
-		{
-			fun(p, args...);
-		}
-	}
+//	/**
+//	 *  Traversal each cell, include boundary cells.
+//	 *
+//	 * @param fun (cell_type & cell,index_type const & s )
+//	 */
+//
+//	template<typename Fun, typename ...Args>
+//	void _ForEachCell(Fun const & fun, Args &... args)
+//	{
+//		/***
+//		 *  @BUG G++ Compiler bug (g++ <=4.8), need workaround.
+//		 *  Bug 41933 - [c++0x] lambdas and variadic templates don't work together
+//		 *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=41933
+//		 **/
+//		mesh.Traversal(IForm,
+//
+//		[&](index_type const & s)
+//		{
+//			_ForParticlesInCell(data_[s], fun,
+//					ProxyCache< Args>::Eval(args,s)...);
+//
+//		});
+//	}
+//
+//	template<typename Fun, typename ...Args>
+//	void _ForEachCell(Fun const & fun, Args &... args) const
+//	{
+//		mesh.Traversal(IForm, [&](index_type const & s)
+//		{
+//			_ForParticlesInCell(data_[s], fun,
+//					ProxyCache< Args>::Eval(args,s)...);
+//		});
+//
+//	}
+//
+//	template<typename TCELL, typename Fun, typename ... Args>
+//	void _ForParticlesInCell(TCELL & cell, Fun & fun, Args && ... args)
+//	{
+//		for (auto & p : cell)
+//		{
+//			fun(p, args...);
+//		}
+//	}
+//
+//	template<typename TCELL, typename Fun, typename ... Args>
+//	void _ForParticlesInCell(TCELL const& cell, Fun & fun, Args &&... args) const
+//	{
+//		for (auto const& p : cell)
+//		{
+//			fun(p, args...);
+//		}
+//	}
 
 	//========================================================================
 	// interface
 
 	DEFINE_FIELDS (mesh_type)
 
-	virtual void _Push(Real dt, Form<1> const & E, Form<2> const &B)
+	virtual void _NextTimeStep(Real dt, Form<1> const & E, Form<2> const &B)
 	{
-		Push(dt, E, B);
+		NextTimeStep(dt, E, B);
 	}
 
-	virtual void _Push(Real dt, VectorForm<0> const &E, VectorForm<0> const & B)
+	virtual void _NextTimeStep(Real dt, VectorForm<0> const &E, VectorForm<0> const & B)
 	{
-		Push(dt, E, B);
+		NextTimeStep(dt, E, B);
 	}
 
 #define DEF_COLLECT_INTERFACE( _N_ ,_TJ_,_M_)																\
@@ -258,7 +269,7 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 	if (cfg.empty())
 		return;
 
-	data_.resize(mesh.GetNumOfElements(3));
+	Update();
 
 	LOGGER
 
@@ -308,56 +319,107 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 template<class Engine>
 void Particle<Engine>::Update()
 {
-	data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+	if (data_.size() < mesh.GetNumOfElements(IForm))
+		data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+
+	const unsigned int num_threads = std::thread::hardware_concurrency();
+
+	if (mt_data_.size() < num_threads)
+	{
+		mt_data_.resize(num_threads);
+
+		for (auto & d : mt_data_)
+		{
+			d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+		}
+	}
 }
 
 template<class Engine>
 void Particle<Engine>::Sort()
 {
+	Update();
 
-	container_type tmp;
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	tmp.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+	std::vector<std::thread> threads;
 
-	mesh.Traversal(IForm,
-
-	[&](index_type const & s)
+	auto fun = [this](unsigned int t_num,unsigned int t_id )
 	{
-		auto & cell=data_[s];
-		auto pt = cell.begin();
-		while (pt != cell.end())
-		{
-			auto p = pt;
-			++pt;
 
-			auto j = mesh.SearchCell(s,p->x);
+		this->mesh._Traversal(t_num, t_id, this->IForm,
 
-			if (j!=s)
-			{
-				try
+				[&](index_type const &src)
 				{
-					tmp.at(j).splice(data_.at(j).end(), cell, p);
+					auto & cell=this->data_[src];
+					auto pt = cell.begin();
+					while (pt != cell.end())
+					{
+						auto p = pt;
+						++pt;
+
+						auto dest = this->mesh.SearchCell(src,p->x);
+
+						if (dest==src)
+						return;
+
+						if(dest>0 && dest<mesh.GetNumOfElements(IForm))
+						{
+							this->mt_data_[t_id][dest].splice(this->mt_data_[t_id][dest].begin(), cell, p);
+						}
+						else
+						{
+							cell.erase(p);
+						}
+					}
 				}
-				catch (...)
-				{
-					cell.erase(p);
-				}
-			}
-		}
+
+		);
+
+	};
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads.emplace_back(std::thread(fun, num_threads, thread_id));
 	}
 
-	);
-	auto it1 = data_.begin();
-	auto it2 = tmp.begin();
-	for (; it1 != data_.end(); ++it1, ++it2)
+	for (auto & t : threads)
 	{
-		it1->splice(it1->begin(), *it2);
+		t.join();
 	}
+
+	auto fun2 =
+
+	[this](unsigned int t_num,unsigned int t_id)
+	{
+		this->mesh._Traversal(t_num, t_id, this->IForm,
+
+				[&](index_type const &src)
+				{
+					for (int i = 0; i < t_num; ++i)
+					{
+						this->data_[src].splice(this->data_[src].begin(),this->mt_data_[i][src] );
+					}
+				},mesh_type::WITH_GHOSTS
+		);
+
+	};
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads[thread_id] = std::thread(fun, num_threads, thread_id);
+	}
+
+	for (auto & t : threads)
+	{
+		t.join();
+	}
+
 }
 
 template<class Engine>
 template<typename ...Args>
-void Particle<Engine>::Push(Real dt, Args const& ... args)
+void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 {
 	if (data_.empty())
 	{
@@ -366,14 +428,39 @@ void Particle<Engine>::Push(Real dt, Args const& ... args)
 	}
 	LOGGER << "Push particle [" << engine_type::name_ << "]!";
 
-	_ForEachCell(
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	[&](particle_type & p, typename ProxyCache<const Args>::type const& ... args_c)
+	std::vector<std::thread> threads;
+
+	auto fun = [this,dt](unsigned int num_threads,unsigned int thread_id,
+			typename ProxyCache<const Args>::type const& ... args_c)
 	{
-		engine_type::Push(p,dt,args_c...);
-	},
 
-	args...);
+		this->mesh._Traversal(num_threads, thread_id, this->IForm,
+
+				[&](index_type const &s)
+				{
+					for (auto & p : this->data_[s])
+					{
+						engine_type::NextTimeStep(&p,dt, args_c...);
+					}
+				}
+
+		);
+
+	};
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads.emplace_back(std::thread(fun, num_threads, thread_id,
+
+		ProxyCache<Args const>::Eval(args)...));
+	}
+
+	for (auto & t : threads)
+	{
+		t.join();
+	}
 
 	Sort();
 
@@ -392,14 +479,56 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << I << ","
 	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
-	_ForEachCell(
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	[&](particle_type const& p,typename ProxyCache<TJ>::type & J_c,
-			typename ProxyCache<const Args>::type const& ... args_c)
+	std::vector<TJ> tmp(num_threads, *J);
+
+	for (auto &v : tmp)
 	{
-		engine_type::Collect(Int2Type<I>(),p,&J_c,args_c...);
+		v.Fill(0);
+	}
 
-	}, *J, args...);
+	std::vector<std::thread> threads;
+
+	auto fun = [this](unsigned int t_num,unsigned int t_id,
+			typename ProxyCache<TJ>::type J_c,
+			typename ProxyCache<const Args>::type ... args_c)
+	{
+
+		this->mesh._Traversal(t_num, t_id, this->IForm,
+
+				[&](index_type const &s)
+				{
+					for (auto const& p : this->data_[s])
+					{
+						engine_type::Collect(Int2Type<I>(),p, &J_c,args_c...);
+					}
+				},mesh_type::WITH_GHOSTS
+
+		);
+
+	};
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads.emplace_back(std::thread(fun, num_threads, thread_id,
+
+		ProxyCache<TJ>::Eval(tmp[thread_id]),
+
+		ProxyCache<Args const>::Eval(args)...
+
+		));
+	}
+
+	for (auto & t : threads)
+	{
+		t.join();
+	}
+
+	for (int i = 0; i < num_threads; ++i)
+	{
+		*J += tmp[i];
+	}
 }
 
 template<typename TM>
@@ -428,7 +557,7 @@ public:
 	{
 
 	}
-	~PICEngineBase()
+	virtual ~PICEngineBase()
 	{
 	}
 
@@ -552,16 +681,16 @@ public:
 
 private:
 
-	//========================================================================
-	// interface
+//========================================================================
+// interface
 	typedef typename TM::scalar scalar;DEFINE_FIELDS (mesh_type)
 
-	virtual void _Push(Real dt, Form<1> const &, Form<2> const &)
+	virtual void _NextTimeStep(Real dt, Form<1> const &, Form<2> const &)
 	{
 		UNIMPLEMENT << " Particle Push operation";
 	}
 
-	virtual void _Push(Real dt, VectorForm<0> const &, VectorForm<0> const &)
+	virtual void _NextTimeStep(Real dt, VectorForm<0> const &, VectorForm<0> const &)
 	{
 		UNIMPLEMENT << " Particle Push operation";
 	}
