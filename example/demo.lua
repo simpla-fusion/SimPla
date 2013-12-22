@@ -4,7 +4,7 @@ c = 299792458  -- m/s
 KeV = 1.1604e7    -- K
 Tesla = 1.0       -- Tesla    
 --
- 
+
 Btor= 1.2  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
@@ -95,7 +95,7 @@ Boundary={
 --]]
 
 Particles={
-  {Name="H",Engine="DeltaF",m=1.0,Z=1.0,PIC=100}
+  {Name="H",Engine="Default",m=1.0,Z=1.0,PIC=100}
 }
 
 FieldSolver= 
