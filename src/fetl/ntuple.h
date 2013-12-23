@@ -226,12 +226,6 @@ template<int N, typename T> struct is_nTuple<nTuple<N, T> >
 	static const bool value = true;
 };
 
-template<int N, typename T>
-struct is_storage_type<nTuple<N, T> >
-{
-	static const bool value = is_storage_type<T>::value;
-};
-
 template<typename T>
 struct nTupleTraits
 {

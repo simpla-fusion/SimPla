@@ -63,8 +63,8 @@ public:
 		}
 	};
 
-	PICEngineFull(mesh_type const &pmesh)
-			: base_type(pmesh), cmr_(1.0), q_(1.0)
+	PICEngineFull(mesh_type const &pmesh) :
+			base_type(pmesh), cmr_(1.0), q_(1.0)
 	{
 
 	}
@@ -109,8 +109,8 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE>
-	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE) const
+	template<typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
 	{
 		// keep x,v at same time step
 		p->x += p->v * 0.5 * dt;
@@ -135,16 +135,27 @@ public:
 		p->x += p->v * 0.5 * dt;
 	}
 
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, ...) const
+	template<typename ... Others>
+	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, Others const &... others) const
 	{
-		Collect(p.f, p.x, n);
+		n->Collect(p.f, p.x);
 	}
 
-	template<int IFORM, typename TV>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, ...) const
+	template<int IFORM, typename TV, typename ...Others>
+	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &... others) const
 	{
-		Collect(p.v * p.f, p.x, J);
+		J->Collect(p.v * p.f, p.x);
 	}
+
+//	inline void NextTimeStep(...)
+//	{
+//		DEADEND;
+//	}
+//
+//	inline void Collect(...) const
+//	{
+//		DEADEND;
+//	}
 
 	template<typename TX, typename TV, typename TN>
 	inline Point_s Trans(TX const & x, TV const &v, TN const & n, ...) const

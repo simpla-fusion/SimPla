@@ -7,6 +7,7 @@
 
 #ifndef PROXYCACHE_H_
 #define PROXYCACHE_H_
+#include "../utilities/type_utilites.h"
 namespace simpla
 {
 
@@ -41,7 +42,7 @@ template<typename T>
 struct ProxyCache
 {
 	typedef T src_type;
-	typedef T type;
+	typedef typename StorageTraits<T>::reference type;
 	template<typename ...TI>
 	static inline src_type & Eval(src_type & f, TI ...)
 	{
@@ -49,6 +50,17 @@ struct ProxyCache
 	}
 };
 
+template<typename T>
+struct ProxyCache<T*>
+{
+	typedef T* src_type;
+	typedef T* type;
+	template<typename ...TI>
+	static inline T* Eval(T* f, TI ...)
+	{
+		return f;
+	}
+};
 }  // namespace simpla
 
 #endif /* PROXYCACHE_H_ */

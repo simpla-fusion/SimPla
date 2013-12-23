@@ -16,22 +16,6 @@
 namespace simpla
 {
 
-template<int N> struct Int2Type
-{
-	static const int value = N;
-};
-
-struct NullType;
-
-struct EmptyType
-{
-};
-
-enum CONST_NUMBER
-{
-	ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9
-};
-
 enum POSITION
 {
 	/*
@@ -77,12 +61,14 @@ template<typename T> inline constexpr T imag(std::complex<T> const &v)
 
 template<typename T> inline constexpr nTuple<3, T> real(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>( { v[0].real(), v[1].real(), v[2].real() }));
+	return std::move(nTuple<3, T>(
+	{ v[0].real(), v[1].real(), v[2].real() }));
 }
 
 template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
+	return std::move(nTuple<3, T>(
+	{ v[0].imag(), v[1].imag(), v[2].imag() }));
 }
 
 template<int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
@@ -137,12 +123,6 @@ static const Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static const Real EPSILON = std::numeric_limits<Real>::epsilon();
 
-template<typename T>
-struct remove_const_reference
-{
-	typedef typename std::remove_const<typename std::remove_reference<T>::type>::type type;
-};
-
 template<typename > struct is_complex
 {
 	static constexpr bool value = false;
@@ -196,11 +176,6 @@ struct is_primitive<nTuple<N, TE> >
 	static constexpr bool value = is_arithmetic_scalar<TE>::value;
 };
 
-template<typename T>
-struct is_storage_type
-{
-	static constexpr bool value = true;
-};
 //template<typename T>
 //struct is_storage_type<std::complex<T>>
 //{
@@ -212,18 +187,6 @@ struct is_storage_type
 //{
 //	static constexpr  bool value = is_storage_type<T>::value;
 //};
-
-template<typename TG, int TOP, typename TL, typename TR>
-struct is_storage_type<Field<TG, BiOp<TOP, TL, TR> > >
-{
-	static constexpr bool value = false;
-};
-
-template<typename TG, int TOP, typename TL>
-struct is_storage_type<Field<TG, UniOp<TOP, TL> > >
-{
-	static constexpr bool value = false;
-};
 
 template<typename T>
 struct is_ntuple
@@ -238,17 +201,45 @@ struct is_ntuple<nTuple<N, T>>
 };
 
 template<typename T>
-struct ReferenceTraits
+struct is_field_expression
 {
-	typedef typename remove_const_reference<T>::type TL;
-	typedef typename std::conditional<is_storage_type<TL>::value, TL &, TL>::type type;
+	static constexpr bool value = false;
+};
+
+template<typename TG, int TOP, typename TL, typename TR>
+struct is_field_expression<Field<TG, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<typename TG, int TOP, typename TL>
+struct is_field_expression<Field<TG, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
 };
 
 template<typename T>
-struct ConstReferenceTraits
+struct is_ntuple_expression
 {
-	typedef typename remove_const_reference<T>::type TL;
-	typedef typename std::conditional<is_storage_type<TL>::value, TL const &, const TL>::type type;
+	static constexpr bool value = false;
+};
+
+template<int N, int TOP, typename TL, typename TR>
+struct is_ntuple_expression<nTuple<N, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<int N, int TOP, typename TL>
+struct is_field_expression<nTuple<N, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
+};
+
+template<typename T>
+struct is_expression
+{
+	static constexpr bool value = is_ntuple_expression<T>::value || is_field_expression<T>::value;
 };
 
 //template<class T, typename TI = int>
@@ -274,17 +265,6 @@ struct ConstReferenceTraits
 //	static const bool value = !(std::is_same<result_type, std::false_type>::value);
 //
 //};
-
-template<class T, typename TI = int>
-class is_indexable
-{
-	HAS_OPERATOR(index, []);
-
-public:
-
-	static const bool value = has_operator_index<T, TI>::value;
-
-};
 
 typedef enum
 {

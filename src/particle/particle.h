@@ -22,6 +22,7 @@
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
 #include "../utilities/memory_pool.h"
+#include "../utilities/type_utilites.h"
 
 #ifndef NO_STD_CXX
 
@@ -112,14 +113,14 @@ public:
 		return res;
 	}
 
-	void accept(ParticleVistor* vistor) const
+	void accept(VistorBase* vistor) const
 	{
-		vistor->vist(this);
+		vistor->visit(this);
 	}
 
-	void accept(ParticleVistor* vistor)
+	void accept(VistorBase* vistor)
 	{
-		vistor->vist(this);
+		vistor->visit(this);
 	}
 
 	/**
@@ -172,8 +173,8 @@ public:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -228,7 +229,7 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-	        ;
+			;
 
 	os << "} ";
 
@@ -396,7 +397,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 	}
 
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
-	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
+			<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -410,7 +411,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 	std::vector<std::thread> threads;
 
 	auto fun = [this](unsigned int t_num,unsigned int t_id,
-			typename ProxyCache<TJ>::type J_c,
+			typename ProxyCache<TJ*>::type J_c,
 			typename ProxyCache<const Args>::type ... args_c)
 	{
 
@@ -420,7 +421,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 				{
 					for (auto const& p : this->data_[s])
 					{
-						engine_type::Collect(p, &J_c,args_c...);
+						engine_type::Collect(p, J_c,args_c...);
 					}
 				},mesh_type::WITH_GHOSTS
 
@@ -432,7 +433,7 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 	{
 		threads.emplace_back(std::thread(fun, num_threads, thread_id,
 
-		ProxyCache<TJ>::Eval(tmp[thread_id]),
+		ProxyCache<TJ*>::Eval(&tmp[thread_id]),
 
 		ProxyCache<Args const>::Eval(args)...
 
@@ -471,8 +472,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -552,14 +553,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh)
+		typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -625,8 +626,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
@@ -727,13 +728,15 @@ std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
 	return os;
 }
 
+DEFINE_VISTOR (NextTimeStep);
+DEFINE_VISTOR (Collect);
 template<typename TM>
 template<typename ... Args>
 void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
 {
 	for (auto & p : *this)
 	{
-		p.second->NextTimeStep(std::forward<Args const &>(args)...);
+		p.second->accept(CreateNexTimeStepVistor(std::forward<Args const &>(args)...));
 	}
 }
 template<typename TM>
@@ -742,7 +745,7 @@ void ParticleCollection<TM>::Collect(TJ *J, Args const & ... args) const
 {
 	for (auto & p : *this)
 	{
-		p.second->Collect(J, std::forward<Args const &>(args)...);
+		p.second->accept(CreateCollectVistor(J,std::forward<Args const &>(args)...));
 	}
 }
 

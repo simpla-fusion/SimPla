@@ -9,7 +9,7 @@
 #include <gtest/gtest.h>
 
 #include "particle.h"
-#include "pic_engine_default.h"
+#include "pic_engine_full.h"
 #include "../io/data_stream.h"
 #include "save_particle.h"
 #include "load_particle.h"
@@ -157,9 +157,9 @@ TYPED_TEST(TestParticle,Create){
 
 	ion.NextTimeStep(1.0,E, B);
 
-	ion.template Collect<0>(&n, E, B);
+	ion.Collect(&n,E,B);
 
-	ion.template Collect<1>(&J, E, B);
+	ion.Collect(&J,E,B);
 
 }
 }
