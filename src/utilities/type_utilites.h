@@ -286,6 +286,7 @@ struct AcceptorBase;
  *  \endcode
  *
  */
+
 struct VisitorBase
 {
 

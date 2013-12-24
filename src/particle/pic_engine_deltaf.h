@@ -73,13 +73,13 @@ public:
 	{
 
 	}
-	~PICEngineDeltaF()
+	virtual ~PICEngineDeltaF()
 	{
 	}
 
 	static inline std::string TypeName()
 	{
-		return "Deltaf";
+		return "DeltaF";
 	}
 
 	virtual inline std::string _TypeName() const

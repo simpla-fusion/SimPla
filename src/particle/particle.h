@@ -93,6 +93,9 @@ private:
 
 public:
 
+	DEFINE_FIELDS(mesh_type)
+	;
+
 	template<typename ...Args> Particle(mesh_type const & pmesh);
 
 	virtual ~Particle();
@@ -111,16 +114,6 @@ public:
 			res += v.size();
 		}
 		return res;
-	}
-
-	void accept(std::shared_ptr<CommandBase>) const
-	{
-		vistor->visit(this);
-	}
-
-	void accept(std::shared_ptr<CommandBase>)
-	{
-		vistor->visit(this);
 	}
 
 	/**
@@ -151,10 +144,6 @@ public:
 
 	std::ostream & Serialize(std::ostream & os) const;
 
-	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
-
-	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
-
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
 	{
@@ -168,7 +157,66 @@ public:
 		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
 	}
 
-	void Sort();
+	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args)
+	{
+		_NextTimeStep(dt, std::forward<Args const &>(args)...);
+	}
+
+	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const
+	{
+		_Collect(J, std::forward<Args const &>(args)...);
+	}
+
+	void Sort() override
+	{
+		_Sort();
+	}
+	// interface
+
+	void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B) override
+	{
+		_NextTimeStep(dt, E, B);
+	}
+	void NextTimeStep(double dt, VectorForm<0> const &E, VectorForm<0> const &B) override
+	{
+		_NextTimeStep(dt, E, B);
+	}
+	void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const override
+	{
+		Collect(n, E, B);
+	}
+	void Collect(Form<1> * J, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(J, E, B);
+	}
+	void Collect(Form<2> * J, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(J, E, B);
+	}
+	void Collect(VectorForm<0> * J, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(J, E, B);
+	}
+	void Collect(VectorForm<1> * P, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(P, E, B);
+	}
+	void Collect(VectorForm<2> * P, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(P, E, B);
+	}
+
+	void Collect(TensorForm<0> * P, Form<1> const &E, Form<2> const &B) const override
+	{
+		_Collect(P, E, B);
+	}
+
+private:
+	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
+
+	template<typename TJ, typename ... Args> void _Collect(TJ * J, Args const & ... args) const;
+
+	void _Sort();
 
 };
 
@@ -256,7 +304,7 @@ void Particle<Engine>::Update()
 }
 
 template<class Engine>
-void Particle<Engine>::Sort()
+void Particle<Engine>::_Sort()
 {
 	Update();
 
@@ -339,7 +387,7 @@ void Particle<Engine>::Sort()
 
 template<class Engine>
 template<typename ...Args>
-void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
+void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 {
 	if (data_.empty())
 	{
@@ -382,13 +430,13 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 		t.join();
 	}
 
-	Sort();
+	_Sort();
 
 }
 
 template<class Engine>
 template<typename TJ, typename ...Args>
-void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
+void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
 	{
@@ -572,14 +620,14 @@ class ParticleBase
 public:
 	typedef TM mesh_type;
 
+	DEFINE_FIELDS(mesh_type)
+
 	ParticleBase()
 	{
 	}
 	virtual ~ParticleBase()
 	{
 	}
-
-	virtual void accept(std::shared_ptr<CommandBase>)=0;
 
 	virtual std::string TypeName()
 	{
@@ -588,12 +636,53 @@ public:
 
 	virtual void Deserialize(LuaObject const &cfg)
 	{
-
 	}
 
 	virtual std::ostream & Serialize(std::ostream & os) const
 	{
 		return os;
+	}
+
+	//interface
+	virtual void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B)
+	{
+		UNIMPLEMENT;
+	}
+	virtual void NextTimeStep(double dt, VectorForm<0> const &E, VectorForm<0> const &B)
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(Form<1> * J, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(Form<2> * J, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(VectorForm<0> * J, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(VectorForm<1> * P, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(VectorForm<2> * P, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collect(TensorForm<0> * P, Form<1> const &E, Form<2> const &B) const
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Sort()
+	{
+		UNIMPLEMENT;
 	}
 
 };
@@ -655,13 +744,11 @@ public:
 		WARNING << "UNIMPLEMENT!!";
 	}
 
+	void Sort();
+
 	template<typename ... Args> void NextTimeStep(Args const & ... args);
 
 	template<typename TJ, typename ... Args> void Collect(TJ *J, Args const & ... args) const;
-
-//private:
-//	DEFINE_VISITOR (NextTimeStep);
-//	DEFINE_VISITOR (Collect);
 };
 
 template<typename TM>
@@ -736,7 +823,7 @@ void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
 {
 	for (auto & p : *this)
 	{
-		p.second->accept(CreateVisitorNexTimeStep(std::forward<Args const &>(args)...));
+		p.second->NextTimeStep(args...);
 	}
 }
 
@@ -746,7 +833,15 @@ void ParticleCollection<TM>::Collect(TJ *J, Args const & ... args) const
 {
 	for (auto & p : *this)
 	{
-		p.second->accept(CreateVisitorCollect(J, std::forward<Args const &>(args)...));
+		p.second->Collect(J, args...);
+	}
+}
+template<typename TM>
+void ParticleCollection<TM>::Sort()
+{
+	for (auto & p : *this)
+	{
+		p.second->Sort();
 	}
 }
 

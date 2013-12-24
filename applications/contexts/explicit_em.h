@@ -104,8 +104,8 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh),
 

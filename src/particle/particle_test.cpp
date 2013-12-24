@@ -126,7 +126,7 @@ TYPED_TEST(TestParticle,Create){
 				{
 					x_dist(rnd_gen,x);
 					v_dist(rnd_gen,v);
-					ion.Insert(s,x,v,1.0);
+					ion.Insert(s,x,v,1.0);=
 				}
 			}
 

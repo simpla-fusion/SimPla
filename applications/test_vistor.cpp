@@ -7,9 +7,113 @@
 #include <tuple>
 #include <iostream>
 #include <memory>
-#include "../src/utilities/type_utilites.h"
 
-using namespace simpla;
+struct AcceptorBase;
+struct VisitorBase
+{
+	std::map<std::pair<size_t, size_t>, std::function<void(AcceptorBase*, VisitorBase*)> > callmap_;
+
+	VisitorBase()
+	{
+	}
+	virtual ~VisitorBase()
+	{
+	}
+	virtual void visit(AcceptorBase* obj) const=0;
+
+};
+
+struct AcceptorBase
+{
+	virtual ~AcceptorBase()
+	{
+
+	}
+	virtual void accept(std::shared_ptr<VisitorBase> visitor)
+	{
+		visitor->visit(this);
+	}
+	virtual bool CheckType(std::type_info const &)
+	{
+		return false;
+	}
+
+	size_t type_id_hash;
+};
+
+template<typename ...Args>
+struct ArgsPack: public VisitorBase
+{
+	std::string name_;
+	std::tuple<Args...> args_;
+
+	ArgsPack(std::string const name, Args ...args) :
+			name_(name), args_(std::make_tuple(args...))
+	{
+	}
+};
+
+template<typename T, typename ...Args>
+struct Visitor: public VisitorBase
+{
+	std::string name_;
+	std::tuple<Args...> args_;
+public:
+
+	Visitor(std::string const name, Args ...args) :
+			name_(name), args_(std::make_tuple(args...))
+	{
+	}
+	~Visitor()
+	{
+	}
+
+	void visit(T* obj) const
+	{
+		obj->accept(this);
+
+	}
+
+	template<typename TFUN>
+	void excute(TFUN const fun)
+	{
+		callFunc(fun, typename GenSeq<sizeof...(Args)>::type());
+	}
+
+private:
+// Unpack tuple to args...
+//@ref http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+
+	std::tuple<Args...> args_;
+	template<int...>
+	struct Seq
+	{};
+
+	template<int N, int ...S>
+	struct GenSeq: GenSeq<N - 1, N - 1, S...>
+	{
+	};
+
+	template<int ...S>
+	struct GenSeq<0, S...>
+	{
+		typedef Seq<S...> type;
+	};
+
+	template<typename TFUN, int ...S>
+	inline void callFunc(TFUN const & fun, Seq<S...>)
+	{
+		fun(std::get<S>(args_) ...);
+	}
+
+};
+
+template<typename ...Args>
+std::shared_ptr<VisitorBase> CreateVisitor(std::string const & name, Args ...args)
+{
+	return std::dynamic_pointer_cast<VisitorBase>(
+			std::shared_ptr<Visitor<Args...>>(new Visitor<Args...>(name, std::forward<Args &>(args)...)));
+}
 
 struct Foo1: public AcceptorBase
 {
@@ -20,23 +124,16 @@ struct Foo1: public AcceptorBase
 		return typeid(this_type) == t_info;
 	}
 
+	void accept(VisitorBase const &visitor)
+	{
+		visitor.visit(this);
+	}
+
 	template<typename ...Args>
 	void accept(Visitor<this_type, Args...> &visitor)
 	{
 		visitor.excute([this](Args ... args)
 		{	this->Command(std::forward<Args>(args)...);});
-	}
-	void accept(Visitor<this_type, const char *> &visitor)
-	{
-		if (visitor.GetName() == "Command2")
-		{
-			visitor.excute([this](std::string const & args)
-			{	this->Command2(args);});
-		}
-		else
-		{
-			std::cout << "Unknown function name!" << std::endl;
-		}
 	}
 
 	void Command2(std::string const & s)
@@ -75,9 +172,9 @@ struct Foo1: public AcceptorBase
 int main(int argc, char **argv)
 {
 	AcceptorBase * f1 = dynamic_cast<AcceptorBase*>(new Foo1);
-	auto v1 = CreateVisitor<Foo1>("Command1", 5, 6);
-	auto v2 = CreateVisitor<Foo1>("Command2", "hello world");
-	auto v3 = CreateVisitor<Foo1>("Command3", 5, 6, 3);
+	auto v1 = CreateVisitor("Command1", 5, 6);
+	auto v2 = CreateVisitor("Command2", "hello world");
+	auto v3 = CreateVisitor("Command3", 5, 6, 3);
 	f1->accept(v1);
 	f1->accept(v2);
 	f1->accept(v3);
