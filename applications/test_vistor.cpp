@@ -6,102 +6,83 @@
  */
 #include <tuple>
 #include <iostream>
-struct VistorBase
+#include <memory>
+#include "../src/utilities/type_utilites.h"
+
+using namespace simpla;
+
+struct Foo1: public AcceptorBase
 {
-	VistorBase()
+	typedef Foo1 this_type;
+
+	virtual bool CheckType(std::type_info const &t_info)
+	{
+		return typeid(this_type) == t_info;
+	}
+
+	template<typename ...Args>
+	void accept(Visitor<this_type, Args...> &visitor)
+	{
+		visitor.excute([this](Args ... args)
+		{	this->Command(std::forward<Args>(args)...);});
+	}
+	void accept(Visitor<this_type, const char *> &visitor)
+	{
+		if (visitor.GetName() == "Command2")
+		{
+			visitor.excute([this](std::string const & args)
+			{	this->Command2(args);});
+		}
+		else
+		{
+			std::cout << "Unknown function name!" << std::endl;
+		}
+	}
+
+	void Command2(std::string const & s)
+	{
+		std::cout << "This is Foo1::Command2(string). args=" << s << std::endl;
+	}
+
+	void Command(int a, int b)
+	{
+		std::cout << "This is Foo1::Command(int,int). args=" << a << "     " << b << std::endl;
+	}
+
+	template<typename ... Args>
+	void Command(Args const & ...args)
+	{
+		std::cout << "This is Foo1::Command(args...). args=";
+
+		Print(args...);
+
+		std::cout << std::endl;
+	}
+
+	void Print()
 	{
 	}
-	virtual ~VistorBase()
+
+	template<typename T, typename ... Others>
+	void Print(T const &v, Others const & ... others)
 	{
+		std::cout << v << " ";
+		Print(std::forward<Others const &>(others )...);
 	}
-	virtual void visit(void *obj)=0;
+
 };
 
-template<int...>
-struct Seq
-{};
-
-template<int N, int ...S>
-struct GenSeq: GenSeq<N - 1, N - 1, S...>
-{
-};
-
-template<int ...S>
-struct GenSeq<0, S...>
-{
-	typedef Seq<S...> type;
-};
-
-template<typename T, typename ... Args>
-struct NextTimeStepVistor: public VistorBase
-{
-	std::tuple<Args ...> args_;
-
-	NextTimeStepVistor(Args const & ... args)
-			: args_(std::make_tuple(std::forward<Args const &>(args)...))
-	{
-	}
-	~NextTimeStepVistor()
-	{
-	}
-	void visit(void *obj)
-	{
-		callFunc(obj, typename GenSeq<sizeof...(Args)>::type());
-	}
-
-	template<int ...S>
-	void callFunc(void* obj,Seq<S...>)
-	{
-		reinterpret_cast<T*>(obj)->NextTimeStep(std::get<S>(args_) ...);
-	}
-
-};
-template<typename T, typename ...Args>
-VistorBase * CreateVistor(Args const &... args)
-{
-	return (new NextTimeStepVistor<T, Args...>(std::forward<Args const &>(args)...));
-}
-
-struct Base
-{
-	virtual ~Base()
-	{
-
-	}
-	virtual void accept(VistorBase *)=0;
-};
-struct Foo1: public Base
-{
-	void accept(VistorBase * visitor)
-	{
-		visitor->visit(this);
-	}
-
-	void NextTimeStep(int a, int b)
-	{
-		std::cout << "This is Foo1 " << a << "     " << b << std::endl;
-	}
-};
-struct Foo2: public Base
-{
-	void accept(VistorBase * visitor)
-	{
-		visitor->visit(this);
-	}
-
-	void NextTimeStep(int a, int b, int c)
-	{
-		std::cout << "This is Foo2 " << a << "     " << b << std::endl;
-	}
-};
 int main(int argc, char **argv)
 {
-	Base * f1 = dynamic_cast<Base*>(new Foo1);
-	Base * f2 = dynamic_cast<Base*>(new Foo2);
-	VistorBase *v1 = CreateVistor<Foo1>(5, 6);
-	VistorBase *v2 = CreateVistor<Foo2>(5, 6, 3);
+	AcceptorBase * f1 = dynamic_cast<AcceptorBase*>(new Foo1);
+	auto v1 = CreateVisitor<Foo1>("Command1", 5, 6);
+	auto v2 = CreateVisitor<Foo1>("Command2", "hello world");
+	auto v3 = CreateVisitor<Foo1>("Command3", 5, 6, 3);
 	f1->accept(v1);
-	f2->accept(v2);
+	f1->accept(v2);
+	f1->accept(v3);
+
+	delete f1;
 
 }
 

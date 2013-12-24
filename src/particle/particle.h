@@ -30,8 +30,8 @@
 
 #include <ext/mt_allocator.h>
 template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
-
 #endif
+
 namespace simpla
 {
 struct LuaObject;
@@ -113,12 +113,12 @@ public:
 		return res;
 	}
 
-	void accept(VistorBase* vistor) const
+	void accept(std::shared_ptr<CommandBase>) const
 	{
 		vistor->visit(this);
 	}
 
-	void accept(VistorBase* vistor)
+	void accept(std::shared_ptr<CommandBase>)
 	{
 		vistor->visit(this);
 	}
@@ -574,14 +574,12 @@ public:
 
 	ParticleBase()
 	{
-
 	}
 	virtual ~ParticleBase()
 	{
-
 	}
 
-//	virtual void accept(VistorBase*)=0;
+	virtual void accept(std::shared_ptr<CommandBase>)=0;
 
 	virtual std::string TypeName()
 	{
@@ -660,6 +658,10 @@ public:
 	template<typename ... Args> void NextTimeStep(Args const & ... args);
 
 	template<typename TJ, typename ... Args> void Collect(TJ *J, Args const & ... args) const;
+
+//private:
+//	DEFINE_VISITOR (NextTimeStep);
+//	DEFINE_VISITOR (Collect);
 };
 
 template<typename TM>
@@ -728,24 +730,23 @@ std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
 	return os;
 }
 
-DEFINE_VISTOR (NextTimeStep);
-DEFINE_VISTOR (Collect);
 template<typename TM>
 template<typename ... Args>
 void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
 {
 	for (auto & p : *this)
 	{
-		p.second->accept(CreateNexTimeStepVistor(std::forward<Args const &>(args)...));
+		p.second->accept(CreateVisitorNexTimeStep(std::forward<Args const &>(args)...));
 	}
 }
+
 template<typename TM>
 template<typename TJ, typename ... Args>
 void ParticleCollection<TM>::Collect(TJ *J, Args const & ... args) const
 {
 	for (auto & p : *this)
 	{
-		p.second->accept(CreateCollectVistor(J,std::forward<Args const &>(args)...));
+		p.second->accept(CreateVisitorCollect(J, std::forward<Args const &>(args)...));
 	}
 }
 
