@@ -250,28 +250,27 @@ DECL_SELF_ASSIGN	(-=)
 
 	}
 
-	inline field_value_type Gather(index_type const & s,
-			Real const *pcoords) const
+	inline field_value_type Gather(index_type const & s, Real const *pcoords) const
 	{
 
 		field_value_type res;
 
-		std::vector<index_type> points;
+		size_t num=mesh.GetAffectedPoints(Int2Type<IForm>(), s );
 
-		std::vector<typename geometry_type::gather_weight_type> weights;
+		std::vector<index_type> points(num);
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
+		std::vector<value_type> cache(num);
 
-		mesh.CalculateWeights(Int2Type<IForm>(), pcoords, weights);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
+
+		for(int i=0;i<num;++i)
+		{
+			cache[i]=mesh.get_value(data_, points[i]);
+		}
 
 		res *= 0;
 
-		auto it1 = points.begin();
-		auto it2 = weights.begin();
-		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
-		{
-			res+=mesh.get_value(data_, *it1) *(*it2);
-		}
+		mesh.GatherFromMesh(Int2Type<IForm>(),pcoords,&cache[0],&res);
 
 		return res;
 
@@ -293,23 +292,19 @@ DECL_SELF_ASSIGN	(-=)
 	{
 
 		std::vector<index_type> points;
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
+		value_type zero_value;
+		zero_value*=0;
+		std::vector<value_type> cache(points.size(),zero_value);
 
-		std::vector<typename geometry_type::scatter_weight_type> weights;
+		field_value_type vv; vv=v;
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
+		mesh.ScatterToMesh(Int2Type<IForm>(),pcoords,vv,&cache[0]);
 
-		std::vector<value_type> cache(points.size());
-
-		mesh.CalculateWeights(Int2Type<IForm>(), pcoords, weights);
-
-		for (int i=0,i_e=points.size(); i<i_e;++i)
-		{
-			cache[i]= Dot(v, weights[i]);
-		}
 		Collect(points,cache);
 	}
 
-	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> & cache)
+	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> const& cache)
 	{
 		write_lock_.lock();
 		for (int i=0,i_e=points.size(); i<i_e;++i)

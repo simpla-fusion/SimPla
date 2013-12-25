@@ -70,29 +70,40 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> shift_ =
+	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ =
+	{ 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_ =
+	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, size_t> strides_ =
+	{ 0, 0, 0 };
 
 	size_t num_cells_ = 0;
 
 	size_t num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> dS_[2] =
+	{ 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> k_ =
+	{ 0, 0, 0 };
 
-	coordinates_type dx_ = { 0, 0, 0 };
-	coordinates_type inv_dx_ = { 0, 0, 0 };
+	coordinates_type dx_ =
+	{ 0, 0, 0 };
+	coordinates_type inv_dx_ =
+	{ 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -1321,86 +1332,109 @@ public:
 		return 2;
 	}
 
-	template<typename PList>
-	inline void GetAffectedPoints(Int2Type<0>, index_type const & idx, PList & points, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<0>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
 	{
 
-		points.resize(8);
-		// 0 0 0
-		points[0] = idx;
-		// 0 1 0
-		points[1] = idx + strides_[0];
-		// 0 0 1
-		points[2] = idx + strides_[1];
-		// 0 1 1
-		points[3] = idx + strides_[0] + strides_[1];
-		// 1 0 0
-		points[4] = idx + strides_[2];
-		// 1 1 0
-		points[5] = idx + strides_[0] + strides_[2];
-		// 1 0 1
-		points[6] = idx + strides_[1] + strides_[2];
-		// 1 1 1
-		points[7] = idx + strides_[0] + strides_[1] + strides_[2];
-
+		if(points!=nullptr)
+		{
+			// 0 0 0
+			points[0] = idx;
+			// 0 1 0
+			points[1] = idx + strides_[0];
+			// 0 0 1
+			points[2] = idx + strides_[1];
+			// 0 1 1
+			points[3] = idx + strides_[0] + strides_[1];
+			// 1 0 0
+			points[4] = idx + strides_[2];
+			// 1 1 0
+			points[5] = idx + strides_[0] + strides_[2];
+			// 1 0 1
+			points[6] = idx + strides_[1] + strides_[2];
+			// 1 1 1
+			points[7] = idx + strides_[0] + strides_[1] + strides_[2];
+		}
+		return 8;
 	}
 
-	template<typename PList>
-	inline void GetAffectedPoints(Int2Type<1>, index_type const & idx, PList& points, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<1>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
 	{
-
-		// 0 0 0
-
+		return 12;
 	}
 
-	template<typename PList>
-	inline void GetAffectedPoints(Int2Type<2>, index_type const & idx, PList& points, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<2>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
 	{
-
-		// 0 0 0
-
-	}
-	template<typename PList>
-	inline void GetAffectedPoints(Int2Type<3>, index_type const & idx, PList& points, int affect_region = 1) const
-	{
-
-		// 0 0 0
-
+		return 6;
 	}
 
-	template<typename TW>
-	inline void CalculateWeights(Int2Type<0>, Real const *pcoords, TW & weights, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<3>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
 	{
-		weights.resize(8);
+		return 1;
+	}
+
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
+	{
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 
-		weights[0] = (1.0 - r) * (1.0 - s) * (1.0 - t);
-		weights[1] = r * (1.0 - s) * (1.0 - t);
-		weights[2] = (1.0 - r) * s * (1.0 - t);
-		weights[3] = r * s * (1.0 - t);
-		weights[4] = (1.0 - r) * (1.0 - s) * t;
-		weights[5] = r * (1.0 - s) * t;
-		weights[6] = (1.0 - r) * s * t;
-		weights[7] = r * s * t;
+		cache[0] += v* (1.0 - r) * (1.0 - s) * (1.0 - t);
+		cache[1] += v* r * (1.0 - s) * (1.0 - t);
+		cache[2] += v* (1.0 - r) * s * (1.0 - t);
+		cache[3] += v* r * s * (1.0 - t);
+		cache[4] += v* (1.0 - r) * (1.0 - s) * t;
+		cache[5] += v* r * (1.0 - s) * t;
+		cache[6] += v* (1.0 - r) * s * t;
+		cache[7] += v* r * s * t;
 	}
-	template<typename TW>
-	inline void CalculateWeights(Int2Type<1>, Real const *pcoords, TW & weight, int affect_region = 1) const
+
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<1>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
 	{
-
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 	}
-
-	template<typename TW>
-	inline void CalculateWeights(Int2Type<2>, Real const *pcoords, TW & weight, int affect_region = 1) const
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
 	{
-
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 	}
-
-	template<typename TW>
-	inline void CalculateWeights(Int2Type<3>, Real const *pcoords, TW & weight, int affect_region = 1) const
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
 	{
-
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
 	}
 
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	{
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+
+		(*res) = 0;
+		(*res)+=cache[0] * (1.0 - r) * (1.0 - s) * (1.0 - t);
+		(*res)+=cache[1] * r * (1.0 - s) * (1.0 - t);
+		(*res)+=cache[2] * (1.0 - r) * s * (1.0 - t);
+		(*res)+=cache[3] * r * s * (1.0 - t);
+		(*res)+=cache[4] * (1.0 - r) * (1.0 - s) * t;
+		(*res)+=cache[5] * r * (1.0 - s) * t;
+		(*res)+=cache[6] * (1.0 - r) * s * t;
+		(*res)+=cache[7] * r * s * t;
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	{
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	{
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+	}
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	{
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+	}
 // Mapto ----------------------------------------------------------
 	/**
 	 *    mapto(Int2Type<0> ,   //tarGet topology position
@@ -1766,7 +1800,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
+		std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
 {
 
 	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
@@ -1806,9 +1840,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-		        std::thread([num_threads,thread_id,this](Args const & ...args2)
-		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-		                std::forward<Args const &>(args)...));
+				std::thread([num_threads,thread_id,this](Args const & ...args2)
+				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+						std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

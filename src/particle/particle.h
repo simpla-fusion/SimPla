@@ -224,8 +224,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -280,7 +280,7 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-	        ;
+			;
 
 	os << "} ";
 
@@ -405,7 +405,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	auto fun = [this](unsigned int t_num,unsigned int t_id,Real dt, Args const & ... args_c )
 	{
-		auto fun2=[this](cell_type & p_cell,Real dt, typename ProxyCache<const Args>::type const & ... args_c2)
+		auto fun2=[this](cell_type & p_cell,Real dt, typename ProxyCache<const Args>::type const &... args_c2)
 		{
 			for (auto & p : p_cell)
 			{
@@ -449,7 +449,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	}
 
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
-	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
+			<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -457,12 +457,12 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	auto fun = [&](unsigned int t_num,unsigned int t_id,TJ * J_c, Args const & ... args_c )
 	{
-		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type J_c2,
-				typename ProxyCache<const Args>::type ... args_c2)
+		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type const& J_c2,
+				typename ProxyCache<const Args>::type const&... args_c2)
 		{
 			for (auto const& p : p_cell)
 			{
-				engine_type::Collect(p, &J_c2, args_c2...);
+				engine_type::Collect(p, &const_cast<typename ProxyCache<TJ*>::type &>(J_c2) , args_c2...);
 			}
 		};
 
@@ -513,8 +513,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -594,14 +594,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh)
+		typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -706,8 +706,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
