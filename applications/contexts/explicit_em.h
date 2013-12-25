@@ -38,7 +38,7 @@
 #include "../pic/pic_engine_ggauge.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_full.h"
-#include "../../src/particle/pic_engine_deltaf.h"
+//#include "../../src/particle/pic_engine_deltaf.h"
 
 #include "../solver/electromagnetic/cold_fluid.h"
 #include "../solver/electromagnetic/pml.h"
@@ -119,7 +119,7 @@ ExplicitEMContext<TM>::ExplicitEMContext() :
 
 {
 	particle_collection_.template RegisterFactory<PICEngineFull<mesh_type> >();
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
+//	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
 //
 //	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
 //	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");

@@ -63,8 +63,8 @@ public:
 		}
 	};
 
-	PICEngineFull(mesh_type const &pmesh) :
-			base_type(pmesh), cmr_(1.0), q_(1.0)
+	PICEngineFull(mesh_type const &pmesh)
+			: base_type(pmesh), cmr_(1.0), q_(1.0)
 	{
 
 	}
@@ -147,28 +147,8 @@ public:
 		J->Collect(p.v * p.f, p.x);
 	}
 
-//	inline void NextTimeStep(...)
-//	{
-//		DEADEND;
-//	}
-//
-//	inline void Collect(...) const
-//	{
-//		DEADEND;
-//	}
-
-	template<typename TX, typename TV, typename TN>
-	inline Point_s Trans(TX const & x, TV const &v, TN const & n, ...) const
-	{
-		Point_s p;
-		p.x = x;
-		p.v = v;
-		p.f = n(p.x);
-		return std::move(p);
-	}
-
 	template<typename TX, typename TV>
-	inline Point_s Trans(TX const & x, TV const &v, scalar_type f) const
+	inline Point_s Trans(TX const & x, TV const &v, Real f, ...) const
 	{
 		Point_s p;
 		p.x = x;

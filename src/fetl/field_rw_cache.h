@@ -8,10 +8,12 @@
 #ifndef FIELD_IO_CACHE_H_
 #define FIELD_IO_CACHE_H_
 
+//#include <algorithm>
 #include <vector>
-#include <algorithm>
+
+#include "../utilities/log.h"
+#include "../utilities/type_utilites.h"
 #include "field.h"
-#include "primitives.h"
 #include "proxycache.h"
 
 namespace simpla
@@ -43,19 +45,17 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(this_type && r) :
-			mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(
-					r.affect_region_), f_(r.f_), zero_value_(r.zero_value_), points_(
-					r.points_), cache_(r.cache_)
+	Field(this_type && r)
+			: mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(r.affect_region_), f_(r.f_), zero_value_(
+			        r.zero_value_), points_(r.points_), cache_(r.cache_)
 	{
 
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_region = 1) :
-			mesh(f.mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
+	Field(field_type const & f, index_type const &s, int affect_region = 1)
+			: mesh(f.mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
 	{
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_,
-				affect_region_);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_, affect_region_);
 
 		for (auto const &p : points_)
 		{
@@ -71,36 +71,29 @@ public:
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return std::move(Collect(x));
-	}
+		CHECK(x);
 
-	inline field_value_type Collect(coordinates_type const &x) const
-	{
 		coordinates_type pcoords;
 
-		std::vector<typename geometry_type::weight_type> weights(
-				points_.size());
+		std::vector<typename geometry_type::weight_type> weights(points_.size());
 
 		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords));
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights,
-					affect_region_);
+			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights, affect_region_);
 
-			return std::move(
-					std::inner_product(weights.begin(), weights.end(),
-							cache_.begin(), zero_field_value_));
+			return std::move(std::inner_product(weights.begin(), weights.end(), cache_.begin(), zero_field_value_));
 		}
 		else
 		{
-			return std::move(f_.Collect(idx, pcoords));
+			return std::move(f_(idx, pcoords));
 		}
 
 	}
 
 private:
-	field_type & f_;
+	field_type const & f_;
 
 	index_type cell_idx_;
 
@@ -116,7 +109,7 @@ private:
 };
 
 template<typename TGeometry, typename TValue>
-class Field<TGeometry, ProxyCache<Field<TGeometry, TValue> > >
+class Field<TGeometry, ProxyCache<Field<TGeometry, TValue> *> >
 {
 
 public:
@@ -141,10 +134,9 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(this_type && r) :
-			mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(
-					r.affect_region_), f_(r.f_), zero_value_(r.zero_value_), points_(
-					r.points_), cache_(r.cache_)
+	Field(this_type && r)
+			: mesh(r.mesh), cell_idx_(r.cell_idx_), affect_region_(r.affect_region_), f_(r.f_), zero_value_(
+			        r.zero_value_), points_(r.points_), cache_(r.cache_)
 	{
 
 //		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_,
@@ -156,12 +148,11 @@ public:
 //		}
 	}
 
-	Field(field_type & f, index_type const &s, int affect_region = 1) :
-			mesh(f.mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
+	Field(field_type * f, index_type const &s, int affect_region = 1)
+			: mesh(f->mesh), cell_idx_(s), affect_region_(affect_region), f_(f)
 	{
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_,
-				affect_region_);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, points_, affect_region_);
 		zero_value_ *= 0;
 		for (auto const &p : points_)
 		{
@@ -172,11 +163,11 @@ public:
 
 	~Field()
 	{
-		f_.Scatter(points_, cache_);
+		f_->Collect(points_, cache_);
 	}
 
-//	template<typename TV>
-	inline void Scatter(field_value_type const &v, coordinates_type const &x)
+	template<typename TV>
+	inline void Collect(TV const &v, coordinates_type const &x)
 	{
 		coordinates_type pcoords;
 
@@ -186,8 +177,7 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights,
-					affect_region_);
+			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights, affect_region_);
 
 			auto it1 = cache_.begin();
 			auto it2 = weights.begin();
@@ -196,17 +186,17 @@ public:
 			for (; it1 != cache_.end() && it2 != it2_end; ++it1, ++it2)
 			{
 				// FIXME: this incorrect for vector field interpolation
-				*it1 += Dot(v, (*it2));
+//				*it1 += Dot(v, (*it2));
 			}
 		}
 		else
 		{
-			f_.Scatter(v, idx, pcoords, affect_region_);
+			f_->Collect(v, idx, pcoords, affect_region_);
 		}
 	}
 
 private:
-	field_type & f_;
+	field_type* f_;
 
 	index_type cell_idx_;
 
@@ -235,14 +225,14 @@ struct ProxyCache<const Field<TGeometry, TValue> >
 };
 
 template<typename TGeometry, typename TValue>
-struct ProxyCache<Field<TGeometry, TValue> >
+struct ProxyCache<Field<TGeometry, TValue>*>
 {
-	typedef Field<TGeometry, TValue> src_type;
+	typedef Field<TGeometry, TValue>* src_type;
 
 	typedef Field<TGeometry, ProxyCache<src_type> > type;
 
 	template<typename ... TI>
-	static inline type Eval(src_type & f, TI ... hint_idx)
+	static inline type Eval(src_type f, TI ... hint_idx)
 	{
 		return std::move(type(f, hint_idx...));
 	}

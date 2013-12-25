@@ -68,8 +68,8 @@ public:
 		}
 	};
 
-	PICEngineDeltaF(mesh_type const &pmesh) :
-			base_type(pmesh), cmr_(1.0), q_(1.0), T_(1.0)
+	PICEngineDeltaF(mesh_type const &pmesh)
+			: base_type(pmesh), cmr_(1.0), q_(1.0), T_(1.0)
 	{
 
 	}
@@ -156,32 +156,23 @@ public:
 	template<typename ...Others>
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, Others const &...others) const
 	{
-		n->Collect(p.f * p.w, p.x);
+//		n->Collect(p.f * p.w, p.x);
 	}
 
 	template<int IFORM, typename TV, typename ... Others>
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &...others) const
 	{
-		J->Collect(p.v * (p.f * p.w), p.x);
-	}
-
-	template<typename TX, typename TV, typename TN, typename ...Args>
-	inline Point_s Trans(TX const & x, TV const &v, TN const & n, Args...) const
-	{
-		Point_s p;
-		p.x = x;
-		p.v = v;
-		p.f = n(p.x);
-		return std::move(p);
+//		J->Collect(p.v * (p.f * p.w), p.x);
 	}
 
 	template<typename TX, typename TV>
-	inline Point_s Trans(TX const & x, TV const &v, scalar_type f) const
+	inline Point_s Trans(TX const & x, TV const &v, Real f, ...) const
 	{
 		Point_s p;
 		p.x = x;
 		p.v = v;
 		p.f = f;
+		p.w = 0;
 		return std::move(p);
 	}
 

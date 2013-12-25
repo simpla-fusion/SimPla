@@ -177,7 +177,7 @@ template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> c
 //DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, TR > >(l, r))))
         ->nTuple<N,decltype(l[0]*r)>
 {
-	nTuple<N, decltype(l[0]/r)> res;
+	nTuple<N, decltype(l[0]*r)> res;
 	for (int i = 0; i < N; ++i)
 	{
 		res[i] = l[i] * r;

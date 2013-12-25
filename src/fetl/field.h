@@ -215,7 +215,7 @@ public:
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
 	{   Init();                                                                                    \
-		mesh.ForEach(   [](value_type &l,typename FieldTraits<TR>::value_type const & r)           \
+		mesh.ForEach( [](value_type &l,typename FieldTraits<TR>::value_type const & r)             \
 	            {	l _OP_ r;},	 this,rhs);     return (*this);}
 
 	DECL_SELF_ASSIGN (+=)
@@ -224,12 +224,17 @@ DECL_SELF_ASSIGN	(-=)
 
 	DECL_SELF_ASSIGN (*=)
 
-	DECL_SELF_ASSIGN(/=)
+	DECL_SELF_ASSIGN (/=)
 #undef DECL_SELF_ASSIGN
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return std::move(Gather(x));
+		return Gather(x);
+	}
+
+	inline field_value_type operator()(index_type s,coordinates_type const &pcoords) const
+	{
+		return Gather(s,pcoords);
 	}
 
 	inline field_value_type Gather(coordinates_type const &x) const
@@ -237,9 +242,9 @@ DECL_SELF_ASSIGN	(-=)
 
 		coordinates_type pcoords;
 
-		index_type s = mesh.SearchCell(x, &pcoords);
+		index_type s = mesh.SearchCell(x, &pcoords[0]);
 
-		return std::move(Gather(s, pcoords));
+		return Gather(s, pcoords);
 
 	}
 
@@ -247,18 +252,18 @@ DECL_SELF_ASSIGN	(-=)
 			coordinates_type const &pcoords) const
 	{
 
+		field_value_type res;
+
 		std::vector<index_type> points;
 
 		std::vector<typename geometry_type::gather_weight_type> weights;
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
-
-		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
-
-		field_value_type res;
-
-//		res *= 0;
+//		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 //
+//		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+//
+//		res *= 0;
+
 //		auto it1 = points.begin();
 //		auto it2 = weights.begin();
 //		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
@@ -281,7 +286,7 @@ DECL_SELF_ASSIGN	(-=)
 //
 //		}
 
-		return std::move(res);
+		return res;
 
 	}
 
@@ -290,7 +295,7 @@ DECL_SELF_ASSIGN	(-=)
 	{
 		coordinates_type pcoords;
 
-		index_type s = mesh.SearchCell(x, &pcoords);
+		index_type s = mesh.SearchCell(x, &pcoords[0]);
 
 		Collect(v, s, pcoords);
 
@@ -339,20 +344,7 @@ DECL_SELF_ASSIGN	(-=)
 		auto it1=points.begin();
 		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
-			try
-			{
-				this->get(*it1) += *it2;
-			}
-			catch(std::out_of_range const &e)
-			{
-#ifndef NDEBUG
-				WARNING
-#else
-				VERBOSE
-#endif
-				<< e.what() <<"[ idx="<< *it1<<"]";
-
-			}
+			this->operator[](*it1)+= *it2;
 		}
 
 	}

@@ -18,11 +18,14 @@
 #include <thread>
 
 #include "../fetl/fetl.h"
+#include "../fetl/field_rw_cache.h"
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
+
+#include "load_particle.h"
 
 #ifndef NO_STD_CXX
 
@@ -221,8 +224,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -247,7 +250,7 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 
 	engine_type::Deserialize(cfg);
 
-	size_t num_pic;
+	LoadParticle(cfg["PIC"].as<size_t>(), this);
 
 }
 template<class Engine>
@@ -277,7 +280,7 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-			;
+	        ;
 
 	os << "} ";
 
@@ -400,29 +403,30 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	std::vector<std::thread> threads;
 
-	auto fun = [this,dt](unsigned int num_threads,unsigned int thread_id,
-			typename ProxyCache<const Args>::type const& ... args_c)
+	auto fun = [this](unsigned int t_num,unsigned int t_id,Real dt, Args const & ... args_c )
 	{
+		auto fun2=[this](cell_type & p_cell,Real dt, typename ProxyCache<const Args>::type const & ... args_c2)
+		{
+			for (auto & p : p_cell)
+			{
+				engine_type::NextTimeStep(&p, dt, args_c2...);
+			}
+		};
 
-		this->mesh._Traversal(num_threads, thread_id, this->IForm,
+		this->mesh._Traversal(t_num, t_id, this->IForm,
 
 				[&](index_type const &s)
 				{
-					for (auto & p : this->data_[s])
-					{
-						engine_type::NextTimeStep(&p,dt, args_c...);
-					}
+					fun2(this->data_[s],dt,ProxyCache<const Args >::Eval(args_c,s)...);
 				}
-
 		);
 
 	};
-
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id,
+		threads.emplace_back(std::thread(fun, num_threads, thread_id, dt,
 
-		ProxyCache<Args const>::Eval(args)...));
+		std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)
@@ -445,7 +449,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	}
 
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
-			<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
+	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -458,21 +462,25 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	std::vector<std::thread> threads;
 
-	auto fun = [this](unsigned int t_num,unsigned int t_id,
-			typename ProxyCache<TJ*>::type J_c,
-			typename ProxyCache<const Args>::type ... args_c)
+	auto fun = [&](unsigned int t_num,unsigned int t_id,TJ * J_c, Args const & ... args_c )
 	{
+		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type J_c2,
+				typename ProxyCache<const Args>::type ... args_c2)
+		{
+			for (auto const& p : p_cell)
+			{
+				engine_type::Collect(p, &J_c2, args_c2...);
+			}
+		};
 
 		this->mesh._Traversal(t_num, t_id, this->IForm,
 
 				[&](index_type const &s)
 				{
-					for (auto const& p : this->data_[s])
-					{
-						engine_type::Collect(p, J_c,args_c...);
-					}
-				},mesh_type::WITH_GHOSTS
+					fun2(this->data_[s],ProxyCache<TJ*>::Eval(J_c,s),
+							ProxyCache<const Args >::Eval(args_c,s)...);
 
+				},mesh_type::WITH_GHOSTS
 		);
 
 	};
@@ -481,11 +489,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	{
 		threads.emplace_back(std::thread(fun, num_threads, thread_id,
 
-		ProxyCache<TJ*>::Eval(&tmp[thread_id]),
-
-		ProxyCache<Args const>::Eval(args)...
-
-		));
+		&tmp[thread_id], std::forward<Args const &>(args) ...));
 	}
 
 	for (auto & t : threads)
@@ -520,8 +524,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -601,14 +605,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-		typename TParticleEngine::mesh_type const & mesh)
+        typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -643,7 +647,7 @@ public:
 		return os;
 	}
 
-	//interface
+//interface
 	virtual void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B)
 	{
 		UNIMPLEMENT;
@@ -713,8 +717,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 	~ParticleCollection()

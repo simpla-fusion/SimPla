@@ -18,9 +18,9 @@
 #include "constant_ops.h"
 #include "proxycache.h"
 
-//#ifndef NO_FIELD_IO_CACHE
-//#  include "./field_rw_cache.h"
-//#endif
+#ifndef NO_FIELD_IO_CACHE
+#  include "field_rw_cache.h"
+#endif
 
 namespace simpla
 {
@@ -35,7 +35,7 @@ template<int IFORM> using RVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real
 template<int IFORM> using RTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;                    \
 template<int IFORM> using CForm = Field<Geometry<Mesh,IFORM>,Complex >;                                            \
 template<int IFORM> using CVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Complex> >;                            \
-template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;                 \
+template<int IFORM> using CTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Complex> > >;
 
 } // namespace simpla
 #endif  // FETL_H_
