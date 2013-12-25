@@ -1268,8 +1268,7 @@ public:
 	 * @param pcoords local parameter coordinates
 	 * @return index of cell
 	 */
-	template<typename TX>
-	inline index_type SearchCell(coordinates_type const &x, TX *pcoords = nullptr) const
+	inline index_type SearchCell(coordinates_type const &x, Real *pcoords = nullptr) const
 	{
 
 		size_t idx = 0;
@@ -1299,8 +1298,7 @@ public:
 	 * @param pcoords
 	 * @return index of cell
 	 */
-	inline index_type SearchCell(index_type const &hint_idx, coordinates_type const &x, coordinates_type *pcoords =
-	nullptr) const
+	inline index_type SearchCell(index_type const &hint_idx, coordinates_type const &x, Real *pcoords = nullptr) const
 	{
 		return SearchCell(x, pcoords);
 	}
@@ -1371,7 +1369,7 @@ public:
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<0>, coordinates_type const &pcoords, TW & weights, int affect_region = 1) const
+	inline void CalcuateWeights(Int2Type<0>, Real const *pcoords, TW & weights, int affect_region = 1) const
 	{
 		weights.resize(8);
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
@@ -1386,19 +1384,19 @@ public:
 		weights[7] = r * s * t;
 	}
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<1>, coordinates_type const &pcoords, TW & weight, int affect_region = 1) const
+	inline void CalcuateWeights(Int2Type<1>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<2>, coordinates_type const &pcoords, TW & weight, int affect_region = 1) const
+	inline void CalcuateWeights(Int2Type<2>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<3>, coordinates_type const &pcoords, TW & weight, int affect_region = 1) const
+	inline void CalcuateWeights(Int2Type<3>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}

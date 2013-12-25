@@ -453,13 +453,6 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	std::vector<TJ> tmp(num_threads, *J);
-
-	for (auto &v : tmp)
-	{
-		v.Fill(0);
-	}
-
 	std::vector<std::thread> threads;
 
 	auto fun = [&](unsigned int t_num,unsigned int t_id,TJ * J_c, Args const & ... args_c )
@@ -489,7 +482,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	{
 		threads.emplace_back(std::thread(fun, num_threads, thread_id,
 
-		&tmp[thread_id], std::forward<Args const &>(args) ...));
+		J, std::forward<Args const &>(args) ...));
 	}
 
 	for (auto & t : threads)
@@ -497,10 +490,6 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 		t.join();
 	}
 
-	for (int i = 0; i < num_threads; ++i)
-	{
-		*J += tmp[i];
-	}
 }
 
 template<typename TM>

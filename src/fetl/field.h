@@ -258,33 +258,18 @@ DECL_SELF_ASSIGN	(-=)
 
 		std::vector<typename geometry_type::gather_weight_type> weights;
 
-//		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
-//
-//		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
-//
-//		res *= 0;
+		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-//		auto it1 = points.begin();
-//		auto it2 = weights.begin();
-//		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
-//		{
-//
-//			try
-//			{
-//				res += this->at(*it1) * (*it2);
-//
-//			}
-//			catch (std::out_of_range const &e)
-//			{
-//#ifndef NDEBUG
-//				WARNING
-//#else
-//				VERBOSE
-//#endif
-//				<< e.what() <<"[ idx="<< *it1<<"]";
-//			}
-//
-//		}
+		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+
+		res *= 0;
+
+		auto it1 = points.begin();
+		auto it2 = weights.begin();
+		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
+		{
+			mesh.get_value(data_, *it1) += *it2;
+		}
 
 		return res;
 
@@ -302,7 +287,7 @@ DECL_SELF_ASSIGN	(-=)
 	}
 	template<typename TV>
 	inline void Collect(TV const & v, index_type const & s,
-			coordinates_type const &pcoords, int affected_region = 1)
+			Real * pcoords, int affected_region = 1)
 	{
 
 		std::vector<index_type> points;
@@ -318,20 +303,7 @@ DECL_SELF_ASSIGN	(-=)
 		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
 		{
 			// FIXME: this incorrect for vector field interpolation
-
-//			try
-//			{
-//				this->get(*it1) += Dot(v, *it2);
-//			}
-//			catch (std::out_of_range const &e)
-//			{
-//#ifndef NDEBUG
-//				WARNING
-//#else
-//				VERBOSE
-//#endif
-//				<< e.what() <<"[ idx="<< *it1<<"]";
-//			}
+//			mesh.get_value(data_, *it1) += Dot(v, *it2);
 		}
 
 	}
@@ -344,7 +316,7 @@ DECL_SELF_ASSIGN	(-=)
 		auto it1=points.begin();
 		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
-			this->operator[](*it1)+= *it2;
+			mesh.get_value(data_, *it1) += *it2;
 		}
 
 	}

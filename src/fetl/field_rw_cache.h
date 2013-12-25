@@ -71,17 +71,15 @@ public:
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		CHECK(x);
-
 		coordinates_type pcoords;
 
 		std::vector<typename geometry_type::weight_type> weights(points_.size());
 
-		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords));
+		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights, affect_region_);
+			mesh.CalcuateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
 
 			return std::move(std::inner_product(weights.begin(), weights.end(), cache_.begin(), zero_field_value_));
 		}
@@ -173,11 +171,11 @@ public:
 
 		std::vector<typename geometry_type::weight_type> weights;
 
-		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords);
+		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights, affect_region_);
+			mesh.CalcuateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
 
 			auto it1 = cache_.begin();
 			auto it2 = weights.begin();
@@ -191,7 +189,7 @@ public:
 		}
 		else
 		{
-			f_->Collect(v, idx, pcoords, affect_region_);
+			f_->Collect(v, idx, &pcoords[0], affect_region_);
 		}
 	}
 
