@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <vector>
 #include <utility>
+#include <mutex>
 namespace simpla
 {
 template<typename TG, typename TValue> struct Field;
@@ -31,6 +32,7 @@ template<typename TG, typename TValue> struct Field;
 template<typename TG, typename TValue>
 struct Field
 {
+	std::mutex write_lock_;
 public:
 
 	typedef TG geometry_type;
@@ -65,13 +67,13 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh, value_type d_value) :
+			mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 		*this = d_value;
 	}
@@ -88,14 +90,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
@@ -232,7 +234,7 @@ DECL_SELF_ASSIGN	(-=)
 		return Gather(x);
 	}
 
-	inline field_value_type operator()(index_type s,coordinates_type const &pcoords) const
+	inline field_value_type operator()(index_type s,Real const *pcoords) const
 	{
 		return Gather(s,pcoords);
 	}
@@ -249,7 +251,7 @@ DECL_SELF_ASSIGN	(-=)
 	}
 
 	inline field_value_type Gather(index_type const & s,
-			coordinates_type const &pcoords) const
+			Real const *pcoords) const
 	{
 
 		field_value_type res;
@@ -260,7 +262,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+		mesh.CalculateWeights(Int2Type<IForm>(), pcoords, weights);
 
 		res *= 0;
 
@@ -268,7 +270,7 @@ DECL_SELF_ASSIGN	(-=)
 		auto it2 = weights.begin();
 		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
 		{
-			mesh.get_value(data_, *it1) += *it2;
+//			mesh.get_value(data_, *it1) += *it2;
 		}
 
 		return res;
@@ -296,16 +298,18 @@ DECL_SELF_ASSIGN	(-=)
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
-		mesh.CalcuateWeights(Int2Type<IForm>(), pcoords, weights);
+		mesh.CalculateWeights(Int2Type<IForm>(), pcoords, weights);
 
 		auto it1 = points.begin();
 		auto it2 = weights.begin();
+
+		write_lock_.lock();
 		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
 		{
 			// FIXME: this incorrect for vector field interpolation
 //			mesh.get_value(data_, *it1) += Dot(v, *it2);
 		}
-
+		write_lock_.unlock();
 	}
 
 	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> & cache)
@@ -314,11 +318,13 @@ DECL_SELF_ASSIGN	(-=)
 
 		auto it2=cache.begin();
 		auto it1=points.begin();
+		write_lock_.lock();
 		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
 		{
-			mesh.get_value(data_, *it1) += *it2;
+			auto & a=mesh.get_value(data_, *it1);
+			a=a+ *it2;
 		}
-
+		write_lock_.unlock();
 	}
 };
 

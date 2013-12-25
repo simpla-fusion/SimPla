@@ -79,13 +79,13 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
+			mesh.CalculateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
 
 			return std::move(std::inner_product(weights.begin(), weights.end(), cache_.begin(), zero_field_value_));
 		}
 		else
 		{
-			return std::move(f_(idx, pcoords));
+			return std::move(f_(idx, &pcoords[0]));
 		}
 
 	}
@@ -175,7 +175,7 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.CalcuateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
+			mesh.CalculateWeights(Int2Type<IForm>(), &pcoords[0], weights, affect_region_);
 
 			auto it1 = cache_.begin();
 			auto it2 = weights.begin();

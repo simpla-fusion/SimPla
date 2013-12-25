@@ -1369,7 +1369,7 @@ public:
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<0>, Real const *pcoords, TW & weights, int affect_region = 1) const
+	inline void CalculateWeights(Int2Type<0>, Real const *pcoords, TW & weights, int affect_region = 1) const
 	{
 		weights.resize(8);
 		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
@@ -1384,19 +1384,19 @@ public:
 		weights[7] = r * s * t;
 	}
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<1>, Real const *pcoords, TW & weight, int affect_region = 1) const
+	inline void CalculateWeights(Int2Type<1>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<2>, Real const *pcoords, TW & weight, int affect_region = 1) const
+	inline void CalculateWeights(Int2Type<2>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}
 
 	template<typename TW>
-	inline void CalcuateWeights(Int2Type<3>, Real const *pcoords, TW & weight, int affect_region = 1) const
+	inline void CalculateWeights(Int2Type<3>, Real const *pcoords, TW & weight, int affect_region = 1) const
 	{
 
 	}
