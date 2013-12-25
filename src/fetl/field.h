@@ -270,7 +270,7 @@ DECL_SELF_ASSIGN	(-=)
 		auto it2 = weights.begin();
 		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
 		{
-//			mesh.get_value(data_, *it1) += *it2;
+			res+=mesh.get_value(data_, *it1) *(*it2);
 		}
 
 		return res;
@@ -298,31 +298,23 @@ DECL_SELF_ASSIGN	(-=)
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, points);
 
+		std::vector<value_type> cache(points.size());
+
 		mesh.CalculateWeights(Int2Type<IForm>(), pcoords, weights);
 
-		auto it1 = points.begin();
-		auto it2 = weights.begin();
-
-		write_lock_.lock();
-		for (; it1 != points.end() && it2 != weights.end(); ++it1, ++it2)
+		for (int i=0,i_e=points.size(); i<i_e;++i)
 		{
-			// FIXME: this incorrect for vector field interpolation
-//			mesh.get_value(data_, *it1) += Dot(v, *it2);
+			cache[i]= Dot(v, weights[i]);
 		}
-		write_lock_.unlock();
+		Collect(points,cache);
 	}
 
 	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> & cache)
 	{
-		//FIXME: this is not thread safe, need a mutex lock
-
-		auto it2=cache.begin();
-		auto it1=points.begin();
 		write_lock_.lock();
-		for(;it2!=cache.end() && it1!=points.end(); ++it1,++it2 )
+		for (int i=0,i_e=points.size(); i<i_e;++i)
 		{
-			auto & a=mesh.get_value(data_, *it1);
-			a=a+ *it2;
+			mesh.get_value(data_, points[i])+=cache[i];
 		}
 		write_lock_.unlock();
 	}

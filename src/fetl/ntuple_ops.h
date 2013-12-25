@@ -34,7 +34,7 @@ namespace simpla
 template<int N, typename TL> inline
 auto operator-(nTuple<N, TL> const & l)
 //DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
-        ->nTuple<N,decltype(-l[0])>
+		->nTuple<N,decltype(-l[0])>
 {
 	nTuple<N, decltype(-l[0])> res;
 	for (int i = 0; i < N; ++i)
@@ -81,6 +81,30 @@ struct _inner_product_s<1, TL, TR>
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
+
+template<int N, typename TL, typename TR>
+inline auto Dot(nTuple<N, TL> const &l, TR const &r)
+-> nTuple<N,decltype(l[0]*r)>
+{
+	nTuple<N, decltype(l[0]*r)> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = l[i] * r;
+	}
+	return std::move(res);
+}
+template<int N, typename TL, typename TR>
+inline auto Dot(TL const &l, nTuple<N, TR> const &r)
+-> nTuple<N,decltype(l*r[0])>
+{
+	nTuple<N, decltype(l*r[0])> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = l * r[i];
+	}
+	return std::move(res);
+}
+
 //***********************************************************************************
 //namespace ntuple_impl
 //{
@@ -92,7 +116,8 @@ DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 ->nTuple<N,decltype(l[0]*r[0])>
 {
-	nTuple<N, decltype(l[0]*r[0])> res = {
+	nTuple<N, decltype(l[0]*r[0])> res =
+	{
 
 	l[1] * r[2] - l[2] * r[1],
 
@@ -122,7 +147,7 @@ template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const 
 template<int N, typename TL, typename TR> inline auto //
 operator +(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<PLUS ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
-        ->nTuple<N,decltype(l[0]+r[0])>
+		->nTuple<N,decltype(l[0]+r[0])>
 {
 	nTuple<N, decltype(l[0]+r[0])> res;
 	for (int i = 0; i < N; ++i)
@@ -135,7 +160,7 @@ operator +(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 template<int N, typename TL, typename TR> inline auto //
 operator -(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<MINUS ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
-        ->nTuple<N,decltype(l[0]-r[0])>
+		->nTuple<N,decltype(l[0]-r[0])>
 {
 	nTuple<N, decltype(l[0]-r[0])> res;
 	for (int i = 0; i < N; ++i)
@@ -175,7 +200,7 @@ operator -(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 
 template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & l, TR const & r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, TR > >(l, r))))
-        ->nTuple<N,decltype(l[0]*r)>
+		->nTuple<N,decltype(l[0]*r)>
 {
 	nTuple<N, decltype(l[0]*r)> res;
 	for (int i = 0; i < N; ++i)
@@ -187,7 +212,7 @@ template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> c
 
 template<int N, typename TL, typename TR> inline auto operator *(TL const & l, nTuple<N, TR> const & r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, TL , nTuple<N, TR> > >(l, r))))
-        ->nTuple<N,decltype(l*r[0])>
+		->nTuple<N,decltype(l*r[0])>
 {
 	nTuple<N, decltype(l*r[0])> res;
 	for (int i = 0; i < N; ++i)
@@ -198,7 +223,7 @@ template<int N, typename TL, typename TR> inline auto operator *(TL const & l, n
 }
 template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<MULTIPLIES, nTuple<N,TL> , nTuple<N, TR> > >(l, r))))
-        ->nTuple<N,decltype(l[0]*r[0])>
+		->nTuple<N,decltype(l[0]*r[0])>
 {
 	nTuple<N, decltype(l[0]*r[0])> res;
 	for (int i = 0; i < N; ++i)
@@ -209,7 +234,7 @@ template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> c
 }
 template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & l, TR const &r)
 //DECL_RET_TYPE(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR > >(l, r))))
-        ->nTuple<N,decltype(l[0]/r)>
+		->nTuple<N,decltype(l[0]/r)>
 {
 	nTuple<N, decltype(l[0]/r)> res;
 	for (int i = 0; i < N; ++i)
