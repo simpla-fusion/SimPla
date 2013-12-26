@@ -60,8 +60,8 @@ private:
 
 public:
 
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -72,8 +72,8 @@ public:
 	{
 	}
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -84,8 +84,8 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_region = 1)
-			: mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
+	Field(field_type const & f, index_type const &s, int affect_region = 1) :
+			mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
 	{
 	}
 
@@ -174,8 +174,8 @@ private:
 
 public:
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -185,8 +185,8 @@ public:
 
 	{
 	}
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -197,8 +197,8 @@ public:
 	{
 	}
 
-	Field(field_type * f, int affect_region = 1)
-			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0)
+	Field(field_type * f, int affect_region = 1) :
+			mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0)
 	{
 	}
 
@@ -245,12 +245,11 @@ public:
 	}
 
 };
-void UpdateCache(size_t s)
+inline void UpdateCache(size_t s)
 {
-
 }
 template<typename T>
-void UpdateCache(size_t s, T &)
+inline void UpdateCache(size_t s, T &)
 {
 
 }

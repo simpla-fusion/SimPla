@@ -70,29 +70,40 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> shift_ =
+	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ =
+	{ 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_ =
+	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, size_t> strides_ =
+	{ 0, 0, 0 };
 
 	size_t num_cells_ = 0;
 
 	size_t num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> dS_[2] =
+	{ 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> k_ =
+	{ 0, 0, 0 };
 
-	coordinates_type dx_ = { 0, 0, 0 };
-	coordinates_type inv_dx_ = { 0, 0, 0 };
+	coordinates_type dx_ =
+	{ 0, 0, 0 };
+	coordinates_type inv_dx_ =
+	{ 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -860,25 +871,6 @@ public:
 		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
 	}
 
-	enum
-	{
-		NIL = 0, // 00 00 00
-		X = 1,// 00 00 01
-		NX = 2,// 00 00 10
-		Y = 4,// 00 01 00
-		NY = 8,// 00 10 00
-		Z = 16,// 01 00 00
-		NZ = 32// 10 00 00
-	};
-	inline size_t INC(int m) const
-	{
-		return 1 << (m % 3) * 2;
-	}
-	inline size_t DES(int m) const
-	{
-		return 2 << (m % 3) * 2;
-	}
-
 	void UnpackIndex(index_type *idx,size_t s)const
 	{
 		UnpackIndex(idx,idx+1,idx+2, s);
@@ -912,28 +904,46 @@ public:
 		index_type i,j,k;
 		UnpackIndex(&i,&j,&k,s...);
 		return Shift(d,i,j,k);
-
-//		return GetIndex(s...)
-//
-//		+ ((((d >> 4) & 3) + 1) % 3 - 1) * strides_[2]
-//
-//		+ ((((d >> 2) & 3) + 1) % 3 - 1) * strides_[1]
-//
-//		+ (((d & 3) + 1) % 3 - 1) * strides_[0];
-
 	}
 
-	inline size_t Shift(int d, index_type i, index_type j, index_type k) const
+	/****************************************************************************************************
+	 *   Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
+	 *   Begin
+	 */
+	enum
 	{
+		X = 1, // 00 00 01
+		NX=15,//!< NX
+		Y = 1<<4,// 00 01 00
+		NY=15<<4,//!< NY
+		Z = 1<<8,// 01 00 00
+		NZ=15<<8//!< NZ
+	};
+	inline size_t INC(int m) const
+	{
+		return 1 << ((m % 3) * 4);
+	}
+	inline size_t DES(int m) const
+	{
+		return 15 << ((m % 3) * 4);
+	}
+
+	inline size_t Shift(signed int d, index_type i, index_type j, index_type k) const
+	{
+		constexpr int m = 4;
+		constexpr int n=sizeof(signed int)/sizeof(char)*8;
+
 		return
 
-		(((i + (((d & 3) + 1) % 3 - 1)) % dims_[0]) * strides_[0]
+		(i + ((d << (n-m))>> (n-m))) % dims_[0] * strides_[0]
 
-		+ ((j + ((((d >> 2) & 3) + 1) % 3 - 1)) % dims_[1]) * strides_[1]
+		+ (j + ((d << (n-m*2))>> (n-m))) % dims_[1] * strides_[1]
 
-		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % dims_[2]) * strides_[2]);
+		+ (k + ((d << (n-m*3))>> (n-m))) % dims_[2] * strides_[2]
+		;
 	}
-
+	/** End
+	 ***************************************************************************************************/
 	inline size_t GetIndex(index_type i, index_type j, index_type k) const
 	{
 		return ((i % dims_[0]) * strides_[0] + (j % dims_[1]) * strides_[1] + (k % dims_[2]) * strides_[2]);
@@ -1839,7 +1849,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
+		std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
 {
 
 	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
@@ -1879,9 +1889,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-		        std::thread([num_threads,thread_id,this](Args const & ...args2)
-		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-		                std::forward<Args const &>(args)...));
+				std::thread([num_threads,thread_id,this](Args const & ...args2)
+				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+						std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)
