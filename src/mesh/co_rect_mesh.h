@@ -1373,121 +1373,92 @@ public:
 		return w*w*w*3;
 	}
 
-//	inline int GetAffectedPoints(Int2Type<0>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
-//	{
-//
-//		if(points!=nullptr)
-//		{
-//			index_type i,j,k;
-//			UnpackIndex(&i,&j,&k,s);
-//			points[0] = Shift(0,i,j,k);
-//			points[1] = Shift(X,i,j,k);
-//			points[2] = Shift(Y,i,j,k);
-//			points[3] = Shift(X|Y,i,j,k);
-//			points[4] = Shift(Z,i,j,k);
-//			points[5] = Shift(Z|X,i,j,k);
-//			points[6] = Shift(Z|Y,i,j,k);;
-//			points[7] = Shift(Z|X|Y,i,j,k);;
-//		}
-//		return 8;
-//	}
-//
-//	inline int GetAffectedPoints(Int2Type<1>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
-//	{
-//
-//		if(points!=nullptr)
-//		{
-//			index_type i,j,k;
-//			UnpackIndex(&i,&j,&k,s);
-//			points[0] = Shift(0,i,j,k);
-//			points[1] = Shift(X,i,j,k);
-//			points[2] = Shift(Y,i,j,k);
-//			points[3] = Shift(X|Y,i,j,k);
-//			points[4] = Shift(Z,i,j,k);
-//			points[5] = Shift(Z|X,i,j,k);
-//			points[6] = Shift(Z|Y,i,j,k);;
-//			points[7] = Shift(Z|X|Y,i,j,k);;
-//			points[8] = Shift(Z,i,j,k);
-//			points[9] = Shift(Z|X,i,j,k);
-//			points[10] = Shift(Z|Y,i,j,k);;
-//			points[11] = Shift(Z|X|Y,i,j,k);;
-//		}
-//		return 12;
-//	}
+#define DEF_CACHE_COORDINATE                                                                        \
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];                                  \
+		std::ptrdiff_t sz=1;                                                                        \
+		std::ptrdiff_t sy=sz*w*2;                                                                   \
+		std::ptrdiff_t sx=sy*w*2;                                                                   \
+		std::ptrdiff_t ix=static_cast<std::ptrdiff_t >(r);r-=ix;                                    \
+		std::ptrdiff_t iy=static_cast<std::ptrdiff_t >(s);s-=iy;                                    \
+		std::ptrdiff_t iz=static_cast<std::ptrdiff_t >(t);t-=iz;                                    \
+		std::ptrdiff_t o=o+(ix+w)*sx+(iy+w)*sy+(iz+w)*sz;
 
-	inline int GetAffectedPoints(Int2Type<2>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
 	{
-		return 6;
-	}
+		DEF_CACHE_COORDINATE;
 
-	inline int GetAffectedPoints(Int2Type<3>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
-	{
-		return 1;
+		cache[o] += v* (1.0 - r) * (1.0 - s) * (1.0 - t);
+		cache[o+sx] += v* r * (1.0 - s) * (1.0 - t);
+		cache[o+sy] += v* (1.0 - r) * s * (1.0 - t);
+		cache[o+sx+sy] += v* r * s * (1.0 - t);
+		cache[o+sz] += v* (1.0 - r) * (1.0 - s) * t;
+		cache[o+sx+sz] += v* r * (1.0 - s) * t;
+		cache[o+sy+sz] += v* (1.0 - r) * s * t;
+		cache[o+sx+sy+sz] += v* r * s * t;
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
+	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-
-		cache[0] += v* (1.0 - r) * (1.0 - s) * (1.0 - t);
-		cache[1] += v* r * (1.0 - s) * (1.0 - t);
-		cache[2] += v* (1.0 - r) * s * (1.0 - t);
-		cache[3] += v* r * s * (1.0 - t);
-		cache[4] += v* (1.0 - r) * (1.0 - s) * t;
-		cache[5] += v* r * (1.0 - s) * t;
-		cache[6] += v* (1.0 - r) * s * t;
-		cache[7] += v* r * s * t;
-	}
-
-	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<1>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-	}
-	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-	}
-	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int affect_region = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-	}
-
-	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		DEF_CACHE_COORDINATE;
 
 		(*res) = 0;
-		(*res)+=cache[0] * (1.0 - r) * (1.0 - s) * (1.0 - t);
-		(*res)+=cache[1] * r * (1.0 - s) * (1.0 - t);
-		(*res)+=cache[2] * (1.0 - r) * s * (1.0 - t);
-		(*res)+=cache[3] * r * s * (1.0 - t);
-		(*res)+=cache[4] * (1.0 - r) * (1.0 - s) * t;
-		(*res)+=cache[5] * r * (1.0 - s) * t;
-		(*res)+=cache[6] * (1.0 - r) * s * t;
-		(*res)+=cache[7] * r * s * t;
+
+		(*res)+=cache[o] * (1.0 - r) * (1.0 - s) * (1.0 - t);
+		(*res)+=cache[o+sx] * r * (1.0 - s) * (1.0 - t);
+		(*res)+=cache[o+sy] * (1.0 - r) * s * (1.0 - t);
+		(*res)+=cache[o+sx+sy] * r * s * (1.0 - t);
+		(*res)+=cache[o+sz]* (1.0 - r) * (1.0 - s) * t;
+		(*res)+=cache[o+sx+sz] * r * (1.0 - s) * t;
+		(*res)+=cache[o+sy+sz] * (1.0 - r) * s * t;
+		(*res)+=cache[o+sx+sy+sz] * r * s * t;
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	inline std::enable_if<!is_ntuple<TV>::value,void>
+	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 1) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		DEF_CACHE_COORDINATE;
+	}
+
+	template<typename TV>
+	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 1) const
+	{
+		DEF_CACHE_COORDINATE;
+
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		DEF_CACHE_COORDINATE;
+
 	}
+
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int affect_region = 1) const
+	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache,nTuple<3,TW>* res, int w = 1) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		DEF_CACHE_COORDINATE;
+
 	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
+	{
+		DEF_CACHE_COORDINATE;
+
+	}
+
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
+	{
+		DEF_CACHE_COORDINATE;
+
+	}
+
+#undef DEF_CACHE_COORDINATE
+
 // Mapto ----------------------------------------------------------
 	/**
 	 *    mapto(Int2Type<0> ,   //tarGet topology position

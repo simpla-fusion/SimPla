@@ -122,7 +122,7 @@ public:
 		{
 			mesh.GatherFromMesh(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
 		}
-		else
+		else //failsafe
 		{
 			res = f_(idx, &pcoords[0]);
 		}
@@ -238,7 +238,7 @@ public:
 			vv = v;
 			mesh.ScatterToMesh(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
 		}
-		else
+		else //failsafe
 		{
 			f_->Collect(v, idx, &pcoords[0], affect_region_);
 		}
