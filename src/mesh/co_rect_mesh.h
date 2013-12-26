@@ -891,12 +891,12 @@ public:
 		s-=(*j)*strides_[1];
 		*k =s;
 	}
-//	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type i1,index_type j1,index_type k1 )
-//	{
-//		*i=i1;
-//		*j=j1;
-//		*k=k1;
-//	}
+	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type i1,index_type j1,index_type k1 )const
+	{
+		*i=i1;
+		*j=j1;
+		*k=k1;
+	}
 
 	/**
 	 * (((d & 3) + 1) % 3 - 1)
@@ -1321,47 +1321,99 @@ public:
 		return 2;
 	}
 
-	inline int GetAffectedPoints(Int2Type<0>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
+	template<int I>
+	inline typename std::enable_if<I==0||I==3,int>::type
+	GetAffectedPoints(Int2Type<I>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
 	{
+		index_type i,j,k;
+
+		UnpackIndex(&i,&j,&k,s);
+
+		size_t w=affect_region*2;
+		size_t min=affect_region-1;
+		size_t max=affect_region+1;
 
 		if(points!=nullptr)
 		{
-			index_type i,j,k;
-			UnpackIndex(&i,&j,&k,s);
-			points[0] = Shift(0,i,j,k);
-			points[1] = Shift(X,i,j,k);
-			points[2] = Shift(Y,i,j,k);
-			points[3] = Shift(X|Y,i,j,k);
-			points[4] = Shift(Z,i,j,k);
-			points[5] = Shift(Z|X,i,j,k);
-			points[6] = Shift(Z|Y,i,j,k);;
-			points[7] = Shift(Z|X|Y,i,j,k);;
+			int t=0;
+			for(int l=i>min?i-min:0;l<i+max;++l)
+			for(int m=j>min?j-min:0;m<j+max;++m)
+			for(int n=k>min?k-min:0;n<k+max;++n)
+			{
+				points[t] = Shift(0,l,m,n);
+				++t;
+			}
 		}
-		return 8;
+		return w*w*w;
 	}
-
-	inline int GetAffectedPoints(Int2Type<1>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
+	template<int I>
+	inline typename std::enable_if<I==1||I==2,int>::type
+	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
 	{
+
+		index_type i,j,k;
+		UnpackIndex(&i,&j,&k,s);
+		size_t w=affect_region*2;
+		size_t min=affect_region-1;
+		size_t max=affect_region+1;
 
 		if(points!=nullptr)
 		{
-			index_type i,j,k;
-			UnpackIndex(&i,&j,&k,s);
-			points[0] = Shift(0,i,j,k);
-			points[1] = Shift(X,i,j,k);
-			points[2] = Shift(Y,i,j,k);
-			points[3] = Shift(X|Y,i,j,k);
-			points[4] = Shift(Z,i,j,k);
-			points[5] = Shift(Z|X,i,j,k);
-			points[6] = Shift(Z|Y,i,j,k);;
-			points[7] = Shift(Z|X|Y,i,j,k);;
-			points[8] = Shift(Z,i,j,k);
-			points[9] = Shift(Z|X,i,j,k);
-			points[10] = Shift(Z|Y,i,j,k);;
-			points[11] = Shift(Z|X|Y,i,j,k);;
+			int t=0;
+			for(int l=i>min?i-min:0;l<i+max;++l)
+			for(int m=j>min?j-min:0;m<j+max;++m)
+			for(int n=k>min?k-min:0;n<k+max;++n)
+			{
+				points[t] = Shift(0,l,m,n)*3;
+				points[t+1] = points[t] +1;
+				points[t+2] = points[t] +2;
+				t+=3;
+			}
 		}
-		return 12;
+		return w*w*w*3;
 	}
+
+//	inline int GetAffectedPoints(Int2Type<0>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
+//	{
+//
+//		if(points!=nullptr)
+//		{
+//			index_type i,j,k;
+//			UnpackIndex(&i,&j,&k,s);
+//			points[0] = Shift(0,i,j,k);
+//			points[1] = Shift(X,i,j,k);
+//			points[2] = Shift(Y,i,j,k);
+//			points[3] = Shift(X|Y,i,j,k);
+//			points[4] = Shift(Z,i,j,k);
+//			points[5] = Shift(Z|X,i,j,k);
+//			points[6] = Shift(Z|Y,i,j,k);;
+//			points[7] = Shift(Z|X|Y,i,j,k);;
+//		}
+//		return 8;
+//	}
+//
+//	inline int GetAffectedPoints(Int2Type<1>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
+//	{
+//
+//		if(points!=nullptr)
+//		{
+//			index_type i,j,k;
+//			UnpackIndex(&i,&j,&k,s);
+//			points[0] = Shift(0,i,j,k);
+//			points[1] = Shift(X,i,j,k);
+//			points[2] = Shift(Y,i,j,k);
+//			points[3] = Shift(X|Y,i,j,k);
+//			points[4] = Shift(Z,i,j,k);
+//			points[5] = Shift(Z|X,i,j,k);
+//			points[6] = Shift(Z|Y,i,j,k);;
+//			points[7] = Shift(Z|X|Y,i,j,k);;
+//			points[8] = Shift(Z,i,j,k);
+//			points[9] = Shift(Z|X,i,j,k);
+//			points[10] = Shift(Z|Y,i,j,k);;
+//			points[11] = Shift(Z|X|Y,i,j,k);;
+//		}
+//		return 12;
+//	}
 
 	inline int GetAffectedPoints(Int2Type<2>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
 	{

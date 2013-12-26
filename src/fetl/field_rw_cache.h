@@ -192,16 +192,25 @@ public:
 	{
 	}
 
-	Field(field_type * f, index_type const &s, int affect_region = 1)
-			: mesh(f->mesh), f_(f),
-
-			cell_idx_(s), affect_region_(affect_region),
-
-			num_of_points_(mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_)),
-
-			points_(num_of_points_), cache_(num_of_points_)
-
+	Field(field_type * f, int affect_region = 1)
+			: mesh(f->mesh), f_(f), affect_region_(affect_region)
 	{
+	}
+
+	~Field()
+	{
+		f_->Collect(points_, cache_);
+	}
+
+	void Update(size_t s)
+	{
+		cell_idx_ = s;
+
+		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
+
+		points_.resize(num_of_points_);
+		cache_.resize(num_of_points_);
+
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
 
 		value_type zero_value_;
@@ -209,11 +218,6 @@ public:
 		zero_value_ *= 0;
 
 		std::fill(cache_.begin(), cache_.end(), zero_value_);
-	}
-
-	~Field()
-	{
-		f_->Collect(points_, cache_);
 	}
 
 	template<typename TV>
@@ -236,6 +240,17 @@ public:
 	}
 
 };
+
+void UpdateCache(size_t s)
+{
+
+}
+template<typename T, typename ...Others>
+void UpdateCache(size_t s, T & f, Others & ...others)
+{
+	f.Update(s);
+	Update(s, others...);
+}
 
 template<typename TGeometry, typename TValue>
 struct ProxyCache<const Field<TGeometry, TValue> >

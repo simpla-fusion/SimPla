@@ -447,27 +447,22 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	int affeced_region = engine_type::GetAffectedRegion();
 
-	auto fun = [&](unsigned int t_num,unsigned int t_id )
+	auto fun = [&](unsigned int t_num,unsigned int t_id ,typename ProxyCache<TJ*>::type const & J_c2,
+			typename ProxyCache<const Args>::type &... args_c2)
 	{
-		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type const & J_c2,
-				typename ProxyCache<const Args>::type const&... args_c2)
-		{
-			for (auto const& p : p_cell)
-			{
-				engine_type::Collect(p, &const_cast<typename ProxyCache<TJ*>::type &>(J_c2) , args_c2...);
-			}
-		};
 
 		this->mesh._Traversal(t_num, t_id, this->IForm,
 
 				[&](index_type const &s)
 				{
-					fun2(this->data_[s],
 
-							ProxyCache<TJ*>::Eval(J,s,affeced_region),
+					UpdateCache(s,J_c2,args_c2...);
 
-							ProxyCache<const Args >::Eval(std::forward<Args const &>(args),
-									s,affeced_region)...);
+					for (auto const& p : this->data[s])
+					{
+						engine_type::Collect(p,
+								&const_cast<typename ProxyCache<TJ*>::type &>(J_c2) , args_c2...);
+					}
 
 				},mesh_type::WITH_GHOSTS
 		);
@@ -476,7 +471,16 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id));
+		threads.emplace_back(
+
+		std::thread(fun, num_threads, thread_id
+
+		, ProxyCache<TJ*>::Eval(J, s, affect_region)
+
+		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
+				,s,affect_region)...)
+
+		);
 	}
 
 	for (auto & t : threads)
