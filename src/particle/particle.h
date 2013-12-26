@@ -389,34 +389,30 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	std::vector<std::thread> threads;
 
-	int affect_region = engine_type::GetAffectedRegion();
-
-	auto fun = [&](unsigned int t_num,unsigned int t_id )
-	{
-		auto fun2=[this](cell_type & p_cell,Real dt, typename ProxyCache<const Args>::type const &... args_c2)
-		{
-
-			for (auto & p : p_cell)
-			{
-				engine_type::NextTimeStep(&p, dt, args_c2...);
-			}
-		};
-
-		this->mesh._Traversal(t_num, t_id, this->IForm,
-
-				[&](index_type const &s)
-				{
-					fun2(this->data_[s],dt,
-							ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
-									,s,affect_region)...);
-				}
-		);
-
-	};
-
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id));
+		threads.emplace_back(std::thread(
+
+		[this,num_threads, thread_id](Real dt_, typename ProxyCache<const Args>::type &&... args_c2)
+		{
+			this->mesh._Traversal(num_threads, thread_id, this->IForm,
+
+					[&](index_type const &s)
+					{
+
+						for (auto & p : this->data_[s])
+						{
+							UpdateCache(s,args_c2...);
+
+							engine_type::NextTimeStep(&p, dt_, args_c2...);
+						}
+					}
+			);
+
+		}, dt,
+
+		ProxyCache<const Args >::Eval(std::forward<Args const&>(args) ,
+				engine_type::GetAffectedRegion())...));
 	}
 
 	for (auto & t : threads)
@@ -445,40 +441,36 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	std::vector<std::thread> threads;
 
-	int affeced_region = engine_type::GetAffectedRegion();
-
-	auto fun = [&](unsigned int t_num,unsigned int t_id ,typename ProxyCache<TJ*>::type const & J_c2,
-			typename ProxyCache<const Args>::type &... args_c2)
-	{
-
-		this->mesh._Traversal(t_num, t_id, this->IForm,
-
-				[&](index_type const &s)
-				{
-
-					UpdateCache(s,J_c2,args_c2...);
-
-					for (auto const& p : this->data[s])
-					{
-						engine_type::Collect(p,
-								&const_cast<typename ProxyCache<TJ*>::type &>(J_c2) , args_c2...);
-					}
-
-				},mesh_type::WITH_GHOSTS
-		);
-
-	};
-
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
 
-		std::thread(fun, num_threads, thread_id
+		std::thread(
 
-		, ProxyCache<TJ*>::Eval(J, s, affect_region)
+		[this,num_threads, thread_id]( typename ProxyCache<TJ*>::type && J_c2,
+				typename ProxyCache<const Args>::type &&... args_c2)
+		{
+
+			this->mesh._Traversal(num_threads, thread_id, this->IForm,
+
+					[&](index_type const &s)
+					{
+
+						UpdateCache(s,J_c2,args_c2...);
+
+						for (auto const& p : this->data_[s])
+						{
+							engine_type::Collect(p, &J_c2 , args_c2...);
+						}
+
+					},mesh_type::WITH_GHOSTS
+			);
+		}
+
+		, ProxyCache<TJ*>::Eval(J, engine_type::GetAffectedRegion())
 
 		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
-				,s,affect_region)...)
+				,engine_type::GetAffectedRegion())...)
 
 		);
 	}

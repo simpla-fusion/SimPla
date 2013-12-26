@@ -91,42 +91,11 @@ TYPED_TEST(TestParticle,Create){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
-	CHECK( mesh.GetNumOfElements(0));
-
 	pool_type ion(mesh);
 
 	ion.Update();
 
 	ion.Deserialize(cfg);
-//
-//	std::mt19937 rnd_gen(1);
-//
-//	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
-//
-//	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
-//
-//	mesh.ParallelTraversal(pool_type::IForm,
-//
-//			[&](typename mesh_type::index_type const & s)
-//			{
-//
-//				typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
-//
-//				mesh.GetCellShape(s,xrange);
-//
-//				x_dist.Reset(xrange);
-//
-//				nTuple<3,Real> x,v;
-//
-//				for(int i=0;i<TestFixture::pic;++i)
-//				{
-//					x_dist(rnd_gen,x);
-//					v_dist(rnd_gen,v);
-//					ion.Insert(s,x,v,1.0);
-//				}
-//			}
-//
-//	);
 
 	Form<0> n(mesh);
 	Form<1> J(mesh);

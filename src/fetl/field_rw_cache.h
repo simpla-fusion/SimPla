@@ -85,14 +85,21 @@ public:
 	}
 
 	Field(field_type const & f, index_type const &s, int affect_region = 1)
-			: mesh(f.mesh), f_(f),
-
-			cell_idx_(s), affect_region_(affect_region)
-
-			, num_of_points_(mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_)),
-
-			points_(num_of_points_), cache_(num_of_points_)
+			: mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
 	{
+	}
+
+	~Field()
+	{
+	}
+
+	void Update(size_t s)
+	{
+		cell_idx_ = s;
+		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
+
+		points_.resize(num_of_points_);
+		cache_.resize(num_of_points_);
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
 
@@ -100,10 +107,7 @@ public:
 		{
 			cache_[i] = f_[points_[i]];
 		}
-	}
 
-	~Field()
-	{
 	}
 
 	inline field_value_type operator()(coordinates_type const &x) const
@@ -127,7 +131,8 @@ public:
 
 	}
 
-};
+}
+;
 
 template<typename TGeometry, typename TValue>
 class Field<TGeometry, ProxyCache<Field<TGeometry, TValue> *> >
@@ -193,7 +198,7 @@ public:
 	}
 
 	Field(field_type * f, int affect_region = 1)
-			: mesh(f->mesh), f_(f), affect_region_(affect_region)
+			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0)
 	{
 	}
 
@@ -240,16 +245,20 @@ public:
 	}
 
 };
-
 void UpdateCache(size_t s)
 {
 
 }
-template<typename T, typename ...Others>
-void UpdateCache(size_t s, T & f, Others & ...others)
+template<typename T>
+void UpdateCache(size_t s, T &)
+{
+
+}
+template<typename TG, typename TF, typename ...Others>
+void UpdateCache(size_t s, Field<TG, ProxyCache<TF>> & f, Others & ...others)
 {
 	f.Update(s);
-	Update(s, others...);
+	UpdateCache(s, others...);
 }
 
 template<typename TGeometry, typename TValue>
