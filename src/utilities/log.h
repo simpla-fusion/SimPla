@@ -319,6 +319,9 @@ private:
 #define UNIMPLEMENT Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "This is a new year wish. Try again next year, good luck!"
 
+#define UNIMPLEMENT2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
+
 #define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
 
@@ -370,7 +373,6 @@ inline Logger & START(Logger & self)
 	self.surffix("[START]");
 	return self;
 }
-
 
 inline Logger & flush(Logger & self)
 {

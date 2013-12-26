@@ -76,18 +76,17 @@ public:
 	{
 		return "Full";
 	}
-
-	virtual inline std::string _TypeName() const
+	virtual inline std::string GetTypeAsString() const override
 	{
 		return this_type::TypeName();
 	}
 
-	inline void Deserialize(LuaObject const &obj)
+	inline void Deserialize(LuaObject const &obj) override
 	{
 		base_type::Deserialize(obj);
-
+		Update();
 	}
-	void Update()
+	void Update() override
 	{
 		cmr_ = base_type::q_ / base_type::m_;
 		q_ = base_type::q_;
@@ -135,8 +134,9 @@ public:
 		p->x += p->v * 0.5 * dt;
 	}
 
-	template<typename ... Others>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, Others const &... others) const
+	template<typename TV, typename ... Others>
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
+	        Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
 	{
 		n->Collect(p.f, p.x);
 	}
@@ -147,13 +147,13 @@ public:
 		J->Collect(p.v * p.f, p.x);
 	}
 
-	template<typename TX, typename TV>
-	inline Point_s Trans(TX const & x, TV const &v, Real f, ...) const
+	template<typename TX, typename TV, typename TFun>
+	inline Point_s Trans(TX const & x, TV const &v, TFun const & n, ...) const
 	{
 		Point_s p;
 		p.x = x;
 		p.v = v;
-		p.f = f;
+		p.f = n(x);
 		return std::move(p);
 	}
 

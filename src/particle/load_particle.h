@@ -8,19 +8,32 @@
 #ifndef LOAD_PARTICLE_H_
 #define LOAD_PARTICLE_H_
 
+#include <cstddef>
 #include <random>
+#include <string>
+#include <functional>
 
 #include "../fetl/fetl.h"
+#include "../fetl/load_field.h"
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
+
 template<typename > class Particle;
 
-template<typename TEngine>
-bool LoadParticle(size_t pic, Particle<TEngine> *p)
+template<typename TConfig, typename TEngine>
+bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 {
+
+	if (cfg.empty())
+	{
+		WARNING << "Empty particle config!";
+
+		return false;
+	}
 
 	typedef TEngine engine_type;
 
@@ -28,95 +41,115 @@ bool LoadParticle(size_t pic, Particle<TEngine> *p)
 
 	typedef Particle<engine_type> this_type;
 
-	typedef typename engine_type::Point_s particle_type;
+	typedef typename engine_type::Point_s Point_s;
 
-	typedef particle_type value_type;
+	typedef Point_s value_type;
 
-	typedef typename mesh_type::scalar scalar;
+	typedef typename mesh_type::scalar_type scalar_type;
+
+	typedef typename mesh_type::coordinates_type coordinate_type;
 
 	mesh_type const &mesh = p->mesh;
 
-	std::mt19937 rnd_gen(1);
+	p->engine_type::Deserialize(cfg);
 
-	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
-
-	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
-
-	mesh.ParallelTraversal(Particle<TEngine>::IForm,
-
-	[&](typename mesh_type::index_type const & s)
+	if (cfg["SRC"].empty()) // Initialize Data
 	{
 
-		typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
+		size_t pic = cfg["PIC"].template as<size_t>();
 
-		mesh.GetCellShape(s,xrange);
+		std::function<Real(coordinate_type const & x0)> n;
 
-		x_dist.Reset(xrange);
-
-		nTuple<3,Real> x,v;
-
-		for(int i=0;i<pic;++i)
+		if (cfg["n"].empty())
 		{
-			x_dist(rnd_gen,x);
-			v_dist(rnd_gen,v);
-			p->Insert(s,x,v,1.0);
+			n = [](coordinate_type const & x0)->Real
+			{
+				return 1.0;
+			};
 		}
+		else if (cfg["n"].is_number())
+		{
+			Real n0 = cfg["n"].template as<Real>();
+
+			n = [n0](coordinate_type const & x0)->Real
+			{
+				return n0;
+			};
+		}
+		else if (cfg["n"].is_function())
+		{
+			auto l_obj = cfg["n"];
+
+			n = [l_obj](coordinate_type const & x0)->Real
+			{
+				return l_obj(x0).template as<Real>();
+			};
+		}
+		else
+		{
+			Field<Geometry<mesh_type, 0>, Real> n0(mesh);
+
+			LoadField(cfg["n"], &n0);
+
+			n = [n0](coordinate_type const & x0)->Real
+			{
+				return n0(x0);
+			};
+
+		}
+
+		std::mt19937 rnd_gen(1);
+
+		rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
+
+		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
+
+		mesh.ParallelTraversal(Particle<TEngine>::IForm,
+
+		[&](typename mesh_type::index_type const & s)
+		{
+
+			typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
+
+			mesh.GetCellShape(s,xrange);
+
+			x_dist.Reset(xrange);
+
+			nTuple<3,Real> x,v;
+
+			Real inv_sample_density=mesh.GetCellVolume(s)/pic;
+
+			for(int i=0;i<pic;++i)
+			{
+				x_dist(rnd_gen,x);
+				v_dist(rnd_gen,v);
+				p->Insert(s,x,v,
+						[&] (coordinate_type const & x0)->Real
+						{
+							return n(x0)*inv_sample_density;
+						}
+				);
+			}
+		}
+
+		);
+	}
+	else // read data from file
+	{
+		UNIMPLEMENT2("Read  particle data from file");
 	}
 
-	);
+	LOGGER
+
+	<< "Load Particle:[ Name=" << p->GetName()
+
+	<< ", Engine=" << p->TypeName()
+
+	<< ", Number of Particles=" << p->size() << "]";
 
 	return true;
 }
 
-template<typename TEngine, typename TN>
-bool LoadParticle(size_t pic, Particle<TEngine> *p, TN const & n)
-{
-
-	typedef TEngine engine_type;
-
-	typedef typename engine_type::mesh_type mesh_type;
-
-	typedef Particle<engine_type> this_type;
-
-	typedef typename engine_type::Point_s particle_type;
-
-	typedef particle_type value_type;
-
-	typedef typename mesh_type::scalar scalar;
-
-	mesh_type const &mesh = p->mesh;
-
-	std::mt19937 rnd_gen(1);
-
-	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
-
-	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
-
-	mesh.ParallelTraversal(Particle<TEngine>::IForm,
-
-	[&](typename mesh_type::index_type const & s)
-	{
-
-		typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
-
-		mesh.GetCellShape(s,xrange);
-
-		x_dist.Reset(xrange);
-
-		nTuple<3,Real> x,v;
-
-		for(int i=0;i<pic;++i)
-		{
-			x_dist(rnd_gen,x);
-			v_dist(rnd_gen,v);
-			p->Insert(s,x,v,n(x));
-		}
-	}
-
-	);
-
-	return true;
-}
 }  // namespace simpla
 
 #endif /* LOAD_PARTICLE_H_ */

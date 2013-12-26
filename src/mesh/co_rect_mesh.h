@@ -70,40 +70,29 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_ =
-	{ 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, size_t> dims_ =
-	{ 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_ =
-	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-	nTuple<NUM_OF_DIMS, size_t> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
 
 	size_t num_cells_ = 0;
 
 	size_t num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ =
-	{ 0, 0, 0 };
-	coordinates_type xmax_ =
-	{ 10, 10, 10 };
+	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmax_ = { 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar> dS_[2] =
-	{ 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar> k_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
 
-	coordinates_type dx_ =
-	{ 0, 0, 0 };
-	coordinates_type inv_dx_ =
-	{ 0, 0, 0 };
+	coordinates_type dx_ = { 0, 0, 0 };
+	coordinates_type inv_dx_ = { 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
-	{ 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -1332,33 +1321,45 @@ public:
 		return 2;
 	}
 
-	inline int GetAffectedPoints(Int2Type<0>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<0>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
 	{
 
 		if(points!=nullptr)
 		{
-			// 0 0 0
-			points[0] = idx;
-			// 0 1 0
-			points[1] = idx + strides_[0];
-			// 0 0 1
-			points[2] = idx + strides_[1];
-			// 0 1 1
-			points[3] = idx + strides_[0] + strides_[1];
-			// 1 0 0
-			points[4] = idx + strides_[2];
-			// 1 1 0
-			points[5] = idx + strides_[0] + strides_[2];
-			// 1 0 1
-			points[6] = idx + strides_[1] + strides_[2];
-			// 1 1 1
-			points[7] = idx + strides_[0] + strides_[1] + strides_[2];
+			index_type i,j,k;
+			UnpackIndex(&i,&j,&k,s);
+			points[0] = Shift(0,i,j,k);
+			points[1] = Shift(X,i,j,k);
+			points[2] = Shift(Y,i,j,k);
+			points[3] = Shift(X|Y,i,j,k);
+			points[4] = Shift(Z,i,j,k);
+			points[5] = Shift(Z|X,i,j,k);
+			points[6] = Shift(Z|Y,i,j,k);;
+			points[7] = Shift(Z|X|Y,i,j,k);;
 		}
 		return 8;
 	}
 
-	inline int GetAffectedPoints(Int2Type<1>, index_type const & idx =0, size_t * points=nullptr, int affect_region = 1) const
+	inline int GetAffectedPoints(Int2Type<1>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
 	{
+
+		if(points!=nullptr)
+		{
+			index_type i,j,k;
+			UnpackIndex(&i,&j,&k,s);
+			points[0] = Shift(0,i,j,k);
+			points[1] = Shift(X,i,j,k);
+			points[2] = Shift(Y,i,j,k);
+			points[3] = Shift(X|Y,i,j,k);
+			points[4] = Shift(Z,i,j,k);
+			points[5] = Shift(Z|X,i,j,k);
+			points[6] = Shift(Z|Y,i,j,k);;
+			points[7] = Shift(Z|X|Y,i,j,k);;
+			points[8] = Shift(Z,i,j,k);
+			points[9] = Shift(Z|X,i,j,k);
+			points[10] = Shift(Z|Y,i,j,k);;
+			points[11] = Shift(Z|X|Y,i,j,k);;
+		}
 		return 12;
 	}
 
@@ -1800,7 +1801,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-		std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
+        std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
 {
 
 	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
@@ -1840,9 +1841,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-				std::thread([num_threads,thread_id,this](Args const & ...args2)
-				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-						std::forward<Args const &>(args)...));
+		        std::thread([num_threads,thread_id,this](Args const & ...args2)
+		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+		                std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

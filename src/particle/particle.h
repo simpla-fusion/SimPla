@@ -28,7 +28,6 @@
 #include "load_particle.h"
 
 #ifndef NO_STD_CXX
-
 //need  libstdc++
 
 #include <ext/mt_allocator.h>
@@ -37,8 +36,6 @@ template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 
 namespace simpla
 {
-struct LuaObject;
-
 template<typename, typename > struct Field;
 
 template<typename, int> struct Geometry;
@@ -141,11 +138,11 @@ public:
 		return data_.at(s);
 	}
 
-	void Update();
+	void Update() override;
 
-	void Deserialize(LuaObject const &cfg);
+	void Deserialize(LuaObject const &cfg) override;
 
-	std::ostream & Serialize(std::ostream & os) const;
+	template<typename TOS> TOS & Serialize(TOS & os) const;
 
 	template<typename TFun, typename ... Args>
 	inline void Function(TFun &fun, Args const& ... args)
@@ -186,7 +183,7 @@ public:
 	}
 	void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const override
 	{
-		Collect(n, E, B);
+		_Collect(n, E, B);
 	}
 	void Collect(Form<1> * J, Form<1> const &E, Form<2> const &B) const override
 	{
@@ -224,8 +221,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -237,21 +234,9 @@ Particle<Engine>::~Particle()
 template<class Engine>
 void Particle<Engine>::Deserialize(LuaObject const &cfg)
 {
-	if (cfg.empty())
-		return;
-
 	Update();
 
-	LOGGER
-
-	<< "Particle:[ Name=" << cfg["Name"].as<std::string>()
-
-	<< ", Engine=" << cfg["Engine"].as<std::string>() << "]";
-
-	engine_type::Deserialize(cfg);
-
-	LoadParticle(cfg["PIC"].as<size_t>(), this);
-
+	LoadParticle(cfg, this);
 }
 template<class Engine>
 std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
@@ -272,7 +257,8 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::D
 }
 
 template<class Engine>
-std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
+template<typename TOS>
+TOS & Particle<Engine>::Serialize(TOS & os) const
 {
 	os << "{ ";
 
@@ -280,7 +266,7 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-			;
+	        ;
 
 	os << "} ";
 
@@ -403,10 +389,13 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	std::vector<std::thread> threads;
 
-	auto fun = [this](unsigned int t_num,unsigned int t_id,Real dt, Args const & ... args_c )
+	int affect_region = engine_type::GetAffectedRegion();
+
+	auto fun = [&](unsigned int t_num,unsigned int t_id )
 	{
 		auto fun2=[this](cell_type & p_cell,Real dt, typename ProxyCache<const Args>::type const &... args_c2)
 		{
+
 			for (auto & p : p_cell)
 			{
 				engine_type::NextTimeStep(&p, dt, args_c2...);
@@ -417,16 +406,17 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 				[&](index_type const &s)
 				{
-					fun2(this->data_[s],dt,ProxyCache<const Args >::Eval(args_c,s)...);
+					fun2(this->data_[s],dt,
+							ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
+									,s,affect_region)...);
 				}
 		);
 
 	};
+
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id, dt,
-
-		std::forward<Args const &>(args)...));
+		threads.emplace_back(std::thread(fun, num_threads, thread_id));
 	}
 
 	for (auto & t : threads)
@@ -449,15 +439,17 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	}
 
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
-			<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
+	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
 
-	auto fun = [&](unsigned int t_num,unsigned int t_id,TJ * J_c, Args const & ... args_c )
+	int affeced_region = engine_type::GetAffectedRegion();
+
+	auto fun = [&](unsigned int t_num,unsigned int t_id )
 	{
-		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type const& J_c2,
+		auto fun2=[this](cell_type const & p_cell,typename ProxyCache<TJ*>::type const & J_c2,
 				typename ProxyCache<const Args>::type const&... args_c2)
 		{
 			for (auto const& p : p_cell)
@@ -470,8 +462,12 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 				[&](index_type const &s)
 				{
-					fun2(this->data_[s],ProxyCache<TJ*>::Eval(J_c,s),
-							ProxyCache<const Args >::Eval(args_c,s)...);
+					fun2(this->data_[s],
+
+							ProxyCache<TJ*>::Eval(J,s,affeced_region),
+
+							ProxyCache<const Args >::Eval(std::forward<Args const &>(args),
+									s,affeced_region)...);
 
 				},mesh_type::WITH_GHOSTS
 		);
@@ -480,9 +476,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id,
-
-		J, std::forward<Args const &>(args) ...));
+		threads.emplace_back(std::thread(fun, num_threads, thread_id));
 	}
 
 	for (auto & t : threads)
@@ -513,8 +507,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -522,14 +516,14 @@ public:
 	{
 	}
 
-	std::string TypeName()
-	{
-		return _TypeName();
-	}
-
-	virtual std::string _TypeName() const
+	virtual std::string GetTypeAsString() const
 	{
 		return "unknown";
+	}
+
+	virtual size_t GetAffectedRegion() const
+	{
+		return 1;
 	}
 
 	inline Real GetMass() const
@@ -594,14 +588,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-		typename TParticleEngine::mesh_type const & mesh)
+        typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -622,9 +616,8 @@ public:
 	{
 	}
 
-	virtual std::string TypeName()
+	virtual void Update()
 	{
-		return "UNNAMED";
 	}
 
 	virtual void Deserialize(LuaObject const &cfg)
@@ -689,8 +682,6 @@ public:
 
 	typedef ParticleBase<mesh_type> particle_type;
 
-	typedef LuaObject configure_type;
-
 	typedef std::map<std::string, std::shared_ptr<particle_type> > base_type;
 
 	typedef std::function<std::shared_ptr<particle_type>(mesh_type const &)> create_fun;
@@ -706,8 +697,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
@@ -727,7 +718,7 @@ public:
 		RegisterFactory(engine_name, create_fun(&CreateParticle<TEngine>));
 	}
 
-	void Deserialize(configure_type const &cfg);
+	void Deserialize(LuaObject const &cfg);
 
 	std::ostream & Serialize(std::ostream & os) const;
 
@@ -745,7 +736,7 @@ public:
 };
 
 template<typename TM>
-void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
+void ParticleCollection<TM>::Deserialize(LuaObject const &cfg)
 {
 	if (cfg.empty())
 		return;
@@ -760,14 +751,14 @@ void ParticleCollection<TM>::Deserialize(configure_type const &cfg)
 
 		if (!p.first.is_number())
 		{
-			key = p.first.as<std::string>();
+			key = p.first.template as<std::string>();
 		}
 		else
 		{
 			p.second.GetValue("Name", &key);
 		}
 
-		std::string engine = p.second.at("Engine").as<std::string>();
+		std::string engine = p.second.at("Engine").template as<std::string>();
 
 		auto it = factory_.find(engine);
 

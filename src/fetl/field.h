@@ -67,13 +67,13 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value) :
-			mesh(pmesh), data_(nullptr), num_of_eles_(0)
+	Field(mesh_type const &pmesh, value_type d_value)
+			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
 	{
 		*this = d_value;
 	}
@@ -90,14 +90,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
 	{
 	}
 
@@ -179,11 +179,16 @@ public:
 
 	void Init()
 	{
+		Update();
+	}
+	void Update()
+	{
 		if (data_ == nullptr)
 		{
 			data_ = mesh.template MakeContainer<IForm, value_type>();
 			num_of_eles_ = mesh.GetNumOfElements(IForm);
 		}
+
 	}
 
 	template<typename TD>
@@ -246,7 +251,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		index_type s = mesh.SearchCell(x, &pcoords[0]);
 
-		return Gather(s, pcoords);
+		return Gather(s, &pcoords[0]);
 
 	}
 

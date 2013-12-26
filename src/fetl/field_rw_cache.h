@@ -27,7 +27,7 @@ public:
 
 	typedef TGeometry geometry_type;
 
-	typedef const Field<TGeometry, TValue> field_type;
+	typedef Field<TGeometry, TValue> field_type;
 
 	typedef Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > > this_type;
 
@@ -60,49 +60,46 @@ private:
 
 public:
 
-//	Field(this_type const& r) :
-//			mesh(r.mesh), f_(r.f_),
-//
-//			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
-//
-//			num_of_points_(r.num_of_points_),
-//
-//			points_(r.points_), cache_(r.cache_)
-//
-//	{
-//	}
-//
-//	Field(this_type && r) :
-//			mesh(r.mesh), f_(r.f_),
-//
-//			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
-//
-//			num_of_points_(r.num_of_points_),
-//
-//			points_(r.points_), cache_(r.cache_)
-//
-//	{
-//	}
+	Field(this_type const& r)
+			: mesh(r.mesh), f_(r.f_),
 
-//	Field(this_type && r) = delete;
-//	Field(this_type const& r) = delete;
+			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
-	Field(field_type const & f, index_type const &s, int affect_region = 1) :
-			mesh(f.mesh), f_(f),
+			num_of_points_(r.num_of_points_),
 
-			cell_idx_(s), affect_region_(affect_region),
-
-			num_of_points_(mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_)),
-
-			points_(num_of_points_), cache_(num_of_points_)
+			points_(r.points_), cache_(r.cache_)
 
 	{
+	}
+
+	Field(this_type && r)
+			: mesh(r.mesh), f_(r.f_),
+
+			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+
+			num_of_points_(r.num_of_points_),
+
+			points_(r.points_), cache_(r.cache_)
+
+	{
+	}
+
+	Field(field_type const & f, index_type const &s, int affect_region = 1)
+			: mesh(f.mesh), f_(f),
+
+			cell_idx_(s), affect_region_(affect_region)
+
+			, num_of_points_(mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_)),
+
+			points_(num_of_points_), cache_(num_of_points_)
+	{
+
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
 
-//		for (size_t i = 0; i < num_of_points_; ++i)
-//		{
-//			cache_[i] = f_[points_[i]];
-//		}
+		for (size_t i = 0; i < num_of_points_; ++i)
+		{
+			cache_[i] = f_[points_[i]];
+		}
 	}
 
 	~Field()
@@ -164,7 +161,7 @@ private:
 
 	int affect_region_;
 
-	const size_t num_of_points_;
+	size_t num_of_points_;
 
 	std::vector<index_type> points_;
 
@@ -172,34 +169,31 @@ private:
 
 public:
 
-//	Field(this_type && r) :
-//			mesh(r.mesh), f_(r.f_),
-//
-//			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
-//
-//			num_of_points_(r.num_of_points_),
-//
-//			points_(r.points_), cache_(r.cache_)
-//
-//	{
-//	}
-//	Field(this_type const& r) :
-//			mesh(r.mesh), f_(r.f_),
-//
-//			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
-//
-//			num_of_points_(r.num_of_points_),
-//
-//			points_(r.points_), cache_(r.cache_)
-//
-//	{
-//	}
+	Field(this_type && r)
+			: mesh(r.mesh), f_(r.f_),
 
-//	Field(this_type && r) = delete;
-//	Field(this_type const& r) = delete;
+			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
-	Field(field_type * f, index_type const &s, int affect_region = 1) :
-			mesh(f->mesh), f_(f),
+			num_of_points_(r.num_of_points_),
+
+			points_(r.points_), cache_(r.cache_)
+
+	{
+	}
+	Field(this_type const& r)
+			: mesh(r.mesh), f_(r.f_),
+
+			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+
+			num_of_points_(r.num_of_points_),
+
+			points_(r.points_), cache_(r.cache_)
+
+	{
+	}
+
+	Field(field_type * f, index_type const &s, int affect_region = 1)
+			: mesh(f->mesh), f_(f),
 
 			cell_idx_(s), affect_region_(affect_region),
 
@@ -210,11 +204,11 @@ public:
 	{
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
 
-//		value_type zero_value_;
-//
-//		zero_value_ *= 0;
-//
-//		std::fill(cache_.begin(), cache_.end(), zero_value_);
+		value_type zero_value_;
+
+		zero_value_ *= 0;
+
+		std::fill(cache_.begin(), cache_.end(), zero_value_);
 	}
 
 	~Field()
@@ -223,22 +217,22 @@ public:
 	}
 
 	template<typename TV>
-	inline void Collect(TV const &v, coordinates_type const &x) const
+	inline void Collect(TV const &v, coordinates_type const &x)
 	{
-//		coordinates_type pcoords;
-//
-//		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
-//
-//		if (idx == cell_idx_)
-//		{
-//			field_value_type vv;
-//			vv = v;
-//			mesh.ScatterToMesh(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
-//		}
-//		else
-//		{
-//			f_->Collect(v, idx, &pcoords[0], affect_region_);
-//		}
+		coordinates_type pcoords;
+
+		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
+
+		if (idx == cell_idx_)
+		{
+			field_value_type vv;
+			vv = v;
+			mesh.ScatterToMesh(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
+		}
+		else
+		{
+			f_->Collect(v, idx, &pcoords[0], affect_region_);
+		}
 	}
 
 };

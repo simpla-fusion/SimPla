@@ -16,11 +16,9 @@
 
 #include "../fetl/fetl.h"
 #include "../utilities/log.h"
-#include "../mesh/co_rect_mesh.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../numeric/multi_normal_distribution.h"
-#include "../numeric/rectangle_distribution.h"
+#include "../mesh/co_rect_mesh.h"
 
 using namespace simpla;
 
@@ -61,8 +59,6 @@ public:
 
 	mesh_type mesh;
 
-	static const size_t pic = 100;
-
 };
 
 typedef testing::Types<
@@ -83,6 +79,10 @@ TYPED_TEST_CASE(TestParticle, AllEngineTypes);
 TYPED_TEST(TestParticle,Create){
 {
 
+	LuaObject cfg;
+
+	cfg.ParseString("Name=\"H\";Engine=\"Full\";m=1.0;Z=1.0;PIC=100;n=1.0");
+
 	typedef typename TestFixture::mesh_type mesh_type;
 
 	typedef typename TestFixture::particle_pool_type pool_type;
@@ -91,51 +91,53 @@ TYPED_TEST(TestParticle,Create){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
+	CHECK( mesh.GetNumOfElements(0));
+
 	pool_type ion(mesh);
-
-	ion.SetMass(1.0);
-
-	ion.SetCharge(1.0);
-
-	ion.SetName("H");
 
 	ion.Update();
 
-	Real T = 1.0;
-
-	std::mt19937 rnd_gen(1);
-
-	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
-
-	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
-
-	mesh.ParallelTraversal(pool_type::IForm,
-
-			[&](typename mesh_type::index_type const & s)
-			{
-
-				typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
-
-				mesh.GetCellShape(s,xrange);
-
-				x_dist.Reset(xrange);
-
-				nTuple<3,Real> x,v;
-
-				for(int i=0;i<TestFixture::pic;++i)
-				{
-					x_dist(rnd_gen,x);
-					v_dist(rnd_gen,v);
-					ion.Insert(s,x,v,1.0);=
-				}
-			}
-
-	);
+	ion.Deserialize(cfg);
+//
+//	std::mt19937 rnd_gen(1);
+//
+//	rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
+//
+//	multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
+//
+//	mesh.ParallelTraversal(pool_type::IForm,
+//
+//			[&](typename mesh_type::index_type const & s)
+//			{
+//
+//				typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
+//
+//				mesh.GetCellShape(s,xrange);
+//
+//				x_dist.Reset(xrange);
+//
+//				nTuple<3,Real> x,v;
+//
+//				for(int i=0;i<TestFixture::pic;++i)
+//				{
+//					x_dist(rnd_gen,x);
+//					v_dist(rnd_gen,v);
+//					ion.Insert(s,x,v,1.0);
+//				}
+//			}
+//
+//	);
 
 	Form<0> n(mesh);
 	Form<1> J(mesh);
 	Form<1> E(mesh);
 	Form<2> B(mesh);
+
+	E.Update();
+	B.Update();
+	n.Update();
+	J.Update();
+	std::mt19937 rnd_gen(1);
 
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -149,17 +151,18 @@ TYPED_TEST(TestParticle,Create){
 		v = uniform_dist(rnd_gen);
 	}
 
-	CHECK(ion.size());
-
 	LOGGER << Data(ion,"ion");
 
-	ion.Sort();
+//	ion.Sort();
 
 	ion.NextTimeStep(1.0,E, B);
+	LOGGER<< " NextTimeStep"<<DONE;
 
 	ion.Collect(&n,E,B);
+	LOGGER<< " Collect"<<DONE;
 
 	ion.Collect(&J,E,B);
+	LOGGER<< " Collect"<<DONE;
 
 }
 }

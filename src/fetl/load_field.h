@@ -9,14 +9,11 @@
 #define LOAD_FIELD_H_
 
 #include <cstddef>
-//#include <iostream>
 #include <string>
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
-#include "field.h"
-#include "ntuple.h"
-#include "primitives.h"
+#include "fetl.h"
 
 namespace simpla
 {
