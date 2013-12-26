@@ -1348,7 +1348,7 @@ public:
 	}
 	template<int I>
 	inline typename std::enable_if<I==1||I==2,int>::type
-	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 1) const
+	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 2) const
 	{
 
 		index_type i,j,k;
@@ -1373,20 +1373,24 @@ public:
 		return w*w*w*3;
 	}
 
-#define DEF_CACHE_COORDINATE                                                                        \
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];                                  \
-		std::ptrdiff_t sz=1;                                                                        \
-		std::ptrdiff_t sy=sz*w*2;                                                                   \
-		std::ptrdiff_t sx=sy*w*2;                                                                   \
-		std::ptrdiff_t ix=static_cast<std::ptrdiff_t >(r);r-=ix;                                    \
-		std::ptrdiff_t iy=static_cast<std::ptrdiff_t >(s);s-=iy;                                    \
-		std::ptrdiff_t iz=static_cast<std::ptrdiff_t >(t);t-=iz;                                    \
-		std::ptrdiff_t o=o+(ix+w)*sx+(iy+w)*sy+(iz+w)*sz;
+	std::ptrdiff_t GetCacheCoordinates(int w,Real *r,Real *s,Real *t)const
+	{
+		std::ptrdiff_t ix=static_cast<std::ptrdiff_t >(*r);*r-=ix;
+		std::ptrdiff_t iy=static_cast<std::ptrdiff_t >(*s);*s-=iy;
+		std::ptrdiff_t iz=static_cast<std::ptrdiff_t >(*t);*t-=iz;
 
+		return (ix+w)*(w*w*4)+(iy+w)*(w*2)+(iz+w);
+	}
 	template<typename TV,typename TW>
 	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
 	{
-		DEF_CACHE_COORDINATE;
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+
+		std::ptrdiff_t sx=w*w*4;
+		std::ptrdiff_t sy=w*2;
+		std::ptrdiff_t sz=1;
+
+		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
 
 		cache[o] += v* (1.0 - r) * (1.0 - s) * (1.0 - t);
 		cache[o+sx] += v* r * (1.0 - s) * (1.0 - t);
@@ -1401,7 +1405,12 @@ public:
 	template<typename TV,typename TW>
 	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
 	{
-		DEF_CACHE_COORDINATE;
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		std::ptrdiff_t sx=w*w*4;
+		std::ptrdiff_t sy=w*2;
+		std::ptrdiff_t sz=1;
+
+		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
 
 		(*res) = 0;
 
@@ -1416,48 +1425,54 @@ public:
 	}
 
 	template<typename TV,typename TW>
-	inline std::enable_if<!is_ntuple<TV>::value,void>
-	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 1) const
+	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
 	{
-		DEF_CACHE_COORDINATE;
-	}
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		std::ptrdiff_t sx=w*w*4;
+		std::ptrdiff_t sy=w*2;
+		std::ptrdiff_t sz=1;
 
-	template<typename TV>
-	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 1) const
-	{
-		DEF_CACHE_COORDINATE;
-
-	}
-
-	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
-	{
-		DEF_CACHE_COORDINATE;
-
-	}
-
-	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache,nTuple<3,TW>* res, int w = 1) const
-	{
-		DEF_CACHE_COORDINATE;
+		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
+		cache[o] += v;
 
 	}
 
 	template<typename TV,typename TW>
 	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
 	{
-		DEF_CACHE_COORDINATE;
 
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
+	inline void
+	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
-		DEF_CACHE_COORDINATE;
+		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
+		std::ptrdiff_t sx=w*w*4;
+		std::ptrdiff_t sy=w*2;
+		std::ptrdiff_t sz=1;
+
+		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
+//		cache[o] += v;
+	}
+
+	template<typename TV>
+	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 1) const
+	{
 
 	}
 
-#undef DEF_CACHE_COORDINATE
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
+	{
+
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache,nTuple<3,TW>* res, int w = 1) const
+	{
+
+	}
 
 // Mapto ----------------------------------------------------------
 	/**
