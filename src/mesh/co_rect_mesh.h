@@ -12,23 +12,29 @@
 #include <cmath>
 #include <complex>
 #include <cstddef>
+#include <functional>
 #include <iostream>
-#include <iterator>
-#include <limits>
-#include <map>
-#include <set>
+#include <algorithm>
+#include <memory>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <utility>
 #include <vector>
-#include <thread>
+
+#include "../fetl/field.h"
+#include "../fetl/ntuple_ops.h"
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
-#include "../physics/physical_constants.h"
 #include "../physics/constants.h"
-#include "../utilities/memory_pool.h"
+#include "../physics/physical_constants.h"
 #include "../utilities/log.h"
+#include "../utilities/memory_pool.h"
+#include "../utilities/singleton_holder.h"
+#include "../utilities/type_utilites.h"
+#include "../utilities/utilities.h"
 #include "field_convert.h"
+
 namespace simpla
 {
 
@@ -1373,105 +1379,164 @@ public:
 		return w*w*w*3;
 	}
 
-	std::ptrdiff_t GetCacheCoordinates(int w,Real *r,Real *s,Real *t)const
+private:
+	inline std::ptrdiff_t GetCacheCoordinates(std::ptrdiff_t w,Real *r )const
 	{
-		std::ptrdiff_t ix=static_cast<std::ptrdiff_t >(*r);*r-=ix;
-		std::ptrdiff_t iy=static_cast<std::ptrdiff_t >(*s);*s-=iy;
-		std::ptrdiff_t iz=static_cast<std::ptrdiff_t >(*t);*t-=iz;
+		std::ptrdiff_t ix[3];
+		///@NOTE Dot not check boundary, user should ensure abs(r)<w
+		for(int i=0;i<3;++i)
+		{
+			ix[i]=static_cast<std::ptrdiff_t >(r[i]);
+			r[i]=(dims_[i]>1)?r[i]-ix[i]:0;
+		}
 
-		return (ix+w)*(w*w*4)+(iy+w)*(w*2)+(iz+w);
-	}
-	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-
-		std::ptrdiff_t sx=w*w*4;
-		std::ptrdiff_t sy=w*2;
-		std::ptrdiff_t sz=1;
-
-		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
-
-		cache[o] += v* (1.0 - r) * (1.0 - s) * (1.0 - t);
-		cache[o+sx] += v* r * (1.0 - s) * (1.0 - t);
-		cache[o+sy] += v* (1.0 - r) * s * (1.0 - t);
-		cache[o+sx+sy] += v* r * s * (1.0 - t);
-		cache[o+sz] += v* (1.0 - r) * (1.0 - s) * t;
-		cache[o+sx+sz] += v* r * (1.0 - s) * t;
-		cache[o+sy+sz] += v* (1.0 - r) * s * t;
-		cache[o+sx+sy+sz] += v* r * s * t;
+		return (ix[0]+w)*(w*w*4)+(ix[1]+w)*(w*2)+(ix[2]+w);
 	}
 
-	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
-	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-		std::ptrdiff_t sx=w*w*4;
-		std::ptrdiff_t sy=w*2;
-		std::ptrdiff_t sz=1;
+#define DEF_INTERPOLATION_SCHEME(_LEFT_,_RIGHT_)                                                       \
+	_LEFT_ cache[(o)*num_of_comp+comp_num] _RIGHT_ * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);       \
+	_LEFT_ cache[(o+sx[0])*num_of_comp+comp_num] _RIGHT_ * r[0] * (1.0 - r[1]) * (1.0 - r[2]);         \
+	_LEFT_ cache[(o+sx[1])*num_of_comp+comp_num] _RIGHT_ * (1.0 - r[0]) * r[1]* (1.0 - r[2]);          \
+	_LEFT_ cache[(o+sx[0]+sx[1])*num_of_comp+comp_num] _RIGHT_ * r[0] * r[1]* (1.0 - r[2]);            \
+	_LEFT_ cache[(o+sx[2])*num_of_comp+comp_num] _RIGHT_ * (1.0 - r[0]) * (1.0 - r[1]) * r[2];         \
+	_LEFT_ cache[(o+sx[0]+sx[2])*num_of_comp+comp_num] _RIGHT_ * r[0] * (1.0 - r[1]) * r[2];           \
+	_LEFT_ cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] _RIGHT_ * (1.0 - r[0]) * r[1]* r[2];            \
+	_LEFT_ cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] _RIGHT_ * r[0] * r[1]* r[2];
 
-		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
+	template<typename TV,typename TW>
+	inline void ScatterToCache(Real const pcoords[3],TW const &v , TV *cache,int w,int num_of_comp=1,int comp_num=0)const
+	{
+		Real r[3]=
+		{	pcoords[0], pcoords[1], pcoords[2]};
+
+		std::ptrdiff_t sx[3]=
+		{	w*w*4,w*2,1};
+
+		std::ptrdiff_t o=GetCacheCoordinates(w,r);
+
+		DEF_INTERPOLATION_SCHEME(,+=v)
+//		cache[(o)*num_of_comp+comp_num] += v* (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//		cache[(o+sx[0])*num_of_comp+comp_num] += v* r[0] * (1.0 - r[1]) * (1.0 - r[2]);
+//		cache[(o+sx[1])*num_of_comp+comp_num] += v* (1.0 - r[0]) * r[1]* (1.0 - r[2]);
+//		cache[(o+sx[0]+sx[1])*num_of_comp+comp_num] += v* r[0] * r[1]* (1.0 - r[2]);
+//		cache[(o+sx[2])*num_of_comp+comp_num] += v* (1.0 - r[0]) * (1.0 - r[1]) * r[2];
+//		cache[(o+sx[0]+sx[2])*num_of_comp+comp_num] += v* r[0] * (1.0 - r[1]) * r[2];
+//		cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] += v* (1.0 - r[0]) * r[1]* r[2];
+//		cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] += v* r[0] * r[1]* r[2];
+
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromCache(Real const pcoords[3],TV const*cache,TW *res , int w,int num_of_comp=1,int comp_num=0)const
+	{
+		Real r[3]=
+		{	pcoords[0], pcoords[1], pcoords[2]};
+		std::ptrdiff_t sx[3]=
+		{	w*w*4,w*2,1};
+
+		std::ptrdiff_t o=GetCacheCoordinates(w,r);
 
 		(*res) = 0;
+		DEF_INTERPOLATION_SCHEME((*res)+=,)
 
-		(*res)+=cache[o] * (1.0 - r) * (1.0 - s) * (1.0 - t);
-		(*res)+=cache[o+sx] * r * (1.0 - s) * (1.0 - t);
-		(*res)+=cache[o+sy] * (1.0 - r) * s * (1.0 - t);
-		(*res)+=cache[o+sx+sy] * r * s * (1.0 - t);
-		(*res)+=cache[o+sz]* (1.0 - r) * (1.0 - s) * t;
-		(*res)+=cache[o+sx+sz] * r * (1.0 - s) * t;
-		(*res)+=cache[o+sy+sz] * (1.0 - r) * s * t;
-		(*res)+=cache[o+sx+sy+sz] * r * s * t;
+//		(*res)+=cache[(o)*num_of_comp+comp_num] * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+//		(*res)+=cache[(o+sx[0])*num_of_comp+comp_num] * r[0] * (1.0 - r[1]) * (1.0 - r[2]);
+//		(*res)+=cache[(o+sx[1])*num_of_comp+comp_num] * (1.0 - r[0]) * r[1]* (1.0 - r[2]);
+//		(*res)+=cache[(o+sx[0]+sx[1])*num_of_comp+comp_num] * r[0] * r[1]* (1.0 - r[2]);
+//		(*res)+=cache[(o+sx[2])*num_of_comp+comp_num] * (1.0 - r[0]) * (1.0 - r[1]) * r[2];
+//		(*res)+=cache[(o+sx[0]+sx[2])*num_of_comp+comp_num] * r[0] * (1.0 - r[1]) * r[2];
+//		(*res)+=cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] * (1.0 - r[0]) * r[1]* r[2];
+//		(*res)+=cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] * r[0] * r[1]* r[2];
+
+	}
+#undef DEF_INTERPOLATION_SCHEME
+public:
+	template<typename TV,typename TW>
+	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
+	{
+		ScatterToCache(pcoords,std::forward<TW const &>(v),cache,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
+	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-		std::ptrdiff_t sx=w*w*4;
-		std::ptrdiff_t sy=w*2;
-		std::ptrdiff_t sz=1;
-
-		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
-		cache[o] += v;
-
+		GatherFromCache(pcoords,cache,res,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 1) const
+	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
 	{
+		Real r[3]=
+		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
 
+		ScatterToCache(r,std::forward<TW const &>(v),cache,w );
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
+	{
+		Real r[3]=
+		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
+
+		GatherFromCache(r,cache,res,w );
 	}
 
 	template<typename TV,typename TW>
 	inline void
 	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
-		Real r = (pcoords)[0], s = (pcoords)[1], t = (pcoords)[2];
-		std::ptrdiff_t sx=w*w*4;
-		std::ptrdiff_t sy=w*2;
-		std::ptrdiff_t sz=1;
 
-		std::ptrdiff_t o=GetCacheCoordinates(w,&r,&s,&t);
-//		cache[o] += v;
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	pcoords[0], pcoords[1], pcoords[2]};
+			r[m]-=0.5;
+			ScatterToCache(r,v[m],cache,w,3,m );
+
+		}
 	}
 
 	template<typename TV>
-	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 1) const
+	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
 	{
-
+		(*res) = 0;
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	pcoords[0], pcoords[1], pcoords[2]};
+			r[m]-=0.5;
+			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+		}
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<2>,Real const *pcoords, TW const & v,TV* cache, int w = 1) const
+	inline void
+	ScatterToMesh(Int2Type<2>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
 
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	pcoords[0], pcoords[1], pcoords[2]};
+			r[(m+1)%2]-=0.5;
+			r[(m+2)%2]-=0.5;
+			ScatterToCache(r,v[m],cache,w,3,m );
+
+		}
 	}
 
-	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache,nTuple<3,TW>* res, int w = 1) const
+	template<typename TV>
+	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
 	{
-
+		(*res) = 0;
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	pcoords[0], pcoords[1], pcoords[2]};
+			r[(m+1)%2]-=0.5;
+			r[(m+2)%2]-=0.5;
+			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+		}
 	}
 
 // Mapto ----------------------------------------------------------

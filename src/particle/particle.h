@@ -56,6 +56,8 @@ public:
 
 	typedef Engine engine_type;
 
+	typedef ParticleBase<typename Engine::mesh_type> base_type;
+
 	typedef Particle<engine_type> this_type;
 
 	typedef typename engine_type::mesh_type mesh_type;
@@ -297,6 +299,9 @@ void Particle<Engine>::_Sort()
 {
 	Update();
 
+	if (base_type::IsSorted())
+		return;
+
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
@@ -372,6 +377,7 @@ void Particle<Engine>::_Sort()
 		t.join();
 	}
 
+	base_type::Sort();
 }
 
 template<class Engine>
@@ -383,6 +389,9 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 		WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
 		return;
 	}
+
+	Sort();
+
 	LOGGER << "Move particle [" << engine_type::name_ << "]!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -420,7 +429,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 		t.join();
 	}
 
-	_Sort();
+	Sort();
 
 }
 
@@ -433,6 +442,9 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 		WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
 		return;
 	}
+
+	if (!base_type::IsSorted())
+		ERROR << "Particles are not sorted!";
 
 	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
 	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
@@ -606,6 +618,7 @@ public:
 	DEFINE_FIELDS(mesh_type)
 
 	ParticleBase()
+			: isSorted_(false)
 	{
 	}
 	virtual ~ParticleBase()
@@ -628,11 +641,11 @@ public:
 //interface
 	virtual void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B)
 	{
-		UNIMPLEMENT;
+		isSorted_ = false;
 	}
 	virtual void NextTimeStep(double dt, VectorForm<0> const &E, VectorForm<0> const &B)
 	{
-		UNIMPLEMENT;
+		isSorted_ = false;
 	}
 	virtual void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const
 	{
@@ -664,8 +677,14 @@ public:
 	}
 	virtual void Sort()
 	{
-		UNIMPLEMENT;
+		isSorted_ = true;
 	}
+	bool IsSorted() const
+	{
+		return isSorted_;
+	}
+private:
+	bool isSorted_;
 
 };
 

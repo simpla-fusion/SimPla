@@ -40,12 +40,12 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 {
 	size_t line_width_;
 	size_t indent_;
-public:
 
-	// TODO add multi_stream support
+public:
+	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
 	LoggerStreams(int l = LOG_VERBOSE)
-			: std_out_visable_level_(l), line_width_(80), indent_(0)
+			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()

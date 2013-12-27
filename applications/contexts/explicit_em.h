@@ -315,6 +315,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 		j_src_(&Jext, base_type::GetTime());
 	}
 
+	particle_collection_.Sort();
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	particle_collection_.Collect(&Jext, E, B);
 
