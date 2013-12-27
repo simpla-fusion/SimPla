@@ -251,8 +251,8 @@ public:
 
 		coordinates_type res = xmin_;
 		res[0] += i * dx_[0] + coordinates_shift_[IFORM][m][0];
-		res[1] += i * dx_[1] + coordinates_shift_[IFORM][m][1];
-		res[2] += i * dx_[2] + coordinates_shift_[IFORM][m][2];
+		res[1] += j * dx_[1] + coordinates_shift_[IFORM][m][1];
+		res[2] += k * dx_[2] + coordinates_shift_[IFORM][m][2];
 		return std::move(res);
 	}
 
@@ -944,6 +944,12 @@ public:
 	{
 		return ((i % dims_[0]) * strides_[0] + (j % dims_[1]) * strides_[1] + (k % dims_[2]) * strides_[2]);
 	}
+
+	inline size_t GetIndex(index_type* i) const
+	{
+		return GetIndex(i[0],i[1],i[2]);
+	}
+
 	inline size_t GetIndex(index_type s) const
 	{
 		return s;
@@ -1007,9 +1013,9 @@ public:
 	bool default_parallel_=true;
 
 	template<typename ... Args>
-	void Traversal(Args const &...args) const
+	void Traversal(bool is_paralel,Args const &...args) const
 	{
-		if (default_parallel_)
+		if (default_parallel_ && is_paralel)
 		{
 			ParallelTraversal(std::forward<Args const &>(args)... );
 		}
@@ -1105,34 +1111,6 @@ public:
 	{
 		ParallelForEach(fun,l,std::forward<Args const &>(args)...);
 	}
-
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ForAll(unsigned int flag, Fun const &fun, TF const & l, Args const& ... args) const
-//	{
-//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
-//	}
-//
-//	template<typename Fun, typename TF, typename ...Args> inline
-//	void ForAll(unsigned int flag, Fun const &fun, TF * l, Args const & ... args) const
-//	{
-//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, flag);
-//	}
-
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ForEach(Fun const &fun, TF & l, Args const& ... args, unsigned int flag = 0) const
-//	{
-//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, 0);
-//	}
-//
-//	template<typename Fun, typename TF, typename ...Args> inline
-//	void ForEach(Fun const &fun, TF * l, Args const & ... args) const
-//	{
-//		Traversal(FieldTraits<TF>::IForm, [&](int m,index_type i,index_type j,index_type k)
-//		{	fun(get(l,m,i,j,k),get(args,m,i,j,k)...);}, 0);
-//	}
 
 	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
 	{
@@ -1279,14 +1257,16 @@ public:
 
 		size_t idx = 0;
 
-		index_type i,j,k;
+		Real e[3],ir[3];
 
-		Real e[3]=
-		{	0,0,0};
+		e[0]= std::modf((x[0] - xmin_[0]) * inv_dx_[0],ir);
+		e[1]= std::modf((x[1] - xmin_[1]) * inv_dx_[1],ir+1);
+		e[2]= std::modf((x[2] - xmin_[2]) * inv_dx_[2],ir+2);
 
-		i= (dims_[0]<=1)?0:static_cast<size_t>(std::modf((x[0] - xmin_[0]) * inv_dx_[0],e));
-		j= (dims_[1]<=1)?0:static_cast<size_t>(std::modf((x[1] - xmin_[1]) * inv_dx_[1],e));
-		k= (dims_[2]<=1)?0:static_cast<size_t>(std::modf((x[2] - xmin_[2]) * inv_dx_[2],e));
+		index_type s[3];
+		s[0]= (dims_[0]==0)?0:static_cast<size_t>(ir[0]);
+		s[1]= (dims_[1]==0)?0:static_cast<size_t>(ir[1]);
+		s[2]= (dims_[2]==0)?0:static_cast<size_t>(ir[2]);
 
 		if (pcoords != nullptr)
 		{
@@ -1295,7 +1275,7 @@ public:
 			pcoords[2] = e[2];
 		}
 
-		return GetIndex(i,j,k);
+		return GetIndex(s);
 	}
 	/**
 	 *  Speed up version SearchCell, restain for curvline or unstructured grid
@@ -1327,57 +1307,61 @@ public:
 		return 2;
 	}
 
-	template<int I>
-	inline typename std::enable_if<I==0||I==3,int>::type
-	GetAffectedPoints(Int2Type<I>, index_type const & s=0, size_t * points=nullptr, int affect_region = 1) const
+	template<int I> inline size_t
+	GetAffectedPoints(Int2Type<I>, index_type const & s=0, size_t * points=nullptr, int affect_region = 2) const
 	{
 		index_type i,j,k;
 
 		UnpackIndex(&i,&j,&k,s);
 
-		size_t w=affect_region*2;
-		size_t min=affect_region-1;
-		size_t max=affect_region+1;
+		size_t num=num_comps_per_cell_[I];
 
 		if(points!=nullptr)
 		{
 			int t=0;
-			for(int l=i>min?i-min:0;l<i+max;++l)
-			for(int m=j>min?j-min:0;m<j+max;++m)
-			for(int n=k>min?k-min:0;n<k+max;++n)
+			for(int l=affect_region-1;l<affect_region+1;++l)
+			for(int m=affect_region-1;m<affect_region+1;++m)
+			for(int n=affect_region-1;n<affect_region+1;++n)
 			{
-				points[t] = Shift(0,l,m,n);
-				++t;
+				points[t] = Shift((X*l) | (Y*m) | (Z*n),i,j,k)*num;
+				for(int s=1;s<num;++s)
+				{
+					points[t+s]=points[t]+s;
+				}
+				t+=num;
 			}
 		}
-		return w*w*w;
-	}
-	template<int I>
-	inline typename std::enable_if<I==1||I==2,int>::type
-	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 2) const
-	{
 
-		index_type i,j,k;
-		UnpackIndex(&i,&j,&k,s);
 		size_t w=affect_region*2;
-		size_t min=affect_region-1;
-		size_t max=affect_region+1;
 
-		if(points!=nullptr)
-		{
-			int t=0;
-			for(int l=i>min?i-min:0;l<i+max;++l)
-			for(int m=j>min?j-min:0;m<j+max;++m)
-			for(int n=k>min?k-min:0;n<k+max;++n)
-			{
-				points[t] = Shift(0,l,m,n)*3;
-				points[t+1] = points[t] +1;
-				points[t+2] = points[t] +2;
-				t+=3;
-			}
-		}
-		return w*w*w*3;
+		return w*w*w*num;
 	}
+//	template<int I>
+//	inline typename std::enable_if<I==1||I==2,int>::type
+//	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 2) const
+//	{
+//
+//		index_type i,j,k;
+//		UnpackIndex(&i,&j,&k,s);
+//		size_t w=affect_region*2;
+//		size_t min=affect_region-1;
+//		size_t max=affect_region+1;
+//
+//		if(points!=nullptr)
+//		{
+//			int t=0;
+//			for(int l=affect_region-1;l<affect_region+1;++l)
+//			for(int m=affect_region-1;m<affect_region+1;++m)
+//			for(int n=affect_region-1;n<affect_region+1;++n)
+//			{
+//				points[t] = Shift((X*l) | (Y*m) | (Z*n),i,j,k)*GetNumOfElements(I);
+//				points[t+1] = points[t] +1;
+//				points[t+2] = points[t] +2;
+//				t+=3;
+//			}
+//		}
+//		return w*w*w*3;
+//	}
 
 private:
 	inline std::ptrdiff_t GetCacheCoordinates(std::ptrdiff_t w,Real *r )const

@@ -146,25 +146,25 @@ public:
 
 	template<typename TOS> TOS & Serialize(TOS & os) const;
 
-	template<typename TFun, typename ... Args>
-	inline void Function(TFun &fun, Args const& ... args)
-	{
-		_ForEachCell([&](particle_type & p,
-				typename ProxyCache<const Args>::type const& ... args_c)
-		{	fun(p,args_c...);}, args...);
-	}
-
 	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
 	{
 		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
 	}
 
-	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args)
+	template<typename TFun, typename ... Args>
+	void Function(TFun &fun, Args const& ... args) const;
+
+	template<typename TFun, typename ... Args>
+	void Function(TFun &fun, Args const& ... args);
+
+	template<typename ... Args>
+	void NextTimeStep(Real dt, Args const& ... args)
 	{
 		_NextTimeStep(dt, std::forward<Args const &>(args)...);
 	}
 
-	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const
+	template<typename TJ, typename ... Args>
+	void Collect(TJ * J, Args const & ... args) const
 	{
 		_Collect(J, std::forward<Args const &>(args)...);
 	}
@@ -239,6 +239,8 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 	Update();
 
 	LoadParticle(cfg, this);
+
+	base_type::Deserialize(cfg);
 }
 template<class Engine>
 std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
@@ -283,98 +285,118 @@ void Particle<Engine>::Update()
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	if (mt_data_.size() < num_threads)
-	{
-		mt_data_.resize(num_threads);
+	mt_data_.resize(num_threads);
 
-		for (auto & d : mt_data_)
-		{
-			d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
-		}
+	for (auto & d : mt_data_)
+	{
+		d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 	}
 }
 
 template<class Engine>
 void Particle<Engine>::_Sort()
 {
+
 	Update();
 
 	if (base_type::IsSorted())
 		return;
 
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+	LOGGER << "Sort Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
-	std::vector<std::thread> threads;
+	const unsigned int num_threads = 1; //std::thread::hardware_concurrency();
 
-	auto fun = [this](unsigned int t_num,unsigned int t_id )
+	try
 	{
 
-		this->mesh._Traversal(t_num, t_id, this->IForm,
+		std::vector<std::thread> threads;
 
-				[&](index_type const &src)
-				{
-					auto & cell=this->data_[src];
-					auto pt = cell.begin();
-					while (pt != cell.end())
-					{
-						auto p = pt;
-						++pt;
+		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+		{
+			threads.emplace_back(std::thread(
 
-						auto dest = this->mesh.SearchCell(src,p->x);
+			[this](unsigned int t_num,unsigned int t_id )
+			{
 
-						if (dest==src)
-						return;
+				this->mesh._Traversal(t_num, t_id, this->IForm,
 
-						if(dest>0 && dest<mesh.GetNumOfElements(IForm))
+						[&](index_type const &src)
 						{
-							this->mt_data_[t_id][dest].splice(this->mt_data_[t_id][dest].begin(), cell, p);
+							auto & cell=this->data_[src];
+							auto pt = cell.begin();
+							while (pt != cell.end())
+							{
+								auto p = pt;
+								++pt;
+
+								auto dest = this->mesh.SearchCell(src,p->x);
+
+								if (dest==src)
+								{
+									return;
+								}
+
+								if(dest>0 && dest<mesh.GetNumOfElements(IForm))
+								{
+									this->mt_data_[t_id][dest].splice(this->mt_data_[t_id][dest].begin(), cell, p);
+								}
+								else
+								{
+									cell.erase(p);
+								}
+							}
 						}
-						else
+
+				);
+
+			}, num_threads, thread_id));
+		}
+
+		for (auto & t : threads)
+		{
+			t.join();
+		}
+
+	} catch (std::exception const & e)
+	{
+		ERROR << e.what();
+
+	}
+
+	try
+	{
+		std::vector<std::thread> threads2;
+
+		for (int thread_id = 0; thread_id < num_threads; ++thread_id)
+		{
+			threads2.emplace_back(std::thread(
+
+			[this]( int t_num, int t_id)
+			{
+				this->mesh._Traversal(t_num, t_id, this->IForm,
+
+						[&](index_type const &s)
 						{
-							cell.erase(p);
-						}
-					}
-				}
+							for (int i = 0; i < t_num; ++i)
+							{
+								this->data_[s].splice(this->data_[s].begin(),this->mt_data_[i][s] );
+							}
+						},mesh_type::WITH_GHOSTS
+				);
 
-		);
+			}
 
-	};
+			, num_threads, thread_id));
+		}
 
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+		for (auto & t : threads2)
+		{
+			t.join();
+		}
+	} catch (std::exception const & e)
 	{
-		threads.emplace_back(std::thread(fun, num_threads, thread_id));
-	}
+		ERROR << e.what();
 
-	for (auto & t : threads)
-	{
-		t.join();
-	}
-
-	auto fun2 =
-
-	[this](unsigned int t_num,unsigned int t_id)
-	{
-		this->mesh._Traversal(t_num, t_id, this->IForm,
-
-				[&](index_type const &src)
-				{
-					for (int i = 0; i < t_num; ++i)
-					{
-						this->data_[src].splice(this->data_[src].begin(),this->mt_data_[i][src] );
-					}
-				},mesh_type::WITH_GHOSTS
-		);
-
-	};
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-	{
-		threads[thread_id] = std::thread(fun, num_threads, thread_id);
-	}
-
-	for (auto & t : threads)
-	{
-		t.join();
 	}
 
 	base_type::Sort();
@@ -392,7 +414,9 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	Sort();
 
-	LOGGER << "Move particle [" << engine_type::name_ << "]!";
+	base_type::NextTimeStep(dt, std::forward<Args const&>(args) ...);
+
+	LOGGER << "Move Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -446,8 +470,11 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 	if (!base_type::IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	LOGGER << "Collect particle [" << engine_type::name_ << "] to Form<" << TJ::IForm << ","
-	        << (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
+	LOGGER << "Collect particle [" << this->GetName() << ":" << this->GetTypeAsString()
+
+	<< "] to Form<" << TJ::IForm << ","
+
+	<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -467,11 +494,11 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 					[&](index_type const &s)
 					{
-
 						UpdateCache(s,J_c2,args_c2...);
 
 						for (auto const& p : this->data_[s])
 						{
+
 							engine_type::Collect(p, &J_c2 , args_c2...);
 						}
 
@@ -480,6 +507,61 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 		}
 
 		, ProxyCache<TJ*>::Eval(J, engine_type::GetAffectedRegion())
+
+		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
+				,engine_type::GetAffectedRegion())...)
+
+		);
+	}
+
+	for (auto & t : threads)
+	{
+		t.join();
+	}
+
+}
+
+template<class Engine>
+template<typename TFun, typename ...Args>
+void Particle<Engine>::Function(TFun &fun, Args const& ... args)
+{
+	if (data_.empty())
+	{
+		WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
+		return;
+	}
+
+	if (!base_type::IsSorted())
+		ERROR << "Particles are not sorted!";
+
+	const unsigned int num_threads = std::thread::hardware_concurrency();
+
+	std::vector<std::thread> threads;
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads.emplace_back(
+
+		std::thread(
+
+		[this,num_threads, thread_id]( typename ProxyCache<const Args>::type &&... args_c2)
+		{
+
+			this->mesh._Traversal(num_threads, thread_id, this->IForm,
+
+					[&](index_type const &s)
+					{
+
+						UpdateCache(s, args_c2...);
+
+						for (auto const& p : this->data_[s])
+						{
+							fun(p, args_c2...);
+						}
+
+					},mesh_type::WITH_GHOSTS
+			);
+		}
 
 		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
 				,engine_type::GetAffectedRegion())...)
@@ -618,7 +700,7 @@ public:
 	DEFINE_FIELDS(mesh_type)
 
 	ParticleBase()
-			: isSorted_(false)
+			: isSorted_(false), clock_(0)
 	{
 	}
 	virtual ~ParticleBase()
@@ -638,14 +720,31 @@ public:
 		return os;
 	}
 
+	bool IsSorted() const
+	{
+		return isSorted_;
+	}
+
+	Real GetClock() const
+	{
+		return clock_;
+	}
+
+	void SetClock(Real clock)
+	{
+		clock_ = clock;
+	}
+
 //interface
 	virtual void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B)
 	{
 		isSorted_ = false;
+		clock_ += dt;
 	}
 	virtual void NextTimeStep(double dt, VectorForm<0> const &E, VectorForm<0> const &B)
 	{
 		isSorted_ = false;
+		clock_ += dt;
 	}
 	virtual void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const
 	{
@@ -679,12 +778,10 @@ public:
 	{
 		isSorted_ = true;
 	}
-	bool IsSorted() const
-	{
-		return isSorted_;
-	}
+
 private:
 	bool isSorted_;
+	Real clock_;
 
 };
 

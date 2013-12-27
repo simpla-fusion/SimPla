@@ -56,6 +56,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 	if (cfg["SRC"].empty()) // Initialize Data
 	{
 
+		bool doParallel = true;
 		size_t pic = cfg["PIC"].template as<size_t>();
 
 		std::function<Real(coordinate_type const & x0)> n;
@@ -82,8 +83,9 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 			n = [l_obj](coordinate_type const & x0)->Real
 			{
-				return l_obj(x0).template as<Real>();
+				return l_obj(x0[0],x0[1],x0[2]).template as<Real>();
 			};
+			doParallel = false;
 		}
 		else
 		{
@@ -104,7 +106,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
 
-		mesh.ParallelTraversal(Particle<TEngine>::IForm,
+		mesh.Traversal(doParallel, Particle<TEngine>::IForm,
 
 		[&](typename mesh_type::index_type const & s)
 		{
@@ -121,8 +123,8 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 			for(int i=0;i<pic;++i)
 			{
-				x_dist(rnd_gen,x);
-				v_dist(rnd_gen,v);
+				x_dist(rnd_gen,&x[0]);
+				v_dist(rnd_gen,&v[0]);
 				p->Insert(s,x,v,
 						[&] (coordinate_type const & x0)->Real
 						{

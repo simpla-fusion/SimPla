@@ -296,23 +296,42 @@ DECL_SELF_ASSIGN	(-=)
 			Real * pcoords, int affected_region = 1)
 	{
 
-		std::vector<index_type> points;
+		size_t num=mesh.GetAffectedPoints(Int2Type<IForm>(), s);
+
+		if(num==0)
+		{
+			CHECK(s);
+			return;
+		}
+
+		index_type points[num];
+		value_type cache[num];
+
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
+
 		value_type zero_value;
+
 		zero_value*=0;
-		std::vector<value_type> cache(points.size(),zero_value);
+
+		for(int i=0;i<num;++i)
+		{
+			cache[i]=zero_value;
+		}
 
 		field_value_type vv; vv=v;
 
-		mesh.ScatterToMesh(Int2Type<IForm>(),pcoords,vv,&cache[0]);
+		mesh.ScatterToMesh(Int2Type<IForm>(),pcoords,vv,cache);
 
-		Collect(points,cache);
+		Collect(num,points,cache);
 	}
 
-	inline void Collect(std::vector<index_type> const & points,std::vector<value_type> const& cache)
+	inline void Collect(size_t num,index_type const * points,value_type const * cache)
 	{
+		if(num==0)
+		WARNING<< "Cache is empty!";
+
 		write_lock_.lock();
-		for (int i=0,i_e=points.size(); i<i_e;++i)
+		for (int i=0; i<num;++i)
 		{
 			mesh.get_value(data_, points[i])+=cache[i];
 		}

@@ -15,6 +15,8 @@
 #include "load_particle.h"
 
 #include "../fetl/fetl.h"
+#include "../fetl/save_field.h"
+#include "../fetl/load_field.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
@@ -39,9 +41,9 @@ protected:
 		mesh.xmax_[0] = 1.0;
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 5;
-		mesh.dims_[1] = 11;
-		mesh.dims_[2] = 11;
+		mesh.dims_[0] = 21;
+		mesh.dims_[1] = 21;
+		mesh.dims_[2] = 21;
 
 		mesh.Update();
 
@@ -81,7 +83,16 @@ TYPED_TEST(TestParticle,Create){
 
 	LuaObject cfg;
 
-	cfg.ParseString("Name=\"H\";Engine=\"Full\";m=1.0;Z=1.0;PIC=100;n=1.0");
+	cfg.ParseString(
+
+			"n0=function(x,y,z)"
+			"     return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
+			" end "
+			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=100,"
+			"  n=n0"
+			"}"
+
+	);
 
 	typedef typename TestFixture::mesh_type mesh_type;
 
@@ -91,13 +102,8 @@ TYPED_TEST(TestParticle,Create){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
-	pool_type ion(mesh);
-
-	ion.Update();
-
-	ion.Deserialize(cfg);
-
 	Form<0> n(mesh);
+	Form<0> n0(mesh);
 	Form<1> J(mesh);
 	Form<1> E(mesh);
 	Form<2> B(mesh);
@@ -106,6 +112,17 @@ TYPED_TEST(TestParticle,Create){
 	B.Update();
 	n.Update();
 	J.Update();
+
+	LoadField(cfg["n0"],&n0);
+
+	LOGGER<<DUMP(n0);
+
+	pool_type ion(mesh);
+
+	ion.Update();
+
+	ion.Deserialize(cfg["ion"]);
+
 	std::mt19937 rnd_gen(1);
 
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -122,16 +139,18 @@ TYPED_TEST(TestParticle,Create){
 
 	LOGGER << Data(ion,"ion");
 
-//	ion.Sort();
+	ion.Sort();
+
+	LOGGER << Data(ion,"ion2");
 
 	ion.NextTimeStep(1.0,E, B);
 	LOGGER<< " NextTimeStep"<<DONE;
 
 	ion.Collect(&n,E,B);
-	LOGGER<< " Collect"<<DONE;
-
-	ion.Collect(&J,E,B);
-	LOGGER<< " Collect"<<DONE;
+	LOGGER<< " Collect "<<DUMP(n)<<DONE;
+//
+//	ion.Collect(&J,E,B);
+//	LOGGER<< " Collect "<<DUMP(J)<<DONE;
 
 }
 }

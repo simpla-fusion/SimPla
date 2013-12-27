@@ -25,14 +25,14 @@ public:
 	rectangle_distribution()
 	{
 	}
-	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax) :
-			xmin_(xmin), xmax_(xmax)
+	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
+			: xmin_(xmin), xmax_(xmax)
 	{
 	}
 
 	template<typename TRANGE>
-	rectangle_distribution(TRANGE const &xrange) :
-			xmin_(xrange[0]), xmax_(xrange[1])
+	rectangle_distribution(TRANGE const &xrange)
+			: xmin_(xrange[0]), xmax_(xrange[1])
 	{
 	}
 	~rectangle_distribution()
@@ -76,7 +76,7 @@ public:
 	}
 
 	template<typename Generator, typename T>
-	void operator()(Generator &g, T& res)
+	void operator()(Generator &g, T* res)
 	{
 		for (int i = 0; i < NDIM; ++i)
 		{

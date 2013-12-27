@@ -113,16 +113,35 @@ private:
  */
 class Logger
 {
+	bool null_dump_;
 	typedef std::ostringstream buffer_type;
 	int level_;
 	std::ostringstream buffer_;
 	size_t current_line_char_count_;
 	size_t indent_;
+
 public:
 	typedef Logger this_type;
 
-	Logger(int lv = 0, size_t indent = 0)
-			: level_(lv), current_line_char_count_(0), indent_(indent)
+	Logger()
+			: null_dump_(true)
+	{
+	}
+
+	Logger(Logger const & r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_)
+	{
+	}
+
+	Logger(Logger && r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_)
+	{
+	}
+
+	Logger(int lv, size_t indent = 0)
+			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
 	{
 		buffer_ << std::boolalpha;
 
@@ -156,6 +175,8 @@ public:
 	}
 	~Logger()
 	{
+		if (null_dump_)
+			return;
 
 		if (level_ == LOG_LOGIC_ERROR)
 		{
@@ -177,7 +198,6 @@ public:
 		}
 
 		UnsetIndent(indent_);
-
 	}
 
 	void SetIndent(size_t n = 1)
@@ -222,6 +242,9 @@ public:
 
 	template<typename T> inline this_type & operator<<(T const& value)
 	{
+		if (null_dump_)
+			return *this;
+
 		current_line_char_count_ -= GetBufferLength();
 
 		const_cast<this_type*>(this)->buffer_ << value;
@@ -239,11 +262,15 @@ public:
 // take in a function with the custom signature
 	Logger const& operator<<(LoggerStreamManipulator manip) const
 	{
+		if (null_dump_)
+			return *this;
 		// call the function, and return it's value
 		return manip(*const_cast<this_type*>(this));
 	}
 	Logger & operator<<(LoggerStreamManipulator manip)
 	{
+		if (null_dump_)
+			return *this;
 		// call the function, and return it's value
 		return manip(*this);
 	}
@@ -341,7 +368,7 @@ private:
 #ifndef NDEBUG
 #	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
-#	define EXCEPT(_COND_)    Logger(LOG_DEBUG,((_COND_)!=true)) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+#	define EXCEPT(_COND_)    ((_COND_))?Logger():Logger(LOG_DEBUG)<<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_COND_)<<"="<< (_COND_)<<" "
 #	define EXCEPT_EQ( actual,expected)    Logger(LOG_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(actual)<<" = "<< (actual) << " is not  "<< (expected) <<" "

@@ -97,7 +97,11 @@ public:
 	{
 		cell_idx_ = s;
 		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
-
+		if (num_of_points_ == 0)
+		{
+			WARNING << "Empty Cache!";
+			return;
+		}
 		points_.resize(num_of_points_);
 		cache_.resize(num_of_points_);
 
@@ -182,8 +186,8 @@ public:
 			num_of_points_(r.num_of_points_),
 
 			points_(r.points_), cache_(r.cache_)
-
 	{
+		EXCEPT(num_of_points_>0) << "Move Construct";
 	}
 	Field(this_type const& r)
 			: mesh(r.mesh), f_(r.f_),
@@ -195,6 +199,7 @@ public:
 			points_(r.points_), cache_(r.cache_)
 
 	{
+		EXCEPT(num_of_points_>0) << "Copy Construct";
 	}
 
 	Field(field_type * f, int affect_region = 1)
@@ -204,7 +209,8 @@ public:
 
 	~Field()
 	{
-		f_->Collect(points_, cache_);
+		if (num_of_points_ > 0)
+			f_->Collect(num_of_points_, &points_[0], &cache_[0]);
 	}
 
 	void Update(size_t s)
@@ -213,6 +219,11 @@ public:
 
 		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
 
+		if (num_of_points_ == 0)
+		{
+			WARNING << "Empty Cache!";
+			return;
+		}
 		points_.resize(num_of_points_);
 		cache_.resize(num_of_points_);
 
@@ -245,19 +256,21 @@ public:
 	}
 
 };
-void UpdateCache(size_t s)
-{
 
-}
 template<typename T>
 void UpdateCache(size_t s, T &)
 {
-
 }
-template<typename TG, typename TF, typename ...Others>
-void UpdateCache(size_t s, Field<TG, ProxyCache<TF>> & f, Others & ...others)
+template<typename TG, typename TF>
+void UpdateCache(size_t s, Field<TG, ProxyCache<TF>> & f)
 {
 	f.Update(s);
+}
+
+template<typename T, typename ...Others>
+void UpdateCache(size_t s, T & f, Others & ...others)
+{
+	UpdateCache(s, f);
 	UpdateCache(s, others...);
 }
 
