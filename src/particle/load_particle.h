@@ -18,6 +18,7 @@
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
 #include "../utilities/log.h"
+#include "../physics/physical_constants.h"
 
 namespace simpla
 {
@@ -55,6 +56,8 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 	if (cfg["SRC"].empty()) // Initialize Data
 	{
+
+		DEFINE_PHYSICAL_CONST(p->mesh.constants);
 
 		bool doParallel = true;
 		size_t pic = cfg["PIC"].template as<size_t>();
@@ -100,11 +103,23 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 		}
 
+		Real vT = 1.0;
+
+		if (!cfg["vT"].empty())
+		{
+			vT = cfg["vT"].template as<Real>();
+		}
+		else if (!cfg["T"].empty())
+		{
+
+			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / p->GetMass());
+		}
+
 		std::mt19937 rnd_gen(1);
 
 		rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
 
-		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(1.0);
+		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(vT);
 
 		mesh.Traversal(doParallel, Particle<TEngine>::IForm,
 

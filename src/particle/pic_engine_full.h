@@ -144,7 +144,6 @@ public:
 	template<int IFORM, typename TV, typename ...Others>
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &... others) const
 	{
-		CHECK(p.x);
 		J->Collect(p.v * p.f, p.x);
 	}
 

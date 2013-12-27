@@ -54,7 +54,7 @@ struct CoRectMesh
 	static constexpr unsigned int NUM_OF_DIMS = 3;
 	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
 
-	typedef size_t index_type;
+	typedef std::ptrdiff_t index_type;
 
 	typedef TS scalar;
 
@@ -76,14 +76,14 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, size_t> shift_ = { 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, size_t> dims_ = { 11, 11, 11 };
-	nTuple<NUM_OF_DIMS, size_t> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
-	nTuple<NUM_OF_DIMS, size_t> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> dims_ = { 11, 11, 11 };
+	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
 
-	size_t num_cells_ = 0;
+	index_type num_cells_ = 0;
 
-	size_t num_grid_points_ = 0;
+	index_type num_grid_points_ = 0;
 
 	// Geometry
 	coordinates_type xmin_ = { 0, 0, 0 };
@@ -284,12 +284,12 @@ public:
 	}
 
 	template<int IFORM>
-	inline size_t GetSubComponent(size_t s) const
+	inline index_type GetSubComponent(index_type s) const
 	{
 		return s % num_comps_per_cell_[IFORM];
 	}
 	template<typename ... IDXS>
-	inline size_t GetComponentIndex(int IFORM, int m, IDXS ... s) const
+	inline index_type GetComponentIndex(int IFORM, int m, IDXS ... s) const
 	{
 		return GetIndex(s...) * num_comps_per_cell_[IFORM] + m;
 	}
@@ -876,20 +876,20 @@ public:
 		Z = 16,// 01 00 00
 		NZ = 32// 10 00 00
 	};
-	inline size_t INC(int m) const
+	inline index_type INC(int m) const
 	{
 		return 1 << (m % 3) * 2;
 	}
-	inline size_t DES(int m) const
+	inline index_type DES(int m) const
 	{
 		return 2 << (m % 3) * 2;
 	}
 
-	void UnpackIndex(index_type *idx,size_t s)const
+	void UnpackIndex(index_type *idx,index_type s)const
 	{
 		UnpackIndex(idx,idx+1,idx+2, s);
 	}
-	void UnpackIndex(index_type *i,index_type *j,index_type *k,size_t s)const
+	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type s)const
 	{
 		*i =(strides_[0]==0)?0:(s/strides_[0]);
 		s-=(*i)*strides_[0];
@@ -913,7 +913,7 @@ public:
 	 *
 	 */
 	template<typename ... IDXS>
-	inline size_t Shift(int d, IDXS ... s) const
+	inline index_type Shift(int d, IDXS ... s) const
 	{
 		index_type i,j,k;
 		UnpackIndex(&i,&j,&k,s...);
@@ -929,7 +929,7 @@ public:
 
 	}
 
-	inline size_t Shift(int d, index_type i, index_type j, index_type k) const
+	inline index_type Shift(int d, index_type i, index_type j, index_type k) const
 	{
 		return
 
@@ -940,17 +940,25 @@ public:
 		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % dims_[2]) * strides_[2]);
 	}
 
-	inline size_t GetIndex(index_type i, index_type j, index_type k) const
+	inline index_type GetIndex(index_type i, index_type j, index_type k) const
 	{
-		return ((i % dims_[0]) * strides_[0] + (j % dims_[1]) * strides_[1] + (k % dims_[2]) * strides_[2]);
+		return (
+
+		((i+dims_[0]) % dims_[0]) * strides_[0]
+
+		+((j+dims_[1]) % dims_[1]) * strides_[1]
+
+		+((k+dims_[2]) % dims_[2]) * strides_[2]
+
+		);
 	}
 
-	inline size_t GetIndex(index_type* i) const
+	inline index_type GetIndex(index_type* i) const
 	{
 		return GetIndex(i[0],i[1],i[2]);
 	}
 
-	inline size_t GetIndex(index_type s) const
+	inline index_type GetIndex(index_type s) const
 	{
 		return s;
 	}
@@ -961,7 +969,7 @@ public:
 	}
 
 	template<int IFORM, typename TL> inline typename Field<Geometry<this_type, IFORM>, TL>::value_type & get(
-	Field<Geometry<this_type, IFORM>, TL> *l, size_t s) const
+	Field<Geometry<this_type, IFORM>, TL> *l, index_type s) const
 	{
 		return l->get(s % num_comps_per_cell_[IFORM], s / num_comps_per_cell_[IFORM]);
 	}
@@ -994,12 +1002,12 @@ public:
 	}
 
 	template<typename TV>
-	TV & get_value(Container<TV> & d,size_t s)const
+	TV & get_value(Container<TV> & d,index_type s)const
 	{
 		return * (d.get()+s);
 	}
 	template<typename TV>
-	TV const & get_value(Container<TV> const& d,size_t s)const
+	TV const & get_value(Container<TV> const& d,index_type s)const
 	{
 		return * (d.get()+s);
 	}
@@ -1147,12 +1155,12 @@ public:
 	}
 
 // Properties of UniformRectMesh --------------------------------------
-	inline void SetGhostWidth(int i,size_t v)
+	inline void SetGhostWidth(int i,index_type v)
 	{
 		ghost_width_[i% NUM_OF_DIMS]=v;
 	}
 
-	inline nTuple<NUM_OF_DIMS,size_t> const&GetGhostWidth( )const
+	inline nTuple<NUM_OF_DIMS,index_type> const&GetGhostWidth( )const
 	{
 		return ghost_width_;
 	}
@@ -1170,13 +1178,13 @@ public:
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline void SetDimension(nTuple<NUM_OF_DIMS, size_t> const & pdims)
+	inline void SetDimension(nTuple<NUM_OF_DIMS, index_type> const & pdims)
 	{
 		dims_ = pdims;
 
 		Update();
 	}
-	inline nTuple<NUM_OF_DIMS, size_t> const & GetDimension() const
+	inline nTuple<NUM_OF_DIMS, index_type> const & GetDimension() const
 	{
 		return dims_;
 	}
@@ -1206,7 +1214,7 @@ public:
 
 		return std::move(res);
 	}
-	inline nTuple<NUM_OF_DIMS, size_t> const & GetStrides() const
+	inline nTuple<NUM_OF_DIMS, index_type> const & GetStrides() const
 	{
 		return strides_;
 	}
@@ -1224,13 +1232,13 @@ public:
 		Update();
 	}
 
-	inline size_t GetNumOfElements(int iform) const
+	inline index_type GetNumOfElements(int iform) const
 	{
 
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
 	}
 
-	inline size_t GetNumOfVertices(...) const
+	inline index_type GetNumOfVertices(...) const
 	{
 
 		return (num_grid_points_);
@@ -1252,27 +1260,75 @@ public:
 	 * @param pcoords local parameter coordinates
 	 * @return index of cell
 	 */
-	inline index_type SearchCell(coordinates_type const &x, Real *pcoords = nullptr) const
+	inline size_t SearchCell(coordinates_type const &x, Real * r=nullptr) const
 	{
 
-		size_t idx = 0;
+		index_type s[3];
 
-		Real e[3],ir[3];
+		for(int n=0;n<3;++n)
+		{
+			Real L=(xmax_[n] - xmin_[n]);
 
-		e[0]= std::modf((x[0] - xmin_[0]) * inv_dx_[0],ir);
-		e[1]= std::modf((x[1] - xmin_[1]) * inv_dx_[1],ir+1);
-		e[2]= std::modf((x[2] - xmin_[2]) * inv_dx_[2],ir+2);
+			double i,e;
+
+			e= std::modf(
+
+			(xmax_[n]<=xmin_[n])
+
+			? 0
+
+			: std::fmod( std::fmod( x[n] - xmin_[n],L )+L , L) *inv_dx_[n]
+
+			,&i);
+
+			if(r!=nullptr)
+			{
+				r[n]=e;
+			}
+
+			s[n]=static_cast<index_type>(i);
+
+		}
+
+		return GetIndex(s);
+	}
+
+	/**
+	 *
+	 * Locate the cell containing a specified point.
+	 * and apply cycle bondary conditon on x
+	 *
+	 * @param x
+	 * @param r
+	 * @return index of cell
+	 */
+	inline size_t SearchCell(Real *x, Real *r =nullptr) const
+	{
 
 		index_type s[3];
-		s[0]= (dims_[0]==0)?0:static_cast<size_t>(ir[0]);
-		s[1]= (dims_[1]==0)?0:static_cast<size_t>(ir[1]);
-		s[2]= (dims_[2]==0)?0:static_cast<size_t>(ir[2]);
 
-		if (pcoords != nullptr)
+		for(int n=0;n<3;++n)
 		{
-			pcoords[0] = e[0];
-			pcoords[1] = e[1];
-			pcoords[2] = e[2];
+			Real L=(xmax_[n] - xmin_[n]);
+
+			x[n]=
+
+			(xmax_[n]<=xmin_[n])
+
+			?0
+
+			:std::fmod( std::fmod( x[n] - xmin_[n],L )+L , L);
+
+			double i,e;
+
+			e= std::modf(x[n]*inv_dx_[n],&i);
+
+			if(r!=nullptr) r[n]=e;
+
+			s[n]=static_cast<index_type>(i);
+
+			x[n]+=xmin_[n];
+
 		}
 
 		return GetIndex(s);
@@ -1284,7 +1340,12 @@ public:
 	 * @param pcoords
 	 * @return index of cell
 	 */
-	inline index_type SearchCell(index_type const &hint_idx, coordinates_type const &x, Real *pcoords = nullptr) const
+	inline size_t SearchCell(index_type const &hint_idx, coordinates_type const &x, Real *pcoords = nullptr) const
+	{
+		return SearchCell(x, pcoords);
+	}
+
+	inline size_t SearchCell(index_type const &hint_idx, Real * x, Real *pcoords = nullptr) const
 	{
 		return SearchCell(x, pcoords);
 	}
@@ -1307,14 +1368,14 @@ public:
 		return 2;
 	}
 
-	template<int I> inline size_t
-	GetAffectedPoints(Int2Type<I>, index_type const & s=0, size_t * points=nullptr, int affect_region = 2) const
+	template<int I> inline index_type
+	GetAffectedPoints(Int2Type<I>, index_type const & s=0, index_type * points=nullptr, int affect_region = 2) const
 	{
 		index_type i,j,k;
 
 		UnpackIndex(&i,&j,&k,s);
 
-		size_t num=num_comps_per_cell_[I];
+		index_type num=num_comps_per_cell_[I];
 
 		if(points!=nullptr)
 		{
@@ -1332,20 +1393,20 @@ public:
 			}
 		}
 
-		size_t w=affect_region*2;
+		index_type w=affect_region*2;
 
 		return w*w*w*num;
 	}
 //	template<int I>
 //	inline typename std::enable_if<I==1||I==2,int>::type
-//	GetAffectedPoints(Int2Type<I>, index_type const & s =0, size_t * points=nullptr, int affect_region = 2) const
+//	GetAffectedPoints(Int2Type<I>, index_type const & s =0, index_type * points=nullptr, int affect_region = 2) const
 //	{
 //
 //		index_type i,j,k;
 //		UnpackIndex(&i,&j,&k,s);
-//		size_t w=affect_region*2;
-//		size_t min=affect_region-1;
-//		size_t max=affect_region+1;
+//		index_type w=affect_region*2;
+//		index_type min=affect_region-1;
+//		index_type max=affect_region+1;
 //
 //		if(points!=nullptr)
 //		{
@@ -1903,7 +1964,7 @@ void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];
 
-	size_t len = ie - ib;
+	index_type len = ie - ib;
 	index_type tb = ib + len * thread_id / num_threads;
 	index_type te = ib + len * (thread_id + 1) / num_threads;
 
@@ -1958,11 +2019,11 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
 //template<typename Fun> inline
 //void ForEachBoundary(int iform, Fun const &f) const
 //{
-//	size_t num_comp = num_comps_per_cell_[iform];
+//	index_type num_comp = num_comps_per_cell_[iform];
 //
-//	for (size_t i = 0; i < dims_[0]; ++i)
-//		for (size_t j = 0; j < dims_[1]; ++j)
-//			for (size_t k = 0; k < dims_[2]; ++k)
+//	for (index_type i = 0; i < dims_[0]; ++i)
+//		for (index_type j = 0; j < dims_[1]; ++j)
+//			for (index_type k = 0; k < dims_[2]; ++k)
 //				for (int m = 0; m < num_comp; ++m)
 //				{
 //					if (i >= gw_[0] && i < dims_[0] - gw_[0] &&
@@ -1989,14 +2050,14 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
 //void MakeCycleMap(int iform, std::map<index_type, index_type> &ma,
 //		unsigned int flag = 7) const
 //{
-//	size_t num_comp = num_comps_per_cell_[iform];
+//	index_type num_comp = num_comps_per_cell_[iform];
 //
-//	nTuple<NUM_OF_DIMS, size_t> L =
+//	nTuple<NUM_OF_DIMS, index_type> L =
 //	{ dims_[0] - 2 * gw_[0], dims_[1] - 2 * gw_[1], dims_[2] - 2 * gw_[2] };
 //
-//	for (size_t i = 0; i < dims_[0]; ++i)
-//		for (size_t j = 0; j < dims_[1]; ++j)
-//			for (size_t k = 0; k < dims_[2]; ++k)
+//	for (index_type i = 0; i < dims_[0]; ++i)
+//		for (index_type j = 0; j < dims_[1]; ++j)
+//			for (index_type k = 0; k < dims_[2]; ++k)
 //			{
 //
 //				index_type s = i * strides_[0] + j * strides_[1]
@@ -2085,7 +2146,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  idx[2] = static_cast<long>(r[2]);
 
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  return (f[s] * (1.0 - r[0]) + f[s + strides_[0]] * r[0]); //FIXME Only for 1-dim
@@ -2104,7 +2165,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  idx[1] = static_cast<long>(r[1]);
  idx[2] = static_cast<long>(r[2]);
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  f.Add(s, v * (1.0 - r[0]));
@@ -2123,7 +2184,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  r = (x - xmin) * inv_dx_;
  idx = r + 0.5;
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
@@ -2144,7 +2205,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  r = (x - xmin) * inv_dx_;
  idx = r + 0.5;
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
@@ -2169,7 +2230,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  idx[2] = static_cast<long>(r[2]);
 
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
@@ -2195,7 +2256,7 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
  idx[2] = static_cast<long>(r[2]);
 
  r -= idx;
- size_t s = idx[0] * strides_[0] + idx[1] * strides_[1]
+ index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
  + idx[2] * strides_[2];
 
  f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);

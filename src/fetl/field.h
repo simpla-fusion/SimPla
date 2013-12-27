@@ -62,7 +62,7 @@ public:
 
 private:
 	container_type data_;
-	size_t num_of_eles_;
+	index_type num_of_eles_;
 public:
 
 	mesh_type const &mesh;
@@ -120,7 +120,7 @@ public:
 	{
 		return data_;
 	}
-	size_t size() const
+	index_type size() const
 	{
 		return (data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
 	}
@@ -154,12 +154,12 @@ public:
 		return std::move(mesh.GetShape(IForm));
 	}
 
-	inline value_type & operator[](size_t s)
+	inline value_type & operator[](index_type s)
 	{
 		ASSERT(s < num_of_eles_)
 		return mesh.get_value(data_, s);
 	}
-	inline value_type const & operator[](size_t s) const
+	inline value_type const & operator[](index_type s) const
 	{
 		return mesh.get_value(data_, s);
 	}
@@ -167,7 +167,7 @@ public:
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		size_t ts = mesh.GetComponentIndex(IForm, s...);
+		index_type ts = mesh.GetComponentIndex(IForm, s...);
 		ASSERT(ts < num_of_eles_)
 		return mesh.get_value(data_, ts);
 	}
@@ -195,7 +195,7 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		for (size_t s = 0; s < num_of_eles_; ++s)
+		for (index_type s = 0; s < num_of_eles_; ++s)
 		{
 			mesh.get_value(data_, s) = default_value;
 		}
@@ -260,7 +260,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		field_value_type res;
 
-		size_t num=mesh.GetAffectedPoints(Int2Type<IForm>(), s );
+		index_type num=mesh.GetAffectedPoints(Int2Type<IForm>(), s );
 
 		std::vector<index_type> points(num);
 
@@ -296,7 +296,7 @@ DECL_SELF_ASSIGN	(-=)
 			Real * pcoords, int affected_region = 1)
 	{
 
-		size_t num=mesh.GetAffectedPoints(Int2Type<IForm>(), s);
+		index_type num=mesh.GetAffectedPoints(Int2Type<IForm>(), s);
 
 		if(num==0)
 		{
@@ -325,7 +325,7 @@ DECL_SELF_ASSIGN	(-=)
 		Collect(num,points,cache);
 	}
 
-	inline void Collect(size_t num,index_type const * points,value_type const * cache)
+	inline void Collect(index_type num,index_type const * points,value_type const * cache)
 	{
 		if(num==0)
 		WARNING<< "Cache is empty!";

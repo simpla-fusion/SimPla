@@ -44,6 +44,7 @@ protected:
 		mesh.dims_[0] = 21;
 		mesh.dims_[1] = 21;
 		mesh.dims_[2] = 21;
+		mesh.dt_ = 1.0;
 
 		mesh.Update();
 
@@ -88,7 +89,7 @@ TYPED_TEST(TestParticle,Create){
 			"n0=function(x,y,z)"
 			"     return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 			" end "
-			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=100,"
+			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=100,T=1.0e4 ,"
 			"  n=n0"
 			"}"
 
@@ -144,7 +145,10 @@ TYPED_TEST(TestParticle,Create){
 	LOGGER << Data(ion,"ion2");
 
 	ion.NextTimeStep(1.0,E, B);
+
 	LOGGER<< " NextTimeStep"<<DONE;
+
+	LOGGER << Data(ion,"ion3");
 
 	ion.Collect(&n,E,B);
 	LOGGER<< " Collect "<<DUMP(n)<<DONE;

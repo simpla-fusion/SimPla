@@ -251,6 +251,8 @@ public:
 		}
 		else //failsafe
 		{
+			CHECK(idx);
+//			WARNING << "Particle is not sorted!! [cell idx=" << idx << " x= " << x << "]";
 			f_->Collect(v, idx, &pcoords[0], affect_region_);
 		}
 	}

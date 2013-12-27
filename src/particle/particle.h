@@ -329,21 +329,13 @@ void Particle<Engine>::_Sort()
 								auto p = pt;
 								++pt;
 
-								auto dest = this->mesh.SearchCell(src,p->x);
+								auto dest = this->mesh.SearchCell(src,&(p->x[0]));
 
-								if (dest==src)
-								{
-									return;
-								}
-
-								if(dest>0 && dest<mesh.GetNumOfElements(IForm))
+								if (dest!=src)
 								{
 									this->mt_data_[t_id][dest].splice(this->mt_data_[t_id][dest].begin(), cell, p);
 								}
-								else
-								{
-									cell.erase(p);
-								}
+
 							}
 						}
 
@@ -476,7 +468,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+	const unsigned int num_threads = 1; // std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
 
@@ -498,7 +490,6 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 						for (auto const& p : this->data_[s])
 						{
-
 							engine_type::Collect(p, &J_c2 , args_c2...);
 						}
 
