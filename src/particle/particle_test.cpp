@@ -42,8 +42,8 @@ protected:
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
 		mesh.dims_[0] = 21;
-		mesh.dims_[1] = 21;
-		mesh.dims_[2] = 21;
+		mesh.dims_[1] = 1;
+		mesh.dims_[2] = 1;
 		mesh.dt_ = 1.0;
 
 		mesh.Update();
@@ -89,8 +89,8 @@ TYPED_TEST(TestParticle,Create){
 			"n0=function(x,y,z)"
 			"     return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 			" end "
-			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=100,T=1.0e4 ,"
-			"  n=n0"
+			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=200,T=1.0e4 ,"
+			"  n=1.0"
 			"}"
 
 	);
@@ -130,12 +130,12 @@ TYPED_TEST(TestParticle,Create){
 
 	for (auto & v : E)
 	{
-		v = uniform_dist(rnd_gen);
+		v = 1; //uniform_dist(rnd_gen);
 	}
 
 	for (auto & v : B)
 	{
-		v = uniform_dist(rnd_gen);
+		v = 2; //uniform_dist(rnd_gen);
 	}
 
 	LOGGER << Data(ion,"ion");

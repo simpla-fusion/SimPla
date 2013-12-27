@@ -85,7 +85,7 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_region = 1)
+	Field(field_type const & f, index_type const &s, int affect_region = 2)
 			: mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
 	{
 	}
@@ -177,6 +177,8 @@ private:
 
 	std::vector<value_type> cache_;
 
+	bool is_fresh_;
+
 public:
 
 	Field(this_type && r)
@@ -186,7 +188,7 @@ public:
 
 			num_of_points_(r.num_of_points_),
 
-			points_(r.points_), cache_(r.cache_)
+			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 		EXCEPT(num_of_points_>0) << "Move Construct";
 	}
@@ -197,25 +199,29 @@ public:
 
 			num_of_points_(r.num_of_points_),
 
-			points_(r.points_), cache_(r.cache_)
+			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 
 	{
 		EXCEPT(num_of_points_>0) << "Copy Construct";
 	}
 
 	Field(field_type * f, int affect_region = 2)
-			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0)
+			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0), is_fresh_(false)
 	{
 	}
 
 	~Field()
 	{
+		Refresh();
 	}
 
 	void Refresh()
 	{
-		if (num_of_points_ > 0)
+		if (num_of_points_ > 0 && !is_fresh_)
+		{
 			f_->Collect(num_of_points_, &points_[0], &cache_[0]);
+			is_fresh_ = true;
+		}
 	}
 
 	void Update(size_t s)
@@ -241,6 +247,8 @@ public:
 		zero_value_ *= 0;
 
 		std::fill(cache_.begin(), cache_.end(), zero_value_);
+
+		is_fresh_ = false;
 	}
 
 	template<typename TV>

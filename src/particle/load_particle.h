@@ -111,7 +111,6 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 		}
 		else if (!cfg["T"].empty())
 		{
-
 			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / p->GetMass());
 		}
 

@@ -187,18 +187,11 @@ struct CoRectMesh
 
 				k_[i] = 0.0;
 
-			}
+				cell_volume_*= (dims_[i] - 1) * dx_[i];
 
-			if (!isinf(dx_[i]))
-			{
-				cell_volume_ *= (dims_[i] - 1) * dx_[i];
-			}
+				d_cell_volume_ /= dx_[i];
 
-			if (!isinf(dx_[i]) && dx_[i] > 0)
-			{
-				d_cell_volume_ *= dx_[i];
 			}
-
 		}
 
 		strides_[2] = 1;
@@ -1394,9 +1387,16 @@ public:
 //
 //				,i,j,k)*num;
 
-			for(index_type l=i-affect_region+1;l<i+affect_region+1;++l)
-			for(index_type m=j-affect_region+1;m<j+affect_region+1;++m)
-			for(index_type n=k-affect_region+1;n<k+affect_region+1;++n)
+			index_type i_b= (dims_[0]>1)?i-affect_region+1:0;
+			index_type i_e= (dims_[0]>1)?i+affect_region+1:1;
+			index_type j_b= (dims_[1]>1)?j-affect_region+1:0;
+			index_type j_e= (dims_[1]>1)?j+affect_region+1:1;
+			index_type k_b= (dims_[2]>1)?k-affect_region+1:0;
+			index_type k_e= (dims_[2]>1)?k+affect_region+1:1;
+
+			for(index_type l=i_b;l<i_e;++l)
+			for(index_type m=j_b;m<j_e;++m)
+			for(index_type n=k_b;n<k_e;++n)
 			{
 				points[t] = GetIndex(l,m,n)*num;
 
@@ -1408,9 +1408,16 @@ public:
 			}
 		}
 
-		index_type w=affect_region*2;
+		index_type w=1;
 
-		return w*w*w*num;
+		for(int i=0;i<3;++i)
+		{
+			if(dims_[i]>1)
+			{
+				w*=(affect_region*2);
+			}
+		}
+		return w*num;
 	}
 //	template<int I>
 //	inline typename std::enable_if<I==1||I==2,int>::type
@@ -1440,17 +1447,33 @@ public:
 //	}
 
 private:
-	inline std::ptrdiff_t GetCacheCoordinates(std::ptrdiff_t w,Real *r )const
+	inline index_type GetCacheCoordinates(int w,index_type *sx ,Real *r )const
 	{
-		std::ptrdiff_t ix[3];
+
+		sx[0]=(dims_[0]<=1)?0:((dims_[1]<=1)?1:w*2) *((dims_[2]<=1)?1:w*2) ,
+
+		sx[1]= (dims_[1]<=1)?0:((dims_[2]<=1)?1:w*2);
+
+		sx[2]= ((dims_[2]<=1)?0:1);
+
 		///@NOTE Dot not check boundary, user should ensure abs(r)<w
-		for(int i=0;i<3;++i)
+
+		index_type res=0;
+
+		for(int n=0;n<3;++n)
 		{
-			ix[i]=static_cast<std::ptrdiff_t >(r[i]);
-			r[i]=(dims_[i]>1)?r[i]-ix[i]:0;
+			if(dims_[n]>1)
+			{
+				Real i;
+
+				r[n]=std::modf(r[n],&i);
+
+				res+=static_cast<index_type>(i)*sx[n];
+			}
+
 		}
 
-		return (ix[0]+w)*(w*w*4)+(ix[1]+w)*(w*2)+(ix[2]+w);
+		return res;
 	}
 
 #define DEF_INTERPOLATION_SCHEME(_LEFT_,_RIGHT_)                                                       \
@@ -1468,11 +1491,8 @@ private:
 	{
 		Real r[3]=
 		{	pcoords[0], pcoords[1], pcoords[2]};
-
-		std::ptrdiff_t sx[3]=
-		{	w*w*4,w*2,1};
-
-		std::ptrdiff_t o=GetCacheCoordinates(w,r);
+		index_type sx[3];
+		index_type o=GetCacheCoordinates(w,sx,r);
 
 		DEF_INTERPOLATION_SCHEME(,+=v)
 //		cache[(o)*num_of_comp+comp_num] += v* (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
@@ -1484,6 +1504,12 @@ private:
 //		cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] += v* (1.0 - r[0]) * r[1]* r[2];
 //		cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] += v* r[0] * r[1]* r[2];
 
+//		CHECK(r[0])<<" "<<r[1]<<" "<<r[2];
+//		CHECK( (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]));
+//		CHECK(v);
+//		CHECK((o)*num_of_comp+comp_num);
+//		CHECK(cache[(o)*num_of_comp+comp_num]);
+
 	}
 
 	template<typename TV,typename TW>
@@ -1491,12 +1517,12 @@ private:
 	{
 		Real r[3]=
 		{	pcoords[0], pcoords[1], pcoords[2]};
-		std::ptrdiff_t sx[3]=
-		{	w*w*4,w*2,1};
 
-		std::ptrdiff_t o=GetCacheCoordinates(w,r);
+		index_type sx[3];
+		index_type o=GetCacheCoordinates(w,sx,r);
 
 		(*res) = 0;
+
 		DEF_INTERPOLATION_SCHEME((*res)+=,)
 
 //		(*res)+=cache[(o)*num_of_comp+comp_num] * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
