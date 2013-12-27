@@ -333,6 +333,8 @@ DECL_SELF_ASSIGN	(-=)
 		write_lock_.lock();
 		for (int i=0; i<num;++i)
 		{
+			ASSERT(points[i]<size());
+			ASSERT(points[i]>=0);
 			mesh.get_value(data_, points[i])+=cache[i];
 		}
 		write_lock_.unlock();

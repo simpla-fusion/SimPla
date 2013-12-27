@@ -144,6 +144,9 @@ TYPED_TEST(TestParticle,Create){
 
 	LOGGER << Data(ion,"ion2");
 
+	ion.Collect(&n,E,B);
+	LOGGER<< " Collect "<<DUMP(n)<<DONE;
+
 	ion.NextTimeStep(1.0,E, B);
 
 	LOGGER<< " NextTimeStep"<<DONE;

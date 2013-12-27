@@ -493,6 +493,8 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 							engine_type::Collect(p, &J_c2 , args_c2...);
 						}
 
+						RefreshCache(J_c2,args_c2...);
+
 					},mesh_type::WITH_GHOSTS
 			);
 		}
@@ -604,7 +606,7 @@ public:
 
 	virtual size_t GetAffectedRegion() const
 	{
-		return 1;
+		return 2;
 	}
 
 	inline Real GetMass() const

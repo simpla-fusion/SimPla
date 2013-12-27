@@ -1380,11 +1380,26 @@ public:
 		if(points!=nullptr)
 		{
 			int t=0;
-			for(int l=affect_region-1;l<affect_region+1;++l)
-			for(int m=affect_region-1;m<affect_region+1;++m)
-			for(int n=affect_region-1;n<affect_region+1;++n)
+//			for(int l=-affect_region+1;l<affect_region+1;++l)
+//			for(int m=-affect_region+1;m<affect_region+1;++m)
+//			for(int n=-affect_region+1;n<affect_region+1;++n)
+//			{
+//				points[t] = Shift(
+//
+//				((l<0)?(NX*(-l)):(X*l))
+//
+//				|((m<0)?(NY*(-m)):(Y*m))
+//
+//				| ((n<0)?(NZ*(-n)):(Z*n))
+//
+//				,i,j,k)*num;
+
+			for(index_type l=i-affect_region+1;l<i+affect_region+1;++l)
+			for(index_type m=j-affect_region+1;m<j+affect_region+1;++m)
+			for(index_type n=k-affect_region+1;n<k+affect_region+1;++n)
 			{
-				points[t] = Shift((X*l) | (Y*m) | (Z*n),i,j,k)*num;
+				points[t] = GetIndex(l,m,n)*num;
+
 				for(int s=1;s<num;++s)
 				{
 					points[t+s]=points[t]+s;

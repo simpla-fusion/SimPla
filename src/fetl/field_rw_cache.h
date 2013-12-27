@@ -13,6 +13,7 @@
 
 #include "../utilities/log.h"
 #include "../utilities/type_utilites.h"
+#include "../utilities/pretty_stream.h"
 #include "field.h"
 #include "proxycache.h"
 
@@ -202,12 +203,16 @@ public:
 		EXCEPT(num_of_points_>0) << "Copy Construct";
 	}
 
-	Field(field_type * f, int affect_region = 1)
+	Field(field_type * f, int affect_region = 2)
 			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0)
 	{
 	}
 
 	~Field()
+	{
+	}
+
+	void Refresh()
 	{
 		if (num_of_points_ > 0)
 			f_->Collect(num_of_points_, &points_[0], &cache_[0]);
@@ -228,6 +233,8 @@ public:
 		cache_.resize(num_of_points_);
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
+
+//		ContainerOutPut1(std::cout, points_.begin(), points_.end());
 
 		value_type zero_value_;
 
@@ -251,8 +258,7 @@ public:
 		}
 		else //failsafe
 		{
-			CHECK(idx);
-//			WARNING << "Particle is not sorted!! [cell idx=" << idx << " x= " << x << "]";
+			WARNING << "Particle is not sorted!! [cell idx=" << idx << " x= " << x << "]";
 			f_->Collect(v, idx, &pcoords[0], affect_region_);
 		}
 	}
@@ -274,6 +280,23 @@ void UpdateCache(size_t s, T & f, Others & ...others)
 {
 	UpdateCache(s, f);
 	UpdateCache(s, others...);
+}
+
+template<typename T>
+void RefreshCache(T &)
+{
+}
+template<typename TG, typename TF>
+void RefreshCache(Field<TG, ProxyCache<TF*>> & f)
+{
+	f.Refresh();
+}
+
+template<typename T, typename ...Others>
+void RefreshCache(T & f, Others & ...others)
+{
+	RefreshCache(f);
+	RefreshCache(others...);
 }
 
 template<typename TGeometry, typename TValue>
