@@ -337,7 +337,7 @@ void Particle<Engine>::_Sort()
 								}
 
 							}
-						}
+						},mesh_type::WITH_GHOSTS
 
 				);
 
@@ -431,7 +431,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 							engine_type::NextTimeStep(&p, dt_, args_c2...);
 						}
-					}
+					},mesh_type::WITH_GHOSTS
 			);
 
 		}, dt,

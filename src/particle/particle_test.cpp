@@ -130,12 +130,12 @@ TYPED_TEST(TestParticle,Create){
 
 	for (auto & v : E)
 	{
-		v = 1; //uniform_dist(rnd_gen);
+		v = uniform_dist(rnd_gen);
 	}
 
 	for (auto & v : B)
 	{
-		v = 2; //uniform_dist(rnd_gen);
+		v = uniform_dist(rnd_gen);
 	}
 
 	LOGGER << Data(ion,"ion");
@@ -144,6 +144,7 @@ TYPED_TEST(TestParticle,Create){
 
 	LOGGER << Data(ion,"ion2");
 
+	n.Fill(0);
 	ion.Collect(&n,E,B);
 	LOGGER<< " Collect "<<DUMP(n)<<DONE;
 
@@ -153,6 +154,7 @@ TYPED_TEST(TestParticle,Create){
 
 	LOGGER << Data(ion,"ion3");
 
+	n.Fill(0);
 	ion.Collect(&n,E,B);
 	LOGGER<< " Collect "<<DUMP(n)<<DONE;
 //

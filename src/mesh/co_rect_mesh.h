@@ -935,13 +935,23 @@ public:
 
 	inline index_type GetIndex(index_type i, index_type j, index_type k) const
 	{
+
+		index_type L[3]=
+		{
+			dims_[0]>1?dims_[0]:1,
+
+			dims_[1]>1?dims_[1]:1,
+
+			dims_[2]>1?dims_[2]:1
+		};
+
 		return (
 
-		((i+dims_[0]) % dims_[0]) * strides_[0]
+		((i+L[0]) % L[0]) * strides_[0]
 
-		+((j+dims_[1]) % dims_[1]) * strides_[1]
+		+((j+L[1]) % L[1]) * strides_[1]
 
-		+((k+dims_[2]) % dims_[2]) * strides_[2]
+		+((k+L[2]) % L[2]) * strides_[2]
 
 		);
 	}
@@ -1008,7 +1018,7 @@ public:
 /// Traversal
 	enum
 	{
-		WITH_GHOSTS = 1
+		WITH_GHOSTS = 0,WITHOUT_GHOSTS=1
 	};
 
 	bool default_parallel_=true;
@@ -1031,10 +1041,10 @@ public:
 	template<typename ...Args> void SerialTraversal(Args const &...args)const;
 
 	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags=0) const;
+	std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags=WITH_GHOSTS) const;
 
 	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(index_type)> const &fun, unsigned int flag = 0) const
+	std::function<void(index_type)> const &fun, unsigned int flag = WITH_GHOSTS) const
 	{
 		_Traversal(num_threads,thread_id,
 		IFORM, [&](int m,index_type i,index_type j,index_type k)
@@ -1044,7 +1054,7 @@ public:
 
 	}
 	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(index_type, coordinates_type)> const &fun, unsigned int flag = 0) const
+	std::function<void(index_type, coordinates_type)> const &fun, unsigned int flag = WITH_GHOSTS) const
 	{
 		int num = num_comps_per_cell_[IFORM];
 
@@ -1993,14 +2003,14 @@ void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id
         std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
 {
 
-	index_type ib = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[0] : 0;
-	index_type ie = ((flags & WITH_GHOSTS) <= 0) ? dims_[0] - ghost_width_[0] : dims_[0];
+	index_type ib = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[0];
+	index_type ie = ((flags == WITH_GHOSTS)) ? dims_[0] : dims_[0] - ghost_width_[0];
 
-	index_type jb = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[1] : 0;
-	index_type je = ((flags & WITH_GHOSTS) <= 0) ? dims_[1] - ghost_width_[1] : dims_[1];
+	index_type jb = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[1];
+	index_type je = ((flags == WITH_GHOSTS)) ? dims_[1] : dims_[1] - ghost_width_[1];
 
-	index_type kb = ((flags & WITH_GHOSTS) <= 0) ? ghost_width_[2] : 0;
-	index_type ke = ((flags & WITH_GHOSTS) <= 0) ? dims_[2] - ghost_width_[2] : dims_[2];
+	index_type kb = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[2];
+	index_type ke = ((flags == WITH_GHOSTS)) ? dims_[2] : dims_[2] - ghost_width_[2];
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];

@@ -120,7 +120,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(vT);
 
-		mesh.Traversal(doParallel, Particle<TEngine>::IForm,
+		mesh.Traversal(false, Particle<TEngine>::IForm,
 
 		[&](typename mesh_type::index_type const & s)
 		{
@@ -128,6 +128,8 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 			typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
 
 			mesh.GetCellShape(s,xrange);
+			CHECK(xrange[0]);
+			CHECK(xrange[1]);
 
 			x_dist.Reset(xrange);
 
@@ -146,9 +148,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 						}
 				);
 			}
-		}
-
-		);
+		}, mesh_type::WITH_GHOSTS);
 	}
 	else // read data from file
 	{

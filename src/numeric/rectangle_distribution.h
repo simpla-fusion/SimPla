@@ -57,7 +57,8 @@ public:
 		xmax_ = xmax;
 		for (int i = 0; i < NDIM; ++i)
 		{
-			if (abs((xmax_[i] - xmin_[i]) / (xmin_[i] + xmax_[i])) > 1.0e-10)
+
+			if (xmax_[i] > xmin_[i])
 				l_[i] = (xmax_[i] - xmin_[i]);
 			else
 				l_[i] = 0;
