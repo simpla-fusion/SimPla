@@ -128,8 +128,6 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 			typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
 
 			mesh.GetCellShape(s,xrange);
-			CHECK(xrange[0]);
-			CHECK(xrange[1]);
 
 			x_dist.Reset(xrange);
 

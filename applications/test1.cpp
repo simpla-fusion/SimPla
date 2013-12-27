@@ -12,32 +12,31 @@
 
 #include "../src/utilities/log.h"
 
+inline signed int Shift(unsigned int d, int s)
+{
+	constexpr int m = 4;
+	constexpr int n = sizeof(signed int) / sizeof(char) * 8;
+
+	return ((static_cast<signed int>(d) << (n - m * (s + 1))) >> (n - m));
+
+}
 int main()
 {
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-
-	CHECK(num_threads);
-	std::vector<std::thread> threads(num_threads);
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	for (int i = 0; i < 256; ++i)
 	{
-		CHECK(thread_id);
-		threads[thread_id] =
+		std::cout << "[" << std::setw(4) << std::setfill('0') << i << " = "
 
-		std::thread(
+		<< std::setw(3) << std::hex << i << " ]--> "
 
-		[&,thread_id]()
-		{
-			CHECK(std::this_thread::get_id())<<"["<< thread_id <<"]";
-		}
+		<< std::dec << std::setfill(' ')
 
-		);
-	}
+		<< std::setw(5) << Shift(i, 0)
 
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-	{
+		<< std::setw(5) << Shift(i, 1)
 
-		threads[thread_id].join();
+		<< std::setw(5) << Shift(i, 2)
+
+		<< std::endl;
 	}
 }
 
