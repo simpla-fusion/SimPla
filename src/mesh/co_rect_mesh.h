@@ -947,7 +947,6 @@ public:
 		(((k % dims_[2])+dims_[2]) % dims_[2]) * strides_[2]
 
 		);
-
 		return res;
 	}
 
@@ -1104,12 +1103,6 @@ public:
 	}
 
 	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
-	{
-		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
-		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);});
-
-	}
-	template<typename TL> void AssignContainer(int IFORM, TL * lhs, TL const &rhs) const
 	{
 		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
 		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);});
@@ -1773,11 +1766,11 @@ public:
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
 	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
-			get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
+			get(f,(m+2)%3,Shift(INC((m+1)%3) ,s...)) * dS_[0][(m + 1) % 3]
 
 			+ get(f,(m+2)%3,s...)* dS_[1][(m + 1) % 3]
 
-			- get(f,(m+1)%3,Shift(INC(m+2) ,s...)) * dS_[0][(m + 2) % 3]
+			- get(f,(m+1)%3,Shift(INC((m+2)%3) ,s...)) * dS_[0][(m + 2) % 3]
 
 			- get(f,(m+1)%3,s...)* dS_[1][(m + 2) % 3]
 	)

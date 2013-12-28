@@ -189,27 +189,15 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	va=ra;
 	vb=rb;
 	vc=rc;
-	a.Init();
-	b.Init();
-	c.Init();
 
-	for(auto & v:a)
-	{
-		v=ra;
-	}
-
-	for(auto & v:b)
-	{
-		v=rb;
-	}
-	for(auto & v:c)
-	{
-		v=rc;
-	}
+	a.Fill(ra);
+	b.Fill(rb);
+	c.Fill(rc);
 
 	f1.Init();
 	f2.Init();
 	f3.Init();
+	f4.Fill(0);
 
 	size_t count=0;
 
@@ -230,7 +218,8 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		v=vc *uniform_dist(gen);
 	}
 
-	f4= ( -f1*a +f2*b ) -f3/c -f1;
+	f4= -f1*a +f2*b -f3/c -f1
+	;
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
@@ -262,7 +251,10 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 			{
 				typename TestFixture::FieldType::value_type res;
 
-				res=( -f1.get(m,i,j,k)*ra +f2.get(m,i,j,k)*rb ) -f3.get(m,i,j,k)/rc -f1.get(m,i,j,k);
+				res=
+				- f1.get(m,i,j,k)*ra +f2.get(m,i,j,k)*rb
+				-f3.get(m,i,j,k)/rc	-f1.get(m,i,j,k)
+				;
 
 				EXPECT_EQ(res,f4.get(m,i,j,k))<< "m= "<< m<< " i,j,k= "<< i<<" "<<j<<" "<<k;
 			}
