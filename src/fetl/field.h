@@ -154,12 +154,12 @@ public:
 		return std::move(mesh.GetShape(IForm));
 	}
 
-	inline value_type & operator[](index_type s)
+	inline value_type & get(index_type s)
 	{
 		ASSERT(s < num_of_eles_)
 		return mesh.get_value(data_, s);
 	}
-	inline value_type const & operator[](index_type s) const
+	inline value_type const & get(index_type s) const
 	{
 		return mesh.get_value(data_, s);
 	}
@@ -168,13 +168,23 @@ public:
 	inline value_type & get(TI ...s)
 	{
 		index_type ts = mesh.GetComponentIndex(IForm, s...);
-		ASSERT(ts < num_of_eles_)
+		ASSERT(ts < num_of_eles_);
+		ASSERT(ts >= 0);
 		return mesh.get_value(data_, ts);
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
 	{
 		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
+	}
+
+	inline value_type & operator[](index_type s)
+	{
+		return get(s);
+	}
+	inline value_type const & operator[](index_type s) const
+	{
+		return get(s);
 	}
 
 	void Init()

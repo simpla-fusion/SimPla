@@ -938,7 +938,7 @@ public:
 	inline index_type GetIndex(index_type i, index_type j, index_type k) const
 	{
 
-		return (
+		auto res= (
 
 		(((i % dims_[0])+dims_[0]) % dims_[0]) * strides_[0]+
 
@@ -947,6 +947,8 @@ public:
 		(((k % dims_[2])+dims_[2]) % dims_[2]) * strides_[2]
 
 		);
+
+		return res;
 	}
 
 	inline index_type GetIndex(index_type* i) const

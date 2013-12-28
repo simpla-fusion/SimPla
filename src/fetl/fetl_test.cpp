@@ -245,16 +245,27 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 	 * */
 	count =0;
 
-	TestFixture::mesh.ForEach(
-			[&](value_type const &s1,value_type const &s2 ,
-					value_type const &s3,value_type const &s4)
+//	TestFixture::mesh.ForEach(
+//			[&](value_type const &s1,value_type const &s2 ,
+//					value_type const &s3,value_type const &s4)
+//			{
+//				typename TestFixture::FieldType::value_type res;
+//				res=( -s1*ra +s2*rb ) -s3/rc -s1;
+//				EXPECT_EQ(res,s4);
+//				if(res!=s4) ++count;
+//
+//			},f1,f2,f3,f4
+//	);
+
+	TestFixture::mesh.Traversal( TestFixture::FieldType::IForm,
+			[&](int m,long i,long j,long k)
 			{
 				typename TestFixture::FieldType::value_type res;
-				res=( -s1*ra +s2*rb ) -s3/rc -s1;
-//				EXPECT_EQ(res,s4);
-				if(res!=s4) ++count;
 
-			},f1,f2,f3,f4
+				res=( -f1.get(m,i,j,k)*ra +f2.get(m,i,j,k)*rb ) -f3.get(m,i,j,k)/rc -f1.get(m,i,j,k);
+
+				EXPECT_EQ(res,f4.get(m,i,j,k))<< "m= "<< m<< " i,j,k= "<< i<<" "<<j<<" "<<k;
+			}
 	);
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
