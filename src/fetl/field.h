@@ -303,7 +303,7 @@ DECL_SELF_ASSIGN	(-=)
 	}
 	template<typename TV>
 	inline void Collect(TV const & v, index_type const & s,
-			Real * pcoords, int affected_region = 1)
+			Real * pcoords, int affected_region = 2)
 	{
 
 		index_type num=mesh.GetAffectedPoints(Int2Type<IForm>(), s);

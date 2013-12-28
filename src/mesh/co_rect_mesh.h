@@ -62,21 +62,19 @@ struct CoRectMesh
 
 	typedef unsigned int tag_type;
 
-	PhysicalConstants constants;
+	PhysicalConstants constants; //!< Unit System and phyical constants
 
-	this_type & operator=(const this_type&) = delete;
-
-	Real dt_ = 0.0;
-
-	template<typename U>
-	friend std::ostream & operator<<(std::ostream &os, CoRectMesh<U> const &);
+	Real dt_ = 0.0; //!< time step
 
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
 	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, index_type> dims_ = { 11, 11, 11 };
+
+	nTuple<NUM_OF_DIMS, index_type> dims_ = { 10, 10, 10 }; //!< number of cells
+
 	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+
 	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
 
 	index_type num_cells_ = 0;
@@ -107,6 +105,8 @@ struct CoRectMesh
 	~CoRectMesh()
 	{
 	}
+
+	this_type & operator=(const this_type&) = delete;
 
 	inline bool operator==(this_type const & r) const
 	{
@@ -171,7 +171,7 @@ struct CoRectMesh
 			}
 			else
 			{
-				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i] - 1);
+				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i] );
 
 				inv_dx_[i]=1.0/dx_[i];
 
@@ -179,13 +179,13 @@ struct CoRectMesh
 
 				dS_[1][i] = -1.0 / dx_[i];
 
-				num_cells_ *= (dims_[i] - 1);
+				num_cells_ *= (dims_[i] );
 
 				num_grid_points_ *= dims_[i];
 
 				k_[i] = 0.0;
 
-				cell_volume_*= (dims_[i] - 1) * dx_[i];
+				cell_volume_*= dx_[i];
 
 				d_cell_volume_ /= dx_[i];
 
@@ -1248,17 +1248,9 @@ public:
 		{
 			Real L=(xmax_[n] - xmin_[n]);
 
-			double i,e;
+			double i=0,e=0;
 
-			e= std::modf(
-
-			(xmax_[n]<=xmin_[n])
-
-			? 0
-
-			: std::fmod( std::fmod( x[n] - xmin_[n],L )+L , L) *inv_dx_[n]
-
-			,&i);
+			if(L>0) e= std::modf( std::fmod( std::fmod( x[n] - xmin_[n],L )+L , L) *inv_dx_[n],&i);
 
 			if(r!=nullptr)
 			{
@@ -1436,11 +1428,11 @@ private:
 	inline index_type GetCacheCoordinates(int w,index_type *sx ,Real *r )const
 	{
 
-		sx[0]=(dims_[0]<=1)?0:((dims_[1]<=1)?1:w*2) *((dims_[2]<=1)?1:w*2) ,
+		sx[0]= (dims_[0]<=1)?0:((dims_[1]<=1)?1:w*2) *((dims_[2]<=1)?1:w*2) ,
 
 		sx[1]= (dims_[1]<=1)?0:((dims_[2]<=1)?1:w*2);
 
-		sx[2]= ((dims_[2]<=1)?0:1);
+		sx[2]= (dims_[2]<=1)?0:1;
 
 		///@NOTE Dot not check boundary, user should ensure abs(r)<w
 
@@ -1455,6 +1447,10 @@ private:
 				r[n]=std::modf(r[n],&i);
 
 				res+=static_cast<index_type>(i)*sx[n];
+			}
+			else
+			{
+				r[n]=0;
 			}
 
 		}

@@ -41,7 +41,7 @@ protected:
 		mesh.xmax_[0] = 1.0;
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 21;
+		mesh.dims_[0] = 200;
 		mesh.dims_[1] = 1;
 		mesh.dims_[2] = 1;
 		mesh.dt_ = 1.0;
@@ -90,7 +90,7 @@ TYPED_TEST(TestParticle,Create){
 			"     return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 			" end "
 			"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=200,T=1.0e4 ,"
-			"  n=1.0"
+			"  n=n0"
 			"}"
 
 	);
@@ -124,7 +124,7 @@ TYPED_TEST(TestParticle,Create){
 
 	ion.Deserialize(cfg["ion"]);
 
-	std::mt19937 rnd_gen(1);
+	std::mt19937 rnd_gen(2);
 
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
