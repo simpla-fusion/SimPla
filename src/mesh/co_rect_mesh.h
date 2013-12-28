@@ -69,32 +69,43 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> shift_ =
+	{ 0, 0, 0 };
 
-	nTuple<NUM_OF_DIMS, index_type> dims_ = { 10, 10, 10 }; //!< number of cells
+	nTuple<NUM_OF_DIMS, index_type> dims_ =
+	{ 10, 10, 10 }; //!< number of cells
 
-	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, index_type> ghost_width_ =
+	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
 
-	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> strides_ =
+	{ 0, 0, 0 };
 
 	index_type num_cells_ = 0;
 
 	index_type num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar_type> k_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] =
+	{ 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> k_ =
+	{ 0, 0, 0 };
 
-	coordinates_type dx_ = { 0, 0, 0 };
-	coordinates_type inv_dx_ = { 0, 0, 0 };
+	coordinates_type dx_ =
+	{ 0, 0, 0 };
+	coordinates_type inv_dx_ =
+	{ 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -1022,7 +1033,8 @@ public:
 		}
 	}
 
-/// Traversal
+	//***************************************************************************************************
+	//  Traversal
 
 	template<typename ... Args>
 	void Traversal(Args const &...args) const
@@ -1233,6 +1245,10 @@ public:
 		return d_cell_volume_;
 	}
 
+	//***************************************************************************************************
+	// Particle vs. Mesh
+	// Begin
+
 	/**
 	 * Locate the cell containing a specified point.
 	 * @param x
@@ -1267,7 +1283,7 @@ public:
 	/**
 	 *
 	 * Locate the cell containing a specified point.
-	 * and apply cycle bondary conditon on x
+	 * and apply cycle boundary condition on x
 	 *
 	 * @param x
 	 * @param r
@@ -1338,6 +1354,46 @@ public:
 		}
 		return 2;
 	}
+
+	index_type Refelect(index_type hint_s,Real dt,coordinates_type * x, nTuple<3,Real> * v)
+	{
+		coordinates_type r;
+		r=*x;
+		index_type s = SearchCell(hint_s,&(r)[0]);
+
+		shift_type d=0;
+
+		for(int i=0;i<3;++i)
+		{
+			auto a=r[i]-dt*v[i]*inv_dx_[i];
+			if(a <0)
+			{
+				d|=DES(i);
+			}
+			else if(a >1 )
+			{
+				d|=INC(i);
+			}
+			else
+			{
+				continue;
+			}
+			v[i] *=-1;
+			r[i] =1.0-x[i];
+		}
+
+		if(d!=0)
+		{
+			*x=GetGlobalCoordinates(s,r);
+			s= Shift(d,s);
+		}
+		return s;
+
+	}
+	// End Particle vs. Mesh
+	//***************************************************************************************************
+	// Interpolation
+	// Begin
 
 	template<int I> inline index_type
 	GetAffectedPoints(Int2Type<I>, index_type const & s=0, index_type * points=nullptr, int affect_region = 2) const
@@ -1606,6 +1662,9 @@ public:
 			GatherFromCache(r,cache,&(*res)[m],w,3,m );
 		}
 	}
+	// End
+	// Interpolation
+	//***************************************************************************************************
 
 // Mapto ----------------------------------------------------------
 	/**
@@ -1972,7 +2031,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(int, index_type, index_type, index_type)> const &fun) const
+		std::function<void(int, index_type, index_type, index_type)> const &fun) const
 {
 
 //	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
@@ -2021,9 +2080,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-		        std::thread([num_threads,thread_id,this](Args const & ...args2)
-		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-		                std::forward<Args const &>(args)...));
+				std::thread([num_threads,thread_id,this](Args const & ...args2)
+				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+						std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

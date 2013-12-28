@@ -50,8 +50,8 @@ public:
 		CUSTOM = 20
 	};
 
-	MediaTag(mesh_type const & m)
-			: mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
+	MediaTag(mesh_type const & m) :
+			mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
 	{
 		register_tag_.emplace("NONE", none);
 
@@ -343,6 +343,21 @@ public:
 	};
 
 	/**
+	 *  Choice elements has certain tag .
+	 * @param
+	 * @param fun
+	 * @param tag
+	 */
+	template<int IFORM> inline
+	void SelectCell(std::function<void(index_type)> const &fun, tag_type tag) const
+	{
+		mesh.Traversal(IFORM, [this,tag](index_type s)
+		{
+			fun((tags_[IFORM][s]&tag).any(),s);
+		});
+	}
+
+	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
 	 * @param
@@ -353,9 +368,9 @@ public:
 	 */
 	template<int IFORM> inline
 	void SelectBoundaryCell(std::function<void(index_type)> const &fun, tag_type in, tag_type out, unsigned int flag =
-	        ON_BOUNDARY, int flag2 = 0) const
+			ON_BOUNDARY) const
 	{
-		_SelectBoundaryCell(Int2Type<IFORM>(), fun, in, out, flag, flag2);
+		_SelectBoundaryCell(Int2Type<IFORM>(), fun, in, out, flag);
 	}
 
 private:
@@ -405,7 +420,7 @@ private:
 
 	template<int IFORM>
 	void _SelectBoundaryCell(Int2Type<IFORM>, std::function<void(index_type)> const &fun, tag_type A, tag_type B,
-	        int flag = ON_BOUNDARY, int parallel_traversal = 0) const
+			int flag = ON_BOUNDARY) const
 	{
 
 		if ((B & (~A)).any())
@@ -523,7 +538,7 @@ private:
 						}
 					}
 				}
-			} );
+			});
 		}
 	}
 };

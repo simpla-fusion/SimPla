@@ -95,7 +95,7 @@ public:
 
 	FieldFunction<decltype(Jext), field_function> j_src_;
 
-	std::map<std::string, std::function<void()> > function_;
+	std::map<std::string, std::function<void()> > boundary_condition_;
 }
 ;
 
@@ -192,7 +192,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 				if (type == "PEC")
 				{
-					function_.emplace(
+					boundary_condition_.emplace(
 
 					"PEC",
 
@@ -250,7 +250,7 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 	;
 
 	os << "Function={";
-	for (auto const & p : function_)
+	for (auto const & p : boundary_condition_)
 	{
 		os << "\"" << p.first << "\",\n";
 	}
@@ -288,7 +288,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	LOGGER
 
-	<< "Simlation Time = "
+	<< "Simulation Time = "
 
 	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
 
@@ -345,9 +345,9 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	//	LOG_CMD(E += (Curl(B / mu0) - Jext - J) * (0.5 * dt / epsilon0));
 
-	if (function_.find("PEC") != function_.end())
+	if (boundary_condition_.find("PEC") != boundary_condition_.end())
 	{
-		LOG_CMD(function_["PEC"]());
+		LOG_CMD(boundary_condition_["PEC"]());
 	}
 	if (!pml_.empty())
 	{

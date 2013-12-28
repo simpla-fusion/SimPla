@@ -204,6 +204,14 @@ public:
 		_Collect(P, E, B);
 	}
 
+	void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
+			typename MediaTag<mesh_type>::tag_type out);
+
+	/**
+	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
+	 * @param
+	 */
+	void Resort(index_type s, container_type * dest = nullptr);
 private:
 	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
 
@@ -214,8 +222,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -263,7 +271,7 @@ TOS & Particle<Engine>::Serialize(TOS & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-	        ;
+			;
 
 	os << "} ";
 
@@ -283,6 +291,28 @@ void Particle<Engine>::Update()
 	for (auto & d : mt_data_)
 	{
 		d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+	}
+}
+
+template<class Engine>
+void Particle<Engine>::Resort(index_type src, container_type *other)
+{
+	if (other == nullptr)
+		other = &(this->data_);
+	auto & cell = this->data_[src];
+	auto pt = cell.begin();
+	while (pt != cell.end())
+	{
+		auto p = pt;
+		++pt;
+
+		auto dest = this->mesh.SearchCell(src, &(p->x[0]));
+
+		if (dest != src)
+		{
+			(*other)[dest].splice((*other)[dest].begin(), cell, p);
+		}
+
 	}
 }
 
@@ -310,31 +340,14 @@ void Particle<Engine>::_Sort()
 
 			[this](unsigned int t_num,unsigned int t_id )
 			{
-
 				this->mesh._Traversal(t_num, t_id, this->IForm,
+						[this,t_id](index_type const &src)
+						{	Resort(src,&(this->mt_data_[t_id]));});
+			}
 
-						[&](index_type const &src)
-						{
-							auto & cell=this->data_[src];
-							auto pt = cell.begin();
-							while (pt != cell.end())
-							{
-								auto p = pt;
-								++pt;
+			, num_threads, thread_id)
 
-								auto dest = this->mesh.SearchCell(src,&(p->x[0]));
-
-								if (dest!=src)
-								{
-									this->mt_data_[t_id][dest].splice(this->mt_data_[t_id][dest].begin(), cell, p);
-								}
-
-							}
-						}
-
-				);
-
-			}, num_threads, thread_id));
+			);
 		}
 
 		for (auto & t : threads)
@@ -583,8 +596,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -664,14 +677,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh)
+		typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -685,8 +698,8 @@ public:
 
 	DEFINE_FIELDS(mesh_type)
 
-	ParticleBase()
-			: isSorted_(false), clock_(0)
+	ParticleBase() :
+			isSorted_(false), clock_(0)
 	{
 	}
 	virtual ~ParticleBase()
@@ -765,6 +778,16 @@ public:
 		isSorted_ = true;
 	}
 
+	enum
+	{
+		REFELECT, ABSORB
+	};
+
+	virtual void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
+			typename MediaTag<mesh_type>::tag_type out)
+	{
+	}
+
 private:
 	bool isSorted_;
 	Real clock_;
@@ -795,8 +818,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
