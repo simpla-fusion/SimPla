@@ -232,6 +232,8 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 	LoadParticle(cfg, this);
 
 	base_type::Deserialize(cfg);
+
+	Sort();
 }
 template<class Engine>
 std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
