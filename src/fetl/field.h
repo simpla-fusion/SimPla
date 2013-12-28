@@ -223,7 +223,7 @@ public:
 	operator _OP_(TR const & rhs)                                                                  \
 	{   Init();                                                                                    \
 		mesh.ForEach( [](value_type &l,typename FieldTraits<TR>::value_type const & r)             \
-	            {	l _OP_ r;},	 this,rhs);     return (*this);}
+	            {	l _OP_ r;},	 this,std::forward<TR const &>(rhs) );     return (*this);}
 
 	DECL_SELF_ASSIGN (+=)
 

@@ -54,9 +54,7 @@ struct CoRectMesh
 	static constexpr unsigned int NUM_OF_DIMS = 3;
 	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NUM_OF_DIMS + 1;
 
-	typedef std::ptrdiff_t index_type;
-
-	typedef TS scalar;
+	typedef long index_type;
 
 	typedef TS scalar_type;
 
@@ -89,8 +87,8 @@ struct CoRectMesh
 	coordinates_type xmin_ = { 0, 0, 0 };
 	coordinates_type xmax_ = { 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar> k_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] = { 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> k_ = { 0, 0, 0 };
 
 	coordinates_type dx_ = { 0, 0, 0 };
 	coordinates_type inv_dx_ = { 0, 0, 0 };
@@ -859,25 +857,6 @@ public:
 		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
 	}
 
-	enum
-	{
-		NIL = 0, // 00 00 00
-		X = 1,// 00 00 01
-		NX = 2,// 00 00 10
-		Y = 4,// 00 01 00
-		NY = 8,// 00 10 00
-		Z = 16,// 01 00 00
-		NZ = 32// 10 00 00
-	};
-	inline index_type INC(int m) const
-	{
-		return 1 << (m % 3) * 2;
-	}
-	inline index_type DES(int m) const
-	{
-		return 2 << (m % 3) * 2;
-	}
-
 	void UnpackIndex(index_type *idx,index_type s)const
 	{
 		UnpackIndex(idx,idx+1,idx+2, s);
@@ -897,61 +876,75 @@ public:
 		*k=k1;
 	}
 
-	/**
-	 * (((d & 3) + 1) % 3 - 1)
-	 *
-	 * 00 -> 0
-	 * 01 -> 1
-	 * 10 -> -1
-	 *
+	/****************************************************************************************************
+	 *   Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
+	 *   Begin
 	 */
+
+	typedef signed long shift_type;
+
+	static constexpr int DIGITS_LONG=std::numeric_limits<unsigned long>::digits; //!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
+
+	static constexpr int DIGITS_SHORT=std::numeric_limits<unsigned short>::digits;
+
+#define _shift_bit(m) \
+	 static_cast<shift_type>((static_cast<unsigned long>((-1L) << (DIGITS_LONG - DIGITS_SHORT)) >> (DIGITS_LONG - DIGITS_SHORT*(m+1) )))
+	enum
+	{
+		X = 1, // 0000 0000 0001
+		NX= _shift_bit(0) ,// 0000 0000 1111
+		Y = 1<<DIGITS_SHORT,// 0000 0001 0000
+		NY=_shift_bit(1),// 0000 1111 0000
+		Z = 1<<(DIGITS_SHORT*2),// 0001 0000 0000
+		NZ=_shift_bit(2)// 1111 0000 0000
+	};
+
+	inline shift_type INC(int m) const
+	{
+		return 1 << ((m % 3) * DIGITS_SHORT);
+	}
+	inline shift_type DES(int m) const
+	{
+		return _shift_bit((m%3));
+	}
+
+#undef _shift_bit
+	inline index_type Shift(shift_type d, index_type i, index_type j, index_type k) const
+	{
+
+//		auto ix = (d << (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT*1)) >> (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT);
+//		auto jx = (d << (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT*2)) >> (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT);
+//		auto kx = (d << (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT*3)) >> (DIGITS_OF_COMPACT_SHIFT - DIGITS_OF_SHIFT);
+//
+//		CHECK(ix)<<" "<<jx<<" "<<kx<<" "<<std::hex<<d;
+
+		i += (d << (DIGITS_LONG - DIGITS_SHORT*1)) >> (DIGITS_LONG - DIGITS_SHORT);
+		j += (d << (DIGITS_LONG - DIGITS_SHORT*2)) >> (DIGITS_LONG - DIGITS_SHORT);
+		k += (d << (DIGITS_LONG - DIGITS_SHORT*3)) >> (DIGITS_LONG - DIGITS_SHORT);
+
+		return GetIndex(i,j,k);
+	}
+
 	template<typename ... IDXS>
 	inline index_type Shift(int d, IDXS ... s) const
 	{
 		index_type i,j,k;
 		UnpackIndex(&i,&j,&k,s...);
 		return Shift(d,i,j,k);
-
-//		return GetIndex(s...)
-//
-//		+ ((((d >> 4) & 3) + 1) % 3 - 1) * strides_[2]
-//
-//		+ ((((d >> 2) & 3) + 1) % 3 - 1) * strides_[1]
-//
-//		+ (((d & 3) + 1) % 3 - 1) * strides_[0];
-
 	}
-
-	inline index_type Shift(int d, index_type i, index_type j, index_type k) const
-	{
-		return
-
-		(((i + (((d & 3) + 1) % 3 - 1)) % dims_[0]) * strides_[0]
-
-		+ ((j + ((((d >> 2) & 3) + 1) % 3 - 1)) % dims_[1]) * strides_[1]
-
-		+ ((k + ((((d >> 4) & 3) + 1) % 3 - 1)) % dims_[2]) * strides_[2]);
-	}
+	//** End
+	//****************************************************************************************************
 
 	inline index_type GetIndex(index_type i, index_type j, index_type k) const
 	{
 
-		index_type L[3]=
-		{
-			dims_[0]>1?dims_[0]:1,
-
-			dims_[1]>1?dims_[1]:1,
-
-			dims_[2]>1?dims_[2]:1
-		};
-
 		return (
 
-		((i+L[0]) % L[0]) * strides_[0]
+		(((i % dims_[0])+dims_[0]) % dims_[0]) * strides_[0]+
 
-		+((j+L[1]) % L[1]) * strides_[1]
+		(((j % dims_[1])+dims_[1]) % dims_[1]) * strides_[1]+
 
-		+((k+L[2]) % L[2]) * strides_[2]
+		(((k % dims_[2])+dims_[2]) % dims_[2]) * strides_[2]
 
 		);
 	}
@@ -1015,59 +1008,6 @@ public:
 		return * (d.get()+s);
 	}
 
-/// Traversal
-	enum
-	{
-		WITH_GHOSTS = 0,WITHOUT_GHOSTS=1
-	};
-
-	bool default_parallel_=true;
-
-	template<typename ... Args>
-	void Traversal(bool is_paralel,Args const &...args) const
-	{
-		if (default_parallel_ && is_paralel)
-		{
-			ParallelTraversal(std::forward<Args const &>(args)... );
-		}
-		else
-		{
-			SerialTraversal(std::forward<Args const &>(args)... );
-		}
-	}
-
-	template<typename ...Args> void ParallelTraversal(Args const &...args)const;
-
-	template<typename ...Args> void SerialTraversal(Args const &...args)const;
-
-	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags=WITH_GHOSTS) const;
-
-	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(index_type)> const &fun, unsigned int flag = WITH_GHOSTS) const
-	{
-		_Traversal(num_threads,thread_id,
-		IFORM, [&](int m,index_type i,index_type j,index_type k)
-		{
-			fun(GetComponentIndex(IFORM,m,i,j,k));
-		}, flag);
-
-	}
-	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	std::function<void(index_type, coordinates_type)> const &fun, unsigned int flag = WITH_GHOSTS) const
-	{
-		int num = num_comps_per_cell_[IFORM];
-
-		_Traversal(num_threads,thread_id,
-		IFORM, [&](int m,index_type i,index_type j,index_type k)
-		{
-			fun(GetComponentIndex(IFORM,m,i,j,k),this->GetCoordinates(IFORM,m,i,j,k));
-		}, flag);
-
-	}
-
-public:
-
 	template<typename TFUN>
 	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
 	{
@@ -1076,6 +1016,44 @@ public:
 		{
 			fun(s * num + i);
 		}
+	}
+
+/// Traversal
+
+	template<typename ... Args>
+	void Traversal(Args const &...args) const
+	{
+		ParallelTraversal(std::forward<Args const &>(args)... );
+	}
+
+	template<typename ...Args> void ParallelTraversal(Args const &...args)const;
+
+	template<typename ...Args> void SerialTraversal(Args const &...args)const;
+
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(int, index_type, index_type, index_type)> const &funs) const;
+
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(index_type)> const &fun) const
+	{
+		_Traversal(num_threads,thread_id,
+		IFORM, [&](int m,index_type i,index_type j,index_type k)
+		{
+			fun(GetComponentIndex(IFORM,m,i,j,k));
+		});
+
+	}
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+	std::function<void(index_type, coordinates_type)> const &fun ) const
+	{
+		int num = num_comps_per_cell_[IFORM];
+
+		_Traversal(num_threads,thread_id,
+		IFORM, [&](int m,index_type i,index_type j,index_type k)
+		{
+			fun(GetComponentIndex(IFORM,m,i,j,k),this->GetCoordinates(IFORM,m,i,j,k));
+		});
+
 	}
 
 	template<typename Fun, typename TF, typename ... Args> inline
@@ -1132,7 +1110,7 @@ public:
 	template<typename TL> void AssignContainer(int IFORM, TL * lhs, TL const &rhs) const
 	{
 		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
-		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);},WITH_GHOSTS);
+		{	get(lhs,m,x,y,z)=get(rhs,m,x,y,z);});
 
 	}
 
@@ -1146,7 +1124,7 @@ public:
 			get(lhs,1,x,y,z)=rhs[1];
 			get(lhs,2,x,y,z)=rhs[2];
 
-		}, WITH_GHOSTS);
+		});
 	}
 
 	template<typename TL,int IL>
@@ -1154,7 +1132,7 @@ public:
 	typename Field<Geometry<this_type,IL> ,TL>::field_value_type const &rhs) const
 	{
 		ParallelTraversal(0, [&](int m, index_type x, index_type y, index_type z)
-		{	get(lhs,0,x,y,z)=rhs;}, WITH_GHOSTS);
+		{	get(lhs,0,x,y,z)=rhs;});
 	}
 
 // Properties of UniformRectMesh --------------------------------------
@@ -2000,17 +1978,26 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(int, index_type, index_type, index_type)> const &fun, unsigned int flags) const
+        std::function<void(int, index_type, index_type, index_type)> const &fun) const
 {
 
-	index_type ib = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[0];
-	index_type ie = ((flags == WITH_GHOSTS)) ? dims_[0] : dims_[0] - ghost_width_[0];
+//	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
+//	index_type ie = ((flags & WITH_GHOSTS) > 0) ? dims_[0] : dims_[0] - ghost_width_[0];
+//
+//	index_type jb = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[1];
+//	index_type je = ((flags & WITH_GHOSTS) > 0) ? dims_[1] : dims_[1] - ghost_width_[1];
+//
+//	index_type kb = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[2];
+//	index_type ke = ((flags & WITH_GHOSTS) > 0) ? dims_[2] : dims_[2] - ghost_width_[2];
 
-	index_type jb = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[1];
-	index_type je = ((flags == WITH_GHOSTS)) ? dims_[1] : dims_[1] - ghost_width_[1];
+	index_type ib = 0;
+	index_type ie = dims_[0];
 
-	index_type kb = ((flags == WITH_GHOSTS)) ? 0 : ghost_width_[2];
-	index_type ke = ((flags == WITH_GHOSTS)) ? dims_[2] : dims_[2] - ghost_width_[2];
+	index_type jb = 0;
+	index_type je = dims_[1];
+
+	index_type kb = 0;
+	index_type ke = dims_[2];
 
 	int mb = 0;
 	int me = num_comps_per_cell_[IFORM];
@@ -2033,7 +2020,7 @@ template<typename TS>
 template<typename ...Args>
 void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 {
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+	const unsigned int num_threads = 1;	// std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
 
@@ -2061,265 +2048,5 @@ void CoRectMesh<TS>::SerialTraversal(Args const &...args) const
 
 }
 // namespace simpla
-
-//**
-//*  Boundary
-//**/
-//
-//
-//template<typename Fun> inline
-//void ForEachBoundary(int iform, Fun const &f) const
-//{
-//	index_type num_comp = num_comps_per_cell_[iform];
-//
-//	for (index_type i = 0; i < dims_[0]; ++i)
-//		for (index_type j = 0; j < dims_[1]; ++j)
-//			for (index_type k = 0; k < dims_[2]; ++k)
-//				for (int m = 0; m < num_comp; ++m)
-//				{
-//					if (i >= gw_[0] && i < dims_[0] - gw_[0] &&
-//
-//					j >= gw_[1] && j < dims_[1] - gw_[1] &&
-//
-//					k >= gw_[2] && k < dims_[2] - gw_[2]
-//
-//					)
-//					{
-//						continue;
-//					}
-//					else
-//					{
-//						f(
-//								(i * strides_[0] + j * strides_[1]
-//										+ k * strides_[2]) * num_comp + m);
-//					}
-//
-//				}
-//
-//}
-//
-//void MakeCycleMap(int iform, std::map<index_type, index_type> &ma,
-//		unsigned int flag = 7) const
-//{
-//	index_type num_comp = num_comps_per_cell_[iform];
-//
-//	nTuple<NUM_OF_DIMS, index_type> L =
-//	{ dims_[0] - 2 * gw_[0], dims_[1] - 2 * gw_[1], dims_[2] - 2 * gw_[2] };
-//
-//	for (index_type i = 0; i < dims_[0]; ++i)
-//		for (index_type j = 0; j < dims_[1]; ++j)
-//			for (index_type k = 0; k < dims_[2]; ++k)
-//			{
-//
-//				index_type s = i * strides_[0] + j * strides_[1]
-//						+ k * strides_[2];
-//				index_type t = s;
-//
-//				if (flag & 1)
-//				{
-//					if (i < gw_[0])
-//					{
-//						t += L[0] * strides_[0];
-//					}
-//					else if (i >= dims_[0] - gw_[0])
-//					{
-//						t -= L[0] * strides_[0];
-//					}
-//				}
-//
-//				if (flag & 2)
-//				{
-//					if (j < gw_[1])
-//					{
-//						t += L[1] * strides_[1];
-//					}
-//					else if (j >= dims_[1] - gw_[1])
-//					{
-//						t -= L[1] * strides_[1];
-//					}
-//				}
-//
-//				if (flag & 4)
-//				{
-//					if (k < gw_[2])
-//					{
-//						t += L[2] * strides_[2];
-//					}
-//					else if (k >= dims_[2] - gw_[2])
-//					{
-//						t -= L[2] * strides_[2];
-//					}
-//				}
-//				if (s != t)
-//				{
-//					for (int m = 0; m < num_comp; ++m)
-//					{
-//						ma[s * num_comp + m] = t * num_comp + m;
-//					}
-//				}
-//
-//			}
-//}
-//
-//template<int IFORM, typename T1, typename T2>
-//void UpdateBoundary(std::map<index_type, index_type> const & m,
-//		Field<Geometry<this_type, IFORM>, T1> & src,
-//		Field<Geometry<this_type, IFORM>, T2> & dest) const
-//{
-//	for (auto & p : m)
-//	{
-//		dest[p.first] = src[p.second];
-//	}
-//
-//}
-//
-//template<int IFORM, typename T1>
-//void UpdateCyCleBoundary(Field<Geometry<this_type, IFORM>, T1> & f) const
-//{
-//	std::map<index_type, index_type> m;
-//	MakeCycleMap(IFORM, m);
-//	UpdateBoundary(m, f, f);
-//}
-/**
- *
- *
- // Interpolation ----------------------------------------------------------
-
- template<typename TExpr>
- inline typename Field<Geometry<this_type, 0>, TExpr>::Value //
- Gather(Field<Geometry<this_type, 0>, TExpr> const &f, RVec3 x) const
- {
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx[0] = static_cast<long>(r[0]);
- idx[1] = static_cast<long>(r[1]);
- idx[2] = static_cast<long>(r[2]);
-
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- return (f[s] * (1.0 - r[0]) + f[s + strides_[0]] * r[0]); //FIXME Only for 1-dim
- }
-
- template<typename TExpr>
- inline void //
- Scatter(Field<Geometry<this_type, 0>, TExpr> & f, RVec3 x,
- typename Field<Geometry<this_type, 0>, TExpr>::Value const v) const
- {
- typename Field<Geometry<this_type, 0>, TExpr>::Value res;
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx[0] = static_cast<long>(r[0]);
- idx[1] = static_cast<long>(r[1]);
- idx[2] = static_cast<long>(r[2]);
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- f.Add(s, v * (1.0 - r[0]));
- f.Add(s + strides_[0], v * r[0]); //FIXME Only for 1-dim
-
- }
-
- template<typename TExpr>
- inline nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> //
- Gather(Field<Geometry<this_type, 1>, TExpr> const &f, RVec3 x) const
- {
- nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> res;
-
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx = r + 0.5;
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- res[0] = (f[(s) * 3 + 0] * (0.5 - r[0])
- + f[(s - strides_[0]) * 3 + 0] * (0.5 + r[0]));
- res[1] = (f[(s) * 3 + 1] * (0.5 - r[1])
- + f[(s - strides_[1]) * 3 + 1] * (0.5 + r[1]));
- res[2] = (f[(s) * 3 + 2] * (0.5 - r[2])
- + f[(s - strides_[2]) * 3 + 2] * (0.5 + r[2]));
- return res;
- }
- template<typename TExpr>
- inline void //
- Scatter(Field<Geometry<this_type, 1>, TExpr> & f, RVec3 x,
- nTuple<THREE, typename Field<Geometry<this_type, 1>, TExpr>::Value> const &v) const
- {
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx = r + 0.5;
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- f[(s) * 3 + 0] += v[0] * (0.5 - r[0]);
- f[(s - strides_[0]) * 3 + 0] += v[0] * (0.5 + r[0]);
- f[(s) * 3 + 1] += v[1] * (0.5 - r[1]);
- f[(s - strides_[1]) * 3 + 1] += v[1] * (0.5 + r[1]);
- f[(s) * 3 + 2] += v[2] * (0.5 - r[2]);
- f[(s - strides_[2]) * 3 + 2] += v[2] * (0.5 + r[2]);
- }
-
- template<typename TExpr>
- inline nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> //
- Gather(Field<Geometry<this_type, 2>, TExpr> const &f, RVec3 x) const
- {
- nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> res;
-
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx[0] = static_cast<long>(r[0]);
- idx[1] = static_cast<long>(r[1]);
- idx[2] = static_cast<long>(r[2]);
-
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- res[0] = (f[(s) * 3 + 0] * (1.0 - r[0])
- + f[(s - strides_[0]) * 3 + 0] * (r[0]));
- res[1] = (f[(s) * 3 + 1] * (1.0 - r[1])
- + f[(s - strides_[1]) * 3 + 1] * (r[1]));
- res[2] = (f[(s) * 3 + 2] * (1.0 - r[2])
- + f[(s - strides_[2]) * 3 + 2] * (r[2]));
- return res;
-
- }
-
- template<typename TExpr>
- inline void //
- Scatter(Field<Geometry<this_type, 2>, TExpr> & f, RVec3 x,
- nTuple<THREE, typename Field<Geometry<this_type, 2>, TExpr>::Value> const &v) const
- {
- IVec3 idx;
- Vec3 r;
- r = (x - xmin) * inv_dx_;
- idx[0] = static_cast<long>(r[0]);
- idx[1] = static_cast<long>(r[1]);
- idx[2] = static_cast<long>(r[2]);
-
- r -= idx;
- index_type s = idx[0] * strides_[0] + idx[1] * strides_[1]
- + idx[2] * strides_[2];
-
- f[(s) * 3 + 0] += v[0] * (1.0 - r[0]);
- f[(s - strides_[0]) * 3 + 0] += v[0] * (r[0]);
- f[(s) * 3 + 1] += v[1] * (1.0 - r[1]);
- f[(s - strides_[1]) * 3 + 1] += v[1] * (r[1]);
- f[(s) * 3 + 2] += v[2] * (1.0 - r[2]);
- f[(s - strides_[2]) * 3 + 2] += v[2] * (r[2]);
-
- }
- *
- *
- * */
 
 #endif //UNIFORM_RECT_H_
