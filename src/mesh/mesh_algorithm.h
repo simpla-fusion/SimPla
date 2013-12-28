@@ -37,7 +37,7 @@ class LuaObject;
  */
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2, int flag = TM::WITH_GHOSTS)
+        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
 	typedef TM mesh_type;
@@ -54,7 +54,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 		{
 			return (s==idx);
 
-		}, flag);
+		});
 
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
@@ -70,7 +70,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 			(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
 			(((v0[2]-x[2])*(x[2]-v1[2]))>=0);
 
-		}, flag);
+		});
 	}
 	else if (Z < 3) //select points in polyline
 	{
@@ -78,7 +78,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 		PointInPolygen<typename mesh_type::coordinates_type> checkPointsInPolygen(points, Z);
 
 		SelectVericsInRegion(mesh, op, [&](index_type s, coordinates_type x )->bool
-		{	return checkPointsInPolygen(x);}, flag);
+		{	return checkPointsInPolygen(x);});
 
 	}
 	else if (points.size() >= 4 && Z >= 3)
@@ -94,8 +94,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        std::function<bool(typename TM::index_type, typename TM::coordinates_type const &)> const & select,
-        int flag = 0)
+        std::function<bool(typename TM::index_type, typename TM::coordinates_type const &)> const & select)
 {
 	typedef TM mesh_type;
 	mesh.Traversal(0,
@@ -104,15 +103,13 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 			typename mesh_type::coordinates_type const &x)
 	{
 		op(select(s,x), s);
-	},
-
-	flag);
+	});
 
 }
 
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        std::function<bool(typename TM::index_type)> const & select, int flag = 0)
+        std::function<bool(typename TM::index_type)> const & select)
 {
 	typedef TM mesh_type;
 	mesh.Traversal(0,
@@ -121,15 +118,13 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 			typename mesh_type::coordinates_type const &x)
 	{
 		op(select(s), s);
-	},
-
-	flag);
+	});
 
 }
 
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        std::function<bool(typename TM::coordinates_type const &)> const & select, int flag = 0)
+        std::function<bool(typename TM::coordinates_type const &)> const & select)
 {
 	typedef TM mesh_type;
 	mesh.Traversal(0,
@@ -138,15 +133,13 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 			typename mesh_type::coordinates_type const &x)
 	{
 		op(select(x), s);
-	},
-
-	flag);
+	});
 
 }
 
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        LuaObject const & select, int flag = 0)
+        LuaObject const & select)
 {
 	typedef TM mesh_type;
 	mesh.Traversal(0,
@@ -155,15 +148,13 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 			typename mesh_type::coordinates_type const &x)
 	{
 		op(select(x[0],x[1],x[2]).template as<bool>(), s);
-	},
-
-	flag);
+	});
 
 }
 
 //template<typename TM, typename ...Args>
 //void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-//        std::function<bool(Args const &...)> const & select, int flag = 0)
+//        std::function<bool(Args const &...)> const & select)
 //{
 //	typedef TM mesh_type;
 //	mesh.Traversal(0,

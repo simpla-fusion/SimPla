@@ -314,8 +314,8 @@ DECL_SELF_ASSIGN	(-=)
 			return;
 		}
 
-		index_type points[num];
-		value_type cache[num];
+		index_type *points= new index_type[num];
+		value_type *cache =new value_type[num];
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
 
@@ -333,6 +333,9 @@ DECL_SELF_ASSIGN	(-=)
 		mesh.ScatterToMesh(Int2Type<IForm>(),pcoords,vv,cache);
 
 		Collect(num,points,cache);
+
+		delete[] points;
+		delete[] cache;
 	}
 
 	inline void Collect(index_type num,index_type const * points,value_type const * cache)

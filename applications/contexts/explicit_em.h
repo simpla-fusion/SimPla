@@ -50,7 +50,6 @@ struct ExplicitEMContext: public BaseContext
 public:
 	typedef BaseContext base_type;
 	typedef TM mesh_type;
-	typedef typename mesh_type::scalar scalar;
 	typedef LuaObject configure_type;
 
 	DEFINE_FIELDS (TM)
@@ -73,9 +72,6 @@ public:
 
 	mesh_type mesh;
 
-	typedef typename mesh_type::scalar_type scalar_type;
-	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef MediaTag<mesh_type> mediatag_type;
 	typedef typename mediatag_type::tag_type tag_type;
 

@@ -66,13 +66,7 @@ public:
 
 	typedef particle_type value_type;
 
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	//mesh
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef typename mesh_type::index_type index_type;
+	DEFINE_FIELDS(mesh_type)
 
 	//container
 
@@ -94,9 +88,6 @@ private:
 	std::vector<container_type> mt_data_; // for sort
 
 public:
-
-	DEFINE_FIELDS(mesh_type)
-	;
 
 	template<typename ...Args> Particle(mesh_type const & pmesh);
 

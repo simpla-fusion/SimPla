@@ -101,7 +101,7 @@ void PML<TM>::Update()
 {
 	isInitilized_ = true;
 
-	nTuple<3, size_t> const &gw = mesh.GetGhostWidth();
+	nTuple<3, index_type> const &gw = mesh.GetGhostWidth();
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -157,11 +157,11 @@ void PML<TM>::Update()
 			inv_dx[i] = 0;
 	}
 
-	for (size_t ix = 0; ix < dims[0]; ++ix)
-		for (size_t iy = 0; iy < dims[1]; ++iy)
-			for (size_t iz = 0; iz < dims[2]; ++iz)
+	for (index_type ix = 0; ix < dims[0]; ++ix)
+		for (index_type iy = 0; iy < dims[1]; ++iy)
+			for (index_type iz = 0; iz < dims[2]; ++iz)
 			{
-				size_t s = ix * st[0] + iy * st[1] + iz * st[2];
+				index_type s = ix * st[0] + iy * st[1] + iz * st[2];
 				if (ix < bc_[0])
 				{
 					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
