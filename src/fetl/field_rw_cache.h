@@ -190,7 +190,6 @@ public:
 
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
-		EXCEPT(num_of_points_>0) << "Move Construct";
 	}
 	Field(this_type const& r)
 			: mesh(r.mesh), f_(r.f_),
@@ -202,7 +201,6 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 
 	{
-		EXCEPT(num_of_points_>0) << "Copy Construct";
 	}
 
 	Field(field_type * f, int affect_region = 2)
