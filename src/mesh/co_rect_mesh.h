@@ -1633,7 +1633,7 @@ public:
 
 	template<typename TL, typename ...IDXS> inline auto
 	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ... s) const
-	DECL_RET_TYPE( ((get(l,m,Shift(INC(m),s...)) + get(l,m,s...))*0.5) )
+	DECL_RET_TYPE( ((get(l,0,Shift(INC(m),s...)) + get(l,0,s...))*0.5) )
 
 	template<typename TL, typename ...IDXS> inline auto//
 	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ...s) const
