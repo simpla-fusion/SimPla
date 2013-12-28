@@ -114,7 +114,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	TestFixture::mesh.ParallelForEach( [&](value_type & v)
 			{	v=a*2.0;},&f1 );
 
-	f1 += f2;
+	LOG_CMD(f1 += f2);
 
 	typename TestFixture::FieldType::value_type res;
 
@@ -128,7 +128,7 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 
 	ASSERT_EQ(count,0);
 
-	f1*=2.0;
+	LOG_CMD(f1*=2.0);
 
 	res=(a+a*2.0)*2.0;
 
@@ -154,7 +154,7 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	f1=va;
 	f2=vb;
 
-	f3 = - f1 *2.0 + f2*c - f1/b;
+	LOG_CMD(f3 = - f1 *2.0 + f2*c - f1/b);
 
 	TestFixture::mesh.ParallelForEach(
 
@@ -218,8 +218,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		v=vc *uniform_dist(gen);
 	}
 
-	f4= -f1*a +f2*b -f3/c -f1
-	;
+	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1);
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
@@ -253,7 +252,7 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 
 				res=
 				- f1.get(m,i,j,k)*ra +f2.get(m,i,j,k)*rb
-				-f3.get(m,i,j,k)/rc	-f1.get(m,i,j,k)
+				-f3.get(m,i,j,k)/rc -f1.get(m,i,j,k)
 				;
 
 				EXPECT_EQ(res,f4.get(m,i,j,k))<< "m= "<< m<< " i,j,k= "<< i<<" "<<j<<" "<<k;

@@ -64,7 +64,7 @@ public:
 	void put(int level, std::string const & msg)
 	{
 		if (level <= std_out_visable_level_)
-			std::cout << msg << std::flush;
+			std::cout << msg ;
 
 		if (fs.good())
 			fs << msg;
@@ -385,7 +385,7 @@ private:
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
-#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG)<<__STRING(_CMD_)<<flush;_CMD_;__logger<<DONE;}
+#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_)<<flush;_CMD_;__logger<<DONE;}
 
 inline Logger & DONE(Logger & self)
 {

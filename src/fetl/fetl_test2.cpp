@@ -76,11 +76,11 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 	va=vc2;
 	vb=vc1;
 
-	res_scalar_field = Dot(vc1, va);
+	LOG_CMD(res_scalar_field = Dot(vc1, va));
 
-	res_vector_field1 = Cross( va,vc1);
+	LOG_CMD(res_vector_field1 = Cross( va,vc1));
 
-	res_vector_field2 = Cross( va,vb);
+	LOG_CMD(res_vector_field2 = Cross( va,vb));
 
 	mesh.ForEach (
 
