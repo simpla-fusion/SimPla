@@ -41,7 +41,7 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 			{
 				(*f)[s]=mesh.template GetWeightOnElement<IFORM>(
 						obj(x[0],x[1],x[2]).template as<nTuple<3,TV>>(),s);
-			}, mesh_type::WITH_GHOSTS);
+			});
 		}
 		else
 		{
@@ -50,7 +50,7 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 			{
 				(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
 
-			}, mesh_type::WITH_GHOSTS);
+			});
 		}
 
 	}

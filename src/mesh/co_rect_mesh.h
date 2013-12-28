@@ -857,6 +857,10 @@ public:
 		return _GetNeighbourCell(Int2Type<IN>(), Int2Type<OUT>(), v, m, s...);
 	}
 
+	//****************************************************************************************************
+	//** Index operation
+	//** Begin
+
 	void UnpackIndex(index_type *idx,index_type s)const
 	{
 		UnpackIndex(idx,idx+1,idx+2, s);
@@ -876,9 +880,8 @@ public:
 		*k=k1;
 	}
 
-	/****************************************************************************************************
-	 *   Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
-	 *   Begin
+	/**
+	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
 	 */
 
 	typedef signed long shift_type;
@@ -926,7 +929,7 @@ public:
 	}
 
 	template<typename ... IDXS>
-	inline index_type Shift(int d, IDXS ... s) const
+	inline index_type Shift(shift_type d, IDXS ... s) const
 	{
 		index_type i,j,k;
 		UnpackIndex(&i,&j,&k,s...);
@@ -1766,11 +1769,11 @@ public:
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
 	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
-			get(f,(m+2)%3,Shift(INC((m+1)%3) ,s...)) * dS_[0][(m + 1) % 3]
+			get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
 
 			+ get(f,(m+2)%3,s...)* dS_[1][(m + 1) % 3]
 
-			- get(f,(m+1)%3,Shift(INC((m+2)%3) ,s...)) * dS_[0][(m + 2) % 3]
+			- get(f,(m+1)%3,Shift(INC(m+2) ,s...)) * dS_[0][(m + 2) % 3]
 
 			- get(f,(m+1)%3,s...)* dS_[1][(m + 2) % 3]
 	)

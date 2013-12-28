@@ -337,7 +337,7 @@ void Particle<Engine>::_Sort()
 								}
 
 							}
-						},mesh_type::WITH_GHOSTS
+						}
 
 				);
 
@@ -373,7 +373,7 @@ void Particle<Engine>::_Sort()
 							{
 								this->data_[s].splice(this->data_[s].begin(),this->mt_data_[i][s] );
 							}
-						},mesh_type::WITH_GHOSTS
+						}
 				);
 
 			}
@@ -431,7 +431,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 							engine_type::NextTimeStep(&p, dt_, args_c2...);
 						}
-					},mesh_type::WITH_GHOSTS
+					}
 			);
 
 		}, dt,
@@ -495,7 +495,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 						RefreshCache(J_c2,args_c2...);
 
-					},mesh_type::WITH_GHOSTS
+					}
 			);
 		}
 
@@ -552,7 +552,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 							fun(p, args_c2...);
 						}
 
-					},mesh_type::WITH_GHOSTS
+					}
 			);
 		}
 

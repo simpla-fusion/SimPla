@@ -120,7 +120,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(vT);
 
-		mesh.Traversal(false, Particle<TEngine>::IForm,
+		mesh.SerialTraversal(Particle<TEngine>::IForm,
 
 		[&](typename mesh_type::index_type const & s)
 		{
@@ -146,7 +146,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 						}
 				);
 			}
-		}, mesh_type::WITH_GHOSTS);
+		});
 	}
 	else // read data from file
 	{
