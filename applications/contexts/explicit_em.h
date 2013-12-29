@@ -72,11 +72,6 @@ public:
 
 	mesh_type mesh;
 
-	typedef MediaTag<mesh_type> mediatag_type;
-	typedef typename mediatag_type::tag_type tag_type;
-
-	mediatag_type media_tag;
-
 	Form<1> E, dE;
 	Form<1> Jext;
 	Form<2> B, dB;
@@ -95,7 +90,8 @@ public:
 
 	FieldFunction<decltype(Jext), field_function> j_src_;
 
-	std::map<std::string, std::function<void()> > boundary_condition_;
+	std::multimap<std::string, std::function<void(Real dt)> > field_boundary_;
+	std::multimap<std::string, std::function<void(ParticleBase<mesh_type>*, Real dt)> > particle_boundary_;
 }
 ;
 
@@ -109,10 +105,7 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 
 		particle_collection_(mesh),
 
-		isCompactStored_(true),
-
-		media_tag(mesh)
-
+		isCompactStored_(true)
 {
 	particle_collection_.template RegisterFactory<PICEngineFull<mesh_type> >();
 //	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
@@ -174,31 +167,26 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 	}
 
 	{
-
-		media_tag.Deserialize(cfg["Media"]);
-
-		if (!media_tag.empty())
+		LuaObject boundary = cfg["Boundary"];
+		if (!(mesh.tags().empty() || boundary.empty()))
 		{
-			LuaObject boundary = cfg["Boundary"];
 
-			for (auto const & obj : boundary)
+			for (auto const & item : boundary)
 			{
-				std::string type = "";
+				auto object = item.second["Object"].template as<std::string>();
+				auto type = item.second["Type"].template as<std::string>();
+				auto function = item.second["Function"].template as<std::string>();
 
-				obj.second["Type"].as<std::string>(&type);
+				tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
+				tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
 
-				tag_type in = media_tag.GetTagFromString(obj.second["In"].as<std::string>());
-				tag_type out = media_tag.GetTagFromString(obj.second["Out"].as<std::string>());
-
-				if (type == "PEC")
+				if (function == "PEC")
 				{
-					boundary_condition_.emplace(
+					field_boundary_.emplace(object,
 
-					"PEC",
-
-					[in,out,this]()
+					[in,out,this](Real dt)
 					{
-						auto selector=media_tag.template BoundarySelector<EDGE>( in,out,mediatag_type::ON_BOUNDARY);
+						auto selector=mesh.tags().template BoundarySelector<EDGE>(in,out);
 
 						this->mesh.ParallelTraversal(EDGE,
 								[this,selector](index_type s)
@@ -211,9 +199,32 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 					);
 				}
+				else if (type == "Particle" && function == "Refelect")
+				{
+					particle_boundary_.emplace(object,
+
+					[in,out,this](ParticleBase<mesh_type> * p,Real dt)
+					{
+						p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
+					}
+
+					);
+				}
+				else if (type == "Particle" && function == "Absorb")
+				{
+					particle_boundary_.emplace(object,
+
+					[in,out,this](ParticleBase<mesh_type>* p,Real dt)
+					{
+						p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
+					}
+
+					);
+				}
 				else
 				{
-					UNIMPLEMENT << "Unknown boundary type [" << type << "]";
+					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
+					        << " object =" << object << " ]";
 				}
 
 				LOGGER << "Load Boundary " << type << DONE;
@@ -249,7 +260,7 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 	;
 
 	os << "Function={";
-	for (auto const & p : boundary_condition_)
+	for (auto const & p : field_boundary_)
 	{
 		os << "\"" << p.first << "\",\n";
 	}
@@ -317,6 +328,18 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
+	{
+		int count = 0;
+		auto range = field_boundary_.equal_range("B");
+		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+		{
+			fun_it->second(dt);
+			++count;
+		}
+		if (count > 0)
+			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
+	}
+
 	if (!pml_.empty())
 	{
 		pml_.NextTimeStepE(dt, B, &dE);
@@ -339,15 +362,38 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	//  particle(t=0 -> 1)
 	particle_collection_.NextTimeStep(dt, E, B);
 
+	{
+		for (auto & p : particle_collection_)
+			for (auto & fun : particle_boundary_)
+			{
+				if (fun.first == "" || p.first == fun.first)
+				{
+					fun.second(p.second.get(), dt);
+
+					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
+				}
+
+			}
+
+	}
+
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
 
-	//	LOG_CMD(E += (Curl(B / mu0) - Jext - J) * (0.5 * dt / epsilon0));
-
-	if (boundary_condition_.find("PEC") != boundary_condition_.end())
 	{
-		LOG_CMD(boundary_condition_["PEC"]());
+		int count = 0;
+		auto range = field_boundary_.equal_range("E");
+		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+		{
+			fun_it->second(dt);
+			++count;
+		}
+		if (count > 0)
+			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
 	}
+
+	LOGGER << "Apply boundary condition on E" << DONE;
+
 	if (!pml_.empty())
 	{
 		pml_.NextTimeStepB(dt, E, &dB);

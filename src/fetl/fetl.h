@@ -29,6 +29,7 @@ typedef TG Mesh;                                                                
 typedef typename Mesh::index_type index_type ;                                                         \
 typedef typename Mesh::scalar_type scalar_type ;                                                       \
 typedef typename Mesh::coordinates_type coordinates_type;                                              \
+typedef typename Mesh::tag_type tag_type;                                                              \
 template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,typename Mesh::scalar_type >;              \
 template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,typename Mesh::scalar_type> >;    \
 template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,typename Mesh::scalar_type> > >;    \

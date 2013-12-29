@@ -1312,7 +1312,7 @@ public:
 		return 2;
 	}
 
-	index_type Refelect(index_type hint_s,Real dt,coordinates_type * x, nTuple<3,Real> * v)
+	index_type Refelect(index_type hint_s,Real dt,coordinates_type * x, nTuple<3,Real> * v)const
 	{
 		coordinates_type r;
 		r=*x;
@@ -1322,7 +1322,7 @@ public:
 
 		for(int i=0;i<3;++i)
 		{
-			auto a=r[i]-dt*v[i]*inv_dx_[i];
+			auto a=r[i]-dt*(*v)[i]*inv_dx_[i];
 			if(a <0)
 			{
 				d|=DES(i);

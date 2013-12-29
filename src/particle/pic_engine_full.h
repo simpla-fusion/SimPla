@@ -63,8 +63,8 @@ public:
 		}
 	};
 
-	PICEngineFull(mesh_type const &pmesh) :
-			base_type(pmesh), cmr_(1.0), q_(1.0)
+	PICEngineFull(mesh_type const &pmesh)
+			: base_type(pmesh), cmr_(1.0), q_(1.0)
 	{
 
 	}
@@ -136,7 +136,7 @@ public:
 
 	template<typename TV, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
-			Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
+	        Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
 	{
 		n->Collect(p.f, p.x);
 	}
@@ -158,15 +158,15 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TX, typename TV>
-	inline void Trans(TX const & x, TV const &v, Point_s * p) const
+	template<typename TX, typename TV, typename ... Others>
+	inline void Trans(TX const & x, TV const &v, Point_s * p, Others const &...) const
 	{
 		p->x = x;
 		p->v = v;
 	}
 
-	template<typename TX, typename TV>
-	inline void InvertTrans(Point_s const &p, TX * x, TV *v) const
+	template<typename TX, typename TV, typename ... Others>
+	inline void InvertTrans(Point_s const &p, TX * x, TV *v, Others const &...) const
 	{
 		*x = p.x;
 		*v = p.v;

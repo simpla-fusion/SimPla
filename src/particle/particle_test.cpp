@@ -272,6 +272,8 @@ TYPED_TEST(TestParticle,move_particle){
 
 	ion.Deserialize(TestFixture::cfg["ion"]);
 
+	ion.Sort();
+
 	LOGGER << Data(ion,"ion");
 
 	Form<1> J(mesh);

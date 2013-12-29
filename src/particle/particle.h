@@ -159,16 +159,24 @@ public:
 	{
 		_Collect(J, std::forward<Args const &>(args)...);
 	}
-	template<typename ... Args>
-	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Args const& ... args)
-	{
-		_Boundary(flag, in, out, std::forward<Args const &>(args)...);
-	}
 
 	void Sort() override
 	{
 		_Sort();
 	}
+
+	template<typename ... Args>
+	void Collide(Args const& ... args)
+	{
+		Collide(std::forward<Args const &>(args)...);
+	}
+	template<typename ... Args>
+	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
+	        Args const& ... args)
+	{
+		_Boundary(flag, in, out, dt, std::forward<Args const &>(args)...);
+	}
+
 private:
 	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
 
@@ -177,14 +185,10 @@ private:
 	void _Sort();
 
 	template<typename ... Args>
-	void _Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, container_type *other,
+	void _Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
 	        Args const& ... args);
 
-	template<typename ... Args>
-	void _Collide(Args const& ... args)
-	{
-		UNIMPLEMENT;
-	}
+	template<typename ... Args> void _Collide(Args const& ... args);
 
 public:
 
@@ -200,6 +204,18 @@ public:
 	{
 		_NextTimeStep(dt, E, B);
 	}
+
+	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
+	        Form<1> const &E, Form<2> const &B) override
+	{
+		_Boundary(flag, in, out, dt, E, B);
+	}
+	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
+	        VectorForm<0> const &E, VectorForm<0> const &B) override
+	{
+		_Boundary(flag, in, out, dt, E, B);
+	}
+
 	void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const override
 	{
 		_Collect(n, E, B);
@@ -230,6 +246,11 @@ public:
 		_Collect(P, E, B);
 	}
 
+	void Collide(Real dt, ParticleBase<mesh_type> *p) override
+	{
+		_Collide(dt, p);
+	}
+
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
@@ -258,7 +279,6 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 
 	base_type::Deserialize(cfg);
 
-	Sort();
 }
 template<class Engine>
 std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
@@ -600,16 +620,16 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 template<class Engine>
 template<typename ... Args>
-void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out,
-        container_type *other, Args const &... args)
+void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
+        Args const &... args)
 {
-	if (other == nullptr)
-		other = &data_;
+	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
 
-	mesh.tags().SelectBoundaryCell(Int2Type<0>(),
+// @NOTE: difficult to parallism
 
-	[&](index_type src)
+	auto fun = [&](index_type src)
 	{
+		if(!selector(src)) return;
 
 		auto & cell = this->data_[src];
 
@@ -629,14 +649,14 @@ void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, type
 
 				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
 
-				dest=this->mesh.Refelect(src,&x,&v);
+				dest=this->mesh.Refelect(src,dt,&x,&v);
 
 				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
 			}
 
 			if (dest != src)
 			{
-				(*other)[dest].splice(other->data_[dest].begin(), cell, p);
+				data_[dest].splice(data_[dest].begin(), cell, p);
 			}
 			else
 			{
@@ -644,9 +664,17 @@ void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, type
 			}
 
 		}
+	};
 
-	}, in, out, mesh_type::media_tag_type::ON_BOUNDARY);
+	// @NOTE: is a simple implement, need  parallism
 
+	mesh.SerialTraversal(VERTEX, fun);
+
+}
+template<class Engine> template<typename ... Args>
+void Particle<Engine>::_Collide(Args const &... args)
+{
+	UNIMPLEMENT;
 }
 
 //*******************************************************************************************************
@@ -766,6 +794,11 @@ public:
 
 	DEFINE_FIELDS(mesh_type)
 
+	enum
+	{
+		REFELECT, ABSORB
+	};
+
 	ParticleBase()
 			: isSorted_(false), clock_(0)
 	{
@@ -813,6 +846,22 @@ public:
 		isSorted_ = false;
 		clock_ += dt;
 	}
+
+	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
+	        Form<1> const &E, Form<2> const &B)
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
+	        VectorForm<0> const &E, VectorForm<0> const &B)
+	{
+		UNIMPLEMENT;
+	}
+	virtual void Collide(Real dt, ParticleBase *)
+	{
+		UNIMPLEMENT;
+	}
+
 	virtual void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const
 	{
 		UNIMPLEMENT;
@@ -844,15 +893,6 @@ public:
 	virtual void Sort()
 	{
 		isSorted_ = true;
-	}
-
-	enum
-	{
-		REFELECT, ABSORB
-	};
-
-	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out)
-	{
 	}
 
 private:
