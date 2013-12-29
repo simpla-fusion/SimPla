@@ -1,18 +1,16 @@
 /*
- * ggauge.h
+ * pic_engine_ggauge.h
  *
  *  Created on: 2013年10月23日
  *      Author: salmon
  */
 
-#ifndef GGAUGE_H_
-#define GGAUGE_H_
+#ifndef PIC_ENGINE_GGAUGE_H_
+#define PIC_ENGINE_GGAUGE_H_
 
-#include "../fetl/primitives.h"
-#include "../fetl/ntuple.h"
-
+#include "../fetl/fetl.h"
+#include "../fetl/ntuple_ops.h"
 #include "../physics/constants.h"
-
 namespace simpla
 {
 
@@ -27,16 +25,16 @@ struct PICEngineGGauge: public PICEngineBase<TM>
 	Real cosdq[NMATE], sindq[NMATE];
 public:
 	typedef PICEngineBase<TM> base_type;
-	typedef PICEngineGGauge<TM> this_type;
+	typedef PICEngineGGauge<TM, NMATE> this_type;
 	typedef TM mesh_type;
-	typedef nTuple<3, Real> Vec3;
 
-	DEFINE_FIELDS (mesh_type);
+	DEFINE_FIELDS (mesh_type)
+	;
 
 	struct Point_s
 	{
 		coordinates_type x;
-		nTuple<3, Real> v;
+		Vec3 v;
 		Real f;
 		scalar_type w[NMATE];
 
@@ -128,11 +126,11 @@ public:
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
 	{
 //		auto Bv = B.average(p->x, GetAffectedRegion());
-		auto Bv = B(p->x);
+		Vec3 Bv = B(p->x);
 		Real BB = Dot(Bv, Bv);
 		Real Bs = std::sqrt(BB);
-		nTuple<3, Real> v0, v1, r0, r1;
-		nTuple<3, Real> Vc;
+		Vec3 v0, v1, r0, r1;
+		Vec3 Vc;
 		Vc = (Dot(p->v, Bv) * Bv) / BB;
 		v1 = Cross(p->v, Bv / Bs);
 		v0 = -Cross(v1, Bv / Bs);
@@ -207,25 +205,25 @@ public:
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, TB const & B,
 			Others const &... others) const
 	{
-		Vec3 Bv = B(p.x);
-		Real BB = Dot(Bv, Bv);
-		Real Bs = sqrt(BB);
-		Vec3 v0, v1, r0, r1;
-		Vec3 Vc;
-
-		Vc = (Dot(p.v, Bv) * Bv) / BB;
-
-		v1 = Cross(p.v, Bv / Bs);
-		v0 = -Cross(v1, Bv / Bs);
-		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+//		Vec3 Bv = B(p.x);
+//		Real BB = Dot(Bv, Bv);
+//		Real Bs = sqrt(BB);
+//		Vec3 v0, v1, r0, r1;
+//		Vec3 Vc;
+//
+//		Vc = (Dot(p.v, Bv) * Bv) / BB;
+//
+//		v1 = Cross(p.v, Bv / Bs);
+//		v0 = -Cross(v1, Bv / Bs);
+//		r0 = -Cross(v0, Bv) / (cmr_ * BB);
+//		r1 = -Cross(v1, Bv) / (cmr_ * BB);
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			J->Collect(v * p.w[ms], r);
+			J->Collect(v * p.w[ms] * p.f, r);
 		}
 	}
 
@@ -267,4 +265,4 @@ operator<<(std::ostream& os, typename PICEngineGGauge<TM>::Point_s const & p)
 
 } // namespace simpla
 
-#endif /* GGAUGE_H_ */
+#endif /* PIC_ENGINE_GGAUGE_H_ */

@@ -11,6 +11,7 @@
 #include <string>
 
 #include "../fetl/primitives.h"
+#include "../fetl/ntuple_ops.h"
 
 namespace simpla
 {

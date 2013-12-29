@@ -284,8 +284,8 @@ TYPED_TEST(TestParticle,move_particle){
 	Form<1> E(mesh);
 	Form<2> B(mesh);
 
-	E.Update();
-	B.Update();
+	E.Fill(1.0);
+	B.Fill(1.0);
 	J.Update();
 
 	std::mt19937 rnd_gen(2);
@@ -302,7 +302,7 @@ TYPED_TEST(TestParticle,move_particle){
 		v = uniform_dist(rnd_gen);
 	}
 
-	Real expect_n = 1.0;
+	Real expect_n = 0.0;
 
 	{
 		Form<0> n(mesh);
@@ -316,8 +316,6 @@ TYPED_TEST(TestParticle,move_particle){
 		}
 
 		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
-
-		CHECK(average_n);
 
 		EXPECT_FLOAT_EQ(expect_n,average_n);
 
