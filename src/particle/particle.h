@@ -7,25 +7,27 @@
 
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
+
 #include <cstddef>
+#include <exception>
 #include <iostream>
 #include <list>
 #include <map>
+#include <memory>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
-#include <memory>
-#include <thread>
 
 #include "../fetl/fetl.h"
-#include "../fetl/field_rw_cache.h"
-
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
 #include "../utilities/memory_pool.h"
+#include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
-
+#include "../io/data_stream.h"
 #include "load_particle.h"
+#include "save_particle.h"
 
 #ifndef NO_STD_CXX
 //need  libstdc++
@@ -115,7 +117,7 @@ public:
 	 *
 	 * @return <datapoint , number of particles>
 	 */
-	std::pair<std::shared_ptr<value_type>, size_t> DumpData() const;
+	std::pair<std::shared_ptr<value_type>, size_t> GetDataSet() const;
 
 	allocator_type GetAllocator()
 	{
@@ -131,11 +133,17 @@ public:
 		return data_.at(s);
 	}
 
+	//***************************************************************************************************
+
 	void Update() override;
+
+	void DataDump(std::string const &name) const override;
 
 	void Deserialize(LuaObject const &cfg) override;
 
-	template<typename TOS> TOS & Serialize(TOS & os) const;
+	std::ostream & Serialize(std::ostream & os) const override;
+
+	//***************************************************************************************************
 
 	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
 	{
@@ -281,7 +289,7 @@ void Particle<Engine>::Deserialize(LuaObject const &cfg)
 
 }
 template<class Engine>
-std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
+std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::GetDataSet() const
 {
 	size_t num = size();
 
@@ -299,18 +307,17 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::D
 }
 
 template<class Engine>
-template<typename TOS>
-TOS & Particle<Engine>::Serialize(TOS & os) const
+std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 {
 	os << "{ ";
 
-	engine_type::Serialize(os)
+	engine_type::Serialize(os);
 
-//	<< Data(*this, engine_type::name_)
+	os << ",\n"
 
-	        ;
+	<< "\tData = " << Data(*this, engine_type::name_)
 
-	os << "} ";
+	<< "} ";
 
 	return os;
 }
@@ -335,6 +342,12 @@ void Particle<Engine>::Update()
 	{
 		d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 	}
+}
+
+template<class Engine>
+void Particle<Engine>::DataDump(std::string const &name) const
+{
+	LOGGER << "Dump " << name << Data(*this, name);
 }
 
 template<class Engine>
@@ -760,9 +773,7 @@ public:
 
 		<< "Mass = " << m_ << " , "
 
-		<< "Charge = " << q_ << ","
-
-		;
+		<< "Charge = " << q_;
 
 		return os;
 	}
@@ -809,6 +820,11 @@ public:
 
 	virtual void Update()
 	{
+	}
+
+	virtual void DataDump(std::string const &name) const
+	{
+
 	}
 
 	virtual void Deserialize(LuaObject const &cfg)
@@ -958,6 +974,8 @@ public:
 
 	void Sort();
 
+	void DumpData() const;
+
 	template<typename ... Args> void NextTimeStep(Args const & ... args);
 
 	template<typename TJ, typename ... Args> void Collect(TJ *J, Args const & ... args) const;
@@ -1019,9 +1037,15 @@ std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
 
 	ContainerOutPut3(os, this->begin(), this->end(),
 
-	[&](std::ostream & oos, decltype(this->begin()) const &it)->std::ostream &
+	[](std::ostream & oos, decltype(this->begin()) const &it)->std::ostream &
 	{
-		return it->second->Serialize(oos)<<"\n";
+		oos<<"\t";
+
+		it->second->Serialize(oos);
+
+		oos<<"\n";
+
+		return oos;
 	});
 
 	os << "} \n";
@@ -1057,6 +1081,14 @@ void ParticleCollection<TM>::Sort()
 	}
 }
 
+template<typename TM>
+void ParticleCollection<TM>::DumpData() const
+{
+	for (auto const &p : *this)
+	{
+		p.second->DataDump(p.first);
+	}
+}
 template<typename TM>
 std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
 {

@@ -94,7 +94,7 @@ public:
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine = 'Default' ,";
+		os << "Engine = 'Default' " << " , ";
 
 		base_type::Serialize(os);
 

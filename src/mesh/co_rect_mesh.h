@@ -2037,8 +2037,14 @@ void CoRectMesh<TS>::Update()
 template<typename TS>
 template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const &cfg)
 {
+
 	{
-		if (cfg["Type"].template as<std::string>() != GetTypeName())
+		if (cfg.empty())
+		{
+			ERROR << "Empty configure!";
+			return;
+		}
+		if (cfg["Type"].template as<std::string>("Real") != GetTypeName())
 		{
 			WARNING << "illegal config [Type: except=" << GetTypeName() << ", configure="
 			        << cfg["Type"].template as<std::string>() << "]";

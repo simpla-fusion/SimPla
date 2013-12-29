@@ -248,12 +248,11 @@ void ColdFluidEM<TM>::DumpData() const
 template<typename TM>
 std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 {
-	os << "-- Cold Fluid -------------------\n";
-	os << "  ColdFluid={\n";
+	os << "\tColdFluid = {";
 
 	for (auto const & p : sp_list_)
 	{
-		os << "\t" << p.first
+		os << "\n\t" << p.first
 
 		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->Z << ",\n"
 
@@ -263,7 +262,7 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 
 		<< "\t},\n";
 	}
-	os << "}\n";
+	os << "}";
 
 	return os;
 }

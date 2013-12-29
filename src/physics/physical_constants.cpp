@@ -24,6 +24,55 @@ PhysicalConstants::PhysicalConstants(std::string type)
 PhysicalConstants::~PhysicalConstants()
 {
 }
+
+void PhysicalConstants::Deserialize(LuaObject const & vm)
+{
+	if (vm.empty())
+	{
+		SetBaseUnit();
+	}
+	else
+	{
+
+		SetBaseUnit(vm["Type"].template as<std::string>(), //
+		        vm["m"].template as<Real>(1.0), //
+		        vm["s"].template as<Real>(1.0), //
+		        vm["kg"].template as<Real>(1.0), //
+		        vm["C"].template as<Real>(1.0), //
+		        vm["K"].template as<Real>(1.0), //
+		        vm["mol"].template as<Real>(1.0));
+	}
+}
+
+std::ostream & PhysicalConstants::Serialize(std::ostream &os) const
+{
+	os
+
+	<< "{ "
+
+	<< "Type = \"" << type_ << "\" , "
+
+	<< "m = " << m_ << " , "
+
+	<< "s = " << s_ << " , "
+
+	<< "kg = " << kg_ << " , "
+
+	<< "C = " << C_ << " , "
+
+	<< "K  = " << K_ << " , "
+
+	<< "mol = " << mol_
+
+	<< "}"
+
+	;
+	return os;
+}
+std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self)
+{
+	return self.Serialize(os);
+}
 void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps, double pkg, double pC, double pK,
         double pMol)
 {
@@ -150,31 +199,6 @@ void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double 
 
 }
 
-std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self)
-{
-	os
-
-	<< "{ "
-
-	<< "Type = \"" << self.type_ << "\" , "
-
-	<< "m = " << self.m_ << " , "
-
-	<< "s = " << self.s_ << " , "
-
-	<< "kg = " << self.kg_ << " , "
-
-	<< "C = " << self.C_ << " , "
-
-	<< "K  = " << self.K_ << " , "
-
-	<< "mol = " << self.mol_
-
-	<< "}"
-
-	;
-	return os;
-}
 void PhysicalConstants::Print(std::ostream & os) const
 {
 	os

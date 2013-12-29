@@ -9,6 +9,7 @@
 #define PHYSICAL_CONSTANTS_H_
 
 #include "../utilities/log.h"
+#include "../utilities/lua_state.h"
 #include <iostream>
 #include <map>
 #include <memory>
@@ -30,37 +31,14 @@ public:
 
 	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
 
-	template<typename TCONFIG>
-	void Deserialize(TCONFIG vm)
-	{
+	void Deserialize(LuaObject const & vm);
 
-		SetBaseUnit(vm.template Get<std::string>("Type"), //
-		vm.template Get<double>("m", 1.0), //
-		vm.template Get<double>("s", 1.0), //
-		vm.template Get<double>("kg", 1.0), //
-		vm.template Get<double>("C", 1.0), //
-		vm.template Get<double>("K", 1.0), //
-		vm.template Get<double>("mol", 1.0));
-	}
-
-	template<typename TCONFIG>
-	void Serialize(TCONFIG vm)
-	{
-
-		vm.template SetValue<std::string>("Type", type_);
-		vm.template SetValue<double>("m", m_);
-		vm.template SetValue<double>("s", s_);
-		vm.template SetValue<double>("kg", kg_);
-		vm.template SetValue<double>("C", C_);
-		vm.template SetValue<double>("K", K_);
-		vm.template SetValue<double>("mol", mol_);
-	}
+	std::ostream & Serialize(std::ostream & os)const;
 
 	void Print(std::basic_ostream<char> & os) const;
 
-	void SetBaseUnit(std::string const & type_name = "CUSTOM", double pm = 1,
-			double ps = 1, double pkg = 1, double pC = 1, double pK = 1,
-			double pMol = 1);
+	void SetBaseUnit(std::string const & type_name = "SI", double pm = 1, double ps = 1, double pkg = 1, double pC = 1,
+	        double pK = 1, double pMol = 1);
 
 	inline double operator[](std::string const &s) const
 	{
@@ -95,7 +73,7 @@ private:
 
 }
 ;
-std::ostream & operator<<(std::ostream &, PhysicalConstants const &);
+std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
 
 #define DEFINE_PHYSICAL_CONST(_UNIT_SYS_)                                               \
 const double mu0 = _UNIT_SYS_["permeability of free space"];                            \

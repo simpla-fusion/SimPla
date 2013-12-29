@@ -5,23 +5,19 @@
  *      Author: salmon
  */
 
-#include <complex>
 #include <cstddef>
-#include <cstdlib>
 #include <functional>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
 
 #include "../src/engine/basecontext.h"
-#include "../src/fetl/primitives.h"
 #include "../src/io/data_stream.h"
-#include "../src/mesh/co_rect_mesh.h"
 #include "../src/simpla_defs.h"
 #include "../src/utilities/log.h"
 #include "../src/utilities/lua_state.h"
 #include "../src/utilities/parse_command_line.h"
-#include "../src/utilities/singleton_holder.h"
 #include "../src/utilities/utilities.h"
 
 #include "contexts/explicit_em.h"
@@ -33,7 +29,7 @@ int main(int argc, char **argv)
 
 	Logger::Verbose(0);
 
-	LuaObject pt;
+	LuaObject cfg;
 
 	size_t num_of_step = 10;
 
@@ -57,11 +53,11 @@ int main(int argc, char **argv)
 		}
 		else if(opt=="i"||opt=="input")
 		{
-			pt.ParseFile(value);
+			cfg.ParseFile(value);
 		}
 		else if(opt=="c"|| opt=="command")
 		{
-			pt.ParseString(value);
+			cfg.ParseString(value);
 		}
 		else if(opt=="l"|| opt=="log")
 		{
@@ -136,7 +132,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Parse Command Line." << DONE;
 
-	if (pt.IsNull())
+	if (cfg.IsNull())
 	{
 		LOGGER << "Nothing to do !!";
 		TheEnd(-1);
@@ -146,45 +142,25 @@ int main(int argc, char **argv)
 
 	std::shared_ptr<BaseContext> ctx;
 
-	auto mesh_type = pt["Grid"]["Type"].as<std::string>();
-	auto scalar_type = pt["Grid"]["ScalarType"].as<std::string>("Real");
+	ctx = CreateContextExplicitEM(cfg);
 
-	if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
+	if (ctx == nullptr)
 	{
-
-		typedef CoRectMesh<Complex> mesh_type;
-
-		std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
-
-		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-	}
-	else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
-	{
-		typedef CoRectMesh<Real> mesh_type;
-
-		std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
-
-		ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-	}
-
-	else
-	{
-		INFORM << "I don't know  what is " << mesh_type;
+		INFORM << "illegal configure! ";
 		TheEnd(-2);
 	}
 
-	ctx->Deserialize(pt);
-
-//  Summary    ====================================
+	// Preprocess    ====================================
 
 	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	LOGGER << "\n-- [Configure]" << "\n" << (*ctx);
+	GLOBAL_DATA_STREAM.OpenGroup("/InitData");
 
-// Main Loop ============================================
+	LOGGER << (*ctx);
 
-	LOGGER << "\n" << SINGLELINE<< "\n";
 	LOGGER << "Pre-Process" << DONE;
+
+	// Main Loop ============================================
 
 	LOGGER << "Process " << START;
 
@@ -211,6 +187,8 @@ int main(int argc, char **argv)
 	}
 	LOGGER << "Process" << DONE;
 	LOGGER << "Post-Process" << START;
+	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
+	LOGGER << *ctx;
 	LOGGER << "Post-Process" << DONE;
 
 	TheEnd();
