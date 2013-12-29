@@ -54,13 +54,13 @@ public:
 			return os.str();
 		}
 
-		template<typename TX, typename TV, typename TF> inline
-		static void Trans(Point_s *p, TX const &x, TV const &v, TF f)
-		{
-			p->x = x;
-			p->v = v;
-			p->f = f;
-		}
+//		template<typename TX, typename TV, typename TF> inline
+//		static void Trans(Point_s *p, TX const &x, TV const &v, TF f)
+//		{
+//			p->x = x;
+//			p->v = v;
+//			p->f = f;
+//		}
 	};
 
 	PICEngineFull(mesh_type const &pmesh)
@@ -68,7 +68,7 @@ public:
 	{
 
 	}
-	~PICEngineFull()
+	virtual ~PICEngineFull()
 	{
 	}
 

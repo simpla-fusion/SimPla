@@ -10,6 +10,8 @@
 
 #include "particle.h"
 #include "pic_engine_full.h"
+#include "pic_engine_ggauge.h"
+
 #include "../io/data_stream.h"
 #include "save_particle.h"
 #include "load_particle.h"
@@ -80,6 +82,8 @@ public:
 typedef testing::Types<
 
 PICEngineFull<Mesh>
+
+, PICEngineGGauge<Mesh, 8>
 //,
 //
 //PICEngineDeltaF<CoRectMesh<Complex>>,
