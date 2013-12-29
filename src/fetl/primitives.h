@@ -31,6 +31,11 @@ enum POSITION
 	FULL = -1, CENTER = 0, LEFT = 1, RIGHT = 2, DOWN = 4, UP = 8, BACK = 16, FRONT = 32
 };
 
+enum GeometryFormTypeID
+{
+	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+};
+
 typedef int8_t ByteType; // int8_t
 
 typedef double Real;

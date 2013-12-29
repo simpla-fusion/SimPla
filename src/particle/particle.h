@@ -159,13 +159,39 @@ public:
 	{
 		_Collect(J, std::forward<Args const &>(args)...);
 	}
+	template<typename ... Args>
+	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Args const& ... args)
+	{
+		_Boundary(flag, in, out, std::forward<Args const &>(args)...);
+	}
 
 	void Sort() override
 	{
 		_Sort();
 	}
-	// interface
+private:
+	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
 
+	template<typename TJ, typename ... Args> void _Collect(TJ * J, Args const & ... args) const;
+
+	void _Sort();
+
+	template<typename ... Args>
+	void _Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, container_type *other,
+	        Args const& ... args);
+
+	template<typename ... Args>
+	void _Collide(Args const& ... args)
+	{
+		UNIMPLEMENT;
+	}
+
+public:
+
+	//***************************************************************************************************
+	// Interface :
+	//       inhert virtual function
+	//***************************************************************************************************
 	void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B) override
 	{
 		_NextTimeStep(dt, E, B);
@@ -204,26 +230,17 @@ public:
 		_Collect(P, E, B);
 	}
 
-//	void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
-//			typename MediaTag<mesh_type>::tag_type out);
-
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
 	void Resort(index_type s, container_type * dest = nullptr);
-private:
-	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
-
-	template<typename TJ, typename ... Args> void _Collect(TJ * J, Args const & ... args) const;
-
-	void _Sort();
 
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -271,11 +288,17 @@ TOS & Particle<Engine>::Serialize(TOS & os) const
 
 //	<< Data(*this, engine_type::name_)
 
-			;
+	        ;
 
 	os << "} ";
 
 	return os;
+}
+
+template<typename TM>
+std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
+{
+	return self.Serialize(os);
 }
 
 template<class Engine>
@@ -575,10 +598,55 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 }
 
-template<typename TM>
-std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
+template<class Engine>
+template<typename ... Args>
+void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out,
+        container_type *other, Args const &... args)
 {
-	return self.Serialize(os);
+	if (other == nullptr)
+		other = &data_;
+
+	mesh.tags().SelectBoundaryCell(Int2Type<0>(),
+
+	[&](index_type src)
+	{
+
+		auto & cell = this->data_[src];
+
+		auto pt = cell.begin();
+
+		while (pt != cell.end())
+		{
+			auto p = pt;
+			++pt;
+
+			index_type dest=src;
+			if (flag == base_type::REFELECT)
+			{
+				coordinates_type x;
+
+				nTuple<3,Real> v;
+
+				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
+
+				dest=this->mesh.Refelect(src,&x,&v);
+
+				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
+			}
+
+			if (dest != src)
+			{
+				(*other)[dest].splice(other->data_[dest].begin(), cell, p);
+			}
+			else
+			{
+				cell.erase(p);
+			}
+
+		}
+
+	}, in, out, mesh_type::media_tag_type::ON_BOUNDARY);
+
 }
 
 //*******************************************************************************************************
@@ -596,8 +664,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -677,14 +745,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-		typename TParticleEngine::mesh_type const & mesh)
+        typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -698,8 +766,8 @@ public:
 
 	DEFINE_FIELDS(mesh_type)
 
-	ParticleBase() :
-			isSorted_(false), clock_(0)
+	ParticleBase()
+			: isSorted_(false), clock_(0)
 	{
 	}
 	virtual ~ParticleBase()
@@ -783,10 +851,9 @@ public:
 		REFELECT, ABSORB
 	};
 
-//	virtual void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
-//			typename MediaTag<mesh_type>::tag_type out)
-//	{
-//	}
+	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out)
+	{
+	}
 
 private:
 	bool isSorted_;
@@ -818,8 +885,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh) :
-			mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh)
+			: mesh(pmesh)
 	{
 	}
 	~ParticleCollection()

@@ -108,6 +108,8 @@ struct CoRectMesh
 
 	typedef MediaTag<this_type> tag_container;
 
+	typedef MediaTag<this_type> media_tag_type;
+
 	typedef typename MediaTag<this_type>::tag_type tag_type;
 
 private:
@@ -331,6 +333,13 @@ public:
 	{
 		return s % num_comps_per_cell_[IFORM];
 	}
+
+	template<int IFORM>
+	inline index_type GetCellIndex(index_type s) const
+	{
+		return (s-s % num_comps_per_cell_[IFORM])/num_comps_per_cell_[IFORM];
+	}
+
 	template<typename ... IDXS>
 	inline index_type GetComponentIndex(int IFORM, int m, IDXS ... s) const
 	{

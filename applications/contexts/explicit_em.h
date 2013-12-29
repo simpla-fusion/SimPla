@@ -198,13 +198,14 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 					[in,out,this]()
 					{
+						auto selector=media_tag.template BoundarySelector<EDGE>( in,out,mediatag_type::ON_BOUNDARY);
 
-						media_tag.template SelectBoundaryCell<1>(
-								[this](index_type const &s)
+						this->mesh.ParallelTraversal(EDGE,
+								[this,selector](index_type s)
 								{
-									(this->E)[s]=0;
+									if(selector(s) )(this->E)[s]=0;
 								}
-								,in,out,mediatag_type::ON_BOUNDARY );
+						);
 
 					}
 

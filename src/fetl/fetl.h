@@ -24,7 +24,6 @@
 
 namespace simpla
 {
-
 #define DEFINE_FIELDS(TG)                                                                              \
 typedef TG Mesh;                                                                                       \
 typedef typename Mesh::index_type index_type ;                                                         \

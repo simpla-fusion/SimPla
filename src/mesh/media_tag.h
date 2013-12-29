@@ -348,13 +348,12 @@ public:
 	 * @param fun
 	 * @param tag
 	 */
-	template<int IFORM> inline
-	void SelectCell(std::function<void(index_type)> const &fun, tag_type tag) const
+	template<int IFORM> inline std::function<bool(index_type)> Selector(tag_type in) const
 	{
-		mesh.Traversal(IFORM, [this,tag](index_type s)
+		return [this,in](index_type s)->bool
 		{
-			fun((tags_[IFORM][s]&tag).any(),s);
-		});
+			return (this->tags_[IFORM][s]&in).any();
+		};
 	}
 
 	/**
@@ -366,12 +365,8 @@ public:
 	 * @param out_tag
 	 * @param flag
 	 */
-	template<int IFORM> inline
-	void SelectBoundaryCell(std::function<void(index_type)> const &fun, tag_type in, tag_type out, unsigned int flag =
-	        ON_BOUNDARY) const
-	{
-		_SelectBoundaryCell(Int2Type<IFORM>(), fun, in, out, flag);
-	}
+	template<int IFORM> std::function<bool(index_type)>
+	BoundarySelector(tag_type in, tag_type out, unsigned int flag = ON_BOUNDARY) const;
 
 private:
 
@@ -417,136 +412,147 @@ private:
 
 		});
 	}
-
-	template<int IFORM>
-	void _SelectBoundaryCell(Int2Type<IFORM>, std::function<void(index_type)> const &fun, tag_type A, tag_type B,
-	        int flag = ON_BOUNDARY) const
-	{
-
-		if ((B & (~A)).any())
-		{
-			/**
-			 *   +----------#----------+
-			 *   |          #          |
-			 *   |    A     #-> B   C  |
-			 *   |          #          |
-			 *   +----------#----------+
-			 *
-			 *   +--------------------+
-			 *   |         ^          |
-			 *   |       B |     C    |
-			 *   |     ########       |
-			 *   |     #      #       |
-			 *   |     #  A   #       |
-			 *   |     #      #       |
-			 *   |     ########       |
-			 *   +--------------------+
-			 *
-			 *   			+----------+
-			 *              |      C    |
-			 *   +----------######     |
-			 *   |          | A  #     |
-			 *   |    A     | &  #  B  |
-			 *   |          | B  #->   |
-			 *   +----------######     |
-			 *              |          |
-			 *              +----------+
-			 *
-			 *   			+----------+
-			 *         C     |          |
-			 *   +----------#----+     |
-			 *   |          # A  |     |
-			 *   |    B   <-# &  |  A  |
-			 *   |          # B  |     |
-			 *   +----------#----+     |
-			 *              |          |
-			 *              +----------+
-			 */
-
-			B &= (~A);
-		}
-		else
-		{
-			/**
-			 *   +--------------------+
-			 *   |                    |
-			 *   |        A           |
-			 *   |     ########       |
-			 *   |     #      #       |
-			 *   |     #->B C #       |
-			 *   |     #      #       |
-			 *   |     ########       |
-			 *   +--------------------+
-			 *
-			 */
-
-			A &= (~B);
-		}
-
-		/**
-		 * 	            +----------+
-		 *              |          |
-		 *   +-------+  |          |
-		 *   |       |  |          |
-		 *   |   B   |  |    A     |
-		 *   |       |  |          |
-		 *   +-------+  |          |
-		 *              |          |
-		 *              +----------+
-		 */
-
-		tag_type AB = A | B;
-
-		if (!AB.none())
-		{
-
-			mesh.SerialTraversal(IFORM,
-
-			[&](int m, index_type x,index_type y,index_type z)
-			{
-				index_type s=mesh.GetComponentIndex(IFORM,m,x,y,z);
-
-				if((tags_[IFORM][s]&(B)).none()) return;
-
-				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
-
-				if(flag==ON_BOUNDARY)
-				{
-
-					int num=mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<3>(),neighbours,m,x,y,z);
-
-					for(int i=0;i<num;++i)
-					{
-						if((tags_[3].at(neighbours[i])&A).any())
-						{
-							fun(s);
-							break;
-						}
-					}
-
-				}
-				else
-				{
-					int num=mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<0>(),neighbours,m,x,y,z);
-
-					for(int i=0;i<num;++i)
-					{
-						if((tags_[0].at(neighbours[i])&A).any())
-						{
-							fun(s);
-							break;
-						}
-					}
-				}
-			});
-		}
-	}
 };
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
 {
 	return self.Serialize(os);
 }
-}  // namespace simpla
+
+template<typename TM> template<int IFORM>
+std::function<bool(typename TM::index_type)> //
+MediaTag<TM>::BoundarySelector(tag_type A, tag_type B, unsigned int flag) const
+{
+
+	if ((B & (~A)).any())
+	{
+		/**
+		 *   +----------#----------+
+		 *   |          #          |
+		 *   |    A     #-> B   C  |
+		 *   |          #          |
+		 *   +----------#----------+
+		 *
+		 *   +--------------------+
+		 *   |         ^          |
+		 *   |       B |     C    |
+		 *   |     ########       |
+		 *   |     #      #       |
+		 *   |     #  A   #       |
+		 *   |     #      #       |
+		 *   |     ########       |
+		 *   +--------------------+
+		 *
+		 *   			+----------+
+		 *              |      C    |
+		 *   +----------######     |
+		 *   |          | A  #     |
+		 *   |    A     | &  #  B  |
+		 *   |          | B  #->   |
+		 *   +----------######     |
+		 *              |          |
+		 *              +----------+
+		 *
+		 *   			+----------+
+		 *         C     |          |
+		 *   +----------#----+     |
+		 *   |          # A  |     |
+		 *   |    B   <-# &  |  A  |
+		 *   |          # B  |     |
+		 *   +----------#----+     |
+		 *              |          |
+		 *              +----------+
+		 */
+
+		B &= (~A);
+	}
+	else
+	{
+		/**
+		 *   +--------------------+
+		 *   |                    |
+		 *   |        A           |
+		 *   |     ########       |
+		 *   |     #      #       |
+		 *   |     #->B C #       |
+		 *   |     #      #       |
+		 *   |     ########       |
+		 *   +--------------------+
+		 *
+		 */
+
+		A &= (~B);
+	}
+
+	/**
+	 * 	            +----------+
+	 *              |          |
+	 *   +-------+  |          |
+	 *   |       |  |          |
+	 *   |   B   |  |    A     |
+	 *   |       |  |          |
+	 *   +-------+  |          |
+	 *              |          |
+	 *              +----------+
+	 */
+
+	tag_type AB = A | B;
+
+	if (flag == ON_BOUNDARY)
+	{
+		return
+
+		[this,A,B]( index_type s )->bool
+		{
+			bool res=false;
+			if((A|B).any() && (this->tags_[IFORM][s]&(B)).any())
+			{
+				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+				int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<3>(),neighbours,s);
+
+				for(int i=0;i<num;++i)
+				{
+					if((this->tags_[3].at(neighbours[i])&A).any())
+					{
+						res=true;
+						break;
+					}
+				}
+			}
+			return res;
+		};
+
+	}
+	else
+	{
+		return
+
+		[this,A,B]( index_type s)->bool
+		{
+			bool res=false;
+			if((A|B).any() && (this->tags_[IFORM][s]&(B)).any())
+			{
+				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+				int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<0>(),neighbours,s);
+
+				for(int i=0;i<num;++i)
+				{
+					if((this->tags_[0].at(neighbours[i])&A).any())
+					{
+						res=true;
+						break;
+					}
+				}
+			}
+			return res;
+		};
+	}
+
+}
+
+}
+// namespace simpla
 
 #endif /* MEDIA_TAG_H_ */
