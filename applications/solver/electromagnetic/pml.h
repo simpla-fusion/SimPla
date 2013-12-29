@@ -127,7 +127,7 @@ void PML<TM>::Update()
 
 	}
 
-	DEFINE_PHYSICAL_CONST(mesh.constants);
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Real dB = 100, expN = 2;
 
@@ -233,7 +233,7 @@ void PML<TM>::NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE)
 	LOGGER << "PML push E";
 	dE->Fill(0);
 
-	DEFINE_PHYSICAL_CONST(mesh.constants);
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<1> dX1(mesh);
 
@@ -256,7 +256,7 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB)
 	LOGGER << "PML Push B";
 	dB->Fill(0);
 
-	DEFINE_PHYSICAL_CONST(mesh.constants);
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<2> dX2(mesh);
 

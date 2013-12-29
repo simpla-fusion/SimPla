@@ -34,9 +34,11 @@
 #include "../utilities/type_utilites.h"
 #include "../utilities/utilities.h"
 #include "field_convert.h"
-
+#include "media_tag.h"
 namespace simpla
 {
+
+template<typename TM> class MediaTag;
 
 /**
  *
@@ -60,64 +62,101 @@ struct CoRectMesh
 
 	typedef nTuple<3, Real> coordinates_type;
 
-	typedef unsigned int tag_type;
-
-	PhysicalConstants constants; //!< Unit System and phyical constants
-
 	Real dt_ = 0.0; //!< time step
 
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, index_type> shift_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
 
-	nTuple<NUM_OF_DIMS, index_type> dims_ =
-	{ 10, 10, 10 }; //!< number of cells
+	nTuple<NUM_OF_DIMS, index_type> dims_ = { 10, 10, 10 }; //!< number of cells
 
-	nTuple<NUM_OF_DIMS, index_type> ghost_width_ =
-	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
 
-	nTuple<NUM_OF_DIMS, index_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
 
 	index_type num_cells_ = 0;
 
 	index_type num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ =
-	{ 0, 0, 0 };
-	coordinates_type xmax_ =
-	{ 10, 10, 10 };
+	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmax_ = { 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] =
-	{ 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar_type> k_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] = { 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> k_ = { 0, 0, 0 };
 
-	coordinates_type dx_ =
-	{ 0, 0, 0 };
-	coordinates_type inv_dx_ =
-	{ 0, 0, 0 };
+	coordinates_type dx_ = { 0, 0, 0 };
+	coordinates_type inv_dx_ = { 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
-	{ 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
-	CoRectMesh()
-	{
-	}
+	CoRectMesh();
 
-	~CoRectMesh()
-	{
-	}
+	~CoRectMesh();
 
 	this_type & operator=(const this_type&) = delete;
+
+	//***************************************************************************************************
+	//* Media Tags
+	//***************************************************************************************************
+
+	typedef MediaTag<this_type> tag_container;
+
+	typedef typename MediaTag<this_type>::tag_type tag_type;
+
+private:
+	std::shared_ptr<tag_container> tags_;
+public:
+
+	tag_container & tags()
+	{
+		if (tags_ == nullptr)
+			tags_ = std::shared_ptr<tag_container>(new tag_container(*this));
+
+		return *tags_;
+	}
+	tag_container const& tags() const
+	{
+		if (tags_ == nullptr)
+			ERROR << "Media Tag is not initialized!!";
+		return *tags_;
+	}
+
+	//***************************************************************************************************
+	//* Constants
+	//***************************************************************************************************
+private:
+	std::shared_ptr<PhysicalConstants> constants_;	//!< Unit System and phyical constants
+public:
+	PhysicalConstants & constants()
+	{
+		if (constants_ == nullptr)
+			constants_ = std::shared_ptr<PhysicalConstants>(new PhysicalConstants());
+
+		return *constants_;
+	}
+	PhysicalConstants const& constants() const
+	{
+		if (constants_ == nullptr)
+			ERROR << "Constants are not defined!!";
+		return *constants_;
+	}
+
+	//***************************************************************************************************
+	//* Configure
+	//***************************************************************************************************
+
+	template<typename ISTREAM> void Deserialize(ISTREAM const &cfg);
+
+	template<typename OSTREAM> OSTREAM& Serialize(OSTREAM &vm) const;
+
+	void Update();
 
 	inline bool operator==(this_type const & r) const
 	{
@@ -134,6 +173,110 @@ struct CoRectMesh
 		return ToString(GetRealNumDimension()) + "DCoRectMesh";
 	}
 
+	// Properties of UniformRectMesh --------------------------------------
+	inline void SetGhostWidth(int i, index_type v)
+	{
+		ghost_width_[i % NUM_OF_DIMS] = v;
+	}
+
+	inline nTuple<NUM_OF_DIMS, index_type> const&GetGhostWidth() const
+	{
+		return ghost_width_;
+	}
+
+	inline void SetExtent(coordinates_type const & pmin, coordinates_type const & pmax)
+	{
+		xmin_ = pmin;
+		xmax_ = pmax;
+
+		Update();
+	}
+
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	{
+		return std::move(std::make_pair(xmin_, xmax_));
+	}
+
+	inline void SetDimension(nTuple<NUM_OF_DIMS, index_type> const & pdims)
+	{
+		dims_ = pdims;
+
+		Update();
+	}
+	inline nTuple<NUM_OF_DIMS, index_type> const & GetDimension() const
+	{
+		return dims_;
+	}
+
+	inline int GetRealNumDimension() const
+	{
+		int n = 0;
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				++n;
+		}
+		return n;
+	}
+	inline std::vector<size_t> GetShape(int IFORM) const
+	{
+		std::vector<size_t> res;
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				res.push_back(dims_[i]);
+		}
+		if (num_comps_per_cell_[IFORM] > 1)
+		{
+			res.push_back(num_comps_per_cell_[IFORM]);
+		}
+
+		return std::move(res);
+	}
+	inline nTuple<NUM_OF_DIMS, index_type> const & GetStrides() const
+	{
+		return strides_;
+	}
+
+	// General Property -----------------------------------------------
+
+	inline Real GetDt() const
+	{
+		return dt_;
+	}
+
+	inline void SetDt(Real dt = 0.0)
+	{
+		dt_ = dt;
+		Update();
+	}
+
+	inline index_type GetNumOfElements(int iform) const
+	{
+
+		return (num_grid_points_ * num_comps_per_cell_[iform]);
+	}
+
+	inline index_type GetNumOfVertices(...) const
+	{
+
+		return (num_grid_points_);
+	}
+
+	inline Real GetCellVolume(...) const
+	{
+		return cell_volume_;
+	}
+
+	inline Real GetDCellVolume(...) const
+	{
+		return d_cell_volume_;
+	}
+
+	//***************************************************************************************************
+	//* Container
+	//***************************************************************************************************
+
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
 	template<int iform, typename TV> inline Container<TV> MakeContainer() const
@@ -141,111 +284,9 @@ struct CoRectMesh
 		return (MEMPOOL.allocate_shared_ptr<TV>(GetNumOfElements(iform)));
 	}
 
-	template<typename ISTREAM> void Deserialize(ISTREAM const &vm);
-
-	template<typename OSTREAM> OSTREAM& Serialize(OSTREAM &vm) const;
-
-	inline void _SetImaginaryPart(Real i, Real * v)
-	{
-	}
-
-	inline void _SetImaginaryPart(Real i, Complex * v)
-	{
-		v->imag(i);
-	}
-	void Update()
-	{
-		num_cells_ = 1;
-		num_grid_points_ = 1;
-		cell_volume_=1.0;
-		d_cell_volume_=1.0;
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			if (dims_[i] <= 1)
-			{
-				dims_[i] = 1;
-				dx_[i] = 0.0;
-				inv_dx_[i] = 0.0;
-
-				dS_[0][i] = 0.0;
-
-				_SetImaginaryPart(xmax_[i] == xmin_[i] ? 0 : 1.0 / (xmax_[i] - xmin_[i]), &dS_[0][i]);
-
-				dS_[1][i] = 0.0;
-
-				k_[i] = TWOPI * dS_[0][i];
-
-				dims_[i] = 1;
-
-				ghost_width_[i]=0;
-
-			}
-			else
-			{
-				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i] );
-
-				inv_dx_[i]=1.0/dx_[i];
-
-				dS_[0][i] = 1.0 / dx_[i];
-
-				dS_[1][i] = -1.0 / dx_[i];
-
-				num_cells_ *= (dims_[i] );
-
-				num_grid_points_ *= dims_[i];
-
-				k_[i] = 0.0;
-
-				cell_volume_*= dx_[i];
-
-				d_cell_volume_ /= dx_[i];
-
-			}
-		}
-
-		strides_[2] = 1;
-		strides_[1] = dims_[2];
-		strides_[0] = dims_[1] * dims_[2];
-
-		for(int i=0;i<NUM_OF_DIMS;++i)
-		{
-			if(dims_[i]<=1)strides_[i]=0;
-		}
-
-		coordinates_shift_[0][0][0] = 0.0;
-		coordinates_shift_[0][0][1] = 0.0;
-		coordinates_shift_[0][0][2] = 0.0;
-
-		coordinates_shift_[3][0][0] = 0.0;
-		coordinates_shift_[3][0][1] = 0.0;
-		coordinates_shift_[3][0][2] = 0.0;
-
-		coordinates_shift_[1][0][0] = 0.5 * dx_[0];
-		coordinates_shift_[1][0][1] = 0.0;
-		coordinates_shift_[1][0][2] = 0.0;
-
-		coordinates_shift_[1][1][0] = 0.0;
-		coordinates_shift_[1][1][1] = 0.5 * dx_[1];
-		coordinates_shift_[1][1][2] = 0.0;
-
-		coordinates_shift_[1][2][0] = 0.0;
-		coordinates_shift_[1][2][1] = 0.0;
-		coordinates_shift_[1][2][2] = 0.5 * dx_[2];
-
-		coordinates_shift_[2][0][0] = 0.0;
-		coordinates_shift_[2][0][1] = 0.5 * dx_[1];
-		coordinates_shift_[2][0][2] = 0.5 * dx_[2];
-
-		coordinates_shift_[2][1][0] = 0.5 * dx_[0];
-		coordinates_shift_[2][1][1] = 0.0;
-		coordinates_shift_[2][1][2] = 0.5 * dx_[2];
-
-		coordinates_shift_[2][2][0] = 0.5 * dx_[0];
-		coordinates_shift_[2][2][1] = 0.5 * dx_[1];
-		coordinates_shift_[2][2][2] = 0.0;
-
-	}
-
+	//***************************************************************************************************
+	//* Mesh operation
+	//***************************************************************************************************
 public:
 
 	inline coordinates_type GetCoordinates(int IFORM, int m, index_type i, index_type j, index_type k) const
@@ -321,35 +362,6 @@ public:
 		}
 		return s;
 	}
-
-	template<typename TV>
-	void SetFieldValue(Field<Geometry<this_type,1> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
-	{
-		(*f)[s*3]=v[0];
-		(*f)[s*3+1]=v[1];
-		(*f)[s*3+2]=v[2];
-	}
-
-	template<typename TV>
-	void SetFieldValue(Field<Geometry<this_type,2> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
-	{
-		(*f)[s*3]=v[0];
-		(*f)[s*3+1]=v[1];
-		(*f)[s*3+2]=v[2];
-	}
-
-	template<typename TV>
-	void SetFieldValue(Field<Geometry<this_type,0> ,TV> * f,TV const &v,index_type s)const
-	{
-		(*f)[s]=v;
-	}
-
-	template<typename TV>
-	void SetFieldValue(Field<Geometry<this_type,3> ,TV> * f,TV const &v,index_type s)const
-	{
-		(*f)[s]=v;
-	}
-
 private:
 
 	/**
@@ -869,8 +881,9 @@ public:
 	}
 
 	//****************************************************************************************************
-	//** Index operation
-	//** Begin
+	//* Index operation
+	//*
+	//***************************************************************************************************
 
 	void UnpackIndex(index_type *idx,index_type s)const
 	{
@@ -946,8 +959,6 @@ public:
 		UnpackIndex(&i,&j,&k,s...);
 		return Shift(d,i,j,k);
 	}
-	//** End
-	//****************************************************************************************************
 
 	inline index_type GetIndex(index_type i, index_type j, index_type k) const
 	{
@@ -973,68 +984,11 @@ public:
 	{
 		return s;
 	}
-	template<typename T, typename ... TI>
-	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l, TI ...) const
-	{
-		return std::move(l);
-	}
-
-	template<int IFORM, typename TL> inline typename Field<Geometry<this_type, IFORM>, TL>::value_type & get(
-	Field<Geometry<this_type, IFORM>, TL> *l, index_type s) const
-	{
-		return l->get(s % num_comps_per_cell_[IFORM], s / num_comps_per_cell_[IFORM]);
-	}
-
-	template<int IFORM, typename TL, typename ...TI> inline typename Field<Geometry<this_type, IFORM>, TL>::value_type & get(
-	Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
-	{
-		return l->get(s...);
-	}
-
-	template<int IFORM, typename TL, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, TL>::value_type const &get(
-	Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
-	{
-		return (l.get(s...));
-	}
-
-	template<int IFORM, int TOP, typename TL, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> >::value_type get(
-	Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> > const & l, TI ...s) const
-	{
-		return (l.get(s...));
-	}
-
-	template<int IFORM, int TOP, typename TL, typename TR, typename ... TI>
-	typename Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> >::value_type get(
-	Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> > const & l, TI ...s) const
-	{
-		return (l.get(s...));
-	}
-
-	template<typename TV>
-	TV & get_value(Container<TV> & d,index_type s)const
-	{
-		return * (d.get()+s);
-	}
-	template<typename TV>
-	TV const & get_value(Container<TV> const& d,index_type s)const
-	{
-		return * (d.get()+s);
-	}
-
-	template<typename TFUN>
-	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
-	{
-		int num = num_comps_per_cell_[IFORM];
-		for (int i = 0; i < num; ++i)
-		{
-			fun(s * num + i);
-		}
-	}
 
 	//***************************************************************************************************
 	//  Traversal
+	//
+	//***************************************************************************************************
 
 	template<typename ... Args>
 	void Traversal(Args const &...args) const
@@ -1117,6 +1071,39 @@ public:
 		ParallelForEach(fun,l,std::forward<Args const &>(args)...);
 	}
 
+	//***************************************************************************************************
+	//* Container/Field operation
+	//* Field vs. Mesh
+	//***************************************************************************************************
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,1> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
+	{
+		(*f)[s*3]=v[0];
+		(*f)[s*3+1]=v[1];
+		(*f)[s*3+2]=v[2];
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,2> ,TV> * f,nTuple<3,TV> const &v,index_type s)const
+	{
+		(*f)[s*3]=v[0];
+		(*f)[s*3+1]=v[1];
+		(*f)[s*3+2]=v[2];
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,0> ,TV> * f,TV const &v,index_type s)const
+	{
+		(*f)[s]=v;
+	}
+
+	template<typename TV>
+	void SetFieldValue(Field<Geometry<this_type,3> ,TV> * f,TV const &v,index_type s)const
+	{
+		(*f)[s]=v;
+	}
+
 	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
 	{
 		ParallelTraversal(IFORM, [&](int m, index_type x, index_type y, index_type z)
@@ -1145,109 +1132,70 @@ public:
 		{	get(lhs,0,x,y,z)=rhs;});
 	}
 
-// Properties of UniformRectMesh --------------------------------------
-	inline void SetGhostWidth(int i,index_type v)
+	template<typename T, typename ... TI>
+	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l, TI ...) const
 	{
-		ghost_width_[i% NUM_OF_DIMS]=v;
+		return std::move(l);
 	}
 
-	inline nTuple<NUM_OF_DIMS,index_type> const&GetGhostWidth( )const
+	template<int IFORM, typename TL> inline typename Field<Geometry<this_type, IFORM>, TL>::value_type & get(
+	Field<Geometry<this_type, IFORM>, TL> *l, index_type s) const
 	{
-		return ghost_width_;
+		return l->get(s % num_comps_per_cell_[IFORM], s / num_comps_per_cell_[IFORM]);
 	}
 
-	inline void SetExtent(coordinates_type const & pmin, coordinates_type const & pmax)
+	template<int IFORM, typename TL, typename ...TI> inline typename Field<Geometry<this_type, IFORM>, TL>::value_type & get(
+	Field<Geometry<this_type, IFORM>, TL> *l, TI ... s) const
 	{
-		xmin_ = pmin;
-		xmax_ = pmax;
-
-		Update();
+		return l->get(s...);
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	template<int IFORM, typename TL, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, TL>::value_type const &get(
+	Field<Geometry<this_type, IFORM>, TL> const & l, TI ...s) const
 	{
-		return std::move(std::make_pair(xmin_, xmax_));
+		return (l.get(s...));
 	}
 
-	inline void SetDimension(nTuple<NUM_OF_DIMS, index_type> const & pdims)
+	template<int IFORM, int TOP, typename TL, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> >::value_type get(
+	Field<Geometry<this_type, IFORM>, UniOp<TOP, TL> > const & l, TI ...s) const
 	{
-		dims_ = pdims;
-
-		Update();
-	}
-	inline nTuple<NUM_OF_DIMS, index_type> const & GetDimension() const
-	{
-		return dims_;
+		return (l.get(s...));
 	}
 
-	inline int GetRealNumDimension() const
+	template<int IFORM, int TOP, typename TL, typename TR, typename ... TI>
+	typename Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> >::value_type get(
+	Field<Geometry<this_type, IFORM>, BiOp<TOP, TL, TR> > const & l, TI ...s) const
 	{
-		int n = 0;
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		return (l.get(s...));
+	}
+
+	template<typename TV>
+	TV & get_value(Container<TV> & d,index_type s)const
+	{
+		return * (d.get()+s);
+	}
+	template<typename TV>
+	TV const & get_value(Container<TV> const& d,index_type s)const
+	{
+		return * (d.get()+s);
+	}
+
+	template<typename TFUN>
+	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
+	{
+		int num = num_comps_per_cell_[IFORM];
+		for (int i = 0; i < num; ++i)
 		{
-			if (dims_[i] > 1)
-			++n;
+			fun(s * num + i);
 		}
-		return n;
-	}
-	inline std::vector<size_t> GetShape(int IFORM) const
-	{
-		std::vector<size_t> res;
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			if (dims_[i] > 1)
-			res.push_back(dims_[i]);
-		}
-		if (num_comps_per_cell_[IFORM] > 1)
-		{
-			res.push_back(num_comps_per_cell_[IFORM]);
-		}
-
-		return std::move(res);
-	}
-	inline nTuple<NUM_OF_DIMS, index_type> const & GetStrides() const
-	{
-		return strides_;
-	}
-
-// General Property -----------------------------------------------
-
-	inline Real GetDt() const
-	{
-		return dt_;
-	}
-
-	inline void SetDt(Real dt = 0.0)
-	{
-		dt_ = dt;
-		Update();
-	}
-
-	inline index_type GetNumOfElements(int iform) const
-	{
-
-		return (num_grid_points_ * num_comps_per_cell_[iform]);
-	}
-
-	inline index_type GetNumOfVertices(...) const
-	{
-
-		return (num_grid_points_);
-	}
-
-	inline Real GetCellVolume(...) const
-	{
-		return cell_volume_;
-	}
-
-	inline Real GetDCellVolume(...) const
-	{
-		return d_cell_volume_;
 	}
 
 	//***************************************************************************************************
 	// Particle vs. Mesh
 	// Begin
+	//***************************************************************************************************
 
 	/**
 	 * Locate the cell containing a specified point.
@@ -1379,7 +1327,7 @@ public:
 				continue;
 			}
 			v[i] *=-1;
-			r[i] =1.0-x[i];
+			r[i] =1.0-(*x)[i];
 		}
 
 		if(d!=0)
@@ -1663,11 +1611,12 @@ public:
 		}
 	}
 	// End
+	//***************************************************************************************************
 	// Interpolation
 	//***************************************************************************************************
 
-// Mapto ----------------------------------------------------------
 	/**
+	 *  Mapto -
 	 *    mapto(Int2Type<0> ,   //tarGet topology position
 	 *     Field<this_type,1 , TExpr> const & vl,  //field
 	 *      SizeType s   //grid index of point
@@ -1953,17 +1902,164 @@ public:
 
 }
 ;
+//******************************************************************************************************
+// Offline define
+//******************************************************************************************************
+
 template<typename TS>
-template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const &vm)
+CoRectMesh<TS>::CoRectMesh()
 {
-	constants.Deserialize(vm.GetChild("UnitSystem"));
+}
+template<typename TS>
+CoRectMesh<TS>::~CoRectMesh()
+{
+}
 
-	vm.GetChild("Topology").template GetValue("Dimensions", &dims_);
-	vm.GetChild("Topology").template GetValue("GhostWidth", &ghost_width_);
+inline void _SetImaginaryPart(Real i, Real * v)
+{
+}
 
-	vm.GetChild("Geometry").template GetValue("Min", &xmin_);
-	vm.GetChild("Geometry").template GetValue("Max", &xmax_);
-	vm.GetChild("Geometry").template GetValue("dt", &dt_);
+inline void _SetImaginaryPart(Real i, Complex * v)
+{
+	v->imag(i);
+}
+template<typename TS>
+void CoRectMesh<TS>::Update()
+{
+	// initialize
+	constants();
+
+	tags();
+
+	//configure
+
+	num_cells_ = 1;
+	num_grid_points_ = 1;
+	cell_volume_ = 1.0;
+	d_cell_volume_ = 1.0;
+	for (int i = 0; i < NUM_OF_DIMS; ++i)
+	{
+		if (dims_[i] <= 1)
+		{
+			dims_[i] = 1;
+			dx_[i] = 0.0;
+			inv_dx_[i] = 0.0;
+
+			dS_[0][i] = 0.0;
+
+			_SetImaginaryPart(xmax_[i] == xmin_[i] ? 0 : 1.0 / (xmax_[i] - xmin_[i]), &dS_[0][i]);
+
+			dS_[1][i] = 0.0;
+
+			k_[i] = TWOPI * dS_[0][i];
+
+			dims_[i] = 1;
+
+			ghost_width_[i] = 0;
+
+		}
+		else
+		{
+			dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i]);
+
+			inv_dx_[i] = 1.0 / dx_[i];
+
+			dS_[0][i] = 1.0 / dx_[i];
+
+			dS_[1][i] = -1.0 / dx_[i];
+
+			num_cells_ *= (dims_[i]);
+
+			num_grid_points_ *= dims_[i];
+
+			k_[i] = 0.0;
+
+			cell_volume_ *= dx_[i];
+
+			d_cell_volume_ /= dx_[i];
+
+		}
+	}
+
+	strides_[2] = 1;
+	strides_[1] = dims_[2];
+	strides_[0] = dims_[1] * dims_[2];
+
+	for (int i = 0; i < NUM_OF_DIMS; ++i)
+	{
+		if (dims_[i] <= 1)
+			strides_[i] = 0;
+	}
+
+	coordinates_shift_[0][0][0] = 0.0;
+	coordinates_shift_[0][0][1] = 0.0;
+	coordinates_shift_[0][0][2] = 0.0;
+
+	coordinates_shift_[3][0][0] = 0.0;
+	coordinates_shift_[3][0][1] = 0.0;
+	coordinates_shift_[3][0][2] = 0.0;
+
+	coordinates_shift_[1][0][0] = 0.5 * dx_[0];
+	coordinates_shift_[1][0][1] = 0.0;
+	coordinates_shift_[1][0][2] = 0.0;
+
+	coordinates_shift_[1][1][0] = 0.0;
+	coordinates_shift_[1][1][1] = 0.5 * dx_[1];
+	coordinates_shift_[1][1][2] = 0.0;
+
+	coordinates_shift_[1][2][0] = 0.0;
+	coordinates_shift_[1][2][1] = 0.0;
+	coordinates_shift_[1][2][2] = 0.5 * dx_[2];
+
+	coordinates_shift_[2][0][0] = 0.0;
+	coordinates_shift_[2][0][1] = 0.5 * dx_[1];
+	coordinates_shift_[2][0][2] = 0.5 * dx_[2];
+
+	coordinates_shift_[2][1][0] = 0.5 * dx_[0];
+	coordinates_shift_[2][1][1] = 0.0;
+	coordinates_shift_[2][1][2] = 0.5 * dx_[2];
+
+	coordinates_shift_[2][2][0] = 0.5 * dx_[0];
+	coordinates_shift_[2][2][1] = 0.5 * dx_[1];
+	coordinates_shift_[2][2][2] = 0.0;
+
+}
+
+template<typename TS>
+template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const &cfg)
+{
+	{
+		if (cfg["Type"].template as<std::string>() != GetTypeName())
+		{
+			WARNING << "illegal config [Type: except=" << GetTypeName() << ", configure="
+			        << cfg["Type"].template as<std::string>() << "]";
+
+			return;
+		}
+
+		auto cfg_scalar_type = cfg["ScalarType"].template as<std::string>();
+
+		auto this_scalar_type = ((std::is_same<TS, Complex>::value) ? "Complex" : "Real");
+
+		if (cfg_scalar_type != "" && cfg_scalar_type != this_scalar_type)
+		{
+			WARNING << "illegal config [Scalar Type: except= " << this_scalar_type << ", configure=" << cfg_scalar_type
+			        << "]";
+		}
+
+	}
+
+	constants().Deserialize(cfg["UnitSystem"]);
+	tags().Deserialize(cfg["MediaTag"]);
+
+	auto topology = cfg["Topology"];
+	topology["Dimensions"].as(&dims_);
+
+	auto geometry = cfg["Geometry"];
+
+	geometry["Min"].as(&xmin_);
+	geometry["Max"].as(&xmax_);
+	geometry["dt"].as(&dt_);
 
 	Update();
 
@@ -1977,45 +2073,45 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 
 	os
 
-	<< "--  Grid " << "\n"
+	<< "{" << "\n"
 
-	<< "Grid={" << "\n"
+	<< std::setw(10) << "Type" << " = \"" << GetTypeName() << "\", \n"
 
-	<< "        Type = \"" << GetTypeName() << "\", \n"
-
-	<< "        ScalarType = \""
+	<< std::setw(10) << "ScalarType" << " = \""
 
 	<< ((std::is_same<TS, Complex>::value) ? "Complex" : "Real") << "\", \n"
 
-	<< "	Topology={ \n "
+	<< std::setw(10) << "Topology" << " = { \n "
 
-	<< "        Type = \"" << GetTopologyTypeAsString() << "\", \n"
+	<< "\t" << std::setw(10) << "Type" << " = \"" << GetTopologyTypeAsString() << "\", \n"
 
-	<< "		Dimensions = {" << ToString(dims_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "Dimensions" << " = {" << ToString(dims_, ",") << "}, \n "
 
-	<< "		GhostWidth = {" << ToString(ghost_width_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "GhostWidth" << " = {" << ToString(ghost_width_, ",") << "}, \n "
 
-	<< "	}, \n "
+	<< std::setw(10) << "}, \n "
 
-	<< "	Geometry={ \n "
+	<< std::setw(10) << "Geometry" << " = { \n "
 
-	<< "		Type    = \"Origin_DxDyDz\", \n "
+	<< "\t" << std::setw(10) << "Type" << " = \"Origin_DxDyDz\", \n "
 
-	<< "		Origin  = {" << ToString(xmin_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "Origin" << " = {" << ToString(xmin_, ",") << "}, \n "
 
-	<< "		DxDyDz  = {" << ToString(dx_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "DxDyDz" << " = {" << ToString(dx_, ",") << "}, \n "
 
-	<< "		Min     = {" << ToString(xmin_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "Min" << " = {" << ToString(xmin_, ",") << "}, \n "
 
-	<< "		Max     = {" << ToString(xmax_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "Max" << " = {" << ToString(xmax_, ",") << "}, \n "
 
-	<< "		k       = {" << ToString(k_, ",") << "}, \n "
+	<< "\t" << std::setw(10) << "k" << " = {" << ToString(k_, ",") << "}, \n "
 
-	<< "	}, \n "
+	<< std::setw(10) << "}, \n "
 
-	<< "	dt = " << GetDt() << ",\n"
+	<< std::setw(10) << "dt" << " = " << GetDt() << ",\n"
 
-	<< "\t" << constants << "\n"
+	<< std::setw(10) << "Unit System" << " = " << constants() << ",\n"
+
+	<< std::setw(10) << "Media Tags" << " = " << tags() << "\n"
 
 	<< "} \n ";
 
@@ -2031,7 +2127,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-		std::function<void(int, index_type, index_type, index_type)> const &fun) const
+        std::function<void(int, index_type, index_type, index_type)> const &fun) const
 {
 
 //	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
@@ -2080,9 +2176,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-				std::thread([num_threads,thread_id,this](Args const & ...args2)
-				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-						std::forward<Args const &>(args)...));
+		        std::thread([num_threads,thread_id,this](Args const & ...args2)
+		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+		                std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

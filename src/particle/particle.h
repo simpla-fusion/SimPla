@@ -204,8 +204,8 @@ public:
 		_Collect(P, E, B);
 	}
 
-	void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
-			typename MediaTag<mesh_type>::tag_type out);
+//	void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
+//			typename MediaTag<mesh_type>::tag_type out);
 
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -783,10 +783,10 @@ public:
 		REFELECT, ABSORB
 	};
 
-	virtual void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
-			typename MediaTag<mesh_type>::tag_type out)
-	{
-	}
+//	virtual void Boundary(int flag, MediaTag<mesh_type> const &tag, typename MediaTag<mesh_type>::tag_type in,
+//			typename MediaTag<mesh_type>::tag_type out)
+//	{
+//	}
 
 private:
 	bool isSorted_;

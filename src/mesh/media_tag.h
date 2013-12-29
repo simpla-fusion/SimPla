@@ -50,8 +50,8 @@ public:
 		CUSTOM = 20
 	};
 
-	MediaTag(mesh_type const & m) :
-			mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
+	MediaTag(mesh_type const & m)
+			: mesh(m), max_tag_(CUSTOM + 1), none(1 << NONE)
 	{
 		register_tag_.emplace("NONE", none);
 
@@ -166,11 +166,11 @@ public:
 //			tmp[3].emplace_back(v.to_ulong());
 //		}
 
-		os << "Media={ \n" << "\t -- register media type\n";
+		os << "{ \n" << "\t -- register media type\n";
 
 		for (auto const& p : register_tag_)
 		{
-			os << "\t" << p.first << " = " << p.second.to_ulong() << ", \n";
+			os << std::setw(10) << p.first << " = 0x" << std::hex << p.second.to_ulong() << std::dec << ", \n";
 		}
 
 //		<< Data(&tmp[0][0], "tag0", mesh.GetShape(0)) << ","
@@ -368,7 +368,7 @@ public:
 	 */
 	template<int IFORM> inline
 	void SelectBoundaryCell(std::function<void(index_type)> const &fun, tag_type in, tag_type out, unsigned int flag =
-			ON_BOUNDARY) const
+	        ON_BOUNDARY) const
 	{
 		_SelectBoundaryCell(Int2Type<IFORM>(), fun, in, out, flag);
 	}
@@ -420,7 +420,7 @@ private:
 
 	template<int IFORM>
 	void _SelectBoundaryCell(Int2Type<IFORM>, std::function<void(index_type)> const &fun, tag_type A, tag_type B,
-			int flag = ON_BOUNDARY) const
+	        int flag = ON_BOUNDARY) const
 	{
 
 		if ((B & (~A)).any())

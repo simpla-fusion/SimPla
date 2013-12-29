@@ -13,7 +13,7 @@ ADD_SUBDIRECTORY( particle)
 
 ADD_SUBDIRECTORY( io)
 
-#ADD_SUBDIRECTORY( swig  )
+ADD_SUBDIRECTORY( mesh  )
 
 
     

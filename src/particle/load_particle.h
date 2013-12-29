@@ -57,7 +57,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 	if (cfg["SRC"].empty()) // Initialize Data
 	{
 
-		DEFINE_PHYSICAL_CONST(p->mesh.constants);
+		DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
 		bool doParallel = true;
 		size_t pic = cfg["PIC"].template as<size_t>();

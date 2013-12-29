@@ -16,16 +16,16 @@
 
 namespace simpla
 {
-PhysicalConstants::PhysicalConstants(std::string type) :
-		type_(type)
+PhysicalConstants::PhysicalConstants(std::string type)
+		: type_(type)
 {
 	SetBaseUnit(type_);
 }
 PhysicalConstants::~PhysicalConstants()
 {
 }
-void PhysicalConstants::SetBaseUnit(std::string const & type, double pm,
-		double ps, double pkg, double pC, double pK, double pMol)
+void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps, double pkg, double pC, double pK,
+        double pMol)
 {
 	type_ = type;
 
@@ -109,19 +109,16 @@ void PhysicalConstants::SetBaseUnit(std::string const & type, double pm,
 
 	q_["speed of light"] = SI_speed_of_light * m_ / s_; /*exact*/
 
-	q_["permeability of free space"] = SI_permeability_of_free_space * q_["H"]
-			/ m_; /*exact*/
+	q_["permeability of free space"] = SI_permeability_of_free_space * q_["H"] / m_; /*exact*/
 
 	q_["permittivity of free space"] = 1.0
-			/ (q_["speed of light"] * q_["speed of light"]
-					* q_["permeability of free space"]);/*exact*/
+	        / (q_["speed of light"] * q_["speed of light"] * q_["permeability of free space"]);/*exact*/
 
 	q_["mu"] = q_["permeability of free space"];
 
 	q_["epsilon"] = q_["permittivity of free space"];
 
-	q_["gravitational constant"] = SI_gravitational_constant * (m_ * m_ * m_)
-			/ (s_ * s_) / kg_; /*1.2e-4*/
+	q_["gravitational constant"] = SI_gravitational_constant * (m_ * m_ * m_) / (s_ * s_) / kg_; /*1.2e-4*/
 
 	q_["plank constant"] = SI_plank_constant * q_["J"] * s_; /*4.4e-8*/
 
@@ -157,7 +154,7 @@ std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self)
 {
 	os
 
-	<< "UnitSystem= { "
+	<< "{ "
 
 	<< "Type = \"" << self.type_ << "\" , "
 
@@ -173,7 +170,7 @@ std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self)
 
 	<< "mol = " << self.mol_
 
-	<< "}" << std::endl
+	<< "}"
 
 	;
 	return os;
@@ -182,64 +179,64 @@ void PhysicalConstants::Print(std::ostream & os) const
 {
 	os
 
-	<< DOUBLELINE << std::endl
+	<< DOUBLELINE<<std::endl
 
 	<< "[Units] " << type_ << " ~ SI" << std::endl
 
 	<< SINGLELINE << std::endl
 
 	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*this)["m"] << "[m]"
-			<< std::endl
+	<< std::endl
 
-			<< std::setw(40) << "1 [time unit] = " << 1.0 / (*this)["s"]
-			<< "[s]" << std::endl
+	<< std::setw(40) << "1 [time unit] = " << 1.0 / (*this)["s"]
+	<< "[s]" << std::endl
 
-			<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*this)["kg"]
-			<< "[kg]" << std::endl
+	<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*this)["kg"]
+	<< "[kg]" << std::endl
 
-			<< std::setw(40) << "1 [electric charge unit] = "
+	<< std::setw(40) << "1 [electric charge unit] = "
 
-			<< 1.0 / (*this)["C"] << "[C]" << std::endl
+	<< 1.0 / (*this)["C"] << "[C]" << std::endl
 
-			<< std::setw(40) << "1 [temperature unit] = "
+	<< std::setw(40) << "1 [temperature unit] = "
 
-			<< 1.0 / (*this)["K"] << "[K]" << std::endl
+	<< 1.0 / (*this)["K"] << "[K]" << std::endl
 
-			<< std::setw(40) << "1 [amount of substance] = "
+	<< std::setw(40) << "1 [amount of substance] = "
 
-			<< 1.0 / (*this)["mol"] << "[mole]" << std::endl
+	<< 1.0 / (*this)["mol"] << "[mole]" << std::endl
 
-			<< SINGLELINE << std::endl
+	<< SINGLELINE << std::endl
 
-			<< "Physical constants:" << std::endl
+	<< "Physical constants:" << std::endl
 
-			<< SINGLELINE << std::endl
+	<< SINGLELINE << std::endl
 
-			<< std::setw(40) << "permeability of free space, mu = "
+	<< std::setw(40) << "permeability of free space, mu = "
 
-			<< (*this)["permeability of free space"] << std::endl
+	<< (*this)["permeability of free space"] << std::endl
 
-			<< std::setw(40) << "permittivity of free space, epsilon = "
+	<< std::setw(40) << "permittivity of free space, epsilon = "
 
-			<< (*this)["permittivity of free space"] << std::endl
+	<< (*this)["permittivity of free space"] << std::endl
 
-			<< std::setw(40) << "speed of light, c = "
+	<< std::setw(40) << "speed of light, c = "
 
-			<< (*this)["speed of light"] << std::endl
+	<< (*this)["speed of light"] << std::endl
 
-			<< std::setw(40) << "elementary charge, e = "
+	<< std::setw(40) << "elementary charge, e = "
 
-			<< (*this)["elementary charge"] << std::endl
+	<< (*this)["elementary charge"] << std::endl
 
-			<< std::setw(40) << "electron mass, m_e = "
+	<< std::setw(40) << "electron mass, m_e = "
 
-			<< (*this)["electron mass"] << std::endl
+	<< (*this)["electron mass"] << std::endl
 
-			<< std::setw(40) << "proton mass,m_p = "
+	<< std::setw(40) << "proton mass,m_p = "
 
-			<< (*this)["proton mass"] << std::endl
+	<< (*this)["proton mass"] << std::endl
 
-			<< DOUBLELINE << std::endl;
+	<< DOUBLELINE << std::endl;
 	;
 }
 

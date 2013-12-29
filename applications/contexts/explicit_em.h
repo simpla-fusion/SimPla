@@ -100,8 +100,8 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
 		cold_fluid_(mesh),
 
@@ -235,9 +235,7 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	os << "Description=\"" << base_type::description << "\" \n";
 
-	os << mesh << "\n"
-
-	<< media_tag << "\n"
+	os << "Grid = " << mesh << "\n"
 
 	<< " FieldSolver={ \n"
 
@@ -284,15 +282,15 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	base_type::NextTimeStep(dt);
 
-	DEFINE_PHYSICAL_CONST(mesh.constants);
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	LOGGER
 
 	<< "Simulation Time = "
 
-	<< (base_type::GetTime() / mesh.constants["s"]) << "[s]"
+	<< (base_type::GetTime() / mesh.constants()["s"]) << "[s]"
 
-	<< " dt = " << (dt / mesh.constants["s"]) << "[s]";
+	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
 	Form<1> Jext(mesh);
 
