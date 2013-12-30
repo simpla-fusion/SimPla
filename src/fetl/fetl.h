@@ -16,7 +16,7 @@
 #include "field_ops.h"
 #include "ntuple_ops.h"
 #include "complex_ops.h"
-#include "proxycache.h"
+#include "cache.h"
 
 
 namespace simpla

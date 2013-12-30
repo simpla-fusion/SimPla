@@ -15,13 +15,13 @@
 #include "../utilities/type_utilites.h"
 #include "../utilities/pretty_stream.h"
 #include "field.h"
-#include "proxycache.h"
+#include "cache.h"
 
 namespace simpla
 {
 
 template<typename TGeometry, typename TValue>
-class Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > >
+class Field<TGeometry, Cache<const Field<TGeometry, TValue> > >
 {
 
 public:
@@ -30,7 +30,7 @@ public:
 
 	typedef Field<TGeometry, TValue> field_type;
 
-	typedef Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > > this_type;
+	typedef Field<TGeometry, Cache<const Field<TGeometry, TValue> > > this_type;
 
 	typedef typename geometry_type::mesh_type mesh_type;
 
@@ -166,7 +166,7 @@ public:
 ;
 
 template<typename TGeometry, typename TValue>
-class Field<TGeometry, ProxyCache<Field<TGeometry, TValue> *> >
+class Field<TGeometry, Cache<Field<TGeometry, TValue> *> >
 {
 
 public:
@@ -175,7 +175,7 @@ public:
 
 	typedef Field<TGeometry, TValue> field_type;
 
-	typedef Field<geometry_type, ProxyCache<field_type> > this_type;
+	typedef Field<geometry_type, Cache<field_type> > this_type;
 
 	typedef typename geometry_type::mesh_type mesh_type;
 
@@ -264,8 +264,6 @@ public:
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
 
-//		ContainerOutPut1(std::cout, points_.begin(), points_.end());
-
 		value_type zero_value_;
 
 		zero_value_ *= 0;
@@ -297,43 +295,59 @@ public:
 };
 
 template<typename TGeometry, typename TValue>
-struct ProxyCache<const Field<TGeometry, TValue> >
+struct Cache<const Field<TGeometry, TValue> >
 {
 
-	typedef Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > > && reference;
+	typedef Field<TGeometry, Cache<const Field<TGeometry, TValue> > > type;
 
-	template<typename ...TI>
-	static inline Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > > Eval( //
-	        Field<TGeometry, TValue> const& f, TI ... hint_idx)
+	template<typename ... Args>
+	Cache(Field<TGeometry, TValue> const & f, Args const & ... args)
+			: f_(f, std::forward<Args const &>(args)...)
 	{
-		return std::move(Field<TGeometry, ProxyCache<const Field<TGeometry, TValue> > >(f, hint_idx...));
+
 	}
 
+	type & operator*()
+	{
+		return f_;
+	}
+
+	type const & operator*() const
+	{
+		return f_;
+	}
+private:
+	type f_;
 };
 
 template<typename TGeometry, typename TValue>
-struct ProxyCache<Field<TGeometry, TValue>*>			// 0 1 0
-
+struct Cache<Field<TGeometry, TValue>*>
 {
 
-	typedef Field<TGeometry, ProxyCache<Field<TGeometry, TValue>*> > && reference;
+	typedef Field<TGeometry, Cache<Field<TGeometry, TValue>*> > type;
 
-	template<typename ... TI>
-	static inline Field<TGeometry, ProxyCache<Field<TGeometry, TValue>*> > Eval(			//
-	        Field<TGeometry, TValue>* f, TI ... hint_idx)
+	template<typename ... Args>
+	Cache(Field<TGeometry, TValue>* f, Args const & ... args)
+			: f_(f, std::forward<Args const &>(args)...)
 	{
-		return std::move(Field<TGeometry, ProxyCache<Field<TGeometry, TValue>*> >(f, hint_idx...));
 	}
+
+	type & operator*()
+	{
+		return f_;
+	}
+private:
+	type f_;
 };
 
 template<typename TG, typename TF>
-void RefreshCache(size_t s, Field<TG, ProxyCache<TF>> & f)
+void RefreshCache(size_t s, Field<TG, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
 template<typename TG, typename TF>
-void FlushCache(Field<TG, ProxyCache<TF*>> & f)
+void FlushCache(Field<TG, Cache<TF*>> & f)
 {
 	f.FlushCache();
 }

@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
-
 #include "../fetl/field_rw_cache.h"
 
 #include "../utilities/log.h"
@@ -483,7 +482,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 	{
 		threads.emplace_back(std::thread(
 
-		[this,num_threads, thread_id](Real dt_, typename ProxyCache<const Args>::reference ... args_c2)
+		[this,num_threads, thread_id](Real dt_, Cache<const Args> ... args_c2)
 		{
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
 
@@ -494,15 +493,14 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 						{
 							RefreshCache(s,args_c2...);
 
-							engine_type::NextTimeStep(&p, dt_, args_c2...);
+							engine_type::NextTimeStep(&p, dt_, *args_c2...);
 						}
 					}
 			);
 
 		}, dt,
 
-		ProxyCache<const Args >::Eval(std::forward<Args const&>(args) ,
-				engine_type::GetAffectedRegion())...));
+		Cache<const Args >(args , engine_type::GetAffectedRegion())...));
 	}
 
 	for (auto & t : threads)
@@ -539,12 +537,21 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
+
+		/***
+		 *  @NOTICE std::thread  accept parameter by VALUE!!!
+		 *
+		 *     NOT by REFERENCE!!!!
+		 *
+		 *
+		 *
+		 */
+
 		threads.emplace_back(
 
 		std::thread(
 
-		[this,num_threads, thread_id]( typename ProxyCache<TJ*>::reference J_c2,
-				typename ProxyCache<const Args>::reference ... args_c2)
+		[this,num_threads, thread_id]( Cache<TJ*> J_c2, Cache<const Args> ... args_c2)
 		{
 
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
@@ -555,7 +562,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 						for (auto const& p : this->data_[s])
 						{
-							engine_type::Collect(p, PointerTo(J_c2) , args_c2...);
+							engine_type::Collect(p, &(*J_c2) , *args_c2...);
 						}
 
 						FlushCache(J_c2,args_c2...);
@@ -564,10 +571,9 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 			);
 		}
 
-		, ProxyCache<TJ*>::Eval(J, engine_type::GetAffectedRegion())
+		, Cache<TJ*>(J, engine_type::GetAffectedRegion())
 
-		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
-				,engine_type::GetAffectedRegion())...)
+		, Cache<const Args >(args ,engine_type::GetAffectedRegion())...)
 
 		);
 	}
@@ -602,7 +608,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 		std::thread(
 
-		[this,num_threads, thread_id]( typename ProxyCache<const Args>::reference ... args_c2)
+		[this,num_threads, thread_id]( Cache<const Args>&& ... args_c2)
 		{
 
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
@@ -614,15 +620,14 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 						for (auto const& p : this->data_[s])
 						{
-							fun(p, args_c2...);
+							fun(p, *args_c2...);
 						}
 
 					}
 			);
 		}
 
-		, ProxyCache<const Args >::Eval(std::forward<Args const&>(args)
-				,engine_type::GetAffectedRegion())...)
+		, Cache<const Args >(args ,engine_type::GetAffectedRegion())...)
 
 		);
 	}
