@@ -1531,6 +1531,7 @@ private:
 
 	}
 #undef DEF_INTERPOLATION_SCHEME
+
 public:
 	template<typename TV,typename TW>
 	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
@@ -1619,6 +1620,42 @@ public:
 			GatherFromCache(r,cache,&(*res)[m],w,3,m );
 		}
 	}
+
+	template<int IFORM,typename TV,typename TR> void
+	GetMeanValue(TV const * cache,TR * res,int affect_region)const
+	{
+		index_type w=2*affect_region;
+
+		index_type sx[3];
+
+		sx[0]= (dims_[0]<=1)?0:((dims_[1]<=1)?1:w*2) *((dims_[2]<=1)?1:w*2) ,
+
+		sx[1]= (dims_[1]<=1)?0:((dims_[2]<=1)?1:w*2);
+
+		sx[2]= (dims_[2]<=1)?0:1;
+
+		int count=0;
+
+		for(index_type i=0,ie=((dims_[0]>1)?w:1);i<ie;++i)
+		for(index_type j=0,je=((dims_[1]>1)?w:1);j<je;++j)
+		for(index_type k=0,ke=((dims_[2]>1)?w:1);k<ke;++k)
+		{
+			index_type s= i*sx[0]+j*sx[1]+k*sx[2];
+			++count;
+
+			for(index_type m=0;m<num_comps_per_cell_[IFORM];++m)
+			{
+				res[m]+=cache[s*num_comps_per_cell_[IFORM]+m];
+			}
+		}
+
+		for(index_type m=0;m<num_comps_per_cell_[IFORM];++m)
+		{
+			res[m]/=static_cast<Real>(count);
+		}
+
+	}
+
 	// End
 	//***************************************************************************************************
 	// Interpolation

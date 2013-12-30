@@ -244,6 +244,11 @@ DECL_SELF_ASSIGN	(-=)
 	DECL_SELF_ASSIGN (/=)
 #undef DECL_SELF_ASSIGN
 
+	inline field_value_type mean(coordinates_type const &x) const
+	{
+		return Gather(x);
+	}
+
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
 		return Gather(x);

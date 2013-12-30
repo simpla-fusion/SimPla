@@ -139,8 +139,8 @@ TYPED_TEST(TestParticle,collect_charge){
 	Form<0> n(mesh);
 	Form<1> E(mesh);
 	Form<2> B(mesh);
-	E.Fill(0);
-	B.Fill(0);
+	E.Fill(1.0);
+	B.Fill(1.0);
 	n.Fill(0);
 
 	ion.Collect(&n,E,B);
@@ -171,9 +171,17 @@ TYPED_TEST(TestParticle,collect_charge){
 				}
 		);
 
-		Real relative_error=std::sqrt(variance)/average;
+		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<Mesh> >::value)
+		{
+			Real relative_error=std::sqrt(variance)/average;
 
-		EXPECT_LE(relative_error,1.1/std::sqrt(pic));
+			EXPECT_LE(relative_error,1.1/std::sqrt(pic));
+		}
+		else
+		{
+			EXPECT_FLOAT_EQ(average,0.0);
+			CHECK(variance);
+		}
 
 	}
 
@@ -302,7 +310,12 @@ TYPED_TEST(TestParticle,move_particle){
 		v = uniform_dist(rnd_gen);
 	}
 
-	Real expect_n = 0.0;
+	Real expect_n = 1.0;
+
+	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<Mesh> >::value)
+	{
+		expect_n=0.0;
+	}
 
 	{
 		Form<0> n(mesh);

@@ -124,17 +124,17 @@ public:
 	template<typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
 	{
-//		auto Bv = B.average(p->x, GetAffectedRegion());
-		Vec3 Bv = B(p->x);
-		Real BB = InnerProduct(Bv, Bv);
+		Vec3 B0 = B.mean(p->x);
+		Real BB = InnerProduct(B0, B0);
+
 		Real Bs = std::sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
-		Vc = (InnerProduct(p->v, Bv) * Bv) / BB;
-		v1 = Cross(p->v, Bv / Bs);
-		v0 = -Cross(v1, Bv / Bs);
-		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+		Vc = (InnerProduct(p->v, B0) * B0) / BB;
+		v1 = Cross(p->v, B0 / Bs);
+		v0 = -Cross(v1, B0 / Bs);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
@@ -146,7 +146,7 @@ public:
 
 		Vec3 t, V_;
 
-		t = Bv * cmr_ * dt * 0.5;
+		t = B0 * cmr_ * dt * 0.5;
 
 		V_ = p->v + Cross(p->v, t);
 
@@ -156,18 +156,17 @@ public:
 
 		p->x += Vc * dt * 0.5;
 
-		v1 = Cross(p->v, Bv / Bs);
-		v0 = -Cross(v1, Bv / Bs);
-		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+		v1 = Cross(p->v, B0 / Bs);
+		v0 = -Cross(v1, B0 / Bs);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-
-			// p->w[ms] += 0.5 * InnerProduct(E(r), v) * q_ / T_ * dt;
+			p->w[ms] += 0.5 * InnerProduct(E(r), v) * q_ / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;
@@ -177,18 +176,19 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
 	        Field<Geometry<mesh_type, 0>, TV>* n, TB const & B, Others const &... others) const
 	{
-		Vec3 Bv = B(p.x);
-		Real BB = InnerProduct(Bv, Bv);
+		Vec3 B0 = B.mean(p.x);
+		Real BB = InnerProduct(B0, B0);
+
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
-		Vc = (InnerProduct(p.v, Bv) * Bv) / BB;
+		Vc = (InnerProduct(p.v, B0) * B0) / BB;
 
-		v1 = Cross(p.v, Bv / Bs);
-		v0 = -Cross(v1, Bv / Bs);
-		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+		v1 = Cross(p.v, B0 / Bs);
+		v0 = -Cross(v1, B0 / Bs);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
@@ -204,20 +204,20 @@ public:
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, TB const & B,
 	        Others const &... others) const
 	{
-		Vec3 Bv = B(p.x);
-
-		Real BB = InnerProduct(Bv, Bv);
+		Vec3 B0 = B.mean(p.x);
+		Real BB = InnerProduct(B0, B0);
 
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
-		Vc = (InnerProduct(p.v, Bv) * Bv) / BB;
 
-		v1 = Cross(p.v, Bv / Bs);
-		v0 = -Cross(v1, Bv / Bs);
-		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+		Vc = (InnerProduct(p.v, B0) * B0) / BB;
+
+		v1 = Cross(p.v, B0 / Bs);
+		v0 = -Cross(v1, B0 / Bs);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
 			Vec3 v, r;

@@ -46,6 +46,8 @@ public:
 
 	mesh_type const &mesh;
 
+	field_value_type mean_;
+
 private:
 	field_type const & f_;
 
@@ -113,8 +115,27 @@ public:
 			cache_[i] = f_[points_[i]];
 		}
 
+		UpdateMeanValue(Int2Type<IForm>());
 	}
 
+private:
+	void UpdateMeanValue(Int2Type<0>)
+	{
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_region_);
+	}
+	void UpdateMeanValue(Int2Type<3>)
+	{
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_region_);
+	}
+	void UpdateMeanValue(Int2Type<1>)
+	{
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_region_);
+	}
+	void UpdateMeanValue(Int2Type<2>)
+	{
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_region_);
+	}
+public:
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
 		coordinates_type pcoords;
@@ -125,7 +146,7 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.GatherFromMesh(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
+			mesh.template GatherFromMesh(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
 		}
 		else //failsafe
 		{
@@ -134,6 +155,11 @@ public:
 
 		return res;
 
+	}
+
+	inline field_value_type const & mean(coordinates_type const &) const
+	{
+		return mean_;
 	}
 
 }
