@@ -9,7 +9,10 @@
 #define PIC_ENGINE_DELTAF_H_
 
 #include <string>
+
 #include "../fetl/primitives.h"
+#include "../fetl/ntuple_ops.h"
+
 namespace simpla
 {
 
@@ -18,8 +21,7 @@ template<typename > class PICEngineBase;
 template<typename TM>
 struct PICEngineDeltaF: public PICEngineBase<TM>
 {
-	Real cmr_, q_;
-	Real T_;
+	Real cmr_, q_, T_;
 public:
 	typedef PICEngineBase<TM> base_type;
 	typedef PICEngineDeltaF<TM> this_type;
@@ -39,8 +41,6 @@ public:
 		static std::string DataTypeDesc()
 		{
 			std::ostringstream os;
-
-			//TODO: add complex support
 			os
 
 			<< "H5T_COMPOUND {          "
@@ -51,21 +51,11 @@ public:
 
 			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
 
-			<< "   H5T_NATIVE_DOUBLE    \"w\" : " << (offsetof(Point_s, w)) << ";"
-
 			<< "}";
 
 			return os.str();
 		}
 
-		template<typename TX, typename TV, typename TF> inline
-		static void Trans(Point_s *p, TX const &x, TV const &v, TF f)
-		{
-			p->x = x;
-			p->v = v;
-			p->f = f;
-			p->w = 0.0;
-		}
 	};
 
 	PICEngineDeltaF(mesh_type const &pmesh)
@@ -79,35 +69,28 @@ public:
 
 	static inline std::string TypeName()
 	{
-		return "DeltaF";
+		return "Full";
 	}
-
-	virtual inline std::string _TypeName() const
+	virtual inline std::string GetTypeAsString() const override
 	{
 		return this_type::TypeName();
 	}
 
-	inline void Deserialize(LuaObject const &obj)
+	inline void Deserialize(LuaObject const &obj) override
 	{
-		if (obj.empty())
-			return;
-
 		base_type::Deserialize(obj);
-
-		T_ = obj["T"].as<Real>();
-
+		obj["T"].as<Real>(&T_);
+		Update();
 	}
-
-	void Update()
+	void Update() override
 	{
 		cmr_ = base_type::q_ / base_type::m_;
 		q_ = base_type::q_;
 	}
-
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine =" << TypeName() << " , T = " << T_ << " , ";
+		os << "Engine = 'Default' " << " , ";
 
 		base_type::Serialize(os);
 
@@ -118,70 +101,61 @@ public:
 	{
 		Point_s p;
 		p.f = 1.0;
-		p.w = 0.0;
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE, typename ...Others>
+	template<typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
 	{
-		// keep x,v at same time step
-		p->x += p->v * 0.5 * dt;
 
-		auto B = real(fB(p->x));
-		auto E = fE(p->x);
+		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
 
-		auto rE = real(E);
-
-		///  @ref  Birdsall(1991)   p.62
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p->v += rE * (cmr_ * dt * 0.5);
-
-		v_ = p->v + Cross(p->v, t);
-
-		p->v += Cross(v_, t) * (2.0 / (Dot(t, t) + 1.0));
-
-		p->v += rE * (cmr_ * dt * 0.5);
-
-		p->x += p->v * 0.5 * dt;
-
-		p->w = (-p->w + 1.0) * Dot(E, p->v) / T_ * dt;
-
+		p->w = (1.0 - p->w) * InnerProduct(fE(p->x), p->v) / T_ * dt;
 	}
 
-	template<typename ...Others>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, 0>, scalar_type>* n, Others const &...others) const
+	template<typename TV, typename ... Others>
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
+	        Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
 	{
-//		n->Collect(p.f * p.w, p.x);
+		n->Collect(p.f * p.w, p.x);
 	}
 
-	template<int IFORM, typename TV, typename ... Others>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &...others) const
+	template<int IFORM, typename TV, typename ...Others>
+	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &... others) const
 	{
-//		J->Collect(p.v * (p.f * p.w), p.x);
+		J->Collect(p.v * p.f * p.w, p.x);
 	}
 
-	template<typename TX, typename TV>
-	inline Point_s Trans(TX const & x, TV const &v, Real f, ...) const
+	template<typename TX, typename TV, typename TFun>
+	inline Point_s Trans(TX const & x, TV const &v, TFun const & n, ...) const
 	{
 		Point_s p;
 		p.x = x;
 		p.v = v;
-		p.f = f;
-		p.w = 0;
+		p.f = n(x);
+
 		return std::move(p);
 	}
 
+	template<typename TX, typename TV, typename ... Others>
+	inline void Trans(TX const & x, TV const &v, Point_s * p, Others const &...) const
+	{
+		p->x = x;
+		p->v = v;
+	}
+
+	template<typename TX, typename TV, typename ... Others>
+	inline void InvertTrans(Point_s const &p, TX * x, TV *v, Others const &...) const
+	{
+		*x = p.x;
+		*v = p.v;
+	}
 };
 
 template<typename TM> std::ostream&
 operator<<(std::ostream& os, typename PICEngineDeltaF<TM>::Point_s const & p)
 {
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << ", w=" << p.w << " }";
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
 
 	return os;
 }

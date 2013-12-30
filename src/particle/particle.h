@@ -1095,6 +1095,32 @@ std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
 	return self.Serialize(os);
 }
 
+//******************************************************************************************************
+template<typename TX, typename TV, typename FE, typename FB> inline
+void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
+{
+	// @ref  Birdsall(1991)   p.62
+	// Bories Method
+
+	(*x) += (*v) * 0.5 * dt;
+
+	auto B = real(fB((*x)));
+	auto E = real(fE((*x)));
+
+	Vec3 v_;
+
+	auto t = B * (cmr * dt * 0.5);
+
+	(*v) += E * (cmr * dt * 0.5);
+
+	v_ = (*v) + Cross((*v), t);
+
+	(*v) += Cross(v_, t) * (2.0 / (Dot(t, t) + 1.0));
+
+	(*v) += E * (cmr * dt * 0.5);
+
+	(*x) += (*v) * 0.5 * dt;
+}
 }
 // namespace simpla
 

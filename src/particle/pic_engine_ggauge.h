@@ -35,7 +35,7 @@ public:
 		coordinates_type x;
 		Vec3 v;
 		Real f;
-		scalar_type w[NMATE];
+		nTuple<NMATE, scalar_type> w;
 
 		static std::string DataTypeDesc()
 		{
@@ -124,7 +124,7 @@ public:
 	template<typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
 	{
-		Vec3 B0 = B.mean(p->x);
+		RVec3 B0 = real(B.mean(p->x));
 		Real BB = InnerProduct(B0, B0);
 
 		Real Bs = std::sqrt(BB);
@@ -152,7 +152,7 @@ public:
 
 		p->v += Cross(V_, t) / (InnerProduct(t, t) + 1.0) * 2.0;
 
-		// Vc = (InnerProduct(p->v, Bv) * Bv) / BB;
+		Vc = (InnerProduct(p->v, B0) * B0) / BB;
 
 		p->x += Vc * dt * 0.5;
 
@@ -176,7 +176,7 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
 	        Field<Geometry<mesh_type, 0>, TV>* n, TB const & B, Others const &... others) const
 	{
-		Vec3 B0 = B.mean(p.x);
+		RVec3 B0 = real(B.mean(p.x));
 		Real BB = InnerProduct(B0, B0);
 
 		Real Bs = sqrt(BB);
@@ -204,13 +204,12 @@ public:
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, TB const & B,
 	        Others const &... others) const
 	{
-		Vec3 B0 = B.mean(p.x);
+		RVec3 B0 = real(B.mean(p.x));
 		Real BB = InnerProduct(B0, B0);
 
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
-
 
 		Vc = (InnerProduct(p.v, B0) * B0) / BB;
 
@@ -259,7 +258,7 @@ public:
 template<typename TM> std::ostream&
 operator<<(std::ostream& os, typename PICEngineGGauge<TM>::Point_s const & p)
 {
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
 	return os;
 }

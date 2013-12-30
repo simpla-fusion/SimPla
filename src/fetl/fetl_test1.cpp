@@ -53,7 +53,7 @@ typedef testing::Types<Form<0>, Form<1>, Form<2>, Form<3>
 
 , VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3>
 
-//, CVectorForm<0>, CVectorForm<1>, CVectorForm<2>, CVectorForm<3>
+, CVectorForm<0>, CVectorForm<1>, CVectorForm<2>, CVectorForm<3>
 
 > AllFieldTypes;
 

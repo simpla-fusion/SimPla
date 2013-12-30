@@ -10,6 +10,7 @@
 
 #include "particle.h"
 #include "pic_engine_full.h"
+#include "pic_engine_deltaf.h"
 #include "pic_engine_ggauge.h"
 
 #include "../io/data_stream.h"
@@ -25,8 +26,6 @@
 #include "../mesh/co_rect_mesh.h"
 
 using namespace simpla;
-
-DEFINE_FIELDS(CoRectMesh<Real>)
 
 template<typename TEngine>
 class TestParticle: public testing::Test
@@ -65,6 +64,7 @@ protected:
 
 	}
 public:
+
 	typedef TEngine engine_type;
 
 	typedef Particle<TEngine> particle_pool_type;
@@ -72,6 +72,8 @@ public:
 	typedef typename TEngine::mesh_type mesh_type;
 
 	typedef typename TEngine::Point_s Point_s;
+
+	DEFINE_FIELDS(mesh_type)
 
 	mesh_type mesh;
 
@@ -81,22 +83,27 @@ public:
 
 typedef testing::Types<
 
-PICEngineFull<Mesh>
+PICEngineFull<CoRectMesh<Real>>
 
-, PICEngineGGauge<Mesh, 8>
-//,
-//
-//PICEngineDeltaF<CoRectMesh<Complex>>,
-//
-//PICEngineDefault<CoRectMesh<Real>>,
-//
-//PICEngineDefault<CoRectMesh<Complex>>
+, PICEngineFull<CoRectMesh<Complex>>
+
+, PICEngineDeltaF<CoRectMesh<Real>>
+
+, PICEngineDeltaF<CoRectMesh<Complex>>
+
+, PICEngineGGauge<CoRectMesh<Real>, 8>
+
+, PICEngineGGauge<CoRectMesh<Real>, 32>
+
+, PICEngineGGauge<CoRectMesh<Complex>, 8>
+
+, PICEngineGGauge<CoRectMesh<Complex>, 32>
 
 > AllEngineTypes;
 
 TYPED_TEST_CASE(TestParticle, AllEngineTypes);
 
-TYPED_TEST(TestParticle,Create){
+TYPED_TEST(TestParticle,create){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -117,7 +124,7 @@ TYPED_TEST(TestParticle,Create){
 
 }
 }
-TYPED_TEST(TestParticle,collect_charge){
+TYPED_TEST(TestParticle,collect){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -125,6 +132,10 @@ TYPED_TEST(TestParticle,collect_charge){
 	typedef typename TestFixture::particle_pool_type pool_type;
 
 	typedef typename TestFixture::Point_s Point_s;
+
+	typedef typename TestFixture::scalar_type scalar_type;
+
+	typedef typename TestFixture::coordinates_type coordinates_type;
 
 	mesh_type const & mesh = TestFixture::mesh;
 
@@ -136,9 +147,9 @@ TYPED_TEST(TestParticle,collect_charge){
 
 	ion.Sort();
 
-	Form<0> n(mesh);
-	Form<1> E(mesh);
-	Form<2> B(mesh);
+	typename TestFixture::template Form<0> n(mesh);
+	typename TestFixture::template Form<1> E(mesh);
+	typename TestFixture::template Form<2> B(mesh);
 	E.Fill(1.0);
 	B.Fill(1.0);
 	n.Fill(0);
@@ -167,20 +178,21 @@ TYPED_TEST(TestParticle,collect_charge){
 
 					average+=actual;
 
-					variance+=std::pow(expect-actual,2.0);
+					variance+=std::pow(abs(expect-actual),2.0);
 				}
 		);
 
-		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<Mesh> >::value)
+		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 		{
-			Real relative_error=std::sqrt(variance)/average;
+			Real relative_error=std::sqrt(variance)/abs(average);
 
 			EXPECT_LE(relative_error,1.1/std::sqrt(pic));
 		}
 		else
 		{
-			EXPECT_FLOAT_EQ(average,0.0);
-			CHECK(variance);
+			Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
+
+			EXPECT_LE(abs(average),error);
 		}
 
 	}
@@ -265,7 +277,7 @@ TYPED_TEST(TestParticle,collect_charge){
 //}
 //}
 //
-TYPED_TEST(TestParticle,move_particle){
+TYPED_TEST(TestParticle,move){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -273,6 +285,10 @@ TYPED_TEST(TestParticle,move_particle){
 	typedef typename TestFixture::particle_pool_type pool_type;
 
 	typedef typename TestFixture::Point_s Point_s;
+
+	typedef typename TestFixture::scalar_type scalar_type;
+
+	typedef typename TestFixture::coordinates_type coordinates_type;
 
 	mesh_type const & mesh = TestFixture::mesh;
 
@@ -288,9 +304,10 @@ TYPED_TEST(TestParticle,move_particle){
 
 	LOGGER << Data(ion,"ion");
 
-	Form<1> J(mesh);
-	Form<1> E(mesh);
-	Form<2> B(mesh);
+	typename TestFixture::template Form<0> n(mesh);
+	typename TestFixture::template Form<1> E(mesh);
+	typename TestFixture::template Form<2> B(mesh);
+	typename TestFixture::template Form<1> J(mesh);
 
 	E.Fill(1.0);
 	B.Fill(1.0);
@@ -311,18 +328,19 @@ TYPED_TEST(TestParticle,move_particle){
 	}
 
 	Real expect_n = 1.0;
+	Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
 
-	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<Mesh> >::value)
+	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 	{
 		expect_n=0.0;
 	}
 
 	{
-		Form<0> n(mesh);
+		typename TestFixture::template Form<0> n(mesh);
 		n.Fill(0.0);
 		ion.Collect(&n,E,B);
 
-		Real average_n=0.0;
+		scalar_type average_n=0.0;
 		for(auto &v :n)
 		{
 			average_n+=v;
@@ -330,9 +348,7 @@ TYPED_TEST(TestParticle,move_particle){
 
 		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
 
-		EXPECT_FLOAT_EQ(expect_n,average_n);
-
-		LOGGER<<DUMP(n);
+		EXPECT_LE(abs(expect_n-abs(average_n)),error);
 	}
 
 	LOGGER << Data(ion,"ion0");
@@ -342,20 +358,20 @@ TYPED_TEST(TestParticle,move_particle){
 	LOGGER << Data(ion,"ion1");
 
 	{
-		Form<0> n(mesh);
+		typename TestFixture::template Form<0> n(mesh);
 		n.Fill(0.0);
 		ion.Collect(&n,E,B);
 
-		Real average_n=0.0;
+		scalar_type average_n=0.0;
+
 		for(auto &v :n)
 		{
 			average_n+=v;
 		}
 		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
 
-		EXPECT_FLOAT_EQ(expect_n,average_n);
+		EXPECT_LE(abs(expect_n-average_n),error);
 
-		LOGGER<<DUMP(n);
 	}
 
 }

@@ -18,13 +18,13 @@ namespace simpla
 
 template<typename > class PICEngineBase;
 
-template<typename TM>
+template<typename TM, int DeltaF = 0>
 struct PICEngineFull: public PICEngineBase<TM>
 {
 	Real cmr_, q_;
 public:
 	typedef PICEngineBase<TM> base_type;
-	typedef PICEngineFull<TM> this_type;
+	typedef PICEngineFull<TM, DeltaF> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
@@ -35,7 +35,7 @@ public:
 	{
 		coordinates_type x;
 		Vec3 v;
-		scalar_type f;
+		Real f;
 
 		static std::string DataTypeDesc()
 		{
@@ -55,13 +55,6 @@ public:
 			return os.str();
 		}
 
-//		template<typename TX, typename TV, typename TF> inline
-//		static void Trans(Point_s *p, TX const &x, TV const &v, TF f)
-//		{
-//			p->x = x;
-//			p->v = v;
-//			p->f = f;
-//		}
 	};
 
 	PICEngineFull(mesh_type const &pmesh)
@@ -112,27 +105,7 @@ public:
 	template<typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
 	{
-		// keep x,v at same time step
-		p->x += p->v * 0.5 * dt;
-
-		auto B = real(fB(p->x));
-		auto E = real(fE(p->x));
-
-		///  @ref  Birdsall(1991)   p.62
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-		v_ = p->v + Cross(p->v, t);
-
-		p->v += Cross(v_, t) * (2.0 / (Dot(t, t) + 1.0));
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-		p->x += p->v * 0.5 * dt;
+		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
 	}
 
 	template<typename TV, typename ... Others>
