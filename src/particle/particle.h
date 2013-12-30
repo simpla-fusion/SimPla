@@ -21,7 +21,7 @@
 
 #include "../fetl/fetl.h"
 
-#include "../fetl/field_rw_cache.h"
+//#include "../fetl/field_rw_cache.h"
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
@@ -471,8 +471,6 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	Sort();
 
-	base_type::NextTimeStep(dt, std::forward<Args const&>(args) ...);
-
 	LOGGER << "Move Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -489,11 +487,9 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 					[&](index_type const &s)
 					{
-
 						for (auto & p : this->data_[s])
 						{
 							RefreshCache(s,args_c2...);
-
 							engine_type::NextTimeStep(&p, dt_, args_c2...);
 						}
 					}
@@ -501,14 +497,15 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 		}, dt,
 
-		ProxyCache<const Args >::Eval(std::forward<Args const&>(args) ,
-				engine_type::GetAffectedRegion())...));
+		ProxyCache<const Args>::Eval(args , engine_type::GetAffectedRegion())...));
 	}
 
 	for (auto & t : threads)
 	{
 		t.join();
 	}
+
+	base_type::NextTimeStep(dt, std::forward<Args const&>(args) ...);
 
 	Sort();
 

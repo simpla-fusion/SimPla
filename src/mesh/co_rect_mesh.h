@@ -1191,6 +1191,17 @@ public:
 		return * (d.get()+s);
 	}
 
+	template<typename TV>
+	TV & get_value(TV* d,index_type s)const
+	{
+		return * (d+s);
+	}
+	template<typename TV>
+	TV const & get_value(TV const* d,index_type s)const
+	{
+		return * (d+s);
+	}
+
 	template<typename TFUN>
 	inline void TraversalSubComponent(int IFORM, index_type s, TFUN const & fun) const
 	{
@@ -1212,7 +1223,7 @@ public:
 	 * @param pcoords local parameter coordinates
 	 * @return index of cell
 	 */
-	inline size_t SearchCell(coordinates_type const &x, Real * r=nullptr) const
+	inline index_type SearchCell(coordinates_type const &x, Real * r=nullptr) const
 	{
 
 		index_type s[3];
@@ -1482,33 +1493,32 @@ private:
 	_LEFT_ cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] _RIGHT_ * r[0] * r[1]* r[2];
 
 	template<typename TV,typename TW>
-	inline void ScatterToCache(Real const pcoords[3],TW const &v , TV *cache,int w,int num_of_comp=1,int comp_num=0)const
+	inline void ScatterToCache(index_type o, index_type const * sx,int num_of_comp,int comp_num, Real const r[3],TW const &v,TV *cache)const
+	{
+		DEF_INTERPOLATION_SCHEME(,+=v)
+	}
+
+	template<typename TV,typename TW>
+	inline void GatherFromCache(index_type o, index_type const * sx,int num_of_comp,int comp_num,Real const r[3], TV const*cache,TW *res)const
+	{
+		(*res) = 0;
+		DEF_INTERPOLATION_SCHEME((*res)+=,)
+	}
+
+	template<typename TV,typename TW>
+	inline void ScatterToCache(int w,int num_of_comp ,int comp_num ,Real const pcoords[3],TW const &v , TV *cache)const
 	{
 		Real r[3]=
 		{	pcoords[0], pcoords[1], pcoords[2]};
 		index_type sx[3];
 		index_type o=GetCacheCoordinates(w,sx,r);
 
-		DEF_INTERPOLATION_SCHEME(,+=v)
-//		cache[(o)*num_of_comp+comp_num] += v* (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-//		cache[(o+sx[0])*num_of_comp+comp_num] += v* r[0] * (1.0 - r[1]) * (1.0 - r[2]);
-//		cache[(o+sx[1])*num_of_comp+comp_num] += v* (1.0 - r[0]) * r[1]* (1.0 - r[2]);
-//		cache[(o+sx[0]+sx[1])*num_of_comp+comp_num] += v* r[0] * r[1]* (1.0 - r[2]);
-//		cache[(o+sx[2])*num_of_comp+comp_num] += v* (1.0 - r[0]) * (1.0 - r[1]) * r[2];
-//		cache[(o+sx[0]+sx[2])*num_of_comp+comp_num] += v* r[0] * (1.0 - r[1]) * r[2];
-//		cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] += v* (1.0 - r[0]) * r[1]* r[2];
-//		cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] += v* r[0] * r[1]* r[2];
-
-//		CHECK(r[0])<<" "<<r[1]<<" "<<r[2];
-//		CHECK( (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]));
-//		CHECK(v);
-//		CHECK((o)*num_of_comp+comp_num);
-//		CHECK(cache[(o)*num_of_comp+comp_num]);
+		ScatterToCache(o,sx,r,num_of_comp,comp_num,v,cache);
 
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromCache(Real const pcoords[3],TV const*cache,TW *res , int w,int num_of_comp=1,int comp_num=0)const
+	inline void GatherFromCache(int w,int num_of_comp ,int comp_num ,Real const pcoords[3],TV const*cache,TW *res)const
 	{
 		Real r[3]=
 		{	pcoords[0], pcoords[1], pcoords[2]};
@@ -1516,70 +1526,65 @@ private:
 		index_type sx[3];
 		index_type o=GetCacheCoordinates(w,sx,r);
 
-		(*res) = 0;
-
-		DEF_INTERPOLATION_SCHEME((*res)+=,)
-
-//		(*res)+=cache[(o)*num_of_comp+comp_num] * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-//		(*res)+=cache[(o+sx[0])*num_of_comp+comp_num] * r[0] * (1.0 - r[1]) * (1.0 - r[2]);
-//		(*res)+=cache[(o+sx[1])*num_of_comp+comp_num] * (1.0 - r[0]) * r[1]* (1.0 - r[2]);
-//		(*res)+=cache[(o+sx[0]+sx[1])*num_of_comp+comp_num] * r[0] * r[1]* (1.0 - r[2]);
-//		(*res)+=cache[(o+sx[2])*num_of_comp+comp_num] * (1.0 - r[0]) * (1.0 - r[1]) * r[2];
-//		(*res)+=cache[(o+sx[0]+sx[2])*num_of_comp+comp_num] * r[0] * (1.0 - r[1]) * r[2];
-//		(*res)+=cache[(o+sx[1]+sx[2])*num_of_comp+comp_num] * (1.0 - r[0]) * r[1]* r[2];
-//		(*res)+=cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] * r[0] * r[1]* r[2];
+		GatherFromCache(o,sx,r,num_of_comp,comp_num,cache,res);
 
 	}
 #undef DEF_INTERPOLATION_SCHEME
 
 public:
+
+	//***************************************************************************************************
+	// Gather/Scatter From  local cache Field
+
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
+	inline void Scatter(Int2Type<VERTEX>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
 	{
-		ScatterToCache(pcoords,std::forward<TW const &>(v),cache,w );
+		ScatterToCache(w,num_comps_per_cell_[VERTEX],0,pcoords,std::forward<TW const &>(v),cache,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
+	inline void Gather(Int2Type<VERTEX>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
 	{
-		GatherFromCache(pcoords,cache,res,w );
+		GatherFromCache(w,num_comps_per_cell_[VERTEX],0,pcoords,cache,res);
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
+	inline void Scatter(Int2Type<VOLUME>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
 	{
 		Real r[3]=
 		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
 
-		ScatterToCache(r,std::forward<TW const &>(v),cache,w );
+		ScatterToCache(w,num_comps_per_cell_[VOLUME],0,r,v,cache);
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
+	inline void Gather(Int2Type<VOLUME>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
 	{
 		Real r[3]=
 		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
 
-		GatherFromCache(r,cache,res,w );
+		GatherFromCache(w,num_comps_per_cell_[VOLUME],0,r,cache,res);
 	}
 
 	template<typename TV,typename TW>
 	inline void
-	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
+	Scatter(Int2Type<EDGE>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
 
 		for(int m=0;m<3;++m)
 		{
 			Real r[3]=
 			{	pcoords[0], pcoords[1], pcoords[2]};
+
 			r[m]-=0.5;
-			ScatterToCache(r,v[m],cache,w,3,m );
+
+			ScatterToCache(w,num_comps_per_cell_[EDGE],m,r,v[m],cache );
 
 		}
 	}
 
 	template<typename TV>
-	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
+	inline void Gather(Int2Type<EDGE>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
 	{
 		(*res) = 0;
 		for(int m=0;m<3;++m)
@@ -1587,13 +1592,13 @@ public:
 			Real r[3]=
 			{	pcoords[0], pcoords[1], pcoords[2]};
 			r[m]-=0.5;
-			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+			GatherFromCache(w,num_comps_per_cell_[EDGE],m,r,cache,&(*res)[m]);
 		}
 	}
 
 	template<typename TV,typename TW>
 	inline void
-	ScatterToMesh(Int2Type<2>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
+	Scatter(Int2Type<FACE>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
 
 		for(int m=0;m<3;++m)
@@ -1602,13 +1607,13 @@ public:
 			{	pcoords[0], pcoords[1], pcoords[2]};
 			r[(m+1)%2]-=0.5;
 			r[(m+2)%2]-=0.5;
-			ScatterToCache(r,v[m],cache,w,3,m );
+			ScatterToCache(w,num_comps_per_cell_[FACE],m,r,v[m],cache );
 
 		}
 	}
 
 	template<typename TV>
-	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
+	inline void Gather(Int2Type<FACE>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
 	{
 		(*res) = 0;
 		for(int m=0;m<3;++m)
@@ -1617,7 +1622,7 @@ public:
 			{	pcoords[0], pcoords[1], pcoords[2]};
 			r[(m+1)%2]-=0.5;
 			r[(m+2)%2]-=0.5;
-			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+			GatherFromCache(w,num_comps_per_cell_[FACE],m,r,cache,&(*res)[m]);
 		}
 	}
 
@@ -1655,6 +1660,99 @@ public:
 		}
 
 	}
+
+	//***************************************************************************************************
+	// Directly Gather/Scatter From Field
+
+	template<typename TV,typename TW> inline void
+	Gather(Int2Type<VERTEX>, index_type o,Real const *r,TV const * cache, TW* res) const
+	{
+		(*res) = 0;
+		GatherFromCache(o,&strides_[0],num_comps_per_cell_[VERTEX],0,r,cache,res );
+	}
+
+	template<typename TV,typename TW> inline void
+	Gather(Int2Type<VOLUME>,index_type o,Real const *r,TV const * cache, TW* res) const
+	{
+		(*res) = 0;
+		GatherFromCache(o,&strides_[0],num_comps_per_cell_[VOLUME],0,r,cache,res );
+	}
+
+	template<typename TV,typename TW> inline void
+	Gather(Int2Type<EDGE>,index_type o,Real const *rr,TV const * cache, nTuple<3,TW>* res) const
+	{
+		(*res) = 0;
+
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	rr[0], rr[1], rr[2]};
+
+			r[m]-=0.5;
+
+			GatherFromCache(o,&strides_[0],num_comps_per_cell_[EDGE],m,r,cache,&(*res)[m] );
+		}
+	}
+
+	template<typename TV,typename TW> inline void
+	Gather(Int2Type<FACE>,index_type o,Real const *rr,TV const * cache, nTuple<3,TW>* res) const
+	{
+
+		(*res) = 0;
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	rr[0], rr[1], rr[2]};
+
+			r[(m+1)%2]-=0.5;
+			r[(m+2)%2]-=0.5;
+
+			GatherFromCache(o,&strides_[0],num_comps_per_cell_[FACE],m,r,cache,&(*res)[m] );
+		}
+	}
+
+	template<typename TV,typename TW> inline void
+	Scatter(Int2Type<VERTEX>, index_type o,Real const *r, TW const & v,TV * cache) const
+	{
+		ScatterToCache(o,&strides_[0],num_comps_per_cell_[VERTEX],0,r,v,cache );
+	}
+
+	template<typename TV,typename TW> inline void
+	Scatter(Int2Type<VOLUME>, index_type o,Real const *r, TW const & v,TV * cache) const
+	{
+		ScatterToCache(o,&strides_[0],num_comps_per_cell_[VOLUME],0,r,v,cache);
+	}
+
+	template<typename TV,typename TW> inline void
+	Scatter(Int2Type<EDGE>, index_type o,Real const *rr,nTuple<3,TW> const& v,TV * cache ) const
+	{
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	rr[0], rr[1], rr[2]};
+
+			r[m]-=0.5;
+
+			ScatterToCache(o,&strides_[0],num_comps_per_cell_[EDGE],m,r,v[m],cache );
+		}
+	}
+
+	template<typename TV,typename TW> inline void
+	Scatter(Int2Type<FACE>, index_type o,Real const *rr,nTuple<3,TW> const &v,TV * cache) const
+	{
+		for(int m=0;m<3;++m)
+		{
+			Real r[3]=
+			{	rr[0], rr[1], rr[2]};
+
+			r[(m+1)%2]-=0.5;
+			r[(m+2)%2]-=0.5;
+
+			ScatterToCache(o,&strides_[0],num_comps_per_cell_[FACE],m,r,v[m],cache);
+		}
+	}
+
+	//*************************************************************************************************
 
 	// End
 	//***************************************************************************************************
