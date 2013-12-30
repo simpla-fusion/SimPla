@@ -43,21 +43,12 @@ struct ProxyCache
 {
 	typedef T &reference;
 	template<typename ...TI>
-	static inline T &Eval(T &f, TI ...)
+	static inline T Eval(T &f, TI ...)
 	{
-		return f;
+		return std::forward<T>(f);
 	}
 };
-template<typename T>
-struct ProxyCache<const T>
-{
-	typedef T const &reference;
-	template<typename ...TI>
-	static inline T const & Eval(T const &f, TI ...)
-	{
-		return f;
-	}
-};
+
 template<typename T>
 struct ProxyCache<T*>
 {
