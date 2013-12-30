@@ -16,12 +16,8 @@
 #include "field_ops.h"
 #include "ntuple_ops.h"
 #include "complex_ops.h"
-//#include "constant_ops.h"
 #include "proxycache.h"
 
-#ifndef NO_FIELD_IO_CACHE
-#  include "field_rw_cache.h"
-#endif
 
 namespace simpla
 {

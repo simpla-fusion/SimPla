@@ -85,19 +85,19 @@ typedef testing::Types<
 
 PICEngineFull<CoRectMesh<Real>>
 
-, PICEngineFull<CoRectMesh<Complex>>
-
-, PICEngineDeltaF<CoRectMesh<Real>>
-
-, PICEngineDeltaF<CoRectMesh<Complex>>
-
-, PICEngineGGauge<CoRectMesh<Real>, 8>
-
-, PICEngineGGauge<CoRectMesh<Real>, 32>
-
-, PICEngineGGauge<CoRectMesh<Complex>, 8>
-
-, PICEngineGGauge<CoRectMesh<Complex>, 32>
+//, PICEngineFull<CoRectMesh<Complex>>
+//
+//, PICEngineDeltaF<CoRectMesh<Real>>
+//
+//, PICEngineDeltaF<CoRectMesh<Complex>>
+//
+//, PICEngineGGauge<CoRectMesh<Real>, 8>
+//
+//, PICEngineGGauge<CoRectMesh<Real>, 32>
+//
+//, PICEngineGGauge<CoRectMesh<Complex>, 8>
+//
+//, PICEngineGGauge<CoRectMesh<Complex>, 32>
 
 > AllEngineTypes;
 

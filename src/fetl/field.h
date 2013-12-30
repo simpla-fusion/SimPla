@@ -303,7 +303,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		index_type s = mesh.SearchCell(x, &pcoords[0]);
 
-		Collect(v, s, pcoords);
+		Collect(v, s, &pcoords[0]);
 
 	}
 	template<typename TV>

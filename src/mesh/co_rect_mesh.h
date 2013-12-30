@@ -2221,7 +2221,7 @@ template<typename TS>
 template<typename ...Args>
 void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 {
-	const unsigned int num_threads = 1;	// std::thread::hardware_concurrency();
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
 

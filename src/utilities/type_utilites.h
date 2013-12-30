@@ -325,12 +325,12 @@ public:
 	typedef std::tuple<Args...> args_tuple_type;
 	std::tuple<Args...> args_;
 
-	Visitor(std::string const &name, Args ... args) :
-			name_(name), args_(std::make_tuple(args...))
+	Visitor(std::string const &name, Args ... args)
+			: name_(name), args_(std::make_tuple(args...))
 	{
 	}
-	Visitor(Args ... args) :
-			name_(""), args_(std::make_tuple(args...))
+	Visitor(Args ... args)
+			: name_(""), args_(std::make_tuple(args...))
 	{
 	}
 	~Visitor()
@@ -391,6 +391,16 @@ std::shared_ptr<VisitorBase> CreateVisitor(std::string const & name, Args ...arg
 	return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
 
 	new Visitor<T, Args...>(name, std::forward<Args &>(args)...)));
+}
+
+template<typename T> inline T* PointerTo(T & v)
+{
+	return &v;
+}
+
+template<typename T> inline T* PointerTo(T * v)
+{
+	return v;
 }
 
 } // namespace simpla

@@ -20,6 +20,9 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
+
+#include "../fetl/field_rw_cache.h"
+
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
 #include "../utilities/memory_pool.h"
@@ -383,7 +386,7 @@ void Particle<Engine>::_Sort()
 
 	LOGGER << "Sort Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
-	const unsigned int num_threads = 1; //std::thread::hardware_concurrency();
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	try
 	{
@@ -480,7 +483,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 	{
 		threads.emplace_back(std::thread(
 
-		[this,num_threads, thread_id](Real dt_, typename ProxyCache<const Args>::type &&... args_c2)
+		[this,num_threads, thread_id](Real dt_, typename ProxyCache<const Args>::reference ... args_c2)
 		{
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
 
@@ -489,7 +492,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 						for (auto & p : this->data_[s])
 						{
-							UpdateCache(s,args_c2...);
+							RefreshCache(s,args_c2...);
 
 							engine_type::NextTimeStep(&p, dt_, args_c2...);
 						}
@@ -530,7 +533,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
-	const unsigned int num_threads = 1; // std::thread::hardware_concurrency();
+	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
 
@@ -540,22 +543,22 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 		std::thread(
 
-		[this,num_threads, thread_id]( typename ProxyCache<TJ*>::type && J_c2,
-				typename ProxyCache<const Args>::type &&... args_c2)
+		[this,num_threads, thread_id]( typename ProxyCache<TJ*>::reference J_c2,
+				typename ProxyCache<const Args>::reference ... args_c2)
 		{
 
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
 
 					[&](index_type const &s)
 					{
-						UpdateCache(s,J_c2,args_c2...);
+						RefreshCache(s,J_c2,args_c2...);
 
 						for (auto const& p : this->data_[s])
 						{
-							engine_type::Collect(p, &J_c2 , args_c2...);
+							engine_type::Collect(p, PointerTo(J_c2) , args_c2...);
 						}
 
-						RefreshCache(J_c2,args_c2...);
+						FlushCache(J_c2,args_c2...);
 
 					}
 			);
@@ -599,7 +602,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 		std::thread(
 
-		[this,num_threads, thread_id]( typename ProxyCache<const Args>::type &&... args_c2)
+		[this,num_threads, thread_id]( typename ProxyCache<const Args>::reference ... args_c2)
 		{
 
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
@@ -607,7 +610,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 					[&](index_type const &s)
 					{
 
-						UpdateCache(s, args_c2...);
+						RefreshCache(s, args_c2...);
 
 						for (auto const& p : this->data_[s])
 						{

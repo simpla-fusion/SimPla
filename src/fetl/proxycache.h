@@ -41,26 +41,49 @@ namespace simpla
 template<typename T>
 struct ProxyCache
 {
-	typedef T src_type;
-	typedef typename StorageTraits<T>::reference type;
+	typedef T &reference;
 	template<typename ...TI>
-	static inline src_type & Eval(src_type & f, TI ...)
+	static inline T Eval(T &f, TI ...)
 	{
-		return f;
+		return std::forward<T>(f);
 	}
 };
 
 template<typename T>
 struct ProxyCache<T*>
 {
-	typedef T* src_type;
-	typedef T* type;
+	typedef T *reference;
 	template<typename ...TI>
-	static inline T* Eval(T* f, TI ...)
+	static inline T* Eval(T *f, TI ...)
 	{
 		return f;
 	}
 };
+
+template<typename T>
+void RefreshCache(size_t s, T &)
+{
+}
+
+template<typename T, typename ...Others>
+void RefreshCache(size_t s, T & f, Others & ...others)
+{
+	RefreshCache(s, f);
+	RefreshCache(s, others...);
+}
+
+template<typename T>
+void FlushCache(T &)
+{
+}
+
+template<typename T, typename ...Others>
+void FlushCache(T & f, Others & ...others)
+{
+	FlushCache(f);
+	FlushCache(others...);
+}
+
 }  // namespace simpla
 
 #endif /* PROXYCACHE_H_ */
