@@ -369,13 +369,6 @@ template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
 	return std::move(static_cast<TV>(obj));
 }
 
-template<typename T> inline
-auto operator*(std::complex<T> const & a, int b)
-DECL_RET_TYPE(a*T(b))
-
-template<typename T> inline
-auto operator*(int a, std::complex<T> const & b)
-DECL_RET_TYPE(T(a)*b)
 
 }
 // namespace simpla

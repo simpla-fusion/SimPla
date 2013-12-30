@@ -12,12 +12,8 @@
 #include <complex>
 #include <cstddef>
 #include <initializer_list>
-//#include <sstream>
-//#include <string>
 
 #include "primitives.h"
-
-//#include <type_traits>
 
 namespace simpla
 {

@@ -35,10 +35,11 @@
 #include "../../src/utilities/lua_state.h"
 #include "../../src/io/data_stream.h"
 
-#include "../pic/pic_engine_ggauge.h"
+
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_full.h"
 //#include "../../src/particle/pic_engine_deltaf.h"
+#include "../../src/particle/pic_engine_ggauge.h"
 
 #include "../solver/electromagnetic/cold_fluid.h"
 #include "../solver/electromagnetic/pml.h"

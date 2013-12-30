@@ -9,7 +9,6 @@
 #include <iostream>
 #include <complex>
 #include "fetl.h"
-#include "primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
@@ -76,7 +75,7 @@ nTuple<3, double>, nTuple<10, double>, nTuple<20, double>
 
 , nTuple<3, int>, nTuple<10, int>, nTuple<20, int>
 
-, nTuple<3, nTuple<3, double>>
+//, nTuple<3, nTuple<3, double>>
 
 > MyTypes;
 

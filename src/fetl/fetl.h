@@ -15,7 +15,8 @@
 #include "ntuple.h"
 #include "field_ops.h"
 #include "ntuple_ops.h"
-#include "constant_ops.h"
+#include "complex_ops.h"
+//#include "constant_ops.h"
 #include "proxycache.h"
 
 #ifndef NO_FIELD_IO_CACHE
@@ -30,9 +31,9 @@ typedef typename Mesh::index_type index_type ;                                  
 typedef typename Mesh::scalar_type scalar_type ;                                                       \
 typedef typename Mesh::coordinates_type coordinates_type;                                              \
 typedef typename Mesh::tag_type tag_type;                                                              \
-template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,typename Mesh::scalar_type >;              \
-template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,typename Mesh::scalar_type> >;    \
-template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,typename Mesh::scalar_type> > >;    \
+template<int IFORM> using Form = Field<Geometry<Mesh,IFORM>,scalar_type >;              \
+template<int IFORM> using VectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,scalar_type> >;    \
+template<int IFORM> using TensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,scalar_type> > >;    \
 template<int IFORM> using RForm = Field<Geometry<Mesh,IFORM>,Real >;                                               \
 template<int IFORM> using RVectorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,Real> >;                               \
 template<int IFORM> using RTensorForm = Field<Geometry<Mesh,IFORM>,nTuple<3,nTuple<3,Real> > >;                    \

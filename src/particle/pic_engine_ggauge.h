@@ -29,7 +29,6 @@ public:
 	typedef TM mesh_type;
 
 	DEFINE_FIELDS (mesh_type)
-	;
 
 	struct Point_s
 	{
@@ -59,8 +58,8 @@ public:
 		}
 	};
 
-	PICEngineGGauge(mesh_type const &pmesh) :
-			base_type(pmesh), cmr_(1.0), q_(1.0), T_(1.0), vT_(1.0)
+	PICEngineGGauge(mesh_type const &pmesh)
+			: base_type(pmesh), cmr_(1.0), q_(1.0), T_(1.0), vT_(1.0)
 	{
 
 	}
@@ -127,11 +126,11 @@ public:
 	{
 //		auto Bv = B.average(p->x, GetAffectedRegion());
 		Vec3 Bv = B(p->x);
-		Real BB = Dot(Bv, Bv);
+		Real BB = InnerProduct(Bv, Bv);
 		Real Bs = std::sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
-		Vc = (Dot(p->v, Bv) * Bv) / BB;
+		Vc = (InnerProduct(p->v, Bv) * Bv) / BB;
 		v1 = Cross(p->v, Bv / Bs);
 		v0 = -Cross(v1, Bv / Bs);
 		r0 = -Cross(v0, Bv) / (cmr_ * BB);
@@ -142,7 +141,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * Dot(E(r), v) * dt;
+			p->w[ms] += 0.5 * InnerProduct(E(r), v) * dt;
 		}
 
 		Vec3 t, V_;
@@ -151,9 +150,9 @@ public:
 
 		V_ = p->v + Cross(p->v, t);
 
-		p->v += Cross(V_, t) / (Dot(t, t) + 1.0) * 2.0;
+		p->v += Cross(V_, t) / (InnerProduct(t, t) + 1.0) * 2.0;
 
-		Vc = (Dot(p->v, Bv) * Bv) / BB;
+		// Vc = (InnerProduct(p->v, Bv) * Bv) / BB;
 
 		p->x += Vc * dt * 0.5;
 
@@ -168,7 +167,7 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			p->w[ms] += 0.5 * Dot(E(r), v) * q_ / T_ * dt;
+			// p->w[ms] += 0.5 * InnerProduct(E(r), v) * q_ / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;
@@ -176,15 +175,15 @@ public:
 
 	template<typename TV, typename TB, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
-			Field<Geometry<mesh_type, 0>, TV>* n, TB const & B, Others const &... others) const
+	        Field<Geometry<mesh_type, 0>, TV>* n, TB const & B, Others const &... others) const
 	{
 		Vec3 Bv = B(p.x);
-		Real BB = Dot(Bv, Bv);
+		Real BB = InnerProduct(Bv, Bv);
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
-		Vc = (Dot(p.v, Bv) * Bv) / BB;
+		Vc = (InnerProduct(p.v, Bv) * Bv) / BB;
 
 		v1 = Cross(p.v, Bv / Bs);
 		v0 = -Cross(v1, Bv / Bs);
@@ -203,20 +202,22 @@ public:
 
 	template<int IFORM, typename TV, typename TB, typename ...Others>
 	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, TB const & B,
-			Others const &... others) const
+	        Others const &... others) const
 	{
-//		Vec3 Bv = B(p.x);
-//		Real BB = Dot(Bv, Bv);
-//		Real Bs = sqrt(BB);
-//		Vec3 v0, v1, r0, r1;
-//		Vec3 Vc;
-//
-//		Vc = (Dot(p.v, Bv) * Bv) / BB;
-//
-//		v1 = Cross(p.v, Bv / Bs);
-//		v0 = -Cross(v1, Bv / Bs);
-//		r0 = -Cross(v0, Bv) / (cmr_ * BB);
-//		r1 = -Cross(v1, Bv) / (cmr_ * BB);
+		Vec3 Bv = B(p.x);
+
+		Real BB = InnerProduct(Bv, Bv);
+
+		Real Bs = sqrt(BB);
+		Vec3 v0, v1, r0, r1;
+		Vec3 Vc;
+
+		Vc = (InnerProduct(p.v, Bv) * Bv) / BB;
+
+		v1 = Cross(p.v, Bv / Bs);
+		v0 = -Cross(v1, Bv / Bs);
+		r0 = -Cross(v0, Bv) / (cmr_ * BB);
+		r1 = -Cross(v1, Bv) / (cmr_ * BB);
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
 			Vec3 v, r;
