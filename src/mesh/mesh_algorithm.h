@@ -142,7 +142,7 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
         LuaObject const & select)
 {
 	typedef TM mesh_type;
-	mesh.Traversal(0,
+	mesh.SerialTraversal(0,
 
 	[&](typename mesh_type::index_type const&s ,
 			typename mesh_type::coordinates_type const &x)

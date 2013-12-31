@@ -149,7 +149,7 @@ public:
 		return &mesh.get_value(data_, size());
 	}
 
-	inline std::vector<size_t> GetShape() const
+	inline std::vector<index_type> GetShape() const
 	{
 		return std::move(mesh.GetShape(IForm));
 	}
@@ -290,7 +290,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		res *= 0;
 
-		mesh.GatherFromMesh(Int2Type<IForm>(),pcoords,&cache[0],&res);
+		mesh.Gather(Int2Type<IForm>(),pcoords,&cache[0],&res);
 
 		return res;
 
@@ -335,7 +335,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		field_value_type vv; vv=v;
 
-		mesh.ScatterToMesh(Int2Type<IForm>(),pcoords,vv,cache);
+		mesh.Scatter(Int2Type<IForm>(),pcoords,vv,cache);
 
 		Collect(num,points,cache);
 

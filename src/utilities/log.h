@@ -34,7 +34,7 @@ enum
 
 	LOG_WARNING = -1,
 
-	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 2, LOG_DEBUG = -1
+	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -1
 };
 class LoggerStreams: public SingletonHolder<LoggerStreams>
 {
@@ -44,7 +44,7 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int l = LOG_VERBOSE)
+	LoggerStreams(int l = LOG_LOG)
 			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
@@ -64,7 +64,7 @@ public:
 	void put(int level, std::string const & msg)
 	{
 		if (level <= std_out_visable_level_)
-			std::cout << msg ;
+			std::cout << msg;
 
 		if (fs.good())
 			fs << msg;
@@ -156,6 +156,10 @@ public:
 		else if (level_ == LOG_LOG)
 		{
 			buffer_ << "[L]" << "[" << TimeStamp() << "]" << " ";
+		}
+		else if (level_ == LOG_VERBOSE)
+		{
+			buffer_ << "[V]" << "[" << TimeStamp() << "]" << " ";
 		}
 		else if (level_ == LOG_INFORM)
 		{

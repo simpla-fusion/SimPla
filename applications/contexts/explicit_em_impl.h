@@ -38,7 +38,7 @@
 
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_full.h"
-//#include "../../src/particle/pic_engine_deltaf.h"
+#include "../../src/particle/pic_engine_deltaf.h"
 #include "../../src/particle/pic_engine_ggauge.h"
 
 #include "../solver/electromagnetic/cold_fluid.h"

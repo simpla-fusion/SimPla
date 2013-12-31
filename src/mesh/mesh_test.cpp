@@ -140,7 +140,7 @@ TYPED_TEST(TestMeshFunctions,add_tags){
 			"                                                                        "
 			"    {Type=\"Plasma\",                                                   "
 			"      Select=function(x,y,z)                                            "
-			"           return x>1.0 and x<2.0                                       "
+			"           return x>1.0 and x<2.0 ;                                     "
 			"         end                                                            "
 			"     ,Op=\"Set\"},                                                      "
 			" }                                                                      "

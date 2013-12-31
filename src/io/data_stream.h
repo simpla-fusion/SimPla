@@ -53,8 +53,9 @@ public:
 
 	typedef TV value_type;
 
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", int rank = 1, size_t const* dims =
-	        nullptr, bool flag = false)
+	template<typename TI>
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr,
+	        bool flag = false)
 			: data_(d), name_(name), is_compact_store_(flag)
 	{
 		if (dims != nullptr && rank > 0)
@@ -82,9 +83,11 @@ public:
 		}
 	}
 
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name, std::vector<size_t> const & dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims), is_compact_store_(flag)
+	template<typename TI>
+	DataSet(std::shared_ptr<TV> const & d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
+			: data_(d), name_(name), dims_(dims.size()), is_compact_store_(flag)
 	{
+		std::copy(dims.begin(), dims.end(), dims_.begin());
 	}
 
 	DataSet(DataSet && r)

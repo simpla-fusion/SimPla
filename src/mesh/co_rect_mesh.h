@@ -220,9 +220,9 @@ public:
 		}
 		return n;
 	}
-	inline std::vector<size_t> GetShape(int IFORM) const
+	inline std::vector<index_type> GetShape(int IFORM) const
 	{
-		std::vector<size_t> res;
+		std::vector<index_type> res;
 		for (int i = 0; i < NUM_OF_DIMS; ++i)
 		{
 			if (dims_[i] > 1)
@@ -391,7 +391,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<1>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<EDGE>, Int2Type<VERTEX>, index_type *v, int m, Args ... s) const
 	{
 		v[0] = GetIndex(s...);
 		v[1] = Shift(INC(m), s...);
@@ -399,7 +399,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<2>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<FACE>, Int2Type<VERTEX>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -433,7 +433,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<0>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VOLUME>, Int2Type<VERTEX>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -472,7 +472,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<0>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VERTEX>, Int2Type<EDGE>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -508,7 +508,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<2>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<FACE>, Int2Type<EDGE>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -543,7 +543,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<1>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VOLUME>, Int2Type<EDGE>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -589,7 +589,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<0>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VERTEX>, Int2Type<FACE>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -648,7 +648,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<1>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<EDGE>, Int2Type<FACE>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -697,7 +697,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<3>, Int2Type<2>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VOLUME>, Int2Type<FACE>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -736,7 +736,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<0>, Int2Type<3>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<VERTEX>, Int2Type<VOLUME>, index_type *v, int m, Args ... s) const
 	{
 		/**
 		 *
@@ -790,7 +790,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<1>, Int2Type<3>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<EDGE>, Int2Type<VOLUME>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -839,7 +839,7 @@ private:
 	}
 
 	template<typename ... Args>
-	inline int _GetNeighbourCell(Int2Type<2>, Int2Type<3>, index_type *v, int m, Args ... s) const
+	inline int _GetNeighbourCell(Int2Type<FACE>, Int2Type<VOLUME>, index_type *v, int m, Args ... s) const
 	{
 
 		/**
@@ -1202,17 +1202,17 @@ public:
 	}
 
 	//***************************************************************************************************
-	// Particle vs. Mesh
+	// Particle  in Cell
 	// Begin
 	//***************************************************************************************************
 
 	/**
 	 * Locate the cell containing a specified point.
 	 * @param x
-	 * @param pcoords local parameter coordinates
+	 * @param r local parameter coordinates
 	 * @return index of cell
 	 */
-	inline size_t SearchCell(coordinates_type const &x, Real * r=nullptr) const
+	inline index_type SearchCell(coordinates_type const &x, Real * r=nullptr) const
 	{
 
 		index_type s[3];
@@ -1246,7 +1246,7 @@ public:
 	 * @param r
 	 * @return index of cell
 	 */
-	inline size_t SearchCell(Real *x, Real *r =nullptr) const
+	inline index_type SearchCell(Real *x, Real *r =nullptr) const
 	{
 
 		index_type s[3];
@@ -1278,20 +1278,48 @@ public:
 		return GetIndex(s);
 	}
 	/**
-	 *  Speed up version SearchCell, restain for curvline or unstructured grid
+	 *  Speed up version SearchCell, for curvline or unstructured grid
 	 * @param
 	 * @param x
 	 * @param pcoords
 	 * @return index of cell
 	 */
-	inline size_t SearchCell(index_type const &hint_idx, coordinates_type const &x, Real *pcoords = nullptr) const
+	inline index_type SearchCell(index_type const &hint_idx, coordinates_type const &x, Real *pcoords = nullptr) const
 	{
 		return SearchCell(x, pcoords);
 	}
 
-	inline size_t SearchCell(index_type const &hint_idx, Real * x, Real *pcoords = nullptr) const
+	inline index_type SearchCell(index_type const &hint_idx, Real * x, Real *pcoords = nullptr) const
 	{
 		return SearchCell(x, pcoords);
+	}
+
+	inline index_type SearchCellFix(index_type s, Real *r)const
+	{
+		shift_type d=0;
+		for(int i=0;i<3;++i)
+		{
+			if(dims_[i]<=1)
+			{
+				r[i]=0;
+			}
+			else if(r[i]<0)
+			{
+				double n;
+				r[i]=std::modf(r[i],&n)+1;
+				d|=DES(i)*static_cast<signed int>(n-1);
+			}
+			else if(r[i]>1.0)
+			{
+				double n;
+				r[i]=std::modf(r[i],&n);
+				d|=INC(i)*static_cast<signed int>(n);
+			}
+
+		}
+
+		return Shift(d,s);
+
 	}
 
 	/**
@@ -1347,11 +1375,11 @@ public:
 		return s;
 
 	}
-	// End Particle vs. Mesh
 	//***************************************************************************************************
-	// Interpolation
+	// Particle <=> Mesh/Cache
 	// Begin
 
+	//  Scatter/Gather to Cache
 	template<int I> inline index_type
 	GetAffectedPoints(Int2Type<I>, index_type const & s=0, index_type * points=nullptr, int affect_region = 2) const
 	{
@@ -1364,19 +1392,6 @@ public:
 		if(points!=nullptr)
 		{
 			int t=0;
-//			for(int l=-affect_region+1;l<affect_region+1;++l)
-//			for(int m=-affect_region+1;m<affect_region+1;++m)
-//			for(int n=-affect_region+1;n<affect_region+1;++n)
-//			{
-//				points[t] = Shift(
-//
-//				((l<0)?(NX*(-l)):(X*l))
-//
-//				|((m<0)?(NY*(-m)):(Y*m))
-//
-//				| ((n<0)?(NZ*(-n)):(Z*n))
-//
-//				,i,j,k)*num;
 
 			index_type i_b= (dims_[0]>1)?i-affect_region+1:0;
 			index_type i_e= (dims_[0]>1)?i+affect_region+1:1;
@@ -1410,32 +1425,6 @@ public:
 		}
 		return w*num;
 	}
-//	template<int I>
-//	inline typename std::enable_if<I==1||I==2,int>::type
-//	GetAffectedPoints(Int2Type<I>, index_type const & s =0, index_type * points=nullptr, int affect_region = 2) const
-//	{
-//
-//		index_type i,j,k;
-//		UnpackIndex(&i,&j,&k,s);
-//		index_type w=affect_region*2;
-//		index_type min=affect_region-1;
-//		index_type max=affect_region+1;
-//
-//		if(points!=nullptr)
-//		{
-//			int t=0;
-//			for(int l=affect_region-1;l<affect_region+1;++l)
-//			for(int m=affect_region-1;m<affect_region+1;++m)
-//			for(int n=affect_region-1;n<affect_region+1;++n)
-//			{
-//				points[t] = Shift((X*l) | (Y*m) | (Z*n),i,j,k)*GetNumOfElements(I);
-//				points[t+1] = points[t] +1;
-//				points[t+2] = points[t] +2;
-//				t+=3;
-//			}
-//		}
-//		return w*w*w*3;
-//	}
 
 private:
 	inline index_type GetCacheCoordinates(int w,index_type *sx ,Real *r )const
@@ -1482,10 +1471,10 @@ private:
 	_LEFT_ cache[(o+sx[0]+sx[1]+sx[2])*num_of_comp+comp_num] _RIGHT_ * r[0] * r[1]* r[2];
 
 	template<typename TV,typename TW>
-	inline void ScatterToCache(Real const pcoords[3],TW const &v , TV *cache,int w,int num_of_comp=1,int comp_num=0)const
+	inline void ScatterToCache(Real const x[3],TW const &v , TV *cache,int w,int num_of_comp=1,int comp_num=0)const
 	{
 		Real r[3]=
-		{	pcoords[0], pcoords[1], pcoords[2]};
+		{	x[0], x[1], x[2]};
 		index_type sx[3];
 		index_type o=GetCacheCoordinates(w,sx,r);
 
@@ -1493,10 +1482,10 @@ private:
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromCache(Real const pcoords[3],TV const*cache,TW *res , int w,int num_of_comp=1,int comp_num=0)const
+	inline void GatherFromCache(Real const x[3],TV const*cache,TW *res , int w,int num_of_comp=1,int comp_num=0)const
 	{
 		Real r[3]=
-		{	pcoords[0], pcoords[1], pcoords[2]};
+		{	x[0], x[1], x[2]};
 
 		index_type sx[3];
 		index_type o=GetCacheCoordinates(w,sx,r);
@@ -1507,73 +1496,81 @@ private:
 #undef DEF_INTERPOLATION_SCHEME
 
 public:
+
+	/**
+	 *
+	 * @param
+	 * @param rr  is cache coordinate not global coordinate
+	 * @param v
+	 * @param cache
+	 * @param w
+	 */
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<0>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
+	inline void Scatter(Int2Type<VERTEX>,Real const *rr, TW const & v,TV* cache, int w = 2) const
 	{
-		ScatterToCache(pcoords,std::forward<TW const &>(v),cache,w );
+		ScatterToCache(rr,std::forward<TW const &>(v),cache,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<0>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
+	inline void Gather(Int2Type<VERTEX>, Real const *rr, TV const* cache, TW* v, int w = 2) const
 	{
-		GatherFromCache(pcoords,cache,res,w );
+		GatherFromCache(rr,cache,v,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void ScatterToMesh(Int2Type<3>,Real const *pcoords, TW const & v,TV* cache, int w = 2) const
+	inline void Scatter(Int2Type<VOLUME>,Real const *rr, TW const & v,TV* cache, int w = 2) const
 	{
 		Real r[3]=
-		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
+		{	rr[0]-0.5, rr[1]-0.5, rr[2]-0.5};
 
 		ScatterToCache(r,std::forward<TW const &>(v),cache,w );
 	}
 
 	template<typename TV,typename TW>
-	inline void GatherFromMesh(Int2Type<3>, Real const *pcoords, TV const* cache, TW* res, int w = 2) const
+	inline void Gather(Int2Type<VOLUME>, Real const *rr, TV const* cache, TW* v, int w = 2) const
 	{
 		Real r[3]=
-		{	pcoords[0]-0.5, pcoords[1]-0.5, pcoords[2]-0.5};
+		{	rr[0]-0.5, rr[1]-0.5, rr[2]-0.5};
 
-		GatherFromCache(r,cache,res,w );
+		GatherFromCache(r,cache,v,w );
 	}
 
 	template<typename TV,typename TW>
 	inline void
-	ScatterToMesh(Int2Type<1>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
+	Scatter(Int2Type<EDGE>,Real const *rr, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
 
 		for(int m=0;m<3;++m)
 		{
 			Real r[3]=
-			{	pcoords[0], pcoords[1], pcoords[2]};
+			{	rr[0], rr[1], rr[2]};
 			r[m]-=0.5;
 			ScatterToCache(r,v[m],cache,w,3,m );
 
 		}
 	}
 
-	template<typename TV>
-	inline void GatherFromMesh(Int2Type<1>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<EDGE>, Real const *rr, TV const* cache, nTuple<3,TW>* v, int w = 2) const
 	{
-		(*res) = 0;
+		(*v) = 0;
 		for(int m=0;m<3;++m)
 		{
 			Real r[3]=
-			{	pcoords[0], pcoords[1], pcoords[2]};
+			{	rr[0], rr[1], rr[2]};
 			r[m]-=0.5;
-			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+			GatherFromCache(r,cache,&(*v)[m],w,3,m );
 		}
 	}
 
 	template<typename TV,typename TW>
-	inline void
-	ScatterToMesh(Int2Type<2>,Real const *pcoords, nTuple<3,TW> const & v,TV* cache, int w = 2) const
+	inline void Scatter(Int2Type<FACE>,Real const *rr, nTuple<3,TW> const & v,TV* cache, int w = 2) const
 	{
 
 		for(int m=0;m<3;++m)
 		{
 			Real r[3]=
-			{	pcoords[0], pcoords[1], pcoords[2]};
+			{	rr[0], rr[1], rr[2]};
 			r[(m+1)%2]-=0.5;
 			r[(m+2)%2]-=0.5;
 			ScatterToCache(r,v[m],cache,w,3,m );
@@ -1581,22 +1578,22 @@ public:
 		}
 	}
 
-	template<typename TV>
-	inline void GatherFromMesh(Int2Type<2>, Real const *pcoords, TV const* cache, nTuple<3,TV>* res, int w = 2) const
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<FACE>, Real const *rr, TV const* cache, nTuple<3,TW>* v, int w = 2) const
 	{
-		(*res) = 0;
+		(*v) = 0;
 		for(int m=0;m<3;++m)
 		{
 			Real r[3]=
-			{	pcoords[0], pcoords[1], pcoords[2]};
+			{	rr[0], rr[1], rr[2]};
 			r[(m+1)%2]-=0.5;
 			r[(m+2)%2]-=0.5;
-			GatherFromCache(r,cache,&(*res)[m],w,3,m );
+			GatherFromCache(r,cache,&(*v)[m],w,3,m );
 		}
 	}
 
 	template<int IFORM,typename TV,typename TR> void
-	GetMeanValue(TV const * cache,TR * res,int affect_region)const
+	GetMeanValue(TV const * cache,TR * v,int affect_region)const
 	{
 		index_type w=2*affect_region;
 
@@ -1619,25 +1616,159 @@ public:
 
 			for(index_type m=0;m<num_comps_per_cell_[IFORM];++m)
 			{
-				res[m]+=cache[s*num_comps_per_cell_[IFORM]+m];
+				v[m]+=cache[s*num_comps_per_cell_[IFORM]+m];
 			}
 		}
 
 		for(index_type m=0;m<num_comps_per_cell_[IFORM];++m)
 		{
-			res[m]/=static_cast<Real>(count);
+			v[m]/=static_cast<Real>(count);
 		}
 
 	}
 
-	// End
+	//  Scatter/Gather to Mesh
+
+#define DEF_INTERPOLATION_SCHEME(_LEFT_,_RIGHT_)                                                       \
+	_LEFT_ cache[(o)*num_of_comp+m] _RIGHT_ * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);       \
+	_LEFT_ cache[Shift(X,o)*num_of_comp+m] _RIGHT_ * r[0] * (1.0 - r[1]) * (1.0 - r[2]);         \
+	_LEFT_ cache[Shift(Y,o)*num_of_comp+m] _RIGHT_ * (1.0 - r[0]) * r[1]* (1.0 - r[2]);          \
+	_LEFT_ cache[Shift(X|Y,o)*num_of_comp+m] _RIGHT_ * r[0] * r[1]* (1.0 - r[2]);            \
+	_LEFT_ cache[Shift(Z,o)*num_of_comp+m] _RIGHT_ * (1.0 - r[0]) * (1.0 - r[1]) * r[2];         \
+	_LEFT_ cache[Shift(X|Z,o)*num_of_comp+m] _RIGHT_ * r[0] * (1.0 - r[1]) * r[2];           \
+	_LEFT_ cache[Shift(Y|Z,o)*num_of_comp+m] _RIGHT_ * (1.0 - r[0]) * r[1]* r[2];            \
+	_LEFT_ cache[Shift(X|Y|Z,o)*num_of_comp+m] _RIGHT_ * r[0] * r[1]* r[2];
+
+	/**
+	 *
+	 * @param
+	 * @param o
+	 * @param r is cell local coordinate not global coordiante
+	 * @param m
+	 * @param v
+	 * @param cache
+	 */
+	template<typename TV,typename TW>
+	inline void Scatter(Int2Type<VERTEX>,index_type o,Real const r[3], TW const &v , TV *cache)const
+	{
+		int num_of_comp=num_comps_per_cell_[VERTEX];
+		int m=0;
+
+		DEF_INTERPOLATION_SCHEME(,+=v)
+	}
+
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<VERTEX>,index_type o,Real const r[3], TV const*cache,TW *v )const
+	{
+		int num_of_comp=num_comps_per_cell_[VERTEX];
+		int m=0;
+		(*v) = 0;
+		DEF_INTERPOLATION_SCHEME((*v)+=,)
+	}
+
+	template<typename TV,typename TW>
+	inline void Scatter(Int2Type<EDGE>,index_type o,Real const rr[3],TW const &v , TV *cache)const
+	{
+		int num_of_comp=num_comps_per_cell_[FACE];
+		for(int m=0;m<num_of_comp;++m)
+		{
+			Real r[3] =
+			{	rr[0],rr[1],rr[2]};
+
+			r[m]-=0.5;
+			o=SearchCellFix(o,r);
+			DEF_INTERPOLATION_SCHEME(,+=v[m])
+		}
+	}
+
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<EDGE>,index_type o,Real const rr[3], TV const*cache,TW *v )const
+	{
+		int num_of_comp=num_comps_per_cell_[FACE];
+
+		for(int m=0;m<num_of_comp;++m)
+		{
+			Real r[3] =
+			{	rr[0],rr[1],rr[2]};
+
+			r[m]-=0.5;
+			(*v) = 0;
+			o=SearchCellFix(o,r);
+			DEF_INTERPOLATION_SCHEME((*v)[m]+=,)
+		}
+	}
+
+	template<typename TV,typename TW>
+	inline void Scatter(Int2Type<FACE>,index_type o,Real const rr[3],TW const &v , TV *cache)const
+	{
+
+		int num_of_comp=num_comps_per_cell_[FACE];
+		for(int m=0;m<num_of_comp;++m)
+		{
+			Real r[3] =
+			{	rr[0],rr[1],rr[2]};
+
+			r[(m+1)%3]-=0.5;
+			r[(m+2)%3]-=0.5;
+			o=SearchCellFix(o,r);
+			DEF_INTERPOLATION_SCHEME(,+=v[m])
+		}
+	}
+
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<FACE>,index_type o,Real const rr[3], TV const*cache,TW *v )const
+	{
+
+		int num_of_comp=num_comps_per_cell_[FACE];
+
+		for(int m=0;m<num_of_comp;++m)
+		{
+			Real r[3] =
+			{	rr[0],rr[1],rr[2]};
+
+			r[(m+1)%3]-=0.5;
+			r[(m+2)%3]-=0.5;
+
+			(*v) = 0;
+			o=SearchCellFix(o,r);
+			DEF_INTERPOLATION_SCHEME((*v)[m]+=,)
+		}
+
+	}
+
+	template<typename TV,typename TW>
+	inline void Scatter(Int2Type<VOLUME>,index_type o,Real const rr[3],TW const &v , TV *cache)const
+	{
+		Real r[3]
+		{	rr[0]-0.5,rr[1]-0.5,rr[2]-0.5};
+
+		int num_of_comp=num_comps_per_cell_[VOLUME];
+		int m=0;
+		o=SearchCellFix(o,r);
+		DEF_INTERPOLATION_SCHEME(,+=v)
+	}
+
+	template<typename TV,typename TW>
+	inline void Gather(Int2Type<VOLUME>,index_type o,Real const rr[3], TV const*cache,TW *v )const
+	{
+		Real r[3]
+		{	rr[0]-0.5,rr[1]-0.5,rr[2]-0.5};
+
+		int num_of_comp=num_comps_per_cell_[VOLUME];
+		int m=0;
+		(*v) = 0;
+		o=SearchCellFix(o,r);
+		DEF_INTERPOLATION_SCHEME((*v)+=,)
+	}
+
+#undef DEF_INTERPOLATION_SCHEME
+
 	//***************************************************************************************************
-	// Interpolation
-	//***************************************************************************************************
+	// Mesh vs Mesh
 
 	/**
 	 *  Mapto -
-	 *    mapto(Int2Type<0> ,   //tarGet topology position
+	 *    mapto(Int2Type<VERTEX> ,   //tarGet topology position
 	 *     Field<this_type,1 , TExpr> const & vl,  //field
 	 *      SizeType s   //grid index of point
 	 *      )
@@ -1659,11 +1790,11 @@ public:
 	DECL_RET_TYPE ((get(l,s...)))
 
 	template<typename TL, typename ...IDXS> inline auto
-	mapto(Int2Type<1>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ... s) const
+	mapto(Int2Type<EDGE>, Field<Geometry<this_type, VERTEX>, TL> const &l, int m, IDXS ... s) const
 	DECL_RET_TYPE( ((get(l,0,Shift(INC(m),s...)) + get(l,0,s...))*0.5) )
 
 	template<typename TL, typename ...IDXS> inline auto//
-	mapto(Int2Type<2>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ...s) const
+	mapto(Int2Type<FACE>, Field<Geometry<this_type, VERTEX>, TL> const &l, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(
 					get(l,0,s...)+
@@ -1674,7 +1805,7 @@ public:
 
 	))
 	template<typename TL, typename ...IDXS> inline auto//
-	mapto(Int2Type<3>, Field<Geometry<this_type, 0>, TL> const &l, int m, IDXS ...s) const
+	mapto(Int2Type<VOLUME>, Field<Geometry<this_type, VERTEX>, TL> const &l, int m, IDXS ...s) const
 	DECL_RET_TYPE(( (
 					get(l,0,s...)+
 					get(l,0,Shift(X,s...))+
@@ -1691,11 +1822,11 @@ public:
 	))
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 1>, TL> const &l, int m,TI ...s) const
+	inline auto mapto(Int2Type<VERTEX>, Field<Geometry<this_type, EDGE>, TL> const &l, int m,TI ...s) const
 	DECL_RET_TYPE( (get(l,m,s...)+get(l,m,Shift(DES(m),s...)))*0.5 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 1>, TL> const &l,int m, TI ...s) const
+	inline auto mapto(Int2Type<FACE>, Field<Geometry<this_type, EDGE>, TL> const &l,int m, TI ...s) const
 	DECL_RET_TYPE( (get(l,m,s...)+
 			get(l,m,Shift(INC(m+1),s...))+
 			get(l,m,Shift(INC(m+2),s...))+
@@ -1708,7 +1839,7 @@ public:
 	)*0.125 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 1>, TL> const &l,int m, TI ... s) const
+	inline auto mapto(Int2Type<VOLUME>, Field<Geometry<this_type, EDGE>, TL> const &l,int m, TI ... s) const
 	DECL_RET_TYPE( (get(l,m,s...)+
 			get(l,m,Shift(INC(m+1),s...))+
 			get(l,m,Shift(INC(m+2),s...))+
@@ -1716,7 +1847,7 @@ public:
 	)*0.25 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 2>, TL> const &l, int m,TI ... s) const
+	inline auto mapto(Int2Type<VERTEX>, Field<Geometry<this_type, FACE>, TL> const &l, int m,TI ... s) const
 	DECL_RET_TYPE( (get(l,m,s...)+
 			get(l,m,Shift(DES(m+1),s...))+
 			get(l,m,Shift(DES(m+2),s...))+
@@ -1724,7 +1855,7 @@ public:
 	)*0.25 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 2>, TL> const &l, int m,TI ... s) const
+	inline auto mapto(Int2Type<EDGE>, Field<Geometry<this_type, FACE>, TL> const &l, int m,TI ... s) const
 	DECL_RET_TYPE( (
 			get(l,m,s...)+
 			get(l,m,Shift(DES(m+1),s...))+
@@ -1738,11 +1869,11 @@ public:
 	)*0.125 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<3>, Field<Geometry<this_type, 2>, TL> const &l,int m, TI ... s) const
+	inline auto mapto(Int2Type<VOLUME>, Field<Geometry<this_type, FACE>, TL> const &l,int m, TI ... s) const
 	DECL_RET_TYPE( (get(l,m,s...)+ get(l,m,Shift(INC(m),s...)) )*0.5 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<0>, Field<Geometry<this_type, 3>, TL> const &l, int m,TI ...s) const
+	inline auto mapto(Int2Type<VERTEX>, Field<Geometry<this_type, VOLUME>, TL> const &l, int m,TI ...s) const
 	DECL_RET_TYPE(
 	(
 			get(l,m,s...)+
@@ -1757,7 +1888,7 @@ public:
 	)*0.125 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<1>, Field<Geometry<this_type, 3>, TL> const &l, int m,TI ...s) const
+	inline auto mapto(Int2Type<EDGE>, Field<Geometry<this_type, VOLUME>, TL> const &l, int m,TI ...s) const
 	DECL_RET_TYPE(
 	(
 			get(l,m,s...)+
@@ -1768,7 +1899,7 @@ public:
 	)*0.25 )
 
 	template<typename TL, typename ...TI>
-	inline auto mapto(Int2Type<2>, Field<Geometry<this_type, 3>, TL> const &l,int m, TI ... s) const
+	inline auto mapto(Int2Type<FACE>, Field<Geometry<this_type, VOLUME>, TL> const &l,int m, TI ... s) const
 	DECL_RET_TYPE( (get(l,m,s...)+ get(l,m,Shift(DES(m),s...)) )*0.5 )
 
 //-----------------------------------------
@@ -1776,11 +1907,11 @@ public:
 //-----------------------------------------
 
 	template<typename TExpr, typename ... IDXS> inline auto
-	OpEval(Int2Type<GRAD>, Field<Geometry<this_type, 0>, TExpr> const & f, int m, IDXS ... s) const
+	OpEval(Int2Type<GRAD>, Field<Geometry<this_type, VERTEX>, TExpr> const & f, int m, IDXS ... s) const
 	DECL_RET_TYPE( ( get(f,0,Shift(INC(m),s...))* dS_[0][m] ) +get(f,0,s...)* dS_[1][m])
 
 	template<typename TExpr, typename ...IDX> inline auto
-	OpEval(Int2Type<DIVERGE>,Field<Geometry<this_type, 1>, TExpr> const & f, int m, IDX ...s) const
+	OpEval(Int2Type<DIVERGE>,Field<Geometry<this_type, EDGE>, TExpr> const & f, int m, IDX ...s) const
 	DECL_RET_TYPE((
 
 			(get(f,0,s...)* dS_[0][0] + get(f,0,Shift( NX,s...))* dS_[1][0]) +
@@ -1791,7 +1922,7 @@ public:
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, EDGE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			get(f,(m+2)%3,Shift(INC(m+1) ,s...)) * dS_[0][(m + 1) % 3]
 
@@ -1804,7 +1935,7 @@ public:
 	)
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURL>,
-	Field<Geometry<this_type, 2>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, FACE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			get(f,(m+2)%3,s...)* dS_[0][(m + 1) % 3]
 
@@ -1817,11 +1948,11 @@ public:
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDX>,
-	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
-//	->typename Field<Geometry<this_type, 1>, TL>::value_type
+	Field<Geometry<this_type, EDGE>, TL> const & f, int m, IDXS ...s) const
+//	->typename Field<Geometry<this_type, EDGE>, TL>::value_type
 //	{
 //		int mm=(m==0?0:(m==1?2:1));
-//		typename Field<Geometry<this_type, 1>, TL>::value_type res=0;
+//		typename Field<Geometry<this_type, EDGE>, TL>::value_type res=0;
 //		if(m==1)
 //		{
 //			res=-( get(f,mm,Shift(X,s...)) * dS_[0][0] + get(f,mm,s...)* dS_[1][0]);
@@ -1845,34 +1976,34 @@ public:
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDY>,
-	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, EDGE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(get(f,(m==1?0:(m==2?0:2)),Shift(Y,s...)) * dS_[0][1]
 					+ get(f,(m==1?0:(m==2?0:2)),s...)* dS_[1][1])*(m==1?0:(m==2?-1:1))
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDZ>,
-	Field<Geometry<this_type, 1>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, EDGE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(get(f,(m==2?0:(m==0?1:0)),Shift(Z,s...)) * dS_[0][2]
 					+ get(f,(m==2?0:(m==0?1:0)),s...)* dS_[1][2])*(m==2?0:(m==0?-1:1))
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDX>,
-	Field<Geometry<this_type, 2>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, FACE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(get(f,(m==0?0:(m==1?2:1)),s...) * dS_[0][0]
 					+ get(f,(m==0?0:(m==1?2:1)),Shift(NX,s...))* dS_[1][0])*(m==0?0:(m==1?-1:1))
 	))
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDY>,
-	Field<Geometry<this_type, 2>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, FACE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(get(f,(m==1?0:(m==2?0:2)),s...) * dS_[0][1]
 					+ get(f,(m==1?0:(m==2?0:2)),Shift(NY,s...))* dS_[1][1])*(m==1?0:(m==2?-1:1))
 	))
 
 	template<typename TL, typename ...IDXS> inline auto OpEval(Int2Type<CURLPDZ>,
-	Field<Geometry<this_type, 2>, TL> const & f, int m, IDXS ...s) const
+	Field<Geometry<this_type, FACE>, TL> const & f, int m, IDXS ...s) const
 	DECL_RET_TYPE((
 			(get(f,(m==2?0:(m==0?1:0)),s...) * dS_[0][2]
 					+ get(f,(m==2?0:(m==0?1:0)),Shift(NZ,s...))
@@ -1897,27 +2028,27 @@ public:
 	 *
 	 */
 	template< typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<DOT>,
-	Field<Geometry<this_type, 1>, TL> const &l, Field<Geometry<this_type, 1>, TR> const &r,int m, TI ... s) const
+	Field<Geometry<this_type, EDGE>, TL> const &l, Field<Geometry<this_type, EDGE>, TR> const &r,int m, TI ... s) const
 	DECL_RET_TYPE( (
-			mapto(Int2Type<0>(),l,0,s...)* mapto(Int2Type<0>(),r,0,s...)+
-			mapto(Int2Type<0>(),l,1,s...)* mapto(Int2Type<0>(),r,1,s...)+
-			mapto(Int2Type<0>(),l,2,s...)* mapto(Int2Type<0>(),r,2,s...)
+			mapto(Int2Type<VERTEX>(),l,0,s...)* mapto(Int2Type<VERTEX>(),r,0,s...)+
+			mapto(Int2Type<VERTEX>(),l,1,s...)* mapto(Int2Type<VERTEX>(),r,1,s...)+
+			mapto(Int2Type<VERTEX>(),l,2,s...)* mapto(Int2Type<VERTEX>(),r,2,s...)
 	))
 
 	template< typename TL, typename TR, typename ...TI> inline auto OpEval(Int2Type<DOT>,
-	Field<Geometry<this_type, 2>, TL> const &l, Field<Geometry<this_type, 2>, TR> const &r,int m, TI ... s) const
+	Field<Geometry<this_type, FACE>, TL> const &l, Field<Geometry<this_type, FACE>, TR> const &r,int m, TI ... s) const
 	DECL_RET_TYPE( (
-			mapto(Int2Type<0>(),l,0,s...)* mapto(Int2Type<0>(),r,0,s...)+
-			mapto(Int2Type<0>(),l,1,s...)* mapto(Int2Type<0>(),r,1,s...)+
-			mapto(Int2Type<0>(),l,2,s...)* mapto(Int2Type<0>(),r,2,s...)
+			mapto(Int2Type<VERTEX>(),l,0,s...)* mapto(Int2Type<VERTEX>(),r,0,s...)+
+			mapto(Int2Type<VERTEX>(),l,1,s...)* mapto(Int2Type<VERTEX>(),r,1,s...)+
+			mapto(Int2Type<VERTEX>(),l,2,s...)* mapto(Int2Type<VERTEX>(),r,2,s...)
 	))
 
 	template< int IF,typename TL, typename ...TI> inline auto OpEval(Int2Type<MAPTO0>,
 	Field<Geometry<this_type, IF>, TL> const &l, int m, TI ... s) const
 	DECL_RET_TYPE( (
-			nTuple<3,typename Field<Geometry<this_type, IF>,TL>::value_type>( mapto(Int2Type<0>(),l,m,s...),
-					mapto(Int2Type<0>(),l,m,s...),
-					mapto(Int2Type<0>(),l,m,s...))
+			nTuple<3,typename Field<Geometry<this_type, IF>,TL>::value_type>( mapto(Int2Type<VERTEX>(),l,m,s...),
+					mapto(Int2Type<VERTEX>(),l,m,s...),
+					mapto(Int2Type<VERTEX>(),l,m,s...))
 	))
 
 }

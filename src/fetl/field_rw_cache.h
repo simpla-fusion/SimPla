@@ -8,7 +8,6 @@
 #ifndef FIELD_IO_CACHE_H_
 #define FIELD_IO_CACHE_H_
 
-//#include <algorithm>
 #include <vector>
 
 #include "../utilities/log.h"
@@ -146,7 +145,7 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.template GatherFromMesh(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
+			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
 		}
 		else //failsafe
 		{
@@ -284,7 +283,7 @@ public:
 		{
 			field_value_type vv;
 			vv = v;
-			mesh.ScatterToMesh(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
+			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
 		}
 		else //failsafe
 		{
@@ -304,7 +303,7 @@ struct Cache<const Field<TGeometry, TValue> >
 	Cache(Field<TGeometry, TValue> const & f, Args const & ... args)
 			: f_(f, std::forward<Args const &>(args)...)
 	{
-
+		VERBOSE << "Field read cache applied!";
 	}
 
 	type & operator*()
@@ -330,6 +329,7 @@ struct Cache<Field<TGeometry, TValue>*>
 	Cache(Field<TGeometry, TValue>* f, Args const & ... args)
 			: f_(f, std::forward<Args const &>(args)...)
 	{
+		VERBOSE << "Field write cache applied!";
 	}
 
 	type & operator*()

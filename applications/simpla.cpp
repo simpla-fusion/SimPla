@@ -69,7 +69,7 @@ int main(int argc, char **argv)
 		}
 		else if( opt=="verbose")
 		{
-			Logger::Verbose(10);
+			Logger::Verbose(LOG_VERBOSE);
 		}
 		else if(opt=="q"|| opt=="quiet")
 		{
