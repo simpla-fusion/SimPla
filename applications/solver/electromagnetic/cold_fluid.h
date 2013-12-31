@@ -41,7 +41,7 @@ private:
 	{
 		Real m;
 		Real Z;
-		Form<0> n;
+		RForm<0> n;
 		VectorForm<0> J;
 
 		Species(Real pm, Real pZ, mesh_type const &mesh)
@@ -86,7 +86,7 @@ public:
 ;
 template<typename TM>
 template<typename TE, typename TB> inline
-void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
+void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 {
 	if (sp_list_.empty())
 		return;
@@ -94,22 +94,25 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	LOGGER << "Push Cold Fluid.";
+
+	VectorForm<0> cB0(mesh);
+	MapTo(B, &cB0);
+
+	RVectorForm<0> B0(mesh);
+	B0 = real(cB0);
+
+	RForm<0> BB(mesh);
+
+	BB = Dot(B0, B0);
+
 	if (Ev.empty())
 		MapTo(E, &Ev);
 
 	VectorForm<0> K(mesh);
 
-	Form<0> a(mesh);
-	Form<0> b(mesh);
-	Form<0> c(mesh);
-
-	Form<0> BB(mesh);
-
-	BB = Dot(B0, B0);
-
-	VectorForm<0> B0v(mesh);
-
-	MapTo(B0, &B0v);
+	RForm<0> a(mesh);
+	RForm<0> b(mesh);
+	RForm<0> c(mesh);
 
 	a.Fill(1.0);
 	b.Fill(0);
@@ -123,13 +126,16 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 
 	K = Ev;
 
+	VectorForm<0> K_(mesh);
+	K_.Fill(0);
+
 	for (auto &v : sp_list_)
 	{
 
 		auto & ns = v.second->n;
 		auto & Js = v.second->J;
-		auto ms = v.second->m * proton_mass;
-		auto Zs = v.second->Z * elementary_charge;
+		Real ms = v.second->m * proton_mass;
+		Real Zs = v.second->Z * elementary_charge;
 
 		Real as = 2.0 * ms / (dt * Zs);
 
@@ -139,27 +145,21 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 
 		c += ns * Zs / ((BB + as * as) * as) * (0.5 * dt) / epsilon0;
 
-		auto K_ = Cross(Js, B0v) + (Ev * ns) * Zs;
+		K_ = Cross(Js, B0) + Ev * (ns * Zs);
 
-		K -= (Js
-
-		+ (K_ / as
-
-		+ Cross(K_, B0v) / (BB + as * as)
-
-		+ Cross(Cross(K_, B0v), B0v) / (as * (BB + as * as)))
-
-		) * (0.5 * dt / epsilon0);
+		K -= (Js + (K_ + Dot(K_, B0) * B0 / as + Cross(K_, B0)) / (BB + as * as)) * (0.5 * dt / epsilon0);
 
 	}
 
-	Ev = K / a
+	Ev = (
 
-	- Cross(K, B0v) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+	-K * (c * BB - a)
 
-	- Cross(Cross(K, B0v), B0v) * (-c * c * BB + c * a - b * b)
+	- Cross(K, B0) * b
 
-	/ (a * ((c * BB - a) * (c * BB - a) + b * b * BB))
+	- Dot(K, B0) * ((-c * c * BB + c * a - b * b) / a) * B0
+
+	) / ((c * BB - a) * (c * BB - a) + b * b * BB)
 
 	;
 
@@ -172,14 +172,9 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B0, TE *dE)
 
 		Real as = 2.0 * ms / (dt * Zs);
 
-		auto K_ = Cross(Js, B0v) + Ev * ns * Zs;
+		K_ = Js * as + Cross(Js, B0) + Ev * ns * Zs;
 
-		Js = K_ / as
-
-		- Cross(K_, B0v) / (BB + as * as)
-
-		- Cross(Cross(K_, B0v), B0v) / (as * (BB + as * as));
-
+		Js = (K_ + Dot(K_, B0) * B0 / as + Cross(K_, B0)) / (BB + as * as);
 	}
 
 	Ev += dEv * (0.5);

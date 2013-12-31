@@ -164,6 +164,8 @@ int main(int argc, char **argv)
 
 	LOGGER << "Process " << START;
 
+	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
+
 	TheStart();
 	if (just_a_test)
 	{

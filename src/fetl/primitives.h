@@ -66,14 +66,12 @@ template<typename T> inline constexpr T imag(std::complex<T> const &v)
 
 template<typename T> inline constexpr nTuple<3, T> real(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>(
-	{ v[0].real(), v[1].real(), v[2].real() }));
+	return std::move(nTuple<3, T>( { v[0].real(), v[1].real(), v[2].real() }));
 }
 
 template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>(
-	{ v[0].imag(), v[1].imag(), v[2].imag() }));
+	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
 }
 
 template<int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
@@ -304,6 +302,9 @@ typedef enum
 	LESS,
 	GREATER,
 
+	REAL,
+	IMAGINE,
+
 	NULL_OP
 
 } OpType;
@@ -368,7 +369,6 @@ template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
 {
 	return std::move(static_cast<TV>(obj));
 }
-
 
 }
 // namespace simpla

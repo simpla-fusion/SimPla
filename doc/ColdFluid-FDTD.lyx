@@ -283,7 +283,8 @@ J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+Z_{s}n_{s}E^{+}\r
 whre
 \begin_inset Formula 
 \begin{eqnarray}
-\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}}{\alpha_{s}}+\frac{\overleftrightarrow{I}\times B}{B\cdot B+\alpha_{s}^{2}}+\frac{\overleftrightarrow{I}\times B\times B}{\alpha_{s}\left(B\cdot B+\alpha_{s}^{2}\right)}
+\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}}{\alpha_{s}}+\frac{\overleftrightarrow{I}\times B}{B\cdot B+\alpha_{s}^{2}}+\frac{\overleftrightarrow{I}\times B\times B}{\alpha_{s}\left(B\cdot B+\alpha_{s}^{2}\right)}\\
+ & = & \frac{\overleftrightarrow{I}+\overleftrightarrow{I}\cdot BB/\alpha_{s}+\overleftrightarrow{I}\times B}{B\cdot B+\alpha_{s}^{2}}
 \end{eqnarray}
 
 \end_inset
@@ -344,7 +345,13 @@ reference "eq:E1-1"
 \begin{eqnarray}
 E_{1}^{+} & = & \frac{K}{a}\nonumber \\
  &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\nonumber \\
- &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}K\times B_{0}\times B_{0}\label{eq:E1}
+ &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}K\times B_{0}\times B_{0}\label{eq:E1}\\
+ & = & \frac{K}{a}\\
+ &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\\
+ &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}\left(K\cdot B_{0}B_{0}-KB_{0}\cdot B_{0}\right)\\
+ & = & \frac{\left(a-cB_{0}\cdot B_{0}\right)}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}\left(K\right)\\
+ &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\\
+ &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}K\cdot B_{0}B_{0}\\
 \end{eqnarray}
 
 \end_inset

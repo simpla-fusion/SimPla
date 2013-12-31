@@ -35,7 +35,6 @@
 #include "../../src/utilities/lua_state.h"
 #include "../../src/io/data_stream.h"
 
-
 #include "../../src/particle/particle.h"
 #include "../../src/particle/pic_engine_full.h"
 #include "../../src/particle/pic_engine_deltaf.h"
@@ -109,11 +108,9 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 		isCompactStored_(true)
 {
 	particle_collection_.template RegisterFactory<PICEngineFull<mesh_type> >();
-//	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
-//
-//	particle_collection_.template RegisterFactory<GGauge<mesh_type, 0>>("GuidingCenter");
-//	particle_collection_.template RegisterFactory<GGauge<mesh_type, 8>>("GGauge8");
-//	particle_collection_.template RegisterFactory<GGauge<mesh_type, 32>>("GGauge32");
+	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
+	particle_collection_.template RegisterFactory<PICEngineGGauge<mesh_type, 8>>("GGauge8");
+	particle_collection_.template RegisterFactory<PICEngineGGauge<mesh_type, 32>>("GGauge32");
 }
 
 template<typename TM>
@@ -131,7 +128,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 	pml_.Deserialize(cfg["FieldSolver"]["PML"]);
 
-	particle_collection_.Deserialize(cfg["Particles"]);
+//	particle_collection_.Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 

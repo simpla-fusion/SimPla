@@ -20,7 +20,7 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
-#include "../fetl/field_rw_cache.h"
+# include "../fetl/field_rw_cache.h"
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
@@ -173,6 +173,7 @@ public:
 	void Sort() override
 	{
 		_Sort();
+		base_type::Sort();
 	}
 
 	template<typename ... Args>
@@ -454,8 +455,6 @@ void Particle<Engine>::_Sort()
 		ERROR << e.what();
 
 	}
-
-	base_type::Sort();
 }
 
 template<class Engine>

@@ -43,6 +43,7 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
+//	static constexpr char DEFAULT_FILENAME[] = "simpla.log";
 
 	LoggerStreams(int l = LOG_LOG)
 			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
@@ -67,7 +68,14 @@ public:
 			std::cout << msg;
 
 		if (fs.good())
+		{
 			fs << msg;
+		}
+		else
+		{
+			OpenFile("simpla.log");
+		}
+
 	}
 	inline void SetStdOutVisableLevel(int l)
 	{

@@ -86,6 +86,15 @@ DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
 
+template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
+->nTuple<3,decltype(l[0]*r[0])>
+{
+	nTuple<3, decltype(l[0]*r[0])> res = { l[1] * r[2] - l[2] * r[1], l[2] * r[0] - l[0] * r[2], l[0] * r[1]
+	        - l[1] * r[0] };
+	return std::move(res);
+}
+//DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
+
 //***********************************************************************************
 // overloading operators
 
@@ -179,6 +188,7 @@ DEF_BIOP_BUNDLE(std::complex<double>)
 
 #undef DEF_BIOP_BUNDLE
 #undef DEF_BIOP
+
 ////***********************************************************************************
 
 template<int N, int TOP, typename TL, typename TR>
@@ -361,6 +371,61 @@ template<typename T> inline auto Determinant(nTuple<4, nTuple<4, T> > const & m)
 
 template<int N, typename T> auto abs(simpla::nTuple<N, T> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(Dot(m, m)))))
+
+//namespace ntuple_impl
+//{
+//
+//template<int N, typename T, typename TI>
+//inline auto OpEval(Int2Type<REAL>, nTuple<N, T> const & l, TI const & s)
+//DECL_RET_TYPE ((std::real(l[s]) ))
+//
+//template<int N, typename T, typename TI>
+//inline auto OpEval(Int2Type<IMAGINE>, nTuple<N, T> const & l, TI const & s)
+//DECL_RET_TYPE ((std::imag(l[s]) ))
+//
+//}  // namespace ntuple_impl
+//
+//template<int N, typename TL> inline
+//auto real(nTuple<N, TL> const & l)
+//DECL_RET_TYPE(( nTuple<N, UniOp<REAL,nTuple<N, TL> > > (l)))
+//
+//template<int N, typename TL> inline
+//auto imag(nTuple<N, TL> const & l)
+//DECL_RET_TYPE(( nTuple<N, UniOp<IMAGINE,nTuple<N, TL> > > (l)))
+
+//@TODO add real and imag for generic nTuple
+
+template<typename T> inline
+auto real(nTuple<3, T> const & l)
+->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
+{
+	nTuple<3, decltype(std::real(l[0]))> res = { std::real(l[0]), std::real(l[1]), std::real(l[2]) };
+	return std::move(res);
+}
+
+template<typename T> inline
+auto imag(nTuple<3, T> const & l)
+->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
+{
+	nTuple<3, decltype(std::real(l[0]))> res = { std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
+	return std::move(res);
+
+}
+
+template<typename T> inline
+auto real(nTuple<3, T> const & l)
+->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
+{
+	return l;
+}
+
+template<typename T> inline
+auto imag(nTuple<3, T> const & l)
+->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
+{
+	nTuple<3, T> res = { 0, 0, 0 };
+	return l;
+}
 
 }
 // namespace simpla
