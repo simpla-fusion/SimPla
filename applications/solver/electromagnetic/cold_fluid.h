@@ -108,13 +108,11 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 	if (Ev.empty())
 		MapTo(E, &Ev);
 
-	VectorForm<0> K(mesh);
-
 	RForm<0> a(mesh);
 	RForm<0> b(mesh);
 	RForm<0> c(mesh);
 
-	a.Fill(1.0);
+	a.Fill(0.0);
 	b.Fill(0);
 	c.Fill(0);
 
@@ -124,10 +122,11 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 
 	Ev += dEv * 0.5;
 
-	K = Ev;
+	VectorForm<0> Q(mesh);
 
-	VectorForm<0> K_(mesh);
-	K_.Fill(0);
+	Q = Ev;
+
+	VectorForm<0> K(mesh);
 
 	for (auto &v : sp_list_)
 	{
@@ -137,29 +136,38 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 		Real ms = v.second->m * proton_mass;
 		Real Zs = v.second->Z * elementary_charge;
 
-		Real as = 2.0 * ms / (dt * Zs);
+		Real as = (dt * Zs) / (2.0 * ms);
 
-		a += ns * Zs / as * (0.5 * dt) / epsilon0;
+		a += ns * Zs / (BB * as * as + 1);
 
-		b += ns * Zs / (BB + as * as) * (0.5 * dt) / epsilon0;
+		b += ns * Zs * as / (BB * as * as + 1);
 
-		c += ns * Zs / ((BB + as * as) * as) * (0.5 * dt) / epsilon0;
+		c += ns * Zs * as * as / (BB * as * as + 1);
 
-		K_ = Cross(Js, B0) + Ev * (ns * Zs);
+		Q -= Js * (0.5 * dt / epsilon0);
 
-		K -= (Js + (K_ + Dot(K_, B0) * B0 / as + Cross(K_, B0)) / (BB + as * as)) * (0.5 * dt / epsilon0);
+		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as;
+
+		Js = (K + Cross(K, B0) * as + Dot(K, B0) * B0 * as * as) / (BB * as * as + 1);
+
+		Q -= Js * (0.5 * dt / epsilon0);
 
 	}
 
+	a = *((0.5 * dt) / epsilon0);
+	b = *((0.5 * dt) / epsilon0);
+	c = *((0.5 * dt) / epsilon0);
+	a += 1;
+
 	Ev = (
 
-	-K * (c * BB - a)
+	Q * a
 
-	- Cross(K, B0) * b
+	- Cross(Q, B0) * b
 
-	- Dot(K, B0) * ((-c * c * BB + c * a - b * b) / a) * B0
+	+ Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))
 
-	) / ((c * BB - a) * (c * BB - a) + b * b * BB)
+	) / (b * b * BB + a * a)
 
 	;
 
@@ -170,11 +178,9 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 		auto ms = v.second->m * proton_mass;
 		auto Zs = v.second->Z * elementary_charge;
 
-		Real as = 2.0 * ms / (dt * Zs);
+		Real as = (dt * Zs) / (2.0 * ms);
 
-		K_ = Js * as + Cross(Js, B0) + Ev * ns * Zs;
-
-		Js = (K_ + Dot(K_, B0) * B0 / as + Cross(K_, B0)) / (BB + as * as);
+		Js += (Ev + Cross(Ev, B0) * as + Dot(Ev, B0) * B0 * (as * as)) * ((as * Zs * ns) / (BB * as * as + 1));
 	}
 
 	Ev += dEv * (0.5);

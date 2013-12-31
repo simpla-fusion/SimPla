@@ -132,7 +132,7 @@ public:
 	typedef Logger this_type;
 
 	Logger()
-			: null_dump_(true)
+			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
 	{
 	}
 

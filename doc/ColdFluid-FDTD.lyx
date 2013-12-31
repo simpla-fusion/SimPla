@@ -104,7 +104,7 @@ The update equation of each linear current are
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray}
-\partial_{t}\boldsymbol{J}_{s1}+\nu\boldsymbol{J}_{s1} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,
+\partial_{t}\boldsymbol{J}_{s1} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,
 \end{eqnarray}
 
 \end_inset
@@ -216,7 +216,7 @@ The linear cold plasma currents
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray}
-\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t}+\nu\frac{J_{s}^{1}+J_{s}^{0}}{2} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{0s}\frac{E^{1}+E^{0}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)\label{eq:discrete Current Equation}
+\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{0s}\frac{E^{1}+E^{0}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)\label{eq:discrete Current Equation}
 \end{eqnarray}
 
 \end_inset
@@ -227,7 +227,7 @@ The linear cold plasma currents
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t}+\nu\frac{J_{s}^{1}+J_{s}^{0}}{2} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{0s}\frac{E^{+}+E^{-}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)
+J_{s}^{1}-J_{s}^{0} & = & \underbrace{\frac{\Delta tZ_{s}}{2m_{s}}}_{\alpha_{s}}\left(Z_{s}n_{0s}\left(E^{+}+E^{-}\right)+\left(J_{s}^{1}+J_{s}^{0}\right)\times\boldsymbol{B}_{0}\right)
 \end{eqnarray*}
 
 \end_inset
@@ -235,8 +235,16 @@ The linear cold plasma currents
 
 \begin_inset Formula 
 \begin{eqnarray*}
-\frac{1/\Delta t+\nu/2}{Z_{s}/2m_{s}}J_{s}^{1}-J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{\frac{1/\Delta t-\nu/2}{Z_{s}/2m_{s}}J_{s}^{0}+J_{s}^{0}\times\boldsymbol{B}+Z_{s}n_{s}E^{-}}_{K_{s}^{0}}+Z_{s}n_{s}E^{+}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}Z_{s}n_{s}E^{-}}_{K_{s}^{0}}+\alpha_{s}Z_{s}n_{s}E^{+}
 \end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\alpha_{s}\equiv\frac{\Delta tZ_{s}}{2m_{s}}
+\]
 
 \end_inset
 
@@ -258,7 +266,7 @@ reference "eq:discrete Current Equation"
  
 \begin_inset Formula 
 \begin{equation}
-\alpha_{s}J_{s}^{1}-J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+Z_{s}n_{0s}E^{+}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}Z_{s}n_{0s}E^{+}
 \end{equation}
 
 \end_inset
@@ -266,8 +274,7 @@ reference "eq:discrete Current Equation"
 where
 \begin_inset Formula 
 \begin{eqnarray*}
-K_{s}^{0} & \equiv & \frac{1/\Delta t-\nu/2}{Z_{s}/2m_{s}}J_{s}^{0}+J_{s}^{0}\times\boldsymbol{B}+Z_{s}n_{s}E^{-}\\
-\alpha_{s} & \equiv & \frac{1/\Delta t+\nu/2}{Z_{s}/2m_{s}}
+K_{s}^{0} & \equiv & J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}Z_{s}n_{s}E^{-}
 \end{eqnarray*}
 
 \end_inset
@@ -275,17 +282,26 @@ K_{s}^{0} & \equiv & \frac{1/\Delta t-\nu/2}{Z_{s}/2m_{s}}J_{s}^{0}+J_{s}^{0}\ti
 Solve it we get,
 \begin_inset Formula 
 \begin{eqnarray}
-J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+Z_{s}n_{s}E^{+}\right)\label{eq:J1}
+J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)\label{eq:J1}
 \end{eqnarray}
 
 \end_inset
 
 whre
 \begin_inset Formula 
-\begin{eqnarray}
-\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}}{\alpha_{s}}+\frac{\overleftrightarrow{I}\times B}{B\cdot B+\alpha_{s}^{2}}+\frac{\overleftrightarrow{I}\times B\times B}{\alpha_{s}\left(B\cdot B+\alpha_{s}^{2}\right)}\\
- & = & \frac{\overleftrightarrow{I}+\overleftrightarrow{I}\cdot BB/\alpha_{s}+\overleftrightarrow{I}\times B}{B\cdot B+\alpha_{s}^{2}}
-\end{eqnarray}
+\begin{eqnarray*}
+\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}+\alpha_{s}\overleftrightarrow{I}\times B+\alpha_{s}^{2}\overleftrightarrow{I}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\overleftrightarrow{M_{s}}\cdot\left(J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}\right) & = & \frac{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times B+\alpha_{s}^{2}J_{s}^{0}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}\\
+ &  & +\frac{\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}^{2}\left(J_{s}^{0}\cdot\boldsymbol{B}B-J_{s}^{0}\boldsymbol{B}\cdot B\right)}{\alpha_{s}^{2}B\cdot B+1}\\
+ & = & \frac{J_{s}^{0}\left(1-\alpha_{s}^{2}\boldsymbol{B}\cdot B\right)+2\alpha_{s}J_{s}^{0}\times B+2\alpha_{s}^{2}J_{s}^{0}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}
+\end{eqnarray*}
 
 \end_inset
 
@@ -305,26 +321,56 @@ reference "eq:discrete Ampere Law"
 
  yields
 \begin_inset Formula 
-\begin{eqnarray}
-E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\left(\sum_{s}Z_{s}n_{s}\overleftrightarrow{M_{s}}\right)\cdot E^{+} & = & \underbrace{E^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left\{ J_{s}^{0}+\overleftrightarrow{M_{s}}\cdot K_{s}^{0}\right\} }_{K}
-\end{eqnarray}
+\[
+\varepsilon_{0}\frac{E^{+}-E^{-}}{\Delta t}=-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\]
 
 \end_inset
 
-or
-\begin_inset Formula 
-\begin{equation}
-aE^{+}+bE^{+}\times B+cE^{+}\times B\times B=K\label{eq:E1-1}
-\end{equation}
 
-\end_inset
-
-where
 \begin_inset Formula 
 \begin{eqnarray*}
-a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}}{\alpha_{s}}+1\\
-b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}}{B\cdot B+\alpha_{s}^{2}}\\
-c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}}{\alpha_{s}\left(B\cdot B+\alpha_{s}^{2}\right)}
+E^{+}-E^{-} & = & -\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left[\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)+J_{s}^{0}\right]\\
+E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\overleftrightarrow{M_{s}}\left(\alpha_{s}Z_{s}n_{s}\right)\cdot E^{+} & = & \underbrace{E^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
+\end{eqnarray*}
+
+\end_inset
+
+orwhere
+\begin_inset Formula 
+\begin{eqnarray*}
+a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
+b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}\\
+c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+}\cdot B\left(a+cB^{2}\right) & = & Q\cdot B\\
+aE^{+}\times B+bE^{+}\cdot BB-bE^{+}B^{2} & = & Q\times B
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+}\cdot B & = & \frac{Q\cdot B}{a+cB^{2}}\\
+E^{+}\times B & = & \frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b}{a}E^{+}B^{2}\\
+aE^{+} & = & Q-\frac{b}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)-\frac{b^{2}}{a}E^{+}B^{2}-c\frac{Q\cdot B}{a+cB^{2}}B\\
+\left(a^{a}+b^{2}B^{2}\right)E^{+} & = & aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\\
+E^{+} & = & \frac{1}{\left(a^{a}+b^{2}B^{2}\right)}\left[aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right]
 \end{eqnarray*}
 
 \end_inset
@@ -340,23 +386,7 @@ reference "eq:E1-1"
 
 \end_inset
 
- as
-\begin_inset Formula 
-\begin{eqnarray}
-E_{1}^{+} & = & \frac{K}{a}\nonumber \\
- &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\nonumber \\
- &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}K\times B_{0}\times B_{0}\label{eq:E1}\\
- & = & \frac{K}{a}\\
- &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\\
- &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}\left(K\cdot B_{0}B_{0}-KB_{0}\cdot B_{0}\right)\\
- & = & \frac{\left(a-cB_{0}\cdot B_{0}\right)}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}\left(K\right)\\
- &  & -\frac{b}{\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}}K\times B_{0}\\
- &  & -\frac{-c^{2}B_{0}\cdot B_{0}+ca-b^{2}}{a\left[\left(cB_{0}\cdot B_{0}-a\right)^{2}+b^{2}B_{0}\cdot B_{0}\right]}K\cdot B_{0}B_{0}\\
-\end{eqnarray}
-
-\end_inset
-
-Substituting Eq.
+ asSubstituting Eq.
  
 \begin_inset CommandInset ref
 LatexCommand ref
