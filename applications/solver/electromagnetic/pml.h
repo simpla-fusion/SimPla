@@ -14,24 +14,24 @@
 #include "../../../src/utilities/log.h"
 #include "../../../src/physics/physical_constants.h"
 
+#include "../../../src/engine/fieldsolver.h"
 namespace simpla
 {
 
 class LuaObject;
 
-inline Real sigma_(Real r, Real expN, Real dB)
-{
-	return (0.5 * (expN + 2.0) * 0.1 * dB * pow(r, expN + 1.0));
-}
-inline Real alpha_(Real r, Real expN, Real dB)
-{
-	return (1.0 + 2.0 * pow(r, expN));
-}
-
 template<typename TM>
-class PML
+class PML: public FieldSolver<TM>
 {
 
+	inline Real sigma_(Real r, Real expN, Real dB)
+	{
+		return (0.5 * (expN + 2.0) * 0.1 * dB * pow(r, expN + 1.0));
+	}
+	inline Real alpha_(Real r, Real expN, Real dB)
+	{
+		return (1.0 + 2.0 * pow(r, expN));
+	}
 public:
 	DEFINE_FIELDS (TM)
 
@@ -63,8 +63,8 @@ public:
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
 
-	void NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE);
-	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB);
+	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
+	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
 
 	void DumpData() const;
 };
@@ -76,8 +76,8 @@ inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh)
-		: mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh) :
+		mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -228,7 +228,7 @@ void PML<TM>::DumpData() const
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE)
+void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
 	LOGGER << "PML push E";
 	dE->Fill(0);
@@ -251,7 +251,7 @@ void PML<TM>::NextTimeStepE(Real dt, Form<2> const&B1, Form<1> *dE)
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> *dB)
+void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2> *dB)
 {
 	LOGGER << "PML Push B";
 	dB->Fill(0);

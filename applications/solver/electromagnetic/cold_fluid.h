@@ -21,11 +21,13 @@
 #include "../../../src/utilities/lua_state.h"
 #include "../../../src/utilities/pretty_stream.h"
 #include "../../../src/physics/physical_constants.h"
+
+#include "../../../src/engine/fieldsolver.h"
 namespace simpla
 {
 
 template<typename TM>
-class ColdFluidEM
+class ColdFluidEM: public FieldSolver<TM>
 {
 public:
 	DEFINE_FIELDS(TM)
@@ -44,8 +46,8 @@ private:
 		RForm<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh)
-				: m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh) :
+				m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -57,8 +59,8 @@ private:
 	VectorForm<0> Ev;
 public:
 
-	ColdFluidEM(mesh_type const & pmesh)
-			: mesh(pmesh), Ev(pmesh)
+	ColdFluidEM(mesh_type const & pmesh) :
+			mesh(pmesh), Ev(pmesh)
 	{
 	}
 
@@ -66,27 +68,24 @@ public:
 	{
 	}
 
-	inline bool IsEmpty()
+	inline bool empty() override // STL style
 	{
 		return sp_list_.empty();
 	}
-	inline bool empty() // STL style
-	{
-		return sp_list_.empty();
-	}
-	void Deserialize(LuaObject const&cfg);
-	std::ostream & Serialize(std::ostream & os) const;
-
-	template<typename TE, typename TB> inline
-	void NextTimeStep(Real dt, TE const &dE, TB const &B0, TE *E);
+	void Deserialize(LuaObject const&cfg) override;
+	std::ostream & Serialize(std::ostream & os) const override;
 
 	void DumpData() const;
+
+private:
+	template<typename TE, typename TB> inline
+	void _NextTimeStepE(Real dt, TE const &dE, TB const &B0, TE *E);
 
 }
 ;
 template<typename TM>
 template<typename TE, typename TB> inline
-void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
+void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 {
 	if (sp_list_.empty())
 		return;
@@ -124,7 +123,7 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 
 	VectorForm<0> Q(mesh);
 
-	Q = Ev;
+	Q = 0;
 
 	VectorForm<0> K(mesh);
 
@@ -144,32 +143,25 @@ void ColdFluidEM<TM>::NextTimeStep(Real dt, TE const &E, TB const &B, TE *dE)
 
 		c += ns * Zs * as * as / (BB * as * as + 1);
 
-		Q -= Js * (0.5 * dt / epsilon0);
+		Q -= Js;
 
 		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as;
 
 		Js = (K + Cross(K, B0) * as + Dot(K, B0) * B0 * as * as) / (BB * as * as + 1);
 
-		Q -= Js * (0.5 * dt / epsilon0);
+		Q -= Js;
 
 	}
 
-	a = *((0.5 * dt) / epsilon0);
-	b = *((0.5 * dt) / epsilon0);
-	c = *((0.5 * dt) / epsilon0);
+	Q *= (0.5 * dt / epsilon0);
+	Q += Ev;
+
+	a *= (0.5 * dt) / epsilon0;
+	b *= (0.5 * dt) / epsilon0;
+	c *= (0.5 * dt) / epsilon0;
 	a += 1;
 
-	Ev = (
-
-	Q * a
-
-	- Cross(Q, B0) * b
-
-	+ Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))
-
-	) / (b * b * BB + a * a)
-
-	;
+	Ev = (Q * a - Cross(Q, B0) * b + Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	for (auto &v : sp_list_)
 	{
@@ -212,7 +204,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		}
 
 		std::shared_ptr<Species> sp(
-		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+				new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
 
 		sp->n.Init();
 		sp->J.Init();

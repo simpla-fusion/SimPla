@@ -45,8 +45,8 @@ public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 //	static constexpr char DEFAULT_FILENAME[] = "simpla.log";
 
-	LoggerStreams(int l = LOG_LOG)
-			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int l = LOG_LOG) :
+			std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -131,25 +131,25 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger()
-			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
+	Logger() :
+			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
 	{
 	}
 
-	Logger(Logger const & r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-			        r.indent_)
+	Logger(Logger const & r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+					r.indent_)
 	{
 	}
 
-	Logger(Logger && r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-			        r.indent_)
+	Logger(Logger && r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+					r.indent_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0)
-			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
+	Logger(int lv, size_t indent = 0) :
+			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
 	{
 		buffer_ << std::boolalpha;
 
@@ -360,6 +360,9 @@ private:
 
 #define UNIMPLEMENT2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
+
+#define NOTHING_TODO Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "NOTHING TODO"
 
 #define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"

@@ -17,7 +17,6 @@
 #include "../../src/utilities/lua_state.h"
 #include "../../src/utilities/utilities.h"
 #include "explicit_em_impl.h"
-
 namespace simpla
 {
 
@@ -57,4 +56,5 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 
 	return ctx;
 }
+
 }  // namespace simpla

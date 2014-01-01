@@ -39,9 +39,8 @@
 #include "../../src/particle/pic_engine_full.h"
 #include "../../src/particle/pic_engine_deltaf.h"
 #include "../../src/particle/pic_engine_ggauge.h"
-
-#include "../solver/electromagnetic/cold_fluid.h"
-#include "../solver/electromagnetic/pml.h"
+#include "../../src/engine/fieldsolver.h"
+#include "../solver/solver.h"
 namespace simpla
 {
 template<typename TM>
@@ -78,8 +77,8 @@ public:
 	RVectorForm<0> B0;
 	RForm<0> n0;
 
-	ColdFluidEM<mesh_type> cold_fluid_;
-	PML<mesh_type> pml_;
+	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
+	std::shared_ptr<FieldSolver<mesh_type> > pml_;
 	ParticleCollection<mesh_type> particle_collection_;
 
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
@@ -96,12 +95,8 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
-
-		cold_fluid_(mesh),
-
-		pml_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
 		particle_collection_(mesh),
 
@@ -124,11 +119,17 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 	mesh.Deserialize(cfg["Grid"]);
 
-	cold_fluid_.Deserialize(cfg["FieldSolver"]["ColdFluid"]);
-
-	pml_.Deserialize(cfg["FieldSolver"]["PML"]);
-
-//	particle_collection_.Deserialize(cfg["Particles"]);
+	if (!cfg["FieldSolver"]["ColdFluid"].empty())
+	{
+		cold_fluid_ = CreateSolver(mesh, "ColdFluid");
+		cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
+	}
+	if (!cfg["FieldSolver"]["PML"].empty())
+	{
+		pml_ = CreateSolver(mesh, "PML");
+		pml_->Deserialize(cfg["FieldSolver"]["pml"]);
+	}
+	particle_collection_.Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 
@@ -222,7 +223,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 				else
 				{
 					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-					        << " object =" << object << " ]";
+							<< " object =" << object << " ]";
 				}
 
 				LOGGER << "Load Boundary " << type << DONE;
@@ -249,9 +250,9 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	<< " FieldSolver={ \n"
 
-	<< cold_fluid_ << ",\n"
+	<< *cold_fluid_ << ",\n"
 
-	<< pml_ << ",\n" << "} \n"
+	<< *pml_ << ",\n" << "} \n"
 
 	<< particle_collection_ << "\n"
 
@@ -334,9 +335,9 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
 	}
 
-	if (!pml_.empty())
+	if (pml_ != nullptr)
 	{
-		pml_.NextTimeStepE(dt, B, &dE);
+		pml_->NextTimeStepE(dt, E, B, &dE);
 	}
 	else
 	{
@@ -346,51 +347,48 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
 	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
-	if (!cold_fluid_.empty())
-	{
-		cold_fluid_.NextTimeStep(dt, E, B, &dE);
-	}
+	if (cold_fluid_ != nullptr)
+		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
+
 	// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE * 0.5);
-
-	//  particle(t=0 -> 1)
-	particle_collection_.NextTimeStep(dt, E, B);
-
-	{
-		for (auto & p : particle_collection_)
-			for (auto & fun : particle_boundary_)
-			{
-				if (fun.first == "" || p.first == fun.first)
-				{
-					fun.second(p.second.get(), dt);
-
-					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
-				}
-
-			}
-
-	}
-
+//	//  particle(t=0 -> 1)
+//	particle_collection_.NextTimeStep(dt, E, B);
+//
+//	{
+//		for (auto & p : particle_collection_)
+//			for (auto & fun : particle_boundary_)
+//			{
+//				if (fun.first == "" || p.first == fun.first)
+//				{
+//					fun.second(p.second.get(), dt);
+//
+//					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
+//				}
+//
+//			}
+//
+//	}
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
 
-	{
-		int count = 0;
-		auto range = field_boundary_.equal_range("E");
-		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-		{
-			fun_it->second(dt);
-			++count;
-		}
-		if (count > 0)
-			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
-	}
+//	{
+//		int count = 0;
+//		auto range = field_boundary_.equal_range("E");
+//		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+//		{
+//			fun_it->second(dt);
+//			++count;
+//		}
+//		if (count > 0)
+//			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
+//	}
 
 	LOGGER << "Apply boundary condition on E" << DONE;
 
-	if (!pml_.empty())
+	if (pml_ != nullptr)
 	{
-		pml_.NextTimeStepB(dt, E, &dB);
+		pml_->NextTimeStepB(dt, E, B, &dB);
 	}
 	else
 	{
@@ -416,7 +414,7 @@ void ExplicitEMContext<TM>::DumpData() const
 
 	LOGGER << "Dump J to " << Data(Jext.data(), "J", Jext.GetShape(), isCompactStored_);
 
-	cold_fluid_.DumpData();
+	cold_fluid_->DumpData();
 	particle_collection_.DumpData();
 
 }

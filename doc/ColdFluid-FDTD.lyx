@@ -82,15 +82,6 @@ Maxwell's equations
 \end_inset
 
 
-\begin_inset Formula 
-\begin{eqnarray*}
-\boldsymbol{B} & = & \nabla\times\boldsymbol{A}\\
-\boldsymbol{E} & = & -\partial_{t}\boldsymbol{A}-\nabla\phi
-\end{eqnarray*}
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Subsection
@@ -166,7 +157,7 @@ reference "eq:Ampere's Law"
 , is given by
 \begin_inset Formula 
 \begin{equation}
-\varepsilon_{0}\frac{E^{1}-E^{0}}{\Delta t}=\frac{1}{c^{2}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}\label{eq:discrete Ampere Law}
+\varepsilon_{0}\frac{E^{1}-E^{0}}{\Delta t}=\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}\label{eq:discrete Ampere Law}
 \end{equation}
 
 \end_inset
@@ -182,8 +173,8 @@ reference "eq:Ampere's Law"
 where
 \begin_inset Formula 
 \begin{eqnarray}
-E^{-} & = & E^{0}+\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{c^{2}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)\\
-E^{+} & = & E^{1}-\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{c^{2}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)
+E^{-} & = & E^{0}+\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)\\
+E^{+} & = & E^{1}-\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)
 \end{eqnarray}
 
 \end_inset
@@ -259,7 +250,7 @@ reference "eq:discrete Current Equation"
 
 \end_inset
 
- can be wrote as a linear equaition of
+ can be wrote as a linear equation of
 \begin_inset Formula $J_{s}^{1}$
 \end_inset
 
@@ -268,6 +259,19 @@ reference "eq:discrete Current Equation"
 \begin{equation}
 J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}Z_{s}n_{0s}E^{+}
 \end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & K\\
+J_{s}^{1}\cdot B & = & K\cdot B\\
+J_{s}^{1}\times\boldsymbol{B}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}\times\boldsymbol{B} & = & K\times\boldsymbol{B}\\
+\alpha J_{s}^{1}\times\boldsymbol{B}-\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}+\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}\\
+J-K=\alpha J_{s}^{1}\times\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}+\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}-\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B}\\
+\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)J_{s}^{1} & = & K+\alpha K\times\boldsymbol{B}+\alpha^{2}K\cdot\boldsymbol{B}\boldsymbol{B}
+\end{eqnarray*}
 
 \end_inset
 
@@ -287,20 +291,10 @@ J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_
 
 \end_inset
 
-whre
+where
 \begin_inset Formula 
 \begin{eqnarray*}
 \overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}+\alpha_{s}\overleftrightarrow{I}\times B+\alpha_{s}^{2}\overleftrightarrow{I}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}
-\end{eqnarray*}
-
-\end_inset
-
-
-\begin_inset Formula 
-\begin{eqnarray*}
-\overleftrightarrow{M_{s}}\cdot\left(J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}\right) & = & \frac{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times B+\alpha_{s}^{2}J_{s}^{0}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}\\
- &  & +\frac{\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}^{2}\left(J_{s}^{0}\cdot\boldsymbol{B}B-J_{s}^{0}\boldsymbol{B}\cdot B\right)}{\alpha_{s}^{2}B\cdot B+1}\\
- & = & \frac{J_{s}^{0}\left(1-\alpha_{s}^{2}\boldsymbol{B}\cdot B\right)+2\alpha_{s}J_{s}^{0}\times B+2\alpha_{s}^{2}J_{s}^{0}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}
 \end{eqnarray*}
 
 \end_inset
@@ -336,21 +330,21 @@ E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\overleftrightarrow{M_{s}}\left(\
 
 \end_inset
 
-orwhere
+where
+\begin_inset Formula 
+\[
+aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q
+\]
+
+\end_inset
+
+
 \begin_inset Formula 
 \begin{eqnarray*}
 a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
 b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}\\
 c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}
 \end{eqnarray*}
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q
-\]
 
 \end_inset
 
@@ -368,7 +362,8 @@ aE^{+}\times B+bE^{+}\cdot BB-bE^{+}B^{2} & = & Q\times B
 \begin{eqnarray*}
 E^{+}\cdot B & = & \frac{Q\cdot B}{a+cB^{2}}\\
 E^{+}\times B & = & \frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b}{a}E^{+}B^{2}\\
-aE^{+} & = & Q-\frac{b}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)-\frac{b^{2}}{a}E^{+}B^{2}-c\frac{Q\cdot B}{a+cB^{2}}B\\
+aE^{+}+b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b^{2}}{a}E^{+}B^{2}+c\frac{Q\cdot B}{a+cB^{2}}B & = & Q\\
+\left(a+\frac{b^{2}}{a}B^{2}\right)E^{+} & = & Q-b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)-c\frac{Q\cdot B}{a+cB^{2}}B\\
 \left(a^{a}+b^{2}B^{2}\right)E^{+} & = & aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\\
 E^{+} & = & \frac{1}{\left(a^{a}+b^{2}B^{2}\right)}\left[aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right]
 \end{eqnarray*}
