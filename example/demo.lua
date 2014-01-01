@@ -1,30 +1,40 @@
 Description="For Cold Plasma Dispersion" -- description or other text things.    
 -- SI Unit System
 c = 299792458  -- m/s
+e=1.60217656e-19 -- C
+me=9.10938291e-31 --kg
+mp=1.672621777e-27 --kg
+mp_me=1836.15267245 --
 KeV = 1.1604e7    -- K
 Tesla = 1.0       -- Tesla    
 PI=3.141592653589793
 TWOPI=PI*2
+k_B=1.3806488e-23 --Boltzmann_constant
 --
 
 Btor= 1.0  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
+N0 = 1.0e18 -- m^-3
 
-rhoi = 4.57*1e-3 * math.sqrt(Ti)/Btor  --1.02 * math.sqrt(Ti)/(1e4*Btor) -- m
---    print(rhoi)
 
-k0 = 25./40.
-NX = 100
+omega_ci = e * Btor/mp -- e/m_p B0 rad/s
+vTi= math.sqrt(k_B*Ti*2/mp)
+rhoi = vTi/omega_ci    -- m
+
+omega_ce = e * Btor/me -- e/m_p B0 rad/s
+vTe= math.sqrt(k_B*Te*2/me)
+rhoe = vTe/omega_ce    -- m
+
+NX = 200
 NY = 1
 NZ = 1
-LX = 100 --0.6
+LX = 100*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0  -- 2.0*math.pi/18
 GW = 5 
-N0 = 1.0e16 -- m^-3
 
-omega_ci = 9.578309e7 * Btor -- e/m_p B0 rad/s
+
 
 -- From Gan
 
@@ -47,7 +57,7 @@ InitValue={
           res=res+math.sin(x/LX*TWOPI* i);
       end;
     -- ]]
-      return {0,res,0}
+      return {0,0,res}
     end
 
   , J=0.0
@@ -83,7 +93,7 @@ Grid=
       Min={0.0,0.0,0.0},
       Max={LX,LY,LZ},
 --      dt= 2.0*math.pi/omega_ci/100.0
-      dt=0.5*LX/ (NX-1)/c  -- time step     
+      dt=0.5*LX/NX/c  -- time step     
   },
   
 }
@@ -115,8 +125,8 @@ FieldSolver=
    ColdFluid=
     {
     B0 = {0,0,Btor},
-     {Name="ion",m=1.0,       Z= 1.0,T= Ti, n=N0, J=0},
-   --  {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,  n=N0, J=0}         
+       {Name="ion",m=1.0,       Z= 1.0,T=Ti,  n=N0, J=0},
+       {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
 --    PML=  {Width={8,8,0,0,0,0}}
