@@ -125,7 +125,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	Q.Fill(0);
 
 	VectorForm<0> K(mesh);
-	VectorForm<0> Kp(mesh);
+//	VectorForm<0> Kp(mesh);
 	//******************************************************************************************************
 	for (auto &v : sp_list_)
 	{
@@ -147,11 +147,13 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as;
 
-		Kp = Dot(Js + Ev * ns * Zs * as, B0) / BB * B0;
-
-		K -= Kp;
-
-		Js = Kp + (K + Cross(K, B0) * as) / (BB * as * as + 1);
+		//----------------------------------------------------
+		//		Kp = Dot(Js + Ev * ns * Zs * as, B0) / BB * B0;
+		//		K -= Kp;
+		//		Js = Kp + (K + Cross(K, B0) * as) / (BB * as * as + 1);
+		//----------------------------------------------------
+		Js = (K + Cross(K, B0) * as + Dot(K, B0) * B0 * as * as) / (BB * as * as + 1);
+		//----------------------------------------------------
 
 		Q -= Js;
 
@@ -165,11 +167,13 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	Kp = Dot(Q, B0) * B0 / BB;
-
-	Q -= Kp;
-
-	Ev = (Q * a - Cross(Q, B0) * b) / (b * b * BB + a * a) + Kp / (a + c * BB);
+	//----------------------------------------------------
+	//	Kp = Dot(Q, B0) * B0 / BB;
+	//	Q -= Kp;
+	//	Ev = (Q * a - Cross(Q, B0) * b) / (b * b * BB + a * a) + Kp / (a + c * BB);
+	//----------------------------------------------------
+	Ev = (Q * a - Cross(Q, B0) * b + Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+	//----------------------------------------------------
 
 	for (auto &v : sp_list_)
 	{
@@ -180,13 +184,16 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		Real as = (dt * Zs) / (2.0 * ms);
 
-		K = Ev * (as * Zs * ns);
 
-		Kp = Dot(Ev, B0) / BB * B0;
+		//----------------------------------------------------
+		//		K = Ev * (as * Zs * ns);
+		//		Kp = Dot(Ev, B0) / BB * B0;
+		//		K -= Kp;
+		//		Js += Kp + (K + Cross(K, B0) * as) / (BB * as * as + 1);
+		//----------------------------------------------------
+		Js += (Ev + Cross(Ev, B0) * as + Dot(Ev, B0) * B0 * (as * as)) * ((as * Zs * ns) / (BB * as * as + 1));
+		//----------------------------------------------------
 
-		K -= Kp;
-
-		Js += Kp + (K + Cross(K, B0) * as) / (BB * as * as + 1);
 	}
 //******************************************************************************************************
 //	for (auto &v : sp_list_)
