@@ -74,6 +74,10 @@ public:
 	}
 	void Deserialize(LuaObject const&cfg) override;
 	std::ostream & Serialize(std::ostream & os) const override;
+	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override
+	{
+		_NextTimeStepE(dt, E1, B1, dE);
+	}
 
 	void DumpData() const;
 
@@ -111,7 +115,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	RForm<0> b(mesh);
 	RForm<0> c(mesh);
 
-	a.Fill(0.0);
+	a.Fill(0);
 	b.Fill(0);
 	c.Fill(0);
 

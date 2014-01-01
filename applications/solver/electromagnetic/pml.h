@@ -63,8 +63,8 @@ public:
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
 
-	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
-	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
+	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE)override;
+	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB)override;
 
 	void DumpData() const;
 };
@@ -231,8 +231,6 @@ template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
 	LOGGER << "PML push E";
-	dE->Fill(0);
-
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<1> dX1(mesh);
@@ -254,9 +252,8 @@ template<typename TM>
 void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2> *dB)
 {
 	LOGGER << "PML Push B";
-	dB->Fill(0);
 
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+//	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<2> dX2(mesh);
 

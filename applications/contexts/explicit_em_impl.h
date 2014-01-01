@@ -98,6 +98,10 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext() :
 		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
 
+		cold_fluid_(nullptr),
+
+		pml_(nullptr),
+
 		particle_collection_(mesh),
 
 		isCompactStored_(true)
@@ -127,7 +131,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 	if (!cfg["FieldSolver"]["PML"].empty())
 	{
 		pml_ = CreateSolver(mesh, "PML");
-		pml_->Deserialize(cfg["FieldSolver"]["pml"]);
+		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
 	}
 	particle_collection_.Deserialize(cfg["Particles"]);
 
@@ -248,13 +252,17 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	os << "Grid = " << mesh << "\n"
 
-	<< " FieldSolver={ \n"
+	<< " FieldSolver={ \n";
 
-	<< *cold_fluid_ << ",\n"
+	if (cold_fluid_ != nullptr)
+		os << *cold_fluid_ << ",\n";
 
-	<< *pml_ << ",\n" << "} \n"
+	if (pml_ != nullptr)
+		os << *pml_ << ",\n";
 
-	<< particle_collection_ << "\n"
+	os << "} \n";
+
+	os << particle_collection_ << "\n"
 
 	;
 
@@ -341,7 +349,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	}
 	else
 	{
-		LOG_CMD(dE = (Curl(B) / mu0) * (dt / epsilon0));
+		LOG_CMD(dE = Curl(B) * (dt / mu0 / epsilon0));
 	}
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));

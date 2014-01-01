@@ -50,20 +50,20 @@ public:
 		return "Unknown";
 	}
 
-	void NextTimeStepE(double dt, Form<1> const&E, Form<2> const&B, Form<1> *dE)
+	virtual void NextTimeStepE(double dt, Form<1> const&E, Form<2> const&B, Form<1> *dE)
 	{
 		NOTHING_TODO;
 	}
-	void NextTimeStepB(double dt, Form<1> const&E, Form<2> const&B, Form<2> *dB)
+	virtual void NextTimeStepB(double dt, Form<1> const&E, Form<2> const&B, Form<2> *dB)
 	{
 		NOTHING_TODO;
 	}
 
-	void NextTimeStepE(double dt, VectorForm<0> const&E, VectorForm<0> const&B, VectorForm<0> *dE)
+	virtual void NextTimeStepE(double dt, VectorForm<0> const&E, VectorForm<0> const&B, VectorForm<0> *dE)
 	{
 		NOTHING_TODO;
 	}
-	void NextTimeStepB(double dt, VectorForm<0> const&E, VectorForm<0> const&B, VectorForm<0> *dB)
+	virtual void NextTimeStepB(double dt, VectorForm<0> const&E, VectorForm<0> const&B, VectorForm<0> *dB)
 	{
 		NOTHING_TODO;
 	}
