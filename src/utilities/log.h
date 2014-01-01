@@ -383,14 +383,8 @@ private:
 #ifndef NDEBUG
 #	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
-#	define EXCEPT(_COND_)    ((_COND_))?Logger():Logger(LOG_DEBUG)<<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(_COND_)<<"="<< (_COND_)<<" "
-#	define EXCEPT_EQ( actual,expected)    Logger(LOG_DEBUG,((expected)!=(actual) )) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(actual)<<" = "<< (actual) << " is not  "<< (expected) <<" "
 #else
 #	define CHECK(_MSG_)
-#	define EXCEPT(_COND_)
-#   define EXCEPT_EQ( actual,expected)
 #endif
 
 #define DOUBLELINE  std::setw(80) << std::setfill('=') << "="

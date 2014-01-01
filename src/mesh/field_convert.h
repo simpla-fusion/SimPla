@@ -37,14 +37,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, T> const & l,
 		auto &v =r->get(0,x,y,z);
 		for(int i=0;i<3;++i)
 		{
-			if(dims[i]>1)
-			{
-				v[i]=(mesh.get(l,i,x,y,z)+mesh.get(l,i,mesh.Shift(mesh.DES(i),x,y,z)))*0.5;
-			}
-			else
-			{
-				v[i]=mesh.get(l,i,x,y,z);
-			}
+			v[i]=(mesh.get(l,i,x,y,z)+mesh.get(l,i,mesh.Shift(mesh.DES(i),x,y,z)))*0.5;
 		}
 	});
 
@@ -70,14 +63,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, T>> const & l,
 	{
 		for(int i=0;i<3;++i)
 		{
-			if(dims[i]>1)
-			{
-				r->get(i,x,y,z)=(mesh.get(l,0,x,y,z)[i]+mesh.get(l,0,mesh.Shift(mesh.INC(i),x,y,z))[i])*0.5;
-			}
-			else
-			{
-				r->get(i,x,y,z)= mesh.get(l,0,x,y,z)[i];
-			}
+			r->get(i,x,y,z)=(mesh.get(l,0,x,y,z)[i]+mesh.get(l,0,mesh.Shift(mesh.INC(i),x,y,z))[i])*0.5;
 		}
 	}
 

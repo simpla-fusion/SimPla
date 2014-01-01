@@ -936,7 +936,7 @@ public:
 
 	inline shift_type INC(int m) const
 	{
-		return 1 << ((m % 3) * DIGITS_SHORT);
+		return 1L << ((m % 3) * DIGITS_SHORT);
 	}
 	inline shift_type DES(int m) const
 	{
