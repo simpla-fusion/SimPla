@@ -232,14 +232,6 @@ J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{J_{s}^{0}+\a
 \end_inset
 
 
-\begin_inset Formula 
-\[
-\alpha_{s}\equiv\frac{\Delta tZ_{s}}{2m_{s}}
-\]
-
-\end_inset
-
-
 \end_layout
 
 \begin_layout Standard
@@ -264,13 +256,22 @@ J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}Z_{s}n_{0s
 
 
 \begin_inset Formula 
+\[
+J_{s\parallel}^{1}=K_{\parallel}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
 \begin{eqnarray*}
 J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & K\\
 J_{s}^{1}\cdot B & = & K\cdot B\\
 J_{s}^{1}\times\boldsymbol{B}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}\times\boldsymbol{B} & = & K\times\boldsymbol{B}\\
 \alpha J_{s}^{1}\times\boldsymbol{B}-\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}+\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}\\
 J-K=\alpha J_{s}^{1}\times\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}+\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}-\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B}\\
-\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)J_{s}^{1} & = & K+\alpha K\times\boldsymbol{B}+\alpha^{2}K\cdot\boldsymbol{B}\boldsymbol{B}
+\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)J_{s}^{1} & = & K+\alpha K\times\boldsymbol{B}+\alpha^{2}K\cdot\boldsymbol{B}\boldsymbol{B}\\
+J_{s\perp}^{1} & = & \frac{K_{\perp}+\alpha K_{\perp}\times\boldsymbol{B}}{\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)}
 \end{eqnarray*}
 
 \end_inset
@@ -286,7 +287,8 @@ K_{s}^{0} & \equiv & J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s
 Solve it we get,
 \begin_inset Formula 
 \begin{eqnarray}
-J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)\label{eq:J1}
+J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)\label{eq:J1}\\
+ & = & \frac{K_{\perp}+\alpha K_{\perp}\times\boldsymbol{B}}{\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)}+K_{\parallel}
 \end{eqnarray}
 
 \end_inset
@@ -294,7 +296,7 @@ J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_
 where
 \begin_inset Formula 
 \begin{eqnarray*}
-\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}+\alpha_{s}\overleftrightarrow{I}\times B+\alpha_{s}^{2}\overleftrightarrow{I}\cdot BB}{\alpha_{s}^{2}B\cdot B+1}
+\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}\cdot\left(I-\boldsymbol{BB}/\boldsymbol{B}\cdot\boldsymbol{B}\right)+\alpha_{s}\overleftrightarrow{I}\times B}{\alpha_{s}^{2}B\cdot B+1}+\overleftrightarrow{I}\cdot\boldsymbol{B}\frac{\boldsymbol{B}}{\boldsymbol{B}\cdot\boldsymbol{B}}
 \end{eqnarray*}
 
 \end_inset
@@ -351,6 +353,34 @@ c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}
 
 \begin_inset Formula 
 \begin{eqnarray*}
+J_{s_{\parallel}}^{1}-J_{s\parallel}^{0} & = & \alpha_{s}\left(Z_{s}n_{0s}\left(E^{+}+E^{-}\right)_{\parallel}\right)\\
+E_{\parallel}^{+}-E_{\parallel}^{-} & = & -\frac{\Delta t}{2\varepsilon_{0}}\sum\left(J_{s_{\parallel}}^{1}+J_{s\parallel}^{0}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\alpha_{s}\equiv\frac{\Delta tZ_{s}}{2m_{s}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E_{\parallel}^{+} & = & E_{\parallel}^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}\left(E^{+}+E^{-}\right)_{\parallel}+2J_{s\parallel}^{0}\right)\\
+ & = & E_{\parallel}^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}E_{\parallel}^{-}+2J_{s\parallel}^{0}\right)\\
+ &  & -\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}\right)E_{\parallel}^{+}\\
+ & = & \frac{\left(1-a\right)}{1+a}E_{\parallel}^{-}-\frac{\Delta t}{\varepsilon_{0}\left(1+a\right)}\sum J_{s\parallel}^{0}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
 E^{+}\cdot B\left(a+cB^{2}\right) & = & Q\cdot B\\
 aE^{+}\times B+bE^{+}\cdot BB-bE^{+}B^{2} & = & Q\times B
 \end{eqnarray*}
@@ -364,8 +394,16 @@ E^{+}\cdot B & = & \frac{Q\cdot B}{a+cB^{2}}\\
 E^{+}\times B & = & \frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b}{a}E^{+}B^{2}\\
 aE^{+}+b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b^{2}}{a}E^{+}B^{2}+c\frac{Q\cdot B}{a+cB^{2}}B & = & Q\\
 \left(a+\frac{b^{2}}{a}B^{2}\right)E^{+} & = & Q-b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)-c\frac{Q\cdot B}{a+cB^{2}}B\\
-\left(a^{a}+b^{2}B^{2}\right)E^{+} & = & aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\\
-E^{+} & = & \frac{1}{\left(a^{a}+b^{2}B^{2}\right)}\left[aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right]
+\left(a^{a}+b^{2}B^{2}\right)E^{+} & = & aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+} & = & \frac{1}{\left(a^{a}+b^{2}B^{2}\right)}\left[aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right]\\
+E_{\parallel}^{+} & = & \frac{Q\cdot BB}{B^{2}\left(a+cB^{2}\right)}
 \end{eqnarray*}
 
 \end_inset

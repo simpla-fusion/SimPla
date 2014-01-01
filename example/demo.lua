@@ -3,9 +3,11 @@ Description="For Cold Plasma Dispersion" -- description or other text things.
 c = 299792458  -- m/s
 KeV = 1.1604e7    -- K
 Tesla = 1.0       -- Tesla    
+PI=3.141592653589793
+TWOPI=PI*2
 --
 
-Btor= 1.2  * Tesla
+Btor= 1.0  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
 
@@ -13,14 +15,14 @@ rhoi = 4.57*1e-3 * math.sqrt(Ti)/Btor  --1.02 * math.sqrt(Ti)/(1e4*Btor) -- m
 --    print(rhoi)
 
 k0 = 25./40.
-NX = 101
+NX = 100
 NY = 1
 NZ = 1
 LX = 100 --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0  -- 2.0*math.pi/18
 GW = 5 
-N0 = 2.4e18 -- 4*Btor*Btor* 5.327934360e15 -- m^-3
+N0 = 1.0e16 -- m^-3
 
 omega_ci = 9.578309e7 * Btor -- e/m_p B0 rad/s
 
@@ -36,10 +38,23 @@ InitN0=function(x,y,z)
       local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
       return dens1*N0
      end 
-InitValue={
-  n0= InitN0 
-     ,
-  B=function(x,y,z)
+
+InitValue={ 
+  E=function(x,y,z)
+     ---[[
+      local res = 0.0;
+      for i=1,20 do
+          res=res+math.sin(x/LX*TWOPI* i);
+      end;
+    -- ]]
+      return {0,res,0}
+    end
+
+  , J=0.0
+
+}
+
+B_background=function(x,y,z)
 --[[  
       local omega_ci_x0 = 1/1.55*omega;
       local omega_ci_lx = 1/1.45*omega;
@@ -48,11 +63,8 @@ InitValue={
 --]]
       return {0,0,Btor}  
      end
-      ,
-  E=0.0, J=0.0,
-  B0={0,0,1.0}
+      
 
-}
 -- GFile
 Grid=
 {
@@ -63,8 +75,7 @@ Grid=
   {       
       Type="3DCoRectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
-      GhostWidth= {5,0,0},  -- width of ghost points  , if gw=0, coordinate is 
-                              -- Periodic at this direction          
+      
   },
   Geometry=
   {
@@ -95,35 +106,33 @@ Boundary={
 --]]
 
 Particles={
-  {Name="H",Engine="Default",m=1.0,Z=1.0,PIC=100}
+--  {Name="H",Engine="Full",m=1.0,Z=1.0,PIC=100}
 }
 
 FieldSolver= 
 {
-
---[[
+---[[
    ColdFluid=
     {
-     {Name="ion",m=1.0,Z=1.0,T= Ti,
-       --n=function(x,y,z)   return InitN0(x,y,z)*0.5        end ,
-       n=InitN0, J=0},
-     {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,   n=InitN0, J=0}         
+    B0 = {0,0,Btor},
+     {Name="ion",m=1.0,       Z= 1.0,T= Ti, n=N0, J=0},
+   --  {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
-    PML=  {Width={15,15,0,0,0,0}}
-
+--    PML=  {Width={8,8,0,0,0,0}}
 }
 
-
+--[[
 CurrentSrc=
  { 
-  Points={{0.5*LX,0.0,0.0},},
+  
+  Points={{0.1*LX,0.0,0.0},},
   Fun=function(x,y,z,t)
-      local tau = t*omega_ci
+      local tau = t*omega_ci*1.9
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
  }
-
+]]
 
 -- The End ---------------------------------------
 

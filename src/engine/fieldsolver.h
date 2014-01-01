@@ -41,9 +41,19 @@ public:
 		return true;
 	}
 
-	virtual void Deserialize(LuaObject const&cfg);
-	virtual std::ostream & Serialize(std::ostream & os) const;
-	virtual void DumpData() const;
+	virtual void Deserialize(LuaObject const&cfg)
+	{
+	}
+	;
+	virtual std::ostream & Serialize(std::ostream & os) const
+	{
+		return os;
+	}
+	;
+	virtual void DumpData() const
+	{
+		NOTHING_TODO;
+	}
 
 	virtual std::string GetTypeAsString() const
 	{

@@ -33,7 +33,6 @@
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 #include "../utilities/utilities.h"
-#include "field_convert.h"
 #include "media_tag.h"
 namespace simpla
 {
@@ -355,7 +354,7 @@ public:
 	template<int IFORM, typename TV>
 	TV GetWeightOnElement(nTuple<3, TV> const & v, index_type const &s) const
 	{
-		return v[GetSubComponent<IFORM>(s)];
+		return v[s % num_comps_per_cell_[IFORM]];
 	}
 
 	inline index_type GetNearestVertex(coordinates_type const &x) const

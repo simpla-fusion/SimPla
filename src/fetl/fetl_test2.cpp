@@ -73,6 +73,7 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	res_vector_field1(mesh),res_vector_field2(mesh);
 
+	CHECK(Dot(vc1,vc2));
 	va=vc2;
 	vb=vc1;
 

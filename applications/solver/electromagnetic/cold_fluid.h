@@ -23,6 +23,7 @@
 #include "../../../src/physics/physical_constants.h"
 
 #include "../../../src/engine/fieldsolver.h"
+#include "../../../src/mesh/field_convert.h"
 namespace simpla
 {
 
@@ -57,10 +58,12 @@ private:
 	};
 	std::map<std::string, std::shared_ptr<Species>> sp_list_;
 	VectorForm<0> Ev;
+	RVectorForm<0> B0;
+	RForm<0> BB;
 public:
 
 	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), Ev(pmesh)
+			mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh)
 	{
 	}
 
@@ -98,19 +101,6 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	LOGGER << "Push Cold Fluid.";
 
-	VectorForm<0> cB0(mesh);
-	MapTo(B, &cB0);
-
-	RVectorForm<0> B0(mesh);
-	B0 = real(cB0);
-
-	RForm<0> BB(mesh);
-
-	BB = Dot(B0, B0);
-
-	if (Ev.empty())
-		MapTo(E, &Ev);
-
 	RForm<0> a(mesh);
 	RForm<0> b(mesh);
 	RForm<0> c(mesh);
@@ -119,15 +109,11 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	b.Fill(0);
 	c.Fill(0);
 
-	VectorForm<0> dEv(mesh);
-
-	MapTo(*dE, &dEv);
-
-	Ev += dEv * 0.5;
+	MapTo(E, &Ev);
 
 	VectorForm<0> Q(mesh);
 
-	Q = 0;
+	Q.Fill(0);
 
 	VectorForm<0> K(mesh);
 
@@ -157,15 +143,23 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	}
 
-	Q *= (0.5 * dt / epsilon0);
+	Q *= 0.5 * dt / epsilon0;
 	Q += Ev;
 
-	a *= (0.5 * dt) / epsilon0;
-	b *= (0.5 * dt) / epsilon0;
-	c *= (0.5 * dt) / epsilon0;
+	a *= 0.5 * dt / epsilon0;
+	b *= 0.5 * dt / epsilon0;
+	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	Ev = (Q * a - Cross(Q, B0) * b + Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+	Ev = (
+
+	Q * a
+
+	- Cross(Q, B0) * b
+
+	+ Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))
+
+	) / (b * b * BB + a * a);
 
 	for (auto &v : sp_list_)
 	{
@@ -179,11 +173,10 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		Js += (Ev + Cross(Ev, B0) * as + Dot(Ev, B0) * B0 * (as * as)) * ((as * Zs * ns) / (BB * as * as + 1));
 	}
 
-	Ev += dEv * (0.5);
-
 	MapTo(Ev, dE);
 
 	*dE -= E;
+	*dE /= dt;
 
 }
 
@@ -196,31 +189,44 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 	for (auto const & p : cfg)
 	{
 
-		std::string key;
-
-		if (!p.first.is_number())
+		if (p.first.template as<std::string>() == "B0")
 		{
-			key = p.first.as<std::string>();
+			LoadField(p.second, &B0);
+			BB = Dot(B0, B0);
 		}
 		else
 		{
-			p.second.GetValue("Name", &key);
+			std::string key;
+
+			if (!p.first.is_number())
+			{
+				key = p.first.as<std::string>();
+			}
+			else
+			{
+				p.second.GetValue("Name", &key);
+			}
+
+			std::shared_ptr<Species> sp(
+					new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+
+			sp->n.Init();
+			sp->J.Init();
+
+			if (!LoadField(p.second["n"], &(sp->n)))
+				sp->n.Fill(0);
+
+			if (!LoadField(p.second["J"], &(sp->J)))
+				sp->J.Fill(0);
+
+			sp_list_.emplace(std::make_pair(key, sp));
 		}
 
-		std::shared_ptr<Species> sp(
-				new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+	}
 
-		sp->n.Init();
-		sp->J.Init();
-
-		if (!LoadField(p.second["n"], &(sp->n)))
-			sp->n.Fill(0);
-
-		if (!LoadField(p.second["J"], &(sp->J)))
-			sp->J.Fill(0);
-
-		sp_list_.emplace(std::make_pair(key, sp));
-
+	if (BB.empty())
+	{
+		ERROR << "Background magnetic field is not initialized!";
 	}
 
 	LOGGER << "Load Cold Fluid solver" << DONE;

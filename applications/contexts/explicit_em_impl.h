@@ -71,11 +71,8 @@ public:
 
 	mesh_type mesh;
 
-	Form<1> E, dE;
-	Form<1> Jext;
-	Form<2> B, dB;
-	RVectorForm<0> B0;
-	RForm<0> n0;
+	Form<1> E;
+	Form<2> B;
 
 	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
 	std::shared_ptr<FieldSolver<mesh_type> > pml_;
@@ -87,7 +84,7 @@ public:
 
 	typedef LuaObject field_function;
 
-	FieldFunction<decltype(Jext), field_function> j_src_;
+	FieldFunction<Form<1>, field_function> j_src_;
 
 	std::multimap<std::string, std::function<void(Real dt)> > field_boundary_;
 	std::multimap<std::string, std::function<void(ParticleBase<mesh_type>*, Real dt)> > particle_boundary_;
@@ -96,7 +93,7 @@ public:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(mesh), dE(mesh), B(mesh), dB(mesh), Jext(mesh), B0(mesh), n0(mesh),
+		E(mesh), B(mesh),
 
 		cold_fluid_(nullptr),
 
@@ -137,22 +134,33 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 	auto init_value = cfg["InitValue"];
 
-	auto gfile = cfg["GFile"];
-
-	dE.Init();
-	dB.Init();
-	if (gfile.empty())
+	if (!init_value.empty())
 	{
-		LoadField(init_value["n0"], &n0);
-		LoadField(init_value["B0"], &B0);
-		LoadField(init_value["E"], &E);
-		LoadField(init_value["B"], &B);
-		LoadField(init_value["J"], &Jext);
 
+		if (!init_value["E"].empty())
+		{
+			LOGGER << "Load E";
+			LoadField(init_value["E"], &E);
+
+		}
+		else
+		{
+			E.Fill(0);
+		}
+		if (!init_value["B"].empty())
+		{
+			LOGGER << "Load B";
+			LoadField(init_value["B"], &B);
+		}
+		else
+		{
+			B.Fill(0);
+		}
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 	else
 	{
+		auto gfile = cfg["GFile"];
 		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
 
@@ -275,15 +283,9 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	<< "Fields={" << "\n"
 
-	<< "	n0 = " << DUMP(n0) << ",\n"
-
 	<< "	E = " << DUMP(E) << ",\n"
 
 	<< "	B = " << DUMP(B) << ",\n"
-
-	<< "	J = " << DUMP(Jext) << ",\n"
-
-	<< "	B0 = " << DUMP(B0) << "\n"
 
 	<< "}" << "\n"
 
@@ -307,29 +309,106 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
-	Form<1> Jext(mesh);
-
-	Jext.Fill(0);
-
-	if (dB.empty())
-		dB = -Curl(E) * dt;
-
 	//************************************************************
 	// Compute Cycle Begin
 	//************************************************************
 
+	particle_collection_.Sort();
+
+	Form<1> dE(mesh);
+	dE.Fill(0);
+
+	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
+	if (cold_fluid_ != nullptr)
+	{
+//		Form<1> dE2(mesh);
+//		dE2.Fill(0);
+
+		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
+//
+//		E += dE2 * (0.5 * dt);
+//
+//		dE += dE2;
+	}
+
+	if (pml_ != nullptr)
+	{
+		pml_->NextTimeStepE(dt, E, B, &dE);
+	}
+	else
+	{
+		LOG_CMD(dE += Curl(B) / (mu0 * epsilon0));
+	}
+
+	Form<1> Jext(mesh);
+	Jext.Fill(0);
+
 	if (!j_src_.empty())
 	{
-		LOGGER << "Current Source:" << DUMP(Jext);
+		LOGGER << "Current Source:";
 		j_src_(&Jext, base_type::GetTime());
 	}
 
-	particle_collection_.Sort();
+	LOG_CMD(dE -= Jext / epsilon0);
+
+	// E(t=0  -> 1/2  )
+	LOG_CMD(E += dE * 0.5 * dt);
+
+	// particle(t=0 -> 1)
+	particle_collection_.NextTimeStep(dt, E, B);
+
+	{
+		for (auto & p : particle_collection_)
+			for (auto & fun : particle_boundary_)
+			{
+				if (fun.first == "" || p.first == fun.first)
+				{
+					fun.second(p.second.get(), dt);
+
+					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
+				}
+
+			}
+
+	}
+	//  E(t=1/2  -> 1)
+	LOG_CMD(E += dE * 0.5 * dt);
+
+	{
+		int count = 0;
+		auto range = field_boundary_.equal_range("E");
+		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+		{
+			fun_it->second(dt);
+			++count;
+		}
+		if (count > 0)
+			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
+	}
+
+	LOGGER << "Apply boundary condition on E" << DONE;
+
+	Form<2> dB(mesh);
+
+	dB.Fill(0);
+
+	if (pml_ != nullptr)
+	{
+		pml_->NextTimeStepB(dt, E, B, &dB);
+	}
+	else
+	{
+		LOG_CMD(dB = -Curl(E));
+	}
+
+	//  B(t=1/2 -> 1)
+	LOG_CMD(B += dB * 0.5 * dt);
+
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	particle_collection_.Collect(&Jext, E, B);
 
 	// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
+	LOG_CMD(B += dB * 0.5 * dt);
 
 	{
 		int count = 0;
@@ -342,69 +421,6 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 		if (count > 0)
 			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
 	}
-
-	if (pml_ != nullptr)
-	{
-		pml_->NextTimeStepE(dt, E, B, &dE);
-	}
-	else
-	{
-		LOG_CMD(dE = Curl(B) * (dt / mu0 / epsilon0));
-	}
-
-	LOG_CMD(dE -= Jext * (dt / epsilon0));
-
-	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
-	if (cold_fluid_ != nullptr)
-		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
-
-	// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5);
-//	//  particle(t=0 -> 1)
-//	particle_collection_.NextTimeStep(dt, E, B);
-//
-//	{
-//		for (auto & p : particle_collection_)
-//			for (auto & fun : particle_boundary_)
-//			{
-//				if (fun.first == "" || p.first == fun.first)
-//				{
-//					fun.second(p.second.get(), dt);
-//
-//					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
-//				}
-//
-//			}
-//
-//	}
-	//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5);
-
-//	{
-//		int count = 0;
-//		auto range = field_boundary_.equal_range("E");
-//		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-//		{
-//			fun_it->second(dt);
-//			++count;
-//		}
-//		if (count > 0)
-//			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
-//	}
-
-	LOGGER << "Apply boundary condition on E" << DONE;
-
-	if (pml_ != nullptr)
-	{
-		pml_->NextTimeStepB(dt, E, B, &dB);
-	}
-	else
-	{
-		LOG_CMD(dB = -Curl(E) * dt);
-	}
-
-	//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5);
 
 	//************************************************************
 	// Compute Cycle End
@@ -420,9 +436,8 @@ void ExplicitEMContext<TM>::DumpData() const
 
 	LOGGER << "Dump B to " << Data(B.data(), "B", B.GetShape(), isCompactStored_);
 
-	LOGGER << "Dump J to " << Data(Jext.data(), "J", Jext.GetShape(), isCompactStored_);
+	if(cold_fluid_!=nullptr) cold_fluid_->DumpData();
 
-	cold_fluid_->DumpData();
 	particle_collection_.DumpData();
 
 }

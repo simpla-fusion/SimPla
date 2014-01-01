@@ -34,27 +34,35 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 
 	if (obj.is_function())
 	{
+		mesh.SerialTraversal(IFORM,
 
-		if (IFORM == 1 || IFORM == 2)
+		[&](size_t s,typename mesh_type::coordinates_type const &x)
 		{
-			mesh.SerialTraversal(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
-			{
-				(*f)[s]=mesh.template GetWeightOnElement<IFORM>(
-						obj(x[0],x[1],x[2]).template as<nTuple<3,TV>>(),s);
-			});
-		}
-		else
-		{
+			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
+			(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
+		});
 
-			mesh.SerialTraversal(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
-			{
-				(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
-
-			});
-		}
+//		if (IFORM == EDGE || IFORM == FACE)
+//		{
+//			mesh.SerialTraversal(IFORM,
+//
+//			[&](size_t s,typename mesh_type::coordinates_type const &x)
+//			{
+//				auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
+//				(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
+//			});
+//		}
+//		else
+//		{
+//
+//			mesh.SerialTraversal(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
+//			{
+//				(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
+//
+//			});
+//		}
 
 	}
-
 	else if (obj.is_number())
 	{
 		*f = obj.as<Real>();

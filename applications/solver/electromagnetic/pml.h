@@ -63,8 +63,8 @@ public:
 	void Deserialize(LuaObject const&cfg);
 	std::ostream & Serialize(std::ostream & os) const;
 
-	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE)override;
-	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB)override;
+	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override;
+	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB) override;
 
 	void DumpData() const;
 };
@@ -237,15 +237,15 @@ void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1>
 
 	dX1 = (-2.0 * s0 * X10 + CurlPDX(B1 / mu0)) / (a0 / dt + s0);
 	X10 += dX1;
-	*dE = dX1 / epsilon0;
+	*dE += dX1 / dt / epsilon0;
 
 	dX1 = (-2.0 * s1 * X11 + CurlPDY(B1 / mu0)) / (a1 / dt + s1);
 	X11 += dX1;
-	*dE += dX1 / epsilon0;
+	*dE += dX1 / dt / epsilon0;
 
 	dX1 = (-2.0 * s2 * X12 + CurlPDZ(B1 / mu0)) / (a2 / dt + s2);
 	X12 += dX1;
-	*dE += dX1 / epsilon0;
+	*dE += dX1 / dt / epsilon0;
 }
 
 template<typename TM>
@@ -259,15 +259,15 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 
 	dX2 = (-2.0 * s0 * X20 + CurlPDX(E1)) / (a0 / dt + s0);
 	X20 += dX2;
-	*dB = -dX2;
+	*dB -= dX2 / dt;
 
 	dX2 = (-2.0 * s1 * X21 + CurlPDY(E1)) / (a1 / dt + s1);
 	X21 += dX2;
-	*dB -= dX2;
+	*dB -= dX2 / dt;
 
 	dX2 = (-2.0 * s2 * X22 + CurlPDZ(E1)) / (a2 / dt + s2);
 	X22 += dX2;
-	*dB -= dX2;
+	*dB -= dX2 / dt;
 }
 
 } //namespace simpla
