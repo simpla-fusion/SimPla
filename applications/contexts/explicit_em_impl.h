@@ -73,6 +73,7 @@ public:
 
 	Form<1> E;
 	Form<2> B;
+	Form<1> J;
 
 	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
 	std::shared_ptr<FieldSolver<mesh_type> > pml_;
@@ -93,7 +94,7 @@ public:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(mesh), B(mesh),
+		E(mesh), B(mesh), J(mesh),
 
 		cold_fluid_(nullptr),
 
@@ -156,6 +157,17 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		{
 			B.Fill(0);
 		}
+
+		if (!init_value["J"].empty())
+		{
+			LOGGER << "Load J";
+			LoadField(init_value["J"], &J);
+		}
+		else
+		{
+			J.Fill(0);
+		}
+
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 	else
@@ -287,6 +299,8 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	<< "	B = " << DUMP(B) << ",\n"
 
+	<< "	J = " << DUMP(J) << ",\n"
+
 	<< "}" << "\n"
 
 	;
@@ -313,23 +327,8 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	// Compute Cycle Begin
 	//************************************************************
 
-	particle_collection_.Sort();
-
 	Form<1> dE(mesh);
 	dE.Fill(0);
-
-	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
-	if (cold_fluid_ != nullptr)
-	{
-//		Form<1> dE2(mesh);
-//		dE2.Fill(0);
-
-		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
-//
-//		E += dE2 * (0.5 * dt);
-//
-//		dE += dE2;
-	}
 
 	if (pml_ != nullptr)
 	{
@@ -340,19 +339,37 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 		LOG_CMD(dE += Curl(B) / (mu0 * epsilon0));
 	}
 
-	Form<1> Jext(mesh);
-	Jext.Fill(0);
+	LOG_CMD(dE -= J / epsilon0);
 
 	if (!j_src_.empty())
 	{
 		LOGGER << "Current Source:";
-		j_src_(&Jext, base_type::GetTime());
+		J.Fill(0);
+		j_src_(&J, base_type::GetTime());
+		LOG_CMD(dE -= J / epsilon0);
+
 	}
 
-	LOG_CMD(dE -= Jext / epsilon0);
+	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
+	if (cold_fluid_ != nullptr)
+	{
+		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
+	}
 
 	// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE * 0.5 * dt);
+
+	{
+		int count = 0;
+		auto range = field_boundary_.equal_range("E");
+		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+		{
+			fun_it->second(dt);
+			++count;
+		}
+		if (count > 0)
+			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
+	}
 
 	// particle(t=0 -> 1)
 	particle_collection_.NextTimeStep(dt, E, B);
@@ -398,14 +415,27 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	}
 	else
 	{
-		LOG_CMD(dB = -Curl(E));
+		LOG_CMD(dB += -Curl(E));
 	}
 
 	//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5 * dt);
+	{
+		int count = 0;
+		auto range = field_boundary_.equal_range("B");
+		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
+		{
+			fun_it->second(dt);
+			++count;
+		}
+		if (count > 0)
+			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
+	}
 
+	particle_collection_.Sort();
+	J.Fill(0);
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-	particle_collection_.Collect(&Jext, E, B);
+	particle_collection_.Collect(&J, E, B);
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5 * dt);

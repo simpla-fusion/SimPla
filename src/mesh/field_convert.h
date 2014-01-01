@@ -23,18 +23,29 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, T> const & l,
 	r->Init();
 
 	typedef CoRectMesh<TS> mesh_type;
+
 	mesh_type const &mesh = r->mesh;
 
+	auto const &dims = mesh.GetDimension();
+
 	typedef typename mesh_type::index_type index_type;
-	r->mesh.ParallelTraversal(0,
+
+	mesh.ParallelTraversal(0,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
 		auto &v =r->get(0,x,y,z);
-		v[0]=(mesh.get(l,0,x,y,z)+mesh.get(l,0,mesh.Shift(mesh.DES(0),x,y,z)))*0.5;
-		v[1]=(mesh.get(l,1,x,y,z)+mesh.get(l,1,mesh.Shift(mesh.DES(1),x,y,z)))*0.5;
-		v[2]=(mesh.get(l,2,x,y,z)+mesh.get(l,2,mesh.Shift(mesh.DES(2),x,y,z)))*0.5;
-
+		for(int i=0;i<3;++i)
+		{
+			if(dims[i]>1)
+			{
+				v[i]=(mesh.get(l,i,x,y,z)+mesh.get(l,i,mesh.Shift(mesh.DES(i),x,y,z)))*0.5;
+			}
+			else
+			{
+				v[i]=mesh.get(l,i,x,y,z);
+			}
+		}
 	});
 
 }
@@ -48,16 +59,26 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, T>> const & l,
 	typedef CoRectMesh<TS> mesh_type;
 
 	mesh_type const &mesh = l.mesh;
+
+	auto const &dims = mesh.GetDimension();
+
 	typedef typename mesh_type::index_type index_type;
 
 	mesh.ParallelTraversal(0,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
-		auto &v =r->get(0,x,y,z);
-		r->get(0,x,y,z)=(mesh.get(l,0,x,y,z)[0]+mesh.get(l,0,mesh.Shift(mesh.INC(0),x,y,z))[0])*0.5;
-		r->get(1,x,y,z)=(mesh.get(l,0,x,y,z)[1]+mesh.get(l,0,mesh.Shift(mesh.INC(1),x,y,z))[1])*0.5;
-		r->get(2,x,y,z)=(mesh.get(l,0,x,y,z)[2]+mesh.get(l,0,mesh.Shift(mesh.INC(2),x,y,z))[2])*0.5;
+		for(int i=0;i<3;++i)
+		{
+			if(dims[i]>1)
+			{
+				r->get(i,x,y,z)=(mesh.get(l,0,x,y,z)[i]+mesh.get(l,0,mesh.Shift(mesh.INC(i),x,y,z))[i])*0.5;
+			}
+			else
+			{
+				r->get(i,x,y,z)= mesh.get(l,0,x,y,z)[i];
+			}
+		}
 	}
 
 	);
