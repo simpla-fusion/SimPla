@@ -76,30 +76,17 @@ template<int N, typename TL, typename TR>
 inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 //***********************************************************************************
-//namespace ntuple_impl
-//{
-//template<int N, typename TL, typename TR>
-//inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
-//DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
-//}  // namespace ntuple_impl
-//
-//template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
-//DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
-
-template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
-->nTuple<3,decltype(l[0]*r[0])>
+namespace ntuple_impl
 {
-	nTuple<3, decltype(l[0]*r[0])> res = {
+template<int N, typename TL, typename TR>
+inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
+DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
+}  // namespace ntuple_impl
 
-	l[1] * r[2] - l[2] * r[1],
+template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
 
-	l[2] * r[0] - l[0] * r[2],
 
-	l[0] * r[1] - l[1] * r[0]
-
-	};
-	return std::move(res);
-}
 //DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
 
 //***********************************************************************************

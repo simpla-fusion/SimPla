@@ -57,7 +57,7 @@ template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto Fi
 //        DECL_RET_TYPE((l +r.get(s...)))
 
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<PLUS>,
-        Field<TGeo, TL> const &l, TR r, TI ... s)
+        Field<TGeo, TL> const &l, TR const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...)+r))
 }  // namespace fetl_impl
 
@@ -70,7 +70,7 @@ DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , Field<TGeo, TR> > > (l
 //DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator+(Field<TGeo, TL> const & lhs, TR rhs)
+operator+(Field<TGeo, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 //****************************************************************************************************
 namespace fetl_impl
@@ -84,7 +84,7 @@ template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto Fi
 //        DECL_RET_TYPE((l -r.get(s...)))
 
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TGeo, TL> const &l, TR r, TI ... s)
+        Field<TGeo, TL> const &l, TR const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...)-r))
 
 }  // namespace fetl_impl
@@ -97,7 +97,7 @@ DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , Field<TGeo, TR> > > (
 //DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,TL , Field<TGeo, TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator-(Field<TGeo, TL> const & lhs, TR rhs)
+operator-(Field<TGeo, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 
 // *****************************************************************
@@ -106,15 +106,11 @@ namespace fetl_impl
 {
 
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<TGeo, TL> const &l, TR r, TI ... s)
+        Field<TGeo, TL> const &l, TR const &r, TI ... s)
         DECL_RET_TYPE((l.get(s...) * r))
 
-template<typename TGeo, typename TL, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<TGeo, TL> const &l, Real r, TI ... s)
-        DECL_RET_TYPE((l.get(s...) * r))
-
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>, TL l,
-        Field<TGeo, TR> const & r, TI ... s)
+template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
+        TL const & l, Field<TGeo, TR> const & r, TI ... s)
         DECL_RET_TYPE((l * r.get(s...)))
 
 template<typename TGeo, typename TL, int IR, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
@@ -130,10 +126,6 @@ template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> 
         DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)*
 				        r.mesh.mapto(Int2Type<IL+IR>(),r,s...)) )
 
-template<typename TM, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<Geometry<TM, 0>, TL> const &l, Field<Geometry<TM, 0>, TR> const &r, TI ... s)
-        DECL_RET_TYPE( (l.get(s...)* r.get(s...)) )
-
 }  // namespace fetl_impl
 
 template<typename TM, int IL, int IR, typename TL, typename TR> inline auto //
@@ -142,20 +134,20 @@ DECL_RET_TYPE((Field<Geometry<TM,IL+IR>,BiOp<MULTIPLIES,
 				Field<Geometry<TM,IL>,TL>, Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator*(Field<TGeo, TL> const & lhs, TR rhs)
+operator*(Field<TGeo, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,Field<TGeo,TL>,TR > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator*(TL lhs, Field<TGeo, TR> const & rhs)
+operator*(TL const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,TL,Field<TGeo,TR> > > (lhs, rhs)))
 //
 //// To remve the ambiguity of operator define
 template<typename TGeo, typename TL, int NR, typename TR> inline auto //
-operator*(Field<TGeo, TL> const & lhs, nTuple<NR, TR> rhs)
+operator*(Field<TGeo, TL> const & lhs, nTuple<NR, TR> const & rhs)
 DECL_RET_TYPE((Field<TGeo, BiOp<MULTIPLIES,Field<TGeo,TL>,nTuple<NR, TR> > > (lhs, rhs)))
 
 template<typename TGeo, int NL, typename TL, typename TR> inline auto //
-operator*(nTuple<NL, TL> lhs, Field<TGeo, TR> const & rhs)
+operator*(nTuple<NL, TL> const & lhs, Field<TGeo, TR> const & rhs)
 DECL_RET_TYPE((Field<TGeo, BiOp<MULTIPLIES,nTuple<NL,TL>,Field<TGeo,TR> > > (lhs, rhs)))
 
 // *****************************************************************
@@ -163,7 +155,7 @@ DECL_RET_TYPE((Field<TGeo, BiOp<MULTIPLIES,nTuple<NL,TL>,Field<TGeo,TR> > > (lhs
 namespace fetl_impl
 {
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
-        Field<TGeo, TL> const &l, TR r, TI ... s)
+        Field<TGeo, TL> const &l, TR const &r, TI ... s)
         DECL_RET_TYPE( (l.get(s...)/ r) )
 
 template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(
@@ -173,11 +165,11 @@ template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> 
 }  // namespace fetl_impl
 
 template<typename TGeo, typename TL, typename TR> inline auto //
-operator/(Field<TGeo, TL> const & lhs, TR rhs)
+operator/(Field<TGeo, TL> const & lhs, TR const & rhs)
 DECL_RET_TYPE( (Field<TGeo, BiOp<DIVIDES,Field<TGeo, TL>,TR > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, int NR, typename TR> inline auto //
-operator/(Field<TGeo, TL> const & lhs, nTuple<NR, TR> rhs)
+operator/(Field<TGeo, TL> const & lhs, nTuple<NR, TR> const & rhs)
 DECL_RET_TYPE( (Field<TGeo, BiOp<DIVIDES,Field<TGeo, TL>, nTuple<NR,TR> > > (lhs, rhs))
 )
 
@@ -186,31 +178,17 @@ DECL_RET_TYPE( (Field<TGeo, BiOp<DIVIDES,Field<TGeo, TL>, nTuple<NR,TR> > > (lhs
 namespace fetl_impl
 {
 
-template<typename TL, typename TR> inline auto _Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
-->nTuple<3,decltype(l[0]*r[0])>
-{
-	nTuple<3, decltype(l[0]*r[0])> res = { 0, 0, 0 };
-
-	res[0] = l[1] * r[2] - l[2] * r[1];
-
-	res[1] = l[2] * r[0] - l[0] * r[2];
-
-	res[2] = l[0] * r[1] - l[1] * r[0];
-
-	return std::move(res);
-}
-
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<CROSS>,
         Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI ... s)
-        DECL_RET_TYPE( (_Cross(l.get(s...),r.get(s...))))
+        DECL_RET_TYPE( (Cross(l.get(s...),r.get(s...))))
 
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<CROSS>,
         Field<TGeo, TL> const &l, nTuple<3, TR> const &r, TI ... s)
-        DECL_RET_TYPE((_Cross(l.get(s...) , r)))
+        DECL_RET_TYPE((Cross(l.get(s...) , r)))
 
 template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<CROSS>,
         nTuple<3, TL> const & l, Field<TGeo, TR> const & r, TI ... s)
-        DECL_RET_TYPE((_Cross(l , r.get(s...))))
+        DECL_RET_TYPE((Cross(l , r.get(s...))))
 
 } // namespace fetl_impl
 template<typename TM, typename TL, typename TR> inline auto //

@@ -27,7 +27,7 @@ omega_ce = e * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 100
+NX = 500
 NY = 1
 NZ = 1
 LX = 0.25 --m --100000*rhoi --0.6
@@ -77,11 +77,11 @@ InitValue={
   E=function(x,y,z)
      ---[[
       local res = 0.0;
-      for i=1,1 do
+      for i=1,40 do
           res=res+math.sin(x/LX*TWOPI* i);
       end;
     
-      return {0,res,0}
+      return {0,res,res}
     end
 --]]
 
@@ -150,8 +150,8 @@ FieldSolver=
    ColdFluid=
     {
        B0={0,0,Btor},
-          {Name="ion",m=1.0,      Z= 1.0,T=Ti,  n=N0, J=0},
- --       {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
+        {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
+        {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
   -- PML=  {Width={8,8,0,0,0,0}}

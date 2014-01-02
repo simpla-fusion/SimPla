@@ -123,7 +123,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	Q.Fill(0);
 
 	VectorForm<0> K(mesh);
-	VectorForm<0> Kp(mesh);
+	K.Fill(0);
 	//******************************************************************************************************
 	for (auto &v : sp_list_)
 	{
@@ -143,13 +143,9 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		Q -= Js;
 
-		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as;
+		K = Cross(Js, B0) * as + Ev * ns * Zs * as + Js;
 
-//		Kp = Dot(Js + Cross(Js, B0) * as + Ev * ns * Zs * as, B0) * B0 / BB;
-//		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as - Kp;
-//		Js = Kp + (K + Cross(K, B0) /* *as *//*+ B0 * Dot(K, B0) * as * as*/) / (BB * as * as + 1);
-
-		Js = (K + Cross(K, B0) * as + B0 * Dot(K, B0) * as * as) / (BB * as * as + 1);
+		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
 
 		Q -= Js;
 
@@ -163,9 +159,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	LOGGER << DUMP(a) << DUMP(b) << DUMP(c);
-
-	Ev = (Q * a - Cross(Q, B0) * b + Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+	Ev = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	for (auto &v : sp_list_)
 	{
@@ -285,6 +279,51 @@ inline std::ostream & operator<<(std::ostream & os, ColdFluidEM<TM> const &self)
 	return self.Serialize(os);
 }
 
+
+
+
 }  // namespace simpla
+
+
+/**
+ *
+ *
+ *
+//template<typename TL> inline auto operator*(nTuple<3, TL> const & l, Real r)
+//-> nTuple<3, decltype(l[0]*r)>
+//{
+//	nTuple<3, decltype(l[0]*r)> res = { l[0] * r, l[1] * r, l[2] * r };
+//
+//	return std::move(res);
+//}
+namespace fetl_impl
+{
+
+template<typename TM, typename TL, typename TR, typename ...TI>
+inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Field<Geometry<TM, 0>, TR> r,
+        TI ... s)
+        DECL_RET_TYPE((l.get(s...)*r.get(s...)))
+
+template<typename TM, typename TL, typename ...TI>
+inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Real r, TI ... s)
+DECL_RET_TYPE((l.get(s...)*r))
+
+}
+
+//template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
+//->nTuple<3,decltype(l[0]*r[0])>
+//{
+//	nTuple<3, decltype(l[0]*r[0])> res = {
+//
+//	l[1] * r[2] - l[2] * r[1],
+//
+//	l[2] * r[0] - l[0] * r[2],
+//
+//	l[0] * r[1] - l[1] * r[0]
+//
+//	};
+//	return std::move(res);
+//}
+ */
 
 #endif /* COLD_FLUID_H_ */
