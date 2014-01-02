@@ -67,6 +67,16 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	res_scalar = Dot(vc1, vc2);
 
+	typename TestFixture::ScalarField a(mesh);a.Init();
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	for(auto & p:a)
+	{
+		p = uniform_dist(gen);
+	}
+
 	typename TestFixture::ScalarField res_scalar_field(mesh);
 
 	typename TestFixture::VectorField va(mesh), vb(mesh),
@@ -77,11 +87,13 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 	va=vc2;
 	vb=vc1;
 
+	CHECK(Cross(vc1,vc2));
+
 	LOG_CMD(res_scalar_field = Dot(vc1, va));
 
-	LOG_CMD(res_vector_field1 = Cross( va,vc1));
+	LOG_CMD(res_vector_field1 = Cross( va,vc1)*2*a);
 
-	LOG_CMD(res_vector_field2 = Cross( va,vb));
+	LOG_CMD(res_vector_field2 = Cross( va,vb)*3*a);
 
 	mesh.ForEach (
 
@@ -92,21 +104,16 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	);
 
-	mesh.ForEach (
+	mesh.Traversal (0,
 
-			[&](typename TestFixture::VectorField::value_type const & v)
+			[&](typename TestFixture::VectorField::index_type s)
 			{
-				ASSERT_EQ(res_vec , v);
-			},res_vector_field1
+				typename TestFixture::Vec3 res;
+				res=res_vec*2*a[s];
+				ASSERT_EQ(res, res_vector_field1[s]);
+				ASSERT_EQ(res, res_vector_field1[s]);
+			}
 
 	);
-
-	mesh.ForEach (
-			[&](typename TestFixture::VectorField::value_type const & v)
-			{
-				ASSERT_EQ(res_vec , v);
-			},res_vector_field2
-	);
-
 }
 }

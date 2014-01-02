@@ -81,7 +81,7 @@ InitValue={
           res=res+math.sin(x/LX*TWOPI* i);
       end;
     
-      return {0,res,res}
+      return {res,res,res}
     end
 --]]
 
@@ -150,8 +150,8 @@ FieldSolver=
    ColdFluid=
     {
        B0={0,0,Btor},
-        {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
-        {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
+   --     {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
+   --    {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
   -- PML=  {Width={8,8,0,0,0,0}}
