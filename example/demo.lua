@@ -150,8 +150,9 @@ FieldSolver=
    ColdFluid=
     {
        B0={0,0,Btor},
-   --     {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
-   --    {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
+       Method=1,
+        {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
+        {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
   -- PML=  {Width={8,8,0,0,0,0}}

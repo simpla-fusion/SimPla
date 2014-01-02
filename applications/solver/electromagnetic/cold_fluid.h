@@ -38,6 +38,8 @@ public:
 	typedef ColdFluidEM<mesh_type> this_type;
 
 	mesh_type const & mesh;
+
+	int method_;
 private:
 
 	struct Species
@@ -63,7 +65,7 @@ private:
 public:
 
 	ColdFluidEM(mesh_type const & pmesh)
-			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh)
+			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), method_(0)
 	{
 	}
 
@@ -79,7 +81,15 @@ public:
 	std::ostream & Serialize(std::ostream & os) const override;
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override
 	{
-		_NextTimeStepE(dt, E1, B1, dE);
+		if (method_ == 0)
+		{
+			_NextTimeStepE(dt, E1, B1, dE);
+		}
+		else
+		{
+			_NextTimeStepE2(dt, E1, B1, dE);
+		}
+
 	}
 
 	void DumpData() const;
@@ -87,7 +97,8 @@ public:
 private:
 	template<typename TE, typename TB> inline
 	void _NextTimeStepE(Real dt, TE const &dE, TB const &B0, TE *E);
-
+	template<typename TE, typename TB> inline
+	void _NextTimeStepE2(Real dt, TE const &dE, TB const &B0, TE *E);
 }
 ;
 template<typename TM>
@@ -108,6 +119,12 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	a.Fill(0);
 	b.Fill(0);
 	c.Fill(0);
+
+	if (BB.empty())
+	{
+		MapTo(B, &B0);
+		BB = Dot(B0, B0);
+	}
 
 	if (Ev.empty())
 		MapTo(E, &Ev);
@@ -184,6 +201,110 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 }
 
 template<typename TM>
+template<typename TE, typename TB> inline
+void ColdFluidEM<TM>::_NextTimeStepE2(Real dt, TE const &E, TB const &B, TE *dE)
+{
+	DEFINE_PHYSICAL_CONST(mesh.constants());
+
+	LOGGER << ("Method2");
+
+	if (BB.empty())
+	{
+		MapTo(B, &B0);
+		BB = Dot(B0, B0);
+	}
+
+	if (Ev.empty())
+		MapTo(E, &Ev);
+
+	RForm<0> a(mesh);
+	RForm<0> b(mesh);
+	RForm<0> c(mesh);
+
+	a.Fill(0);
+	b.Fill(0);
+	c.Fill(0);
+
+	VectorForm<0> dEv(mesh);
+	MapTo(*dE, &dEv);
+
+	VectorForm<0> K(mesh);
+	K.Fill(0);
+
+	VectorForm<0> Q(mesh);
+	Q.Fill(0);
+
+	Ev += dEv * (0.5 * dt);
+
+	for (auto &v : sp_list_)
+	{
+
+		auto & ns = v.second->n;
+		auto & Js = v.second->J;
+		auto ms = v.second->m * proton_mass;
+		auto Zs = v.second->Z * elementary_charge;
+
+		Real as = 2.0 * ms / (dt * Zs);
+
+		a += ns * Zs / as;
+		b += ns * Zs / (BB + as * as);
+		c += ns * Zs / ((BB + as * as) * as);
+
+	}
+	a *= (0.5 * dt) / epsilon0;
+	b *= (0.5 * dt) / epsilon0;
+	c *= (0.5 * dt) / epsilon0;
+
+	a += 1.0;
+
+	for (auto &v : sp_list_)
+	{
+		auto ms = v.second->m * proton_mass;
+		auto Zs = v.second->Z * elementary_charge;
+		auto & ns = v.second->n;
+		auto & Js = v.second->J;
+
+		Real as = 2.0 * ms / (dt * Zs);
+
+		Q -= Js * 0.5 * dt / epsilon0;
+
+		K = Js * as + Cross(Js, B0) + ((Ev) * ns) * Zs;
+
+		Js = K / as + Cross(K, B0) / (BB + as * as) + Cross(Cross(K, B0), B0) / (as * (BB + as * as));
+
+		Q -= Js * 0.5 * dt / epsilon0;
+	}
+
+	Q += Ev;
+
+	Ev = Q / a
+
+	- Cross(Q, B0) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+
+	- Cross(Cross(Q, B0), B0) * (-c * c * BB + c * a - b * b) / (a * ((c * BB - a) * (c * BB - a) + b * b * BB))
+
+	;
+
+	for (auto &v : sp_list_)
+	{
+		auto ms = v.second->m * proton_mass;
+		auto Zs = v.second->Z * elementary_charge;
+		auto & ns = v.second->n;
+		auto & Js = v.second->J;
+		Real as = 2.0 * ms / (dt * Zs);
+
+		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * Zs);
+	}
+
+	Ev += dEv * (0.5 * dt);
+
+	LOG_CMD(MapTo(Ev, dE));
+
+	LOG_CMD(*dE -= E);
+	LOG_CMD(*dE /= dt);
+}
+
+template<typename TM>
 inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 {
 	if (cfg.empty())
@@ -196,6 +317,10 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		{
 			LoadField(p.second, &B0);
 			BB = Dot(B0, B0);
+		}
+		else if (p.first.template as<std::string>() == "Method")
+		{
+			method_ = 1;
 		}
 		else
 		{
@@ -227,10 +352,10 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 
 	}
 
-	if (BB.empty())
-	{
-		ERROR << "Background magnetic field is not initialized!";
-	}
+//	if (BB.empty())
+//	{
+//		ERROR << "Background magnetic field is not initialized!";
+//	}
 
 	LOGGER << "Load Cold Fluid solver" << DONE;
 
@@ -279,51 +404,47 @@ inline std::ostream & operator<<(std::ostream & os, ColdFluidEM<TM> const &self)
 	return self.Serialize(os);
 }
 
-
-
-
 }  // namespace simpla
-
 
 /**
  *
  *
  *
-//template<typename TL> inline auto operator*(nTuple<3, TL> const & l, Real r)
-//-> nTuple<3, decltype(l[0]*r)>
-//{
-//	nTuple<3, decltype(l[0]*r)> res = { l[0] * r, l[1] * r, l[2] * r };
-//
-//	return std::move(res);
-//}
-namespace fetl_impl
-{
+ //template<typename TL> inline auto operator*(nTuple<3, TL> const & l, Real r)
+ //-> nTuple<3, decltype(l[0]*r)>
+ //{
+ //	nTuple<3, decltype(l[0]*r)> res = { l[0] * r, l[1] * r, l[2] * r };
+ //
+ //	return std::move(res);
+ //}
+ namespace fetl_impl
+ {
 
-template<typename TM, typename TL, typename TR, typename ...TI>
-inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Field<Geometry<TM, 0>, TR> r,
-        TI ... s)
-        DECL_RET_TYPE((l.get(s...)*r.get(s...)))
+ template<typename TM, typename TL, typename TR, typename ...TI>
+ inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Field<Geometry<TM, 0>, TR> r,
+ TI ... s)
+ DECL_RET_TYPE((l.get(s...)*r.get(s...)))
 
-template<typename TM, typename TL, typename ...TI>
-inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Real r, TI ... s)
-DECL_RET_TYPE((l.get(s...)*r))
+ template<typename TM, typename TL, typename ...TI>
+ inline auto FieldOpEval(Int2Type<MULTIPLIES>, Field<Geometry<TM, 0>, TL> const &l, Real r, TI ... s)
+ DECL_RET_TYPE((l.get(s...)*r))
 
-}
+ }
 
-//template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
-//->nTuple<3,decltype(l[0]*r[0])>
-//{
-//	nTuple<3, decltype(l[0]*r[0])> res = {
-//
-//	l[1] * r[2] - l[2] * r[1],
-//
-//	l[2] * r[0] - l[0] * r[2],
-//
-//	l[0] * r[1] - l[1] * r[0]
-//
-//	};
-//	return std::move(res);
-//}
+ //template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
+ //->nTuple<3,decltype(l[0]*r[0])>
+ //{
+ //	nTuple<3, decltype(l[0]*r[0])> res = {
+ //
+ //	l[1] * r[2] - l[2] * r[1],
+ //
+ //	l[2] * r[0] - l[0] * r[2],
+ //
+ //	l[0] * r[1] - l[1] * r[0]
+ //
+ //	};
+ //	return std::move(res);
+ //}
  */
 
 #endif /* COLD_FLUID_H_ */
