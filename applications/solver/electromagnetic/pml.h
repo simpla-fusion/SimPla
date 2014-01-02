@@ -76,8 +76,8 @@ inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh) :
-		mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh)
+		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -230,7 +230,7 @@ void PML<TM>::DumpData() const
 template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
-	LOGGER << "PML push E";
+	LOGGER << "PML push E" << DONE;
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<1> dX1(mesh);
@@ -251,7 +251,7 @@ void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1>
 template<typename TM>
 void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2> *dB)
 {
-	LOGGER << "PML Push B";
+	LOGGER << "PML Push B" << DONE;
 
 //	DEFINE_PHYSICAL_CONST(mesh.constants());
 

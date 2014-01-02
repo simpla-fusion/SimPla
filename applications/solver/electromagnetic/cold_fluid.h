@@ -39,7 +39,6 @@ public:
 
 	mesh_type const & mesh;
 
-	int method_;
 private:
 
 	struct Species
@@ -62,10 +61,12 @@ private:
 	VectorForm<0> Ev;
 	RVectorForm<0> B0;
 	RForm<0> BB;
+
+	bool nonlinear_;
 public:
 
 	ColdFluidEM(mesh_type const & pmesh)
-			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), method_(0)
+			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), nonlinear_(false)
 	{
 	}
 
@@ -81,36 +82,27 @@ public:
 	std::ostream & Serialize(std::ostream & os) const override;
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override
 	{
-		if (method_ == 0)
-		{
-			_NextTimeStepE(dt, E1, B1, dE);
-		}
-		else
-		{
-			_NextTimeStepE2(dt, E1, B1, dE);
-		}
-
+		_NextTimeStepE(dt, E1, B1, dE);
 	}
 
 	void DumpData() const;
 
 private:
+
 	template<typename TE, typename TB> inline
 	void _NextTimeStepE(Real dt, TE const &dE, TB const &B0, TE *E);
-	template<typename TE, typename TB> inline
-	void _NextTimeStepE2(Real dt, TE const &dE, TB const &B0, TE *E);
 }
 ;
 template<typename TM>
 template<typename TE, typename TB> inline
 void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 {
-//	if (sp_list_.empty())
-//		return;
+	if (sp_list_.empty())
+		return;
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
-	LOGGER << "Push Cold Fluid.";
+	LOGGER << "Push Cold Fluid. Nonline is " << ((nonlinear_) ? "opened" : "closed") << ".";
 
 	RForm<0> a(mesh);
 	RForm<0> b(mesh);
@@ -120,7 +112,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	b.Fill(0);
 	c.Fill(0);
 
-	if (BB.empty())
+	if (BB.empty() || nonlinear_)
 	{
 		MapTo(B, &B0);
 		BB = Dot(B0, B0);
@@ -142,6 +134,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	VectorForm<0> K(mesh);
 	K.Fill(0);
 	//******************************************************************************************************
+
 	for (auto &v : sp_list_)
 	{
 
@@ -152,11 +145,11 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		Real as = (dt * Zs) / (2.0 * ms);
 
-		a += ns * Zs / (BB * as * as + 1);
+		a += ns * Zs * as / (BB * as * as + 1);
 
-		b += ns * Zs * as / (BB * as * as + 1);
+		b += ns * Zs * as * as / (BB * as * as + 1);
 
-		c += ns * Zs * as * as / (BB * as * as + 1);
+		c += ns * Zs * as * as * as / (BB * as * as + 1);
 
 		Q -= Js;
 
@@ -199,110 +192,104 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	*dE /= dt;
 
 }
-
-template<typename TM>
-template<typename TE, typename TB> inline
-void ColdFluidEM<TM>::_NextTimeStepE2(Real dt, TE const &E, TB const &B, TE *dE)
-{
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-
-	LOGGER << ("Method2");
-
-	if (BB.empty())
-	{
-		MapTo(B, &B0);
-		BB = Dot(B0, B0);
-	}
-
-	if (Ev.empty())
-		MapTo(E, &Ev);
-
-	RForm<0> a(mesh);
-	RForm<0> b(mesh);
-	RForm<0> c(mesh);
-
-	a.Fill(0);
-	b.Fill(0);
-	c.Fill(0);
-
-	VectorForm<0> dEv(mesh);
-	MapTo(*dE, &dEv);
-
-	VectorForm<0> K(mesh);
-	K.Fill(0);
-
-	VectorForm<0> Q(mesh);
-	Q.Fill(0);
-
-	Ev += dEv * (0.5 * dt);
-
-	for (auto &v : sp_list_)
-	{
-
-		auto & ns = v.second->n;
-		auto & Js = v.second->J;
-		auto ms = v.second->m * proton_mass;
-		auto Zs = v.second->Z * elementary_charge;
-
-		Real as = 2.0 * ms / (dt * Zs);
-
-		a += ns * Zs / as;
-		b += ns * Zs / (BB + as * as);
-		c += ns * Zs / ((BB + as * as) * as);
-
-	}
-	a *= (0.5 * dt) / epsilon0;
-	b *= (0.5 * dt) / epsilon0;
-	c *= (0.5 * dt) / epsilon0;
-
-	a += 1.0;
-
-	for (auto &v : sp_list_)
-	{
-		auto ms = v.second->m * proton_mass;
-		auto Zs = v.second->Z * elementary_charge;
-		auto & ns = v.second->n;
-		auto & Js = v.second->J;
-
-		Real as = 2.0 * ms / (dt * Zs);
-
-		Q -= Js * 0.5 * dt / epsilon0;
-
-		K = Js * as + Cross(Js, B0) + ((Ev) * ns) * Zs;
-
-		Js = K / as + Cross(K, B0) / (BB + as * as) + Cross(Cross(K, B0), B0) / (as * (BB + as * as));
-
-		Q -= Js * 0.5 * dt / epsilon0;
-	}
-
-	Q += Ev;
-
-	Ev = Q / a
-
-	- Cross(Q, B0) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
-
-	- Cross(Cross(Q, B0), B0) * (-c * c * BB + c * a - b * b) / (a * ((c * BB - a) * (c * BB - a) + b * b * BB))
-
-	;
-
-	for (auto &v : sp_list_)
-	{
-		auto ms = v.second->m * proton_mass;
-		auto Zs = v.second->Z * elementary_charge;
-		auto & ns = v.second->n;
-		auto & Js = v.second->J;
-		Real as = 2.0 * ms / (dt * Zs);
-
-		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * Zs);
-	}
-
-	Ev += dEv * (0.5 * dt);
-
-	LOG_CMD(MapTo(Ev, dE));
-
-	LOG_CMD(*dE -= E);
-	LOG_CMD(*dE /= dt);
-}
+//
+//template<typename TM>
+//template<typename TE, typename TB> inline
+//void ColdFluidEM<TM>::_NextTimeStepE2(Real dt, TE const &E, TB const &B, TE *dE)
+//{
+//	DEFINE_PHYSICAL_CONST(mesh.constants());
+//
+//	LOGGER << "Push Cold Fluid. Method2";
+//
+//	if (BB.empty())
+//	{
+//		MapTo(B, &B0);
+//		BB = Dot(B0, B0);
+//	}
+//
+//	if (Ev.empty())
+//		MapTo(E, &Ev);
+//
+//	RForm<0> a(mesh);
+//	RForm<0> b(mesh);
+//	RForm<0> c(mesh);
+//
+//	a.Fill(0);
+//	b.Fill(0);
+//	c.Fill(0);
+//
+//	VectorForm<0> dEv(mesh);
+//	MapTo(*dE, &dEv);
+//
+//	VectorForm<0> K(mesh);
+//	K.Fill(0);
+//
+//	VectorForm<0> Q(mesh);
+//	Q.Fill(0);
+//
+//	Ev += dEv * (0.5 * dt);
+//
+//	for (auto &v : sp_list_)
+//	{
+//		auto ms = v.second->m * proton_mass;
+//		auto Zs = v.second->Z * elementary_charge;
+//		auto & ns = v.second->n;
+//		auto & Js = v.second->J;
+//
+//		Real as = 2.0 * ms / (dt * Zs);
+//
+//		a += ns * Zs / as;
+//		b += ns * Zs / (BB + as * as);
+//		c += ns * Zs / ((BB + as * as) * as);
+//
+//		Q -= Js;
+//
+//		K = Js * as + Cross(Js, B0) + Ev * (ns * Zs);
+//
+////		Js = K / as + Cross(K, B0) / (BB + as * as) + Cross(Cross(K, B0), B0) / (as * (BB + as * as));
+//		Js = (K * as * as + Cross(K, B0) * as + Dot(K, B0) * B0) / (as * (BB + as * as));
+//
+//		Q -= Js;
+//	}
+//
+//	a *= (0.5 * dt) / epsilon0;
+//	b *= (0.5 * dt) / epsilon0;
+//	c *= (0.5 * dt) / epsilon0;
+//
+//	a += 1.0;
+//
+//	Q *= 0.5 * dt / epsilon0;
+//
+//	Q += Ev;
+//
+//	Ev = Q / a
+//
+//	- Cross(Q, B0) * b / ((c * BB - a) * (c * BB - a) + b * b * BB)
+//
+//	- Cross(Cross(Q, B0), B0) * (-c * c * BB + c * a - b * b) / (a * ((c * BB - a) * (c * BB - a) + b * b * BB))
+//
+//	;
+//
+//	for (auto &v : sp_list_)
+//	{
+//		auto ms = v.second->m * proton_mass;
+//		auto Zs = v.second->Z * elementary_charge;
+//		auto & ns = v.second->n;
+//		auto & Js = v.second->J;
+//		Real as = 2.0 * ms / (dt * Zs);
+//
+////		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * Zs);
+//
+//		Js += (Ev * as * as + Cross(Ev, B0) * as + Dot(K, B0) * B0) * (ns * Zs / (as * (BB + as * as)));
+//	}
+//
+//	Ev += dEv * (0.5 * dt);
+//
+//	MapTo(Ev, dE);
+//
+//	*dE -= E;
+//	*dE /= dt;
+//}
 
 template<typename TM>
 inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
@@ -310,45 +297,36 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 	if (cfg.empty())
 		return;
 
-	for (auto const & p : cfg)
-	{
+	nonlinear_ = cfg["Nonlinear"].template as<bool>(false);
 
-		if (p.first.template as<std::string>() == "B0")
+	auto sp = cfg["Species"];
+
+	for (auto const & p : sp)
+	{
+		std::string key;
+
+		if (!p.first.is_number())
 		{
-			LoadField(p.second, &B0);
-			BB = Dot(B0, B0);
-		}
-		else if (p.first.template as<std::string>() == "Method")
-		{
-			method_ = 1;
+			key = p.first.as<std::string>();
 		}
 		else
 		{
-			std::string key;
-
-			if (!p.first.is_number())
-			{
-				key = p.first.as<std::string>();
-			}
-			else
-			{
-				p.second.GetValue("Name", &key);
-			}
-
-			std::shared_ptr<Species> sp(
-			        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
-
-			sp->n.Init();
-			sp->J.Init();
-
-			if (!LoadField(p.second["n"], &(sp->n)))
-				sp->n.Fill(0);
-
-			if (!LoadField(p.second["J"], &(sp->J)))
-				sp->J.Fill(0);
-
-			sp_list_.emplace(key, sp);
+			p.second.GetValue("Name", &key);
 		}
+
+		std::shared_ptr<Species> sp(
+		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+
+		sp->n.Init();
+		sp->J.Init();
+
+		if (!LoadField(p.second["n"], &(sp->n)))
+			sp->n.Fill(0);
+
+		if (!LoadField(p.second["J"], &(sp->J)))
+			sp->J.Fill(0);
+
+		sp_list_.emplace(key, sp);
 
 	}
 
@@ -379,7 +357,9 @@ void ColdFluidEM<TM>::DumpData() const
 template<typename TM>
 std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 {
-	os << "\tColdFluid = {";
+	os << "\tColdFluid = { Nonlinear = " << std::boolalpha << nonlinear_ << "\n"
+
+	<< "Species = { \n ";
 
 	for (auto const & p : sp_list_)
 	{
@@ -393,7 +373,7 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 
 		<< "\t},\n";
 	}
-	os << "}";
+	os << "\t}\n}";
 
 	return os;
 }
