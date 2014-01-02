@@ -12,6 +12,7 @@ TWOPI=PI*2
 k_B=1.3806488e-23 --Boltzmann_constant
 --
 
+k_parallel=6.5
 Btor= 1.0  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
@@ -26,18 +27,19 @@ omega_ce = e * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
-NX = 200
+NX = 100
 NY = 1
 NZ = 1
-LX = 100*rhoi --0.6
+LX = 0.25 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
-LZ = 0  -- 2.0*math.pi/18
+LZ = 0 -- 2.0*math.pi/18
 GW = 5 
 
+omega_ext=omega_ci*1.2
 
 
 -- From Gan
-
+--[[
 InitN0=function(x,y,z)
       local X0 = 12*LX/NX;
       local DEN_JUMP = 0.4*LX;
@@ -48,17 +50,40 @@ InitN0=function(x,y,z)
       local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
       return dens1*N0
      end 
+--]]
 
-InitValue={ 
+InitN0=function(x,y,z)      
+      local x0=0.1*LX ;
+      local res = 0.0;
+      if x>x0 then
+        res=0.5*N0*(1.0- math.cos(PI*(x-x0)/(LX-x0)));
+      end
+      return res
+     end 
+
+
+InitB0=function(x,y,z)
+      local X0 = 12*LX/NX;
+      local DEN_JUMP = 0.4*LX;
+      local DEN_GRAD = 0.2*LX;
+      local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
+      local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
+      local DenCof = 1./(AtLX-AtX0);
+      local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
+      return {0,0,0}
+     end 
+InitValue={
+---[[
   E=function(x,y,z)
      ---[[
       local res = 0.0;
-      for i=1,20 do
+      for i=1,1 do
           res=res+math.sin(x/LX*TWOPI* i);
       end;
-    -- ]]
-      return {0,0,res}
+    
+      return {0,res,0}
     end
+--]]
 
   , J=0.0
 
@@ -92,7 +117,7 @@ Grid=
       Type="Origin_DxDyDz",
       Min={0.0,0.0,0.0},
       Max={LX,LY,LZ},
---      dt= 2.0*math.pi/omega_ci/100.0
+     --dt= 2.0*math.pi/omega_ci/100.0
       dt=0.5*LX/NX/c  -- time step     
   },
   
@@ -124,11 +149,12 @@ FieldSolver=
 ---[[
    ColdFluid=
     {
-       {Name="ion",m=1.0,       Z= 1.0,T=Ti,  n=N0, J=0},
-       {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,  n=N0, J=0}         
+       B0={0,0,Btor},
+          {Name="ion",m=1.0,      Z= 1.0,T=Ti,  n=N0, J=0},
+ --       {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=N0, J=0}         
     },
 --]]
---    PML=  {Width={8,8,0,0,0,0}}
+  -- PML=  {Width={8,8,0,0,0,0}}
 }
 
 --[[
@@ -137,11 +163,11 @@ CurrentSrc=
   
   Points={{0.1*LX,0.0,0.0},},
   Fun=function(x,y,z,t)
-      local tau = t*omega_ci*1.9
+      local tau = t*omega_ext
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
  }
-]]
+--]]
 
 -- The End ---------------------------------------
 

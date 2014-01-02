@@ -93,8 +93,8 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(mesh), B(mesh), J(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: E(mesh), B(mesh), J(mesh),
 
 		cold_fluid_(nullptr),
 
@@ -247,7 +247,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 				else
 				{
 					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-							<< " object =" << object << " ]";
+					        << " object =" << object << " ]";
 				}
 
 				LOGGER << "Load Boundary " << type << DONE;
@@ -310,6 +310,9 @@ template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep(double dt)
 {
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
+
+	if (!mesh.CheckCourant(dt))
+		ERROR << "dt too big! ";
 
 	base_type::NextTimeStep(dt);
 

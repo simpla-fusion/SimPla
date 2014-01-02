@@ -32,8 +32,8 @@ protected:
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
 		mesh.dims_[0] = 20;
-		mesh.dims_[1] = 30;
-		mesh.dims_[2] = 40;
+		mesh.dims_[1] = 1;
+		mesh.dims_[2] = 1;
 
 		mesh.Update();
 

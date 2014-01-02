@@ -31,9 +31,9 @@ protected:
 		mesh.xmax_[0] = 1.0;
 		mesh.xmax_[1] = 1.0;
 		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 1;
-		mesh.dims_[1] = 10;
-		mesh.dims_[2] = 10;
+		mesh.dims_[0] = 20;
+		mesh.dims_[1] = 1;
+		mesh.dims_[2] = 1;
 
 		mesh.Update();
 	}

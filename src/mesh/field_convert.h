@@ -59,10 +59,10 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l,
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
 		auto &v =r->get(0,x,y,z);
-		for(int i=0;i<3;++i)
-		{
-			fetl_impl::_mapto((mesh.get(l,i,x,y,z)+mesh.get(l,i,mesh.Shift(mesh.DES(i),x,y,z)))*0.5,&(v[i]));
-		}
+
+		fetl_impl::_mapto((mesh.get(l,0,x,y,z)+mesh.get(l,0,x-1,y,z))*0.5,&(v[0]));
+		fetl_impl::_mapto((mesh.get(l,1,x,y,z)+mesh.get(l,1,x,y-1,z))*0.5,&(v[1]));
+		fetl_impl::_mapto((mesh.get(l,2,x,y,z)+mesh.get(l,2,x,y,z-1))*0.5,&(v[2]));
 	});
 
 }
@@ -83,15 +83,17 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 
 	mesh.ParallelTraversal(0,
 
-	        [&](int m, index_type const &x,index_type const &y,index_type const &z)
-	        {
-		        for(int i=0;i<3;++i)
-		        {
-			        fetl_impl::_mapto((mesh.get(l,0,x,y,z)[i]+mesh.get(l,0,mesh.Shift(mesh.INC(i),x,y,z))[i])*0.5,&(r->get(i,x,y,z)));
-		        }
-	        }
+	[&](int m, index_type const &x,index_type const &y,index_type const &z)
+	{
 
-	        );
+		fetl_impl::_mapto((mesh.get(l,0,x,y,z)[0]+mesh.get(l,0,x+1,y,z)[0])*0.5, &(r->get(0,x,y,z)));
+
+		fetl_impl::_mapto((mesh.get(l,0,x,y,z)[1]+mesh.get(l,0,x,y+1,z)[1])*0.5, &(r->get(1,x,y,z)));
+
+		fetl_impl::_mapto((mesh.get(l,0,x,y,z)[2]+mesh.get(l,0,x,y,z+1)[2])*0.5, &(r->get(2,x,y,z)));
+	}
+
+	);
 
 }
 
@@ -116,17 +118,19 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, FACE>, TL> const & l,
 		auto &v =r->get(0,x,y,z);
 		for(int i=0;i<3;++i)
 		{
+
 			fetl_impl::_mapto((
 
 							mesh.get(l,i,x,y,z)
 
-							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+1)%3),x,y,z))
+							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+1)),x,y,z))
 
-							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+2)%3),x,y,z))
+							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+2)),x,y,z))
 
-							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+1)%3)|mesh.DES((i+2)%3),x,y,z))
+							+ mesh.get(l,i,mesh.Shift(mesh.DES((i+1))|mesh.DES((i+2)),x,y,z))
 
 					)*0.25,&(v[i]));
+
 		}
 	});
 
@@ -152,17 +156,19 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 	{
 		for(int i=0;i<3;++i)
 		{
+
 			fetl_impl::_mapto((
 
 							mesh.get(l,0,x,y,z)[i]
 
-							+mesh.get(l,0,mesh.Shift(mesh.INC((i+1)%3),x,y,z))[i]
+							+mesh.get(l,0,mesh.Shift(mesh.INC((i+1)),x,y,z))[i]
 
-							+mesh.get(l,0,mesh.Shift(mesh.INC((i+2)%3),x,y,z))[i]
+							+mesh.get(l,0,mesh.Shift(mesh.INC((i+2)),x,y,z))[i]
 
-							+mesh.get(l,0,mesh.Shift(mesh.INC((i+1)%3)|mesh.INC((i+2)%3),x,y,z))[i]
+							+mesh.get(l,0,mesh.Shift(mesh.INC((i+1))|mesh.INC((i+2)),x,y,z))[i]
 
 					)*0.25,&(r->get(i,x,y,z)));
+
 		}
 	}
 

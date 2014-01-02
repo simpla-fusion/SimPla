@@ -159,6 +159,22 @@ public:
 
 	void Update();
 
+	bool CheckCourant(Real dt)
+	{
+		DEFINE_PHYSICAL_CONST((*constants_));
+
+		Real res = 0.0;
+
+		for (int i = 0; i < 3; ++i)
+			res += inv_dx_[i] * inv_dx_[i];
+		res = std::sqrt(res) * speed_of_light * dt;
+
+		if (res > 1.0)
+			WARNING << "Not statisfy Courant Conditions!";
+
+		return res < 1.0;
+	}
+
 	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
@@ -926,11 +942,11 @@ public:
 	 static_cast<shift_type>((static_cast<unsigned long>((-1L) << (DIGITS_LONG - DIGITS_SHORT)) >> (DIGITS_LONG - DIGITS_SHORT*(m+1) )))
 	enum
 	{
-		X = 1, // 0000 0000 0001
+		X = 1L, // 0000 0000 0001
 		NX= _shift_bit(0) ,// 0000 0000 1111
-		Y = 1<<DIGITS_SHORT,// 0000 0001 0000
+		Y = 1L<<DIGITS_SHORT,// 0000 0001 0000
 		NY=_shift_bit(1),// 0000 1111 0000
-		Z = 1<<(DIGITS_SHORT*2),// 0001 0000 0000
+		Z = 1L<<(DIGITS_SHORT*2),// 0001 0000 0000
 		NZ=_shift_bit(2)// 1111 0000 0000
 	};
 
