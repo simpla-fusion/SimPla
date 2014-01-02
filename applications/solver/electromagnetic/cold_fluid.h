@@ -47,8 +47,8 @@ private:
 		RForm<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh) :
-				m(pm), Z(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh)
+				: m(pm), Z(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -62,8 +62,8 @@ private:
 	RForm<0> BB;
 public:
 
-	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh)
+	ColdFluidEM(mesh_type const & pmesh)
+			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh)
 	{
 	}
 
@@ -109,6 +109,10 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	b.Fill(0);
 	c.Fill(0);
 
+	MapTo(B, &B0);
+
+	BB = Dot(B0, B0);
+
 	if (Ev.empty())
 		MapTo(E, &Ev);
 
@@ -125,7 +129,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	Q.Fill(0);
 
 	VectorForm<0> K(mesh);
-//	VectorForm<0> Kp(mesh);
+
 	//******************************************************************************************************
 	for (auto &v : sp_list_)
 	{
@@ -184,7 +188,6 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		Real as = (dt * Zs) / (2.0 * ms);
 
-
 		//----------------------------------------------------
 		//		K = Ev * (as * Zs * ns);
 		//		Kp = Dot(Ev, B0) / BB * B0;
@@ -195,66 +198,9 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		//----------------------------------------------------
 
 	}
-//******************************************************************************************************
-//	for (auto &v : sp_list_)
-//	{
-//
-//		auto & ns = v.second->n;
-//		auto & Js = v.second->J;
-//		Real ms = v.second->m * proton_mass;
-//		Real Zs = v.second->Z * elementary_charge;
-//
-//		Real as = (dt * Zs) / (2.0 * ms);
-//
-//		a += ns * Zs / (BB * as * as + 1);
-//
-//		b += ns * Zs * as / (BB * as * as + 1);
-//
-//		c += ns * Zs * as * as / (BB * as * as + 1);
-//
-//		Q -= Js;
-//
-//		K = Js + Cross(Js, B0) * as + Ev * ns * Zs * as;
-//
-//		Js = (K + Cross(K, B0) * as + Dot(K, B0) * B0 * as * as) / (BB * as * as + 1);
-//
-//		Q -= Js;
-//
-//	}
-//
-//	Q *= 0.5 * dt / epsilon0;
-//	Q += Ev;
-//
-//	a *= 0.5 * dt / epsilon0;
-//	b *= 0.5 * dt / epsilon0;
-//	c *= 0.5 * dt / epsilon0;
-//	a += 1;
-//
-//	Ev = (
-//
-//	Q * a
-//
-//	- Cross(Q, B0) * b
-//
-//	+ Dot(Q, B0) * B0 * ((b * b - c * a) / (a + c * BB))
-//
-//	) / (b * b * BB + a * a);
-//
-//	for (auto &v : sp_list_)
-//	{
-//		auto & ns = v.second->n;
-//		auto & Js = v.second->J;
-//		auto ms = v.second->m * proton_mass;
-//		auto Zs = v.second->Z * elementary_charge;
-//
-//		Real as = (dt * Zs) / (2.0 * ms);
-//
-//		Js += (Ev + Cross(Ev, B0) * as + Dot(Ev, B0) * B0 * (as * as)) * ((as * Zs * ns) / (BB * as * as + 1));
-//	}
 
 	Ev += dEv * 0.5 * dt;
 
-	LOGGER << DUMP(Ev);
 	MapTo(Ev, dE);
 
 	*dE -= E;
@@ -271,45 +217,37 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 	for (auto const & p : cfg)
 	{
 
-		if (p.first.template as<std::string>() == "B0")
+		std::string key;
+
+		if (!p.first.is_number())
 		{
-			LoadField(p.second, &B0);
-			BB = Dot(B0, B0);
+			key = p.first.as<std::string>();
 		}
 		else
 		{
-			std::string key;
-
-			if (!p.first.is_number())
-			{
-				key = p.first.as<std::string>();
-			}
-			else
-			{
-				p.second.GetValue("Name", &key);
-			}
-
-			std::shared_ptr<Species> sp(
-					new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
-
-			sp->n.Init();
-			sp->J.Init();
-
-			if (!LoadField(p.second["n"], &(sp->n)))
-				sp->n.Fill(0);
-
-			if (!LoadField(p.second["J"], &(sp->J)))
-				sp->J.Fill(0);
-
-			sp_list_.emplace(key, sp);
+			p.second.GetValue("Name", &key);
 		}
 
+		std::shared_ptr<Species> sp(
+		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+
+		sp->n.Init();
+		sp->J.Init();
+
+		if (!LoadField(p.second["n"], &(sp->n)))
+			sp->n.Fill(0);
+
+		if (!LoadField(p.second["J"], &(sp->J)))
+			sp->J.Fill(0);
+
+		sp_list_.emplace(key, sp);
+
 	}
 
-	if (BB.empty())
-	{
-		ERROR << "Background magnetic field is not initialized!";
-	}
+//	if (BB.empty())
+//	{
+//		ERROR << "Background magnetic field is not initialized!";
+//	}
 
 	LOGGER << "Load Cold Fluid solver" << DONE;
 

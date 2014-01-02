@@ -320,27 +320,6 @@ DECL_RET_TYPE( ( Field<Geometry<TM,IFORM+IR> ,
 
 //****************************************************************************************************
 
-//****************************************************************************************************
-namespace fetl_impl
-{
-template<typename TGeo, typename TL, typename ...TI> inline auto FieldOpEval(Int2Type<REAL>, Field<TGeo, TL> const &l,
-        TI ... s)
-        DECL_RET_TYPE((real(l.get(s...))) )
-template<typename TGeo, typename TL, typename ...TI> inline auto FieldOpEval(Int2Type<IMAGINE>,
-        Field<TGeo, TL> const &l, TI ... s)
-        DECL_RET_TYPE((imag(l.get(s...))) )
-
-}
-
-// STL style
-template<typename TM, int IFORM, typename TL>
-inline auto real(Field<Geometry<TM, IFORM>, TL> const & f)
-DECL_RET_TYPE( (Field<Geometry<TM, IFORM>, UniOp<REAL,Field<Geometry<TM, IFORM>, TL> > >(f)) )
-
-template<typename TM, int IFORM, typename TL>
-inline auto imag(Field<Geometry<TM, IFORM>, TL> const & f)
-DECL_RET_TYPE( (Field<Geometry<TM, IFORM>, UniOp<IMAGINE,Field<Geometry<TM, IFORM>, TL> > >(f)) )
-
 namespace fetl_impl
 {
 

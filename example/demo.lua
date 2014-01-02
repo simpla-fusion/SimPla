@@ -124,7 +124,6 @@ FieldSolver=
 ---[[
    ColdFluid=
     {
-    B0 = {0,0,Btor},
        {Name="ion",m=1.0,       Z= 1.0,T=Ti,  n=N0, J=0},
        {Name="ele",m=1.0/1836.2,Z=-1.0,T=Te,  n=N0, J=0}         
     },
