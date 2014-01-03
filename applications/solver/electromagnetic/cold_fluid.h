@@ -44,12 +44,12 @@ private:
 	struct Species
 	{
 		Real m;
-		Real Z;
+		Real q;
 		RForm<0> n;
 		VectorForm<0> J;
 
 		Species(Real pm, Real pZ, mesh_type const &mesh)
-				: m(pm), Z(pZ), n(mesh), J(mesh)
+				: m(pm), q(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -85,7 +85,7 @@ public:
 		_NextTimeStepE(dt, E1, B1, dE);
 	}
 
-	void DumpData() const;
+	void DumpData(std::string const & path = "") const;
 
 private:
 
@@ -140,20 +140,20 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 		auto & ns = v.second->n;
 		auto & Js = v.second->J;
-		Real ms = v.second->m * proton_mass;
-		Real Zs = v.second->Z * elementary_charge;
+		Real ms = v.second->m;
+		Real qs = v.second->q;
 
-		Real as = (dt * Zs) / (2.0 * ms);
+		Real as = (dt * qs) / (2.0 * ms);
 
-		a += ns * Zs * as / (BB * as * as + 1);
+		a += ns * qs * as / (BB * as * as + 1);
 
-		b += ns * Zs * as * as / (BB * as * as + 1);
+		b += ns * qs * as * as / (BB * as * as + 1);
 
-		c += ns * Zs * as * as * as / (BB * as * as + 1);
+		c += ns * qs * as * as * as / (BB * as * as + 1);
 
 		Q -= Js;
 
-		K = Cross(Js, B0) * as + Ev * ns * Zs * as + Js;
+		K = Cross(Js, B0) * as + Ev * ns * qs * as + Js;
 
 		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
 
@@ -175,12 +175,12 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	{
 		auto & ns = v.second->n;
 		auto & Js = v.second->J;
-		auto ms = v.second->m * proton_mass;
-		auto Zs = v.second->Z * elementary_charge;
+		auto ms = v.second->m;
+		auto qs = v.second->q;
 
-		Real as = (dt * Zs) / (2.0 * ms);
+		Real as = (dt * qs) / (2.0 * ms);
 
-		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * ((as * Zs * ns) / (BB * as * as + 1));
+		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * ((as * qs * ns) / (BB * as * as + 1));
 
 	}
 
@@ -231,20 +231,20 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 //
 //	for (auto &v : sp_list_)
 //	{
-//		auto ms = v.second->m * proton_mass;
-//		auto Zs = v.second->Z * elementary_charge;
+//		auto ms = v.second->m ;
+//		auto qs = v.second->Z ;
 //		auto & ns = v.second->n;
 //		auto & Js = v.second->J;
 //
-//		Real as = 2.0 * ms / (dt * Zs);
+//		Real as = 2.0 * ms / (dt * qs);
 //
-//		a += ns * Zs / as;
-//		b += ns * Zs / (BB + as * as);
-//		c += ns * Zs / ((BB + as * as) * as);
+//		a += ns * qs / as;
+//		b += ns * qs / (BB + as * as);
+//		c += ns * qs / ((BB + as * as) * as);
 //
 //		Q -= Js;
 //
-//		K = Js * as + Cross(Js, B0) + Ev * (ns * Zs);
+//		K = Js * as + Cross(Js, B0) + Ev * (ns * qs);
 //
 ////		Js = K / as + Cross(K, B0) / (BB + as * as) + Cross(Cross(K, B0), B0) / (as * (BB + as * as));
 //		Js = (K * as * as + Cross(K, B0) * as + Dot(K, B0) * B0) / (as * (BB + as * as));
@@ -272,15 +272,15 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 //
 //	for (auto &v : sp_list_)
 //	{
-//		auto ms = v.second->m * proton_mass;
-//		auto Zs = v.second->Z * elementary_charge;
+//		auto ms = v.second->m ;
+//		auto qs = v.second->Z ;
 //		auto & ns = v.second->n;
 //		auto & Js = v.second->J;
-//		Real as = 2.0 * ms / (dt * Zs);
+//		Real as = 2.0 * ms / (dt * qs);
 //
-////		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * Zs);
+////		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * qs);
 //
-//		Js += (Ev * as * as + Cross(Ev, B0) * as + Dot(K, B0) * B0) * (ns * Zs / (as * (BB + as * as)));
+//		Js += (Ev * as * as + Cross(Ev, B0) * as + Dot(K, B0) * B0) * (ns * qs / (as * (BB + as * as)));
 //	}
 //
 //	Ev += dEv * (0.5 * dt);
@@ -340,9 +340,9 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 }
 
 template<typename TM>
-void ColdFluidEM<TM>::DumpData() const
+void ColdFluidEM<TM>::DumpData(std::string const & path) const
 {
-	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
+	GLOBAL_DATA_STREAM.OpenGroup(path);
 
 	for (auto const & p : sp_list_)
 	{
@@ -365,7 +365,7 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 	{
 		os << "\n\t" << p.first
 
-		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->Z << ",\n"
+		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
 
 		<< "\t n0 = " << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape()) << "\n"
 

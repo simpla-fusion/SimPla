@@ -11,8 +11,13 @@ namespace simpla
 
 void DataStream::OpenGroup(std::string const & gname)
 {
+	if (gname == "")
+		return;
+
 	hid_t h5fg = file_;
+
 	CloseGroup();
+
 	if (gname[0] == '/')
 	{
 		grpname_ = gname;

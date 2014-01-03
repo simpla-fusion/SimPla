@@ -66,7 +66,7 @@ public:
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override;
 	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB) override;
 
-	void DumpData() const;
+	void DumpData(std::string const &path="/DumpData") const;
 };
 
 template<typename TM>
@@ -223,8 +223,9 @@ std::ostream & PML<TM>::Serialize(std::ostream & os) const
 }
 
 template<typename TM>
-void PML<TM>::DumpData() const
+void PML<TM>::DumpData(std::string const &path) const
 {
+	UNIMPLEMENT;
 }
 
 template<typename TM>
@@ -253,7 +254,7 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 {
 	LOGGER << "PML Push B" << DONE;
 
-//	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<2> dX2(mesh);
 

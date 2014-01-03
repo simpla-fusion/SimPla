@@ -50,7 +50,7 @@ public:
 		return os;
 	}
 	;
-	virtual void DumpData() const
+	virtual void DumpData(std::string const &path="") const
 	{
 		NOTHING_TODO;
 	}

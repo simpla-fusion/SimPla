@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	GLOBAL_DATA_STREAM.OpenGroup("/InitData");
+	GLOBAL_DATA_STREAM.OpenGroup("/Input");
 
 	LOGGER << (*ctx);
 
@@ -163,8 +163,6 @@ int main(int argc, char **argv)
 	// Main Loop ============================================
 
 	LOGGER << "Process " << START;
-
-	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
 
 	TheStart();
 	if (just_a_test)
@@ -182,14 +180,14 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				ctx->DumpData();
+				ctx->DumpData("/DumpData");
 			}
 			LOGGER << "STEP: " << i << DONE;
 		}
 	}
 	LOGGER << "Process" << DONE;
 	LOGGER << "Post-Process" << START;
-	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
+	GLOBAL_DATA_STREAM.OpenGroup("/Output");
 	LOGGER << *ctx;
 	LOGGER << "Post-Process" << DONE;
 

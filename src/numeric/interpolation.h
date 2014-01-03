@@ -62,7 +62,6 @@ public:
 
 	inline container_type & data()
 	{
-		EXCEPT(data_ != nullptr);
 		return *data_;
 	}
 	inline container_type const& data() const
@@ -415,12 +414,10 @@ public:
 	}
 	inline container_type & data()
 	{
-		EXCEPT(data_ != nullptr);
 		return *data_;
 	}
 	inline container_type const& data() const
 	{
-		EXCEPT(data_ != nullptr);
 		return *data_;
 	}
 	void update()

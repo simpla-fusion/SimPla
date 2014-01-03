@@ -152,8 +152,7 @@ FieldSolver=
    ColdFluid=
     {
        --B0={0,0,Btor},
-       Nonlinear=true,
-       
+       --Nonlinear=true,       
        Species=
        {
        {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=InitN0, J=0},

@@ -61,7 +61,7 @@ public:
 	void Serialize(configure_type * cfg) const;
 	std::ostream & Serialize(std::ostream & os) const;
 	void NextTimeStep(double dt);
-	void DumpData() const;
+	void DumpData(std::string const & path = "") const;
 
 	inline ParticleCollection<mesh_type> & GetParticleCollection()
 	{
@@ -406,8 +406,6 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
 	}
 
-	LOGGER << "Apply boundary condition on E" << DONE;
-
 	Form<2> dB(mesh);
 
 	dB.Fill(0);
@@ -436,9 +434,13 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	}
 
 	particle_collection_.Sort();
+
 	J.Fill(0);
+	LOGGER << DUMP(J);
 	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 	particle_collection_.Collect(&J, E, B);
+
+	LOGGER << DUMP(J);
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5 * dt);
@@ -461,20 +463,19 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 }
 template<typename TM>
-void ExplicitEMContext<TM>::DumpData() const
+void ExplicitEMContext<TM>::DumpData(std::string const & path) const
 {
-	GLOBAL_DATA_STREAM.OpenGroup("/DumpData");
+	GLOBAL_DATA_STREAM.OpenGroup(path);
 
-	LOGGER << "Dump E to " << Data(E.data(), "E", E.GetShape(), isCompactStored_);
+	LOGGER << DUMP(E);
+	LOGGER << DUMP(B);
+	LOGGER << DUMP(J);
 
-	LOGGER << "Dump B to " << Data(B.data(), "B", B.GetShape(), isCompactStored_);
-
-	if(cold_fluid_!=nullptr) cold_fluid_->DumpData();
-
-	particle_collection_.DumpData();
+	if(cold_fluid_!=nullptr) cold_fluid_->DumpData(path);
+	if(pml_!=nullptr) pml_->DumpData(path);
 
 }
 }
-	// namespace simpla
+// namespace simpla
 
 #endif /* EXPLICIT_EM_IMPL_H_ */

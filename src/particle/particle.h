@@ -91,13 +91,15 @@ private:
 
 	std::vector<container_type> mt_data_; // for sort
 
+	std::string name_;
+
 public:
 
 	template<typename ...Args> Particle(mesh_type const & pmesh);
 
 	virtual ~Particle();
 
-	virtual std::string TypeName()
+	virtual std::string GetTypeAsString() const
 	{
 		return engine_type::TypeName();
 	}
@@ -139,7 +141,7 @@ public:
 
 	void Update() override;
 
-	void DataDump(std::string const &name) const override;
+	void DumpData(std::string const &path) const override;
 
 	void Deserialize(LuaObject const &cfg) override;
 
@@ -348,9 +350,9 @@ void Particle<Engine>::Update()
 }
 
 template<class Engine>
-void Particle<Engine>::DataDump(std::string const &name) const
+void Particle<Engine>::DumpData(std::string const &path) const
 {
-	LOGGER << "Dump " << name << Data(*this, name);
+	LOGGER << Data(*this, base_type::GetName());
 }
 
 template<class Engine>
@@ -384,7 +386,7 @@ void Particle<Engine>::_Sort()
 	if (base_type::IsSorted())
 		return;
 
-	LOGGER << "Sort Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
+//LOGGER << flush << indent << "Sort Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -471,8 +473,6 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 
 	base_type::NextTimeStep(dt, std::forward<Args const&>(args) ...);
 
-	LOGGER << "Move Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
-
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
 	std::vector<std::thread> threads;
@@ -481,7 +481,7 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 	{
 		threads.emplace_back(std::thread(
 
-		[this,num_threads, thread_id](Real dt_, Cache<const Args> ... args_c2)
+		[this,num_threads, thread_id,dt]( Cache<const Args> ... args_c2)
 		{
 			this->mesh._Traversal(num_threads, thread_id, this->IForm,
 
@@ -492,12 +492,12 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 						{
 							RefreshCache(s,args_c2...);
 
-							engine_type::NextTimeStep(&p, dt_, *args_c2...);
+							engine_type::NextTimeStep(&p, dt, *args_c2...);
 						}
 					}
 			);
 
-		}, dt,
+		},
 
 		Cache<const Args >(args , engine_type::GetAffectedRegion())...));
 	}
@@ -523,12 +523,6 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 	if (!base_type::IsSorted())
 		ERROR << "Particles are not sorted!";
-
-	LOGGER << "Collect particle [" << this->GetName() << ":" << this->GetTypeAsString()
-
-	<< "] to Form<" << TJ::IForm << ","
-
-	<< (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") << ">!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -686,7 +680,7 @@ void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, type
 		}
 	};
 
-	// @NOTE: is a simple implement, need  parallism
+// @NOTE: is a simple implement, need  parallism
 
 	mesh.SerialTraversal(VERTEX, fun);
 
@@ -751,25 +745,14 @@ public:
 		q_ = q;
 	}
 
-	const std::string& GetName() const
-	{
-		return name_;
-	}
-
-	void SetName(const std::string& name)
-	{
-		name_ = name;
-	}
-
 	virtual void Update()
 	{
 	}
 
 	virtual void Deserialize(LuaObject const &vm)
 	{
-		vm.template GetValue("Mass", &m_);
-		vm.template GetValue("Charge", &q_);
-		vm.template GetValue("Name", &name_);
+		m_ = vm["Mass"].as<Real>();
+		q_ = vm["Charge"].as<Real>();
 	}
 
 	virtual std::ostream & Serialize(std::ostream & os) const
@@ -829,13 +812,18 @@ public:
 	{
 	}
 
-	virtual void DataDump(std::string const &name) const
+	virtual void DumpData(std::string const &path = "") const
 	{
 
 	}
 
 	virtual void Deserialize(LuaObject const &cfg)
 	{
+	}
+
+	virtual std::string GetTypeAsString() const
+	{
+		return "unknown";
 	}
 
 	virtual std::ostream & Serialize(std::ostream & os) const
@@ -918,9 +906,19 @@ public:
 		isSorted_ = true;
 	}
 
+	void SetName(std::string const & name)
+	{
+		name_(name);
+	}
+	void GetName() const
+	{
+		return name_;
+	}
+
 private:
 	bool isSorted_;
 	Real clock_;
+	std::string name_;
 
 };
 
@@ -981,7 +979,7 @@ public:
 
 	void Sort();
 
-	void DumpData() const;
+	void DumpData(std::string const & path = "") const;
 
 	template<typename ... Args> void NextTimeStep(Args const & ... args);
 
@@ -1066,7 +1064,8 @@ void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
 {
 	for (auto & p : *this)
 	{
-		p.second->NextTimeStep(args...);
+		LOG_CMD2(("Move Particle [" + p.first + ":" + p.second->GetTypeAsString() + "]"),
+		        (p.second->NextTimeStep(args...)));
 	}
 }
 
@@ -1076,7 +1075,13 @@ void ParticleCollection<TM>::Collect(TJ *J, Args const & ... args) const
 {
 	for (auto & p : *this)
 	{
-		p.second->Collect(J, args...);
+		LOG_CMD2(("Collect particle [" + p.first + ":" + p.second->GetTypeAsString()
+
+		+ "] to Form<" + ToString(TJ::IForm) + ","
+
+		+ (is_ntuple<typename TJ::value_type>::value ? "Vector" : "Scalar") + ">!]"
+
+		), (p.second->Collect(J, args...)));
 	}
 }
 template<typename TM>
@@ -1089,11 +1094,11 @@ void ParticleCollection<TM>::Sort()
 }
 
 template<typename TM>
-void ParticleCollection<TM>::DumpData() const
+void ParticleCollection<TM>::DumpData(std::string const & path) const
 {
 	for (auto const &p : *this)
 	{
-		p.second->DataDump(p.first);
+		p.second->DumpData(path);
 	}
 }
 template<typename TM>
@@ -1106,8 +1111,8 @@ std::ostream & operator<<(std::ostream & os, ParticleCollection<TM> const &self)
 template<typename TX, typename TV, typename FE, typename FB> inline
 void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
 {
-	// @ref  Birdsall(1991)   p.62
-	// Bories Method
+// @ref  Birdsall(1991)   p.62
+// Bories Method
 
 	(*x) += (*v) * 0.5 * dt;
 
