@@ -71,17 +71,17 @@ public:
 
 	mesh_type mesh;
 
+	bool isCompactStored_;
+
 	Form<1> E;
 	Form<2> B;
 	Form<1> J;
 
 	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
 	std::shared_ptr<FieldSolver<mesh_type> > pml_;
-	ParticleCollection<mesh_type> particle_collection_;
 
+	std::shared_ptr<ParticleCollection<mesh_type>> particle_collection_;
 	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
-
-	bool isCompactStored_;
 
 	typedef LuaObject field_function;
 
@@ -93,21 +93,11 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: E(mesh), B(mesh), J(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		isCompactStored_(true), E(mesh), B(mesh), J(mesh),
 
-		cold_fluid_(nullptr),
-
-		pml_(nullptr),
-
-		particle_collection_(mesh),
-
-		isCompactStored_(true)
+		cold_fluid_(nullptr), pml_(nullptr), particle_collection_(nullptr)
 {
-	particle_collection_.template RegisterFactory<PICEngineFull<mesh_type> >();
-	particle_collection_.template RegisterFactory<PICEngineDeltaF<mesh_type> >();
-	particle_collection_.template RegisterFactory<PICEngineGGauge<mesh_type, 8>>("GGauge8");
-	particle_collection_.template RegisterFactory<PICEngineGGauge<mesh_type, 32>>("GGauge32");
 }
 
 template<typename TM>
@@ -131,7 +121,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		pml_ = CreateSolver(mesh, "PML");
 		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
 	}
-	particle_collection_.Deserialize(cfg["Particles"]);
+	particle_collection_->Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 
@@ -222,7 +212,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 					);
 				}
-				else if (type == "Particle" && function == "Refelect")
+				else if (type == "Particle" && function == "Reflect")
 				{
 					particle_boundary_.emplace(object,
 
@@ -247,12 +237,27 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 				else
 				{
 					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-					        << " object =" << object << " ]";
+							<< " object =" << object << " ]";
 				}
 
 				LOGGER << "Load Boundary " << type << DONE;
 
 			}
+		}
+
+	}
+
+	{
+		LuaObject particles = cfg["Particles"];
+		if (!particles.empty())
+		{
+			particle_collection_ = std::shared_ptr<ParticleCollection<mesh_type> >(
+					new ParticleCollection<mesh_type>(mesh));
+
+			particle_collection_->template RegisterFactory<PICEngineFull<mesh_type> >();
+			particle_collection_->template RegisterFactory<PICEngineDeltaF<mesh_type> >();
+			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 8>>("GGauge8");
+			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 32>>("GGauge32");
 		}
 	}
 
@@ -374,11 +379,11 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
 	}
 
-	// particle(t=0 -> 1)
-	particle_collection_.NextTimeStep(dt, E, B);
+	if (particle_collection_ != nullptr)
+		particle_collection_->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 
 	{
-		for (auto & p : particle_collection_)
+		for (auto & p : *particle_collection_)
 			for (auto & fun : particle_boundary_)
 			{
 				if (fun.first == "" || p.first == fun.first)
@@ -433,13 +438,13 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
 	}
 
-	particle_collection_.Sort();
-
-	J.Fill(0);
-	LOGGER << DUMP(J);
-	// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-	particle_collection_.Collect(&J, E, B);
-
+	if (particle_collection_ != nullptr)
+	{
+		particle_collection_->Sort();
+		J.Fill(0);
+		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+		particle_collection_->Collect(&J, E, B);
+	}
 	LOGGER << DUMP(J);
 
 	// B(t=0 -> 1/2)

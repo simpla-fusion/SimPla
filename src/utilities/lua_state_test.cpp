@@ -6,6 +6,7 @@
  */
 
 #include "lua_state.h"
+#include "pretty_stream.h"
 #include "../fetl/primitives.h"
 #include <iostream>
 #include <map>
@@ -15,18 +16,15 @@ int main(int argc, char** argv)
 	LuaObject pt;
 	pt.Init();
 
+	pt.ParseString("c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
+			"tt={6,6,7,3,e=12, d=13,h=2} \n"
+			"function f(x,y) \n"
+			"    return x+y  \n"
+			"end \n");
+
 	if (argc > 1)
 	{
 		pt.ParseFile(argv[1]);
-	}
-	else
-	{
-		pt.ParseString(
-				"c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
-						"tt={6,6,7,3,e=12, d=13,h=2} \n"
-						"function f(x,y) \n"
-						"    return x+y  \n"
-						"end \n");
 	}
 
 	for (int i = 0; i < 10; ++i)
@@ -53,8 +51,7 @@ int main(int argc, char** argv)
 //
 	std::cout << "f(2,2.5) \t=" << pt["f"](2.0, 2.5).as<double>() << std::endl;
 
-	std::cout << "f(1.2,2.5) \t=" << pt["f"](1.2, 2.5).as<double>()
-			<< std::endl;
+	std::cout << "f(1.2,2.5) \t=" << pt["f"](1.2, 2.5).as<double>() << std::endl;
 
 	std::cout << "f(3,2.5) \t=" << pt["f"](3.0, 2.5).as<double>() << std::endl;
 
@@ -63,8 +60,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < 10; ++i)
 	{
 
-		std::cout << "t3 \t=" << pt.GetChild("t3").as<nTuple<3, double>>()
-				<< std::endl;
+		std::cout << "t3 \t=" << pt.GetChild("t3").as<nTuple<3, double>>() << std::endl;
 	}
 
 	LuaObject * t1 = new LuaObject(pt["t1"]);
@@ -77,11 +73,9 @@ int main(int argc, char** argv)
 
 	delete e;
 
-	for (auto it = pt.GetChild("tt").begin(), e = pt.GetChild("tt").end();
-			it != e; ++it)
+	for (auto it = pt.GetChild("tt").begin(), e = pt.GetChild("tt").end(); it != e; ++it)
 	{
-		std::cout << (*it).first.as<std::string>() << " = "
-				<< (*it).second.as<int>() << std::endl;
+		std::cout << (*it).first.as<std::string>() << " = " << (*it).second.as<int>() << std::endl;
 
 	}
 	std::cout << "============================" << std::endl;
@@ -89,8 +83,7 @@ int main(int argc, char** argv)
 
 	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
 	{
-		std::cout << (*it).first.as<std::string>() << " = "
-				<< (*it).second.as<int>() << std::endl;
+		std::cout << (*it).first.as<std::string>() << " = " << (*it).second.as<int>() << std::endl;
 
 	}
 	std::cout << "============================" << std::endl;
@@ -98,8 +91,7 @@ int main(int argc, char** argv)
 
 	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
 	{
-		std::cout << (*it).first.as<std::string>() << " = "
-				<< (*it).second.as<int>() << std::endl;
+		std::cout << (*it).first.as<std::string>() << " = " << (*it).second.as<int>() << std::endl;
 
 	}
 	std::cout << "============================" << std::endl;
@@ -121,18 +113,15 @@ int main(int argc, char** argv)
 //
 	for (auto const &p : pt.GetChild("tt"))
 	{
-		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
-				<< std::endl;
+		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
 	for (auto const &p : pt.GetChild("tt"))
 	{
-		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
-				<< std::endl;
+		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
 	for (auto const &p : pt.GetChild("tt"))
 	{
-		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>()
-				<< std::endl;
+		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
 
 }

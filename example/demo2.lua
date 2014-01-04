@@ -1,7 +1,7 @@
 Description="For Cold Plasma Dispersion" -- description or other text things.    
 -- SI Unit System
 c = 299792458  -- m/s
-e=1.60217656e-19 -- C
+qe=1.60217656e-19 -- C
 me=9.10938291e-31 --kg
 mp=1.672621777e-27 --kg
 mp_me=1836.15267245 --
@@ -19,11 +19,11 @@ Te =  0.05 * KeV
 N0 = 1.0e16 -- m^-3
 
 
-omega_ci = e * Btor/mp -- e/m_p B0 rad/s
+omega_ci = qe * Btor/mp -- e/m_p B0 rad/s
 vTi= math.sqrt(k_B*Ti*2/mp)
 rhoi = vTi/omega_ci    -- m
 
-omega_ce = e * Btor/me -- e/m_p B0 rad/s
+omega_ce = qe * Btor/me -- e/m_p B0 rad/s
 vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
@@ -137,13 +137,13 @@ Media=
 }
 
 Boundary={
-   --   { Type="PEC", In="Vacuum",Out="NONE"},
+   -- { Type="PEC", In="Vacuum",Out="NONE"},
    -- { Type="PEC", In="Plasma",Out="NONE"},
 }
 --]]
 
 Particles={
---  {Name="H",Engine="Full",m=1.0,Z=1.0,PIC=100}
+  {Name="H",Engine="Full",m=mp,Z=qe,PIC=100}
 }
 
 FieldSolver= 
@@ -151,12 +151,11 @@ FieldSolver=
 ---[[
    ColdFluid=
     {
-       --B0={0,0,Btor},
-       --Nonlinear=true,       
+       Nonlinear=false,       
        Species=
        {
-       {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=InitN0, J=0},
-       {Name="ele",m=1/mp_me, Z=-1.0,T=Te,  n=InitN0, J=0}         
+    --   {Name="ion",m=mp,     Z= qe ,T=Ti,  n=InitN0, J=0},
+       {Name="ele",m=mp_me,  Z=-qe,T=Te,  n=InitN0, J=0}         
         }
     },
 --]]

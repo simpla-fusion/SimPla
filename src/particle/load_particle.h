@@ -157,7 +157,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 	<< "Load Particle:[ Name=" << p->GetName()
 
-	<< ", Engine=" << p->TypeName()
+	<< ", Engine=" << p->GetTypeAsString()
 
 	<< ", Number of Particles=" << p->size() << "]";
 

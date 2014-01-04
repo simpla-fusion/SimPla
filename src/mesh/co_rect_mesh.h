@@ -66,32 +66,43 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> shift_ =
+	{ 0, 0, 0 };
 
-	nTuple<NUM_OF_DIMS, index_type> dims_ = { 10, 10, 10 }; //!< number of cells
+	nTuple<NUM_OF_DIMS, index_type> dims_ =
+	{ 10, 10, 10 }; //!< number of cells
 
-	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, index_type> ghost_width_ =
+	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
 
-	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> strides_ =
+	{ 0, 0, 0 };
 
 	index_type num_cells_ = 0;
 
 	index_type num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ = { 0, 0, 0 };
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
+	coordinates_type xmax_ =
+	{ 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] = { 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar_type> k_ = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] =
+	{ 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> k_ =
+	{ 0, 0, 0 };
 
-	coordinates_type dx_ = { 0, 0, 0 };
-	coordinates_type inv_dx_ = { 0, 0, 0 };
+	coordinates_type dx_ =
+	{ 0, 0, 0 };
+	coordinates_type inv_dx_ =
+	{ 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
+	{ 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -2204,7 +2215,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 		if (cfg["Type"].template as<std::string>("Real") != GetTypeName())
 		{
 			WARNING << "illegal config [Type: except=" << GetTypeName() << ", configure="
-			        << cfg["Type"].template as<std::string>() << "]";
+					<< cfg["Type"].template as<std::string>() << "]";
 
 			return;
 		}
@@ -2215,11 +2226,13 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 
 		if (cfg_scalar_type != "" && cfg_scalar_type != this_scalar_type)
 		{
-			WARNING << "illegal config [Scalar Type: except= " << this_scalar_type << ", configure=" << cfg_scalar_type
-			        << "]";
+			WARNING << "illegal configure[Scalar Type: except= " << this_scalar_type << ", configure="
+					<< cfg_scalar_type << "]";
 		}
 
 	}
+
+	LOGGER << "Deserialize CoRectMesh" << START;
 
 	constants().Deserialize(cfg["UnitSystem"]);
 	tags().Deserialize(cfg["MediaTag"]);
@@ -2235,8 +2248,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 
 	Update();
 
-	LOGGER << "Load Mesh " << GetTypeName() << DONE;
-
+	LOGGER << "Deserialize CoRectMesh [" << GetTypeName() << "] " << DONE;
 }
 template<typename TS>
 template<typename OSTREAM> inline OSTREAM &
@@ -2299,7 +2311,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(int, index_type, index_type, index_type)> const &fun) const
+		std::function<void(int, index_type, index_type, index_type)> const &fun) const
 {
 
 //	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
@@ -2348,9 +2360,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-		        std::thread([num_threads,thread_id,this](Args const & ...args2)
-		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-		                std::forward<Args const &>(args)...));
+				std::thread([num_threads,thread_id,this](Args const & ...args2)
+				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+						std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

@@ -43,7 +43,6 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
-//	static constexpr char DEFAULT_FILENAME[] = "simpla.log";
 
 	LoggerStreams(int l = LOG_LOG) :
 			std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
@@ -356,13 +355,13 @@ private:
 #define INFORM Logger(LOG_INFORM)
 
 #define UNIMPLEMENT Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "This is a new year wish. Try again next year, good luck!"
+	          << "Sorry, this function is not implemented. Try again next year, good luck!"
 
 #define UNIMPLEMENT2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
 
 #define NOTHING_TODO Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "NOTHING TODO"
+	          << "oh....... NOTHING TODO!"
 
 #define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
         << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
@@ -438,6 +437,27 @@ inline Logger & TimeStamp(Logger & self)
 	//TODO: trigger timer
 	self << self.TimeStamp();
 	return self;
+}
+
+struct SetLineWidth
+{
+	int width_;
+
+	SetLineWidth(int width) :
+			width_(width)
+	{
+	}
+	~SetLineWidth()
+	{
+	}
+
+};
+
+inline LoggerStreams & operator<<(LoggerStreams & os, SetLineWidth const &setw)
+{
+	os.SetLineWidth(setw.width_);
+	return os;
+
 }
 //#define DONE    std::right<< " [Done]"
 //#define START    std::right<<  " [START]"

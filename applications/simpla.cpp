@@ -75,6 +75,10 @@ int main(int argc, char **argv)
 		{
 			Logger::Verbose(LOG_INFORM-1);
 		}
+		else if(opt=="w"|| opt=="log_width")
+		{
+			LoggerStreams::instance().SetLineWidth(ToValue<int>(value));
+		}
 		else if(opt=="g"|| opt=="generator")
 		{
 			INFORM

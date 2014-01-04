@@ -28,30 +28,33 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 	if (!cfg.empty())
 	{
 
+		LOGGER << "Initialize Context." << START;
+
 		auto mesh_type = cfg["Grid"]["Type"].as<std::string>();
-		auto scalar_type = cfg["Grid"]["ScalarType"].as<std::string>("Real");
-
-		if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
-		{
-
-			typedef CoRectMesh<Complex> mesh_type;
-
-			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
-
-			ctx_ptr->Deserialize(cfg);
-
-			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-		}
-		else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
-		{
-			typedef CoRectMesh<Real> mesh_type;
-
-			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
-
-			ctx_ptr->Deserialize(cfg);
-
-			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
-		}
+//		auto scalar_type = cfg["Grid"]["ScalarType"].as<std::string>("Real");
+//
+//		if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
+//		{
+//
+//			typedef CoRectMesh<Complex> mesh_type;
+//
+//			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
+//
+//			ctx_ptr->Deserialize(cfg);
+//
+//			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
+//		}
+//		else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
+//		{
+//			typedef CoRectMesh<Real> mesh_type;
+//
+//			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
+//
+//			ctx_ptr->Deserialize(cfg);
+//
+//			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
+//		}
+		LOGGER << "Initialize Context." << DONE;
 	}
 
 	return ctx;

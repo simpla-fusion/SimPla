@@ -101,7 +101,7 @@ public:
 
 	virtual std::string GetTypeAsString() const
 	{
-		return engine_type::TypeName();
+		return engine_type::GetTypeAsString();
 	}
 
 	size_t size() const
@@ -185,7 +185,7 @@ public:
 	}
 	template<typename ... Args>
 	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-	        Args const& ... args)
+			Args const& ... args)
 	{
 		_Boundary(flag, in, out, dt, std::forward<Args const &>(args)...);
 	}
@@ -199,7 +199,7 @@ private:
 
 	template<typename ... Args>
 	void _Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-	        Args const& ... args);
+			Args const& ... args);
 
 	template<typename ... Args> void _Collide(Args const& ... args);
 
@@ -219,12 +219,12 @@ public:
 	}
 
 	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        Form<1> const &E, Form<2> const &B) override
+			Form<1> const &E, Form<2> const &B) override
 	{
 		_Boundary(flag, in, out, dt, E, B);
 	}
 	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        VectorForm<0> const &E, VectorForm<0> const &B) override
+			VectorForm<0> const &E, VectorForm<0> const &B) override
 	{
 		_Boundary(flag, in, out, dt, E, B);
 	}
@@ -273,8 +273,8 @@ public:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh)
 {
 }
 
@@ -635,7 +635,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 template<class Engine>
 template<typename ... Args>
 void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-        Args const &... args)
+		Args const &... args)
 {
 	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
 
@@ -706,8 +706,8 @@ public:
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
+	PICEngineBase(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), name_("unnamed")
 	{
 
 	}
@@ -774,14 +774,14 @@ public:
 
 template<typename TParticleEngine>
 std::shared_ptr<ParticleBase<typename TParticleEngine::mesh_type> > CreateParticle(
-        typename TParticleEngine::mesh_type const & mesh)
+		typename TParticleEngine::mesh_type const & mesh)
 {
 
 	typedef Particle<TParticleEngine> particle_type;
 	typedef typename TParticleEngine::mesh_type mesh_type;
 
 	return std::dynamic_pointer_cast<ParticleBase<mesh_type> >(
-	        std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
+			std::shared_ptr<ParticleBase<mesh_type> >(new particle_type(mesh)));
 }
 
 //*******************************************************************************************************
@@ -800,8 +800,8 @@ public:
 		REFELECT, ABSORB
 	};
 
-	ParticleBase()
-			: isSorted_(false), clock_(0)
+	ParticleBase() :
+			isSorted_(false), clock_(0)
 	{
 	}
 	virtual ~ParticleBase()
@@ -859,12 +859,12 @@ public:
 	}
 
 	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        Form<1> const &E, Form<2> const &B)
+			Form<1> const &E, Form<2> const &B)
 	{
 		UNIMPLEMENT;
 	}
 	virtual void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        VectorForm<0> const &E, VectorForm<0> const &B)
+			VectorForm<0> const &E, VectorForm<0> const &B)
 	{
 		UNIMPLEMENT;
 	}
@@ -910,7 +910,7 @@ public:
 	{
 		name_(name);
 	}
-	void GetName() const
+	std::string const &GetName() const
 	{
 		return name_;
 	}
@@ -946,8 +946,8 @@ public:
 	template<typename U>
 	friend std::ostream & operator<<(std::ostream & os, ParticleCollection<U> const &self);
 
-	ParticleCollection(mesh_type const & pmesh)
-			: mesh(pmesh)
+	ParticleCollection(mesh_type const & pmesh) :
+			mesh(pmesh)
 	{
 	}
 	~ParticleCollection()
@@ -1065,7 +1065,7 @@ void ParticleCollection<TM>::NextTimeStep(Args const & ... args)
 	for (auto & p : *this)
 	{
 		LOG_CMD2(("Move Particle [" + p.first + ":" + p.second->GetTypeAsString() + "]"),
-		        (p.second->NextTimeStep(args...)));
+				(p.second->NextTimeStep(args...)));
 	}
 }
 

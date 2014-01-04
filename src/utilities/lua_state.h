@@ -30,7 +30,7 @@
 namespace simpla
 {
 
-#define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, 1) ;   lua_pop(_L, 1);
+#define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ;   lua_pop(_L, 1);
 
 class LuaIterator;
 class LuaObject;
