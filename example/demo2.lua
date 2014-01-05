@@ -30,7 +30,7 @@ rhoe = vTe/omega_ce    -- m
 NX = 200
 NY = 1
 NZ = 1
-LX = 50 --m --100000*rhoi --0.6
+LX = 0.25 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5 
@@ -53,7 +53,7 @@ InitN0=function(x,y,z)
 --]]
 
 InitN0=function(x,y,z)      
-      local x0=0.1*LX ;
+      local x0=0.0*LX ;
       local res = 0.0;
       if x>x0 then
         res=0.5*N0*(1.0- math.cos(PI*(x-x0)/(LX-x0)));
@@ -119,7 +119,7 @@ Grid=
       Type="Origin_DxDyDz",
       Min={0.0,0.0,0.0},
       Max={LX,LY,LZ},
-     --dt= 2.0*math.pi/omega_ci/100.0
+      -- dt= 2.0*math.pi/omega_ci/1000.0
       dt=0.5*LX/NX/c  -- time step     
   },
   
@@ -143,7 +143,7 @@ Boundary={
 --]]
 
 Particles={
-  {Name="H",Engine="Full",m=mp,Z=qe,PIC=100}
+  {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100}
 }
 
 FieldSolver= 
@@ -154,8 +154,8 @@ FieldSolver=
        Nonlinear=false,       
        Species=
        {
-    --   {Name="ion",m=mp,     Z= qe ,T=Ti,  n=InitN0, J=0},
-       {Name="ele",m=mp_me,  Z=-qe,T=Te,  n=InitN0, J=0}         
+    --   {Name="ion",Mass=mp,   Charge= qe ,T=Ti,  n=InitN0, J=0},
+       {Name="ele",Mass=me,  Charge=-qe,   n=InitN0, J=0}         
         }
     },
 --]]

@@ -93,8 +93,8 @@ public:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), E(mesh), B(mesh), J(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: isCompactStored_(true), E(mesh), B(mesh), J(mesh),
 
 		cold_fluid_(nullptr), pml_(nullptr), particle_collection_(nullptr)
 {
@@ -121,7 +121,6 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		pml_ = CreateSolver(mesh, "PML");
 		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
 	}
-	particle_collection_->Deserialize(cfg["Particles"]);
 
 	auto init_value = cfg["InitValue"];
 
@@ -237,7 +236,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 				else
 				{
 					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-							<< " object =" << object << " ]";
+					        << " object =" << object << " ]";
 				}
 
 				LOGGER << "Load Boundary " << type << DONE;
@@ -252,12 +251,14 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		if (!particles.empty())
 		{
 			particle_collection_ = std::shared_ptr<ParticleCollection<mesh_type> >(
-					new ParticleCollection<mesh_type>(mesh));
+			        new ParticleCollection<mesh_type>(mesh));
 
 			particle_collection_->template RegisterFactory<PICEngineFull<mesh_type> >();
 			particle_collection_->template RegisterFactory<PICEngineDeltaF<mesh_type> >();
 			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 8>>("GGauge8");
 			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 32>>("GGauge32");
+
+			particle_collection_->Deserialize(particles);
 		}
 	}
 
@@ -287,9 +288,7 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	os << "} \n";
 
-	os << particle_collection_ << "\n"
-
-	;
+	os << *particle_collection_ << "\n";
 
 	os << "Function={";
 	for (auto const & p : field_boundary_)
@@ -317,7 +316,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
 	if (!mesh.CheckCourant(dt))
-		ERROR << "dt too big! ";
+		VERBOSE << "dx/dt > c, Courant condition is violated! ";
 
 	base_type::NextTimeStep(dt);
 

@@ -69,11 +69,11 @@ public:
 
 	static inline std::string TypeName()
 	{
-		return "Full";
+		return "DeltaF";
 	}
 	virtual inline std::string GetTypeAsString() const override
 	{
-		return this_type::TypeName();
+		return "DeltaF";
 	}
 
 	inline void Deserialize(LuaObject const &obj) override
@@ -90,7 +90,7 @@ public:
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine = 'Default' " << " , ";
+		os << "Engine = '" << GetTypeAsString() << "' " << " , ";
 
 		base_type::Serialize(os);
 
@@ -101,6 +101,7 @@ public:
 	{
 		Point_s p;
 		p.f = 1.0;
+		p.w = 0.0;
 		return std::move(p);
 	}
 
@@ -133,6 +134,7 @@ public:
 		p.x = x;
 		p.v = v;
 		p.f = n(x);
+		p.w = 0.0;
 
 		return std::move(p);
 	}

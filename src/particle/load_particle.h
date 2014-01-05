@@ -54,6 +54,8 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 	p->engine_type::Deserialize(cfg);
 
+	p->SetName(cfg["Name"].template as<std::string>());
+
 	if (cfg["SRC"].empty()) // Initialize Data
 	{
 
@@ -111,8 +113,10 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 		}
 		else if (!cfg["T"].empty())
 		{
-			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / (p->GetMass() * proton_mass));
+			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / (p->GetMass()));
 		}
+
+		CHECK(vT);
 
 		std::mt19937 rnd_gen(3);
 

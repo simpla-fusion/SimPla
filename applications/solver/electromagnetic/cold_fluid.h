@@ -315,7 +315,7 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		}
 
 		std::shared_ptr<Species> sp(
-		        new Species(p.second["m"].template as<Real>(1.0), p.second["Z"].template as<Real>(1.0), mesh));
+		        new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
 		sp->n.Init();
 		sp->J.Init();
