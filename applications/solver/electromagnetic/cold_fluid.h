@@ -102,8 +102,6 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
-	LOGGER << "Push Cold Fluid. Nonline is " << ((nonlinear_) ? "opened" : "closed") << ".";
-
 	RForm<0> a(mesh);
 	RForm<0> b(mesh);
 	RForm<0> c(mesh);
@@ -190,6 +188,8 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	*dE -= E;
 	*dE /= dt;
+
+	LOGGER << "Push Cold Fluid. Nonline is " << ((nonlinear_) ? "opened" : "closed") << "." << DONE;
 
 }
 //

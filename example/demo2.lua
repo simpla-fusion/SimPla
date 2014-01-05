@@ -16,7 +16,7 @@ k_parallel=18
 Btor= 1.0  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
-N0 = 1.0e16 -- m^-3
+N0 = 1.0e17 -- m^-3
 
 
 omega_ci = qe * Btor/mp -- e/m_p B0 rad/s
@@ -30,7 +30,7 @@ rhoe = vTe/omega_ce    -- m
 NX = 200
 NY = 1
 NZ = 1
-LX = 0.25 --m --100000*rhoi --0.6
+LX = 50 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5 
@@ -53,7 +53,7 @@ InitN0=function(x,y,z)
 --]]
 
 InitN0=function(x,y,z)      
-      local x0=0.0*LX ;
+      local x0=0.1*LX ;
       local res = 0.0;
       if x>x0 then
         res=0.5*N0*(1.0- math.cos(PI*(x-x0)/(LX-x0)));
@@ -143,7 +143,7 @@ Boundary={
 --]]
 
 Particles={
-  {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100}
+  {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
 }
 
 FieldSolver= 
@@ -154,7 +154,7 @@ FieldSolver=
        Nonlinear=false,       
        Species=
        {
-    --   {Name="ion",Mass=mp,   Charge= qe ,T=Ti,  n=InitN0, J=0},
+      -- {Name="ion",Mass=mp,  Charge= qe ,T=Ti,  n=InitN0, J=0},
        {Name="ele",Mass=me,  Charge=-qe,   n=InitN0, J=0}         
         }
     },

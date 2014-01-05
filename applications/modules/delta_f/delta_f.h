@@ -209,7 +209,7 @@ void DeltaF<TV, TG>::Eval()
 			}
 		}
 
-		p->w = (1 - p->w) * Dot(E1(p->X), p->V) / T * dt;
+		p->w += (1 - p->w) * Dot(E1(p->X), p->V) / T * dt;
 
 	}
 

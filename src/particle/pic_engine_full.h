@@ -88,7 +88,7 @@ public:
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine = 'Full' " << " , ";
+		os << "Engine = '" << GetTypeAsString() << "' " << " , ";
 
 		base_type::Serialize(os);
 

@@ -350,9 +350,10 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	if (!j_src_.empty())
 	{
-		LOGGER << "Current Source:";
+
 		J.Fill(0);
 		j_src_(&J, base_type::GetTime());
+		LOGGER << "Current Source:" << DONE;
 		LOG_CMD(dE -= J / epsilon0);
 
 	}
@@ -444,7 +445,6 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		particle_collection_->Collect(&J, E, B);
 	}
-	LOGGER << DUMP(J);
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5 * dt);

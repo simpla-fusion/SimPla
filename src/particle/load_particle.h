@@ -116,8 +116,6 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / (p->GetMass()));
 		}
 
-		CHECK(vT);
-
 		std::mt19937 rnd_gen(3);
 
 		rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
