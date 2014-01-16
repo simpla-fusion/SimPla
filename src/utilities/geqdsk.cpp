@@ -47,6 +47,8 @@ void GEqdsk::Read(std::string const &fname)
 
 	if (fname != "")
 		inFileStream_.open(fname);
+	size_t nw; //Number of horizontal R grid points
+	size_t nh; //Number of vertical Z grid points
 	Real rdim; // Horizontal dimension in meter of computational box
 	Real zdim; // Vertical dimension in meter of computational box
 	Real rleft; // Minimum R in meter of rectangular computational box
@@ -58,7 +60,7 @@ void GEqdsk::Read(std::string const &fname)
 
 	inFileStream_.get(desc, 48);
 
-	inFileStream_ >> std::setw(4) >> idum >> dims_[0] >> dims_[1];
+	inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
 	inFileStream_ >> std::setw(16)
 
@@ -76,16 +78,18 @@ void GEqdsk::Read(std::string const &fname)
 	rzmin_[1] = zmid - zdim / 2;
 	rzmax_[1] = zmid + zdim / 2;
 
+	dims_[0] = nw;
+	dims_[1] = nh;
 	inter2d_type(dims_, rzmin_, rzmax_).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                                            \
-	for (size_t s = 0; s < dims_[0]; ++s)                                              \
+	for (size_t s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
 		value_type y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
 		_NAME_.data().emplace(                                                         \
 	     std::make_pair(static_cast<value_type>(s)                                     \
-	          /static_cast<value_type>(dims_[0]-1), y));                               \
+	          /static_cast<value_type>(nw-1), y));                               \
 	}                                                                                  \
 
 	INPUT_VALUE(fpol_);
@@ -93,12 +97,13 @@ void GEqdsk::Read(std::string const &fname)
 	INPUT_VALUE(ffprim_);
 	INPUT_VALUE(pprim_);
 
-	for (size_t s = 0, s_end = dims_[0] * dims_[1]; s < s_end; ++s)
-	{
-		value_type v;
-		inFileStream_ >> std::setw(16) >> v;
-		psirz_[s] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
-	}
+	for (size_t j = 0; j < nh; ++j)
+		for (size_t i = 0; i < nw; ++i)
+		{
+			value_type v;
+			inFileStream_ >> std::setw(16) >> v;
+			psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
+		}
 
 	INPUT_VALUE(qpsi_);
 
@@ -137,7 +142,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcentr
-	        << "\t--                                                                    " << std::endl;
+			<< "\t--                                                                    " << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -148,10 +153,10 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rmaxis" << "\t= " << rmaxis
-	        << "\t-- R of magnetic axis in meter                                        " << std::endl;
+			<< "\t-- R of magnetic axis in meter                                        " << std::endl;
 
 	std::cout << "rmaxis" << "\t= " << zmaxis
-	        << "\t-- Z of magnetic axis in meter                                        " << std::endl;
+			<< "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -162,13 +167,13 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcentr
-	        << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
+			<< "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
 	std::cout << "bcentr" << "\t= " << bcentr
-	        << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
+			<< "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
 	std::cout << "current" << "\t= " << current
-	        << "\t-- Plasma current in Ampere                                          " << std::endl;
+			<< "\t-- Plasma current in Ampere                                          " << std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
@@ -236,13 +241,14 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			grid.SetGridType(XDMF_GRID_UNIFORM);
 			grid.GetTopology()->SetTopologyTypeFromString("2DCoRectMesh");
 
-			XdmfInt64 dims[2] = { static_cast<XdmfInt64>(dims_[1]), static_cast<XdmfInt64>(dims_[0]) };
+			XdmfInt64 dims[2] =
+			{ static_cast<XdmfInt64>(dims_[1]), static_cast<XdmfInt64>(dims_[0]) };
 			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 
 			grid.GetGeometry()->SetGeometryTypeFromString("Origin_DxDy");
 			grid.GetGeometry()->SetOrigin(rzmin_[1], rzmin_[0], 0);
 			grid.GetGeometry()->SetDxDyDz((rzmax_[1] - rzmin_[1]) / static_cast<Real>(dims_[1] - 1),
-			        (rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1), 0);
+					(rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1), 0);
 
 			XdmfAttribute myAttribute;
 			grid.Insert(&myAttribute);
@@ -264,7 +270,8 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			grid.SetGridType(XDMF_GRID_UNIFORM);
 			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-			XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzbbb_.size()), 2 };
+			XdmfInt64 dims[2] =
+			{ static_cast<XdmfInt64>(rzbbb_.size()), 2 };
 			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 			grid.GetTopology()->Set("NodesPerElement", "2");
 			grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
@@ -311,7 +318,8 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			grid.SetGridType(XDMF_GRID_UNIFORM);
 			grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-			XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzlim_.size()), 2 };
+			XdmfInt64 dims[2] =
+			{ static_cast<XdmfInt64>(rzlim_.size()), 2 };
 			grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 			grid.GetTopology()->Set("NodesPerElement", "2");
 			grid.GetTopology()->SetNumberOfElements(rzlim_.size());

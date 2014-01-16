@@ -40,20 +40,20 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args const & ...args)
-			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args const & ...args) :
+			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args const & ...args)
-			: Interpolation(std::shared_ptr<container_type>(new container_type()), std::forward<Args const &>(args)...)
+	Interpolation(Args const & ...args) :
+			Interpolation(std::shared_ptr<container_type>(new container_type()), std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args const & ...args)
-			: Interpolation(std::shared_ptr<container_type>(new container_type(y)), std::forward<Args const &>(args)...)
+	Interpolation(TC const &y, Args const & ...args) :
+			Interpolation(std::shared_ptr<container_type>(new container_type(y)), std::forward<Args const &>(args)...)
 	{
 	}
 
@@ -88,10 +88,10 @@ public:
 	inline iterator find(key_x_type const & x) const
 	{
 		iterator jt = data_->upper_bound(x);
-		if (jt == data_->begin() || (++jt == data_->begin()))
-		{
-			LOGIC_ERROR << "key value out of range!";
-		}
+//		if (jt == data_->begin() || (++jt == data_->begin()))
+//		{
+//			LOGIC_ERROR << "key value out of range!";
+//		}
 		for (int s = 0; s < 2; ++s)
 		{
 			if (jt == data_->begin())
@@ -130,20 +130,20 @@ struct LinearInterpolation
 
 	template<typename container>
 	inline typename container::mapped_type eval(container const &, typename container::iterator const &it,
-	        typename container::key_type const &x) const
+			typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
 		++next;
 		return it->second
-		        + (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
-		                * (next->second - it->second);
+				+ (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
+						* (next->second - it->second);
 
 	}
 
 	template<typename container>
 	inline typename container::mapped_type diff(container const &, typename container::iterator const &it,
-	        typename container::key_type const &x) const
+			typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
@@ -170,15 +170,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args const & ...args)
-			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args const & ...args) :
+			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 		Update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args const & ...args)
-			: data_(nullptr), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(Args const & ...args) :
+			data_(nullptr), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 		Update();
 	}
@@ -255,8 +255,8 @@ public:
 	{
 
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
-			: dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax) :
+			dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
 		Update();
 	}
@@ -317,10 +317,9 @@ public:
 		Real rx = std::modf(x, &ix);
 		Real ry = std::modf(y, &iy);
 
-		size_t sx = dims_[1];
-		size_t sy = 1;
-
-		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy);
+		size_t sx = 1;
+		size_t sy = dims_[0];
+		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
 		return (
 
@@ -352,14 +351,13 @@ public:
 		Real ix, iy;
 		Real rx = std::modf(x, &ix);
 		Real ry = std::modf(y, &iy);
-		int sx = dims_[1];
-		int sy = 1;
 
-		typedef TV value_type;
+		size_t sx = 1;
+		size_t sy = dims_[0];
+		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
-		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy);
-
-		nTuple<NDIMS, value_type> res = {
+		nTuple<NDIMS, TV> res =
+		{
 
 		(1.0 - ry) * (v[s + sx] - v[s]) + ry * (v[s + sx + sy] - v[s + sy]),
 
@@ -374,7 +372,6 @@ public:
 	{
 		return diff(v, x[0], x[1]);
 	}
-
 }
 ;
 
