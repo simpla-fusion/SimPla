@@ -146,6 +146,8 @@ int main(int argc, char **argv)
 
 	std::shared_ptr<BaseContext> ctx;
 
+	std::string ctx_type = cfg["Context"].as<std::string>();
+
 	ctx = CreateContextExplicitEM(cfg);
 
 	if (ctx == nullptr)

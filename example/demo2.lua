@@ -1,4 +1,7 @@
 Description="For Cold Plasma Dispersion" -- description or other text things.    
+
+Context="ExplicitEM"
+
 -- SI Unit System
 c = 299792458  -- m/s
 qe=1.60217656e-19 -- C

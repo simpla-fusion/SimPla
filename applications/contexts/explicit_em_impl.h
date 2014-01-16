@@ -24,8 +24,11 @@
 #include "../../src/engine/basecontext.h"
 
 #include "../../src/fetl/fetl.h"
+
 #include "../../src/fetl/load_field.h"
 #include "../../src/fetl/save_field.h"
+
+#include "../../src/mesh/field_convert.h"
 
 #include "../../src/mesh/media_tag.h"
 
@@ -36,11 +39,17 @@
 #include "../../src/io/data_stream.h"
 
 #include "../../src/particle/particle.h"
+#include "../../src/particle/particle_collection.h"
 #include "../../src/particle/pic_engine_full.h"
 #include "../../src/particle/pic_engine_deltaf.h"
 #include "../../src/particle/pic_engine_ggauge.h"
+
 #include "../../src/engine/fieldsolver.h"
+
 #include "../solver/solver.h"
+
+#include "../../src/utilities/geqdsk.h"
+
 namespace simpla
 {
 template<typename TM>
@@ -111,58 +120,52 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 	mesh.Deserialize(cfg["Grid"]);
 
-	if (!cfg["FieldSolver"]["ColdFluid"].empty())
 	{
-		cold_fluid_ = CreateSolver(mesh, "ColdFluid");
-		cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
+		typedef TM mesh_type;
+
+		base_type::description = cfg["Description"].as<std::string>();
+
+		GEqdsk geqdsk(cfg["GFile"].as<std::string>());
+
+		mesh.SerialTraversal(B.IForm,
+		        [&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
+		        {
+			        auto v= geqdsk.B(x);
+
+			        B[s] = mesh.template GetWeightOnElement<FACE>(v,s);
+		        });
+
+		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
-	if (!cfg["FieldSolver"]["PML"].empty())
+
 	{
-		pml_ = CreateSolver(mesh, "PML");
-		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
-	}
+		auto init_value = cfg["InitValue"];
 
-	auto init_value = cfg["InitValue"];
-
-	if (!init_value.empty())
-	{
-
-		if (!init_value["E"].empty())
+		if (!init_value.empty())
 		{
 			LOGGER << "Load E";
 			LoadField(init_value["E"], &E);
-
-		}
-		else
-		{
-			E.Fill(0);
-		}
-		if (!init_value["B"].empty())
-		{
 			LOGGER << "Load B";
 			LoadField(init_value["B"], &B);
-		}
-		else
-		{
-			B.Fill(0);
-		}
-
-		if (!init_value["J"].empty())
-		{
 			LOGGER << "Load J";
 			LoadField(init_value["J"], &J);
+
+			LOGGER << "Load Initial Fields." << DONE;
 		}
-		else
+	}
+
+	{
+		if (!cfg["FieldSolver"]["ColdFluid"].empty())
 		{
-			J.Fill(0);
+			cold_fluid_ = CreateSolver(mesh, "ColdFluid");
+			cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
+		}
+		if (!cfg["FieldSolver"]["PML"].empty())
+		{
+			pml_ = CreateSolver(mesh, "PML");
+			pml_->Deserialize(cfg["FieldSolver"]["PML"]);
 		}
 
-		LOGGER << "Load Initial Fields." << DONE;
-	}
-	else
-	{
-		auto gfile = cfg["GFile"];
-		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
 	}
 
 	{

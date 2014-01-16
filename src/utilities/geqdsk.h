@@ -8,15 +8,18 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
-#include "../simpla_defs.h"
-#include "../numeric/interpolation.h"
-
-#include <map>
-#include <memory>
+#include <cstddef>
+#include <iostream>
+//#include <map>
+//#include <memory>
 #include <string>
-#include <utility>
+//#include <utility>
 #include <vector>
 
+#include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
+#include "../numeric/interpolation.h"
+//#include "../simpla_defs.h"
 namespace simpla
 {
 
@@ -88,13 +91,28 @@ public:
 	void Read(std::string const &fname);
 	void Write(std::string const &fname, int format = XDMF);
 
+	nTuple<NDIMS, Real> const & GetMin() const
+	{
+		return rzmin_;
+	}
+
+	nTuple<NDIMS, Real> const &GetMax() const
+	{
+		return rzmax_;
+	}
+
+	nTuple<NDIMS, size_t> const &GetDimension() const
+	{
+		return dims_;
+	}
+
 	std::ostream & Print(std::ostream & os);
 
-	inline std::vector<nTuple<NDIMS, Real> > const &Boundary() const
+	inline std::vector<nTuple<NDIMS, Real> > const & Boundary() const
 	{
 		return rzbbb_;
 	}
-	inline std::vector<nTuple<NDIMS, Real> > const &Limiter() const
+	inline std::vector<nTuple<NDIMS, Real> > const & Limiter() const
 	{
 		return rzlim_;
 	}
@@ -102,14 +120,14 @@ public:
 	template<typename ...Args>
 	inline value_type psi(Args const &...x)
 	{
-		psirz_(std::forward<Args>(x)...);
+		return psirz_(std::forward<Args const &>(x)...);
 	}
 
 #define VALUE_FUNCTION(_NAME_)                                     \
 	template<typename ...Args>                                     \
 	inline value_type _NAME_(Args const &...x)                       \
 	{                                                              \
-		return _NAME_##_(psi(std::forward<Args>(x)...));       \
+		return _NAME_##_(psi(std::forward<Args const &>(x)...));       \
 	}
 
 	VALUE_FUNCTION(fpol);
@@ -118,14 +136,20 @@ public:
 	VALUE_FUNCTION(pprim);
 	VALUE_FUNCTION(qpsi);
 #undef VALUE_FUNCTION
-	template<typename ...Args>
-	nTuple<3,Real> B(Args const &...x)
-	{
-	}
 
+	template<typename TX>
+	nTuple<3,Real> B(TX const & x)const
+	{
+		auto B_p= psirz_.diff(x[0],x[1]);
+
+		nTuple<3,Real> res=
+		{	B_p[0],B_p[1],fpol_(x[0])/x[0]};
+
+		return std::move(res);
+	}
 };
 
 }
- // namespace simpla
+// namespace simpla
 
 #endif /* GEQDSK_H_ */

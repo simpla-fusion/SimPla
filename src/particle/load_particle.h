@@ -23,10 +23,8 @@
 namespace simpla
 {
 
-template<typename > class Particle;
-
-template<typename TConfig, typename TEngine>
-bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
+template<typename TConfig, typename TP>
+bool LoadParticle(TConfig const &cfg, TP *p)
 {
 
 	if (cfg.empty())
@@ -36,11 +34,9 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 		return false;
 	}
 
-	typedef TEngine engine_type;
+	typedef typename TP::engine_type engine_type;
 
 	typedef typename engine_type::mesh_type mesh_type;
-
-	typedef Particle<engine_type> this_type;
 
 	typedef typename engine_type::Point_s Point_s;
 
@@ -122,7 +118,7 @@ bool LoadParticle(TConfig const &cfg, Particle<TEngine> *p)
 
 		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(vT);
 
-		mesh.SerialTraversal(Particle<TEngine>::IForm,
+		mesh.SerialTraversal(TP::IForm,
 
 		[&](typename mesh_type::index_type const & s)
 		{

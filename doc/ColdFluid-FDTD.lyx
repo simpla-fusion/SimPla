@@ -156,17 +156,17 @@ reference "eq:Ampere's Law"
 
 , is given by
 \begin_inset Formula 
-\begin{equation}
-\varepsilon_{0}\frac{E^{1}-E^{0}}{\Delta t}=\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}\label{eq:discrete Ampere Law}
-\end{equation}
+\[
+\varepsilon_{0}\frac{E^{1}-E^{0}}{\Delta t}=\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\]
 
 \end_inset
 
 
 \begin_inset Formula 
-\[
+\begin{equation}
 \varepsilon_{0}\frac{E^{+}-E^{-}}{\Delta t}=-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
-\]
+\end{equation}
 
 \end_inset
 
@@ -347,7 +347,7 @@ E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\overleftrightarrow{M_{s}}\left(\
 
 \end_inset
 
-where
+where 
 \begin_inset Formula 
 \[
 aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q

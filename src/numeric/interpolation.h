@@ -40,23 +40,20 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args const & ...args) :
-			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args const & ...args)
+			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args const & ...args) :
-			Interpolation(std::shared_ptr<container_type>(new container_type()),
-					std::forward<Args const &>(args)...)
+	Interpolation(Args const & ...args)
+			: Interpolation(std::shared_ptr<container_type>(new container_type()), std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args const & ...args) :
-			Interpolation(
-					std::shared_ptr<container_type>(new container_type(y)),
-					std::forward<Args const &>(args)...)
+	Interpolation(TC const &y, Args const & ...args)
+			: Interpolation(std::shared_ptr<container_type>(new container_type(y)), std::forward<Args const &>(args)...)
 	{
 	}
 
@@ -90,26 +87,34 @@ public:
 	 */
 	inline iterator find(key_x_type const & x) const
 	{
-		iterator jt = container_type::upper_bound(x);
-		if (jt == container_type::begin() || (jt++ == container_type::begin()))
+		iterator jt = data_->upper_bound(x);
+		if (jt == data_->begin() || (++jt == data_->begin()))
 		{
 			LOGIC_ERROR << "key value out of range!";
 		}
-		for (int s = 0; s < interpolate_op_.m_ / 2; ++s)
-		{
-			if (jt == container_type::begin())
-			{
-				break;
-			}
-			--jt;
-		}
+//		for (int s = 0; s < interpolate_op_.m_ / 2; ++s)
+//		{
+//			if (jt == data_->begin())
+//			{
+//				break;
+//			}
+//			--jt;
+//		}
 
 		return jt;
 	}
 
 	value_type operator()(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_(*data_, find(x), x));
+		return std::move(interpolate_op_.eval(*data_, find(x), x));
+	}
+	value_type eval(key_x_type const &x) const
+	{
+		return std::move(interpolate_op_.eval(*data_, find(x), x));
+	}
+	value_type diff(key_x_type const &x) const
+	{
+		return std::move(interpolate_op_.diff(*data_, find(x), x));
 	}
 
 };
@@ -124,17 +129,25 @@ struct LinearInterpolation
 	}
 
 	template<typename container>
-	inline typename container::mapped_type operator()(container const &,
-			typename container::iterator const &it,
-			typename container::key_type const &x)
+	inline typename container::mapped_type eval(container const &, typename container::iterator const &it,
+	        typename container::key_type const &x) const
+	{
+		typedef typename container::mapped_type value_type;
+		typename container::iterator next = it;
+		++next;
+		return it->second
+		        + (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
+		                * (next->second - it->second);
+
+	}
+
+	template<typename container>
+	inline typename container::mapped_type diff(container const &, typename container::iterator const &it,
+	        typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it++;
-		return it->second
-				+ (static_cast<value_type>(x - it->first)
-						/ static_cast<value_type>(next->first - it->first))
-						* (next->second - it->second);
-
+		return (next->second - it->second) / static_cast<value_type>(next->first - it->first);
 	}
 };
 //
@@ -380,25 +393,23 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<container_type> y,
-			Args const & ...args) :
-			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<container_type> y, Args const & ...args)
+			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 		update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args const & ...args) :
-			data_(std::shared_ptr<container_type>(new container_type())), interpolate_op_(
-					std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(Args const & ...args)
+			: data_(std::shared_ptr<container_type>(new container_type())), interpolate_op_(
+			        std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(container_type const &y, Args const & ...args) :
-			MultiDimesionInterpolation(
-					std::shared_ptr<container_type>(new container_type(y)),
-					std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(container_type const &y, Args const & ...args)
+			: MultiDimesionInterpolation(std::shared_ptr<container_type>(new container_type(y)),
+			        std::forward<Args const &>(args)...)
 	{
 	}
 
@@ -434,9 +445,19 @@ public:
 	template<typename ...TArgs>
 	inline value_type operator()(TArgs const &... x) const
 	{
-		return std::move(
-				interpolate_op_.eval(*data_, std::forward<TArgs>(x)...));
+		return std::move(interpolate_op_.eval(*data_, std::forward<TArgs const &>(x)...));
 	}
+	template<typename ...TArgs>
+	inline value_type eval(TArgs const &... x) const
+	{
+		return std::move(interpolate_op_.eval(*data_, std::forward<TArgs const &>(x)...));
+	}
+
+	template<typename ...TArgs>
+	inline auto diff(TArgs const &... x) const
+	DECL_RET_TYPE(
+			std::move(interpolate_op_.diff(*data_, std::forward<TArgs const &>(x)...))
+	)
 };
 
 class BiLinearInterpolation
@@ -457,9 +478,8 @@ public:
 	{
 
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims,
-			nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax) :
-			dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
+			: dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
 
 	}
@@ -482,15 +502,13 @@ public:
 	{
 		*dims = dims_;
 	}
-	inline void SetDefineDomain(nTuple<NDIMS, Real> const &xmin,
-			nTuple<NDIMS, Real> const & xmax)
+	inline void SetDefineDomain(nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const & xmax)
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
 	}
 
-	inline void GetDefineDomain(nTuple<NDIMS, Real> *xmin,
-			nTuple<NDIMS, Real> * xmax)
+	inline void GetDefineDomain(nTuple<NDIMS, Real> *xmin, nTuple<NDIMS, Real> * xmax)
 	{
 		*xmin = xmin_;
 		*xmax = xmax_;
@@ -504,8 +522,8 @@ public:
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline auto eval(TV const & v, TX const & x, TX const & y,
-			Args const &...)->decltype(v[0])
+	inline auto eval(TV const & v, TX x, TX y,
+	        Args const &...) const ->typename std::remove_reference<decltype(v[0])>::type
 	{
 		x = NormalizeX(x);
 		y = NormalizeX(y);
@@ -529,11 +547,16 @@ public:
 
 	}
 
-	template<typename TV, typename TX, typename ... Args>
-	inline auto eval(TV const & v, TX const & x, TX const & y,
-			Args const &...)->decltype(v[0][0])
+	template<typename TV, int N, typename TX>
+	inline auto eval(TV const & v, nTuple<N, TX> const & x) const->decltype(eval(v, x[0], x[1]))
 	{
+		return eval(v, x[0], x[1]);
+	}
 
+	template<typename TV, typename TX, typename ... Args>
+	inline auto diff(TV const & v, TX x, TX y,
+	        Args const &...) const -> nTuple<NDIMS,typename std::remove_reference<decltype(v[0])>::type>
+	{
 		x = NormalizeX(x);
 		y = NormalizeX(y);
 
@@ -541,20 +564,73 @@ public:
 		Real ry = std::ceil(y);
 		size_t ix = static_cast<size_t>(std::floor(x));
 		size_t iy = static_cast<size_t>(std::floor(y));
+		size_t ny = dims_[1];
 
-		return (
+		typedef typename std::remove_reference<decltype(v[0])>::type value_type;
 
-		(1.0 - rx) * (1.0 - ry) * v[ix][iy] +
+		nTuple<NDIMS, value_type> res = {
 
-		(1.0 - rx) * ry * v[ix][iy + 1] +
+		(
 
-		rx * ry * v[ix + 1][iy + 1] +
+		-(1.0 - ry) * v[ix * ny + iy]
 
-		rx * (1.0 - ry) * v[ix + 1][iy]
+		- ry * v[ix * ny + iy + 1]
 
-		);
+		+ ry * v[(ix + 1) * ny + iy + 1]
+
+		+ (1.0 - ry) * v[(ix + 1) * ny + iy]
+
+		),
+
+		(
+
+		-(1.0 - rx) * v[ix * ny + iy]
+
+		+ (1.0 - rx) * v[ix * ny + iy + 1]
+
+		+ rx * v[(ix + 1) * ny + iy + 1]
+
+		- rx * v[(ix + 1) * ny + iy]
+
+		)
+
+		};
+
+		return std::move(res);
 
 	}
+
+	template<typename TV, int N, typename TX>
+	inline auto diff(TV const & v, nTuple<N, TX> const & x) const->decltype(diff(v, x[0], x[1]))
+	{
+		return diff(v, x[0], x[1]);
+	}
+
+//	template<typename TV, typename TX, typename ... Args>
+//	inline auto eval(TV const & v, TX const & x, TX const & y, Args const &...)->decltype(v[0][0]) const
+//	{
+//
+//		x = NormalizeX(x);
+//		y = NormalizeX(y);
+//
+//		Real rx = std::ceil(x);
+//		Real ry = std::ceil(y);
+//		size_t ix = static_cast<size_t>(std::floor(x));
+//		size_t iy = static_cast<size_t>(std::floor(y));
+//
+//		return (
+//
+//		(1.0 - rx) * (1.0 - ry) * v[ix][iy] +
+//
+//		(1.0 - rx) * ry * v[ix][iy + 1] +
+//
+//		rx * ry * v[ix + 1][iy + 1] +
+//
+//		rx * (1.0 - ry) * v[ix + 1][iy]
+//
+//		);
+//
+//	}
 
 	template<typename T>
 	inline Real NormalizeX(T x) const
@@ -567,7 +643,8 @@ public:
 		return (y - xmin_[1]) * inv_dx_[1];
 	}
 
-};
+}
+;
 }
 // namespace simpla
 

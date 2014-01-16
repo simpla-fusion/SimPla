@@ -120,48 +120,34 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		MapTo(E, &Ev);
 
 	VectorForm<0> dEv(mesh);
+	VectorForm<0> Q(mesh);
+	VectorForm<0> K(mesh);
+	Q.Fill(0);
+	K.Fill(0);
 
 	MapTo(*dE, &dEv);
 
 	Ev += dEv * 0.5 * dt;
 
-	VectorForm<0> Q(mesh);
-
-	Q.Fill(0);
-
-	VectorForm<0> K(mesh);
-	K.Fill(0);
-	//******************************************************************************************************
-
 	for (auto &v : sp_list_)
 	{
-
 		auto & ns = v.second->n;
 		auto & Js = v.second->J;
 		Real ms = v.second->m;
 		Real qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
-
 		a += ns * qs * as / (BB * as * as + 1);
-
 		b += ns * qs * as * as / (BB * as * as + 1);
-
 		c += ns * qs * as * as * as / (BB * as * as + 1);
-
 		Q -= Js;
-
 		K = Cross(Js, B0) * as + Ev * ns * qs * as + Js;
-
 		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
-
 		Q -= Js;
-
 	}
 
 	Q *= 0.5 * dt / epsilon0;
 	Q += Ev;
-
 	a *= 0.5 * dt / epsilon0;
 	b *= 0.5 * dt / epsilon0;
 	c *= 0.5 * dt / epsilon0;
@@ -177,7 +163,6 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		auto qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
-
 		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * ((as * qs * ns) / (BB * as * as + 1));
 
 	}
@@ -320,11 +305,9 @@ inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
 		sp->n.Init();
 		sp->J.Init();
 
-		if (!LoadField(p.second["n"], &(sp->n)))
-			sp->n.Fill(0);
+		LoadField(p.second["n"], &(sp->n));
 
-		if (!LoadField(p.second["J"], &(sp->J)))
-			sp->J.Fill(0);
+		LoadField(p.second["J"], &(sp->J));
 
 		sp_list_.emplace(key, sp);
 

@@ -19,12 +19,13 @@ namespace simpla
 {
 template<typename, typename > class Field;
 template<int IFORM, typename TM, typename TV>
-bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
+void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 {
-	if (obj.empty())
-		return false;
 
 	f->Init();
+
+	if (obj.empty())
+		f->Fill(0);
 
 	typedef TM mesh_type;
 	typedef typename Field<Geometry<TM, IFORM>, TV>::value_type value_type;
@@ -36,7 +37,7 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	{
 		mesh.SerialTraversal(IFORM,
 
-		[&](size_t s,typename mesh_type::coordinates_type const &x)
+		[&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
 		{
 			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
 			(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
@@ -76,10 +77,8 @@ bool LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 		std::string url = obj.as<std::string>();
 		//TODO Read field from data file
 		UNIMPLEMENT << "Read field from data file or other URI";
-		return false;
 	}
 
-	return true;
 }
 }  // namespace simpla
 
