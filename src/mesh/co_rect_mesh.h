@@ -201,21 +201,23 @@ public:
 		return ghost_width_;
 	}
 
-	inline void SetExtent(coordinates_type const & pmin, coordinates_type const & pmax)
-	{
-		xmin_ = pmin;
-		xmax_ = pmax;
-	}
+//	inline void SetExtent(coordinates_type const & pmin, coordinates_type const & pmax)
+//	{
+//		xmin_ = pmin;
+//		xmax_ = pmax;
+//	}
 	template<int IN, typename T>
 	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
 	{
-		for (int i = 0, ie = std::min(IN, NUM_OF_DIMS); i < ie; ++i)
+		int n = IN < NUM_OF_DIMS ? IN : NUM_OF_DIMS;
+
+		for (int i = 0; i < n; ++i)
 		{
 			xmin_[i] = pmin[i];
 			xmax_[i] = pmax[i];
 		}
 
-		for (int i = std::min(IN, NUM_OF_DIMS), ie = NUM_OF_DIMS; i < ie; ++i)
+		for (int i = n; i < NUM_OF_DIMS; ++i)
 		{
 			xmin_[i] = 0;
 			xmax_[i] = 0;
@@ -227,22 +229,24 @@ public:
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline void SetDimension(nTuple<NUM_OF_DIMS, index_type> const & pdims)
-	{
-		dims_ = pdims;
-	}
+//	inline void SetDimension(nTuple<NUM_OF_DIMS, index_type> const & pdims)
+//	{
+//		dims_ = pdims;
+//	}
 
 	template<int IN, typename T>
 	inline void SetDimension(nTuple<IN, T> const & d)
 	{
-		for (int i = 0, ie = std::min(IN, NUM_OF_DIMS); i < ie; ++i)
+		int n = IN < NUM_OF_DIMS ? IN : NUM_OF_DIMS;
+
+		for (int i = 0; i < n; ++i)
 		{
 			dims_[i] = d[i];
 		}
 
-		for (int i = std::min(IN, NUM_OF_DIMS), ie = NUM_OF_DIMS; i < ie; ++i)
+		for (int i = n; i < NUM_OF_DIMS; ++i)
 		{
-			dims_[i] = 0;
+			dims_[i] = 1;
 		}
 	}
 
@@ -2250,6 +2254,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 	LOGGER << "Deserialize CoRectMesh" << START;
 
 	constants().Deserialize(cfg["UnitSystem"]);
+
 	tags().Deserialize(cfg["MediaTag"]);
 
 	auto topology = cfg["Topology"];

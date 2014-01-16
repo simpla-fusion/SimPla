@@ -33,6 +33,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../io/xdmf_io.h"
+#include "../io/data_stream.h"
 #include "../numeric/interpolation.h"
 #include "pretty_stream.h"
 class XdmfArray;
@@ -96,7 +97,7 @@ void GEqdsk::Read(std::string const &fname)
 	{
 		value_type v;
 		inFileStream_ >> std::setw(16) >> v;
-		psirz_.data().push_back((v - simag) / (sibry - simag)); // Normalize Poloidal flux
+		psirz_[s] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
 	}
 
 	INPUT_VALUE(qpsi_);
@@ -105,16 +106,17 @@ void GEqdsk::Read(std::string const &fname)
 
 	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
-	CHECK(nbbbs);
+
 	rzbbb_.resize(nbbbs);
 	rzlim_.resize(limitr);
-
 	inFileStream_ >> std::setw(16) >> rzbbb_;
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
+	LOGGER << "Read GFile" << DONE;
+
+	LOGGER << Data(psirz_.data(), "psi", 2, &dims_[0]);
 
 }
-
 
 std::ostream & GEqdsk::Print(std::ostream & os)
 {
@@ -252,7 +254,7 @@ void GEqdsk::Write(std::string const &fname, int flag)
 			XdmfDataItem data;
 			myAttribute.Insert(&data);
 
-			InsertDataItem(&data, 2, dims, &(psirz_.data()[0]), fname + ".h5:/Psi");
+			InsertDataItem(&data, 2, dims, &(psirz_[0]), fname + ".h5:/Psi");
 			grid.Build();
 		}
 		{

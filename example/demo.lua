@@ -100,7 +100,8 @@ B_background=function(x,y,z)
      end
       
 
--- GFile
+GFile="g033068.02750"
+
 Grid=
 {
   Type="CoRectMesh",

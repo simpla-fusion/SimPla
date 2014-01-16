@@ -38,6 +38,19 @@ typename std::enable_if<is_complex<TL>::value && !is_complex<TR>::value, void>::
 		(*r)[i] = l[i].real();
 }
 
+template<typename TL, typename TR>
+typename std::enable_if<is_complex<TR>::value, void>::type _mapto(TL const & l, TR *r)
+{
+	*r = l;
+}
+
+template<typename TL, typename TR, int N>
+typename std::enable_if<is_complex<TR>::value, void>::type _mapto(nTuple<N, TL> const & l, nTuple<N, TR> *r)
+{
+	for (int i = 0; i < N; ++i)
+		(*r)[i] = l[i];
+}
+
 }
 
 template<typename TS, typename TL, typename TR>
@@ -54,7 +67,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l,
 
 	typedef typename mesh_type::index_type index_type;
 
-	mesh.ParallelTraversal(0,
+	mesh.ParallelTraversal(VERTEX,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
@@ -81,7 +94,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 
 	typedef typename mesh_type::index_type index_type;
 
-	mesh.ParallelTraversal(0,
+	mesh.ParallelTraversal(VERTEX,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
@@ -111,7 +124,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, FACE>, TL> const & l,
 
 	typedef typename mesh_type::index_type index_type;
 
-	mesh.ParallelTraversal(0,
+	mesh.ParallelTraversal(VERTEX,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
@@ -150,7 +163,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 
 	typedef typename mesh_type::index_type index_type;
 
-	mesh.ParallelTraversal(0,
+	mesh.ParallelTraversal(VERTEX,
 
 	[&](int m, index_type const &x,index_type const &y,index_type const &z)
 	{
@@ -170,6 +183,50 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 					)*0.25,&(r->get(i,x,y,z)));
 
 		}
+	}
+
+	);
+
+}
+
+template<typename TS, typename TL, typename TR>
+void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l, Field<Geometry<CoRectMesh<TS>, FACE>, TR> * r)
+{
+	r->Init();
+
+	typedef CoRectMesh<TS> mesh_type;
+
+	mesh_type const &mesh = l.mesh;
+
+	auto const &dims = mesh.GetDimension();
+
+	typedef typename mesh_type::index_type index_type;
+
+	mesh.ParallelTraversal(FACE,
+
+	[&](int m, index_type const &x,index_type const &y,index_type const &z)
+	{
+
+		fetl_impl::_mapto((
+
+						mesh.get(l,m,x,y,z)
+
+						+mesh.get(l,m,mesh.Shift(mesh.INC((m+1)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.INC((m+2)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.INC((m+1))|mesh.INC((m+2)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.DES((m)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.DES((m))|mesh.INC((m+1)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.DES((m))|mesh.INC((m+2)),x,y,z))
+
+						+mesh.get(l,m,mesh.Shift(mesh.DES((m))|mesh.INC((m+1))|mesh.INC((m+2)),x,y,z))
+
+				)*0.125,&(r->get(m,x,y,z)));
+
 	}
 
 	);

@@ -10,16 +10,12 @@
 
 #include <cstddef>
 #include <iostream>
-//#include <map>
-//#include <memory>
 #include <string>
-//#include <utility>
 #include <vector>
 
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../numeric/interpolation.h"
-//#include "../simpla_defs.h"
 namespace simpla
 {
 
@@ -89,6 +85,7 @@ public:
 	};
 
 	void Read(std::string const &fname);
+
 	void Write(std::string const &fname, int format = XDMF);
 
 	nTuple<NDIMS, Real> const & GetMin() const
@@ -118,14 +115,14 @@ public:
 	}
 
 	template<typename ...Args>
-	inline value_type psi(Args const &...x)
+	inline value_type psi(Args const &...x)const
 	{
-		return psirz_(std::forward<Args const &>(x)...);
+		return psirz_.eval(std::forward<Args const &>(x)...);
 	}
 
 #define VALUE_FUNCTION(_NAME_)                                     \
 	template<typename ...Args>                                     \
-	inline value_type _NAME_(Args const &...x)                       \
+	inline value_type _NAME_(Args const &...x) const                      \
 	{                                                              \
 		return _NAME_##_(psi(std::forward<Args const &>(x)...));       \
 	}
@@ -140,10 +137,10 @@ public:
 	template<typename TX>
 	nTuple<3,Real> B(TX const & x)const
 	{
-		auto B_p= psirz_.diff(x[0],x[1]);
+		auto gradPsi= psirz_.diff(x[0],x[1]);
 
 		nTuple<3,Real> res=
-		{	B_p[0],B_p[1],fpol_(x[0])/x[0]};
+		{	gradPsi[1]/x[0],-gradPsi[0]/x[0],fpol(x)/x[0]};
 
 		return std::move(res);
 	}

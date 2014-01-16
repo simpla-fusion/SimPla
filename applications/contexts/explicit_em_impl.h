@@ -120,6 +120,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 	mesh.Deserialize(cfg["Grid"]);
 
+	if (!cfg["GFile"].empty())
 	{
 		typedef TM mesh_type;
 
@@ -127,31 +128,37 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 
 		GEqdsk geqdsk(cfg["GFile"].as<std::string>());
 
-		mesh.SerialTraversal(B.IForm,
-		        [&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
-		        {
-			        auto v= geqdsk.B(x);
+		mesh.SetExtent(geqdsk.GetMin(), geqdsk.GetMax());
 
-			        B[s] = mesh.template GetWeightOnElement<FACE>(v,s);
-		        });
+		mesh.SetDimension(geqdsk.GetDimension());
 
-		UNIMPLEMENT << "TODO: use g-file initialize field, set boundary condition!";
+		mesh.Update();
+
+		RForm<EDGE> B1(mesh);
+
+		B1.Fill(0);
+
+		mesh.SerialTraversal(EDGE,
+
+		[&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
+		{
+			B1[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
+		});
+
+		MapTo(B1, &B);
 	}
-
+	else if (!cfg["InitValue"].empty())
 	{
 		auto init_value = cfg["InitValue"];
 
-		if (!init_value.empty())
-		{
-			LOGGER << "Load E";
-			LoadField(init_value["E"], &E);
-			LOGGER << "Load B";
-			LoadField(init_value["B"], &B);
-			LOGGER << "Load J";
-			LoadField(init_value["J"], &J);
+		LOGGER << "Load E";
+		LoadField(init_value["E"], &E);
+		LOGGER << "Load B";
+		LoadField(init_value["B"], &B);
+		LOGGER << "Load J";
+		LoadField(init_value["J"], &J);
 
-			LOGGER << "Load Initial Fields." << DONE;
-		}
+		LOGGER << "Load Initial Fields." << DONE;
 	}
 
 	{
@@ -291,7 +298,8 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	os << "} \n";
 
-	os << *particle_collection_ << "\n";
+	if (particle_collection_ != nullptr)
+		os << *particle_collection_ << "\n";
 
 	os << "Function={";
 	for (auto const & p : field_boundary_)

@@ -25,7 +25,10 @@ void LoadField(LuaObject const &obj, Field<Geometry<TM, IFORM>, TV> *f)
 	f->Init();
 
 	if (obj.empty())
+	{
 		f->Fill(0);
+		return;
+	}
 
 	typedef TM mesh_type;
 	typedef typename Field<Geometry<TM, IFORM>, TV>::value_type value_type;

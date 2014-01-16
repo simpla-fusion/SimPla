@@ -144,6 +144,9 @@ int main(int argc, char **argv)
 
 	LOGGER << "Pre-Process" << START;
 
+	GLOBAL_DATA_STREAM.OpenGroup("/Input");
+
+
 	std::shared_ptr<BaseContext> ctx;
 
 	std::string ctx_type = cfg["Context"].as<std::string>();
@@ -160,42 +163,40 @@ int main(int argc, char **argv)
 
 	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	GLOBAL_DATA_STREAM.OpenGroup("/Input");
-
 	LOGGER << (*ctx);
 
 	LOGGER << "Pre-Process" << DONE;
-
-	// Main Loop ============================================
-
-	LOGGER << "Process " << START;
-
-	TheStart();
-	if (just_a_test)
-	{
-		LOGGER << "Just test configure files";
-	}
-	else
-	{
-
-		for (int i = 0; i < num_of_step; ++i)
-		{
-			LOGGER << "STEP: " << i << START;
-
-			ctx->NextTimeStep();
-
-			if (i % record_stride == 0)
-			{
-				ctx->DumpData("/DumpData");
-			}
-			LOGGER << "STEP: " << i << DONE;
-		}
-	}
-	LOGGER << "Process" << DONE;
-	LOGGER << "Post-Process" << START;
-	GLOBAL_DATA_STREAM.OpenGroup("/Output");
-	LOGGER << *ctx;
-	LOGGER << "Post-Process" << DONE;
+//
+//	// Main Loop ============================================
+//
+//	LOGGER << "Process " << START;
+//
+//	TheStart();
+//	if (just_a_test)
+//	{
+//		LOGGER << "Just test configure files";
+//	}
+//	else
+//	{
+//
+//		for (int i = 0; i < num_of_step; ++i)
+//		{
+//			LOGGER << "STEP: " << i << START;
+//
+//			ctx->NextTimeStep();
+//
+//			if (i % record_stride == 0)
+//			{
+//				ctx->DumpData("/DumpData");
+//			}
+//			LOGGER << "STEP: " << i << DONE;
+//		}
+//	}
+//	LOGGER << "Process" << DONE;
+//	LOGGER << "Post-Process" << START;
+//	GLOBAL_DATA_STREAM.OpenGroup("/Output");
+//	LOGGER << *ctx;
+//	LOGGER << "Post-Process" << DONE;
 
 	TheEnd();
 
