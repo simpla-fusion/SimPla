@@ -116,6 +116,12 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
         bool is_compact_store)
 {
 
+	if (v == nullptr)
+	{
+		WARNING << name << " is empty!";
+		return "empty data";
+	}
+
 	if (grp <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";

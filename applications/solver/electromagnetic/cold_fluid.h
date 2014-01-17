@@ -330,10 +330,10 @@ void ColdFluidEM<TM>::DumpData(std::string const & path) const
 	for (auto const & p : sp_list_)
 	{
 		LOGGER << "Dump " << "n_" + p.first << " to "
-		<< Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
+		<< Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
 
 		LOGGER << "Dump " << "J_" + p.first << " to "
-		<< Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
+		<< Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
 	}
 }
 
@@ -350,9 +350,9 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 
 		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
 
-		<< "\t n0 = " << Data(p.second->n.data(), "n_" + p.first, p.second->n.GetShape()) << "\n"
+		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape()) << "\n"
 
-		<< "\t J0 = " << Data(p.second->J.data(), "J_" + p.first, p.second->J.GetShape()) << "\n"
+		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape()) << "\n"
 
 		<< "\t},\n";
 	}

@@ -41,112 +41,6 @@ extern "C"
 namespace simpla
 {
 
-template<typename TV>
-class DataSet
-{
-
-	std::shared_ptr<TV> data_;
-	std::string name_;
-	bool is_compact_store_;
-	std::vector<size_t> dims_;
-public:
-
-	typedef TV value_type;
-
-	template<typename TI>
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr,
-	        bool flag = false)
-			: data_(d), name_(name), is_compact_store_(flag)
-	{
-		if (dims != nullptr && rank > 0)
-		{
-			for (size_t i = 0; i < rank; ++i)
-			{
-				dims_.push_back(dims[i]);
-			}
-
-		}
-		else
-		{
-			ERROR << "Illegal input! [dims == nullptr or rank <=0] ";
-		}
-
-	}
-
-	template<int N, typename TI>
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
-			: data_(d), name_(name), is_compact_store_(flag)
-	{
-		for (size_t i = 0; i < N; ++i)
-		{
-			dims_.push_back(dims[i]);
-		}
-	}
-
-	template<typename TI>
-	DataSet(std::shared_ptr<TV> const & d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims.size()), is_compact_store_(flag)
-	{
-		std::copy(dims.begin(), dims.end(), dims_.begin());
-	}
-
-	DataSet(DataSet && r)
-			: data_(r.data_), name_(r.name_), is_compact_store_(r.is_compact_store_), dims_(r.dims_)
-	{
-
-	}
-	~DataSet()
-	{
-
-	}
-	inline size_t size() const
-	{
-		size_t s = 1;
-		for (auto const &d : dims_)
-		{
-			s *= d;
-		}
-		return s;
-	}
-
-	bool IsCompactStored() const
-	{
-		return is_compact_store_;
-	}
-	inline const std::shared_ptr<value_type> data() const
-	{
-		return data_;
-	}
-
-	inline const value_type* get() const
-	{
-		return data_.get();
-	}
-
-	bool IsAppendable() const
-	{
-		return is_compact_store_;
-	}
-
-	const std::string& GetName() const
-	{
-		return name_;
-	}
-	const std::vector<size_t>& GetDims() const
-	{
-		return dims_;
-	}
-};
-
-template<typename TV, typename ... Args> inline DataSet<TV> Data(std::shared_ptr<TV> const & d, Args const & ... args)
-{
-	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
-}
-template<typename TV, typename ... Args> inline DataSet<TV> Data(TV* d, Args const & ... args)
-{
-	return std::move(DataSet<TV>(d, std::forward<Args const &>(args)...));
-}
-
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 
 namespace _impl
@@ -231,7 +125,8 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 };
 
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_apppendable);
+        bool is_compacted_store);
+
 template<typename ...Args>
 std::string DataStreamWrite(Args const &... args)
 {
@@ -319,69 +214,55 @@ public:
 	{
 		suffix_width_ = suffixWidth;
 	}
-	template<typename U>
-	std::ostream & Serialize(std::ostream & os, DataSet<U> const & d)
-	{
-//		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
+
+//	template<typename U>
+//	std::ostream & Serialize(std::ostream & os, DataSet<U> const & d)
+//	{
+////		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
+////		{
+////			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
+////		}
+////		else
 //		{
-//			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
+//			os << "\"" << GetCurrentPath() << Write(d) << "\"";
 //		}
-//		else
-		{
-			os << "\"" << GetCurrentPath() << Write(d) << "\"";
-		}
-		return os;
-	}
+//		return os;
+//	}
+//	template<typename ...Args>
+//	std::string Write(Args const &... args) const
+//	{
+//		return DataStreamWrite(group_, std::forward<Args const&>(args)...);
+//	}
+//
+//	template<typename U>
+//	std::string Write(DataSet<U> const & d) const
+//	{
+//		return std::move(Write(d.get(), d.GetName(), d.GetDims(), d.IsCompactStored()));
+//	}
 
 	void OpenGroup(std::string const & gname);
 	void OpenFile(std::string const &fname = "unnamed");
 	void CloseGroup();
 	void CloseFile();
 
-//	template<typename ...Args>
-//	std::string Write(Args const &... args) const
-//	{
-//		return DataStreamWrite(group_, std::forward<Args const&>(args)...);
-//	}
-
-	template<typename U>
-	std::string Write(DataSet<U> const & d) const
+	template<typename TV, typename TS>
+	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_compact_stored) const
 	{
-		return std::move(Write(d.get(), d.GetName(), d.GetDims(), d.IsCompactStored()));
-	}
+		size_t dims[rank + 1];
 
-	template<typename TV>
-	std::string Write(TV const *v, std::string const &name, std::vector<size_t> const &d, bool is_compact_stored) const
-	{
-
-		if (v == nullptr)
-		{
-			WARNING << "empty data";
-			return "empty data";
-		}
-
-		if (d.empty())
-		{
-			WARNING << "Unknown  size of dataset! ";
-			return "Unknown  size of dataset";
-		}
-
-		std::vector<size_t> dims;
-
-		std::vector<size_t>(d).swap(dims);
+		std::copy(d, d + rank, dims);
 
 		if (is_nTuple<TV>::value)
 		{
-			dims.push_back(nTupleTraits<TV>::NUM_OF_DIMS);
+			dims[rank] = nTupleTraits<TV>::NUM_OF_DIMS;
+			++rank;
 		}
 
-		std::string res = Write(reinterpret_cast<void const*>(v), name,
+		return Write(reinterpret_cast<void const*>(v), name,
 
 		HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
 
-		dims.size(), &dims[0], is_compact_stored);
-
-		return res;
+		rank, dims, is_compact_stored);
 
 	}
 
@@ -393,16 +274,88 @@ public:
 
 #define GLOBAL_DATA_STREAM DataStream::instance()
 
-template<typename U>
-std::ostream & operator<<(std::ostream & os, DataSet<U> const &d)
+template<typename TV>
+class DataDumper
 {
-	DataStream::instance().Serialize(os, d);
-	return os;
+
+	TV* data_;
+	std::string name_;
+	bool is_compact_store_;
+	std::vector<size_t> dims_;
+public:
+
+	typedef TV value_type;
+
+	template<typename TI>
+	DataDumper(TV* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag = false)
+			: data_(d), name_(name), is_compact_store_(flag)
+	{
+		if (dims != nullptr && rank > 0)
+		{
+			for (size_t i = 0; i < rank; ++i)
+			{
+				dims_.push_back(dims[i]);
+			}
+
+		}
+		else
+		{
+			ERROR << "Illegal input! [dims == nullptr or rank <=0] ";
+		}
+
+	}
+
+	template<int N, typename TI>
+	DataDumper(TV* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
+			: data_(d), name_(name), is_compact_store_(flag)
+	{
+		for (size_t i = 0; i < N; ++i)
+		{
+			dims_.push_back(dims[i]);
+		}
+	}
+
+	template<typename TI>
+	DataDumper(TV* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
+			: data_(d), name_(name), dims_(dims.size()), is_compact_store_(flag)
+	{
+		std::copy(dims.begin(), dims.end(), dims_.begin());
+	}
+
+	DataDumper(DataDumper const& r) = delete;
+
+	DataDumper(DataDumper && r) = delete;
+
+	~DataDumper()
+	{
+		DataStream::instance().Write(data_, name_, dims_.size(), &dims_[0], is_compact_store_);
+	}
+
+	std::string GetName() const
+	{
+		return "\"" + DataStream::instance().GetCurrentPath() + name_ + "\"";
+	}
+
+};
+
+template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr<TV> const & d, Args const & ... args)
+{
+	return DataDumper<TV>(d.get(), std::forward<Args const &>(args)...).GetName();
+}
+template<typename TV, typename ... Args> inline DataDumper<TV> Dump(TV* d, Args const & ... args)
+{
+	return DataDumper<TV>(d, std::forward<Args const &>(args)...).GetName();
 }
 
-#define DUMP(_F_) Data(_F_,__STRING(_F_) ,true)
+template<typename U>
+std::ostream & operator<<(std::ostream & os, DataDumper<U> const &d)
+{
+	os << d.GetName();
+	return os;
+}
+#define DUMP(_F_) Dump(_F_,__STRING(_F_) ,true)
 #ifndef NDEBUG
-#	define DEBUG_DUMP(_F_) Data(_F_,__STRING(_F_),true)
+#	define DEBUG_DUMP(_F_) Dump(_F_,__STRING(_F_),true)
 #else
 #   define DEBUG_DUMP(_F_) ""
 #endif

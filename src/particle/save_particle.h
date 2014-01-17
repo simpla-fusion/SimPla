@@ -16,14 +16,14 @@
 namespace simpla
 {
 
-template<typename > class DataSet;
+template<typename > class DataDumper;
 template<typename > class Particle;
 
-template<typename TEngine> inline DataSet<typename TEngine::Point_s> //
-Data(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
+template<typename TEngine> inline std::string //
+Dump(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
 {
 	auto t = d.GetDataSet();
-	return std::move(DataSet<typename TEngine::Point_s>(t.first, name, 1, &(t.second), is_compact_store));
+	return DataDumper<typename TEngine::Point_s>(t.first.get(), name, 1, &(t.second), is_compact_store).GetName();
 
 }
 

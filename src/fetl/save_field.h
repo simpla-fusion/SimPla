@@ -14,9 +14,9 @@ namespace simpla
 {
 template<typename, typename > struct Field;
 
-template<typename TG, typename TV> inline DataSet<TV> Data(Field<TG, TV> const & d, std::string const & name, bool flag)
+template<typename TG, typename TV> inline std::string Dump(Field<TG, TV> const & d, std::string const & name, bool flag)
 {
-	return std::move(DataSet<TV>(d.data(), name, d.GetShape(), flag));
+	return DataDumper<TV>(d.data().get(), name, d.GetShape(), flag).GetName();
 }
 }  // namespace simpla
 

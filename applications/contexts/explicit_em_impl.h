@@ -310,11 +310,11 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	<< "Fields={" << "\n"
 
-	<< "	E = " << DUMP(E) << ",\n"
+	<< "	E = " << Dump(E, "E", false) << ",\n"
 
-	<< "	B = " << DUMP(B) << ",\n"
+	<< "	B = " << Dump(B, "B", false) << ",\n"
 
-	<< "	J = " << DUMP(J) << ",\n"
+	<< "	J = " << Dump(J, "J", false) << ",\n"
 
 	<< "}" << "\n"
 

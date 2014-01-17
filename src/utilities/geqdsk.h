@@ -115,7 +115,7 @@ public:
 	}
 
 	template<typename ...Args>
-	inline value_type psi(Args const &...x)const
+	inline value_type psi(Args const &...x) const
 	{
 		return psirz_.eval(std::forward<Args const &>(x)...);
 	}
@@ -143,6 +143,13 @@ public:
 		{	gradPsi[1]/x[0],-gradPsi[0]/x[0],fpol(x)/x[0]};
 
 		return std::move(res);
+	}
+
+	template<typename TX>
+	Real JT(TX const & x)const
+	{
+
+		return x[0]*pprim(x)+ffprim(x)/x[0];
 	}
 };
 

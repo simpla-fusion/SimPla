@@ -319,7 +319,7 @@ std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
 
 	os << ",\n"
 
-	<< "\tData = " << Data(*this, this->GetName())
+	<< "\tData = " << Dump(*this, this->GetName())
 
 	<< "} ";
 
@@ -351,7 +351,7 @@ void Particle<Engine>::Update()
 template<class Engine>
 void Particle<Engine>::DumpData(std::string const &path) const
 {
-	LOGGER << Data(*this, base_type::GetName());
+	LOGGER << Dump(*this, base_type::GetName());
 }
 
 template<class Engine>
