@@ -118,9 +118,6 @@ void GEqdsk::Read(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
 	LOGGER << "Read GFile" << DONE;
-
-	Dump(psirz_.data(), "psi", 2, &dims_[0]);
-
 }
 
 std::ostream & GEqdsk::Print(std::ostream & os)

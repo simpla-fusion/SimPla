@@ -47,7 +47,7 @@ template<typename, int> struct Geometry;
 
 //*******************************************************************************************************
 template<class Engine>
-class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
+class Particle: public Engine
 {
 
 public:
@@ -75,6 +75,8 @@ public:
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
+	typedef typename cell_type::iterator iterator;
+
 	typedef typename cell_type::allocator_type allocator_type;
 
 	typedef std::vector<cell_type> container_type;
@@ -82,23 +84,101 @@ public:
 public:
 	mesh_type const &mesh;
 
-private:
-
-	cell_type pool_;
-
-	container_type data_;
-
-	std::vector<container_type> mt_data_; // for sort
-
-	std::string name_;
-
-public:
-
-	template<typename ...Args> Particle(mesh_type const & pmesh);
+	template<typename ...Args> Particle(mesh_type const & pmesh, std::string const & n = "");
 
 	virtual ~Particle();
 
-	virtual std::string GetTypeAsString() const
+	/**
+	 *  Dump particles to a continue memory block
+	 *  !!!this is a heavy operation!!!
+	 *
+	 * @return <datapoint , number of particles>
+	 */
+	std::pair<std::shared_ptr<value_type>, size_t> GetDataSet() const;
+
+	allocator_type GetAllocator()
+	{
+		return pool_.get_allocator();
+	}
+
+	//***************************************************************************************************
+
+	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
+	{
+		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
+	}
+
+	cell_type & operator[](size_t s)
+	{
+		return data_.at(s);
+	}
+	cell_type const & operator[](size_t s) const
+	{
+		return data_.at(s);
+	}
+
+	//***************************************************************************************************
+
+	void Update();
+
+	void DumpData(std::string const &path);
+
+	void Deserialize(LuaObject const &cfg);
+
+	std::ostream & Serialize(std::ostream & os) const;
+
+	//***************************************************************************************************
+	template<typename TFun, typename ... Args>
+	void Function(TFun &fun, Args const& ... args) const;
+
+	template<typename TFun, typename ... Args>
+	void Function(TFun &fun, Args const& ... args);
+
+	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
+
+	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
+
+	void Sort();
+
+	template<typename ... Args>
+	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
+	        Args const& ... args);
+
+	template<typename ... Args> void Collide(Args const& ... args);
+
+	/**
+	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
+	 * @param
+	 */
+	void Resort(index_type s, container_type * dest = nullptr);
+
+	bool IsSorted() const
+	{
+		return isSorted_;
+	}
+
+	Real GetClock() const
+	{
+		return clock_;
+	}
+
+	void SetClock(Real clock)
+	{
+		clock_ = clock;
+	}
+
+	std::string const &GetName() const
+	{
+		return name_;
+	}
+
+	std::string const &name() const
+	{
+		return name_;
+
+	}
+
+	std::string GetEngineTypeAsString() const
 	{
 		return engine_type::GetTypeAsString();
 	}
@@ -114,166 +194,25 @@ public:
 		return res;
 	}
 
-	/**
-	 *  Dump particles to a continue memory block
-	 *  !!!this is a heavy operation!!!
-	 *
-	 * @return <datapoint , number of particles>
-	 */
-	std::pair<std::shared_ptr<value_type>, size_t> GetDataSet() const;
-
-	allocator_type GetAllocator()
-	{
-		return pool_.get_allocator();
-	}
-
-	cell_type & operator[](size_t s)
-	{
-		return data_.at(s);
-	}
-	cell_type const & operator[](size_t s) const
-	{
-		return data_.at(s);
-	}
-
-	//***************************************************************************************************
-
-	void Update() override;
-
-	void DumpData(std::string const &path) const override;
-
-	void Deserialize(LuaObject const &cfg) override;
-
-	std::ostream & Serialize(std::ostream & os) const override;
-
-	//***************************************************************************************************
-
-	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
-	{
-		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
-	}
-
-	template<typename TFun, typename ... Args>
-	void Function(TFun &fun, Args const& ... args) const;
-
-	template<typename TFun, typename ... Args>
-	void Function(TFun &fun, Args const& ... args);
-
-	template<typename ... Args>
-	void NextTimeStep(Real dt, Args const& ... args)
-	{
-		_NextTimeStep(dt, std::forward<Args const &>(args)...);
-	}
-
-	template<typename TJ, typename ... Args>
-	void Collect(TJ * J, Args const & ... args) const
-	{
-		_Collect(J, std::forward<Args const &>(args)...);
-	}
-
-	void Sort() override
-	{
-		_Sort();
-		base_type::Sort();
-	}
-
-	template<typename ... Args>
-	void Collide(Args const& ... args)
-	{
-		Collide(std::forward<Args const &>(args)...);
-	}
-	template<typename ... Args>
-	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-	        Args const& ... args)
-	{
-		_Boundary(flag, in, out, dt, std::forward<Args const &>(args)...);
-	}
-
 private:
-	template<typename ... Args> void _NextTimeStep(Real dt, Args const& ... args);
 
-	template<typename TJ, typename ... Args> void _Collect(TJ * J, Args const & ... args) const;
+	cell_type pool_;
 
-	void _Sort();
+	container_type data_;
 
-	template<typename ... Args>
-	void _Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-	        Args const& ... args);
+	std::vector<container_type> mt_data_; // for sort
 
-	template<typename ... Args> void _Collide(Args const& ... args);
+	bool isSorted_;
 
-public:
+	Real clock_;
 
-	//***************************************************************************************************
-	// Interface :
-	//       inhert virtual function
-	//***************************************************************************************************
-	void NextTimeStep(double dt, Form<1> const &E, Form<2> const &B) override
-	{
-		_NextTimeStep(dt, E, B);
-	}
-	void NextTimeStep(double dt, VectorForm<0> const &E, VectorForm<0> const &B) override
-	{
-		_NextTimeStep(dt, E, B);
-	}
-
-	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        Form<1> const &E, Form<2> const &B) override
-	{
-		_Boundary(flag, in, out, dt, E, B);
-	}
-	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, double dt,
-	        VectorForm<0> const &E, VectorForm<0> const &B) override
-	{
-		_Boundary(flag, in, out, dt, E, B);
-	}
-
-	void Collect(Form<0> * n, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(n, E, B);
-	}
-	void Collect(Form<1> * J, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(J, E, B);
-	}
-	void Collect(Form<2> * J, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(J, E, B);
-	}
-	void Collect(VectorForm<0> * J, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(J, E, B);
-	}
-	void Collect(VectorForm<1> * P, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(P, E, B);
-	}
-	void Collect(VectorForm<2> * P, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(P, E, B);
-	}
-
-	void Collect(TensorForm<0> * P, Form<1> const &E, Form<2> const &B) const override
-	{
-		_Collect(P, E, B);
-	}
-
-	void Collide(Real dt, ParticleBase<mesh_type> *p) override
-	{
-		_Collide(dt, p);
-	}
-
-	/**
-	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
-	 * @param
-	 */
-	void Resort(index_type s, container_type * dest = nullptr);
+	std::string name_;
 
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh, std::string const & n)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), clock_(0), name_(n)
 {
 }
 
@@ -349,9 +288,35 @@ void Particle<Engine>::Update()
 }
 
 template<class Engine>
-void Particle<Engine>::DumpData(std::string const &path) const
+void Particle<Engine>::DumpData(std::string const &path)
 {
-	LOGGER << Dump(*this, base_type::GetName());
+	GLOBAL_DATA_STREAM.OpenGroup(path);
+
+	constexpr int trace_cache_depth_=10;
+
+	if (trace_cache_.empty())
+	{
+		size_t num_particle = trace_particle_.size();
+		trace_cache_.resize(num_particle * trace_cache_depth_);
+		trace_tail_ = trace_cache_.begin();
+	}
+
+	for (auto const& p : trace_particle_)
+	{
+		*trace_tail_ = *p;
+		++trace_tail_;
+	}
+
+	if (trace_tail_ == trace_cache_.end())
+	{
+
+		size_t dims[2] =
+		{	trace_particle_.size(), trace_cache_.size() / trace_particle_.size()};
+
+		LOGGER << Dump(&trace_cache_[0], base_type::GetName(), 2, dims, true);
+
+		trace_tail_ = trace_cache_.begin();
+	}
 }
 
 template<class Engine>
@@ -377,15 +342,13 @@ void Particle<Engine>::Resort(index_type src, container_type *other)
 }
 
 template<class Engine>
-void Particle<Engine>::_Sort()
+void Particle<Engine>::Sort()
 {
 
 	Update();
 
 	if (base_type::IsSorted())
 		return;
-
-//LOGGER << flush << indent << "Sort Particle [" << this->GetName() << ":" << this->GetTypeAsString() << "]";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -454,13 +417,14 @@ void Particle<Engine>::_Sort()
 	} catch (std::exception const & e)
 	{
 		ERROR << e.what();
-
 	}
+
+	isSorted_ = true;
 }
 
 template<class Engine>
 template<typename ...Args>
-void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
+void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 {
 	if (data_.empty())
 	{
@@ -507,13 +471,17 @@ void Particle<Engine>::_NextTimeStep(Real dt, Args const& ... args)
 		t.join();
 	}
 
+	isSorted_ = false;
+
+	clock_ += dt;
+
 	Sort();
 
 }
 
 template<class Engine>
 template<typename TJ, typename ...Args>
-void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
+void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
 	{
@@ -534,11 +502,7 @@ void Particle<Engine>::_Collect(TJ * J, Args const & ... args) const
 
 		/***
 		 *  @NOTICE std::thread  accept parameter by VALUE!!!
-		 *
 		 *     NOT by REFERENCE!!!!
-		 *
-		 *
-		 *
 		 */
 
 		threads.emplace_back(
@@ -635,7 +599,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 
 template<class Engine>
 template<typename ... Args>
-void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
+void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
         Args const &... args)
 {
 	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
@@ -687,7 +651,7 @@ void Particle<Engine>::_Boundary(int flag, typename mesh_type::tag_type in, type
 
 }
 template<class Engine> template<typename ... Args>
-void Particle<Engine>::_Collide(Args const &... args)
+void Particle<Engine>::Collide(Args const &... args)
 {
 	UNIMPLEMENT;
 }
@@ -696,8 +660,8 @@ void Particle<Engine>::_Collide(Args const &... args)
 template<typename TX, typename TV, typename FE, typename FB> inline
 void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
 {
-	// @ref  Birdsall(1991)   p.62
-	// Bories Method
+// @ref  Birdsall(1991)   p.62
+// Bories Method
 
 	(*x) += (*v) * 0.5 * dt;
 

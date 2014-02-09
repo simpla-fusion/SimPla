@@ -146,6 +146,10 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		});
 
 		MapTo(B1, &B);
+
+		J.Fill(0);
+		E.Fill(0);
+
 	}
 	else if (!cfg["InitValue"].empty())
 	{
@@ -161,115 +165,106 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 
+	if (!cfg["FieldSolver"]["ColdFluid"].empty())
 	{
-		if (!cfg["FieldSolver"]["ColdFluid"].empty())
-		{
-			cold_fluid_ = CreateSolver(mesh, "ColdFluid");
-			cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
-		}
-		if (!cfg["FieldSolver"]["PML"].empty())
-		{
-			pml_ = CreateSolver(mesh, "PML");
-			pml_->Deserialize(cfg["FieldSolver"]["PML"]);
-		}
-
+		cold_fluid_ = CreateSolver(mesh, "ColdFluid");
+		cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 	}
 
+	if (!cfg["FieldSolver"]["PML"].empty())
+	{
+		pml_ = CreateSolver(mesh, "PML");
+		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
+	}
+
+	if (!cfg["CurrentSrc"].empty())
 	{
 		LuaObject jSrcCfg = cfg["CurrentSrc"];
 
-		if (!jSrcCfg.empty())
-		{
-			j_src_.SetFunction(jSrcCfg["Fun"]);
+		j_src_.SetFunction(jSrcCfg["Fun"]);
 
-			j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
+		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
 
-			LOGGER << "Load Current Source ." << DONE;
-		}
+		LOGGER << "Load Current Source ." << DONE;
 	}
 
+	if (!(mesh.tags().empty() || cfg["Boundary"].empty()))
 	{
 		LuaObject boundary = cfg["Boundary"];
-		if (!(mesh.tags().empty() || boundary.empty()))
+
+		for (auto const & item : boundary)
 		{
+			auto object = item.second["Object"].template as<std::string>();
+			auto type = item.second["Type"].template as<std::string>();
+			auto function = item.second["Function"].template as<std::string>();
 
-			for (auto const & item : boundary)
+			tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
+			tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
+
+			if (function == "PEC")
 			{
-				auto object = item.second["Object"].template as<std::string>();
-				auto type = item.second["Type"].template as<std::string>();
-				auto function = item.second["Function"].template as<std::string>();
+				field_boundary_.emplace(object,
 
-				tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
-				tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
-
-				if (function == "PEC")
+				[in,out,this](Real dt)
 				{
-					field_boundary_.emplace(object,
+					auto selector=mesh.tags().template BoundarySelector<EDGE>(in,out);
 
-					[in,out,this](Real dt)
-					{
-						auto selector=mesh.tags().template BoundarySelector<EDGE>(in,out);
-
-						this->mesh.ParallelTraversal(EDGE,
-								[this,selector](index_type s)
-								{
-									if(selector(s) )(this->E)[s]=0;
-								}
-						);
-
-					}
-
+					this->mesh.ParallelTraversal(EDGE,
+							[this,selector](index_type s)
+							{
+								if(selector(s) )(this->E)[s]=0;
+							}
 					);
-				}
-				else if (type == "Particle" && function == "Reflect")
-				{
-					particle_boundary_.emplace(object,
 
-					[in,out,this](ParticleBase<mesh_type> * p,Real dt)
-					{
-						p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
-					}
-
-					);
-				}
-				else if (type == "Particle" && function == "Absorb")
-				{
-					particle_boundary_.emplace(object,
-
-					[in,out,this](ParticleBase<mesh_type>* p,Real dt)
-					{
-						p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
-					}
-
-					);
-				}
-				else
-				{
-					UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-					        << " object =" << object << " ]";
 				}
 
-				LOGGER << "Load Boundary " << type << DONE;
-
+				);
 			}
+			else if (type == "Particle" && function == "Reflect")
+			{
+				particle_boundary_.emplace(object,
+
+				[in,out,this](ParticleBase<mesh_type> * p,Real dt)
+				{
+					p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
+				}
+
+				);
+			}
+			else if (type == "Particle" && function == "Absorb")
+			{
+				particle_boundary_.emplace(object,
+
+				[in,out,this](ParticleBase<mesh_type>* p,Real dt)
+				{
+					p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
+				}
+
+				);
+			}
+			else
+			{
+				UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
+				        << " object =" << object << " ]";
+			}
+
+			LOGGER << "Load Boundary " << type << DONE;
+
 		}
 
 	}
-
+	if (!cfg["Particles"].empty())
 	{
 		LuaObject particles = cfg["Particles"];
-		if (!particles.empty())
-		{
-			particle_collection_ = std::shared_ptr<ParticleCollection<mesh_type> >(
-			        new ParticleCollection<mesh_type>(mesh));
 
-			particle_collection_->template RegisterFactory<PICEngineFull<mesh_type> >();
-			particle_collection_->template RegisterFactory<PICEngineDeltaF<mesh_type> >();
-			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 8>>("GGauge8");
-			particle_collection_->template RegisterFactory<PICEngineGGauge<mesh_type, 32>>("GGauge32");
+		particle_collection_ = std::shared_ptr<ParticleCollection<mesh_type> >(new ParticleCollection<mesh_type>(mesh));
 
-			particle_collection_->Deserialize(particles);
-		}
+		particle_collection_->template RegisterFactory<Particle<PICEngineFull<mesh_type> > >();
+		particle_collection_->template RegisterFactory<Particle<PICEngineDeltaF<mesh_type> > >();
+		particle_collection_->template RegisterFactory<Particle<PICEngineGGauge<mesh_type, 8> > >("GGauge8");
+		particle_collection_->template RegisterFactory<Particle<PICEngineGGauge<mesh_type, 32> > >("GGauge32");
+
+		particle_collection_->Deserialize(particles);
 	}
 
 	LOGGER << ">>>>>>> Initialization  Complete! <<<<<<<< ";
@@ -361,8 +356,6 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	if (!j_src_.empty())
 	{
-
-		J.Fill(0);
 		j_src_(&J, base_type::GetTime());
 		LOGGER << "Current Source:" << DONE;
 		LOG_CMD(dE -= J / epsilon0);
@@ -391,9 +384,9 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	}
 
 	if (particle_collection_ != nullptr)
+	{
 		particle_collection_->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 
-	{
 		for (auto & p : *particle_collection_)
 			for (auto & fun : particle_boundary_)
 			{
@@ -405,8 +398,8 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 				}
 
 			}
-
 	}
+
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5 * dt);
 

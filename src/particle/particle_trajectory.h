@@ -15,7 +15,7 @@ namespace simpla
 {
 
 template<typename Engine>
-class ParticleTrajcetory: public Engine, public ParticleBase<typename Engine::mesh_type>
+class ParticleTrajectory: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
 
 public:
@@ -38,14 +38,14 @@ public:
 
 	typedef std::vector<cell_type> container_type;
 
-	typedef Point_s * iterator;
+	typedef particle_type * iterator;
 
 public:
 	mesh_type const &mesh;
 
 private:
 
-	std::shared_ptr<Point_s> data_;
+	std::shared_ptr<particle_type> data_;
 
 	iterator top_;
 
@@ -54,9 +54,9 @@ private:
 	size_t cache_depth_;
 
 public:
-	ParticleTrajcetory(mesh_type const & m);
+	ParticleTrajectory(mesh_type const & m);
 
-	virtual ~ParticleTrajcetory();
+	virtual ~ParticleTrajectory();
 
 	virtual std::string GetTypeAsString() const
 	{
@@ -110,20 +110,20 @@ public:
 }
 ;
 template<typename Engine>
-ParticleTrajcetory<Engine>::ParticleTrajcetory(mesh_type const &m)
+ParticleTrajectory<Engine>::ParticleTrajectory(mesh_type const &m)
 		: mesh(m), top_(nullptr), num_(0), cache_depth_(0)
 {
 
 }
 
 template<typename Engine>
-ParticleTrajcetory<Engine>::~ParticleTrajcetory()
+ParticleTrajectory<Engine>::~ParticleTrajectory()
 {
 
 }
 
 template<class Engine>
-void ParticleTrajcetory<Engine>::Update()
+void ParticleTrajectory<Engine>::Update()
 {
 	size_t s = num_ * cache_depth_;
 
@@ -133,7 +133,7 @@ void ParticleTrajcetory<Engine>::Update()
 }
 
 template<class Engine>
-void ParticleTrajcetory<Engine>::Deserialize(LuaObject const &cfg)
+void ParticleTrajectory<Engine>::Deserialize(LuaObject const &cfg)
 {
 
 	engine_type::Deserialize(cfg);
@@ -147,7 +147,7 @@ void ParticleTrajcetory<Engine>::Deserialize(LuaObject const &cfg)
 }
 template<class Engine>
 template<typename ...Args>
-void ParticleTrajcetory<Engine>::LoadParticle(LuaObject const &cfg, Args const & ...args)
+void ParticleTrajectory<Engine>::LoadParticle(LuaObject const &cfg, Args const & ...args)
 {
 
 	nTuple<6, Real> z;
@@ -180,7 +180,7 @@ void ParticleTrajcetory<Engine>::LoadParticle(LuaObject const &cfg, Args const &
 
 template<typename Engine>
 template<typename ...Args>
-void ParticleTrajcetory<Engine>::NextTimeStep(Real dt, Args const &... args)
+void ParticleTrajectory<Engine>::NextTimeStep(Real dt, Args const &... args)
 {
 
 	auto next = top_ + num_;
@@ -201,12 +201,12 @@ void ParticleTrajcetory<Engine>::NextTimeStep(Real dt, Args const &... args)
 
 }
 template<class Engine>
-void ParticleTrajcetory<Engine>::DumpData(std::string const &path) const
+void ParticleTrajectory<Engine>::DumpData(std::string const &path) const
 {
 	if (top_ + num_ == data_.get() + num_ * cache_depth_)
 	{
 		size_t dims[2] = { cache_depth_, num_ };
-		LOGGER << Data(v, base_type::GetName(), 2, dims,true);
+		LOGGER << Data(data_.get(), base_type::GetName(), 2, dims, true);
 	}
 }
 }

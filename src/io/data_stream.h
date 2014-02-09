@@ -342,7 +342,7 @@ template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr
 {
 	return DataDumper<TV>(d.get(), std::forward<Args const &>(args)...).GetName();
 }
-template<typename TV, typename ... Args> inline DataDumper<TV> Dump(TV* d, Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Dump(TV* d, Args const & ... args)
 {
 	return DataDumper<TV>(d, std::forward<Args const &>(args)...).GetName();
 }

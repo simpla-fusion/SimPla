@@ -16,6 +16,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../numeric/interpolation.h"
+#include "../io/data_stream.h"
 namespace simpla
 {
 
@@ -77,6 +78,16 @@ public:
 
 	~GEqdsk()
 	{
+
+		LOGGER << Dump(psirz_.data(), "psi", 2, &dims_[0]);
+
+		size_t num = rzbbb_.size();
+
+		LOGGER << Dump(&rzbbb_[0], "rzbbb", 1, &num);
+
+		num = rzlim_.size();
+
+		LOGGER << Dump(&rzlim_[0], "rzlim", 1, &num);
 	}
 
 	enum

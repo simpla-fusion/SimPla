@@ -16,15 +16,11 @@
 namespace simpla
 {
 
-template<typename > class PICEngineBase;
-
 template<typename TM>
-struct PICEngineDeltaF: public PICEngineBase<TM>
+struct PICEngineDeltaF
 {
-	Real cmr_, q_, q_kT_;
 
 public:
-	typedef PICEngineBase<TM> base_type;
 	typedef PICEngineDeltaF<TM> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -61,53 +57,71 @@ public:
 
 	};
 
+private:
+	Real m_, cmr_, q_, q_kT_;
+public:
+	mesh_type const &mesh;
+
+public:
 	PICEngineDeltaF(mesh_type const &pmesh)
-			: base_type(pmesh), cmr_(1.0), q_(1.0), q_kT_(1.0)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
+	}
+	~PICEngineDeltaF()
+	{
+	}
 
-	}
-	virtual ~PICEngineDeltaF()
-	{
-	}
-
-	static inline std::string TypeName()
-	{
-		return "DeltaF";
-	}
-	virtual inline std::string GetTypeAsString() const override
+	static std::string TypeName()
 	{
 		return "DeltaF";
 	}
+	std::string GetTypeAsString() const
+	{
+		return "DeltaF";
+	}
 
-	inline void Deserialize(LuaObject const &obj) override
+	Real GetMass() const
+	{
+		return m_;
+	}
+
+	Real GetCharge() const
+	{
+		return q_;
+	}
+
+	void Deserialize(LuaObject const &vm)
 	{
 
-		DEFINE_PHYSICAL_CONST(base_type::mesh.constants());
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		base_type::Deserialize(obj);
-
-		cmr_ = base_type::q_ / base_type::m_;
-
-		q_ = base_type::q_;
-
-		q_kT_ = q_ / (obj["T"].as<Real>() * boltzmann_constant);
-
+		m_ = vm["Mass"].as<Real>();
+		q_ = vm["Charge"].as<Real>();
+		cmr_ = q_ / m_;
+		q_kT_ = q_ / (vm["T"].as<Real>() * boltzmann_constant);
 	}
-	void Update() override
-	{
 
-	}
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine = '" << GetTypeAsString() << "' " << " , ";
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		base_type::Serialize(os);
+		os << "Engine = '" << GetTypeAsString() << "' "
+
+		<< " , " << "Mass = " << m_
+
+		<< " , " << "Charge = " << q_
+
+		<< " , " << "T = " << q_ / q_kT_ / elementary_charge << " eV"
+
+		;
 
 		return os;
 	}
-
-	static inline Point_s DefaultValue()
+	void Update()
+	{
+	}
+	static Point_s DefaultValue()
 	{
 		Point_s p;
 		p.f = 1.0;
@@ -115,8 +129,13 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
+	size_t GetAffectedRegion() const
+	{
+		return 2;
+	}
+
+	template<typename TB, typename TE, typename ... Others> inline
+	void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
 
@@ -128,8 +147,8 @@ public:
 //		p->w += (1.0 - p->w) * (-q_ * InnerProduct(fE(p->x), p->v) / T_ * dt);
 	}
 
-	template<typename TV, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
+	template<typename TV, typename ... Others> inline
+	typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
 	        Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
 	{
 		n->Collect(q_ * p.f * p.w, p.x);

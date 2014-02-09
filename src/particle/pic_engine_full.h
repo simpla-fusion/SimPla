@@ -16,12 +16,10 @@
 namespace simpla
 {
 
-template<typename > class PICEngineBase;
-
 template<typename TM, int DeltaF = 0>
-struct PICEngineFull: public PICEngineBase<TM>
+struct PICEngineFull
 {
-	Real cmr_, q_;
+
 public:
 	typedef PICEngineBase<TM> base_type;
 	typedef PICEngineFull<TM, DeltaF> this_type;
@@ -57,40 +55,55 @@ public:
 
 	};
 
+private:
+	Real m_, q_, cmr_;
+public:
+	mesh_type const &mesh;
+
+public:
+
 	PICEngineFull(mesh_type const &pmesh)
-			: base_type(pmesh), cmr_(1.0), q_(1.0)
-	{
-
-	}
-	virtual ~PICEngineFull()
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
 	{
 	}
+	~PICEngineFull()
+	{
+	}
 
-	static inline std::string TypeName()
+	static std::string TypeName()
 	{
 		return "Full";
 	}
-	virtual inline std::string GetTypeAsString() const override
+	std::string GetTypeAsString() const
 	{
-		return this_type::TypeName();
+		return "Full";
 	}
 
-	inline void Deserialize(LuaObject const &obj) override
+	Real GetMass() const
 	{
-		base_type::Deserialize(obj);
-		Update();
+		return m_;
 	}
-	void Update() override
+
+	Real GetCharge() const
 	{
-		cmr_ = base_type::q_ / base_type::m_;
-		q_ = base_type::q_;
+		return q_;
 	}
+
+	inline void Deserialize(LuaObject const &vm)
+	{
+		m_ = vm["Mass"].as<Real>();
+		q_ = vm["Charge"].as<Real>();
+		cmr_ = q_ / m_;
+	}
+
 	std::ostream & Serialize(std::ostream & os) const
 	{
 
-		os << "Engine = '" << GetTypeAsString() << "' " << " , ";
+		os << "Engine = '" << GetTypeAsString() << "' "
 
-		base_type::Serialize(os);
+		<< " , " << "Mass = " << m_
+
+		<< " , " << "Charge = " << q_;
 
 		return os;
 	}

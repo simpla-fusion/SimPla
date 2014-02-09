@@ -58,13 +58,13 @@ public:
 	{
 		factory_.emplace(engine_name, fun);
 	}
-	template<typename TEngine>
+	template<typename TP>
 	void RegisterFactory(std::string engine_name = "")
 	{
 		if (engine_name == "")
-			engine_name = TEngine::TypeName();
+			engine_name = TP::TypeName();
 
-		RegisterFactory(engine_name, create_fun(&CreateParticle<TEngine>));
+		RegisterFactory(engine_name, create_fun(&CreateParticle<TP>));
 	}
 
 	void Deserialize(LuaObject const &cfg);

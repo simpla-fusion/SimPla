@@ -75,8 +75,9 @@ InitB0=function(x,y,z)
       local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
       return {0,0,Btor}
      end 
-InitValue={
 --[[
+InitValue={
+
   E=function(x,y,z)
      ---[[
       local res = 0.0;
@@ -87,10 +88,7 @@ InitValue={
       return {res,res,res}
     end
     ,
---]]
- 
 
----[[  
   B=function(x,y,z)
       -- local omega_ci_x0 = 1/1.55*omega;
       -- local omega_ci_lx = 1/1.45*omega;
@@ -100,9 +98,9 @@ InitValue={
       return {0,0,Btor}  
      end
      ,
---]]
-}
 
+}
+--]]
      
 GFile='g033068.02750'
 Grid=
@@ -143,11 +141,11 @@ Boundary={
    -- { Type="PEC", In="Plasma",Out="NONE"},
 }
 
-
+--]]
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
 }
---]]
+
 FieldSolver= 
 {
 --[[
