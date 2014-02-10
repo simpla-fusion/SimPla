@@ -41,10 +41,6 @@ template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 
 namespace simpla
 {
-template<typename, typename > struct Field;
-
-template<typename, int> struct Geometry;
-
 //*******************************************************************************************************
 template<class Engine>
 class Particle: public Engine
@@ -119,13 +115,13 @@ public:
 
 	//***************************************************************************************************
 
-	void Update();
+	void Initiallize();
 
 	void DumpData(std::string const &path);
 
-	void Deserialize(LuaObject const &cfg);
+	void Load(LuaObject const &cfg);
 
-	std::ostream & Serialize(std::ostream & os) const;
+	std::ostream & Save(std::ostream & os) const;
 
 	//***************************************************************************************************
 	template<typename TFun, typename ... Args>
@@ -175,7 +171,6 @@ public:
 	std::string const &name() const
 	{
 		return name_;
-
 	}
 
 	std::string GetEngineTypeAsString() const
@@ -222,9 +217,9 @@ Particle<Engine>::~Particle()
 }
 
 template<class Engine>
-void Particle<Engine>::Deserialize(LuaObject const &cfg)
+void Particle<Engine>::Load(LuaObject const &cfg)
 {
-	Update();
+	Initiallize();
 
 	LoadParticle(cfg, this);
 
@@ -250,7 +245,7 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::G
 }
 
 template<class Engine>
-std::ostream & Particle<Engine>::Serialize(std::ostream & os) const
+std::ostream & Particle<Engine>::Save(std::ostream & os) const
 {
 	os << "{ Name = '" << base_type::GetName() << "' , ";
 
@@ -272,7 +267,7 @@ std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
 }
 
 template<class Engine>
-void Particle<Engine>::Update()
+void Particle<Engine>::Initiallize()
 {
 	if (data_.size() < mesh.GetNumOfElements(IForm))
 		data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
@@ -345,7 +340,7 @@ template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	Update();
+	Initiallize();
 
 	if (base_type::IsSorted())
 		return;
@@ -606,11 +601,11 @@ void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typen
 
 // @NOTE: difficult to parallism
 
-	auto fun = [&](index_type src)
+	auto fun = [&](index_type idx)
 	{
-		if(!selector(src)) return;
+		if(!selector(idx)) return;
 
-		auto & cell = this->data_[src];
+		auto & cell = this->data_[idx];
 
 		auto pt = cell.begin();
 
@@ -619,7 +614,7 @@ void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typen
 			auto p = pt;
 			++pt;
 
-			index_type dest=src;
+			index_type dest=idx;
 			if (flag == base_type::REFELECT)
 			{
 				coordinates_type x;
@@ -628,12 +623,12 @@ void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typen
 
 				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
 
-				dest=this->mesh.Refelect(src,dt,&x,&v);
+				dest=this->mesh.Refelect(idx,dt,&x,&v);
 
 				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
 			}
 
-			if (dest != src)
+			if (dest != idx)
 			{
 				data_[dest].splice(data_[dest].begin(), cell, p);
 			}

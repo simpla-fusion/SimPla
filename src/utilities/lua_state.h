@@ -158,6 +158,11 @@ public:
 		return L_ == nullptr;
 	}
 
+	inline bool operator bool() const
+	{
+		return empty();
+	}
+
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
 	inline bool _FUN_NAME_() const                                             \
 	{                                                                          \

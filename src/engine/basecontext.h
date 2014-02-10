@@ -35,9 +35,9 @@ public:
 	{
 	}
 
-	virtual void Deserialize(LuaObject const & cfg) =0;
+	virtual void Load(LuaObject const & cfg) =0;
 	virtual void DumpData(std::string const & path="/DumpData") const=0;
-	virtual std::ostream & Serialize(std::ostream & os) const=0;
+	virtual std::ostream & Save(std::ostream & os) const=0;
 
 	virtual void NextTimeStep(double dt = std::numeric_limits<double>::quiet_NaN())
 	{
@@ -68,7 +68,7 @@ public:
 
 inline std::ostream & operator<<(std::ostream & os, BaseContext const &self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 
 }  // namespace simpla

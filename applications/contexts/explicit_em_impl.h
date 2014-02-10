@@ -52,6 +52,12 @@
 
 namespace simpla
 {
+
+template<typename ...Args>
+void NullFunction(Args const & ...)
+{
+}
+
 template<typename TM>
 struct ExplicitEMContext: public BaseContext
 {
@@ -66,16 +72,15 @@ public:
 
 	ExplicitEMContext();
 	~ExplicitEMContext();
-	void Deserialize(configure_type const & cfg);
-	void Serialize(configure_type * cfg) const;
-	std::ostream & Serialize(std::ostream & os) const;
+
+	void Load(configure_type const & cfg);
+	void Save(configure_type * cfg) const;
+	std::ostream & Save(std::ostream & os) const;
+
 	void NextTimeStep(double dt);
+
 	void DumpData(std::string const & path = "") const;
 
-	inline ParticleCollection<mesh_type> & GetParticleCollection()
-	{
-		return particle_collection_;
-	}
 public:
 
 	mesh_type mesh;
@@ -87,17 +92,37 @@ public:
 	Form<1> J;
 
 	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
+
 	std::shared_ptr<FieldSolver<mesh_type> > pml_;
 
-	std::shared_ptr<ParticleCollection<mesh_type>> particle_collection_;
-	typedef typename ParticleCollection<mesh_type>::particle_type particle_type;
+	struct ParticleWrap
+	{
+		std::function<void(Real dt, Form<1> const & E, Form<2> const & B)> NextTimeStep;
+
+		std::function<void(Form<1> * J, Form<1> const & E, Form<2> const & B)> Collect;
+
+		std::function<std::ostream(std::ostream &)> Save;
+
+		std::function<void(LuaObject const&)> Load;
+
+		std::function<void()> Initialize;
+
+		std::function<void()> Sort;
+
+		std::function<void()> Boundary;
+
+		std::function<void(std::string const &)> DumpData;
+
+	};
+
+	std::list<ParticleWrap> particles_;
 
 	typedef LuaObject field_function;
 
 	FieldFunction<Form<1>, field_function> j_src_;
 
 	std::multimap<std::string, std::function<void(Real dt)> > field_boundary_;
-	std::multimap<std::string, std::function<void(ParticleBase<mesh_type>*, Real dt)> > particle_boundary_;
+
 }
 ;
 
@@ -105,7 +130,7 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: isCompactStored_(true), E(mesh), B(mesh), J(mesh),
 
-		cold_fluid_(nullptr), pml_(nullptr), particle_collection_(nullptr)
+		cold_fluid_(nullptr), pml_(nullptr)
 {
 }
 
@@ -114,13 +139,13 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 {
 }
 template<typename TM>
-void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
+void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 {
 	base_type::description = cfg["Description"].as<std::string>();
 
 	mesh.Deserialize(cfg["Grid"]);
 
-	if (!cfg["GFile"].empty())
+	if (!cfg["GFile"])
 	{
 		typedef TM mesh_type;
 
@@ -151,7 +176,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		E.Fill(0);
 
 	}
-	else if (!cfg["InitValue"].empty())
+	else if (!cfg["InitValue"])
 	{
 		auto init_value = cfg["InitValue"];
 
@@ -165,19 +190,19 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 
-	if (!cfg["FieldSolver"]["ColdFluid"].empty())
+	if (!cfg["FieldSolver"]["ColdFluid"])
 	{
 		cold_fluid_ = CreateSolver(mesh, "ColdFluid");
 		cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
 	}
 
-	if (!cfg["FieldSolver"]["PML"].empty())
+	if (!cfg["FieldSolver"]["PML"])
 	{
 		pml_ = CreateSolver(mesh, "PML");
 		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
 	}
 
-	if (!cfg["CurrentSrc"].empty())
+	if (!cfg["CurrentSrc"])
 	{
 		LuaObject jSrcCfg = cfg["CurrentSrc"];
 
@@ -188,7 +213,7 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		LOGGER << "Load Current Source ." << DONE;
 	}
 
-	if (!(mesh.tags().empty() || cfg["Boundary"].empty()))
+	if (!(mesh.tags() || cfg["Boundary"]))
 	{
 		LuaObject boundary = cfg["Boundary"];
 
@@ -253,18 +278,15 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 		}
 
 	}
-	if (!cfg["Particles"].empty())
+	if (!cfg["Particles"])
 	{
 		LuaObject particles = cfg["Particles"];
 
-		particle_collection_ = std::shared_ptr<ParticleCollection<mesh_type> >(new ParticleCollection<mesh_type>(mesh));
+		for (auto const &opt : cfg)
+		{
+			particles_.emplace_bace(CreateParticle<ParticleWrap>(opt))
+		}
 
-		particle_collection_->template RegisterFactory<Particle<PICEngineFull<mesh_type> > >();
-		particle_collection_->template RegisterFactory<Particle<PICEngineDeltaF<mesh_type> > >();
-		particle_collection_->template RegisterFactory<Particle<PICEngineGGauge<mesh_type, 8> > >("GGauge8");
-		particle_collection_->template RegisterFactory<Particle<PICEngineGGauge<mesh_type, 32> > >("GGauge32");
-
-		particle_collection_->Deserialize(particles);
 	}
 
 	LOGGER << ">>>>>>> Initialization  Complete! <<<<<<<< ";
@@ -272,11 +294,11 @@ void ExplicitEMContext<TM>::Deserialize(LuaObject const & cfg)
 }
 
 template<typename TM>
-void ExplicitEMContext<TM>::Serialize(configure_type * cfg) const
+void ExplicitEMContext<TM>::Save(configure_type * cfg) const
 {
 }
 template<typename TM>
-std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
+std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 {
 
 	os << "Description=\"" << base_type::description << "\" \n";
@@ -293,8 +315,8 @@ std::ostream & ExplicitEMContext<TM>::Serialize(std::ostream & os) const
 
 	os << "} \n";
 
-	if (particle_collection_ != nullptr)
-		os << *particle_collection_ << "\n";
+	if (particles_ != nullptr)
+		os << *particles_ << "\n";
 
 	os << "Function={";
 	for (auto const & p : field_boundary_)
@@ -354,7 +376,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	LOG_CMD(dE -= J / epsilon0);
 
-	if (!j_src_.empty())
+	if (!j_src_)
 	{
 		j_src_(&J, base_type::GetTime());
 		LOGGER << "Current Source:" << DONE;
@@ -383,21 +405,10 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
 	}
 
-	if (particle_collection_ != nullptr)
+	for (auto &p : particles_)
 	{
-		particle_collection_->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-
-		for (auto & p : *particle_collection_)
-			for (auto & fun : particle_boundary_)
-			{
-				if (fun.first == "" || p.first == fun.first)
-				{
-					fun.second(p.second.get(), dt);
-
-					LOGGER << "Apply boundary conditions on Particle [" << p.first << "] " << DONE;
-				}
-
-			}
+		p.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+		p.Boundary();
 	}
 
 	//  E(t=1/2  -> 1)
@@ -442,12 +453,12 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
 	}
 
-	if (particle_collection_ != nullptr)
+	J.Fill(0);
+	for (auto &p : particles_)
 	{
-		particle_collection_->Sort();
-		J.Fill(0);
+		p.Sort();
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		particle_collection_->Collect(&J, E, B);
+		p.Collect(&J, E, B);
 	}
 
 	// B(t=0 -> 1/2)
@@ -455,12 +466,15 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	{
 		int count = 0;
+
 		auto range = field_boundary_.equal_range("B");
+
 		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
 		{
 			fun_it->second(dt);
 			++count;
 		}
+
 		if (count > 0)
 			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
 	}

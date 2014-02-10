@@ -24,14 +24,10 @@
 namespace simpla
 {
 template<typename TM>
-class ParticleCollection: public std::map<std::string, std::shared_ptr<ParticleBase<TM> > >
+class ParticleCollection
 {
 public:
 	typedef TM mesh_type;
-
-	typedef ParticleBase<mesh_type> particle_type;
-
-	typedef std::map<std::string, std::shared_ptr<particle_type> > base_type;
 
 	typedef std::function<std::shared_ptr<particle_type>(mesh_type const &)> create_fun;
 
@@ -58,6 +54,7 @@ public:
 	{
 		factory_.emplace(engine_name, fun);
 	}
+
 	template<typename TP>
 	void RegisterFactory(std::string engine_name = "")
 	{
@@ -67,9 +64,17 @@ public:
 		RegisterFactory(engine_name, create_fun(&CreateParticle<TP>));
 	}
 
+	void RegisterAll()
+	{
+		RegisterFactory<Particle<PICEngineFull<mesh_type> > >();
+		RegisterFactory<Particle<PICEngineDeltaF<mesh_type> > >();
+		RegisterFactory<Particle<PICEngineGGauge<mesh_type, 8> > >("GGauge8");
+		RegisterFactory<Particle<PICEngineGGauge<mesh_type, 32> > >("GGauge32");
+	}
+
 	void Deserialize(LuaObject const &cfg);
 
-	std::ostream & Serialize(std::ostream & os) const;
+	std::ostream & Save(std::ostream & os) const;
 
 	template<typename PT>
 	inline void Serialize(PT &vm) const
@@ -86,59 +91,56 @@ public:
 	template<typename TJ, typename ... Args> void Collect(TJ *J, Args const & ... args) const;
 };
 
-template<typename TM>
-void ParticleCollection<TM>::Deserialize(LuaObject const &cfg)
+template<typename TParticle>
+TParticle CreateParticle(LuaObject const &opt)
 {
-	if (cfg.empty())
-		return;
 
+	TParticle res;
 	Logger logger(LOG_LOG);
 
 	logger << "Load Particles " << endl << flush << indent;
 
-	for (auto const &p : cfg)
+	std::string key;
+
+	if (!p.first.is_number())
 	{
-		std::string key;
+		key = p.first.template as<std::string>();
+	}
+	else
+	{
+		p.second.GetValue("Name", &key);
+	}
 
-		if (!p.first.is_number())
-		{
-			key = p.first.template as<std::string>();
-		}
-		else
-		{
-			p.second.GetValue("Name", &key);
-		}
+	std::string engine = p.second.at("Engine").template as<std::string>();
 
-		std::string engine = p.second.at("Engine").template as<std::string>();
+	auto it = factory_.find(engine);
 
-		auto it = factory_.find(engine);
+	if (it != factory_.end())
+	{
+		auto t = it->second(mesh);
 
-		if (it != factory_.end())
-		{
-			auto t = it->second(mesh);
+		t->Deserialize(p.second);
 
-			t->Deserialize(p.second);
+		this->emplace(key, t);
 
-			this->emplace(key, t);
+		t->SetName(key);
 
-			t->SetName(key);
+	}
+	else
+	{
+		WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
 
-		}
-		else
-		{
-			WARNING << "I do not know how to create \"" << key << "\" particle! [engine=" << engine << "]";
-
-			return;
-		}
-
+		return;
 	}
 
 	logger << DONE;
 
+	return std::move(res);
+
 }
 template<typename TM>
 
-std::ostream & ParticleCollection<TM>::Serialize(std::ostream & os) const
+std::ostream & ParticleCollection<TM>::Save(std::ostream & os) const
 {
 
 	os << "Particles={ \n";
