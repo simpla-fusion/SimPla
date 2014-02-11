@@ -28,7 +28,7 @@ namespace simpla
 {
 
 template<typename TM>
-class ColdFluidEM: public FieldSolver<TM>
+class ColdFluidEM
 {
 public:
 	DEFINE_FIELDS(TM)
@@ -74,28 +74,32 @@ public:
 	{
 	}
 
-	inline bool empty() override // STL style
+	inline bool empty() const  // STL style
 	{
 		return sp_list_.empty();
 	}
-	void Deserialize(LuaObject const&cfg) override;
-	std::ostream & Serialize(std::ostream & os) const override;
-	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override
+
+	bool operator bool() const
 	{
-		_NextTimeStepE(dt, E1, B1, dE);
+		return empty();
 	}
+
+	void Load(LuaObject const&cfg);
+
+	std::ostream & Save(std::ostream & os) const;
 
 	void DumpData(std::string const & path = "") const;
 
+	template<typename TE, typename TB>
+	void NextTimeStepE(Real dt, TE const &E, TB const &B0, TE *dE);
+
 private:
 
-	template<typename TE, typename TB> inline
-	void _NextTimeStepE(Real dt, TE const &dE, TB const &B0, TE *E);
 }
 ;
 template<typename TM>
 template<typename TE, typename TB> inline
-void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
+void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 {
 	if (sp_list_.empty())
 		return;
@@ -277,7 +281,7 @@ void ColdFluidEM<TM>::_NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 //}
 
 template<typename TM>
-inline void ColdFluidEM<TM>::Deserialize(LuaObject const&cfg)
+inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
 {
 	if (cfg.empty())
 		return;
@@ -338,7 +342,7 @@ void ColdFluidEM<TM>::DumpData(std::string const & path) const
 }
 
 template<typename TM>
-std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
+std::ostream & ColdFluidEM<TM>::Save(std::ostream & os) const
 {
 	os << "\tColdFluid = { Nonlinear = " << std::boolalpha << nonlinear_ << "\n"
 
@@ -364,7 +368,7 @@ std::ostream & ColdFluidEM<TM>::Serialize(std::ostream & os) const
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, ColdFluidEM<TM> const &self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 
 }  // namespace simpla

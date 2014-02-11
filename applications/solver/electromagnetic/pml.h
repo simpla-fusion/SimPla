@@ -21,7 +21,7 @@ namespace simpla
 class LuaObject;
 
 template<typename TM>
-class PML: public FieldSolver<TM>
+class PML
 {
 
 	inline Real sigma_(Real r, Real expN, Real dB)
@@ -60,13 +60,13 @@ public:
 	{
 		return !isInitilized_;
 	}
-	void Deserialize(LuaObject const&cfg);
-	std::ostream & Serialize(std::ostream & os) const;
+	void Load(LuaObject const&cfg);
+	std::ostream & Save(std::ostream & os) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override;
 	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB) override;
 
-	void DumpData(std::string const &path="/DumpData") const;
+	void DumpData(std::string const &path = "/DumpData") const;
 };
 
 template<typename TM>
@@ -206,7 +206,7 @@ void PML<TM>::Update()
 
 }
 template<typename TM>
-void PML<TM>::Deserialize(LuaObject const&cfg)
+void PML<TM>::Load(LuaObject const&cfg)
 {
 	if (cfg.empty())
 		return;
@@ -216,7 +216,7 @@ void PML<TM>::Deserialize(LuaObject const&cfg)
 }
 template<typename TM>
 
-std::ostream & PML<TM>::Serialize(std::ostream & os) const
+std::ostream & PML<TM>::Save(std::ostream & os) const
 {
 	os << "\tPML={  Width={" << ToString(bc_, ",") << " } }\n";
 	return os;

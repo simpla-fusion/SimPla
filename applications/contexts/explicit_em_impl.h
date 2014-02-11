@@ -39,12 +39,8 @@
 #include "../../src/io/data_stream.h"
 
 #include "../../src/particle/particle.h"
-#include "../../src/particle/particle_collection.h"
-#include "../../src/particle/pic_engine_full.h"
-#include "../../src/particle/pic_engine_deltaf.h"
-#include "../../src/particle/pic_engine_ggauge.h"
 
-#include "../../src/engine/fieldsolver.h"
+
 
 #include "../solver/solver.h"
 
@@ -67,39 +63,60 @@ public:
 	typedef LuaObject configure_type;
 
 	DEFINE_FIELDS (TM)
+
+	Real time_;
 public:
 	typedef ExplicitEMContext<TM> this_type;
 
 	ExplicitEMContext();
+
 	~ExplicitEMContext();
 
 	void Load(configure_type const & cfg);
-	void Save(configure_type * cfg) const;
+
 	std::ostream & Save(std::ostream & os) const;
 
 	void NextTimeStep(double dt);
 
 	void DumpData(std::string const & path = "") const;
 
+	Real GetTime()
+	{
+		return time_;
+	}
+
 public:
 
 	mesh_type mesh;
 
+	std::string description;
+
 	bool isCompactStored_;
 
-	Form<1> E;
-	Form<2> B;
+	Form<1> E, dE;
+	Form<2> B, dB;
 	Form<1> J;
 
-	std::shared_ptr<FieldSolver<mesh_type> > cold_fluid_;
+	typedef decltype(E) TE;
+	typedef decltype(B) TB;
+	typedef decltype(J) TJ;
 
-	std::shared_ptr<FieldSolver<mesh_type> > pml_;
+	std::function<void(Real, TE const &, TB const &, TE*)> CalculatedE;
+
+	std::function<void(Real, TE const &, TB const &, TB*)> CalculatedB;
+
+	std::function<void(TE*)> ApplyBoundaryConditionToE;
+
+	std::function<void(TB*)> ApplyBoundaryConditionToB；
+
+	std::function<void(TJ*, Real)> ApplyCurrentSrcToJ;
 
 	struct ParticleWrap
 	{
-		std::function<void(Real dt, Form<1> const & E, Form<2> const & B)> NextTimeStep;
 
-		std::function<void(Form<1> * J, Form<1> const & E, Form<2> const & B)> Collect;
+		std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
+
+		std::function<void(TJ * J, TE const & E, TB const & B)> Collect;
 
 		std::function<std::ostream(std::ostream &)> Save;
 
@@ -115,22 +132,14 @@ public:
 
 	};
 
-	std::list<ParticleWrap> particles_;
-
-	typedef LuaObject field_function;
-
-	FieldFunction<Form<1>, field_function> j_src_;
-
-	std::multimap<std::string, std::function<void(Real dt)> > field_boundary_;
+	std::map<std::string, ParticleWrap> particles_;
 
 }
 ;
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), E(mesh), B(mesh), J(mesh),
-
-		cold_fluid_(nullptr), pml_(nullptr)
+		: isCompactStored_(true), time_(0), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh)
 {
 }
 
@@ -141,15 +150,15 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 template<typename TM>
 void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 {
-	base_type::description = cfg["Description"].as<std::string>();
+	description = cfg["Description"].as<std::string>();
 
 	mesh.Deserialize(cfg["Grid"]);
 
-	if (!cfg["GFile"])
+	if (cfg["GFile"])
 	{
 		typedef TM mesh_type;
 
-		base_type::description = cfg["Description"].as<std::string>();
+		description = cfg["Description"].as<std::string>();
 
 		GEqdsk geqdsk(cfg["GFile"].as<std::string>());
 
@@ -161,7 +170,7 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		RForm<EDGE> B1(mesh);
 
-		B1.Fill(0);
+		B1.Clear();
 
 		mesh.SerialTraversal(EDGE,
 
@@ -172,11 +181,11 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		MapTo(B1, &B);
 
-		J.Fill(0);
-		E.Fill(0);
+		J.Clear();
+		E.Clear();
 
 	}
-	else if (!cfg["InitValue"])
+	else if (cfg["InitValue"])
 	{
 		auto init_value = cfg["InitValue"];
 
@@ -190,28 +199,12 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 
-	if (!cfg["FieldSolver"]["ColdFluid"])
-	{
-		cold_fluid_ = CreateSolver(mesh, "ColdFluid");
-		cold_fluid_->Deserialize(cfg["FieldSolver"]["ColdFluid"]);
-	}
+	CreateEMFieldSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
-	if (!cfg["FieldSolver"]["PML"])
-	{
-		pml_ = CreateSolver(mesh, "PML");
-		pml_->Deserialize(cfg["FieldSolver"]["PML"]);
-	}
+	CreateCurrentSrc(cfg["CurrentSrc"], mesh, &ApplyCurrentSrcToJ);
 
-	if (!cfg["CurrentSrc"])
-	{
-		LuaObject jSrcCfg = cfg["CurrentSrc"];
-
-		j_src_.SetFunction(jSrcCfg["Fun"]);
-
-		j_src_.SetDefineDomain(mesh, jSrcCfg["Points"].as<std::vector<coordinates_type>>());
-
-		LOGGER << "Load Current Source ." << DONE;
-	}
+//	ApplyBoundaryConditionToE=;
+//	ApplyBoundaryConditionToB=;
 
 	if (!(mesh.tags() || cfg["Boundary"]))
 	{
@@ -228,45 +221,45 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 			if (function == "PEC")
 			{
-				field_boundary_.emplace(object,
+				ApplyBoundaryConditionToE =
 
-				[in,out,this](Real dt)
+				[in,out,this](Real dt,TE * pE)
 				{
 					auto selector=mesh.tags().template BoundarySelector<EDGE>(in,out);
 
 					this->mesh.ParallelTraversal(EDGE,
 							[this,selector](index_type s)
 							{
-								if(selector(s) )(this->E)[s]=0;
+								if(selector(s) )(*pE)[s]=0;
 							}
 					);
 
 				}
 
-				);
+				;
 			}
-			else if (type == "Particle" && function == "Reflect")
-			{
-				particle_boundary_.emplace(object,
-
-				[in,out,this](ParticleBase<mesh_type> * p,Real dt)
-				{
-					p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
-				}
-
-				);
-			}
-			else if (type == "Particle" && function == "Absorb")
-			{
-				particle_boundary_.emplace(object,
-
-				[in,out,this](ParticleBase<mesh_type>* p,Real dt)
-				{
-					p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
-				}
-
-				);
-			}
+//			else if (type == "Particle" && function == "Reflect")
+//			{
+//				particle_boundary_.emplace(object,
+//
+//				[in,out,this](ParticleBase<mesh_type> * p,Real dt)
+//				{
+//					p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
+//				}
+//
+//				);
+//			}
+//			else if (type == "Particle" && function == "Absorb")
+//			{
+//				particle_boundary_.emplace(object,
+//
+//				[in,out,this](ParticleBase<mesh_type>* p,Real dt)
+//				{
+//					p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
+//				}
+//
+//				);
+//			}
 			else
 			{
 				UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
@@ -278,7 +271,7 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		}
 
 	}
-	if (!cfg["Particles"])
+	if (cfg["Particles"])
 	{
 		LuaObject particles = cfg["Particles"];
 
@@ -294,35 +287,31 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 }
 
 template<typename TM>
-void ExplicitEMContext<TM>::Save(configure_type * cfg) const
-{
-}
-template<typename TM>
 std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 {
 
-	os << "Description=\"" << base_type::description << "\" \n";
+	os << "Description=\"" << description << "\" \n";
 
-	os << "Grid = " << mesh << "\n"
+	os << "Grid = " << mesh << "\n";
 
-	<< " FieldSolver={ \n";
-
-	if (cold_fluid_ != nullptr)
-		os << *cold_fluid_ << ",\n";
-
-	if (pml_ != nullptr)
-		os << *pml_ << ",\n";
-
-	os << "} \n";
-
-	if (particles_ != nullptr)
-		os << *particles_ << "\n";
-
-	os << "Function={";
-	for (auto const & p : field_boundary_)
-	{
-		os << "\"" << p.first << "\",\n";
-	}
+//	os << " FieldSolver={ \n";
+//
+//	if (cold_fluid_ != nullptr)
+//		os << *cold_fluid_ << ",\n";
+//
+//	if (pml_ != nullptr)
+//		os << *pml_ << ",\n";
+//
+//	os << "} \n";
+//
+//	if (particles_ != nullptr)
+//		os << *particles_ << "\n";
+//
+//	os << "Function={";
+//	for (auto const & p : field_boundary_)
+//	{
+//		os << "\"" << p.first << "\",\n";
+//	}
 	os << "}\n"
 
 	<< "Fields={" << "\n"
@@ -343,10 +332,10 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 {
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
+	time_ += dt;
+
 	if (!mesh.CheckCourant(dt))
 		VERBOSE << "dx/dt > c, Courant condition is violated! ";
-
-	base_type::NextTimeStep(dt);
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -354,7 +343,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	<< "Simulation Time = "
 
-	<< (base_type::GetTime() / mesh.constants()["s"]) << "[s]"
+	<< (GetTime() / mesh.constants()["s"]) << "[s]"
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
@@ -362,122 +351,61 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 	// Compute Cycle Begin
 	//************************************************************
 
-	Form<1> dE(mesh);
-	dE.Fill(0);
+	LOG_CMD(ApplyCurrentSrcToJ(&J, GetTime()));
 
-	if (pml_ != nullptr)
-	{
-		pml_->NextTimeStepE(dt, E, B, &dE);
-	}
-	else
-	{
-		LOG_CMD(dE += Curl(B) / (mu0 * epsilon0));
-	}
+	dE.Clear();
 
-	LOG_CMD(dE -= J / epsilon0);
+	// dE = Curl(B)*dt
+	LOG_CMD(CalculatedE(dt, E, B, &dE))
 
-	if (!j_src_)
-	{
-		j_src_(&J, base_type::GetTime());
-		LOGGER << "Current Source:" << DONE;
-		LOG_CMD(dE -= J / epsilon0);
-
-	}
-
-	// J(t=1/2-  to 1/2 +)= (E(t=1/2+)-E(t=1/2-))/dt
-	if (cold_fluid_ != nullptr)
-	{
-		cold_fluid_->NextTimeStepE(dt, E, B, &dE);
-	}
+	LOG_CMD(dE -= J / epsilon0 * dt);
 
 	// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5 * dt);
+	LOG_CMD(E += dE * 0.5);
 
-	{
-		int count = 0;
-		auto range = field_boundary_.equal_range("E");
-		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-		{
-			fun_it->second(dt);
-			++count;
-		}
-		if (count > 0)
-			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
-	}
+	LOG_CMD(ApplyBoundaryConditionToE(&E));
 
 	for (auto &p : particles_)
 	{
-		p.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-		p.Boundary();
+		LOGGER << "Push Particle " << p.first << std::endl;
+
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+
+		p.second.Boundary();
 	}
 
 	//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5 * dt);
+	LOG_CMD(E += dE * 0.5);
 
-	{
-		int count = 0;
-		auto range = field_boundary_.equal_range("E");
-		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-		{
-			fun_it->second(dt);
-			++count;
-		}
-		if (count > 0)
-			LOGGER << "Apply [" << count << "] boundary conditions on E " << DONE;
-	}
+	LOG_CMD(ApplyBoundaryConditionToE(&E));
 
 	Form<2> dB(mesh);
 
-	dB.Fill(0);
+	dB.Clear();
 
-	if (pml_ != nullptr)
-	{
-		pml_->NextTimeStepB(dt, E, B, &dB);
-	}
-	else
-	{
-		LOG_CMD(dB += -Curl(E));
-	}
+	LOG_CMD(CalculatedB(dt, E, B, &dB));
 
 	//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5 * dt);
-	{
-		int count = 0;
-		auto range = field_boundary_.equal_range("B");
-		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-		{
-			fun_it->second(dt);
-			++count;
-		}
-		if (count > 0)
-			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
-	}
+	LOG_CMD(B += dB * 0.5);
 
-	J.Fill(0);
+	LOG_CMD(ApplyBoundaryConditionToB(&B));
+
+	J.Clear();
+
 	for (auto &p : particles_)
 	{
+		LOGGER << "Collect Particle " << p.first << std::endl;
+
 		p.Sort();
+
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.Collect(&J, E, B);
 	}
 
 	// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5 * dt);
+	LOG_CMD(B += dB * 0.5);
 
-	{
-		int count = 0;
-
-		auto range = field_boundary_.equal_range("B");
-
-		for (auto fun_it = range.first; fun_it != range.second; ++fun_it)
-		{
-			fun_it->second(dt);
-			++count;
-		}
-
-		if (count > 0)
-			LOGGER << "Apply [" << count << "] boundary conditions on B " << DONE;
-	}
+	LOG_CMD(ApplyBoundaryConditionToB(&B));
 
 	//************************************************************
 	// Compute Cycle End
@@ -492,9 +420,6 @@ void ExplicitEMContext<TM>::DumpData(std::string const & path) const
 	LOGGER << DUMP(E);
 	LOGGER << DUMP(B);
 	LOGGER << DUMP(J);
-
-	if(cold_fluid_!=nullptr) cold_fluid_->DumpData(path);
-	if(pml_!=nullptr) pml_->DumpData(path);
 
 }
 }
