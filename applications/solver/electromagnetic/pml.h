@@ -63,8 +63,8 @@ public:
 	void Load(LuaObject const&cfg);
 	std::ostream & Save(std::ostream & os) const;
 
-	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE) override;
-	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB) override;
+	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
+	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
 
 	void DumpData(std::string const &path = "/DumpData") const;
 };

@@ -79,10 +79,6 @@ public:
 		return sp_list_.empty();
 	}
 
-	bool operator bool() const
-	{
-		return empty();
-	}
 
 	void Load(LuaObject const&cfg);
 
@@ -98,7 +94,7 @@ private:
 }
 ;
 template<typename TM>
-template<typename TE, typename TB> inline
+template<typename TE, typename TB>
 void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 {
 	if (sp_list_.empty())

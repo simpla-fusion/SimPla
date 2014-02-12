@@ -31,9 +31,9 @@ public:
 
 	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
 
-	void Deserialize(LuaObject const & vm);
+	void Load(LuaObject const & vm);
 
-	std::ostream & Serialize(std::ostream & os)const;
+	std::ostream & Save(std::ostream & os)const;
 
 	void Print(std::basic_ostream<char> & os) const;
 

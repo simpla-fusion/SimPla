@@ -135,13 +135,13 @@ Media=
         end
      ,Op="Set"},
 }
-
-Boundary={
-   -- { Type="PEC", In="Vacuum",Out="NONE"},
-   -- { Type="PEC", In="Plasma",Out="NONE"},
+--]]
+Interface={
+   { In="Vacuum",Out="NONE",Attribute={"PEC"  }},
+   { Type="PEC", In="Plasma",Out="NONE"},
 }
 
---]]
+
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
 }

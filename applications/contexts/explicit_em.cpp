@@ -40,7 +40,7 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 
 			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
 
-			ctx_ptr->Deserialize(cfg);
+			ctx_ptr->Load(cfg);
 
 			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 		}
@@ -50,7 +50,7 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 
 			std::shared_ptr<ExplicitEMContext<mesh_type>> ctx_ptr(new ExplicitEMContext<mesh_type>);
 
-			ctx_ptr->Deserialize(cfg);
+			ctx_ptr->Load(cfg);
 
 			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 		}

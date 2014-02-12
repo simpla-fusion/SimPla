@@ -158,9 +158,9 @@ public:
 		return L_ == nullptr;
 	}
 
-	inline bool operator bool() const
+	operator bool()const
 	{
-		return empty();
+		return L_ == nullptr;
 	}
 
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
@@ -447,7 +447,10 @@ public:
 //		return std::move(
 //				LuaObject(L_, GLOBAL_REF_IDX_, id, path_ + "." + ToString(s)));
 //	}
-
+	inline LuaObject operator[](char const s[]) const noexcept
+	{
+		return operator[](std::string(s));
+	}
 	inline LuaObject operator[](std::string const & s) const noexcept
 	{
 		if (IsNull())

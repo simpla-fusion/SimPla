@@ -212,6 +212,11 @@ public:
 
 	}
 
+	void Clear()
+	{
+		UNIMPLEMENT;
+	}
+
 	inline this_type &
 	operator =(this_type const & rhs)
 	{

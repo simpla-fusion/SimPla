@@ -2282,11 +2282,11 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 
 	}
 
-	LOGGER << "Deserialize CoRectMesh" << START;
+	LOGGER << "Load CoRectMesh" << START;
 
-	constants().Deserialize(cfg["UnitSystem"]);
+	constants().Load(cfg["UnitSystem"]);
 
-	tags().Deserialize(cfg["MediaTag"]);
+	tags().Load(cfg["MediaTag"]);
 
 	auto topology = cfg["Topology"];
 	topology["Dimensions"].as(&dims_);

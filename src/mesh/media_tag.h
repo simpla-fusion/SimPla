@@ -72,6 +72,11 @@ public:
 		return tags_[0].empty();
 	}
 
+	operator bool() const
+	{
+		return tags_[0].empty();
+	}
+
 	tag_type RegisterTag(std::string const & name)
 	{
 		tag_type res;
@@ -131,7 +136,7 @@ public:
 	}
 
 	template<typename TCfg>
-	void Deserialize(TCfg const & cfg)
+	void Load(TCfg const & cfg)
 	{
 		if (cfg.empty())
 			return;
@@ -142,7 +147,7 @@ public:
 		Update();
 
 	}
-	std::ostream & Serialize(std::ostream &os) const
+	std::ostream & Save(std::ostream &os) const
 	{
 //		std::vector<unsigned long> tmp[4];
 //
@@ -366,7 +371,7 @@ public:
 	 * @param flag
 	 */
 	template<int IFORM> std::function<bool(index_type)>
-	BoundarySelector(tag_type in, tag_type out, unsigned int flag = ON_BOUNDARY) const;
+	SelectInterface(tag_type in, tag_type out, unsigned int flag = ON_BOUNDARY) const;
 
 private:
 
@@ -389,8 +394,6 @@ private:
 			fun(is_selected,tags_[0][s]);
 		}, std::forward<Args const&>(args)...);
 	}
-
-
 
 	template<int I>
 	void _UpdateTags()
@@ -418,12 +421,12 @@ private:
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 
 template<typename TM> template<int IFORM>
 std::function<bool(typename TM::index_type)> //
-MediaTag<TM>::BoundarySelector(tag_type A, tag_type B, unsigned int flag) const
+MediaTag<TM>::SelectInterface(tag_type A, tag_type B, unsigned int flag) const
 {
 
 	if ((B & (~A)).any())

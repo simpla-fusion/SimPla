@@ -25,7 +25,7 @@ PhysicalConstants::~PhysicalConstants()
 {
 }
 
-void PhysicalConstants::Deserialize(LuaObject const & vm)
+void PhysicalConstants::Load(LuaObject const & vm)
 {
 	if (vm.empty())
 	{
@@ -44,7 +44,7 @@ void PhysicalConstants::Deserialize(LuaObject const & vm)
 	}
 }
 
-std::ostream & PhysicalConstants::Serialize(std::ostream &os) const
+std::ostream & PhysicalConstants::Save(std::ostream &os) const
 {
 	os
 
@@ -71,7 +71,7 @@ std::ostream & PhysicalConstants::Serialize(std::ostream &os) const
 }
 std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps, double pkg, double pC, double pK,
         double pMol)

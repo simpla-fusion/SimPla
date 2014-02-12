@@ -12,7 +12,6 @@
 #include <functional>
 #include <initializer_list>
 #include <iostream>
-//#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -40,9 +39,9 @@
 
 #include "../../src/particle/particle.h"
 
+#include "../../src/particle/particle_factory.h"
 
-
-#include "../solver/solver.h"
+#include "../solver/electromagnetic/solver.h"
 
 #include "../../src/utilities/geqdsk.h"
 
@@ -52,6 +51,16 @@ namespace simpla
 template<typename ...Args>
 void NullFunction(Args const & ...)
 {
+}
+
+template<typename TJ, typename TCfg, typename TM>
+void CreateCurrentSrc(TCfg const & cfg, TM const & mesh, std::function<void(Real, TJ*)> *res)
+{
+
+	*res = [](Real, TJ*)
+	{
+
+	};
 }
 
 template<typename TM>
@@ -93,9 +102,9 @@ public:
 
 	bool isCompactStored_;
 
-	Form<1> E, dE;
-	Form<2> B, dB;
-	Form<1> J;
+	Form<EDGE> E, dE;
+	Form<FACE> B, dB;
+	Form<EDGE> J;
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
@@ -107,32 +116,13 @@ public:
 
 	std::function<void(TE*)> ApplyBoundaryConditionToE;
 
-	std::function<void(TB*)> ApplyBoundaryConditionToB；
+	std::function<void(TB*)> ApplyBoundaryConditionToB;
 
-	std::function<void(TJ*, Real)> ApplyCurrentSrcToJ;
+	std::function<void(Real, TJ*)> ApplyCurrentSrcToJ;
 
-	struct ParticleWrap
-	{
+	typedef ParticleWrap<TE, TB, TJ> ParticleType;
 
-		std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
-
-		std::function<void(TJ * J, TE const & E, TB const & B)> Collect;
-
-		std::function<std::ostream(std::ostream &)> Save;
-
-		std::function<void(LuaObject const&)> Load;
-
-		std::function<void()> Initialize;
-
-		std::function<void()> Sort;
-
-		std::function<void()> Boundary;
-
-		std::function<void(std::string const &)> DumpData;
-
-	};
-
-	std::map<std::string, ParticleWrap> particles_;
+	std::map<std::string, ParticleType> particles_;
 
 }
 ;
@@ -141,6 +131,21 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: isCompactStored_(true), time_(0), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh)
 {
+
+	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
+	{	LOG_CMD(*pdE += Curl(pB)*dt);};
+
+	CalculatedB = [](Real dt, TE const & pE, TB const &, TB* pdB)
+	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
+
+	ApplyCurrentSrcToJ = [](Real, TJ*)
+	{};
+
+	ApplyBoundaryConditionToE = [ ]( TE * pE)
+	{};
+
+	ApplyBoundaryConditionToB = [ ]( TB * pB)
+	{};
 }
 
 template<typename TM>
@@ -153,18 +158,15 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 	description = cfg["Description"].as<std::string>();
 
 	mesh.Deserialize(cfg["Grid"]);
-
+	B.Clear();
+	J.Clear();
+	E.Clear();
 	if (cfg["GFile"])
 	{
-		typedef TM mesh_type;
-
-		description = cfg["Description"].as<std::string>();
 
 		GEqdsk geqdsk(cfg["GFile"].as<std::string>());
 
 		mesh.SetExtent(geqdsk.GetMin(), geqdsk.GetMax());
-
-		mesh.SetDimension(geqdsk.GetDimension());
 
 		mesh.Update();
 
@@ -181,11 +183,9 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		MapTo(B1, &B);
 
-		J.Clear();
-		E.Clear();
-
 	}
-	else if (cfg["InitValue"])
+
+	if (cfg["InitValue"])
 	{
 		auto init_value = cfg["InitValue"];
 
@@ -199,87 +199,49 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 
-	CreateEMFieldSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 	CreateCurrentSrc(cfg["CurrentSrc"], mesh, &ApplyCurrentSrcToJ);
 
-//	ApplyBoundaryConditionToE=;
-//	ApplyBoundaryConditionToB=;
-
-	if (!(mesh.tags() || cfg["Boundary"]))
+	if (mesh.tags() && cfg["Interface"])
 	{
-		LuaObject boundary = cfg["Boundary"];
 
-		for (auto const & item : boundary)
+		for (auto const & item : cfg["Interface"])
 		{
-			auto object = item.second["Object"].template as<std::string>();
-			auto type = item.second["Type"].template as<std::string>();
-			auto function = item.second["Function"].template as<std::string>();
+			std::shared_ptr<std::list<index_type> > edge(new std::list<index_type>);
 
-			tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
-			tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
-
-			if (function == "PEC")
+			if (item.second["Type"].as<std::string>() == "PEC")
 			{
-				ApplyBoundaryConditionToE =
+				tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
 
-				[in,out,this](Real dt,TE * pE)
-				{
-					auto selector=mesh.tags().template BoundarySelector<EDGE>(in,out);
+				tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
 
-					this->mesh.ParallelTraversal(EDGE,
-							[this,selector](index_type s)
-							{
-								if(selector(s) )(*pE)[s]=0;
-							}
-					);
+				auto selector = mesh.tags().template SelectInterface<EDGE>(in, out);
 
-				}
+				this->mesh.SerialTraversal(EDGE, [&](index_type s)
+				{	if(selector(s)) edge->push_back(s);});
 
-				;
-			}
-//			else if (type == "Particle" && function == "Reflect")
-//			{
-//				particle_boundary_.emplace(object,
-//
-//				[in,out,this](ParticleBase<mesh_type> * p,Real dt)
-//				{
-//					p->Boundary(ParticleBase<mesh_type>::REFELECT,in,out,dt,this->E,this->B);
-//				}
-//
-//				);
-//			}
-//			else if (type == "Particle" && function == "Absorb")
-//			{
-//				particle_boundary_.emplace(object,
-//
-//				[in,out,this](ParticleBase<mesh_type>* p,Real dt)
-//				{
-//					p->Boundary(ParticleBase<mesh_type>::ABSORB,in,out,dt,this->E,this->B);
-//				}
-//
-//				);
-//			}
-			else
-			{
-				UNIMPLEMENT << "Unknown boundary type!" << " [function = " << function << " type= " << type
-				        << " object =" << object << " ]";
-			}
+				ApplyBoundaryConditionToE = [&]( TE * pE)
+				{	for(auto s:*edge) (*pE)[s]=0;};
 
-			LOGGER << "Load Boundary " << type << DONE;
+			};
 
-		}
-
+		};
 	}
-	if (cfg["Particles"])
+	else
 	{
-		LuaObject particles = cfg["Particles"];
+		UNIMPLEMENT << "Unknown Interface type!"
+//				<< " [function = " << function << " type= " << type << " object =" << object << " ]"
+		        ;
+	}
 
-		for (auto const &opt : cfg)
-		{
-			particles_.emplace_bace(CreateParticle<ParticleWrap>(opt))
-		}
+	LOGGER << "Setup interface" << DONE;
 
+	for (auto const &opt : cfg["Particles"])
+	{
+		particles_.emplace(
+		        std::make_pair(opt.first.template as<std::string>(),
+		                CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second)));
 	}
 
 	LOGGER << ">>>>>>> Initialization  Complete! <<<<<<<< ";
@@ -347,69 +309,61 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
-	//************************************************************
-	// Compute Cycle Begin
-	//************************************************************
+//************************************************************
+// Compute Cycle Begin
+//************************************************************
 
-	LOG_CMD(ApplyCurrentSrcToJ(&J, GetTime()));
+	ApplyCurrentSrcToJ(GetTime(), &J);
 
 	dE.Clear();
 
-	// dE = Curl(B)*dt
-	LOG_CMD(CalculatedE(dt, E, B, &dE))
+// dE = Curl(B)*dt
+	CalculatedE(dt, E, B, &dE);
 
 	LOG_CMD(dE -= J / epsilon0 * dt);
 
-	// E(t=0  -> 1/2  )
+// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE * 0.5);
 
-	LOG_CMD(ApplyBoundaryConditionToE(&E));
+	ApplyBoundaryConditionToE(&E);
 
 	for (auto &p : particles_)
 	{
-		LOGGER << "Push Particle " << p.first << std::endl;
-
 		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-
-		p.second.Boundary();
 	}
 
-	//  E(t=1/2  -> 1)
+//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
 
-	LOG_CMD(ApplyBoundaryConditionToE(&E));
+	ApplyBoundaryConditionToE(&E);
 
 	Form<2> dB(mesh);
 
 	dB.Clear();
 
-	LOG_CMD(CalculatedB(dt, E, B, &dB));
+	CalculatedB(dt, E, B, &dB);
 
-	//  B(t=1/2 -> 1)
+//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);
 
-	LOG_CMD(ApplyBoundaryConditionToB(&B));
+	ApplyBoundaryConditionToB(&B);
 
 	J.Clear();
 
 	for (auto &p : particles_)
 	{
-		LOGGER << "Collect Particle " << p.first << std::endl;
-
-		p.Sort();
-
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.Collect(&J, E, B);
+		p.second.Collect(&J, E, B);
 	}
 
-	// B(t=0 -> 1/2)
+// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
-	LOG_CMD(ApplyBoundaryConditionToB(&B));
+	ApplyBoundaryConditionToB(&B);
 
-	//************************************************************
-	// Compute Cycle End
-	//************************************************************
+//************************************************************
+// Compute Cycle End
+//************************************************************
 
 }
 template<typename TM>

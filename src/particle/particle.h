@@ -53,9 +53,12 @@ public:
 		IForm = 3
 	};
 
-	typedef Engine engine_type;
+	enum
+	{
+		REFELECT, ABSORB
+	};
 
-	typedef ParticleBase<typename Engine::mesh_type> base_type;
+	typedef Engine engine_type;
 
 	typedef Particle<engine_type> this_type;
 
@@ -80,7 +83,7 @@ public:
 public:
 	mesh_type const &mesh;
 
-	template<typename ...Args> Particle(mesh_type const & pmesh, std::string const & n = "");
+	template<typename ...Args> Particle(mesh_type const & pmesh);
 
 	virtual ~Particle();
 
@@ -136,6 +139,11 @@ public:
 
 	void Sort();
 
+	void Boundary()
+	{
+		UNIMPLEMENT;
+	}
+
 	template<typename ... Args>
 	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
 	        Args const& ... args);
@@ -158,16 +166,19 @@ public:
 		return clock_;
 	}
 
-	void SetClock(Real clock)
+	void SetClock(Real t)
 	{
-		clock_ = clock;
+		clock_ = t;
 	}
 
 	std::string const &GetName() const
 	{
 		return name_;
 	}
-
+	void SetName(std::string const & s)
+	{
+		name_ = s;
+	}
 	std::string const &name() const
 	{
 		return name_;
@@ -206,8 +217,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh, std::string const & n)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), clock_(0), name_(n)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), clock_(0), name_("unnamed")
 {
 }
 
@@ -222,8 +233,6 @@ void Particle<Engine>::Load(LuaObject const &cfg)
 	Initiallize();
 
 	LoadParticle(cfg, this);
-
-	base_type::Deserialize(cfg);
 
 }
 template<class Engine>
@@ -247,7 +256,7 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::G
 template<class Engine>
 std::ostream & Particle<Engine>::Save(std::ostream & os) const
 {
-	os << "{ Name = '" << base_type::GetName() << "' , ";
+	os << "{ Name = '" << GetName() << "' , ";
 
 	engine_type::Serialize(os);
 
@@ -289,29 +298,29 @@ void Particle<Engine>::DumpData(std::string const &path)
 
 	constexpr int trace_cache_depth_=10;
 
-	if (trace_cache_.empty())
-	{
-		size_t num_particle = trace_particle_.size();
-		trace_cache_.resize(num_particle * trace_cache_depth_);
-		trace_tail_ = trace_cache_.begin();
-	}
-
-	for (auto const& p : trace_particle_)
-	{
-		*trace_tail_ = *p;
-		++trace_tail_;
-	}
-
-	if (trace_tail_ == trace_cache_.end())
-	{
-
-		size_t dims[2] =
-		{	trace_particle_.size(), trace_cache_.size() / trace_particle_.size()};
-
-		LOGGER << Dump(&trace_cache_[0], base_type::GetName(), 2, dims, true);
-
-		trace_tail_ = trace_cache_.begin();
-	}
+//	if (trace_cache_.empty())
+//	{
+//		size_t num_particle = trace_particle_.size();
+//		trace_cache_.resize(num_particle * trace_cache_depth_);
+//		trace_tail_ = trace_cache_.begin();
+//	}
+//
+//	for (auto const& p : trace_particle_)
+//	{
+//		*trace_tail_ = *p;
+//		++trace_tail_;
+//	}
+//
+//	if (trace_tail_ == trace_cache_.end())
+//	{
+//
+//		size_t dims[2] =
+//		{	trace_particle_.size(), trace_cache_.size() / trace_particle_.size()};
+//
+//		LOGGER << Dump(&trace_cache_[0], GetName(), 2, dims, true);
+//
+//		trace_tail_ = trace_cache_.begin();
+//	}
 }
 
 template<class Engine>
@@ -342,7 +351,7 @@ void Particle<Engine>::Sort()
 
 	Initiallize();
 
-	if (base_type::IsSorted())
+	if (IsSorted())
 		return;
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -423,14 +432,13 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 {
 	if (data_.empty())
 	{
-		WARNING << "Particle [" << base_type::GetName() << " : " << engine_type::GetTypeAsString()
-		        << "] is not initialized!";
+		WARNING << "Particle [" << GetName() << " : " << engine_type::GetTypeAsString() << "] is not initialized!";
 		return;
 	}
 
 	Sort();
 
-	base_type::NextTimeStep(dt, std::forward<Args const&>(args) ...);
+	NextTimeStep(dt, std::forward<Args const&>(args) ...);
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -471,7 +479,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 	clock_ += dt;
 
 	Sort();
-
+	Boundary();
 }
 
 template<class Engine>
@@ -480,12 +488,11 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
 	{
-		WARNING << "Particle [" << base_type::GetName() << " : " << engine_type::GetTypeAsString()
-		        << "] is not initialized!";
+		WARNING << "Particle [" << GetName() << " : " << engine_type::GetTypeAsString() << "] is not initialized!";
 		return;
 	}
 
-	if (!base_type::IsSorted())
+	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -548,7 +555,7 @@ void Particle<Engine>::Function(TFun &fun, Args const& ... args)
 		return;
 	}
 
-	if (!base_type::IsSorted())
+	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -615,7 +622,7 @@ void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typen
 			++pt;
 
 			index_type dest=idx;
-			if (flag == base_type::REFELECT)
+			if (flag == REFELECT)
 			{
 				coordinates_type x;
 
@@ -678,6 +685,7 @@ void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
 	(*x) += (*v) * 0.5 * dt;
 
 }
+
 }
 // namespace simpla
 

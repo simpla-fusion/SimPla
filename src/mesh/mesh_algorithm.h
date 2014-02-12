@@ -152,6 +152,18 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 
 }
 
+ /**
+  *
+  * @param mesh
+  * @param poly_line  closed  curve (polyline), positively oriented (counterclockwise) , right hand rule
+  * @param ele_list
+  */
+template<typename TM, typename TPolyLine, typename TEleList>
+void SelectEdgeOnPolyLine(TM const & mesh, TPolyLine const & poly_line, TEleList * ele_list)
+{
+
+}
+
 //template<typename TM, typename ...Args>
 //void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
 //        std::function<bool(Args const &...)> const & select)
