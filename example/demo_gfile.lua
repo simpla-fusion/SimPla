@@ -127,20 +127,48 @@ Grid=
 --[[
 Media=
 {
-   {Type="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+   {Tag="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
 
-   {Type="Plasma",
+   {Tag="Plasma",
      Select=function(x,y,z)
           return x>1.0 and x<2.0
         end
      ,Op="Set"},
 }
 --]]
-Interface={
-   { In="Vacuum",Out="NONE",Attribute={"PEC"  }},
-   { Type="PEC", In="Plasma",Out="NONE"},
-}
+ 
+Constraints=
+{
+  { 
+    DOF="E",
+	Select={Type="Interface", In="Plasma",Out="NONE"},
+	Value= 0
+  },
+  { 
+    DOF="J",
+	Select={Type="Points", -- PolyLine , Interface, Media,
+	    Points={0.11*LX,0.0,0.0}},
+  	Value=function(x,y,z,t)
+      local tau = t*omega_ext
+      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
+      end
+	 }
+	 
+  },
 
+  --[[
+  { 
+    DOF="J",
+	Select={Type="Media", Tag="Vacuum"},
+	Value= 0
+  },
+  { 
+    DOF="Particles",
+	Select={Type="Media", Tag="Vacuum"},
+	Value= "Absorb"
+  },
+  --]]
+}
 
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
@@ -162,17 +190,7 @@ FieldSolver=
 --  PML=  {Width={20,20,0,0,0,0}}
 }
 
----[[
-CurrentSrc=
- { 
-  
-  Points={{0.11*LX,0.0,0.0},},
-  Fun=function(x,y,z,t)
-      local tau = t*omega_ext
-      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
-      end
- }
---]]
+ 
 
 -- The End ---------------------------------------
 

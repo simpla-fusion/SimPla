@@ -11,7 +11,7 @@
 #include <vector>
 #include "primitives.h"
 #include "field.h"
-#include "../mesh/mesh_algorithm.h"
+#include "../modeling/selectors.h"
 
 namespace simpla
 {

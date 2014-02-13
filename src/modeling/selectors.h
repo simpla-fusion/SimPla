@@ -1,12 +1,12 @@
 /*
- * mesh_algorithm.h
+ * selector.h
  *
  *  Created on: 2013年12月13日
  *      Author: salmon
  */
 
-#ifndef MESH_ALGORITHM_H_
-#define MESH_ALGORITHM_H_
+#ifndef SELECTORS_H_
+#define SELECTORS_H_
 
 #include <vector>
 
@@ -152,18 +152,22 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 
 }
 
- /**
-  *
-  * @param mesh
-  * @param poly_line  closed  curve (polyline), positively oriented (counterclockwise) , right hand rule
-  * @param ele_list
-  */
+/**
+ *
+ * @param mesh
+ * @param poly_line  closed  curve (polyline), positively oriented (counterclockwise) , right hand rule
+ * @param ele_list
+ */
 template<typename TM, typename TPolyLine, typename TEleList>
 void SelectEdgeOnPolyLine(TM const & mesh, TPolyLine const & poly_line, TEleList * ele_list)
 {
 
 }
+template<typename TM, typename TDict, typename TEleList>
+void SelectElements(TM const & mesh, int iform, TDict const & cfg, TEleList *eles)
+{
 
+}
 //template<typename TM, typename ...Args>
 //void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
 //        std::function<bool(Args const &...)> const & select)
@@ -405,8 +409,8 @@ void SelectEdgeOnPolyLine(TM const & mesh, TPolyLine const & poly_line, TEleList
 //		 *        4---|-----------5   |
 //		 *        | --> B0        |   |
 //		 *        |   2-----------|---3
-//		 *        E2 /    ^B2       |  /
-//		 *        | E1    |     | /
+//		 *        E2 /      ^B2   |  /
+//		 *        | E1      |     | /
 //		 *        |/              |/
 //		 *        0------E0-------1   ---> x
 //		 *
@@ -437,4 +441,4 @@ void SelectEdgeOnPolyLine(TM const & mesh, TPolyLine const & poly_line, TEleList
 }
 // namespace simpla
 
-#endif /* MESH_ALGORITHM_H_ */
+#endif /* SELECTORS_H_ */

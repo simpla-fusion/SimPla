@@ -45,23 +45,10 @@
 
 #include "../../src/utilities/geqdsk.h"
 
+#include "../../src/modeling/constraint.h"
+
 namespace simpla
 {
-
-template<typename ...Args>
-void NullFunction(Args const & ...)
-{
-}
-
-template<typename TJ, typename TCfg, typename TM>
-void CreateCurrentSrc(TCfg const & cfg, TM const & mesh, std::function<void(Real, TJ*)> *res)
-{
-
-	*res = [](Real, TJ*)
-	{
-
-	};
-}
 
 template<typename TM>
 struct ExplicitEMContext: public BaseContext
@@ -73,7 +60,6 @@ public:
 
 	DEFINE_FIELDS (TM)
 
-	Real time_;
 public:
 	typedef ExplicitEMContext<TM> this_type;
 
@@ -88,11 +74,6 @@ public:
 	void NextTimeStep(double dt);
 
 	void DumpData(std::string const & path = "") const;
-
-	Real GetTime()
-	{
-		return time_;
-	}
 
 public:
 
@@ -114,11 +95,35 @@ public:
 
 	std::function<void(Real, TE const &, TB const &, TB*)> CalculatedB;
 
-	std::function<void(TE*)> ApplyBoundaryConditionToE;
+	void ApplyConstraintToE(TE* pE)
+	{
+		for (auto const & foo : constraintToE_)
+		{
+			foo(pE);
+		}
+	}
+	void ApplyConstraintToB(TB* pB)
+	{
+		for (auto const & foo : constraintToB_)
+		{
+			foo(pB);
+		}
+	}
+	void ApplyConstraintToJ(TJ* pJ)
+	{
+		for (auto const & foo : constraintToJ_)
+		{
+			foo(pJ);
+		}
+	}
 
-	std::function<void(TB*)> ApplyBoundaryConditionToB;
+private:
 
-	std::function<void(Real, TJ*)> ApplyCurrentSrcToJ;
+	std::list<std::function<void(TE*)> > constraintToE_;
+
+	std::list<std::function<void(TB*)> > constraintToB_;
+
+	std::list<std::function<void(TJ*)> > constraintToJ_;
 
 	typedef ParticleWrap<TE, TB, TJ> ParticleType;
 
@@ -129,7 +134,7 @@ public:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), time_(0), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh)
+		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh)
 {
 
 	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
@@ -138,14 +143,6 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 	CalculatedB = [](Real dt, TE const & pE, TB const &, TB* pdB)
 	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
 
-	ApplyCurrentSrcToJ = [](Real, TJ*)
-	{};
-
-	ApplyBoundaryConditionToE = [ ]( TE * pE)
-	{};
-
-	ApplyBoundaryConditionToB = [ ]( TB * pB)
-	{};
 }
 
 template<typename TM>
@@ -199,52 +196,44 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		LOGGER << "Load Initial Fields." << DONE;
 	}
 
-	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
-
-	CreateCurrentSrc(cfg["CurrentSrc"], mesh, &ApplyCurrentSrcToJ);
-
-	if (mesh.tags() && cfg["Interface"])
-	{
-
-		for (auto const & item : cfg["Interface"])
-		{
-			std::shared_ptr<std::list<index_type> > edge(new std::list<index_type>);
-
-			if (item.second["Type"].as<std::string>() == "PEC")
-			{
-				tag_type in = mesh.tags().GetTagFromString(item.second["In"].as<std::string>());
-
-				tag_type out = mesh.tags().GetTagFromString(item.second["Out"].as<std::string>());
-
-				auto selector = mesh.tags().template SelectInterface<EDGE>(in, out);
-
-				this->mesh.SerialTraversal(EDGE, [&](index_type s)
-				{	if(selector(s)) edge->push_back(s);});
-
-				ApplyBoundaryConditionToE = [&]( TE * pE)
-				{	for(auto s:*edge) (*pE)[s]=0;};
-
-			};
-
-		};
-	}
-	else
-	{
-		UNIMPLEMENT << "Unknown Interface type!"
-//				<< " [function = " << function << " type= " << type << " object =" << object << " ]"
-		        ;
-	}
-
-	LOGGER << "Setup interface" << DONE;
-
 	for (auto const &opt : cfg["Particles"])
 	{
 		particles_.emplace(
 		        std::make_pair(opt.first.template as<std::string>(),
 		                CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second)));
 	}
+	LOGGER << "Load Particles" << DONE;
 
-	LOGGER << ">>>>>>> Initialization  Complete! <<<<<<<< ";
+	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+
+	LOGGER << "Load electromagnetic field solver" << DONE;
+
+	for (auto const & item : cfg["Constraints"])
+	{
+		auto dof = item.second["DOF"].as<std::string>();
+
+		if (dof == "E")
+		{
+			constraintToE_.push_back(Constraint<mesh_type, TE::IForm>::template Create<TE>(mesh, item.second));
+		}
+		else if (dof == "B")
+		{
+			constraintToB_.push_back(Constraint<mesh_type, TB::IForm>::template Create<TB>(mesh, item.second));
+		}
+		else if (dof == "J")
+		{
+			constraintToJ_.push_back(Constraint<mesh_type, TJ::IForm>::template Create<TJ>(mesh, item.second));
+		}
+		else
+		{
+			//TODO Add particles constraints
+			UNIMPLEMENT2("Unknown Constraints!!");
+		}
+	}
+
+	LOGGER << "Load Constraints" << DONE;
+
+	LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";
 
 }
 
@@ -294,10 +283,10 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 {
 	dt = std::isnan(dt) ? mesh.GetDt() : dt;
 
-	time_ += dt;
-
 	if (!mesh.CheckCourant(dt))
 		VERBOSE << "dx/dt > c, Courant condition is violated! ";
+
+	mesh.NextTimeStep();
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -305,7 +294,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	<< "Simulation Time = "
 
-	<< (GetTime() / mesh.constants()["s"]) << "[s]"
+	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
@@ -313,7 +302,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 // Compute Cycle Begin
 //************************************************************
 
-	ApplyCurrentSrcToJ(GetTime(), &J);
+	ApplyConstraintToJ(&J);
 
 	dE.Clear();
 
@@ -325,7 +314,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 // E(t=0  -> 1/2  )
 	LOG_CMD(E += dE * 0.5);
 
-	ApplyBoundaryConditionToE(&E);
+	ApplyConstraintToE(&E);
 
 	for (auto &p : particles_)
 	{
@@ -335,7 +324,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 //  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
 
-	ApplyBoundaryConditionToE(&E);
+	ApplyConstraintToE(&E);
 
 	Form<2> dB(mesh);
 
@@ -346,20 +335,20 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 //  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);
 
-	ApplyBoundaryConditionToB(&B);
+	ApplyConstraintToB(&B);
 
 	J.Clear();
 
 	for (auto &p : particles_)
 	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.second.Collect(&J, E, B);
 	}
 
 // B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
-	ApplyBoundaryConditionToB(&B);
+	ApplyConstraintToB(&B);
 
 //************************************************************
 // Compute Cycle End

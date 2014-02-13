@@ -20,7 +20,7 @@
 #include "../fetl/primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "mesh_algorithm.h"
+#include "../modeling/selectors.h"
 namespace simpla
 {
 template<typename TM>
