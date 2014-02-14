@@ -37,7 +37,7 @@ class LuaObject;
  */
 template<typename TM>
 void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
-        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
+        std::vector<typename TM::coordinates_type> const & points)
 {
 
 	typedef TM mesh_type;
@@ -72,18 +72,33 @@ void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM:
 
 		});
 	}
-	else if (Z < 3) //select points in polyline
-	{
-
-		PointInPolygen<typename mesh_type::coordinates_type> checkPointsInPolygen(points, Z);
-
-		SelectVericsInRegion(mesh, op, [&](index_type s, coordinates_type x )->bool
-		{	return checkPointsInPolygen(x);});
-
-	}
-	else if (points.size() >= 4 && Z >= 3)
+	else if (points.size() >= 4)
 	{
 		UNIMPLEMENT << " select points in a closed surface";
+	}
+	else
+	{
+		ERROR << "Illegal input";
+	}
+
+}
+template<typename TM>
+void SelectVericsInRegion(TM const & mesh, std::function<void(bool, typename TM::index_type const &)> const & op,
+        std::vector<nTuple<2, Real>> const & points, unsigned int Z = 2)
+{
+
+	typedef TM mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::index_type index_type;
+
+	if (Z < 3 && points.size() > 2) //select points in polyline
+	{
+
+		PointInPolygen checkPointsInPolygen(points);
+
+		SelectVericsInRegion(mesh, op, [&](index_type s, coordinates_type x )->bool
+		{	return checkPointsInPolygen(x[(Z+1)%3],x[(Z+2)%3]);});
+
 	}
 	else
 	{
@@ -163,9 +178,34 @@ void SelectEdgeOnPolyLine(TM const & mesh, TPolyLine const & poly_line, TEleList
 {
 
 }
-template<typename TM, typename TDict, typename TEleList>
-void SelectElements(TM const & mesh, int iform, TDict const & cfg, TEleList *eles)
+template<int IFORM, typename TM, typename TDict, typename TEleList>
+void SelectElements(TM const & mesh, TDict const & cfg, TEleList *eles)
 {
+
+	typedef typename TM::coordinates_type coordinates_type;
+	typedef typename TM::index_type index_type;
+
+	CHECK(cfg["Type"].template as<std::string>());
+
+	if (cfg["Type"].template as<std::string>() == "Interface")
+	{
+		auto in = mesh.tags().GetTagFromString(cfg["In"].template as<std::string>());
+
+		auto out = mesh.tags().GetTagFromString(cfg["Out"].template as<std::string>());
+
+		std::function<bool(index_type)> selector = mesh.tags().template SelectInterface<IFORM>(in, out);
+
+		mesh.SerialTraversal(IFORM, [&]( index_type const&s ,
+				coordinates_type const &x)
+		{
+			if(selector(s))
+			{
+				eles->emplace( s,x );
+			}
+		});
+
+	}
+	LOGGER << DONE;
 
 }
 //template<typename TM, typename ...Args>

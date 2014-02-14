@@ -71,32 +71,34 @@ public:
 
 		std::shared_ptr<Constraint<mesh_type, IFORM>> self(new Constraint<mesh_type, IFORM>(mesh));
 
-		SelectElements(mesh, IFORM, cfg["Domain"], &(self->def_domain_));
+		SelectElements<IFORM>(mesh, cfg["Select"], &(self->def_domain_));
+
+		CHECK(self->def_domain_.size());
 
 		{
-			auto function = cfg["Value"];
+			auto value = cfg["Value"];
 
-			if (function.is_number())
+			if (value.is_number())
 			{
-				auto foo = function.template as<typename TField::value_type>();
+				auto foo = value.template as<typename TField::value_type>();
 
 				res = [=](TField * f )
 				{	self->Apply(f,foo);};
 
 			}
-			else if (function.is_table())
+			else if (value.is_table())
 			{
-				auto foo = function.template as<typename TField::field_value_type>();
+				auto foo = value.template as<typename TField::field_value_type>();
 
 				res = [=](TField * f )
 				{	self->Apply(f,foo);};
 			}
-			else if (function.is_function())
+			else if (value.is_function())
 			{
 				std::function<typename TField::field_value_type(coordinates_type, Real)> foo =
-				        [function](coordinates_type z, Real t)->typename TField::field_value_type
+				        [value](coordinates_type z, Real t)->typename TField::field_value_type
 				        {
-					        return function(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+					        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
 				        };
 
 				res = [self,foo](TField * f )

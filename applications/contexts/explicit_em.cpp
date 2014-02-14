@@ -28,8 +28,6 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 	if (!cfg.empty())
 	{
 
-		LOGGER << "Initialize Context." << START;
-
 		auto mesh_type = cfg["Grid"]["Type"].as<std::string>();
 		auto scalar_type = cfg["Grid"]["ScalarType"].as<std::string>("Real");
 
@@ -54,7 +52,9 @@ std::shared_ptr<BaseContext> CreateContextExplicitEM(LuaObject const & cfg)
 
 			ctx = std::dynamic_pointer_cast<BaseContext>(ctx_ptr);
 		}
-		LOGGER << "Initialize Context." << DONE;
+
+		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";
+
 	}
 
 	return ctx;

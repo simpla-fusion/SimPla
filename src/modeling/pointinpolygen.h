@@ -8,67 +8,52 @@
 #ifndef POINTINPOLYGEN_H_
 #define POINTINPOLYGEN_H_
 
+#include <cstddef>
+#include <vector>
+
+#include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
+
 namespace simpla
 {
 
-template<typename TV>
 class PointInPolygen
 {
 
-	std::vector<TV> const &polygen_;
+	std::vector<nTuple<2, double> > const &polygen_;
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
-	const int X, Y;
 public:
-	PointInPolygen(std::vector<TV> const &polygen, int Z) :
-			polygen_(polygen), num_of_vertex_(polygen.size()), constant_(
-					num_of_vertex_), multiple_(num_of_vertex_), X((Z + 1) % 3), Y(
-					(Z + 2) % 3)
-
-	{
-		precalc_values();
-	}
-	inline void precalc_values()
+	PointInPolygen(std::vector<nTuple<2, Real> > const &polygen)
+			: polygen_(polygen), num_of_vertex_(polygen.size()), constant_(num_of_vertex_), multiple_(num_of_vertex_)
 	{
 
 		for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
 		{
-			if (polygen_[j][Y] == polygen_[i][Y])
+			if (polygen_[j][1] == polygen_[i][1])
 			{
-				constant_[i] = polygen_[i][X];
+				constant_[i] = polygen_[i][0];
 				multiple_[i] = 0;
 			}
 			else
 			{
-				constant_[i] = polygen_[i][X]
-						- (polygen_[i][Y] * polygen_[j][X])
-								/ (polygen_[j][Y] - polygen_[i][Y])
-						+ (polygen_[i][Y] * polygen_[i][X])
-								/ (polygen_[j][Y] - polygen_[i][Y]);
-				multiple_[i] = (polygen_[j][X] - polygen_[i][X])
-						/ (polygen_[j][Y] - polygen_[i][Y]);
+				constant_[i] = polygen_[i][0] - (polygen_[i][1] * polygen_[j][0]) / (polygen_[j][1] - polygen_[i][1])
+				        + (polygen_[i][1] * polygen_[i][0]) / (polygen_[j][1] - polygen_[i][1]);
+				multiple_[i] = (polygen_[j][0] - polygen_[i][0]) / (polygen_[j][1] - polygen_[i][1]);
 			}
 			j = i;
 		}
 	}
 
-	template<typename T>
-	inline bool operator()(nTuple<3, T> const & x) const
-	{
-		return operator()(x[X], x[Y]);
-	}
-
-	template<typename ... Args>
-	inline bool operator()(Real x, Real y, Args const &... args) const
+	inline bool operator()(Real x, Real y) const
 	{
 
 		bool oddNodes = false;
 
 		for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
 		{
-			if (((polygen_[i][Y] < y) && (polygen_[j][Y] >= y))
-					|| ((polygen_[j][Y] < y) && (polygen_[i][Y] >= y)))
+			if (((polygen_[i][1] < y) && (polygen_[j][1] >= y)) || ((polygen_[j][1] < y) && (polygen_[i][1] >= y)))
 			{
 				oddNodes ^= (y * multiple_[i] + constant_[i] < x);
 			}

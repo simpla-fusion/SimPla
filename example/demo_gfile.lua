@@ -31,7 +31,7 @@ vTe= math.sqrt(k_B*Te*2/me)
 rhoe = vTe/omega_ce    -- m
 
 NX = 200
-NY = 1
+NY = 200
 NZ = 1
 LX = 50 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
@@ -124,37 +124,37 @@ Grid=
   },
   
 }
---[[
-Media=
-{
-   {Tag="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+ 
+-- Media=
+-- {
+--    {Tag="Vacuum",Region={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
 
-   {Tag="Plasma",
-     Select=function(x,y,z)
-          return x>1.0 and x<2.0
-        end
-     ,Op="Set"},
-}
---]]
+--    {Tag="Plasma",
+--      Select=function(x,y,z)
+--           return x>1.0 and x<2.0
+--         end
+--      ,Op="Set"},
+-- }
+ 
  
 Constraints=
 {
   { 
     DOF="E",
-	Select={Type="Interface", In="Plasma",Out="NONE"},
-	Value= 0
+	Select={Type="Interface", In="Plasma",Out="Vacuum"},
+	Value= 1
   },
-  { 
-    DOF="J",
-	Select={Type="Points", -- PolyLine , Interface, Media,
-	    Points={0.11*LX,0.0,0.0}},
-  	Value=function(x,y,z,t)
-      local tau = t*omega_ext
-      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
-      end
+ --  { 
+ --    DOF="J",
+	-- Select={Type="Points", -- PolyLine , Interface, Media,
+	--     Points={0.11*LX,0.0,0.0}},
+ --  	Value=function(x,y,z,t)
+ --      local tau = t*omega_ext
+ --      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
+ --      end
 	 
 	 
-  } 
+ --  } 
 
   --[[
   { 

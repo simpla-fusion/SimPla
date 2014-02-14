@@ -165,9 +165,9 @@ public:
 	//* Configure
 	//***************************************************************************************************
 
-	template<typename ISTREAM> void Deserialize(ISTREAM const &cfg);
+	template<typename ISTREAM> void Load(ISTREAM const &cfg);
 
-	template<typename OSTREAM> OSTREAM& Serialize(OSTREAM &vm) const;
+	template<typename OSTREAM> OSTREAM& Save(OSTREAM &vm) const;
 
 	void Update();
 
@@ -2255,10 +2255,11 @@ void CoRectMesh<TS>::Update()
 	coordinates_shift_[2][2][1] = 0.5 * dx_[1];
 	coordinates_shift_[2][2][2] = 0.0;
 
+
 }
 
 template<typename TS>
-template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const &cfg)
+template<typename ISTREAM> inline void CoRectMesh<TS>::Load(ISTREAM const &cfg)
 {
 
 	{
@@ -2306,7 +2307,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 }
 template<typename TS>
 template<typename OSTREAM> inline OSTREAM &
-CoRectMesh<TS>::Serialize(OSTREAM &os) const
+CoRectMesh<TS>::Save(OSTREAM &os) const
 {
 
 	os
@@ -2359,7 +2360,7 @@ CoRectMesh<TS>::Serialize(OSTREAM &os) const
 template<typename TS> inline std::ostream &
 operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 {
-	d.Serialize(os);
+	d.Save(os);
 	return os;
 }
 

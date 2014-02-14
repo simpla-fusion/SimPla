@@ -142,7 +142,7 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 {
 	description = cfg["Description"].as<std::string>();
 
-	mesh.Deserialize(cfg["Grid"]);
+	mesh.Load(cfg["Grid"]);
 	B.Clear();
 	J.Clear();
 	E.Clear();
@@ -172,6 +172,9 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		MapTo(B1, &B);
 
+		mesh.tags().Set(MediaTag<TM>::VACUUM, geqdsk.Boundary());
+		mesh.tags().Set(MediaTag<TM>::PLASMA, geqdsk.Limiter());
+		mesh.tags().Update();
 	}
 
 	if (cfg["InitValue"])
@@ -216,12 +219,11 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		{
 			//TODO Add particles constraints
 			UNIMPLEMENT2("Unknown Constraints!!");
+			continue;
 		}
+
+		LOGGER << "Add constraint to " << dof << DONE;
 	}
-
-	LOGGER << "Load Constraints" << DONE;
-
-	LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";
 
 }
 
@@ -269,74 +271,74 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep(double dt)
 {
-	dt = std::isnan(dt) ? mesh.GetDt() : dt;
-
-	if (!mesh.CheckCourant(dt))
-		VERBOSE << "dx/dt > c, Courant condition is violated! ";
-
-	mesh.NextTimeStep();
-
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-
-	LOGGER
-
-	<< "Simulation Time = "
-
-	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
-
-	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
-
-//************************************************************
-// Compute Cycle Begin
-//************************************************************
-
-	ApplyConstraintToJ(&J);
-
-	dE.Clear();
-
-// dE = Curl(B)*dt
-	CalculatedE(dt, E, B, &dE);
-
-	LOG_CMD(dE -= J / epsilon0 * dt);
-
-// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5);
-
-	ApplyConstraintToE(&E);
-
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
-
-//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5);
+//	dt = std::isnan(dt) ? mesh.GetDt() : dt;
+//
+//	if (!mesh.CheckCourant(dt))
+//		VERBOSE << "dx/dt > c, Courant condition is violated! ";
+//
+//	mesh.NextTimeStep();
+//
+//	DEFINE_PHYSICAL_CONST(mesh.constants());
+//
+//	LOGGER
+//
+//	<< "Simulation Time = "
+//
+//	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
+//
+//	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
+//
+////************************************************************
+//// Compute Cycle Begin
+////************************************************************
+//
+//	ApplyConstraintToJ(&J);
+//
+//	dE.Clear();
+//
+//// dE = Curl(B)*dt
+//	CalculatedE(dt, E, B, &dE);
+//
+//	LOG_CMD(dE -= J / epsilon0 * dt);
+//
+//// E(t=0  -> 1/2  )
+//	LOG_CMD(E += dE * 0.5);
 
 	ApplyConstraintToE(&E);
-
-	Form<2> dB(mesh);
-
-	dB.Clear();
-
-	CalculatedB(dt, E, B, &dB);
-
-//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-	J.Clear();
-
-	for (auto &p : particles_)
-	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Collect(&J, E, B);
-	}
-
-// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
+//
+//	for (auto &p : particles_)
+//	{
+//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+//	}
+//
+////  E(t=1/2  -> 1)
+//	LOG_CMD(E += dE * 0.5);
+//
+//	ApplyConstraintToE(&E);
+//
+//	Form<2> dB(mesh);
+//
+//	dB.Clear();
+//
+//	CalculatedB(dt, E, B, &dB);
+//
+////  B(t=1/2 -> 1)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
+//
+//	J.Clear();
+//
+//	for (auto &p : particles_)
+//	{
+//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+//		p.second.Collect(&J, E, B);
+//	}
+//
+//// B(t=0 -> 1/2)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
 
 //************************************************************
 // Compute Cycle End
