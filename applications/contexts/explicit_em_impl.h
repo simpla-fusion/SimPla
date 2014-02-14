@@ -125,7 +125,8 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 {
 
 	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
-	{	LOG_CMD(*pdE += Curl(pB)*dt);};
+	{
+		LOG_CMD(*pdE += Curl(pB)*dt);};
 
 	CalculatedB = [](Real dt, TE const & pE, TB const &, TB* pdB)
 	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
@@ -192,7 +193,6 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
 			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
 	}
-	LOGGER << "Load Particles" << DONE;
 
 	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 

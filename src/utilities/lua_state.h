@@ -158,9 +158,9 @@ public:
 		return L_ == nullptr;
 	}
 
-	operator bool()const
+	operator bool() const
 	{
-		return L_ == nullptr;
+		return L_ != nullptr;
 	}
 
 #define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
@@ -382,7 +382,10 @@ public:
 
 	iterator begin()
 	{
-		return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
+		if (empty())
+			return end();
+		else
+			return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
 	}
 	iterator end()
 	{
@@ -487,7 +490,7 @@ public:
 		}
 	}
 
-	// unsafe fast access, no boundary check, no path information
+// unsafe fast access, no boundary check, no path information
 	inline LuaObject operator[](int s) const noexcept
 	{
 		if (IsNull())
@@ -507,7 +510,7 @@ public:
 
 	}
 
-	// index operator with out_of_range exception
+// index operator with out_of_range exception
 	template<typename TIDX>
 	inline LuaObject at(TIDX const & s) const
 	{
@@ -524,7 +527,7 @@ public:
 
 	}
 
-	// safe access, with boundary check, no path information
+// safe access, with boundary check, no path information
 	inline LuaObject at(int s) const
 	{
 		if (IsNull())
