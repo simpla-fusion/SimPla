@@ -214,7 +214,10 @@ public:
 
 	void Clear()
 	{
-		UNIMPLEMENT;
+		Init();
+
+		std::fill_n(reinterpret_cast<char*>(data_.get()), size() * sizeof(value_type), 0);
+
 	}
 
 	inline this_type &

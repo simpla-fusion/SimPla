@@ -258,7 +258,7 @@ std::ostream & Particle<Engine>::Save(std::ostream & os) const
 {
 	os << "{ Name = '" << GetName() << "' , ";
 
-	engine_type::Serialize(os);
+	engine_type::Save(os);
 
 	os << ",\n"
 

@@ -9,43 +9,27 @@
 #define EXPLICIT_EM_IMPL_H_
 
 #include <cmath>
-#include <functional>
-#include <initializer_list>
 #include <iostream>
+#include <list>
+#include <map>
 #include <memory>
 #include <string>
 #include <utility>
-#include <valarray>
-#include <vector>
-#include <map>
-#include <unordered_map>
 
 #include "../../src/engine/basecontext.h"
-
-#include "../../src/fetl/fetl.h"
-
-#include "../../src/fetl/load_field.h"
-#include "../../src/fetl/save_field.h"
-
+#include "../../src/fetl/field.h"
+#include "../../src/fetl/ntuple.h"
+#include "../../src/fetl/primitives.h"
+#include "../../src/io/data_stream.h"
+#include "../../src/modeling/constraint.h"
+#include "../../src/particle/particle_factory.h"
 #include "../../src/mesh/field_convert.h"
-
-#include "../../src/mesh/media_tag.h"
-
-#include "../../src/fetl/field_function.h"
-
+#include "../../src/utilities/geqdsk.h"
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
-#include "../../src/io/data_stream.h"
-
-#include "../../src/particle/particle.h"
-
-#include "../../src/particle/particle_factory.h"
+#include "../../src/utilities/singleton_holder.h"
 
 #include "../solver/electromagnetic/solver.h"
-
-#include "../../src/utilities/geqdsk.h"
-
-#include "../../src/modeling/constraint.h"
 
 namespace simpla
 {
@@ -85,7 +69,10 @@ public:
 
 	Form<EDGE> E, dE;
 	Form<FACE> B, dB;
-	Form<EDGE> J;
+	Form<VERTEX> phi; // electrostatic potential
+
+	Form<EDGE> J;     // current density
+	Form<VERTEX> rho; // charge density
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
@@ -134,7 +121,7 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh)
+		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
 
 	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
@@ -158,6 +145,10 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 	B.Clear();
 	J.Clear();
 	E.Clear();
+
+	dB.Clear();
+	dE.Clear();
+
 	if (cfg["GFile"])
 	{
 
@@ -186,27 +177,24 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 	{
 		auto init_value = cfg["InitValue"];
 
-		LOGGER << "Load E";
 		LoadField(init_value["E"], &E);
-		LOGGER << "Load B";
+		LOGGER << "Load E" << DONE;
 		LoadField(init_value["B"], &B);
-		LOGGER << "Load J";
+		LOGGER << "Load B" << DONE;
 		LoadField(init_value["J"], &J);
-
-		LOGGER << "Load Initial Fields." << DONE;
+		LOGGER << "Load J" << DONE;
 	}
 
 	for (auto const &opt : cfg["Particles"])
 	{
-		particles_.emplace(
-		        std::make_pair(opt.first.template as<std::string>(),
-		                CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second)));
+		ParticleWrap<TE, TB, TJ> p;
+
+		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
+			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
 	}
 	LOGGER << "Load Particles" << DONE;
 
 	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
-
-	LOGGER << "Load electromagnetic field solver" << DONE;
 
 	for (auto const & item : cfg["Constraints"])
 	{
@@ -341,7 +329,7 @@ void ExplicitEMContext<TM>::NextTimeStep(double dt)
 
 	for (auto &p : particles_)
 	{
-// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.second.Collect(&J, E, B);
 	}
 

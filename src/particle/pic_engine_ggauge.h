@@ -13,20 +13,18 @@
 #include "../physics/constants.h"
 namespace simpla
 {
-
-template<typename > class PICEngineBase;
-
 template<typename TM, int NMATE = 8>
-struct PICEngineGGauge: public PICEngineBase<TM>
+class PICEngineGGauge
 {
 
-	Real cmr_, q_, T_, vT_;
-
-	Real cosdq[NMATE], sindq[NMATE];
 public:
-	typedef PICEngineBase<TM> base_type;
 	typedef PICEngineGGauge<TM, NMATE> this_type;
 	typedef TM mesh_type;
+private:
+	Real m_, q_, cmr_, T_, vT_;
+	Real cosdq[NMATE], sindq[NMATE];
+public:
+	mesh_type const &mesh;
 
 	DEFINE_FIELDS (mesh_type)
 
@@ -59,15 +57,15 @@ public:
 	};
 
 	PICEngineGGauge(mesh_type const &pmesh)
-			: base_type(pmesh), cmr_(1.0), q_(1.0), T_(1.0), vT_(1.0)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
 	{
 
 	}
-	virtual ~PICEngineGGauge()
+	~PICEngineGGauge()
 	{
 	}
 
-	size_t GetAffectedRegion() const override
+	size_t GetAffectedRegion() const
 	{
 		return 4;
 	}
@@ -75,25 +73,23 @@ public:
 	{
 		return "GGauge" + ToString(NMATE);
 	}
-	std::string GetTypeAsString() const override
+	std::string GetTypeAsString() const
 	{
 		return this_type::TypeName();
 	}
 
-	void Deserialize(LuaObject const &obj) override
+	void Load(LuaObject const &obj)
 	{
-		base_type::Deserialize(obj);
 
 		obj["T"].as<Real>(&T_);
 
 		Update();
 	}
-	void Update() override
+	void Update()
 	{
-		cmr_ = base_type::q_ / base_type::m_;
-		q_ = base_type::q_;
+		cmr_ = q_ / m_;
 
-		vT_ = std::sqrt(2.0 * T_ / base_type::m_);
+		vT_ = std::sqrt(2.0 * T_ / m_);
 
 		constexpr Real theta = TWOPI / static_cast<Real>(NMATE);
 
@@ -104,16 +100,23 @@ public:
 		}
 
 	}
-	std::ostream & Serialize(std::ostream & os) const override
+	std::ostream & Save(std::ostream & os) const
 	{
 
 		os << "Engine = 'GGague" << NMATE << "' " << " , ";
 
-		base_type::Serialize(os);
-
 		return os;
 	}
 
+	Real GetMass() const
+	{
+		return m_;
+	}
+
+	Real GetCharge() const
+	{
+		return q_;
+	}
 	static Point_s DefaultValue()
 	{
 		Point_s p;

@@ -79,7 +79,6 @@ public:
 		return sp_list_.empty();
 	}
 
-
 	void Load(LuaObject const&cfg);
 
 	std::ostream & Save(std::ostream & os) const;

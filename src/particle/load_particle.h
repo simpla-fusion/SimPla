@@ -48,7 +48,7 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 
 	mesh_type const &mesh = p->mesh;
 
-	p->engine_type::Deserialize(cfg);
+	p->engine_type::Load(cfg);
 
 	p->SetName(cfg["Name"].template as<std::string>());
 

@@ -23,6 +23,9 @@ void CreateEMSolver(TCfg const & cfg, TM const & mesh, std::function<void(Real, 
 {
 	using namespace std::placeholders;
 
+	if (!cfg)
+		return;
+
 	if (cfg["ColdFluid"])
 	{
 		auto solver = std::shared_ptr<ColdFluidEM<TM> >(new ColdFluidEM<TM>(mesh));
@@ -43,6 +46,8 @@ void CreateEMSolver(TCfg const & cfg, TM const & mesh, std::function<void(Real, 
 		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
 	}
+
+	LOGGER << "Load electromagnetic field solver" << DONE;
 
 }
 

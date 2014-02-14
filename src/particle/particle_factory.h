@@ -24,12 +24,12 @@ struct ParticleWrap
 	std::function<void(std::string const &)> DumpData;
 
 };
-template<typename TEngine, typename TE, typename TB, typename TJ> void _CreateParticle(
+template<typename TEngine, typename TE, typename TB, typename TJ> bool _CreateParticle(
         typename TEngine::mesh_type const & mesh, LuaObject const& cfg, ParticleWrap<TE, TB, TJ>* res)
 {
 
 	if (cfg["Type"].as<std::string>() != TEngine::TypeName())
-		return;
+		return false;
 
 	auto solver = std::shared_ptr<Particle<TEngine> >(new Particle<TEngine>(mesh));
 
@@ -39,22 +39,22 @@ template<typename TEngine, typename TE, typename TB, typename TJ> void _CreatePa
 	res->Collect = std::bind(&Particle<TEngine>::template Collect<TJ, TE, TB>, solver, _1, _2, _3);
 	res->Save = std::bind(&Particle<TEngine>::Save, solver, _1);
 	res->DumpData = std::bind(&Particle<TEngine>::DumpData, solver, _1);
+	return true;
 }
 
-template<typename TM, typename TE, typename TB, typename TJ> ParticleWrap<TE, TB, TJ> CreateParticle(TM const & mesh,
-        LuaObject const& cfg)
+template<typename TM, typename TE, typename TB, typename TJ> bool CreateParticle(TM const & mesh, LuaObject const& cfg,
+        ParticleWrap<TE, TB, TJ> * p)
 {
 	ParticleWrap<TE, TB, TJ> res;
 
 	typedef TM Mesh;
 
-	_CreateParticle<PICEngineDeltaF<Mesh>, TE, TB, TJ>(mesh, cfg, &res);
-//	_CreateParticle<PICEngineFull<Mesh>, TE, TB, TJ>(mesh, cfg, &res);
-//	_CreateParticle<PICEngineGGauge<Mesh, 4>, TE, TB, TJ>(mesh, cfg, &res);
-//	_CreateParticle<PICEngineGGauge<Mesh, 16>, TE, TB, TJ>(mesh, cfg, &res);
-//	_CreateParticle<PICEngineGGauge<Mesh, 32>, TE, TB, TJ>(mesh, cfg, &res);
+	return _CreateParticle<PICEngineDeltaF<Mesh>, TE, TB, TJ>(mesh, cfg, &res)
+	        || _CreateParticle<PICEngineFull<Mesh>, TE, TB, TJ>(mesh, cfg, &res)
+	        || _CreateParticle<PICEngineGGauge<Mesh, 4>, TE, TB, TJ>(mesh, cfg, &res)
+	        || _CreateParticle<PICEngineGGauge<Mesh, 16>, TE, TB, TJ>(mesh, cfg, &res)
+	        || _CreateParticle<PICEngineGGauge<Mesh, 32>, TE, TB, TJ>(mesh, cfg, &res);
 
-	return std::move(res);
 }
 
 }  // namespace simpla

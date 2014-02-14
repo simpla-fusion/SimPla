@@ -89,8 +89,11 @@ public:
 	{
 		return q_;
 	}
-
-	void Deserialize(LuaObject const &vm)
+	size_t GetAffectedRegion() const
+	{
+		return 2;
+	}
+	void Load(LuaObject const &vm)
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -101,7 +104,7 @@ public:
 		q_kT_ = q_ / (vm["T"].as<Real>() * boltzmann_constant);
 	}
 
-	std::ostream & Serialize(std::ostream & os) const
+	std::ostream & Save(std::ostream & os) const
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -129,11 +132,6 @@ public:
 		return std::move(p);
 	}
 
-	size_t GetAffectedRegion() const
-	{
-		return 2;
-	}
-
 	template<typename TB, typename TE, typename ... Others> inline
 	void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
 	{
@@ -147,9 +145,8 @@ public:
 //		p->w += (1.0 - p->w) * (-q_ * InnerProduct(fE(p->x), p->v) / T_ * dt);
 	}
 
-	template<typename TV, typename ... Others> inline
-	typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
-	        Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
+	template<typename TV, typename ... Others> inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(
+	        Point_s const &p, Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
 	{
 		n->Collect(q_ * p.f * p.w, p.x);
 	}

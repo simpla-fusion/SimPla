@@ -152,9 +152,9 @@ Constraints=
       local tau = t*omega_ext
       return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
       end
-	 }
 	 
-  },
+	 
+  } 
 
   --[[
   { 
@@ -169,14 +169,14 @@ Constraints=
   },
   --]]
 }
-
+--[[
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
 }
 
 FieldSolver= 
 {
---[[
+
    ColdFluid=
     {
        Nonlinear=false,       
@@ -186,10 +186,10 @@ FieldSolver=
        {Name="ele",Mass=me,  Charge=-qe,   n=InitN0, J=0}         
         }
     },
---]]
+
 --  PML=  {Width={20,20,0,0,0,0}}
 }
-
+--]]
  
 
 -- The End ---------------------------------------

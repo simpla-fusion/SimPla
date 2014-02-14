@@ -78,6 +78,10 @@ public:
 	{
 		return "Full";
 	}
+	size_t GetAffectedRegion() const
+	{
+		return 2;
+	}
 
 	Real GetMass() const
 	{
@@ -89,14 +93,14 @@ public:
 		return q_;
 	}
 
-	inline void Deserialize(LuaObject const &vm)
+	inline void Load(LuaObject const &vm)
 	{
 		m_ = vm["Mass"].as<Real>();
 		q_ = vm["Charge"].as<Real>();
 		cmr_ = q_ / m_;
 	}
 
-	std::ostream & Serialize(std::ostream & os) const
+	std::ostream & Save(std::ostream & os) const
 	{
 
 		os << "Engine = '" << GetTypeAsString() << "' "

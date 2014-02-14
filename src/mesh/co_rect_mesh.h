@@ -2287,8 +2287,6 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 
 	}
 
-	LOGGER << "Load CoRectMesh" << START;
-
 	constants().Load(cfg["UnitSystem"]);
 
 	tags().Load(cfg["MediaTag"]);
@@ -2304,7 +2302,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Deserialize(ISTREAM const
 
 	Update();
 
-	LOGGER << "Deserialize CoRectMesh [" << GetTypeName() << "] " << DONE;
+	LOGGER << "Load Mesh [" << GetTypeName() << "] " << DONE;
 }
 template<typename TS>
 template<typename OSTREAM> inline OSTREAM &
