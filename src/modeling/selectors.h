@@ -185,26 +185,37 @@ void SelectElements(TM const & mesh, TDict const & cfg, TEleList *eles)
 	typedef typename TM::coordinates_type coordinates_type;
 	typedef typename TM::index_type index_type;
 
-	CHECK(cfg["Type"].template as<std::string>());
+	std::function<bool(index_type)> selector;
 
-	if (cfg["Type"].template as<std::string>() == "Interface")
+	if (cfg["Type"].template as<std::string>() == "Boundary")
 	{
-		auto in = mesh.tags().GetTagFromString(cfg["In"].template as<std::string>());
-
-		auto out = mesh.tags().GetTagFromString(cfg["Out"].template as<std::string>());
-
-		std::function<bool(index_type)> selector = mesh.tags().template SelectInterface<IFORM>(in, out);
-
-		mesh.SerialTraversal(IFORM, [&]( index_type const&s ,
-				coordinates_type const &x)
-		{
-			if(selector(s))
-			{
-				eles->emplace( s,x );
-			}
-		});
+		auto tag = mesh.tags().GetTagFromString(cfg["Tag"].template as<std::string>());
+		selector = mesh.tags().template SelectBoundary<IFORM>(tag);
 
 	}
+	else if (cfg["Type"].template as<std::string>() == "Interface")
+	{
+		auto in = mesh.tags().GetTagFromString(cfg["In"].template as<std::string>());
+		auto out = mesh.tags().GetTagFromString(cfg["Out"].template as<std::string>());
+		selector = mesh.tags().template SelectBoundary<IFORM>(in, out);
+	}
+	else
+	{
+		auto tag = mesh.tags().GetTagFromString(cfg["Tag"].template as<std::string>());
+
+		selector = mesh.tags().template Select<IFORM>(tag);
+
+	}
+
+	mesh.SerialTraversal(IFORM, [&]( index_type const&s ,
+			coordinates_type const &x)
+	{
+		if(selector(s))
+		{
+			eles->emplace( s,x );
+		}
+	});
+
 	LOGGER << DONE;
 
 }

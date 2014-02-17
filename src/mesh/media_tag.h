@@ -45,7 +45,7 @@ public:
 
 	enum
 	{
-		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU,
+		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU, LIMTER,
 		// @NOTE: add tags for different physical area or media
 		CUSTOM = 20
 	};
@@ -60,7 +60,7 @@ public:
 		register_tag_.emplace("Core", tag_type(1 << CORE));
 		register_tag_.emplace("Boundary", tag_type(1 << BOUNDARY));
 		register_tag_.emplace("Plateau", tag_type(1 << PLATEAU));
-		register_tag_.emplace("Limter", tag_type(1 << PLATEAU));
+		register_tag_.emplace("Limter", tag_type(1 << LIMTER));
 
 	}
 	~MediaTag()
@@ -337,15 +337,10 @@ public:
 	 */
 	void Update()
 	{
-		_UpdateTags<1>();
-		_UpdateTags<2>();
-		_UpdateTags<3>();
+		_UpdateTags<EDGE>();
+		_UpdateTags<FACE>();
+		_UpdateTags<VOLUME>();
 	}
-
-	enum
-	{
-		CROSS_BOUNDAR, ON_BOUNDARY
-	};
 
 	/**
 	 *  Choice elements has certain tag .
@@ -353,7 +348,7 @@ public:
 	 * @param fun
 	 * @param tag
 	 */
-	template<int IFORM> inline std::function<bool(index_type)> Selector(tag_type in) const
+	template<int IFORM> inline std::function<bool(index_type)> Select(tag_type in) const
 	{
 		return [this,in](index_type s)->bool
 		{
@@ -371,8 +366,12 @@ public:
 	 * @param flag
 	 */
 	template<int IFORM> std::function<bool(index_type)>
-	SelectInterface(tag_type in, tag_type out, unsigned int flag = ON_BOUNDARY) const;
+	SelectBoundary(tag_type in, tag_type out) const;
 
+	template<int IFORM> std::function<bool(index_type)> SelectBoundary(tag_type in) const
+	{
+		return SelectBoundary<IFORM>(in, none);
+	}
 private:
 
 	/**
@@ -384,14 +383,14 @@ private:
 	template<typename ...Args>
 	void _ForEachVertics(std::function<void(bool, tag_type&)> fun, Args const & ... args)
 	{
-		if (tags_[0].empty())
-			tags_[0].resize(mesh.GetNumOfElements(0), none);
+		if (tags_[VERTEX].empty())
+			tags_[VERTEX].resize(mesh.GetNumOfElements(VERTEX), none);
 
 		SelectVericsInRegion(mesh,
 
 		[&](bool is_selected,index_type const &s)
 		{
-			fun(is_selected,tags_[0][s]);
+			fun(is_selected,tags_[VERTEX][s]);
 		}, std::forward<Args const&>(args)...);
 	}
 
@@ -407,11 +406,11 @@ private:
 		{
 			index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
-			int n=mesh.template GetNeighbourCell(Int2Type<I>(),Int2Type<0>(),v,s);
-			tag_type flag = 0;
+			int n=mesh.template GetNeighbourCell(Int2Type<I>(),Int2Type<VERTEX>(),v,s);
+			tag_type flag = none;
 			for(int i=0;i<n;++i)
 			{
-				flag|=tags_[0][v[i]];
+				flag|=tags_[VERTEX][v[i]];
 			}
 			tags_[I][s]=flag;
 
@@ -426,134 +425,108 @@ inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
 
 template<typename TM> template<int IFORM>
 std::function<bool(typename TM::index_type)> //
-MediaTag<TM>::SelectInterface(tag_type A, tag_type B, unsigned int flag) const
+MediaTag<TM>::SelectBoundary(tag_type in, tag_type out) const
 {
 
-	if ((B & (~A)).any())
+//	if ((B & (~A)).any())
+//	{
+//		/**
+//		 *   +----------#----------+
+//		 *   |          #          |
+//		 *   |    A     #-> B   C  |
+//		 *   |          #          |
+//		 *   +----------#----------+
+//		 *
+//		 *   +--------------------+
+//		 *   |         ^          |
+//		 *   |       B |     C    |
+//		 *   |     ########       |
+//		 *   |     #      #       |
+//		 *   |     #  A   #       |
+//		 *   |     #      #       |
+//		 *   |     ########       |
+//		 *   +--------------------+
+//		 *
+//		 *   			+----------+
+//		 *              |      C    |
+//		 *   +----------######     |
+//		 *   |          | A  #     |
+//		 *   |    A     | &  #  B  |
+//		 *   |          | B  #->   |
+//		 *   +----------######     |
+//		 *              |          |
+//		 *              +----------+
+//		 *
+//		 *   			+----------+
+//		 *         C     |          |
+//		 *   +----------#----+     |
+//		 *   |          # A  |     |
+//		 *   |    B   <-# &  |  A  |
+//		 *   |          # B  |     |
+//		 *   +----------#----+     |
+//		 *              |          |
+//		 *              +----------+
+//		 */
+//
+//		B &= (~A);
+//	}
+//	else
+//	{
+//		/**
+//		 *   +--------------------+
+//		 *   |                    |
+//		 *   |        A           |
+//		 *   |     ########       |
+//		 *   |     #      #       |
+//		 *   |     #->B C #       |
+//		 *   |     #      #       |
+//		 *   |     ########       |
+//		 *   +--------------------+
+//		 *
+//		 */
+//
+//		A &= (~B);
+//	}
+//
+//	/**
+//	 * 	            +----------+
+//	 *              |          |
+//	 *   +-------+  |          |
+//	 *   |       |  |          |
+//	 *   |   B   |  |    A     |
+//	 *   |       |  |          |
+//	 *   +-------+  |          |
+//	 *              |          |
+//	 *              +----------+
+//	 */
+//
+//	tag_type AB = A | B;
+
+	return
+
+	[this,in,out]( index_type s )->bool
 	{
-		/**
-		 *   +----------#----------+
-		 *   |          #          |
-		 *   |    A     #-> B   C  |
-		 *   |          #          |
-		 *   +----------#----------+
-		 *
-		 *   +--------------------+
-		 *   |         ^          |
-		 *   |       B |     C    |
-		 *   |     ########       |
-		 *   |     #      #       |
-		 *   |     #  A   #       |
-		 *   |     #      #       |
-		 *   |     ########       |
-		 *   +--------------------+
-		 *
-		 *   			+----------+
-		 *              |      C    |
-		 *   +----------######     |
-		 *   |          | A  #     |
-		 *   |    A     | &  #  B  |
-		 *   |          | B  #->   |
-		 *   +----------######     |
-		 *              |          |
-		 *              +----------+
-		 *
-		 *   			+----------+
-		 *         C     |          |
-		 *   +----------#----+     |
-		 *   |          # A  |     |
-		 *   |    B   <-# &  |  A  |
-		 *   |          # B  |     |
-		 *   +----------#----+     |
-		 *              |          |
-		 *              +----------+
-		 */
+		bool res=false;
 
-		B &= (~A);
-	}
-	else
-	{
-		/**
-		 *   +--------------------+
-		 *   |                    |
-		 *   |        A           |
-		 *   |     ########       |
-		 *   |     #      #       |
-		 *   |     #->B C #       |
-		 *   |     #      #       |
-		 *   |     ########       |
-		 *   +--------------------+
-		 *
-		 */
-
-		A &= (~B);
-	}
-
-	/**
-	 * 	            +----------+
-	 *              |          |
-	 *   +-------+  |          |
-	 *   |       |  |          |
-	 *   |   B   |  |    A     |
-	 *   |       |  |          |
-	 *   +-------+  |          |
-	 *              |          |
-	 *              +----------+
-	 */
-
-	tag_type AB = A | B;
-
-	if (flag == ON_BOUNDARY)
-	{
-		return
-
-		[this,A,B]( index_type s )->bool
+		if((this->tags_[IFORM].at(s)&in).none() && (this->tags_[IFORM].at(s)&out).any() )
 		{
-			bool res=false;
-			if((A|B).any() && (this->tags_[IFORM][s]&(B)).any())
+			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+			int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<VOLUME>(),neighbours,s);
+
+			for(int i=0;i<num;++i)
 			{
-				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-				int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<3>(),neighbours,s);
-
-				for(int i=0;i<num;++i)
+				if(((this->tags_[VOLUME].at(neighbours[i])&in) ).any())
 				{
-					if((this->tags_[3].at(neighbours[i])&A).any())
-					{
-						res=true;
-						break;
-					}
+					res=true;
+					break;
 				}
 			}
-			return res;
-		};
+		}
 
-	}
-	else
-	{
-		return
-
-		[this,A,B]( index_type s)->bool
-		{
-			bool res=false;
-			if((A|B).any() && (this->tags_[IFORM][s]&(B)).any())
-			{
-				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
-
-				int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<0>(),neighbours,s);
-
-				for(int i=0;i<num;++i)
-				{
-					if((this->tags_[0].at(neighbours[i])&A).any())
-					{
-						res=true;
-						break;
-					}
-				}
-			}
-			return res;
-		};
-	}
+		return res;
+	};
 
 }
 

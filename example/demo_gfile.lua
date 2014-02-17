@@ -141,7 +141,7 @@ Constraints=
 {
   { 
     DOF="E",
-	Select={Type="Interface", In="Plasma",Out="Vacuum"},
+	Select={Type="Boundary", Tag="Vacuum" },
 	Value= 1
   },
  --  { 

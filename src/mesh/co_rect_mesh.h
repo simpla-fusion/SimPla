@@ -971,11 +971,24 @@ public:
 	}
 	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type s)const
 	{
-		*i =(strides_[0]==0)?0:(s/strides_[0]);
-		s-=(*i)*strides_[0];
-		*j =(strides_[1]==0)?0:(s/strides_[1]);
-		s-=(*j)*strides_[1];
-		*k =s;
+
+		if (array_order_ == FORTRAN_ORDER)
+		{
+			*k =(strides_[2]==0)?0:(s/strides_[2]);
+			s-=(*k)*strides_[2];
+			*j =(strides_[1]==0)?0:(s/strides_[1]);
+			s-=(*j)*strides_[1];
+			*i =s;
+		}
+		else
+		{
+			*i =(strides_[0]==0)?0:(s/strides_[0]);
+			s-=(*i)*strides_[0];
+			*j =(strides_[1]==0)?0:(s/strides_[1]);
+			s-=(*j)*strides_[1];
+			*k =s;
+		}
+
 	}
 	void UnpackIndex(index_type *i,index_type *j,index_type *k,index_type i1,index_type j1,index_type k1 )const
 	{
@@ -2254,7 +2267,6 @@ void CoRectMesh<TS>::Update()
 	coordinates_shift_[2][2][0] = 0.5 * dx_[0];
 	coordinates_shift_[2][2][1] = 0.5 * dx_[1];
 	coordinates_shift_[2][2][2] = 0.0;
-
 
 }
 

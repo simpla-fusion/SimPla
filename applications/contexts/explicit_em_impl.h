@@ -172,8 +172,8 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		MapTo(B1, &B);
 
-		mesh.tags().Set(MediaTag<TM>::VACUUM, geqdsk.Boundary());
-		mesh.tags().Set(MediaTag<TM>::PLASMA, geqdsk.Limiter());
+		mesh.tags().Add(MediaTag<TM>::PLASMA, geqdsk.Boundary());
+		mesh.tags().Add(MediaTag<TM>::VACUUM, geqdsk.Limiter());
 		mesh.tags().Update();
 	}
 
@@ -196,8 +196,6 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
 			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
 	}
-
-	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 	for (auto const & item : cfg["Constraints"])
 	{
@@ -224,6 +222,8 @@ void ExplicitEMContext<TM>::Load(LuaObject const & cfg)
 
 		LOGGER << "Add constraint to " << dof << DONE;
 	}
+
+	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 }
 
