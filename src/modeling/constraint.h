@@ -21,17 +21,18 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
 	mesh_type const & mesh;
 
 private:
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
 	std::map<index_type, coordinates_type> def_domain_;
 
 public:
-	Constraint(mesh_type const & m)
-			: mesh(m)
+
+	Constraint(mesh_type const & m) :
+			mesh(m)
 	{
 	}
 
@@ -44,45 +45,55 @@ public:
 		return def_domain_;
 	}
 
-	void SetDefDomain(std::function<bool(index_type, coordinates_type *)> const & m)
+	void SetDefDomain(std::function<bool(index_type, coordinates_type *)> const & selector)
 	{
 		mesh.SerialTraversal(IFORM, [&](index_type s)
 		{
 			coordinates_type coords;
 
-			if(m(s,&coords)) def_domain_.push_back(std::make_pair(s, coords));
+			if(selector(s,&coords)) def_domain_.push_back(std::make_pair(s, coords));
 		});
 
 	}
 
-	void SetDefDomain(std::function<bool(index_type)> const & map)
+	void SetDefDomain(std::function<bool(index_type)> const & selector)
 	{
 		mesh.SerialTraversal(IFORM, [&](index_type s)
 		{
-			if(map(s )) def_domain_.push_back(std::make_pair(s, mesh.GetCoordinates(IFORM,s)));
+			if(selector(s )) def_domain_.push_back(std::make_pair(s, mesh.GetCoordinates(IFORM,s)));
 		});
 
 	}
 
-	template<typename TField>
-	static std::function<void(TField *)> Create(mesh_type const & mesh, LuaObject const & cfg)
+	template<typename TDict>
+	void SetDefDomain(TDict const & dict)
+	{
+
+		mesh.tags().template Select<IFORM>(dict["Select"], &def_domain_);
+
+		if (def_domain_.empty())
+		{
+			WARNING << "Define domain is empty!";
+		}
+	}
+
+	template<typename TField, typename TDict>
+	static std::function<void(TField *)> Create(mesh_type const & mesh, TDict const & dict)
 	{
 		std::function<void(TField *)> res;
 
 		std::shared_ptr<Constraint<mesh_type, IFORM>> self(new Constraint<mesh_type, IFORM>(mesh));
 
-		SelectElements<IFORM>(mesh, cfg["Select"], &(self->def_domain_));
-
-		CHECK(self->def_domain_.size());
+		self->SetDefDomain(dict["Select"]);
 
 		{
-			auto value = cfg["Value"];
+			auto value = dict["Value"];
 
 			if (value.is_number())
 			{
 				auto foo = value.template as<typename TField::value_type>();
 
-				res = [=](TField * f )
+				res = [self,foo](TField * f )
 				{	self->Apply(f,foo);};
 
 			}
@@ -90,16 +101,16 @@ public:
 			{
 				auto foo = value.template as<typename TField::field_value_type>();
 
-				res = [=](TField * f )
+				res = [self,foo](TField * f )
 				{	self->Apply(f,foo);};
 			}
 			else if (value.is_function())
 			{
 				std::function<typename TField::field_value_type(coordinates_type, Real)> foo =
-				        [value](coordinates_type z, Real t)->typename TField::field_value_type
-				        {
-					        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
-				        };
+						[value](coordinates_type z, Real t)->typename TField::field_value_type
+						{
+							return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+						};
 
 				res = [self,foo](TField * f )
 				{	self->Apply(f,foo);};
@@ -110,7 +121,7 @@ public:
 	}
 
 	template<typename TV> void Apply(Field<Geometry<mesh_type, IFORM>, TV> * f,
-	        typename Field<Geometry<mesh_type, IFORM>, TV>::value_type v)
+			typename Field<Geometry<mesh_type, IFORM>, TV>::value_type v)
 	{
 		for (auto const & p : def_domain_)
 		{
@@ -119,10 +130,10 @@ public:
 	}
 
 	template<typename TV> typename std::enable_if<
-	        !std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
-	                typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
-	        Field<Geometry<mesh_type, IFORM>, TV> * f,
-	        typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type v)
+			!std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
+					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
+			Field<Geometry<mesh_type, IFORM>, TV> * f,
+			typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type v)
 	{
 		for (auto const & p : def_domain_)
 		{
@@ -132,7 +143,7 @@ public:
 
 	template<typename TV>
 	void Apply(Field<Geometry<mesh_type, IFORM>, TV> * f,
-	        std::function<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type(coordinates_type const &, Real)> const & fun)
+			std::function<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type(coordinates_type const &, Real)> const & fun)
 	{
 		for (auto const & p : def_domain_)
 		{
@@ -141,11 +152,11 @@ public:
 	}
 
 	template<typename TV> typename std::enable_if<
-	        !std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
-	                typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
-	        Field<Geometry<mesh_type, IFORM>, TV> * f,
-	        std::function<
-	                typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type(coordinates_type const &, Real)> const & fun)
+			!std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
+					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
+			Field<Geometry<mesh_type, IFORM>, TV> * f,
+			std::function<
+					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type(coordinates_type const &, Real)> const & fun)
 	{
 		for (auto const & p : def_domain_)
 		{

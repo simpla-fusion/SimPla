@@ -139,11 +139,11 @@ Grid=
  
 Constraints=
 {
-  { 
-    DOF="E",
-	Select={Type="Boundary", Tag="Vacuum" },
-	Value= 1
-  },
+ --  { 
+ --    DOF="E",
+	-- Select={Type="Boundary", Tag="Vacuum" },
+	-- Value= 1
+ --  },
  --  { 
  --    DOF="J",
 	-- Select={Type="Points", -- PolyLine , Interface, Media,

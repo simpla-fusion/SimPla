@@ -12,7 +12,6 @@
 #include <memory>
 #include <string>
 
-#include "../src/engine/basecontext.h"
 #include "../src/io/data_stream.h"
 #include "../src/simpla_defs.h"
 #include "../src/utilities/log.h"
@@ -20,7 +19,7 @@
 #include "../src/utilities/parse_command_line.h"
 #include "../src/utilities/utilities.h"
 
-#include "contexts/explicit_em.h"
+#include "contexts/context.h"
 
 using namespace simpla;
 
@@ -29,7 +28,7 @@ int main(int argc, char **argv)
 
 	Logger::Verbose(0);
 
-	LuaObject cfg;
+	LuaObject dict;
 
 	size_t num_of_step = 10;
 
@@ -53,11 +52,11 @@ int main(int argc, char **argv)
 		}
 		else if(opt=="i"||opt=="input")
 		{
-			cfg.ParseFile(value);
+			dict.ParseFile(value);
 		}
 		else if(opt=="c"|| opt=="command")
 		{
-			cfg.ParseString(value);
+			dict.ParseString(value);
 		}
 		else if(opt=="l"|| opt=="log")
 		{
@@ -136,7 +135,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Parse Command Line." << DONE;
 
-	if (cfg.IsNull())
+	if (!dict)
 	{
 		LOGGER << "Nothing to do !!";
 		TheEnd(-1);
@@ -146,13 +145,9 @@ int main(int argc, char **argv)
 
 	GLOBAL_DATA_STREAM.OpenGroup("/Input");
 
-	std::shared_ptr<BaseContext> ctx;
+	Context ctx(dict);
 
-	std::string ctx_type = cfg["Context"].as<std::string>();
-
-	ctx = CreateContextExplicitEM(cfg);
-
-	if (ctx == nullptr)
+	if (ctx.empty())
 	{
 		INFORM << "illegal configure! ";
 		TheEnd(-2);
@@ -162,7 +157,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	LOGGER << (*ctx);
+	LOGGER << ctx;
 
 	LOGGER << "Pre-Process" << DONE;
 
@@ -171,6 +166,7 @@ int main(int argc, char **argv)
 	LOGGER << "Process " << START;
 
 	TheStart();
+
 	if (just_a_test)
 	{
 		LOGGER << "Just test configure files";
@@ -182,11 +178,11 @@ int main(int argc, char **argv)
 		{
 			LOGGER << "STEP: " << i << START;
 
-			ctx->NextTimeStep();
+			ctx.NextTimeStep();
 
 			if (i % record_stride == 0)
 			{
-				ctx->DumpData("/DumpData");
+				ctx.DumpData("/DumpData");
 			}
 			LOGGER << "STEP: " << i << DONE;
 		}
@@ -196,8 +192,6 @@ int main(int argc, char **argv)
 	VERBOSE << "Post-Process" << START;
 
 	GLOBAL_DATA_STREAM.OpenGroup("/Output");
-
-	VERBOSE << *ctx;
 
 	VERBOSE << "Post-Process" << DONE;
 

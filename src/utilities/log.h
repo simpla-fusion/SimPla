@@ -360,6 +360,9 @@ private:
 #define UNIMPLEMENT2(_MSG_) Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
 
+#define UNDEFINE_FUNCTION Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "This function is not defined!"
+
 #define NOTHING_TODO Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
 	          << "oh....... NOTHING TODO!"
 
