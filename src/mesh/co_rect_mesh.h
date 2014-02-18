@@ -67,43 +67,32 @@ struct CoRectMesh
 	// Topology
 	unsigned int DEFAULT_GHOST_WIDTH = 2;
 
-	nTuple<NUM_OF_DIMS, index_type> shift_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> shift_ = { 0, 0, 0 };
 
-	nTuple<NUM_OF_DIMS, index_type> dims_ =
-	{ 10, 10, 10 }; //!< number of cells
+	nTuple<NUM_OF_DIMS, index_type> dims_ = { 10, 10, 10 }; //!< number of cells
 
-	nTuple<NUM_OF_DIMS, index_type> ghost_width_ =
-	{ DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
+	nTuple<NUM_OF_DIMS, index_type> ghost_width_ = { DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH, DEFAULT_GHOST_WIDTH };
 
-	nTuple<NUM_OF_DIMS, index_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, index_type> strides_ = { 0, 0, 0 };
 
 	index_type num_cells_ = 0;
 
 	index_type num_grid_points_ = 0;
 
 	// Geometry
-	coordinates_type xmin_ =
-	{ 0, 0, 0 };
-	coordinates_type xmax_ =
-	{ 10, 10, 10 };
+	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmax_ = { 10, 10, 10 };
 
-	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] =
-	{ 0, 0, 0, 0, 0, 0 };
-	nTuple<NUM_OF_DIMS, scalar_type> k_ =
-	{ 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> dS_[2] = { 0, 0, 0, 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, scalar_type> k_ = { 0, 0, 0 };
 
-	coordinates_type dx_ =
-	{ 0, 0, 0 };
-	coordinates_type inv_dx_ =
-	{ 0, 0, 0 };
+	coordinates_type dx_ = { 0, 0, 0 };
+	coordinates_type inv_dx_ = { 0, 0, 0 };
 
 	Real cell_volume_ = 1.0;
 	Real d_cell_volume_ = 1.0;
 
-	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] =
-	{ 1, 3, 3, 1 };
+	const int num_comps_per_cell_[NUM_OF_COMPONENT_TYPE] = { 1, 3, 3, 1 };
 
 	coordinates_type coordinates_shift_[NUM_OF_COMPONENT_TYPE][NUM_OF_DIMS];
 
@@ -127,49 +116,36 @@ struct CoRectMesh
 	//* Media Tags
 	//***************************************************************************************************
 
-	typedef MediaTag<this_type> tag_container;
-
-	typedef MediaTag<this_type> media_tag_type;
-
-	typedef typename MediaTag<this_type>::tag_type tag_type;
-
 private:
-	std::shared_ptr<tag_container> tags_;
+
+	MediaTag<this_type> tags_;
 public:
 
-	tag_container & tags()
+	typedef typename MediaTag<this_type>::tag_type tag_type;
+	MediaTag<this_type> & tags()
 	{
-		if (tags_ == nullptr)
-			tags_ = std::shared_ptr<tag_container>(new tag_container(*this));
-
-		tags_->Update();
-		return *tags_;
+		return tags_;
 	}
-	tag_container const& tags() const
+	MediaTag<this_type> const& tags() const
 	{
-		if (tags_ == nullptr)
-			ERROR << "Media Tag is not initialized!!";
-		return *tags_;
+
+		return tags_;
 	}
 
 	//***************************************************************************************************
 	//* Constants
 	//***************************************************************************************************
 private:
-	std::shared_ptr<PhysicalConstants> constants_;	//!< Unit System and phyical constants
+	PhysicalConstants constants_;	//!< Unit System and phyical constants
 public:
 	PhysicalConstants & constants()
 	{
-		if (constants_ == nullptr)
-			constants_ = std::shared_ptr<PhysicalConstants>(new PhysicalConstants());
-
-		return *constants_;
+		return constants_;
 	}
 	PhysicalConstants const& constants() const
 	{
-		if (constants_ == nullptr)
-			ERROR << "Constants are not defined!!";
-		return *constants_;
+
+		return constants_;
 	}
 
 	//***************************************************************************************************
@@ -184,7 +160,7 @@ public:
 
 	bool CheckCourant(Real dt) const
 	{
-		DEFINE_PHYSICAL_CONST((*constants_));
+		DEFINE_PHYSICAL_CONST(constants_);
 
 		Real res = 0.0;
 
@@ -2153,8 +2129,8 @@ public:
 //******************************************************************************************************
 
 template<typename TS>
-CoRectMesh<TS>::CoRectMesh(int array_order) :
-		array_order_(array_order)
+CoRectMesh<TS>::CoRectMesh(int array_order)
+		: array_order_(array_order), tags_(*this)
 {
 }
 template<typename TS>
@@ -2173,10 +2149,6 @@ inline void _SetImaginaryPart(Real i, Complex * v)
 template<typename TS>
 void CoRectMesh<TS>::Update()
 {
-	// initialize
-	constants();
-
-	tags();
 
 	//configure
 
@@ -2294,7 +2266,7 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Load(ISTREAM const &cfg)
 		if (cfg["Type"].template as<std::string>("Real") != GetTypeName())
 		{
 			WARNING << "illegal config [Type: except=" << GetTypeName() << ", configure="
-					<< cfg["Type"].template as<std::string>() << "]";
+			        << cfg["Type"].template as<std::string>() << "]";
 
 			return;
 		}
@@ -2306,14 +2278,14 @@ template<typename ISTREAM> inline void CoRectMesh<TS>::Load(ISTREAM const &cfg)
 		if (cfg_scalar_type != "" && cfg_scalar_type != this_scalar_type)
 		{
 			WARNING << "illegal configure[Scalar Type: except= " << this_scalar_type << ", configure="
-					<< cfg_scalar_type << "]";
+			        << cfg_scalar_type << "]";
 		}
 
 	}
 
-	constants().Load(cfg["UnitSystem"]);
+	constants_.Load(cfg["UnitSystem"]);
 
-	tags().Load(cfg["MediaTag"]);
+	tags_.Load(cfg["MediaTag"]);
 
 	auto topology = cfg["Topology"];
 	topology["Dimensions"].as(&dims_);
@@ -2389,7 +2361,7 @@ operator<<(std::ostream & os, CoRectMesh<TS> const & d)
 
 template<typename TS>
 void CoRectMesh<TS>::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-		std::function<void(int, index_type, index_type, index_type)> const &fun) const
+        std::function<void(int, index_type, index_type, index_type)> const &fun) const
 {
 
 //	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
@@ -2438,9 +2410,9 @@ void CoRectMesh<TS>::ParallelTraversal(Args const &...args) const
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(
-				std::thread([num_threads,thread_id,this](Args const & ...args2)
-				{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-						std::forward<Args const &>(args)...));
+		        std::thread([num_threads,thread_id,this](Args const & ...args2)
+		        {	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+		                std::forward<Args const &>(args)...));
 	}
 
 	for (auto & t : threads)

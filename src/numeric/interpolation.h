@@ -40,20 +40,22 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args const & ...args) :
-			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args const & ...args)
+			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args const & ...args) :
-			Interpolation(std::shared_ptr<container_type>(new container_type()), std::forward<Args const &>(args)...)
+	Interpolation(Args const & ...args)
+			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(
+			        std::forward<Args const &>(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args const & ...args) :
-			Interpolation(std::shared_ptr<container_type>(new container_type(y)), std::forward<Args const &>(args)...)
+	Interpolation(TC const &y, Args const & ...args)
+			: data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
+			        std::forward<Args const &>(args)...)
 	{
 	}
 
@@ -67,11 +69,11 @@ public:
 		return *data_;
 	}
 
-	virtual ~Interpolation()
+	~Interpolation()
 	{
 	}
 
-	virtual void swap(this_type & r)
+	void swap(this_type & r)
 	{
 		std::swap(data_, r.data_);
 		interpolate_op_.swap(r.interpolate_op_);
@@ -130,20 +132,20 @@ struct LinearInterpolation
 
 	template<typename container>
 	inline typename container::mapped_type eval(container const &, typename container::iterator const &it,
-			typename container::key_type const &x) const
+	        typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
 		++next;
 		return it->second
-				+ (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
-						* (next->second - it->second);
+		        + (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
+		                * (next->second - it->second);
 
 	}
 
 	template<typename container>
 	inline typename container::mapped_type diff(container const &, typename container::iterator const &it,
-			typename container::key_type const &x) const
+	        typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
@@ -170,15 +172,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args const & ...args) :
-			data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args const & ...args)
+			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 		Update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args const & ...args) :
-			data_(nullptr), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(Args const & ...args)
+			: data_(nullptr), interpolate_op_(std::forward<Args const &>(args)...)
 	{
 		Update();
 	}
@@ -200,6 +202,7 @@ public:
 
 	void Update()
 	{
+
 		interpolate_op_.Update();
 
 		if (data_ == nullptr)
@@ -253,10 +256,13 @@ private:
 public:
 	BiLinearInterpolation()
 	{
-
+		for (int s = 0; s < NDIMS; ++s)
+		{
+			dims_[s] = 1;
+		}
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax) :
-			dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
+			: dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
 		Update();
 	}
@@ -356,8 +362,7 @@ public:
 		size_t sy = dims_[0];
 		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
-		nTuple<NDIMS, TV> res =
-		{
+		nTuple<NDIMS, TV> res = {
 
 		(1.0 - ry) * (v[s + sx] - v[s]) + ry * (v[s + sx + sy] - v[s + sy]),
 

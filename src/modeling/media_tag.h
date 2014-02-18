@@ -51,8 +51,8 @@ public:
 		CUSTOM = 20
 	};
 
-	MediaTag(mesh_type const & m) :
-			null_tag(1 << NONE), mesh(m), max_tag_(CUSTOM + 1)
+	MediaTag(mesh_type const & m)
+			: null_tag(1 << NONE), mesh(m), max_tag_(CUSTOM + 1)
 	{
 		register_tag_.emplace("NONE", null_tag);
 
@@ -139,13 +139,13 @@ public:
 	template<typename TCfg>
 	void Load(TCfg const & cfg)
 	{
-		if (cfg.empty())
-			return;
-		for (auto const & p : cfg)
+		if (cfg)
 		{
-			Modify(p.second);
+			for (auto const & p : cfg)
+			{
+				Modify(p.second);
+			}
 		}
-		Update();
 
 	}
 	std::ostream & Save(std::ostream &os) const
@@ -170,6 +170,14 @@ public:
 
 		;
 		return os;
+	}
+
+	void Init(int I = VERTEX)
+	{
+		if (tags_[I].empty())
+		{
+			tags_[I].resize(mesh.GetNumOfElements(I), null_tag);
+		}
 	}
 
 	template<typename TCmd>
@@ -338,7 +346,7 @@ public:
 	void SelectElements(tag_type tag, TEleList *eles) const;
 
 	template<int IFORM, typename TDict, typename TEleList>
-	void Select(TDict const & cfg, TEleList *eles) const;
+	void Select(TDict const & dict, TEleList *eles) const;
 
 private:
 
@@ -351,8 +359,7 @@ private:
 	template<typename ...Args>
 	void _ForEachVertics(std::function<void(bool, tag_type&)> fun, Args const & ... args)
 	{
-		if (tags_[VERTEX].empty())
-			tags_[VERTEX].resize(mesh.GetNumOfElements(VERTEX), null_tag);
+		Init();
 
 		_ForEaceVericsInRegion([&](bool is_selected,index_type const &s)
 		{
@@ -361,27 +368,26 @@ private:
 	}
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-			std::vector<coordinates_type> const & points);
+	        std::vector<coordinates_type> const & points);
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-			std::vector<nTuple<2, Real>> const & points, unsigned int Z = 2);
+	        std::vector<nTuple<2, Real>> const & points, unsigned int Z = 2);
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-			std::function<bool(index_type, coordinates_type const &)> const & select);
+	        std::function<bool(index_type, coordinates_type const &)> const & select);
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-			std::function<bool(index_type)> const & select);
+	        std::function<bool(index_type)> const & select);
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-			std::function<bool(coordinates_type const &)> const & select);
+	        std::function<bool(coordinates_type const &)> const & select);
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op, LuaObject const & select);
 
 	template<int I>
 	void _UpdateTags()
 	{
-		if (tags_[I].empty())
-			tags_[I].resize(mesh.GetNumOfElements(I), null_tag);
+		Init(I);
 
 		mesh.ParallelTraversal(I,
 
@@ -516,29 +522,30 @@ void MediaTag<TM>::SelectElements(tag_type tag, TEleList *eles) const
 
 template<typename TM>
 template<int IFORM, typename TDict, typename TEleList>
-void MediaTag<TM>::Select(TDict const & cfg, TEleList *eles) const
+void MediaTag<TM>::Select(TDict const & dict, TEleList *eles) const
 {
 
-	auto type = cfg["Type"].template as<std::string>();
-
-	if (cfg["Type"].template as<std::string>() == "Boundary")
+	if (dict["Type"])
 	{
-		auto tag = GetTagFromString(cfg["Tag"].template as<std::string>());
-		SelectBoundary<IFORM>(tag, null_tag, eles);
+		auto type = dict["Type"].template as<std::string>("");
 
-	}
-	else if (type == "Interface")
-	{
-		auto in = GetTagFromString(cfg["In"].template as<std::string>());
-		auto out = GetTagFromString(cfg["Out"].template as<std::string>());
-		SelectBoundary<IFORM>(in, out, eles);
-	}
-	else
-	{
-		auto tag = GetTagFromString(cfg["Tag"].template as<std::string>());
+		if (type == "Boundary")
+		{
+			auto tag = GetTagFromString(dict["Tag"].template as<std::string>());
+			SelectBoundary<IFORM>(tag, null_tag, eles);
 
-		SelectElements<IFORM>(tag, eles);
-
+		}
+		else if (type == "Interface")
+		{
+			auto in = GetTagFromString(dict["In"].template as<std::string>());
+			auto out = GetTagFromString(dict["Out"].template as<std::string>());
+			SelectBoundary<IFORM>(in, out, eles);
+		}
+		else if (type == "Element")
+		{
+			auto tag = GetTagFromString(dict["Tag"].template as<std::string>());
+			SelectElements<IFORM>(tag, eles);
+		}
 	}
 
 }
@@ -564,9 +571,9 @@ void MediaTag<TM>::Select(TDict const & cfg, TEleList *eles) const
  */
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		std::vector<coordinates_type> const & points)
+        std::vector<coordinates_type> const & points)
 {
-
+	Init();
 	if (points.size() == 1)
 	{
 		index_type idx = mesh.GetNearestVertex(points[0]);
@@ -607,9 +614,9 @@ void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type co
 }
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		std::vector<nTuple<2, Real>> const & points, unsigned int Z)
+        std::vector<nTuple<2, Real>> const & points, unsigned int Z)
 {
-
+	Init();
 	if (Z < 3 && points.size() > 2) //select points in polyline
 	{
 
@@ -628,8 +635,9 @@ void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type co
 
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		std::function<bool(index_type, coordinates_type const &)> const & select)
+        std::function<bool(index_type, coordinates_type const &)> const & select)
 {
+	Init();
 	typedef TM mesh_type;
 	mesh.Traversal(VERTEX,
 
@@ -643,9 +651,9 @@ void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type co
 
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		std::function<bool(index_type)> const & select)
+        std::function<bool(index_type)> const & select)
 {
-
+	Init();
 	mesh.Traversal(VERTEX,
 
 	[&](typename mesh_type::index_type const&s ,
@@ -658,8 +666,9 @@ void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type co
 
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		std::function<bool(coordinates_type const &)> const & select)
+        std::function<bool(coordinates_type const &)> const & select)
 {
+	Init();
 	typedef TM mesh_type;
 	mesh.Traversal(VERTEX,
 
@@ -673,8 +682,9 @@ void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type co
 
 template<typename TM>
 void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-		LuaObject const & select)
+        LuaObject const & select)
 {
+	Init();
 	typedef TM mesh_type;
 	mesh.SerialTraversal(VERTEX,
 

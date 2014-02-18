@@ -13,11 +13,11 @@ namespace simpla
 template<typename, int> class Geometry;
 template<typename, typename > class Field;
 
-template<typename TM, int IFORM>
+template<typename TF>
 class Constraint
 {
 public:
-	typedef TM mesh_type;
+	typedef typename TF::mesh_type mesh_type;
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -31,8 +31,8 @@ private:
 
 public:
 
-	Constraint(mesh_type const & m) :
-			mesh(m)
+	Constraint(mesh_type const & m)
+			: mesh(m)
 	{
 	}
 
@@ -47,7 +47,7 @@ public:
 
 	void SetDefDomain(std::function<bool(index_type, coordinates_type *)> const & selector)
 	{
-		mesh.SerialTraversal(IFORM, [&](index_type s)
+		mesh.SerialTraversal(TF::IForm, [&](index_type s)
 		{
 			coordinates_type coords;
 
@@ -58,9 +58,9 @@ public:
 
 	void SetDefDomain(std::function<bool(index_type)> const & selector)
 	{
-		mesh.SerialTraversal(IFORM, [&](index_type s)
+		mesh.SerialTraversal(TF::IForm, [&](index_type s)
 		{
-			if(selector(s )) def_domain_.push_back(std::make_pair(s, mesh.GetCoordinates(IFORM,s)));
+			if(selector(s )) def_domain_.push_back(std::make_pair(s, mesh.GetCoordinates(TF::IForm,s)));
 		});
 
 	}
@@ -69,7 +69,7 @@ public:
 	void SetDefDomain(TDict const & dict)
 	{
 
-		mesh.tags().template Select<IFORM>(dict["Select"], &def_domain_);
+		mesh.tags().template Select<TF::IForm>(dict, &def_domain_);
 
 		if (def_domain_.empty())
 		{
@@ -77,51 +77,7 @@ public:
 		}
 	}
 
-	template<typename TField, typename TDict>
-	static std::function<void(TField *)> Create(mesh_type const & mesh, TDict const & dict)
-	{
-		std::function<void(TField *)> res;
-
-		std::shared_ptr<Constraint<mesh_type, IFORM>> self(new Constraint<mesh_type, IFORM>(mesh));
-
-		self->SetDefDomain(dict["Select"]);
-
-		{
-			auto value = dict["Value"];
-
-			if (value.is_number())
-			{
-				auto foo = value.template as<typename TField::value_type>();
-
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
-
-			}
-			else if (value.is_table())
-			{
-				auto foo = value.template as<typename TField::field_value_type>();
-
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
-			}
-			else if (value.is_function())
-			{
-				std::function<typename TField::field_value_type(coordinates_type, Real)> foo =
-						[value](coordinates_type z, Real t)->typename TField::field_value_type
-						{
-							return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
-						};
-
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
-			}
-		}
-
-		return std::move(res);
-	}
-
-	template<typename TV> void Apply(Field<Geometry<mesh_type, IFORM>, TV> * f,
-			typename Field<Geometry<mesh_type, IFORM>, TV>::value_type v)
+	void Apply(TF * f, typename TF::value_type v) const
 	{
 		for (auto const & p : def_domain_)
 		{
@@ -129,21 +85,16 @@ public:
 		}
 	}
 
-	template<typename TV> typename std::enable_if<
-			!std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
-					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
-			Field<Geometry<mesh_type, IFORM>, TV> * f,
-			typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type v)
+	typename std::enable_if<!std::is_same<typename TF::value_type, typename TF::field_value_type>::value, void>::type Apply(
+	        TF * f, typename TF::field_value_type v) const
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = mesh.template GetWeightOnElement<IFORM>(v, p.first);
+			(*f)[p.first] = mesh.template GetWeightOnElement<TF::IForm>(v, p.first);
 		}
 	}
 
-	template<typename TV>
-	void Apply(Field<Geometry<mesh_type, IFORM>, TV> * f,
-			std::function<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type(coordinates_type const &, Real)> const & fun)
+	void Apply(TF * f, std::function<typename TF::value_type(coordinates_type const &, Real)> const & fun) const
 	{
 		for (auto const & p : def_domain_)
 		{
@@ -151,21 +102,61 @@ public:
 		}
 	}
 
-	template<typename TV> typename std::enable_if<
-			!std::is_same<typename Field<Geometry<mesh_type, IFORM>, TV>::value_type,
-					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type>::value, void>::type Apply(
-			Field<Geometry<mesh_type, IFORM>, TV> * f,
-			std::function<
-					typename Field<Geometry<mesh_type, IFORM>, TV>::field_value_type(coordinates_type const &, Real)> const & fun)
+	typename std::enable_if<!std::is_same<typename TF::value_type, typename TF::field_value_type>::value, void>::type Apply(
+	        TF * f, std::function<typename TF::field_value_type(coordinates_type const &, Real)> const & fun) const
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = mesh.template GetWeightOnElement<IFORM>(fun(p.second, mesh.GetTime()), p.first);
+			(*f)[p.first] = mesh.template GetWeightOnElement<TF::IForm>(fun(p.second, mesh.GetTime()), p.first);
 		}
 	}
 
 }
 ;
+
+template<typename TField, typename TDict>
+static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type const & mesh, TDict const & dict)
+{
+	std::function<void(TField *)> res = [](TField *)
+	{};
+
+	std::shared_ptr<Constraint<TField>> self(new Constraint<TField>(mesh));
+
+	self->SetDefDomain(dict["Select"]);
+	CHECK(self->GetDefDomain().size());
+	{
+		auto value = dict["Value"];
+
+		if (value.is_number())
+		{
+			auto foo = value.template as<typename TField::value_type>();
+
+			res = [self,foo](TField * f )
+			{	self->Apply(f,foo);};
+
+		}
+		else if (value.is_table())
+		{
+			auto foo = value.template as<typename TField::field_value_type>();
+
+			res = [self,foo](TField * f )
+			{	self->Apply(f,foo);};
+		}
+		else if (value.is_function())
+		{
+			std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
+			        [value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
+			        {
+				        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+			        };
+
+			res = [self,foo](TField * f )
+			{	self->Apply(f,foo);};
+		}
+	}
+
+	return std::move(res);
+}
 
 }  // namespace simpla
 

@@ -68,9 +68,7 @@ private:
 	std::vector<nTuple<NDIMS, Real> > rzlim_; // R,Z of surrounding limiter contour in meter
 
 public:
-	GEqdsk()
-	{
-	}
+
 	GEqdsk(std::string const &fname = "")
 	{
 		Read(fname);

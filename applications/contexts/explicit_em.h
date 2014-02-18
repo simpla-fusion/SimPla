@@ -114,8 +114,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
 
 	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
@@ -143,7 +143,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	dB.Clear();
 	dE.Clear();
-
+	mesh.tags().Init();
 	if (dict["GFile"])
 	{
 
@@ -153,62 +153,56 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		mesh.Update();
 
-		RForm<EDGE> B1(mesh);
-
-		B1.Clear();
-
-		mesh.SerialTraversal(EDGE,
+		mesh.SerialTraversal(FACE,
 
 		[&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
 		{
-			B1[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
+			B[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
 		});
 
-		MapTo(B1, &B);
+		mesh.tags().Add("Plasma", geqdsk.Boundary());
+		mesh.tags().Add("Vacuum", geqdsk.Limiter());
 
-		mesh.tags().Add(MediaTag<TM>::PLASMA, geqdsk.Boundary());
-		mesh.tags().Add(MediaTag<TM>::VACUUM, geqdsk.Limiter());
-		mesh.tags().Update();
 	}
-
-	LOGGER << "Load initial Field";
-	if (dict["InitValue"])
-	{
-		auto init_value = dict["InitValue"];
-
-		LoadField(init_value["E"], &E);
-		LOGGER << "Load E" << DONE;
-		LoadField(init_value["B"], &B);
-		LOGGER << "Load B" << DONE;
-		LoadField(init_value["J"], &J);
-		LOGGER << "Load J" << DONE;
-	}
-
-	LOGGER << "Load Particles";
-	for (auto const &opt : dict["Particles"])
-	{
-		ParticleWrap<TE, TB, TJ> p;
-
-		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
-			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
-	}
-
+	mesh.tags().Update();
+//
+//	if (dict["InitValue"])
+//	{
+//		auto init_value = dict["InitValue"];
+//
+//		LoadField(init_value["E"], &E);
+//		LOGGER << "Load E" << DONE;
+//		LoadField(init_value["B"], &B);
+//		LOGGER << "Load B" << DONE;
+//		LoadField(init_value["J"], &J);
+//		LOGGER << "Load J" << DONE;
+//	}
+//
+//	LOGGER << "Load Particles";
+//	for (auto const &opt : dict["Particles"])
+//	{
+//		ParticleWrap<TE, TB, TJ> p;
+//
+//		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
+//			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
+//	}
+//
 	LOGGER << "Load Constraints";
 	for (auto const & item : dict["Constraints"])
 	{
 		auto dof = item.second["DOF"].template as<std::string>();
-		CHECK(dof);
+
 		if (dof == "E")
 		{
-			constraintToE_.push_back(Constraint<mesh_type, TE::IForm>::template Create<TE>(mesh, item.second));
+			constraintToE_.push_back(CreateConstraint<TE>(mesh, item.second));
 		}
 		else if (dof == "B")
 		{
-			constraintToB_.push_back(Constraint<mesh_type, TB::IForm>::template Create<TB>(mesh, item.second));
+			constraintToB_.push_back(CreateConstraint<TB>(mesh, item.second));
 		}
 		else if (dof == "J")
 		{
-			constraintToJ_.push_back(Constraint<mesh_type, TJ::IForm>::template Create<TJ>(mesh, item.second));
+			constraintToJ_.push_back(CreateConstraint<TJ>(mesh, item.second));
 		}
 		else
 		{
@@ -220,7 +214,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Add constraint to " << dof << DONE;
 	}
 
-//	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+////	CreateEMSolver(cfg["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 	LOGGER << "We have load every thing!";
 }
@@ -269,73 +263,73 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
 {
-	Real dt = mesh.GetDt();
-
-	mesh.CheckCourant(dt);
-
-	mesh.NextTimeStep();
-
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-
-	LOGGER
-
-	<< "Simulation Time = "
-
-	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
-
-	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
-
-//************************************************************
-// Compute Cycle Begin
-//************************************************************
-
-	ApplyConstraintToJ(&J);
-
-	dE.Clear();
-
-	// dE = Curl(B)*dt
-	CalculatedE(dt, E, B, &dE);
-
-	LOG_CMD(dE -= J / epsilon0 * dt);
-
-	// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5);
-
+//	Real dt = mesh.GetDt();
+//
+//	mesh.CheckCourant(dt);
+//
+//	mesh.NextTimeStep();
+//
+//	DEFINE_PHYSICAL_CONST(mesh.constants());
+//
+//	LOGGER
+//
+//	<< "Simulation Time = "
+//
+//	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
+//
+//	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
+//
+////************************************************************
+//// Compute Cycle Begin
+////************************************************************
+//
+//	ApplyConstraintToJ(&J);
+//
+//	dE.Clear();
+//
+//	// dE = Curl(B)*dt
+//	CalculatedE(dt, E, B, &dE);
+//
+//	LOG_CMD(dE -= J / epsilon0 * dt);
+//
+//	// E(t=0  -> 1/2  )
+//	LOG_CMD(E += dE * 0.5);
+//
+//	ApplyConstraintToE(&E);
+//
+//	for (auto &p : particles_)
+//	{
+//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+//	}
+//
+//	//  E(t=1/2  -> 1)
+//	LOG_CMD(E += dE * 0.5);
+//
 	ApplyConstraintToE(&E);
-
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
-
-	//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5);
-
-	ApplyConstraintToE(&E);
-
-	Form<2> dB(mesh);
-
-	dB.Clear();
-
-	CalculatedB(dt, E, B, &dB);
-
-	//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-	J.Clear();
-
-	for (auto &p : particles_)
-	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Collect(&J, E, B);
-	}
-
-// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
+//
+//	Form<2> dB(mesh);
+//
+//	dB.Clear();
+//
+//	CalculatedB(dt, E, B, &dB);
+//
+//	//  B(t=1/2 -> 1)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
+//
+//	J.Clear();
+//
+//	for (auto &p : particles_)
+//	{
+//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+//		p.second.Collect(&J, E, B);
+//	}
+//
+//// B(t=0 -> 1/2)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
 
 //************************************************************
 // Compute Cycle End
