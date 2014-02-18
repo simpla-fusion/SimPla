@@ -17,29 +17,29 @@
 namespace simpla
 {
 
-template<typename TCfg, typename TM, typename TE, typename TB>
-void CreateEMSolver(TCfg const & cfg, TM const & mesh, std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
+template<typename TDict, typename TM, typename TE, typename TB>
+void CreateEMSolver(TDict const & dict, TM const & mesh, std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
         std::function<void(Real, TE const &, TB const &, TB*)> *solverB)
 {
 	using namespace std::placeholders;
 
-	if (!cfg)
+	if (!dict)
 		return;
 
-	if (cfg["ColdFluid"])
+	if (dict["ColdFluid"])
 	{
 		auto solver = std::shared_ptr<ColdFluidEM<TM> >(new ColdFluidEM<TM>(mesh));
 
-		solver->Load(cfg["ColdFluid"]);
+		solver->Load(dict["ColdFluid"]);
 
 		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
 	}
 
-	if (cfg["PML"])
+	if (dict["PML"])
 	{
 		auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh));
 
-		solver->Load(cfg["PML"]);
+		solver->Load(dict["PML"]);
 
 		*solverE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
