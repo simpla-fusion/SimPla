@@ -81,6 +81,20 @@ void SelectFromMesh(TM const &mesh,
 	}
 
 }
+
+template<int IFORM, typename TM>
+void SelectFromMesh(TM const &mesh,
+        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+        std::vector<nTuple<3, typename TM::index_type>> const & idxs)
+{
+	int M = mesh.template GetNumCompsPerCell<IFORM>();
+	for (auto const & i : idxs)
+	{
+		for (int m = 0; m < M; ++m)
+			op(mesh.GetComponentIndex(IFORM, m, i[0], i[1], i[2]), mesh.GetCoordinates(IFORM, m, i[0], i[1], i[2]));
+	}
+
+}
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,

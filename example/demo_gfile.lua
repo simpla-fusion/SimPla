@@ -144,17 +144,16 @@ Constraints=
 	Select={Type="Boundary", Tag="Vacuum" },
 	Value= 1
   },
- --  { 
- --    DOF="J",
-	-- Select={Type="Points", -- PolyLine , Interface, Media,
-	--     Points={0.11*LX,0.0,0.0}},
- --  	Value=function(x,y,z,t)
- --      local tau = t*omega_ext
- --      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
- --      end
+  { 
+    DOF="J",
+	Index={ {NX/10,0,0}},
+  	Value=function(x,y,z,t)
+      local tau = t*omega_ext
+      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
+      end
 	 
 	 
- --  } 
+  } 
 
   --[[
   { 

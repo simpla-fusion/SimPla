@@ -45,38 +45,6 @@ public:
 		return def_domain_;
 	}
 
-	void SetDefDomain(std::function<bool(index_type, coordinates_type *)> const & selector)
-	{
-		mesh.SerialTraversal(TF::IForm, [&](index_type s)
-		{
-			coordinates_type coords;
-
-			if(selector(s,&coords)) def_domain_.push_back(std::make_pair(s, coords));
-		});
-
-	}
-
-	void SetDefDomain(std::function<bool(index_type)> const & selector)
-	{
-		mesh.SerialTraversal(TF::IForm, [&](index_type s)
-		{
-			if(selector(s )) def_domain_.push_back(std::make_pair(s, mesh.GetCoordinates(TF::IForm,s)));
-		});
-
-	}
-
-	template<typename TDict>
-	void SetDefDomain(TDict const & dict)
-	{
-
-		mesh.tags().template Select<TF::IForm>(dict, &def_domain_);
-
-		if (def_domain_.empty())
-		{
-			WARNING << "Define domain is empty!";
-		}
-	}
-
 	void Apply(TF * f, typename TF::value_type v) const
 	{
 		for (auto const & p : def_domain_)
@@ -122,7 +90,29 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 
 	std::shared_ptr<Constraint<TField>> self(new Constraint<TField>(mesh));
 
-	self->SetDefDomain(dict["Select"]);
+	typedef typename TField::mesh_type::index_type index_type;
+	typedef typename TField::mesh_type::coordinates_type coordinates_type;
+
+	if (dict["Select"])
+	{
+		mesh.tags().template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x )
+		{	self->GetDefDomain().emplace(s,x);},
+
+		dict["Select"]);
+	}
+	else if (dict["Region"])
+	{
+		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x )
+		{	self->GetDefDomain().emplace(s,x);}, dict["Region"]);
+	}
+	else if (dict["Index"])
+	{
+		std::vector<nTuple<3, index_type>> idxs;
+		dict["Index"].as(&idxs);
+		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x )
+		{	self->GetDefDomain().emplace(s,x);}, idxs);
+	}
+
 	CHECK(self->GetDefDomain().size());
 	{
 		auto value = dict["Value"];

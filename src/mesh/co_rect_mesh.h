@@ -316,7 +316,12 @@ public:
 
 		return (num_grid_points_ * num_comps_per_cell_[iform]);
 	}
+	template<int IFORM>
+	inline int GetNumCompsPerCell() const
+	{
+		return (num_comps_per_cell_[IFORM]);
 
+	}
 	inline index_type GetNumOfVertices(...) const
 	{
 

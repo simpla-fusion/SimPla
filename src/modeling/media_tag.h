@@ -314,6 +314,7 @@ public:
 		_UpdateTags<VOLUME>();
 	}
 
+	typedef std::function<void(index_type const &, coordinates_type const &)> Fun;
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -323,14 +324,14 @@ public:
 	 * @param out_tag
 	 * @param flag
 	 */
-	template<int IFORM, typename TEleList>
-	void SelectBoundary(tag_type in, tag_type out, TEleList *ele_list) const;
+	template<int IFORM>
+	void SelectBoundary(Fun const &fun, tag_type in, tag_type out) const;
 
-	template<int IFORM, typename TEleList>
-	void SelectElements(tag_type tag, TEleList *eles) const;
+	template<int IFORM>
+	void SelectElements(Fun const &fun, tag_type tag) const;
 
-	template<int IFORM, typename TDict, typename TEleList>
-	void Select(TDict const & dict, TEleList *eles) const;
+	template<int IFORM, typename TDict>
+	void Select(Fun const &fun, TDict const & dict) const;
 
 private:
 
@@ -348,23 +349,6 @@ private:
 		SelectFromMesh<VERTEX>(mesh, [&]( index_type const &s,coordinates_type const & )
 		{	fun( tags_[VERTEX][s]);}, std::forward<Args const&>(args)...);
 	}
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-	        std::vector<coordinates_type> const & points);
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-	        std::vector<nTuple<2, Real>> const & points, unsigned int Z = 2);
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-	        std::function<bool(index_type, coordinates_type const &)> const & select);
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-	        std::function<bool(index_type)> const & select);
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-	        std::function<bool(coordinates_type const &)> const & select);
-
-	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op, LuaObject const & select);
 
 	template<int I>
 	void _UpdateTags()
@@ -394,8 +378,8 @@ inline std::ostream & operator<<(std::ostream & os, MediaTag<TM> const &self)
 	return self.Save(os);
 }
 
-template<typename TM> template<int IFORM, typename TEleList>
-void MediaTag<TM>::SelectBoundary(tag_type in, tag_type out, TEleList *ele_list) const
+template<typename TM> template<int IFORM>
+void MediaTag<TM>::SelectBoundary(Fun const &fun, tag_type in, tag_type out) const
 {
 
 	// Good
@@ -474,8 +458,7 @@ void MediaTag<TM>::SelectBoundary(tag_type in, tag_type out, TEleList *ele_list)
 
 				if(((this->tags_[VOLUME].at(neighbours[i])&in) ).any())
 				{
-					ele_list->emplace( s,x );
-
+					fun( s,x );
 					break;
 				}
 			}
@@ -486,8 +469,8 @@ void MediaTag<TM>::SelectBoundary(tag_type in, tag_type out, TEleList *ele_list)
 }
 
 template<typename TM>
-template<int IFORM, typename TEleList>
-void MediaTag<TM>::SelectElements(tag_type tag, TEleList *eles) const
+template<int IFORM>
+void MediaTag<TM>::SelectElements(Fun const &fun, tag_type tag) const
 {
 
 	auto const & tags = tags_[VOLUME];
@@ -497,14 +480,14 @@ void MediaTag<TM>::SelectElements(tag_type tag, TEleList *eles) const
 	{
 		if(((this->tags_[IFORM].at(s)&tag) ).any())
 		{
-			eles->emplace( s,x );
+			fun( s,x );
 		}
 	});
 }
 
 template<typename TM>
-template<int IFORM, typename TDict, typename TEleList>
-void MediaTag<TM>::Select(TDict const & dict, TEleList *eles) const
+template<int IFORM, typename TDict>
+void MediaTag<TM>::Select(Fun const &fun, TDict const & dict) const
 {
 
 	if (dict["Type"])
@@ -514,167 +497,21 @@ void MediaTag<TM>::Select(TDict const & dict, TEleList *eles) const
 		if (type == "Boundary")
 		{
 			auto tag = GetTagFromString(dict["Tag"].template as<std::string>());
-			SelectBoundary<IFORM>(tag, null_tag, eles);
+			SelectBoundary<IFORM>(fun, tag, null_tag);
 
 		}
 		else if (type == "Interface")
 		{
 			auto in = GetTagFromString(dict["In"].template as<std::string>());
 			auto out = GetTagFromString(dict["Out"].template as<std::string>());
-			SelectBoundary<IFORM>(in, out, eles);
+			SelectBoundary<IFORM>(fun, in, out);
 		}
 		else if (type == "Element")
 		{
 			auto tag = GetTagFromString(dict["Tag"].template as<std::string>());
-			SelectElements<IFORM>(tag, eles);
+			SelectElements<IFORM>(fun, tag);
 		}
 	}
-
-}
-
-/**
- *
- * @param mesh mesh
- * @param points  define region
- *          if points.size() == 1 ,select Nearest Point
- *     else if points.size() == 2 ,select in the rectangle with  diagonal points[0] ~ points[1]
- *     else if points.size() >= 3 && Z<3
- *                    select points in a polyline on the Z-plane whose vertex are points
- *     else if points.size() >= 4 && Z>=3
- *                    select points in a closed surface
- *                    UNIMPLEMENTED
- *     else   illegal input
- *
- * @param fun
- * @param Z  Z==0    polyline on yz-plane
- *           Z==1    polyline on zx-plane,
- *           Z==2    polyline on xy-plane
- *           Z>=3
- */
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        std::vector<coordinates_type> const & points)
-{
-	Init();
-	if (points.size() == 1)
-	{
-		index_type idx = mesh.GetNearestVertex(points[0]);
-
-		_ForEaceVericsInRegion(op,
-
-		[idx](index_type s)->bool
-		{
-			return (s==idx);
-
-		});
-
-	}
-	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
-	{
-		coordinates_type v0 = points[0];
-		coordinates_type v1 = points[1];
-
-		_ForEaceVericsInRegion(op,
-
-		[v0,v1](index_type s, coordinates_type x )->bool
-		{
-			return (((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
-			(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
-			(((v0[2]-x[2])*(x[2]-v1[2]))>=0);
-
-		});
-	}
-	else if (points.size() >= 4)
-	{
-		UNIMPLEMENT << " select points in a closed surface";
-	}
-	else
-	{
-		ERROR << "Illegal input";
-	}
-
-}
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        std::vector<nTuple<2, Real>> const & points, unsigned int Z)
-{
-	Init();
-	if (Z < 3 && points.size() > 2) //select points in polyline
-	{
-
-		PointInPolygen checkPointsInPolygen(points);
-
-		_ForEaceVericsInRegion(op, [&](index_type s, coordinates_type x )->bool
-		{	return checkPointsInPolygen(x[(Z+1)%3],x[(Z+2)%3]);});
-
-	}
-	else
-	{
-		ERROR << "Illegal input";
-	}
-
-}
-
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        std::function<bool(index_type, coordinates_type const &)> const & select)
-{
-	Init();
-	typedef TM mesh_type;
-	mesh.Traversal(VERTEX,
-
-	[&](typename mesh_type::index_type const&s ,
-			typename mesh_type::coordinates_type const &x)
-	{
-		op(select(s,x), s);
-	});
-
-}
-
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        std::function<bool(index_type)> const & select)
-{
-	Init();
-	mesh.Traversal(VERTEX,
-
-	[&](typename mesh_type::index_type const&s ,
-			typename mesh_type::coordinates_type const &x)
-	{
-		op(select(s), s);
-	});
-
-}
-
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        std::function<bool(coordinates_type const &)> const & select)
-{
-	Init();
-	typedef TM mesh_type;
-	mesh.Traversal(VERTEX,
-
-	[&](typename mesh_type::index_type const&s ,
-			typename mesh_type::coordinates_type const &x)
-	{
-		op(select(x), s);
-	});
-
-}
-
-template<typename TM>
-void MediaTag<TM>::_ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,
-        LuaObject const & select)
-{
-	Init();
-	typedef TM mesh_type;
-	mesh.SerialTraversal(VERTEX,
-
-	[&](typename mesh_type::index_type const&s ,
-			typename mesh_type::coordinates_type const &x)
-	{
-		op(select(x[0],x[1],x[2]).template as<bool>(), s);
-	});
 
 }
 
