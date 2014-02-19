@@ -33,8 +33,8 @@ rhoe = vTe/omega_ce    -- m
 NX = 200
 NY = 200
 NZ = 1
-LX = 50 --m --100000*rhoi --0.6
-LY = 0 --2.0*math.pi/k0
+LX = 1.6 --m --100000*rhoi --0.6
+LY = 2.8 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5 
 
@@ -117,8 +117,8 @@ Grid=
   Geometry=
   {
       Type="Origin_DxDyDz",
-      Min={0.0,0.0,0.0},
-      Max={LX,LY,LZ},
+      Min={1.2,-1.4,0.0},
+      Max={2.8,1.4,LZ},
       -- dt= 2.0*math.pi/omega_ci/1000.0
       dt=0.5*LX/NX/c  -- time step     
   },
@@ -142,19 +142,19 @@ Constraints=
   { 
     DOF="E",
 	Select={Type="Boundary", Tag="Vacuum" },
-	Value= 1
+	Value= 0
   },
   { 
     DOF="J",
-	Index={ {NX/10,0,0}},
-  	Value=function(x,y,z,t)
+	Index={ {NX/2,NY/2,0}},
+	HardSrc=false,
+  	Value=function(x,y,z,t)	
       local tau = t*omega_ext
-      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
+      return {0, math.sin(tau) ,0}   
       end
 	 
-	 
   } 
-
+-- *(1-math.exp(-tau*tau)
   --[[
   { 
     DOF="J",

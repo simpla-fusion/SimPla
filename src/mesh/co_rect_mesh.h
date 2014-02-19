@@ -21,6 +21,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <limits>
 
 #include "../fetl/field.h"
 #include "../fetl/ntuple_ops.h"
@@ -158,22 +159,6 @@ public:
 
 	void Update();
 
-	bool CheckCourant(Real dt) const
-	{
-		DEFINE_PHYSICAL_CONST(constants_);
-
-		Real res = 0.0;
-
-		for (int i = 0; i < 3; ++i)
-			res += inv_dx_[i] * inv_dx_[i];
-		res = std::sqrt(res) * speed_of_light * dt;
-
-		if (res > 1.0)
-			VERBOSE << "dx/dt > c, Courant condition is violated! ";
-
-		return res < 1.0;
-	}
-
 	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
@@ -302,6 +287,7 @@ public:
 
 	inline Real GetDt() const
 	{
+		CheckCourant();
 		return dt_;
 	}
 
@@ -309,6 +295,35 @@ public:
 	{
 		dt_ = dt;
 		Update();
+	}
+	bool CheckCourant() const
+	{
+		DEFINE_PHYSICAL_CONST(constants_);
+
+		Real res = 0.0;
+
+		for (int i = 0; i < 3; ++i)
+			res += inv_dx_[i] * inv_dx_[i];
+		res = std::sqrt(res) * speed_of_light * dt_;
+
+		if (res > 1.0)
+			VERBOSE << "dx/dt > c, Courant condition is violated! ";
+
+		return res < 1.0;
+	}
+
+	void FixCourant(Real a = 0.5)
+	{
+		DEFINE_PHYSICAL_CONST(constants_);
+
+		Real res = 0.0;
+
+		for (int i = 0; i < 3; ++i)
+			res += inv_dx_[i] * inv_dx_[i];
+
+		if (std::sqrt(res) * speed_of_light * dt_ > 1.0)
+			dt_ = a / (std::sqrt(res) * speed_of_light);
+
 	}
 
 	inline index_type GetNumOfElements(int iform) const
@@ -2186,21 +2201,26 @@ void CoRectMesh<TS>::Update()
 		{
 			dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims_[i]);
 
-			inv_dx_[i] = 1.0 / dx_[i];
-
-			dS_[0][i] = 1.0 / dx_[i];
-
-			dS_[1][i] = -1.0 / dx_[i];
+			if (std::abs(xmax_[i] - xmin_[i]) > std::numeric_limits<Real>::epsilon())
+			{
+				inv_dx_[i] = 1.0 / dx_[i];
+				cell_volume_ *= dx_[i];
+				dS_[0][i] = 1.0 / dx_[i];
+				dS_[1][i] = -1.0 / dx_[i];
+				d_cell_volume_ /= dx_[i];
+			}
+			else
+			{
+				inv_dx_[i] = 0.0;
+				dS_[0][i] = 0.0;
+				dS_[1][i] = 0.0;
+			}
 
 			num_cells_ *= (dims_[i]);
 
 			num_grid_points_ *= dims_[i];
 
 			k_[i] = 0.0;
-
-			cell_volume_ *= dx_[i];
-
-			d_cell_volume_ /= dx_[i];
 
 		}
 	}

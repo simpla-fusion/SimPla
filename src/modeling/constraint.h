@@ -19,6 +19,8 @@ class Constraint
 public:
 	typedef typename TF::mesh_type mesh_type;
 
+	typedef typename TF::value_type value_type;
+
 	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
@@ -29,15 +31,31 @@ private:
 
 	std::map<index_type, coordinates_type> def_domain_;
 
+	std::function<void(value_type &, value_type)> op_;
 public:
 
 	Constraint(mesh_type const & m)
 			: mesh(m)
 	{
+		SetHardSrc(false);
 	}
 
 	~Constraint()
 	{
+	}
+
+	void SetHardSrc(bool flag = true)
+	{
+		if (flag)
+		{
+			op_ = [](value_type & a, value_type b)
+			{	a =b;};
+		}
+		else
+		{
+			op_ = [](value_type & a, value_type b)
+			{	a+=b;};
+		}
 	}
 
 	std::map<index_type, coordinates_type> &GetDefDomain()
@@ -49,7 +67,7 @@ public:
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = v;
+			op_((*f)[p.first], v);
 		}
 	}
 
@@ -58,7 +76,7 @@ public:
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = mesh.template GetWeightOnElement<TF::IForm>(v, p.first);
+			op_((*f)[p.first], mesh.template GetWeightOnElement<TF::IForm>(v, p.first));
 		}
 	}
 
@@ -66,7 +84,7 @@ public:
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = fun(p.second, mesh.GetTime());
+			op_((*f)[p.first], fun(p.second, mesh.GetTime()));
 		}
 	}
 
@@ -75,7 +93,7 @@ public:
 	{
 		for (auto const & p : def_domain_)
 		{
-			(*f)[p.first] = mesh.template GetWeightOnElement<TF::IForm>(fun(p.second, mesh.GetTime()), p.first);
+			op_((*f)[p.first], mesh.template GetWeightOnElement<TF::IForm>(fun(p.second, mesh.GetTime()), p.first));
 		}
 	}
 
@@ -113,7 +131,8 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 		{	self->GetDefDomain().emplace(s,x);}, idxs);
 	}
 
-	CHECK(self->GetDefDomain().size());
+	self->SetHardSrc(dict["HardSrc"].template as<bool>(false));
+
 	{
 		auto value = dict["Value"];
 

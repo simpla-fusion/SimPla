@@ -117,7 +117,7 @@ void GEqdsk::Read(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzbbb_;
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
-	LOGGER << "Read GFile" << DONE;
+	LOGGER << "Read GFile " << fname << DONE;
 }
 
 std::ostream & GEqdsk::Print(std::ostream & os)

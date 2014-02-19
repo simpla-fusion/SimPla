@@ -67,6 +67,7 @@ public:
 	Form<VERTEX> phi; // electrostatic potential
 
 	Form<EDGE> J;     // current density
+	Form<EDGE> J0;     //background current density J0+Curl(B(t=0))=0
 	Form<VERTEX> rho; // charge density
 
 	typedef decltype(E) TE;
@@ -128,11 +129,12 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
+		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
-
-	CalculatedE = [](Real dt, TE const & , TB const & pB, TE* pdE)
-	{	LOG_CMD(*pdE += Curl(pB)*dt);};
+	DEFINE_PHYSICAL_CONST(mesh.constants());
+	Real ic2 = 1.0 / (mu0 * epsilon0);
+	CalculatedE = [ic2](Real dt, TE const & , TB const & pB, TE* pdE)
+	{	LOG_CMD(*pdE += Curl(pB)*ic2 *dt);};
 
 	CalculatedB = [](Real dt, TE const & pE, TB const &, TB* pdB)
 	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
@@ -146,17 +148,22 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 template<typename TM> template<typename TDict>
 void ExplicitEMContext<TM>::Load(TDict const & dict)
 {
+	DEFINE_PHYSICAL_CONST(mesh.constants());
+
 	description = dict["Description"].template as<std::string>();
 
 	mesh.Load(dict["Grid"]);
 
 	B.Clear();
 	J.Clear();
+	J0.Clear();
 	E.Clear();
 
 	dB.Clear();
 	dE.Clear();
+
 	mesh.tags().Init();
+
 	if (dict["GFile"])
 	{
 
@@ -173,11 +180,18 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			B[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
 		});
 
+		J0 = Curl(B) / mu0;
+
 		mesh.tags().Add("Plasma", geqdsk.Boundary());
 		mesh.tags().Add("Vacuum", geqdsk.Limiter());
 
 	}
+
 	mesh.tags().Update();
+
+	mesh.FixCourant();
+
+	J = J0;
 
 	if (dict["InitValue"])
 	{
@@ -276,77 +290,71 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
 {
-//	Real dt = mesh.GetDt();
-//
-//	mesh.CheckCourant(dt);
-//
-//	mesh.NextTimeStep();
-//
-//	DEFINE_PHYSICAL_CONST(mesh.constants());
-//
-//	LOGGER
-//
-//	<< "Simulation Time = "
-//
-//	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
-//
-//	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
-//
-//	//************************************************************
-//	// Compute Cycle Begin
-//	//************************************************************
-//
-//	ApplyConstraintToJ(&J);
-//
-//	dE.Clear();
-//
-//	// dE = Curl(B)*dt
-//	CalculatedE(dt, E, B, &dE);
-//
-//	LOG_CMD(dE -= J / epsilon0 * dt);
-//
-//	// E(t=0  -> 1/2  )
-//	LOG_CMD(E += dE * 0.5);
-//
+	Real dt = mesh.GetDt();
+
+	mesh.NextTimeStep();
+
+	DEFINE_PHYSICAL_CONST(mesh.constants());
+
+	VERBOSE
+
+	<< "Simulation Time = "
+
+	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
+
+	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
+
+	//************************************************************
+	// Compute Cycle Begin
+	//************************************************************
+
+	LOG_CMD(dE = -J / epsilon0 * dt);
+
+	// dE = Curl(B)*dt
+	CalculatedE(dt, E, B, &dE);
+
+	// E(t=0  -> 1/2  )
+	LOG_CMD(E += dE * 0.5);
+
 	ApplyConstraintToE(&E);
-//
-//	for (auto &p : particles_)
-//	{
-//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-//	}
-//
-//	//  E(t=1/2  -> 1)
-//	LOG_CMD(E += dE * 0.5);
-//
-//	ApplyConstraintToE(&E);
-//
-//	Form<2> dB(mesh);
-//
-//	dB.Clear();
-//
-//	CalculatedB(dt, E, B, &dB);
-//
-//	//  B(t=1/2 -> 1)
-//	LOG_CMD(B += dB * 0.5);
-//
-//	ApplyConstraintToB(&B);
-//
-//	J.Clear();
-//
-//	for (auto &p : particles_)
-//	{
-//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-//		p.second.Collect(&J, E, B);
-//	}
-//
-//// B(t=0 -> 1/2)
-//	LOG_CMD(B += dB * 0.5);
-//
-//	ApplyConstraintToB(&B);
-//
-////************************************************************
-//// Compute Cycle End
-////************************************************************
+
+	for (auto &p : particles_)
+	{
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+	}
+
+	//  E(t=1/2  -> 1)
+	LOG_CMD(E += dE * 0.5);
+
+	ApplyConstraintToE(&E);
+
+	dB.Clear();
+
+	CalculatedB(dt, E, B, &dB);
+
+	//  B(t=1/2 -> 1)
+	LOG_CMD(B += dB * 0.5);
+
+	ApplyConstraintToB(&B);
+
+	J = J0;
+
+	ApplyConstraintToJ(&J);
+
+	for (auto &p : particles_)
+	{
+		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+		p.second.Collect(&J, E, B);
+	}
+
+	// B(t=0 -> 1/2)
+	LOG_CMD(B += dB * 0.5);
+
+	ApplyConstraintToB(&B);
+
+	//************************************************************
+	// Compute Cycle End
+	//************************************************************
 
 }
 template<typename TM>
