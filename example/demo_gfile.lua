@@ -55,6 +55,7 @@ InitN0=function(x,y,z)
      end 
 --]]
 
+
 InitN0=function(x,y,z)      
       local x0=0.1*LX ;
       local res = 0.0;
@@ -75,6 +76,9 @@ InitB0=function(x,y,z)
       local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
       return {0,0,Btor}
      end 
+
+
+
 --[[
 InitValue={
 
@@ -140,7 +144,7 @@ Grid=
 Constraints=
 {
   { 
-    DOF="E",
+    DOF="E",HardSrc=true,
 	Select={Type="Boundary", Tag="Vacuum" },
 	Value= 0
   },
@@ -149,7 +153,7 @@ Constraints=
 	Index={ {NX/2,NY/2,0}},
 	HardSrc=false,
   	Value=function(x,y,z,t)	
-      local tau = t*omega_ext
+      local tau = t*omega_ext*100
       return {0, math.sin(tau) ,0}   
       end
 	 
