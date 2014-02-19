@@ -21,8 +21,10 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "pointinpolygen.h"
+#include "select.h"
 namespace simpla
 {
+
 template<typename TM>
 class MediaTag
 {
@@ -276,22 +278,8 @@ public:
 	template<typename ...Args>
 	void Set(tag_type media_tag, Args const & ... args)
 	{
-		_ForEachVertics(
-
-		[&](bool isSelected,tag_type &v)
-		{	if(isSelected) v=media_tag;},
-
-		std::forward<Args const &>(args)...);
-	}
-
-	template<typename ...Args>
-	void InverseSet(tag_type media_tag, Args const & ... args)
-	{
-
-		_ForEachVertics(
-
-		[&](bool isSelected,tag_type &v)
-		{	if(! isSelected) v =media_tag;},
+		_ForEachVertics([&]( tag_type &v)
+		{	v=media_tag;},
 
 		std::forward<Args const &>(args)...);
 	}
@@ -300,10 +288,8 @@ public:
 	void Add(tag_type media_tag, Args const & ... args)
 	{
 
-		_ForEachVertics(
-
-		[&](bool isSelected,tag_type &v)
-		{	if( isSelected) v|=media_tag;},
+		_ForEachVertics([&]( tag_type &v)
+		{	v|=media_tag;},
 
 		std::forward<Args const &>(args)...);
 	}
@@ -312,10 +298,8 @@ public:
 	void Remove(tag_type media_tag, Args const & ... args)
 	{
 
-		_ForEachVertics(
-
-		[&](bool isSelected,tag_type &v)
-		{	if(isSelected) v^=media_tag;},
+		_ForEachVertics([&]( tag_type &v)
+		{	v^=media_tag;},
 
 		std::forward<Args const &>(args)...);
 	}
@@ -357,14 +341,12 @@ private:
 	 *      SelectVerticsInRegion(<lambda function>,mesh,args)
 	 */
 	template<typename ...Args>
-	void _ForEachVertics(std::function<void(bool, tag_type&)> fun, Args const & ... args)
+	void _ForEachVertics(std::function<void(tag_type&)> fun, Args const & ... args)
 	{
 		Init();
 
-		_ForEaceVericsInRegion([&](bool is_selected,index_type const &s)
-		{
-			fun(is_selected,tags_[VERTEX][s]);
-		}, std::forward<Args const&>(args)...);
+		SelectFromMesh<VERTEX>(mesh, [&]( index_type const &s,coordinates_type const & )
+		{	fun( tags_[VERTEX][s]);}, std::forward<Args const&>(args)...);
 	}
 
 	void _ForEaceVericsInRegion(std::function<void(bool, index_type const &)> const & op,

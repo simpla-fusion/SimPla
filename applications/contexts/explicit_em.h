@@ -227,7 +227,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Add constraint to " << dof << DONE;
 	}
 
-	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+//	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 	LOGGER << "We have load every thing!";
 }
@@ -276,77 +276,77 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
 {
-	Real dt = mesh.GetDt();
-
-	mesh.CheckCourant(dt);
-
-	mesh.NextTimeStep();
-
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-
-	LOGGER
-
-	<< "Simulation Time = "
-
-	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
-
-	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
-
-	//************************************************************
-	// Compute Cycle Begin
-	//************************************************************
-
-	ApplyConstraintToJ(&J);
-
-	dE.Clear();
-
-	// dE = Curl(B)*dt
-	CalculatedE(dt, E, B, &dE);
-
-	LOG_CMD(dE -= J / epsilon0 * dt);
-
-	// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5);
-
+//	Real dt = mesh.GetDt();
+//
+//	mesh.CheckCourant(dt);
+//
+//	mesh.NextTimeStep();
+//
+//	DEFINE_PHYSICAL_CONST(mesh.constants());
+//
+//	LOGGER
+//
+//	<< "Simulation Time = "
+//
+//	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
+//
+//	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
+//
+//	//************************************************************
+//	// Compute Cycle Begin
+//	//************************************************************
+//
+//	ApplyConstraintToJ(&J);
+//
+//	dE.Clear();
+//
+//	// dE = Curl(B)*dt
+//	CalculatedE(dt, E, B, &dE);
+//
+//	LOG_CMD(dE -= J / epsilon0 * dt);
+//
+//	// E(t=0  -> 1/2  )
+//	LOG_CMD(E += dE * 0.5);
+//
 	ApplyConstraintToE(&E);
-
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
-
-	//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5);
-
-	ApplyConstraintToE(&E);
-
-	Form<2> dB(mesh);
-
-	dB.Clear();
-
-	CalculatedB(dt, E, B, &dB);
-
-	//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-	J.Clear();
-
-	for (auto &p : particles_)
-	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Collect(&J, E, B);
-	}
-
-// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-//************************************************************
-// Compute Cycle End
-//************************************************************
+//
+//	for (auto &p : particles_)
+//	{
+//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+//	}
+//
+//	//  E(t=1/2  -> 1)
+//	LOG_CMD(E += dE * 0.5);
+//
+//	ApplyConstraintToE(&E);
+//
+//	Form<2> dB(mesh);
+//
+//	dB.Clear();
+//
+//	CalculatedB(dt, E, B, &dB);
+//
+//	//  B(t=1/2 -> 1)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
+//
+//	J.Clear();
+//
+//	for (auto &p : particles_)
+//	{
+//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+//		p.second.Collect(&J, E, B);
+//	}
+//
+//// B(t=0 -> 1/2)
+//	LOG_CMD(B += dB * 0.5);
+//
+//	ApplyConstraintToB(&B);
+//
+////************************************************************
+//// Compute Cycle End
+////************************************************************
 
 }
 template<typename TM>
