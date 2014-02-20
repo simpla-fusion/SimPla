@@ -125,7 +125,7 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 	}
 	else if (dict["Index"])
 	{
-		std::vector<nTuple<3, index_type>> idxs;
+		std::vector<nTuple<TField::mesh_type::NUM_OF_DIMS, size_t>> idxs;
 		dict["Index"].as(&idxs);
 		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x )
 		{	self->GetDefDomain().emplace(s,x);}, idxs);

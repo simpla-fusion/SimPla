@@ -149,7 +149,7 @@ public:
 		return &mesh.get_value(data_, size());
 	}
 
-	inline std::vector<index_type> GetShape() const
+	inline std::vector<size_t> GetShape() const
 	{
 		return std::move(mesh.GetShape(IForm));
 	}

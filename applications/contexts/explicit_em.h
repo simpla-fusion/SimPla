@@ -205,14 +205,14 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Load J" << DONE;
 	}
 
-	LOGGER << "Load Particles";
-	for (auto const &opt : dict["Particles"])
-	{
-		ParticleWrap<TE, TB, TJ> p;
-
-		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
-			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
-	}
+//	LOGGER << "Load Particles";
+//	for (auto const &opt : dict["Particles"])
+//	{
+//		ParticleWrap<TE, TB, TJ> p;
+//
+//		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
+//			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
+//	}
 
 	LOGGER << "Load Constraints";
 	for (auto const & item : dict["Constraints"])

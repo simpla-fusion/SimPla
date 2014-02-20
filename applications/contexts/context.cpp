@@ -13,7 +13,10 @@
 #include <string>
 
 #include "../../src/fetl/primitives.h"
-#include "../../src/mesh/co_rect_mesh.h"
+
+#include "../../src/mesh/co_rect_mesh_rz.h"
+#include "../../src/mesh/topology_rect.h"
+
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
 #include "explicit_em.h"
@@ -56,16 +59,26 @@ void Context::Load(LuaObject const & dict)
 		auto mesh_type = dict["Grid"]["Type"].as<std::string>();
 		auto scalar_type = dict["Grid"]["ScalarType"].as<std::string>("Real");
 
-		if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
+//		if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
+//		{
+//			CreateContext<ExplicitEMContext<CoRectMesh<Complex>>>(dict,this);
+//		}
+//		else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
+//		{
+//			CreateContext<ExplicitEMContext<CoRectMesh<Real>>>(dict, this);
+//
+//		}
+
+		if (mesh_type == "CoRectMesh")
 		{
-			CreateContext<ExplicitEMContext<CoRectMesh<Complex>>>(dict,this);
-		}
-		else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
-		{
-			CreateContext<ExplicitEMContext<CoRectMesh<Real>>>(dict, this);
+			CreateContext<ExplicitEMContext<CoRectMeshRZ>>(dict, this);
 
 		}
+		else if (mesh_type == "RectMesh")
+		{
+			CreateContext<ExplicitEMContext<TopologyRect>>(dict, this);
 
+		}
 		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";
 
 	}

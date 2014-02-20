@@ -361,7 +361,7 @@ private:
 		{
 			index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
-			int n=mesh.template GetNeighbourCell(Int2Type<I>(),Int2Type<VERTEX>(),v,s);
+			int n=mesh.template GetAdjacentCells(Int2Type<I>(),Int2Type<VERTEX>(),s,v);
 			tag_type flag = null_tag;
 			for(int i=0;i<n;++i)
 			{
@@ -451,7 +451,7 @@ void MediaTag<TM>::SelectBoundary(Fun const &fun, tag_type in, tag_type out) con
 		{
 			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-			int num=this->mesh.GetNeighbourCell(Int2Type<IFORM>(),Int2Type<VOLUME>(),neighbours,s);
+			int num=this->mesh.GetAdjacentCells(Int2Type<IFORM>(),Int2Type<VOLUME>(),s,neighbours );
 
 			for(int i=0;i<num;++i)
 			{

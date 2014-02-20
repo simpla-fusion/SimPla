@@ -9,6 +9,7 @@
 #define SELECT_H_
 
 #include "../utilities/log.h"
+#include "../utilities/lua_state.h"
 namespace simpla
 {
 
@@ -85,13 +86,26 @@ void SelectFromMesh(TM const &mesh,
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
-        std::vector<nTuple<3, typename TM::index_type>> const & idxs)
+        std::vector<typename TM::index_type> const & idxs)
 {
 	int M = mesh.template GetNumCompsPerCell<IFORM>();
-	for (auto const & i : idxs)
+	for (auto const & s : idxs)
+	{
+		op(s, mesh.GetCoordinates(IFORM, s));
+	}
+
+}
+
+template<int IFORM, typename TM>
+void SelectFromMesh(TM const &mesh,
+        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+        std::vector<nTuple<TM::NUM_OF_DIMS, size_t>> const & idxs)
+{
+	int M = mesh.template GetNumCompsPerCell<IFORM>();
+	for (auto const & s : idxs)
 	{
 		for (int m = 0; m < M; ++m)
-			op(mesh.GetComponentIndex(IFORM, m, i[0], i[1], i[2]), mesh.GetCoordinates(IFORM, m, i[0], i[1], i[2]));
+			op(mesh.GetComponentIndex(IFORM, m, s[0], s[1], s[2]), mesh.GetCoordinates(IFORM, m, s[0], s[1], s[2]));
 	}
 
 }
