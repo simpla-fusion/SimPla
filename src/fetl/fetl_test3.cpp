@@ -5,17 +5,9 @@
  *      Author: salmon
  */
 
-#include <gtest/gtest.h>
-#include <random>
-
-#include "fetl.h"
-#include "../utilities/log.h"
-#include "../mesh/co_rect_mesh.h"
-#include "../utilities/pretty_stream.h"
-
+#include "fetl_test.h"
 using namespace simpla;
-
-DEFINE_FIELDS(CoRectMesh<>)
+DEFINE_FIELDS(DEF_MESH)
 
 template<typename TP>
 class TestFETLDiffCalcuate: public testing::Test
@@ -24,18 +16,17 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		mesh.dt_ = 1.0;
-		mesh.xmin_[0] = 0;
-		mesh.xmin_[1] = 0;
-		mesh.xmin_[2] = 0;
-		mesh.xmax_[0] = 1.0;
-		mesh.xmax_[1] = 1.0;
-		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 20;
-		mesh.dims_[1] = 1;
-		mesh.dims_[2] = 1;
+		mesh.SetDt(1.0);
+
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
+		mesh.SetExtent(xmin, xmax);
+
+		nTuple<3, size_t> dims = { 20, 0, 0 };
+		mesh.SetDimension(dims);
 
 		mesh.Update();
+
 
 	}
 public:

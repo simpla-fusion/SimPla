@@ -21,8 +21,8 @@
 
 namespace simpla
 {
-#define DEFINE_FIELDS(TG)                                                                              \
-typedef TG Mesh;                                                                                       \
+#define DEFINE_FIELDS(TM)                                                                              \
+typedef TM Mesh;                                                                                       \
 typedef typename Mesh::index_type index_type ;                                                         \
 typedef typename Mesh::scalar_type scalar_type ;                                                       \
 typedef typename Mesh::coordinates_type coordinates_type;                                              \

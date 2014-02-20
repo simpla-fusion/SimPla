@@ -109,7 +109,7 @@ InitValue={
 GFile='g033068.02750'
 Grid=
 {
-  Type="CoRectMesh",
+  Type="RectMesh",
 --  ScalarType="Complex",
   UnitSystem={Type="SI"},
   Topology=

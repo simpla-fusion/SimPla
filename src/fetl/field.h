@@ -156,35 +156,31 @@ public:
 
 	inline value_type & get(index_type s)
 	{
-		ASSERT(s < num_of_eles_)
-		return mesh.get_value(data_, s);
+		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s));
 	}
 	inline value_type const & get(index_type s) const
 	{
-		return mesh.get_value(data_, s);
+		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s));
 	}
 
 	template<typename ... TI>
 	inline value_type & get(TI ...s)
 	{
-		index_type ts = mesh.GetComponentIndex(IForm, s...);
-		ASSERT(ts < num_of_eles_);
-		ASSERT(ts >= 0);
-		return mesh.get_value(data_, ts);
+		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s...));
 	}
 	template<typename ...TI>
 	inline value_type const & get(TI ...s) const
 	{
-		return mesh.get_value(data_, mesh.GetComponentIndex(IForm, s...));
+		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s...));
 	}
 
-	inline value_type & operator[](index_type s)
+	inline value_type & operator[](size_t s)
 	{
-		return get(s);
+		return mesh.get_value(data_, s);
 	}
-	inline value_type const & operator[](index_type s) const
+	inline value_type const & operator[](size_t s) const
 	{
-		return get(s);
+		return mesh.get_value(data_, s);
 	}
 
 	void Init()
