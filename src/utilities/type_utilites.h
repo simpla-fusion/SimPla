@@ -196,6 +196,19 @@ public:
 
 };
 
+// @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
+template<int N>
+struct CountBits
+{
+	static const unsigned int n = CountBits<N / 2>::n + 1;
+};
+
+template<>
+struct CountBits<0>
+{
+	static const unsigned int n = 0;
+};
+
 //******************************************************************************************************
 // Generic Visitor
 //******************************************************************************************************

@@ -113,13 +113,13 @@ public:
 	MediaTag<this_type> tags_;
 
 	typedef typename MediaTag<this_type>::tag_type tag_type;
+
 	MediaTag<this_type> & tags()
 	{
 		return tags_;
 	}
 	MediaTag<this_type> const& tags() const
 	{
-
 		return tags_;
 	}
 
@@ -127,6 +127,7 @@ public:
 	//* Constants
 	//***************************************************************************************************
 	PhysicalConstants constants_;	//!< Unit System and phyical constants
+
 	PhysicalConstants & constants()
 	{
 		return constants_;
@@ -138,6 +139,7 @@ public:
 	}
 
 	Real time_, dt_;
+
 	void NextTimeStep()
 	{
 		time_ += dt_;
@@ -163,6 +165,7 @@ public:
 		dt_ = dt;
 		Update();
 	}
+
 	bool CheckCourant() const
 	{
 		DEFINE_PHYSICAL_CONST(constants_);
@@ -301,8 +304,6 @@ public:
 	 * 	 m=20
 	 */
 
-	typedef signed long shift_type;
-
 	static constexpr int DIGITS_LONG=std::numeric_limits<unsigned long>::digits;//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 
 	static constexpr int DIGITS_SHORT=std::numeric_limits<unsigned short>::digits;
@@ -314,14 +315,14 @@ public:
 	static constexpr int DIGITS_COMP= std::numeric_limits<unsigned long>::digits-DIGITS_INDEX*3;
 
 #define _shift_bit(m) \
-			 static_cast<shift_type>((static_cast<unsigned long>((-1L) << (DIGITS_FULL - DIGITS_INDEX)) >> (DIGITS_FULL - DIGITS_INDEX*(m+1) )))
+			 static_cast<index_type>((static_cast<unsigned long>((-1L) << (DIGITS_FULL - DIGITS_INDEX)) >> (DIGITS_FULL - DIGITS_INDEX*(m+1) )))
 	enum
 	{
 		IX = 1L, // 0000 0000 0001
 		DX= _shift_bit(0),// 0000 0000 1111
-		IY = 1L<<DIGITS_SHORT,// 0000 0001 0000
+		IY = 1L<<DIGITS_INDEX,// 0000 0001 0000
 		DY=_shift_bit(1),// 0000 1111 0000
-		IZ = 1L<<(DIGITS_SHORT*2),// 0001 0000 0000
+		IZ = 1L<<(DIGITS_INDEX*2),// 0001 0000 0000
 		DZ=_shift_bit(2)// 1111 0000 0000
 
 	};
@@ -339,7 +340,7 @@ public:
 	template<int M>
 	size_t UnpackIndex(index_type s)const
 	{
-		return (s << (DIGITS_FULL - DIGITS_INDEX*(3-M))) >> (DIGITS_FULL - DIGITS_INDEX );
+		return ((s << (DIGITS_FULL - DIGITS_INDEX*(3-M))) >> (DIGITS_FULL - DIGITS_INDEX )+dims_[M])%dims_[M];
 	}
 	template<int M>
 	index_type PackIndex(size_t s)const
@@ -347,40 +348,36 @@ public:
 		return s << ( DIGITS_INDEX* (2-M));
 	}
 
-	size_t GetX(index_type s)const
+	size_t GetI(index_type s)const
 	{
 		return UnpackIndex<0>(s);
 	}
-	size_t GetY(index_type s)const
+	size_t GetJ(index_type s)const
 	{
 		return UnpackIndex<1>(s);
 	}
-	size_t GetZ(index_type s)const
+	size_t GetK(index_type s)const
 	{
 		return UnpackIndex<2>(s);
 	}
-
 	size_t GetM(index_type s)const
 	{
 		return s >> (DIGITS_FULL - DIGITS_COMP );
 	}
 
-	template<typename TS>
-	index_type PutX(TS s)const
+	index_type PutI(size_t s)const
 	{
-		return PackIndex<0>(static_cast<size_t>(s));
+		return PackIndex<0>(s);
 	}
 
-	template<typename TS>
-	index_type PutY(TS s)const
+	index_type PutJ(size_t s)const
 	{
-		return PackIndex<1>(static_cast<size_t>(s));
+		return PackIndex<1>(s);
 	}
 
-	template<typename TS>
-	index_type PutZ(TS s)const
+	index_type PutK(size_t s)const
 	{
-		return PackIndex<2>(static_cast<size_t>(s));
+		return PackIndex<2>(s);
 	}
 
 	index_type PutM(size_t s)const
@@ -388,65 +385,67 @@ public:
 		return s << (DIGITS_FULL - DIGITS_COMP );
 	}
 
-	// NOTE backward Compatible with old version
-	index_type GetComponentIndex(int IFORM,int m,size_t i,size_t j,size_t k)const
-	{
-		return PutM(m)+PutX(i)+PutX(j)+PutX(k);
-	}
 	index_type GetComponentIndex( int m,size_t i,size_t j,size_t k)const
 	{
-		return PutM(m)+PutX(i)+PutX(j)+PutX(k);
+		return PutM(m)+PutI(i)+PutJ(j)+PutK(k);
 	}
-	inline index_type Shift(shift_type d, index_type s) const
+	inline index_type Shift(index_type d, index_type s) const
 	{
 //FIXME Cycle boundary
 
 		return s&d;
 	}
 
-	template<int IFORM>
-	inline size_t GetArrayIndex(index_type s) const
+	inline size_t HashIndex(index_type s)const
 	{
 		return
+		( GetI(s) * strides_[0]+
+		GetJ(s)* strides_[1]+
+		GetK(s) * strides_[2] );
 
-		( GetX(s) * strides_[0]+
-		GetY(s)* strides_[1]+
-		GetZ(s) * strides_[2] )*num_comps_per_cell_[IFORM]+GetM(s);
+	}
+
+	inline size_t GetArrayIndex(index_type s) const
+	{
+		return HashIndex(s);
+
 	}
 
 	template<int IFORM,typename ...TI>
 	inline size_t GetArrayIndex(TI ... s) const
 	{
-		return GetArrayIndex(GetComponentIndex(IFORM,s...));
+		return HashIndex(GetComponentIndex(IFORM,s...));
 	}
 
 	//**************************************************************************************************
-	inline coordinates_type GetCoordinates(int IFORM, index_type s) const
+
+	template<int I>
+	Real UnpackCoorindate(index_type s) const
 	{
-
-		coordinates_type res=
-		{
-
-			(GetX(s) + coordinates_shift_[IFORM][GetM(s)][0])* dx_[0],
-
-			(GetY(s) + coordinates_shift_[IFORM][GetM(s)][1])* dx_[1],
-
-			(GetZ(s) + coordinates_shift_[IFORM][GetM(s)][2])* dx_[2]
-		};
-
-		return std::move(res);
+		UnpackIndex<I>(s)*dx_[I];
 	}
-	inline coordinates_type GetCoordinates(int IFORM, int m, size_t i, size_t j, size_t k) const
+
+	Real GetX(index_type s)const
+	{
+		return UnpackCoorindate<0>(s);
+	}
+
+	Real GetY(index_type s)const
+	{
+		return UnpackCoorindate<1>(s);
+	}
+
+	Real GetZ(index_type s)const
+	{
+		return UnpackCoorindate<2>(s);
+	}
+
+	inline coordinates_type GetCoordinates( index_type s) const
 	{
 
 		coordinates_type res=
-		{
-			(i+ coordinates_shift_[IFORM][m][0])* dx_[0],
+		{	GetX(s) , GetY(s) , GetZ(s)};
 
-			(j+ coordinates_shift_[IFORM][m][1])* dx_[1],
-
-			(k+ coordinates_shift_[IFORM][m][2])* dx_[2]
-		};
 		return std::move(res);
 	}
 	inline size_t GetSubComponent(index_type s) const
@@ -464,6 +463,22 @@ public:
 	{
 		return GetCellIndex(s) + PutM((GetM(s) + m) % 3);
 	}
+
+	//***************************************************************************************************
+	// NOTE backward Compatible with old version
+	index_type GetComponentIndex(int IFORM,int m,size_t i,size_t j,size_t k)const
+	{
+		return PutM(m)+PutI(i)+PutJ(j)+PutK(k);
+	}
+
+	inline coordinates_type GetCoordinates(int IFORM, int m, size_t i, size_t j, size_t k) const
+	{
+
+		return std::move(GetComponentIndex(IFORM,m,i,j,k));
+	}
+
+	//***************************************************************************************************
+
 	template<int IFORM, typename TV>
 	TV GetWeightOnElement(TV const & v, index_type const &s) const
 	{
@@ -531,9 +546,9 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = GetCellIndex(s);
-			v[1] = Shift(INC(GetM(s) + 1), s);
-			v[2] = Shift(INC(GetM(s) + 1) | INC(GetM(s) + 2), s);
-			v[3] = Shift(INC(GetM(s) + 2), s);
+			v[1] = INC(GetM(s) + 1) + s;
+			v[2] = (INC(GetM(s) + 1) | INC(GetM(s) + 2)) + s;
+			v[3] = INC(GetM(s) + 2) + s;
 		}
 		return 4;
 	}
@@ -564,14 +579,14 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = GetCellIndex(s);
-			v[1] = Shift(INC(0), s);
-			v[2] = Shift(INC(1) | INC(1), s);
-			v[3] = Shift(INC(1), s);
+			v[1] = (INC(0))+s;
+			v[2] = (INC(1) | INC(1))+s;
+			v[3] = (INC(1))+s;
 
-			v[4] = Shift(INC(2), s);
-			v[5] = Shift(INC(2) | INC(0), s);
-			v[6] = Shift(INC(2) | INC(1) | INC(1), s);
-			v[7] = Shift(INC(2) | INC(1), s);
+			v[4] = (INC(2))+s;
+			v[5] = (INC(2) | INC(0))+s;
+			v[6] = (INC(2) | INC(1) | INC(1))+s;
+			v[7] = (INC(2) | INC(1))+s;
 		}
 		return 8;
 	}
@@ -604,9 +619,9 @@ public:
 			v[0] = s + PutM(0);
 			v[1] = s + PutM(1);
 			v[2] = s + PutM(2);
-			v[3] = Shift(DES(1), s) + PutM(0);
-			v[4] = Shift(DES(2), s) + PutM(1);
-			v[5] = Shift(DES(2), s) + PutM(2);
+			v[3] = (DES(1))+s + PutM(0);
+			v[4] = (DES(2))+s + PutM(1);
+			v[5] = (DES(2))+s + PutM(2);
 		}
 		return 6;
 	}
@@ -639,8 +654,8 @@ public:
 		{
 			v[0] = CycleComp<1>(s);
 			v[1] = CycleComp<2>(s);
-			v[2] = CycleComp<1>(Shift(INC(GetM(s) + 1), s));
-			v[2] = CycleComp<2>(Shift(INC(GetM(s) + 2), s));
+			v[2] = CycleComp<1>( (INC(GetM(s) + 1))+s);
+			v[2] = CycleComp<2>( (INC(GetM(s) + 2))+s);
 		}
 		return 4;
 	}
@@ -672,19 +687,19 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = s + PutM(0);
-			v[1] = Shift(INC(0), s) + PutM(1);
-			v[2] = Shift(INC(1), s) + PutM(0);
+			v[1] = (INC(0))+s + PutM(1);
+			v[2] = (INC(1))+s + PutM(0);
 			v[3] = s + PutM(1);
 
 			v[4] = s + PutM(2);
-			v[5] = Shift(INC(0), s) + PutM(2);
-			v[6] = Shift(INC(1) | INC(0), s) + PutM(2);
-			v[7] = Shift(INC(1), s) + PutM(2);
+			v[5] = (INC(0))+s + PutM(2);
+			v[6] = (INC(1) | INC(0))+s + PutM(2);
+			v[7] = (INC(1))+s + PutM(2);
 
-			v[8] = Shift(INC(2), s) + PutM(0);
-			v[9] = Shift(INC(2) | INC(0), s) + PutM(1);
-			v[10] = Shift(INC(2) | INC(1), s) + PutM(0);
-			v[11] = Shift(INC(2), s) + PutM(1);
+			v[8] = (INC(2))+s + PutM(0);
+			v[9] = (INC(2) | INC(0))+s + PutM(1);
+			v[10] = (INC(2) | INC(1))+s + PutM(0);
+			v[11] = (INC(2))+s + PutM(1);
 
 		}
 		return 12;
@@ -730,19 +745,19 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = s;
-			v[1] = Shift(DES(2), s);
-			v[2] = Shift(DES(2) | DES(1), s);
-			v[3] = Shift(DES(1), s);
+			v[1] = (DES(2))+s;
+			v[2] = (DES(2) | DES(1))+s;
+			v[3] = (DES(1))+s;
 
 			v[4] = s + PutM(1);
-			v[5] = Shift(DES(2), s) + PutM(1);
-			v[6] = Shift(DES(0) | DES(2), s) + PutM(1);
-			v[7] = Shift(DES(0), s) + PutM(1);
+			v[5] = (DES(2))+s + PutM(1);
+			v[6] = (DES(0) | DES(2))+s + PutM(1);
+			v[7] = (DES(0))+s + PutM(1);
 
 			v[8] = s + PutM(2);
-			v[9] = Shift(DES(1), s) + PutM(2);
-			v[10] = Shift(DES(1) | DES(0), s) + PutM(2);
-			v[11] = Shift(DES(0), s) + PutM(2);
+			v[9] = (DES(1))+s + PutM(2);
+			v[10] = (DES(1) | DES(0))+s + PutM(2);
+			v[11] = (DES(0))+s + PutM(2);
 
 		}
 		return 12;
@@ -790,8 +805,8 @@ public:
 		{
 			v[0] = CycleComp<1>(s);
 			v[1] = CycleComp<2>(s);
-			v[2] = CycleComp<1>(Shift(DES(GetM(s) + 2), s));
-			v[2] = CycleComp<2>(Shift(DES(GetM(s) + 1), s));
+			v[2] = CycleComp<1>( (DES(GetM(s) + 2))+s);
+			v[2] = CycleComp<2>( (DES(GetM(s) + 1))+s);
 		}
 		return 4;
 	}
@@ -823,12 +838,12 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = s + PutM(0);
-			v[1] = Shift(INC(1), s) + PutM(1);
-			v[2] = Shift(INC(0), s) + PutM(0);
+			v[1] = (INC(1))+s + PutM(1);
+			v[2] = (INC(0))+s + PutM(0);
 			v[3] = s + PutM(1);
 
 			v[4] = s + PutM(2);
-			v[5] = Shift(INC(2), s) + PutM(2);
+			v[5] = (INC(2))+s + PutM(2);
 
 		}
 		return 6;
@@ -874,14 +889,14 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = GetCellIndex(s);
-			v[1] = Shift(DES(0), s);
-			v[2] = Shift(DES(0) | DES(1), s);
-			v[3] = Shift(DES(1), s);
+			v[1] = (DES(0))+s;
+			v[2] = (DES(0) | DES(1))+s;
+			v[3] = (DES(1))+s;
 
-			v[4] = Shift(DES(2), s);
-			v[5] = Shift(DES(2) | DES(0), s);
-			v[6] = Shift(DES(2) | DES(0) | DES(1), s);
-			v[7] = Shift(DES(2) | DES(1), s);
+			v[4] = (DES(2))+s;
+			v[5] = (DES(2) | DES(0))+s;
+			v[6] = (DES(2) | DES(0) | DES(1))+s;
+			v[7] = (DES(2) | DES(1))+s;
 
 		}
 		return 8;
@@ -928,9 +943,9 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = GetCellIndex(s);
-			v[1] = Shift(DES(GetM(s) + 1), s);
-			v[2] = Shift(DES(GetM(s) + 1) | DES(GetM(s) + 2), s);
-			v[3] = Shift(DES(GetM(s) + 2), s);
+			v[1] = (DES(GetM(s) + 1))+s;
+			v[2] = (DES(GetM(s) + 1) | DES(GetM(s) + 2))+s;
+			v[3] = (DES(GetM(s) + 2))+s;
 		}
 		return 4;
 	}
@@ -962,7 +977,7 @@ public:
 		if (v != nullptr)
 		{
 			v[0] = GetCellIndex(s);
-			v[1] = Shift(DES(GetM(s)), s);
+			v[1] = (DES(GetM(s)))+s;
 
 		}
 		return 2;
@@ -1175,7 +1190,7 @@ public:
 
 		}
 
-		return PutX ( i[0] ) + PutY ( i[1] ) + PutZ ( i[2] );
+		return PutI ( i[0] ) + PutJ ( i[1] ) + PutK( i[2] );
 	}
 
 	/**
@@ -1216,7 +1231,7 @@ public:
 
 		}
 
-		return Shift(d, s);
+		return (d)+s;
 
 	}
 
@@ -1244,7 +1259,7 @@ public:
 //		r=*x;
 //		index_type s = SearchCell(hint_s,&(r)[0]);
 //
-//		shift_type d=0;
+//		index_type d=0;
 //
 //		for(int i=0;i<3;++i)
 //		{
@@ -1268,7 +1283,7 @@ public:
 //		if(d!=0)
 //		{
 //			*x=GetGlobalCoordinates(s,r);
-//			s= Shift(d,s);
+//			s=  (d,s);
 //		}
 		return 0;
 

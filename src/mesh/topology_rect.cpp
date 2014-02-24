@@ -140,38 +140,27 @@ void TopologyRect::_Traversal(unsigned int num_threads, unsigned int thread_id, 
         std::function<void(index_type)> const &fun) const
 {
 
-//	index_type ib = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[0];
-//	index_type ie = ((flags & WITH_GHOSTS) > 0) ? dims_[0] : dims_[0] - ghost_width_[0];
-//
-//	index_type jb = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[1];
-//	index_type je = ((flags & WITH_GHOSTS) > 0) ? dims_[1] : dims_[1] - ghost_width_[1];
-//
-//	index_type kb = ((flags & WITH_GHOSTS) > 0) ? 0 : ghost_width_[2];
-//	index_type ke = ((flags & WITH_GHOSTS) > 0) ? dims_[2] : dims_[2] - ghost_width_[2];
+	index_type ib = IX * dims_[0] * thread_id / num_threads;
+	index_type ie = IX * dims_[0] * (thread_id + 1) / num_threads;
 
-//	index_type ib = 0;
-//	index_type ie = dims_[0];
-//
-//	index_type jb = 0;
-//	index_type je = dims_[1];
-//
-//	index_type kb = 0;
-//	index_type ke = dims_[2];
-//
-//	int mb = 0;
-//	int me = num_comps_per_cell_[IFORM];
-//
-//	index_type len = ie - ib;
-//	index_type tb = ib + len * thread_id / num_threads;
-//	index_type te = ib + len * (thread_id + 1) / num_threads;
-//
-//	for (index_type i = tb; i < te; ++i)
-//		for (index_type j = jb; j < je; ++j)
-//			for (index_type k = kb; k < ke; ++k)
-//				for (int m = mb; m < me; ++m)
-//				{
-//					fun(m, i, j, k);
-//				}
+	index_type jb = 0;
+	index_type je = IY * dims_[1];
+
+	index_type kb = 0;
+	index_type ke = IZ * dims_[2];
+
+	int mb = 0;
+	int me = num_comps_per_cell_[IFORM];
+
+	for (index_type i = ib; i < ie; i += IX)
+		for (index_type j = jb; j < je; j += IY)
+			for (index_type k = kb; k < ke; k += IZ)
+			{
+				for (int m = mb; m < me; ++m)
+				{
+					fun(i + j + k + PutM(m));
+				}
+			}
 
 }
 }  // namespace simpla
