@@ -9,10 +9,13 @@
 #define OCTREE_FOREST_H_
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <limits>
 
 #include "../fetl/ntuple.h"
+#include "../fetl/primitives.h"
 #include "../utilities/type_utilites.h"
 
 namespace simpla
@@ -88,8 +91,8 @@ struct OcForest
 
 	};
 
-	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
-	        INDEX_DIGITS - MAX_TREE_HEIGHT };
+	nTuple<3, unsigned int> index_digits_ =
+	{ INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT };
 
 	compact_index_type _MI = 0UL;
 	compact_index_type _MJ = 0UL;
@@ -131,14 +134,18 @@ struct OcForest
 	}
 	nTuple<3, unsigned int> GetDimensions() const
 	{
-		return nTuple<3, unsigned int>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
+		return nTuple<3, unsigned int>(
+		{ 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
 
 	}
 	void Update()
 	{
-		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
-		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
-		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
+		_MI = _C(index_type(
+		{ 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
+		_MJ = _C(index_type(
+		{ 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
+		_MK = _C(index_type(
+		{ 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
 		_MA = _MI | _MJ | _MK;
 	}
 
@@ -186,22 +193,22 @@ struct OcForest
 	{
 		index_type res;
 
-		ASSERT(0<=x[0] && x[0]<=1.0);
+		ASSERT(0 <= x[0] && x[0] <= 1.0);
 
-		ASSERT(0<=x[1] && x[1]<=1.0);
+		ASSERT(0 <= x[1] && x[1] <= 1.0);
 
-		ASSERT(0<=x[2] && x[2]<=1.0);
+		ASSERT(0 <= x[2] && x[2] <= 1.0);
 
 		res.H = H;
 
 		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
 
 		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
 
 		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
 
 		return std::move(res);
 	}
@@ -209,7 +216,8 @@ struct OcForest
 	inline nTuple<3, Real> GetCoordinates(index_type const & s) const
 	{
 
-		return nTuple<3, Real>( {
+		return nTuple<3, Real>(
+		{
 
 		static_cast<Real>(s.I) * dh,
 
@@ -762,133 +770,92 @@ struct OcForest
 		return 2;
 	}
 
-//! VERTEX -> EDGE
-	template<typename TF>
-	auto Grad(TF const & f,
-	        index_type s) const
-	                DECL_RET_TYPE(
-			                ( (f[s + s & (_MA >> (s.H + 1))] - f[s - s & (_MA >> (s.H + 1))]) * static_cast<double>(1UL << s.H) )
-	                )
+	//***************************************************************************************************
+	//  Traversal
+	//***************************************************************************************************
 
-//! VERTEX -> EDGE
-	template<typename TF>
-	auto Diverge(TF const & f, index_type s, Real const a[3]) const
-	DECL_RET_TYPE(
-			((
-							(f[s + (_MI >> (s.H + 1))] - f[s - (_MI >> (s.H + 1))]) *a[0]+
-							(f[s + (_MJ >> (s.H + 1))] - f[s - (_MJ >> (s.H + 1))]) *a[1]+
-							(f[s + (_MK >> (s.H + 1))] - f[s - (_MK >> (s.H + 1))]) *a[2]
-					)* static_cast<double>(1UL << s.H) )
-	)
+	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+			std::function<void(index_type)> const &funs) const;
 
-	//! Curl(Field<Edge>) Edge=>FACE
-	template<typename TF>
-	auto Curl(TF const & f, Int2Type<EDGE>,
-	        index_type s, //! this is FACE index
-	        Real const a[3]) const
-	                DECL_RET_TYPE(
-			                ((
-							                (f[ s + (_R( _I(s))>> (s.H +1) ) ] - f[s - (_R( _I(s))>> (s.H +1) )]) *a[ _N(_R( _I(s))) ]-
-							                (f[ s + (_RR( _I(s))>> (s.H +1) ) ] - f[s - (_RR( _I(s))>> (s.H +1) )]) *a[ _N(_RR( _I(s))) ]
-					                )* static_cast<double>(1UL << s.H) )
-	                )
+	template<typename ... Args>
+	void Traversal(Args const &...args) const
+	{
+		ParallelTraversal(std::forward<Args const &>(args)...);
+	}
 
-	//! Curl(Field<FACE>) FACE=>EDGE
-	template<typename TF>
-	auto Curl(TF const & f, Int2Type<FACE>,
-	        index_type s, //! this is edge index
-	        Real const a[3]) const
-	                DECL_RET_TYPE(
-			                ((
-							                (f[ s + (_R( s)>> (s.H +1) ) ] - f[s - (_R( s)>> (s.H +1) )]) *a[ _N(_R( s))]-
-							                (f[ s + (_RR( s)>> (s.H +1) )] - f[s - (_RR( s)>> (s.H +1) )]) *a[ _N(_RR( s))]
+	template<typename ...Args> void ParallelTraversal(Args const &...args) const;
 
-					                )* static_cast<double>(1UL << s.H) )
-	                )
-//***************************************************************************************************
-//  Traversal
-//
-//***************************************************************************************************
-//
-//	template<typename ... Args>
-//	void Traversal(Args const &...args) const
-//	{
-//		ParallelTraversal(std::forward<Args const &>(args)...);
-//	}
-//
-//	template<typename ...Args> void ParallelTraversal(Args const &...args) const;
-//
-//	template<typename ...Args> void SerialTraversal(Args const &...args) const;
-//
-//	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-//	        std::function<void(index_type)> const &funs) const;
-//
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void SerialForEach(Fun const &fun, TF const & l, Args const& ... args) const
-//	{
-//		SerialTraversal(FieldTraits<TF>::IForm, [&]( index_type s)
-//		{	fun(get(l,s),get(args,s)...);});
-//	}
-//
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void SerialForEach(Fun const &fun, TF *l, Args const& ... args) const
-//	{
-//		if (l == nullptr)
-//			ERROR << "Access value to an uninitilized container!";
-//
-//		SerialTraversal(FieldTraits<TF>::IForm, [&]( index_type s)
-//		{	fun(get(l,s),get(args,s)...);});
-//	}
-//
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ParallelForEach(Fun const &fun, TF const & l, Args const& ... args) const
-//	{
-//		ParallelTraversal(FieldTraits<TF>::IForm, [&]( index_type s)
-//		{	fun(get(l,s),get(args,s)...);});
-//	}
-//
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ParallelForEach(Fun const &fun, TF *l, Args const& ... args) const
-//	{
-//		if (l == nullptr)
-//			ERROR << "Access value to an uninitilized container!";
-//
-//		ParallelTraversal(FieldTraits<TF>::IForm, [&]( index_type s)
-//		{	fun(get(l,s),get(args,s)...);});
-//	}
-//
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ForEach(Fun const &fun, TF const & l, Args const& ... args) const
-//	{
-//		ParallelForEach(fun, l, std::forward<Args const &>(args)...);
-//	}
-//	template<typename Fun, typename TF, typename ... Args> inline
-//	void ForEach(Fun const &fun, TF *l, Args const& ... args) const
-//	{
-//		ParallelForEach(fun, l, std::forward<Args const &>(args)...);
-//	}
-//
-////***************************************************************************************************
-////* Container/Field operation
-////* Field vs. Mesh
-////***************************************************************************************************
-//
-//	template<typename TL, typename TR> void AssignContainer(int IFORM, TL * lhs, TR const &rhs) const
-//	{
-//		ParallelTraversal(IFORM, [&]( index_type s)
-//		{	get(lhs,s)=get(rhs,s);});
-//
-//	}
-//
-//	template<typename T>
-//	inline typename std::enable_if<!is_field<T>::value, T>::type get(T const &l, index_type) const
-//	{
-//		return std::move(l);
-//	}
-//
+	template<typename ...Args> void SerialTraversal(Args const &...args) const;
 
 }
 ;
+template<typename ...Args>
+void OcForest::ParallelTraversal(Args const &...args) const
+{
+	const unsigned int num_threads = std::thread::hardware_concurrency();
+
+	std::vector<std::thread> threads;
+
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		threads.emplace_back(std::thread([num_threads,thread_id,this](Args const & ...args2)
+		{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
+
+		std::forward<Args const &>(args)...));
+	}
+
+	for (auto & t : threads)
+	{
+		t.join();
+	}
+
+}
+
+template<typename ...Args>
+void OcForest::SerialTraversal(Args const &...args) const
+{
+	_Traversal(1, 0, std::forward<Args const&>( args)...);
+}
+
+void OcForest::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
+		std::function<void(index_type)> const &fun) const
+{
+	auto dims_ = GetDimensions();
+	index_type ib = dims_[0] * thread_id / num_threads;
+	index_type ie = dims_[0] * (thread_id + 1) / num_threads;
+
+	index_type s;
+	s.H = 0;
+	for (s.I = ib; s.I < ie; s.I += _MI)
+		for (s.J = 0; s.J < dims_[1]; s.J += _MJ)
+			for (s.K = 0; s.K < dims_[2]; s.K += _MK)
+			{
+				if (IFORM == VERTEX)
+				{
+					fun(s);
+				}
+				else if (IFORM == EDGE)
+				{
+					fun(s + (_MI >> 1));
+					fun(s + (_MJ >> 1));
+					fun(s + (_MK >> 1));
+				}
+				else if (IFORM == FACE)
+				{
+					fun(s + ((_MJ | _MK) >> 1));
+					fun(s + ((_MK | _MI) >> 1));
+					fun(s + ((_MI | _MJ) >> 1));
+				}
+				else if (IFORM == VOLUME)
+				{
+					fun(s + (_MA >> 1));
+				}
+				else
+				{
+					UNIMPLEMENT2("traversal octree!!!");
+				}
+			}
+}
 
 }
 // namespace simpla
