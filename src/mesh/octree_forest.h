@@ -56,30 +56,28 @@ struct OcForest
 		size_type J :INDEX_DIGITS;
 		size_type K :INDEX_DIGITS;
 
-#define DEF_OP(_OP_)                                            \
-		index_type operator _OP_##=(index_type const &r)        \
-		{                                                       \
-			H = std::max(H, r.H);                               \
-			I _OP_##= r.I;                                      \
-			J _OP_##= r.J;                                      \
-			K _OP_##= r.K;                                      \
-			return *this;                                       \
-		}                                                       \
-                                                                \
-		index_type operator _OP_ (index_type const &r)const          \
-		{                                                       \
-			index_type t;                                       \
-			t.H = std::max(H, r.H);                             \
-			t.I = I _OP_ r.I;                                   \
-			t.J = J _OP_ r.J;                                   \
-			t.K = K _OP_ r.K;                                   \
-			return t;                                           \
-		}                                                       \
-		index_type operator _OP_##=(compact_index_type  r ) \
-		{    this->operator _OP_##=(_C(r));  return *this;      } \
-																\
-		index_type operator _OP_ (compact_index_type  r)const  \
-		{   return std::move(this->operator _OP_ (_C(r)));    } \
+#define DEF_OP(_OP_)                                                   \
+		inline index_type operator _OP_##=(index_type const &r)        \
+		{                                                              \
+			H = std::max(H, r.H);                                      \
+			I _OP_##= r.I;                                             \
+			J _OP_##= r.J;                                             \
+			K _OP_##= r.K;                                             \
+			return *this;                                              \
+		}                                                              \
+        inline index_type operator _OP_ (index_type const &r)const     \
+		{                                                              \
+			index_type t;                                              \
+			t.H = std::max(H, r.H);                                    \
+			t.I = I _OP_ r.I;                                          \
+			t.J = J _OP_ r.J;                                          \
+			t.K = K _OP_ r.K;                                          \
+			return t;                                                  \
+		}                                                              \
+		inline index_type operator _OP_##=(compact_index_type  r )     \
+		{    this->operator _OP_##=(_C(r));  return *this;      }      \
+		inline index_type operator _OP_ (compact_index_type  r)const   \
+		{   return std::move(this->operator _OP_ (_C(r)));    }
 
 		DEF_OP(+)
 		DEF_OP(-)
@@ -101,6 +99,7 @@ struct OcForest
 	//  public:
 	OcForest()
 	{
+		Update();
 	}
 	OcForest(nTuple<3, unsigned int> const & d)
 	{
@@ -137,9 +136,9 @@ struct OcForest
 	}
 	void Update()
 	{
-		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0] - 1), 0, 0 }));
-		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1] - 1), 0 }));
-		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2] - 1) }));
+		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
+		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
+		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
 		_MA = _MI | _MJ | _MK;
 	}
 
@@ -207,47 +206,38 @@ struct OcForest
 
 	}
 
-	index_type _II(index_type const &s)
-	{
-		index_type t = s;
-		t.I += 1UL << (INDEX_DIGITS - index_digits_[0]);
-		return t;
-	}
-	index_type _IJ(index_type const &s)
-	{
-		index_type t = s;
-		t.J += 1UL << (INDEX_DIGITS - index_digits_[1]);
-		return t;
-	}
-	index_type _IK(index_type const &s)
-	{
-		index_type t = s;
-		t.K += 1UL << (INDEX_DIGITS - index_digits_[2]);
-		return t;
-	}
-
-	index_type _DI(index_type const &s)
-	{
-		index_type t = s;
-		t.I -= 1UL << (INDEX_DIGITS - index_digits_[0]);
-		return t;
-	}
-	index_type _DJ(index_type const &s)
-	{
-		index_type t = s;
-		t.J -= 1UL << (INDEX_DIGITS - index_digits_[1]);
-		return t;
-	}
-	index_type _DK(index_type const &s)
-	{
-		index_type t = s;
-		t.K += 1UL << (INDEX_DIGITS - index_digits_[2]);
-		return t;
-	}
 //***************************************************************************************************
 
+	/**
+	 *  rotate vector direction  mask
+	 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
+	 * @param s
+	 * @return
+	 */
+	compact_index_type _R(compact_index_type s) const
+	{
+		s >>= (_C(s).H + 1);
+		return (_MJ & (s & _MI)) | (_MK & (s & _MJ)) | (_MI & (s & _MK));
+	}
+	/**
+	 *  rotate vector direction  mask
+	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
+	 * @param s
+	 * @return
+	 */
+	compact_index_type _RR(compact_index_type s) const
+	{
+		s >>= (_C(s).H + 1);
+		return (_MK & (s & _MI)) | (_MI & (s & _MJ)) | (_MJ & (s & _MK));
+	}
+
+	compact_index_type _I(compact_index_type s) const
+	{
+		return _MA & (~((s >> (_C(s).H + 1)) & _MA));
+	}
+
 	template<int I>
-	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type const & s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
 	{
 		v[0] = s;
 		return 1;
@@ -255,8 +245,8 @@ struct OcForest
 
 	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, index_type s, index_type *v) const
 	{
-		v[0] = s + s & (_MA >> s.H);
-		v[1] = s - s & (_MA >> s.H);
+		v[0] = s + s & (_MA >> (s.H + 1));
+		v[1] = s - s & (_MA >> (s.H + 1));
 		return 2;
 	}
 
@@ -283,10 +273,13 @@ struct OcForest
 		 *
 		 */
 
-		v[0] = s - (_MA >> s.H);
-		v[1] = s + ((_MI | _MJ) >> s.H);
-		v[2] = s + ((_MJ | _MK) >> s.H);
-		v[3] = s + ((_MK | _MI) >> s.H);
+		auto di = (_R(_I(_C(s))) >> (s.H + 1));
+		auto dj = (_RR(_I(_C(s))) >> (s.H + 1));
+
+		v[0] = s - di - dj;
+		v[1] = s - di - dj;
+		v[2] = s + di + dj;
+		v[3] = s + di + dj;
 
 		return 4;
 	}
@@ -313,16 +306,19 @@ struct OcForest
 		 *
 		 *
 		 */
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
 
-		v[0] = s - (_MK >> s.H);
-		v[1] = s + (_MI >> s.H);
-		v[2] = s + (_MJ >> s.H);
-		v[3] = s + ((_MI | _MJ) >> s.H);
+		v[0] = ((s - di) - dj) - dk;
+		v[1] = ((s - di) - dj) + dk;
+		v[2] = ((s - di) + dj) - dk;
+		v[3] = ((s - di) + dj) + dk;
 
-//			v[4] = (INC(2)) + s;
-//			v[5] = (INC(2) | INC(0)) + s;
-//			v[6] = (INC(2) | INC(1) | INC(1)) + s;
-//			v[7] = (INC(2) | INC(1)) + s;
+		v[4] = ((s + di) - dj) - dk;
+		v[5] = ((s + di) - dj) + dk;
+		v[6] = ((s + di) + dj) - dk;
+		v[7] = ((s + di) + dj) + dk;
 
 		return 8;
 	}
@@ -350,15 +346,18 @@ struct OcForest
 		 *
 		 */
 
-		v[0] = s | (_MI >> s.H);
-		v[1] = s | (_MJ >> s.H);
-		v[2] = s | (_MK >> s.H);
-		v[3] = v[0];
-		v[3].I -= 1UL << (INDEX_DIGITS - index_digits_[0]);
-		v[4] = v[1];
-		v[4].J -= 1UL << (INDEX_DIGITS - index_digits_[1]);
-		v[5] = v[2];
-		v[5].K -= 1UL << (INDEX_DIGITS - index_digits_[2]);
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
+
+		v[0] = s + di;
+		v[1] = s - di;
+
+		v[2] = s + dj;
+		v[3] = s - dj;
+
+		v[4] = s + dk;
+		v[5] = s - dk;
 
 		return 6;
 	}
@@ -386,341 +385,345 @@ struct OcForest
 		 *
 		 *
 		 */
+		auto d1 = (_R(_I(_C(s))) >> (s.H + 1));
+		auto d2 = (_RR(_I(_C(s))) >> (s.H + 1));
+		v[0] = s - d1;
+		v[1] = s + d1;
+		v[2] = s - d2;
+		v[3] = s + d2;
 
-		v[0] = s - s & ((_MI | _MJ) >> s.H);
-		v[1] = s + s & ((_MI | _MJ) >> s.H);
-		v[2] = s - s & ((_MK | _MJ) >> s.H);
-		v[3] = s + s & ((_MK | _MJ) >> s.H);
 		return 4;
 	}
-//
-//	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, index_type s, index_type *v) const
-//	{
-//
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6------10-------7
-//		 *        |  /|              /|
-//		 *         11 |             9 |
-//		 *         /  7            /  6
-//		 *        4---|---8-------5   |
-//		 *        |   |           |   |
-//		 *        |   2-------2---|---3
-//		 *        4  /            5  /
-//		 *        | 3             | 1
-//		 *        |/              |/
-//		 *        0-------0-------1   ---> x
-//		 *
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = s + PutM(0);
-//			v[1] = (INC(0)) + s + PutM(1);
-//			v[2] = (INC(1)) + s + PutM(0);
-//			v[3] = s + PutM(1);
-//
-//			v[4] = s + PutM(2);
-//			v[5] = (INC(0)) + s + PutM(2);
-//			v[6] = (INC(1) | INC(0)) + s + PutM(2);
-//			v[7] = (INC(1)) + s + PutM(2);
-//
-//			v[8] = (INC(2)) + s + PutM(0);
-//			v[9] = (INC(2) | INC(0)) + s + PutM(1);
-//			v[10] = (INC(2) | INC(1)) + s + PutM(0);
-//			v[11] = (INC(2)) + s + PutM(1);
-//
-//		}
-//		return 12;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, index_type s, index_type *v) const
-//	{
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        | 0 2-----------|---3
-//		 *        |  /            |  /
-//		 *   11   | /      8      | /
-//		 *      3 |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /| 1
-//		 *10    / |     9
-//		 *     /  |
-//		 *      2 |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = s;
-//			v[1] = (DES(2)) + s;
-//			v[2] = (DES(2) | DES(1)) + s;
-//			v[3] = (DES(1)) + s;
-//
-//			v[4] = s + PutM(1);
-//			v[5] = (DES(2)) + s + PutM(1);
-//			v[6] = (DES(0) | DES(2)) + s + PutM(1);
-//			v[7] = (DES(0)) + s + PutM(1);
-//
-//			v[8] = s + PutM(2);
-//			v[9] = (DES(1)) + s + PutM(2);
-//			v[10] = (DES(1) | DES(0)) + s + PutM(2);
-//			v[11] = (DES(0)) + s + PutM(2);
-//
-//		}
-//		return 12;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, index_type s, index_type *v) const
-//	{
-//
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /  0         |  /
-//		 *        | /      1      | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *      / |   3
-//		 *     /  |       2
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = RotateDirection < 1 > (s);
-//			v[1] = RotateDirection < 2 > (s);
-//			v[2] = RotateDirection < 1 > ((DES(GetM(s) + 2)) + s);
-//			v[2] = RotateDirection < 2 > ((DES(GetM(s) + 1)) + s);
-//		}
-//		return 4;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, index_type s, index_type *v) const
-//	{
-//
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^    /
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |    5        / |
-//		 *        |/  |     1      /  |
-//		 *        4---|-----------5   |
-//		 *        | 0 |           | 2 |
-//		 *        |   2-----------|---3
-//		 *        |  /    3       |  /
-//		 *        | /       4     | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = s + PutM(0);
-//			v[1] = (INC(1)) + s + PutM(1);
-//			v[2] = (INC(0)) + s + PutM(0);
-//			v[3] = s + PutM(1);
-//
-//			v[4] = s + PutM(2);
-//			v[5] = (INC(2)) + s + PutM(2);
-//
-//		}
-//		return 6;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, index_type s, index_type *v) const
-//	{
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *   3    |   |    0      |   |
-//		 *        |   2-----------|---3
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *  3    /|       1
-//		 *      / |
-//		 *     /  |
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = GetMasterVertex(s);
-//			v[1] = (DES(0)) + s;
-//			v[2] = (DES(0) | DES(1)) + s;
-//			v[3] = (DES(1)) + s;
-//
-//			v[4] = (DES(2)) + s;
-//			v[5] = (DES(2) | DES(0)) + s;
-//			v[6] = (DES(2) | DES(0) | DES(1)) + s;
-//			v[7] = (DES(2) | DES(1)) + s;
-//
-//		}
-//		return 8;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, index_type s, index_type *v) const
-//	{
-//
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        |   |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /  0         |  /
-//		 *        | /      1      | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *      / |   3
-//		 *     /  |       2
-//		 *        |
-//		 *
-//		 *
-//		 *
-//		 *              |
-//		 *          7   |   4
-//		 *              |
-//		 *      --------*---------
-//		 *              |
-//		 *          6   |   5
-//		 *              |
-//		 *
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = GetMasterVertex(s);
-//			v[1] = (DES(GetM(s) + 1)) + s;
-//			v[2] = (DES(GetM(s) + 1) | DES(GetM(s) + 2)) + s;
-//			v[3] = (DES(GetM(s) + 2)) + s;
-//		}
-//		return 4;
-//	}
-//
-//	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, index_type s, index_type *v) const
-//	{
-//
-//		/**
-//		 *
-//		 *                ^y
-//		 *               /
-//		 *        z     /
-//		 *        ^    /
-//		 *        |   6---------------7
-//		 *        |  /|              /|
-//		 *        | / |             / |
-//		 *        |/  |            /  |
-//		 *        4---|-----------5   |
-//		 *        | 0 |           |   |
-//		 *        |   2-----------|---3
-//		 *        |  /            |  /
-//		 *        | /             | /
-//		 *        |/              |/
-//		 * -------0---------------1   ---> x
-//		 *       /|
-//		 *
-//		 */
-//
-//		if (v != nullptr)
-//		{
-//			v[0] = GetMasterVertex(s);
-//			v[1] = (DES(GetM(s))) + s;
-//
-//		}
-//		return 2;
-//	}
-//
-////***************************************************************************************************
-////  Traversal
-////
-////***************************************************************************************************
+
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, index_type s, index_type *v) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6------10-------7
+		 *        |  /|              /|
+		 *         11 |             9 |
+		 *         /  7            /  6
+		 *        4---|---8-------5   |
+		 *        |   |           |   |
+		 *        |   2-------2---|---3
+		 *        4  /            5  /
+		 *        | 3             | 1
+		 *        |/              |/
+		 *        0-------0-------1   ---> x
+		 *
+		 *
+		 */
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
+
+		v[0] = (s + di) + dj;
+		v[1] = (s + di) - dj;
+		v[2] = (s - di) + dj;
+		v[3] = (s - di) - dj;
+
+		v[4] = (s + dk) + dj;
+		v[5] = (s + dk) - dj;
+		v[6] = (s - dk) + dj;
+		v[7] = (s - dk) - dj;
+
+		v[8] = (s + di) + dk;
+		v[9] = (s + di) - dk;
+		v[10] = (s - di) + dk;
+		v[11] = (s - di) - dk;
+
+		return 12;
+	}
+
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, index_type s, index_type *v) const
+	{
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        | 0 2-----------|---3
+		 *        |  /            |  /
+		 *   11   | /      8      | /
+		 *      3 |/              |/
+		 * -------0---------------1   ---> x
+		 *       /| 1
+		 *10    / |     9
+		 *     /  |
+		 *      2 |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
+
+		v[0] = (s + di) + dj;
+		v[1] = (s + di) - dj;
+		v[2] = (s - di) + dj;
+		v[3] = (s - di) - dj;
+
+		v[4] = (s + dk) + dj;
+		v[5] = (s + dk) - dj;
+		v[6] = (s - dk) + dj;
+		v[7] = (s - dk) - dj;
+
+		v[8] = (s + di) + dk;
+		v[9] = (s + di) - dk;
+		v[10] = (s - di) + dk;
+		v[11] = (s - di) - dk;
+
+		return 12;
+	}
+
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, index_type s, index_type *v) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        |  /  0         |  /
+		 *        | /      1      | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *      / |   3
+		 *     /  |       2
+		 *        |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+
+		auto d1 = (_R(_C(s)) >> (s.H + 1));
+		auto d2 = (_RR(_C(s)) >> (s.H + 1));
+
+		v[0] = s - d1;
+		v[1] = s + d1;
+		v[2] = s - d2;
+		v[3] = s + d2;
+
+		return 4;
+	}
+
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, index_type s, index_type *v) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^    /
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |    5        / |
+		 *        |/  |     1      /  |
+		 *        4---|-----------5   |
+		 *        | 0 |           | 2 |
+		 *        |   2-----------|---3
+		 *        |  /    3       |  /
+		 *        | /       4     | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *
+		 */
+
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
+
+		v[0] = s - di;
+		v[1] = s + di;
+
+		v[2] = s - di;
+		v[3] = s + dj;
+
+		v[4] = s - dk;
+		v[5] = s + dk;
+
+		return 6;
+	}
+
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	{
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *   3    |   |    0      |   |
+		 *        |   2-----------|---3
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *  3    /|       1
+		 *      / |
+		 *     /  |
+		 *        |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+
+		auto di = _MI >> (s.H + 1);
+		auto dj = _MJ >> (s.H + 1);
+		auto dk = _MK >> (s.H + 1);
+
+		v[0] = ((s - di) - dj) - dk;
+		v[1] = ((s - di) - dj) + dk;
+		v[2] = ((s - di) + dj) - dk;
+		v[3] = ((s - di) + dj) + dk;
+
+		v[4] = ((s + di) - dj) - dk;
+		v[5] = ((s + di) - dj) + dk;
+		v[6] = ((s + di) + dj) - dk;
+		v[7] = ((s + di) + dj) + dk;
+
+		return 8;
+	}
+
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        |   |           |   |
+		 *        |   2-----------|---3
+		 *        |  /  0         |  /
+		 *        | /      1      | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *      / |   3
+		 *     /  |       2
+		 *        |
+		 *
+		 *
+		 *
+		 *              |
+		 *          7   |   4
+		 *              |
+		 *      --------*---------
+		 *              |
+		 *          6   |   5
+		 *              |
+		 *
+		 *
+		 */
+
+		auto d1 = (_R(_C(s)) >> (s.H + 1));
+		auto d2 = (_RR(_C(s)) >> (s.H + 1));
+
+		v[0] = s - d1 - d2;
+		v[1] = s + d1 - d2;
+		v[2] = s - d1 + d2;
+		v[3] = s + d1 + d2;
+		return 4;
+	}
+
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	{
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^    /
+		 *        |   6---------------7
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *        4---|-----------5   |
+		 *        | 0 |           |   |
+		 *        |   2-----------|---3
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 * -------0---------------1   ---> x
+		 *       /|
+		 *
+		 */
+
+		auto d = (_I(_C(s)) >> (s.H + 1));
+		v[0] = s + d;
+		v[1] = s - d;
+
+		return 2;
+	}
+
+	//***************************************************************************************************
+	//  Traversal
+	//
+	//***************************************************************************************************
 //
 //	template<typename ... Args>
 //	void Traversal(Args const &...args) const
