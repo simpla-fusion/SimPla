@@ -11,6 +11,7 @@
 #include <string>
 
 #include "../src/mesh/octree_forest.h"
+#include "../src/utilities/pretty_stream.h"
 
 using namespace simpla;
 
@@ -27,61 +28,78 @@ std::string ShowBit(unsigned long s)
 
 int main(int argc, char **argv)
 {
-#define TDEPTH 1
-	OcForest<TDEPTH> foo;
-//	foo.SetTreeDepth(4);
+	nTuple<3, unsigned int> d = { 1, 2, 4 };
+	OcForest ocf(d);
+	CHECK(ocf.index_digits_);CHECK(ocf.GetDimensions());
 
-	std::cout << OcForest<TDEPTH>::dh << std::endl;
+//	CHECK( OcForest::dh );
 
-	CHECK_DEC(1.0 / OcForest<TDEPTH>::dh);
+	CHECK_DEC(1.0 / OcForest::dh);
 
-	CHECK_DEC(OcForest<TDEPTH>::INDEX_MAX);
+	CHECK_DEC(OcForest::INDEX_MAX);
 
-	CHECK_DEC(OcForest<TDEPTH>::INDEX_MIN);
+	CHECK_DEC(OcForest::INDEX_MIN);
 
-	CHECK_DEC(OcForest<TDEPTH>::DIGITS_HEAD);
+	CHECK_DEC(OcForest::DIGITS_HEAD);
 
-	CHECK_DEC(OcForest<TDEPTH>::DIGITS_INDEX);
-
-	CHECK_BIT(foo.MASK_A);
-	CHECK_BIT(foo.MASK_I);
-	CHECK_BIT(foo.MASK_J);
-	CHECK_BIT(foo.MASK_K);
+	CHECK_DEC(OcForest::INDEX_DIGITS);
 
 	size_t r[3] = { 10000, 100, 1 };
 
 	nTuple<3, Real> x = { 1.0 - 0.125, 1.0, 0.125 };
 
-	OcForest<TDEPTH>::index_type s = foo.GetIndex(x);
+	OcForest::index_type s = ocf.GetIndex(x);
 
-//	CHECK_HEX(s.s);
-//
-//	CHECK_BIT(s.s);
-//
-//	CHECK_BIT(s.ijk.I);
-//	CHECK_BIT(s.ijk.J);
-//	CHECK_BIT(s.ijk.K);
-//
-//	CHECK_DEC(foo.HashRootIndex(s, r, 3));
-//
-	OcForest<TDEPTH>::index_type v[4];
+	int TDEPTH = OcForest::MAX_TREE_HEIGHT;
 
-	s.I = (1L << 4);
-	s.J = (1L << 4) + 1;
-	s.K = (1L << 4);
-	foo.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VERTEX>(), s, v);
-	CHECK_BIT(OcForest<TDEPTH>::_C(s));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[0]));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[1]));
+	OcForest::index_type v[OcForest::MAX_NUM_VERTEX_PER_CEL];
 
-	s.I = (0L << 4);
-	s.J = (1L << 4) + 1;
-	s.K = (1L << 4) + 1;
-	foo.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VERTEX>(), s, v);
-	CHECK_BIT(OcForest<TDEPTH>::_C(s));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[0]));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[1]));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[2]));
-	CHECK_BIT(OcForest<TDEPTH>::_C(v[3]));
+	s = ocf.GetIndex(x);
+
+	CHECK_BIT(OcForest::_C(s));
+
+	CHECK(ocf.GetCoordinates(s));
+
+	ocf.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<EDGE>(), s, v);
+
+	CHECK_BIT(OcForest::_C(v[0]));CHECK(ocf.GetCoordinates(v[0]));
+
+	CHECK_BIT(OcForest::_C(v[1]));CHECK(ocf.GetCoordinates(v[1]));
+
+	CHECK_BIT(OcForest::_C(v[2]));CHECK(ocf.GetCoordinates(v[2]));
+
+	CHECK_BIT(OcForest::_C(v[3]));CHECK(ocf.GetCoordinates(v[3]));
+
+	CHECK_BIT(OcForest::_C(v[4]));CHECK(ocf.GetCoordinates(v[4]));
+
+	CHECK_BIT(OcForest::_C(v[5]));CHECK(ocf.GetCoordinates(v[5]));
+
+	ocf.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VERTEX>(), s, v);
+
+	CHECK_BIT(OcForest::_C(v[0]));
+
+	CHECK(ocf.GetCoordinates(v[0]));
+
+	CHECK_BIT(OcForest::_C(v[1]));
+
+	CHECK(ocf.GetCoordinates(v[1]));
+
+	ocf.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VERTEX>(), s, v);
+	CHECK_BIT(OcForest::_C(s));
+	CHECK_BIT(OcForest::_C(v[0]));
+	CHECK_BIT(OcForest::_C(v[1]));
+	CHECK_BIT(OcForest::_C(v[2]));
+	CHECK_BIT(OcForest::_C(v[3]));
+
+	CHECK(ocf.GetCoordinates(s));
+
+	CHECK(ocf.GetCoordinates(v[0]));
+
+	CHECK(ocf.GetCoordinates(v[1]));
+
+	CHECK(ocf.GetCoordinates(v[2]));
+
+	CHECK(ocf.GetCoordinates(v[3]));
+
 }
 
