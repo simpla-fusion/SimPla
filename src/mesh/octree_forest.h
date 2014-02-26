@@ -167,6 +167,21 @@ struct OcForest
 
 	}
 
+	inline size_type HashIndex(index_type s, size_type const strides[3]) const
+	{
+
+		return (
+
+		(s.I >> (INDEX_DIGITS - index_digits_[0] - s.H + 1)) * strides[0] +
+
+		(s.J >> (INDEX_DIGITS - index_digits_[1] - s.H + 1)) * strides[1] +
+
+		(s.K >> (INDEX_DIGITS - index_digits_[2] - s.H + 1)) * strides[2]
+
+		);
+
+	}
+
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned int H = 0) const
 	{
 		index_type res;
@@ -180,13 +195,13 @@ struct OcForest
 		res.H = H;
 
 		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[0]));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
 
 		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[1]));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
 
 		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[2]));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
 
 		return std::move(res);
 	}
@@ -219,6 +234,12 @@ struct OcForest
 		s >>= (_C(s).H + 1);
 		return (_MJ & (s & _MI)) | (_MK & (s & _MJ)) | (_MI & (s & _MK));
 	}
+
+	compact_index_type _R(index_type s) const
+	{
+		return std::move(_R(_C(s)));
+	}
+
 	/**
 	 *  rotate vector direction  mask
 	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
@@ -231,11 +252,32 @@ struct OcForest
 		return (_MK & (s & _MI)) | (_MI & (s & _MJ)) | (_MJ & (s & _MK));
 	}
 
+	compact_index_type _RR(index_type s) const
+	{
+		return std::move(_RR(_C(s)));
+	}
+
 	compact_index_type _I(compact_index_type s) const
 	{
 		return _MA & (~((s >> (_C(s).H + 1)) & _MA));
 	}
 
+	compact_index_type _I(index_type s) const
+	{
+		return std::move(_I(_C(s)));
+	}
+
+	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
+	size_type _N(index_type s) const
+	{
+		return ((s.J >> (INDEX_DIGITS - index_digits_[1] - s.H - 1)) & 1UL) |
+
+		((s.K >> (INDEX_DIGITS - index_digits_[1] - s.H - 2)) & 2UL);
+	}
+	size_type _N(compact_index_type s) const
+	{
+		return std::move(_N(_C(s)));
+	}
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
 	{
@@ -273,8 +315,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = (_R(_I(_C(s))) >> (s.H + 1));
-		auto dj = (_RR(_I(_C(s))) >> (s.H + 1));
+		auto di = (_R(_I(s)) >> (s.H + 1));
+		auto dj = (_RR(_I(s)) >> (s.H + 1));
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -385,8 +427,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = (_R(_I(_C(s))) >> (s.H + 1));
-		auto d2 = (_RR(_I(_C(s))) >> (s.H + 1));
+		auto d1 = (_R(_I(s)) >> (s.H + 1));
+		auto d2 = (_RR(_I(s)) >> (s.H + 1));
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -536,8 +578,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = (_R(_C(s)) >> (s.H + 1));
-		auto d2 = (_RR(_C(s)) >> (s.H + 1));
+		auto d1 = (_R(s) >> (s.H + 1));
+		auto d2 = (_RR(s) >> (s.H + 1));
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -679,8 +721,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = (_R(_C(s)) >> (s.H + 1));
-		auto d2 = (_RR(_C(s)) >> (s.H + 1));
+		auto d1 = (_R(s) >> (s.H + 1));
+		auto d2 = (_RR(s) >> (s.H + 1));
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -713,17 +755,60 @@ struct OcForest
 		 *
 		 */
 
-		auto d = (_I(_C(s)) >> (s.H + 1));
+		auto d = (_I(s) >> (s.H + 1));
 		v[0] = s + d;
 		v[1] = s - d;
 
 		return 2;
 	}
 
-	//***************************************************************************************************
-	//  Traversal
-	//
-	//***************************************************************************************************
+//! VERTEX -> EDGE
+	template<typename TF>
+	auto Grad(TF const & f,
+	        index_type s) const
+	                DECL_RET_TYPE(
+			                ( (f[s + s & (_MA >> (s.H + 1))] - f[s - s & (_MA >> (s.H + 1))]) * static_cast<double>(1UL << s.H) )
+	                )
+
+//! VERTEX -> EDGE
+	template<typename TF>
+	auto Diverge(TF const & f, index_type s, Real const a[3]) const
+	DECL_RET_TYPE(
+			((
+							(f[s + (_MI >> (s.H + 1))] - f[s - (_MI >> (s.H + 1))]) *a[0]+
+							(f[s + (_MJ >> (s.H + 1))] - f[s - (_MJ >> (s.H + 1))]) *a[1]+
+							(f[s + (_MK >> (s.H + 1))] - f[s - (_MK >> (s.H + 1))]) *a[2]
+					)* static_cast<double>(1UL << s.H) )
+	)
+
+	//! Curl(Field<Edge>) Edge=>FACE
+	template<typename TF>
+	auto Curl(TF const & f, Int2Type<EDGE>,
+	        index_type s, //! this is FACE index
+	        Real const a[3]) const
+	                DECL_RET_TYPE(
+			                ((
+							                (f[ s + (_R( _I(s))>> (s.H +1) ) ] - f[s - (_R( _I(s))>> (s.H +1) )]) *a[ _N(_R( _I(s))) ]-
+							                (f[ s + (_RR( _I(s))>> (s.H +1) ) ] - f[s - (_RR( _I(s))>> (s.H +1) )]) *a[ _N(_RR( _I(s))) ]
+					                )* static_cast<double>(1UL << s.H) )
+	                )
+
+	//! Curl(Field<FACE>) FACE=>EDGE
+	template<typename TF>
+	auto Curl(TF const & f, Int2Type<FACE>,
+	        index_type s, //! this is edge index
+	        Real const a[3]) const
+	                DECL_RET_TYPE(
+			                ((
+							                (f[ s + (_R( s)>> (s.H +1) ) ] - f[s - (_R( s)>> (s.H +1) )]) *a[ _N(_R( s))]-
+							                (f[ s + (_RR( s)>> (s.H +1) )] - f[s - (_RR( s)>> (s.H +1) )]) *a[ _N(_RR( s))]
+
+					                )* static_cast<double>(1UL << s.H) )
+	                )
+//***************************************************************************************************
+//  Traversal
+//
+//***************************************************************************************************
 //
 //	template<typename ... Args>
 //	void Traversal(Args const &...args) const

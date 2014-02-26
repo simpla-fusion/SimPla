@@ -28,7 +28,7 @@ std::string ShowBit(unsigned long s)
 
 int main(int argc, char **argv)
 {
-	nTuple<3, unsigned int> d = { 1, 2, 4 };
+	nTuple<3, unsigned int> d = { 1, 3, 17 };
 	OcForest ocf(d);
 	CHECK(ocf.index_digits_);CHECK(ocf.GetDimensions());
 
@@ -44,17 +44,13 @@ int main(int argc, char **argv)
 
 	CHECK_DEC(OcForest::INDEX_DIGITS);
 
-	size_t r[3] = { 10000, 100, 1 };
 
-	nTuple<3, Real> x = { 1.0 - 0.125, 1.0, 0.125 };
 
-	OcForest::index_type s = ocf.GetIndex(x);
-
-	int TDEPTH = OcForest::MAX_TREE_HEIGHT;
+	nTuple<3, Real> x = { 1.0 - 0.125, 0.9, 0.6 };
 
 	OcForest::index_type v[OcForest::MAX_NUM_VERTEX_PER_CEL];
 
-	s = ocf.GetIndex(x);
+	OcForest::index_type s = ocf.GetIndex(x);
 
 	CHECK_BIT(OcForest::_C(s));
 
@@ -100,6 +96,8 @@ int main(int argc, char **argv)
 	CHECK(ocf.GetCoordinates(v[2]));
 
 	CHECK(ocf.GetCoordinates(v[3]));
+
+	size_t r[3] = { 10000, 100, 1 };
 
 }
 
