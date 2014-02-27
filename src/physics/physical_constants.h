@@ -76,13 +76,16 @@ private:
 std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
 
 #define DEFINE_PHYSICAL_CONST(_UNIT_SYS_)                                               \
-const double mu0 = _UNIT_SYS_["permeability of free space"];                            \
-const double epsilon0 = _UNIT_SYS_["permittivity of free space"];                       \
-const double speed_of_light = _UNIT_SYS_["speed of light"];                             \
-const double proton_mass = _UNIT_SYS_["proton mass"];                                   \
-const double elementary_charge = _UNIT_SYS_["elementary charge"];                       \
-const double boltzmann_constant = _UNIT_SYS_["Boltzmann constant"];
+PhysicalConstants const & CONSTANTS=_UNIT_SYS_;                                         \
+const double mu0 = CONSTANTS["permeability of free space"];                            \
+const double epsilon0 = CONSTANTS["permittivity of free space"];                       \
+const double speed_of_light = CONSTANTS["speed of light"];                             \
+const double proton_mass = CONSTANTS["proton mass"];                                   \
+const double elementary_charge = CONSTANTS["elementary charge"];                       \
+const double boltzmann_constant = CONSTANTS["Boltzmann constant"];
 
+#define GLOBAL_PHYSICAL_CONST    SingletonHolder<PhysicalConstants>::instance()
+#define DEFINE_GLOBAL_PHYSICAL_CONST   DEFINE_PHYSICAL_CONST(SingletonHolder<PhysicalConstants>::instance())
 }  // namespace simpla
 
 #endif /* PHYSICAL_CONSTANTS_H_ */

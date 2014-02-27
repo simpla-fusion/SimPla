@@ -91,8 +91,8 @@ struct OcForest
 
 	};
 
-	nTuple<3, unsigned int> index_digits_ =
-	{ INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT };
+	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
+	        INDEX_DIGITS - MAX_TREE_HEIGHT };
 
 	compact_index_type _MI = 0UL;
 	compact_index_type _MJ = 0UL;
@@ -115,16 +115,6 @@ struct OcForest
 	}
 	this_type & operator=(const this_type&) = delete;
 
-	static compact_index_type &_C(index_type &s)
-	{
-		return *reinterpret_cast<compact_index_type *>(&s);
-	}
-
-	static compact_index_type const &_C(index_type const &s)
-	{
-		return *reinterpret_cast<compact_index_type const*>(&s);
-	}
-
 	void SetDimensions(nTuple<3, unsigned int> const & d)
 	{
 		index_digits_[0] = count_bits(d[0]) - 1;
@@ -134,32 +124,43 @@ struct OcForest
 	}
 	nTuple<3, unsigned int> GetDimensions() const
 	{
-		return nTuple<3, unsigned int>(
-		{ 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
+		return nTuple<3, unsigned int>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
 
 	}
+	nTuple<3, Real> GetDx() const
+	{
+		return nTuple<3, Real>( {
+
+		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
+
+		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
+
+		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh });
+	}
+	inline std::vector<size_t> GetShape(int IFORM) const
+	{
+		std::vector<size_t> res;
+
+		nTuple<3, size_type> dims_ = GetDimensions();
+
+		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				res.push_back(dims_[i]);
+		}
+
+		return std::move(res);
+	}
+
 	void Update()
 	{
-		_MI = _C(index_type(
-		{ 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
-		_MJ = _C(index_type(
-		{ 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
-		_MK = _C(index_type(
-		{ 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
+		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
+		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
+		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
 		_MA = _MI | _MJ | _MK;
 	}
 
-	static index_type &_C(compact_index_type &s)
-	{
-		return *reinterpret_cast<index_type *>(&s);
-	}
-
-	static index_type const &_C(compact_index_type const &s)
-	{
-		return *reinterpret_cast<index_type const*>(&s);
-	}
-
-	inline size_type HashRootIndex(index_type s, size_type const strides[3]) const
+	inline size_type HashRootIndex(index_type s, nTuple<3, size_type> const & strides) const
 	{
 
 		return (
@@ -174,7 +175,7 @@ struct OcForest
 
 	}
 
-	inline size_type HashIndex(index_type s, size_type const strides[3]) const
+	inline size_type HashIndex(index_type s, nTuple<3, size_type> const & strides) const
 	{
 
 		return (
@@ -202,13 +203,13 @@ struct OcForest
 		res.H = H;
 
 		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
 
 		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
 
 		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
+		        & ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
 
 		return std::move(res);
 	}
@@ -216,8 +217,7 @@ struct OcForest
 	inline nTuple<3, Real> GetCoordinates(index_type const & s) const
 	{
 
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
 		static_cast<Real>(s.I) * dh,
 
@@ -229,8 +229,30 @@ struct OcForest
 
 	}
 
-//***************************************************************************************************
+	//***************************************************************************************************
+	//* Auxiliary functions
+	//***************************************************************************************************
+protected:
 
+	static compact_index_type &_C(index_type &s)
+	{
+		return *reinterpret_cast<compact_index_type *>(&s);
+	}
+
+	static compact_index_type const &_C(index_type const &s)
+	{
+		return *reinterpret_cast<compact_index_type const*>(&s);
+	}
+
+	static index_type &_C(compact_index_type &s)
+	{
+		return *reinterpret_cast<index_type *>(&s);
+	}
+
+	static index_type const &_C(compact_index_type const &s)
+	{
+		return *reinterpret_cast<index_type const*>(&s);
+	}
 	/**
 	 *  rotate vector direction  mask
 	 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
@@ -286,6 +308,8 @@ struct OcForest
 	{
 		return std::move(_N(_C(s)));
 	}
+
+public:
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
 	{
@@ -775,7 +799,7 @@ struct OcForest
 	//***************************************************************************************************
 
 	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-			std::function<void(index_type)> const &funs) const;
+	        std::function<void(index_type)> const &funs) const;
 
 	template<typename ... Args>
 	void Traversal(Args const &...args) const
@@ -818,7 +842,7 @@ void OcForest::SerialTraversal(Args const &...args) const
 }
 
 void OcForest::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-		std::function<void(index_type)> const &fun) const
+        std::function<void(index_type)> const &fun) const
 {
 	auto dims_ = GetDimensions();
 	index_type ib = dims_[0] * thread_id / num_threads;
