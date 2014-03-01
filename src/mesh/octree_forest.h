@@ -13,6 +13,7 @@
 #include <cmath>
 #include <cstddef>
 #include <limits>
+#include <thread>
 
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
@@ -122,9 +123,9 @@ struct OcForest
 		index_digits_[2] = count_bits(d[2]) - 1;
 		Update();
 	}
-	nTuple<3, unsigned int> GetDimensions() const
+	nTuple<3, size_type> GetDimensions() const
 	{
-		return nTuple<3, unsigned int>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
+		return nTuple<3, size_type>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
 
 	}
 	nTuple<3, Real> GetDx() const
@@ -232,7 +233,6 @@ struct OcForest
 	//***************************************************************************************************
 	//* Auxiliary functions
 	//***************************************************************************************************
-protected:
 
 	static compact_index_type &_C(index_type &s)
 	{
@@ -309,7 +309,6 @@ protected:
 		return std::move(_N(_C(s)));
 	}
 
-public:
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
 	{
@@ -845,8 +844,8 @@ void OcForest::_Traversal(unsigned int num_threads, unsigned int thread_id, int 
         std::function<void(index_type)> const &fun) const
 {
 	auto dims_ = GetDimensions();
-	index_type ib = dims_[0] * thread_id / num_threads;
-	index_type ie = dims_[0] * (thread_id + 1) / num_threads;
+	size_type ib = dims_[0] * thread_id / num_threads;
+	size_type ie = dims_[0] * (thread_id + 1) / num_threads;
 
 	index_type s;
 	s.H = 0;

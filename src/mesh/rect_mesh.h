@@ -17,7 +17,8 @@
 namespace simpla
 {
 
-class RectMesh: public OcForest
+template<typename Metric,typename Topology=OcForest>
+class RectMesh: public Topology
 {
 	typedef OcForest base_type;
 
@@ -33,16 +34,6 @@ public:
 	//***************************************************************************************************
 	//*	Miscellaneous
 	//***************************************************************************************************
-
-	static inline std::string GetTypeName()
-	{
-		return "RectMesh";
-	}
-
-	inline std::string GetTopologyTypeAsString() const
-	{
-		return ToString(GetRealNumDimension()) + "DRectMesh";
-	}
 
 	//***************************************************************************************************
 	//* Media Tags
@@ -160,13 +151,14 @@ public:
 
 	//***************************************************************************************************
 	// Geometric properties
+	// Metric
 	//***************************************************************************************************
 
 	typedef nTuple<3, Real> coordinates_type;
 
 	coordinates_type xmin_ = { 0, 0, 0 };
 
-	coordinates_type xmax_ = { 10, 10, 10 };
+	coordinates_type xmax_ = { 1, 1, 1 };
 
 	coordinates_type inv_L = { 1.0, 1.0, 1.0 };
 
@@ -193,41 +185,15 @@ public:
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	/**
-	 * Mertic
-	 * @param s coodinates
-	 * @param m suffix
-	 * @param n suffix
-	 * @return
-	 */
-	inline Real g(index_type const & s, int m = 0, int n = 0) const
-	{
-		return 1.0;
-	}
-
-	//***************************************************************************************************
-	//* Mesh operation
+	Metric g_;
+	std::function<Real(index_type s, unsigned int)> g;
 
 	inline coordinates_type GetCoordinates(index_type const &s) const
 	{
-		coordinates_type res = base_type::GetCoordinates(s);
+		coordinates_type res;
 		res = xmin_ + (xmax_ - xmin_) * base_type::GetCoordinates(s);
 		return std::move(res);
 	}
-//
-//	template<typename TV>
-//	TV & get_value(Container<TV> & d, index_type s) const
-//	{
-//		return *(d.get() + HashRootIndex(s, strides_));
-//	}
-//	template<typename TV>
-//	TV const & get_value(Container<TV> const& d, index_type s) const
-//	{
-//		return *(d.get() + HashRootIndex(s, strides_));
-//	}
-	//***************************************************************************************************
-	// Metric
-	//***************************************************************************************************
 
 	/**
 	 *  Mapto -
@@ -249,9 +215,9 @@ public:
 	ENABLE_IF_DECL_RET_TYPE(is_primitive<T>::value,l)
 
 	template<int IF, typename TL> inline typename Field<Geometry<this_type, IF>, TL>::value_type mapto(Int2Type<IF>,
-	        Field<Geometry<this_type, IF>, TL> const &l, index_type s) const
+	        Field<Geometry<this_type, IF>, TL> const &f, index_type s) const
 	{
-		return g_[s];
+		return f[s];
 	}
 	template<int IF, int IR, typename TR> inline typename Field<Geometry<this_type, IR>, TR>::value_type mapto(
 	        Int2Type<IF>, Field<Geometry<this_type, IR>, TR> const &l, index_type s) const
@@ -276,11 +242,6 @@ public:
 		return static_cast<Real>(1UL << (INDEX_DIGITS - index_digits_[N]));
 	}
 
-	// for Orthogonal coordinates
-	Real g_(index_type s, unsigned int a = 1) const
-	{
-		return 1.0;
-	}
 	//-----------------------------------------
 	// Vector Arithmetic
 	//-----------------------------------------
