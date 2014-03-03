@@ -133,6 +133,9 @@ public:                                                                         
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
+#define COND_DECL_RET_TYPE(_COND_,_EXPR_,_FAILSAFE_) \
+        ->typename std::conditional<_COND_,decltype((_EXPR_)),_FAILSAFE_>::type {return (_EXPR_);}
+
 //template<typename T>
 //struct remove_const_reference
 //{
