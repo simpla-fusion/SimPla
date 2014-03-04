@@ -252,6 +252,68 @@ public:
 	{
 		return s;
 	}
+
+	template<int IFORM,typename TV>
+	struct iterator
+	{
+
+		static constexpr int IForm = IFORM;
+
+		typedef this_type mesh_type;
+
+		mesh_type const & mesh;
+
+		Container<TV> data_;
+		typedef TV value_type;
+		index_type s_;
+		iterator(mesh_type const & m, Container<TV> d, index_type s)
+		: mesh(m), data_(d), s_(s)
+		{
+
+		}
+		iterator(mesh_type const & m, Container<TV> d)
+		: mesh(m), data_(d)
+		{
+
+		}
+		iterator(mesh_type const & m)
+		: mesh(m)
+		{
+		}
+		~iterator()
+		{
+
+		}
+		bool operator==(iterator const & rhs) const
+		{
+			return (data_ == rhs.data_) && s_ == rhs.s_;
+		}
+		value_type & operator*()
+		{
+			return mesh.get_value(data_, s_);
+		}
+		value_type const& operator*() const
+		{
+			return mesh.get_value(data_, s_);
+		}
+
+		this_type & operator ++()
+		{
+			s_ = mesh.Next(s_);
+			return *this;
+		}
+	};
+
+	template<int IFORM,typename TV>
+	iterator<IFORM,TV> CreateIteratorBegin(Container<TV> & data)const
+	{
+		return iterator<IFORM,TV>(*this,data);
+	}
+	template<int IFORM,typename TV>
+	iterator<IFORM,TV> CreateIteratorEnd(Container<TV> & data)const
+	{
+		return iterator<IFORM,TV>(*this);
+	}
 //***************************************************************************************************
 // Geometric properties
 // Metric
@@ -298,49 +360,6 @@ public:
 		return std::move(res);
 	}
 
-	struct iterator
-	{
-
-		this_type const & mesh;
-		container_type data_;
-		index_type s_;
-		iterator(mesh_type const & m, container_type d, index_type s)
-		: mesh(m), data_(d), s_(s)
-		{
-
-		}
-		iterator(mesh_type const & m, container_type d)
-		: mesh(m), data_(d)
-		{
-
-		}
-		iterator(mesh_type const & m)
-		: mesh(m)
-		{
-		}
-		~iterator()
-		{
-
-		}
-		bool operator==(iterator const & rhs) const
-		{
-			return (data_ == rhs.data_) && s_ == rhs.s_;
-		}
-		value_type & operator*()
-		{
-			return mesh.get_value(data_, s_);
-		}
-		value_type const& operator*() const
-		{
-			return mesh.get_value(data_, s_);
-		}
-
-		this_type & operator ++()
-		{
-			s_ = mesh.Next(s_);
-			return *this;
-		}
-	};
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************

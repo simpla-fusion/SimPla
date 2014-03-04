@@ -56,6 +56,10 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 
+	typedef typename mesh_type::template iterator<IForm, value_type> iterator;
+
+	typedef typename mesh_type::template iterator<IForm, const value_type> const_iterator;
+
 	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
 
 	typedef typename mesh_type::template Container<value_type> container_type;
@@ -129,28 +133,23 @@ public:
 		return size() <= 0;
 	}
 
-
 	iterator begin()
 	{
-		return iterator(mesh, data_);
+		return mesh.template CreateIteratorBegin<IForm, value_type>(data_);
+
 	}
 	iterator end()
 	{
-		return iterator(mesh);
+		return mesh.template CreateIteratorEnd<IForm, value_type>(data_);
 	}
 
-//	const iterator begin() const
-//	{
-//		return iterator(mesh, data_);
-//	}
-//	const iterator end() const
-//	{
-//		return iterator(mesh, data_, ~(0UL));
-//	}
-
-	inline std::vector<size_t> GetShape() const
+	const_iterator begin() const
 	{
-		return std::move(mesh.GetShape(IForm));
+		return mesh.template CreateIteratorBegin<IForm, const value_type>(data_);
+	}
+	const_iterator end() const
+	{
+		return mesh.template CreateIteratorEnd<IForm, const value_type>(data_);
 	}
 
 	inline value_type & operator[](index_type const &s)

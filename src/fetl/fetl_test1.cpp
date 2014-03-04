@@ -249,11 +249,11 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 				typename TestFixture::FieldType::value_type res;
 
 				res=
-				- f1.get(s)*ra +f2.get(s)*rb
-				-f3.get(s)/rc -f1.get(s)
+				- f1[s]*ra +f2[s]*rb
+				-f3[s]/rc -f1[s]
 				;
 
-				EXPECT_EQ(res,f4.get(s))<< "s= "<<s;
+				EXPECT_EQ(res,f4[s])<< "s= "<<s;
 			}
 	);
 
