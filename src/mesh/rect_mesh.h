@@ -110,12 +110,19 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 	typedef typename OcForest::index_type index_type;
 
-	RectMesh();
-	~RectMesh();
+	RectMesh()
+			: tags_(*this)
+	{
+		;
+	}
+	~RectMesh()
+	{
+		;
+	}
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: OcForest(dict), Metric(dict)
+			: OcForest(dict), Metric(dict), tags_(*this)
 	{
 		Load(dict);
 	}
@@ -134,6 +141,7 @@ public:
 
 	void Update()
 	{
+		OcForest::Update();
 	}
 	;
 
@@ -243,6 +251,7 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (GetNumOfElements(iform)));
 	}
 
+	template<int IFORM>
 	size_type HashIndex( index_type const & s)const
 	{
 		return OcForest::HashIndex(s,strides_);
@@ -264,6 +273,7 @@ public:
 		mesh_type const & mesh;
 
 		Container<TV> data_;
+
 		typedef TV value_type;
 		index_type s_;
 		iterator(mesh_type const & m, Container<TV> d, index_type s)
@@ -272,12 +282,12 @@ public:
 
 		}
 		iterator(mesh_type const & m, Container<TV> d)
-		: mesh(m), data_(d)
+		: mesh(m), data_(d),s_(_C(0UL))
 		{
 
 		}
 		iterator(mesh_type const & m)
-		: mesh(m)
+		: mesh(m),s_(_C(0UL))
 		{
 		}
 		~iterator()
@@ -288,18 +298,26 @@ public:
 		{
 			return (data_ == rhs.data_) && s_ == rhs.s_;
 		}
+		bool operator!=(iterator const & rhs) const
+		{
+			return !(this->operator==(rhs));
+		}
 		value_type & operator*()
 		{
-			return mesh.get_value(data_, s_);
+			return *(data_.get()+mesh.template HashIndex<IForm>(s_));
 		}
 		value_type const& operator*() const
 		{
-			return mesh.get_value(data_, s_);
+			return *(data_.get()+mesh.template HashIndex<IForm>(s_));
 		}
 
-		this_type & operator ++()
+		iterator & operator ++()
 		{
+
 			s_ = mesh.Next(s_);
+
+			CHECK(mesh.template HashIndex<IForm>(s_));
+
 			return *this;
 		}
 	};
@@ -628,7 +646,12 @@ private:
 	}
 
 };
-
+template<typename TS> inline std::ostream &
+operator<<(std::ostream & os, RectMesh<TS> const & d)
+{
+	d.Save(os);
+	return os;
+}
 }
 // namespace simpla
 

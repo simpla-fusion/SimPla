@@ -154,11 +154,11 @@ public:
 
 	inline value_type & operator[](index_type const &s)
 	{
-		return *(data_.get() + mesh.HashIndex(s));
+		return *(data_.get() + mesh.template HashIndex<IForm>(s));
 	}
 	inline value_type const & operator[](index_type s) const
 	{
-		return *(data_.get() + mesh.HashIndex(s));
+		return *(data_.get() + mesh.template HashIndex<IForm>(s));
 	}
 
 	void Init()

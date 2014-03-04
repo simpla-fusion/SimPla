@@ -90,7 +90,21 @@ struct OcForest
 		DEF_OP(|)
 #undef DEF_OP
 
+		bool operator==(index_type const & rhs) const
+		{
+			return _C(*this) == _C(rhs);
+		}
+
 	};
+
+	index_type Next(index_type s) const
+	{
+		UNIMPLEMENT2("next compent");
+		s.K += 1U << (INDEX_DIGITS - index_digits_[2]);
+		s.J += (s.K == 0) ? 1U << (INDEX_DIGITS - index_digits_[1]) : 0;
+		s.I += (s.J == 0) ? 1U << (INDEX_DIGITS - index_digits_[0]) : 0;
+		return s;
+	}
 
 	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
 	        INDEX_DIGITS - MAX_TREE_HEIGHT };
@@ -105,7 +119,8 @@ struct OcForest
 	{
 		Update();
 	}
-	OcForest(nTuple<3, unsigned int> const & d)
+	template<typename TI>
+	OcForest(nTuple<3, TI> const & d)
 	{
 		SetDimensions(d);
 		Update();
@@ -134,9 +149,9 @@ struct OcForest
 
 		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
 
-		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
+		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[1])) * dh,
 
-		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh });
+		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[2])) * dh });
 	}
 	inline std::vector<size_t> GetShape(int IFORM) const
 	{
