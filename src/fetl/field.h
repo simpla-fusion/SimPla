@@ -62,7 +62,7 @@ public:
 
 private:
 	container_type data_;
-	index_type num_of_eles_;
+	size_t num_of_eles_;
 public:
 
 	mesh_type const &mesh;
@@ -120,7 +120,7 @@ public:
 	{
 		return data_;
 	}
-	index_type size() const
+	size_t size() const
 	{
 		return (data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
 	}
@@ -129,58 +129,37 @@ public:
 		return size() <= 0;
 	}
 
-	typedef value_type* iterator;
 
 	iterator begin()
 	{
-		return &mesh.get_value(data_, 0);
+		return iterator(mesh, data_);
 	}
 	iterator end()
 	{
-		return &mesh.get_value(data_, size());
+		return iterator(mesh);
 	}
 
-	const iterator begin() const
-	{
-		return &mesh.get_value(data_, 0);
-	}
-	const iterator end() const
-	{
-		return &mesh.get_value(data_, size());
-	}
+//	const iterator begin() const
+//	{
+//		return iterator(mesh, data_);
+//	}
+//	const iterator end() const
+//	{
+//		return iterator(mesh, data_, ~(0UL));
+//	}
 
 	inline std::vector<size_t> GetShape() const
 	{
 		return std::move(mesh.GetShape(IForm));
 	}
 
-	inline value_type & get(index_type s)
+	inline value_type & operator[](index_type const &s)
 	{
-		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s));
+		return *(data_.get() + mesh.HashIndex(s));
 	}
-	inline value_type const & get(index_type s) const
+	inline value_type const & operator[](index_type s) const
 	{
-		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s));
-	}
-
-	template<typename ... TI>
-	inline value_type & get(TI ...s)
-	{
-		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s...));
-	}
-	template<typename ...TI>
-	inline value_type const & get(TI ...s) const
-	{
-		return mesh.get_value(data_, mesh.template GetArrayIndex<IForm>(s...));
-	}
-
-	inline value_type & operator[](size_t s)
-	{
-		return mesh.get_value(data_, s);
-	}
-	inline value_type const & operator[](size_t s) const
-	{
-		return mesh.get_value(data_, s);
+		return *(data_.get() + mesh.HashIndex(s));
 	}
 
 	void Init()
@@ -201,11 +180,10 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		for (index_type s = 0; s < num_of_eles_; ++s)
+		for (size_t s = 0; s < num_of_eles_; ++s)
 		{
-			mesh.get_value(data_, s) = default_value;
+			(*this)[s] = default_value;
 		}
-
 	}
 
 	void Clear()
@@ -220,7 +198,7 @@ public:
 	operator =(this_type const & rhs)
 	{
 		Init();
-		mesh.AssignContainer(IForm, this, rhs);
+//		mesh.AssignContainer(IForm, this, rhs);
 		return (*this);
 	}
 
@@ -228,7 +206,7 @@ public:
 	operator =(TR const & rhs)
 	{
 		Init();
-		mesh.AssignContainer(IForm, this, rhs);
+//		mesh.AssignContainer(IForm, this, rhs);
 		return (*this);
 	}
 
@@ -236,9 +214,10 @@ public:
 	template<typename TR> inline this_type &                                                       \
 	operator _OP_(TR const & rhs)                                                                  \
 	{   Init();                                                                                    \
-		mesh.ForEach( [](value_type &l,typename FieldTraits<TR>::value_type const & r)             \
-	            {	l _OP_ r;},	 this,std::forward<TR const &>(rhs) );     return (*this);}
+		     return (*this);}
 
+//	mesh.ForEach( [](value_type &l,typename FieldTraits<TR>::value_type const & r)             \
+//		            {	l _OP_ r;},	 this,std::forward<TR const &>(rhs) );
 	DECL_SELF_ASSIGN (+=)
 
 DECL_SELF_ASSIGN	(-=)
@@ -319,7 +298,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		if(num==0)
 		{
-			CHECK(s);
+			CHECK(s );
 			return;
 		}
 

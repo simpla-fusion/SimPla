@@ -259,7 +259,6 @@ inline auto operator^(Field<Geometry<TM, IFORM>, TL> const & lhs, Field<Geometry
 DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 //****************************************************************************************************
 
-////****************************************************************************************************
 
 template<typename TG, typename TL, typename TR> inline auto //
 Cross(Field<Geometry<TG, 0>, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)
@@ -275,8 +274,7 @@ template<typename TG, typename TL, typename TR> inline auto //
 Cross(nTuple<3, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)
 DECL_RET_TYPE( (Field<Geometry<TG,0> , BiOp<CROSS,nTuple<3,TL> ,
 				Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
-////****************************************************************************************************
-//
+
 template<typename TG, int IFORM, typename TL, typename TR> inline auto //
 Dot(Field<Geometry<TG, IFORM>, TL> const & lhs, Field<Geometry<TG, IFORM>, TR> const & rhs)
 DECL_RET_TYPE( (lhs ^(*rhs) ))

@@ -116,7 +116,7 @@ struct OcForest
 	}
 	this_type & operator=(const this_type&) = delete;
 
-	void SetDimensions(nTuple<3, unsigned int> const & d)
+	void SetDimensions(nTuple<3, size_t> const & d)
 	{
 		index_digits_[0] = count_bits(d[0]) - 1;
 		index_digits_[1] = count_bits(d[1]) - 1;
