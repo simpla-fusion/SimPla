@@ -21,7 +21,6 @@
 #include "../fetl/primitives.h"
 #include "../modeling/media_tag.h"
 #include "../physics/physical_constants.h"
-#include "../utilities/memory_pool.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 //#include "../utilities/utilities.h"
@@ -29,6 +28,7 @@
 
 namespace simpla
 {
+
 struct EuclideanSpace
 {
 	static constexpr int NDIMS = 3;
@@ -46,24 +46,6 @@ struct EuclideanSpace
 
 	};
 
-	template<int I, int J, typename TI>
-	constexpr Real g(TI const &) const
-	{
-		return g_t[I][J];
-	}
-
-	//! determind of metric tensor gd=|g|
-	template<typename TI>
-	constexpr Real gd(TI const &) const
-	{
-		return 1.0;
-	}
-	template<typename TI>
-	Real g_(TI const & s, unsigned int a, unsigned int b) const
-	{
-		return g_t[a][b];
-	}
-
 	//! diagonal term of metric tensor
 	template<typename TI>
 	constexpr Real v(TI const & s) const
@@ -77,14 +59,6 @@ struct EuclideanSpace
 		return 1.0;
 	}
 
-	coordinates_type const & Trans(coordinates_type const & x) const
-	{
-		return x;
-	}
-	coordinates_type const & InvTrans(coordinates_type const & x) const
-	{
-		return x;
-	}
 	template<typename index_type>
 	vector_type PullBack(index_type const & s, vector_type const & v) const
 	{
@@ -93,6 +67,18 @@ struct EuclideanSpace
 
 	template<typename index_type>
 	vector_type PushForward(index_type const & s, vector_type const & v) const
+	{
+		return v;
+	}
+
+	template<typename index_type>
+	vector_type PullBack(coordinates_type const & x, vector_type const & v) const
+	{
+		return v;
+	}
+
+	template<typename index_type>
+	vector_type PushForward(coordinates_type const & x, vector_type const & v) const
 	{
 		return v;
 	}
@@ -122,12 +108,17 @@ public:
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: OcForest(dict), Metric(dict), tags_(*this)
+			: OcForest(dict), tags_(*this)
 	{
 		Load(dict);
 	}
 
 	this_type & operator=(const this_type&) = delete;
+
+	void swap(this_type & rhs)
+	{
+		OcForest::swap(rhs);
+	}
 
 	template<typename TDict>
 	void Load(TDict const & dict)
@@ -141,9 +132,8 @@ public:
 
 	void Update()
 	{
-		OcForest::Update();
+
 	}
-	;
 
 	inline bool operator==(this_type const & r) const
 	{
@@ -153,15 +143,28 @@ public:
 	//***************************************************************************************************
 	//*	Miscellaneous
 	//***************************************************************************************************
-	typedef Real scalar_type;
-	//***************************************************************************************************
-	//* Media Tags
-	//***************************************************************************************************
 
-private:
+	typedef Real scalar_type;
+
+	//* Container: storage depend
+
+	template<typename TV> using Container=std::shared_ptr<TV>;
+
+	nTuple<NUM_OF_DIMS, size_type> strides = { 0, 0, 0 };
+
+	inline nTuple<NUM_OF_DIMS, size_type> const & GetStrides() const
+	{
+		return strides;
+	}
+
+	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
+	{
+		return (MEMPOOL.allocate_shared_ptr < TV > (1));
+	}
+
+	//* Media Tags
 
 	MediaTag<this_type> tags_;
-public:
 
 	typedef typename MediaTag<this_type>::tag_type tag_type;
 	MediaTag<this_type> & tags()
@@ -174,14 +177,10 @@ public:
 		return tags_;
 	}
 
-	//***************************************************************************************************
 	//* Time
-	//***************************************************************************************************
 
-private:
-	Real dt_ = 0.0; //!< time step
+	Real dt_ = 0.0;//!< time step
 	Real time_ = 0.0;
-public:
 
 	void NextTimeStep()
 	{
@@ -217,7 +216,7 @@ public:
 		Real res = 0.0;
 
 		for (int i = 0; i < 3; ++i)
-			res += inv_dx_[i] * inv_dx_[i];
+		res += inv_dx_[i] * inv_dx_[i];
 
 		return std::sqrt(res) * speed_of_light * dt_;
 	}
@@ -227,111 +226,6 @@ public:
 		dt_ *= a / CheckCourant();
 	}
 
-	//***************************************************************************************************
-	//* Container: storage depend
-	//***************************************************************************************************
-
-	template<typename TV> using Container=std::shared_ptr<TV>;
-
-	nTuple<NUM_OF_DIMS, size_type> strides_ = { 0, 0, 0 };
-
-	inline nTuple<NUM_OF_DIMS, size_type> const & GetStrides() const
-	{
-		return strides_;
-	}
-
-	inline size_type GetNumOfElements(int iform) const
-	{
-
-		return (1UL);
-	}
-
-	template<int iform, typename TV> inline Container<TV> MakeContainer() const
-	{
-		return (MEMPOOL.allocate_shared_ptr < TV > (GetNumOfElements(iform)));
-	}
-
-	template<int IFORM>
-	size_type HashIndex( index_type const & s)const
-	{
-		return OcForest::HashIndex(s,strides_);
-	}
-	template<typename TI>
-	TI HashIndex( TI const & s)const
-	{
-		return s;
-	}
-
-	template<int IFORM,typename TV>
-	struct iterator
-	{
-
-		static constexpr int IForm = IFORM;
-
-		typedef this_type mesh_type;
-
-		mesh_type const & mesh;
-
-		Container<TV> data_;
-
-		typedef TV value_type;
-		index_type s_;
-		iterator(mesh_type const & m, Container<TV> d, index_type s)
-		: mesh(m), data_(d), s_(s)
-		{
-
-		}
-		iterator(mesh_type const & m, Container<TV> d)
-		: mesh(m), data_(d),s_(_C(0UL))
-		{
-
-		}
-		iterator(mesh_type const & m)
-		: mesh(m),s_(_C(0UL))
-		{
-		}
-		~iterator()
-		{
-
-		}
-		bool operator==(iterator const & rhs) const
-		{
-			return (data_ == rhs.data_) && s_ == rhs.s_;
-		}
-		bool operator!=(iterator const & rhs) const
-		{
-			return !(this->operator==(rhs));
-		}
-		value_type & operator*()
-		{
-			return *(data_.get()+mesh.template HashIndex<IForm>(s_));
-		}
-		value_type const& operator*() const
-		{
-			return *(data_.get()+mesh.template HashIndex<IForm>(s_));
-		}
-
-		iterator & operator ++()
-		{
-
-			s_ = mesh.Next(s_);
-
-			CHECK(mesh.template HashIndex<IForm>(s_));
-
-			return *this;
-		}
-	};
-
-	template<int IFORM,typename TV>
-	iterator<IFORM,TV> CreateIteratorBegin(Container<TV> & data)const
-	{
-		return iterator<IFORM,TV>(*this,data);
-	}
-	template<int IFORM,typename TV>
-	iterator<IFORM,TV> CreateIteratorEnd(Container<TV> & data)const
-	{
-		return iterator<IFORM,TV>(*this);
-	}
 //***************************************************************************************************
 // Geometric properties
 // Metric

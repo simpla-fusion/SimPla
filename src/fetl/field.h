@@ -56,28 +56,23 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 
-	typedef typename mesh_type::template iterator<IForm, value_type> iterator;
-
-	typedef typename mesh_type::template iterator<IForm, const value_type> const_iterator;
-
 	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
 
 	typedef typename mesh_type::template Container<value_type> container_type;
 
 private:
 	container_type data_;
-	size_t num_of_eles_;
 public:
 
 	mesh_type const &mesh;
 
 	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+			: mesh(pmesh), data_(nullptr)
 	{
 	}
 
 	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr), num_of_eles_(0)
+			: mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
@@ -95,13 +90,13 @@ public:
 	 */
 
 	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr), num_of_eles_(rhs.num_of_eles_)
+			: mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
 	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_), num_of_eles_(rhs.num_of_eles_)
+			: mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -112,7 +107,6 @@ public:
 	void swap(this_type & rhs)
 	{
 		base_type::swap(rhs);
-		std::swap(rhs.num_of_eles_, num_of_eles_);
 	}
 
 	container_type & data()
@@ -133,34 +127,99 @@ public:
 		return size() <= 0;
 	}
 
+	template<typename TC>
+	struct iterator_
+	{
+		TC data_;
+
+		typename mesh_type::template iterator<IForm> it_;
+
+		typedef decltype(*data_) value_type;
+
+		typedef iterator_<TC> this_type;
+
+		iterator_(TC d, typename mesh_type::template iterator<IForm> s)
+				: data_(d), it_(s)
+		{
+
+		}
+		~iterator_()
+		{
+		}
+
+		value_type & operator*()
+		{
+			return *(data_.get() + it_.Hash());
+		}
+		value_type const& operator*() const
+		{
+			return *(data_.get() + it_.Hash());
+		}
+		this_type & operator++()
+		{
+			++it_;
+			return *this;
+		}
+
+		bool operator!=(this_type const &rhs) const
+		{
+			return it_ != rhs.it_ && data_ != rhs.data_;
+		}
+	};
+
+	typedef iterator_<container_type> iterator;
+
+	typedef iterator_<const container_type> const_iterator;
+
 	iterator begin()
 	{
-		return mesh.template CreateIteratorBegin<IForm, value_type>(data_);
-
+		return iterator_<container_type>(data_, mesh.template begin<IForm>());
 	}
+
 	iterator end()
 	{
-		return mesh.template CreateIteratorEnd<IForm, value_type>(data_);
+		return iterator_<container_type>(data_, mesh.template end<IForm>());
 	}
 
 	const_iterator begin() const
 	{
-		return mesh.template CreateIteratorBegin<IForm, const value_type>(data_);
+		return iterator_<const container_type>(data_, mesh.template begin<IForm>());
 	}
+
 	const_iterator end() const
 	{
-		return mesh.template CreateIteratorEnd<IForm, const value_type>(data_);
+		return iterator_<const container_type>(data_, mesh.template end<IForm>());
 	}
-
-	inline value_type & operator[](index_type const &s)
+	template<typename ...TI>
+	inline value_type & operator[](TI const &...s)
 	{
-		return *(data_.get() + mesh.template HashIndex<IForm>(s));
+		return get(s...);
 	}
-	inline value_type const & operator[](index_type s) const
+	template<typename ...TI>
+	inline value_type const & operator[](TI const &...s) const
 	{
-		return *(data_.get() + mesh.template HashIndex<IForm>(s));
+		return get(s...);
 	}
-
+	template<typename ...TI>
+	inline value_type & at(TI const &...s)
+	{
+		return get(s...);
+	}
+	template<typename ...TI>
+	inline value_type const & at(TI const &...s) const
+	{
+		return get(s...);
+	}
+	template<typename ...TI>
+	inline value_type & get(TI const &...s)
+	{
+		return *(data_.get() + mesh.template Hash<IForm>(s...));
+	}
+	template<typename ...TI>
+	inline value_type const & get(TI const &...s) const
+	{
+		return *(data_.get() + mesh.template Hash<IForm>(s...));
+	}
 	void Init()
 	{
 		Update();
@@ -170,7 +229,6 @@ public:
 		if (data_ == nullptr)
 		{
 			data_ = mesh.template MakeContainer<IForm, value_type>();
-			num_of_eles_ = mesh.GetNumOfElements(IForm);
 		}
 
 	}
@@ -179,9 +237,9 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		for (size_t s = 0; s < num_of_eles_; ++s)
+		for (auto & v : *this)
 		{
-			(*this)[s] = default_value;
+			v = default_value;
 		}
 	}
 
@@ -193,11 +251,14 @@ public:
 
 	}
 
-	inline this_type &
-	operator =(this_type const & rhs)
+	template<typename TR> inline this_type &
+	operator =(Field<Geometry<mesh_type, IForm>, TR> const & rhs)
 	{
 		Init();
-//		mesh.AssignContainer(IForm, this, rhs);
+		mesh.template Traversal<IForm>([&](index_type s)
+		{
+			this->get(s)=rhs.get(s);
+		});
 		return (*this);
 	}
 
@@ -205,25 +266,28 @@ public:
 	operator =(TR const & rhs)
 	{
 		Init();
-//		mesh.AssignContainer(IForm, this, rhs);
+		mesh.template Traversal<IForm>([&](index_type s)
+		{
+			this->get(s)=rhs;
+		});
 		return (*this);
 	}
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
-	template<typename TR> inline this_type &                                                       \
-	operator _OP_(TR const & rhs)                                                                  \
-	{   Init();                                                                                    \
-		     return (*this);}
+		template<typename TR> inline this_type &                                                   \
+		operator _OP_##= (TR const & rhs)                                                          \
+		{	 *this = *this _OP_ rhs;                                                      \
+			return (*this) ;                                                                        \
+		}                                                                                          \
 
-//	mesh.ForEach( [](value_type &l,typename FieldTraits<TR>::value_type const & r)             \
-//		            {	l _OP_ r;},	 this,std::forward<TR const &>(rhs) );
-	DECL_SELF_ASSIGN (+=)
 
-DECL_SELF_ASSIGN	(-=)
+	DECL_SELF_ASSIGN(+ )
 
-	DECL_SELF_ASSIGN (*=)
+DECL_SELF_ASSIGN	(- )
 
-	DECL_SELF_ASSIGN (/=)
+	DECL_SELF_ASSIGN(* )
+
+	DECL_SELF_ASSIGN(/ )
 #undef DECL_SELF_ASSIGN
 
 	inline field_value_type mean(coordinates_type const &x) const
@@ -236,9 +300,9 @@ DECL_SELF_ASSIGN	(-=)
 		return Gather(x);
 	}
 
-	inline field_value_type operator()(index_type s,Real const *pcoords) const
+	inline field_value_type operator()(index_type s, Real const *pcoords) const
 	{
-		return Gather(s,pcoords);
+		return Gather(s, pcoords);
 	}
 
 	inline field_value_type Gather(coordinates_type const &x) const
@@ -257,7 +321,7 @@ DECL_SELF_ASSIGN	(-=)
 
 		field_value_type res;
 
-		index_type num=mesh.GetAffectedPoints(Int2Type<IForm>(), s );
+		index_type num = mesh.GetAffectedPoints(Int2Type<IForm>(), s);
 
 		std::vector<index_type> points(num);
 
@@ -265,14 +329,14 @@ DECL_SELF_ASSIGN	(-=)
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
 
-		for(int i=0;i<num;++i)
+		for (int i = 0; i < num; ++i)
 		{
-			cache[i]=mesh.get_value(data_, points[i]);
+			cache[i] = mesh.get_value(data_, points[i]);
 		}
 
 		res *= 0;
 
-		mesh.Gather(Int2Type<IForm>(),pcoords,&cache[0],&res);
+		mesh.Gather(Int2Type<IForm>(), pcoords, &cache[0], &res);
 
 		return res;
 
@@ -289,55 +353,56 @@ DECL_SELF_ASSIGN	(-=)
 
 	}
 	template<typename TV>
-	inline void Collect(TV const & v, index_type const & s,
-			Real * pcoords, int affected_region = 2)
+	inline void Collect(TV const & v, index_type const & s, Real * pcoords, int affected_region = 2)
 	{
 
-		index_type num=mesh.GetAffectedPoints(Int2Type<IForm>(), s);
+		index_type num = mesh.GetAffectedPoints(Int2Type<IForm>(), s);
 
-		if(num==0)
+		if (num == 0)
 		{
 			CHECK(s );
 			return;
 		}
 
-		index_type *points= new index_type[num];
-		value_type *cache =new value_type[num];
+		index_type *points = new index_type[num];
+		value_type *cache = new value_type[num];
 
 		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
 
 		value_type zero_value;
 
-		zero_value*=0;
+		zero_value *= 0;
 
-		for(int i=0;i<num;++i)
+		for (int i = 0; i < num; ++i)
 		{
-			cache[i]=zero_value;
+			cache[i] = zero_value;
 		}
 
-		field_value_type vv; vv=v;
+		field_value_type vv;
+		vv = v;
 
-		mesh.Scatter(Int2Type<IForm>(),pcoords,vv,cache);
+		mesh.Scatter(Int2Type<IForm>(), pcoords, vv, cache);
 
-		Collect(num,points,cache);
+		Collect(num, points, cache);
 
 		delete[] points;
 		delete[] cache;
 	}
 
-	inline void Collect(index_type num,index_type const * points,value_type const * cache)
+	inline void Collect(index_type num, index_type const * points, value_type const * cache)
 	{
-		if(num==0)
-		WARNING<< "Cache is empty!";
+		if (num == 0)
+		WARNING << "Cache is empty!";
 
 		write_lock_.lock();
-		for (int i=0; i<num;++i)
+		for (int i = 0; i < num; ++i)
 		{
-			mesh.get_value(data_, points[i])+=cache[i];
+			mesh.get_value(data_, points[i]) += cache[i];
 		}
 		write_lock_.unlock();
 	}
-};
+}
+;
 
 }
 // namespace simpla

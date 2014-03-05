@@ -462,6 +462,16 @@ inline LoggerStreams & operator<<(LoggerStreams & os, SetLineWidth const &setw)
 	return os;
 
 }
+#include <bitset>
+
+std::string ShowBit(unsigned long s)
+{
+	return std::bitset<64>(s).to_string();
+}
+#define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0b"<<ShowBit( _MSG_) << std::endl
+
+#define CHECK_HEX(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0x"<<std::setw(20)<<std::setfill('0')<< std::hex<< ( _MSG_) << std::dec<< std::endl
+
 //#define DONE    std::right<< " [Done]"
 //#define START    std::right<<  " [START]"
 

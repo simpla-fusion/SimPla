@@ -18,6 +18,7 @@
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../utilities/type_utilites.h"
+#include "../utilities/memory_pool.h"
 
 namespace simpla
 {
@@ -52,6 +53,58 @@ struct OcForest
 	static constexpr size_type INDEX_MIN = 0;
 
 	static constexpr double dh = 1.0 / static_cast<double>(INDEX_MAX + 1);
+
+	//***************************************************************************************************
+
+	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
+	        INDEX_DIGITS - MAX_TREE_HEIGHT };
+
+	compact_index_type _MI = 0UL;
+	compact_index_type _MJ = 0UL;
+	compact_index_type _MK = 0UL;
+	compact_index_type _MA = _MI | _MJ | _MK;
+
+	OcForest()
+	{
+	}
+	template<typename TDict>
+	OcForest(TDict const & dict)
+	{
+
+	}
+	OcForest(nTuple<3, size_type> const & d)
+	{
+		SetDimensions(d);
+	}
+
+	~OcForest()
+	{
+	}
+
+	this_type & operator=(const this_type&) = delete;
+
+	void swap(OcForest & rhs)
+	{
+		std::swap(index_digits_, rhs.index_digits_);
+		std::swap(_MI, rhs._MI);
+		std::swap(_MJ, rhs._MJ);
+		std::swap(_MK, rhs._MK);
+		std::swap(_MA, rhs._MA);
+	}
+
+	template<typename TI>
+	void SetDimensions(TI const &d)
+	{
+		index_digits_[0] = count_bits(d[0]);
+		index_digits_[1] = count_bits(d[1]);
+		index_digits_[2] = count_bits(d[2]);
+		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
+		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
+		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
+		_MA = _MI | _MJ | _MK;
+
+	}
+	//***************************************************************************************************
 
 	struct index_type
 	{
@@ -97,47 +150,178 @@ struct OcForest
 
 	};
 
+	nTuple<NUM_OF_DIMS, size_type> strides = { 0, 0, 0 };
+
+	template<int IFORM>
+	inline size_type Hash(index_type s) const
+	{
+
+		return (
+
+		(s.I >> (INDEX_DIGITS - index_digits_[0] - s.H + 1)) * strides[0] +
+
+		(s.J >> (INDEX_DIGITS - index_digits_[1] - s.H + 1)) * strides[1] +
+
+		(s.K >> (INDEX_DIGITS - index_digits_[2] - s.H + 1)) * strides[2]
+
+		);
+
+	}
+
+	template<int IFORM>
+	struct iterator
+	{
+
+		static constexpr int IForm = IFORM;
+
+		OcForest const & tree;
+
+		index_type s_;
+
+		iterator(OcForest const & m, index_type s = _C(0UL))
+				: tree(m), s_(s)
+		{
+		}
+
+		~iterator()
+		{
+		}
+
+		bool operator==(iterator const & rhs) const
+		{
+			return s_ == rhs.s_;
+		}
+
+		bool operator!=(iterator const & rhs) const
+		{
+			return !(this->operator==(rhs));
+		}
+
+		index_type const & operator*() const
+		{
+			return s_;
+		}
+
+		size_type Hash() const
+		{
+			return tree.Hash<IForm>(s_);
+		}
+
+		iterator & operator ++()
+		{
+			s_ = tree.Next<IForm>(s_);
+			return *this;
+		}
+
+	};
+
+	template<int IFORM> iterator<IFORM> begin(int total = 1, int sub = 0) const
+	{
+		auto dims_ = GetDimensions();
+
+		index_type s = {
+
+		0,
+
+		(dims_[0] * (sub) / total - 1) << (INDEX_DIGITS - index_digits_[0]),
+
+		0, // << (INDEX_DIGITS - index_digits_[1]),
+
+		        0, // << (INDEX_DIGITS - index_digits_[2])
+
+		        };
+
+		return iterator<IFORM>(*this, s);
+	}
+	template<int IFORM> iterator<IFORM> end(int total = 1, int sub = 0) const
+	{
+
+		auto dims_ = GetDimensions();
+
+		index_type s = {
+
+		0,
+
+		(dims_[0] * (sub + 1) / total - 1) << (INDEX_DIGITS - index_digits_[0]),
+
+		dims_[1] << (INDEX_DIGITS - index_digits_[1]),
+
+		dims_[2] << (INDEX_DIGITS - index_digits_[2])
+
+		};
+		return iterator<IFORM>(*this, s);
+	}
+
+	template<int IForm>
 	index_type Next(index_type s) const
 	{
-		UNIMPLEMENT2("next compent");
-		s.K += 1U << (INDEX_DIGITS - index_digits_[2]);
-		s.J += (s.K == 0) ? 1U << (INDEX_DIGITS - index_digits_[1]) : 0;
-		s.I += (s.J == 0) ? 1U << (INDEX_DIGITS - index_digits_[0]) : 0;
+		if (IForm == VERTEX || IForm == VOLUME || (IForm == EDGE && _N(s) == 2) || (IForm == FACE && _N(_I(s)) == 2))
+		{
+			s.K += 1U << (INDEX_DIGITS - index_digits_[2]);
+			s.J += ((s.K >> (INDEX_DIGITS - index_digits_[2])) == 0) ? 1U << (INDEX_DIGITS - index_digits_[1]) : 0;
+			s.I += ((s.J >> (INDEX_DIGITS - index_digits_[1])) == 0) ? 1U << (INDEX_DIGITS - index_digits_[0]) : 0;
+		}
+		else
+		{
+			s = _C(_R(s));
+		}
+
 		return s;
 	}
 
-	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
-	        INDEX_DIGITS - MAX_TREE_HEIGHT };
+	//***************************************************************************************************
+	//  Traversal
 
-	compact_index_type _MI = 0UL;
-	compact_index_type _MJ = 0UL;
-	compact_index_type _MK = 0UL;
-	compact_index_type _MA = _MI | _MJ | _MK;
+	template<int IFORM, typename ... Args>
+	void ParallelTraversal(std::function<void(index_type, Args const & ...)> const &fun, Args &...args) const
+	{
+		const unsigned int num_threads = std::thread::hardware_concurrency();
 
-	//  public:
-	OcForest()
-	{
-		Update();
-	}
-	template<typename TI>
-	OcForest(nTuple<3, TI> const & d)
-	{
-		SetDimensions(d);
-		Update();
+		std::vector<std::thread> threads;
+
+		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+		{
+			auto ib = this->begin<IFORM>(num_threads, thread_id);
+			auto ie = this->end<IFORM>(num_threads, thread_id);
+
+			threads.emplace_back(
+
+			std::thread([ib,ie](std::function<void(index_type, Args const & ...)> const & fun2,Args const &... args2 )
+			{
+				for (auto it =ib; it != ie; ++it)
+				{
+					fun2(*it,args2...);
+				}
+
+			}, fun, std::forward<Args const &>(args)...
+
+			));
+		}
+
+		for (auto & t : threads)
+		{
+			t.join();
+		}
 	}
 
-	~OcForest()
+	template<int IFORM, typename ...Args>
+	void Traversal(std::function<void(index_type, Args const & ...)> const &fun, Args const & ...args) const
 	{
+		for (auto it = this->begin<IFORM>(), ie = this->end<IFORM>(); it != ie; ++it)
+		{
+			fun(*it, std::forward<Args const &>(args)...);
+		}
 	}
-	this_type & operator=(const this_type&) = delete;
+	template<int IFORM>
+	void Traversal(std::function<void(index_type)> const &fun) const
+	{
+		for (auto it = this->begin<IFORM>(), ie = this->end<IFORM>(); it != ie; ++it)
+		{
+			fun(*it);
+		}
+	}
+	//***************************************************************************************************
 
-	void SetDimensions(nTuple<3, size_t> const & d)
-	{
-		index_digits_[0] = count_bits(d[0]) - 1;
-		index_digits_[1] = count_bits(d[1]) - 1;
-		index_digits_[2] = count_bits(d[2]) - 1;
-		Update();
-	}
 	nTuple<3, size_type> GetDimensions() const
 	{
 		return nTuple<3, size_type>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
@@ -152,58 +336,6 @@ struct OcForest
 		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[1])) * dh,
 
 		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[2])) * dh });
-	}
-	inline std::vector<size_t> GetShape(int IFORM) const
-	{
-		std::vector<size_t> res;
-
-		nTuple<3, size_type> dims_ = GetDimensions();
-
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
-		{
-			if (dims_[i] > 1)
-				res.push_back(dims_[i]);
-		}
-
-		return std::move(res);
-	}
-
-	void Update()
-	{
-		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
-		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
-		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
-		_MA = _MI | _MJ | _MK;
-	}
-
-	inline size_type HashRootIndex(index_type s, nTuple<3, size_type> const & strides) const
-	{
-
-		return (
-
-		(s.I >> (INDEX_DIGITS - index_digits_[0])) * strides[0] +
-
-		(s.J >> (INDEX_DIGITS - index_digits_[1])) * strides[1] +
-
-		(s.K >> (INDEX_DIGITS - index_digits_[2])) * strides[2]
-
-		);
-
-	}
-
-	inline size_type HashIndex(index_type s, nTuple<3, size_type> const & strides) const
-	{
-
-		return (
-
-		(s.I >> (INDEX_DIGITS - index_digits_[0] - s.H + 1)) * strides[0] +
-
-		(s.J >> (INDEX_DIGITS - index_digits_[1] - s.H + 1)) * strides[1] +
-
-		(s.K >> (INDEX_DIGITS - index_digits_[2] - s.H + 1)) * strides[2]
-
-		);
-
 	}
 
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned int H = 0) const
@@ -808,92 +940,8 @@ struct OcForest
 		return 2;
 	}
 
-	//***************************************************************************************************
-	//  Traversal
-	//***************************************************************************************************
-
-	void _Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-	        std::function<void(index_type)> const &funs) const;
-
-	template<typename ... Args>
-	void Traversal(Args const &...args) const
-	{
-		ParallelTraversal(std::forward<Args const &>(args)...);
-	}
-
-	template<typename ...Args> void ParallelTraversal(Args const &...args) const;
-
-	template<typename ...Args> void SerialTraversal(Args const &...args) const;
-
 }
 ;
-template<typename ...Args>
-void OcForest::ParallelTraversal(Args const &...args) const
-{
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-
-	std::vector<std::thread> threads;
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-	{
-		threads.emplace_back(std::thread([num_threads,thread_id,this](Args const & ...args2)
-		{	this-> _Traversal(num_threads,thread_id,std::forward<Args const&>(args2)...);},
-
-		std::forward<Args const &>(args)...));
-	}
-
-	for (auto & t : threads)
-	{
-		t.join();
-	}
-
-}
-
-template<typename ...Args>
-void OcForest::SerialTraversal(Args const &...args) const
-{
-	_Traversal(1, 0, std::forward<Args const&>( args)...);
-}
-
-void OcForest::_Traversal(unsigned int num_threads, unsigned int thread_id, int IFORM,
-        std::function<void(index_type)> const &fun) const
-{
-	auto dims_ = GetDimensions();
-	size_type ib = dims_[0] * thread_id / num_threads;
-	size_type ie = dims_[0] * (thread_id + 1) / num_threads;
-
-	index_type s;
-	s.H = 0;
-	for (s.I = ib; s.I < ie; s.I += _MI)
-		for (s.J = 0; s.J < dims_[1]; s.J += _MJ)
-			for (s.K = 0; s.K < dims_[2]; s.K += _MK)
-			{
-				if (IFORM == VERTEX)
-				{
-					fun(s);
-				}
-				else if (IFORM == EDGE)
-				{
-					fun(s + (_MI >> 1));
-					fun(s + (_MJ >> 1));
-					fun(s + (_MK >> 1));
-				}
-				else if (IFORM == FACE)
-				{
-					fun(s + ((_MJ | _MK) >> 1));
-					fun(s + ((_MK | _MI) >> 1));
-					fun(s + ((_MI | _MJ) >> 1));
-				}
-				else if (IFORM == VOLUME)
-				{
-					fun(s + (_MA >> 1));
-				}
-				else
-				{
-					UNIMPLEMENT2("traversal octree!!!");
-				}
-			}
-}
 
 }
 // namespace simpla

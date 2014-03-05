@@ -11,132 +11,12 @@
 #include "ntuple.h"
 #include "ntuple_ops.h"
 #include "field.h"
-#include "field_ops.h"
 #include "constant_ops.h"
 namespace simpla
 {
-//****************************************************************************************************
-//********************       nTuple     Operation                      ****************
-//****************************************************************************************************
-
-// Expression template of nTuple
-
-#define _DEFINE_BINARY_OPERATOR(_NAME_,_OP_)                                                \
-template<int N, typename TL, typename TR> inline auto                              \
-operator  _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)                   \
-DECL_RET_TYPE((nTuple<N, BiOp<_NAME_ ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)))             \
-                                                                                   \
-template<int N, typename TL, typename TR> inline auto                              \
-operator  _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)                              \
-DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, nTuple<N, TL>, TR> >(lhs, rhs)))                   \
-                                                                                   \
-template<int N, typename TL, typename TR> inline auto                              \
-operator  _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)                              \
-DECL_RET_TYPE((nTuple<N, BiOp<_NAME_, TL, nTuple<N, TR> > >(lhs, rhs)))              \
-
-
-//_DEFINE_BINARY_OPERATOR(PLUS, +)
-//_DEFINE_BINARY_OPERATOR(MINUS, -)
-//_DEFINE_BINARY_OPERATOR(MULTIPLIES, *)
-//_DEFINE_BINARY_OPERATOR(DIVIDES, /)
-//_DEFINE_BINARY_OPERATOR(BITWISEXOR, ^)
-//_DEFINE_BINARY_OPERATOR(BITWISEAND, &)
-//_DEFINE_BINARY_OPERATOR(BITWISEOR, |)
-//_DEFINE_BINARY_OPERATOR(MODULUS, %)
-
-#undef _DEFINE_BINARY_OPERATOR
-
-template<int N, typename TL, typename TR> inline auto operator +(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-->decltype(((nTuple<N, BiOp<PLUS ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<PLUS, nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)));
-}
-
-//template<int N, typename TL, typename TR> inline auto operator +(nTuple<N, TL> const & lhs, TR const & rhs)
-//->decltype(((nTuple<N, BiOp<PLUS, nTuple<N, TL>, TR> >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<PLUS, nTuple<N, TL>, TR> >(lhs, rhs)));
-//}
-//
-//template<int N, typename TL, typename TR> inline auto operator +(TL const & lhs, nTuple<N, TR> const & rhs)
-//->decltype(((nTuple<N, BiOp<PLUS, TL, nTuple<N, TR> > >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<PLUS, TL, nTuple<N, TR> > >(lhs, rhs)));
-//}
-
-template<int N, typename TL, typename TR> inline auto operator -(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-->decltype(((nTuple<N, BiOp<MINUS ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<MINUS, nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)));
-}
-
-//template<int N, typename TL, typename TR> inline auto operator -(nTuple<N, TL> const & lhs, TR const & rhs)
-//->decltype(((nTuple<N, BiOp<MINUS, nTuple<N, TL>, TR> >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<MINUS, nTuple<N, TL>, TR> >(lhs, rhs)));
-//}
-//
-//template<int N, typename TL, typename TR> inline auto operator -(TL const & lhs, nTuple<N, TR> const & rhs)
-//->decltype(((nTuple<N, BiOp<MINUS, TL, nTuple<N, TR> > >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<MINUS, TL, nTuple<N, TR> > >(lhs, rhs)));
-//}
-
-//template<int N, typename TL, typename TR> inline auto operator *(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-//->decltype(((nTuple<N, BiOp<MULTIPLIES ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)));
-//}
-
-template<int N, typename TL> inline auto operator *(nTuple<N, TL> const & lhs, double const & rhs)
-->decltype(((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, double> >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<MULTIPLIES, nTuple<N, TL>, double> >(lhs, rhs)));
-}
-
-template<int N, typename TR> inline auto operator *(double const & lhs, nTuple<N, TR> const & rhs)
-->decltype(((nTuple<N, BiOp<MULTIPLIES, double, nTuple<N, TR> > >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<MULTIPLIES, double, nTuple<N, TR> > >(lhs, rhs)));
-}
-//template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-//->decltype(((nTuple<N, BiOp<DIVIDES ,nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, nTuple<N, TR> > >(lhs, rhs)));
-//}
-
-template<int N, typename TL, typename TR> inline auto operator /(nTuple<N, TL> const & lhs, TR const & rhs)
-->decltype(((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs))))
-{
-	return ((nTuple<N, BiOp<DIVIDES, nTuple<N, TL>, TR> >(lhs, rhs)));
-}
-
-//template<int N, typename TL, typename TR> inline auto operator /(TL const & lhs, nTuple<N, TR> const & rhs)
-//->decltype(((nTuple<N, BiOp<DIVIDES, TL, nTuple<N, TR> > >(lhs, rhs))))
-//{
-//	return ((nTuple<N, BiOp<DIVIDES, TL, nTuple<N, TR> > >(lhs, rhs)));
-//}
-
-template<int N, typename TL> inline
-auto operator-(nTuple<N, TL> const & f)
-DECL_RET_TYPE(( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
-
-template<int N, typename TL> inline
-auto operator+(nTuple<N, TL> const & f)
-DECL_RET_TYPE(f)
-
-//template<int N, typename TL> inline auto operator -(Zero const &, nTuple<N, TL> const &f)
-//DECL_RET_TYPE (( nTuple<N, UniOp<NEGATE,nTuple<N, TL> > > (f)))
-
-template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)
-DECL_RET_TYPE((nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (lhs, rhs)))
-
-template<int N, typename TL, typename TR>
-inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 
 //****************************************************************************************************
-//*************************      Field Operation      ********************************************
+//   Field Operation
 //****************************************************************************************************
 template<typename TM, int IFORM, typename TL>
 inline auto operator-(Field<Geometry<TM, IFORM>, TL> const & f)
@@ -156,27 +36,27 @@ DECL_RET_TYPE((Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , Field<TGeo, TR> > > (lhs
 //****************************************************************************************************
 
 template<typename TM, int IL, typename TL, typename TR> inline auto //
-operator*(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, 0>, TR> const & rhs)
+operator*(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, VERTEX>, TR> const & rhs)
 DECL_RET_TYPE( (Field<Geometry<TM,IL >,BiOp<MULTIPLIES,
-				Field<Geometry<TM,IL>,TL>, Field<Geometry<TM,0>,TR> > > (lhs, rhs)))
+				Field<Geometry<TM,IL>,TL>, Field<Geometry<TM,VERTEX>,TR> > > (lhs, rhs)))
 
 template<typename TM, int IR, typename TL, typename TR> inline auto //
-operator*(Field<Geometry<TM, 0>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
+operator*(Field<Geometry<TM, VERTEX>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
 DECL_RET_TYPE( (Field<Geometry<TM,IR >,BiOp<MULTIPLIES,
-				Field<Geometry<TM,0>,TL>, Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
+				Field<Geometry<TM, VERTEX>,TL>, Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
 
 template<typename TM, typename TL, typename TR> inline auto //
-operator*(Field<Geometry<TM, 0>, TL> const & lhs, Field<Geometry<TM, 0>, TR> const & rhs)
-DECL_RET_TYPE( (Field<Geometry<TM,0>,BiOp<MULTIPLIES,
-				Field<Geometry<TM,0>,TL>, Field<Geometry<TM,0>,TR> > > (lhs, rhs)))
+operator*(Field<Geometry<TM, VERTEX>, TL> const & lhs, Field<Geometry<TM, VERTEX>, TR> const & rhs)
+DECL_RET_TYPE( (Field<Geometry<TM, VERTEX>,BiOp<MULTIPLIES,
+				Field<Geometry<TM, VERTEX>,TL>, Field<Geometry<TM, VERTEX>,TR> > > (lhs, rhs)))
 
-//template<typename TGeo, typename TL, typename TR> inline auto //
-//operator*(Field<TGeo, TL> const & lhs, TR const & rhs)
-//DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,Field<TGeo,TL>,TR > > (lhs, rhs)))
-//
-//template<typename TGeo, typename TL, typename TR> inline auto //
-//operator*(TL const & lhs, Field<TGeo, TR> const & rhs)
-//DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,TL,Field<TGeo,TR> > > (lhs, rhs)))
+template<typename TGeo, typename TL, typename TR> inline auto //
+operator*(Field<TGeo, TL> const & lhs, TR const & rhs)
+DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,Field<TGeo,TL>,TR > > (lhs, rhs)))
+
+template<typename TGeo, typename TL, typename TR> inline auto //
+operator*(TL const & lhs, Field<TGeo, TR> const & rhs)
+DECL_RET_TYPE((Field<TGeo,BiOp<MULTIPLIES,TL,Field<TGeo,TR> > > (lhs, rhs)))
 
 //// To remve the ambiguity of operator define
 //template<typename TG, typename TL, int NR, typename TR> inline auto //
@@ -258,7 +138,6 @@ template<typename TM, int IFORM, int IR, typename TL, typename TR>
 inline auto operator^(Field<Geometry<TM, IFORM>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
 DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 //****************************************************************************************************
-
 
 template<typename TG, typename TL, typename TR> inline auto //
 Cross(Field<Geometry<TG, 0>, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)

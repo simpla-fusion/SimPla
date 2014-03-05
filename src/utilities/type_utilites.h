@@ -214,7 +214,7 @@ struct CountBits<0>
 
 unsigned int count_bits(unsigned long s)
 {
-	unsigned int n = 1;
+	unsigned int n = 0;
 	while (s > 0)
 	{
 		++n;
