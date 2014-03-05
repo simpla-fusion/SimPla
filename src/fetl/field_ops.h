@@ -30,9 +30,9 @@ DECL_RET_TYPE((lhs-rhs))
 namespace fetl_impl
 {
 
-template<typename TGeo, typename TL, typename ...TI> inline auto FieldOpEval(Int2Type<NEGATE>,
-        Field<TGeo, TL> const & f, TI ... s)
-        DECL_RET_TYPE((-f.get(s...)) )
+template<typename TGeo, typename TL, typename TI> inline auto FieldOpEval(Int2Type<NEGATE>, Field<TGeo, TL> const & f,
+        TI s)
+        DECL_RET_TYPE((-f.get(s)) )
 
 } // namespace fetl_impl
 
@@ -48,17 +48,17 @@ DECL_RET_TYPE( (f))
 namespace fetl_impl
 {
 
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<PLUS>,
-        Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...)+r.get(s...)))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>,
+        Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI s)
+        DECL_RET_TYPE((l.get(s)+r.get(s)))
 
-//template<typename TG, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<PLUS>, TL const &l,
-//        Field<TG, TR> const &r, TI ... s)
-//        DECL_RET_TYPE((l +r.get(s...)))
+//template<typename TG, typename TL, typename TR, typename  TI> inline auto FieldOpEval(Int2Type<PLUS>, TL const &l,
+//        Field<TG, TR> const &r, TI  s)
+//        DECL_RET_TYPE((l +r.get(s)))
 
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<PLUS>,
-        Field<TGeo, TL> const &l, TR const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...)+r))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>,
+        Field<TGeo, TL> const &l, TR const &r, TI s)
+        DECL_RET_TYPE((l.get(s)+r))
 }  // namespace fetl_impl
 
 template<typename TGeo, typename TL, typename TR> inline auto //
@@ -75,17 +75,17 @@ DECL_RET_TYPE( ( Field<TGeo , BiOp<PLUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 //****************************************************************************************************
 namespace fetl_impl
 {
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...)-r.get(s...)))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
+        Field<TGeo, TL> const &l, Field<TGeo, TR> const &r, TI s)
+        DECL_RET_TYPE((l.get(s)-r.get(s)))
 
-//template<typename TG, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MINUS>, TL const &l,
-//        Field<TG, TR> const &r, TI ... s)
-//        DECL_RET_TYPE((l -r.get(s...)))
+//template<typename TG, typename TL, typename TR, typename  TI> inline auto FieldOpEval(Int2Type<MINUS>, TL const &l,
+//        Field<TG, TR> const &r, TI  s)
+//        DECL_RET_TYPE((l -r.get(s)))
 
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TGeo, TL> const &l, TR const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...)-r))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
+        Field<TGeo, TL> const &l, TR const &r, TI s)
+        DECL_RET_TYPE((l.get(s)-r))
 
 }  // namespace fetl_impl
 template<typename TGeo, typename TL, typename TR> inline auto //
@@ -105,33 +105,31 @@ DECL_RET_TYPE( ( Field<TGeo , BiOp<MINUS,Field<TGeo, TL> , TR > > (lhs, rhs)))
 namespace fetl_impl
 {
 
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<TGeo, TL> const &l, TR const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...) * r))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
+        Field<TGeo, TL> const &l, TR const &r, TI s)
+        DECL_RET_TYPE((l.get(s) * r))
 
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        TL const & l, Field<TGeo, TR> const & r, TI ... s)
-        DECL_RET_TYPE((l * r.get(s...)))
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
+        TL const & l, Field<TGeo, TR> const & r, TI s)
+        DECL_RET_TYPE((l * r.get(s)))
 
-template<typename TGeo, typename TL, int IR, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<TGeo, TL> const &l, nTuple<IR, TR> const &r, TI ... s)
-        DECL_RET_TYPE((l.get(s...) * r))
+template<typename TGeo, typename TL, int IR, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
+        Field<TGeo, TL> const &l, nTuple<IR, TR> const &r, TI s)
+        DECL_RET_TYPE((l.get(s) * r))
 
-template<typename TGeo, int IL, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        nTuple<IL, TL> const & l, Field<TGeo, TR> const & r, TI ... s)
-        DECL_RET_TYPE((l * r.get(s...)))
+template<typename TGeo, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
+        nTuple<IL, TL> const & l, Field<TGeo, TR> const & r, TI s)
+        DECL_RET_TYPE((l * r.get(s)))
 
-template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(
-        Int2Type<MULTIPLIES>, Field<Geometry<TM, IL>, TL> const &l, Field<Geometry<TM, IR>, TR> const &r, TI ... s)
-        DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)*
-				        r.mesh.mapto(Int2Type<IL+IR>(),r,s...)) )
+//template<typename TGeoL, typename TL, typename TGeoR, typename TR, typename TI> inline auto FieldOpEval(
+//        Int2Type<MULTIPLIES>, Field<TGeoL, TL> const &l, Field<TGeoR, TR> const &r, TI s)
+//        DECL_RET_TYPE((l.get(s) * r.get(s)))
 
 }  // namespace fetl_impl
 
 template<typename TM, int IL, int IR, typename TL, typename TR> inline auto //
 operator*(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
-DECL_RET_TYPE((Field<Geometry<TM,IL+IR>,BiOp<MULTIPLIES,
-				Field<Geometry<TM,IL>,TL>, Field<Geometry<TM,IR>,TR> > > (lhs, rhs)))
+DECL_RET_TYPE((Wedge(lhs,rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator*(Field<TGeo, TL> const & lhs, TR const & rhs)
@@ -154,15 +152,20 @@ DECL_RET_TYPE((Field<TGeo, BiOp<MULTIPLIES,nTuple<NL,TL>,Field<TGeo,TR> > > (lhs
 
 namespace fetl_impl
 {
-template<typename TGeo, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
-        Field<TGeo, TL> const &l, TR const &r, TI ... s)
-        DECL_RET_TYPE( (l.get(s...)/ r) )
+template<typename TGeo, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
+        Field<TGeo, TL> const &l, TR const &r, TI s)
+        DECL_RET_TYPE( (l.get(s)/ r) )
 
-template<typename TM, int IL, int IR, typename TL, typename TR, typename ...TI> inline auto FieldOpEval(
-        Int2Type<DIVIDES>, Field<Geometry<TM, IL>, TL> const &l, Field<Geometry<TM, IR>, TR> const &r, TI ... s)
-        DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s...)/
-				        r.mesh.mapto(Int2Type<IL+IR>(),r,s...)) )
+template<typename TM, int IL, int IR, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
+        Field<Geometry<TM, IL>, TL> const &l, Field<Geometry<TM, IR>, TR> const &r, TI s)
+        DECL_RET_TYPE( (l.mesh.mapto(Int2Type<IL+IR>(),l,s)/
+				        r.mesh.mapto(Int2Type<IL+IR>(),r,s)) )
 }  // namespace fetl_impl
+
+template<typename TM, int IL, typename TL, typename TR> inline auto //
+operator/(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, VERTEX>, TR> const & rhs)
+DECL_RET_TYPE( (Field<Geometry<TM, IL>, BiOp<DIVIDES,Field<Geometry<TM, IL>, TL> ,
+				Field<Geometry<TM, VERTEX>, TR> > > (lhs, rhs)))
 
 template<typename TGeo, typename TL, typename TR> inline auto //
 operator/(Field<TGeo, TL> const & lhs, TR const & rhs)
@@ -178,55 +181,55 @@ DECL_RET_TYPE( (Field<TGeo, BiOp<DIVIDES,Field<TGeo, TL>, nTuple<NR,TR> > > (lhs
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************
-template<typename TM, int IFORM, typename TL>
-inline auto HodgeStar(Field<Geometry<TM, IFORM>, TL> const & f)
+template<typename TM, int IL, typename TL>
+inline auto HodgeStar(Field<Geometry<TM, IL>, TL> const & f)
 DECL_RET_TYPE(
-		(typename std::conditional<(IFORM >= 0 && IFORM <= TM::NUM_OF_DIMS),
-				Field<Geometry<TM, TM::NUM_OF_DIMS - IFORM>,
-				UniOp<HODGESTAR ,Field<Geometry<TM, IFORM>, TL> > >, Zero>::type(f)))
+		(typename std::conditional<(IL >= 0 && IL <= TM::NUM_OF_DIMS),
+				Field<Geometry<TM, TM::NUM_OF_DIMS - IL>,
+				UniOp<HODGESTAR ,Field<Geometry<TM, IL>, TL> > >, Zero>::type(f)))
 
-template<typename TM, int IFORM, typename TL>
-inline auto operator*(Field<Geometry<TM, IFORM>, TL> const & f)
+template<typename TM, int IL, typename TL>
+inline auto operator*(Field<Geometry<TM, IL>, TL> const & f)
 DECL_RET_TYPE((HodgeStar(f)))
 //****************************************************************************************************
-template<typename TM, int IFORM, typename TL>
-inline auto ExteriorDerivative(Field<Geometry<TM, IFORM>, TL> const & f)
+template<typename TM, int IL, typename TL>
+inline auto ExteriorDerivative(Field<Geometry<TM, IL>, TL> const & f)
 DECL_RET_TYPE(
-		(typename std::conditional<(IFORM >= 0 && IFORM < TM::NUM_OF_DIMS),
-				Field<Geometry<TM, IFORM+1>,
-				UniOp<EXTRIORDERIVATIVE,Field<Geometry<TM, IFORM>, TL> > > , Zero>::type(f)) )
+		(typename std::conditional<(IL >= 0 && IL < TM::NUM_OF_DIMS),
+				Field<Geometry<TM, IL+1>,
+				UniOp<EXTRIORDERIVATIVE,Field<Geometry<TM, IL>, TL> > > , Zero>::type(f)) )
 
-template<typename TM, int IFORM, typename TL>
-inline auto d(Field<Geometry<TM, IFORM>, TL> const & f)
+template<typename TM, int IL, typename TL>
+inline auto d(Field<Geometry<TM, IL>, TL> const & f)
 DECL_RET_TYPE( (ExteriorDerivative(f)) )
 //****************************************************************************************************
-template<typename TM, int IFORM, typename TL, typename TR>
-inline auto InteriorProduct(nTuple<TM::NDIMS, TR> const & v, Field<Geometry<TM, IFORM>, TR> const & f)
+template<typename TM, int IL, typename TL, typename TR>
+inline auto InteriorProduct(nTuple<TM::NDIMS, TR> const & v, Field<Geometry<TM, IL>, TR> const & f)
 DECL_RET_TYPE(
-		(typename std::conditional<(IFORM > 0 && IFORM <= TM::NUM_OF_DIMS),
-				Field<Geometry<TM, IFORM+1>,
-				BiOp<INTERIOR_PRODUCT, nTuple<TM::NDIMS, TR> ,Field<Geometry<TM, IFORM>, TL> > > , Zero>::type( v,f)) )
+		(typename std::conditional<(IL > 0 && IL <= TM::NUM_OF_DIMS),
+				Field<Geometry<TM, IL+1>,
+				BiOp<INTERIOR_PRODUCT, nTuple<TM::NDIMS, TR> ,Field<Geometry<TM, IL>, TL> > > , Zero>::type( v,f)) )
 
-template<typename TM, int IFORM, typename TL, typename TR>
-inline auto i(nTuple<TM::NDIMS, TR> const & v, Field<Geometry<TM, IFORM>, TR> const & f)
+template<typename TM, int IL, typename TL, typename TR>
+inline auto i(nTuple<TM::NDIMS, TR> const & v, Field<Geometry<TM, IL>, TR> const & f)
 DECL_RET_TYPE( (InteriorProduct(v,f)) )
 
 //****************************************************************************************************
-template<typename TM, int IFORM, typename TL>
-inline auto Codifferential(Field<Geometry<TM, IFORM>, TL> const & f)
+template<typename TM, int IL, typename TL>
+inline auto Codifferential(Field<Geometry<TM, IL>, TL> const & f)
 DECL_RET_TYPE(
-		(typename std::conditional<(IFORM > 0 && IFORM <= TM::NUM_OF_DIMS),
-				Field<Geometry<TM, IFORM+1>,
-				UniOp<CODIFFERENTIAL,Field<Geometry<TM, IFORM>, TL> > > , Zero>::type(f)) )
+		(typename std::conditional<(IL > 0 && IL <= TM::NUM_OF_DIMS),
+				Field<Geometry<TM, IL+1>,
+				UniOp<CODIFFERENTIAL,Field<Geometry<TM, IL>, TL> > > , Zero>::type(f)) )
 
 //****************************************************************************************************
-template<typename TM, int IFORM, int IR, typename TL, typename TR>
-inline auto Wedge(Field<Geometry<TM, IFORM>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
-DECL_RET_TYPE( ( Field<Geometry<TM,IFORM+IR> ,
-				BiOp<WEDGE,Field<Geometry<TM, IFORM>, TL> , Field<Geometry<TM, IR>, TR> > > (lhs, rhs)))
+template<typename TM, int IL, int IR, typename TL, typename TR>
+inline auto Wedge(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
+DECL_RET_TYPE( ( Field<Geometry<TM,IL+IR> ,
+				BiOp<WEDGE,Field<Geometry<TM, IL>, TL> , Field<Geometry<TM, IR>, TR> > > (lhs, rhs)))
 
-template<typename TM, int IFORM, int IR, typename TL, typename TR>
-inline auto operator^(Field<Geometry<TM, IFORM>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
+template<typename TM, int IL, int IR, typename TL, typename TR>
+inline auto operator^(Field<Geometry<TM, IL>, TL> const & lhs, Field<Geometry<TM, IR>, TR> const & rhs)
 DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 //****************************************************************************************************
 
@@ -245,8 +248,8 @@ Cross(nTuple<3, TL> const & lhs, Field<Geometry<TG, 0>, TR> const & rhs)
 DECL_RET_TYPE( (Field<Geometry<TG,0> , BiOp<CROSS,nTuple<3,TL> ,
 				Field<Geometry<TG, 0>, TR> > >(lhs, rhs)))
 
-template<typename TG, int IFORM, typename TL, typename TR> inline auto //
-Dot(Field<Geometry<TG, IFORM>, TL> const & lhs, Field<Geometry<TG, IFORM>, TR> const & rhs)
+template<typename TG, int IL, typename TL, typename TR> inline auto //
+Dot(Field<Geometry<TG, IL>, TL> const & lhs, Field<Geometry<TG, IL>, TR> const & rhs)
 DECL_RET_TYPE( (lhs ^(*rhs) ))
 
 template<typename TG, typename TL, typename TR> inline auto //
@@ -308,35 +311,35 @@ namespace fetl_impl
 
 HAS_MEMBER_FUNCTION(OpEval)
 
-template<int TOP, typename TM, typename TL, typename ...TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TI const &...s)
+template<int TOP, typename TM, typename TL, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TI s)
 ENABLE_IF_DECL_RET_TYPE(
-		(has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI...>::value),
-		(mesh.OpEval(Int2Type<TOP>(), l, s...))
+		(has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI >::value),
+		(mesh.OpEval(Int2Type<TOP>(), l, s ))
 )
 ;
 
-template<int TOP, typename TM, typename TL, typename ...TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TI ...s)
+template<int TOP, typename TM, typename TL, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TI s)
 ENABLE_IF_DECL_RET_TYPE(
-		(!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI...>::value),
-		(FieldOpEval(Int2Type<TOP>(), l, s...))
+		(!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI>::value),
+		(FieldOpEval(Int2Type<TOP>(), l, s))
 )
 ;
 
-template<int TOP, typename TM, typename TL, typename TR, typename ...TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r, TI ...s)
+template<int TOP, typename TM, typename TL, typename TR, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r, TI s)
 ENABLE_IF_DECL_RET_TYPE(
-		(has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI...>::value),
-		(mesh.OpEval(Int2Type<TOP>(), l,r, s...))
+		(has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value),
+		(mesh.OpEval(Int2Type<TOP>(), l,r, s))
 )
 ;
 
-template<int TOP, typename TM, typename TL, typename TR, typename ...TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r, TI ...s)
+template<int TOP, typename TM, typename TL, typename TR, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r, TI s)
 ENABLE_IF_DECL_RET_TYPE(
-		(!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI...>::value),
-		(FieldOpEval(Int2Type<TOP>(), l,r, s...))
+		(!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value),
+		(FieldOpEval(Int2Type<TOP>(), l,r, s))
 )
 ;
 
@@ -354,6 +357,8 @@ public:
 
 	typedef typename geometry_type::mesh_type mesh_type;
 
+	typedef typename mesh_type::index_type index_type;
+
 	typedef Field<geometry_type, UniOp<TOP, TL> > this_type;
 
 	static constexpr int IForm = geometry_type::IForm;
@@ -369,15 +374,16 @@ public:
 	{
 		return mesh.GetNumOfElements(IForm);
 	}
-	typedef decltype(fetl_impl::OpEval(Int2Type<TOP>(), std::declval<mesh_type>(),std::declval<TL>())) value_type;
+	typedef decltype(fetl_impl::OpEval(Int2Type<TOP>(), std::declval<mesh_type>(),std::declval<TL>(),
+					std::declval<index_type>())) value_type;
 
-	template<typename ... TI> inline value_type get(TI ... s) const
+	inline value_type get(index_type const & s) const
 	{
-		return fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s...);
+		return fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s);
 	}
-	template<typename ... TI> inline auto operator[](TI ...s) const ->decltype(get(s...))const
+	inline auto operator[](index_type const &s) const ->decltype(get(s ))const
 	{
-		return get(s...);
+		return get(s);
 	}
 };
 
@@ -390,6 +396,7 @@ public:
 	typename StorageTraits<TR>::const_reference r_;
 	typedef TGeo geometry_type;
 	typedef typename geometry_type::mesh_type mesh_type;
+	typedef typename mesh_type::index_type index_type;
 
 	typedef Field<geometry_type, BiOp<TOP, TL, TR> > this_type;
 
@@ -410,15 +417,16 @@ private:
 	typedef typename std::remove_cv<typename std::remove_reference<TR>::type>::type R_type;
 public:
 	typedef decltype(fetl_impl::OpEval(Int2Type<TOP>(),std::declval<mesh_type>(),
-					std::declval<L_type>(),std::declval<R_type>(),0)) value_type;
+					std::declval<L_type>(),std::declval<R_type>(),
+					std::declval<index_type>())) value_type;
 
-	template<typename ... TI> inline value_type get(TI ... s) const
+	inline value_type get(index_type const & s) const
 	{
-		return (fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s...));
+		return (fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s));
 	}
-	template<typename ... TI> inline auto operator[](TI ...s) const ->decltype(get(s...))const
+	inline auto operator[](index_type const &s) const ->decltype(get(s ))const
 	{
-		return get(s...);
+		return get(s);
 	}
 
 private:

@@ -216,7 +216,9 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		v=vc *uniform_dist(gen);
 	}
 
-	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1);
+	LOG_CMD(f4= -f1 *a +f2*b
+//			-f3/c -f1
+			);
 
 //	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 	;
@@ -243,17 +245,14 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 //			},f1,f2,f3,f4
 //	);
 
-	TestFixture::mesh.Traversal( TestFixture::FieldType::IForm,
+	TestFixture::mesh.template Traversal< TestFixture::FieldType::IForm>(
 			[&](typename TestFixture::FieldType::index_type s)
 			{
 				typename TestFixture::FieldType::value_type res;
 
-				res=
-				- f1[s]*ra +f2[s]*rb
-				-f3[s]/rc -f1[s]
-				;
+				res= - f1[s]*ra +f2[s]*rb -f3[s]/rc -f1[s];
 
-				EXPECT_EQ(res,f4[s])<< "s= "<<s;
+				EXPECT_EQ(res,f4[s])<< "s= "<<TestFixture::mesh._C(s);
 			}
 	);
 
