@@ -254,7 +254,7 @@ public:
 
 		if (is_nTuple<TV>::value)
 		{
-			dims[rank] = nTupleTraits<TV>::NUM_OF_DIMS;
+			dims[rank] = nTupleTraits<TV>::NDIMS;
 			++rank;
 		}
 

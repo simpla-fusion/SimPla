@@ -271,7 +271,7 @@ struct is_expression
 
 typedef enum
 {
-	PLUS = 1, MINUS = 2, MULTIPLIES = 3, DIVIDES = 4, NEGATE = 5,
+	PLUS = 1, MINUS = 2, MULTIPLIES = 3, DIVIDES = 4, NEGATE = 5, RECIPROCAL,
 
 	MODULUS, BITWISEXOR, BITWISEAND, BITWISEOR,
 
@@ -288,7 +288,7 @@ typedef enum
 	CROSS,
 	DOT,
 
-	GRAD = 20,
+	GRAD,
 	DIVERGE,
 	CURL,
 	CURLPDX,
@@ -317,40 +317,44 @@ typedef enum
 
 } MathFunType;
 
-template<int TOP, typename TL, typename TR> struct OpTraits;
-
 template<typename T>
-struct FieldTraits
-{
-	enum
-	{
-		is_field = false
-	};
+inline auto Reciprocal(T const & f)
+DECL_RET_TYPE(( 1.0/f))
 
-	enum
-	{
-		IForm = 0
-	}
-	;
-	typedef T value_type;
-};
-
-template<typename TM, int IFORM, typename TExpr>
-struct FieldTraits<Field<TM, IFORM, TExpr> >
-{
-	typedef Field<TM, IFORM, TExpr> this_type;
-	enum
-	{
-		is_field = true
-	};
-
-	enum
-	{
-		IForm = IFORM
-	}
-	;
-	typedef typename this_type::value_type value_type;
-};
+//template<int TOP, typename TL, typename TR> struct OpTraits;
+//
+//template<typename T>
+//struct FieldTraits
+//{
+//	enum
+//	{
+//		is_field = false
+//	};
+//
+//	enum
+//	{
+//		IForm = 0
+//	}
+//	;
+//	typedef T value_type;
+//};
+//
+//template<typename TM, int IFORM, typename TExpr>
+//struct FieldTraits<Field<TM, IFORM, TExpr> >
+//{
+//	typedef Field<TM, IFORM, TExpr> this_type;
+//	enum
+//	{
+//		is_field = true
+//	};
+//
+//	enum
+//	{
+//		IForm = IFORM
+//	}
+//	;
+//	typedef typename this_type::value_type value_type;
+//};
 
 template<typename TL>
 struct is_field

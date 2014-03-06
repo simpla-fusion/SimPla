@@ -23,10 +23,9 @@ protected:
 		mesh.SetExtent(xmin, xmax);
 
 		nTuple<3, size_t> dims = { 20, 0, 0 };
-		mesh.SetDimension(dims);
+		mesh.SetDimensions(dims);
 
 		mesh.Update();
-
 
 	}
 public:
@@ -34,9 +33,9 @@ public:
 	Mesh mesh;
 
 	typedef TP value_type;
-	typedef Field<Geometry<Mesh, 0>, value_type> TZeroForm;
-	typedef Field<Geometry<Mesh, 1>, value_type> TOneForm;
-	typedef Field<Geometry<Mesh, 2>, value_type> TTwoForm;
+	typedef Field<Mesh, VERTEX, value_type> TZeroForm;
+	typedef Field<Mesh, EDGE, value_type> TOneForm;
+	typedef Field<Mesh, FACE, value_type> TTwoForm;
 
 	double RelativeError(double a, double b)
 	{
@@ -63,7 +62,9 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex, nTuple<3, double>, nTuple<3, nTuple<3, double>> > PrimitiveTypes;
+typedef testing::Types<double
+//		, Complex, nTuple<3, double>, nTuple<3, nTuple<3, double>>
+		> PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
@@ -99,17 +100,18 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	size_t count=0;
 	Real relative_error=0;
-	mesh.SerialForEach(
-			[&](typename TestFixture::TTwoForm::value_type const & u)
-			{	relative_error+=abs(u);
 
-				if(abs(u)>1.0e-10)
+	mesh.Traversal<FACE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	relative_error+=abs(vf2[s]);
+
+				if(abs(vf2[s])>1.0e-10)
 				{
-					CHECK(u);
+					CHECK(vf2[s]);
 					++count;
 				}
-			},
-			vf2
+			}
+
 	);
 	relative_error=relative_error/m;
 
@@ -120,17 +122,17 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	count =0;
 	relative_error=0.0;
-	mesh.SerialForEach(
-			[&](typename TestFixture::TTwoForm::value_type const & u)
-			{	relative_error+=abs(u);
 
-				if(abs(u)>1.0e-10)
+	mesh.Traversal<FACE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	relative_error+=abs(vf2b[s]);
+
+				if(abs(vf2b[s])>1.0e-10)
 				{
-					CHECK(u);
+					CHECK(vf2b[s]);
 					++count;
 				}
-			},
-			vf2b
+			}
 	);
 	relative_error=relative_error/m;
 
@@ -180,16 +182,16 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	Real relative_error=0;
 	size_t num=0;
-	mesh.SerialForEach(
-			[&](typename TestFixture::TZeroForm::value_type const &s)
+	mesh.Traversal<VERTEX>(
+			[&](typename TestFixture::TZeroForm::index_type s)
 			{
-				relative_error+=abs(s);
-				if(abs(s)>1.0e-10*m)
+				relative_error+=abs(sf1[s]);
+				if(abs(sf1[s])>1.0e-10*m)
 				{
-					CHECK(s);
+					CHECK(sf1[s]);
 					++count;
 				}
-			},sf1
+			}
 	);
 
 	relative_error=relative_error/m;
@@ -199,16 +201,16 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	count =0;
 	relative_error=0.0;
-	mesh.SerialForEach(
-			[&](typename TestFixture::TZeroForm::value_type const &s)
+	mesh.Traversal<VERTEX>(
+			[&](typename TestFixture::TZeroForm::index_type s)
 			{
-				relative_error+=abs(s);
-				if(abs(s)>1.0e-10*m)
+				relative_error+=abs(sf2[s]);
+				if(abs(sf2[s])>1.0e-10*m)
 				{
-					CHECK(s);
+					CHECK(sf2[s]);
 					++count;
 				}
-			},sf2
+			}
 	);
 
 	relative_error=relative_error/m;

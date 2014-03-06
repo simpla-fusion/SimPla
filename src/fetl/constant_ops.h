@@ -13,6 +13,12 @@
 namespace simpla
 {
 
+template<typename value_type>
+struct Constant
+{
+	value_type value;
+};
+
 struct Zero
 {
 };

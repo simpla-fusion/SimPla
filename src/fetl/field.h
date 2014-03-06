@@ -46,9 +46,7 @@ public:
 
 	typedef Field<mesh_type, IForm, value_type> this_type;
 
-	typedef typename mesh_type::template Container<value_type> base_type;
-
-	static const int NUM_OF_DIMS = mesh_type::NUM_OF_DIMS;
+	static const int NDIMS = mesh_type::NDIMS;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -73,7 +71,6 @@ public:
 	{
 		*this = d_value;
 	}
-
 	/**
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector
@@ -97,13 +94,15 @@ public:
 	{
 	}
 
-	virtual ~Field()
+	~Field()
 	{
 	}
 
 	void swap(this_type & rhs)
 	{
-		base_type::swap(rhs);
+		ASSERT(mesh==rhs.mesh);
+
+		std::swap(data_, rhs.data_);
 	}
 
 	container_type & data()
@@ -187,35 +186,35 @@ public:
 	{
 		return iterator_<const container_type>(data_, mesh.template end<IForm>());
 	}
-	template<typename ...TI>
-	inline value_type & operator[](TI const &...s)
+
+	inline value_type & operator[](index_type s)
 	{
-		return get(s...);
+		return get(s);
 	}
-	template<typename ...TI>
-	inline value_type const & operator[](TI const &...s) const
+
+	inline value_type const & operator[](index_type s) const
 	{
-		return get(s...);
+		return get(s);
 	}
-	template<typename ...TI>
-	inline value_type & at(TI const &...s)
+
+	inline value_type & at(index_type s)
 	{
-		return get(s...);
+		return get(s);
 	}
-	template<typename ...TI>
-	inline value_type const & at(TI const &...s) const
+
+	inline value_type const & at(index_type s) const
 	{
-		return get(s...);
+		return get(s);
 	}
-	template<typename ...TI>
-	inline value_type & get(TI const &...s)
+
+	inline value_type & get(index_type s)
 	{
-		return *(data_.get() + mesh.template Hash<IForm>(s...));
+		return *(data_.get() + mesh.template Hash<IForm>(s));
 	}
-	template<typename ...TI>
-	inline value_type const & get(TI const &...s) const
+
+	inline value_type const & get(index_type s) const
 	{
-		return *(data_.get() + mesh.template Hash<IForm>(s...));
+		return *(data_.get() + mesh.template Hash<IForm>(s));
 	}
 	void Init()
 	{
@@ -234,9 +233,9 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		for (auto & v : *this)
+		for (auto it = this->begin(), ie = this->end(); it != ie; ++it)
 		{
-			v = default_value;
+			*it = default_value;
 		}
 	}
 
@@ -249,7 +248,7 @@ public:
 	}
 
 	template<typename TR> inline this_type &
-	operator =(Field< mesh_type, IForm , TR> const & rhs)
+	operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Init();
 		mesh.template Traversal<IForm>([&](index_type s)

@@ -8,22 +8,13 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <complex>
-#include "fetl.h"
+#include "ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
 using namespace simpla;
 
-//template<typename T> T _abs(T const & v)
-//{
-//	return (v);
-//}
-//
-//template<typename T> T _real(std::complex<T> const & v)
-//{
-//	return (real(v));
-//}
-#define EQUATION(_A,_B,_C)  ( -TestFixture::_A  *TestFixture::a  + TestFixture::a * TestFixture::_A   -   TestFixture::_B /TestFixture::b   - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( -TestFixture::_A  *TestFixture::a     -   TestFixture::_B /TestFixture::b   - TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test
@@ -41,7 +32,7 @@ protected:
 		b = 3;
 		c = 4;
 		d = 7;
-		for (int i = 0; i < NUM_OF_DIMS; ++i)
+		for (int i = 0; i < NDIMS; ++i)
 		{
 			aA[i] = i * 2;
 			aB[i] = 5 - i;
@@ -57,12 +48,12 @@ protected:
 	}
 
 public:
-	static constexpr int NUM_OF_DIMS = T::NUM_OF_DIMS;
+	static constexpr int NDIMS = T::NDIMS;
 	typedef typename T::value_type value_type;
 	value_type m;
 
 	T vA, vB, vC, vD;
-	value_type aA[NUM_OF_DIMS], aB[NUM_OF_DIMS], aC[NUM_OF_DIMS], aD[NUM_OF_DIMS];
+	value_type aA[NDIMS], aB[NDIMS], aC[NDIMS], aD[NDIMS];
 	value_type a, b, c, d;
 
 };
@@ -71,22 +62,22 @@ typedef testing::Types<
 
 nTuple<3, double>, nTuple<10, double>, nTuple<20, double>
 
-, nTuple<10, std::complex<double> >, nTuple<3, std::complex<double> >, nTuple<20, std::complex<double> >
+, nTuple<10, std::complex<double> >
+
+, nTuple<3, std::complex<double> >, nTuple<20, std::complex<double> >
 
 , nTuple<3, int>, nTuple<10, int>, nTuple<20, int>
 
-//, nTuple<3, nTuple<3, double>>
+> nTupleTypes;
 
-> MyTypes;
-
-TYPED_TEST_CASE(TestNtuple, MyTypes);
+TYPED_TEST_CASE(TestNtuple, nTupleTypes);
 
 TYPED_TEST(TestNtuple,Assign_Scalar){
 {
 
 	TestFixture::vD = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
 		EXPECT_DOUBLE_EQ(abs(TestFixture::aA[i]), abs(TestFixture::vD[i]) );
 	}
@@ -96,25 +87,17 @@ TYPED_TEST(TestNtuple,Assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
 		EXPECT_DOUBLE_EQ( abs(TestFixture::aA[i]), abs(TestFixture::vA[i]));
 	}
 }}
 
-//TYPED_TEST(TestNtuple, Logical){
-//{
-//	EXPECT_TRUE( TestFixture::vA!= TestFixture::vB);
-//	EXPECT_TRUE( TestFixture::vA== TestFixture::vA);
-//	EXPECT_FALSE( TestFixture::vA== TestFixture::vB);
-//
-//}}
-//
 TYPED_TEST(TestNtuple, Arithmetic){
 {
 	TestFixture::vD = EQUATION(vA ,vB ,vC);
 
-	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
 		EXPECT_DOUBLE_EQ(abs(EQUATION(vA[i] ,vB[i] ,vC[i])),abs( TestFixture::vD[i]));
 	}
@@ -127,7 +110,7 @@ TYPED_TEST(TestNtuple, Dot){
 
 	res=0;
 
-	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
 		res += TestFixture::vA[i] * TestFixture::vB[i];
 	}
@@ -160,11 +143,11 @@ TYPED_TEST(TestNtuple, performance_rawarray){
 
 	for (size_t s = 0; s < 10000000L; ++s)
 	{
-		for(int i=0;i<TestFixture::NUM_OF_DIMS;++i)
-		{	TestFixture::aD[i] += (s)*EQUATION(aA[i] ,aB[i] ,aC[i]);};
+		for(int i=0;i<TestFixture::NDIMS;++i)
+		{	TestFixture::aD[i] +=EQUATION(aA[i] ,aB[i] ,aC[i])*s;};
 	}
 
-//	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+//	for (int i = 0; i < TestFixture::NDIMS; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(EQUATION(aA[i] ,aB[i] ,aC[i])),abs(TestFixture::aD[i]/TestFixture::m) );
 //	}
@@ -176,10 +159,140 @@ TYPED_TEST(TestNtuple, performance_nTuple){
 
 	for (size_t s = 0; s < 10000000L; ++s)
 	{
-		TestFixture::vD += (s)*EQUATION(vA ,vB ,vC);
+		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
 	}
 
-//	for (int i = 0; i < TestFixture::NUM_OF_DIMS; ++i)
+//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	{
+//		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
+//	}
+}
+}
+
+template<typename T>
+class TestNMatrix: public testing::Test
+{
+protected:
+
+	virtual void SetUp()
+	{
+//		a = static_cast<value_type>(1);
+//		b = static_cast<value_type>(3);
+//		c = static_cast<value_type>(4);
+//		d = static_cast<value_type>(7);
+
+		a = 1;
+		b = 3;
+		c = 4;
+		d = 7;
+		for (int i = 0; i < NDIMS; ++i)
+			for (int j = 0; j < MDIMS; ++j)
+			{
+				aA[i][j] = i * 2;
+				aB[i][j] = 5 - i;
+				aC[i][j] = i * 5 + 1;
+				aD[i][j] = (aA[i][j] + a) / (aB[i][j] * b + c) - aC[i][j];
+				vA[i][j] = aA[i][j];
+				vB[i][j] = aB[i][j];
+				vC[i][j] = aC[i][j];
+				vD[i][j] = 0;
+			}
+
+		m = 1000000L;
+	}
+
+public:
+	static constexpr int NDIMS = T::NDIMS;
+	static constexpr int MDIMS = T::value_type::NDIMS;
+
+	typedef typename T::value_type::value_type value_type;
+
+	value_type m;
+
+	T vA, vB, vC, vD;
+	value_type aA[NDIMS][MDIMS], aB[NDIMS][MDIMS], aC[NDIMS][MDIMS], aD[NDIMS][MDIMS];
+	value_type a, b, c, d;
+
+};
+
+typedef testing::Types<
+
+nTuple<3, nTuple<3, double>>,
+
+nTuple<3, nTuple<3, Complex>>,
+
+nTuple<3, nTuple<3, int>>,
+
+nTuple<10, nTuple<5, double>>,
+
+nTuple<20, nTuple<20, double>>
+
+> MatrixTypes;
+
+TYPED_TEST_CASE(TestNMatrix, MatrixTypes);
+
+TYPED_TEST(TestNMatrix,Assign_Scalar){
+{
+
+	TestFixture::vD = TestFixture::aA;
+
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int j = 0; j < TestFixture::MDIMS; ++j)
+
+	{
+		EXPECT_DOUBLE_EQ(abs(TestFixture::aA[i][j]), abs(TestFixture::vD[i][j]) );
+	}
+}}
+
+TYPED_TEST(TestNMatrix,Assign_Array){
+{
+	TestFixture::vA = TestFixture::aA;
+
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int j = 0; j < TestFixture::MDIMS; ++j)
+	{
+		EXPECT_DOUBLE_EQ( abs(TestFixture::aA[i][j]), abs(TestFixture::vA[i][j]));
+	}
+}}
+
+TYPED_TEST(TestNMatrix, Arithmetic){
+{
+	TestFixture::vD = EQUATION(vA ,vB ,vC);
+
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int j = 0; j < TestFixture::MDIMS; ++j)
+	{
+		EXPECT_DOUBLE_EQ(abs(EQUATION(vA[i][j] ,vB[i][j] ,vC[i][j])),abs( TestFixture::vD[i][j]));
+	}
+}
+}
+
+TYPED_TEST(TestNMatrix, performance_rawarray){
+{
+
+	for (size_t s = 0; s < 10000000L; ++s)
+	{
+		for(int i=0;i<TestFixture::NDIMS;++i)
+		for (int j = 0; j < TestFixture::MDIMS; ++j)
+		{	TestFixture::aD[i][j] +=EQUATION(aA[i][j] ,aB[i][j] ,aC[i][j])*s;};
+	}
+
+//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	{
+//		EXPECT_DOUBLE_EQ(abs(EQUATION(aA[i] ,aB[i] ,aC[i])),abs(TestFixture::aD[i]/TestFixture::m) );
+//	}
+
+}
+}
+TYPED_TEST(TestNMatrix, performance_nTuple){
+{
+
+	for (size_t s = 0; s < 10000000L; ++s)
+	{
+		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
+	}
+
+//	for (int i = 0; i < TestFixture::NDIMS; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
 //	}

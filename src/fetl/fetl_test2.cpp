@@ -22,7 +22,7 @@ protected:
 		mesh.SetExtent(xmin, xmax);
 
 		nTuple<3, size_t> dims = { 20, 0, 0 };
-		mesh.SetDimension(dims);
+		mesh.SetDimensions(dims);
 
 		mesh.Update();
 
@@ -31,8 +31,8 @@ public:
 	Mesh mesh;
 	typedef T value_type;
 	typedef nTuple<3, value_type> Vec3;
-	typedef Field<Geometry<Mesh, 0>, T> ScalarField;
-	typedef Field<Geometry<Mesh, 0>, nTuple<3, T> > VectorField;
+	typedef Field<Mesh, VERTEX, T> ScalarField;
+	typedef Field<Mesh, VERTEX, nTuple<3, T> > VectorField;
 };
 
 typedef testing::Types<double, Complex> VecFieldTypes;
@@ -85,16 +85,16 @@ TYPED_TEST(TestFETLVecAlgegbra,vec_0_form){
 
 	LOG_CMD(res_vector_field2 = Cross( va,vb)*3*a);
 
-	mesh.ForEach (
+	mesh. Traversal<VERTEX> (
 
-			[&](typename TestFixture::ScalarField::value_type const & v)
+			[&](typename TestFixture::VectorField::index_type s)
 			{
-				ASSERT_EQ(res_scalar, v);
-			},res_scalar_field
+				ASSERT_EQ(res_scalar,res_scalar_field[s]);
+			}
 
 	);
 
-	mesh.Traversal (0,
+	mesh.Traversal<VERTEX> (
 
 			[&](typename TestFixture::VectorField::index_type s)
 			{
