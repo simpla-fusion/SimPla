@@ -56,8 +56,8 @@ struct OcForest
 
 	//***************************************************************************************************
 
-	nTuple<3, unsigned int> index_digits_ = { INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT,
-	        INDEX_DIGITS - MAX_TREE_HEIGHT };
+	nTuple<3, unsigned int> index_digits_ =
+	{ INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT };
 
 	compact_index_type _MI = 0UL;
 	compact_index_type _MJ = 0UL;
@@ -98,9 +98,12 @@ struct OcForest
 		index_digits_[0] = count_bits(d[0]);
 		index_digits_[1] = count_bits(d[1]);
 		index_digits_[2] = count_bits(d[2]);
-		_MI = _C(index_type( { 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
-		_MJ = _C(index_type( { 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
-		_MK = _C(index_type( { 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
+		_MI = _C(index_type(
+		{ 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
+		_MJ = _C(index_type(
+		{ 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
+		_MK = _C(index_type(
+		{ 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
 		_MA = _MI | _MJ | _MK;
 
 	}
@@ -150,7 +153,8 @@ struct OcForest
 
 	};
 
-	nTuple<NUM_OF_DIMS, size_type> strides = { 0, 0, 0 };
+	nTuple<NUM_OF_DIMS, size_type> strides =
+	{ 0, 0, 0 };
 
 	template<int IFORM>
 	inline size_type Hash(index_type s) const
@@ -178,8 +182,8 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = _C(0UL))
-				: tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = _C(0UL)) :
+				tree(m), s_(s)
 		{
 		}
 
@@ -219,17 +223,8 @@ struct OcForest
 	{
 		auto dims_ = GetDimensions();
 
-		index_type s = {
-
-		0,
-
-		(dims_[0] * (sub) / total - 1) << (INDEX_DIGITS - index_digits_[0]),
-
-		0, // << (INDEX_DIGITS - index_digits_[1]),
-
-		        0, // << (INDEX_DIGITS - index_digits_[2])
-
-		        };
+		index_type s =
+		{ 0, (dims_[0] * (sub) / total - 1) << (INDEX_DIGITS - index_digits_[0]), 0, 0 };
 
 		return iterator<IFORM>(*this, s);
 	}
@@ -238,7 +233,8 @@ struct OcForest
 
 		auto dims_ = GetDimensions();
 
-		index_type s = {
+		index_type s =
+		{
 
 		0,
 
@@ -324,12 +320,14 @@ struct OcForest
 
 	nTuple<3, size_type> GetDimensions() const
 	{
-		return nTuple<3, size_type>( { 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
+		return nTuple<3, size_type>(
+		{ 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
 
 	}
 	nTuple<3, Real> GetDx() const
 	{
-		return nTuple<3, Real>( {
+		return nTuple<3, Real>(
+		{
 
 		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
 
@@ -351,13 +349,13 @@ struct OcForest
 		res.H = H;
 
 		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
 
 		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
 
 		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
-		        & ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
+				& ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
 
 		return std::move(res);
 	}
@@ -365,7 +363,8 @@ struct OcForest
 	inline nTuple<3, Real> GetCoordinates(index_type const & s) const
 	{
 
-		return nTuple<3, Real>( {
+		return nTuple<3, Real>(
+		{
 
 		static_cast<Real>(s.I) * dh,
 

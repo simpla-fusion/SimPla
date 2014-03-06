@@ -285,9 +285,10 @@ typedef enum
 	CODIFFERENTIAL,
 	INTERIOR_PRODUCT,
 
-	CROSS = 50,
-	DOT,
-
+//	DOT,
+//	CROSS ,
+//
+//
 //	GRAD,
 //	DIVERGE,
 //	CURL,
