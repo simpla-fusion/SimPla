@@ -464,7 +464,7 @@ inline LoggerStreams & operator<<(LoggerStreams & os, SetLineWidth const &setw)
 }
 #include <bitset>
 
-std::string ShowBit(unsigned long s)
+inline std::string ShowBit(unsigned long s)
 {
 	return std::bitset<64>(s).to_string();
 }

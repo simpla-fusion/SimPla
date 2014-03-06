@@ -149,9 +149,9 @@ public:
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
-	nTuple<NUM_OF_DIMS, size_type> strides = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides = { 0, 0, 0 };
 
-	inline nTuple<NUM_OF_DIMS, size_type> const & GetStrides() const
+	inline nTuple<NDIMS, size_type> const & GetStrides() const
 	{
 		return strides;
 	}
@@ -244,7 +244,7 @@ public:
 	template<int IN, typename T>
 	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
 	{
-		int n = IN < NUM_OF_DIMS ? IN : NUM_OF_DIMS;
+		int n = IN < NDIMS ? IN : NDIMS;
 
 		for (int i = 0; i < n; ++i)
 		{
@@ -252,7 +252,7 @@ public:
 			xmax_[i] = pmax[i];
 		}
 
-		for (int i = n; i < NUM_OF_DIMS; ++i)
+		for (int i = n; i < NDIMS; ++i)
 		{
 			xmin_[i] = 0;
 			xmax_[i] = 0;
@@ -399,7 +399,7 @@ public:
 //***************************************************************************************************
 
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
-	index_type s) const->decltype(f[s])
+	index_type s) const-> decltype(f[s]+f[s])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -418,7 +418,7 @@ public:
 //***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
-	index_type s)->decltype(f[s])
+	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = s & (_MA >> (s.H + 1));
 
@@ -428,7 +428,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,
-	index_type s)->decltype(f[s])
+	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
 		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
@@ -437,7 +437,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, FACE, TL> const & f,
-	index_type s)->decltype(f[s])
+	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -446,20 +446,14 @@ public:
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
 
-	template<int IL, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, IL , TL> const & f,
-	index_type s)->typename std::enable_if<IL>=NDIMS, decltype(f[s])>::type
-	{
-		return 0;
-	}
+	template<int IL, typename TL> void OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, IL , TL> const & f,
+	index_type s)const = delete;
 
-	template<int IL, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, IL , TL> const & f,
-	index_type s)->typename std::enable_if<IL==0, decltype(f[s])>::type
-	{
-		return 0;
-	}
+	template<int IL, typename TL> void OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, IL , TL> const & f,
+	index_type s) const= delete;
 
-	template<int IL, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
-	index_type s)->decltype(f[s])
+	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
+	index_type s)const->typename std::remove_reference<decltype(f[s])>::type
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -469,7 +463,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,
-	index_type s)->decltype(f[s])
+	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
 		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
@@ -477,7 +471,7 @@ public:
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
-	index_type s)->decltype(f[s])
+	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = _I(s) & (_MA >> (s.H + 1));
 
@@ -486,14 +480,11 @@ public:
 		return (f[s + d] - f[s - d]);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, VERTEX, TL> const & f, index_type s)->decltype(f[s]*v[0])
-	{
-		return 0;
-	}
+	template<typename TL, typename TR> void OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
+	Field<this_type, VERTEX, TL> const & f, index_type s) const=delete;
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, EDGE, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, EDGE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -509,7 +500,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, FACE, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, FACE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(s);
 		auto Y = _R(s) & (_MA >> (s.H + 1));
@@ -522,7 +513,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, VOLUME, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, VOLUME, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(_I(s));
 		unsigned int D = (_I(s)) & (_MA >> (s.H + 1));

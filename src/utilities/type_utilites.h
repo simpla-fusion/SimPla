@@ -212,7 +212,7 @@ struct CountBits<0>
 	static const unsigned int n = 0;
 };
 
-unsigned int count_bits(unsigned long s)
+inline unsigned int count_bits(unsigned long s)
 {
 	unsigned int n = 0;
 	while (s > 0)

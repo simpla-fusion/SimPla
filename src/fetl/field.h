@@ -116,7 +116,8 @@ public:
 	}
 	size_t size() const
 	{
-		return (data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
+		return 0;
+		//(data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
 	}
 	bool empty() const
 	{
@@ -247,19 +248,18 @@ public:
 
 	}
 
-	template<typename TR> inline this_type &
-	operator =(Field<mesh_type, IForm, TR> const & rhs)
+	template<typename TR>
+	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Init();
-		mesh.template Traversal<IForm>([&](index_type s)
-		{
-			this->get(s)=rhs.get(s);
-		});
+//		mesh.template Traversal<IForm>([&](index_type s)
+//		{
+////			this->get(s)=rhs.get(s);
+//		});
 		return (*this);
 	}
 
-	template<typename TR> inline this_type &
-	operator =(TR const & rhs)
+	this_type & operator =(value_type rhs)
 	{
 		Init();
 		mesh.template Traversal<IForm>([&](index_type s)
