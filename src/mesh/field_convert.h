@@ -13,7 +13,7 @@
 namespace simpla
 {
 template<typename TS> class CoRectMesh;
-template<typename, typename > class Field;
+template<typename, int, typename > class Field;
 template<typename, int> class Geometry;
 
 namespace fetl_impl
@@ -54,8 +54,7 @@ typename std::enable_if<is_complex<TR>::value, void>::type _mapto(nTuple<N, TL> 
 }
 
 template<typename TS, typename TL, typename TR>
-void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l,
-        Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TR>> * r)
+void MapTo(Field<CoRectMesh<TS>, EDGE, TL> const & l, Field<CoRectMesh<TS>, VERTEX, nTuple<3, TR>> * r)
 {
 	r->Init();
 
@@ -81,8 +80,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l,
 }
 
 template<typename TS, typename TL, typename TR>
-void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
-        Field<Geometry<CoRectMesh<TS>, EDGE>, TR> * r)
+void MapTo(Field<CoRectMesh<TS>, VERTEX, nTuple<3, TL>> const & l, Field<CoRectMesh<TS>, EDGE, TR> * r)
 {
 	r->Init();
 
@@ -111,8 +109,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 }
 
 template<typename TS, typename TL, typename TR>
-void MapTo(Field<Geometry<CoRectMesh<TS>, FACE>, TL> const & l,
-        Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TR>> * r)
+void MapTo(Field<CoRectMesh<TS>, FACE, TL> const & l, Field<CoRectMesh<TS>, VERTEX, nTuple<3, TR>> * r)
 {
 	r->Init();
 
@@ -150,8 +147,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, FACE>, TL> const & l,
 }
 
 template<typename TS, typename TL, typename TR>
-void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
-        Field<Geometry<CoRectMesh<TS>, FACE>, TR> * r)
+void MapTo(Field<CoRectMesh<TS>, VERTEX, nTuple<3, TL>> const & l, Field<CoRectMesh<TS>, FACE, TR> * r)
 {
 	r->Init();
 
@@ -190,7 +186,7 @@ void MapTo(Field<Geometry<CoRectMesh<TS>, VERTEX>, nTuple<3, TL>> const & l,
 }
 
 template<typename TS, typename TL, typename TR>
-void MapTo(Field<Geometry<CoRectMesh<TS>, EDGE>, TL> const & l, Field<Geometry<CoRectMesh<TS>, FACE>, TR> * r)
+void MapTo(Field<CoRectMesh<TS>, EDGE, TL> const & l, Field<CoRectMesh<TS>, FACE, TR> * r)
 {
 	r->Init();
 

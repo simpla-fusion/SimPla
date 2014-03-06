@@ -278,57 +278,57 @@ public:
 
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
 	template<int IL, int IR, typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,
-	Field<Geometry<this_type, IL>, TL> const &l, Field<Geometry<this_type, IR>, TR> const &r,
+	Field<this_type, IL, TL> const &l, Field<this_type, IR, TR> const &r,
 	index_type s) const ->decltype(l[s]*r[s])
 	{
 		return Wedge_(l, r, s);
 	}
 
-	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<Geometry<this_type, IL>, TL> const & f,
+	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<this_type, IL, TL> const & f,
 	index_type s) const->decltype(f[s])
 	{
 		return HodgeStar_(f, s);
 	}
 	template<int IL, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,
-	Field<Geometry<this_type, IL>, TL> const & f, index_type s)->decltype(f[s])
+	Field<this_type, IL, TL> const & f, index_type s)->decltype(f[s])
 	{
 		return ExteriorDerivative_(f, s);
 	}
 	template<int IL, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,
-	Field<Geometry<this_type, IL>, TL> const & f, index_type s)->decltype(f[s])
+	Field<this_type, IL, TL> const & f, index_type s)->decltype(f[s])
 	{
 		return Codifferential_(f, s);
 	}
 
 	template<int IL, typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,
-	nTuple<NDIMS, TR> const & v, Field<Geometry<this_type, IL>, TL> const & f, index_type s)->decltype(f[s])
+	nTuple<NDIMS, TR> const & v, Field<this_type, IL , TL> const & f, index_type s)->decltype(f[s])
 	{
 		return InteriorProduct_(v, f, s);
 	}
 
 private:
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
-	template<int IL, int IR, typename TL, typename TR> inline Real Wedge_(Field<Geometry<this_type, IL>, TL> const &l,
-	Field<Geometry<this_type, IR>, TR> const &r, index_type s) const
+	template<int IL, int IR, typename TL, typename TR> inline Real Wedge_(Field<this_type, IL , TL> const &l,
+	Field<this_type, IR , TR> const &r, index_type s) const
 	{
 		return 0;
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, VERTEX>, TL> const &l,
-	Field<Geometry<this_type, VERTEX>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		return l[s] * r[s];
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, VERTEX>, TL> const &l,
-	Field<Geometry<this_type, EDGE>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		auto X = s & (_MA >> (s.H + 1));
 		((l[s - X] + l[s + X]) * 0.5 * r[s]);
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, VERTEX>, TL> const &l,
-	Field<Geometry<this_type, FACE>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
 		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
@@ -336,8 +336,8 @@ private:
 		return (l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * 0.25 * r[s];
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, VERTEX>, TL> const &l,
-	Field<Geometry<this_type, VOLUME>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		auto X = _MI >> (s.H + 1);
 		auto Y = _MJ >> (s.H + 1);
@@ -352,14 +352,14 @@ private:
 		) * 0.125 * r[s];
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, EDGE>, TL> const &l,
-	Field<Geometry<this_type, VERTEX>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, EDGE, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		return Wedge_(r, l, s);
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, EDGE>, TL> const &l,
-	Field<Geometry<this_type, EDGE>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, EDGE, TL> const &l,
+	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
 		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
@@ -367,8 +367,8 @@ private:
 		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, EDGE>, TL> const &l,
-	Field<Geometry<this_type, FACE>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, EDGE, TL> const &l,
+	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -383,14 +383,14 @@ private:
 		(l[(s - X) - Y] + l[(s - X) + Y] + l[(s + X) - Y] + l[(s + X) + Y]) * (r[s - Z] + r[s + Z]) * 0.125;
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, FACE>, TL> const &l,
-	Field<Geometry<this_type, VERTEX>, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, FACE, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
 		return Wedge_(r, l, s);
 	}
 
-	template<typename TL, typename TR> inline auto Wedge_(Field<Geometry<this_type, FACE>, TL> const &l,
-	Field<Geometry<this_type, EDGE>, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
+	template<typename TL, typename TR> inline auto Wedge_(Field<this_type, FACE, TL> const &l,
+	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -407,7 +407,7 @@ private:
 
 //***************************************************************************************************
 
-	template<int IL, typename TL> inline auto HodgeStar_(Field<Geometry<this_type, IL>, TL> const & f,
+	template<int IL, typename TL> inline auto HodgeStar_(Field<this_type, IL , TL> const & f,
 	index_type s) const->decltype(f[s])
 	{
 		auto X = (_MI >> (s.H + 1));
@@ -426,7 +426,7 @@ private:
 
 //***************************************************************************************************
 
-	template<typename TL> inline auto ExteriorDerivative_(Field<Geometry<this_type, VERTEX>, TL> const & f,
+	template<typename TL> inline auto ExteriorDerivative_(Field<this_type, VERTEX, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto d = s & (_MA >> (s.H + 1));
@@ -436,7 +436,7 @@ private:
 		return (f[s + d] - f[s - d]);
 	}
 
-	template<typename TL> inline auto ExteriorDerivative_(Field<Geometry<this_type, EDGE>, TL> const & f,
+	template<typename TL> inline auto ExteriorDerivative_(Field<this_type, EDGE, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
@@ -445,7 +445,7 @@ private:
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
 
-	template<typename TL> inline auto ExteriorDerivative_(Field<Geometry<this_type, FACE>, TL> const & f,
+	template<typename TL> inline auto ExteriorDerivative_(Field<this_type, FACE, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto X = (_MI >> (s.H + 1));
@@ -455,19 +455,19 @@ private:
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
 
-	template<int IL, typename TL> inline auto ExteriorDerivative_(Field<Geometry<this_type, IL>, TL> const & f,
+	template<int IL, typename TL> inline auto ExteriorDerivative_(Field<this_type, IL , TL> const & f,
 	index_type s)->typename std::enable_if<IL>=NDIMS, decltype(f[s])>::type
 	{
 		return 0;
 	}
 
-	template<int IL, typename TL> inline auto Codifferential_(Field<Geometry<this_type, IL>, TL> const & f,
+	template<int IL, typename TL> inline auto Codifferential_(Field<this_type, IL , TL> const & f,
 	index_type s)->typename std::enable_if<IL==0, decltype(f[s])>::type
 	{
 		return 0;
 	}
 
-	template<int IL, typename TL> inline auto Codifferential_(Field<Geometry<this_type, EDGE>, TL> const & f,
+	template<int IL, typename TL> inline auto Codifferential_(Field<this_type, EDGE, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto X = (_MI >> (s.H + 1));
@@ -477,7 +477,7 @@ private:
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
 
-	template<typename TL> inline auto Codifferential_(Field<Geometry<this_type, FACE>, TL> const & f,
+	template<typename TL> inline auto Codifferential_(Field<this_type, FACE, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
@@ -485,7 +485,7 @@ private:
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
-	template<typename TL> inline auto Codifferential_(Field<Geometry<this_type, VOLUME>, TL> const & f,
+	template<typename TL> inline auto Codifferential_(Field<this_type, VOLUME, TL> const & f,
 	index_type s)->decltype(f[s])
 	{
 		auto d = _I(s) & (_MA >> (s.H + 1));
@@ -496,13 +496,13 @@ private:
 	}
 
 	template<typename TL, typename TR> inline auto InteriorProduct_(nTuple<NDIMS, TR> const & v,
-	Field<Geometry<this_type, VERTEX>, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, VERTEX, TL> const & f, index_type s)->decltype(f[s]*v[0])
 	{
 		return 0;
 	}
 
 	template<typename TL, typename TR> inline auto InteriorProduct_(nTuple<NDIMS, TR> const & v,
-	Field<Geometry<this_type, EDGE>, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, EDGE, TL> const & f, index_type s)->decltype(f[s]*v[0])
 	{
 		auto X = (_MI >> (s.H + 1));
 		auto Y = (_MJ >> (s.H + 1));
@@ -518,7 +518,7 @@ private:
 	}
 
 	template<typename TL, typename TR> inline auto InteriorProduct_(nTuple<NDIMS, TR> const & v,
-	Field<Geometry<this_type, FACE>, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, FACE, TL> const & f, index_type s)->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(s);
 		auto Y = _R(s) & (_MA >> (s.H + 1));
@@ -531,7 +531,7 @@ private:
 	}
 
 	template<typename TL, typename TR> inline auto InteriorProduct_(nTuple<NDIMS, TR> const & v,
-	Field<Geometry<this_type, VOLUME>, TL> const & f, index_type s)->decltype(f[s]*v[0])
+	Field<this_type, VOLUME, TL> const & f, index_type s)->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(_I(s));
 		unsigned int D = (_I(s)) & (_MA >> (s.H + 1));

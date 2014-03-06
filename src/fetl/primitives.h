@@ -96,7 +96,7 @@ template<int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> 
 
 template<typename, int> struct Geometry;
 
-template<typename, typename > struct Field;
+template<typename, int, typename > struct Field;
 
 template<int TOP, typename TL, typename TR> struct BiOp;
 
@@ -209,14 +209,14 @@ struct is_field_expression
 	static constexpr bool value = false;
 };
 
-template<typename TG, int TOP, typename TL, typename TR>
-struct is_field_expression<Field<TG, BiOp<TOP, TL, TR> > >
+template<typename TG, int IF, int TOP, typename TL, typename TR>
+struct is_field_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
 {
 	static constexpr bool value = true;
 };
 
-template<typename TG, int TOP, typename TL>
-struct is_field_expression<Field<TG, UniOp<TOP, TL> > >
+template<typename TG, int IF, int TOP, typename TL>
+struct is_field_expression<Field<TG, IF, UniOp<TOP, TL> > >
 {
 	static constexpr bool value = true;
 };
@@ -336,9 +336,9 @@ struct FieldTraits
 };
 
 template<typename TM, int IFORM, typename TExpr>
-struct FieldTraits<Field<Geometry<TM, IFORM>, TExpr> >
+struct FieldTraits<Field<TM, IFORM, TExpr> >
 {
-	typedef Field<Geometry<TM, IFORM>, TExpr> this_type;
+	typedef Field<TM, IFORM, TExpr> this_type;
 	enum
 	{
 		is_field = true
@@ -358,8 +358,8 @@ struct is_field
 	static const bool value = false;
 };
 
-template<typename TG, typename TL>
-struct is_field<Field<TG, TL>>
+template<typename TG, int IF, typename TL>
+struct is_field<Field<TG, IF, TL>>
 {
 	static const bool value = true;
 };

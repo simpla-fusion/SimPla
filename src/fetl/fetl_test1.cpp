@@ -167,99 +167,99 @@ TYPED_TEST(TestFETLBasicArithmetic, constant_real){
 	);
 }
 }
-
-TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
-{
-	//FIXME  should test with non-uniform field
-
-	typedef typename TestFixture::FieldType::value_type value_type;
-
-	typename TestFixture::FieldType f1( TestFixture::mesh),f2( TestFixture::mesh),
-	f3( TestFixture::mesh),f4( TestFixture::mesh);
-
-	typename TestFixture::RScalarField a( TestFixture::mesh);
-	typename TestFixture::RScalarField b( TestFixture::mesh);
-	typename TestFixture::RScalarField c( TestFixture::mesh);
-
-	Real ra=1.0,rb=10.0,rc=100.0;
-	typename TestFixture::FieldType::value_type va,vb,vc;
-
-	va=ra;
-	vb=rb;
-	vc=rc;
-
-	a.Fill(ra);
-	b.Fill(rb);
-	c.Fill(rc);
-
-	f1.Init();
-	f2.Init();
-	f3.Init();
-	f4.Fill(0);
-
-	size_t count=0;
-
-	std::mt19937 gen;
-	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-
-	for(auto & v:f1)
-	{
-		v=va *uniform_dist(gen);
-	}
-	for(auto & v:f2)
-	{
-		v=vb *uniform_dist(gen);
-	}
-
-	for(auto & v:f3)
-	{
-		v=vc *uniform_dist(gen);
-	}
-
-	LOG_CMD(f4= -f1 *a +f2*b
-//			-f3/c -f1
-			);
-
-//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
-	;
-	/**           (+)
-	 *           /   \
-	 *         (-)    (*)
-	 *        /   \    | \
-	 *      (^)    (/) f1 c
-	 *     /  \   /  \
-	 *-f1      a f2   b
-	 *
-	 * */
-	count =0;
-
-//	TestFixture::mesh.ForEach(
-//			[&](value_type const &s1,value_type const &s2 ,
-//					value_type const &s3,value_type const &s4)
+//
+//TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
+//{
+//	//FIXME  should test with non-uniform field
+//
+//	typedef typename TestFixture::FieldType::value_type value_type;
+//
+//	typename TestFixture::FieldType f1( TestFixture::mesh),f2( TestFixture::mesh),
+//	f3( TestFixture::mesh),f4( TestFixture::mesh);
+//
+//	typename TestFixture::RScalarField a( TestFixture::mesh);
+//	typename TestFixture::RScalarField b( TestFixture::mesh);
+//	typename TestFixture::RScalarField c( TestFixture::mesh);
+//
+//	Real ra=1.0,rb=10.0,rc=100.0;
+//	typename TestFixture::FieldType::value_type va,vb,vc;
+//
+//	va=ra;
+//	vb=rb;
+//	vc=rc;
+//
+//	a.Fill(ra);
+//	b.Fill(rb);
+//	c.Fill(rc);
+//
+//	f1.Init();
+//	f2.Init();
+//	f3.Init();
+//	f4.Fill(0);
+//
+//	size_t count=0;
+//
+//	std::mt19937 gen;
+//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+//
+//	for(auto & v:f1)
+//	{
+//		v=va *uniform_dist(gen);
+//	}
+//	for(auto & v:f2)
+//	{
+//		v=vb *uniform_dist(gen);
+//	}
+//
+//	for(auto & v:f3)
+//	{
+//		v=vc *uniform_dist(gen);
+//	}
+//
+//	LOG_CMD(f4= -f1 *a +f2*b
+////			-f3/c -f1
+//			);
+//
+////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+//	;
+//	/**           (+)
+//	 *           /   \
+//	 *         (-)    (*)
+//	 *        /   \    | \
+//	 *      (^)    (/) f1 c
+//	 *     /  \   /  \
+//	 *-f1      a f2   b
+//	 *
+//	 * */
+//	count =0;
+//
+////	TestFixture::mesh.ForEach(
+////			[&](value_type const &s1,value_type const &s2 ,
+////					value_type const &s3,value_type const &s4)
+////			{
+////				typename TestFixture::FieldType::value_type res;
+////				res=( -s1*ra +s2*rb ) -s3/rc -s1;
+////				EXPECT_EQ(res,s4);
+////				if(res!=s4) ++count;
+////
+////			},f1,f2,f3,f4
+////	);
+//
+//	TestFixture::mesh.template Traversal< TestFixture::FieldType::IForm>(
+//			[&](typename TestFixture::FieldType::index_type s)
 //			{
 //				typename TestFixture::FieldType::value_type res;
-//				res=( -s1*ra +s2*rb ) -s3/rc -s1;
-//				EXPECT_EQ(res,s4);
-//				if(res!=s4) ++count;
 //
-//			},f1,f2,f3,f4
+//				res= - f1[s]*ra +f2[s]*rb -f3[s]/rc -f1[s];
+//
+//				EXPECT_EQ(res,f4[s])<< "s= "<<TestFixture::mesh._C(s);
+//			}
 //	);
-
-	TestFixture::mesh.template Traversal< TestFixture::FieldType::IForm>(
-			[&](typename TestFixture::FieldType::index_type s)
-			{
-				typename TestFixture::FieldType::value_type res;
-
-				res= - f1[s]*ra +f2[s]*rb -f3[s]/rc -f1[s];
-
-				EXPECT_EQ(res,f4[s])<< "s= "<<TestFixture::mesh._C(s);
-			}
-	);
-
-	EXPECT_EQ(0,count)<< "number of error points =" << count;
-
-}
-}
+//
+//	EXPECT_EQ(0,count)<< "number of error points =" << count;
+//
+//}
+//}
 //
 //template<typename T>
 //class TestFETLVecAlgegbra: public testing::Test

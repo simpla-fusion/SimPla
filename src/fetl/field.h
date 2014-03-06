@@ -19,7 +19,7 @@
 #include <mutex>
 namespace simpla
 {
-template<typename TG, typename TValue> struct Field;
+template<typename TG, int IFORM, typename TValue> struct Field;
 
 /***
  *
@@ -29,24 +29,22 @@ template<typename TG, typename TValue> struct Field;
  *
  */
 
-template<typename TG, typename TValue>
+template<typename TM, int IFORM, typename TValue>
 struct Field
 {
 	std::mutex write_lock_;
 public:
 
-	typedef TG geometry_type;
-
-	typedef typename geometry_type::mesh_type mesh_type;
+	typedef TM mesh_type;
 
 	enum
 	{
-		IForm = geometry_type::IForm
+		IForm = IFORM
 	};
 
 	typedef TValue value_type;
 
-	typedef Field<geometry_type, value_type> this_type;
+	typedef Field<mesh_type, IForm, value_type> this_type;
 
 	typedef typename mesh_type::template Container<value_type> base_type;
 
@@ -56,10 +54,9 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 
-	typedef typename geometry_type::template field_value_type<value_type> field_value_type;
+	typedef typename Geometry<mesh_type, IForm>::template field_value_type<value_type> field_value_type;
 
-	typedef typename mesh_type::template Container<value_type> container_type;
-
+	typedef std::shared_ptr<value_type> container_type;
 private:
 	container_type data_;
 public:
@@ -252,7 +249,7 @@ public:
 	}
 
 	template<typename TR> inline this_type &
-	operator =(Field<Geometry<mesh_type, IForm>, TR> const & rhs)
+	operator =(Field< mesh_type, IForm , TR> const & rhs)
 	{
 		Init();
 		mesh.template Traversal<IForm>([&](index_type s)
