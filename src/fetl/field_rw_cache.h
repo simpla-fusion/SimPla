@@ -19,25 +19,23 @@
 namespace simpla
 {
 
-template<typename TGeometry, typename TValue>
-class Field<TGeometry, Cache<const Field<TGeometry, TValue> > >
+template<typename TM, int IFORM, typename TValue>
+class Field<TM, IFORM, Cache<const Field<TM, IFORM, TValue> > >
 {
 
 public:
 
-	typedef TGeometry geometry_type;
+	typedef Field<TM, IFORM, TValue> field_type;
 
-	typedef Field<TGeometry, TValue> field_type;
+	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TValue> > > this_type;
 
-	typedef Field<TGeometry, Cache<const Field<TGeometry, TValue> > > this_type;
-
-	typedef typename geometry_type::mesh_type mesh_type;
+	typedef TM mesh_type;
 
 	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const int IForm = geometry_type::IForm;
+	static const int IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -62,8 +60,8 @@ private:
 
 public:
 
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -74,8 +72,8 @@ public:
 	{
 	}
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -86,8 +84,8 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_region = 2)
-			: mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
+	Field(field_type const & f, index_type const &s, int affect_region = 2) :
+			mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
 	{
 	}
 
@@ -164,25 +162,23 @@ public:
 }
 ;
 
-template<typename TGeometry, typename TValue>
-class Field<TGeometry, Cache<Field<TGeometry, TValue> *> >
+template<typename TM, int IFORM, typename TValue>
+class Field<TM, IFORM, Cache<Field<TM, IFORM, TValue> *> >
 {
 
 public:
 
-	typedef TGeometry geometry_type;
+	typedef Field<TM, IFORM, TValue> field_type;
 
-	typedef Field<TGeometry, TValue> field_type;
+	typedef Field<TM, IFORM, Cache<field_type> > this_type;
 
-	typedef Field<geometry_type, Cache<field_type> > this_type;
-
-	typedef typename geometry_type::mesh_type mesh_type;
+	typedef TM mesh_type;
 
 	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const int IForm = geometry_type::IForm;
+	static const int IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -206,8 +202,8 @@ private:
 
 public:
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -216,8 +212,8 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 	}
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
 
@@ -228,8 +224,8 @@ public:
 	{
 	}
 
-	Field(field_type * f, int affect_region = 2)
-			: mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0), is_fresh_(false)
+	Field(field_type * f, int affect_region = 2) :
+			mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0), is_fresh_(false)
 	{
 	}
 
@@ -293,15 +289,15 @@ public:
 
 };
 
-template<typename TGeometry, typename TValue>
-struct Cache<const Field<TGeometry, TValue> >
+template<typename TM, int IFORM, typename TValue>
+struct Cache<const Field<TM, IFORM, TValue> >
 {
 
-	typedef Field<TGeometry, Cache<const Field<TGeometry, TValue> > > type;
+	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TValue> > > type;
 
 	template<typename ... Args>
-	Cache(Field<TGeometry, TValue> const & f, Args const & ... args)
-			: f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue> const & f, Args const & ... args) :
+			f_(f, std::forward<Args const &>(args)...)
 	{
 		VERBOSE << "Field read cache applied!";
 	}
@@ -319,15 +315,15 @@ private:
 	type f_;
 };
 
-template<typename TGeometry, typename TValue>
-struct Cache<Field<TGeometry, TValue>*>
+template<typename TM, int IFORM, typename TValue>
+struct Cache<Field<TM, IFORM, TValue>*>
 {
 
-	typedef Field<TGeometry, Cache<Field<TGeometry, TValue>*> > type;
+	typedef Field<TM, IFORM, Cache<Field<TM, IFORM, TValue>*> > type;
 
 	template<typename ... Args>
-	Cache(Field<TGeometry, TValue>* f, Args const & ... args)
-			: f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue>* f, Args const & ... args) :
+			f_(f, std::forward<Args const &>(args)...)
 	{
 		VERBOSE << "Field write cache applied!";
 	}
@@ -340,14 +336,14 @@ private:
 	type f_;
 };
 
-template<typename TG, typename TF>
-void RefreshCache(size_t s, Field<TG, Cache<TF>> & f)
+template<typename TM, int IFORM, typename TF>
+void RefreshCache(size_t s, Field<TM, IFORM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
-template<typename TG, typename TF>
-void FlushCache(Field<TG, Cache<TF*>> & f)
+template<typename TM, int IFORM, typename TF>
+void FlushCache(Field<TM, IFORM, Cache<TF*>> & f)
 {
 	f.FlushCache();
 }

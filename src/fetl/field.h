@@ -230,10 +230,10 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		for (auto it = this->begin(), ie = this->end(); it != ie; ++it)
+		mesh.template ParallelTraversal<IForm>([](index_type s, this_type *l, TD const & r )
 		{
-			*it = default_value;
-		}
+			l->get(s)=r;
+		}, this, std::forward<TD const &>(default_value));
 	}
 
 	void Clear()
@@ -241,19 +241,25 @@ public:
 		Fill(0);
 	}
 
+	this_type & operator =(value_type rhs)
+	{
+		Fill(rhs);
+		return (*this);
+	}
+
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Init();
+		mesh.template ParallelTraversal<IForm>(
 
-		mesh.Assign(this, rhs);
+		[](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
+		{
+			l->get(s)=r[s];
+		},
 
-		return (*this);
-	}
+		this, std::forward<Field<mesh_type, IForm, TR> const &>(rhs));
 
-	this_type & operator =(value_type rhs)
-	{
-		Fill(rhs);
 		return (*this);
 	}
 

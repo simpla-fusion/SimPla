@@ -17,6 +17,7 @@
 
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
+#include "../fetl/field_rw_cache.h"
 #include "../utilities/type_utilites.h"
 #include "../utilities/memory_pool.h"
 
@@ -267,39 +268,9 @@ struct OcForest
 
 	//***************************************************************************************************
 	//  Traversal
-	template<int IFORM, typename TL, typename TR>
-	void Assign(Field<this_type, IFORM, TL> * f, Field<this_type, IFORM, TR> const & rhs) const
-	{
-		const unsigned int num_threads = std::thread::hardware_concurrency();
 
-		std::vector<std::thread> threads;
-
-		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-		{
-			auto ib = this->begin<IFORM>(num_threads, thread_id);
-			auto ie = this->end<IFORM>(num_threads, thread_id);
-
-			threads.emplace_back(
-					std::thread([ib,ie](Field<this_type, IFORM, TL> * f2, Field<this_type, IFORM, TR> const & r )
-					{
-						for (auto it =ib; it != ie; ++it)
-						{
-							f2[*it]=r[*it];
-						}
-
-					}, f, std::forward<Field<this_type, IFORM, typename TR> const &>(rhs)
-
-					));
-		}
-
-		for (auto & t : threads)
-		{
-			t.join();
-		}
-	}
-
-	template<int IFORM, typename ... Args>
-	void ParallelTraversal(std::function<void(index_type, Args ...)> fun, Args ...args) const
+	template<int IFORM, typename TF, typename ... Args>
+	void ParallelTraversal(TF &&fun, Args && ...args) const
 	{
 		const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -314,7 +285,7 @@ struct OcForest
 
 			std::thread(
 
-			[ib,ie](std::function<void(index_type, Args ...)> fun2, Args ... args2 )
+			[ib,ie](TF fun2, Args ... args2 )
 			{
 				for (auto it =ib; it != ie; ++it)
 				{
@@ -332,23 +303,54 @@ struct OcForest
 		}
 	}
 
-	template<int IFORM, typename ...Args>
-	void Traversal(std::function<void(index_type, Args const & ...)> const &fun, Args const & ...args) const
+	template<int IFORM, typename TF, typename ...Args>
+	void Traversal(TF &&fun, Args && ...args) const
 	{
 		for (auto it = this->begin<IFORM>(), ie = this->end<IFORM>(); it != ie; ++it)
 		{
-			fun(*it, std::forward<Args const &>(args)...);
+			fun(*it, std::forward<Args>(args)...);
 		}
 	}
-	template<int IFORM>
-	void Traversal(std::function<void(index_type)> const &fun) const
+
+	template<int IFORM, typename TF, typename ... Args>
+	void ParallelCachedTraversal(TF &&fun, Args && ...args) const
 	{
-		for (auto it = this->begin<IFORM>(), ie = this->end<IFORM>(); it != ie; ++it)
+		const unsigned int num_threads = std::thread::hardware_concurrency();
+
+		std::vector<std::thread> threads;
+
+		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 		{
-			fun(*it);
+			auto ib = this->begin<IFORM>(num_threads, thread_id);
+			auto ie = this->end<IFORM>(num_threads, thread_id);
+
+			threads.emplace_back(
+
+			std::thread(
+
+			[ib,ie](TF fun2,typename Cache<Args>::type && ... args2 )
+			{
+				for (auto it =ib; it != ie; ++it)
+				{
+					RefreshCache(*it,args2)...;
+
+					fun2(*it,args2...);
+
+					FlushCache(*it,args2)...;
+				}
+
+			}, fun, typename Cache<Args >::type(args)...
+
+			));
+		}
+
+		for (auto & t : threads)
+		{
+			t.join();
 		}
 	}
-	//***************************************************************************************************
+
+//***************************************************************************************************
 
 	nTuple<3, size_type> GetDimensions() const
 	{
@@ -408,9 +410,9 @@ struct OcForest
 
 	}
 
-	//***************************************************************************************************
-	//* Auxiliary functions
-	//***************************************************************************************************
+//***************************************************************************************************
+//* Auxiliary functions
+//***************************************************************************************************
 
 	static compact_index_type &_C(index_type &s)
 	{
@@ -475,7 +477,7 @@ struct OcForest
 		return std::move(_I(_C(s)));
 	}
 
-	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
+//! get the direction of vector(edge) 0=>x 1=>y 2=>z
 	size_type _N(index_type s) const
 	{
 		return ((s.J >> (INDEX_DIGITS - index_digits_[1] - s.H - 1)) & 1UL) |

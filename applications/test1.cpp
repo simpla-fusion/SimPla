@@ -5,38 +5,46 @@
  *      Author: salmon
  */
 
-#include <chrono>
-#include <ratio>
-#include <thread>
-#include <vector>
+#include <algorithm>
+#include <iostream>
+#include <string>
+#include <type_traits>
 
-#include "../src/utilities/log.h"
-
-inline signed int Shift(unsigned int d, int s)
+class Foo
 {
-	constexpr int m = 4;
-	constexpr int n = sizeof(signed int) / sizeof(char) * 8;
-
-	return ((static_cast<signed int>(d) << (n - m * (s + 1))) >> (n - m));
-
-}
-int main()
-{
-	for (int i = 0; i < 256; ++i)
+public:
+	Foo()
 	{
-		std::cout << "[" << std::setw(4) << std::setfill('0') << i << " = "
-
-		<< std::setw(3) << std::hex << i << " ]--> "
-
-		<< std::dec << std::setfill(' ')
-
-		<< std::setw(5) << Shift(i, 0)
-
-		<< std::setw(5) << Shift(i, 1)
-
-		<< std::setw(5) << Shift(i, 2)
-
-		<< std::endl;
+		std::cout << "Default Construct" << std::endl;
 	}
-}
+	Foo(Foo const &)
+	{
+		std::cout << "Copy Construct" << std::endl;
+	}
+	~Foo()
+	{
+		std::cout << "Destroy" << std::endl;
+	}
+	int a;
+private:
+};
 
+template<typename Args>
+void foo(Args &&args)
+{
+	std::cout << typeid(args).name() << "  " << args.a << std::endl;
+	++args.a;
+
+}
+int main(int argc, char **argv)
+{
+	Foo a;
+	a.a = 1;
+	std::cout << "======================" << std::endl;
+	foo(std::forward<Foo>(a));
+	std::cout << "======================" << std::endl;
+	foo(std::forward<Foo &>(a));
+	std::cout << "======================" << std::endl;
+//	foo(&a);
+//	std::cout << "======================" << std::endl;
+}
