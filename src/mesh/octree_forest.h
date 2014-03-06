@@ -267,9 +267,39 @@ struct OcForest
 
 	//***************************************************************************************************
 	//  Traversal
+	template<int IFORM, typename TL, typename TR>
+	void Assign(Field<this_type, IFORM, TL> * f, Field<this_type, IFORM, TR> const & rhs) const
+	{
+		const unsigned int num_threads = std::thread::hardware_concurrency();
+
+		std::vector<std::thread> threads;
+
+		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+		{
+			auto ib = this->begin<IFORM>(num_threads, thread_id);
+			auto ie = this->end<IFORM>(num_threads, thread_id);
+
+			threads.emplace_back(
+					std::thread([ib,ie](Field<this_type, IFORM, TL> * f2, Field<this_type, IFORM, TR> const & r )
+					{
+						for (auto it =ib; it != ie; ++it)
+						{
+							f2[*it]=r[*it];
+						}
+
+					}, f, std::forward<Field<this_type, IFORM, typename TR> const &>(rhs)
+
+					));
+		}
+
+		for (auto & t : threads)
+		{
+			t.join();
+		}
+	}
 
 	template<int IFORM, typename ... Args>
-	void ParallelTraversal(std::function<void(index_type, Args const & ...)> const &fun, Args &...args) const
+	void ParallelTraversal(std::function<void(index_type, Args ...)> fun, Args ...args) const
 	{
 		const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -282,14 +312,16 @@ struct OcForest
 
 			threads.emplace_back(
 
-			std::thread([ib,ie](std::function<void(index_type, Args const & ...)> const & fun2,Args const &... args2 )
+			std::thread(
+
+			[ib,ie](std::function<void(index_type, Args ...)> fun2, Args ... args2 )
 			{
 				for (auto it =ib; it != ie; ++it)
 				{
 					fun2(*it,args2...);
 				}
 
-			}, fun, std::forward<Args const &>(args)...
+			}, fun, std::forward<Args >(args)...
 
 			));
 		}

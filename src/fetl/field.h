@@ -37,10 +37,7 @@ public:
 
 	typedef TM mesh_type;
 
-	enum
-	{
-		IForm = IFORM
-	};
+	static constexpr int IForm = IFORM;
 
 	typedef TValue value_type;
 
@@ -52,22 +49,21 @@ public:
 
 	typedef typename mesh_type::index_type index_type;
 
-	typedef typename Geometry<mesh_type, IForm>::template field_value_type<value_type> field_value_type;
-
 	typedef std::shared_ptr<value_type> container_type;
-private:
+
+	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME), value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+
 	container_type data_;
-public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh, value_type d_value) :
+			mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
@@ -83,14 +79,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -100,7 +96,7 @@ public:
 
 	void swap(this_type & rhs)
 	{
-		ASSERT(mesh==rhs.mesh);
+		ASSERT(mesh == rhs.mesh);
 
 		std::swap(data_, rhs.data_);
 	}
@@ -135,8 +131,8 @@ public:
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::template iterator<IForm> s)
-				: data_(d), it_(s)
+		iterator_(TC d, typename mesh_type::template iterator<IForm> s) :
+				data_(d), it_(s)
 		{
 
 		}
@@ -242,30 +238,22 @@ public:
 
 	void Clear()
 	{
-		Init();
-
-		std::fill_n(reinterpret_cast<char*>(data_.get()), size() * sizeof(value_type), 0);
-
+		Fill(0);
 	}
 
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Init();
-//		mesh.template Traversal<IForm>([&](index_type s)
-//		{
-////			this->get(s)=rhs.get(s);
-//		});
+
+		mesh.Assign(this, rhs);
+
 		return (*this);
 	}
 
 	this_type & operator =(value_type rhs)
 	{
-		Init();
-		mesh.template Traversal<IForm>([&](index_type s)
-		{
-			this->get(s)=rhs;
-		});
+		Fill(rhs);
 		return (*this);
 	}
 

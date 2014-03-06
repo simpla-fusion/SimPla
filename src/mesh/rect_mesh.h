@@ -35,7 +35,8 @@ struct EuclideanSpace
 	typedef nTuple<NDIMS, Real> covector_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
-	static constexpr Real g_t[NDIMS][NDIMS] = {
+	static constexpr Real g_t[NDIMS][NDIMS] =
+	{
 
 	1, 0, 0,
 
@@ -95,8 +96,8 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 	typedef typename OcForest::index_type index_type;
 
-	RectMesh()
-			: tags_(*this)
+	RectMesh() :
+			tags_(*this)
 	{
 		;
 	}
@@ -106,8 +107,8 @@ public:
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: OcForest(dict), tags_(*this)
+	RectMesh(TDict const & dict) :
+			OcForest(dict), tags_(*this)
 	{
 		Load(dict);
 	}
@@ -149,7 +150,8 @@ public:
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
-	nTuple<NDIMS, size_type> strides = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides =
+	{ 0, 0, 0 };
 
 	inline nTuple<NDIMS, size_type> const & GetStrides() const
 	{
@@ -271,6 +273,48 @@ public:
 		return std::move(res);
 	}
 
+//	template<typename TV,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,VERTEX,TR> const & f)
+//	-> decltype(f[_C(0UL)])
+//	{
+//	}
+//	template<typename TV,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,EDGE,TR> const & f)
+//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
+//	{
+//	}
+//
+//	template<typename TV,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,FACE,TR> const & f)
+//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
+//	{
+//	}
+//
+//	template<typename TV,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,VOLUME,TR> const & f)
+//	-> decltype(f[_C(0UL)])
+//	{
+//	}
+//
+//	template<typename TL,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,EDGE,TR> const & f)
+//	->decltype(v[0]*f[_C(0UL)])
+//	{
+//
+//	}
+//
+//	template<typename TL,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,FACE,TR> const & f)
+//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
+//	{
+//
+//	}
+//
+//	template<typename TL,typename TR>
+//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,VOLUME,TR> const & f)
+//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
+//	{
+//	}
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************
