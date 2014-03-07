@@ -34,36 +34,18 @@ struct OcForest
 	typedef unsigned long size_type;
 	typedef unsigned long compact_index_type;
 
-	/**
-	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
-	 * 	               m            m             m
-	 * 	|--------|------------|--------------|-------------|
-	 * 	               I              J             K
-	 */
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
 
-	static constexpr unsigned int MAX_TREE_HEIGHT = 4;
+	static constexpr unsigned int D_FP_POS = 4; //!< default floating-point position
 
-	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<MAX_TREE_HEIGHT>::n) / 3;
-
-	static constexpr unsigned int DIGITS_HEAD = FULL_DIGITS - INDEX_DIGITS * 3;
+	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
 
 	static constexpr size_type INDEX_MAX = static_cast<size_type>(((1L) << (INDEX_DIGITS)) - 1);
 
 	static constexpr size_type INDEX_MIN = 0;
 
 	static constexpr double dh = 1.0 / static_cast<double>(INDEX_MAX + 1);
-
-	//***************************************************************************************************
-
-	nTuple<3, unsigned int> index_digits_ =
-	{ INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT, INDEX_DIGITS - MAX_TREE_HEIGHT };
-
-	compact_index_type _MI = 0UL;
-	compact_index_type _MJ = 0UL;
-	compact_index_type _MK = 0UL;
-	compact_index_type _MA = _MI | _MJ | _MK;
 
 	OcForest()
 	{
@@ -86,59 +68,47 @@ struct OcForest
 
 	void swap(OcForest & rhs)
 	{
-		std::swap(index_digits_, rhs.index_digits_);
-		std::swap(_MI, rhs._MI);
-		std::swap(_MJ, rhs._MJ);
-		std::swap(_MK, rhs._MK);
-		std::swap(_MA, rhs._MA);
+		std::swap(dims_, rhs.dims_);
+		std::swap(_MASK, rhs._MASK);
 	}
 
-	template<typename TI>
-	void SetDimensions(TI const &d)
-	{
-		index_digits_[0] = count_bits(d[0]);
-		index_digits_[1] = count_bits(d[1]);
-		index_digits_[2] = count_bits(d[2]);
-		_MI = _C(index_type(
-		{ 0, 1U << (INDEX_DIGITS - index_digits_[0]), 0, 0 }));
-		_MJ = _C(index_type(
-		{ 0, 0, 1U << (INDEX_DIGITS - index_digits_[1]), 0 }));
-		_MK = _C(index_type(
-		{ 0, 0, 0, 1U << (INDEX_DIGITS - index_digits_[2]) }));
-		_MA = _MI | _MJ | _MK;
-
-	}
 	//***************************************************************************************************
 
+	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
+	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
+
+	static constexpr compact_index_type NO_HEAD_FLAG = (~0UL) << (INDEX_DIGITS * 3);
+	/**
+	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on  these bitwise operation
+	 * 	               m            m             m
+	 * 	|--------|------------|--------------|-------------|
+	 * 	     H         I              J             K
+	 */
 	struct index_type
 	{
-		size_type H :DIGITS_HEAD;
-		size_type I :INDEX_DIGITS;
-		size_type J :INDEX_DIGITS;
-		size_type K :INDEX_DIGITS;
+		compact_index_type d;
 
-#define DEF_OP(_OP_)                                                   \
-		inline index_type operator _OP_##=(index_type const &r)        \
-		{                                                              \
-			H = std::max(H, r.H);                                      \
-			I _OP_##= r.I;                                             \
-			J _OP_##= r.J;                                             \
-			K _OP_##= r.K;                                             \
-			return *this;                                              \
-		}                                                              \
-        inline index_type operator _OP_ (index_type const &r)const     \
-		{                                                              \
-			index_type t;                                              \
-			t.H = std::max(H, r.H);                                    \
-			t.I = I _OP_ r.I;                                          \
-			t.J = J _OP_ r.J;                                          \
-			t.K = K _OP_ r.K;                                          \
-			return t;                                                  \
-		}                                                              \
-		inline index_type operator _OP_##=(compact_index_type  r )     \
-		{    this->operator _OP_##=(_C(r));  return *this;      }      \
-		inline index_type operator _OP_ (compact_index_type  r)const   \
-		{   return std::move(this->operator _OP_ (_C(r)));    }
+#define DEF_OP(_OP_)                                                                       \
+		inline index_type operator _OP_##=(compact_index_type r)                           \
+		{                                                                                  \
+			d =  ( (*this) _OP_ r).d;                                                                \
+			return *this;                                                                  \
+		}                                                                                  \
+		inline index_type operator _OP_##=(index_type r)                                   \
+		{                                                                                  \
+			d = ( (*this) _OP_ r).d;                                                                  \
+			return *this;                                                                  \
+		}                                                                                  \
+                                                                                           \
+		inline index_type operator _OP_(compact_index_type const &r) const                 \
+		{                                                                                  \
+			return index_type( { (d & NO_HEAD_FLAG) | ((d _OP_ r) & NO_CARRY_FLAG) });     \
+		}                                                                                  \
+                                                                                           \
+		inline index_type operator _OP_(index_type r) const                                \
+		{                                                                                  \
+			return this->operator _OP_(r.d);                                               \
+		}                                                                                  \
 
 		DEF_OP(+)
 		DEF_OP(-)
@@ -149,25 +119,91 @@ struct OcForest
 
 		bool operator==(index_type const & rhs) const
 		{
-			return _C(*this) == _C(rhs);
+			return d == rhs.d;
 		}
 
-	};
+		size_type H() const
+		{
+			return d >> (INDEX_DIGITS * 3);
+		}
 
-	nTuple<NUM_OF_DIMS, size_type> strides =
-	{ 0, 0, 0 };
+		size_type I() const
+		{
+			return (d & _MI) >> (INDEX_DIGITS * 2);
+		}
+		size_type J() const
+		{
+			return (d & _MJ) >> (INDEX_DIGITS);
+		}
+		size_type K() const
+		{
+			return (d & _MK);
+		}
+
+	}
+	;
+
+	static constexpr compact_index_type _DI = 1UL << (D_FP_POS + 2 * INDEX_DIGITS);
+	static constexpr compact_index_type _DJ = 1UL << (D_FP_POS + INDEX_DIGITS);
+	static constexpr compact_index_type _DK = 1UL << (D_FP_POS);
+	static constexpr compact_index_type _DA = _DI | _DJ | _DK;
+
+	//mask of direction
+	static constexpr compact_index_type _MI = ((1UL << (INDEX_DIGITS + 1)) - 1) << (INDEX_DIGITS * 2);
+	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS + 1)) - 1) << (INDEX_DIGITS);
+	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS + 1)) - 1);
+	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1) << (INDEX_DIGITS * 3);
+
+	// mask of sub-tree
+	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS + 1)) - 1) << (INDEX_DIGITS * 2);
+	static constexpr compact_index_type _MTJ = ((1UL << (D_FP_POS + 1)) - 1) << (INDEX_DIGITS);
+	static constexpr compact_index_type _MTK = ((1UL << (D_FP_POS + 1)) - 1);
+
+	// mask of root
+	static constexpr compact_index_type _MRI = _MI & (~_MTI);
+	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
+	static constexpr compact_index_type _MRK = _MK & (~_MTK);
+
+//***************************************************************************************************
+
+	nTuple<3, size_type> dims_ = { 1, 1, 1 };
+
+	nTuple<NUM_OF_DIMS, size_type> strides_ = { 0, 0, 0 };
+
+	compact_index_type _MASK = NO_CARRY_FLAG;
+
+	template<typename TI>
+	void SetDimensions(TI const &d)
+	{
+		dims_[0] = 1UL << count_bits(d[0]);
+		dims_[1] = 1UL << count_bits(d[1]);
+		dims_[2] = 1UL << count_bits(d[2]);
+
+		_MASK =
+
+		(((1UL << (count_bits(d[0]) + D_FP_POS + 1)) - 1) << (INDEX_DIGITS * 2)) |
+
+		(((1UL << (count_bits(d[1]) + D_FP_POS + 1)) - 1) << (INDEX_DIGITS)) |
+
+		(((1UL << (count_bits(d[2]) + D_FP_POS + 1)) - 1))
+
+		;
+		CHECK_BIT(_MASK);
+
+	}
 
 	template<int IFORM>
 	inline size_type Hash(index_type s) const
 	{
+		s &= _MASK;
 
 		return (
 
-		(s.I >> (INDEX_DIGITS - index_digits_[0] - s.H + 1)) * strides[0] +
+		(s.I() >> (D_FP_POS)) * strides_[0] +
 
-		(s.J >> (INDEX_DIGITS - index_digits_[1] - s.H + 1)) * strides[1] +
+		(s.J() >> (D_FP_POS)) * strides_[1] +
 
-		(s.K >> (INDEX_DIGITS - index_digits_[2] - s.H + 1)) * strides[2]
+		(s.K() >> (D_FP_POS)) * strides_[2]
 
 		);
 
@@ -183,8 +219,8 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = _C(0UL)) :
-				tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
+				: tree(m), s_(s)
 		{
 		}
 
@@ -224,50 +260,60 @@ struct OcForest
 	{
 		auto dims_ = GetDimensions();
 
-		index_type s =
-		{ 0, (dims_[0] * (sub) / total - 1) << (INDEX_DIGITS - index_digits_[0]), 0, 0 };
+		index_type s = { 0 };
 
+//		if (IFORM == EDGE)
+//		{
+//			s |= (_DI >> (s.H() + 1));
+//		}
+//		else if (IFORM == FACE)
+//		{
+//			s |= ((_DJ | _DK) >> (s.H() + 1));
+//		}
 		return iterator<IFORM>(*this, s);
 	}
+
 	template<int IFORM> iterator<IFORM> end(int total = 1, int sub = 0) const
 	{
 
 		auto dims_ = GetDimensions();
 
-		index_type s =
+		index_type s = { 0 };
+
+		if (IFORM == EDGE)
 		{
-
-		0,
-
-		(dims_[0] * (sub + 1) / total - 1) << (INDEX_DIGITS - index_digits_[0]),
-
-		dims_[1] << (INDEX_DIGITS - index_digits_[1]),
-
-		dims_[2] << (INDEX_DIGITS - index_digits_[2])
-
-		};
+			s += _DI >> 1;
+		}
+		if (IFORM == FACE)
+		{
+			s += (_DJ | _DK) >> 1;
+		}
 		return iterator<IFORM>(*this, s);
 	}
 
 	template<int IForm>
 	index_type Next(index_type s) const
 	{
-		if (IForm == VERTEX || IForm == VOLUME || (IForm == EDGE && _N(s) == 2) || (IForm == FACE && _N(_I(s)) == 2))
+
+		if (IForm == VERTEX || IForm == VOLUME)
 		{
-			s.K += 1U << (INDEX_DIGITS - index_digits_[2]);
-			s.J += ((s.K >> (INDEX_DIGITS - index_digits_[2])) == 0) ? 1U << (INDEX_DIGITS - index_digits_[1]) : 0;
-			s.I += ((s.J >> (INDEX_DIGITS - index_digits_[1])) == 0) ? 1U << (INDEX_DIGITS - index_digits_[0]) : 0;
-		}
-		else
-		{
-			s = _C(_R(s));
+			s += _DK;
+
+			if (s & _MRK == 0)
+			{
+				s += _DJ;
+			}
+			if (s & _MRJ == 0)
+			{
+				s += _DI;
+			}
 		}
 
 		return s;
 	}
 
-	//***************************************************************************************************
-	//  Traversal
+//***************************************************************************************************
+//  Traversal
 
 	template<int IFORM, typename TF, typename ... Args>
 	void ParallelTraversal(TF &&fun, Args && ...args) const
@@ -306,8 +352,10 @@ struct OcForest
 	template<int IFORM, typename TF, typename ...Args>
 	void Traversal(TF &&fun, Args && ...args) const
 	{
-		for (auto it = this->begin<IFORM>(), ie = this->end<IFORM>(); it != ie; ++it)
+		auto it = this->begin<IFORM>(), ie = this->end<IFORM>();
+		for (; it != ie; ++it)
 		{
+
 			fun(*it, std::forward<Args>(args)...);
 		}
 	}
@@ -332,16 +380,18 @@ struct OcForest
 			{
 				for (auto it =ib; it != ie; ++it)
 				{
-					RefreshCache(*it,args2)...;
+					RefreshCache(*it,args2...);
 
 					fun2(*it,args2...);
 
-					FlushCache(*it,args2)...;
+					FlushCache(*it,args2...);
 				}
 
 			}, fun, typename Cache<Args >::type(args)...
 
-			));
+			)
+
+			);
 		}
 
 		for (auto & t : threads)
@@ -352,22 +402,26 @@ struct OcForest
 
 //***************************************************************************************************
 
-	nTuple<3, size_type> GetDimensions() const
+	nTuple<3, size_type> const & GetDimensions() const
 	{
-		return nTuple<3, size_type>(
-		{ 1U << index_digits_[0], 1U << index_digits_[1], 1U << index_digits_[2] });
+		return dims_;
 
+	}
+
+	size_type GetNumOfElements(int IFORM = VERTEX) const
+	{
+		auto dims = GetDimensions();
+		return dims[0] * dims[1] * dims[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 	nTuple<3, Real> GetDx() const
 	{
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
-		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[0])) * dh,
+		static_cast<Real>(1U << (D_FP_POS)) * dh,
 
-		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[1])) * dh,
+		static_cast<Real>(1U << (D_FP_POS)) * dh,
 
-		static_cast<Real>(1U << (INDEX_DIGITS - index_digits_[2])) * dh });
+		static_cast<Real>(1U << (D_FP_POS)) * dh });
 	}
 
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned int H = 0) const
@@ -380,31 +434,31 @@ struct OcForest
 
 		ASSERT(0 <= x[2] && x[2] <= 1.0);
 
-		res.H = H;
-
-		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[0] - H));
-
-		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[1] - H));
-
-		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
-				& ((~0UL) << (INDEX_DIGITS - index_digits_[2] - H));
+//		res.H() = H;
+//
+//		res.I = static_cast<size_type>(std::floor(x[0] * static_cast<Real>(INDEX_MAX + 1)))
+//		        & ((~0UL) << (D_FP_POS - H));
+//
+//		res.J = static_cast<size_type>(std::floor(x[1] * static_cast<Real>(INDEX_MAX + 1)))
+//		        & ((~0UL) << (D_FP_POS - H));
+//
+//		res.K = static_cast<size_type>(std::floor(x[2] * static_cast<Real>(INDEX_MAX + 1)))
+//		        & ((~0UL) << (D_FP_POS - H));
 
 		return std::move(res);
 	}
 
-	inline nTuple<3, Real> GetCoordinates(index_type const & s) const
+	inline nTuple<3, Real> GetCoordinates(index_type s) const
 	{
+		s &= _MASK;
 
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
-		static_cast<Real>(s.I) * dh,
+		static_cast<Real>(s.I()) * dh,
 
-		static_cast<Real>(s.J) * dh,
+		static_cast<Real>(s.J()) * dh,
 
-		static_cast<Real>(s.K) * dh
+		static_cast<Real>(s.K()) * dh
 
 		});
 
@@ -414,40 +468,32 @@ struct OcForest
 //* Auxiliary functions
 //***************************************************************************************************
 
-	static compact_index_type &_C(index_type &s)
-	{
-		return *reinterpret_cast<compact_index_type *>(&s);
-	}
-
-	static compact_index_type const &_C(index_type const &s)
-	{
-		return *reinterpret_cast<compact_index_type const*>(&s);
-	}
-
-	static index_type &_C(compact_index_type &s)
-	{
-		return *reinterpret_cast<index_type *>(&s);
-	}
-
-	static index_type const &_C(compact_index_type const &s)
-	{
-		return *reinterpret_cast<index_type const*>(&s);
-	}
 	/**
 	 *  rotate vector direction  mask
 	 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
 	 * @param s
 	 * @return
 	 */
-	compact_index_type _R(compact_index_type s) const
+	index_type _R(index_type s) const
 	{
-		s >>= (_C(s).H + 1);
-		return (_MJ & (s & _MI)) | (_MK & (s & _MJ)) | (_MI & (s & _MK));
+//		index_type f = _D(s);
+//		s.I = ~0UL;
+//		s.K = ~0UL;
+//		_C(s) &= ~(_MA >> (s.H() + 1));
+//		CHECK ( s.H());
+//		CHECK_BIT(~(_MA >> (s.H() + 1)));
+//		CHECK_BIT(_C(s));
+//		s.I |= f.K;
+//		s.J |= f.I;
+//		s.K |= f.J;
+//
+//		CHECK_BIT(_C(f));
+		return s;
 	}
 
-	compact_index_type _R(index_type s) const
+	compact_index_type _R(compact_index_type s) const
 	{
-		return std::move(_R(_C(s)));
+//		return std::move(_C(_R(_C(s))));
 	}
 
 	/**
@@ -456,37 +502,50 @@ struct OcForest
 	 * @param s
 	 * @return
 	 */
-	compact_index_type _RR(compact_index_type s) const
+	index_type _RR(index_type s) const
 	{
-		s >>= (_C(s).H + 1);
-		return (_MK & (s & _MI)) | (_MI & (s & _MJ)) | (_MJ & (s & _MK));
+//		index_type f = s & (_DA >> (s.H() + 1));
+//		_C(s) &= ~(_DA >> (s.H() + 1));
+//		s.I |= f.J;
+//		s.J |= f.K;
+//		s.K |= f.I;
+		return s;
 	}
 
-	compact_index_type _RR(index_type s) const
+	compact_index_type _RR(compact_index_type s) const
 	{
-		return std::move(_RR(_C(s)));
+		return std::move(_RR(s));
 	}
 
 	compact_index_type _I(compact_index_type s) const
 	{
-		return _MA & (~((s >> (_C(s).H + 1)) & _MA));
+//		return (s & ~(_MA >> (_C(s).H + 1))) | (~(s & (_DA >> (_C(s).H + 1))));
 	}
 
-	compact_index_type _I(index_type s) const
+	index_type _I(index_type s) const
 	{
-		return std::move(_I(_C(s)));
+//		return std::move(_C(_I(_C(s))));
 	}
 
 //! get the direction of vector(edge) 0=>x 1=>y 2=>z
 	size_type _N(index_type s) const
 	{
-		return ((s.J >> (INDEX_DIGITS - index_digits_[1] - s.H - 1)) & 1UL) |
-
-		((s.K >> (INDEX_DIGITS - index_digits_[1] - s.H - 2)) & 2UL);
+//		return ((s.J >> (D_FP_POS - s.H() - 1)) & 1UL) |
+//
+//		((s.K >> (D_FP_POS - s.H() - 2)) & 2UL);
 	}
 	size_type _N(compact_index_type s) const
 	{
-		return std::move(_N(_C(s)));
+//		return std::move(_N(_C(s)));
+	}
+
+	index_type _D(index_type s) const
+	{
+//		return s & (_DA >> (s.H() + 1));
+	}
+	compact_index_type _D(compact_index_type s) const
+	{
+//		return _C(_D(_C(s)));
 	}
 
 	template<int I>
@@ -498,8 +557,8 @@ struct OcForest
 
 	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, index_type s, index_type *v) const
 	{
-		v[0] = s + s & (_MA >> (s.H + 1));
-		v[1] = s - s & (_MA >> (s.H + 1));
+		v[0] = s + _D(s);
+		v[1] = s - _D(s);
 		return 2;
 	}
 
@@ -526,8 +585,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = (_R(_I(s)) >> (s.H + 1));
-		auto dj = (_RR(_I(s)) >> (s.H + 1));
+		auto di = _D(_R(_I(s)));
+		auto dj = _D(_RR(_I(s)));
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -559,9 +618,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -599,9 +658,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = s + di;
 		v[1] = s - di;
@@ -638,8 +697,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = (_R(_I(s)) >> (s.H + 1));
-		auto d2 = (_RR(_I(s)) >> (s.H + 1));
+		auto d1 = _D(_R(_I(s)));
+		auto d2 = _D(_RR(_I(s)));
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -671,9 +730,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -729,9 +788,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -789,8 +848,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = (_R(s) >> (s.H + 1));
-		auto d2 = (_RR(s) >> (s.H + 1));
+		auto d1 = _D(_R(s));
+		auto d2 = _D(_RR(s));
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -824,9 +883,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = s - di;
 		v[1] = s + di;
@@ -877,9 +936,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _MI >> (s.H + 1);
-		auto dj = _MJ >> (s.H + 1);
-		auto dk = _MK >> (s.H + 1);
+		auto di = _DI >> (s.H() + 1);
+		auto dj = _DJ >> (s.H() + 1);
+		auto dk = _DK >> (s.H() + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -932,8 +991,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = (_R(s) >> (s.H + 1));
-		auto d2 = (_RR(s) >> (s.H + 1));
+		auto d1 = _D(_R(s));
+		auto d2 = _D(_RR(s));
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -966,7 +1025,7 @@ struct OcForest
 		 *
 		 */
 
-		auto d = (_I(s) >> (s.H + 1));
+		auto d = _D(_I(s));
 		v[0] = s + d;
 		v[1] = s - d;
 

@@ -17,14 +17,11 @@ protected:
 	{
 		mesh.SetDt(1.0);
 
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 20, 0, 0 };
+		nTuple<3, size_t> dims = { 20, 0, 0 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();
@@ -91,22 +88,22 @@ TYPED_TEST(TestFETLVecAlgegbra, vector_arithmetic){
 	}
 
 	LOG_CMD(f2b=Cross(f1a,f1b));
-//	LOG_CMD(f3=Dot(f1a,f2a));
-//	LOG_CMD(f3=Dot(f2a,f1a));
-//	LOG_CMD(f3=InnerProduct(f2a,f2a));
-//	LOG_CMD(f3=InnerProduct(f1a,f1a));
-//
-//	LOG_CMD(f0=Wedge(f0,f0));
-//	LOG_CMD(f1b=Wedge(f0,f1a));
-//	LOG_CMD(f1b=Wedge(f1a,f0));
-//	LOG_CMD(f2b=Wedge(f0,f2a));
-//	LOG_CMD(f2b=Wedge(f2a,f0));
-//	LOG_CMD(f3=Wedge(f0,f3));
-//	LOG_CMD(f3=Wedge(f3,f0));
-//
-//	LOG_CMD(f2a=Wedge(f1a,f1b));
-//	LOG_CMD(f3=Wedge(f1a,f2b));
-//	LOG_CMD(f3=Wedge(f2a,f1b));
+	LOG_CMD(f3=Dot(f1a,f2a));
+	LOG_CMD(f3=Dot(f2a,f1a));
+	LOG_CMD(f3=InnerProduct(f2a,f2a));
+	LOG_CMD(f3=InnerProduct(f1a,f1a));
+
+	LOG_CMD(f0=Wedge(f0,f0));
+	LOG_CMD(f1b=Wedge(f0,f1a));
+	LOG_CMD(f1b=Wedge(f1a,f0));
+	LOG_CMD(f2b=Wedge(f0,f2a));
+	LOG_CMD(f2b=Wedge(f2a,f0));
+	LOG_CMD(f3=Wedge(f0,f3));
+	LOG_CMD(f3=Wedge(f3,f0));
+
+	LOG_CMD(f2a=Wedge(f1a,f1b));
+	LOG_CMD(f3=Wedge(f1a,f2b));
+	LOG_CMD(f3=Wedge(f2a,f1b));
 
 }
 }

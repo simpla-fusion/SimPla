@@ -35,8 +35,7 @@ struct EuclideanSpace
 	typedef nTuple<NDIMS, Real> covector_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
-	static constexpr Real g_t[NDIMS][NDIMS] =
-	{
+	static constexpr Real g_t[NDIMS][NDIMS] = {
 
 	1, 0, 0,
 
@@ -96,8 +95,8 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 	typedef typename OcForest::index_type index_type;
 
-	RectMesh() :
-			tags_(*this)
+	RectMesh()
+			: tags_(*this)
 	{
 		;
 	}
@@ -107,8 +106,8 @@ public:
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			OcForest(dict), tags_(*this)
+	RectMesh(TDict const & dict)
+			: OcForest(dict), tags_(*this)
 	{
 		Load(dict);
 	}
@@ -150,8 +149,7 @@ public:
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
-	nTuple<NDIMS, size_type> strides =
-	{ 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides = { 0, 0, 0 };
 
 	inline nTuple<NDIMS, size_type> const & GetStrides() const
 	{
@@ -273,48 +271,6 @@ public:
 		return std::move(res);
 	}
 
-//	template<typename TV,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,VERTEX,TR> const & f)
-//	-> decltype(f[_C(0UL)])
-//	{
-//	}
-//	template<typename TV,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,EDGE,TR> const & f)
-//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
-//	{
-//	}
-//
-//	template<typename TV,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,FACE,TR> const & f)
-//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
-//	{
-//	}
-//
-//	template<typename TV,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, TV const & v,Field<this_type,VOLUME,TR> const & f)
-//	-> decltype(f[_C(0UL)])
-//	{
-//	}
-//
-//	template<typename TL,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,EDGE,TR> const & f)
-//	->decltype(v[0]*f[_C(0UL)])
-//	{
-//
-//	}
-//
-//	template<typename TL,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,FACE,TR> const & f)
-//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
-//	{
-//
-//	}
-//
-//	template<typename TL,typename TR>
-//	auto InteriorProdcut(coordinates_type const x, nTuple<NDIMS,TV> const & v,Field<this_type,VOLUME,TR> const & f)
-//	->nTuple<NDIMS,decltype(v[0]*f[_C(0UL)])>
-//	{
-//	}
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************
@@ -330,15 +286,15 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = s & (_MA >> (s.H + 1));
+		auto X = _D(s);
 		return ((l[s - X] + l[s + X]) * 0.5 * r[s]);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
-		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
+		auto Y = _D(_R(_I(s)) );
+		auto Z = _D(_RR(_I(s)) );
 
 		return (l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * 0.25 * r[s];
 	}
@@ -346,9 +302,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _MI >> (s.H + 1);
-		auto Y = _MJ >> (s.H + 1);
-		auto Z = _MK >> (s.H + 1);
+		auto X = _DI >> (s.H() + 1);
+		auto Y = _DJ >> (s.H() + 1);
+		auto Z = _DK >> (s.H() + 1);
 
 		return (
 
@@ -362,15 +318,15 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = s & (_MA >> (s.H + 1));
+		auto X = _D(s );
 		return l[s]*(r[s-X]+r[s+X])*0.5;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
-		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
+		auto Y = _D(_R(_I(s)) );
+		auto Z = _D(_RR(_I(s)));
 
 		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
 	}
@@ -378,9 +334,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 
 		return
 
@@ -394,8 +350,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
 	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
-		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
+		auto Y =_D( _R(_I(s)) );
+		auto Z =_D( _RR(_I(s)) );
 
 		return
 		l[s]*(
@@ -411,9 +367,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 
 		return
 
@@ -427,9 +383,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
 	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _MI >> (s.H + 1);
-		auto Y = _MJ >> (s.H + 1);
-		auto Z = _MK >> (s.H + 1);
+		auto X = _DI >> (s.H() + 1);
+		auto Y = _DJ >> (s.H() + 1);
+		auto Z = _DK >> (s.H() + 1);
 
 		return (
 
@@ -445,9 +401,9 @@ public:
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
 	index_type s) const-> decltype(f[s]+f[s])
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 		return
 
 		(
@@ -464,7 +420,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto d = s & (_MA >> (s.H + 1));
+		auto d = _D( s );
 
 		unsigned int n = _N(s);
 
@@ -474,8 +430,8 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
-		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
+		auto Y = _D( _R(_I(s)) );
+		auto Z = _D( _RR(_I(s)) );
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
@@ -483,9 +439,9 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
@@ -499,9 +455,9 @@ public:
 	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const->typename std::remove_reference<decltype(f[s])>::type
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
@@ -509,15 +465,15 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto Y = _R(_I(s)) & (_MA >> (s.H + 1));
-		auto Z = _RR(_I(s)) & (_MA >> (s.H + 1));
+		auto Y = _D( _R(_I(s)) );
+		auto Z = _D( _RR(_I(s)) );
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto d = _I(s) & (_MA >> (s.H + 1));
+		auto d = _D( _I(s) );
 
 		unsigned int n = _N(_I(s));
 
@@ -530,9 +486,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, EDGE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		auto X = (_MI >> (s.H + 1));
-		auto Y = (_MJ >> (s.H + 1));
-		auto Z = (_MK >> (s.H + 1));
+		auto X = (_DI >> (s.H() + 1));
+		auto Y = (_DJ >> (s.H() + 1));
+		auto Z = (_DK >> (s.H() + 1));
 
 		return
 
@@ -547,8 +503,8 @@ public:
 	Field<this_type, FACE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(s);
-		auto Y = _R(s) & (_MA >> (s.H + 1));
-		auto Z = _RR(s) & (_MA >> (s.H + 1));
+		auto Y =_D( _R(s) );
+		auto Z = _D( _RR(s) );
 		return
 
 		(f[s + Y] + f[s - Y]) * 0.5 * v[(n + 2) % 3] -
@@ -560,7 +516,7 @@ public:
 	Field<this_type, VOLUME, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = _N(_I(s));
-		unsigned int D = (_I(s)) & (_MA >> (s.H + 1));
+		unsigned int D = _D( _I(s));
 
 		return (f[s + D] - f[s - D]) * 0.5 * v[n];
 	}
