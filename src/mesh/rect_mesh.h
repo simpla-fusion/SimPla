@@ -23,6 +23,7 @@
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 //#include "../utilities/utilities.h"
+#include "../utilities/memory_pool.h"
 #include "octree_forest.h"
 
 namespace simpla
@@ -176,6 +177,7 @@ public:
 		return tags_;
 	}
 
+	nTuple<NDIMS,Real> dx_;
 	//* Time
 
 	Real dt_ = 0.0;//!< time step
@@ -200,6 +202,10 @@ public:
 		return dt_;
 	}
 
+	nTuple<NDIMS,Real> const & GetDx()const
+	{
+		return dx_;
+	}
 	inline void SetDt(Real dt = 0.0)
 	{
 		dt_ = dt;
@@ -302,9 +308,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _DI >> (s.H() + 1);
-		auto Y = _DJ >> (s.H() + 1);
-		auto Z = _DK >> (s.H() + 1);
+		auto X = _DI >> (H(s) + 1);
+		auto Y = _DJ >> (H(s) + 1);
+		auto Z = _DK >> (H(s) + 1);
 
 		return (
 
@@ -334,9 +340,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 
 		return
 
@@ -367,9 +373,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 
 		return
 
@@ -383,9 +389,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
 	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _DI >> (s.H() + 1);
-		auto Y = _DJ >> (s.H() + 1);
-		auto Z = _DK >> (s.H() + 1);
+		auto X = _DI >> (H(s) + 1);
+		auto Y = _DJ >> (H(s) + 1);
+		auto Z = _DK >> (H(s) + 1);
 
 		return (
 
@@ -401,9 +407,9 @@ public:
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
 	index_type s) const-> decltype(f[s]+f[s])
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 		return
 
 		(
@@ -439,9 +445,9 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
@@ -455,9 +461,9 @@ public:
 	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const->typename std::remove_reference<decltype(f[s])>::type
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
@@ -486,9 +492,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, EDGE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		auto X = (_DI >> (s.H() + 1));
-		auto Y = (_DJ >> (s.H() + 1));
-		auto Z = (_DK >> (s.H() + 1));
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
 
 		return
 

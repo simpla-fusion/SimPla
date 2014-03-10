@@ -11,7 +11,7 @@
 #include "../io/data_stream.h"
 #include "../utilities/log.h"
 
-#include "rect_mesh.h"
+#include "octree_forest.h"
 
 #define DEF_MESH RectMesh<>
 
@@ -24,28 +24,19 @@ protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
-		mesh.SetDt(1.0);
 
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-
-		nTuple<3, size_t> dims = { 30, 10, 10 };
+		nTuple<3, size_t> dims = { 8, 9, 1 };
 		mesh.SetDimensions(dims);
 
-		mesh.Update();
 	}
 public:
-	typedef RectMesh<> mesh_type;
+	typedef OcForest mesh_type;
 	static constexpr int IForm = TI::value;
+	typedef typename OcForest::index_type index_type;
 	mesh_type mesh;
 
-	DEFINE_FIELDS(mesh_type)
-
 };
-typedef testing::Types<
-//		Int2Type<VERTEX>,
-        Int2Type<EDGE> /*, Int2Type<FACE>, Int2Type<VOLUME>*/> FormList;
+typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > FormList;
 
 TYPED_TEST_CASE(TestMesh, FormList);
 
@@ -57,18 +48,15 @@ TYPED_TEST(TestMesh, traversal){
 
 	CHECK(TestFixture::mesh.GetNumOfElements(TestFixture::IForm ));
 
-	auto s=*(TestFixture::mesh.template begin<TestFixture::IForm>());
+	auto s=*(TestFixture::mesh.begin(TestFixture::IForm ));
 
-	CHECK_BIT( s.d);
-	s=TestFixture::mesh._R(s);
-	CHECK_BIT( s.d);
-	s=TestFixture::mesh._R(s);
-	CHECK_BIT( s.d);
+	s=*(TestFixture::mesh.begin(TestFixture::IForm ));
 
-//	TestFixture::mesh.template Traversal < TestFixture::IForm > (
-//			[& ](typename TestFixture::index_type s )
-//			{	CHECK_BIT(TestFixture::mesh.s.d); ++count;}
-//	);
+	TestFixture::mesh.template Traversal < TestFixture::IForm > (
+			[& ](typename TestFixture::index_type s )
+			{	++count;}
+	);
+
 
 	EXPECT_EQ(count,TestFixture:: mesh.GetNumOfElements( TestFixture::IForm));
 }}
