@@ -233,13 +233,22 @@ struct OcForest
 
 	}
 
-	inline size_type Hash(index_type s) const
+	inline size_type Hash(compact_index_type d) const
 	{
-		compact_index_type d = (s.d & _MASK) >> (D_FP_POS);
 
-		size_type res = (I(d) * strides_[0] + J(d) * strides_[1] + K(d) * strides_[2]);
+		size_type res =
 
-		switch (_N(s))
+		(
+
+		(I(d) >> D_FP_POS) * strides_[0] +
+
+		(J(d) >> D_FP_POS) * strides_[1] +
+
+		(K(d) >> D_FP_POS) * strides_[2]
+
+		);
+
+		switch (_N(d))
 		{
 		case 1:
 		case 6:
@@ -254,7 +263,15 @@ struct OcForest
 			res = ((res << 1) + res) + 2;
 			break;
 		}
+
+		CHECK(res);
 		return res;
+
+	}
+
+	inline size_type Hash(index_type s) const
+	{
+		return Hash(s.d);
 
 	}
 
@@ -325,9 +342,7 @@ struct OcForest
 	 */
 	iterator begin(int IFORM, int total = 1, int sub = 0) const
 	{
-		auto dims_ = GetDimensions();
-
-		compact_index_type s = ((dims_[0] * (sub + 1) / total) << (INDEX_DIGITS + D_FP_POS)) & _MASK;
+		compact_index_type s = ((dims_[0] * (sub) / total) << (INDEX_DIGITS * 2 + D_FP_POS - 1)) & _MASK;
 
 		if (IFORM == EDGE)
 		{
@@ -346,7 +361,6 @@ struct OcForest
 
 	iterator end(int IFORM, int total = 1, int sub = 0) const
 	{
-
 		iterator res = begin(IFORM);
 		res->d += ((dims_[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS));
 		return res;
@@ -357,7 +371,7 @@ struct OcForest
 
 		auto n = _N(s);
 
-		if (n == 0 || n == 1 || n == 6 || n == 7)
+		if (n == 0 || n ==  || n == 3 || n == 7)
 		{
 			s += _DK | _DJ | _DI;
 
