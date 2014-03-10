@@ -125,13 +125,13 @@ public:
 	{
 		TC data_;
 
-		typename mesh_type::template iterator<IForm> it_;
+		typename mesh_type::iterator it_;
 
 		typedef decltype(*data_) value_type;
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::template iterator<IForm> s) :
+		iterator_(TC d, typename mesh_type::iterator s) :
 				data_(d), it_(s)
 		{
 
@@ -142,21 +142,32 @@ public:
 
 		value_type & operator*()
 		{
-			return *(data_.get() + it_.Hash());
+			return *(data_.get() + make_hash(it_));
 		}
 		value_type const& operator*() const
 		{
-			return *(data_.get() + it_.Hash());
+			return *(data_.get() + make_hash(it_));
 		}
+
+		index_type * operator ->()
+		{
+			return (data_.get() + make_hash(it_));
+		}
+		index_type const* operator ->() const
+		{
+			return (data_.get() + make_hash(it_));
+		}
+
 		this_type & operator++()
 		{
 			++it_;
+
 			return *this;
 		}
 
 		bool operator!=(this_type const &rhs) const
 		{
-			return it_ != rhs.it_ && data_ != rhs.data_;
+			return it_ != rhs.it_ || data_ != rhs.data_;
 		}
 	};
 
@@ -166,22 +177,22 @@ public:
 
 	iterator begin()
 	{
-		return iterator_<container_type>(data_, mesh.template begin<IForm>());
+		return iterator_<container_type>(data_, mesh.begin(IForm));
 	}
 
 	iterator end()
 	{
-		return iterator_<container_type>(data_, mesh.template end<IForm>());
+		return iterator_<container_type>(data_, mesh.end(IForm));
 	}
 
 	const_iterator begin() const
 	{
-		return iterator_<const container_type>(data_, mesh.template begin<IForm>());
+		return iterator_<const container_type>(data_, mesh.begin(IForm));
 	}
 
 	const_iterator end() const
 	{
-		return iterator_<const container_type>(data_, mesh.template end<IForm>());
+		return iterator_<const container_type>(data_, mesh.end(IForm));
 	}
 
 	inline value_type & operator[](index_type s)
@@ -206,12 +217,12 @@ public:
 
 	inline value_type & get(index_type s)
 	{
-		return *(data_.get() + mesh.template Hash<IForm>(s));
+		return *(data_.get() + mesh.Hash(s));
 	}
 
 	inline value_type const & get(index_type s) const
 	{
-		return *(data_.get() + mesh.template Hash<IForm>(s));
+		return *(data_.get() + mesh.Hash(s));
 	}
 	void Init()
 	{
@@ -230,7 +241,7 @@ public:
 	void Fill(TD default_value)
 	{
 		Init();
-		mesh.template ParallelTraversal<IForm>([](index_type s, this_type *l, TD const & r )
+		mesh.template Traversal<IForm>([](index_type s, this_type *l, TD const & r )
 		{
 			l->get(s)=r;
 		}, this, std::forward<TD const &>(default_value));
@@ -251,7 +262,7 @@ public:
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Init();
-		mesh.template ParallelTraversal<IForm>(
+		mesh.template Traversal<IForm>(
 
 		[](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
 		{

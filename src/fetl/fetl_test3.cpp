@@ -16,8 +16,6 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		mesh.SetDt(1.0);
-
 		nTuple<3, Real> xmin = { 0, 0, 0 };
 		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);

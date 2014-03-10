@@ -17,8 +17,6 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		mesh.SetDt(1.0);
-
 		nTuple<3, Real> xmin =
 		{ 0, 0, 0 };
 		nTuple<3, Real> xmax =
@@ -41,11 +39,9 @@ public:
 
 typedef testing::Types<
 
-Form<0>
+Form<0>, Form<1>, Form<2>, Form<3>
 
-//, Form<1>, Form<2>, Form<3>
-
-//, CForm<0>, CForm<1>, CForm<2>, CForm<3>
+, CForm<0>, CForm<1>, CForm<2>, CForm<3>
 
 > AllFieldTypes;
 
@@ -73,7 +69,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 	{
 		typename TestFixture::FieldType::value_type res;
 		res=a* (s);
-		ASSERT_EQ(res,v )<<"idx=" << s;
+		EXPECT_EQ(res,v ) <<"s =" << s;
 		s+=1.0;
 	}
 
@@ -92,20 +88,18 @@ TYPED_TEST(TestFETLBasicArithmetic,assign){
 	f1.Init();
 	f2.Init();
 
-//	TestFixture::mesh.ParallelTraversal(
-//
-//			TestFixture::FieldType::IForm,
-//
-//			[&](typename Mesh::index_type const &s)
-//			{
-//				f1[s]=0;
-//				f2[s]=a;
-//			}
-//	);
+	TestFixture::mesh.template Traversal<TestFixture::FieldType::IForm>(
+
+			[&](typename Mesh::index_type const &s)
+			{
+				f1[s]=0;
+				f2[s]=a;
+			}
+	);
 
 	for(value_type const & v : f2)
 	{
-		ASSERT_EQ(a,v)<<"idx="<< v;
+		ASSERT_EQ(a,v)<<"v ="<< v;
 	}
 
 	for(value_type & v:f1)
@@ -217,47 +211,46 @@ TYPED_TEST(TestFETLBasicArithmetic, scalar_field){
 		v=vc *uniform_dist(gen);
 	}
 
-	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
-
-//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
-	;
-	/**           (+)
-	 *           /   \
-	 *         (-)    (*)
-	 *        /   \    | \
-	 *      (^)    (/) f1 c
-	 *     /  \   /  \
-	 *-f1      a f2   b
-	 *
-	 * */
-	count =0;
-
-//	TestFixture::mesh.ForEach(
-//			[&](value_type const &s1,value_type const &s2 ,
-//					value_type const &s3,value_type const &s4)
+//	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
+//
+////	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+//	;
+//	/**           (+)
+//	 *           /   \
+//	 *         (-)    (*)
+//	 *        /   \    | \
+//	 *      (^)    (/) f1 c
+//	 *     /  \   /  \
+//	 *-f1      a f2   b
+//	 *
+//	 * */
+//	count =0;
+//
+////	TestFixture::mesh.ForEach(
+////			[&](value_type const &s1,value_type const &s2 ,
+////					value_type const &s3,value_type const &s4)
+////			{
+////				typename TestFixture::FieldType::value_type res;
+////				res=( -s1*ra +s2*rb ) -s3/rc -s1;
+////				EXPECT_EQ(res,s4);
+////				if(res!=s4) ++count;
+////
+////			},f1,f2,f3,f4
+////	);
+//
+//	TestFixture::mesh.template Traversal< TestFixture::FieldType::IForm>(
+//			[&](typename TestFixture::FieldType::index_type s)
 //			{
 //				typename TestFixture::FieldType::value_type res;
-//				res=( -s1*ra +s2*rb ) -s3/rc -s1;
-//				EXPECT_EQ(res,s4);
-//				if(res!=s4) ++count;
 //
-//			},f1,f2,f3,f4
+//				res= - f1[s]*ra +f2[s]*rb -f3[s]/rc -f1[s];
+//
+//				EXPECT_EQ(res,f4[s])<< "s= "<<(s.d);
+//			}
 //	);
-
-	TestFixture::mesh.template Traversal< TestFixture::FieldType::IForm>(
-			[&](typename TestFixture::FieldType::index_type s)
-			{
-				typename TestFixture::FieldType::value_type res;
-
-				res= - f1[s]*ra +f2[s]*rb -f3[s]/rc -f1[s];
-
-				EXPECT_EQ(res,f4[s])<< "s= "<<TestFixture::mesh._C(s);
-			}
-	);
-
-	EXPECT_EQ(0,count)<< "number of error points =" << count;
+//
+//	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
 }
 }
-
 

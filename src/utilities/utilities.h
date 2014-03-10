@@ -120,6 +120,11 @@ inline void TheEnd(int flag = 1)
 	exit(1);
 }
 
+template<typename T>
+inline unsigned long make_hash(T s)
+{
+	return static_cast<unsigned long>(s);
+}
 }  // namespace simpla
 
 #endif /* UTILITIES_H_ */

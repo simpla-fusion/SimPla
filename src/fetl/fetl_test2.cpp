@@ -15,13 +15,14 @@ class TestFETLVecAlgegbra: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		mesh.SetDt(1.0);
-
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
+		nTuple<3, Real> xmin =
+		{ 0, 0, 0 };
+		nTuple<3, Real> xmax =
+		{ 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims = { 20, 0, 0 };
+		nTuple<3, size_t> dims =
+		{ 20, 1, 1 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();

@@ -36,7 +36,8 @@ struct EuclideanSpace
 	typedef nTuple<NDIMS, Real> covector_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
-	static constexpr Real g_t[NDIMS][NDIMS] = {
+	static constexpr Real g_t[NDIMS][NDIMS] =
+	{
 
 	1, 0, 0,
 
@@ -96,8 +97,8 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 	typedef typename OcForest::index_type index_type;
 
-	RectMesh()
-			: tags_(*this)
+	RectMesh() :
+			tags_(*this)
 	{
 		;
 	}
@@ -107,8 +108,8 @@ public:
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: OcForest(dict), tags_(*this)
+	RectMesh(TDict const & dict) :
+			OcForest(dict), tags_(*this)
 	{
 		Load(dict);
 	}
@@ -150,16 +151,9 @@ public:
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
-	nTuple<NDIMS, size_type> strides = { 0, 0, 0 };
-
-	inline nTuple<NDIMS, size_type> const & GetStrides() const
-	{
-		return strides;
-	}
-
 	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
-		return (MEMPOOL.allocate_shared_ptr < TV > (1));
+		return (MEMPOOL.allocate_shared_ptr < TV > (GetNumOfElements(iform)));
 	}
 
 	//* Media Tags
@@ -178,58 +172,59 @@ public:
 	}
 
 	nTuple<NDIMS,Real> dx_;
-	//* Time
-
-	Real dt_ = 0.0;//!< time step
-	Real time_ = 0.0;
-
-	void NextTimeStep()
-	{
-		time_ += dt_;
-	}
-	Real GetTime() const
-	{
-		return time_;
-	}
-
-	void GetTime(Real t)
-	{
-		time_ = t;
-	}
-	inline Real GetDt() const
-	{
-		CheckCourant();
-		return dt_;
-	}
-
 	nTuple<NDIMS,Real> const & GetDx()const
 	{
 		return dx_;
 	}
-	inline void SetDt(Real dt = 0.0)
-	{
-		dt_ = dt;
-		Update();
-	}
-	double CheckCourant() const
-	{
-		DEFINE_GLOBAL_PHYSICAL_CONST
 
-		nTuple<3, Real> inv_dx_;
-		inv_dx_ = 1.0 / GetDx() / (xmax_ - xmin_);
-
-		Real res = 0.0;
-
-		for (int i = 0; i < 3; ++i)
-		res += inv_dx_[i] * inv_dx_[i];
-
-		return std::sqrt(res) * speed_of_light * dt_;
-	}
-
-	void FixCourant(Real a)
-	{
-		dt_ *= a / CheckCourant();
-	}
+	//	//* Time
+//
+//	Real dt_ = 0.0;//!< time step
+//	Real time_ = 0.0;
+//
+//	void NextTimeStep()
+//	{
+//		time_ += dt_;
+//	}
+//	Real GetTime() const
+//	{
+//		return time_;
+//	}
+//
+//	void GetTime(Real t)
+//	{
+//		time_ = t;
+//	}
+//	inline Real GetDt() const
+//	{
+//		CheckCourant();
+//		return dt_;
+//	}
+//
+//	inline void SetDt(Real dt = 0.0)
+//	{
+//		dt_ = dt;
+//		Update();
+//	}
+//	double CheckCourant() const
+//	{
+//		DEFINE_GLOBAL_PHYSICAL_CONST
+//
+//		nTuple<3, Real> inv_dx_;
+//		inv_dx_ = 1.0 / GetDx() / (xmax_ - xmin_);
+//
+//		Real res = 0.0;
+//
+//		for (int i = 0; i < 3; ++i)
+//		res += inv_dx_[i] * inv_dx_[i];
+//
+//		return std::sqrt(res) * speed_of_light * dt_;
+//	}
+//
+//	void FixCourant(Real a)
+//	{
+//		dt_ *= a / CheckCourant();
+//	}
 
 //***************************************************************************************************
 // Geometric properties

@@ -47,7 +47,7 @@ struct OcForest
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
-	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
+			| (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
 
 	static constexpr compact_index_type NO_HEAD_FLAG = (~0UL) << (INDEX_DIGITS * 3);
 	/**
@@ -82,7 +82,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -94,23 +94,27 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	nTuple<3, size_type> dims_ = { 1, 1, 1 };
+	nTuple<NDIMS, size_type> dims_ =
+	{ 1, 1, 1 };
 
-	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides_ =
+	{ 0, 0, 0 };
+
+	nTuple<NDIMS, size_type> carray_digits_;
 
 	compact_index_type _MASK;
 
 	//***************************************************************************************************
 
-	OcForest()
-			: _MASK(NO_CARRY_FLAG)
+	OcForest() :
+			_MASK(NO_CARRY_FLAG)
 	{
 
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict)
-			: _MASK(NO_CARRY_FLAG)
+	OcForest(TDict const & dict) :
+			_MASK(NO_CARRY_FLAG)
 	{
 	}
 
@@ -175,31 +179,51 @@ struct OcForest
 //***************************************************************************************************
 
 	template<typename TI>
-	void SetDimensions(TI const &d)
+	void SetDimensions(TI const &d, bool FORTRAN_ORDER = false)
 	{
-		dims_[0] = 1UL << (count_bits(d[0]) - 1);
-		dims_[1] = 1UL << (count_bits(d[1]) - 1);
-		dims_[2] = 1UL << (count_bits(d[2]) - 1);
+		carray_digits_[0] = D_FP_POS + 1 + ((d[0] > 0) ? (count_bits(d[0]) - 1) : 0);
+		carray_digits_[1] = D_FP_POS + 1 + ((d[1] > 0) ? (count_bits(d[1]) - 1) : 0);
+		carray_digits_[2] = D_FP_POS + 1 + ((d[2] > 0) ? (count_bits(d[2]) - 1) : 0);
+		dims_[0] = 1UL << (carray_digits_[0] - D_FP_POS - 1);
+		dims_[1] = 1UL << (carray_digits_[1] - D_FP_POS - 1);
+		dims_[2] = 1UL << (carray_digits_[2] - D_FP_POS - 1);
 
 		_MASK =
 
-		(((dims_[0] << D_FP_POS) - 1) << (INDEX_DIGITS * 2)) |
+		(((1UL << (carray_digits_[0] - 1)) - 1) << (INDEX_DIGITS * 2)) |
 
-		(((dims_[1] << D_FP_POS) - 1) << (INDEX_DIGITS)) |
+		(((1UL << (carray_digits_[1] - 1)) - 1) << (INDEX_DIGITS)) |
 
-		(((dims_[2] << D_FP_POS) - 1))
+		(((1UL << (carray_digits_[2] - 1)) - 1))
 
 		;
+
+		if (FORTRAN_ORDER)
+		{
+			strides_[0] = 1;
+			strides_[1] = dims_[0];
+			strides_[2] = dims_[1] * strides_[1];
+		}
+		else
+		{
+			strides_[2] = 1;
+			strides_[1] = dims_[2];
+			strides_[0] = dims_[1] * strides_[1];
+		}
+
+//		CHECK(carray_digits_);
 //
 //		CHECK_BIT(_DI);
 //		CHECK_BIT(_MI);
 //		CHECK_BIT(_MRI);
 //		CHECK_BIT(_MTI);
+//		CHECK_BIT(_MASK);
 //
 //		CHECK_BIT(_DJ);
 //		CHECK_BIT(_MJ);
 //		CHECK_BIT(_MRJ);
 //		CHECK_BIT(_MTJ);
+//		CHECK_BIT(_MASK);
 //
 //		CHECK_BIT(_DK);
 //		CHECK_BIT(_MK);
@@ -213,11 +237,24 @@ struct OcForest
 	{
 		compact_index_type d = (s.d & _MASK) >> (D_FP_POS);
 
-		return (
+		size_type res = (I(d) * strides_[0] + J(d) * strides_[1] + K(d) * strides_[2]);
 
-		I(d) * strides_[0] + J(d) * strides_[1] + K(d) * strides_[2]
-
-		);
+		switch (_N(s))
+		{
+		case 1:
+		case 6:
+			res = ((res << 1) + res);
+			break;
+		case 2:
+		case 5:
+			res = ((res << 1) + res) + 1;
+			break;
+		case 4:
+		case 3:
+			res = ((res << 1) + res) + 2;
+			break;
+		}
+		return res;
 
 	}
 
@@ -228,12 +265,16 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
-				: tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = index_type(
+		{ 0UL })) :
+				tree(m), s_(s)
 		{
 		}
-		iterator(OcForest const & m, compact_index_type s = 0UL)
-				: tree(m), s_(index_type( { s }))
+		iterator(OcForest const & m, compact_index_type s = 0UL) :
+				tree(m),
+
+				s_(index_type(
+				{ s }))
 		{
 		}
 		~iterator()
@@ -307,9 +348,7 @@ struct OcForest
 	{
 
 		iterator res = begin(IFORM);
-
 		res->d += ((dims_[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS));
-		res->d &= _MASK;
 		return res;
 	}
 
@@ -320,30 +359,26 @@ struct OcForest
 
 		if (n == 0 || n == 1 || n == 6 || n == 7)
 		{
-			s += _DK;
+			s += _DK | _DJ | _DI;
 
-			if (((s & _MK) & (~_MASK)) > 0)
-			{
-				s += _DJ;
+			auto m = (((~s) & (1UL << (carray_digits_[2] - 1))) << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[2])
+					| ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
+							<< (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
 
-			}
+			auto mm =
+					(~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
 
-			if (((s & _MJ) & (~_MASK)) > 0)
-			{
-				s += _DI;
-			}
-
-			s &= _MASK;
+			s = (s - m) & mm;
 		}
 
 		s = _R(s);
-
 		return s;
 	}
 
 	index_type Next(index_type s) const
 	{
-		return index_type( { Next(s.d) });
+		return index_type(
+		{ Next(s.d) });
 	}
 
 //***************************************************************************************************
@@ -448,7 +483,8 @@ struct OcForest
 	}
 	nTuple<3, Real> GetExtent() const
 	{
-		return nTuple<3, Real>( {
+		return nTuple<3, Real>(
+		{
 
 		(dims_[0] << D_FP_POS) * dh,
 
@@ -465,7 +501,8 @@ struct OcForest
 
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned long h = 0) const
 	{
-		return index_type( {
+		return index_type(
+		{
 
 		(
 
@@ -487,7 +524,8 @@ struct OcForest
 	{
 		s &= _MASK;
 
-		return nTuple<3, Real>( {
+		return nTuple<3, Real>(
+		{
 
 		static_cast<Real>(I(s)) * dh,
 
@@ -1135,6 +1173,10 @@ struct OcForest
 }
 ;
 
+inline unsigned long make_hash(OcForest::iterator s)
+{
+	return s.Hash();
+}
 }
 // namespace simpla
 

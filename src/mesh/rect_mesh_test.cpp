@@ -25,7 +25,8 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, size_t> dims = { 8, 9, 1 };
+		nTuple<3, size_t> dims =
+		{ 8, 4, 1 };
 		mesh.SetDimensions(dims);
 
 	}
@@ -50,13 +51,10 @@ TYPED_TEST(TestMesh, traversal){
 
 	auto s=*(TestFixture::mesh.begin(TestFixture::IForm ));
 
-	s=*(TestFixture::mesh.begin(TestFixture::IForm ));
-
 	TestFixture::mesh.template Traversal < TestFixture::IForm > (
 			[& ](typename TestFixture::index_type s )
 			{	++count;}
 	);
-
 
 	EXPECT_EQ(count,TestFixture:: mesh.GetNumOfElements( TestFixture::IForm));
 }}
