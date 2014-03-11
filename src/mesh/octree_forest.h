@@ -33,6 +33,7 @@ struct OcForest
 
 	typedef unsigned long size_type;
 	typedef unsigned long compact_index_type;
+	typedef nTuple<NDIMS, Real> coordinates_type;
 
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
@@ -181,7 +182,7 @@ struct OcForest
 		}
 		bool operator>(index_type const &r) const
 		{
-			return d > r.d;
+			return d < r.d;
 		}
 	}
 	;

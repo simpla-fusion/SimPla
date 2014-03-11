@@ -16,6 +16,9 @@ template<typename TF>
 class Constraint
 {
 public:
+
+	static constexpr unsigned int IForm = TF::IForm;
+
 	typedef typename TF::mesh_type mesh_type;
 
 	typedef typename TF::value_type value_type;
@@ -28,72 +31,71 @@ public:
 
 private:
 
-	std::map<index_type, coordinates_type> def_domain_;
+	std::list<index_type> def_domain_;
 
 	std::function<void(value_type &, value_type)> op_;
+
+	bool is_hard_src_;
 public:
 
 	Constraint(mesh_type const & m)
-			: mesh(m)
+			: mesh(m), is_hard_src_(false)
 	{
-		SetHardSrc(false);
 	}
 
 	~Constraint()
 	{
 	}
 
-	void SetHardSrc(bool flag = true)
+	void SetHardSrc(bool flag = false)
 	{
-		if (flag)
-		{
-			op_ = [](value_type & a, value_type b)
-			{	a =b;};
-		}
-		else
-		{
-			op_ = [](value_type & a, value_type b)
-			{	a+=b;};
-		}
+		is_hard_src_ = flag;
 	}
 
-	std::map<index_type, coordinates_type> &GetDefDomain()
+	std::list<index_type> const &GetDefDomain() const
 	{
 		return def_domain_;
 	}
-
-	void Apply(TF * f, typename TF::value_type v) const
+	std::list<index_type> &GetDefDomain()
 	{
-		for (auto const & p : def_domain_)
+		return def_domain_;
+	}
+	template<typename TV>
+	void Apply(TF * f, TV v) const
+	{
+		if (is_hard_src_)
 		{
-			op_((*f)[p.first], v);
+			for (auto const & s : def_domain_)
+			{
+				f->get(s) = mesh.Sample(Int2Type<IForm>(), s, v);
+			}
+		}
+		else
+		{
+			for (auto const & s : def_domain_)
+			{
+				f->get(s) += mesh.Sample(Int2Type<IForm>(), s, v);
+			}
 		}
 	}
-
-	typename std::enable_if<!std::is_same<typename TF::value_type, typename TF::field_value_type>::value, void>::type Apply(
-	        TF * f, typename TF::field_value_type v) const
+	template<typename TV>
+	void Apply(TF * f, std::function<TV(coordinates_type const &, Real)> const & fun) const
 	{
-		for (auto const & p : def_domain_)
+		if (is_hard_src_)
 		{
-//			op_((*f)[p.first], mesh.template GetWeightOnElement<TF::IForm>(v, p.first));
+			for (auto const & s : def_domain_)
+			{
+				f->get(s) = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+			}
 		}
-	}
+		else
+		{
+			for (auto const & s : def_domain_)
+			{
+				f->get(s) += mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+			}
+		}
 
-	void Apply(TF * f, std::function<typename TF::value_type(coordinates_type const &, Real)> const & fun) const
-	{
-		for (auto const & p : def_domain_)
-		{
-			op_((*f)[p.first], fun(p.second, mesh.GetTime()));
-		}
-	}
-
-	typename std::enable_if<!std::is_same<typename TF::value_type, typename TF::field_value_type>::value, void>::type Apply(
-	        TF * f, std::function<typename TF::field_value_type(coordinates_type const &, Real)> const & fun) const
-	{
-		for (auto const & p : def_domain_)
-		{
-//			op_((*f)[p.first], mesh.template GetWeightOnElement<TF::IForm>(fun(p.second, mesh.GetTime()), p.first));
-		}
 	}
 
 }
@@ -112,22 +114,23 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 
 	if (dict["Select"])
 	{
-		mesh.tags().template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x )
-		{	self->GetDefDomain().emplace(s,x);},
+		mesh.tags().template Select<TField::IForm>([&](index_type const &s )
+		{	self->GetDefDomain().emplace(s );},
 
 		dict["Select"]);
 	}
 	else if (dict["Region"])
 	{
-		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x )
-		{	self->GetDefDomain().emplace(s,x);}, dict["Region"]);
+		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s )
+		{	self->GetDefDomain().emplace(s );}, dict["Region"]);
 	}
 	else if (dict["Index"])
 	{
-//		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
-//		dict["Index"].as(&idxs);
-//		SelectFromMesh<TField::IForm>(mesh, [&](index_type s ,coordinates_type x)
-//		{	self->GetDefDomain().emplace(s,x);}, idxs);
+		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
+		dict["Index"].as(&idxs);
+
+		for (auto const &s : idxs)
+			self->GetDefDomain().emplace(s);
 	}
 
 	self->SetHardSrc(dict["HardSrc"].template as<bool>(false));

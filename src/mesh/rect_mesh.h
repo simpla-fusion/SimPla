@@ -28,15 +28,54 @@
 
 namespace simpla
 {
-
+template<typename Topology>
 struct EuclideanSpace
 {
-	static constexpr int NDIMS = 3;
+	typedef Topology topology_type;
+
+	typedef EuclideanSpace<topology_type> this_type;
+
+	static constexpr int NDIMS = topology_type::NDIMS;
+
+	typedef typename topology_type::coordinates_type coordinates_type;
+	typedef typename topology_type::index_type index_type;
+
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
-	typedef nTuple<NDIMS, Real> coordinates_type;
 
-	static constexpr Real g_t[NDIMS][NDIMS] = {
+	topology_type const & topology;
+
+	EuclideanSpace(this_type const & rhs) = delete;
+
+	EuclideanSpace(topology_type const & t)
+			: topology(t)
+	{
+
+	}
+	template<typename TDict>
+	EuclideanSpace(topology_type const & t, TDict const & dict)
+			: topology(t)
+	{
+
+	}
+
+	~EuclideanSpace()
+	{
+
+	}
+
+	//***************************************************************************************************
+	// Geometric properties
+	// Metric
+	//***************************************************************************************************
+
+	coordinates_type xmin_ = { 0, 0, 0 };
+
+	coordinates_type xmax_ = { 1, 1, 1 };
+
+	coordinates_type inv_L = { 1.0, 1.0, 1.0 };
+
+	static constexpr nTuple<NDIMS, Real> normal_[NDIMS] = {
 
 	1, 0, 0,
 
@@ -46,79 +85,115 @@ struct EuclideanSpace
 
 	};
 
-	//! diagonal term of metric tensor
-	template<typename TI>
-	constexpr Real v(TI const & s) const
+	Real volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	template<int IN, typename T>
+	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
 	{
-		return 1.0;
-	}
-	//! diagonal term of metric tensor
-	template<typename TI>
-	constexpr Real l_v(TI const & s) const
-	{
-		return 1.0;
+		int n = IN < NDIMS ? IN : NDIMS;
+
+		for (int i = 0; i < n; ++i)
+		{
+			xmin_[i] = pmin[i];
+			xmax_[i] = pmax[i];
+		}
+
+		for (int i = n; i < NDIMS; ++i)
+		{
+			xmin_[i] = 0;
+			xmax_[i] = 0;
+		}
 	}
 
-	template<typename index_type>
-	vector_type PullBack(index_type const & s, vector_type const & v) const
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
 	{
-		return v;
+		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	template<typename index_type>
-	vector_type PushForward(index_type const & s, vector_type const & v) const
+	inline coordinates_type GetCoordinates(coordinates_type const &x) const
 	{
-		return v;
+		return coordinates_type( {
+
+		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
+
+		xmin_[1] + (xmax_[1] - xmin_[1]) * x[1],
+
+		xmin_[2] + (xmax_[2] - xmin_[2]) * x[2]
+
+		});
 	}
 
-	template<typename index_type>
-	vector_type PullBack(coordinates_type const & x, vector_type const & v) const
+	nTuple<3, Real> const& Normal(index_type s) const
 	{
-		return v;
+		return normal_[topology._C(s)];
 	}
 
-	template<typename index_type>
-	vector_type PushForward(coordinates_type const & x, vector_type const & v) const
+	template<typename TV>
+	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
-		return v;
+		return v[topology._C(s)];
 	}
 
+	Real const& Volume(index_type s) const
+	{
+		return volume_[topology._N(s)];
+	}
+	Real const& InvVolume(index_type s) const
+	{
+		return inv_volume_[topology._N(s)];
+	}
+	coordinates_type Trans(coordinates_type const &x) const
+	{
+		return x;
+	}
+	coordinates_type InvTrans(coordinates_type const &x) const
+	{
+		return x;
+	}
 };
-template<typename Metric = EuclideanSpace>
-class RectMesh: public OcForest, public Metric
+
+/**
+ *  Grid is mapped as a rectangle region;
+ *
+ */
+template<template<typename > class Geometry = EuclideanSpace>
+class RectMesh: public OcForest, public Geometry<OcForest>
 {
 public:
-	typedef OcForest base_type;
-	typedef RectMesh this_type;
+	typedef RectMesh<Geometry> this_type;
+	typedef OcForest topology_type;
+	typedef Geometry<topology_type> geometry_type;
 
 	static constexpr unsigned int NDIMS = 3;
 
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
-	typedef typename OcForest::index_type index_type;
+
+	typedef typename topology_type::coordinates_type coordinates_type;
+	typedef typename topology_type::index_type index_type;
 
 	RectMesh()
-			: tags_(*this)
+			: geometry_type(*this), tags_(*this)
 	{
-		;
 	}
 	~RectMesh()
 	{
-		;
 	}
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: OcForest(dict), tags_(*this)
+			: topology_type(dict), geometry_type(*this, dict), tags_(*this)
 	{
 		Load(dict);
 	}
 
 	this_type & operator=(const this_type&) = delete;
 
-	void swap(this_type & rhs)
-	{
-		OcForest::swap(rhs);
-	}
+//	void swap(this_type & rhs)
+//	{
+//		topology_type::swap(rhs);
+//		geometry_type::swap(rhs);
+//	}
 
 	template<typename TDict>
 	void Load(TDict const & dict)
@@ -221,8 +296,6 @@ public:
 		DEFINE_GLOBAL_PHYSICAL_CONST
 
 		nTuple<3, Real> inv_dx_;
-//		inv_dx_ = 1.0 / GetDx() / (xmax_ - xmin_);
-
 		Real res = 0.0;
 
 		for (int i = 0; i < 3; ++i)
@@ -236,197 +309,35 @@ public:
 		dt_ *= a / CheckCourant();
 	}
 
-//***************************************************************************************************
-// Geometric properties
-// Metric
-//***************************************************************************************************
+	//***************************************************************************************************
 
-	typedef nTuple<3, Real> coordinates_type;
-
-	coordinates_type xmin_ =
-	{	0, 0, 0};
-
-	coordinates_type xmax_ =
-	{	1, 1, 1};
-
-	coordinates_type inv_L =
-	{	1.0, 1.0, 1.0};
-
-	template<int IN, typename T>
-	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
+	template<int IFORM, typename TV>
+	TV Sample(Int2Type<IFORM>,index_type s, TV const & v) const
 	{
-		int n = IN < NDIMS ? IN : NDIMS;
-
-		for (int i = 0; i < n; ++i)
-		{
-			xmin_[i] = pmin[i];
-			xmax_[i] = pmax[i];
-		}
-
-		for (int i = n; i < NDIMS; ++i)
-		{
-			xmin_[i] = 0;
-			xmax_[i] = 0;
-		}
+		return v * geometry_type::Volume(s);
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	template<int IFORM, typename TV>
+	typename std::enable_if<(IFORM== EDGE || IFORM == FACE),TV>::type
+	Sample(Int2Type<IFORM>,index_type s, nTuple<NDIMS, TV> const & v) const
 	{
-		return std::move(std::make_pair(xmin_, xmax_));
+		return geometry_type::Normal( s , v) * geometry_type::Volume(s);
 	}
 
-	inline coordinates_type GetCoordinates(index_type const &s) const
+//	template<int IFORM,typename TV>
+//	typename Field<this_type,IFORM,TV>::field_value_type Get(Field<this_type,IFORM,TV> const & f,coordiantes_type const &x )
+//	{
+//		return topology_type::Get(f,geometry_type::Trans(x));
+//	}
+
+	coordinates_type GetCoordinates(index_type s)const
 	{
-		coordinates_type res;
-//		res = xmin_ + (xmax_ - xmin_) * base_type::GetCoordinates(s);
-		return std::move(res);
+		return std::move(geometry_type::InvTrans(topology_type::GetCoordinates(s)));
 	}
 
-//***************************************************************************************************
-// Exterior algebra
-//***************************************************************************************************
-
-//! Form<IR> ^ Form<IR> => Form<IR+IL>
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		return l[s] * r[s];
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto X = _D(s);
-		return ((l[s - X] + l[s + X]) * 0.5 * r[s]);
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto Y = _D(_R(_I(s)) );
-		auto Z = _D(_RR(_I(s)) );
-
-		return (l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * 0.25 * r[s];
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto X = _DI >> (H(s) + 1);
-		auto Y = _DJ >> (H(s) + 1);
-		auto Z = _DK >> (H(s) + 1);
-
-		return (
-
-		l[((s - X) - Y) - Z] + l[((s - X) - Y) + Z] + l[((s - X) + Y) - Z] + l[((s - X) + Y) + Z] +
-
-		l[((s + X) - Y) - Z] + l[((s + X) - Y) + Z] + l[((s + X) + Y) - Z] + l[((s + X) + Y) + Z]
-
-		) * 0.125 * r[s];
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto X = _D(s );
-		return l[s]*(r[s-X]+r[s+X])*0.5;
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto Y = _D(_R(_I(s)) );
-		auto Z = _D(_RR(_I(s)));
-
-		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
-
-		return
-
-		(l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * (r[s - X] + r[s + X]) * 0.125 +
-
-		(l[(s - Z) - X] + l[(s - Z) + X] + l[(s + Z) - X] + l[(s + Z) + X]) * (r[s - Y] + r[s + Y]) * 0.125 +
-
-		(l[(s - X) - Y] + l[(s - X) + Y] + l[(s + X) - Y] + l[(s + X) + Y]) * (r[s - Z] + r[s + Z]) * 0.125;
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto Y =_D( _R(_I(s)) );
-		auto Z =_D( _RR(_I(s)) );
-
-		return
-		l[s]*(
-
-		r[(s-Y)-Z]+
-		r[(s-Y)+Z]+
-		r[(s+Y)-Z]+
-		r[(s+Y)+Z]
-
-		)*0.25;
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
-	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
-	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
-
-		return
-
-		(r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * (l[s - X] + l[s + X]) * 0.125 +
-
-		(r[(s - Z) - X] + r[(s - Z) + X] + r[(s + Z) - X] + r[(s + Z) + X]) * (l[s - Y] + l[s + Y]) * 0.125 +
-
-		(r[(s - X) - Y] + r[(s - X) + Y] + r[(s + X) - Y] + r[(s + X) + Y]) * (l[s - Z] + l[s + Z]) * 0.125;
-	}
-
-	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
-	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(l[s]*r[s])
-	{
-		auto X = _DI >> (H(s) + 1);
-		auto Y = _DJ >> (H(s) + 1);
-		auto Z = _DK >> (H(s) + 1);
-
-		return (
-
-		l[((s - X) - Y) - Z] + l[((s - X) - Y) + Z] + l[((s - X) + Y) - Z] + l[((s - X) + Y) + Z] +
-
-		l[((s + X) - Y) - Z] + l[((s + X) - Y) + Z] + l[((s + X) + Y) - Z] + l[((s + X) + Y) + Z]
-
-		) * 0.125 * r[s];
-	}
-
-//***************************************************************************************************
-
-	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
-	index_type s) const-> decltype(f[s]+f[s])
-	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
-		return
-
-		(
-
-		f[((s + X) - Y) - Z] + f[((s + X) - Y) + Z] + f[((s + X) + Y) - Z] + f[((s + X) + Y) + Z] +
-
-		f[((s - X) - Y) - Z] + f[((s - X) - Y) + Z] + f[((s - X) + Y) - Z] + f[((s - X) + Y) + Z]
-
-		) * 0.125;
-	}
-
-//***************************************************************************************************
+	//***************************************************************************************************
+	// Exterior algebra
+	//***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
@@ -487,6 +398,303 @@ public:
 
 		return (f[s + d] - f[s - d]);
 	}
+	//***************************************************************************************************
+
+	//! Form<IR> ^ Form<IR> => Form<IR+IL>
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		return l[s] * r[s] * geometry_type::InvVolume(s);
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = _D(s);
+		return
+		(
+
+		l[s - X]*geometry_type::InvVolume(s-X) +
+
+		l[s + X]*geometry_type::InvVolume(s+X)
+
+		) * 0.5 * r[s];
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = _D(_I(s));
+		auto Y = _R(X);
+		auto Z = _RR(X);
+
+		return (
+
+		l[(s - Y) - Z]*geometry_type::InvVolume((s - Y) - Z) +
+
+		l[(s - Y) + Z]*geometry_type::InvVolume((s - Y) + Z) +
+
+		l[(s + Y) - Z]*geometry_type::InvVolume((s + Y) - Z) +
+
+		l[(s + Y) + Z]*geometry_type::InvVolume((s + Y) + Z)
+
+		) * 0.25 * r[s];
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
+	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = _DI >> (H(s) + 1);
+		auto Y = _DJ >> (H(s) + 1);
+		auto Z = _DK >> (H(s) + 1);
+
+		return (
+
+		l[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) +
+
+		l[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) +
+
+		l[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) +
+
+		l[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) +
+
+		l[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) +
+
+		l[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) +
+
+		l[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) +
+
+		l[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z)
+
+		) * 0.125 * r[s];
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = _D(s );
+		return l[s]*(r[s-X]+r[s+X])*0.5;
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
+	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto Y = _D(_R(_I(s)) );
+		auto Z = _D(_RR(_I(s)));
+
+		return (
+
+		(
+				l[s - Y]*geometry_type::InvVolume(s-Y)+
+
+				l[s + Y]*geometry_type::InvVolume(s+Y)
+
+		) * (
+				l[s - Z]*geometry_type::InvVolume(s-Z)+
+
+				l[s + Z]*geometry_type::InvVolume(s+Z)
+
+		) * 0.25*geometry_type:: Volume(s ));
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
+	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
+
+		return
+
+		((
+
+				l[(s - Y) - Z]*geometry_type::InvVolume((s - Y) - Z) +
+
+				l[(s - Y) + Z]*geometry_type::InvVolume((s - Y) + Z) +
+
+				l[(s + Y) - Z]*geometry_type::InvVolume((s + Y) - Z) +
+
+				l[(s + Y) + Z]*geometry_type::InvVolume((s + Y) + Z)
+
+		) * (
+
+				r[s - X]*geometry_type::InvVolume(s - X) +
+
+				r[s + X]*geometry_type::InvVolume(s + X)
+
+		) + (
+
+				l[(s - Z) - X]*geometry_type::InvVolume((s - Z) - X) +
+
+				l[(s - Z) + X]*geometry_type::InvVolume((s - Z) + X) +
+
+				l[(s + Z) - X]*geometry_type::InvVolume((s + Z) - X) +
+
+				l[(s + Z) + X]*geometry_type::InvVolume((s + Z) + X)
+
+		) * (
+
+				r[s - Y]*geometry_type::InvVolume(s - Y) +
+
+				r[s + Y]*geometry_type::InvVolume(s + Y)
+
+		) + (
+
+				l[(s - X) - Y]*geometry_type::InvVolume((s - X) - Y) +
+
+				l[(s - X) + Y]*geometry_type::InvVolume((s - X) + Y) +
+
+				l[(s + X) - Y]*geometry_type::InvVolume((s + X) - Y) +
+
+				l[(s + X) + Y]*geometry_type::InvVolume((s + X) + Y)
+
+		) * (
+
+				r[s - Z]*geometry_type::InvVolume(s - Z) +
+
+				r[s + Z]*geometry_type::InvVolume(s + Z)
+
+		) )* 0.125*geometry_type::Volume(s);
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
+	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto Y =_D( _R(_I(s)) );
+		auto Z =_D( _RR(_I(s)) );
+
+		return
+		l[s]*(
+
+		r[(s-Y)-Z]*geometry_type::InvVolume((s - Y) - Z)+
+		r[(s-Y)+Z]*geometry_type::InvVolume((s - Y) + Z)+
+		r[(s+Y)-Z]*geometry_type::InvVolume((s + Y) - Z)+
+		r[(s+Y)+Z]*geometry_type::InvVolume((s + Y) + Z)
+
+		)*0.25;
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &r,
+	Field<this_type, EDGE, TR> const &l, index_type s) const ->decltype(l[s]*r[s])
+	{
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
+
+		return
+
+		((
+
+				r[(s - Y) - Z]*geometry_type::InvVolume((s - Y) - Z) +
+
+				r[(s - Y) + Z]*geometry_type::InvVolume((s - Y) + Z) +
+
+				r[(s + Y) - Z]*geometry_type::InvVolume((s + Y) - Z) +
+
+				r[(s + Y) + Z]*geometry_type::InvVolume((s + Y) + Z)
+
+		) * (
+
+				l[s - X]*geometry_type::InvVolume(s - X) +
+
+				l[s + X]*geometry_type::InvVolume(s + X)
+
+		) + (
+
+				r[(s - Z) - X]*geometry_type::InvVolume((s - Z) - X) +
+
+				r[(s - Z) + X]*geometry_type::InvVolume((s - Z) + X) +
+
+				r[(s + Z) - X]*geometry_type::InvVolume((s + Z) - X) +
+
+				r[(s + Z) + X]*geometry_type::InvVolume((s + Z) + X)
+
+		) * (
+
+				l[s - Y]*geometry_type::InvVolume(s - Y) +
+
+				l[s + Y]*geometry_type::InvVolume(s + Y)
+
+		) + (
+
+				r[(s - X) - Y]*geometry_type::InvVolume((s - X) - Y) +
+
+				r[(s - X) + Y]*geometry_type::InvVolume((s - X) + Y) +
+
+				r[(s + X) - Y]*geometry_type::InvVolume((s + X) - Y) +
+
+				r[(s + X) + Y]*geometry_type::InvVolume((s + X) + Y)
+
+		) * (
+
+				l[s - Z]*geometry_type::InvVolume(s - Z) +
+
+				l[s + Z]*geometry_type::InvVolume(s + Z)
+
+		) )* 0.125*geometry_type::Volume(s);
+	}
+
+	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
+	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(r[s]*l[s])
+	{
+		auto X = _DI >> (H(s) + 1);
+		auto Y = _DJ >> (H(s) + 1);
+		auto Z = _DK >> (H(s) + 1);
+
+		return
+
+		l[s] *(
+
+		r[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) +
+
+		r[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) +
+
+		r[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) +
+
+		r[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) +
+
+		r[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z)+
+
+		r[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) +
+
+		r[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) +
+
+		r[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z)
+
+		) * 0.125;
+	}
+
+//***************************************************************************************************
+
+	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
+	index_type s) const-> decltype(f[s]+f[s])
+	{
+		auto X = (_DI >> (H(s) + 1));
+		auto Y = (_DJ >> (H(s) + 1));
+		auto Z = (_DK >> (H(s) + 1));
+
+		return
+
+		(
+
+		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) +
+
+		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) +
+
+		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) +
+
+		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) +
+
+		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z)+
+
+		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) +
+
+		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) +
+
+		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z)
+
+		) * 0.125 * geometry_type::Volume(s);
+	}
 
 	template<typename TL, typename TR> void OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, VERTEX, TL> const & f, index_type s) const=delete;
@@ -532,8 +740,8 @@ public:
 	}
 
 };
-template<typename TS> inline std::ostream &
-operator<<(std::ostream & os, RectMesh<TS> const & d)
+template<template<typename > class TMertic> inline std::ostream &
+operator<<(std::ostream & os, RectMesh<TMertic> const & d)
 {
 	d.Save(os);
 	return os;
