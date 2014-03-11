@@ -32,7 +32,7 @@ public:
 	typedef Field<Mesh, VERTEX, nTuple<3, T> > VectorField;
 };
 
-typedef testing::Types<double, Complex> VecFieldTypes;
+typedef testing::Types<double, Complex  > VecFieldTypes;
 
 TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 

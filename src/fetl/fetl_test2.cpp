@@ -30,12 +30,9 @@ public:
 	typedef T value_type;
 	typedef nTuple<3, value_type> Vec3;
 	typedef Field<Mesh, VERTEX, T> ScalarField;
-	typedef Field<Mesh, VERTEX, nTuple<3, T> > VectorField;
 };
 
-typedef testing::Types<double
-//		, Complex
-> VecFieldTypes;
+typedef testing::Types<double, Complex> VecFieldTypes;
 
 TYPED_TEST_CASE(TestFETLVecAlgegbra, VecFieldTypes);
 

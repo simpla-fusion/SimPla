@@ -61,8 +61,7 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex //, nTuple<3, double>, nTuple<3, nTuple<3, double>>
-> PrimitiveTypes;
+typedef testing::Types<double, Complex, nTuple<3, double> > PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
 
