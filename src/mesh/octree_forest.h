@@ -404,8 +404,8 @@ struct OcForest
 		return index_type( { Next(s.d) });
 	}
 
-//***************************************************************************************************
-//  Traversal
+	//***************************************************************************************************
+	//  Traversal
 
 	template<int IFORM, typename TF, typename ...Args>
 	void Traversal(TF &&fun, Args && ...args) const

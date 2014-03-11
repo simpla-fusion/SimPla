@@ -173,7 +173,7 @@ public:
 	typedef typename topology_type::index_type index_type;
 
 	RectMesh()
-			: geometry_type(*this), tags_(*this)
+			: geometry_type(static_cast<OcForest const &>(*this)), tags_(*this)
 	{
 	}
 	~RectMesh()
@@ -182,7 +182,11 @@ public:
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: topology_type(dict), geometry_type(*this, dict), tags_(*this)
+			: topology_type(dict),
+
+			geometry_type(static_cast<OcForest const &>(*this), dict),
+
+			tags_(*this)
 	{
 		Load(dict);
 	}
