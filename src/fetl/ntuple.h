@@ -37,52 +37,6 @@ namespace simpla
 template<int N, typename T> struct nTuple;
 template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
-namespace ntuple_impl
-{
-
-template<int M, typename TL, typename TR> struct _swap
-{
-	static inline void eval(TL const & l, TR const &r)
-	{
-		std::swap(l[M - 1], r[M - 1]);
-		_swap<M - 1, TL, TR>::eval(l, r);
-	}
-};
-template<typename TL, typename TR> struct _swap<1, TL, TR>
-{
-	static inline void eval(TL const & l, TR const &r)
-	{
-		std::swap(l[0], r[0]);
-	}
-};
-
-template<int M, typename TL, typename TR> struct _assign
-{
-	static inline void eval(TL & l, TR const &r)
-	{
-		l[M - 1] = r[M - 1];
-		_assign<M - 1, TL, TR>::eval(l, r);
-	}
-};
-template<typename TL, typename TR> struct _assign<1, TL, TR>
-{
-	static inline void eval(TL & l, TR const &r)
-	{
-		l[0] = r[0];
-	}
-};
-
-template<int M, typename TL, typename TR> struct _equal
-{
-	static inline auto eval(TL const & l, TR const &r)
-	DECL_RET_TYPE((l[M - 1] ==r[M - 1] && _equal<M - 1, TL, TR>::eval(l, r)))
-};
-template<typename TL, typename TR> struct _equal<1, TL, TR>
-{
-	static inline auto eval(TL const & l, TR const &r)
-	DECL_RET_TYPE(l[0]==r[0])
-};
-}  // namespace _impl
 //--------------------------------------------------------------------------------------------
 template<int N, typename T>
 struct nTuple
@@ -123,19 +77,30 @@ struct nTuple
 	inline operator nTuple<N,TR>() const
 	{
 		nTuple<N, TR> res;
-		ntuple_impl::_assign<N, nTuple<N, TR>, this_type>::eval(res, data_);
+		for (int i = 0; i < N; ++i)
+		{
+			res[i] = data_[i];
+		}
 		return (res);
 	}
 
 	inline void swap(this_type & rhs)
 	{
-		ntuple_impl::_swap<N, this_type, this_type>::eval(*this, rhs);
+		for (int i = 0; i < N; ++i)
+		{
+			std::swap(rhs[i], data_[i]);
+		}
 	}
 
 	template<typename TR>
 	inline bool operator ==(TR const &rhs) const
 	{
-		return (ntuple_impl::_equal<N, this_type, TR>::eval(*this, rhs));
+		bool res = true;
+		for (int i = 0; i < N; ++i)
+		{
+			res &= rhs[i] == data_[i];
+		}
+		return (res);
 	}
 
 	template<typename TExpr>
@@ -168,7 +133,10 @@ struct nTuple
 	template<typename TR> inline this_type &
 	operator =(nTuple<N, TR> const &rhs)
 	{
-		ntuple_impl::_assign<N, this_type, nTuple<N, TR>>::eval(*this, rhs);
+		for (int i = 0; i < N; ++i)
+		{
+			data_[i] = rhs[i];
+		}
 
 		return (*this);
 	}
@@ -201,115 +169,119 @@ struct nTuple
 		return (*this);
 	}
 
-	template<typename TR>
-	auto operator+(nTuple<NDIMS, TR> const & rhs)
-	->nTuple<NDIMS,decltype(std::declval<value_type>()+ std::declval<TR>())>
-	{
-		nTuple<NDIMS, decltype(std::declval<value_type>()+ std::declval<TR>())> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = data_[i] + rhs[i];
-		}
-		return std::move(res);
-	}
-
-	template<typename TR>
-	auto operator-(nTuple<NDIMS, TR> const & rhs)
-	->nTuple<NDIMS,decltype(std::declval<value_type>()- std::declval<TR>())>
-	{
-		nTuple<NDIMS, decltype(std::declval<value_type>()- std::declval<TR>())> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = data_[i] - rhs[i];
-		}
-		return std::move(res);
-	}
-
-	auto operator-()->nTuple<NDIMS,decltype(-std::declval<value_type>() )>
-	{
-		nTuple<NDIMS, decltype(- std::declval<value_type>() )> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = -data_[i];
-		}
-		return std::move(res);
-	}
-
-	this_type const & operator+()
-	{
-		return *this;
-	}
 	template<int NR, typename TR>
 	void operator*(nTuple<NR, TR> const & rhs) = delete;
 
 	template<int NR, typename TR>
 	void operator/(nTuple<NR, TR> const & rhs) = delete;
 
-	template<typename TR>
-	auto operator*(TR const & rhs)
-	->nTuple<NDIMS,decltype(std::declval<value_type>()* std::declval<TR>())>
-	{
-		nTuple<NDIMS, decltype(std::declval<value_type>()* std::declval<TR>())> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = data_[i] * rhs;
-		}
-		return std::move(res);
-	}
-
-	template<typename TR>
-	auto operator/(TR const & rhs)
-	->nTuple<NDIMS,decltype(std::declval<value_type>()/ std::declval<TR>())>
-	{
-		nTuple<NDIMS, decltype(std::declval<value_type>()/ std::declval<TR>())> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = data_[i] / rhs;
-		}
-		return std::move(res);
-	}
 };
-
-
-template<typename T> struct is_nTuple
+template<typename TV>
+struct is_nTuple
 {
-	static const bool value = false;
+	static constexpr bool value = false;
+
 };
 
-template<int N, typename T> struct is_nTuple<nTuple<N, T> >
+template<int N, typename TV>
+struct is_nTuple<nTuple<N, TV>>
 {
-	static const bool value = true;
+	static constexpr bool value = true;
+
 };
 
-template<typename T>
+template<typename TV>
 struct nTupleTraits
 {
-	static const int NDIMS = 1;
-	typedef T value_type;
-};
-template<int N, typename T>
-struct nTupleTraits<nTuple<N, T>>
-{
-	static const int NDIMS = N;
-	typedef T value_type;
+	static constexpr unsigned int NDIMS = 1;
+	typedef TV value_type;
 };
 
-template<int N, typename TL, typename TR>
-inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)->decltype(l[0]*r[0])
+template<int N, typename TV>
+struct nTupleTraits<nTuple<N, TV>>
 {
+	static constexpr unsigned int NDIMS = N;
+	typedef TV value_type;
 
-	decltype(l[0]*r[0]) res = 0;
+};
+
+template<int N, typename TL>
+auto operator -(nTuple<N, TL> const & lhs)
+->nTuple<N ,typename std::remove_cv<typename std::remove_reference<decltype(lhs[0])>::type>::type>
+{
+	typedef typename std::remove_cv<typename std::remove_reference<decltype(lhs[0])>::type>::type T;
+
+	nTuple<N, T> res;
 
 	for (int i = 0; i < N; ++i)
-		res += l[i] * r[i];
-
+	{
+		res[i] = -lhs[i];
+	}
 	return std::move(res);
-
 }
+
+template<int N, typename TL>
+nTuple<N, TL> operator +(nTuple<N, TL> const & lhs)
+{
+	return std::move(lhs);
+}
+
+#define DEFINE_OP(_OP_)                                                          \
+template<int N, typename TL, typename TR>                                        \
+auto operator _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)        \
+->nTuple<N ,decltype(lhs[0] _OP_ rhs[0])>                                        \
+{                                                                                \
+	nTuple<N, decltype(lhs[0] _OP_ rhs[0])> res;                                 \
+                                                                                 \
+	for (int i = 0; i < N; ++i)                                                  \
+	{                                                                            \
+		res[i] = lhs[i] _OP_ rhs[i];                                             \
+	}                                                                            \
+	return std::move(res);                                                       \
+}                                                                                \
+template<int N, typename TL, typename TR>                                        \
+auto operator _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)        \
+->nTuple<N ,decltype(lhs[0] _OP_ rhs )>                                        \
+{                                                                                \
+	nTuple<N, decltype(lhs[0] _OP_ rhs )> res;                                 \
+                                                                                 \
+	for (int i = 0; i < N; ++i)                                                  \
+	{                                                                            \
+		res[i] = lhs[i] _OP_ rhs ;                                             \
+	}                                                                            \
+	return std::move(res);                                                       \
+}                                                                                \
+template<int N, typename TL, typename TR>                                        \
+auto operator _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)        \
+->nTuple<N ,decltype(lhs _OP_ rhs[0])>                                        \
+{                                                                                \
+	nTuple<N, decltype(lhs  _OP_ rhs[0])> res;                                 \
+                                                                                 \
+	for (int i = 0; i < N; ++i)                                                  \
+	{                                                                            \
+		res[i] = lhs  _OP_ rhs[i];                                             \
+	}                                                                            \
+	return std::move(res);                                                       \
+}
+
+DEFINE_OP(+)
+DEFINE_OP(-)
+DEFINE_OP(*)
+DEFINE_OP(/)
+
+#undef DEFINE_OP
 
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-DECL_RET_TYPE((InnerProduct(l,r)))
+->decltype(l[0]*r[0])
+{
+	decltype(l[0]*r[0]) res = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		res += l[i] * r[i];
+	}
+	return res;
+}
 
 //***********************************************************************************
 
@@ -359,31 +331,20 @@ template<typename T> inline auto Determinant(nTuple<4, nTuple<4, T> > const & m)
 		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 ))
 
-template<int N, typename T> auto abs(simpla::nTuple<N, T> const & m)
+template<int N, typename T> auto abs(nTuple<N, T> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(Dot(m, m)))))
 
-//namespace ntuple_impl
-//{
-//
-//template<int N, typename T, typename TI>
-//inline auto OpEval(Int2Type<REAL>, nTuple<N, T> const & l, TI const & s)
-//DECL_RET_TYPE ((std::real(l[s]) ))
-//
-//template<int N, typename T, typename TI>
-//inline auto OpEval(Int2Type<IMAGINE>, nTuple<N, T> const & l, TI const & s)
-//DECL_RET_TYPE ((std::imag(l[s]) ))
-//
-//}  // namespace ntuple_impl
-//
-//template<int N, typename TL> inline
-//auto real(nTuple<N, TL> const & l)
-//DECL_RET_TYPE(( nTuple<N, UniOp<REAL,nTuple<N, TL> > > (l)))
-//
-//template<int N, typename TL> inline
-//auto imag(nTuple<N, TL> const & l)
-//DECL_RET_TYPE(( nTuple<N, UniOp<IMAGINE,nTuple<N, TL> > > (l)))
+template<int N, int M, typename T> Real abs(nTuple<N, nTuple<M, T>> const & m)
+{
+	T res = 0.0;
+	for (int i = 0; i < N; ++i)
+		for (int j = 0; j < M; ++j)
+		{
+			res += m[i][j] * m[i][j];
+		}
 
-//@TODO add real and imag for generic nTuple
+	return (std::sqrt(abs(res)));
+}
 
 template<typename T> inline
 auto real(nTuple<3, T> const & l)

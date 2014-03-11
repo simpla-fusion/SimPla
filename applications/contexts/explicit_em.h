@@ -177,9 +177,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		[&](typename mesh_type::index_type s )
 		{
-
-//			B[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
-		    });
+			auto x= mesh.GetCoordinates(s);
+			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x));
+		});
 
 		J0 = Curl(B) / mu0;
 
@@ -242,7 +242,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Add constraint to " << dof << DONE;
 	}
 
-//	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
 	LOGGER << "We have load every thing!";
 }

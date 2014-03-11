@@ -111,12 +111,12 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	if (BB.empty() || nonlinear_)
 	{
-		MapTo(B, &B0);
+//		MapTo(B, &B0);
 		BB = Dot(B0, B0);
 	}
 
-	if (Ev.empty())
-		MapTo(E, &Ev);
+//	if (Ev.empty())
+//		MapTo(E, &Ev);
 
 	VectorForm<0> dEv(mesh);
 	VectorForm<0> Q(mesh);
@@ -124,7 +124,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	Q.Fill(0);
 	K.Fill(0);
 
-	MapTo(*dE, &dEv);
+//	MapTo(*dE, &dEv);
 
 	Ev += dEv * 0.5 * dt;
 

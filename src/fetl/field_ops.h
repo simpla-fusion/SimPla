@@ -11,11 +11,9 @@
 #include <cstddef>
 #include <type_traits>
 
-#include "../mesh/mesh.h"
 #include "constant_ops.h"
 #include "field.h"
 #include "primitives.h"
-#include "ntuple.h"
 #include "../utilities/type_utilites.h"
 
 namespace simpla
@@ -66,19 +64,16 @@ template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto
         Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
         DECL_RET_TYPE((l.get(s)+r.get(s)))
 
+template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
+        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+        DECL_RET_TYPE((l.get(s)-r.get(s)))
+
 }  // namespace fetl_impl
 
 template<typename TM, int IL, typename TL, typename TR> inline auto //
 operator+(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
 DECL_RET_TYPE( ( Field<TM,IL , BiOp<PLUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
 
-//****************************************************************************************************
-namespace fetl_impl
-{
-template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
-        DECL_RET_TYPE((l.get(s)-r.get(s)))
-}  // namespace fetl_impl
 template<typename TM, int IL, typename TL, typename TR> inline auto //
 operator-(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
 DECL_RET_TYPE( ( Field<TM,IL , BiOp<MINUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
@@ -109,24 +104,40 @@ template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto
 template<typename TM, int IL, typename TL, int IR, typename TR> inline auto //
 operator*(Field<TM, IL, TL> const & lhs, Field<TM, IR, TR> const & rhs)
 DECL_RET_TYPE((Wedge(lhs,rhs)))
-template<typename TM, typename TL, int IL, typename TR> inline auto //
-operator*(TL lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,TL,Field<TM,IL ,TR> > > (lhs, rhs)))
-template<typename TM, int IL, typename TL, typename TR> inline auto //
-operator*(Field<TM, IL, TL> const & lhs, TR rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Field<TM,IL ,TL>,TR > > (lhs, rhs)))
 
 template<typename TM, int IL, typename TL, int IR, typename TR> inline auto //
-operator/(Field<TM, IL, TL> lhs, Field<TM, IR, TR> const & rhs)
-DECL_RET_TYPE(Wedge(lhs, Reciprocal(rhs)))
+operator/(Field<TM, IL, TL> const & lhs, Field<TM, IR, TR> const & rhs)
+DECL_RET_TYPE((Wedge(lhs,Reciprocal(rhs))))
 
-template<typename TM, int IL, typename TL, typename TR> inline auto //
-operator/(TL lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,TL,Field<TM,IL ,TR> > > (lhs, rhs)))
+template<typename TM, int IL, typename TR> inline auto //
+operator*(Real lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
+template<typename TM, int IL, typename TL> inline auto //
+operator*(Field<TM, IL, TL> const & lhs, Real rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
 
-template<typename TM, int IL, typename TL, typename TR> inline auto //
-operator/(Field<TM, IL, TL> const & lhs, TR rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,TR > > (lhs, rhs)))
+template<typename TM, int IL, typename TR> inline auto //
+operator/(Real lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
+
+template<typename TM, int IL, typename TL> inline auto //
+operator/(Field<TM, IL, TL> const & lhs, Real rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
+
+template<typename TM, int IL, typename TR> inline auto //
+operator*(Complex lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
+template<typename TM, int IL, typename TL> inline auto //
+operator*(Field<TM, IL, TL> const & lhs, Complex rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
+
+template<typename TM, int IL, typename TR> inline auto //
+operator/(Complex lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
+
+template<typename TM, int IL, typename TL> inline auto //
+operator/(Field<TM, IL, TL> const & lhs, Complex rhs)
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
 
 //****************************************************************************************************
 
@@ -311,7 +322,7 @@ public:
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
 
 	inline auto operator[](index_type s) const
-	DECL_RET_TYPE((get(s)))
+	DECL_RET_TYPE((this->get(s)))
 
 };
 
@@ -341,7 +352,7 @@ public:
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
 
 	inline auto operator[](index_type s) const
-	DECL_RET_TYPE( (get(s)) )
+	DECL_RET_TYPE( (this->get(s)) )
 
 private:
 
@@ -376,132 +387,6 @@ struct can_not_reference<Field<TM, IFORM, UniOp<TOP, TL> > >
 {
 	static constexpr bool value = true;
 };
-
-//****************************************************************************************************
-// For Vector Fields
-
-//namespace fetl_impl
-//{
-//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(Int2Type<DOT>, TM const &mesh,
-//        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
-//        DECL_RET_TYPE((Dot(l.get(s) , r.get(s))))
-////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DOT>,
-////		Field<TM, VERTEX, TL> const &l, nTuple<3, TR> const &r, TI s)
-////		DECL_RET_TYPE((Dot(l.get(s) , r)))
-////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DOT>,
-////		nTuple<3, TL> const & l, Field<TM, VERTEX, TR> const & r, TI s)
-////		DECL_RET_TYPE((Dot(l , r.get(s))))
-//
-//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(Int2Type<CROSS>, TM const &mesh,
-//        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
-//        DECL_RET_TYPE((Cross(l.get(s) , r.get(s))))
-//
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<CROSS>,
-////		Field<TM, VERTEX, TL> const &l, nTuple<3, TR> const &r, TI s)
-////		DECL_RET_TYPE((Cross(l.get(s) , r)))
-////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<CROSS>,
-////		nTuple<3, TL> const & l, Field<TM, VERTEX, TR> const & r, TI s)
-////		DECL_RET_TYPE((Cross(l , r.get(s))))
-//
-//}// namespace fetl_impl
-
-//template<typename TG, typename TL, typename TR> inline auto //
-//Dot(Field<TG, VERTEX, TL> const & lhs, nTuple<3, TR> const & rhs)
-//DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<DOT,Field<TG,VERTEX, TL> ,
-//				nTuple<3, TR> > >(lhs, rhs)))
-//
-//template<typename TG, typename TL, typename TR> inline auto //
-//Dot(nTuple<3, TL> const & lhs, Field<TG, VERTEX, TR> const & rhs)
-//DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<DOT,nTuple<3, TL> ,
-//				Field<TG,VERTEX, TR> > >(lhs, rhs)))
-//
-//template<typename TG, typename TL, typename TR> inline auto //
-//Cross(Field<TG, VERTEX, TL> const & lhs, nTuple<3, TR> const & rhs)
-//DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<CROSS,Field<TG,VERTEX, TL> ,
-//				nTuple<3,TR> > >(lhs, rhs)))
-//
-//template<typename TG, typename TL, typename TR> inline auto //
-//Cross(nTuple<3, TL> const & lhs, Field<TG, VERTEX, TR> const & rhs)
-//DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<CROSS,nTuple<3,TL> ,
-//				Field<TG,VERTEX, TR> > >(lhs, rhs)))
-////
-
-template<typename TG, typename TL, typename TR> inline auto //
-Dot(Field<TG, VERTEX, TL> const & lhs, Field<TG, VERTEX, TR> const & rhs)
-DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<DOT,Field<TG,VERTEX, TL> ,
-				Field<TG,VERTEX, TR> > >(lhs, rhs)))
-
-template<typename TG, typename TL, typename TR> inline auto //
-Cross(Field<TG, VERTEX, TL> const & lhs, Field<TG, VERTEX, TR> const & rhs)
-DECL_RET_TYPE( (Field<TG,VERTEX , BiOp<CROSS,Field<TG,VERTEX, TL> ,
-				Field<TG,VERTEX, TR> > >(lhs, rhs)))
-
-template<typename TM, typename TL, typename TR>
-struct Field<TM, VERTEX, BiOp<CROSS, TL, TR> >
-{
-
-public:
-	typename StorageTraits<TL>::const_reference l_;
-	typename StorageTraits<TR>::const_reference r_;
-	typedef TM mesh_type;
-
-	static constexpr int IForm = VERTEX;
-	static constexpr int TOP = CROSS;
-
-	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
-
-	typedef typename mesh_type::index_type index_type;
-
-	mesh_type const & mesh;
-
-	Field(TL const & l, TR const & r)
-			: mesh(l.mesh), l_(l), r_(r)
-	{
-	}
-
-	inline auto get(index_type s) const
-	DECL_RET_TYPE( Cross(l_.get(s) , r_.get(s)) )
-
-	inline auto operator[](index_type s) const
-	DECL_RET_TYPE( (get(s)) )
-
-}
-;
-
-template<typename TM, typename TL, typename TR>
-struct Field<TM, VERTEX, BiOp<DOT, TL, TR> >
-{
-
-public:
-	typename StorageTraits<TL>::const_reference l_;
-	typename StorageTraits<TR>::const_reference r_;
-	typedef TM mesh_type;
-
-	static constexpr int IForm = VERTEX;
-	static constexpr int TOP = DOT;
-
-	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
-
-	typedef typename mesh_type::index_type index_type;
-
-	mesh_type const & mesh;
-
-	Field(TL const & l, TR const & r)
-			: mesh(l.mesh), l_(l), r_(r)
-	{
-	}
-
-	inline auto get(index_type s) const
-	DECL_RET_TYPE( Dot(l_.get(s) , r_.get(s)) )
-
-	inline auto operator[](index_type s) const
-	DECL_RET_TYPE( (get(s)) )
-
-}
-;
 
 //****************************************************************************************************
 

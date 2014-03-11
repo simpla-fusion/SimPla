@@ -45,7 +45,7 @@ void LoadField(LuaObject const &obj, Field<TM, IFORM, TV> *f)
 			auto x=mesh.GetCoordinates(s);
 			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
 //			(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
-		});
+		    });
 
 //		if (IFORM == EDGE || IFORM == FACE)
 //		{
@@ -70,7 +70,7 @@ void LoadField(LuaObject const &obj, Field<TM, IFORM, TV> *f)
 	}
 	else if (obj.is_number())
 	{
-		*f = obj.as<Real>();
+		f->Fill(obj.as<Real>());
 	}
 	else if (obj.is_table())
 	{

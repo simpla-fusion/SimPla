@@ -35,17 +35,17 @@ void CreateEMSolver(TDict const & dict, TM const & mesh, std::function<void(Real
 		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
 	}
 
-	if (dict["PML"])
-	{
-		auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh));
-
-		solver->Load(dict["PML"]);
-
-		*solverE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
-
-		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
-
-	}
+//	if (dict["PML"])
+//	{
+//		auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh));
+//
+//		solver->Load(dict["PML"]);
+//
+//		*solverE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+//
+//		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+//
+//	}
 
 	LOGGER << "Load electromagnetic field solver" << DONE;
 
