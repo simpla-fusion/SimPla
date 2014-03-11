@@ -168,7 +168,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	Ev += dEv * 0.5 * dt;
 
-	MapTo(Ev, dE);
+//	MapTo(Ev, dE);
 
 	*dE -= E;
 	*dE /= dt;

@@ -504,18 +504,18 @@ struct OcForest
 	{
 		return dims_;
 	}
-	nTuple<3, Real> GetExtent() const
-	{
-		return nTuple<3, Real>( {
-
-		(dims_[0] << D_FP_POS) * dh,
-
-		(dims_[1] << D_FP_POS) * dh,
-
-		(dims_[2] << D_FP_POS) * dh
-
-		});
-	}
+//	nTuple<3, Real> GetExtent() const
+//	{
+//		return nTuple<3, Real>( {
+//
+//		(dims_[0] << D_FP_POS) * dh,
+//
+//		(dims_[1] << D_FP_POS) * dh,
+//
+//		(dims_[2] << D_FP_POS) * dh
+//
+//		});
+//	}
 	size_type GetNumOfElements(int IFORM = VERTEX) const
 	{
 		return dims_[0] * dims_[1] * dims_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);

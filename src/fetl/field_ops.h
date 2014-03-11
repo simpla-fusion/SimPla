@@ -68,6 +68,22 @@ template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto
         Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
         DECL_RET_TYPE((l.get(s)-r.get(s)))
 
+template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, VERTEX, TL> const &l,
+        Real r, TI s)
+        DECL_RET_TYPE((l.get(s)+r) )
+
+template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Real l,
+        Field<TM, VERTEX, TR> const &r, TI s)
+        DECL_RET_TYPE((l +r.get(s)))
+
+template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, VERTEX, TL> const &l,
+        Real r, TI s)
+        DECL_RET_TYPE((l.get(s)-r) )
+
+template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Real l,
+        Field<TM, VERTEX, TR> const &r, TI s)
+        DECL_RET_TYPE((l -r.get(s)))
+
 }  // namespace fetl_impl
 
 template<typename TM, int IL, typename TL, typename TR> inline auto //
@@ -77,6 +93,14 @@ DECL_RET_TYPE( ( Field<TM,IL , BiOp<PLUS,Field<TM,IL, TL> , Field<TM,IL, TR> > >
 template<typename TM, int IL, typename TL, typename TR> inline auto //
 operator-(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
 DECL_RET_TYPE( ( Field<TM,IL , BiOp<MINUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
+
+template<typename TM, typename TL> inline auto //
+operator+(Field<TM, VERTEX, TL> const & lhs, Real rhs)
+DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<PLUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
+
+template<typename TM, typename TL> inline auto //
+operator-(Field<TM, VERTEX, TL> const & lhs, Real rhs)
+DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<MINUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
 
 // *****************************************************************
 
@@ -256,7 +280,33 @@ template<typename TM, typename TR>
 inline auto Curl(Field<TM, FACE, TR> const & f)
 DECL_RET_TYPE((Codifferential(f)))
 
-////******************************************************************************************************
+//******************************************************************************************************
+
+template<typename TM, typename TR>
+inline auto CurlPDX(Field<TM, EDGE, TR> const & f)
+DECL_RET_TYPE((ExteriorDerivative(f)))
+
+template<typename TM, typename TR>
+inline auto CurlPDY(Field<TM, EDGE, TR> const & f)
+DECL_RET_TYPE((ExteriorDerivative(f)))
+
+template<typename TM, typename TR>
+inline auto CurlPDZ(Field<TM, EDGE, TR> const & f)
+DECL_RET_TYPE((ExteriorDerivative(f)))
+
+template<typename TM, typename TR>
+inline auto CurlPDX(Field<TM, FACE, TR> const & f)
+DECL_RET_TYPE((Codifferential(f)))
+
+template<typename TM, typename TR>
+inline auto CurlPDY(Field<TM, FACE, TR> const & f)
+DECL_RET_TYPE((Codifferential(f)))
+
+template<typename TM, typename TR>
+inline auto CurlPDZ(Field<TM, FACE, TR> const & f)
+DECL_RET_TYPE((Codifferential(f)))
+
+//******************************************************************************************************
 
 namespace fetl_impl
 {

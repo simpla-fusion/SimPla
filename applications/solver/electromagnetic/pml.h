@@ -101,32 +101,6 @@ void PML<TM>::Update()
 {
 	isInitilized_ = true;
 
-	nTuple<3, index_type> const &gw = mesh.GetGhostWidth();
-
-	for (int i = 0; i < 3; ++i)
-	{
-
-		if (bc_[i * 2] < gw[i] || bc_[i * 2 + 1] < gw[i])
-		{
-			ERROR << "Illegal configuration! Ghostpoint with is larger than PML points width."
-
-			<< "\n\t[ mesh.GhostWidth = {" << ToString(gw, ",") << "}"
-
-			<< " PML.Width = {" << ToString(bc_, ",") << "} ]";
-		}
-
-		else if (bc_[i * 2] + bc_[i * 2 + 1] > 0 && gw[i] < 2)
-
-		{
-			ERROR << "Illegal configuration! PML need at least 2 point ghost width."
-
-			<< "\n\t[ mesh.GhostWidth = {" << ToString(gw, ",") << "}"
-
-			<< " PML.Width = {" << ToString(bc_, ",") << "} ]";
-		}
-
-	}
-
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Real dB = 100, expN = 2;
@@ -144,9 +118,9 @@ void PML<TM>::Update()
 	X21.Fill(0.0);
 	X22.Fill(0.0);
 
-	auto const & dims = mesh.GetDimension();
-	auto const & st = mesh.GetStrides();
-	auto const & L = mesh.GetExtent();
+	auto dims = mesh.GetDimensions();
+//	auto st = mesh.GetStrides();
+	auto L = mesh.GetExtent();
 	Real inv_dx[3];
 
 	for (int i = 0; i < 3; ++i)
@@ -157,52 +131,52 @@ void PML<TM>::Update()
 			inv_dx[i] = 0;
 	}
 
-	for (index_type ix = 0; ix < dims[0]; ++ix)
-		for (index_type iy = 0; iy < dims[1]; ++iy)
-			for (index_type iz = 0; iz < dims[2]; ++iz)
-			{
-				index_type s = ix * st[0] + iy * st[1] + iz * st[2];
-				if (ix < bc_[0])
-				{
-					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
-					a0[s] = alpha_(r, expN, dB);
-					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * inv_dx[0];
-				}
-				else if (ix > dims[0] - bc_[0 + 1])
-				{
-					Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1])) / static_cast<Real>(bc_[0 + 1]);
-					a0[s] = alpha_(r, expN, dB);
-					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * inv_dx[0];
-				};
-
-				if (iy < bc_[2])
-				{
-					Real r = static_cast<Real>(bc_[2] - iy) / static_cast<Real>(bc_[2]);
-					a1[s] = alpha_(r, expN, dB);
-					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * inv_dx[1];
-				}
-				else if (iy > dims[1] - bc_[2 + 1])
-				{
-					Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1])) / static_cast<Real>(bc_[2 + 1]);
-					a1[s] = alpha_(r, expN, dB);
-					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * inv_dx[1];
-				}
-
-				if (iz < bc_[4])
-				{
-					Real r = static_cast<Real>(bc_[4] - iz) / static_cast<Real>(bc_[4]);
-
-					a2[s] = alpha_(r, expN, dB);
-					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * inv_dx[2];
-				}
-				else if (iz > dims[2] - bc_[4 + 1])
-				{
-					Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1])) / static_cast<Real>(bc_[4 + 1]);
-
-					a2[s] = alpha_(r, expN, dB);
-					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * inv_dx[2];
-				}
-			}
+//	for (index_type ix = 0; ix < dims[0]; ++ix)
+//		for (index_type iy = 0; iy < dims[1]; ++iy)
+//			for (index_type iz = 0; iz < dims[2]; ++iz)
+//			{
+//				index_type s = ix * st[0] + iy * st[1] + iz * st[2];
+//				if (ix < bc_[0])
+//				{
+//					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
+//					a0[s] = alpha_(r, expN, dB);
+//					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * inv_dx[0];
+//				}
+//				else if (ix > dims[0] - bc_[0 + 1])
+//				{
+//					Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1])) / static_cast<Real>(bc_[0 + 1]);
+//					a0[s] = alpha_(r, expN, dB);
+//					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * inv_dx[0];
+//				};
+//
+//				if (iy < bc_[2])
+//				{
+//					Real r = static_cast<Real>(bc_[2] - iy) / static_cast<Real>(bc_[2]);
+//					a1[s] = alpha_(r, expN, dB);
+//					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * inv_dx[1];
+//				}
+//				else if (iy > dims[1] - bc_[2 + 1])
+//				{
+//					Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1])) / static_cast<Real>(bc_[2 + 1]);
+//					a1[s] = alpha_(r, expN, dB);
+//					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * inv_dx[1];
+//				}
+//
+//				if (iz < bc_[4])
+//				{
+//					Real r = static_cast<Real>(bc_[4] - iz) / static_cast<Real>(bc_[4]);
+//
+//					a2[s] = alpha_(r, expN, dB);
+//					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * inv_dx[2];
+//				}
+//				else if (iz > dims[2] - bc_[4 + 1])
+//				{
+//					Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1])) / static_cast<Real>(bc_[4 + 1]);
+//
+//					a2[s] = alpha_(r, expN, dB);
+//					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * inv_dx[2];
+//				}
+//			}
 
 }
 template<typename TM>
