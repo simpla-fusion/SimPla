@@ -57,13 +57,13 @@ public:
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh, value_type d_value)
+			: mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
@@ -79,14 +79,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -131,8 +131,8 @@ public:
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::iterator s) :
-				data_(d), it_(s)
+		iterator_(TC d, typename mesh_type::iterator s)
+				: data_(d), it_(s)
 		{
 
 		}
@@ -177,11 +177,13 @@ public:
 
 	iterator begin()
 	{
+		Update();
 		return iterator_<container_type>(data_, mesh.begin(IForm));
 	}
 
 	iterator end()
 	{
+		Update();
 		return iterator_<container_type>(data_, mesh.end(IForm));
 	}
 
@@ -240,7 +242,7 @@ public:
 	template<typename TD>
 	void Fill(TD default_value)
 	{
-		Init();
+		Update();
 		mesh.template Traversal<IForm>([](index_type s, this_type *l, TD const & r )
 		{
 			l->get(s)=r;
@@ -261,13 +263,11 @@ public:
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
-		Init();
+		Update();
 		mesh.template Traversal<IForm>(
 
-		[](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
-		{
-			l->get(s)=r[s];
-		},
+		[&](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
+		{	l->get(s)=r[s];},
 
 		this, std::forward<Field<mesh_type, IForm, TR> const &>(rhs));
 
@@ -277,7 +277,7 @@ public:
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
 		template<typename TR> inline this_type &                                                   \
 		operator _OP_##= (TR const & rhs)                                                          \
-		{	 *this = *this _OP_ rhs;                                                      \
+		{	Update(); *this = *this _OP_ rhs;                                                      \
 			return (*this) ;                                                                        \
 		}                                                                                          \
 

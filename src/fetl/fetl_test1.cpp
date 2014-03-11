@@ -17,18 +17,13 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 20, 0, 0 };
+		nTuple<3, size_t> dims = { 20, 0, 0 };
 		mesh.SetDimensions(dims);
 		mesh.Update();
-		CHECK(mesh.GetDimensions());
-		CHECK(mesh.strides_);
 	}
 public:
 	typedef TF FieldType;
@@ -40,11 +35,9 @@ public:
 
 typedef testing::Types<
 
-//Form<0>, Form<1>,
-Form<2>
-//, Form<3>
-//
-//, CForm<0>, CForm<1>, CForm<2>, CForm<3>
+Form<0>, Form<1>, Form<2>, Form<3>
+
+, CForm<0>, CForm<1>, CForm<2>, CForm<3>
 
 > AllFieldTypes;
 
@@ -59,7 +52,7 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 
 	typename TestFixture::FieldType::value_type a; a= 1.0;
 
-//	f=0.0;
+	f=0.0;
 	f.Init();
 	double s=0;
 
@@ -68,15 +61,14 @@ TYPED_TEST(TestFETLBasicArithmetic,create_write_read){
 		v= a*(s);
 		s+=1.0;
 	}
-//	s=0;
-//	for(auto const & v : f )
-//	{
-//		CHECK(s);
-//		typename TestFixture::FieldType::value_type res;
-//		res=a* (s);
-//		EXPECT_EQ(res,v ) <<"s =" << s;
-//		s+=1.0;
-//	}
+	s=0;
+	for(auto const & v : f )
+	{
+		typename TestFixture::FieldType::value_type res;
+		res=a* (s);
+		EXPECT_EQ(res,v ) <<"s =" << s;
+		s+=1.0;
+	}
 
 }
 }

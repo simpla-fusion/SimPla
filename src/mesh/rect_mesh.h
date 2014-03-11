@@ -36,8 +36,7 @@ struct EuclideanSpace
 	typedef nTuple<NDIMS, Real> covector_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
-	static constexpr Real g_t[NDIMS][NDIMS] =
-	{
+	static constexpr Real g_t[NDIMS][NDIMS] = {
 
 	1, 0, 0,
 
@@ -97,8 +96,8 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 	typedef typename OcForest::index_type index_type;
 
-	RectMesh() :
-			tags_(*this)
+	RectMesh()
+			: tags_(*this)
 	{
 		;
 	}
@@ -108,8 +107,8 @@ public:
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			OcForest(dict), tags_(*this)
+	RectMesh(TDict const & dict)
+			: OcForest(dict), tags_(*this)
 	{
 		Load(dict);
 	}
@@ -422,17 +421,15 @@ public:
 	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = _D( s );
-
-		unsigned int n = _N(s);
-
 		return (f[s + d] - f[s - d]);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto Y = _D( _R(_I(s)) );
-		auto Z = _D( _RR(_I(s)) );
+		auto X = _D(_I(s));
+		auto Y = _R(X);
+		auto Z = _RR(X);
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
@@ -466,18 +463,15 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto Y = _D( _R(_I(s)) );
-		auto Z = _D( _RR(_I(s)) );
-
+		auto X = _D(s);
+		auto Y = _R(X);
+		auto Z = _RR(X);
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = _D( _I(s) );
-
-		unsigned int n = _N(_I(s));
-
 		return (f[s + d] - f[s - d]);
 	}
 
@@ -503,9 +497,11 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, FACE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		unsigned int n = _N(s);
-		auto Y =_D( _R(s) );
-		auto Z = _D( _RR(s) );
+		unsigned int n = _C(s);
+
+		auto X = _D(s);
+		auto Y = _R(X);
+		auto Z = _RR(Y);
 		return
 
 		(f[s + Y] + f[s - Y]) * 0.5 * v[(n + 2) % 3] -
@@ -516,7 +512,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, VOLUME, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		unsigned int n = _N(_I(s));
+		unsigned int n = _C(_I(s));
 		unsigned int D = _D( _I(s));
 
 		return (f[s + D] - f[s - D]) * 0.5 * v[n];

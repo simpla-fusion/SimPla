@@ -44,8 +44,8 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int l = LOG_LOG) :
-			std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int l = LOG_LOG)
+			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -130,25 +130,25 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger() :
-			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
+	Logger()
+			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
 	{
 	}
 
-	Logger(Logger const & r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_)
+	Logger(Logger const & r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_)
 	{
 	}
 
-	Logger(Logger && r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_)
+	Logger(Logger && r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0) :
-			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
+	Logger(int lv, size_t indent = 0)
+			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
 	{
 		buffer_ << std::boolalpha;
 
@@ -446,8 +446,8 @@ struct SetLineWidth
 {
 	int width_;
 
-	SetLineWidth(int width) :
-			width_(width)
+	SetLineWidth(int width)
+			: width_(width)
 	{
 	}
 	~SetLineWidth()
@@ -468,7 +468,7 @@ inline std::string ShowBit(unsigned long s)
 {
 	return std::bitset<64>(s).to_string();
 }
-#define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0b"<<ShowBit( _MSG_) << std::endl
+#define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0b"<< ShowBit( _MSG_)  << std::endl
 
 #define CHECK_HEX(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0x"<<std::setw(20)<<std::setfill('0')<< std::hex<< ( _MSG_) << std::dec<< std::endl
 

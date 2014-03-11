@@ -25,8 +25,7 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, size_t> dims =
-		{ 8, 4, 1 };
+		nTuple<3, size_t> dims = { 8, 4, 1 };
 		mesh.SetDimensions(dims);
 
 	}
@@ -57,4 +56,15 @@ TYPED_TEST(TestMesh, traversal){
 	);
 
 	EXPECT_EQ(count,TestFixture:: mesh.GetNumOfElements( TestFixture::IForm));
+	auto d=s.d;
+	CHECK_BIT( d );
+	CHECK_BIT( TestFixture::mesh._I(d) );
+	CHECK_BIT( TestFixture::mesh._R(d) );
+	CHECK_BIT( TestFixture::mesh._RR(d) );
+	CHECK_BIT( TestFixture::mesh._D(d) );
+	CHECK ( TestFixture::mesh._C(d) );
+	CHECK ( TestFixture::mesh._N(d) );
+	unsigned long DI=1UL<<4;
+	CHECK_BIT( s.d );
+	CHECK_BIT((s - DI).d );
 }}

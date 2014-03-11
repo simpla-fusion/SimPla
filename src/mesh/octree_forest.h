@@ -47,7 +47,7 @@ struct OcForest
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
-			| (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
+	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
 
 	static constexpr compact_index_type NO_HEAD_FLAG = (~0UL) << (INDEX_DIGITS * 3);
 	/**
@@ -82,7 +82,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -94,11 +94,9 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	nTuple<NDIMS, size_type> dims_ =
-	{ 1, 1, 1 };
+	nTuple<NDIMS, size_type> dims_ = { 1, 1, 1 };
 
-	nTuple<NDIMS, size_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
 
@@ -106,15 +104,15 @@ struct OcForest
 
 	//***************************************************************************************************
 
-	OcForest() :
-			_MASK(NO_CARRY_FLAG)
+	OcForest()
+			: _MASK(NO_CARRY_FLAG)
 	{
 
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict) :
-			_MASK(NO_CARRY_FLAG)
+	OcForest(TDict const & dict)
+			: _MASK(NO_CARRY_FLAG)
 	{
 	}
 
@@ -153,7 +151,7 @@ struct OcForest
                                                                                            \
 		inline index_type operator _OP_(compact_index_type const &r) const                 \
 		{                                                                                  \
-			return index_type( { (d & NO_HEAD_FLAG) | ((d _OP_ r) & NO_CARRY_FLAG) });     \
+		return 	index_type({ ((d _OP_ (r & _MRI)) & _MRI) | ((d _OP_ (r & _MRJ)) & _MRJ) | ((d _OP_ (r & _MRK)) & _MRK) | (d | _MH) });     \
 		}                                                                                  \
                                                                                            \
 		inline index_type operator _OP_(index_type r) const                                \
@@ -162,7 +160,7 @@ struct OcForest
 		}                                                                                  \
 
 		DEF_OP(+)
-		DEF_OP(-)
+ 		DEF_OP(-)
 		DEF_OP(^)
 		DEF_OP(&)
 		DEF_OP(|)
@@ -236,6 +234,7 @@ struct OcForest
 	inline size_type Hash(compact_index_type d) const
 	{
 
+		d &= _MASK;
 		size_type res =
 
 		(
@@ -264,13 +263,13 @@ struct OcForest
 			break;
 		}
 
-		CHECK(res);
 		return res;
 
 	}
 
 	inline size_type Hash(index_type s) const
 	{
+
 		return Hash(s.d);
 
 	}
@@ -282,16 +281,14 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = index_type(
-		{ 0UL })) :
-				tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
+				: tree(m), s_(s)
 		{
 		}
-		iterator(OcForest const & m, compact_index_type s = 0UL) :
-				tree(m),
+		iterator(OcForest const & m, compact_index_type s = 0UL)
+				: tree(m),
 
-				s_(index_type(
-				{ s }))
+				s_(index_type( { s }))
 		{
 		}
 		~iterator()
@@ -371,28 +368,28 @@ struct OcForest
 
 		auto n = _N(s);
 
-		if (n == 0 || n ==  || n == 3 || n == 7)
+		if (n == 0 || n == 4 || n == 3 || n == 7)
 		{
 			s += _DK | _DJ | _DI;
 
 			auto m = (((~s) & (1UL << (carray_digits_[2] - 1))) << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[2])
-					| ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
-							<< (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
+			        | ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
+			                << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
 
 			auto mm =
-					(~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
+			        (~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
 
 			s = (s - m) & mm;
 		}
 
 		s = _R(s);
+
 		return s;
 	}
 
 	index_type Next(index_type s) const
 	{
-		return index_type(
-		{ Next(s.d) });
+		return index_type( { Next(s.d) });
 	}
 
 //***************************************************************************************************
@@ -497,8 +494,7 @@ struct OcForest
 	}
 	nTuple<3, Real> GetExtent() const
 	{
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
 		(dims_[0] << D_FP_POS) * dh,
 
@@ -515,8 +511,7 @@ struct OcForest
 
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned long h = 0) const
 	{
-		return index_type(
-		{
+		return index_type( {
 
 		(
 
@@ -538,8 +533,7 @@ struct OcForest
 	{
 		s &= _MASK;
 
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
 		static_cast<Real>(I(s)) * dh,
 
@@ -662,7 +656,7 @@ struct OcForest
 
 	compact_index_type _I(compact_index_type s) const
 	{
-		return std::move((s & ~(_DA >> (H(s) + 1))) | (~(s & (_DA >> (H(s) + 1)))));
+		return std::move((s & (~(_DA >> (H(s) + 1)))) | ((~(s & (_DA >> (H(s) + 1)))) & (_DA >> (H(s) + 1))));
 	}
 
 //! get the direction of vector(edge) 0=>x 1=>y 2=>z
@@ -689,6 +683,30 @@ struct OcForest
 		return std::move(_N(s.d));
 	}
 
+	size_type _C(compact_index_type s) const
+	{
+		size_type res = 0;
+		switch (_N(s))
+		{
+		case 1:
+		case 6:
+			res = 0;
+			break;
+		case 2:
+		case 5:
+			res = 1;
+			break;
+		case 4:
+		case 3:
+			res = 2;
+			break;
+		}
+		return res;
+	}
+	size_type _C(index_type s) const
+	{
+		return std::move(_C(s.d));
+	}
 	index_type _D(index_type s) const
 	{
 		s.d = _D(s.d);
@@ -696,7 +714,7 @@ struct OcForest
 	}
 	compact_index_type _D(compact_index_type s) const
 	{
-		return s & (_DA >> ((s >> (INDEX_DIGITS * 3)) + 1));
+		return s & (_DA >> (H(s) + 1));
 
 	}
 
