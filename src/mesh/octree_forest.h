@@ -49,7 +49,7 @@ struct OcForest
 	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
 	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
 
-	static constexpr compact_index_type NO_HEAD_FLAG = (~0UL) << (INDEX_DIGITS * 3);
+	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 	/**
 	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
 	 * 	    H          m  I           m    J           m K
@@ -138,29 +138,32 @@ struct OcForest
 		compact_index_type d;
 
 #define DEF_OP(_OP_)                                                                       \
-		inline index_type operator _OP_##=(compact_index_type r)                           \
+		inline index_type & operator _OP_##=(compact_index_type r)                           \
 		{                                                                                  \
 			d =  ( (*this) _OP_ r).d;                                                                \
-			return *this;                                                                  \
+			return *this ;                                                                  \
 		}                                                                                  \
-		inline index_type operator _OP_##=(index_type r)                                   \
+		inline index_type &operator _OP_##=(index_type r)                                   \
 		{                                                                                  \
 			d = ( (*this) _OP_ r).d;                                                                  \
 			return *this;                                                                  \
 		}                                                                                  \
                                                                                            \
-		inline index_type operator _OP_(compact_index_type const &r) const                 \
+		inline index_type && operator _OP_(compact_index_type const &r) const                 \
 		{                                                                                  \
-		return 	index_type({ ((d _OP_ (r & _MRI)) & _MRI) | ((d _OP_ (r & _MRJ)) & _MRJ) | ((d _OP_ (r & _MRK)) & _MRK) | (d | _MH) });     \
+		return 	std::move(index_type({( ((d _OP_ (r & _MI)) & _MI) |                              \
+		                     ((d _OP_ (r & _MJ)) & _MJ) |                               \
+		                     ((d _OP_ (r & _MK)) & _MK)                                 \
+		                        )& (NO_HEAD_FLAG)}));                                         \
 		}                                                                                  \
                                                                                            \
-		inline index_type operator _OP_(index_type r) const                                \
+		inline index_type &&operator _OP_(index_type r) const                                \
 		{                                                                                  \
-			return this->operator _OP_(r.d);                                               \
+			return std::move(this->operator _OP_(r.d));                                               \
 		}                                                                                  \
 
 		DEF_OP(+)
- 		DEF_OP(-)
+		DEF_OP(-)
 		DEF_OP(^)
 		DEF_OP(&)
 		DEF_OP(|)
@@ -233,7 +236,6 @@ struct OcForest
 
 	inline size_type Hash(compact_index_type d) const
 	{
-
 		d &= _MASK;
 		size_type res =
 
@@ -270,7 +272,7 @@ struct OcForest
 	inline size_type Hash(index_type s) const
 	{
 
-		return Hash(s.d);
+		return std::move(Hash(s.d));
 
 	}
 

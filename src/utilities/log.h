@@ -389,6 +389,8 @@ private:
 #	define CHECK(_MSG_)
 #endif
 
+#define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
+
 #define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
 //"--=============================================================--"
 #define SINGLELINE  std::setw(80) << std::setfill('-') << "-"

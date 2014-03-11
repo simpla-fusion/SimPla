@@ -47,6 +47,10 @@ inline auto operator-(Field<TM, IL, TL> const & f)
 DECL_RET_TYPE( ( Field<TM,IL, UniOp<NEGATE,Field<TM,IL, TL> > > (f)))
 
 template<typename TM, int IL, typename TL>
+inline auto Negate(Field<TM, IL, TL> const & f)
+DECL_RET_TYPE( ( Field<TM,IL, UniOp<NEGATE,Field<TM,IL, TL> > > (f)))
+
+template<typename TM, int IL, typename TL>
 inline auto operator+(Field<TM, IL, TL> const & f)
 DECL_RET_TYPE( (f))
 
@@ -152,6 +156,15 @@ COND_DECL_RET_TYPE(
 		Zero )
 
 template<typename TM, int IL, typename TL>
+inline auto Codifferential(Field<TM, IL, TL> const & f)
+COND_DECL_RET_TYPE(
+		(IL > 0 && IL <= TM::NDIMS),
+
+		(Field< TM, IL-1 , UniOp<CODIFFERENTIAL,Field<TM,IL , TL> > >( f)),
+
+		Zero )
+
+template<typename TM, int IL, typename TL>
 inline auto d(Field<TM, IL, TL> const & f)
 DECL_RET_TYPE( (ExteriorDerivative(f)) )
 
@@ -167,15 +180,6 @@ COND_DECL_RET_TYPE(
 template<typename TM, int IL, typename TL, typename TR>
 inline auto iv(nTuple<TM::NDIMS, TR> const & v, Field<TM, IL, TR> const & f)
 DECL_RET_TYPE( (InteriorProduct(v,f)) )
-
-template<typename TM, int IL, typename TL>
-inline auto Codifferential(Field<TM, IL, TL> const & f)
-COND_DECL_RET_TYPE(
-		(IL > 0 && IL <= TM::NDIMS),
-
-		(Field< TM, IL-1 , UniOp<CODIFFERENTIAL,Field<TM,IL , TL> > >( f)),
-
-		Zero )
 
 template<typename TM, int IL, int IR, typename TL, typename TR>
 inline auto Wedge(Field<TM, IL, TL> const & lhs, Field<TM, IR, TR> const & rhs)
@@ -219,7 +223,7 @@ DECL_RET_TYPE((InteriorProduct(v, f)))
 
 template<typename TM, typename TR>
 inline auto Grad(Field<TM, VERTEX, TR> const & f)
-DECL_RET_TYPE(( ExteriorDerivative(f)))
+DECL_RET_TYPE( ( ExteriorDerivative(f)))
 
 template<typename TM, typename TR>
 inline auto Diverge(Field<TM, FACE, TR> const & f)
@@ -231,11 +235,11 @@ DECL_RET_TYPE((ExteriorDerivative(f)))
 
 template<typename TM, typename TR>
 inline auto Grad(Field<TM, VOLUME, TR> const & f)
-DECL_RET_TYPE((-Codifferential(f)))
+DECL_RET_TYPE(Negate(Codifferential(f)))
 
 template<typename TM, typename TR>
 inline auto Diverge(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((-Codifferential(f)))
+DECL_RET_TYPE(Negate( Codifferential(f)))
 
 template<typename TM, typename TR>
 inline auto Curl(Field<TM, FACE, TR> const & f)
@@ -420,6 +424,18 @@ private:
 
 }
 ;
+
+template<typename TM, int IFORM, int TOP, typename TL, typename TR>
+struct can_not_reference<Field<TM, IFORM, BiOp<TOP, TL, TR> >>
+{
+	static constexpr bool value = true;
+};
+
+template<typename TM, int IFORM, int TOP, typename TL>
+struct can_not_reference<Field<TM, IFORM, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
+};
 
 //****************************************************************************************************
 

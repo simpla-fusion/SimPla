@@ -83,128 +83,145 @@ TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
+	typename TestFixture::TZeroForm sf(mesh,v);
+
+	Real m=0.0;
+
+	for(auto & p:sf)
 	{
-		typename TestFixture::TZeroForm sf(mesh,v);
-
-		Real m=0.0;
-
-		for(auto & p:sf)
-		{
-			p = uniform_dist(gen);
-			m+= abs(p);
-		}
-
-		m/=sf.size();
-
-		LOG_CMD(vf1 = Grad(sf));
-		LOG_CMD(vf2 = Curl(vf1));
-		LOG_CMD(vf2b = Curl(Grad(sf)));
-
-		size_t count=0;
-		Real relative_error=0;
-
-		mesh.Traversal<FACE>(
-				[&](typename TestFixture::TTwoForm::index_type s)
-				{	relative_error+=abs(vf2[s]);
-
-					if(abs(vf2[s])>1.0e-10)
-					{
-						++count;
-					}
-				}
-
-		);
-		relative_error=relative_error/m;
-
-		CHECK(relative_error);
-
-		EXPECT_GT(1.0e-8,relative_error);
-		ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
-
-		count =0;
-		relative_error=0.0;
-
-		mesh.Traversal<FACE>(
-				[&](typename TestFixture::TTwoForm::index_type s)
-				{	relative_error+=abs(vf2b[s]);
-
-					if(abs(vf2b[s])>1.0e-10)
-					{
-						++count;
-					}
-				}
-		);
-		relative_error=relative_error/m;
-
-		CHECK(relative_error);
-
-		EXPECT_GT(1.0e-8,relative_error);
-		ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
-
+		p = uniform_dist(gen);
+		m+= abs(p);
 	}
 
-	{
-		typename TestFixture::TThreeForm vf(mesh,v);
+	m/=sf.size();
 
-		Real m=0.0;
+	LOG_CMD(vf1 = Grad(sf));
+	LOG_CMD(vf2 = Curl(vf1));
+	LOG_CMD(vf2b = Curl(Grad(sf)));
 
-		for(auto & p:vf)
-		{
-			p = uniform_dist(gen);
-			m+= abs(p);
-		}
+	size_t count=0;
+	Real relative_error=0;
 
-		m/=vf.size();
+	mesh.Traversal<FACE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	relative_error+=abs(vf2[s]);
 
-		LOG_CMD(vf2 = Grad(vf));
-		LOG_CMD(vf1 = Curl(vf2));
-		LOG_CMD(vf1b = Curl(Grad(vf)));
-
-		size_t count=0;
-		Real relative_error=0;
-
-		mesh.Traversal<EDGE>(
-				[&](typename TestFixture::TTwoForm::index_type s)
-				{	relative_error+=abs(vf1[s]);
-
-					if(abs(vf1[s])>1.0e-10)
-					{
-						++count;
-					}
+				if(abs(vf2[s])>1.0e-10)
+				{
+					++count;
 				}
+			}
 
-		);
-		relative_error=relative_error/m;
+	);
+	relative_error=relative_error/m;
 
-		CHECK(relative_error);
+	INFORM2(relative_error);
 
-		EXPECT_GT(1.0e-8,relative_error);
-		ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
 
-		count =0;
-		relative_error=0.0;
+	count =0;
+	relative_error=0.0;
 
-		mesh.Traversal<EDGE>(
-				[&](typename TestFixture::TTwoForm::index_type s)
-				{	relative_error+=abs(vf1b[s]);
-					if(abs(vf1b[s])>1.0e-10)
-					{
-						++count;
-					}
+	mesh.Traversal<FACE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	relative_error+=abs(vf2b[s]);
+
+				if(abs(vf2b[s])>1.0e-10)
+				{
+					++count;
 				}
-		);
-		relative_error=relative_error/m;
+			}
+	);
+	relative_error=relative_error/m;
 
-		CHECK(relative_error);
+	INFORM2(relative_error);
 
-		EXPECT_GT(1.0e-8,relative_error);
-		ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
-
-	}
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
 
 }
 }
 
+TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_1){
+{
+	Mesh const & mesh = TestFixture::mesh;
+
+	typename TestFixture::value_type v;
+
+	TestFixture::SetValue(&v);
+
+	typename TestFixture::TOneForm vf1(mesh,v);
+	typename TestFixture::TOneForm vf1b(mesh,v);
+	typename TestFixture::TTwoForm vf2(mesh,v);
+	typename TestFixture::TTwoForm vf2b(mesh,v);
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	typename TestFixture::TThreeForm vf(mesh,v);
+
+	Real m=0.0;
+
+	for(auto & p:vf)
+	{
+		p = uniform_dist(gen);
+		m+= abs(p);
+	}
+
+	m/=vf.size();
+
+	LOG_CMD(vf2 = Grad(vf));
+	LOG_CMD(vf1 = Curl(vf2));
+	LOG_CMD(vf1b = Curl(Grad(vf)));
+
+	size_t count=0;
+	Real relative_error=0;
+
+	mesh.Traversal<EDGE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{
+				relative_error+=abs(vf1[s]);
+
+				if(abs(vf1[s])>1.0e-10)
+				{
+					++count;
+				}
+			}
+
+	);
+	relative_error=relative_error/m;
+
+	INFORM2(relative_error);
+
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
+
+	count =0;
+	relative_error=0.0;
+
+	mesh.Traversal<EDGE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{
+
+				relative_error+=abs(vf1b[s]);
+
+				if(abs(vf1b[s])>1.0e-10)
+				{
+					++count;
+				}
+			}
+
+	);
+	relative_error=relative_error/m;
+
+	INFORM2(relative_error);
+
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_EQ(0,count)<< "number of non-zero points =" << count;
+
+}
+}
 TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 {
 
@@ -229,20 +246,9 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 		p*= uniform_dist(gen);
 	}
 
-	sf1.Init();
-
-	sf2.Init();
-
 	LOG_CMD(vf1 = Curl(vf2));
 
 	LOG_CMD(sf1 = Diverge( vf1));
-
-	mesh.Traversal<VERTEX>(
-			[&](typename TestFixture::TZeroForm::index_type s)
-			{
-				CHECK(sf1[s]);
-			}
-	);
 
 	LOG_CMD(sf2 = Diverge( Curl(vf2)));
 
@@ -271,7 +277,7 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 	);
 
 	relative_error=relative_error/m;
-	CHECK(relative_error);
+	INFORM2(relative_error);
 	EXPECT_GT(1.0e-8,relative_error);
 	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
 
@@ -289,10 +295,89 @@ TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_0){
 	);
 
 	relative_error=relative_error/m;
-	CHECK(relative_error);
+	INFORM2(relative_error);
 	EXPECT_GT(1.0e-8,relative_error);
 	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
 
 }
 }
 
+TYPED_TEST(TestFETLDiffCalcuate, div_curl_eq_1){
+{
+
+	Mesh const & mesh = TestFixture::mesh;
+
+	typename TestFixture::value_type v;
+
+	v=1.0;
+
+	typename TestFixture::TThreeForm sf1(mesh);
+	typename TestFixture::TThreeForm sf2(mesh);
+	typename TestFixture::TOneForm vf1(mesh);
+	typename TestFixture::TTwoForm vf2(mesh,v);
+
+	std::mt19937 gen;
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	vf1.Init();
+
+	for(auto &p:vf1)
+	{
+		p*= uniform_dist(gen);
+	}
+
+	LOG_CMD(vf2 = Curl(vf1));
+
+	LOG_CMD(sf1 = Diverge( vf2));
+
+	LOG_CMD(sf2 = Diverge( Curl(vf1)));
+
+	size_t count=0;
+
+	Real m=0.0;
+
+	for(auto const &p:vf2)
+	{
+		m+=abs(p);
+	}
+	m/=vf2.size();
+
+	Real relative_error=0;
+	size_t num=0;
+	mesh.Traversal<VOLUME>(
+			[&](typename TestFixture::TZeroForm::index_type s)
+			{
+				relative_error+=abs(sf1[s]);
+
+				if(abs(sf1[s])>1.0e-10*m)
+				{
+					++count;
+				}
+			}
+	);
+
+	relative_error=relative_error/m;
+	INFORM2(relative_error);
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
+
+	count =0;
+	relative_error=0.0;
+	mesh.Traversal<VOLUME>(
+			[&](typename TestFixture::TZeroForm::index_type s)
+			{
+				relative_error+=abs(sf2[s]);
+				if(abs(sf2[s])>1.0e-10*m)
+				{
+					++count;
+				}
+			}
+	);
+
+	relative_error=relative_error/m;
+	INFORM2(relative_error);
+	EXPECT_GT(1.0e-8,relative_error);
+	ASSERT_DOUBLE_EQ(0,count)<< "number of non-zero points =" << count;
+
+}
+}

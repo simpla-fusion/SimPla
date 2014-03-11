@@ -451,12 +451,11 @@ public:
 	index_type s) const= delete;
 
 	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
-	index_type s)const->typename std::remove_reference<decltype(f[s])>::type
+	index_type s)const->decltype(f[s]-f[s])
 	{
 		auto X = (_DI >> (H(s) + 1));
 		auto Y = (_DJ >> (H(s) + 1));
 		auto Z = (_DK >> (H(s) + 1));
-
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
 
@@ -466,12 +465,15 @@ public:
 		auto X = _D(s);
 		auto Y = _R(X);
 		auto Z = _RR(X);
+
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
+
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = _D( _I(s) );
+
 		return (f[s + d] - f[s - d]);
 	}
 
