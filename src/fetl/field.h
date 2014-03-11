@@ -267,7 +267,7 @@ public:
 		mesh.template Traversal<IForm>(
 
 		[&](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
-		{	l->get(s)=r[s];},
+		{	l->get(s)=r.get(s);},
 
 		this, std::forward<Field<mesh_type, IForm, TR> const &>(rhs));
 
