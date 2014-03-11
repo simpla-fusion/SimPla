@@ -56,7 +56,7 @@ public:
 	{
 		return def_domain_;
 	}
-	std::list<index_type> &GetDefDomain()
+	std::list<index_type> & GetDefDomain()
 	{
 		return def_domain_;
 	}
@@ -79,7 +79,7 @@ public:
 		}
 	}
 	template<typename TV>
-	void Apply(TF * f, std::function<TV(coordinates_type const &, Real)> const & fun) const
+	void Apply(TF * f, std::function<TV(coordinates_type, Real)> const & fun) const
 	{
 		if (is_hard_src_)
 		{
@@ -114,23 +114,24 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 
 	if (dict["Select"])
 	{
-		mesh.tags().template Select<TField::IForm>([&](index_type const &s )
+		mesh.tags().template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x)
 		{	self->GetDefDomain().push_back(s );},
 
 		dict["Select"]);
 	}
 	else if (dict["Region"])
 	{
-		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s )
+		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x)
 		{	self->GetDefDomain().push_back(s );}, dict["Region"]);
 	}
 	else if (dict["Index"])
 	{
 		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
+
 		dict["Index"].as(&idxs);
 
-		for (auto const &s : idxs)
-			self->GetDefDomain().push_back(s);
+		for (auto const &id : idxs)
+			self->GetDefDomain().push_back(mesh.GetIndex(id));
 	}
 
 	self->SetHardSrc(dict["HardSrc"].template as<bool>(false));

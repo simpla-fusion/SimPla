@@ -540,7 +540,24 @@ struct OcForest
 		});
 
 	}
+	inline index_type GetIndex(nTuple<3, size_type> const & x, unsigned long h = 0) const
+	{
+		return index_type( {
 
+		(
+
+		(h << (INDEX_DIGITS * 3)) |
+
+		((x[0] & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * 2)) |
+
+		((x[1] & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS)) |
+
+		(x[2] & ((1UL << INDEX_DIGITS) - 1))
+
+		) & _MASK
+
+		});
+	}
 	inline nTuple<3, Real> GetCoordinates(index_type s) const
 	{
 		s &= _MASK;
