@@ -259,7 +259,19 @@ public:
 		Fill(rhs);
 		return (*this);
 	}
+	this_type & operator =(this_type const & rhs)
+	{
+		Update();
+		mesh.template Traversal<IForm>(
 
+		[&](index_type s, this_type *l, this_type const & r )
+
+		{	l->get(s)=r.get(s);},
+
+		this, std::forward<this_type const &>(rhs));
+
+		return (*this);
+	}
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{

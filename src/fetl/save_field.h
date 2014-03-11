@@ -12,11 +12,12 @@
 
 namespace simpla
 {
-template<typename, typename > struct Field;
+template<typename, int, typename > struct Field;
 
-template<typename TG, typename TV> inline std::string Dump(Field<TG, TV> const & d, std::string const & name, bool flag)
+template<typename TG, int IFORM, typename TV> inline std::string Dump(Field<TG, IFORM, TV>
+const & d, std::string const & name, bool flag)
 {
-	return DataDumper<TV>(d.data().get(), name, d.GetShape(), flag).GetName();
+	return DataDumper<TV>(d.data().get(), name, d.mesh.GetDimensions(), flag).GetName();
 }
 }  // namespace simpla
 

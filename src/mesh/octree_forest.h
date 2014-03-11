@@ -27,6 +27,7 @@ struct OcForest
 {
 
 	typedef OcForest this_type;
+	static constexpr int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr int NDIMS = 3;
 
@@ -174,6 +175,14 @@ struct OcForest
 			return d == rhs.d;
 		}
 
+		bool operator<(index_type const &r) const
+		{
+			return d < r.d;
+		}
+		bool operator>(index_type const &r) const
+		{
+			return d > r.d;
+		}
 	}
 	;
 
@@ -404,7 +413,7 @@ struct OcForest
 
 		while (true)
 		{
-			fun(*it, std::forward<Args>(args)...);
+			fun(*it, args...);
 
 			++it;
 			if (it->d == ie->d)

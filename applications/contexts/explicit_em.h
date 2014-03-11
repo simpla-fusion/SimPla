@@ -22,7 +22,7 @@
 #include "../../src/fetl/save_field.h"
 #include "../../src/io/data_stream.h"
 #include "../../src/modeling/constraint.h"
-#include "../../src/particle/particle_factory.h"
+//#include "../../src/particle/particle_factory.h"
 #include "../../src/mesh/field_convert.h"
 #include "../../src/utilities/geqdsk.h"
 #include "../../src/utilities/log.h"
@@ -120,9 +120,9 @@ private:
 
 	std::list<std::function<void(TJ*)> > constraintToJ_;
 
-	typedef ParticleWrap<TE, TB, TJ> ParticleType;
-
-	std::map<std::string, ParticleType> particles_;
+//	typedef ParticleWrap<TE, TB, TJ> ParticleType;
+//
+//	std::map<std::string, ParticleType> particles_;
 
 }
 ;
@@ -173,12 +173,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		mesh.Update();
 
-		mesh.SerialTraversal(FACE,
+		mesh.template Traversal<FACE>(
 
-		[&](typename mesh_type::index_type s,typename mesh_type::coordinates_type const &x)
+		[&](typename mesh_type::index_type s )
 		{
-			B[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
-		});
+
+//			B[s] = mesh.template GetWeightOnElement<FACE>(geqdsk.B(x),s);
+		    });
 
 		J0 = Curl(B) / mu0;
 
@@ -318,10 +319,10 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToE(&E);
 
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
+//	for (auto &p : particles_)
+//	{
+//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+//	}
 
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
@@ -341,11 +342,11 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToJ(&J);
 
-	for (auto &p : particles_)
-	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Collect(&J, E, B);
-	}
+//	for (auto &p : particles_)
+//	{
+//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+//		p.second.Collect(&J, E, B);
+//	}
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);

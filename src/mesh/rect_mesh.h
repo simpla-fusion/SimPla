@@ -155,6 +155,17 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (GetNumOfElements(iform)));
 	}
 
+	PhysicalConstants constants_;
+
+	PhysicalConstants & constants()
+	{
+		return constants_;
+	}
+
+	PhysicalConstants const & constants()const
+	{
+		return constants_;
+	}
 	//* Media Tags
 
 	MediaTag<this_type> tags_;
@@ -176,54 +187,54 @@ public:
 		return dx_;
 	}
 
-	//	//* Time
-//
-//	Real dt_ = 0.0;//!< time step
-//	Real time_ = 0.0;
-//
-//	void NextTimeStep()
-//	{
-//		time_ += dt_;
-//	}
-//	Real GetTime() const
-//	{
-//		return time_;
-//	}
-//
-//	void GetTime(Real t)
-//	{
-//		time_ = t;
-//	}
-//	inline Real GetDt() const
-//	{
-//		CheckCourant();
-//		return dt_;
-//	}
-//
-//	inline void SetDt(Real dt = 0.0)
-//	{
-//		dt_ = dt;
-//		Update();
-//	}
-//	double CheckCourant() const
-//	{
-//		DEFINE_GLOBAL_PHYSICAL_CONST
-//
-//		nTuple<3, Real> inv_dx_;
+	//* Time
+
+	Real dt_ = 0.0;//!< time step
+	Real time_ = 0.0;
+
+	void NextTimeStep()
+	{
+		time_ += dt_;
+	}
+	Real GetTime() const
+	{
+		return time_;
+	}
+
+	void GetTime(Real t)
+	{
+		time_ = t;
+	}
+	inline Real GetDt() const
+	{
+		CheckCourant();
+		return dt_;
+	}
+
+	inline void SetDt(Real dt = 0.0)
+	{
+		dt_ = dt;
+		Update();
+	}
+	double CheckCourant() const
+	{
+		DEFINE_GLOBAL_PHYSICAL_CONST
+
+		nTuple<3, Real> inv_dx_;
 //		inv_dx_ = 1.0 / GetDx() / (xmax_ - xmin_);
-//
-//		Real res = 0.0;
-//
-//		for (int i = 0; i < 3; ++i)
-//		res += inv_dx_[i] * inv_dx_[i];
-//
-//		return std::sqrt(res) * speed_of_light * dt_;
-//	}
-//
-//	void FixCourant(Real a)
-//	{
-//		dt_ *= a / CheckCourant();
-//	}
+
+		Real res = 0.0;
+
+		for (int i = 0; i < 3; ++i)
+		res += inv_dx_[i] * inv_dx_[i];
+
+		return std::sqrt(res) * speed_of_light * dt_;
+	}
+
+	void FixCourant(Real a=1.0)
+	{
+		dt_ *= a / CheckCourant();
+	}
 
 //***************************************************************************************************
 // Geometric properties
@@ -267,7 +278,7 @@ public:
 	inline coordinates_type GetCoordinates(index_type const &s) const
 	{
 		coordinates_type res;
-		res = xmin_ + (xmax_ - xmin_) * base_type::GetCoordinates(s);
+//		res = xmin_ + (xmax_ - xmin_) * base_type::GetCoordinates(s);
 		return std::move(res);
 	}
 

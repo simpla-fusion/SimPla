@@ -18,8 +18,8 @@ void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
         std::function<bool(typename TM::index_type, typename TM::coordinates_type)> const & select)
 {
-	mesh.SerialTraversal(IFORM, [&](typename TM:: index_type s , typename TM::coordinates_type x)
-	{
+	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
+	{	auto x=mesh.GetCoordinates(s);
 		if(select(s,x)) op(s,x);
 	});
 }
@@ -51,10 +51,11 @@ void SelectFromMesh(TM const &mesh,
 
 	if (points.size() == 1)
 	{
-		typename TM::index_type idx = mesh.GetNearestVertex(points[0]);
-
-		SelectFromMesh<IFORM>(mesh, op, [idx](typename TM::index_type s, typename TM::coordinates_type const &)->bool
-		{	return (s==idx);});
+//		typename TM::index_type idx = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(),
+//		        mesh.GetIndex(points[0]));
+//
+//		SelectFromMesh<IFORM>(mesh, op, [idx](typename TM::index_type s )->bool
+//		{	return (s==idx);});
 
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,

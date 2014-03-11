@@ -90,7 +90,7 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 		}
 		else
 		{
-			Field<Geometry<mesh_type, 0>, Real> n0(mesh);
+			Field<mesh_type, 0, Real> n0(mesh);
 
 			LoadField(cfg["n"], &n0);
 
@@ -161,9 +161,6 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 
 	return true;
 }
-
-
-
 
 }  // namespace simpla
 

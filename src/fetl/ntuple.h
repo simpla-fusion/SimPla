@@ -284,13 +284,13 @@ template<int N, typename T> struct is_nTuple<nTuple<N, T> >
 template<typename T>
 struct nTupleTraits
 {
-	static const int NUM_OF_DIMS = 1;
+	static const int NDIMS = 1;
 	typedef T value_type;
 };
 template<int N, typename T>
 struct nTupleTraits<nTuple<N, T>>
 {
-	static const int NUM_OF_DIMS = N;
+	static const int NDIMS = N;
 	typedef T value_type;
 };
 

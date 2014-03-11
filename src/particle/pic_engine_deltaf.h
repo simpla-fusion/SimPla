@@ -11,7 +11,7 @@
 #include <string>
 
 #include "../fetl/primitives.h"
-#include "../fetl/ntuple_ops.h"
+#include "../fetl/ntuple.h"
 
 namespace simpla
 {
@@ -146,13 +146,13 @@ public:
 	}
 
 	template<typename TV, typename ... Others> inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(
-	        Point_s const &p, Field<Geometry<mesh_type, 0>, TV>* n, Others const &... others) const
+	        Point_s const &p, Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
 		n->Collect(q_ * p.f * p.w, p.x);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, Others const &... others) const
+	inline void Collect(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
 
 		J->Collect(p.v * (q_ * p.f * p.w), p.x);

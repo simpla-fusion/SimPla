@@ -347,7 +347,7 @@ private:
 		Init();
 
 		SelectFromMesh<VERTEX>(mesh, [&]( index_type const &s,coordinates_type const & )
-		{	fun( tags_[VERTEX][s]);}, std::forward<Args const&>(args)...);
+		{	fun( tags_[VERTEX][mesh.Hash(s)]);}, std::forward<Args const&>(args)...);
 	}
 
 	template<int I>
@@ -355,7 +355,7 @@ private:
 	{
 		Init(I);
 
-		mesh.ParallelTraversal(I,
+		mesh.template ParallelTraversal<I>(
 
 		[&](index_type const & s )
 		{
@@ -365,9 +365,9 @@ private:
 			tag_type flag = null_tag;
 			for(int i=0;i<n;++i)
 			{
-				flag|=tags_[VERTEX][v[i]];
+				flag|=tags_[VERTEX][mesh.Hash(v[i])];
 			}
-			tags_[I][s]=flag;
+			tags_[I][mesh.Hash(s)]=flag;
 
 		});
 	}
@@ -442,12 +442,14 @@ void MediaTag<TM>::SelectBoundary(Fun const &fun, tag_type in, tag_type out) con
 	//              |          |
 	//              +----------+
 
-	mesh.SerialTraversal(IFORM,
+	mesh.template Traversal<IFORM>(
 
-	[&]( index_type const&s , coordinates_type const &x)
+	[&]( index_type const&s )
 	{
+		auto x= mesh.GetCoordinates(s);
 
-		if((this->tags_[IFORM].at(s)&in).none() && (this->tags_[IFORM].at(s)&out).any() )
+		if((this->tags_[IFORM].at(mesh.Hash(s))&in).none() &&
+				(this->tags_[IFORM].at(mesh.Hash(s))&out).any() )
 		{
 			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
@@ -456,7 +458,7 @@ void MediaTag<TM>::SelectBoundary(Fun const &fun, tag_type in, tag_type out) con
 			for(int i=0;i<num;++i)
 			{
 
-				if(((this->tags_[VOLUME].at(neighbours[i])&in) ).any())
+				if(((this->tags_[VOLUME].at(mesh.Hash(neighbours[i]))&in) ).any())
 				{
 					fun( s,x );
 					break;
@@ -474,11 +476,12 @@ void MediaTag<TM>::SelectElements(Fun const &fun, tag_type tag) const
 {
 
 	auto const & tags = tags_[VOLUME];
-	mesh.SerialTraversal(IFORM,
+	mesh.template Traversal<IFORM>(
 
-	[&]( index_type const&s , coordinates_type const &x)
+	[&]( index_type const&s )
 	{
-		if(((this->tags_[IFORM].at(s)&tag) ).any())
+		auto x= mesh.GetCoordinates(s);
+		if(((this->tags_[IFORM].at(mesh.Hash(s))&tag) ).any())
 		{
 			fun( s,x );
 		}

@@ -14,8 +14,9 @@
 
 #include "../../src/fetl/primitives.h"
 
-#include "../../src/mesh/co_rect_mesh_rz.h"
-#include "../../src/mesh/topology_rect.h"
+//#include "../../src/mesh/co_rect_mesh_rz.h"
+//#include "../../src/mesh/topology_rect.h"
+#include "../../src/mesh/rect_mesh.h"
 
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
@@ -69,14 +70,9 @@ void Context::Load(LuaObject const & dict)
 //
 //		}
 
-		if (mesh_type == "CoRectMesh")
+		if (mesh_type == "RectMesh")
 		{
-			CreateContext<ExplicitEMContext<CoRectMeshRZ>>(dict, this);
-
-		}
-		else if (mesh_type == "RectMesh")
-		{
-			CreateContext<ExplicitEMContext<TopologyRect>>(dict, this);
+			CreateContext<ExplicitEMContext<RectMesh<> >>(dict, this);
 
 		}
 		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";

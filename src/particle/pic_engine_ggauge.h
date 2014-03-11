@@ -9,7 +9,7 @@
 #define PIC_ENGINE_GGAUGE_H_
 
 #include "../fetl/fetl.h"
-#include "../fetl/ntuple_ops.h"
+#include "../fetl/ntuple.h"
 #include "../physics/constants.h"
 namespace simpla
 {
@@ -177,7 +177,7 @@ public:
 
 	template<typename TV, typename TB, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
-	        Field<Geometry<mesh_type, 0>, TV>* n, TB const & B, Others const &... others) const
+	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B.mean(p.x));
 		Real BB = InnerProduct(B0, B0);
@@ -204,8 +204,7 @@ public:
 	}
 
 	template<int IFORM, typename TV, typename TB, typename ...Others>
-	inline void Collect(Point_s const &p, Field<Geometry<mesh_type, IFORM>, TV>* J, TB const & B,
-	        Others const &... others) const
+	inline void Collect(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B.mean(p.x));
 		Real BB = InnerProduct(B0, B0);
