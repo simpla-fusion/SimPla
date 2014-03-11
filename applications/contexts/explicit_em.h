@@ -16,18 +16,29 @@
 #include <string>
 #include <utility>
 
+// Misc
+#include "../../src/utilities/log.h"
+
+// Field expression
 #include "../../src/fetl/field.h"
 #include "../../src/fetl/ntuple.h"
 #include "../../src/fetl/primitives.h"
+#include "../../src/mesh/field_convert.h"
+
+// Data IO
 #include "../../src/fetl/save_field.h"
 #include "../../src/io/data_stream.h"
-#include "../../src/modeling/constraint.h"
-//#include "../../src/particle/particle_factory.h"
-#include "../../src/mesh/field_convert.h"
+
+// Modeling
+#include "../../src/modeling/media_tag.h"
 #include "../../src/utilities/geqdsk.h"
-#include "../../src/utilities/log.h"
-#include "../../src/utilities/singleton_holder.h"
+
+// Physical solver
+#include "../../src/modeling/constraint.h"
 #include "../solver/electromagnetic/solver.h"
+
+// Particle
+//#include "../../src/particle/particle_factory.h"
 
 namespace simpla
 {
@@ -60,6 +71,7 @@ public:
 
 	std::string description;
 
+	MediaTag<mesh_type> tags_;
 	bool isCompactStored_;
 
 	Form<EDGE> E, dE;
@@ -129,7 +141,8 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
+		: isCompactStored_(true), tags_(mesh), E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(
+		        mesh)
 {
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 	Real ic2 = 1.0 / (mu0 * epsilon0);
@@ -162,8 +175,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dB.Clear();
 	dE.Clear();
 
-	mesh.tags().Init();
-
 	if (dict["GFile"])
 	{
 
@@ -172,6 +183,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		mesh.SetExtent(geqdsk.GetMin(), geqdsk.GetMax());
 
 		mesh.Update();
+
+		tags_.Update();
 
 		mesh.template Traversal<FACE>(
 
@@ -183,13 +196,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		J0 = Curl(B) / mu0;
 
-		mesh.tags().Add("Plasma", geqdsk.Boundary());
-		mesh.tags().Add("Vacuum", geqdsk.Limiter());
+		tags_.Add("Plasma", geqdsk.Boundary());
+		tags_.Add("Vacuum", geqdsk.Limiter());
 
 	}
 
-	mesh.tags().Update();
-
+	tags_.Update();
 	mesh.FixCourant();
 
 	J = J0;

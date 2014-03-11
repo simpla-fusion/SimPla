@@ -17,6 +17,8 @@
 //#include "../../src/mesh/co_rect_mesh_rz.h"
 //#include "../../src/mesh/topology_rect.h"
 #include "../../src/mesh/rect_mesh.h"
+#include "../../src/mesh/octree_forest.h"
+
 
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"

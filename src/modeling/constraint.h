@@ -114,10 +114,10 @@ static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type
 
 	if (dict["Select"])
 	{
-		mesh.tags().template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x)
-		{	self->GetDefDomain().push_back(s );},
-
-		dict["Select"]);
+//		tags.template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x)
+//		{	self->GetDefDomain().push_back(s );},
+//
+//		dict["Select"]);
 	}
 	else if (dict["Region"])
 	{

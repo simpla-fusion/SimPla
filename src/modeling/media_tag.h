@@ -41,6 +41,8 @@ private:
 	const tag_type null_tag;
 
 	mesh_type const &mesh;
+
+	Field<mesh_type, VERTEX, tag_type> tag0_;
 	std::vector<tag_type> tags_[mesh_type::NUM_OF_COMPONENT_TYPE];
 	std::map<std::string, tag_type> register_tag_;
 	unsigned int max_tag_;
@@ -54,7 +56,7 @@ public:
 	};
 
 	MediaTag(mesh_type const & m)
-			: null_tag(1 << NONE), mesh(m), max_tag_(CUSTOM + 1)
+			: null_tag(1 << NONE), mesh(m), max_tag_(CUSTOM + 1), tag0_(mesh)
 	{
 		register_tag_.emplace("NONE", null_tag);
 

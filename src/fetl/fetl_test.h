@@ -17,7 +17,8 @@
 #include "../utilities/pretty_stream.h"
 
 #include "../mesh/rect_mesh.h"
-#define DEF_MESH RectMesh<>
+#include "../mesh/octree_forest.h"
+#define DEF_MESH RectMesh<OcForest>
 
 
 

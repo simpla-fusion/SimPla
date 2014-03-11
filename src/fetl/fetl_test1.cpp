@@ -9,7 +9,8 @@
 
 using namespace simpla;
 
-DEFINE_FIELDS(RectMesh<>)
+DEFINE_FIELDS(DEF_MESH)
+
 template<typename TF>
 class TestFETL: public testing::Test
 {

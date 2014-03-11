@@ -18,13 +18,10 @@
 #include "../fetl/field.h"
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
-#include "../modeling/media_tag.h"
 #include "../physics/physical_constants.h"
-#include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 //#include "../utilities/utilities.h"
 #include "../utilities/memory_pool.h"
-#include "octree_forest.h"
 
 namespace simpla
 {
@@ -69,6 +66,21 @@ struct EuclideanSpace
 	// Metric
 	//***************************************************************************************************
 
+	void Update()
+	{
+
+	}
+	template<typename TDict>
+	void Load(TDict const & dict)
+	{
+
+	}
+
+	std::ostream & Save(std::ostream & os)const
+	{
+		return os;
+	}
+
 	coordinates_type xmin_ = { 0, 0, 0 };
 
 	coordinates_type xmax_ = { 1, 1, 1 };
@@ -87,6 +99,13 @@ struct EuclideanSpace
 
 	Real volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	nTuple<NDIMS, Real> dx_;
+
+	nTuple<NDIMS, Real> const & GetDx() const
+	{
+		return dx_;
+	}
 
 	template<int IN, typename T>
 	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
@@ -126,13 +145,13 @@ struct EuclideanSpace
 
 	nTuple<3, Real> const& Normal(index_type s) const
 	{
-		return normal_[topology._C(s)];
+		return normal_[topology.topology_type::_C(s)];
 	}
 
 	template<typename TV>
 	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
-		return v[topology._C(s)];
+		return v[topology.topology_type::_C(s)];
 	}
 
 	Real const& Volume(index_type s) const
@@ -153,17 +172,20 @@ struct EuclideanSpace
 	}
 };
 
+class OcForest;
 /**
  *  Grid is mapped as a rectangle region;
  *
  */
-template<template<typename > class Geometry = EuclideanSpace>
-class RectMesh: public OcForest, public Geometry<OcForest>
+template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanSpace>
+class RectMesh: public TTopology, public Geometry<TTopology>
 {
 public:
-	typedef RectMesh<Geometry> this_type;
-	typedef OcForest topology_type;
+	typedef RectMesh<TTopology, Geometry> this_type;
+	typedef TTopology topology_type;
 	typedef Geometry<topology_type> geometry_type;
+
+	typedef Real scalar_type;
 
 	static constexpr unsigned int NDIMS = 3;
 
@@ -172,66 +194,57 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 
-	RectMesh()
-			: geometry_type(static_cast<OcForest const &>(*this)), tags_(*this)
+	template<typename ... Args>
+	RectMesh(Args const &... args)
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
+		Load(std::forward<Args const &>(args)...);
 	}
 	~RectMesh()
 	{
 	}
-
-	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: topology_type(dict),
-
-			geometry_type(static_cast<OcForest const &>(*this), dict),
-
-			tags_(*this)
-	{
-		Load(dict);
-	}
-
+	RectMesh(const this_type&) = delete;
 	this_type & operator=(const this_type&) = delete;
-
-//	void swap(this_type & rhs)
-//	{
-//		topology_type::swap(rhs);
-//		geometry_type::swap(rhs);
-//	}
-
-	template<typename TDict>
-	void Load(TDict const & dict)
-	{
-	}
-
-	std::ostream & Save(std::ostream &os) const
-	{
-		return os;
-	}
-
-	void Update()
-	{
-
-	}
 
 	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
 	}
 
+	void Load()
+	{
+	}
+
+	template<typename ... Args>
+	void Load(Args const &... args)
+	{
+		topology_type::Load(std::forward<Args const &>(args)...);
+		geometry_type::Load(std::forward<Args const &>(args)...);
+	}
+
+	std::ostream & Save(std::ostream &os) const
+	{
+		topology_type::Save(os);
+		geometry_type::Save(os);
+		return os;
+	}
+
+	void Update()
+	{
+		topology_type::Update();
+		geometry_type::Update();
+	}
+
 	//***************************************************************************************************
 	//*	Miscellaneous
 	//***************************************************************************************************
-
-	typedef Real scalar_type;
-
 	//* Container: storage depend
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
 	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
-		return (MEMPOOL.allocate_shared_ptr < TV > (GetNumOfElements(iform)));
+		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
 	PhysicalConstants constants_;
@@ -244,26 +257,6 @@ public:
 	PhysicalConstants const & constants()const
 	{
 		return constants_;
-	}
-	//* Media Tags
-
-	MediaTag<this_type> tags_;
-
-	typedef typename MediaTag<this_type>::tag_type tag_type;
-	MediaTag<this_type> & tags()
-	{
-		return tags_;
-	}
-	MediaTag<this_type> const& tags() const
-	{
-
-		return tags_;
-	}
-
-	nTuple<NDIMS,Real> dx_;
-	nTuple<NDIMS,Real> const & GetDx()const
-	{
-		return dx_;
 	}
 
 	//* Time
@@ -286,7 +279,7 @@ public:
 	}
 	inline Real GetDt() const
 	{
-		CheckCourant();
+		CHECK(CheckCourant());
 		return dt_;
 	}
 
@@ -313,6 +306,8 @@ public:
 		dt_ *= a / CheckCourant();
 	}
 
+	//***************************************************************************************************
+	// Cell-wise operation
 	//***************************************************************************************************
 
 	template<int IFORM, typename TV>
@@ -346,16 +341,16 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto d = _D( s );
+		auto d = topology_type::_D( s );
 		return (f[s + d] - f[s - d]);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = _D(_I(s));
-		auto Y = _R(X);
-		auto Z = _RR(X);
+		auto X = topology_type::_D(topology_type::_I(s));
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(X);
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
@@ -363,9 +358,9 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
@@ -379,18 +374,18 @@ public:
 	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const->decltype(f[s]-f[s])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = _D(s);
-		auto Y = _R(X);
-		auto Z = _RR(X);
+		auto X = topology_type::_D(s);
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(X);
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
@@ -398,7 +393,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto d = _D( _I(s) );
+		auto d = topology_type::_D( topology_type::_I(s) );
 
 		return (f[s + d] - f[s - d]);
 	}
@@ -414,7 +409,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _D(s);
+		auto X = topology_type::_D(s);
 		return
 		(
 
@@ -428,9 +423,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _D(_I(s));
-		auto Y = _R(X);
-		auto Z = _RR(X);
+		auto X = topology_type::_D(topology_type::_I(s));
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(X);
 
 		return (
 
@@ -448,9 +443,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _DI >> (H(s) + 1);
-		auto Y = _DJ >> (H(s) + 1);
-		auto Z = _DK >> (H(s) + 1);
+		auto X = topology_type::_DI >> (topology_type::H(s) + 1);
+		auto Y = topology_type::_DJ >> (topology_type::H(s) + 1);
+		auto Z = topology_type::_DK >> (topology_type::H(s) + 1);
 
 		return (
 
@@ -476,15 +471,15 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = _D(s );
+		auto X = topology_type::_D(s );
 		return l[s]*(r[s-X]+r[s+X])*0.5;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = _D(_R(_I(s)) );
-		auto Z = _D(_RR(_I(s)));
+		auto Y = topology_type::_D(topology_type::_R(topology_type::_I(s)) );
+		auto Z = topology_type::_D(topology_type::_RR(topology_type::_I(s)));
 
 		return (
 
@@ -504,9 +499,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
 	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 
 		return
 
@@ -564,8 +559,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
 	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y =_D( _R(_I(s)) );
-		auto Z =_D( _RR(_I(s)) );
+		auto Y =topology_type::_D( topology_type::_R(topology_type::_I(s)) );
+		auto Z =topology_type::_D( topology_type::_RR(topology_type::_I(s)) );
 
 		return
 		l[s]*(
@@ -581,9 +576,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &r,
 	Field<this_type, EDGE, TR> const &l, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 
 		return
 
@@ -641,9 +636,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
 	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(r[s]*l[s])
 	{
-		auto X = _DI >> (H(s) + 1);
-		auto Y = _DJ >> (H(s) + 1);
-		auto Z = _DK >> (H(s) + 1);
+		auto X = topology_type::_DI >> (topology_type::H(s) + 1);
+		auto Y = topology_type::_DJ >> (topology_type::H(s) + 1);
+		auto Z = topology_type::_DK >> (topology_type::H(s) + 1);
 
 		return
 
@@ -673,9 +668,9 @@ public:
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
 	index_type s) const-> decltype(f[s]+f[s])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 
 		return
 
@@ -706,9 +701,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, EDGE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		auto X = (_DI >> (H(s) + 1));
-		auto Y = (_DJ >> (H(s) + 1));
-		auto Z = (_DK >> (H(s) + 1));
+		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
+		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
+		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 
 		return
 
@@ -722,11 +717,11 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, FACE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		unsigned int n = _C(s);
+		unsigned int n = topology_type::_C(s);
 
-		auto X = _D(s);
-		auto Y = _R(X);
-		auto Z = _RR(Y);
+		auto X = topology_type::_D(s);
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(Y);
 		return
 
 		(f[s + Y] + f[s - Y]) * 0.5 * v[(n + 2) % 3] -
@@ -737,18 +732,17 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
 	Field<this_type, VOLUME, TL> const & f, index_type s)const->decltype(f[s]*v[0])
 	{
-		unsigned int n = _C(_I(s));
-		unsigned int D = _D( _I(s));
+		unsigned int n = topology_type::_C(topology_type::_I(s));
+		unsigned int D = topology_type::_D(topology_type::_I(s));
 
 		return (f[s + D] - f[s - D]) * 0.5 * v[n];
 	}
 
 };
-template<template<typename > class TMertic> inline std::ostream &
-operator<<(std::ostream & os, RectMesh<TMertic> const & d)
+template<typename TTopology, template<typename > class TGeo> inline std::ostream &
+operator<<(std::ostream & os, RectMesh<TTopology, TGeo> const & d)
 {
-	d.Save(os);
-	return os;
+	return d.Save(os);
 }
 }
 // namespace simpla

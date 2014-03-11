@@ -129,10 +129,29 @@ struct OcForest
 
 	this_type & operator=(const this_type&) = delete;
 
+	OcForest(const this_type&) = delete;
+
 	void swap(OcForest & rhs)
 	{
 		std::swap(dims_, rhs.dims_);
 		std::swap(_MASK, rhs._MASK);
+	}
+
+	template<typename TDict>
+	void Load(TDict const & dict)
+	{
+
+	}
+
+	std::ostream & Save(std::ostream &os) const
+	{
+
+		return os;
+	}
+
+	void Update()
+	{
+
 	}
 
 	struct index_type
