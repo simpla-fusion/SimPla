@@ -76,7 +76,7 @@ struct EuclideanSpace
 
 	}
 
-	std::ostream & Save(std::ostream & os)const
+	std::ostream & Save(std::ostream & os) const
 	{
 		return os;
 	}
@@ -86,6 +86,12 @@ struct EuclideanSpace
 	coordinates_type xmax_ = { 1, 1, 1 };
 
 	coordinates_type inv_L = { 1.0, 1.0, 1.0 };
+
+	coordinates_type scale_ = { 1.0, 1.0, 1.0 };
+
+	coordinates_type inv_scale_ = { 1.0, 1.0, 1.0 };
+
+	coordinates_type shift_ = { 0, 0, 0 };
 
 	static constexpr nTuple<NDIMS, Real> normal_[NDIMS] = {
 
@@ -116,13 +122,13 @@ struct EuclideanSpace
 		{
 			xmin_[i] = pmin[i];
 			xmax_[i] = pmax[i];
+
+			shift_[i] = pmin[i];
+
+			scale_[i] = (pmax[i] > pmin[i]) ? (1.0 / (pmax[i] - pmin[i])) : 0;
+			inv_scale_[i] = (pmax[i] - pmin[i]);
 		}
 
-		for (int i = n; i < NDIMS; ++i)
-		{
-			xmin_[i] = 0;
-			xmax_[i] = 0;
-		}
 	}
 
 	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
@@ -164,13 +170,30 @@ struct EuclideanSpace
 	}
 	coordinates_type Trans(coordinates_type const &x) const
 	{
-		return x;
+		return coordinates_type( {
+
+		(x[0] - shift_[0]) * scale_[0],
+
+		(x[0] - shift_[1]) * scale_[1],
+
+		(x[0] - shift_[2]) * scale_[2]
+
+		});
 	}
 	coordinates_type InvTrans(coordinates_type const &x) const
 	{
-		return x;
+		return coordinates_type( {
+
+		x[0] * inv_scale_[0] + shift_[0],
+
+		x[1] * inv_scale_[1] + shift_[1],
+
+		x[2] * inv_scale_[2] + shift_[2]
+
+		});
 	}
-};
+}
+;
 
 class OcForest;
 /**
@@ -305,6 +328,9 @@ public:
 	{
 		dt_ *= a / CheckCourant();
 	}
+
+	inline auto GetExtent() const
+	DECL_RET_TYPE(geometry_type::GetExtent())
 
 	//***************************************************************************************************
 	// Cell-wise operation

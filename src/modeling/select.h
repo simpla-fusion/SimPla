@@ -49,28 +49,32 @@ void SelectFromMesh(TM const &mesh,
         std::vector<typename TM::coordinates_type> const & points)
 {
 
-	if (points.size() == 1)
-	{
-//		typename TM::index_type idx = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(),
-//		        mesh.GetIndex(points[0]));
+//	if (points.size() == 1)
+//	{
+////		typename TM::index_type idx = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(),
+////		        mesh.GetIndex(points[0]));
+////
+////		SelectFromMesh<IFORM>(mesh, op, [idx](typename TM::index_type s )->bool
+////		{	return (s==idx);});
 //
-//		SelectFromMesh<IFORM>(mesh, op, [idx](typename TM::index_type s )->bool
-//		{	return (s==idx);});
+//	}
+//	else
 
-	}
-	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
+	if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
 		typename TM::coordinates_type v0 = points[0];
 		typename TM::coordinates_type v1 = points[1];
 
-		SelectFromMesh<IFORM>(mesh, op,
+		mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
+		{	auto x=mesh.GetCoordinates(s);
 
-		[v0,v1](typename TM::index_type s, typename TM::coordinates_type x )->bool
-		{
-			return (((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
-			(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
-			(((v0[2]-x[2])*(x[2]-v1[2]))>=0);
-
+			if( (((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
+					(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
+					(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
+			)
+			{
+				op(s,x);
+			}
 		});
 	}
 	else if (points.size() >= 4)

@@ -102,22 +102,28 @@ public:
 ;
 
 template<typename TField, typename TDict>
-static std::function<void(TField *)> CreateConstraint(typename TField::mesh_type const & mesh, TDict const & dict)
+static std::function<void(TField *)> CreateConstraint(MediaTag<typename TField::mesh_type> const & tags,
+        TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)
 	{};
 
+	typedef typename TField::mesh_type mesh_type;
+
+	mesh_type const & mesh = tags.mesh;
+
 	std::shared_ptr<Constraint<TField>> self(new Constraint<TField>(mesh));
 
-	typedef typename TField::mesh_type::index_type index_type;
-	typedef typename TField::mesh_type::coordinates_type coordinates_type;
+	typedef typename mesh_type::index_type index_type;
+
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	if (dict["Select"])
 	{
-//		tags.template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x)
-//		{	self->GetDefDomain().push_back(s );},
-//
-//		dict["Select"]);
+		tags.template Select<TField::IForm>([&](index_type const &s ,coordinates_type const &x)
+		{	self->GetDefDomain().push_back(s );},
+
+		dict["Select"]);
 	}
 	else if (dict["Region"])
 	{

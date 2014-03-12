@@ -71,8 +71,9 @@ struct OcForest
 	 *  |00000000000|11111111111111|11111111111| <=_MASK
 	 *
 	 */
-	static constexpr double dh = 1.0 / static_cast<double>(1UL << (INDEX_DIGITS + 1));
+
 	static constexpr double idh = static_cast<double>(1UL << (INDEX_DIGITS + 1));
+	static constexpr double dh = 1.0 / idh;
 
 	static constexpr compact_index_type _DI = 1UL << (D_FP_POS + 2 * INDEX_DIGITS);
 	static constexpr compact_index_type _DJ = 1UL << (D_FP_POS + INDEX_DIGITS);
@@ -101,6 +102,10 @@ struct OcForest
 	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
+
+	nTuple<NDIMS, Real> extent_ = { 1, 1, 1 };
+
+	nTuple<NDIMS, Real> inv_extent_ = { 1, 1, 1 };
 
 	compact_index_type _MASK;
 
@@ -239,6 +244,13 @@ struct OcForest
 			strides_[2] = 1;
 			strides_[1] = dims_[2];
 			strides_[0] = dims_[1] * strides_[1];
+		}
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			extent_[i] = (dims_[i] > 1) ? (1.0 / static_cast<double>(dims_[i] << D_FP_POS)) : 0;
+
+			inv_extent_[i] = (dims_[i] > 1) ? (1.0 / extent_[i]) : 0;
 		}
 
 //		CHECK(carray_digits_);
@@ -518,23 +530,14 @@ struct OcForest
 
 //***************************************************************************************************
 
-	nTuple<3, size_type>
-	const & GetDimensions() const
+	nTuple<NDIMS, size_type> const & GetDimensions() const
 	{
 		return dims_;
 	}
-//	nTuple<3, Real> GetExtent() const
-//	{
-//		return nTuple<3, Real>( {
-//
-//		(dims_[0] << D_FP_POS) * dh,
-//
-//		(dims_[1] << D_FP_POS) * dh,
-//
-//		(dims_[2] << D_FP_POS) * dh
-//
-//		});
-//	}
+	nTuple<NDIMS, Real> const & GetExtent() const
+	{
+		return extent_;
+	}
 	size_type GetNumOfElements(int IFORM = VERTEX) const
 	{
 		return dims_[0] * dims_[1] * dims_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
@@ -583,11 +586,11 @@ struct OcForest
 
 		return nTuple<3, Real>( {
 
-		static_cast<Real>(I(s)) * dh,
+		static_cast<Real>(I(s)) * extent_[0],
 
-		static_cast<Real>(J(s)) * dh,
+		static_cast<Real>(J(s)) * extent_[1],
 
-		static_cast<Real>(K(s)) * dh
+		static_cast<Real>(K(s)) * extent_[2]
 
 		});
 
@@ -624,7 +627,7 @@ struct OcForest
 
 	size_type J(index_type s) const
 	{
-		return H(s.d);
+		return J(s.d);
 	}
 	size_type K(compact_index_type s) const
 	{

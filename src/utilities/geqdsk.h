@@ -71,27 +71,37 @@ public:
 
 	GEqdsk(std::string const &fname = "")
 	{
-		Read(fname);
+
 	}
 
 	~GEqdsk()
 	{
 
-		LOGGER << Dump(psirz_.data(), "psi", 2, &dims_[0]);
-
-		size_t num = rzbbb_.size();
-
-		LOGGER << Dump(&rzbbb_[0], "rzbbb", 1, &num);
-
-		num = rzlim_.size();
-
-		LOGGER << Dump(&rzlim_[0], "rzlim", 1, &num);
 	}
 
 	enum
 	{
 		XDMF = 1, HDF5 = 2
 	};
+
+	void Load(std::string const & fname)
+	{
+		Read(fname);
+	}
+	std::ostream & Save(std::ostream & os) const
+	{
+		os << Dump(psirz_.data(), "psi", 2, &dims_[0]);
+
+		size_t num = rzbbb_.size();
+
+		os << Dump(&rzbbb_[0], "rzbbb", 1, &num);
+
+		num = rzlim_.size();
+
+		os << Dump(&rzlim_[0], "rzlim", 1, &num);
+
+		return os;
+	}
 
 	void Read(std::string const &fname);
 

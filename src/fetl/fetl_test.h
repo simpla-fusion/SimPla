@@ -18,8 +18,7 @@
 
 #include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
+
 #define DEF_MESH RectMesh<OcForest>
-
-
 
 #endif /* FETL_TEST_H_ */

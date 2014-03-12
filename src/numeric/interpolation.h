@@ -199,7 +199,10 @@ public:
 	{
 		return data_;
 	}
-
+	const std::shared_ptr<value_type> data() const
+	{
+		return data_;
+	}
 	void Update()
 	{
 

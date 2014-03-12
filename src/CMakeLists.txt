@@ -16,4 +16,5 @@ ADD_SUBDIRECTORY( io)
 ADD_SUBDIRECTORY( mesh  )
 
 
+ADD_SUBDIRECTORY( modeling  )
     

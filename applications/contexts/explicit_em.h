@@ -30,7 +30,7 @@
 #include "../../src/io/data_stream.h"
 
 // Modeling
-#include "../../src/modeling/media_tag.h"
+#include "../../src/modeling/material.h"
 #include "../../src/utilities/geqdsk.h"
 
 // Physical solver
@@ -71,7 +71,7 @@ public:
 
 	std::string description;
 
-	MediaTag<mesh_type> tags_;
+	Material<mesh_type> tags_;
 	bool isCompactStored_;
 
 	Form<EDGE> E, dE;
@@ -234,15 +234,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dof == "E")
 		{
-			constraintToE_.push_back(CreateConstraint<TE>(mesh, item.second));
+			constraintToE_.push_back(CreateConstraint<TE>(tags_, item.second));
 		}
 		else if (dof == "B")
 		{
-			constraintToB_.push_back(CreateConstraint<TB>(mesh, item.second));
+			constraintToB_.push_back(CreateConstraint<TB>(tags_, item.second));
 		}
 		else if (dof == "J")
 		{
-			constraintToJ_.push_back(CreateConstraint<TJ>(mesh, item.second));
+			constraintToJ_.push_back(CreateConstraint<TJ>(tags_, item.second));
 		}
 		else
 		{
