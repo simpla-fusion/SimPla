@@ -49,18 +49,18 @@ void SelectFromMesh(TM const &mesh,
         std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
-//	if (points.size() == 1)
-//	{
-////		typename TM::index_type idx = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(),
-////		        mesh.GetIndex(points[0]));
-////
-////		SelectFromMesh<IFORM>(mesh, op, [idx](typename TM::index_type s )->bool
-////		{	return (s==idx);});
-//
-//	}
-//	else
+	if (points.size() == 1)
+	{
+		typename TM::index_type idxs[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
+		int n = mesh.template GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), mesh.GetIndex(points[0]), idxs);
 
-	if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
+		for (int i = 0; i < n; ++i)
+		{
+			op(idxs[i], mesh.GetCoordinates(idxs[i]));
+		}
+
+	}
+	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
 		typename TM::coordinates_type v0 = points[0];
 		typename TM::coordinates_type v1 = points[1];
@@ -105,10 +105,10 @@ void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
         std::vector<typename TM::index_type> const & idxs)
 {
-	int M = mesh.template GetNumCompsPerCell<IFORM>();
+
 	for (auto const & s : idxs)
 	{
-		op(s, mesh.GetCoordinates(IFORM, s));
+		op(s, mesh.GetCoordinates(s));
 	}
 
 }
@@ -118,11 +118,11 @@ void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
         std::vector<nTuple<TM::NUM_OF_DIMS, size_t>> const & idxs)
 {
-	int M = mesh.template GetNumCompsPerCell<IFORM>();
+
 	for (auto const & s : idxs)
 	{
-		for (int m = 0; m < M; ++m)
-			op(mesh.GetComponentIndex(IFORM, m, s[0], s[1], s[2]), mesh.GetCoordinates(IFORM, m, s[0], s[1], s[2]));
+		auto idx = mesh.GetIndex(IFORM, s);
+		op(idx, mesh.GetCoordinates(idx));
 	}
 
 }
@@ -134,19 +134,25 @@ void SelectFromMesh(TM const &mesh,
 	if (dict.is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;
+
 		dict.as(&points);
+
 		SelectFromMesh<IFORM>(mesh, op, points);
 
 	}
 	else if (dict.is_function())
 	{
-		std::vector<typename TM::coordinates_type> points;
-		dict.as(&points);
-		SelectFromMesh<IFORM>(mesh, op,
 
-		[&]( typename TM::index_type ,typename TM::coordinates_type x)->bool
+		mesh.template Traversal<IFORM>(
+
+		[&](typename TM:: index_type s )
 		{
-			return dict(x[0],x[1],x[2]).template as<bool>();
+			auto x=mesh.GetCoordinates(s);
+
+			if( dict(x[0],x[1],x[2]).template as<bool>())
+			{
+				op(s,x);
+			}
 		});
 	}
 
