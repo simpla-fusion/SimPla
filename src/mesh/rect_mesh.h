@@ -44,14 +44,14 @@ struct EuclideanSpace
 
 	EuclideanSpace(this_type const & rhs) = delete;
 
-	EuclideanSpace(topology_type const & t)
-			: topology(t)
+	EuclideanSpace(topology_type const & t) :
+			topology(t)
 	{
 
 	}
 	template<typename TDict>
-	EuclideanSpace(topology_type const & t, TDict const & dict)
-			: topology(t)
+	EuclideanSpace(topology_type const & t, TDict const & dict) :
+			topology(t)
 	{
 
 	}
@@ -81,19 +81,26 @@ struct EuclideanSpace
 		return os;
 	}
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	coordinates_type xmax_ =
+	{ 1, 1, 1 };
 
-	coordinates_type inv_L = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_L =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type scale_ = { 1.0, 1.0, 1.0 };
+	coordinates_type scale_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type inv_scale_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_scale_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type shift_ =
+	{ 0, 0, 0 };
 
-	static constexpr nTuple<NDIMS, Real> normal_[NDIMS] = {
+	static constexpr nTuple<NDIMS, Real> normal_[NDIMS] =
+	{
 
 	1, 0, 0,
 
@@ -103,8 +110,39 @@ struct EuclideanSpace
 
 	};
 
-	Real volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	/**
+	 *
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *
+	 */
+
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<NDIMS, Real> dx_;
 
@@ -118,6 +156,8 @@ struct EuclideanSpace
 	{
 		int n = IN < NDIMS ? IN : NDIMS;
 
+		auto const & dims = topology.GetDimensions();
+
 		for (int i = 0; i < n; ++i)
 		{
 			xmin_[i] = pmin[i];
@@ -125,9 +165,44 @@ struct EuclideanSpace
 
 			shift_[i] = pmin[i];
 
-			scale_[i] = (pmax[i] > pmin[i]) ? (1.0 / (pmax[i] - pmin[i])) : 0;
-			inv_scale_[i] = (pmax[i] - pmin[i]);
+			scale_[i] = (pmax[i] > pmin[i]) ? ((static_cast<Real>(dims[i])) / (pmax[i] - pmin[i])) : 0;
+			inv_scale_[i] = (pmax[i] - pmin[i]) / (static_cast<Real>(dims[i]));
 		}
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^    /
+		 *        |  110-------------111
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *       100--|----------101  |
+		 *        | m |           |   |
+		 *        |  010----------|--011
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 *       000-------------001---> x
+		 *
+		 *
+		 */
+
+		volume_[0] = 1;
+		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) : 1;
+		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) : 1;
+		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) : 1;
+
+		volume_[3] /* 011 */= volume_[1] * volume_[2];
+		volume_[5] /* 101 */= volume_[4] * volume_[1];
+		volume_[6] /* 110 */= volume_[4] * volume_[2];
+
+		volume_[7] /* 010 */= volume_[1] * volume_[2] * volume_[2];
+
+		for (int i = 0; i < 8; ++i)
+			inv_volume_[i] = 1.0 / volume_[i];
 
 	}
 
@@ -138,7 +213,8 @@ struct EuclideanSpace
 
 	inline coordinates_type GetCoordinates(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
 
@@ -160,17 +236,18 @@ struct EuclideanSpace
 		return v[topology.topology_type::_C(s)];
 	}
 
-	Real const& Volume(index_type s) const
+	Real Volume(index_type s) const
 	{
-		return volume_[topology._N(s)];
+		return topology.Volume(s) * volume_[topology._N(s)];
 	}
-	Real const& InvVolume(index_type s) const
+	Real InvVolume(index_type s) const
 	{
-		return inv_volume_[topology._N(s)];
+		return topology.InvVolume(s) * inv_volume_[topology._N(s)];
 	}
 	coordinates_type Trans(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		(x[0] - shift_[0]) * scale_[0],
 
@@ -182,7 +259,8 @@ struct EuclideanSpace
 	}
 	coordinates_type InvTrans(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		x[0] * inv_scale_[0] + shift_[0],
 
@@ -218,8 +296,8 @@ public:
 	typedef typename topology_type::index_type index_type;
 
 	template<typename ... Args>
-	RectMesh(Args const &... args)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(Args const &... args) :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
