@@ -20,14 +20,23 @@ namespace simpla
 class PointInPolygen
 {
 
-	std::vector<nTuple<2, double> > const &polygen_;
+	std::vector<nTuple<2, double> > polygen_;
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	PointInPolygen(std::vector<nTuple<2, Real> > const &polygen)
-			: polygen_(polygen), num_of_vertex_(polygen.size()), constant_(num_of_vertex_), multiple_(num_of_vertex_)
+	template<int N>
+	PointInPolygen(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
+			: num_of_vertex_(0)
 	{
+
+		for (auto const & v : polygen)
+		{
+			polygen_.emplace_back(nTuple<2, Real>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
+		}
+		num_of_vertex_ = polygen_.size();
+		constant_.resize(num_of_vertex_);
+		multiple_.resize(num_of_vertex_);
 
 		for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
 		{

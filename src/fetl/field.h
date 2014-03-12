@@ -37,7 +37,7 @@ public:
 
 	typedef TM mesh_type;
 
-	static constexpr int IForm = IFORM;
+	static constexpr unsigned int IForm = IFORM;
 
 	typedef TValue value_type;
 

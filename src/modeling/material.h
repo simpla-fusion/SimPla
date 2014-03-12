@@ -261,12 +261,12 @@ public:
 	template<typename ...Args> inline
 	void Remove(std::string material, Args const & ... args)
 	{
-		Set(GetMaterialFromString(material), std::forward<Args const &>(args)...);
+		Set(~GetMaterialFromString(material), std::forward<Args const &>(args)...);
 	}
 	template<typename ...Args> inline
 	void Remove(unsigned int material, Args const & ... args)
 	{
-		Set(GetMaterialFromNumber(material), std::forward<Args const &>(args)...);
+		Set(~GetMaterialFromNumber(material), std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -314,7 +314,7 @@ public:
 		_UpdateMaterials<VOLUME>();
 	}
 
-	typedef std::function<void(index_type const &, coordinates_type const &)> Fun;
+	typedef std::function<void(index_type, coordinates_type)> Fun;
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -351,7 +351,7 @@ private:
 	{
 		Init();
 
-		SelectFromMesh<VERTEX>(mesh, [&]( index_type const &s,coordinates_type const & )
+		SelectFromMesh<VERTEX>(mesh, [&]( index_type s,coordinates_type )
 		{	fun( material_[VERTEX][mesh.Hash(s)]);}, std::forward<Args const&>(args)...);
 	}
 
@@ -362,7 +362,7 @@ private:
 
 		mesh.template Traversal<I>(
 
-		[&](index_type const & s )
+		[&](index_type s )
 		{
 			index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 

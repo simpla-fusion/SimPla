@@ -46,7 +46,7 @@ void SelectFromMesh(TM const &mesh,
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh,
         std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
-        std::vector<typename TM::coordinates_type> const & points)
+        std::vector<typename TM::coordinates_type> const & points, unsigned int Z = 2)
 {
 
 //	if (points.size() == 1)
@@ -77,9 +77,21 @@ void SelectFromMesh(TM const &mesh,
 			}
 		});
 	}
-	else if (points.size() >= 4)
+	else if (Z < 3 && points.size() > 2) //select points in polyline
 	{
-		UNIMPLEMENT << " select points in a closed surface";
+
+		PointInPolygen checkPointsInPolygen(points, Z);
+
+		mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
+		{
+			auto x=mesh.GetCoordinates(s);
+
+			if( checkPointsInPolygen(x[(Z+1)%3],x[(Z+2)%3]))
+			{
+				op(s,x);
+			}
+		});
+
 	}
 	else
 	{
@@ -111,31 +123,6 @@ void SelectFromMesh(TM const &mesh,
 	{
 		for (int m = 0; m < M; ++m)
 			op(mesh.GetComponentIndex(IFORM, m, s[0], s[1], s[2]), mesh.GetCoordinates(IFORM, m, s[0], s[1], s[2]));
-	}
-
-}
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
-        std::vector<nTuple<2, Real>> const & points, unsigned int Z = 2)
-{
-
-	if (Z < 3 && points.size() > 2) //select points in polyline
-	{
-
-		PointInPolygen checkPointsInPolygen(points);
-
-		SelectFromMesh<IFORM>(mesh, op,
-
-		[&](typename TM::index_type s, typename TM::coordinates_type x )->bool
-		{
-			return checkPointsInPolygen(x[(Z+1)%3],x[(Z+2)%3]);
-		});
-
-	}
-	else
-	{
-		ERROR << "Illegal input";
 	}
 
 }

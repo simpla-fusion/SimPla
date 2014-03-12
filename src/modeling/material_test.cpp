@@ -7,8 +7,8 @@
 #include <gtest/gtest.h>
 #include <random>
 #include <string>
-//#include "../io/data_stream.h"
-//#include "../fetl/save_field.h"
+#include "../io/data_stream.h"
+#include "../fetl/save_field.h"
 
 #include "material.h"
 #include "../mesh/rect_mesh.h"
@@ -142,5 +142,18 @@ TYPED_TEST(TestMaterial,create ){
 
 	);
 
+	v.emplace_back(coordinates_type(
+					{	0.3*extent.second[0], 0.6*extent.second[1], 0.2*extent.first[2]}));
+
+	material.Remove("Plasma",v );
+
+	f.Clear();
+
+	material.template SelectCell<TestFixture::IForm>(
+			[&](index_type const & s ,coordinates_type const & x)
+			{	f[s]=1;},"Plasma" );
+	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+	std::cout<<Dump(f,"f" ,false)<<std::endl;
 }
 }
