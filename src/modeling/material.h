@@ -328,12 +328,19 @@ public:
 	void SelectBoundary(Fun const &fun, material_type in, material_type out) const;
 
 	template<int IFORM>
-	void SelectCell(Fun const &fun, std::string const & material) const
+	void SelectBoundary(Fun const &fun, std::string const & in, std::string const & out) const
 	{
-		SelectCell<IFORM>(fun, GetMaterialFromString(material));
+		SelectBoundary<IFORM>(fun, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
+
 	template<int IFORM>
-	void SelectCell(Fun const &fun, material_type material) const;
+	void SelectCell(Fun const &fun, material_type) const;
+
+	template<int IFORM>
+	void SelectCell(Fun const &fun, std::string const & m) const
+	{
+		SelectCell<IFORM>(fun, GetMaterialFromString(m));
+	}
 
 	template<int IFORM, typename TDict>
 	void Select(Fun const &fun, TDict const & dict) const;

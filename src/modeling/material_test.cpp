@@ -149,11 +149,23 @@ TYPED_TEST(TestMaterial,create ){
 
 	f.Clear();
 
+	material.Update();
+
+	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+
 	material.template SelectCell<TestFixture::IForm>(
 			[&](index_type const & s ,coordinates_type const & x)
 			{	f[s]=1;},"Plasma" );
-	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
+
+	material.template SelectBoundary<TestFixture::IForm>(
+			[&](index_type const & s ,coordinates_type const & x)
+			{	f[s]=10;},"Plasma" ,"NONE");
+
+//	material.template SelectBoundary<TestFixture::IForm>(
+//			[&](index_type const & s ,coordinates_type const & x)
+//			{	f[s]=-10;},"Vacuum","Plasma" );
+
 	std::cout<<Dump(f,"f" ,false)<<std::endl;
 }
 }

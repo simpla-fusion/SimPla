@@ -543,6 +543,22 @@ struct OcForest
 		return dims_[0] * dims_[1] * dims_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 
+	inline std::vector<size_type> GetShape(int IFORM) const
+	{
+		std::vector<size_type> res;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (dims_[i] > 1)
+				res.push_back(dims_[i]);
+		}
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			res.push_back(3);
+		}
+
+		return std::move(res);
+	}
 	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned long h = 0) const
 	{
 		return index_type( {

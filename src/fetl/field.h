@@ -101,6 +101,9 @@ public:
 		std::swap(data_, rhs.data_);
 	}
 
+	auto GetShape() const
+	DECL_RET_TYPE(mesh.GetShape( IForm ))
+
 	container_type & data()
 	{
 		return data_;
