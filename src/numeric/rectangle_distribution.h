@@ -85,8 +85,8 @@ public:
 		}
 	}
 private:
-	nTuple<NDIM, double> xmin_;
-	nTuple<NDIM, double> xmax_;
+	nTuple<NDIM, double> xmin_ = { 0, 0, 0 };
+	nTuple<NDIM, double> xmax_ = { 1, 1, 1 };
 	nTuple<NDIM, double> l_;
 
 };

@@ -114,7 +114,7 @@ Grid=
   UnitSystem={Type="SI"},
   Topology=
   {       
-      Type="3DCoRectMesh",
+      Type="RectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
       
   },

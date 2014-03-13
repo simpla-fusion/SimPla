@@ -102,9 +102,9 @@ public:
 
 	//***************************************************************************************************
 
-	template<typename ...Args> inline void Insert(size_t s, Args const & ...args)
+	inline void Insert(index_type s, typename engine_type::Point_s && p)
 	{
-		data_[s].emplace_back(engine_type::Trans(std::forward<Args const &>(args)...));
+		data_[mesh.Hash(s)].emplace_back(p);
 	}
 
 	cell_type & operator[](size_t s)
@@ -126,16 +126,16 @@ public:
 
 	std::ostream & Save(std::ostream & os) const;
 
-	//***************************************************************************************************
-	template<typename TFun, typename ... Args>
-	void Function(TFun &fun, Args const& ... args) const;
+	void Update()
+	{
+//		Engine::Update();
+	}
 
-	template<typename TFun, typename ... Args>
-	void Function(TFun &fun, Args const& ... args);
+	//***************************************************************************************************
 
 	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
 
-	template<typename TJ, typename ... Args> void Collect(TJ * J, Args const & ... args) const;
+	template<typename TJ, typename ... Args> void Scatter(TJ * J, Args const & ... args) const;
 
 	void Sort();
 
@@ -143,10 +143,8 @@ public:
 	{
 		UNIMPLEMENT;
 	}
-
-	template<typename ... Args>
-	void Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-	        Args const& ... args);
+	template<typename TMaterialTag, typename ... Args>
+	void Boundary(int flag, TMaterialTag in, TMaterialTag out, Real dt, Args const &... args);
 
 	template<typename ... Args> void Collide(Args const& ... args);
 
@@ -351,79 +349,39 @@ void Particle<Engine>::Sort()
 
 	Initiallize();
 
-	if (IsSorted())
-		return;
-
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-
-	try
-	{
-
-		std::vector<std::thread> threads;
-
-		for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-		{
-			threads.emplace_back(std::thread(
-
-			[this](unsigned int t_num,unsigned int t_id )
-			{
-				this->mesh._Traversal(t_num, t_id, this->IForm,
-						[this,t_id](index_type const &src)
-						{	Resort(src,&(this->mt_data_[t_id]));});
-			}
-
-			, num_threads, thread_id)
-
-			);
-		}
-
-		for (auto & t : threads)
-		{
-			t.join();
-		}
-
-	} catch (std::exception const & e)
-	{
-		ERROR << e.what();
-
-	}
-
-	try
-	{
-		std::vector<std::thread> threads2;
-
-		for (int thread_id = 0; thread_id < num_threads; ++thread_id)
-		{
-			threads2.emplace_back(std::thread(
-
-			[this]( int t_num, int t_id)
-			{
-				this->mesh._Traversal(t_num, t_id, this->IForm,
-
-						[&](index_type const &s)
-						{
-							for (int i = 0; i < t_num; ++i)
-							{
-								this->data_[s].splice(this->data_[s].begin(),this->mt_data_[i][s] );
-							}
-						}
-				);
-
-			}
-
-			, num_threads, thread_id));
-		}
-
-		for (auto & t : threads2)
-		{
-			t.join();
-		}
-	} catch (std::exception const & e)
-	{
-		ERROR << e.what();
-	}
-
-	isSorted_ = true;
+//	if (IsSorted())
+//		return;
+//	try
+//	{
+//		mesh.template Trversal<IForm>(
+//
+//		[&](index_type const &s, container_type * d)
+//		{
+//
+//			Resort(s,d);
+//		}, &(this->mt_data_[0]))
+//
+//		);
+//
+//		mesh.template Trversal<IForm>(
+//
+//		[&](index_type ss )
+//		{
+//
+//			auto s=mesh.Hash(ss);
+//
+//			this->data_[s].splice(this->data_[s].begin(),this->mt_data_[i][s] );
+//
+//		}
+//
+//		);
+//
+//	} catch (std::exception const & e)
+//	{
+//		ERROR << e.what();
+//	}
+//
+//	isSorted_ = true;
 }
 
 template<class Engine>
@@ -440,39 +398,17 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	NextTimeStep(dt, std::forward<Args const&>(args) ...);
 
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+	mesh.template Traversal<IForm>(
 
-	std::vector<std::thread> threads;
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	[&](index_type const &s, Args const & ... args2)
 	{
-		threads.emplace_back(std::thread(
-
-		[this,num_threads, thread_id,dt]( Cache<const Args> ... args_c2)
+		for (auto & p : this->data_[mesh.Hash(s)])
 		{
-			this->mesh._Traversal(num_threads, thread_id, this->IForm,
+			engine_type::NextTimeStep(&p, dt, args2...);
+		}
+	}, std::forward<Args const &>(args)...
 
-					[&](index_type const &s)
-					{
-
-						for (auto & p : this->data_[s])
-						{
-							RefreshCache(s,args_c2...);
-
-							engine_type::NextTimeStep(&p, dt, *args_c2...);
-						}
-					}
-			);
-
-		},
-
-		Cache<const Args >(args , engine_type::GetAffectedRegion())...));
-	}
-
-	for (auto & t : threads)
-	{
-		t.join();
-	}
+	);
 
 	isSorted_ = false;
 
@@ -484,7 +420,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 template<class Engine>
 template<typename TJ, typename ...Args>
-void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
+void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
 	{
@@ -495,161 +431,75 @@ void Particle<Engine>::Collect(TJ * J, Args const & ... args) const
 	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+	mesh.template Traversal<IForm>(
 
-	std::vector<std::thread> threads;
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	[&](index_type s,TJ * J2,Args const & ... args2)
 	{
 
-		/***
-		 *  @NOTICE std::thread  accept parameter by VALUE!!!
-		 *     NOT by REFERENCE!!!!
-		 */
-
-		threads.emplace_back(
-
-		std::thread(
-
-		[this,num_threads, thread_id]( Cache<TJ*> J_c2, Cache<const Args> ... args_c2)
+		for (auto const& p : this->data_[mesh.Hash(s)])
 		{
-
-			this->mesh._Traversal(num_threads, thread_id, this->IForm,
-
-					[&](index_type const &s)
-					{
-						RefreshCache(s,J_c2,args_c2...);
-
-						for (auto const& p : this->data_[s])
-						{
-							engine_type::Collect(p, &(*J_c2) , *args_c2...);
-						}
-
-						FlushCache(J_c2,args_c2...);
-
-					}
-			);
+			engine_type::Scatter(p, J2 , args2...);
 		}
 
-		, Cache<TJ*>(J, engine_type::GetAffectedRegion())
+	}, J, std::forward<Args const &>(args) ...
 
-		, Cache<const Args >(args ,engine_type::GetAffectedRegion())...)
-
-		);
-	}
-
-	for (auto & t : threads)
-	{
-		t.join();
-	}
+	);
 
 }
 
 template<class Engine>
-template<typename TFun, typename ...Args>
-void Particle<Engine>::Function(TFun &fun, Args const& ... args)
+template<typename TMaterialTag, typename ... Args>
+void Particle<Engine>::Boundary(int flag, TMaterialTag in, TMaterialTag out, Real dt, Args const &... args)
 {
-	if (data_.empty())
-	{
-		WARNING << "Particle [" << engine_type::name_ << "] is not initialized!";
-		return;
-	}
 
-	if (!IsSorted())
-		ERROR << "Particles are not sorted!";
+	UNIMPLEMENT;
 
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-
-	std::vector<std::thread> threads;
-
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-	{
-		threads.emplace_back(
-
-		std::thread(
-
-		[this,num_threads, thread_id]( Cache<const Args>&& ... args_c2)
-		{
-
-			this->mesh._Traversal(num_threads, thread_id, this->IForm,
-
-					[&](index_type const &s)
-					{
-
-						RefreshCache(s, args_c2...);
-
-						for (auto const& p : this->data_[s])
-						{
-							fun(p, *args_c2...);
-						}
-
-					}
-			);
-		}
-
-		, Cache<const Args >(args ,engine_type::GetAffectedRegion())...)
-
-		);
-	}
-
-	for (auto & t : threads)
-	{
-		t.join();
-	}
-
-}
-
-template<class Engine>
-template<typename ... Args>
-void Particle<Engine>::Boundary(int flag, typename mesh_type::tag_type in, typename mesh_type::tag_type out, Real dt,
-        Args const &... args)
-{
-	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
-
-// @NOTE: difficult to parallism
-
-	auto fun = [&](index_type idx)
-	{
-		if(!selector(idx)) return;
-
-		auto & cell = this->data_[idx];
-
-		auto pt = cell.begin();
-
-		while (pt != cell.end())
-		{
-			auto p = pt;
-			++pt;
-
-			index_type dest=idx;
-			if (flag == REFELECT)
-			{
-				coordinates_type x;
-
-				nTuple<3,Real> v;
-
-				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
-
-				dest=this->mesh.Refelect(idx,dt,&x,&v);
-
-				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
-			}
-
-			if (dest != idx)
-			{
-				data_[dest].splice(data_[dest].begin(), cell, p);
-			}
-			else
-			{
-				cell.erase(p);
-			}
-
-		}
-	};
-
-// @NOTE: is a simple implement, need  parallism
-
-	mesh.SerialTraversal(VERTEX, fun);
+//	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
+//
+//// @NOTE: difficult to parallism
+//
+//	auto fun = [&](index_type idx)
+//	{
+//		if(!selector(idx)) return;
+//
+//		auto & cell = this->data_[idx];
+//
+//		auto pt = cell.begin();
+//
+//		while (pt != cell.end())
+//		{
+//			auto p = pt;
+//			++pt;
+//
+//			index_type dest=idx;
+//			if (flag == REFELECT)
+//			{
+//				coordinates_type x;
+//
+//				nTuple<3,Real> v;
+//
+//				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
+//
+//				dest=this->mesh.Refelect(idx,dt,&x,&v);
+//
+//				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
+//			}
+//
+//			if (dest != idx)
+//			{
+//				data_[dest].splice(data_[dest].begin(), cell, p);
+//			}
+//			else
+//			{
+//				cell.erase(p);
+//			}
+//
+//		}
+//	};
+//
+//// @NOTE: is a simple implement, need  parallism
+//
+//	mesh.SerialTraversal(VERTEX, fun);
 
 }
 template<class Engine> template<typename ... Args>

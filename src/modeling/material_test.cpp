@@ -13,6 +13,7 @@
 #include "material.h"
 #include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
+#include "../mesh/geometry_euclidean.h"
 #include "../fetl/fetl.h"
 
 using namespace simpla;

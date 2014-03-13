@@ -13,7 +13,7 @@
 #include "../physics/constants.h"
 namespace simpla
 {
-template<typename TM, int NMATE = 8>
+template<typename TM, typename TScaler = Real, int NMATE = 8>
 class PICEngineGGauge
 {
 
@@ -33,7 +33,7 @@ public:
 		coordinates_type x;
 		Vec3 v;
 		Real f;
-		nTuple<NMATE, scalar_type> w;
+		nTuple<NMATE, TScaler> w;
 
 		static std::string DataTypeDesc()
 		{
@@ -176,7 +176,7 @@ public:
 	}
 
 	template<typename TV, typename TB, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B.mean(p.x));
@@ -198,13 +198,13 @@ public:
 			Vec3 v, r;
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			n->Collect(p.w[ms], r);
+			n->Scatter(p.w[ms], r);
 		}
 
 	}
 
 	template<int IFORM, typename TV, typename TB, typename ...Others>
-	inline void Collect(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TB const & B, Others const &... others) const
+	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B.mean(p.x));
 		Real BB = InnerProduct(B0, B0);
@@ -225,33 +225,8 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			J->Collect(v * p.w[ms] * p.f, r);
+			J->Scatter(v * p.w[ms] * p.f, r);
 		}
-	}
-
-	template<typename TX, typename TV, typename TFun>
-	inline Point_s Trans(TX const & x, TV const &v, TFun const & n, ...) const
-	{
-		Point_s p;
-		p.x = x;
-		p.v = v;
-		p.f = n(x);
-
-		return std::move(p);
-	}
-
-	template<typename TX, typename TV, typename ... Others>
-	inline void Trans(TX const & x, TV const &v, Point_s * p, Others const &...) const
-	{
-		p->x = x;
-		p->v = v;
-	}
-
-	template<typename TX, typename TV, typename ... Others>
-	inline void InvertTrans(Point_s const &p, TX * x, TV *v, Others const &...) const
-	{
-		*x = p.x;
-		*v = p.v;
 	}
 
 }

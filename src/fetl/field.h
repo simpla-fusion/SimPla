@@ -51,7 +51,8 @@ public:
 
 	typedef std::shared_ptr<value_type> container_type;
 
-	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME), value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
+	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
@@ -306,117 +307,11 @@ DECL_SELF_ASSIGN	(- )
 	DECL_SELF_ASSIGN(/ )
 #undef DECL_SELF_ASSIGN
 
-	inline field_value_type mean(coordinates_type const &x) const
-	{
-		return Gather(x);
-	}
-
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return Gather(x);
+		return mesh.Gather(*this,x);
 	}
 
-	inline field_value_type operator()(index_type s, Real const *pcoords) const
-	{
-		return Gather(s, pcoords);
-	}
-
-	inline field_value_type Gather(coordinates_type const &x) const
-	{
-
-		coordinates_type pcoords;
-
-		index_type s = mesh.SearchCell(x, &pcoords[0]);
-
-		return Gather(s, &pcoords[0]);
-
-	}
-
-	inline field_value_type Gather(index_type const & s, Real const *pcoords) const
-	{
-
-		field_value_type res;
-
-		index_type num = mesh.GetAffectedPoints(Int2Type<IForm>(), s);
-
-		std::vector<index_type> points(num);
-
-		std::vector<value_type> cache(num);
-
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
-
-		for (int i = 0; i < num; ++i)
-		{
-			cache[i] = mesh.get_value(data_, points[i]);
-		}
-
-		res *= 0;
-
-		mesh.Gather(Int2Type<IForm>(), pcoords, &cache[0], &res);
-
-		return res;
-
-	}
-
-	template<typename TV>
-	inline void Collect(TV const & v, coordinates_type const &x)
-	{
-		coordinates_type pcoords;
-
-		index_type s = mesh.SearchCell(x, &pcoords[0]);
-
-		Collect(v, s, &pcoords[0]);
-
-	}
-	template<typename TV>
-	inline void Collect(TV const & v, index_type const & s, Real * pcoords, int affected_region = 2)
-	{
-
-		index_type num = mesh.GetAffectedPoints(Int2Type<IForm>(), s);
-
-		if (num == 0)
-		{
-			CHECK(s );
-			return;
-		}
-
-		index_type *points = new index_type[num];
-		value_type *cache = new value_type[num];
-
-		mesh.GetAffectedPoints(Int2Type<IForm>(), s, &points[0]);
-
-		value_type zero_value;
-
-		zero_value *= 0;
-
-		for (int i = 0; i < num; ++i)
-		{
-			cache[i] = zero_value;
-		}
-
-		field_value_type vv;
-		vv = v;
-
-		mesh.Scatter(Int2Type<IForm>(), pcoords, vv, cache);
-
-		Collect(num, points, cache);
-
-		delete[] points;
-		delete[] cache;
-	}
-
-	inline void Collect(index_type num, index_type const * points, value_type const * cache)
-	{
-		if (num == 0)
-		WARNING << "Cache is empty!";
-
-		write_lock_.lock();
-		for (int i = 0; i < num; ++i)
-		{
-			mesh.get_value(data_, points[i]) += cache[i];
-		}
-		write_lock_.unlock();
-	}
 }
 ;
 

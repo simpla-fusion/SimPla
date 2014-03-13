@@ -102,7 +102,7 @@ public:
 ;
 
 template<typename TField, typename TDict>
-static std::function<void(TField *)> CreateConstraint(MediaTag<typename TField::mesh_type> const & tags,
+static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & tags,
         TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)

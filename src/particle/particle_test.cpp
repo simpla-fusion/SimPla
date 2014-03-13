@@ -10,8 +10,8 @@
 
 #include "particle.h"
 #include "pic_engine_full.h"
-#include "pic_engine_deltaf.h"
-#include "pic_engine_ggauge.h"
+//#include "pic_engine_deltaf.h"
+//#include "pic_engine_ggauge.h"
 
 #include "../io/data_stream.h"
 #include "save_particle.h"
@@ -23,7 +23,9 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../mesh/co_rect_mesh.h"
+#include "../mesh/rect_mesh.h"
+#include "../mesh/octree_forest.h"
+#include "../mesh/geometry_euclidean.h"
 
 using namespace simpla;
 
@@ -35,17 +37,13 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		mesh.dt_ = 1.0;
-		mesh.xmin_[0] = 0;
-		mesh.xmin_[1] = 0;
-		mesh.xmin_[2] = 0;
-		mesh.xmax_[0] = 1.0;
-		mesh.xmax_[1] = 1.0;
-		mesh.xmax_[2] = 1.0;
-		mesh.dims_[0] = 200;
-		mesh.dims_[1] = 1;
-		mesh.dims_[2] = 1;
-		mesh.dt_ = 1.0;
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
+		mesh.SetExtent(xmin, xmax);
+
+		nTuple<3, size_t> dims = { 20, 0, 0 };
+		mesh.SetDimensions(dims);
+		mesh.SetDt(1.0);
 
 		mesh.Update();
 
@@ -83,7 +81,7 @@ public:
 
 typedef testing::Types<
 
-PICEngineFull<CoRectMesh<Real>>
+PICEngineFull<RectMesh<>>
 
 //, PICEngineFull<CoRectMesh<Complex>>
 //
@@ -118,9 +116,9 @@ TYPED_TEST(TestParticle,create){
 
 	ion.Update();
 
-	ion.Deserialize(TestFixture::cfg["ion"]);
+	ion.Load(TestFixture::cfg["ion"]);
 
-	LOGGER << Data(ion,"Create_ion");
+	LOGGER << Dump(ion,"Create_ion");
 
 }
 }
@@ -133,7 +131,7 @@ TYPED_TEST(TestParticle,collect){
 
 	typedef typename TestFixture::Point_s Point_s;
 
-	typedef typename TestFixture::scalar_type scalar_type;
+	typedef typename TestFixture::index_type index_type;
 
 	typedef typename TestFixture::coordinates_type coordinates_type;
 
@@ -143,7 +141,7 @@ TYPED_TEST(TestParticle,collect){
 
 	ion.Update();
 
-	ion.Deserialize(TestFixture::cfg["ion"]);
+	ion.Load(TestFixture::cfg["ion"]);
 
 	ion.Sort();
 
@@ -154,27 +152,27 @@ TYPED_TEST(TestParticle,collect){
 	B.Fill(1.0);
 	n.Fill(0);
 
-	ion.Collect(&n,E,B);
+	ion.Scatter(&n,E,B);
 
-	LOGGER<< " Collect "<<DUMP(n)<<DONE;
+	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
 
 	{
 		Real variance=0.0;
 
-		scalar_type average=0.0;
+		Real average=0.0;
 
 		auto n_obj=TestFixture::cfg["ion"]["n0"];
 
 		Real pic =TestFixture::cfg["ion"]["PIC"].template as<Real>();
 
-		mesh.SerialTraversal(0,
-				[&](int m,long i,long j,long k )
+		mesh. template Traversal<VERTEX>(
+				[&](index_type s)
 				{
-					coordinates_type x=mesh.GetCoordinates(i,j,k);
+					coordinates_type x=mesh.GetCoordinates(s);
 
 					Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
 
-					scalar_type actual= n.get(0,i,j,k);
+					Real actual= n.get(s);
 
 					average+=actual;
 
@@ -230,7 +228,7 @@ TYPED_TEST(TestParticle,collect){
 //
 //	ion.Update();
 //
-//	ion.Deserialize(cfg["ion"]);
+//	ion.Load(cfg["ion"]);
 //
 //	std::mt19937 rnd_gen(2);
 //
@@ -253,8 +251,8 @@ TYPED_TEST(TestParticle,collect){
 //	LOGGER << Data(ion,"ion2");
 //
 //	n.Fill(0);
-//	ion.Collect(&n,E,B);
-//	LOGGER<< " Collect "<<DUMP(n)<<DONE;
+//	ion.Scatter(&n,E,B);
+//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
 //
 //	{
 //		Real n0=cfg["ion"]["n"].template as<Real>();
@@ -268,11 +266,11 @@ TYPED_TEST(TestParticle,collect){
 //	LOGGER << Data(ion,"ion3");
 //
 //	n.Fill(0);
-//	ion.Collect(&n,E,B);
-//	LOGGER<< " Collect "<<DUMP(n)<<DONE;
+//	ion.Scatter(&n,E,B);
+//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
 ////
-////	ion.Collect(&J,E,B);
-////	LOGGER<< " Collect "<<DUMP(J)<<DONE;
+////	ion.Scatter(&J,E,B);
+////	LOGGER<< " Scatter "<<DUMP(J)<<DONE;
 //
 //}
 //}
@@ -286,8 +284,6 @@ TYPED_TEST(TestParticle,move){
 
 	typedef typename TestFixture::Point_s Point_s;
 
-	typedef typename TestFixture::scalar_type scalar_type;
-
 	typedef typename TestFixture::coordinates_type coordinates_type;
 
 	mesh_type const & mesh = TestFixture::mesh;
@@ -298,11 +294,11 @@ TYPED_TEST(TestParticle,move){
 
 	ion.Update();
 
-	ion.Deserialize(TestFixture::cfg["ion"]);
+	ion.Load(TestFixture::cfg["ion"]);
 
 	ion.Sort();
 
-	LOGGER << Data(ion,"ion");
+	LOGGER << Dump(ion,"ion");
 
 	typename TestFixture::template Form<0> n(mesh);
 	typename TestFixture::template Form<1> E(mesh);
@@ -338,9 +334,9 @@ TYPED_TEST(TestParticle,move){
 	{
 		typename TestFixture::template Form<0> n(mesh);
 		n.Fill(0.0);
-		ion.Collect(&n,E,B);
+		ion.Scatter(&n,E,B);
 
-		scalar_type average_n=0.0;
+		Real average_n=0.0;
 		for(auto &v :n)
 		{
 			average_n+=v;
@@ -351,18 +347,18 @@ TYPED_TEST(TestParticle,move){
 		EXPECT_LE(abs(expect_n-abs(average_n)),error);
 	}
 
-	LOGGER << Data(ion,"ion0");
+	LOGGER << Dump(ion,"ion0");
 
 	LOG_CMD(ion.NextTimeStep(1.0,E, B));
 
-	LOGGER << Data(ion,"ion1");
+	LOGGER << Dump(ion,"ion1");
 
 	{
 		typename TestFixture::template Form<0> n(mesh);
 		n.Fill(0.0);
-		ion.Collect(&n,E,B);
+		ion.Scatter(&n,E,B);
 
-		scalar_type average_n=0.0;
+		Real average_n=0.0;
 
 		for(auto &v :n)
 		{

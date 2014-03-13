@@ -33,12 +33,12 @@
 #include "../../src/modeling/material.h"
 #include "../../src/utilities/geqdsk.h"
 
-// Physical solver
+// Field solver
 #include "../../src/modeling/constraint.h"
 #include "../solver/electromagnetic/solver.h"
 
 // Particle
-//#include "../../src/particle/particle_factory.h"
+#include "../../src/particle/particle_factory.h"
 
 namespace simpla
 {
@@ -132,9 +132,9 @@ private:
 
 	std::list<std::function<void(TJ*)> > constraintToJ_;
 
-//	typedef ParticleWrap<TE, TB, TJ> ParticleType;
-//
-//	std::map<std::string, ParticleType> particles_;
+	typedef ParticleWrap<TE, TB, TJ> ParticleType;
+
+	std::map<std::string, ParticleType> particles_;
 
 }
 ;
@@ -218,14 +218,14 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Load J" << DONE;
 	}
 
-//	LOGGER << "Load Particles";
-//	for (auto const &opt : dict["Particles"])
-//	{
-//		ParticleWrap<TE, TB, TJ> p;
-//
-//		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
-//			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
-//	}
+	LOGGER << "Load Particles";
+	for (auto const &opt : dict["Particles"])
+	{
+		ParticleWrap<TE, TB, TJ> p;
+
+		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
+			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
+	}
 
 	LOGGER << "Load Constraints";
 	for (auto const & item : dict["Constraints"])

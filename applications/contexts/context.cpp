@@ -18,7 +18,7 @@
 //#include "../../src/mesh/topology_rect.h"
 #include "../../src/mesh/rect_mesh.h"
 #include "../../src/mesh/octree_forest.h"
-
+#include "../../src/mesh/geometry_euclidean.h"
 
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
@@ -59,22 +59,12 @@ void Context::Load(LuaObject const & dict)
 	if (dict)
 	{
 
-		auto mesh_type = dict["Grid"]["Type"].as<std::string>();
-		auto scalar_type = dict["Grid"]["ScalarType"].as<std::string>("Real");
+		auto mesh_str = dict["Grid"]["Type"].as<std::string>();
 
-//		if (mesh_type == "CoRectMesh" && scalar_type == "Complex")
-//		{
-//			CreateContext<ExplicitEMContext<CoRectMesh<Complex>>>(dict,this);
-//		}
-//		else if (mesh_type == "CoRectMesh" && scalar_type == "Real")
-//		{
-//			CreateContext<ExplicitEMContext<CoRectMesh<Real>>>(dict, this);
-//
-//		}
-
-		if (mesh_type == "RectMesh")
+		if (mesh_str == "RectMesh")
 		{
-			CreateContext<ExplicitEMContext<RectMesh<> >>(dict, this);
+			typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+			CreateContext<ExplicitEMContext<mesh_type>>(dict, this);
 
 		}
 		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";

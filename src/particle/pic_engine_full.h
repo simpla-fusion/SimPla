@@ -126,42 +126,23 @@ public:
 	}
 
 	template<typename TV, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(Point_s const &p,
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		n->Collect(p.f, p.x);
+		mesh.Scatter(p.x, p.f, n);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
-	inline void Collect(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
+	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
-		J->Collect(p.v * p.f, p.x);
+		mesh.Scatter(p.x, p.v * p.f, J);
 	}
 
-	template<typename TX, typename TV, typename TFun>
-	inline Point_s Trans(TX const & x, TV const &v, TFun const & n, ...) const
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		Point_s p;
-		p.x = x;
-		p.v = v;
-		p.f = n(x);
-
-		return std::move(p);
+		return std::move(Point_s( { x, v, f }));
 	}
 
-	template<typename TX, typename TV, typename ... Others>
-	inline void Trans(TX const & x, TV const &v, Point_s * p, Others const &...) const
-	{
-		p->x = x;
-		p->v = v;
-	}
-
-	template<typename TX, typename TV, typename ... Others>
-	inline void InvertTrans(Point_s const &p, TX * x, TV *v, Others const &...) const
-	{
-		*x = p.x;
-		*v = p.v;
-	}
 };
 
 template<typename TM> std::ostream&

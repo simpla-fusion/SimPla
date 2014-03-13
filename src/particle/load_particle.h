@@ -114,20 +114,14 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 
 		std::mt19937 rnd_gen(3);
 
-		rectangle_distribution<mesh_type::NUM_OF_DIMS> x_dist;
+		rectangle_distribution<mesh_type::NDIMS> x_dist;
 
-		multi_normal_distribution<mesh_type::NUM_OF_DIMS> v_dist(vT);
+		multi_normal_distribution<mesh_type::NDIMS> v_dist(vT);
 
-		mesh.SerialTraversal(TP::IForm,
+		mesh.template Traversal<TP::IForm>(
 
-		[&](typename mesh_type::index_type const & s)
+		[&](typename mesh_type::index_type s)
 		{
-
-			typename mesh_type::coordinates_type xrange[mesh.GetCellShape(s)];
-
-			mesh.GetCellShape(s,xrange);
-
-			x_dist.Reset(xrange);
 
 			nTuple<3,Real> x,v;
 
@@ -137,12 +131,10 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 			{
 				x_dist(rnd_gen,&x[0]);
 				v_dist(rnd_gen,&v[0]);
-				p->Insert(s,x,v,
-						[&] (coordinate_type const & x0)->Real
-						{
-							return n(x0)*inv_sample_density;
-						}
-				);
+				x=mesh.CoordinatesLocalToGlobal(s,x);
+				v=mesh.PushForward(x,v);
+
+				p->Insert(s, engine_type::make_point(x, v,n(x)*inv_sample_density ));
 			}
 		});
 	}

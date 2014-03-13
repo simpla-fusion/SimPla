@@ -275,7 +275,8 @@ template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 ->decltype(l[0]*r[0])
 {
-	decltype(l[0]*r[0]) res = 0;
+	decltype(l[0]*r[0]) res;
+	res *= 0;
 	for (int i = 0; i < N; ++i)
 	{
 		res += l[i] * r[i];

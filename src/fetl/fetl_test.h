@@ -18,7 +18,9 @@
 
 #include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
+#include "../mesh/geometry_cylindrical.h"
+#include "../mesh/geometry_euclidean.h"
 
-#define DEF_MESH RectMesh<OcForest>
+#define DEF_MESH RectMesh<OcForest,CylindricalGeometry>
 
 #endif /* FETL_TEST_H_ */
