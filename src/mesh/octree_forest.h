@@ -49,7 +49,7 @@ struct OcForest
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
-			| (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
+	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 	/**
@@ -85,7 +85,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -97,11 +97,9 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	nTuple<NDIMS, size_type> dims_ =
-	{ 1, 1, 1 };
+	nTuple<NDIMS, size_type> dims_ = { 1, 1, 1 };
 
-	nTuple<NDIMS, size_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
 
@@ -109,15 +107,15 @@ struct OcForest
 
 	//***************************************************************************************************
 
-	OcForest() :
-			_MASK(NO_CARRY_FLAG)
+	OcForest()
+			: _MASK(NO_CARRY_FLAG)
 	{
 
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict) :
-			_MASK(NO_CARRY_FLAG)
+	OcForest(TDict const & dict)
+			: _MASK(NO_CARRY_FLAG)
 	{
 	}
 
@@ -315,16 +313,14 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = index_type(
-		{ 0UL })) :
-				tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
+				: tree(m), s_(s)
 		{
 		}
-		iterator(OcForest const & m, compact_index_type s = 0UL) :
-				tree(m),
+		iterator(OcForest const & m, compact_index_type s = 0UL)
+				: tree(m),
 
-				s_(index_type(
-				{ s }))
+				s_(index_type( { s }))
 		{
 		}
 		~iterator()
@@ -409,11 +405,11 @@ struct OcForest
 			s += _DK | _DJ | _DI;
 
 			auto m = (((~s) & (1UL << (carray_digits_[2] - 1))) << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[2])
-					| ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
-							<< (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
+			        | ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
+			                << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
 
 			auto mm =
-					(~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
+			        (~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
 
 			s = (s - m) & mm;
 		}
@@ -425,8 +421,7 @@ struct OcForest
 
 	index_type Next(index_type s) const
 	{
-		return index_type(
-		{ Next(s.d) });
+		return index_type( { Next(s.d) });
 	}
 
 	//***************************************************************************************************
@@ -550,10 +545,31 @@ struct OcForest
 
 		return std::move(res);
 	}
-	inline index_type GetIndex(nTuple<3, Real> const & x, unsigned long h = 0) const
+
+	inline nTuple<3, Real> GetCoordinates(compact_index_type s) const
 	{
-		return index_type(
-		{
+		s &= _MASK;
+
+		return nTuple<3, Real>( {
+
+		static_cast<Real>(I(s)) * dh,
+
+		static_cast<Real>(J(s)) * dh,
+
+		static_cast<Real>(K(s)) * dh
+
+		});
+
+	}
+
+	inline nTuple<3, Real> GetCoordinates(index_type s) const
+	{
+		return std::move(GetCoordinates(s.d));
+	}
+
+	inline index_type GetIndex(coordinates_type x, unsigned long h = 0) const
+	{
+		return index_type( {
 
 		(
 
@@ -571,62 +587,25 @@ struct OcForest
 
 	}
 
-	inline nTuple<3, Real> GetCoordinates(index_type s) const
-	{
-		s &= _MASK;
-
-		return nTuple<3, Real>(
-		{
-
-		static_cast<Real>(I(s)) * dh,
-
-		static_cast<Real>(J(s)) * dh,
-
-		static_cast<Real>(K(s)) * dh
-
-		});
-
-	}
-	inline index_type GetIndex(nTuple<3, size_type> const & x, unsigned long h = 0) const
-	{
-		return index_type(
-		{
-
-		(
-
-		(h << (INDEX_DIGITS * 3)) |
-
-		((x[0] & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * 2)) |
-
-		((x[1] & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS)) |
-
-		(x[2] & ((1UL << INDEX_DIGITS) - 1))
-
-		) & _MASK
-
-		});
-	}
-
 	static Real Volume(index_type s)
 	{
-		static constexpr double volume_[8][D_FP_POS] =
-		{
+		static constexpr double volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
 
-				1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
+		        1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
 
 		};
 
@@ -635,26 +614,25 @@ struct OcForest
 
 	static Real InvVolume(index_type s)
 	{
-		static constexpr double inv_volume_[8][D_FP_POS] =
-		{
+		static constexpr double inv_volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 2, 4, 8, // 001
+		        1, 2, 4, 8, // 001
 
-				1, 2, 4, 8, // 010
+		        1, 2, 4, 8, // 010
 
-				1, 4, 16, 64, // 011
+		        1, 4, 16, 64, // 011
 
-				1, 2, 4, 8, // 100
+		        1, 2, 4, 8, // 100
 
-				1, 4, 16, 64, // 101
+		        1, 4, 16, 64, // 101
 
-				1, 4, 16, 64, // 110
+		        1, 4, 16, 64, // 110
 
-				1, 8, 32, 128   // 111
+		        1, 8, 32, 128   // 111
 
-				};
+		        };
 
 		return inv_volume_[_N(s)][H(s)];
 	}

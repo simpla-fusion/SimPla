@@ -5,27 +5,21 @@
  *      Author: salmon
  */
 
-#include <random>
 #include <gtest/gtest.h>
-
-#include "particle.h"
-#include "pic_engine_full.h"
-//#include "pic_engine_deltaf.h"
-//#include "pic_engine_ggauge.h"
-
-#include "../io/data_stream.h"
-#include "save_particle.h"
-#include "load_particle.h"
+#include <random>
 
 #include "../fetl/fetl.h"
-#include "../fetl/save_field.h"
-#include "../fetl/load_field.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
 #include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_euclidean.h"
+
+#include "particle.h"
+#include "pic_engine_full.h"
+//#include "pic_engine_deltaf.h"
+//#include "pic_engine_ggauge.h"
 
 using namespace simpla;
 
@@ -57,8 +51,6 @@ protected:
 				"}"
 
 		);
-
-		GLOBAL_DATA_STREAM.OpenFile("");
 
 	}
 public:
@@ -101,9 +93,8 @@ PICEngineFull<RectMesh<>>
 
 TYPED_TEST_CASE(TestParticle, AllEngineTypes);
 
-TYPED_TEST(TestParticle,create){
+TYPED_TEST(TestParticle,load_save){
 {
-
 	typedef typename TestFixture::mesh_type mesh_type;
 
 	typedef typename TestFixture::particle_pool_type pool_type;
@@ -117,12 +108,10 @@ TYPED_TEST(TestParticle,create){
 	ion.Update();
 
 	ion.Load(TestFixture::cfg["ion"]);
-
-	LOGGER << Dump(ion,"Create_ion");
-
 }
 }
-TYPED_TEST(TestParticle,collect){
+
+TYPED_TEST(TestParticle,scatter_n){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -145,16 +134,16 @@ TYPED_TEST(TestParticle,collect){
 
 	ion.Sort();
 
-	typename TestFixture::template Form<0> n(mesh);
-	typename TestFixture::template Form<1> E(mesh);
-	typename TestFixture::template Form<2> B(mesh);
+	typename TestFixture::template Form<VERTEX> n(mesh);
+	typename TestFixture::template Form<EDGE> E(mesh);
+	typename TestFixture::template Form<FACE> B(mesh);
 	E.Fill(1.0);
 	B.Fill(1.0);
 	n.Fill(0);
 
 	ion.Scatter(&n,E,B);
 
-	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
+//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
 
 	{
 		Real variance=0.0;
@@ -197,84 +186,74 @@ TYPED_TEST(TestParticle,collect){
 
 }
 }
+
+TYPED_TEST(TestParticle,scatter_J){
+{
+
+	typedef typename TestFixture::mesh_type mesh_type;
+
+	typedef typename TestFixture::particle_pool_type pool_type;
+
+	typedef typename TestFixture::Point_s Point_s;
+
+	mesh_type const & mesh = TestFixture::mesh;
+
+	typename TestFixture::template Form<VERTEX> n(mesh);
+	typename TestFixture::template Form<VERTEX> n0(mesh);
+	typename TestFixture::template Form<EDGE> J(mesh);
+	typename TestFixture::template Form<EDGE> E(mesh);
+	typename TestFixture::template Form<FACE> B(mesh);
+
+	E.Init();
+	B.Init();
+	n.Init();
+	J.Init();
+
+	LoadField(TestFixture::cfg["n0"],&n0);
+
+	pool_type ion(mesh);
+
+	ion.Update();
+
+	ion.Load(TestFixture::cfg["ion"]);
+
+	std::mt19937 rnd_gen(2);
+
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	for (auto & v : E)
+	{
+		v = uniform_dist(rnd_gen);
+	}
+
+	for (auto & v : B)
+	{
+		v = uniform_dist(rnd_gen);
+	}
+
+	ion.Sort();
+
+	n.Fill(0);
+	ion.Scatter(&n,E,B);
+
+	{
+		Real n0=TestFixture::cfg["ion"]["n"].template as<Real>();
+
+	}
+
+	ion.NextTimeStep(1.0,E, B);
+
+	LOGGER<< " NextTimeStep"<<DONE;
+
+	n.Fill(0);
+	ion.Scatter(&n,E,B);
 //
-//TYPED_TEST(TestParticle,collect_current){
-//{
-//
-//	typedef typename TestFixture::mesh_type mesh_type;
-//
-//	typedef typename TestFixture::particle_pool_type pool_type;
-//
-//	typedef typename TestFixture::Point_s Point_s;
-//
-//	mesh_type const & mesh = TestFixture::mesh;
-//
-//	Form<0> n(mesh);
-//	Form<0> n0(mesh);
-//	Form<1> J(mesh);
-//	Form<1> E(mesh);
-//	Form<2> B(mesh);
-//
-//	E.Update();
-//	B.Update();
-//	n.Update();
-//	J.Update();
-//
-//	LoadField(cfg["n0"],&n0);
-//
-//	LOGGER<<DUMP(n0);
-//
-//	pool_type ion(mesh);
-//
-//	ion.Update();
-//
-//	ion.Load(cfg["ion"]);
-//
-//	std::mt19937 rnd_gen(2);
-//
-//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-//
-//	for (auto & v : E)
-//	{
-//		v = uniform_dist(rnd_gen);
-//	}
-//
-//	for (auto & v : B)
-//	{
-//		v = uniform_dist(rnd_gen);
-//	}
-//
-//	LOGGER << Data(ion,"ion");
-//
-//	ion.Sort();
-//
-//	LOGGER << Data(ion,"ion2");
-//
-//	n.Fill(0);
-//	ion.Scatter(&n,E,B);
-//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
-//
-//	{
-//		Real n0=cfg["ion"]["n"].template as<Real>();
-//
-//	}
-//
-//	ion.NextTimeStep(1.0,E, B);
-//
-//	LOGGER<< " NextTimeStep"<<DONE;
-//
-//	LOGGER << Data(ion,"ion3");
-//
-//	n.Fill(0);
-//	ion.Scatter(&n,E,B);
-//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
-////
-////	ion.Scatter(&J,E,B);
-////	LOGGER<< " Scatter "<<DUMP(J)<<DONE;
-//
-//}
-//}
-//
+//	ion.Scatter(&J,E,B);
+//	LOGGER<< " Scatter "<<DUMP(J)<<DONE;
+
+}
+}
+
 TYPED_TEST(TestParticle,move){
 {
 
@@ -298,12 +277,10 @@ TYPED_TEST(TestParticle,move){
 
 	ion.Sort();
 
-	LOGGER << Dump(ion,"ion");
-
-	typename TestFixture::template Form<0> n(mesh);
-	typename TestFixture::template Form<1> E(mesh);
-	typename TestFixture::template Form<2> B(mesh);
-	typename TestFixture::template Form<1> J(mesh);
+	typename TestFixture::template Form<VERTEX> n(mesh);
+	typename TestFixture::template Form<EDGE> E(mesh);
+	typename TestFixture::template Form<FACE> B(mesh);
+	typename TestFixture::template Form<EDGE> J(mesh);
 
 	E.Fill(1.0);
 	B.Fill(1.0);
@@ -332,7 +309,7 @@ TYPED_TEST(TestParticle,move){
 	}
 
 	{
-		typename TestFixture::template Form<0> n(mesh);
+		typename TestFixture::template Form<VERTEX> n(mesh);
 		n.Fill(0.0);
 		ion.Scatter(&n,E,B);
 
@@ -347,14 +324,10 @@ TYPED_TEST(TestParticle,move){
 		EXPECT_LE(abs(expect_n-abs(average_n)),error);
 	}
 
-	LOGGER << Dump(ion,"ion0");
-
 	LOG_CMD(ion.NextTimeStep(1.0,E, B));
 
-	LOGGER << Dump(ion,"ion1");
-
 	{
-		typename TestFixture::template Form<0> n(mesh);
+		typename TestFixture::template Form<VERTEX> n(mesh);
 		n.Fill(0.0);
 		ion.Scatter(&n,E,B);
 

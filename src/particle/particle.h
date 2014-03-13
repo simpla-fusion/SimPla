@@ -159,16 +159,6 @@ public:
 		return isSorted_;
 	}
 
-	Real GetClock() const
-	{
-		return clock_;
-	}
-
-	void SetClock(Real t)
-	{
-		clock_ = t;
-	}
-
 	std::string const &GetName() const
 	{
 		return name_;
@@ -208,15 +198,13 @@ private:
 
 	bool isSorted_;
 
-	Real clock_;
-
 	std::string name_;
 
 };
 
 template<class Engine>
 template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), clock_(0), name_("unnamed")
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
 {
 }
 
@@ -411,8 +399,6 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 	);
 
 	isSorted_ = false;
-
-	clock_ += dt;
 
 	Sort();
 	Boundary();
