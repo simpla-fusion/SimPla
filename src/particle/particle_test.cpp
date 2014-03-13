@@ -132,18 +132,16 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Load(TestFixture::cfg["ion"]);
 
-	ion.Sort();
-
 	typename TestFixture::template Form<VERTEX> n(mesh);
 	typename TestFixture::template Form<EDGE> E(mesh);
 	typename TestFixture::template Form<FACE> B(mesh);
+
 	E.Fill(1.0);
 	B.Fill(1.0);
 	n.Fill(0);
 
 	ion.Scatter(&n,E,B);
 
-//	LOGGER<< " Scatter "<<DUMP(n)<<DONE;
 
 	{
 		Real variance=0.0;
@@ -198,150 +196,115 @@ TYPED_TEST(TestParticle,scatter_J){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
-	typename TestFixture::template Form<VERTEX> n(mesh);
-	typename TestFixture::template Form<VERTEX> n0(mesh);
 	typename TestFixture::template Form<EDGE> J(mesh);
 	typename TestFixture::template Form<EDGE> E(mesh);
 	typename TestFixture::template Form<FACE> B(mesh);
 
 	E.Init();
 	B.Init();
-	n.Init();
 	J.Init();
 
-	LoadField(TestFixture::cfg["n0"],&n0);
-
 	pool_type ion(mesh);
 
 	ion.Update();
 
 	ion.Load(TestFixture::cfg["ion"]);
 
-	std::mt19937 rnd_gen(2);
-
-	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-
-	for (auto & v : E)
-	{
-		v = uniform_dist(rnd_gen);
-	}
-
-	for (auto & v : B)
-	{
-		v = uniform_dist(rnd_gen);
-	}
-
 	ion.Sort();
 
-	n.Fill(0);
-	ion.Scatter(&n,E,B);
+	ion.Scatter(&J,E,B);
 
-	{
-		Real n0=TestFixture::cfg["ion"]["n"].template as<Real>();
-
-	}
-
-	ion.NextTimeStep(1.0,E, B);
-
-	LOGGER<< " NextTimeStep"<<DONE;
-
-	n.Fill(0);
-	ion.Scatter(&n,E,B);
+}
+}
 //
-//	ion.Scatter(&J,E,B);
-//	LOGGER<< " Scatter "<<DUMP(J)<<DONE;
-
-}
-}
-
-TYPED_TEST(TestParticle,move){
-{
-
-	typedef typename TestFixture::mesh_type mesh_type;
-
-	typedef typename TestFixture::particle_pool_type pool_type;
-
-	typedef typename TestFixture::Point_s Point_s;
-
-	typedef typename TestFixture::coordinates_type coordinates_type;
-
-	mesh_type const & mesh = TestFixture::mesh;
-
-	TestFixture::cfg.ParseString("ion.n=1.0");
-
-	pool_type ion(mesh);
-
-	ion.Update();
-
-	ion.Load(TestFixture::cfg["ion"]);
-
-	ion.Sort();
-
-	typename TestFixture::template Form<VERTEX> n(mesh);
-	typename TestFixture::template Form<EDGE> E(mesh);
-	typename TestFixture::template Form<FACE> B(mesh);
-	typename TestFixture::template Form<EDGE> J(mesh);
-
-	E.Fill(1.0);
-	B.Fill(1.0);
-	J.Update();
-
-	std::mt19937 rnd_gen(2);
-
-	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-
-	for (auto & v : E)
-	{
-		v = uniform_dist(rnd_gen);
-	}
-
-	for (auto & v : B)
-	{
-		v = uniform_dist(rnd_gen);
-	}
-
-	Real expect_n = 1.0;
-	Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
-
-	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
-	{
-		expect_n=0.0;
-	}
-
-	{
-		typename TestFixture::template Form<VERTEX> n(mesh);
-		n.Fill(0.0);
-		ion.Scatter(&n,E,B);
-
-		Real average_n=0.0;
-		for(auto &v :n)
-		{
-			average_n+=v;
-		}
-
-		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
-
-		EXPECT_LE(abs(expect_n-abs(average_n)),error);
-	}
-
-	LOG_CMD(ion.NextTimeStep(1.0,E, B));
-
-	{
-		typename TestFixture::template Form<VERTEX> n(mesh);
-		n.Fill(0.0);
-		ion.Scatter(&n,E,B);
-
-		Real average_n=0.0;
-
-		for(auto &v :n)
-		{
-			average_n+=v;
-		}
-		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
-
-		EXPECT_LE(abs(expect_n-average_n),error);
-
-	}
-
-}
-}
+//TYPED_TEST(TestParticle,move){
+//{
+//
+//	typedef typename TestFixture::mesh_type mesh_type;
+//
+//	typedef typename TestFixture::particle_pool_type pool_type;
+//
+//	typedef typename TestFixture::Point_s Point_s;
+//
+//	typedef typename TestFixture::coordinates_type coordinates_type;
+//
+//	mesh_type const & mesh = TestFixture::mesh;
+//
+//	TestFixture::cfg.ParseString("ion.n=1.0");
+//
+//	pool_type ion(mesh);
+//
+//	ion.Update();
+//
+//	ion.Load(TestFixture::cfg["ion"]);
+//
+//	ion.Sort();
+//
+//	typename TestFixture::template Form<VERTEX> n(mesh);
+//	typename TestFixture::template Form<EDGE> E(mesh);
+//	typename TestFixture::template Form<FACE> B(mesh);
+//	typename TestFixture::template Form<EDGE> J(mesh);
+//
+//	E.Fill(1.0);
+//	B.Fill(1.0);
+//	J.Update();
+//
+//	std::mt19937 rnd_gen(2);
+//
+//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+//
+//	for (auto & v : E)
+//	{
+//		v = uniform_dist(rnd_gen);
+//	}
+//
+//	for (auto & v : B)
+//	{
+//		v = uniform_dist(rnd_gen);
+//	}
+//
+//	Real expect_n = 1.0;
+//	Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
+//
+//	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
+//	{
+//		expect_n=0.0;
+//	}
+//
+//	{
+//		typename TestFixture::template Form<VERTEX> n(mesh);
+//		n.Fill(0.0);
+//		ion.Scatter(&n,E,B);
+//
+//		Real average_n=0.0;
+//		for(auto &v :n)
+//		{
+//			average_n+=v;
+//		}
+//
+//		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
+//
+//		EXPECT_LE(abs(expect_n-abs(average_n)),error);
+//	}
+//
+//	LOG_CMD(ion.NextTimeStep(1.0,E, B));
+//
+//	{
+//		typename TestFixture::template Form<VERTEX> n(mesh);
+//		n.Fill(0.0);
+//		ion.Scatter(&n,E,B);
+//
+//		Real average_n=0.0;
+//
+//		for(auto &v :n)
+//		{
+//			average_n+=v;
+//		}
+//		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
+//
+//		EXPECT_LE(abs(expect_n-average_n),error);
+//
+//	}
+//
+//}
+//}
