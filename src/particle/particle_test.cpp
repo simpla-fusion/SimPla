@@ -18,8 +18,8 @@
 
 #include "particle.h"
 #include "pic_engine_full.h"
-//#include "pic_engine_deltaf.h"
-//#include "pic_engine_ggauge.h"
+#include "pic_engine_deltaf.h"
+#include "pic_engine_ggauge.h"
 
 using namespace simpla;
 
@@ -63,6 +63,8 @@ public:
 
 	typedef typename TEngine::Point_s Point_s;
 
+	typedef typename TEngine::scalar_type scalar_type;
+
 	DEFINE_FIELDS(mesh_type)
 
 	mesh_type mesh;
@@ -75,19 +77,15 @@ typedef testing::Types<
 
 PICEngineFull<RectMesh<>>
 
-//, PICEngineFull<CoRectMesh<Complex>>
-//
-//, PICEngineDeltaF<CoRectMesh<Real>>
-//
-//, PICEngineDeltaF<CoRectMesh<Complex>>
-//
-//, PICEngineGGauge<CoRectMesh<Real>, 8>
-//
-//, PICEngineGGauge<CoRectMesh<Real>, 32>
-//
-//, PICEngineGGauge<CoRectMesh<Complex>, 8>
-//
-//, PICEngineGGauge<CoRectMesh<Complex>, 32>
+, PICEngineDeltaF<RectMesh<>, Complex>
+
+, PICEngineGGauge<RectMesh<>, Real, 8>
+
+, PICEngineGGauge<RectMesh<>, Real, 32>
+
+, PICEngineGGauge<RectMesh<>, Complex, 8>
+
+, PICEngineGGauge<RectMesh<>, Complex, 32>
 
 > AllEngineTypes;
 
@@ -124,6 +122,8 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	typedef typename TestFixture::coordinates_type coordinates_type;
 
+	typedef typename TestFixture::scalar_type scalar_type;
+
 	mesh_type const & mesh = TestFixture::mesh;
 
 	pool_type ion(mesh);
@@ -132,7 +132,8 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Load(TestFixture::cfg["ion"]);
 
-	typename TestFixture::template Form<VERTEX> n(mesh);
+	Field<mesh_type,VERTEX,scalar_type> n(mesh);
+
 	typename TestFixture::template Form<EDGE> E(mesh);
 	typename TestFixture::template Form<FACE> B(mesh);
 
@@ -142,11 +143,10 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Scatter(&n,E,B);
 
-
 	{
 		Real variance=0.0;
 
-		Real average=0.0;
+		scalar_type average=0.0;
 
 		auto n_obj=TestFixture::cfg["ion"]["n0"];
 
@@ -159,7 +159,7 @@ TYPED_TEST(TestParticle,scatter_n){
 
 					Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
 
-					Real actual= n.get(s);
+					scalar_type actual= n.get(s);
 
 					average+=actual;
 
@@ -194,9 +194,11 @@ TYPED_TEST(TestParticle,scatter_J){
 
 	typedef typename TestFixture::Point_s Point_s;
 
+	typedef typename TestFixture::scalar_type scalar_type;
+
 	mesh_type const & mesh = TestFixture::mesh;
 
-	typename TestFixture::template Form<EDGE> J(mesh);
+	Field<mesh_type,EDGE,scalar_type> J(mesh);
 	typename TestFixture::template Form<EDGE> E(mesh);
 	typename TestFixture::template Form<FACE> B(mesh);
 

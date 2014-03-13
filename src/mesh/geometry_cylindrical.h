@@ -162,19 +162,6 @@ struct CylindricalGeometry
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type GetCoordinates(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
-
-		xmin_[1] + (xmax_[1] - xmin_[1]) * x[1],
-
-		xmin_[2] + (xmax_[2] - xmin_[2]) * x[2]
-
-		});
-	}
-
 	template<typename TV>
 	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
@@ -221,7 +208,7 @@ struct CylindricalGeometry
 		return 1.0 / Volume(s);
 	}
 
-	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
 	{
 
 		return coordinates_type( {
@@ -234,7 +221,7 @@ struct CylindricalGeometry
 
 		});
 	}
-	coordinates_type CoordinatesLoacalToGlobal(coordinates_type const &x) const
+	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
 	{
 		return coordinates_type( {
 

@@ -18,8 +18,9 @@ class PICEngineGGauge
 {
 
 public:
-	typedef PICEngineGGauge<TM, NMATE> this_type;
+	typedef PICEngineGGauge<TM, TScaler, NMATE> this_type;
 	typedef TM mesh_type;
+	typedef TScaler scalar_type;
 private:
 	Real m_, q_, cmr_, T_, vT_;
 	Real cosdq[NMATE], sindq[NMATE];
@@ -33,7 +34,7 @@ public:
 		coordinates_type x;
 		Vec3 v;
 		Real f;
-		nTuple<NMATE, TScaler> w;
+		nTuple<NMATE, scalar_type> w;
 
 		static std::string DataTypeDesc()
 		{
@@ -75,7 +76,7 @@ public:
 	}
 	std::string GetTypeAsString() const
 	{
-		return this_type::TypeName();
+		return TypeName();
 	}
 
 	void Load(LuaObject const &obj)
@@ -128,12 +129,12 @@ public:
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
 	{
 		RVec3 B0 = real(B.mean(p->x));
-		Real BB = InnerProduct(B0, B0);
+		Real BB = Dot(B0, B0);
 
 		Real Bs = std::sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
-		Vc = (InnerProduct(p->v, B0) * B0) / BB;
+		Vc = (Dot(p->v, B0) * B0) / BB;
 		v1 = Cross(p->v, B0 / Bs);
 		v0 = -Cross(v1, B0 / Bs);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
@@ -144,7 +145,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * InnerProduct(E(r), v) * dt;
+			p->w[ms] += 0.5 * Dot(E(r), v) * dt;
 		}
 
 		Vec3 t, V_;
@@ -153,9 +154,9 @@ public:
 
 		V_ = p->v + Cross(p->v, t);
 
-		p->v += Cross(V_, t) / (InnerProduct(t, t) + 1.0) * 2.0;
+		p->v += Cross(V_, t) / (Dot(t, t) + 1.0) * 2.0;
 
-		Vc = (InnerProduct(p->v, B0) * B0) / BB;
+		Vc = (Dot(p->v, B0) * B0) / BB;
 
 		p->x += Vc * dt * 0.5;
 
@@ -169,7 +170,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * InnerProduct(E(r), v) * q_ / T_ * dt;
+			p->w[ms] += 0.5 * Dot(E(r), v) * q_ / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;
@@ -179,14 +180,14 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
 	{
-		RVec3 B0 = real(B.mean(p.x));
-		Real BB = InnerProduct(B0, B0);
+		RVec3 B0 = real(B(p.x));
+		Real BB = Dot(B0, B0);
 
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
-		Vc = (InnerProduct(p.v, B0) * B0) / BB;
+		Vc = (Dot(p.v, B0) * B0) / BB;
 
 		v1 = Cross(p.v, B0 / Bs);
 		v0 = -Cross(v1, B0 / Bs);
@@ -198,7 +199,7 @@ public:
 			Vec3 v, r;
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			n->Scatter(p.w[ms], r);
+			mesh.Scatter(r, p.w[ms], n);
 		}
 
 	}
@@ -206,14 +207,14 @@ public:
 	template<int IFORM, typename TV, typename TB, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TB const & B, Others const &... others) const
 	{
-		RVec3 B0 = real(B.mean(p.x));
-		Real BB = InnerProduct(B0, B0);
+		RVec3 B0 = real(B(p.x));
+		Real BB = Dot(B0, B0);
 
 		Real Bs = sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
-		Vc = (InnerProduct(p.v, B0) * B0) / BB;
+		Vc = (Dot(p.v, B0) * B0) / BB;
 
 		v1 = Cross(p.v, B0 / Bs);
 		v0 = -Cross(v1, B0 / Bs);
@@ -225,8 +226,18 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			J->Scatter(v * p.w[ms] * p.f, r);
+			mesh.Scatter(r, v * p.w[ms] * p.f, J);
 		}
+	}
+
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
+	{
+		Point_s res;
+		res.x = x;
+		res.v = v;
+		res.f = f;
+		res.w *= 0;
+		return std::move(res);
 	}
 
 }

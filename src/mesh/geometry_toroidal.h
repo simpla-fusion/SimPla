@@ -180,19 +180,6 @@ struct ToroidalGeometry
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type GetCoordinates(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
-
-		xmin_[1] + (xmax_[1] - xmin_[1]) * x[1],
-
-		xmin_[2] + (xmax_[2] - xmin_[2]) * x[2]
-
-		});
-	}
-
 	nTuple<3, Real> const& Normal(index_type s) const
 	{
 		return normal_[topology.topology_type::_C(s)];
@@ -243,20 +230,10 @@ struct ToroidalGeometry
 	{
 		return 1.0 / Volume(s);
 	}
-	coordinates_type Map(coordinates_type const &x) const
+
+	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
 	{
-		return coordinates_type( {
 
-		(x[0] - shift_[0]) * scale_[0],
-
-		(x[0] - shift_[1]) * scale_[1],
-
-		(x[0] - shift_[2]) * scale_[2]
-
-		});
-	}
-	coordinates_type InverseMap(coordinates_type const &x) const
-	{
 		return coordinates_type( {
 
 		x[0] * inv_scale_[0] + shift_[0],
@@ -264,6 +241,18 @@ struct ToroidalGeometry
 		x[1] * inv_scale_[1] + shift_[1],
 
 		x[2] * inv_scale_[2] + shift_[2]
+
+		});
+	}
+	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	{
+		return coordinates_type( {
+
+		(x[0] - shift_[0]) * scale_[0],
+
+		(x[1] - shift_[1]) * scale_[1],
+
+		(x[2] - shift_[2]) * scale_[2]
 
 		});
 	}

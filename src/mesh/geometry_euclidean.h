@@ -217,7 +217,7 @@ struct EuclideanGeometry
 		return Normal(s, v) * Volume(s);
 	}
 
-	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
 	{
 
 		return coordinates_type( {
@@ -230,7 +230,7 @@ struct EuclideanGeometry
 
 		});
 	}
-	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
+	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
 	{
 		return coordinates_type( {
 

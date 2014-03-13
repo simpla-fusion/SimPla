@@ -180,19 +180,6 @@ struct MagneticFluxGeometry
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type GetCoordinates(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
-
-		xmin_[1] + (xmax_[1] - xmin_[1]) * x[1],
-
-		xmin_[2] + (xmax_[2] - xmin_[2]) * x[2]
-
-		});
-	}
-
 	nTuple<3, Real> const& Normal(index_type s) const
 	{
 		return normal_[topology.topology_type::_C(s)];
@@ -206,36 +193,7 @@ struct MagneticFluxGeometry
 
 	Real Volume(index_type s) const
 	{
-		auto x = topology.GetCoordinates(s);
 		Real res = 1;
-
-		switch (topology._N(s))
-		{
-		case 0:
-			res = 1;
-			break;
-		case 1:  //001 r
-			res = dh_[0];
-			break;
-		case 2:  //010 z
-			res = dh_[1];
-			break;
-		case 4:  //100 phi
-			res = x[0] * x[2];
-			break;
-		case 3: //011 rz
-			res = dh_[0] * dh_[1];
-			break;
-		case 5: //101 r phi  phi*( (r+d)^2-r^2)/2
-			res = x[2] * (2 * x[0] + dh_[1]) * dh_[1] * 0.5;
-			break;
-		case 6: //110 z phi
-			res = dh_[2] * x[0] * x[2];
-			break;
-		case 7: //111
-			res = x[2] * (2 * x[0] + dh_[0]) * 0.5 * dh_[0] * dh_[1];
-			break;
-		}
 
 		return res;
 	}
@@ -243,20 +201,10 @@ struct MagneticFluxGeometry
 	{
 		return 1.0 / Volume(s);
 	}
-	coordinates_type Map(coordinates_type const &x) const
+
+	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
 	{
-		return coordinates_type( {
 
-		(x[0] - shift_[0]) * scale_[0],
-
-		(x[0] - shift_[1]) * scale_[1],
-
-		(x[0] - shift_[2]) * scale_[2]
-
-		});
-	}
-	coordinates_type InverseMap(coordinates_type const &x) const
-	{
 		return coordinates_type( {
 
 		x[0] * inv_scale_[0] + shift_[0],
@@ -264,6 +212,18 @@ struct MagneticFluxGeometry
 		x[1] * inv_scale_[1] + shift_[1],
 
 		x[2] * inv_scale_[2] + shift_[2]
+
+		});
+	}
+	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	{
+		return coordinates_type( {
+
+		(x[0] - shift_[0]) * scale_[0],
+
+		(x[1] - shift_[1]) * scale_[1],
+
+		(x[2] - shift_[2]) * scale_[2]
 
 		});
 	}

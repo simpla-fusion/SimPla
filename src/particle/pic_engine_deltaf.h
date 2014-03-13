@@ -16,16 +16,15 @@
 namespace simpla
 {
 
-template<typename TM>
+template<typename TM, typename TScalar = Real>
 struct PICEngineDeltaF
 {
 
 public:
-	typedef PICEngineDeltaF<TM> this_type;
+	typedef PICEngineDeltaF<TM, TScalar> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::scalar_type scalar_type;
-
+	typedef TScalar scalar_type;
 	typedef nTuple<7, Real> storage_value_type;
 
 	struct Point_s
@@ -138,55 +137,35 @@ public:
 		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
 
 		// FIXME miss one term E\cross B \cdot \Grad n
-		auto a = (-InnerProduct(fE(p->x), p->v) * q_kT_ * dt);
+		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
 
 		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
 //		p->w += (1.0 - p->w) * (-q_ * InnerProduct(fE(p->x), p->v) / T_ * dt);
 	}
 
-	template<typename TV, typename ... Others> inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Collect(
-	        Point_s const &p, Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+	template<typename TV, typename ... Others>
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
+	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		n->Collect(q_ * p.f * p.w, p.x);
+		mesh.Scatter(p.x, p.f * p.w, n);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
-	inline void Collect(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
+	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
-
-		J->Collect(p.v * (q_ * p.f * p.w), p.x);
+		mesh.Scatter(p.x, p.v * (p.f * p.w), J);
 	}
 
-	template<typename TX, typename TV, typename TFun>
-	inline Point_s Trans(TX const & x, TV const &v, TFun const & n, ...) const
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		Point_s p;
-		p.x = x;
-		p.v = v;
-		p.f = n(x);
-		p.w = 0.0;
-
-		return std::move(p);
+		return std::move(Point_s( { x, v, f }));
 	}
 
-	template<typename TX, typename TV, typename ... Others>
-	inline void Trans(TX const & x, TV const &v, Point_s * p, Others const &...) const
-	{
-		p->x = x;
-		p->v = v;
-	}
-
-	template<typename TX, typename TV, typename ... Others>
-	inline void InvertTrans(Point_s const &p, TX * x, TV *v, Others const &...) const
-	{
-		*x = p.x;
-		*v = p.v;
-	}
 };
 
-template<typename TM> std::ostream&
-operator<<(std::ostream& os, typename PICEngineDeltaF<TM>::Point_s const & p)
+template<typename TM, typename TV> std::ostream&
+operator<<(std::ostream& os, typename PICEngineDeltaF<TM, TV>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 

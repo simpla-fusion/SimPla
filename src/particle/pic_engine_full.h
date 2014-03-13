@@ -16,13 +16,12 @@
 namespace simpla
 {
 
-template<typename TM, int DeltaF = 0>
+template<typename TM>
 struct PICEngineFull
 {
 
 public:
-	typedef PICEngineBase<TM> base_type;
-	typedef PICEngineFull<TM, DeltaF> this_type;
+	typedef PICEngineFull<TM> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
