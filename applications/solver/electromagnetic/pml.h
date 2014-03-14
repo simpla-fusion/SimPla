@@ -18,8 +18,6 @@
 namespace simpla
 {
 
-class LuaObject;
-
 template<typename TM>
 class PML
 {
@@ -48,22 +46,27 @@ private:
 	// sigma
 	Form<0> s0, s1, s2;
 
-	nTuple<6, int> bc_;
-
-	bool isInitilized_;
+	bool is_loaded_;
 public:
 	PML(mesh_type const & pmesh);
+
 	~PML();
 
 	void Update();
+
 	bool empty() const
 	{
-		return !isInitilized_;
+		return !is_loaded_;
 	}
-	void Load(LuaObject const&cfg);
+
+	template<typename TDict> void Load(TDict const &dict);
+
+	void Load(coordinates_type xmin, coordinates_type xmax);
+
 	std::ostream & Save(std::ostream & os) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
+
 	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
 
 	void DumpData(std::string const &path = "/DumpData") const;
@@ -72,12 +75,12 @@ public:
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh)
-		: mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh) :
+		mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -87,7 +90,7 @@ PML<TM>::PML(mesh_type const & pmesh)
 
 		X20(pmesh), X21(pmesh), X22(pmesh),
 
-		isInitilized_(false)
+		is_loaded_(false)
 {
 }
 
@@ -97,9 +100,15 @@ PML<TM>::~PML()
 }
 
 template<typename TM>
-void PML<TM>::Update()
+template<typename TDict>
+void PML<TM>::Load(TDict const &dict)
 {
-	isInitilized_ = true;
+	Load(dict["xmin"].template as<coordinates_type>(), dict["xmax"].template as<coordinates_type>());
+}
+
+template<typename TM>
+void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
+{
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -118,81 +127,45 @@ void PML<TM>::Update()
 	X21.Fill(0.0);
 	X22.Fill(0.0);
 
-	auto dims = mesh.GetDimensions();
-//	auto st = mesh.GetStrides();
-	auto L = mesh.GetExtent();
-	Real inv_dx[3];
+	auto ymin = mesh.GetExtent().first;
+	auto ymax = mesh.GetExtent().second;
 
-	for (int i = 0; i < 3; ++i)
+	mesh.template Traversal<VERTEX>(
+
+	[&](index_type s)
 	{
-		if (dims[i] > 1)
-			inv_dx[i] = (L.second[i] - L.first[i]) / static_cast<Real>(dims[i] - 1);
-		else
-			inv_dx[i] = 0;
-	}
+		coordinates_type x=mesh.GetCoordinates(s);
 
-//	for (index_type ix = 0; ix < dims[0]; ++ix)
-//		for (index_type iy = 0; iy < dims[1]; ++iy)
-//			for (index_type iz = 0; iz < dims[2]; ++iz)
-//			{
-//				index_type s = ix * st[0] + iy * st[1] + iz * st[2];
-//				if (ix < bc_[0])
-//				{
-//					Real r = static_cast<Real>(bc_[0] - ix) / static_cast<Real>(bc_[0]);
-//					a0[s] = alpha_(r, expN, dB);
-//					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[0] * inv_dx[0];
-//				}
-//				else if (ix > dims[0] - bc_[0 + 1])
-//				{
-//					Real r = static_cast<Real>(ix - (dims[0] - bc_[0 + 1])) / static_cast<Real>(bc_[0 + 1]);
-//					a0[s] = alpha_(r, expN, dB);
-//					s0[s] = sigma_(r, expN, dB) * speed_of_light / bc_[1] * inv_dx[0];
-//				};
-//
-//				if (iy < bc_[2])
-//				{
-//					Real r = static_cast<Real>(bc_[2] - iy) / static_cast<Real>(bc_[2]);
-//					a1[s] = alpha_(r, expN, dB);
-//					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[2] * inv_dx[1];
-//				}
-//				else if (iy > dims[1] - bc_[2 + 1])
-//				{
-//					Real r = static_cast<Real>(iy - (dims[1] - bc_[2 + 1])) / static_cast<Real>(bc_[2 + 1]);
-//					a1[s] = alpha_(r, expN, dB);
-//					s1[s] = sigma_(r, expN, dB) * speed_of_light / bc_[3] * inv_dx[1];
-//				}
-//
-//				if (iz < bc_[4])
-//				{
-//					Real r = static_cast<Real>(bc_[4] - iz) / static_cast<Real>(bc_[4]);
-//
-//					a2[s] = alpha_(r, expN, dB);
-//					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[4] * inv_dx[2];
-//				}
-//				else if (iz > dims[2] - bc_[4 + 1])
-//				{
-//					Real r = static_cast<Real>(iz - (dims[2] - bc_[4 + 1])) / static_cast<Real>(bc_[4 + 1]);
-//
-//					a2[s] = alpha_(r, expN, dB);
-//					s2[s] = sigma_(r, expN, dB) * speed_of_light / bc_[5] * inv_dx[2];
-//				}
-//			}
+		for(int n=0;n<3;++n)
+		{
+			if (x[n] < xmin[n] )
+			{
+				Real r = (xmin[n] - x[n]) / (xmin[n]-ymin[n]);
+				a0[s] = alpha_(r, expN, dB);
+				s0[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[n]-ymin[n]);
+			}
+			else if (x[n] > xmax[n])
+			{
+				Real r = (x[n] - xmax[n]) / (ymax[n] - xmax[n]);
+				a0[s] = alpha_(r, expN, dB);
+				s0[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[n] - xmax[n]);
+			};
+		}
+	});
 
-}
-template<typename TM>
-void PML<TM>::Load(LuaObject const&cfg)
-{
-	if (cfg.empty())
-		return;
-	cfg["Width"].as(&bc_);
-	Update();
+	is_loaded_ = true;
+
 	LOGGER << "Load PML solver" << DONE;
 }
-template<typename TM>
 
+template<typename TM>
+void PML<TM>::Update()
+{
+}
+
+template<typename TM>
 std::ostream & PML<TM>::Save(std::ostream & os) const
 {
-	os << "\tPML={  Width={" << ToString(bc_, ",") << " } }\n";
 	return os;
 }
 

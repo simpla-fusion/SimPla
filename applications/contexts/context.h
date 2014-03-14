@@ -47,8 +47,8 @@ inline std::ostream & operator<<(std::ostream & os, Context const &self)
 	return self.Save(os);
 }
 
-template<typename TC>
-void CreateContext(LuaObject const &dict, Context* ctx)
+template<typename TC, typename TDict>
+void CreateContext(TDict const &dict, Context* ctx)
 {
 
 	std::shared_ptr<TC> ctx_ptr(new TC);

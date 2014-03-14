@@ -130,15 +130,15 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s ,coordinates_type const &x)
 		{	self->GetDefDomain().push_back(s );}, dict["Region"]);
 	}
-	else if (dict["Index"])
-	{
-		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
-
-		dict["Index"].as(&idxs);
-
-		for (auto const &id : idxs)
-			self->GetDefDomain().push_back(mesh.GetIndex(id));
-	}
+//	else if (dict["Index"])
+//	{
+//		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
+//
+//		dict["Index"].as(&idxs);
+//
+//		for (auto const &id : idxs)
+//			self->GetDefDomain().push_back(mesh.GetIndex(id));
+//	}
 
 	self->SetHardSrc(dict["HardSrc"].template as<bool>(false));
 

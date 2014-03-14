@@ -45,8 +45,8 @@ public:
 	typedef typename topology_type::index_type index_type;
 
 	template<typename ... Args>
-	RectMesh(Args const &... args)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(Args const &... args) :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -167,6 +167,11 @@ public:
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::CoordinatesLocalToGlobal(s,x));
 	}
 
+	index_type GetIndex(coordinates_type x)const
+	{
+		return topology_type::GetIndex(geometry_type::CoordinatesGlobalToLocal(x));
+	}
+
 	template<typename TF>
 	inline typename TF::value_type
 	Gather_(TF const &f,coordinates_type r,typename topology_type::compact_index_type shift,unsigned long h=0 ) const
@@ -175,7 +180,7 @@ public:
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h)+ (topology_type::_DA >> (h + 1));
+		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h) + (topology_type::_DA >> (h + 1));
 
 		return
 

@@ -13,12 +13,12 @@
 #include "../physics/constants.h"
 namespace simpla
 {
-template<typename TM, typename TScaler = Real, int NMATE = 8>
+template<typename TM, int NMATE = 8, typename TScaler = Real>
 class PICEngineGGauge
 {
 
 public:
-	typedef PICEngineGGauge<TM, TScaler, NMATE> this_type;
+	typedef PICEngineGGauge<TM, NMATE, TScaler> this_type;
 	typedef TM mesh_type;
 	typedef TScaler scalar_type;
 private:
@@ -27,7 +27,7 @@ private:
 public:
 	mesh_type const &mesh;
 
-	DEFINE_FIELDS (mesh_type)
+	DEFINE_FIELDS(mesh_type)
 
 	struct Point_s
 	{
@@ -57,8 +57,8 @@ public:
 		}
 	};
 
-	PICEngineGGauge(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
+	PICEngineGGauge(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
 	{
 
 	}
@@ -128,15 +128,15 @@ public:
 	template<typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
 	{
-		RVec3 B0 = real(B.mean(p->x));
+		RVec3 B0 = real(B(p->x));
 		Real BB = Dot(B0, B0);
 
-		Real Bs = std::sqrt(BB);
+		RVec3 b = B0 / std::sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 		Vc = (Dot(p->v, B0) * B0) / BB;
-		v1 = Cross(p->v, B0 / Bs);
-		v0 = -Cross(v1, B0 / Bs);
+		v1 = Cross(p->v, b);
+		v0 = -Cross(v1, b);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
 		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
@@ -160,8 +160,8 @@ public:
 
 		p->x += Vc * dt * 0.5;
 
-		v1 = Cross(p->v, B0 / Bs);
-		v0 = -Cross(v1, B0 / Bs);
+		v1 = Cross(p->v, b);
+		v0 = -Cross(v1, b);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
 		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
@@ -178,19 +178,20 @@ public:
 
 	template<typename TV, typename TB, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
+			Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B(p.x));
 		Real BB = Dot(B0, B0);
 
-		Real Bs = sqrt(BB);
+		RVec3 b = B0 / std::sqrt(BB);
+
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
 		Vc = (Dot(p.v, B0) * B0) / BB;
 
-		v1 = Cross(p.v, B0 / Bs);
-		v0 = -Cross(v1, B0 / Bs);
+		v1 = Cross(p.v, b);
+		v0 = -Cross(v1, b);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
 		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
@@ -210,14 +211,14 @@ public:
 		RVec3 B0 = real(B(p.x));
 		Real BB = Dot(B0, B0);
 
-		Real Bs = sqrt(BB);
+		RVec3 b = B0 / sqrt(BB);
 		Vec3 v0, v1, r0, r1;
 		Vec3 Vc;
 
 		Vc = (Dot(p.v, B0) * B0) / BB;
 
-		v1 = Cross(p.v, B0 / Bs);
-		v0 = -Cross(v1, B0 / Bs);
+		v1 = Cross(p.v, b);
+		v0 = -Cross(v1, b);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
 		r1 = -Cross(v1, B0) / (cmr_ * BB);
 		for (int ms = 0; ms < NMATE; ++ms)

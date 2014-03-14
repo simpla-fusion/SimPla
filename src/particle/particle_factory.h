@@ -17,7 +17,7 @@ struct ParticleWrap
 {
 	std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
 
-	std::function<void(TJ * J, TE const & E, TB const & B)> Collect;
+	std::function<void(TJ * J, TE const & E, TB const & B)> Scatter;
 
 	std::function<std::ostream &(std::ostream &)> Save;
 
@@ -36,7 +36,7 @@ template<typename TEngine, typename TE, typename TB, typename TJ> bool _CreatePa
 	solver->Load(cfg);
 	using namespace std::placeholders;
 	res->NextTimeStep = std::bind(&Particle<TEngine>::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
-	res->Collect = std::bind(&Particle<TEngine>::template Collect<TJ, TE, TB>, solver, _1, _2, _3);
+	res->Scatter = std::bind(&Particle<TEngine>::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
 	res->Save = std::bind(&Particle<TEngine>::Save, solver, _1);
 	res->DumpData = std::bind(&Particle<TEngine>::DumpData, solver, _1);
 	return true;
