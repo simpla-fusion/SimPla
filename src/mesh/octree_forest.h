@@ -589,24 +589,23 @@ struct OcForest
 
 		Real w = static_cast<Real>(1UL << h);
 
-		idx[0] = static_cast<size_type>(std::floor((*x)[0] * idh + static_cast<double>(I(shift))))
-		        & (~((1UL << (D_FP_POS - h)) - 1));
+		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
+
+		idx[0] = static_cast<size_type>(std::floor((*x)[0] * idh + static_cast<double>(I(shift)))) & m;
 
 		(*x)[0] = (dims_[0] > 1) ? (((*x)[0] - idx[0] * dh) * w) : 0.0;
 
-		idx[1] = static_cast<size_type>(std::floor((*x)[1] * idh + static_cast<double>(J(shift))))
-		        & (~((1UL << (D_FP_POS - h)) - 1));
+		idx[1] = static_cast<size_type>(std::floor((*x)[1] * idh + static_cast<double>(J(shift)))) & m;
 
 		(*x)[1] = (dims_[1] > 1) ? (((*x)[1] - idx[1] * dh) * w) : 0.0;
 
-		idx[2] = static_cast<size_type>(std::floor((*x)[2] * idh + static_cast<double>(K(shift))))
-		        & (~((1UL << (D_FP_POS - h)) - 1));
+		idx[2] = static_cast<size_type>(std::floor((*x)[2] * idh + static_cast<double>(K(shift)))) & m;
 
 		(*x)[2] = (dims_[2] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
 
 		return index_type(
-		        { ((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
-		                & _MASK });
+		        { (((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
+		                & _MASK) });
 
 	}
 

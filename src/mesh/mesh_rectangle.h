@@ -175,7 +175,7 @@ public:
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h);
+		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h)+ (topology_type::_DA >> (h + 1));
 
 		return
 
@@ -246,7 +246,7 @@ public:
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h);
+		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h)+ (topology_type::_DA >> (h + 1));
 
 		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
 		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);

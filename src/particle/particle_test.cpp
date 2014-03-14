@@ -42,16 +42,12 @@ protected:
 		mesh.SetDt(1.0);
 		mesh.Update();
 
-		cfg.ParseString(
-
-		"n0=function(x,y,z)"
-				" return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
+		cfg_str = "n0=function(x,y,z)"
+				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
 				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=400,T=1.0e4 ,"
 				"  n=n0"
-				"}"
-
-		);
+				"}";
 
 	}
 public:
@@ -70,7 +66,7 @@ public:
 
 	mesh_type mesh;
 
-	LuaObject cfg;
+	std::string cfg_str;
 
 };
 
@@ -106,7 +102,10 @@ TYPED_TEST(TestParticle,load_save){
 
 	ion.Update();
 
-	ion.Load(TestFixture::cfg["ion"]);
+	LuaObject cfg;
+	cfg.ParseString(TestFixture::cfg_str);
+
+	ion.Load(cfg["ion"]);
 }
 }
 
@@ -131,9 +130,12 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Update();
 
-	ion.Load(TestFixture::cfg["ion"]);
+	LuaObject cfg;
+	cfg.ParseString(TestFixture::cfg_str);
 
-	Field<mesh_type,VERTEX,scalar_type> n(mesh);
+	ion.Load(cfg["ion"]);
+
+	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
 
 	typename TestFixture::template Form<EDGE> E(mesh);
 	typename TestFixture::template Form<FACE> B(mesh);
@@ -141,23 +143,24 @@ TYPED_TEST(TestParticle,scatter_n){
 	E.Fill(1.0);
 	B.Fill(1.0);
 	n.Fill(0);
+	n0.Fill(0);
 
 	ion.Scatter(&n,E,B);
 
-	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//
+//	std::cout<<DUMP(n )<<std::endl;
+//	std::cout<<DUMP(ion )<<std::endl;
 
-	CHECK(ion.size());
-	std::cout<<DUMP(n )<<std::endl;
-	std::cout<<DUMP(ion )<<std::endl;
 	{
 		Real variance=0.0;
 
 		scalar_type average=0.0;
 
-		auto n_obj=TestFixture::cfg["ion"]["n0"];
+		LuaObject n_obj=cfg["ion"]["n"];
 
-		Real pic =TestFixture::cfg["ion"]["PIC"].template as<Real>();
+		Real pic =cfg["ion"]["PIC"].template as<Real>();
 
 		mesh. template Traversal<VERTEX>(
 				[&](index_type s)
@@ -165,6 +168,8 @@ TYPED_TEST(TestParticle,scatter_n){
 					coordinates_type x=mesh.GetCoordinates(s);
 
 					Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
+
+					n0[s]=expect;
 
 					scalar_type actual= n.get(s);
 
@@ -177,8 +182,8 @@ TYPED_TEST(TestParticle,scatter_n){
 		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 		{
 			Real relative_error=std::sqrt(variance)/abs(average);
-
-			EXPECT_LE(relative_error,1.1/std::sqrt(pic));
+			CHECK(relative_error);
+			EXPECT_LE(relative_error,1.0/std::sqrt(pic));
 		}
 		else
 		{
@@ -188,6 +193,7 @@ TYPED_TEST(TestParticle,scatter_n){
 		}
 
 	}
+//	std::cout<<DUMP(n0 )<<std::endl;
 
 }
 }
@@ -217,7 +223,10 @@ TYPED_TEST(TestParticle,scatter_J){
 
 	ion.Update();
 
-	ion.Load(TestFixture::cfg["ion"]);
+	LuaObject cfg;
+	cfg.ParseString(TestFixture::cfg_str);
+
+	ion.Load(cfg["ion"]);
 
 	ion.Sort();
 
@@ -239,13 +248,13 @@ TYPED_TEST(TestParticle,scatter_J){
 //
 //	mesh_type const & mesh = TestFixture::mesh;
 //
-//	TestFixture::cfg.ParseString("ion.n=1.0");
+//	cfg.ParseString("ion.n=1.0");
 //
 //	pool_type ion(mesh);
 //
 //	ion.Update();
 //
-//	ion.Load(TestFixture::cfg["ion"]);
+//	ion.Load(cfg["ion"]);
 //
 //	ion.Sort();
 //
