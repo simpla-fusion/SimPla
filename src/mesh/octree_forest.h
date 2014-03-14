@@ -72,7 +72,7 @@ struct OcForest
 	 *
 	 */
 
-	static constexpr double idh = static_cast<double>(1UL << (D_FP_POS + 1));
+	static constexpr double idh = static_cast<double>(1UL << (D_FP_POS));
 	static constexpr double dh = 1.0 / idh;
 
 	static constexpr compact_index_type _DI = 1UL << (D_FP_POS + 2 * INDEX_DIGITS);
@@ -546,11 +546,11 @@ struct OcForest
 		return std::move(res);
 	}
 
-	inline nTuple<3, Real> GetCoordinates(compact_index_type s) const
+	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
 		s &= _MASK;
 
-		return nTuple<3, Real>( {
+		return coordinates_type( {
 
 		static_cast<Real>(I(s)) * dh,
 
@@ -562,28 +562,51 @@ struct OcForest
 
 	}
 
-	inline nTuple<3, Real> GetCoordinates(index_type s) const
+	inline coordinates_type GetCoordinates(index_type s) const
 	{
 		return std::move(GetCoordinates(s.d));
 	}
 
-	inline index_type GetIndex(coordinates_type x, unsigned long h = 0) const
+	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type r) const
 	{
-		return index_type( {
+		coordinates_type x = GetCoordinates(s);
+		Real a = static_cast<double>(1UL << (D_FP_POS - H(s))) * dh;
+		x[0] = (dims_[0] > 1) ? (x[0] + r[0] * a) : 0;
 
-		(
+		x[1] = (dims_[1] > 1) ? (x[1] + r[1] * a) : 0;
 
-		(h << (INDEX_DIGITS * 3)) |
+		x[2] = (dims_[2] > 1) ? (x[2] + r[2] * a) : 0;
+		return x;
+	}
 
-		(static_cast<size_type>(std::floor(x[0] * idh)) << (INDEX_DIGITS * 2)) |
+	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift,
+	        unsigned long h = 0) const
+	{
 
-		(static_cast<size_type>(std::floor(x[1] * idh)) << (INDEX_DIGITS)) |
+		shift >>= h + 1;
 
-		static_cast<size_type>(std::floor(x[2] * idh))
+		size_type idx[NDIMS];
 
-		) & _MASK
+		Real w = static_cast<Real>(1UL << h);
 
-		});
+		idx[0] = static_cast<size_type>(std::floor((*x)[0] * idh + static_cast<double>(I(shift))))
+		        & (~((1UL << (D_FP_POS - h)) - 1));
+
+		(*x)[0] = (dims_[0] > 1) ? (((*x)[0] - idx[0] * dh) * w) : 0.0;
+
+		idx[1] = static_cast<size_type>(std::floor((*x)[1] * idh + static_cast<double>(J(shift))))
+		        & (~((1UL << (D_FP_POS - h)) - 1));
+
+		(*x)[1] = (dims_[1] > 1) ? (((*x)[1] - idx[1] * dh) * w) : 0.0;
+
+		idx[2] = static_cast<size_type>(std::floor((*x)[2] * idh + static_cast<double>(K(shift))))
+		        & (~((1UL << (D_FP_POS - h)) - 1));
+
+		(*x)[2] = (dims_[2] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
+
+		return index_type(
+		        { ((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
+		                & _MASK });
 
 	}
 
@@ -637,9 +660,9 @@ struct OcForest
 		return inv_volume_[_N(s)][H(s)];
 	}
 
-	//***************************************************************************************************
-	//* Auxiliary functions
-	//***************************************************************************************************
+//***************************************************************************************************
+//* Auxiliary functions
+//***************************************************************************************************
 
 	static size_type H(compact_index_type s)
 	{

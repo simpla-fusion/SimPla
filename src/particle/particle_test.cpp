@@ -9,14 +9,16 @@
 #include <random>
 
 #include "../fetl/fetl.h"
+#include "../fetl/save_field.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
+#include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_euclidean.h"
 
 #include "particle.h"
+#include "save_particle.h"
 #include "pic_engine_full.h"
 #include "pic_engine_deltaf.h"
 #include "pic_engine_ggauge.h"
@@ -31,14 +33,13 @@ protected:
 	{
 		Logger::Verbose(10);
 
+		nTuple<3, size_t> dims = { 200, 0, 0 };
+		mesh.SetDimensions(dims);
+
 		nTuple<3, Real> xmin = { 0, 0, 0 };
 		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
-
-		nTuple<3, size_t> dims = { 20, 0, 0 };
-		mesh.SetDimensions(dims);
 		mesh.SetDt(1.0);
-
 		mesh.Update();
 
 		cfg.ParseString(
@@ -46,7 +47,7 @@ protected:
 		"n0=function(x,y,z)"
 				" return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=200,T=1.0e4 ,"
+				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=400,T=1.0e4 ,"
 				"  n=n0"
 				"}"
 
@@ -77,15 +78,15 @@ typedef testing::Types<
 
 PICEngineFull<RectMesh<>>
 
-, PICEngineDeltaF<RectMesh<>, Complex>
-
-, PICEngineGGauge<RectMesh<>, Real, 8>
-
-, PICEngineGGauge<RectMesh<>, Real, 32>
-
-, PICEngineGGauge<RectMesh<>, Complex, 8>
-
-, PICEngineGGauge<RectMesh<>, Complex, 32>
+//, PICEngineDeltaF<RectMesh<>, Complex>
+//
+//, PICEngineGGauge<RectMesh<>, Real, 8>
+//
+//, PICEngineGGauge<RectMesh<>, Real, 32>
+//
+//, PICEngineGGauge<RectMesh<>, Complex, 8>
+//
+//, PICEngineGGauge<RectMesh<>, Complex, 32>
 
 > AllEngineTypes;
 
@@ -143,6 +144,12 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Scatter(&n,E,B);
 
+	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+
+	CHECK(ion.size());
+	std::cout<<DUMP(n )<<std::endl;
+	std::cout<<DUMP(ion )<<std::endl;
 	{
 		Real variance=0.0;
 
@@ -163,7 +170,7 @@ TYPED_TEST(TestParticle,scatter_n){
 
 					average+=actual;
 
-					variance+=std::pow(abs(expect-actual),2.0);
+					variance+=std::pow( (expect-actual),2.0);
 				}
 		);
 

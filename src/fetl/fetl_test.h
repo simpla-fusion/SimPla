@@ -16,11 +16,11 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../mesh/rect_mesh.h"
 #include "../mesh/octree_forest.h"
+#include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
 
-#define DEF_MESH RectMesh<OcForest,CylindricalGeometry>
+#define DEF_MESH RectMesh<OcForest,EuclideanGeometry>
 
 #endif /* FETL_TEST_H_ */

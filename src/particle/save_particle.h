@@ -23,6 +23,7 @@ template<typename TEngine> inline std::string //
 Dump(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
 {
 	auto t = d.GetDataSet();
+	CHECK(t.second);
 	return DataDumper<typename TEngine::Point_s>(t.first.get(), name, 1, &(t.second), is_compact_store).GetName();
 
 }

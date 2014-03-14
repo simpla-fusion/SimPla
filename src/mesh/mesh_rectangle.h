@@ -1,12 +1,12 @@
 /*
- * rect_mesh.h
+ * mesh_rectangle.h
  *
  *  Created on: 2014年2月26日
  *      Author: salmon
  */
 
-#ifndef RECT_MESH_H_
-#define RECT_MESH_H_
+#ifndef MESH_RECTANGLE_H_
+#define MESH_RECTANGLE_H_
 
 #include <cmath>
 #include <iostream>
@@ -24,7 +24,7 @@ template<typename > class EuclideanGeometry;
 
 class OcForest;
 /**
- *  Grid is mapped as a rectangle region;
+ *  Grid is mapped as a rectangle/hexahedrom region;
  *
  */
 template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanGeometry>
@@ -164,34 +164,18 @@ public:
 
 	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const
 	{
-		x += topology_type::GetCoordinates(s);
-		return geometry_type::CoordinatesLocalToGlobal(x);
+		return geometry_type::CoordinatesLocalToGlobal(topology_type::CoordinatesLocalToGlobal(s,x));
 	}
 
 	template<typename TF>
 	inline typename TF::value_type
-	Gather_(TF const &f,coordinates_type const & x,typename topology_type::compact_index_type shift,unsigned long h=0 ) const
+	Gather_(TF const &f,coordinates_type r,typename topology_type::compact_index_type shift,unsigned long h=0 ) const
 	{
 		auto X = (topology_type::_DI >> (h+1));
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		typename topology_type::compact_index_type mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
-		mask = mask | (mask << (topology_type::INDEX_DIGITS)) | (mask << (topology_type::INDEX_DIGITS * 2));
-
-		shift>>=h+1;
-
-		Real w = static_cast<Real>(1UL << h);
-
-		coordinates_type r= x + topology_type::GetCoordinates(shift);
-
-		index_type s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA >> (h+1)))& mask;
-
-		r -= GetCoordinates(s );
-
-		r[0] = (topology_type::dims_[0] > 1) ? (r[0] * w) : 0.0;
-		r[1] = (topology_type::dims_[1] > 1) ? (r[1] * w) : 0.0;
-		r[2] = (topology_type::dims_[2] > 1) ? (r[2] * w) : 0.0;
+		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h);
 
 		return
 
@@ -256,28 +240,13 @@ public:
 
 	template<typename TF>
 	inline void
-	Scatter_( coordinates_type const & x,typename TF::value_type const & v,typename topology_type::compact_index_type shift,TF *f,unsigned long h =0 ) const
+	Scatter_( coordinates_type r,typename TF::value_type const & v,typename topology_type::compact_index_type shift,TF *f,unsigned long h =0 ) const
 	{
 		auto X = (topology_type::_DI >> (h+1));
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		typename topology_type::compact_index_type mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
-		mask = mask | (mask << (topology_type::INDEX_DIGITS)) | (mask << (topology_type::INDEX_DIGITS * 2));
-
-		shift>>=h+1;
-
-		Real w = static_cast<Real>(1UL << h);
-
-		coordinates_type r= x + topology_type::GetCoordinates(shift);
-
-		index_type s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA>> (h+1)))& mask;
-
-		r -= GetCoordinates(s );
-
-		r[0] = (topology_type::dims_[0] > 1) ? (r[0] * w) : 0.0;
-		r[1] = (topology_type::dims_[1] > 1) ? (r[1] * w) : 0.0;
-		r[2] = (topology_type::dims_[2] > 1) ? (r[2] * w) : 0.0;
+		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h);
 
 		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
 		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);
@@ -746,4 +715,4 @@ operator<<(std::ostream & os, RectMesh<TTopology, TGeo> const & d)
 }
 // namespace simpla
 
-#endif /* RECT_MESH_H_ */
+#endif /* MESH_RECTANGLE_H_ */

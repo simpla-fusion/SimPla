@@ -55,10 +55,6 @@ struct EuclideanGeometry
 	// Metric
 	//***************************************************************************************************
 
-	void Update()
-	{
-
-	}
 	template<typename TDict>
 	void Load(TDict const & dict)
 	{
@@ -117,17 +113,29 @@ struct EuclideanGeometry
 	{
 		int n = IN < NDIMS ? IN : NDIMS;
 
-		auto const & dims = topology.GetDimensions();
-
 		for (int i = 0; i < n; ++i)
 		{
 			xmin_[i] = pmin[i];
 			xmax_[i] = pmax[i];
 
-			shift_[i] = pmin[i];
+		}
 
-			scale_[i] = (pmax[i] > pmin[i]) ? ((static_cast<Real>(dims[i])) / (pmax[i] - pmin[i])) : 0;
-			inv_scale_[i] = (pmax[i] - pmin[i]) / (static_cast<Real>(dims[i]));
+	}
+
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	{
+		return std::move(std::make_pair(xmin_, xmax_));
+	}
+
+	void Update()
+	{
+		auto const & dims = topology.GetDimensions();
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			shift_[i] = xmin_[i];
+			scale_[i] = (xmax_[i] > xmin_[i]) ? ((static_cast<Real>(dims[i])) / (xmax_[i] - xmin_[i])) : 0;
+			inv_scale_[i] = (xmax_[i] - xmin_[i]) / (static_cast<Real>(dims[i]));
 		}
 
 		/**
@@ -165,11 +173,6 @@ struct EuclideanGeometry
 		for (int i = 0; i < 8; ++i)
 			inv_volume_[i] = 1.0 / volume_[i];
 
-	}
-
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
-	{
-		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
 	inline coordinates_type GetCoordinates(coordinates_type const &x) const
@@ -219,7 +222,6 @@ struct EuclideanGeometry
 
 	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
 	{
-
 		return coordinates_type( {
 
 		x[0] * inv_scale_[0] + shift_[0],
@@ -229,6 +231,7 @@ struct EuclideanGeometry
 		x[2] * inv_scale_[2] + shift_[2]
 
 		});
+
 	}
 	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
 	{

@@ -1,5 +1,5 @@
 /*
- * rect_mesh_test.cpp
+ * mesh_rectangle_test.cpp
  *
  *  Created on: 2014年3月7日
  *      Author: salmon
@@ -12,7 +12,8 @@
 #include "../utilities/log.h"
 
 #include "octree_forest.h"
-
+#include "mesh_rectangle.h"
+#include "geometry_euclidean.h"
 #define DEF_MESH RectMesh<>
 
 using namespace simpla;

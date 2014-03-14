@@ -131,9 +131,9 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 			{
 				x_dist(rnd_gen,&x[0]);
 				v_dist(rnd_gen,&v[0]);
-				x=mesh.CoordinatesLocalToGlobal(s,x);
-				v=mesh.PushForward(x,v);
 
+				x=mesh.CoordinatesLocalToGlobal(s,x);
+ 				v=mesh.PushForward(x,v);
 				p->Insert(s, engine_type::make_point(x, v,n(x)*inv_sample_density ));
 			}
 		});
