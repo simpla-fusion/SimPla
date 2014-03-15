@@ -30,12 +30,12 @@ namespace fetl_impl
 {
 
 template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<NEGATE>,
-        Field<TM, IL, TL> const & f, TI s)
-        DECL_RET_TYPE((-f.get(s)) )
+		Field<TM, IL, TL> const & f, TI s)
+		DECL_RET_TYPE((-f.get(s)) )
 
 template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<RECIPROCAL>,
-        Field<TM, IL, TL> const & f, TI s)
-        DECL_RET_TYPE((1.0/f.get(s)) )
+		Field<TM, IL, TL> const & f, TI s)
+		DECL_RET_TYPE((1.0/f.get(s)) )
 
 }
 // namespace fetl_impl
@@ -61,28 +61,28 @@ namespace fetl_impl
 {
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>,
-        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
-        DECL_RET_TYPE((l.get(s)+r.get(s)))
+		Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+		DECL_RET_TYPE((l.get(s)+r.get(s)))
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
-        DECL_RET_TYPE((l.get(s)-r.get(s)))
+		Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+		DECL_RET_TYPE((l.get(s)-r.get(s)))
 
 template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, VERTEX, TL> const &l,
-        Real r, TI s)
-        DECL_RET_TYPE((l.get(s)+r) )
+		Real r, TI s)
+		DECL_RET_TYPE((l.get(s)+r) )
 
 template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Real l,
-        Field<TM, VERTEX, TR> const &r, TI s)
-        DECL_RET_TYPE((l +r.get(s)))
+		Field<TM, VERTEX, TR> const &r, TI s)
+		DECL_RET_TYPE((l +r.get(s)))
 
 template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, VERTEX, TL> const &l,
-        Real r, TI s)
-        DECL_RET_TYPE((l.get(s)-r) )
+		Real r, TI s)
+		DECL_RET_TYPE((l.get(s)-r) )
 
 template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Real l,
-        Field<TM, VERTEX, TR> const &r, TI s)
-        DECL_RET_TYPE((l -r.get(s)))
+		Field<TM, VERTEX, TR> const &r, TI s)
+		DECL_RET_TYPE((l -r.get(s)))
 
 }  // namespace fetl_impl
 
@@ -108,20 +108,20 @@ namespace fetl_impl
 {
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        Field<TM, IL, TL> const &l, TR const &r, TI s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) * r))
+		Field<TM, IL, TL> const &l, TR const &r, TI s)
+		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) * r))
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MULTIPLIES>,
-        TL const & l, Field<TM, IL, TR> const & r, TI s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l * r.get(s)))
+		TL const & l, Field<TM, IL, TR> const & r, TI s)
+		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l * r.get(s)))
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
-        Field<TM, IL, TL> const &l, TR const &r, TI s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) / r))
+		Field<TM, IL, TL> const &l, TR const &r, TI s)
+		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) / r))
 
 template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
-        TL const & l, Field<TM, IL, TR> const & r, TI s)
-        ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l / r.get(s)))
+		TL const & l, Field<TM, IL, TR> const & r, TI s)
+		ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l / r.get(s)))
 
 } // namespace fetl_impl
 
@@ -281,30 +281,52 @@ inline auto Curl(Field<TM, FACE, TR> const & f)
 DECL_RET_TYPE((Codifferential(f)))
 
 //******************************************************************************************************
+// Non-standard operations
+template<typename TM, int N, int IL, typename TL>
+inline auto ExteriorDerivative(Int2Type<N>, Field<TM, IL, TL> const & f)
+COND_DECL_RET_TYPE(
+		(IL >= 0 && IL < TM::NDIMS),
+
+		( Field<TM, IL+1 ,BiOp<EXTRIORDERIVATIVE,Int2Type<N>,Field<TM,IL , TL> > >(Int2Type<N>(),f)),
+
+		Zero )
+
+template<int N, typename TM, int IL, typename TL>
+inline auto Codifferential(Int2Type<N>, Field<TM, IL, TL> const & f)
+COND_DECL_RET_TYPE(
+		(IL > 0 && IL <= TM::NDIMS),
+
+		(Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Int2Type<N>,Field<TM,IL , TL> > >(Int2Type<N>(), f)),
+
+		Zero )
 
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f)))
+DECL_RET_TYPE((ExteriorDerivative(Int2Type<0>(),f)))
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f)))
+DECL_RET_TYPE((ExteriorDerivative(Int2Type<1>(),f)))
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f)))
+DECL_RET_TYPE((ExteriorDerivative(Int2Type<2>(),f)))
 
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f)))
+DECL_RET_TYPE((Codifferential(Int2Type<0>(),f)))
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f)))
+DECL_RET_TYPE((Codifferential(Int2Type<1>(),f)))
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f)))
+DECL_RET_TYPE((Codifferential(Int2Type<2>(),f)))
+
+template<int IL, typename TM, int IR, typename TR>
+inline auto MapTo(Field<TM, IR, TR> const & f)
+DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
 
 //******************************************************************************************************
 
@@ -363,8 +385,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l)
-			: mesh(l.mesh), l_(l)
+	Field(TL const & l) :
+			mesh(l.mesh), l_(l)
 	{
 	}
 
@@ -393,8 +415,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
-			: mesh(get_mesh(l, r)), l_(l), r_(r)
+	Field(TL const & l, TR const & r) :
+			mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 

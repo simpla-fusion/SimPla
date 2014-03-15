@@ -48,8 +48,8 @@ private:
 		RForm<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh)
-				: m(pm), q(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh) :
+				m(pm), q(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -65,8 +65,8 @@ private:
 	bool nonlinear_;
 public:
 
-	ColdFluidEM(mesh_type const & pmesh)
-			: mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), nonlinear_(false)
+	ColdFluidEM(mesh_type const & pmesh) :
+			mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), nonlinear_(false)
 	{
 	}
 
@@ -111,12 +111,12 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	if (BB.empty() || nonlinear_)
 	{
-//		MapTo(B, &B0);
+		B0 = MapTo<VERTEX>(B);
 		BB = Dot(B0, B0);
 	}
 
-//	if (Ev.empty())
-//		MapTo(E, &Ev);
+	if (Ev.empty())
+		Ev = MapTo<VERTEX>(E);
 
 	VectorForm<0> dEv(mesh);
 	VectorForm<0> Q(mesh);
@@ -124,7 +124,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	Q.Fill(0);
 	K.Fill(0);
 
-//	MapTo(*dE, &dEv);
+	dEv = MapTo<VERTEX>(*dE);
 
 	Ev += dEv * 0.5 * dt;
 
@@ -168,7 +168,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 
 	Ev += dEv * 0.5 * dt;
 
-//	MapTo(Ev, dE);
+	*dE = MapTo<EDGE>(Ev);
 
 	*dE -= E;
 	*dE /= dt;
@@ -299,7 +299,7 @@ inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
 		}
 
 		std::shared_ptr<Species> sp(
-		        new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
+				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
 		sp->n.Init();
 		sp->J.Init();

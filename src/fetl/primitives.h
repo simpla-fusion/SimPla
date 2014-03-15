@@ -296,10 +296,7 @@ typedef enum
 //	CURLPDY,
 //	CURLPDZ,
 
-	MAPTO0,
-	MAPTO1,
-	MAPTO2,
-	MAPTO3,
+	MAPTO,
 
 	EQUAL,
 	LESS,
