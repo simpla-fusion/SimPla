@@ -106,7 +106,7 @@ InitValue={
 }
 --]]
      
-GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900'
+--GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900'
 Grid=
 {
   Type="RectMesh",
@@ -144,19 +144,20 @@ Grid=
 ---[[
 Constraints=
 {
-  { 
+ --[[ { 
     DOF="E",IsHard=true,
 	Select={Type="Boundary", Material="Vacuum" },
 	Value= 0
   },
+  --]]
   { 
     DOF="J",
-	Region={ {1.4,0,0}},
+	Region={ {2.0,0,0}},
 	IsHard=false,
   	Value=function(x,y,z,t)	
       local tau = t*omega_ext*100
-      print(x,y,z)
-      return {0, 1.03e50*math.sin(tau) ,0}   
+      
+      return { math.sin(tau),0,0}   
       end
 	 
   } 

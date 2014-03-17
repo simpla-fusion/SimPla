@@ -192,8 +192,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		mesh.SetExtent(xmin, xmax);
 
-		mesh.SetDt(mesh.CheckCourantDt());
-
 		mesh.Update();
 
 		material_.Add("Plasma", geqdsk.Boundary());
@@ -232,6 +230,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << Dump(Te0, "Te", false);
 		LOGGER << Dump(Ti0, "Ti", false);
 	}
+
+	mesh.SetDt(mesh.CheckCourantDt());
 
 	J = J0;
 

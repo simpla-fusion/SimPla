@@ -164,7 +164,7 @@ struct OcForest
 	}
 
 	template<typename TI>
-	void SetDimensions(TI const &d, bool C_ORDER = false)
+	void SetDimensions(TI const &d, bool C_ORDER = true)
 	{
 		carray_digits_[0] = D_FP_POS + 1 + ((d[0] > 0) ? (count_bits(d[0]) - 1) : 0);
 		carray_digits_[1] = D_FP_POS + 1 + ((d[1] > 0) ? (count_bits(d[1]) - 1) : 0);
