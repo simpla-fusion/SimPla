@@ -44,14 +44,14 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 
-	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh() :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(TDict const & dict) :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(dict);
 	}
@@ -96,11 +96,6 @@ public:
 	{
 		topology_type::Update();
 		geometry_type::Update();
-	}
-
-	coordinates_type GetCoordinates(index_type s) const
-	{
-		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
 	}
 
 //***************************************************************************************************
@@ -195,9 +190,20 @@ public:
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::CoordinatesLocalToGlobal(s,x));
 	}
 
+	coordinates_type GetCoordinates(index_type s) const
+	{
+		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
+	}
+
 	index_type GetIndex(coordinates_type x)const
 	{
 		return topology_type::GetIndex(geometry_type::CoordinatesGlobalToLocal(x));
+	}
+
+	template<int IFORM>
+	inline int GetCellIndex(coordinates_type x, int h, index_type *v) const
+	{
+		return topology_type::template GetCellIndex<IFORM>(geometry_type::CoordinatesGlobalToLocal(x),h,v);
 	}
 
 	template<typename TF>

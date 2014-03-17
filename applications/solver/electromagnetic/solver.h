@@ -24,16 +24,14 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 {
 	using namespace std::placeholders;
 	DEFINE_PHYSICAL_CONST(mesh.constants());
-	if (!dict)
-	{
-		Real ic2 = 1.0 / (mu0 * epsilon0);
 
-		*solverE = [ic2](Real dt, TE const & , TB const & pB, TE* pdE)
-		{	LOG_CMD(*pdE += Curl(pB)*ic2 *dt);};
+	Real ic2 = 1.0 / (mu0 * epsilon0);
 
-		*solverB = [](Real dt, TE const & pE, TB const &, TB* pdB)
-		{	LOG_CMD(*pdB -= Curl(pE)*dt);};
-	}
+	*solverE = [ic2](Real dt, TE const & , TB const & pB, TE* pdE)
+	{	LOG_CMD(*pdE += Curl(pB)*ic2 *dt);};
+
+	*solverB = [](Real dt, TE const & pE, TB const &, TB* pdB)
+	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
 
 	if (dict["ColdFluid"])
 	{

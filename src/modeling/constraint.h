@@ -38,8 +38,8 @@ private:
 	bool is_hard_src_;
 public:
 
-	Constraint(mesh_type const & m)
-			: mesh(m), is_hard_src_(false)
+	Constraint(mesh_type const & m) :
+			mesh(m), is_hard_src_(false)
 	{
 	}
 
@@ -81,18 +81,16 @@ public:
 	template<typename TV>
 	void Apply(TF * f, std::function<TV(coordinates_type, Real)> const & fun) const
 	{
-		if (is_hard_src_)
+		for (auto const & s : def_domain_)
 		{
-			for (auto const & s : def_domain_)
+			auto v = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+			if (is_hard_src_)
 			{
-				f->get(s) = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+				f->get(s) = v;
 			}
-		}
-		else
-		{
-			for (auto const & s : def_domain_)
+			else
 			{
-				f->get(s) += mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+				f->get(s) += v;
 			}
 		}
 
@@ -103,7 +101,7 @@ public:
 
 template<typename TField, typename TDict>
 static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
-        TDict const & dict)
+		TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)
 	{};
@@ -125,7 +123,7 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 	}
 	else if (dict["Region"])
 	{
-		material.template Select<TField::IForm>([&](index_type s )
+		SelectFromMesh<TField::IForm>(mesh, [&](index_type s )
 		{	self->GetDefDomain().push_back(s );}, dict["Region"]);
 
 	}
@@ -135,8 +133,21 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 //
 //		dict["Index"].as(&idxs);
 //
-//		for (auto const &id : idxs)
-//			self->GetDefDomain().push_back(mesh.GetIndex(id));
+//		std::vector<typename TField::index_type> idx2;
+//
+//		for (auto const & v : idxs)
+//		{
+//			idx2.push_back(mesh.GetIndex(v));
+//		}
+//
+//		SelectFromMesh<TField::IForm>(mesh, [&](index_type s )
+//		{	self->GetDefDomain().push_back(s );}, idx2);
+//
+////		for (auto const &id : idxs)
+////			self->GetDefDomain().push_back(mesh.GetIndex(id));
+//	}
+//	else
+//	{
 //	}
 
 	self->SetHardSrc(dict["IsHard"].template as<bool>(false));
@@ -163,10 +174,10 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 		else if (value.is_function())
 		{
 			std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
-			        [value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
-			        {
-				        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
-			        };
+					[value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
+					{
+						return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+					};
 
 			res = [self,foo](TField * f )
 			{	self->Apply(f,foo);};

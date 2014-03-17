@@ -15,7 +15,7 @@ namespace simpla
 
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::function<bool(typename TM::index_type)> const & select)
+		std::function<bool(typename TM::index_type)> const & select)
 {
 	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
 	{	if(select(s )) op(s );});
@@ -23,7 +23,7 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::function<bool(typename TM::coordinates_type)> const & select)
+		std::function<bool(typename TM::coordinates_type)> const & select)
 {
 	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
 	{	if(select(mesh.GetCoordinates(s) )) op(s );});
@@ -31,22 +31,27 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        typename TM::coordinates_type const & x)
+		typename TM::coordinates_type const & x)
 {
-	typename TM::index_type idxs[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
+//	typename TM::index_type idxs[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
+//	int n = mesh.template GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), mesh.GetIndex(x), idxs);
+//
+//	for (int i = 0; i < n; ++i)
+//	{
+//		op(idxs[i]);
+//	}
 
-	int n = mesh.template GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), mesh.GetIndex(x), idxs);
-
+	typename TM::index_type v[3];
+	int n = mesh.template GetCellIndex<IFORM>(x, 0, v);
 	for (int i = 0; i < n; ++i)
 	{
-		op(idxs[i]);
+		op(v[i]);
 	}
-
 }
 
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
+		typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
 {
 	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
 	{
@@ -65,26 +70,20 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 
 template<int IFORM, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::vector<typename TM::index_type> const & idxs)
+		std::vector<typename TM::index_type> const & idxs)
 {
+	typename TM::index_type id[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
+
 	for (auto const & s : idxs)
 	{
-		op(s);
+
+		int n = mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), s, id);
+		for (int i = 0; i < n; ++i)
+			op(id[i]);
 	}
 
 }
 
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::vector<nTuple<TM::NUM_OF_DIMS, size_t>> const & idxs)
-{
-
-	for (auto const & id : idxs)
-	{
-		op(mesh.GetIndex(IFORM, id));
-	}
-
-}
 /**
  *
  * @param mesh mesh
@@ -106,13 +105,14 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
  */
 template<int IFORM, int N, typename TM>
 void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
+		std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
 
 	if (points.size() == 1)
 	{
 
-		typename TM::coordinates_type x = { 0, 0, 0 };
+		typename TM::coordinates_type x =
+		{ 0, 0, 0 };
 
 		for (int i = 0; i < N; ++i)
 		{
@@ -123,8 +123,10 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
-		typename TM::coordinates_type v0 = { 0, 0, 0 };
-		typename TM::coordinates_type v1 = { 0, 0, 0 };
+		typename TM::coordinates_type v0 =
+		{ 0, 0, 0 };
+		typename TM::coordinates_type v1 =
+		{ 0, 0, 0 };
 		for (int i = 0; i < N; ++i)
 		{
 			v0[(i + Z + 1) % 3] = points[0][i];

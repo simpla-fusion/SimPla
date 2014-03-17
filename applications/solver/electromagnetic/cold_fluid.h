@@ -174,7 +174,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	*dE -= E;
 	*dE /= dt;
 
-	LOGGER << "Push Cold Fluid. Nonline is " << ((nonlinear_) ? "opened" : "closed") << "." << DONE;
+	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((nonlinear_) ? "opened" : "closed") << "." << DONE;
 
 }
 //
@@ -306,17 +306,18 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		std::shared_ptr<Species> sp(
 				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
+		sp->n.Clear();
 		if (!ne.empty())
 		{
+			CHECK(p.second["n"].template as<Real>(1.0));
 			sp->n = ne * p.second["n"].template as<Real>(1.0);
 		}
 		else
 		{
-			sp->n.Clear();
 			LoadField(p.second["n"], &(sp->n));
 		}
 
-		sp->J.Init();
+		sp->J.Clear();
 
 		LoadField(p.second["J"], &(sp->J));
 

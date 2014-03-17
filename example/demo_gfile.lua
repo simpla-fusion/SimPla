@@ -151,11 +151,12 @@ Constraints=
   },
   { 
     DOF="J",
-	Index={ {NX/2,NY/2,0}},
+	Region={ {1.4,0,0}},
 	IsHard=false,
   	Value=function(x,y,z,t)	
       local tau = t*omega_ext*100
-      return {0, math.sin(tau) ,0}   
+      print(x,y,z)
+      return {0, 1.03e50*math.sin(tau) ,0}   
       end
 	 
   } 
@@ -180,7 +181,9 @@ Constraints=
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}
 }
+--]]
 
+--[[
 FieldSolver= 
 {
 
@@ -190,7 +193,7 @@ FieldSolver=
        Species=
        {
       -- {Name="ion",Mass=mp,  Charge= qe ,T=Ti,  n=InitN0, J=0},
-       {Name="ele",Mass=me,  Charge=-qe,   n=InitN0, J=0}         
+       {Name="ele",Mass=me,  Charge=-qe}         
         }
     },
 

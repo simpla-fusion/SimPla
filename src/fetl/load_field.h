@@ -19,8 +19,10 @@ namespace simpla
 {
 template<typename, int, typename > class Field;
 template<int IFORM, typename TM, typename TV>
-void LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
+bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 {
+	if (!dict)
+		return false;
 
 	typedef TM mesh_type;
 	typedef typename Field<TM, IFORM, TV>::value_type value_type;
@@ -52,8 +54,11 @@ void LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 		std::string url = dict.as<std::string>();
 		//TODO Read field from data file
 		UNIMPLEMENT << "Read field from data file or other URI";
+
+		return false;
 	}
 
+	return true;
 }
 }  // namespace simpla
 
