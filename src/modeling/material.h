@@ -112,7 +112,18 @@ public:
 	}
 	material_type GetMaterialFromString(std::string const &name) const
 	{
-		return std::move(register_material_.at(name));
+
+		material_type res;
+
+		try
+		{
+			res = register_material_.at(name);
+
+		} catch (...)
+		{
+			ERROR << "Unknown material name : " << name;
+		}
+		return std::move(res);
 	}
 	material_type GetMaterialFromString(std::string const &name)
 	{

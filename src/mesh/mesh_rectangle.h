@@ -155,6 +155,39 @@ public:
 		Update();
 	}
 
+	Real CheckCourantDt(nTuple<3,Real> const & u) const
+	{
+
+		Real dt = dt_;
+		auto dims = topology_type::GetDimensions();
+		auto extent = geometry_type::GetExtent();
+
+		Real r = 0.0;
+		for (int s = 0; s < 3; ++s)
+		{
+			if (dims[s] > 1)
+			{
+				r += u[s] / (extent.second[s] - extent.first[s]);
+			}
+		}
+
+		if (dt * r > 1.0)
+		{
+			dt = 0.5 / r;
+		}
+
+		return dt;
+	}
+
+	Real CheckCourantDt(Real u) const
+	{
+		return CheckCourantDt(nTuple<3,Real>(
+				{	u,u,u}));
+	}
+	Real CheckCourantDt() const
+	{
+		return CheckCourantDt( constants_["speed of light"]);
+	}
 //***************************************************************************************************
 
 	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const

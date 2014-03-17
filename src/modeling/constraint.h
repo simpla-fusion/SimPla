@@ -102,7 +102,7 @@ public:
 ;
 
 template<typename TField, typename TDict>
-static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & tags,
+static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
         TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)
@@ -110,7 +110,7 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 
 	typedef typename TField::mesh_type mesh_type;
 
-	mesh_type const & mesh = tags.mesh;
+	mesh_type const & mesh = material.mesh;
 
 	std::shared_ptr<Constraint<TField>> self(new Constraint<TField>(mesh));
 
@@ -120,15 +120,14 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 
 	if (dict["Select"])
 	{
-		tags.template Select<TField::IForm>([&](index_type const &s )
-		{	self->GetDefDomain().push_back(s );},
-
-		dict["Select"]);
+		material.template Select<TField::IForm>([&](index_type s )
+		{	self->GetDefDomain().push_back(s );}, dict["Select"]);
 	}
 	else if (dict["Region"])
 	{
-		SelectFromMesh<TField::IForm>(mesh, [&](index_type const &s )
+		material.template Select<TField::IForm>([&](index_type s )
 		{	self->GetDefDomain().push_back(s );}, dict["Region"]);
+
 	}
 //	else if (dict["Index"])
 //	{
@@ -142,6 +141,7 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 
 	self->SetHardSrc(dict["IsHard"].template as<bool>(false));
 
+	if (dict["Value"])
 	{
 		auto value = dict["Value"];
 

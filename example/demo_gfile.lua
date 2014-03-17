@@ -145,8 +145,8 @@ Grid=
 Constraints=
 {
   { 
-    DOF="E",HardSrc=true,
-	Select={Type="Boundary", Tag="Vacuum" },
+    DOF="E",IsHard=true,
+	Select={Type="Boundary", Material="Vacuum" },
 	Value= 0
   },
   { 

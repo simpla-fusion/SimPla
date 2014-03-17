@@ -65,6 +65,8 @@ public:
 
 	void DumpData(std::string const & path = "") const;
 
+	double CheckCourantDt() const;
+
 public:
 
 	mesh_type mesh;
@@ -146,14 +148,6 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-	Real ic2 = 1.0 / (mu0 * epsilon0);
-	CalculatedE = [ic2](Real dt, TE const & , TB const & pB, TE* pdE)
-	{	LOG_CMD(*pdE += Curl(pB)*ic2 *dt);};
-
-	CalculatedB = [](Real dt, TE const & pE, TB const &, TB* pdB)
-	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
-
 }
 
 template<typename TM>
@@ -193,6 +187,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		xmax[2] = 0;
 
 		mesh.SetExtent(xmin, xmax);
+
+		mesh.SetDt(mesh.CheckCourantDt());
+
 		mesh.Update();
 
 		material_.Add("Plasma", geqdsk.Boundary());
