@@ -202,6 +202,30 @@ struct EuclideanGeometry
 		return v[topology.topology_type::_C(s)];
 	}
 
+	template<typename TV>
+	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
+	{
+		return v * Volume(s);
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<VOLUME>, index_type s, TV const &v) const
+	{
+		return v * Volume(s);
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
+	{
+		return v[topology.topology_type::_C(s)] * Volume(s);
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
+	{
+		return v[topology.topology_type::_C(s)] * Volume(s);
+	}
+
 	Real Volume(index_type s) const
 	{
 		return topology.Volume(s) * volume_[topology._N(s)];

@@ -43,29 +43,11 @@ void LoadField(LuaObject const &obj, Field<TM, IFORM, TV> *f)
 		[&](typename mesh_type::index_type s)
 		{
 			auto x=mesh.GetCoordinates(s);
-			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
-//			(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
-		    });
 
-//		if (IFORM == EDGE || IFORM == FACE)
-//		{
-//			mesh.SerialTraversal(IFORM,
-//
-//			[&](size_t s,typename mesh_type::coordinates_type const &x)
-//			{
-//				auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
-//				(*f)[s] = mesh.template GetWeightOnElement<IFORM>( v,s);
-//			});
-//		}
-//		else
-//		{
-//
-//			mesh.SerialTraversal(IFORM, [&](size_t s,typename mesh_type::coordinates_type const &x)
-//			{
-//				(*f)[s]=obj(x[0],x[1],x[2]).template as<TV>();
-//
-//			});
-//		}
+			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
+
+			(*f)[s] = mesh.Sample(Int2Type<IFORM>(),s,v);
+		});
 
 	}
 	else if (obj.is_number())
