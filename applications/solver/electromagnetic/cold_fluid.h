@@ -79,7 +79,8 @@ public:
 		return sp_list_.empty();
 	}
 
-	void Load(LuaObject const&cfg);
+	template<typename TDict, typename ...Args>
+	void Load(TDict const&dict, RForm<0> const & ne, Args const & ...);
 
 	std::ostream & Save(std::ostream & os) const;
 
@@ -276,14 +277,18 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 //}
 
 template<typename TM>
-inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
+
+template<typename TDict, typename ...Args>
+void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & ...)
 {
-	if (cfg.empty())
+	if (!dict)
 		return;
 
-	nonlinear_ = cfg["Nonlinear"].template as<bool>(false);
+	LOGGER << "Load ColdFluidEM ";
 
-	auto sp = cfg["Species"];
+	nonlinear_ = dict["Nonlinear"].template as<bool>(false);
+
+	auto sp = dict["Species"];
 
 	for (auto const & p : sp)
 	{
@@ -291,7 +296,7 @@ inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
 
 		if (!p.first.is_number())
 		{
-			key = p.first.as<std::string>();
+			key = p.first.template as<std::string>();
 		}
 		else
 		{
@@ -301,10 +306,17 @@ inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
 		std::shared_ptr<Species> sp(
 				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
-		sp->n.Init();
-		sp->J.Init();
+		if (!ne.empty())
+		{
+			sp->n = ne * p.second["n"].template as<Real>(1.0);
+		}
+		else
+		{
+			sp->n.Clear();
+			LoadField(p.second["n"], &(sp->n));
+		}
 
-		LoadField(p.second["n"], &(sp->n));
+		sp->J.Init();
 
 		LoadField(p.second["J"], &(sp->J));
 
@@ -316,8 +328,6 @@ inline void ColdFluidEM<TM>::Load(LuaObject const&cfg)
 //	{
 //		ERROR << "Background magnetic field is not initialized!";
 //	}
-
-	LOGGER << "Load Cold Fluid solver" << DONE;
 
 }
 

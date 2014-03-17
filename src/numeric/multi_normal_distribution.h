@@ -25,9 +25,10 @@ class multi_normal_distribution
 public:
 	static const int NDIMS = N;
 
-	multi_normal_distribution(RealType pT, //
-	        nTuple<N, RealType> const &pu = { 0, 0, 0 })
-			: u_(pu), normal_dist_(0, 1.0)
+	multi_normal_distribution(RealType pT = 1.0, //
+			nTuple<N, RealType> const &pu =
+			{ 0, 0, 0 }) :
+			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
 			for (int j = 0; j < N; ++j)
@@ -43,8 +44,8 @@ public:
 			}
 	}
 
-	multi_normal_distribution(nTuple<N, RealType> const & pT, nTuple<N, RealType> const &pu)
-			: u_(pu), normal_dist_(0, 1.0)
+	multi_normal_distribution(nTuple<N, RealType> const & pT, nTuple<N, RealType> const &pu) :
+			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
 			for (int j = 0; j < N; ++j)
@@ -60,8 +61,8 @@ public:
 			}
 	}
 
-	multi_normal_distribution(Matrix<N, RealType> const & pA, nTuple<N, RealType> const &pu)
-			: A_(cholesky_decomposition(pA)), u_(pu), normal_dist_(0, 1.0)
+	multi_normal_distribution(Matrix<N, RealType> const & pA, nTuple<N, RealType> const &pu) :
+			A_(cholesky_decomposition(pA)), u_(pu), normal_dist_(0, 1.0)
 	{
 	}
 	~multi_normal_distribution()

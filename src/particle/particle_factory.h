@@ -24,16 +24,18 @@ struct ParticleWrap
 	std::function<void(std::string const &)> DumpData;
 
 };
-template<typename TEngine, typename TE, typename TB, typename TJ> bool _CreateParticle(
-        typename TEngine::mesh_type const & mesh, LuaObject const& cfg, ParticleWrap<TE, TB, TJ>* res)
+template<typename TEngine, typename TE, typename TB, typename TJ, typename ...Args> bool _CreateParticle(
+		typename TEngine::mesh_type const & mesh, std::string const& engine_type_str, ParticleWrap<TE, TB, TJ>* res,
+		Args const & ...args)
 {
 
-	if (cfg["Type"].as<std::string>() != TEngine::TypeName())
+	if (engine_type_str != TEngine::TypeName())
 		return false;
 
 	auto solver = std::shared_ptr<Particle<TEngine> >(new Particle<TEngine>(mesh));
 
-	solver->Load(cfg);
+	solver->Load(std::forward<Args const &>(args)...);
+
 	using namespace std::placeholders;
 	res->NextTimeStep = std::bind(&Particle<TEngine>::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
 	res->Scatter = std::bind(&Particle<TEngine>::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
@@ -42,18 +44,23 @@ template<typename TEngine, typename TE, typename TB, typename TJ> bool _CreatePa
 	return true;
 }
 
-template<typename TM, typename TE, typename TB, typename TJ> bool CreateParticle(TM const & mesh, LuaObject const& cfg,
-        ParticleWrap<TE, TB, TJ> * p)
+template<typename TM, typename TE, typename TB, typename TJ, typename ...Args> bool CreateParticle(TM const & mesh,
+		std::string const& engine_type_str, ParticleWrap<TE, TB, TJ> * p, Args const & ...args)
 {
 	ParticleWrap<TE, TB, TJ> res;
 
 	typedef TM Mesh;
 
-	return _CreateParticle<PICEngineDeltaF<Mesh>, TE, TB, TJ>(mesh, cfg, &res)
-	        || _CreateParticle<PICEngineFull<Mesh>, TE, TB, TJ>(mesh, cfg, &res)
-	        || _CreateParticle<PICEngineGGauge<Mesh, 4>, TE, TB, TJ>(mesh, cfg, &res)
-	        || _CreateParticle<PICEngineGGauge<Mesh, 16>, TE, TB, TJ>(mesh, cfg, &res)
-	        || _CreateParticle<PICEngineGGauge<Mesh, 32>, TE, TB, TJ>(mesh, cfg, &res);
+	return _CreateParticle<PICEngineDeltaF<Mesh>, TE, TB, TJ>(mesh, engine_type_str, &res,
+			std::forward<Args const &>(args)...)
+			|| _CreateParticle<PICEngineFull<Mesh>, TE, TB, TJ>(mesh, engine_type_str, &res,
+					std::forward<Args const &>(args)...)
+			|| _CreateParticle<PICEngineGGauge<Mesh, 4>, TE, TB, TJ>(mesh, engine_type_str, &res,
+					std::forward<Args const &>(args)...)
+			|| _CreateParticle<PICEngineGGauge<Mesh, 16>, TE, TB, TJ>(mesh, engine_type_str, &res,
+					std::forward<Args const &>(args)...)
+			|| _CreateParticle<PICEngineGGauge<Mesh, 32>, TE, TB, TJ>(mesh, engine_type_str, &res,
+					std::forward<Args const &>(args)...);
 
 }
 

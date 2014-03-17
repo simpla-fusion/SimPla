@@ -122,7 +122,8 @@ public:
 
 	void DumpData(std::string const &path);
 
-	void Load(LuaObject const &cfg);
+	template<typename ...Args>
+	void Load(Args const &... args);
 
 	std::ostream & Save(std::ostream & os) const;
 
@@ -203,8 +204,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
 {
 }
 
@@ -214,11 +215,12 @@ Particle<Engine>::~Particle()
 }
 
 template<class Engine>
-void Particle<Engine>::Load(LuaObject const &cfg)
+template<typename ...Args>
+void Particle<Engine>::Load(Args const & ... args)
 {
 	Initiallize();
 
-	LoadParticle(cfg, this);
+	LoadParticle(this, std::forward<Args const &>(args)...);
 
 }
 template<class Engine>

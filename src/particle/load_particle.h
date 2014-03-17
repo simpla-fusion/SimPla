@@ -23,13 +23,13 @@
 namespace simpla
 {
 
-template<typename TConfig, typename TP>
-bool LoadParticle(TConfig const &cfg, TP *p)
+template<typename TDict, typename TP, typename TN, typename TT>
+bool LoadParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 {
 
-	if (cfg.empty())
+	if (!dict)
 	{
-		WARNING << "Empty particle config!";
+		WARNING << "Empty particle configure!";
 
 		return false;
 	}
@@ -44,79 +44,107 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	typedef typename mesh_type::coordinates_type coordinate_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type const &mesh = p->mesh;
 
-	p->engine_type::Load(cfg);
+	p->engine_type::Load(dict);
 
-	p->SetName(cfg["Name"].template as<std::string>());
+	p->SetName(dict["Name"].template as<std::string>());
 
-	if (cfg["SRC"].empty()) // Initialize Data
+	if (dict["SRC"].empty()) // Initialize Data
 	{
 
 		DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
 		bool doParallel = true;
-		size_t pic = cfg["PIC"].template as<size_t>();
+		size_t pic = dict["PIC"].template as<size_t>();
 
-		std::function<Real(coordinate_type const & x0)> n;
+		std::function<Real(coordinates_type const & x)> n;
 
-		if (cfg["n"].empty())
+		if (ne.empty())
 		{
-			n = [](coordinate_type const & x0)->Real
+			if (dict["n"].empty())
 			{
-				return 1.0;
-			};
-		}
-		else if (cfg["n"].is_number())
-		{
-			Real n0 = cfg["n"].template as<Real>();
+				ERROR << "Particle density is not defined!!";
+			}
+			else if (dict["n"].is_number())
+			{
+				Real n0 = dict["n"].template as<Real>();
 
-			n = [n0](coordinate_type const & x0)->Real
+				n = [n0](coordinates_type const & x0)->Real
+				{
+					return n0;
+				};
+			}
+			else if (dict["n"].is_function())
 			{
-				return n0;
-			};
-		}
-		else if (cfg["n"].is_function())
-		{
-			auto l_obj = cfg["n"];
+				auto l_obj = dict["n"];
 
-			n = [l_obj](coordinate_type const & x0)->Real
-			{
-				return l_obj(x0[0],x0[1],x0[2]).template as<Real>();
-			};
-			doParallel = false;
+				n = [l_obj](coordinates_type const & x0)->Real
+				{
+					return l_obj(x0[0],x0[1],x0[2]).template as<Real>();
+				};
+
+			}
+
 		}
 		else
 		{
-			Field<mesh_type, 0, Real> n0(mesh);
-
-			LoadField(cfg["n"], &n0);
-
-			n = [n0](coordinate_type const & x0)->Real
+			if (dict["n"].is_number())
 			{
-				return n0(x0);
-			};
+				Real n0 = dict["n"].template as<Real>();
 
+				n = [&](coordinates_type const & x0)->Real
+				{
+					return n0*ne(x0);
+				};
+			}
+			else
+			{
+				n = [&](coordinates_type const & x0)->Real
+				{
+					return ne(x0);
+				};
+			}
 		}
 
-		Real vT = 1.0;
+		std::function<Real(coordinates_type const & x)> vT;
 
-		if (!cfg["vT"].empty())
+		Real a = 2.0 * boltzmann_constant / (p->GetMass());
+
+		if (Ti.empty())
 		{
-			vT = cfg["vT"].template as<Real>();
+			if (!dict["vT"].empty())
+			{
+				Real t = dict["vT"].template as<Real>();
+				vT = [t](coordinates_type x)
+				{	return t;};
+			}
+			else if (!dict["T"].empty())
+			{
+				Real t = std::sqrt(a * dict["T"].template as<Real>());
+
+				vT = [t](coordinates_type x)
+				{	return t;};
+			}
+			else
+			{
+				ERROR << " Particle temperature is not defined!!";
+			}
 		}
-		else if (!cfg["T"].empty())
+		else
 		{
-			vT = std::sqrt(2.0 * boltzmann_constant * cfg["T"].template as<Real>() / (p->GetMass()));
+			vT = [&](coordinates_type x)->Real
+			{	return std::sqrt(a * Ti(x));};
+
 		}
 
 		std::mt19937 rnd_gen(3);
 
 		rectangle_distribution<mesh_type::NDIMS> x_dist;
 
-		multi_normal_distribution<mesh_type::NDIMS> v_dist(vT);
+		multi_normal_distribution<mesh_type::NDIMS> v_dist;
 
 		mesh.template Traversal<TP::IForm>(
 
@@ -133,7 +161,7 @@ bool LoadParticle(TConfig const &cfg, TP *p)
 				v_dist(rnd_gen,&v[0]);
 
 				x=mesh.CoordinatesLocalToGlobal(s,x);
- 				v=mesh.PushForward(x,v);
+				v=mesh.PushForward(x,v) * vT(x);
 				p->Insert(s, engine_type::make_point(x, v,n(x)*inv_sample_density ));
 			}
 		});

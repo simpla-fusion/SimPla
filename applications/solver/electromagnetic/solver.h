@@ -17,10 +17,10 @@
 namespace simpla
 {
 
-template<typename TDict, typename TM, typename TE, typename TB>
+template<typename TDict, typename TM, typename TE, typename TB, typename ...Args>
 void CreateEMSolver(TDict const & dict, TM const & mesh,
-        std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
-        std::function<void(Real, TE const &, TB const &, TB*)> *solverB)
+		std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
+		std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
 {
 	using namespace std::placeholders;
 	DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -39,7 +39,7 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 	{
 		auto solver = std::shared_ptr<ColdFluidEM<TM> >(new ColdFluidEM<TM>(mesh));
 
-		solver->Load(dict["ColdFluid"]);
+		solver->Load(dict["ColdFluid"], std::forward<Args const &>(args)...);
 
 		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
 	}
@@ -56,7 +56,7 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 
 	}
 
-	LOGGER << "Load electromagnetic field solver" << DONE;
+	LOGGER << "Load electromagnetic solver" << DONE;
 
 }
 

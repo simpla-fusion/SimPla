@@ -141,7 +141,7 @@ Boundary={
 --]]
 
 Particles={
-  {Name="H",Engine="Full",m=m_p,Z=e,T=Ti,PIC=100}
+  {Name="H",Engine="Full",m=m_p,Z=e,T=Ti,PIC=100,IsElectron=false}
 }
 
 FieldSolver= 

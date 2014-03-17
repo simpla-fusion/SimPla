@@ -85,10 +85,6 @@ public:
 	Form<EDGE> J0;     //background current density J0+Curl(B(t=0))=0
 	Form<VERTEX> rho; // charge density
 
-	Form<VERTEX> ne0;
-	Form<VERTEX> Te0;
-	Form<VERTEX> Ti0;
-
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
 	typedef decltype(J) TJ;
@@ -147,12 +143,10 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), material_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		isCompactStored_(true), material_(mesh),
 
-		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh),
-
-		ne0(mesh), Te0(mesh), Ti0(mesh)
+		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
 }
 
@@ -178,9 +172,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dB.Clear();
 	dE.Clear();
 
-	ne0.Clear();
-	Te0.Clear();
-	Ti0.Clear();
+	Form<VERTEX> ne0(mesh);
+	Form<VERTEX> Te0(mesh);
+	Form<VERTEX> Ti0(mesh);
 
 	if (dict["GFile"])
 	{
@@ -210,25 +204,33 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		mesh.template Traversal<FACE>([&](typename mesh_type::index_type s )
 		{
-			auto x= mesh.GetCoordinates(s);
+			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));
 			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x[0],x[1]));
 
 		});
 
+		ne0.Clear();
+		Te0.Clear();
+		Ti0.Clear();
+
 		material_.template SelectCell<VERTEX>([&](typename mesh_type::index_type s )
 		{
-			auto x= mesh.GetCoordinates(s);
+			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));
 			auto p=geqdsk.psi(x[0],x[1]);
 
-			ne0[s] = geqdsk. Profile("ne(cm^-3)",p);
-			Te0[s] = geqdsk. Profile("Te(keV)",p);
-			Ti0[s] = geqdsk. Profile("Ti(keV)",p);
+			ne0[s] = geqdsk.Profile("ne(cm^-3)",p);
+			Te0[s] = geqdsk.Profile("Te(keV)",p);
+			Ti0[s] = geqdsk.Profile("Ti(keV)",p);
 
 		}, "Plasma");
 
 		J0 = Curl(B) / mesh.constants()["permeability of free space"];
 
 		description = description + "\n GEqdsk ID:" + geqdsk.Description();
+
+		LOGGER << Dump(ne0, "ne", false);
+		LOGGER << Dump(Te0, "Te", false);
+		LOGGER << Dump(Ti0, "Ti", false);
 	}
 
 	J = J0;
@@ -237,12 +239,24 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		auto init_value = dict["InitValue"];
 
-		LoadField(init_value["E"], &E);
-		LOGGER << "Load E" << DONE;
-		LoadField(init_value["B"], &B);
-		LOGGER << "Load B" << DONE;
-		LoadField(init_value["J"], &J);
-		LOGGER << "Load J" << DONE;
+		if (E.empty())
+			LOG_CMD(LoadField(init_value["E"], &E));
+
+		if (B.empty())
+			LOG_CMD(LoadField(init_value["B"], &B));
+
+		if (J.empty())
+			LOG_CMD(LoadField(init_value["J"], &J));
+
+		if (ne0.empty())
+			LOG_CMD(LoadField(init_value["ne"], &ne0));
+
+		if (Te0.empty())
+			LOG_CMD(LoadField(init_value["Te"], &Te0));
+
+		if (Ti0.empty())
+			LOG_CMD(LoadField(init_value["Ti"], &Ti0));
+
 	}
 
 	LOGGER << "Load Particles";
@@ -250,8 +264,23 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		ParticleWrap<TE, TB, TJ> p;
 
-		if (CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second, &p))
+		bool flag = false;
+
+		if (opt.second["IsElectron"].template as<bool>(false))
+		{
+			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
+					ne0, Te0);
+		}
+		else
+		{
+			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
+					ne0, Ti0);
+		}
+
+		if (flag)
+		{
 			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
+		}
 	}
 
 	LOGGER << "Load Constraints";
@@ -283,7 +312,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	}
 
-	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
+	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
 
 }
 
@@ -304,12 +333,6 @@ void ExplicitEMContext<TM>::Save(std::ostream & os) const
 	<< "	B = " << Dump(B, "B", false) << ",\n"
 
 	<< "	J = " << Dump(J, "J", false) << ",\n"
-
-	<< "	ne = " << Dump(ne0, "ne", false) << ",\n"
-
-	<< "	Te = " << Dump(Te0, "Te", false) << ",\n"
-
-	<< "	Ti = " << Dump(Ti0, "Ti", false) << ",\n"
 
 	<< "}" << "\n"
 
