@@ -314,7 +314,6 @@ public:
 		_UpdateMaterials<VOLUME>();
 	}
 
-	typedef std::function<void(index_type, coordinates_type)> Fun;
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -325,25 +324,26 @@ public:
 	 * @param flag
 	 */
 	template<int IFORM>
-	void SelectBoundary(Fun const &fun, material_type in, material_type out) const;
+	void SelectBoundary(std::function<void(index_type)> const &fun, material_type in, material_type out) const;
 
 	template<int IFORM>
-	void SelectBoundary(Fun const &fun, std::string const & in, std::string const & out) const
+	void SelectBoundary(std::function<void(index_type)> const &fun, std::string const & in,
+	        std::string const & out) const
 	{
 		SelectBoundary<IFORM>(fun, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
 
 	template<int IFORM>
-	void SelectCell(Fun const &fun, material_type) const;
+	void SelectCell(std::function<void(index_type)> const &fun, material_type) const;
 
 	template<int IFORM>
-	void SelectCell(Fun const &fun, std::string const & m) const
+	void SelectCell(std::function<void(index_type)> const &fun, std::string const & m) const
 	{
 		SelectCell<IFORM>(fun, GetMaterialFromString(m));
 	}
 
 	template<int IFORM, typename TDict>
-	void Select(Fun const &fun, TDict const & dict) const;
+	void Select(std::function<void(index_type)> const &fun, TDict const & dict) const;
 
 private:
 
@@ -358,7 +358,7 @@ private:
 	{
 		Init();
 
-		SelectFromMesh<VERTEX>(mesh, [&]( index_type s,coordinates_type )
+		SelectFromMesh<VERTEX>(mesh, [&]( index_type s )
 		{	fun( material_[VERTEX][mesh.Hash(s)]);}, std::forward<Args const&>(args)...);
 	}
 
@@ -391,7 +391,7 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM> template<int IFORM>
-void Material<TM>::SelectBoundary(Fun const &fun, material_type in, material_type out) const
+void Material<TM>::SelectBoundary(std::function<void(index_type)> const &fun, material_type in, material_type out) const
 {
 
 	// Good
@@ -456,10 +456,8 @@ void Material<TM>::SelectBoundary(Fun const &fun, material_type in, material_typ
 
 	mesh.template Traversal<IFORM>(
 
-	[&]( index_type const&s )
+	[&]( index_type s )
 	{
-		auto x= mesh.GetCoordinates(s);
-
 		if((this->material_[IFORM].at(mesh.Hash(s))&in).none() &&
 				(this->material_[IFORM].at(mesh.Hash(s))&out).any() )
 		{
@@ -472,7 +470,7 @@ void Material<TM>::SelectBoundary(Fun const &fun, material_type in, material_typ
 
 				if(((this->material_[VOLUME].at(mesh.Hash(neighbours[i]))&in) ).any())
 				{
-					fun( s,x );
+					fun( s );
 					break;
 				}
 			}
@@ -484,25 +482,22 @@ void Material<TM>::SelectBoundary(Fun const &fun, material_type in, material_typ
 
 template<typename TM>
 template<int IFORM>
-void Material<TM>::SelectCell(Fun const &fun, material_type material) const
+void Material<TM>::SelectCell(std::function<void(index_type)> const &fun, material_type material) const
 {
 
-	auto const & materials = material_[VOLUME];
+	auto const & materials = material_[IFORM];
 	mesh.template Traversal<IFORM>(
 
-	[&]( index_type const&s )
+	[&]( index_type s )
 	{
-		auto x= mesh.GetCoordinates(s);
 		if(((this->material_[IFORM].at(mesh.Hash(s))&material) ).any())
-		{
-			fun( s,x );
-		}
+		{	fun( s );}
 	});
 }
 
 template<typename TM>
 template<int IFORM, typename TDict>
-void Material<TM>::Select(Fun const &fun, TDict const & dict) const
+void Material<TM>::Select(std::function<void(index_type)> const &fun, TDict const & dict) const
 {
 
 	if (dict["Type"])

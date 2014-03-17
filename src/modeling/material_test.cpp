@@ -11,7 +11,7 @@
 #include "../fetl/save_field.h"
 
 #include "material.h"
-#include "../mesh/rect_mesh.h"
+#include "../mesh/mesh_rectangle.h"
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_euclidean.h"
 #include "../fetl/fetl.h"
@@ -30,7 +30,7 @@ protected:
 		mesh.SetExtent(xmin, xmax);
 
 		nTuple<NDIMS, size_t> dims = { 200, 200, 0 };
-		mesh.SetDimensions(dims);
+		mesh.SetDimensions(dims, true);
 		mesh.Update();
 
 		dims = mesh.GetDimensions();
@@ -83,6 +83,10 @@ TYPED_TEST(TestMaterial,create ){
 
 //	std::mt19937 gen;
 //	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::index_type index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
@@ -99,7 +103,7 @@ TYPED_TEST(TestMaterial,create ){
 	v.emplace_back(coordinates_type(
 					{	0.8*extent.second[0], 0.8*extent.second[1], 0.2*extent.first[2]}));
 
-	material.Add("Plasma",v);
+	material.Set("Plasma",v);
 
 	material.Update();
 
@@ -107,8 +111,7 @@ TYPED_TEST(TestMaterial,create ){
 
 	f.Clear();
 
-	material.template SelectCell<TestFixture::IForm>(
-			[&](index_type const & s ,coordinates_type const & x)
+	material.template SelectCell<TestFixture::IForm>( [&](index_type s )
 			{	f[s]=1;},"Plasma" );
 
 	coordinates_type v0,v1,v2,v3;
@@ -130,18 +133,19 @@ TYPED_TEST(TestMaterial,create ){
 								(((v0[2]-x[2])*(x[2]-v1[2]))>=0))
 				)
 				{
-					EXPECT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
+					ASSERT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
 				}
 
 				if( !(((v2[0]-x[0])*(x[0]-v3[0]))>=0)&&
 						(((v2[1]-x[1])*(x[1]-v3[1]))>=0)&&
 						(((v2[2]-x[2])*(x[2]-v3[2]))>=0))
 				{
-					EXPECT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
+					ASSERT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
 				}
 			}
 
 	);
+	std::cout<<Dump(f,"f" ,false)<<std::endl;
 
 	v.emplace_back(coordinates_type(
 					{	0.3*extent.second[0], 0.6*extent.second[1], 0.2*extent.first[2]}));
@@ -152,15 +156,10 @@ TYPED_TEST(TestMaterial,create ){
 
 	material.Update();
 
-	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
-
-	material.template SelectCell<TestFixture::IForm>(
-			[&](index_type const & s ,coordinates_type const & x)
+	material.template SelectCell<TestFixture::IForm>( [&](index_type s )
 			{	f[s]=1;},"Plasma" );
 
-	material.template SelectBoundary<TestFixture::IForm>(
-			[&](index_type const & s ,coordinates_type const & x)
+	material.template SelectBoundary<TestFixture::IForm>( [&](index_type s )
 			{	f[s]=10;},"Plasma" ,"NONE");
 
 //	material.template SelectBoundary<TestFixture::IForm>(

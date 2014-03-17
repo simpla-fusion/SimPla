@@ -102,9 +102,9 @@ struct EuclideanGeometry
 	{
 		if (dict["Min"] && dict["Max"])
 		{
+			LOGGER << "Load EuclideanGeometry ";
 			SetExtent(dict["Min"].template as<nTuple<3, Real>>(), dict["Max"].template as<nTuple<3, Real>>());
 			Update();
-			LOGGER << "Load EuclideanGeometry " << xmin_ << " " << xmax_ << DONE;
 		}
 	}
 

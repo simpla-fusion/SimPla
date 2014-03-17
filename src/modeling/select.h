@@ -14,19 +14,23 @@ namespace simpla
 {
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
-        std::function<bool(typename TM::index_type, typename TM::coordinates_type)> const & select)
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
+        std::function<bool(typename TM::index_type)> const & select)
 {
 	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
-	{	auto x=mesh.GetCoordinates(s);
-		if(select(s,x)) op(s,x);
-	});
+	{	if(select(s )) op(s );});
 }
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
+        std::function<bool(typename TM::coordinates_type)> const & select)
+{
+	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
+	{	if(select(mesh.GetCoordinates(s) )) op(s );});
+}
+
+template<int IFORM, typename TM>
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
         typename TM::coordinates_type const & x)
 {
 	typename TM::index_type idxs[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
@@ -35,14 +39,13 @@ void SelectFromMesh(TM const &mesh,
 
 	for (int i = 0; i < n; ++i)
 	{
-		op(idxs[i], mesh.GetCoordinates(idxs[i]));
+		op(idxs[i]);
 	}
 
 }
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
         typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
 {
 	mesh.template Traversal<IFORM>([&](typename TM:: index_type s )
@@ -54,35 +57,31 @@ void SelectFromMesh(TM const &mesh,
 				(((v0[2]-x[2])*(x[2]-v1[2]))>=0)
 		)
 		{
-			op(s,x);
+			op(s);
 		}
 	});
 
 }
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
         std::vector<typename TM::index_type> const & idxs)
 {
-
 	for (auto const & s : idxs)
 	{
-		op(s, mesh.GetCoordinates(s));
+		op(s);
 	}
 
 }
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
         std::vector<nTuple<TM::NUM_OF_DIMS, size_t>> const & idxs)
 {
 
-	for (auto const & s : idxs)
+	for (auto const & id : idxs)
 	{
-		auto idx = mesh.GetIndex(IFORM, s);
-		op(idx, mesh.GetCoordinates(idx));
+		op(mesh.GetIndex(IFORM, id));
 	}
 
 }
@@ -106,8 +105,7 @@ void SelectFromMesh(TM const &mesh,
  *           Z>=3
  */
 template<int IFORM, int N, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op,
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
         std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
 
@@ -130,7 +128,7 @@ void SelectFromMesh(TM const &mesh,
 		for (int i = 0; i < N; ++i)
 		{
 			v0[(i + Z + 1) % 3] = points[0][i];
-			v1[(i + Z + 2) % 3] = points[1][i];
+			v1[(i + Z + 1) % 3] = points[1][i];
 		}
 		SelectFromMesh<IFORM>(mesh, op, v0, v1);
 	}
@@ -145,7 +143,7 @@ void SelectFromMesh(TM const &mesh,
 
 			if( checkPointsInPolygen(x[(Z+1)%3],x[(Z+2)%3]))
 			{
-				op(s,x);
+				op(s );
 			}
 		});
 
@@ -158,8 +156,7 @@ void SelectFromMesh(TM const &mesh,
 }
 
 template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh,
-        std::function<void(typename TM::index_type, typename TM::coordinates_type)> const & op, LuaObject const & dict)
+void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op, LuaObject const & dict)
 {
 	if (dict.is_table())
 	{
@@ -175,13 +172,13 @@ void SelectFromMesh(TM const &mesh,
 
 		mesh.template Traversal<IFORM>(
 
-		[&](typename TM:: index_type s )
+		[&](typename TM::index_type s )
 		{
 			auto x=mesh.GetCoordinates(s);
 
 			if( dict(x[0],x[1],x[2]).template as<bool>())
 			{
-				op(s,x);
+				op(s);
 			}
 		});
 	}

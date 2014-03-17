@@ -69,12 +69,11 @@ public:
 	template<typename TDict>
 	void Load(TDict const & dict)
 	{
+		LOGGER << "Load Mesh RectMesh";
 		topology_type::Load(dict["Topology"]);
 		geometry_type::Load(dict["Geometry"]);
 
 		dt_ = dict["dt"].as(1.0);
-
-		LOGGER << "Load Mesh RectMesh" << DONE;
 
 	}
 

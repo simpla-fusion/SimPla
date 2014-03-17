@@ -143,9 +143,11 @@ struct OcForest
 	{
 		if (dict["Dimensions"])
 		{
-			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
+			LOGGER << "Load OcForest ";
+			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>(),
+			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
 			Update();
-			LOGGER << "Load OcForest " << DONE;
+
 		}
 
 	}
@@ -160,7 +162,7 @@ struct OcForest
 	}
 
 	template<typename TI>
-	void SetDimensions(TI const &d, bool FORTRAN_ORDER = false)
+	void SetDimensions(TI const &d, bool C_ORDER = false)
 	{
 		carray_digits_[0] = D_FP_POS + 1 + ((d[0] > 0) ? (count_bits(d[0]) - 1) : 0);
 		carray_digits_[1] = D_FP_POS + 1 + ((d[1] > 0) ? (count_bits(d[1]) - 1) : 0);
@@ -179,17 +181,17 @@ struct OcForest
 
 		;
 
-		if (FORTRAN_ORDER)
-		{
-			strides_[0] = 1;
-			strides_[1] = dims_[0];
-			strides_[2] = dims_[1] * strides_[1];
-		}
-		else
+		if (C_ORDER)
 		{
 			strides_[2] = 1;
 			strides_[1] = dims_[2];
 			strides_[0] = dims_[1] * strides_[1];
+		}
+		else
+		{
+			strides_[0] = 1;
+			strides_[1] = dims_[0];
+			strides_[2] = dims_[1] * strides_[1];
 		}
 
 //		CHECK(carray_digits_);
@@ -214,7 +216,7 @@ struct OcForest
 
 	}
 
-	//***************************************************************************************************
+//***************************************************************************************************
 
 	struct index_type
 	{
@@ -432,8 +434,8 @@ struct OcForest
 		return index_type( { Next(s.d) });
 	}
 
-	//***************************************************************************************************
-	//  Traversal
+//***************************************************************************************************
+//  Traversal
 
 	template<int IFORM, typename TF, typename ...Args>
 	void Traversal(TF &&fun, Args && ...args) const

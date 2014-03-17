@@ -71,7 +71,8 @@ public:
 
 	std::string description;
 
-	Material<mesh_type> tags_;
+	Material<mesh_type> material_;
+
 	bool isCompactStored_;
 
 	Form<EDGE> E, dE;
@@ -141,7 +142,7 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), tags_(mesh),
+		: isCompactStored_(true), material_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -162,6 +163,9 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 template<typename TM> template<typename TDict>
 void ExplicitEMContext<TM>::Load(TDict const & dict)
 {
+
+	LOGGER << "Load ExplicitEMContext ";
+
 	description = dict["Description"].template as<std::string>();
 
 	mesh.Load(dict["Grid"]);
@@ -189,25 +193,22 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		xmax[2] = 0;
 
 		mesh.SetExtent(xmin, xmax);
-
 		mesh.Update();
 
-		tags_.Update();
+		material_.Add("Plasma", geqdsk.Boundary());
+		material_.Add("Vacuum", geqdsk.Limiter());
+		material_.Update();
 
-		mesh.template Traversal<FACE>(
+		geqdsk.Save(std::cout);
 
-		[&](typename mesh_type::index_type s )
+		mesh.template Traversal<FACE>([&](typename mesh_type::index_type s )
 		{
 			auto x= mesh.GetCoordinates(s);
-			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x));
+			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x[0],x[1]));
+
 		});
 
 		J0 = Curl(B) / mesh.constants()["permeability of free space"];
-
-		tags_.Add("Plasma", geqdsk.Boundary());
-		tags_.Add("Vacuum", geqdsk.Limiter());
-
-		LOGGER << "Load GFile" << DONE;
 	}
 
 	J = J0;
@@ -236,19 +237,22 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	LOGGER << "Load Constraints";
 	for (auto const & item : dict["Constraints"])
 	{
+
 		auto dof = item.second["DOF"].template as<std::string>();
+
+		LOGGER << "Add constraint to " << dof;
 
 		if (dof == "E")
 		{
-			constraintToE_.push_back(CreateConstraint<TE>(tags_, item.second));
+			constraintToE_.push_back(CreateConstraint<TE>(material_, item.second));
 		}
 		else if (dof == "B")
 		{
-			constraintToB_.push_back(CreateConstraint<TB>(tags_, item.second));
+			constraintToB_.push_back(CreateConstraint<TB>(material_, item.second));
 		}
 		else if (dof == "J")
 		{
-			constraintToJ_.push_back(CreateConstraint<TJ>(tags_, item.second));
+			constraintToJ_.push_back(CreateConstraint<TJ>(material_, item.second));
 		}
 		else
 		{
@@ -257,12 +261,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			continue;
 		}
 
-		LOGGER << "Add constraint to " << dof << DONE;
 	}
 
 	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
-
-	LOGGER << "Load ExplicitEMContext " << DONE;
 
 }
 
@@ -294,7 +295,7 @@ void ExplicitEMContext<TM>::Save(std::ostream & os) const
 //	}
 	os << "\n}\n"
 
-	<< "Fields={" << "\n"
+	<< "InitValue={" << "\n"
 
 	<< "	E = " << Dump(E, "E", false) << ",\n"
 

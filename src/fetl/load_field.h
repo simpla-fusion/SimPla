@@ -19,16 +19,8 @@ namespace simpla
 {
 template<typename, int, typename > class Field;
 template<int IFORM, typename TM, typename TV>
-void LoadField(LuaObject const &obj, Field<TM, IFORM, TV> *f)
+void LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 {
-
-	f->Init();
-
-	if (obj.empty())
-	{
-		f->Fill(0);
-		return;
-	}
 
 	typedef TM mesh_type;
 	typedef typename Field<TM, IFORM, TV>::value_type value_type;
@@ -36,31 +28,28 @@ void LoadField(LuaObject const &obj, Field<TM, IFORM, TV> *f)
 
 	mesh_type const &mesh = f->mesh;
 
-	if (obj.is_function())
+	if (dict.is_function())
 	{
+		f->Init();
 		mesh.template Traversal<IFORM>(
 
 		[&](typename mesh_type::index_type s)
 		{
 			auto x=mesh.GetCoordinates(s);
 
-			auto v=obj(x[0],x[1],x[2]).template as<field_value_type>();
+			auto v=dict(x[0],x[1],x[2]).template as<field_value_type>();
 
 			(*f)[s] = mesh.Sample(Int2Type<IFORM>(),s,v);
 		});
 
 	}
-	else if (obj.is_number())
+	else if (dict.is_number() | dict.is_table())
 	{
-		f->Fill(obj.as<Real>());
+		f->Fill(dict.as<value_type>());
 	}
-	else if (obj.is_table())
+	else if (dict.is_string())
 	{
-//		mesh.AssignContainer(f, obj.as<field_value_type>());
-	}
-	else //if (obj.is_string())
-	{
-		std::string url = obj.as<std::string>();
+		std::string url = dict.as<std::string>();
 		//TODO Read field from data file
 		UNIMPLEMENT << "Read field from data file or other URI";
 	}

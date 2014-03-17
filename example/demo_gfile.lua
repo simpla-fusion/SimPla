@@ -106,7 +106,7 @@ InitValue={
 }
 --]]
      
-GFile='g033068.02750'
+GFile='/home/salmon/workspace/SimPla/example/g033068.02750'
 Grid=
 {
   Type="RectMesh",
@@ -115,7 +115,8 @@ Grid=
   Topology=
   {       
       Type="RectMesh",
-      Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
+      Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+      ArrayOrder="Fortran Order"       
       
   },
   Geometry=
@@ -140,7 +141,7 @@ Grid=
 --      ,Op="Set"},
 -- }
  
- 
+---[[
 Constraints=
 {
   { 
@@ -151,7 +152,7 @@ Constraints=
   { 
     DOF="J",
 	Index={ {NX/2,NY/2,0}},
-	HardSrc=false,
+	IsHard=false,
   	Value=function(x,y,z,t)	
       local tau = t*omega_ext*100
       return {0, math.sin(tau) ,0}   
@@ -159,19 +160,22 @@ Constraints=
 	 
   } 
 -- *(1-math.exp(-tau*tau)
-  --[[
-  { 
-    DOF="J",
-	Select={Type="Media", Tag="Vacuum"},
-	Value= 0
-  },
-  { 
-    DOF="Particles",
-	Select={Type="Media", Tag="Vacuum"},
-	Value= "Absorb"
-  },
-  --]]
+   
+ --  { 
+ --    DOF="J",
+	-- Select={Type="Media", Tag="Vacuum"},
+	-- Value= 0
+ --  },
+ --  { 
+ --    DOF="Particles",
+	-- Select={Type="Media", Tag="Vacuum"},
+	-- Value= "Absorb"
+ --  },
+   
 }
+--]]
+
+
 --[[
 Particles={
   {Name="H",Engine="DeltaF",Mass=mp,Charge=qe,T=Ti,PIC=100, n=InitN0}

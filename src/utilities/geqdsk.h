@@ -51,9 +51,9 @@ private:
 	Real bcentr; // Vacuum toroidal magnetic field in Tesla at RCENTR
 	Real current; // Plasma current in Ampere
 
-	nTuple<NDIMS, size_t> dims_;
-	nTuple<NDIMS, Real> rzmin_;
-	nTuple<NDIMS, Real> rzmax_;
+	nTuple<NDIMS, size_t> dims_ = { 0, 0 };
+	nTuple<NDIMS, Real> rzmin_ = { 0, 0 };
+	nTuple<NDIMS, Real> rzmax_ = { 0, 0 };
 
 	inter_type fpol_; // Poloidal current function in m-T $F=RB_T$ on flux grid
 	inter_type pres_; // Plasma pressure in $nt/m^2$ on uniform flux grid
@@ -71,7 +71,7 @@ public:
 
 	GEqdsk(std::string const &fname = "")
 	{
-
+		Read(fname);
 	}
 
 	~GEqdsk()
@@ -88,19 +88,18 @@ public:
 	{
 		Read(fname);
 	}
-	std::ostream & Save(std::ostream & os) const
+	void Save(std::ostream & os) const
 	{
-		os << Dump(psirz_.data(), "psi", 2, &dims_[0]);
+		os << Dump(psirz_.data(), "psi", 2, &dims_[0]) << std::endl;
 
 		size_t num = rzbbb_.size();
 
-		os << Dump(&rzbbb_[0], "rzbbb", 1, &num);
+		os << Dump(&rzbbb_[0], "rzbbb", 1, &num) << std::endl;
 
 		num = rzlim_.size();
 
-		os << Dump(&rzlim_[0], "rzlim", 1, &num);
+		os << Dump(&rzlim_[0], "rzlim", 1, &num) << std::endl;
 
-		return os;
 	}
 
 	void Read(std::string const &fname);
@@ -133,42 +132,41 @@ public:
 		return rzlim_;
 	}
 
-	template<typename ...Args>
-	inline value_type psi(Args const &...x) const
+	inline value_type psi(Real x, Real y) const
 	{
-		return psirz_.eval(std::forward<Args const &>(x)...);
+		return psirz_.eval(x, y);
 	}
 
-#define VALUE_FUNCTION(_NAME_)                                     \
-	template<typename ...Args>                                     \
-	inline value_type _NAME_(Args const &...x) const                      \
-	{                                                              \
-		return _NAME_##_(psi(std::forward<Args const &>(x)...));       \
-	}
+#define VALUE_FUNCTION(_NAME_)                         \
+	inline value_type _NAME_(Real x,Real y) const      \
+	{   return _NAME_##_(psi(x,y));     }
 
-	VALUE_FUNCTION(fpol);
-	VALUE_FUNCTION(pres);
-	VALUE_FUNCTION(ffprim);
-	VALUE_FUNCTION(pprim);
-	VALUE_FUNCTION(qpsi);
+	VALUE_FUNCTION(fpol)
+	;VALUE_FUNCTION(pres)
+	;VALUE_FUNCTION(ffprim)
+	;VALUE_FUNCTION(pprim)
+	;VALUE_FUNCTION(qpsi)
+	;
 #undef VALUE_FUNCTION
 
-	template<typename TX>
-	nTuple<3,Real> B(TX const & x)const
+	inline nTuple<3, Real> B(Real x, Real y) const
 	{
-		auto gradPsi= psirz_.diff(x[0],x[1]);
+		auto gradPsi = psirz_.diff(x, y);
 
-		nTuple<3,Real> res=
-		{	gradPsi[1]/x[0],-gradPsi[0]/x[0],fpol(x)/x[0]};
+		return nTuple<3, Real>( {
 
-		return std::move(res);
+		gradPsi[1] / x,
+
+		-gradPsi[0] / x,
+
+		fpol(x, y) / x });
+
 	}
 
-	template<typename TX>
-	Real JT(TX const & x)const
+	inline Real JT(Real x, Real y) const
 	{
 
-		return x[0]*pprim(x)+ffprim(x)/x[0];
+		return x * pprim(x, y) + ffprim(x, y) / x;
 	}
 };
 

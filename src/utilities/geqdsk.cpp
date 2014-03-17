@@ -43,20 +43,27 @@ namespace simpla
 
 void GEqdsk::Read(std::string const &fname)
 {
-	std::ifstream inFileStream_;
 
-	if (fname != "")
-		inFileStream_.open(fname);
-	size_t nw; //Number of horizontal R grid points
-	size_t nh; //Number of vertical Z grid points
-	Real rdim; // Horizontal dimension in meter of computational box
-	Real zdim; // Vertical dimension in meter of computational box
-	Real rleft; // Minimum R in meter of rectangular computational box
-	Real zmid; // Z of center of computational box in meter
-	Real simag; // Poloidal flux at magnetic axis in Weber / rad
-	Real sibry; // Poloidal flux at the plasma boundary in Weber / rad
-	size_t idum;
-	Real xdum;
+	std::ifstream inFileStream_(fname);
+
+	if (!inFileStream_.is_open())
+	{
+		ERROR << "File " << fname << " is not opend!";
+		return;
+	}
+
+	LOGGER << "Load GFile : " << fname;
+
+	int nw; //Number of horizontal R grid points
+	int nh; //Number of vertical Z grid points
+	double rdim; // Horizontal dimension in meter of computational box
+	double zdim; // Vertical dimension in meter of computational box
+	double rleft; // Minimum R in meter of rectangular computational box
+	double zmid; // Z of center of computational box in meter
+	double simag; // Poloidal flux at magnetic axis in Weber / rad
+	double sibry; // Poloidal flux at the plasma boundary in Weber / rad
+	int idum;
+	double xdum;
 
 	inFileStream_.get(desc, 48);
 
@@ -80,10 +87,11 @@ void GEqdsk::Read(std::string const &fname)
 
 	dims_[0] = nw;
 	dims_[1] = nh;
+
 	inter2d_type(dims_, rzmin_, rzmax_).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                                            \
-	for (size_t s = 0; s < nw; ++s)                                              \
+	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
 		value_type y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
@@ -97,8 +105,8 @@ void GEqdsk::Read(std::string const &fname)
 	INPUT_VALUE(ffprim_);
 	INPUT_VALUE(pprim_);
 
-	for (size_t j = 0; j < nh; ++j)
-		for (size_t i = 0; i < nw; ++i)
+	for (int j = 0; j < nh; ++j)
+		for (int i = 0; i < nw; ++i)
 		{
 			value_type v;
 			inFileStream_ >> std::setw(16) >> v;
@@ -117,7 +125,6 @@ void GEqdsk::Read(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzbbb_;
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
-	LOGGER << "Read GFile " << fname << DONE;
 }
 
 std::ostream & GEqdsk::Print(std::ostream & os)
