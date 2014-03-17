@@ -95,15 +95,15 @@ void GEqdsk::Read(std::string const &fname)
 	{                                                                                  \
 		value_type y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
-		_NAME_.data().emplace(                                                         \
+		profile_[ _NAME_ ].data().emplace(                                                         \
 	     std::make_pair(static_cast<value_type>(s)                                     \
 	          /static_cast<value_type>(nw-1), y));                               \
 	}                                                                                  \
 
-	INPUT_VALUE(fpol_);
-	INPUT_VALUE(pres_);
-	INPUT_VALUE(ffprim_);
-	INPUT_VALUE(pprim_);
+	INPUT_VALUE("fpol");
+	INPUT_VALUE("pres");
+	INPUT_VALUE("ffprim");
+	INPUT_VALUE("pprim");
 
 	for (int j = 0; j < nh; ++j)
 		for (int i = 0; i < nw; ++i)
@@ -113,7 +113,7 @@ void GEqdsk::Read(std::string const &fname)
 			psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
 		}
 
-	INPUT_VALUE(qpsi_);
+	INPUT_VALUE("qpsi");
 
 #undef INPUT_VALUE
 
@@ -126,7 +126,57 @@ void GEqdsk::Read(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
 }
+void GEqdsk::ReadProfile(std::string const &fname, int num_of_row)
+{
+	LOGGER << "Load GFile Profiles: " << fname;
+	std::ifstream inFileStream_(fname);
 
+	if (!inFileStream_.is_open())
+	{
+		ERROR << "File " << fname << " is not opend!";
+		return;
+	}
+
+	std::string psi_str;
+	inFileStream_ >> psi_str;
+
+	std::vector<std::string> names(num_of_row);
+
+	for (int s = 0; s < num_of_row; ++s)
+	{
+		inFileStream_ >> names[s];
+	};
+
+	while (inFileStream_)
+	{
+		Real psi;
+		inFileStream_ >> psi;
+		for (int s = 0; s < num_of_row; ++s)
+		{
+			Real value;
+			inFileStream_ >> psi;
+			profile_[names[s]].data().emplace(psi, value);
+		}
+	}
+}
+
+void GEqdsk::Save(std::ostream & os) const
+{
+	os << Dump(psirz_.data(), "psi", 2, &dims_[0]) << std::endl;
+
+	size_t num = rzbbb_.size();
+
+	os << Dump(&rzbbb_[0], "rzbbb", 1, &num) << std::endl;
+
+	num = rzlim_.size();
+
+	os << Dump(rzlim_, "rzlim") << std::endl;
+
+	for (auto const & p : profile_)
+	{
+		os << Dump(p.second.data(), p.first) << std::endl;
+	}
+}
 std::ostream & GEqdsk::Print(std::ostream & os)
 {
 	std::cout << "--" << desc << std::endl;

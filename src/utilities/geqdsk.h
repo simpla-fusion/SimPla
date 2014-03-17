@@ -55,17 +55,19 @@ private:
 	nTuple<NDIMS, Real> rzmin_ = { 0, 0 };
 	nTuple<NDIMS, Real> rzmax_ = { 0, 0 };
 
-	inter_type fpol_; // Poloidal current function in m-T $F=RB_T$ on flux grid
-	inter_type pres_; // Plasma pressure in $nt/m^2$ on uniform flux grid
-	inter_type ffprim_; // $FF^\prime(\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
-	inter_type pprim_; // $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
+//	inter_type fpol_; // Poloidal current function in m-T $F=RB_T$ on flux grid
+//	inter_type pres_; // Plasma pressure in $nt/m^2$ on uniform flux grid
+//	inter_type ffprim_; // $FF^\prime(\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
+//	inter_type pprim_; // $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
 
 	inter2d_type psirz_; // Poloidal flux in Webber/rad on the rectangular grid points
 
-	inter_type qpsi_; // q values on uniform flux grid from axis to boundary
+//	inter_type qpsi_; // q values on uniform flux grid from axis to boundary
 
 	std::vector<nTuple<NDIMS, Real> > rzbbb_; // R,Z of boundary points in meter
 	std::vector<nTuple<NDIMS, Real> > rzlim_; // R,Z of surrounding limiter contour in meter
+
+	std::map<std::string, inter_type> profile_;
 
 public:
 
@@ -76,7 +78,6 @@ public:
 
 	~GEqdsk()
 	{
-
 	}
 
 	enum
@@ -88,23 +89,18 @@ public:
 	{
 		Read(fname);
 	}
-	void Save(std::ostream & os) const
-	{
-		os << Dump(psirz_.data(), "psi", 2, &dims_[0]) << std::endl;
-
-		size_t num = rzbbb_.size();
-
-		os << Dump(&rzbbb_[0], "rzbbb", 1, &num) << std::endl;
-
-		num = rzlim_.size();
-
-		os << Dump(&rzlim_[0], "rzlim", 1, &num) << std::endl;
-
-	}
+	void Save(std::ostream & os = std::cout) const;
 
 	void Read(std::string const &fname);
 
 	void Write(std::string const &fname, int format = XDMF);
+
+	void ReadProfile(std::string const &fname, int num_of_row);
+
+	inline value_type Profile(std::string const & name, Real x, Real y) const
+	{
+		return profile_.at(name)(psi(x, y));
+	}
 
 	nTuple<NDIMS, Real> const & GetMin() const
 	{
@@ -137,18 +133,6 @@ public:
 		return psirz_.eval(x, y);
 	}
 
-#define VALUE_FUNCTION(_NAME_)                         \
-	inline value_type _NAME_(Real x,Real y) const      \
-	{   return _NAME_##_(psi(x,y));     }
-
-	VALUE_FUNCTION(fpol)
-	;VALUE_FUNCTION(pres)
-	;VALUE_FUNCTION(ffprim)
-	;VALUE_FUNCTION(pprim)
-	;VALUE_FUNCTION(qpsi)
-	;
-#undef VALUE_FUNCTION
-
 	inline nTuple<3, Real> B(Real x, Real y) const
 	{
 		auto gradPsi = psirz_.diff(x, y);
@@ -159,14 +143,13 @@ public:
 
 		-gradPsi[0] / x,
 
-		fpol(x, y) / x });
+		Profile("fpol", x, y) / x });
 
 	}
 
 	inline Real JT(Real x, Real y) const
 	{
-
-		return x * pprim(x, y) + ffprim(x, y) / x;
+		return x * Profile("pprim", x, y) + Profile("ffprim", x, y) / x;
 	}
 };
 

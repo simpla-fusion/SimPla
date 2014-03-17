@@ -65,7 +65,7 @@ public:
 	}
 	inline container_type const& data() const
 	{
-		EXCEPT(data_ != nullptr);
+//		EXCEPT(data_ != nullptr);
 		return *data_;
 	}
 

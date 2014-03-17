@@ -124,6 +124,29 @@ template<typename T> struct HDF5DataType<std::complex<T>>
 	}
 };
 
+template<typename TL, typename TR>
+struct HDF5DataType<std::pair<TL, TR> >
+{
+	typedef std::pair<TL, TR> value_type;
+	hid_t type_;
+	HDF5DataType()
+	{
+		type_ = H5Tcreate(H5T_COMPOUND, sizeof(value_type));
+		H5Tinsert(type_, "first", offsetof(value_type, first), HDF5DataType<TL>().type());
+		H5Tinsert(type_, "second", offsetof(value_type, second), HDF5DataType<TR>().type());
+	}
+
+	~ HDF5DataType()
+	{
+		H5Tclose(type_);
+	}
+
+	hid_t type() const
+	{
+		return type_;
+	}
+};
+
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
         bool is_compacted_store);
 
@@ -278,7 +301,7 @@ template<typename TV>
 class DataDumper
 {
 
-	TV* data_;
+	TV const* data_;
 	std::string name_;
 	bool is_compact_store_;
 	std::vector<size_t> dims_;
@@ -287,7 +310,8 @@ public:
 	typedef TV value_type;
 
 	template<typename TI>
-	DataDumper(TV* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag = false)
+	DataDumper(TV const* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag =
+	        false)
 			: data_(d), name_(name), is_compact_store_(flag)
 	{
 		if (dims != nullptr && rank > 0)
@@ -306,7 +330,7 @@ public:
 	}
 
 	template<int N, typename TI>
-	DataDumper(TV* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
+	DataDumper(TV const* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
 			: data_(d), name_(name), is_compact_store_(flag)
 	{
 		for (size_t i = 0; i < N; ++i)
@@ -316,7 +340,7 @@ public:
 	}
 
 	template<typename TI>
-	DataDumper(TV* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
+	DataDumper(TV const* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
 			: data_(d), name_(name), dims_(dims.size()), is_compact_store_(flag)
 	{
 		std::copy(dims.begin(), dims.end(), dims_.begin());
@@ -347,6 +371,33 @@ template<typename TV, typename ... Args> inline std::string Dump(TV* d, Args con
 	return DataDumper<TV>(d, std::forward<Args const &>(args)...).GetName();
 }
 
+template<typename TV, typename ... Args> inline std::string Dump(std::vector<TV>const & d, std::string const & name,
+        Args const & ... args)
+{
+	size_t s = d.size();
+	return DataDumper<TV>(&d[0], name, 1, &s, std::forward<Args const &>(args)...).GetName();
+}
+template<typename TL, typename TR, typename ... Args> inline std::string Dump(std::map<TL, TR>const & d,
+        std::string const & name, Args const & ... args)
+{
+	std::vector<std::pair<TL, TR> > d_;
+	for (auto const & p : d)
+	{
+		d_.emplace_back(p);
+	}
+	return Dump(d_, name, std::forward<Args const &>(args)...);
+}
+
+template<typename TV, typename ... Args> inline std::string Dump(std::map<TV, TV>const & d, std::string const & name,
+        Args const & ... args)
+{
+	std::vector<nTuple<2, TV> > d_;
+	for (auto const & p : d)
+	{
+		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
+	}
+	return Dump(d_, name, std::forward<Args const &>(args)...);
+}
 template<typename U>
 std::ostream & operator<<(std::ostream & os, DataDumper<U> const &d)
 {
