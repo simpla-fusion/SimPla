@@ -85,6 +85,10 @@ public:
 	Form<EDGE> J0;     //background current density J0+Curl(B(t=0))=0
 	Form<VERTEX> rho; // charge density
 
+	Form<VERTEX> ne0;
+	Form<VERTEX> Te0;
+	Form<VERTEX> Ti0;
+
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
 	typedef decltype(J) TJ;
@@ -146,7 +150,9 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: isCompactStored_(true), material_(mesh),
 
-		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
+		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh),
+
+		ne0(mesh), Te0(mesh), Ti0(mesh)
 {
 }
 
@@ -171,6 +177,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	dB.Clear();
 	dE.Clear();
+
+	ne0.Clear();
+	Te0.Clear();
+	Ti0.Clear();
 
 	if (dict["GFile"])
 	{
@@ -204,6 +214,17 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x[0],x[1]));
 
 		});
+
+		material_.template SelectCell<VERTEX>([&](typename mesh_type::index_type s )
+		{
+			auto x= mesh.GetCoordinates(s);
+			auto p=geqdsk.psi(x[0],x[1]);
+
+			ne0[s] = geqdsk. Profile("ne(cm^-3)",p);
+			Te0[s] = geqdsk. Profile("Te(keV)",p);
+			Ti0[s] = geqdsk. Profile("Ti(keV)",p);
+
+		}, "Plasma");
 
 		J0 = Curl(B) / mesh.constants()["permeability of free space"];
 
@@ -274,24 +295,6 @@ void ExplicitEMContext<TM>::Save(std::ostream & os) const
 
 	os << "Grid = { \n" << mesh << "\n";
 
-//	os << " FieldSolver={ \n";
-//
-//	if (cold_fluid_ != nullptr)
-//		os << *cold_fluid_ << ",\n";
-//
-//	if (pml_ != nullptr)
-//		os << *pml_ << ",\n";
-//
-//	os << "} \n";
-//
-//	if (particles_ != nullptr)
-//		os << *particles_ << "\n";
-//
-//	os << "Function={";
-//	for (auto const & p : field_boundary_)
-//	{
-//		os << "\"" << p.first << "\",\n";
-//	}
 	os << "\n}\n"
 
 	<< "InitValue={" << "\n"
@@ -301,6 +304,12 @@ void ExplicitEMContext<TM>::Save(std::ostream & os) const
 	<< "	B = " << Dump(B, "B", false) << ",\n"
 
 	<< "	J = " << Dump(J, "J", false) << ",\n"
+
+	<< "	ne = " << Dump(ne0, "ne", false) << ",\n"
+
+	<< "	Te = " << Dump(Te0, "Te", false) << ",\n"
+
+	<< "	Ti = " << Dump(Ti0, "Ti", false) << ",\n"
 
 	<< "}" << "\n"
 

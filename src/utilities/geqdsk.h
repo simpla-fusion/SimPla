@@ -102,6 +102,11 @@ public:
 		return profile_.at(name)(psi(x, y));
 	}
 
+	inline value_type Profile(std::string const & name, Real p) const
+	{
+		return profile_.at(name)(p);
+	}
+
 	std::string const &Description() const
 	{
 		return desc;
