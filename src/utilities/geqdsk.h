@@ -36,7 +36,7 @@ public:
 		NDIMS = 2
 	};
 private:
-	char desc[50];
+	std::string desc;
 //	size_t nw; // Number of horizontal R grid  points
 //	size_t nh; // Number of vertical Z grid points
 //	Real rdim; // Horizontal dimension in meter of computational box
@@ -95,13 +95,17 @@ public:
 
 	void Write(std::string const &fname, int format = XDMF);
 
-	void ReadProfile(std::string const &fname, int num_of_row);
+	void ReadProfile(std::string const &fname);
 
 	inline value_type Profile(std::string const & name, Real x, Real y) const
 	{
 		return profile_.at(name)(psi(x, y));
 	}
 
+	std::string const &Description() const
+	{
+		return desc;
+	}
 	nTuple<NDIMS, Real> const & GetMin() const
 	{
 		return rzmin_;

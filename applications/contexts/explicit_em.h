@@ -206,6 +206,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		});
 
 		J0 = Curl(B) / mesh.constants()["permeability of free space"];
+
+		description = description + "\n GEqdsk ID:" + geqdsk.Description();
 	}
 
 	J = J0;

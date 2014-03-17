@@ -1,4 +1,4 @@
-Description="For Cold Plasma Dispersion" -- description or other text things.    
+Description="Cold Plasma Dispersion" -- description or other text things.    
 
 Context="ExplicitEM"
 
@@ -106,7 +106,7 @@ InitValue={
 }
 --]]
      
-GFile='/home/salmon/workspace/SimPla/example/g033068.02750'
+GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900'
 Grid=
 {
   Type="RectMesh",

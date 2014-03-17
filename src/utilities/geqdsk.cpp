@@ -65,7 +65,11 @@ void GEqdsk::Read(std::string const &fname)
 	int idum;
 	double xdum;
 
-	inFileStream_.get(desc, 48);
+	char str_buff[50];
+
+	inFileStream_.get(str_buff, 48);
+
+	desc = std::string(str_buff);
 
 	inFileStream_ >> std::setw(4) >> idum >> nw >> nh;
 
@@ -125,8 +129,10 @@ void GEqdsk::Read(std::string const &fname)
 	inFileStream_ >> std::setw(16) >> rzbbb_;
 	inFileStream_ >> std::setw(16) >> rzlim_;
 
+	ReadProfile(fname + "_profiles.txt");
+
 }
-void GEqdsk::ReadProfile(std::string const &fname, int num_of_row)
+void GEqdsk::ReadProfile(std::string const &fname)
 {
 	LOGGER << "Load GFile Profiles: " << fname;
 	std::ifstream inFileStream_(fname);
@@ -137,25 +143,37 @@ void GEqdsk::ReadProfile(std::string const &fname, int num_of_row)
 		return;
 	}
 
-	std::string psi_str;
-	inFileStream_ >> psi_str;
+	std::string line;
 
-	std::vector<std::string> names(num_of_row);
+	std::getline(inFileStream_, line);
 
-	for (int s = 0; s < num_of_row; ++s)
+	std::vector<std::string> names;
 	{
-		inFileStream_ >> names[s];
-	};
+		std::stringstream lineStream(line);
+
+		while (lineStream)
+		{
+			std::string t;
+			lineStream >> t;
+			if (t != "")
+				names.push_back(t);
+		};
+	}
 
 	while (inFileStream_)
 	{
+		auto it = names.begin();
+		auto ie = names.end();
 		Real psi;
-		inFileStream_ >> psi;
-		for (int s = 0; s < num_of_row; ++s)
+		inFileStream_ >> psi; 		/// @NOTE assume first row is psi
+		*it = psi;
+
+		for (++it; it != ie; ++it)
 		{
 			Real value;
-			inFileStream_ >> psi;
-			profile_[names[s]].data().emplace(psi, value);
+			inFileStream_ >> value;
+			profile_[*it].data().emplace(psi, value);
+
 		}
 	}
 }
