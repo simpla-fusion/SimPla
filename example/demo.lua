@@ -100,13 +100,12 @@ B_background=function(x,y,z)
      end
       
 
-GFile="g033068.02750"
-
 Grid=
 {
-  Type="CoRectMesh",
---  ScalarType="Complex",
+  Type="RectMesh",
+ 
   UnitSystem={Type="SI"},
+
   Topology=
   {       
       Type="3DCoRectMesh",

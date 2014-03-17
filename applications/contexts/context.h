@@ -27,7 +27,7 @@ struct Context
 
 	std::function<void(std::string const &)> DumpData;
 
-	std::function<std::ostream & (std::ostream &)> Save;
+	std::function<void(std::ostream &)> Save;
 
 	std::function<void()> NextTimeStep;
 
@@ -44,7 +44,8 @@ struct Context
 
 inline std::ostream & operator<<(std::ostream & os, Context const &self)
 {
-	return self.Save(os);
+	self.Save(os);
+	return os;
 }
 
 template<typename TC, typename TDict>

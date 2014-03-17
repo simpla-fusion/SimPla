@@ -44,11 +44,13 @@ void Context::Load(LuaObject const & dict)
 {
 
 	DumpData = [] (std::string const &)
-	{	UNDEFINE_FUNCTION;};
-
-	Save = [](std::ostream & os)->std::ostream &
 	{
-		return os;
+		UNDEFINE_FUNCTION;
+	};
+
+	Save = [](std::ostream & os)
+	{
+		UNDEFINE_FUNCTION;
 	};
 
 	NextTimeStep = []()
@@ -67,6 +69,11 @@ void Context::Load(LuaObject const & dict)
 			CreateContext<ExplicitEMContext<mesh_type>>(dict, this);
 
 		}
+		else
+		{
+			LOGGER << "Unknonw Grid type: " << mesh_str;
+		}
+
 		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";
 
 	}

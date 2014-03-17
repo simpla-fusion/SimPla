@@ -44,11 +44,16 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 
-	template<typename ... Args>
-	RectMesh(Args const &... args) :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh()
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
-		Load(std::forward<Args const &>(args)...);
+	}
+
+	template<typename TDict>
+	RectMesh(TDict const & dict)
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	{
+		Load(dict);
 	}
 	~RectMesh()
 	{
@@ -61,22 +66,31 @@ public:
 		return (this == &r);
 	}
 
-	void Load()
+	template<typename TDict>
+	void Load(TDict const & dict)
 	{
+		topology_type::Load(dict["Topology"]);
+		geometry_type::Load(dict["Geometry"]);
+
+		dt_ = dict["dt"].as(1.0);
+
+		LOGGER << "Load Mesh RectMesh" << DONE;
+
 	}
 
-	template<typename ... Args>
-	void Load(Args const &... args)
+	void Save(std::ostream &os) const
 	{
-		topology_type::Load(std::forward<Args const &>(args)...);
-		geometry_type::Load(std::forward<Args const &>(args)...);
-	}
+		os << " Topology  = { ";
 
-	std::ostream & Save(std::ostream &os) const
-	{
 		topology_type::Save(os);
+
+		os << "}," << std::endl
+
+		<< " Geometry  = { ";
+
 		geometry_type::Save(os);
-		return os;
+
+		os << "}";
 	}
 
 	void Update()
@@ -90,9 +104,9 @@ public:
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
 	}
 
-	//***************************************************************************************************
-	//*	Miscellaneous
-	//***************************************************************************************************
+//***************************************************************************************************
+//*	Miscellaneous
+//***************************************************************************************************
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
@@ -113,7 +127,7 @@ public:
 		return constants_;
 	}
 
-	//* Time
+//* Time
 
 	Real dt_ = 0.0;//!< time step
 	Real time_ = 0.0;
@@ -133,7 +147,6 @@ public:
 	}
 	inline Real GetDt() const
 	{
-		CHECK(CheckCourant());
 		return dt_;
 	}
 
@@ -142,25 +155,8 @@ public:
 		dt_ = dt;
 		Update();
 	}
-	double CheckCourant() const
-	{
-		DEFINE_GLOBAL_PHYSICAL_CONST
 
-		nTuple<3, Real> inv_dx_;
-		Real res = 0.0;
-
-		for (int i = 0; i < 3; ++i)
-		res += inv_dx_[i] * inv_dx_[i];
-
-		return std::sqrt(res) * speed_of_light * dt_;
-	}
-
-	void FixCourant(Real a=1.0)
-	{
-		dt_ *= a / CheckCourant();
-	}
-
-	//***************************************************************************************************
+//***************************************************************************************************
 
 	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const
 	{
@@ -307,9 +303,9 @@ public:
 		Scatter_( x,v,topology_type::_DA,f,h);
 	}
 
-	//***************************************************************************************************
-	// Exterior algebra
-	//***************************************************************************************************
+//***************************************************************************************************
+// Exterior algebra
+//***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
@@ -371,9 +367,9 @@ public:
 		return (f[s + d] - f[s - d]);
 	}
 
-	//***************************************************************************************************
+//***************************************************************************************************
 
-	//! Form<IR> ^ Form<IR> => Form<IR+IL>
+//! Form<IR> ^ Form<IR> => Form<IR+IL>
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
 	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
@@ -712,9 +708,9 @@ public:
 		return (f[s + D] - f[s - D]) * 0.5 * v[n];
 	}
 
-	//**************************************************************************************************
-	// Non-standard operation
-	// For curlpdx
+//**************************************************************************************************
+// Non-standard operation
+// For curlpdx
 
 	template<int N ,typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Int2Type<N>,Field<this_type, EDGE, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])
@@ -945,7 +941,9 @@ public:
 template<typename TTopology, template<typename > class TGeo> inline std::ostream &
 operator<<(std::ostream & os, RectMesh<TTopology, TGeo> const & d)
 {
-	return d.Save(os);
+	d.Save(os);
+
+	return os;
 }
 }
 // namespace simpla

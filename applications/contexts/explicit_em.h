@@ -59,7 +59,7 @@ public:
 
 	template<typename TDict> void Load(TDict const & dict);
 
-	std::ostream & Save(std::ostream & os) const;
+	void Save(std::ostream & os) const;
 
 	void NextTimeStep();
 
@@ -141,8 +141,9 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), tags_(mesh), E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(
-		        mesh)
+		: isCompactStored_(true), tags_(mesh),
+
+		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 	Real ic2 = 1.0 / (mu0 * epsilon0);
@@ -161,8 +162,6 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 template<typename TM> template<typename TDict>
 void ExplicitEMContext<TM>::Load(TDict const & dict)
 {
-	DEFINE_PHYSICAL_CONST(mesh.constants());
-
 	description = dict["Description"].template as<std::string>();
 
 	mesh.Load(dict["Grid"]);
@@ -180,7 +179,16 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		GEqdsk geqdsk(dict["GFile"].template as<std::string>());
 
-		mesh.SetExtent(geqdsk.GetMin(), geqdsk.GetMax());
+		nTuple<3, Real> xmin, xmax;
+
+		xmin[0] = geqdsk.GetMin()[0];
+		xmin[1] = geqdsk.GetMin()[1];
+		xmin[2] = 0;
+		xmax[0] = geqdsk.GetMax()[0];
+		xmax[1] = geqdsk.GetMax()[1];
+		xmax[2] = 0;
+
+		mesh.SetExtent(xmin, xmax);
 
 		mesh.Update();
 
@@ -194,15 +202,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x));
 		});
 
-		J0 = Curl(B) / mu0;
+		J0 = Curl(B) / mesh.constants()["permeability of free space"];
 
 		tags_.Add("Plasma", geqdsk.Boundary());
 		tags_.Add("Vacuum", geqdsk.Limiter());
 
+		LOGGER << "Load GFile" << DONE;
 	}
-
-	tags_.Update();
-	mesh.FixCourant();
 
 	J = J0;
 
@@ -256,16 +262,17 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB);
 
-	LOGGER << "We have load every thing!";
+	LOGGER << "Load ExplicitEMContext " << DONE;
+
 }
 
 template<typename TM>
-std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
+void ExplicitEMContext<TM>::Save(std::ostream & os) const
 {
 
 	os << "Description=\"" << description << "\" \n";
 
-	os << "Grid = " << mesh << "\n";
+	os << "Grid = { \n" << mesh << "\n";
 
 //	os << " FieldSolver={ \n";
 //
@@ -285,7 +292,7 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 //	{
 //		os << "\"" << p.first << "\",\n";
 //	}
-	os << "}\n"
+	os << "\n}\n"
 
 	<< "Fields={" << "\n"
 
@@ -298,7 +305,6 @@ std::ostream & ExplicitEMContext<TM>::Save(std::ostream & os) const
 	<< "}" << "\n"
 
 	;
-	return os;
 }
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
@@ -331,10 +337,10 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToE(&E);
 
-//	for (auto &p : particles_)
-//	{
-//		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-//	}
+	for (auto &p : particles_)
+	{
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+	}
 
 	//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
@@ -354,11 +360,11 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToJ(&J);
 
-//	for (auto &p : particles_)
-//	{
-//		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-//		p.second.Collect(&J, E, B);
-//	}
+	for (auto &p : particles_)
+	{
+		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
+		p.second.Scatter(&J, E, B);
+	}
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);

@@ -49,7 +49,7 @@ struct OcForest
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_CARRY_FLAG = ~((1UL | (1UL << (INDEX_DIGITS * 2))
-			| (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
+	        | (1UL << (INDEX_DIGITS * 3))) << (INDEX_DIGITS - 1));
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 	/**
@@ -85,7 +85,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -97,11 +97,9 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	nTuple<NDIMS, size_type> dims_ =
-	{ 1, 1, 1 };
+	nTuple<NDIMS, size_type> dims_ = { 1, 1, 1 };
 
-	nTuple<NDIMS, size_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
 
@@ -109,15 +107,15 @@ struct OcForest
 
 	//***************************************************************************************************
 
-	OcForest() :
-			_MASK(NO_CARRY_FLAG)
+	OcForest()
+			: _MASK(NO_CARRY_FLAG)
 	{
 
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict) :
-			_MASK(NO_CARRY_FLAG)
+	OcForest(TDict const & dict)
+			: _MASK(NO_CARRY_FLAG)
 	{
 	}
 
@@ -143,73 +141,23 @@ struct OcForest
 	template<typename TDict>
 	void Load(TDict const & dict)
 	{
+		if (dict["Dimensions"])
+		{
+			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
+			Update();
+			LOGGER << "Load OcForest " << DONE;
+		}
 
 	}
 
-	std::ostream & Save(std::ostream &os) const
+	void Save(std::ostream &os) const
 	{
-
-		return os;
+		os << "\tDimensions =  " << dims_;
 	}
 
 	void Update()
 	{
-
 	}
-
-	struct index_type
-	{
-		compact_index_type d;
-
-#define DEF_OP(_OP_)                                                                       \
-		inline index_type & operator _OP_##=(compact_index_type r)                           \
-		{                                                                                  \
-			d =  ( (*this) _OP_ r).d;                                                                \
-			return *this ;                                                                  \
-		}                                                                                  \
-		inline index_type &operator _OP_##=(index_type r)                                   \
-		{                                                                                  \
-			d = ( (*this) _OP_ r).d;                                                                  \
-			return *this;                                                                  \
-		}                                                                                  \
-                                                                                           \
-		inline index_type && operator _OP_(compact_index_type const &r) const                 \
-		{                                                                                  \
-		return 	std::move(index_type({( ((d _OP_ (r & _MI)) & _MI) |                              \
-		                     ((d _OP_ (r & _MJ)) & _MJ) |                               \
-		                     ((d _OP_ (r & _MK)) & _MK)                                 \
-		                        )& (NO_HEAD_FLAG)}));                                         \
-		}                                                                                  \
-                                                                                           \
-		inline index_type &&operator _OP_(index_type r) const                                \
-		{                                                                                  \
-			return std::move(this->operator _OP_(r.d));                                               \
-		}                                                                                  \
-
-		DEF_OP(+)
-		DEF_OP(-)
-		DEF_OP(^)
-		DEF_OP(&)
-		DEF_OP(|)
-#undef DEF_OP
-
-		bool operator==(index_type const & rhs) const
-		{
-			return d == rhs.d;
-		}
-
-		bool operator<(index_type const &r) const
-		{
-			return d < r.d;
-		}
-		bool operator>(index_type const &r) const
-		{
-			return d < r.d;
-		}
-	}
-	;
-
-//***************************************************************************************************
 
 	template<typename TI>
 	void SetDimensions(TI const &d, bool FORTRAN_ORDER = false)
@@ -266,6 +214,62 @@ struct OcForest
 
 	}
 
+	//***************************************************************************************************
+
+	struct index_type
+	{
+		compact_index_type d;
+
+#define DEF_OP(_OP_)                                                                       \
+		inline index_type & operator _OP_##=(compact_index_type r)                           \
+		{                                                                                  \
+			d =  ( (*this) _OP_ r).d;                                                                \
+			return *this ;                                                                  \
+		}                                                                                  \
+		inline index_type &operator _OP_##=(index_type r)                                   \
+		{                                                                                  \
+			d = ( (*this) _OP_ r).d;                                                                  \
+			return *this;                                                                  \
+		}                                                                                  \
+                                                                                           \
+		inline index_type && operator _OP_(compact_index_type const &r) const                 \
+		{                                                                                  \
+		return 	std::move(index_type({( ((d _OP_ (r & _MI)) & _MI) |                              \
+		                     ((d _OP_ (r & _MJ)) & _MJ) |                               \
+		                     ((d _OP_ (r & _MK)) & _MK)                                 \
+		                        )& (NO_HEAD_FLAG)}));                                         \
+		}                                                                                  \
+                                                                                           \
+		inline index_type &&operator _OP_(index_type r) const                                \
+		{                                                                                  \
+			return std::move(this->operator _OP_(r.d));                                               \
+		}                                                                                  \
+
+		DEF_OP(+)
+		DEF_OP(-)
+		DEF_OP(^)
+		DEF_OP(&)
+		DEF_OP(|)
+#undef DEF_OP
+
+		bool operator==(index_type const & rhs) const
+		{
+			return d == rhs.d;
+		}
+
+		bool operator<(index_type const &r) const
+		{
+			return d < r.d;
+		}
+		bool operator>(index_type const &r) const
+		{
+			return d < r.d;
+		}
+	}
+	;
+
+//***************************************************************************************************
+
 	inline size_type Hash(compact_index_type d) const
 	{
 		d &= _MASK;
@@ -317,16 +321,14 @@ struct OcForest
 
 		index_type s_;
 
-		iterator(OcForest const & m, index_type s = index_type(
-		{ 0UL })) :
-				tree(m), s_(s)
+		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
+				: tree(m), s_(s)
 		{
 		}
-		iterator(OcForest const & m, compact_index_type s = 0UL) :
-				tree(m),
+		iterator(OcForest const & m, compact_index_type s = 0UL)
+				: tree(m),
 
-				s_(index_type(
-				{ s }))
+				s_(index_type( { s }))
 		{
 		}
 		~iterator()
@@ -411,11 +413,11 @@ struct OcForest
 			s += _DK | _DJ | _DI;
 
 			auto m = (((~s) & (1UL << (carray_digits_[2] - 1))) << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[2])
-					| ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
-							<< (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
+			        | ((~s) & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))
+			                << (INDEX_DIGITS + D_FP_POS + 1 - carray_digits_[1]));
 
 			auto mm =
-					(~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
+			        (~((s & (1UL << (carray_digits_[2] - 1))) | (s & (1UL << (carray_digits_[1] - 1 + INDEX_DIGITS)))));
 
 			s = (s - m) & mm;
 		}
@@ -427,8 +429,7 @@ struct OcForest
 
 	index_type Next(index_type s) const
 	{
-		return index_type(
-		{ Next(s.d) });
+		return index_type( { Next(s.d) });
 	}
 
 	//***************************************************************************************************
@@ -557,8 +558,7 @@ struct OcForest
 	{
 		s &= _MASK;
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		static_cast<Real>(I(s)) * dh,
 
@@ -577,8 +577,7 @@ struct OcForest
 	}
 	inline index_type GetIndex(coordinates_type x) const
 	{
-		return index_type(
-		{ static_cast<size_type>(std::floor(x[0] * idh)) << (INDEX_DIGITS * 2)
+		return index_type( { static_cast<size_type>(std::floor(x[0] * idh)) << (INDEX_DIGITS * 2)
 
 		| static_cast<size_type>(std::floor(x[1] * idh)) << (INDEX_DIGITS * 2)
 
@@ -599,7 +598,7 @@ struct OcForest
 	}
 
 	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift,
-			unsigned long h = 0) const
+	        unsigned long h = 0) const
 	{
 
 		shift >>= h + 1;
@@ -623,31 +622,30 @@ struct OcForest
 		(*x)[2] = (dims_[2] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
 
 		return index_type(
-				{ (((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
-						& _MASK) });
+		        { (((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
+		                & _MASK) });
 
 	}
 
 	static Real Volume(index_type s)
 	{
-		static constexpr double volume_[8][D_FP_POS] =
-		{
+		static constexpr double volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
 
-				1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
+		        1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
 
 		};
 
@@ -656,26 +654,25 @@ struct OcForest
 
 	static Real InvVolume(index_type s)
 	{
-		static constexpr double inv_volume_[8][D_FP_POS] =
-		{
+		static constexpr double inv_volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 2, 4, 8, // 001
+		        1, 2, 4, 8, // 001
 
-				1, 2, 4, 8, // 010
+		        1, 2, 4, 8, // 010
 
-				1, 4, 16, 64, // 011
+		        1, 4, 16, 64, // 011
 
-				1, 2, 4, 8, // 100
+		        1, 2, 4, 8, // 100
 
-				1, 4, 16, 64, // 101
+		        1, 4, 16, 64, // 101
 
-				1, 4, 16, 64, // 110
+		        1, 4, 16, 64, // 110
 
-				1, 8, 32, 128   // 111
+		        1, 8, 32, 128   // 111
 
-				};
+		        };
 
 		return inv_volume_[_N(s)][H(s)];
 	}
