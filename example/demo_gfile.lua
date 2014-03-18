@@ -79,7 +79,7 @@ InitB0=function(x,y,z)
 
 
 
----[[
+--[[
 InitValue={
 
   -- E=function(x,y,z)
@@ -108,7 +108,7 @@ InitValue={
 }
 --]]
      
---GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900'
+GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900'
 Grid=
 {
   Type="RectMesh",
@@ -130,7 +130,7 @@ Grid=
       --dt=0.5*LX/NX/c  -- time step 
       
   },
-  dt=  1.0e-12--1/math.sqrt(1.0e18*8.89)    
+  dt=1/math.sqrt(1.0e18*8.89)    
   
 }
  
@@ -148,7 +148,7 @@ Grid=
 ---[[
 Constraints=
 {
- --[[
+---[[
   { 
     DOF="E",IsHard=true,
 	Select={Type="Boundary", Material="Vacuum" },
@@ -160,7 +160,8 @@ Constraints=
 	Region={ {2.0,0,0}},
 	IsHard=true,
   	Value=function(x,y,z,t)	
-         local tau = t*omega_ext*100
+         local tau = t*omega_ext
+         print(t)
          return { 0,0,math.sin(tau)}   
       end
 	 
@@ -199,8 +200,8 @@ FieldSolver=
        Nonlinear=false,       
        Species=
        {
-       {Name="H",Mass=mp,  Charge= qe ,T=Ti,  n=1.0e18},
-       {Name="ele",Mass=me,  Charge=-qe, n=1.0e18}         
+       {Name="H",Mass=mp,  Charge= qe ,T=Ti,  n=1.0},
+       {Name="ele",Mass=me,  Charge=-qe, n=1.0}         
         }
     },
 

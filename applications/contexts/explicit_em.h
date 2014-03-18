@@ -192,6 +192,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		geqdsk.Save(std::cout);
 
+		B.Clear();
+
 		mesh.template Traversal<FACE>([&](typename mesh_type::index_type s )
 		{
 			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));

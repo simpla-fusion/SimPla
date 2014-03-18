@@ -58,14 +58,19 @@ private:
 
 	};
 	std::map<std::string, std::shared_ptr<Species>> sp_list_;
-	RVectorForm<0> B0;
+	RVectorForm<0> B0, Ev;
 	RForm<0> BB;
+	RForm<0> a;
+	RForm<0> b;
+	RForm<0> c;
 
 	bool enableNonlinear_;
 public:
 
 	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), B0(pmesh), BB(pmesh), enableNonlinear_(false)
+			mesh(pmesh), B0(pmesh), BB(pmesh), enableNonlinear_(false),
+
+			Ev(mesh), a(pmesh), b(pmesh), c(pmesh), dt_(mesh.GetDt())
 	{
 	}
 
@@ -90,42 +95,61 @@ public:
 
 private:
 
+	Real dt_;
+
 }
 ;
 template<typename TM>
 template<typename TE, typename TB>
 void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 {
-	if (sp_list_.empty())
-		return;
-
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	TE & dE = *pdE;
-	RForm<0> a(mesh);
-	RForm<0> b(mesh);
-	RForm<0> c(mesh);
 
-	a.Fill(0);
-	b.Fill(0);
-	c.Fill(0);
+	LOG_CMD(dE += Curl(B) / (mu0 * epsilon0) * dt);
+
+	if (sp_list_.empty())
+		return;
 
 	if (BB.empty() /*|| enableNonlinear_*/)
 	{
 		B0 = MapTo<VERTEX>(B);
 		LOG_CMD(BB = Dot(B0, B0));
 	}
+	if (a.empty() || dt_ != dt)
+	{
+		dt_ = dt;
+		a.Fill(0);
+		b.Fill(0);
+		c.Fill(0);
 
-	VectorForm<0> Ev(mesh);
+		for (auto &v : sp_list_)
+		{
+			auto & ns = v.second->n;
+			auto & Js = v.second->J;
+			Real ms = v.second->m;
+			Real qs = v.second->q;
+			Real as = (dt * qs) / (2.0 * ms);
+
+			a += ns * qs * as / (BB * as * as + 1);
+			b += ns * qs * as * as / (BB * as * as + 1);
+			c += ns * qs * as * as * as / (BB * as * as + 1);
+		}
+
+		a *= 0.5 * dt / epsilon0;
+		b *= 0.5 * dt / epsilon0;
+		c *= 0.5 * dt / epsilon0;
+		a += 1;
+	}
+
 	VectorForm<0> Q(mesh);
 	VectorForm<0> K(mesh);
 
-	Q.Fill(0);
-	K.Fill(0);
+	Q.Clear();
+	K.Clear();
 
-	LOG_CMD(dE += Curl(B) / (mu0 * epsilon0) * dt);
-
-	Ev = MapTo<VERTEX>(E + dE * 0.5 * dt);
+	Ev = MapTo<VERTEX>(E + dE * 0.5);
 
 	for (auto &v : sp_list_)
 	{
@@ -133,12 +157,8 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		auto & Js = v.second->J;
 		Real ms = v.second->m;
 		Real qs = v.second->q;
-
 		Real as = (dt * qs) / (2.0 * ms);
 
-		a += ns * qs * as / (BB * as * as + 1);
-		b += ns * qs * as * as / (BB * as * as + 1);
-		c += ns * qs * as * as * as / (BB * as * as + 1);
 		Q -= Js;
 		K = Cross(Js, B0) * as + Ev * ns * qs * as + Js;
 		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
@@ -147,12 +167,6 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 
 	Q *= 0.5 * dt / epsilon0;
 	Q += Ev;
-	a *= 0.5 * dt / epsilon0;
-	b *= 0.5 * dt / epsilon0;
-	c *= 0.5 * dt / epsilon0;
-	a += 1;
-
-
 	Ev = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	for (auto &v : sp_list_)
@@ -163,17 +177,12 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		auto qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
-		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * ((as * qs * ns) / (BB * as * as + 1));
-
+		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * qs * ns) / (BB * as * as + 1);
 		LOGGER << Dump(Js, "J_" + v.first, true);
 		LOGGER << Dump(ns, "n_" + v.first, true);
 	}
 
-	LOGGER << DUMP(BB);
-	LOGGER << DUMP(B0);
-	LOGGER << DUMP(Ev);
-
-	dE = (MapTo<EDGE>(Ev) - E) / dt + dE * 0.5;
+	dE = (MapTo<EDGE>(Ev) - E) + dE * 0.5;
 
 	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << "." << DONE;
 
@@ -310,7 +319,6 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		sp->n.Clear();
 		if (!ne.empty())
 		{
-			CHECK(p.second["n"].template as<Real>(1.0));
 			sp->n = ne * p.second["n"].template as<Real>(1.0);
 		}
 		else
@@ -361,9 +369,9 @@ std::ostream & ColdFluidEM<TM>::Save(std::ostream & os) const
 
 		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
 
-		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape()) << "\n"
+		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(),false) << "\n"
 
-		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape()) << "\n"
+		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(),false) << "\n"
 
 		<< "\t},\n";
 	}

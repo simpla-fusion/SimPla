@@ -417,7 +417,7 @@ aE^{+}+b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b^{2
 
 \begin_inset Formula 
 \begin{eqnarray*}
-E^{+} & = & \left(aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right)/\left(a^{a}+b^{2}B^{2}\right)
+E^{+} & = & \left(aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right)/\left(a^{2}+b^{2}B^{2}\right)
 \end{eqnarray*}
 
 \end_inset

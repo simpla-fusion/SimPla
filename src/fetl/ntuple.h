@@ -284,6 +284,13 @@ inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 	return res;
 }
 
+template<typename TL, typename TR>
+inline auto Dot(nTuple<3, TL> const &l, nTuple<3, TR> const &r)
+->decltype(l[0]*r[0])
+{
+	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
+}
+
 //***********************************************************************************
 
 template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
@@ -351,7 +358,8 @@ template<typename T> inline
 auto real(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res = { std::real(l[0]), std::real(l[1]), std::real(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res =
+	{ std::real(l[0]), std::real(l[1]), std::real(l[2]) };
 	return std::move(res);
 }
 
@@ -359,7 +367,8 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res = { std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res =
+	{ std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
 	return std::move(res);
 
 }
@@ -375,7 +384,8 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
 {
-	nTuple<3, T> res = { 0, 0, 0 };
+	nTuple<3, T> res =
+	{ 0, 0, 0 };
 	return l;
 }
 
