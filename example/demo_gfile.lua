@@ -79,19 +79,19 @@ InitB0=function(x,y,z)
 
 
 
---[[
+---[[
 InitValue={
 
-  E=function(x,y,z)
-     ---[[
-      local res = 0.0;
-      for i=1,40 do
-          res=res+math.sin(x/LX*TWOPI* i);
-      end;
+  -- E=function(x,y,z)
+  --    ---[[
+  --     local res = 0.0;
+  --     for i=1,40 do
+  --         res=res+math.sin(x/LX*TWOPI* i);
+  --     end;
     
-      return {res,res,res}
-    end
-    ,
+  --     return {res,res,res}
+  --   end
+  --   ,
 
   B=function(x,y,z)
       -- local omega_ci_x0 = 1/1.55*omega;
@@ -102,6 +102,8 @@ InitValue={
       return {0,0,Btor}  
      end
      ,
+   
+   ne= 1.0e18
 
 }
 --]]
@@ -125,8 +127,10 @@ Grid=
       Min={1.2,-1.4,0.0},
       Max={2.8,1.4,LZ},
       -- dt= 2.0*math.pi/omega_ci/1000.0
-      dt=0.5*LX/NX/c  -- time step     
+      --dt=0.5*LX/NX/c  -- time step 
+      
   },
+  dt=  1.0e-12--1/math.sqrt(1.0e18*8.89)    
   
 }
  
@@ -144,23 +148,25 @@ Grid=
 ---[[
 Constraints=
 {
- --[[ { 
+ --[[
+  { 
     DOF="E",IsHard=true,
 	Select={Type="Boundary", Material="Vacuum" },
 	Value= 0
   },
-  --]]
+ --]] 
   { 
     DOF="J",
 	Region={ {2.0,0,0}},
-	IsHard=false,
+	IsHard=true,
   	Value=function(x,y,z,t)	
-      local tau = t*omega_ext*100
-      
-      return { 0,0,math.sin(tau)}   
+         local tau = t*omega_ext*100
+         return { 0,0,math.sin(tau)}   
       end
 	 
-  } 
+ 
+  }
+   
 -- *(1-math.exp(-tau*tau)
    
  --  { 
@@ -184,7 +190,7 @@ Particles={
 }
 --]]
 
---[[
+---[[
 FieldSolver= 
 {
 
@@ -193,8 +199,8 @@ FieldSolver=
        Nonlinear=false,       
        Species=
        {
-      -- {Name="ion",Mass=mp,  Charge= qe ,T=Ti,  n=InitN0, J=0},
-       {Name="ele",Mass=me,  Charge=-qe}         
+       {Name="H",Mass=mp,  Charge= qe ,T=Ti,  n=1.0e18},
+       {Name="ele",Mass=me,  Charge=-qe, n=1.0e18}         
         }
     },
 

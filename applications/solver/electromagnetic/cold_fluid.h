@@ -58,15 +58,14 @@ private:
 
 	};
 	std::map<std::string, std::shared_ptr<Species>> sp_list_;
-	VectorForm<0> Ev;
 	RVectorForm<0> B0;
 	RForm<0> BB;
 
-	bool nonlinear_;
+	bool enableNonlinear_;
 public:
 
 	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), Ev(pmesh), B0(mesh), BB(mesh), nonlinear_(false)
+			mesh(pmesh), B0(pmesh), BB(pmesh), enableNonlinear_(false)
 	{
 	}
 
@@ -95,13 +94,14 @@ private:
 ;
 template<typename TM>
 template<typename TE, typename TB>
-void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
+void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 {
 	if (sp_list_.empty())
 		return;
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
+	TE & dE = *pdE;
 	RForm<0> a(mesh);
 	RForm<0> b(mesh);
 	RForm<0> c(mesh);
@@ -110,24 +110,22 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	b.Fill(0);
 	c.Fill(0);
 
-	if (BB.empty() || nonlinear_)
+	if (BB.empty() /*|| enableNonlinear_*/)
 	{
 		B0 = MapTo<VERTEX>(B);
-		BB = Dot(B0, B0);
+		LOG_CMD(BB = Dot(B0, B0));
 	}
 
-	if (Ev.empty())
-		Ev = MapTo<VERTEX>(E);
-
-	VectorForm<0> dEv(mesh);
+	VectorForm<0> Ev(mesh);
 	VectorForm<0> Q(mesh);
 	VectorForm<0> K(mesh);
+
 	Q.Fill(0);
 	K.Fill(0);
 
-	dEv = MapTo<VERTEX>(*dE);
+	LOG_CMD(dE += Curl(B) / (mu0 * epsilon0) * dt);
 
-	Ev += dEv * 0.5 * dt;
+	Ev = MapTo<VERTEX>(E + dE * 0.5 * dt);
 
 	for (auto &v : sp_list_)
 	{
@@ -137,6 +135,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		Real qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
+
 		a += ns * qs * as / (BB * as * as + 1);
 		b += ns * qs * as * as / (BB * as * as + 1);
 		c += ns * qs * as * as * as / (BB * as * as + 1);
@@ -153,6 +152,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
+
 	Ev = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	for (auto &v : sp_list_)
@@ -165,16 +165,17 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *dE)
 		Real as = (dt * qs) / (2.0 * ms);
 		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * ((as * qs * ns) / (BB * as * as + 1));
 
+		LOGGER << Dump(Js, "J_" + v.first, true);
+		LOGGER << Dump(ns, "n_" + v.first, true);
 	}
 
-	Ev += dEv * 0.5 * dt;
+	LOGGER << DUMP(BB);
+	LOGGER << DUMP(B0);
+	LOGGER << DUMP(Ev);
 
-	*dE = MapTo<EDGE>(Ev);
+	dE = (MapTo<EDGE>(Ev) - E) / dt + dE * 0.5;
 
-	*dE -= E;
-	*dE /= dt;
-
-	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((nonlinear_) ? "opened" : "closed") << "." << DONE;
+	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << "." << DONE;
 
 }
 //
@@ -286,7 +287,7 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 
 	LOGGER << "Load ColdFluidEM ";
 
-	nonlinear_ = dict["Nonlinear"].template as<bool>(false);
+	enableNonlinear_ = dict["Nonlinear"].template as<bool>(false);
 
 	auto sp = dict["Species"];
 
@@ -350,7 +351,7 @@ void ColdFluidEM<TM>::DumpData(std::string const & path) const
 template<typename TM>
 std::ostream & ColdFluidEM<TM>::Save(std::ostream & os) const
 {
-	os << "\tColdFluid = { Nonlinear = " << std::boolalpha << nonlinear_ << "\n"
+	os << "\tColdFluid = { Nonlinear = " << std::boolalpha << enableNonlinear_ << "\n"
 
 	<< "Species = { \n ";
 

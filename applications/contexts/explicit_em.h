@@ -164,14 +164,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	mesh.Load(dict["Grid"]);
 
-	B.Clear();
-	J.Clear();
-	J0.Clear();
-	E.Clear();
-
-	dB.Clear();
-	dE.Clear();
-
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
 	Form<VERTEX> Ti0(mesh);
@@ -216,9 +208,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));
 			auto p=geqdsk.psi(x[0],x[1]);
 
-			ne0[s] = geqdsk.Profile("ne(cm^-3)",p);
-			Te0[s] = geqdsk.Profile("Te(keV)",p);
-			Ti0[s] = geqdsk.Profile("Ti(keV)",p);
+			ne0[s] = geqdsk.Profile("ne",p);
+			Te0[s] = geqdsk.Profile("Te",p);
+			Ti0[s] = geqdsk.Profile("Ti",p);
 
 		}, "Plasma");
 
@@ -231,10 +223,14 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << Dump(Ti0, "Ti", false);
 	}
 
-	mesh.SetDt(mesh.CheckCourantDt());
-
-	J = J0;
-
+	{
+		auto dt = mesh.CheckCourantDt();
+		if (dt < mesh.GetDt())
+		{
+			CHECK(dt);
+			mesh.SetDt(dt);
+		}
+	}
 	if (dict["InitValue"])
 	{
 		auto init_value = dict["InitValue"];
@@ -258,6 +254,24 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			LOG_CMD(LoadField(init_value["Ti"], &Ti0));
 
 	}
+
+	if (E.empty())
+		E.Clear();
+
+	if (B.empty())
+		B.Clear();
+
+	if (J.empty())
+		J.Clear();
+
+	if (dB.empty())
+		dB.Clear();
+
+	if (dE.empty())
+		dE.Clear();
+
+	if (J0.empty())
+		J0.Clear();
 
 	LOGGER << "Load Particles";
 	for (auto const &opt : dict["Particles"])
@@ -359,7 +373,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	// Compute Cycle Begin
 	//************************************************************
 
-	LOG_CMD(dE = -J / epsilon0 * dt);
+	LOG_CMD(dE = -(J + J0) / epsilon0 * dt);
 
 	// dE = Curl(B)*dt
 	CalculatedE(dt, E, B, &dE);
@@ -388,7 +402,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToB(&B);
 
-	J = J0;
+	J.Clear();
 
 	ApplyConstraintToJ(&J);
 

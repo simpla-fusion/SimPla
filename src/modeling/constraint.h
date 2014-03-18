@@ -63,16 +63,13 @@ public:
 	template<typename TV>
 	void Apply(TF * f, TV v) const
 	{
-		if (is_hard_src_)
+		for (auto const & s : def_domain_)
 		{
-			for (auto const & s : def_domain_)
+			if (is_hard_src_)
 			{
 				f->get(s) = mesh.Sample(Int2Type<IForm>(), s, v);
 			}
-		}
-		else
-		{
-			for (auto const & s : def_domain_)
+			else
 			{
 				f->get(s) += mesh.Sample(Int2Type<IForm>(), s, v);
 			}
@@ -84,6 +81,7 @@ public:
 		for (auto const & s : def_domain_)
 		{
 			auto v = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+
 			if (is_hard_src_)
 			{
 				f->get(s) = v;
@@ -93,9 +91,7 @@ public:
 				f->get(s) += v;
 			}
 		}
-
 	}
-
 }
 ;
 

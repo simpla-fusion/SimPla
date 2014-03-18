@@ -22,16 +22,29 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 		std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
 		std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
 {
+
+	LOGGER << "Load Electromagnetic solver";
+
 	using namespace std::placeholders;
+
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Real ic2 = 1.0 / (mu0 * epsilon0);
 
-	*solverE = [ic2](Real dt, TE const & , TB const & pB, TE* pdE)
-	{	LOG_CMD(*pdE += Curl(pB)*ic2 *dt);};
+	*solverE = [mu0 , epsilon0](Real dt, TE const & , TB const & B, TE* pdE)
+	{
+		auto & dE=*pdE;
+		LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+	};
 
-	*solverB = [](Real dt, TE const & pE, TB const &, TB* pdB)
-	{	LOG_CMD(*pdB -= Curl(pE)*dt);};
+	*solverB = [](Real dt, TE const & E, TB const &, TB* pdB)
+	{
+		auto & dB=*pdB;
+		LOG_CMD( dB -= Curl(E)*dt);
+	};
+
+	if (!dict)
+		return;
 
 	if (dict["ColdFluid"])
 	{
@@ -53,8 +66,6 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
 	}
-
-	LOGGER << "Load electromagnetic solver" << DONE;
 
 }
 

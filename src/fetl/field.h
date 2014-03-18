@@ -52,19 +52,19 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh, value_type d_value) :
+			mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
@@ -80,14 +80,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -116,12 +116,11 @@ public:
 	}
 	size_t size() const
 	{
-		return 0;
-		//(data_ == nullptr) ? 0 : mesh.GetNumOfElements(IForm);
+		return mesh.GetNumOfElements(IForm);
 	}
 	bool empty() const
 	{
-		return size() <= 0;
+		return data_ == nullptr;
 	}
 
 	template<typename TC>
@@ -135,8 +134,8 @@ public:
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::iterator s)
-				: data_(d), it_(s)
+		iterator_(TC d, typename mesh_type::iterator s) :
+				data_(d), it_(s)
 		{
 
 		}

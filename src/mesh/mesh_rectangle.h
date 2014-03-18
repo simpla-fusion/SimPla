@@ -89,7 +89,7 @@ public:
 
 		geometry_type::Save(os);
 
-		os << "}";
+		os << "}" << "\n dt=" << dt_;
 	}
 
 	void Update()
@@ -184,6 +184,15 @@ public:
 		return CheckCourantDt( constants_["speed of light"]);
 	}
 //***************************************************************************************************
+
+	Real Volume(index_type s) const
+	{
+		return geometry_type::Volume(s);
+	}
+	Real InvVolume(index_type s) const
+	{
+		return geometry_type::InvVolume(s);
+	}
 
 	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const
 	{

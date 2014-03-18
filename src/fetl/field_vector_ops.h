@@ -97,13 +97,15 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
-			: mesh(l.mesh), l_(l), r_(r)
+	Field(TL const & l, TR const & r) :
+			mesh(l.mesh), l_(l), r_(r)
 	{
 	}
 
-	inline auto get(index_type s) const
-	DECL_RET_TYPE( Cross(l_.get(s) , r_.get(s)) )
+	inline auto get(index_type s) const->decltype( Cross(l_.get(s) , r_.get(s)) )
+	{
+		return (Cross(l_.get(s), r_.get(s)));
+	}
 
 	inline auto operator[](index_type s) const
 	DECL_RET_TYPE( (get(s)) )
@@ -129,12 +131,15 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
-			: mesh(l.mesh), l_(l), r_(r)
+	Field(TL const & l, TR const & r) :
+			mesh(l.mesh), l_(l), r_(r)
 	{
 	}
 
-	inline auto get(index_type s) const DECL_RET_TYPE( Dot(l_.get(s) , r_.get(s)) )
+	inline auto get(index_type s) const->decltype( Dot(l_.get(s) , r_.get(s)) )
+	{
+		return Dot(l_.get(s), r_.get(s));
+	}
 
 	inline auto operator[](index_type s) const
 	DECL_RET_TYPE( (get(s)) )
