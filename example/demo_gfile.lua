@@ -157,7 +157,7 @@ Constraints=
   	Value=function(x,y,z,t)	
       local tau = t*omega_ext*100
       
-      return { math.sin(tau),0,0}   
+      return { 0,0,math.sin(tau)}   
       end
 	 
   } 

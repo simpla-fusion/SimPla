@@ -604,11 +604,20 @@ struct OcForest
 		m = ~((m << INDEX_DIGITS * 2) | (m << INDEX_DIGITS) | (m)) & ((1UL << (INDEX_DIGITS * 3)) - 1);
 		s &= m;
 
-		CHECK_BIT(s.d);
-
 		auto X = _DI >> (h + 1);
 		auto Y = _DJ >> (h + 1);
 		auto Z = _DK >> (h + 1);
+
+
+//		CHECK(_C(s + X));
+//		CHECK(_C(s + Y));
+//		CHECK(_C(s + Z));
+//
+//
+//		CHECK(_C(s + Y|Z));
+//		CHECK(_C(s + Z|X));
+//		CHECK(_C(s + X|Y));
+
 		if (IFORM == VERTEX)
 		{
 			v[0] = s;
@@ -850,7 +859,7 @@ struct OcForest
 
 		s = (s & (_DA >> (H(s) + 1))) >> (D_FP_POS - H(s) - 1);
 
-		return ((s >> (INDEX_DIGITS * 2 - 2)) | (s >> (INDEX_DIGITS - 1)) | s) & (7UL);
+		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
 	}
 	static size_type _N(index_type s)
 	{
