@@ -8,7 +8,6 @@
 #ifndef COLD_FLUID_H_
 #define COLD_FLUID_H_
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <utility>
@@ -86,7 +85,8 @@ public:
 	template<typename TDict, typename ...Args>
 	void Load(TDict const&dict, RForm<0> const & ne, Args const & ...);
 
-	std::ostream & Save(std::ostream & os) const;
+	template<typename OS>
+	void Save(OS & os) const;
 
 	void DumpData(std::string const & path = "") const;
 
@@ -115,14 +115,14 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 	if (BB.empty() /*|| enableNonlinear_*/)
 	{
 		B0 = MapTo<VERTEX>(B);
-		LOG_CMD(BB = Dot(B0, B0));
+		BB = Dot(B0, B0);
 	}
 	if (a.empty() || dt_ != dt)
 	{
 		dt_ = dt;
-		a.Fill(0);
-		b.Fill(0);
-		c.Fill(0);
+		a.Clear();
+		b.Clear();
+		c.Clear();
 
 		for (auto &v : sp_list_)
 		{
@@ -178,8 +178,6 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 
 		Real as = (dt * qs) / (2.0 * ms);
 		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * qs * ns) / (BB * as * as + 1);
-		LOGGER << Dump(Js, "J_" + v.first, true);
-		LOGGER << Dump(ns, "n_" + v.first, true);
 	}
 
 	dE = (MapTo<EDGE>(Ev) - E) + dE * 0.5;
@@ -187,6 +185,106 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << "." << DONE;
 
 }
+
+template<typename TM>
+template<typename TDict, typename ...Args>
+void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & ...)
+{
+	if (!dict)
+		return;
+
+	LOGGER << "Load ColdFluidEM ";
+
+	enableNonlinear_ = dict["Nonlinear"].template as<bool>(false);
+
+	auto sp = dict["Species"];
+
+	for (auto const & p : sp)
+	{
+		std::string key;
+
+		if (!p.first.is_number())
+		{
+			key = p.first.template as<std::string>();
+		}
+		else
+		{
+			p.second.GetValue("Name", &key);
+		}
+
+		std::shared_ptr<Species> sp(
+				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
+
+		sp->n.Clear();
+
+		if (ne.empty())
+		{
+			LoadField(p.second["n"], &(sp->n));
+		}
+		else
+		{
+			sp->n = ne;
+			if (p.second["n"].is_number())
+				sp->n *= p.second["n"].template as<Real>(1.0);
+		}
+
+		sp->J.Clear();
+
+		LoadField(p.second["J"], &(sp->J));
+
+		sp_list_.emplace(key, sp);
+
+	}
+
+}
+
+template<typename TM>
+void ColdFluidEM<TM>::DumpData(std::string const & path) const
+{
+	GLOBAL_DATA_STREAM.OpenGroup(path);
+
+	for (auto const & p : sp_list_)
+	{
+		LOGGER << "Dump " << "n_" + p.first << " to "
+		<< Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
+
+		LOGGER << "Dump " << "J_" + p.first << " to "
+		<< Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
+	}
+}
+
+template<typename TM>
+template<typename OS>
+void ColdFluidEM<TM>::Save(OS & os) const
+{
+	os << "ColdFluid = { Nonlinear = " << std::boolalpha << enableNonlinear_ << ",\n"
+
+	<< "  Species = { \n ";
+
+	for (auto const & p : sp_list_)
+	{
+		os << "\n\t" << p.first
+
+		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
+
+		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), false) << "\n"
+
+		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), false) << "\n"
+
+		<< "\t},\n";
+	}
+	os << "\t}\n}";
+
+}
+
+template<typename OS, typename TM>
+OS &operator<<(OS & os, ColdFluidEM<TM> const& self)
+{
+	self.Save(os);
+	return os;
+}
+}  // namespace simpla
+
 //
 //template<typename TM>
 //template<typename TE, typename TB> inline
@@ -285,108 +383,6 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 //	*dE -= E;
 //	*dE /= dt;
 //}
-
-template<typename TM>
-
-template<typename TDict, typename ...Args>
-void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & ...)
-{
-	if (!dict)
-		return;
-
-	LOGGER << "Load ColdFluidEM ";
-
-	enableNonlinear_ = dict["Nonlinear"].template as<bool>(false);
-
-	auto sp = dict["Species"];
-
-	for (auto const & p : sp)
-	{
-		std::string key;
-
-		if (!p.first.is_number())
-		{
-			key = p.first.template as<std::string>();
-		}
-		else
-		{
-			p.second.GetValue("Name", &key);
-		}
-
-		std::shared_ptr<Species> sp(
-				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
-
-		sp->n.Clear();
-		if (!ne.empty())
-		{
-			sp->n = ne * p.second["n"].template as<Real>(1.0);
-		}
-		else
-		{
-			LoadField(p.second["n"], &(sp->n));
-		}
-
-		sp->J.Clear();
-
-		LoadField(p.second["J"], &(sp->J));
-
-		sp_list_.emplace(key, sp);
-
-	}
-
-//	if (BB.empty())
-//	{
-//		ERROR << "Background magnetic field is not initialized!";
-//	}
-
-}
-
-template<typename TM>
-void ColdFluidEM<TM>::DumpData(std::string const & path) const
-{
-	GLOBAL_DATA_STREAM.OpenGroup(path);
-
-	for (auto const & p : sp_list_)
-	{
-		LOGGER << "Dump " << "n_" + p.first << " to "
-		<< Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
-
-		LOGGER << "Dump " << "J_" + p.first << " to "
-		<< Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
-	}
-}
-
-template<typename TM>
-std::ostream & ColdFluidEM<TM>::Save(std::ostream & os) const
-{
-	os << "\tColdFluid = { Nonlinear = " << std::boolalpha << enableNonlinear_ << "\n"
-
-	<< "Species = { \n ";
-
-	for (auto const & p : sp_list_)
-	{
-		os << "\n\t" << p.first
-
-		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
-
-		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(),false) << "\n"
-
-		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(),false) << "\n"
-
-		<< "\t},\n";
-	}
-	os << "\t}\n}";
-
-	return os;
-}
-
-template<typename TM>
-inline std::ostream & operator<<(std::ostream & os, ColdFluidEM<TM> const &self)
-{
-	return self.Save(os);
-}
-
-}  // namespace simpla
 
 /**
  *

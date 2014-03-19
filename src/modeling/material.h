@@ -170,9 +170,10 @@ public:
 		}
 
 	}
-	std::ostream & Save(std::ostream &os) const
+	template<typename OS>
+	void Save(OS &os) const
 	{
-
+		UNIMPLEMENT;
 //		os << "{ \n" << "\t -- register media type\n";
 //
 //		for (auto const& p : register_material_)
@@ -183,7 +184,6 @@ public:
 //		os << " }\n"
 //
 //		;
-		return os;
 	}
 
 	void Init(int I = VERTEX)
@@ -423,7 +423,8 @@ private:
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 {
-	return self.Save(os);
+	self.Save(os);
+	return os;
 }
 
 template<typename TM> template<int IFORM>

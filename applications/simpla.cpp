@@ -155,14 +155,11 @@ int main(int argc, char **argv)
 
 	// Preprocess    ====================================
 
-	LOGGER << "\n" << SINGLELINE<< "\n";
 
-	LOGGER << ctx;
-
-	LOGGER << "Pre-Process" << DONE;
 
 	// Main Loop ============================================
 
+	LOGGER << "\n" << SINGLELINE<< "\n";
 	LOGGER << "Process " << START;
 
 	TheStart();

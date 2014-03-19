@@ -9,7 +9,6 @@
 #define EXPLICIT_EM_IMPL_H_
 
 #include <cmath>
-#include <iostream>
 #include <list>
 #include <map>
 #include <memory>
@@ -59,7 +58,8 @@ public:
 
 	template<typename TDict> void Load(TDict const & dict);
 
-	void Save(std::ostream & os) const;
+	template<typename OS>
+	void Save(OS & os) const;
 
 	void NextTimeStep();
 
@@ -162,6 +162,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	description = dict["Description"].template as<std::string>();
 
+	LOGGER << "Description=\"" << description << "\" \n";
+
 	mesh.Load(dict["Grid"]);
 
 	material_.Update();
@@ -235,6 +237,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			mesh.SetDt(dt);
 		}
 	}
+
+	LOGGER << "Grid = { \n" << mesh << "\n}";
+
+	LOGGER << "Material = { \n" << material_ << "\n}";
+
 	if (dict["InitValue"])
 	{
 		auto init_value = dict["InitValue"];
@@ -332,17 +339,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
 
+	LOGGER << (*this);
 }
 
 template<typename TM>
-void ExplicitEMContext<TM>::Save(std::ostream & os) const
+template<typename OS>
+void ExplicitEMContext<TM>::Save(OS & os) const
 {
 
-	os << "Description=\"" << description << "\" \n";
-
-	os << "Grid = { \n" << mesh << "\n";
-
-	os << "\n}\n"
+	os
 
 	<< "InitValue={" << "\n"
 
@@ -355,6 +360,12 @@ void ExplicitEMContext<TM>::Save(std::ostream & os) const
 	<< "}" << "\n"
 
 	;
+}
+template<typename OS, typename TM>
+OS &operator<<(OS & os, ExplicitEMContext<TM> const& self)
+{
+	self.Save(os);
+	return os;
 }
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()

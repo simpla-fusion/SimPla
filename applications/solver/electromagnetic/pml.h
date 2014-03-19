@@ -8,7 +8,6 @@
 
 #include <cmath>
 #include <cstddef>
-#include <iostream>
 
 #include "../../../src/fetl/fetl.h"
 #include "../../../src/utilities/log.h"
@@ -109,6 +108,7 @@ void PML<TM>::Load(TDict const &dict)
 template<typename TM>
 void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 {
+	LOGGER << "Load PML ";
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -155,7 +155,6 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 
 	is_loaded_ = true;
 
-	LOGGER << "Load PML solver" << DONE;
 }
 
 template<typename TM>
@@ -166,6 +165,14 @@ void PML<TM>::Update()
 template<typename TM>
 std::ostream & PML<TM>::Save(std::ostream & os) const
 {
+	UNIMPLEMENT;
+	return os;
+}
+
+template<typename OS, typename TM>
+OS &operator<<(OS & os, PML<TM> const& self)
+{
+	self.Save(os);
 	return os;
 }
 

@@ -53,6 +53,8 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 		solver->Load(dict["ColdFluid"], std::forward<Args const &>(args)...);
 
 		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
+
+		LOGGER << *solver;
 	}
 
 	if (dict["PML"])
@@ -65,6 +67,7 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 
 		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
+		LOGGER << *solver;
 	}
 
 }

@@ -55,7 +55,7 @@ void CreateContext(TDict const &dict, Context* ctx)
 	std::shared_ptr<TC> ctx_ptr(new TC);
 	ctx_ptr->Load(dict);
 	using namespace std::placeholders;
-	ctx->Save = std::bind(&TC::Save, ctx_ptr, _1);
+	ctx->Save = std::bind(&TC::template Save<std::ostream>, ctx_ptr, _1);
 	ctx->DumpData = std::bind(&TC::DumpData, ctx_ptr, _1);
 	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
 
