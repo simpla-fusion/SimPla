@@ -339,7 +339,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
 
-	LOGGER << (*this);
 }
 
 template<typename TM>

@@ -10,8 +10,12 @@
 
 #include <functional>
 #include <iostream>
-#include <string>
 #include <memory>
+#include <string>
+
+#include "../../src/utilities/log.h"
+#include "../../src/utilities/lua_state.h"
+
 namespace simpla
 {
 class LuaObject;
@@ -58,6 +62,8 @@ void CreateContext(TDict const &dict, Context* ctx)
 	ctx->Save = std::bind(&TC::template Save<std::ostream>, ctx_ptr, _1);
 	ctx->DumpData = std::bind(&TC::DumpData, ctx_ptr, _1);
 	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
+
+	LOGGER << *ctx_ptr;
 
 }
 }

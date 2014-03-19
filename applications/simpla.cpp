@@ -154,9 +154,6 @@ int main(int argc, char **argv)
 	}
 
 	// Preprocess    ====================================
-
-
-
 	// Main Loop ============================================
 
 	LOGGER << "\n" << SINGLELINE<< "\n";
