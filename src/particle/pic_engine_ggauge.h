@@ -13,21 +13,20 @@
 #include "../physics/constants.h"
 namespace simpla
 {
-template<typename TM, int NMATE = 8, typename TScaler = Real>
+template<typename TM, int NMATE = 8>
 class PICEngineGGauge
 {
 
 public:
-	typedef PICEngineGGauge<TM, NMATE, TScaler> this_type;
+	typedef PICEngineGGauge<TM, NMATE> this_type;
 	typedef TM mesh_type;
-	typedef TScaler scalar_type;
+	typedef typename mesh_type::scalar_type scalar_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 private:
 	Real m_, q_, cmr_, T_, vT_;
 	Real cosdq[NMATE], sindq[NMATE];
 public:
 	mesh_type const &mesh;
-
-	DEFINE_FIELDS(mesh_type)
 
 	struct Point_s
 	{
@@ -244,8 +243,8 @@ public:
 }
 ;
 
-template<typename TM> std::ostream&
-operator<<(std::ostream& os, typename PICEngineGGauge<TM>::Point_s const & p)
+template<typename OS, typename TM> OS&
+operator<<(OS& os, typename PICEngineGGauge<TM>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 

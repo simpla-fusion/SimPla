@@ -25,10 +25,11 @@ namespace simpla
 #define DEFINE_FIELDS(TM)                                                                              \
 typedef TM Mesh;                                                                                       \
 typedef typename Mesh::index_type index_type ;                                                         \
+typedef typename Mesh::scalar_type scalar_type;                                                        \
 typedef typename Mesh::coordinates_type coordinates_type;                                              \
-template<int IFORM> using Form = Field<Mesh,IFORM,Real >;              \
-template<int IFORM> using VectorForm = Field<Mesh,IFORM,nTuple<3,Real> >;    \
-template<int IFORM> using TensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,Real> > >;    \
+template<int IFORM> using Form = Field<Mesh,IFORM,scalar_type >;              \
+template<int IFORM> using VectorForm = Field<Mesh,IFORM,nTuple<3,scalar_type> >;    \
+template<int IFORM> using TensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,scalar_type> > >;    \
 template<int IFORM> using RForm = Field<Mesh,IFORM,Real >;                                               \
 template<int IFORM> using RVectorForm = Field<Mesh,IFORM,nTuple<3,Real> >;                               \
 template<int IFORM> using RTensorForm = Field<Mesh,IFORM,nTuple<3,nTuple<3,Real> > >;                    \

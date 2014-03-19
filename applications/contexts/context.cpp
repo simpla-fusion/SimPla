@@ -15,6 +15,7 @@
 #include "../../src/fetl/primitives.h"
 
 #include "../../src/mesh/octree_forest.h"
+#include "../../src/mesh/traversal.h"
 #include "../../src/mesh/mesh_rectangle.h"
 #include "../../src/mesh/geometry_cylindrical.h"
 #include "../../src/mesh/geometry_euclidean.h"
@@ -71,7 +72,7 @@ void Context::Load(LuaObject const & dict)
 		}
 		else
 		{
-			LOGGER << "Unknonw Grid type: " << mesh_str;
+			LOGGER << "Unknown Grid type: " << mesh_str;
 		}
 
 		LOGGER << ">>>>>>> Initialization Load Complete! <<<<<<<< ";

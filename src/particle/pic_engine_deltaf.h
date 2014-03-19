@@ -16,15 +16,15 @@
 namespace simpla
 {
 
-template<typename TM, typename TScalar = Real>
+template<typename TM>
 struct PICEngineDeltaF
 {
 
 public:
-	typedef PICEngineDeltaF<TM, TScalar> this_type;
+	typedef PICEngineDeltaF<TM> this_type;
 	typedef TM mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef TScalar scalar_type;
+	typedef typename mesh_type::scalar_type scalar_type;
 	typedef nTuple<7, Real> storage_value_type;
 
 	struct Point_s
@@ -62,8 +62,8 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	~PICEngineDeltaF()
@@ -146,7 +146,7 @@ public:
 
 	template<typename TV, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+			Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
 		mesh.Scatter(p.x, p.f * p.w, n);
 	}
@@ -159,13 +159,14 @@ public:
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f }));
 	}
 
 };
 
-template<typename TM, typename TV> std::ostream&
-operator<<(std::ostream& os, typename PICEngineDeltaF<TM, TV>::Point_s const & p)
+template<typename OS, typename TM> OS&
+operator<<(OS& os, typename PICEngineDeltaF<TM>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
