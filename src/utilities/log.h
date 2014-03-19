@@ -382,12 +382,12 @@ private:
 #  define ASSERT(_COND_)    assert(_COND_);
 #endif
 
-#ifndef NDEBUG
+//#ifndef NDEBUG
 #	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)
-#else
-#	define CHECK(_MSG_)
-#endif
+//#else
+//#	define CHECK(_MSG_)
+//#endif
 
 #define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
 

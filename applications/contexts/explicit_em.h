@@ -164,6 +164,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	mesh.Load(dict["Grid"]);
 
+	material_.Update();
+
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
 	Form<VERTEX> Ti0(mesh);

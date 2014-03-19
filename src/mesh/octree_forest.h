@@ -236,7 +236,7 @@ struct OcForest
 			return *this;                                                                  \
 		}                                                                                  \
                                                                                            \
-		inline index_type && operator _OP_(compact_index_type const &r) const                 \
+		inline index_type  operator _OP_(compact_index_type const &r) const                 \
 		{                                                                                  \
 		return 	std::move(index_type({( ((d _OP_ (r & _MI)) & _MI) |                              \
 		                     ((d _OP_ (r & _MJ)) & _MJ) |                               \
@@ -244,7 +244,7 @@ struct OcForest
 		                        )& (NO_HEAD_FLAG)}));                                         \
 		}                                                                                  \
                                                                                            \
-		inline index_type &&operator _OP_(index_type r) const                                \
+		inline index_type operator _OP_(index_type r) const                                \
 		{                                                                                  \
 			return std::move(this->operator _OP_(r.d));                                               \
 		}                                                                                  \
@@ -278,6 +278,7 @@ struct OcForest
 	{
 		d &= _MASK;
 
+		//FIXME something wrong at here , FIX IT!!!
 		return Hash((I(d) >> D_FP_POS), (J(d) >> D_FP_POS), (K(d) >> D_FP_POS), _N(d));
 
 	}
@@ -608,7 +609,6 @@ struct OcForest
 		auto Y = _DJ >> (h + 1);
 		auto Z = _DK >> (h + 1);
 
-
 //		CHECK(_C(s + X));
 //		CHECK(_C(s + Y));
 //		CHECK(_C(s + Z));
@@ -753,31 +753,31 @@ struct OcForest
 		return H(s.d);
 	}
 
-	static size_type I(compact_index_type s)
+	size_type I(compact_index_type s) const
 	{
-		return (s & _MI) >> (INDEX_DIGITS * 2);
+		return (s & _MI & _MASK) >> (INDEX_DIGITS * 2);
 	}
 
-	static size_type I(index_type s)
+	size_type I(index_type s) const
 	{
 		return I(s.d);
 	}
 
-	static size_type J(compact_index_type s)
+	size_type J(compact_index_type s) const
 	{
-		return (s & _MJ) >> (INDEX_DIGITS);
+		return (s & _MJ & _MASK) >> (INDEX_DIGITS);
 	}
 
-	static size_type J(index_type s)
+	size_type J(index_type s) const
 	{
 		return J(s.d);
 	}
-	static size_type K(compact_index_type s)
+	size_type K(compact_index_type s) const
 	{
-		return (s & _MK);
+		return (s & _MK & _MASK);
 	}
 
-	static size_type K(index_type s)
+	size_type K(index_type s) const
 	{
 		return K(s.d);
 	}
