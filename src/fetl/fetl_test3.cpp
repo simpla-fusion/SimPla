@@ -6,6 +6,10 @@
  */
 
 #include "fetl_test.h"
+
+#include "../io/data_stream.h"
+#include "save_field.h"
+
 using namespace simpla;
 DEFINE_FIELDS(DEF_MESH)
 
@@ -16,11 +20,14 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
+		nTuple<3, Real> xmin =
+		{ 0, 0, 0 };
+		nTuple<3, Real> xmax =
+		{ 2, 3, 4 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims = { 20, 0, 0 };
+		nTuple<3, size_t> dims =
+		{ 20, 0, 0 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();
@@ -31,6 +38,7 @@ public:
 	Mesh mesh;
 
 	typedef TP value_type;
+	typedef typename Mesh::index_type index_type;
 	typedef Field<Mesh, VERTEX, value_type> TZeroForm;
 	typedef Field<Mesh, EDGE, value_type> TOneForm;
 	typedef Field<Mesh, FACE, value_type> TTwoForm;
@@ -61,9 +69,102 @@ public:
 	}
 };
 
-typedef testing::Types<double, Complex, nTuple<3, double> > PrimitiveTypes;
+typedef testing::Types<double/*, Complex, nTuple<3, double>*/> PrimitiveTypes;
 
 TYPED_TEST_CASE(TestFETLDiffCalcuate, PrimitiveTypes);
+
+TYPED_TEST(TestFETLDiffCalcuate, grad){
+{
+	Mesh const & mesh = TestFixture::mesh;
+
+	typename TestFixture::value_type v;
+
+	TestFixture::SetValue(&v);
+
+	typename TestFixture::TOneForm vf1(mesh);
+
+	typename TestFixture::TZeroForm sf(mesh),sf2(mesh);
+
+	sf.Clear();
+	vf1.Clear();
+	sf2.Clear();
+
+	Real m=0.0;
+
+	nTuple<3,Real> k=
+	{	2.0*3.1415926535,0.0,0.0};
+
+	Real k2=Dot(k,k);
+
+	Traversal<VERTEX>(mesh,
+			[v,k](typename TestFixture:: index_type s,typename TestFixture::TZeroForm & sf1)
+			{
+				auto x= sf1.mesh.GetCoordinates(s);
+				sf1[s]=v*std::sin(Dot(k,x));
+			},sf);
+
+	LOG_CMD(vf1 = Grad(sf));
+
+	Real variance =0;
+	typename TestFixture::value_type error;error*=0;
+
+	Traversal<EDGE>(mesh,
+			[&](typename TestFixture:: index_type s)
+			{
+				auto x=mesh.GetCoordinates(s);
+
+				auto expect=v*std::cos(Dot(k,x))*k[mesh._C(s)]*mesh.Volume(s);
+
+				auto error=k[mesh._C(s)]*k[mesh._C(s)] * mesh.Volume(s)*mesh.Volume(s);
+
+				variance+= abs(Dot((vf1[s]-expect),(vf1[s]-expect)));
+
+				error+=vf1[s]-expect;
+
+				EXPECT_LE(abs(vf1[s]-expect),abs(error*expect))<<mesh.Hash(s);
+
+				CHECK(vf1[s]);
+
+				CHECK(expect);
+
+				if(expect!=0)
+				CHECK( (expect-vf1[s])/expect);
+
+				CHECK( error);
+
+				CHECK(mesh.Volume(s));
+			}
+	);
+	sf2 = Diverge(vf1);
+
+	size_t count = 0;
+	Traversal<VERTEX>(mesh,
+			[&](typename TestFixture:: index_type s )
+			{
+				if(sf[s]!=sf2[s]*k2)
+				++count;
+
+				auto error=k[mesh._C(s)]*k[mesh._C(s)] * mesh.Volume(s)*mesh.Volume(s);
+
+				EXPECT_LE(abs(sf[s]*k2-sf2[s]),abs(error*sf[s]*k2))<<mesh.Hash(s);
+
+				CHECK(error);
+
+				CHECK((sf[s]*k2-sf2[s])/(sf[s]*k2));
+			});
+	CHECK(count);
+	CHECK(sf.size());
+	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+	LOGGER<<DUMP(sf);
+	LOGGER<<DUMP(vf1);
+	LOGGER<<DUMP(sf2);
+	variance/=sf.size();
+	error/=sf.size();
+	CHECK(variance);
+	CHECK(error);
+}
+}
 
 TYPED_TEST(TestFETLDiffCalcuate, curl_grad_eq_0){
 {

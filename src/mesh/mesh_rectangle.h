@@ -18,8 +18,6 @@
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
 
-
-
 namespace simpla
 {
 template<typename > class EuclideanGeometry;
@@ -395,7 +393,38 @@ public:
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
 		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
-		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
+		return
+		((
+				f[s + X]*geometry_type::InvVolume(s+X)*geometry_type::DualVolume(s+X)-
+				f[s - X]*geometry_type::InvVolume(s-X)*geometry_type::DualVolume(s-X)
+
+		) + (
+				f[s + Y]*geometry_type::InvVolume(s+Y)*geometry_type::DualVolume(s+Y)-
+				f[s - Y]*geometry_type::InvVolume(s-Y)*geometry_type::DualVolume(s-Y)
+
+		) + (
+				f[s + Z]*geometry_type::InvVolume(s+Z)*geometry_type::DualVolume(s+Z) -
+				f[s - Z]*geometry_type::InvVolume(s-Z)*geometry_type::DualVolume(s-Z)
+
+		) )*geometry_type::InvDualVolume(s)*geometry_type::Volume(s)
+
+		;
+
+//		((
+//				f[s + X]*geometry_type::InvVolume(s+X)*geometry_type::DualVolume(s+X)-
+//				f[s - X]*geometry_type::InvVolume(s-X)*geometry_type::DualVolume(s-X)
+//
+//		) + (
+//				f[s + Y]*geometry_type::InvVolume(s+Y)*geometry_type::DualVolume(s+Y)-
+//				f[s - Y]*geometry_type::InvVolume(s-Y)*geometry_type::DualVolume(s-Y)
+//
+//		) + (
+//				f[s + Z]*geometry_type::InvVolume(s+Z)*geometry_type::DualVolume(s+Z) -
+//				f[s - Z]*geometry_type::InvVolume(s-Z)*geometry_type::DualVolume(s-Z)
+//
+//		) )*geometry_type::InvDualVolume(s)*geometry_type::Volume(s)
+//
+//		;
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,

@@ -20,6 +20,7 @@
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
+#include "../mesh/traversal.h"
 
 #define DEF_MESH RectMesh<OcForest,EuclideanGeometry>
 

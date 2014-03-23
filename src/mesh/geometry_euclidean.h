@@ -169,15 +169,15 @@ struct EuclideanGeometry
 		 */
 
 		volume_[0] = 1;
-		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) : 1;
-		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) : 1;
-		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) : 1;
+		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]) : 1;
+		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]) : 1;
+		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2]) : 1;
 
 		volume_[3] /* 011 */= volume_[1] * volume_[2];
 		volume_[5] /* 101 */= volume_[4] * volume_[1];
-		volume_[6] /* 110 */= volume_[4] * volume_[2];
+		volume_[6] /* 110 */= volume_[2] * volume_[4];
 
-		volume_[7] /* 010 */= volume_[1] * volume_[2] * volume_[2];
+		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
 
 		for (int i = 0; i < 8; ++i)
 			inv_volume_[i] = 1.0 / volume_[i];
@@ -241,6 +241,15 @@ struct EuclideanGeometry
 	Real InvVolume(index_type s) const
 	{
 		return topology.InvVolume(s) * inv_volume_[topology._N(s)];
+	}
+
+	Real DualVolume(index_type s) const
+	{
+		return Volume(topology._I(s));
+	}
+	Real InvDualVolume(index_type s) const
+	{
+		return InvVolume(topology._I(s));
 	}
 
 	//***************************************************************************************************

@@ -636,7 +636,7 @@ struct OcForest
 
 		};
 
-		return volume_[_N(s)][H(s)];
+		return volume_[_N(s)][H(s)] ;
 	}
 
 	static Real InvVolume(index_type s)
@@ -662,7 +662,7 @@ struct OcForest
 
 				};
 
-		return inv_volume_[_N(s)][H(s)];
+		return inv_volume_[_N(s)][H(s)] ;
 	}
 
 //***************************************************************************************************

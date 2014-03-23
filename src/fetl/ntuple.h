@@ -291,6 +291,13 @@ inline auto Dot(nTuple<3, TL> const &l, nTuple<3, TR> const &r)
 	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
 }
 
+template<typename TL, typename TR>
+inline auto Dot(TL const &l, TR const &r)
+->decltype(l*r)
+{
+	return l * r;
+}
+
 //***********************************************************************************
 
 template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
