@@ -14,6 +14,7 @@
 #include "octree_forest.h"
 #include "mesh_rectangle.h"
 #include "geometry_euclidean.h"
+#include "traversal.h"
 #define DEF_MESH RectMesh<>
 
 using namespace simpla;
@@ -25,47 +26,52 @@ protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
-
-		nTuple<3, size_t> dims = { 8, 4, 1 };
-		mesh.SetDimensions(dims);
+		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 1, 1, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>( { 17, 33, 65 }));
 
 	}
 public:
 	typedef OcForest mesh_type;
 	static constexpr int IForm = TI::value;
 	typedef typename OcForest::index_type index_type;
-	mesh_type mesh;
+	std::vector<nTuple<3, size_t>> dims_list;
 
 };
-typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > FormList;
 
-TYPED_TEST_CASE(TestMesh, FormList);
+TYPED_TEST_CASE_P(TestMesh);
 
-TYPED_TEST(TestMesh, traversal){
+TYPED_TEST_P(TestMesh, traversal){
 {
-	size_t count = 0;
+	for(auto const & dims:TestFixture::dims_list)
+	{
+		typename TestFixture::mesh_type mesh;
 
-	CHECK( TestFixture::mesh.GetDimensions());
+		mesh.SetDimensions(dims);
 
-	CHECK(TestFixture::mesh.GetNumOfElements(TestFixture::IForm ));
+		mesh.Update();
 
-	auto s=*(TestFixture::mesh.begin(TestFixture::IForm ));
+		size_t count = 0;
 
-	TestFixture::mesh.template Traversal < TestFixture::IForm > (
-			[& ](typename TestFixture::index_type s )
-			{	++count;}
-	);
+		Traversal < TestFixture::IForm > ( mesh,
+				[& ](typename TestFixture::index_type s )
+				{
+					++count;
+				}
+		);
 
-	EXPECT_EQ(count,TestFixture:: mesh.GetNumOfElements( TestFixture::IForm));
-	auto d=s.d;
-	CHECK_BIT( d );
-	CHECK_BIT( TestFixture::mesh._I(d) );
-	CHECK_BIT( TestFixture::mesh._R(d) );
-	CHECK_BIT( TestFixture::mesh._RR(d) );
-	CHECK_BIT( TestFixture::mesh._D(d) );
-	CHECK ( TestFixture::mesh._C(d) );
-	CHECK ( TestFixture::mesh._N(d) );
-	unsigned long DI=1UL<<4;
-	CHECK_BIT( s.d );
-	CHECK_BIT((s - DI).d );
+		EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
+	}
+
 }}
+
+typedef testing::Types<Int2Type<VERTEX> /*, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME>*/> FormList;
+
+REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal);
+
+INSTANTIATE_TYPED_TEST_CASE_P(Mesh, TestMesh, FormList);

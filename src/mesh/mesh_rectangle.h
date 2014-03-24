@@ -431,8 +431,8 @@ public:
 	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto X = topology_type::_D(s);
-		auto Y = topology_type::_R(X);
-		auto Z = topology_type::_RR(X);
+		auto Y = topology_type::_RR(X);
+		auto Z = topology_type::_R(X);
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}

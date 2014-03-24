@@ -12,7 +12,7 @@ using namespace simpla;
 DEFINE_FIELDS(DEF_MESH)
 
 template<typename TF>
-class TestFETL: public testing::Test
+class TestFETL: public testing::TestWithParam<nTuple<3, size_t> >
 {
 protected:
 	virtual void SetUp()
@@ -23,7 +23,7 @@ protected:
 		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims = { 20, 0, 0 };
+		nTuple<3, size_t> dims = { 32, 1, 32 };
 		mesh.SetDimensions(dims);
 		mesh.Update();
 	}
@@ -37,17 +37,17 @@ public:
 
 typedef testing::Types<
 
-Form<0>, Form<1>, Form<2>, Form<3>,
+Form<0>  /*, Form<1>, Form<2>, Form<3>,
 
-CForm<0>, CForm<1>, CForm<2>, CForm<3>,
+ CForm<0>, CForm<1>, CForm<2>, CForm<3>,
 
-VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3>,
+ VectorForm<0>, VectorForm<1>, VectorForm<2>, VectorForm<3>,
 
-CVectorForm<0>, CVectorForm<1>, CVectorForm<2>, CVectorForm<3>,
+ CVectorForm<0>, CVectorForm<1>, CVectorForm<2>, CVectorForm<3>,
 
-TensorForm<0>, TensorForm<1>, TensorForm<2>, TensorForm<3>,
+ TensorForm<0>, TensorForm<1>, TensorForm<2>, TensorForm<3>,
 
-CTensorForm<0>, CTensorForm<1>, CTensorForm<2>, CTensorForm<3>
+ CTensorForm<0>, CTensorForm<1>, CTensorForm<2>, CTensorForm<3>*/
 
 > AllFieldTypes;
 
