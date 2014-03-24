@@ -14,6 +14,9 @@
 
 typedef testing::Types<RectMesh<OcForest, EuclideanGeometry> > MeshTypes;
 
-REGISTER_TYPED_TEST_CASE_P(TestFETLDiffCalcuate1, grad);
-
 INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLDiffCalcuate1, MeshTypes);
+
+typedef testing::Types<Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, Real>,
+		Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, Complex>,
+		Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, nTuple<3, Real>> > FieldTypes;
+INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLDiffCalcuate, FieldTypes);
