@@ -7,8 +7,6 @@
 
 #ifndef FETL_TEST_H_
 #define FETL_TEST_H_
-#include <gtest/gtest.h>
-#include <random>
 
 #include "fetl.h"
 

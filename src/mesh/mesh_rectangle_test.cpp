@@ -26,14 +26,22 @@ protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 1, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 33, 65 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 17, 1, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 1, 17, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 1, 1, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 1, 17, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 17, 1, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 17, 17, 1 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 17, 17, 17 }));
+		dims_list.emplace_back(nTuple<3, size_t>(
+		{ 17, 33, 65 }));
 
 	}
 public:
@@ -70,7 +78,7 @@ TYPED_TEST_P(TestMesh, traversal){
 
 }}
 
-typedef testing::Types<Int2Type<VERTEX> /*, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME>*/> FormList;
+typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > FormList;
 
 REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal);
 
