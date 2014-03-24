@@ -243,12 +243,17 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_0){
 
 	Real m=0.0;
 
-	for(auto & p:sf)
-	{
-		p = uniform_dist(gen);
-		m+= abs(p);
-	}
+//	for(auto & p:sf)
+//	{
+//		p = uniform_dist(gen);
+//		m+= abs(p);
+//	}
 
+	mesh.template Traversal<VERTEX>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	sf[s]= uniform_dist(gen); m+=abs(sf[s]);}
+
+	);
 	m/=sf.size();
 
 	LOG_CMD(vf1 = Grad(sf));
@@ -319,11 +324,17 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_1){
 
 	Real m=0.0;
 
-	for(auto & p:vf)
-	{
-		p = uniform_dist(gen);
-		m+= abs(p);
-	}
+//	for(auto & p:vf)
+//	{
+//		p = uniform_dist(gen);
+//		m+= abs(p);
+//	}
+//
+	mesh.template Traversal<VOLUME>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	vf[s]= uniform_dist(gen); m+=abs(vf[s]);}
+
+	);
 
 	m/=vf.size();
 
@@ -390,18 +401,26 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_0){
 	typename TestFixture::TZeroForm sf1(mesh);
 	typename TestFixture::TZeroForm sf2(mesh);
 	typename TestFixture::TOneForm vf1(mesh);
-	typename TestFixture::TTwoForm vf2(mesh,v);
+	typename TestFixture::TTwoForm vf2(mesh);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	vf2.Init();
+//
+//	for(auto &p:vf2)
+//	{
+//		p*= uniform_dist(gen);
+//	}
 
-	for(auto &p:vf2)
-	{
-		p*= uniform_dist(gen);
-	}
+	Real m=0.0;
 
+	mesh.template Traversal<FACE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	vf2[s]=v* uniform_dist(gen); m+=abs(vf2[s]);}
+
+	);
+	m/=vf2.size();
 	LOG_CMD(vf1 = Curl(vf2));
 
 	LOG_CMD(sf1 = Diverge( vf1));
@@ -409,15 +428,6 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_0){
 	LOG_CMD(sf2 = Diverge( Curl(vf2)));
 
 	size_t count=0;
-
-	Real m=0.0;
-
-	for(auto const &p:vf2)
-	{
-		m+=abs(p);
-	}
-	m/=vf2.size();
-
 	Real relative_error=0;
 	size_t num=0;
 	mesh.template Traversal<VERTEX>(
@@ -477,10 +487,18 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_1){
 
 	vf1.Init();
 
-	for(auto &p:vf1)
-	{
-		p*= uniform_dist(gen);
-	}
+//	for(auto &p:vf1)
+//	{
+//		p*= uniform_dist(gen);
+//	}
+
+	Real m=0.0;
+	mesh.template Traversal<EDGE>(
+			[&](typename TestFixture::TTwoForm::index_type s)
+			{	vf1[s]=v* uniform_dist(gen); m+=abs(vf1[s]);}
+
+	);
+	m/=vf2.size();
 
 	LOG_CMD(vf2 = Curl(vf1));
 
@@ -490,14 +508,7 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_1){
 
 	size_t count=0;
 
-	Real m=0.0;
-
-	for(auto const &p:vf2)
-	{
-		m+=abs(p);
-	}
 	m/=vf2.size();
-
 	Real relative_error=0;
 	size_t num=0;
 	mesh.template Traversal<VOLUME>(
