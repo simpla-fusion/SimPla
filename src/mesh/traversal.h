@@ -12,11 +12,9 @@
 namespace simpla
 {
 
-template<int IFORM, typename TC, typename TF, typename ...Args>
-void Traversal(TC const & tree, TF &&fun, Args && ...args)
+template<int IFORM, typename IT, typename TF, typename ...Args>
+void Traversal(IT it, IT ie, TF &&fun, Args && ...args)
 {
-	auto it = tree.begin(IFORM), ie = tree.end(IFORM);
-
 	while (true)
 	{
 		fun(*it, args...);
@@ -72,22 +70,21 @@ void ParallelCachedTraversal(TC const &tree, TF &&fun, Args && ...args)
 
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		auto ib = tree.begin(IFORM, num_threads, thread_id);
-		auto ie = tree.end(IFORM, num_threads, thread_id);
+		auto region = tree.GetRegin(IFORM, num_threads, thread_id);
 
 		threads.emplace_back(
 
 		std::thread(
 
-		[ib,ie](TF fun2,typename Cache<Args>::type && ... args2 )
+		[region](TF fun2,typename Cache<Args>::type && ... args2 )
 		{
-			for (auto it =ib; it != ie; ++it)
+			for (auto s:region)
 			{
-				RefreshCache(*it,args2...);
+				RefreshCache(s,args2...);
 
-				fun2(*it,args2...);
+				fun2(s,args2...);
 
-				FlushCache(*it,args2...);
+				FlushCache(s,args2...);
 			}
 
 		}, fun, typename Cache<Args >::type(args)...

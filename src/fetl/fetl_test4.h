@@ -28,14 +28,11 @@ class TestFETLVecField: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 20, 1, 1 };
+		nTuple<3, size_t> dims = { 20, 1, 1 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();
@@ -87,29 +84,20 @@ TYPED_TEST_P(TestFETLVecField,vec_zero_form){
 
 	LOG_CMD(res_vector_field = Cross( vaf,vbf) );
 
-	mesh.template Traversal<VERTEX> (
+	for(auto s:mesh.GetRegion(VERTEX))
+	{
+		ASSERT_EQ(Cross(vaf[s],vbf[s]), res_vector_field [s]);
 
-			[&](typename TestFixture::VectorField::index_type s)
-			{
-				ASSERT_EQ(Cross(vaf[s],vbf[s]), res_vector_field [s]);
-
-			}
-
-	);
+	}
 
 	LOG_CMD(res_scalar_field = Dot(vaf, vbf));
 
-	mesh.template Traversal<VERTEX> (
-
-			[&](typename TestFixture::VectorField::index_type s)
-			{
-
-				ASSERT_EQ(Dot(vaf[s],vbf[s]),res_scalar_field[s]);
-			}
-
-	);
+	for(auto s:mesh.GetRegion(VERTEX))
+	{
+		ASSERT_EQ(Dot(vaf[s],vbf[s]),res_scalar_field[s]);
+	}
 
 }
 }
-REGISTER_TYPED_TEST_CASE_P(TestFETLVecField,vec_zero_form);
+REGISTER_TYPED_TEST_CASE_P(TestFETLVecField, vec_zero_form);
 #endif /* FETL_TEST4_H_ */

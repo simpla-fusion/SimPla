@@ -18,32 +18,31 @@
 using namespace simpla;
 
 template<typename TF>
-class TestFETL: public testing::TestWithParam<nTuple<3, size_t> >
+class TestFETL: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 32, 32, 32 };
+		nTuple<3, size_t> dims = { 32, 32, 32 };
 		mesh.SetDimensions(dims);
 		mesh.Update();
 	}
 public:
-	typedef TF FieldType;
 
 	typedef typename TF::mesh_type mesh_type;
-	typedef typename TF::value_type value_type_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename TF::value_type value_type;
+	static constexpr int IForm = TF::IForm;
 
+	typedef typename mesh_type::index_type index_type;
 	typedef Field<mesh_type, VERTEX, Real> RScalarField;
+	typedef Field<mesh_type, IForm, value_type> FieldType;
+
 	mesh_type mesh;
 
 };
@@ -57,7 +56,7 @@ TYPED_TEST_P(TestFETL,create_write_read){
 
 	typename TestFixture::FieldType f( mesh );
 
-	typename TestFixture::FieldType::value_type a; a= 1.0;
+	typename TestFixture::value_type a; a= 1.0;
 
 	f.Clear();
 	f.Init();
@@ -71,7 +70,7 @@ TYPED_TEST_P(TestFETL,create_write_read){
 	s=0;
 	for(auto const & v : f )
 	{
-		typename TestFixture::FieldType::value_type res;
+		typename TestFixture::value_type res;
 		res=a* (s);
 		EXPECT_EQ(res,v ) <<"s =" << s;
 		s+=1.0;
@@ -82,24 +81,22 @@ TYPED_TEST_P(TestFETL,create_write_read){
 
 TYPED_TEST_P(TestFETL,assign){
 {
+	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
-	typename TestFixture::FieldType f1(TestFixture::mesh),f2(TestFixture::mesh);
+	typename TestFixture::FieldType f1(mesh),f2(mesh);
 
-	typedef typename TestFixture::FieldType::value_type value_type;
+	typedef typename TestFixture::value_type value_type;
 
 	value_type a; a = 3.0;
 
 	f1.Init();
 	f2.Init();
 
-	TestFixture::mesh.template Traversal<TestFixture::FieldType::IForm>(
-
-			[&](typename TestFixture::index_type const &s)
-			{
-				f1[s]=0;
-				f2[s]=a;
-			}
-	);
+	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm))
+	{
+		f1[s]=0;
+		f2[s]=a;
+	}
 
 	for(value_type const & v : f2)
 	{
@@ -139,8 +136,9 @@ TYPED_TEST_P(TestFETL,assign){
 
 TYPED_TEST_P(TestFETL, constant_real){
 {
+	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
-	typename TestFixture::FieldType f1( TestFixture::mesh),f2(TestFixture::mesh),f3(TestFixture::mesh);
+	typename TestFixture::FieldType f1( mesh),f2(mesh),f3(mesh);
 
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
@@ -156,15 +154,12 @@ TYPED_TEST_P(TestFETL, constant_real){
 
 	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
-	TestFixture::mesh.template Traversal<TestFixture::FieldType::IForm>(
-
-			[&](typename TestFixture::FieldType::index_type s )
-			{
-				value_type res;
-				res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
-				ASSERT_EQ( res, f3[s]);
-			}
-	);
+	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm))
+	{
+		value_type res;
+		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
+		ASSERT_EQ( res, f3[s]);
+	}
 }
 }
 
@@ -233,20 +228,17 @@ TYPED_TEST_P(TestFETL, scalar_field){
 	 * */
 	count =0;
 
-	mesh.template Traversal< TestFixture::FieldType::IForm>(
-			[&]( index_type s)
-			{
-				value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
+	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm ) )
+	{
+		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-				EXPECT_DOUBLE_EQ( abs(res), abs(f4[s]))<< "s= "<<(s.d);
-			}
-	);
+		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(s.d);
+	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
 }
 }
-
 
 REGISTER_TYPED_TEST_CASE_P(TestFETL, create_write_read, assign, constant_real, scalar_field);
 #endif /* FETL_TEST1_H_ */

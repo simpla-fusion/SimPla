@@ -15,8 +15,6 @@
 #include "save_field.h"
 
 #include "fetl.h"
-#include "ntuple.h"
-#include "../mesh/traversal.h"
 
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
@@ -30,14 +28,11 @@ class TestFETLDiffCalcuate1: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin =
-		{ -1.0, 1.0, 0 };
-		nTuple<3, Real> xmax =
-		{ 2.0, 3.0, 4.0 };
+		nTuple<3, Real> xmin = { -1.0, 1.0, 0 };
+		nTuple<3, Real> xmax = { 2.0, 3.0, 4.0 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 1, 1, 32 };
+		nTuple<3, size_t> dims = { 1, 1, 32 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();
@@ -72,8 +67,7 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	nTuple<3, Real> k =
-	{ 2.0 * PI, 3 * PI, 4 * PI };
+	nTuple<3, Real> k = { 2.0 * PI, 3 * PI, 4 * PI };
 
 	coordinates_type dx;
 
@@ -102,31 +96,31 @@ TYPED_TEST_P(TestFETLDiffCalcuate1, grad){
 	Real m = 0.0;
 	Real k2 = Dot(k, k);
 
-	Traversal<VERTEX>(mesh, [&]( index_type s )
-			{
-				sf[s]= std::sin(Dot(k,mesh.GetCoordinates(s)));
-			});
+	for(auto s :mesh.GetRegion( VERTEX))
+	{
+		sf[s]= std::sin(Dot(k,mesh.GetCoordinates(s)));
+	};
 
 	LOG_CMD(vf1 = Grad(sf));
 
 	Real variance = 0;
 	Real average = 0.0;
 
-	Traversal<EDGE>(mesh, [&]( index_type s)
-			{	auto x=mesh.GetCoordinates(s);
+	for(auto s :mesh.GetRegion( EDGE))
+	{	auto x=mesh.GetCoordinates(s);
 
-				auto expect= std::cos(Dot(k, x))*k[mesh._C(s)] * mesh.Volume(s);
+		auto expect= std::cos(Dot(k, x))*k[mesh._C(s)] * mesh.Volume(s);
 
-				auto error = 0.5*k[mesh._C(s)]*k[mesh._C(s)] * mesh.Volume(s)*mesh.Volume(s);
+		auto error = 0.5*k[mesh._C(s)]*k[mesh._C(s)] * mesh.Volume(s)*mesh.Volume(s);
 
-				variance+= abs( (vf1[s]-expect)*(vf1[s]-expect));
+		variance+= abs( (vf1[s]-expect)*(vf1[s]-expect));
 
-				average+= (vf1[s]-expect);
+		average+= (vf1[s]-expect);
 
-				if((vf1[s]+expect) !=0 && error>0)
-				EXPECT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error ) << vf1[s]<<" "<<expect<<" "<<x;
+		if((vf1[s]+expect) !=0 && error>0)
+		EXPECT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error ) << vf1[s]<<" "<<expect<<" "<<x;
 
-			});
+	}
 
 	variance /= sf.size();
 	average /= sf.size();
@@ -163,14 +157,11 @@ class TestFETLDiffCalcuate: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 2, 3, 4 };
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 2, 3, 4 };
 		mesh.SetExtent(xmin, xmax);
 
-		nTuple<3, size_t> dims =
-		{ 16, 0, 0 };
+		nTuple<3, size_t> dims = { 16, 0, 0 };
 		mesh.SetDimensions(dims);
 
 		mesh.Update();
@@ -190,8 +181,7 @@ public:
 	typedef Field<mesh_type, VOLUME, value_type> TThreeForm;
 
 	static constexpr double PI = 3.141592653589793;
-	static constexpr nTuple<3, Real> k =
-	{ 2.0 * PI, 3 * PI, 0.0 };
+	static constexpr nTuple<3, Real> k = { 2.0 * PI, 3 * PI, 0.0 };
 
 	double RelativeError(double a, double b)
 	{
@@ -249,11 +239,9 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_0){
 //		m+= abs(p);
 //	}
 
-	mesh.template Traversal<VERTEX>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	sf[s]= uniform_dist(gen); m+=abs(sf[s]);}
+	for(auto s:mesh.GetRegion(VERTEX))
+	{	sf[s]= uniform_dist(gen); m+=abs(sf[s]);}
 
-	);
 	m/=sf.size();
 
 	LOG_CMD(vf1 = Grad(sf));
@@ -263,17 +251,16 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_0){
 	size_t count=0;
 	Real relative_error=0;
 
-	mesh.template Traversal<FACE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	relative_error+=abs(vf2[s]);
+	for(auto s:mesh.GetRegion(FACE))
+	{
+		relative_error+=abs(vf2[s]);
 
-				if(abs(vf2[s])>1.0e-10)
-				{
-					++count;
-				}
-			}
+		if(abs(vf2[s])>1.0e-10)
+		{
+			++count;
+		}
+	}
 
-	);
 	relative_error=relative_error/m;
 
 	INFORM2(relative_error);
@@ -284,16 +271,16 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_0){
 	count =0;
 	relative_error=0.0;
 
-	mesh.template Traversal<FACE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	relative_error+=abs(vf2b[s]);
+	for(auto s:mesh.GetRegion(FACE))
+	{
+		relative_error+=abs(vf2b[s]);
 
-				if(abs(vf2b[s])>1.0e-10)
-				{
-					++count;
-				}
-			}
-	);
+		if(abs(vf2b[s])>1.0e-10)
+		{
+			++count;
+		}
+	}
+
 	relative_error=relative_error/m;
 
 	INFORM2(relative_error);
@@ -330,11 +317,8 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_1){
 //		m+= abs(p);
 //	}
 //
-	mesh.template Traversal<VOLUME>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	vf[s]= uniform_dist(gen); m+=abs(vf[s]);}
-
-	);
+	for(auto s:mesh.GetRegion(VOLUME))
+	{	vf[s]= uniform_dist(gen); m+=abs(vf[s]);}
 
 	m/=vf.size();
 
@@ -345,18 +329,16 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_1){
 	size_t count=0;
 	Real relative_error=0;
 
-	mesh.template Traversal<EDGE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{
-				relative_error+=abs(vf1[s]);
+	for(auto s:mesh.GetRegion(EDGE))
+	{
+		relative_error+=abs(vf1[s]);
 
-				if(abs(vf1[s])>1.0e-10)
-				{
-					++count;
-				}
-			}
+		if(abs(vf1[s])>1.0e-10)
+		{
+			++count;
+		}
+	}
 
-	);
 	relative_error=relative_error/m;
 
 	INFORM2(relative_error);
@@ -367,19 +349,17 @@ TYPED_TEST_P(TestFETLDiffCalcuate, curl_grad_eq_1){
 	count =0;
 	relative_error=0.0;
 
-	mesh.template Traversal<EDGE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{
+	for(auto s:mesh.GetRegion(EDGE))
+	{
 
-				relative_error+=abs(vf1b[s]);
+		relative_error+=abs(vf1b[s]);
 
-				if(abs(vf1b[s])>1.0e-10)
-				{
-					++count;
-				}
-			}
+		if(abs(vf1b[s])>1.0e-10)
+		{
+			++count;
+		}
+	}
 
-	);
 	relative_error=relative_error/m;
 
 	INFORM2(relative_error);
@@ -415,11 +395,9 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	Real m=0.0;
 
-	mesh.template Traversal<FACE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	vf2[s]=v* uniform_dist(gen); m+=abs(vf2[s]);}
+	for(auto s:mesh.GetRegion(FACE))
+	{	vf2[s]=v* uniform_dist(gen); m+=abs(vf2[s]);}
 
-	);
 	m/=vf2.size();
 	LOG_CMD(vf1 = Curl(vf2));
 
@@ -430,17 +408,15 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_0){
 	size_t count=0;
 	Real relative_error=0;
 	size_t num=0;
-	mesh.template Traversal<VERTEX>(
-			[&](typename TestFixture::TZeroForm::index_type s)
-			{
-				relative_error+=abs(sf1[s]);
+	for(auto s:mesh.GetRegion(VERTEX))
+	{
+		relative_error+=abs(sf1[s]);
 
-				if(abs(sf1[s])>1.0e-10*m)
-				{
-					++count;
-				}
-			}
-	);
+		if(abs(sf1[s])>1.0e-10*m)
+		{
+			++count;
+		}
+	}
 
 	relative_error=relative_error/m;
 	INFORM2(relative_error);
@@ -449,16 +425,14 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_0){
 
 	count =0;
 	relative_error=0.0;
-	mesh.template Traversal<VERTEX>(
-			[&](typename TestFixture::TZeroForm::index_type s)
-			{
-				relative_error+=abs(sf2[s]);
-				if(abs(sf2[s])>1.0e-10*m)
-				{
-					++count;
-				}
-			}
-	);
+	for(auto s:mesh.GetRegion(VERTEX))
+	{
+		relative_error+=abs(sf2[s]);
+		if(abs(sf2[s])>1.0e-10*m)
+		{
+			++count;
+		}
+	}
 
 	relative_error=relative_error/m;
 	INFORM2(relative_error);
@@ -493,11 +467,9 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_1){
 //	}
 
 	Real m=0.0;
-	mesh.template Traversal<EDGE>(
-			[&](typename TestFixture::TTwoForm::index_type s)
-			{	vf1[s]=v* uniform_dist(gen); m+=abs(vf1[s]);}
+	for(auto s:mesh.GetRegion(EDGE))
+	{	vf1[s]=v* uniform_dist(gen); m+=abs(vf1[s]);}
 
-	);
 	m/=vf2.size();
 
 	LOG_CMD(vf2 = Curl(vf1));
@@ -511,17 +483,15 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_1){
 	m/=vf2.size();
 	Real relative_error=0;
 	size_t num=0;
-	mesh.template Traversal<VOLUME>(
-			[&](typename TestFixture::TZeroForm::index_type s)
-			{
-				relative_error+=abs(sf1[s]);
+	for(auto s:mesh.GetRegion(VOLUME))
+	{
+		relative_error+=abs(sf1[s]);
 
-				if(abs(sf1[s])>1.0e-10*m)
-				{
-					++count;
-				}
-			}
-	);
+		if(abs(sf1[s])>1.0e-10*m)
+		{
+			++count;
+		}
+	}
 
 	relative_error=relative_error/m;
 	INFORM2(relative_error);
@@ -530,16 +500,14 @@ TYPED_TEST_P(TestFETLDiffCalcuate, div_curl_eq_1){
 
 	count =0;
 	relative_error=0.0;
-	mesh.template Traversal<VOLUME>(
-			[&](typename TestFixture::TZeroForm::index_type s)
-			{
-				relative_error+=abs(sf2[s]);
-				if(abs(sf2[s])>1.0e-10*m)
-				{
-					++count;
-				}
-			}
-	);
+	for(auto s:mesh.GetRegion(VOLUME))
+	{
+		relative_error+=abs(sf2[s]);
+		if(abs(sf2[s])>1.0e-10*m)
+		{
+			++count;
+		}
+	}
 
 	relative_error=relative_error/m;
 	INFORM2(relative_error);

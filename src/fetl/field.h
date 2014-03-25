@@ -52,19 +52,19 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr)
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh, value_type d_value)
+			: mesh(pmesh), data_(nullptr)
 	{
 		*this = d_value;
 	}
@@ -80,14 +80,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -134,8 +134,8 @@ public:
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::iterator s) :
-				data_(d), it_(s)
+		iterator_(TC d, typename mesh_type::iterator s)
+				: data_(d), it_(s)
 		{
 
 		}
@@ -246,10 +246,11 @@ public:
 	void Fill(TD default_value)
 	{
 		Update();
-		mesh.template ParallelTraversal<IForm>([](index_type s, this_type *l, TD const & r )
+
+		for (auto s : mesh.GetRegion(IForm))
 		{
-			l->get(s)=r;
-		}, this, std::forward<TD const &>(default_value));
+			this->get(s) = default_value;
+		}
 	}
 
 	void Clear()
@@ -265,26 +266,22 @@ public:
 	this_type & operator =(this_type const & rhs)
 	{
 		Update();
-		mesh.template ParallelTraversal<IForm>(
 
-		[&](index_type s, this_type *l, this_type const & r )
-
-		{	l->get(s)=r.get(s);},
-
-		this, std::forward<this_type const &>(rhs));
-
+		for (auto s : mesh.GetRegion(IForm))
+		{
+			this->get(s) = rhs.get(s);
+		}
 		return (*this);
 	}
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
 		Update();
-		mesh.template ParallelTraversal<IForm>(
 
-		[&](index_type s, this_type *l, Field<mesh_type, IForm, TR> const & r )
-		{	l->get(s)=r.get(s);},
-
-		this, std::forward<Field<mesh_type, IForm, TR> const &>(rhs));
+		for (auto s : mesh.GetRegion(IForm))
+		{
+			this->get(s) = rhs.get(s);
+		}
 
 		return (*this);
 	}
