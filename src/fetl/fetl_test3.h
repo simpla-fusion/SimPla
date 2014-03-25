@@ -72,7 +72,7 @@ public:
 	static constexpr double PI = 3.141592653589793;
 
 	nTuple<3, Real> k =
-	{	2.0 * PI, 0*2.0 * PI, 0*2.0 * PI};
+	{	2.0 * PI, 2.0 * PI, 2.0 * PI};
 
 	static constexpr value_type default_value = 1.0;
 
@@ -154,38 +154,36 @@ TYPED_TEST_P(TestFETLDiffCalcuate1, diverge){
 		auto k2 = Dot(k, k);
 
 		typename TestFixture::TOneForm vf1(mesh);
-
-		typename TestFixture::TZeroForm sf(mesh), sf2(mesh);
+		typename TestFixture::TTwoForm vf2(mesh);
+		typename TestFixture::TThreeForm vf(mesh);
+		typename TestFixture::TZeroForm sf(mesh);
 
 		sf.Clear();
 		vf1.Clear();
-		sf2.Clear();
 
 		for(auto s :mesh.GetRegion( EDGE))
 		{
-			sf[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
+			vf1[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 		};
 
-		LOG_CMD(vf1 = Grad(sf));
+		sf = Diverge(vf1);
 
-		Real m = 0.0;
 		Real variance = 0;
 		Real average = 0.0;
 
 		for(auto s :mesh.GetRegion( VERTEX))
 		{
-			auto n=mesh._C(s);
 
-			auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[n] * mesh.Volume(s);
+			auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*(k[0]+k[1]+k[2]) * mesh.Volume(s);
 
-			auto error = 0.5*k[n]*k[n] * dx[n]*dx[n];
+			auto error = 0.5*(k[0] * k[0]+k[1] * k[1]+k[2] * k[2] ) * dx[0]*dx[0];
 
-			variance+= abs( (vf1[s]-expect)*(vf1[s]-expect));
+			variance+= abs( (sf[s]-expect)*(sf[s]-expect));
 
-			average+= (vf1[s]-expect);
+			average+= (sf[s]-expect);
 
-			if(abs(vf1[s])>1.0e-10|| abs(expect)>1.0e-10)
-			EXPECT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error )<< dims<<" "<< vf1[s]<<" "<<expect;
+			if(abs(sf[s])>1.0e-10|| abs(expect)>1.0e-10)
+			EXPECT_LE(abs(2.0*(sf[s]-expect)/(sf[s] + expect)), error )<< dims<<" "<< sf[s]<<" "<<expect;
 
 		}
 
@@ -193,8 +191,40 @@ TYPED_TEST_P(TestFETLDiffCalcuate1, diverge){
 		average /= sf.size();
 		CHECK(variance);
 		CHECK(average);
-		sf2 = Diverge(vf1) / k2;
 
+		vf2.Clear();
+		vf.Clear();
+
+		for(auto s :mesh.GetRegion( FACE))
+		{
+			vf2[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
+		};
+
+		vf = Diverge(vf2);
+
+		variance = 0;
+		average = 0.0;
+
+		for(auto s :mesh.GetRegion( VOLUME))
+		{
+
+			auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*(k[0]+k[1]+k[2]) * mesh.Volume(s);
+
+			auto error = 0.5*(k[0] * k[0]+k[1] * k[1]+k[2] * k[2] ) * dx[0]*dx[0];
+
+			variance+= abs( (vf[s]-expect)*(vf[s]-expect));
+
+			average+= (vf[s]-expect);
+
+			if(abs(vf[s])>1.0e-10|| abs(expect)>1.0e-10)
+			EXPECT_LE(abs(2.0*(vf[s]-expect)/(vf[s] + expect)), error )<< dims<<" "<< vf[s]<<" "<<expect;
+
+		}
+
+		variance /= vf.size();
+		average /= vf.size();
+		CHECK(variance);
+		CHECK(average);
 	}
 }
 }
@@ -268,7 +298,7 @@ TYPED_TEST_P(TestFETLDiffCalcuate1, curl){
 
 		for(auto s :mesh.GetRegion(FACE))
 		{
-			vf2[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.DualVolume(s);
+			vf2[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 		};
 
 		LOG_CMD(vf1 = Curl(vf2));
@@ -280,7 +310,7 @@ TYPED_TEST_P(TestFETLDiffCalcuate1, curl){
 
 			auto n=mesh._C(s);
 
-			auto expect = std::cos(Dot(k,mesh.GetCoordinates(s)))*( k[(n+1)%3]- k[(n+2)%3] )* mesh.DualVolume(s);
+			auto expect = std::cos(Dot(k,mesh.GetCoordinates(s)))*( k[(n+1)%3]- k[(n+2)%3] )* mesh.Volume(s);
 
 			vf1b[s]=expect;
 			auto error = 0.5*(k[0] * k[0]+k[1] * k[1]+k[2] * k[2] ) * mesh.Volume(s);
