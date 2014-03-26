@@ -77,7 +77,7 @@ TYPED_TEST_P(TestDiffCalculus, grad0){
 	f0.Clear();
 	f1.Clear();
 	f1b.Clear();
-	for(auto s :mesh.GetRegion( VERTEX))
+	for(auto s :mesh.GetRange( VERTEX))
 	{
 		f0[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
@@ -89,7 +89,7 @@ TYPED_TEST_P(TestDiffCalculus, grad0){
 	value_type average;
 	average*= 0.0;
 
-	for(auto s :mesh.GetRegion( EDGE))
+	for(auto s :mesh.GetRange( EDGE))
 	{
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[mesh._C(s)] * mesh.Volume(s);
@@ -133,7 +133,7 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 	f2.Clear();
 	f2b.Clear();
 
-	for(auto s :mesh.GetRegion( VOLUME))
+	for(auto s :mesh.GetRange( VOLUME))
 	{
 		f3[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
@@ -145,7 +145,7 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 	value_type average;
 	average*= 0.0;
 
-	for(auto s :mesh.GetRegion( FACE))
+	for(auto s :mesh.GetRange( FACE))
 	{
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[mesh._C(s)] * mesh.Volume(s);
@@ -188,7 +188,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge1){
 	f0.Clear();
 	f1.Clear();
 
-	for(auto s :mesh.GetRegion( EDGE))
+	for(auto s :mesh.GetRange( EDGE))
 	{
 		f1[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
@@ -198,7 +198,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge1){
 	Real variance = 0;
 	value_type average = 0.0;
 
-	for(auto s :mesh.GetRegion( VERTEX))
+	for(auto s :mesh.GetRange( VERTEX))
 	{
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*(k[0]+k[1]+k[2]) * mesh.Volume(s);
@@ -239,7 +239,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge2){
 	f3.Clear();
 	f2.Clear();
 
-	for(auto s :mesh.GetRegion( FACE))
+	for(auto s :mesh.GetRange( FACE))
 	{
 		f2[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
@@ -249,7 +249,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge2){
 	Real variance = 0;
 	value_type average = 0.0;
 
-	for(auto s :mesh.GetRegion( VOLUME))
+	for(auto s :mesh.GetRange( VOLUME))
 	{
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*(k[0]+k[1]+k[2]) * mesh.Volume(s);
@@ -296,14 +296,14 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 	Real variance = 0;
 	value_type average; average*= 0.0;
 
-	for(auto s :mesh.GetRegion(EDGE))
+	for(auto s :mesh.GetRange(EDGE))
 	{
 		vf1[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
 
 	LOG_CMD(vf2 = Curl(vf1));
 
-	for(auto s :mesh.GetRegion( FACE))
+	for(auto s :mesh.GetRange( FACE))
 	{
 		auto n=mesh._C(s);
 
@@ -355,7 +355,7 @@ TYPED_TEST_P(TestDiffCalculus, curl2){
 	Real variance = 0;
 	value_type average; average*= 0.0;
 
-	for(auto s :mesh.GetRegion(FACE))
+	for(auto s :mesh.GetRange(FACE))
 	{
 		vf2[s]= std::sin(Dot(k,mesh.GetCoordinates(s)))*mesh.Volume(s);
 	};
@@ -364,7 +364,7 @@ TYPED_TEST_P(TestDiffCalculus, curl2){
 
 	vf1b.Clear();
 
-	for(auto s :mesh.GetRegion( EDGE))
+	for(auto s :mesh.GetRange( EDGE))
 	{
 
 		auto n=mesh._C(s);
@@ -406,7 +406,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0){
 
 	Real m=0.0;
 	f0.Clear();
-	for(auto s:mesh.GetRegion(VERTEX))
+	for(auto s:mesh.GetRange(VERTEX))
 	{
 
 		auto a= uniform_dist(gen);
@@ -423,7 +423,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0){
 	size_t count=0;
 	Real relative_error=0;
 
-	for(auto s:mesh.GetRegion(FACE))
+	for(auto s:mesh.GetRange(FACE))
 	{
 
 		relative_error+=abs(f2b[s]);
@@ -453,7 +453,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0){
 
 	f3.Clear();
 
-	for(auto s:mesh.GetRegion(VOLUME))
+	for(auto s:mesh.GetRange(VOLUME))
 	{
 		auto a= uniform_dist(gen);
 		f3[s]=a*TestFixture::default_value;
@@ -469,7 +469,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0){
 	size_t count=0;
 	Real relative_error=0;
 
-	for(auto s:mesh.GetRegion(EDGE))
+	for(auto s:mesh.GetRange(EDGE))
 	{
 
 		EXPECT_EQ( (f1a[s]), (f1b[s]));
@@ -502,7 +502,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0){
 
 	Real m=0.0;
 
-	for(auto s:mesh.GetRegion(FACE))
+	for(auto s:mesh.GetRange(FACE))
 	{
 		auto a= uniform_dist(gen);
 
@@ -522,7 +522,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0){
 	size_t count=0;
 	Real relative_error=0;
 
-	for(auto s:mesh.GetRegion(VERTEX))
+	for(auto s:mesh.GetRange(VERTEX))
 	{
 		relative_error+=abs(f0b[s]);
 		EXPECT_EQ( (f0a[s]), (f0b[s]));
@@ -551,7 +551,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0){
 
 	Real m=0.0;
 
-	for(auto s:mesh.GetRegion(EDGE))
+	for(auto s:mesh.GetRange(EDGE))
 	{
 		auto a= uniform_dist(gen);
 		f1[s]=TestFixture::default_value*a;
@@ -570,7 +570,7 @@ TYPED_TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0){
 
 	Real relative_error=0;
 
-	for(auto s:mesh.GetRegion(VOLUME))
+	for(auto s:mesh.GetRange(VOLUME))
 	{
 
 		EXPECT_DOUBLE_EQ(abs(f3a[s]),abs(f3b[s]));

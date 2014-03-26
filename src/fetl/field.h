@@ -247,7 +247,7 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRegion(IForm))
+		for (auto s : mesh.GetRange(IForm))
 		{
 			this->get(s) = default_value;
 		}
@@ -267,7 +267,7 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRegion(IForm))
+		for (auto s : mesh.GetRange(IForm))
 		{
 			this->get(s) = rhs.get(s);
 		}
@@ -278,7 +278,7 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRegion(IForm))
+		for (auto s : mesh.GetRange(IForm))
 		{
 			this->get(s) = rhs.get(s);
 		}

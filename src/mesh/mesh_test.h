@@ -54,7 +54,7 @@ TYPED_TEST_CASE_P(TestMesh);
 //		mesh.SetDimensions(dims);
 //
 //		mesh.Update();
-////		auto region=mesh.GetRegion(TestFixture::IForm);
+////		auto region=mesh.GetRange(TestFixture::IForm);
 ////
 ////		CHECK_BIT(region.begin()->d);
 ////
@@ -72,7 +72,7 @@ TYPED_TEST_CASE_P(TestMesh);
 ////		}
 //		size_t count = 0;
 //
-//		for(auto s:mesh.GetRegion(TestFixture::IForm))
+//		for(auto s:mesh.GetRange(TestFixture::IForm))
 //		{
 //			++count;
 //		}
@@ -93,7 +93,7 @@ TYPED_TEST_P(TestMesh, traversal){
 
 		size_t count = 0;
 
-		for(auto s:mesh.GetRegion(TestFixture::IForm ) )
+		for(auto s:mesh.GetRange(TestFixture::IForm ) )
 		{
 			++count;
 		}
@@ -118,7 +118,7 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 
 		for (int s = 0; s < total; ++s)
 		{
-			for(auto s:mesh.GetRegion(TestFixture::IForm,total,s ) )
+			for(auto s:mesh.GetRange(TestFixture::IForm,total,s ) )
 			{
 				++count;
 			}

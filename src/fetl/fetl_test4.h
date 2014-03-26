@@ -76,7 +76,7 @@ TYPED_TEST_P(TestFETLVecField,vec_zero_form){
 
 	LOG_CMD(res_vector_field = Cross( vaf,vbf) );
 
-	for(auto s:mesh.GetRegion(VERTEX))
+	for(auto s:mesh.GetRange(VERTEX))
 	{
 		ASSERT_EQ(Cross(vaf[s],vbf[s]), res_vector_field [s]);
 
@@ -84,7 +84,7 @@ TYPED_TEST_P(TestFETLVecField,vec_zero_form){
 
 	LOG_CMD(res_scalar_field = Dot(vaf, vbf));
 
-	for(auto s:mesh.GetRegion(VERTEX))
+	for(auto s:mesh.GetRange(VERTEX))
 	{
 		ASSERT_EQ(Dot(vaf[s],vbf[s]),res_scalar_field[s]);
 	}

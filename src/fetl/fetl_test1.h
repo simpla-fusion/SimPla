@@ -87,7 +87,7 @@ TYPED_TEST_P(TestFETL,assign){
 	f1.Init();
 	f2.Init();
 
-	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm))
+	for(auto s :mesh.GetRange( TestFixture::FieldType::IForm))
 	{
 		f1[s]=0;
 		f2[s]=a;
@@ -149,7 +149,7 @@ TYPED_TEST_P(TestFETL, constant_real){
 
 	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
-	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm))
+	for(auto s :mesh.GetRange( TestFixture::FieldType::IForm))
 	{
 		value_type res;
 		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
@@ -223,7 +223,7 @@ TYPED_TEST_P(TestFETL, scalar_field){
 	 * */
 	count =0;
 
-	for(auto s :mesh.GetRegion( TestFixture::FieldType::IForm ) )
+	for(auto s :mesh.GetRange( TestFixture::FieldType::IForm ) )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
