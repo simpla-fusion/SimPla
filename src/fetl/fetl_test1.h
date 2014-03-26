@@ -17,7 +17,7 @@
 
 using namespace simpla;
 
-template<typename TF>
+template<typename TParam>
 class TestFETL: public testing::Test
 {
 protected:
@@ -25,19 +25,20 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-
-		nTuple<3, size_t> dims = { 32, 32, 32 };
-		mesh.SetDimensions(dims);
-		mesh.Update();
+//		nTuple<3, Real> xmin = { 0, 0, 0 };
+//		nTuple<3, Real> xmax = { 1, 1, 1 };
+//		mesh.SetExtent(xmin, xmax);
+//
+//		nTuple<3, size_t> dims = { 32, 32, 32 };
+//		mesh.SetDimensions(dims);
+//		mesh.Update();
+		TParam::SetUpMesh(&mesh);
 	}
 public:
 
-	typedef typename TF::mesh_type mesh_type;
-	typedef typename TF::value_type value_type;
-	static constexpr int IForm = TF::IForm;
+	typedef typename TParam::mesh_type mesh_type;
+	typedef typename TParam::value_type value_type;
+	static constexpr int IForm = TParam::IForm;
 
 	typedef typename mesh_type::index_type index_type;
 	typedef Field<mesh_type, VERTEX, Real> RScalarField;

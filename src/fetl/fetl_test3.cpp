@@ -4,19 +4,102 @@
  *  Created on: 2013年12月17日
  *      Author: salmon
  */
-
+#include "fetl_test.h"
 #include "fetl_test3.h"
-
 #include "../mesh/octree_forest.h"
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
+using namespace simpla;
 
-typedef testing::Types<RectMesh<OcForest, EuclideanGeometry> > MeshTypes;
+template<typename TV, int ICase>
+struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
+{
+	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef TV value_type;
 
-INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLDiffCalcuate1, MeshTypes);
+	static void SetUpMesh(mesh_type * mesh)
+	{
 
-//typedef testing::Types<Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, Real>,
-//		Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, Complex>,
-//		Field<RectMesh<OcForest, EuclideanGeometry>, VERTEX, nTuple<3, Real>> > FieldTypes;
-//INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLDiffCalcuate, FieldTypes);
+		nTuple<3, Real> xmin[] = {
+
+		0.0, 0.0, 0.0,
+
+		-1.0, -1.0, -1.0,
+
+		0.0, 0.0, 0.0,
+
+		0.0, 0.0, 0.0,
+
+		};
+
+		nTuple<3, Real> xmax[] = {
+
+		1.0, 1.0, 1.0,
+
+		1.0, 2.0, 3.0,
+
+		0.0, 0.0, 2.0,
+
+		2.0, 0.0, 2.0
+
+		};
+
+		constexpr int NUM_DIMS_TEST = 8;
+		nTuple<3, size_t> dims[] = {
+
+		17, 33, 65
+
+		, 17, 1, 1
+
+		, 1, 17, 1
+
+		, 1, 1, 17
+
+		, 1, 17, 17
+
+		, 17, 1, 17
+
+		, 17, 17, 1
+
+		, 17, 17, 17
+
+		};
+		mesh->SetExtent(xmin[(ICase % 100) / 10], xmax[(ICase % 100) / 10]);
+
+		mesh->SetDimensions(dims[ICase % 10]);
+
+		mesh->Update();
+
+	}
+
+	static void SetDefaultValue(value_type * v)
+	{
+		::SetDefaultValue(v);
+	}
+};
+
+typedef testing::Types<
+
+TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 0> //,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 1>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 2>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 3>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 4>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 5>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 6>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 7>,
+
+/*TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Complex, 8>,
+
+ TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, nTuple<3, Real>, 8>*/
+
+> ParamList;
+INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestDiffCalculus, ParamList);
