@@ -111,8 +111,10 @@ TYPED_TEST(TestMaterial,create ){
 
 	f.Clear();
 
-	material.template SelectCell<TestFixture::IForm>( [&](index_type s )
-			{	f[s]=1;},"Plasma" );
+	for(auto s:material.SelectCell(mesh.begin( TestFixture::IForm ),mesh.end( TestFixture::IForm ),"Plasma" ))
+	{
+		f[s]=1;
+	}
 
 	coordinates_type v0,v1,v2,v3;
 	for (int i = 0; i <TestFixture:: NDIMS; ++i)
@@ -123,7 +125,7 @@ TYPED_TEST(TestMaterial,create ){
 		v2[i] = v[0][i]-TestFixture::dh[i]*2;
 		v3[i] = v[1][i]+TestFixture::dh[i]*2;
 	}
-	for (auto s : mesh.GetRange(IForm))
+	for (auto s : mesh.GetRange(TestFixture::IForm))
 	{
 		auto x=mesh.GetCoordinates(s);
 
@@ -154,11 +156,15 @@ TYPED_TEST(TestMaterial,create ){
 
 	material.Update();
 
-	material.template SelectCell<TestFixture::IForm>( [&](index_type s )
-			{	f[s]=1;},"Plasma" );
+	for(auto s: material.SelectCell( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ))
+	{
+		f[s]=1;
+	}
 
-	material.template SelectBoundary<TestFixture::IForm>( [&](index_type s )
-			{	f[s]=10;},"Plasma" ,"NONE");
+	for(auto s: material.SelectBoundary( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ,"NONE"))
+	{
+		f[s]=10;
+	}
 
 //	material.template SelectBoundary<TestFixture::IForm>(
 //			[&](index_type const & s ,coordinates_type const & x)

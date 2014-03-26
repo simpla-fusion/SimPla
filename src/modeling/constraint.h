@@ -38,8 +38,8 @@ private:
 	bool is_hard_src_;
 public:
 
-	Constraint(mesh_type const & m) :
-			mesh(m), is_hard_src_(false)
+	Constraint(mesh_type const & m)
+			: mesh(m), is_hard_src_(false)
 	{
 	}
 
@@ -97,7 +97,7 @@ public:
 
 template<typename TField, typename TDict>
 static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
-		TDict const & dict)
+        TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)
 	{};
@@ -112,16 +112,20 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
+	Range<SelectIterator<mesh_type>> range(mesh, mesh.begin(TField::IForm), mesh.end(TField::IForm));
+
 	if (dict["Select"])
 	{
-		material.template Select<TField::IForm>([&](index_type s )
-		{	self->GetDefDomain().push_back(s );}, dict["Select"]);
+		range = material.template Select<TField::IForm>(dict["Select"]);
 	}
-	else if (dict["Region"])
+	else if (dict["Range"])
 	{
-		SelectFromMesh<TField::IForm>(mesh, [&](index_type s )
-		{	self->GetDefDomain().push_back(s );}, dict["Region"]);
+		range = SelectFromMesh(mesh, dict["Range"], mesh.being(TField::IForm), mesh.end(TField::IForm))
+	}
 
+	for (auto s : range)
+	{
+		self->GetDefDomain().push_back(s);
 	}
 //	else if (dict["Index"])
 //	{
@@ -170,10 +174,10 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 		else if (value.is_function())
 		{
 			std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
-					[value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
-					{
-						return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
-					};
+			        [value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
+			        {
+				        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+			        };
 
 			res = [self,foo](TField * f )
 			{	self->Apply(f,foo);};

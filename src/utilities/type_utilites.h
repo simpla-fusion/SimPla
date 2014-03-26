@@ -228,7 +228,7 @@ inline unsigned int count_bits(unsigned long s)
 //******************************************************************************************************
 
 template<typename TI>
-struct Region
+struct Range
 {
 	typedef TI iterator;
 	iterator ib, ie;

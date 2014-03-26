@@ -10,89 +10,143 @@
 
 #include "../utilities/log.h"
 #include "../utilities/lua_state.h"
+#include "../utilities/type_utilites.h"
 namespace simpla
 {
-
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::function<bool(typename TM::index_type)> const & select)
+template<typename IT>
+struct SelectIterator
 {
-	for (auto s : mesh.GetRange(IFORM))
+	static constexpr int MAX_CACHE_DEPTH = 12;
+
+	typedef IT iterator;
+
+	typedef typename iterator::value_type index_type;
+
+	typedef SelectIterator<iterator> this_type;
+
+	typedef std::function<int(index_type, index_type*)> UpdateFun;
+
+	UpdateFun update_;
+
+	iterator it_, ie_;
+
+	index_type s_[MAX_CACHE_DEPTH];
+
+	int cache_head_;
+
+	int cache_tail_;
+
+	SelectIterator(iterator ib, iterator ie, UpdateFun update_cache)
+			: it_(ib), ie_(ie), update_(update_cache), cache_head_(0), cache_tail_(0)
 	{
-		if (select(s))
-			op(s);
 	}
 
-}
-
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::function<bool(typename TM::coordinates_type)> const & select)
-{
-	for (auto s : mesh.GetRange(IFORM))
+	SelectIterator(iterator ib, iterator ie)
+			: it_(ib), ie_(ib), cache_head_(0), cache_tail_(0)
 	{
-		if (select(mesh.GetCoordinates(s)))
-			op(s);
-	}
-}
-
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        typename TM::coordinates_type const & x)
-{
-//	typename TM::index_type idxs[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
-//	int n = mesh.template GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), mesh.GetIndex(x), idxs);
-//
-//	for (int i = 0; i < n; ++i)
-//	{
-//		op(idxs[i]);
-//	}
-
-	typename TM::index_type v[3];
-	int n = mesh.template GetCellIndex<IFORM>(x, 0, v);
-	for (int i = 0; i < n; ++i)
-	{
-		op(v[i]);
-	}
-}
-
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
-{
-	for (auto s : mesh.GetRange(IFORM))
-	{
-		auto x = mesh.GetCoordinates(s);
-
-		if ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-		        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0))
+		update_ = []( index_type s, index_type* c)->int
 		{
-			op(s);
+			c[0]=s;
+			return 1;
+		};
+	}
+	~SelectIterator()
+	{
+	}
+	this_type & operator ++()
+	{
+		++cache_head_;
+		if (cache_head_ >= cache_tail_)
+		{
+			cache_tail_ = 0;
+			cache_head_ = 0;
+			while (it_ != ie_ && cache_tail_ == 0)
+			{
+				++it_;
+				cache_tail_ = update_(*it_, s_);
+			}
+
 		}
+
+		return *this;
 	}
 
+	bool operator==(this_type const & rhs)
+	{
+		return (it_ == rhs.it_) && (cache_head_ == rhs.cache_head_);
+	}
+	bool operator!=(this_type const & rhs)
+	{
+		return !(this->operator==(rhs));
+	}
+
+	index_type const & operator*() const
+	{
+		return s_[cache_head_];
+	}
+
+	index_type * operator ->()
+	{
+		return &s_[cache_head_];
+	}
+	index_type const* operator ->() const
+	{
+		return &s_[cache_head_];
+	}
+
+};
+
+template<typename IT>
+Range<SelectIterator<IT>> SelectRange(IT ib, IT ie,
+        std::function<
+                int(typename std::remove_reference<decltype(*std::declval<IT>())>::type,
+                        typename std::remove_reference<decltype(*std::declval<IT>())>::type*)> const & update)
+{
+	return Range<SelectIterator<IT>>( { SelectIterator<IT>(ib, ie, update), SelectIterator<IT>(ie) });
 }
 
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::vector<typename TM::index_type> const & idxs)
+template<typename IT>
+Range<SelectIterator<IT>> SelectRange(IT ib, IT ie,
+        std::function<bool(typename std::remove_reference<decltype(*std::declval<IT>())>::type)> const & select)
 {
-	typename TM::index_type id[TM::MAX_NUM_NEIGHBOUR_ELEMENT];
+	typedef decltype(*std::declval<IT>()) index_type;
 
-	for (auto const & s : idxs)
+	return SelectRange(ib, ie,
+
+	[&](index_type s,index_type *c)->int
 	{
+		c[0]=s;
+		return select(s)?1:0;
+	});
+}
 
-		int n = mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<IFORM>(), s, id);
-		for (int i = 0; i < n; ++i)
-			op(id[i]);
-	}
+template<typename TM>
+Range<SelectIterator<typename TM::iterator>> SelectRange(typename TM::iterator ib, typename TM::iterator ie,
+        TM const &mesh, typename TM::coordinates_type const & x)
+{
+	UNIMPLEMENT;
+}
+
+template<typename TM>
+Range<SelectIterator<typename TM::iterator>> SelectRange(typename TM::iterator ib, typename TM::iterator ie,
+        TM const & mesh, typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
+{
+	typedef typename TM::index_type index_type;
+	return SelectRange(ib, ie,
+	        [&]( index_type s, index_type *c)->int
+	        {
+		        c[0]=s;
+		        auto x = mesh.GetCoordinates(s);
+		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)) ? 1 : 0;
+	        });
 
 }
 
 /**
  *
  * @param mesh mesh
- * @param points  define region
+ * @param points  define Range
  *          if points.size() == 1 ,select Nearest Point
  *     else if points.size() == 2 ,select in the rectangle with  diagonal points[0] ~ points[1]
  *     else if points.size() >= 3 && Z<3
@@ -108,11 +162,11 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
  *           Z==2    polyline on xy-plane
  *           Z>=3
  */
-template<int IFORM, int N, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op,
-        std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
+template<typename TM, int N>
+Range<SelectIterator<typename TM::iterator>> SelectRange(typename TM::iterator ib, typename TM::iterator ie,
+        TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z)
 {
-
+	Range<SelectIterator<TM>> res(mesh, ie);
 	if (points.size() == 1)
 	{
 
@@ -123,7 +177,7 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 			x[(i + Z + 1) % 3] = points[0][i];
 		}
 
-		SelectFromMesh<IFORM>(mesh, op, x);
+		res = SelectRange(ib, ie, mesh, x);
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
@@ -134,56 +188,53 @@ void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)>
 			v0[(i + Z + 1) % 3] = points[0][i];
 			v1[(i + Z + 1) % 3] = points[1][i];
 		}
-		SelectFromMesh<IFORM>(mesh, op, v0, v1);
+		res = SelectRange(ib, ie, mesh, v0, v1);
 	}
 	else if (Z < 3 && points.size() > 2) //select points in polyline
 	{
 
 		PointInPolygen checkPointsInPolygen(points, Z);
 
-		for (auto s : mesh.GetRange(IFORM))
+		res = SelectRange(ib, ie, [&](typename TM::index_type s,typename TM::index_type *c)->int
 		{
+			c[0]=s;
 			auto x = mesh.GetCoordinates(s);
-
-			if (checkPointsInPolygen(x[(Z + 1) % 3], x[(Z + 2) % 3]))
-			{
-				op(s);
-			}
-		}
-
+			return (checkPointsInPolygen(x[(Z + 1) % 3], x[(Z + 2) % 3])) ? 1 : 0;
+		});
 	}
 	else
 	{
 		ERROR << "Illegal input";
 	}
-
+	return res;
 }
 
-template<int IFORM, typename TM>
-void SelectFromMesh(TM const &mesh, std::function<void(typename TM::index_type)> const & op, LuaObject const & dict)
+template<typename TM>
+Range<SelectIterator<typename TM::iterator>> SelectRange(typename TM::iterator ib, typename TM::iterator ie,
+        TM const &mesh, LuaObject const & dict)
 {
+	Range<SelectIterator<TM>> res(mesh, ie);
 	if (dict.is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;
 
 		dict.as(&points);
 
-		SelectFromMesh<IFORM>(mesh, op, points);
+		res = SelectRange(mesh, points, ib, ie);
 
 	}
 	else if (dict.is_function())
 	{
 
-		for (auto s : mesh.GetRange(IFORM))
+		res = SelectRange(ib, ie, [&](typename TM::index_type s,typename TM::index_type *c)->int
 		{
+			c[0]=s;
 			auto x = mesh.GetCoordinates(s);
+			return (dict(x[0], x[1], x[2]).template as<bool>()) ? 1 : 0;
+		});
 
-			if (dict(x[0], x[1], x[2]).template as<bool>())
-			{
-				op(s);
-			}
-		}
 	}
+	return res;
 
 }
 }

@@ -214,21 +214,21 @@ public:
 		auto select = cmd["Select"];
 		if (select.empty())
 		{
-			std::vector<coordinates_type> region;
+			std::vector<coordinates_type> Range;
 
-			cmd["Region"].as(&region);
+			cmd["Range"].as(&Range);
 
 			if (op == "Set")
 			{
-				Set(type, region);
+				Set(type, Range);
 			}
 			else if (op == "Remove")
 			{
-				Remove(type, region);
+				Remove(type, Range);
 			}
 			else if (op == "Add")
 			{
-				Add(type, region);
+				Add(type, Range);
 			}
 		}
 		else
@@ -288,7 +288,7 @@ public:
 	 * Set material on vertics
 	 * @param material is  set to 1<<material
 	 * @param args args are trans-forward to
-	 *      SelectVerticsInRegion(<lambda function>,mesh,args)
+	 *      SelectVerticsInRange(<lambda function>,mesh,args)
 	 */
 	template<typename ...Args>
 	void Set(material_type material, Args const & ... args)
@@ -347,27 +347,25 @@ public:
 	 * @param out_material
 	 * @param flag
 	 */
-	template<int IFORM>
-	void SelectBoundary(std::function<void(index_type)> const &fun, material_type in, material_type out) const;
+	typedef typename mesh_type::iterator iterator;
 
-	template<int IFORM>
-	void SelectBoundary(std::function<void(index_type)> const &fun, std::string const & in,
+	Range<SelectIterator<iterator>> SelectBoundary(iterator ib, iterator ie, material_type in, material_type out) const;
+
+	Range<SelectIterator<iterator>> SelectBoundary(iterator ib, iterator ie, std::string const & in,
 	        std::string const & out) const
 	{
-		SelectBoundary<IFORM>(fun, GetMaterialFromString(in), GetMaterialFromString(out));
+		return SelectBoundary(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
 
-	template<int IFORM>
-	void SelectCell(std::function<void(index_type)> const &fun, material_type) const;
+	Range<SelectIterator<iterator>> SelectCell(iterator ib, iterator ie, material_type) const;
 
-	template<int IFORM>
-	void SelectCell(std::function<void(index_type)> const &fun, std::string const & m) const
+	Range<SelectIterator<iterator>> SelectCell(iterator ib, iterator ie, std::string const & m) const
 	{
-		SelectCell<IFORM>(fun, GetMaterialFromString(m));
+		return SelectCell(ib, ie, GetMaterialFromString(m));
 	}
 
-	template<int IFORM, typename TDict>
-	void Select(std::function<void(index_type)> const &fun, TDict const & dict) const;
+	template<typename TDict>
+	Range<SelectIterator<iterator>> Select(iterator ib, iterator ie, TDict const & dict) const;
 
 private:
 
@@ -375,15 +373,17 @@ private:
 	 * Set material on vertics
 	 * @param material is  set to 1<<material
 	 * @param args args are trans-forward to
-	 *      SelectVerticsInRegion(<lambda function>,mesh,args)
+	 *      SelectVerticsInRange(<lambda function>,mesh,args)
 	 */
 	template<typename ...Args>
 	void _ForEachVertics(std::function<void(material_type&)> fun, Args const & ... args)
 	{
 		Init();
 
-		SelectFromMesh<VERTEX>(mesh, [&]( index_type s )
-		{	fun( material_[VERTEX].at(mesh.Hash(s)));}, std::forward<Args const&>(args)...);
+		for (auto s : SelectCell(mesh.begin(VERTEX), mesh.end(VERTEX), std::forward<Args const&>(args)...))
+		{
+			fun(material_[VERTEX].at(mesh.Hash(s)));
+		}
 	}
 
 	template<int IFORM>
@@ -425,8 +425,9 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 	return os;
 }
 
-template<typename TM> template<int IFORM>
-void Material<TM>::SelectBoundary(std::function<void(index_type)> const &fun, material_type in, material_type out) const
+template<typename TM>
+Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectBoundary(typename TM::iterator ib,
+        typename TM::iterator ie, material_type in, material_type out) const
 {
 	if (IsChanged())
 	{
@@ -492,64 +493,55 @@ void Material<TM>::SelectBoundary(std::function<void(index_type)> const &fun, ma
 	//   +-------+  |          |
 	//              |          |
 	//              +----------+
+	int IFORM = mesh._IForm(*ib);
+	Range<SelectIterator<typename TM::iterator>> res( { ie, ie });
 
-	try
-	{
-		for (auto s : mesh.GetRange(IFORM))
-		{
-			if ((this->material_[IFORM].at(mesh.Hash(s)) & in).none()
-			        && (this->material_[IFORM].at(mesh.Hash(s)) & out).any())
-			{
-				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+//	res = SelectRange(ib, ie,
+//
+//	[&]( index_type s, index_type *c)->int
+//	{
+//		int count=0;
+//		if ((this->material_[IFORM].at(mesh.Hash(s)) & in).none()
+//				&& (this->material_[IFORM].at(mesh.Hash(s)) & out).any())
+//		{
+//			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+//
+//			int num = this->mesh.GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VOLUME>(), s, neighbours);
+//
+//			for (int i = 0; i < num; ++i)
+//			{
+//				if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
+//				{
+//					c[count]=neighbours[i];
+//					++count;
+//				}
+//			}
+//		}
+//
+//		return count;
+//	});
 
-				int num = this->mesh.GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VOLUME>(), s, neighbours);
-
-				for (int i = 0; i < num; ++i)
-				{
-					if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
-					{
-						fun(s);
-						break;
-					}
-				}
-			}
-
-		}
-	} catch (std::out_of_range const &e)
-	{
-		ERROR << " IFORM = " << IFORM << std::endl
-
-		<< e.what();
-	}
+	return res;
 
 }
 
 template<typename TM>
-template<int IFORM>
-void Material<TM>::SelectCell(std::function<void(index_type)> const &fun, material_type material) const
+Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectCell(typename TM::iterator ib,
+        typename TM::iterator ie, material_type material) const
 {
+	return SelectRange(ib, ie, [&]( index_type s, index_type *c)->int
+	{	c[0]=s;
+		return (((this->material_[mesh._IForm(*ib)].at(mesh.Hash(s)) & material)).any())?1:0;
+	});
 
-	auto const & materials = material_[IFORM];
-	for (auto s : mesh.GetRange(IFORM))
-	{
-		try
-		{
-			if (((this->material_[IFORM].at(mesh.Hash(s)) & material)).any())
-			{
-				fun(s);
-			}
-		} catch (...)
-		{
-			ERROR << "Out of Range" << mesh.Hash(s);
-		}
-	}
 }
 
 template<typename TM>
-template<int IFORM, typename TDict>
-void Material<TM>::Select(std::function<void(index_type)> const &fun, TDict const & dict) const
+template<typename TDict>
+Range<SelectIterator<typename TM::iterator>> Material<TM>::Select(typename TM::iterator ib, typename TM::iterator ie,
+        TDict const & dict) const
 {
-
+	Range<SelectIterator<typename TM::iterator>> res(ie, ie);
 	if (dict["Type"])
 	{
 		auto type = dict["Type"].template as<std::string>("");
@@ -557,21 +549,23 @@ void Material<TM>::Select(std::function<void(index_type)> const &fun, TDict cons
 		if (type == "Boundary")
 		{
 			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			SelectBoundary<IFORM>(fun, material, null_material);
+			res = SelectBoundary(ib, ie, material, null_material);
 
 		}
 		else if (type == "Interface")
 		{
 			auto in = GetMaterialFromString(dict["In"].template as<std::string>());
 			auto out = GetMaterialFromString(dict["Out"].template as<std::string>());
-			SelectBoundary<IFORM>(fun, in, out);
+			res = SelectBoundary(ib, ie, in, out);
 		}
 		else if (type == "Element")
 		{
 			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			SelectCell<IFORM>(fun, material);
+			res = SelectCell(ib, ie, material);
 		}
 	}
+
+	return res;
 
 }
 

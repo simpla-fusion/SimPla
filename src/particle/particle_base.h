@@ -49,7 +49,7 @@ public:
 		return "unknown";
 	}
 
-	virtual size_t GetAffectedRegion() const
+	virtual size_t GetAffectedRange() const
 	{
 		return 2;
 	}

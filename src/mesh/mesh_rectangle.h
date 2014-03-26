@@ -24,7 +24,7 @@ template<typename > class EuclideanGeometry;
 
 class OcForest;
 /**
- *  Grid is mapped as a rectangle/hexahedrom region;
+ *  Grid is mapped as a rectangle/hexahedrom Range;
  *
  */
 template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanGeometry>

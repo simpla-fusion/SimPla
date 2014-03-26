@@ -67,7 +67,7 @@ public:
 	template<typename ... Args>
 	inline void SetDefineDomain(mesh_type const & mesh, Args const & ... args)
 	{
-		SelectVericsInRegion(mesh, [&](bool isSelected,index_type const & s )
+		SelectVericsInRange(mesh, [&](bool isSelected,index_type const & s )
 		{	if(isSelected) def_domain_.push_back(s);}, std::forward<Args const &>(args)...);
 
 	}

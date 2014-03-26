@@ -77,7 +77,7 @@ public:
 	{
 		return "Full";
 	}
-	size_t GetAffectedRegion() const
+	size_t GetAffectedRange() const
 	{
 		return 2;
 	}

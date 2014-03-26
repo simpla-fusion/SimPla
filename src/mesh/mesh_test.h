@@ -54,13 +54,13 @@ TYPED_TEST_CASE_P(TestMesh);
 //		mesh.SetDimensions(dims);
 //
 //		mesh.Update();
-////		auto region=mesh.GetRange(TestFixture::IForm);
+////		auto Range=mesh.GetRange(TestFixture::IForm);
 ////
-////		CHECK_BIT(region.begin()->d);
+////		CHECK_BIT(Range.begin()->d);
 ////
-////		CHECK_BIT(region.end()->d);
+////		CHECK_BIT(Range.end()->d);
 ////
-////		auto s=*region.begin();
+////		auto s=*Range.begin();
 ////
 ////		for (int i = 0; i < mesh.GetNumOfElements( TestFixture::IForm); ++i)
 ////		{
@@ -246,7 +246,7 @@ REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal/**/);
 //	cfg.ParseString(
 //			" Media=                                                                 "
 //			" {                                                                      "
-//			"    {Type=\"Vacuum\",Region={{0.2,0,0},{0.8,0,0}},Op=\"Set\"},          "
+//			"    {Type=\"Vacuum\",Range={{0.2,0,0},{0.8,0,0}},Op=\"Set\"},          "
 //			"                                                                        "
 //			"    {Type=\"Plasma\",                                                   "
 //			"      Select=function(x,y,z)                                            "

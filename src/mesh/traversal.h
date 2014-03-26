@@ -70,15 +70,15 @@ void ParallelCachedTraversal(TC const &tree, TF &&fun, Args && ...args)
 
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		auto region = tree.GetRegin(IFORM, num_threads, thread_id);
+		auto Range = tree.GetRegin(IFORM, num_threads, thread_id);
 
 		threads.emplace_back(
 
 		std::thread(
 
-		[region](TF fun2,typename Cache<Args>::type && ... args2 )
+		[Range](TF fun2,typename Cache<Args>::type && ... args2 )
 		{
-			for (auto s:region)
+			for (auto s:Range)
 			{
 				RefreshCache(s,args2...);
 

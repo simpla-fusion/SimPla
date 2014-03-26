@@ -50,7 +50,7 @@ private:
 
 	index_type cell_idx_;
 
-	int affect_region_;
+	int affect_Range_;
 
 	size_t num_of_points_;
 
@@ -63,7 +63,7 @@ public:
 	Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
-			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
 			num_of_points_(r.num_of_points_),
 
@@ -75,7 +75,7 @@ public:
 	Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
-			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
 			num_of_points_(r.num_of_points_),
 
@@ -84,8 +84,8 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_region = 2) :
-			mesh(f.mesh), f_(f), cell_idx_(s), affect_region_(affect_region), num_of_points_(0)
+	Field(field_type const & f, index_type const &s, int affect_Range = 2) :
+			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
 	{
 	}
 
@@ -96,7 +96,7 @@ public:
 	void RefreshCache(size_t s)
 	{
 		cell_idx_ = s;
-		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
+		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_Range_));
 		if (num_of_points_ == 0)
 		{
 			WARNING << "Empty Cache!";
@@ -105,7 +105,7 @@ public:
 		points_.resize(num_of_points_);
 		cache_.resize(num_of_points_);
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_Range_);
 
 		for (size_t i = 0; i < num_of_points_; ++i)
 		{
@@ -118,19 +118,19 @@ public:
 private:
 	void UpdateMeanValue(Int2Type<0>)
 	{
-		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_region_);
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
 	void UpdateMeanValue(Int2Type<3>)
 	{
-		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_region_);
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
 	void UpdateMeanValue(Int2Type<1>)
 	{
-		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_region_);
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
 	void UpdateMeanValue(Int2Type<2>)
 	{
-		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_region_);
+		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
 public:
 	inline field_value_type operator()(coordinates_type const &x) const
@@ -143,7 +143,7 @@ public:
 
 		if (idx == cell_idx_)
 		{
-			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_region_);
+			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_Range_);
 		}
 		else //failsafe
 		{
@@ -190,7 +190,7 @@ private:
 
 	index_type cell_idx_;
 
-	int affect_region_;
+	int affect_Range_;
 
 	size_t num_of_points_;
 
@@ -205,7 +205,7 @@ public:
 	Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
-			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
 			num_of_points_(r.num_of_points_),
 
@@ -215,7 +215,7 @@ public:
 	Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
-			cell_idx_(r.cell_idx_), affect_region_(r.affect_region_),
+			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
 			num_of_points_(r.num_of_points_),
 
@@ -224,8 +224,8 @@ public:
 	{
 	}
 
-	Field(field_type * f, int affect_region = 2) :
-			mesh(f->mesh), f_(f), affect_region_(affect_region), num_of_points_(0), cell_idx_(0), is_fresh_(false)
+	Field(field_type * f, int affect_Range = 2) :
+			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(0), cell_idx_(0), is_fresh_(false)
 	{
 	}
 
@@ -247,7 +247,7 @@ public:
 	{
 		cell_idx_ = s;
 
-		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_region_));
+		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_Range_));
 
 		if (num_of_points_ == 0)
 		{
@@ -257,7 +257,7 @@ public:
 		points_.resize(num_of_points_);
 		cache_.resize(num_of_points_);
 
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_region_);
+		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_Range_);
 
 		value_type zero_value_;
 
@@ -279,11 +279,11 @@ public:
 		{
 			field_value_type vv;
 			vv = v;
-			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_region_);
+			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_Range_);
 		}
 		else //failsafe
 		{
-			f_->Collect(v, idx, &pcoords[0], affect_region_);
+			f_->Collect(v, idx, &pcoords[0], affect_Range_);
 		}
 	}
 

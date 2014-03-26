@@ -319,7 +319,7 @@ struct OcForest
 	{
 
 		OcForest const & tree;
-
+		typedef index_type value_type;
 		index_type s_;
 
 		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
@@ -372,9 +372,9 @@ struct OcForest
 		}
 	};
 
-	Region<iterator> GetRange(int IFORM, int total = 1, int sub = 0) const
+	Range<iterator> GetRange(int IFORM, int total = 1, int sub = 0) const
 	{
-		return Region<iterator>( { begin(IFORM, total, sub), end(IFORM, total, sub) });
+		return Range<iterator>( { begin(IFORM, total, sub), end(IFORM, total, sub) });
 	}
 	/**
 	 *
@@ -837,6 +837,35 @@ struct OcForest
 
 	}
 
+	static int _IForm(compact_index_type s)
+	{
+		size_type res = 0;
+		switch (_N(s))
+		{
+		case 0:
+			res = VERTEX;
+			break;
+		case 1:
+		case 2:
+		case 4:
+			res = EDGE;
+			break;
+
+		case 3:
+		case 5:
+		case 6:
+			res = FACE;
+			break;
+
+		case 7:
+			res = VOLUME;
+		}
+		return res;
+	}
+	static int _IForm(index_type s)
+	{
+		return (_IForm(s.d));
+	}
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
 	{

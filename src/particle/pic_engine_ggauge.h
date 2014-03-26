@@ -65,7 +65,7 @@ public:
 	{
 	}
 
-	size_t GetAffectedRegion() const
+	size_t GetAffectedRange() const
 	{
 		return 4;
 	}
