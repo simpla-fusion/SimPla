@@ -33,16 +33,15 @@ bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 	if (dict.is_function())
 	{
 		f->Init();
-		mesh.template Traversal<IFORM>(
 
-		[&](typename mesh_type::index_type s)
+		for (auto s : mesh.GetRange(IFORM))
 		{
-			auto x=mesh.GetCoordinates(s);
+			auto x = mesh.GetCoordinates(s);
 
-			auto v=dict(x[0],x[1],x[2]).template as<field_value_type>();
+			auto v = dict(x[0], x[1], x[2]).template as<field_value_type>();
 
-			(*f)[s] = mesh.Sample(Int2Type<IFORM>(),s,v);
-		});
+			(*f)[s] = mesh.Sample(Int2Type<IFORM>(), s, v);
+		}
 
 	}
 	else if (dict.is_number() | dict.is_table())

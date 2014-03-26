@@ -162,22 +162,20 @@ TYPED_TEST(TestParticle,scatter_n){
 
 		Real pic =cfg["ion"]["PIC"].template as<Real>();
 
-		mesh. template Traversal<VERTEX>(
-				[&](index_type s)
-				{
-					coordinates_type x=mesh.GetCoordinates(s);
+		for(auto s:mesh.GetRange(VERTEX))
+		{
+			coordinates_type x=mesh.GetCoordinates(s);
 
-					Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
+			Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
 
-					n0[s]=expect;
+			n0[s]=expect;
 
-					scalar_type actual= n.get(s);
+			scalar_type actual= n.get(s);
 
-					average+=actual;
+			average+=actual;
 
-					variance+=std::pow( (expect-actual),2.0);
-				}
-		);
+			variance+=std::pow( (expect-actual),2.0);
+		}
 
 		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 		{

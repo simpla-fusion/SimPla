@@ -143,8 +143,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), material_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: isCompactStored_(true), material_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -198,12 +198,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		B.Clear();
 
-		mesh.template Traversal<FACE>([&](typename mesh_type::index_type s )
+		for (auto s : mesh.GetRange(FACE))
 		{
-			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));
-			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(),s,geqdsk.B(x[0],x[1]));
+			auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 
-		});
+		}
 
 		ne0.Clear();
 		Te0.Clear();
@@ -294,12 +294,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		if (opt.second["IsElectron"].template as<bool>(false))
 		{
 			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
-					ne0, Te0);
+			        ne0, Te0);
 		}
 		else
 		{
 			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
-					ne0, Ti0);
+			        ne0, Ti0);
 		}
 
 		if (flag)

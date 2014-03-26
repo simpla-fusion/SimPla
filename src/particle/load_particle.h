@@ -146,25 +146,23 @@ bool LoadParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 
 		multi_normal_distribution<mesh_type::NDIMS> v_dist;
 
-		mesh.template Traversal<TP::IForm>(
-
-		[&](typename mesh_type::index_type s)
+		for (auto s : mesh.GetRange(TP::IForm))
 		{
 
-			nTuple<3,Real> x,v;
+			nTuple<3, Real> x, v;
 
-			Real inv_sample_density=1.0/pic;
+			Real inv_sample_density = 1.0 / pic;
 
-			for(int i=0;i<pic;++i)
+			for (int i = 0; i < pic; ++i)
 			{
-				x_dist(rnd_gen,&x[0]);
-				v_dist(rnd_gen,&v[0]);
+				x_dist(rnd_gen, &x[0]);
+				v_dist(rnd_gen, &v[0]);
 
-				x=mesh.CoordinatesLocalToGlobal(s,x);
-				v=mesh.PushForward(x,v) * vT(x);
-				p->Insert(s, engine_type::make_point(x, v,n(x)*inv_sample_density ));
+				x = mesh.CoordinatesLocalToGlobal(s, x);
+				v = mesh.PushForward(x, v) * vT(x);
+				p->Insert(s, engine_type::make_point(x, v, n(x) * inv_sample_density));
 			}
-		});
+		}
 	}
 	else // read data from file
 	{

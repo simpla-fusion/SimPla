@@ -130,9 +130,8 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	auto ymin = mesh.GetExtent().first;
 	auto ymax = mesh.GetExtent().second;
 
-	mesh.template Traversal<VERTEX>(
 
-	[&](index_type s)
+	for (auto s : mesh.GetRange(VERTEX))
 	{
 		coordinates_type x=mesh.GetCoordinates(s);
 
@@ -151,7 +150,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 				s0[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[n] - xmax[n]);
 			};
 		}
-	});
+	}
 
 	is_loaded_ = true;
 

@@ -15,7 +15,6 @@
 #include "../../src/fetl/primitives.h"
 
 #include "../../src/mesh/octree_forest.h"
-#include "../../src/mesh/traversal.h"
 #include "../../src/mesh/mesh_rectangle.h"
 #include "../../src/mesh/geometry_cylindrical.h"
 #include "../../src/mesh/geometry_euclidean.h"

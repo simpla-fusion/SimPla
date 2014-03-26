@@ -123,28 +123,26 @@ TYPED_TEST(TestMaterial,create ){
 		v2[i] = v[0][i]-TestFixture::dh[i]*2;
 		v3[i] = v[1][i]+TestFixture::dh[i]*2;
 	}
-	mesh.template Traversal<TestFixture::IForm>(
-			[&](index_type s)
-			{
-				auto x=mesh.GetCoordinates(s);
+	for (auto s : mesh.GetRange(IForm))
+	{
+		auto x=mesh.GetCoordinates(s);
 
-				if( ((((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
-								(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
-								(((v0[2]-x[2])*(x[2]-v1[2]))>=0))
-				)
-				{
-					ASSERT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
-				}
+		if( ((((v0[0]-x[0])*(x[0]-v1[0]))>=0)&&
+						(((v0[1]-x[1])*(x[1]-v1[1]))>=0)&&
+						(((v0[2]-x[2])*(x[2]-v1[2]))>=0))
+		)
+		{
+			ASSERT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
+		}
 
-				if( !(((v2[0]-x[0])*(x[0]-v3[0]))>=0)&&
-						(((v2[1]-x[1])*(x[1]-v3[1]))>=0)&&
-						(((v2[2]-x[2])*(x[2]-v3[2]))>=0))
-				{
-					ASSERT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
-				}
-			}
+		if( !(((v2[0]-x[0])*(x[0]-v3[0]))>=0)&&
+				(((v2[1]-x[1])*(x[1]-v3[1]))>=0)&&
+				(((v2[2]-x[2])*(x[2]-v3[2]))>=0))
+		{
+			ASSERT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
+		}
+	}
 
-	);
 	std::cout<<Dump(f,"f" ,false)<<std::endl;
 
 	v.emplace_back(coordinates_type(

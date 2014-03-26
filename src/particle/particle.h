@@ -204,8 +204,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
 {
 }
 
@@ -388,17 +388,13 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	NextTimeStep(dt, std::forward<Args const&>(args) ...);
 
-	mesh.template Traversal<IForm>(
-
-	[&](index_type const &s, Args const & ... args2)
+	for (auto s : mesh.GetRange(IForm))
 	{
 		for (auto & p : this->data_[mesh.Hash(s)])
 		{
-			engine_type::NextTimeStep(&p, dt, args2...);
+			engine_type::NextTimeStep(&p, dt, args ...);
 		}
-	}, std::forward<Args const &>(args)...
-
-	);
+	}
 
 	isSorted_ = false;
 
@@ -419,19 +415,15 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	mesh.template Traversal<IForm>(
-
-	[&](index_type s,TJ * J2,Args const & ... args2)
+	for (auto s : mesh.GetRange(IForm))
 	{
 
 		for (auto const& p : this->data_[mesh.Hash(s)])
 		{
-			engine_type::Scatter(p, J2 , args2...);
+			engine_type::Scatter(p, J, args ...);
 		}
 
-	}, J, std::forward<Args const &>(args) ...
-
-	);
+	}
 
 }
 
@@ -487,7 +479,6 @@ void Particle<Engine>::Boundary(int flag, TMaterialTag in, TMaterialTag out, Rea
 //
 //// @NOTE: is a simple implement, need  parallism
 //
-//	mesh.SerialTraversal(VERTEX, fun);
 
 }
 template<class Engine> template<typename ... Args>

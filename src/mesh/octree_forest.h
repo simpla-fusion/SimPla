@@ -23,11 +23,6 @@
 namespace simpla
 {
 
-template<int IFORM, typename TC, typename TF, typename ... Args>
-void Traversal(TC const &tree, TF &&fun, Args && ...args);
-template<int IFORM, typename TC, typename TF, typename ... Args>
-void ParallelTraversal(TC const &tree, TF &&fun, Args && ...args);
-
 struct OcForest
 {
 

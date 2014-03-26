@@ -54,8 +54,8 @@ public:
 
 	mesh_type const &mesh;
 
-	Material(mesh_type const & m) :
-			null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
+	Material(mesh_type const & m)
+			: null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
 	{
 		register_material_.emplace("NONE", null_material);
 
@@ -352,7 +352,7 @@ public:
 
 	template<int IFORM>
 	void SelectBoundary(std::function<void(index_type)> const &fun, std::string const & in,
-			std::string const & out) const
+	        std::string const & out) const
 	{
 		SelectBoundary<IFORM>(fun, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
@@ -395,23 +395,21 @@ private:
 
 		try
 		{
-			mesh.template Traversal<IFORM>(
-
-			[&](index_type s )
+			for (auto s : mesh.GetRange(IFORM))
 			{
 
 				index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
-				int n=mesh.template GetAdjacentCells(Int2Type<IFORM>(),Int2Type<VERTEX>(),s,v);
+				int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
 
 				material_type flag = null_material;
-				for(int i=0;i<n;++i)
+				for (int i = 0; i < n; ++i)
 				{
-					flag|=material_[VERTEX].at(mesh.Hash(v[i]));
+					flag |= material_[VERTEX].at(mesh.Hash(v[i]));
 				}
-				material_[IFORM].at(mesh.Hash(s))=flag;
+				material_[IFORM].at(mesh.Hash(s)) = flag;
 
-			});
+			}
 		} catch (std::out_of_range const &e)
 		{
 			ERROR << " I = " << IFORM << std::endl
@@ -497,28 +495,26 @@ void Material<TM>::SelectBoundary(std::function<void(index_type)> const &fun, ma
 
 	try
 	{
-		mesh.template Traversal<IFORM>(
-
-		[&]( index_type s )
+		for (auto s : mesh.GetRange(IFORM))
 		{
-			if((this->material_[IFORM].at(mesh.Hash(s))&in).none() &&
-					(this->material_[IFORM].at(mesh.Hash(s))&out).any() )
+			if ((this->material_[IFORM].at(mesh.Hash(s)) & in).none()
+			        && (this->material_[IFORM].at(mesh.Hash(s)) & out).any())
 			{
 				index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-				int num=this->mesh.GetAdjacentCells(Int2Type<IFORM>(),Int2Type<VOLUME>(),s,neighbours );
+				int num = this->mesh.GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VOLUME>(), s, neighbours);
 
-				for(int i=0;i<num;++i)
+				for (int i = 0; i < num; ++i)
 				{
-					if(((this->material_[VOLUME].at(mesh.Hash(neighbours[i]))&in) ).any())
+					if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
 					{
-						fun( s );
+						fun(s);
 						break;
 					}
 				}
 			}
 
-		});
+		}
 	} catch (std::out_of_range const &e)
 	{
 		ERROR << " IFORM = " << IFORM << std::endl
@@ -534,20 +530,19 @@ void Material<TM>::SelectCell(std::function<void(index_type)> const &fun, materi
 {
 
 	auto const & materials = material_[IFORM];
-	mesh.template Traversal<IFORM>(
-
-	[&]( index_type s )
+	for (auto s : mesh.GetRange(IFORM))
 	{
 		try
 		{
-			if(((this->material_[IFORM].at(mesh.Hash(s))&material) ).any())
-			{	fun( s );}
-		}
-		catch(...)
+			if (((this->material_[IFORM].at(mesh.Hash(s)) & material)).any())
+			{
+				fun(s);
+			}
+		} catch (...)
 		{
-			ERROR<<"Out of Range"<<mesh.Hash(s);
+			ERROR << "Out of Range" << mesh.Hash(s);
 		}
-	});
+	}
 }
 
 template<typename TM>
