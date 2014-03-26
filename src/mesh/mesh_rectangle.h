@@ -44,14 +44,14 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 
-	RectMesh() :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh()
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(TDict const & dict)
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(dict);
 	}
@@ -402,21 +402,21 @@ public:
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
 		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
+		auto a= geometry_type::InvDualVolume(s)*geometry_type::Volume(s);
 		return
 		((
-				f[s + X]*geometry_type::InvVolume(s+X)*geometry_type::DualVolume(s+X)-
-				f[s - X]*geometry_type::InvVolume(s-X)*geometry_type::DualVolume(s-X)
+				f[s + X]*(geometry_type::InvVolume(s+X)*geometry_type::DualVolume(s+X)*a)-
+				f[s - X]*(geometry_type::InvVolume(s-X)*geometry_type::DualVolume(s-X)*a)
 
 		) + (
-				f[s + Y]*geometry_type::InvVolume(s+Y)*geometry_type::DualVolume(s+Y)-
-				f[s - Y]*geometry_type::InvVolume(s-Y)*geometry_type::DualVolume(s-Y)
+				f[s + Y]*(geometry_type::InvVolume(s+Y)*geometry_type::DualVolume(s+Y)*a)-
+				f[s - Y]*(geometry_type::InvVolume(s-Y)*geometry_type::DualVolume(s-Y)*a)
 
 		) + (
-				f[s + Z]*geometry_type::InvVolume(s+Z)*geometry_type::DualVolume(s+Z) -
-				f[s - Z]*geometry_type::InvVolume(s-Z)*geometry_type::DualVolume(s-Z)
+				f[s + Z]*(geometry_type::InvVolume(s+Z)*geometry_type::DualVolume(s+Z)*a) -
+				f[s - Z]*(geometry_type::InvVolume(s-Z)*geometry_type::DualVolume(s-Z)*a)
 
-		) )*geometry_type::InvDualVolume(s)*geometry_type::Volume(s)
-
+		) )
 		;
 
 	}
@@ -427,20 +427,18 @@ public:
 		auto X = topology_type::_D(s);
 		auto Y = topology_type::_R(X);
 		auto Z = topology_type::_RR(X);
-
+		Real a= geometry_type::InvDualVolume(s) *geometry_type::Volume(s);
 		return (
 
-		f[s + Y]*geometry_type::InvVolume(s + Y)*geometry_type::DualVolume(s + Y)
+		f[s + Y]*(geometry_type::InvVolume(s + Y)*geometry_type::DualVolume(s + Y)*a)
 
-		-f[s - Y]*geometry_type::InvVolume(s - Y)*geometry_type::DualVolume(s - Y)
+		-f[s - Y]*(geometry_type::InvVolume(s - Y)*geometry_type::DualVolume(s - Y)*a)
 
-		-f[s + Z]*geometry_type::InvVolume(s + Z)*geometry_type::DualVolume(s + Z)
+		-f[s + Z]*(geometry_type::InvVolume(s + Z)*geometry_type::DualVolume(s + Z)*a)
 
-		+f[s - Z]*geometry_type::InvVolume(s - Z)*geometry_type::DualVolume(s - Z)
+		+f[s - Z]*(geometry_type::InvVolume(s - Z)*geometry_type::DualVolume(s - Z)*a)
 
 		)
-//		*geometry_type::InvDualVolume(s)
-		*geometry_type::Volume(s)
 		;
 	}
 
@@ -448,14 +446,14 @@ public:
 	index_type s)const-> decltype(f[s]-f[s])
 	{
 		auto d = topology_type::_D( topology_type::_Dual(s) );
+		auto a=geometry_type::InvDualVolume(s) *geometry_type::Volume(s);
+		return
+		(
+		f[s + d]*(geometry_type::InvVolume(s + d) *geometry_type::DualVolume(s + d)*a)
 
-		return (
+		- f[s - d]*(geometry_type::InvVolume(s - d) *geometry_type::DualVolume(s - d)*a)
 
-		f[s + d]*geometry_type::InvVolume(s + d)*geometry_type::DualVolume(s + d)
-
-		- f[s - d]*geometry_type::InvVolume(s - d)*geometry_type::DualVolume(s - d)
-
-		)*geometry_type::InvDualVolume(s)*geometry_type::Volume(s);
+		);
 	}
 
 //***************************************************************************************************

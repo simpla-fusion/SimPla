@@ -25,14 +25,8 @@ protected:
 	{
 		Logger::Verbose(10);
 
-//		nTuple<3, Real> xmin = { 0, 0, 0 };
-//		nTuple<3, Real> xmax = { 1, 1, 1 };
-//		mesh.SetExtent(xmin, xmax);
-//
-//		nTuple<3, size_t> dims = { 32, 32, 32 };
-//		mesh.SetDimensions(dims);
-//		mesh.Update();
 		TParam::SetUpMesh(&mesh);
+		TParam::SetDefaultValue(&default_value);
 	}
 public:
 
@@ -45,6 +39,7 @@ public:
 	typedef Field<mesh_type, IForm, value_type> FieldType;
 
 	mesh_type mesh;
+	value_type default_value;
 
 };
 

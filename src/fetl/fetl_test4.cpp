@@ -12,10 +12,47 @@
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
 
-typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
-DEFINE_FIELDS(mesh_type)
+typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
 
-typedef testing::Types<Field<mesh_type, VERTEX, Real>, Field<mesh_type, VERTEX, Complex> > AllFieldTypes;
+typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
 
-INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLVecField, AllFieldTypes);
+template<typename TV, int IFORM>
+struct TestFETLParam<Mesh, TV, IFORM>
+{
+	typedef Mesh mesh_type;
+	typedef TV value_type;
+	static constexpr int IForm = IFORM;
+
+	static void SetUpMesh(mesh_type * mesh)
+	{
+
+		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+
+		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+
+		nTuple<3, size_t> dims = { 16, 32, 67 };
+
+		mesh->SetExtent(xmin, xmax);
+
+		mesh->SetDimensions(dims);
+
+		mesh->Update();
+
+	}
+
+	static void SetDefaultValue(value_type * v)
+	{
+		::SetDefaultValue(v);
+	}
+};
+
+typedef testing::Types<
+
+TestFETLParam<Mesh, Real, VERTEX>,
+
+TestFETLParam<Mesh, Complex, VERTEX>
+
+> ParamList;
+
+INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLVecField, ParamList);
 

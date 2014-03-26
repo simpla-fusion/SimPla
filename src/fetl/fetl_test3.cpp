@@ -25,30 +25,44 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
 
 		0.0, 0.0, 0.0,
 
-		-1.0, -1.0, -1.0,
+		0.0, 0.0, 0.0,
+
+		0.0, 0.0, 0.0,
 
 		0.0, 0.0, 0.0,
 
 		0.0, 0.0, 0.0,
 
-		};
+		0.0, 0.0, 0.0,
+
+		0.0, 0.0, 0.0,
+
+		-1.0, -1.0, -1.0 };
 
 		nTuple<3, Real> xmax[] = {
 
 		1.0, 1.0, 1.0,
 
-		1.0, 2.0, 3.0,
+		2.0, 0.0, 0.0,
+
+		0.0, 2.0, 0.0,
 
 		0.0, 0.0, 2.0,
 
-		2.0, 0.0, 2.0
+		0.0, 2.0, 2.0,
+
+		2.0, 0.0, 2.0,
+
+		2.0, 2.0, 0.0,
+
+		1.0, 2.0, 3.0
 
 		};
 
 		constexpr int NUM_DIMS_TEST = 8;
 		nTuple<3, size_t> dims[] = {
 
-		17, 33, 65
+		16, 16, 16
 
 		, 17, 1, 1
 
@@ -82,6 +96,19 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
 typedef testing::Types<
 
 TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 0> //,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 10>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 20>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 30>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 40>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 50>,
+//
+//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 60>,
+
 //
 //TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 1>,
 //

@@ -22,31 +22,25 @@
 
 using namespace simpla;
 
-template<typename TF>
+template<typename TParam>
 class TestFETLVecField: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-
-		nTuple<3, size_t> dims = { 20, 1, 1 };
-		mesh.SetDimensions(dims);
-
-		mesh.Update();
-
+		TParam::SetUpMesh(&mesh);
+		TParam::SetDefaultValue(&default_value);
 	}
 public:
 
-	typedef typename TF::mesh_type mesh_type;
-	typedef typename TF::value_type value_type;
+	typedef typename TParam::mesh_type mesh_type;
+	typedef typename TParam::value_type value_type;
 	typedef nTuple<3, value_type> Vec3;
 	typedef Field<mesh_type, VERTEX, value_type> ScalarField;
 	typedef Field<mesh_type, VERTEX, nTuple<3, value_type> > VectorField;
 
 	mesh_type mesh;
+	value_type default_value;
 };
 
 TYPED_TEST_CASE_P(TestFETLVecField);

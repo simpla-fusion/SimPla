@@ -15,36 +15,30 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 using namespace simpla;
-template<typename TF>
+template<typename TParam>
 class TestFETLVecAlgegbra: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-
-		nTuple<3, size_t> dims =
-		{ 20, 1, 1 };
-		mesh.SetDimensions(dims);
-
-		mesh.Update();
-
+		TParam::SetUpMesh(&mesh);
+		TParam::SetDefaultValue(&default_value);
 	}
 public:
-	typedef TF FieldType;
 
-	typedef typename TF::mesh_type mesh_type;
-	typedef typename TF::value_type value_type;
+	typedef typename TParam::mesh_type mesh_type;
+	typedef typename TParam::value_type value_type;
+	static constexpr int IForm = TParam::IForm;
+
 	typedef typename mesh_type::index_type index_type;
 
 	typedef nTuple<3, value_type> Vec3;
+	typedef Field<mesh_type, IForm, value_type> FieldType;
 	typedef Field<mesh_type, VERTEX, value_type> ScalarField;
 
 	mesh_type mesh;
+	value_type default_value;
+
 };
 
 TYPED_TEST_CASE_P(TestFETLVecAlgegbra);
