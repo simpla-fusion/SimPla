@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "fetl.h"
-#include "ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 

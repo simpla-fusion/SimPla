@@ -8,7 +8,6 @@
 #ifndef FETL_TEST4_H_
 #define FETL_TEST4_H_
 
-#include "fetl_test.h"
 
 #include <gtest/gtest.h>
 #include <random>
@@ -18,7 +17,6 @@
 
 #include "fetl.h"
 #include "ntuple.h"
-#include "../mesh/traversal.h"
 
 using namespace simpla;
 
