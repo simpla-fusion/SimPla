@@ -15,7 +15,6 @@
 #include <map>
 #include <memory>
 #include <string>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -27,6 +26,8 @@
 #include "../utilities/memory_pool.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
+#include "../utilities/parallel.h"
+
 #include "../io/data_stream.h"
 #include "particle_base.h"
 #include "load_particle.h"
@@ -47,11 +48,7 @@ class Particle: public Engine
 {
 
 public:
-
-	enum
-	{
-		IForm = 3
-	};
+	static constexpr int IForm = VOLUME;
 
 	enum
 	{
@@ -204,8 +201,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
 {
 }
 
@@ -316,18 +313,18 @@ void Particle<Engine>::Resort(index_type src, container_type *other)
 {
 	if (other == nullptr)
 		other = &(this->data_);
-	auto & cell = this->data_[src];
+	auto & cell = this->data_[mesh.Hash(src)];
 	auto pt = cell.begin();
 	while (pt != cell.end())
 	{
 		auto p = pt;
 		++pt;
 
-		auto dest = this->mesh.SearchCell(src, &(p->x[0]));
+		index_type dest = this->mesh.GetIndex(p->x);
 
-		if (dest != src)
+		if (!(dest == src))
 		{
-			(*other)[dest].splice((*other)[dest].begin(), cell, p);
+			(*other)[mesh.Hash(dest)].splice((*other)[mesh.Hash(dest)].begin(), cell, p);
 		}
 
 	}
@@ -339,39 +336,29 @@ void Particle<Engine>::Sort()
 
 	Initiallize();
 
-//	if (IsSorted())
-//		return;
-//	try
-//	{
-//		mesh.template Trversal<IForm>(
-//
-//		[&](index_type const &s, container_type * d)
-//		{
-//
-//			Resort(s,d);
-//		}, &(this->mt_data_[0]))
-//
-//		);
-//
-//		mesh.template Trversal<IForm>(
-//
-//		[&](index_type ss )
-//		{
-//
-//			auto s=mesh.Hash(ss);
-//
-//			this->data_[s].splice(this->data_[s].begin(),this->mt_data_[i][s] );
-//
-//		}
-//
-//		);
-//
-//	} catch (std::exception const & e)
-//	{
-//		ERROR << e.what();
-//	}
-//
-//	isSorted_ = true;
+	if (IsSorted())
+		return;
+
+	Cocurrent([=](int t_num,int t_id)
+	{
+		for (auto s : this->mesh.GetRange(IForm,t_num ,t_id))
+		{
+			this->Resort(s, &(this->mt_data_[t_id]));
+		}
+	});
+
+	Cocurrent([=](int t_num,int t_id)
+	{
+		for (auto s : this->mesh.GetRange(IForm, t_num, t_id))
+		{
+			auto n = this->mesh.Hash(s);
+
+			this->data_[n].splice(this->data_[n].begin(), this->mt_data_[t_id][n]);
+
+		}
+	});
+
+	isSorted_ = true;
 }
 
 template<class Engine>

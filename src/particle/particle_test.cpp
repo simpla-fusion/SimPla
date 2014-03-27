@@ -33,11 +33,14 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<3, size_t> dims = { 200, 0, 0 };
+		nTuple<3, size_t> dims =
+		{ 200, 0, 0 };
 		mesh.SetDimensions(dims);
 
-		nTuple<3, Real> xmin = { 0, 0, 0 };
-		nTuple<3, Real> xmax = { 1, 1, 1 };
+		nTuple<3, Real> xmin =
+		{ 0, 0, 0 };
+		nTuple<3, Real> xmax =
+		{ 1, 1, 1 };
 		mesh.SetExtent(xmin, xmax);
 		mesh.SetDt(1.0);
 		mesh.Update();
@@ -62,7 +65,9 @@ public:
 
 	typedef typename TEngine::scalar_type scalar_type;
 
-	DEFINE_FIELDS(mesh_type)
+	typedef typename mesh_type::index_type index_type;
+
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type mesh;
 
@@ -133,12 +138,12 @@ TYPED_TEST(TestParticle,scatter_n){
 	LuaObject cfg;
 	cfg.ParseString(TestFixture::cfg_str);
 
-	ion.Load(cfg["ion"]);
-
 	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
 
-	typename TestFixture::template Form<EDGE> E(mesh);
-	typename TestFixture::template Form<FACE> B(mesh);
+	ion.Load(cfg["ion"]);
+
+	Field<mesh_type,EDGE,Real> E(mesh);
+	Field<mesh_type,FACE,Real> B(mesh);
 
 	E.Fill(1.0);
 	B.Fill(1.0);
@@ -210,8 +215,8 @@ TYPED_TEST(TestParticle,scatter_J){
 	mesh_type const & mesh = TestFixture::mesh;
 
 	Field<mesh_type,EDGE,scalar_type> J(mesh);
-	typename TestFixture::template Form<EDGE> E(mesh);
-	typename TestFixture::template Form<FACE> B(mesh);
+	Field<mesh_type,EDGE,scalar_type> E(mesh);
+	Field<mesh_type,FACE,scalar_type> B(mesh);
 
 	E.Init();
 	B.Init();

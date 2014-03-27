@@ -237,8 +237,8 @@ struct Range
 	}
 
 	template<typename T>
-	Range(T b, T e)
-			: ib(b), ie(e)
+	Range(T b, T e) :
+			ib(b), ie(e)
 	{
 	}
 
@@ -253,6 +253,11 @@ struct Range
 	{
 		return ie;
 	}
+	// TODO
+	//	Range<TI> splite(int num, int id)
+	//	{
+	//		return Range<TI>(ib + (ie - ib) * id / num, ib + (ie - ib) * (id + 1) / num);
+	//	}
 };
 
 //******************************************************************************************************
@@ -384,12 +389,12 @@ public:
 	typedef std::tuple<Args...> args_tuple_type;
 	std::tuple<Args...> args_;
 
-	Visitor(std::string const &name, Args ... args)
-			: name_(name), args_(std::make_tuple(args...))
+	Visitor(std::string const &name, Args ... args) :
+			name_(name), args_(std::make_tuple(args...))
 	{
 	}
-	Visitor(Args ... args)
-			: name_(""), args_(std::make_tuple(args...))
+	Visitor(Args ... args) :
+			name_(""), args_(std::make_tuple(args...))
 	{
 	}
 	~Visitor()

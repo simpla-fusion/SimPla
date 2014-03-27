@@ -23,6 +23,12 @@
 namespace simpla
 {
 
+template<typename TDict, typename TP>
+bool LoadParticle(TP *p, TDict const &dict)
+{
+	return false;
+}
+
 template<typename TDict, typename TP, typename TN, typename TT>
 bool LoadParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 {

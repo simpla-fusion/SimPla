@@ -574,7 +574,7 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 
 		if (type == "Boundary")
 		{
-			res = Select(ib, ie, dict["Material"].template as<std::string>(), null_material);
+			res = Select(ib, ie, dict["Material"].template as<std::string>(), "NONE");
 
 		}
 		else if (type == "Interface")
