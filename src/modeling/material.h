@@ -186,16 +186,6 @@ public:
 //		;
 	}
 
-	void Init(int I = VERTEX)
-	{
-		size_t num = mesh.GetNumOfElements(I);
-
-		if (material_[I].size() < num)
-		{
-			material_[I].resize(num, null_material);
-		}
-	}
-
 	template<typename TCmd>
 	void Modify(TCmd const& cmd)
 	{
@@ -276,12 +266,12 @@ public:
 	template<typename ...Args> inline
 	void Remove(std::string material, Args const & ... args)
 	{
-		Set(~GetMaterialFromString(material), std::forward<Args const &>(args)...);
+		Remove(GetMaterialFromString(material), std::forward<Args const &>(args)...);
 	}
 	template<typename ...Args> inline
 	void Remove(unsigned int material, Args const & ... args)
 	{
-		Set(~GetMaterialFromNumber(material), std::forward<Args const &>(args)...);
+		Remove(GetMaterialFromNumber(material), std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -312,23 +302,33 @@ public:
 	template<typename ...Args>
 	void Remove(material_type material, Args const & ... args)
 	{
-
 		_ForEachVertics([&]( material_type &v)
-		{	v^=material;},
-
-		std::forward<Args const &>(args)...);
+		{	v&=~material;}, std::forward<Args const &>(args)...);
 	}
 
+	void Init(int I = VERTEX)
+	{
+		size_t num = mesh.GetNumOfElements(I);
+
+		if (material_[I].size() < num)
+		{
+			material_[I].resize(num, null_material);
+		}
+	}
 	/**
 	 *  Update material on edge ,face and cell, base on material on vertics
 	 */
 	void Update()
 	{
-		Init(VERTEX);
+
 		if (isChanged_)
 		{
+			Init(VERTEX);
+			Init(EDGE);
 			_UpdateMaterials<EDGE>();
+			Init(FACE);
 			_UpdateMaterials<FACE>();
+			Init(VOLUME);
 			_UpdateMaterials<VOLUME>();
 			isChanged_ = false;
 		}
@@ -342,7 +342,7 @@ public:
 	typedef Range<IteratorFilter<iterator>> range_type;
 
 	template<int IFORM, typename ...Args>
-	range_type SelectCell(Args const & ... args)
+	range_type SelectCell(Args const & ... args) const
 	{
 		return Select(mesh.begin(IFORM), mesh.end(IFORM), std::forward<Args const &>(args)...);
 	}
@@ -391,7 +391,10 @@ private:
 	template<typename ...Args>
 	void _ForEachVertics(std::function<void(material_type&)> fun, Args const & ... args)
 	{
-		Init();
+
+		isChanged_ = true;
+
+		Init(VERTEX);
 
 		for (auto s : Filter(mesh.begin(VERTEX), mesh.end(VERTEX), mesh, std::forward<Args const&>(args)...))
 		{
@@ -404,13 +407,10 @@ private:
 	{
 		LOGGER << "Update Material " << IFORM;
 
-		Init(IFORM);
-
 		try
 		{
 			for (auto s : mesh.GetRange(IFORM))
 			{
-
 				index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
 				int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
@@ -511,11 +511,12 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 
 	res = FilterRange(ib, ie,
 
-	[&]( typename TM::iterator s, index_type *c)->int
+	[=]( typename TM::iterator s, typename TM::iterator::value_type *c)->int
 	{
-		int count=0;
-		if ((this->material_[IFORM].at(mesh.Hash((*s))) & in).none()
-				&& (this->material_[IFORM].at(mesh.Hash((*s))) & out).any())
+		c[0]=*s;
+		int res=0;
+		if ((this->material_[IFORM].at(this->mesh.Hash((*s))) & in).none()
+				&& (this->material_[IFORM].at(this->mesh.Hash((*s))) & out).any())
 		{
 			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
@@ -536,15 +537,15 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 			}
 			for (int i = 0; i < num; ++i)
 			{
-				if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
+				if (((this->material_[VOLUME].at(this->mesh.Hash(neighbours[i])) & in)).any())
 				{
-					c[count]=neighbours[i];
-					++count;
+					res=1;
+					break;
 				}
 			}
 		}
 
-		return count;
+		return res;
 	});
 
 	return res;
@@ -554,10 +555,11 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 template<typename TM>
 typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, material_type material) const
 {
-	return FilterRange(ib, ie, [&]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
-	{	c[0]=*it;
-		return (((this->material_[mesh._IForm(*ib)].at(mesh.Hash(*it)) & material)).any())?1:0;
-	});
+	return FilterRange(ib, ie,
+	        [= ]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
+	        {	c[0]=*it;
+		        return (((this->material_[this->mesh._IForm(c[0])].at(this->mesh.Hash(c[0])) & material)).any())?1:0;
+	        });
 
 }
 
@@ -572,20 +574,16 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 
 		if (type == "Boundary")
 		{
-			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			res = Select(ib, ie, material, null_material);
+			res = Select(ib, ie, dict["Material"].template as<std::string>(), null_material);
 
 		}
 		else if (type == "Interface")
 		{
-			auto in = GetMaterialFromString(dict["In"].template as<std::string>());
-			auto out = GetMaterialFromString(dict["Out"].template as<std::string>());
-			res = Select(ib, ie, in, out);
+			res = Select(ib, ie, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
 		}
 		else if (type == "Element")
 		{
-			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			res = Select(ib, ie, material);
+			res = Select(ib, ie, dict["Material"].template as<std::string>());
 		}
 	}
 

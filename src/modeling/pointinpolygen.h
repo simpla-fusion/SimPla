@@ -56,6 +56,12 @@ public:
 		}
 	}
 
+	PointInPolygen(PointInPolygen const& rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
+			        rhs.multiple_), Z_(rhs.Z_)
+	{
+
+	}
 	PointInPolygen(PointInPolygen && rhs)
 			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
 			        rhs.multiple_), Z_(rhs.Z_)

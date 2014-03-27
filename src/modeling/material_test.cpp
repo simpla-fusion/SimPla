@@ -32,9 +32,11 @@ protected:
 		auto extent = mesh.GetExtent();
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			dh[i] = (dims[i] > 1) ? (extent.first[i] - extent.second[i]) / dims[i] : 0;
+			dh[i] = (dims[i] > 1) ? (extent.second[i] - extent.first[i]) / dims[i] : 0;
 		}
 
+		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
+		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 public:
 
@@ -64,9 +66,6 @@ TYPED_TEST_P(TestMaterial,create ){
 //	std::mt19937 gen;
 //	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
-
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::index_type index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
@@ -84,7 +83,6 @@ TYPED_TEST_P(TestMaterial,create ){
 					{	0.8*extent.second[0], 0.8*extent.second[1], 0.2*extent.first[2]}));
 
 	material.Set("Plasma",v);
-
 	material.Update();
 
 	typename TestFixture::field_type f(mesh);
@@ -95,6 +93,7 @@ TYPED_TEST_P(TestMaterial,create ){
 	{
 		f[s]=1;
 	}
+	LOGGER<<DUMP(f);
 
 	coordinates_type v0,v1,v2,v3;
 	for (int i = 0; i <TestFixture:: NDIMS; ++i)
@@ -114,49 +113,48 @@ TYPED_TEST_P(TestMaterial,create ){
 						(((v0[2]-x[2])*(x[2]-v1[2]))>=0))
 		)
 		{
-			ASSERT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
+			EXPECT_TRUE(f[s]==1)<< (mesh.GetCoordinates(s));
 		}
 
 		if( !(((v2[0]-x[0])*(x[0]-v3[0]))>=0)&&
 				(((v2[1]-x[1])*(x[1]-v3[1]))>=0)&&
 				(((v2[2]-x[2])*(x[2]-v3[2]))>=0))
 		{
-			ASSERT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
+			EXPECT_FALSE(f[s]==1)<< (mesh.GetCoordinates(s));
 		}
 	}
-
-	LOGGER<<DUMP(f );
 
 	v.emplace_back(coordinates_type(
 					{	0.3*extent.second[0], 0.6*extent.second[1], 0.2*extent.first[2]}));
 
 	material.Remove("Plasma",v );
+	material.Update();
 
 	f.Clear();
-
-	material.Update();
 
 	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ))
 	{
 		f[s]=1;
 	}
 
+	LOGGER<<DUMP(f );
+
 	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
 		f[s]=10;
 	}
 
-//	material.template SelectBoundary<TestFixture::IForm>(
-//			[&](index_type const & s ,coordinates_type const & x)
-//			{	f[s]=-10;},"Vacuum","Plasma" );
+//	for(auto s:material.Select( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) , "Vacuum","Plasma" ))
+//	{
+//		f[s]=-10;
+//	}
 	LOGGER<<DUMP(f );
-
 }
 }
 
 REGISTER_TYPED_TEST_CASE_P(TestMaterial, create);
 
-template<typename TM, typename TV = double, int ICase = 0> struct TestFETLParam;
+template<typename TM, typename TV, int IFORM> struct TestFETLParam;
 
 template<typename TV, int IFORM>
 struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
@@ -185,10 +183,12 @@ typedef testing::Types<
 
 TestFETLParam<mesh_type, Real, VERTEX>,
 
-TestFETLParam<mesh_type, Real, EDGE>,
+TestFETLParam<mesh_type, Real, EDGE>  ,
 
 TestFETLParam<mesh_type, Real, FACE>,
 
-TestFETLParam<mesh_type, Real, VOLUME> > ParamList;
+TestFETLParam<mesh_type, Real, VOLUME>
+
+> ParamList;
 
 INSTANTIATE_TYPED_TEST_CASE_P(MATERIAL, TestMaterial, ParamList);
