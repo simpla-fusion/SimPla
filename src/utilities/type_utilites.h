@@ -232,7 +232,19 @@ struct Range
 {
 	typedef TI iterator;
 	iterator ib, ie;
+	Range()
+	{
+	}
 
+	template<typename T>
+	Range(T b, T e)
+			: ib(b), ie(e)
+	{
+	}
+
+	~Range()
+	{
+	}
 	iterator begin() const
 	{
 		return ib;

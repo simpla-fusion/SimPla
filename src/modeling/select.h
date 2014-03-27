@@ -53,9 +53,23 @@ struct IteratorFilter
 			c[0]=*s;
 			return 1;
 		};
+
 	}
+	IteratorFilter(IteratorFilter const &) = default;
+
+//	IteratorFilter(IteratorFilter &&) = default;
+
 	~IteratorFilter()
 	{
+	}
+
+	bool operator==(this_type const & rhs)
+	{
+		return (it_ == rhs.it_) && (cache_head_ == rhs.cache_head_);
+	}
+	bool operator!=(this_type const & rhs)
+	{
+		return !(this->operator==(rhs));
 	}
 	this_type & operator ++()
 	{
@@ -69,19 +83,15 @@ struct IteratorFilter
 				++it_;
 				cache_tail_ = filter_(it_, s_);
 			}
-
 		}
 
 		return *this;
 	}
-
-	bool operator==(this_type const & rhs)
+	this_type operator ++(int)
 	{
-		return (it_ == rhs.it_) && (cache_head_ == rhs.cache_head_);
-	}
-	bool operator!=(this_type const & rhs)
-	{
-		return !(this->operator==(rhs));
+		this_type res(*this);
+		++res;
+		return res;
 	}
 
 	value_type const & operator*() const
@@ -209,7 +219,7 @@ template<typename TM>
 Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, typename TM::iterator ie, TM const &mesh,
         LuaObject const & dict)
 {
-	Range<IteratorFilter<TM>> res(mesh, ie);
+	Range<IteratorFilter<typename TM::iterator>> res(ib,ie);
 	if (dict.is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;

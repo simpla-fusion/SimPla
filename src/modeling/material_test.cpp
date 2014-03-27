@@ -17,7 +17,7 @@
 #include "../fetl/fetl.h"
 
 using namespace simpla;
-template<typename TF>
+template<typename TParam>
 class TestMaterial: public testing::Test
 {
 protected:
@@ -25,33 +25,27 @@ protected:
 	{
 		Logger::Verbose(10);
 
-		nTuple<NDIMS, Real> xmin = { 0, 0, 0 };
-		nTuple<NDIMS, Real> xmax = { 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-
-		nTuple<NDIMS, size_t> dims = { 200, 200, 0 };
-		mesh.SetDimensions(dims, true);
-		mesh.Update();
-
-		dims = mesh.GetDimensions();
+		TParam::SetUpMesh(&mesh);
+		auto dims = mesh.GetDimensions();
 
 		materials = std::shared_ptr<material_type>(new material_type(mesh));
-
+		auto extent = mesh.GetExtent();
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			dh[i] = (dims[i] > 1) ? (xmax[i] - xmin[i]) / dims[i] : 0;
+			dh[i] = (dims[i] > 1) ? (extent.first[i] - extent.second[i]) / dims[i] : 0;
 		}
 
 	}
 public:
-	typedef TF field_type;
-	typedef typename TF::mesh_type mesh_type;
+
+	typedef typename TParam::mesh_type mesh_type;
+	typedef typename TParam::value_type value_type;
+	static constexpr unsigned int IForm = TParam::IForm;
+	typedef Field<mesh_type, IForm, value_type> field_type;
 
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
-	static constexpr unsigned int IForm = TF::IForm;
 
 	typedef Material<mesh_type> material_type;
-
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -62,23 +56,9 @@ public:
 
 };
 
-typedef RectMesh<OcForest> Mesh;
+TYPED_TEST_CASE_P(TestMaterial);
 
-typedef testing::Types<
-
-Field<Mesh, VERTEX, Real>,
-
-Field<Mesh, EDGE, Real>,
-
-Field<Mesh, FACE, Real>,
-
-Field<Mesh, VOLUME, Real>
-
-> MeshTypes;
-
-TYPED_TEST_CASE(TestMaterial, MeshTypes);
-
-TYPED_TEST(TestMaterial,create ){
+TYPED_TEST_P(TestMaterial,create ){
 {
 
 //	std::mt19937 gen;
@@ -111,7 +91,7 @@ TYPED_TEST(TestMaterial,create ){
 
 	f.Clear();
 
-	for(auto s:material.SelectCell(mesh.begin( TestFixture::IForm ),mesh.end( TestFixture::IForm ),"Plasma" ))
+	for(auto s:material.Select(mesh.begin( TestFixture::IForm ),mesh.end( TestFixture::IForm ),"Plasma" ))
 	{
 		f[s]=1;
 	}
@@ -145,7 +125,7 @@ TYPED_TEST(TestMaterial,create ){
 		}
 	}
 
-	std::cout<<Dump(f,"f" ,false)<<std::endl;
+	LOGGER<<DUMP(f );
 
 	v.emplace_back(coordinates_type(
 					{	0.3*extent.second[0], 0.6*extent.second[1], 0.2*extent.first[2]}));
@@ -156,12 +136,12 @@ TYPED_TEST(TestMaterial,create ){
 
 	material.Update();
 
-	for(auto s: material.SelectCell( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ))
+	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ))
 	{
 		f[s]=1;
 	}
 
-	for(auto s: material.SelectBoundary( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ,"NONE"))
+	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
 		f[s]=10;
 	}
@@ -169,7 +149,46 @@ TYPED_TEST(TestMaterial,create ){
 //	material.template SelectBoundary<TestFixture::IForm>(
 //			[&](index_type const & s ,coordinates_type const & x)
 //			{	f[s]=-10;},"Vacuum","Plasma" );
+	LOGGER<<DUMP(f );
 
-	std::cout<<Dump(f,"f" ,false)<<std::endl;
 }
 }
+
+REGISTER_TYPED_TEST_CASE_P(TestMaterial, create);
+
+template<typename TM, typename TV = double, int ICase = 0> struct TestFETLParam;
+
+template<typename TV, int IFORM>
+struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
+{
+	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef TV value_type;
+	static constexpr int IForm = IFORM;
+
+	static void SetUpMesh(mesh_type * mesh)
+	{
+
+		nTuple<3, Real> xmin = { 0, 0, 0 };
+		nTuple<3, Real> xmax = { 1, 1, 1 };
+		mesh->SetExtent(xmin, xmax);
+
+		nTuple<3, size_t> dims = { 200, 200, 0 };
+		mesh->SetDimensions(dims, true);
+		mesh->Update();
+	}
+
+};
+
+typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+
+typedef testing::Types<
+
+TestFETLParam<mesh_type, Real, VERTEX>,
+
+TestFETLParam<mesh_type, Real, EDGE>,
+
+TestFETLParam<mesh_type, Real, FACE>,
+
+TestFETLParam<mesh_type, Real, VOLUME> > ParamList;
+
+INSTANTIATE_TYPED_TEST_CASE_P(MATERIAL, TestMaterial, ParamList);

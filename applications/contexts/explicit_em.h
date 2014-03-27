@@ -209,16 +209,16 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		Te0.Clear();
 		Ti0.Clear();
 
-		material_.template SelectCell<VERTEX>([&](typename mesh_type::index_type s )
+		for (auto s : material_.template SelectCell<VERTEX>("Plasma"))
 		{
-			auto x=mesh.CoordinatesToCartesian( mesh.GetCoordinates(s));
-			auto p=geqdsk.psi(x[0],x[1]);
+			auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+			auto p = geqdsk.psi(x[0], x[1]);
 
-			ne0[s] = geqdsk.Profile("ne",p);
-			Te0[s] = geqdsk.Profile("Te",p);
-			Ti0[s] = geqdsk.Profile("Ti",p);
+			ne0[s] = geqdsk.Profile("ne", p);
+			Te0[s] = geqdsk.Profile("Te", p);
+			Ti0[s] = geqdsk.Profile("Ti", p);
 
-		}, "Plasma");
+		}
 
 		J0 = Curl(B) / mesh.constants()["permeability of free space"];
 

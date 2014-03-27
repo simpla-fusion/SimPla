@@ -338,6 +338,15 @@ public:
 		return isChanged_;
 	}
 
+	typedef typename mesh_type::iterator iterator;
+	typedef Range<IteratorFilter<iterator>> range_type;
+
+	template<int IFORM, typename ...Args>
+	range_type SelectCell(Args const & ... args)
+	{
+		return Select(mesh.begin(IFORM), mesh.end(IFORM), std::forward<Args const &>(args)...);
+	}
+
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -347,25 +356,29 @@ public:
 	 * @param out_material
 	 * @param flag
 	 */
-	typedef typename mesh_type::iterator iterator;
 
-	Range<IteratorFilter<iterator>> SelectBoundary(iterator ib, iterator ie, material_type in, material_type out) const;
+	range_type Select(iterator ib, iterator ie, material_type in, material_type out) const;
 
-	Range<IteratorFilter<iterator>> SelectBoundary(iterator ib, iterator ie, std::string const & in,
-	        std::string const & out) const
+	range_type Select(iterator ib, iterator ie, std::string const & in, std::string const & out) const
 	{
-		return SelectBoundary(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
+		return Select(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
-
-	Range<IteratorFilter<iterator>> SelectCell(iterator ib, iterator ie, material_type) const;
-
-	Range<IteratorFilter<iterator>> SelectCell(iterator ib, iterator ie, std::string const & m) const
+	range_type Select(iterator ib, iterator ie, char const in[], char const out[]) const
 	{
-		return SelectCell(ib, ie, GetMaterialFromString(m));
+		return Select(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
+	range_type Select(iterator ib, iterator ie, material_type) const;
 
+	range_type Select(iterator ib, iterator ie, std::string const & m) const
+	{
+		return Select(ib, ie, GetMaterialFromString(m));
+	}
+	range_type Select(iterator ib, iterator ie, char const m[]) const
+	{
+		return Select(ib, ie, GetMaterialFromString(m));
+	}
 	template<typename TDict>
-	Range<IteratorFilter<iterator>> Select(iterator ib, iterator ie, TDict const & dict) const;
+	range_type Select(iterator ib, iterator ie, TDict const & dict) const;
 
 private:
 
@@ -426,8 +439,8 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM>
-Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectBoundary(typename TM::iterator ib,
-        typename TM::iterator ie, material_type in, material_type out) const
+typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, material_type in,
+        material_type out) const
 {
 	if (IsChanged())
 	{
@@ -496,38 +509,50 @@ Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectBoundary(typena
 	int IFORM = mesh._IForm(*ib);
 	Range<IteratorFilter<typename TM::iterator>> res;
 
-//	res = Filter(ib, ie,
-//
-//	[&]( index_type s, index_type *c)->int
-//	{
-//		int count=0;
-//		if ((this->material_[IFORM].at(mesh.Hash(s)) & in).none()
-//				&& (this->material_[IFORM].at(mesh.Hash(s)) & out).any())
-//		{
-//			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
-//
-//			int num = this->mesh.GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VOLUME>(), s, neighbours);
-//
-//			for (int i = 0; i < num; ++i)
-//			{
-//				if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
-//				{
-//					c[count]=neighbours[i];
-//					++count;
-//				}
-//			}
-//		}
-//
-//		return count;
-//	});
+	res = FilterRange(ib, ie,
+
+	[&]( typename TM::iterator s, index_type *c)->int
+	{
+		int count=0;
+		if ((this->material_[IFORM].at(mesh.Hash((*s))) & in).none()
+				&& (this->material_[IFORM].at(mesh.Hash((*s))) & out).any())
+		{
+			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+			int num=0;
+			switch(IFORM)
+			{	case VERTEX:
+				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), (*s), neighbours);
+				break;
+				case EDGE:
+				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), (*s), neighbours);
+				break;
+				case FACE:
+				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), (*s), neighbours);
+				break;
+				case VOLUME:
+				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), (*s), neighbours);
+				break;
+			}
+			for (int i = 0; i < num; ++i)
+			{
+				if (((this->material_[VOLUME].at(mesh.Hash(neighbours[i])) & in)).any())
+				{
+					c[count]=neighbours[i];
+					++count;
+				}
+			}
+		}
+
+		return count;
+	});
 
 	return res;
 
 }
 
 template<typename TM>
-Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectCell(typename TM::iterator ib,
-        typename TM::iterator ie, material_type material) const
+typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, material_type material) const
 {
 	return FilterRange(ib, ie, [&]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
 	{	c[0]=*it;
@@ -538,10 +563,9 @@ Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectCell(typename T
 
 template<typename TM>
 template<typename TDict>
-Range<IteratorFilter<typename TM::iterator>> Material<TM>::Select(typename TM::iterator ib, typename TM::iterator ie,
-        TDict const & dict) const
+typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, TDict const & dict) const
 {
-	Range<IteratorFilter<typename TM::iterator>> res(ie, ie);
+	range_type res(ib, ie);
 	if (dict["Type"])
 	{
 		auto type = dict["Type"].template as<std::string>("");
@@ -549,19 +573,19 @@ Range<IteratorFilter<typename TM::iterator>> Material<TM>::Select(typename TM::i
 		if (type == "Boundary")
 		{
 			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			res = SelectBoundary(ib, ie, material, null_material);
+			res = Select(ib, ie, material, null_material);
 
 		}
 		else if (type == "Interface")
 		{
 			auto in = GetMaterialFromString(dict["In"].template as<std::string>());
 			auto out = GetMaterialFromString(dict["Out"].template as<std::string>());
-			res = SelectBoundary(ib, ie, in, out);
+			res = Select(ib, ie, in, out);
 		}
 		else if (type == "Element")
 		{
 			auto material = GetMaterialFromString(dict["Material"].template as<std::string>());
-			res = SelectCell(ib, ie, material);
+			res = Select(ib, ie, material);
 		}
 	}
 

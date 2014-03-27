@@ -43,8 +43,6 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
 	}
 };
 
-DEFINE_FIELDS(mesh_type)
-
 typedef testing::Types<
 
 TestFETLParam<mesh_type, Real, VERTEX>,
