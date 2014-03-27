@@ -380,7 +380,7 @@ private:
 	{
 		Init();
 
-		for (auto s : Filter(mesh.begin(VERTEX), mesh.end(VERTEX), std::forward<Args const&>(args)...))
+		for (auto s : Filter(mesh.begin(VERTEX), mesh.end(VERTEX), mesh, std::forward<Args const&>(args)...))
 		{
 			fun(material_[VERTEX].at(mesh.Hash(s)));
 		}
@@ -529,7 +529,7 @@ template<typename TM>
 Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectCell(typename TM::iterator ib,
         typename TM::iterator ie, material_type material) const
 {
-	return Filter(ib, ie, [&]( typename TM::iterator it, typename TM::index_type *c)->int
+	return FilterRange(ib, ie, [&]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
 	{	c[0]=*it;
 		return (((this->material_[mesh._IForm(*ib)].at(mesh.Hash(*it)) & material)).any())?1:0;
 	});

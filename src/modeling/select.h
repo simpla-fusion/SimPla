@@ -18,19 +18,19 @@ struct IteratorFilter
 {
 	static constexpr int MAX_CACHE_DEPTH = 12;
 
-	typedef IT iterator;
+	typedef IT base_iterator;
 
-	typedef typename iterator::value_type index_type;
+	typedef typename base_iterator::value_type value_type;
 
-	typedef IteratorFilter<iterator> this_type;
+	typedef IteratorFilter<base_iterator> this_type;
 
-	typedef std::function<int(iterator, index_type*)> filter_type;
+	typedef std::function<int(base_iterator, value_type*)> filter_type;
 
 	filter_type filter_;
 
-	iterator it_, ie_;
+	base_iterator it_, ie_;
 
-	index_type s_[MAX_CACHE_DEPTH];
+	value_type s_[MAX_CACHE_DEPTH];
 
 	int cache_head_;
 
@@ -40,17 +40,17 @@ struct IteratorFilter
 			: cache_head_(0), cache_tail_(0)
 	{
 	}
-	IteratorFilter(iterator ib, iterator ie, filter_type filter)
+	IteratorFilter(base_iterator ib, base_iterator ie, filter_type filter)
 			: it_(ib), ie_(ie), filter_(filter), cache_head_(0), cache_tail_(0)
 	{
 	}
 
-	IteratorFilter(iterator ib, iterator ie)
-			: it_(ib), ie_(ib), cache_head_(0), cache_tail_(0)
+	IteratorFilter(base_iterator ib, base_iterator ie = base_iterator())
+			: it_(ib), ie_(ie), cache_head_(0), cache_tail_(0)
 	{
-		filter_ = []( index_type s, index_type* c)->int
+		filter_ = []( base_iterator s, value_type* c)->int
 		{
-			c[0]=s;
+			c[0]=*s;
 			return 1;
 		};
 	}
@@ -84,38 +84,33 @@ struct IteratorFilter
 		return !(this->operator==(rhs));
 	}
 
-	index_type const & operator*() const
+	value_type const & operator*() const
 	{
 		return s_[cache_head_];
 	}
 
-	index_type * operator ->()
+	value_type * operator ->()
 	{
 		return &s_[cache_head_];
 	}
-	index_type const* operator ->() const
+	value_type const* operator ->() const
 	{
 		return &s_[cache_head_];
 	}
 
 };
 
-template<typename IT>
-Range<IteratorFilter<IT>> Filter(IT ib, IT ie,
-        std::function<
-                int(IT,
-                        typename std::remove_const<typename std::remove_reference<decltype(*std::declval<IT>())>::type>::type*)> const & filter)
+template<typename IT, typename TFilter>
+Range<IteratorFilter<IT>> FilterRange(IT ib, IT ie, TFilter const & filter)
 {
 	return Range<IteratorFilter<IT>>( { IteratorFilter<IT>(ib, ie, filter), IteratorFilter<IT>(ie) });
 }
-
-template<typename IT>
-Range<IteratorFilter<IT>> Filter(IT ib, IT ie,
-        std::function<bool(typename std::remove_reference<decltype(*std::declval<IT>())>::type)> const & filter)
+template<typename TM>
+Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, typename TM::iterator ie, TM const &mesh,
+        std::function<bool(typename TM::iterator::value_type)> filter)
 {
-	return Filter(ib, ie,
-	        [&](IT s,typename std::remove_const<typename std::remove_reference<decltype(*std::declval<IT>())>::type>::type *c)->int
-	        {	c[0]=*s; return filter(c[0])?1:0;});
+	return FilterRange(ib, ie, [&](typename TM::iterator s,typename TM::iterator::value_type*c)->int
+	{	c[0]=*s; return filter(c[0])?1:0;});
 }
 
 template<typename TM>
@@ -123,15 +118,15 @@ Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, ty
         typename TM::coordinates_type const & x)
 {
 	UNIMPLEMENT;
+	return Range<IteratorFilter<typename TM::iterator>>();
 }
 
 template<typename TM>
 Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, typename TM::iterator ie, TM const & mesh,
         typename TM::coordinates_type const & v0, typename TM::coordinates_type const & v1)
 {
-	typedef typename TM::index_type index_type;
-	return Filter(ib, ie,
-	        [&]( typename TM::iterator s, index_type *c)->int
+	return FilterRange(ib, ie,
+	        [&]( typename TM::iterator s, typename TM::iterator::value_type*c)->int
 	        {
 		        c[0]=*s;
 		        auto x = mesh.GetCoordinates(*s);
@@ -141,11 +136,11 @@ Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, ty
 
 }
 
-template<typename TM, int N>
+template<typename TM>
 Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, typename TM::iterator ie, TM const & mesh,
         PointInPolygen checkPointsInPolygen)
 {
-	return Filter(ib, ie, [&](typename TM::iterator s,typename TM::index_type *c)->int
+	return FilterRange(ib, ie, [&](typename TM::iterator s,typename TM::iterator::value_type *c)->int
 	{
 		c[0]=*s;
 		return (checkPointsInPolygen(mesh.GetCoordinates(c[0]) )) ? 1 : 0;
@@ -173,9 +168,9 @@ Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, ty
  */
 template<typename TM, int N>
 Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, typename TM::iterator ie, TM const &mesh,
-        std::vector<nTuple<N, Real>> const & points, unsigned int Z)
+        std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
-	Range<IteratorFilter<TM>> res;
+	Range<IteratorFilter<typename TM::iterator>> res;
 	if (points.size() == 1)
 	{
 
@@ -227,7 +222,7 @@ Range<IteratorFilter<typename TM::iterator>> Filter(typename TM::iterator ib, ty
 	else if (dict.is_function())
 	{
 
-		res = Filter(ib, ie, [&](typename TM::iterator s,typename TM::index_type *c)->int
+		res = FilterRange(ib, ie, [&](typename TM::iterator s,typename TM::iterator::value_type *c)->int
 		{
 			c[0]=*s;
 			auto x = mesh.GetCoordinates(c[0]);
