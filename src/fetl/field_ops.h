@@ -270,11 +270,11 @@ DECL_RET_TYPE((ExteriorDerivative(f)))
 
 template<typename TM, typename TR>
 inline auto Grad(Field<TM, VOLUME, TR> const & f)
-DECL_RET_TYPE((Codifferential(f)))
+DECL_RET_TYPE(Negate(Codifferential(f)))
 
 template<typename TM, typename TR>
 inline auto Diverge(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE(( Codifferential(f)))
+DECL_RET_TYPE(Negate( Codifferential(f)))
 
 template<typename TM, typename TR>
 inline auto Curl(Field<TM, FACE, TR> const & f)

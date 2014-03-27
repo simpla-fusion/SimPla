@@ -126,11 +126,20 @@ public:
 	template<typename TC>
 	struct iterator_
 	{
+		/// One of the @link iterator_tags tag types@endlink.
+		typedef std::output_iterator_tag iterator_category;
+		/// The type "pointed to" by the iterator.
+		typedef typename std::remove_reference<decltype(*std::declval<TC>() )>::type value_type;
+		/// Distance between iterators is represented as this type.
+		typedef size_t difference_type;
+		/// This type represents a pointer-to-value_type.
+		typedef value_type* pointer;
+		/// This type represents a reference-to-value_type.
+		typedef value_type& reference;
+
 		TC data_;
 
 		typename mesh_type::iterator it_;
-
-		typedef decltype(*data_) value_type;
 
 		typedef iterator_<TC> this_type;
 
@@ -139,9 +148,17 @@ public:
 		{
 
 		}
-		~iterator_()
-		{
-		}
+//		iterator_(this_type &rhs)
+//				: data_(rhs.data_), it_(rhs.it_)
+//		{
+//		}
+//		iterator_(this_type const&rhs)
+//				: data_(rhs.data_), it_(rhs.it_)
+//		{
+//		}
+//		~iterator_()
+//		{
+//		}
 
 		value_type & operator*()
 		{
@@ -152,11 +169,11 @@ public:
 			return *(data_.get() + make_hash(it_));
 		}
 
-		index_type * operator ->()
+		pointer operator ->()
 		{
 			return (data_.get() + make_hash(it_));
 		}
-		index_type const* operator ->() const
+		const pointer operator ->() const
 		{
 			return (data_.get() + make_hash(it_));
 		}
@@ -166,6 +183,18 @@ public:
 			++it_;
 
 			return *this;
+		}
+
+		this_type operator++(int)
+		{
+			this_type res(*this);
+			++res;
+			return std::move(res);
+		}
+
+		bool operator==(this_type const &rhs) const
+		{
+			return it_ == rhs.it_ && data_ == rhs.data_;
 		}
 
 		bool operator!=(this_type const &rhs) const

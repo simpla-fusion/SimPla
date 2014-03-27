@@ -349,23 +349,23 @@ public:
 	 */
 	typedef typename mesh_type::iterator iterator;
 
-	Range<SelectIterator<iterator>> SelectBoundary(iterator ib, iterator ie, material_type in, material_type out) const;
+	Range<IteratorFilter<iterator>> SelectBoundary(iterator ib, iterator ie, material_type in, material_type out) const;
 
-	Range<SelectIterator<iterator>> SelectBoundary(iterator ib, iterator ie, std::string const & in,
+	Range<IteratorFilter<iterator>> SelectBoundary(iterator ib, iterator ie, std::string const & in,
 	        std::string const & out) const
 	{
 		return SelectBoundary(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
 
-	Range<SelectIterator<iterator>> SelectCell(iterator ib, iterator ie, material_type) const;
+	Range<IteratorFilter<iterator>> SelectCell(iterator ib, iterator ie, material_type) const;
 
-	Range<SelectIterator<iterator>> SelectCell(iterator ib, iterator ie, std::string const & m) const
+	Range<IteratorFilter<iterator>> SelectCell(iterator ib, iterator ie, std::string const & m) const
 	{
 		return SelectCell(ib, ie, GetMaterialFromString(m));
 	}
 
 	template<typename TDict>
-	Range<SelectIterator<iterator>> Select(iterator ib, iterator ie, TDict const & dict) const;
+	Range<IteratorFilter<iterator>> Select(iterator ib, iterator ie, TDict const & dict) const;
 
 private:
 
@@ -380,7 +380,7 @@ private:
 	{
 		Init();
 
-		for (auto s : SelectCell(mesh.begin(VERTEX), mesh.end(VERTEX), std::forward<Args const&>(args)...))
+		for (auto s : Filter(mesh.begin(VERTEX), mesh.end(VERTEX), std::forward<Args const&>(args)...))
 		{
 			fun(material_[VERTEX].at(mesh.Hash(s)));
 		}
@@ -426,7 +426,7 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM>
-Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectBoundary(typename TM::iterator ib,
+Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectBoundary(typename TM::iterator ib,
         typename TM::iterator ie, material_type in, material_type out) const
 {
 	if (IsChanged())
@@ -494,9 +494,9 @@ Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectBoundary(typena
 	//              |          |
 	//              +----------+
 	int IFORM = mesh._IForm(*ib);
-	Range<SelectIterator<typename TM::iterator>> res( { ie, ie });
+	Range<IteratorFilter<typename TM::iterator>> res;
 
-//	res = SelectRange(ib, ie,
+//	res = Filter(ib, ie,
 //
 //	[&]( index_type s, index_type *c)->int
 //	{
@@ -526,22 +526,22 @@ Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectBoundary(typena
 }
 
 template<typename TM>
-Range<SelectIterator<typename TM::iterator>> Material<TM>::SelectCell(typename TM::iterator ib,
+Range<IteratorFilter<typename TM::iterator>> Material<TM>::SelectCell(typename TM::iterator ib,
         typename TM::iterator ie, material_type material) const
 {
-	return SelectRange(ib, ie, [&]( index_type s, index_type *c)->int
-	{	c[0]=s;
-		return (((this->material_[mesh._IForm(*ib)].at(mesh.Hash(s)) & material)).any())?1:0;
+	return Filter(ib, ie, [&]( typename TM::iterator it, typename TM::index_type *c)->int
+	{	c[0]=*it;
+		return (((this->material_[mesh._IForm(*ib)].at(mesh.Hash(*it)) & material)).any())?1:0;
 	});
 
 }
 
 template<typename TM>
 template<typename TDict>
-Range<SelectIterator<typename TM::iterator>> Material<TM>::Select(typename TM::iterator ib, typename TM::iterator ie,
+Range<IteratorFilter<typename TM::iterator>> Material<TM>::Select(typename TM::iterator ib, typename TM::iterator ie,
         TDict const & dict) const
 {
-	Range<SelectIterator<typename TM::iterator>> res(ie, ie);
+	Range<IteratorFilter<typename TM::iterator>> res(ie, ie);
 	if (dict["Type"])
 	{
 		auto type = dict["Type"].template as<std::string>("");

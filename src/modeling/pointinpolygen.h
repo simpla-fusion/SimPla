@@ -24,10 +24,11 @@ class PointInPolygen
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
+	const int Z_;
 public:
 	template<int N>
 	PointInPolygen(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
-			: num_of_vertex_(0)
+			: num_of_vertex_(0), Z_(Z)
 	{
 
 		for (auto const & v : polygen)
@@ -55,6 +56,13 @@ public:
 		}
 	}
 
+	PointInPolygen(PointInPolygen && rhs)
+			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
+			        rhs.multiple_), Z_(rhs.Z_)
+	{
+
+	}
+
 	inline bool operator()(Real x, Real y) const
 	{
 
@@ -71,6 +79,11 @@ public:
 		}
 
 		return oddNodes;
+	}
+	template<int N>
+	inline bool operator()(nTuple<N, Real> x) const
+	{
+		return this->operator()(x[(Z_ + 1) % 3], x[(Z_ + 2) % 3]);
 	}
 }
 ;

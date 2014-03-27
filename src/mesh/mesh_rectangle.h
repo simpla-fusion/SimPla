@@ -404,7 +404,7 @@ public:
 		auto Z = (topology_type::_DK >> (topology_type::H(s) + 1));
 		auto a= geometry_type::InvDualVolume(s)*geometry_type::Volume(s);
 		return
-		((
+		-((
 				f[s + X]*(geometry_type::InvVolume(s+X)*geometry_type::DualVolume(s+X)*a)-
 				f[s - X]*(geometry_type::InvVolume(s-X)*geometry_type::DualVolume(s-X)*a)
 
@@ -448,7 +448,7 @@ public:
 		auto d = topology_type::_D( topology_type::_Dual(s) );
 		auto a=geometry_type::InvDualVolume(s) *geometry_type::Volume(s);
 		return
-		(
+		-(
 		f[s + d]*(geometry_type::InvVolume(s + d) *geometry_type::DualVolume(s + d)*a)
 
 		- f[s - d]*(geometry_type::InvVolume(s - d) *geometry_type::DualVolume(s - d)*a)

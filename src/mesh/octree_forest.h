@@ -14,7 +14,7 @@
 #include <cstddef>
 #include <limits>
 #include <thread>
-
+#include <iterator>
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
 #include "../fetl/field_rw_cache.h"
@@ -144,7 +144,6 @@ struct OcForest
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>(),
 			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
 			Update();
-
 		}
 
 	}
@@ -265,8 +264,75 @@ struct OcForest
 		{
 			return d < r.d;
 		}
-	}
-	;
+	};
+	struct iterator
+	{
+		/// One of the @link iterator_tags tag types@endlink.
+		typedef std::input_iterator_tag iterator_category;
+		/// The type "pointed to" by the iterator.
+		typedef typename simpla::OcForest::index_type value_type;
+		/// Distance between iterators is represented as this type.
+		typedef typename simpla::OcForest::index_type difference_type;
+		/// This type represents a pointer-to-value_type.
+		typedef value_type* pointer;
+		/// This type represents a reference-to-value_type.
+		typedef value_type& reference;
+
+		simpla::OcForest const * tree;
+		value_type s_;
+
+		iterator()
+				: tree(nullptr), s_(value_type( { ~0UL }))
+		{
+		}
+		template<typename ...Args>
+		iterator(simpla::OcForest const & m, Args const & ... args)
+				: tree(&m), s_(index_type( { args... }))
+		{
+		}
+
+		~iterator()
+		{
+		}
+
+		bool operator==(iterator const & rhs) const
+		{
+			return s_ == rhs.s_;
+		}
+
+		bool operator!=(iterator const & rhs) const
+		{
+			return !(this->operator==(rhs));
+		}
+
+		value_type const & operator*() const
+		{
+			return s_;
+		}
+
+		value_type const* operator ->() const
+		{
+			return &s_;
+		}
+
+		iterator & operator ++()
+		{
+			s_ = tree->Next(s_);
+			return *this;
+		}
+
+		iterator operator ++(int)
+		{
+			iterator res(*this);
+			++res;
+			return std::move(res);
+		}
+
+		size_t Hash() const
+		{
+			return tree->Hash(s_);
+		}
+	};
 
 //***************************************************************************************************
 
@@ -315,63 +381,6 @@ struct OcForest
 
 	}
 
-	struct iterator
-	{
-
-		OcForest const & tree;
-		typedef index_type value_type;
-		index_type s_;
-
-		iterator(OcForest const & m, index_type s = index_type( { 0UL }))
-				: tree(m), s_(s)
-		{
-		}
-		iterator(OcForest const & m, compact_index_type s = 0UL)
-				: tree(m),
-
-				s_(index_type( { s }))
-		{
-		}
-		~iterator()
-		{
-		}
-
-		bool operator==(iterator const & rhs) const
-		{
-			return s_ == rhs.s_;
-		}
-
-		bool operator!=(iterator const & rhs) const
-		{
-			return !(this->operator==(rhs));
-		}
-
-		index_type const & operator*() const
-		{
-			return s_;
-		}
-
-		size_type Hash() const
-		{
-			return tree.Hash(s_);
-		}
-
-		iterator & operator ++()
-		{
-			s_ = tree.Next(s_);
-			return *this;
-		}
-
-		index_type * operator ->()
-		{
-			return &s_;
-		}
-		index_type const* operator ->() const
-		{
-			return &s_;
-		}
-	};
-
 	Range<iterator> GetRange(int IFORM, int total = 1, int sub = 0) const
 	{
 		return Range<iterator>( { begin(IFORM, total, sub), end(IFORM, total, sub) });
@@ -419,20 +428,20 @@ struct OcForest
 		iterator res = begin(IFORM, total, sub);
 		if (dims_[0] >= total)
 		{
-			res->d = (res->d + ((dims_[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS)));
+			res = iterator(*this, res->d + ((dims_[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS)));
 		}
 		else if (dims_[1] >= total)
 		{
-			res->d = (res->d + ((dims_[1] / total) << (INDEX_DIGITS + D_FP_POS)));
+			res = iterator(*this, res->d + ((dims_[1] / total) << (INDEX_DIGITS + D_FP_POS)));
 		}
 		else if (dims_[2] >= total)
 		{
-			res->d = (res->d + ((dims_[2] / total) << (D_FP_POS)));
+			res = iterator(*this, res->d + ((dims_[2] / total) << (D_FP_POS)));
 		}
 		else
 		{
 			if (sub == 0)
-				res->d = (res->d + dims_[0]) << (INDEX_DIGITS * 2 + D_FP_POS);
+				res = iterator(*this, (res->d + dims_[0]) << (INDEX_DIGITS * 2 + D_FP_POS));
 		}
 
 		return res;
@@ -1357,6 +1366,7 @@ inline unsigned long make_hash(OcForest::iterator s)
 {
 	return s.Hash();
 }
+
 }
 // namespace simpla
 
