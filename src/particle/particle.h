@@ -201,8 +201,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
 {
 }
 
@@ -231,7 +231,7 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::G
 
 	for (auto const & l : data_)
 	{
-		it = std::copy(l.begin(), l.end(), it);
+		std::copy(l.begin(), l.end(), it);
 	}
 
 	return std::make_pair(res, num);
@@ -339,24 +339,29 @@ void Particle<Engine>::Sort()
 	if (IsSorted())
 		return;
 
-	Cocurrent([=](int t_num,int t_id)
+	ParallelDo(
+
+	[this](int t_num,int t_id)
 	{
-		for (auto s : this->mesh.GetRange(IForm,t_num ,t_id))
-		{
-			this->Resort(s, &(this->mt_data_[t_id]));
-		}
-	});
+		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{	this->Resort(s, &(this->mt_data_[t_id]));}
+	}
 
-	Cocurrent([=](int t_num,int t_id)
+	);
+
+	ParallelDo(
+
+	[this](int t_num,int t_id)
 	{
-		for (auto s : this->mesh.GetRange(IForm, t_num, t_id))
+		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			auto n = this->mesh.Hash(s);
+			auto idx = this->mesh.Hash(s);
 
-			this->data_[n].splice(this->data_[n].begin(), this->mt_data_[t_id][n]);
-
+			this->data_[idx].splice(this->data_[idx].begin(), this->mt_data_[t_id][idx]);
 		}
-	});
+	}
+
+	);
 
 	isSorted_ = true;
 }
@@ -373,15 +378,13 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	Sort();
 
-	NextTimeStep(dt, std::forward<Args const&>(args) ...);
-
-	for (auto s : mesh.GetRange(IForm))
+	ParallelForEach(mesh.GetRange(IForm), [&,this](index_type s)
 	{
 		for (auto & p : this->data_[mesh.Hash(s)])
 		{
 			engine_type::NextTimeStep(&p, dt, args ...);
 		}
-	}
+	});
 
 	isSorted_ = false;
 
@@ -402,15 +405,18 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	for (auto s : mesh.GetRange(IForm))
-	{
+	ParallelForEach(mesh.GetRange(IForm),
 
-		for (auto const& p : this->data_[mesh.Hash(s)])
+	[& ](index_type s)
+	{
+		J->lock();
+		for (auto const& p : this->data_[this->mesh.Hash(s)])
 		{
 			engine_type::Scatter(p, J, args ...);
 		}
+		J->unlock();
 
-	}
+	});
 
 }
 

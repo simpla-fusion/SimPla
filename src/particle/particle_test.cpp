@@ -25,45 +25,31 @@
 
 using namespace simpla;
 
-template<typename TEngine>
+template<typename TParam>
 class TestParticle: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
-
-		nTuple<3, size_t> dims =
-		{ 200, 0, 0 };
-		mesh.SetDimensions(dims);
-
-		nTuple<3, Real> xmin =
-		{ 0, 0, 0 };
-		nTuple<3, Real> xmax =
-		{ 1, 1, 1 };
-		mesh.SetExtent(xmin, xmax);
-		mesh.SetDt(1.0);
-		mesh.Update();
-
+		TParam::SetUpMesh(&mesh);
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=400,T=1.0e4 ,"
-				"  n=n0"
+				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=40,Temperature=1.0e4 ,Density=n0"
 				"}";
 
 	}
 public:
+	typedef typename TParam::engine_type engine_type;
 
-	typedef TEngine engine_type;
+	typedef typename engine_type::Point_s Point_s;
 
-	typedef Particle<TEngine> particle_pool_type;
+	typedef typename engine_type::scalar_type scalar_type;
 
-	typedef typename TEngine::mesh_type mesh_type;
+	typedef typename TParam::mesh_type mesh_type;
 
-	typedef typename TEngine::Point_s Point_s;
-
-	typedef typename TEngine::scalar_type scalar_type;
+	typedef Particle<engine_type> particle_pool_type;
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -75,25 +61,9 @@ public:
 
 };
 
-typedef testing::Types<
+TYPED_TEST_CASE_P(TestParticle);
 
-PICEngineFull<RectMesh<>>
-
-//, PICEngineDeltaF<RectMesh<>, Complex>
-//
-//, PICEngineGGauge<RectMesh<>, Real, 8>
-//
-//, PICEngineGGauge<RectMesh<>, Real, 32>
-//
-//, PICEngineGGauge<RectMesh<>, Complex, 8>
-//
-//, PICEngineGGauge<RectMesh<>, Complex, 32>
-
-> AllEngineTypes;
-
-TYPED_TEST_CASE(TestParticle, AllEngineTypes);
-
-TYPED_TEST(TestParticle,load_save){
+TYPED_TEST_P(TestParticle,load_save){
 {
 	typedef typename TestFixture::mesh_type mesh_type;
 
@@ -114,7 +84,7 @@ TYPED_TEST(TestParticle,load_save){
 }
 }
 
-TYPED_TEST(TestParticle,scatter_n){
+TYPED_TEST_P(TestParticle,scatter_n){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -152,11 +122,11 @@ TYPED_TEST(TestParticle,scatter_n){
 
 	ion.Scatter(&n,E,B);
 
-//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/");
-//
-//	std::cout<<DUMP(n )<<std::endl;
-//	std::cout<<DUMP(ion )<<std::endl;
+	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+
+	LOGGER<<DUMP(n );
+	LOGGER<<DUMP(ion );
 
 	{
 		Real variance=0.0;
@@ -179,13 +149,13 @@ TYPED_TEST(TestParticle,scatter_n){
 
 			average+=actual;
 
-			variance+=std::pow( (expect-actual),2.0);
+			variance+=std::pow(abs (expect-actual),2.0);
 		}
 
 		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 		{
 			Real relative_error=std::sqrt(variance)/abs(average);
-			CHECK(relative_error);
+			INFORM<<(relative_error);
 			EXPECT_LE(relative_error,1.0/std::sqrt(pic));
 		}
 		else
@@ -196,12 +166,13 @@ TYPED_TEST(TestParticle,scatter_n){
 		}
 
 	}
-//	std::cout<<DUMP(n0 )<<std::endl;
+
+	LOGGER<<DUMP(n0 );
 
 }
 }
 
-TYPED_TEST(TestParticle,scatter_J){
+TYPED_TEST_P(TestParticle,scatter_J){
 {
 
 	typedef typename TestFixture::mesh_type mesh_type;
@@ -237,95 +208,138 @@ TYPED_TEST(TestParticle,scatter_J){
 
 }
 }
+
+TYPED_TEST_P(TestParticle,move){
+{
+
+	typedef typename TestFixture::mesh_type mesh_type;
+
+	typedef typename TestFixture::particle_pool_type pool_type;
+
+	typedef typename TestFixture::Point_s Point_s;
+
+	typedef typename TestFixture::scalar_type scalar_type;
+
+	typedef typename TestFixture::coordinates_type coordinates_type;
+
+	mesh_type const & mesh = TestFixture::mesh;
+
+	LuaObject cfg;
+	cfg.ParseString(TestFixture::cfg_str);
+	cfg.ParseString("ion.n=1.0");
+
+	pool_type ion(mesh);
+
+	ion.Load(cfg["ion"]);
+
+	ion.Sort();
+
+	Field<mesh_type,VERTEX,scalar_type> n(mesh);
+	Field<mesh_type,EDGE,Real> E(mesh);
+	Field<mesh_type,FACE,Real> B(mesh);
+	Field<mesh_type,EDGE,scalar_type> J(mesh);
+
+	E.Clear();
+	B.Clear();
+
+	std::mt19937 rnd_gen(2);
+	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+
+	for (auto & v : E)
+	{
+		v = uniform_dist(rnd_gen);
+	}
+
+	for (auto & v : B)
+	{
+		v = uniform_dist(rnd_gen);
+	}
+
+	Real expect_n = 1.0;
+
+	Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
+
+	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
+	{
+		expect_n=0.0;
+	}
+
+//	EXPECT_EXIT(
+
+	LOG_CMD(ion.NextTimeStep(1.0,E, B))
+
+//			, ::testing::ExitedWithCode(11), "Success"	)
+	;
+
+	{
+		Field<mesh_type,VERTEX,scalar_type> n(mesh);
+		n.Clear();
+		ion.Scatter(&n,E,B);
+
+		scalar_type average_n=0.0;
+
+		for(auto &v :n)
+		{
+			average_n+=v;
+		}
+		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
+
+		EXPECT_LE(abs(expect_n-average_n),error);
+
+	}
+
+}
+}
+
+REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n, scatter_J, move);
+
+template<typename TM, typename TEngine, int CASE> struct TestPICParam;
+typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
+
+template<typename TEngine, int CASE>
+struct TestPICParam<Mesh, TEngine, CASE>
+{
+	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+
+	typedef TEngine engine_type;
+
+	static void SetUpMesh(mesh_type * mesh)
+	{
+
+		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+
+		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+
+		nTuple<3, size_t> dims = { 16, 32, 1 };
+
+		mesh->SetExtent(xmin, xmax);
+
+		mesh->SetDimensions(dims);
+
+		mesh->Update();
+
+	}
+
+};
+
+typedef testing::Types<
+
+TestPICParam<Mesh, PICEngineFull<Mesh>, 0>//,
 //
-//TYPED_TEST(TestParticle,move){
-//{
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
 //
-//	typedef typename TestFixture::mesh_type mesh_type;
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>
 //
-//	typedef typename TestFixture::particle_pool_type pool_type;
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
 //
-//	typedef typename TestFixture::Point_s Point_s;
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
 //
-//	typedef typename TestFixture::coordinates_type coordinates_type;
+//, PICEngineGGauge<RectMesh<>, Real, 32>
 //
-//	mesh_type const & mesh = TestFixture::mesh;
+//, PICEngineGGauge<RectMesh<>, Complex, 8>
 //
-//	cfg.ParseString("ion.n=1.0");
-//
-//	pool_type ion(mesh);
-//
-//	ion.Update();
-//
-//	ion.Load(cfg["ion"]);
-//
-//	ion.Sort();
-//
-//	typename TestFixture::template Form<VERTEX> n(mesh);
-//	typename TestFixture::template Form<EDGE> E(mesh);
-//	typename TestFixture::template Form<FACE> B(mesh);
-//	typename TestFixture::template Form<EDGE> J(mesh);
-//
-//	E.Fill(1.0);
-//	B.Fill(1.0);
-//	J.Update();
-//
-//	std::mt19937 rnd_gen(2);
-//
-//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
-//
-//	for (auto & v : E)
-//	{
-//		v = uniform_dist(rnd_gen);
-//	}
-//
-//	for (auto & v : B)
-//	{
-//		v = uniform_dist(rnd_gen);
-//	}
-//
-//	Real expect_n = 1.0;
-//	Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
-//
-//	if(!std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
-//	{
-//		expect_n=0.0;
-//	}
-//
-//	{
-//		typename TestFixture::template Form<VERTEX> n(mesh);
-//		n.Fill(0.0);
-//		ion.Scatter(&n,E,B);
-//
-//		Real average_n=0.0;
-//		for(auto &v :n)
-//		{
-//			average_n+=v;
-//		}
-//
-//		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
-//
-//		EXPECT_LE(abs(expect_n-abs(average_n)),error);
-//	}
-//
-//	LOG_CMD(ion.NextTimeStep(1.0,E, B));
-//
-//	{
-//		typename TestFixture::template Form<VERTEX> n(mesh);
-//		n.Fill(0.0);
-//		ion.Scatter(&n,E,B);
-//
-//		Real average_n=0.0;
-//
-//		for(auto &v :n)
-//		{
-//			average_n+=v;
-//		}
-//		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
-//
-//		EXPECT_LE(abs(expect_n-average_n),error);
-//
-//	}
-//
-//}
-//}
+//, PICEngineGGauge<RectMesh<>, Complex, 32>
+
+> ParamList;
+
+INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestParticle, ParamList);

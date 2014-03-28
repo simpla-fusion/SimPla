@@ -118,7 +118,7 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 		auto range=mesh.GetRange(TestFixture::IForm);
 		for (int s = 0; s < total; ++s)
 		{
-			for(auto s:range.split(total,s))
+			for(auto s:range.Split(total,s))
 			{
 				++count;
 			}

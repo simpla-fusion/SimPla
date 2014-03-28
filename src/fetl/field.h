@@ -8,8 +8,6 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
-#include "primitives.h"
-#include "../utilities/log.h"
 #include <iostream>
 #include <stdexcept>
 #include <string>
@@ -17,6 +15,10 @@
 #include <vector>
 #include <utility>
 #include <mutex>
+
+#include "primitives.h"
+#include "../utilities/log.h"
+#include "../utilities/parallel.h"
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
@@ -123,6 +125,14 @@ public:
 		return data_ == nullptr;
 	}
 
+	void lock()
+	{
+		write_lock_.lock();
+	}
+	void unlock()
+	{
+		write_lock_.unlock();
+	}
 	template<typename TC>
 	struct iterator_
 	{
@@ -276,10 +286,14 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRange(IForm))
+		ParallelForEach(mesh.GetRange(IForm),
+
+		[this,default_value](index_type s)
 		{
 			this->get(s) = default_value;
 		}
+
+		);
 	}
 
 	void Clear()
@@ -296,10 +310,19 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRange(IForm))
+//		for (auto s : mesh.GetRange(IForm))
+//		{
+//			this->get(s) = rhs.get(s);
+//		}
+
+		ParallelForEach(mesh.GetRange(IForm),
+
+		[this,&rhs](index_type s)
 		{
 			this->get(s) = rhs.get(s);
 		}
+
+		);
 		return (*this);
 	}
 	template<typename TR>
@@ -307,11 +330,18 @@ public:
 	{
 		Update();
 
-		for (auto s : mesh.GetRange(IForm))
+//		for (auto s : mesh.GetRange(IForm))
+//		{
+//			this->get(s) = rhs.get(s);
+//		}
+		ParallelForEach(mesh.GetRange(IForm),
+
+		[this,&rhs](index_type s)
 		{
 			this->get(s) = rhs.get(s);
 		}
 
+		);
 		return (*this);
 	}
 

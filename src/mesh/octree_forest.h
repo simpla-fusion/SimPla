@@ -371,7 +371,7 @@ struct OcForest
 			return iterator(mesh, e_);
 		}
 
-		Range split(int total, int sub) const
+		Range Split(int total, int sub) const
 		{
 			compact_index_type b = b_, e = b_;
 			nTuple<3, compact_index_type> L;

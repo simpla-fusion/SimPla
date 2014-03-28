@@ -232,7 +232,7 @@ public:
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		auto s= topology_type:: CoordinatesGlobalToLocal(&r,shift,h) + (topology_type::_DA >> (h + 1));
+		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift,h) + (topology_type::_DA >> (h + 1));
 
 		return
 

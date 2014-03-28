@@ -13,14 +13,14 @@
 #include "../physics/constants.h"
 namespace simpla
 {
-template<typename TM, int NMATE = 8>
+template<typename TM, typename TS = Real, int NMATE = 8>
 class PICEngineGGauge
 {
 
 public:
-	typedef PICEngineGGauge<TM, NMATE> this_type;
+	typedef PICEngineGGauge<TM, TS, NMATE> this_type;
 	typedef TM mesh_type;
-	typedef typename mesh_type::scalar_type scalar_type;
+	typedef TS scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 private:
 	Real m_, q_, cmr_, T_, vT_;
@@ -56,8 +56,8 @@ public:
 		}
 	};
 
-	PICEngineGGauge(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
+	PICEngineGGauge(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
 	{
 
 	}
@@ -177,7 +177,7 @@ public:
 
 	template<typename TV, typename TB, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-			Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
+	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B(p.x));
 		Real BB = Dot(B0, B0);
@@ -243,8 +243,8 @@ public:
 }
 ;
 
-template<typename OS, typename TM> OS&
-operator<<(OS& os, typename PICEngineGGauge<TM>::Point_s const & p)
+template<typename OS, typename TM, typename TS> OS&
+operator<<(OS& os, typename PICEngineGGauge<TM, TS>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
