@@ -45,6 +45,7 @@ public:
 };
 
 TYPED_TEST_CASE_P(TestMesh);
+
 //TYPED_TEST_P(TestMesh, next){
 //{
 //	for(auto const & dims:TestFixture::dims_list)
@@ -54,22 +55,20 @@ TYPED_TEST_CASE_P(TestMesh);
 //		mesh.SetDimensions(dims);
 //
 //		mesh.Update();
-////		auto Range=mesh.GetRange(TestFixture::IForm);
-////
-////		CHECK_BIT(Range.begin()->d);
-////
-////		CHECK_BIT(Range.end()->d);
-////
-////		auto s=*Range.begin();
-////
-////		for (int i = 0; i < mesh.GetNumOfElements( TestFixture::IForm); ++i)
-////		{
-////			s=mesh.Next(s);
-////
-//////			CHECK_BIT(s.d );
-////
-////			CHECK_BIT(s.d );
-////		}
+//
+//		auto Range=mesh.GetRange(TestFixture::IForm);
+//
+//		CHECK_BIT(Range.begin()->d);
+//
+//		CHECK_BIT(Range.end()->d);
+//
+//		auto s=*Range.begin();
+//
+//		for (int i = 0; i < mesh.GetNumOfElements( TestFixture::IForm); ++i)
+//		{
+//			s=mesh.Next(s);
+//			CHECK_BIT(s.d );
+//		}
 //		size_t count = 0;
 //
 //		for(auto s:mesh.GetRange(TestFixture::IForm))
@@ -81,6 +80,7 @@ TYPED_TEST_CASE_P(TestMesh);
 //	}
 //
 //}}
+
 TYPED_TEST_P(TestMesh, traversal){
 {
 	for(auto const & dims:TestFixture::dims_list)
@@ -115,10 +115,10 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 
 		int total=4;
 		size_t count = 0;
-
+		auto range=mesh.GetRange(TestFixture::IForm);
 		for (int s = 0; s < total; ++s)
 		{
-			for(auto s:mesh.GetRange(TestFixture::IForm,total,s ) )
+			for(auto s:range.split(total,s))
 			{
 				++count;
 			}

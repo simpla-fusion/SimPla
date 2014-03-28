@@ -278,19 +278,23 @@ struct OcForest
 		/// This type represents a reference-to-value_type.
 		typedef value_type& reference;
 
-		simpla::OcForest const * tree;
+		OcForest const * mesh;
 		value_type s_;
 
 		iterator()
-				: tree(nullptr), s_(value_type( { ~0UL }))
+				: mesh(nullptr), s_(value_type( { ~0UL }))
 		{
 		}
 		template<typename ...Args>
-		iterator(simpla::OcForest const & m, Args const & ... args)
-				: tree(&m), s_(index_type( { args... }))
+		iterator(OcForest const & m, Args const & ... args)
+				: mesh(&m), s_(index_type( { args... }))
 		{
 		}
-
+		template<typename ...Args>
+		iterator(OcForest const * m, Args const & ... args)
+				: mesh(m), s_(index_type( { args... }))
+		{
+		}
 		~iterator()
 		{
 		}
@@ -317,7 +321,7 @@ struct OcForest
 
 		iterator & operator ++()
 		{
-			s_ = tree->Next(s_);
+			s_ = mesh->Next(s_);
 			return *this;
 		}
 
@@ -330,9 +334,137 @@ struct OcForest
 
 		size_t Hash() const
 		{
-			return tree->Hash(s_);
+			return mesh->Hash(s_);
 		}
 	};
+
+	struct Range
+	{
+		typedef typename OcForest::iterator iterator;
+		typedef typename iterator::value_type value_type;
+	private:
+		compact_index_type b_, e_;
+		OcForest const * mesh;
+	public:
+		Range()
+				: b_(0), e_(0), mesh(nullptr)
+		{
+		}
+		Range(iterator b, iterator e)
+				: b_(b->d), e_(e->d), mesh(b.mesh)
+		{
+		}
+		Range(OcForest const *m, compact_index_type b, compact_index_type e)
+				: b_(b), e_(e), mesh(m)
+		{
+		}
+
+		~Range()
+		{
+		}
+		iterator begin() const
+		{
+			return iterator(mesh, b_);
+		}
+		iterator end() const
+		{
+			return iterator(mesh, e_);
+		}
+
+		Range split(int total, int sub) const
+		{
+			compact_index_type b = b_, e = b_;
+			nTuple<3, compact_index_type> L;
+			L[0] = (((e_ - b_) & _MI) >> (D_FP_POS + INDEX_DIGITS * 2));
+			L[1] = (((e_ - b_) & _MJ) >> (D_FP_POS + INDEX_DIGITS));
+			L[2] = (((e_ - b_) & _MK) >> (D_FP_POS));
+
+			for (int i = 0; i < 3; ++i)
+			{
+				if (L[i] == 0)
+					L[i] = mesh->dims_[i];
+			}
+			if (L[0] >= total)
+			{
+				b += (L[0] * sub / total) << (INDEX_DIGITS * 2 + D_FP_POS);
+				e = b + ((L[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS));
+			}
+			else if (L[1] >= total)
+			{
+				b += (L[1] * sub / total) << (INDEX_DIGITS + D_FP_POS);
+				e = b + ((L[1] / total) << (INDEX_DIGITS + D_FP_POS));
+			}
+			else if (L[2] >= total)
+			{
+				b += (L[2] * sub / total) << (D_FP_POS);
+				e = b + ((L[2] / total) << (D_FP_POS));
+			}
+			else
+			{
+				ERROR << ("TODO: board split");
+			}
+
+			e = mesh->CalCarray(e);
+
+			return Range(mesh, b, e);
+		}
+
+	};
+
+	Range GetRange(int IFORM = VERTEX) const
+	{
+
+		compact_index_type b = 0, e = 0;
+
+		if (IFORM == EDGE)
+		{
+			b |= (_DI >> 1);
+		}
+		else if (IFORM == FACE)
+		{
+			b |= ((_DJ | _DK) >> 1);
+		}
+		else if (IFORM == VOLUME)
+		{
+			b |= ((_DI | _DJ | _DK) >> 1);
+		}
+
+		e = b | ((dims_[0]) << (INDEX_DIGITS * 2 + D_FP_POS));
+
+		return Range(this, b, e);
+	}
+
+	compact_index_type CalCarray(compact_index_type s) const
+	{
+		auto bit = s & (1UL << (carray_digits_[2] - 1));
+		s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[2] + 1 - H(s)));
+		bit = s & (1UL << (carray_digits_[1] + INDEX_DIGITS - 1));
+		s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[1] + 1 - H(s)));
+		return s;
+	}
+
+	compact_index_type Next(compact_index_type s) const
+	{
+		auto n = _N(s);
+
+		if (n == 0 || n == 4 || n == 3 || n == 7)
+		{
+			s = CalCarray(s + (_DK >> H(s)));
+//			auto bit = s & (1UL << (carray_digits_[2] - 1));
+//			s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[2] + 1 - H(s)));
+//			bit = s & (1UL << (carray_digits_[1] + INDEX_DIGITS - 1));
+//			s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[1] + 1 - H(s)));
+		}
+
+		s = _R(s);
+
+		return s;
+	}
+
+	index_type Next(index_type s) const
+	{
+		return index_type( { Next(s.d) });
+	}
 
 //***************************************************************************************************
 
@@ -379,95 +511,6 @@ struct OcForest
 
 		return res;
 
-	}
-
-	Range<iterator> GetRange(int IFORM, int total = 1, int sub = 0) const
-	{
-		return Range<iterator>( { begin(IFORM, total, sub), end(IFORM, total, sub) });
-	}
-	/**
-	 *
-	 * @param total
-	 * @param n
-	 * @return
-	 */
-	iterator begin(int IFORM, int total = 1, int sub = 0) const
-	{
-		compact_index_type s = 0;
-
-		if (dims_[0] >= total)
-		{
-			s = (dims_[0] * sub / total) << (INDEX_DIGITS * 2 + D_FP_POS);
-		}
-		else if (dims_[1] >= total)
-		{
-			s = (dims_[1] * sub / total) << (INDEX_DIGITS * 2 + D_FP_POS);
-		}
-		else if (dims_[2] >= total)
-		{
-			s = (dims_[2] * sub / total) << (INDEX_DIGITS * 2 + D_FP_POS);
-		}
-
-		if (IFORM == EDGE)
-		{
-			s |= (_DI >> 1);
-		}
-		else if (IFORM == FACE)
-		{
-			s |= ((_DI | _DJ) >> 1);
-		}
-		else if (IFORM == VOLUME)
-		{
-			s |= ((_DI | _DJ | _DK) >> 1);
-		}
-		return iterator(*this, s);
-	}
-
-	iterator end(int IFORM, int total = 1, int sub = 0) const
-	{
-		iterator res = begin(IFORM, total, sub);
-		if (dims_[0] >= total)
-		{
-			res = iterator(*this, res->d + ((dims_[0] / total) << (INDEX_DIGITS * 2 + D_FP_POS)));
-		}
-		else if (dims_[1] >= total)
-		{
-			res = iterator(*this, res->d + ((dims_[1] / total) << (INDEX_DIGITS + D_FP_POS)));
-		}
-		else if (dims_[2] >= total)
-		{
-			res = iterator(*this, res->d + ((dims_[2] / total) << (D_FP_POS)));
-		}
-		else
-		{
-			if (sub == 0)
-				res = iterator(*this, (res->d + dims_[0]) << (INDEX_DIGITS * 2 + D_FP_POS));
-		}
-
-		return res;
-	}
-
-	compact_index_type Next(compact_index_type s) const
-	{
-		auto n = _N(s);
-
-		if (n == 0 || n == 4 || n == 3 || n == 7)
-		{
-			s += _DK >> H(s);
-			auto bit = s & (1UL << (carray_digits_[2] - 1));
-			s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[2] + 1 - H(s)));
-			bit = s & (1UL << (carray_digits_[1] + INDEX_DIGITS - 1));
-			s = (s & (~bit)) + (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[1] + 1 - H(s)));
-		}
-
-		s = _R(s);
-
-		return s;
-	}
-
-	index_type Next(index_type s) const
-	{
-		return index_type( { Next(s.d) });
 	}
 
 //***************************************************************************************************

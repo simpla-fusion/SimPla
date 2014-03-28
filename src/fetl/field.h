@@ -210,23 +210,23 @@ public:
 	iterator begin()
 	{
 		Update();
-		return iterator_<container_type>(data_, mesh.begin(IForm));
+		return iterator_<container_type>(data_, mesh.GetRange(IForm).begin());
 	}
 
 	iterator end()
 	{
 		Update();
-		return iterator_<container_type>(data_, mesh.end(IForm));
+		return iterator_<container_type>(data_, mesh.GetRange(IForm).end());
 	}
 
 	const_iterator begin() const
 	{
-		return iterator_<const container_type>(data_, mesh.begin(IForm));
+		return iterator_<const container_type>(data_, mesh.GetRange(IForm).begin());
 	}
 
 	const_iterator end() const
 	{
-		return iterator_<const container_type>(data_, mesh.end(IForm));
+		return iterator_<const container_type>(data_, mesh.GetRange(IForm).end());
 	}
 
 	inline value_type & operator[](index_type s)
