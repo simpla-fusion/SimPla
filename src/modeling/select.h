@@ -70,7 +70,10 @@ public:
 		{
 			this->operator ++();
 		}
-
+		iterator(base_iterator it)
+				: it_(it), ie_(it), cache_head_(0), cache_tail_(0)
+		{
+		}
 		iterator(iterator const &) = default;
 
 //	iterator(iterator &&) = default;
@@ -87,7 +90,7 @@ public:
 		{
 			return !(this->operator==(rhs));
 		}
-		this_type & operator ++()
+		iterator & operator ++()
 		{
 
 			++cache_head_;
@@ -106,7 +109,7 @@ public:
 
 			return *this;
 		}
-		this_type operator ++(int)
+		this_type operator ++(int) const
 		{
 			this_type res(*this);
 			++res;
@@ -135,7 +138,7 @@ public:
 	}
 	iterator end() const
 	{
-		return iterator();
+		return iterator(range_.end());
 	}
 	this_type split(size_t num, size_t id)
 	{
@@ -154,8 +157,7 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 }
 
 template<typename TM>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
-        typename TM::coordinates_type const & x)
+FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
 {
 	UNIMPLEMENT;
 	return FilterRange<typename TM::Range>();
@@ -245,10 +247,10 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 	return res;
 }
 
-template<typename TM,typename TDict>
+template<typename TM, typename TDict>
 FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, TDict const & dict)
 {
-	FilterRange<typename TM::Range> res(range);
+	FilterRange<typename TM::Range> res;
 	if (dict.is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;

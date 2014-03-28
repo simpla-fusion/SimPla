@@ -339,12 +339,12 @@ public:
 	}
 
 	typedef typename mesh_type::iterator iterator;
-	typedef Range<IteratorFilter<iterator>> range_type;
+	typedef FilterRange<typename mesh_type::Range> range_type;
 
 	template<int IFORM, typename ...Args>
 	range_type SelectCell(Args const & ... args) const
 	{
-		return Select(mesh.begin(IFORM), mesh.end(IFORM), std::forward<Args const &>(args)...);
+		return Select(mesh.GetRange(IFORM), std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -357,28 +357,28 @@ public:
 	 * @param flag
 	 */
 
-	range_type Select(iterator ib, iterator ie, material_type in, material_type out) const;
+	range_type Select(typename TM::Range range, material_type in, material_type out) const;
 
-	range_type Select(iterator ib, iterator ie, std::string const & in, std::string const & out) const
+	range_type Select(typename TM::Range range, std::string const & in, std::string const & out) const
 	{
-		return Select(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
+		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
-	range_type Select(iterator ib, iterator ie, char const in[], char const out[]) const
+	range_type Select(typename TM::Range range, char const in[], char const out[]) const
 	{
-		return Select(ib, ie, GetMaterialFromString(in), GetMaterialFromString(out));
+		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
-	range_type Select(iterator ib, iterator ie, material_type) const;
+	range_type Select(typename TM::Range range, material_type) const;
 
-	range_type Select(iterator ib, iterator ie, std::string const & m) const
+	range_type Select(typename TM::Range range, std::string const & m) const
 	{
-		return Select(ib, ie, GetMaterialFromString(m));
+		return Select(range, GetMaterialFromString(m));
 	}
-	range_type Select(iterator ib, iterator ie, char const m[]) const
+	range_type Select(typename TM::Range range, char const m[]) const
 	{
-		return Select(ib, ie, GetMaterialFromString(m));
+		return Select(range, GetMaterialFromString(m));
 	}
 	template<typename TDict>
-	range_type Select(iterator ib, iterator ie, TDict const & dict) const;
+	range_type Select(typename TM::Range range, TDict const & dict) const;
 
 private:
 
@@ -396,7 +396,7 @@ private:
 
 		Init(VERTEX);
 
-		for (auto s : Filter(mesh.begin(VERTEX), mesh.end(VERTEX), mesh, std::forward<Args const&>(args)...))
+		for (auto s : Filter(mesh.GetRange(VERTEX), mesh, std::forward<Args const&>(args)...))
 		{
 			fun(material_[VERTEX].at(mesh.Hash(s)));
 		}
@@ -439,7 +439,7 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, material_type in,
+typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type in,
         material_type out) const
 {
 	if (IsChanged())
@@ -506,10 +506,11 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 	//   +-------+  |          |
 	//              |          |
 	//              +----------+
-	int IFORM = mesh._IForm(*ib);
-	Range<IteratorFilter<typename TM::iterator>> res;
+	int IFORM = mesh._IForm(*range.begin());
 
-	res = FilterRange(ib, ie,
+	range_type res;
+
+	res = typename Material<TM>::range_type(range,
 
 	[=]( typename TM::iterator s, typename TM::iterator::value_type *c)->int
 	{
@@ -553,9 +554,9 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, material_type material) const
+typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type material) const
 {
-	return FilterRange(ib, ie,
+	return Material<TM>::range_type(range,
 	        [= ]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
 	        {	c[0]=*it;
 		        return (((this->material_[this->mesh._IForm(c[0])].at(this->mesh.Hash(c[0])) & material)).any())?1:0;
@@ -565,25 +566,25 @@ typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie,
 
 template<typename TM>
 template<typename TDict>
-typename Material<TM>::range_type Material<TM>::Select(iterator ib, iterator ie, TDict const & dict) const
+typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, TDict const & dict) const
 {
-	range_type res(ib, ie);
+	range_type res(range);
 	if (dict["Type"])
 	{
 		auto type = dict["Type"].template as<std::string>("");
 
 		if (type == "Boundary")
 		{
-			res = Select(ib, ie, dict["Material"].template as<std::string>(), "NONE");
+			res = Select(range, dict["Material"].template as<std::string>(), "NONE");
 
 		}
 		else if (type == "Interface")
 		{
-			res = Select(ib, ie, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
+			res = Select(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
 		}
 		else if (type == "Element")
 		{
-			res = Select(ib, ie, dict["Material"].template as<std::string>());
+			res = Select(range, dict["Material"].template as<std::string>());
 		}
 	}
 

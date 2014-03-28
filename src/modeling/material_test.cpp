@@ -89,7 +89,7 @@ TYPED_TEST_P(TestMaterial,create ){
 
 	f.Clear();
 
-	for(auto s:material.Select(mesh.begin( TestFixture::IForm ),mesh.end( TestFixture::IForm ),"Plasma" ))
+	for(auto s:material.Select(mesh.GetRange( TestFixture::IForm ),"Plasma" ))
 	{
 		f[s]=1;
 	}
@@ -132,19 +132,19 @@ TYPED_TEST_P(TestMaterial,create ){
 
 	f.Clear();
 
-	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ))
+	for(auto s: material.Select ( mesh.GetRange( TestFixture::IForm ) ,"Plasma" ))
 	{
 		f[s]=1;
 	}
 
 	LOGGER<<DUMP(f );
 
-	for(auto s: material.Select ( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) ,"Plasma" ,"NONE"))
+	for(auto s: material.Select ( mesh.GetRange( TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
 		f[s]=10;
 	}
 
-//	for(auto s:material.Select( mesh.begin(TestFixture::IForm ),mesh.end(TestFixture::IForm ) , "Vacuum","Plasma" ))
+//	for(auto s:material.Select( mesh.GetRange( TestFixture::IForm ) , "Vacuum","Plasma" ))
 //	{
 //		f[s]=-10;
 //	}
@@ -183,7 +183,7 @@ typedef testing::Types<
 
 TestFETLParam<mesh_type, Real, VERTEX>,
 
-TestFETLParam<mesh_type, Real, EDGE>  ,
+TestFETLParam<mesh_type, Real, EDGE>,
 
 TestFETLParam<mesh_type, Real, FACE>,
 
