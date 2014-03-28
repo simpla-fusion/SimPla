@@ -65,8 +65,8 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	~PICEngineDeltaF()
@@ -95,15 +95,16 @@ public:
 	{
 		return 2;
 	}
-	void Load(LuaObject const &vm)
+	template<typename TDict>
+	void Load(TDict const &dict)
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		m_ = vm["Mass"].as<Real>(1.0);
-		q_ = vm["Charge"].as<Real>(1.0);
+		m_ = dict["Mass"].template as<Real>(1.0);
+		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
-		q_kT_ = q_ / (vm["Temperature"].as<Real>(1.0) * boltzmann_constant);
+		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
 	}
 
 	std::ostream & Save(std::ostream & os) const
@@ -135,21 +136,20 @@ public:
 	}
 
 	template<typename TB, typename TE, typename ... Others> inline
-	void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
+	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
+		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
 
 		// FIXME miss one term E\cross B \cdot \Grad n
 		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
 
-		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+		p->w = 0.5 * (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
-//		p->w += (1.0 - p->w) * (-q_ * InnerProduct(fE(p->x), p->v) / T_ * dt);
 	}
 
 	template<typename TV, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+			Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
 		mesh.Scatter(p.x, p.f * p.w, n);
 	}
@@ -157,12 +157,16 @@ public:
 	template<int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
-		mesh.Scatter(p.x, p.v * (p.f * p.w), J);
+		typename Field<mesh_type, IFORM, TV>::field_value_type v;
+
+		v = p.v * (p.f * p.w);
+		mesh.Scatter(p.x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f, 0 }));
 	}
 
 };

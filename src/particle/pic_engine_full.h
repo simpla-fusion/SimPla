@@ -119,9 +119,9 @@ public:
 	}
 
 	template<typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TB const & fB, TE const &fE, Others const &...others) const
+	inline void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		BorisMethod(dt, cmr_, fB, fE, &(p->x), &(p->v));
+		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
 	}
 
 	template<typename TV, typename ... Others>
@@ -134,7 +134,8 @@ public:
 	template<int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
-		mesh.Scatter(p.x, p.v * p.f, J);
+		auto v = p.v * p.f;
+		mesh.Scatter(p.x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

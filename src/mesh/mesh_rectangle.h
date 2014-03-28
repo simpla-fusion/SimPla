@@ -298,8 +298,6 @@ public:
 
 		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift)+ (topology_type::_DA >> (topology_type::H(shift) + 1));
 
-		CHECK_BIT(s);
-
 		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
 		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);
 		f->get(((s + X) - Y) + Z)+=v*geometry_type::Volume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2]);

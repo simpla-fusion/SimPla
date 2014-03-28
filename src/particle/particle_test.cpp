@@ -36,9 +36,13 @@ protected:
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=40,Temperature=1.0e4 ,Density=n0"
+				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=40,Temperature=1.0e-34 ,Density=n0"
 				"}";
 
+		enable_sorting = TParam::ICASE / 100 > 0;
+
+		GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 public:
 	typedef typename TParam::engine_type engine_type;
@@ -58,6 +62,8 @@ public:
 	mesh_type mesh;
 
 	std::string cfg_str;
+
+	bool enable_sorting;
 
 };
 
@@ -123,11 +129,8 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	ion.Scatter(&n,E,B);
 
-	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
-
-	LOGGER<<DUMP(n );
-	LOGGER<<DUMP(ion );
+//	LOGGER<<DUMP1(n );
+//	LOGGER<<DUMP1(ion );
 
 	{
 		Real variance=0.0;
@@ -168,44 +171,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	}
 
-	LOGGER<<DUMP(n0 );
-
-}
-}
-
-TYPED_TEST_P(TestParticle,scatter_J){
-{
-
-	typedef typename TestFixture::mesh_type mesh_type;
-
-	typedef typename TestFixture::particle_pool_type pool_type;
-
-	typedef typename TestFixture::Point_s Point_s;
-
-	typedef typename TestFixture::scalar_type scalar_type;
-
-	mesh_type const & mesh = TestFixture::mesh;
-
-	Field<mesh_type,EDGE,scalar_type> J(mesh);
-	Field<mesh_type,EDGE,scalar_type> E(mesh);
-	Field<mesh_type,FACE,scalar_type> B(mesh);
-
-	E.Init();
-	B.Init();
-	J.Init();
-
-	pool_type ion(mesh);
-
-	ion.Update();
-
-	LuaObject cfg;
-	cfg.ParseString(TestFixture::cfg_str);
-
-	ion.Load(cfg["ion"]);
-
-	ion.Sort();
-
-	ion.Scatter(&J,E,B);
+//	LOGGER<<DUMP1(n0 );
 
 }
 }
@@ -219,29 +185,32 @@ TYPED_TEST_P(TestParticle,move){
 
 	typedef typename TestFixture::Point_s Point_s;
 
-	typedef typename TestFixture::scalar_type scalar_type;
+	typedef typename TestFixture::index_type index_type;
 
 	typedef typename TestFixture::coordinates_type coordinates_type;
 
+	typedef typename TestFixture::scalar_type scalar_type;
+
 	mesh_type const & mesh = TestFixture::mesh;
-
-	LuaObject cfg;
-
-	cfg.ParseString(TestFixture::cfg_str);
 
 	pool_type ion(mesh);
 
-	ion.Load(cfg["ion"]);
+	ion.Update();
 
-	ion.Sort();
+	ion.SetParticleSorting(TestFixture::enable_sorting);
+
+	LuaObject cfg;
+	cfg.ParseString(TestFixture::cfg_str);
+
+	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
+
+	ion.Load(cfg["ion"]);
 
 	Field<mesh_type,EDGE,Real> E(mesh);
 	Field<mesh_type,FACE,Real> B(mesh);
 
-	Field<mesh_type,VERTEX,scalar_type> n(mesh);
 	Field<mesh_type,EDGE,scalar_type> J(mesh);
 
-	Field<mesh_type,VERTEX,Real> n0(mesh);
 	Field<mesh_type,EDGE,Real> J0(mesh);
 
 	n.Clear();
@@ -256,9 +225,9 @@ TYPED_TEST_P(TestParticle,move){
 	Real dt = 1.0e-10;
 
 	nTuple<3,Real> E0=
-	{	1.0e-4,2.0e-4,3.0e-4};
+	{	1.0e-4,0.0e-4,0.0e-4};
 	nTuple<3,Real> Bv=
-	{	0,0,1};
+	{	0,0,0};
 	nTuple<3,Real> k=
 	{	2.0*PI,4.0*PI,6.0*PI};
 
@@ -287,18 +256,19 @@ TYPED_TEST_P(TestParticle,move){
 	{
 		B[s]=mesh.Sample(Int2Type<FACE>(),s,Bv);
 	}
-	J0=dt*n0*E;
+	J0=n0*E*(dt*ion.GetCharge()/ion.GetMass());
 
-	LOGGER<<DUMP(n0 );
-	LOGGER<<DUMP(J0 );
+	LOGGER<<DUMP1(E);
+	LOGGER<<DUMP1(n0 );
+	LOGGER<<DUMP1(J0 );
 
 	LOG_CMD(ion.NextTimeStep(dt,E, B));
 
 	ion.Scatter(&J ,E,B);
-//	ion.Scatter(&n ,E,B);
+	ion.Scatter(&n ,E,B);
 
-	LOGGER<<DUMP(J);
-	LOGGER<<DUMP(n);
+	LOGGER<<DUMP1(J);
+	LOGGER<<DUMP1(n);
 
 	Real variance=0.0;
 
@@ -318,13 +288,13 @@ TYPED_TEST_P(TestParticle,move){
 	{
 		Real relative_error=std::sqrt(variance)/abs(average);
 		CHECK(relative_error);
-		EXPECT_LE(relative_error,1.0/std::sqrt(pic));
+		EXPECT_LE(relative_error,2.0/std::sqrt(pic));
 	}
 
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n, scatter_J, move);
+REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n, move);
 
 template<typename TM, typename TEngine, int CASE> struct TestPICParam;
 typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
@@ -332,6 +302,8 @@ typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
 template<typename TEngine, int CASE>
 struct TestPICParam<Mesh, TEngine, CASE>
 {
+
+	static constexpr int ICASE = CASE;
 	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
 
 	typedef TEngine engine_type;
@@ -362,7 +334,11 @@ typedef testing::Types<
 
 TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
 
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+
+TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
+
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>
 
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
 //

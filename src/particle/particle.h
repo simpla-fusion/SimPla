@@ -33,8 +33,6 @@
 #include "load_particle.h"
 #include "save_particle.h"
 
-#define DO_PARTICLE_SORTING true
-
 #ifndef NO_STD_CXX
 //need  libstdc++
 
@@ -161,7 +159,14 @@ public:
 		}
 		return res;
 	}
-
+	void SetParticleSorting(bool f)
+	{
+		particleSortingIsEnable_ = f;
+	}
+	bool GetParticleSorting() const
+	{
+		return particleSortingIsEnable_;
+	}
 private:
 
 	cell_type pool_;
@@ -169,7 +174,7 @@ private:
 	container_type data_;
 
 	bool isSorted_;
-
+	bool particleSortingIsEnable_;
 	std::string name_;
 
 	/**
@@ -178,15 +183,13 @@ private:
 	 */
 	void Resort(index_type s, container_type * dest = nullptr);
 
-#ifdef DO_PARTICLE_SORTING
 	std::vector<container_type> mt_data_; // for sort
-#endif
 
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed")
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
 {
 }
 
@@ -249,17 +252,18 @@ void Particle<Engine>::Update()
 	if (data_.size() < mesh.GetNumOfElements(IForm))
 		data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 
-#ifdef DO_PARTICLE_SORTING
-
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-
-	mt_data_.resize(num_threads);
-
-	for (auto & d : mt_data_)
+	if (particleSortingIsEnable_)
 	{
-		d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+
+		const unsigned int num_threads = std::thread::hardware_concurrency();
+
+		mt_data_.resize(num_threads);
+
+		for (auto & d : mt_data_)
+		{
+			d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+		}
 	}
-#endif //DO_PARTICLE_SORTING
 }
 
 template<class Engine>
@@ -298,38 +302,40 @@ void Particle<Engine>::Resort(index_type id_src, container_type *other)
 template<class Engine>
 void Particle<Engine>::Sort()
 {
-#ifdef DO_PARTICLE_SORTING
+
 	Update();
 
 	if (IsSorted())
 		return;
 
-	ParallelDo(
-
-	[this](int t_num,int t_id)
+	if (particleSortingIsEnable_)
 	{
-		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+		ParallelDo(
+
+		[this](int t_num,int t_id)
 		{
-			this->Resort(s, &(this->mt_data_[t_id]));
+			for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+			{
+				this->Resort(s, &(this->mt_data_[t_id]));
+			}
 		}
-	}
 
-	);
+		);
 
-	ParallelDo(
+		ParallelDo(
 
-	[this](int t_num,int t_id)
-	{
-		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+		[this](int t_num,int t_id)
 		{
-			auto idx = this->mesh.Hash(s);
+			for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+			{
+				auto idx = this->mesh.Hash(s);
 
-			this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
+				this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
+			}
 		}
-	}
 
-	);
-#endif // DO_PARTICLE_SORTING
+		);
+	}
 	isSorted_ = true;
 }
 
@@ -361,6 +367,8 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	isSorted_ = false;
 	Sort();
+
+	VERBOSE << " Push particles. Particle Sorting is " << (particleSortingIsEnable_ ? "enabled" : "disabled") << ".";
 
 }
 
