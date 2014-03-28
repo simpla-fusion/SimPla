@@ -94,8 +94,8 @@ public:
 
 	inline void Load(LuaObject const &vm)
 	{
-		m_ = vm["Mass"].as<Real>();
-		q_ = vm["Charge"].as<Real>();
+		m_ = vm["Mass"].as<Real>(1.0);
+		q_ = vm["Charge"].as<Real>(1.0);
 		cmr_ = q_ / m_;
 	}
 

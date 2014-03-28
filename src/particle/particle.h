@@ -33,6 +33,8 @@
 #include "load_particle.h"
 #include "save_particle.h"
 
+#define DO_PARTICLE_SORTING true
+
 #ifndef NO_STD_CXX
 //need  libstdc++
 
@@ -50,11 +52,6 @@ class Particle: public Engine
 public:
 	static constexpr int IForm = VOLUME;
 
-	enum
-	{
-		REFELECT, ABSORB
-	};
-
 	typedef Engine engine_type;
 
 	typedef Particle<engine_type> this_type;
@@ -65,7 +62,9 @@ public:
 
 	typedef particle_type value_type;
 
-	DEFINE_FIELDS(mesh_type)
+	typedef typename mesh_type::index_type index_type;
+
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	//container
 
@@ -90,7 +89,7 @@ public:
 	 *
 	 * @return <datapoint , number of particles>
 	 */
-	std::pair<std::shared_ptr<value_type>, size_t> GetDataSet() const;
+	std::pair<std::shared_ptr<value_type>, size_t> DumpData() const;
 
 	allocator_type GetAllocator()
 	{
@@ -115,19 +114,11 @@ public:
 
 	//***************************************************************************************************
 
-	void Initiallize();
-
-	void DumpData(std::string const &path);
-
-	template<typename ...Args>
-	void Load(Args const &... args);
+	template<typename ...Args> void Load(Args const &... args);
 
 	std::ostream & Save(std::ostream & os) const;
 
-	void Update()
-	{
-//		Engine::Update();
-	}
+	void Update();
 
 	//***************************************************************************************************
 
@@ -136,21 +127,6 @@ public:
 	template<typename TJ, typename ... Args> void Scatter(TJ * J, Args const & ... args) const;
 
 	void Sort();
-
-	void Boundary()
-	{
-		UNIMPLEMENT;
-	}
-	template<typename TMaterialTag, typename ... Args>
-	void Boundary(int flag, TMaterialTag in, TMaterialTag out, Real dt, Args const &... args);
-
-	template<typename ... Args> void Collide(Args const& ... args);
-
-	/**
-	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
-	 * @param
-	 */
-	void Resort(index_type s, container_type * dest = nullptr);
 
 	bool IsSorted() const
 	{
@@ -192,11 +168,19 @@ private:
 
 	container_type data_;
 
-	std::vector<container_type> mt_data_; // for sort
-
 	bool isSorted_;
 
 	std::string name_;
+
+	/**
+	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
+	 * @param
+	 */
+	void Resort(index_type s, container_type * dest = nullptr);
+
+#ifdef DO_PARTICLE_SORTING
+	std::vector<container_type> mt_data_; // for sort
+#endif
 
 };
 
@@ -215,13 +199,12 @@ template<class Engine>
 template<typename ...Args>
 void Particle<Engine>::Load(Args const & ... args)
 {
-	Initiallize();
-
+	Update();
 	LoadParticle(this, std::forward<Args const &>(args)...);
-
 }
+
 template<class Engine>
-std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::GetDataSet() const
+std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
 {
 	size_t num = size();
 
@@ -257,14 +240,16 @@ std::ostream & Particle<Engine>::Save(std::ostream & os) const
 template<typename TM>
 std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
 {
-	return self.Serialize(os);
+	return self.Save(os);
 }
 
 template<class Engine>
-void Particle<Engine>::Initiallize()
+void Particle<Engine>::Update()
 {
 	if (data_.size() < mesh.GetNumOfElements(IForm))
 		data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
+
+#ifdef DO_PARTICLE_SORTING
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
 
@@ -274,67 +259,47 @@ void Particle<Engine>::Initiallize()
 	{
 		d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 	}
+#endif //DO_PARTICLE_SORTING
 }
 
 template<class Engine>
-void Particle<Engine>::DumpData(std::string const &path)
+void Particle<Engine>::Resort(index_type id_src, container_type *other)
 {
-	GLOBAL_DATA_STREAM.OpenGroup(path);
-
-	constexpr int trace_cache_depth_=10;
-
-//	if (trace_cache_.empty())
-//	{
-//		size_t num_particle = trace_particle_.size();
-//		trace_cache_.resize(num_particle * trace_cache_depth_);
-//		trace_tail_ = trace_cache_.begin();
-//	}
-//
-//	for (auto const& p : trace_particle_)
-//	{
-//		*trace_tail_ = *p;
-//		++trace_tail_;
-//	}
-//
-//	if (trace_tail_ == trace_cache_.end())
-//	{
-//
-//		size_t dims[2] =
-//		{	trace_particle_.size(), trace_cache_.size() / trace_particle_.size()};
-//
-//		LOGGER << Dump(&trace_cache_[0], GetName(), 2, dims, true);
-//
-//		trace_tail_ = trace_cache_.begin();
-//	}
-}
-
-template<class Engine>
-void Particle<Engine>::Resort(index_type src, container_type *other)
-{
-	if (other == nullptr)
-		other = &(this->data_);
-	auto & cell = this->data_[mesh.Hash(src)];
-	auto pt = cell.begin();
-	while (pt != cell.end())
+	try
 	{
-		auto p = pt;
-		++pt;
 
-		index_type dest = this->mesh.GetIndex(p->x);
+		auto & cell = this->data_.at(this->mesh.Hash(id_src));
 
-		if (!(dest == src))
+		auto pt = cell.begin();
+
+		while (pt != cell.end())
 		{
-			(*other)[mesh.Hash(dest)].splice((*other)[mesh.Hash(dest)].begin(), cell, p);
-		}
+			auto p = pt;
+			++pt;
 
+			index_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x));
+
+			p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
+
+			if (!(id_dest == id_src))
+			{
+
+				(*other).at(this->mesh.Hash(id_dest)).splice((*other).at(this->mesh.Hash(id_dest)).begin(), cell, p);
+
+			}
+
+		}
+	} catch (std::out_of_range const & e)
+	{
+		ERROR << "out of range!";
 	}
 }
 
 template<class Engine>
 void Particle<Engine>::Sort()
 {
-
-	Initiallize();
+#ifdef DO_PARTICLE_SORTING
+	Update();
 
 	if (IsSorted())
 		return;
@@ -344,7 +309,9 @@ void Particle<Engine>::Sort()
 	[this](int t_num,int t_id)
 	{
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{	this->Resort(s, &(this->mt_data_[t_id]));}
+		{
+			this->Resort(s, &(this->mt_data_[t_id]));
+		}
 	}
 
 	);
@@ -357,12 +324,12 @@ void Particle<Engine>::Sort()
 		{
 			auto idx = this->mesh.Hash(s);
 
-			this->data_[idx].splice(this->data_[idx].begin(), this->mt_data_[t_id][idx]);
+			this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
 		}
 	}
 
 	);
-
+#endif // DO_PARTICLE_SORTING
 	isSorted_ = true;
 }
 
@@ -378,18 +345,23 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	Sort();
 
-	ParallelForEach(mesh.GetRange(IForm), [&,this](index_type s)
+	ParallelDo(
+
+	[& ](int t_num,int t_id)
 	{
-		for (auto & p : this->data_[mesh.Hash(s)])
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			engine_type::NextTimeStep(&p, dt, args ...);
+			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+			{
+				this->engine_type::NextTimeStep(&p, dt, args ...);
+			}
 		}
+
 	});
 
 	isSorted_ = false;
-
 	Sort();
-	Boundary();
+
 }
 
 template<class Engine>
@@ -405,79 +377,22 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	ParallelForEach(mesh.GetRange(IForm),
+	ParallelDo(
 
-	[& ](index_type s)
+	[& ](int t_num,int t_id)
 	{
-		J->lock();
-		for (auto const& p : this->data_[this->mesh.Hash(s)])
+		for(auto s: mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			engine_type::Scatter(p, J, args ...);
+			J->lock();
+			for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
+			{
+				engine_type::Scatter(p, J, args ...);
+			}
+			J->unlock();
 		}
-		J->unlock();
 
 	});
 
-}
-
-template<class Engine>
-template<typename TMaterialTag, typename ... Args>
-void Particle<Engine>::Boundary(int flag, TMaterialTag in, TMaterialTag out, Real dt, Args const &... args)
-{
-
-	UNIMPLEMENT;
-
-//	auto selector = mesh.tags().template BoundarySelector<VERTEX>(in, out);
-//
-//// @NOTE: difficult to parallism
-//
-//	auto fun = [&](index_type idx)
-//	{
-//		if(!selector(idx)) return;
-//
-//		auto & cell = this->data_[idx];
-//
-//		auto pt = cell.begin();
-//
-//		while (pt != cell.end())
-//		{
-//			auto p = pt;
-//			++pt;
-//
-//			index_type dest=idx;
-//			if (flag == REFELECT)
-//			{
-//				coordinates_type x;
-//
-//				nTuple<3,Real> v;
-//
-//				Engine::InvertTrans(*p,&x,&v,std::forward<Args const &>(args)...);
-//
-//				dest=this->mesh.Refelect(idx,dt,&x,&v);
-//
-//				Engine::Trans(x,v,&(*p),std::forward<Args const &>(args)...);
-//			}
-//
-//			if (dest != idx)
-//			{
-//				data_[dest].splice(data_[dest].begin(), cell, p);
-//			}
-//			else
-//			{
-//				cell.erase(p);
-//			}
-//
-//		}
-//	};
-//
-//// @NOTE: is a simple implement, need  parallism
-//
-
-}
-template<class Engine> template<typename ... Args>
-void Particle<Engine>::Collide(Args const &... args)
-{
-	UNIMPLEMENT;
 }
 
 //******************************************************************************************************

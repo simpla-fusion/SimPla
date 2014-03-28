@@ -38,7 +38,6 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 	}
 
 	p->engine_type::Load(dict);
-
 	p->SetName(dict["Name"].template as<std::string>());
 
 	InitParticle(p, dict, std::forward<Args const &>(args)...);

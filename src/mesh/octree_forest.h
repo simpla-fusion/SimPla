@@ -46,6 +46,8 @@ struct OcForest
 
 	static constexpr size_type INDEX_MIN = 0;
 
+	static constexpr compact_index_type NULL_INDEX = ~0UL;
+
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
@@ -563,65 +565,6 @@ struct OcForest
 		return std::move(GetCoordinates(s.d));
 
 	}
-	inline index_type GetIndex(coordinates_type x) const
-	{
-		return index_type( { static_cast<size_type>(std::floor(x[0] * idh)) << (INDEX_DIGITS * 2)
-
-		| static_cast<size_type>(std::floor(x[1] * idh)) << (INDEX_DIGITS)
-
-		| static_cast<size_type>(std::floor(x[2] * idh)) });
-
-	}
-
-	template<int IFORM>
-	inline int GetCellIndex(coordinates_type x, int h, index_type *v) const
-	{
-		int n = 0;
-
-		index_type s = GetIndex(x);
-		compact_index_type m = (1UL << (D_FP_POS - h)) - 1;
-		m = ~((m << INDEX_DIGITS * 2) | (m << INDEX_DIGITS) | (m)) & ((1UL << (INDEX_DIGITS * 3)) - 1);
-		s &= m;
-
-		auto X = _DI >> (h + 1);
-		auto Y = _DJ >> (h + 1);
-		auto Z = _DK >> (h + 1);
-
-//		CHECK(_C(s + X));
-//		CHECK(_C(s + Y));
-//		CHECK(_C(s + Z));
-//
-//
-//		CHECK(_C(s + Y|Z));
-//		CHECK(_C(s + Z|X));
-//		CHECK(_C(s + X|Y));
-
-		if (IFORM == VERTEX)
-		{
-			v[0] = s;
-			n = 1;
-		}
-		else if (IFORM == EDGE)
-		{
-			v[0] = s + X;
-			v[1] = s + Y;
-			v[2] = s + Z;
-			n = 3;
-		}
-		else if (IFORM == EDGE)
-		{
-			v[0] = s + Y | Z;
-			v[1] = s + Z | X;
-			v[2] = s + X | Y;
-			n = 3;
-		}
-		else if (IFORM == EDGE)
-		{
-			v[0] = s + X | Y | Z;
-			n = 1;
-		}
-		return n;
-	}
 
 	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type r) const
 	{
@@ -634,30 +577,37 @@ struct OcForest
 		x[2] = (dims_[2] > 1) ? (x[2] + r[2] * a) : 0;
 		return x;
 	}
-
-	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift,
-	        unsigned long h = 0) const
+	inline std::pair<index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	        compact_index_type shift = 0) const
 	{
+		auto res = CoordinatesGlobalToLocal(&x, shift);
+		return std::make_pair(res, x);
+	}
+	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift = 0UL) const
+	{
+		compact_index_type h = H(shift);
 
-		shift >>= h + 1;
-
-		size_type idx[NDIMS];
+		nTuple<NDIMS, size_t> idx;
 
 		Real w = static_cast<Real>(1UL << h);
 
-		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
+		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1)) & ((1 << INDEX_DIGITS) - 1);
+
+		(*x)[0] = (dims_[0] > 1) ? (*x)[0] : 0.0;
+		(*x)[1] = (dims_[1] > 1) ? (*x)[1] : 0.0;
+		(*x)[2] = (dims_[2] > 1) ? (*x)[2] : 0.0;
 
 		idx[0] = static_cast<size_type>(std::floor((*x)[0] * idh + static_cast<double>(I(shift)))) & m;
 
-		(*x)[0] = (dims_[0] > 1) ? (((*x)[0] - idx[0] * dh) * w) : 0.0;
+		(*x)[0] = ((*x)[0] - idx[0] * dh) * w;
 
 		idx[1] = static_cast<size_type>(std::floor((*x)[1] * idh + static_cast<double>(J(shift)))) & m;
 
-		(*x)[1] = (dims_[1] > 1) ? (((*x)[1] - idx[1] * dh) * w) : 0.0;
+		(*x)[1] = ((*x)[1] - idx[1] * dh) * w;
 
 		idx[2] = static_cast<size_type>(std::floor((*x)[2] * idh + static_cast<double>(K(shift)))) & m;
 
-		(*x)[2] = (dims_[2] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
+		(*x)[2] = ((*x)[2] - idx[2] * dh) * w;
 
 		return index_type(
 		        { (((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
@@ -735,6 +685,15 @@ struct OcForest
 	static size_type H(index_type s)
 	{
 		return H(s.d);
+	}
+
+	static compact_index_type ShiftH(compact_index_type s, compact_index_type h)
+	{
+		return (s >> h) | (h << (INDEX_DIGITS * 3));
+	}
+	static index_type ShiftH(index_type s, compact_index_type h)
+	{
+		return index_type( { ShiftH(s.d, h) });
 	}
 
 	size_type I(compact_index_type s) const

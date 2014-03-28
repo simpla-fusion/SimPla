@@ -36,7 +36,7 @@ protected:
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Engine=\"Full\",m=1.0,Z=1.0,PIC=40,Temperature=1.0e4 ,Density=n0"
+				"ion={ Name=\"H\",Engine=\"Full\",Mass=1.0,Charge=1 ,PIC=40,Temperature=1.0e4 ,Density=n0"
 				"}";
 
 	}
@@ -81,6 +81,7 @@ TYPED_TEST_P(TestParticle,load_save){
 	cfg.ParseString(TestFixture::cfg_str);
 
 	ion.Load(cfg["ion"]);
+
 }
 }
 
@@ -133,7 +134,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 		scalar_type average=0.0;
 
-		LuaObject n_obj=cfg["ion"]["n"];
+		LuaObject n_obj=cfg["ion"]["Density"];
 
 		Real pic =cfg["ion"]["PIC"].template as<Real>();
 
@@ -155,7 +156,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
 		{
 			Real relative_error=std::sqrt(variance)/abs(average);
-			INFORM<<(relative_error);
+			CHECK(relative_error);
 			EXPECT_LE(relative_error,1.0/std::sqrt(pic));
 		}
 		else
@@ -226,7 +227,6 @@ TYPED_TEST_P(TestParticle,move){
 
 	LuaObject cfg;
 	cfg.ParseString(TestFixture::cfg_str);
-	cfg.ParseString("ion.n=1.0");
 
 	pool_type ion(mesh);
 
@@ -234,7 +234,6 @@ TYPED_TEST_P(TestParticle,move){
 
 	ion.Sort();
 
-	Field<mesh_type,VERTEX,scalar_type> n(mesh);
 	Field<mesh_type,EDGE,Real> E(mesh);
 	Field<mesh_type,FACE,Real> B(mesh);
 	Field<mesh_type,EDGE,scalar_type> J(mesh);
@@ -264,27 +263,47 @@ TYPED_TEST_P(TestParticle,move){
 		expect_n=0.0;
 	}
 
-//	EXPECT_EXIT(
-
-	LOG_CMD(ion.NextTimeStep(1.0,E, B))
-
-//			, ::testing::ExitedWithCode(11), "Success"	)
-	;
+	LOG_CMD(ion.NextTimeStep(1.0,E, B));
 
 	{
-		Field<mesh_type,VERTEX,scalar_type> n(mesh);
+		Field<mesh_type,VERTEX,scalar_type> n (mesh);
+
 		n.Clear();
-		ion.Scatter(&n,E,B);
 
-		scalar_type average_n=0.0;
+		ion.Scatter(&n ,E,B);
 
-		for(auto &v :n)
+		Real variance=0.0;
+
+		scalar_type average=0.0;
+
+		LuaObject n_obj=cfg["ion"]["Density"];
+
+		Real pic =cfg["ion"]["PIC"].template as<Real>();
+
+		for(auto s:mesh.GetRange(VERTEX))
 		{
-			average_n+=v;
-		}
-		average_n/=static_cast<Real>(mesh.GetNumOfElements(0));
+			coordinates_type x=mesh.GetCoordinates(s);
 
-		EXPECT_LE(abs(expect_n-average_n),error);
+			Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
+
+			scalar_type actual= n.get(s);
+
+			average+=actual;
+
+			variance+=std::pow(abs (expect-actual),2.0);
+		}
+
+		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
+		{
+			Real relative_error=std::sqrt(variance)/abs(average);
+			CHECK(relative_error);
+			EXPECT_LE(relative_error,1.0/std::sqrt(pic));
+		}
+		else
+		{
+			Real error=1.0/std::sqrt(static_cast<double>(ion.size()));
+			EXPECT_LE(abs(average),error);
+		}
 
 	}
 
@@ -306,11 +325,11 @@ struct TestPICParam<Mesh, TEngine, CASE>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin = { 0, -1.0, 0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax = { 1.0, 10, 1.0 };
 
-		nTuple<3, size_t> dims = { 16, 32, 1 };
+		nTuple<3, size_t> dims = { 16, 4, 10 };
 
 		mesh->SetExtent(xmin, xmax);
 
@@ -324,15 +343,15 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 0>//,
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
-//
-//TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
-//
-//TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
+TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
+
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+
+TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
+
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
+
+TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
 //
 //, PICEngineGGauge<RectMesh<>, Real, 32>
 //
