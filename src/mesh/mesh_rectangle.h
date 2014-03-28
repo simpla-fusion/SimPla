@@ -44,14 +44,14 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
-	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh() :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(TDict const & dict) :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(dict);
 	}
@@ -297,6 +297,8 @@ public:
 		auto Z = (topology_type::_DK >> (topology_type::H(shift)+1));
 
 		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift)+ (topology_type::_DA >> (topology_type::H(shift) + 1));
+
+		CHECK_BIT(s);
 
 		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
 		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);

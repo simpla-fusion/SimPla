@@ -100,10 +100,10 @@ public:
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		m_ = vm["Mass"].as<Real>();
-		q_ = vm["Charge"].as<Real>();
+		m_ = vm["Mass"].as<Real>(1.0);
+		q_ = vm["Charge"].as<Real>(1.0);
 		cmr_ = q_ / m_;
-		q_kT_ = q_ / (vm["T"].as<Real>() * boltzmann_constant);
+		q_kT_ = q_ / (vm["Temperature"].as<Real>(1.0) * boltzmann_constant);
 	}
 
 	std::ostream & Save(std::ostream & os) const

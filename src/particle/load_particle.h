@@ -143,7 +143,7 @@ void InitParticle(TP *p, size_t pic, TN const & ns, TT const & Ts)
 
 	std::mt19937 rnd_gen(NDIMS);
 
-	for (auto s : mesh.GetRange(TP::IForm))
+	for (auto s : mesh.GetRange(mesh._Dual(TP::IForm)))
 	{
 
 		nTuple<3, Real> x, v;
