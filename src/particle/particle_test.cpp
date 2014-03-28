@@ -343,15 +343,15 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
+TestPICParam<Mesh, PICEngineFull<Mesh>, 0>//,
 
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
 
-TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
-
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
-
-TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
+//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
+//
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
 //
 //, PICEngineGGauge<RectMesh<>, Real, 32>
 //
