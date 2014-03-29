@@ -44,14 +44,14 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
-	RectMesh() :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh()
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(TDict const & dict)
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(dict);
 	}
@@ -219,26 +219,26 @@ public:
 
 	template<typename TF>
 	inline typename TF::value_type
-	Gather_(TF const &f,coordinates_type x, compact_index_type shift ) const
+	Gather_(TF const &f,coordinates_type r, compact_index_type shift ) const
 	{
-		x=geometry_type::CoordinatesGlobalToLocal(x);
+		r=geometry_type::CoordinatesGlobalToLocal(r);
 
 		auto X = (topology_type::_DI >> (topology_type::H(shift) +1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(shift) +1));
 		auto Z = (topology_type::_DK >> (topology_type::H(shift) +1));
 
-		auto s= topology_type::CoordinatesGlobalToLocal(&x,shift) + (topology_type::_DA >> (topology_type::H(shift) + 1));
+		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift) + (topology_type::_DA >> (topology_type::H(shift) + 1));
 
 		return
 
-		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) * (x[0])* (x[1])* (x[2])+
-		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) * (x[0])* (x[1])* (1.0-x[2])+
-		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) * (x[0])* (1.0-x[1])* (x[2])+
-		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) * (x[0])* (1.0-x[1])* (1.0-x[2])+
-		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) * (1.0-x[0])* (x[1])* (x[2])+
-		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) * (1.0-x[0])* (x[1])* (1.0-x[2])+
-		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) * (1.0-x[0])* (1.0-x[1])* (x[2])+
-		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) * (1.0-x[0])* (1.0-x[1])* (1.0-x[2])
+		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2])+
+		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2])+
+		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2])+
+		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2])+
+		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2])+
+		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2])+
+		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2])+
+		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2])
 		;
 	}
 

@@ -613,7 +613,7 @@ struct OcForest
 
 		(idx[2] & ((1UL << carray_digits_[2]) - 1))) |
 
-		shift)) });
+		shift)) & _MASK });
 
 	}
 

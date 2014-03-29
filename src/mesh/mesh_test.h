@@ -78,14 +78,24 @@ TYPED_TEST_P(TestMesh,scatter ){
 	auto & mesh=TestFixture::mesh;
 
 	Field<mesh_type,VERTEX,Real> n(mesh);
+	Field<mesh_type,EDGE,Real> J(mesh);
 
 	n.Clear();
+	J.Clear();
 
 	nTuple<3,Real> x=
 	{	-0.01,-0.01,-0.01};
-	mesh.Scatter(x,1.0,&n);
+	nTuple<3,Real> v=
+	{	1,2,3};
 
+	mesh.Scatter(x,1.0,&n);
+	mesh.Scatter(x,v,&J);
 	for(auto const & v: n)
+	{
+		std::cout<<" "<<v;
+	}
+	std::cout<<std::endl;
+	for(auto const & v: J)
 	{
 		std::cout<<" "<<v;
 	}

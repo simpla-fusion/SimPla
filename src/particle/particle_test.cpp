@@ -151,7 +151,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 			scalar_type actual= n.get(s);
 
-			average+=actual;
+			average+=abs(actual);
 
 			variance+=std::pow(abs (expect-actual),2.0);
 		}
@@ -198,8 +198,6 @@ TYPED_TEST_P(TestParticle,move){
 
 	pool_type ion(mesh);
 
-	ion.Update();
-
 	ion.SetParticleSorting(TestFixture::enable_sorting);
 
 	LuaObject cfg;
@@ -209,12 +207,13 @@ TYPED_TEST_P(TestParticle,move){
 
 	ion.Load(cfg["ion"]);
 
-	Field<mesh_type,EDGE,Real> E(mesh);
-	Field<mesh_type,FACE,Real> B(mesh);
+	ion.Update();
 
-	Field<mesh_type,EDGE,scalar_type> J(mesh);
+	Field<mesh_type,VERTEX,nTuple<3,Real>> E(mesh);
+	Field<mesh_type,VERTEX,nTuple<3,Real>> B(mesh);
 
-	Field<mesh_type,EDGE,scalar_type> J0(mesh);
+	Field<mesh_type,VERTEX,nTuple<3,scalar_type>> J(mesh);
+	Field<mesh_type,VERTEX,nTuple<3,scalar_type>> J0(mesh);
 
 	n.Clear();
 	J.Clear();
@@ -224,8 +223,6 @@ TYPED_TEST_P(TestParticle,move){
 	B.Clear();
 
 	constexpr Real PI=3.141592653589793;
-
-	Real dt = 1.0e-10;
 
 	nTuple<3,Real> E0=
 	{	1.0e-4,1.0e-4,1.0e-4};
@@ -244,14 +241,7 @@ TYPED_TEST_P(TestParticle,move){
 		n0[s]= n0_cfg(x[0],x[1],x[2]).template as<Real>();
 	}
 
-	for (auto s : mesh.GetRange(EDGE))
-	{
-		E[s]=mesh.Volume(s);
-	}
-
-	LOGGER<<Dump(E,"Volume",false);
-
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.GetRange(VERTEX))
 	{
 		auto x=mesh.GetCoordinates(s);
 
@@ -259,14 +249,18 @@ TYPED_TEST_P(TestParticle,move){
 
 		Ev=E0*std::sin(Dot(k,mesh.GetCoordinates(s)));
 
-		E[s]=mesh.Sample(Int2Type<EDGE>(),s,Ev);
+		E[s]=Ev; //mesh.Sample(Int2Type<VERTEX>(),s,Ev);
 	}
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.GetRange(VERTEX))
 	{
-		B[s]=mesh.Sample(Int2Type<FACE>(),s,Bv);
+		B[s]=Bv; //mesh.Sample(Int2Type<VERTEX>(),s,Bv);
 	}
-	J0=n0*E*(dt*ion.GetCharge()/ion.GetMass());
+
+	Real dt=1.0e-12;
+	Real a=0.5*(dt*ion.GetCharge()/ion.GetMass());
+
+	J0=n0*(E+a*Cross(E,B)+a*a*Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
 
 	LOG_CMD(ion.NextTimeStep(dt,E, B));
 
@@ -274,6 +268,7 @@ TYPED_TEST_P(TestParticle,move){
 	ion.Scatter(&n ,E,B);
 
 	LOGGER<<DUMP1(E);
+	LOGGER<<DUMP1(B);
 	LOGGER<<DUMP1(n0 );
 	LOGGER<<DUMP1(J0 );
 	LOGGER<<DUMP1(J);
@@ -281,21 +276,22 @@ TYPED_TEST_P(TestParticle,move){
 
 	Real variance=0.0;
 
-	scalar_type average=0.0;
+	Real average=0.0;
 
-	for(auto s:mesh.GetRange(EDGE))
+	for(auto s:mesh.GetRange(VERTEX))
 	{
 		auto expect=J0[s];
 
 		auto actual=J[s];
 
-		average+=abs(actual);
+		average+=abs(expect);
 
 		variance+=std::pow(abs (expect-actual),2.0);
 	}
 
 	{
 		Real relative_error=std::sqrt(variance)/abs(average);
+
 		CHECK(relative_error);
 		EXPECT_LE(relative_error,2.0/std::sqrt(pic))<<mesh.GetDimensions();
 	}
@@ -360,13 +356,13 @@ TestPICParam<Mesh, PICEngineFull<Mesh>, 2>,
 
 TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 3> //,
-//
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0> ,
+TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
+
+TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
+
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+
+TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>
 
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
 //
