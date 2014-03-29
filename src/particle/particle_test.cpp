@@ -31,7 +31,7 @@ class TestParticle: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		Logger::Verbose(10);
+		Logger::Verbose(20);
 		TParam::SetUpMesh(&mesh);
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
@@ -178,10 +178,10 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 TYPED_TEST_P(TestParticle,move){
 {
-
+#ifndef NDEBUG
 	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/");
-
+#endif
 	typedef typename TestFixture::mesh_type mesh_type;
 
 	typedef typename TestFixture::particle_pool_type pool_type;
@@ -266,6 +266,7 @@ TYPED_TEST_P(TestParticle,move){
 
 	ion.Scatter(&J ,E,B);
 	ion.Scatter(&n ,E,B);
+#ifndef NDEBUG
 
 	LOGGER<<DUMP1(E);
 	LOGGER<<DUMP1(B);
@@ -273,7 +274,7 @@ TYPED_TEST_P(TestParticle,move){
 	LOGGER<<DUMP1(J0 );
 	LOGGER<<DUMP1(J);
 	LOGGER<<DUMP1(n);
-
+#endif
 	Real variance=0.0;
 
 	Real average=0.0;
@@ -352,27 +353,29 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 2>,
-
-TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
-
-TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
-
-TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
-
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
-
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>
-
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 2>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
+//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
+//
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
 //
-//TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Real, 16>, 0>,
 //
-//, PICEngineGGauge<RectMesh<>, Real, 32>
-//
-//, PICEngineGGauge<RectMesh<>, Complex, 8>
-//
-//, PICEngineGGauge<RectMesh<>, Complex, 32>
+//TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>,
+
+        TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
+
+        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>,
+
+        TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 100>
 
 > ParamList;
 

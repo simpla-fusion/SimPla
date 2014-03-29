@@ -310,6 +310,9 @@ void Particle<Engine>::Sort()
 
 	if (particleSortingIsEnable_)
 	{
+
+		VERBOSE << "Particle sorting is enabled!";
+
 		ParallelDo(
 
 		[this](int t_num,int t_id)

@@ -78,10 +78,12 @@ public:
 		return TypeName();
 	}
 
-	void Load(LuaObject const &obj)
+	template<typename TDict>
+	void Load(TDict const &dict)
 	{
-
-		obj["T"].as<Real>(&T_);
+		m_ = dict["Mass"].template as<Real>(1.0);
+		q_ = dict["Charge"].template as<Real>(1.0);
+		T_ = dict["Temperature"].template as<Real>(1.0);
 
 		Update();
 	}
@@ -125,7 +127,7 @@ public:
 	}
 
 	template<typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TB const & B, TE const &E, Others const &...others) const
+	inline void NextTimeStep(Point_s * p, Real dt, TE const &E, TB const & B, Others const &...others) const
 	{
 		RVec3 B0 = real(B(p->x));
 		Real BB = Dot(B0, B0);
@@ -175,9 +177,9 @@ public:
 		p->x += Vc * dt * 0.5;
 	}
 
-	template<typename TV, typename TB, typename ... Others>
+	template<typename TV, typename TE, typename TB, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, TB const & B, Others const &... others) const
+	        Field<mesh_type, VERTEX, TV>* n, TE const & E, TB const & B, Others const &... others) const
 	{
 		RVec3 B0 = real(B(p.x));
 		Real BB = Dot(B0, B0);
@@ -199,13 +201,14 @@ public:
 			Vec3 v, r;
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			mesh.Scatter(r, p.w[ms], n);
+			mesh.Scatter(r, p.w[ms] * p.f, n);
 		}
 
 	}
 
-	template<int IFORM, typename TV, typename TB, typename ...Others>
-	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TB const & B, Others const &... others) const
+	template<int IFORM, typename TV, typename TE, typename TB, typename ...Others>
+	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TE const & E, TB const & B,
+	        Others const &... others) const
 	{
 		RVec3 B0 = real(B(p.x));
 		Real BB = Dot(B0, B0);

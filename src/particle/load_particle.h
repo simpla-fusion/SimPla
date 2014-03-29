@@ -99,7 +99,7 @@ void InitParticle(TP *p, TDict const &dict)
 
 	}
 
-	InitParticle(p, dict["PIC"].template as<size_t>(100), ns, Ts);
+	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
 
 }
 
@@ -111,7 +111,7 @@ void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 
 	Real n0 = dict["Proportion"].template as<Real>(1.0);
 
-	InitParticle(p, dict["PIC"].template as<size_t>(100),
+	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100),
 
 	[&,n0](coordinates_type x)->Real
 	{
@@ -122,8 +122,8 @@ void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 
 }
 
-template<typename TP, typename TN, typename TT>
-void InitParticle(TP *p, size_t pic, TN const & ns, TT const & Ts)
+template<typename TP, typename TR, typename TN, typename TT>
+void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 {
 	typedef typename TP::engine_type engine_type;
 
@@ -145,7 +145,7 @@ void InitParticle(TP *p, size_t pic, TN const & ns, TT const & Ts)
 
 	std::mt19937 rnd_gen(NDIMS);
 
-	for (auto s : mesh.GetRange(TP::IForm))
+	for (auto s : range)
 	{
 
 		nTuple<3, Real> x, v;
