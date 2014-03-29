@@ -41,8 +41,6 @@ protected:
 
 		enable_sorting = TParam::ICASE / 100 > 0;
 
-		GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 public:
 	typedef typename TParam::engine_type engine_type;
@@ -129,6 +127,8 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	ion.Scatter(&n,E,B);
 
+//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/");
 //	LOGGER<<DUMP1(n );
 //	LOGGER<<DUMP1(ion );
 
@@ -178,6 +178,9 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 TYPED_TEST_P(TestParticle,move){
 {
+
+	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
 
 	typedef typename TestFixture::mesh_type mesh_type;
 
@@ -243,6 +246,13 @@ TYPED_TEST_P(TestParticle,move){
 
 	for (auto s : mesh.GetRange(EDGE))
 	{
+		E[s]=mesh.Volume(s);
+	}
+
+	LOGGER<<Dump(E,"Volume",false);
+
+	for (auto s : mesh.GetRange(EDGE))
+	{
 		auto x=mesh.GetCoordinates(s);
 
 		nTuple<3,Real> Ev;
@@ -280,7 +290,7 @@ TYPED_TEST_P(TestParticle,move){
 
 		auto actual=J[s];
 
-		average+=actual;
+		average+=abs(actual);
 
 		variance+=std::pow(abs (expect-actual),2.0);
 	}
@@ -288,7 +298,7 @@ TYPED_TEST_P(TestParticle,move){
 	{
 		Real relative_error=std::sqrt(variance)/abs(average);
 		CHECK(relative_error);
-		EXPECT_LE(relative_error,2.0/std::sqrt(pic));
+		EXPECT_LE(relative_error,2.0/std::sqrt(pic))<<mesh.GetDimensions();
 	}
 
 }
@@ -317,12 +327,27 @@ struct TestPICParam<Mesh, TEngine, CASE>
 		nTuple<3, Real> xmax =
 		{ 1.0, 10, 1.0 };
 
-		nTuple<3, size_t> dims =
-		{ 32, 1, 1 };
+		nTuple<3, size_t> dims[] =
+		{ 17, 33, 65,
 
+		17, 1, 1,
+
+		1, 17, 1,
+
+		1, 1, 17,
+
+		1, 17, 17,
+
+		17, 1, 17,
+
+		17, 17, 1,
+
+		17, 17, 17
+
+		};
 		mesh->SetExtent(xmin, xmax);
 
-		mesh->SetDimensions(dims);
+		mesh->SetDimensions(dims[ICASE % 100]);
 
 		mesh->Update();
 
@@ -332,14 +357,27 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
 
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+		TestPICParam<Mesh, PICEngineFull<Mesh>, 3> //,
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
-
-TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>
-
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 101>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 103>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 105>,
+//
+//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+//
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
+//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>
+//
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
 //
 //TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
