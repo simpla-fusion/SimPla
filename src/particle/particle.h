@@ -188,8 +188,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
 {
 }
 
@@ -400,6 +400,21 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 		}
 
 	});
+//
+//	for (auto s : mesh.GetRange(VOLUME))
+//	{
+//		for (auto const& p : this->data_.at(this->mesh.Hash(s)))
+//		{
+//			engine_type::Scatter(p, J, args ...);
+//			if (*(J->begin()) > 100)
+//			{
+//				CHECK(p.x);
+//				CHECK(p.v);
+//				CHECK(p.f);
+//			}
+//		}
+//
+//	}
 
 }
 

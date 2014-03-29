@@ -11,125 +11,92 @@
 #include <gtest/gtest.h>
 
 #include "../fetl/fetl.h"
-#include "../io/data_stream.h"
 #include "../utilities/log.h"
 
 using namespace simpla;
 
-template<typename TF>
+template<typename TParam>
 class TestMesh: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
 		Logger::Verbose(10);
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 1, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 1, 17, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 1, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 1 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 17, 17 }));
-		dims_list.emplace_back(nTuple<3, size_t>( { 17, 33, 65 }));
-
+		TParam::SetUpMesh(&mesh);
 	}
 public:
 
-	typedef typename TF::mesh_type mesh_type;
-	typedef typename TF::value_type value_type;
+	typedef typename TParam::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
-
-	static constexpr int IForm = TF::IForm;
-	std::vector<nTuple<3, size_t>> dims_list;
+	mesh_type mesh;
+	static constexpr int IForm = TParam::IForm;
 
 };
 
 TYPED_TEST_CASE_P(TestMesh);
 
-//TYPED_TEST_P(TestMesh, next){
-//{
-//	for(auto const & dims:TestFixture::dims_list)
-//	{
-//		typename TestFixture::mesh_type mesh;
-//
-//		mesh.SetDimensions(dims);
-//
-//		mesh.Update();
-//
-//		auto Range=mesh.GetRange(TestFixture::IForm);
-//
-//		CHECK_BIT(Range.begin()->d);
-//
-//		CHECK_BIT(Range.end()->d);
-//
-//		auto s=*Range.begin();
-//
-//		for (int i = 0; i < mesh.GetNumOfElements( TestFixture::IForm); ++i)
-//		{
-//			s=mesh.Next(s);
-//			CHECK_BIT(s.d );
-//		}
-//		size_t count = 0;
-//
-//		for(auto s:mesh.GetRange(TestFixture::IForm))
-//		{
-//			++count;
-//		}
-//
-//		EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
-//	}
-//
-//}}
-
 TYPED_TEST_P(TestMesh, traversal){
 {
-	for(auto const & dims:TestFixture::dims_list)
+
+	auto & mesh=TestFixture::mesh;
+
+	size_t count = 0;
+
+	for(auto s:mesh.GetRange(TestFixture::IForm ) )
 	{
-		typename TestFixture::mesh_type mesh;
+		++count;
+	}
 
-		mesh.SetDimensions(dims);
+	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
-		mesh.Update();
+}
+}
+TYPED_TEST_P(TestMesh, partial_traversal){
+{
 
-		size_t count = 0;
+	auto & mesh=TestFixture::mesh;
 
-		for(auto s:mesh.GetRange(TestFixture::IForm ) )
+	int total=4;
+	size_t count = 0;
+	auto range=mesh.GetRange(TestFixture::IForm);
+	for (int s = 0; s < total; ++s)
+	{
+		for(auto s:range.Split(total,s))
 		{
 			++count;
 		}
-
-		EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
-
 	}
 
+	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
+
 }}
-TYPED_TEST_P(TestMesh, partial_traversal){
+
+TYPED_TEST_P(TestMesh,scatter ){
 {
-	for(auto const & dims:TestFixture::dims_list)
+	typedef typename TestFixture::mesh_type mesh_type;
+
+	auto & mesh=TestFixture::mesh;
+
+	Field<mesh_type,VERTEX,Real> n(mesh);
+
+	n.Clear();
+
+	nTuple<3,Real> x=
+	{	-0.01,-0.01,-0.01};
+	mesh.Scatter(x,1.0,&n);
+
+	for(auto const & v: n)
 	{
-		typename TestFixture::mesh_type mesh;
-
-		mesh.SetDimensions(dims);
-
-		mesh.Update();
-
-		int total=4;
-		size_t count = 0;
-		auto range=mesh.GetRange(TestFixture::IForm);
-		for (int s = 0; s < total; ++s)
-		{
-			for(auto s:range.Split(total,s))
-			{
-				++count;
-			}
-		}
-
-		EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
+		std::cout<<" "<<v;
 	}
 
+	std::cout<<std::endl;
 }}
 
-REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal/**/);
+TYPED_TEST_P(TestMesh,gather){
+
+}
+REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal, scatter, gather);
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>

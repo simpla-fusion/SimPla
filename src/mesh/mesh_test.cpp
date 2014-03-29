@@ -13,18 +13,86 @@
 #include "mesh_rectangle.h"
 #include "geometry_euclidean.h"
 
-typedef RectMesh<> Mesh;
-
 using namespace simpla;
 
-template<typename TM, int IFORM, typename TV = Real> class Form
+template<typename TM, int CASE> struct TestMeshParam;
+
+typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
+
+template<int CASE>
+struct TestMeshParam<Mesh, CASE>
 {
-public:
-	typedef TV value_type;
-	typedef TM mesh_type;
-	static constexpr int IForm = IFORM;
+
+	static constexpr int ICASE = CASE % 100;
+	static constexpr int IForm = CASE / 100;
+	typedef Mesh mesh_type;
+
+	static void SetUpMesh(mesh_type * mesh)
+	{
+
+		nTuple<3, Real> xmin = { 0, 0.0, 0 };
+
+		nTuple<3, Real> xmax = { 1.0, 10, 1.0 };
+
+		nTuple<3, size_t> dims[] = {
+
+		17, 33, 65,
+
+		17, 1, 1,
+
+		1, 17, 1,
+
+		1, 1, 17,
+
+		1, 17, 17,
+
+		17, 1, 17,
+
+		17, 17, 1,
+
+		17, 17, 17
+
+		};
+		mesh->SetExtent(xmin, xmax);
+
+		mesh->SetDimensions(dims[ICASE % 100]);
+
+		mesh->Update();
+
+	}
+
 };
 
-typedef testing::Types<Form<Mesh, VERTEX>, Form<Mesh, EDGE>, Form<Mesh, FACE>, Form<Mesh, VOLUME> > FormList;
+typedef testing::Types<
 
-INSTANTIATE_TYPED_TEST_CASE_P(Mesh, TestMesh, FormList);
+//TestMeshParam<Mesh , 0>,
+//
+//TestMeshParam<Mesh , 1>,
+
+        TestMeshParam<Mesh, 1> //,
+
+//TestMeshParam<Mesh , 5>,
+//
+//TestMeshParam<Mesh , 101>,
+//
+//TestMeshParam<Mesh , 103>,
+//
+//TestMeshParam<Mesh , 105>,
+//
+//
+//TestMeshParam<Mesh  0>,
+//
+//TestMeshParam<Mesh , 100>,
+//
+//TestMeshParam<Mesh  100>
+//
+//TestMeshParam<Mesh , 0>,
+//
+//TestMeshParam<Mesh , 0>,
+//
+//TestMeshParam<Mesh , 0>
+
+> ParamList;
+
+INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestMesh, ParamList);
+

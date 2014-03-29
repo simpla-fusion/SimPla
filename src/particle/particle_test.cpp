@@ -126,12 +126,12 @@ TYPED_TEST_P(TestParticle,scatter_n){
 	n0.Fill(0);
 
 	ion.Scatter(&n,E,B);
-
-//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/");
-//	LOGGER<<DUMP1(n );
-//	LOGGER<<DUMP1(ion );
-
+#ifndef NDEBUG
+	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+	LOGGER<<DUMP1(n );
+	LOGGER<<DUMP1(ion );
+#endif
 	{
 		Real variance=0.0;
 
@@ -170,9 +170,9 @@ TYPED_TEST_P(TestParticle,scatter_n){
 		}
 
 	}
-
-//	LOGGER<<DUMP1(n0 );
-
+#ifndef NDEBUG
+	LOGGER<<DUMP1(n0 );
+#endif
 }
 }
 
@@ -214,7 +214,7 @@ TYPED_TEST_P(TestParticle,move){
 
 	Field<mesh_type,EDGE,scalar_type> J(mesh);
 
-	Field<mesh_type,EDGE,Real> J0(mesh);
+	Field<mesh_type,EDGE,scalar_type> J0(mesh);
 
 	n.Clear();
 	J.Clear();
@@ -228,11 +228,11 @@ TYPED_TEST_P(TestParticle,move){
 	Real dt = 1.0e-10;
 
 	nTuple<3,Real> E0=
-	{	1.0e-4,0.0e-4,0.0e-4};
+	{	1.0e-4,1.0e-4,1.0e-4};
 	nTuple<3,Real> Bv=
-	{	0,0,0};
+	{	0,0,1.0};
 	nTuple<3,Real> k=
-	{	2.0*PI,4.0*PI,6.0*PI};
+	{	2.0*PI,4.0*PI,2.0*PI};
 
 	auto n0_cfg= cfg["ion"]["Density"];
 
@@ -268,15 +268,14 @@ TYPED_TEST_P(TestParticle,move){
 	}
 	J0=n0*E*(dt*ion.GetCharge()/ion.GetMass());
 
-	LOGGER<<DUMP1(E);
-	LOGGER<<DUMP1(n0 );
-	LOGGER<<DUMP1(J0 );
-
 	LOG_CMD(ion.NextTimeStep(dt,E, B));
 
 	ion.Scatter(&J ,E,B);
 	ion.Scatter(&n ,E,B);
 
+	LOGGER<<DUMP1(E);
+	LOGGER<<DUMP1(n0 );
+	LOGGER<<DUMP1(J0 );
 	LOGGER<<DUMP1(J);
 	LOGGER<<DUMP1(n);
 
@@ -307,6 +306,7 @@ TYPED_TEST_P(TestParticle,move){
 REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n, move);
 
 template<typename TM, typename TEngine, int CASE> struct TestPICParam;
+
 typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
 
 template<typename TEngine, int CASE>
@@ -321,14 +321,13 @@ struct TestPICParam<Mesh, TEngine, CASE>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin =
-		{ 0, -1.0, 0 };
+		nTuple<3, Real> xmin = { 0, 0.0, 0 };
 
-		nTuple<3, Real> xmax =
-		{ 1.0, 10, 1.0 };
+		nTuple<3, Real> xmax = { 1.0, 10, 2.0 };
 
-		nTuple<3, size_t> dims[] =
-		{ 17, 33, 65,
+		nTuple<3, size_t> dims[] = {
+
+		17, 33, 65,
 
 		17, 1, 1,
 
@@ -357,30 +356,19 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 0>,
+TestPICParam<Mesh, PICEngineFull<Mesh>, 2>,
+
+TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
+
+TestPICParam<Mesh, PICEngineFull<Mesh>, 3> //,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
-
-		TestPICParam<Mesh, PICEngineFull<Mesh>, 3> //,
-
 //TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
-//
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 101>,
-//
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 103>,
-//
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 105>,
-//
 //
 //TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>
-//
+//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0> ,
+
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 0>,
-//
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
 //
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>
 //

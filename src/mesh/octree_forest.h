@@ -84,7 +84,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -96,11 +96,9 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	nTuple<NDIMS, size_type> dims_ =
-	{ 1, 1, 1 };
+	nTuple<NDIMS, size_type> dims_ = { 1, 1, 1 };
 
-	nTuple<NDIMS, size_type> strides_ =
-	{ 0, 0, 0 };
+	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
 
@@ -108,15 +106,15 @@ struct OcForest
 
 	//***************************************************************************************************
 
-	OcForest() :
-			_MASK(0)
+	OcForest()
+			: _MASK(0)
 	{
 
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict) :
-			_MASK(0)
+	OcForest(TDict const & dict)
+			: _MASK(0)
 	{
 	}
 
@@ -146,7 +144,7 @@ struct OcForest
 		{
 			LOGGER << "Load OcForest ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>(),
-					dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
+			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
 			Update();
 		}
 
@@ -285,21 +283,18 @@ struct OcForest
 		OcForest const * mesh;
 		value_type s_;
 
-		iterator() :
-				mesh(nullptr), s_(value_type(
-				{ ~0UL }))
+		iterator()
+				: mesh(nullptr), s_(value_type( { ~0UL }))
 		{
 		}
 		template<typename ...Args>
-		iterator(OcForest const & m, Args const & ... args) :
-				mesh(&m), s_(index_type(
-				{ args... }))
+		iterator(OcForest const & m, Args const & ... args)
+				: mesh(&m), s_(index_type( { args... }))
 		{
 		}
 		template<typename ...Args>
-		iterator(OcForest const * m, Args const & ... args) :
-				mesh(m), s_(index_type(
-				{ args... }))
+		iterator(OcForest const * m, Args const & ... args)
+				: mesh(m), s_(index_type( { args... }))
 		{
 		}
 		~iterator()
@@ -353,16 +348,16 @@ struct OcForest
 		compact_index_type b_, e_;
 		OcForest const * mesh;
 	public:
-		Range() :
-				b_(0), e_(0), mesh(nullptr)
+		Range()
+				: b_(0), e_(0), mesh(nullptr)
 		{
 		}
-		Range(iterator b, iterator e) :
-				b_(b->d), e_(e->d), mesh(b.mesh)
+		Range(iterator b, iterator e)
+				: b_(b->d), e_(e->d), mesh(b.mesh)
 		{
 		}
-		Range(OcForest const *m, compact_index_type b, compact_index_type e) :
-				b_(b), e_(e), mesh(m)
+		Range(OcForest const *m, compact_index_type b, compact_index_type e)
+				: b_(b), e_(e), mesh(m)
 		{
 		}
 
@@ -470,8 +465,7 @@ struct OcForest
 
 	index_type Next(index_type s) const
 	{
-		return index_type(
-		{ Next(s.d) });
+		return index_type( { Next(s.d) });
 	}
 
 //***************************************************************************************************
@@ -554,8 +548,7 @@ struct OcForest
 	{
 		s &= _MASK;
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		static_cast<Real>(I(s)) * dh,
 
@@ -585,7 +578,7 @@ struct OcForest
 		return x;
 	}
 	inline std::pair<index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
-			compact_index_type shift = 0) const
+	        compact_index_type shift = 0) const
 	{
 		auto res = CoordinatesGlobalToLocal(&x, shift);
 		return std::make_pair(res, x);
@@ -594,54 +587,55 @@ struct OcForest
 	{
 		compact_index_type h = H(shift);
 
-		nTuple<NDIMS, size_t> idx;
+		nTuple<NDIMS, long> idx;
 
 		Real w = static_cast<Real>(1UL << h);
 
-		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1)) & ((1 << INDEX_DIGITS) - 1);
+		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
 
-		(*x)[0] = (dims_[0] > 1) ? (*x)[0] : 0.0;
-		(*x)[1] = (dims_[1] > 1) ? (*x)[1] : 0.0;
-		(*x)[2] = (dims_[2] > 1) ? (*x)[2] : 0.0;
+		idx[0] = static_cast<long>(std::floor((*x)[0] * idh + static_cast<double>(I(shift)))) & m;
 
-		idx[0] = static_cast<size_type>(std::floor((*x)[0] * idh + static_cast<double>(I(shift)))) & m;
+		(*x)[0] = (dims_[0] > 1) ? (((*x)[0] - idx[0] * dh) * w) : 0.0;
 
-		(*x)[0] = ((*x)[0] - idx[0] * dh) * w;
+		idx[1] = static_cast<long>(std::floor((*x)[1] * idh + static_cast<double>(J(shift)))) & m;
 
-		idx[1] = static_cast<size_type>(std::floor((*x)[1] * idh + static_cast<double>(J(shift)))) & m;
+		(*x)[1] = (dims_[0] > 1) ? (((*x)[1] - idx[1] * dh) * w) : 0.0;
 
-		(*x)[1] = ((*x)[1] - idx[1] * dh) * w;
+		idx[2] = static_cast<long>(std::floor((*x)[2] * idh + static_cast<double>(K(shift)))) & m;
 
-		idx[2] = static_cast<size_type>(std::floor((*x)[2] * idh + static_cast<double>(K(shift)))) & m;
+		(*x)[2] = (dims_[0] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
 
-		(*x)[2] = ((*x)[2] - idx[2] * dh) * w;
+		return index_type( { ((((h << (INDEX_DIGITS * 3)) |
 
-		return index_type(
-				{ ((((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | idx[2])
-						| shift) & _MASK) });
+		((idx[0] & ((1UL << carray_digits_[0]) - 1)) << (INDEX_DIGITS * 2)) |
+
+		((idx[1] & ((1UL << carray_digits_[1]) - 1)) << (INDEX_DIGITS)) |
+
+		(idx[2] & ((1UL << carray_digits_[2]) - 1))) |
+
+		shift)) });
 
 	}
 
 	static Real Volume(index_type s)
 	{
-		static constexpr double volume_[8][D_FP_POS] =
-		{
+		static constexpr double volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
 
-				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
+		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
 
-				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
+		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
 
-				1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
+		        1, 1.0 / 8, 1.0 / 32, 1.0 / 128   // 111
 
 		};
 
@@ -650,26 +644,25 @@ struct OcForest
 
 	static Real InvVolume(index_type s)
 	{
-		static constexpr double inv_volume_[8][D_FP_POS] =
-		{
+		static constexpr double inv_volume_[8][D_FP_POS] = {
 
 		1, 1, 1, 1, // 000
 
-				1, 2, 4, 8, // 001
+		        1, 2, 4, 8, // 001
 
-				1, 2, 4, 8, // 010
+		        1, 2, 4, 8, // 010
 
-				1, 4, 16, 64, // 011
+		        1, 4, 16, 64, // 011
 
-				1, 2, 4, 8, // 100
+		        1, 2, 4, 8, // 100
 
-				1, 4, 16, 64, // 101
+		        1, 4, 16, 64, // 101
 
-				1, 4, 16, 64, // 110
+		        1, 4, 16, 64, // 110
 
-				1, 8, 32, 128   // 111
+		        1, 8, 32, 128   // 111
 
-				};
+		        };
 
 		return inv_volume_[_N(s)][H(s)];
 	}
@@ -702,8 +695,7 @@ struct OcForest
 	}
 	static index_type ShiftH(index_type s, compact_index_type h)
 	{
-		return index_type(
-		{ ShiftH(s.d, h) });
+		return index_type( { ShiftH(s.d, h) });
 	}
 
 	size_type I(compact_index_type s) const

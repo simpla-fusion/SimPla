@@ -137,13 +137,15 @@ void InitParticle(TP *p, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
-	rectangle_distribution<NDIMS> x_dist;
+	nTuple<3, Real> dxmin = { -0.5, -0.5, -0.5 };
+	nTuple<3, Real> dxmax = { 0.5, 0.5, 0.5 };
+	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 
 	multi_normal_distribution<NDIMS> v_dist;
 
 	std::mt19937 rnd_gen(NDIMS);
 
-	for (auto s : mesh.GetRange(mesh._Dual(TP::IForm)))
+	for (auto s : mesh.GetRange(TP::IForm))
 	{
 
 		nTuple<3, Real> x, v;
