@@ -112,15 +112,15 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	Range<IteratorFilter<typename mesh_type::iterator>> range(mesh.begin(TField::IForm), mesh.end(TField::IForm));
+	FilterRange<typename mesh_type::Range> range;
 
 	if (dict["Select"])
 	{
-		range = material.Select(mesh.begin(TField::IForm), mesh.end(TField::IForm), dict["Select"]);
+		range = material.Select(mesh.GetRange(TField::IForm), dict["Select"]);
 	}
 	else if (dict["Range"])
 	{
-		range = Filter(mesh.begin(TField::IForm), mesh.end(TField::IForm), mesh, dict["Range"]);
+		range = Filter(mesh.GetRange(TField::IForm), mesh, dict["Range"]);
 	}
 
 	for (auto s : range)

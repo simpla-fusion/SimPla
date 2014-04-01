@@ -378,7 +378,7 @@ public:
 		return Select(range, GetMaterialFromString(m));
 	}
 	template<typename TDict>
-	range_type Select(typename TM::Range range, TDict const & dict) const;
+	range_type Select(typename TM::Range range, TDict const &dict) const;
 
 private:
 
@@ -568,24 +568,24 @@ template<typename TM>
 template<typename TDict>
 typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, TDict const & dict) const
 {
-	range_type res(range);
-	if (dict["Type"])
+	range_type res;
+	if (!dict["Type"])
+		return res;
+
+	auto type = dict["Type"].template as<std::string>("");
+
+	if (type == "Boundary")
 	{
-		auto type = dict["Type"].template as<std::string>("");
+		res = Select(range, dict["Material"].template as<std::string>(), "NONE");
 
-		if (type == "Boundary")
-		{
-			res = Select(range, dict["Material"].template as<std::string>(), "NONE");
-
-		}
-		else if (type == "Interface")
-		{
-			res = Select(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
-		}
-		else if (type == "Element")
-		{
-			res = Select(range, dict["Material"].template as<std::string>());
-		}
+	}
+	else if (type == "Interface")
+	{
+		res = Select(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
+	}
+	else if (type == "Element")
+	{
+		res = Select(range, dict["Material"].template as<std::string>());
 	}
 
 	return res;
