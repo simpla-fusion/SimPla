@@ -19,9 +19,13 @@ public:
 	typedef T value_type;
 
 	T value;
+	optional() :
+			cond_(false)
+	{
 
-	optional(bool cond = true, value_type &&v)
-			: value(v), cond_(cond)
+	}
+	optional(bool cond, value_type v) :
+			value(v), cond_(cond)
 	{
 	}
 	~optional()
@@ -50,11 +54,18 @@ public:
 		return !cond_;
 	}
 
+	value_type & operator*()
+	{
+		return value;
+	}
 	value_type const & operator*() const
 	{
 		return value;
 	}
-
+	value_type * operator ->()
+	{
+		return &value;
+	}
 	value_type const* operator ->() const
 	{
 		return &value;

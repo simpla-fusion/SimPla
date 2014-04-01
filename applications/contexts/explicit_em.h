@@ -143,8 +143,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), material_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		isCompactStored_(true), material_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -285,7 +285,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 
 		particles_.emplace(opt.first.template as<std::string>(),
-		        CreateParticle<Mesh, TE, TB, TJ>(opt.second, mesh, ne0, Te0));
+				*CreateParticle<TE, TB, TJ>(opt.second, mesh, ne0, Te0));
 
 	}
 
@@ -380,7 +380,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	for (auto &p : particles_)
 	{
-		p->second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 	}
 
 //  E(t=1/2  -> 1)
@@ -404,7 +404,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	for (auto &p : particles_)
 	{
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p->second.Scatter(&J, E, B);
+		p.second.Scatter(&J, E, B);
 	}
 
 // B(t=0 -> 1/2)

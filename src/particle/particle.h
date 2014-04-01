@@ -27,6 +27,7 @@
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 #include "../utilities/parallel.h"
+#include "../utilities/optional.h"
 
 #include "../io/data_stream.h"
 #include "particle_base.h"
@@ -103,14 +104,14 @@ public:
 		{
 			res.SetTrue();
 
-			auto solver = std::shared_ptr<Particle<TEngine> >(new this_type(mesh));
+			auto solver = std::shared_ptr<this_type>(new this_type(mesh));
 
 			solver->Load(dict, std::forward<Args const &>(args)...);
 
 			using namespace std::placeholders;
-			res.value.NextTimeStep = std::bind(&Particle<TEngine>::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
-			res.value.Scatter = std::bind(&Particle<TEngine>::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
-			res.value.Save = std::bind(&Particle<TEngine>::Save, solver, _1);
+			res.value.NextTimeStep = std::bind(&this_type::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
+			res.value.Scatter = std::bind(&this_type::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
+			res.value.Save = std::bind(&this_type::Save, solver, _1);
 
 		}
 		else
@@ -228,8 +229,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
 {
 }
 
