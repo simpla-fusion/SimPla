@@ -42,6 +42,19 @@ template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 
 namespace simpla
 {
+
+template<typename TE, typename TB, typename TJ>
+struct ParticleWrap
+{
+	std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
+
+	std::function<void(TJ * J, TE const & E, TB const & B)> Scatter;
+
+	std::function<std::ostream &(std::ostream &)> Save;
+
+//	std::function<std::pair<std::shared_ptr<typename Engine::Point_s>, size_t>()> DumpData;
+
+};
 //*******************************************************************************************************
 template<class Engine>
 class Particle: public Engine
@@ -80,6 +93,33 @@ public:
 	template<typename ...Args> Particle(mesh_type const & pmesh);
 
 	virtual ~Particle();
+
+	template<typename TE, typename TB, typename TJ, typename TDict, typename ...Args> static //
+	optional<ParticleWrap<TE, TB, TJ>> CreateWrap(TDict const & dict, mesh_type const & mesh, Args const & ...args)
+	{
+		optional<ParticleWrap<TE, TB, TJ>> res;
+
+		if (dict["Type"].template as<std::string>() == engine_type::TypeName())
+		{
+			res.SetTrue();
+
+			auto solver = std::shared_ptr<Particle<TEngine> >(new this_type(mesh));
+
+			solver->Load(dict, std::forward<Args const &>(args)...);
+
+			using namespace std::placeholders;
+			res.value.NextTimeStep = std::bind(&Particle<TEngine>::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
+			res.value.Scatter = std::bind(&Particle<TEngine>::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
+			res.value.Save = std::bind(&Particle<TEngine>::Save, solver, _1);
+
+		}
+		else
+		{
+			res.SetFalse();
+		}
+		return res;
+
+	}
 
 	/**
 	 *  Dump particles to a continue memory block
@@ -403,21 +443,6 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 		}
 
 	});
-//
-//	for (auto s : mesh.GetRange(VOLUME))
-//	{
-//		for (auto const& p : this->data_.at(this->mesh.Hash(s)))
-//		{
-//			engine_type::Scatter(p, J, args ...);
-//			if (*(J->begin()) > 100)
-//			{
-//				CHECK(p.x);
-//				CHECK(p.v);
-//				CHECK(p.f);
-//			}
-//		}
-//
-//	}
 
 }
 

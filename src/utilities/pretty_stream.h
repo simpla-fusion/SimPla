@@ -75,7 +75,12 @@ operator<<(std::ostream& os, const std::complex<T> & tv)
 	os << "{" << tv.real() << "," << tv.imag() << "}";
 	return (os);
 }
-
+template<typename T1,typename T2> std::ostream &
+operator<<(std::ostream& os, std::pair<T1, T2>const & p)
+{
+	os << p.first << " = {" << p.second << "}";
+	return (os);
+}
 template<int N, typename T> std::istream &
 operator>>(std::istream& is, nTuple<N, T> & tv)
 {

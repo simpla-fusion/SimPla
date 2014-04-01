@@ -12,54 +12,21 @@
 namespace simpla
 {
 
-template<typename TE, typename TB, typename TJ>
-struct ParticleWrap
+template<typename TE, typename TB, typename TJ, typename TDict, typename TM, typename ...Args> optional<
+        ParticleWrap<TE, TB, TJ>> CreateParticle(TDict const & dict, TM const & mesh, Args const & ...args)
 {
-	std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
-
-	std::function<void(TJ * J, TE const & E, TB const & B)> Scatter;
-
-	std::function<std::ostream &(std::ostream &)> Save;
-
-//	std::function<std::pair<std::shared_ptr<typename Engine::Point_s>, size_t>()> DumpData;
-
-};
-template<typename TEngine, typename TE, typename TB, typename TJ, typename ...Args> bool _CreateParticle(
-        typename TEngine::mesh_type const & mesh, std::string const& engine_type_str, ParticleWrap<TE, TB, TJ>* res,
-        Args const & ...args)
-{
-
-	if (engine_type_str != TEngine::TypeName())
-		return false;
-
-	auto solver = std::shared_ptr<Particle<TEngine> >(new Particle<TEngine>(mesh));
-
-	solver->Load(std::forward<Args const &>(args)...);
-
-	using namespace std::placeholders;
-	res->NextTimeStep = std::bind(&Particle<TEngine>::template NextTimeStep<TE, TB>, solver, _1, _2, _3);
-	res->Scatter = std::bind(&Particle<TEngine>::template Scatter<TJ, TE, TB>, solver, _1, _2, _3);
-	res->Save = std::bind(&Particle<TEngine>::Save, solver, _1);
-//	res->DumpData = std::bind(&Particle<TEngine>::DumpData, solver, _1);
-	return true;
-}
-
-template<typename TM, typename TE, typename TB, typename TJ, typename ...Args> bool CreateParticle(TM const & mesh,
-        std::string const& engine_type_str, ParticleWrap<TE, TB, TJ> * p, Args const & ...args)
-{
-	ParticleWrap<TE, TB, TJ> res;
 
 	typedef TM Mesh;
 
-	return _CreateParticle<PICEngineDeltaF<Mesh>, TE, TB, TJ>(mesh, engine_type_str, &res,
+	return Particle<PICEngineDeltaF<Mesh>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
 	        std::forward<Args const &>(args)...)
-	        || _CreateParticle<PICEngineFull<Mesh>, TE, TB, TJ>(mesh, engine_type_str, &res,
+	        || Particle<PICEngineFull<Mesh>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
 	                std::forward<Args const &>(args)...)
-	        || _CreateParticle<PICEngineGGauge<Mesh, Real, 4>, TE, TB, TJ>(mesh, engine_type_str, &res,
+	        || Particle<PICEngineGGauge<Mesh, Real, 4>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
 	                std::forward<Args const &>(args)...)
-	        || _CreateParticle<PICEngineGGauge<Mesh, Real, 16>, TE, TB, TJ>(mesh, engine_type_str, &res,
+	        || Particle<PICEngineGGauge<Mesh, Real, 16>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
 	                std::forward<Args const &>(args)...)
-	        || _CreateParticle<PICEngineGGauge<Mesh, Real, 32>, TE, TB, TJ>(mesh, engine_type_str, &res,
+	        || Particle<PICEngineGGauge<Mesh, Real, 32>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
 	                std::forward<Args const &>(args)...);
 
 }

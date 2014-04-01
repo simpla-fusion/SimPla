@@ -17,7 +17,7 @@
 
 // Misc
 #include "../../src/utilities/log.h"
-
+#include "../../src/utilities/pretty_stream.h"
 // Field expression
 #include "../../src/fetl/field.h"
 #include "../../src/fetl/ntuple.h"
@@ -229,13 +229,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << Dump(Ti0, "Ti", false);
 	}
 
+	if (mesh.CheckCourantDt() < mesh.GetDt())
 	{
-		auto dt = mesh.CheckCourantDt();
-		if (dt < mesh.GetDt())
-		{
-			CHECK(dt);
-			mesh.SetDt(dt);
-		}
+		mesh.SetDt(mesh.CheckCourantDt());
 	}
 
 	LOGGER << "Grid = { \n" << mesh << "\n}";
@@ -287,25 +283,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	LOGGER << "Load Particles";
 	for (auto const &opt : dict["Particles"])
 	{
-		ParticleWrap<TE, TB, TJ> p;
 
-		bool flag = false;
+		particles_.emplace(opt.first.template as<std::string>(),
+		        CreateParticle<Mesh, TE, TB, TJ>(opt.second, mesh, ne0, Te0));
 
-		if (opt.second["IsElectron"].template as<bool>(false))
-		{
-			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
-			        ne0, Te0);
-		}
-		else
-		{
-			flag = CreateParticle<Mesh, TE, TB, TJ>(mesh, opt.second["Type"].template as<std::string>(), &p, opt.second,
-			        ne0, Ti0);
-		}
-
-		if (flag)
-		{
-			particles_.emplace(std::make_pair(opt.first.template as<std::string>(), p));
-		}
 	}
 
 	LOGGER << "Load Constraints";
@@ -383,26 +364,26 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
-	//************************************************************
-	// Compute Cycle Begin
-	//************************************************************
+//************************************************************
+// Compute Cycle Begin
+//************************************************************
 
 	LOG_CMD(dE = -(J + J0) / epsilon0 * dt);
 
-	// dE = Curl(B)*dt
+// dE = Curl(B)*dt
 	CalculatedE(dt, E, B, &dE);
 
-	// E(t=0  -> 1/2  )
+// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE * 0.5);
 
 	ApplyConstraintToE(&E);
 
 	for (auto &p : particles_)
 	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+		p->second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 	}
 
-	//  E(t=1/2  -> 1)
+//  E(t=1/2  -> 1)
 	LOG_CMD(E += dE * 0.5);
 
 	ApplyConstraintToE(&E);
@@ -411,7 +392,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	CalculatedB(dt, E, B, &dB);
 
-	//  B(t=1/2 -> 1)
+//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);
 
 	ApplyConstraintToB(&B);
@@ -423,17 +404,17 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	for (auto &p : particles_)
 	{
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Scatter(&J, E, B);
+		p->second.Scatter(&J, E, B);
 	}
 
-	// B(t=0 -> 1/2)
+// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
 
 	ApplyConstraintToB(&B);
 
-	//************************************************************
-	// Compute Cycle End
-	//************************************************************
+//************************************************************
+// Compute Cycle End
+//************************************************************
 
 }
 template<typename TM>

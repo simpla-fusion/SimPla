@@ -108,7 +108,7 @@ Grid=
 
   Topology=
   {       
-      Type="3DCoRectMesh",
+      Type="RectMesh",
       Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid       
       
   },
@@ -149,20 +149,19 @@ FieldSolver=
 ---[[
    ColdFluid=
     {
-       --B0={0,0,Btor},
        Nonlinear=true,
        
        Species=
        {
      -- {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
-        {Name="ele",m=1/mp_me, Z=-1.0,  n=N0, J=0}         
+        {Name="ele",m=me,Z=-e,  n=N0, J=0}         
         }
     },
 --]]
   -- PML=  {Width={8,8,0,0,0,0}}
 }
 
---[[
+---[[
 CurrentSrc=
  { 
   
