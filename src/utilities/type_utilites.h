@@ -198,7 +198,13 @@ public:
 	static const bool value = has_operator_index<T, TI>::value;
 
 };
+template<class T>
+class is_indexable<T*>
+{
+public:
+	static const bool value = true;
 
+};
 // @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>
 struct CountBits

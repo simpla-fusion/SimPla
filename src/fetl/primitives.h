@@ -286,7 +286,7 @@ typedef enum
 	INTERIOR_PRODUCT,
 
 	DOT,
-	CROSS ,
+	CROSS,
 //
 //
 //	GRAD,
@@ -318,7 +318,52 @@ typedef enum
 template<typename T>
 inline auto Reciprocal(T const & f)
 DECL_RET_TYPE(( 1.0/f))
+namespace ops
+{
 
+struct plus
+{
+	template<typename TL, typename TR>
+	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l+r)
+	{
+		return l + r;
+	}
+};
+struct minus
+{
+	template<typename TL, typename TR>
+	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l-r)
+	{
+		return l - r;
+	}
+};
+struct multiplies
+{
+	template<typename TL, typename TR>
+	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l/r)
+	{
+		return l / r;
+	}
+};
+struct divides
+{
+	template<typename TL, typename TR>
+	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l*r)
+	{
+		return l * r;
+	}
+};
+
+struct negate
+{
+	template<typename TL>
+	constexpr auto operator()(TL const & l) const->decltype(-l )
+	{
+		return -l;
+	}
+};
+
+}  // namespace ops
 //template<int TOP, typename TL, typename TR> struct OpTraits;
 //
 //template<typename T>
