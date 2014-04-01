@@ -73,7 +73,7 @@ public:
 
 	std::string description;
 
-	Material<mesh_type> material_;
+	Material<mesh_type> model_;
 
 	bool isCompactStored_;
 
@@ -144,7 +144,7 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), material_(mesh),
+		isCompactStored_(true), model_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -160,165 +160,154 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = dict["Description"].template as<std::string>();
+	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
 
-	LOGGER << "Description=\"" << description << "\" \n";
+	LOGGER << description;
 
 	mesh.Load(dict["Grid"]);
 
-	material_.Update();
+	model_.Update();
 
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
 	Form<VERTEX> Ti0(mesh);
 
-	if (dict["GFile"])
+	E.Clear();
+	B.Clear();
+	J.Clear();
+	dB.Clear();
+	dE.Clear();
+	J0.Clear();
+
+	if (dict["Model"])
 	{
-
-		GEqdsk geqdsk(dict["GFile"].template as<std::string>());
-
-		nTuple<3, Real> xmin, xmax;
-
-		xmin[0] = geqdsk.GetMin()[0];
-		xmin[1] = geqdsk.GetMin()[1];
-		xmin[2] = 0;
-		xmax[0] = geqdsk.GetMax()[0];
-		xmax[1] = geqdsk.GetMax()[1];
-		xmax[2] = 0;
-
-		mesh.SetExtent(xmin, xmax);
-
-		mesh.Update();
-
-		material_.Add("Plasma", geqdsk.Boundary());
-		material_.Add("Vacuum", geqdsk.Limiter());
-		material_.Update();
-
-		geqdsk.Save(std::cout);
-
-		B.Clear();
-
-		for (auto s : mesh.GetRange(FACE))
+		if (dict["Model"]["GFile"])
 		{
-			auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-			B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 
+			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+
+			nTuple<3, Real> xmin, xmax;
+
+			xmin[0] = geqdsk.GetMin()[0];
+			xmin[1] = geqdsk.GetMin()[1];
+			xmin[2] = 0;
+			xmax[0] = geqdsk.GetMax()[0];
+			xmax[1] = geqdsk.GetMax()[1];
+			xmax[2] = 0;
+
+			mesh.SetExtent(xmin, xmax);
+
+			mesh.Update();
+
+			model_.Add("Plasma", geqdsk.Boundary());
+			model_.Add("Vacuum", geqdsk.Limiter());
+			model_.Update();
+
+			geqdsk.Save(std::cout);
+
+			B.Clear();
+
+			for (auto s : mesh.GetRange(FACE))
+			{
+				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+
+			}
+
+			ne0.Clear();
+			Te0.Clear();
+			Ti0.Clear();
+
+			for (auto s : model_.template SelectCell<VERTEX>("Plasma"))
+			{
+				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				auto p = geqdsk.psi(x[0], x[1]);
+
+				ne0[s] = geqdsk.Profile("ne", p);
+				Te0[s] = geqdsk.Profile("Te", p);
+				Ti0[s] = geqdsk.Profile("Ti", p);
+
+			}
+
+			J0 = Curl(B) / mesh.constants()["permeability of free space"];
+
+			description = description + "\n GEqdsk ID:" + geqdsk.Description();
+
+			LOGGER << Dump(ne0, "ne", false);
+			LOGGER << Dump(Te0, "Te", false);
+			LOGGER << Dump(Ti0, "Ti", false);
 		}
 
-		ne0.Clear();
-		Te0.Clear();
-		Ti0.Clear();
-
-		for (auto s : material_.template SelectCell<VERTEX>("Plasma"))
+		if (mesh.CheckCourantDt() < mesh.GetDt())
 		{
-			auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-			auto p = geqdsk.psi(x[0], x[1]);
-
-			ne0[s] = geqdsk.Profile("ne", p);
-			Te0[s] = geqdsk.Profile("Te", p);
-			Ti0[s] = geqdsk.Profile("Ti", p);
-
+			mesh.SetDt(mesh.CheckCourantDt());
 		}
 
-		J0 = Curl(B) / mesh.constants()["permeability of free space"];
+		LOGGER << "Grid = { \n" << mesh << "\n}";
 
-		description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
-		LOGGER << Dump(ne0, "ne", false);
-		LOGGER << Dump(Te0, "Te", false);
-		LOGGER << Dump(Ti0, "Ti", false);
+		LOGGER << "Model = { \n" << model_ << "\n}";
 	}
 
-	if (mesh.CheckCourantDt() < mesh.GetDt())
+	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
+
+	LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
+
+	LOG_CMD(LoadField(dict["InitValue"]["J"], &J));
+
+	LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
+
+	LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
+
+	LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
+
+	if (dict["Particles"])
 	{
-		mesh.SetDt(mesh.CheckCourantDt());
+		LOGGER << "Load Particles";
+		for (auto const &opt : dict["Particles"])
+		{
+			ParticleWrap<TE, TB, TJ> p;
+
+			auto key = opt.first.template as<std::string>("unnamed");
+			if (CreateParticle<TE, TB, TJ>(&p, key, opt.second, mesh, ne0, Te0))
+				particles_.emplace(key, p);
+		}
+		LOGGER << DONE;
+	}
+	if (dict["Constraints"])
+	{
+		LOGGER << "Load Constraints";
+		for (auto const & item : dict["Constraints"])
+		{
+
+			auto dof = item.second["DOF"].template as<std::string>();
+
+			LOGGER << "Add constraint to " << dof;
+
+			if (dof == "E")
+			{
+				constraintToE_.push_back(CreateConstraint<TE>(model_, item.second));
+			}
+			else if (dof == "B")
+			{
+				constraintToB_.push_back(CreateConstraint<TB>(model_, item.second));
+			}
+			else if (dof == "J")
+			{
+				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
+			}
+			else
+			{
+				//TODO Add particles constraints
+				UNIMPLEMENT2("Unknown Constraints!!");
+				continue;
+			}
+
+		}
+		LOGGER << DONE;
 	}
 
-	LOGGER << "Grid = { \n" << mesh << "\n}";
-
-	LOGGER << "Material = { \n" << material_ << "\n}";
-
-	if (dict["InitValue"])
-	{
-		auto init_value = dict["InitValue"];
-
-		if (E.empty())
-			LOG_CMD(LoadField(init_value["E"], &E));
-
-		if (B.empty())
-			LOG_CMD(LoadField(init_value["B"], &B));
-
-		if (J.empty())
-			LOG_CMD(LoadField(init_value["J"], &J));
-
-		if (ne0.empty())
-			LOG_CMD(LoadField(init_value["ne"], &ne0));
-
-		if (Te0.empty())
-			LOG_CMD(LoadField(init_value["Te"], &Te0));
-
-		if (Ti0.empty())
-			LOG_CMD(LoadField(init_value["Ti"], &Ti0));
-
-	}
-
-	if (E.empty())
-		E.Clear();
-
-	if (B.empty())
-		B.Clear();
-
-	if (J.empty())
-		J.Clear();
-
-	if (dB.empty())
-		dB.Clear();
-
-	if (dE.empty())
-		dE.Clear();
-
-	if (J0.empty())
-		J0.Clear();
-
-	LOGGER << "Load Particles";
-	for (auto const &opt : dict["Particles"])
-	{
-
-		particles_.emplace(opt.first.template as<std::string>(),
-				*CreateParticle<TE, TB, TJ>(opt.second, mesh, ne0, Te0));
-
-	}
-
-	LOGGER << "Load Constraints";
-	for (auto const & item : dict["Constraints"])
-	{
-
-		auto dof = item.second["DOF"].template as<std::string>();
-
-		LOGGER << "Add constraint to " << dof;
-
-		if (dof == "E")
-		{
-			constraintToE_.push_back(CreateConstraint<TE>(material_, item.second));
-		}
-		else if (dof == "B")
-		{
-			constraintToB_.push_back(CreateConstraint<TB>(material_, item.second));
-		}
-		else if (dof == "J")
-		{
-			constraintToJ_.push_back(CreateConstraint<TJ>(material_, item.second));
-		}
-		else
-		{
-			//TODO Add particles constraints
-			UNIMPLEMENT2("Unknown Constraints!!");
-			continue;
-		}
-
-	}
-
-	CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
+	if (dict["FieldSolver"])
+		description += CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
 
 }
 
@@ -329,6 +318,12 @@ void ExplicitEMContext<TM>::Save(OS & os) const
 
 	os
 
+	<< "\n"
+
+	<< description << "\n"
+
+	<< "Grid = { \n" << mesh << " \n}\n"
+
 	<< "InitValue={" << "\n"
 
 	<< "	E = " << Dump(E, "E", false) << ",\n"
@@ -338,6 +333,8 @@ void ExplicitEMContext<TM>::Save(OS & os) const
 	<< "	J = " << Dump(J, "J", false) << ",\n"
 
 	<< "}" << "\n"
+
+	<< "Particles = { \n" << particles_ << "\n}\n"
 
 	;
 }

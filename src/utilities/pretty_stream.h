@@ -24,7 +24,7 @@ namespace simpla
 {
 template<typename TV> inline TV const *
 PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d, std::string const & left_brace = "{",
-        std::string const & sep = ",", std::string const & right_brace = "}")
+		std::string const & sep = ",", std::string const & right_brace = "}")
 {
 	if (rank == 1)
 	{
@@ -75,12 +75,20 @@ operator<<(std::ostream& os, const std::complex<T> & tv)
 	os << "{" << tv.real() << "," << tv.imag() << "}";
 	return (os);
 }
-template<typename T1,typename T2> std::ostream &
+template<typename T1, typename T2> std::ostream &
 operator<<(std::ostream& os, std::pair<T1, T2>const & p)
 {
-	os << p.first << " = {" << p.second << "}";
+	os << p.first << " = { " << p.second << " }";
 	return (os);
 }
+template<typename T1, typename T2> std::ostream &
+operator<<(std::ostream& os, std::map<T1, T2>const & p)
+{
+	for (auto const & v : p)
+		os << v << "," << std::endl;
+	return (os);
+}
+
 template<int N, typename T> std::istream &
 operator>>(std::istream& is, nTuple<N, T> & tv)
 {

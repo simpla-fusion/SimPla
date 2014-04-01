@@ -8,36 +8,30 @@
 #include "pic_engine_deltaf.h"
 #include "pic_engine_full.h"
 #include "pic_engine_ggauge.h"
-#include "../utilities/optional.h"
 namespace simpla
 {
 
-template<typename TE, typename TB, typename TJ, typename TDict, typename TM, typename ...Args> optional<
-		ParticleWrap<TE, TB, TJ>> CreateParticle(TDict const & dict, TM const & mesh, Args const & ...args)
+template<typename TE, typename TB, typename TJ, typename TDict, typename TM, typename ...Args> bool CreateParticle(
+		ParticleWrap<TE, TB, TJ> * res, std::string const & name, TDict const & dict, TM const & mesh,
+		Args const & ...args)
 {
 
 	typedef TM Mesh;
 
-	optional<ParticleWrap<TE, TB, TJ>> res;
+	return
 
-	if (!res)
-		res = Particle<PICEngineDeltaF<Mesh>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
-				std::forward<Args const &>(args)...);
-	if (!res)
-		res = Particle<PICEngineFull<Mesh>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
-				std::forward<Args const &>(args)...);
+	Particle<PICEngineDeltaF<Mesh>>::CreateWrap(res, name, dict, mesh, std::forward<Args const &>(args)...)
 
-	if (!res)
-		res = Particle<PICEngineGGauge<Mesh, Real, 4>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
-				std::forward<Args const &>(args)...);
-	if (!res)
-		res = Particle<PICEngineGGauge<Mesh, Real, 16>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
-				std::forward<Args const &>(args)...);
-	if (!res)
-		res = Particle<PICEngineGGauge<Mesh, Real, 32>>::template CreateWrap<TE, TB, TJ>(dict, mesh,
-				std::forward<Args const &>(args)...);
+	|| Particle<PICEngineFull<Mesh>>::CreateWrap(res, name, dict, mesh, std::forward<Args const &>(args)...)
 
-	return res;
+	|| Particle<PICEngineGGauge<Mesh, Real, 4>>::CreateWrap(res, name, dict, mesh, std::forward<Args const &>(args)...)
+
+	|| Particle<PICEngineGGauge<Mesh, Real, 16>>::CreateWrap(res, name, dict, mesh, std::forward<Args const &>(args)...)
+
+	|| Particle<PICEngineGGauge<Mesh, Real, 32>>::CreateWrap(res, name, dict, mesh, std::forward<Args const &>(args)...)
+
+	;
+
 }
 
 }  // namespace simpla

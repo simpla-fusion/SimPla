@@ -117,6 +117,8 @@ inline void TheEnd(int flag = 1)
 		INFORM << SINGLELINE;
 
 	}
+
+	LOGGER<<endl;
 	exit(1);
 }
 

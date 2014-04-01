@@ -108,7 +108,7 @@ void PML<TM>::Load(TDict const &dict)
 template<typename TM>
 void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 {
-	LOGGER << "Load PML ";
+	LOGGER << "Create PML solver ";
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -130,18 +130,17 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	auto ymin = mesh.GetExtent().first;
 	auto ymax = mesh.GetExtent().second;
 
-
 	for (auto s : mesh.GetRange(VERTEX))
 	{
-		coordinates_type x=mesh.GetCoordinates(s);
+		coordinates_type x = mesh.GetCoordinates(s);
 
-		for(int n=0;n<3;++n)
+		for (int n = 0; n < 3; ++n)
 		{
-			if (x[n] < xmin[n] )
+			if (x[n] < xmin[n])
 			{
-				Real r = (xmin[n] - x[n]) / (xmin[n]-ymin[n]);
+				Real r = (xmin[n] - x[n]) / (xmin[n] - ymin[n]);
 				a0[s] = alpha_(r, expN, dB);
-				s0[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[n]-ymin[n]);
+				s0[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[n] - ymin[n]);
 			}
 			else if (x[n] > xmax[n])
 			{
@@ -153,6 +152,8 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	}
 
 	is_loaded_ = true;
+
+	LOGGER << DONE;
 
 }
 

@@ -38,17 +38,10 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 	}
 
 	p->engine_type::Load(dict);
-	p->SetName(dict["Name"].template as<std::string>());
 
 	InitParticle(p, dict, std::forward<Args const &>(args)...);
 
-	LOGGER
-
-	<< "Load Particle:[ Name=" << p->GetName()
-
-	<< ", Engine=" << p->GetTypeAsString()
-
-	<< ", Number of Particles=" << p->size() << "]";
+	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
 }
 
 template<typename TP, typename TDict>
@@ -78,6 +71,10 @@ void InitParticle(TP *p, TDict const &dict)
 		};
 
 	}
+	else
+	{
+		ERROR << "Particle density is not defined!";
+	}
 
 	if (dict["Temperature"].is_number())
 	{
@@ -98,6 +95,10 @@ void InitParticle(TP *p, TDict const &dict)
 		};
 
 	}
+	else
+	{
+		ERROR << "Particle temperature is not defined!";
+	}
 
 	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
 
@@ -107,16 +108,22 @@ template<typename TDict, typename TP, typename TN, typename TT>
 void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 {
 
+	if (ne.empty() || Ti.empty())
+	{
+		InitParticle(p, dict);
+		return;
+	}
+
 	typedef typename TP::mesh_type::coordinates_type coordinates_type;
 
 	Real n0 = dict["Proportion"].template as<Real>(1.0);
 
+	std::function<Real(coordinates_type)> n, T;
+
 	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100),
 
-	[&,n0](coordinates_type x)->Real
-	{
-		return n0*ne(x);
-	},
+	[&](coordinates_type x)->Real
+	{	return n0*n(x);},
 
 	Ti);
 
@@ -137,8 +144,10 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
-	nTuple<3, Real> dxmin = { -0.5, -0.5, -0.5 };
-	nTuple<3, Real> dxmax = { 0.5, 0.5, 0.5 };
+	nTuple<3, Real> dxmin =
+	{ -0.5, -0.5, -0.5 };
+	nTuple<3, Real> dxmax =
+	{ 0.5, 0.5, 0.5 };
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 
 	multi_normal_distribution<NDIMS> v_dist;

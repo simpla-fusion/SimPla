@@ -126,31 +126,31 @@ class Logger
 	std::ostringstream buffer_;
 	size_t current_line_char_count_;
 	size_t indent_;
-
+	bool endl_;
 public:
 	typedef Logger this_type;
 
 	Logger() :
-			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0)
+			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
 	{
 	}
 
 	Logger(Logger const & r) :
 			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_)
+					r.indent_), endl_(r.endl_)
 	{
 	}
 
 	Logger(Logger && r) :
 			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_)
+					r.indent_), endl_(r.endl_)
 	{
 	}
 
 	Logger(int lv, size_t indent = 0) :
-			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent)
+			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
 	{
-		buffer_ << std::boolalpha;
+		buffer_ << std::endl << std::boolalpha;
 
 		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
 		{
@@ -203,8 +203,8 @@ public:
 		}
 		else
 		{
-			if (current_line_char_count_ > 0)
-				buffer_ << std::endl;
+//			if (current_line_char_count_ > 0 && endl_)
+//				buffer_ << std::endl;
 			LoggerStreams::instance().put(level_, buffer_.str());
 		}
 
@@ -249,6 +249,11 @@ public:
 	{
 		const_cast<this_type*>(this)->buffer_ << std::endl;
 		current_line_char_count_ = 0;
+		endl_ = true;
+	}
+	void not_endl()
+	{
+		endl_ = false;
 	}
 
 	template<typename T> inline this_type & operator<<(T const& value)
@@ -429,7 +434,12 @@ inline Logger & endl(Logger & self)
 	self.endl();
 	return self;
 }
-
+inline Logger & not_endl(Logger & self)
+{
+	//TODO: trigger timer
+	self.not_endl();
+	return self;
+}
 inline Logger & indent(Logger & self)
 {
 	//TODO: trigger timer

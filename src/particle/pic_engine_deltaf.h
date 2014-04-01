@@ -28,7 +28,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef nTuple<7, Real> storage_value_type;
+	typedef nTuple<8, Real> storage_value_type;
 
 	struct Point_s
 	{
@@ -118,7 +118,7 @@ public:
 
 		<< " , " << "Charge = " << q_
 
-		<< " , " << "T = " << q_ / q_kT_ / elementary_charge << " eV"
+		<< " , " << "Temperature = " << q_ / q_kT_ / elementary_charge << "* eV"
 
 		;
 

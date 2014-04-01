@@ -170,7 +170,7 @@ int main(int argc, char **argv)
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
-			LOGGER << "STEP: " << i << START;
+			LOGGER << "STEP: " << i;
 
 			ctx.NextTimeStep();
 
@@ -178,7 +178,6 @@ int main(int argc, char **argv)
 			{
 				ctx.DumpData("/DumpData");
 			}
-			LOGGER << "STEP: " << i << DONE;
 		}
 	}
 	LOGGER << "Process" << DONE;

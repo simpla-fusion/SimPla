@@ -61,8 +61,8 @@ public:
 
 public:
 
-	PICEngineFull(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
+	PICEngineFull(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
 	{
 	}
 	~PICEngineFull()
@@ -92,10 +92,11 @@ public:
 		return q_;
 	}
 
-	inline void Load(LuaObject const &vm)
+	template<typename TDict>
+	inline void Load(TDict const &dict)
 	{
-		m_ = vm["Mass"].as<Real>(1.0);
-		q_ = vm["Charge"].as<Real>(1.0);
+		m_ = dict["Mass"].template as<Real>(1.0);
+		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
 	}
 
@@ -126,7 +127,7 @@ public:
 
 	template<typename TV, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+			Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
 		mesh.Scatter(p.x, p.f, n);
 	}
@@ -141,7 +142,8 @@ public:
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f }));
 	}
 
 };

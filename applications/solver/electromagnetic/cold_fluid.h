@@ -193,7 +193,7 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 	if (!dict)
 		return;
 
-	LOGGER << "Load ColdFluidEM ";
+	LOGGER << "Create ColdFluidEM solver";
 
 	enableNonlinear_ = dict["Nonlinear"].template as<bool>(false);
 
@@ -236,6 +236,8 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 
 	}
 
+	LOGGER << DONE;
+
 }
 
 template<typename TM>
@@ -265,7 +267,7 @@ void ColdFluidEM<TM>::Save(OS & os) const
 	{
 		os << "\n\t" << p.first
 
-		<< " = { " << " m =" << p.second->m << "," << " Z =" << p.second->q << ",\n"
+		<< " = { " << " Mass =" << p.second->m << "," << " Charge =" << p.second->q << ",\n"
 
 		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), false) << "\n"
 

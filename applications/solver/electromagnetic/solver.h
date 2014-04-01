@@ -18,10 +18,12 @@ namespace simpla
 {
 
 template<typename TDict, typename TM, typename TE, typename TB, typename ...Args>
-void CreateEMSolver(TDict const & dict, TM const & mesh,
+std::string CreateEMSolver(TDict const & dict, TM const & mesh,
 		std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
 		std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
 {
+
+	std::ostringstream os;
 
 	LOGGER << "Load Electromagnetic solver";
 
@@ -44,7 +46,7 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 	};
 
 	if (!dict)
-		return;
+		return "";
 
 	if (dict["ColdFluid"])
 	{
@@ -52,9 +54,9 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 
 		solver->Load(dict["ColdFluid"], std::forward<Args const &>(args)...);
 
-		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
+		solver->Save(os);
 
-		LOGGER << *solver;
+		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
 	}
 
 	if (dict["PML"])
@@ -63,13 +65,16 @@ void CreateEMSolver(TDict const & dict, TM const & mesh,
 
 		solver->Load(dict["PML"]);
 
+		solver->Save(os);
+
 		*solverE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
 		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
-		LOGGER << *solver;
 	}
+	LOGGER << DONE;
 
+	return os.str();
 }
 
 }
