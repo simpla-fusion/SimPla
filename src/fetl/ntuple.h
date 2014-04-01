@@ -14,8 +14,11 @@
 #include <initializer_list>
 #include "complex_ops.h"
 #include "primitives.h"
+
 #include "ntuple_noet.h"
+
 #include "../utilities/type_utilites.h"
+
 namespace simpla
 {
 
@@ -137,25 +140,26 @@ void assign(TFun const & fun, TL & l, TR const & r)
 {
 	_assign<N>::eval(fun, l, r);
 }
-template<int M, typename TL, typename TR> struct _equal
+template<int N>
+struct _inner_product
 {
-	static inline bool eval(TL const & l, TR const &r)
-	{
-		return ((l[M - 1] == r[M - 1] && _equal<M - 1, TL, TR>::eval(l, r)));
-	}
+	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
+	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const &r)
+	DECL_RET_TYPE((plus_op(multi_op(l[N-1],r[N-1]),_inner_product<N-1>::eval(plus_op,multi_op,l,r))))
+
 };
-template<typename TL, typename TR> struct _equal<1, TL, TR>
+
+template<>
+struct _inner_product<1>
 {
-	static inline bool eval(TL const & l, TR const &r)
-	{
-		return (l[0] == r[0]);
-	}
+	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
+	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const &r)
+	DECL_RET_TYPE((multi_op(l[0],r[0])))
+
 };
-template<int N, typename TL, typename TR>
-bool equal(TL const & l, TR const & r)
-{
-	return _equal<N, TL, TR>::eval(l, r);
-}
+template<int N, typename TPlus, typename TMultiplies, typename TL, typename TR>
+auto inner_product(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const & r)
+DECL_RET_TYPE(_inner_product<N>::eval(plus_op,multi_op,l, r))
 
 }
 // namespace ntuple_impl
@@ -189,13 +193,13 @@ struct nTuple
 	template<typename TR>
 	inline bool operator ==(TR const &rhs) const
 	{
-		return _ntuple_impl::equal<N>(*this, rhs);
+		return _ntuple_impl::inner_product<N>(ops::logical_and(), ops::equal_to(), *this, rhs);
 	}
 
 	template<typename TExpr>
 	inline bool operator !=(nTuple<NDIMS, TExpr> const &rhs) const
 	{
-		return (!(*this == rhs));
+		return _ntuple_impl::inner_product<N>(ops::logical_and(), ops::not_equal_to(), *this, rhs);
 	}
 	template<typename TR>
 	inline operator nTuple<N,TR>() const
@@ -294,7 +298,17 @@ struct nTupleTraits<nTuple<N, TV>>
 
 };
 
+template<int N, class T>
+class is_indexable<nTuple<N, T> >
+{
+public:
+	static const bool value = true;
+
+};
 //***********************************************************************************
+template<int N, typename TL, typename TR>
+inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
+DECL_RET_TYPE ((_ntuple_impl::inner_product<N>(ops::plus(), ops::multiplies(), l, r)))
 
 template<typename T> inline auto Determinant(nTuple<3, nTuple<3, T> > const & m)
 DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //

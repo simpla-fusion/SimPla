@@ -80,35 +80,7 @@ DEFINE_OP(/)
 
 #undef DEFINE_OP
 
-template<int N, typename TL, typename TR>
-inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-->decltype(l[0]*r[0])
-{
-	decltype(l[0]*r[0]) res;
-	res *= 0;
-	for (int i = 0; i < N; ++i)
-	{
-		res += l[i] * r[i];
-	}
-	return res;
-}
-
-template<typename TL, typename TR>
-inline auto Dot(nTuple<3, TL> const &l, nTuple<3, TR> const &r)
-->decltype(l[0]*r[0])
-{
-	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
-}
-
-template<typename TL, typename TR>
-inline auto Dot(TL const &l, TR const &r)
-->decltype(l*r)
-{
-	return l * r;
-}
-
 //***********************************************************************************
-
 template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)
 ->nTuple<3,decltype(l[0] * r[0])>
 {
@@ -118,6 +90,7 @@ template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nT
 	res[2] = l[0] * r[1] - l[1] * r[0];
 	return std::move(res);
 }
-}  // namespace simpla
+}
+  // namespace simpla
 
 #endif /* NTUPLE_NOET_H_ */

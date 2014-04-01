@@ -321,47 +321,76 @@ DECL_RET_TYPE(( 1.0/f))
 namespace ops
 {
 
-struct plus
-{
-	template<typename TL, typename TR>
-	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l+r)
-	{
-		return l + r;
-	}
-};
-struct minus
-{
-	template<typename TL, typename TR>
-	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l-r)
-	{
-		return l - r;
-	}
-};
-struct multiplies
-{
-	template<typename TL, typename TR>
-	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l/r)
-	{
-		return l / r;
-	}
-};
-struct divides
-{
-	template<typename TL, typename TR>
-	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l*r)
-	{
-		return l * r;
-	}
+#define DEF_BOP(_NAME_,_OP_)                                                               \
+struct _NAME_                                                                             \
+{                                                                                              \
+	template<typename TL, typename TR>                                                         \
+	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l _OP_ r)                 \
+	{  return l _OP_ r;   }                                                                                          \
 };
 
-struct negate
-{
-	template<typename TL>
-	constexpr auto operator()(TL const & l) const->decltype(-l )
-	{
-		return -l;
-	}
+#define DEF_UOP(_NAME_,_OP_)     \
+struct _NAME_                                                                             \
+{                                                                                              \
+	template<typename TL >                                                         \
+	constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
+	{  return  _OP_ l;   }                                                                                          \
 };
+
+DEF_BOP(plus, +)
+DEF_BOP(minus, -)
+DEF_BOP(multiplies, *)
+DEF_BOP(divides, /)
+DEF_BOP(modulus, %)
+DEF_UOP(negate, -)
+
+DEF_BOP(equal_to, ==)
+DEF_BOP(not_equal_to, !=)
+DEF_BOP(greater, >)
+DEF_BOP(less, <)
+DEF_BOP(greater_equal, >=)
+DEF_BOP(less_equal, <=)
+
+DEF_BOP(logical_and, &&)
+DEF_BOP(logical_or, ||)
+DEF_UOP(logical_not, !)
+DEF_BOP(bit_and, &)
+DEF_BOP(biy_or, |)
+DEF_BOP(biy_xor, ^)
+
+#undef DEF_UOP
+#undef DEF_BOP
+
+template<typename TL, typename TI>
+constexpr auto get_index(TL const & l, TI s)->TL const&
+{
+	return l;
+}
+template<typename TL, typename TI>
+constexpr auto get_index(TL const * l, TI s)->TL const&
+{
+	return l[s];
+}
+;
+template<int N, typename TL, typename TI>
+constexpr auto get_index(nTuple<N, TL> const & l, TI s)->TL const&
+{
+	return l[s];
+}
+
+//ENABLE_IF_DECL_RET_TYPE(is_indexable<TL>::value ,l[s])
+
+//template<typename TL, typename TI>
+//  auto get_index(TL const & l, TI s)
+//ENABLE_IF_DECL_RET_TYPE(!is_indexable<TL>::value ,l)
+
+template<typename TOP, typename TL, typename TR, typename TI>
+auto eval(TOP op, TL const & l, TR const &r, TI s)
+DECL_RET_TYPE(op(get_index(l,s),get_index(r,s)))
+
+template<typename TOP, typename TL, typename TI>
+auto eval(TOP, TL const & l, TI s)
+DECL_RET_TYPE(op(get_index(l,s) ))
 
 }  // namespace ops
 //template<int TOP, typename TL, typename TR> struct OpTraits;

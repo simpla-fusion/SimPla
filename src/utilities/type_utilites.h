@@ -193,9 +193,9 @@ struct StorageTraits
 template<class T, typename TI = int>
 class is_indexable
 {
-	HAS_OPERATOR(index, []);
+//	HAS_OPERATOR(index, []);
 public:
-	static const bool value = has_operator_index<T, TI>::value;
+	static const bool value = false; // has_operator_index<T, TI>::value;
 
 };
 template<class T>
