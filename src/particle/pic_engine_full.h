@@ -100,7 +100,7 @@ public:
 		cmr_ = q_ / m_;
 	}
 
-	std::ostream & Save(std::ostream & os) const
+	std::ostream & Print(std::ostream & os) const
 	{
 
 		os << "Engine = '" << GetTypeAsString() << "' "

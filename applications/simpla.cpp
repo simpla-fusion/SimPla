@@ -176,7 +176,7 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				ctx.DumpData("/DumpData");
+				ctx.Dump("/DumpData");
 			}
 		}
 	}

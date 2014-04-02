@@ -58,12 +58,11 @@ public:
 
 	template<typename TDict> void Load(TDict const & dict);
 
-	template<typename OS>
-	void Save(OS & os) const;
+	template<typename OS> OS & Print(OS & os) const;
 
 	void NextTimeStep();
 
-	void DumpData(std::string const & path = "") const;
+	void Dump(std::string const & path = "") const;
 
 	double CheckCourantDt() const;
 
@@ -143,8 +142,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), model_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: isCompactStored_(true), model_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -233,9 +232,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
-			LOGGER << Dump(ne0, "ne", false);
-			LOGGER << Dump(Te0, "Te", false);
-			LOGGER << Dump(Ti0, "Ti", false);
+			LOGGER << simpla::Dump(ne0, "ne", false);
+			LOGGER << simpla::Dump(Te0, "Te", false);
+			LOGGER << simpla::Dump(Ti0, "Ti", false);
 		}
 
 		if (mesh.CheckCourantDt() < mesh.GetDt())
@@ -268,10 +267,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			ParticleWrap<TE, TB, TJ> p;
 
 			auto key = opt.first.template as<std::string>("unnamed");
-			if (CreateParticle<TE, TB, TJ>(&p, key, opt.second, mesh, ne0, Te0))
+			if (CreateParticle<TE, TB, TJ>(&p, opt.second, mesh, ne0, Te0))
 				particles_.emplace(key, p);
 		}
-		LOGGER << DONE;
 	}
 	if (dict["Constraints"])
 	{
@@ -303,7 +301,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			}
 
 		}
-		LOGGER << DONE;
 	}
 
 	if (dict["FieldSolver"])
@@ -313,7 +310,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 template<typename TM>
 template<typename OS>
-void ExplicitEMContext<TM>::Save(OS & os) const
+OS & ExplicitEMContext<TM>::Print(OS & os) const
 {
 
 	os
@@ -326,22 +323,24 @@ void ExplicitEMContext<TM>::Save(OS & os) const
 
 	<< "InitValue={" << "\n"
 
-	<< "	E = " << Dump(E, "E", false) << ",\n"
+	<< "	E = " << simpla::Dump(E, "E", false) << ",\n"
 
-	<< "	B = " << Dump(B, "B", false) << ",\n"
+	<< "	B = " << simpla::Dump(B, "B", false) << ",\n"
 
-	<< "	J = " << Dump(J, "J", false) << ",\n"
+	<< "	J = " << simpla::Dump(J, "J", false) << ",\n"
 
 	<< "}" << "\n"
 
 	<< "Particles = { \n" << particles_ << "\n}\n"
 
 	;
+
+	return os;
 }
 template<typename OS, typename TM>
 OS &operator<<(OS & os, ExplicitEMContext<TM> const& self)
 {
-	self.Save(os);
+	self.Print(os);
 	return os;
 }
 template<typename TM>
@@ -415,7 +414,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 }
 template<typename TM>
-void ExplicitEMContext<TM>::DumpData(std::string const & path) const
+void ExplicitEMContext<TM>::Dump(std::string const & path) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 

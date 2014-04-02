@@ -102,7 +102,7 @@ public:
 		}
 
 	}
-	std::ostream & Save(std::ostream & os) const
+	std::ostream & Print(std::ostream & os) const
 	{
 
 		os << "Engine = 'GGague" << NMATE << "' " << " , ";

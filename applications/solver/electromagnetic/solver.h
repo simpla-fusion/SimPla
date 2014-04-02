@@ -19,13 +19,13 @@ namespace simpla
 
 template<typename TDict, typename TM, typename TE, typename TB, typename ...Args>
 std::string CreateEMSolver(TDict const & dict, TM const & mesh,
-		std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
-		std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
+        std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
+        std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
 {
 
 	std::ostringstream os;
 
-	LOGGER << "Load Electromagnetic solver";
+	LOGGER << "Load Electromagnetic fields solver";
 
 	using namespace std::placeholders;
 
@@ -72,7 +72,6 @@ std::string CreateEMSolver(TDict const & dict, TM const & mesh,
 		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
 	}
-	LOGGER << DONE;
 
 	return os.str();
 }

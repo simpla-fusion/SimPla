@@ -43,14 +43,15 @@ Context::~Context()
 void Context::Load(LuaObject const & dict)
 {
 
-	DumpData = [] (std::string const &)
+	Dump = [] (std::string const &)
 	{
 		UNDEFINE_FUNCTION;
 	};
 
-	Save = [](std::ostream & os)
+	Print = [](std::ostream & os)->std::ostream &
 	{
 		UNDEFINE_FUNCTION;
+		return os;
 	};
 
 	NextTimeStep = []()

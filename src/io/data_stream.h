@@ -404,10 +404,10 @@ std::ostream & operator<<(std::ostream & os, DataDumper<U> const &d)
 	os << d.GetName();
 	return os;
 }
-#define DUMP(_F_) Dump(_F_,__STRING(_F_) ,true)
-#define DUMP1(_F_) Dump(_F_,__STRING(_F_) ,false)
+#define DUMP(_F_) simpla::Dump(_F_,__STRING(_F_) ,true)
+#define DUMP1(_F_) simpla::Dump(_F_,__STRING(_F_) ,false)
 #ifndef NDEBUG
-#	define DEBUG_DUMP(_F_) Dump(_F_,__STRING(_F_),true)
+#	define DEBUG_DUMP(_F_) simpla::Dump(_F_,__STRING(_F_),true)
 #else
 #   define DEBUG_DUMP(_F_) ""
 #endif

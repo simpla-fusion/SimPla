@@ -107,7 +107,7 @@ public:
 		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
 	}
 
-	std::ostream & Save(std::ostream & os) const
+	std::ostream & Print(std::ostream & os) const
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());

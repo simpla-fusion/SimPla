@@ -46,22 +46,24 @@ namespace simpla
 template<typename TE, typename TB, typename TJ>
 struct ParticleWrap
 {
-	std::string name;
 
 	std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
 
 	std::function<void(TJ * J, TE const & E, TB const & B)> Scatter;
 
-	std::function<std::ostream &(std::ostream &)> Save;
+	std::function<std::ostream &(std::ostream &)> Print;
 
-//	std::function<std::pair<std::shared_ptr<typename Engine::Point_s>, size_t>()> DumpData;
+	std::function<std::string(std::string const &)> Dump;
 
 };
 
-template<typename TE, typename TB, typename TJ>
-std::ostream & operator<<(std::ostream & os, ParticleWrap<TE, TB, TJ> const & p)
+template<typename TKey, typename TE, typename TB, typename TJ>
+std::ostream & operator<<(std::ostream & os, std::pair<TKey, ParticleWrap<TE, TB, TJ>> const & p)
 {
-	p.Save(os);
+	p.second.Print(os);
+
+	os << ", URL = " << p.second.Dump(p.first);
+
 	return os;
 }
 
@@ -105,22 +107,20 @@ public:
 	virtual ~Particle();
 
 	template<typename TE, typename TB, typename TJ, typename TDict, typename ...Args> static //
-	bool CreateWrap(ParticleWrap<TE, TB, TJ>* res, std::string const &name, TDict const & dict, mesh_type const & mesh,
-			Args const & ...args)
+	bool CreateWrap(ParticleWrap<TE, TB, TJ>* res, TDict const & dict, mesh_type const & mesh, Args const & ...args)
 	{
 
 		if (dict["Type"].template as<std::string>() == engine_type::TypeName())
 		{
 			auto particle = std::shared_ptr<this_type>(new this_type(mesh));
 
-			particle->SetName(name);
-
 			particle->Load(dict, std::forward<Args const &>(args)...);
 
 			using namespace std::placeholders;
 			res->NextTimeStep = std::bind(&this_type::template NextTimeStep<TE, TB>, particle, _1, _2, _3);
 			res->Scatter = std::bind(&this_type::template Scatter<TJ, TE, TB>, particle, _1, _2, _3);
-			res->Save = std::bind(&this_type::Save, particle, _1);
+			res->Print = std::bind(&this_type::Print, particle, _1);
+			res->Dump = std::bind(&this_type::Dump, particle, _1, false);
 			return true;
 		}
 		else
@@ -162,8 +162,8 @@ public:
 
 	template<typename ...Args> void Load(Args const &... args);
 
-	std::ostream & Save(std::ostream & os) const;
-
+	std::ostream & Print(std::ostream & os) const;
+	std::string Dump(std::string const &, bool compact_storage = false) const;
 	void Update();
 
 //***************************************************************************************************
@@ -177,19 +177,6 @@ public:
 	bool IsSorted() const
 	{
 		return isSorted_;
-	}
-
-	std::string const &GetName() const
-	{
-		return name_;
-	}
-	void SetName(std::string const & s)
-	{
-		name_ = s;
-	}
-	std::string const &name() const
-	{
-		return name_;
 	}
 
 	std::string GetEngineTypeAsString() const
@@ -223,7 +210,6 @@ private:
 
 	bool isSorted_;
 	bool particleSortingIsEnable_;
-	std::string name_;
 
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -236,8 +222,8 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh), isSorted_(true), name_("unnamed"), particleSortingIsEnable_(true)
+template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh), isSorted_(true), particleSortingIsEnable_(true)
 {
 }
 
@@ -273,17 +259,20 @@ std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::D
 }
 
 template<class Engine>
-std::ostream & Particle<Engine>::Save(std::ostream & os) const
+std::ostream & Particle<Engine>::Print(std::ostream & os) const
 {
-	engine_type::Save(os);
-
-	os << " , URL = " << Dump(*this, this->GetName());
+	engine_type::Print(os);
 
 	return os;
 }
+template<class Engine>
+std::string Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
+{
 
+	return simpla::Dump(*this, name, compact_storage);
+}
 template<typename TM>
-std::ostream & operator<<(std::ostream & os, Particle<TM> const &self)
+std::ostream & operator<<(std::ostream & os, std::pair<std::string, Particle<TM>> const &self)
 {
 	return self.Save(os);
 }
@@ -391,11 +380,11 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 
 	if (data_.empty())
 	{
-		WARNING << "Particle [ " << GetName() << " : " << engine_type::GetTypeAsString() << "] is not initialized!";
+		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
 		return;
 	}
 
-	LOGGER << "Push particles [ " << GetName() << ", Type = " << engine_type::GetTypeAsString() << "]";
+	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << "]";
 
 	Sort();
 
@@ -427,14 +416,14 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 {
 	if (data_.empty())
 	{
-		WARNING << "Particle [ " << GetName() << " : " << engine_type::GetTypeAsString() << "] is not initialized!";
+		WARNING << "Particle [  " << engine_type::GetTypeAsString() << "] is not initialized!";
 		return;
 	}
 
 	if (!IsSorted())
 		ERROR << "Particles are not sorted!";
 
-	LOGGER << "Scatter particle [ " << GetName() << ", Type = " << engine_type::GetTypeAsString() << "]";
+	LOGGER << "Scatter particle [   " << engine_type::GetTypeAsString() << "]";
 	ParallelDo(
 
 	[& ](int t_num,int t_id)

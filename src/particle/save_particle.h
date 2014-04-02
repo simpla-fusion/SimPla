@@ -11,7 +11,6 @@
 #include <string>
 
 #include "../io/data_stream.h"
-#include "particle.h"
 
 namespace simpla
 {
