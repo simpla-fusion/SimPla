@@ -283,46 +283,46 @@ DECL_RET_TYPE((Codifferential(f)))
 //******************************************************************************************************
 // Non-standard operations
 template<typename TM, int N, int IL, typename TL>
-inline auto ExteriorDerivative(Int2Type<N>, Field<TM, IL, TL> const & f)
+inline auto ExteriorDerivative(Field<TM, IL, TL> const & f, Int2Type<N>)
 COND_DECL_RET_TYPE(
 		(IL >= 0 && IL < TM::NDIMS),
 
-		( Field<TM, IL+1 ,BiOp<EXTRIORDERIVATIVE,Int2Type<N>,Field<TM,IL , TL> > >(Int2Type<N>(),f)),
+		( Field<TM, IL+1 ,BiOp<EXTRIORDERIVATIVE,Field<TM,IL , TL>,Int2Type<N>> >(f,Int2Type<N>())),
 
 		Zero )
 
 template<int N, typename TM, int IL, typename TL>
-inline auto Codifferential(Int2Type<N>, Field<TM, IL, TL> const & f)
+inline auto Codifferential(Field<TM, IL, TL> const & f, Int2Type<N>)
 COND_DECL_RET_TYPE(
 		(IL > 0 && IL <= TM::NDIMS),
 
-		(Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Int2Type<N>,Field<TM,IL , TL> > >(Int2Type<N>(), f)),
+		(Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Field<TM,IL , TL> ,Int2Type<N>> >(f,Int2Type<N>() )),
 
 		Zero )
 
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(Int2Type<0>(),f)))
+DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<0>())))
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(Int2Type<1>(),f)))
+DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<1>())))
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(Int2Type<2>(),f)))
+DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<2>())))
 
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(Int2Type<0>(),f)))
+DECL_RET_TYPE((Codifferential(f,Int2Type<0>())))
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(Int2Type<1>(),f)))
+DECL_RET_TYPE((Codifferential(f,Int2Type<1>())))
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(Int2Type<2>(),f)))
+DECL_RET_TYPE((Codifferential(f,Int2Type<2>())))
 
 template<int IL, typename TM, int IR, typename TR>
 inline auto MapTo(Field<TM, IR, TR> const & f)

@@ -102,13 +102,13 @@ template<typename TM>
 template<typename TDict>
 void PML<TM>::Load(TDict const &dict)
 {
-	Load(dict["xmin"].template as<coordinates_type>(), dict["xmax"].template as<coordinates_type>());
+	Load(dict["Min"].template as<coordinates_type>(), dict["Max"].template as<coordinates_type>());
 }
 
 template<typename TM>
 void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 {
-	LOGGER << "Create PML solver ";
+	LOGGER << "Create PML solver [" << xmin << " , " << xmax << " ]";
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -134,21 +134,24 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	{
 		coordinates_type x = mesh.GetCoordinates(s);
 
-		for (int n = 0; n < 3; ++n)
-		{
-			if (x[n] < xmin[n])
-			{
-				Real r = (xmin[n] - x[n]) / (xmin[n] - ymin[n]);
-				a0[s] = alpha_(r, expN, dB);
-				s0[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[n] - ymin[n]);
-			}
-			else if (x[n] > xmax[n])
-			{
-				Real r = (x[n] - xmax[n]) / (ymax[n] - xmax[n]);
-				a0[s] = alpha_(r, expN, dB);
-				s0[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[n] - xmax[n]);
-			};
-		}
+#define DEF(_N_)                                                                    \
+		if (x[_N_] < xmin[_N_])                                                         \
+		{                                                                           \
+			Real r = (xmin[_N_] - x[_N_]) / (xmin[_N_] - ymin[_N_]);                        \
+			a##_N_[s] = alpha_(r, expN, dB);                                            \
+			s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (xmin[_N_] - ymin[_N_]);     \
+		}                                                                           \
+		else if (x[_N_] > xmax[_N_])                                                    \
+		{                                                                           \
+			Real r = (x[_N_] - xmax[_N_]) / (ymax[_N_] - xmax[_N_]);                        \
+			a##_N_[s] = alpha_(r, expN, dB);                                            \
+			s##_N_[s] = sigma_(r, expN, dB) * speed_of_light / (ymax[_N_] - xmax[_N_]);     \
+		};
+
+		DEF(0)
+		DEF(1)
+		DEF(2)
+#undef DEF
 	}
 
 	is_loaded_ = true;
@@ -190,17 +193,17 @@ void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1>
 
 	Form<1> dX1(mesh);
 
-	dX1 = (-2.0 * s0 * X10 + CurlPDX(B1 / mu0)) / (a0 / dt + s0);
+	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1 * speed_of_light2) * dt) / (a0 + s0 * dt);
 	X10 += dX1;
-	*dE += dX1 / dt / epsilon0;
+	*dE += dX1;
 
-	dX1 = (-2.0 * s1 * X11 + CurlPDY(B1 / mu0)) / (a1 / dt + s1);
+	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1 * speed_of_light2) * dt) / (a1 + s1 * dt);
 	X11 += dX1;
-	*dE += dX1 / dt / epsilon0;
+	*dE += dX1;
 
-	dX1 = (-2.0 * s2 * X12 + CurlPDZ(B1 / mu0)) / (a2 / dt + s2);
+	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1 * speed_of_light2) * dt) / (a2 + s2 * dt);
 	X12 += dX1;
-	*dE += dX1 / dt / epsilon0;
+	*dE += dX1;
 
 	LOGGER << DONE;
 }
@@ -214,17 +217,17 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 
 	Form<2> dX2(mesh);
 
-	dX2 = (-2.0 * s0 * X20 + CurlPDX(E1)) / (a0 / dt + s0);
+	dX2 = (-2.0 * dt * s0 * X20 + CurlPDX(E1) * dt) / (a0 + s0 * dt);
 	X20 += dX2;
-	*dB -= dX2 / dt;
+	*dB -= dX2;
 
-	dX2 = (-2.0 * s1 * X21 + CurlPDY(E1)) / (a1 / dt + s1);
+	dX2 = (-2.0 * dt * s1 * X21 + CurlPDY(E1) * dt) / (a1 + s1 * dt);
 	X21 += dX2;
-	*dB -= dX2 / dt;
+	*dB -= dX2;
 
-	dX2 = (-2.0 * s2 * X22 + CurlPDZ(E1)) / (a2 / dt + s2);
+	dX2 = (-2.0 * dt * s2 * X22 + CurlPDZ(E1) * dt) / (a2 + s2 * dt);
 	X22 += dX2;
-	*dB -= dX2 / dt;
+	*dB -= dX2;
 	LOGGER << DONE;
 }
 

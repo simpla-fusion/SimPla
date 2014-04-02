@@ -80,6 +80,7 @@ PhysicalConstants const & CONSTANTS=_UNIT_SYS_;                                 
 const double mu0 = CONSTANTS["permeability of free space"];                            \
 const double epsilon0 = CONSTANTS["permittivity of free space"];                       \
 const double speed_of_light = CONSTANTS["speed of light"];                             \
+const double speed_of_light2 =  speed_of_light*speed_of_light;                         \
 const double proton_mass = CONSTANTS["proton mass"];                                   \
 const double elementary_charge = CONSTANTS["elementary charge"];                       \
 const double boltzmann_constant = CONSTANTS["Boltzmann constant"];

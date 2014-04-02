@@ -34,7 +34,7 @@ std::string CreateEMSolver(TDict const & dict, TM const & mesh,
 	Real ic2 = 1.0 / (mu0 * epsilon0);
 
 	std::function<void(Real, TE const &, TB const &, TE*)> sE = //
-	        [mu0 , epsilon0](Real dt, TE const & , TB const & B, TE* pdE)
+	        [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
 	        {
 		        auto & dE=*pdE;
 		        LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);

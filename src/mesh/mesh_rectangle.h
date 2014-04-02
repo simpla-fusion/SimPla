@@ -803,24 +803,44 @@ public:
 // Non-standard operation
 // For curlpdx
 
-	template<int N ,typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Int2Type<N>,Field<this_type, EDGE, TL> const & f,
+	template<int N ,typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,Int2Type<N>,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = topology_type::_D(topology_type::_Dual(s).d);
-		auto Y = ((topology_type::_C(s)+1)%3==N)?topology_type::_R(X):0UL;
-		auto Z = ((topology_type::_C(s)+2)%3==N)?topology_type::_RR(X):0UL;
+
+		auto X = topology_type::_D(topology_type::_Dual(s.d));
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(X);
+
+		Y = (topology_type::_C(Y)==N)?Y:0UL;
+		Z = (topology_type::_C(Z)==N)?Z:0UL;
 
 		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
 	}
 
-	template<int N,typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Int2Type<N>,Field<this_type, FACE, TL> const & f,
+	template<int N,typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,Int2Type<N>,
 	index_type s)const-> decltype(f[s]-f[s])
 	{
-		auto X = topology_type::_D(s.d);
-		auto Y = ((topology_type::_C(s)+1)%3==N)?topology_type::_R(X):0UL;
-		auto Z = ((topology_type::_C(s)+2)%3==N)?topology_type::_RR(X):0UL;
 
-		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
+		auto X = topology_type::_D(s.d);
+		auto Y = topology_type::_R(X);
+		auto Z = topology_type::_RR(X);
+
+		Y = (topology_type::_C(Y)==N)?Y:0UL;
+		Z = (topology_type::_C(Z)==N)?Z:0UL;
+
+		Real a= geometry_type::InvDualVolume(s) *geometry_type::Volume(s);
+		return (
+
+		f[s + Y]*(geometry_type::InvVolume(s + Y)*geometry_type::DualVolume(s + Y)*a)
+
+		-f[s - Y]*(geometry_type::InvVolume(s - Y)*geometry_type::DualVolume(s - Y)*a)
+
+		-f[s + Z]*(geometry_type::InvVolume(s + Z)*geometry_type::DualVolume(s + Z)*a)
+
+		+f[s - Z]*(geometry_type::InvVolume(s - Z)*geometry_type::DualVolume(s - Z)*a)
+
+		)
+		;
 	}
 
 	template< typename TR> inline auto OpEval(Int2Type<MAPTO>,Int2Type<VERTEX> const &,

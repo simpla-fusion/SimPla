@@ -30,7 +30,7 @@ rhoe = vTe/omega_ce    -- m
 NX = 200
 NY = 1
 NZ = 1
-LX = 0.25 --m --100000*rhoi --0.6
+LX = 2.5 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5 
@@ -106,9 +106,9 @@ Grid=
       Min={0.0,0.0,0.0},
       Max={LX,LY,LZ},
      --dt= 2.0*math.pi/omega_ci/100.0
-      dt=0.5*LX/NX/c  -- time step     
+   
   },
-  
+     dt=0.5*LX/NX/c  -- time step     
 }
 --[[
 Model=
@@ -146,8 +146,9 @@ FieldSolver=
        ele={Name="ele",Mass =me,Charge=-e,  Density=N0, Current=0}  ,       
        }
     },
---]]
-  PML=  {Width={8,8,0,0,0,0}}
+  --]]
+  PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+
 }
 
 Constraints=
@@ -164,9 +165,9 @@ Constraints=
 	Range={ {LX/2,0,0}},
 	IsHard=true,
   	Value=function(x,y,z,t)	
-         local tau = t*omega_ext 
+         local tau = t*omega_ext *100
           
-         return { 0,0,math.sin(tau)}   
+         return { 0,math.sin(tau),0}   
       end
 	 
  
