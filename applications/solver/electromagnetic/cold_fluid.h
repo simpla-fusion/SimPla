@@ -136,9 +136,9 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 			Real qs = v.second->q;
 			Real as = (dt * qs) / (2.0 * ms);
 
-			a += ns * qs * as / (BB * as * as + 1);
-			b += ns * qs * as * as / (BB * as * as + 1);
-			c += ns * qs * as * as * as / (BB * as * as + 1);
+			a += ns * as / (BB * as * as + 1);
+			b += ns * as * as / (BB * as * as + 1);
+			c += ns * as * as * as / (BB * as * as + 1);
 		}
 
 		a *= 0.5 * dt / epsilon0;
@@ -164,7 +164,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		Real as = (dt * qs) / (2.0 * ms);
 
 		Q -= Js;
-		K = Cross(Js, B0) * as + Ev * ns * qs * as + Js;
+		K = Cross(Js, B0) * as + Ev * ns * as + Js;
 		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
 		Q -= Js;
 	}
@@ -181,7 +181,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		auto qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
-		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * qs * ns) / (BB * as * as + 1);
+		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * ns) / (BB * as * as + 1);
 
 	}
 
@@ -223,12 +223,13 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		if (ne.empty())
 		{
 			LoadField(p.second["Density"], &(sp->n));
+			sp->n *= sp->q;
 		}
 		else
 		{
-			sp->n = ne;
+			sp->n = ne * sp->q;
 			if (p.second["Density"].is_number())
-				sp->n *= p.second["Density"].template as<Real>(1.0);
+				sp->n *= p.second["Density"].template as<Real>(1.0) * sp->q;
 		}
 
 		LoadField(p.second["Current"], &(sp->J));
@@ -331,13 +332,13 @@ OS &operator<<(OS & os, ColdFluidEM<TM> const& self)
 //
 //		Real as = 2.0 * ms / (dt * qs);
 //
-//		a += ns * qs / as;
-//		b += ns * qs / (BB + as * as);
-//		c += ns * qs / ((BB + as * as) * as);
+//		a += ns / as;
+//		b += ns / (BB + as * as);
+//		c += ns / ((BB + as * as) * as);
 //
 //		Q -= Js;
 //
-//		K = Js * as + Cross(Js, B0) + Ev * (ns * qs);
+//		K = Js * as + Cross(Js, B0) + Ev * (ns);
 //
 ////		Js = K / as + Cross(K, B0) / (BB + as * as) + Cross(Cross(K, B0), B0) / (as * (BB + as * as));
 //		Js = (K * as * as + Cross(K, B0) * as + Dot(K, B0) * B0) / (as * (BB + as * as));
@@ -371,9 +372,9 @@ OS &operator<<(OS & os, ColdFluidEM<TM> const& self)
 //		auto & Js = v.second->J;
 //		Real as = 2.0 * ms / (dt * qs);
 //
-////		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns * qs);
+////		Js += (Ev / as + Cross(Ev, B0) / (BB + as * as) + Cross(Cross(Ev, B0), B0) / (as * (BB + as * as))) * (ns);
 //
-//		Js += (Ev * as * as + Cross(Ev, B0) * as + Dot(K, B0) * B0) * (ns * qs / (as * (BB + as * as)));
+//		Js += (Ev * as * as + Cross(Ev, B0) * as + Dot(K, B0) * B0) * (ns / (as * (BB + as * as)));
 //	}
 //
 //	Ev += dEv * (0.5 * dt);

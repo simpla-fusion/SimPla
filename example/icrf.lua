@@ -14,7 +14,7 @@ k_B=1.3806488e-23 --Boltzmann_constant
 
 k_parallel=6.5
 Btor= 1.0  * Tesla
-Ti =  0.03 * KeV
+Ti =  0.0003 * KeV
 Te =  0.05 * KeV
 N0 = 1.0e18-- m^-3
 
@@ -123,33 +123,30 @@ Model=
 }
 --]]
 
-Constraints={
-   -- { Type="PEC", In="Vacuum",Out="NONE"},
-   -- { Type="PEC", In="Plasma",Out="NONE"},
-}
-
+ 
 ---[[ 
 Particles={
---H1={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
- H={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
+-- H ={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
+ H ={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
+--ele ={Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 }
 }
 --]]
 
 
 FieldSolver= 
 {
-
+---[[ 
    ColdFluid=
     {
        Species=
        {
-       -- H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
-       ele={Name="ele",Mass =me,Charge=-e,  Density=InitN0 }  ,       
+      --  H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
+      --  ele={Name="ele",Mass =me,Charge=-e,  Density=InitN0 }  ,       
        }
     },
-
+ --]]
   PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
---[[  --]]
+
 }
 
 Constraints=

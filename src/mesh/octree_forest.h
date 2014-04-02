@@ -581,11 +581,13 @@ struct OcForest
 	{
 		coordinates_type x = GetCoordinates(s);
 		Real a = static_cast<double>(1UL << (D_FP_POS - H(s))) * dh;
+
 		x[0] = (dims_[0] > 1) ? (x[0] + r[0] * a) : 0;
 
 		x[1] = (dims_[1] > 1) ? (x[1] + r[1] * a) : 0;
 
 		x[2] = (dims_[2] > 1) ? (x[2] + r[2] * a) : 0;
+
 		return x;
 	}
 	inline std::pair<index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,

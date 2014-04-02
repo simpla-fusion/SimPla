@@ -201,7 +201,7 @@ public:
 			Vec3 v, r;
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			mesh.Scatter(r, p.w[ms] * p.f, n);
+			mesh.Scatter(r, q_ * p.w[ms] * p.f, n);
 		}
 
 	}
@@ -229,7 +229,7 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			mesh.Scatter(r, v * p.w[ms] * p.f, J);
+			mesh.Scatter(r, v * p.w[ms] * q_ * p.f, J);
 		}
 	}
 

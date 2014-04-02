@@ -129,14 +129,14 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		ScatterTo(p.x, p.f, n);
+		ScatterTo(p.x, q_ * p.f, n);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
 		typename Field<mesh_type, IFORM, TV>::field_value_type v;
-		v = p.v * p.f;
+		v = p.v * q_ * p.f;
 		ScatterTo(p.x, v, J);
 	}
 

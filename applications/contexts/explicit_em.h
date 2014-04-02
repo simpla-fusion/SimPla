@@ -268,6 +268,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 				particles_.emplace(key, p);
 		}
 	}
+
 	if (dict["Constraints"])
 	{
 		LOGGER << "Load Constraints";
@@ -399,8 +400,6 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	{
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.second.Scatter(&J, E, B);
-
-		LOGGER << p.second.Dump(p.first);
 	}
 	GLOBAL_DATA_STREAM.OpenGroup("DumpData");
 

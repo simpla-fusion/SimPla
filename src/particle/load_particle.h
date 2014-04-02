@@ -145,28 +145,38 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
-	nTuple<3, Real> dxmin = { -0.5, -0.5, -0.5 };
-	nTuple<3, Real> dxmax = { 0.5, 0.5, 0.5 };
+	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
+	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 
 	multi_normal_distribution<NDIMS> v_dist;
 
-	std::mt19937 rnd_gen(NDIMS);
+	std::mt19937 rnd_gen(NDIMS * 2);
+
+	nTuple<3, Real> x, v;
 
 	for (auto s : range)
 	{
 
-		nTuple<3, Real> x, v;
-
 		Real inv_sample_density = 1.0 / pic;
 
+		if (mesh._C(s) == VERTEX)
+		{
+			inv_sample_density *= mesh.DualVolume(s);
+		}
+		else if (mesh._C(s) == VOLUME)
+		{
+			inv_sample_density *= mesh.Volume(s);
+		}
 		for (int i = 0; i < pic; ++i)
 		{
 			x_dist(rnd_gen, &x[0]);
+
 			v_dist(rnd_gen, &v[0]);
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
-			v = mesh.PushForward(x, v) * std::sqrt(2.0 * boltzmann_constant / (p->GetMass()) * Ts(x));
+
+			v = mesh.PushForward(x, v) * std::sqrt(2.0 * boltzmann_constant * Ts(x) / p->GetMass());
 
 			p->Insert(s, engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}

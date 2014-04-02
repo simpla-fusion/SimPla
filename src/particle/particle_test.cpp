@@ -36,7 +36,7 @@ protected:
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=40,Temperature=1.0e-34 ,Density=n0"
+				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=200,Temperature=300 ,Density=n0"
 				"}";
 
 		enable_sorting = TParam::ICASE / 100 > 0;
@@ -126,12 +126,12 @@ TYPED_TEST_P(TestParticle,scatter_n){
 	n0.Fill(0);
 
 	ion.Scatter(&n,E,B);
-#ifndef NDEBUG
 	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/");
 	LOGGER<<DUMP1(n );
 	LOGGER<<DUMP1(ion );
-#endif
+
+	Real q=ion.GetCharge();
 	{
 		Real variance=0.0;
 
@@ -145,7 +145,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 		{
 			coordinates_type x=mesh.GetCoordinates(s);
 
-			Real expect=n_obj(x[0],x[1],x[2]).template as<Real>();
+			Real expect=q*n_obj(x[0],x[1],x[2]).template as<Real>();
 
 			n0[s]=expect;
 
@@ -170,18 +170,15 @@ TYPED_TEST_P(TestParticle,scatter_n){
 		}
 
 	}
-#ifndef NDEBUG
+
 	LOGGER<<DUMP1(n0 );
-#endif
 }
 }
 
 TYPED_TEST_P(TestParticle,move){
 {
-#ifndef NDEBUG
 	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/");
-#endif
 	typedef typename TestFixture::mesh_type mesh_type;
 
 	typedef typename TestFixture::particle_pool_type pool_type;
@@ -231,6 +228,8 @@ TYPED_TEST_P(TestParticle,move){
 	nTuple<3,Real> k=
 	{	2.0*PI,4.0*PI,2.0*PI};
 
+	Real q=ion.GetCharge();
+
 	auto n0_cfg= cfg["ion"]["Density"];
 
 	Real pic =cfg["ion"]["PIC"].template as<Real>();
@@ -238,7 +237,7 @@ TYPED_TEST_P(TestParticle,move){
 	for(auto s:mesh.GetRange(VERTEX))
 	{
 		auto x =mesh.GetCoordinates(s);
-		n0[s]= n0_cfg(x[0],x[1],x[2]).template as<Real>();
+		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
 	}
 
 	for (auto s : mesh.GetRange(VERTEX))
@@ -258,15 +257,14 @@ TYPED_TEST_P(TestParticle,move){
 	}
 
 	Real dt=1.0e-12;
-	Real a=0.5*(dt*ion.GetCharge()/ion.GetMass());
+	Real a=0.5*(dt*q/ion.GetMass());
 
-	J0=n0*(E+a*Cross(E,B)+a*a*Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
+	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
 
 	LOG_CMD(ion.NextTimeStep(dt,E, B));
 
 	ion.Scatter(&J ,E,B);
 	ion.Scatter(&n ,E,B);
-#ifndef NDEBUG
 
 	LOGGER<<DUMP1(E);
 	LOGGER<<DUMP1(B);
@@ -274,7 +272,6 @@ TYPED_TEST_P(TestParticle,move){
 	LOGGER<<DUMP1(J0 );
 	LOGGER<<DUMP1(J);
 	LOGGER<<DUMP1(n);
-#endif
 	Real variance=0.0;
 
 	Real average=0.0;
@@ -294,7 +291,7 @@ TYPED_TEST_P(TestParticle,move){
 		Real relative_error=std::sqrt(variance)/abs(average);
 
 		CHECK(relative_error);
-		EXPECT_LE(relative_error,2.0/std::sqrt(pic))<<mesh.GetDimensions();
+		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.GetDimensions();
 	}
 
 }
@@ -353,15 +350,15 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 2>,
+TestPICParam<Mesh, PICEngineFull<Mesh>, 1>//,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 1>,
+//TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
 //
 //TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
 //
 //TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
 //
-//TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 0>,
+//        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 1> ,
 //
 //TestPICParam<Mesh, PICEngineDeltaF<Mesh, Complex>, 0>,
 //
@@ -370,12 +367,12 @@ typedef testing::Types<
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Real, 16>, 0>,
 //
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>,
-
-        TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
-
-        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>,
-
-        TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 100>
+//
+//        TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
+//
+//        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>,
+//
+//        TestPICParam<Mesh, PICEngineGGauge<Mesh, Real>, 100>
 
 > ParamList;
 

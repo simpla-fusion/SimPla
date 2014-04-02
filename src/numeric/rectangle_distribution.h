@@ -26,18 +26,17 @@ public:
 	{
 	}
 	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
-			: xmin_(xmin), xmax_(xmax)
 	{
+		Reset(xmin_, xmax_);
 	}
 
 	template<typename TRANGE>
 	rectangle_distribution(TRANGE const &xrange)
-			: xmin_(xrange[0]), xmax_(xrange[1])
 	{
+		Reset(xrange);
 	}
 	~rectangle_distribution()
 	{
-
 	}
 
 	template<typename TR>
