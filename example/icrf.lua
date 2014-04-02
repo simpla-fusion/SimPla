@@ -39,32 +39,21 @@ omega_ext=omega_ci*1.2
 
 
 -- From Gan
----[[
 InitN0=function(x,y,z)
-      local X0 = 12*LX/NX;
-      local DEN_JUMP = 0.4*LX;
-      local DEN_GRAD = 0.2*LX;
-      local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
-      local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
-      local DenCof = 1./(AtLX-AtX0);
-      local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
-      return N0*dens1
+      -- local X0 = 12*LX/NX;
+      -- local DEN_JUMP = 0.4*LX;
+      -- local DEN_GRAD = 0.2*LX;
+      -- local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
+      -- local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
+      -- local DenCof = 1./(AtLX-AtX0);
+      -- local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
+      return N0 --*dens1
      end 
 
 InitB0=function(x,y,z)
       return {0,0,Btor}
      end 
---]]
---[[
-InitN0=function(x,y,z)      
-      local x0=0.1*LX ;
-      local res = 0.0;
-      if x>x0 then
-        res=0.5*N0*(1.0- math.cos(PI*(x-x0)/(LX-x0)));
-      end
-      return res
-     end 
---]]
+ 
 
 
 InitValue={
@@ -127,7 +116,7 @@ Model=
 ---[[ 
 Particles={
 -- H ={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
- H ={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
+   H ={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
 --ele ={Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 }
 }
 --]]
@@ -135,18 +124,18 @@ Particles={
 
 FieldSolver= 
 {
----[[ 
+
    ColdFluid=
     {
        Species=
        {
-      --  H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
+    --    H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
       --  ele={Name="ele",Mass =me,Charge=-e,  Density=InitN0 }  ,       
        }
     },
- --]]
+--[[ 
   PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
-
+ --]]
 }
 
 Constraints=
@@ -160,7 +149,7 @@ Constraints=
  --]] 
   { 
     DOF="J",
-	Range={ {0.15*LX,0,0}},
+	Range={ {0.5*LX,0,0}},
 	IsHard=true,
   	Value=function(t,x,y,z)	
          local tau = t*omega_ext  

@@ -60,13 +60,16 @@ public:
 	};
 
 private:
-	Real m_, cmr_, q_, q_kT_;
+	Real m_, cmr_, q_, q_k_;
 public:
 	mesh_type const &mesh;
-
+	Field<mesh_type, VERTEX, Real> n0;
+	Field<mesh_type, VERTEX, Real> T0;
+	Field<mesh_type, EDGE, Real> gradn0;
+	Field<mesh_type, EDGE, Real> gradT0;
 public:
 	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
 	{
 	}
 	~PICEngineDeltaF()
@@ -95,8 +98,8 @@ public:
 	{
 		return 2;
 	}
-	template<typename TDict>
-	void Load(TDict const &dict)
+	template<typename TDict, typename TN, typename TT>
+	void Load(TDict const &dict, TN const & n, TT const &T)
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -104,7 +107,6 @@ public:
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
-		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
 	}
 
 	std::ostream & Print(std::ostream & os) const
@@ -118,7 +120,7 @@ public:
 
 		<< " , " << "Charge = " << q_
 
-		<< " , " << "Temperature = " << q_ / q_kT_ / elementary_charge << "* eV"
+		<< " , " << "Temperature = " << q_ / q_k_ / elementary_charge << "* eV"
 
 		;
 
@@ -139,9 +141,20 @@ public:
 	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
-
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 		// FIXME miss one term E\cross B \cdot \Grad n
-		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
+
+		auto T_ = T(p->x);
+
+		nTuple<3, scalar_type> kapp;
+
+		kapp = gradn0(p->x) / n0(p->x)
+
+//		+ (0.5 * gradT0(p->x) / T0(p->x) * m_ * Dot(p->v, p->v)) / (T0(p->x) * boltzmann_constant)
+
+		        - fE(p->x) * q_ / (T0(p->x) * boltzmann_constant);
+
+		auto a = Dot(kapp, p->v) * dt;
 
 		p->w = 0.5 * (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
