@@ -47,8 +47,8 @@ private:
 		RForm<0> n;
 		VectorForm<0> J;
 
-		Species(Real pm, Real pZ, mesh_type const &mesh) :
-				m(pm), q(pZ), n(mesh), J(mesh)
+		Species(Real pm, Real pZ, mesh_type const &mesh)
+				: m(pm), q(pZ), n(mesh), J(mesh)
 		{
 		}
 		~Species()
@@ -66,8 +66,8 @@ private:
 	bool enableNonlinear_;
 public:
 
-	ColdFluidEM(mesh_type const & pmesh) :
-			mesh(pmesh), B0(pmesh), BB(pmesh), enableNonlinear_(false),
+	ColdFluidEM(mesh_type const & pmesh)
+			: mesh(pmesh), B0(pmesh), BB(pmesh), enableNonlinear_(false),
 
 			Ev(mesh), a(pmesh), b(pmesh), c(pmesh), dt_(mesh.GetDt())
 	{
@@ -86,7 +86,7 @@ public:
 	void Load(TDict const&dict, RForm<0> const & ne, Args const & ...);
 
 	template<typename OS>
-	void Save(OS & os) const;
+	void Print(OS & os) const;
 
 	void DumpData(std::string const & path = "") const;
 
@@ -103,16 +103,17 @@ template<typename TM>
 template<typename TE, typename TB>
 void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 {
+
 	DEFINE_PHYSICAL_CONST(mesh.constants());
-
-	TE & dE = *pdE;
-
-	LOG_CMD(dE += Curl(B) / (mu0 * epsilon0) * dt);
 
 	if (sp_list_.empty())
 		return;
 
-	if (BB.empty() /*|| enableNonlinear_*/)
+	LOGGER << "Push E: Cold Fluid. [ Species Number=" << sp_list_.size() << "]";
+	VERBOSE << "Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << ".";
+	TE & dE = *pdE;
+
+	if (BB.empty() || enableNonlinear_)
 	{
 		B0 = MapTo<VERTEX>(B);
 		BB = Dot(B0, B0);
@@ -182,7 +183,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 
 	dE = (MapTo<EDGE>(Ev) - E) + dE * 0.5;
 
-	LOGGER << "Push: Cold Fluid. Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << "." << DONE;
+	LOGGER << DONE;
 
 }
 
@@ -213,24 +214,24 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		}
 
 		std::shared_ptr<Species> sp(
-				new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
+		        new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
 		sp->n.Clear();
 
 		if (ne.empty())
 		{
-			LoadField(p.second["n"], &(sp->n));
+			LoadField(p.second["Density"], &(sp->n));
 		}
 		else
 		{
 			sp->n = ne;
-			if (p.second["n"].is_number())
-				sp->n *= p.second["n"].template as<Real>(1.0);
+			if (p.second["Density"].is_number())
+				sp->n *= p.second["Density"].template as<Real>(1.0);
 		}
 
 		sp->J.Clear();
 
-		LoadField(p.second["J"], &(sp->J));
+		LoadField(p.second["Current"], &(sp->J));
 
 		sp_list_.emplace(key, sp);
 
@@ -257,7 +258,7 @@ void ColdFluidEM<TM>::DumpData(std::string const & path) const
 
 template<typename TM>
 template<typename OS>
-void ColdFluidEM<TM>::Save(OS & os) const
+void ColdFluidEM<TM>::Print(OS & os) const
 {
 	os << "ColdFluid = { Nonlinear = " << std::boolalpha << enableNonlinear_ << ",\n"
 

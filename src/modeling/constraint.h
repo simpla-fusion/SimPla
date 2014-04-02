@@ -38,8 +38,8 @@ private:
 	bool is_hard_src_;
 public:
 
-	Constraint(mesh_type const & m) :
-			mesh(m), is_hard_src_(false)
+	Constraint(mesh_type const & m)
+			: mesh(m), is_hard_src_(false)
 	{
 	}
 
@@ -97,7 +97,7 @@ public:
 
 template<typename TField, typename TDict>
 static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
-		TDict const & dict)
+        TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)
 	{};
@@ -150,40 +150,47 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 //	{
 //	}
 
-	self->SetHardSrc(dict["IsHard"].template as<bool>(false));
-
-	if (dict["Value"])
+	if (!self->GetDefDomain().empty())
 	{
-		auto value = dict["Value"];
 
-		if (value.is_number())
+		self->SetHardSrc(dict["IsHard"].template as<bool>(false));
+
+		if (dict["Value"])
 		{
-			auto foo = value.template as<typename TField::value_type>();
+			auto value = dict["Value"];
 
-			res = [self,foo](TField * f )
-			{	self->Apply(f,foo);};
+			if (value.is_number())
+			{
+				auto foo = value.template as<typename TField::value_type>();
 
-		}
-		else if (value.is_table())
-		{
-			auto foo = value.template as<typename TField::field_value_type>();
+				res = [self,foo](TField * f )
+				{	self->Apply(f,foo);};
 
-			res = [self,foo](TField * f )
-			{	self->Apply(f,foo);};
-		}
-		else if (value.is_function())
-		{
-			std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
-					[value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
-					{
-						return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
-					};
+			}
+			else if (value.is_table())
+			{
+				auto foo = value.template as<typename TField::field_value_type>();
 
-			res = [self,foo](TField * f )
-			{	self->Apply(f,foo);};
+				res = [self,foo](TField * f )
+				{	self->Apply(f,foo);};
+			}
+			else if (value.is_function())
+			{
+				std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
+				        [value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
+				        {
+					        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+				        };
+
+				res = [self,foo](TField * f )
+				{	self->Apply(f,foo);};
+			}
 		}
 	}
-
+	else
+	{
+		WARNING << "Define domain is empty!";
+	}
 	return std::move(res);
 }
 

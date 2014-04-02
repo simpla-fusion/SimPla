@@ -329,11 +329,12 @@ OS & ExplicitEMContext<TM>::Print(OS & os) const
 
 	<< "	J = " << simpla::Dump(J, "J", false) << ",\n"
 
-	<< "}" << "\n"
+	<< "}" << "\n";
 
-	<< "Particles = { \n" << particles_ << "\n}\n"
+	if (particles_.size() > 0)
+		os << "Particles = { \n" << particles_ << "\n}\n"
 
-	;
+		;
 
 	return os;
 }

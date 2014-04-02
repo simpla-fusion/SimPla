@@ -512,41 +512,38 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range,
 
 	res = typename Material<TM>::range_type(range,
 
-	[=]( typename TM::iterator s, typename TM::iterator::value_type *c)->int
+	[=]( typename TM::iterator it )->bool
 	{
-		c[0]=*s;
-		int res=0;
-		if ((this->material_[IFORM].at(this->mesh.Hash((*s))) & in).none()
-				&& (this->material_[IFORM].at(this->mesh.Hash((*s))) & out).any())
+		if ((this->material_[IFORM].at(this->mesh.Hash((*it))) & in).none()
+				&& (this->material_[IFORM].at(this->mesh.Hash((*it))) & out).any())
 		{
 			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
 			switch(IFORM)
 			{	case VERTEX:
-				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), (*s), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), (*it), neighbours);
 				break;
 				case EDGE:
-				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), (*s), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), (*it), neighbours);
 				break;
 				case FACE:
-				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), (*s), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), (*it), neighbours);
 				break;
 				case VOLUME:
-				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), (*s), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), (*it), neighbours);
 				break;
 			}
 			for (int i = 0; i < num; ++i)
 			{
 				if (((this->material_[VOLUME].at(this->mesh.Hash(neighbours[i])) & in)).any())
 				{
-					res=1;
-					break;
+					return true;
 				}
 			}
 		}
 
-		return res;
+		return false;
 	});
 
 	return res;
@@ -556,11 +553,10 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range,
 template<typename TM>
 typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type material) const
 {
-	return Material<TM>::range_type(range,
-	        [= ]( typename TM::iterator it, typename TM::iterator::value_type *c)->int
-	        {	c[0]=*it;
-		        return (((this->material_[this->mesh._IForm(c[0])].at(this->mesh.Hash(c[0])) & material)).any())?1:0;
-	        });
+	return Material<TM>::range_type(range, [= ]( typename TM::iterator it )->bool
+	{
+		return (((this->material_[this->mesh._IForm(*it)].at(this->mesh.Hash(*it)) & material)).any());
+	});
 
 }
 

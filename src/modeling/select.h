@@ -26,7 +26,7 @@ public:
 
 	typedef typename base_iterator::value_type value_type;
 
-	typedef std::function<int(base_iterator, value_type*)> filter_type;
+	typedef std::function<bool(base_iterator)> filter_type;
 
 private:
 	base_range range_;
@@ -54,24 +54,17 @@ public:
 
 		base_iterator it_, ie_;
 
-		value_type s_[MAX_CACHE_DEPTH];
-
-		int cache_head_;
-
-		int cache_tail_;
-
 		iterator()
-				: cache_head_(0), cache_tail_(0)
 		{
 		}
 
 		iterator(base_iterator ib, base_iterator ie, filter_type filter)
-				: it_(ib), ie_(ie), filter_(filter), cache_head_(0), cache_tail_(0)
+				: it_(ib), ie_(ie), filter_(filter)
 		{
 			this->operator ++();
 		}
 		iterator(base_iterator it)
-				: it_(it), ie_(it), cache_head_(0), cache_tail_(0)
+				: it_(it), ie_(it)
 		{
 		}
 		iterator(iterator const &) = default;
@@ -84,7 +77,7 @@ public:
 
 		bool operator==(iterator const & rhs)
 		{
-			return (it_ == rhs.it_) && (cache_head_ == rhs.cache_head_);
+			return (it_ == rhs.it_);
 		}
 		bool operator!=(iterator const & rhs)
 		{
@@ -93,20 +86,23 @@ public:
 		iterator & operator ++()
 		{
 
-			++cache_head_;
-			if (cache_head_ >= cache_tail_)
-			{
-				cache_tail_ = 0;
-				cache_head_ = 0;
-				while (it_ != ie_)
-				{
-					++it_;
-					cache_tail_ = filter_(it_, s_);
-					if (cache_tail_ > 0)
-						break;
-				}
-			}
+//			++cache_head_;
+//			if (cache_head_ >= cache_tail_)
+//			{
+//				cache_tail_ = 0;
+//				cache_head_ = 0;
+//				while (it_ != ie_)
+//				{
+//					++it_;
+//					cache_tail_ = filter_(it_, s_);
+//					if (cache_tail_ > 0)
+//						break;
+//				}
+//			}
 
+			for (++it_; it_ != ie_ && !filter_(it_); ++it_)
+			{
+			}
 			return *this;
 		}
 		this_type operator ++(int) const
@@ -118,16 +114,16 @@ public:
 
 		value_type const & operator*() const
 		{
-			return s_[cache_head_];
+			return it_.operator*();
 		}
 
 		value_type * operator ->()
 		{
-			return &s_[cache_head_];
+			return it_.operator->();
 		}
 		value_type const* operator ->() const
 		{
-			return &s_[cache_head_];
+			return it_.operator->();
 		}
 
 	};
@@ -160,7 +156,14 @@ template<typename TM>
 FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
 {
 	UNIMPLEMENT;
-	return FilterRange<typename TM::Range>();
+	typename TM::index_type s = mesh.GetCellIndex(x);
+
+	return FilterRange<typename TM::Range>(range,
+
+	[=, &mesh](typename TM::iterator it )->bool
+	{
+		return mesh.GetCellIndex(*it)==s;
+	});
 }
 
 template<typename TM>
@@ -168,12 +171,11 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh
         typename TM::coordinates_type v1)
 {
 	return FilterRange<typename TM::Range>(range,
-	        [=,&mesh]( typename TM::iterator s, typename TM::iterator::value_type*c)->int
+	        [=,&mesh]( typename TM::iterator s )->bool
 	        {
-		        c[0]=*s;
 		        auto x = mesh.GetCoordinates(*s);
 		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)) ? 1 : 0;
+				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
 	        });
 
 }
@@ -181,12 +183,8 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh
 template<typename TM>
 FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, PointInPolygen checkPointsInPolygen)
 {
-	return FilterRange<typename TM::Range>(range,
-	        [ =,&mesh ](typename TM::iterator s,typename TM::iterator::value_type *c)->int
-	        {
-		        c[0]=*s;
-		        return (checkPointsInPolygen(mesh.GetCoordinates(c[0]) )) ? 1 : 0;
-	        });
+	return FilterRange<typename TM::Range>(range, [ =,&mesh ](typename TM::iterator s )->bool
+	{	return (checkPointsInPolygen(mesh.GetCoordinates(*s) ));});
 }
 
 /**
@@ -222,7 +220,6 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 		{
 			x[(i + Z + 1) % 3] = points[0][i];
 		}
-
 		res = Filter(range, mesh, x);
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
@@ -263,13 +260,11 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 	else if (dict.is_function())
 	{
 
-		res = FilterRange<typename TM::Range>(range,
-		        [&](typename TM::iterator s,typename TM::iterator::value_type *c)->int
-		        {
-			        c[0]=*s;
-			        auto x = mesh.GetCoordinates(c[0]);
-			        return (dict(x[0], x[1], x[2]).template as<bool>()) ? 1 : 0;
-		        });
+		res = FilterRange<typename TM::Range>(range, [&](typename TM::iterator s )->bool
+		{
+			auto x = mesh.GetCoordinates(*s);
+			return (dict(x[0], x[1], x[2]).template as<bool>());
+		});
 
 	}
 	return res;

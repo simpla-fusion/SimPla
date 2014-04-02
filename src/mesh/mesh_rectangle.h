@@ -212,6 +212,19 @@ public:
 		*x=geometry_type::CoordinatesGlobalToLocal(*x);
 		return topology_type::CoordinatesGlobalToLocal(x,shift);
 	}
+
+	index_type GetCellIndex(coordinates_type x )const
+	{
+		auto r=geometry_type::CoordinatesGlobalToLocal( x);
+		return topology_type::CoordinatesGlobalToLocal(&r);
+
+	}
+
+	index_type GetCellIndex(index_type s)const
+	{
+		return topology_type::GetCellIndex(s);
+
+	}
 	coordinates_type GetCoordinates(index_type s) const
 	{
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));

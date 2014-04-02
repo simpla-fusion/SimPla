@@ -515,6 +515,17 @@ struct OcForest
 
 	}
 
+	inline compact_index_type GetCellIndex(compact_index_type s) const
+	{
+		compact_index_type m = (1 << (D_FP_POS - H(s))) - 1;
+		return s & (_MASK & ~((m << INDEX_DIGITS * 2) | (m << (INDEX_DIGITS)) | m));
+	}
+
+	inline index_type GetCellIndex(index_type s) const
+	{
+		return index_type( { GetCellIndex(s.d) });
+	}
+
 //***************************************************************************************************
 
 	nTuple<NDIMS, size_type> const & GetDimensions() const

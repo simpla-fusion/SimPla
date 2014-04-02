@@ -39,19 +39,23 @@ omega_ext=omega_ci*1.2
 
 
 -- From Gan
---[[
+---[[
 InitN0=function(x,y,z)
-      local X0 = 12*LX/NX;
-      local DEN_JUMP = 0.4*LX;
-      local DEN_GRAD = 0.2*LX;
-      local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
-      local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
-      local DenCof = 1./(AtLX-AtX0);
-      local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
-      return dens1*N0
+      -- local X0 = 12*LX/NX;
+      -- local DEN_JUMP = 0.4*LX;
+      -- local DEN_GRAD = 0.2*LX;
+      -- local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
+      -- local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
+      -- local DenCof = 1./(AtLX-AtX0);
+      -- local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
+      return N0
+     end 
+
+InitB0=function(x,y,z)
+      return {0,0,Btor}
      end 
 --]]
-
+--[[
 InitN0=function(x,y,z)      
       local x0=0.1*LX ;
       local res = 0.0;
@@ -60,21 +64,12 @@ InitN0=function(x,y,z)
       end
       return res
      end 
+--]]
 
 
-InitB0=function(x,y,z)
-      local X0 = 12*LX/NX;
-      local DEN_JUMP = 0.4*LX;
-      local DEN_GRAD = 0.2*LX;
-      local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
-      local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
-      local DenCof = 1./(AtLX-AtX0);
-      local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
-      return {0,0,0}
-     end 
 InitValue={
----[[
-  E=function(x,y,z)
+ --[[
+   E=function(x,y,z)
      ---[[
       local res = 0.0;
       for i=1,20 do
@@ -84,21 +79,14 @@ InitValue={
       return {res,res,res}
     end
 --]]
-
-  , J=0.0,B={0,0,Btor}
+    E 	= 0.0 
+  , J 	= 0.0
+  , B 	= InitB0
+  , ne 	= InitN0
 
 }
 
-B_background=function(x,y,z)
---[[  
-      local omega_ci_x0 = 1/1.55*omega;
-      local omega_ci_lx = 1/1.45*omega;
-      local Bf_lx = omega_ci_lx*ionmass/ioncharge
-      local Bf_x0 = omega_ci_x0*ionmass/ioncharge
---]]
-      return {0,0,Btor}  
-     end
-      
+ 
 
 Grid=
 {
@@ -136,44 +124,67 @@ Model=
 --]]
 
 Constraints={
-   --   { Type="PEC", In="Vacuum",Out="NONE"},
+   -- { Type="PEC", In="Vacuum",Out="NONE"},
    -- { Type="PEC", In="Plasma",Out="NONE"},
 }
 
-
+--[[X
 Particles={
-H1={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,IsElectron=false},
-H2={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,IsElectron=false}
+H1={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
+H2={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
 }
+--]]
+
 
 FieldSolver= 
 {
 ---[[
    ColdFluid=
     {
-       Nonlinear=true,
-       
        Species=
        {
-     -- {Name="ion",m=1.0,     Z= 1.0,T=Ti,  n=N0, J=0},
-        {Name="ele",m=me,Z=-e,  n=N0, J=0}         
-        }
+       ele={Name="ele",Mass =me,Charge=-e,  Density=N0, Current=0}  ,       
+       }
     },
 --]]
-  -- PML=  {Width={8,8,0,0,0,0}}
+  PML=  {Width={8,8,0,0,0,0}}
 }
 
----[[
-CurrentSrc=
- { 
-  
-  Points={{0.1*LX,0.0,0.0},},
-  Fun=function(x,y,z,t)
-      local tau = t*omega_ext
-      return {0,math.sin(tau)*(1-math.exp(-tau*tau)),0}   
+Constraints=
+{
+ --[[
+  { 
+    DOF="E",IsHard=true,
+	Select={Type="Boundary", Material="Vacuum" },
+	Value= 0
+  },
+ --]] 
+  { 
+    DOF="J",
+	Range={ {2.0,0,0}},
+	IsHard=true,
+  	Value=function(x,y,z,t)	
+         local tau = t*omega_ext
+         return { 0,0,math.sin(tau)}   
       end
- }
---]]
+	 
+ 
+  }
+   
+-- *(1-math.exp(-tau*tau)
+   
+ --  { 
+ --    DOF="J",
+	-- Select={Type="Media", Tag="Vacuum"},
+	-- Value= 0
+ --  },
+ --  { 
+ --    DOF="Particles",
+	-- Select={Type="Media", Tag="Vacuum"},
+	-- Value= "Absorb"
+ --  },
+   
+}
 
 -- The End ---------------------------------------
 

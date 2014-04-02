@@ -62,7 +62,7 @@ public:
 
 	void Load(coordinates_type xmin, coordinates_type xmax);
 
-	std::ostream & Save(std::ostream & os) const;
+	std::ostream & Print(std::ostream & os) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
 
@@ -78,8 +78,8 @@ inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh) :
-		mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh)
+		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -163,7 +163,7 @@ void PML<TM>::Update()
 }
 
 template<typename TM>
-std::ostream & PML<TM>::Save(std::ostream & os) const
+std::ostream & PML<TM>::Print(std::ostream & os) const
 {
 	UNIMPLEMENT;
 	return os;
@@ -172,7 +172,7 @@ std::ostream & PML<TM>::Save(std::ostream & os) const
 template<typename OS, typename TM>
 OS &operator<<(OS & os, PML<TM> const& self)
 {
-	self.Save(os);
+	self.Print(os);
 	return os;
 }
 
@@ -185,7 +185,7 @@ void PML<TM>::DumpData(std::string const &path) const
 template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
-	LOGGER << "PML push E" << DONE;
+	LOGGER << "PML push E";
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	Form<1> dX1(mesh);
@@ -201,12 +201,14 @@ void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1>
 	dX1 = (-2.0 * s2 * X12 + CurlPDZ(B1 / mu0)) / (a2 / dt + s2);
 	X12 += dX1;
 	*dE += dX1 / dt / epsilon0;
+
+	LOGGER << DONE;
 }
 
 template<typename TM>
 void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2> *dB)
 {
-	LOGGER << "PML Push B" << DONE;
+	LOGGER << "PML Push B";
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -223,6 +225,7 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 	dX2 = (-2.0 * s2 * X22 + CurlPDZ(E1)) / (a2 / dt + s2);
 	X22 += dX2;
 	*dB -= dX2 / dt;
+	LOGGER << DONE;
 }
 
 } //namespace simpla

@@ -19,8 +19,8 @@ namespace simpla
 
 template<typename TDict, typename TM, typename TE, typename TB, typename ...Args>
 std::string CreateEMSolver(TDict const & dict, TM const & mesh,
-        std::function<void(Real, TE const &, TB const &, TE*)> *solverE,
-        std::function<void(Real, TE const &, TB const &, TB*)> *solverB, Args const & ... args)
+        std::function<void(Real, TE const &, TB const &, TE*)> *solveE,
+        std::function<void(Real, TE const &, TB const &, TB*)> *solveB, Args const & ... args)
 {
 
 	std::ostringstream os;
@@ -33,31 +33,19 @@ std::string CreateEMSolver(TDict const & dict, TM const & mesh,
 
 	Real ic2 = 1.0 / (mu0 * epsilon0);
 
-	*solverE = [mu0 , epsilon0](Real dt, TE const & , TB const & B, TE* pdE)
-	{
-		auto & dE=*pdE;
-		LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-	};
+	std::function<void(Real, TE const &, TB const &, TE*)> sE = //
+	        [mu0 , epsilon0](Real dt, TE const & , TB const & B, TE* pdE)
+	        {
+		        auto & dE=*pdE;
+		        LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+	        };
 
-	*solverB = [](Real dt, TE const & E, TB const &, TB* pdB)
-	{
-		auto & dB=*pdB;
-		LOG_CMD( dB -= Curl(E)*dt);
-	};
-
-	if (!dict)
-		return "";
-
-	if (dict["ColdFluid"])
-	{
-		auto solver = std::shared_ptr<ColdFluidEM<TM> >(new ColdFluidEM<TM>(mesh));
-
-		solver->Load(dict["ColdFluid"], std::forward<Args const &>(args)...);
-
-		solver->Save(os);
-
-		*solverE = std::bind(&ColdFluidEM<TM>::template NextTimeStepE<TE, TB>, solver, _1, _2, _3, _4);
-	}
+	std::function<void(Real, TE const &, TB const &, TB*)> sB = //
+	        [](Real dt, TE const & E, TB const &, TB* pdB)
+	        {
+		        auto & dB=*pdB;
+		        LOG_CMD( dB -= Curl(E)*dt);
+	        };
 
 	if (dict["PML"])
 	{
@@ -65,12 +53,30 @@ std::string CreateEMSolver(TDict const & dict, TM const & mesh,
 
 		solver->Load(dict["PML"]);
 
-		solver->Save(os);
+		solver->Print(os);
 
-		*solverE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+		sE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
-		*solverB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+		sB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
+	}
+
+	*solveB = sB;
+	*solveE = sE;
+
+	if (dict["ColdFluid"])
+	{
+		auto solver = std::shared_ptr<ColdFluidEM<TM> >(new ColdFluidEM<TM>(mesh));
+
+		solver->Load(dict["ColdFluid"], std::forward<Args const &>(args)...);
+
+		solver->Print(os);
+
+		*solveE = [=](Real dt, TE const & E , TB const & B, TE* pdE)
+		{
+			sE(dt,E,B,pdE);
+			solver->template NextTimeStepE<TE, TB>(dt,E,B,pdE);
+		};
 	}
 
 	return os.str();
