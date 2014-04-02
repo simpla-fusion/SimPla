@@ -86,7 +86,7 @@ template<int M> struct _assign
 	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r[M - 1]);
-		_assign<M - 1>::eval(l, r);
+		_assign<M - 1>::eval(fun, l, r);
 	}
 	template<typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TL & l, TR const &r)
@@ -99,7 +99,7 @@ template<int M> struct _assign
 	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r);
-		_assign<M - 1>::eval(l, r);
+		_assign<M - 1>::eval(fun, l, r);
 	}
 };
 template<> struct _assign<1>
@@ -119,7 +119,7 @@ template<> struct _assign<1>
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
 	        TR const &r)
 	{
-		l[0] = fun(l[0], r);
+		l[0] = fun(l[0], r[0]);
 	}
 
 	template<typename TFun, typename TL, typename TR>

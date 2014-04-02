@@ -328,13 +328,10 @@ OS & ExplicitEMContext<TM>::Print(OS & os) const
 
 	<< "	J0 = " << simpla::Dump(J0, "J0", false) << ",\n"
 
-
 	<< "}" << "\n";
 
 	if (particles_.size() > 0)
-		os << "Particles = { \n" << particles_ << "\n}\n"
-
-		;
+		os << "Particles = { \n" << particles_ << "\n}\n";
 
 	return os;
 }
@@ -402,7 +399,10 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	{
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.second.Scatter(&J, E, B);
+
+		LOGGER << p.second.Dump(p.first);
 	}
+	GLOBAL_DATA_STREAM.OpenGroup("DumpData");
 
 // B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);

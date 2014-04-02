@@ -15,7 +15,7 @@ namespace simpla
 template<typename, int, typename > struct Field;
 
 template<typename TG, int IFORM, typename TV> inline std::string Dump(Field<TG, IFORM, TV>
-const & d, std::string const & name, bool flag)
+const & d, std::string const & name, bool flag = false)
 {
 	return DataDumper<TV>(d.data().get(), name, d.GetShape(), flag).GetName();
 }

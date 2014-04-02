@@ -76,11 +76,11 @@ public:
 		}
 	}
 	template<typename TV>
-	void Apply(TF * f, std::function<TV(coordinates_type, Real)> const & fun) const
+	void Apply(TF * f, std::function<TV(Real, coordinates_type)> const & fun) const
 	{
 		for (auto const & s : def_domain_)
 		{
-			auto v = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetCoordinates(s), mesh.GetTime()));
+			auto v = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetTime(), mesh.GetCoordinates(s)));
 
 			if (is_hard_src_)
 			{
@@ -176,10 +176,10 @@ static std::function<void(TField *)> CreateConstraint(Material<typename TField::
 			}
 			else if (value.is_function())
 			{
-				std::function<typename TField::field_value_type(typename TField::coordinates_type, Real)> foo =
-				        [value](typename TField::coordinates_type z, Real t)->typename TField::field_value_type
+				std::function<typename TField::field_value_type(Real, typename TField::coordinates_type)> foo =
+				        [value]( Real t,typename TField::coordinates_type z )->typename TField::field_value_type
 				        {
-					        return value(z[0],z[1],z[2],t).template as<typename TField::field_value_type>();
+					        return value( t,z[0],z[1],z[2]).template as<typename TField::field_value_type>();
 				        };
 
 				res = [self,foo](TField * f )

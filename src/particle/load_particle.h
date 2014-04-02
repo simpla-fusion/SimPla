@@ -36,12 +36,13 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 		UNIMPLEMENT2("Read  particle data from file");
 		return;
 	}
+	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
 
 	p->engine_type::Load(dict);
 
 	InitParticle(p, dict, std::forward<Args const &>(args)...);
 
-	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
+	LOGGER << DONE;
 }
 
 template<typename TP, typename TDict>
@@ -144,10 +145,8 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
-	nTuple<3, Real> dxmin =
-	{ -0.5, -0.5, -0.5 };
-	nTuple<3, Real> dxmax =
-	{ 0.5, 0.5, 0.5 };
+	nTuple<3, Real> dxmin = { -0.5, -0.5, -0.5 };
+	nTuple<3, Real> dxmax = { 0.5, 0.5, 0.5 };
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 
 	multi_normal_distribution<NDIMS> v_dist;

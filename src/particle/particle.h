@@ -129,14 +129,6 @@ public:
 		}
 	}
 
-	/**
-	 *  Dump particles to a continue memory block
-	 *  !!!this is a heavy operation!!!
-	 *
-	 * @return <datapoint , number of particles>
-	 */
-	std::pair<std::shared_ptr<value_type>, size_t> DumpData() const;
-
 	allocator_type GetAllocator()
 	{
 		return pool_.get_allocator();
@@ -202,6 +194,11 @@ public:
 	{
 		return particleSortingIsEnable_;
 	}
+
+	container_type const & GetTree() const
+	{
+		return data_;
+	}
 private:
 
 	cell_type pool_;
@@ -241,24 +238,6 @@ void Particle<Engine>::Load(Args const & ... args)
 }
 
 template<class Engine>
-std::pair<std::shared_ptr<typename Engine::Point_s>, size_t> Particle<Engine>::DumpData() const
-{
-	size_t num = size();
-
-	std::shared_ptr<value_type> res = (MEMPOOL.allocate_shared_ptr<value_type>(num));
-
-	value_type * it = res.get();
-
-	for (auto const & l : data_)
-	{
-		std::copy(l.begin(), l.end(), it);
-	}
-
-	return std::make_pair(res, num);
-
-}
-
-template<class Engine>
 std::ostream & Particle<Engine>::Print(std::ostream & os) const
 {
 	engine_type::Print(os);
@@ -268,7 +247,6 @@ std::ostream & Particle<Engine>::Print(std::ostream & os) const
 template<class Engine>
 std::string Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
 {
-
 	return simpla::Dump(*this, name, compact_storage);
 }
 template<typename TM>
@@ -440,6 +418,12 @@ void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
 
 	});
 	LOGGER << DONE;
+}
+
+template<typename TF, typename TX, typename TV>
+void ScatterTo(TX const & x, TV const &v, TF *f)
+{
+	f->mesh.Scatter(x, v, f);
 }
 
 //******************************************************************************************************

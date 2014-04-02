@@ -61,8 +61,8 @@ public:
 
 public:
 
-	PICEngineFull(mesh_type const &pmesh) :
-			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
+	PICEngineFull(mesh_type const &pmesh)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
 	{
 	}
 	~PICEngineFull()
@@ -127,9 +127,9 @@ public:
 
 	template<typename TV, typename ... Others>
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-			Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		mesh.Scatter(p.x, p.f, n);
+		ScatterTo(p.x, p.f, n);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
@@ -137,13 +137,12 @@ public:
 	{
 		typename Field<mesh_type, IFORM, TV>::field_value_type v;
 		v = p.v * p.f;
-		mesh.Scatter(p.x, v, J);
+		ScatterTo(p.x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 };

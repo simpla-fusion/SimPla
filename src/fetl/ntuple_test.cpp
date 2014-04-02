@@ -104,6 +104,14 @@ TYPED_TEST(TestNtuple, Arithmetic){
 }
 }
 
+TYPED_TEST(TestNtuple, self_assign){
+{
+	CHECK(TestFixture::vB );
+	CHECK(TestFixture::vA );
+	TestFixture::vB +=TestFixture::vA;
+	CHECK(TestFixture::vB );
+}
+}
 TYPED_TEST(TestNtuple, Dot){
 {
 	typename TestFixture::value_type res;

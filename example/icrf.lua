@@ -16,7 +16,7 @@ k_parallel=6.5
 Btor= 1.0  * Tesla
 Ti =  0.03 * KeV
 Te =  0.05 * KeV
-N0 = 1.0e18 -- m^-3
+N0 = 1.0e18-- m^-3
 
 
 omega_ci = e * Btor/mp -- e/m_p B0 rad/s
@@ -30,7 +30,7 @@ rhoe = vTe/omega_ce    -- m
 NX = 200
 NY = 1
 NZ = 1
-LX = 2.5 --m --100000*rhoi --0.6
+LX =  25 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5 
@@ -41,14 +41,14 @@ omega_ext=omega_ci*1.2
 -- From Gan
 ---[[
 InitN0=function(x,y,z)
-      -- local X0 = 12*LX/NX;
-      -- local DEN_JUMP = 0.4*LX;
-      -- local DEN_GRAD = 0.2*LX;
-      -- local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
-      -- local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
-      -- local DenCof = 1./(AtLX-AtX0);
-      -- local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
-      return N0
+      local X0 = 12*LX/NX;
+      local DEN_JUMP = 0.4*LX;
+      local DEN_GRAD = 0.2*LX;
+      local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
+      local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
+      local DenCof = 1./(AtLX-AtX0);
+      local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
+      return N0*dens1
      end 
 
 InitB0=function(x,y,z)
@@ -108,7 +108,7 @@ Grid=
      --dt= 2.0*math.pi/omega_ci/100.0
    
   },
-     dt=0.5*LX/NX/c  -- time step     
+     dt=0.5*LX/NX/c -- time step     
 }
 --[[
 Model=
@@ -128,27 +128,28 @@ Constraints={
    -- { Type="PEC", In="Plasma",Out="NONE"},
 }
 
---[[X
+---[[ 
 Particles={
-H1={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-H2={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
+--H1={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
+ H={Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
 }
 --]]
 
 
 FieldSolver= 
 {
---[[
+
    ColdFluid=
     {
        Species=
        {
-       ele={Name="ele",Mass =me,Charge=-e,  Density=N0, Current=0}  ,       
+       -- H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
+       ele={Name="ele",Mass =me,Charge=-e,  Density=InitN0 }  ,       
        }
     },
-  --]]
-  PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
 
+  PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+--[[  --]]
 }
 
 Constraints=
@@ -162,11 +163,10 @@ Constraints=
  --]] 
   { 
     DOF="J",
-	Range={ {LX/2,0,0}},
+	Range={ {0.15*LX,0,0}},
 	IsHard=true,
-  	Value=function(x,y,z,t)	
-         local tau = t*omega_ext *100
-          
+  	Value=function(t,x,y,z)	
+         local tau = t*omega_ext  
          return { 0,math.sin(tau),0}   
       end
 	 

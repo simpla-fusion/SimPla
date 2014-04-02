@@ -9,6 +9,7 @@
 #define SAVE_PARTICLE_H_
 
 #include <string>
+#include <vector>
 
 #include "../io/data_stream.h"
 
@@ -21,9 +22,14 @@ template<typename > class Particle;
 template<typename TEngine> inline std::string //
 Dump(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
 {
-	auto t = d.DumpData();
+	std::vector<typename Particle<TEngine>::value_type> res;
 
-	return DataDumper<typename TEngine::Point_s>(t.first.get(), name, 1, &(t.second), is_compact_store).GetName();
+	for (auto const & l : d.GetTree())
+	{
+		std::copy(l.begin(), l.end(), std::back_inserter(res));
+	}
+
+	return Dump(res, name, is_compact_store);
 
 }
 

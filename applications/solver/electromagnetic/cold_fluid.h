@@ -50,6 +50,8 @@ private:
 		Species(Real pm, Real pZ, mesh_type const &mesh)
 				: m(pm), q(pZ), n(mesh), J(mesh)
 		{
+			n.Clear();
+			J.Clear();
 		}
 		~Species()
 		{
@@ -88,7 +90,7 @@ public:
 	template<typename OS>
 	void Print(OS & os) const;
 
-	void DumpData(std::string const & path = "") const;
+	void Dump(std::string const & path) const;
 
 	template<typename TE, typename TB>
 	void NextTimeStepE(Real dt, TE const &E, TB const &B0, TE *dE);
@@ -111,6 +113,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 
 	LOGGER << "Push E: Cold Fluid. [ Species Number=" << sp_list_.size() << "]";
 	VERBOSE << "Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << ".";
+
 	TE & dE = *pdE;
 
 	if (BB.empty() || enableNonlinear_)
@@ -179,11 +182,14 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 
 		Real as = (dt * qs) / (2.0 * ms);
 		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * qs * ns) / (BB * as * as + 1);
+
 	}
 
 	dE = (MapTo<EDGE>(Ev) - E) + dE * 0.5;
 
 	LOGGER << DONE;
+
+	Dump("/DumpData");
 
 }
 
@@ -198,9 +204,7 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 
 	enableNonlinear_ = dict["Nonlinear"].template as<bool>(false);
 
-	auto sp = dict["Species"];
-
-	for (auto const & p : sp)
+	for (auto const & p : dict["Species"])
 	{
 		std::string key;
 
@@ -216,8 +220,6 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		std::shared_ptr<Species> sp(
 		        new Species(p.second["Mass"].template as<Real>(1.0), p.second["Charge"].template as<Real>(1.0), mesh));
 
-		sp->n.Clear();
-
 		if (ne.empty())
 		{
 			LoadField(p.second["Density"], &(sp->n));
@@ -228,8 +230,6 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 			if (p.second["Density"].is_number())
 				sp->n *= p.second["Density"].template as<Real>(1.0);
 		}
-
-		sp->J.Clear();
 
 		LoadField(p.second["Current"], &(sp->J));
 
@@ -242,17 +242,14 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 }
 
 template<typename TM>
-void ColdFluidEM<TM>::DumpData(std::string const & path) const
+void ColdFluidEM<TM>::Dump(std::string const & path) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
 	for (auto const & p : sp_list_)
 	{
-		LOGGER << "Dump " << "n_" + p.first << " to "
-		<< Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), true);
-
-		LOGGER << "Dump " << "J_" + p.first << " to "
-		<< Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), true);
+		LOGGER << simpla::Dump(p.second->n, "n_" + p.first, true);
+		LOGGER << simpla::Dump(p.second->J, "J_" + p.first, true);
 	}
 }
 
@@ -270,9 +267,9 @@ void ColdFluidEM<TM>::Print(OS & os) const
 
 		<< " = { " << " Mass =" << p.second->m << "," << " Charge =" << p.second->q << ",\n"
 
-		<< "\t n0 = " << Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), false) << "\n"
+		<< "\t n0 = " << simpla::Dump(p.second->n.data(), "n_" + p.first, p.second->n.GetShape(), false) << "\n"
 
-		<< "\t J0 = " << Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), false) << "\n"
+		<< "\t J0 = " << simpla::Dump(p.second->J.data(), "J_" + p.first, p.second->J.GetShape(), false) << "\n"
 
 		<< "\t},\n";
 	}
