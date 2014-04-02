@@ -155,7 +155,6 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 template<typename TM>
 FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
 {
-	UNIMPLEMENT;
 	typename TM::index_type s = mesh.GetCellIndex(x);
 
 	return FilterRange<typename TM::Range>(range,

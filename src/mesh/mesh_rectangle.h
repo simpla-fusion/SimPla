@@ -77,19 +77,19 @@ public:
 
 	}
 
-	void Save(std::ostream &os) const
+	void Print(std::ostream &os) const
 	{
 		os << " Topology  = { ";
 
-		topology_type::Save(os);
+		topology_type::Print(os);
 
 		os << "}," << std::endl
 
 		<< " Geometry  = { ";
 
-		geometry_type::Save(os);
+		geometry_type::Print(os);
 
-		os << "}" << "\n dt=" << dt_;
+		os << "}," << "\n dt=" << dt_;
 	}
 
 	void Update()
@@ -1032,7 +1032,7 @@ public:
 template<typename TTopology, template<typename > class TGeo> inline std::ostream &
 operator<<(std::ostream & os, RectMesh<TTopology, TGeo> const & d)
 {
-	d.Save(os);
+	d.Print(os);
 
 	return os;
 }

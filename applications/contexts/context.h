@@ -63,8 +63,6 @@ void CreateContext(TDict const &dict, Context* ctx)
 	ctx->Dump = std::bind(&TC::Dump, ctx_ptr, _1);
 	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
 
-	LOGGER << *ctx_ptr;
-
 }
 }
 // namespace simpla

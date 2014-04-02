@@ -150,7 +150,7 @@ struct OcForest
 
 	}
 
-	void Save(std::ostream &os) const
+	void Print(std::ostream &os) const
 	{
 		os << "\tDimensions =  " << dims_;
 	}

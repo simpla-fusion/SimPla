@@ -165,8 +165,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	mesh.Load(dict["Grid"]);
 
-	model_.Update();
-
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
 	Form<VERTEX> Ti0(mesh);
@@ -180,6 +178,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	if (dict["Model"])
 	{
+		model_.Update();
+
 		if (dict["Model"]["GFile"])
 		{
 
@@ -237,14 +237,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			LOGGER << simpla::Dump(Ti0, "Ti", false);
 		}
 
-		if (mesh.CheckCourantDt() < mesh.GetDt())
-		{
-			mesh.SetDt(mesh.CheckCourantDt());
-		}
+	}
 
-		LOGGER << "Grid = { \n" << mesh << "\n}";
-
-		LOGGER << "Model = { \n" << model_ << "\n}";
+	if (mesh.CheckCourantDt() < mesh.GetDt())
+	{
+		mesh.SetDt(mesh.CheckCourantDt());
 	}
 
 	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));

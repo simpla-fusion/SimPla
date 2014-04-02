@@ -153,6 +153,10 @@ int main(int argc, char **argv)
 		TheEnd(-2);
 	}
 
+	else
+	{
+		INFORM << ctx;
+	}
 	// Preprocess    ====================================
 	// Main Loop ============================================
 
@@ -185,6 +189,8 @@ int main(int argc, char **argv)
 	VERBOSE << "Post-Process" << START;
 
 	GLOBAL_DATA_STREAM.OpenGroup("/Output");
+
+	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
 
 	VERBOSE << "Post-Process" << DONE;
 

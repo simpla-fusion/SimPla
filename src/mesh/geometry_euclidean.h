@@ -112,7 +112,7 @@ struct EuclideanGeometry
 		}
 	}
 
-	void Save(std::ostream &os) const
+	void Print(std::ostream &os) const
 	{
 		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_;
 	}

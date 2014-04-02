@@ -138,7 +138,7 @@ H2={Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
 
 FieldSolver= 
 {
----[[
+--[[
    ColdFluid=
     {
        Species=
@@ -161,10 +161,11 @@ Constraints=
  --]] 
   { 
     DOF="J",
-	Range={ {2.0,0,0}},
+	Range={ {LX/2,0,0}},
 	IsHard=true,
   	Value=function(x,y,z,t)	
-         local tau = t*omega_ext
+         local tau = t*omega_ext 
+          
          return { 0,0,math.sin(tau)}   
       end
 	 
