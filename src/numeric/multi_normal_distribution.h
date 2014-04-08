@@ -14,6 +14,16 @@
 
 namespace simpla
 {
+
+/**
+ * @brief A normal continuous distribution for random numbers.
+ *
+ * The formula for the normal probability density function is
+ * @f[
+ *     p(x|\mu,\sigma) = \frac{1}{\sigma \sqrt{2 \pi}}
+ *            e^{- \frac{{x - \mu}^ {2}}{2 \sigma ^ {2}} }
+ * @f]
+ */
 template<int N, typename RealType = double, typename TNormalGen = std::normal_distribution<double> >
 class multi_normal_distribution
 {

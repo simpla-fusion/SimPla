@@ -105,6 +105,7 @@ public:
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
 		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
+		CHECK(q_kT_);
 	}
 
 	std::ostream & Print(std::ostream & os) const
@@ -138,12 +139,34 @@ public:
 	template<typename TB, typename TE, typename ... Others> inline
 	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
+
+		p->x += p->v * 0.5 * dt;
+
+		auto B = real(fB(p->x));
+		auto E = real(fE(p->x));
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		v_ = Cross(v_, t) * (2.0 / (Dot(t, t) + 1.0));
+
+		p->v += v_ * 0.5;
 
 		// FIXME miss one term E\cross B \cdot \Grad n
 		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
 
-		p->w = 0.5 * (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+
+		p->v += v_ * 0.5;
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * 0.5 * dt;
 
 	}
 

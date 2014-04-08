@@ -112,11 +112,11 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		return;
 
 	LOGGER << "Push E: Cold Fluid. [ Species Number=" << sp_list_.size() << "]";
-	VERBOSE << "Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << ".";
+//	VERBOSE << "Nonlinear is " << ((enableNonlinear_) ? "opened" : "closed") << ".";
 
 	TE & dE = *pdE;
 
-	if (BB.empty() || enableNonlinear_)
+	if (BB.empty() /*|| enableNonlinear_*/)
 	{
 		B0 = MapTo<VERTEX>(B);
 		BB = Dot(B0, B0);
@@ -136,9 +136,9 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 			Real qs = v.second->q;
 			Real as = (dt * qs) / (2.0 * ms);
 
-			a += ns * as / (BB * as * as + 1);
-			b += ns * as * as / (BB * as * as + 1);
-			c += ns * as * as * as / (BB * as * as + 1);
+			a += ns * qs * as / (BB * as * as + 1);
+			b += ns * qs * as * as / (BB * as * as + 1);
+			c += ns * qs * as * as * as / (BB * as * as + 1);
 		}
 
 		a *= 0.5 * dt / epsilon0;
@@ -164,7 +164,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		Real as = (dt * qs) / (2.0 * ms);
 
 		Q -= Js;
-		K = Cross(Js, B0) * as + Ev * ns * as + Js;
+		K = Cross(Js, B0) * as + Ev * ns * qs * as + Js;
 		Js = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
 		Q -= Js;
 	}
@@ -181,7 +181,7 @@ void ColdFluidEM<TM>::NextTimeStepE(Real dt, TE const &E, TB const &B, TE *pdE)
 		auto qs = v.second->q;
 
 		Real as = (dt * qs) / (2.0 * ms);
-		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * ns) / (BB * as * as + 1);
+		Js += (Ev + Cross(Ev, B0) * as + B0 * (Dot(Ev, B0) * as * as)) * (as * ns * qs) / (BB * as * as + 1);
 
 	}
 
@@ -223,13 +223,12 @@ void ColdFluidEM<TM>::Load(TDict const&dict, RForm<0> const & ne, Args const & .
 		if (ne.empty())
 		{
 			LoadField(p.second["Density"], &(sp->n));
-			sp->n *= sp->q;
 		}
 		else
 		{
-			sp->n = ne * sp->q;
+			sp->n = ne;
 			if (p.second["Density"].is_number())
-				sp->n *= p.second["Density"].template as<Real>(1.0) * sp->q;
+				sp->n *= p.second["Density"].template as<Real>(1.0);
 		}
 
 		LoadField(p.second["Current"], &(sp->J));

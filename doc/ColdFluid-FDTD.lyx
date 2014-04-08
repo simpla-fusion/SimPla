@@ -95,7 +95,7 @@ The update equation of each linear current are
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray}
-\partial_{t}\boldsymbol{J}_{s1} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,
+\partial_{t}\boldsymbol{J}_{s1} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,
 \end{eqnarray}
 
 \end_inset
@@ -207,7 +207,7 @@ The linear cold plasma currents
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray}
-\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t} & = & \frac{Z_{s}}{m_{s}}\left(Z_{s}n_{0s}\frac{E^{1}+E^{0}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)\label{eq:discrete Current Equation}
+\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{0s}\frac{E^{1}+E^{0}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)\label{eq:discrete Current Equation}
 \end{eqnarray}
 
 \end_inset
@@ -218,7 +218,7 @@ The linear cold plasma currents
 \begin_layout Standard
 \begin_inset Formula 
 \begin{eqnarray*}
-J_{s}^{1}-J_{s}^{0} & = & \underbrace{\frac{\Delta tZ_{s}}{2m_{s}}}_{\alpha_{s}}\left(Z_{s}n_{0s}\left(E^{+}+E^{-}\right)+\left(J_{s}^{1}+J_{s}^{0}\right)\times\boldsymbol{B}_{0}\right)
+J_{s}^{1}-J_{s}^{0} & = & \underbrace{\frac{\Delta tq_{s}}{2m_{s}}}_{\alpha_{s}}\left(q_{s}n_{0s}\left(E^{+}+E^{-}\right)+\left(J_{s}^{1}+J_{s}^{0}\right)\times\boldsymbol{B}_{0}\right)
 \end{eqnarray*}
 
 \end_inset
@@ -234,7 +234,7 @@ J_{s}^{1}-J_{s}^{0} & = & \underbrace{\frac{\Delta tZ_{s}}{2m_{s}}}_{\alpha_{s}}
 
 \begin_inset Formula 
 \begin{eqnarray*}
-J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}Z_{s}n_{s}E^{-}}_{K_{s}^{0}}+\alpha_{s}Z_{s}n_{s}E^{+}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}q_{s}n_{s}E^{-}}_{K_{s}^{0}}+\alpha_{s}q_{s}n_{s}E^{+}
 \end{eqnarray*}
 
 \end_inset
@@ -257,7 +257,7 @@ reference "eq:discrete Current Equation"
  
 \begin_inset Formula 
 \begin{equation}
-J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}Z_{s}n_{0s}E^{+}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}q_{s}n_{0s}E^{+}
 \end{equation}
 
 \end_inset
@@ -295,7 +295,7 @@ J-K=\alpha J_{s}^{1}\times\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}+\alp
 where
 \begin_inset Formula 
 \begin{eqnarray*}
-K_{s}^{0} & \equiv & J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}Z_{s}n_{s}E^{-}
+K_{s}^{0} & \equiv & J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}q_{s}n_{s}E^{-}
 \end{eqnarray*}
 
 \end_inset
@@ -341,8 +341,8 @@ reference "eq:discrete Ampere Law"
 
 \begin_inset Formula 
 \begin{eqnarray*}
-E^{+}-E^{-} & = & -\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left[\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)+J_{s}^{0}\right]\\
-E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\overleftrightarrow{M_{s}}\left(\alpha_{s}Z_{s}n_{s}\right)\cdot E^{+} & = & \underbrace{E^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
+E^{+}-E^{-} & = & -\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left[\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{s}E^{+}\right)+J_{s}^{0}\right]\\
+E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\overleftrightarrow{M_{s}}\left(\alpha_{s}q_{s}n_{s}\right)\cdot E^{+} & = & \underbrace{E^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
 \end{eqnarray*}
 
 \end_inset
@@ -358,9 +358,9 @@ aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q
 
 \begin_inset Formula 
 \begin{eqnarray*}
-a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
-b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}\\
-c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{Z_{s}n_{s}\alpha_{s}^{3}}{\alpha_{s}^{2}B\cdot B+1}
+a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
+b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}\\
+c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{3}}{\alpha_{s}^{2}B\cdot B+1}
 \end{eqnarray*}
 
 \end_inset

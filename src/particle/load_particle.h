@@ -148,7 +148,6 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
 	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
-
 	multi_normal_distribution<NDIMS> v_dist;
 
 	std::mt19937 rnd_gen(NDIMS * 2);
@@ -176,7 +175,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
 
-			v = mesh.PushForward(x, v) * std::sqrt(2.0 * boltzmann_constant * Ts(x) / p->GetMass());
+			v = mesh.PushForward(x, v) * std::sqrt( boltzmann_constant * Ts(x) / p->GetMass());
 
 			p->Insert(s, engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}
