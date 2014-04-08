@@ -101,6 +101,21 @@ f & = & f_{M}+\delta f\\
 \end_inset
 
 
+\begin_inset Formula 
+\begin{eqnarray*}
+B^{n}-B^{n-1/2} & = & -\nabla\times E^{n}\times\Delta t/2\\
+x^{n}-x^{n-1/2} & = & v^{n-1/2}\Delta t/2\\
+v^{n+1/2}-v^{n-1/2} & = & \frac{q}{m}\left(E^{n}\left(x^{n}\right)+\frac{v^{n+1/2}+v^{n-1/2}}{2}\times B^{n}\left(x^{n}\right)\right)\\
+w^{n+1/2}-w^{n-1/2} & = & -\left(1-\frac{w^{n+1/2}+w^{n-1/2}}{2}\right)\left[-\left(\frac{v^{n+1/2}+v^{n-1/2}}{2}\right)\cdot E\left(x^{n}\right)\right]\\
+x^{n+1/2}-x^{n} & = & v^{n+1/2}\Delta t/2\\
+B^{n+1/2}-B^{n} & = & -\nabla\times E^{n}\times\Delta t/2\\
+J^{n+1/2}\left(x\right) & = & \sum v_{i}^{n+1/2}S\left(x-x_{i}^{n+1/2}\right)fw^{n+1/2}\\
+E^{n+1}-E^{n} & = & \left(\nabla\times B^{n+1/2}-J^{n+1/2}\right)\times\Delta t
+\end{eqnarray*}
+
+\end_inset
+
+
 \end_layout
 
 \end_body

@@ -142,8 +142,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), model_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		isCompactStored_(true), model_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -363,26 +363,6 @@ void ExplicitEMContext<TM>::NextTimeStep()
 // Compute Cycle Begin
 //************************************************************
 
-	LOG_CMD(dE = -(J + J0) / epsilon0 * dt);
-
-// dE = Curl(B)*dt
-	CalculatedE(dt, E, B, &dE);
-
-// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE * 0.5);
-
-	ApplyConstraintToE(&E);
-
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
-
-//  E(t=1/2  -> 1)
-	LOG_CMD(E += dE * 0.5);
-
-	ApplyConstraintToE(&E);
-
 	dB.Clear();
 
 	CalculatedB(dt, E, B, &dB);
@@ -391,6 +371,13 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(B += dB * 0.5);
 
 	ApplyConstraintToB(&B);
+
+	for (auto &p : particles_)
+	{
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+	}
+
+	LOG_CMD(B += dB * 0.5);
 
 	J.Clear();
 
@@ -401,12 +388,20 @@ void ExplicitEMContext<TM>::NextTimeStep()
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
 		p.second.Scatter(&J, E, B);
 	}
-	GLOBAL_DATA_STREAM.OpenGroup("DumpData");
 
 // B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
 
 	ApplyConstraintToB(&B);
+
+	LOG_CMD(dE = -(J + J0) / epsilon0 * dt);
+
+// dE = Curl(B)*dt
+	CalculatedE(dt, E, B, &dE);
+
+// E(t=0  -> 1/2  )
+	LOG_CMD(E += dE);
+
+	ApplyConstraintToE(&E);
 
 //************************************************************
 // Compute Cycle End
