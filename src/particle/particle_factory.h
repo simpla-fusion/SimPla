@@ -11,8 +11,8 @@
 namespace simpla
 {
 
-template<typename TE, typename TB, typename TJ, typename TDict, typename TM, typename ...Args> bool CreateParticle(
-        ParticleWrap<TE, TB, TJ> * res, TDict const & dict, TM const & mesh, Args const & ...args)
+template<typename TWrap, typename TDict, typename TM, typename ...Args> bool CreateParticle(TWrap * res,
+        TDict const & dict, TM const & mesh, Args const & ...args)
 {
 
 	typedef TM Mesh;

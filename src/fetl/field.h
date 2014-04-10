@@ -310,11 +310,6 @@ public:
 	{
 		Update();
 
-//		for (auto s : mesh.GetRange(IForm))
-//		{
-//			this->get(s) = rhs.get(s);
-//		}
-
 		ParallelForEach(mesh.GetRange(IForm),
 
 		[this,&rhs](index_type s)
@@ -330,10 +325,6 @@ public:
 	{
 		Update();
 
-//		for (auto s : mesh.GetRange(IForm))
-//		{
-//			this->get(s) = rhs.get(s);
-//		}
 		ParallelForEach(mesh.GetRange(IForm),
 
 		[this,&rhs](index_type s)

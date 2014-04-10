@@ -22,7 +22,6 @@
 # include "../fetl/field_rw_cache.h"
 
 #include "../utilities/log.h"
-#include "../utilities/lua_state.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
@@ -43,30 +42,6 @@ template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 namespace simpla
 {
 
-template<typename TE, typename TB, typename TJ>
-struct ParticleWrap
-{
-
-	std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
-
-	std::function<void(TJ * J, TE const & E, TB const & B)> Scatter;
-
-	std::function<std::ostream &(std::ostream &)> Print;
-
-	std::function<std::string(std::string const &)> Dump;
-
-};
-
-template<typename TKey, typename TE, typename TB, typename TJ>
-std::ostream & operator<<(std::ostream & os, std::pair<TKey, ParticleWrap<TE, TB, TJ>> const & p)
-{
-	p.second.Print(os);
-
-	os << ", URL = " << p.second.Dump(p.first);
-
-	return os;
-}
-
 //*******************************************************************************************************
 template<class Engine>
 class Particle: public Engine
@@ -82,6 +57,8 @@ public:
 	typedef typename engine_type::mesh_type mesh_type;
 
 	typedef typename engine_type::Point_s particle_type;
+
+	typedef typename engine_type::scalar_type scalar_type;
 
 	typedef particle_type value_type;
 
@@ -106,27 +83,42 @@ public:
 
 	virtual ~Particle();
 
-	template<typename TE, typename TB, typename TJ, typename TDict, typename ...Args> static //
-	bool CreateWrap(ParticleWrap<TE, TB, TJ>* res, TDict const & dict, mesh_type const & mesh, Args const & ...args)
+	template<typename TWrap, typename TDict, typename ...Args> static //
+	bool CreateWrap(TWrap* res, TDict const & dict, mesh_type const & mesh, Args const & ...args)
 	{
+		bool isDone = false;
 
 		if (dict["Type"].template as<std::string>() == engine_type::TypeName())
 		{
+
+			typedef typename TWrap::TE TE;
+			typedef typename TWrap::TB TB;
+			typedef typename TWrap::TJ TJ;
+			typedef typename TWrap::TN TN;
+			typedef typename TWrap::TP TP;
+
 			auto particle = std::shared_ptr<this_type>(new this_type(mesh));
 
 			particle->Load(dict, std::forward<Args const &>(args)...);
 
 			using namespace std::placeholders;
+
 			res->NextTimeStep = std::bind(&this_type::template NextTimeStep<TE, TB>, particle, _1, _2, _3);
-			res->Scatter = std::bind(&this_type::template Scatter<TJ, TE, TB>, particle, _1, _2, _3);
+
+			res->ScatterN = std::bind(&this_type::template Scatter<TN, TE, TB>, particle, _1, _2, _3);
+
+			res->ScatterJ = std::bind(&this_type::template Scatter<TJ, TE, TB>, particle, _1, _2, _3);
+
+			res->ScatterP = std::bind(&this_type::template Scatter<TP, TE, TB>, particle, _1, _2, _3);
+
 			res->Print = std::bind(&this_type::Print, particle, _1);
+
 			res->Dump = std::bind(&this_type::Dump, particle, _1, false);
-			return true;
+
+			isDone = true;
 		}
-		else
-		{
-			return false;
-		}
+
+		return isDone;
 	}
 
 	allocator_type GetAllocator()
@@ -435,11 +427,9 @@ void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
 
 	(*x) += (*v) * 0.5 * dt;
 
+	Vec3 v_;
 	auto B = real(fB((*x)));
 	auto E = real(fE((*x)));
-
-	Vec3 v_;
-
 	auto t = B * (cmr * dt * 0.5);
 
 	(*v) += E * (cmr * dt * 0.5);

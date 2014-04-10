@@ -134,16 +134,57 @@ private:
 
 	std::list<std::function<void(TJ*)> > constraintToJ_;
 
-	typedef ParticleWrap<TE, TB, TJ> ParticleType;
+	struct ParticleWrap
+	{
+		ParticleWrap(mesh_type const & mesh)
+				: n(mesh), J(mesh)
+		{
 
-	std::map<std::string, ParticleType> particles_;
+		}
+		~ParticleWrap()
+		{
+		}
+		typedef typename mesh_type::scalar_type scalar_type;
+
+		Field<mesh_type, VERTEX, scalar_type> n;
+
+		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> J;
+
+		typedef Field<mesh_type, EDGE, scalar_type> TE;
+
+		typedef Field<mesh_type, FACE, scalar_type> TB;
+
+		typedef decltype(n) TN;
+		typedef decltype(J) TJ;
+
+		std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
+
+		std::function<std::ostream &(std::ostream &)> Print;
+
+		std::function<std::string(std::string const &)> Dump;
+
+		std::function<void(decltype(J)*, TE const & E, TB const & B)> ScatterJ;
+
+		std::function<void(decltype(n)*, TE const & E, TB const & B)> ScatterN;
+
+		void Scatter(TE const & E, TB const & B)
+		{
+			n.Clear();
+			J.Clear();
+			ScatterJ(&J, E, B);
+			ScatterN(&n, E, B);
+		}
+
+	};
+
+	std::map<std::string, ParticleWrap> particles_;
 
 }
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		isCompactStored_(true), model_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: isCompactStored_(true), model_(mesh),
 
 		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
 {
@@ -261,10 +302,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Load Particles";
 		for (auto const &opt : dict["Particles"])
 		{
-			ParticleWrap<TE, TB, TJ> p;
+			ParticleWrap p(mesh);
 
 			auto key = opt.first.template as<std::string>("unnamed");
-			if (CreateParticle<TE, TB, TJ>(&p, opt.second, mesh, ne0, Te0))
+			if (CreateParticle(&p, opt.second, mesh, ne0, Te0))
 				particles_.emplace(key, p);
 		}
 	}
@@ -332,7 +373,16 @@ OS & ExplicitEMContext<TM>::Print(OS & os) const
 	<< "}" << "\n";
 
 	if (particles_.size() > 0)
-		os << "Particles = { \n" << particles_ << "\n}\n";
+	{
+		os << "Particles = { \n";
+		for (auto const & p : particles_)
+		{
+			os << p.first << " = {";
+			p.second.Print(os);
+			os << "},";
+		}
+		os << "\n}\n";
+	}
 
 	return os;
 }
@@ -386,7 +436,8 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	for (auto &p : particles_)
 	{
 		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Scatter(&J, E, B);
+		p.second.Scatter(E, B);
+//		J += p.second.J;
 	}
 
 // B(t=0 -> 1/2)
