@@ -170,10 +170,6 @@ public:
 
 		// $ x_{1} - x_{1/2} = v_1   \Delta t /2$
 		p->x += p->v * dt * 0.5;
-//		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
-////		// FIXME miss one term E\cross B \cdot \Grad n
-//		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
-//		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
 		ScatterTo(p->x, p->f * p->w * q_, n);
 

@@ -425,7 +425,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	ApplyConstraintToB(&B);
 
 	J = J0;
-//	n = n0;
+	n = n0;
 
 	ApplyConstraintToJ(&J);
 
@@ -433,8 +433,8 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	{
 		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 
-//		J += p.second.J;
-//		n += p.second.n;
+		J += p.second.J;
+		n += p.second.n;
 	}
 
 	// B(t=0 -> 1/2)
