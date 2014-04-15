@@ -93,9 +93,8 @@ public:
 
 			typedef typename TWrap::TE TE;
 			typedef typename TWrap::TB TB;
-			typedef typename TWrap::TJ TJ;
 			typedef typename TWrap::TN TN;
-			typedef typename TWrap::TP TP;
+			typedef typename TWrap::TJ TJ;
 
 			auto particle = std::shared_ptr<this_type>(new this_type(mesh));
 
@@ -103,13 +102,8 @@ public:
 
 			using namespace std::placeholders;
 
-			res->NextTimeStep = std::bind(&this_type::template NextTimeStep<TE, TB>, particle, _1, _2, _3);
-
-			res->ScatterN = std::bind(&this_type::template Scatter<TN, TE, TB>, particle, _1, _2, _3);
-
-			res->ScatterJ = std::bind(&this_type::template Scatter<TJ, TE, TB>, particle, _1, _2, _3);
-
-			res->ScatterP = std::bind(&this_type::template Scatter<TP, TE, TB>, particle, _1, _2, _3);
+			res->NextTimeStep_ = std::bind(&this_type::template NextTimeStep<TN, TJ, TE, TB>, particle, _1, _2, _3, _4,
+			        _5);
 
 			res->Print = std::bind(&this_type::Print, particle, _1);
 
@@ -147,14 +141,14 @@ public:
 	template<typename ...Args> void Load(Args const &... args);
 
 	std::ostream & Print(std::ostream & os) const;
+
 	std::string Dump(std::string const &, bool compact_storage = false) const;
+
 	void Update();
 
 //***************************************************************************************************
-
-	template<typename ... Args> void NextTimeStep(Real dt, Args const& ... args);
-
-	template<typename TJ, typename ... Args> void Scatter(TJ * J, Args const & ... args) const;
+	template<typename TN, typename TJ, typename ...Args>
+	void NextTimeStep(Real dt, TN * n, TJ * J, Args const& ... args);
 
 	void Sort();
 
@@ -344,8 +338,8 @@ void Particle<Engine>::Sort()
 }
 
 template<class Engine>
-template<typename ...Args>
-void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
+template<typename TN, typename TJ, typename ...Args>
+void Particle<Engine>::NextTimeStep(Real dt, TN * n, TJ * J, Args const& ... args)
 {
 
 	if (data_.empty())
@@ -364,10 +358,15 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 	{
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
+			n->lock();
+			J->lock();
 			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
 			{
-				this->engine_type::NextTimeStep(&p, dt, args ...);
+				this->engine_type::NextTimeStep(&p,dt,n,J,std::forward<Args const &>( args) ...);
+
 			}
+			J->unlock();
+			n->unlock();
 		}
 
 	});
@@ -378,38 +377,6 @@ void Particle<Engine>::NextTimeStep(Real dt, Args const& ... args)
 	LOGGER << DONE;
 	VERBOSE << "Particle Sorting is " << (particleSortingIsEnable_ ? "enabled" : "disabled") << ".";
 
-}
-
-template<class Engine>
-template<typename TJ, typename ...Args>
-void Particle<Engine>::Scatter(TJ * J, Args const & ... args) const
-{
-	if (data_.empty())
-	{
-		WARNING << "Particle [  " << engine_type::GetTypeAsString() << "] is not initialized!";
-		return;
-	}
-
-	if (!IsSorted())
-		ERROR << "Particles are not sorted!";
-
-	LOGGER << "Scatter particle [   " << engine_type::GetTypeAsString() << "]";
-	ParallelDo(
-
-	[& ](int t_num,int t_id)
-	{
-		for(auto s: mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			J->lock();
-			for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
-			{
-				engine_type::Scatter(p, J, args ...);
-			}
-			J->unlock();
-		}
-
-	});
-	LOGGER << DONE;
 }
 
 template<typename TF, typename TX, typename TV>

@@ -1,12 +1,12 @@
 /*
- * pic_engine_deltaf.h
+ * pic_engine_implicit.h
  *
- *  Created on: 2013年12月10日
+ *  Created on: 2014年4月10日
  *      Author: salmon
  */
 
-#ifndef PIC_ENGINE_DELTAF_H_
-#define PIC_ENGINE_DELTAF_H_
+#ifndef PIC_ENGINE_IMPLICIT_H_
+#define PIC_ENGINE_IMPLICIT_H_
 
 #include <string>
 
@@ -17,11 +17,11 @@ namespace simpla
 {
 
 template<typename TM, typename TS = Real>
-struct PICEngineDeltaF
+struct PICEngineImplicit
 {
 
 public:
-	typedef PICEngineDeltaF<TM, TS> this_type;
+	typedef PICEngineImplicit<TM, TS> this_type;
 
 	typedef TM mesh_type;
 	typedef TS scalar_type;
@@ -65,11 +65,10 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineImplicit(mesh_type const &pmesh)
+	: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
-	}
-	~PICEngineDeltaF()
+	}~PICEngineImplicit()
 	{
 	}
 
@@ -136,9 +135,8 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+	template<typename TB, typename TE, typename ... Others> inline
+	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
 		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
@@ -175,13 +173,22 @@ public:
 //		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
 //		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
-		ScatterTo(p->x, p->f * p->w * q_, n);
+	}
 
-		typename TJ::field_value_type v;
+	template<typename TV, typename ... Others>
+	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
+	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
+	{
+		mesh.Scatter(p.x, p.f * p.w * q_, n);
+	}
 
-		v = p->v * (p->f * p->w * q_);
+	template<int IFORM, typename TV, typename ...Others>
+	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
+	{
+		typename Field<mesh_type, IFORM, TV>::field_value_type v;
 
-		ScatterTo(p->x, v, J);
+		v = p.v * (p.f * p.w * q_);
+		mesh.Scatter(p.x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
@@ -192,7 +199,7 @@ public:
 };
 
 template<typename OS, typename TM, typename TS> OS&
-operator<<(OS& os, typename PICEngineDeltaF<TM, TS>::Point_s const & p)
+operator<<(OS& os, typename PICEngineImplicit<TM, TS>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
@@ -201,4 +208,4 @@ operator<<(OS& os, typename PICEngineDeltaF<TM, TS>::Point_s const & p)
 
 } // namespace simpla
 
-#endif /* PIC_ENGINE_DELTAF_H_ */
+#endif /* PIC_ENGINE_IMPLICIT_H_ */

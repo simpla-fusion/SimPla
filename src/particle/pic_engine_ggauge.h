@@ -126,10 +126,11 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TE const &E, TB const & B, Others const &...others) const
+	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
-		RVec3 B0 = real(B(p->x));
+		RVec3 B0 = real(fB(p->x));
 		Real BB = Dot(B0, B0);
 
 		RVec3 b = B0 / std::sqrt(BB);
@@ -146,7 +147,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * Dot(E(r), v) * dt;
+			p->w[ms] += 0.5 * Dot(fE(r), v) * dt;
 		}
 
 		Vec3 t, V_;
@@ -171,66 +172,28 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * Dot(E(r), v) * q_ / T_ * dt;
+			p->w[ms] += 0.5 * Dot(fE(r), v) * q_ / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;
-	}
 
-	template<typename TV, typename TE, typename TB, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, TE const & E, TB const & B, Others const &... others) const
-	{
-		RVec3 B0 = real(B(p.x));
-		Real BB = Dot(B0, B0);
+		Vc = (Dot(p->v, B0) * B0) / BB;
 
-		RVec3 b = B0 / std::sqrt(BB);
-
-		Vec3 v0, v1, r0, r1;
-		Vec3 Vc;
-
-		Vc = (Dot(p.v, B0) * B0) / BB;
-
-		v1 = Cross(p.v, b);
+		v1 = Cross(p->v, b);
 		v0 = -Cross(v1, b);
 		r0 = -Cross(v0, B0) / (cmr_ * BB);
 		r1 = -Cross(v1, B0) / (cmr_ * BB);
 
-		for (int ms = 0; ms < NMATE; ++ms)
-		{
-			Vec3 v, r;
-			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
-
-			mesh.Scatter(r, q_ * p.w[ms] * p.f, n);
-		}
-
-	}
-
-	template<int IFORM, typename TV, typename TE, typename TB, typename ...Others>
-	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, TE const & E, TB const & B,
-	        Others const &... others) const
-	{
-		RVec3 B0 = real(B(p.x));
-		Real BB = Dot(B0, B0);
-
-		RVec3 b = B0 / sqrt(BB);
-		Vec3 v0, v1, r0, r1;
-		Vec3 Vc;
-
-		Vc = (Dot(p.v, B0) * B0) / BB;
-
-		v1 = Cross(p.v, b);
-		v0 = -Cross(v1, b);
-		r0 = -Cross(v0, B0) / (cmr_ * BB);
-		r1 = -Cross(v1, B0) / (cmr_ * BB);
 		for (int ms = 0; ms < NMATE; ++ms)
 		{
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-			r = (p.x + r0 * cosdq[ms] + r1 * sindq[ms]);
+			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			mesh.Scatter(r, v * p.w[ms] * q_ * p.f, J);
+			mesh.Scatter(r, v * p->w[ms] * q_ * p->f, J);
+			mesh.Scatter(r, q_ * p->w[ms] * p->f, n);
 		}
+
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

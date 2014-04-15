@@ -119,25 +119,18 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
-	}
 
-	template<typename TV, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
-	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
-	{
-		ScatterTo(p.x, q_ * p.f, n);
-	}
+		ScatterTo(p->x, q_ * p->f, n);
 
-	template<int IFORM, typename TV, typename ...Others>
-	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
-	{
-		typename Field<mesh_type, IFORM, TV>::field_value_type v;
-		v = p.v * q_ * p.f;
-		ScatterTo(p.x, v, J);
+		typename TJ::field_value_type v;
+		v = p->v * q_ * p->f;
+
+		ScatterTo(p->x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

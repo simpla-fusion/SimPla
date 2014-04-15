@@ -82,7 +82,8 @@ public:
 
 	Form<EDGE> J;     // current density
 	Form<EDGE> J0;     //background current density J0+Curl(B(t=0))=0
-	Form<VERTEX> rho; // charge density
+	Form<VERTEX> n; // charge density
+	Form<VERTEX> n0; // charge density
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
@@ -136,6 +137,7 @@ private:
 
 	struct ParticleWrap
 	{
+
 		ParticleWrap(mesh_type const & mesh)
 				: n(mesh), J(mesh)
 		{
@@ -146,33 +148,31 @@ private:
 		}
 		typedef typename mesh_type::scalar_type scalar_type;
 
-		Field<mesh_type, VERTEX, scalar_type> n;
+		typedef decltype(ExplicitEMContext<TM>::n) TN;
 
-		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> J;
+		typedef decltype(ExplicitEMContext<TM>::J) TJ;
 
 		typedef Field<mesh_type, EDGE, scalar_type> TE;
 
 		typedef Field<mesh_type, FACE, scalar_type> TB;
 
-		typedef decltype(n) TN;
-		typedef decltype(J) TJ;
+		TN n;
+		TJ J;
 
-		std::function<void(Real dt, TE const & E, TB const & B)> NextTimeStep;
+		Real m;
+		Real q;
+
+		std::function<void(Real dt, TN*, TJ*, TE const & E, TB const & B)> NextTimeStep_;
 
 		std::function<std::ostream &(std::ostream &)> Print;
 
 		std::function<std::string(std::string const &)> Dump;
 
-		std::function<void(decltype(J)*, TE const & E, TB const & B)> ScatterJ;
-
-		std::function<void(decltype(n)*, TE const & E, TB const & B)> ScatterN;
-
-		void Scatter(TE const & E, TB const & B)
+		void NextTimeStep(Real dt, TE const & E, TB const & B)
 		{
 			n.Clear();
 			J.Clear();
-			ScatterJ(&J, E, B);
-			ScatterN(&n, E, B);
+			NextTimeStep_(dt, &n, &J, E, B);
 		}
 
 	};
@@ -186,7 +186,7 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: isCompactStored_(true), model_(mesh),
 
-		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), rho(mesh), phi(mesh)
+		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh)
 {
 }
 
@@ -213,10 +213,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	E.Clear();
 	B.Clear();
 	J.Clear();
+	n.Clear();
+
 	dB.Clear();
 	dE.Clear();
 	J0.Clear();
-
+	n0.Clear();
 	if (dict["Model"])
 	{
 		model_.Update();
@@ -422,29 +424,24 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToB(&B);
 
-	for (auto &p : particles_)
-	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-	}
-
-	LOG_CMD(B += dB * 0.5);
-
-	J.Clear();
+	J = J0;
+//	n = n0;
 
 	ApplyConstraintToJ(&J);
 
 	for (auto &p : particles_)
 	{
-		// B(t=0) E(t=0) particle(t=0) Jext(t=0)
-		p.second.Scatter(E, B);
+		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+
 //		J += p.second.J;
+//		n += p.second.n;
 	}
 
-// B(t=0 -> 1/2)
-
+	// B(t=0 -> 1/2)
+	LOG_CMD(B += dB * 0.5);
 	ApplyConstraintToB(&B);
 
-	LOG_CMD(dE = -(J + J0) / epsilon0 * dt);
+	LOG_CMD(dE = -J / epsilon0 * dt);
 
 // dE = Curl(B)*dt
 	CalculatedE(dt, E, B, &dE);
