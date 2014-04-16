@@ -7,13 +7,14 @@
  */
 
 #include <cmath>
-#include <cstddef>
+#include <iostream>
+#include <string>
 
-#include "../../../src/fetl/fetl.h"
-#include "../../../src/utilities/log.h"
-#include "../../../src/physics/physical_constants.h"
+#include "../../src/fetl/fetl.h"
+#include "../../src/fetl/primitives.h"
+#include "../../src/physics/physical_constants.h"
+#include "../../src/utilities/log.h"
 
-#include "../../../src/engine/fieldsolver.h"
 namespace simpla
 {
 
@@ -47,22 +48,22 @@ private:
 
 	bool is_loaded_;
 public:
-	PML(mesh_type const & pmesh);
+	template<typename ... Args>
+	PML(mesh_type const & pmesh, Args const & ...);
 
 	~PML();
-
-	void Update();
 
 	bool empty() const
 	{
 		return !is_loaded_;
 	}
 
-	template<typename TDict> void Load(TDict const &dict);
+	template<typename TDict, typename ...Others>
+	void Load(TDict const &dict, Others const & ...);
 
 	void Load(coordinates_type xmin, coordinates_type xmax);
 
-	std::ostream & Print(std::ostream & os) const;
+	void Print(std::ostream & os) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
 
@@ -78,7 +79,8 @@ inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
 }
 
 template<typename TM>
-PML<TM>::PML(mesh_type const & pmesh)
+template<typename ... Args>
+PML<TM>::PML(mesh_type const & pmesh, Args const & ...args)
 		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
@@ -91,6 +93,7 @@ PML<TM>::PML(mesh_type const & pmesh)
 
 		is_loaded_(false)
 {
+	Load(std::forward<Args const &>(args)...);
 }
 
 template<typename TM>
@@ -99,8 +102,8 @@ PML<TM>::~PML()
 }
 
 template<typename TM>
-template<typename TDict>
-void PML<TM>::Load(TDict const &dict)
+template<typename TDict, typename ...Others>
+void PML<TM>::Load(TDict const &dict, Others const & ...)
 {
 	Load(dict["Min"].template as<coordinates_type>(), dict["Max"].template as<coordinates_type>());
 }
@@ -161,15 +164,9 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 }
 
 template<typename TM>
-void PML<TM>::Update()
-{
-}
-
-template<typename TM>
-std::ostream & PML<TM>::Print(std::ostream & os) const
+void PML<TM>::Print(std::ostream & os) const
 {
 	UNIMPLEMENT;
-	return os;
 }
 
 template<typename OS, typename TM>

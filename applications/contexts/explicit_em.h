@@ -34,11 +34,13 @@
 
 // Field solver
 #include "../../src/modeling/constraint.h"
-#include "../solver/electromagnetic/solver.h"
+#include "../field_solver/pml.h"
+#include "../field_solver/implicitPushE.h"
 
 // Particle
 #include "../../src/particle/particle_base.h"
 #include "../particle_solver/particle_factory.h"
+
 namespace simpla
 {
 template<typename TM>
@@ -80,18 +82,22 @@ public:
 	Form<FACE> B, dB;
 	Form<VERTEX> phi; // electrostatic potential
 
-	Form<EDGE> J;     // current density
+	Form<EDGE> Jext;     // current density
 	Form<EDGE> J0;     //background current density J0+Curl(B(t=0))=0
 	Form<VERTEX> n; // charge density
 	Form<VERTEX> n0; // charge density
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
-	typedef decltype(J) TJ;
+	typedef decltype(Jext) TJ;
 
-	std::function<void(Real, TE const &, TB const &, TE*)> CalculatedE;
+	typedef std::map<std::string, std::shared_ptr<ParticleBase<mesh_type> > > TParticles;
 
-	std::function<void(Real, TE const &, TB const &, TB*)> CalculatedB;
+	std::function<void(Real, TE const &, TB const &, TE*)> PushE;
+
+	std::function<void(Real, TE const &, TB const &, TB*)> PushB;
+
+	std::function<void(Real, TE const &, TB const &, TParticles const&, TE*)> AddCurrent;
 
 	void ApplyConstraintToE(TE* pE)
 	{
@@ -144,7 +150,7 @@ template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: isCompactStored_(true), model_(mesh),
 
-		E(mesh), B(mesh), J(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh)
+		E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh)
 {
 }
 
@@ -170,7 +176,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	E.Clear();
 	B.Clear();
-	J.Clear();
+	Jext.Clear();
 	n.Clear();
 
 	dB.Clear();
@@ -249,13 +255,19 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
 
-	LOG_CMD(LoadField(dict["InitValue"]["J"], &J));
+	LOG_CMD(LoadField(dict["InitValue"]["J"], &Jext));
 
 	LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
 
 	LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
 
 	LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
+
+	bool enableImplicitPushE = false;
+
+	bool enablePML = false;
+
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
 	if (dict["Particles"])
 	{
@@ -306,7 +318,55 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	}
 
 	if (dict["FieldSolver"])
-		description += CreateEMSolver(dict["FieldSolver"], mesh, &CalculatedE, &CalculatedB, ne0, Te0, Ti0);
+	{
+		auto dict_ = dict["FieldSolver"];
+		LOGGER << "Load Electromagnetic fields solver";
+
+		using namespace std::placeholders;
+
+		Real ic2 = 1.0 / (mu0 * epsilon0);
+
+		if (dict["FieldSolver"]["PML"])
+		{
+			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+
+			PushE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+
+			PushB = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+
+		}
+		else
+		{
+			PushE = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+			{
+				auto & dE=*pdE;
+				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+			};
+
+			PushB = [](Real dt, TE const & E, TB const &, TB* pdB)
+			{
+				auto & dB=*pdB;
+				LOG_CMD( dB -= Curl(E)*dt);
+			};
+		}
+
+	}
+
+	if (!enableImplicitPushE)
+	{
+		AddCurrent = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TParticles const & sp, TE* pdE)
+		{
+			auto & dE=*pdE;
+			for(auto const &p :sp)
+			{
+				LOG_CMD(dE -= (dt/epsilon0)*p.second->J);
+			}
+		};
+	}
+	else
+	{
+		AddCurrent = &ImplicitPushE<TE, TB, TParticles>;
+	}
 
 }
 
@@ -329,7 +389,7 @@ void ExplicitEMContext<TM>::Print(OS & os) const
 
 	<< "	B = " << simpla::Dump(B, "B", false) << ",\n"
 
-	<< "	J = " << simpla::Dump(J, "J", false) << ",\n"
+	<< "	J = " << simpla::Dump(Jext, "J", false) << ",\n"
 
 	<< "	J0 = " << simpla::Dump(J0, "J0", false) << ",\n"
 
@@ -371,40 +431,44 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
 
-//************************************************************
-// Compute Cycle Begin
-//************************************************************
+	//************************************************************
+	// Compute Cycle Begin
+	//************************************************************
 
 	dB.Clear();
 
-	CalculatedB(dt, E, B, &dB);
+	PushB(dt, E, B, &dB);
 
-//  B(t=1/2 -> 1)
+	//  B(t=1/2 -> 1)
 	LOG_CMD(B += dB * 0.5);
 
 	ApplyConstraintToB(&B);
 
-	LOG_CMD(J = J0);
-
-	ApplyConstraintToJ(&J);
-
+	//   x=-1/2 -> 1/2 , v=0 -> 1
 	for (auto &p : particles_)
 	{
-		p.second->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-		J += p.second->J;
-		n += p.second->n;
+		p.second->NextTimeStep(dt, E, B);
 	}
 
 	// B(t=0 -> 1/2)
 	LOG_CMD(B += dB * 0.5);
+
 	ApplyConstraintToB(&B);
 
-	LOG_CMD(dE = -J / epsilon0 * dt);
+	LOG_CMD(Jext = J0);
 
-// dE = Curl(B)*dt
-	CalculatedE(dt, E, B, &dE);
+	ApplyConstraintToJ(&Jext);
 
-// E(t=0  -> 1/2  )
+	dE.Clear();
+
+	dE -= Jext * (dt / epsilon0);
+
+	// dE += Curl(B)*dt
+	PushE(dt, E, B, &dE);
+
+	AddCurrent(dt, E, B, particles_, &dE);
+
+	// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE);
 
 	ApplyConstraintToE(&E);
@@ -421,7 +485,7 @@ void ExplicitEMContext<TM>::Dump(std::string const & path) const
 
 	LOGGER << DUMP(E);
 	LOGGER << DUMP(B);
-	LOGGER << DUMP(J);
+	LOGGER << DUMP(Jext);
 
 }
 }

@@ -1,5 +1,5 @@
 
-ADD_SUBDIRECTORY( solver )
+ADD_SUBDIRECTORY( field_solver ) 
 ADD_SUBDIRECTORY( contexts )
               
 ADD_EXECUTABLE(simpla  simpla.cpp   )

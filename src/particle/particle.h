@@ -270,8 +270,6 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 	Sort();
 
 	LOGGER << DONE;
-	VERBOSE << "Particle Sorting is " << (particleSortingIsEnable_ ? "enabled" : "disabled") << ".";
-
 }
 
 template<typename TF, typename TX, typename TV>
@@ -317,40 +315,37 @@ template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	if (IsSorted())
+	if (IsSorted() || !particleSortingIsEnable_)
 		return;
 
-	if (particleSortingIsEnable_)
+	VERBOSE << "Particle sorting is enabled!";
+
+	ParallelDo(
+
+	[this](int t_num,int t_id)
 	{
-
-		VERBOSE << "Particle sorting is enabled!";
-
-		ParallelDo(
-
-		[this](int t_num,int t_id)
+		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-			{
-				this->Resort(s, &(this->mt_data_[t_id]));
-			}
+			this->Resort(s, &(this->mt_data_[t_id]));
 		}
-
-		);
-
-		ParallelDo(
-
-		[this](int t_num,int t_id)
-		{
-			for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-			{
-				auto idx = this->mesh.Hash(s);
-
-				this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
-			}
-		}
-
-		);
 	}
+
+	);
+
+	ParallelDo(
+
+	[this](int t_num,int t_id)
+	{
+		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			auto idx = this->mesh.Hash(s);
+
+			this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
+		}
+	}
+
+	);
+
 	isSorted_ = true;
 }
 
