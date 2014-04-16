@@ -66,9 +66,10 @@ public:
 
 public:
 	PICEngineImplicit(mesh_type const &pmesh)
-	: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
-	}~PICEngineImplicit()
+	}
+	~PICEngineImplicit()
 	{
 	}
 
@@ -76,7 +77,7 @@ public:
 	{
 		return "DeltaF";
 	}
-	std::string GetTypeAsString() const
+	static std::string GetTypeAsString()
 	{
 		return "DeltaF";
 	}

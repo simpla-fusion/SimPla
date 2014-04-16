@@ -36,11 +36,10 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 		UNIMPLEMENT2("Read  particle data from file");
 		return;
 	}
-	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
-
-	p->engine_type::Load(dict);
 
 	InitParticle(p, dict, std::forward<Args const &>(args)...);
+
+	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
 
 	LOGGER << DONE;
 }
@@ -48,7 +47,6 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 template<typename TP, typename TDict>
 void InitParticle(TP *p, TDict const &dict)
 {
-
 	typedef typename TP::mesh_type::coordinates_type coordinates_type;
 
 	std::function<Real(coordinates_type const &)> ns, Ts;
@@ -108,7 +106,6 @@ void InitParticle(TP *p, TDict const &dict)
 template<typename TDict, typename TP, typename TN, typename TT>
 void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 {
-
 	if (ne.empty() || Ti.empty())
 	{
 		InitParticle(p, dict);
@@ -175,7 +172,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
 
-			v = mesh.PushForward(x, v) * std::sqrt( boltzmann_constant * Ts(x) / p->GetMass());
+			v = mesh.PushForward(x, v) * std::sqrt(boltzmann_constant * Ts(x) / p->GetMass());
 
 			p->Insert(s, engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}

@@ -44,13 +44,15 @@ namespace simpla
 
 //*******************************************************************************************************
 template<class Engine>
-class Particle: public Engine
+class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
 
 public:
 	static constexpr int IForm = VOLUME;
 
 	typedef Engine engine_type;
+
+	typedef ParticleBase<typename Engine::mesh_type> base_type;
 
 	typedef Particle<engine_type> this_type;
 
@@ -77,50 +79,45 @@ public:
 	typedef std::vector<cell_type> container_type;
 
 public:
-	mesh_type const &mesh;
+	mesh_type const & mesh;
+	//***************************************************************************************************
+	// Constructor
+	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...args);
 
-	template<typename ...Args> Particle(mesh_type const & pmesh);
-
+	// Destructor
 	virtual ~Particle();
 
-	template<typename TWrap, typename TDict, typename ...Args> static //
-	bool CreateWrap(TWrap* res, TDict const & dict, mesh_type const & mesh, Args const & ...args)
+	template<typename ...Args> void Load(Args const &... args);
+
+	//***************************************************************************************************
+	// Interface
+
+	static std::string GetTypeAsString()
 	{
-		bool isDone = false;
-
-		if (dict["Type"].template as<std::string>() == engine_type::TypeName())
-		{
-
-			typedef typename TWrap::TE TE;
-			typedef typename TWrap::TB TB;
-			typedef typename TWrap::TN TN;
-			typedef typename TWrap::TJ TJ;
-
-			auto particle = std::shared_ptr<this_type>(new this_type(mesh));
-
-			particle->Load(dict, std::forward<Args const &>(args)...);
-
-			using namespace std::placeholders;
-
-			res->NextTimeStep_ = std::bind(&this_type::template NextTimeStep<TN, TJ, TE, TB>, particle, _1, _2, _3, _4,
-			        _5);
-
-			res->Print = std::bind(&this_type::Print, particle, _1);
-
-			res->Dump = std::bind(&this_type::Dump, particle, _1, false);
-
-			isDone = true;
-		}
-
-		return isDone;
+		return engine_type::GetTypeAsString();
 	}
+	inline Real GetMass() const
+	{
+		return engine_type::GetMass();
+	}
+
+	inline Real GetCharge() const
+	{
+		return engine_type::GetCharge();
+	}
+	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+	        Field<mesh_type, FACE, scalar_type> const & B);
+
+	void Print(std::ostream & os) const;
+
+	std::string Dump(std::string const &, bool compact_storage = false) const;
+
+	//***************************************************************************************************
 
 	allocator_type GetAllocator()
 	{
 		return pool_.get_allocator();
 	}
-
-//***************************************************************************************************
 
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
 	{
@@ -138,28 +135,11 @@ public:
 
 //***************************************************************************************************
 
-	template<typename ...Args> void Load(Args const &... args);
-
-	std::ostream & Print(std::ostream & os) const;
-
-	std::string Dump(std::string const &, bool compact_storage = false) const;
-
-	void Update();
-
-//***************************************************************************************************
-	template<typename TN, typename TJ, typename ...Args>
-	void NextTimeStep(Real dt, TN * n, TJ * J, Args const& ... args);
-
 	void Sort();
 
 	bool IsSorted() const
 	{
 		return isSorted_;
-	}
-
-	std::string GetEngineTypeAsString() const
-	{
-		return engine_type::GetTypeAsString();
 	}
 
 	size_t size() const
@@ -187,12 +167,10 @@ public:
 	}
 private:
 
-	cell_type pool_;
-
-	container_type data_;
-
 	bool isSorted_;
 	bool particleSortingIsEnable_;
+	cell_type pool_;
+	container_type data_;
 
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -205,47 +183,20 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args> Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh), isSorted_(true), particleSortingIsEnable_(true)
-{
-}
-
-template<class Engine>
-Particle<Engine>::~Particle()
-{
-}
-
-template<class Engine>
 template<typename ...Args>
-void Particle<Engine>::Load(Args const & ... args)
-{
-	Update();
-	LoadParticle(this, std::forward<Args const &>(args)...);
-}
+Particle<Engine>::Particle(mesh_type const & pmesh, Args const & ...args)
+		: engine_type(pmesh, std::forward<Args const&>(args)...),
 
-template<class Engine>
-std::ostream & Particle<Engine>::Print(std::ostream & os) const
-{
-	engine_type::Print(os);
+		base_type(pmesh),
 
-	return os;
-}
-template<class Engine>
-std::string Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
-{
-	return simpla::Dump(*this, name, compact_storage);
-}
-template<typename TM>
-std::ostream & operator<<(std::ostream & os, std::pair<std::string, Particle<TM>> const &self)
-{
-	return self.Save(os);
-}
+		mesh(pmesh),
 
-template<class Engine>
-void Particle<Engine>::Update()
+		isSorted_(true), particleSortingIsEnable_(true),
+
+		pool_(),
+
+		data_(pmesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
 {
-	if (data_.size() < mesh.GetNumOfElements(IForm))
-		data_.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 
 	if (particleSortingIsEnable_)
 	{
@@ -259,8 +210,77 @@ void Particle<Engine>::Update()
 			d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
 		}
 	}
+
+	LoadParticle(this, std::forward<Args const &>(args)...);
 }
 
+template<class Engine>
+Particle<Engine>::~Particle()
+{
+}
+
+//*************************************************************************************************
+
+template<class Engine>
+std::string Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
+{
+	return simpla::Dump(*this, name, compact_storage);
+}
+
+template<class Engine>
+void Particle<Engine>::Print(std::ostream & os) const
+{
+	engine_type::Print(os);
+}
+
+template<class Engine>
+void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+        Field<mesh_type, FACE, scalar_type> const & B)
+{
+
+	if (data_.empty())
+	{
+		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
+		return;
+	}
+
+	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << "]";
+
+	Sort();
+
+	ParallelDo(
+
+	[& ](int t_num,int t_id)
+	{
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			this->J.lock();
+			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+			{
+				this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
+
+			}
+			this->J.unlock();
+		}
+
+	});
+
+	(base_type::n) += Diverge(base_type::J) * dt;
+
+	isSorted_ = false;
+	Sort();
+
+	LOGGER << DONE;
+	VERBOSE << "Particle Sorting is " << (particleSortingIsEnable_ ? "enabled" : "disabled") << ".";
+
+}
+
+template<typename TF, typename TX, typename TV>
+void ScatterTo(TX const & x, TV const &v, TF *f)
+{
+	f->mesh.Scatter(x, v, f);
+}
+//*************************************************************************************************
 template<class Engine>
 void Particle<Engine>::Resort(index_type id_src, container_type *other)
 {
@@ -298,8 +318,6 @@ template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	Update();
-
 	if (IsSorted())
 		return;
 
@@ -335,54 +353,6 @@ void Particle<Engine>::Sort()
 		);
 	}
 	isSorted_ = true;
-}
-
-template<class Engine>
-template<typename TN, typename TJ, typename ...Args>
-void Particle<Engine>::NextTimeStep(Real dt, TN * n, TJ * J, Args const& ... args)
-{
-
-	if (data_.empty())
-	{
-		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
-		return;
-	}
-
-	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << "]";
-
-	Sort();
-
-	ParallelDo(
-
-	[& ](int t_num,int t_id)
-	{
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			n->lock();
-			J->lock();
-			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
-			{
-				this->engine_type::NextTimeStep(&p,dt,n,J,std::forward<Args const &>( args) ...);
-
-			}
-			J->unlock();
-			n->unlock();
-		}
-
-	});
-
-	isSorted_ = false;
-	Sort();
-
-	LOGGER << DONE;
-	VERBOSE << "Particle Sorting is " << (particleSortingIsEnable_ ? "enabled" : "disabled") << ".";
-
-}
-
-template<typename TF, typename TX, typename TV>
-void ScatterTo(TX const & x, TV const &v, TF *f)
-{
-	f->mesh.Scatter(x, v, f);
 }
 
 //******************************************************************************************************

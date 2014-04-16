@@ -8,97 +8,126 @@
 #ifndef PARTICLE_BASE_H_
 #define PARTICLE_BASE_H_
 
-#include <bits/shared_ptr.h>
-#include <cstddef>
 #include <iostream>
+#include <memory>
 #include <string>
 
-//#include "../fetl/fetl.h"
-#include "../utilities/log.h"
-#include "../utilities/lua_state.h"
-#include "particle.h"
+#include "../fetl/field.h"
+#include "../fetl/primitives.h"
 
 namespace simpla
 {
-class LuaObject;
-
+template<typename Engine> class Particle;
+template<typename TE>
+std::ostream & operator<<(std::ostream & os, Particle<TE> const &self)
+{
+	return self.Print(os);
+}
 //*******************************************************************************************************
 template<typename TM>
-struct PICEngineBase
+struct ParticleBase
 {
 
-protected:
-	Real m_, q_;
 public:
 	typedef TM mesh_type;
 
-public:
+	typedef typename mesh_type::scalar_type scalar_type;
 
 	mesh_type const &mesh;
 
-	PICEngineBase(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0)
-	{
-	}
-	virtual ~PICEngineBase()
-	{
-	}
+	Field<mesh_type, VERTEX, scalar_type> n;
+	Field<mesh_type, EDGE, scalar_type> J;
 
-	virtual std::string GetTypeAsString() const
+	ParticleBase(mesh_type const &pmesh)
+			: mesh(pmesh), n(mesh), J(mesh)
 	{
-		return "unknown";
+		n.Clear();
+		J.Clear();
 	}
-
-	virtual size_t GetAffectedRange() const
-	{
-		return 2;
-	}
-
-	inline Real GetMass() const
-	{
-		return m_;
-	}
-
-	inline Real GetCharge() const
-	{
-		return q_;
-	}
-
-	inline void SetMass(Real m)
-	{
-		m_ = m;
-	}
-
-	inline void SetCharge(Real q)
-	{
-		q_ = q;
-	}
-
-	virtual void Update()
+	virtual ~ParticleBase()
 	{
 	}
 
-	virtual void Deserialize(LuaObject const &vm)
-	{
-		m_ = vm["Mass"].as<Real>();
-		q_ = vm["Charge"].as<Real>();
-	}
+	virtual Real GetMass() const=0;
 
-	virtual std::ostream & Serialize(std::ostream & os) const
-	{
-		os
+	virtual Real GetCharge() const=0;
 
-		<< "Mass = " << m_ << " , "
+	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+	        Field<mesh_type, FACE, scalar_type> const & B)=0;
 
-		<< "Charge = " << q_;
+	virtual void Print(std::ostream & os) const=0;
 
-		return os;
-	}
+	virtual std::string Dump(std::string const & name, bool compact_storage) const=0;
 
 };
+
+//template<typename TP>
+//struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
+//{
+//public:
+//
+//	typedef TP particle_type;
+//
+//	typedef typename TP::mesh_type mesh_type;
+//
+//	typedef typename mesh_type::scalar_type scalar_type;
+//
+//	typedef ParticleBase<mesh_type> base_type;
+//
+//	typedef ParticleWrap<particle_type> this_type;
+//private:
+//	std::shared_ptr<particle_type> p_;
+//public:
+//	template<typename ...Args>
+//	ParticleWrap(mesh_type const & mesh, Args const & ... args)
+//			: base_type(mesh), p_(new particle_type(mesh, std::forward<Args const &>(args)...))
+//	{
+//	}
+//	~ParticleWrap()
+//	{
+//	}
+//
+//	template<typename ...Args>
+//	static std::shared_ptr<base_type> Create(std::string const & type_str, Args const & ... args)
+//	{
+//		std::shared_ptr<base_type> res(nullptr);
+//
+//		if (type_str == particle_type::GetTypeAsString())
+//			res = std::dynamic_pointer_cast<base_type>(
+//			        std::shared_ptr<this_type>(new this_type(std::forward<Args const &>(args)...)));
+//
+//		return res;
+//	}
+//
+//	inline Real GetMass() const
+//	{
+//		return p_->GetMass();
+//	}
+//
+//	inline Real GetCharge() const
+//	{
+//		return p_->GetCharge();
+//	}
+//
+//	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+//	        Field<mesh_type, FACE, scalar_type> const & B)
+//	{
+//		p_->NextTimeStep(dt, &(base_type::n), &(base_type::J), E, B);
+//	}
+//
+//	void Print(std::ostream & os) const
+//	{
+//		p_->Print(os);
+//	}
+//
+//	std::string Dump(std::string const & name, bool compact_storage) const
+//	{
+//		return p_->Dump(name, compact_storage);
+//	}
+//
+//};
 //*******************************************************************************************************
 
-
-}  // namespace simpla
+}// namespace simpla
 
 #endif /* PARTICLE_BASE_H_ */

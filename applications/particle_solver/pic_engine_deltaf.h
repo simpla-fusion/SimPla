@@ -8,10 +8,13 @@
 #ifndef PIC_ENGINE_DELTAF_H_
 #define PIC_ENGINE_DELTAF_H_
 
+#include <cstddef>
+#include <sstream>
 #include <string>
 
-#include "../fetl/primitives.h"
-#include "../fetl/ntuple.h"
+#include "../../src/fetl/ntuple.h"
+#include "../../src/fetl/primitives.h"
+#include "../../src/physics/physical_constants.h"
 
 namespace simpla
 {
@@ -65,9 +68,11 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDeltaF(mesh_type const &pmesh)
+	template<typename ...Args>
+	PICEngineDeltaF(mesh_type const &pmesh, Args const & ...args)
 			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
+		Load(std::forward<Args const &>(args)...);
 	}
 	~PICEngineDeltaF()
 	{
@@ -77,7 +82,7 @@ public:
 	{
 		return "DeltaF";
 	}
-	std::string GetTypeAsString() const
+	static std::string GetTypeAsString()
 	{
 		return "DeltaF";
 	}
@@ -95,8 +100,8 @@ public:
 	{
 		return 2;
 	}
-	template<typename TDict>
-	void Load(TDict const &dict)
+	template<typename TDict, typename ...Others>
+	void Load(TDict const &dict, Others const &...)
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -105,29 +110,25 @@ public:
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
 		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
-		CHECK(q_kT_);
 	}
 
-	std::ostream & Print(std::ostream & os) const
+	void Print(std::ostream & os) const
 	{
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
-		<< " , " << "Mass = " << m_
+		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
 
-		<< " , " << "Charge = " << q_
+		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
 
 		<< " , " << "Temperature = " << q_ / q_kT_ / elementary_charge << "* eV"
 
 		;
 
-		return os;
 	}
-	void Update()
-	{
-	}
+
 	static Point_s DefaultValue()
 	{
 		Point_s p;
@@ -136,9 +137,8 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+	template<typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
 		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
@@ -170,8 +170,6 @@ public:
 
 		// $ x_{1} - x_{1/2} = v_1   \Delta t /2$
 		p->x += p->v * dt * 0.5;
-
-		ScatterTo(p->x, p->f * p->w * q_, n);
 
 		typename TJ::field_value_type v;
 

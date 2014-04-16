@@ -8,9 +8,17 @@
 #ifndef PIC_ENGINE_GGAUGE_H_
 #define PIC_ENGINE_GGAUGE_H_
 
-#include "../fetl/fetl.h"
-#include "../fetl/ntuple.h"
-#include "../physics/constants.h"
+#include <cmath>
+#include <cstddef>
+#include <sstream>
+#include <string>
+
+#include "../../src/fetl/fetl.h"
+#include "../../src/fetl/primitives.h"
+#include "../../src/physics/physical_constants.h"
+#include "../../src/physics/constants.h"
+#include "../../src/utilities/utilities.h"
+
 namespace simpla
 {
 template<typename TM, typename TS = Real, int NMATE = 8>
@@ -56,11 +64,13 @@ public:
 		}
 	};
 
-	PICEngineGGauge(mesh_type const &pmesh)
+	template<typename ...Args>
+	PICEngineGGauge(mesh_type const &pmesh, Args const & ...args)
 			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), T_(1.0), vT_(1.0)
 	{
-
+		Load(std::forward<Args const &>(args)...);
 	}
+
 	~PICEngineGGauge()
 	{
 	}
@@ -73,22 +83,18 @@ public:
 	{
 		return "GGauge" + ToString(NMATE);
 	}
-	std::string GetTypeAsString() const
+	static std::string GetTypeAsString()
 	{
 		return TypeName();
 	}
 
-	template<typename TDict>
-	void Load(TDict const &dict)
+	template<typename TDict, typename ...Others>
+	void Load(TDict const &dict, Others const &...)
 	{
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		T_ = dict["Temperature"].template as<Real>(1.0);
 
-		Update();
-	}
-	void Update()
-	{
 		cmr_ = q_ / m_;
 
 		vT_ = std::sqrt(2.0 * T_ / m_);
@@ -100,14 +106,20 @@ public:
 			sindq[i] = std::sin(theta * i);
 			cosdq[i] = std::cos(theta * i);
 		}
-
 	}
-	std::ostream & Print(std::ostream & os) const
+
+	void Print(std::ostream & os) const
 	{
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		os << "Engine = 'GGague" << NMATE << "' " << " , ";
+		os << "Engine = '" << GetTypeAsString() << "' "
 
-		return os;
+		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
+
+		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
+
+		<< " , " << "Temperature = " << T_ * boltzmann_constant / elementary_charge << "* eV";
+
 	}
 
 	Real GetMass() const
@@ -126,9 +138,8 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+	template<typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		RVec3 B0 = real(fB(p->x));
 		Real BB = Dot(B0, B0);
@@ -191,7 +202,6 @@ public:
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
 			mesh.Scatter(r, v * p->w[ms] * q_ * p->f, J);
-			mesh.Scatter(r, q_ * p->w[ms] * p->f, n);
 		}
 
 	}

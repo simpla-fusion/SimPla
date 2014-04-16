@@ -163,13 +163,16 @@ public:
 		return L_ != nullptr;
 	}
 
-#define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                                   \
-	inline bool _FUN_NAME_() const                                             \
-	{                                                                          \
-		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);                             \
-		bool res = _LUA_FUN_(L_.get(), -1);                                    \
-		lua_pop(L_.get(), 1);                                                  \
-		return res;                                                            \
+#define DEF_TYPE_CHECK(_FUN_NAME_,_LUA_FUN_)                              \
+	inline bool _FUN_NAME_() const                                        \
+	{   bool res=false;                                                   \
+	    if(L_!=nullptr)                                                   \
+	    {                                                                 \
+		  lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);                  \
+		   res = _LUA_FUN_(L_.get(), -1);                                 \
+		  lua_pop(L_.get(), 1);                                           \
+	    }                                                                 \
+		return res;                                                       \
 	}
 
 	DEF_TYPE_CHECK(is_nil,lua_isnil)

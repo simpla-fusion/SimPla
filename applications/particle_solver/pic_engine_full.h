@@ -8,11 +8,13 @@
 #ifndef PIC_ENGINE_FULL_H_
 #define PIC_ENGINE_FULL_H_
 
+#include <cstddef>
+#include <sstream>
 #include <string>
 
-#include "../fetl/primitives.h"
-#include "../fetl/ntuple.h"
-
+#include "../../src/fetl/fetl.h"
+#include "../../src/fetl/primitives.h"
+#include "../../src/physics/physical_constants.h"
 namespace simpla
 {
 
@@ -61,6 +63,12 @@ public:
 
 public:
 
+	template<typename ...Args>
+	PICEngineFull(mesh_type const &pmesh, Args const & ...args)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
+	{
+		Load(std::forward<Args const &>(args)...);
+	}
 	PICEngineFull(mesh_type const &pmesh)
 			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0)
 	{
@@ -73,7 +81,7 @@ public:
 	{
 		return "Full";
 	}
-	std::string GetTypeAsString() const
+	static std::string GetTypeAsString()
 	{
 		return "Full";
 	}
@@ -92,26 +100,28 @@ public:
 		return q_;
 	}
 
-	template<typename TDict>
-	inline void Load(TDict const &dict)
+	template<typename TDict, typename ...Others>
+	inline void Load(TDict const &dict, Others const &...)
 	{
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
 	}
 
-	std::ostream & Print(std::ostream & os) const
+	void Print(std::ostream & os) const
 	{
+
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
-		<< " , " << "Mass = " << m_
+		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
 
-		<< " , " << "Charge = " << q_;
+		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
 
-		return os;
+		;
+
 	}
-
 	static inline Point_s DefaultValue()
 	{
 		Point_s p;
@@ -119,13 +129,10 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TN, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TN * n, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+	template<typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
-
-		ScatterTo(p->x, q_ * p->f, n);
 
 		typename TJ::field_value_type v;
 		v = p->v * q_ * p->f;

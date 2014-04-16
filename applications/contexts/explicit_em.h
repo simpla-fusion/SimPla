@@ -37,8 +37,8 @@
 #include "../solver/electromagnetic/solver.h"
 
 // Particle
-#include "../../src/particle/particle_factory.h"
-
+#include "../../src/particle/particle_base.h"
+#include "../particle_solver/particle_factory.h"
 namespace simpla
 {
 template<typename TM>
@@ -58,7 +58,7 @@ public:
 
 	template<typename TDict> void Load(TDict const & dict);
 
-	template<typename OS> OS & Print(OS & os) const;
+	template<typename OS> void Print(OS & os) const;
 
 	void NextTimeStep();
 
@@ -135,49 +135,7 @@ private:
 
 	std::list<std::function<void(TJ*)> > constraintToJ_;
 
-	struct ParticleWrap
-	{
-
-		ParticleWrap(mesh_type const & mesh)
-				: n(mesh), J(mesh)
-		{
-
-		}
-		~ParticleWrap()
-		{
-		}
-		typedef typename mesh_type::scalar_type scalar_type;
-
-		typedef decltype(ExplicitEMContext<TM>::n) TN;
-
-		typedef decltype(ExplicitEMContext<TM>::J) TJ;
-
-		typedef Field<mesh_type, EDGE, scalar_type> TE;
-
-		typedef Field<mesh_type, FACE, scalar_type> TB;
-
-		TN n;
-		TJ J;
-
-		Real m;
-		Real q;
-
-		std::function<void(Real dt, TN*, TJ*, TE const & E, TB const & B)> NextTimeStep_;
-
-		std::function<std::ostream &(std::ostream &)> Print;
-
-		std::function<std::string(std::string const &)> Dump;
-
-		void NextTimeStep(Real dt, TE const & E, TB const & B)
-		{
-			n.Clear();
-			J.Clear();
-			NextTimeStep_(dt, &n, &J, E, B);
-		}
-
-	};
-
-	std::map<std::string, ParticleWrap> particles_;
+	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
 }
 ;
@@ -304,10 +262,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOGGER << "Load Particles";
 		for (auto const &opt : dict["Particles"])
 		{
-			ParticleWrap p(mesh);
 
 			auto key = opt.first.template as<std::string>("unnamed");
-			if (CreateParticle(&p, opt.second, mesh, ne0, Te0))
+
+			auto p = CreateParticle<mesh_type>(opt.second["Type"].template as<std::string>("Default"), mesh, opt.second,
+			        ne0, Te0);
+
+			if (p != nullptr)
 				particles_.emplace(key, p);
 		}
 	}
@@ -351,7 +312,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 template<typename TM>
 template<typename OS>
-OS & ExplicitEMContext<TM>::Print(OS & os) const
+void ExplicitEMContext<TM>::Print(OS & os) const
 {
 
 	os
@@ -380,13 +341,12 @@ OS & ExplicitEMContext<TM>::Print(OS & os) const
 		for (auto const & p : particles_)
 		{
 			os << p.first << " = {";
-			p.second.Print(os);
+			p.second->Print(os);
 			os << "},";
 		}
 		os << "\n}\n";
 	}
 
-	return os;
 }
 template<typename OS, typename TM>
 OS &operator<<(OS & os, ExplicitEMContext<TM> const& self)
@@ -424,17 +384,16 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToB(&B);
 
-	J = J0;
-	n = n0;
+	LOG_CMD(J = J0);
 
 	ApplyConstraintToJ(&J);
 
 	for (auto &p : particles_)
 	{
-		p.second.NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
+		p.second->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
 
-		J += p.second.J;
-		n += p.second.n;
+		J += p.second->J;
+		n += p.second->n;
 	}
 
 	// B(t=0 -> 1/2)
