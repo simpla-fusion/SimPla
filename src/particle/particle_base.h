@@ -52,7 +52,7 @@ public:
 
 	virtual Real GetCharge() const=0;
 
-	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
 	        Field<mesh_type, FACE, scalar_type> const & B)=0;
 
 	virtual void Print(std::ostream & os) const=0;

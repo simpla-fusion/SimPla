@@ -105,7 +105,7 @@ public:
 	{
 		return engine_type::GetCharge();
 	}
-	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const &E,
 	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	void Print(std::ostream & os) const;
@@ -234,10 +234,9 @@ void Particle<Engine>::Print(std::ostream & os) const
 }
 
 template<class Engine>
-void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
-
 	if (data_.empty())
 	{
 		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
@@ -250,7 +249,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	ParallelDo(
 
-	[& ](int t_num,int t_id)
+	[&](int t_num,int t_id)
 	{
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
@@ -265,7 +264,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	});
 
-	(base_type::n) += Diverge(base_type::J) * dt;
+	base_type::n += Diverge(base_type::J) * dt;
 
 	isSorted_ = false;
 	Sort();

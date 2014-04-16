@@ -140,7 +140,6 @@ public:
 	template<typename TJ, typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
-
 		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
 		p->x += p->v * dt * 0.5;
 
@@ -185,8 +184,8 @@ public:
 
 };
 
-template<typename OS, typename TM, typename TS> OS&
-operator<<(OS& os, typename PICEngineDeltaF<TM, TS>::Point_s const & p)
+template<typename TM, typename TS> std::ostream&
+operator<<(std::ostream& os, typename PICEngineDeltaF<TM, TS>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 

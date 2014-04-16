@@ -391,7 +391,6 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	for (auto &p : particles_)
 	{
 		p.second->NextTimeStep(dt, E, B);	// particle(t=0 -> 1)
-
 		J += p.second->J;
 		n += p.second->n;
 	}

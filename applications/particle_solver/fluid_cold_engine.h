@@ -60,7 +60,7 @@ public:
 		return q_;
 	}
 
-	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
 	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	void Print(std::ostream & os) const;
@@ -116,7 +116,7 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool compact
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const E,
+void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const& E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
 
