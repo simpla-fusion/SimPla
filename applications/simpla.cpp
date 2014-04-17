@@ -164,7 +164,7 @@ int main(int argc, char **argv)
 	LOGGER << "Process " << START;
 
 	TheStart();
-
+	ctx.Dump("/DumpData");
 	if (just_a_test)
 	{
 		LOGGER << "Just test configure files";

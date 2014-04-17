@@ -19,7 +19,8 @@
 namespace simpla
 {
 
-template<typename TM, typename TS = Real, typename Interpolator = typename TM::interpolator_type>
+template<typename TM, typename TS = Real,
+		typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDeltaF
 {
 
@@ -48,15 +49,19 @@ public:
 
 			<< "H5T_COMPOUND {          "
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
+					<< (offsetof(Point_s, x)) << ";"
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
+					<< (offsetof(Point_s, v)) << ";"
 
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
+					<< (offsetof(Point_s, f)) << ";"
 
-			<< "   H5T_NATIVE_DOUBLE    \"w\" : " << (offsetof(Point_s, w)) << ";"
+					<< "   H5T_NATIVE_DOUBLE    \"w\" : "
+					<< (offsetof(Point_s, w)) << ";"
 
-			<< "}";
+					<< "}";
 
 			return os.str();
 		}
@@ -65,13 +70,15 @@ public:
 
 private:
 	Real m_, cmr_, q_, q_kT_;
+	bool isXVSync_;
 public:
 	mesh_type const &mesh;
 
 public:
 	template<typename ...Args>
-	PICEngineDeltaF(mesh_type const &pmesh, Args const & ...args)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &pmesh, Args const & ...args) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0), isXVSync_(
+					true)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -110,7 +117,9 @@ public:
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
-		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
+		q_kT_ = q_
+				/ (dict["Temperature"].template as<Real>(1.0)
+						* boltzmann_constant);
 	}
 
 	void Print(std::ostream & os) const
@@ -139,10 +148,9 @@ public:
 	}
 
 	template<typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE,
+			TB const & fB, Others const &...others) const
 	{
-		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
-		p->x += p->v * dt * 0.5;
 
 		auto B = interpolator_type::Gather(fB, p->x);
 		auto E = interpolator_type::Gather(fE, p->x);
@@ -161,7 +169,7 @@ public:
 
 		// FIXME miss one term E\cross B \cdot \Grad n
 		// @NOTE Nonlinear delta-f
-		auto a = (-Dot(fE(p->x), p->v) * q_kT_ * dt);
+		auto a = (-Dot(E, p->v) * q_kT_ * dt);
 		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
 		p->v += v_;
@@ -169,13 +177,28 @@ public:
 		p->v += E * (cmr_ * dt * 0.5);
 
 		// $ x_{1} - x_{1/2} = v_1   \Delta t /2$
-		p->x += p->v * dt * 0.5;
 
-		Scatter(*p, J, fE, fB, std::forward<Others const &>(others)...);
+		Vec3 v;
+
+		v = p->v * q_ * p->f * p->w;
+
+		if (isXVSync_)
+		{
+			p->x += p->v * dt * 0.5;
+			interpolator_type::Scatter(p->x, v, J);
+			// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
+			p->x += p->v * dt * 0.5;
+		}
+		else
+		{
+			p->x += p->v * dt;
+			interpolator_type::Scatter(p->x, v, J);
+		}
 	}
 
 	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J,
+			Args const & ...) const
 	{
 		typename Field<mesh_type, EDGE, TJ>::field_value_type v;
 
@@ -185,22 +208,27 @@ public:
 	}
 
 	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TJ> * n, Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TJ> * n,
+			Args const & ...) const
 	{
 		interpolator_type::Scatter(p.x, q_ * p.f * p.w, n);
 	}
 
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
+			Real f)
 	{
-		return std::move(Point_s( { x, v, f, 0 }));
+		return std::move(Point_s(
+		{ x, v, f, 0 }));
 	}
 
 };
 
 template<typename TM, typename TS> std::ostream&
-operator<<(std::ostream& os, typename PICEngineDeltaF<TM, TS>::Point_s const & p)
+operator<<(std::ostream& os,
+		typename PICEngineDeltaF<TM, TS>::Point_s const & p)
 {
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w="
+			<< p.w << " }";
 
 	return os;
 }

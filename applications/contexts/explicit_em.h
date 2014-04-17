@@ -464,18 +464,18 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	ApplyConstraintToB(&B);
 
+	dE.Clear();
+
+	// dE += Curl(B)*dt
+	PushE(dt, E, B, &dE);
+
 	LOG_CMD(Jext = J0);
 
 	ApplyConstraintToJ(&Jext);
 
-	dE.Clear();
-
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
 	AddCurrent(dt, E, B, particles_, &dE);
-
-	// dE += Curl(B)*dt
-	PushE(dt, E, B, &dE);
 
 	// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE);

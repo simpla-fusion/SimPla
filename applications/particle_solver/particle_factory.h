@@ -20,13 +20,15 @@ namespace simpla
 {
 
 template<typename TParticle, typename ...Args>
-std::shared_ptr<typename TParticle::base_type> CreateParticle_(std::string const & type_str, Args const & ... args)
+std::shared_ptr<typename TParticle::base_type> CreateParticle_(
+		std::string const & type_str, Args const & ... args)
 {
 	std::shared_ptr<typename TParticle::base_type> res(nullptr);
 
 	if (type_str == TParticle::GetTypeAsString())
 		res = std::dynamic_pointer_cast<typename TParticle::base_type>(
-		        std::shared_ptr<typename TParticle::base_type>(new TParticle(std::forward<Args const &>(args)...)));
+				std::shared_ptr<typename TParticle::base_type>(
+						new TParticle(std::forward<Args const &>(args)...)));
 
 	return res;
 }
@@ -39,9 +41,6 @@ std::shared_ptr<ParticleBase<Mesh>> CreateParticle(Args const & ...args)
 		res = CreateParticle_<Particle<PICEngineDeltaF<Mesh>>>(std::forward<Args const &>(args)...);
 
 	if (res == nullptr)
-		res = CreateParticle_<Particle<PICEngineDefault<Mesh>>>(std::forward<Args const &>(args)...);
-
-	if (res == nullptr)
 		res = CreateParticle_<Particle<PICEngineGGauge<Mesh, Real, 4>>>(std::forward<Args const &>(args)...);
 
 	if (res == nullptr)
@@ -52,6 +51,9 @@ std::shared_ptr<ParticleBase<Mesh>> CreateParticle(Args const & ...args)
 
 	if (res == nullptr)
 		res = CreateParticle_<Particle<ColdFluid<Mesh>>>(std::forward<Args const &>(args)...);
+
+	if (res == nullptr)
+		res = CreateParticle_<Particle<PICEngineDefault<Mesh>>>(std::forward<Args const &>(args)...);
 
 	return res;
 }

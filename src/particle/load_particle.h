@@ -37,9 +37,13 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 		return;
 	}
 
+	p->J.Clear();
+	p->n.Clear();
+
 	InitParticle(p, dict, std::forward<Args const &>(args)...);
 
-	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
+	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString()
+			<< ", Number of Particles=" << p->size() << "]";
 
 	LOGGER << DONE;
 }
@@ -99,7 +103,8 @@ void InitParticle(TP *p, TDict const &dict)
 		ERROR << "Particle temperature is not defined!";
 	}
 
-	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
+	InitParticle(p, p->mesh.GetRange(TP::IForm),
+			dict["PIC"].template as<size_t>(100), ns, Ts);
 
 }
 
@@ -116,14 +121,13 @@ void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 
 	Real n0 = dict["Proportion"].template as<Real>(1.0);
 
-	std::function<Real(coordinates_type)> n, T;
+	InitParticle(p, p->mesh.GetRange(TP::IForm),
+			dict["PIC"].template as<size_t>(100),
 
-	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100),
+			[&](coordinates_type x)->Real
+			{	return n0*ne(x);},
 
-	[&](coordinates_type x)->Real
-	{	return n0*n(x);},
-
-	Ti);
+			Ti);
 
 }
 
@@ -142,8 +146,10 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST(p->mesh.constants());
 
-	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
-	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };
+	nTuple<NDIMS, Real> dxmin =
+	{ -0.5, -0.5, -0.5 };
+	nTuple<NDIMS, Real> dxmax =
+	{ 0.5, 0.5, 0.5 };
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 	multi_normal_distribution<NDIMS> v_dist;
 
@@ -164,6 +170,9 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 		{
 			inv_sample_density *= mesh.Volume(s);
 		}
+
+		p->n[s] = ns(mesh.GetCoordinates(s));
+
 		for (int i = 0; i < pic; ++i)
 		{
 			x_dist(rnd_gen, &x[0]);
@@ -172,10 +181,13 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
 
-			v = mesh.PushForward(x, v) * std::sqrt(boltzmann_constant * Ts(x) / p->GetMass());
+			v = mesh.PushForward(x, v)
+					* std::sqrt(boltzmann_constant * Ts(x) / p->GetMass());
 
-			p->Insert(s, engine_type::make_point(x, v, ns(x) * inv_sample_density));
+			p->Insert(s,
+					engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}
+
 	}
 }
 }  // namespace simpla

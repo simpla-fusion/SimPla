@@ -113,22 +113,8 @@ public:
 
 	void Dump(std::string const &, bool compact_storage = false) const;
 
-	void Scatter(Field<mesh_type, VERTEX, scalar_type> *n,
-			Field<mesh_type, EDGE, scalar_type> const &E,
-			Field<mesh_type, FACE, scalar_type> const & B) const
-	{
-		Scatter_(n, E, B);
-	}
-
-	void Scatter(Field<mesh_type, EDGE, scalar_type> *J,
-			Field<mesh_type, EDGE, scalar_type> const &E,
-			Field<mesh_type, FACE, scalar_type> const & B) const
-	{
-		Scatter_(J, E, B);
-	}
-
 	template<int IFORM, typename ...Args>
-	void Scatter_(Field<mesh_type, IFORM, scalar_type> *J,
+	void Scatter(Field<mesh_type, IFORM, scalar_type> *J,
 			Args const & ... args) const;
 
 	//***************************************************************************************************
@@ -258,6 +244,8 @@ void Particle<Engine>::Print(std::ostream & os) const
 	engine_type::Print(os);
 }
 
+#define DISABLE_MULTI_THREAD
+
 template<class Engine>
 void Particle<Engine>::NextTimeStep(Real dt,
 		Field<mesh_type, EDGE, scalar_type> const & E,
@@ -293,7 +281,7 @@ void Particle<Engine>::NextTimeStep(Real dt,
 
 			});
 
-	base_type::n += Diverge(base_type::J) * dt;
+	base_type::n -= Diverge(base_type::J) * dt;
 
 	isSorted_ = false;
 	Sort();
@@ -301,7 +289,7 @@ void Particle<Engine>::NextTimeStep(Real dt,
 	LOGGER << DONE;
 }
 template<class Engine> template<int IFORM, typename ...Args>
-void Particle<Engine>::Scatter_(Field<mesh_type, IFORM, scalar_type> *pJ,
+void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ,
 		Args const &... args) const
 {
 	ParallelDo(
