@@ -112,6 +112,21 @@ public:
 
 	std::string Dump(std::string const &, bool compact_storage = false) const;
 
+	void Scatter(Field<mesh_type, VERTEX, scalar_type> *n, Field<mesh_type, EDGE, scalar_type> const &E,
+	        Field<mesh_type, FACE, scalar_type> const & B) const
+	{
+		Scatter_(n, E, B);
+	}
+
+	void Scatter(Field<mesh_type, EDGE, scalar_type> *J, Field<mesh_type, EDGE, scalar_type> const &E,
+	        Field<mesh_type, FACE, scalar_type> const & B) const
+	{
+		Scatter_(J, E, B);
+	}
+
+	template<int IFORM, typename ...Args>
+	void Scatter_(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
+
 	//***************************************************************************************************
 
 	allocator_type GetAllocator()
@@ -271,11 +286,24 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	LOGGER << DONE;
 }
-
-template<typename TF, typename TX, typename TV>
-void ScatterTo(TX const & x, TV const &v, TF *f)
+template<class Engine> template<int IFORM, typename ...Args>
+void Particle<Engine>::Scatter_(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
 {
-	f->mesh.Scatter(x, v, f);
+	ParallelDo(
+
+	[&](int t_num,int t_id)
+	{
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			pJ->lock();
+			for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
+			{
+				this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
+			}
+			pJ->unlock();
+		}
+
+	});
 }
 //*************************************************************************************************
 template<class Engine>

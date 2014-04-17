@@ -22,7 +22,6 @@
 #include "../../src/fetl/field.h"
 #include "../../src/fetl/ntuple.h"
 #include "../../src/fetl/primitives.h"
-#include "../../src/mesh/field_convert.h"
 
 // Data IO
 #include "../../src/fetl/save_field.h"

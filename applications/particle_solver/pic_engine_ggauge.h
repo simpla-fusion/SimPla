@@ -202,9 +202,21 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			mesh.Scatter(r, v * p->w[ms] * q_ * p->f, J);
+			interpolator_type::Scatter(r, v * p->w[ms] * q_ * p->f, J);
 		}
 
+	}
+
+	template<typename TJ, typename ...Args>
+	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
+	{
+		UNIMPLEMENT;
+	}
+
+	template<typename TJ, typename ...Args>
+	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TJ> * n, Args const & ...) const
+	{
+		UNIMPLEMENT;
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

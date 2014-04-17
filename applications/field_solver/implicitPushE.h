@@ -9,7 +9,6 @@
 #define IMPLICITPUSHE_H_
 
 #include "../../src/fetl/fetl.h"
-#include "../../src/mesh/field_convert.h"
 #include "../../src/utilities/log.h"
 #include "../../src/physics/physical_constants.h"
 

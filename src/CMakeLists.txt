@@ -1,9 +1,9 @@
 
-ADD_SUBDIRECTORY( datastruct)
+ 
 
 ADD_SUBDIRECTORY( utilities  )
 
-ADD_SUBDIRECTORY( engine )
+ 
 
 ADD_SUBDIRECTORY( physics)
 

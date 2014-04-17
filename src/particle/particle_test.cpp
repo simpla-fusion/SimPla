@@ -19,9 +19,7 @@
 
 #include "particle.h"
 #include "save_particle.h"
-#include "pic_engine_full.h"
-#include "pic_engine_deltaf.h"
-#include "pic_engine_ggauge.h"
+#include "pic_engine_default.h"
 
 using namespace simpla;
 
@@ -77,14 +75,11 @@ TYPED_TEST_P(TestParticle,load_save){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
-	pool_type ion(mesh);
-
-	ion.Update();
-
 	LuaObject cfg;
+
 	cfg.ParseString(TestFixture::cfg_str);
 
-	ion.Load(cfg["ion"]);
+	pool_type ion(mesh,cfg["ion"]);
 
 }
 }
@@ -106,29 +101,26 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	mesh_type const & mesh = TestFixture::mesh;
 
-	pool_type ion(mesh);
-
-	ion.Update();
-
 	LuaObject cfg;
 	cfg.ParseString(TestFixture::cfg_str);
 
 	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
 
-	ion.Load(cfg["ion"]);
+	pool_type ion(mesh,cfg["ion"]);
 
 	Field<mesh_type,EDGE,Real> E(mesh);
 	Field<mesh_type,FACE,Real> B(mesh);
 
-	E.Fill(1.0);
-	B.Fill(1.0);
-	n.Fill(0);
-	n0.Fill(0);
+	E.Clear();
+	B.Clear();
+	n0.Clear();
+	n.Clear();
 
-	ion.Scatter(&n,E,B);
+	ion.Scatter(&n, E,B );
+
 	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/");
-	LOGGER<<DUMP1(n );
+	LOGGER<<DUMP1( n );
 	LOGGER<<DUMP1(ion );
 
 	Real q=ion.GetCharge();
@@ -156,7 +148,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 			variance+=std::pow(abs (expect-actual),2.0);
 		}
 
-		if(std::is_same<typename TestFixture::engine_type,PICEngineFull<mesh_type> >::value)
+		if(std::is_same<typename TestFixture::engine_type,PICEngineDefault<mesh_type> >::value)
 		{
 			Real relative_error=std::sqrt(variance)/abs(average);
 			CHECK(relative_error);
@@ -175,129 +167,117 @@ TYPED_TEST_P(TestParticle,scatter_n){
 }
 }
 
-TYPED_TEST_P(TestParticle,move){
-{
-	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
-	typedef typename TestFixture::mesh_type mesh_type;
+//TYPED_TEST_P(TestParticle,move){
+//{
+//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	typedef typename TestFixture::mesh_type mesh_type;
+//
+//	typedef typename TestFixture::particle_pool_type pool_type;
+//
+//	typedef typename TestFixture::Point_s Point_s;
+//
+//	typedef typename TestFixture::index_type index_type;
+//
+//	typedef typename TestFixture::coordinates_type coordinates_type;
+//
+//	typedef typename TestFixture::scalar_type scalar_type;
+//
+//	mesh_type const & mesh = TestFixture::mesh;
+//
+//	LuaObject cfg;
+//	cfg.ParseString(TestFixture::cfg_str);
+//
+//	Field<mesh_type,VERTEX,scalar_type> n0(mesh);
+//
+//	pool_type ion(mesh,cfg["ion"]);
+//	ion.SetParticleSorting(TestFixture::enable_sorting);
+//	Field<mesh_type,EDGE,Real> E(mesh);
+//	Field<mesh_type,FACE,Real> B(mesh);
+//
+//	Field<mesh_type,EDGE,scalar_type> J0(mesh);
+//
+//	n0.Clear();
+//	J0.Clear();
+//	E.Clear();
+//	B.Clear();
+//
+//	constexpr Real PI=3.141592653589793;
+//
+//	nTuple<3,Real> E0=
+//	{	1.0e-4,1.0e-4,1.0e-4};
+//	nTuple<3,Real> Bv=
+//	{	0,0,1.0};
+//	nTuple<3,Real> k=
+//	{	2.0*PI,4.0*PI,2.0*PI};
+//
+//	Real q=ion.GetCharge();
+//
+//	auto n0_cfg= cfg["ion"]["Density"];
+//
+//	Real pic =cfg["ion"]["PIC"].template as<Real>();
+//
+//	for(auto s:mesh.GetRange(VERTEX))
+//	{
+//		auto x =mesh.GetCoordinates(s);
+//		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
+//	}
+//
+//	for (auto s : mesh.GetRange(EDGE))
+//	{
+//		auto x=mesh.GetCoordinates(s);
+//
+//		nTuple<3,Real> Ev;
+//
+//		Ev=E0*std::sin(Dot(k,mesh.GetCoordinates(s)));
+//
+//		E[s]=mesh.Sample(Int2Type<EDGE>(),s,Ev);
+//	}
+//
+//	for (auto s : mesh.GetRange(FACE))
+//	{
+//		B[s]= mesh.Sample(Int2Type<FACE>(),s,Bv);
+//	}
+//
+//	Real dt=1.0e-12;
+//	Real a=0.5*(dt*q/ion.GetMass());
+//
+//	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
+//
+//	LOG_CMD(ion.NextTimeStep(dt,E, B));
+//
+//	LOGGER<<DUMP1(E);
+//	LOGGER<<DUMP1(B);
+//	LOGGER<<DUMP1(n0 );
+//	LOGGER<<DUMP1(J0 );
+//	LOGGER<<DUMP1(ion.J);
+//	LOGGER<<DUMP1(ion.n);
+//	Real variance=0.0;
+//
+//	Real average=0.0;
+//
+//	for(auto s:mesh.GetRange(VERTEX))
+//	{
+//		auto expect=J0[s];
+//
+//		auto actual=ion.J[s];
+//
+//		average+=abs(expect);
+//
+//		variance+=std::pow(abs (expect-actual),2.0);
+//	}
+//
+//	{
+//		Real relative_error=std::sqrt(variance)/abs(average);
+//
+//		CHECK(relative_error);
+//		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.GetDimensions();
+//	}
+//
+//}
+//}
 
-	typedef typename TestFixture::particle_pool_type pool_type;
-
-	typedef typename TestFixture::Point_s Point_s;
-
-	typedef typename TestFixture::index_type index_type;
-
-	typedef typename TestFixture::coordinates_type coordinates_type;
-
-	typedef typename TestFixture::scalar_type scalar_type;
-
-	mesh_type const & mesh = TestFixture::mesh;
-
-	pool_type ion(mesh);
-
-	ion.SetParticleSorting(TestFixture::enable_sorting);
-
-	LuaObject cfg;
-	cfg.ParseString(TestFixture::cfg_str);
-
-	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
-
-	ion.Load(cfg["ion"]);
-
-	ion.Update();
-
-	Field<mesh_type,VERTEX,nTuple<3,Real>> E(mesh);
-	Field<mesh_type,VERTEX,nTuple<3,Real>> B(mesh);
-
-	Field<mesh_type,VERTEX,nTuple<3,scalar_type>> J(mesh);
-	Field<mesh_type,VERTEX,nTuple<3,scalar_type>> J0(mesh);
-
-	n.Clear();
-	J.Clear();
-	n0.Clear();
-	J0.Clear();
-	E.Clear();
-	B.Clear();
-
-	constexpr Real PI=3.141592653589793;
-
-	nTuple<3,Real> E0=
-	{	1.0e-4,1.0e-4,1.0e-4};
-	nTuple<3,Real> Bv=
-	{	0,0,1.0};
-	nTuple<3,Real> k=
-	{	2.0*PI,4.0*PI,2.0*PI};
-
-	Real q=ion.GetCharge();
-
-	auto n0_cfg= cfg["ion"]["Density"];
-
-	Real pic =cfg["ion"]["PIC"].template as<Real>();
-
-	for(auto s:mesh.GetRange(VERTEX))
-	{
-		auto x =mesh.GetCoordinates(s);
-		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
-	}
-
-	for (auto s : mesh.GetRange(VERTEX))
-	{
-		auto x=mesh.GetCoordinates(s);
-
-		nTuple<3,Real> Ev;
-
-		Ev=E0*std::sin(Dot(k,mesh.GetCoordinates(s)));
-
-		E[s]=Ev; //mesh.Sample(Int2Type<VERTEX>(),s,Ev);
-	}
-
-	for (auto s : mesh.GetRange(VERTEX))
-	{
-		B[s]=Bv; //mesh.Sample(Int2Type<VERTEX>(),s,Bv);
-	}
-
-	Real dt=1.0e-12;
-	Real a=0.5*(dt*q/ion.GetMass());
-
-	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
-
-	LOG_CMD(ion.NextTimeStep(dt,E, B));
-
-	ion.Scatter(&J ,E,B);
-	ion.Scatter(&n ,E,B);
-
-	LOGGER<<DUMP1(E);
-	LOGGER<<DUMP1(B);
-	LOGGER<<DUMP1(n0 );
-	LOGGER<<DUMP1(J0 );
-	LOGGER<<DUMP1(J);
-	LOGGER<<DUMP1(n);
-	Real variance=0.0;
-
-	Real average=0.0;
-
-	for(auto s:mesh.GetRange(VERTEX))
-	{
-		auto expect=J0[s];
-
-		auto actual=J[s];
-
-		average+=abs(expect);
-
-		variance+=std::pow(abs (expect-actual),2.0);
-	}
-
-	{
-		Real relative_error=std::sqrt(variance)/abs(average);
-
-		CHECK(relative_error);
-		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.GetDimensions();
-	}
-
-}
-}
-
-REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n, move);
+REGISTER_TYPED_TEST_CASE_P(TestParticle, load_save, scatter_n);
 
 template<typename TM, typename TEngine, int CASE> struct TestPICParam;
 
@@ -350,13 +330,13 @@ struct TestPICParam<Mesh, TEngine, CASE>
 
 typedef testing::Types<
 
-TestPICParam<Mesh, PICEngineFull<Mesh>, 1>//,
+TestPICParam<Mesh, PICEngineDefault<Mesh>, 1> //,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
+//TestPICParam<Mesh, PICEngineDefault<Mesh>, 3>,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 3>,
+//TestPICParam<Mesh, PICEngineDefault<Mesh>, 3>,
 //
-//TestPICParam<Mesh, PICEngineFull<Mesh>, 5>,
+//TestPICParam<Mesh, PICEngineDefault<Mesh>, 5>,
 //
 //        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 1> ,
 //
@@ -368,7 +348,7 @@ TestPICParam<Mesh, PICEngineFull<Mesh>, 1>//,
 //
 //TestPICParam<Mesh, PICEngineGGauge<Mesh, Complex>, 0>,
 //
-//        TestPICParam<Mesh, PICEngineFull<Mesh>, 100>,
+//        TestPICParam<Mesh, PICEngineDefault<Mesh>, 100>,
 //
 //        TestPICParam<Mesh, PICEngineDeltaF<Mesh, Real>, 100>,
 //
