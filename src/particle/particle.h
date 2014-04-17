@@ -48,7 +48,7 @@ class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
 
 public:
-	static constexpr int IForm = VOLUME;
+	static constexpr int IForm = VERTEX;
 
 	typedef Engine engine_type;
 
@@ -82,8 +82,7 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename ...Args> Particle(mesh_type const & pmesh,
-			Args const & ...args);
+	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...args);
 
 	// Destructor
 	virtual ~Particle();
@@ -107,15 +106,14 @@ public:
 		return engine_type::GetCharge();
 	}
 	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const &E,
-			Field<mesh_type, FACE, scalar_type> const & B);
+	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	void Print(std::ostream & os) const;
 
 	void Dump(std::string const &, bool compact_storage = false) const;
 
 	template<int IFORM, typename ...Args>
-	void Scatter(Field<mesh_type, IFORM, scalar_type> *J,
-			Args const & ... args) const;
+	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
 
 	//***************************************************************************************************
 
@@ -189,8 +187,8 @@ private:
 
 template<class Engine>
 template<typename ...Args>
-Particle<Engine>::Particle(mesh_type const & pmesh, Args const & ...args) :
-		engine_type(pmesh, std::forward<Args const&>(args)...),
+Particle<Engine>::Particle(mesh_type const & pmesh, Args const & ...args)
+		: engine_type(pmesh, std::forward<Args const&>(args)...),
 
 		base_type(pmesh),
 
@@ -227,8 +225,7 @@ Particle<Engine>::~Particle()
 //*************************************************************************************************
 
 template<class Engine>
-void Particle<Engine>::Dump(std::string const & name,
-		bool compact_storage) const
+void Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
 {
 	if (!compact_storage)
 	{
@@ -247,14 +244,12 @@ void Particle<Engine>::Print(std::ostream & os) const
 #define DISABLE_MULTI_THREAD
 
 template<class Engine>
-void Particle<Engine>::NextTimeStep(Real dt,
-		Field<mesh_type, EDGE, scalar_type> const & E,
-		Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+        Field<mesh_type, FACE, scalar_type> const & B)
 {
 	if (data_.empty())
 	{
-		WARNING << "Particle [ " << engine_type::GetTypeAsString()
-				<< "] is not initialized!";
+		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
 		return;
 	}
 
@@ -266,20 +261,20 @@ void Particle<Engine>::NextTimeStep(Real dt,
 
 	ParallelDo(
 
-			[&](int t_num,int t_id)
+	[&](int t_num,int t_id)
+	{
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			this->J.lock();
+			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
 			{
-				for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-				{
-					this->J.lock();
-					for (auto & p : this->data_.at(this->mesh.Hash(s)) )
-					{
-						this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
+				this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
 
-					}
-					this->J.unlock();
-				}
+			}
+			this->J.unlock();
+		}
 
-			});
+	});
 
 	base_type::n -= Diverge(base_type::J) * dt;
 
@@ -289,24 +284,23 @@ void Particle<Engine>::NextTimeStep(Real dt,
 	LOGGER << DONE;
 }
 template<class Engine> template<int IFORM, typename ...Args>
-void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ,
-		Args const &... args) const
+void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
 {
 	ParallelDo(
 
-			[&](int t_num,int t_id)
+	[&](int t_num,int t_id)
+	{
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			pJ->lock();
+			for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
 			{
-				for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-				{
-					pJ->lock();
-					for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
-					{
-						this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
-					}
-					pJ->unlock();
-				}
+				this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
+			}
+			pJ->unlock();
+		}
 
-			});
+	});
 }
 //*************************************************************************************************
 template<class Engine>
@@ -331,8 +325,7 @@ void Particle<Engine>::Resort(index_type id_src, container_type *other)
 			if (!(id_dest == id_src))
 			{
 
-				(*other).at(this->mesh.Hash(id_dest)).splice(
-						(*other).at(this->mesh.Hash(id_dest)).begin(), cell, p);
+				(*other).at(this->mesh.Hash(id_dest)).splice((*other).at(this->mesh.Hash(id_dest)).begin(), cell, p);
 
 			}
 
@@ -366,17 +359,17 @@ void Particle<Engine>::Sort()
 
 	ParallelDo(
 
-			[this](int t_num,int t_id)
-			{
-				for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-				{
-					auto idx = this->mesh.Hash(s);
+	[this](int t_num,int t_id)
+	{
+		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
+		{
+			auto idx = this->mesh.Hash(s);
 
-					this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
-				}
-			}
+			this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
+		}
+	}
 
-			);
+	);
 
 	isSorted_ = true;
 }

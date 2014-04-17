@@ -27,7 +27,7 @@ public:
 	}
 	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
 	{
-		Reset(xmin_, xmax_);
+		Reset(xmin, xmax);
 	}
 
 	template<typename TRANGE>
@@ -54,6 +54,7 @@ public:
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
+
 		for (int i = 0; i < NDIM; ++i)
 		{
 
@@ -78,6 +79,7 @@ public:
 	template<typename Generator, typename T>
 	void operator()(Generator &g, T* res)
 	{
+
 		for (int i = 0; i < NDIM; ++i)
 		{
 			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];

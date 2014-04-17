@@ -47,16 +47,13 @@ public:
 
 			<< "H5T_COMPOUND {          "
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
-					<< (offsetof(Point_s, x)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
 
-					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
-					<< (offsetof(Point_s, v)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
 
-					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
-					<< (offsetof(Point_s, f)) << ";"
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
 
-					<< "}";
+			<< "}";
 
 			return os.str();
 		}
@@ -72,8 +69,8 @@ public:
 public:
 
 	template<typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, Args const & ...args) :
-			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), isXVSync_(true)
+	PICEngineDefault(mesh_type const &pmesh, Args const & ...args)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), isXVSync_(true)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -135,8 +132,7 @@ public:
 	}
 
 	template<typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -178,19 +174,23 @@ public:
 //
 //		Scatter(*p, J, fE, fB, std::forward<Others const &>(others)...);
 	}
+
+	template<typename TN, typename ...Args>
+	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TN> * n, Args const & ...) const
+	{
+		interpolator_type::Scatter(p.x, q_ * p.f, n);
+	}
 	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, TJ * J, Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
 	{
 		typename Field<mesh_type, EDGE, TJ>::field_value_type v;
-
-		interpolator_type::Scatter(p.x, v, q_ * p.f, J);
+		v = p.v * q_ * p.f;
+		interpolator_type::Scatter(p.x, v, J);
 	}
 
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
-			Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 };

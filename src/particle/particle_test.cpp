@@ -34,7 +34,7 @@ protected:
 		cfg_str = "n0=function(x,y,z)"
 				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
 				" end "
-				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=200,Temperature=300 ,Density=n0"
+				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=500,Temperature=300 ,Density=n0"
 				"}";
 
 		enable_sorting = TParam::ICASE / 100 > 0;
@@ -104,7 +104,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 	LuaObject cfg;
 	cfg.ParseString(TestFixture::cfg_str);
 
-	Field<mesh_type,VERTEX,scalar_type> n(mesh), n0(mesh);
+	Field<mesh_type,pool_type::IForm,scalar_type> n(mesh), n0(mesh);
 
 	pool_type ion(mesh,cfg["ion"]);
 
@@ -122,7 +122,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 	GLOBAL_DATA_STREAM.OpenGroup("/");
 	LOGGER<<DUMP1( n );
 	LOGGER<<DUMP1(ion );
-
+	LOGGER<<Dump(ion.n ,"ion_n");
 	Real q=ion.GetCharge();
 	{
 		Real variance=0.0;
@@ -133,7 +133,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 		Real pic =cfg["ion"]["PIC"].template as<Real>();
 
-		for(auto s:mesh.GetRange(VERTEX))
+		for(auto s:mesh.GetRange(pool_type::IForm))
 		{
 			coordinates_type x=mesh.GetCoordinates(s);
 

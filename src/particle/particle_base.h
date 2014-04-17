@@ -31,6 +31,7 @@ struct ParticleBase
 {
 
 public:
+
 	typedef TM mesh_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
@@ -40,8 +41,8 @@ public:
 	Field<mesh_type, VERTEX, scalar_type> n;
 	Field<mesh_type, EDGE, scalar_type> J;
 
-	ParticleBase(mesh_type const &pmesh) :
-			mesh(pmesh), n(mesh), J(mesh)
+	ParticleBase(mesh_type const &pmesh)
+			: mesh(pmesh), n(mesh), J(mesh)
 	{
 		n.Clear();
 		J.Clear();
@@ -54,9 +55,8 @@ public:
 
 	virtual Real GetCharge() const=0;
 
-	virtual void NextTimeStep(Real dt,
-			Field<mesh_type, EDGE, scalar_type> const & E,
-			Field<mesh_type, FACE, scalar_type> const & B)=0;
+	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+	        Field<mesh_type, FACE, scalar_type> const & B)=0;
 
 	virtual void Print(std::ostream & os) const=0;
 
