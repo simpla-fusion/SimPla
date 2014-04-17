@@ -179,21 +179,13 @@ public:
 //		Scatter(*p, J, fE, fB, std::forward<Others const &>(others)...);
 	}
 	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J,
-			Args const & ...) const
+	void Scatter(Point_s const & p, TJ * J, Args const & ...) const
 	{
 		typename Field<mesh_type, EDGE, TJ>::field_value_type v;
 
-		v = p.v * q_ * p.f;
-
-		interpolator_type::Scatter(p.x, v, J);
+		interpolator_type::Scatter(p.x, v, q_ * p.f, J);
 	}
 
-	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, TJ * n, Args const & ...) const
-	{
-		interpolator_type::Scatter(p.x, q_ * p.f, n);
-	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
 			Real f)
 	{
