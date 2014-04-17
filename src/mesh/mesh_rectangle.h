@@ -17,7 +17,7 @@
 #include "../physics/physical_constants.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
-
+#include "interpolator.h"
 namespace simpla
 {
 template<typename > class EuclideanGeometry;
@@ -34,6 +34,8 @@ public:
 	typedef RectMesh<TTopology, Geometry> this_type;
 	typedef TTopology topology_type;
 	typedef Geometry<topology_type> geometry_type;
+
+	typedef Interpolator<this_type> interpolator_type;
 
 	typedef Real scalar_type;
 
@@ -230,138 +232,153 @@ public:
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
 	}
 
-	template<typename TF>
-	inline typename TF::value_type
-	Gather_(TF const &f,coordinates_type r, compact_index_type shift ) const
+	template<int IFORM,typename TExpr>
+	inline typename Field<this_type,IFORM,TExpr>::field_value_type
+	Gather(Field<this_type,IFORM,TExpr>const &f,coordinates_type x ) const
 	{
-		r=geometry_type::CoordinatesGlobalToLocal(r);
-
-		auto X = (topology_type::_DI >> (topology_type::H(shift) +1));
-		auto Y = (topology_type::_DJ >> (topology_type::H(shift) +1));
-		auto Z = (topology_type::_DK >> (topology_type::H(shift) +1));
-
-		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift) + (topology_type::_DA >> (topology_type::H(shift) + 1));
-
-		return
-
-		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2])+
-		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2])+
-		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2])+
-		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2])+
-		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2])+
-		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2])+
-		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2])+
-		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2])
-		;
-	}
-
-	template<typename TExpr>
-	inline typename Field<this_type,VERTEX,TExpr>::field_value_type
-	Gather(Field<this_type,VERTEX,TExpr>const &f,coordinates_type x,unsigned long h=0 ) const
-	{
-		return Gather_(f,x, (h<<(topology_type::INDEX_DIGITS*3)));
-	}
-
-	template<typename TExpr>
-	inline typename Field<this_type,EDGE,TExpr>::field_value_type
-	Gather(Field<this_type,EDGE,TExpr>const &f,coordinates_type x,unsigned long h=0 ) const
-	{
-
-		return typename Field<this_type,EDGE,TExpr>::field_value_type (
-		{
-			Gather_(f,x,topology_type::ShiftH(topology_type::_DI >> 1,h)),
-
-			Gather_(f,x,topology_type::ShiftH(topology_type::_DJ >> 1,h)),
-
-			Gather_(f,x,topology_type::ShiftH(topology_type::_DK >> 1,h))
-		});
-
-	}
-	template<typename TExpr>
-	inline typename Field<this_type,FACE,TExpr>::field_value_type
-	Gather(Field<this_type,FACE,TExpr>const &f,coordinates_type x,unsigned long h=0 ) const
-	{
-		return typename Field<this_type,EDGE,TExpr>::field_value_type (
-		{
-			Gather_(f,x,topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1 ,h)),
-
-			Gather_(f,x,topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1 ,h)),
-
-			Gather_(f,x,topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1 ,h))
-		});
-
-	}
-	template<typename TExpr>
-	inline typename Field<this_type,VOLUME,TExpr>::field_value_type
-	Gather(Field<this_type,VOLUME,TExpr>const &f,coordinates_type x,unsigned long h=0 ) const
-	{
-		return Gather_(f,x,topology_type::ShiftH(topology_type::_DA >>1,h));
+		return std::move(interpolator_type::Gather(f,x));
 
 	}
 
-	template<typename TF>
-	inline void
-	Scatter_( coordinates_type r,typename TF::value_type const & v, compact_index_type shift,TF *f ) const
-	{
-		r = geometry_type::CoordinatesGlobalToLocal(r);
-
-		auto X = (topology_type::_DI >> (topology_type::H(shift)+1));
-		auto Y = (topology_type::_DJ >> (topology_type::H(shift)+1));
-		auto Z = (topology_type::_DK >> (topology_type::H(shift)+1));
-
-		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift)+ (topology_type::_DA >> (topology_type::H(shift) + 1));
-
-		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
-		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);
-		f->get(((s + X) - Y) + Z)+=v*geometry_type::Volume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2]);
-		f->get(((s + X) - Y) - Z)+=v*geometry_type::Volume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2]);
-		f->get(((s - X) + Y) + Z)+=v*geometry_type::Volume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2]);
-		f->get(((s - X) + Y) - Z)+=v*geometry_type::Volume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2]);
-		f->get(((s - X) - Y) + Z)+=v*geometry_type::Volume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2]);
-		f->get(((s - X) - Y) - Z)+=v*geometry_type::Volume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2]);
-	}
-
-	template< typename TExpr>
-	inline void Scatter( coordinates_type x,
-	typename Field<this_type,VERTEX,TExpr>::field_value_type const & v ,Field<this_type,VERTEX,TExpr> *f,unsigned long h =0 )const
-	{
-		Scatter_( x,v,0UL,f );
-	}
-
-	template< typename TExpr>
-	inline void Scatter( coordinates_type x,
-	typename Field<this_type,EDGE,TExpr>::field_value_type const & v ,Field<this_type,EDGE,TExpr> *f,unsigned long h =0 )const
-	{
-
-		Scatter_( x,v[0],topology_type::ShiftH(topology_type::_DI>>1,h),f);
-
-		Scatter_( x,v[1],topology_type::ShiftH(topology_type::_DJ>>1,h),f );
-
-		Scatter_( x,v[2],topology_type::ShiftH(topology_type::_DK>>1,h),f );
-	}
-
-	template< typename TExpr>
-	inline void Scatter( coordinates_type x,
-	typename Field<this_type,FACE,TExpr>::field_value_type const & v ,Field<this_type,FACE,TExpr> *f,unsigned long h =0 )const
-	{
-
-		Scatter_( x,v[0],topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1,h),f );
-
-		Scatter_( x,v[1],topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1,h),f );
-
-		Scatter_( x,v[2],topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1,h),f );
-	}
-
-	template< typename TExpr>
+	template<int IFORM, typename TExpr>
 	inline void Scatter( coordinates_type x ,
-	typename Field<this_type,VOLUME,TExpr>::field_value_type const & v ,Field<this_type,VOLUME,TExpr> *f,unsigned long h =0 )const
+	typename Field<this_type,IFORM,TExpr>::field_value_type const & v ,Field<this_type,IFORM,TExpr> *f )const
 	{
-		Scatter_( x,v,topology_type::ShiftH(topology_type::_DA>>1,h),f );
+		interpolator_type::Scatter(x,v,f );
 	}
 
-//***************************************************************************************************
-// Exterior algebra
-//***************************************************************************************************
+	//	template<typename TF>
+	//	inline typename TF::value_type
+	//	Gather_(TF const &f,coordinates_type r, compact_index_type shift ) const
+	//	{
+	//		r=geometry_type::CoordinatesGlobalToLocal(r);
+	//
+	//		auto X = (topology_type::_DI >> (topology_type::H(shift) +1));
+	//		auto Y = (topology_type::_DJ >> (topology_type::H(shift) +1));
+	//		auto Z = (topology_type::_DK >> (topology_type::H(shift) +1));
+	//
+	//		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift) + (topology_type::_DA >> (topology_type::H(shift) + 1));
+	//
+	//		return
+	//
+	//		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2])+
+	//		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2])+
+	//		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2])+
+	//		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2])+
+	//		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2])+
+	//		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2])+
+	//		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2])+
+	//		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2])
+	//		;
+	//	}
+	//
+	//	template<typename TExpr>
+	//	inline typename Field<this_type,VERTEX,TExpr>::field_value_type
+	//	Gather(Field<this_type,VERTEX,TExpr>const &f,coordinates_type x ) const
+	//	{
+	//		return Gather_(f,x,0UL);
+	//	}
+	//
+	//	template<typename TExpr>
+	//	inline typename Field<this_type,EDGE,TExpr>::field_value_type
+	//	Gather(Field<this_type,EDGE,TExpr>const &f,coordinates_type x ) const
+	//	{
+	//
+	//		return typename Field<this_type,EDGE,TExpr>::field_value_type (
+	//		{
+	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DI >> 1)),
+	//
+	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DJ >> 1)),
+	//
+	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DK >> 1))
+	//		});
+	//
+	//	}
+	//	template<typename TExpr>
+	//	inline typename Field<this_type,FACE,TExpr>::field_value_type
+	//	Gather(Field<this_type,FACE,TExpr>const &f,coordinates_type x ) const
+	//	{
+	//		return typename Field<this_type,EDGE,TExpr>::field_value_type (
+	//		{
+	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1 )),
+	//
+	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1 )),
+	//
+	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1 ))
+	//		});
+	//
+	//	}
+	//	template<typename TExpr>
+	//	inline typename Field<this_type,VOLUME,TExpr>::field_value_type
+	//	Gather(Field<this_type,VOLUME,TExpr>const &f,coordinates_type x ) const
+	//	{
+	//		return Gather_(f,x,topology_type::ShiftH(topology_type::_DA >>1));
+	//
+	//	}
+	//
+	//	template<typename TF>
+	//	inline void
+	//	Scatter_( coordinates_type r,typename TF::value_type const & v, compact_index_type shift,TF *f ) const
+	//	{
+	//		r = geometry_type::CoordinatesGlobalToLocal(r);
+	//
+	//		auto X = (topology_type::_DI >> (topology_type::H(shift)+1));
+	//		auto Y = (topology_type::_DJ >> (topology_type::H(shift)+1));
+	//		auto Z = (topology_type::_DK >> (topology_type::H(shift)+1));
+	//
+	//		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift)+ (topology_type::_DA >> (topology_type::H(shift) + 1));
+	//
+	//		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
+	//		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);
+	//		f->get(((s + X) - Y) + Z)+=v*geometry_type::Volume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2]);
+	//		f->get(((s + X) - Y) - Z)+=v*geometry_type::Volume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2]);
+	//		f->get(((s - X) + Y) + Z)+=v*geometry_type::Volume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2]);
+	//		f->get(((s - X) + Y) - Z)+=v*geometry_type::Volume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2]);
+	//		f->get(((s - X) - Y) + Z)+=v*geometry_type::Volume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2]);
+	//		f->get(((s - X) - Y) - Z)+=v*geometry_type::Volume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2]);
+	//	}
+	//
+	//	template< typename TExpr>
+	//	inline void Scatter( coordinates_type x,
+	//	typename Field<this_type,VERTEX,TExpr>::field_value_type const & v ,Field<this_type,VERTEX,TExpr> *f )const
+	//	{
+	//		Scatter_( x,v,0UL,f );
+	//	}
+	//
+	//	template< typename TExpr>
+	//	inline void Scatter( coordinates_type x,
+	//	typename Field<this_type,EDGE,TExpr>::field_value_type const & v ,Field<this_type,EDGE,TExpr> *f )const
+	//	{
+	//
+	//		Scatter_( x,v[0],topology_type::ShiftH(topology_type::_DI>>1),f);
+	//
+	//		Scatter_( x,v[1],topology_type::ShiftH(topology_type::_DJ>>1),f );
+	//
+	//		Scatter_( x,v[2],topology_type::ShiftH(topology_type::_DK>>1),f );
+	//	}
+	//
+	//	template< typename TExpr>
+	//	inline void Scatter( coordinates_type x,
+	//	typename Field<this_type,FACE,TExpr>::field_value_type const & v ,Field<this_type,FACE,TExpr> *f )const
+	//	{
+	//
+	//		Scatter_( x,v[0],topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1),f );
+	//
+	//		Scatter_( x,v[1],topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1),f );
+	//
+	//		Scatter_( x,v[2],topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1),f );
+	//	}
+	//
+	//	template< typename TExpr>
+	//	inline void Scatter( coordinates_type x ,
+	//	typename Field<this_type,VOLUME,TExpr>::field_value_type const & v ,Field<this_type,VOLUME,TExpr> *f )const
+	//	{
+	//		Scatter_( x,v,topology_type::ShiftH(topology_type::_DA>>1),f );
+	//	}
+
+	//***************************************************************************************************
+	// Exterior algebra
+	//***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])

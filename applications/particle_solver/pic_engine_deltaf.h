@@ -19,15 +19,16 @@
 namespace simpla
 {
 
-template<typename TM, typename TS = Real>
+template<typename TM, typename TS = Real, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDeltaF
 {
 
 public:
-	typedef PICEngineDeltaF<TM, TS> this_type;
+	typedef PICEngineDeltaF<TM, TS, Interpolator> this_type;
 
 	typedef TM mesh_type;
 	typedef TS scalar_type;
+	typedef Interpolator interpolator_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -143,8 +144,8 @@ public:
 		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
 		p->x += p->v * dt * 0.5;
 
-		auto B = real(fB(p->x));
-		auto E = real(fE(p->x));
+		auto B = interpolator_type::Gather(fB, p->x);
+		auto E = interpolator_type::Gather(fE, p->x);
 
 		Vec3 v_;
 
@@ -174,7 +175,7 @@ public:
 
 		v = p->v * (p->f * p->w * q_);
 
-		ScatterTo(p->x, v, J);
+		interpolator_type::Scatter(p->x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

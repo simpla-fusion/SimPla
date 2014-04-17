@@ -18,13 +18,15 @@
 namespace simpla
 {
 
-template<typename TM>
+template<typename TM, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineFull
 {
 
 public:
 	typedef PICEngineFull<TM> this_type;
 	typedef TM mesh_type;
+	typedef Interpolator interpolator_type;
+
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
@@ -132,12 +134,14 @@ public:
 	template<typename TJ, typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
+		BorisMethod(dt, cmr_, interpolator_type::Gather(fE, p->x), interpolator_type::Gather(fB, p->x), &(p->x),
+		        &(p->v));
 
 		typename TJ::field_value_type v;
+
 		v = p->v * q_ * p->f;
 
-		ScatterTo(p->x, v, J);
+		interpolator_type::Scatter(p->x, v, J);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

@@ -350,17 +350,14 @@ void Particle<Engine>::Sort()
 }
 
 //******************************************************************************************************
-template<typename TX, typename TV, typename FE, typename FB> inline
-void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
+template<typename TX, typename TV, typename TE, typename TB> inline
+void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 {
 // @ref  Birdsall(1991)   p.62
 // Bories Method
 
-	(*x) += (*v) * 0.5 * dt;
-
 	Vec3 v_;
-	auto B = real(fB((*x)));
-	auto E = real(fE((*x)));
+
 	auto t = B * (cmr * dt * 0.5);
 
 	(*v) += E * (cmr * dt * 0.5);
@@ -371,7 +368,7 @@ void BorisMethod(Real dt, Real cmr, FE const & fE, FB const &fB, TX *x, TV *v)
 
 	(*v) += E * (cmr * dt * 0.5);
 
-	(*x) += (*v) * 0.5 * dt;
+	(*x) += (*v) * dt;
 
 }
 

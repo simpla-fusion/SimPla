@@ -21,7 +21,7 @@
 
 namespace simpla
 {
-template<typename TM, typename TS = Real, int NMATE = 8>
+template<typename TM, typename TS = Real, int NMATE = 8, typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
 {
 
@@ -29,6 +29,7 @@ public:
 	typedef PICEngineGGauge<TM, TS, NMATE> this_type;
 	typedef TM mesh_type;
 	typedef TS scalar_type;
+	typedef Interpolator interpolator_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 private:
 	Real m_, q_, cmr_, T_, vT_;
@@ -141,7 +142,7 @@ public:
 	template<typename TJ, typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		RVec3 B0 = real(fB(p->x));
+		RVec3 B0 = interpolator_type::Gather(fB, p->x);
 		Real BB = Dot(B0, B0);
 
 		RVec3 b = B0 / std::sqrt(BB);
@@ -183,7 +184,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * Dot(fE(r), v) * q_ / T_ * dt;
+			p->w[ms] += 0.5 * Dot(interpolator_type::Gather(fE, r), v) * q_ / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;

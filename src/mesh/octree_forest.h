@@ -702,7 +702,7 @@ struct OcForest
 		return H(s.d);
 	}
 
-	static compact_index_type ShiftH(compact_index_type s, compact_index_type h)
+	static compact_index_type ShiftH(compact_index_type s, compact_index_type h = 0)
 	{
 		return (s >> h) | (h << (INDEX_DIGITS * 3));
 	}
