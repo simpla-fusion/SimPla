@@ -39,7 +39,8 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...);
+	template<typename ...Args> Particle(mesh_type const & pmesh,
+			Args const & ...);
 
 	~Particle();
 
@@ -61,11 +62,11 @@ public:
 	}
 
 	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
-	        Field<mesh_type, FACE, scalar_type> const & B);
+			Field<mesh_type, FACE, scalar_type> const & B);
 
 	void Print(std::ostream & os) const;
 
-	std::string Dump(std::string const & name, bool compact_storage) const;
+	void Dump(std::string const & name, bool compact_storage) const;
 
 private:
 	Real m_;
@@ -76,8 +77,9 @@ private:
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
-		: base_type(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false)
+template<typename ...Args> Particle<ColdFluid<TM>>::Particle(
+		mesh_type const & pmesh, Args const & ...args) :
+		base_type(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false)
 {
 	Load(std::forward<Args const &>(args)...);
 }
@@ -110,14 +112,16 @@ void Particle<ColdFluid<TM>>::Print(std::ostream & os) const
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool compact_storage) const
+void Particle<ColdFluid<TM>>::Dump(std::string const & path,
+		bool compact_storage) const
 {
-	return "";
+	base_type::Dump(path, compact_storage);
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const& E,
-        Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStep(Real dt,
+		Field<mesh_type, EDGE, scalar_type> const& E,
+		Field<mesh_type, FACE, scalar_type> const & B)
 {
 
 //	vector_field_type K(mesh);

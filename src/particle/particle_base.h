@@ -13,7 +13,9 @@
 #include <string>
 
 #include "../fetl/field.h"
+#include "../fetl/save_field.h"
 #include "../fetl/primitives.h"
+#include "../io/data_stream.h"
 
 namespace simpla
 {
@@ -38,8 +40,8 @@ public:
 	Field<mesh_type, VERTEX, scalar_type> n;
 	Field<mesh_type, EDGE, scalar_type> J;
 
-	ParticleBase(mesh_type const &pmesh)
-			: mesh(pmesh), n(mesh), J(mesh)
+	ParticleBase(mesh_type const &pmesh) :
+			mesh(pmesh), n(mesh), J(mesh)
 	{
 		n.Clear();
 		J.Clear();
@@ -52,12 +54,17 @@ public:
 
 	virtual Real GetCharge() const=0;
 
-	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
-	        Field<mesh_type, FACE, scalar_type> const & B)=0;
+	virtual void NextTimeStep(Real dt,
+			Field<mesh_type, EDGE, scalar_type> const & E,
+			Field<mesh_type, FACE, scalar_type> const & B)=0;
 
 	virtual void Print(std::ostream & os) const=0;
 
-	virtual std::string Dump(std::string const & name, bool compact_storage) const=0;
+	virtual void Dump(std::string const & name, bool compact_storage) const
+	{
+		LOGGER << simpla::Dump(n, name + "_n", compact_storage);
+		LOGGER << simpla::Dump(J, name + "_J", compact_storage);
+	}
 
 };
 

@@ -129,15 +129,6 @@ Particles={
 
 FieldSolver= 
 {
-
-   ColdFluid=
-    {
-       Species=
-       {
-    --     H={Name="H",Mass =mp,Charge=e,  Density=InitN0 },
-     -- ele={Name="ele",Mass =me,Charge=-e,  Density=InitN0 }  ,       
-       }
-    },
 --[[ 
   PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
  --]]

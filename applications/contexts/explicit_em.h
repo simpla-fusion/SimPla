@@ -146,10 +146,11 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: isCompactStored_(true), model_(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		isCompactStored_(true), model_(mesh),
 
-		E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh)
+		E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(
+				mesh), phi(mesh)
 {
 }
 
@@ -163,7 +164,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \""
+			+ dict["Description"].template as<std::string>() + "\"\n";
 
 	LOGGER << description;
 
@@ -215,7 +217,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			for (auto s : mesh.GetRange(FACE))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s,
+						geqdsk.B(x[0], x[1]));
 
 			}
 
@@ -276,8 +279,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			auto key = opt.first.template as<std::string>("unnamed");
 
-			auto p = CreateParticle<mesh_type>(opt.second["Type"].template as<std::string>("Default"), mesh, opt.second,
-			        ne0, Te0);
+			auto p = CreateParticle<mesh_type>(
+					opt.second["Type"].template as<std::string>("Default"),
+					mesh, opt.second, ne0, Te0);
 
 			if (p != nullptr)
 				particles_.emplace(key, p);
@@ -296,15 +300,18 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				constraintToE_.push_back(CreateConstraint<TE>(model_, item.second));
+				constraintToE_.push_back(
+						CreateConstraint<TE>(model_, item.second));
 			}
 			else if (dof == "B")
 			{
-				constraintToB_.push_back(CreateConstraint<TB>(model_, item.second));
+				constraintToB_.push_back(
+						CreateConstraint<TB>(model_, item.second));
 			}
 			else if (dof == "J")
 			{
-				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
+				constraintToJ_.push_back(
+						CreateConstraint<TJ>(model_, item.second));
 			}
 			else
 			{
@@ -327,7 +334,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(
+					new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
 
 			PushE = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
@@ -336,11 +344,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		}
 		else
 		{
-			PushE = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-			{
-				auto & dE=*pdE;
-				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-			};
+			PushE =
+					[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+					{
+						auto & dE=*pdE;
+						LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+					};
 
 			PushB = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
@@ -353,14 +362,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	if (!enableImplicitPushE)
 	{
-		AddCurrent = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TParticles const & sp, TE* pdE)
-		{
-			auto & dE=*pdE;
-			for(auto const &p :sp)
-			{
-				LOG_CMD(dE -= (dt/epsilon0)*p.second->J);
-			}
-		};
+		AddCurrent =
+				[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TParticles const & sp, TE* pdE)
+				{
+					auto & dE=*pdE;
+					for(auto const &p :sp)
+					{
+						LOG_CMD(dE -= (dt/epsilon0)*p.second->J);
+					}
+				};
 	}
 	else
 	{
@@ -460,12 +470,12 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	dE.Clear();
 
-	dE -= Jext * (dt / epsilon0);
+	LOG_CMD(dE -= Jext * (dt / epsilon0));
+
+	AddCurrent(dt, E, B, particles_, &dE);
 
 	// dE += Curl(B)*dt
 	PushE(dt, E, B, &dE);
-
-	AddCurrent(dt, E, B, particles_, &dE);
 
 	// E(t=0  -> 1/2  )
 	LOG_CMD(E += dE);
@@ -475,7 +485,6 @@ void ExplicitEMContext<TM>::NextTimeStep()
 //************************************************************
 // Compute Cycle End
 //************************************************************
-
 }
 template<typename TM>
 void ExplicitEMContext<TM>::Dump(std::string const & path) const
@@ -485,6 +494,11 @@ void ExplicitEMContext<TM>::Dump(std::string const & path) const
 	LOGGER << DUMP(E);
 	LOGGER << DUMP(B);
 	LOGGER << DUMP(Jext);
+
+	for (auto &p : particles_)
+	{
+		p.second->Dump( p.first,true);
+	}
 
 }
 }
