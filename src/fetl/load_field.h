@@ -12,14 +12,13 @@
 #include <string>
 
 #include "../utilities/log.h"
-#include "../utilities/lua_state.h"
 #include "fetl.h"
 
 namespace simpla
 {
 template<typename, int, typename > class Field;
-template<int IFORM, typename TM, typename TV>
-bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
+template<typename TDict, int IFORM, typename TM, typename TV>
+bool LoadField(TDict const &dict, Field<TM, IFORM, TV> *f)
 {
 	if (!dict)
 		return false;
@@ -30,9 +29,10 @@ bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 
 	mesh_type const &mesh = f->mesh;
 
+	f->Clear();
+
 	if (dict.is_function())
 	{
-		f->Init();
 
 		for (auto s : mesh.GetRange(IFORM))
 		{
@@ -46,11 +46,20 @@ bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 	}
 	else if (dict.is_number() | dict.is_table())
 	{
-		f->Fill(dict.as<value_type>());
+
+		auto v = dict.template as<field_value_type>();
+
+		for (auto s : mesh.GetRange(IFORM))
+		{
+			auto x = mesh.GetCoordinates(s);
+
+			(*f)[s] = mesh.Sample(Int2Type<IFORM>(), s, v);
+		}
+
 	}
 	else if (dict.is_string())
 	{
-		std::string url = dict.as<std::string>();
+		std::string url = dict.template as<std::string>();
 		//TODO Read field from data file
 		UNIMPLEMENT << "Read field from data file or other URI";
 
@@ -59,6 +68,50 @@ bool LoadField(LuaObject const &dict, Field<TM, IFORM, TV> *f)
 
 	return true;
 }
-}  // namespace simpla
+
+//template<typename TDict>
+//void AssignFromDict(TDict const & dict)
+//{
+//	Clear();
+//
+//	if (dict.is_function())
+//	{
+//
+//		Assign(
+//
+//		[dict](coordinates_type x)->field_value_type
+//		{
+//			return dict(x[0],x[1],x[2]).template as<field_value_type>();
+//		}
+//
+//		);
+//
+//	}
+//	else if (dict.is_number() && !is_nTuple<field_value_type>::value)
+//	{
+//		field_value_type v = dict.template as<field_value_type>();
+//
+//		Assign([v](coordinates_type )->field_value_type
+//		{
+//			return v;
+//		});
+//
+//	}
+//	else if (dict.is_table() && is_nTuple<field_value_type>::value)
+//	{
+//		field_value_type v = dict.template as<field_value_type>();
+//
+//		Assign([v](coordinates_type )->field_value_type
+//		{
+//			return v;
+//		});
+//
+//	}
+//	else
+//	{
+//		WARNING << "Can not assign field from 'dict'!";
+//	}
+//}
+}// namespace simpla
 
 #endif /* LOAD_FIELD_H_ */

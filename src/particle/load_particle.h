@@ -157,7 +157,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 		Real inv_sample_density = mesh.Volume(s) / pic;
 
-		p->n[s] = p->GetCharge() * ns(mesh.GetCoordinates(s)) * mesh.Volume(s);
+		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->GetCharge() * ns(mesh.GetCoordinates(s)));
 
 		for (int i = 0; i < pic; ++i)
 		{

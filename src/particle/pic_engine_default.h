@@ -110,8 +110,9 @@ public:
 		cmr_ = q_ / m_;
 	}
 
-	void Print(std::ostream & os) const
+	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
+		std::stringstream os;
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -122,6 +123,7 @@ public:
 		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
 
 		;
+		return os.str();
 
 	}
 	static inline Point_s DefaultValue()

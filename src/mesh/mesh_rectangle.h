@@ -79,19 +79,19 @@ public:
 
 	}
 
-	void Print(std::ostream &os) const
+	std::string Dump(std::string const &path, bool is_verbose) const
 	{
-		os << " Topology  = { ";
+		std::stringstream os;
 
-		topology_type::Print(os);
+		os
 
-		os << "}," << std::endl
+		<< "\n Topology  = { " << topology_type::Dump(path, is_verbose) << "}, "
 
-		<< " Geometry  = { ";
+		<< "\n Geometry  = { " << geometry_type::Dump(path, is_verbose) << "},"
 
-		geometry_type::Print(os);
+		<< "\n dt=" << dt_;
 
-		os << "}," << "\n dt=" << dt_;
+		return os.str();
 	}
 
 	void Update()

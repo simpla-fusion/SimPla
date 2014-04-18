@@ -109,8 +109,9 @@ public:
 		}
 	}
 
-	void Print(std::ostream & os) const
+	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
+		std::stringstream os;
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
 		os << "Engine = '" << GetTypeAsString() << "' "
@@ -121,6 +122,7 @@ public:
 
 		<< " , " << "Temperature = " << T_ * boltzmann_constant / elementary_charge << "* eV";
 
+		return os.str();
 	}
 
 	Real GetMass() const

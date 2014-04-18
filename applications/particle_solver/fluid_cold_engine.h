@@ -23,7 +23,7 @@ template<typename TM>
 class Particle<ColdFluid<TM>> : public ParticleBase<TM>
 {
 public:
-	static constexpr int IForm = VOLUME;
+	static constexpr int IForm = VERTEX;
 
 	typedef TM mesh_type;
 
@@ -39,8 +39,9 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	template<typename ...Args> Particle(mesh_type const & pmesh,
-			Args const & ...);
+	mesh_type const & mesh;
+
+	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...);
 
 	~Particle();
 
@@ -49,7 +50,7 @@ public:
 		return "ColdFluid";
 	}
 
-	template<typename ...Args> void Load(Args const &... args);
+	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others const &...);
 
 	inline Real GetMass() const
 	{
@@ -62,11 +63,9 @@ public:
 	}
 
 	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
-			Field<mesh_type, FACE, scalar_type> const & B);
+	        Field<mesh_type, FACE, scalar_type> const & B);
 
-	void Print(std::ostream & os) const;
-
-	void Dump(std::string const & name, bool compact_storage) const;
+	std::string Dump(std::string const & name, bool is_verbose) const;
 
 private:
 	Real m_;
@@ -77,10 +76,10 @@ private:
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>>::Particle(
-		mesh_type const & pmesh, Args const & ...args) :
-		base_type(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false)
+template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
+		: base_type(pmesh), mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false)
 {
+	base_type::EnableImplicitPushE();
 	Load(std::forward<Args const &>(args)...);
 }
 
@@ -90,62 +89,60 @@ Particle<ColdFluid<TM>>::~Particle()
 }
 
 template<typename TM>
-template<typename ...Args>
-void Particle<ColdFluid<TM>>::Load(Args const & ... args)
+template<typename TDict, typename ...Others>
+void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 {
+	m_ = dict["Mass"].template as<Real>(1.0);
+	q_ = dict["Charge"].template as<Real>(1.0);
+
+	LoadField(dict["Density"], &(base_type::n));
+	LoadField(dict["Current"], &(base_type::J));
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::Print(std::ostream & os) const
+std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
 {
+	std::stringstream os;
+	if (!is_verbose)
+	{
+		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-//	os
-//
-//	<< " = { " << " Mass =" << m_ << "," << " Charge =" << q_ << ",\n_"
-//
-//	<< "\t n_ = " << simpla::Dump(n, false) << "\n_"
-//
-//	<< "\t J_ = " << simpla::Dump(J, false) << "\n_"
-//
-//	<< "\t},\n_";
+		os
 
+		<< "Engine = '" << GetTypeAsString()
+
+		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
+
+		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
+
+		;
+	}
+	os << base_type::Dump(path, is_verbose);
+
+	return os.str();
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::Dump(std::string const & path,
-		bool compact_storage) const
-{
-	base_type::Dump(path, compact_storage);
-}
-
-template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(Real dt,
-		Field<mesh_type, EDGE, scalar_type> const& E,
-		Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+        Field<mesh_type, FACE, scalar_type> const & B)
 {
 
-//	vector_field_type K(mesh);
-//
-//	vector_field_type Ev(mesh);
-//
-//	vector_field_type Bv(mesh);
-//
-//	Bv = MapTo<IForm>(B);
-//
-//	Ev = MapTo<IForm>(E);
-//
-//	Real as = (dt * q_) / (2.0 * m_);
-//
-//	*J -= MapTo<TJ>(J_);
-//
-//	K = Cross(J_, B) * as + Ev * n_ * q_ * as + J_;
-//
-//	*J -= (K + Cross(K, B) * as + Bv * (Dot(K, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
-//
-//	*n += n_;
-//
-//	J_ += (Ev + Cross(Ev, Bv) * as + Bv * (Dot(Ev, Bv) * as * as)) * (as * n_ * q_) / (Dot(Bv, Bv) * as * as + 1);
+	auto & J = base_type::Jv;
+	auto & n = base_type::n;
 
+	Real as = GetCharge() / GetMass() * dt;
+
+	J += (0.5 * as) * n * MapTo<IForm>(E);
+
+	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv(B.mesh);
+
+	Bv = MapTo<IForm>(B);
+
+	J = (J + Cross(J, Bv) * as + Bv * (Dot(J, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
+
+	J += (0.5 * as) * n * MapTo<IForm>(E);
+
+//	n -= Diverge(MapTo<EDGE>(J)) * dt;
 }
 
 }  // namespace simpla

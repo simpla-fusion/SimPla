@@ -33,25 +33,28 @@ Context::Context(LuaObject const & dict)
 }
 Context::Context()
 {
-	;
 }
 Context::~Context()
 {
-	;
 }
 
+template<typename TC, typename TDict, typename ... Others>
+void CreateContext(Context* ctx, TDict const &dict, Others const & ...others)
+{
+
+	std::shared_ptr<TC> ctx_ptr(new TC(dict, std::forward<Others>(others)...));
+	using namespace std::placeholders;
+	ctx->Dump = std::bind(&TC::Dump, ctx_ptr, _1, _2);
+	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
+
+}
 void Context::Load(LuaObject const & dict)
 {
 
-	Dump = [] (std::string const &)
+	Dump = [] (std::string const &,bool)->std::string
 	{
 		UNDEFINE_FUNCTION;
-	};
-
-	Print = [](std::ostream & os)->std::ostream &
-	{
-		UNDEFINE_FUNCTION;
-		return os;
+		return "";
 	};
 
 	NextTimeStep = []()
@@ -67,7 +70,7 @@ void Context::Load(LuaObject const & dict)
 		if (mesh_str == "RectMesh")
 		{
 			typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
-			CreateContext<ExplicitEMContext<mesh_type>>(dict, this);
+			CreateContext<ExplicitEMContext<mesh_type>>(this, dict);
 
 		}
 		else

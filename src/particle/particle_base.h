@@ -29,7 +29,7 @@ std::ostream & operator<<(std::ostream & os, Particle<TE> const &self)
 template<typename TM>
 struct ParticleBase
 {
-
+	bool needImplicitPushE_;
 public:
 
 	typedef TM mesh_type;
@@ -40,15 +40,26 @@ public:
 
 	Field<mesh_type, VERTEX, scalar_type> n;
 	Field<mesh_type, EDGE, scalar_type> J;
-
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv;
 	ParticleBase(mesh_type const &pmesh)
-			: mesh(pmesh), n(mesh), J(mesh)
+			: mesh(pmesh), n(mesh), J(mesh), Jv(mesh), needImplicitPushE_(false)
 	{
 		n.Clear();
-		J.Clear();
 	}
+
 	virtual ~ParticleBase()
 	{
+	}
+
+	void EnableImplicitPushE()
+	{
+		Jv.Clear();
+		needImplicitPushE_ = true;
+	}
+
+	bool NeedImplicitPushE() const
+	{
+		return needImplicitPushE_;
 	}
 
 	virtual Real GetMass() const=0;
@@ -58,12 +69,25 @@ public:
 	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
 	        Field<mesh_type, FACE, scalar_type> const & B)=0;
 
-	virtual void Print(std::ostream & os) const=0;
-
-	virtual void Dump(std::string const & name, bool compact_storage) const
+	virtual std::string Dump(std::string const & path, bool is_verbose) const
 	{
-		LOGGER << simpla::Dump(n, name + "_n", compact_storage);
-		LOGGER << simpla::Dump(J, name + "_J", compact_storage);
+
+		std::stringstream os;
+
+		GLOBAL_DATA_STREAM.OpenGroup(path );
+
+		os << "\n, n =" << simpla::Dump(n, "n", !is_verbose);
+
+		if (needImplicitPushE_)
+		{
+			os << "\n, J =" << simpla::Dump(Jv, "J", !is_verbose);
+		}
+		else
+		{
+			os << "\n, J =" << simpla::Dump(J, "J", !is_verbose);
+		}
+
+		return os.str();
 	}
 
 };
@@ -127,14 +151,15 @@ public:
 //		p_->Print(os);
 //	}
 //
-//	std::string Dump(std::string const & name, bool compact_storage) const
+//	std::string Dump(std::string const & name, bool is_verbose) const
 //	{
-//		return p_->Dump(name, compact_storage);
+//		return p_->Dump(name, is_verbose);
 //	}
 //
 //};
 //*******************************************************************************************************
 
-}// namespace simpla
+}
+// namespace simpla
 
 #endif /* PARTICLE_BASE_H_ */

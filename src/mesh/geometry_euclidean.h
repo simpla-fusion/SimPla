@@ -112,9 +112,13 @@ struct EuclideanGeometry
 		}
 	}
 
-	void Print(std::ostream &os) const
+	std::string Dump(std::string const &path, bool is_verbose) const
 	{
+		std::stringstream os;
+
 		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_;
+
+		return os.str();
 	}
 
 	template<typename T>

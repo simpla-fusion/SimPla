@@ -51,15 +51,17 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	for (auto &p : particles)
 	{
+		if (!p.second->NeedImplicitPushE())
+			continue;
 		auto & ns = p.second->n;
-		auto & Js = p.second->J;
+		auto & Js = p.second->Jv;
 
 		Real ms = p.second->GetMass();
 		Real qs = p.second->GetCharge();
 
 		Real as = (dt * qs) / (2.0 * ms);
 
-		K = (Ev * ns * (qs * as * 0.5) + MapTo<VERTEX>(Js));
+		K = (Ev * ns * (qs * as * 0.5) + Js);
 
 		Q -= (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1) * (dt / epsilon0);
 

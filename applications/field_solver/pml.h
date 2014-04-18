@@ -63,20 +63,13 @@ public:
 
 	void Load(coordinates_type xmin, coordinates_type xmax);
 
-	void Print(std::ostream & os) const;
+	void Dump(std::string const & path, bool is_verbose) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
 
 	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
 
-	void DumpData(std::string const &path = "/DumpData") const;
 };
-
-template<typename TM>
-inline std::ostream & operator<<(std::ostream & os, PML<TM> const &self)
-{
-	return self.Save(os);
-}
 
 template<typename TM>
 template<typename ... Args>
@@ -164,7 +157,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 }
 
 template<typename TM>
-void PML<TM>::Print(std::ostream & os) const
+void PML<TM>::Dump(std::string const & path, bool is_verbose) const
 {
 	UNIMPLEMENT;
 }
@@ -174,12 +167,6 @@ OS &operator<<(OS & os, PML<TM> const& self)
 {
 	self.Print(os);
 	return os;
-}
-
-template<typename TM>
-void PML<TM>::DumpData(std::string const &path) const
-{
-	UNIMPLEMENT;
 }
 
 template<typename TM>

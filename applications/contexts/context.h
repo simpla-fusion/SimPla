@@ -18,20 +18,16 @@
 
 namespace simpla
 {
-class LuaObject;
 
 struct Context
 {
-
-	Context(LuaObject const &);
+	Context(LuaObject const & dict);
 	Context();
 	~Context();
 
-	void Load(LuaObject const &);
+	void Load(LuaObject const & dict);
 
-	std::function<void(std::string const &)> Dump;
-
-	std::function<void(std::ostream &)> Print;
+	std::function<std::string(std::string const &, bool)> Dump;
 
 	std::function<void()> NextTimeStep;
 
@@ -46,24 +42,6 @@ struct Context
 
 };
 
-inline std::ostream & operator<<(std::ostream & os, Context const &self)
-{
-	self.Print(os);
-	return os;
-}
-
-template<typename TC, typename TDict>
-void CreateContext(TDict const &dict, Context* ctx)
-{
-
-	std::shared_ptr<TC> ctx_ptr(new TC);
-	ctx_ptr->Load(dict);
-	using namespace std::placeholders;
-	ctx->Print = std::bind(&TC::template Print<std::ostream>, ctx_ptr, _1);
-	ctx->Dump = std::bind(&TC::Dump, ctx_ptr, _1);
-	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
-
-}
 }
 // namespace simpla
 

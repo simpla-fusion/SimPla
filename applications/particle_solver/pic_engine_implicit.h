@@ -108,8 +108,9 @@ public:
 		CHECK(q_kT_);
 	}
 
-	std::ostream & Print(std::ostream & os) const
+	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
+		std::stringstream os;
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -123,7 +124,7 @@ public:
 
 		;
 
-		return os;
+		return os.str();
 	}
 	void Update()
 	{

@@ -87,8 +87,6 @@ public:
 	// Destructor
 	virtual ~Particle();
 
-	template<typename ...Args> void Load(Args const &... args);
-
 	//***************************************************************************************************
 	// Interface
 
@@ -108,9 +106,7 @@ public:
 	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const &E,
 	        Field<mesh_type, FACE, scalar_type> const & B);
 
-	void Print(std::ostream & os) const;
-
-	void Dump(std::string const &, bool compact_storage = false) const;
+	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
 	template<int IFORM, typename ...Args>
 	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
@@ -225,20 +221,24 @@ Particle<Engine>::~Particle()
 //*************************************************************************************************
 
 template<class Engine>
-void Particle<Engine>::Dump(std::string const & name, bool compact_storage) const
+std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
 {
-	if (!compact_storage)
+	std::stringstream os;
+
+	if (is_verbose)
 	{
-		LOGGER << simpla::Dump(*this, name, compact_storage);
+		GLOBAL_DATA_STREAM.OpenGroup(path );
 
+		os
+
+		<< engine_type::Dump(path,is_verbose)
+
+		<< "\n, particles = " << simpla::Dump(*this, "particles", !is_verbose);
 	}
-	base_type::Dump(name, compact_storage);
-}
 
-template<class Engine>
-void Particle<Engine>::Print(std::ostream & os) const
-{
-	engine_type::Print(os);
+	os << base_type::Dump(path, is_verbose);
+
+	return os.str();
 }
 
 #define DISABLE_MULTI_THREAD

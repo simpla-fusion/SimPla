@@ -143,8 +143,6 @@ int main(int argc, char **argv)
 
 	LOGGER << "Pre-Process" << START;
 
-	GLOBAL_DATA_STREAM.OpenGroup("/Input");
-
 	Context ctx(dict);
 
 	if (ctx.empty())
@@ -152,10 +150,9 @@ int main(int argc, char **argv)
 		INFORM << "illegal configure! ";
 		TheEnd(-2);
 	}
-
 	else
 	{
-		INFORM << ctx;
+		INFORM << ctx.Dump("/Input", true);
 	}
 	// Preprocess    ====================================
 	// Main Loop ============================================
@@ -164,13 +161,15 @@ int main(int argc, char **argv)
 	LOGGER << "Process " << START;
 
 	TheStart();
-	ctx.Dump("/DumpData");
+
 	if (just_a_test)
 	{
 		LOGGER << "Just test configure files";
 	}
 	else
 	{
+
+		LOGGER << ctx.Dump("/DumpData", false);
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
@@ -180,7 +179,7 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				ctx.Dump("/DumpData");
+				LOGGER << ctx.Dump("/DumpData", false);
 			}
 		}
 	}
@@ -188,9 +187,9 @@ int main(int argc, char **argv)
 
 	VERBOSE << "Post-Process" << START;
 
-	GLOBAL_DATA_STREAM.OpenGroup("/Output");
-
 	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
+
+	ctx.Dump("/Output", true);
 
 	VERBOSE << "Post-Process" << DONE;
 

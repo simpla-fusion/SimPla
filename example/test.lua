@@ -123,8 +123,8 @@ Model=
 Particles={
 -- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
 -- H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
--- eleC = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0 },
-   ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 }
+ --  	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0 },
+ ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 }
 }
 --]]
 

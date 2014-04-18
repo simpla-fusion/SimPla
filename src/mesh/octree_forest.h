@@ -150,9 +150,13 @@ struct OcForest
 
 	}
 
-	void Print(std::ostream &os) const
+	std::string Dump(std::string const &path, bool is_verbose) const
 	{
+		std::stringstream os;
+
 		os << "\tDimensions =  " << dims_;
+
+		return os.str();
 	}
 
 	void Update()
