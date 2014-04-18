@@ -169,24 +169,11 @@ public:
 
 		p->v += E * (cmr_ * dt * 0.5);
 
-		// $ x_{1} - x_{1/2} = v_1   \Delta t /2$
-
+		p->x += p->v * dt * 0.5;
 		Vec3 v;
-
-		v = p->v * q_ * p->f * p->w;
-
-		if (isXVSync_)
-		{
-			p->x += p->v * dt * 0.5;
-			interpolator_type::Scatter(p->x, v, J);
-			// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
-			p->x += p->v * dt * 0.5;
-		}
-		else
-		{
-			p->x += p->v * dt;
-			interpolator_type::Scatter(p->x, v, J);
-		}
+		v = p->v * p->f * p->w;
+		interpolator_type::Scatter(p->x, v, J);
+		p->x += p->v * dt * 0.5;
 	}
 
 	template<typename TJ, typename ...Args>

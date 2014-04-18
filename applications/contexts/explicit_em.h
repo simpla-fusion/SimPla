@@ -350,14 +350,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		}
 
 	}
-
+	Implicit_PushE = [] (Real, TE const &, TB const &, TParticles const&, TE*)
+	{};
 	if (enableImplicitPushE)
-	{
-		Implicit_PushE = [] (Real, TE const &, TB const &, TParticles const&, TE*)
-		{};
-
-	}
-	else
 	{
 		Implicit_PushE = &ImplicitPushE<TE, TB, TParticles>;
 	}
@@ -385,13 +380,13 @@ std::string ExplicitEMContext<TM>::Dump(std::string const & path, bool is_verbos
 
 	<< "\n, Fields = {" << "\n"
 
-	<< "\n, E = " << simpla::Dump(E, "E", !is_verbose)
+	<< "\n, E = " << simpla::Dump(E, "E", is_verbose)
 
-	<< "\n, B = " << simpla::Dump(B, "B", !is_verbose)
+	<< "\n, B = " << simpla::Dump(B, "B", is_verbose)
 
-	<< "\n, J = " << simpla::Dump(Jext, "J", !is_verbose)
+	<< "\n, J = " << simpla::Dump(Jext, "J", is_verbose)
 
-	<< "\n, J0 = " << simpla::Dump(J0, "J0", !is_verbose)
+	<< "\n, J0 = " << simpla::Dump(J0, "J0", is_verbose)
 
 	<< "\n} ";
 
@@ -430,53 +425,49 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	//************************************************************
 	// Compute Cycle Begin
 	//************************************************************
-
-	dB.Clear();
-
-	B_minus_CurlE(dt, E, B, &dB);
-
-	//  B(t=1/2 -> 1)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-	//   x=-1/2 -> 1/2 , v=0 -> 1
-	for (auto &p : particles_)
-	{
-		p.second->NextTimeStep(dt, E, B);
-	}
-
-	// B(t=0 -> 1/2)
-	LOG_CMD(B += dB * 0.5);
-
-	ApplyConstraintToB(&B);
-
-	dE.Clear();
-
-	// dE += Curl(B)*dt
-	E_plus_CurlB(dt, E, B, &dE);
-
+	// E0 B0, v-1/2,x0
 	LOG_CMD(Jext = J0);
-
-	for (auto const &p : particles_)
+	ApplyConstraintToJ(&Jext);
+//	//   x, v=-1/2 -> 1/2 , J=1/2
+	for (auto &p : particles_)
 	{
 		if (!p.second->NeedImplicitPushE())
 		{
+			p.second->NextTimeStep(dt, E, B);
 			auto const & Js = p.second->J;
 			LOG_CMD(Jext += Js);
 		}
 	}
 
-	ApplyConstraintToJ(&Jext);
+	LOG_CMD(B += dB * 0.5);	//  B(t=1/2 -> 1)
+	ApplyConstraintToB(&B);
+
+	dE.Clear();
+	E_plus_CurlB(dt, E, B, &dE); 	// dE += Curl(B)*dt
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
-	ImplicitPushE(dt, E, B, particles_, &dE);
+	Implicit_PushE(dt, E, B, particles_, &dE);
 
-// E(t=0  -> 1/2  )
-	LOG_CMD(E += dE);
-
+	LOG_CMD(E += dE * 0.5);	// E(t=0  -> 1/2  )
 	ApplyConstraintToE(&E);
+
+	for (auto &p : particles_)
+	{
+		if (p.second->NeedImplicitPushE())
+		{
+			p.second->NextTimeStep(dt, E, B);
+		}
+	}
+
+	LOG_CMD(E += dE * 0.5);
+	ApplyConstraintToE(&E);
+
+	dB.Clear();
+	B_minus_CurlE(dt, E, B, &dB);
+
+	LOG_CMD(B += dB * 0.5);
+	ApplyConstraintToB(&B);
 
 //************************************************************
 // Compute Cycle End

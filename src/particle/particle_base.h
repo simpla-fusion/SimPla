@@ -57,6 +57,11 @@ public:
 		needImplicitPushE_ = true;
 	}
 
+	void DisableImplicitPushE()
+	{
+		needImplicitPushE_ = false;
+	}
+
 	bool NeedImplicitPushE() const
 	{
 		return needImplicitPushE_;
@@ -76,16 +81,13 @@ public:
 
 		GLOBAL_DATA_STREAM.OpenGroup(path );
 
-		os << "\n, n =" << simpla::Dump(n, "n", !is_verbose);
+		os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
 
-		if (needImplicitPushE_)
-		{
-			os << "\n, J =" << simpla::Dump(Jv, "J", !is_verbose);
-		}
-		else
-		{
-			os << "\n, J =" << simpla::Dump(J, "J", !is_verbose);
-		}
+		if (!Jv.empty())
+			os << "\n, J =" << simpla::Dump(Jv, "Jv", is_verbose);
+
+		if (!J.empty())
+			os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
 
 		return os.str();
 	}

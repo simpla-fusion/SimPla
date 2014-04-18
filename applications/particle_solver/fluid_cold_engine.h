@@ -96,6 +96,9 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 	q_ = dict["Charge"].template as<Real>(1.0);
 
 	LoadField(dict["Density"], &(base_type::n));
+
+	base_type::n *= q_;
+
 	LoadField(dict["Current"], &(base_type::J));
 }
 
@@ -103,7 +106,7 @@ template<typename TM>
 std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
-	if (!is_verbose)
+	if (is_verbose)
 	{
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
@@ -128,11 +131,11 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 {
 
 	auto & J = base_type::Jv;
-	auto & n = base_type::n;
+	auto & rho = base_type::n;
 
-	Real as = GetCharge() / GetMass() * dt;
+	Real as = 0.5 * GetCharge() * dt / GetMass();
 
-	J += (0.5 * as) * n * MapTo<IForm>(E);
+	J += as * rho * MapTo<IForm>(E);
 
 	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv(B.mesh);
 
@@ -140,9 +143,9 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 
 	J = (J + Cross(J, Bv) * as + Bv * (Dot(J, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
 
-	J += (0.5 * as) * n * MapTo<IForm>(E);
+	J += as * rho * MapTo<IForm>(E);
 
-//	n -= Diverge(MapTo<EDGE>(J)) * dt;
+	rho -= Diverge(MapTo<EDGE>(J)) * dt;
 }
 
 }  // namespace simpla

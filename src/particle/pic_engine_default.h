@@ -156,37 +156,25 @@ public:
 
 		Vec3 v;
 
-		v = p->v * q_ * p->f;
+		v = p->v * p->f;
 
-		if (isXVSync_)
-		{
-			p->x += p->v * dt * 0.5;
-			interpolator_type::Scatter(p->x, v, J);
-			// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
-			p->x += p->v * dt * 0.5;
-		}
-		else
-		{
-			p->x += p->v * dt;
-			interpolator_type::Scatter(p->x, v, J);
-		}
+		p->x += p->v * dt * 0.5;
+		interpolator_type::Scatter(p->x, v, J);
+		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$
+		p->x += p->v * dt * 0.5;
 
-		//		BorisMethod(dt, cmr_, interpolator_type::Gather(fE, p->x), interpolator_type::Gather(fB, p->x), &(p->x),
-//		        &(p->v));
-//
-//		Scatter(*p, J, fE, fB, std::forward<Others const &>(others)...);
 	}
 
 	template<typename TN, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TN> * n, Args const & ...) const
 	{
-		interpolator_type::Scatter(p.x, q_ * p.f, n);
+		interpolator_type::Scatter(p.x, p.f, n);
 	}
 	template<typename TJ, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
 	{
 		typename Field<mesh_type, EDGE, TJ>::field_value_type v;
-		v = p.v * q_ * p.f;
+		v = p.v * p.f;
 		interpolator_type::Scatter(p.x, v, J);
 	}
 

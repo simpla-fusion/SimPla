@@ -269,7 +269,7 @@ public:
 	void CloseFile();
 
 	template<typename TV, typename TS>
-	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_compact_stored) const
+	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_verbose) const
 	{
 		size_t dims[rank + 1];
 
@@ -285,7 +285,7 @@ public:
 
 		HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
 
-		rank, dims, is_compact_stored);
+		rank, dims, is_verbose);
 
 	}
 
@@ -303,7 +303,7 @@ class DataDumper
 
 	TV const* data_;
 	std::string name_;
-	bool is_compact_store_;
+	bool is_verbose_;
 	std::vector<size_t> dims_;
 public:
 
@@ -312,7 +312,7 @@ public:
 	template<typename TI>
 	DataDumper(TV const* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag =
 	        false)
-			: data_(d), name_(name), is_compact_store_(flag)
+			: data_(d), name_(name), is_verbose_(flag)
 	{
 		if (dims != nullptr && rank > 0)
 		{
@@ -331,7 +331,7 @@ public:
 
 	template<int N, typename TI>
 	DataDumper(TV const* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
-			: data_(d), name_(name), is_compact_store_(flag)
+			: data_(d), name_(name), is_verbose_(flag)
 	{
 		for (size_t i = 0; i < N; ++i)
 		{
@@ -341,7 +341,7 @@ public:
 
 	template<typename TI>
 	DataDumper(TV const* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims.size()), is_compact_store_(flag)
+			: data_(d), name_(name), dims_(dims.size()), is_verbose_(flag)
 	{
 		std::copy(dims.begin(), dims.end(), dims_.begin());
 	}
@@ -352,7 +352,7 @@ public:
 
 	~DataDumper()
 	{
-		DataStream::instance().Write(data_, name_, dims_.size(), &dims_[0], is_compact_store_);
+		DataStream::instance().Write(data_, name_, dims_.size(), &dims_[0], is_verbose_);
 	}
 
 	std::string GetName() const

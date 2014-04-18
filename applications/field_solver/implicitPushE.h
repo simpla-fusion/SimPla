@@ -42,7 +42,6 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 	Q.Clear();
 	K.Clear();
 
-	Q = MapTo<VERTEX>(E + dE);
 	Ev = MapTo<VERTEX>(E);
 
 	a.Clear();
@@ -53,7 +52,7 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 	{
 		if (!p.second->NeedImplicitPushE())
 			continue;
-		auto & ns = p.second->n;
+		auto & rhos = p.second->n;
 		auto & Js = p.second->Jv;
 
 		Real ms = p.second->GetMass();
@@ -61,19 +60,21 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 		Real as = (dt * qs) / (2.0 * ms);
 
-		K = (Ev * ns * (qs * as * 0.5) + Js);
+		K = (Ev * rhos * (as * 0.5) + Js);
 
-		Q -= (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1) * (dt / epsilon0);
+		Q += (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
 
-		a += ns * qs * as / (BB * as * as + 1);
-		b += ns * qs * as * as / (BB * as * as + 1);
-		c += ns * qs * as * as * as / (BB * as * as + 1);
+		a += rhos * as / (BB * as * as + 1);
+		b += rhos * as * as / (BB * as * as + 1);
+		c += rhos * as * as * as / (BB * as * as + 1);
 	}
 
 	a *= 0.5 * dt / epsilon0;
 	b *= 0.5 * dt / epsilon0;
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
+
+	Q = MapTo<VERTEX>(E + dE) - Q * (dt / epsilon0);
 
 	Ev = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 

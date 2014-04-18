@@ -107,13 +107,13 @@ void DataStream::CloseFile()
 }
 
 std::string DataStream::Write(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_compact_store) const
+        bool is_verbose) const
 {
-	return HDF5Write(group_, v, name, mdtype, rank, dims, is_compact_store);
+	return HDF5Write(group_, v, name, mdtype, rank, dims, is_verbose);
 }
 
 std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_compact_store)
+        bool is_verbose)
 {
 
 	if (grp <= 0)
@@ -139,7 +139,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 	}
 	std::string dsname = name;
 
-	if (!is_compact_store)
+	if (is_verbose)
 	{
 
 		dsname = name +
