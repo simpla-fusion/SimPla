@@ -257,24 +257,49 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	Sort();
 
-	base_type::J.Clear();
-
-	ParallelDo(
-
-	[&](int t_num,int t_id)
+	if (base_type::NeedImplicitPushE())
 	{
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		base_type::Jv.Clear();
+
+		ParallelDo(
+
+		[&](int t_num,int t_id)
 		{
-			this->J.lock();
-			for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 			{
-				this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
+				this->J.lock();
+				for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+				{
+					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::Jv),E,B);
 
+				}
+				this->J.unlock();
 			}
-			this->J.unlock();
-		}
 
-	});
+		});
+		J = MapTo<EDGE>(base_type::Jv);
+	}
+	else
+	{
+		base_type::J.Clear();
+
+		ParallelDo(
+
+		[&](int t_num,int t_id)
+		{
+			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+			{
+				this->J.lock();
+				for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+				{
+					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
+
+				}
+				this->J.unlock();
+			}
+
+		});
+	}
 
 	base_type::n -= Diverge(base_type::J) * dt;
 

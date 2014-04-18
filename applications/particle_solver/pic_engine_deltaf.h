@@ -169,19 +169,32 @@ public:
 
 		p->v += E * (cmr_ * dt * 0.5);
 
-		p->x += p->v * dt * 0.5;
-		Vec3 v;
-		v = p->v * p->f * p->w;
-		interpolator_type::Scatter(p->x, v, J);
-		p->x += p->v * dt * 0.5;
+		p->x += p->v * dt;
+
+		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+
 	}
 
-	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
+	template<typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J, Args const & ...) const
 	{
-		typename Field<mesh_type, EDGE, TJ>::field_value_type v;
+		typename Field<mesh_type, EDGE, TV>::field_value_type v;
 
-		v = p.v * q_ * p.f * p.w;
+		v = p.v * p.f * p.w;
+
+		auto x = p.x;
+		x -= v * dt * 0.5;
+
+		interpolator_type::Scatter(p.x, v, J);
+	}
+
+	//For implicit pusher
+	template<typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Real dt, Field<mesh_type, VERTEX, nTuple<3, TV> >* J, Args const & ...) const
+	{
+		typename Field<mesh_type, VERTEX, TV>::field_value_type v;
+
+		v = p.v * p.f * p.w;
 
 		interpolator_type::Scatter(p.x, v, J);
 	}

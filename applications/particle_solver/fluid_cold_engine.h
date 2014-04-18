@@ -129,23 +129,26 @@ template<typename TM>
 void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
+	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
 
-	auto & J = base_type::Jv;
+	auto & Jv = base_type::Jv;
 	auto & rho = base_type::n;
 
 	Real as = 0.5 * GetCharge() * dt / GetMass();
 
-	J += as * rho * MapTo<IForm>(E);
+	Jv += as * rho * MapTo<IForm>(E);
 
 	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv(B.mesh);
 
 	Bv = MapTo<IForm>(B);
 
-	J = (J + Cross(J, Bv) * as + Bv * (Dot(J, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
+	decltype(base_type::Jv) K(E.mesh);
 
-	J += as * rho * MapTo<IForm>(E);
+	K = (Jv - Cross(Jv, Bv) * as + Bv * (Dot(Jv, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
 
-	rho -= Diverge(MapTo<EDGE>(J)) * dt;
+	Jv = K + as * rho * MapTo<IForm>(E);
+
+	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
 }
 
 }  // namespace simpla

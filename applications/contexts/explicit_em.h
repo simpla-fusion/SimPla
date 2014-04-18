@@ -279,7 +279,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			{
 				particles_.emplace(key, p);
 
-				enableImplicitPushE = enableImplicitPushE && p->NeedImplicitPushE();
+				enableImplicitPushE = enableImplicitPushE || p->NeedImplicitPushE();
 			}
 		}
 	}
