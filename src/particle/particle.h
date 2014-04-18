@@ -82,7 +82,8 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...args);
+	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
+	        Args const & ...args);
 
 	// Destructor
 	virtual ~Particle();
@@ -182,22 +183,22 @@ private:
 };
 
 template<class Engine>
-template<typename ...Args>
-Particle<Engine>::Particle(mesh_type const & pmesh, Args const & ...args)
-		: engine_type(pmesh, std::forward<Args const&>(args)...),
+template<typename TDict, typename ...Args>
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...args)
+		: engine_type(pmesh, dict, std::forward<Args const&>(args)...),
 
 		base_type(pmesh),
 
 		mesh(pmesh),
 
-		isSorted_(true), particleSortingIsEnable_(true),
+		isSorted_(false),
 
 		pool_(),
 
 		data_(pmesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
 {
 
-	if (particleSortingIsEnable_)
+	if (dict["EnableSort"].template as<bool>(true))
 	{
 
 		const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -210,7 +211,12 @@ Particle<Engine>::Particle(mesh_type const & pmesh, Args const & ...args)
 		}
 	}
 
-	LoadParticle(this, std::forward<Args const &>(args)...);
+	if (dict["EnableImplicitSolver"].template as<bool>(false))
+	{
+		base_type::EnableImplicitPushE();
+	}
+
+	LoadParticle(this, dict, std::forward<Args const &>(args)...);
 }
 
 template<class Engine>
@@ -253,7 +259,8 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 		return;
 	}
 
-	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << "]";
+	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << " , Enable Implicit Solver=" << std::boolalpha
+	        << base_type::NeedImplicitPushE() << " ]";
 
 	Sort();
 
@@ -277,7 +284,8 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 			}
 
 		});
-		J = MapTo<EDGE>(base_type::Jv);
+
+		base_type::n -= Diverge(MapTo<EDGE>(base_type::Jv)) * dt;
 	}
 	else
 	{
@@ -299,9 +307,9 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 			}
 
 		});
-	}
 
-	base_type::n -= Diverge(base_type::J) * dt;
+		base_type::n -= Diverge(base_type::J) * dt;
+	}
 
 	isSorted_ = false;
 	Sort();
@@ -365,7 +373,7 @@ template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	if (IsSorted() || !particleSortingIsEnable_)
+	if (IsSorted() || mt_data_.size() <= 0)
 		return;
 
 	VERBOSE << "Particle sorting is enabled!";

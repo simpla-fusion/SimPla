@@ -54,7 +54,7 @@ InitN0=function(x,y,z)
      end 
 
 InitB0=function(x,y,z)
-      return {0,0,0.0}
+      return {0,0,1.0}
      end 
  
 
@@ -68,7 +68,7 @@ InitValue={
           res=res+math.sin(x/LX*TWOPI* i);
       end;
     
-      return {0,0,res}
+      return {0,res,0}
     end
 
  --[[    
@@ -123,8 +123,8 @@ Model=
 Particles={
 -- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
 -- H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 }
- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0 },
---  ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 }
+--  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
+ ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
 }
 --]]
 

@@ -192,7 +192,7 @@ public:
 	template<typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Real dt, Field<mesh_type, VERTEX, nTuple<3, TV> >* J, Args const & ...) const
 	{
-		typename Field<mesh_type, VERTEX, TV>::field_value_type v;
+		nTuple<3, TV> v;
 
 		v = p.v * p.f * p.w;
 

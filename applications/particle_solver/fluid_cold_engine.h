@@ -144,9 +144,9 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 
 	decltype(base_type::Jv) K(E.mesh);
 
-	K = (Jv - Cross(Jv, Bv) * as + Bv * (Dot(Jv, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
+	Jv = (Jv + Cross(Jv, Bv) * as + Bv * (Dot(Jv, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
 
-	Jv = K + as * rho * MapTo<IForm>(E);
+	Jv += as * rho * MapTo<IForm>(E);
 
 	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
 }
