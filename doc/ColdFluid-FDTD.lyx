@@ -311,7 +311,7 @@ J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_
 where
 \begin_inset Formula 
 \begin{eqnarray*}
-\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}-\alpha\overleftrightarrow{I}\times\boldsymbol{B}+\alpha^{2}\overleftrightarrow{I}\cdot\boldsymbol{B}\boldsymbol{B}}{1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}}
+\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}+\alpha\overleftrightarrow{I}\times\boldsymbol{B}+\alpha^{2}\overleftrightarrow{I}\cdot\boldsymbol{B}\boldsymbol{B}}{1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}}
 \end{eqnarray*}
 
 \end_inset
