@@ -8,14 +8,13 @@
 #ifndef PARTICLE_BASE_H_
 #define PARTICLE_BASE_H_
 
-#include <iostream>
-#include <memory>
+#include <sstream>
 #include <string>
 
-#include "../fetl/field.h"
-#include "../fetl/save_field.h"
-#include "../fetl/primitives.h"
+#include "../fetl/fetl.h"
 #include "../io/data_stream.h"
+#include "../modeling/select.h"
+#include "../utilities/singleton_holder.h"
 
 namespace simpla
 {
@@ -90,6 +89,11 @@ public:
 			os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
 
 		return os.str();
+	}
+
+	virtual void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
+	{
+
 	}
 
 };

@@ -109,8 +109,7 @@ public:
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
-	template<int IFORM, typename ...Args>
-	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
+	void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str);
 
 	//***************************************************************************************************
 
@@ -134,6 +133,8 @@ public:
 	}
 
 //***************************************************************************************************
+	template<int IFORM, typename ...Args>
+	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
 
 	void Sort();
 
@@ -316,6 +317,13 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	LOGGER << DONE;
 }
+
+template<typename Engine>
+void Particle<Engine>::Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
+{
+
+}
+
 template<class Engine> template<int IFORM, typename ...Args>
 void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
 {

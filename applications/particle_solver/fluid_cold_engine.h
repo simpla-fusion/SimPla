@@ -41,16 +41,18 @@ public:
 
 	mesh_type const & mesh;
 
-	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...);
+	template<typename ...Args>
+	Particle(mesh_type const & pmesh, Args const & ...);
 
 	~Particle();
+
+	template<typename TDict, typename ...Others>
+	void Load(TDict const & dict, Others const &...);
 
 	static std::string GetTypeAsString()
 	{
 		return "ColdFluid";
 	}
-
-	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others const &...);
 
 	inline Real GetMass() const
 	{
@@ -66,6 +68,7 @@ public:
 	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
+	void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str);
 
 private:
 	Real m_;
@@ -151,6 +154,12 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
 }
 
-}  // namespace simpla
+template<typename TM>
+void Particle<ColdFluid<TM>>::Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
+{
+
+}
+}
+// namespace simpla
 
 #endif /* FLUID_COLD_ENGINE_H_ */
