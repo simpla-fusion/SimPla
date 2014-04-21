@@ -161,7 +161,10 @@ public:
 		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
 
 	}
+	inline void Reflect(nTuple<3, Real> const & x, nTuple<3, Real> const & nv, Point_s * p) const
+	{
 
+	}
 	template<typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J, Args const & ...) const
 	{

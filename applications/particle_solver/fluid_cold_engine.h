@@ -68,7 +68,6 @@ public:
 	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
-	void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str);
 
 private:
 	Real m_;
@@ -154,11 +153,6 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
 }
 
-template<typename TM>
-void Particle<ColdFluid<TM>>::Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
-{
-
-}
 }
 // namespace simpla
 

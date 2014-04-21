@@ -28,6 +28,7 @@
 #include "../utilities/parallel.h"
 
 #include "../io/data_stream.h"
+
 #include "particle_base.h"
 #include "load_particle.h"
 #include "save_particle.h"
@@ -109,7 +110,7 @@ public:
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
-	void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str);
+	void Boundary(Surface<mesh_type> const&, std::string const & type_str);
 
 	//***************************************************************************************************
 
@@ -319,9 +320,36 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 }
 
 template<typename Engine>
-void Particle<Engine>::Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
+void Particle<Engine>::Boundary(Surface<mesh_type> const& surface, std::string const & type_str)
 {
+	if (type_str == "Absorb")
+	{
+		for (auto const &cell : surface)
+		{
+			pool_.splice(pool_.begin(), data_.at(mesh.Hash(cell.first)));
+		}
 
+	}
+	else if (type_str == "Reflect")
+	{
+		for (auto const &cell : surface)
+		{
+			auto const & v = cell.second;
+			Real dt = mesh.GetDt();
+			for (auto & p : data_.at(mesh.Hash(cell.first)))
+			{
+				engine_type::Reflect(mesh.GetCoordinates(cell.first), v, &p);
+			}
+		}
+		for (auto const &cell : surface)
+		{
+			Resort(cell.first, &data_);
+		}
+	}
+	else
+	{
+		UNIMPLEMENT2("Unknown particle boundary type [" + type_str + "]!");
+	}
 }
 
 template<class Engine> template<int IFORM, typename ...Args>

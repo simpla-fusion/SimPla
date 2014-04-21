@@ -14,6 +14,7 @@
 #include "../fetl/fetl.h"
 #include "../io/data_stream.h"
 #include "../modeling/select.h"
+#include "../modeling/surface.h"
 #include "../utilities/singleton_holder.h"
 
 namespace simpla
@@ -91,9 +92,8 @@ public:
 		return os.str();
 	}
 
-	virtual void Boundary(FilterRange<typename mesh_type::Range> const&, std::string const & type_str)
+	virtual void Boundary(Surface<mesh_type> const&, std::string const & type_str)
 	{
-
 	}
 
 };

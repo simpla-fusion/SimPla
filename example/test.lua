@@ -165,11 +165,11 @@ Constraints=
 	-- Select={Type="Media", Tag="Vacuum"},
 	-- Value= 0
  --  },
-  { 
-    DOF="Particles",
-	Select={Type="Boundary", Tag="Plasma"},
-	Value= "Absorb"
-  },
+--  { 
+--    DOF="Particles",
+--	Select={Type="Boundary", Tag="Plasma"},
+--	Value= "Absorb"
+--  },
    
 }
 

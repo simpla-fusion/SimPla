@@ -96,7 +96,7 @@ public:
 ;
 
 template<typename TField, typename TDict>
-static std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
+std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
         TDict const & dict)
 {
 	std::function<void(TField *)> res = [](TField *)

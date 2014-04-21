@@ -18,26 +18,26 @@
 // Misc
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/pretty_stream.h"
-// Field expression
-#include "../../src/fetl/field.h"
-#include "../../src/fetl/ntuple.h"
-#include "../../src/fetl/primitives.h"
 
 // Data IO
-#include "../../src/fetl/save_field.h"
 #include "../../src/io/data_stream.h"
 
-// Modeling
-#include "../../src/modeling/material.h"
-#include "../../src/utilities/geqdsk.h"
-
-// Field solver
-#include "../../src/modeling/constraint.h"
-#include "../field_solver/pml.h"
-#include "../field_solver/implicitPushE.h"
+// Field
+#include "../../src/fetl/fetl.h"
+#include "../../src/fetl/save_field.h"
 
 // Particle
 #include "../../src/particle/particle_base.h"
+
+// Modeling
+#include "../../src/modeling/material.h"
+#include "../../src/modeling/constraint.h"
+#include "../../src/modeling/particle_constraint.h"
+#include "../../src/utilities/geqdsk.h"
+
+// Solver
+#include "../field_solver/pml.h"
+#include "../field_solver/implicitPushE.h"
 #include "../particle_solver/particle_factory.h"
 
 namespace simpla
@@ -132,6 +132,18 @@ public:
 		}
 	}
 
+	void ApplyConstraintToParticle(std::string const & pname, std::shared_ptr<ParticleBase<mesh_type>> p)
+	{
+		if (constraintToParticle_.size() > 0)
+		{
+			LOGGER << "Apply Constraint to Particles [" << pname << "]";
+			for (auto const & foo : constraintToParticle_)
+			{
+				foo(pname, p);
+			}
+		}
+	}
+
 private:
 
 	std::list<std::function<void(TE*)> > constraintToE_;
@@ -139,6 +151,8 @@ private:
 	std::list<std::function<void(TB*)> > constraintToB_;
 
 	std::list<std::function<void(TJ*)> > constraintToJ_;
+
+	std::list<std::function<void(std::string const &, std::shared_ptr<ParticleBase<mesh_type>>)> > constraintToParticle_;
 
 	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
@@ -306,11 +320,14 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			{
 				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
 			}
+
+			else if (dof == "Particles")
+			{
+				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
+			}
 			else
 			{
-				//TODO Add particles constraints
-				UNIMPLEMENT2("Unknown Constraints!!");
-				continue;
+				UNIMPLEMENT2("Unknown DOF!");
 			}
 
 		}
@@ -434,6 +451,8 @@ void ExplicitEMContext<TM>::NextTimeStep()
 		if (!p.second->NeedImplicitPushE())
 		{
 			p.second->NextTimeStep(dt, E, B);
+
+			ApplyConstraintToParticle(p.first, p.second);
 			auto const & Js = p.second->J;
 			LOG_CMD(Jext += Js);
 		}
@@ -457,6 +476,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 		if (p.second->NeedImplicitPushE())
 		{
 			p.second->NextTimeStep(dt, E, B);
+			ApplyConstraintToParticle(p.first, p.second);
 		}
 	}
 

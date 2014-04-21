@@ -209,6 +209,10 @@ public:
 
 	}
 
+	inline void Reflect(nTuple<3, Real> const & x, nTuple<3, Real> const & nv, Point_s * p) const
+	{
+
+	}
 	template<typename TJ, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, EDGE, TJ> * J, Args const & ...) const
 	{

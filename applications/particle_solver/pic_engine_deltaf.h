@@ -144,6 +144,13 @@ public:
 	template<typename TJ, typename TB, typename TE, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
+		Move(p, dt, fE, fB, std::forward<Others const & >(others)...);
+		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+	}
+
+	template<typename TB, typename TE, typename ... Others>
+	inline void Move(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
 		auto E = interpolator_type::Gather(fE, p->x);
@@ -171,7 +178,10 @@ public:
 
 		p->x += p->v * dt;
 
-		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+	}
+
+	inline void Reflect(nTuple<3, Real> const & x, nTuple<3, Real> const & nv, Point_s * p) const
+	{
 
 	}
 
