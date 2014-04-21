@@ -102,6 +102,27 @@ Grid=
 	},
 	dt= 0.5*LX/NX/c -- time step
 }
+
+
+
+---[[
+Particles={
+	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
+	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100, EnableImplicitSolver=true },
+	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
+	--  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
+	-- H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
+}
+--]]
+
+
+FieldSolver=
+{
+
+	---[[
+	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+	--]]
+}
 --[[
 Model=
 {
@@ -114,27 +135,6 @@ end
 ,Op="Set"},
 }
 --]]
-
-
----[[
-Particles={
-	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-	-- H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100, EnableImplicitSolver=true },
-    -- ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
-     ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
-     H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
-}
---]]
-
-
-FieldSolver=
-{
-
-	---[[
-	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
-	--]]
-}
-
 Constraints=
 {
 	---[[
@@ -147,7 +147,7 @@ Constraints=
 	{
 		DOF="J",
 		Range={ {0.1*LX,0,0}},
-		IsHard=true,
+		IsHard=false,
 		Value=
 		function(t,x,y,z)
 			local tau = t*omega_ext
@@ -156,7 +156,7 @@ Constraints=
 		end
 
 
-	}
+	},
 	--]]
 
 
@@ -165,11 +165,11 @@ Constraints=
 	-- Select={Type="Media", Tag="Vacuum"},
 	-- Value= 0
 	--  },
-	--  {
-	--    DOF="Particles",
-	--	Select={Type="Boundary", Tag="Plasma"},
-	--	Value= "Absorb"
-	--  },
+	{
+		DOF="Particles",
+		Select={Type="Surface", Width="Plasma"},
+		Type= "Reflect"
+	},
 
 }
 

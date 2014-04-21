@@ -90,6 +90,10 @@ if(USE_CLANG)
 
 endif(USE_CLANG)
 
+#if(USE_INTEL)
+ 
+#endif(USE_INTEL)
+
 #set(Boost_USE_STATIC_LIBS       OFF)
 #set(Boost_USE_MULTITHREADED     OFF)
 #set(Boost_USE_STATIC_RUNTIME    OFF)

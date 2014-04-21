@@ -45,7 +45,7 @@ void ParallelForEach(TRange range, std::function<void(typename TRange::value_typ
 {
 	ParallelDo([range,fun](int t_num,int t_id)
 	{
-		for(auto s:Split(range,t_num,t_id))
+		for(auto const & s:Split(range,t_num,t_id))
 		{
 			fun(s);
 		}

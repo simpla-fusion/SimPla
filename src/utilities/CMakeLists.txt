@@ -6,7 +6,7 @@ TARGET_LINK_LIBRARIES(geqdsk_test   Xdmf io)
 
 
 add_library(utilities   geqdsk.cpp)
-TARGET_LINK_LIBRARIES(utilities ${LUA_LIBRARIES} Xdmf io)
+TARGET_LINK_LIBRARIES(utilities ${LUA_LIBRARIES}   io)
 
 #my_test(log_test  pthread )  
 #target_link_libraries(log_test pthread  )

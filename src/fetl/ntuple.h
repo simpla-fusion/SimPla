@@ -38,8 +38,6 @@ namespace simpla
  *	@ingroup ntuple
  * */
 
-template<int N, typename T> struct nTuple;
-template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
 namespace _ntuple_impl
 {

@@ -34,13 +34,13 @@ void PhysicalConstants::Load(LuaObject const & vm)
 	else
 	{
 
-		SetBaseUnit(vm["Type"].template as<std::string>(), //
-		        vm["m"].template as<Real>(1.0), //
-		        vm["s"].template as<Real>(1.0), //
-		        vm["kg"].template as<Real>(1.0), //
-		        vm["C"].template as<Real>(1.0), //
-		        vm["K"].template as<Real>(1.0), //
-		        vm["mol"].template as<Real>(1.0));
+		SetBaseUnit(vm["Type"].as<std::string>(), //
+		        vm["m"].as<Real>(1.0), //
+		        vm["s"].as<Real>(1.0), //
+		        vm["kg"].as<Real>(1.0), //
+		        vm["C"].as<Real>(1.0), //
+		        vm["K"].as<Real>(1.0), //
+		        vm["mol"].as<Real>(1.0));
 	}
 }
 

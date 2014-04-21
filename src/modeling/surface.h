@@ -8,10 +8,13 @@
 #ifndef SURFACE_H_
 #define SURFACE_H_
 
-#include <map>
+#include <stddef.h>
+#include <utility>
+#include <vector>
 
 #include "../fetl/ntuple.h"
 #include "../fetl/primitives.h"
+#include "../utilities/type_utilites.h"
 
 namespace simpla
 {
@@ -28,10 +31,12 @@ public:
 
 	typedef nTuple<3, Real> Vec3;
 
-	std::map<index_type, Vec3> cell_list_;
-	typedef typename std::map<index_type, Vec3>::iterator iterator;
-	typedef typename std::map<index_type, Vec3>::const_iterator const_iterator;
+	std::vector<std::pair<index_type, Vec3>> cell_list_;
+	typedef typename std::vector<std::pair<index_type, Vec3>>::iterator iterator;
+	typedef typename std::vector<std::pair<index_type, Vec3>>::const_iterator const_iterator;
+
 	mesh_type const &mesh;
+
 	Surface(mesh_type const & pmesh)
 			: mesh(pmesh)
 	{
@@ -42,7 +47,7 @@ public:
 
 	void insert(index_type s, Vec3 const & v)
 	{
-		cell_list_.emplace(s, v);
+		cell_list_.push_back(std::make_pair(s, v));
 	}
 	iterator begin()
 	{
@@ -61,7 +66,24 @@ public:
 		return cell_list_.end();
 	}
 
+	Range<iterator> Split(int t_num, int t_id)
+	{
+		size_t s = cell_list_.size();
+		return Range<iterator>(begin() + s * t_id / t_num, begin() + s * (t_id + 1) / t_num);
+	}
+	Range<const_iterator> Split(int t_num, int t_id) const
+	{
+		size_t s = cell_list_.size();
+		return Range<const_iterator>(begin() + s * t_id / t_num, begin() + s * (t_id + 1) / t_num);
+	}
 };
-}  // namespace simpla
+
+template<typename TM>
+auto Split(Surface<TM> & s, int t_num, int t_id)-> decltype(s.Split(t_num,t_id))
+{
+	return s.Split(t_num, t_id);
+}
+}
+// namespace simpla
 
 #endif /* SURFACE_H_ */

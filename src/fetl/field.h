@@ -183,7 +183,7 @@ public:
 		{
 			return (data_.get() + make_hash(it_));
 		}
-		const pointer operator ->() const
+		pointer operator ->() const
 		{
 			return (data_.get() + make_hash(it_));
 		}
@@ -295,7 +295,6 @@ public:
 
 		);
 	}
-
 
 	void Clear()
 	{

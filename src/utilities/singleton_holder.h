@@ -19,7 +19,8 @@ class SingletonHolder {
 public:
 	static T & instance() {
 		if (!pInstance_) {
-#pragma omp critical
+//#pragma omp critical
+			//TOD add some for mt critical
 			if (!pInstance_) {
 				static T tmp;
 				pInstance_ = &tmp;

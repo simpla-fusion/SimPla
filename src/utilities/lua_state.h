@@ -9,7 +9,7 @@
 #ifndef INCLUDE_LUA_PARSER_H_
 #define INCLUDE_LUA_PARSER_H_
 
-#include <lua5.2/lua.hpp>
+#include <lua.hpp>
 #include <algorithm>
 #include <complex>
 #include <cstddef>
