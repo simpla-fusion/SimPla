@@ -86,6 +86,8 @@ public:
 	Form<EDGE> J0; //background current density J0+Curl(B(t=0))=0
 	Form<EDGE> Jext; // current density
 
+	Field<mesh_type, VERTEX, nTuple<3, Real> > Bv;
+
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
 	typedef decltype(Jext) TJ;
@@ -161,7 +163,11 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh)
+		: model_(mesh), E(mesh), B(mesh),
+
+		Jext(mesh), J0(mesh), dE(mesh), dB(mesh),
+
+		n(mesh), n0(mesh), phi(mesh), Bv(mesh)
 {
 }
 
@@ -371,7 +377,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{};
 	if (enableImplicitPushE)
 	{
+
 		Implicit_PushE = &ImplicitPushE<TE, TB, TParticles>;
+
+//		Implicit_PushE = [this](Real dt, TE const & E, TB const &, TParticles const& ps, TE* pdE)
+//		{
+//			ImplicitPushE(dt,E,this->Bv,ps,pdE);
+//		};
 	}
 
 }

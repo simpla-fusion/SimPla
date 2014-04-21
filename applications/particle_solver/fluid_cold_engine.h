@@ -40,6 +40,7 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type const & mesh;
+	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv;
 
 	template<typename ...Args>
 	Particle(mesh_type const & pmesh, Args const & ...);
@@ -79,7 +80,7 @@ private:
 
 template<typename TM>
 template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
-		: base_type(pmesh), mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false)
+		: base_type(pmesh), mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false), Bv(mesh)
 {
 	base_type::EnableImplicitPushE();
 	Load(std::forward<Args const &>(args)...);
@@ -133,22 +134,16 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scala
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
 
+	Bv = MapTo<IForm>(B);
+
 	auto & Jv = base_type::Jv;
 	auto & rho = base_type::n;
 
 	Real as = 0.5 * GetCharge() * dt / GetMass();
 
-	Jv += as * rho * MapTo<IForm>(E);
-
-	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv(B.mesh);
-
-	Bv = MapTo<IForm>(B);
-
-	decltype(base_type::Jv) K(E.mesh);
+	Jv += Cross(Jv, Bv) * as + 2.0 * as * rho * MapTo<IForm>(E);
 
 	Jv = (Jv + Cross(Jv, Bv) * as + Bv * (Dot(Jv, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
-
-	Jv += as * rho * MapTo<IForm>(E);
 
 	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
 }

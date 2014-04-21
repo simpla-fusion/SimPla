@@ -28,7 +28,7 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	TE & dE = *pdE;
 
-	Field<mesh_type, VERTEX, nTuple<3, Real>> B0(mesh), Ev(mesh);
+	Field<mesh_type, VERTEX, nTuple<3, Real>> Bv(mesh), Ev(mesh);
 	Field<mesh_type, VERTEX, Real> BB(mesh);
 	Field<mesh_type, VERTEX, Real> a(mesh);
 	Field<mesh_type, VERTEX, Real> b(mesh);
@@ -37,8 +37,8 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 	Field<mesh_type, VERTEX, nTuple<3, Real>> Q(mesh);
 	Field<mesh_type, VERTEX, nTuple<3, Real>> K(mesh);
 
-	B0 = MapTo<VERTEX>(B);
-	BB = Dot(B0, B0);
+	Bv = MapTo<VERTEX>(B);
+	BB = Dot(B, B);
 	Q.Clear();
 	K.Clear();
 
@@ -62,7 +62,7 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 		K = (Ev * rhos * (as * 0.5) + Js);
 
-		Q += (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (BB * as * as + 1);
+		Q += (K + Cross(K, B) * as + B * (Dot(K, B) * as * as)) / (BB * as * as + 1);
 
 		a += rhos * as / (BB * as * as + 1);
 		b += rhos * as * as / (BB * as * as + 1);
@@ -76,7 +76,7 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	Q = MapTo<VERTEX>(E + dE) - Q * (dt / epsilon0);
 
-	Ev = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+	Ev = (Q * a - Cross(Q, B) * b + B * (Dot(Q, B) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	dE = (MapTo<TE::IForm>(Ev) - E);
 
