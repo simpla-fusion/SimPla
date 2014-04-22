@@ -1,3 +1,3 @@
 add_library(context context.cpp)
-TARGET_LINK_LIBRARIES(context physics  mesh   io)
+TARGET_LINK_LIBRARIES(context physics   io)
 
