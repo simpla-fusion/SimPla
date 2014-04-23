@@ -321,7 +321,6 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 				for (auto & p : this->at(s) )
 				{
 					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
-
 				}
 				this->J.unlock();
 			}
