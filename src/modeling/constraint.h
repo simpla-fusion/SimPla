@@ -11,16 +11,31 @@
 namespace simpla
 {
 
+class ConstraintBase
+{
+public:
+	ConstraintBase()
+	{
+	}
+	virtual ~ConstraintBase()
+	{
+
+	}
+	virtual void Apply(void* p) const=0;
+};
+
 template<typename TF>
-class Constraint
+class Constraint: public ConstraintBase
 {
 public:
 
-	static constexpr unsigned int IForm = TF::IForm;
+	typedef TF field_type;
 
-	typedef typename TF::mesh_type mesh_type;
+	static constexpr unsigned int IForm = field_type::IForm;
 
-	typedef typename TF::field_value_type field_value_type;
+	typedef typename field_type::mesh_type mesh_type;
+
+	typedef typename field_type::field_value_type field_value_type;
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -52,12 +67,16 @@ public:
 		return def_domain_;
 	}
 
-	void Apply(TF * f)
+	void Apply(void * pf) const
 	{
+		// NOTE this is a danger opertaion , no type check
+
+		field_type & f = *reinterpret_cast<field_type*>(pf);
+
 		for (auto s : def_domain_)
 		{
 			auto x = mesh.GetCoordinates(s);
-			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, (*f)(x)));
+			f[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, f(x)));
 		}
 	}
 
@@ -96,28 +115,6 @@ std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_ty
 	{
 		self->GetDefDomain().push_back(s);
 	}
-//	else if (dict["Index"])
-//	{
-//		std::vector<nTuple<TField::mesh_type::NDIMS, size_t>> idxs;
-//
-//		dict["Index"].as(&idxs);
-//
-//		std::vector<typename TField::index_type> idx2;
-//
-//		for (auto const & v : idxs)
-//		{
-//			idx2.push_back(mesh.GetIndex(v));
-//		}
-//
-//		SelectFromMesh<TField::IForm>(mesh, [&](index_type s )
-//		{	self->GetDefDomain().push_back(s );}, idx2);
-//
-////		for (auto const &id : idxs)
-////			self->GetDefDomain().push_back(mesh.GetIndex(id));
-//	}
-//	else
-//	{
-//	}
 
 	if (!self->GetDefDomain().empty())
 	{

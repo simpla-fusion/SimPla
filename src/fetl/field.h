@@ -65,11 +65,6 @@ public:
 	{
 	}
 
-	Field(mesh_type const &pmesh, value_type d_value)
-			: mesh(pmesh), data_(nullptr)
-	{
-		*this = d_value;
-	}
 	/**
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector

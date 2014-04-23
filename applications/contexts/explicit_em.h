@@ -329,7 +329,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			else if (dof == "Particles")
 			{
-				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
+//				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
 			}
 			else
 			{

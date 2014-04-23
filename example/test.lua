@@ -61,20 +61,20 @@ end
 
 InitValue = {
 
-	E=function(x)
-		---[[
-		print(x[0],x[1],x[2])
-		local res = 0.0;
-		for i=1,1 do
-			res=res+math.sin(x[0]/LX*TWOPI* i);
-		end;
-
-		return {0,res,0}
-	end
-	
 	--[[
+	E=function(x)
 
-	E 	= 0.0--]]
+	local res = 0.0;
+	for i=1,1 do
+	res=res+math.sin(x[0]/LX*TWOPI* i);
+	end;
+
+	return {0,res,0}
+	end
+	--]]
+
+
+	E 	= 0.0
 	, J 	= 0.0
 	, B 	= InitB0
 	, ne 	= InitN0
@@ -109,10 +109,10 @@ Grid=
 ---[[
 Particles={
 	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-	--H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100, EnableImplicitSolver=true },
-	--ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
-	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
-	H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
+	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100, EnableImplicitSolver=true },
+--ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
+--ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
+--H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
 }
 --]]
 
@@ -151,7 +151,7 @@ Constraints=
 		IsHard=false,
 		Value=
 		function(t,x,v )
-			 
+
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
 			return { v[0],v[1]+amp,v[2]}
@@ -167,11 +167,11 @@ Constraints=
 	-- Select={Type="Media", Tag="Vacuum"},
 	-- Value= 0
 	--  },
-	{
-		DOF="Particles",
-		Select={Type="Surface", Width=0.05*LX},
-		Type= "Reflect"
-	},
+--	{
+--		DOF="Particles",
+--		Select={Type="Surface", Width=0.05*LX},
+--		Type= "Reflect"
+--	},
 
 }
 

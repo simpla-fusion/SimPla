@@ -47,6 +47,7 @@ namespace simpla
 template<class Engine>
 class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
 {
+	std::mutex write_lock_;
 
 public:
 	static constexpr int IForm = VERTEX;
@@ -73,11 +74,13 @@ public:
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
-	typedef typename cell_type::iterator iterator;
+	typedef std::vector<cell_type> container_type;
+
+	typedef typename container_type::iterator iterator;
+
+	typedef typename container_type::const_iterator const_iterator;
 
 	typedef typename cell_type::allocator_type allocator_type;
-
-	typedef std::vector<cell_type> container_type;
 
 public:
 	mesh_type const & mesh;
@@ -110,7 +113,10 @@ public:
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
-	void Boundary(Surface<mesh_type> const&, std::string const & type_str);
+	void ApplyConstraint(ConstraintBase const& constraint)
+	{
+		constraint.Apply(this);
+	}
 
 	//***************************************************************************************************
 
@@ -121,18 +127,46 @@ public:
 
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
 	{
-		data_[mesh.Hash(s)].emplace_back(p);
+		this->at(s).emplace_back(p);
 	}
 
-	cell_type & operator[](size_t s)
+	cell_type & operator[](index_type s)
 	{
-		return data_.at(s);
+		return data_[mesh.Hash(s)];
 	}
-	cell_type const & operator[](size_t s) const
+	cell_type const & operator[](index_type s) const
 	{
-		return data_.at(s);
+		return data_[mesh.Hash(s)];
 	}
 
+	cell_type &at(index_type s)
+	{
+		return data_.at(mesh.Hash(s));
+	}
+	cell_type const & at(index_type s) const
+	{
+		return data_.at(mesh.Hash(s));
+	}
+
+	iterator begin()
+	{
+		return data_.begin();
+	}
+
+	iterator end()
+	{
+		return data_.end();
+	}
+
+	const_iterator begin() const
+	{
+		return data_.begin();
+	}
+
+	const_iterator end() const
+	{
+		return data_.end();
+	}
 //***************************************************************************************************
 	template<int IFORM, typename ...Args>
 	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
@@ -178,9 +212,7 @@ private:
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
-	void Resort(index_type s, container_type * dest = nullptr);
-
-	std::vector<container_type> mt_data_; // for sort
+	template<typename TDest> void Resort(index_type id_src, TDest *dest);
 
 };
 
@@ -197,22 +229,8 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args con
 
 		pool_(),
 
-		data_(pmesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
+		data_(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
 {
-
-	if (dict["EnableSort"].template as<bool>(true))
-	{
-
-		const unsigned int num_threads = std::thread::hardware_concurrency();
-
-		mt_data_.resize(num_threads);
-
-		for (auto & d : mt_data_)
-		{
-			d.resize(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()));
-		}
-	}
-
 	if (dict["EnableImplicitSolver"].template as<bool>(false))
 	{
 		base_type::EnableImplicitPushE();
@@ -277,7 +295,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 			{
 				this->J.lock();
-				for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+				for (auto & p : this->at(s) )
 				{
 					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::Jv),E,B);
 
@@ -300,7 +318,7 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 			{
 				this->J.lock();
-				for (auto & p : this->data_.at(this->mesh.Hash(s)) )
+				for (auto & p : this->at(s) )
 				{
 					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
 
@@ -319,44 +337,6 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 	LOGGER << DONE;
 }
 
-template<typename Engine>
-void Particle<Engine>::Boundary(Surface<mesh_type> const& surface, std::string const & type_str)
-{
-	if (type_str == "Absorb")
-	{
-		for (auto const &cell : surface)
-		{
-			pool_.splice(pool_.begin(), data_.at(mesh.Hash(cell.first)));
-		}
-
-	}
-	else if (type_str == "Reflect")
-	{
-
-		for (auto const &cell : surface)
-		{
-			auto const & plane = cell.second;
-
-			nTuple<3, Real> x, v;
-
-			for (auto & p : data_.at(mesh.Hash(cell.first)))
-			{
-				engine_type::PullBack(p, &x, &v);
-				Relection(plane, &x, &v);
-				engine_type::PushForward(x, v, &p);
-			}
-		}
-		for (auto const &cell : surface)
-		{
-			Resort(cell.first, &data_);
-		}
-	}
-	else
-	{
-		UNIMPLEMENT2("Unknown particle boundary type [" + type_str + "]!");
-	}
-}
-
 template<class Engine> template<int IFORM, typename ...Args>
 void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
 {
@@ -367,7 +347,7 @@ void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args co
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
 			pJ->lock();
-			for (auto const& p : this->data_.at(this->mesh.Hash(s)) )
+			for (auto const& p : this->at(s) )
 			{
 				this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
 			}
@@ -378,43 +358,37 @@ void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args co
 }
 //*************************************************************************************************
 template<class Engine>
-void Particle<Engine>::Resort(index_type id_src, container_type *other)
+template<typename TDest>
+void Particle<Engine>::Resort(index_type id_src, TDest *dest)
 {
-	try
+
+	auto & src = this->at(id_src);
+
+	auto pt = src.begin();
+
+	while (pt != src.end())
 	{
+		auto p = pt;
+		++pt;
 
-		auto & cell = this->data_.at(this->mesh.Hash(id_src));
+		index_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x));
 
-		auto pt = cell.begin();
+		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 
-		while (pt != cell.end())
+		if (id_dest != id_src)
 		{
-			auto p = pt;
-			++pt;
-
-			index_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x));
-
-			p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
-
-			if (!(id_dest == id_src))
-			{
-
-				(*other).at(this->mesh.Hash(id_dest)).splice((*other).at(this->mesh.Hash(id_dest)).begin(), cell, p);
-
-			}
-
+			(*dest)[id_dest].splice((*dest)[id_dest].begin(), src, p);
 		}
-	} catch (std::out_of_range const & e)
-	{
-		ERROR << "out of range!";
+
 	}
+
 }
 
 template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	if (IsSorted() || mt_data_.size() <= 0)
+	if (IsSorted())
 		return;
 
 	VERBOSE << "Particle sorting is enabled!";
@@ -423,27 +397,33 @@ void Particle<Engine>::Sort()
 
 	[this](int t_num,int t_id)
 	{
+		std::map<index_type,cell_type> dest;
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			this->Resort(s, &(this->mt_data_[t_id]));
+			this->Resort(s, &dest);
 		}
+
+		write_lock_.lock();
+		for(auto & v :dest)
+		{
+			cell_type * c;
+			try
+			{
+				c = &this->at(v.first);
+			}
+			catch(std::out_of_range const & )
+			{
+				c= & pool_;
+			}
+
+			c->splice(c->begin(), v.second);
+		}
+		write_lock_.unlock();
 	}
 
 	);
 
-	ParallelDo(
-
-	[this](int t_num,int t_id)
-	{
-		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			auto idx = this->mesh.Hash(s);
-
-			this->data_.at(idx) .splice(this->data_.at(idx).begin(), this->mt_data_[t_id].at(idx));
-		}
-	}
-
-	);
+	CHECK(pool_.size());
 
 	isSorted_ = true;
 }

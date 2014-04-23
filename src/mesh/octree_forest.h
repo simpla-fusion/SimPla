@@ -261,7 +261,10 @@ struct OcForest
 		{
 			return d == rhs.d;
 		}
-
+		bool operator!=(index_type const & rhs) const
+		{
+			return d != rhs.d;
+		}
 		bool operator<(index_type const &r) const
 		{
 			return d < r.d;

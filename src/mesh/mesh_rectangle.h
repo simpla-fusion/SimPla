@@ -111,6 +111,7 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
+
 	PhysicalConstants constants_;
 
 	PhysicalConstants & constants()
