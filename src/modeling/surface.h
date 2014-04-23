@@ -29,13 +29,17 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef nTuple<3, Real> Vec3;
+	typedef nTuple<3, nTuple<3, Real>> plane_type;
 
-	std::vector<std::pair<index_type, Vec3>> cell_list_;
-	typedef typename std::vector<std::pair<index_type, Vec3>>::iterator iterator;
-	typedef typename std::vector<std::pair<index_type, Vec3>>::const_iterator const_iterator;
+	typedef std::vector<std::pair<index_type, plane_type> > cell_type;
+
+	typedef typename cell_type::iterator iterator;
+
+	typedef typename cell_type::const_iterator const_iterator;
 
 	mesh_type const &mesh;
+
+	cell_type cell_list_;
 
 	Surface(mesh_type const & pmesh)
 			: mesh(pmesh)
@@ -45,7 +49,7 @@ public:
 	{
 	}
 
-	void insert(index_type s, Vec3 const & v)
+	void insert(index_type s, plane_type const & v)
 	{
 		cell_list_.push_back(std::make_pair(s, v));
 	}

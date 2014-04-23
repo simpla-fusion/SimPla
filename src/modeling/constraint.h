@@ -10,7 +10,6 @@
 
 namespace simpla
 {
-template<typename, int, typename > class Field;
 
 template<typename TF>
 class Constraint
@@ -21,7 +20,7 @@ public:
 
 	typedef typename TF::mesh_type mesh_type;
 
-	typedef typename TF::value_type value_type;
+	typedef typename TF::field_value_type field_value_type;
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -32,24 +31,16 @@ public:
 private:
 
 	std::list<index_type> def_domain_;
-
-	std::function<void(value_type &, value_type)> op_;
-
-	bool is_hard_src_;
 public:
+	std::function<field_value_type(Real, coordinates_type, field_value_type const &)> op_;
 
 	Constraint(mesh_type const & m)
-			: mesh(m), is_hard_src_(false)
+			: mesh(m)
 	{
 	}
 
 	~Constraint()
 	{
-	}
-
-	void SetHardSrc(bool flag = false)
-	{
-		is_hard_src_ = flag;
 	}
 
 	std::list<index_type> const &GetDefDomain() const
@@ -60,38 +51,16 @@ public:
 	{
 		return def_domain_;
 	}
-	template<typename TV>
-	void Apply(TF * f, TV v) const
-	{
-		for (auto const & s : def_domain_)
-		{
-			if (is_hard_src_)
-			{
-				f->get(s) = mesh.Sample(Int2Type<IForm>(), s, v);
-			}
-			else
-			{
-				f->get(s) += mesh.Sample(Int2Type<IForm>(), s, v);
-			}
-		}
-	}
-	template<typename TV>
-	void Apply(TF * f, std::function<TV(Real, coordinates_type)> const & fun) const
-	{
-		for (auto const & s : def_domain_)
-		{
-			auto v = mesh.Sample(Int2Type<IForm>(), s, fun(mesh.GetTime(), mesh.GetCoordinates(s)));
 
-			if (is_hard_src_)
-			{
-				f->get(s) = v;
-			}
-			else
-			{
-				f->get(s) += v;
-			}
+	void Apply(TF * f)
+	{
+		for (auto s : def_domain_)
+		{
+			auto x = mesh.GetCoordinates(s);
+			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, (*f)(x)));
 		}
 	}
+
 }
 ;
 
@@ -99,8 +68,6 @@ template<typename TField, typename TDict>
 std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
         TDict const & dict)
 {
-	std::function<void(TField *)> res = [](TField *)
-	{};
 
 	typedef typename TField::mesh_type mesh_type;
 
@@ -111,6 +78,8 @@ std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_ty
 	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef typename TField::field_value_type field_value_type;
 
 	FilterRange<typename mesh_type::Range> range;
 
@@ -153,37 +122,27 @@ std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_ty
 	if (!self->GetDefDomain().empty())
 	{
 
-		self->SetHardSrc(dict["IsHard"].template as<bool>(false));
-
 		if (dict["Value"])
 		{
-			auto value = dict["Value"];
+			auto obj = dict["Value"];
 
-			if (value.is_number())
+			if (obj.is_number() || obj.is_table())
 			{
-				auto foo = value.template as<typename TField::value_type>();
+				auto value = obj.template as<field_value_type>();
 
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
+				self->op_ = [value](Real,coordinates_type,field_value_type )->field_value_type
+				{
+					return value;
+				};
 
 			}
-			else if (value.is_table())
+			else if (obj.is_function())
 			{
-				auto foo = value.template as<typename TField::field_value_type>();
+				self->op_ = [obj](Real t,coordinates_type x,field_value_type v)->field_value_type
+				{
+					return obj( t,x ,v).template as<field_value_type>();
+				};
 
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
-			}
-			else if (value.is_function())
-			{
-				std::function<typename TField::field_value_type(Real, typename TField::coordinates_type)> foo =
-				        [value]( Real t,typename TField::coordinates_type z )->typename TField::field_value_type
-				        {
-					        return value( t,z[0],z[1],z[2]).template as<typename TField::field_value_type>();
-				        };
-
-				res = [self,foo](TField * f )
-				{	self->Apply(f,foo);};
 			}
 		}
 	}
@@ -191,6 +150,8 @@ std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_ty
 	{
 		WARNING << "Define domain is empty!";
 	}
+	std::function<void(TField *)> res = std::bind(&Constraint<TField>::Apply, self, std::placeholders::_1);
+
 	return std::move(res);
 }
 

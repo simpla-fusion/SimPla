@@ -32,7 +32,7 @@
 #include "particle_base.h"
 #include "load_particle.h"
 #include "save_particle.h"
-
+#include "../modeling/geometry_algorithm.h"
 #ifndef NO_STD_CXX
 //need  libstdc++
 
@@ -332,13 +332,18 @@ void Particle<Engine>::Boundary(Surface<mesh_type> const& surface, std::string c
 	}
 	else if (type_str == "Reflect")
 	{
+
 		for (auto const &cell : surface)
 		{
-			auto const & v = cell.second;
-			Real dt = mesh.GetDt();
+			auto const & plane = cell.second;
+
+			nTuple<3, Real> x, v;
+
 			for (auto & p : data_.at(mesh.Hash(cell.first)))
 			{
-				engine_type::Reflect(mesh.GetCoordinates(cell.first), v, &p);
+				engine_type::PullBack(p, &x, &v);
+				Relection(plane, &x, &v);
+				engine_type::PushForward(x, v, &p);
 			}
 		}
 		for (auto const &cell : surface)

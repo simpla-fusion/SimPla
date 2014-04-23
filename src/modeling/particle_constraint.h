@@ -28,18 +28,17 @@ void CreateSurface(Surface<TM> *surf, Real width)
 {
 	TM const & mesh = surf->mesh;
 
+	typedef typename Surface<TM>::plane_type plane_type;
+
 	auto extent = mesh.GetExtent();
 	auto dims = mesh.GetDimensions();
 	auto xmin = extent.first;
 	auto xmax = extent.second;
 	auto d = mesh.GetDx();
-	nTuple<3, Real> dx = { 0.5 * d[0], 0, 0 };
-	nTuple<3, Real> dy = { 0, 0.5 * d[0], 0 };
-	nTuple<3, Real> dz = { 0, 0, 0.5 * d[0] };
-
-	nTuple<3, Real> idx = { -0.5 * d[0], 0, 0 };
-	nTuple<3, Real> idy = { 0, -0.5 * d[0], 0 };
-	nTuple<3, Real> idz = { 0, 0, -0.5 * d[0] };
+	nTuple<3, Real> x0 = { 0, 0, 0 };
+	nTuple<3, Real> x1 = { d[0], 0, 0 };
+	nTuple<3, Real> x2 = { 0, d[1], 0 };
+	nTuple<3, Real> x3 = { 0, 0, d[2] };
 
 	for (auto s : mesh.GetRange(VERTEX))
 	{
@@ -47,34 +46,34 @@ void CreateSurface(Surface<TM> *surf, Real width)
 
 		if (x[0] < xmin[0] + width)
 		{
-			surf->insert(s, dx);
+			surf->insert(s, plane_type( { x0, x1, x2 }));
 			continue;
 		}
 		else if (x[0] > xmax[0] - width)
 		{
-			surf->insert(s, idx);
+			surf->insert(s, plane_type( { x0, x2, x1 }));
 			continue;
 		}
 
 		if (x[1] < xmin[1] + width)
 		{
-			surf->insert(s, dy);
+			surf->insert(s, plane_type( { x0, x1, x2 }));
 			continue;
 		}
 		else if (x[1] > xmax[1] + width)
 		{
-			surf->insert(s, idy);
+			surf->insert(s, plane_type( { x0, x1, x2 }));
 			continue;
 		}
 
 		if (x[2] < xmin[2] + width)
 		{
-			surf->insert(s, dz);
+			surf->insert(s, plane_type( { x0, x1, x2 }));
 			continue;
 		}
 		else if (x[2] > xmax[2] - width)
 		{
-			surf->insert(s, idz);
+			surf->insert(s, plane_type( { x0, x1, x2 }));
 			continue;
 		}
 

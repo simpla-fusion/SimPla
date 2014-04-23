@@ -161,10 +161,7 @@ public:
 		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
 
 	}
-	inline void Reflect(nTuple<3, Real> const & x, nTuple<3, Real> const & nv, Point_s * p) const
-	{
 
-	}
 	template<typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J, Args const & ...) const
 	{
@@ -189,6 +186,16 @@ public:
 		interpolator_type::Scatter(p.x, v, J);
 	}
 
+	inline void PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
+	{
+		*x = p.x;
+		*v = p.v;
+	}
+	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
+	{
+		p->x = x;
+		p->v = v;
+	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s( { x, v, f }));

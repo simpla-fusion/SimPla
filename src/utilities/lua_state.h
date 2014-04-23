@@ -127,7 +127,7 @@ public:
 			switch (t)
 			{
 			case LUA_TSTRING:
-				os << "[" << i << "]=" << lua_tostring(L_.get(),i) << std::endl;
+				os << "[" << i << "]=" << lua_tostring(L_.get(), i) << std::endl;
 				break;
 
 			case LUA_TBOOLEAN:
@@ -244,7 +244,7 @@ public:
 
 			int tidx = lua_gettop(L_.get());
 
-			if (lua_isnil(L_.get(),tidx))
+			if (lua_isnil(L_.get(), tidx))
 			{
 				LOGIC_ERROR << path_ << " is not iteraterable!";
 			}
@@ -474,7 +474,7 @@ public:
 			lua_getfield(L_.get(), -1, s.c_str());
 		}
 
-		if (lua_isnil(L_.get(),lua_gettop(L_.get())))
+		if (lua_isnil(L_.get(), lua_gettop(L_.get())))
 		{
 			lua_pop(L_.get(), 1);
 			return std::move(LuaObject());
@@ -567,7 +567,7 @@ public:
 
 		int idx = lua_gettop(L_.get());
 
-		if (!lua_isfunction(L_.get(),idx))
+		if (!lua_isfunction(L_.get(), idx))
 		{
 			LOGIC_ERROR << path_ << " is not  a function!";
 		}
@@ -800,9 +800,31 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		lua_newtable(L);
+
+		for (int i = 0; i < N; ++i)
+		{
+			lua_pushinteger(L, i);
+			LuaTrans<T>::To(L, v[i]);
+			lua_settable(L, -3);
+		}
+
 	}
 };
+
+template<typename TC> void PushContainer(lua_State*L, TC const & v)
+{
+	lua_newtable(L);
+
+	size_t s = 0;
+	for (auto const & vv : v)
+	{
+		lua_pushinteger(L, s);
+		LuaTrans<decltype(vv)>::To(L, vv);
+		lua_settable(L, -3);
+		++s;
+	}
+}
 
 template<typename T> struct LuaTrans<std::vector<T> >
 {
@@ -835,7 +857,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		PushContainer(L, v);
 	}
 };
 template<typename T> struct LuaTrans<std::list<T> >
@@ -865,7 +887,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		PushContainer(L, v);
 	}
 };
 
@@ -901,7 +923,14 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		lua_newtable(L);
+
+		for (auto const & vv : v)
+		{
+			LuaTrans<T1>::To(L, vv.first);
+			LuaTrans<T2>::To(L, vv.second);
+			lua_settable(L, -3);
+		}
 	}
 };
 
@@ -940,7 +969,12 @@ template<typename T> struct LuaTrans<std::complex<T> >
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		LuaTrans<int>::To(L, 0);
+		LuaTrans<T>::To(L, v.real());
+		lua_settable(L, -3);
+		LuaTrans<int>::To(L, 1);
+		LuaTrans<T>::To(L, v.imag());
+		lua_settable(L, -3);
 	}
 };
 
@@ -971,7 +1005,10 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 	}
 	static inline void To(lua_State*L, value_type const & v)
 	{
-		LOGIC_ERROR << " UNIMPLEMENTED!!";
+		LuaTrans<T1>::To(L, v.first);
+		LuaTrans<T2>::To(L, v.second);
+		lua_settable(L, -3);
+
 	}
 };
 
