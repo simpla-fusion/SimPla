@@ -116,16 +116,22 @@ public:
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
+	void Clear(index_type s);
+
+	void Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & generator);
+
+	void Remove(index_type s, std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter);
+
+	void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo);
+
 	//***************************************************************************************************
-
-	allocator_type GetAllocator()
-	{
-		return allocator_;
-	}
-
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
 	{
 		this->at(s).emplace_back(p);
+	}
+	allocator_type GetAllocator()
+	{
+		return allocator_;
 	}
 
 	cell_type & operator[](index_type s)
@@ -413,6 +419,61 @@ void Particle<Engine>::Sort()
 	);
 
 	isSorted_ = true;
+}
+template<class Engine>
+void Particle<Engine>::Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & gen)
+{
+	coordinates_type x;
+	nTuple<3, Real> v;
+	gen(&x, &v);
+	this->at(s).emplace(engine_type::make_point(x, v));
+
+}
+
+template<class Engine>
+void Particle<Engine>::Remove(index_type s,
+        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
+{
+	auto & cell = this->at(s);
+
+	auto pt = cell.begin();
+
+	while (pt != cell.end())
+	{
+		coordinates_type x;
+		nTuple<3, Real> v;
+
+		engine_type::PullBack(*pt, &x, &v);
+		if (filter(x, v))
+		{
+			pt = cell.erase(pt)
+		}
+		else
+		{
+			++pt;
+		}
+	}
+
+}
+
+template<class Engine>
+void Particle<Engine>::Clear(index_type s)
+{
+	this->at(s).clear();
+}
+template<class Engine>
+void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
+{
+
+	for (auto & p : this->at(s))
+	{
+		coordinates_type x;
+		nTuple<3, Real> v;
+
+		engine_type::PullBack(p, &x, &v);
+		op(&x, &v);
+		engine_type::PushForward(x, v, &p);
+	}
 }
 
 //******************************************************************************************************

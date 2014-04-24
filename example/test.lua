@@ -149,11 +149,11 @@ Constraints=
 		DOF="J",
 		Select={Type="Range",Value={{0.1*LX,0,0}}},
 		Operation=
-		function(t,x,v )
+		function(t,x,f )
 
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			return { v[0],v[1]+amp,v[2]}
+			return { f[0],f[1]+amp,f[2]}
 		end
 
 
@@ -169,7 +169,7 @@ Constraints=
 	{
 		DOF="Particles",
 		Select={Type="Surface", DistanceToBoundary=0.05*LX},
-		Operation= "Reflect"
+		Operation= "Reflecting"
 	},
 
 }

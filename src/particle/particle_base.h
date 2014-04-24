@@ -30,6 +30,8 @@ public:
 	typedef TM mesh_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
+	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type const &mesh;
 
@@ -93,11 +95,16 @@ public:
 		return os.str();
 	}
 
-	virtual void Accept(VisitorBase const & visitor)
+	virtual void Accept(std::vector<index_type> const & list,
+	        std::function<bool(coordinates_type*, nTuple<3, Real>*)> const & visit)
 	{
-		visitor.Visit(this);
 	}
+	virtual void Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo)=0;
 
+	virtual void Remove(index_type s,
+	        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & foo)=0;
+
+	virtual void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo)=0;
 };
 
 //template<typename TP>

@@ -95,8 +95,6 @@ std::shared_ptr<VisitorBase> CreateConstraint(Material<typename TField::mesh_typ
 
 		auto type_str = obj["Type"].template as<std::string>("");
 
-		CHECK(type_str);
-
 		if (type_str == "Range")
 		{
 			range = Filter(mesh.GetRange(TField::IForm), mesh, obj["Value"]);
