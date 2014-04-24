@@ -7,13 +7,14 @@
 
 #ifndef PARTICLE_CONSTRAINT_H_
 #define PARTICLE_CONSTRAINT_H_
-#include "material.h"
-#include "surface.h"
+#include "../utilities/visitor.h"
+
 namespace simpla
 {
+template<typename > class Constraint;
 
 template<typename TEngine>
-class Constraint<Particle<TEngine>>
+class Constraint<Particle<TEngine>> : public VisitorBase
 {
 public:
 
@@ -23,11 +24,11 @@ public:
 
 	typedef typename Particle<TEngine>::mesh_type mesh_type;
 
-	typedef typename Particle<TEngine>::value_type value_type;
-
 	typedef typename mesh_type::index_type index_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef typename Particle<TEngine>::value_type value_type;
 
 	mesh_type const & mesh;
 
@@ -35,7 +36,7 @@ private:
 
 	std::list<index_type> def_domain_;
 public:
-	std::function<value_type(Real, coordinates_type, value_type const &)> op_;
+	std::function<void(coordinates_type *x, nTuple<3, Real> *v)> op_;
 
 	Constraint(mesh_type const & m)
 			: mesh(m)
@@ -55,18 +56,33 @@ public:
 		return def_domain_;
 	}
 
-	void Apply(field_type * f)
+	void Visit(void * pp) const
 	{
+		Particle<TEngine> & p = *reinterpret_cast<Particle<TEngine>*>(pp);
+
 		for (auto s : def_domain_)
 		{
-			auto x = mesh.GetCoordinates(s);
-			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, (*f)(x)));
+			coordinates_type x;
+			nTuple<3, Real> v;
+			for (auto & point : p[s])
+			{
+				p.PullBack(point, &x, &v);
+				op_(s.second, &x, &v);
+				p.PushForward(x, v, &point);
+			}
 		}
 	}
 
 }
 ;
 
+template<typename TM, typename TDict>
+std::shared_ptr<VisitorBase> CreateParticleConstraint(TM const & mesh, TDict const & dict)
+{
+	std::shared_ptr<VisitorBase> res;
+
+	return std::move(res);
+}
 //template<typename Engine>
 //void Particle<Engine>::Boundary(Surface<mesh_type> const& surface, std::string const & type_str)
 //{
@@ -105,82 +121,6 @@ public:
 //	}
 //}
 
-template<typename TEngine, typename TDict>
-std::function<void(Particle<TEngine> *)> CreateParticleConstraint(
-        Material<typename Particle<TEngine>::mesh_type> const & material, TDict const & dict)
-{
-	std::function<void(Particle<TEngine> *)> res;
-
-	return std::move(res);
-}
-//template<typename TM, typename TDict>
-//void CreateSurface(Surface<TM> *surf, TDict const &dict)
-//{
-//	if (dict["Width"].is_number())
-//	{
-//		CreateSurface(surf, dict["Width"].template as<Real>());
-//	}
-//	else
-//	{
-//		WARNING << "Unknown configuation!";
-//	}
-//}
-//template<typename TM>
-//void CreateSurface(Surface<TM> *surf, Real width)
-//{
-//	TM const & mesh = surf->mesh;
-//
-//	typedef typename Surface<TM>::plane_type plane_type;
-//
-//	auto extent = mesh.GetExtent();
-//	auto dims = mesh.GetDimensions();
-//	auto xmin = extent.first;
-//	auto xmax = extent.second;
-//	auto d = mesh.GetDx();
-//	nTuple<3, Real> x0 = { 0, 0, 0 };
-//	nTuple<3, Real> x1 = { d[0], 0, 0 };
-//	nTuple<3, Real> x2 = { 0, d[1], 0 };
-//	nTuple<3, Real> x3 = { 0, 0, d[2] };
-//
-//	for (auto s : mesh.GetRange(VERTEX))
-//	{
-//		auto x = mesh.GetCoordinates(s);
-//
-//		if (x[0] < xmin[0] + width)
-//		{
-//			surf->insert(s, plane_type( { x0, x1, x2 }));
-//			continue;
-//		}
-//		else if (x[0] > xmax[0] - width)
-//		{
-//			surf->insert(s, plane_type( { x0, x2, x1 }));
-//			continue;
-//		}
-//
-//		if (x[1] < xmin[1] + width)
-//		{
-//			surf->insert(s, plane_type( { x0, x1, x2 }));
-//			continue;
-//		}
-//		else if (x[1] > xmax[1] + width)
-//		{
-//			surf->insert(s, plane_type( { x0, x1, x2 }));
-//			continue;
-//		}
-//
-//		if (x[2] < xmin[2] + width)
-//		{
-//			surf->insert(s, plane_type( { x0, x1, x2 }));
-//			continue;
-//		}
-//		else if (x[2] > xmax[2] - width)
-//		{
-//			surf->insert(s, plane_type( { x0, x1, x2 }));
-//			continue;
-//		}
-//
-//	}
-//}
 //
 //template<typename TM, typename TDict>
 //std::function<void(std::string const &, std::shared_ptr<ParticleBase<TM>>)> CreateParticleConstraint(

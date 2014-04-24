@@ -7,25 +7,13 @@
 
 #ifndef CONSTRAINT_H_
 #define CONSTRAINT_H_
+#include "../utilities/visitor.h"
 
 namespace simpla
 {
 
-class ConstraintBase
-{
-public:
-	ConstraintBase()
-	{
-	}
-	virtual ~ConstraintBase()
-	{
-
-	}
-	virtual void Apply(void* p) const=0;
-};
-
 template<typename TF>
-class Constraint: public ConstraintBase
+class Constraint: public VisitorBase
 {
 public:
 
@@ -58,16 +46,15 @@ public:
 	{
 	}
 
-	std::list<index_type> const &GetDefDomain() const
+	void Insert(index_type s)
 	{
-		return def_domain_;
+		def_domain_.push_back(s);
 	}
-	std::list<index_type> & GetDefDomain()
+	bool empty() const
 	{
-		return def_domain_;
+		return def_domain_.empty();
 	}
-
-	void Apply(void * pf) const
+	void Visit(void * pf) const
 	{
 		// NOTE this is a danger opertaion , no type check
 
@@ -76,6 +63,7 @@ public:
 		for (auto s : def_domain_)
 		{
 			auto x = mesh.GetCoordinates(s);
+
 			f[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, f(x)));
 		}
 	}
@@ -84,15 +72,14 @@ public:
 ;
 
 template<typename TField, typename TDict>
-std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_type> const & material,
-        TDict const & dict)
+std::shared_ptr<VisitorBase> CreateConstraint(Material<typename TField::mesh_type> const & material, TDict const & dict)
 {
 
 	typedef typename TField::mesh_type mesh_type;
 
 	mesh_type const & mesh = material.mesh;
 
-	std::shared_ptr<Constraint<TField>> self(new Constraint<TField>(mesh));
+	std::shared_ptr<Constraint<TField>> res(new Constraint<TField>(mesh));
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -100,56 +87,62 @@ std::function<void(TField *)> CreateConstraint(Material<typename TField::mesh_ty
 
 	typedef typename TField::field_value_type field_value_type;
 
-	FilterRange<typename mesh_type::Range> range;
-
 	if (dict["Select"])
 	{
-		range = material.Select(mesh.GetRange(TField::IForm), dict["Select"]);
-	}
-	else if (dict["Range"])
-	{
-		range = Filter(mesh.GetRange(TField::IForm), mesh, dict["Range"]);
-	}
+		FilterRange<typename mesh_type::Range> range;
 
-	for (auto s : range)
-	{
-		self->GetDefDomain().push_back(s);
-	}
+		auto obj = dict["Select"];
 
-	if (!self->GetDefDomain().empty())
-	{
+		auto type_str = obj["Type"].template as<std::string>("");
 
-		if (dict["Value"])
+		CHECK(type_str);
+
+		if (type_str == "Range")
 		{
-			auto obj = dict["Value"];
+			range = Filter(mesh.GetRange(TField::IForm), mesh, obj["Value"]);
+		}
+		else
+		{
+			range = material.Select(mesh.GetRange(TField::IForm), obj);
+		}
 
-			if (obj.is_number() || obj.is_table())
+		for (auto s : range)
+		{
+			res->Insert(s);
+		}
+
+	}
+
+	if (!res->empty() && dict["Operation"])
+	{
+
+		auto op = dict["Operation"];
+
+		if (op.is_number() || op.is_table())
+		{
+			auto value = op.template as<field_value_type>();
+
+			res->op_ = [value](Real,coordinates_type,field_value_type )->field_value_type
 			{
-				auto value = obj.template as<field_value_type>();
+				return value;
+			};
 
-				self->op_ = [value](Real,coordinates_type,field_value_type )->field_value_type
-				{
-					return value;
-				};
-
-			}
-			else if (obj.is_function())
+		}
+		else if (op.is_function())
+		{
+			res->op_ = [op](Real t,coordinates_type x,field_value_type v)->field_value_type
 			{
-				self->op_ = [obj](Real t,coordinates_type x,field_value_type v)->field_value_type
-				{
-					return obj( t,x ,v).template as<field_value_type>();
-				};
+				return op( t,x ,v).template as<field_value_type>();
+			};
 
-			}
 		}
 	}
 	else
 	{
-		WARNING << "Define domain is empty!";
+		ERROR << "illegal configuration!";
 	}
-	std::function<void(TField *)> res = std::bind(&Constraint<TField>::Apply, self, std::placeholders::_1);
 
-	return std::move(res);
+	return std::dynamic_pointer_cast<VisitorBase>(res);
 }
 
 }  // namespace simpla

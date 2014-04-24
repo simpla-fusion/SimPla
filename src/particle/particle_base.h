@@ -15,16 +15,11 @@
 #include "../io/data_stream.h"
 #include "../modeling/select.h"
 #include "../modeling/surface.h"
-#include "../utilities/singleton_holder.h"
-
+#include "../utilities/visitor.h"
 namespace simpla
 {
 template<typename Engine> class Particle;
-template<typename TE>
-std::ostream & operator<<(std::ostream & os, Particle<TE> const &self)
-{
-	return self.Print(os);
-}
+
 //*******************************************************************************************************
 template<typename TM>
 struct ParticleBase
@@ -67,11 +62,17 @@ public:
 		return needImplicitPushE_;
 	}
 
+	std::string GetTypeAsString() const
+	{
+		return GetTypeAsString_();
+	}
+	virtual std::string GetTypeAsString_() const=0;
+
 	virtual Real GetMass() const=0;
 
 	virtual Real GetCharge() const=0;
 
-	virtual void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+	virtual void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
 	        Field<mesh_type, FACE, scalar_type> const & B)=0;
 
 	virtual std::string Dump(std::string const & path, bool is_verbose) const
@@ -92,8 +93,9 @@ public:
 		return os.str();
 	}
 
-	virtual void Boundary(Surface<mesh_type> const&, std::string const & type_str)
+	virtual void Accept(VisitorBase const & visitor)
 	{
+		visitor.Visit(this);
 	}
 
 };

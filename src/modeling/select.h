@@ -248,6 +248,7 @@ template<typename TM, typename TDict>
 FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, TDict const & dict)
 {
 	FilterRange<typename TM::Range> res;
+
 	if (dict.is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;
@@ -263,7 +264,7 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 		res = FilterRange<typename TM::Range>(range, [&](typename TM::iterator s )->bool
 		{
 			auto x = mesh.GetCoordinates(*s);
-			return (dict(x[0], x[1], x[2]).template as<bool>());
+			return (dict(x).template as<bool>());
 		});
 
 	}

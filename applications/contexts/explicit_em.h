@@ -18,7 +18,7 @@
 // Misc
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/pretty_stream.h"
-
+#include "../../src/utilities/visitor.h"
 // Data IO
 #include "../../src/io/data_stream.h"
 
@@ -28,11 +28,11 @@
 
 // Particle
 #include "../../src/particle/particle_base.h"
+#include "../../src/particle/particle_constraint.h"
 
 // Modeling
 #include "../../src/modeling/material.h"
 #include "../../src/modeling/constraint.h"
-#include "../../src/modeling/particle_constraint.h"
 #include "../../src/utilities/geqdsk.h"
 
 // Solver
@@ -100,61 +100,24 @@ public:
 
 	std::function<void(Real, TE const &, TB const &, TParticles const&, TE*)> Implicit_PushE;
 
-	void ApplyConstraintToE(TE* pE)
+	template<typename TVisitorList, typename TF>
+	void ApplyVisitor(TVisitorList const & l, TF pJ)
 	{
-		if (constraintToE_.size() > 0)
+		for (auto const & v : l)
 		{
-			LOGGER << "Apply Constraint to E";
-			for (auto const & foo : constraintToE_)
-			{
-				foo(pE);
-			}
-		}
-	}
-	void ApplyConstraintToB(TB* pB)
-	{
-		if (constraintToB_.size() > 0)
-		{
-			LOGGER << "Apply Constraint to B";
-			for (auto const & foo : constraintToB_)
-			{
-				foo(pB);
-			}
-		}
-	}
-	void ApplyConstraintToJ(TJ* pJ)
-	{
-		if (constraintToJ_.size() > 0)
-		{
-			LOGGER << "Apply Constraint to J";
-			for (auto const & foo : constraintToJ_)
-			{
-				foo(pJ);
-			}
-		}
-	}
-
-	void ApplyConstraintToParticle(std::string const & pname, std::shared_ptr<ParticleBase<mesh_type>> p)
-	{
-		if (constraintToParticle_.size() > 0)
-		{
-			LOGGER << "Apply Constraint to Particles [" << pname << "]";
-			for (auto const & foo : constraintToParticle_)
-			{
-				foo(pname, p);
-			}
+			pJ->Accept(*v);
 		}
 	}
 
 private:
 
-	std::list<std::function<void(TE*)> > constraintToE_;
+	std::list<std::shared_ptr<VisitorBase> > constraintToE_;
 
-	std::list<std::function<void(TB*)> > constraintToB_;
+	std::list<std::shared_ptr<VisitorBase> > constraintToB_;
 
-	std::list<std::function<void(TJ*)> > constraintToJ_;
+	std::list<std::shared_ptr<VisitorBase> > constraintToJ_;
 
-	std::list<std::function<void(std::string const &, std::shared_ptr<ParticleBase<mesh_type>>)> > constraintToParticle_;
+	std::list<std::shared_ptr<VisitorBase> > constraintToParticle_;
 
 	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
@@ -329,7 +292,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			else if (dof == "Particles")
 			{
-//				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
+				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
 			}
 			else
 			{
@@ -377,13 +340,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{};
 	if (enableImplicitPushE)
 	{
-
 		Implicit_PushE = &ImplicitPushE<TE, TB, TParticles>;
-
-//		Implicit_PushE = [this](Real dt, TE const & E, TB const &, TParticles const& ps, TE* pdE)
-//		{
-//			ImplicitPushE(dt,E,this->Bv,ps,pdE);
-//		};
 	}
 
 }
@@ -456,22 +413,22 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	//************************************************************
 	// E0 B0, v-1/2,x0
 	LOG_CMD(Jext = J0);
-	ApplyConstraintToJ(&Jext);
-//	//   x, v=-1/2 -> 1/2 , J=1/2
+	ApplyVisitor(constraintToJ_, &Jext);
+
+	//   x, v=-1/2 -> 1/2 , J=1/2
 	for (auto &p : particles_)
 	{
 		if (!p.second->NeedImplicitPushE())
 		{
-			p.second->NextTimeStep(dt, E, B);
+			p.second->NextTimeStep(E, B);
 
-			ApplyConstraintToParticle(p.first, p.second);
 			auto const & Js = p.second->J;
 			LOG_CMD(Jext += Js);
 		}
 	}
 
 	LOG_CMD(B += dB * 0.5);	//  B(t=1/2 -> 1)
-	ApplyConstraintToB(&B);
+	ApplyVisitor(constraintToB_, &B);
 
 	dE.Clear();
 	E_plus_CurlB(dt, E, B, &dE); 	// dE += Curl(B)*dt
@@ -481,25 +438,25 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	Implicit_PushE(dt, E, B, particles_, &dE);
 
 	LOG_CMD(E += dE * 0.5);	// E(t=0  -> 1/2  )
-	ApplyConstraintToE(&E);
+
+	ApplyVisitor(constraintToE_, &E);
 
 	for (auto &p : particles_)
 	{
 		if (p.second->NeedImplicitPushE())
 		{
-			p.second->NextTimeStep(dt, E, B);
-			ApplyConstraintToParticle(p.first, p.second);
+			p.second->NextTimeStep(E, B);
 		}
 	}
 
 	LOG_CMD(E += dE * 0.5);
-	ApplyConstraintToE(&E);
+	ApplyVisitor(constraintToE_, &E);
 
 	dB.Clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
 	LOG_CMD(B += dB * 0.5);
-	ApplyConstraintToB(&B);
+	ApplyVisitor(constraintToB_, &B);
 
 //************************************************************
 // Compute Cycle End

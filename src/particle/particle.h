@@ -99,6 +99,10 @@ public:
 	{
 		return engine_type::GetTypeAsString();
 	}
+	std::string GetTypeAsString_() const
+	{
+		return GetTypeAsString();
+	}
 	inline Real GetMass() const
 	{
 		return engine_type::GetMass();
@@ -108,21 +112,15 @@ public:
 	{
 		return engine_type::GetCharge();
 	}
-	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const &E,
-	        Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
-
-	void ApplyConstraint(ConstraintBase const& constraint)
-	{
-		constraint.Apply(this);
-	}
 
 	//***************************************************************************************************
 
 	allocator_type GetAllocator()
 	{
-		return pool_.get_allocator();
+		return allocator_;
 	}
 
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
@@ -148,25 +146,25 @@ public:
 		return data_.at(mesh.Hash(s));
 	}
 
-	iterator begin()
-	{
-		return data_.begin();
-	}
-
-	iterator end()
-	{
-		return data_.end();
-	}
-
-	const_iterator begin() const
-	{
-		return data_.begin();
-	}
-
-	const_iterator end() const
-	{
-		return data_.end();
-	}
+//	iterator begin()
+//	{
+//		return data_.begin();
+//	}
+//
+//	iterator end()
+//	{
+//		return data_.end();
+//	}
+//
+//	const_iterator begin() const
+//	{
+//		return data_.begin();
+//	}
+//
+//	const_iterator end() const
+//	{
+//		return data_.end();
+//	}
 //***************************************************************************************************
 	template<int IFORM, typename ...Args>
 	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
@@ -205,7 +203,7 @@ private:
 
 	bool isSorted_;
 	bool particleSortingIsEnable_;
-	cell_type pool_;
+	allocator_type allocator_;
 	container_type data_;
 
 	/**
@@ -226,8 +224,6 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args con
 		mesh(pmesh),
 
 		isSorted_(false),
-
-		pool_(),
 
 		data_(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
 {
@@ -270,7 +266,7 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 #define DISABLE_MULTI_THREAD
 
 template<class Engine>
-void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
 	if (data_.empty())
@@ -281,6 +277,8 @@ void Particle<Engine>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type>
 
 	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << " , Enable Implicit Solver=" << std::boolalpha
 	        << base_type::NeedImplicitPushE() << " ]";
+
+	Real dt = mesh.GetDt();
 
 	Sort();
 
@@ -405,24 +403,14 @@ void Particle<Engine>::Sort()
 		write_lock_.lock();
 		for(auto & v :dest)
 		{
-			cell_type * c;
-			try
-			{
-				c = &this->at(v.first);
-			}
-			catch(std::out_of_range const & )
-			{
-				c= & pool_;
-			}
+			auto & c = this->at(v.first);
 
-			c->splice(c->begin(), v.second);
+			c.splice(c.begin(), v.second);
 		}
 		write_lock_.unlock();
 	}
 
 	);
-
-	CHECK(pool_.size());
 
 	isSorted_ = true;
 }

@@ -147,9 +147,8 @@ Constraints=
 
 	{
 		DOF="J",
-		Range={ {0.1*LX,0,0}},
-		IsHard=false,
-		Value=
+		Select={Type="Range",Value={{0.1*LX,0,0}}},
+		Operation=
 		function(t,x,v )
 
 			local tau = t*omega_ext
@@ -167,11 +166,11 @@ Constraints=
 	-- Select={Type="Media", Tag="Vacuum"},
 	-- Value= 0
 	--  },
---	{
---		DOF="Particles",
---		Select={Type="Surface", Width=0.05*LX},
---		Type= "Reflect"
---	},
+	{
+		DOF="Particles",
+		Select={Type="Surface", DistanceToBoundary=0.05*LX},
+		Operation= "Reflect"
+	},
 
 }
 

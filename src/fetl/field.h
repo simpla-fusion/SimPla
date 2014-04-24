@@ -19,6 +19,7 @@
 #include "primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/parallel.h"
+#include "../utilities/visitor.h"
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
@@ -90,6 +91,11 @@ public:
 
 	~Field()
 	{
+	}
+
+	void Accept(VisitorBase const & visitor)
+	{
+		visitor.Visit(this);
 	}
 
 	void swap(this_type & rhs)

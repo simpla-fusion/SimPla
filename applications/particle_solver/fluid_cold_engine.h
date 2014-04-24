@@ -55,6 +55,10 @@ public:
 		return "ColdFluid";
 	}
 
+	std::string GetTypeAsString_() const
+	{
+		return GetTypeAsString();
+	}
 	inline Real GetMass() const
 	{
 		return m_;
@@ -65,8 +69,7 @@ public:
 		return q_;
 	}
 
-	void NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
-	        Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E, Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
@@ -129,10 +132,12 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verb
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(Real dt, Field<mesh_type, EDGE, scalar_type> const & E,
+void Particle<ColdFluid<TM>>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
+
+	Real dt = mesh.GetDt();
 
 	Bv = MapTo<IForm>(B);
 
