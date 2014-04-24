@@ -18,7 +18,6 @@
 #include "../utilities/visitor.h"
 namespace simpla
 {
-template<typename Engine> class Particle;
 
 //*******************************************************************************************************
 template<typename TM>
@@ -99,12 +98,23 @@ public:
 	        std::function<bool(coordinates_type*, nTuple<3, Real>*)> const & visit)
 	{
 	}
-	virtual void Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo)=0;
+	virtual void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator)
+	{
+	}
 
 	virtual void Remove(index_type s,
-	        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & foo)=0;
+	        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
+	{
+	}
 
-	virtual void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo)=0;
+	virtual void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
+	{
+	}
+
+	virtual void Traversal(index_type s,
+	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op)
+	{
+	}
 };
 
 //template<typename TP>

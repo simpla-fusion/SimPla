@@ -12,7 +12,7 @@
 namespace simpla
 {
 template<typename > class Constraint;
-
+template<typename > class Particle;
 template<typename TEngine>
 class Constraint<Particle<TEngine>> : public VisitorBase
 {

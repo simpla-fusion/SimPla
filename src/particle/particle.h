@@ -118,11 +118,14 @@ public:
 
 	void Clear(index_type s);
 
-	void Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & generator);
+	void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator);
 
 	void Remove(index_type s, std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter);
 
 	void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo);
+
+	void Traversal(index_type s,
+	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op);
 
 	//***************************************************************************************************
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
@@ -216,7 +219,7 @@ private:
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
-	template<typename TDest> void Resort(index_type id_src, TDest *dest);
+	template<typename TDest> void Sort(index_type id_src, TDest *dest);
 
 };
 
@@ -362,7 +365,7 @@ void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args co
 //*************************************************************************************************
 template<class Engine>
 template<typename TDest>
-void Particle<Engine>::Resort(index_type id_src, TDest *dest)
+void Particle<Engine>::Sort(index_type id_src, TDest *dest)
 {
 
 	auto & src = this->at(id_src);
@@ -403,7 +406,7 @@ void Particle<Engine>::Sort()
 		std::map<index_type,cell_type> dest;
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			this->Resort(s, &dest);
+			this->Sort(s, &dest);
 		}
 
 		write_lock_.lock();
@@ -420,13 +423,20 @@ void Particle<Engine>::Sort()
 
 	isSorted_ = true;
 }
+
 template<class Engine>
-void Particle<Engine>::Add(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & gen)
+void Particle<Engine>::Clear(index_type s)
+{
+	this->at(s).clear();
+}
+
+template<class Engine>
+void Particle<Engine>::Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & gen)
 {
 	coordinates_type x;
 	nTuple<3, Real> v;
-	gen(&x, &v);
-	this->at(s).emplace(engine_type::make_point(x, v));
+	Real f = gen(&x, &v);
+	this->at(s).push_back(engine_type::make_point(x, v, f));
 
 }
 
@@ -446,7 +456,7 @@ void Particle<Engine>::Remove(index_type s,
 		engine_type::PullBack(*pt, &x, &v);
 		if (filter(x, v))
 		{
-			pt = cell.erase(pt)
+			pt = cell.erase(pt);
 		}
 		else
 		{
@@ -456,11 +466,6 @@ void Particle<Engine>::Remove(index_type s,
 
 }
 
-template<class Engine>
-void Particle<Engine>::Clear(index_type s)
-{
-	this->at(s).clear();
-}
 template<class Engine>
 void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
 {
@@ -474,6 +479,21 @@ void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type 
 		op(&x, &v);
 		engine_type::PushForward(x, v, &p);
 	}
+}
+
+template<class Engine>
+void Particle<Engine>::Traversal(index_type s,
+        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op)
+{
+
+	for (auto const & p : this->at(s))
+	{
+		coordinates_type x;
+		nTuple<3, Real> v;
+		Real f = engine_type::PullBack(p, &x, &v);
+		op(f, x, v);
+	}
+
 }
 
 //******************************************************************************************************

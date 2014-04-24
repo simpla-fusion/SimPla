@@ -186,10 +186,11 @@ public:
 		interpolator_type::Scatter(p.x, v, J);
 	}
 
-	inline void PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
+	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{
 		*x = p.x;
 		*v = p.v;
+		return p.f;
 	}
 	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
