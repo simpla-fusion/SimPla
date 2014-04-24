@@ -490,7 +490,7 @@ void Particle<Engine>::Traversal(index_type s,
 	{
 		coordinates_type x;
 		nTuple<3, Real> v;
-		Real f = engine_type::PullBack(p, &x, &v);
+		scalar_type f = engine_type::PullBack(p, &x, &v);
 		op(f, x, v);
 	}
 

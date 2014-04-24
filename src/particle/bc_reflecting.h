@@ -18,8 +18,8 @@
 
 namespace simpla
 {
-template<typename TP>
-class ReflectingBoundary: public ParticleBoundary<TP>
+template<typename TM>
+class ReflectingBoundary: public ParticleBoundary<TM>
 {
 
 public:
