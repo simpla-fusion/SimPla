@@ -32,8 +32,10 @@ struct OcForest
 	static constexpr int NDIMS = 3;
 
 	typedef unsigned long size_type;
+	struct index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
+	typedef std::map<index_type, nTuple<3, coordinates_type>> surface_type;
 
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;

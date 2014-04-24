@@ -32,7 +32,7 @@ public:
 	typedef nTuple<3, coordinates_type> plane_type;
 
 private:
-	std::map<index_type, plane_type> surface_;
+	typename mesh_type::surface_type surface_;
 
 	std::string op_str_;
 
@@ -95,7 +95,7 @@ public:
 //					return Distance(plane,x )<0;
 //				}
 
-				);
+				        );
 			}
 			else if (op_str_ == "Custom")
 			{
