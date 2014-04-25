@@ -117,8 +117,6 @@ private:
 
 	std::list<std::shared_ptr<VisitorBase> > constraintToJ_;
 
-	std::list<std::shared_ptr<VisitorBase> > constraintToParticle_;
-
 	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
 }
@@ -250,6 +248,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (dict["Particles"])
 	{
 		LOGGER << "Load Particles";
+
+		auto p_dict = dict["ParticlesConstriants"];
+
 		for (auto const &opt : dict["Particles"])
 		{
 
@@ -260,11 +261,14 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (p != nullptr)
 			{
+				p->AddConstriants(p_dict);
+
 				particles_.emplace(key, p);
 
 				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
 		}
+
 	}
 
 	if (dict["Constraints"])
@@ -288,11 +292,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			else if (dof == "Fields.J")
 			{
 				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
-			}
-
-			else if (dof == "Particles")
-			{
-				constraintToParticle_.push_back(CreateParticleConstraint(model_, item.second));
 			}
 			else
 			{

@@ -261,7 +261,7 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 	else if (dict.is_function())
 	{
 
-		res = FilterRange<typename TM::Range>(range, [&](typename TM::iterator s )->bool
+		res = FilterRange<typename TM::Range>(range, [dict, &mesh](typename TM::iterator s )->bool
 		{
 			auto x = mesh.GetCoordinates(*s);
 			return (dict(x).template as<bool>());

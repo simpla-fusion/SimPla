@@ -104,25 +104,6 @@ Grid=
 	dt= 0.5*LX/NX/c -- time step
 }
 
-
-
----[[
-Particles={
-	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-		EnableImplicit =true,EnableSorting=true },
-	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
-		EnableImplicit =true,EnableSorting=true }
-	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
-	--H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
-}
---]]
-
-
-FieldSolver=
-{
-	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
-}
 --[[
 Model=
 {
@@ -135,15 +116,23 @@ end
 ,Op="Set"},
 }
 --]]
+
+FieldSolver=
+{
+	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+}
+
+
+
+
+
 Constraints=
 {
 	---[[
 	{
 		DOF="Fields.J",
 		Select={Type="Range",Value={{0.1*LX,0,0}}},
-		Operation=
-		function(t,x,f )
-
+		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
 			return { f[0],f[1]+amp,f[2]}
@@ -153,29 +142,54 @@ Constraints=
 	},
 	{
 		DOF="Fields.E",
-		Select={Type="Range",Value={{0,0,0},{0.01*LX,LY,LZ}}},
-		Operation=
-		function(t,x,f )
+		Select={Type="Range",
+			Value= function(x)
+				return x[0]< 0.1*LX or x[0]>0.9*LX
+			end
+		},
+		Operation= function(t,x,f )
 			return { 0,0,0}
 		end
 	},
-	{
-		DOF="Fields.E",
-		Select={Type="Range",Value={{0.99*LX,0,0},{ LX,LY,LZ}}},
-		Operation=
-		function(t,x,f )
-			return { 0,0,0}
-		end
-	},
-	--]]
 
+--]]
+}
+
+
+ParticleConstraints=
+{
 	{
 		DOF="Particles",
 		Select={Type="Surface", DistanceToBoundary=0.02*LX},
 		Operation= "Reflecting"
 	},
 
+	{
+		DOF="J",
+		Select={Type="Select",
+			Value= function(x)
+				return x[0]< 0.1*LX or x[0]>0.9*LX
+			end},
+		Operation= function(t,x,f )
+			return { 0,0,0}
+		end
+	},
+
+
 }
+
+---[[
+Particles={
+	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
+	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+		EnableImplicit =true,EnableSorting=true,Constraint=ParticleConstraints },
+	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+		EnableImplicit =true,EnableSorting=true }
+	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
+	--H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
+}
+--]]
+
 
 -- The End ---------------------------------------
 

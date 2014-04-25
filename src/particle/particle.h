@@ -267,6 +267,8 @@ private:
 	 */
 	template<typename TDest> void Sort(index_type id_src, TDest *dest);
 
+	std::list<std::shared_ptr<VisitorBase> > constraintToJ_;
+	std::list<std::shared_ptr<VisitorBase> > constraintToJv_;
 };
 
 template<class Engine>
