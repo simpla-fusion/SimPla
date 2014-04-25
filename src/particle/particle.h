@@ -311,7 +311,7 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
 
 	enableSorting_ = dict["EnableSorting"].template as<bool>(false);
 
-	AddCommand(dict, std::forward<Others const &>(others)...);
+	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
 
 }
 
@@ -321,31 +321,43 @@ Particle<Engine>::~Particle()
 }
 template<class Engine>
 template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
-		TDict const & dict, Material<mesh_type> const & model_,
-		Others const & ...)
+		TDict const & dict, Material<mesh_type> const & model,
+		Others const & ...others)
 {
+	if (!dict.is_table())
+		return;
 	for (auto item : dict)
 	{
 		auto dof = item.second["DOF"].template as<std::string>("");
 
-		LOGGER << "Add constraint to " << dof;
-
 		if (dof == "n")
 		{
+
+			LOGGER << "Add constraint to " << dof;
+
 			commands_.push_back(
-					Command<decltype(n_)>::Create(&n_, item.second, model_));
+					Command<decltype(n_)>::Create(&n_, item.second, model,
+							std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == "J")
 		{
+
+			LOGGER << "Add constraint to " << dof;
+
 			commands_.push_back(
-					Command<decltype(J_)>::Create(&J_, item.second, model_));
+					Command<decltype(J_)>::Create(&J_, item.second, model,
+							std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == " Jv")
 		{
+
+			LOGGER << "Add constraint to " << dof;
+
 			commands_.push_back(
-					Command<decltype(Jv_)>::Create(&Jv_, item.second, model_));
+					Command<decltype(Jv_)>::Create(&Jv_, item.second, model,
+							std::forward<Others const &>(others)...));
 
 		}
 //		else if (dof == "Particles")
@@ -355,15 +367,18 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
 //		}
 		else if (dof == "ParticlesBoundary")
 		{
+
+			LOGGER << "Add constraint to " << dof;
+
 			commands_.push_back(
 					BoundaryCondition<this_type>::Create(this, item.second,
-							model_));
+							model, std::forward<Others const &>(others)...));
 		}
 		else
 		{
 			UNIMPLEMENT2("Unknown DOF!");
 		}
-
+		LOGGER << DONE;
 	}
 
 }
@@ -463,6 +478,11 @@ void Particle<Engine>::NextTimeStep(TJ * J,
 
 	isSorted_ = false;
 	Sort();
+
+	for (auto const & comm : commands_)
+	{
+		comm();
+	}
 
 	LOGGER << DONE;
 }

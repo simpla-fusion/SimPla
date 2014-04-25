@@ -251,7 +251,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		LOGGER << "Load Particles";
 
-		for (auto const &opt : dict["Particles"])
+		for (auto opt : dict["Particles"])
 		{
 
 			auto key = opt.first.template as<std::string>("unnamed");

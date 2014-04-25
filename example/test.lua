@@ -159,14 +159,14 @@ Constraints=
 ParticleConstraints=
 {
 	{
-		DOF="Particles",
+		DOF="ParticlesBoundary",
 		Select={Type="Surface", DistanceToBoundary=0.02*LX},
 		Operation= "Reflecting"
 	},
 
 	{
 		DOF="J",
-		Select={Type="Select",
+		Select={Type="Range",
 			Value= function(x)
 				return x[0]< 0.1*LX or x[0]>0.9*LX
 			end},
@@ -182,7 +182,7 @@ ParticleConstraints=
 Particles={
 	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
 	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-		EnableImplicit =true,EnableSorting=true,Constraint=ParticleConstraints },
+		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 		EnableImplicit =true,EnableSorting=true }
 	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },

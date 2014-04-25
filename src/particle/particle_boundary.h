@@ -46,8 +46,8 @@ private:
 	std::function<void(plane_type const&, coordinates_type *, nTuple<3, Real>*)> op_;
 public:
 
-	template<typename TDict>
-	BoundaryCondition(TDict const & dict, mesh_type const & mesh);
+	template<typename TDict, typename TModel, typename ...Others>
+	BoundaryCondition(TDict const & dict, TModel const &, Others const &...);
 
 	virtual ~BoundaryCondition();
 
@@ -69,12 +69,14 @@ private:
 ;
 
 template<typename Engine>
-template<typename TDict>
+template<typename TDict, typename TModel, typename ...Others>
 BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict,
-		mesh_type const & mesh) :
+		TModel const & model, Others const & ... others) :
 		op_str_("")
 {
-	CreateSurface(mesh, dict["Select"], &surface_);
+	mesh_type const & mesh = model.mesh;
+
+	CreateSurface(dict["Select"], model, &surface_);
 
 	if (dict["Operation"].is_string())
 	{

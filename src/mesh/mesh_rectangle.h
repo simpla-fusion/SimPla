@@ -27,7 +27,8 @@ class OcForest;
  *  Grid is mapped as a rectangle/hexahedrom Range;
  *
  */
-template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanGeometry>
+template<typename TTopology = OcForest,
+		template<typename > class Geometry = EuclideanGeometry>
 class RectMesh: public TTopology, public Geometry<TTopology>
 {
 public:
@@ -46,14 +47,16 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
-	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh() :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(
+					0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+	RectMesh(TDict const & dict) :
+			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(
+					0.0)
 	{
 		Load(dict);
 	}
@@ -68,14 +71,16 @@ public:
 		return (this == &r);
 	}
 
-	template<typename TDict>
-	void Load(TDict const & dict)
+	template<typename TDict, typename ...Others>
+	void Load(TDict const & dict, Others const &...others)
 	{
 		LOGGER << "Load Mesh RectMesh";
-		topology_type::Load(dict["Topology"]);
-		geometry_type::Load(dict["Geometry"]);
+		topology_type::Load(dict["Topology"],
+				std::forward<Others const&>(others)...);
+		geometry_type::Load(dict["Geometry"],
+				std::forward<Others const&>(others)...);
 
-		dt_ = dict["dt"].as(1.0);
+		dt_ = dict["dt"].template as<Real>(1.0);
 
 	}
 

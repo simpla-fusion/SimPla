@@ -19,7 +19,8 @@
 namespace simpla
 {
 template<typename TL, typename TR>
-auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0])
+auto _DOT3(nTuple<3, TL> const & l,
+		nTuple<3, TR> const & r)->decltype(l[0]*r[0])
 {
 	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
 }
@@ -30,7 +31,8 @@ auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0]
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
 //	return std::move(u);
 //}
-inline Real Distance(nTuple<3, nTuple<3, Real>> const & p, nTuple<3, Real> const &x)
+inline Real Distance(nTuple<3, nTuple<3, Real>> const & p,
+		nTuple<3, Real> const &x)
 {
 	nTuple<3, Real> v;
 	v = Cross(p[1] - p[0], p[2] - p[0]);
@@ -68,20 +70,20 @@ inline void Reflect(TPlane const & p, nTuple<3, Real>*x, nTuple<3, Real> * v)
 	}
 
 }
-template<typename TM, typename TDict>
-void CreateSurface(TM const & mesh, TDict const & dict, typename TM::surface_type * surf)
+template<typename TDict, typename TModel, typename TSurface>
+void CreateSurface(TDict const & dict, TModel const & model, TSurface * surf)
 {
 	if (dict["Width"].is_number())
 	{
-		CreateSurface(mesh, dict["Width"].template as<Real>(), surf);
+		CreateSurface(model, dict["Width"].template as<Real>(), surf);
 	}
 	else
 	{
 		WARNING << "illegal configuation!";
 	}
 }
-template<typename TM>
-void CreateSurface(TM const & mesh, Real width, typename TM::surface_type * surf)
+template<typename TModel, typename TSurface>
+void CreateSurface(TModel const & model, Real width, TSurface * surf)
 {
 //
 ////	typedef typename TSurface::plane_type plane_type;

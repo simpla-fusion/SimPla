@@ -53,7 +53,7 @@ public:
 			field_value_type(Real, coordinates_type, field_value_type const &)> op_;
 
 	template<typename TDict, typename TModel, typename ...Others>
-	Command(TDict const & dict, TModel const &model, Others const & ...);
+	Command(TDict dict, TModel const &model, Others const & ...);
 	~Command();
 
 	template<typename ...Others>
@@ -64,7 +64,7 @@ public:
 
 	void Visit(field_type * f) const
 	{
-		// NOTE this is a danger opertaion , no type check
+		LOGGER << "Apply field constraints";
 
 		for (auto s : def_domain_)
 		{
@@ -85,7 +85,7 @@ private:
 
 template<typename TM, int IFORM, typename TV>
 template<typename TDict, typename TModel, typename ...Others>
-Command<Field<TM, IFORM, TV>>::Command(TDict const & dict, TModel const &model,
+Command<Field<TM, IFORM, TV>>::Command(TDict dict, TModel const &model,
 		Others const & ...) :
 		mesh(model.mesh)
 {
@@ -95,25 +95,27 @@ Command<Field<TM, IFORM, TV>>::Command(TDict const & dict, TModel const &model,
 		FilterRange<typename mesh_type::Range> range;
 
 		auto obj = dict["Select"];
-
 		auto type_str = obj["Type"].template as<std::string>();
-
 		if (type_str == "Range")
 		{
 			range = Filter(mesh.GetRange(IForm), mesh, obj["Value"]);
+
+		}
+		else if (type_str == "Model")
+		{
+			range = model.Select(mesh.GetRange(IForm), obj);
 		}
 		else
 		{
-			range = model.Select(mesh.GetRange(IForm), obj);
+			WARNING << "Unknown Configuration :" << type_str;
+			return;
 		}
 
 		for (auto s : range)
 		{
 			def_domain_.push_back(s);
 		}
-
 	}
-
 	if (!def_domain_.empty() && dict["Operation"])
 	{
 
