@@ -30,12 +30,14 @@
 #include "../io/data_stream.h"
 
 #include "particle_base.h"
+#include "particle_boundary.h"
 #include "load_particle.h"
 #include "save_particle.h"
-#include "../modeling/geometry_algorithm.h"
+
+#include "../modeling/command.h"
+
 #ifndef NO_STD_CXX
 //need  libstdc++
-
 #include <ext/mt_allocator.h>
 template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
 #endif
@@ -86,11 +88,15 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...args);
+	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh,
+			TDict const & dict, Args const & ...others);
 
 	// Destructor
 	virtual ~Particle();
+
+	template<typename TDict, typename ... Others>
+	void AddCommand(TDict const & dict, Material<mesh_type> const &,
+			Others const & ...);
 
 	static std::string GetTypeAsString()
 	{
@@ -118,11 +124,12 @@ public:
 		return engine_type::EnableImplicit();
 	}
 
-	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E,
+			Field<mesh_type, FACE, scalar_type> const & B);
 
 	template<typename TJ>
 	void NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> const & E,
-	        Field<mesh_type, FACE, scalar_type> const & B);
+			Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
@@ -130,14 +137,19 @@ public:
 
 	void Add(index_type s, cell_type &&);
 
-	void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator);
+	void Add(index_type s,
+			std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator);
 
-	void Remove(index_type s, std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter);
+	void Remove(index_type s,
+			std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter);
 
-	void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo);
+	void Modify(index_type s,
+			std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo);
 
 	void Traversal(index_type s,
-	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op);
+			std::function<
+					void(scalar_type, coordinates_type const&,
+							nTuple<3, Real> const&)> const & op);
 
 	Field<mesh_type, VERTEX, scalar_type> & n()
 	{
@@ -182,7 +194,6 @@ public:
 	{
 		return data_[mesh.Hash(s)];
 	}
-
 	cell_type &at(index_type s)
 	{
 		return data_.at(mesh.Hash(s));
@@ -213,7 +224,8 @@ public:
 //	}
 //***************************************************************************************************
 	template<int IFORM, typename ...Args>
-	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
+	void Scatter(Field<mesh_type, IFORM, scalar_type> *J,
+			Args const & ... args) const;
 
 	void Sort();
 
@@ -267,15 +279,16 @@ private:
 	 */
 	template<typename TDest> void Sort(index_type id_src, TDest *dest);
 
-	std::list<std::shared_ptr<VisitorBase> > constraintToJ_;
-	std::list<std::shared_ptr<VisitorBase> > constraintToJv_;
+	std::list<std::function<void()> > commands_;
 };
 
 template<class Engine>
-template<typename TDict, typename ...Args>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...args)
+template<typename TDict, typename ...Others>
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
+		Others const & ...others)
 
-		: engine_type(pmesh, dict, std::forward<Args const&>(args)...),
+:
+		engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
 		mesh(pmesh), isSorted_(false),
 
@@ -294,9 +307,11 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args con
 		J_.Clear();
 	}
 
-	LoadParticle(this, dict, std::forward<Args const &>(args)...);
+	LoadParticle(this, dict, std::forward<Others const &>(others)...);
 
 	enableSorting_ = dict["EnableSorting"].template as<bool>(false);
+
+	AddCommand(dict, std::forward<Others const &>(others)...);
 
 }
 
@@ -304,11 +319,60 @@ template<class Engine>
 Particle<Engine>::~Particle()
 {
 }
+template<class Engine>
+template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
+		TDict const & dict, Material<mesh_type> const & model_,
+		Others const & ...)
+{
+	for (auto item : dict)
+	{
+		auto dof = item.second["DOF"].template as<std::string>("");
+
+		LOGGER << "Add constraint to " << dof;
+
+		if (dof == "n")
+		{
+			commands_.push_back(
+					Command<decltype(n_)>::Create(&n_, item.second, model_));
+
+		}
+		else if (dof == "J")
+		{
+			commands_.push_back(
+					Command<decltype(J_)>::Create(&J_, item.second, model_));
+
+		}
+		else if (dof == " Jv")
+		{
+			commands_.push_back(
+					Command<decltype(Jv_)>::Create(&Jv_, item.second, model_));
+
+		}
+//		else if (dof == "Particles")
+//		{
+//			commands_.push_back(
+//					Command<this_type>::Create(this, item.second, model_));
+//		}
+		else if (dof == "ParticlesBoundary")
+		{
+			commands_.push_back(
+					BoundaryCondition<this_type>::Create(this, item.second,
+							model_));
+		}
+		else
+		{
+			UNIMPLEMENT2("Unknown DOF!");
+		}
+
+	}
+
+}
 
 //*************************************************************************************************
 
 template<class Engine>
-std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<Engine>::Dump(std::string const & path,
+		bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -342,8 +406,9 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 
 template<class Engine>
 
-void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
-        Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<Engine>::NextTimeStep(
+		Field<mesh_type, EDGE, scalar_type> const & E,
+		Field<mesh_type, FACE, scalar_type> const & B)
 {
 	if (EnableImplicit())
 	{
@@ -357,17 +422,20 @@ void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & 
 
 template<class Engine>
 template<typename TJ>
-void Particle<Engine>::NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> const & E,
-        Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<Engine>::NextTimeStep(TJ * J,
+		Field<mesh_type, EDGE, scalar_type> const & E,
+		Field<mesh_type, FACE, scalar_type> const & B)
 {
 	if (data_.empty())
 	{
-		WARNING << "Particle [ " << engine_type::GetTypeAsString() << "] is not initialized!";
+		WARNING << "Particle [ " << engine_type::GetTypeAsString()
+				<< "] is not initialized!";
 		return;
 	}
 
-	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << std::boolalpha << " , Enable Implicit ="
-	        << EnableImplicit() << " , Enable Sorting =" << enableSorting_ << " ]";
+	LOGGER << "Push particles [ " << engine_type::GetTypeAsString()
+			<< std::boolalpha << " , Enable Implicit =" << EnableImplicit()
+			<< " , Enable Sorting =" << enableSorting_ << " ]";
 
 	Real dt = mesh.GetDt();
 
@@ -400,23 +468,24 @@ void Particle<Engine>::NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> 
 }
 
 template<class Engine> template<int IFORM, typename ...Args>
-void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
+void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ,
+		Args const &... args) const
 {
 	ParallelDo(
 
-	[&](int t_num,int t_id)
-	{
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			pJ->lock();
-			for (auto const& p : this->at(s) )
+			[&](int t_num,int t_id)
 			{
-				this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
-			}
-			pJ->unlock();
-		}
+				for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+				{
+					pJ->lock();
+					for (auto const& p : this->at(s) )
+					{
+						this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
+					}
+					pJ->unlock();
+				}
 
-	});
+			});
 }
 //*************************************************************************************************
 template<class Engine>
@@ -492,7 +561,8 @@ void Particle<Engine>::Add(index_type s, cell_type && other)
 }
 
 template<class Engine>
-void Particle<Engine>::Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & gen)
+void Particle<Engine>::Add(index_type s,
+		std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & gen)
 {
 	coordinates_type x;
 	nTuple<3, Real> v;
@@ -503,7 +573,7 @@ void Particle<Engine>::Add(index_type s, std::function<Real(coordinates_type *, 
 
 template<class Engine>
 void Particle<Engine>::Remove(index_type s,
-        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
+		std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
 {
 	auto & cell = this->at(s);
 
@@ -528,7 +598,8 @@ void Particle<Engine>::Remove(index_type s,
 }
 
 template<class Engine>
-void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
+void Particle<Engine>::Modify(index_type s,
+		std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
 {
 
 	for (auto & p : this->at(s))
@@ -544,7 +615,9 @@ void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type 
 
 template<class Engine>
 void Particle<Engine>::Traversal(index_type s,
-        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op)
+		std::function<
+				void(scalar_type, coordinates_type const&,
+						nTuple<3, Real> const&)> const & op)
 {
 
 	for (auto const & p : this->at(s))

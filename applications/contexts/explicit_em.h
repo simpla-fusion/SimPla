@@ -28,11 +28,10 @@
 
 // Particle
 #include "../../src/particle/particle_base.h"
-#include "../../src/particle/particle_constraint.h"
 
 // Modeling
 #include "../../src/modeling/material.h"
-#include "../../src/modeling/constraint.h"
+#include "../../src/modeling/command.h"
 #include "../../src/utilities/geqdsk.h"
 
 // Solver
@@ -56,8 +55,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args) :
+			ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -67,7 +66,8 @@ public:
 
 	void NextTimeStep();
 
-	std::string Dump(std::string const & path = "", bool compact_store = false) const;
+	std::string Dump(std::string const & path = "",
+			bool compact_store = false) const;
 
 	double CheckCourantDt() const;
 
@@ -100,22 +100,22 @@ public:
 
 	std::function<void(Real, TE const &, TB const &, TParticles const&, TE*)> Implicit_PushE;
 
-	template<typename TVisitorList, typename TF>
-	void ApplyVisitor(TVisitorList const & l, TF pJ)
+	template<typename TBatch>
+	void ExcuteCommands(TBatch const & batch)
 	{
-		for (auto const & v : l)
+		for (auto const & command : batch)
 		{
-			pJ->Accept(*v);
+			command();
 		}
 	}
 
 private:
 
-	std::list<std::shared_ptr<VisitorBase> > constraintToE_;
+	std::list<std::function<void()> > commandToE_;
 
-	std::list<std::shared_ptr<VisitorBase> > constraintToB_;
+	std::list<std::function<void()> > commandToB_;
 
-	std::list<std::shared_ptr<VisitorBase> > constraintToJ_;
+	std::list<std::function<void()> > commandToJ_;
 
 	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
@@ -123,8 +123,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		model_(mesh), E(mesh), B(mesh),
 
 		Jext(mesh), J0(mesh), dE(mesh), dB(mesh),
 
@@ -142,7 +142,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \""
+			+ dict["Description"].template as<std::string>() + "\"\n";
 
 	LOGGER << description;
 
@@ -192,7 +193,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			for (auto s : mesh.GetRange(FACE))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s,
+						geqdsk.B(x[0], x[1]));
 
 			}
 
@@ -249,20 +251,17 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		LOGGER << "Load Particles";
 
-		auto p_dict = dict["ParticlesConstriants"];
-
 		for (auto const &opt : dict["Particles"])
 		{
 
 			auto key = opt.first.template as<std::string>("unnamed");
 
-			auto p = CreateParticle<mesh_type>(opt.second["Type"].template as<std::string>("Default"), mesh, opt.second,
-			        ne0, Te0);
+			auto p = CreateParticle<mesh_type>(
+					opt.second["Type"].template as<std::string>("Default"),
+					mesh, opt.second, model_, ne0, Te0);
 
 			if (p != nullptr)
 			{
-				p->AddConstriants(p_dict);
-
 				particles_.emplace(key, p);
 
 				enableImplicit = enableImplicit || p->EnableImplicit();
@@ -281,17 +280,20 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			LOGGER << "Add constraint to " << dof;
 
-			if (dof == "Fields.E")
+			if (dof == "E")
 			{
-				constraintToE_.push_back(CreateConstraint<TE>(model_, item.second));
+				commandToE_.push_back(
+						Command<TE>::Create(&E, item.second, model_));
 			}
-			else if (dof == "Fields.B")
+			else if (dof == "B")
 			{
-				constraintToB_.push_back(CreateConstraint<TB>(model_, item.second));
+				commandToB_.push_back(
+						Command<TB>::Create(&B, item.second, model_));
 			}
-			else if (dof == "Fields.J")
+			else if (dof == "J")
 			{
-				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
+				commandToJ_.push_back(
+						Command<TJ>::Create(&Jext, item.second, model_));
 			}
 			else
 			{
@@ -311,20 +313,24 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(
+					new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
 
-			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2,
+					_3, _4);
 
-			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2,
+					_3, _4);
 
 		}
 		else
 		{
-			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-			{
-				auto & dE=*pdE;
-				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-			};
+			E_plus_CurlB =
+					[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+					{
+						auto & dE=*pdE;
+						LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+					};
 
 			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
@@ -344,7 +350,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 }
 
 template<typename TM>
-std::string ExplicitEMContext<TM>::Dump(std::string const & path, bool is_verbose) const
+std::string ExplicitEMContext<TM>::Dump(std::string const & path,
+		bool is_verbose) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
@@ -411,7 +418,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	//************************************************************
 	// E0 B0, v-1/2,x0
 	LOG_CMD(Jext = J0);
-	ApplyVisitor(constraintToJ_, &Jext);
+	ExcuteCommands(commandToJ_);
 
 	//   x, v=-1/2 -> 1/2 , J=1/2
 	for (auto &p : particles_)
@@ -420,15 +427,13 @@ void ExplicitEMContext<TM>::NextTimeStep()
 		{
 			p.second->NextTimeStep(E, B);
 
-			ApplyVisitor(constraintToParticle_, p.second);
-
 			auto const & Js = p.second->J();
 			LOG_CMD(Jext += Js);
 		}
 	}
 
 	LOG_CMD(B += dB * 0.5);	//  B(t=1/2 -> 1)
-	ApplyVisitor(constraintToB_, &B);
+	ExcuteCommands(commandToB_);
 
 	dE.Clear();
 	E_plus_CurlB(dt, E, B, &dE); 	// dE += Curl(B)*dt
@@ -439,26 +444,24 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	LOG_CMD(E += dE * 0.5);	// E(t=0  -> 1/2  )
 
-	ApplyVisitor(constraintToE_, &E);
+	ExcuteCommands(commandToE_);
 
 	for (auto &p : particles_)
 	{
 		if (p.second->EnableImplicit())
 		{
 			p.second->NextTimeStep(E, B);
-
-			ApplyVisitor(constraintToParticle_, p.second);
 		}
 	}
 
 	LOG_CMD(E += dE * 0.5);
-	ApplyVisitor(constraintToE_, &E);
+	ExcuteCommands(commandToE_);
 
 	dB.Clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
 	LOG_CMD(B += dB * 0.5);
-	ApplyVisitor(constraintToB_, &B);
+	ExcuteCommands(commandToB_);
 
 //************************************************************
 // Compute Cycle End

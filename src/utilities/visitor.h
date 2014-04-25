@@ -24,17 +24,22 @@ struct VisitorBase
 	virtual ~VisitorBase()
 	{
 	}
-	virtual void Visit(void*) const=0;
 
-	virtual std::string GetTypeAsString_() const
+	void Visit(void*p) const
 	{
-		return "Custom";
+		Visit_(p);
 	}
-
 	std::string GetTypeAsString() const
 	{
 		return GetTypeAsString_();
 	}
+
+private:
+	virtual std::string GetTypeAsString_() const
+	{
+		return "Custom";
+	}
+	virtual void Visit_(void*) const=0;
 };
 
 /***

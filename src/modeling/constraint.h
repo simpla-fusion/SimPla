@@ -13,7 +13,7 @@ namespace simpla
 {
 
 template<typename TF>
-class Constraint: public VisitorBase
+class Command: public VisitorBase
 {
 public:
 
@@ -35,14 +35,15 @@ private:
 
 	std::list<index_type> def_domain_;
 public:
-	std::function<field_value_type(Real, coordinates_type, field_value_type const &)> op_;
+	std::function<
+			field_value_type(Real, coordinates_type, field_value_type const &)> op_;
 
-	Constraint(mesh_type const & m)
-			: mesh(m)
+	Command(mesh_type const & m) :
+			mesh(m)
 	{
 	}
 
-	~Constraint()
+	~Command()
 	{
 	}
 
@@ -54,32 +55,39 @@ public:
 	{
 		return def_domain_.empty();
 	}
-	void Visit(void * pf) const
+
+	void Visit(field_type * f) const
 	{
 		// NOTE this is a danger opertaion , no type check
-
-		field_type & f = *reinterpret_cast<field_type*>(pf);
 
 		for (auto s : def_domain_)
 		{
 			auto x = mesh.GetCoordinates(s);
 
-			f[s] = mesh.Sample(Int2Type<IForm>(), s, op_(mesh.GetTime(), x, f(x)));
+			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s,
+					op_(mesh.GetTime(), x, (*f)(x)));
 		}
 	}
 
+private:
+	void Visit_(void * pf) const
+	{
+		Visit(reinterpret_cast<field_type*>(pf));
+	}
 }
 ;
 
 template<typename TField, typename TDict>
-std::shared_ptr<VisitorBase> CreateConstraint(Material<typename TField::mesh_type> const & material, TDict const & dict)
+std::shared_ptr<Command<TField>> CreateConstraint(
+		Material<typename TField::mesh_type> const & material,
+		TDict const & dict)
 {
 
 	typedef typename TField::mesh_type mesh_type;
 
 	mesh_type const & mesh = material.mesh;
 
-	std::shared_ptr<Constraint<TField>> res(new Constraint<TField>(mesh));
+	std::shared_ptr<Command<TField>> res(new Command<TField>(mesh));
 
 	typedef typename mesh_type::index_type index_type;
 
@@ -120,18 +128,20 @@ std::shared_ptr<VisitorBase> CreateConstraint(Material<typename TField::mesh_typ
 		{
 			auto value = op.template as<field_value_type>();
 
-			res->op_ = [value](Real,coordinates_type,field_value_type )->field_value_type
-			{
-				return value;
-			};
+			res->op_ =
+					[value](Real,coordinates_type,field_value_type )->field_value_type
+					{
+						return value;
+					};
 
 		}
 		else if (op.is_function())
 		{
-			res->op_ = [op](Real t,coordinates_type x,field_value_type v)->field_value_type
-			{
-				return op( t,x ,v).template as<field_value_type>();
-			};
+			res->op_ =
+					[op](Real t,coordinates_type x,field_value_type v)->field_value_type
+					{
+						return op( t,x ,v).template as<field_value_type>();
+					};
 
 		}
 	}
@@ -140,7 +150,7 @@ std::shared_ptr<VisitorBase> CreateConstraint(Material<typename TField::mesh_typ
 		ERROR << "illegal configuration!";
 	}
 
-	return std::dynamic_pointer_cast<VisitorBase>(res);
+	return (res);
 }
 
 }  // namespace simpla
