@@ -64,7 +64,7 @@ public:
 
 	virtual Real GetCharge() const=0;
 
-	virtual bool NeedImplicitPushE() const
+	virtual bool EnableImplicit() const
 	{
 		return false;
 	}

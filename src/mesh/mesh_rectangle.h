@@ -863,6 +863,9 @@ public:
 		)
 		;
 	}
+	template<int IL, typename TR> inline auto OpEval(Int2Type<MAPTO>,Int2Type<IL> const &,
+	Field<this_type, IL, TR> const & f, index_type s)const
+	DECL_RET_TYPE(f[s])
 
 	template< typename TR> inline auto OpEval(Int2Type<MAPTO>,Int2Type<VERTEX> const &,
 	Field<this_type, EDGE, TR> const & f, index_type s)const->nTuple<3,decltype(f[s]*1.0)>

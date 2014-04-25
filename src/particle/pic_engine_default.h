@@ -62,7 +62,7 @@ public:
 
 private:
 	Real m_, q_, cmr_;
-	bool isXVSync_;
+	bool enableImplicit_;
 public:
 	mesh_type const &mesh;
 
@@ -70,7 +70,7 @@ public:
 
 	template<typename ...Args>
 	PICEngineDefault(mesh_type const &pmesh, Args const & ...args)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), isXVSync_(true)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -108,6 +108,7 @@ public:
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
+		enableImplicit_ = dict["EnableImplicitSolver"].template as<bool>(false);
 	}
 
 	std::string Dump(std::string const & path = "", bool is_verbose = false) const
@@ -131,6 +132,11 @@ public:
 		Point_s p;
 		p.f = 1.0;
 		return std::move(p);
+	}
+
+	bool EnableImplicit() const
+	{
+		return enableImplicit_;
 	}
 
 	template<typename TJ, typename TB, typename TE, typename ... Others>

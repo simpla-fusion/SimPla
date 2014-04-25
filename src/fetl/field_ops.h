@@ -328,6 +328,10 @@ template<int IL, typename TM, int IR, typename TR>
 inline auto MapTo(Field<TM, IR, TR> const & f)
 DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
 
+template<int IL, typename TM, int IR, typename TR>
+inline auto MapTo(Int2Type<IL>, Field<TM, IR, TR> const & f)
+DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
+
 //******************************************************************************************************
 
 namespace fetl_impl

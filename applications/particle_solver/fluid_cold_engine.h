@@ -40,7 +40,6 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type const & mesh;
-	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv;
 
 	template<typename ...Args>
 	Particle(mesh_type const & pmesh, Args const & ...);
@@ -54,6 +53,9 @@ public:
 	{
 		return "ColdFluid";
 	}
+
+	//**************************************************************************************************
+	// Interface
 
 	std::string GetTypeAsString_() const
 	{
@@ -69,6 +71,14 @@ public:
 		return q_;
 	}
 
+	bool EnableImplicit() const
+	{
+		return true;
+	}
+	void Accept(VisitorBase const& visitor)
+	{
+		CHECK("Accept Visitor");
+	}
 	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E, Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
@@ -102,6 +112,8 @@ private:
 	Real m_;
 	Real q_;
 
+	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv;
+
 	Field<mesh_type, VERTEX, scalar_type> n_;
 
 	Field<mesh_type, EDGE, scalar_type> J_;
@@ -115,6 +127,8 @@ template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & p
 		: mesh(pmesh), q_(1.0), m_(1.0), Bv(mesh), n_(mesh), J_(mesh), Jv_(mesh)
 {
 	Load(std::forward<Args const &>(args)...);
+	Jv_.Clear();
+	n_.Clear();
 }
 
 template<typename TM>
@@ -140,6 +154,9 @@ template<typename TM>
 std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
+
+	GLOBAL_DATA_STREAM.OpenGroup(path );
+
 	if (is_verbose)
 	{
 		DEFINE_PHYSICAL_CONST(mesh.constants());
@@ -154,9 +171,10 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verb
 
 		;
 	}
+
 	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
 
-	os << "\n, J =" << simpla::Dump(Jv_, "Jv", is_verbose);
+	os << "\n, Jv =" << simpla::Dump(Jv_, "Jv", is_verbose);
 
 	return os.str();
 }

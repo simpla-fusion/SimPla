@@ -113,18 +113,16 @@ public:
 		return engine_type::GetCharge();
 	}
 
-	void EnableImplicitPushE()
+	bool EnableImplicit() const
 	{
-		Jv_.Clear();
-
-	}
-
-	bool NeedImplicitPushE() const
-	{
-		return !Jv_.empty();
+		return engine_type::EnableImplicit();
 	}
 
 	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B);
+
+	template<typename TJ>
+	void NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> const & E,
+	        Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
@@ -167,7 +165,7 @@ public:
 	}
 
 	//***************************************************************************************************
-	inline void Insert(index_type s, typename engine_type::Point_s && p)
+	inline void Insert(index_type s, typename engine_type::Point_s p)
 	{
 		this->at(s).emplace_back(p);
 	}
@@ -236,11 +234,11 @@ public:
 	}
 	void SetParticleSorting(bool f)
 	{
-		particleSortingIsEnable_ = f;
+		enableSorting_ = f;
 	}
 	bool GetParticleSorting() const
 	{
-		return particleSortingIsEnable_;
+		return enableSorting_;
 	}
 
 	container_type const & GetTree() const
@@ -251,7 +249,7 @@ public:
 private:
 
 	bool isSorted_;
-	bool particleSortingIsEnable_;
+	bool enableSorting_;
 
 	allocator_type allocator_;
 
@@ -274,6 +272,7 @@ private:
 template<class Engine>
 template<typename TDict, typename ...Args>
 Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...args)
+
 		: engine_type(pmesh, dict, std::forward<Args const&>(args)...),
 
 		mesh(pmesh), isSorted_(false),
@@ -282,12 +281,21 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args con
 
 		, n_(mesh), J_(mesh), Jv_(mesh)
 {
-	if (dict["EnableImplicitSolver"].template as<bool>(false))
+	n_.Clear();
+
+	if (engine_type::EnableImplicit())
 	{
-		EnableImplicitPushE();
+		Jv_.Clear();
+	}
+	else
+	{
+		J_.Clear();
 	}
 
 	LoadParticle(this, dict, std::forward<Args const &>(args)...);
+
+	enableSorting_ = dict["EnableSorting"].template as<bool>(false);
+
 }
 
 template<class Engine>
@@ -316,11 +324,14 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 
 	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
 
-	if (!Jv_.empty())
-		os << "\n, J =" << simpla::Dump(Jv_, "Jv", is_verbose);
-
-	if (!J_.empty())
+	if (EnableImplicit())
+	{
+		os << "\n, Jv =" << simpla::Dump(Jv_, "Jv", is_verbose);
+	}
+	else
+	{
 		os << "\n, J =" << simpla::Dump(J_, "J", is_verbose);
+	}
 
 	return os.str();
 }
@@ -328,7 +339,23 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 #define DISABLE_MULTI_THREAD
 
 template<class Engine>
+
 void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
+        Field<mesh_type, FACE, scalar_type> const & B)
+{
+	if (EnableImplicit())
+	{
+		NextTimeStep(&Jv_, E, B);
+	}
+	else
+	{
+		NextTimeStep(&J_, E, B);
+	}
+}
+
+template<class Engine>
+template<typename TJ>
+void Particle<Engine>::NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> const & E,
         Field<mesh_type, FACE, scalar_type> const & B)
 {
 	if (data_.empty())
@@ -337,58 +364,32 @@ void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & 
 		return;
 	}
 
-	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << " , Enable Implicit Solver=" << std::boolalpha
-	        << NeedImplicitPushE() << " ]";
+	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << std::boolalpha << " , Enable Implicit ="
+	        << EnableImplicit() << " , Enable Sorting =" << enableSorting_ << " ]";
 
 	Real dt = mesh.GetDt();
 
 	Sort();
 
-	if (NeedImplicitPushE())
+	J->Clear();
+
+	ParallelDo(
+
+	[&](int t_num,int t_id)
 	{
-		Jv_.Clear();
-
-		ParallelDo(
-
-		[&](int t_num,int t_id)
+		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+			J->lock();
+			for (auto & p : this->at(s) )
 			{
-				this->J_.lock();
-				for (auto & p : this->at(s) )
-				{
-					this->engine_type::NextTimeStep(&p,dt ,&(this->Jv_),E,B);
-
-				}
-				this->J_.unlock();
+				this->engine_type::NextTimeStep(&p,dt ,J,E,B);
 			}
+			J->unlock();
+		}
 
-		});
+	});
 
-		n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
-	}
-	else
-	{
-		J_.Clear();
-
-		ParallelDo(
-
-		[&](int t_num,int t_id)
-		{
-			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-			{
-				this->J_.lock();
-				for (auto & p : this->at(s) )
-				{
-					this->engine_type::NextTimeStep(&p,dt ,&(this->J_),E,B);
-				}
-				this->J_.unlock();
-			}
-
-		});
-
-		n_ -= Diverge(J_) * dt;
-	}
+	n_ -= Diverge(MapTo<EDGE>(*J)) * dt;
 
 	isSorted_ = false;
 	Sort();
@@ -447,7 +448,7 @@ template<class Engine>
 void Particle<Engine>::Sort()
 {
 
-	if (IsSorted())
+	if (IsSorted() || !enableSorting_)
 		return;
 
 	VERBOSE << "Particle sorting is enabled!";

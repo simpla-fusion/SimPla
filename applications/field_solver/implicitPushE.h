@@ -24,7 +24,7 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
-	LOGGER << "Implicit Push E:   [ Species Number=" << particles.size() << "]";
+	LOGGER << "Implicit Push E ";
 
 	TE & dE = *pdE;
 
@@ -50,8 +50,9 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	for (auto &p : particles)
 	{
-		if (!p.second->NeedImplicitPushE())
+		if (!p.second->EnableImplicit())
 			continue;
+
 		auto & rhos = p.second->n();
 		auto & Js = p.second->Jv();
 

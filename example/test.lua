@@ -109,20 +109,19 @@ Grid=
 ---[[
 Particles={
 	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100, EnableImplicitSolver=true },
---ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 , EnableImplicitSolver=true }
---ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
---H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
+	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+		EnableImplicit =true,EnableSorting=true },
+	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+		EnableImplicit =true,EnableSorting=true }
+	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
+	--H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
 }
 --]]
 
 
 FieldSolver=
 {
-
-	---[[
 	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
-	--]]
 }
 --[[
 Model=
@@ -139,14 +138,8 @@ end
 Constraints=
 {
 	---[[
-	--{
-	--DOF="E",IsHard=true,
-	--Select={Type="Boundary", Material="Vacuum" },
-	--Value= 0
-	--},
-
 	{
-		DOF="J",
+		DOF="Fields.J",
 		Select={Type="Range",Value={{0.1*LX,0,0}}},
 		Operation=
 		function(t,x,f )
@@ -158,17 +151,27 @@ Constraints=
 
 
 	},
+	{
+		DOF="Fields.E",
+		Select={Type="Range",Value={{0,0,0},{0.01*LX,LY,LZ}}},
+		Operation=
+		function(t,x,f )
+			return { 0,0,0}
+		end
+	},
+	{
+		DOF="Fields.E",
+		Select={Type="Range",Value={{0.99*LX,0,0},{ LX,LY,LZ}}},
+		Operation=
+		function(t,x,f )
+			return { 0,0,0}
+		end
+	},
 	--]]
 
-
-	--  {
-	--    DOF="J",
-	-- Select={Type="Media", Tag="Vacuum"},
-	-- Value= 0
-	--  },
 	{
 		DOF="Particles",
-		Select={Type="Surface", DistanceToBoundary=0.05*LX},
+		Select={Type="Surface", DistanceToBoundary=0.02*LX},
 		Operation= "Reflecting"
 	},
 

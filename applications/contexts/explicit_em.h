@@ -241,7 +241,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
 
-	bool enableImplicitPushE = false;
+	bool enableImplicit = false;
 
 	bool enablePML = false;
 
@@ -262,7 +262,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			{
 				particles_.emplace(key, p);
 
-				enableImplicitPushE = enableImplicitPushE || p->NeedImplicitPushE();
+				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
 		}
 	}
@@ -273,19 +273,19 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		for (auto const & item : dict["Constraints"])
 		{
 
-			auto dof = item.second["DOF"].template as<std::string>();
+			auto dof = item.second["DOF"].template as<std::string>("");
 
 			LOGGER << "Add constraint to " << dof;
 
-			if (dof == "E")
+			if (dof == "Fields.E")
 			{
 				constraintToE_.push_back(CreateConstraint<TE>(model_, item.second));
 			}
-			else if (dof == "B")
+			else if (dof == "Fields.B")
 			{
 				constraintToB_.push_back(CreateConstraint<TB>(model_, item.second));
 			}
-			else if (dof == "J")
+			else if (dof == "Fields.J")
 			{
 				constraintToJ_.push_back(CreateConstraint<TJ>(model_, item.second));
 			}
@@ -298,7 +298,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			{
 				UNIMPLEMENT2("Unknown DOF!");
 			}
-
 		}
 	}
 
@@ -338,7 +337,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	}
 	Implicit_PushE = [] (Real, TE const &, TB const &, TParticles const&, TE*)
 	{};
-	if (enableImplicitPushE)
+	if (enableImplicit)
 	{
 		Implicit_PushE = &ImplicitPushE<TE, TB, TParticles>;
 	}
@@ -418,7 +417,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	//   x, v=-1/2 -> 1/2 , J=1/2
 	for (auto &p : particles_)
 	{
-		if (!p.second->NeedImplicitPushE())
+		if (!p.second->EnableImplicit())
 		{
 			p.second->NextTimeStep(E, B);
 
@@ -445,7 +444,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	for (auto &p : particles_)
 	{
-		if (p.second->NeedImplicitPushE())
+		if (p.second->EnableImplicit())
 		{
 			p.second->NextTimeStep(E, B);
 

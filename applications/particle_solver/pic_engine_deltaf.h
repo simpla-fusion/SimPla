@@ -65,16 +65,24 @@ public:
 
 private:
 	Real m_, cmr_, q_, q_kT_;
-	bool isXVSync_;
+	bool enableImplicit_;
 public:
 	mesh_type const &mesh;
 
 public:
-	template<typename ...Args>
-	PICEngineDeltaF(mesh_type const &pmesh, Args const & ...args)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0), isXVSync_(true)
+	template<typename TDict, typename ...Args>
+	PICEngineDeltaF(mesh_type const &pmesh, TDict const& dict, Args const & ...args)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0), enableImplicit_(false)
+
 	{
-		Load(std::forward<Args const &>(args)...);
+		DEFINE_PHYSICAL_CONST(mesh.constants());
+
+		m_ = dict["Mass"].template as<Real>(1.0);
+		q_ = dict["Charge"].template as<Real>(1.0);
+		cmr_ = q_ / m_;
+		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
+		enableImplicit_ = dict["EnableImplicit"].template as<bool>(false);
+
 	}
 	~PICEngineDeltaF()
 	{
@@ -102,18 +110,11 @@ public:
 	{
 		return 2;
 	}
-	template<typename TDict, typename ...Others>
-	void Load(TDict const &dict, Others const &...)
+
+	bool EnableImplicit() const
 	{
-
-		DEFINE_PHYSICAL_CONST(mesh.constants());
-
-		m_ = dict["Mass"].template as<Real>(1.0);
-		q_ = dict["Charge"].template as<Real>(1.0);
-		cmr_ = q_ / m_;
-		q_kT_ = q_ / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
+		return enableImplicit_;
 	}
-
 	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
@@ -141,14 +142,14 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TJ, typename TB, typename TE, typename ... Others>
+	template<typename TJ, typename TE, typename TB, typename ... Others>
 	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		Move(p, dt, fE, fB, std::forward<Others const & >(others)...);
 		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
 	}
 
-	template<typename TB, typename TE, typename ... Others>
+	template<typename TE, typename TB, typename ... Others>
 	inline void Move(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
@@ -180,11 +181,6 @@ public:
 
 	}
 
-	inline void Reflect(nTuple<3, Real> const & x, nTuple<3, Real> const & nv, Point_s * p) const
-	{
-
-	}
-
 	template<typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J, Args const & ...) const
 	{
@@ -199,8 +195,8 @@ public:
 	}
 
 	//For implicit pusher
-	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Real dt, Field<mesh_type, VERTEX, nTuple<3, TV> >* J, Args const & ...) const
+	template<int IFORM, typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Real dt, Field<mesh_type, IFORM, nTuple<3, TV> >* J, Args const & ...) const
 	{
 		nTuple<3, TV> v;
 
@@ -209,8 +205,8 @@ public:
 		interpolator_type::Scatter(p.x, v, J);
 	}
 
-	template<typename TJ, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TJ> * n, Args const & ...) const
+	template<int IFORM, typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{
 		interpolator_type::Scatter(p.x, q_ * p.f * p.w, n);
 	}
