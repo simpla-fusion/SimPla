@@ -92,13 +92,13 @@ public:
 	// Destructor
 	virtual ~Particle();
 
-	//***************************************************************************************************
-	// Interface
-
 	static std::string GetTypeAsString()
 	{
 		return engine_type::GetTypeAsString();
 	}
+	//***************************************************************************************************
+	// Interface
+
 	std::string GetTypeAsString_() const
 	{
 		return GetTypeAsString();
@@ -112,11 +112,25 @@ public:
 	{
 		return engine_type::GetCharge();
 	}
+
+	void EnableImplicitPushE()
+	{
+		Jv_.Clear();
+
+	}
+
+	bool NeedImplicitPushE() const
+	{
+		return !Jv_.empty();
+	}
+
 	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
 	void Clear(index_type s);
+
+	void Add(index_type s, cell_type &&);
 
 	void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator);
 
@@ -126,6 +140,31 @@ public:
 
 	void Traversal(index_type s,
 	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op);
+
+	Field<mesh_type, VERTEX, scalar_type> & n()
+	{
+		return n_;
+	}
+	Field<mesh_type, VERTEX, scalar_type> const& n() const
+	{
+		return n_;
+	}
+	Field<mesh_type, EDGE, scalar_type> &J()
+	{
+		return J_;
+	}
+	Field<mesh_type, EDGE, scalar_type> const&J() const
+	{
+		return J_;
+	}
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> &Jv()
+	{
+		return Jv_;
+	}
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const&Jv() const
+	{
+		return Jv_;
+	}
 
 	//***************************************************************************************************
 	inline void Insert(index_type s, typename engine_type::Point_s && p)
@@ -208,12 +247,21 @@ public:
 	{
 		return data_;
 	}
+
 private:
 
 	bool isSorted_;
 	bool particleSortingIsEnable_;
+
 	allocator_type allocator_;
+
 	container_type data_;
+
+	Field<mesh_type, VERTEX, scalar_type> n_;
+
+	Field<mesh_type, EDGE, scalar_type> J_;
+
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv_;
 
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -228,17 +276,15 @@ template<typename TDict, typename ...Args>
 Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...args)
 		: engine_type(pmesh, dict, std::forward<Args const&>(args)...),
 
-		base_type(pmesh),
-
-		mesh(pmesh),
-
-		isSorted_(false),
+		mesh(pmesh), isSorted_(false),
 
 		data_(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
+
+		, n_(mesh), J_(mesh), Jv_(mesh)
 {
 	if (dict["EnableImplicitSolver"].template as<bool>(false))
 	{
-		base_type::EnableImplicitPushE();
+		EnableImplicitPushE();
 	}
 
 	LoadParticle(this, dict, std::forward<Args const &>(args)...);
@@ -256,18 +302,25 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 {
 	std::stringstream os;
 
+	GLOBAL_DATA_STREAM.OpenGroup(path );
+
 	if (is_verbose)
 	{
-		GLOBAL_DATA_STREAM.OpenGroup(path );
 
 		os
 
-		<< engine_type::Dump(path,is_verbose)
+		<< engine_type::Dump(path, is_verbose)
 
 		<< "\n, particles = " << simpla::Dump(*this, "particles", !is_verbose);
 	}
 
-	os << base_type::Dump(path, is_verbose);
+	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
+
+	if (!Jv_.empty())
+		os << "\n, J =" << simpla::Dump(Jv_, "Jv", is_verbose);
+
+	if (!J_.empty())
+		os << "\n, J =" << simpla::Dump(J_, "J", is_verbose);
 
 	return os.str();
 }
@@ -285,15 +338,15 @@ void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & 
 	}
 
 	LOGGER << "Push particles [ " << engine_type::GetTypeAsString() << " , Enable Implicit Solver=" << std::boolalpha
-	        << base_type::NeedImplicitPushE() << " ]";
+	        << NeedImplicitPushE() << " ]";
 
 	Real dt = mesh.GetDt();
 
 	Sort();
 
-	if (base_type::NeedImplicitPushE())
+	if (NeedImplicitPushE())
 	{
-		base_type::Jv.Clear();
+		Jv_.Clear();
 
 		ParallelDo(
 
@@ -301,22 +354,22 @@ void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & 
 		{
 			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 			{
-				this->J.lock();
+				this->J_.lock();
 				for (auto & p : this->at(s) )
 				{
-					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::Jv),E,B);
+					this->engine_type::NextTimeStep(&p,dt ,&(this->Jv_),E,B);
 
 				}
-				this->J.unlock();
+				this->J_.unlock();
 			}
 
 		});
 
-		base_type::n -= Diverge(MapTo<EDGE>(base_type::Jv)) * dt;
+		n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
 	}
 	else
 	{
-		base_type::J.Clear();
+		J_.Clear();
 
 		ParallelDo(
 
@@ -324,17 +377,17 @@ void Particle<Engine>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & 
 		{
 			for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 			{
-				this->J.lock();
+				this->J_.lock();
 				for (auto & p : this->at(s) )
 				{
-					this->engine_type::NextTimeStep(&p,dt ,&(this->base_type::J),E,B);
+					this->engine_type::NextTimeStep(&p,dt ,&(this->J_),E,B);
 				}
-				this->J.unlock();
+				this->J_.unlock();
 			}
 
 		});
 
-		base_type::n -= Diverge(base_type::J) * dt;
+		n_ -= Diverge(J_) * dt;
 	}
 
 	isSorted_ = false;
@@ -377,7 +430,7 @@ void Particle<Engine>::Sort(index_type id_src, TDest *dest)
 		auto p = pt;
 		++pt;
 
-		index_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x));
+		index_type id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 
@@ -428,6 +481,11 @@ template<class Engine>
 void Particle<Engine>::Clear(index_type s)
 {
 	this->at(s).clear();
+}
+template<class Engine>
+void Particle<Engine>::Add(index_type s, cell_type && other)
+{
+	this->at(s).slice(this->at(s).begin(), other);
 }
 
 template<class Engine>

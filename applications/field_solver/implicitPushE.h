@@ -52,8 +52,8 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 	{
 		if (!p.second->NeedImplicitPushE())
 			continue;
-		auto & rhos = p.second->n;
-		auto & Js = p.second->Jv;
+		auto & rhos = p.second->n();
+		auto & Js = p.second->Jv();
 
 		Real ms = p.second->GetMass();
 		Real qs = p.second->GetCharge();

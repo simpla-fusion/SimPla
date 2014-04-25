@@ -73,19 +73,47 @@ public:
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
+	Field<mesh_type, VERTEX, scalar_type> & n()
+	{
+		return n_;
+	}
+	Field<mesh_type, VERTEX, scalar_type> const& n() const
+	{
+		return n_;
+	}
+	Field<mesh_type, EDGE, scalar_type> &J()
+	{
+		return J_;
+	}
+	Field<mesh_type, EDGE, scalar_type> const&J() const
+	{
+		return J_;
+	}
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> &Jv()
+	{
+		return Jv_;
+	}
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const&Jv() const
+	{
+		return Jv_;
+	}
+
 private:
 	Real m_;
 	Real q_;
 
-	bool enableNonlinear_;
+	Field<mesh_type, VERTEX, scalar_type> n_;
+
+	Field<mesh_type, EDGE, scalar_type> J_;
+
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv_;
 }
 ;
 
 template<typename TM>
 template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
-		: base_type(pmesh), mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false), Bv(mesh)
+		: mesh(pmesh), q_(1.0), m_(1.0), Bv(mesh), n_(mesh), J_(mesh), Jv_(mesh)
 {
-	base_type::EnableImplicitPushE();
 	Load(std::forward<Args const &>(args)...);
 }
 
@@ -101,11 +129,11 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 	m_ = dict["Mass"].template as<Real>(1.0);
 	q_ = dict["Charge"].template as<Real>(1.0);
 
-	LoadField(dict["Density"], &(base_type::n));
+	LoadField(dict["Density"], &(n_));
 
-	base_type::n *= q_;
+	n_ *= q_;
 
-	LoadField(dict["Current"], &(base_type::J));
+	LoadField(dict["Current"], &(J_));
 }
 
 template<typename TM>
@@ -126,7 +154,9 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verb
 
 		;
 	}
-	os << base_type::Dump(path, is_verbose);
+	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
+
+	os << "\n, J =" << simpla::Dump(Jv_, "Jv", is_verbose);
 
 	return os.str();
 }
@@ -141,16 +171,13 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> c
 
 	Bv = MapTo<IForm>(B);
 
-	auto & Jv = base_type::Jv;
-	auto & rho = base_type::n;
-
 	Real as = 0.5 * GetCharge() * dt / GetMass();
 
-	Jv += Cross(Jv, Bv) * as + 2.0 * as * rho * MapTo<IForm>(E);
+	Jv_ += Cross(Jv_, Bv) * as + 2.0 * as * n_ * MapTo<IForm>(E);
 
-	Jv = (Jv + Cross(Jv, Bv) * as + Bv * (Dot(Jv, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
+	Jv_ = (Jv_ + Cross(Jv_, Bv) * as + Bv * (Dot(Jv_, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
 
-	rho -= Diverge(MapTo<EDGE>(Jv)) * dt;
+	n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
 }
 
 }

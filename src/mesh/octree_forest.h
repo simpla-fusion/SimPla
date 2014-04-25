@@ -599,13 +599,13 @@ struct OcForest
 
 		return x;
 	}
-	inline std::pair<index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
-	        compact_index_type shift = 0) const
+
+	inline index_type CoordinatesGlobalToLocalDual(coordinates_type * x, compact_index_type shift = 0UL) const
 	{
-		auto res = CoordinatesGlobalToLocal(&x, shift);
-		return std::make_pair(res, x);
+		return CoordinatesGlobalToLocal(x, shift, 0.5);
 	}
-	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift = 0UL) const
+	inline index_type CoordinatesGlobalToLocal(coordinates_type * x, compact_index_type shift = 0UL,
+	        double round = 0.0) const
 	{
 		compact_index_type h = H(shift);
 
@@ -615,15 +615,15 @@ struct OcForest
 
 		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
 
-		idx[0] = static_cast<long>(std::floor((*x)[0] * idh + static_cast<double>(I(shift)))) & m;
+		idx[0] = static_cast<long>(std::floor(round + (*x)[0] * idh + static_cast<double>(I(shift)))) & m;
 
 		(*x)[0] = (dims_[0] > 1) ? (((*x)[0] - idx[0] * dh) * w) : 0.0;
 
-		idx[1] = static_cast<long>(std::floor((*x)[1] * idh + static_cast<double>(J(shift)))) & m;
+		idx[1] = static_cast<long>(std::floor(round + (*x)[1] * idh + static_cast<double>(J(shift)))) & m;
 
 		(*x)[1] = (dims_[0] > 1) ? (((*x)[1] - idx[1] * dh) * w) : 0.0;
 
-		idx[2] = static_cast<long>(std::floor((*x)[2] * idh + static_cast<double>(K(shift)))) & m;
+		idx[2] = static_cast<long>(std::floor(round + (*x)[2] * idh + static_cast<double>(K(shift)))) & m;
 
 		(*x)[2] = (dims_[0] > 1) ? (((*x)[2] - idx[2] * dh) * w) : 0.0;
 

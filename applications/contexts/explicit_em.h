@@ -424,7 +424,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 			ApplyVisitor(constraintToParticle_, p.second);
 
-			auto const & Js = p.second->J;
+			auto const & Js = p.second->J();
 			LOG_CMD(Jext += Js);
 		}
 	}

@@ -111,7 +111,6 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
-
 	PhysicalConstants constants_;
 
 	PhysicalConstants & constants()
@@ -210,12 +209,16 @@ public:
 	{
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::CoordinatesLocalToGlobal(s,x));
 	}
-	index_type CoordinatesGlobalToLocal(coordinates_type *x,compact_index_type shift=0)const
+	index_type CoordinatesGlobalToLocal(coordinates_type *x,compact_index_type shift=0 )const
 	{
 		*x=geometry_type::CoordinatesGlobalToLocal(*x);
-		return topology_type::CoordinatesGlobalToLocal(x,shift);
+		return topology_type::CoordinatesGlobalToLocal(x,shift );
 	}
-
+	index_type CoordinatesGlobalToLocalDual(coordinates_type *x,compact_index_type shift=0)const
+	{
+		*x=geometry_type::CoordinatesGlobalToLocal(*x);
+		return topology_type::CoordinatesGlobalToLocalDual(x,shift);
+	}
 	index_type GetCellIndex(coordinates_type x )const
 	{
 		auto r=geometry_type::CoordinatesGlobalToLocal( x);

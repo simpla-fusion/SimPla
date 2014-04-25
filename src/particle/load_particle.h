@@ -37,8 +37,8 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 		return;
 	}
 
-	p->J.Clear();
-	p->n.Clear();
+	p->J().Clear();
+	p->n().Clear();
 
 	InitParticle(p, dict, std::forward<Args const &>(args)...);
 
@@ -157,7 +157,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 		Real inv_sample_density = p->GetCharge() * mesh.Volume(s) / pic;
 
-		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->GetCharge() * ns(mesh.GetCoordinates(s)));
+		p->n()[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->GetCharge() * ns(mesh.GetCoordinates(s)));
 
 		for (int i = 0; i < pic; ++i)
 		{

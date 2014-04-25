@@ -88,14 +88,14 @@ public:
 			}
 			else if (op_str_ == "Absorbing")
 			{
-				p.Clear(cell.first
+				p.Remove(cell.first,
 
-//				,[&plane](coordinates_type *x, nTuple<3, Real>*v)->bool
-//				{
-//					return Distance(plane,x )<0;
-//				}
+				[&](coordinates_type const & x, nTuple<3, Real> const & v)->bool
+				{
+					return Distance(plane, x )<0;
+				}
 
-				        );
+				);
 			}
 			else if (op_str_ == "Custom")
 			{
