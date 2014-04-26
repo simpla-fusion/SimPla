@@ -47,13 +47,16 @@ public:
 
 			<< "H5T_COMPOUND {          "
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
+					<< (offsetof(Point_s, x)) << ";"
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
+					<< (offsetof(Point_s, v)) << ";"
 
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
+					<< (offsetof(Point_s, f)) << ";"
 
-			<< "}";
+					<< "}";
 
 			return os.str();
 		}
@@ -69,8 +72,8 @@ public:
 public:
 
 	template<typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, Args const & ...args)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
+	PICEngineDefault(mesh_type const &pmesh, Args const & ...args) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -108,10 +111,11 @@ public:
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
 		cmr_ = q_ / m_;
-		enableImplicit_ = dict["EnableImplicitSolver"].template as<bool>(false);
+		enableImplicit_ = dict["EnableImplicit"].template as<bool>(false);
 	}
 
-	std::string Dump(std::string const & path = "", bool is_verbose = false) const
+	std::string Dump(std::string const & path = "",
+			bool is_verbose = false) const
 	{
 		std::stringstream os;
 
@@ -139,8 +143,17 @@ public:
 		return enableImplicit_;
 	}
 
-	template<typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB, Others const &...others) const
+	template<typename TJ, typename TE, typename TB, typename ... Others>
+	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE,
+			TB const & fB, Others const &...others) const
+	{
+		Move(p, dt, fE, fB, std::forward<Others const & >(others)...);
+		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+	}
+
+	template<typename TE, typename TB, typename ... Others>
+	inline void Move(Point_s * p, Real dt, TE const &fE, TB const & fB,
+			Others const &...others) const
 	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -154,22 +167,19 @@ public:
 
 		v_ = p->v + Cross(p->v, t);
 
-		p->v += 2.0 * Cross(v_, t) / (Dot(t, t) + 1.0);
+		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
+
+		p->v += v_ * 2.0;
 
 		p->v += E * (cmr_ * dt * 0.5);
 
-		// $ x_{1} - x_{1/2} = v_1   \Delta t /2$
-
-		Vec3 v;
-
-		v = p->v * p->f;
-
-		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+		p->x += p->v * dt;
 
 	}
 
 	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J, Args const & ...) const
+	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J,
+			Args const & ...) const
 	{
 		typename Field<mesh_type, EDGE, TV>::field_value_type v;
 
@@ -182,8 +192,9 @@ public:
 	}
 
 	//For implicit pusher
-	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Real dt, Field<mesh_type, VERTEX, nTuple<3, TV> >* J, Args const & ...) const
+	template<int IFORM, typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Real dt,
+			Field<mesh_type, IFORM, nTuple<3, TV> >* J, Args const & ...) const
 	{
 		nTuple<3, TV> v;
 
@@ -192,20 +203,31 @@ public:
 		interpolator_type::Scatter(p.x, v, J);
 	}
 
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
+	template<int IFORM, typename TV, typename ...Args>
+	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n,
+			Args const & ...) const
+	{
+		interpolator_type::Scatter(p.x, q_ * p.f, n);
+	}
+
+	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x,
+			nTuple<3, Real> * v) const
 	{
 		*x = p.x;
 		*v = p.v;
 		return p.f;
 	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
+	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v,
+			Point_s * p) const
 	{
 		p->x = x;
 		p->v = v;
 	}
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
+			Real f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f }));
 	}
 
 };

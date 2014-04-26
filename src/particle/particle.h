@@ -345,20 +345,19 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
 
 			LOGGER << "Add constraint to " << dof;
 
-			commands_.push_back(
-					Command<decltype(J_)>::Create(&J_, item.second, model,
-							std::forward<Others const &>(others)...));
+			if (!J_.empty())
+			{
+				commands_.push_back(
+						Command<decltype(J_)>::Create(&J_, item.second, model,
+								std::forward<Others const &>(others)...));
+			}
+			else if (!Jv_.empty())
+			{
+				commands_.push_back(
+						Command<decltype(Jv_)>::Create(&Jv_, item.second, model,
+								std::forward<Others const &>(others)...));
 
-		}
-		else if (dof == "Jv")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-					Command<decltype(Jv_)>::Create(&Jv_, item.second, model,
-							std::forward<Others const &>(others)...));
-
+			}
 		}
 //		else if (dof == "Particles")
 //		{
@@ -425,7 +424,7 @@ void Particle<Engine>::NextTimeStep(
 		Field<mesh_type, EDGE, scalar_type> const & E,
 		Field<mesh_type, FACE, scalar_type> const & B)
 {
-	if (EnableImplicit())
+	if (engine_type::EnableImplicit())
 	{
 		NextTimeStep(&Jv_, E, B);
 	}
@@ -478,13 +477,13 @@ void Particle<Engine>::NextTimeStep(TJ * J,
 
 	isSorted_ = false;
 	Sort();
+	LOGGER << DONE;
 
 	for (auto const & comm : commands_)
 	{
 		comm();
 	}
 
-	LOGGER << DONE;
 }
 
 template<class Engine> template<int IFORM, typename ...Args>
