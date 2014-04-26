@@ -443,7 +443,7 @@ void Particle<Engine>::NextTimeStep(
 {
 
 	NextTimeStep(&Jv_, E, B);
-	n_ -= Diverge(MapTo<EDGE>(J_)) * mesh.GetDt();
+	n_ -= Diverge(MapTo<EDGE>(Jv_)) * mesh.GetDt();
 	for (auto const & comm : commands_)
 	{
 		comm();

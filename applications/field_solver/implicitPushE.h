@@ -104,7 +104,7 @@ void ImplicitPushE<TM>::NextTimeStep(
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	Q = MapTo<VERTEX>(E + dE) - Q * (dt / epsilon0);
+	Q = Ev + MapTo<VERTEX>(dE) - Q * (dt / epsilon0);
 
 	dEv = (Q * a - Cross(Q, Bv) * b
 			+ Bv * (Dot(Q, Bv) * (b * b - c * a) / (a + c * BB)))

@@ -148,7 +148,7 @@ Constraints=
 			end
 		},
 		Operation= function(t,x,f )
-			return { 0,0,0}
+			return {  0, 0, 0}
 		end
 	},
 
@@ -199,8 +199,8 @@ Particles={
 		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
-	--		ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
-	--		H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+	--			ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+	--			H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
 
