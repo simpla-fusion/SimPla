@@ -98,7 +98,7 @@ public:
 
 	std::function<void(Real, TE const &, TB const &, TB*)> B_minus_CurlE;
 
-	std::function<void(Real, TE const &, TB const &, TParticles const&, TE*)> Implicit_PushE;
+	std::function<void(TE const &, TB const &, TParticles const&, TE*)> Implicit_PushE;
 
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
@@ -340,11 +340,16 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		}
 
 	}
-	Implicit_PushE = [] (Real, TE const &, TB const &, TParticles const&, TE*)
+	Implicit_PushE = [] ( TE const &, TB const &, TParticles const&, TE*)
 	{};
 	if (enableImplicit)
 	{
-		Implicit_PushE = &ImplicitPushE<TE, TB, TParticles>;
+
+		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(
+				new ImplicitPushE<mesh_type>(mesh));
+		Implicit_PushE =
+				[solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
+				{	solver->NextTimeStep( pE,pB,p,dE);};
 	}
 
 }
@@ -440,21 +445,9 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
-	Implicit_PushE(dt, E, B, particles_, &dE);
+	Implicit_PushE(E, B, particles_, &dE);
 
-	LOG_CMD(E += dE * 0.5);	// E(t=0  -> 1/2  )
-
-	ExcuteCommands(commandToE_);
-
-	for (auto &p : particles_)
-	{
-		if (p.second->EnableImplicit())
-		{
-			p.second->NextTimeStep(E, B);
-		}
-	}
-
-	LOG_CMD(E += dE * 0.5);
+	LOG_CMD(E += dE);
 	ExcuteCommands(commandToE_);
 
 	dB.Clear();

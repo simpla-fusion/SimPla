@@ -164,43 +164,43 @@ ParticleConstraints=
 	--		Operation= "Reflecting"
 	--	},
 
-	--		{
-	--			DOF="J",
-	--			Select={Type="Range",
-	--				Value= function(x)
-	--					return x[0]< 0.05*LX or x[0]>0.95*LX
-	--				end},
-	--			Operation= function(t,x,f )
-	--				return { 0,0,0}
-	--			end
-	--		},
-
 	{
 		DOF="J",
 		Select={Type="Range",
 			Value= function(x)
-				return true
+				return x[0]< 0.05*LX or x[0]>0.95*LX
 			end},
 		Operation= function(t,x,f )
-			return { f[0],f[1],0}
+			return { 0,0,0}
 		end
 	},
+
+--	{
+--		DOF="J",
+--		Select={Type="Range",
+--			Value= function(x)
+--				return true
+--			end},
+--		Operation= function(t,x,f )
+--			return { f[0],f[1],0}
+--		end
+--	},
 
 
 }
 
 ---[[
 Particles={
-	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+	--	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=400,
+	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=400 ,
+	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
+	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
 		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
---	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
---	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
---		ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
---		H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+	--		ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+	--		H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
 

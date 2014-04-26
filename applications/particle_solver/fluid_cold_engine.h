@@ -79,8 +79,9 @@ public:
 	{
 		CHECK("Accept Visitor");
 	}
-	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
-			Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(
+			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
@@ -115,8 +116,6 @@ private:
 
 	bool enableNonlinear_;
 
-	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv;
-
 	Field<mesh_type, VERTEX, scalar_type> n_;
 
 	Field<mesh_type, EDGE, scalar_type> J_;
@@ -130,7 +129,7 @@ template<typename ...Args> Particle<ColdFluid<TM>>::Particle(
 		mesh_type const & pmesh, Args const & ...args) :
 		mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
 
-		Bv(mesh), n_(mesh), J_(mesh), Jv_(mesh)
+		n_(mesh), J_(mesh), Jv_(mesh)
 {
 	Jv_.Clear();
 	n_.Clear();
@@ -189,24 +188,20 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path,
 
 template<typename TM>
 void Particle<ColdFluid<TM>>::NextTimeStep(
-		Field<mesh_type, EDGE, scalar_type> const & E,
-		Field<mesh_type, FACE, scalar_type> const & B)
+		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
 
 	Real dt = mesh.GetDt();
 
-	Bv = MapTo<IForm>(B);
-
 	Real as = 0.5 * GetCharge() * dt / GetMass();
 
-	Jv_ += Cross(Jv_, Bv) * as + 2.0 * as * n_ * MapTo<IForm>(E);
+	Jv_ += Cross(Jv_, B) * as + 2.0 * as * n_ * E;
 
-	Jv_ = (Jv_ + Cross(Jv_, Bv) * as + Bv * (Dot(Jv_, Bv) * as * as))
-			/ (Dot(Bv, Bv) * as * as + 1);
+	Jv_ = (Jv_ + Cross(Jv_, B) * as + B * (Dot(Jv_, B) * as * as))
+			/ (Dot(B, B) * as * as + 1);
 
-	if (enableNonlinear_)
-		n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
 }
 
 }

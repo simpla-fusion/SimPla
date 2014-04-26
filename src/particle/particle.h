@@ -127,9 +127,12 @@ public:
 	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E,
 			Field<mesh_type, FACE, scalar_type> const & B);
 
-	template<typename TJ>
-	void NextTimeStep(TJ * J, Field<mesh_type, EDGE, scalar_type> const & E,
-			Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(
+			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+
+	template<typename TJ, typename TE, typename TB>
+	void NextTimeStep(TJ * J, TE const & E, TB const & B);
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
@@ -424,21 +427,32 @@ void Particle<Engine>::NextTimeStep(
 		Field<mesh_type, EDGE, scalar_type> const & E,
 		Field<mesh_type, FACE, scalar_type> const & B)
 {
-	if (engine_type::EnableImplicit())
+
+	NextTimeStep(&J_, E, B);
+
+	n_ -= Diverge(J_) * mesh.GetDt();
+	for (auto const & comm : commands_)
 	{
-		NextTimeStep(&Jv_, E, B);
+		comm();
 	}
-	else
+}
+template<typename Engine>
+void Particle<Engine>::NextTimeStep(
+		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+{
+
+	NextTimeStep(&Jv_, E, B);
+	n_ -= Diverge(MapTo<EDGE>(J_)) * mesh.GetDt();
+	for (auto const & comm : commands_)
 	{
-		NextTimeStep(&J_, E, B);
+		comm();
 	}
 }
 
 template<class Engine>
-template<typename TJ>
-void Particle<Engine>::NextTimeStep(TJ * J,
-		Field<mesh_type, EDGE, scalar_type> const & E,
-		Field<mesh_type, FACE, scalar_type> const & B)
+template<typename TJ, typename TE, typename TB>
+void Particle<Engine>::NextTimeStep(TJ * J, TE const & E, TB const & B)
 {
 	if (data_.empty())
 	{
@@ -473,16 +487,9 @@ void Particle<Engine>::NextTimeStep(TJ * J,
 
 	});
 
-	n_ -= Diverge(MapTo<EDGE>(*J)) * dt;
-
 	isSorted_ = false;
 	Sort();
 	LOGGER << DONE;
-
-	for (auto const & comm : commands_)
-	{
-		comm();
-	}
 
 }
 

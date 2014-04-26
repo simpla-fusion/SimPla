@@ -14,22 +14,47 @@
 
 namespace simpla
 {
-
-template<typename TE, typename TB, typename TP>
-void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *pdE)
+template<typename TM>
+class ImplicitPushE
 {
-	typedef typename TE::mesh_type mesh_type;
+public:
+	typedef TM mesh_type;
+	typedef typename mesh_type::scalar_type scalar_type;
 
-	mesh_type const & mesh = E.mesh;
+	mesh_type const &mesh;
+
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Bv;
+
+	Field<mesh_type, VERTEX, Real> BB;
+
+	template<typename ...Others>
+	ImplicitPushE(mesh_type const & m, Others const &...) :
+			mesh(m), Bv(mesh), BB(mesh)
+	{
+	}
+
+	template<typename TP>
+	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E,
+			Field<mesh_type, FACE, scalar_type> const &B, TP const & particles,
+			Field<mesh_type, EDGE, scalar_type> *pdE);
+};
+template<typename TM>
+template<typename TP>
+void ImplicitPushE<TM>::NextTimeStep(
+		Field<mesh_type, EDGE, scalar_type> const &E,
+		Field<mesh_type, FACE, scalar_type> const &B, TP const & particles,
+		Field<mesh_type, EDGE, scalar_type> *pdE)
+{
 
 	DEFINE_PHYSICAL_CONST(mesh.constants());
 
+	Real dt = mesh.GetDt();
 	LOGGER << "Implicit Push E ";
 
-	TE & dE = *pdE;
+	Field<mesh_type, EDGE, scalar_type> & dE = *pdE;
 
-	Field<mesh_type, VERTEX, nTuple<3, Real>> Bv(mesh), Ev(mesh);
-	Field<mesh_type, VERTEX, Real> BB(mesh);
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Ev(mesh), dEv(mesh);
+
 	Field<mesh_type, VERTEX, Real> a(mesh);
 	Field<mesh_type, VERTEX, Real> b(mesh);
 	Field<mesh_type, VERTEX, Real> c(mesh);
@@ -37,8 +62,11 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 	Field<mesh_type, VERTEX, nTuple<3, Real>> Q(mesh);
 	Field<mesh_type, VERTEX, nTuple<3, Real>> K(mesh);
 
-	Bv = MapTo<VERTEX>(B);
-	BB = Dot(Bv, Bv);
+//	if (Bv.empty())
+	{
+		Bv = MapTo<VERTEX>(B);
+		BB = Dot(Bv, Bv);
+	}
 	Q.Clear();
 	K.Clear();
 
@@ -63,7 +91,8 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 		K = (Ev * rhos * (as * 0.5) + Js);
 
-		Q += (K + Cross(K, Bv) * as + Bv * (Dot(K, Bv) * as * as)) / (BB * as * as + 1);
+		Q += (K + Cross(K, Bv) * as + Bv * (Dot(K, Bv) * as * as))
+				/ (BB * as * as + 1);
 
 		a += rhos * as / (BB * as * as + 1);
 		b += rhos * as * as / (BB * as * as + 1);
@@ -77,14 +106,25 @@ void ImplicitPushE(Real dt, TE const &E, TB const &B, TP const & particles, TE *
 
 	Q = MapTo<VERTEX>(E + dE) - Q * (dt / epsilon0);
 
-	Ev = (Q * a - Cross(Q, Bv) * b + Bv * (Dot(Q, Bv) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
+	dEv = (Q * a - Cross(Q, Bv) * b
+			+ Bv * (Dot(Q, Bv) * (b * b - c * a) / (a + c * BB)))
+			/ (b * b * BB + a * a) - Ev;
 
-	dE = (MapTo<TE::IForm>(Ev) - E);
+	Ev += dEv * 0.5;
+
+	for (auto &p : particles)
+	{
+		if (p.second->EnableImplicit())
+			p.second->NextTimeStep(Ev, Bv);
+	}
+
+	dE = MapTo<EDGE>(dEv);
 
 	LOGGER << DONE;
 
 }
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* IMPLICITPUSHE_H_ */
