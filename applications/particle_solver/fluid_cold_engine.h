@@ -79,7 +79,8 @@ public:
 	{
 		CHECK("Accept Visitor");
 	}
-	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E, Field<mesh_type, FACE, scalar_type> const & B);
+	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
+			Field<mesh_type, FACE, scalar_type> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
@@ -112,6 +113,8 @@ private:
 	Real m_;
 	Real q_;
 
+	bool enableNonlinear_;
+
 	Field<mesh_type, IForm, nTuple<3, scalar_type>> Bv;
 
 	Field<mesh_type, VERTEX, scalar_type> n_;
@@ -123,12 +126,16 @@ private:
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
-		: mesh(pmesh), q_(1.0), m_(1.0), Bv(mesh), n_(mesh), J_(mesh), Jv_(mesh)
+template<typename ...Args> Particle<ColdFluid<TM>>::Particle(
+		mesh_type const & pmesh, Args const & ...args) :
+		mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
+
+		Bv(mesh), n_(mesh), J_(mesh), Jv_(mesh)
 {
-	Load(std::forward<Args const &>(args)...);
 	Jv_.Clear();
 	n_.Clear();
+	Load(std::forward<Args const &>(args)...);
+
 }
 
 template<typename TM>
@@ -142,7 +149,7 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 {
 	m_ = dict["Mass"].template as<Real>(1.0);
 	q_ = dict["Charge"].template as<Real>(1.0);
-
+	enableNonlinear_ = dict["EnableNonlinear"].template as<bool>(false);
 	LoadField(dict["Density"], &(n_));
 
 	n_ *= q_;
@@ -151,7 +158,8 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<ColdFluid<TM>>::Dump(std::string const & path,
+		bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -180,8 +188,9 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verb
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
-        Field<mesh_type, FACE, scalar_type> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStep(
+		Field<mesh_type, EDGE, scalar_type> const & E,
+		Field<mesh_type, FACE, scalar_type> const & B)
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
 
@@ -193,9 +202,11 @@ void Particle<ColdFluid<TM>>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> c
 
 	Jv_ += Cross(Jv_, Bv) * as + 2.0 * as * n_ * MapTo<IForm>(E);
 
-	Jv_ = (Jv_ + Cross(Jv_, Bv) * as + Bv * (Dot(Jv_, Bv) * as * as)) / (Dot(Bv, Bv) * as * as + 1);
+	Jv_ = (Jv_ + Cross(Jv_, Bv) * as + Bv * (Dot(Jv_, Bv) * as * as))
+			/ (Dot(Bv, Bv) * as * as + 1);
 
-	n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
+	if (enableNonlinear_)
+		n_ -= Diverge(MapTo<EDGE>(Jv_)) * dt;
 }
 
 }

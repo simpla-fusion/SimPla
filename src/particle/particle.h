@@ -350,7 +350,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
 							std::forward<Others const &>(others)...));
 
 		}
-		else if (dof == " Jv")
+		else if (dof == "Jv")
 		{
 
 			LOGGER << "Add constraint to " << dof;

@@ -70,7 +70,7 @@ void InitParticle(TP *p, TDict const &dict, TModel const & model)
 
 		ns = [l_obj](coordinates_type x)->Real
 		{
-			return l_obj(x[0],x[1],x[2]).template as<Real>();
+			return l_obj(x).template as<Real>();
 		};
 
 	}
@@ -94,7 +94,7 @@ void InitParticle(TP *p, TDict const &dict, TModel const & model)
 
 		Ts = [l_obj](coordinates_type const & x )->Real
 		{
-			return l_obj(x[0],x[1],x[2]).template as<Real>();
+			return l_obj(x).template as<Real>();
 		};
 
 	}

@@ -32,7 +32,7 @@ omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 NX = 128
 NY = 1
 NZ = 1
-LX = 10 --m --100000*rhoi --0.6
+LX = 2 --m --100000*rhoi --0.6
 LY = 0 --2.0*math.pi/k0
 LZ = 0 -- 2.0*math.pi/18
 GW = 5
@@ -41,19 +41,19 @@ omega_ext=omega_ci*1.9
 
 
 -- From Gan
-InitN0 = function(x,y,z)
+InitN0 = function(x)
 	local X0 = 12*LX/NX;
 	local DEN_JUMP = 0.4*LX;
 	local DEN_GRAD = 0.2*LX;
 	local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
 	local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
 	local DenCof = 1./(AtLX-AtX0);
-	local dens1 = DenCof*(2./math.pi*math.atan((x-DEN_JUMP)/DEN_GRAD)-AtX0);
+	local dens1 = DenCof*(2./math.pi*math.atan((x[0]-DEN_JUMP)/DEN_GRAD)-AtX0);
 
 	return N0*dens1
 end
 
-InitB0 = function(x,y,z)
+InitB0 = function(x)
 	return {0,0,Btor}
 end
 
@@ -130,7 +130,7 @@ Constraints=
 {
 	---[[
 	{
-		DOF="Fields.J",
+		DOF="J",
 		Select={Type="Range",Value={{0.1*LX,0,0}}},
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
@@ -141,10 +141,10 @@ Constraints=
 
 	},
 	{
-		DOF="Fields.E",
+		DOF="E",
 		Select={Type="Range",
 			Value= function(x)
-				return x[0]< 0.1*LX or x[0]>0.9*LX
+				return x[0]< 0.05*LX or x[0]>0.95*LX
 			end
 		},
 		Operation= function(t,x,f )
@@ -158,20 +158,32 @@ Constraints=
 
 ParticleConstraints=
 {
-	{
-		DOF="ParticlesBoundary",
-		Select={Type="Surface", DistanceToBoundary=0.02*LX},
-		Operation= "Reflecting"
-	},
+	--	{
+	--		DOF="ParticlesBoundary",
+	--		Select={Type="Surface", DistanceToBoundary=0.02*LX},
+	--		Operation= "Reflecting"
+	--	},
+
+	--	{
+	--		DOF="Jv",
+	--		Select={Type="Range",
+	--			Value= function(x)
+	--				return x[0]< 0.05*LX or x[0]>0.95*LX
+	--			end},
+	--		Operation= function(t,x,f )
+	--			return { 0,0,0}
+	--		end
+	--	},
 
 	{
-		DOF="J",
+		DOF="Jv",
 		Select={Type="Range",
 			Value= function(x)
-				return x[0]< 0.1*LX or x[0]>0.9*LX
+				return true
 			end},
 		Operation= function(t,x,f )
-			return { 0,0,0}
+			
+			return { f[0],f[1],0}
 		end
 	},
 
@@ -181,12 +193,12 @@ ParticleConstraints=
 ---[[
 Particles={
 	-- H 	= {Type="Full",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100 },
-	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
-		EnableImplicit =true,EnableSorting=true }
-	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, IsImplicit=true },
-	--H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, IsImplicit=true },
+--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
+		ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+		H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
 
