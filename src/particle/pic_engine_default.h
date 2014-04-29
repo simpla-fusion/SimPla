@@ -139,11 +139,12 @@ public:
 		return enableImplicit_;
 	}
 
-	// x(-1/2->1/2)
-	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J,
-	        TE const &fE, TB const & fB, Others const &...others) const
+	// x(-1/2->1/2), v(-1/2/1/2)
+	template<typename TV, typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, EDGE, TV> *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
+
 		p->x += p->v * dt * 0.5;
 		auto B = interpolator_type::Gather(fB, p->x);
 		auto E = interpolator_type::Gather(fE, p->x);
@@ -168,16 +169,15 @@ public:
 		interpolator_type::Scatter(p->x, v, J);
 
 	}
-
 	template<typename ... Others>
 	inline void NextTimeStepHalf(Point_s * p, Real dt, Field<mesh_type, EDGE, scalar_type> const &fE,
 	        Field<mesh_type, FACE, scalar_type> const & fB, Others const &...others) const
 	{
 	}
-	// x(-1/2->1/2)
-	template<typename TV, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, EDGE, TV> *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+	// x(-1/2->1/2),v(0)
+	template<typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J,
+	        TE const &fE, TB const & fB, Others const &...others) const
 	{
 		//		auto B = interpolator_type::Gather(fB, p->x);
 		//		auto E = interpolator_type::Gather(fE, p->x);
@@ -187,9 +187,8 @@ public:
 		Vec3 v;
 		v = p->v * p->f;
 		interpolator_type::Scatter(p->x, v, J);
-
 	}
-
+	// v(0->1)
 	template<typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{

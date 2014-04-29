@@ -192,11 +192,11 @@ ParticleConstraints=
 ---[[
 Particles={
 --		H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
---			EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
---	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
+--			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
+		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
 --	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 --		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
 --	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
