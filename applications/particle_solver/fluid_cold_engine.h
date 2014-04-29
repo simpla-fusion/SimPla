@@ -79,9 +79,8 @@ public:
 	{
 		CHECK("Accept Visitor");
 	}
-	void NextTimeStep(
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
@@ -125,9 +124,8 @@ private:
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>>::Particle(
-		mesh_type const & pmesh, Args const & ...args) :
-		mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
+template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
+		: mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
 
 		n_(mesh), J_(mesh), Jv_(mesh)
 {
@@ -157,8 +155,7 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path,
-		bool is_verbose) const
+std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -187,9 +184,8 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path,
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStep(
-		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
 
@@ -199,8 +195,7 @@ void Particle<ColdFluid<TM>>::NextTimeStep(
 
 	Jv_ += Cross(Jv_, B) * as + 2.0 * as * n_ * E;
 
-	Jv_ = (Jv_ + Cross(Jv_, B) * as + B * (Dot(Jv_, B) * as * as))
-			/ (Dot(B, B) * as * as + 1);
+	Jv_ = (Jv_ + Cross(Jv_, B) * as + B * (Dot(Jv_, B) * as * as)) / (Dot(B, B) * as * as + 1);
 
 }
 

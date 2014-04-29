@@ -53,13 +53,20 @@ public:
 	virtual Field<mesh_type, VERTEX, nTuple<3, scalar_type>> &Jv() = 0;
 	virtual Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const&Jv() const= 0;
 
-	virtual void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const & E,
-			Field<mesh_type, FACE, scalar_type> const & B)
+	virtual void NextTimeStepZero(Field<mesh_type, EDGE, scalar_type> const & E,
+	        Field<mesh_type, FACE, scalar_type> const & B)
 	{
 	}
-	virtual void NextTimeStep(
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+	virtual void NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+	{
+	}
+	virtual void NextTimeStepHalf(Field<mesh_type, EDGE, scalar_type> const & E,
+	        Field<mesh_type, FACE, scalar_type> const & B)
+	{
+	}
+	virtual void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 	{
 	}
 
@@ -80,27 +87,23 @@ public:
 	{
 		visitor.Visit(this);
 	}
-	virtual void Add(index_type s,
-			std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator)
+	virtual void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator)
 	{
 	}
 	virtual void Clear(index_type s)
 	{
 	}
 	virtual void Remove(index_type s,
-			std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
+	        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
 	{
 	}
 
-	virtual void Modify(index_type s,
-			std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
+	virtual void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
 	{
 	}
 
 	virtual void Traversal(index_type s,
-			std::function<
-					void(scalar_type, coordinates_type const&,
-							nTuple<3, Real> const&)> const & op)
+	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op)
 	{
 	}
 };

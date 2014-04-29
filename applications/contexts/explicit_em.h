@@ -55,8 +55,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args)
+			: ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -66,8 +66,7 @@ public:
 
 	void NextTimeStep();
 
-	std::string Dump(std::string const & path = "",
-			bool compact_store = false) const;
+	std::string Dump(std::string const & path = "", bool compact_store = false) const;
 
 	double CheckCourantDt() const;
 
@@ -123,8 +122,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		model_(mesh), E(mesh), B(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: model_(mesh), E(mesh), B(mesh),
 
 		Jext(mesh), J0(mesh), dE(mesh), dB(mesh),
 
@@ -142,8 +141,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \""
-			+ dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
 
 	LOGGER << description;
 
@@ -193,8 +191,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			for (auto s : mesh.GetRange(FACE))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s,
-						geqdsk.B(x[0], x[1]));
+				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 
 			}
 
@@ -256,9 +253,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			auto key = opt.first.template as<std::string>("unnamed");
 
-			auto p = CreateParticle<mesh_type>(
-					opt.second["Type"].template as<std::string>("Default"),
-					mesh, opt.second, model_, ne0, Te0);
+			auto p = CreateParticle<mesh_type>(opt.second["Type"].template as<std::string>("Default"), mesh, opt.second,
+			        model_, ne0, Te0);
 
 			if (p != nullptr)
 			{
@@ -282,18 +278,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(
-						Command<TE>::Create(&E, item.second, model_));
+				commandToE_.push_back(Command<TE>::Create(&E, item.second, model_));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(
-						Command<TB>::Create(&B, item.second, model_));
+				commandToB_.push_back(Command<TB>::Create(&B, item.second, model_));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(
-						Command<TJ>::Create(&Jext, item.second, model_));
+				commandToJ_.push_back(Command<TJ>::Create(&Jext, item.second, model_));
 			}
 			else
 			{
@@ -313,24 +306,20 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(
-					new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
 
-			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2,
-					_3, _4);
+			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
-			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2,
-					_3, _4);
+			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
 		}
 		else
 		{
-			E_plus_CurlB =
-					[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-					{
-						auto & dE=*pdE;
-						LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-					};
+			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+			{
+				auto & dE=*pdE;
+				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+			};
 
 			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
@@ -345,18 +334,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (enableImplicit)
 	{
 
-		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(
-				new ImplicitPushE<mesh_type>(mesh));
-		Implicit_PushE =
-				[solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-				{	solver->NextTimeStep( pE,pB,p,dE);};
+		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(mesh));
+		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
+		{	solver->NextTimeStep( pE,pB,p,dE);};
 	}
 
 }
 
 template<typename TM>
-std::string ExplicitEMContext<TM>::Dump(std::string const & path,
-		bool is_verbose) const
+std::string ExplicitEMContext<TM>::Dump(std::string const & path, bool is_verbose) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
@@ -421,23 +407,23 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	//************************************************************
 	// Compute Cycle Begin
 	//************************************************************
-	// E0 B0, v-1/2,x0
+	// E0 B0,
 	LOG_CMD(Jext = J0);
 	ExcuteCommands(commandToJ_);
 
-	//   x, v=-1/2 -> 1/2 , J=1/2
+	//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
 		if (!p.second->EnableImplicit())
 		{
-			p.second->NextTimeStep(E, B);
+			p.second->NextTimeStepZero(E, B);
 
 			auto const & Js = p.second->J();
 			LOG_CMD(Jext += Js);
 		}
 	}
 
-	LOG_CMD(B += dB * 0.5);	//  B(t=1/2 -> 1)
+	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
 	dE.Clear();
@@ -445,15 +431,16 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
+	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 
-	LOG_CMD(E += dE);
+	LOG_CMD(E += dE);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
 	dB.Clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
-	LOG_CMD(B += dB * 0.5);
+	LOG_CMD(B += dB * 0.5); //	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
 //************************************************************

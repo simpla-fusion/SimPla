@@ -47,16 +47,13 @@ public:
 
 			<< "H5T_COMPOUND {          "
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
-					<< (offsetof(Point_s, x)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
 
-					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
-					<< (offsetof(Point_s, v)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
 
-					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
-					<< (offsetof(Point_s, f)) << ";"
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
 
-					<< "}";
+			<< "}";
 
 			return os.str();
 		}
@@ -72,8 +69,8 @@ public:
 public:
 
 	template<typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, Args const & ...args) :
-			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
+	PICEngineDefault(mesh_type const &pmesh, Args const & ...args)
+			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -114,8 +111,7 @@ public:
 		enableImplicit_ = dict["EnableImplicit"].template as<bool>(false);
 	}
 
-	std::string Dump(std::string const & path = "",
-			bool is_verbose = false) const
+	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
 
@@ -143,17 +139,59 @@ public:
 		return enableImplicit_;
 	}
 
-	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStep(Point_s * p, Real dt, TJ *J, TE const &fE,
-			TB const & fB, Others const &...others) const
+	// x(-1/2->1/2)
+	template<typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J,
+	        TE const &fE, TB const & fB, Others const &...others) const
 	{
-		Move(p, dt, fE, fB, std::forward<Others const & >(others)...);
-		Scatter(*p, dt, J, fE, fB, std::forward<Others const & >(others)...);
+		p->x += p->v * dt * 0.5;
+		auto B = interpolator_type::Gather(fB, p->x);
+		auto E = interpolator_type::Gather(fE, p->x);
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
+
+		p->v += v_ * 2.0;
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * dt * 0.5;
+		Vec3 v;
+		v = p->v * p->f;
+		interpolator_type::Scatter(p->x, v, J);
+
+	}
+
+	template<typename ... Others>
+	inline void NextTimeStepHalf(Point_s * p, Real dt, Field<mesh_type, EDGE, scalar_type> const &fE,
+	        Field<mesh_type, FACE, scalar_type> const & fB, Others const &...others) const
+	{
+	}
+	// x(-1/2->1/2)
+	template<typename TV, typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, EDGE, TV> *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
+	{
+		//		auto B = interpolator_type::Gather(fB, p->x);
+		//		auto E = interpolator_type::Gather(fE, p->x);
+
+		p->x += p->v * dt;
+
+		Vec3 v;
+		v = p->v * p->f;
+		interpolator_type::Scatter(p->x, v, J);
+
 	}
 
 	template<typename TE, typename TB, typename ... Others>
-	inline void Move(Point_s * p, Real dt, TE const &fE, TB const & fB,
-			Others const &...others) const
+	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -173,61 +211,28 @@ public:
 
 		p->v += E * (cmr_ * dt * 0.5);
 
-		p->x += p->v * dt;
-
-	}
-
-	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Real dt, Field<mesh_type, EDGE, TV> * J,
-			Args const & ...) const
-	{
-		typename Field<mesh_type, EDGE, TV>::field_value_type v;
-
-		v = p.v * p.f;
-
-		auto x = p.x;
-		x -= v * dt * 0.5;
-
-		interpolator_type::Scatter(p.x, v, J);
-	}
-
-	//For implicit pusher
-	template<int IFORM, typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Real dt,
-			Field<mesh_type, IFORM, nTuple<3, TV> >* J, Args const & ...) const
-	{
-		nTuple<3, TV> v;
-
-		v = p.v * p.f;
-
-		interpolator_type::Scatter(p.x, v, J);
 	}
 
 	template<int IFORM, typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n,
-			Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{
 		interpolator_type::Scatter(p.x, q_ * p.f, n);
 	}
 
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x,
-			nTuple<3, Real> * v) const
+	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{
 		*x = p.x;
 		*v = p.v;
 		return p.f;
 	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v,
-			Point_s * p) const
+	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
 		p->x = x;
 		p->v = v;
 	}
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
-			Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 };
