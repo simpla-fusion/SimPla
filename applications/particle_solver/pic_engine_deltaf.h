@@ -146,7 +146,7 @@ public:
 	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J,
 	        TE const &fE, TB const & fB, Others const &...others) const
 	{
-		p->x += p->v * dt * 0.5;
+		p->x += p->v * dt;
 
 //		auto B = interpolator_type::Gather(fB, p->x);
 		auto E = interpolator_type::Gather(fE, p->x);

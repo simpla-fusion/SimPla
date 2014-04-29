@@ -212,6 +212,12 @@ public:
 
 	}
 
+	template<typename TJ, typename TN>
+	inline void UpdateN(TJ const &J, TN*n) const
+	{
+
+	}
+
 	template<int IFORM, typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{

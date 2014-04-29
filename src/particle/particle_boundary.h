@@ -17,14 +17,14 @@
 namespace simpla
 {
 template<typename > class BoundaryCondition;
-template<typename > class Particle;
+template<typename, typename > class Particle;
 
-template<typename Engine>
-class BoundaryCondition<Particle<Engine> > : public VisitorBase
+template<typename Engine, typename TStorage>
+class BoundaryCondition<Particle<Engine, TStorage> > : public VisitorBase
 {
 public:
 
-	typedef Particle<Engine> particle_type;
+	typedef Particle<Engine, TStorage> particle_type;
 
 	typedef BoundaryCondition<particle_type> this_type;
 
@@ -68,11 +68,11 @@ private:
 }
 ;
 
-template<typename Engine>
+template<typename Engine, typename TStorage>
 template<typename TDict, typename TModel, typename ...Others>
-BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict,
-		TModel const & model, Others const & ... others) :
-		op_str_("")
+BoundaryCondition<Particle<Engine, TStorage> >::BoundaryCondition(TDict const & dict, TModel const & model,
+        Others const & ... others)
+		: op_str_("")
 {
 	mesh_type const & mesh = model.mesh;
 
@@ -95,24 +95,22 @@ BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict,
 	}
 }
 
-template<typename Engine>
-BoundaryCondition<Particle<Engine> >::~BoundaryCondition()
+template<typename Engine, typename TStorage>
+BoundaryCondition<Particle<Engine, TStorage>>::~BoundaryCondition()
 {
 }
 
-template<typename Engine>
+template<typename Engine, typename TStorage>
 template<typename ... Others>
-std::function<void()> BoundaryCondition<Particle<Engine> >::Create(
-		particle_type* f, Others const & ...others)
+std::function<void()> BoundaryCondition<Particle<Engine, TStorage>>::Create(particle_type* f, Others const & ...others)
 {
 
 	return std::bind(&this_type::Visit,
-			std::shared_ptr<this_type>(
-					new this_type(std::forward<Others const &>(others)...)), f);
+	        std::shared_ptr<this_type>(new this_type(std::forward<Others const &>(others)...)), f);
 }
-//template<typename Engine>
+//template<typename Engine, typename TStorage>
 //template<typename ... Others>
-//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine> >::Create(
+//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine, TStorage>>::Create(
 //		Others const & ...others)
 //{
 //
@@ -122,48 +120,46 @@ std::function<void()> BoundaryCondition<Particle<Engine> >::Create(
 //			std::placeholders::_1);
 //}
 
-template<typename Engine>
-void BoundaryCondition<Particle<Engine> >::Visit(particle_type * p) const
+template<typename Engine, typename TStorage>
+void BoundaryCondition<Particle<Engine, TStorage>>::Visit(particle_type * p) const
 {
 
-	if (op_str_ == "Cycling")
-		return;
-
-	LOGGER << "Apply boundary constraint [" << op_str_ << "] to particles ["
-			<< p->GetTypeAsString() << "]";
-
-	for (auto const & cell : surface_)
-	{
-		auto const &plane = cell.second;
-
-		if (op_str_ == "Refelecting")
-		{
-			p->Modify(cell.first,
-					[&plane](coordinates_type *x, nTuple<3, Real>*v)
-					{
-						Reflect(plane,x,v);
-					});
-		}
-		else if (op_str_ == "Absorbing")
-		{
-			p->Remove(cell.first,
-
-			[&](coordinates_type const & x, nTuple<3, Real> const & v)->bool
-			{
-				return Distance(plane, x )<0;
-			}
-
-			);
-		}
-		else if (op_str_ == "Custom")
-		{
-			UNIMPLEMENT;
-			return;
-//				auto foo = [=](scalar_type f,coordinates_type const &x, nTuple<3, Real>const &v)
-//				{	op_(f,x,v);};
-//				p->Traversal(cell.first, foo);
-		}
-	}
+//	if (op_str_ == "Cycling")
+//		return;
+//
+//	LOGGER << "Apply boundary constraint [" << op_str_ << "] to particles [" << p->GetTypeAsString() << "]";
+//
+//	for (auto const & cell : surface_)
+//	{
+//		auto const &plane = cell.second;
+//
+//		if (op_str_ == "Refelecting")
+//		{
+//			p->Modify(cell.first, [&plane](coordinates_type *x, nTuple<3, Real>*v)
+//			{
+//				Reflect(plane,x,v);
+//			});
+//		}
+//		else if (op_str_ == "Absorbing")
+//		{
+//			p->Remove(cell.first,
+//
+//			[&](coordinates_type const & x, nTuple<3, Real> const & v)->bool
+//			{
+//				return Distance(plane, x )<0;
+//			}
+//
+//			);
+//		}
+//		else if (op_str_ == "Custom")
+//		{
+//			UNIMPLEMENT;
+//			return;
+////				auto foo = [=](scalar_type f,coordinates_type const &x, nTuple<3, Real>const &v)
+////				{	op_(f,x,v);};
+////				p->Traversal(cell.first, foo);
+//		}
+//	}
 
 }
 }  // namespace simpla

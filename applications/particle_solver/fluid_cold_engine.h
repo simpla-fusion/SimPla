@@ -17,10 +17,10 @@ namespace simpla
 {
 
 template<typename > class ColdFluid;
-template<typename > class Particle;
+template<typename, typename > class Particle;
 
 template<typename TM>
-class Particle<ColdFluid<TM>> : public ParticleBase<TM>
+class Particle<ColdFluid<TM>, std::nullptr_t> : public ParticleBase<TM>
 {
 public:
 	static constexpr int IForm = VERTEX;
@@ -29,7 +29,7 @@ public:
 
 	typedef ColdFluid<mesh_type> engine_type;
 
-	typedef Particle<engine_type> this_type;
+	typedef Particle<engine_type, std::nullptr_t> this_type;
 
 	typedef ParticleBase<mesh_type> base_type;
 
@@ -124,7 +124,8 @@ private:
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh, Args const & ...args)
+template<typename ...Args> Particle<ColdFluid<TM>, std::nullptr_t>::Particle(mesh_type const & pmesh,
+        Args const & ...args)
 		: mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
 
 		n_(mesh), J_(mesh), Jv_(mesh)
@@ -136,13 +137,13 @@ template<typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & p
 }
 
 template<typename TM>
-Particle<ColdFluid<TM>>::~Particle()
+Particle<ColdFluid<TM>, std::nullptr_t>::~Particle()
 {
 }
 
 template<typename TM>
 template<typename TDict, typename ...Others>
-void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
+void Particle<ColdFluid<TM>, std::nullptr_t>::Load(TDict const &dict, Others const &...)
 {
 	m_ = dict["Mass"].template as<Real>(1.0);
 	q_ = dict["Charge"].template as<Real>(1.0);
@@ -155,7 +156,7 @@ void Particle<ColdFluid<TM>>::Load(TDict const &dict, Others const &...)
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<ColdFluid<TM>, std::nullptr_t>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -184,7 +185,8 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verb
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+void Particle<ColdFluid<TM>, std::nullptr_t>::NextTimeStepHalf(
+        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
         Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles [ " << GetTypeAsString() << "]";

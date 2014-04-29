@@ -31,23 +31,18 @@
 
 #include "particle_base.h"
 #include "particle_boundary.h"
+#include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
 
 #include "../modeling/command.h"
 
-#ifndef NO_STD_CXX
-//need  libstdc++
-#include <ext/mt_allocator.h>
-template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
-#endif
-
 namespace simpla
 {
 
 //*******************************************************************************************************
-template<class Engine>
-class Particle: public Engine, public ParticleBase<typename Engine::mesh_type>
+template<class Engine, typename TStorage = ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>>
+class Particle: public Engine, public TStorage, public ParticleBase<typename Engine::mesh_type>
 {
 	std::mutex write_lock_;
 
@@ -55,6 +50,8 @@ public:
 	static constexpr int IForm = VERTEX;
 
 	typedef Engine engine_type;
+
+	typedef TStorage storage_type;
 
 	typedef ParticleBase<typename Engine::mesh_type> base_type;
 
@@ -162,19 +159,6 @@ public:
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
-	void Clear(index_type s);
-
-	void Add(index_type s, cell_type &&);
-
-	void Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & generator);
-
-	void Remove(index_type s, std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter);
-
-	void Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & foo);
-
-	void Traversal(index_type s,
-	        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op);
-
 	Field<mesh_type, VERTEX, scalar_type> & n()
 	{
 		return n_;
@@ -200,95 +184,11 @@ public:
 		return Jv_;
 	}
 
-	//***************************************************************************************************
-	inline void Insert(index_type s, typename engine_type::Point_s p)
-	{
-		this->at(s).emplace_back(p);
-	}
-	allocator_type GetAllocator()
-	{
-		return allocator_;
-	}
-
-	cell_type & operator[](index_type s)
-	{
-		return data_[mesh.Hash(s)];
-	}
-	cell_type const & operator[](index_type s) const
-	{
-		return data_[mesh.Hash(s)];
-	}
-	cell_type &at(index_type s)
-	{
-		return data_.at(mesh.Hash(s));
-	}
-	cell_type const & at(index_type s) const
-	{
-		return data_.at(mesh.Hash(s));
-	}
-
-//	iterator begin()
-//	{
-//		return data_.begin();
-//	}
-//
-//	iterator end()
-//	{
-//		return data_.end();
-//	}
-//
-//	const_iterator begin() const
-//	{
-//		return data_.begin();
-//	}
-//
-//	const_iterator end() const
-//	{
-//		return data_.end();
-//	}
 //***************************************************************************************************
 	template<int IFORM, typename ...Args>
 	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
 
-	void Sort();
-
-	bool IsSorted() const
-	{
-		return isSorted_;
-	}
-
-	size_t size() const
-	{
-		size_t res = 0;
-
-		for (auto const & v : data_)
-		{
-			res += v.size();
-		}
-		return res;
-	}
-	void SetParticleSorting(bool f)
-	{
-		enableSorting_ = f;
-	}
-	bool GetParticleSorting() const
-	{
-		return enableSorting_;
-	}
-
-	container_type const & GetTree() const
-	{
-		return data_;
-	}
-
 private:
-
-	bool isSorted_;
-	bool enableSorting_;
-
-	allocator_type allocator_;
-
-	container_type data_;
 
 	Field<mesh_type, VERTEX, scalar_type> n_;
 
@@ -296,26 +196,18 @@ private:
 
 	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv_;
 
-	/**
-	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
-	 * @param
-	 */
-	template<typename TDest> void Sort(index_type id_src, TDest *dest);
-
 	std::list<std::function<void()> > commands_;
 };
 
-template<class Engine>
+template<typename Engine, typename TStorage>
 template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
+Particle<Engine, TStorage>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
 
 		: engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
-		mesh(pmesh), isSorted_(false),
+		storage_type(pmesh, dict),
 
-		data_(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
-
-		, n_(mesh), J_(mesh), Jv_(mesh)
+		mesh(pmesh), n_(mesh), J_(mesh), Jv_(mesh)
 {
 	n_.Clear();
 
@@ -330,18 +222,16 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others c
 
 	LoadParticle(this, dict, std::forward<Others const &>(others)...);
 
-	enableSorting_ = dict["EnableSorting"].template as<bool>(false);
-
 	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
 
 }
 
-template<class Engine>
-Particle<Engine>::~Particle()
+template<typename Engine, typename TStorage>
+Particle<Engine, TStorage>::~Particle()
 {
 }
-template<class Engine>
-template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
+template<typename Engine, typename TStorage>
+template<typename TDict, typename ...Others> void Particle<Engine, TStorage>::AddCommand(TDict const & dict,
         Material<mesh_type> const & model, Others const & ...others)
 {
 	if (!dict.is_table())
@@ -378,11 +268,6 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 
 			}
 		}
-//		else if (dof == "Particles")
-//		{
-//			commands_.push_back(
-//					Command<this_type>::Create(this, item.second, model_));
-//		}
 		else if (dof == "ParticlesBoundary")
 		{
 
@@ -403,8 +288,8 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 
 //*************************************************************************************************
 
-template<class Engine>
-std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
+template<typename Engine, typename TStorage>
+std::string Particle<Engine, TStorage>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -417,7 +302,9 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 
 		<< engine_type::Dump(path, is_verbose)
 
-		<< "\n, particles = " << simpla::Dump(*this, "particles", !is_verbose);
+//		<< "\n, particles = " << storage_type::Dump(*this, "particles", !is_verbose)
+
+		        ;
 	}
 
 	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
@@ -434,22 +321,18 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 	return os.str();
 }
 
-#define DISABLE_MULTI_THREAD
-
-template<class Engine>
+template<typename Engine, typename TStorage>
 template<typename TE, typename TB, typename TJ>
-void Particle<Engine>::NextTimeStepZero_(TE const & E, TB const & B, TJ * J)
+void Particle<Engine, TStorage>::NextTimeStepZero_(TE const & E, TB const & B, TJ * J)
 {
 
 	if (J->empty())
 		return;
 
 	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << EnableImplicit() << " , Enable Sorting =" << enableSorting_ << " ]";
+	        << " , Enable Implicit =" << EnableImplicit() << " ]";
 
 	Real dt = mesh.GetDt();
-
-	Sort();
 
 	J->Clear();
 
@@ -469,25 +352,22 @@ void Particle<Engine>::NextTimeStepZero_(TE const & E, TB const & B, TJ * J)
 
 	});
 
-	isSorted_ = false;
-	Sort();
+	storage_type::Sort();
 	LOGGER << DONE;
 	auto & Js = *J;
 	LOG_CMD(n_ -= Diverge(MapTo<EDGE>(Js)) * dt);
 
 }
 
-template<class Engine>
+template<typename Engine, typename TStorage>
 template<typename TE, typename TB>
-void Particle<Engine>::NextTimeStepHalf_(TE const & E, TB const & B)
+void Particle<Engine, TStorage>::NextTimeStepHalf_(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << EnableImplicit() << " , Enable Sorting =" << enableSorting_ << " ]";
+	        << " , Enable Implicit =" << EnableImplicit() << " ]";
 
 	Real dt = mesh.GetDt();
-
-	Sort();
 
 	ParallelDo(
 
@@ -503,13 +383,12 @@ void Particle<Engine>::NextTimeStepHalf_(TE const & E, TB const & B)
 
 	});
 
-	isSorted_ = false;
-	Sort();
+	storage_type::Sort();
 	LOGGER << DONE;
 }
 
-template<class Engine> template<int IFORM, typename ...Args>
-void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
+template<typename Engine, typename TStorage> template<int IFORM, typename ...Args>
+void Particle<Engine, TStorage>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
 {
 	ParallelDo(
 
@@ -528,145 +407,6 @@ void Particle<Engine>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args co
 	});
 }
 //*************************************************************************************************
-template<class Engine>
-template<typename TDest>
-void Particle<Engine>::Sort(index_type id_src, TDest *dest)
-{
-
-	auto & src = this->at(id_src);
-
-	auto pt = src.begin();
-
-	while (pt != src.end())
-	{
-		auto p = pt;
-		++pt;
-
-		index_type id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
-
-		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
-
-		if (id_dest != id_src)
-		{
-			(*dest)[id_dest].splice((*dest)[id_dest].begin(), src, p);
-		}
-
-	}
-
-}
-
-template<class Engine>
-void Particle<Engine>::Sort()
-{
-
-	if (IsSorted() || !enableSorting_)
-		return;
-
-	VERBOSE << "Particle sorting is enabled!";
-
-	ParallelDo(
-
-	[this](int t_num,int t_id)
-	{
-		std::map<index_type,cell_type> dest;
-		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			this->Sort(s, &dest);
-		}
-
-		write_lock_.lock();
-		for(auto & v :dest)
-		{
-			auto & c = this->at(v.first);
-
-			c.splice(c.begin(), v.second);
-		}
-		write_lock_.unlock();
-	}
-
-	);
-
-	isSorted_ = true;
-}
-
-template<class Engine>
-void Particle<Engine>::Clear(index_type s)
-{
-	this->at(s).clear();
-}
-template<class Engine>
-void Particle<Engine>::Add(index_type s, cell_type && other)
-{
-	this->at(s).slice(this->at(s).begin(), other);
-}
-
-template<class Engine>
-void Particle<Engine>::Add(index_type s, std::function<Real(coordinates_type *, nTuple<3, Real>*)> const & gen)
-{
-	coordinates_type x;
-	nTuple<3, Real> v;
-	Real f = gen(&x, &v);
-	this->at(s).push_back(engine_type::make_point(x, v, f));
-
-}
-
-template<class Engine>
-void Particle<Engine>::Remove(index_type s,
-        std::function<bool(coordinates_type const&, nTuple<3, Real> const&)> const & filter)
-{
-	auto & cell = this->at(s);
-
-	auto pt = cell.begin();
-
-	while (pt != cell.end())
-	{
-		coordinates_type x;
-		nTuple<3, Real> v;
-
-		engine_type::PullBack(*pt, &x, &v);
-		if (filter(x, v))
-		{
-			pt = cell.erase(pt);
-		}
-		else
-		{
-			++pt;
-		}
-	}
-
-}
-
-template<class Engine>
-void Particle<Engine>::Modify(index_type s, std::function<void(coordinates_type *, nTuple<3, Real>*)> const & op)
-{
-
-	for (auto & p : this->at(s))
-	{
-		coordinates_type x;
-		nTuple<3, Real> v;
-
-		engine_type::PullBack(p, &x, &v);
-		op(&x, &v);
-		engine_type::PushForward(x, v, &p);
-	}
-}
-
-template<class Engine>
-void Particle<Engine>::Traversal(index_type s,
-        std::function<void(scalar_type, coordinates_type const&, nTuple<3, Real> const&)> const & op)
-{
-
-	for (auto const & p : this->at(s))
-	{
-		coordinates_type x;
-		nTuple<3, Real> v;
-		scalar_type f = engine_type::PullBack(p, &x, &v);
-		op(f, x, v);
-	}
-
-}
-
-//******************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline
 void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 {

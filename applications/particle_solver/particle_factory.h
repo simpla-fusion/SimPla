@@ -52,7 +52,7 @@ std::shared_ptr<ParticleBase<Mesh>> CreateParticle(Args const & ...args)
 //		res = CreateParticle_<Particle<PICEngineGGauge<Mesh, Real, 32>>>(std::forward<Args const &>(args)...);
 //
 	if (res == nullptr)
-		res = CreateParticle_<Particle<ColdFluid<Mesh>>>(std::forward<Args const &>(args)...);
+		res = CreateParticle_<Particle<ColdFluid<Mesh>, std::nullptr_t>>(std::forward<Args const &>(args)...);
 
 	return res;
 }
