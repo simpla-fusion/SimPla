@@ -20,17 +20,28 @@
 namespace simpla
 {
 
-template<typename TM, typename Interpolator = typename TM::interpolator_type>
+template<typename TM, bool IsImplicit, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDefault
 {
-
 public:
-	typedef PICEngineDefault<TM> this_type;
+	enum
+	{
+		EnableImplicit = IsImplicit
+	};
+	const Real m;
+	const Real q;
+
+	typedef PICEngineDefault<TM, IsImplicit, Interpolator> this_type;
 	typedef TM mesh_type;
 	typedef Interpolator interpolator_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
+
+	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
+
+	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
+	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7, Real> storage_value_type;
 
@@ -61,54 +72,31 @@ public:
 	};
 
 private:
-	Real m_, q_, cmr_;
-	bool enableImplicit_;
+	Real cmr_;
 public:
 	mesh_type const &mesh;
 
 public:
 
-	template<typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, Args const & ...args)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), enableImplicit_(true)
+	template<typename TDict, typename ...Args>
+	PICEngineDefault(mesh_type const &pmesh, TDict const & dict, Args const & ...args)
+			: mesh(pmesh),
+
+			m(dict["Mass"].template as<Real>(1.0)),
+
+			q(dict["Charge"].template as<Real>(1.0)),
+
+			cmr_(q / m)
 	{
-		Load(std::forward<Args const &>(args)...);
 	}
 
 	~PICEngineDefault()
 	{
 	}
 
-	static std::string TypeName()
-	{
-		return "Default";
-	}
 	static std::string GetTypeAsString()
 	{
 		return "Default";
-	}
-	size_t GetAffectedRange() const
-	{
-		return 2;
-	}
-
-	Real GetMass() const
-	{
-		return m_;
-	}
-
-	Real GetCharge() const
-	{
-		return q_;
-	}
-
-	template<typename TDict, typename ...Others>
-	inline void Load(TDict const &dict, Others const &...)
-	{
-		m_ = dict["Mass"].template as<Real>(1.0);
-		q_ = dict["Charge"].template as<Real>(1.0);
-		cmr_ = q_ / m_;
-		enableImplicit_ = dict["EnableImplicit"].template as<bool>(false);
 	}
 
 	std::string Dump(std::string const & path = "", bool is_verbose = false) const
@@ -119,9 +107,9 @@ public:
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
-		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
+		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 
-		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
+		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
 		;
 		return os.str();
@@ -134,14 +122,58 @@ public:
 		return std::move(p);
 	}
 
-	bool EnableImplicit() const
+	template<typename TJ, typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
-		return enableImplicit_;
+		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
 	}
+	template<typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	{
+		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
+	}
+	// x(-1/2->1/2),v(0)
+	template<typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt,
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
+	{
+		//		auto B = interpolator_type::Gather(fB, p->x);
+		//		auto E = interpolator_type::Gather(fE, p->x);
 
+		p->x += p->v * dt;
+		Vec3 v;
+		v = p->v * p->f * q;
+		interpolator_type::Scatter(p->x, v, J);
+	}
+	// v(0->1)
+	template<typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	        Others const &...others) const
+	{
+
+		auto B = interpolator_type::Gather(fB, p->x);
+		auto E = interpolator_type::Gather(fE, p->x);
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
+
+		p->v += v_ * 2.0;
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+	}
 	// x(-1/2->1/2), v(-1/2/1/2)
-	template<typename TV, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, EDGE, TV> *J, TE const &fE, TB const & fB,
+	template<typename TJ, typename TE, typename TB, typename ... Others>
+	inline void NextTimeStepZero(Bool2Type<false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 	        Others const &...others) const
 	{
 
@@ -165,76 +197,22 @@ public:
 
 		p->x += p->v * dt * 0.5;
 		Vec3 v;
-		v = p->v * p->f;
+		v = p->v * p->f * q;
 		interpolator_type::Scatter(p->x, v, J);
 
 	}
 	template<typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, Field<mesh_type, EDGE, scalar_type> const &fE,
+	inline void NextTimeStepHalf(Bool2Type<false>, Point_s * p, Real dt, Field<mesh_type, EDGE, scalar_type> const &fE,
 	        Field<mesh_type, FACE, scalar_type> const & fB, Others const &...others) const
 	{
-	}
-	// x(-1/2->1/2),v(0)
-	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, Field<mesh_type, VERTEX, nTuple<3, scalar_type> > *J,
-	        TE const &fE, TB const & fB, Others const &...others) const
-	{
-		//		auto B = interpolator_type::Gather(fB, p->x);
-		//		auto E = interpolator_type::Gather(fE, p->x);
-
-		p->x += p->v * dt;
-
-		Vec3 v;
-		v = p->v * p->f;
-		interpolator_type::Scatter(p->x, v, J);
-	}
-	// v(0->1)
-	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
-	{
-
-		auto B = interpolator_type::Gather(fB, p->x);
-		auto E = interpolator_type::Gather(fE, p->x);
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-		v_ = p->v + Cross(p->v, t);
-
-		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
-
-		p->v += v_ * 2.0;
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-	}
-
-	template<typename TJ, typename TN>
-	inline void UpdateN(TJ const &J, TN*n) const
-	{
-
 	}
 
 	template<int IFORM, typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{
-		interpolator_type::Scatter(p.x, q_ * p.f, n);
+		interpolator_type::Scatter(p.x, q * p.f, n);
 	}
 
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
-	{
-		*x = p.x;
-		*v = p.v;
-		return p.f;
-	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
-	{
-		p->x = x;
-		p->v = v;
-	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s( { x, v, f }));
@@ -242,8 +220,8 @@ public:
 
 };
 
-template<typename OS, typename TM> OS&
-operator<<(OS& os, typename PICEngineDefault<TM>::Point_s const & p)
+template<typename OS, typename ... TM> OS&
+operator<<(OS& os, typename PICEngineDefault<TM...>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
 

@@ -17,12 +17,12 @@ namespace simpla
 {
 
 template<typename > class DataDumper;
-template<typename, typename > class Particle;
+template<typename > class Particle;
 
-template<typename TEngine, typename TStorage> inline std::string //
-Dump(Particle<TEngine, TStorage> const & d, std::string const & name, bool is_compact_store = false)
+template<typename TEngine> inline std::string //
+Dump(Particle<TEngine> const & d, std::string const & name, bool is_compact_store = false)
 {
-	std::vector<typename Particle<TEngine, TStorage>::value_type> res;
+	std::vector<typename Particle<TEngine>::value_type> res;
 
 	for (auto const & l : d.GetTree())
 	{

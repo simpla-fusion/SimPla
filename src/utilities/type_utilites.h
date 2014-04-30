@@ -14,6 +14,12 @@ namespace simpla
 {
 
 #include <tuple>
+
+template<bool N> struct Bool2Type
+{
+	static const bool value = N;
+};
+
 template<int N> struct Int2Type
 {
 	static const int value = N;

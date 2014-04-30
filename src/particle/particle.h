@@ -29,8 +29,6 @@
 
 #include "../io/data_stream.h"
 
-#include "particle_base.h"
-#include "particle_boundary.h"
 #include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
@@ -41,8 +39,12 @@ namespace simpla
 {
 
 //*******************************************************************************************************
-template<class Engine, typename TStorage = ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>>
-class Particle: public Engine, public TStorage, public ParticleBase<typename Engine::mesh_type>
+template<class Engine>
+class Particle:
+
+public Engine,
+
+public ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>
 {
 	std::mutex write_lock_;
 
@@ -51,9 +53,7 @@ public:
 
 	typedef Engine engine_type;
 
-	typedef TStorage storage_type;
-
-	typedef ParticleBase<typename Engine::mesh_type> base_type;
+	typedef ParticlePool<typename Engine::mesh_type, typename Engine::Point_s> storage_type;
 
 	typedef Particle<engine_type> this_type;
 
@@ -69,18 +69,6 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	//container
-
-	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
-
-	typedef std::vector<cell_type> container_type;
-
-	typedef typename container_type::iterator iterator;
-
-	typedef typename container_type::const_iterator const_iterator;
-
-	typedef typename cell_type::allocator_type allocator_type;
-
 public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
@@ -91,205 +79,107 @@ public:
 	// Destructor
 	virtual ~Particle();
 
-	template<typename TDict, typename ... Others>
-	void AddCommand(TDict const & dict, Material<mesh_type> const &, Others const & ...);
-
-	static std::string GetTypeAsString()
+	void AddCommand(std::function<void()> const &foo)
 	{
-		return engine_type::GetTypeAsString();
+		commands_.push_back(foo);
 	}
+
 	//***************************************************************************************************
 	// Interface
 
-	std::string GetTypeAsString_() const
-	{
-		return GetTypeAsString();
-	}
-	inline Real GetMass() const
-	{
-		return engine_type::GetMass();
-	}
+	typename engine_type::n_type n;
 
-	inline Real GetCharge() const
-	{
-		return engine_type::GetCharge();
-	}
+	typename engine_type::J_type J;
 
-	bool EnableImplicit() const
-	{
-		return engine_type::EnableImplicit();
-	}
-
-	void NextTimeStepZero(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B)
-	{
-		if (!EnableImplicit())
-		{
-			NextTimeStepZero_(E, B, &J_);
-		}
-		else
-		{
-			NextTimeStepZero_(E, B, &Jv_);
-		}
-	}
-	void NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
-	{
-		if (!EnableImplicit())
-		{
-			NextTimeStepZero_(E, B, &J_);
-		}
-		else
-		{
-			NextTimeStepZero_(E, B, &Jv_);
-		}
-	}
-	void NextTimeStepHalf(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const & B)
-	{
-		NextTimeStepHalf_(E, B);
-	}
-	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
-	{
-		NextTimeStepHalf_(E, B);
-	}
-	template<typename TE, typename TB, typename TJ>
-	void NextTimeStepZero_(TE const & E, TB const & B, TJ *);
 	template<typename TE, typename TB>
-	void NextTimeStepHalf_(TE const & E, TB const & B);
+	void NextTimeStepZero(TE const &E, TB const & B);
+
+	template<typename TE, typename TB>
+	void NextTimeStepHalf(TE const &E, TB const & B);
+
+	template<typename TJ, typename ...Args>
+	void Scatter(TJ *J, Args const & ... args) const;
 
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
-	Field<mesh_type, VERTEX, scalar_type> & n()
-	{
-		return n_;
-	}
-	Field<mesh_type, VERTEX, scalar_type> const& n() const
-	{
-		return n_;
-	}
-	Field<mesh_type, EDGE, scalar_type> &J()
-	{
-		return J_;
-	}
-	Field<mesh_type, EDGE, scalar_type> const&J() const
-	{
-		return J_;
-	}
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> &Jv()
-	{
-		return Jv_;
-	}
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const&Jv() const
-	{
-		return Jv_;
-	}
-
-//***************************************************************************************************
-	template<int IFORM, typename ...Args>
-	void Scatter(Field<mesh_type, IFORM, scalar_type> *J, Args const & ... args) const;
-
 private:
-
-	Field<mesh_type, VERTEX, scalar_type> n_;
-
-	Field<mesh_type, EDGE, scalar_type> J_;
-
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv_;
 
 	std::list<std::function<void()> > commands_;
 };
 
-template<typename Engine, typename TStorage>
+template<typename Engine>
 template<typename TDict, typename ...Others>
-Particle<Engine, TStorage>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
 
 		: engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
 		storage_type(pmesh, dict),
 
-		mesh(pmesh), n_(mesh), J_(mesh), Jv_(mesh)
+		mesh(pmesh), n(mesh), J(mesh)
 {
-	n_.Clear();
-
-	if (engine_type::EnableImplicit())
-	{
-		Jv_.Clear();
-	}
-	else
-	{
-		J_.Clear();
-	}
 
 	LoadParticle(this, dict, std::forward<Others const &>(others)...);
 
-	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
+//	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
 
 }
 
-template<typename Engine, typename TStorage>
-Particle<Engine, TStorage>::~Particle()
+template<typename Engine>
+Particle<Engine>::~Particle()
 {
 }
-template<typename Engine, typename TStorage>
-template<typename TDict, typename ...Others> void Particle<Engine, TStorage>::AddCommand(TDict const & dict,
-        Material<mesh_type> const & model, Others const & ...others)
-{
-	if (!dict.is_table())
-		return;
-	for (auto item : dict)
-	{
-		auto dof = item.second["DOF"].template as<std::string>("");
-
-		if (dof == "n")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-			        Command<decltype(n_)>::Create(&n_, item.second, model, std::forward<Others const &>(others)...));
-
-		}
-		else if (dof == "J")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			if (!J_.empty())
-			{
-				commands_.push_back(
-				        Command<decltype(J_)>::Create(&J_, item.second, model,
-				                std::forward<Others const &>(others)...));
-			}
-			else if (!Jv_.empty())
-			{
-				commands_.push_back(
-				        Command<decltype(Jv_)>::Create(&Jv_, item.second, model,
-				                std::forward<Others const &>(others)...));
-
-			}
-		}
-		else if (dof == "ParticlesBoundary")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-			        BoundaryCondition<this_type>::Create(this, item.second, model,
-			                std::forward<Others const &>(others)...));
-		}
-		else
-		{
-			UNIMPLEMENT2("Unknown DOF!");
-		}
-		LOGGER << DONE;
-	}
-
-}
+//template<typename Engine>
+//template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
+//        Material<mesh_type> const & model, Others const & ...others)
+//{
+//	if (!dict.is_table())
+//		return;
+//	for (auto item : dict)
+//	{
+//		auto dof = item.second["DOF"].template as<std::string>("");
+//
+//		if (dof == "n")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(
+//			        Command<typename engine_type::n_type>::Create(&n, item.second, model,
+//			                std::forward<Others const &>(others)...));
+//
+//		}
+//		else if (dof == "J")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(
+//			        Command<typename engine_type::J_type>::Create(&J, item.second, model,
+//			                std::forward<Others const &>(others)...));
+//
+//		}
+//		else if (dof == "ParticlesBoundary")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(
+//			        BoundaryCondition<this_type>::Create(this, item.second, model,
+//			                std::forward<Others const &>(others)...));
+//		}
+//		else
+//		{
+//			UNIMPLEMENT2("Unknown DOF!");
+//		}
+//		LOGGER << DONE;
+//	}
+//
+//}
 
 //*************************************************************************************************
 
-template<typename Engine, typename TStorage>
-std::string Particle<Engine, TStorage>::Dump(std::string const & path, bool is_verbose) const
+template<typename Engine>
+std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -307,34 +197,26 @@ std::string Particle<Engine, TStorage>::Dump(std::string const & path, bool is_v
 		        ;
 	}
 
-	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
+	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
 
-	if (EnableImplicit())
-	{
-		os << "\n, Jv =" << simpla::Dump(Jv_, "Jv", is_verbose);
-	}
-	else
-	{
-		os << "\n, J =" << simpla::Dump(J_, "J", is_verbose);
-	}
+	os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
 
 	return os.str();
 }
 
-template<typename Engine, typename TStorage>
-template<typename TE, typename TB, typename TJ>
-void Particle<Engine, TStorage>::NextTimeStepZero_(TE const & E, TB const & B, TJ * J)
+template<typename Engine>
+template<typename TE, typename TB>
+void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
-	if (J->empty())
-		return;
-
 	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << EnableImplicit() << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+
+	storage_type::Sort();
 
 	Real dt = mesh.GetDt();
 
-	J->Clear();
+	J.Clear();
 
 	ParallelDo(
 
@@ -342,32 +224,32 @@ void Particle<Engine, TStorage>::NextTimeStepZero_(TE const & E, TB const & B, T
 	{
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			J->lock();
+			J.lock();
 			for (auto & p : this->at(s) )
 			{
-				this->engine_type::NextTimeStepZero(&p,dt ,J,E,B);
+				this->engine_type::NextTimeStepZero(&p,dt ,&J,E,B);
 			}
-			J->unlock();
+			J.unlock();
 		}
 
 	});
 
-	storage_type::Sort();
 	LOGGER << DONE;
-	auto & Js = *J;
-	LOG_CMD(n_ -= Diverge(MapTo<EDGE>(Js)) * dt);
+	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 
 }
 
-template<typename Engine, typename TStorage>
+template<typename Engine>
 template<typename TE, typename TB>
-void Particle<Engine, TStorage>::NextTimeStepHalf_(TE const & E, TB const & B)
+void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << EnableImplicit() << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
+
+	storage_type::Sort();
 
 	ParallelDo(
 
@@ -383,13 +265,14 @@ void Particle<Engine, TStorage>::NextTimeStepHalf_(TE const & E, TB const & B)
 
 	});
 
-	storage_type::Sort();
+	storage_type::NeedSort();
 	LOGGER << DONE;
 }
 
-template<typename Engine, typename TStorage> template<int IFORM, typename ...Args>
-void Particle<Engine, TStorage>::Scatter(Field<mesh_type, IFORM, scalar_type> *pJ, Args const &... args) const
+template<typename Engine> template<typename TJ, typename ...Args>
+void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 {
+	storage_type::Sort();
 	ParallelDo(
 
 	[&](int t_num,int t_id)

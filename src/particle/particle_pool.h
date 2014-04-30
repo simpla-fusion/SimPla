@@ -62,25 +62,6 @@ public:
 	// Destructor
 	~ParticlePool();
 
-	//	iterator begin()
-	//	{
-	//		return data_.begin();
-	//	}
-	//
-	//	iterator end()
-	//	{
-	//		return data_.end();
-	//	}
-	//
-	//	const_iterator begin() const
-	//	{
-	//		return data_.begin();
-	//	}
-	//
-	//	const_iterator end() const
-	//	{
-	//		return data_.end();
-	//	}
 	std::string Dump(std::string const & path, bool is_verbose = false) const;
 
 	void Clear(index_type s);
@@ -150,6 +131,11 @@ public:
 		return isSorted_;
 	}
 
+	void NeedSort()
+	{
+		isSorted_ = false;
+	}
+
 	size_t size() const
 	{
 		size_t res = 0;
@@ -160,27 +146,26 @@ public:
 		}
 		return res;
 	}
-	void SetParticleSorting(bool f)
-	{
-		enableSorting_ = f;
-	}
-	bool GetParticleSorting() const
-	{
-		return enableSorting_;
-	}
 
 	container_type const & GetTree() const
 	{
 		return data_;
 	}
 
+	void WriteLock()
+	{
+		write_lock_.lock();
+	}
+	void WriteUnLock()
+	{
+		write_lock_.unlock();
+	}
+
 private:
 
 	bool isSorted_;
-	bool enableSorting_;
 
 	allocator_type allocator_;
-
 	container_type data_;
 
 	/**
@@ -194,9 +179,9 @@ private:
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
 ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-		: mesh(pmesh), isSorted_(false), data_(mesh.GetNumOfElements(IForm), cell_type(GetAllocator()))
+		: mesh(pmesh), isSorted_(false), allocator_(),	//
+		data_(mesh.GetNumOfElements(IForm), cell_type(allocator_))
 {
-	enableSorting_ = dict["EnableSorting"].template as<bool>(false);
 }
 
 template<typename TM, typename TParticle>
@@ -250,7 +235,7 @@ template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Sort()
 {
 
-	if (IsSorted() || !enableSorting_)
+	if (IsSorted())
 		return;
 
 	VERBOSE << "Particle sorting is enabled!";

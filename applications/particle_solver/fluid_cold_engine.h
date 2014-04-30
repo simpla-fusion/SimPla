@@ -17,10 +17,10 @@ namespace simpla
 {
 
 template<typename > class ColdFluid;
-template<typename, typename > class Particle;
+template<typename > class Particle;
 
 template<typename TM>
-class Particle<ColdFluid<TM>, std::nullptr_t> : public ParticleBase<TM>
+class Particle<ColdFluid<TM> >
 {
 public:
 	static constexpr int IForm = VERTEX;
@@ -29,7 +29,7 @@ public:
 
 	typedef ColdFluid<mesh_type> engine_type;
 
-	typedef Particle<engine_type, std::nullptr_t> this_type;
+	typedef Particle<engine_type> this_type;
 
 	typedef ParticleBase<mesh_type> base_type;
 
@@ -39,124 +39,74 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
+	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
+
+	typedef Field<mesh_type, VERTEX, nTuple<3, scalar_type>> J_type;
+
+	enum
+	{
+		EnableImplicit = true
+	};
+	const Real m;
+	const Real q;
+
 	mesh_type const & mesh;
 
-	template<typename ...Args>
-	Particle(mesh_type const & pmesh, Args const & ...);
+	n_type n;
+	J_type J;
+
+	template<typename TDict, typename ...Args>
+	Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...);
 
 	~Particle();
-
-	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others const &...);
 
 	static std::string GetTypeAsString()
 	{
 		return "ColdFluid";
 	}
 
-	//**************************************************************************************************
-	// Interface
+	void NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
-	std::string GetTypeAsString_() const
-	{
-		return GetTypeAsString();
-	}
-	inline Real GetMass() const
-	{
-		return m_;
-	}
-
-	Real GetCharge() const
-	{
-		return q_;
-	}
-
-	bool EnableImplicit() const
-	{
-		return true;
-	}
-	void Accept(VisitorBase const& visitor)
-	{
-		CHECK("Accept Visitor");
-	}
 	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
 	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
 	std::string Dump(std::string const & name, bool is_verbose) const;
 
-	Field<mesh_type, VERTEX, scalar_type> & n()
-	{
-		return n_;
-	}
-	Field<mesh_type, VERTEX, scalar_type> const& n() const
-	{
-		return n_;
-	}
-	Field<mesh_type, EDGE, scalar_type> &J()
-	{
-		return J_;
-	}
-	Field<mesh_type, EDGE, scalar_type> const&J() const
-	{
-		return J_;
-	}
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> &Jv()
-	{
-		return Jv_;
-	}
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const&Jv() const
-	{
-		return Jv_;
-	}
-
 private:
-	Real m_;
-	Real q_;
 
-	bool enableNonlinear_;
-
-	Field<mesh_type, VERTEX, scalar_type> n_;
-
-	Field<mesh_type, EDGE, scalar_type> J_;
-
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Jv_;
 }
 ;
 
 template<typename TM>
-template<typename ...Args> Particle<ColdFluid<TM>, std::nullptr_t>::Particle(mesh_type const & pmesh,
-        Args const & ...args)
-		: mesh(pmesh), q_(1.0), m_(1.0), enableNonlinear_(false),
+template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh,
+        TDict const & dict, Args const & ...args)
+		: mesh(pmesh),
 
-		n_(mesh), J_(mesh), Jv_(mesh)
+		m(dict["Mass"].template as<Real>(1.0)),
+
+		q(dict["Charge"].template as<Real>(1.0)),
+
+		n(mesh), J(mesh)
 {
-	Jv_.Clear();
-	n_.Clear();
-	Load(std::forward<Args const &>(args)...);
+	J.Clear();
+	n.Clear();
+
+	LoadField(dict["Density"], &(n));
+
+	n *= q;
+
+	LoadField(dict["Current"], &(J));
 
 }
 
 template<typename TM>
-Particle<ColdFluid<TM>, std::nullptr_t>::~Particle()
+Particle<ColdFluid<TM>>::~Particle()
 {
 }
 
 template<typename TM>
-template<typename TDict, typename ...Others>
-void Particle<ColdFluid<TM>, std::nullptr_t>::Load(TDict const &dict, Others const &...)
-{
-	m_ = dict["Mass"].template as<Real>(1.0);
-	q_ = dict["Charge"].template as<Real>(1.0);
-	enableNonlinear_ = dict["EnableNonlinear"].template as<bool>(false);
-	LoadField(dict["Density"], &(n_));
-
-	n_ *= q_;
-
-	LoadField(dict["Current"], &(J_));
-}
-
-template<typename TM>
-std::string Particle<ColdFluid<TM>, std::nullptr_t>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -170,34 +120,40 @@ std::string Particle<ColdFluid<TM>, std::nullptr_t>::Dump(std::string const & pa
 
 		<< "Engine = '" << GetTypeAsString()
 
-		<< " , " << "Mass = " << m_ / proton_mass << " * m_p"
+		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 
-		<< " , " << "Charge = " << q_ / elementary_charge << " * q_e"
+		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
 		;
 	}
 
-	os << "\n, n =" << simpla::Dump(n_, "n", is_verbose);
+	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
 
-	os << "\n, Jv =" << simpla::Dump(Jv_, "Jv", is_verbose);
+	os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
 
 	return os.str();
 }
-
 template<typename TM>
-void Particle<ColdFluid<TM>, std::nullptr_t>::NextTimeStepHalf(
-        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+void Particle<ColdFluid<TM>>::NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
         Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
-	LOGGER << "Push particles [ " << GetTypeAsString() << "]";
-
+	LOGGER << "Push particles Step Zero[ " << GetTypeAsString() << "]";
 	Real dt = mesh.GetDt();
+	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+}
+template<typename TM>
+void Particle<ColdFluid<TM>>::NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
+        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+{
+	LOGGER << "Push particles Step Half[ " << GetTypeAsString() << "]";
 
-	Real as = 0.5 * GetCharge() * dt / GetMass();
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> K(mesh);
 
-	Jv_ += Cross(Jv_, B) * as + 2.0 * as * n_ * E;
+	Real as = 0.5 * q / m * mesh.GetDt();
 
-	Jv_ = (Jv_ + Cross(Jv_, B) * as + B * (Dot(Jv_, B) * as * as)) / (Dot(B, B) * as * as + 1);
+	K = J + Cross(J, B) * as + 2.0 * as * n * E;
+
+	J = (K + Cross(K, B) * as + B * (Dot(K, B) * as * as)) / (Dot(B, B) * as * as + 1);
 
 }
 

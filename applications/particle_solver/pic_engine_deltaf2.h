@@ -60,7 +60,7 @@ public:
 	};
 
 private:
-	Real m_, cmr_, q_, q_k_;
+	Real m, cmr_, q, q_k_;
 public:
 	mesh_type const &mesh;
 	Field<mesh_type, VERTEX, Real> n0;
@@ -69,7 +69,7 @@ public:
 	Field<mesh_type, EDGE, Real> gradT0;
 public:
 	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
+			: mesh(pmesh), m(1.0), q(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
 	{
 	}
 	~PICEngineDeltaF()
@@ -87,12 +87,12 @@ public:
 
 	Real GetMass() const
 	{
-		return m_;
+		return m;
 	}
 
 	Real GetCharge() const
 	{
-		return q_;
+		return q;
 	}
 	size_t GetAffectedRange() const
 	{
@@ -104,9 +104,9 @@ public:
 
 		DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		m_ = dict["Mass"].template as<Real>(1.0);
-		q_ = dict["Charge"].template as<Real>(1.0);
-		cmr_ = q_ / m_;
+		m = dict["Mass"].template as<Real>(1.0);
+		q = dict["Charge"].template as<Real>(1.0);
+		cmr_ = q / m;
 	}
 
 	std::ostream & Print(std::ostream & os) const
@@ -116,11 +116,11 @@ public:
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
-		<< " , " << "Mass = " << m_
+		<< " , " << "Mass = " << m
 
-		<< " , " << "Charge = " << q_
+		<< " , " << "Charge = " << q
 
-		<< " , " << "Temperature = " << q_ / q_k_ / elementary_charge << "* eV"
+		<< " , " << "Temperature = " << q / q_k_ / elementary_charge << "* eV"
 
 		;
 
@@ -152,7 +152,7 @@ public:
 
 //		+ (0.5 * gradT0(p->x) / T0(p->x) * m_ * Dot(p->v, p->v)) / (T0(p->x) * boltzmann_constant)
 
-		        - fE(p->x) * q_ / (T0(p->x) * boltzmann_constant);
+		        - fE(p->x) * q / (T0(p->x) * boltzmann_constant);
 
 		auto a = Dot(kapp, p->v) * dt;
 
@@ -164,7 +164,7 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		mesh.Scatter(p.x, p.f * p.w * q_, n);
+		mesh.Scatter(p.x, p.f * p.w * q, n);
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
@@ -172,7 +172,7 @@ public:
 	{
 		typename Field<mesh_type, IFORM, TV>::field_value_type v;
 
-		v = p.v * (p.f * p.w * q_);
+		v = p.v * (p.f * p.w * q);
 		mesh.Scatter(p.x, v, J);
 	}
 

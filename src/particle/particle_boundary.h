@@ -17,14 +17,14 @@
 namespace simpla
 {
 template<typename > class BoundaryCondition;
-template<typename, typename > class Particle;
+template<typename > class Particle;
 
-template<typename Engine, typename TStorage>
-class BoundaryCondition<Particle<Engine, TStorage> > : public VisitorBase
+template<typename Engine>
+class BoundaryCondition<Particle<Engine> > : public VisitorBase
 {
 public:
 
-	typedef Particle<Engine, TStorage> particle_type;
+	typedef Particle<Engine> particle_type;
 
 	typedef BoundaryCondition<particle_type> this_type;
 
@@ -68,9 +68,9 @@ private:
 }
 ;
 
-template<typename Engine, typename TStorage>
+template<typename Engine>
 template<typename TDict, typename TModel, typename ...Others>
-BoundaryCondition<Particle<Engine, TStorage> >::BoundaryCondition(TDict const & dict, TModel const & model,
+BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict, TModel const & model,
         Others const & ... others)
 		: op_str_("")
 {
@@ -95,22 +95,22 @@ BoundaryCondition<Particle<Engine, TStorage> >::BoundaryCondition(TDict const & 
 	}
 }
 
-template<typename Engine, typename TStorage>
-BoundaryCondition<Particle<Engine, TStorage>>::~BoundaryCondition()
+template<typename Engine>
+BoundaryCondition<Particle<Engine>>::~BoundaryCondition()
 {
 }
 
-template<typename Engine, typename TStorage>
+template<typename Engine>
 template<typename ... Others>
-std::function<void()> BoundaryCondition<Particle<Engine, TStorage>>::Create(particle_type* f, Others const & ...others)
+std::function<void()> BoundaryCondition<Particle<Engine>>::Create(particle_type* f, Others const & ...others)
 {
 
 	return std::bind(&this_type::Visit,
 	        std::shared_ptr<this_type>(new this_type(std::forward<Others const &>(others)...)), f);
 }
-//template<typename Engine, typename TStorage>
+//template<typename Engine>
 //template<typename ... Others>
-//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine, TStorage>>::Create(
+//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine >>::Create(
 //		Others const & ...others)
 //{
 //
@@ -120,8 +120,8 @@ std::function<void()> BoundaryCondition<Particle<Engine, TStorage>>::Create(part
 //			std::placeholders::_1);
 //}
 
-template<typename Engine, typename TStorage>
-void BoundaryCondition<Particle<Engine, TStorage>>::Visit(particle_type * p) const
+template<typename Engine>
+void BoundaryCondition<Particle<Engine>>::Visit(particle_type * p) const
 {
 
 //	if (op_str_ == "Cycling")

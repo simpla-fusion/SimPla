@@ -19,40 +19,33 @@
 namespace simpla
 {
 
-template<typename TParticle, typename ...Args>
-std::shared_ptr<typename TParticle::base_type> CreateParticle_(std::string const & type_str, Args const & ... args)
-{
-	std::shared_ptr<typename TParticle::base_type> res(nullptr);
-
-	if (type_str == TParticle::GetTypeAsString())
-	{
-		res = std::dynamic_pointer_cast<typename TParticle::base_type>(
-		        std::shared_ptr<TParticle>(new TParticle(std::forward<Args const &>(args)...)));
-	}
-	return res;
-}
 template<typename Mesh, typename ...Args>
-std::shared_ptr<ParticleBase<Mesh>> CreateParticle(Args const & ...args)
+std::shared_ptr<ParticleBase<Mesh>> ParticleFactory(Args const & ...args)
 {
 	std::shared_ptr<ParticleBase<Mesh>> res(nullptr);
 
 	if (res == nullptr)
-		res = CreateParticle_<Particle<PICEngineDefault<Mesh>>>(std::forward<Args const &>(args)...);
+		res = CreateParticle<Particle<PICEngineDefault<Mesh, true>>>(std::forward<Args const &>(args)...);
 
 	if (res == nullptr)
-		res = CreateParticle_<Particle<PICEngineDeltaF<Mesh>>>(std::forward<Args const &>(args)...);
+		res = CreateParticle<Particle<PICEngineDefault<Mesh, false>>>(std::forward<Args const &>(args)...);
+
+	if (res == nullptr)
+		res = CreateParticle<Particle<PICEngineDeltaF<Mesh, true>>>(std::forward<Args const &>(args)...);
+	if (res == nullptr)
+		res = CreateParticle<Particle<PICEngineDeltaF<Mesh, false>>>(std::forward<Args const &>(args)...);
 
 //	if (res == nullptr)
-//		res = CreateParticle_<Particle<PICEngineGGauge<Mesh, Real, 4>>>(std::forward<Args const &>(args)...);
+//		res = CreateParticle<Particle<PICEngineGGauge<Mesh, Real, 4>>>(std::forward<Args const &>(args)...);
 //
 //	if (res == nullptr)
-//		res = CreateParticle_<Particle<PICEngineGGauge<Mesh, Real, 16>>>(std::forward<Args const &>(args)...);
+//		res = CreateParticle<Particle<PICEngineGGauge<Mesh, Real, 16>>>(std::forward<Args const &>(args)...);
 //
 //	if (res == nullptr)
-//		res = CreateParticle_<Particle<PICEngineGGauge<Mesh, Real, 32>>>(std::forward<Args const &>(args)...);
+//		res = CreateParticle<Particle<PICEngineGGauge<Mesh, Real, 32>>>(std::forward<Args const &>(args)...);
 //
 	if (res == nullptr)
-		res = CreateParticle_<Particle<ColdFluid<Mesh>, std::nullptr_t>>(std::forward<Args const &>(args)...);
+		res = CreateParticle<Particle<ColdFluid<Mesh> >>(std::forward<Args const &>(args)...);
 
 	return res;
 }

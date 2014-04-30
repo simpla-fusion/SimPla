@@ -23,13 +23,13 @@ public:
 
 	mesh_type const &mesh;
 
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Bv;
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Bv, Ev;
 
 	Field<mesh_type, VERTEX, Real> BB;
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
-			: mesh(m), Bv(mesh), BB(mesh)
+			: mesh(m), Bv(mesh), BB(mesh), Ev(mesh)
 	{
 	}
 
@@ -48,53 +48,47 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 	Real dt = mesh.GetDt();
 	LOGGER << "Implicit Push E ";
 
+	if (Ev.empty())
+		Ev = MapTo<VERTEX>(E);
+
+	Bv = MapTo<VERTEX>(B);
+	BB = Dot(Bv, Bv);
+
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Q(mesh);
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> K(mesh);
+
+	Q = MapTo<VERTEX>(*pdE);
+
 	Field<mesh_type, VERTEX, Real> a(mesh);
 	Field<mesh_type, VERTEX, Real> b(mesh);
 	Field<mesh_type, VERTEX, Real> c(mesh);
-
-	Field<mesh_type, VERTEX, nTuple<3, Real>> Q(mesh);
-	Field<mesh_type, VERTEX, nTuple<3, Real>> K(mesh);
-
-//	if (Bv.empty())
-	{
-		Bv = MapTo<VERTEX>(B);
-		BB = Dot(Bv, Bv);
-	}
-	Q.Clear();
-	K.Clear();
-
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Ev(mesh), dEv(mesh);
-
-	Ev = MapTo<VERTEX>(E);
-	dEv = MapTo<VERTEX>(*pdE);
-
 	a.Clear();
 	b.Clear();
 	c.Clear();
 
 	for (auto &p : particles)
 	{
-		if (!p.second->EnableImplicit())
-			continue;
+		if (p.second->EnableImplicit())
+		{
+			p.second->NextTimeStepZero(Ev, Bv);
 
-		p.second->NextTimeStepZero(Ev, Bv);
+			auto & rhos = p.second->n();
+			auto & Js = p.second->Jv();
 
-		auto & rhos = p.second->n();
-		auto & Js = p.second->Jv();
+			Real ms = p.second->GetMass();
+			Real qs = p.second->GetCharge();
 
-		Real ms = p.second->GetMass();
-		Real qs = p.second->GetCharge();
+			Real as = (dt * qs) / (2.0 * ms);
 
-		Real as = (dt * qs) / (2.0 * ms);
+			K = (Ev * rhos * 2.0 + Cross(Js, Bv)) * as + Js;
 
-		K = (Ev * rhos * (as * 0.5) + Js);
+			Q -= 0.5 * dt / epsilon0
+			        * ((K + Cross(K, Bv) * as + Bv * (Dot(K, Bv) * as * as)) / (BB * as * as + 1) + Js);
 
-		Q += (K + Cross(K, Bv) * as + Bv * (Dot(K, Bv) * as * as)) / (BB * as * as + 1);
-
-		a += rhos * as / (BB * as * as + 1);
-		b += rhos * as * as / (BB * as * as + 1);
-		c += rhos * as * as * as / (BB * as * as + 1);
-
+			a += rhos * as / (BB * as * as + 1);
+			b += rhos * as * as / (BB * as * as + 1);
+			c += rhos * as * as * as / (BB * as * as + 1);
+		}
 	}
 
 	a *= 0.5 * dt / epsilon0;
@@ -102,9 +96,9 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	K = Ev + dEv - Q * (dt / epsilon0);
+	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> dEv(mesh);
 
-	dEv = (K * a - Cross(K, Bv) * b + Bv * (Dot(K, Bv) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a) - Ev;
+	dEv = (Q * a - Cross(Q, Bv) * b + Bv * (Dot(Q, Bv) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 
 	Ev += dEv * 0.5;
 
@@ -113,6 +107,7 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 		if (p.second->EnableImplicit())
 			p.second->NextTimeStepHalf(Ev, Bv);
 	}
+	Ev += dEv * 0.5;
 
 	*pdE = MapTo<EDGE>(dEv);
 
