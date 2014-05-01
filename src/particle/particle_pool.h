@@ -13,6 +13,8 @@
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 #include "../utilities/parallel.h"
+
+#include "save_particle.h"
 #ifndef NO_STD_CXX
 //need  libstdc++
 #include <ext/mt_allocator.h>
@@ -56,8 +58,9 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> ParticlePool(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...others);
+	template<typename TDict, typename ...Args> ParticlePool(
+			mesh_type const & pmesh, TDict const & dict,
+			Args const & ...others);
 
 	// Destructor
 	~ParticlePool();
@@ -68,13 +71,16 @@ public:
 
 	void Add(index_type s, cell_type &&);
 
-	void Add(index_type s, std::function<void(particle_type*)> const & generator);
+	void Add(index_type s,
+			std::function<void(particle_type*)> const & generator);
 
-	void Remove(index_type s, std::function<bool(particle_type const&)> const & filter);
+	void Remove(index_type s,
+			std::function<bool(particle_type const&)> const & filter);
 
 	void Modify(index_type s, std::function<void(particle_type*)> const & foo);
 
-	void Traversal(index_type s, std::function<void(particle_type*)> const & op);
+	void Traversal(index_type s,
+			std::function<void(particle_type*)> const & op);
 
 	//***************************************************************************************************
 
@@ -178,8 +184,9 @@ private:
 
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-		: mesh(pmesh), isSorted_(false), allocator_(),	//
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh,
+		TDict const & dict, Others const & ...others) :
+		mesh(pmesh), isSorted_(false), allocator_(),	//
 		data_(mesh.GetNumOfElements(IForm), cell_type(allocator_))
 {
 }
@@ -192,13 +199,10 @@ ParticlePool<TM, TParticle>::~ParticlePool()
 //*************************************************************************************************
 
 template<typename TM, typename TParticle>
-std::string ParticlePool<TM, TParticle>::Dump(std::string const & path, bool is_verbose) const
+std::string ParticlePool<TM, TParticle>::Dump(std::string const & name,
+		bool is_verbose) const
 {
-	std::stringstream os;
-
-	GLOBAL_DATA_STREAM.OpenGroup(path);
-
-	return os.str();
+	return simpla::Dump(*this, name, is_verbose);
 }
 
 #define DISABLE_MULTI_THREAD
@@ -277,7 +281,8 @@ void ParticlePool<TM, TParticle>::Add(index_type s, cell_type && other)
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(index_type s, std::function<void(particle_type*)> const & gen)
+void ParticlePool<TM, TParticle>::Add(index_type s,
+		std::function<void(particle_type*)> const & gen)
 {
 	particle_type p;
 	gen(&p);
@@ -286,7 +291,8 @@ void ParticlePool<TM, TParticle>::Add(index_type s, std::function<void(particle_
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Remove(index_type s, std::function<bool(particle_type const&)> const & filter)
+void ParticlePool<TM, TParticle>::Remove(index_type s,
+		std::function<bool(particle_type const&)> const & filter)
 {
 	auto & cell = this->at(s);
 
@@ -306,7 +312,8 @@ void ParticlePool<TM, TParticle>::Remove(index_type s, std::function<bool(partic
 	}
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Modify(index_type s, std::function<void(particle_type *)> const & op)
+void ParticlePool<TM, TParticle>::Modify(index_type s,
+		std::function<void(particle_type *)> const & op)
 {
 
 	for (auto & p : this->at(s))
@@ -316,7 +323,8 @@ void ParticlePool<TM, TParticle>::Modify(index_type s, std::function<void(partic
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Traversal(index_type s, std::function<void(particle_type*)> const & op)
+void ParticlePool<TM, TParticle>::Traversal(index_type s,
+		std::function<void(particle_type*)> const & op)
 {
 
 	for (auto const & p : this->at(s))

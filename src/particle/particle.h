@@ -195,9 +195,9 @@ std::string Particle<Engine>::Dump(std::string const & path,
 
 		<< engine_type::Dump(path, is_verbose)
 
-//		<< "\n, particles = " << storage_type::Dump(*this, "particles", !is_verbose)
+		<< "\n, particles = " << storage_type::Dump("particles", false)
 
-				;
+		;
 	}
 
 	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
