@@ -85,7 +85,8 @@ public:
 	}
 
 	Field(field_type const & f, index_type const &s, int affect_Range = 2) :
-			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
+			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
+					0)
 	{
 	}
 
@@ -95,24 +96,26 @@ public:
 
 	void RefreshCache(size_t s)
 	{
-		cell_idx_ = s;
-		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_Range_));
-		if (num_of_points_ == 0)
-		{
-			WARNING << "Empty Cache!";
-			return;
-		}
-		points_.resize(num_of_points_);
-		cache_.resize(num_of_points_);
-
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_Range_);
-
-		for (size_t i = 0; i < num_of_points_; ++i)
-		{
-			cache_[i] = f_[points_[i]];
-		}
-
-		UpdateMeanValue(Int2Type<IForm>());
+//		cell_idx_ = s;
+//		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_,
+//				nullptr, affect_Range_));
+//		if (num_of_points_ == 0)
+//		{
+//			WARNING << "Empty Cache!";
+//			return;
+//		}
+//		points_.resize(num_of_points_);
+//		cache_.resize(num_of_points_);
+//
+//		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0],
+//				affect_Range_);
+//
+//		for (size_t i = 0; i < num_of_points_; ++i)
+//		{
+//			cache_[i] = f_[points_[i]];
+//		}
+//
+//		UpdateMeanValue(Int2Type<IForm>());
 	}
 
 private:
@@ -133,24 +136,35 @@ private:
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
 public:
+
+	inline value_type get(index_type const &s) const
+	{
+		return f_.get(s);
+	}
+	inline value_type& get(index_type const &s)
+	{
+		return f_.get(s);
+	}
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		coordinates_type pcoords;
+//		coordinates_type pcoords;
+//
+//		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
+//
+//		field_value_type res;
+//
+//		if (idx == cell_idx_)
+//		{
+//			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0],
+//					&res, affect_Range_);
+//		}
+//		else //failsafe
+//		{
+//			res = f_(idx, &pcoords[0]);
+//		}
+//		return res;
 
-		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
-
-		field_value_type res;
-
-		if (idx == cell_idx_)
-		{
-			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0], &res, affect_Range_);
-		}
-		else //failsafe
-		{
-			res = f_(idx, &pcoords[0]);
-		}
-
-		return res;
+		return f_(x);
 
 	}
 
@@ -225,7 +239,8 @@ public:
 	}
 
 	Field(field_type * f, int affect_Range = 2) :
-			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(0), cell_idx_(0), is_fresh_(false)
+			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(
+					0), is_fresh_(false)
 	{
 	}
 
@@ -236,55 +251,67 @@ public:
 
 	void FlushCache()
 	{
+		f_->unlock();
 		if (num_of_points_ > 0 && !is_fresh_)
 		{
-			f_->Collect(num_of_points_, &points_[0], &cache_[0]);
+//			f_->Collect(num_of_points_, &points_[0], &cache_[0]);
 			is_fresh_ = true;
 		}
 	}
-
+	inline value_type get(index_type const &s) const
+	{
+		return f_->get(s);
+	}
+	inline value_type& get(index_type const &s)
+	{
+		return f_->get(s);
+	}
 	void RefreshCache(size_t s)
 	{
-		cell_idx_ = s;
+//		cell_idx_ = s;
+//
+//		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_,
+//				nullptr, affect_Range_));
+//
+//		if (num_of_points_ == 0)
+//		{
+//			WARNING << "Empty Cache!";
+//			return;
+//		}
+//		points_.resize(num_of_points_);
+//		cache_.resize(num_of_points_);
+//
+//		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0],
+//				affect_Range_);
+//
+//		value_type zero_value_;
+//
+//		zero_value_ *= 0;
+//
+//		std::fill(cache_.begin(), cache_.end(), zero_value_);
 
-		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, nullptr, affect_Range_));
-
-		if (num_of_points_ == 0)
-		{
-			WARNING << "Empty Cache!";
-			return;
-		}
-		points_.resize(num_of_points_);
-		cache_.resize(num_of_points_);
-
-		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0], affect_Range_);
-
-		value_type zero_value_;
-
-		zero_value_ *= 0;
-
-		std::fill(cache_.begin(), cache_.end(), zero_value_);
-
+		f_->lock();
 		is_fresh_ = false;
 	}
 
 	template<typename TV>
 	inline void Collect(TV const &v, coordinates_type const &x)
 	{
-		coordinates_type pcoords;
-
-		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
-
-		if (idx == cell_idx_)
-		{
-			field_value_type vv;
-			vv = v;
-			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0], affect_Range_);
-		}
-		else //failsafe
-		{
-			f_->Collect(v, idx, &pcoords[0], affect_Range_);
-		}
+//		coordinates_type pcoords;
+//
+//		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
+//
+//		if (idx == cell_idx_)
+//		{
+//			field_value_type vv;
+//			vv = v;
+//			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0],
+//					affect_Range_);
+//		}
+//		else //failsafe
+//		{
+//			f_->Collect(v, idx, &pcoords[0], affect_Range_);
+//		}
 	}
 
 };

@@ -73,8 +73,8 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...others);
+	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh,
+			TDict const & dict, Args const & ...others);
 
 	// Destructor
 	virtual ~Particle();
@@ -109,9 +109,11 @@ private:
 
 template<typename Engine>
 template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
+		Others const & ...others)
 
-		: engine_type(pmesh, dict, std::forward<Others const&>(others)...),
+:
+		engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
 		storage_type(pmesh, dict),
 
@@ -179,7 +181,8 @@ Particle<Engine>::~Particle()
 //*************************************************************************************************
 
 template<typename Engine>
-std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<Engine>::Dump(std::string const & path,
+		bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -194,7 +197,7 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 
 //		<< "\n, particles = " << storage_type::Dump(*this, "particles", !is_verbose)
 
-		        ;
+				;
 	}
 
 	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
@@ -209,8 +212,9 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString()
+			<< std::boolalpha << " , Enable Implicit ="
+			<< engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -222,14 +226,18 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 
 	[&](int t_num,int t_id)
 	{
+		Cache<TE const &> cE(E);
+		Cache<TB const &> cB(B);
+		Cache<typename engine_type::J_type*> cJ(&J);
+
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			J.lock();
+			RefreshCache(s,cE,cB,cJ);
 			for (auto & p : this->at(s) )
 			{
-				this->engine_type::NextTimeStepZero(&p,dt ,&J,E,B);
+				this->engine_type::NextTimeStepZero(&p,dt ,&(*cJ),*cE,*cB);
 			}
-			J.unlock();
+			FlushCache(s,cJ);
 		}
 
 	});
@@ -244,8 +252,9 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString()
+			<< std::boolalpha << " , Enable Implicit ="
+			<< engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 
@@ -255,11 +264,16 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 
 	[&](int t_num,int t_id)
 	{
+
+		Cache<TE const &> cE(E);
+		Cache<TB const &> cB(B);
+
 		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
+			RefreshCache(s,cE,cB);
 			for (auto & p : this->at(s) )
 			{
-				this->engine_type::NextTimeStepHalf(&p,dt ,E,B);
+				this->engine_type::NextTimeStepHalf(&p,dt ,*cE,*cB);
 			}
 		}
 
@@ -275,19 +289,20 @@ void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 	storage_type::Sort();
 	ParallelDo(
 
-	[&](int t_num,int t_id)
-	{
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-		{
-			pJ->lock();
-			for (auto const& p : this->at(s) )
+			[&](int t_num,int t_id)
 			{
-				this->engine_type::Scatter(p,pJ,std::forward<Args const &>(args)...);
-			}
-			pJ->unlock();
-		}
+				Cache<TJ*> cJ(pJ);
+				for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+				{
+					RefreshCache(s,cJ);
+					for (auto const& p : this->at(s) )
+					{
+						this->engine_type::Scatter(p,cJ,std::forward<Args const &>(args)...);
+					}
+					FlushCache(s,cJ);
+				}
 
-	});
+			});
 }
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline

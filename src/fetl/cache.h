@@ -25,8 +25,8 @@ struct Cache
 	T & f_;
 
 	template<typename ... Args>
-	Cache(T& f, Args ...)
-			: f_(f)
+	Cache(T& f, Args ...) :
+			f_(f)
 	{
 
 	}
@@ -43,8 +43,8 @@ struct Cache<T const &>
 	T const & f_;
 
 	template<typename ... Args>
-	Cache(T const & f, Args ...)
-			: f_(f)
+	Cache(T const & f, Args ...) :
+			f_(f)
 	{
 
 	}
@@ -61,8 +61,8 @@ struct Cache<T*>
 	T * f_;
 
 	template<typename ... Args>
-	Cache(T* f, Args ...)
-			: f_(f)
+	Cache(T* f, Args ...) :
+			f_(f)
 	{
 	}
 
@@ -72,31 +72,25 @@ struct Cache<T*>
 	}
 };
 
-template<typename T>
-void RefreshCache(size_t s, T &)
+template<typename TIndexType, typename T>
+void RefreshCache(TIndexType s, T &)
 {
 }
-template<typename T>
-void RefreshCache(size_t s, T *)
+template<typename TIndexType, typename T>
+void RefreshCache(TIndexType s, T *)
 {
 }
-template<typename T>
-void RefreshCache(size_t s, Cache<T> & c)
+template<typename TIndexType, typename T>
+void RefreshCache(TIndexType s, Cache<T> & c)
 {
 	RefreshCache(s, *c);
 }
 
-template<typename T, typename ...Others>
-void RefreshCache(size_t s, T & f, Others & ...others)
+template<typename TIndexType, typename T, typename ...Others>
+void RefreshCache(TIndexType s, T & f, Others & ...others)
 {
 	RefreshCache(s, f);
 	RefreshCache(s, others...);
-}
-
-template<typename T>
-void FlushCache(Cache<T> & c)
-{
-	FlushCache(*c);
 }
 
 template<typename T>
@@ -104,8 +98,9 @@ void FlushCache(T &)
 {
 }
 template<typename T>
-void FlushCache(T *)
+void FlushCache(T *f)
 {
+	FlushCache(*f);
 }
 template<typename T, typename ...Others>
 void FlushCache(T & f, Others & ...others)
