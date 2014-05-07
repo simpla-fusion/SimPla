@@ -27,8 +27,7 @@ class OcForest;
  *  Grid is mapped as a rectangle/hexahedrom Range;
  *
  */
-template<typename TTopology = OcForest,
-		template<typename > class Geometry = EuclideanGeometry>
+template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanGeometry>
 class RectMesh: public TTopology, public Geometry<TTopology>
 {
 public:
@@ -47,16 +46,14 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
-	RectMesh() :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(
-					0.0)
+	RectMesh()
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(
-					0.0)
+	RectMesh(TDict const & dict)
+			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
 		Load(dict);
 	}
@@ -75,24 +72,22 @@ public:
 	void Load(TDict const & dict, Others const &...others)
 	{
 		LOGGER << "Load Mesh RectMesh";
-		topology_type::Load(dict["Topology"],
-				std::forward<Others const&>(others)...);
-		geometry_type::Load(dict["Geometry"],
-				std::forward<Others const&>(others)...);
+		topology_type::Load(dict["Topology"], std::forward<Others const&>(others)...);
+		geometry_type::Load(dict["Geometry"], std::forward<Others const&>(others)...);
 
 		dt_ = dict["dt"].template as<Real>(1.0);
 
 	}
 
-	std::string Dump(std::string const &path, bool is_verbose) const
+	std::string Dump(std::string const &path) const
 	{
 		std::stringstream os;
 
 		os
 
-		<< "\n Topology  = { " << topology_type::Dump(path, is_verbose) << "}, "
+		<< "\n Topology  = { " << topology_type::Dump(path) << "}, "
 
-		<< "\n Geometry  = { " << geometry_type::Dump(path, is_verbose) << "},"
+		<< "\n Geometry  = { " << geometry_type::Dump(path) << "},"
 
 		<< "\n dt=" << dt_;
 

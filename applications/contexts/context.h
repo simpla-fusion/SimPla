@@ -27,7 +27,7 @@ struct Context
 
 	void Load(LuaObject const & dict);
 
-	std::function<std::string(std::string const &, bool)> Dump;
+	std::function<std::string(std::string const &)> Dump;
 
 	std::function<void()> NextTimeStep;
 

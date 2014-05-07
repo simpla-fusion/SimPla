@@ -152,7 +152,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		INFORM << ctx.Dump("/Input", true);
+		INFORM << ctx.Dump("/Input");
 	}
 	// Preprocess    ====================================
 	// Main Loop ============================================
@@ -169,7 +169,9 @@ int main(int argc, char **argv)
 	else
 	{
 
-		LOGGER << ctx.Dump("/DumpData", false);
+		GLOBAL_DATA_STREAM.EnableCompactStorable();
+
+		LOGGER << ctx.Dump("/DumpData");
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
@@ -179,9 +181,11 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				LOGGER << ctx.Dump("/DumpData", false);
+				LOGGER << ctx.Dump("/DumpData");
 			}
 		}
+
+		GLOBAL_DATA_STREAM.DisableCompactStorable();
 	}
 	LOGGER << "Process" << DONE;
 
@@ -189,7 +193,7 @@ int main(int argc, char **argv)
 
 	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
 
-	ctx.Dump("/Output", true);
+	ctx.Dump("/Output");
 
 	VERBOSE << "Post-Process" << DONE;
 

@@ -106,47 +106,42 @@ void DataStream::CloseFile()
 	file_ = -1;
 }
 
-std::string DataStream::Write(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_verbose) const
+std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank,
+        size_t const *dims) const
 {
-	return HDF5Write(group_, v, name, mdtype, rank, dims, is_verbose);
-}
+//	HDF5Write(group_, v, name, mdtype, rank, dims, is_verbose);
+//void HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
+//        bool is_verbose)
+//	{
 
-std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_verbose)
-{
-
-	if (grp <= 0)
-		return "Field is not opended!";
+	if (group_ <= 0)
+		ERROR << "Field is not opended!";
 
 	if (v == nullptr)
 	{
 		WARNING << name << " is empty!";
-		return "empty data";
 	}
 
-	if (grp <= 0)
+	if (group_ <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
-		return "";
 	}
 
 	if (v == nullptr)
 	{
 		ERROR << "Can not write null data!";
-		return "";
 
 	}
 	std::string dsname = name;
 
-	if (is_verbose)
+	if (!is_compact_storable_)
 	{
 
 		dsname = name +
 
 		AutoIncrease([&](std::string const & s )->bool
 		{
-			return H5Lexists(grp, (name + s ).c_str(), H5P_DEFAULT) > 0;
+			return H5Lexists(group_, (name + s ).c_str(), H5P_DEFAULT) > 0;
 		}, 0, 4);
 
 		hsize_t mdims[rank];
@@ -155,7 +150,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 
 		hid_t dspace = H5Screate_simple(rank, mdims, nullptr);
 
-		hid_t dset = H5Dcreate(grp, dsname.c_str(), mdtype, dspace, H5P_DEFAULT,
+		hid_t dset = H5Dcreate(group_, dsname.c_str(), mdtype, dspace, H5P_DEFAULT,
 		H5P_DEFAULT, H5P_DEFAULT);
 
 		H5Dwrite(dset, mdtype, dspace, dspace, H5P_DEFAULT, v);
@@ -172,7 +167,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 		chunk_dims[0] = 1;
 		std::copy(dims, dims + rank, chunk_dims + 1);
 
-		if (H5Lexists(grp, dsname.c_str(), H5P_DEFAULT) == 0)
+		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
 			hid_t dset;
 
@@ -188,7 +183,7 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 
 			H5Pset_chunk(dcpl_id, ndims, chunk_dims);
 
-			dset = H5Dcreate(grp, dsname.c_str(), mdtype, fspace, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(group_, dsname.c_str(), mdtype, fspace, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
 			H5Dwrite(dset, mdtype, H5S_ALL, H5S_ALL, H5P_DEFAULT, v);
 
@@ -198,13 +193,13 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 
 			H5Pclose(dcpl_id);
 
-			H5Fflush(grp, H5F_SCOPE_GLOBAL);
+			H5Fflush(group_, H5F_SCOPE_GLOBAL);
 
 		}
 		else
 		{
 
-			hid_t dset = H5Dopen(grp, dsname.c_str(), H5P_DEFAULT);
+			hid_t dset = H5Dopen(group_, dsname.c_str(), H5P_DEFAULT);
 
 			hid_t fspace = H5Dget_space(dset);
 
@@ -238,14 +233,15 @@ std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t m
 
 			H5Sclose(fspace);
 
-			H5Fflush(grp, H5F_SCOPE_GLOBAL);
+			H5Fflush(group_, H5F_SCOPE_GLOBAL);
 
 		}
 
 	}
 
-	return dsname;
+//	}
 
+	return "\"" + GetCurrentPath() + name + "\"";
 }
 
 }  // namespace simpla

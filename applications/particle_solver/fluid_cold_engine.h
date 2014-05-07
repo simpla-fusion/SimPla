@@ -71,7 +71,7 @@ public:
 	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
 	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
-	std::string Dump(std::string const & name, bool is_verbose) const;
+	std::string Dump(std::string const & name) const;
 
 private:
 
@@ -106,30 +106,27 @@ Particle<ColdFluid<TM>>::~Particle()
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<ColdFluid<TM>>::Dump(std::string const & path) const
 {
 	std::stringstream os;
 
 	GLOBAL_DATA_STREAM.OpenGroup(path );
 
-	if (is_verbose)
-	{
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST(mesh.constants());
 
-		os
+	os
 
-		<< "Engine = '" << GetTypeAsString()
+	<< "Engine = '" << GetTypeAsString()
 
-		<< " , " << "Mass = " << m / proton_mass << " * m_p"
+	<< " , " << "Mass = " << m / proton_mass << " * m_p"
 
-		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
+	<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
-		;
-	}
+	;
 
-	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
+	os << "\n, n =" << simpla::Dump(n, "n");
 
-	os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
+	os << "\n, J =" << simpla::Dump(J, "J");
 
 	return os.str();
 }

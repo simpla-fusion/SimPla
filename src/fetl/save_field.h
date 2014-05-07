@@ -15,10 +15,10 @@ namespace simpla
 template<typename, int, typename > struct Field;
 
 template<typename TG, int IFORM, typename TV> inline std::string Dump(Field<TG, IFORM, TV>
-const & d, std::string const & name, bool flag = false)
+const & d, std::string const & name)
 {
 	auto dims = d.GetShape();
-	return Dump(d.data(), name, dims.size(), &dims[0], flag);
+	return Dump(d.data(), name, dims.size(), &dims[0]);
 }
 }  // namespace simpla
 

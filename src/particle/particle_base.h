@@ -42,7 +42,7 @@ public:
 
 	//interface
 
-	virtual std::string Dump(std::string const & path, bool is_verbose) const=0;
+	virtual std::string Dump(std::string const & path) const=0;
 
 	virtual Real GetMass() const=0;
 
@@ -140,9 +140,9 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 		NextTimeStepHalf_(Bool2Type<particle_type::EnableImplicit>(), E, B);
 	}
 
-	std::string Dump(std::string const & path, bool is_verbose) const
+	std::string Dump(std::string const & path) const
 	{
-		return self_.Dump(path, is_verbose);
+		return self_.Dump(path);
 	}
 
 private:

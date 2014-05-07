@@ -66,7 +66,7 @@ public:
 
 	void NextTimeStep();
 
-	std::string Dump(std::string const & path = "", bool compact_store = false) const;
+	std::string Dump(std::string const & path = "") const;
 
 	double CheckCourantDt() const;
 
@@ -214,9 +214,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
-			LOGGER << simpla::Dump(ne0, "ne", false);
-			LOGGER << simpla::Dump(Te0, "Te", false);
-			LOGGER << simpla::Dump(Ti0, "Ti", false);
+			LOGGER << simpla::Dump(ne0, "ne");
+			LOGGER << simpla::Dump(Te0, "Te");
+			LOGGER << simpla::Dump(Ti0, "Ti");
 		}
 
 	}
@@ -341,33 +341,30 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 }
 
 template<typename TM>
-std::string ExplicitEMContext<TM>::Dump(std::string const & path, bool is_verbose) const
+std::string ExplicitEMContext<TM>::Dump(std::string const & path) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
 	std::stringstream os;
 
-	if ( is_verbose)
-	{
-		os
+	os
 
-		<< description
+	<< description
 
-		<< "\n, Grid = { \n" << mesh.Dump(path,is_verbose) << " \n} "
-		;
-	}
+	<< "\n, Grid = { \n" << mesh.Dump(path ) << " \n} "
+	;
 
 	os
 
 	<< "\n, Fields = {" << "\n"
 
-	<< "\n, E = " << simpla::Dump(E, "E", is_verbose)
+	<< "\n, E = " << simpla::Dump(E, "E")
 
-	<< "\n, B = " << simpla::Dump(B, "B", is_verbose)
+	<< "\n, B = " << simpla::Dump(B, "B")
 
-	<< "\n, J = " << simpla::Dump(Jext, "J", is_verbose)
+	<< "\n, J = " << simpla::Dump(Jext, "J")
 
-	<< "\n, J0 = " << simpla::Dump(J0, "J0", is_verbose)
+	<< "\n, J0 = " << simpla::Dump(J0, "J0")
 
 	<< "\n} ";
 
@@ -377,7 +374,7 @@ std::string ExplicitEMContext<TM>::Dump(std::string const & path, bool is_verbos
 		os << "\n , Particles = { \n";
 		for (auto const & p : particles_)
 		{
-			os << p.first << " = { " << p.second->Dump(path + "/" + p.first, is_verbose) << "\n},";
+			os << p.first << " = { " << p.second->Dump(path + "/" + p.first) << "\n},";
 		}
 		os << "\n} ";
 	}

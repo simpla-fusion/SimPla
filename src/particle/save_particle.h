@@ -20,8 +20,7 @@ template<typename > class DataDumper;
 template<typename, typename > class ParticlePool;
 
 template<typename TM, typename TPoints> inline std::string //
-Dump(ParticlePool<TM, TPoints> const & d, std::string const & name,
-		bool is_compact_store = false)
+Dump(ParticlePool<TM, TPoints> const & d, std::string const & name)
 {
 	std::vector<TPoints> res;
 
@@ -30,7 +29,7 @@ Dump(ParticlePool<TM, TPoints> const & d, std::string const & name,
 		std::copy(l.begin(), l.end(), std::back_inserter(res));
 	}
 
-	return Dump(res, name, is_compact_store);
+	return Dump(res, name);
 
 }
 

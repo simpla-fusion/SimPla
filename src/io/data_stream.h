@@ -147,16 +147,6 @@ struct HDF5DataType<std::pair<TL, TR> >
 	}
 };
 
-std::string HDF5Write(hid_t grp, void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-        bool is_compacted_store);
-
-template<typename ...Args>
-std::string DataStreamWrite(Args const &... args)
-{
-	UNIMPLEMENT;
-	return "";
-}
-
 class DataStream: public SingletonHolder<DataStream>
 {
 	std::string prefix_;
@@ -179,7 +169,7 @@ public:
 
 			LIGHT_DATA_LIMIT_(20),
 
-			is_compact_storable_(true)
+			is_compact_storable_(false)
 
 	{
 		hid_t error_stack = H5Eget_current_stack();
@@ -238,38 +228,13 @@ public:
 		suffix_width_ = suffixWidth;
 	}
 
-//	template<typename U>
-//	std::ostream & Serialize(std::ostream & os, DataSet<U> const & d)
-//	{
-////		if (d.size() < LIGHT_DATA_LIMIT_ && !(d.IsCompactStored() && is_compact_storable_))
-////		{
-////			PrintNdArray(os, d.get(), d.GetDims().size(), &(d.GetDims()[0]));
-////		}
-////		else
-//		{
-//			os << "\"" << GetCurrentPath() << Write(d) << "\"";
-//		}
-//		return os;
-//	}
-//	template<typename ...Args>
-//	std::string Write(Args const &... args) const
-//	{
-//		return DataStreamWrite(group_, std::forward<Args const&>(args)...);
-//	}
-//
-//	template<typename U>
-//	std::string Write(DataSet<U> const & d) const
-//	{
-//		return std::move(Write(d.get(), d.GetName(), d.GetDims(), d.IsCompactStored()));
-//	}
-
 	void OpenGroup(std::string const & gname);
 	void OpenFile(std::string const &fname = "unnamed");
 	void CloseGroup();
 	void CloseFile();
 
 	template<typename TV, typename TS>
-	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_verbose = false) const
+	std::string Write(TV const *v, std::string const &name, int rank, TS const *d) const
 	{
 		size_t dims[rank + 1];
 
@@ -281,16 +246,15 @@ public:
 			++rank;
 		}
 
-		return Write(reinterpret_cast<void const*>(v), name,
+		return WriteHDF5(reinterpret_cast<void const*>(v), name,
 
 		HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
 
-		rank, dims, is_verbose);
+		rank, dims);
 
 	}
 
-	std::string Write(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims,
-	        bool is_compact_stored) const;
+	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims) const;
 
 }
 ;
@@ -300,8 +264,7 @@ public:
 template<typename TV, typename ...Args>
 inline std::string Dump(TV const *data, std::string const & name, Args const & ...args)
 {
-	DataStream::instance().Write(data, name, std::forward<Args const &>(args)...);
-	return "\"" + DataStream::instance().GetCurrentPath() + name + "\"";
+	return DataStream::instance().Write(data, name, std::forward<Args const &>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr<TV> const & d, Args const & ... args)
@@ -310,9 +273,9 @@ template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr
 }
 
 template<typename TV, int rank, typename TS> inline std::string Dump(TV const* data, std::string const &name,
-        nTuple<rank, TS> const & d, bool is_verbose)
+        nTuple<rank, TS> const & d)
 {
-	return Dump(reinterpret_cast<void const *>(data), name, rank, &d[0], is_verbose);
+	return Dump(reinterpret_cast<void const *>(data), name, rank, &d[0]);
 }
 
 template<typename TV, typename ... Args> inline std::string Dump(std::vector<TV>const & d, std::string const & name,

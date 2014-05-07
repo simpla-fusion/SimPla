@@ -193,19 +193,28 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 
 	if (is_verbose)
 	{
-
+		GLOBAL_DATA_STREAM.DisableCompactStorable();
 		os
 
-		<< engine_type::Dump(path, is_verbose)
+		<< engine_type::Dump(path)
 
-		<< "\n, particles = " << storage_type::Dump("particles", false)
+		<< "\n, particles = " << storage_type::Dump("particles")
 
 		;
+
+		os << "\n, n =" << simpla::Dump(n, "n");
+
+		os << "\n, J =" << simpla::Dump(J, "J");
+
+		GLOBAL_DATA_STREAM.EnableCompactStorable();
 	}
+	else
+	{
+		os << "\n, n =" << simpla::Dump(n, "n");
 
-	os << "\n, n =" << simpla::Dump(n, "n", is_verbose);
+		os << "\n, J =" << simpla::Dump(J, "J");
 
-	os << "\n, J =" << simpla::Dump(J, "J", is_verbose);
+	}
 
 	return os.str();
 }
