@@ -159,19 +159,19 @@ void GEqdsk::ReadProfile(std::string const &fname)
 
 void GEqdsk::Save(std::ostream & os) const
 {
-	os << Dump(psirz_.data(), "psi", 2, &dims_[0]) << std::endl;
+	os << simpla::Save(psirz_.data(), "psi", 2, &dims_[0]) << std::endl;
 
 	size_t num = rzbbb_.size();
 
-	os << Dump(&rzbbb_[0], "rzbbb", 1, &num) << std::endl;
+	os << simpla::Save(&rzbbb_[0], "rzbbb", 1, &num) << std::endl;
 
 	num = rzlim_.size();
 
-	os << Dump(rzlim_, "rzlim") << std::endl;
+	os << simpla::Save(rzlim_, "rzlim") << std::endl;
 
 	for (auto const & p : profile_)
 	{
-		os << Dump(p.second.data(), p.first) << std::endl;
+		os << simpla::Save(p.second.data(), p.first) << std::endl;
 	}
 }
 std::ostream & GEqdsk::Print(std::ostream & os)

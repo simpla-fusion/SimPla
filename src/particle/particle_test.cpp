@@ -120,9 +120,9 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/");
-	LOGGER<<DUMP1( n );
-	LOGGER<<DUMP1(ion );
-	LOGGER<<Dump(ion.n ,"ion_n");
+	LOGGER<<SAVE1( n );
+	LOGGER<<SAVE1(ion );
+	LOGGER<<Save(ion.n ,"ion_n");
 	Real q=ion.q;
 	{
 		Real variance=0.0;
@@ -163,7 +163,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	}
 
-	LOGGER<<DUMP1(n0 );
+	LOGGER<<SAVE1(n0 );
 }
 }
 
@@ -246,12 +246,12 @@ TYPED_TEST_P(TestParticle,scatter_n){
 //
 //	LOG_CMD(ion.NextTimeStep(dt,E, B));
 //
-//	LOGGER<<DUMP1(E);
-//	LOGGER<<DUMP1(B);
-//	LOGGER<<DUMP1(n0 );
-//	LOGGER<<DUMP1(J0 );
-//	LOGGER<<DUMP1(ion.J);
-//	LOGGER<<DUMP1(ion.n);
+//	LOGGER<<SAVE1(E);
+//	LOGGER<<SAVE1(B);
+//	LOGGER<<SAVE1(n0 );
+//	LOGGER<<SAVE1(J0 );
+//	LOGGER<<SAVE1(ion.J);
+//	LOGGER<<SAVE1(ion.n);
 //	Real variance=0.0;
 //
 //	Real average=0.0;

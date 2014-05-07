@@ -262,30 +262,30 @@ public:
 #define GLOBAL_DATA_STREAM DataStream::instance()
 
 template<typename TV, typename ...Args>
-inline std::string Dump(TV const *data, std::string const & name, Args const & ...args)
+inline std::string Save(TV const *data, std::string const & name, Args const & ...args)
 {
 	return DataStream::instance().Write(data, name, std::forward<Args const &>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr<TV> const & d, Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Save(std::shared_ptr<TV> const & d, Args const & ... args)
 {
-	return Dump(d.get(), std::forward<Args const &>(args)...);
+	return Save(d.get(), std::forward<Args const &>(args)...);
 }
 
-template<typename TV, int rank, typename TS> inline std::string Dump(TV const* data, std::string const &name,
+template<typename TV, int rank, typename TS> inline std::string Save(TV const* data, std::string const &name,
         nTuple<rank, TS> const & d)
 {
-	return Dump(reinterpret_cast<void const *>(data), name, rank, &d[0]);
+	return Save(reinterpret_cast<void const *>(data), name, rank, &d[0]);
 }
 
-template<typename TV, typename ... Args> inline std::string Dump(std::vector<TV>const & d, std::string const & name,
+template<typename TV, typename ... Args> inline std::string Save(std::vector<TV>const & d, std::string const & name,
         Args const & ... args)
 {
 	size_t s = d.size();
 
-	return Dump(&d[0], name, 1, &s, std::forward<Args const &>(args)...);
+	return Save(&d[0], name, 1, &s, std::forward<Args const &>(args)...);
 }
-template<typename TL, typename TR, typename ... Args> inline std::string Dump(std::map<TL, TR>const & d,
+template<typename TL, typename TR, typename ... Args> inline std::string Save(std::map<TL, TR>const & d,
         std::string const & name, Args const & ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
@@ -293,10 +293,10 @@ template<typename TL, typename TR, typename ... Args> inline std::string Dump(st
 	{
 		d_.emplace_back(p);
 	}
-	return Dump(d_, name, std::forward<Args const &>(args)...);
+	return Save(d_, name, std::forward<Args const &>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Dump(std::map<TV, TV>const & d, std::string const & name,
+template<typename TV, typename ... Args> inline std::string Save(std::map<TV, TV>const & d, std::string const & name,
         Args const & ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
@@ -304,15 +304,15 @@ template<typename TV, typename ... Args> inline std::string Dump(std::map<TV, TV
 	{
 		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
 	}
-	return Dump(d_, name, std::forward<Args const &>(args)...);
+	return Save(d_, name, std::forward<Args const &>(args)...);
 }
 
-#define DUMP(_F_) simpla::Dump(_F_,__STRING(_F_) ,true)
-#define DUMP1(_F_) simpla::Dump(_F_,__STRING(_F_) ,false)
+#define SAVE(_F_) simpla::Save(_F_,__STRING(_F_) ,true)
+#define SAVE1(_F_) simpla::Save(_F_,__STRING(_F_) ,false)
 #ifndef NDEBUG
-#	define DEBUG_DUMP(_F_) simpla::Dump(_F_,__STRING(_F_),true)
+#	define DEBUG_SAVE(_F_) simpla::Save(_F_,__STRING(_F_),true)
 #else
-#   define DEBUG_DUMP(_F_) ""
+#   define DEBUG_SAVE(_F_) ""
 #endif
 }
 // namespace simpla

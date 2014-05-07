@@ -44,14 +44,14 @@ void CreateContext(Context* ctx, TDict const &dict, Others const & ...others)
 
 	std::shared_ptr<TC> ctx_ptr(new TC(dict, std::forward<Others>(others)...));
 	using namespace std::placeholders;
-	ctx->Dump = std::bind(&TC::Dump, ctx_ptr, _1);
+	ctx->Save = std::bind(&TC::Save, ctx_ptr, _1);
 	ctx->NextTimeStep = std::bind(&TC::NextTimeStep, ctx_ptr);
 
 }
 void Context::Load(LuaObject const & dict)
 {
 
-	Dump = [] (std::string const & )->std::string
+	Save = [] (std::string const & )->std::string
 	{
 		UNDEFINE_FUNCTION;
 		return "";

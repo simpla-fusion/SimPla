@@ -63,7 +63,7 @@ public:
 
 	void Load(coordinates_type xmin, coordinates_type xmax);
 
-	void Dump(std::string const & path, bool is_verbose) const;
+	void Save(std::string const & path, bool is_verbose) const;
 
 	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
 
@@ -157,7 +157,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 }
 
 template<typename TM>
-void PML<TM>::Dump(std::string const & path, bool is_verbose) const
+void PML<TM>::Save(std::string const & path, bool is_verbose) const
 {
 	UNIMPLEMENT;
 }

@@ -152,7 +152,7 @@ struct OcForest
 
 	}
 
-	std::string Dump(std::string const &path) const
+	std::string Save(std::string const &path) const
 	{
 		std::stringstream os;
 

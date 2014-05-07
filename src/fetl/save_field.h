@@ -14,11 +14,11 @@ namespace simpla
 {
 template<typename, int, typename > struct Field;
 
-template<typename TG, int IFORM, typename TV> inline std::string Dump(Field<TG, IFORM, TV>
+template<typename TG, int IFORM, typename TV> inline std::string Save(Field<TG, IFORM, TV>
 const & d, std::string const & name)
 {
 	auto dims = d.GetShape();
-	return Dump(d.data(), name, dims.size(), &dims[0]);
+	return Save(d.data(), name, dims.size(), &dims[0]);
 }
 }  // namespace simpla
 

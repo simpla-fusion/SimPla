@@ -79,15 +79,15 @@ public:
 
 	}
 
-	std::string Dump(std::string const &path) const
+	std::string Save(std::string const &path) const
 	{
 		std::stringstream os;
 
 		os
 
-		<< "\n Topology  = { " << topology_type::Dump(path) << "}, "
+		<< "\n Topology  = { " << topology_type::Save(path) << "}, "
 
-		<< "\n Geometry  = { " << geometry_type::Dump(path) << "},"
+		<< "\n Geometry  = { " << geometry_type::Save(path) << "},"
 
 		<< "\n dt=" << dt_;
 

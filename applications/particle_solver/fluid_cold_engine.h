@@ -71,7 +71,7 @@ public:
 	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
 	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
-	std::string Dump(std::string const & name) const;
+	std::string Save(std::string const & name) const;
 
 private:
 
@@ -106,7 +106,7 @@ Particle<ColdFluid<TM>>::~Particle()
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Dump(std::string const & path) const
+std::string Particle<ColdFluid<TM>>::Save(std::string const & path) const
 {
 	std::stringstream os;
 
@@ -124,9 +124,9 @@ std::string Particle<ColdFluid<TM>>::Dump(std::string const & path) const
 
 	;
 
-	os << "\n, n =" << simpla::Dump(n, "n");
+	os << "\n, n =" << simpla::Save(n, "n");
 
-	os << "\n, J =" << simpla::Dump(J, "J");
+	os << "\n, J =" << simpla::Save(J, "J");
 
 	return os.str();
 }

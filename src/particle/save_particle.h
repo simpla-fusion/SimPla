@@ -16,11 +16,11 @@
 namespace simpla
 {
 
-template<typename > class DataDumper;
+template<typename > class DataSaveer;
 template<typename, typename > class ParticlePool;
 
 template<typename TM, typename TPoints> inline std::string //
-Dump(ParticlePool<TM, TPoints> const & d, std::string const & name)
+Save(ParticlePool<TM, TPoints> const & d, std::string const & name)
 {
 	std::vector<TPoints> res;
 
@@ -29,7 +29,7 @@ Dump(ParticlePool<TM, TPoints> const & d, std::string const & name)
 		std::copy(l.begin(), l.end(), std::back_inserter(res));
 	}
 
-	return Dump(res, name);
+	return Save(res, name);
 
 }
 

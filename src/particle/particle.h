@@ -101,7 +101,7 @@ public:
 	template<typename TJ, typename ...Args>
 	void Scatter(TJ *J, Args const & ... args) const;
 
-	std::string Dump(std::string const & path, bool is_verbose = false) const;
+	std::string Save(std::string const & path, bool is_verbose = false) const;
 
 private:
 
@@ -185,7 +185,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 //*************************************************************************************************
 
 template<typename Engine>
-std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
+std::string Particle<Engine>::Save(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -196,23 +196,23 @@ std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) co
 		GLOBAL_DATA_STREAM.DisableCompactStorable();
 		os
 
-		<< engine_type::Dump(path)
+		<< engine_type::Save(path)
 
-		<< "\n, particles = " << storage_type::Dump("particles")
+		<< "\n, particles = " << storage_type::Save("particles")
 
 		;
 
-		os << "\n, n =" << simpla::Dump(n, "n");
+		os << "\n, n =" << simpla::Save(n, "n");
 
-		os << "\n, J =" << simpla::Dump(J, "J");
+		os << "\n, J =" << simpla::Save(J, "J");
 
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 	}
 	else
 	{
-		os << "\n, n =" << simpla::Dump(n, "n");
+		os << "\n, n =" << simpla::Save(n, "n");
 
-		os << "\n, J =" << simpla::Dump(J, "J");
+		os << "\n, J =" << simpla::Save(J, "J");
 
 	}
 

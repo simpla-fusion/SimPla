@@ -109,7 +109,7 @@ public:
 		return "DeltaF";
 	}
 
-	std::string Dump(std::string const & path = "",
+	std::string Save(std::string const & path = "",
 			bool is_verbose = false) const
 	{
 		std::stringstream os;

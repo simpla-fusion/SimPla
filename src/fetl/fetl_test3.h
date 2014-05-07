@@ -166,9 +166,9 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 	CHECK(variance);
 	CHECK(average);
 
-	LOGGER<<DUMP(f3);
-	LOGGER<<DUMP(f2);
-	LOGGER<<DUMP(f2b);
+	LOGGER<<SAVE(f3);
+	LOGGER<<SAVE(f2);
+	LOGGER<<SAVE(f2b);
 }
 }
 TYPED_TEST_P(TestDiffCalculus, diverge1){

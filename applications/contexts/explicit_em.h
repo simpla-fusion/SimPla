@@ -66,7 +66,7 @@ public:
 
 	void NextTimeStep();
 
-	std::string Dump(std::string const & path = "") const;
+	std::string Save(std::string const & path = "") const;
 
 	double CheckCourantDt() const;
 
@@ -214,9 +214,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
-			LOGGER << simpla::Dump(ne0, "ne");
-			LOGGER << simpla::Dump(Te0, "Te");
-			LOGGER << simpla::Dump(Ti0, "Ti");
+			LOGGER << simpla::Save(ne0, "ne");
+			LOGGER << simpla::Save(Te0, "Te");
+			LOGGER << simpla::Save(Ti0, "Ti");
 		}
 
 	}
@@ -341,7 +341,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 }
 
 template<typename TM>
-std::string ExplicitEMContext<TM>::Dump(std::string const & path) const
+std::string ExplicitEMContext<TM>::Save(std::string const & path) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
@@ -351,20 +351,20 @@ std::string ExplicitEMContext<TM>::Dump(std::string const & path) const
 
 	<< description
 
-	<< "\n, Grid = { \n" << mesh.Dump(path ) << " \n} "
+	<< "\n, Grid = { \n" << mesh.Save(path ) << " \n} "
 	;
 
 	os
 
 	<< "\n, Fields = {" << "\n"
 
-	<< "\n, E = " << simpla::Dump(E, "E")
+	<< "\n, E = " << simpla::Save(E, "E")
 
-	<< "\n, B = " << simpla::Dump(B, "B")
+	<< "\n, B = " << simpla::Save(B, "B")
 
-	<< "\n, J = " << simpla::Dump(Jext, "J")
+	<< "\n, J = " << simpla::Save(Jext, "J")
 
-	<< "\n, J0 = " << simpla::Dump(J0, "J0")
+	<< "\n, J0 = " << simpla::Save(J0, "J0")
 
 	<< "\n} ";
 
@@ -374,7 +374,7 @@ std::string ExplicitEMContext<TM>::Dump(std::string const & path) const
 		os << "\n , Particles = { \n";
 		for (auto const & p : particles_)
 		{
-			os << p.first << " = { " << p.second->Dump(path + "/" + p.first) << "\n},";
+			os << p.first << " = { " << p.second->Save(path + "/" + p.first) << "\n},";
 		}
 		os << "\n} ";
 	}

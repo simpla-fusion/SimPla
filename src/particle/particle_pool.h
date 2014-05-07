@@ -64,7 +64,7 @@ public:
 	// Destructor
 	~ParticlePool();
 
-	std::string Dump(std::string const & path) const;
+	std::string Save(std::string const & path) const;
 
 	void Clear(index_type s);
 
@@ -194,9 +194,9 @@ ParticlePool<TM, TParticle>::~ParticlePool()
 //*************************************************************************************************
 
 template<typename TM, typename TParticle>
-std::string ParticlePool<TM, TParticle>::Dump(std::string const & name) const
+std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 {
-	return simpla::Dump(*this, name);
+	return simpla::Save(*this, name);
 }
 
 #define DISABLE_MULTI_THREAD

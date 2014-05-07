@@ -93,7 +93,7 @@ TYPED_TEST_P(TestMaterial,create ){
 	{
 		f[s]=1;
 	}
-	LOGGER<<DUMP(f);
+	LOGGER<<SAVE(f);
 
 	coordinates_type v0,v1,v2,v3;
 	for (int i = 0; i <TestFixture:: NDIMS; ++i)
@@ -137,7 +137,7 @@ TYPED_TEST_P(TestMaterial,create ){
 		f[s]=1;
 	}
 
-	LOGGER<<DUMP(f );
+	LOGGER<<SAVE(f );
 
 	for(auto s: material.Select ( mesh.GetRange( TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
@@ -148,7 +148,7 @@ TYPED_TEST_P(TestMaterial,create ){
 //	{
 //		f[s]=-10;
 //	}
-	LOGGER<<DUMP(f );
+	LOGGER<<SAVE(f );
 }
 }
 
