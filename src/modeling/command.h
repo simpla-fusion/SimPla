@@ -43,17 +43,10 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	mesh_type const & mesh;
+	typedef std::function<field_value_type(Real, coordinates_type, field_value_type const &)> function_type;
 
-private:
-
-	define_domain_type def_domain_;
-public:
-	std::function<
-			field_value_type(Real, coordinates_type, field_value_type const &)> op_;
-
-	template<typename TDict, typename TModel, typename ...Others>
-	Command(TDict dict, TModel const &model, Others const & ...);
+	template<typename TDict, typename ...Others>
+	Command(TDict dict, Others const & ...);
 	~Command();
 
 	template<typename ...Others>
@@ -66,16 +59,31 @@ public:
 	{
 		LOGGER << "Apply field constraints";
 
-		for (auto s : def_domain_)
+		if (def_domain_.empty())
 		{
-			auto x = mesh.GetCoordinates(s);
+			for (auto s : def_domain_)
+			{
+				auto x = f->mesh.GetCoordinates(s);
 
-			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s,
-					op_(mesh.GetTime(), x, (*f)(x)));
+				(*f)[s] = f->mesh.Sample(Int2Type<IForm>(), s, op_(f->mesh.GetTime(), x, (*f)(x)));
+			}
+		}
+		else
+		{
+			for (auto s : f->mesh.GetRange(IForm))
+			{
+				auto x = f->mesh.GetCoordinates(s);
+
+				(*f)[s] = f->mesh.Sample(Int2Type<IForm>(), s, op_(f->mesh.GetTime(), x, (*f)(x)));
+			}
 		}
 	}
 
 private:
+	define_domain_type def_domain_;
+
+	function_type op_;
+
 	void Visit_(void * pf) const
 	{
 		Visit(reinterpret_cast<field_type*>(pf));
@@ -84,66 +92,18 @@ private:
 ;
 
 template<typename TM, int IFORM, typename TV>
-template<typename TDict, typename TModel, typename ...Others>
-Command<Field<TM, IFORM, TV>>::Command(TDict dict, TModel const &model,
-		Others const & ...) :
-		mesh(model.mesh)
+template<typename TDict, typename ...Others>
+Command<Field<TM, IFORM, TV>>::Command(TDict dict, Others const & ...others)
 {
+//	Select(&def_domain_, dict["Select"], std::forward<Others const &>(others)...);
 
-	if (dict["Select"])
+	if (dict["Operation"])
 	{
-		FilterRange<typename mesh_type::Range> range;
-
-		auto obj = dict["Select"];
-		auto type_str = obj["Type"].template as<std::string>();
-		if (type_str == "Range")
-		{
-			range = Filter(mesh.GetRange(IForm), mesh, obj["Value"]);
-
-		}
-		else if (type_str == "Model")
-		{
-			range = model.Select(mesh.GetRange(IForm), obj);
-		}
-		else
-		{
-			WARNING << "Unknown Configuration :" << type_str;
-			return;
-		}
-
-		for (auto s : range)
-		{
-			def_domain_.push_back(s);
-		}
-	}
-	if (!def_domain_.empty() && dict["Operation"])
-	{
-
-		auto op = dict["Operation"];
-
-		if (op.is_number() || op.is_table())
-		{
-			auto value = op.template as<field_value_type>();
-
-			op_ =
-					[value](Real,coordinates_type,field_value_type )->field_value_type
-					{
-						return value;
-					};
-
-		}
-		else if (op.is_function())
-		{
-			op_ =
-					[op](Real t,coordinates_type x,field_value_type v)->field_value_type
-					{	return op( t,x ,v).template as<field_value_type>();
-					};
-
-		}
+		op_ = dict["Operation"].template as<function_type>();
 	}
 	else
 	{
-		ERROR << "illegal configuration!";
+		ERROR << "illegal configure! ";
 	}
 
 }
@@ -155,24 +115,19 @@ Command<Field<TM, IFORM, TV>>::~Command()
 
 template<typename TM, int IFORM, typename TV>
 template<typename ... Others>
-std::function<void()> Command<Field<TM, IFORM, TV> >::Create(field_type* f,
-		Others const & ...others)
+std::function<void()> Command<Field<TM, IFORM, TV> >::Create(field_type* f, Others const & ...others)
 {
 
 	return std::bind(&this_type::Visit,
-			std::shared_ptr<this_type>(
-					new this_type(std::forward<Others const &>(others)...)), f);
+	        std::shared_ptr<this_type>(new this_type(std::forward<Others const &>(others)...)), f);
 }
 template<typename TM, int IFORM, typename TV>
 template<typename ... Others>
-std::function<void(Field<TM, IFORM, TV>*)> Command<Field<TM, IFORM, TV> >::Create(
-		Others const & ...others)
+std::function<void(Field<TM, IFORM, TV>*)> Command<Field<TM, IFORM, TV> >::Create(Others const & ...others)
 {
 
 	return std::bind(&this_type::Visit,
-			std::shared_ptr<this_type>(
-					new this_type(std::forward<Others const &>(others)...)),
-			std::placeholders::_1);
+	        std::shared_ptr<this_type>(new this_type(std::forward<Others const &>(others)...)), std::placeholders::_1);
 }
 
 }  // namespace simpla

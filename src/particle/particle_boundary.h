@@ -46,8 +46,8 @@ private:
 	std::function<void(plane_type const&, coordinates_type *, nTuple<3, Real>*)> op_;
 public:
 
-	template<typename TDict, typename TModel, typename ...Others>
-	BoundaryCondition(TDict const & dict, TModel const &, Others const &...);
+	template<typename TDict, typename ...Others>
+	BoundaryCondition(TDict const & dict, Others const &...);
 
 	virtual ~BoundaryCondition();
 
@@ -69,30 +69,31 @@ private:
 ;
 
 template<typename Engine>
-template<typename TDict, typename TModel, typename ...Others>
-BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict, TModel const & model,
-        Others const & ... others)
+template<typename TDict, typename ...Others>
+BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict, Others const & ... others)
 		: op_str_("")
 {
-	mesh_type const & mesh = model.mesh;
-
-	CreateSurface(dict["Select"], model, &surface_);
-
-	if (dict["Operation"].is_string())
-	{
-		op_str_ = dict["Operation"].template as<std::string>();
-	}
-	else if (dict["Operation"].is_function())
-	{
-		auto obj = dict["Operation"];
-
-		op_str_ = "Custom";
-
-//			op_ = [obj](plane_type const& plane, scalar_type f, coordinates_type const& x , nTuple<3, Real> const &v)
-//			{
-//				obj()
-//			}
-	}
+//	mesh_type const & mesh = model.mesh;
+//
+//	CreateSurface(dict["Select"], model, &surface_);
+//
+//	if (dict["Operation"].is_string())
+//	{
+//		op_str_ = dict["Operation"].template as<std::string>();
+//	}
+//	else if (dict["Operation"].is_function())
+//	{
+//		auto obj = dict["Operation"];
+//
+//		op_str_ = "Custom";
+//
+//		dict["Operation"].as(&op_);
+//
+////			op_ = [obj](plane_type const& plane, scalar_type f, coordinates_type const& x , nTuple<3, Real> const &v)
+////			{
+////				obj()
+////			}
+//	}
 }
 
 template<typename Engine>

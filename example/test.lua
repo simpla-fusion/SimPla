@@ -128,27 +128,27 @@ FieldSolver=
 
 Constraints=
 {
---[[
-{
-DOF="J",
-Select={Type="Range",Value={{0.1*LX,0,0}}},
-Operation= function(t,x,f )
-local tau = t*omega_ext
-local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-return { f[0],f[1]+amp,f[2]}
-end
-},
---	{
---		DOF="E",
---		Select={Type="Range",
---			Value= function(x)
---				return x[0]< 0.05*LX or x[0]>0.95*LX
---			end
---		},
---		Operation= function(t,x,f )
---			return {  0, 0, 0}
---		end
---	},
+	---[[
+	{
+		DOF="J",
+		Select={Type="Range",Value={{0.1*LX,0,0}}},
+		Operation= function(t,x,f )
+			local tau = t*omega_ext
+			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+			return { f[0],f[1]+amp,f[2]}
+		end
+	},
+	{
+		DOF="E",
+		Select={Type="Range",
+			Value= function(x)
+				return x[0]< 0.05*LX or x[0]>0.95*LX
+			end
+		},
+		Operation= function(t,x,f )
+			return {  0, 0, 0}
+		end
+	},
 
 --]]
 }

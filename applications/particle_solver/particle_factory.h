@@ -11,8 +11,8 @@
 #include "../../src/fetl/primitives.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/particle_base.h"
-#include "../../src/particle/pic_engine_default.h"
 #include "fluid_cold_engine.h"
+#include "pic_engine_default.h"
 #include "pic_engine_deltaf.h"
 #include "pic_engine_ggauge.h"
 
@@ -43,8 +43,10 @@ std::shared_ptr<ParticleBase<Mesh>> ParticleFactory(Args const & ...args)
 		res = CreateParticle<Particle<PICEngineGGauge<Mesh, 32, true>>>(std::forward<Args const &>(args)...);
 
 	if (res == nullptr)
-		res = CreateParticle<Particle<ColdFluid<Mesh> >>(
-				std::forward<Args const &>(args)...);
+		res = CreateParticle<Particle<ColdFluid<Mesh> >>(std::forward<Args const &>(args)...);
+
+	if (res == nullptr)
+		ERROR << "illegal particle configure";
 
 	return res;
 }

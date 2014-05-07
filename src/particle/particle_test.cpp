@@ -19,7 +19,7 @@
 
 #include "particle.h"
 #include "save_particle.h"
-#include "pic_engine_default.h"
+#include "../../applications/particle_solver/pic_engine_default.h"
 
 using namespace simpla;
 
@@ -123,7 +123,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 	LOGGER<<DUMP1( n );
 	LOGGER<<DUMP1(ion );
 	LOGGER<<Dump(ion.n ,"ion_n");
-	Real q=ion.GetCharge();
+	Real q=ion.q;
 	{
 		Real variance=0.0;
 

@@ -253,7 +253,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			auto key = opt.first.template as<std::string>("unnamed");
 
-			auto p = ParticleFactory<mesh_type>(mesh, opt.second, model_, ne0, Te0);
+			auto p = ParticleFactory<mesh_type>(mesh, opt.second, ne0, Te0);
 
 			if (p != nullptr)
 			{

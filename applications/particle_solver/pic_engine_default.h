@@ -11,17 +11,16 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <type_traits>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
-#include "../physics/physical_constants.h"
-#include "particle.h"
+#include "../../src/fetl/fetl.h"
+#include "../../src/physics/physical_constants.h"
+#include "../../src/utilities/type_utilites.h"
 
 namespace simpla
 {
 
-template<typename TM, bool IsImplicit,
-		typename Interpolator = typename TM::interpolator_type>
+template<typename TM, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDefault
 {
 public:
@@ -41,9 +40,8 @@ public:
 
 	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
-			Field<mesh_type, EDGE, scalar_type> >::type J_type;
+	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
+	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7, Real> storage_value_type;
 
@@ -60,16 +58,13 @@ public:
 
 			<< "H5T_COMPOUND {          "
 
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
-					<< (offsetof(Point_s, x)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
 
-					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
-					<< (offsetof(Point_s, v)) << ";"
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
 
-					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
-					<< (offsetof(Point_s, f)) << ";"
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
 
-					<< "}";
+			<< "}";
 
 			return os.str();
 		}
@@ -84,9 +79,8 @@ public:
 public:
 
 	template<typename TDict, typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, TDict const & dict,
-			Args const & ...args) :
-			mesh(pmesh),
+	PICEngineDefault(mesh_type const &pmesh, TDict const & dict, Args const & ...args)
+			: mesh(pmesh),
 
 			m(dict["Mass"].template as<Real>(1.0)),
 
@@ -105,8 +99,7 @@ public:
 		return "Default";
 	}
 
-	std::string Dump(std::string const & path = "",
-			bool is_verbose = false) const
+	std::string Dump(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
 
@@ -130,21 +123,20 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
 	}
 	// x(-1/2->1/2),v(0)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt, TJ *J,
-			TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 		//		auto B = interpolator_type::Gather(fB, p->x);
 		//		auto E = interpolator_type::Gather(fE, p->x);
@@ -156,8 +148,8 @@ public:
 	}
 	// v(0->1)
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt,
-			TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -180,8 +172,8 @@ public:
 	}
 	// x(-1/2->1/2), v(-1/2/1/2)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<false>, Point_s * p, Real dt, TJ *J,
-			TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStepZero(Bool2Type<false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 
 		p->x += p->v * dt * 0.5;
@@ -209,23 +201,20 @@ public:
 
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<false>, Point_s * p, Real dt,
-			TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Bool2Type<false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	        Others const &...others) const
 	{
 	}
 
 	template<int IFORM, typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n,
-			Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{
 		interpolator_type::Scatter(p.x, q * p.f, n);
 	}
 
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
-			Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 };

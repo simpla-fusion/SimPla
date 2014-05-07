@@ -605,13 +605,28 @@ public:
 	}
 
 	template<typename TRect, typename ...Args>
-	void as(std::function<TRect(Args...)> *res) const
+	void as(std::function<TRect(Args ...)> *res) const
 	{
-		*res = [this](Args const &...args)->TRect
+
+		if (is_number() || is_table())
 		{
-			return TypeCast<TRect>(
-					const_cast<this_type*>(this)->operator()(args...));
-		};
+			auto value = this->as<TRect>();
+
+			*res = [value](Args ...args )->TRect
+			{
+				return value;
+			};
+
+		}
+		else if (is_function())
+		{
+			LuaObject obj = *this;
+			*res = [obj](Args ...args)->TRect
+			{
+				return obj(std::forward<Args>(args)...).template as<TRect>();
+			};
+		}
+
 	}
 
 	template<typename T>

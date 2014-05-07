@@ -269,7 +269,7 @@ public:
 	void CloseFile();
 
 	template<typename TV, typename TS>
-	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_verbose) const
+	std::string Write(TV const *v, std::string const &name, int rank, TS const *d, bool is_verbose = false) const
 	{
 		size_t dims[rank + 1];
 
@@ -297,85 +297,30 @@ public:
 
 #define GLOBAL_DATA_STREAM DataStream::instance()
 
-template<typename TV>
-class DataDumper
+template<typename TV, typename ...Args>
+inline std::string Dump(TV const *data, std::string const & name, Args const & ...args)
 {
-
-	TV const* data_;
-	std::string name_;
-	bool is_verbose_;
-	std::vector<size_t> dims_;
-public:
-
-	typedef TV value_type;
-
-	template<typename TI>
-	DataDumper(TV const* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag =
-	        false)
-			: data_(d), name_(name), is_verbose_(flag)
-	{
-		if (dims != nullptr && rank > 0)
-		{
-			for (size_t i = 0; i < rank; ++i)
-			{
-				dims_.push_back(dims[i]);
-			}
-
-		}
-		else
-		{
-			ERROR << "Illegal input! [dims == nullptr or rank <=0] ";
-		}
-
-	}
-
-	template<int N, typename TI>
-	DataDumper(TV const* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
-			: data_(d), name_(name), is_verbose_(flag)
-	{
-		for (size_t i = 0; i < N; ++i)
-		{
-			dims_.push_back(dims[i]);
-		}
-	}
-
-	template<typename TI>
-	DataDumper(TV const* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
-			: data_(d), name_(name), dims_(dims.size()), is_verbose_(flag)
-	{
-		std::copy(dims.begin(), dims.end(), dims_.begin());
-	}
-
-	DataDumper(DataDumper const& r) = delete;
-
-	DataDumper(DataDumper && r) = delete;
-
-	~DataDumper()
-	{
-		DataStream::instance().Write(data_, name_, dims_.size(), &dims_[0], is_verbose_);
-	}
-
-	std::string GetName() const
-	{
-		return "\"" + DataStream::instance().GetCurrentPath() + name_ + "\"";
-	}
-
-};
+	DataStream::instance().Write(data, name, std::forward<Args const &>(args)...);
+	return "\"" + DataStream::instance().GetCurrentPath() + name + "\"";
+}
 
 template<typename TV, typename ... Args> inline std::string Dump(std::shared_ptr<TV> const & d, Args const & ... args)
 {
-	return DataDumper<TV>(d.get(), std::forward<Args const &>(args)...).GetName();
+	return Dump(d.get(), std::forward<Args const &>(args)...);
 }
-template<typename TV, typename ... Args> inline std::string Dump(TV* d, Args const & ... args)
+
+template<typename TV, int rank, typename TS> inline std::string Dump(TV const* data, std::string const &name,
+        nTuple<rank, TS> const & d, bool is_verbose)
 {
-	return DataDumper<TV>(d, std::forward<Args const &>(args)...).GetName();
+	return Dump(reinterpret_cast<void const *>(data), name, rank, &d[0], is_verbose);
 }
 
 template<typename TV, typename ... Args> inline std::string Dump(std::vector<TV>const & d, std::string const & name,
         Args const & ... args)
 {
 	size_t s = d.size();
-	return DataDumper<TV>(&d[0], name, 1, &s, std::forward<Args const &>(args)...).GetName();
+
+	return Dump(&d[0], name, 1, &s, std::forward<Args const &>(args)...);
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Dump(std::map<TL, TR>const & d,
         std::string const & name, Args const & ... args)
@@ -398,12 +343,7 @@ template<typename TV, typename ... Args> inline std::string Dump(std::map<TV, TV
 	}
 	return Dump(d_, name, std::forward<Args const &>(args)...);
 }
-template<typename U>
-std::ostream & operator<<(std::ostream & os, DataDumper<U> const &d)
-{
-	os << d.GetName();
-	return os;
-}
+
 #define DUMP(_F_) simpla::Dump(_F_,__STRING(_F_) ,true)
 #define DUMP1(_F_) simpla::Dump(_F_,__STRING(_F_) ,false)
 #ifndef NDEBUG

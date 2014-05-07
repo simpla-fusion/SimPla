@@ -47,71 +47,27 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 	LOGGER << DONE;
 }
 
-template<typename TP, typename TDict, typename TModel>
-void InitParticle(TP *p, TDict const &dict, TModel const & model)
+template<typename TP, typename TDict>
+void InitParticle(TP *p, TDict const &dict)
 {
 	typedef typename TP::mesh_type::coordinates_type coordinates_type;
 
 	std::function<Real(coordinates_type const &)> ns, Ts;
 
-	if (dict["Density"].is_number())
-	{
-		Real n0 = dict["Density"].template as<Real>();
+	dict["Density"].as(&ns);
 
-		ns = [n0](coordinates_type )->Real
-		{
-			return n0;
-		};
-	}
-	else if (dict["Density"].is_function())
-	{
-		auto l_obj = dict["Density"];
-
-		ns = [l_obj](coordinates_type x)->Real
-		{
-			return l_obj(x).template as<Real>();
-		};
-
-	}
-	else
-	{
-		ERROR << "Particle density is not defined!";
-	}
-
-	if (dict["Temperature"].is_number())
-	{
-		Real T = dict["Temperature"].template as<Real>();
-
-		Ts = [T](coordinates_type const & )->Real
-		{
-			return T;
-		};
-	}
-	else if (dict["Temperature"].is_function())
-	{
-		auto l_obj = dict["Temperature"];
-
-		Ts = [l_obj](coordinates_type const & x )->Real
-		{
-			return l_obj(x).template as<Real>();
-		};
-
-	}
-	else
-	{
-		ERROR << "Particle temperature is not defined!";
-	}
+	dict["Temperature"].as(&Ts);
 
 	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
 
 }
 
-template<typename TDict, typename TP, typename TModel, typename TN, typename TT>
-void InitParticle(TP *p, TDict const &dict, TModel const& model, TN const & ne, TT const & Ti)
+template<typename TDict, typename TP, typename TN, typename TT>
+void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 {
 	if (ne.empty() || Ti.empty())
 	{
-		InitParticle(p, dict, model);
+		InitParticle(p, dict);
 		return;
 	}
 

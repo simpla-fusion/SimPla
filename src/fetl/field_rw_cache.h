@@ -60,8 +60,8 @@ private:
 
 public:
 
-	Field(this_type const& r) :
-			mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r)
+			: mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -72,8 +72,8 @@ public:
 	{
 	}
 
-	Field(this_type && r) :
-			mesh(r.mesh), f_(r.f_),
+	Field(this_type && r)
+			: mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -84,9 +84,8 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_Range = 2) :
-			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
-					0)
+	Field(field_type const & f, index_type const &s, int affect_Range = 2)
+			: mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
 	{
 	}
 
@@ -216,8 +215,8 @@ private:
 
 public:
 
-	Field(this_type && r) :
-			mesh(r.mesh), f_(r.f_),
+	Field(this_type && r)
+			: mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -226,8 +225,8 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 	}
-	Field(this_type const& r) :
-			mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r)
+			: mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -238,9 +237,8 @@ public:
 	{
 	}
 
-	Field(field_type * f, int affect_Range = 2) :
-			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(
-					0), is_fresh_(false)
+	Field(field_type * f, int affect_Range = 2)
+			: mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(0), is_fresh_(false)
 	{
 	}
 
@@ -323,8 +321,8 @@ struct Cache<const Field<TM, IFORM, TValue> >
 	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TValue> > > type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TValue> const & f, Args const & ... args) :
-			f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue> const & f, Args const & ... args)
+			: f_(f, std::forward<Args const &>(args)...)
 	{
 		VERBOSE << "Field read cache applied!";
 	}
@@ -349,15 +347,15 @@ struct Cache<Field<TM, IFORM, TValue>*>
 	typedef Field<TM, IFORM, Cache<Field<TM, IFORM, TValue>*> > type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TValue>* f, Args const & ... args) :
-			f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue>* f, Args const & ... args)
+			: f_(f, std::forward<Args const &>(args)...)
 	{
 		VERBOSE << "Field write cache applied!";
 	}
 
-	type & operator*()
+	type * operator*()
 	{
-		return f_;
+		return &f_;
 	}
 private:
 	type f_;

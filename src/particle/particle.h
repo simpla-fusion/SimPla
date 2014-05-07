@@ -32,8 +32,9 @@
 #include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
-
+#include "particle_boundary.h"
 #include "../modeling/command.h"
+#include "../modeling/material.h"
 
 namespace simpla
 {
@@ -73,8 +74,8 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh,
-			TDict const & dict, Args const & ...others);
+	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
+	        Args const & ...others);
 
 	// Destructor
 	virtual ~Particle();
@@ -104,16 +105,20 @@ public:
 
 private:
 
+	template<typename TRange, typename ...Args>
+	void Scatter(TRange const & range, Cache<Args> &&... args) const;
+
+	template<typename TDict, typename ...Others>
+	void AddCommand(TDict const & dict, Others const & ...others);
+
 	std::list<std::function<void()> > commands_;
 };
 
 template<typename Engine>
 template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
-		Others const & ...others)
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
 
-:
-		engine_type(pmesh, dict, std::forward<Others const&>(others)...),
+		: engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
 		storage_type(pmesh, dict),
 
@@ -122,7 +127,7 @@ Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
 
 	LoadParticle(this, dict, std::forward<Others const &>(others)...);
 
-//	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
+	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
 
 }
 
@@ -130,59 +135,57 @@ template<typename Engine>
 Particle<Engine>::~Particle()
 {
 }
-//template<typename Engine>
-//template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-//        Material<mesh_type> const & model, Others const & ...others)
-//{
-//	if (!dict.is_table())
-//		return;
-//	for (auto item : dict)
-//	{
-//		auto dof = item.second["DOF"].template as<std::string>("");
-//
-//		if (dof == "n")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(
-//			        Command<typename engine_type::n_type>::Create(&n, item.second, model,
-//			                std::forward<Others const &>(others)...));
-//
-//		}
-//		else if (dof == "J")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(
-//			        Command<typename engine_type::J_type>::Create(&J, item.second, model,
-//			                std::forward<Others const &>(others)...));
-//
-//		}
-//		else if (dof == "ParticlesBoundary")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(
-//			        BoundaryCondition<this_type>::Create(this, item.second, model,
-//			                std::forward<Others const &>(others)...));
-//		}
-//		else
-//		{
-//			UNIMPLEMENT2("Unknown DOF!");
-//		}
-//		LOGGER << DONE;
-//	}
-//
-//}
+template<typename Engine>
+template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
+        Others const & ...others)
+{
+	if (!dict.is_table())
+		return;
+	for (auto item : dict)
+	{
+		auto dof = item.second["DOF"].template as<std::string>("");
+
+		if (dof == "n")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			commands_.push_back(
+			        Command<typename engine_type::n_type>::Create(&n, item.second,
+			                std::forward<Others const &>(others)...));
+
+		}
+		else if (dof == "J")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			commands_.push_back(
+			        Command<typename engine_type::J_type>::Create(&J, item.second,
+			                std::forward<Others const &>(others)...));
+
+		}
+		else if (dof == "ParticlesBoundary")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			commands_.push_back(
+			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
+		}
+		else
+		{
+			UNIMPLEMENT2("Unknown DOF!");
+		}
+		LOGGER << DONE;
+	}
+
+}
 
 //*************************************************************************************************
 
 template<typename Engine>
-std::string Particle<Engine>::Dump(std::string const & path,
-		bool is_verbose) const
+std::string Particle<Engine>::Dump(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -212,9 +215,8 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString()
-			<< std::boolalpha << " , Enable Implicit ="
-			<< engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -235,7 +237,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 			RefreshCache(s,cE,cB,cJ);
 			for (auto & p : this->at(s) )
 			{
-				this->engine_type::NextTimeStepZero(&p,dt ,&(*cJ),*cE,*cB);
+				this->engine_type::NextTimeStepZero(&p,dt , (*cJ),*cE,*cB);
 			}
 			FlushCache(s,cJ);
 		}
@@ -252,9 +254,8 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString()
-			<< std::boolalpha << " , Enable Implicit ="
-			<< engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 
@@ -279,30 +280,35 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 
 	});
 
-	storage_type::NeedSort();
+	storage_type::Sort();
+
 	LOGGER << DONE;
 }
+template<typename Engine>
+template<typename TRange, typename ...Args>
+void Particle<Engine>::Scatter(TRange const & range, Cache<Args> &&... args) const
+{
 
+	for (auto s : range)
+	{
+		RefreshCache(s, args...);
+		for (auto const& p : this->at(s))
+		{
+			this->engine_type::Scatter(p, (*args)...);
+		}
+		FlushCache(s, args...);
+	}
+
+}
 template<typename Engine> template<typename TJ, typename ...Args>
 void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 {
-	storage_type::Sort();
 	ParallelDo(
 
-			[&](int t_num,int t_id)
-			{
-				Cache<TJ*> cJ(pJ);
-				for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
-				{
-					RefreshCache(s,cJ);
-					for (auto const& p : this->at(s) )
-					{
-						this->engine_type::Scatter(p,cJ,std::forward<Args const &>(args)...);
-					}
-					FlushCache(s,cJ);
-				}
-
-			});
+	[&](int t_num,int t_id)
+	{
+		Scatter(this->mesh.GetRange(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
+	});
 }
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline
