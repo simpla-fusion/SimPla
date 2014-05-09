@@ -94,33 +94,15 @@ public:
 		return os.str();
 	}
 
-	void Update()
-	{
-		topology_type::Update();
-		geometry_type::Update();
-	}
-
-//***************************************************************************************************
-//*	Miscellaneous
-//***************************************************************************************************
+	//***************************************************************************************************
+	//*	Miscellaneous
+	//***************************************************************************************************
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
 	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
-	}
-
-	PhysicalConstants constants_;
-
-	PhysicalConstants & constants()
-	{
-		return constants_;
-	}
-
-	PhysicalConstants const & constants()const
-	{
-		return constants_;
 	}
 
 //* Time
@@ -149,7 +131,6 @@ public:
 	inline void SetDt(Real dt = 0.0)
 	{
 		dt_ = dt;
-		Update();
 	}
 
 	Real CheckCourantDt(nTuple<3,Real> const & u) const
@@ -183,7 +164,7 @@ public:
 	}
 	Real CheckCourantDt() const
 	{
-		return CheckCourantDt( constants_["speed of light"]);
+		return CheckCourantDt( CONSTANTS["speed of light"]);
 	}
 //***************************************************************************************************
 

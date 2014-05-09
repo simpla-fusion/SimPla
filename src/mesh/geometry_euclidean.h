@@ -108,7 +108,6 @@ struct EuclideanGeometry
 		{
 			LOGGER << "Load EuclideanGeometry ";
 			SetExtent(dict["Min"].template as<nTuple<3, Real>>(), dict["Max"].template as<nTuple<3, Real>>());
-			Update();
 		}
 	}
 
@@ -130,30 +129,6 @@ struct EuclideanGeometry
 			xmax_[i] = pmax[i];
 		}
 
-	}
-
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
-	{
-		return std::move(std::make_pair(xmin_, xmax_));
-	}
-
-	inline coordinates_type GetDx() const
-	{
-		auto dims = topology.GetDimensions();
-
-		return std::move(coordinates_type( {
-
-		(xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]),
-
-		(xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]),
-
-		(xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2])
-
-		}));
-	}
-
-	void Update()
-	{
 		auto const & dims = topology.GetDimensions();
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -214,6 +189,25 @@ struct EuclideanGeometry
 
 	}
 
+	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	{
+		return std::move(std::make_pair(xmin_, xmax_));
+	}
+
+	inline coordinates_type GetDx() const
+	{
+		auto dims = topology.GetDimensions();
+
+		return std::move(coordinates_type( {
+
+		(xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]),
+
+		(xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]),
+
+		(xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2])
+
+		}));
+	}
 	inline coordinates_type GetCoordinates(coordinates_type const &x) const
 	{
 		return coordinates_type( {

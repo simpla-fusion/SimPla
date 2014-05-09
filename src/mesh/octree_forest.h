@@ -111,7 +111,6 @@ struct OcForest
 	OcForest()
 			: _MASK(0)
 	{
-
 	}
 
 	template<typename TDict>
@@ -120,17 +119,11 @@ struct OcForest
 	{
 	}
 
-	OcForest(nTuple<3, size_type> const & d)
-	{
-		SetDimensions(d);
-	}
-
 	~OcForest()
 	{
 	}
 
 	this_type & operator=(const this_type&) = delete;
-
 	OcForest(const this_type&) = delete;
 
 	void swap(OcForest & rhs)
@@ -147,7 +140,6 @@ struct OcForest
 			LOGGER << "Load OcForest ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>(),
 			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
-			Update();
 		}
 
 	}
@@ -159,10 +151,6 @@ struct OcForest
 		os << "\tDimensions =  " << dims_;
 
 		return os.str();
-	}
-
-	void Update()
-	{
 	}
 
 	template<typename TI>

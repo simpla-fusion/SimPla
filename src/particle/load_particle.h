@@ -97,7 +97,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	mesh_type const &mesh = p->mesh;
 
-	DEFINE_PHYSICAL_CONST(p->mesh.constants());
+	DEFINE_PHYSICAL_CONST
 
 	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
 	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };

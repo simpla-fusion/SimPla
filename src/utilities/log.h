@@ -36,7 +36,7 @@ enum
 
 	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -1
 };
-class LoggerStreams: public SingletonHolder<LoggerStreams>
+class LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
 	size_t line_width_;
 	size_t indent_;
@@ -44,8 +44,8 @@ class LoggerStreams: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int l = LOG_LOG) :
-			std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int l = LOG_LOG)
+			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -130,25 +130,25 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger() :
-			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
+	Logger()
+			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
 	{
 	}
 
-	Logger(Logger const & r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_), endl_(r.endl_)
+	Logger(Logger const & r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(Logger && r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_), endl_(r.endl_)
+	Logger(Logger && r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0) :
-			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
+	Logger(int lv, size_t indent = 0)
+			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
 	{
 		buffer_ << std::endl << std::boolalpha;
 
@@ -176,7 +176,7 @@ public:
 			buffer_ << "[D]";
 		}
 
-		size_t indent_width = LoggerStreams::instance().GetIndent();
+		size_t indent_width = SingletonHolder<LoggerStreams>::instance().GetIndent();
 		if (indent_width > 0)
 			buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
 
@@ -205,7 +205,7 @@ public:
 		{
 //			if (current_line_char_count_ > 0 && endl_)
 //				buffer_ << std::endl;
-			LoggerStreams::instance().put(level_, buffer_.str());
+			SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 		}
 
 		UnsetIndent(indent_);
@@ -213,13 +213,13 @@ public:
 
 	void SetIndent(size_t n = 1)
 	{
-		LoggerStreams::instance().IncreaseIndent(n);
+		SingletonHolder<LoggerStreams>::instance().IncreaseIndent(n);
 		indent_ += n;
 	}
 	void UnsetIndent(size_t n = 1)
 	{
 		if (indent_ >= n)
-			LoggerStreams::instance().DecreaseIndent(n);
+			SingletonHolder<LoggerStreams>::instance().DecreaseIndent(n);
 		indent_ -= n;
 	}
 
@@ -229,14 +229,14 @@ public:
 	}
 	void flush()
 	{
-		LoggerStreams::instance().put(level_, buffer_.str());
+		SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 		buffer_.str("");
 	}
 	void surffix(std::string const & s)
 	{
 		const_cast<this_type*>(this)->buffer_ << std::setfill('.')
 
-		<< std::setw(LoggerStreams::instance().GetLineWidth() - current_line_char_count_)
+		<< std::setw(SingletonHolder<LoggerStreams>::instance().GetLineWidth() - current_line_char_count_)
 
 		<< std::right << s << std::left;
 
@@ -267,7 +267,7 @@ public:
 
 		current_line_char_count_ += GetBufferLength();
 
-		if (current_line_char_count_ > LoggerStreams::instance().GetLineWidth())
+		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().GetLineWidth())
 			endl();
 
 		return *this;
@@ -325,16 +325,6 @@ public:
 		return *this;
 	}
 
-	static void Verbose(int l = LOG_VERBOSE)
-	{
-		LoggerStreams::instance().SetStdOutVisableLevel(l);
-	}
-
-	static void OpenFile(std::string const & fname = "simpla_untitled.log")
-	{
-		LoggerStreams::instance().OpenFile(fname);
-	}
-
 	static std::string TimeStamp()
 	{
 
@@ -347,6 +337,8 @@ public:
 	}
 private:
 };
+
+#define LOG_STREAM SingletonHolder<LoggerStreams>::instance()
 
 //FIXME The operator<< eat first input and transform to integral
 #define ERROR Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
@@ -458,8 +450,8 @@ struct SetLineWidth
 {
 	int width_;
 
-	SetLineWidth(int width) :
-			width_(width)
+	SetLineWidth(int width)
+			: width_(width)
 	{
 	}
 	~SetLineWidth()

@@ -102,7 +102,7 @@ public:
 	void Load(TDict const &dict, TN const & n, TT const &T)
 	{
 
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		m = dict["Mass"].template as<Real>(1.0);
 		q = dict["Charge"].template as<Real>(1.0);
@@ -112,7 +112,7 @@ public:
 	std::ostream & Print(std::ostream & os) const
 	{
 
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
@@ -141,7 +141,7 @@ public:
 	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 		// FIXME miss one term E\cross B \cdot \Grad n
 
 		auto T_ = T(p->x);

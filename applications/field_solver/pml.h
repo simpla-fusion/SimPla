@@ -106,7 +106,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 {
 	LOGGER << "Create PML solver [" << xmin << " , " << xmax << " ]";
 
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST;
 
 	Real dB = 100, expN = 2;
 
@@ -173,7 +173,7 @@ template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
 	LOGGER << "PML push E";
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST;
 
 	Form<1> dX1(mesh);
 
@@ -197,7 +197,7 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 {
 	LOGGER << "PML Push B";
 
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST;
 
 	Form<2> dX2(mesh);
 

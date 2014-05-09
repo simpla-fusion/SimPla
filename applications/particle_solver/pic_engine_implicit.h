@@ -99,7 +99,7 @@ public:
 	void Load(TDict const &dict)
 	{
 
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);
@@ -112,7 +112,7 @@ public:
 	{
 		std::stringstream os;
 
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 

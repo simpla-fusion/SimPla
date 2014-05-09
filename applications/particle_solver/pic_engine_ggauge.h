@@ -129,7 +129,7 @@ public:
 			bool is_verbose = false) const
 	{
 		std::stringstream os;
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 

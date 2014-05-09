@@ -31,9 +31,27 @@ public:
 
 	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
 
-	void Load(LuaObject const & vm);
+	template<typename TDict>
+	void Load(TDict const & dict)
+	{
+		if (dict.empty())
+		{
+			SetBaseUnit();
+		}
+		else
+		{
 
-	std::ostream & Save(std::ostream & os)const;
+			SetBaseUnit(dict["Type"].template as<std::string>(), //
+			        dict["m"].template as<Real>(1.0), //
+			        dict["s"].template as<Real>(1.0), //
+			        dict["kg"].template as<Real>(1.0), //
+			        dict["C"].template as<Real>(1.0), //
+			        dict["K"].template as<Real>(1.0), //
+			        dict["mol"].template as<Real>(1.0));
+		}
+	}
+
+	std::ostream & Save(std::ostream & os) const;
 
 	void Print(std::basic_ostream<char> & os) const;
 
@@ -75,8 +93,10 @@ private:
 ;
 std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
 
-#define DEFINE_PHYSICAL_CONST(_UNIT_SYS_)                                               \
-PhysicalConstants const & CONSTANTS=_UNIT_SYS_;                                         \
+
+#define  CONSTANTS    SingletonHolder<PhysicalConstants>::instance()
+
+#define DEFINE_PHYSICAL_CONST                                               \
 const double mu0 = CONSTANTS["permeability of free space"];                            \
 const double epsilon0 = CONSTANTS["permittivity of free space"];                       \
 const double speed_of_light = CONSTANTS["speed of light"];                             \
@@ -85,8 +105,6 @@ const double proton_mass = CONSTANTS["proton mass"];                            
 const double elementary_charge = CONSTANTS["elementary charge"];                       \
 const double boltzmann_constant = CONSTANTS["Boltzmann constant"];
 
-#define GLOBAL_PHYSICAL_CONST    SingletonHolder<PhysicalConstants>::instance()
-#define DEFINE_GLOBAL_PHYSICAL_CONST   DEFINE_PHYSICAL_CONST(SingletonHolder<PhysicalConstants>::instance())
 }  // namespace simpla
 
 #endif /* PHYSICAL_CONSTANTS_H_ */

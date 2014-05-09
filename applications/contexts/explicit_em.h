@@ -178,8 +178,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			mesh.SetExtent(xmin, xmax);
 
-			mesh.Update();
-
 			model_.Add("Plasma", geqdsk.Boundary());
 			model_.Add("Vacuum", geqdsk.Limiter());
 			model_.Update();
@@ -210,7 +208,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			}
 
-			J0 = Curl(B) / mesh.constants()["permeability of free space"];
+			J0 = Curl(B) / CONSTANTS["permeability of free space"];
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
@@ -242,7 +240,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	bool enablePML = false;
 
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST
 
 	if (dict["Particles"])
 	{
@@ -390,15 +388,15 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	mesh.NextTimeStep();
 
-	DEFINE_PHYSICAL_CONST(mesh.constants());
+	DEFINE_PHYSICAL_CONST
 
 	VERBOSE
 
 	<< "Simulation Time = "
 
-	<< (mesh.GetTime() / mesh.constants()["s"]) << "[s]"
+	<< (mesh.GetTime() / CONSTANTS["s"]) << "[s]"
 
-	<< " dt = " << (dt / mesh.constants()["s"]) << "[s]";
+	<< " dt = " << (dt / CONSTANTS["s"]) << "[s]";
 
 	//************************************************************
 	// Compute Cycle Begin

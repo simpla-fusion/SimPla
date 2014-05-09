@@ -93,7 +93,7 @@ public:
 
 			cmr_(q / m), q_kT_(1.0)
 	{
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		q_kT_ = q
 				/ (dict["Temperature"].template as<Real>(1.0)
@@ -114,7 +114,7 @@ public:
 	{
 		std::stringstream os;
 
-		DEFINE_PHYSICAL_CONST(mesh.constants());
+		DEFINE_PHYSICAL_CONST;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 

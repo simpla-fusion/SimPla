@@ -25,25 +25,6 @@ PhysicalConstants::~PhysicalConstants()
 {
 }
 
-void PhysicalConstants::Load(LuaObject const & vm)
-{
-	if (vm.empty())
-	{
-		SetBaseUnit();
-	}
-	else
-	{
-
-		SetBaseUnit(vm["Type"].as<std::string>(), //
-		        vm["m"].as<Real>(1.0), //
-		        vm["s"].as<Real>(1.0), //
-		        vm["kg"].as<Real>(1.0), //
-		        vm["C"].as<Real>(1.0), //
-		        vm["K"].as<Real>(1.0), //
-		        vm["mol"].as<Real>(1.0));
-	}
-}
-
 std::ostream & PhysicalConstants::Save(std::ostream &os) const
 {
 	os
