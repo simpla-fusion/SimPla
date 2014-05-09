@@ -33,8 +33,8 @@
 #include "load_particle.h"
 #include "save_particle.h"
 #include "particle_boundary.h"
-#include "../modeling/command.h"
-#include "../modeling/material.h"
+#include "../model/command.h"
+#include "../model/material.h"
 
 namespace simpla
 {

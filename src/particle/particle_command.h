@@ -9,7 +9,7 @@
 #define PARTICLE_COMMAND_H_
 
 #include <fetl/primitives.h>
-#include <modeling/material.h>
+#include <model/material.h>
 #include <particle/particle.h>
 //#include <utilities/log.h>
 #include <utilities/type_utilites.h>

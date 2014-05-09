@@ -14,10 +14,10 @@
 #include <type_traits>
 
 #include "../fetl/fetl.h"
-#include "../physics/physical_constants.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
 #include "interpolator.h"
+#include "glaobal_mesh.h"
 namespace simpla
 {
 template<typename > class EuclideanGeometry;
@@ -46,14 +46,28 @@ public:
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
+
+	std::shared_ptr<GlobalMesh<this_type>> parent_;
+
+	// local[i,j,k]-ghost_width_+offset_ = global[i,j,k]
+	nTuple<NDIMS, size_t> ghost_width_;
+
+	nTuple<NDIMS, size_t> offset_;
+
+	//* Time
+
+	Real dt_ = 0.0; //!< time step
+	Real time0_ = 0.0;
+	unsigned long clock_ = 0UL;
+
 	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+			: geometry_type(static_cast<TTopology const &>(*this)), parent_(nullptr)
 	{
 	}
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
+			: geometry_type(static_cast<TTopology const &>(*this)), parent_(nullptr)
 	{
 		Load(dict);
 	}
@@ -61,6 +75,7 @@ public:
 	{
 	}
 	RectMesh(const this_type&) = delete;
+
 	this_type & operator=(const this_type&) = delete;
 
 	inline bool operator==(this_type const & r) const
@@ -94,9 +109,62 @@ public:
 		return os.str();
 	}
 
-	//***************************************************************************************************
-	//*	Miscellaneous
-	//***************************************************************************************************
+	void SetGlobalMesh(std::shared_ptr<GlobalMesh<this_type>> parent_mesh)
+	{
+		parent_ = parent_mesh;
+		parent_->Decompose(this);
+	}
+
+	std::shared_ptr<GlobalMesh<this_type>> GetGlobalMesh() const
+	{
+		return parent_;
+	}
+
+	template<typename TI>
+	void Decompose(this_type * sub, TI num_process, TI process_num, unsigned int gw = 2) const
+	{
+
+		nTuple<3, size_t> sub_dims, imin, imax;
+
+		for (int i = 0; i < 3; ++i)
+		{
+
+			if (2 * gw * num_process[i] > dims_[i])
+			{
+				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << dims_[i]
+
+				<< " process[" << i << "]=" << num_proces[i] << " ghost_width=" << ghost_width_ << std::endl;
+			}
+
+			if (num_process[i] <= 1)
+			{
+				num_process[i] = 1;
+				process_num[i] = 0;
+				imin[i] = 0;
+				imax[i] = dims_[i];
+
+				sub->ghost_width_[i] = 0;
+				sub->offset_[i] = 0;
+			}
+			else
+			{
+				imin[i] = dims_[i] * process_num[i] / (num_process[i]) - gw;
+				imax[i] = dims_[i] * (process_num[i] + 1) / (num_process[i]) + gw;
+
+				sub->ghost_width_[i] = gw;
+				sub->offset_[i] = imin[i] + gw;
+			}
+
+			sub_dims[i] = imax[i] - imin[i];
+		}
+		sub->topology_type::SetDimensions(sub_dims);
+		sub->geometry_type::SetExtent(GetCoordinates(imin), GetCoordinates(imax));
+
+	}
+
+//***************************************************************************************************
+//*	Miscellaneous
+//***************************************************************************************************
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
@@ -105,32 +173,23 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
-//* Time
-
-	Real dt_ = 0.0;//!< time step
-	Real time_ = 0.0;
-
+// Time
 	void NextTimeStep()
 	{
-		time_ += dt_;
+		++clock_;
+
+		if(parent_!=nullptr)
+		{	parent_->Sync(clock_);}
+
 	}
 	Real GetTime() const
 	{
-		return time_;
+		return static_cast<double>(clock_)*dt_+time0_;
 	}
 
-	void GetTime(Real t)
-	{
-		time_ = t;
-	}
-	inline Real GetDt() const
+	Real GetDt() const
 	{
 		return dt_;
-	}
-
-	inline void SetDt(Real dt = 0.0)
-	{
-		dt_ = dt;
 	}
 
 	Real CheckCourantDt(nTuple<3,Real> const & u) const
@@ -157,15 +216,12 @@ public:
 		return dt;
 	}
 
-	Real CheckCourantDt(Real u) const
+	Real CheckCourantDt(Real speed) const
 	{
 		return CheckCourantDt(nTuple<3,Real>(
-				{	u,u,u}));
+				{	speed,speed,speed}));
 	}
-	Real CheckCourantDt() const
-	{
-		return CheckCourantDt( CONSTANTS["speed of light"]);
-	}
+
 //***************************************************************************************************
 
 	Real Volume(index_type s) const
@@ -212,7 +268,9 @@ public:
 		return topology_type::GetCellIndex(s);
 
 	}
-	coordinates_type GetCoordinates(index_type s) const
+
+	template<typename TI>
+	coordinates_type GetCoordinates(TI s) const
 	{
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
 	}
@@ -232,138 +290,9 @@ public:
 		interpolator_type::Scatter(x,v,f );
 	}
 
-	//	template<typename TF>
-	//	inline typename TF::value_type
-	//	Gather_(TF const &f,coordinates_type r, compact_index_type shift ) const
-	//	{
-	//		r=geometry_type::CoordinatesGlobalToLocal(r);
-	//
-	//		auto X = (topology_type::_DI >> (topology_type::H(shift) +1));
-	//		auto Y = (topology_type::_DJ >> (topology_type::H(shift) +1));
-	//		auto Z = (topology_type::_DK >> (topology_type::H(shift) +1));
-	//
-	//		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift) + (topology_type::_DA >> (topology_type::H(shift) + 1));
-	//
-	//		return
-	//
-	//		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2])+
-	//		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2])+
-	//		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2])+
-	//		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2])+
-	//		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2])+
-	//		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2])+
-	//		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2])+
-	//		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2])
-	//		;
-	//	}
-	//
-	//	template<typename TExpr>
-	//	inline typename Field<this_type,VERTEX,TExpr>::field_value_type
-	//	Gather(Field<this_type,VERTEX,TExpr>const &f,coordinates_type x ) const
-	//	{
-	//		return Gather_(f,x,0UL);
-	//	}
-	//
-	//	template<typename TExpr>
-	//	inline typename Field<this_type,EDGE,TExpr>::field_value_type
-	//	Gather(Field<this_type,EDGE,TExpr>const &f,coordinates_type x ) const
-	//	{
-	//
-	//		return typename Field<this_type,EDGE,TExpr>::field_value_type (
-	//		{
-	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DI >> 1)),
-	//
-	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DJ >> 1)),
-	//
-	//			Gather_(f,x,topology_type::ShiftH(topology_type::_DK >> 1))
-	//		});
-	//
-	//	}
-	//	template<typename TExpr>
-	//	inline typename Field<this_type,FACE,TExpr>::field_value_type
-	//	Gather(Field<this_type,FACE,TExpr>const &f,coordinates_type x ) const
-	//	{
-	//		return typename Field<this_type,EDGE,TExpr>::field_value_type (
-	//		{
-	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1 )),
-	//
-	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1 )),
-	//
-	//			Gather_(f,x,topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1 ))
-	//		});
-	//
-	//	}
-	//	template<typename TExpr>
-	//	inline typename Field<this_type,VOLUME,TExpr>::field_value_type
-	//	Gather(Field<this_type,VOLUME,TExpr>const &f,coordinates_type x ) const
-	//	{
-	//		return Gather_(f,x,topology_type::ShiftH(topology_type::_DA >>1));
-	//
-	//	}
-	//
-	//	template<typename TF>
-	//	inline void
-	//	Scatter_( coordinates_type r,typename TF::value_type const & v, compact_index_type shift,TF *f ) const
-	//	{
-	//		r = geometry_type::CoordinatesGlobalToLocal(r);
-	//
-	//		auto X = (topology_type::_DI >> (topology_type::H(shift)+1));
-	//		auto Y = (topology_type::_DJ >> (topology_type::H(shift)+1));
-	//		auto Z = (topology_type::_DK >> (topology_type::H(shift)+1));
-	//
-	//		auto s= topology_type::CoordinatesGlobalToLocal(&r,shift)+ (topology_type::_DA >> (topology_type::H(shift) + 1));
-	//
-	//		f->get(((s + X) + Y) + Z)+=v*geometry_type::Volume(((s + X) + Y) + Z) * (r[0])* (r[1])* (r[2]);
-	//		f->get(((s + X) + Y) - Z)+=v*geometry_type::Volume(((s + X) + Y) - Z) * (r[0])* (r[1])* (1.0-r[2]);
-	//		f->get(((s + X) - Y) + Z)+=v*geometry_type::Volume(((s + X) - Y) + Z) * (r[0])* (1.0-r[1])* (r[2]);
-	//		f->get(((s + X) - Y) - Z)+=v*geometry_type::Volume(((s + X) - Y) - Z) * (r[0])* (1.0-r[1])* (1.0-r[2]);
-	//		f->get(((s - X) + Y) + Z)+=v*geometry_type::Volume(((s - X) + Y) + Z) * (1.0-r[0])* (r[1])* (r[2]);
-	//		f->get(((s - X) + Y) - Z)+=v*geometry_type::Volume(((s - X) + Y) - Z) * (1.0-r[0])* (r[1])* (1.0-r[2]);
-	//		f->get(((s - X) - Y) + Z)+=v*geometry_type::Volume(((s - X) - Y) + Z) * (1.0-r[0])* (1.0-r[1])* (r[2]);
-	//		f->get(((s - X) - Y) - Z)+=v*geometry_type::Volume(((s - X) - Y) - Z) * (1.0-r[0])* (1.0-r[1])* (1.0-r[2]);
-	//	}
-	//
-	//	template< typename TExpr>
-	//	inline void Scatter( coordinates_type x,
-	//	typename Field<this_type,VERTEX,TExpr>::field_value_type const & v ,Field<this_type,VERTEX,TExpr> *f )const
-	//	{
-	//		Scatter_( x,v,0UL,f );
-	//	}
-	//
-	//	template< typename TExpr>
-	//	inline void Scatter( coordinates_type x,
-	//	typename Field<this_type,EDGE,TExpr>::field_value_type const & v ,Field<this_type,EDGE,TExpr> *f )const
-	//	{
-	//
-	//		Scatter_( x,v[0],topology_type::ShiftH(topology_type::_DI>>1),f);
-	//
-	//		Scatter_( x,v[1],topology_type::ShiftH(topology_type::_DJ>>1),f );
-	//
-	//		Scatter_( x,v[2],topology_type::ShiftH(topology_type::_DK>>1),f );
-	//	}
-	//
-	//	template< typename TExpr>
-	//	inline void Scatter( coordinates_type x,
-	//	typename Field<this_type,FACE,TExpr>::field_value_type const & v ,Field<this_type,FACE,TExpr> *f )const
-	//	{
-	//
-	//		Scatter_( x,v[0],topology_type::ShiftH((topology_type::_DJ|topology_type::_DK)>>1),f );
-	//
-	//		Scatter_( x,v[1],topology_type::ShiftH((topology_type::_DK|topology_type::_DI)>>1),f );
-	//
-	//		Scatter_( x,v[2],topology_type::ShiftH((topology_type::_DI|topology_type::_DJ)>>1),f );
-	//	}
-	//
-	//	template< typename TExpr>
-	//	inline void Scatter( coordinates_type x ,
-	//	typename Field<this_type,VOLUME,TExpr>::field_value_type const & v ,Field<this_type,VOLUME,TExpr> *f )const
-	//	{
-	//		Scatter_( x,v,topology_type::ShiftH(topology_type::_DA>>1),f );
-	//	}
-
-	//***************************************************************************************************
-	// Exterior algebra
-	//***************************************************************************************************
+//***************************************************************************************************
+// Exterior algebra
+//***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
 	index_type s)const-> decltype(f[s]-f[s])

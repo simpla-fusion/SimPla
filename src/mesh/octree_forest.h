@@ -523,6 +523,11 @@ struct OcForest
 		return index_type( { GetCellIndex(s.d) });
 	}
 
+	inline index_type GetIndex(nTuple<3, size_t> const & idx)
+	{
+
+	}
+
 //***************************************************************************************************
 
 	nTuple<NDIMS, size_type> const & GetDimensions() const
@@ -552,6 +557,21 @@ struct OcForest
 		return std::move(res);
 	}
 
+	template<typename TI>
+	inline coordinates_type GetCoordinates(TI const & s) const
+	{
+
+		return coordinates_type( {
+
+		static_cast<Real>(s[0]) * dh,
+
+		static_cast<Real>(s[1]) * dh,
+
+		static_cast<Real>(s[2]) * dh
+
+		});
+
+	}
 	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
 		s &= _MASK;

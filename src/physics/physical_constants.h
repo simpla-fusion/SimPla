@@ -8,11 +8,8 @@
 #ifndef PHYSICAL_CONSTANTS_H_
 #define PHYSICAL_CONSTANTS_H_
 
-#include "../utilities/log.h"
-#include "../utilities/lua_state.h"
 #include <iostream>
 #include <map>
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -42,12 +39,12 @@ public:
 		{
 
 			SetBaseUnit(dict["Type"].template as<std::string>(), //
-			        dict["m"].template as<Real>(1.0), //
-			        dict["s"].template as<Real>(1.0), //
-			        dict["kg"].template as<Real>(1.0), //
-			        dict["C"].template as<Real>(1.0), //
-			        dict["K"].template as<Real>(1.0), //
-			        dict["mol"].template as<Real>(1.0));
+			        dict["m"].template as<double>(1.0), //
+			        dict["s"].template as<double>(1.0), //
+			        dict["kg"].template as<double>(1.0), //
+			        dict["C"].template as<double>(1.0), //
+			        dict["K"].template as<double>(1.0), //
+			        dict["mol"].template as<double>(1.0));
 		}
 	}
 
@@ -60,21 +57,25 @@ public:
 
 	inline double operator[](std::string const &s) const
 	{
+//
+//		std::map<std::string, double>::const_iterator it = q_.find(s);
+//
+//		if (it != q_.end())
+//		{
+//			return it->second;
+//		}
+//		else
+//		{
+//			ERROR << "Physical quantity " << s << " is not available!";
+//		}
 
-		std::map<std::string, double>::const_iterator it = q_.find(s);
-
-		if (it != q_.end())
-		{
-			return it->second;
-		}
-		else
-		{
-			ERROR << "Physical quantity " << s << " is not available!";
-		}
-
-		return 0;
+		return q_.at(s);
 	}
+	std::string GetUnit(std::string const & s) const
+	{
+		return unitSymbol_.at(s);
 
+	}
 private:
 	std::map<std::string, double> q_; //physical quantity
 	std::map<std::string, std::string> unitSymbol_;
@@ -92,7 +93,6 @@ private:
 }
 ;
 std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self);
-
 
 #define  CONSTANTS    SingletonHolder<PhysicalConstants>::instance()
 

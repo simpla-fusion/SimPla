@@ -22,6 +22,7 @@
 // Data IO
 #include "../../src/io/data_stream.h"
 
+#include "../../src/mesh/glaobal_mesh.h"
 // Field
 #include "../../src/fetl/fetl.h"
 #include "../../src/fetl/save_field.h"
@@ -29,10 +30,10 @@
 // Particle
 #include "../../src/particle/particle_base.h"
 
-// Modeling
-#include "../../src/modeling/material.h"
-#include "../../src/modeling/command.h"
-#include "../../src/utilities/geqdsk.h"
+// Model
+#include "../../src/model/material.h"
+#include "../../src/model/command.h"
+#include "../../src/model/geqdsk.h"
 
 // Solver
 #include "../field_solver/pml.h"
@@ -145,7 +146,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << description;
 
-	mesh.Load(dict["Grid"]);
+	GlobalMesh<mesh_type> global_mesh(dict["Grid"]);
+
+	global_mesh.UpdateLocalMesh(&mesh);
 
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
@@ -158,71 +161,72 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dB.Clear();
 	dE.Clear();
 	J0.Clear();
-	if (dict["Model"])
-	{
-		model_.Update();
 
-		if (dict["Model"]["GFile"])
-		{
-
-			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
-
-			nTuple<3, Real> xmin, xmax;
-
-			xmin[0] = geqdsk.GetMin()[0];
-			xmin[1] = geqdsk.GetMin()[1];
-			xmin[2] = 0;
-			xmax[0] = geqdsk.GetMax()[0];
-			xmax[1] = geqdsk.GetMax()[1];
-			xmax[2] = 0;
-
-			mesh.SetExtent(xmin, xmax);
-
-			model_.Add("Plasma", geqdsk.Boundary());
-			model_.Add("Vacuum", geqdsk.Limiter());
-			model_.Update();
-
-			geqdsk.Save(std::cout);
-
-			B.Clear();
-
-			for (auto s : mesh.GetRange(FACE))
-			{
-				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
-
-			}
-
-			ne0.Clear();
-			Te0.Clear();
-			Ti0.Clear();
-
-			for (auto s : model_.template SelectCell<VERTEX>("Plasma"))
-			{
-				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				auto p = geqdsk.psi(x[0], x[1]);
-
-				ne0[s] = geqdsk.Profile("ne", p);
-				Te0[s] = geqdsk.Profile("Te", p);
-				Ti0[s] = geqdsk.Profile("Ti", p);
-
-			}
-
-			J0 = Curl(B) / CONSTANTS["permeability of free space"];
-
-			description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
-			LOGGER << simpla::Save(ne0, "ne");
-			LOGGER << simpla::Save(Te0, "Te");
-			LOGGER << simpla::Save(Ti0, "Ti");
-		}
-
-	}
-
-	if (mesh.CheckCourantDt() < mesh.GetDt())
-	{
-		mesh.SetDt(mesh.CheckCourantDt());
-	}
+//	if (dict["Model"])
+//	{
+//		model_.Update();
+//
+//		if (dict["Model"]["GFile"])
+//		{
+//
+//			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+//
+//			nTuple<3, Real> xmin, xmax;
+//
+//			xmin[0] = geqdsk.GetMin()[0];
+//			xmin[1] = geqdsk.GetMin()[1];
+//			xmin[2] = 0;
+//			xmax[0] = geqdsk.GetMax()[0];
+//			xmax[1] = geqdsk.GetMax()[1];
+//			xmax[2] = 0;
+//
+//			mesh.SetExtent(xmin, xmax);
+//
+//			model_.Add("Plasma", geqdsk.Boundary());
+//			model_.Add("Vacuum", geqdsk.Limiter());
+//			model_.Update();
+//
+//			geqdsk.Save(std::cout);
+//
+//			B.Clear();
+//
+//			for (auto s : mesh.GetRange(FACE))
+//			{
+//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+//				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+//
+//			}
+//
+//			ne0.Clear();
+//			Te0.Clear();
+//			Ti0.Clear();
+//
+//			for (auto s : model_.template SelectCell<VERTEX>("Plasma"))
+//			{
+//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+//				auto p = geqdsk.psi(x[0], x[1]);
+//
+//				ne0[s] = geqdsk.Profile("ne", p);
+//				Te0[s] = geqdsk.Profile("Te", p);
+//				Ti0[s] = geqdsk.Profile("Ti", p);
+//
+//			}
+//
+//			J0 = Curl(B) / CONSTANTS["permeability of free space"];
+//
+//			description = description + "\n GEqdsk ID:" + geqdsk.Description();
+//
+//			LOGGER << simpla::Save(ne0, "ne");
+//			LOGGER << simpla::Save(Te0, "Te");
+//			LOGGER << simpla::Save(Ti0, "Ti");
+//		}
+//
+//	}
+//
+//	if (mesh.CheckCourantDt(CONSTANTS["speed of light"]) < mesh.GetDt())
+//	{
+//		mesh.SetDt(mesh.CheckCourantDt(CONSTANTS["speed of light"]));
+//	}
 
 	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
@@ -386,7 +390,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 {
 	Real dt = mesh.GetDt();
 
-	mesh.NextTimeStep();
+	global_mesh.NextTimeStep();
 
 	DEFINE_PHYSICAL_CONST
 

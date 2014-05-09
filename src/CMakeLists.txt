@@ -1,9 +1,5 @@
-
- 
-
 ADD_SUBDIRECTORY( utilities  )
 
-  
 ADD_SUBDIRECTORY( physics)
 
 ADD_SUBDIRECTORY( fetl )
@@ -14,6 +10,5 @@ ADD_SUBDIRECTORY( io)
 
 ADD_SUBDIRECTORY( mesh  )
 
-
-ADD_SUBDIRECTORY( modeling  )
+ADD_SUBDIRECTORY( model )
     

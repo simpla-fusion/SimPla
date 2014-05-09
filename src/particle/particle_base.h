@@ -13,9 +13,8 @@
 
 #include "../fetl/fetl.h"
 #include "../io/data_stream.h"
-#include "../modeling/select.h"
-#include "../modeling/surface.h"
-#include "../utilities/visitor.h"
+#include "../model/select.h"
+#include "../model/surface.h"
 namespace simpla
 {
 

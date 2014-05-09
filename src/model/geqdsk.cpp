@@ -14,8 +14,8 @@
 #include <memory>
 #include <utility>
 
-#include "log.h"
-#include "pretty_stream.h"
+#include "../utilities/log.h"
+#include "../utilities/pretty_stream.h"
 
 namespace simpla
 {

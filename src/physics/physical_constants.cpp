@@ -5,14 +5,10 @@
  *      Author: salmon
  */
 
-#include "constants.h"
 #include "physical_constants.h"
+
 #include <iomanip>
-#include <iostream>
-#include <map>
-#include <memory>
-#include <string>
-#include <utility>
+#include "constants.h"
 
 namespace simpla
 {
@@ -184,20 +180,13 @@ void PhysicalConstants::Print(std::ostream & os) const
 {
 	os
 
-	<< DOUBLELINE<<std::endl
-
 	<< "[Units] " << type_ << " ~ SI" << std::endl
 
-	<< SINGLELINE << std::endl
+	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*this)["m"] << "[m]" << std::endl
 
-	<< std::setw(40) << "1 [length unit] = " << 1.0 / (*this)["m"] << "[m]"
-	<< std::endl
+	<< std::setw(40) << "1 [time unit] = " << 1.0 / (*this)["s"] << "[s]" << std::endl
 
-	<< std::setw(40) << "1 [time unit] = " << 1.0 / (*this)["s"]
-	<< "[s]" << std::endl
-
-	<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*this)["kg"]
-	<< "[kg]" << std::endl
+	<< std::setw(40) << "1 [mass unit] = " << 1.0 / (*this)["kg"] << "[kg]" << std::endl
 
 	<< std::setw(40) << "1 [electric charge unit] = "
 
@@ -211,11 +200,7 @@ void PhysicalConstants::Print(std::ostream & os) const
 
 	<< 1.0 / (*this)["mol"] << "[mole]" << std::endl
 
-	<< SINGLELINE << std::endl
-
 	<< "Physical constants:" << std::endl
-
-	<< SINGLELINE << std::endl
 
 	<< std::setw(40) << "permeability of free space, mu = "
 
@@ -241,7 +226,6 @@ void PhysicalConstants::Print(std::ostream & os) const
 
 	<< (*this)["proton mass"] << std::endl
 
-	<< DOUBLELINE << std::endl;
 	;
 }
 
