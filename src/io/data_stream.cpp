@@ -6,6 +6,7 @@
  */
 
 #include "data_stream.h"
+#include "../parallel/parallel.h"
 namespace simpla
 {
 
@@ -82,9 +83,9 @@ void DataStream::OpenFile(std::string const &fname)
 
 	hid_t plist_id = H5P_DEFAULT;
 
-#if USE_MPI_IO
+#ifdef USE_PARALLEL_IO
 	plist_id = H5Pcreate(H5P_FILE_ACCESS);
-	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(),GLOBAL_COMM.GetInfo());
+	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
 #endif
 
 	H5_ERROR(file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
@@ -246,12 +247,12 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 	}
 
-#if USE_MPI_IO
+#if USE_PARALLEL_IO
 	// Create property list for collective dataset write.
 	hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 	H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE));
 	H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, plist_id, v));
-	H5_ERROR(H5Pclose(plist_id)));
+	H5_ERROR(H5Pclose(plist_id));
 #else
 	H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, H5P_DEFAULT, v));
 #endif

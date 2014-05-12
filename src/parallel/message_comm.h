@@ -56,10 +56,27 @@ public:
 	{
 		return isInitilized_;
 	}
+	int GetRank() const
+	{
+		return process_num_;
+	}
+	int ProcessNum() const
+	{
+		return process_num_;
+	}
+
+	int GetSize() const
+	{
+		return num_process_;
+	}
+	int NumProcess() const
+	{
+		return num_process_;
+	}
 private:
 	bool isInitilized_;
 };
-#define GLOBAL_COMM   SingletonHolder<MessageComm>::instance()
+#define GLOBAL_COMM   SingletonHolder<simpla::MessageComm>::instance()
 
 }
 // namespace simpla

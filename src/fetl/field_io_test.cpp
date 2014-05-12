@@ -19,8 +19,8 @@
 int main(int argc, char **argv)
 {
 
-#if USE_MPI
-	MESSAGE_COMM.Init(argc,argv);
+#if USE_PARALLEL_IO
+	GLOBAL_COMM.Init(argc,argv);
 #endif
 
 	using namespace simpla;
@@ -41,9 +41,8 @@ int main(int argc, char **argv)
 
 	Field<mesh_type, VERTEX, Real> f(mesh);
 
-#if USE_MPI
-
-	f.Fill(MESSAGE_COMM.GetRank());
+#if USE_PARALLEL_IO
+	f.Fill(GLOBAL_COMM.GetRank());
 #else
 	f.Fill(1234);
 #endif
@@ -53,6 +52,7 @@ int main(int argc, char **argv)
 	LOGGER << SAVE(f);
 	GLOBAL_DATA_STREAM.OpenGroup("/t2");
 	GLOBAL_DATA_STREAM.EnableCompactStorable( );
+	LOGGER << SAVE(f);
 	LOGGER << SAVE(f);
 	LOGGER << endl;
 

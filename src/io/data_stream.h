@@ -38,6 +38,10 @@ extern "C"
 #include "../utilities/utilities.h"
 #include "../utilities/pretty_stream.h"
 
+#ifdef USE_MPI_IO
+#include "../parallel/message_comm.h"
+#endif
+
 namespace simpla
 {
 
