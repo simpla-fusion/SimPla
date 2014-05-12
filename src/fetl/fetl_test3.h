@@ -11,8 +11,6 @@
 #include <gtest/gtest.h>
 #include <random>
 #include <limits>
-#include "../io/data_stream.h"
-#include "save_field.h"
 
 #include "fetl.h"
 
@@ -31,8 +29,6 @@ protected:
 	{
 		TParam::SetUpMesh(&mesh);
 		TParam::SetDefaultValue(&default_value);
-		GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 public:
 
@@ -49,8 +45,7 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	static constexpr nTuple<3, Real> k =
-	{	2.0 * PI, 2.0 * PI, 4.0 * PI}; // @NOTE must   k = n TWOPI, period condition
+	static constexpr nTuple<3, Real> k = { 2.0 * PI, 2.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
@@ -166,9 +161,9 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 	CHECK(variance);
 	CHECK(average);
 
-	LOGGER<<SAVE(f3);
-	LOGGER<<SAVE(f2);
-	LOGGER<<SAVE(f2b);
+//	LOGGER<<SAVE(f3);
+//	LOGGER<<SAVE(f2);
+//	LOGGER<<SAVE(f2b);
 }
 }
 TYPED_TEST_P(TestDiffCalculus, diverge1){

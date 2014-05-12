@@ -31,11 +31,9 @@ struct TestFETLParam<Mesh, TV, IFORM>
 
 		nTuple<3, size_t> dims = { 16, 32, 67 };
 
-		mesh->SetExtent(xmin, xmax);
-
 		mesh->SetDimensions(dims);
 
-		mesh->Update();
+		mesh->SetExtent(xmin, xmax);
 
 	}
 

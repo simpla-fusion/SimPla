@@ -79,11 +79,10 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
 		, 17, 17, 17
 
 		};
-		mesh->SetExtent(xmin[(ICase % 100) / 10], xmax[(ICase % 100) / 10]);
 
 		mesh->SetDimensions(dims[ICase % 10]);
 
-		mesh->Update();
+		mesh->SetExtent(xmin[(ICase % 100) / 10], xmax[(ICase % 100) / 10]);
 
 	}
 

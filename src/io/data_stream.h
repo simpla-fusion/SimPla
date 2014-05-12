@@ -247,20 +247,31 @@ public:
 		hsize_t strides_[rank + 1];
 		hsize_t blocks_[rank + 1];
 
-		std::copy(global_dims, global_dims + rank, global_dims_);
-		std::copy(offset, offset + rank, offset_);
-		std::copy(local_dims, local_dims + rank, local_dims_);
-		std::copy(start, start + rank, start_);
-		std::copy(counts, counts + rank, counts_);
-		std::copy(strides, strides + rank, strides_);
-		std::copy(blocks, blocks + rank, blocks_);
+		if (global_dims != nullptr)
+			std::copy(global_dims, global_dims + rank, global_dims_);
+		if (offset != nullptr)
+			std::copy(offset, offset + rank, offset_);
+		if (local_dims != nullptr)
+			std::copy(local_dims, local_dims + rank, local_dims_);
+		if (start != nullptr)
+			std::copy(start, start + rank, start_);
+		if (counts != nullptr)
+			std::copy(counts, counts + rank, counts_);
+		if (strides != nullptr)
+			std::copy(strides, strides + rank, strides_);
+		if (blocks != nullptr)
+			std::copy(blocks, blocks + rank, blocks_);
 
 		if (is_nTuple<TV>::value)
 		{
-			global_dims_[rank] = nTupleTraits<TV>::NDIMS;
-			local_dims_[rank] = nTupleTraits<TV>::NDIMS;
-			counts_[rank] = nTupleTraits<TV>::NDIMS;
-			blocks_[rank] = nTupleTraits<TV>::NDIMS;
+			if (global_dims != nullptr)
+				global_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			if (local_dims != nullptr)
+				local_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			if (counts != nullptr)
+				counts_[rank] = nTupleTraits<TV>::NDIMS;
+			if (blocks != nullptr)
+				blocks_[rank] = nTupleTraits<TV>::NDIMS;
 			++rank;
 		}
 
@@ -287,8 +298,8 @@ public:
 	}
 
 	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, hsize_t const *global_dims,
-	        hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start,
-	        hsize_t const *counts, hsize_t const *strides, hsize_t const *blocks) const;
+	        hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start, hsize_t const *counts,
+	        hsize_t const *strides, hsize_t const *blocks) const;
 
 }
 ;
@@ -341,10 +352,9 @@ template<typename TV, typename ... Args> inline std::string Save(std::map<TV, TV
 	return Save(d_, name, std::forward<Args const &>(args)...);
 }
 
-#define SAVE(_F_) simpla::Save(_F_,__STRING(_F_) ,true)
-#define SAVE1(_F_) simpla::Save(_F_,__STRING(_F_) ,false)
+#define SAVE(_F_) simpla::Save(_F_,__STRING(_F_)  )
 #ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::Save(_F_,__STRING(_F_),true)
+#	define DEBUG_SAVE(_F_) simpla::Save(_F_,__STRING(_F_) )
 #else
 #   define DEBUG_SAVE(_F_) ""
 #endif

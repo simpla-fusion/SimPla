@@ -22,7 +22,7 @@ class TestFETL: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		Logger::Verbose(10);
+		LOG_STREAM.SetStdOutVisableLevel(10);
 
 		TParam::SetUpMesh(&mesh);
 		TParam::SetDefaultValue(&default_value);

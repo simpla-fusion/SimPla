@@ -29,11 +29,10 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
 		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
 
 		nTuple<3, size_t> dims = { 16, 32, 67 };
-		mesh->SetExtent(xmin, xmax);
 
 		mesh->SetDimensions(dims);
 
-		mesh->Update();
+		mesh->SetExtent(xmin, xmax);
 
 	}
 

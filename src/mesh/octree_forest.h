@@ -147,8 +147,6 @@ struct OcForest
 			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
 		}
 
-		global_dims_ = dims_;
-
 	}
 
 	std::string Save(std::string const &path) const
@@ -191,6 +189,14 @@ struct OcForest
 			strides_[0] = 1;
 			strides_[1] = dims_[0];
 			strides_[2] = dims_[1] * strides_[1];
+		}
+		if (global_dims_[0] * global_dims_[1] * global_dims_[2] <= 0)
+		{
+			global_dims_ = dims_;
+
+			global_dims_[2] = dims_[2];
+			global_dims_[1] = dims_[1];
+			global_dims_[0] = dims_[0];
 		}
 
 //		CHECK(carray_digits_);
@@ -634,6 +640,7 @@ struct OcForest
 
 				++rank;
 			}
+
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
