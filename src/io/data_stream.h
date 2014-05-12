@@ -147,7 +147,7 @@ struct HDF5DataType<std::pair<TL, TR> >
 	}
 };
 
-class DataStream: public SingletonHolder<DataStream>
+class DataStream
 {
 	std::string prefix_;
 	int suffix_width_;
@@ -233,16 +233,34 @@ public:
 	void CloseGroup();
 	void CloseFile();
 
-	template<typename TV, typename TS>
-	std::string Write(TV const *v, std::string const &name, int rank, TS const *d) const
+	template<typename TV>
+	std::string Write(TV const *v, std::string const &name, int rank, size_t const * global_dims,
+	        size_t const * offset = nullptr, size_t const * local_dims = nullptr, size_t const * start = nullptr,
+	        size_t const *counts = nullptr, size_t const * strides = nullptr, size_t const *blocks = nullptr) const
 	{
-		size_t dims[rank + 1];
 
-		std::copy(d, d + rank, dims);
+		hsize_t global_dims_[rank + 1];
+		hsize_t offset_[rank + 1];
+		hsize_t local_dims_[rank + 1];
+		hsize_t start_[rank + 1];
+		hsize_t counts_[rank + 1];
+		hsize_t strides_[rank + 1];
+		hsize_t blocks_[rank + 1];
+
+		std::copy(global_dims, global_dims + rank, global_dims_);
+		std::copy(offset, offset + rank, offset_);
+		std::copy(local_dims, local_dims + rank, local_dims_);
+		std::copy(start, start + rank, start_);
+		std::copy(counts, counts + rank, counts_);
+		std::copy(strides, strides + rank, strides_);
+		std::copy(blocks, blocks + rank, blocks_);
 
 		if (is_nTuple<TV>::value)
 		{
-			dims[rank] = nTupleTraits<TV>::NDIMS;
+			global_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			local_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			counts_[rank] = nTupleTraits<TV>::NDIMS;
+			blocks_[rank] = nTupleTraits<TV>::NDIMS;
 			++rank;
 		}
 
@@ -250,21 +268,37 @@ public:
 
 		HDF5DataType<typename nTupleTraits<TV>::value_type>().type(),
 
-		rank, dims);
+		rank,
+
+		global_dims_,
+
+		offset_,
+
+		local_dims_,
+
+		start_,
+
+		counts_,
+
+		strides_,
+
+		blocks_);
 
 	}
 
-	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, size_t const *dims) const;
+	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, hsize_t const *global_dims,
+	        hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start,
+	        hsize_t const *counts, hsize_t const *strides, hsize_t const *blocks) const;
 
 }
 ;
 
-#define GLOBAL_DATA_STREAM DataStream::instance()
+#define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
 template<typename TV, typename ...Args>
 inline std::string Save(TV const *data, std::string const & name, Args const & ...args)
 {
-	return DataStream::instance().Write(data, name, std::forward<Args const &>(args)...);
+	return GLOBAL_DATA_STREAM.Write(data, name, std::forward<Args const &>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::shared_ptr<TV> const & d, Args const & ... args)

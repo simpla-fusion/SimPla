@@ -19,13 +19,15 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
-# include "../fetl/field_rw_cache.h"
+#ifndef NO_RW_CACHE
+#	include "../fetl/field_rw_cache.h"
+#endif //NO_RW_CACHE
 
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
-#include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
-#include "../utilities/parallel.h"
+
+#include "../parallel/parallel.h"
 
 #include "../io/data_stream.h"
 
@@ -33,6 +35,7 @@
 #include "load_particle.h"
 #include "save_particle.h"
 #include "particle_boundary.h"
+
 #include "../model/command.h"
 #include "../model/material.h"
 

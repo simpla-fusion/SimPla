@@ -1,12 +1,13 @@
 /*
- * parallel.h
+ * multi_thread.h
  *
- *  Created on: 2014年3月27日
+ *  Created on: 2014年5月12日
  *      Author: salmon
  */
 
-#ifndef PARALLEL_H_
-#define PARALLEL_H_
+#ifndef MULTI_THREAD_H_
+#define MULTI_THREAD_H_
+
 #include <thread>
 namespace simpla
 {
@@ -55,4 +56,4 @@ void ParallelForEach(TRange range, std::function<void(typename TRange::value_typ
 
 }  // namespace simpla
 
-#endif /* PARALLEL_H_ */
+#endif /* MULTI_THREAD_H_ */

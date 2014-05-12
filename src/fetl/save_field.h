@@ -14,12 +14,22 @@ namespace simpla
 {
 template<typename, int, typename > struct Field;
 
-template<typename TG, int IFORM, typename TV> inline std::string Save(Field<TG, IFORM, TV>
+template<typename TM, int IFORM, typename TV> inline std::string Save(Field<TM, IFORM, TV>
 const & d, std::string const & name)
 {
-	auto dims = d.GetShape();
-	return Save(d.data(), name, dims.size(), &dims[0]);
+	int rank = d.GetDataSetShape();
+
+	size_t global_dims[rank];
+	size_t local_dims[rank];
+	size_t start[rank];
+	size_t counts[rank];
+
+	d.GetDataSetShape(global_dims, local_dims, start, counts, nullptr /*strides*/, nullptr/*blocks*/);
+
+	return GLOBAL_DATA_STREAM.Write(&(*d.data()), name,rank,global_dims, local_dims, start, counts,
+			nullptr /*strides*/, nullptr/*blocks*/);
 }
-}  // namespace simpla
+}
+ // namespace simpla
 
 #endif /* SAVE_FIELD_H_ */

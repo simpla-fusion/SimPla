@@ -12,7 +12,8 @@
 #include "../utilities/memory_pool.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
-#include "../utilities/parallel.h"
+
+#include "../parallel/parallel.h"
 
 #include "save_particle.h"
 #ifndef NO_STD_CXX

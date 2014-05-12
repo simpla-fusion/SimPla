@@ -17,9 +17,8 @@
 #include <mutex>
 
 #include "primitives.h"
+#include "../parallel/parallel.h"
 #include "../utilities/log.h"
-#include "../utilities/parallel.h"
-#include "../utilities/visitor.h"
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
@@ -93,7 +92,8 @@ public:
 	{
 	}
 
-	void Accept(VisitorBase const & visitor)
+	template<typename TVistor>
+	void Accept(TVistor const & visitor)
 	{
 		visitor.Visit(this);
 	}
@@ -107,6 +107,12 @@ public:
 
 	auto GetShape() const
 	DECL_RET_TYPE(mesh.GetShape( IForm ))
+
+	template<typename ...Args>
+	int GetDataSetShape(Args ...others) const
+	{
+		return mesh.GetDataSetShape(IForm, std::forward<Args >(others)...);
+	}
 
 	container_type & data()
 	{

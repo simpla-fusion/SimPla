@@ -47,13 +47,6 @@ public:
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 
-	std::shared_ptr<GlobalMesh<this_type>> parent_;
-
-	// local[i,j,k]-ghost_width_+offset_ = global[i,j,k]
-	nTuple<NDIMS, size_t> ghost_width_;
-
-	nTuple<NDIMS, size_t> offset_;
-
 	//* Time
 
 	Real dt_ = 0.0; //!< time step
@@ -61,13 +54,13 @@ public:
 	unsigned long clock_ = 0UL;
 
 	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this)), parent_(nullptr)
+			: geometry_type(static_cast<TTopology const &>(*this))
 	{
 	}
 
 	template<typename TDict>
 	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this)), parent_(nullptr)
+			: geometry_type(static_cast<TTopology const &>(*this))
 	{
 		Load(dict);
 	}
@@ -109,62 +102,21 @@ public:
 		return os.str();
 	}
 
-	void SetGlobalMesh(std::shared_ptr<GlobalMesh<this_type>> parent_mesh)
-	{
-		parent_ = parent_mesh;
-		parent_->Decompose(this);
-	}
-
-	std::shared_ptr<GlobalMesh<this_type>> GetGlobalMesh() const
-	{
-		return parent_;
-	}
+	//***************************************************************************************************
 
 	template<typename TI>
-	void Decompose(this_type * sub, TI num_process, TI process_num, unsigned int gw = 2) const
+	void Decompose(TI const &num_process, TI const & process_num, unsigned int gw = 2)
 	{
 
-		nTuple<3, size_t> sub_dims, imin, imax;
+		auto extent = topology_type::Decompose(num_process, process_num, gw);
 
-		for (int i = 0; i < 3; ++i)
-		{
-
-			if (2 * gw * num_process[i] > dims_[i])
-			{
-				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << dims_[i]
-
-				<< " process[" << i << "]=" << num_proces[i] << " ghost_width=" << ghost_width_ << std::endl;
-			}
-
-			if (num_process[i] <= 1)
-			{
-				num_process[i] = 1;
-				process_num[i] = 0;
-				imin[i] = 0;
-				imax[i] = dims_[i];
-
-				sub->ghost_width_[i] = 0;
-				sub->offset_[i] = 0;
-			}
-			else
-			{
-				imin[i] = dims_[i] * process_num[i] / (num_process[i]) - gw;
-				imax[i] = dims_[i] * (process_num[i] + 1) / (num_process[i]) + gw;
-
-				sub->ghost_width_[i] = gw;
-				sub->offset_[i] = imin[i] + gw;
-			}
-
-			sub_dims[i] = imax[i] - imin[i];
-		}
-		sub->topology_type::SetDimensions(sub_dims);
-		sub->geometry_type::SetExtent(GetCoordinates(imin), GetCoordinates(imax));
+		geometry_type::SetExtent(GetCoordinates(extent.first), GetCoordinates(extent.second));
 
 	}
 
-//***************************************************************************************************
-//*	Miscellaneous
-//***************************************************************************************************
+	//***************************************************************************************************
+	//*	Miscellaneous
+	//***************************************************************************************************
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
@@ -173,14 +125,10 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
-// Time
+	// Time
 	void NextTimeStep()
 	{
 		++clock_;
-
-		if(parent_!=nullptr)
-		{	parent_->Sync(clock_);}
-
 	}
 	Real GetTime() const
 	{

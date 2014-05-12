@@ -146,9 +146,21 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << description;
 
-	GlobalMesh<mesh_type> global_mesh(dict["Grid"]);
+	mesh.Load(dict["Grid"]);
 
-	global_mesh.UpdateLocalMesh(&mesh);
+#ifdef USE_MPI
+	if (GLOBAL_COMM.IsInitilized())
+	{
+		nTuple<3, size_t> num_process =
+		{	1, 1, 1};
+		nTuple<3, size_t> process_num =
+		{	0, 0, 0};
+
+		GLOBAL_COMM.Decompose(&num_process[0],&process_num[0]);
+
+		mesh.Decompose(num_process,process_num,2 /* ghost width*/);
+	}
+#endif
 
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
@@ -389,8 +401,6 @@ template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
 {
 	Real dt = mesh.GetDt();
-
-	global_mesh.NextTimeStep();
 
 	DEFINE_PHYSICAL_CONST
 

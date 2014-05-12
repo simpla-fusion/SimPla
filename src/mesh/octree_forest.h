@@ -100,6 +100,11 @@ struct OcForest
 
 	nTuple<NDIMS, size_type> dims_ = { 1, 1, 1 };
 
+	// local[i,j,k]-ghost_width_+offset_ = global[i,j,k]
+	nTuple<NDIMS, size_t> global_dims_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_t> ghost_width_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_t> offset_ = { 0, 0, 0 };
+
 	nTuple<NDIMS, size_type> strides_ = { 0, 0, 0 };
 
 	nTuple<NDIMS, size_type> carray_digits_;
@@ -141,6 +146,8 @@ struct OcForest
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>(),
 			        dict["ArrayOrder"].template as<std::string>("C_ORDER") == "C_ORDER");
 		}
+
+		global_dims_ = dims_;
 
 	}
 
@@ -206,6 +213,51 @@ struct OcForest
 //		CHECK_BIT(_MRK);
 //		CHECK_BIT(_MTK);
 //		CHECK_BIT(_MASK);
+
+	}
+	//***************************************************************************************************
+
+	template<typename TI>
+	std::pair<nTuple<3, size_t>, nTuple<3, size_t>> Decompose(TI num_process, TI process_num, unsigned int gw = 2)
+	{
+
+		nTuple<3, size_t> sub_dims, imin, imax;
+
+		for (int i = 0; i < 3; ++i)
+		{
+
+			if (2 * gw * num_process[i] > dims_[i])
+			{
+				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << dims_[i]
+
+				<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width_ << std::endl;
+			}
+
+			if (num_process[i] <= 1)
+			{
+				num_process[i] = 1;
+				process_num[i] = 0;
+				imin[i] = 0;
+				imax[i] = dims_[i];
+
+				ghost_width_[i] = 0;
+				offset_[i] = 0;
+			}
+			else
+			{
+				imin[i] = dims_[i] * process_num[i] / (num_process[i]) - gw;
+				imax[i] = dims_[i] * (process_num[i] + 1) / (num_process[i]) + gw;
+
+				ghost_width_[i] = gw;
+				offset_[i] = imin[i] + gw;
+			}
+
+			sub_dims[i] = imax[i] - imin[i];
+		}
+
+		SetDimensions(sub_dims);
+
+		return std::make_pair(imin, imax);
 
 	}
 
@@ -525,7 +577,8 @@ struct OcForest
 
 	inline index_type GetIndex(nTuple<3, size_t> const & idx)
 	{
-
+		index_type res;
+		return res;
 	}
 
 //***************************************************************************************************
@@ -555,6 +608,47 @@ struct OcForest
 		}
 
 		return std::move(res);
+	}
+
+	int GetDataSetShape(int IFORM, size_t * global_dims = nullptr, size_t * local_dims = nullptr, size_t * start =
+	        nullptr, size_t *counts = nullptr, size_t *strides = nullptr, size_t *blocks = nullptr) const
+	{
+
+		int rank = 0;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (global_dims_[i] > 1)
+			{
+				if (global_dims != nullptr)
+					global_dims[i] = global_dims_[i];
+
+				if (local_dims != nullptr)
+					local_dims[i] = dims_[i];
+
+				if (start != nullptr)
+					start[i] = offset_[i] + ghost_width_[i];
+
+				if (counts != nullptr)
+					counts[i] = dims_[i] - ghost_width_[i] * 2;
+
+				++rank;
+			}
+		}
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			if (global_dims != nullptr)
+				global_dims[rank] = 3;
+
+			if (local_dims != nullptr)
+				local_dims[rank] = 3;
+
+			if (counts != nullptr)
+				counts[rank] = 3;
+
+			++rank;
+		}
+		return rank;
 	}
 
 	template<typename TI>
