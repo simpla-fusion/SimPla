@@ -28,6 +28,10 @@
 #include <stdexcept>
 #include <string>
 
+#ifdef USE_MPI
+#	include "../parallel/message_comm.h"
+#endif
+
 enum
 {
 	LOG_OUT_RANGE_ERROR = -4, LOG_LOGIC_ERROR = -3, LOG_ERROR = -2,
@@ -44,8 +48,9 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int l = LOG_LOG)
-			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int l = LOG_LOG) :
+			std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(
+					0)
 	{
 	}
 	~LoggerStreams()
@@ -130,29 +135,39 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger()
-			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
+	Logger() :
+			null_dump_(true), level_(0), current_line_char_count_(0), indent_(
+					0), endl_(true)
 	{
 	}
 
-	Logger(Logger const & r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-			        r.indent_), endl_(r.endl_)
+	Logger(Logger const & r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(
+					r.current_line_char_count_), indent_(r.indent_), endl_(
+					r.endl_)
 	{
 	}
 
-	Logger(Logger && r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-			        r.indent_), endl_(r.endl_)
+	Logger(Logger && r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(
+					r.current_line_char_count_), indent_(r.indent_), endl_(
+					r.endl_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0)
-			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
+	Logger(int lv, size_t indent = 0) :
+			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(
+					indent), endl_(true)
 	{
 		buffer_ << std::endl << std::boolalpha;
 
-		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
+#ifdef USE_MPI
+		buffer_ << "[" << GLOBAL_COMM.GetRank() << "/" << GLOBAL_COMM.GetSize()
+		<< "]";
+#endif
+
+		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR
+				|| level_ == LOG_OUT_RANGE_ERROR)
 		{
 			buffer_ << "[E]";
 		}
@@ -176,7 +191,8 @@ public:
 			buffer_ << "[D]";
 		}
 
-		size_t indent_width = SingletonHolder<LoggerStreams>::instance().GetIndent();
+		size_t indent_width =
+				SingletonHolder<LoggerStreams>::instance().GetIndent();
 		if (indent_width > 0)
 			buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
 
@@ -205,7 +221,8 @@ public:
 		{
 //			if (current_line_char_count_ > 0 && endl_)
 //				buffer_ << std::endl;
-			SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
+			SingletonHolder<LoggerStreams>::instance().put(level_,
+					buffer_.str());
 		}
 
 		UnsetIndent(indent_);
@@ -236,9 +253,11 @@ public:
 	{
 		const_cast<this_type*>(this)->buffer_ << std::setfill('.')
 
-		<< std::setw(SingletonHolder<LoggerStreams>::instance().GetLineWidth() - current_line_char_count_)
+				<< std::setw(
+						SingletonHolder<LoggerStreams>::instance().GetLineWidth()
+								- current_line_char_count_)
 
-		<< std::right << s << std::left;
+				<< std::right << s << std::left;
 
 		endl();
 
@@ -267,7 +286,8 @@ public:
 
 		current_line_char_count_ += GetBufferLength();
 
-		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().GetLineWidth())
+		if (current_line_char_count_
+				> SingletonHolder<LoggerStreams>::instance().GetLineWidth())
 			endl();
 
 		return *this;
@@ -328,7 +348,8 @@ public:
 	static std::string TimeStamp()
 	{
 
-		auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
+		auto now = std::chrono::system_clock::to_time_t(
+				std::chrono::system_clock::now());
 
 		char mtstr[100];
 		std::strftime(mtstr, 100, "%F %T", std::localtime(&now));
@@ -450,8 +471,8 @@ struct SetLineWidth
 {
 	int width_;
 
-	SetLineWidth(int width)
-			: width_(width)
+	SetLineWidth(int width) :
+			width_(width)
 	{
 	}
 	~SetLineWidth()

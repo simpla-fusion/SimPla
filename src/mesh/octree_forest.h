@@ -271,6 +271,13 @@ struct OcForest
 				ghost_width_[i] = 0;
 				offset_[i] = 0;
 			}
+			else if ((1UL << (count_bits(num_process[i]) - 1))
+					!= num_process[i])
+			{
+				CHECK(1UL << (count_bits(num_process[i]) - 1));
+
+				ERROR << " Number of process must be 2^n" << std::endl;
+			}
 			else
 			{
 				if (2 * gw * num_process[i] > dims_[i])
@@ -374,14 +381,14 @@ struct OcForest
 				{ ~0UL }))
 		{
 		}
-		template<typename ...Args>
-		iterator(OcForest const & m, Args const & ... args) :
+		template<typename ...Args> iterator(OcForest const & m,
+				Args const & ... args) :
 				mesh(&m), s_(index_type(
 				{ args... }))
 		{
 		}
-		template<typename ...Args>
-		iterator(OcForest const * m, Args const & ... args) :
+		template<typename ...Args> iterator(OcForest const * m,
+				Args const & ... args) :
 				mesh(m), s_(index_type(
 				{ args... }))
 		{
@@ -709,8 +716,8 @@ struct OcForest
 		return rank;
 	}
 
-	template<typename TI>
-	inline coordinates_type GetCoordinates(TI const & s) const
+	template<typename TI> inline coordinates_type GetCoordinates(
+			TI const & s) const
 	{
 
 		return coordinates_type(
