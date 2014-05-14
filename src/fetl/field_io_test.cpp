@@ -26,13 +26,13 @@ int main(int argc, char **argv)
 	using namespace simpla;
 
 	nTuple<3, Real> xmin =
-	{ -1.0, -1.0, -1.0 };
+	{	-1.0, -1.0, -1.0};
 
 	nTuple<3, Real> xmax =
-	{ 1.0, 1.0, 1.0 };
+	{	1.0, 1.0, 1.0};
 
 	nTuple<3, size_t> dims =
-	{ 16, 2, 2 };
+	{	16, 2, 2};
 
 	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
 
@@ -41,14 +41,14 @@ int main(int argc, char **argv)
 	mesh.SetDimensions(dims);
 
 	mesh.SetExtent(xmin, xmax);
-
+#if USE_PARALLEL_IO
 	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
-
+#endif
 	Field<mesh_type, VERTEX, Real> f(mesh);
 	f.Clear();
 
 #if USE_PARALLEL_IO
-	f.Fill(GLOBAL_COMM.GetRank());
+	f.Fill(GLOBAL_COMM.GetRank()+100);
 #else
 	f.Fill(1234);
 #endif

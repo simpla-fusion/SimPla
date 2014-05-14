@@ -246,13 +246,10 @@ struct OcForest
 	std::pair<nTuple<3, size_t>, nTuple<3, size_t>> Decompose(unsigned int n,
 			unsigned int s, unsigned int gw = 2)
 	{
-		nTuple<3, size_t> num_process =
-		{ n, 1, 1 };
 
-		nTuple<3, size_t> process_num =
-		{ s, 1, 1 };
-
-		return Decompose(n, s, gw);
+		return Decompose(nTuple<3, size_t>(
+		{ n, 1, 1 }), nTuple<3, size_t>(
+		{ s, 1, 1 }), gw);
 	}
 	std::pair<nTuple<3, size_t>, nTuple<3, size_t>> Decompose(
 			nTuple<3, size_t> num_process, nTuple<3, size_t> process_num,
@@ -263,15 +260,6 @@ struct OcForest
 
 		for (int i = 0; i < 3; ++i)
 		{
-
-			if (2 * gw * num_process[i] > dims_[i])
-			{
-				ERROR << "Mesh is too small to decompose! dims[" << i << "]="
-						<< dims_[i]
-
-						<< " process[" << i << "]=" << num_process[i]
-						<< " ghost_width=" << ghost_width_ << std::endl;
-			}
 
 			if (num_process[i] <= 1)
 			{
@@ -285,6 +273,15 @@ struct OcForest
 			}
 			else
 			{
+				if (2 * gw * num_process[i] > dims_[i])
+				{
+					ERROR << "Mesh is too small to decompose! dims[" << i
+							<< "]=" << dims_[i]
+
+							<< " process[" << i << "]=" << num_process[i]
+							<< " ghost_width=" << ghost_width_ << std::endl;
+				}
+
 				imin[i] = dims_[i] * process_num[i] / (num_process[i]) - gw;
 				imax[i] = dims_[i] * (process_num[i] + 1) / (num_process[i])
 						+ gw;
@@ -299,7 +296,6 @@ struct OcForest
 		SetDimensions(sub_dims);
 
 		return std::make_pair(imin, imax);
-
 	}
 
 //***************************************************************************************************

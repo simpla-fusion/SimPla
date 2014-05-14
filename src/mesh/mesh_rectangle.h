@@ -26,7 +26,8 @@ class OcForest;
  *  Grid is mapped as a rectangle/hexahedrom Range;
  *
  */
-template<typename TTopology = OcForest, template<typename > class Geometry = EuclideanGeometry>
+template<typename TTopology = OcForest,
+		template<typename > class Geometry = EuclideanGeometry>
 class RectMesh: public TTopology, public Geometry<TTopology>
 {
 public:
@@ -52,14 +53,14 @@ public:
 	Real time0_ = 0.0;
 	unsigned long clock_ = 0UL;
 
-	RectMesh()
-			: geometry_type(static_cast<TTopology const &>(*this))
+	RectMesh() :
+			geometry_type(static_cast<TTopology const &>(*this))
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict)
-			: geometry_type(static_cast<TTopology const &>(*this))
+	RectMesh(TDict const & dict) :
+			geometry_type(static_cast<TTopology const &>(*this))
 	{
 		Load(dict);
 	}
@@ -79,8 +80,10 @@ public:
 	void Load(TDict const & dict, Others const &...others)
 	{
 		LOGGER << "Load Mesh RectMesh";
-		topology_type::Load(dict["Topology"], std::forward<Others const&>(others)...);
-		geometry_type::Load(dict["Geometry"], std::forward<Others const&>(others)...);
+		topology_type::Load(dict["Topology"],
+				std::forward<Others const&>(others)...);
+		geometry_type::Load(dict["Geometry"],
+				std::forward<Others const&>(others)...);
 
 		dt_ = dict["dt"].template as<Real>(1.0);
 
@@ -104,12 +107,14 @@ public:
 	//***************************************************************************************************
 
 	template<typename TI>
-	void Decompose(TI const &num_process, TI const & process_num, unsigned int gw = 2)
+	void Decompose(TI const &num_process, TI const & process_num,
+			unsigned int gw = 2)
 	{
 
 		auto extent = topology_type::Decompose(num_process, process_num, gw);
 
-		geometry_type::SetExtent(GetCoordinates(extent.first), GetCoordinates(extent.second));
+		geometry_type::SetExtent(GetCoordinates(extent.first),
+				GetCoordinates(extent.second));
 
 	}
 
