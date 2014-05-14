@@ -42,6 +42,15 @@ public:
 	{
 
 	}
+	void NextTimeStep()
+	{
+
+	}
+
+	void UpdateLocalMesh(mesh_type*)const
+	{
+
+	}
 
 };
 }  // namespace simpla

@@ -43,7 +43,8 @@ void DataStream::OpenGroup(std::string const & gname)
 	}
 	else
 	{
-		H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+		H5_ERROR(
+				group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 	}
 	if (group_ <= 0)
 	{
@@ -88,7 +89,8 @@ void DataStream::OpenFile(std::string const &fname)
 	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
 #endif
 
-	H5_ERROR(file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+	H5_ERROR(
+			file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 	H5Pclose(plist_id);
 
@@ -118,9 +120,11 @@ void DataStream::CloseFile()
 	file_ = -1;
 }
 
-std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank,
-        hsize_t const *global_dims, hsize_t const *offset, hsize_t const * local_dims, hsize_t const * start,
-        hsize_t const *counts, hsize_t const *strides, hsize_t const *blocks) const
+std::string DataStream::WriteHDF5(void const *v, std::string const &name,
+		hid_t mdtype, int rank, hsize_t const *global_dims,
+		hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start,
+		hsize_t const *counts, hsize_t const *strides,
+		hsize_t const *blocks) const
 {
 
 	if (v == nullptr)
@@ -151,7 +155,8 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 		file_space = H5Screate_simple(rank, global_dims, nullptr);
 
-		dset = H5Dcreate(group_, dsname.c_str(), mdtype, file_space, H5P_DEFAULT,
+		dset = H5Dcreate(group_, dsname.c_str(), mdtype, file_space,
+		H5P_DEFAULT,
 		H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
@@ -159,10 +164,12 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 		H5_ERROR(H5Fflush(group_, H5F_SCOPE_GLOBAL));
 
 		file_space = H5Dget_space(dset);
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset, NULL, counts, NULL));
+		H5_ERROR(
+				H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset, NULL, counts, NULL));
 
 		mem_space = H5Screate_simple(rank, local_dims, NULL);
-		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start, NULL, counts, NULL);
+		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start, NULL, counts,
+		NULL);
 
 	}
 	else
@@ -186,7 +193,8 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 			H5_ERROR(H5Pset_chunk(dcpl_id, rank, chunk_dims));
 
-			dset = H5Dcreate(group_, dsname.c_str(), mdtype, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(group_, dsname.c_str(), mdtype, space, H5P_DEFAULT,
+					dcpl_id, H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(space));
 
@@ -227,7 +235,9 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 		std::copy(counts, counts + rank - 1, counts_ + 1);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset_, nullptr, counts_, nullptr));
+		H5_ERROR(
+				H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset_,
+						nullptr, counts_, nullptr));
 
 		hsize_t local_dims_[rank];
 
@@ -243,7 +253,8 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 		mem_space = H5Screate_simple(rank, local_dims_, nullptr);
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start_, NULL, counts_, NULL));
+		H5_ERROR(
+				H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start_, NULL, counts_, NULL));
 
 	}
 

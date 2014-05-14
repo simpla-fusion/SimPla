@@ -17,7 +17,6 @@
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
 #include "interpolator.h"
-#include "glaobal_mesh.h"
 namespace simpla
 {
 template<typename > class EuclideanGeometry;

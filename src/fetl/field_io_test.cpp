@@ -19,17 +19,20 @@
 int main(int argc, char **argv)
 {
 
-#if USE_PARALLEL_IO
+#ifdef USE_PARALLEL_IO
 	GLOBAL_COMM.Init(argc,argv);
 #endif
 
 	using namespace simpla;
 
-	nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+	nTuple<3, Real> xmin =
+	{ -1.0, -1.0, -1.0 };
 
-	nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+	nTuple<3, Real> xmax =
+	{ 1.0, 1.0, 1.0 };
 
-	nTuple<3, size_t> dims = { 16, 32, 67 };
+	nTuple<3, size_t> dims =
+	{ 16, 2, 2 };
 
 	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
 
@@ -39,7 +42,10 @@ int main(int argc, char **argv)
 
 	mesh.SetExtent(xmin, xmax);
 
+	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
+
 	Field<mesh_type, VERTEX, Real> f(mesh);
+	f.Clear();
 
 #if USE_PARALLEL_IO
 	f.Fill(GLOBAL_COMM.GetRank());
