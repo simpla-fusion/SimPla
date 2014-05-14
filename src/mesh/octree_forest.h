@@ -184,9 +184,13 @@ struct OcForest
 				+ ((d[1] > 0) ? (count_bits(d[1]) - 1) : 0);
 		carray_digits_[2] = D_FP_POS + 1
 				+ ((d[2] > 0) ? (count_bits(d[2]) - 1) : 0);
-		dims_[0] = 1UL << (carray_digits_[0] - D_FP_POS - 1);
-		dims_[1] = 1UL << (carray_digits_[1] - D_FP_POS - 1);
-		dims_[2] = 1UL << (carray_digits_[2] - D_FP_POS - 1);
+//		dims_[0] = 1UL << (carray_digits_[0] - D_FP_POS - 1);
+//		dims_[1] = 1UL << (carray_digits_[1] - D_FP_POS - 1);
+//		dims_[2] = 1UL << (carray_digits_[2] - D_FP_POS - 1);
+
+		dims_[0] = d[0];
+		dims_[1] = d[1];
+		dims_[2] = d[2];
 
 		_MASK =
 
@@ -247,6 +251,11 @@ struct OcForest
 			unsigned int s, unsigned int gw = 2)
 	{
 
+		if ((1UL << (count_bits(n) - 1)) != n || n == 2)
+		{
+			ERROR << " Number of process must be 2^n" << std::endl;
+		}
+
 		return Decompose(nTuple<3, size_t>(
 		{ n, 1, 1 }), nTuple<3, size_t>(
 		{ s, 1, 1 }), gw);
@@ -270,13 +279,6 @@ struct OcForest
 
 				ghost_width_[i] = 0;
 				offset_[i] = 0;
-			}
-			else if ((1UL << (count_bits(num_process[i]) - 1))
-					!= num_process[i])
-			{
-				CHECK(1UL << (count_bits(num_process[i]) - 1));
-
-				ERROR << " Number of process must be 2^n" << std::endl;
 			}
 			else
 			{
@@ -534,16 +536,32 @@ struct OcForest
 
 	compact_index_type CalCarray(compact_index_type s) const
 	{
+//		if ((K(s) >> (D_FP_POS - 1)) >= dims_[2])
+//		{
+//			s = (s & (~((1UL << INDEX_DIGITS)) - 1)) + (_DJ);
+//		}
+//
+//		if ((J(s) >> (D_FP_POS - 1)) >= dims_[1])
+//		{
+//			s = (s & (~(((1UL << INDEX_DIGITS)) - 1) << INDEX_DIGITS)) + (_DI);
+//		}
+//
+//		if ((I(s) >> (D_FP_POS - 1)) >= dims_[0])
+//		{
+//			s = (s & (~(((1UL << INDEX_DIGITS)) - 1) << (2 * INDEX_DIGITS)))
+//					+ (_DK);
+//		}
+
+#ifndef NOT_2N_DIMS
 		auto bit = s & (1UL << (carray_digits_[2] - 1));
-		s = (s & (~bit))
-				+ (bit
-						<< (INDEX_DIGITS + D_FP_POS - carray_digits_[2] + 1
-								- H(s)));
+		+(bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[2] + 1 - H(s)));
 		bit = s & (1UL << (carray_digits_[1] + INDEX_DIGITS - 1));
 		s = (s & (~bit))
-				+ (bit
-						<< (INDEX_DIGITS + D_FP_POS - carray_digits_[1] + 1
-								- H(s)));
+				+ (bit << (INDEX_DIGITS + D_FP_POS - carray_digits_[1] + 1
+
+				- H(s)));
+
+#endif
 		return s;
 	}
 
