@@ -22,7 +22,6 @@
 // Data IO
 #include "../../src/io/data_stream.h"
 
-#include "../../src/mesh/glaobal_mesh.h"
 // Field
 #include "../../src/fetl/fetl.h"
 #include "../../src/fetl/save_field.h"

@@ -131,11 +131,13 @@ struct EuclideanGeometry
 
 		auto const & dims = topology.GetDimensions();
 
+		auto extent = topology.GetExtents();
+
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			shift_[i] = xmin_[i];
-			scale_[i] = (xmax_[i] > xmin_[i]) ? ((static_cast<Real>(dims[i])) / (xmax_[i] - xmin_[i])) : 0;
-			inv_scale_[i] = (xmax_[i] - xmin_[i]) / (static_cast<Real>(dims[i]));
+			scale_[i] = (xmax_[i] > xmin_[i]) ? (extent[i] / (xmax_[i] - xmin_[i])) : 0;
+			inv_scale_[i] = (xmax_[i] - xmin_[i]) / extent[i];
 		}
 
 		/**
@@ -160,9 +162,9 @@ struct EuclideanGeometry
 		 */
 
 		volume_[0] = 1;
-		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]) : 1;
-		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]) : 1;
-		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2]) : 1;
+		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / (extent[0]) : 1;
+		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / (extent[1]) : 1;
+		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / (extent[2]) : 1;
 
 		volume_[3] /* 011 */= volume_[1] * volume_[2];
 		volume_[5] /* 101 */= volume_[4] * volume_[1];
@@ -171,9 +173,9 @@ struct EuclideanGeometry
 		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
 
 		dual_volume_[7] = 1;
-		dual_volume_[6] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]) : 1;
-		dual_volume_[5] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]) : 1;
-		dual_volume_[3] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2]) : 1;
+		dual_volume_[6] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / (extent[0]) : 1;
+		dual_volume_[5] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / (extent[1]) : 1;
+		dual_volume_[3] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / (extent[2]) : 1;
 
 		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
 		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
@@ -196,15 +198,15 @@ struct EuclideanGeometry
 
 	inline coordinates_type GetDx() const
 	{
-		auto dims = topology.GetDimensions();
+		auto extent = topology.GetExtents();
 
 		return std::move(coordinates_type( {
 
-		(xmax_[0] - xmin_[0]) / static_cast<Real>(dims[0]),
+		(xmax_[0] - xmin_[0]) / (extent[0]),
 
-		(xmax_[1] - xmin_[1]) / static_cast<Real>(dims[1]),
+		(xmax_[1] - xmin_[1]) / (extent[1]),
 
-		(xmax_[2] - xmin_[2]) / static_cast<Real>(dims[2])
+		(xmax_[2] - xmin_[2]) / (extent[2])
 
 		}));
 	}
