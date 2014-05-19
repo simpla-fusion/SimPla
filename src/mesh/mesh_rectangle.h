@@ -19,21 +19,19 @@
 #include "interpolator.h"
 namespace simpla
 {
-template<typename > class EuclideanGeometry;
 
+template<typename TGeometry> class Mesh;
 class OcForest;
-/**
- *  Grid is mapped as a rectangle/hexahedrom Range;
- *
- */
-template<typename TTopology = OcForest,
-		template<typename > class Geometry = EuclideanGeometry>
-class RectMesh: public TTopology, public Geometry<TTopology>
+
+template<template<typename > class TGeometry>
+class Mesh<TGeometry<OcForest>> : public TGeometry<OcForest>
 {
 public:
-	typedef RectMesh<TTopology, Geometry> this_type;
-	typedef TTopology topology_type;
-	typedef Geometry<topology_type> geometry_type;
+	typedef Mesh<TGeometry<OcForest>> this_type;
+
+	typedef TGeometry<OcForest> geometry_type;
+
+	typedef typename geometry_type::topology_type topology_type;
 
 	typedef Interpolator<this_type> interpolator_type;
 
@@ -47,27 +45,23 @@ public:
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 
-	//* Time
-
-	Real dt_ = 0.0; //!< time step
-	Real time0_ = 0.0;
-	unsigned long clock_ = 0UL;
-
-	RectMesh() :
-			geometry_type(static_cast<TTopology const &>(*this))
+	Mesh()
+			: geometry_type()
 	{
 	}
 
 	template<typename TDict>
-	RectMesh(TDict const & dict) :
-			geometry_type(static_cast<TTopology const &>(*this))
+	Mesh(TDict const & dict)
+			: geometry_type()
 	{
 		Load(dict);
 	}
-	~RectMesh()
+
+	~Mesh()
 	{
 	}
-	RectMesh(const this_type&) = delete;
+
+	Mesh(const this_type&) = delete;
 
 	this_type & operator=(const this_type&) = delete;
 
@@ -76,51 +70,25 @@ public:
 		return (this == &r);
 	}
 
-	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others const &...others)
-	{
-		LOGGER << "Load Mesh RectMesh";
-		topology_type::Load(dict["Topology"],
-				std::forward<Others const&>(others)...);
-		geometry_type::Load(dict["Geometry"],
-				std::forward<Others const&>(others)...);
+//	template<typename TDict, typename ...Others>
+//	void Load(TDict const & dict, Others const &...others)
+//	{
+//		geometry_type::Load(dict, std::forward<Others const&>(others)...);
+//	}
+//
+//	std::string Save(std::string const &path) const
+//	{
+//		return geometry_type::Save(path);
+//	}
+//
+//	std::string Print() const
+//	{
+//		return geometry_type::Print();
+//	}
 
-		dt_ = dict["dt"].template as<Real>(1.0);
-
-	}
-
-	std::string Save(std::string const &path) const
-	{
-		std::stringstream os;
-
-		os
-
-		<< "\n Topology  = { " << topology_type::Save(path) << "}, "
-
-		<< "\n Geometry  = { " << geometry_type::Save(path) << "},"
-
-		<< "\n dt=" << dt_;
-
-		return os.str();
-	}
-
-	//***************************************************************************************************
-
-	template<typename TI>
-	void Decompose(TI const &num_process, TI const & process_num,
-			unsigned int gw = 2)
-	{
-
-		auto extent = topology_type::Decompose(num_process, process_num, gw);
-
-		geometry_type::SetExtent(GetCoordinates(extent.first),
-				GetCoordinates(extent.second));
-
-	}
-
-	//***************************************************************************************************
-	//*	Miscellaneous
-	//***************************************************************************************************
+//***************************************************************************************************
+//*	Miscellaneous
+//***************************************************************************************************
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
@@ -129,26 +97,13 @@ public:
 		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
 	}
 
-	// Time
-	void NextTimeStep()
-	{
-		++clock_;
-	}
-	Real GetTime() const
-	{
-		return static_cast<double>(clock_)*dt_+time0_;
-	}
-
-	Real GetDt() const
-	{
-		return dt_;
-	}
-
-	Real CheckCourantDt(nTuple<3,Real> const & u) const
+	//***************************************************************************************************
+	Real CheckCourantDt(nTuple<3, Real> const & u) const
 	{
 
-		Real dt = dt_;
-		auto dims = topology_type::GetDimensions();
+		Real dt = geometry_type::GetDt();
+
+		auto dims= geometry_type::GetDimensions();
 		auto extent = geometry_type::GetExtent();
 
 		Real r = 0.0;
@@ -170,61 +125,8 @@ public:
 
 	Real CheckCourantDt(Real speed) const
 	{
-		return CheckCourantDt(nTuple<3,Real>(
-				{	speed,speed,speed}));
-	}
-
-//***************************************************************************************************
-
-	Real Volume(index_type s) const
-	{
-		return geometry_type::Volume(s);
-	}
-	Real InvVolume(index_type s) const
-	{
-		return geometry_type::InvVolume(s);
-	}
-
-	Real DualVolume(index_type s) const
-	{
-		return geometry_type::DualVolume(s);
-	}
-	Real InvDualVolume(index_type s) const
-	{
-		return geometry_type::InvDualVolume(s);
-	}
-
-	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const
-	{
-		return geometry_type::CoordinatesLocalToGlobal(topology_type::CoordinatesLocalToGlobal(s,x));
-	}
-	index_type CoordinatesGlobalToLocal(coordinates_type *x,compact_index_type shift=0 )const
-	{
-		*x=geometry_type::CoordinatesGlobalToLocal(*x);
-		return topology_type::CoordinatesGlobalToLocal(x,shift );
-	}
-	index_type CoordinatesGlobalToLocalDual(coordinates_type *x,compact_index_type shift=0)const
-	{
-		*x=geometry_type::CoordinatesGlobalToLocal(*x);
-		return topology_type::CoordinatesGlobalToLocalDual(x,shift);
-	}
-	index_type GetCellIndex(coordinates_type x )const
-	{
-		auto r=geometry_type::CoordinatesGlobalToLocal( x);
-		return topology_type::CoordinatesGlobalToLocal(&r);
-
-	}
-
-	index_type GetCellIndex(index_type s)const
-	{
-		return topology_type::GetCellIndex(s);
-
-	}
-
-	template<typename TI>
-	coordinates_type GetCoordinates(TI s) const
-	{
-		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
+		return CheckCourantDt(nTuple<3, Real>(
+				{	speed, speed, speed}));
 	}
 
 	template<int IFORM,typename TExpr>
@@ -712,6 +614,7 @@ public:
 		Z = (topology_type::_C(Z)==N)?Z:0UL;
 
 		Real a= geometry_type::InvDualVolume(s) *geometry_type::Volume(s);
+
 		return (
 
 		f[s + Y]*(geometry_type::InvVolume(s + Y)*geometry_type::DualVolume(s + Y)*a)
@@ -935,13 +838,7 @@ public:
 		);
 	}
 };
-template<typename TTopology, template<typename > class TGeo> inline std::ostream &
-operator<<(std::ostream & os, RectMesh<TTopology, TGeo> const & d)
-{
-	d.Print(os);
 
-	return os;
-}
 }
 // namespace simpla
 
