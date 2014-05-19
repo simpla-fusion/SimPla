@@ -69,7 +69,7 @@ void Context::Load(LuaObject const & dict)
 
 		if (mesh_str == "RectMesh")
 		{
-			typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+			typedef Mesh<EuclideanGeometry<OcForest> > mesh_type;
 			CreateContext<ExplicitEMContext<mesh_type>>(this, dict);
 
 		}

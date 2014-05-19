@@ -22,7 +22,6 @@
 #ifndef NO_RW_CACHE
 #	include "../fetl/field_rw_cache.h"
 #endif //NO_RW_CACHE
-
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/type_utilites.h"
@@ -77,8 +76,8 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...others);
+	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh,
+			TDict const & dict, Args const & ...others);
 
 	// Destructor
 	virtual ~Particle();
@@ -119,9 +118,11 @@ private:
 
 template<typename Engine>
 template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
+Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict,
+		Others const & ...others)
 
-		: engine_type(pmesh, dict, std::forward<Others const&>(others)...),
+:
+		engine_type(pmesh, dict, std::forward<Others const&>(others)...),
 
 		storage_type(pmesh, dict),
 
@@ -139,8 +140,8 @@ Particle<Engine>::~Particle()
 {
 }
 template<typename Engine>
-template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-        Others const & ...others)
+template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(
+		TDict const & dict, Others const & ...others)
 {
 	if (!dict.is_table())
 		return;
@@ -154,8 +155,9 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-			        Command<typename engine_type::n_type>::Create(&n, item.second,
-			                std::forward<Others const &>(others)...));
+					Command<typename engine_type::n_type>::Create(&n,
+							item.second,
+							std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == "J")
@@ -164,8 +166,9 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-			        Command<typename engine_type::J_type>::Create(&J, item.second,
-			                std::forward<Others const &>(others)...));
+					Command<typename engine_type::J_type>::Create(&J,
+							item.second,
+							std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == "ParticlesBoundary")
@@ -174,7 +177,8 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
+					BoundaryCondition<this_type>::Create(this, item.second,
+							std::forward<Others const &>(others)...));
 		}
 		else
 		{
@@ -188,7 +192,8 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 //*************************************************************************************************
 
 template<typename Engine>
-std::string Particle<Engine>::Save(std::string const & path, bool is_verbose) const
+std::string Particle<Engine>::Save(std::string const & path,
+		bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -227,8 +232,9 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString()
+			<< std::boolalpha << " , Enable Implicit ="
+			<< engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -266,8 +272,9 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString()
+			<< std::boolalpha << " , Enable Implicit ="
+			<< engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 
@@ -298,7 +305,8 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 }
 template<typename Engine>
 template<typename TRange, typename ...Args>
-void Particle<Engine>::Scatter(TRange const & range, Cache<Args> &&... args) const
+void Particle<Engine>::Scatter(TRange const & range,
+		Cache<Args> &&... args) const
 {
 
 	for (auto s : range)
@@ -317,10 +325,10 @@ void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 {
 	ParallelDo(
 
-	[&](int t_num,int t_id)
-	{
-		Scatter(this->mesh.GetRange(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
-	});
+			[&](int t_num,int t_id)
+			{
+				Scatter(this->mesh.GetRange(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
+			});
 }
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline

@@ -123,8 +123,8 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	X21.Fill(0.0);
 	X22.Fill(0.0);
 
-	auto ymin = mesh.GetExtent().first;
-	auto ymax = mesh.GetExtent().second;
+	auto ymin = mesh.GetExtents().first;
+	auto ymax = mesh.GetExtents().second;
 
 	for (auto s : mesh.GetRange(VERTEX))
 	{

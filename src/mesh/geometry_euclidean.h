@@ -17,7 +17,7 @@
 namespace simpla
 {
 template<typename TTopology>
-struct EuclideanGeometry
+struct EuclideanGeometry: public TTopology
 {
 	typedef TTopology topology_type;
 
@@ -31,19 +31,18 @@ struct EuclideanGeometry
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
-	topology_type const & topology;
-
 	EuclideanGeometry(this_type const & rhs) = delete;
 
-	EuclideanGeometry(topology_type const & t)
-			: topology(t)
+	EuclideanGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	EuclideanGeometry(topology_type const & t, TDict const & dict)
-			: topology(t)
+	EuclideanGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
+		Load(dict);
 	}
 
 	~EuclideanGeometry()
@@ -55,15 +54,37 @@ struct EuclideanGeometry
 	// Metric
 	//***************************************************************************************************
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	Real dt_ = 0.0;
+	Real time0_ = 0.0;
+	// Time
+	void NextTimeStep()
+	{
+		topology_type::NextTimeStep();
+	}
+	Real GetTime() const
+	{
+		return static_cast<double>(topology_type::GetClock()) * dt_ + time0_;
+	}
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	Real GetDt() const
+	{
+		return dt_;
+	}
 
-	coordinates_type scale_ = { 1.0, 1.0, 1.0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
 
-	coordinates_type inv_scale_ = { 1.0, 1.0, 1.0 };
+	coordinates_type xmax_ =
+	{ 1, 1, 1 };
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type scale_ =
+	{ 1.0, 1.0, 1.0 };
+
+	coordinates_type inv_scale_ =
+	{ 1.0, 1.0, 1.0 };
+
+	coordinates_type shift_ =
+	{ 0, 0, 0 };
 
 	/**
 	 *
@@ -86,20 +107,24 @@ struct EuclideanGeometry
 	 *
 	 */
 
-	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1  //111
-	        };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others const &...)
@@ -107,7 +132,8 @@ struct EuclideanGeometry
 		if (dict["Min"] && dict["Max"])
 		{
 			LOGGER << "Load EuclideanGeometry ";
-			SetExtent(dict["Min"].template as<nTuple<3, Real>>(), dict["Max"].template as<nTuple<3, Real>>());
+			SetExtents(dict["Min"].template as<nTuple<3, Real>>(),
+					dict["Max"].template as<nTuple<3, Real>>());
 		}
 	}
 
@@ -121,7 +147,8 @@ struct EuclideanGeometry
 	}
 
 	template<typename T>
-	inline void SetExtent(nTuple<NDIMS, T> const & pmin, nTuple<NDIMS, T> const & pmax)
+	inline void SetExtents(nTuple<NDIMS, T> const & pmin,
+			nTuple<NDIMS, T> const & pmax)
 	{
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -129,15 +156,12 @@ struct EuclideanGeometry
 			xmax_[i] = pmax[i];
 		}
 
-		auto const & dims = topology.GetDimensions();
-
-		auto extent = topology.GetExtents();
-
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			shift_[i] = xmin_[i];
-			scale_[i] = (xmax_[i] > xmin_[i]) ? (extent[i] / (xmax_[i] - xmin_[i])) : 0;
-			inv_scale_[i] = (xmax_[i] - xmin_[i]) / extent[i];
+			scale_[i] =
+					(xmax_[i] > xmin_[i]) ? (1.0 / (xmax_[i] - xmin_[i])) : 0;
+			inv_scale_[i] = (xmax_[i] - xmin_[i]);
 		}
 
 		/**
@@ -162,9 +186,9 @@ struct EuclideanGeometry
 		 */
 
 		volume_[0] = 1;
-		volume_[1] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / (extent[0]) : 1;
-		volume_[2] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / (extent[1]) : 1;
-		volume_[4] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / (extent[2]) : 1;
+		volume_[1] /* 001 */= (xmax_[0] - xmin_[0]);
+		volume_[2] /* 010 */= (xmax_[1] - xmin_[1]);
+		volume_[4] /* 100 */= (xmax_[2] - xmin_[2]);
 
 		volume_[3] /* 011 */= volume_[1] * volume_[2];
 		volume_[5] /* 101 */= volume_[4] * volume_[1];
@@ -173,15 +197,16 @@ struct EuclideanGeometry
 		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
 
 		dual_volume_[7] = 1;
-		dual_volume_[6] /* 001 */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / (extent[0]) : 1;
-		dual_volume_[5] /* 010 */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / (extent[1]) : 1;
-		dual_volume_[3] /* 100 */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / (extent[2]) : 1;
+		dual_volume_[6] /* 001 */= (xmax_[0] - xmin_[0]);
+		dual_volume_[5] /* 010 */= (xmax_[1] - xmin_[1]);
+		dual_volume_[3] /* 100 */= (xmax_[2] - xmin_[2]);
 
 		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
 		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
 		dual_volume_[1] /* 110 */= dual_volume_[5] * dual_volume_[3];
 
-		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5] * dual_volume_[3];
+		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5]
+				* dual_volume_[3];
 
 		for (int i = 0; i < 8; ++i)
 		{
@@ -191,16 +216,17 @@ struct EuclideanGeometry
 
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
 	inline coordinates_type GetDx() const
 	{
-		auto extent = topology.GetExtents();
+		auto extent = topology_type::GetDimensions();
 
-		return std::move(coordinates_type( {
+		return std::move(coordinates_type(
+		{
 
 		(xmax_[0] - xmin_[0]) / (extent[0]),
 
@@ -210,17 +236,69 @@ struct EuclideanGeometry
 
 		}));
 	}
-	inline coordinates_type GetCoordinates(coordinates_type const &x) const
+
+	template<typename ... Args>
+	inline coordinates_type GetCoordinates(Args const & ... args) const
 	{
-		return coordinates_type( {
+		return GetCoordinates(
+				topology_type::GetCoordinates(
+						std::forward<Args const &>(args)...));
+	}
 
-		xmin_[0] + (xmax_[0] - xmin_[0]) * x[0],
+	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
+	{
+		return coordinates_type(
+		{
 
-		xmin_[1] + (xmax_[1] - xmin_[1]) * x[1],
+		x[0] * inv_scale_[0] + shift_[0],
 
-		xmin_[2] + (xmax_[2] - xmin_[2]) * x[2]
+		x[1] * inv_scale_[1] + shift_[1],
+
+		x[2] * inv_scale_[2] + shift_[2]
 
 		});
+
+	}
+
+	template<typename ... Args>
+	inline coordinates_type CoordinatesLocalToGlobal(
+			Args const & ... args) const
+	{
+		return CoordinatesLocalToGlobal(
+				topology_type::CoordinatesLocalToGlobal(
+						std::forward<Args const &>(args)...));
+	}
+
+	index_type CoordinatesGlobalToLocal(coordinates_type *x) const
+	{
+		x[0] = (x[0] - shift_[0]) * scale_[0];
+		x[1] = (x[1] - shift_[1]) * scale_[1];
+		x[2] = (x[2] - shift_[2]) * scale_[2];
+
+		return CoordinatesGlobalToLocal(x);
+	}
+
+	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
+	{
+		return x;
+	}
+
+	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
+	{
+		return x;
+	}
+
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x,
+			nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
+	}
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PullBack(coordinates_type const &x,
+			nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
 	}
 
 	template<typename TV>
@@ -232,7 +310,7 @@ struct EuclideanGeometry
 	template<typename TV>
 	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
-		return v[topology.topology_type::_C(s)];
+		return v[topology_type::_C(s)];
 	}
 
 	template<typename TV>
@@ -250,31 +328,32 @@ struct EuclideanGeometry
 	template<typename TV>
 	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology.topology_type::_C(s)] * Volume(s);
+		return v[topology_type::_C(s)] * Volume(s);
 	}
 
 	template<typename TV>
 	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology.topology_type::_C(s)] * Volume(s);
+		return v[topology_type::_C(s)] * Volume(s);
 	}
 
 	Real Volume(index_type s) const
 	{
-		return topology.Volume(s) * volume_[topology._N(s)];
+		return topology_type::Volume(s) * volume_[topology_type::_N(s)];
 	}
 	Real InvVolume(index_type s) const
 	{
-		return topology.InvVolume(s) * inv_volume_[topology._N(s)];
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::_N(s)];
 	}
 
 	Real DualVolume(index_type s) const
 	{
-		return topology.DualVolume(s) * dual_volume_[topology._N(s)];
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::_N(s)];
 	}
 	Real InvDualVolume(index_type s) const
 	{
-		return topology.InvDualVolume(s) * inv_dual_volume_[topology._N(s)];
+		return topology_type::InvDualVolume(s)
+				* inv_dual_volume_[topology_type::_N(s)];
 	}
 
 	//***************************************************************************************************
@@ -288,57 +367,10 @@ struct EuclideanGeometry
 	}
 
 	template<int IFORM, typename TV>
-	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
+	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
+			Int2Type<IFORM>, index_type s, nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v) * Volume(s);
-	}
-
-	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		x[0] * inv_scale_[0] + shift_[0],
-
-		x[1] * inv_scale_[1] + shift_[1],
-
-		x[2] * inv_scale_[2] + shift_[2]
-
-		});
-
-	}
-	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		(x[0] - shift_[0]) * scale_[0],
-
-		(x[1] - shift_[1]) * scale_[1],
-
-		(x[2] - shift_[2]) * scale_[2]
-
-		});
-	}
-
-	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
-	{
-		return x;
-	}
-
-	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
-	{
-		return x;
-	}
-
-	template<typename TV>
-	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
-	{
-		return v;
-	}
-	template<typename TV>
-	nTuple<NDIMS, TV> const& PullBack(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
-	{
-		return v;
 	}
 
 }
