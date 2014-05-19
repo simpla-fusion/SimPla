@@ -9,16 +9,15 @@
 #include "fetl_test2.h"
 
 #include "../mesh/octree_forest.h"
-#include "../mesh/mesh_rectangle.h"
-#include "../mesh/geometry_cylindrical.h"
+#include "../mesh/mesh.h"
 #include "../mesh/geometry_euclidean.h"
 
-typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 template<typename TV, int IFORM>
-struct TestFETLParam<Mesh, TV, IFORM>
+struct TestFETLParam<TMesh, TV, IFORM>
 {
-	typedef Mesh mesh_type;
+	typedef TMesh mesh_type;
 	typedef TV value_type;
 	static constexpr int IForm = IFORM;
 
@@ -33,7 +32,7 @@ struct TestFETLParam<Mesh, TV, IFORM>
 
 		mesh->SetDimensions(dims);
 
-		mesh->SetExtent(xmin, xmax);
+		mesh->SetExtents(xmin, xmax);
 
 	}
 
@@ -45,9 +44,9 @@ struct TestFETLParam<Mesh, TV, IFORM>
 
 typedef testing::Types<
 
-TestFETLParam<Mesh, Real, VERTEX>,
+TestFETLParam<TMesh, Real, VERTEX>,
 
-TestFETLParam<Mesh, Complex, VERTEX>
+TestFETLParam<TMesh, Complex, VERTEX>
 
 > ParamList;
 

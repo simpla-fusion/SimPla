@@ -13,7 +13,7 @@
 #include "../utilities/pretty_stream.h"
 
 #include "../mesh/octree_forest.h"
-#include "../mesh/mesh_rectangle.h"
+#include "../mesh/mesh.h"
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
 using namespace simpla;

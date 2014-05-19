@@ -11,11 +11,12 @@
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
 using namespace simpla;
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 template<typename TV, int ICase>
-struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
+struct TestFETLParam<TMesh, TV, ICase>
 {
-	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef TMesh mesh_type;
 	typedef TV value_type;
 
 	static void SetUpMesh(mesh_type * mesh)
@@ -82,7 +83,7 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
 
 		mesh->SetDimensions(dims[ICase % 10]);
 
-		mesh->SetExtent(xmin[(ICase % 100) / 10], xmax[(ICase % 100) / 10]);
+		mesh->SetExtents(xmin[(ICase % 100) / 10], xmax[(ICase % 100) / 10]);
 
 	}
 
@@ -94,38 +95,38 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, ICase>
 
 typedef testing::Types<
 
-TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 0> //,
+TestFETLParam<TMesh, Real, 0> //,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 10>,
+//TestFETLParam<TMesh, Real, 10>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 20>,
+//TestFETLParam<TMesh, Real, 20>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 30>,
+//TestFETLParam<TMesh, Real, 30>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 40>,
+//TestFETLParam<TMesh, Real, 40>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 50>,
+//TestFETLParam<TMesh, Real, 50>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 60>,
+//TestFETLParam<TMesh, Real, 60>,
 
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 1>,
+//TestFETLParam<TMesh, Real, 1>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 2>,
+//TestFETLParam<TMesh, Real, 2>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 3>,
+//TestFETLParam<TMesh, Real, 3>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 4>,
+//TestFETLParam<TMesh, Real, 4>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 5>,
+//TestFETLParam<TMesh, Real, 5>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 6>,
+//TestFETLParam<TMesh, Real, 6>,
 //
-//TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Real, 7>,
+//TestFETLParam<TMesh, Real, 7>,
 
-/*TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, Complex, 8>,
+/*TestFETLParam<TMesh, Complex, 8>,
 
- TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, nTuple<3, Real>, 8>*/
+ TestFETLParam<TMesh, nTuple<3, Real>, 8>*/
 
 > ParamList;
 INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestDiffCalculus, ParamList);

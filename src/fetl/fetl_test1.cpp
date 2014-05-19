@@ -8,16 +8,14 @@
 #include "fetl_test.h"
 #include "fetl.h"
 #include "../mesh/octree_forest.h"
-#include "../mesh/mesh_rectangle.h"
-#include "../mesh/geometry_cylindrical.h"
+#include "../mesh/mesh.h"
 #include "../mesh/geometry_euclidean.h"
-
-typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 template<typename TV, int IFORM>
-struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
+struct TestFETLParam<TMesh, TV, IFORM>
 {
-	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef TMesh mesh_type;
 	typedef TV value_type;
 	static constexpr int IForm = IFORM;
 
@@ -32,7 +30,7 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
 
 		mesh->SetDimensions(dims);
 
-		mesh->SetExtent(xmin, xmax);
+		mesh->SetExtents(xmin, xmax);
 
 	}
 
@@ -44,53 +42,53 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
 
 typedef testing::Types<
 
-TestFETLParam<mesh_type, Real, VERTEX>,
+TestFETLParam<TMesh, Real, VERTEX>,
 
-TestFETLParam<mesh_type, Real, EDGE>,
+TestFETLParam<TMesh, Real, EDGE>,
 
-TestFETLParam<mesh_type, Real, FACE>,
+TestFETLParam<TMesh, Real, FACE>,
 
-TestFETLParam<mesh_type, Real, VOLUME>,
+TestFETLParam<TMesh, Real, VOLUME>,
 
-TestFETLParam<mesh_type, Complex, VERTEX>,
+TestFETLParam<TMesh, Complex, VERTEX>,
 
-TestFETLParam<mesh_type, Complex, EDGE>,
+TestFETLParam<TMesh, Complex, EDGE>,
 
-TestFETLParam<mesh_type, Complex, FACE>,
+TestFETLParam<TMesh, Complex, FACE>,
 
-TestFETLParam<mesh_type, Complex, VOLUME>,
+TestFETLParam<TMesh, Complex, VOLUME>,
 
-TestFETLParam<mesh_type, nTuple<3, Real>, VERTEX>,
+TestFETLParam<TMesh, nTuple<3, Real>, VERTEX>,
 
-TestFETLParam<mesh_type, nTuple<3, Real>, EDGE>,
+TestFETLParam<TMesh, nTuple<3, Real>, EDGE>,
 
-TestFETLParam<mesh_type, nTuple<3, Real>, FACE>,
+TestFETLParam<TMesh, nTuple<3, Real>, FACE>,
 
-TestFETLParam<mesh_type, nTuple<3, Real>, VOLUME>,
+TestFETLParam<TMesh, nTuple<3, Real>, VOLUME>,
 
-TestFETLParam<mesh_type, nTuple<3, Complex>, VERTEX>,
+TestFETLParam<TMesh, nTuple<3, Complex>, VERTEX>,
 
-TestFETLParam<mesh_type, nTuple<3, Complex>, EDGE>,
+TestFETLParam<TMesh, nTuple<3, Complex>, EDGE>,
 
-TestFETLParam<mesh_type, nTuple<3, Complex>, FACE>,
+TestFETLParam<TMesh, nTuple<3, Complex>, FACE>,
 
-TestFETLParam<mesh_type, nTuple<3, Complex>, VOLUME>,
+TestFETLParam<TMesh, nTuple<3, Complex>, VOLUME>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Real>>, VERTEX>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Real>>, VERTEX>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Real>>, EDGE>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Real>>, EDGE>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Real>>, FACE>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Real>>, FACE>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Real>>, VOLUME>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Real>>, VOLUME>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Complex>>, VERTEX>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Complex>>, VERTEX>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Complex>>, EDGE>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Complex>>, EDGE>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Complex>>, FACE>,
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Complex>>, FACE>,
 
-TestFETLParam<mesh_type, nTuple<3, nTuple<3, Complex>>, VOLUME>
+TestFETLParam<TMesh, nTuple<3, nTuple<3, Complex>>, VOLUME>
 
 > ParamList;
 
