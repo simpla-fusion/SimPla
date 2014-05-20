@@ -554,21 +554,19 @@ struct OcForest
 
 			s += _DK >> H(s);
 
-			if (K(s) >= ((local_start_[2] + local_count_[2]) << D_FP_POS))
+			if (K(s) >= (global_end_[2] << D_FP_POS))
 			{
-				s += (_DJ >> H(s)) - (local_count_[2] << D_FP_POS);
+				s += (_DJ >> H(s))
+						- ((global_end_[2] - global_start_[2]) << D_FP_POS);
 			}
-			if (J(s)
-					>= ((local_start_[1] + local_count_[1])
-							<< (D_FP_POS + INDEX_DIGITS)))
+			if (J(s) >= (global_end_[1] << (D_FP_POS + INDEX_DIGITS)))
 			{
 				s += (_DI >> H(s))
-						- (local_count_[1] << (D_FP_POS + INDEX_DIGITS));
+						- ((global_end_[1] - global_start_[1])
+								<< (D_FP_POS + INDEX_DIGITS));
 			}
 
-			if (I(s)
-					>= ((local_start_[0] + local_count_[0])
-							<< (D_FP_POS + INDEX_DIGITS * 2)))
+			if (I(s) >= (global_end_[0] << (D_FP_POS + INDEX_DIGITS * 2)))
 			{
 				s = -1; // the end
 			}
@@ -660,8 +658,13 @@ struct OcForest
 
 	inline size_type Hash(size_type i, size_type j, size_type k) const
 	{
-		return i * local_stride_[0] + j * local_stride_[1]
-				+ k * local_stride_[2];
+		return
+
+		(i - global_start_[0]) * local_stride_[0] +
+
+		(j - global_start_[1]) * local_stride_[1] +
+
+		(k - global_start_[2]) * local_stride_[2];
 
 	}
 	inline size_type Hash(size_type i, size_type j, size_type k,
@@ -669,6 +672,7 @@ struct OcForest
 	{
 
 		size_type res = Hash(i, j, k);
+
 		switch (m)
 		{
 		case 1:
