@@ -55,8 +55,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args) :
+			ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -122,8 +122,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		model_(mesh), E(mesh), B(mesh),
 
 		Jext(mesh), J0(mesh), dE(mesh), dB(mesh),
 
@@ -141,24 +141,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \""
+			+ dict["Description"].template as<std::string>() + "\"\n";
 
 	LOGGER << description;
 
 	mesh.Load(dict["Grid"]);
 
 #ifdef USE_MPI
-	if (GLOBAL_COMM.IsInitilized())
-	{
-		nTuple<3, size_t> num_process =
-		{	1, 1, 1};
-		nTuple<3, size_t> process_num =
-		{	0, 0, 0};
-
-		GLOBAL_COMM.Decompose(&num_process[0],&process_num[0]);
-
-		mesh.Decompose(num_process,process_num,2 /* ghost width*/);
-	}
+	mesh.Decompose(GLOBAL_COMM.GetSize(),GLOBAL_COMM.GetRank());
 #endif
 
 	Form<VERTEX> ne0(mesh);
@@ -290,15 +281,18 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(Command<TE>::Create(&E, item.second, model_));
+				commandToE_.push_back(
+						Command<TE>::Create(&E, item.second, model_));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(Command<TB>::Create(&B, item.second, model_));
+				commandToB_.push_back(
+						Command<TB>::Create(&B, item.second, model_));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(Command<TJ>::Create(&Jext, item.second, model_));
+				commandToJ_.push_back(
+						Command<TJ>::Create(&Jext, item.second, model_));
 			}
 			else
 			{
@@ -318,20 +312,24 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(
+					new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
 
-			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2,
+					_3, _4);
 
-			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2,
+					_3, _4);
 
 		}
 		else
 		{
-			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-			{
-				auto & dE=*pdE;
-				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-			};
+			E_plus_CurlB =
+					[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+					{
+						auto & dE=*pdE;
+						LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+					};
 
 			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
@@ -346,9 +344,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (enableImplicit)
 	{
 
-		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(mesh));
-		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-		{	solver->NextTimeStep( pE,pB,p,dE);};
+		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(
+				new ImplicitPushE<mesh_type>(mesh));
+		Implicit_PushE =
+				[solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
+				{	solver->NextTimeStep( pE,pB,p,dE);};
 	}
 
 }

@@ -4,7 +4,7 @@ my_test(fetl_test
   fetl_test3.cpp
   fetl_test4.cpp
       )
-target_link_libraries(fetl_test physics  )
+target_link_libraries(fetl_test physics  ${MPI_LIBRARIES} )
 
 my_test(field_io_test    
   field_io_test.cpp  
