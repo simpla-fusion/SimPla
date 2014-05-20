@@ -16,19 +16,20 @@ class MessageComm
 	int num_process_;
 	int process_num_;
 public:
-	MessageComm()
-			: num_process_(1), process_num_(0), isInitilized_(false)
+	MessageComm() :
+			num_process_(1), process_num_(0), isInitilized_(false)
 	{
 	}
 
-	MessageComm(int argc, char** argv)
-			: isInitilized_(false)
+	MessageComm(int argc, char** argv) :
+			isInitilized_(false)
 	{
 		Init(argc, argv);
 	}
 	~MessageComm()
 	{
-		MPI_Finalize();
+		if (isInitilized_)
+			MPI_Finalize();
 	}
 
 	void Init(int argc, char** argv)

@@ -26,7 +26,7 @@ nTuple<NDIMS, size_t> const & gw,
 
 nTuple<NDIMS, size_t> const & dims,
 
-size_t *global_start, size_t *global_count, size_t *local_start,
+size_t *global_start, size_t *global_end, size_t *local_start,
 		size_t *local_count)
 {
 
@@ -36,7 +36,7 @@ size_t *global_start, size_t *global_count, size_t *local_start,
 		if (num_process[i] <= 1)
 		{
 			global_start[i] = 0;
-			global_count[i] = dims[i];
+			global_end[i] = dims[i];
 			local_start[i] = 0;
 			local_count[i] = dims[i];
 
@@ -51,12 +51,13 @@ size_t *global_start, size_t *global_count, size_t *local_start,
 		}
 		else
 		{
-			global_start[i] = dims[i] * process_num[i] / (num_process[i]);
-			global_count[i] = dims[i] * (process_num[i] + 1) / (num_process[i])
-					- global_start[i];
+			global_start[i] = dims[i] * process_num[i] / (num_process[i])
+					- gw[i];
+			global_end[i] = dims[i] * (process_num[i] + 1) / (num_process[i])
+					+ gw[i];
 
-			local_start[i] = global_start[i] - gw[i];
-			local_count[i] = global_count[i] + 2 * gw[i];
+			local_start[i] = global_start[i] + gw[i];
+			local_count[i] = global_end[i] - global_start[i] - 2 * gw[i];
 		}
 
 	}

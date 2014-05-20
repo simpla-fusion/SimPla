@@ -20,7 +20,6 @@
 #include "../utilities/type_utilites.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../parallel/decompose.h"
 namespace simpla
 {
 
@@ -389,8 +388,15 @@ struct OcForest
 	}
 	size_type GetNumOfElementsLocal(int IFORM = VERTEX) const
 	{
-		return local_dims_[0] * local_dims_[1] * local_dims_[2]
-				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+		return
+
+		(global_end_[0] - global_start_[0]) *
+
+		(global_end_[1] - global_start_[1]) *
+
+		(global_end_[2] - global_start_[2]) *
+
+		((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 	//***************************************************************************************************
 	// Local Data Set
@@ -399,7 +405,7 @@ struct OcForest
 	nTuple<NDIMS, size_type> global_start_ =
 	{ 0, 0, 0 };
 
-	nTuple<NDIMS, size_type> local_dims_ =
+	nTuple<NDIMS, size_type> global_end_ =
 	{ 1, 1, 1 };
 
 	nTuple<NDIMS, size_type> local_stride_ =
@@ -441,34 +447,51 @@ struct OcForest
 			nTuple<NDIMS, size_t> const & process_num,
 			nTuple<NDIMS, size_t> const & ghost_width)
 	{
+		for (int i = 0; i < NDIMS; ++i)
+		{
 
-		RectangleDecompose(
+			if (num_process[i] <= 1)
+			{
+				global_start_[i] = 0;
+				global_end_[i] = dims_[i];
+				local_start_[i] = 0;
+				local_count_[i] = dims_[i];
 
-		num_process, process_num, ghost_width,
+			}
+			else if (2 * ghost_width[i] * num_process[i] > dims_[i])
+			{
+				ERROR << "Mesh is too small to decompose! dims[" << i << "]="
+						<< dims_[i]
 
-		dims_,
+						<< " process[" << i << "]=" << num_process[i]
+						<< " ghost_width=" << ghost_width[i];
+			}
+			else
+			{
+				global_start_[i] = dims_[i] * process_num[i] / (num_process[i])
+						- ghost_width[i];
+				global_end_[i] = dims_[i] * (process_num[i] + 1)
+						/ (num_process[i]) + ghost_width[i];
 
-		&global_start_[0],
+				local_start_[i] = ghost_width[i];
+				local_count_[i] = global_end_[i] - global_start_[i]
+						- 2 * ghost_width[i];
+			}
 
-		&local_dims_[0],
-
-		&local_start_[0],
-
-		&local_count_[0]
-
-		);
-
+		}
 		if (array_order_ == SLOW_FIRST)
 		{
 			local_stride_[2] = 1;
-			local_stride_[1] = local_dims_[2];
-			local_stride_[0] = local_dims_[1] * local_stride_[1];
+			local_stride_[1] = global_end_[2] - global_start_[2];
+			local_stride_[0] = (global_end_[1] - global_start_[1])
+					* local_stride_[1];
 		}
 		else
 		{
 			local_stride_[0] = 1;
-			local_stride_[1] = local_dims_[0];
-			local_stride_[2] = local_dims_[1] * local_stride_[1];
+			local_stride_[1] = global_end_[0] - global_start_[0];
+			local_stride_[2] = (global_end_[1] - global_start_[1])
+					* local_stride_[1];
 		}
 
 	}
@@ -492,7 +515,7 @@ struct OcForest
 					global_start[rank] = global_start_[i];
 
 				if (local_dims != nullptr)
-					local_dims[rank] = local_dims_[i];
+					local_dims[rank] = global_end_[i] - global_start_[i];
 
 				if (local_start != nullptr)
 					local_start[rank] = local_start_[i];
