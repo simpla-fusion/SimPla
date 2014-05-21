@@ -34,13 +34,14 @@ int main(int argc, char **argv)
 	nTuple<3, size_t> dims =
 	{	32, 2, 1};
 
-	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef Mesh< EuclideanGeometry<OcForest>> mesh_type;
 
 	mesh_type mesh;
 
 	mesh.SetDimensions(dims);
 
-	mesh.SetExtent(xmin, xmax);
+	mesh.SetExtents(xmin, xmax);
+
 #if USE_PARALLEL_IO
 	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
 #endif
@@ -49,18 +50,18 @@ int main(int argc, char **argv)
 
 	f.Fill(1234);
 
-#if USE_PARALLEL_IO
-	f.Fill(GLOBAL_COMM.GetRank()+100);
-#endif
-
-	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/t1");
-	LOGGER << SAVE(f);
-	GLOBAL_DATA_STREAM.OpenGroup("/t2");
-	GLOBAL_DATA_STREAM.EnableCompactStorable( );
-	LOGGER << SAVE(f);
-	LOGGER << SAVE(f);
-	LOGGER << endl;
+//#if USE_PARALLEL_IO
+//	f.Fill(GLOBAL_COMM.GetRank()+100);
+//#endif
+//
+//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/t1");
+//	LOGGER << SAVE(f);
+//	GLOBAL_DATA_STREAM.OpenGroup("/t2");
+//	GLOBAL_DATA_STREAM.EnableCompactStorable( );
+//	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
+//	LOGGER << endl;
 
 }
 
