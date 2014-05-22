@@ -207,7 +207,7 @@ struct OcForest
 			ASSERT(length<INDEX_CENTER[i]);
 
 			global_start_[i] = ((INDEX_HALF_MAX >> D_FP_POS) - length / 2) << D_FP_POS;
-			global_end_[i] = (global_start_[i] + ((length - 1) << D_FP_POS));
+			global_end_[i] = (global_start_[i] + ((length) << D_FP_POS));
 
 		}
 
@@ -386,8 +386,6 @@ struct OcForest
 
 	Range GetRange(int IFORM = VERTEX) const
 	{
-		CHECK(global_start_);
-		CHECK(global_end_);
 		compact_index_type b = Compact(global_start_), e = Compact(global_end_);
 
 		if (IFORM == EDGE)
@@ -1062,8 +1060,8 @@ struct OcForest
 
 	static compact_index_type Compact(nTuple<NDIMS, size_type> const & idx)
 	{
-		return ((idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2 + D_FP_POS))
-				| ((idx[1] & INDEX_MASK) << (INDEX_DIGITS + D_FP_POS)) | ((idx[2] & INDEX_MASK) << (D_FP_POS));
+		return ((idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) | ((idx[1] & INDEX_MASK) << (INDEX_DIGITS))
+				| ((idx[2] & INDEX_MASK));
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
@@ -1137,34 +1135,43 @@ struct OcForest
 
 			if (n == 0 || n == 4 || n == 3 || n == 7)
 			{
-				auto D = (1UL << (D_FP_POS - HeightOfTree()));
-
-				self_ += D;
-
-				if ((self_ & _MRI) >= (end_ & _MRI))
-				{
-					self_ &= ~_MRI;
-					self_ |= start_ & _MRI;
-					self_ += D << (INDEX_DIGITS * 1);
-				}
-				if ((self_ & _MRJ) >= (end_ & _MRJ))
-				{
-					self_ &= ~_MRJ;
-					self_ |= start_ & _MRJ;
-					self_ += D << (INDEX_DIGITS * 2);
-				}
-				//			if (s[0] > end_[0])
-				//			{
-				//				s.d = -1; // the end
-				//			}
-
+				NextCell();
 			}
 
-			Roate();
+			self_ = Roate(self_);
 
 			return *this;
 		}
 
+		void NextCell()
+		{
+			auto D = (1UL << (D_FP_POS - HeightOfTree()));
+
+			self_ += D;
+
+			if ((self_ & _MRK) >= (end_ & _MRK))
+			{
+				self_ &= ~_MRK;
+				self_ |= start_ & _MRK;
+				self_ += D << (INDEX_DIGITS);
+			}
+			if ((self_ & _MRJ) >= (end_ & _MRJ))
+			{
+				self_ &= ~_MRJ;
+				self_ |= start_ & _MRJ;
+				self_ += D << (INDEX_DIGITS * 2);
+			}
+//
+//				if ((self_ & _MRI) >= (end_ & _MRI))
+//				{
+//					self_ &= ~_MRI;
+//					self_ |= end_ & _MRI;
+//				}
+			//			if (s[0] > end_[0])
+			//			{
+			//				s.d = -1; // the end
+			//			}
+		}
 		iterator operator ++(int)
 		{
 			iterator res(*this);
@@ -1322,13 +1329,21 @@ struct OcForest
 		{
 			iterator res(*this);
 
-			res.self_ = self_ & (~(_DA >> (HeightOfTree() + 1)));
+			res.self_ = Roate(res.self_);
 
-			res.self_ |= ((self_ & (_DI >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
+			return res;
+		}
 
-			((self_ & (_DJ >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
+		compact_index_type Roate(compact_index_type r) const
+		{
 
-			((self_ & (_DK >> (HeightOfTree() + 1))) << (INDEX_DIGITS * 2))
+			compact_index_type res;
+
+			res = r & (~(_DA >> (HeightOfTree() + 1)));
+
+			res |= ((r & ((_DI | _DJ) >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
+
+			((r & (_DK >> (HeightOfTree() + 1))) << (INDEX_DIGITS * 2))
 
 			;
 			return res;
@@ -1441,7 +1456,7 @@ struct OcForest
 		}
 
 		Range(compact_index_type b, compact_index_type e) :
-				first((b)), second((e))
+				first((b)), second(e)
 		{
 
 		}
@@ -1456,7 +1471,9 @@ struct OcForest
 		}
 		iterator end() const
 		{
-			return iterator((second), (first), (second));
+			iterator res((second - _DA), (first), (second));
+			res.NextCell();
+			return res;
 		}
 		nTuple<NDIMS, size_t> Extents() const
 		{
