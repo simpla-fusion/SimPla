@@ -36,21 +36,21 @@ struct TestMeshParam<TMesh, CASE>
 
 		nTuple<3, size_t> dims[] = {
 
-		17, 33, 65,
+		3, 10, 20,
 
-		17, 1, 1,
+		15, 1, 1,
 
 		1, 17, 1,
 
-		1, 1, 17,
+		1, 1, 19,
 
-		1, 17, 17,
+		1, 17, 18,
 
-		17, 1, 17,
+		19, 1, 17,
 
-		17, 17, 1,
+		17, 5, 1,
 
-		17, 17, 17
+		17, 9, 7
 
 		};
 		mesh->SetExtents(xmin, xmax);
@@ -62,33 +62,48 @@ struct TestMeshParam<TMesh, CASE>
 };
 
 typedef testing::Types<
-
-//TestMeshParam<Mesh , 0>,
 //
-//TestMeshParam<Mesh , 1>,
-
-        TestMeshParam<TMesh, 0> //,
-
-//TestMeshParam<Mesh , 5>,
+//TestMeshParam<TMesh, 1>,
 //
-//TestMeshParam<Mesh , 101>,
+//TestMeshParam<TMesh, 2>,
 //
-//TestMeshParam<Mesh , 103>,
+//TestMeshParam<TMesh, 3>,
 //
-//TestMeshParam<Mesh , 105>,
+//TestMeshParam<TMesh, 4>,
 //
+//TestMeshParam<TMesh, 5>,
 //
-//TestMeshParam<Mesh  0>,
+//TestMeshParam<TMesh, 6> ,
 //
-//TestMeshParam<Mesh , 100>,
+//TestMeshParam<TMesh, 101>,
 //
-//TestMeshParam<Mesh  100>
+//TestMeshParam<TMesh, 102>,
 //
-//TestMeshParam<Mesh , 0>,
+//TestMeshParam<TMesh, 103>,
 //
-//TestMeshParam<Mesh , 0>,
+//TestMeshParam<TMesh, 104>,
 //
-//TestMeshParam<Mesh , 0>
+//TestMeshParam<TMesh, 105>,
+//
+//TestMeshParam<TMesh, 106>,
+//
+//TestMeshParam<TMesh, 201>,
+//
+//TestMeshParam<TMesh, 202>,
+//
+//TestMeshParam<TMesh, 203>,
+//
+//TestMeshParam<TMesh, 204>,
+//
+//TestMeshParam<TMesh, 205>,
+//
+//TestMeshParam<TMesh, 206>,
+//
+//TestMeshParam<TMesh, 100>,
+//
+//TestMeshParam<TMesh, 200>,
+//
+        TestMeshParam<TMesh, 0>
 
 > ParamList;
 

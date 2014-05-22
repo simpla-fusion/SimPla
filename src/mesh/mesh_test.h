@@ -23,7 +23,7 @@ protected:
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 		TParam::SetUpMesh(&mesh);
-		mesh.Decompose(1,0);
+//		mesh.Decompose(1,0);
 	}
 public:
 
@@ -38,15 +38,15 @@ TYPED_TEST_CASE_P(TestMesh);
 
 TYPED_TEST_P(TestMesh, index){
 {
-	typename TestFixture::index_type s;
+	typedef typename TestFixture::mesh_type mesh_type;
 
-	s.d=0;
-
-	s.Set(0,1);
-	s.Set(1,1);
-	s.Set(2,1);
-
-	CHECK_BIT(s.d);
+//	s.d=1UL<<3;
+//	CHECK_BIT(s.d);
+//	s=s.NextNode(); CHECK_BIT(s.d);
+//	s=s.NextNode(); CHECK_BIT(s.d);
+//	s=s.NextNode(); CHECK_BIT(s.d);
+//	s=s.NextNode(); CHECK_BIT(s.d);
+//	s=s.NextNode(); CHECK_BIT(s.d);
 }
 }
 TYPED_TEST_P(TestMesh, iterator){
@@ -66,18 +66,30 @@ TYPED_TEST_P(TestMesh, traversal){
 
 	auto & mesh=TestFixture::mesh;
 
-	CHECK( mesh.GetNumOfElements( TestFixture::IForm));
-	CHECK( mesh.GetDimensions());
-	CHECK( mesh.GetGlobalDimensions());
-	CHECK( mesh.GetLocalDimensions());
-
 	size_t count = 0;
 
-//	for(auto s:mesh.GetRange(TestFixture::IForm ) )
-//	{
-//		++count;
-//		CHECK(count);
-//	}
+	auto range=mesh.GetRange(TestFixture::IForm );
+
+//	CHECK_BIT(range.begin()->d);
+//	CHECK_BIT(range.end()->d);
+
+	auto it= range.begin();
+
+//	CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+//	++it; CHECK_BIT(it->d);
+
+	for(auto s:mesh.GetRange(TestFixture::IForm ) )
+	{
+		++count;
+	}
 
 	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
@@ -91,14 +103,56 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 	int total=4;
 	size_t count = 0;
 	auto range=mesh.GetRange(TestFixture::IForm);
-//	for (int s = 0; s < total; ++s)
-//	{
-//		for(auto s:range.Split(total,s))
-//		{
-//			++count;
-//		}
-//	}
 
+	auto dims= mesh.GetLocalDimensions();
+
+	auto start= range.first;
+
+	int data[dims[0]][dims[1]][dims[2]];
+
+	for (int i = 0; i < dims[0]; ++i)
+	{	for (int j = 0; j < dims[1]; ++j)
+		{
+			for (int k = 0; k < dims[2]; ++k)
+			{
+				data[i][j][k] =0;
+			}
+		}
+	}
+
+	for (int sub = 0; sub < total; ++sub)
+	{
+
+		for(auto s:range.Split(total,sub))
+		{
+			++count;
+////			CHECK(((s[0]-b[0])>>4)-dims[0]);
+////			CHECK(((s[1]-b[1])>>4)-dims[1]);
+////			CHECK(((s[2]-b[2])>>4)-dims[2]);
+//			EXPECT_LE((s[0]-start[0])>>4,dims[0]);
+//			EXPECT_LE((s[1]-start[1])>>4,dims[1]);
+//			EXPECT_LE((s[2]-start[2])>>4,dims[2]);
+//
+//			CHECK("") <<((s[0]-start[0])>>4)<< ","<<
+//			((s[1]-start[1])>>4)<< ","<<
+//			((s[2]-start[2])>>4 )
+//			<<std::endl;
+//
+//			data[(s[0]-start[0])>>4][(s[1]-start[1])>>4][(s[2]-start[2])>>4]=sub;
+		}
+	}
+
+	for (int i = 0; i < dims[0]; ++i)
+	{	for (int j = 0; j < dims[1]; ++j)
+		{
+			for (int k = 0; k < dims[2]; ++k)
+			{
+				std::cout<< data[i][j][k]<<" ";
+			}
+			std::cout<<std::endl;
+		}
+		std::cout<<"==========="<<std::endl;
+	}
 	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
 }}

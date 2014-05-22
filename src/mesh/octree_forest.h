@@ -32,10 +32,18 @@ struct OcForest
 	static constexpr int NDIMS = 3;
 
 	typedef unsigned long size_type;
-	struct index_type;
+
 	typedef unsigned long compact_index_type;
+
+	struct iterator;
+
+	struct Range;
+
 	typedef nTuple<NDIMS, Real> coordinates_type;
-	typedef std::map<index_type, nTuple<3, coordinates_type>> surface_type;
+
+	typedef iterator index_type;
+
+	typedef std::map<iterator, nTuple<3, coordinates_type>> surface_type;
 
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
@@ -43,6 +51,11 @@ struct OcForest
 	static constexpr unsigned int D_FP_POS = 4; //!< default floating-point position
 
 	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
+
+	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
+	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
+	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
+	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_MAX = static_cast<size_type>(((1L) << (INDEX_DIGITS)) - 1);
 
@@ -97,7 +110,6 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-//
 //	nTuple<NDIMS, size_type> global_end_ = { 1, 1, 1 };
 
 	unsigned long clock_ = 0;
@@ -155,373 +167,27 @@ struct OcForest
 		return clock_;
 	}
 
-	struct index_type
-	{
-		compact_index_type d;
+	//***************************************************************************************************
+	// Local Data Set
+	// local_index  + global_start_   = global_index
 
-#define DEF_OP(_OP_)                                                                       \
-		inline index_type & operator _OP_##=(compact_index_type r)                           \
-		{                                                                                  \
-			d =  ( (*this) _OP_ r).d;                                                                \
-			return *this ;                                                                  \
-		}                                                                                  \
-		inline index_type &operator _OP_##=(index_type r)                                   \
-		{                                                                                  \
-			d = ( (*this) _OP_ r).d;                                                                  \
-			return *this;                                                                  \
-		}                                                                                  \
-                                                                                           \
-		inline index_type  operator _OP_(compact_index_type const &r) const                 \
-		{                                                                                  \
-		return 	std::move(index_type({( ((d _OP_ (r & _MI)) & _MI) |                              \
-		                     ((d _OP_ (r & _MJ)) & _MJ) |                               \
-		                     ((d _OP_ (r & _MK)) & _MK)                                 \
-		                        )& (NO_HEAD_FLAG)}));                                         \
-		}                                                                                  \
-                                                                                           \
-		inline index_type operator _OP_(index_type r) const                                \
-		{                                                                                  \
-			return std::move(this->operator _OP_(r.d));                                               \
-		}                                                                                  \
+//	static constexpr nTuple<NDIMS, size_t> INDEX_CENTER = { INDEX_HALF_MAX, INDEX_HALF_MAX, INDEX_HALF_MAX };
 
-		DEF_OP(+)
-		DEF_OP(-)
-		DEF_OP(^)
-		DEF_OP(&)
-		DEF_OP(|)
-#undef DEF_OP
+	nTuple<NDIMS, size_t> global_start_, global_end_;
 
-		inline index_type operator>>(unsigned int n) const
-		{
-			return index_type( { d >> n });
-		}
-		inline index_type operator<<(unsigned int n) const
-		{
-			return index_type( { d << n });
-		}
-		bool operator==(index_type const & rhs) const
-		{
-			return d == rhs.d;
-		}
-		bool operator!=(index_type const & rhs) const
-		{
-			return d != rhs.d;
-		}
-		bool operator<(index_type const &r) const
-		{
-			return d < r.d;
-		}
-		bool operator>(index_type const &r) const
-		{
-			return d < r.d;
-		}
+	nTuple<NDIMS, size_t> local_outer_start_, local_outer_end_;
 
-		size_t operator[](unsigned int i) const
-		{
-			return Get(i);
-		}
-		size_t Get(unsigned int i) const
-		{
-			return (d >> (INDEX_DIGITS * (NDIMS - i - 1))) & ((1UL << INDEX_DIGITS) - 1);
-		}
+	nTuple<NDIMS, size_t> local_inner_start_, local_inner_end_;
 
-		void Set(unsigned int i, size_t v)
-		{
-			d &= (~((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * (NDIMS - i - 1));
-			d += (v & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * (NDIMS - i - 1));
-		}
+	nTuple<NDIMS, size_type> hash_stride_ = { 0, 0, 0 };
 
-		void Add(unsigned int i, size_t v)
-		{
-			d += (v & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * (NDIMS - i - 1));
-		}
-
-		//***************************************************************************************************
-		//* Auxiliary functions
-		//***************************************************************************************************
-		void SetNodeId(unsigned int n)
-		{
-
-		}
-
-		inline index_type CellIndex() const
-		{
-			compact_index_type m = (1 << (D_FP_POS - HeightOfTree())) - 1;
-			return index_type( { d & (~((m << INDEX_DIGITS * 2) | (m << (INDEX_DIGITS)) | m)) });
-		}
-		index_type Dual() const
-		{
-			return index_type(
-			        { (d & (~(_DA >> (HeightOfTree() + 1))))
-			                | ((~(d & (_DA >> (HeightOfTree() + 1)))) & (_DA >> (HeightOfTree() + 1))) });
-		}
-
-		unsigned int HeightOfTree() const
-		{
-			return d >> (INDEX_DIGITS * 3);
-		}
-
-		unsigned int NodeId() const
-		{
-			auto s = (d & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
-
-			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-		}
-
-		/**
-		 *  rotate vector direction  mask
-		 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
-		 * @param s
-		 * @return
-		 */
-		index_type NextNode() const
-		{
-			index_type r;
-
-			r.d = d & ~(_DA >> (HeightOfTree() + 1));
-
-			r |= ((d & (_DI >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
-
-			((d & (_DJ >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
-
-			((d & (_DK >> (HeightOfTree() + 1))) << (INDEX_DIGITS * 2))
-
-			;
-			return r;
-		}
-
-		/**
-		 *  rotate vector direction  mask
-		 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
-		 * @param s
-		 * @return
-		 */
-		index_type PreviousNode() const
-		{
-			index_type r;
-
-			r.d = d & ~(_DA >> (HeightOfTree() + 1));
-
-			r |= ((d & (_DI >> (HeightOfTree() + 1))) >> (INDEX_DIGITS * 2)) |
-
-			((d & (_DJ >> (HeightOfTree() + 1))) << INDEX_DIGITS) |
-
-			((d & (_DK >> (HeightOfTree() + 1))) << INDEX_DIGITS)
-
-			;
-
-			return r;
-		}
-
-		//! get the direction of vector(edge) 0=>x 1=>y 2=>z
-		compact_index_type DirectionOfVector() const
-		{
-			compact_index_type s = (d & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
-
-			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-		}
-
-		index_type DeltaIndex() const
-		{
-			return index_type( { d & (_DA >> (HeightOfTree() + 1)) });
-		}
-
-		index_type DeltaIndex(unsigned int i) const
-		{
-			return index_type( { 1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree() - 1) });
-		}
-
-		/**
-		 * Get component number or vector direction
-		 * @param s
-		 * @return
-		 */
-		size_type ComponentNum() const
-		{
-			size_type res = 0;
-			switch (NodeId())
-			{
-			case 1:
-			case 6:
-				res = 0;
-				break;
-			case 2:
-			case 5:
-				res = 1;
-				break;
-			case 4:
-			case 3:
-				res = 2;
-				break;
-			}
-			return res;
-		}
-
-		size_type IForm() const
-		{
-			size_type res = 0;
-			switch (NodeId())
-			{
-			case 0:
-				res = VERTEX;
-				break;
-			case 1:
-			case 2:
-			case 4:
-				res = EDGE;
-				break;
-
-			case 3:
-			case 5:
-			case 6:
-				res = FACE;
-				break;
-
-			case 7:
-				res = VOLUME;
-			}
-			return res;
-		}
-
-	};
-
-	static index_type ShiftH(index_type s, size_type h = 0)
-	{
-		return index_type( { (s.d >> h) | (h << (INDEX_DIGITS * 3)) });
-	}
-
-	struct iterator
-	{
-/// One of the @link iterator_tags tag types@endlink.
-		typedef std::input_iterator_tag iterator_category;
-
-/// The type "pointed to" by the iterator.
-		typedef typename simpla::OcForest::index_type value_type;
-
-/// Distance between iterators is represented as this type.
-		typedef typename simpla::OcForest::index_type difference_type;
-
-/// This type represents a pointer-to-value_type.
-		typedef value_type* pointer;
-
-/// This type represents a reference-to-value_type.
-		typedef value_type& reference;
-
-		OcForest const * mesh;
-		value_type s_;
-
-		iterator()
-				: mesh(nullptr), s_(value_type( { ~0UL }))
-		{
-		}
-		template<typename ...Args> iterator(OcForest const & m, Args const & ... args)
-				: mesh(&m), s_(index_type( { args... }))
-		{
-		}
-		template<typename ...Args> iterator(OcForest const * m, Args const & ... args)
-				: mesh(m), s_(index_type( { args... }))
-		{
-		}
-		~iterator()
-		{
-		}
-
-		bool operator==(iterator const & rhs) const
-		{
-			return s_ == rhs.s_;
-		}
-
-		bool operator!=(iterator const & rhs) const
-		{
-			return !(this->operator==(rhs));
-		}
-
-		value_type const & operator*() const
-		{
-			return s_;
-		}
-
-		value_type const* operator ->() const
-		{
-			return &s_;
-		}
-
-		iterator & operator ++()
-		{
-			s_ = mesh->Next(s_);
-			return *this;
-		}
-
-		iterator operator ++(int)
-		{
-			iterator res(*this);
-			++res;
-			return std::move(res);
-		}
-
-		size_t Hash() const
-		{
-			return mesh->Hash(s_);
-		}
-	};
-
-	struct Range
-	{
-		typedef typename OcForest::iterator iterator;
-		typedef typename iterator::value_type value_type;
-	private:
-		index_type b_, e_;
-		OcForest const * mesh;
-	public:
-		Range()
-				: b_( { 0 }), e_( { 0 }), mesh(nullptr)
-		{
-		}
-		Range(iterator b, iterator e)
-				: b_( { b->d }), e_( { e->d }), mesh(b.mesh)
-		{
-		}
-		Range(OcForest const *m, index_type b, index_type e)
-				: b_(b), e_(e), mesh(m)
-		{
-		}
-
-		~Range()
-		{
-		}
-		iterator begin() const
-		{
-			return iterator(mesh, b_);
-		}
-		iterator end() const
-		{
-			return iterator(mesh, e_);
-		}
-		Range Split(int total, int sub) const
-		{
-			return mesh->Split(b_, e_, total, sub);
-		}
-	};
-
-//***************************************************************************************************
-// Local Data Set
-// local_index  + global_start_   = global_index
-
-//***************************************************************************************************
-	index_type INDEX_CENTER = { (INDEX_HALF_MAX << (INDEX_DIGITS * 2)) | (INDEX_HALF_MAX << (INDEX_DIGITS))
-	        | (INDEX_HALF_MAX) };
-
-	index_type global_index_start_ = INDEX_CENTER, global_index_end_ = INDEX_CENTER;
-
-	index_type local_index_start_ = INDEX_CENTER, local_index_end_ = INDEX_CENTER;
-
-	nTuple<NDIMS, size_type> memory_dims_ = { 0, 0, 0 };
-
-	nTuple<NDIMS, size_type> memory_start_ = { 0, 0, 0 };
-
-	nTuple<NDIMS, size_type> memory_count_ = { 0, 0, 0 };
-
-	nTuple<NDIMS, size_type> memory_stride_ = { 0, 0, 0 };
+	//
+	//   |----------------|----------------|---------------|--------------|------------|
+	//   ^                ^                ^               ^              ^            ^
+	//   |                |                |               |              |            |
+	//global_start    local_outer   l   ocal_inner    local_inner_    local_outer     global_end
+	//                   _start          _start           end              end
+	//
 
 	enum
 	{
@@ -537,13 +203,18 @@ struct OcForest
 		{
 			size_t length = d[i] > 0 ? d[i] : 1;
 
-			ASSERT(length<INDEX_MAX);
+			ASSERT(length<INDEX_CENTER[i]);
 
-			global_index_start_.Set(i, global_index_start_[i] - ((length / 2) << D_FP_POS));
-			global_index_end_.Set(i, global_index_start_[i] + (length << D_FP_POS));
+			global_start_[i] = ((INDEX_HALF_MAX >> D_FP_POS) - length / 2) << D_FP_POS;
+			global_end_[i] = (global_start_[i] + ((length - 1) << D_FP_POS));
+
 		}
-		local_index_start_ = global_index_start_;
-		local_index_end_ = global_index_end_;
+
+		local_outer_start_ = global_start_;
+		local_outer_end_ = global_end_;
+
+		local_inner_start_ = global_start_;
+		local_inner_end_ = global_end_;
 	}
 
 	nTuple<NDIMS, size_type> GetDimensions() const
@@ -553,14 +224,14 @@ struct OcForest
 
 	nTuple<NDIMS, size_type> GetGlobalDimensions() const
 	{
-		index_type count = (global_index_end_ - global_index_start_) >> D_FP_POS;
-		return nTuple<NDIMS, size_type>( { count[0], count[1], count[2] });
+		nTuple<NDIMS, size_type> count = (global_end_ - global_start_) >> D_FP_POS;
+		return count;
 	}
 
 	nTuple<NDIMS, size_type> GetLocalDimensions() const
 	{
-		index_type count = (local_index_end_ - local_index_start_) >> D_FP_POS;
-		return nTuple<NDIMS, size_type>( { count[0], count[1], count[2] });
+		nTuple<NDIMS, size_type> count = (local_outer_end_ - local_outer_start_) >> D_FP_POS;
+		return count;
 	}
 
 	nTuple<NDIMS, Real> GetGlobalExtents() const
@@ -596,53 +267,50 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			memory_count_[i] = (global_index_end_[i] - global_index_start_[i]) >> (D_FP_POS);
+			auto L = (global_end_[i] - global_start_[i]) >> D_FP_POS;
 
-			memory_start_[i] = 0;
-
-			if (2 * ghost_width[i] * num_process[i] > memory_count_[i])
+			if (2 * ghost_width[i] * num_process[i] > L)
 			{
-				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << memory_count_[i]
+				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << L
 
 				<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
 			}
 			else
 			{
-				auto start = (memory_count_[i] * process_num[i] / num_process[i]);
+				auto start = global_start_[i] + ((L * process_num[i] / num_process[i]) << D_FP_POS);
 
-				auto end = (memory_count_[i] * (process_num[i] + 1) / num_process[i]);
+				auto end = global_start_[i] + ((L * (process_num[i] + 1) / num_process[i]) << D_FP_POS);
 
-				memory_count_[i] = start - end;
+				local_inner_start_[i] = start;
+				local_inner_end_[i] = end;
 
 				if (process_num[i] > 0)
 				{
-					start -= ghost_width[i];
-					memory_start_ = ghost_width[i];
+					start -= ghost_width[i] << D_FP_POS;
+
 				}
 				if (process_num[i] < num_process[i] - 1)
 				{
 					end += ghost_width[i] << D_FP_POS;
 				}
 
-				local_index_start_.Set(i, global_index_start_[i] + (start << D_FP_POS));
-
-				local_index_end_.Set(i, global_index_start_[i] + (end << D_FP_POS));
+				local_outer_start_[i] = start;
+				local_outer_end_[i] = end;
 
 			}
-			memory_dims_[i] = (local_index_end_[i] - local_index_start_[i]) >> D_FP_POS;
 		}
 
 		if (array_order_ == SLOW_FIRST)
 		{
-			memory_stride_[2] = 1;
-			memory_stride_[1] = memory_dims_[2];
-			memory_stride_[0] = memory_dims_[1] * memory_stride_[1];
+			hash_stride_[2] = 1;
+			hash_stride_[1] = (local_outer_end_[2] - local_outer_start_[2]) >> D_FP_POS;
+			hash_stride_[0] = ((local_outer_end_[1] - local_outer_start_[1]) >> D_FP_POS) * hash_stride_[1];
 		}
 		else
 		{
-			memory_stride_[0] = 1;
-			memory_stride_[1] = memory_dims_[0];
-			memory_stride_[2] = memory_dims_[1] * memory_stride_[1];
+			hash_stride_[0] = 1;
+			hash_stride_[1] = (local_outer_end_[0] - local_outer_start_[0]) >> D_FP_POS;
+			hash_stride_[2] = ((local_outer_end_[1] - local_outer_start_[1]) >> D_FP_POS) * hash_stride_[1];
 		}
 
 	}
@@ -661,23 +329,23 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			size_type L = (global_index_end_[i] - global_index_start_[i]) >> D_FP_POS;
+			size_type L = (global_end_[i] - global_start_[i]) >> D_FP_POS;
 			if (L > 1)
 			{
 				if (global_dims != nullptr)
 					global_dims[rank] = L;
 
 				if (global_start != nullptr)
-					global_start[rank] = (local_index_start_[i] - INDEX_CENTER[i] + (L << D_FP_POS)) >> D_FP_POS;
+					global_start[rank] = (local_outer_start_[i] - global_start_[i]) >> D_FP_POS;
 
 				if (local_dims != nullptr)
-					local_dims[rank] = (local_index_end_[i] - local_index_start_[i]) >> D_FP_POS;
+					local_dims[rank] = (local_outer_end_[i] - local_outer_start_[i]) >> D_FP_POS;
 
 				if (local_start != nullptr)
-					local_start[rank] = memory_start_[i];
+					local_start[rank] = (local_inner_start_[i] - local_outer_start_[i]) >> D_FP_POS;
 
 				if (local_count != nullptr)
-					local_count[rank] = memory_count_[i];
+					local_count[rank] = (local_inner_end_[i] - local_inner_start_[i]) >> D_FP_POS;
 
 //				if (local_stride != nullptr)
 //					local_stride[rank] = stride_[i];
@@ -711,121 +379,56 @@ struct OcForest
 		return rank;
 	}
 
-	compact_index_type Next(compact_index_type s) const
-	{
-		return Next(index_type( { s })).d;
-	}
-
-	index_type Next(index_type s) const
-	{
-
-		// FIXME NEED OPTIMIZE!
-		auto n = s.NodeId();
-
-		if (n == 0 || n == 4 || n == 3 || n == 7)
-		{
-
-			s.Set(2, s[2] + (1UL << s.HeightOfTree()));
-
-			if (s[2] >= (local_index_end_[2]))
-			{
-				s.Set(2, local_index_start_[2]);
-				s.Set(1, s[1] + (1UL << s.HeightOfTree()));
-			}
-			if (s[1] >= (local_index_end_[1]))
-			{
-				s.Set(1, local_index_start_[1]);
-				s.Set(0, s[0] + (1UL << s.HeightOfTree()));
-			}
-			if (s[0] >= local_index_end_[0])
-			{
-				s.d = -1; // the end
-			}
-		}
-
-		s = s.NextNode();
-
-		return s;
-
-	}
-
 	Range GetRange(int IFORM = VERTEX) const
 	{
 
-		index_type b = local_index_start_, e = local_index_end_;
+		compact_index_type b, e;
 
-		if (IFORM == EDGE)
-		{
-			b.Add(0, 1UL >> (b.HeightOfTree()));
-			e |= (_DI >> e.HeightOfTree());
-		}
-		else if (IFORM == FACE)
-		{
-			b |= ((_DJ | _DK) >> b.HeightOfTree());
-			e |= ((_DJ | _DK) >> e.HeightOfTree());
-		}
-		else if (IFORM == VOLUME)
-		{
-			b |= ((_DI | _DJ | _DK) >> b.HeightOfTree());
-			e |= ((_DI | _DJ | _DK) >> e.HeightOfTree());
-		}
+//		if (IFORM == EDGE)
+//		{
+//			b |= (_DI >> (b.HeightOfTree() + 1));
+//			e |= (_DI >> (e.HeightOfTree() + 1));
+//		}
+//		else if (IFORM == FACE)
+//		{
+//			b |= ((_DJ | _DK) >> (b.HeightOfTree() + 1));
+//			e |= ((_DJ | _DK) >> (e.HeightOfTree() + 1));
+//		}
+//		else if (IFORM == VOLUME)
+//		{
+//			b |= ((_DI | _DJ | _DK) >> (b.HeightOfTree() + 1));
+//			e |= ((_DI | _DJ | _DK) >> (e.HeightOfTree() + 1));
+//		}
 
-		return Range(this, b, e);
+		return Range(b, e);
 	}
 
-	Range Split(index_type b_, index_type e_, int total, int sub) const
+	inline size_type Hash(iterator s) const
 	{
 
-		index_type count = e_ - b_;
+		size_type res = 0;
 
-		e_ = b_ +
-
-		(((count[0]) * (sub + 1) / total) << (INDEX_DIGITS * 2 + D_FP_POS)) |
-
-		(((count[1]) * (sub + 1) / total) << (INDEX_DIGITS + D_FP_POS)) |
-
-		((count[2]) * (sub + 1) / total) << (D_FP_POS);
-
-		b_ = b_ +
-
-		((count[0] * (sub) / total) << (INDEX_DIGITS * 2 + D_FP_POS)) |
-
-		((count[1] * (sub) / total) << (INDEX_DIGITS + D_FP_POS)) |
-
-		((count[2] * (sub) / total) << (D_FP_POS));
-
-		return Range(this, b_, e_);
-	}
-
-	inline size_type Hash(compact_index_type d) const
-	{
-		return Hash(index_type( { d }));
-	}
-
-	inline size_type Hash(index_type s) const
-	{
-
-		size_type res = ((s[0] - local_index_start_[0]) >> D_FP_POS) * memory_stride_[0] +
-
-		((s[1] - local_index_start_[1]) >> D_FP_POS) * memory_stride_[1] +
-
-		((s[2] - local_index_start_[2]) >> D_FP_POS) * memory_stride_[2];
-
-		switch (s.NodeId())
-		{
-		case 1:
-		case 6:
-			res = ((res << 1) + res);
-			break;
-		case 2:
-		case 5:
-			res = ((res << 1) + res) + 1;
-			break;
-		case 4:
-		case 3:
-			res = ((res << 1) + res) + 2;
-			break;
-		}
+//		((s[0] - local_outer_start_[0]) >> D_FP_POS) * hash_stride_[0] +
+//
+//		((s[1] - local_outer_start_[1]) >> D_FP_POS) * hash_stride_[1] +
+//
+//		((s[2] - local_outer_start_[2]) >> D_FP_POS) * hash_stride_[2];
+//
+//		switch (s.NodeId())
+//		{
+//		case 1:
+//		case 6:
+//			res = ((res << 1) + res);
+//			break;
+//		case 2:
+//		case 5:
+//			res = ((res << 1) + res) + 1;
+//			break;
+//		case 4:
+//		case 3:
+//			res = ((res << 1) + res) + 2;
+//			break;
+//		}
 
 		return res;
 
@@ -833,13 +436,7 @@ struct OcForest
 
 //***************************************************************************************************
 
-	inline index_type GetIndex(nTuple<3, size_t> const & idx)
-	{
-		index_type res;
-		return res;
-	}
-
-	inline coordinates_type GetCoordinates(index_type s) const
+	inline coordinates_type GetCoordinates(iterator const& s) const
 	{
 
 		return coordinates_type( {
@@ -854,7 +451,7 @@ struct OcForest
 
 	}
 
-	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type r) const
+	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
 	{
 		Real a = static_cast<double>(1UL << (D_FP_POS - s.HeightOfTree()));
 
@@ -869,44 +466,48 @@ struct OcForest
 		});
 	}
 
-	inline index_type CoordinatesGlobalToLocalDual(coordinates_type *px, index_type shift = index_type( { 0UL })) const
-	{
-		return CoordinatesGlobalToLocal(px, shift, 0.5);
-	}
-	inline index_type CoordinatesGlobalToLocal(coordinates_type *px, index_type shift = index_type( { 0UL }),
-	        double round = 0.0) const
-	{
-		auto & x = *px;
+//	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
+//	{
+//		return CoordinatesGlobalToLocal(px, shift, 0.5);
+//	}
+//	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL,
+//	        double round = 0.0) const
+//	{
+//		iterator res();
+//
+//		auto & x = *px;
+//
+//		compact_index_type h = 0;
+//
+//		nTuple<NDIMS, long> idx;
+//
+//		Real w = static_cast<Real>(1UL << h);
+//
+//		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
+//
+////		idx[0] = static_cast<long>(std::floor(round + x[0] + static_cast<double>(shift[0]))) & m;
+////
+////		x[0] = ((x[0] - idx[0]) * w);
+////
+////		idx[1] = static_cast<long>(std::floor(round + x[1] + static_cast<double>(shift[1]))) & m;
+////
+////		x[1] = ((x[1] - idx[1]) * w);
+////
+////		idx[2] = static_cast<long>(std::floor(round + x[2] + static_cast<double>(shift[2]))) & m;
+////
+////		x[2] = ((x[2] - idx[2]) * w);
+//
+//		return res;
+//
+////				iterator(
+////		        { ((((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | (idx[2]))
+////		                | shift)) })
+////
+////		;
+//
+//	}
 
-		compact_index_type h = shift.HeightOfTree();
-
-		nTuple<NDIMS, long> idx;
-
-		Real w = static_cast<Real>(1UL << h);
-
-		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
-
-		idx[0] = static_cast<long>(std::floor(round + x[0] + static_cast<double>(shift[0]))) & m;
-
-		x[0] = ((x[0] - idx[0]) * w);
-
-		idx[1] = static_cast<long>(std::floor(round + x[1] + static_cast<double>(shift[1]))) & m;
-
-		x[1] = ((x[1] - idx[1]) * w);
-
-		idx[2] = static_cast<long>(std::floor(round + x[2] + static_cast<double>(shift[2]))) & m;
-
-		x[2] = ((x[2] - idx[2]) * w);
-
-		return index_type(
-		        { ((((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | (idx[2]))
-		                | shift.d)) })
-
-		;
-
-	}
-
-	static Real Volume(index_type s)
+	static Real Volume(iterator s)
 	{
 		static constexpr double volume_[8][D_FP_POS] = {
 
@@ -931,7 +532,7 @@ struct OcForest
 		return volume_[s.NodeId()][s.HeightOfTree()];
 	}
 
-	static Real InvVolume(index_type s)
+	static Real InvVolume(iterator s)
 	{
 		static constexpr double inv_volume_[8][D_FP_POS] = {
 
@@ -956,30 +557,30 @@ struct OcForest
 		return inv_volume_[s.NodeId()][s.HeightOfTree()];
 	}
 
-	static Real InvDualVolume(index_type s)
+	static Real InvDualVolume(iterator s)
 	{
 		return InvVolume(s.Dual());
 	}
-	static Real DualVolume(index_type s)
+	static Real DualVolume(iterator s)
 	{
 		return Volume(s.Dual());
 	}
 
 	template<int I>
-	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, iterator s, iterator *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, iterator s, iterator *v) const
 	{
 		v[0] = s + s.DeltaIndex();
 		v[1] = s - s.DeltaIndex();
 		return 2;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, iterator s, iterator *v) const
 	{
 		/**
 		 *
@@ -1002,8 +603,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = s.Dual().NextNode().DeltaIndex();
-		auto dj = s.Dual().PreviousNode().DeltaIndex();
+		auto di = s.Dual().Roate().DeltaIndex();
+		auto dj = s.Dual().InverseRoate().DeltaIndex();
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -1013,7 +614,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, index_type const &s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, iterator const &s, iterator *v) const
 	{
 		/**
 		 *
@@ -1052,7 +653,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, iterator s, iterator *v) const
 	{
 		/**
 		 *
@@ -1091,7 +692,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1114,8 +715,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = s.Dual().NextNode().DeltaIndex();
-		auto d2 = s.Dual().PreviousNode().DeltaIndex();
+		auto d1 = s.Dual().Roate().DeltaIndex();
+		auto d2 = s.Dual().InverseRoate().DeltaIndex();
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -1124,7 +725,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1169,7 +770,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, iterator s, iterator *v) const
 	{
 		/**
 		 *
@@ -1227,7 +828,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1265,8 +866,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = s.NextNode().DeltaIndex();
-		auto d2 = s.PreviousNode().DeltaIndex();
+		auto d1 = s.Roate().DeltaIndex();
+		auto d2 = s.InverseRoate().DeltaIndex();
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -1276,7 +877,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1316,7 +917,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, iterator s, iterator *v) const
 	{
 		/**
 		 *
@@ -1370,7 +971,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1408,8 +1009,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = s.NextNode().DeltaIndex();
-		auto d2 = s.PreviousNode().DeltaIndex();
+		auto d1 = s.Roate().DeltaIndex();
+		auto d2 = s.InverseRoate().DeltaIndex();
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -1418,7 +1019,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, index_type s, index_type *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, iterator s, iterator *v) const
 	{
 
 		/**
@@ -1449,14 +1050,515 @@ struct OcForest
 		return 2;
 	}
 
-}
-;
+	struct iterator
+	{
+/// One of the @link iterator_tags tag types@endlink.
+		typedef std::input_iterator_tag iterator_category;
 
-inline unsigned long make_hash(OcForest::iterator s)
-{
-	return s.Hash();
-}
+/// The type "pointed to" by the iterator.
+		typedef compact_index_type value_type;
 
+/// Distance between iterators is represented as this type.
+		typedef typename simpla::OcForest::iterator difference_type;
+
+/// This type represents a pointer-to-value_type.
+		typedef value_type* pointer;
+
+/// This type represents a reference-to-value_type.
+		typedef value_type& reference;
+
+		compact_index_type self_;
+
+		compact_index_type start_, end_;
+
+		iterator(compact_index_type s, compact_index_type b, compact_index_type e)
+				: self_(s), start_(b), end_(e)
+		{
+		}
+
+		~iterator()
+		{
+		}
+
+		bool operator==(iterator const & rhs) const
+		{
+			return self_ == rhs.self_;
+		}
+
+		bool operator!=(iterator const & rhs) const
+		{
+			return !(this->operator==(rhs));
+		}
+
+		value_type const & operator*() const
+		{
+			return self_;
+		}
+
+		value_type const* operator ->() const
+		{
+			return &self_;
+		}
+
+		iterator & operator ++()
+		{
+			auto n = NodeId();
+
+//		if (n == 0 || n == 4 || n == 3 || n == 7)
+//		{
+//			auto D = (1UL << (D_FP_POS - HeightOfTree()));
+//
+//			iterator mask = self_ & (~ROOT_MASK);
+//
+//			self_ &= ~mask.d;
+//
+//			self_.Set(2, self_[2] + D);
+//
+//			if (self_[2] >= (end_[2]))
+//			{
+//				self_.Set(2, start_[2]);
+//				self_.Set(1, self_[1] + D);
+//			}
+//			if (self_[1] >= (end_[1]))
+//			{
+//				self_.Set(1, start_[1]);
+//				self_.Set(0, self_[0] + D);
+//			}
+//			//			if (s[0] > end_[0])
+//			//			{
+//			//				s.d = -1; // the end
+//			//			}
+//
+//			self_ |= mask;
+//		}
+
+			Roate();
+
+			return *this;
+		}
+
+		iterator operator ++(int)
+		{
+			iterator res(*this);
+			++res;
+			return std::move(res);
+		}
+
+		iterator & operator --()
+		{
+
+//		//   NEED OPTIMIZE!
+//		auto n = self_.NodeId();
+//
+//		if (n == 0 || n == 4 || n == 3 || n == 7)
+//		{
+//			auto D = (1UL << (D_FP_POS - self_.HeightOfTree()));
+//
+//			auto mask = self_ & (~ROOT_MASK);
+//
+//			self_.Set(2, self_[2] - D);
+//
+//			if (self_[2] < (start_[2]))
+//			{
+//				self_.Set(2, end_[2] - D);
+//				self_.Set(1, self_[1] - D);
+//			}
+//			if (self_[1] < (start_[1]))
+//			{
+//				self_.Set(1, end_[1] - D);
+//				self_.Set(0, self_[0] - D);
+//			}
+//			//			if (s_[0] > end_[0])
+//			//			{
+//			//				s.d = -1; // the end
+//			//			}
+//			self_ |= mask;
+//		}
+//
+//		iterator r;
+//
+//		r.d = self_.d & ~(_DA >> (self_.HeightOfTree() + 1));
+//
+//		r |= ((self_.d & (_DI >> (self_.HeightOfTree() + 1))) >> (INDEX_DIGITS * 2)) |
+//
+//		((self_.d & (_DJ >> (self_.HeightOfTree() + 1))) << INDEX_DIGITS) |
+//
+//		((self_.d & (_DK >> (self_.HeightOfTree() + 1))) << INDEX_DIGITS)
+//
+//		;
+//
+//		self_ = r;
+
+			return *this;
+		}
+
+		iterator operator --(int)
+		{
+			iterator res(*this);
+			--res;
+			return std::move(res);
+		}
+
+#define DEF_OP(_OP_)                                                                       \
+				inline iterator & operator _OP_##=(compact_index_type r)                           \
+				{                                                                                  \
+					self_ =  ( (*this) _OP_ r).self_;                                                                \
+					return *this ;                                                                  \
+				}                                                                                  \
+				inline iterator &operator _OP_##=(iterator r)                                   \
+				{                                                                                  \
+					self_ = ( (*this) _OP_ r).self_;                                                                  \
+					return *this;                                                                  \
+				}                                                                                  \
+		                                                                                           \
+				inline iterator  operator _OP_(compact_index_type const &r) const                 \
+				{   iterator res(*this);                                                                               \
+				   res.self_=(( ( ((self_ _OP_ (r & _MI)) & _MI) |                              \
+				                     ((self_ _OP_ (r & _MJ)) & _MJ) |                               \
+				                     ((self_ _OP_ (r & _MK)) & _MK)                                 \
+				                        )& (NO_HEAD_FLAG) ));   \
+			      return res;                                              \
+				}                                                                                  \
+		                                                                                           \
+				inline iterator operator _OP_(iterator r) const                                \
+				{                                                                                  \
+					return std::move(this->operator _OP_(r.self_));                                               \
+				}                                                                                  \
+
+		DEF_OP(+)
+		DEF_OP(-)
+		DEF_OP(^)
+		DEF_OP(&)
+		DEF_OP(|)
+#undef DEF_OP
+
+		size_t operator[](unsigned int i) const
+		{
+			return Get(i);
+		}
+		size_t Get(unsigned int i) const
+		{
+			return (self_ >> (INDEX_DIGITS * (NDIMS - i - 1))) & INDEX_MASK;
+		}
+
+		void Set(unsigned int i, size_t v)
+		{
+			self_ &= ~(INDEX_MASK << (INDEX_DIGITS * (NDIMS - i - 1)));
+			self_ += (v & INDEX_MASK) << (INDEX_DIGITS * (NDIMS - i - 1));
+		}
+		//***************************************************************************************************
+		//* Auxiliary functions
+		//***************************************************************************************************
+		void SetNodeId(unsigned int n)
+		{
+
+		}
+
+		iterator Root() const
+		{
+			iterator res(*this);
+			res.self_ = self_ & ROOT_MASK;
+			//			compact_index_type m = (1 << (D_FP_POS - HeightOfTree())) - 1;
+			//			return iterator( { d & (~((m << INDEX_DIGITS * 2) | (m << (INDEX_DIGITS)) | m)) });
+			return res;
+		}
+		iterator Dual() const
+		{
+			iterator res(*this);
+
+			res.self_ = (self_ & (~(_DA >> (HeightOfTree() + 1))))
+			        | ((~(self_ & (_DA >> (HeightOfTree() + 1)))) & (_DA >> (HeightOfTree() + 1)));
+
+			return res;
+		}
+
+		unsigned int HeightOfTree() const
+		{
+			return self_ >> (INDEX_DIGITS * 3);
+		}
+
+		unsigned int NodeId() const
+		{
+			auto s = (self_ & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
+
+			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+		}
+
+		/**
+		 *  rotate vector direction  mask
+		 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
+		 * @param s
+		 * @return
+		 */
+		iterator Roate() const
+		{
+			iterator res(*this);
+
+			res.self_ = self_ & (~(_DA >> (HeightOfTree() + 1)));
+
+			res.self_ |= ((self_ & (_DI >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
+
+			((self_ & (_DJ >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
+
+			((self_ & (_DK >> (HeightOfTree() + 1))) << (INDEX_DIGITS * 2))
+
+			;
+			return res;
+
+		}
+
+		/**
+		 *  rotate vector direction  mask
+		 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
+		 * @param s
+		 * @return
+		 */
+		iterator InverseRoate() const
+		{
+			iterator res(*this);
+
+			res.self_ = self_ & ~(_DA >> (HeightOfTree() + 1));
+
+			res.self_ |= ((self_ & (_DI >> (HeightOfTree() + 1))) >> (INDEX_DIGITS * 2)) |
+
+			((self_ & (_DJ >> (HeightOfTree() + 1))) << INDEX_DIGITS) |
+
+			((self_ & (_DK >> (HeightOfTree() + 1))) << INDEX_DIGITS);
+
+			return res;
+		}
+
+		//! get the direction of vector(edge) 0=>x 1=>y 2=>z
+		compact_index_type DirectionOfVector() const
+		{
+			compact_index_type s = (self_ & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
+
+			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+		}
+
+		compact_index_type DeltaIndex() const
+		{
+			return (self_ & (_DA >> (HeightOfTree() + 1)));
+		}
+
+		compact_index_type DeltaIndex(unsigned int i) const
+		{
+			return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree() - 1));
+		}
+
+		/**
+		 * Get component number or vector direction
+		 * @param s
+		 * @return
+		 */
+		size_type ComponentNum() const
+		{
+			size_type res = 0;
+			switch (NodeId())
+			{
+			case 1:
+			case 6:
+				res = 0;
+				break;
+			case 2:
+			case 5:
+				res = 1;
+				break;
+			case 4:
+			case 3:
+				res = 2;
+				break;
+			}
+			return res;
+		}
+
+		size_type IForm() const
+		{
+			size_type res = 0;
+			switch (NodeId())
+			{
+			case 0:
+				res = VERTEX;
+				break;
+			case 1:
+			case 2:
+			case 4:
+				res = EDGE;
+				break;
+
+			case 3:
+			case 5:
+			case 6:
+				res = FACE;
+				break;
+
+			case 7:
+				res = VOLUME;
+			}
+			return res;
+		}
+
+	}; // class iterator
+
+	struct Range
+	{
+	public:
+		typedef typename OcForest::iterator iterator;
+		typedef typename iterator::value_type value_type;
+
+		compact_index_type first, second;
+
+		Range(compact_index_type b, compact_index_type e)
+				: first(b), second(e)
+		{
+		}
+
+		~Range()
+		{
+		}
+
+		iterator begin() const
+		{
+			return iterator(first, first, second);
+		}
+		iterator end() const
+		{
+			return iterator(second, first, second);
+		}
+		nTuple<NDIMS, size_t> Extents() const
+		{
+			nTuple<NDIMS, size_t> res;
+
+//		auto b = first.Root(), e = second.Root();
+//
+//		for (int i = 0; i < NDIMS; ++i)
+//		{
+//			res[i] = ((e[i] - b[i]) >> D_FP_POS) + 1;
+//		}
+			return res;
+		}
+		Range Split(size_t total, size_t sub) const
+		{
+
+//			iterator e = second.Root();
+//			iterator b = first.Root();
+//
+//			iterator count = (mesh->Previous(e) - b) >> D_FP_POS;
+//
+//			e = first +
+//
+//			(((count[0] + 1) * (sub + 1) / total) << (INDEX_DIGITS * 2 + D_FP_POS)) |
+//
+//			(((count[1] + 1) * (sub + 1) / total) << (INDEX_DIGITS + D_FP_POS)) |
+//
+//			((count[2] + 1) * (sub + 1) / total) << (D_FP_POS);
+//
+//			b = first +
+//
+//			(((count[0] + 1) * (sub) / total) << (INDEX_DIGITS * 2 + D_FP_POS)) |
+//
+//			(((count[1] + 1) * (sub) / total) << (INDEX_DIGITS + D_FP_POS)) |
+//
+//			(((count[2] + 1) * (sub) / total) << (D_FP_POS));
+
+			nTuple<NDIMS, size_t> num_process;
+			nTuple<NDIMS, size_t> process_num;
+			nTuple<NDIMS, size_t> gw;
+			auto extents = Extents();
+
+			bool flag = false;
+			for (int i = 0; i < NDIMS; ++i)
+			{
+				gw[i] = 0;
+				if (!flag && (extents[i] > total))
+				{
+					num_process[i] = total;
+					process_num[i] = sub;
+					flag = true;
+				}
+				else
+				{
+					num_process[i] = 1;
+					process_num[i] = 0;
+				}
+			}
+			if (!flag)
+				ERROR << "Range is too small to split! ";
+
+			return Split(num_process, process_num, gw).first;
+
+		}
+
+		std::pair<Range, Range> Split(nTuple<NDIMS, size_t> const & num_process,
+		        nTuple<NDIMS, size_t> const & process_num, nTuple<NDIMS, size_t> const & ghost_width) const
+		{
+
+			compact_index_type inner_start = first, inner_end = second, outer_start = first, outer_end = second;
+//
+//		iterator b = first.Root(), e = second.Root();
+//
+//		for (int i = 0; i < NDIMS; ++i)
+//		{
+//			auto L = ((e[i] - b[i]) >> D_FP_POS) + 1;
+//
+//			if (2 * ghost_width[i] * num_process[i] > L)
+//			{
+//				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << L
+//
+//				<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
+//			}
+//			else
+//			{
+//
+//				auto start = first[i] + (((L * process_num[i]) / num_process[i]) << D_FP_POS);
+//
+//				auto end = first[i] + (((L * (process_num[i] + 1)) / num_process[i]) << D_FP_POS);
+//
+//				inner_start.Set(i, start);
+//				inner_end.Set(i, end);
+//
+//				if (process_num[i] > 0)
+//				{
+//					start -= ghost_width[i] << D_FP_POS;
+//
+//				}
+//				if (process_num[i] < num_process[i] - 1)
+//				{
+//					end += ghost_width[i] << D_FP_POS;
+//				}
+//
+//				outer_start.Set(i, start);
+//				outer_end.Set(i, end);
+//
+//			}
+//		}
+//
+//		CHECK("") << "{"
+//
+//		<< ((outer_start[0] - first[0]) >> D_FP_POS) << ","
+//
+//		<< ((outer_start[1] - first[1]) >> D_FP_POS) << ","
+//
+//		<< ((outer_start[2] - first[2]) >> D_FP_POS) << "}"
+//
+//		<< "{"
+//
+//		<< ((outer_end[0] - first[0]) >> D_FP_POS) << ","
+//
+//		<< ((outer_end[1] - first[1]) >> D_FP_POS) << ","
+//
+//		<< ((outer_end[2] - first[2]) >> D_FP_POS)
+//
+//		<< "}"
+//
+//		<< std::endl;
+
+			return std::make_pair(Range(outer_start, outer_end), Range(inner_start, inner_end));
+		}
+	};
+	// class Range
+};
+// class OcForest
 }
 // namespace simpla
 

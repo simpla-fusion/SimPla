@@ -38,7 +38,6 @@ namespace simpla
  *	@ingroup ntuple
  * */
 
-
 namespace _ntuple_impl
 {
 
@@ -390,7 +389,27 @@ auto imag(nTuple<3, T> const & l)
 	nTuple<3, T> res = { 0, 0, 0 };
 	return l;
 }
+template<int NDIMS, typename TExpr>
+auto operator >>(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,decltype(v[0] >> n )>
+{
+	nTuple<NDIMS, decltype(v[0] >> n )> res;
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		res[i] = v[i] >> n;
+	}
+	return res;
+}
 
+template<int NDIMS, typename TExpr>
+auto operator <<(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,decltype(v[0] << n )>
+{
+	nTuple<NDIMS, decltype(v[0] >> n )> res;
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		res[i] = v[i] << n;
+	}
+	return res;
+}
 }
 //namespace simpla
 #endif  // INCLUDE_NTUPLE_H_
