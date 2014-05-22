@@ -14,26 +14,26 @@ namespace simpla
 
 inline void ParallelDo(std::function<void(int, int)> fun)
 {
-#ifndef DISABLE_MULTI_THREAD
-	const unsigned int num_threads = std::thread::hardware_concurrency();
-	std::vector<std::thread> threads;
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
-	{
-		threads.emplace_back(std::thread(
-
-		[fun](int t_num,int t_id)
-		{
-			fun( t_num, t_id);
-		},
-
-		num_threads, thread_id));
-	}
-
-	for (auto & t : threads)
-		t.join();
-#else
+//#ifndef DISABLE_MULTI_THREAD
+//	const unsigned int num_threads = std::thread::hardware_concurrency();
+//	std::vector<std::thread> threads;
+//	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+//	{
+//		threads.emplace_back(std::thread(
+//
+//		[fun](int t_num,int t_id)
+//		{
+//			fun( t_num, t_id);
+//		},
+//
+//		num_threads, thread_id));
+//	}
+//
+//	for (auto & t : threads)
+//		t.join();
+//#else
 	fun(1, 0);
-#endif
+//#endif
 }
 
 template<typename TRange>

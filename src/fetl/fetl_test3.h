@@ -87,7 +87,7 @@ TYPED_TEST_P(TestDiffCalculus, grad0){
 	for(auto s :mesh.GetRange( EDGE))
 	{
 
-		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[mesh._C(s)] * mesh.Volume(s);
+		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[s.ComponentNum()] * mesh.Volume(s);
 		f1b[s]=expect;
 		auto error = 0.5*kdx2;
 
@@ -96,7 +96,7 @@ TYPED_TEST_P(TestDiffCalculus, grad0){
 		average+=(f1[s]-expect);
 
 		if(abs(f1[s])>epsilon|| abs(expect)>epsilon)
-		EXPECT_LE(abs(2.0*(f1[s]-expect)/(f1[s] + expect)), error )<<mesh.GetDimensions()<<" "<< f1[s]<<" "<<expect;
+		EXPECT_LE(abs(2.0*(f1[s]-expect)/(f1[s] + expect)), error )<<mesh.GetGlobalDimensions()<<" "<< f1[s]<<" "<<expect;
 
 	}
 
@@ -143,7 +143,7 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 	for(auto s :mesh.GetRange( FACE))
 	{
 
-		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[mesh._C(s)] * mesh.Volume(s);
+		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*k[s.ComponentNum()] * mesh.Volume(s);
 		f2b[s]=expect;
 		auto error = 0.5*kdx2;
 
@@ -152,7 +152,7 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 		average+=(f2[s]-expect);
 
 		if(abs(f2[s])>epsilon|| abs(expect)>epsilon)
-		EXPECT_LE(abs(2.0*(f2[s]-expect)/(f2[s] + expect)), error )<<mesh.GetDimensions()<<" "<< f2[s]<<" "<< f2b[s];
+		EXPECT_LE(abs(2.0*(f2[s]-expect)/(f2[s] + expect)), error )<<mesh.GetGlobalDimensions()<<" "<< f2[s]<<" "<< f2b[s];
 
 	}
 
@@ -300,7 +300,7 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 
 	for(auto s :mesh.GetRange( FACE))
 	{
-		auto n=mesh._C(s);
+		auto n=s.ComponentNum();
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*( k[(n+1)%3]- k[(n+2)%3] )* mesh.Volume(s);
 
@@ -313,7 +313,7 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 		average+= (vf2[s]-expect);
 
 		if( abs(vf2[s])>epsilon|| abs(expect)>epsilon)
-		EXPECT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<<mesh.GetDimensions() << vf2[s]<<" "<<expect;
+		EXPECT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<<mesh.GetGlobalDimensions() << vf2[s]<<" "<<expect;
 
 	}
 
@@ -362,7 +362,7 @@ TYPED_TEST_P(TestDiffCalculus, curl2){
 	for(auto s :mesh.GetRange( EDGE))
 	{
 
-		auto n=mesh._C(s);
+		auto n=s.ComponentNum();
 
 		auto expect = std::cos(Dot(k,mesh.GetCoordinates(s)))*( k[(n+1)%3]- k[(n+2)%3] )* mesh.Volume(s);
 
