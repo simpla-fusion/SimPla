@@ -70,21 +70,21 @@ TYPED_TEST_P(TestMesh, traversal){
 
 	auto range=mesh.GetRange(TestFixture::IForm );
 
-//	CHECK_BIT(range.begin()->d);
-//	CHECK_BIT(range.end()->d);
+	CHECK_BIT(*range.begin() );
+	CHECK_BIT(*range.end() );
 
 	auto it= range.begin();
 
-//	CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
-//	++it; CHECK_BIT(it->d);
+	CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
+	++it; CHECK_BIT(*it);
 
 	for(auto s:mesh.GetRange(TestFixture::IForm ) )
 	{

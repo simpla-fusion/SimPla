@@ -55,7 +55,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_MAX = static_cast<size_type>(((1L) << (INDEX_DIGITS)) - 1);
 
@@ -98,7 +98,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -179,7 +179,8 @@ struct OcForest
 
 	nTuple<NDIMS, size_t> local_inner_start_, local_inner_end_;
 
-	nTuple<NDIMS, size_type> hash_stride_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> hash_stride_ =
+	{ 0, 0, 0 };
 
 	//
 	//   |----------------|----------------|---------------|--------------|------------|
@@ -238,7 +239,8 @@ struct OcForest
 	{
 		auto dims = GetGlobalDimensions();
 
-		return nTuple<NDIMS, Real>( { static_cast<Real>(dims[0]),
+		return nTuple<NDIMS, Real>(
+		{ static_cast<Real>(dims[0]),
 
 		static_cast<Real>(dims[1]),
 
@@ -252,17 +254,20 @@ struct OcForest
 
 		Decompose(
 
-		nTuple<3, size_t>( { n, 1, 1 }),
+		nTuple<3, size_t>(
+		{ n, 1, 1 }),
 
-		nTuple<3, size_t>( { s, 0, 0 }),
+		nTuple<3, size_t>(
+		{ s, 0, 0 }),
 
-		nTuple<3, size_t>( { gw, gw, gw })
+		nTuple<3, size_t>(
+		{ gw, gw, gw })
 
 		);
 	}
 
 	void Decompose(nTuple<NDIMS, size_t> const & num_process, nTuple<NDIMS, size_t> const & process_num,
-	        nTuple<NDIMS, size_t> const & ghost_width)
+			nTuple<NDIMS, size_t> const & ghost_width)
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -322,8 +327,8 @@ struct OcForest
 	}
 
 	int GetDataSetShape(int IFORM, size_t * global_dims = nullptr, size_t * global_start = nullptr,
-	        size_t * local_dims = nullptr, size_t * local_start = nullptr, size_t * local_count = nullptr,
-	        size_t * local_stride = nullptr, size_t * local_block = nullptr) const
+			size_t * local_dims = nullptr, size_t * local_start = nullptr, size_t * local_count = nullptr,
+			size_t * local_stride = nullptr, size_t * local_block = nullptr) const
 	{
 		int rank = 0;
 
@@ -381,24 +386,25 @@ struct OcForest
 
 	Range GetRange(int IFORM = VERTEX) const
 	{
+		CHECK(global_start_);
+		CHECK(global_end_);
+		compact_index_type b = Compact(global_start_), e = Compact(global_end_);
 
-		compact_index_type b, e;
-
-//		if (IFORM == EDGE)
-//		{
-//			b |= (_DI >> (b.HeightOfTree() + 1));
-//			e |= (_DI >> (e.HeightOfTree() + 1));
-//		}
-//		else if (IFORM == FACE)
-//		{
-//			b |= ((_DJ | _DK) >> (b.HeightOfTree() + 1));
-//			e |= ((_DJ | _DK) >> (e.HeightOfTree() + 1));
-//		}
-//		else if (IFORM == VOLUME)
-//		{
-//			b |= ((_DI | _DJ | _DK) >> (b.HeightOfTree() + 1));
-//			e |= ((_DI | _DJ | _DK) >> (e.HeightOfTree() + 1));
-//		}
+		if (IFORM == EDGE)
+		{
+			b |= (_DI >> 1);
+			e |= (_DI >> 1);
+		}
+		else if (IFORM == FACE)
+		{
+			b |= ((_DJ | _DK) >> 1);
+			e |= ((_DJ | _DK) >> 1);
+		}
+		else if (IFORM == VOLUME)
+		{
+			b |= ((_DI | _DJ | _DK) >> 1);
+			e |= ((_DI | _DJ | _DK) >> 1);
+		}
 
 		return Range(b, e);
 	}
@@ -439,7 +445,8 @@ struct OcForest
 	inline coordinates_type GetCoordinates(iterator const& s) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		static_cast<Real>(s[0]),
 
@@ -455,7 +462,8 @@ struct OcForest
 	{
 		Real a = static_cast<double>(1UL << (D_FP_POS - s.HeightOfTree()));
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		static_cast<Real>(s[0]) + r[0] * a,
 
@@ -509,23 +517,24 @@ struct OcForest
 
 	static Real Volume(iterator s)
 	{
-		static constexpr double volume_[8][D_FP_POS] = {
+		static constexpr double volume_[8][D_FP_POS] =
+		{
 
 		1, 1, 1, 1, // 000
 
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
+				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
 
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
+				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
 
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
+				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
 
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
+				1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
 
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
+				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
 
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
+				1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
 
-		        1, 1.0 / 8, 1.0 / 32, 1.0 / 128 // 111
+				1, 1.0 / 8, 1.0 / 32, 1.0 / 128 // 111
 
 		};
 
@@ -534,25 +543,26 @@ struct OcForest
 
 	static Real InvVolume(iterator s)
 	{
-		static constexpr double inv_volume_[8][D_FP_POS] = {
+		static constexpr double inv_volume_[8][D_FP_POS] =
+		{
 
 		1, 1, 1, 1, // 000
 
-		        1, 2, 4, 8, // 001
+				1, 2, 4, 8, // 001
 
-		        1, 2, 4, 8, // 010
+				1, 2, 4, 8, // 010
 
-		        1, 4, 16, 64, // 011
+				1, 4, 16, 64, // 011
 
-		        1, 2, 4, 8, // 100
+				1, 2, 4, 8, // 100
 
-		        1, 4, 16, 64, // 101
+				1, 4, 16, 64, // 101
 
-		        1, 4, 16, 64, // 110
+				1, 4, 16, 64, // 110
 
-		        1, 8, 32, 128 // 111
+				1, 8, 32, 128 // 111
 
-		        };
+				};
 
 		return inv_volume_[s.NodeId()][s.HeightOfTree()];
 	}
@@ -1050,6 +1060,27 @@ struct OcForest
 		return 2;
 	}
 
+	static compact_index_type Compact(nTuple<NDIMS, size_type> const & idx)
+	{
+		return ((idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2 + D_FP_POS))
+				| ((idx[1] & INDEX_MASK) << (INDEX_DIGITS + D_FP_POS)) | ((idx[2] & INDEX_MASK) << (D_FP_POS));
+	}
+	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
+	{
+		return nTuple<NDIMS, size_type>(
+		{
+
+		(s >> (INDEX_DIGITS * 2)) & INDEX_MASK,
+
+		(s >> (INDEX_DIGITS)) & INDEX_MASK,
+
+		(s) & INDEX_MASK,
+
+		}
+
+		);
+	}
+
 	struct iterator
 	{
 /// One of the @link iterator_tags tag types@endlink.
@@ -1071,8 +1102,8 @@ struct OcForest
 
 		compact_index_type start_, end_;
 
-		iterator(compact_index_type s, compact_index_type b, compact_index_type e)
-				: self_(s), start_(b), end_(e)
+		iterator(compact_index_type s, compact_index_type b, compact_index_type e) :
+				self_(s), start_(b), end_(e)
 		{
 		}
 
@@ -1104,33 +1135,30 @@ struct OcForest
 		{
 			auto n = NodeId();
 
-//		if (n == 0 || n == 4 || n == 3 || n == 7)
-//		{
-//			auto D = (1UL << (D_FP_POS - HeightOfTree()));
-//
-//			iterator mask = self_ & (~ROOT_MASK);
-//
-//			self_ &= ~mask.d;
-//
-//			self_.Set(2, self_[2] + D);
-//
-//			if (self_[2] >= (end_[2]))
-//			{
-//				self_.Set(2, start_[2]);
-//				self_.Set(1, self_[1] + D);
-//			}
-//			if (self_[1] >= (end_[1]))
-//			{
-//				self_.Set(1, start_[1]);
-//				self_.Set(0, self_[0] + D);
-//			}
-//			//			if (s[0] > end_[0])
-//			//			{
-//			//				s.d = -1; // the end
-//			//			}
-//
-//			self_ |= mask;
-//		}
+			if (n == 0 || n == 4 || n == 3 || n == 7)
+			{
+				auto D = (1UL << (D_FP_POS - HeightOfTree()));
+
+				self_ += D;
+
+				if ((self_ & _MRI) >= (end_ & _MRI))
+				{
+					self_ &= ~_MRI;
+					self_ |= start_ & _MRI;
+					self_ += D << (INDEX_DIGITS * 1);
+				}
+				if ((self_ & _MRJ) >= (end_ & _MRJ))
+				{
+					self_ &= ~_MRJ;
+					self_ |= start_ & _MRJ;
+					self_ += D << (INDEX_DIGITS * 2);
+				}
+				//			if (s[0] > end_[0])
+				//			{
+				//				s.d = -1; // the end
+				//			}
+
+			}
 
 			Roate();
 
@@ -1267,7 +1295,7 @@ struct OcForest
 			iterator res(*this);
 
 			res.self_ = (self_ & (~(_DA >> (HeightOfTree() + 1))))
-			        | ((~(self_ & (_DA >> (HeightOfTree() + 1)))) & (_DA >> (HeightOfTree() + 1)));
+					| ((~(self_ & (_DA >> (HeightOfTree() + 1)))) & (_DA >> (HeightOfTree() + 1)));
 
 			return res;
 		}
@@ -1404,13 +1432,18 @@ struct OcForest
 	{
 	public:
 		typedef typename OcForest::iterator iterator;
-		typedef typename iterator::value_type value_type;
 
 		compact_index_type first, second;
 
-		Range(compact_index_type b, compact_index_type e)
-				: first(b), second(e)
+		Range(nTuple<NDIMS, size_type> const & b, nTuple<NDIMS, size_type> const& e) :
+				first(Compact(b)), second(Compact(e))
 		{
+		}
+
+		Range(compact_index_type b, compact_index_type e) :
+				first((b)), second((e))
+		{
+
 		}
 
 		~Range()
@@ -1419,31 +1452,21 @@ struct OcForest
 
 		iterator begin() const
 		{
-			return iterator(first, first, second);
+			return iterator((first), (first), (second));
 		}
 		iterator end() const
 		{
-			return iterator(second, first, second);
+			return iterator((second), (first), (second));
 		}
 		nTuple<NDIMS, size_t> Extents() const
 		{
 			nTuple<NDIMS, size_t> res;
-
-//		auto b = first.Root(), e = second.Root();
-//
-//		for (int i = 0; i < NDIMS; ++i)
-//		{
-//			res[i] = ((e[i] - b[i]) >> D_FP_POS) + 1;
-//		}
+			res = Decompact(second >> D_FP_POS) - Decompact(first >> D_FP_POS);
 			return res;
 		}
 		Range Split(size_t total, size_t sub) const
 		{
 
-//			iterator e = second.Root();
-//			iterator b = first.Root();
-//
-//			iterator count = (mesh->Previous(e) - b) >> D_FP_POS;
 //
 //			e = first +
 //
@@ -1464,6 +1487,7 @@ struct OcForest
 			nTuple<NDIMS, size_t> num_process;
 			nTuple<NDIMS, size_t> process_num;
 			nTuple<NDIMS, size_t> gw;
+
 			auto extents = Extents();
 
 			bool flag = false;
@@ -1490,48 +1514,46 @@ struct OcForest
 		}
 
 		std::pair<Range, Range> Split(nTuple<NDIMS, size_t> const & num_process,
-		        nTuple<NDIMS, size_t> const & process_num, nTuple<NDIMS, size_t> const & ghost_width) const
+				nTuple<NDIMS, size_t> const & process_num, nTuple<NDIMS, size_t> const & ghost_width) const
 		{
 
-			compact_index_type inner_start = first, inner_end = second, outer_start = first, outer_end = second;
-//
-//		iterator b = first.Root(), e = second.Root();
-//
-//		for (int i = 0; i < NDIMS; ++i)
-//		{
-//			auto L = ((e[i] - b[i]) >> D_FP_POS) + 1;
-//
-//			if (2 * ghost_width[i] * num_process[i] > L)
-//			{
-//				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << L
-//
-//				<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
-//			}
-//			else
-//			{
-//
-//				auto start = first[i] + (((L * process_num[i]) / num_process[i]) << D_FP_POS);
-//
-//				auto end = first[i] + (((L * (process_num[i] + 1)) / num_process[i]) << D_FP_POS);
-//
-//				inner_start.Set(i, start);
-//				inner_end.Set(i, end);
-//
-//				if (process_num[i] > 0)
-//				{
-//					start -= ghost_width[i] << D_FP_POS;
-//
-//				}
-//				if (process_num[i] < num_process[i] - 1)
-//				{
-//					end += ghost_width[i] << D_FP_POS;
-//				}
-//
-//				outer_start.Set(i, start);
-//				outer_end.Set(i, end);
-//
-//			}
-//		}
+			compact_index_type inner_start = first, inner_end = first, outer_start = first, outer_end = first;
+
+			auto count = Extents();
+
+			for (int i = 0; i < NDIMS; ++i)
+			{
+
+				if (2 * ghost_width[i] * num_process[i] > count[i])
+				{
+					ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << count[i]
+
+					<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
+				}
+				else
+				{
+
+					auto start = (count[i] * process_num[i]) / num_process[i];
+
+					auto end = (count[i] * (process_num[i] + 1)) / num_process[i];
+
+					inner_start += start << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS);
+					inner_end += end << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS);
+
+					if (process_num[i] > 0)
+					{
+						start -= ghost_width[i] << D_FP_POS;
+
+					}
+					if (process_num[i] < num_process[i] - 1)
+					{
+						end += ghost_width[i] << D_FP_POS;
+					}
+
+					outer_start += start << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS);
+					outer_end += end << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS);
+				}
+			}
 //
 //		CHECK("") << "{"
 //
@@ -1556,7 +1578,7 @@ struct OcForest
 			return std::make_pair(Range(outer_start, outer_end), Range(inner_start, inner_end));
 		}
 	};
-	// class Range
+// class Range
 };
 // class OcForest
 }
