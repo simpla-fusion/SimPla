@@ -21,8 +21,9 @@ class TestMesh: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		Logger::Verbose(10);
+		LOG_STREAM.SetStdOutVisableLevel(10);
 		TParam::SetUpMesh(&mesh);
+		mesh.Decompose(1,0);
 	}
 public:
 
@@ -35,17 +36,48 @@ public:
 
 TYPED_TEST_CASE_P(TestMesh);
 
+TYPED_TEST_P(TestMesh, index){
+{
+	typename TestFixture::index_type s;
+
+	s.d=0;
+
+	s.Set(0,1);
+	s.Set(1,1);
+	s.Set(2,1);
+
+	CHECK_BIT(s.d);
+}
+}
+TYPED_TEST_P(TestMesh, iterator){
+{
+
+}
+}
+
+TYPED_TEST_P(TestMesh, range){
+{
+
+}
+}
+
 TYPED_TEST_P(TestMesh, traversal){
 {
 
 	auto & mesh=TestFixture::mesh;
 
+	CHECK( mesh.GetNumOfElements( TestFixture::IForm));
+	CHECK( mesh.GetDimensions());
+	CHECK( mesh.GetGlobalDimensions());
+	CHECK( mesh.GetLocalDimensions());
+
 	size_t count = 0;
 
-	for(auto s:mesh.GetRange(TestFixture::IForm ) )
-	{
-		++count;
-	}
+//	for(auto s:mesh.GetRange(TestFixture::IForm ) )
+//	{
+//		++count;
+//		CHECK(count);
+//	}
 
 	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
@@ -59,54 +91,54 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 	int total=4;
 	size_t count = 0;
 	auto range=mesh.GetRange(TestFixture::IForm);
-	for (int s = 0; s < total; ++s)
-	{
-		for(auto s:range.Split(total,s))
-		{
-			++count;
-		}
-	}
+//	for (int s = 0; s < total; ++s)
+//	{
+//		for(auto s:range.Split(total,s))
+//		{
+//			++count;
+//		}
+//	}
 
 	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
 }}
 
-TYPED_TEST_P(TestMesh,scatter ){
-{
-	typedef typename TestFixture::mesh_type mesh_type;
-
-	auto & mesh=TestFixture::mesh;
-
-	Field<mesh_type,VERTEX,Real> n(mesh);
-	Field<mesh_type,EDGE,Real> J(mesh);
-
-	n.Clear();
-	J.Clear();
-
-	nTuple<3,Real> x=
-	{	-0.01,-0.01,-0.01};
-	nTuple<3,Real> v=
-	{	1,2,3};
-
-	mesh.Scatter(x,1.0,&n);
-	mesh.Scatter(x,v,&J);
-	for(auto const & v: n)
-	{
-		std::cout<<" "<<v;
-	}
-	std::cout<<std::endl;
-	for(auto const & v: J)
-	{
-		std::cout<<" "<<v;
-	}
-
-	std::cout<<std::endl;
-}}
-
-TYPED_TEST_P(TestMesh,gather){
-
-}
-REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal, scatter, gather);
+//TYPED_TEST_P(TestMesh,scatter ){
+//{
+//	typedef typename TestFixture::mesh_type mesh_type;
+//
+//	auto & mesh=TestFixture::mesh;
+//
+//	Field<mesh_type,VERTEX,Real> n(mesh);
+//	Field<mesh_type,EDGE,Real> J(mesh);
+//
+//	n.Clear();
+//	J.Clear();
+//
+//	nTuple<3,Real> x=
+//	{	-0.01,-0.01,-0.01};
+//	nTuple<3,Real> v=
+//	{	1,2,3};
+//
+//	mesh.Scatter(x,1.0,&n);
+//	mesh.Scatter(x,v,&J);
+//	for(auto const & v: n)
+//	{
+//		std::cout<<" "<<v;
+//	}
+//	std::cout<<std::endl;
+//	for(auto const & v: J)
+//	{
+//		std::cout<<" "<<v;
+//	}
+//
+//	std::cout<<std::endl;
+//}}
+//
+//TYPED_TEST_P(TestMesh,gather){
+//
+//}
+REGISTER_TYPED_TEST_CASE_P(TestMesh, index, iterator, range, traversal, partial_traversal/*, scatter, gather*/);
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>

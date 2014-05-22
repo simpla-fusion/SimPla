@@ -42,13 +42,17 @@ int main(int argc, char **argv)
 
 	mesh.SetExtents(xmin, xmax);
 
-#if USE_PARALLEL_IO
-	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
-#endif
+	CHECK( mesh.GetGlobalDimensions());
 
-	Field<mesh_type, VERTEX, Real> f(mesh);
+	CHECK("");
 
-	f.Fill(1234);
+//#if USE_PARALLEL_IO
+//	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
+//#endif
+//
+//	Field<mesh_type, VERTEX, Real> f(mesh);
+//
+//	f.Fill(1234);
 
 //#if USE_PARALLEL_IO
 //	f.Fill(GLOBAL_COMM.GetRank()+100);

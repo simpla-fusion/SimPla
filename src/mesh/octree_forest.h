@@ -228,7 +228,7 @@ struct OcForest
 		void Set(unsigned int i, size_t v)
 		{
 			d &= (~((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * (NDIMS - i - 1));
-			d += v & ((1UL << INDEX_DIGITS) - 1);
+			d += (v & ((1UL << INDEX_DIGITS) - 1)) << (INDEX_DIGITS * (NDIMS - i - 1));
 		}
 
 		void Add(unsigned int i, size_t v)
@@ -515,13 +515,13 @@ struct OcForest
 
 	index_type local_index_start_ = INDEX_CENTER, local_index_end_ = INDEX_CENTER;
 
-	nTuple<NDIMS, size_type> local_dims_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> memory_dims_ = { 0, 0, 0 };
 
-	nTuple<NDIMS, size_type> local_start_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> memory_start_ = { 0, 0, 0 };
 
-	nTuple<NDIMS, size_type> local_count_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> memory_count_ = { 0, 0, 0 };
 
-	nTuple<NDIMS, size_type> stride_ = { 0, 0, 0 };
+	nTuple<NDIMS, size_type> memory_stride_ = { 0, 0, 0 };
 
 	enum
 	{
@@ -548,7 +548,7 @@ struct OcForest
 
 	nTuple<NDIMS, size_type> GetDimensions() const
 	{
-		return GetGlobalDimensions();
+		return std::move(GetGlobalDimensions());
 	}
 
 	nTuple<NDIMS, size_type> GetGlobalDimensions() const
@@ -559,7 +559,7 @@ struct OcForest
 
 	nTuple<NDIMS, size_type> GetLocalDimensions() const
 	{
-		index_type count = local_index_end_ - local_index_start_;
+		index_type count = (local_index_end_ - local_index_start_) >> D_FP_POS;
 		return nTuple<NDIMS, size_type>( { count[0], count[1], count[2] });
 	}
 
@@ -596,63 +596,61 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			size_type L = (global_index_end_[i] - global_index_start_[i]) >> (D_FP_POS);
+			memory_count_[i] = (global_index_end_[i] - global_index_start_[i]) >> (D_FP_POS);
 
-			local_start_[i] = 0;
-			local_count_[i] = L;
+			memory_start_[i] = 0;
 
-			if (2 * ghost_width[i] * num_process[i] > local_count_[i])
+			if (2 * ghost_width[i] * num_process[i] > memory_count_[i])
 			{
-				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << L
+				ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << memory_count_[i]
 
 				<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
 			}
 			else
 			{
+				auto start = (memory_count_[i] * process_num[i] / num_process[i]);
 
-				local_index_start_.Set(i, local_index_start_[i]
+				auto end = (memory_count_[i] * (process_num[i] + 1) / num_process[i]);
 
-				+ ((local_count_[i] * process_num[i] / (num_process[i]) - ghost_width[i]) << D_FP_POS));
+				memory_count_[i] = start - end;
 
-				local_index_end_.Set(i, local_index_start_[i]
+				if (process_num[i] > 0)
+				{
+					start -= ghost_width[i];
+					memory_start_ = ghost_width[i];
+				}
+				if (process_num[i] < num_process[i] - 1)
+				{
+					end += ghost_width[i] << D_FP_POS;
+				}
 
-				+ ((local_count_[i] * (process_num[i] + 1) / (num_process[i]) + 2 * ghost_width[i]) << D_FP_POS));
+				local_index_start_.Set(i, global_index_start_[i] + (start << D_FP_POS));
 
-				local_start_[i] = ghost_width[i];
+				local_index_end_.Set(i, global_index_start_[i] + (end << D_FP_POS));
 
 			}
-			local_dims_[i] = (local_index_end_[i] - local_index_start_[i]) >> D_FP_POS;
+			memory_dims_[i] = (local_index_end_[i] - local_index_start_[i]) >> D_FP_POS;
 		}
 
 		if (array_order_ == SLOW_FIRST)
 		{
-			stride_[2] = 1;
-			stride_[1] = local_dims_[2];
-			stride_[0] = local_dims_[1] * stride_[1];
+			memory_stride_[2] = 1;
+			memory_stride_[1] = memory_dims_[2];
+			memory_stride_[0] = memory_dims_[1] * memory_stride_[1];
 		}
 		else
 		{
-			stride_[0] = 1;
-			stride_[1] = local_dims_[0];
-			stride_[2] = local_dims_[1] * stride_[1];
+			memory_stride_[0] = 1;
+			memory_stride_[1] = memory_dims_[0];
+			memory_stride_[2] = memory_dims_[1] * memory_stride_[1];
 		}
 
 	}
 
 	size_type GetNumOfElements(int IFORM = VERTEX) const
 	{
-		auto res =
-
-		((local_index_end_[0] - local_index_start_[0]) >> D_FP_POS) *
-
-		((local_index_end_[1] - local_index_start_[1]) >> D_FP_POS) *
-
-		((local_index_end_[2] - local_index_start_[2]) >> D_FP_POS) *
-
-		((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-
-		return res;
-
+		auto dims = GetGlobalDimensions();
+		return dims[0] * dims[1] * dims[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 
 	int GetDataSetShape(int IFORM, size_t * global_dims = nullptr, size_t * global_start = nullptr,
@@ -676,10 +674,10 @@ struct OcForest
 					local_dims[rank] = (local_index_end_[i] - local_index_start_[i]) >> D_FP_POS;
 
 				if (local_start != nullptr)
-					local_start[rank] = local_start_[i];
+					local_start[rank] = memory_start_[i];
 
 				if (local_count != nullptr)
-					local_count[rank] = local_count_[i];
+					local_count[rank] = memory_count_[i];
 
 //				if (local_stride != nullptr)
 //					local_stride[rank] = stride_[i];
@@ -807,11 +805,11 @@ struct OcForest
 	inline size_type Hash(index_type s) const
 	{
 
-		size_type res = ((s[0] - local_index_start_[0]) >> D_FP_POS) * stride_[0] +
+		size_type res = ((s[0] - local_index_start_[0]) >> D_FP_POS) * memory_stride_[0] +
 
-		((s[1] - local_index_start_[1]) >> D_FP_POS) * stride_[1] +
+		((s[1] - local_index_start_[1]) >> D_FP_POS) * memory_stride_[1] +
 
-		((s[2] - local_index_start_[2]) >> D_FP_POS) * stride_[2];
+		((s[2] - local_index_start_[2]) >> D_FP_POS) * memory_stride_[2];
 
 		switch (s.NodeId())
 		{

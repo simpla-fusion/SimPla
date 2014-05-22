@@ -17,15 +17,15 @@ using namespace simpla;
 
 template<typename TM, int CASE> struct TestMeshParam;
 
-typedef RectMesh<OcForest, EuclideanGeometry> Mesh;
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 template<int CASE>
-struct TestMeshParam<Mesh, CASE>
+struct TestMeshParam<TMesh, CASE>
 {
 
 	static constexpr int ICASE = CASE % 100;
 	static constexpr int IForm = CASE / 100;
-	typedef Mesh mesh_type;
+	typedef TMesh mesh_type;
 
 	static void SetUpMesh(mesh_type * mesh)
 	{
@@ -53,11 +53,9 @@ struct TestMeshParam<Mesh, CASE>
 		17, 17, 17
 
 		};
-		mesh->SetExtent(xmin, xmax);
+		mesh->SetExtents(xmin, xmax);
 
 		mesh->SetDimensions(dims[ICASE % 100]);
-
-		mesh->Update();
 
 	}
 
@@ -69,7 +67,7 @@ typedef testing::Types<
 //
 //TestMeshParam<Mesh , 1>,
 
-        TestMeshParam<Mesh, 1> //,
+        TestMeshParam<TMesh, 0> //,
 
 //TestMeshParam<Mesh , 5>,
 //
