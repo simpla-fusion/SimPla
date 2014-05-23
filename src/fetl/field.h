@@ -153,12 +153,14 @@ public:
 
 		TC data_;
 
+		mesh_type const & mesh;
+
 		typename mesh_type::iterator it_;
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, typename mesh_type::iterator s)
-				: data_(d), it_(s)
+		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s)
+				: data_(d), mesh(m), it_(s)
 		{
 
 		}
@@ -176,11 +178,11 @@ public:
 
 		value_type & operator*()
 		{
-			return *(data_.get() + make_hash(it_));
+			return *(data_.get() + mesh.Hash(it_));
 		}
 		value_type const& operator*() const
 		{
-			return *(data_.get() + make_hash(it_));
+			return *(data_.get() + mesh.Hash(it_));
 		}
 
 		pointer operator ->()
@@ -224,23 +226,23 @@ public:
 	iterator begin()
 	{
 		Update();
-		return iterator_<container_type>(data_, mesh.GetRange(IForm).begin());
+		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).begin());
 	}
 
 	iterator end()
 	{
 		Update();
-		return iterator_<container_type>(data_, mesh.GetRange(IForm).end());
+		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).end());
 	}
 
 	const_iterator begin() const
 	{
-		return iterator_<const container_type>(data_, mesh.GetRange(IForm).begin());
+		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).begin());
 	}
 
 	const_iterator end() const
 	{
-		return iterator_<const container_type>(data_, mesh.GetRange(IForm).end());
+		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).end());
 	}
 
 	inline value_type & operator[](index_type s)

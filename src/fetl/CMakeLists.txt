@@ -1,6 +1,6 @@
 my_test(fetl_test    
-  fetl_test1.cpp 
-#  fetl_test2.cpp 
+#  fetl_test1.cpp 
+  fetl_test2.cpp 
 #  fetl_test3.cpp
 #  fetl_test4.cpp
       )

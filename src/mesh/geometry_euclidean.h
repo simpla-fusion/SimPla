@@ -213,7 +213,7 @@ struct EuclideanGeometry: public TTopology
 
 	inline coordinates_type GetDx() const
 	{
-		auto extents = topology_type::GetGlobalDimensions();
+		auto extents = topology_type::GetDimensions();
 
 		return std::move(coordinates_type( {
 
@@ -345,20 +345,20 @@ struct EuclideanGeometry: public TTopology
 	//***************************************************************************************************
 	Real Volume(index_type s) const
 	{
-		return topology_type::Volume(s) * volume_[s.NodeId()];
+		return topology_type::Volume(s) * volume_[topology_type::NodeId(s.self_)];
 	}
 	Real InvVolume(index_type s) const
 	{
-		return topology_type::InvVolume(s) * inv_volume_[s.NodeId()];
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s.self_)];
 	}
 
 	Real DualVolume(index_type s) const
 	{
-		return topology_type::DualVolume(s) * dual_volume_[s.NodeId()];
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s.self_)];
 	}
 	Real InvDualVolume(index_type s) const
 	{
-		return topology_type::InvDualVolume(s) * inv_dual_volume_[s.NodeId()];
+		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s.self_)];
 	}
 
 }

@@ -275,7 +275,7 @@ struct OcForest
 
 		((d[2] - local_outer_start_[2])) * hash_stride_[2];
 
-		switch (s.NodeId())
+		switch (NodeId(s.self_))
 		{
 		case 1:
 		case 6:
@@ -396,8 +396,8 @@ struct OcForest
 
 	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, iterator s, iterator *v) const
 	{
-		v[0] = s + s.DeltaIndex();
-		v[1] = s - s.DeltaIndex();
+		v[0] = s + DeltaIndex(s.self_);
+		v[1] = s - DeltaIndex(s.self_);
 		return 2;
 	}
 
@@ -424,8 +424,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = s.Dual().Roate().DeltaIndex();
-		auto dj = s.Dual().InverseRoate().DeltaIndex();
+		auto di = DeltaIndex(Roate(Dual(s.self_)));
+		auto dj = DeltaIndex(InverseRoate(Dual(s.self_)));
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -457,9 +457,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -497,9 +497,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = s + di;
 		v[1] = s - di;
@@ -536,8 +536,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = s.Dual().Roate().DeltaIndex();
-		auto d2 = s.Dual().InverseRoate().DeltaIndex();
+		auto d1 = DeltaIndex(Roate(Dual(s.self_)));
+		auto d2 = DeltaIndex(InverseRoate(Dual(s.self_)));
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -569,9 +569,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -627,9 +627,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -687,8 +687,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = s.Roate().DeltaIndex();
-		auto d2 = s.InverseRoate().DeltaIndex();
+		auto d1 = DeltaIndex(Roate((s.self_)));
+		auto d2 = DeltaIndex(InverseRoate((s.self_)));
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -722,9 +722,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = s - di;
 		v[1] = s + di;
@@ -775,9 +775,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (s.HeightOfTree() + 1);
-		auto dj = _DJ >> (s.HeightOfTree() + 1);
-		auto dk = _DK >> (s.HeightOfTree() + 1);
+		auto di = _DI >> (HeightOfTree(s.self_) + 1);
+		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
+		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -830,8 +830,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = s.Roate().DeltaIndex();
-		auto d2 = s.InverseRoate().DeltaIndex();
+		auto d1 = DeltaIndex(Roate((s.self_)));
+		auto d2 = DeltaIndex(InverseRoate((s.self_)));
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -864,12 +864,145 @@ struct OcForest
 		 *
 		 */
 
-		auto d = s.Dual().DeltaIndex();
+		auto d = DeltaIndex(Dual(s.self_));
 		v[0] = s + d;
 		v[1] = s - d;
 
 		return 2;
 	}
+
+	//***************************************************************************************************
+	//* Auxiliary functions
+	//***************************************************************************************************
+
+	static compact_index_type Dual(compact_index_type r)
+	{
+
+		return (r & (~(_DA >> (HeightOfTree(r) + 1))))
+		        | ((~(r & (_DA >> (HeightOfTree(r) + 1)))) & (_DA >> (HeightOfTree(r) + 1)));
+
+	}
+
+	static unsigned int NodeId(compact_index_type r)
+	{
+		auto s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
+
+		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+	}
+
+	static unsigned int HeightOfTree(compact_index_type r)
+	{
+		return r >> (INDEX_DIGITS * 3);
+	}
+	static compact_index_type Roate(compact_index_type r)
+	{
+
+		compact_index_type res;
+
+		res = r & (~(_DA >> (HeightOfTree(r) + 1)));
+
+		res |= ((r & ((_DI | _DJ) >> (HeightOfTree(r) + 1))) >> INDEX_DIGITS) |
+
+		((r & (_DK >> (HeightOfTree(r) + 1))) << (INDEX_DIGITS * 2))
+
+		;
+		return res;
+
+	}
+
+	/**
+	 *  rotate vector direction  mask
+	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
+	 * @param s
+	 * @return
+	 */
+	static compact_index_type InverseRoate(compact_index_type r)
+	{
+		compact_index_type res;
+
+		res = r & ~(_DA >> (HeightOfTree(r) + 1));
+
+		res |= ((r & (_DI >> (HeightOfTree(r) + 1))) >> (INDEX_DIGITS * 2)) |
+
+		((r & (_DJ >> (HeightOfTree(r) + 1))) << INDEX_DIGITS) |
+
+		((r & (_DK >> (HeightOfTree(r) + 1))) << INDEX_DIGITS);
+
+		return res;
+	}
+	static compact_index_type DeltaIndex(compact_index_type r)
+	{
+		return (r & (_DA >> (HeightOfTree(r) + 1)));
+	}
+
+	static compact_index_type DeltaIndex(unsigned int i, unsigned int h = 0)
+	{
+		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - h - 1));
+	}
+
+	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
+	static compact_index_type DirectionOfVector(compact_index_type r)
+	{
+		compact_index_type s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
+
+		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+	}
+
+	/**
+	 * Get component number or vector direction
+	 * @param s
+	 * @return
+	 */
+	static size_type ComponentNum(compact_index_type r)
+	{
+		size_type res = 0;
+		switch (NodeId(r))
+		{
+		case 1:
+		case 6:
+			res = 0;
+			break;
+		case 2:
+		case 5:
+			res = 1;
+			break;
+		case 4:
+		case 3:
+			res = 2;
+			break;
+		}
+		return res;
+	}
+
+	static size_type IForm(compact_index_type r)
+	{
+		size_type res = 0;
+		switch (NodeId(r))
+		{
+		case 0:
+			res = VERTEX;
+			break;
+		case 1:
+		case 2:
+		case 4:
+			res = EDGE;
+			break;
+
+		case 3:
+		case 5:
+		case 6:
+			res = FACE;
+			break;
+
+		case 7:
+			res = VOLUME;
+		}
+		return res;
+	}
+
+	//****************************************************************************************************
+	//iterator
+	//****************************************************************************************************
 
 	struct iterator
 	{
@@ -923,7 +1056,7 @@ struct OcForest
 
 		void NextCell()
 		{
-			auto D = (1UL << (D_FP_POS - HeightOfTree()));
+			auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
 
 			self_ += D;
 
@@ -944,7 +1077,7 @@ struct OcForest
 
 		void PreviousCell()
 		{
-			auto D = (1UL << (D_FP_POS - HeightOfTree()));
+			auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
 
 			self_ -= D;
 
@@ -965,14 +1098,14 @@ struct OcForest
 
 		iterator & operator ++()
 		{
-			auto n = NodeId();
+			auto n = NodeId(self_);
 
 			if (n == 0 || n == 4 || n == 3 || n == 7)
 			{
 				NextCell();
 			}
 
-			self_ = Roate(self_);
+			self_ = OcForest::Roate(self_);
 
 			return *this;
 		}
@@ -986,7 +1119,7 @@ struct OcForest
 		iterator & operator --()
 		{
 
-			auto n = NodeId();
+			auto n = NodeId(self_);
 
 			if (n == 0 || n == 1 || n == 6 || n == 7)
 			{
@@ -1038,181 +1171,13 @@ struct OcForest
 		DEF_OP(|)
 #undef DEF_OP
 
-		//***************************************************************************************************
-		//* Auxiliary functions
-		//***************************************************************************************************
-		void SetNodeId(unsigned int n)
-		{
-
-		}
-
-		iterator Root() const
-		{
-			iterator res(*this);
-			res.self_ = self_ & ROOT_MASK;
-			//			compact_index_type m = (1 << (D_FP_POS - HeightOfTree())) - 1;
-			//			return iterator( { d & (~((m << INDEX_DIGITS * 2) | (m << (INDEX_DIGITS)) | m)) });
-			return res;
-		}
-		iterator Dual() const
-		{
-			iterator res(*this);
-
-			res.self_ = (self_ & (~(_DA >> (HeightOfTree() + 1))))
-			        | ((~(self_ & (_DA >> (HeightOfTree() + 1)))) & (_DA >> (HeightOfTree() + 1)));
-
-			return res;
-		}
-
-		unsigned int HeightOfTree() const
-		{
-			return self_ >> (INDEX_DIGITS * 3);
-		}
-
-		unsigned int NodeId() const
-		{
-			auto s = (self_ & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
-
-			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-		}
-
-		/**
-		 *  rotate vector direction  mask
-		 *  (1/2,0,0) => (0,1/2,0) or   (1/2,1/2,0) => (0,1/2,1/2)
-		 * @param s
-		 * @return
-		 */
-		iterator Roate() const
-		{
-			iterator res(*this);
-
-			res.self_ = Roate(self_);
-
-			return res;
-		}
-
-		compact_index_type Roate(compact_index_type r) const
-		{
-
-			compact_index_type res;
-
-			res = r & (~(_DA >> (HeightOfTree() + 1)));
-
-			res |= ((r & ((_DI | _DJ) >> (HeightOfTree() + 1))) >> INDEX_DIGITS) |
-
-			((r & (_DK >> (HeightOfTree() + 1))) << (INDEX_DIGITS * 2))
-
-			;
-			return res;
-
-		}
-
-		/**
-		 *  rotate vector direction  mask
-		 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
-		 * @param s
-		 * @return
-		 */
-		compact_index_type InverseRoate(compact_index_type) const
-		{
-			compact_index_type res;
-
-			res = self_ & ~(_DA >> (HeightOfTree() + 1));
-
-			res |= ((self_ & (_DI >> (HeightOfTree() + 1))) >> (INDEX_DIGITS * 2)) |
-
-			((self_ & (_DJ >> (HeightOfTree() + 1))) << INDEX_DIGITS) |
-
-			((self_ & (_DK >> (HeightOfTree() + 1))) << INDEX_DIGITS);
-
-			return res;
-		}
-
-		iterator InverseRoate() const
-		{
-			iterator res(*this);
-
-			res.self_ = InverseRoate(self_);
-
-			return res;
-		}
-
-		//! get the direction of vector(edge) 0=>x 1=>y 2=>z
-		compact_index_type DirectionOfVector() const
-		{
-			compact_index_type s = (self_ & (_DA >> (HeightOfTree() + 1))) >> (D_FP_POS - HeightOfTree() - 1);
-
-			return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-		}
-
-		compact_index_type DeltaIndex() const
-		{
-			return (self_ & (_DA >> (HeightOfTree() + 1)));
-		}
-
-		compact_index_type DeltaIndex(unsigned int i) const
-		{
-			return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree() - 1));
-		}
-
-		/**
-		 * Get component number or vector direction
-		 * @param s
-		 * @return
-		 */
-		size_type ComponentNum() const
-		{
-			size_type res = 0;
-			switch (NodeId())
-			{
-			case 1:
-			case 6:
-				res = 0;
-				break;
-			case 2:
-			case 5:
-				res = 1;
-				break;
-			case 4:
-			case 3:
-				res = 2;
-				break;
-			}
-			return res;
-		}
-
-		size_type IForm() const
-		{
-			size_type res = 0;
-			switch (NodeId())
-			{
-			case 0:
-				res = VERTEX;
-				break;
-			case 1:
-			case 2:
-			case 4:
-				res = EDGE;
-				break;
-
-			case 3:
-			case 5:
-			case 6:
-				res = FACE;
-				break;
-
-			case 7:
-				res = VOLUME;
-			}
-			return res;
-		}
-
 	}; // class iterator
 
 	struct Range
 	{
 	public:
 		typedef typename OcForest::iterator iterator;
+		typedef iterator value_type;
 
 		nTuple<NDIMS, size_type> start_ = { 0, 0, 0 }, count_ = { 0, 0, 0 };
 		compact_index_type shift_ = 0UL;
@@ -1409,7 +1374,7 @@ struct OcForest
 
 	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
 	{
-		return GetCoordinates(s) + r * static_cast<Real>(1UL << (D_FP_POS - s.HeightOfTree()));
+		return GetCoordinates(s) + r * static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
 	}
 
 	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
@@ -1479,7 +1444,7 @@ struct OcForest
 
 		        };
 
-		return volume_[s.NodeId()][s.HeightOfTree()];
+		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
 	}
 
 	static Real InvVolume(iterator s)
@@ -1504,16 +1469,16 @@ struct OcForest
 
 		        };
 
-		return inv_volume_[s.NodeId()][s.HeightOfTree()];
+		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
 	}
 
 	static Real InvDualVolume(iterator s)
 	{
-		return InvVolume(s.Dual());
+		return InvVolume(Dual(s.self_));
 	}
 	static Real DualVolume(iterator s)
 	{
-		return Volume(s.Dual());
+		return Volume(Dual(s.self_));
 	}
 };
 // class OcForest

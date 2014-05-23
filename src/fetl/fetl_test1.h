@@ -227,7 +227,7 @@ TYPED_TEST_P(TestFETL, scalar_field){
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(s.d);
+		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(mesh.Hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
