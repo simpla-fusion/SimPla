@@ -231,6 +231,22 @@ public:
 
 TYPED_TEST_CASE_P(TestMesh);
 
+TYPED_TEST_P(TestMesh, coordinates){
+{
+	auto & mesh=TestFixture::mesh;
+
+	auto extents=mesh.GetExtents();
+
+	auto range=mesh.GetRange(VERTEX);
+
+	CHECK(mesh.GetCoordinates(range.begin()));
+	CHECK(extents.first);
+
+	CHECK(mesh.GetCoordinates(range.rbegin()));
+	CHECK(extents.second);
+}
+}
+
 TYPED_TEST_P(TestMesh, traversal){
 {
 
@@ -310,7 +326,7 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 //TYPED_TEST_P(TestMesh,gather){
 //
 //}
-REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal/*, scatter, gather*/);
+REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*, scatter, gather*/);
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>

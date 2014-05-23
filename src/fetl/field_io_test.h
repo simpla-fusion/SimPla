@@ -8,7 +8,7 @@
 #ifndef FIELD_IO_TEST_H_
 #define FIELD_IO_TEST_H_
 #include <gtest/gtest.h>
-
+#include "save_field.h"
 namespace simpla
 {
 template<typename TParam>
@@ -64,6 +64,7 @@ TYPED_TEST_P(TestFieldIO, write){
 }
 }
 
-} // namespace simpla
+}
+ // namespace simpla
 
 #endif /* FIELD_IO_TEST_H_ */

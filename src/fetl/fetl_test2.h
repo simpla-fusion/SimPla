@@ -89,20 +89,20 @@ TYPED_TEST_P(TestFETLVecAlgegbra, vector_arithmetic){
 	}
 
 	LOG_CMD(f2b=Cross(f1a,f1b));
-//	LOG_CMD(f3=Dot(f1a,f2a));
-//	LOG_CMD(f3=Dot(f2a,f1a));
-//	LOG_CMD(f3=InnerProduct(f2a,f2a));
-//	LOG_CMD(f3=InnerProduct(f1a,f1a));
-//
+	LOG_CMD(f3=Dot(f1a,f2a));
+	LOG_CMD(f3=Dot(f2a,f1a));
+	LOG_CMD(f3=InnerProduct(f2a,f2a));
+	LOG_CMD(f3=InnerProduct(f1a,f1a));
+
 	LOG_CMD(f0=Wedge(f0,f0));
 	LOG_CMD(f1b=Wedge(f0,f1a));
 	LOG_CMD(f1b=Wedge(f1a,f0));
 	LOG_CMD(f2b=Wedge(f0,f2a));
 	LOG_CMD(f2b=Wedge(f2a,f0));
 	LOG_CMD(f3=Wedge(f0,f3));
-//	LOG_CMD(f3=Wedge(f3,f0));
+	LOG_CMD(f3=Wedge(f3,f0));
 
-//	LOG_CMD(f2a=Wedge(f1a,f1b));
+	LOG_CMD(f2a=Wedge(f1a,f1b));
 	LOG_CMD(f3=Wedge(f1a,f2b));
 	LOG_CMD(f3=Wedge(f2a,f1b));
 

@@ -1,10 +1,10 @@
 my_test(fetl_test    
-#  fetl_test1.cpp 
-  fetl_test2.cpp 
-#  fetl_test3.cpp
-#  fetl_test4.cpp
+#    fetl_test1.cpp 
+#    fetl_test2.cpp 
+ fetl_test3.cpp
+#     fetl_test4.cpp
       )
-target_link_libraries(fetl_test physics  ${MPI_LIBRARIES} )
+target_link_libraries(fetl_test physics io ${MPI_LIBRARIES} )
 
 my_test(field_io_test    
   field_io_test.cpp  

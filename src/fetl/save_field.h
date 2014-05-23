@@ -27,10 +27,9 @@ const & d, std::string const & name)
 
 	d.GetDataSetShape(global_dims, global_start, local_dims, start, counts, nullptr /*strides*/, nullptr/*blocks*/);
 
-//	return GLOBAL_DATA_STREAM.Write(&(*d.data()), name,rank,global_dims,global_start,
-//			local_dims, start, counts, nullptr /*strides*/, nullptr/*blocks*/);
+	return GLOBAL_DATA_STREAM.Write(&(*d.data()), name,rank,global_dims,global_start,
+			local_dims, start, counts, nullptr /*strides*/, nullptr/*blocks*/);
 
-	return "";
 }
 }
 // namespace simpla

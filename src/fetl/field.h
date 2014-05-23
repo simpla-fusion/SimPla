@@ -267,21 +267,32 @@ public:
 
 	inline value_type & get(index_type s)
 	{
+#ifdef DEBUG
+		if (mesh.Hash(s) >= num_of_ele_)
+			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+#endif
 		return *(data_.get() + mesh.Hash(s));
 	}
 
 	inline value_type const & get(index_type s) const
 	{
+#ifdef DEBUG
+		if (mesh.Hash(s) >= num_of_ele_)
+			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+#endif
 		return *(data_.get() + mesh.Hash(s));
 	}
 	void Init()
 	{
 		Update();
 	}
+
+	size_t num_of_ele_ = 0;
 	void Update()
 	{
 		if (data_ == nullptr)
 		{
+			num_of_ele_ = mesh.GetLocalNumOfElements(IForm);
 			data_ = mesh.template MakeContainer<IForm, value_type>();
 		}
 

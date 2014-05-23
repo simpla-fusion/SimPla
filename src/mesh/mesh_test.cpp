@@ -66,10 +66,10 @@ struct TestMeshParam<TMesh, CASE>
 };
 
 typedef testing::Types<
-//
-//TestMeshParam<TMesh, 0>,
-//
-//TestMeshParam<TMesh, 1>,
+
+TestMeshParam<TMesh, 0>,
+
+TestMeshParam<TMesh, 1>,
 //
 //TestMeshParam<TMesh, 2>,
 //
