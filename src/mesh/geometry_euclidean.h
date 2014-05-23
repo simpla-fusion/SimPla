@@ -140,7 +140,7 @@ struct EuclideanGeometry: public TTopology
 	inline void SetExtents(nTuple<NDIMS, T> const & pmin, nTuple<NDIMS, T> const & pmax)
 	{
 
-		auto local_extents = topology_type::GetGlobalExtents();
+		auto local_extents = topology_type::GetExtents();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{

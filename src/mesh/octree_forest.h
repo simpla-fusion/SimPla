@@ -57,6 +57,8 @@ struct OcForest
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
+	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
+
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
@@ -297,25 +299,14 @@ struct OcForest
 		return global_count_;
 	}
 
-	nTuple<NDIMS, size_type> const& GetLocalDimensions() const
-	{
-		return local_outer_count_;
-	}
-
-	nTuple<NDIMS, Real> GetGlobalExtents() const
-	{
-
-		nTuple<NDIMS, Real> res;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = static_cast<Real>(global_count_[i]);
-		}
-		return res;
-	}
-
 	size_type GetNumOfElements(int IFORM = VERTEX) const
 	{
 		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+	}
+
+	nTuple<NDIMS, size_type> const& GetLocalDimensions() const
+	{
+		return local_outer_count_;
 	}
 	size_type GetLocalNumOfElements(int IFORM = VERTEX) const
 	{
@@ -394,138 +385,6 @@ struct OcForest
 		}
 
 		return Range(global_start_, global_count_, shift);
-	}
-
-//***************************************************************************************************
-
-	inline coordinates_type GetCoordinates(iterator const& s) const
-	{
-		auto d = Decompact(s.self_);
-
-		return coordinates_type( {
-
-		static_cast<Real>(d[0]),
-
-		static_cast<Real>(d[1]),
-
-		static_cast<Real>(d[2])
-
-		});
-
-	}
-
-	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
-	{
-		Real a = static_cast<double>(1UL << (D_FP_POS - s.HeightOfTree()));
-		auto d = Decompact(s.self_);
-
-		return coordinates_type( {
-
-		static_cast<Real>(d[0]) + r[0] * a,
-
-		static_cast<Real>(d[1]) + r[1] * a,
-
-		static_cast<Real>(d[2]) + r[2] * a
-
-		});
-	}
-
-//	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
-//	{
-//		return CoordinatesGlobalToLocal(px, shift, 0.5);
-//	}
-//	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL,
-//	        double round = 0.0) const
-//	{
-//		iterator res();
-//
-//		auto & x = *px;
-//
-//		compact_index_type h = 0;
-//
-//		nTuple<NDIMS, long> idx;
-//
-//		Real w = static_cast<Real>(1UL << h);
-//
-//		compact_index_type m = (~((1UL << (D_FP_POS - h)) - 1));
-//
-//		idx[0] = static_cast<long>(std::floor(round + x[0] + static_cast<double>(shift[0]))) & m;
-//
-//		x[0] = ((x[0] - idx[0]) * w);
-//
-//		idx[1] = static_cast<long>(std::floor(round + x[1] + static_cast<double>(shift[1]))) & m;
-//
-//		x[1] = ((x[1] - idx[1]) * w);
-//
-//		idx[2] = static_cast<long>(std::floor(round + x[2] + static_cast<double>(shift[2]))) & m;
-//
-//		x[2] = ((x[2] - idx[2]) * w);
-//
-////				iterator(
-////		        { ((((h << (INDEX_DIGITS * 3)) | (idx[0] << (INDEX_DIGITS * 2)) | (idx[1] << (INDEX_DIGITS)) | (idx[2]))
-////		                | shift)) })
-////
-////		;
-//
-//	}
-
-	static Real Volume(iterator s)
-	{
-		static constexpr double volume_[8][D_FP_POS] = {
-
-		1, 1, 1, 1, // 000
-
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 001
-
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 010
-
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 011
-
-		        1, 1.0 / 2, 1.0 / 4, 1.0 / 8, // 100
-
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 101
-
-		        1, 1.0 / 4, 1.0 / 16, 1.0 / 64, // 110
-
-		        1, 1.0 / 8, 1.0 / 32, 1.0 / 128 // 111
-
-		};
-
-		return volume_[s.NodeId()][s.HeightOfTree()];
-	}
-
-	static Real InvVolume(iterator s)
-	{
-		static constexpr double inv_volume_[8][D_FP_POS] = {
-
-		1, 1, 1, 1, // 000
-
-		        1, 2, 4, 8, // 001
-
-		        1, 2, 4, 8, // 010
-
-		        1, 4, 16, 64, // 011
-
-		        1, 2, 4, 8, // 100
-
-		        1, 4, 16, 64, // 101
-
-		        1, 4, 16, 64, // 110
-
-		        1, 8, 32, 128 // 111
-
-		        };
-
-		return inv_volume_[s.NodeId()][s.HeightOfTree()];
-	}
-
-	static Real InvDualVolume(iterator s)
-	{
-		return InvVolume(s.Dual());
-	}
-	static Real DualVolume(iterator s)
-	{
-		return Volume(s.Dual());
 	}
 
 	template<int I>
@@ -1513,6 +1372,149 @@ struct OcForest
 		}
 	};
 	// class Range
+
+	//***************************************************************************************************
+	/**
+	 *
+	 *  Geomertry dependence
+	 *
+	 *  INDEX_ZERO <-> Coordinates Zero
+	 *
+	 */
+
+	nTuple<NDIMS, Real> GetExtents() const
+	{
+
+		nTuple<NDIMS, Real> res;
+
+		res = global_count_ << D_FP_POS;
+
+		return res;
+	}
+
+	inline coordinates_type GetCoordinates(iterator const& s) const
+	{
+		auto d = Decompact(s.self_);
+
+		return coordinates_type( {
+
+		static_cast<Real>(d[0]) - static_cast<Real>(global_start_[0] << D_FP_POS),
+
+		static_cast<Real>(d[1]) - static_cast<Real>(global_start_[1] << D_FP_POS),
+
+		static_cast<Real>(d[2]) - static_cast<Real>(global_start_[2] << D_FP_POS),
+
+		});
+	}
+
+	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
+	{
+		return GetCoordinates(s) + r * static_cast<Real>(1UL << (D_FP_POS - s.HeightOfTree()));
+	}
+
+	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
+		return CoordinatesGlobalToLocal(px, shift);
+	}
+
+	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
+		auto & x = *px;
+
+		unsigned int h = shift >> (INDEX_DIGITS * 3);
+
+		Real dx = static_cast<Real>(1UL << (D_FP_POS - h));
+
+		nTuple<NDIMS, size_type> idx = {
+
+		static_cast<size_type>(x[0] + 0.5 * dx),
+
+		static_cast<size_type>(x[1] + 0.5 * dx),
+
+		static_cast<size_type>(x[2] + 0.5 * dx)
+
+		};
+
+		idx -= Decompact(shift);
+		idx = idx >> (D_FP_POS - h);
+		idx = idx << (D_FP_POS - h);
+
+		x[0] = (x[0] - static_cast<Real>(idx[0])) / dx;
+
+		x[1] = (x[1] - static_cast<Real>(idx[1])) / dx;
+
+		x[2] = (x[2] - static_cast<Real>(idx[2])) / dx;
+
+		return iterator(
+
+		Compact(idx) | shift,
+
+		Compact(local_outer_start_) | shift,
+
+		Compact(local_outer_start_ + local_outer_count_) | shift
+
+		);
+
+	}
+
+	static Real Volume(iterator s)
+	{
+		static constexpr double volume_[8][D_FP_POS] = {
+
+		1, 1, 1, 1, // 000
+
+		        8, 4, 2, 1, // 001
+
+		        8, 4, 2, 1, // 010
+
+		        64, 16, 4, 1, // 011
+
+		        8, 4, 2, 1,  // 100
+
+		        64, 16, 4, 1, // 101
+
+		        64, 16, 4, 1, // 110
+
+		        512, 64, 8, 1 // 111
+
+		        };
+
+		return volume_[s.NodeId()][s.HeightOfTree()];
+	}
+
+	static Real InvVolume(iterator s)
+	{
+		static constexpr double inv_volume_[8][D_FP_POS] = {
+
+		1, 1, 1, 1, // 000
+
+		        1.0 / 8, 1.0 / 4, 1.0 / 2, 1.0, // 001
+
+		        1.0 / 8, 1.0 / 4, 1.0 / 2, 1.0, // 010
+
+		        1.0 / 64, 1.0 / 16, 1.0 / 4, 1.0, // 011
+
+		        1.0 / 8, 1.0 / 4, 1.0 / 2, 1.0, // 100
+
+		        1.0 / 64, 1.0 / 16, 1.0 / 4, 1.0, // 101
+
+		        1.0 / 64, 1.0 / 16, 1.0 / 4, 1.0, // 110
+
+		        1.0 / 512, 1.0 / 64, 1.0 / 8, 1.0 // 111
+
+		        };
+
+		return inv_volume_[s.NodeId()][s.HeightOfTree()];
+	}
+
+	static Real InvDualVolume(iterator s)
+	{
+		return InvVolume(s.Dual());
+	}
+	static Real DualVolume(iterator s)
+	{
+		return Volume(s.Dual());
+	}
 };
 // class OcForest
 }
