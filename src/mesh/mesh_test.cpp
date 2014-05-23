@@ -34,15 +34,18 @@ struct TestMeshParam<TMesh, CASE>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { 0, 0.0, 0 };
+		nTuple<3, Real> xmin =
+		{ 0, 0.0, 0 };
 
-		nTuple<3, Real> xmax = { 1.0, 10, 1.0 };
+		nTuple<3, Real> xmax =
+		{ 2.0, 10, 1.0 };
 
-		nTuple<3, size_t> dims[] = {
+		nTuple<3, size_t> dims[] =
+		{
 
 		1, 1, 1,
 
-		15, 1, 1,
+		15, 2, 3,
 
 		1, 17, 1,
 
@@ -67,9 +70,9 @@ struct TestMeshParam<TMesh, CASE>
 
 typedef testing::Types<
 
-TestMeshParam<TMesh, 0>,
+//TestMeshParam<TMesh, 0>,
 
-TestMeshParam<TMesh, 1>,
+		TestMeshParam<TMesh, 1>,
 //
 //TestMeshParam<TMesh, 2>,
 //
@@ -109,7 +112,7 @@ TestMeshParam<TMesh, 1>,
 //
 //TestMeshParam<TMesh, 200>,
 
-TestMeshParam<TMesh, 0>
+		TestMeshParam<TMesh, 0>
 
 > ParamList;
 

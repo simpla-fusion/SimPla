@@ -54,13 +54,13 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
 	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
 
-	static constexpr Real R_INV_DX = static_cast<Real>(1 << D_FP_POS);
+	static constexpr Real R_INV_DX = static_cast<Real>(1UL << D_FP_POS);
 	static constexpr Real R_DX = 1.0 / R_INV_DX;
 	//***************************************************************************************************
 
@@ -95,7 +95,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -123,7 +123,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>( {
+		return nTuple<NDIMS, size_type>(
+		{
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -1253,7 +1254,7 @@ struct OcForest
 			{
 				res = iterator(
 
-				(Compact(start_ + count_ ) << D_FP_POS) | shift_,
+				(Compact(start_ + count_ -1) << D_FP_POS) | shift_,
 
 				((Compact(start_) << D_FP_POS) | shift_),
 
@@ -1408,9 +1409,69 @@ struct OcForest
 
 		nTuple<NDIMS, Real> res;
 
-		res = global_count_;
+		res = global_count_<<D_FP_POS;
 
 		return res;
+	}
+
+	//***************************************************************************************************
+	// Coordinates
+	inline coordinates_type GetCoordinates(iterator const& s) const
+	{
+		auto d = Decompact(s.self_);
+
+		return coordinates_type(
+		{
+
+			static_cast<Real>(d[0]-(global_start_[0] << D_FP_POS)) ,
+
+			static_cast<Real>(d[1]-(global_start_[1] << D_FP_POS)) ,
+
+			static_cast<Real>(d[2]-(global_start_[2] << D_FP_POS)) ,
+
+		});
+	}
+
+	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
+	{
+		return GetCoordinates(s) + r * static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
+	}
+
+	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
+		return CoordinatesGlobalToLocal(px, shift);
+	}
+
+	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
+		auto & x = *px;
+
+		x*=static_cast<Real>(1UL << (D_FP_POS ));
+
+		nTuple<NDIMS, size_type> idx;idx = x;
+
+		unsigned int h = shift >> (INDEX_DIGITS * 3);
+
+		idx -= Decompact(shift);
+		idx = idx >> (D_FP_POS - h);
+		idx = idx << (D_FP_POS - h);
+
+		x[0] = (x[0] - static_cast<Real>(idx[0]));
+
+		x[1] = (x[1] - static_cast<Real>(idx[1]));
+
+		x[2] = (x[2] - static_cast<Real>(idx[2]));
+
+		return iterator(
+
+		Compact(idx) | shift,
+
+		Compact(local_outer_start_) | shift,
+
+		Compact(local_outer_start_ + local_outer_count_) | shift
+
+		);
+
 	}
 
 	static Real Volume(iterator s)
@@ -1526,65 +1587,6 @@ struct OcForest
 		return Volume(Dual(s.self_));
 	}
 
-	//***************************************************************************************************
-	// Coordinates
-	inline coordinates_type GetCoordinates(iterator const& s) const
-	{
-		auto d = Decompact(s.self_);
-
-		return coordinates_type(
-		{
-
-			static_cast<Real>(d[0]-(global_start_[0] << D_FP_POS))*R_INV_DX,
-
-			static_cast<Real>(d[1]-(global_start_[1] << D_FP_POS))*R_INV_DX,
-
-			static_cast<Real>(d[2]-(global_start_[2] << D_FP_POS))*R_INV_DX,
-
-		});
-	}
-
-	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
-	{
-		return GetCoordinates(s) + r *R_DX* static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
-	}
-
-	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
-	{
-		return CoordinatesGlobalToLocal(px, shift);
-	}
-
-	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
-	{
-		auto & x = *px;
-
-		x*=static_cast<Real>(1UL << (D_FP_POS ));
-
-		nTuple<NDIMS, size_type> idx;idx = x;
-
-		unsigned int h = shift >> (INDEX_DIGITS * 3);
-
-		idx -= Decompact(shift);
-		idx = idx >> (D_FP_POS - h);
-		idx = idx << (D_FP_POS - h);
-
-		x[0] = (x[0] - static_cast<Real>(idx[0]));
-
-		x[1] = (x[1] - static_cast<Real>(idx[1]));
-
-		x[2] = (x[2] - static_cast<Real>(idx[2]));
-
-		return iterator(
-
-		Compact(idx) | shift,
-
-		Compact(local_outer_start_) | shift,
-
-		Compact(local_outer_start_ + local_outer_count_) | shift
-
-		);
-
-	}
 };
 // class OcForest
 
