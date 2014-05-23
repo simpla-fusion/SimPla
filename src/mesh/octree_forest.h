@@ -19,6 +19,7 @@
 #include "../fetl/primitives.h"
 #include "../utilities/type_utilites.h"
 #include "../utilities/pretty_stream.h"
+#include "../utilities/memory_pool.h"
 
 namespace simpla
 {
@@ -152,6 +153,13 @@ struct OcForest
 	void swap(OcForest & rhs)
 	{
 		//FIXME NOT COMPLETE!!
+	}
+
+	template<typename TV> using Container=std::shared_ptr<TV>;
+
+	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
+	{
+		return (MEMPOOL.allocate_shared_ptr < TV > (GetLocalNumOfElements(iform)));
 	}
 
 	template<typename TDict, typename ...Others>
