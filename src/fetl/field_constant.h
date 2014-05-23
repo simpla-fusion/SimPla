@@ -26,7 +26,7 @@ struct Field<TM, IFORM, Constant<TV> >
 
 	static const int NDIMS = mesh_type::NDIMS;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename Geometry<mesh_type, IForm>::template field_value_type<value_type> field_value_type;
 
@@ -41,12 +41,12 @@ struct Field<TM, IFORM, Constant<TV> >
 	~Field()
 	{
 	}
-	inline const value_type & get(index_type s) const
+	inline const value_type & get(iterator s) const
 	{
 		return v_;
 	}
 
-	inline const value_type & operator[](index_type s) const
+	inline const value_type & operator[](iterator s) const
 	{
 		return get(s);
 	}

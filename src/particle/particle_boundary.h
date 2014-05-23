@@ -30,7 +30,7 @@ public:
 
 	typedef typename particle_type::mesh_type mesh_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -180,7 +180,7 @@ void BoundaryCondition<Particle<Engine>>::Visit(particle_type * p) const
 //
 //	tag.SelectBoundaryCell(Int2Type<0>(),
 //
-//	[self,other](index_type src)
+//	[self,other](iterator src)
 //	{
 //
 //		auto & cell = (*self)[src];
@@ -192,7 +192,7 @@ void BoundaryCondition<Particle<Engine>>::Visit(particle_type * p) const
 //			auto p = pt;
 //			++pt;
 //
-//			index_type dest=src;
+//			iterator dest=src;
 //			if (flag == REFELECT)
 //			{
 //				coordinates_type x;

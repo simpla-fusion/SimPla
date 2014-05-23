@@ -24,7 +24,7 @@ namespace simpla
 {
 #define DEFINE_FIELDS(TM)                                                                              \
 typedef TM Mesh;                                                                                       \
-typedef typename Mesh::index_type index_type ;                                                         \
+typedef typename Mesh::iterator iterator ;                                                         \
 typedef typename Mesh::scalar_type scalar_type;                                                        \
 typedef typename Mesh::coordinates_type coordinates_type;                                              \
 template<int IFORM> using Form = Field<Mesh,IFORM,scalar_type >;              \

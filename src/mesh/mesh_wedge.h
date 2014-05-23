@@ -39,7 +39,7 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::iterator iterator;
 
 	template<typename ... Args>
 	WedgeMesh(Args const &... args)
@@ -82,7 +82,7 @@ public:
 		geometry_type::Update();
 	}
 
-	coordinates_type GetCoordinates(index_type s) const
+	coordinates_type GetCoordinates(iterator s) const
 	{
 		return geometry_type::CoordinatesLocalToGlobal(topology_type::GetCoordinates(s));
 	}
@@ -159,7 +159,7 @@ public:
 
 	//***************************************************************************************************
 
-	coordinates_type CoordinatesLocalToGlobal(index_type s, coordinates_type x) const
+	coordinates_type CoordinatesLocalToGlobal(iterator s, coordinates_type x) const
 	{
 		x += topology_type::GetCoordinates(s);
 		return geometry_type::CoordinatesLocalToGlobal(x);
@@ -167,13 +167,13 @@ public:
 
 	template<typename TF>
 	inline typename TF::value_type
-	Gather_(TF const &f,coordinates_type const & x,typename topology_type::compact_index_type shift,unsigned long h=0 ) const
+	Gather_(TF const &f,coordinates_type const & x,typename topology_type::compact_iterator shift,unsigned long h=0 ) const
 	{
 		auto X = (topology_type::_DI >> (h+1));
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		typename topology_type::compact_index_type mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
+		typename topology_type::compact_iterator mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
 		mask = mask | (mask << (topology_type::INDEX_DIGITS)) | (mask << (topology_type::INDEX_DIGITS * 2));
 
 		shift>>=h+1;
@@ -182,7 +182,7 @@ public:
 
 		coordinates_type r= x + topology_type::GetCoordinates(shift);
 
-		index_type s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA >> (h+1)))& mask;
+		iterator s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA >> (h+1)))& mask;
 
 		r -= GetCoordinates(s );
 
@@ -253,13 +253,13 @@ public:
 
 	template<typename TF>
 	inline void
-	Scatter_( coordinates_type const & x,typename TF::value_type const & v,typename topology_type::compact_index_type shift,TF *f,unsigned long h =0 ) const
+	Scatter_( coordinates_type const & x,typename TF::value_type const & v,typename topology_type::compact_iterator shift,TF *f,unsigned long h =0 ) const
 	{
 		auto X = (topology_type::_DI >> (h+1));
 		auto Y = (topology_type::_DJ >> (h+1));
 		auto Z = (topology_type::_DK >> (h+1));
 
-		typename topology_type::compact_index_type mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
+		typename topology_type::compact_iterator mask = (1UL << (topology_type::D_FP_POS - h)) - 1;
 		mask = mask | (mask << (topology_type::INDEX_DIGITS)) | (mask << (topology_type::INDEX_DIGITS * 2));
 
 		shift>>=h+1;
@@ -268,7 +268,7 @@ public:
 
 		coordinates_type r= x + topology_type::GetCoordinates(shift);
 
-		index_type s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA>> (h+1)))& mask;
+		iterator s = (topology_type::GetIndex(r, h) + shift+(topology_type::_DA>> (h+1)))& mask;
 
 		r -= GetCoordinates(s );
 
@@ -335,14 +335,14 @@ public:
 	//***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, VERTEX, TL> const & f,
-	index_type s)const-> decltype(f[s]-f[s])
+	iterator s)const-> decltype(f[s]-f[s])
 	{
 		auto d = topology_type::_D( s );
 		return (f[s + d] - f[s - d]);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, EDGE, TL> const & f,
-	index_type s)const-> decltype(f[s]-f[s])
+	iterator s)const-> decltype(f[s]-f[s])
 	{
 		auto X = topology_type::_D(topology_type::_I(s));
 		auto Y = topology_type::_R(X);
@@ -352,7 +352,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, FACE, TL> const & f,
-	index_type s)const-> decltype(f[s]-f[s])
+	iterator s)const-> decltype(f[s]-f[s])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -362,13 +362,13 @@ public:
 	}
 
 	template<int IL, typename TL> void OpEval(Int2Type<EXTRIORDERIVATIVE>,Field<this_type, IL , TL> const & f,
-	index_type s)const = delete;
+	iterator s)const = delete;
 
 	template<int IL, typename TL> void OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, IL , TL> const & f,
-	index_type s) const= delete;
+	iterator s) const= delete;
 
 	template< typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, EDGE, TL> const & f,
-	index_type s)const->decltype(f[s]-f[s])
+	iterator s)const->decltype(f[s]-f[s])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -377,7 +377,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, FACE, TL> const & f,
-	index_type s)const-> decltype(f[s]-f[s])
+	iterator s)const-> decltype(f[s]-f[s])
 	{
 		auto X = topology_type::_D(s);
 		auto Y = topology_type::_R(X);
@@ -387,7 +387,7 @@ public:
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,Field<this_type, VOLUME, TL> const & f,
-	index_type s)const-> decltype(f[s]-f[s])
+	iterator s)const-> decltype(f[s]-f[s])
 	{
 		auto d = topology_type::_D( topology_type::_I(s) );
 
@@ -397,13 +397,13 @@ public:
 
 	//! Form<IR> ^ Form<IR> => Form<IR+IL>
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, VERTEX, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		return l[s] * r[s] * geometry_type::InvVolume(s);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, EDGE, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = topology_type::_D(s);
 		return
@@ -417,7 +417,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, FACE, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = topology_type::_D(topology_type::_I(s));
 		auto Y = topology_type::_R(X);
@@ -437,7 +437,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VERTEX, TL> const &l,
-	Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, VOLUME, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = topology_type::_DI >> (topology_type::H(s) + 1);
 		auto Y = topology_type::_DJ >> (topology_type::H(s) + 1);
@@ -465,14 +465,14 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, VERTEX, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = topology_type::_D(s );
 		return l[s]*(r[s-X]+r[s+X])*0.5;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, EDGE, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto Y = topology_type::_D(topology_type::_R(topology_type::_I(s)) );
 		auto Z = topology_type::_D(topology_type::_RR(topology_type::_I(s)));
@@ -493,7 +493,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, EDGE, TL> const &l,
-	Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, FACE, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -553,7 +553,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &l,
-	Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, VERTEX, TR> const &r, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto Y =topology_type::_D( topology_type::_R(topology_type::_I(s)) );
 		auto Z =topology_type::_D( topology_type::_RR(topology_type::_I(s)) );
@@ -570,7 +570,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, FACE, TL> const &r,
-	Field<this_type, EDGE, TR> const &l, index_type s) const ->decltype(l[s]*r[s])
+	Field<this_type, EDGE, TR> const &l, iterator s) const ->decltype(l[s]*r[s])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -630,7 +630,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>,Field<this_type, VOLUME, TL> const &l,
-	Field<this_type,VERTEX , TR> const &r, index_type s) const ->decltype(r[s]*l[s])
+	Field<this_type,VERTEX , TR> const &r, iterator s) const ->decltype(r[s]*l[s])
 	{
 		auto X = topology_type::_DI >> (topology_type::H(s) + 1);
 		auto Y = topology_type::_DJ >> (topology_type::H(s) + 1);
@@ -662,7 +662,7 @@ public:
 //***************************************************************************************************
 
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>,Field<this_type, IL , TL> const & f,
-	index_type s) const-> decltype(f[s]+f[s])
+	iterator s) const-> decltype(f[s]+f[s])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -692,10 +692,10 @@ public:
 	}
 
 	template<typename TL, typename TR> void OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, VERTEX, TL> const & f, index_type s) const=delete;
+	Field<this_type, VERTEX, TL> const & f, iterator s) const=delete;
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, EDGE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
+	Field<this_type, EDGE, TL> const & f, iterator s)const->decltype(f[s]*v[0])
 	{
 		auto X = (topology_type::_DI >> (topology_type::H(s) + 1));
 		auto Y = (topology_type::_DJ >> (topology_type::H(s) + 1));
@@ -711,7 +711,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, FACE, TL> const & f, index_type s)const->decltype(f[s]*v[0])
+	Field<this_type, FACE, TL> const & f, iterator s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = topology_type::_C(s);
 
@@ -726,7 +726,7 @@ public:
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>,nTuple<NDIMS, TR> const & v,
-	Field<this_type, VOLUME, TL> const & f, index_type s)const->decltype(f[s]*v[0])
+	Field<this_type, VOLUME, TL> const & f, iterator s)const->decltype(f[s]*v[0])
 	{
 		unsigned int n = topology_type::_C(topology_type::_I(s));
 		unsigned int D = topology_type::_D(topology_type::_I(s));

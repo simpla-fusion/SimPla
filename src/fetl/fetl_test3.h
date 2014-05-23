@@ -34,7 +34,7 @@ public:
 
 	typedef typename TParam::mesh_type mesh_type;
 	typedef typename TParam::value_type value_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef Field<mesh_type, VERTEX, value_type> TZeroForm;
 	typedef Field<mesh_type, EDGE, value_type> TOneForm;
@@ -55,7 +55,7 @@ TYPED_TEST_CASE_P(TestDiffCalculus);
 TYPED_TEST_P(TestDiffCalculus, grad0){
 {
 
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 	auto const & mesh= TestFixture::mesh;
 
@@ -110,7 +110,7 @@ TYPED_TEST_P(TestDiffCalculus, grad0){
 TYPED_TEST_P(TestDiffCalculus, grad3){
 {
 
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 	auto const & mesh= TestFixture::mesh;
 
@@ -168,7 +168,7 @@ TYPED_TEST_P(TestDiffCalculus, grad3){
 }
 TYPED_TEST_P(TestDiffCalculus, diverge1){
 {
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;
@@ -219,7 +219,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge1){
 
 TYPED_TEST_P(TestDiffCalculus, diverge2){
 {
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;
@@ -269,7 +269,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge2){
 }
 TYPED_TEST_P(TestDiffCalculus, curl1){
 {
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;
@@ -327,7 +327,7 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 
 TYPED_TEST_P(TestDiffCalculus, curl2){
 {
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::value_type value_type;
 
 	auto const & mesh= TestFixture::mesh;

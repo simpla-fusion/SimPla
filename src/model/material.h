@@ -34,7 +34,7 @@ public:
 	typedef TM mesh_type;
 
 	typedef std::bitset<MAX_NUM_OF_MEIDA_TYPE> material_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	const material_type null_material;
@@ -411,7 +411,7 @@ private:
 		{
 			for (auto s : mesh.GetRange(IFORM))
 			{
-				index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
+				iterator v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
 				int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
 
@@ -517,7 +517,7 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range,
 		if ((this->material_[IFORM].at(this->mesh.Hash((*it))) & in).none()
 				&& (this->material_[IFORM].at(this->mesh.Hash((*it))) & out).any())
 		{
-			index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+			iterator neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
 			switch(IFORM)

@@ -26,7 +26,7 @@ struct EuclideanGeometry: public TTopology
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::iterator index_type;
 
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;

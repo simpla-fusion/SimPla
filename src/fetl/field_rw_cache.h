@@ -31,7 +31,7 @@ public:
 
 	typedef TM mesh_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -48,13 +48,13 @@ public:
 private:
 	field_type const & f_;
 
-	index_type cell_idx_;
+	iterator cell_idx_;
 
 	int affect_Range_;
 
 	size_t num_of_points_;
 
-	std::vector<index_type> points_;
+	std::vector<iterator> points_;
 
 	std::vector<value_type> cache_;
 
@@ -84,7 +84,7 @@ public:
 	{
 	}
 
-	Field(field_type const & f, index_type const &s, int affect_Range = 2)
+	Field(field_type const & f, iterator const &s, int affect_Range = 2)
 			: mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
 	{
 	}
@@ -136,11 +136,11 @@ private:
 	}
 public:
 
-	inline value_type get(index_type const &s) const
+	inline value_type get(iterator const &s) const
 	{
 		return f_.get(s);
 	}
-	inline value_type& get(index_type const &s)
+	inline value_type& get(iterator const &s)
 	{
 		return f_.get(s);
 	}
@@ -148,7 +148,7 @@ public:
 	{
 //		coordinates_type pcoords;
 //
-//		index_type idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
+//		iterator idx = mesh.SearchCell(cell_idx_, x, &(pcoords[0]));
 //
 //		field_value_type res;
 //
@@ -187,7 +187,7 @@ public:
 
 	typedef TM mesh_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -201,13 +201,13 @@ public:
 private:
 	field_type * f_;
 
-	index_type cell_idx_;
+	iterator cell_idx_;
 
 	int affect_Range_;
 
 	size_t num_of_points_;
 
-	std::vector<index_type> points_;
+	std::vector<iterator> points_;
 
 	std::vector<value_type> cache_;
 
@@ -256,11 +256,11 @@ public:
 			is_fresh_ = true;
 		}
 	}
-	inline value_type get(index_type const &s) const
+	inline value_type get(iterator const &s) const
 	{
 		return f_->get(s);
 	}
-	inline value_type& get(index_type const &s)
+	inline value_type& get(iterator const &s)
 	{
 		return f_->get(s);
 	}
@@ -297,7 +297,7 @@ public:
 	{
 //		coordinates_type pcoords;
 //
-//		index_type idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
+//		iterator idx = mesh.SearchCell(cell_idx_, x, &pcoords[0]);
 //
 //		if (idx == cell_idx_)
 //		{

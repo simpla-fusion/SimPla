@@ -385,7 +385,7 @@ public:
 
 	typedef Field<TM, IForm, UniOp<TOP, TL> > this_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
@@ -394,10 +394,10 @@ public:
 	{
 	}
 
-	inline auto get(index_type s) const
+	inline auto get(iterator s) const
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
 
-	inline auto operator[](index_type s) const
+	inline auto operator[](iterator s) const
 	DECL_RET_TYPE((this->get(s)))
 
 };
@@ -415,7 +415,7 @@ public:
 
 	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
@@ -424,10 +424,10 @@ public:
 	{
 	}
 
-	inline auto get(index_type s) const
+	inline auto get(iterator s) const
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
 
-	inline auto operator[](index_type s) const
+	inline auto operator[](iterator s) const
 	DECL_RET_TYPE( (this->get(s)) )
 
 private:

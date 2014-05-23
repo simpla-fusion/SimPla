@@ -30,7 +30,7 @@ struct CylindricalGeometry
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::iterator iterator;
 
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
@@ -163,12 +163,12 @@ struct CylindricalGeometry
 	}
 
 	template<typename TV>
-	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
+	TV const& Normal(iterator s, nTuple<3, TV> const & v) const
 	{
 		return v[topology.topology_type::_C(s)];
 	}
 
-	Real Volume(index_type s) const
+	Real Volume(iterator s) const
 	{
 		auto x = topology.GetCoordinates(s);
 		Real res = 1;
@@ -203,7 +203,7 @@ struct CylindricalGeometry
 
 		return res;
 	}
-	Real InvVolume(index_type s) const
+	Real InvVolume(iterator s) const
 	{
 		return 1.0 / Volume(s);
 	}

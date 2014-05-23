@@ -19,6 +19,10 @@ template<typename TM, int CASE> struct TestMeshParam;
 
 typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
+typedef testing::Types<TMesh> RangeParamList;
+
+INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestRange, RangeParamList);
+
 template<int CASE>
 struct TestMeshParam<TMesh, CASE>
 {
@@ -30,16 +34,13 @@ struct TestMeshParam<TMesh, CASE>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin =
-		{ 0, 0.0, 0 };
+		nTuple<3, Real> xmin = { 0, 0.0, 0 };
 
-		nTuple<3, Real> xmax =
-		{ 1.0, 10, 1.0 };
+		nTuple<3, Real> xmax = { 1.0, 10, 1.0 };
 
-		nTuple<3, size_t> dims[] =
-		{
+		nTuple<3, size_t> dims[] = {
 
-		10, 1, 1,
+		1, 1, 1,
 
 		15, 1, 1,
 
@@ -66,49 +67,49 @@ struct TestMeshParam<TMesh, CASE>
 
 typedef testing::Types<
 
-TestMeshParam<TMesh, 0>,
-
-TestMeshParam<TMesh, 1>,
-
-TestMeshParam<TMesh, 2>,
-
-TestMeshParam<TMesh, 3>,
-
-TestMeshParam<TMesh, 4>,
-
-TestMeshParam<TMesh, 5>,
-
-TestMeshParam<TMesh, 6>,
-
-TestMeshParam<TMesh, 101>,
-
-TestMeshParam<TMesh, 102>,
-
-TestMeshParam<TMesh, 103>,
-
-TestMeshParam<TMesh, 104>,
-
-TestMeshParam<TMesh, 105>,
-
-TestMeshParam<TMesh, 106>,
-
-TestMeshParam<TMesh, 201>,
-
-TestMeshParam<TMesh, 202>,
-
-TestMeshParam<TMesh, 203>,
-
-TestMeshParam<TMesh, 204>,
-
-TestMeshParam<TMesh, 205>,
-
-TestMeshParam<TMesh, 206>,
-
-TestMeshParam<TMesh, 100>,
-
-TestMeshParam<TMesh, 200>,
+//TestMeshParam<TMesh, 0>,
 //
-		TestMeshParam<TMesh, 0>
+//TestMeshParam<TMesh, 1>,
+//
+//TestMeshParam<TMesh, 2>,
+//
+//TestMeshParam<TMesh, 3>,
+//
+//TestMeshParam<TMesh, 4>,
+//
+//TestMeshParam<TMesh, 5>,
+//
+//TestMeshParam<TMesh, 6>,
+//
+//TestMeshParam<TMesh, 101>,
+//
+//TestMeshParam<TMesh, 102>,
+//
+//TestMeshParam<TMesh, 103>,
+//
+//TestMeshParam<TMesh, 104>,
+//
+//TestMeshParam<TMesh, 105>,
+//
+//TestMeshParam<TMesh, 106>,
+//
+//TestMeshParam<TMesh, 201>,
+//
+//TestMeshParam<TMesh, 202>,
+//
+//TestMeshParam<TMesh, 203>,
+//
+//TestMeshParam<TMesh, 204>,
+//
+//TestMeshParam<TMesh, 205>,
+//
+//TestMeshParam<TMesh, 206>,
+//
+//TestMeshParam<TMesh, 100>,
+//
+//TestMeshParam<TMesh, 200>,
+////
+        TestMeshParam<TMesh, 0>
 
 > ParamList;
 

@@ -39,7 +39,7 @@ public:
 	typedef ParticlePool<mesh_type, particle_type> this_type;
 	typedef particle_type value_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -67,17 +67,17 @@ public:
 
 	std::string Save(std::string const & path) const;
 
-	void Clear(index_type s);
+	void Clear(iterator s);
 
-	void Add(index_type s, cell_type &&);
+	void Add(iterator s, cell_type &&);
 
-	void Add(index_type s, std::function<void(particle_type*)> const & generator);
+	void Add(iterator s, std::function<void(particle_type*)> const & generator);
 
-	void Remove(index_type s, std::function<bool(particle_type const&)> const & filter);
+	void Remove(iterator s, std::function<bool(particle_type const&)> const & filter);
 
-	void Modify(index_type s, std::function<void(particle_type*)> const & foo);
+	void Modify(iterator s, std::function<void(particle_type*)> const & foo);
 
-	void Traversal(index_type s, std::function<void(particle_type*)> const & op);
+	void Traversal(iterator s, std::function<void(particle_type*)> const & op);
 
 	//***************************************************************************************************
 
@@ -85,23 +85,23 @@ public:
 	{
 		return allocator_;
 	}
-	inline void Insert(index_type s, particle_type p)
+	inline void Insert(iterator s, particle_type p)
 	{
 		this->at(s).emplace_back(p);
 	}
-	cell_type & operator[](index_type s)
+	cell_type & operator[](iterator s)
 	{
 		return data_[mesh.Hash(s)];
 	}
-	cell_type const & operator[](index_type s) const
+	cell_type const & operator[](iterator s) const
 	{
 		return data_[mesh.Hash(s)];
 	}
-	cell_type &at(index_type s)
+	cell_type &at(iterator s)
 	{
 		return data_.at(mesh.Hash(s));
 	}
-	cell_type const & at(index_type s) const
+	cell_type const & at(iterator s) const
 	{
 		return data_.at(mesh.Hash(s));
 	}
@@ -175,7 +175,7 @@ private:
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
-	template<typename TDest> void Sort(index_type id_src, TDest *dest);
+	template<typename TDest> void Sort(iterator id_src, TDest *dest);
 
 };
 
@@ -205,7 +205,7 @@ std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 //*************************************************************************************************
 template<typename TM, typename TParticle>
 template<typename TDest>
-void ParticlePool<TM, TParticle>::Sort(index_type id_src, TDest *dest)
+void ParticlePool<TM, TParticle>::Sort(iterator id_src, TDest *dest)
 {
 
 	auto & src = this->at(id_src);
@@ -217,7 +217,7 @@ void ParticlePool<TM, TParticle>::Sort(index_type id_src, TDest *dest)
 		auto p = pt;
 		++pt;
 
-		index_type id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
+		iterator id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 
@@ -243,7 +243,7 @@ void ParticlePool<TM, TParticle>::Sort()
 
 	[this](int t_num,int t_id)
 	{
-		std::map<index_type,cell_type> dest;
+		std::map<iterator,cell_type> dest;
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
 			this->Sort(s, &dest);
@@ -265,18 +265,18 @@ void ParticlePool<TM, TParticle>::Sort()
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Clear(index_type s)
+void ParticlePool<TM, TParticle>::Clear(iterator s)
 {
 	this->at(s).clear();
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(index_type s, cell_type && other)
+void ParticlePool<TM, TParticle>::Add(iterator s, cell_type && other)
 {
 	this->at(s).slice(this->at(s).begin(), other);
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(index_type s, std::function<void(particle_type*)> const & gen)
+void ParticlePool<TM, TParticle>::Add(iterator s, std::function<void(particle_type*)> const & gen)
 {
 	particle_type p;
 	gen(&p);
@@ -285,7 +285,7 @@ void ParticlePool<TM, TParticle>::Add(index_type s, std::function<void(particle_
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Remove(index_type s, std::function<bool(particle_type const&)> const & filter)
+void ParticlePool<TM, TParticle>::Remove(iterator s, std::function<bool(particle_type const&)> const & filter)
 {
 	auto & cell = this->at(s);
 
@@ -305,7 +305,7 @@ void ParticlePool<TM, TParticle>::Remove(index_type s, std::function<bool(partic
 	}
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Modify(index_type s, std::function<void(particle_type *)> const & op)
+void ParticlePool<TM, TParticle>::Modify(iterator s, std::function<void(particle_type *)> const & op)
 {
 
 	for (auto & p : this->at(s))
@@ -315,7 +315,7 @@ void ParticlePool<TM, TParticle>::Modify(index_type s, std::function<void(partic
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Traversal(index_type s, std::function<void(particle_type*)> const & op)
+void ParticlePool<TM, TParticle>::Traversal(iterator s, std::function<void(particle_type*)> const & op)
 {
 
 	for (auto const & p : this->at(s))

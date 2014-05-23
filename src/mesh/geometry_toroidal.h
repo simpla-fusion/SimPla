@@ -31,7 +31,7 @@ struct ToroidalGeometry
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::iterator iterator;
 
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
@@ -180,18 +180,18 @@ struct ToroidalGeometry
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	nTuple<3, Real> const& Normal(index_type s) const
+	nTuple<3, Real> const& Normal(iterator s) const
 	{
 		return normal_[topology.topology_type::_C(s)];
 	}
 
 	template<typename TV>
-	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
+	TV const& Normal(iterator s, nTuple<3, TV> const & v) const
 	{
 		return v[topology.topology_type::_C(s)];
 	}
 
-	Real Volume(index_type s) const
+	Real Volume(iterator s) const
 	{
 		auto x = topology.GetCoordinates(s);
 		Real res = 1;
@@ -226,7 +226,7 @@ struct ToroidalGeometry
 
 		return res;
 	}
-	Real InvVolume(index_type s) const
+	Real InvVolume(iterator s) const
 	{
 		return 1.0 / Volume(s);
 	}
@@ -258,12 +258,12 @@ struct ToroidalGeometry
 	}
 
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PushForward(index_type s, nTuple<NDIMS, TV> const & v) const
+	nTuple<NDIMS, TV> const& PushForward(iterator s, nTuple<NDIMS, TV> const & v) const
 	{
 		return v;
 	}
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PullBack(index_type s, nTuple<NDIMS, TV> const & v) const
+	nTuple<NDIMS, TV> const& PullBack(iterator s, nTuple<NDIMS, TV> const & v) const
 	{
 		return v;
 	}

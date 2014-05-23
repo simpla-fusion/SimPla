@@ -29,7 +29,7 @@ public:
 
 	typedef Field<TM, IFORM, TV> field_type;
 
-	typedef std::list<typename TM::index_type> define_domain_type;
+	typedef std::list<typename TM::iterator> define_domain_type;
 
 	typedef Command<field_type> this_type;
 
@@ -39,7 +39,7 @@ public:
 
 	typedef typename field_type::field_value_type field_value_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 

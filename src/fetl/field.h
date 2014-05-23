@@ -49,7 +49,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator index_type;
 
 	typedef std::shared_ptr<value_type> container_type;
 

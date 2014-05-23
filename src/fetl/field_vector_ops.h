@@ -93,7 +93,7 @@ public:
 
 	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
@@ -102,12 +102,12 @@ public:
 	{
 	}
 
-	inline auto get(index_type s) const->decltype( Cross(l_.get(s) , r_.get(s)) )
+	inline auto get(iterator s) const->decltype( Cross(l_.get(s) , r_.get(s)) )
 	{
 		return (Cross(l_.get(s), r_.get(s)));
 	}
 
-	inline auto operator[](index_type s) const
+	inline auto operator[](iterator s) const
 	DECL_RET_TYPE( (get(s)) )
 
 }
@@ -127,7 +127,7 @@ public:
 
 	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
@@ -136,12 +136,12 @@ public:
 	{
 	}
 
-	inline auto get(index_type s) const->decltype( Dot(l_.get(s) , r_.get(s)) )
+	inline auto get(iterator s) const->decltype( Dot(l_.get(s) , r_.get(s)) )
 	{
 		return Dot(l_.get(s), r_.get(s));
 	}
 
-	inline auto operator[](index_type s) const
+	inline auto operator[](iterator s) const
 	DECL_RET_TYPE( (get(s)) )
 
 }

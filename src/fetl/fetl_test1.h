@@ -33,7 +33,7 @@ public:
 	typedef typename TParam::value_type value_type;
 	static constexpr int IForm = TParam::IForm;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef Field<mesh_type, VERTEX, Real> RScalarField;
 	typedef Field<mesh_type, IForm, value_type> FieldType;
 
@@ -163,7 +163,7 @@ TYPED_TEST_P(TestFETL, scalar_field){
 	//FIXME  should test with non-uniform field
 
 	typedef typename TestFixture::FieldType::value_type value_type;
-	typedef typename TestFixture::FieldType::index_type index_type;
+	typedef typename TestFixture::FieldType::iterator iterator;
 
 	typename TestFixture::mesh_type const &mesh=TestFixture::mesh;
 	typename TestFixture::FieldType f1( mesh),f2( mesh),

@@ -10,10 +10,204 @@
 
 #include <gtest/gtest.h>
 
-#include "../fetl/fetl.h"
+#include "../utilities/pretty_stream.h"
 #include "../utilities/log.h"
-
 using namespace simpla;
+
+template<typename TMesh>
+class TestRange: public testing::Test
+{
+protected:
+	virtual void SetUp()
+	{
+		LOG_STREAM.SetStdOutVisableLevel(10);
+//		mesh.Decompose(1,0);
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	0,0,0}),
+						nTuple<NDIMS,size_t>(
+								{	0,0,0})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	0,0,0}),
+						nTuple<NDIMS,size_t>(
+								{	1,1,1})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	0,0,0}),
+						nTuple<NDIMS,size_t>(
+								{	3,1,1})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	0,0,0}),
+						nTuple<NDIMS,size_t>(
+								{	1,3,1})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	0,0,0}),
+						nTuple<NDIMS,size_t>(
+								{	1,1,3})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	1,2,3}),
+						nTuple<NDIMS,size_t>(
+								{	10,1,9})));
+
+		dims.push_back(std::make_pair(
+						nTuple<NDIMS,size_t>(
+								{	1,2,3}),
+						nTuple<NDIMS,size_t>(
+								{	10,5,1})));
+
+	}
+public:
+
+	typedef typename TMesh::Range range_type;
+	typedef typename range_type::iterator iterator;
+	static constexpr unsigned int NDIMS=TMesh::NDIMS;
+	typedef TMesh mesh_type;
+
+	std::vector<typename TMesh::compact_index_type> shift =
+	{
+		0UL,
+		TMesh::_DI>>1,TMesh::_DJ>>1,TMesh::_DK>>1,
+		(TMesh::_DJ|TMesh::_DK)>>1,(TMesh::_DK|TMesh::_DI)>>1,(TMesh::_DI|TMesh::_DJ)>>1,
+		TMesh::_DA>>1
+	};
+	std::vector<std::pair<nTuple<NDIMS,size_t>,nTuple<NDIMS,size_t>>> dims;
+
+};
+
+TYPED_TEST_CASE_P(TestRange);
+
+TYPED_TEST_P(TestRange, ForAll){
+{
+	typedef typename TestFixture::range_type Range;
+	constexpr unsigned int NDIMS=TestFixture::NDIMS;
+
+	for(auto const & d: TestFixture::dims)
+	for(auto const & s: TestFixture::shift)
+	{
+		Range range( d.first,d.second, s);
+
+		size_t size=1;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			size*=d.second[i];
+		}
+
+		EXPECT_EQ(range.size(),size);
+
+		size_t count =0;
+
+		for(auto a:range )
+		{
+			++count;
+		}
+
+		if(s==0 || s==(TestFixture::mesh_type::_DA>>1))
+		{
+			EXPECT_EQ(count,size);
+		}
+		else
+		{
+			EXPECT_EQ(count,size*3);
+		}
+	}
+	//	CHECK(mesh.global_start_);
+	//	CHECK(mesh.global_end_);
+	//	CHECK_BIT( range.first );
+	//	CHECK_BIT( range.second );
+	//	CHECK_BIT( range.begin()->self_ );
+	//	CHECK_BIT( range.end()->self_ );
+	//	auto it= range.begin();
+	//
+	//	CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//
+
+}
+}
+TYPED_TEST_P(TestRange, VerboseShow){
+{
+	typedef typename TestFixture::range_type Range;
+
+	for(auto const & s: TestFixture::shift)
+	{
+
+		Range range(
+
+				nTuple<3,size_t> (
+						{	1,3,5}),
+
+				nTuple<3,size_t> (
+						{	2,4,5}),
+
+				s);
+
+		size_t total =4;
+
+		size_t count =0;
+
+		std::vector<size_t> data;
+
+		for (int sub = 0; sub < total; ++sub)
+		for(auto a:range.Split(total,sub) )
+		{
+
+			data.push_back(sub);
+		}
+
+		CHECK(data);
+
+		if(s==0 || s==(TestFixture::mesh_type::_DA>>1))
+		{
+			EXPECT_EQ(data.size(),range.size());
+		}
+		else
+		{
+			EXPECT_EQ(data.size(),range.size()*3);
+		}
+	}
+
+	//	CHECK(mesh.global_start_);
+	//	CHECK(mesh.global_end_);
+	//	CHECK_BIT( range.first );
+	//	CHECK_BIT( range.second );
+	//	CHECK_BIT( range.begin()->self_ );
+	//	CHECK_BIT( range.end()->self_ );
+	//	auto it= range.begin();
+	//
+	//	CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//	++it; CHECK_BIT(it->self_);
+	//
+
+}
+}
+REGISTER_TYPED_TEST_CASE_P(TestRange, VerboseShow, ForAll);
 
 template<typename TParam>
 class TestMesh: public testing::Test
@@ -28,38 +222,13 @@ protected:
 public:
 
 	typedef typename TParam::mesh_type mesh_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	mesh_type mesh;
 	static constexpr int IForm = TParam::IForm;
 
 };
 
 TYPED_TEST_CASE_P(TestMesh);
-
-TYPED_TEST_P(TestMesh, index){
-{
-	typedef typename TestFixture::mesh_type mesh_type;
-
-//	s.d=1UL<<3;
-//	CHECK_BIT(s.d);
-//	s=s.NextNode(); CHECK_BIT(s.d);
-//	s=s.NextNode(); CHECK_BIT(s.d);
-//	s=s.NextNode(); CHECK_BIT(s.d);
-//	s=s.NextNode(); CHECK_BIT(s.d);
-//	s=s.NextNode(); CHECK_BIT(s.d);
-}
-}
-TYPED_TEST_P(TestMesh, iterator){
-{
-
-}
-}
-
-TYPED_TEST_P(TestMesh, range){
-{
-
-}
-}
 
 TYPED_TEST_P(TestMesh, traversal){
 {
@@ -69,24 +238,6 @@ TYPED_TEST_P(TestMesh, traversal){
 	size_t count = 0;
 
 	auto range=mesh.GetRange(TestFixture::IForm );
-
-	CHECK_BIT( range.first );
-	CHECK_BIT( range.second );
-	CHECK_BIT(*range.begin() );
-	CHECK_BIT(*range.end() );
-
-	auto it= range.begin();
-
-	CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
-	++it; CHECK_BIT(*it);
 
 	for(auto s:mesh.GetRange(TestFixture::IForm ) )
 	{
@@ -99,61 +250,41 @@ TYPED_TEST_P(TestMesh, traversal){
 }
 TYPED_TEST_P(TestMesh, partial_traversal){
 {
-
+//
 //	auto & mesh=TestFixture::mesh;
 //
 //	int total=4;
+//
 //	size_t count = 0;
-//	auto range=mesh.GetRange(TestFixture::IForm);
 //
-//	auto dims= mesh.GetLocalDimensions();
+//	std::vector<size_t> data;
 //
-//	auto start= range.first;
+//	for (int sub = 0; sub < total; ++sub)
+//	{
 //
-//	int data[dims[0]][dims[1]][dims[2]];
-//
-//	for (int i = 0; i < dims[0]; ++i)
-//	{	for (int j = 0; j < dims[1]; ++j)
+//		try
 //		{
-//			for (int k = 0; k < dims[2]; ++k)
+//			auto r=range.Split(total,sub);
+//
+//			for(auto s:range.Split(total,sub))
 //			{
-//				data[i][j][k] =0;
+//				++count;
+//
+//				CHECK_BIT( s.self_ );
+//				data[mesh.Hash(s)]=sub;
 //			}
+//		}
+//		catch(std::runtime_error const &)
+//		{
+//
 //		}
 //	}
-////
-////	for (int sub = 0; sub < total; ++sub)
-////	{
-////
-////		for(auto s:range.Split(total,sub))
-////		{
-////			++count;
-////////			CHECK(((s[0]-b[0])>>4)-dims[0]);
-////////			CHECK(((s[1]-b[1])>>4)-dims[1]);
-////////			CHECK(((s[2]-b[2])>>4)-dims[2]);
-//////			EXPECT_LE((s[0]-start[0])>>4,dims[0]);
-//////			EXPECT_LE((s[1]-start[1])>>4,dims[1]);
-//////			EXPECT_LE((s[2]-start[2])>>4,dims[2]);
-//////
-//////			CHECK("") <<((s[0]-start[0])>>4)<< ","<<
-//////			((s[1]-start[1])>>4)<< ","<<
-//////			((s[2]-start[2])>>4 )
-//////			<<std::endl;
-//////
-//////			data[(s[0]-start[0])>>4][(s[1]-start[1])>>4][(s[2]-start[2])>>4]=sub;
-////		}
-////	}
 //
 //	for (int i = 0; i < dims[0]; ++i)
-//	{	for (int j = 0; j < dims[1]; ++j)
-//		{
-//			for (int k = 0; k < dims[2]; ++k)
-//			{
-//				std::cout<< data[i][j][k]<<" ";
-//			}
-//			std::cout<<std::endl;
-//		}
-//		std::cout<<"==========="<<std::endl;
+//	{
+//		std::cout<< data[i] <<" ";
+//
+//		if(i%10==0) std::cout<<std::endl;
 //	}
 //	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
@@ -194,7 +325,7 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 //TYPED_TEST_P(TestMesh,gather){
 //
 //}
-REGISTER_TYPED_TEST_CASE_P(TestMesh, index, iterator, range, traversal, partial_traversal/*, scatter, gather*/);
+REGISTER_TYPED_TEST_CASE_P(TestMesh, traversal, partial_traversal/*, scatter, gather*/);
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>

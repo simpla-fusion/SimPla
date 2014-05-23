@@ -25,13 +25,13 @@ class Surface
 public:
 	typedef TM mesh_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	typedef nTuple<3, nTuple<3, Real>> plane_type;
 
-	typedef std::vector<std::pair<index_type, plane_type> > cell_type;
+	typedef std::vector<std::pair<iterator, plane_type> > cell_type;
 
 	typedef typename cell_type::iterator iterator;
 
@@ -49,7 +49,7 @@ public:
 	{
 	}
 
-	void insert(index_type s, plane_type const & v)
+	void insert(iterator s, plane_type const & v)
 	{
 		cell_list_.push_back(std::make_pair(s, v));
 	}

@@ -48,7 +48,7 @@ public:
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
 	typedef Material<mesh_type> material_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type mesh;
@@ -67,7 +67,7 @@ TYPED_TEST_P(TestMaterial,create ){
 //	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	typedef typename TestFixture::mesh_type mesh_type;
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typename TestFixture::mesh_type const & mesh=TestFixture::mesh;
 	typename TestFixture::material_type material(TestFixture::mesh);

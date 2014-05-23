@@ -27,7 +27,7 @@ public:
 
 	typedef typename TParam::mesh_type mesh_type;
 	typedef typename TParam::value_type value_type;
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef Field<mesh_type, VERTEX, value_type> TZeroForm;
 	typedef Field<mesh_type, EDGE, value_type> TOneForm;

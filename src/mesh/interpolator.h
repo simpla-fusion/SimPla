@@ -27,11 +27,11 @@ public:
 	typedef typename mesh_type::topology_type topology_type;
 	typedef typename mesh_type::geometry_type geometry_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::compact_index_type compact_index_type;
+	typedef typename topology_type::iterator iterator;
+	typedef typename topology_type::compact_iterator compact_iterator;
 
 	template<typename TF>
-	static inline typename TF::value_type Gather_(TF const &f, coordinates_type r, compact_index_type shift)
+	static inline typename TF::value_type Gather_(TF const &f, coordinates_type r, compact_iterator shift)
 	{
 		mesh_type const & mesh = f.mesh;
 		mesh.geometry_type::CoordinatesGlobalToLocal(&r);
@@ -107,7 +107,7 @@ public:
 	}
 
 	template<typename TF>
-	static inline void Scatter_(coordinates_type r, typename TF::value_type const & v, index_type shift, TF *f)
+	static inline void Scatter_(coordinates_type r, typename TF::value_type const & v, iterator shift, TF *f)
 	{
 
 		mesh_type const & mesh = f->mesh;

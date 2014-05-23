@@ -36,11 +36,11 @@ public:
 
 	typedef typename particle_type::mesh_type mesh_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef std::list<index_type> define_domain_type;
+	typedef std::list<iterator> define_domain_type;
 
 	static constexpr unsigned int IForm = particle_type::IForm;
 

@@ -42,7 +42,7 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::iterator index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 
 	Mesh()

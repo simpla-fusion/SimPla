@@ -24,7 +24,7 @@ namespace simpla
 {
 template<typename TV> inline TV const *
 PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d, std::string const & left_brace = "{",
-		std::string const & sep = ",", std::string const & right_brace = "}")
+        std::string const & sep = ",", std::string const & right_brace = "}")
 {
 	if (rank == 1)
 	{
@@ -68,27 +68,6 @@ operator<<(std::ostream& os, const nTuple<N, T> & tv)
 	os << "}";
 	return (os);
 }
-
-template<typename T> std::ostream &
-operator<<(std::ostream& os, const std::complex<T> & tv)
-{
-	os << "{" << tv.real() << "," << tv.imag() << "}";
-	return (os);
-}
-template<typename T1, typename T2> std::ostream &
-operator<<(std::ostream& os, std::pair<T1, T2>const & p)
-{
-	os << p.first << " = { " << p.second << " }";
-	return (os);
-}
-template<typename T1, typename T2> std::ostream &
-operator<<(std::ostream& os, std::map<T1, T2>const & p)
-{
-	for (auto const & v : p)
-		os << v << "," << std::endl;
-	return (os);
-}
-
 template<int N, typename T> std::istream &
 operator>>(std::istream& is, nTuple<N, T> & tv)
 {
@@ -107,19 +86,6 @@ template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 	ss >> res;
 	return (res);
 }
-
-template<typename TV, typename ...Others> std::istream&
-operator>>(std::istream& is, std::vector<TV, Others...> & a)
-{
-	for (auto & v : a)
-	{
-		is >> v;
-	}
-//	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
-	return is;
-
-}
-
 template<typename TX, typename TY, typename ...Others> std::istream&
 get(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 {
@@ -158,30 +124,6 @@ std::ostream & ContainerOutPut1(std::ostream & os, TI const ib, TI const ie)
 	return os;
 }
 
-template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::vector<U, Others...> const &d)
-{
-	return ContainerOutPut1(os, d.begin(), d.end());
-}
-
-template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::list<U, Others...> const &d)
-{
-	return ContainerOutPut1(os, d.begin(), d.end());
-}
-
-template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
-{
-	return ContainerOutPut1(os, d.begin(), d.end());
-}
-
-template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &d)
-{
-	return ContainerOutPut1(os, d.begin(), d.end());
-}
-
 template<typename TI>
 std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
 {
@@ -200,19 +142,6 @@ std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
 	}
 	return os;
 }
-
-template<typename TX, typename TY, typename ...Others> std::ostream&
-operator<<(std::ostream& os, std::map<TX, TY, Others...> const& d)
-{
-	return ContainerOutPut2(os, d.begin(), d.end());
-}
-
-template<typename TX, typename TY, typename ...Others> std::ostream&
-operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
-{
-	return ContainerOutPut2(os, d.begin(), d.end());
-}
-
 template<typename TI, typename TFUN>
 std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie, TFUN const& fun)
 {
@@ -232,6 +161,80 @@ std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie,
 	}
 	return os;
 }
+} // namespace simpla
+
+namespace std
+{
+
+template<typename T> std::ostream &
+operator<<(std::ostream& os, const std::complex<T> & tv)
+{
+	os << "{" << tv.real() << "," << tv.imag() << "}";
+	return (os);
+}
+template<typename T1, typename T2> std::ostream &
+operator<<(std::ostream& os, std::pair<T1, T2>const & p)
+{
+	os << p.first << " = { " << p.second << " }";
+	return (os);
+}
+template<typename T1, typename T2> std::ostream &
+operator<<(std::ostream& os, std::map<T1, T2>const & p)
+{
+	for (auto const & v : p)
+		os << v << "," << std::endl;
+	return (os);
+}
+
+template<typename TV, typename ...Others> std::istream&
+operator>>(std::istream& is, std::vector<TV, Others...> & a)
+{
+//	for (auto & v : a)
+//	{
+//		is >> v;
+//	}
+	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
+	return is;
+
+}
+
+template<typename U, typename ...Others>
+std::ostream & operator<<(std::ostream & os, std::vector<U, Others...> const &d)
+{
+	return simpla::ContainerOutPut1(os, d.begin(), d.end());
+}
+
+template<typename U, typename ...Others>
+std::ostream & operator<<(std::ostream & os, std::list<U, Others...> const &d)
+{
+	return simpla::ContainerOutPut1(os, d.begin(), d.end());
+}
+
+template<typename U, typename ...Others>
+std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
+{
+	return simpla::ContainerOutPut1(os, d.begin(), d.end());
+}
+
+template<typename U, typename ...Others>
+std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &d)
+{
+	return simpla::ContainerOutPut1(os, d.begin(), d.end());
+}
+
+template<typename TX, typename TY, typename ...Others> std::ostream&
+operator<<(std::ostream& os, std::map<TX, TY, Others...> const& d)
+{
+	return simpla::ContainerOutPut2(os, d.begin(), d.end());
+}
+
+template<typename TX, typename TY, typename ...Others> std::ostream&
+operator<<(std::ostream& os, std::multimap<TX, TY, Others...> const& d)
+{
+	return simpla::ContainerOutPut2(os, d.begin(), d.end());
+}
+
+}  // namespace std
 
 //namespace _impl
 //{
@@ -253,8 +256,5 @@ std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie,
 //{
 //	return PrettyOutput(os, d);
 //}
-
-}
-// namespace simpla
 
 #endif /* PRETTY_STREAM_H_ */

@@ -51,7 +51,7 @@ public:
 
 	typedef Particle<engine_type> particle_pool_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -93,7 +93,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 
 	typedef typename TestFixture::Point_s Point_s;
 
-	typedef typename TestFixture::index_type index_type;
+	typedef typename TestFixture::iterator iterator;
 
 	typedef typename TestFixture::coordinates_type coordinates_type;
 
@@ -177,7 +177,7 @@ TYPED_TEST_P(TestParticle,scatter_n){
 //
 //	typedef typename TestFixture::Point_s Point_s;
 //
-//	typedef typename TestFixture::index_type index_type;
+//	typedef typename TestFixture::iterator iterator;
 //
 //	typedef typename TestFixture::coordinates_type coordinates_type;
 //

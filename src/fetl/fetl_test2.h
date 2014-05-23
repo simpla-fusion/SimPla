@@ -29,7 +29,7 @@ public:
 	typedef typename TParam::value_type value_type;
 	static constexpr int IForm = TParam::IForm;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::iterator iterator;
 
 	typedef nTuple<3, value_type> Vec3;
 	typedef Field<mesh_type, IForm, value_type> FieldType;
