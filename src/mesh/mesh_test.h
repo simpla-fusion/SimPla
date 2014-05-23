@@ -98,6 +98,11 @@ TYPED_TEST_P(TestRange, ForAll){
 
 		size_t size=1;
 
+//		CHECK( range.start_ );
+//		CHECK( range.count_ );
+//		CHECK_BIT( range.begin()->self_ );
+//		CHECK_BIT( range.end()->self_ );
+
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			size*=d.second[i];
@@ -123,10 +128,7 @@ TYPED_TEST_P(TestRange, ForAll){
 	}
 	//	CHECK(mesh.global_start_);
 	//	CHECK(mesh.global_end_);
-	//	CHECK_BIT( range.first );
-	//	CHECK_BIT( range.second );
-	//	CHECK_BIT( range.begin()->self_ );
-	//	CHECK_BIT( range.end()->self_ );
+
 	//	auto it= range.begin();
 	//
 	//	CHECK_BIT(it->self_);
@@ -169,7 +171,6 @@ TYPED_TEST_P(TestRange, VerboseShow){
 		for (int sub = 0; sub < total; ++sub)
 		for(auto a:range.Split(total,sub) )
 		{
-
 			data.push_back(sub);
 		}
 
@@ -207,7 +208,7 @@ TYPED_TEST_P(TestRange, VerboseShow){
 
 }
 }
-REGISTER_TYPED_TEST_CASE_P(TestRange, VerboseShow, ForAll);
+REGISTER_TYPED_TEST_CASE_P(TestRange, ForAll, VerboseShow);
 
 template<typename TParam>
 class TestMesh: public testing::Test
@@ -235,59 +236,43 @@ TYPED_TEST_P(TestMesh, traversal){
 
 	auto & mesh=TestFixture::mesh;
 
-	size_t count = 0;
+	std::map<size_t,typename TestFixture::mesh_type::compact_index_type> data;
 
 	auto range=mesh.GetRange(TestFixture::IForm );
 
 	for(auto s:mesh.GetRange(TestFixture::IForm ) )
 	{
-		++count;
+		data[mesh.Hash(s)]=s.self_;
 	}
 
-	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
-
+	EXPECT_EQ(data.size(), mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
+	EXPECT_EQ(data.begin()->first, 0);
+	EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements( TestFixture::IForm)-1);
 }
 }
 TYPED_TEST_P(TestMesh, partial_traversal){
 {
-//
-//	auto & mesh=TestFixture::mesh;
-//
-//	int total=4;
-//
-//	size_t count = 0;
-//
-//	std::vector<size_t> data;
-//
-//	for (int sub = 0; sub < total; ++sub)
-//	{
-//
-//		try
-//		{
-//			auto r=range.Split(total,sub);
-//
-//			for(auto s:range.Split(total,sub))
-//			{
-//				++count;
-//
-//				CHECK_BIT( s.self_ );
-//				data[mesh.Hash(s)]=sub;
-//			}
-//		}
-//		catch(std::runtime_error const &)
-//		{
-//
-//		}
-//	}
-//
-//	for (int i = 0; i < dims[0]; ++i)
-//	{
-//		std::cout<< data[i] <<" ";
-//
-//		if(i%10==0) std::cout<<std::endl;
-//	}
-//	EXPECT_EQ(count, mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
 
+	auto & mesh=TestFixture::mesh;
+
+	int total=4;
+
+	std::map<size_t,int> data;
+
+	auto range=mesh.GetRange(TestFixture::IForm );
+
+	for (int sub = 0; sub < total; ++sub)
+	{
+
+		for(auto s:range.Split(total,sub))
+		{
+			data[mesh.Hash(s)]=sub;
+		}
+	}
+
+	EXPECT_EQ(data.size(), mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
+	EXPECT_EQ(data.begin()->first, 0);
+	EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements( TestFixture::IForm)-1);
 }}
 
 //TYPED_TEST_P(TestMesh,scatter ){
