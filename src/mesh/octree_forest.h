@@ -217,8 +217,8 @@ struct OcForest
 
 			ASSERT(length<INDEX_ZERO );
 
-			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2) << D_FP_POS;
-			global_count_[i] = length << D_FP_POS;
+			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2);
+			global_count_[i] = length;
 
 		}
 
@@ -233,27 +233,45 @@ struct OcForest
 	template<typename ... Args>
 	void Decompose(Args const & ... args)
 	{
-		Range range(local_inner_start_, local_inner_count_);
+		Range range(local_inner_start_, local_inner_count_, 0UL);
+
 		auto res = range.Split(std::forward<Args const &>(args)...);
 
-		local_outer_start_ = Decompact(res.first.fisrt >> D_FP_POS);
-		local_outer_count_ = Decompact(res.first.second >> D_FP_POS);
+		local_outer_start_ = res.first.start_;
+		local_outer_count_ = res.first.count_;
 
-		local_inner_start_ = Decompact(res.second.fisrt >> D_FP_POS);
-		local_inner_count_ = Decompact(res.second.second >> D_FP_POS);
+		local_inner_start_ = res.second.start_;
+		local_inner_count_ = res.second.count_;
 		UpdateHash();
 	}
+
+	void UpdateHash()
+	{
+		if (array_order_ == SLOW_FIRST)
+		{
+			hash_stride_[2] = 1;
+			hash_stride_[1] = (local_outer_count_[2]);
+			hash_stride_[0] = ((local_outer_count_[1])) * hash_stride_[1];
+		}
+		else
+		{
+			hash_stride_[0] = 1;
+			hash_stride_[1] = (local_outer_count_[0]);
+			hash_stride_[2] = ((local_outer_count_[1])) * hash_stride_[1];
+		}
+	}
+
 	inline size_type Hash(iterator s) const
 	{
-		auto d = Decompact(s.self_);
+		auto d = Decompact((s.self_ & ROOT_MASK) >> D_FP_POS);
 
 		size_type res =
 
-		((d[0] - local_outer_start_[0]) >> D_FP_POS) * hash_stride_[0] +
+		((d[0] - local_outer_start_[0])) * hash_stride_[0] +
 
-		((d[1] - local_outer_start_[1]) >> D_FP_POS) * hash_stride_[1] +
+		((d[1] - local_outer_start_[1])) * hash_stride_[1] +
 
-		((d[2] - local_outer_start_[2]) >> D_FP_POS) * hash_stride_[2];
+		((d[2] - local_outer_start_[2])) * hash_stride_[2];
 
 		switch (s.NodeId())
 		{
@@ -274,32 +292,14 @@ struct OcForest
 		return res;
 	}
 
-	void UpdateHash()
+	nTuple<NDIMS, size_type> const& GetDimensions() const
 	{
-		if (array_order_ == SLOW_FIRST)
-		{
-			hash_stride_[2] = 1;
-			hash_stride_[1] = (local_outer_count_[2]) >> D_FP_POS;
-			hash_stride_[0] = ((local_outer_count_[1]) >> D_FP_POS) * hash_stride_[1];
-		}
-		else
-		{
-			hash_stride_[0] = 1;
-			hash_stride_[1] = (local_outer_count_[0]) >> D_FP_POS;
-			hash_stride_[2] = ((local_outer_count_[1]) >> D_FP_POS) * hash_stride_[1];
-		}
+		return global_count_;
 	}
 
-	nTuple<NDIMS, size_type> GetDimensions() const
+	nTuple<NDIMS, size_type> const& GetLocalDimensions() const
 	{
-		nTuple<NDIMS, size_type> count = global_count_ >> D_FP_POS;
-		return count;
-	}
-
-	nTuple<NDIMS, size_type> GetLocalDimensions() const
-	{
-		nTuple<NDIMS, size_type> count = local_outer_count_ >> D_FP_POS;
-		return count;
+		return local_outer_count_;
 	}
 
 	nTuple<NDIMS, Real> GetGlobalExtents() const
@@ -315,13 +315,12 @@ struct OcForest
 
 	size_type GetNumOfElements(int IFORM = VERTEX) const
 	{
-		auto dims = GetDimensions();
-		return dims[0] * dims[1] * dims[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 	size_type GetLocalNumOfElements(int IFORM = VERTEX) const
 	{
-		auto dims = GetLocalDimensions();
-		return dims[0] * dims[1] * dims[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
+		        * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 	int GetDataSetShape(int IFORM, size_type * global_dims = nullptr, size_type * global_start = nullptr,
 	        size_type * local_dims = nullptr, size_type * local_start = nullptr, size_type * local_count = nullptr,
@@ -331,22 +330,22 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			if ((global_count_[i] >> D_FP_POS) > (global_start_[i] >> D_FP_POS))
+			if ((global_count_[i]) > (global_start_[i]))
 			{
 				if (global_dims != nullptr)
-					global_dims[rank] = (global_count_[i]) >> D_FP_POS;
+					global_dims[rank] = (global_count_[i]);
 
 				if (global_start != nullptr)
-					global_start[rank] = (local_outer_start_[i] - global_start_[i]) >> D_FP_POS;
+					global_start[rank] = (local_outer_start_[i] - global_start_[i]);
 
 				if (local_dims != nullptr)
-					local_dims[rank] = (local_outer_count_[i]) >> D_FP_POS;
+					local_dims[rank] = (local_outer_count_[i]);
 
 				if (local_start != nullptr)
-					local_start[rank] = (local_inner_start_[i] - local_outer_start_[i]) >> D_FP_POS;
+					local_start[rank] = (local_inner_start_[i] - local_outer_start_[i]);
 
 				if (local_count != nullptr)
-					local_count[rank] = (local_inner_count_[i]) >> D_FP_POS;
+					local_count[rank] = (local_inner_count_[i]);
 
 				++rank;
 			}
@@ -394,7 +393,7 @@ struct OcForest
 
 		}
 
-		return Range(global_start_ >> D_FP_POS, global_count_ >> D_FP_POS, shift);
+		return Range(global_start_, global_count_, shift);
 	}
 
 //***************************************************************************************************
