@@ -23,11 +23,14 @@ struct TestFETLParam<TMesh, TV, IFORM>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin =
+		{ -1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax =
+		{ 1.0, 1.0, 1.0 };
 
-		nTuple<3, size_t> dims = { 16, 32, 67 };
+		nTuple<3, size_t> dims =
+		{ 12, 31, 13 };
 
 		mesh->SetDimensions(dims);
 

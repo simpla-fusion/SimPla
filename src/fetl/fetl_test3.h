@@ -45,7 +45,8 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	static constexpr nTuple<3, Real> k = { 2.0 * PI, 2.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
+	static constexpr nTuple<3, Real> k =
+	{ 2.0 * PI, 2.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
@@ -202,7 +203,7 @@ TYPED_TEST_P(TestDiffCalculus, diverge1){
 		average+= (f0[s]-expect);
 
 		if(abs(f0[s])>epsilon|| abs(expect)>epsilon)
-		EXPECT_LE(abs(2.0*(f0[s]-expect)/(f0[s] + expect)), error )<< expect/f0[s]<<" "<< f0[s]<<" "<<expect;
+		EXPECT_LE(abs(2.0*(f0[s]-expect)/(f0[s] + expect)), error )<< expect/f0[s]<<" "<< f0[s]<<" "<<expect<<" "<< (mesh.GetCoordinates(s));;
 
 	}
 
@@ -302,8 +303,6 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 
 		auto expect= std::cos(Dot(k,mesh.GetCoordinates(s)))*( k[(n+1)%3]- k[(n+2)%3] )* mesh.Volume(s);
 
-		vf2b[s]=expect;
-
 		auto error = 0.5*(k[0] * k[0]+k[1] * k[1]+k[2] * k[2] )* mesh.Volume(s);
 
 		variance+= abs( (vf2[s]-expect)*(vf2[s]-expect));
@@ -311,7 +310,7 @@ TYPED_TEST_P(TestDiffCalculus, curl1){
 		average+= (vf2[s]-expect);
 
 		if( abs(vf2[s])>epsilon|| abs(expect)>epsilon)
-		EXPECT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<<mesh.GetDimensions() << vf2[s]<<" "<<expect;
+		EXPECT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error ) << vf2[s]<<" "<<expect;
 
 	}
 
@@ -371,8 +370,8 @@ TYPED_TEST_P(TestDiffCalculus, curl2){
 
 		average+= (vf1[s]-expect);
 
-//		if( abs(vf1[s])>epsilon || abs(expect)>epsilon )
-//		EXPECT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error ) << vf1[s]<<" "<<expect;
+		if( abs(vf1[s])>epsilon || abs(expect)>epsilon )
+		EXPECT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error ) << vf1[s]<<" "<<expect;
 
 	}
 
@@ -580,6 +579,6 @@ TYPED_TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0){
 }
 
 REGISTER_TYPED_TEST_CASE_P(TestDiffCalculus, grad0, grad3, diverge1, diverge2, curl1, curl2, identity_curl_grad_f0_eq_0,
-        identity_curl_grad_f3_eq_0, identity_div_curl_f1_eq0, identity_div_curl_f2_eq0);
+		identity_curl_grad_f3_eq_0, identity_div_curl_f1_eq0, identity_div_curl_f2_eq0);
 
 #endif /* FETL_TEST3_H_ */

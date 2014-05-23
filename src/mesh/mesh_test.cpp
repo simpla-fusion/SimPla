@@ -38,14 +38,14 @@ struct TestMeshParam<TMesh, CASE>
 		{ 0, 0.0, 0 };
 
 		nTuple<3, Real> xmax =
-		{ 2.0, 10, 1.0 };
+		{ 2.0, 10, 3.0 };
 
 		nTuple<3, size_t> dims[] =
 		{
 
 		1, 1, 1,
 
-		15, 2, 3,
+		15, 2, 4,
 
 		1, 17, 1,
 
@@ -60,10 +60,9 @@ struct TestMeshParam<TMesh, CASE>
 		17, 9, 7
 
 		};
-		mesh->SetExtents(xmin, xmax);
 
 		mesh->SetDimensions(dims[ICASE % 100]);
-
+		mesh->SetExtents(xmin, xmax);
 	}
 
 };

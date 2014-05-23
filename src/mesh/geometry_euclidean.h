@@ -149,9 +149,8 @@ struct EuclideanGeometry: public TTopology
 	inline void SetExtents(nTuple<NDIMS, T> const & pmin, nTuple<NDIMS, T> const & pmax)
 	{
 
-		auto local_extents = topology_type::GetExtents();
+		auto extents = topology_type::GetExtents();
 
-		CHECK(local_extents);
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			xmin_[i] = pmin[i];
@@ -161,8 +160,8 @@ struct EuclideanGeometry: public TTopology
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			shift_[i] = xmin_[i];
-			scale_[i] = local_extents[i] / (xmax_[i] - xmin_[i]);
-			inv_scale_[i] = (xmax_[i] - xmin_[i]) / local_extents[i];
+			scale_[i] = extents[i] / (xmax_[i] - xmin_[i]);
+			inv_scale_[i] = (xmax_[i] - xmin_[i]) / extents[i];
 		}
 
 		/**
@@ -187,9 +186,9 @@ struct EuclideanGeometry: public TTopology
 		 */
 
 		volume_[0] = 1;
-		volume_[1] /* 001 */= (xmax_[0] - xmin_[0]);
-		volume_[2] /* 010 */= (xmax_[1] - xmin_[1]);
-		volume_[4] /* 100 */= (xmax_[2] - xmin_[2]);
+		volume_[1] /* 001 */= extents[0] > 1 ? inv_scale_[0] : 1;  //(xmax_[0] - xmin_[0]);
+		volume_[2] /* 010 */= extents[1] > 1 ? inv_scale_[1] : 1;  //(xmax_[1] - xmin_[1]);
+		volume_[4] /* 100 */= extents[2] > 1 ? inv_scale_[2] : 1;  //(xmax_[2] - xmin_[2]);
 
 		volume_[3] /* 011 */= volume_[1] * volume_[2];
 		volume_[5] /* 101 */= volume_[4] * volume_[1];
@@ -198,9 +197,9 @@ struct EuclideanGeometry: public TTopology
 		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
 
 		dual_volume_[7] = 1;
-		dual_volume_[6] /* 001 */= (xmax_[0] - xmin_[0]);
-		dual_volume_[5] /* 010 */= (xmax_[1] - xmin_[1]);
-		dual_volume_[3] /* 100 */= (xmax_[2] - xmin_[2]);
+		dual_volume_[6] /* 001 */= extents[0] > 1 ? inv_scale_[0] : 1;  //(xmax_[0] - xmin_[0]);
+		dual_volume_[5] /* 010 */= extents[1] > 1 ? inv_scale_[1] : 1;  //(xmax_[1] - xmin_[1]);
+		dual_volume_[3] /* 100 */= extents[2] > 1 ? inv_scale_[2] : 1;  //(xmax_[2] - xmin_[2]);
 
 		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
 		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];

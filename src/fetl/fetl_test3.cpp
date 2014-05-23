@@ -22,7 +22,8 @@ struct TestFETLParam<TMesh, TV, ICase>
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin[] = {
+		nTuple<3, Real> xmin[] =
+		{
 
 		0.0, 0.0, 0.0,
 
@@ -40,7 +41,8 @@ struct TestFETLParam<TMesh, TV, ICase>
 
 		-1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax[] = {
+		nTuple<3, Real> xmax[] =
+		{
 
 		1.0, 1.0, 1.0,
 
@@ -61,7 +63,8 @@ struct TestFETLParam<TMesh, TV, ICase>
 		};
 
 		constexpr int NUM_DIMS_TEST = 8;
-		nTuple<3, size_t> dims[] = {
+		nTuple<3, size_t> dims[] =
+		{
 
 		16, 16, 16
 
@@ -108,7 +111,7 @@ TestFETLParam<TMesh, Real, 0> //,
 //TestFETLParam<TMesh, Real, 50>,
 //
 //TestFETLParam<TMesh, Real, 60>,
-
+//
 //
 //TestFETLParam<TMesh, Real, 1>,
 //
@@ -122,11 +125,8 @@ TestFETLParam<TMesh, Real, 0> //,
 //
 //TestFETLParam<TMesh, Real, 6>,
 //
-//TestFETLParam<TMesh, Real, 7>,
-
-/*TestFETLParam<TMesh, Complex, 8>,
-
- TestFETLParam<TMesh, nTuple<3, Real>, 8>*/
+//TestFETLParam<TMesh, Real, 7>
 
 > ParamList;
+
 INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestDiffCalculus, ParamList);

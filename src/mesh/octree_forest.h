@@ -1254,14 +1254,13 @@ struct OcForest
 			{
 				res = iterator(
 
-				(Compact(start_ + count_ -1) << D_FP_POS) | shift_,
+				(Compact(start_ + count_ ) << D_FP_POS) | shift_,
 
 				((Compact(start_) << D_FP_POS) | shift_),
 
 				((Compact(start_ + count_) << D_FP_POS) | shift_)
 
 				);
-				CHECK((Decompact(res.self_) >> D_FP_POS)-start_);
 			}
 			return res;
 		}
@@ -1409,8 +1408,12 @@ struct OcForest
 
 		nTuple<NDIMS, Real> res;
 
-		res = global_count_<<D_FP_POS;
+//		for (int var = 0; var < NDIMS; ++var)
+//		{
+//			res[var]=static_cast<Real>(global_count_[var]);
+//		}
 
+		res=global_count_;
 		return res;
 	}
 
@@ -1418,17 +1421,13 @@ struct OcForest
 	// Coordinates
 	inline coordinates_type GetCoordinates(iterator const& s) const
 	{
-		auto d = Decompact(s.self_);
+		auto d = Decompact(s.self_)-(global_start_<<D_FP_POS);
 
 		return coordinates_type(
 		{
-
-			static_cast<Real>(d[0]-(global_start_[0] << D_FP_POS)) ,
-
-			static_cast<Real>(d[1]-(global_start_[1] << D_FP_POS)) ,
-
-			static_cast<Real>(d[2]-(global_start_[2] << D_FP_POS)) ,
-
+			static_cast<Real>(d[0] )*R_DX ,
+			static_cast<Real>(d[1] )*R_DX ,
+			static_cast<Real>(d[2] )*R_DX ,
 		});
 	}
 
@@ -1493,7 +1492,7 @@ struct OcForest
 
 			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 110
 
-			1, 1.0 / 8, 1.0 / 32, 1.0 / 128// 111
+			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
 
 		};
 
@@ -1519,7 +1518,7 @@ struct OcForest
 
 			1, 4, 16, 64,// 110
 
-			1, 8, 32, 128// 111
+			1, 8, 64, 512// 111
 
 		};
 
