@@ -107,9 +107,7 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-//	nTuple<NDIMS, size_type> global_end_ = { 1, 1, 1 };
-
-	unsigned long clock_ = 0;
+	unsigned long clock_ = 0UL;
 
 	static compact_index_type Compact(nTuple<NDIMS, size_type> const & idx)
 	{
@@ -136,8 +134,6 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> DecompactRoot(compact_index_type s)
 	{
-		CHECK("");
-		CHECK_BIT(s);
 		return (Decompact(s) - (((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS)) >> D_FP_POS;
 
 	}
@@ -1495,7 +1491,6 @@ struct OcForest
 			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
 
 		};
-
 		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
 	}
 
@@ -1521,7 +1516,6 @@ struct OcForest
 			1, 8, 64, 512// 111
 
 		};
-
 		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
 	}
 

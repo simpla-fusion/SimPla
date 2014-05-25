@@ -98,34 +98,33 @@ struct TestFETLParam<TMesh, TV, ICase>
 
 typedef testing::Types<
 
-TestFETLParam<TMesh, Real, 0> //,
+TestFETLParam<TMesh, Real, 0>
+
+//, TestFETLParam<TMesh, Real, 10>
 //
-//TestFETLParam<TMesh, Real, 10>,
+//, TestFETLParam<TMesh, Real, 20>
 //
-//TestFETLParam<TMesh, Real, 20>,
+//, TestFETLParam<TMesh, Real, 30>
 //
-//TestFETLParam<TMesh, Real, 30>,
+//, TestFETLParam<TMesh, Real, 40>
 //
-//TestFETLParam<TMesh, Real, 40>,
+//, TestFETLParam<TMesh, Real, 50>
 //
-//TestFETLParam<TMesh, Real, 50>,
-//
-//TestFETLParam<TMesh, Real, 60>,
-//
-//
-//TestFETLParam<TMesh, Real, 1>,
-//
-//TestFETLParam<TMesh, Real, 2>,
-//
-//TestFETLParam<TMesh, Real, 3>,
-//
-//TestFETLParam<TMesh, Real, 4>,
-//
-//TestFETLParam<TMesh, Real, 5>,
-//
-//TestFETLParam<TMesh, Real, 6>,
-//
-//TestFETLParam<TMesh, Real, 7>
+//, TestFETLParam<TMesh, Real, 60>
+
+		, TestFETLParam<TMesh, Real, 1>
+
+		, TestFETLParam<TMesh, Real, 2>
+
+		, TestFETLParam<TMesh, Real, 3>
+
+		, TestFETLParam<TMesh, Real, 4>
+
+		, TestFETLParam<TMesh, Real, 5>
+
+		, TestFETLParam<TMesh, Real, 6>
+
+		, TestFETLParam<TMesh, Real, 7>
 
 > ParamList;
 

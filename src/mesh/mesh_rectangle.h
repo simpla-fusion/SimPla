@@ -186,21 +186,21 @@ public:
 
 		(
 
-			f[s + X] * (geometry_type::InvVolume(s + X) * geometry_type::DualVolume(s + X))
+		f[s + X] * (geometry_type::DualVolumeConvert(s + X))
 
-		- f[s - X] * (geometry_type::InvVolume(s - X) * geometry_type::DualVolume(s - X))
-
-		) + (
-
-		f[s + Y] * (geometry_type::InvVolume(s + Y) * geometry_type::DualVolume(s + Y))
-
-		- f[s - Y] * (geometry_type::InvVolume(s - Y) * geometry_type::DualVolume(s - Y))
+		- f[s - X] * (geometry_type::DualVolumeConvert(s - X))
 
 		) + (
 
-		f[s + Z] * (geometry_type::InvVolume(s + Z) * geometry_type::DualVolume(s + Z))
+		f[s + Y] * (geometry_type::DualVolumeConvert(s + Y))
 
-		- f[s - Z] * (geometry_type::InvVolume(s - Z) * geometry_type::DualVolume(s - Z))
+		- f[s - Y] * (geometry_type::DualVolumeConvert(s - Y))
+
+		) + (
+
+		f[s + Z] * (geometry_type::DualVolumeConvert(s + Z))
+
+		- f[s - Z] * (geometry_type::DualVolumeConvert(s - Z))
 
 		)
 
@@ -217,13 +217,13 @@ public:
 		Real a = geometry_type::InvDualVolume(s) * geometry_type::Volume(s);
 		return (
 
-		f[s + Y] * (geometry_type::InvVolume(s + Y) * geometry_type::DualVolume(s + Y))
+		f[s + Y] * (geometry_type::DualVolumeConvert(s + Y))
 
-		- f[s - Y] * (geometry_type::InvVolume(s - Y) * geometry_type::DualVolume(s - Y))
+		- f[s - Y] * (geometry_type::DualVolumeConvert(s - Y))
 
-		- f[s + Z] * (geometry_type::InvVolume(s + Z) * geometry_type::DualVolume(s + Z))
+		- f[s + Z] * (geometry_type::DualVolumeConvert(s + Z))
 
-		+ f[s - Z] * (geometry_type::InvVolume(s - Z) * geometry_type::DualVolume(s - Z))
+		+ f[s - Z] * (geometry_type::DualVolumeConvert(s - Z))
 
 		) * a;
 	}
@@ -237,9 +237,9 @@ public:
 
 		-(
 
-		f[s + d] * (geometry_type::InvVolume(s + d) * geometry_type::DualVolume(s + d))
+		f[s + d] * (geometry_type::DualVolumeConvert(s + d))
 
-		- f[s - d] * (geometry_type::InvVolume(s - d) * geometry_type::DualVolume(s - d))
+		- f[s - d] * (geometry_type::DualVolumeConvert(s - d))
 
 		) * a;
 	}

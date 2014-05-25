@@ -186,9 +186,9 @@ struct EuclideanGeometry: public TTopology
 		 */
 
 		volume_[0] = 1;
-		volume_[1] /* 001 */= extents[0] > 1 ? inv_scale_[0] : 1;  //(xmax_[0] - xmin_[0]);
-		volume_[2] /* 010 */= extents[1] > 1 ? inv_scale_[1] : 1;  //(xmax_[1] - xmin_[1]);
-		volume_[4] /* 100 */= extents[2] > 1 ? inv_scale_[2] : 1;  //(xmax_[2] - xmin_[2]);
+		volume_[1] /* 001 */= inv_scale_[0];  //(xmax_[0] - xmin_[0]);
+		volume_[2] /* 010 */= inv_scale_[1];  //(xmax_[1] - xmin_[1]);
+		volume_[4] /* 100 */= inv_scale_[2];  //(xmax_[2] - xmin_[2]);
 
 		volume_[3] /* 011 */= volume_[1] * volume_[2];
 		volume_[5] /* 101 */= volume_[4] * volume_[1];
@@ -197,9 +197,9 @@ struct EuclideanGeometry: public TTopology
 		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
 
 		dual_volume_[7] = 1;
-		dual_volume_[6] /* 001 */= extents[0] > 1 ? inv_scale_[0] : 1;  //(xmax_[0] - xmin_[0]);
-		dual_volume_[5] /* 010 */= extents[1] > 1 ? inv_scale_[1] : 1;  //(xmax_[1] - xmin_[1]);
-		dual_volume_[3] /* 100 */= extents[2] > 1 ? inv_scale_[2] : 1;  //(xmax_[2] - xmin_[2]);
+		dual_volume_[6] /* 001 */= inv_scale_[0];  //(xmax_[0] - xmin_[0]);
+		dual_volume_[5] /* 010 */= inv_scale_[1];  //(xmax_[1] - xmin_[1]);
+		dual_volume_[3] /* 100 */= inv_scale_[2];  //(xmax_[2] - xmin_[2]);
 
 		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
 		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
@@ -371,6 +371,11 @@ struct EuclideanGeometry: public TTopology
 	Real InvDualVolume(index_type s) const
 	{
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s.self_)];
+	}
+
+	Real DualVolumeConvert(index_type s) const
+	{
+		return InvVolume(s) * DualVolume(s);
 	}
 
 }
