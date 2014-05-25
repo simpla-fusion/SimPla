@@ -11,12 +11,12 @@
 #include "../mesh/geometry_cylindrical.h"
 #include "../mesh/geometry_euclidean.h"
 using namespace simpla;
-typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
-template<typename TV, int ICase>
-struct TestFETLParam<TMesh, TV, ICase>
+
+template<typename TM,typename TV, int ICase>
+struct TestFETLParam3
 {
-	typedef TMesh mesh_type;
+	typedef TM mesh_type;
 	typedef TV value_type;
 
 	static void SetUpMesh(mesh_type * mesh)
@@ -25,7 +25,7 @@ struct TestFETLParam<TMesh, TV, ICase>
 		nTuple<3, Real> xmin[] =
 		{
 
-		0.0, 0.0, 0.0,
+		0.0, -2.0, -1.0,
 
 		0.0, 0.0, 0.0,
 
@@ -44,7 +44,7 @@ struct TestFETLParam<TMesh, TV, ICase>
 		nTuple<3, Real> xmax[] =
 		{
 
-		1.0, 1.0, 1.0,
+		1.0, 3.0, 1.0,
 
 		2.0, 0.0, 0.0,
 
@@ -66,7 +66,7 @@ struct TestFETLParam<TMesh, TV, ICase>
 		nTuple<3, size_t> dims[] =
 		{
 
-		16, 16, 16
+		1, 1, 1
 
 		, 17, 1, 1
 
@@ -95,36 +95,48 @@ struct TestFETLParam<TMesh, TV, ICase>
 		::SetDefaultValue(v);
 	}
 };
-
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 typedef testing::Types<
 
-TestFETLParam<TMesh, Real, 0>
+TestFETLParam3<TMesh,Real, 0>
 
-//, TestFETLParam<TMesh, Real, 10>
+//, TestFETLParam3<TMesh,Real, 10>
 //
-//, TestFETLParam<TMesh, Real, 20>
+//, TestFETLParam3<TMesh,Real, 20>
 //
-//, TestFETLParam<TMesh, Real, 30>
+//, TestFETLParam3<TMesh,Real, 30>
 //
-//, TestFETLParam<TMesh, Real, 40>
+//, TestFETLParam3<TMesh,Real, 40>
 //
-//, TestFETLParam<TMesh, Real, 50>
+//, TestFETLParam3<TMesh,Real, 50>
 //
-//, TestFETLParam<TMesh, Real, 60>
-
-		, TestFETLParam<TMesh, Real, 1>
-
-		, TestFETLParam<TMesh, Real, 2>
-
-		, TestFETLParam<TMesh, Real, 3>
-
-		, TestFETLParam<TMesh, Real, 4>
-
-		, TestFETLParam<TMesh, Real, 5>
-
-		, TestFETLParam<TMesh, Real, 6>
-
-		, TestFETLParam<TMesh, Real, 7>
+//, TestFETLParam3<TMesh,Real, 60>
+//
+//, TestFETLParam3<TMesh,Real, 1>
+//
+//, TestFETLParam3<TMesh,Real, 2>
+//
+//, TestFETLParam3<TMesh,Real, 3>
+//
+//, TestFETLParam3<TMesh,Real, 4>
+//
+//, TestFETLParam3<TMesh,Real, 5>
+//
+//, TestFETLParam3<TMesh,Real, 6>
+//
+, TestFETLParam3<TMesh,Real, 7>
+//
+//, TestFETLParam3<TMesh,Real, 17>
+//
+//, TestFETLParam3<TMesh,Real, 27>
+//
+//, TestFETLParam3<TMesh,Real, 37>
+//
+//, TestFETLParam3<TMesh,Real, 47>
+//
+//, TestFETLParam3<TMesh,Real, 57>
+//
+//, TestFETLParam3<TMesh,Real, 67>
 
 > ParamList;
 

@@ -38,14 +38,14 @@ struct TestMeshParam<TMesh, CASE>
 		{ 0, 0.0, 0 };
 
 		nTuple<3, Real> xmax =
-		{ 2.0, 10, 3.0 };
+		{ 1.0, 1, 1.0 };
 
 		nTuple<3, size_t> dims[] =
 		{
 
-		1, 1, 1,
+		10, 10, 10,
 
-		15, 2, 4,
+		15, 1, 1,
 
 		1, 17, 1,
 
@@ -69,49 +69,53 @@ struct TestMeshParam<TMesh, CASE>
 
 typedef testing::Types<
 
-//TestMeshParam<TMesh, 0>,
+TestMeshParam<TMesh, 0>
 
-		TestMeshParam<TMesh, 1>,
-//
-//TestMeshParam<TMesh, 2>,
-//
-//TestMeshParam<TMesh, 3>,
-//
-//TestMeshParam<TMesh, 4>,
-//
-//TestMeshParam<TMesh, 5>,
-//
-//TestMeshParam<TMesh, 6>,
-//
-//TestMeshParam<TMesh, 101>,
-//
-//TestMeshParam<TMesh, 102>,
-//
-//TestMeshParam<TMesh, 103>,
-//
-//TestMeshParam<TMesh, 104>,
-//
-//TestMeshParam<TMesh, 105>,
-//
-//TestMeshParam<TMesh, 106>,
-//
-//TestMeshParam<TMesh, 201>,
-//
-//TestMeshParam<TMesh, 202>,
-//
-//TestMeshParam<TMesh, 203>,
-//
-//TestMeshParam<TMesh, 204>,
-//
-//TestMeshParam<TMesh, 205>,
-//
-//TestMeshParam<TMesh, 206>,
-//
-//TestMeshParam<TMesh, 100>,
-//
-//TestMeshParam<TMesh, 200>,
+, TestMeshParam<TMesh, 100>
 
-		TestMeshParam<TMesh, 0>
+, TestMeshParam<TMesh, 200>
+
+, TestMeshParam<TMesh, 300>
+
+, TestMeshParam<TMesh, 1>
+
+, TestMeshParam<TMesh, 2>
+
+, TestMeshParam<TMesh, 3>
+
+, TestMeshParam<TMesh, 4>
+
+, TestMeshParam<TMesh, 5>
+
+, TestMeshParam<TMesh, 6>
+
+, TestMeshParam<TMesh, 101>
+//
+//, TestMeshParam<TMesh, 102>
+//
+//, TestMeshParam<TMesh, 103>
+//
+//, TestMeshParam<TMesh, 104>
+//
+//, TestMeshParam<TMesh, 105>
+//
+//, TestMeshParam<TMesh, 106>
+//
+//, TestMeshParam<TMesh, 201>
+//
+//, TestMeshParam<TMesh, 202>
+//
+//, TestMeshParam<TMesh, 203>
+//
+//, TestMeshParam<TMesh, 204>
+//
+//, TestMeshParam<TMesh, 205>
+//
+//, TestMeshParam<TMesh, 206>
+//
+//, TestMeshParam<TMesh, 100>
+//
+//, TestMeshParam<TMesh, 200>
 
 > ParamList;
 

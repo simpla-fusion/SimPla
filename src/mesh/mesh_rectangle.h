@@ -144,7 +144,7 @@ public:
 			index_type s) const-> decltype(f[s]-f[s])
 	{
 		auto d = topology_type::DeltaIndex(s.self_);
-		return (f[s + d] - f[s - d]);
+		return (f[s + d] - f[s - d]) * geometry_type::InvVolume(s);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
@@ -154,7 +154,17 @@ public:
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
-		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
+		return (
+
+		f[s + Y] * geometry_type::Volume(s + Y)
+
+		- f[s - Y] * geometry_type::Volume(s - Y)
+
+		- f[s + Z] * geometry_type::Volume(s + Z)
+
+		+ f[s - Z] * geometry_type::Volume(s - Z)
+
+		) * geometry_type::InvVolume(s);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, FACE, TL> const & f,
@@ -164,7 +174,21 @@ public:
 		auto Y = topology_type::DeltaIndex(1, s.self_);
 		auto Z = topology_type::DeltaIndex(2, s.self_);
 
-		return (f[s + X] - f[s - X]) + (f[s + Y] - f[s - Y]) + (f[s + Z] - f[s - Z]);
+		return (
+
+		f[s + X] * geometry_type::Volume(s + X)
+
+		- f[s - X] * geometry_type::Volume(s - X)
+
+		+ f[s + Y] * geometry_type::Volume(s + Y)
+
+		- f[s - Y] * geometry_type::Volume(s - Y)
+
+		+ f[s + Z] * geometry_type::Volume(s + Z)
+
+		- f[s - Z] * geometry_type::Volume(s - Z)
+
+		) * geometry_type::InvVolume(s);
 	}
 
 	template<int IL, typename TL> void OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, IL, TL> const & f,
@@ -179,32 +203,29 @@ public:
 		auto X = topology_type::DeltaIndex(0, s.self_);
 		auto Y = topology_type::DeltaIndex(1, s.self_);
 		auto Z = topology_type::DeltaIndex(2, s.self_);
-		auto a = geometry_type::InvDualVolume(s) * geometry_type::Volume(s);
 		return
 
 		-(
 
 		(
 
-		f[s + X] * (geometry_type::DualVolumeConvert(s + X))
+		f[s + X] * (geometry_type::DualVolume(s + X))
 
-		- f[s - X] * (geometry_type::DualVolumeConvert(s - X))
-
-		) + (
-
-		f[s + Y] * (geometry_type::DualVolumeConvert(s + Y))
-
-		- f[s - Y] * (geometry_type::DualVolumeConvert(s - Y))
+		- f[s - X] * (geometry_type::DualVolume(s - X))
 
 		) + (
 
-		f[s + Z] * (geometry_type::DualVolumeConvert(s + Z))
+		f[s + Y] * (geometry_type::DualVolume(s + Y))
 
-		- f[s - Z] * (geometry_type::DualVolumeConvert(s - Z))
+		- f[s - Y] * (geometry_type::DualVolume(s - Y))
 
-		)
+		) + (
 
-		) * a;
+		f[s + Z] * (geometry_type::DualVolume(s + Z))
+
+		- f[s - Z] * (geometry_type::DualVolume(s - Z)))
+
+		) * geometry_type::InvDualVolume(s);
 
 	}
 
@@ -214,34 +235,35 @@ public:
 		auto X = topology_type::DeltaIndex(s.self_);
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
-		Real a = geometry_type::InvDualVolume(s) * geometry_type::Volume(s);
-		return (
 
-		f[s + Y] * (geometry_type::DualVolumeConvert(s + Y))
+		return
 
-		- f[s - Y] * (geometry_type::DualVolumeConvert(s - Y))
+		(
 
-		- f[s + Z] * (geometry_type::DualVolumeConvert(s + Z))
+		f[s + Y] * (geometry_type::DualVolume(s + Y))
 
-		+ f[s - Z] * (geometry_type::DualVolumeConvert(s - Z))
+		- f[s - Y] * (geometry_type::DualVolume(s - Y))
 
-		) * a;
+		- f[s + Z] * (geometry_type::DualVolume(s + Z))
+
+		+ f[s - Z] * (geometry_type::DualVolume(s - Z))
+
+		) * geometry_type::InvDualVolume(s);
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, VOLUME, TL> const & f,
 			index_type s) const-> decltype(f[s]-f[s])
 	{
 		auto d = topology_type::DeltaIndex(topology_type::Dual(s.self_));
-		auto a = geometry_type::InvDualVolume(s) * geometry_type::Volume(s);
 		return
 
 		-(
 
-		f[s + d] * (geometry_type::DualVolumeConvert(s + d))
+		f[s + d] * (geometry_type::DualVolume(s + d))
 
-		- f[s - d] * (geometry_type::DualVolumeConvert(s - d))
+		- f[s - d] * (geometry_type::DualVolume(s - d))
 
-		) * a;
+		) * geometry_type::InvDualVolume(s);
 	}
 
 //***************************************************************************************************
@@ -250,7 +272,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
 			Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		return l[s] * r[s] * geometry_type::InvVolume(s);
+		return l[s] * r[s];
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
@@ -258,7 +280,7 @@ public:
 	{
 		auto X = topology_type::DeltaIndex(s.self_);
 
-		return (l[s - X] * geometry_type::InvVolume(s - X) + l[s + X] * geometry_type::InvVolume(s + X)) * 0.5 * r[s];
+		return (l[s - X] + l[s + X]) * 0.5 * r[s];
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
@@ -270,13 +292,13 @@ public:
 
 		return (
 
-		l[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z) +
+		l[(s - Y) - Z] +
 
-		l[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z) +
+		l[(s - Y) + Z] +
 
-		l[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z) +
+		l[(s + Y) - Z] +
 
-		l[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
+		l[(s + Y) + Z]
 
 		) * 0.25 * r[s];
 	}
@@ -290,21 +312,21 @@ public:
 
 		return (
 
-		l[((s - X) - Y) - Z] * geometry_type::InvVolume(((s - X) - Y) - Z) +
+		l[((s - X) - Y) - Z] +
 
-		l[((s - X) - Y) + Z] * geometry_type::InvVolume(((s - X) - Y) + Z) +
+		l[((s - X) - Y) + Z] +
 
-		l[((s - X) + Y) - Z] * geometry_type::InvVolume(((s - X) + Y) - Z) +
+		l[((s - X) + Y) - Z] +
 
-		l[((s - X) + Y) + Z] * geometry_type::InvVolume(((s - X) + Y) + Z) +
+		l[((s - X) + Y) + Z] +
 
-		l[((s + X) - Y) - Z] * geometry_type::InvVolume(((s + X) - Y) - Z) +
+		l[((s + X) - Y) - Z] +
 
-		l[((s + X) - Y) + Z] * geometry_type::InvVolume(((s + X) - Y) + Z) +
+		l[((s + X) - Y) + Z] +
 
-		l[((s + X) + Y) - Z] * geometry_type::InvVolume(((s + X) + Y) - Z) +
+		l[((s + X) + Y) - Z] +
 
-		l[((s + X) + Y) + Z] * geometry_type::InvVolume(((s + X) + Y) + Z)
+		l[((s + X) + Y) + Z]
 
 		) * 0.125 * r[s];
 	}
@@ -322,17 +344,7 @@ public:
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s.self_)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s.self_)));
 
-		return (
-
-		(l[s - Y] * geometry_type::InvVolume(s - Y) +
-
-		l[s + Y] * geometry_type::InvVolume(s + Y)
-
-		) * (l[s - Z] * geometry_type::InvVolume(s - Z) +
-
-		l[s + Z] * geometry_type::InvVolume(s + Z)
-
-		) * 0.25 * geometry_type::Volume(s));
+		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
@@ -344,55 +356,11 @@ public:
 
 		return
 
-		((
+		((l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * (r[s - X] + r[s + X]) +
 
-		l[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z) +
+		(l[(s - Z) - X] + l[(s - Z) + X] + l[(s + Z) - X] + l[(s + Z) + X]) * (r[s - Y] + r[s + Y]) +
 
-		l[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z) +
-
-		l[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z) +
-
-		l[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
-
-		) * (
-
-		r[s - X] * geometry_type::InvVolume(s - X) +
-
-		r[s + X] * geometry_type::InvVolume(s + X)
-
-		) + (
-
-		l[(s - Z) - X] * geometry_type::InvVolume((s - Z) - X) +
-
-		l[(s - Z) + X] * geometry_type::InvVolume((s - Z) + X) +
-
-		l[(s + Z) - X] * geometry_type::InvVolume((s + Z) - X) +
-
-		l[(s + Z) + X] * geometry_type::InvVolume((s + Z) + X)
-
-		) * (
-
-		r[s - Y] * geometry_type::InvVolume(s - Y) +
-
-		r[s + Y] * geometry_type::InvVolume(s + Y)
-
-		) + (
-
-		l[(s - X) - Y] * geometry_type::InvVolume((s - X) - Y) +
-
-		l[(s - X) + Y] * geometry_type::InvVolume((s - X) + Y) +
-
-		l[(s + X) - Y] * geometry_type::InvVolume((s + X) - Y) +
-
-		l[(s + X) + Y] * geometry_type::InvVolume((s + X) + Y)
-
-		) * (
-
-		r[s - Z] * geometry_type::InvVolume(s - Z) +
-
-		r[s + Z] * geometry_type::InvVolume(s + Z)
-
-		)) * 0.125 * geometry_type::Volume(s);
+		(l[(s - X) - Y] + l[(s - X) + Y] + l[(s + X) - Y] + l[(s + X) + Y]) * (r[s - Z] + r[s + Z])) * 0.125;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &l,
@@ -401,15 +369,7 @@ public:
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s.self_)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s.self_)));
 
-		return l[s]
-				* (
-
-				r[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z)
-						+ r[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z)
-						+ r[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z)
-						+ r[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
-
-				) * 0.25;
+		return l[s] * (r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * 0.25;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &r,
@@ -421,55 +381,11 @@ public:
 
 		return
 
-		((
+		((r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * (l[s - X] + l[s + X])
 
-		r[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z) +
+		+ (r[(s - Z) - X] + r[(s - Z) + X] + r[(s + Z) - X] + r[(s + Z) + X]) * (l[s - Y] + l[s + Y])
 
-		r[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z) +
-
-		r[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z) +
-
-		r[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
-
-		) * (
-
-		l[s - X] * geometry_type::InvVolume(s - X) +
-
-		l[s + X] * geometry_type::InvVolume(s + X)
-
-		) + (
-
-		r[(s - Z) - X] * geometry_type::InvVolume((s - Z) - X) +
-
-		r[(s - Z) + X] * geometry_type::InvVolume((s - Z) + X) +
-
-		r[(s + Z) - X] * geometry_type::InvVolume((s + Z) - X) +
-
-		r[(s + Z) + X] * geometry_type::InvVolume((s + Z) + X)
-
-		) * (
-
-		l[s - Y] * geometry_type::InvVolume(s - Y) +
-
-		l[s + Y] * geometry_type::InvVolume(s + Y)
-
-		) + (
-
-		r[(s - X) - Y] * geometry_type::InvVolume((s - X) - Y) +
-
-		r[(s - X) + Y] * geometry_type::InvVolume((s - X) + Y) +
-
-		r[(s + X) - Y] * geometry_type::InvVolume((s + X) - Y) +
-
-		r[(s + X) + Y] * geometry_type::InvVolume((s + X) + Y)
-
-		) * (
-
-		l[s - Z] * geometry_type::InvVolume(s - Z) +
-
-		l[s + Z] * geometry_type::InvVolume(s + Z)
-
-		)) * 0.125 * geometry_type::Volume(s);
+		+ (r[(s - X) - Y] + r[(s - X) + Y] + r[(s + X) - Y] + r[(s + X) + Y]) * (l[s - Z] + l[s + Z])) * 0.125;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VOLUME, TL> const &l,
@@ -483,21 +399,21 @@ public:
 
 		l[s] * (
 
-		r[((s - X) - Y) - Z] * geometry_type::InvVolume(((s - X) - Y) - Z) +
+		r[((s - X) - Y) - Z] +
 
-		r[((s - X) - Y) + Z] * geometry_type::InvVolume(((s - X) - Y) + Z) +
+		r[((s - X) - Y) + Z] +
 
-		r[((s - X) + Y) - Z] * geometry_type::InvVolume(((s - X) + Y) - Z) +
+		r[((s - X) + Y) - Z] +
 
-		r[((s - X) + Y) + Z] * geometry_type::InvVolume(((s - X) + Y) + Z) +
+		r[((s - X) + Y) + Z] +
 
-		r[((s + X) - Y) - Z] * geometry_type::InvVolume(((s + X) - Y) - Z) +
+		r[((s + X) - Y) - Z] +
 
-		r[((s + X) - Y) + Z] * geometry_type::InvVolume(((s + X) - Y) + Z) +
+		r[((s + X) - Y) + Z] +
 
-		r[((s + X) + Y) - Z] * geometry_type::InvVolume(((s + X) + Y) - Z) +
+		r[((s + X) + Y) - Z] +
 
-		r[((s + X) + Y) + Z] * geometry_type::InvVolume(((s + X) + Y) + Z)
+		r[((s + X) + Y) + Z]
 
 		) * 0.125;
 	}
@@ -608,19 +524,17 @@ public:
 		Y = (topology_type::ComponentNum(Y) == N) ? Y : 0UL;
 		Z = (topology_type::ComponentNum(Z) == N) ? Z : 0UL;
 
-		Real a = geometry_type::InvDualVolume(s) * geometry_type::Volume(s);
-
 		return (
 
-		f[s + Y] * (geometry_type::InvVolume(s + Y) * geometry_type::topology_type::DualVolume(s + Y) * a)
+		f[s + Y] * (geometry_type::DualVolume(s + Y))
 
-		- f[s - Y] * (geometry_type::InvVolume(s - Y) * geometry_type::topology_type::DualVolume(s - Y) * a)
+		- f[s - Y] * (geometry_type::DualVolume(s - Y))
 
-		- f[s + Z] * (geometry_type::InvVolume(s + Z) * geometry_type::topology_type::DualVolume(s + Z) * a)
+		- f[s + Z] * (geometry_type::DualVolume(s + Z))
 
-		+ f[s - Z] * (geometry_type::InvVolume(s - Z) * geometry_type::topology_type::DualVolume(s - Z) * a)
+		+ f[s - Z] * (geometry_type::DualVolume(s - Z))
 
-		);
+		) * geometry_type::InvDualVolume(s);
 	}
 	template<int IL, typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<IL> const &,
 			Field<this_type, IL, TR> const & f, index_type s) const
@@ -635,14 +549,7 @@ public:
 		auto Z = topology_type::DeltaIndex(2, s.self_);
 
 		return nTuple<3, decltype(f[s]*1.0)>(
-				{ (f[s - X] * geometry_type::InvVolume(s - X) + f[s + X] * geometry_type::InvVolume(s + X)) * 0.5
-						* geometry_type::Volume(s),
-
-				(f[s - Y] * geometry_type::InvVolume(s - Y) + f[s + Y] * geometry_type::InvVolume(s + Y)) * 0.5
-						* geometry_type::Volume(s),
-
-				(f[s - Z] * geometry_type::InvVolume(s - Z) + f[s + Z] * geometry_type::InvVolume(s + Z)) * 0.5
-						* geometry_type::Volume(s) });
+		{ (f[s - X] + f[s + X]) * 0.5, (f[s - Y] + f[s + Y]) * 0.5, (f[s - Z] + f[s + Z]) * 0.5 });
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<EDGE> const &,
@@ -652,10 +559,7 @@ public:
 		auto n = topology_type::ComponentNum(s.self_);
 		auto D = topology_type::DeltaIndex(s.self_);
 
-		return ((f[s - D][n] * geometry_type::InvVolume(s - D) + f[s + D][n] * geometry_type::InvVolume(s + D)) * 0.5
-				* geometry_type::Volume(s)
-
-		);
+		return ((f[s - D][n] + f[s + D][n]) * 0.5);
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VERTEX> const &,
@@ -667,35 +571,41 @@ public:
 		auto Z = topology_type::DeltaIndex(2, s.self_);
 
 		return nTuple<3, decltype(f[s]*1.0)>(
-		{ (f[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z) +
+		{ (
 
-		f[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z) +
+		f[(s - Y) - Z] +
 
-		f[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z) +
+		f[(s - Y) + Z] +
 
-		f[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
+		f[(s + Y) - Z] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s + Y) + Z]
 
-		(f[(s - Z) - X] * geometry_type::InvVolume((s - Z) - X) +
+		) * 0.25,
 
-		f[(s - Z) + X] * geometry_type::InvVolume((s - Z) + X) +
+		(
 
-		f[(s + Z) - X] * geometry_type::InvVolume((s + Z) - X) +
+		f[(s - Z) - X] +
 
-		f[(s + Z) + X] * geometry_type::InvVolume((s + Z) + X)
+		f[(s - Z) + X] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s + Z) - X] +
 
-		(f[(s - X) - Y] * geometry_type::InvVolume((s - X) - Y) +
+		f[(s + Z) + X]
 
-		f[(s - X) + Y] * geometry_type::InvVolume((s - X) + Y) +
+		) * 0.25,
 
-		f[(s + X) - Y] * geometry_type::InvVolume((s + X) - Y) +
+		(
 
-		f[(s + X) + Y] * geometry_type::InvVolume((s + X) + Y)
+		f[(s - X) - Y] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s - X) + Y] +
+
+		f[(s + X) - Y] +
+
+		f[(s + X) + Y]
+
+		) * 0.25
 
 		});
 	}
@@ -711,15 +621,17 @@ public:
 
 		return (
 
-		(f[(s - Y) - Z][n] * geometry_type::InvVolume((s - Y) - Z) +
+		(
 
-		f[(s - Y) + Z][n] * geometry_type::InvVolume((s - Y) + Z) +
+		f[(s - Y) - Z][n] +
 
-		f[(s + Y) - Z][n] * geometry_type::InvVolume((s + Y) - Z) +
+		f[(s - Y) + Z][n] +
 
-		f[(s + Y) + Z][n] * geometry_type::InvVolume((s + Y) + Z)
+		f[(s + Y) - Z][n] +
 
-		) * 0.25 * geometry_type::Volume(s)
+		f[(s + Y) + Z][n]
+
+		) * 0.25
 
 		);
 	}
@@ -733,14 +645,11 @@ public:
 		auto Z = topology_type::DeltaIndex(2, s.self_);
 
 		return nTuple<3, decltype(f[s]*1.0)>(
-				{ (f[s - X] * geometry_type::InvVolume(s - X) + f[s + X] * geometry_type::InvVolume(s + X)) * 0.5
-						* geometry_type::Volume(s),
+		{ (f[s - X] + f[s + X]) * 0.5,
 
-				(f[s - Y] * geometry_type::InvVolume(s - Y) + f[s + Y] * geometry_type::InvVolume(s + Y)) * 0.5
-						* geometry_type::Volume(s),
+		(f[s - Y] + f[s + Y]) * 0.5,
 
-				(f[s - Z] * geometry_type::InvVolume(s - Z) + f[s + Z] * geometry_type::InvVolume(s + Z)) * 0.5
-						* geometry_type::Volume(s) });
+		(f[s - Z] + f[s + Z]) * 0.5 });
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<FACE>, Field<this_type, VOLUME, TR> const & f,
@@ -750,10 +659,7 @@ public:
 		auto n = topology_type::ComponentNum(topology_type::Dual(s.self_));
 		auto D = topology_type::DeltaIndex(topology_type::Dual(s.self_));
 
-		return ((f[s - D][n] * geometry_type::InvVolume(s - D) + f[s + D][n] * geometry_type::InvVolume(s + D)) * 0.5
-				* geometry_type::Volume(s)
-
-		);
+		return ((f[s - D][n] + f[s + D][n]) * 0.5);
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VOLUME>, Field<this_type, EDGE, TR> const & f,
@@ -765,35 +671,41 @@ public:
 		auto Z = topology_type::DeltaIndex(2, s.self_);
 
 		return nTuple<3, decltype(f[s]*1.0)>(
-		{ (f[(s - Y) - Z] * geometry_type::InvVolume((s - Y) - Z) +
+		{ (
 
-		f[(s - Y) + Z] * geometry_type::InvVolume((s - Y) + Z) +
+		f[(s - Y) - Z] +
 
-		f[(s + Y) - Z] * geometry_type::InvVolume((s + Y) - Z) +
+		f[(s - Y) + Z] +
 
-		f[(s + Y) + Z] * geometry_type::InvVolume((s + Y) + Z)
+		f[(s + Y) - Z] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s + Y) + Z]
 
-		(f[(s - Z) - X] * geometry_type::InvVolume((s - Z) - X) +
+		) * 0.25,
 
-		f[(s - Z) + X] * geometry_type::InvVolume((s - Z) + X) +
+		(
 
-		f[(s + Z) - X] * geometry_type::InvVolume((s + Z) - X) +
+		f[(s - Z) - X] +
 
-		f[(s + Z) + X] * geometry_type::InvVolume((s + Z) + X)
+		f[(s - Z) + X] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s + Z) - X] +
 
-		(f[(s - X) - Y] * geometry_type::InvVolume((s - X) - Y) +
+		f[(s + Z) + X]
 
-		f[(s - X) + Y] * geometry_type::InvVolume((s - X) + Y) +
+		) * 0.25,
 
-		f[(s + X) - Y] * geometry_type::InvVolume((s + X) - Y) +
+		(
 
-		f[(s + X) + Y] * geometry_type::InvVolume((s + X) + Y)
+		f[(s - X) - Y] +
 
-		) * 0.25 * geometry_type::Volume(s),
+		f[(s - X) + Y] +
+
+		f[(s + X) - Y] +
+
+		f[(s + X) + Y]
+
+		) * 0.25,
 
 		});
 	}
@@ -808,15 +720,17 @@ public:
 		auto Z = topology_type::InverseRoate(X);
 		return (
 
-		(f[(s - Y) - Z][n] * geometry_type::InvVolume((s - Y) - Z) +
+		(
 
-		f[(s - Y) + Z][n] * geometry_type::InvVolume((s - Y) + Z) +
+		f[(s - Y) - Z][n] +
 
-		f[(s + Y) - Z][n] * geometry_type::InvVolume((s + Y) - Z) +
+		f[(s - Y) + Z][n] +
 
-		f[(s + Y) + Z][n] * geometry_type::InvVolume((s + Y) + Z)
+		f[(s + Y) - Z][n] +
 
-		) * 0.25 * geometry_type::Volume(s)
+		f[(s + Y) + Z][n]
+
+		) * 0.25
 
 		);
 	}

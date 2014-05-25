@@ -373,9 +373,14 @@ struct EuclideanGeometry: public TTopology
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s.self_)];
 	}
 
-	Real DualVolumeConvert(index_type s) const
+	Real VolumeInvert(index_type s) const
 	{
 		return InvVolume(s) * DualVolume(s);
+	}
+
+	Real DualVolumeInvert(index_type s) const
+	{
+		return InvDualVolume(s) * Volume(s);
 	}
 
 }

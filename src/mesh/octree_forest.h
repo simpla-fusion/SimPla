@@ -279,15 +279,15 @@ struct OcForest
 
 	inline size_type Hash(iterator s) const
 	{
-		auto d =( Decompact(s.self_ ) >> D_FP_POS);
+		auto d =( Decompact(s.self_ ) >> D_FP_POS)-local_outer_start_+local_outer_count_;
 
 		size_type res =
 
-		((d[0] - local_outer_start_[0])%local_outer_count_[0]) * hash_stride_[0] +
+		((d[0] )%local_outer_count_[0]) * hash_stride_[0] +
 
-		((d[1] - local_outer_start_[1])%local_outer_count_[1]) * hash_stride_[1] +
+		((d[1] )%local_outer_count_[1]) * hash_stride_[1] +
 
-		((d[2] - local_outer_start_[2])%local_outer_count_[2]) * hash_stride_[2];
+		((d[2] )%local_outer_count_[2]) * hash_stride_[2];
 
 		switch (NodeId(s.self_))
 		{
@@ -1471,52 +1471,55 @@ struct OcForest
 
 	static Real Volume(iterator s)
 	{
-		static constexpr double volume_[8][D_FP_POS] =
-		{
+//		static constexpr double volume_[8][D_FP_POS] =
+//		{
+//
+//			1, 1, 1, 1, // 000
+//
+//			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 001
+//
+//			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 010
+//
+//			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 011
+//
+//			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 100
+//
+//			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 101
+//
+//			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 110
+//
+//			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
+//
+//		};
+//		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
 
-			1, 1, 1, 1, // 000
-
-			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 001
-
-			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 010
-
-			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 011
-
-			1, 1.0 / 2, 1.0 / 4, 1.0 / 8,// 100
-
-			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 101
-
-			1, 1.0 / 4, 1.0 / 16, 1.0 / 64,// 110
-
-			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
-
-		};
-		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+		return 1.0;
 	}
 
 	static Real InvVolume(iterator s)
 	{
-		static constexpr double inv_volume_[8][D_FP_POS] =
-		{
-
-			1, 1, 1, 1, // 000
-
-			1, 2, 4, 8,// 001
-
-			1, 2, 4, 8,// 010
-
-			1, 4, 16, 64,// 011
-
-			1, 2, 4, 8,// 100
-
-			1, 4, 16, 64,// 101
-
-			1, 4, 16, 64,// 110
-
-			1, 8, 64, 512// 111
-
-		};
-		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+//		static constexpr double inv_volume_[8][D_FP_POS] =
+//		{
+//
+//			1, 1, 1, 1, // 000
+//
+//			1, 2, 4, 8,// 001
+//
+//			1, 2, 4, 8,// 010
+//
+//			1, 4, 16, 64,// 011
+//
+//			1, 2, 4, 8,// 100
+//
+//			1, 4, 16, 64,// 101
+//
+//			1, 4, 16, 64,// 110
+//
+//			1, 8, 64, 512// 111
+//
+//		};
+//		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+		return 1.0;
 	}
 
 //	static Real Volume(iterator s)

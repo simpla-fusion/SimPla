@@ -233,6 +233,9 @@ TYPED_TEST_CASE_P(TestMesh);
 
 TYPED_TEST_P(TestMesh, coordinates){
 {
+
+	typedef typename TestFixture::mesh_type mesh_type;
+
 	auto & mesh=TestFixture::mesh;
 
 	auto extents=mesh.GetExtents();
@@ -241,18 +244,21 @@ TYPED_TEST_P(TestMesh, coordinates){
 	auto range1=mesh.GetRange(EDGE);
 	auto range2=mesh.GetRange(FACE);
 	auto range3=mesh.GetRange(VOLUME);
+
+	auto it=range1.begin();
+
 	CHECK(mesh.Volume(range0.begin())*mesh.Volume(range3.begin()));
 	CHECK(mesh.Volume(range1.begin())*mesh.Volume(range2.begin()));
 
 	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()),extents.second);
 
-	EXPECT_EQ(mesh.Volume(range0.begin())*mesh.Volume(range3.begin() ),
+	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin())*mesh.Volume(range3.begin() ),
 			mesh.Volume(range1.begin())*mesh.Volume(range2.begin()));
 
-	EXPECT_EQ(mesh.Volume(range0.begin()),mesh.DualVolume(range3.begin()));
-	EXPECT_EQ(mesh.Volume(range1.begin()),mesh.DualVolume(range2.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()),mesh.DualVolume(range3.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()),mesh.DualVolume(range2.begin()));
 
-	auto it=range1.begin();
+	it=range1.begin();
 	EXPECT_EQ(mesh.ComponentNum(it.self_),0);
 	++it;
 	EXPECT_EQ(mesh.ComponentNum(it.self_),1);
