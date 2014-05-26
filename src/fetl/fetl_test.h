@@ -12,27 +12,9 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 
-#include "../mesh/octree_forest.h"
 #include "../mesh/mesh.h"
-#include "../mesh/geometry_cylindrical.h"
-#include "../mesh/geometry_euclidean.h"
+
 using namespace simpla;
-
-template<typename TM, typename TV = double, int ICase = 0>
-struct TestFETLParam
-{
-	typedef TM mesh_type;
-	typedef TV value_type;
-	static constexpr int IForm = ICase / 100;
-
-	static void SetUpMesh(mesh_type * mesh)
-	{
-	}
-
-	static void SetDefaultValue(value_type * v)
-	{
-	}
-};
 
 template<typename T>
 void SetDefaultValue(T* v)

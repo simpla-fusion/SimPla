@@ -247,9 +247,6 @@ TYPED_TEST_P(TestMesh, coordinates){
 
 	auto it=range1.begin();
 
-	CHECK(mesh.Volume(range0.begin())*mesh.Volume(range3.begin()));
-	CHECK(mesh.Volume(range1.begin())*mesh.Volume(range2.begin()));
-
 	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()),extents.second);
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin())*mesh.Volume(range3.begin() ),

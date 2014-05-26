@@ -8,18 +8,41 @@
 #ifndef FETL_TEST4_H_
 #define FETL_TEST4_H_
 
-
 #include <gtest/gtest.h>
 #include <random>
-
-#include "../io/data_stream.h"
-#include "save_field.h"
+#include "fetl_test.h"
 
 #include "fetl.h"
 #include "ntuple.h"
 
 using namespace simpla;
 
+template<typename TM, typename TV, int IFORM>
+struct TestFETLParam4
+{
+	typedef TM mesh_type;
+	typedef TV value_type;
+	static constexpr int IForm = IFORM;
+
+	static void SetUpMesh(mesh_type * mesh)
+	{
+
+		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+
+		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+
+		nTuple<3, size_t> dims = { 12, 31, 13 };
+
+		mesh->SetDimensions(dims);
+
+		mesh->SetExtents(xmin, xmax);
+	}
+
+	static void SetDefaultValue(value_type * v)
+	{
+		::SetDefaultValue(v);
+	}
+};
 template<typename TParam>
 class TestFETLVecField: public testing::Test
 {

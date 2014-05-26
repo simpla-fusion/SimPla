@@ -9,4 +9,6 @@
 #define MESH_H_
 
 #include "mesh_rectangle.h"
+#include "octree_forest.h"
+#include "geometry_euclidean.h"
 #endif /* MESH_H_ */
