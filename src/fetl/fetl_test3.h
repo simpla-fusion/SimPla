@@ -12,7 +12,7 @@
 #include <random>
 #include <limits>
 #include <tuple>
-
+#include "fetl_test.h"
 #include "fetl.h"
 #include "ntuple.h"
 #include "save_field.h"
@@ -40,6 +40,8 @@ protected:
 		mesh.SetDimensions(std::get<0>(param));
 
 		mesh.SetExtents(std::get<1>(param), std::get<2>(param));
+
+		SetDefaultValue(&default_value);
 	}
 public:
 
@@ -455,7 +457,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 	relative_error /= m;
 
 	INFORM2(relative_error);
-	ASSERT_LE(relative_error, epsilon);
+	ASSERT_LE(relative_error, epsilon)<<m;
 
 }
 
