@@ -143,6 +143,7 @@ public:
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
 		auto D = topology_type::DeltaIndex(s.self_);
+
 		return (f[s + D] - f[s - D]) * geometry_type::InvVolume(s);
 	}
 
@@ -202,27 +203,22 @@ public:
 		auto X = topology_type::DeltaIndex(0, s.self_);
 		auto Y = topology_type::DeltaIndex(1, s.self_);
 		auto Z = topology_type::DeltaIndex(2, s.self_);
+
 		return
 
 		-(
 
-		(
+		f[s + X] * geometry_type::DualVolume(s + X)
 
-		f[s + X] * (geometry_type::DualVolume(s + X))
+		- f[s - X] * geometry_type::DualVolume(s - X)
 
-		- f[s - X] * (geometry_type::DualVolume(s - X))
+		+ f[s + Y] * geometry_type::DualVolume(s + Y)
 
-		) + (
+		- f[s - Y] * geometry_type::DualVolume(s - Y)
 
-		f[s + Y] * (geometry_type::DualVolume(s + Y))
+		+ f[s + Z] * geometry_type::DualVolume(s + Z)
 
-		- f[s - Y] * (geometry_type::DualVolume(s - Y))
-
-		) + (
-
-		f[s + Z] * (geometry_type::DualVolume(s + Z))
-
-		- f[s - Z] * (geometry_type::DualVolume(s - Z)))
+		- f[s - Z] * geometry_type::DualVolume(s - Z)
 
 		) * geometry_type::InvDualVolume(s);
 

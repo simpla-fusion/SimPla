@@ -9,69 +9,46 @@
 #define MESH_TEST_H_
 
 #include <gtest/gtest.h>
-
+#include "mesh.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/log.h"
 using namespace simpla;
 
-template<typename TMesh>
-class TestRange: public testing::Test
+typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
+
+class TestMesh: public testing::TestWithParam<
+
+std::tuple<nTuple<TMesh::NDIMS, size_t>,
+
+typename TMesh::coordinates_type,
+
+typename TMesh::coordinates_type> >
 {
 protected:
 	virtual void SetUp()
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
-//		mesh.Decompose(1,0);
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	0,0,0}),
-						nTuple<NDIMS,size_t>(
-								{	0,0,0})));
+		auto param = GetParam();
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	0,0,0}),
-						nTuple<NDIMS,size_t>(
-								{	1,1,1})));
+		dims=std::get<0>(param);
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	0,0,0}),
-						nTuple<NDIMS,size_t>(
-								{	3,1,1})));
+		xmin=std::get<1>(param);
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	0,0,0}),
-						nTuple<NDIMS,size_t>(
-								{	1,3,1})));
+		xmax=std::get<2>(param);
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	0,0,0}),
-						nTuple<NDIMS,size_t>(
-								{	1,1,3})));
+		mesh.SetDimensions(std::get<0>(param));
 
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	1,2,3}),
-						nTuple<NDIMS,size_t>(
-								{	10,1,9})));
-
-		dims.push_back(std::make_pair(
-						nTuple<NDIMS,size_t>(
-								{	1,2,3}),
-						nTuple<NDIMS,size_t>(
-								{	10,5,1})));
+		mesh.SetExtents(std::get<1>(param), std::get<2>(param));
 
 	}
 public:
-
-	typedef typename TMesh::Range range_type;
-	typedef typename range_type::iterator iterator;
-	static constexpr unsigned int NDIMS=TMesh::NDIMS;
 	typedef TMesh mesh_type;
+	typedef typename mesh_type::Range Range;
+	typedef typename Range::iterator iterator;
+	static constexpr unsigned int NDIMS=TMesh::NDIMS;
+
+	mesh_type mesh;
 
 	std::vector<typename TMesh::compact_index_type> shift =
 	{
@@ -80,23 +57,21 @@ public:
 		(TMesh::_DJ|TMesh::_DK)>>1,(TMesh::_DK|TMesh::_DI)>>1,(TMesh::_DI|TMesh::_DJ)>>1,
 		TMesh::_DA>>1
 	};
-	std::vector<std::pair<nTuple<NDIMS,size_t>,nTuple<NDIMS,size_t>>> dims;
+	std::vector<unsigned int> iforms =
+	{	VERTEX, EDGE, FACE, VOLUME};
 
+	typename TMesh::coordinates_type xmin,xmax;
+	nTuple<TMesh::NDIMS, size_t> dims;
 };
 
-TYPED_TEST_CASE_P(TestRange);
-
-TYPED_TEST_P(TestRange, ForAll){
+TEST_P(TestMesh, ForAll)
 {
-	typedef typename TestFixture::range_type Range;
-	constexpr unsigned int NDIMS=TestFixture::NDIMS;
 
-	for(auto const & d: TestFixture::dims)
-	for(auto const & s: TestFixture::shift)
+	for (auto const & s : shift)
 	{
-		Range range( d.first,d.second, s);
+		Range range(dims, dims, s);
 
-		size_t size=1;
+		size_t size = 1;
 
 //		CHECK( range.start_ );
 //		CHECK( range.count_ );
@@ -105,84 +80,81 @@ TYPED_TEST_P(TestRange, ForAll){
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			size*=d.second[i];
+			size *= dims[i];
 		}
 
-		EXPECT_EQ(range.size(),size);
+		EXPECT_EQ(range.size(), size);
 
-		size_t count =0;
+		size_t count = 0;
 
-		for(auto a:range )
+		for (auto a : range)
 		{
 			++count;
 		}
 
-		if(s==0 || s==(TestFixture::mesh_type::_DA>>1))
+		if (s == 0 || s == (mesh_type::_DA >> 1))
 		{
-			EXPECT_EQ(count,size);
+			EXPECT_EQ(count, size);
 		}
 		else
 		{
-			EXPECT_EQ(count,size*3);
+			EXPECT_EQ(count, size * 3);
 		}
+
+		//	CHECK(mesh.global_start_);
+		//	CHECK(mesh.global_end_);
+
+		//	auto it= range.begin();
+		//
+		//	CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//	++it; CHECK_BIT(it->self_);
+		//
+
 	}
-	//	CHECK(mesh.global_start_);
-	//	CHECK(mesh.global_end_);
-
-	//	auto it= range.begin();
-	//
-	//	CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//	++it; CHECK_BIT(it->self_);
-	//
-
 }
-}
-TYPED_TEST_P(TestRange, VerboseShow){
+TEST_P(TestMesh, VerboseShow)
 {
-	typedef typename TestFixture::range_type Range;
 
-	for(auto const & s: TestFixture::shift)
+	for (auto const & s : shift)
 	{
 
 		Range range(
 
-				nTuple<3,size_t> (
-						{	1,3,5}),
+		nTuple<3, size_t>( { 1, 3, 5 }),
 
-				nTuple<3,size_t> (
-						{	2,4,5}),
+		nTuple<3, size_t>( { 2, 4, 5 }),
 
-				s);
+		s);
 
-		size_t total =4;
+		size_t total = 4;
 
-		size_t count =0;
+		size_t count = 0;
 
 		std::vector<size_t> data;
 
 		for (int sub = 0; sub < total; ++sub)
-		for(auto a:range.Split(total,sub) )
-		{
-			data.push_back(sub);
-		}
+			for (auto a : range.Split(total, sub))
+			{
+				data.push_back(sub);
+			}
 
 		CHECK(data);
 
-		if(s==0 || s==(TestFixture::mesh_type::_DA>>1))
+		if (s == 0 || s == (mesh_type::_DA >> 1))
 		{
-			EXPECT_EQ(data.size(),range.size());
+			EXPECT_EQ(data.size(), range.size());
 		}
 		else
 		{
-			EXPECT_EQ(data.size(),range.size()*3);
+			EXPECT_EQ(data.size(), range.size() * 3);
 		}
 	}
 
@@ -207,118 +179,126 @@ TYPED_TEST_P(TestRange, VerboseShow){
 	//
 
 }
-}
-REGISTER_TYPED_TEST_CASE_P(TestRange, ForAll, VerboseShow);
 
-template<typename TParam>
-class TestMesh: public testing::Test
+TEST_P(TestMesh, coordinates)
 {
-protected:
-	virtual void SetUp()
+
+	auto extents = mesh.GetExtents();
+
+	auto range0 = mesh.GetRange(VERTEX);
+	auto range1 = mesh.GetRange(EDGE);
+	auto range2 = mesh.GetRange(FACE);
+	auto range3 = mesh.GetRange(VOLUME);
+
+	auto it = range1.begin();
+
+	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()), extents.second);
+
+	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()) * mesh.Volume(range3.begin()),
+	        mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
+
+	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()), mesh.DualVolume(range3.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()), mesh.DualVolume(range2.begin()));
+
+	it = range1.begin();
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 0);
+	++it;
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 1);
+	++it;
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 2);
+	it = range2.begin();
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 0);
+	++it;
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 1);
+	++it;
+	EXPECT_EQ(mesh.ComponentNum(it.self_), 2);
+
+}
+TEST_P(TestMesh, volume)
+{
+
+	auto extents = mesh.GetExtents();
+
+	auto range0 = mesh.GetRange(VERTEX);
+	auto range1 = mesh.GetRange(EDGE);
+	auto range2 = mesh.GetRange(FACE);
+	auto range3 = mesh.GetRange(VOLUME);
+
+	auto s = range1.begin();
+	auto X = mesh.topology_type::DeltaIndex(0, s.self_);
+	auto Y = mesh.topology_type::DeltaIndex(1, s.self_);
+	auto Z = mesh.topology_type::DeltaIndex(2, s.self_);
+
+	CHECK(mesh.geometry_type::Volume(s));
+	CHECK(mesh.geometry_type::Volume(s + X));
+	CHECK(mesh.geometry_type::Volume(s - X));
+	CHECK(mesh.geometry_type::Volume(s + Y));
+	CHECK(mesh.geometry_type::Volume(s - Y));
+	CHECK(mesh.geometry_type::Volume(s + Z));
+	CHECK(mesh.geometry_type::Volume(s - Z));
+
+	CHECK(mesh.geometry_type::DualVolume(s));
+	CHECK(mesh.geometry_type::DualVolume(s + X));
+	CHECK(mesh.geometry_type::DualVolume(s - X));
+	CHECK(mesh.geometry_type::DualVolume(s + Y));
+	CHECK(mesh.geometry_type::DualVolume(s - Y));
+	CHECK(mesh.geometry_type::DualVolume(s + Z));
+	CHECK(mesh.geometry_type::DualVolume(s - Z));
+
+}
+TEST_P(TestMesh, traversal)
+{
+
+	for (unsigned int i = 0; i < 4; ++i)
 	{
-		LOG_STREAM.SetStdOutVisableLevel(10);
-		TParam::SetUpMesh(&mesh);
-//		mesh.Decompose(1,0);
-	}
-public:
+		auto IForm = iforms[i];
 
-	typedef typename TParam::mesh_type mesh_type;
-	typedef typename mesh_type::iterator iterator;
-	mesh_type mesh;
-	static constexpr int IForm = TParam::IForm;
+		std::map<size_t, mesh_type::compact_index_type> data;
 
-};
+		auto range = mesh.GetRange(IForm);
 
-TYPED_TEST_CASE_P(TestMesh);
-
-TYPED_TEST_P(TestMesh, coordinates){
-{
-
-	typedef typename TestFixture::mesh_type mesh_type;
-
-	auto & mesh=TestFixture::mesh;
-
-	auto extents=mesh.GetExtents();
-
-	auto range0=mesh.GetRange(VERTEX);
-	auto range1=mesh.GetRange(EDGE);
-	auto range2=mesh.GetRange(FACE);
-	auto range3=mesh.GetRange(VOLUME);
-
-	auto it=range1.begin();
-
-	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()),extents.second);
-
-	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin())*mesh.Volume(range3.begin() ),
-			mesh.Volume(range1.begin())*mesh.Volume(range2.begin()));
-
-	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()),mesh.DualVolume(range3.begin()));
-	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()),mesh.DualVolume(range2.begin()));
-
-	it=range1.begin();
-	EXPECT_EQ(mesh.ComponentNum(it.self_),0);
-	++it;
-	EXPECT_EQ(mesh.ComponentNum(it.self_),1);
-	++it;
-	EXPECT_EQ(mesh.ComponentNum(it.self_),2);
-	it=range2.begin();
-	EXPECT_EQ(mesh.ComponentNum(it.self_),0);
-	++it;
-	EXPECT_EQ(mesh.ComponentNum(it.self_),1);
-	++it;
-	EXPECT_EQ(mesh.ComponentNum(it.self_),2);
-}
-}
-
-TYPED_TEST_P(TestMesh, traversal){
-{
-
-	auto & mesh=TestFixture::mesh;
-
-	std::map<size_t,typename TestFixture::mesh_type::compact_index_type> data;
-
-	auto range=mesh.GetRange(TestFixture::IForm );
-
-	for(auto s:mesh.GetRange(TestFixture::IForm ) )
-	{
-		data[mesh.Hash(s)]=s.self_;
-	}
-
-	EXPECT_EQ(data.size(), mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
-	EXPECT_EQ(data.begin()->first, 0);
-	EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements( TestFixture::IForm)-1);
-}
-}
-TYPED_TEST_P(TestMesh, partial_traversal){
-{
-
-	auto & mesh=TestFixture::mesh;
-
-	int total=4;
-
-	std::map<size_t,int> data;
-
-	auto range=mesh.GetRange(TestFixture::IForm );
-
-	for (int sub = 0; sub < total; ++sub)
-	{
-
-		for(auto s:range.Split(total,sub))
+		for (auto s : mesh.GetRange(IForm))
 		{
-			data[mesh.Hash(s)]=sub;
+			data[mesh.Hash(s)] = s.self_;
 		}
+
+		EXPECT_EQ(data.size(), mesh.GetNumOfElements(IForm)) << mesh.GetDimensions();
+		EXPECT_EQ(data.begin()->first, 0);
+		EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements(IForm) - 1);
 	}
 
-	EXPECT_EQ(data.size(), mesh.GetNumOfElements( TestFixture::IForm))<<mesh.GetDimensions();
-	EXPECT_EQ(data.begin()->first, 0);
-	EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements( TestFixture::IForm)-1);
-}}
+}
+TEST_P(TestMesh, partial_traversal)
+{
+	for (unsigned int i = 0; i < 4; ++i)
+	{
+		auto IForm = iforms[i];
+		int total = 4;
 
-//TYPED_TEST_P(TestMesh,scatter ){
+		std::map<size_t, int> data;
+
+		auto range = mesh.GetRange(IForm);
+
+		for (int sub = 0; sub < total; ++sub)
+		{
+
+			for (auto s : range.Split(total, sub))
+			{
+				data[mesh.Hash(s)] = sub;
+			}
+		}
+
+		EXPECT_EQ(data.size(), mesh.GetNumOfElements(IForm)) << mesh.GetDimensions();
+		EXPECT_EQ(data.begin()->first, 0);
+		EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements(IForm) - 1);
+	}
+}
+
+//TEST_P(TestMesh,scatter ){
 //{
-//	typedef typename TestFixture::mesh_type mesh_type;
 //
-//	auto & mesh=TestFixture::mesh;
+//
+//	auto & mesh=mesh;
 //
 //	Field<mesh_type,VERTEX,Real> n(mesh);
 //	Field<mesh_type,EDGE,Real> J(mesh);
@@ -346,10 +326,9 @@ TYPED_TEST_P(TestMesh, partial_traversal){
 //	std::cout<<std::endl;
 //}}
 //
-//TYPED_TEST_P(TestMesh,gather){
+//TEST_P(TestMesh,gather){
 //
 //}
-REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*, scatter, gather*/);
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>
@@ -374,7 +353,7 @@ REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*
 //
 //TYPED_TEST(TestMesh,create_default){
 //{
-//	typedef typename TestFixture::mesh_type mesh_type;
+//
 //
 //	mesh_type mesh;
 //
@@ -412,7 +391,7 @@ REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*
 //
 //	);
 //
-//	typedef typename TestFixture::mesh_type mesh_type;
+//
 //
 //	mesh_type mesh;
 //
@@ -457,9 +436,9 @@ REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*
 //
 //TYPED_TEST(TestMeshFunctions,add_tags){
 //{
-//	typedef typename TestFixture::mesh_type mesh_type;
 //
-//	mesh_type & mesh=TestFixture::mesh;
+//
+//	mesh_type & mesh=mesh;
 //
 //	LuaObject cfg;
 //
@@ -520,9 +499,9 @@ REGISTER_TYPED_TEST_CASE_P(TestMesh, coordinates, traversal, partial_traversal/*
 //
 //TYPED_TEST(Test1DMesh,shift){
 //{
-//	typedef typename TestFixture::mesh_type mesh_type;
 //
-//	mesh_type & mesh=TestFixture::mesh;
+//
+//	mesh_type & mesh=mesh;
 //
 //	EXPECT_EQ(mesh.Shift(mesh.INC(0),105),6L);
 //	EXPECT_EQ(mesh.Shift(mesh.INC(1),105),5L);

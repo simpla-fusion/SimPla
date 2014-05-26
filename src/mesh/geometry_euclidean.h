@@ -27,7 +27,7 @@ struct EuclideanGeometry: public TTopology
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::iterator index_type;
-
+	typedef typename topology_type::size_type size_type;
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
@@ -123,7 +123,14 @@ struct EuclideanGeometry: public TTopology
 		if (dict["Min"] && dict["Max"])
 		{
 			LOGGER << "Load EuclideanGeometry ";
-			SetExtents(dict["Min"].template as<nTuple<3, Real>>(), dict["Max"].template as<nTuple<3, Real>>());
+
+			SetExtents(
+
+			dict["Dimensions"].template as<nTuple<NDIMS, size_type>>(),
+
+			dict["Min"].template as<nTuple<NDIMS, Real>>(),
+
+			dict["Max"].template as<nTuple<NDIMS, Real>>());
 		}
 	}
 
@@ -136,11 +143,8 @@ struct EuclideanGeometry: public TTopology
 		return os.str();
 	}
 
-	template<typename T>
-	inline void SetExtents(nTuple<NDIMS, T> const & pmin, nTuple<NDIMS, T> const & pmax)
+	inline void SetExtents(nTuple<NDIMS, size_type> dims, nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
 	{
-
-		auto extents = topology_type::GetExtents();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -148,10 +152,12 @@ struct EuclideanGeometry: public TTopology
 
 			shift_[i] = xmin_[i];
 
-			if (((pmax[i] - pmin[i]) < EPSILON) || (std::abs(extents[i]) < EPSILON))
+			if ((std::abs(pmax[i] - pmin[i]) < EPSILON) || (dims[i] <= 1))
 			{
 
 				xmax_[i] = xmin_[i];
+
+				dims[i] = 1;
 
 				inv_dx_[i] = 0.0;
 
@@ -170,9 +176,9 @@ struct EuclideanGeometry: public TTopology
 			{
 				xmax_[i] = pmax[i];
 
-				inv_dx_[i] = extents[i] / (xmax_[i] - xmin_[i]);
+				inv_dx_[i] = static_cast<Real>(dims[i]) / (xmax_[i] - xmin_[i]);
 
-				dx_[i] = (xmax_[i] - xmin_[i]) / extents[i];
+				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims[i]);
 
 				volume_[1UL << i] = dx_[i];
 
@@ -184,6 +190,10 @@ struct EuclideanGeometry: public TTopology
 
 			}
 		}
+		CHECK(xmin_);
+		CHECK(xmax_);
+
+		topology_type::SetDimensions(dims);
 
 		/**
 		 *

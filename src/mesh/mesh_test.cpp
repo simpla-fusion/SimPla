@@ -9,115 +9,38 @@
 
 #include "mesh_test.h"
 
-#include "octree_forest.h"
-#include "mesh_rectangle.h"
-#include "geometry_euclidean.h"
-
 using namespace simpla;
 
-template<typename TM, int CASE> struct TestMeshParam;
+INSTANTIATE_TEST_CASE_P(SimPla, TestMesh,
 
-typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
+testing::Combine(testing::Values(
 
-typedef testing::Types<TMesh> RangeParamList;
+//nTuple<3, size_t>( { 1, 1, 1 })
+//        , nTuple<3, size_t>( { 17, 1, 1 }) //
+//        , nTuple<3, size_t>( { 1, 17, 1 }) // ,
+        nTuple<3, size_t>( { 1, 1, 10 }) //
+//        , nTuple<3, size_t>( { 1, 17, 17 }) //
+//        , nTuple<3, size_t>( { 17, 1, 17 }) //
+//        , nTuple<3, size_t>( { 17, 17, 1 }) //
+//        , nTuple<3, size_t>( { 13, 16, 10 })   //
 
-INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestRange, RangeParamList);
+                ),
 
-template<int CASE>
-struct TestMeshParam<TMesh, CASE>
-{
+testing::Values(
 
-	static constexpr int ICASE = CASE % 100;
-	static constexpr int IForm = CASE / 100;
-	typedef TMesh mesh_type;
+//nTuple<3, Real>( { -1.0, -1.0, -1.0 }),    //
+        nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
 
-	static void SetUpMesh(mesh_type * mesh)
-	{
+                ),
 
-		nTuple<3, Real> xmin =
-		{ 0, 0.0, 0 };
+testing::Values(
 
-		nTuple<3, Real> xmax =
-		{ 1.0, 1, 1.0 };
+//nTuple<3, Real>( { 2.0, 0.0, 0.0 }), //
+//nTuple<3, Real>( { 0.0, 2.0, 0.0 }), //
+//nTuple<3, Real>( { 0.0, 0.0, 2.0 }), //
+//nTuple<3, Real>( { 0.0, 2.0, 2.0 }), //
+//nTuple<3, Real>( { 2.0, 0.0, 2.0 }), //
+//nTuple<3, Real>( { 2.0, 2.0, 0.0 }), //
+        nTuple<3, Real>( { 1.0, 2.0, 2.0 })  //
 
-		nTuple<3, size_t> dims[] =
-		{
-
-		10, 10, 10,
-
-		15, 1, 1,
-
-		1, 17, 1,
-
-		1, 1, 19,
-
-		1, 17, 18,
-
-		19, 1, 17,
-
-		17, 5, 1,
-
-		17, 9, 7
-
-		};
-
-		mesh->SetDimensions(dims[ICASE % 100]);
-		mesh->SetExtents(xmin, xmax);
-	}
-
-};
-
-typedef testing::Types<
-
-TestMeshParam<TMesh, 0>
-
-, TestMeshParam<TMesh, 100>
-
-, TestMeshParam<TMesh, 200>
-
-, TestMeshParam<TMesh, 300>
-
-, TestMeshParam<TMesh, 1>
-
-, TestMeshParam<TMesh, 2>
-
-, TestMeshParam<TMesh, 3>
-
-, TestMeshParam<TMesh, 4>
-
-, TestMeshParam<TMesh, 5>
-
-, TestMeshParam<TMesh, 6>
-
-, TestMeshParam<TMesh, 101>
-//
-//, TestMeshParam<TMesh, 102>
-//
-//, TestMeshParam<TMesh, 103>
-//
-//, TestMeshParam<TMesh, 104>
-//
-//, TestMeshParam<TMesh, 105>
-//
-//, TestMeshParam<TMesh, 106>
-//
-//, TestMeshParam<TMesh, 201>
-//
-//, TestMeshParam<TMesh, 202>
-//
-//, TestMeshParam<TMesh, 203>
-//
-//, TestMeshParam<TMesh, 204>
-//
-//, TestMeshParam<TMesh, 205>
-//
-//, TestMeshParam<TMesh, 206>
-//
-//, TestMeshParam<TMesh, 100>
-//
-//, TestMeshParam<TMesh, 200>
-
-> ParamList;
-
-INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestMesh, ParamList);
-
+                )));

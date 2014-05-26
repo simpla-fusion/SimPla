@@ -9,18 +9,23 @@
 #define FETL_TEST3_H_
 
 #include <gtest/gtest.h>
-#include <random>
+
+#include <stddef.h>
+#include <cmath>
+#include <complex>
+#include <cstdlib>
 #include <limits>
+#include <random>
 #include <tuple>
+#include <valarray>
+
+#include "../mesh/mesh.h"
+#include "../utilities/log.h"
+
 #include "fetl_test.h"
 #include "fetl.h"
 #include "ntuple.h"
-#include "save_field.h"
-#include "../utilities/log.h"
-#include "../utilities/pretty_stream.h"
-#include "../mesh/mesh_rectangle.h"
-#include "../mesh/geometry_euclidean.h"
-#include "../mesh/octree_forest.h"
+#include "primitives.h"
 
 using namespace simpla;
 
@@ -29,7 +34,16 @@ static constexpr auto epsilon = 1e7 * std::numeric_limits<Real>::epsilon();
 typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 class TestDiffCalculus: public testing::TestWithParam<
-        std::tuple<nTuple<TMesh::NDIMS, size_t>, typename TMesh::coordinates_type, typename TMesh::coordinates_type> >
+
+std::tuple<
+
+nTuple<TMesh::NDIMS, size_t>,
+
+typename TMesh::coordinates_type,
+
+typename TMesh::coordinates_type>
+
+>
 {
 
 protected:
@@ -37,9 +51,7 @@ protected:
 	{
 		auto param = GetParam();
 
-		mesh.SetDimensions(std::get<0>(param));
-
-		mesh.SetExtents(std::get<1>(param), std::get<2>(param));
+		mesh.SetExtents(std::get<0>(param), std::get<1>(param), std::get<2>(param));
 
 		SetDefaultValue(&default_value);
 	}
@@ -58,7 +70,7 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	static constexpr nTuple<3, Real> K = { 2.0 * PI, 2.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
+	static constexpr nTuple<3, Real> K = { 2.0 * PI, 3.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
@@ -74,10 +86,8 @@ TEST_P(TestDiffCalculus, grad0)
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto k2 = Dot(k, k);
 
-	auto kdx = Dot(k, mesh.GetDx());
-	auto kdx2 = kdx * kdx;
+	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TOneForm f1(mesh);
 	TOneForm f1b(mesh);
@@ -102,15 +112,15 @@ TEST_P(TestDiffCalculus, grad0)
 	{
 
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * k[mesh.ComponentNum(s.self_)];
+
 		f1b[s] = expect;
-		auto error = 0.5 * kdx2;
 
 		variance += abs((f1[s] - expect) * (f1[s] - expect));
 
 		average += (f1[s] - expect);
 
-		if (abs(f1[s]) > epsilon || std::abs(expect) > epsilon)
-			ASSERT_LE(std::abs(2.0*(f1[s]-expect)/(f1[s] + expect)), error )<< " " << f1[s] << " " << expect << " "
+		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
+			ASSERT_LE( abs(2.0*(f1[s]-expect)/(f1[s] + expect)), error )<< " " << f1[s] << " " << expect << " "
 			<< mesh.GetCoordinates(s);
 
 		}
@@ -132,10 +142,8 @@ TEST_P(TestDiffCalculus, grad3)
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto k2 = Dot(k, k);
 
-	auto kdx = Dot(k, mesh.GetDx());
-	auto kdx2 = kdx * kdx;
+	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TTwoForm f2(mesh);
 	TTwoForm f2b(mesh);
@@ -161,15 +169,15 @@ TEST_P(TestDiffCalculus, grad3)
 	{
 
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * k[mesh.ComponentNum(s.self_)];
+
 		f2b[s] = expect;
-		auto error = 0.5 * kdx2;
 
 		variance += abs((f2[s] - expect) * (f2[s] - expect));
 
 		average += (f2[s] - expect);
 
 		if (abs(f2[s]) > epsilon || abs(expect) > epsilon)
-			ASSERT_LE(abs(2.0*(f2[s]-expect)/(f2[s] + expect)), error )<< expect / f2[s] << " " << f2[s] << " "
+			ASSERT_LE(abs(2.0*(f2[s]-expect)/(f2[s] + expect)), error )<< " " << f2[s] << " "
 			<< f2b[s];
 
 		}
@@ -192,9 +200,8 @@ TEST_P(TestDiffCalculus, diverge1)
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto dx = mesh.GetDx();
 
-	auto k2 = Dot(k, k);
+	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TOneForm f1(mesh);
 	TZeroForm f0(mesh);
@@ -216,8 +223,6 @@ TEST_P(TestDiffCalculus, diverge1)
 	{
 
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[0] + k[1] + k[2]);
-
-		auto error = 0.5 * (k[0] * k[0] + k[1] * k[1] + k[2] * k[2]) * dx[0] * dx[0];
 
 		variance += abs((f0[s] - expect) * (f0[s] - expect));
 
@@ -248,8 +253,7 @@ TEST_P(TestDiffCalculus, diverge2)
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto dx = mesh.GetDx();
-	auto k2 = Dot(k, k);
+	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TTwoForm f2(mesh);
 	TThreeForm f3(mesh);
@@ -272,8 +276,6 @@ TEST_P(TestDiffCalculus, diverge2)
 
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[0] + k[1] + k[2]);
 
-		auto error = 0.5 * (k[0] * k[0] + k[1] * k[1] + k[2] * k[2]) * dx[0] * dx[0];
-
 		variance += abs((f3[s] - expect) * (f3[s] - expect));
 
 		average += (f3[s] - expect);
@@ -295,15 +297,13 @@ TEST_P(TestDiffCalculus, curl1)
 {
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
-
+	CHECK(d);
 	for (int i = 0; i < mesh.NDIMS; ++i)
 	{
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto dx = mesh.GetDx();
-
-	auto k2 = Dot(k, k);
+	auto error = std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TOneForm vf1(mesh);
 	TOneForm vf1b(mesh);
@@ -333,14 +333,12 @@ TEST_P(TestDiffCalculus, curl1)
 
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[(n + 1) % 3] - k[(n + 2) % 3]);
 
-		auto error = 0.5 * (k[0] * k[0] + k[1] * k[1] + k[2] * k[2]);
-
 		variance += abs((vf2[s] - expect) * (vf2[s] - expect));
 
 		average += (vf2[s] - expect);
 		auto x = mesh.GetCoordinates(s);
-		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon) && std::abs(x[2]) > 0.0)
-			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<< vf2[s] << " " << expect << " " << x;
+		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
+			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<< vf2[s] << " " << expect << " " << x<<" "<<(k[(n + 1) % 3])<<" "<<( k[(n + 2) % 3]);
 
 		}
 
@@ -361,8 +359,7 @@ TEST_P(TestDiffCalculus, curl2)
 		if (d[i] <= 1)
 			k[i] = 0;
 	}
-	auto dx = mesh.GetDx();
-	auto k2 = Dot(k, k);
+	auto error = std::pow(Dot(k, mesh.GetDx()), 2.0);
 
 	TOneForm vf1(mesh);
 	TOneForm vf1b(mesh);
@@ -396,14 +393,13 @@ TEST_P(TestDiffCalculus, curl2)
 		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[(n + 1) % 3] - k[(n + 2) % 3]);
 
 		vf1b[s] = expect;
-		auto error = 0.5 * (k[0] * k[0] + k[1] * k[1] + k[2] * k[2]);
 
 		variance += abs((vf1[s] - expect) * (vf1[s] - expect));
 
 		average += (vf1[s] - expect);
 
 		auto x = mesh.GetCoordinates(s);
-		if ((abs(vf1[s]) > epsilon || abs(expect) > epsilon) && std::abs(x[2]) > 0.0)
+		if ((abs(vf1[s]) > epsilon || abs(expect) > epsilon))
 			ASSERT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error )<< vf1[s] << " " << expect << " "
 			<< mesh.GetCoordinates(s);
 
