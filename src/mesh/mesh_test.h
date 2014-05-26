@@ -37,9 +37,7 @@ protected:
 
 		xmax=std::get<2>(param);
 
-		mesh.SetDimensions(std::get<0>(param));
-
-		mesh.SetExtents(std::get<1>(param), std::get<2>(param));
+		mesh.SetExtents(std::get<0>(param),std::get<1>(param), std::get<2>(param));
 
 	}
 public:
@@ -294,41 +292,48 @@ TEST_P(TestMesh, partial_traversal)
 	}
 }
 
-//TEST_P(TestMesh,scatter ){
-//{
-//
-//
-//	auto & mesh=mesh;
-//
-//	Field<mesh_type,VERTEX,Real> n(mesh);
-//	Field<mesh_type,EDGE,Real> J(mesh);
-//
-//	n.Clear();
-//	J.Clear();
-//
-//	nTuple<3,Real> x=
-//	{	-0.01,-0.01,-0.01};
-//	nTuple<3,Real> v=
-//	{	1,2,3};
-//
-//	mesh.Scatter(x,1.0,&n);
-//	mesh.Scatter(x,v,&J);
-//	for(auto const & v: n)
-//	{
-//		std::cout<<" "<<v;
-//	}
-//	std::cout<<std::endl;
-//	for(auto const & v: J)
-//	{
-//		std::cout<<" "<<v;
-//	}
-//
-//	std::cout<<std::endl;
-//}}
-//
-//TEST_P(TestMesh,gather){
-//
-//}
+TEST_P(TestMesh,scatter )
+{
+
+	Field<mesh_type, VERTEX, Real> n(mesh);
+	Field<mesh_type, EDGE, Real> J(mesh);
+
+	n.Clear();
+	J.Clear();
+
+	nTuple<3, Real> x = { -0.01, -0.01, -0.01 };
+	nTuple<3, Real> v = { 1, 2, 3 };
+
+	for (auto const & v : n)
+	{
+		std::cout << " " << v;
+	}
+	std::cout << std::endl;
+	for (auto const & v : J)
+	{
+		std::cout << " " << v;
+	}
+	std::cout << std::endl;
+	mesh.Scatter(x, 1.0, &n);
+	mesh.Scatter(x, v, &J);
+	for (auto const & v : n)
+	{
+		std::cout << " " << v;
+	}
+	std::cout << std::endl;
+	for (auto const & v : J)
+	{
+		std::cout << " " << v;
+	}
+
+	std::cout << std::endl;
+
+}
+
+TEST_P(TestMesh,gather)
+{
+
+}
 
 //typedef testing::Types<RectMesh<>
 ////, CoRectMesh<Complex>

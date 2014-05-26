@@ -51,9 +51,8 @@ public:
 
 	template<typename TDict>
 	Mesh(TDict const & dict)
-			: geometry_type()
+			: geometry_type(dict)
 	{
-		Load(dict);
 	}
 
 	~Mesh()

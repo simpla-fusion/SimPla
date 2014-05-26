@@ -33,9 +33,7 @@ struct TestFETLParam4
 
 		nTuple<3, size_t> dims = { 12, 31, 13 };
 
-		mesh->SetDimensions(dims);
-
-		mesh->SetExtents(xmin, xmax);
+		mesh->SetExtents(dims, xmin, xmax);
 	}
 
 	static void SetDefaultValue(value_type * v)

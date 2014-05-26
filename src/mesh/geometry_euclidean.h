@@ -190,8 +190,6 @@ struct EuclideanGeometry: public TTopology
 
 			}
 		}
-		CHECK(xmin_);
-		CHECK(xmax_);
 
 		topology_type::SetDimensions(dims);
 
@@ -405,16 +403,6 @@ struct EuclideanGeometry: public TTopology
 	Real InvDualVolume(index_type s) const
 	{
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s.self_)];
-	}
-
-	Real VolumeInvert(index_type s) const
-	{
-		return InvVolume(s) * DualVolume(s);
-	}
-
-	Real DualVolumeInvert(index_type s) const
-	{
-		return InvDualVolume(s) * Volume(s);
 	}
 
 }

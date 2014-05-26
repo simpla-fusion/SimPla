@@ -242,6 +242,7 @@ struct OcForest
 
 		local_inner_start_ = global_start_;
 		local_inner_count_ = global_count_;
+
 		UpdateHash();
 	}
 
@@ -274,6 +275,9 @@ struct OcForest
 			hash_stride_[1] = (local_outer_count_[0]);
 			hash_stride_[2] = ((local_outer_count_[1])) * hash_stride_[1];
 		}
+
+		local_outer_start_index_= Compact(local_outer_start_);
+		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_);
 	}
 
 	inline size_type Hash(iterator s) const
@@ -1434,34 +1438,41 @@ struct OcForest
 	{
 		return CoordinatesGlobalToLocal(px, shift);
 	}
+	const Real zero= ((((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS));
+	const Real dx= (1UL << (D_FP_POS ));
+	const Real inv_dx= 1.0/dx;
 
+	compact_index_type local_outer_start_index_= 0UL;
+	compact_index_type local_outer_end_index_= 0UL;
 	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
 		auto & x = *px;
 
-		x*=static_cast<Real>(1UL << (D_FP_POS ));
+		x = x*dx +zero;
 
-		nTuple<NDIMS, size_type> idx;idx = x;
+		nTuple<NDIMS, size_type> idx;
 
-		unsigned int h = shift >> (INDEX_DIGITS * 3);
+		idx = x;
 
 		idx -= Decompact(shift);
-		idx = idx >> (D_FP_POS - h);
-		idx = idx << (D_FP_POS - h);
+		idx = idx >> (D_FP_POS );
+		idx = idx << (D_FP_POS );
 
-		x[0] = (x[0] - static_cast<Real>(idx[0]));
+//		x[0] = (x[0] - static_cast<Real>(idx[0]))*inv_dx;
+//
+//		x[1] = (x[1] - static_cast<Real>(idx[1]))*inv_dx;
+//
+//		x[2] = (x[2] - static_cast<Real>(idx[2]))*inv_dx;
 
-		x[1] = (x[1] - static_cast<Real>(idx[1]));
-
-		x[2] = (x[2] - static_cast<Real>(idx[2]));
+		x=(x-idx)*inv_dx;
 
 		return iterator(
 
 		Compact(idx) | shift,
 
-		Compact(local_outer_start_) | shift,
+		local_outer_start_index_ | shift,
 
-		Compact(local_outer_start_ + local_outer_count_) | shift
+		local_outer_end_index_ | shift
 
 		);
 
