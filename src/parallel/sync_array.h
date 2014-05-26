@@ -11,7 +11,8 @@
 #include <mpi.h>
 #include <stddef.h>
 #include <memory>
-
+#include <map>
+#include <pair>
 #include "../utilities/memory_pool.h"
 #include "../utilities/singleton_holder.h"
 #include "message_comm.h"
@@ -21,41 +22,66 @@ namespace simpla
 {
 
 template<typename TR, typename TF>
-void SyncGhost(int dest, TR out, TR in, TF *data)
+void SyncGhost(std::map<int, std::pair<TR, TR>> const & comm_topology, TF *data)
 {
-	typedef decltype((*data)[out.begin()]) value_type;
+
+	//IMCOMMPLETE, Need omptize
+
+	typedef decltype((*data)[comm_topology.begin().seond.first.begin()]) value_type;
 
 	auto & field = *data;
 
-	std::shared_ptr<value_type> buff_out = MEMPOOL.allocate_shared_ptr < value_type > (out.size());
-	std::shared_ptr<value_type> buff_in = MEMPOOL.allocate_shared_ptr < value_type > (in.size());
-
-	size_t count = 0;
-	for (auto it : out)
-	{
-		*(buff_out + count) = field[it];
-	}
 	MPI_Datatype data_type = MPIDataType<value_type>().type();
 
-	int out_tag = GLOBAL_COMM.GetRank();
-	int in_tag = dest;
+	unsigned int num = comm_topology.size();
+	MPI_Request request[2 * num];
 
-	MPI_Sendrecv(
+	std::shared_ptr<value_type> buff_in[num], buff_out[num];
 
-	buff_out.get(), out.size(), data_type, dest, out_tag,
+	int n = 0;
 
-	buff_in.get(), in.size(), data_type, dest, in_tag,
-
-	GLOBAL_COMM.GetComm(),MPI_STATUS_IGNORE);
-
-	count = 0;
-	for (auto it : in)
+	for (auto const & item : comm_topology)
 	{
-		field[it] = *(buff_in + count);
+
+		auto dest = item.first;
+		auto const & in = item.second.first;
+		auto const & out = item.second.second;
+		int in_tag = dest;
+		int out_tag = GLOBAL_COMM.GetRank();
+
+		buff_in[n] = MEMPOOL.allocate_shared_ptr < value_type > (in.size());
+		buff_out[n] = MEMPOOL.allocate_shared_ptr < value_type > (out.size());
+
+		size_t count = 0;
+		for (auto it : out)
+		{
+			*(buff_out[n] + count) = field[it];
+		}
+
+		MPI_Isend(buff_out[2 * n].get(), out.size(), data_type, dest, out_tag,
+		GLOBAL_COMM.GetComm(),&request[2*n] );
+
+		MPI_Irecv(buff_in[2 * n + 1].get(), in.size(), data_type, dest, in_tag,
+		GLOBAL_COMM.GetComm(),&request[2*n+1]);
+
+		++n;
 	}
-);
+
+	MPI_Waitall(2 * num, request, MPI_STATUS_IGNORE);
+
+	for (auto const & item : comm_topology)
+	{
+		auto const & in = item.second.first;
+		size_t count = 0;
+		for (auto it : in)
+		{
+			field[it] = *(buff_in + count);
+		}
+	}
+
 }
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* SYNC_ARRAY_H_ */
