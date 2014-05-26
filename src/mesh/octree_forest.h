@@ -54,7 +54,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
@@ -95,7 +95,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -121,7 +121,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>( {
+		return nTuple<NDIMS, size_type>(
+		{
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -251,7 +252,7 @@ struct OcForest
 	{
 		Range range(local_inner_start_, local_inner_count_, 0UL);
 
-		auto res = range.Split2(std::forward<Args const &>(args)...);
+		auto res = range.Split(std::forward<Args const &>(args)...);
 
 		local_outer_start_ = res.first.start_;
 		local_outer_count_ = res.first.count_;
@@ -1201,15 +1202,13 @@ struct OcForest
 		typedef typename OcForest::iterator iterator;
 		typedef iterator value_type;
 
-		nTuple<NDIMS, size_type> start_ =
-		{	0, 0, 0};
+		nTuple<NDIMS, size_type> start_;
 
-		nTuple<NDIMS, size_type> count_ =
-		{	0, 0, 0};
+		nTuple<NDIMS, size_type> count_;
 
 		compact_index_type shift_ = 0UL;
 
-		Range()
+		Range():shift_(0UL)
 		{
 
 		}
@@ -1230,7 +1229,7 @@ struct OcForest
 		}
 		iterator end() const
 		{
-			iterator res(shift_, shift_, shift_);
+			iterator res(begin());
 
 			if (count_[0] * count_[1] * count_[2] > 0)
 			{
@@ -1250,7 +1249,7 @@ struct OcForest
 
 		iterator rbegin() const
 		{
-			iterator res(shift_, shift_, shift_);
+			iterator res(rend());
 
 			if (count_[0] * count_[1] * count_[2] > 0)
 			{
@@ -1291,108 +1290,35 @@ struct OcForest
 			}
 			return n;
 		}
-		template<typename ...Args>
-		Range Split(Args const & ... args) const
+		Range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
 		{
-			return Split2(std::forward<Args const &>(args)...).first;
-		}
-
-		std::pair<Range, Range> Split2(unsigned int total, unsigned int sub, unsigned int gw = 0) const
-		{
-			std::pair<Range, Range> res;
-			nTuple<NDIMS, size_type> num_process;
-			nTuple<NDIMS, size_type> process_num;
-			nTuple<NDIMS, size_type> ghost_width;
-
-			auto extents = Extents();
-
-			bool flag = false;
+			int n=0;
+			size_type L=0;
 			for (int i = 0; i < NDIMS; ++i)
 			{
-				ghost_width[i] = gw;
-				if (!flag && (extents[i] > total))
+				if(count_[i]>L)
 				{
-					num_process[i] = total;
-					process_num[i] = sub;
-					flag = true;
-				}
-				else
-				{
-					num_process[i] = 1;
-					process_num[i] = 0;
+					L=count_[i];
+					n=i;
 				}
 			}
-			if (!flag)
+
+			nTuple<NDIMS,size_type> start,count;
+
+			count = count_;
+			start = start_;
+
+			if ((2 * ghost_width * num_process > count_[n] || num_process > count_[n]) )
 			{
-				if (sub == 0)
-				{
-					WARNING << "I'm the master!";
-					res =std::pair<Range, Range>(*this,*this);
-				}
-				else
-				{
-					WARNING << "Range is too small to split!  ";
-				}
+				if( process_num>0) count=0;
 			}
 			else
 			{
-				res = Split2(num_process, process_num, ghost_width);
+				start[n] += (count_[n] * process_num ) / num_process;
+				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
 			}
 
-			return res;
-
-		}
-
-		std::pair<Range, Range> Split2(nTuple<NDIMS, size_type> const & num_process,
-		nTuple<NDIMS, size_type> const & process_num, nTuple<NDIMS, size_type> const & ghost_width) const
-		{
-
-			nTuple<NDIMS, size_type>
-
-			inner_start = start_,
-
-			inner_count = count_,
-
-			outer_start, outer_count;
-
-			for (int i = 0; i < NDIMS; ++i)
-			{
-
-				if (2 * ghost_width[i] * num_process[i] > inner_count[i])
-				{
-					ERROR << "Mesh is too small to decompose! dims[" << i << "]=" << inner_count[i]
-
-					<< " process[" << i << "]=" << num_process[i] << " ghost_width=" << ghost_width[i];
-				}
-				else
-				{
-
-					auto start = (inner_count[i] * process_num[i]) / num_process[i];
-
-					auto end = (inner_count[i] * (process_num[i] + 1)) / num_process[i];
-
-					inner_start[i] += start;
-					inner_count[i] = end - start;
-
-					outer_start[i] = inner_start[i];
-					outer_count[i] = inner_count[i];
-
-					if (process_num[i] > 0)
-					{
-						outer_start[i] -= ghost_width[i];
-						outer_count[i] += ghost_width[i];
-
-					}
-					if (process_num[i] < num_process[i] - 1)
-					{
-						outer_count[i] += ghost_width[i];
-
-					};
-
-				}
-			}
-
-			return std::make_pair(Range(outer_start, outer_count, shift_), Range(inner_start, inner_count, shift_));
+			return Range(start,count,shift_);
 		}
 	};
 	// class Range
