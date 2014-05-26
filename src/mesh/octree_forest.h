@@ -247,18 +247,38 @@ struct OcForest
 		UpdateHash();
 	}
 
-	template<typename ... Args>
-	void Decompose(Args const & ... args)
+	std::map<unsigned int ,std::pair<Range,Range> > neighbours;
+
+	void Decompose(unsigned int num_process,unsigned int process_num,unsigned int ghost_width=0)
 	{
-		Range range(local_inner_start_, local_inner_count_, 0UL);
 
-		auto res = range.Split(std::forward<Args const &>(args)...);
+		nTuple<NDIMS, size_type> mpi_grid_size,mpi_grid_rank;
 
-		local_outer_start_ = res.first.start_;
-		local_outer_count_ = res.first.count_;
+		for (int i = 0; i < NDIMS; ++i)
+		{
 
-		local_inner_start_ = res.second.start_;
-		local_inner_count_ = res.second.count_;
+			if ((2 * ghost_width * mpi_grid_size[i] > local_inner_count_[i])||(mpi_grid_size[i] > local_inner_count_[i]) )
+			{
+				if(mpi_grid_rank[i]>0)
+				{
+					local_inner_count_[i]=0;
+				}
+			}
+			else
+			{
+
+				auto start = (local_inner_count_[i] * mpi_grid_rank[i]) / mpi_grid_size[i];
+
+				auto end = (local_inner_count_[i] * (mpi_grid_rank[i] + 1)) / mpi_grid_size[i];
+
+				local_inner_start_[i] += start;
+				local_inner_count_[i] = end - start;
+
+				local_outer_start_[i] = local_inner_start_[i] - ghost_width[i];
+				local_outer_count_[i] = local_inner_count_[i] + ghost_width[i]*2;
+			}
+		}
+
 		UpdateHash();
 	}
 
