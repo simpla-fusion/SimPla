@@ -7,7 +7,9 @@
 
 #ifndef MESSAGE_COMM_H_
 #define MESSAGE_COMM_H_
+
 #include <mpi.h>
+
 namespace simpla
 {
 
@@ -15,6 +17,7 @@ class MessageComm
 {
 	int num_process_;
 	int process_num_;
+	bool isInitilized_;
 public:
 	MessageComm()
 			: num_process_(1), process_num_(0), isInitilized_(false)
@@ -69,9 +72,9 @@ public:
 	{
 		return num_process_;
 	}
-private:
-	bool isInitilized_;
-};
+
+}
+;
 #define GLOBAL_COMM   SingletonHolder<simpla::MessageComm>::instance()
 
 }

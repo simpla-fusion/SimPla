@@ -1202,8 +1202,11 @@ struct OcForest
 		typedef iterator value_type;
 
 		nTuple<NDIMS, size_type> start_ =
-		{	0, 0, 0}, count_ =
 		{	0, 0, 0};
+
+		nTuple<NDIMS, size_type> count_ =
+		{	0, 0, 0};
+
 		compact_index_type shift_ = 0UL;
 
 		Range()
@@ -1591,6 +1594,7 @@ struct OcForest
 	{
 		return Volume(Dual(s.self_));
 	}
+	//***************************************************************************************************
 
 };
 // class OcForest

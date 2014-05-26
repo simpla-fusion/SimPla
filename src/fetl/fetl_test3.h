@@ -26,7 +26,7 @@
 #include "fetl.h"
 #include "ntuple.h"
 #include "primitives.h"
-
+#include "save_field.h"
 using namespace simpla;
 
 static constexpr auto epsilon = 1e7 * std::numeric_limits<Real>::epsilon();
@@ -297,7 +297,7 @@ TEST_P(TestDiffCalculus, curl1)
 {
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
-	CHECK(d);
+
 	for (int i = 0; i < mesh.NDIMS; ++i)
 	{
 		if (d[i] <= 1)
@@ -326,7 +326,10 @@ TEST_P(TestDiffCalculus, curl1)
 	};
 
 	LOG_CMD(vf2 = Curl(vf1));
-
+	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
+	LOGGER << SAVE(vf2);
+	LOGGER << SAVE(vf1);
 	for (auto s : mesh.GetRange(FACE))
 	{
 		auto n = mesh.ComponentNum(s.self_);
@@ -338,11 +341,12 @@ TEST_P(TestDiffCalculus, curl1)
 		average += (vf2[s] - expect);
 		auto x = mesh.GetCoordinates(s);
 		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )
-
-<<			vf2[s] << " " << expect << " " << x<<" "<<mesh.GetExtents();
+		{
+			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<< vf2[s] << " " << expect << " " << x<<" "<<mesh.GetExtents();
 
 		}
+
+	}
 
 	variance /= vf2.size();
 	average /= vf2.size();

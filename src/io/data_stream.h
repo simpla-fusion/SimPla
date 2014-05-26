@@ -35,124 +35,14 @@ extern "C"
 #include "../fetl/ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
-#include "../utilities/utilities.h"
 #include "../utilities/pretty_stream.h"
 
-#ifdef USE_MPI_IO
-#include "../parallel/message_comm.h"
-#endif
+#include "hdf5_datatype.h"
 
 namespace simpla
 {
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
-
-namespace _impl
-{
-
-HAS_STATIC_MEMBER_FUNCTION(DataTypeDesc);
-
-template<typename T>
-typename std::enable_if<has_static_member_function_DataTypeDesc<T>::value, hid_t>::type GetH5Type()
-{
-	hid_t res;
-	H5_ERROR(res = H5LTtext_to_dtype(T::DataTypeDesc().c_str(), H5LT_DDL));
-	return res;
-}
-template<typename T>
-typename std::enable_if<!has_static_member_function_DataTypeDesc<T>::value,
-		hid_t>::type GetH5Type()
-{
-	return H5T_OPAQUE;
-}
-
-}  // namespace _impl
-
-template<typename T>
-struct HDF5DataType
-{
-	hid_t type(...) const
-	{
-		return _impl::GetH5Type<T>();
-	}
-};
-
-template<> struct HDF5DataType<int>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_INT;
-	}
-};
-
-template<> struct HDF5DataType<float>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_FLOAT;
-	}
-};
-
-template<> struct HDF5DataType<double>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_DOUBLE;
-	}
-};
-
-template<> struct HDF5DataType<long double>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_LDOUBLE;
-	}
-};
-template<typename T> struct HDF5DataType<std::complex<T>>
-{
-	hid_t type_;
-	HDF5DataType()
-	{
-		type_ = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<T>));
-		H5Tinsert(type_, "r", 0, HDF5DataType<T>().type());
-		H5Tinsert(type_, "i", sizeof(T), HDF5DataType<T>().type());
-	}
-
-	~ HDF5DataType()
-	{
-		H5Tclose(type_);
-	}
-
-	hid_t type() const
-	{
-		return type_;
-	}
-};
-
-template<typename TL, typename TR>
-struct HDF5DataType<std::pair<TL, TR> >
-{
-	typedef std::pair<TL, TR> value_type;
-	hid_t type_;
-	HDF5DataType()
-	{
-		type_ = H5Tcreate(H5T_COMPOUND, sizeof(value_type));
-		H5Tinsert(type_, "first", offsetof(value_type, first),
-				HDF5DataType<TL>().type());
-		H5Tinsert(type_, "second", offsetof(value_type, second),
-				HDF5DataType<TR>().type());
-	}
-
-	~ HDF5DataType()
-	{
-		H5Tclose(type_);
-	}
-
-	hid_t type() const
-	{
-		return type_;
-	}
-};
 
 class DataStream
 {
@@ -167,8 +57,8 @@ class DataStream
 	bool is_compact_storable_;
 public:
 
-	DataStream() :
-			prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+	DataStream()
+			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 			file_(-1), group_(-1),
 
@@ -241,11 +131,9 @@ public:
 	void CloseFile();
 
 	template<typename TV>
-	std::string Write(TV const *v, std::string const &name, int rank,
-			size_t const * global_dims, size_t const * offset = nullptr,
-			size_t const * local_dims = nullptr, size_t const * start = nullptr,
-			size_t const *counts = nullptr, size_t const * strides = nullptr,
-			size_t const *blocks = nullptr) const
+	std::string Write(TV const *v, std::string const &name, int rank, size_t const * global_dims,
+	        size_t const * offset = nullptr, size_t const * local_dims = nullptr, size_t const * start = nullptr,
+	        size_t const *counts = nullptr, size_t const * strides = nullptr, size_t const *blocks = nullptr) const
 	{
 		hsize_t global_dims_[rank + 1];
 		hsize_t offset_[rank + 1];
@@ -305,11 +193,9 @@ public:
 
 	}
 
-	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype,
-			int rank, hsize_t const *global_dims, hsize_t const *offset,
-			hsize_t const *local_dims, hsize_t const *start,
-			hsize_t const *counts, hsize_t const *strides,
-			hsize_t const *blocks) const;
+	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, hsize_t const *global_dims,
+	        hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start, hsize_t const *counts,
+	        hsize_t const *strides, hsize_t const *blocks) const;
 
 }
 ;
@@ -317,35 +203,31 @@ public:
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
 template<typename TV, typename ...Args>
-inline std::string Save(TV const *data, std::string const & name,
-		Args const & ...args)
+inline std::string Save(TV const *data, std::string const & name, Args const & ...args)
 {
 	return GLOBAL_DATA_STREAM.Write(data, name, std::forward<Args const &>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(
-		std::shared_ptr<TV> const & d, Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Save(std::shared_ptr<TV> const & d, Args const & ... args)
 {
 	return Save(d.get(), std::forward<Args const &>(args)...);
 }
 
-template<typename TV, int rank, typename TS> inline std::string Save(
-		TV const* data, std::string const &name, nTuple<rank, TS> const & d)
+template<typename TV, int rank, typename TS> inline std::string Save(TV const* data, std::string const &name,
+        nTuple<rank, TS> const & d)
 {
 	return Save(reinterpret_cast<void const *>(data), name, rank, &d[0]);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(
-		std::vector<TV>const & d, std::string const & name,
-		Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Save(std::vector<TV>const & d, std::string const & name,
+        Args const & ... args)
 {
 	size_t s = d.size();
 
 	return Save(&d[0], name, 1, &s, std::forward<Args const &>(args)...);
 }
-template<typename TL, typename TR, typename ... Args> inline std::string Save(
-		std::map<TL, TR>const & d, std::string const & name,
-		Args const & ... args)
+template<typename TL, typename TR, typename ... Args> inline std::string Save(std::map<TL, TR>const & d,
+        std::string const & name, Args const & ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
 	for (auto const & p : d)
@@ -355,15 +237,13 @@ template<typename TL, typename TR, typename ... Args> inline std::string Save(
 	return Save(d_, name, std::forward<Args const &>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(
-		std::map<TV, TV>const & d, std::string const & name,
-		Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Save(std::map<TV, TV>const & d, std::string const & name,
+        Args const & ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<2, TV>(
-		{ p.first, p.second }));
+		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
 	}
 	return Save(d_, name, std::forward<Args const &>(args)...);
 }
