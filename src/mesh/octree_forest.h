@@ -338,16 +338,16 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			if ((global_count_[i]) > (global_start_[i]))
+			if ( global_count_[i] > 1)
 			{
 				if (global_dims != nullptr)
-				global_dims[rank] = (global_count_[i]);
+				global_dims[rank] = global_count_[i];
 
 				if (global_start != nullptr)
-				global_start[rank] = (local_outer_start_[i] - global_start_[i]);
+				global_start[rank] = local_inner_start_[i] - global_start_[i];
 
 				if (local_dims != nullptr)
-				local_dims[rank] = (local_outer_count_[i]);
+				local_dims[rank] = local_outer_count_[i];
 
 				if (local_start != nullptr)
 				local_start[rank] = (local_inner_start_[i] - local_outer_start_[i]);

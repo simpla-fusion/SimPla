@@ -229,7 +229,7 @@ TEST_P(TestDiffCalculus, diverge1)
 		average += (f0[s] - expect);
 
 		auto x = mesh.GetCoordinates(s);
-		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon) && std::abs(x[2]) > 0.0)
+		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
 			ASSERT_LE(abs(2.0*(f0[s]-expect)/(f0[s] + expect)), error )<< expect / f0[s] << " " << f0[s] << " "
 			<< expect << " " << (mesh.GetCoordinates(s));
 		;
@@ -338,7 +338,9 @@ TEST_P(TestDiffCalculus, curl1)
 		average += (vf2[s] - expect);
 		auto x = mesh.GetCoordinates(s);
 		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<< vf2[s] << " " << expect << " " << x<<" "<<(k[(n + 1) % 3])<<" "<<( k[(n + 2) % 3]);
+			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )
+
+<<			vf2[s] << " " << expect << " " << x<<" "<<mesh.GetExtents();
 
 		}
 

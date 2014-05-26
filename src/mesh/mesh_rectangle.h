@@ -68,22 +68,6 @@ public:
 		return (this == &r);
 	}
 
-//	template<typename TDict, typename ...Others>
-//	void Load(TDict const & dict, Others const &...others)
-//	{
-//		geometry_type::Load(dict, std::forward<Others const&>(others)...);
-//	}
-//
-//	std::string Save(std::string const &path) const
-//	{
-//		return geometry_type::Save(path);
-//	}
-//
-//	std::string Print() const
-//	{
-//		return geometry_type::Print();
-//	}
-
 //***************************************************************************************************
 //*	Miscellaneous
 //***************************************************************************************************

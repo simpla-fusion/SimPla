@@ -12,6 +12,7 @@
 #include "mesh.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/log.h"
+#include "../parallel/message_comm.h"
 using namespace simpla;
 
 typedef Mesh<EuclideanGeometry<OcForest>> TMesh;

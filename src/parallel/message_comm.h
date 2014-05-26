@@ -16,13 +16,13 @@ class MessageComm
 	int num_process_;
 	int process_num_;
 public:
-	MessageComm() :
-			num_process_(1), process_num_(0), isInitilized_(false)
+	MessageComm()
+			: num_process_(1), process_num_(0), isInitilized_(false)
 	{
 	}
 
-	MessageComm(int argc, char** argv) :
-			isInitilized_(false)
+	MessageComm(int argc, char** argv)
+			: isInitilized_(false)
 	{
 		Init(argc, argv);
 	}
@@ -47,12 +47,7 @@ public:
 	{
 		return MPI_INFO_NULL;
 	}
-	template<typename ...Others>
-	void Decompose(size_t * size, size_t * rank, Others const & ...) const
-	{
-		*size = num_process_;
-		*rank = process_num_;
-	}
+
 	bool IsInitilized() const
 	{
 		return isInitilized_;
