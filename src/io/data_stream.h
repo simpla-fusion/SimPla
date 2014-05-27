@@ -55,7 +55,12 @@ class DataStream
 	hid_t group_;
 	size_t LIGHT_DATA_LIMIT_;
 	bool is_compact_storable_;
+
 public:
+	enum
+	{
+		HDF5, XDMF
+	};
 
 	DataStream()
 			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),

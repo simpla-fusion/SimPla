@@ -36,9 +36,8 @@ DEF_XDMF_TYPE_TRAITS(unsigned short, XDMF_UINT16_TYPE);
 DEF_XDMF_TYPE_TRAITS(unsigned int, XDMF_UINT32_TYPE);
 #undef DEF_XDMF_TYPE_TRAITS
 
-template<typename TI, typename T> inline void InsertDataItem(
-		XdmfDataItem *dataitem, int rank, TI* pdims, T const * data,
-		std::string const & HeavyDataSetName = "")
+template<typename TI, typename T> inline void InsertDataItem(XdmfDataItem *dataitem, int rank, TI* pdims,
+        T const * data, std::string const & HeavyDataSetName = "")
 {
 
 	XdmfInt64 dims[rank];
@@ -55,15 +54,14 @@ template<typename TI, typename T> inline void InsertDataItem(
 	myArray->SetDataPointer(const_cast<T*>(data));
 }
 
-template<typename T> inline void InsertDataItem(XdmfDataItem *dataitem,
-		size_t num, T const * data, std::string const & HeavyDataSetName = "")
+template<typename T> inline void InsertDataItem(XdmfDataItem *dataitem, size_t num, T const * data,
+        std::string const & HeavyDataSetName = "")
 {
 	InsertDataItem(dataitem, 1, &num, data, HeavyDataSetName);
 }
 
-template<typename TI, typename TFun> inline void InsertDataItemWithFun(
-		XdmfDataItem *dataitem, int rank, TI* pdims, TFun const &fun,
-		std::string const & HeavyDataSetName)
+template<typename TI, typename TFun> inline void InsertDataItemWithFun(XdmfDataItem *dataitem, int rank, TI* pdims,
+        TFun const &fun, std::string const & HeavyDataSetName)
 {
 
 	XdmfInt64 dims[rank];

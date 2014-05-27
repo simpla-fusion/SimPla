@@ -1,111 +1,72 @@
-/*
- * exchange.cpp
- *
- *  Created on: 2014年5月26日
- *      Author: salmon
- */
-
+#include <mpi.h>
 #include <stdio.h>
-#include "mpi.h"
 
-/* This example handles a 12 x 12 mesh, on 4 processors only. */
-#define maxn 12
+int main(int argc, char** argv)
 
-int main(int argc, char **argv)
 {
-	int rank, value, size, errcnt, toterr, i, j;
-	int up_nbr, down_nbr;
-	MPI_Status status;
-	double x[12][12];
-	double xlocal[(12 / 4) + 2][12];
+
+	int rank, size, namelen, version, subversion, *a, *b, i;
+
+	char processor_name[MPI_MAX_PROCESSOR_NAME];
+
+	MPI_Win win;
 
 	MPI_Init(&argc, &argv);
 
-	MPI_Comm_rank( MPI_COMM_WORLD, &rank);
-	MPI_Comm_size( MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-	if (size != 4)
-		MPI_Abort( MPI_COMM_WORLD, 1);
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 
-	/* xlocal[][0] is lower ghostpoints, xlocal[][maxn+2] is upper */
+	MPI_Get_processor_name(processor_name, &namelen);
 
-	/* Fill the data as specified */
-	for (i = 1; i <= maxn / size; i++)
-		for (j = 0; j < maxn; j++)
-			xlocal[i][j] = rank;
-	for (j = 0; j < maxn; j++)
-	{
-		xlocal[0][j] = -1;
-		xlocal[maxn / size + 1][j] = -1;
-	}
+	MPI_Get_version(&version, &subversion);
 
-	/* Processors 0 and 1 exchange, 2 and 3 exchange, etc.  Then
-	 1 and 2 exchange, 3 and 4, etc.  The formula for this is
-	 if (even) exchng up else down
-	 if (odd)  exchng up else down
-	 */
-	/* Note the use of xlocal[i] for &xlocal[i][0] */
-	/* Note that we use MPI_PROC_NULL to remove the if statements that
-	 would be needed without MPI_PROC_NULL */
-	up_nbr = rank + 1;
-	if (up_nbr >= size)
-		up_nbr = MPI_PROC_NULL;
-	down_nbr = rank - 1;
-	if (down_nbr < 0)
-		down_nbr = MPI_PROC_NULL;
+	printf("Hello world! I’m rank %d of %d on %s running MPI %d.%d\n",
 
-	if ((rank % 2) == 0)
-	{
-		/* exchange up */
-		MPI_Sendrecv(xlocal[maxn / size], maxn, MPI_DOUBLE, up_nbr, 0, xlocal[maxn / size + 1], maxn, MPI_DOUBLE,
-		        up_nbr, 0,
-		        MPI_COMM_WORLD, &status);
-	}
-	else
-	{
-		/* exchange down */
-		MPI_Sendrecv(xlocal[1], maxn, MPI_DOUBLE, down_nbr, 0, xlocal[0], maxn, MPI_DOUBLE, down_nbr, 0,
-		MPI_COMM_WORLD, &status);
-	}
+	rank, size, processor_name, version, subversion);
 
-	/* Do the second set of exchanges */
-	if ((rank % 2) == 1)
-	{
-		/* exchange up */
-		MPI_Sendrecv(xlocal[maxn / size], maxn, MPI_DOUBLE, up_nbr, 1, xlocal[maxn / size + 1], maxn, MPI_DOUBLE,
-		        up_nbr, 1,
-		        MPI_COMM_WORLD, &status);
-	}
-	else
-	{
-		/* exchange down */
-		MPI_Sendrecv(xlocal[1], maxn, MPI_DOUBLE, down_nbr, 1, xlocal[0], maxn, MPI_DOUBLE, down_nbr, 1,
-		MPI_COMM_WORLD, &status);
-	}
+	MPI_Alloc_mem(sizeof(int) * size, MPI_INFO_NULL, &a);
 
-	/* Check that we have the correct results */
-	errcnt = 0;
-	for (i = 1; i <= maxn / size; i++)
-		for (j = 0; j < maxn; j++)
-			if (xlocal[i][j] != rank)
-				errcnt++;
-	for (j = 0; j < maxn; j++)
-	{
-		if (xlocal[0][j] != rank - 1)
-			errcnt++;
-		if (rank < size - 1 && xlocal[maxn / size + 1][j] != rank + 1)
-			errcnt++;
-	}
+	MPI_Alloc_mem(sizeof(int) * size, MPI_INFO_NULL, &b);
 
-	MPI_Reduce(&errcnt, &toterr, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
-	if (rank == 0)
-	{
-		if (toterr)
-			printf("! found %d errors\n", toterr);
-		else
-			printf("No errors\n");
-	}
+	MPI_Win_create(a, size, sizeof(int), MPI_INFO_NULL,
+
+	MPI_COMM_WORLD, &win);
+
+	for (i = 0; i < size; i++)
+
+		a[i] = rank * 100 + i;
+
+	printf("Process %d has the following:", rank);
+
+	for (i = 0; i < size; i++)
+
+		printf(" %d", a[i]);
+
+	printf("\n");
+
+	MPI_Win_fence((MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE), win);
+
+	for (i = 0; i < size; i++)
+
+		MPI_Get(&b[i], 1, MPI_INT, i, rank, 1, MPI_INT, win);
+
+	MPI_Win_fence(MPI_MODE_NOSUCCEED, win);
+
+	printf("Process %d obtained the following:", rank);
+
+	for (i = 0; i < size; i++)
+
+		printf(" %d", b[i]);
+
+	printf("\n");
+
+	MPI_Win_free(&win);
+
+	MPI_Free_mem(a);
+
+	MPI_Free_mem(b);
 
 	MPI_Finalize();
-	return 0;
+
 }

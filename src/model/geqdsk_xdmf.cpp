@@ -26,8 +26,7 @@
 class XdmfArray;
 namespace simpla
 {
-
-std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
+void GEqdsk::Write(std::string const &fname, int flag)
 {
 
 	XdmfDOM dom;
@@ -47,13 +46,13 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		grid.SetGridType(XDMF_GRID_UNIFORM);
 		grid.GetTopology()->SetTopologyTypeFromString("2DCoRectMesh");
 
-		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(self.dims_[1]), static_cast<XdmfInt64>(self.dims_[0]) };
+		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(dims_[1]), static_cast<XdmfInt64>(dims_[0]) };
 		grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 
 		grid.GetGeometry()->SetGeometryTypeFromString("Origin_DxDy");
-		grid.GetGeometry()->SetOrigin(self.rzmin_[1], self.rzmin_[0], 0);
-		grid.GetGeometry()->SetDxDyDz((self.rzmax_[1] - self.rzmin_[1]) / static_cast<Real>(self.dims_[1] - 1),
-		        (self.rzmax_[0] - self.rzmin_[0]) / static_cast<Real>(self.dims_[0] - 1), 0);
+		grid.GetGeometry()->SetOrigin(rzmin_[1], rzmin_[0], 0);
+		grid.GetGeometry()->SetDxDyDz((rzmax_[1] - rzmin_[1]) / static_cast<Real>(dims_[1] - 1),
+		        (rzmax_[0] - rzmin_[0]) / static_cast<Real>(dims_[0] - 1), 0);
 
 		XdmfAttribute myAttribute;
 		grid.Insert(&myAttribute);
@@ -65,7 +64,7 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		XdmfDataItem data;
 		myAttribute.Insert(&data);
 
-		InsertDataItem(&data, 2, dims, &(self.psirz_[0]), fname + ".h5:/Psi");
+		InsertDataItem(&data, 2, dims, &(psirz_[0]), fname + ".h5:/Psi");
 		grid.Build();
 	}
 	{
@@ -75,10 +74,10 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		grid.SetGridType(XDMF_GRID_UNIFORM);
 		grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(self.rzbbb_.size()), 2 };
+		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzbbb_.size()), 2 };
 		grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 		grid.GetTopology()->Set("NodesPerElement", "2");
-		grid.GetTopology()->SetNumberOfElements(self.rzbbb_.size());
+		grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
 
 		XdmfDataItem * data = new XdmfDataItem;
 
@@ -104,7 +103,7 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		points->SetShape(2, dims);
 
 		XdmfInt64 s = 0;
-		for (auto const &v : self.rzbbb_)
+		for (auto const &v : rzbbb_)
 		{
 			points->SetValue(s * 3, 0);
 			points->SetValue(s * 3 + 1, v[0]);
@@ -122,10 +121,10 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		grid.SetGridType(XDMF_GRID_UNIFORM);
 		grid.GetTopology()->SetTopologyTypeFromString("POLYLINE");
 
-		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(self.rzbbb_.size()), 2 };
+		XdmfInt64 dims[2] = { static_cast<XdmfInt64>(rzbbb_.size()), 2 };
 		grid.GetTopology()->GetShapeDesc()->SetShape(2, dims);
 		grid.GetTopology()->Set("NodesPerElement", "2");
-		grid.GetTopology()->SetNumberOfElements(self.rzbbb_.size());
+		grid.GetTopology()->SetNumberOfElements(rzbbb_.size());
 
 		XdmfDataItem * data = new XdmfDataItem;
 
@@ -151,7 +150,7 @@ std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag)
 		points->SetShape(2, dims);
 
 		XdmfInt64 s = 0;
-		for (auto const &v : self.rzbbb_)
+		for (auto const &v : rzbbb_)
 		{
 			points->SetValue(s * 3, 0);
 			points->SetValue(s * 3 + 1, v[0]);

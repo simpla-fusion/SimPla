@@ -1,5 +1,5 @@
 /*
- * geqdsk_test.cpp
+ * geqdsk_convert.cpp
  *
  *  Created on: 2013年12月3日
  *      Author: salmon
@@ -14,9 +14,9 @@ int main(int argc, char ** argv)
 	GEqdsk geqdsk(argv[1]);
 
 	geqdsk.Print(std::cout);
-	geqdsk.Write(argv[1], GEqdsk::XDMF);
+	geqdsk.Write(argv[1], DataStream::XDMF);
 
-	GLOBAL_DATA_STREAM.OpenFile("geqdsk_test");
-	GLOBAL_DATA_STREAM.OpenGroup("/");
-	geqdsk.Save();
+//	GLOBAL_DATA_STREAM.OpenFile("geqdsk_test");
+//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	geqdsk.Save();
 }

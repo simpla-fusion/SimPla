@@ -80,11 +80,6 @@ public:
 	{
 	}
 
-	enum
-	{
-		XDMF = 1, HDF5 = 2
-	};
-
 	void Load(std::string const & fname)
 	{
 		Read(fname);
@@ -93,7 +88,7 @@ public:
 
 	void Read(std::string const &fname);
 
-	void Write(std::string const &fname, int format = XDMF);
+	void Write(std::string const &fname, int format = DataStream::XDMF);
 
 	void ReadProfile(std::string const &fname);
 
@@ -161,6 +156,7 @@ public:
 		return x * Profile("pprim", x, y) + Profile("ffprim", x, y) / x;
 	}
 };
+std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag);
 
 }
 // namespace simpla

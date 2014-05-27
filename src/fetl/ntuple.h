@@ -346,6 +346,30 @@ template<typename T> inline auto Determinant(nTuple<4, nTuple<4, T> > const & m)
 template<int N, typename T> auto abs(nTuple<N, T> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(Dot(m, m)))))
 
+template<int N, typename T> inline auto NProduct(nTuple<N, T> const & v)
+->decltype(v[0]*v[1])
+{
+	decltype(v[0]*v[1]) res;
+	res = 1;
+	for (int i = 0; i < N; ++i)
+	{
+		res *= v[i];
+	}
+	return res;
+
+}
+template<int N, typename T> inline auto NSum(nTuple<N, T> const & v)
+->decltype(v[0]+v[1])
+{
+	decltype(v[0]+v[1]) res;
+	res = 0;
+	for (int i = 0; i < N; ++i)
+	{
+		res += v[i];
+	}
+	return res;
+
+}
 template<int N, int M, typename T> Real abs(nTuple<N, nTuple<M, T>> const & m)
 {
 	T res = 0.0;
