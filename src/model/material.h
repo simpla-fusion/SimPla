@@ -54,8 +54,8 @@ public:
 
 	mesh_type const &mesh;
 
-	Material(mesh_type const & m)
-			: null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
+	Material(mesh_type const & m) :
+			null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
 	{
 		register_material_.emplace("NONE", null_material);
 
@@ -338,7 +338,6 @@ public:
 		return isChanged_;
 	}
 
-	typedef typename mesh_type::iterator iterator;
 	typedef FilterRange<typename mesh_type::Range> range_type;
 
 	template<int IFORM, typename ...Args>
@@ -440,7 +439,7 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 
 template<typename TM>
 typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type in,
-        material_type out) const
+		material_type out) const
 {
 	if (IsChanged())
 	{

@@ -39,7 +39,7 @@ public:
 	typedef ParticlePool<mesh_type, particle_type> this_type;
 	typedef particle_type value_type;
 
-	typedef typename mesh_type::iterator iterator;
+	typedef typename mesh_type::iterator mesh_iterator;
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -60,24 +60,24 @@ public:
 	//***************************************************************************************************
 	// Constructor
 	template<typename TDict, typename ...Args> ParticlePool(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...others);
+			Args const & ...others);
 
 	// Destructor
 	~ParticlePool();
 
 	std::string Save(std::string const & path) const;
 
-	void Clear(iterator s);
+	void Clear(mesh_iterator s);
 
-	void Add(iterator s, cell_type &&);
+	void Add(mesh_iterator s, cell_type &&);
 
-	void Add(iterator s, std::function<void(particle_type*)> const & generator);
+	void Add(mesh_iterator s, std::function<void(particle_type*)> const & generator);
 
-	void Remove(iterator s, std::function<bool(particle_type const&)> const & filter);
+	void Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter);
 
-	void Modify(iterator s, std::function<void(particle_type*)> const & foo);
+	void Modify(mesh_iterator s, std::function<void(particle_type*)> const & foo);
 
-	void Traversal(iterator s, std::function<void(particle_type*)> const & op);
+	void Traversal(mesh_iterator s, std::function<void(particle_type*)> const & op);
 
 	//***************************************************************************************************
 
@@ -85,23 +85,23 @@ public:
 	{
 		return allocator_;
 	}
-	inline void Insert(iterator s, particle_type p)
+	inline void Insert(mesh_iterator s, particle_type p)
 	{
 		this->at(s).emplace_back(p);
 	}
-	cell_type & operator[](iterator s)
+	cell_type & operator[](mesh_iterator s)
 	{
 		return data_[mesh.Hash(s)];
 	}
-	cell_type const & operator[](iterator s) const
+	cell_type const & operator[](mesh_iterator s) const
 	{
 		return data_[mesh.Hash(s)];
 	}
-	cell_type &at(iterator s)
+	cell_type &at(mesh_iterator s)
 	{
 		return data_.at(mesh.Hash(s));
 	}
-	cell_type const & at(iterator s) const
+	cell_type const & at(mesh_iterator s) const
 	{
 		return data_.at(mesh.Hash(s));
 	}
@@ -175,14 +175,14 @@ private:
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
-	template<typename TDest> void Sort(iterator id_src, TDest *dest);
+	template<typename TDest> void Sort(mesh_iterator id_src, TDest *dest);
 
 };
 
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-		: mesh(pmesh), isSorted_(false), allocator_(),	//
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others) :
+		mesh(pmesh), isSorted_(false), allocator_(),	//
 		data_(mesh.GetNumOfElements(IForm), cell_type(allocator_))
 {
 }
@@ -205,7 +205,7 @@ std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 //*************************************************************************************************
 template<typename TM, typename TParticle>
 template<typename TDest>
-void ParticlePool<TM, TParticle>::Sort(iterator id_src, TDest *dest)
+void ParticlePool<TM, TParticle>::Sort(mesh_iterator id_src, TDest *dest)
 {
 
 	auto & src = this->at(id_src);
@@ -217,7 +217,7 @@ void ParticlePool<TM, TParticle>::Sort(iterator id_src, TDest *dest)
 		auto p = pt;
 		++pt;
 
-		iterator id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
+		mesh_iterator id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x));
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 
@@ -243,7 +243,7 @@ void ParticlePool<TM, TParticle>::Sort()
 
 	[this](int t_num,int t_id)
 	{
-		std::map<iterator,cell_type> dest;
+		std::map<mesh_iterator,cell_type> dest;
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
 			this->Sort(s, &dest);
@@ -265,18 +265,18 @@ void ParticlePool<TM, TParticle>::Sort()
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Clear(iterator s)
+void ParticlePool<TM, TParticle>::Clear(mesh_iterator s)
 {
 	this->at(s).clear();
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(iterator s, cell_type && other)
+void ParticlePool<TM, TParticle>::Add(mesh_iterator s, cell_type && other)
 {
 	this->at(s).slice(this->at(s).begin(), other);
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(iterator s, std::function<void(particle_type*)> const & gen)
+void ParticlePool<TM, TParticle>::Add(mesh_iterator s, std::function<void(particle_type*)> const & gen)
 {
 	particle_type p;
 	gen(&p);
@@ -285,7 +285,7 @@ void ParticlePool<TM, TParticle>::Add(iterator s, std::function<void(particle_ty
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Remove(iterator s, std::function<bool(particle_type const&)> const & filter)
+void ParticlePool<TM, TParticle>::Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter)
 {
 	auto & cell = this->at(s);
 
@@ -305,7 +305,7 @@ void ParticlePool<TM, TParticle>::Remove(iterator s, std::function<bool(particle
 	}
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Modify(iterator s, std::function<void(particle_type *)> const & op)
+void ParticlePool<TM, TParticle>::Modify(mesh_iterator s, std::function<void(particle_type *)> const & op)
 {
 
 	for (auto & p : this->at(s))
@@ -315,7 +315,7 @@ void ParticlePool<TM, TParticle>::Modify(iterator s, std::function<void(particle
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Traversal(iterator s, std::function<void(particle_type*)> const & op)
+void ParticlePool<TM, TParticle>::Traversal(mesh_iterator s, std::function<void(particle_type*)> const & op)
 {
 
 	for (auto const & p : this->at(s))

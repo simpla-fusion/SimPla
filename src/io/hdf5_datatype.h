@@ -17,8 +17,12 @@
 
 #include "../utilities/utilities.h"
 #include "../fetl/ntuple.h"
+
 namespace simpla
 {
+
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
+
 namespace _impl
 {
 

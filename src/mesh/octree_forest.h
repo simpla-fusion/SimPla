@@ -274,8 +274,8 @@ struct OcForest
 				local_inner_start_[i] += start;
 				local_inner_count_[i] = end - start;
 
-				local_outer_start_[i] = local_inner_start_[i] - ghost_width[i];
-				local_outer_count_[i] = local_inner_count_[i] + ghost_width[i]*2;
+				local_outer_start_[i] = local_inner_start_[i] - ghost_width;
+				local_outer_count_[i] = local_inner_count_[i] + ghost_width*2;
 			}
 		}
 
@@ -1081,7 +1081,10 @@ struct OcForest
 		{
 			return !(this->operator==(rhs));
 		}
-
+		bool operator<(iterator const & rhs) const
+		{
+			return (self_<rhs.self_);
+		}
 		iterator const & operator*() const
 		{
 			return *this;

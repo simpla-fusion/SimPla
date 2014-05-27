@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <memory>
 #include <map>
+#include <vector>
 #include <pair>
 #include "message_comm.h"
 #include "mpi_datatype.h"
@@ -89,12 +90,12 @@ public:
 			{
 
 				local_range_start[i] =
-						(remote_outer_start[i] > local_inner_start[i]) ? remote_outer_start[i] : local_inner_start[i];
+						(local_outer_start[i] > remote_inner_start[i]) ? local_outer_start[i] : remote_inner_start[i];
 
 				range_count[i] =
-						(remote_outer_start[i] + remote_outer_count[i] < local_inner_start[i] + remote_inner_count[i]) ?
-								remote_outer_start[i] + remote_outer_count[i] - local_range_start[i] :
-								local_inner_start[i] + remote_inner_count[i] - local_range_start[i];
+						(local_outer_start[i] + local_outer_count[i] < remote_inner_start[i] + remote_inner_count[i]) ?
+								local_outer_start[i] + local_outer_count[i] - local_range_start[i] :
+								remote_inner_start[i] + remote_inner_count[i] - local_range_start[i];
 
 				remote_range_start[i] = local_range_start[i];
 
@@ -115,9 +116,9 @@ public:
 
 			if (need_update)
 			{
-				MPI_Put(
+				MPI_Get(
 
-				data, 1, MPIDataType<TV>(remote_outer_count, range_count, local_range_start - local_outer_start).type(),
+				data, 1, MPIDataType<TV>(local_outer_count, range_count, local_range_start - local_outer_start).type(),
 
 				dest, 0, 1,
 						MPIDataType<TV>(remote_outer_count, range_count, remote_range_start - remote_outer_start).type()
