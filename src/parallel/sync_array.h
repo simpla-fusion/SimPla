@@ -19,7 +19,7 @@
 namespace simpla
 {
 template<int N>
-struct DistributeArray
+struct DistributedArray
 {
 public:
 	static constexpr int NDIMS = N;
@@ -29,12 +29,12 @@ public:
 
 	std::vector<int> neighbour_;
 
-	DistributeArray(MPI_Comm comm, unsigned int gw)
-			: comm_(comm)
+	DistributedArray(MPI_Comm comm, unsigned int gw) :
+			comm_(comm)
 	{
 	}
 
-	~DistributeArray()
+	~DistributedArray()
 	{
 
 	}
@@ -50,21 +50,8 @@ public:
 	}
 
 	template<typename TV>
-	void CreateSubArrayType(nTuple<NDIMS, size_t> const &outer_start, nTuple<NDIMS, size_t> const &outer_count,
-	        nTuple<NDIMS, size_t> const &inner_start, nTuple<NDIMS, size_t> const &inner_count,
-	        MPI_Datatype * data_type)
-	{
-		nTuple<NDIMS, size_t> start;
-
-		start = inner_start - outer_start;
-
-		MPI_Type_create_subarray(NDIMS, &outer_count[0], &inner_count[0], &start[0], array_order_,
-		        MPIDataType<TV>().type(), &data_type);
-	}
-
-	template<typename TV>
 	void UpdateGhost(int num_process, int process_self, int gw, nTuple<NDIMS, size_t> const &global_start,
-	        nTuple<NDIMS, size_t> const &global_count, TV* data) const
+			nTuple<NDIMS, size_t> const &global_count, TV* data) const
 	{
 		MPI_Win win_;
 
@@ -74,7 +61,7 @@ public:
 		nTuple<NDIMS, size_t> local_inner_count;
 
 		Decompose(num_process, process_self, gw, global_start, global_count, &local_outer_start, &local_outer_count,
-		        &local_inner_start, &local_inner_count);
+				&local_inner_start, &local_inner_count);
 
 		size_t local_size = NProduct(local_outer_count);
 
@@ -89,7 +76,7 @@ public:
 			nTuple<NDIMS, size_t> remote_inner_count;
 
 			Decompose(num_process, dest, gw, global_start, global_count, &remote_outer_start, &remote_outer_count,
-			        &remote_inner_start, &remote_inner_count);
+					&remote_inner_start, &remote_inner_count);
 
 			MPI_Datatype local_data_type, remote_data_type;
 
@@ -102,12 +89,12 @@ public:
 			{
 
 				local_range_start[i] =
-				        (remote_outer_start[i] > local_inner_start[i]) ? remote_outer_start[i] : local_inner_start[i];
+						(remote_outer_start[i] > local_inner_start[i]) ? remote_outer_start[i] : local_inner_start[i];
 
 				range_count[i] =
-				        (remote_outer_start[i] + remote_outer_count[i] < local_inner_start[i] + remote_inner_count[i]) ?
-				                remote_outer_start[i] + remote_outer_count[i] - local_range_start[i] :
-				                local_inner_start[i] + remote_inner_count[i] - local_range_start[i];
+						(remote_outer_start[i] + remote_outer_count[i] < local_inner_start[i] + remote_inner_count[i]) ?
+								remote_outer_start[i] + remote_outer_count[i] - local_range_start[i] :
+								local_inner_start[i] + remote_inner_count[i] - local_range_start[i];
 
 				remote_range_start[i] = local_range_start[i];
 
@@ -128,16 +115,14 @@ public:
 
 			if (need_update)
 			{
-				CreateSubArrayType(local_outer_start, remote_outer_count, local_range_start, range_count,
-				        &local_data_type);
+				MPI_Put(
 
-				CreateSubArrayType(remote_outer_start, remote_outer_count, remote_range_start, range_count,
-				        &remote_data_type);
+				data, 1, MPIDataType<TV>(remote_outer_count, range_count, local_range_start - local_outer_start).type(),
 
-				MPI_Put(data, 1, local_data_type, dest, 0, 1, remote_data_type, &win_);
+				dest, 0, 1,
+						MPIDataType<TV>(remote_outer_count, range_count, remote_range_start - remote_outer_start).type()
 
-				MPI_Type_free(&remote_data_type);
-				MPI_Type_free(&local_data_type);
+						, &win_);
 			}
 		}
 		MPI_Win_fence(0, win_);
