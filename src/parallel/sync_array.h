@@ -14,7 +14,6 @@
 #include <map>
 #include <vector>
 #include <pair>
-#include "message_comm.h"
 #include "mpi_datatype.h"
 
 namespace simpla
@@ -24,172 +23,160 @@ struct DistributedArray
 {
 public:
 	static constexpr int NDIMS = N;
-	MPI_Comm comm_;
 
-	unsigned int array_order_ = MPI_ORDER_C;
+	DistributedArray()
 
-	std::vector<int> neighbour_;
-
-	DistributedArray(MPI_Comm comm, unsigned int gw) :
-			comm_(comm)
 	{
+	}
+
+	template<typename ...Args>
+	DistributedArray(Args const & ... args)
+
+	{
+		Init(std::forward<Args const &>(args)...);
 	}
 
 	~DistributedArray()
 	{
 
 	}
-	void Decompose(int num_process, int process_num, size_t gw,
 
-	nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count,
+	void Init(nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, int num_process,
+	        int process_num, size_t gw)
 
-	nTuple<NDIMS, size_t> *outer_start, nTuple<NDIMS, size_t> *outer_count,
-
-	nTuple<NDIMS, size_t> * inner_start, nTuple<NDIMS, size_t> * inner_count) const
 	{
+		Decompose(num_process, process_num, gw, global_start, global_count, &local_);
 
-	}
-
-	template<typename TV>
-	void UpdateGhost(int num_process, int process_self, int gw, nTuple<NDIMS, size_t> const &global_start,
-			nTuple<NDIMS, size_t> const &global_count, TV* data) const
-	{
-		MPI_Win win_;
-
-		nTuple<NDIMS, size_t> local_outer_start;
-		nTuple<NDIMS, size_t> local_outer_count;
-		nTuple<NDIMS, size_t> local_inner_start;
-		nTuple<NDIMS, size_t> local_inner_count;
-
-		Decompose(num_process, process_self, gw, global_start, global_count, &local_outer_start, &local_outer_count,
-				&local_inner_start, &local_inner_count);
-
-		size_t local_size = NProduct(local_outer_count);
-
-		MPI_Win_create(data, local_size, sizeof(TV), MPI_INFO_NULL, comm_, &win_);
-
-		for (auto dest : neighbour_)
+		for (int n = 0; n < num_process; ++n)
 		{
 
-			nTuple<NDIMS, size_t> remote_outer_start;
-			nTuple<NDIMS, size_t> remote_outer_count;
-			nTuple<NDIMS, size_t> remote_inner_start;
-			nTuple<NDIMS, size_t> remote_inner_count;
+			bool need_update = false;
 
-			Decompose(num_process, dest, gw, global_start, global_count, &remote_outer_start, &remote_outer_count,
-					&remote_inner_start, &remote_inner_count);
+			neighbour_s node;
 
-			MPI_Datatype local_data_type, remote_data_type;
+			node.dest = n;
 
-			nTuple<NDIMS, size_t> local_range_start;
-			nTuple<NDIMS, size_t> remote_range_start;
-			nTuple<NDIMS, size_t> range_count;
+			Decompose(num_process, n, gw, global_start, global_count, &(node.remote));
 
-			bool need_update = true;
-			for (int i = 0; i < N; ++i)
+			for (int i = 0; i < NDIMS; ++i)
 			{
-
-				local_range_start[i] =
-						(local_outer_start[i] > remote_inner_start[i]) ? local_outer_start[i] : remote_inner_start[i];
-
-				range_count[i] =
-						(local_outer_start[i] + local_outer_count[i] < remote_inner_start[i] + remote_inner_count[i]) ?
-								local_outer_start[i] + local_outer_count[i] - local_range_start[i] :
-								remote_inner_start[i] + remote_inner_count[i] - local_range_start[i];
-
-				remote_range_start[i] = local_range_start[i];
-
-				if (range_count[i] < 0)
+				// periodic shift
+				if (local_.outer_start[i] < global_start[i]
+				        && node.remote.inner_start[i] > node.remote.outer_start[i] + global_count[i])
 				{
-					if ()
-					{
-
-					}
-					else
-					{
-						need_update = false;
-						break;
-					}
+					node.remote.outer_start[i] -= global_count[i];
+					node.remote.inner_start[i] -= global_count[i];
 				}
 
+				if (local_.outer_start[i] + local_.outer_count[i] > global_start[i] + global_count[i]
+				        && node.remote.inner_start[i] + node.remote.inner_count[i]
+				                < local_.outer_start[i] - global_count[i])
+				{
+					node.remote.outer_start[i] += global_count[i];
+					node.remote.inner_start[i] += global_count[i];
+				}
+				size_t start, end;
+
+				start = std::max(local_.outer_start[i], node.remote.inner_start[i]);
+				end = std::min(local_.inner_start[i], node.remote.inner_start[i] + node.remote.inner_count[i]);
+
+				if (end > start)
+				{
+					node.remote.inner_count[i] = end - start;
+					node.remote.inner_start[i] = start;
+					need_update = true;
+					continue;
+				}
+
+				start = std::max(local_.inner_start[i] + local_.inner_count[i], node.remote.inner_start[i]);
+				end = std::min(local_.outer_start[i] + local_.outer_count[i],
+				        node.remote.inner_start[i] + node.remote.inner_count[i]);
+
+				if (end > start)
+				{
+					node.remote.inner_count[i] = end - start;
+					node.remote.inner_start[i] = start;
+					need_update = true;
+					continue;
+				}
 			}
 
 			if (need_update)
 			{
-				MPI_Get(
-
-				data, 1, MPIDataType<TV>(local_outer_count, range_count, local_range_start - local_outer_start).type(),
-
-				dest, 0, 1,
-						MPIDataType<TV>(remote_outer_count, range_count, remote_range_start - remote_outer_start).type()
-
-						, &win_);
+				neighbours_.push_back(node);
 			}
+
 		}
-		MPI_Win_fence(0, win_);
-		MPI_Win_free(&win_);
+	}
+#ifdef USE_MPI
+	template<typename TV>
+	void UpdateGhost(TV* data, MPI_Comm comm = nullptr) const
+	{
+		if (comm == nullptr)
+		{
+			comm = GLOBAL_COMM.GetComm();
+		}
+		MPI_Win win;
+
+		MPI_Win_create(data, NProduct(local_.outer_count), sizeof(TV), MPI_INFO_NULL, comm, &win);
+
+		for (auto const & neighbour : neighbours_)
+		{
+
+			MPI_Get(
+
+					data, 1,
+
+					MPIDataType<TV>(comm, local_.outer_count, neighbour.remote.inner_count,
+							neighbour.local_start - local_.outer_start).type(),
+
+					neighbour.dest, 0, 1,
+
+					MPIDataType<TV>(comm, neighbour.remote.outer_count, neighbour.remote.outer_count,
+							neighbour.remote.inner_start - neighbour.remote.outer_start).type()
+
+					, &win);
+
+		}
+
+		MPI_Win_fence((MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE), win);
+
+		MPI_Win_free(&win);
+
 	}
 
-};
-//template<typename TR, typename TF>
-//void SyncGhost(std::map<int, std::pair<TR, TR>> const & comm_topology, TF *data)
-//{
-//
-//	//IMCOMMPLETE, Need omptize
-//
-//	typedef decltype((*data)[comm_topology.begin().seond.first.begin()]) value_type;
-//
-//	auto & field = *data;
-//
-//	MPI_Datatype data_type = MPIDataType<value_type>().type();
-//
-//	unsigned int num = comm_topology.size();
-//	MPI_Request request[2 * num];
-//
-//	std::shared_ptr<value_type> buff_in[num], buff_out[num];
-//
-//	int n = 0;
-//
-//	for (auto const & item : comm_topology)
-//	{
-//
-//		auto dest = item.first;
-//		auto const & in = item.second.first;
-//		auto const & out = item.second.second;
-//		int in_tag = dest;
-//		int out_tag = GLOBAL_COMM.GetRank();
-//
-//		buff_in[n] = MEMPOOL.allocate_shared_ptr < value_type > (in.size());
-//		buff_out[n] = MEMPOOL.allocate_shared_ptr < value_type > (out.size());
-//
-//		size_t count = 0;
-//		for (auto it : out)
-//		{
-//			*(buff_out[n] + count) = field[it];
-//		}
-//
-//		MPI_Isend(buff_out[2 * n].get(), out.size(), data_type, dest, out_tag,
-//		GLOBAL_COMM.GetComm(),&request[2*n] );
-//
-//		MPI_Irecv(buff_in[2 * n + 1].get(), in.size(), data_type, dest, in_tag,
-//		GLOBAL_COMM.GetComm(),&request[2*n+1]);
-//
-//		++n;
-//	}
-//
-//	MPI_Waitall(2 * num, request, MPI_STATUS_IGNORE);
-//
-//	for (auto const & item : comm_topology)
-//	{
-//		auto const & in = item.second.first;
-//		size_t count = 0;
-//		for (auto it : in)
-//		{
-//			field[it] = *(buff_in + count);
-//		}
-//	}
-//
-//}
+#endif
+
+                private:
+	                struct sub_array_s
+	                {
+		                nTuple<NDIMS, size_t> outer_start;
+		                nTuple<NDIMS, size_t> outer_count;
+		                nTuple<NDIMS, size_t> inner_start;
+		                nTuple<NDIMS, size_t> inner_count;
+	                };
+	                struct neighbour_s
+	                {
+		                unsigned int dest;
+
+		                sub_array_s remote;
+
+		                nTuple<NDIMS, size_t> local_start;
+	                };
+
+	                sub_array_s local_;
+
+	                unsigned int array_order_ = MPI_ORDER_C;
+
+	                std::vector<neighbour_s> neighbours_;
+	                void Decompose(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
+			nTuple<NDIMS, size_t> const &global_count, sub_array_s * local) const
+	{
+
+	}
+
+}
+;
 
 }
 // namespace simpla

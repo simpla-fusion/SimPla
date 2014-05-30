@@ -101,7 +101,7 @@ struct MPIPredefineDataType<std::complex<float>>
 
 template<typename TV, int NDIMS>
 MPI_Datatype MPICreateArray(MPIDataType<TV> const& old_type, nTuple<NDIMS, size_t> const &outer,
-		nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start, int array_order_ = MPI_ORDER_C)
+        nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start, int array_order_ = MPI_ORDER_C)
 {
 
 	MPI_Datatype data_type;
@@ -112,7 +112,7 @@ MPI_Datatype MPICreateArray(MPIDataType<TV> const& old_type, nTuple<NDIMS, size_
 }
 template<int N, typename TV, int NDIMS>
 MPI_Datatype MPICreateArray(MPIDataType<nTuple<N, TV>> const& old_type, nTuple<NDIMS, size_t> const &outer,
-		nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start, int array_order_ = MPI_ORDER_C)
+        nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start, int array_order_ = MPI_ORDER_C)
 {
 	nTuple<NDIMS + 1, size_t> const &outer1;
 	nTuple<NDIMS + 1, size_t> const &inner1;
@@ -136,16 +136,17 @@ struct MPIDataType
 {
 	MPI_Datatype type_;
 
-	MPIDataType() :
-			type_(_impl::MPIPredefineDataType<T>::type())
+	MPIDataType()
+			: type_(_impl::MPIPredefineDataType<T>::type())
 	{
 	}
 
 	template<typename ...Args>
-	MPIDataType(Args const & ... args) :
-			type_(MPI_DATATYPE_NULL)
+	MPIDataType(MPI_Comm comm, Args const & ... args)
+			: type_(MPI_DATATYPE_NULL)
 	{
-		_impl::MPICreateArray(MPIDataType<T>(), std::forward<Args const &>(args)...);
+		type_ = _impl::MPICreateArray(MPIDataType<T>(), std::forward<Args const &>(args)...);
+		MPI_Type_commit(&type_);
 
 	}
 	~MPIDataType()
