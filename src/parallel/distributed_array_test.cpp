@@ -29,44 +29,63 @@ public:
 	DistributedArray<NDIMS> darray;
 };
 
-TEST_P(TestDistArray, Init)
-{
-	darray.Init(3, 1, 2, global_start, global_count);
-
-	CHECK(global_start);
-	CHECK(global_count);
-	CHECK(darray.local_.outer_start);
-	CHECK(darray.local_.outer_count);
-	CHECK(darray.local_.inner_start);
-	CHECK(darray.local_.inner_count);
-
-}
+//TEST_P(TestDistArray, Init)
+//{
+//	darray.Init(3, 1, 2, global_start, global_count);
+//
+//	CHECK(global_start);
+//	CHECK(global_count);
+//	CHECK(darray.local_.outer_start);
+//	CHECK(darray.local_.outer_count);
+//	CHECK(darray.local_.inner_start);
+//	CHECK(darray.local_.inner_count);
+//
+//}
 
 TEST_P(TestDistArray, UpdateGhost)
 {
 	GLOBAL_COMM.Init();
 	darray.Init(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2, global_start, global_count);
 
+//	if(GLOBAL_COMM.GetRank()==0)
+//	{
+//		CHECK(global_start);
+//		CHECK(global_count);
+//		CHECK(darray.local_.outer_start);
+//		CHECK(darray.local_.outer_count);
+//		CHECK(darray.local_.inner_start);
+//		CHECK(darray.local_.inner_count);
+//	}
 	std::vector<double> data(darray.memory_size());
 
 	std::fill(data.begin(), data.end(),GLOBAL_COMM.GetRank());
-//	CHECK(data);
+	size_t count =0;
+	for(auto & v:data)
+	{
+		v=count+(GLOBAL_COMM.GetRank()+1)*1000;
+		++count;
+	}
+
 	darray.UpdateGhost(&data[0]);
 
 	MPI_Barrier( GLOBAL_COMM.GetComm());
-	size_t count =0;
-	for(auto const & v:data)
+
+	if(GLOBAL_COMM.GetRank()==0)
 	{
-		if((count%darray.local_.outer_count[1])==0)
+		count =0;
+		for(auto const & v:data)
 		{
-			std::cout<<std::endl<<"["<< GLOBAL_COMM.GetRank()<<"/"<<GLOBAL_COMM.GetSize()<<"]";
+			if((count%darray.local_.outer_count[1])==0)
+			{
+				std::cout<<std::endl<<"["<< GLOBAL_COMM.GetRank()<<"/"<<GLOBAL_COMM.GetSize()<<"]";
+			}
+
+			std::cout<<v<<" ";
+
+			++count;
 		}
-
-		std::cout<<v<<" ";
-
-		++count;
+		std::cout<<std::endl;
 	}
-	std::cout<<std::endl;
 	MPI_Barrier( GLOBAL_COMM.GetComm());
 }
 
