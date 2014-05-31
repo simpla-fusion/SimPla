@@ -236,6 +236,9 @@ template<typename TV>
 void DistributedArray<N>::UpdateGhost(TV* data, MPI_Comm comm) const
 {
 
+	MPI_Request request[send_recv_.size() * 2];
+
+	int count = 0;
 	for (auto const & node : send_recv_)
 	{
 
@@ -245,18 +248,17 @@ void DistributedArray<N>::UpdateGhost(TV* data, MPI_Comm comm) const
 		MPIDataType<TV> recv_type(comm, local_.outer_count, node.second.outer_count,
 				node.second.outer_start - local_.outer_start);
 
-		MPI_Sendrecv(
+//		MPI_Sendrecv(
+//		data, 1, recv_type.type(), node.first, hash(node.second.outer_start),
+//		data, 1, send_type.type(), node.first, hash(node.second.inner_start),
+//		comm, MPI_STATUS_IGNORE);
 
-		data, 1, recv_type.type(), node.first,
-
-		hash(node.second.outer_start),
-
-		data, 1, send_type.type(), node.first,
-
-		hash(node.second.inner_start),
-
-		comm, nullptr);
+		MPI_Isend(data, 1, recv_type.type(), node.first, hash(node.second.outer_start), comm, &request[count * 2]);
+		MPI_Irecv(data, 1, send_type.type(), node.first, hash(node.second.inner_start), comm, &request[count * 2 + 1]);
+		++count;
 	}
+
+	MPI_Waitall(send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
 
 }
 #endif
