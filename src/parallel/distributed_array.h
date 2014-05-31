@@ -8,10 +8,8 @@
 #ifndef DISTRIBUTED_ARRAY_H_
 #define DISTRIBUTED_ARRAY_H_
 
-#include <stddef.h>
-#include <pair>
 #include <vector>
-
+#include <functional>
 #include "../fetl/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "message_comm.h"
@@ -29,7 +27,7 @@ struct DistributedArray
 public:
 	static constexpr int NDIMS = N;
 	unsigned int array_order_ = MPI_ORDER_C;
-private:
+	int self_id_;
 	struct sub_array_s
 	{
 		nTuple<NDIMS, size_t> outer_start;
@@ -37,15 +35,14 @@ private:
 		nTuple<NDIMS, size_t> inner_start;
 		nTuple<NDIMS, size_t> inner_count;
 	};
-public:
-	DistributedArray()
-			: Decompose(DefaultDecomposer)
+	DistributedArray() :
+			Decompose(DefaultDecomposer), self_id_(0)
 	{
 	}
 
 	template<typename ...Args>
-	DistributedArray(Args const & ... args)
-			: Decompose(DefaultDecomposer)
+	DistributedArray(Args const & ... args) :
+			Decompose(DefaultDecomposer)
 	{
 		Init(std::forward<Args const &>(args)...);
 	}
@@ -53,12 +50,19 @@ public:
 	~DistributedArray()
 	{
 	}
-
+	size_t size() const
+	{
+		return NProduct(local_.inner_count);
+	}
+	size_t memory_size() const
+	{
+		return NProduct(local_.outer_count);
+	}
 	void Init(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
-	        nTuple<NDIMS, size_t> const &global_count);
+			nTuple<NDIMS, size_t> const &global_count);
 
 	std::function<
-	        void(int, int, unsigned int, nTuple<NDIMS, size_t> const &, nTuple<NDIMS, size_t> const &, sub_array_s *)> Decompose;
+			void(int, int, unsigned int, nTuple<NDIMS, size_t> const &, nTuple<NDIMS, size_t> const &, sub_array_s *)> Decompose;
 
 	template<typename TV> void UpdateGhost(TV* data) const;
 
@@ -66,27 +70,69 @@ public:
 	template<typename TV> void UpdateGhost(TV* data, MPI_Comm comm) const;
 #endif
 
-private:
-
 	sub_array_s local_;
 
-	std::map<int, sub_array_s> neighbours_;
+	nTuple<NDIMS, size_t> global_strides_;
+	nTuple<NDIMS, size_t> global_start_;
+	nTuple<NDIMS, size_t> global_count_;
+
+	std::map<int, sub_array_s> send_recv_;
 
 	static void DefaultDecomposer(int num_process, int process_num, unsigned int gw,
-	        nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s *);
+			nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s *);
 
+	int hash(nTuple<NDIMS, size_t> const & d) const
+	{
+		int res = 0;
+//		for (int i = 0; i < NDIMS; ++i)
+//		{
+//			res += ((d[i] - global_start_[i] + global_count_[i]) % global_count_[i]) * global_strides_[i];
+//		}
+		return res;
+	}
 }
 ;
 
 template<int N>
 void DistributedArray<N>::DefaultDecomposer(int num_process, int process_num, unsigned int gw,
-        nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s * local)
+		nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s * local)
 {
+	int n = 0;
+	size_t L = 0;
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (global_count[i] > L)
+		{
+			L = global_count[i];
+			n = i;
+		}
+	}
+
+	nTuple<NDIMS, size_t> start, count;
+
+	local->outer_count = global_count;
+	local->outer_start = global_start;
+	local->inner_count = global_count;
+	local->inner_start = global_start;
+
+	if ((2 * gw * num_process > global_count[n] || num_process > global_count[n]))
+	{
+		if (process_num > 0)
+			local->outer_count = 0;
+	}
+	else
+	{
+		local->inner_start[n] += (global_count[n] * process_num) / num_process;
+		local->inner_count[n] = (global_count[n] * (process_num + 1)) / num_process
+				- (global_count[n] * process_num) / num_process;
+		local->outer_start[n] = local->inner_start[n] - gw;
+		local->outer_count[n] = local->inner_count[n] + gw * 2;
+	}
 
 }
 template<int NDIMS>
 bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const &l_count,
-        nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
+		nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
 {
 	bool has_overlap = false;
 
@@ -95,6 +141,11 @@ bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const
 
 	for (int i = 0; i < NDIMS; ++i)
 	{
+		if (r_start[i] + r_count[i] < l_start[i] || r_start[i] > l_start[i] + l_count[i])
+		{
+			has_overlap = false;
+			break;
+		}
 
 		size_t start = std::max(l_start[i], r_start[i]);
 		size_t end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
@@ -109,24 +160,27 @@ bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const
 		}
 
 	}
+
 	return has_overlap;
 }
 template<int N>
 void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
-        nTuple<NDIMS, size_t> const &global_count)
+		nTuple<NDIMS, size_t> const &global_count)
 
 {
+	self_id_ = (process_num);
 	Decompose(num_process, process_num, gw, global_start, global_count, &local_);
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
-
+		if (dest == self_id_)
+			continue;
 		sub_array_s node;
 
 		Decompose(num_process, dest, gw, global_start, global_count, &(node));
 
 		// assume no overlap in inner area
-		// consider periodic boundary condition, traveral all neighbours
+		// consider periodic boundary condition, traversal all neighbour
 
 		sub_array_s remote;
 		for (unsigned long s = 0, s_e = (1UL << (NDIMS * 2)); s < s_e; ++s)
@@ -144,10 +198,33 @@ void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTup
 				remote.inner_start[i] += global_count[i] * n;
 			}
 
-			if (Clipping(local_.outer_start, local_.outer_count, &remote.inner_start, &remote.inner_count))
+			bool f_inner = Clipping(local_.outer_start, local_.outer_count, &remote.inner_start, &remote.inner_count);
+			bool f_outer = Clipping(local_.inner_start, local_.inner_count, &remote.outer_start, &remote.outer_count);
+			if (f_inner && f_outer)
 			{
-				neighbours_[dest] = remote;
+				send_recv_[dest] = remote;
 			}
+		}
+
+	}
+
+	global_count_ = global_count;
+	global_start_ = global_start;
+
+	if (array_order_ == MPI_ORDER_C)
+	{
+		global_strides_[NDIMS - 1] = 1;
+		for (int i = NDIMS - 2; i >= 0; --i)
+		{
+			global_strides_[i] = global_count_[i] * global_strides_[i + 1];
+		}
+	}
+	else
+	{
+		global_strides_[0] = 1;
+		for (int i = 1; i < NDIMS; ++i)
+		{
+			global_strides_[i] = global_count_[i] * global_strides_[i - 1];
 		}
 
 	}
@@ -159,32 +236,27 @@ template<typename TV>
 void DistributedArray<N>::UpdateGhost(TV* data, MPI_Comm comm) const
 {
 
-	MPI_Win win;
-
-	MPI_Win_create(data, NProduct(local_.outer_count), sizeof(TV), MPI_INFO_NULL, comm, &win);
-
-	for (auto const & remote : neighbours_)
+	for (auto const & node : send_recv_)
 	{
 
-		MPI_Get(
+		MPIDataType<TV> send_type(comm, local_.outer_count, node.second.inner_count,
+				node.second.inner_start - local_.outer_start);
 
-		data, 1,
+		MPIDataType<TV> recv_type(comm, local_.outer_count, node.second.outer_count,
+				node.second.outer_start - local_.outer_start);
 
-		        MPIDataType<TV>(comm, local_.outer_count, remote.second.inner_count,
-		                remote.second.inner_start - local_.outer_start).type(),
+		MPI_Sendrecv(
 
-		        remote.first, 0, 1,
+		data, 1, recv_type.type(), node.first,
 
-		        MPIDataType<TV>(comm, remote.second.outer_count, remote.second.inner_count,
-		                remote.second.inner_start - remote.second.outer_start).type()
+		hash(node.second.outer_start),
 
-		        , &win);
+		data, 1, send_type.type(), node.first,
 
+		hash(node.second.inner_start),
+
+		comm, nullptr);
 	}
-
-	MPI_Win_fence((MPI_MODE_NOPUT | MPI_MODE_NOPRECEDE), win);
-
-	MPI_Win_free(&win);
 
 }
 #endif

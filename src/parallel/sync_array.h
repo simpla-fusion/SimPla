@@ -103,7 +103,7 @@ public:
 
 			if (need_update)
 			{
-				neighbours_.push_back(node);
+				recv_.push_back(node);
 			}
 
 		}
@@ -120,7 +120,7 @@ public:
 
 		MPI_Win_create(data, NProduct(local_.outer_count), sizeof(TV), MPI_INFO_NULL, comm, &win);
 
-		for (auto const & neighbour : neighbours_)
+		for (auto const & neighbour : recv_)
 		{
 
 			MPI_Get(
@@ -168,7 +168,7 @@ public:
 
 	                unsigned int array_order_ = MPI_ORDER_C;
 
-	                std::vector<neighbour_s> neighbours_;
+	                std::vector<neighbour_s> recv_;
 	                void Decompose(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
 			nTuple<NDIMS, size_t> const &global_count, sub_array_s * local) const
 	{

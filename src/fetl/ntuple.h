@@ -80,7 +80,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-	        TR const &r)
+			TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r[M - 1]);
 		_assign<M - 1>::eval(fun, l, r);
@@ -93,7 +93,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-	        TR const &r)
+			TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r);
 		_assign<M - 1>::eval(fun, l, r);
@@ -114,14 +114,14 @@ template<> struct _assign<1>
 	template<typename TFun, typename TL, typename TR>
 
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-	        TR const &r)
+			TR const &r)
 	{
 		l[0] = fun(l[0], r[0]);
 	}
 
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-	        TR const &r)
+			TR const &r)
 	{
 		l[0] = fun(l[0], r);
 	}
@@ -386,7 +386,8 @@ template<typename T> inline
 auto real(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res = { std::real(l[0]), std::real(l[1]), std::real(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res =
+	{ std::real(l[0]), std::real(l[1]), std::real(l[2]) };
 	return std::move(res);
 }
 
@@ -394,7 +395,8 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res = { std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res =
+	{ std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
 	return std::move(res);
 
 }
@@ -410,7 +412,8 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
 {
-	nTuple<3, T> res = { 0, 0, 0 };
+	nTuple<3, T> res =
+	{ 0, 0, 0 };
 	return l;
 }
 template<int NDIMS, typename TExpr>
@@ -436,4 +439,23 @@ auto operator <<(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,
 }
 }
 //namespace simpla
+
+//namespace std
+//{
+//template<typename > struct hash;
+//template<>
+//template<int N,typename TV>
+//struct hash<simpla::nTuple<N, TV>>
+//{
+//	typedef S argument_type;
+//	typedef std::size_t value_type;
+//
+//	value_type operator()(argument_type const& s) const
+//	{
+//		value_type const h1(std::hash<std::string>()(s.first_name));
+//		value_type const h2(std::hash<std::string>()(s.last_name));
+//		return h1 ^ (h2 << 1);
+//	}
+//}
+//}  // namespace std
 #endif  // INCLUDE_NTUPLE_H_

@@ -19,13 +19,13 @@ class MessageComm
 	int process_num_;
 	bool isInitilized_;
 public:
-	MessageComm()
-			: num_process_(1), process_num_(0), isInitilized_(false)
+	MessageComm() :
+			num_process_(1), process_num_(0), isInitilized_(false)
 	{
 	}
 
-	MessageComm(int argc, char** argv)
-			: isInitilized_(false)
+	MessageComm(int argc, char** argv) :
+			isInitilized_(false)
 	{
 		Init(argc, argv);
 	}
@@ -35,7 +35,7 @@ public:
 			MPI_Finalize();
 	}
 
-	void Init(int argc, char** argv)
+	void Init(int argc = 0, char** argv = nullptr)
 	{
 		MPI_Init(&argc, &argv);
 		MPI_Comm_size(MPI_COMM_WORLD, &num_process_);
