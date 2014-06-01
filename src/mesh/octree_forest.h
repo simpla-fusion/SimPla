@@ -20,6 +20,7 @@
 #include "../utilities/type_utilites.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/memory_pool.h"
+#include "../parallel/distributed_array.h"
 
 namespace simpla
 {
@@ -107,8 +108,6 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	unsigned long clock_ = 0UL;
-
 	static compact_index_type Compact(nTuple<NDIMS, size_type> const & idx)
 	{
 		return
@@ -188,6 +187,8 @@ struct OcForest
 		return os.str();
 	}
 
+	unsigned long clock_ = 0UL;
+
 	void NextTimeStep()
 	{
 		++clock_;
@@ -209,6 +210,14 @@ struct OcForest
 	nTuple<NDIMS, size_type> hash_stride_ =
 	{	0, 0, 0};
 
+	enum
+	{
+		FAST_FIRST, SLOW_FIRST
+	};
+
+	int array_order_ = SLOW_FIRST;
+
+	DistributedArray<NDIMS> global_array_;
 	//
 	//   |----------------|----------------|---------------|--------------|------------|
 	//   ^                ^                ^               ^              ^            ^
@@ -216,13 +225,6 @@ struct OcForest
 	//global          local_outer      local_inner    local_inner    local_outer     global
 	// _start          _start          _start           _end           _end          _end
 	//
-
-	enum
-	{
-		FAST_FIRST, SLOW_FIRST
-	};
-
-	int array_order_ = SLOW_FIRST;
 
 	template<typename TI>
 	void SetDimensions(TI const &d)
@@ -238,6 +240,10 @@ struct OcForest
 
 		}
 
+		global_array_.global_start_=global_start_;
+		global_array_.global_count_=global_count_;
+		global_array_.Decompose(1,0,0);
+
 		local_outer_start_ = global_start_;
 		local_outer_count_ = global_count_;
 
@@ -247,39 +253,53 @@ struct OcForest
 		UpdateHash();
 	}
 
-	std::map<unsigned int ,std::pair<Range,Range> > neighbours;
-
 	void Decompose(unsigned int num_process,unsigned int process_num,unsigned int ghost_width=0)
 	{
 
-		nTuple<NDIMS, size_type> mpi_grid_size,mpi_grid_rank;
+//		nTuple<NDIMS, size_type> mpi_grid_size,mpi_grid_rank;
+//
+//		for (int i = 0; i < NDIMS; ++i)
+//		{
+//
+//			if ((2 * ghost_width * mpi_grid_size[i] > local_inner_count_[i])||(mpi_grid_size[i] > local_inner_count_[i]) )
+//			{
+//				if(mpi_grid_rank[i]>0)
+//				{
+//					local_inner_count_[i]=0;
+//				}
+//			}
+//			else
+//			{
+//
+//				auto start = (local_inner_count_[i] * mpi_grid_rank[i]) / mpi_grid_size[i];
+//
+//				auto end = (local_inner_count_[i] * (mpi_grid_rank[i] + 1)) / mpi_grid_size[i];
+//
+//				local_inner_start_[i] += start;
+//				local_inner_count_[i] = end - start;
+//
+//				local_outer_start_[i] = local_inner_start_[i] - ghost_width;
+//				local_outer_count_[i] = local_inner_count_[i] + ghost_width*2;
+//			}
+//		}
 
-		for (int i = 0; i < NDIMS; ++i)
-		{
+		global_array_.global_start_=global_start_;
+		global_array_.global_count_=global_count_;
 
-			if ((2 * ghost_width * mpi_grid_size[i] > local_inner_count_[i])||(mpi_grid_size[i] > local_inner_count_[i]) )
-			{
-				if(mpi_grid_rank[i]>0)
-				{
-					local_inner_count_[i]=0;
-				}
-			}
-			else
-			{
+		global_array_.Decompose(num_process,process_num,ghost_width);
 
-				auto start = (local_inner_count_[i] * mpi_grid_rank[i]) / mpi_grid_size[i];
-
-				auto end = (local_inner_count_[i] * (mpi_grid_rank[i] + 1)) / mpi_grid_size[i];
-
-				local_inner_start_[i] += start;
-				local_inner_count_[i] = end - start;
-
-				local_outer_start_[i] = local_inner_start_[i] - ghost_width;
-				local_outer_count_[i] = local_inner_count_[i] + ghost_width*2;
-			}
-		}
+		local_inner_start_=global_array_.local_.inner_start;
+		local_inner_count_=global_array_.local_.inner_count;
+		local_outer_start_=global_array_.local_.outer_start;
+		local_outer_count_=global_array_.local_.outer_count;
 
 		UpdateHash();
+	}
+
+	template<typename TV,typename ... Args>
+	void UpdateGhosts(TV pdata,Args const &... args)const
+	{
+		global_array_.UpdateGhosts(&(*pdata),std::forward<Args const &>(args)...);
 	}
 
 	void UpdateHash()

@@ -21,6 +21,7 @@ protected:
 	{
 		global_count = GetParam();
 		global_start = 10000;
+
 	}
 public:
 	nTuple<3, size_t> global_start;
@@ -45,17 +46,12 @@ public:
 TEST_P(TestDistArray, UpdateGhost)
 {
 	GLOBAL_COMM.Init();
-	darray.Init(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2, global_start, global_count);
 
-//	if(GLOBAL_COMM.GetRank()==0)
-//	{
-//		CHECK(global_start);
-//		CHECK(global_count);
-//		CHECK(darray.local_.outer_start);
-//		CHECK(darray.local_.outer_count);
-//		CHECK(darray.local_.inner_start);
-//		CHECK(darray.local_.inner_count);
-//	}
+	darray.global_start_=global_start;
+	darray.global_count_=global_count;
+
+	darray.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2);
+
 	std::vector<double> data(darray.memory_size());
 
 	std::fill(data.begin(), data.end(),GLOBAL_COMM.GetRank());

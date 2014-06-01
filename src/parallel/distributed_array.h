@@ -37,15 +37,19 @@ public:
 		nTuple<NDIMS, size_t> inner_count;
 	};
 	DistributedArray() :
-			Decompose(DefaultDecomposer), self_id_(0)
+			self_id_(0)
 	{
 	}
 
 	template<typename ...Args>
-	DistributedArray(Args const & ... args) :
-			Decompose(DefaultDecomposer)
+	DistributedArray(nTuple<NDIMS, size_t> global_start, nTuple<NDIMS, size_t> global_count, Args const & ... args)
+
 	{
-		Init(std::forward<Args const &>(args)...);
+
+		global_count_ = global_count;
+		global_start_ = global_start;
+
+		Decompose(std::forward<Args const &>(args)...);
 	}
 
 	~DistributedArray()
@@ -59,25 +63,23 @@ public:
 	{
 		return NProduct(local_.outer_count);
 	}
-	void Init(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
-			nTuple<NDIMS, size_t> const &global_count);
 
-	std::function<
-			void(int, int, unsigned int, nTuple<NDIMS, size_t> const &, nTuple<NDIMS, size_t> const &, sub_array_s *)> Decompose;
+	void Decompose(int num_process, int process_num, size_t gw);
 
 	template<typename TV> void UpdateGhost(TV* data) const;
 
 #ifdef USE_MPI
-	template<typename TV> void UpdateGhost(TV* data, MPI_Comm comm) const;
+	template<typename TV> void UpdateGhosts(TV* data, MPI_Comm comm) const;
 #endif
 
-	sub_array_s local_;
-
-	nTuple<NDIMS, size_t> global_strides_;
 	nTuple<NDIMS, size_t> global_start_;
 	nTuple<NDIMS, size_t> global_count_;
 
-	struct adjoint_s
+	nTuple<NDIMS, size_t> global_strides_;
+
+	sub_array_s local_;
+private:
+	struct send_recv_s
 	{
 		int dest;
 		int send_tag;
@@ -87,10 +89,9 @@ public:
 		nTuple<NDIMS, size_t> recv_start;
 		nTuple<NDIMS, size_t> recv_count;
 	};
-	std::vector<adjoint_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
+	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
-	static void DefaultDecomposer(int num_process, int process_num, unsigned int gw,
-			nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s *);
+	void Decomposer_(int num_process, int process_num, unsigned int gw, sub_array_s *) const;
 
 	int hash(nTuple<NDIMS, size_t> const & d) const
 	{
@@ -105,13 +106,12 @@ public:
 ;
 
 template<int N>
-void DistributedArray<N>::DefaultDecomposer(int num_process, int process_num, unsigned int gw,
-		nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, sub_array_s * local)
+void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned int gw, sub_array_s * local) const
 {
-	local->outer_count = global_count;
-	local->outer_start = global_start;
-	local->inner_count = global_count;
-	local->inner_start = global_start;
+	local->outer_count = global_count_;
+	local->outer_start = global_start_;
+	local->inner_count = global_count_;
+	local->inner_start = global_start_;
 
 	if (num_process == 1)
 		return;
@@ -120,25 +120,25 @@ void DistributedArray<N>::DefaultDecomposer(int num_process, int process_num, un
 	size_t L = 0;
 	for (int i = 0; i < NDIMS; ++i)
 	{
-		if (global_count[i] > L)
+		if (global_count_[i] > L)
 		{
-			L = global_count[i];
+			L = global_count_[i];
 			n = i;
 		}
 	}
 
 	nTuple<NDIMS, size_t> start, count;
 
-	if ((2 * gw * num_process > global_count[n] || num_process > global_count[n]))
+	if ((2 * gw * num_process > global_count_[n] || num_process > global_count_[n]))
 	{
 		if (process_num > 0)
 			local->outer_count = 0;
 	}
 	else
 	{
-		local->inner_start[n] += (global_count[n] * process_num) / num_process;
-		local->inner_count[n] = (global_count[n] * (process_num + 1)) / num_process
-				- (global_count[n] * process_num) / num_process;
+		local->inner_start[n] += (global_count_[n] * process_num) / num_process;
+		local->inner_count[n] = (global_count_[n] * (process_num + 1)) / num_process
+				- (global_count_[n] * process_num) / num_process;
 		local->outer_start[n] = local->inner_start[n] - gw;
 		local->outer_count[n] = local->inner_count[n] + gw * 2;
 	}
@@ -173,13 +173,8 @@ bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const
 	return has_overlap;
 }
 template<int N>
-void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
-		nTuple<NDIMS, size_t> const &global_count)
-
+void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 {
-
-	global_count_ = global_count;
-	global_start_ = global_start;
 
 	if (array_order_ == MPI_ORDER_C)
 	{
@@ -201,14 +196,14 @@ void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTup
 
 	self_id_ = (process_num);
 
-	Decompose(num_process, process_num, gw, global_start, global_count, &local_);
+	Decomposer_(num_process, process_num, gw, &local_);
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
 
 		sub_array_s node;
 
-		Decompose(num_process, dest, gw, global_start, global_count, &(node));
+		Decomposer_(num_process, dest, gw, &(node));
 
 		// assume no overlap in inner area
 		// consider periodic boundary condition, traversal all neighbour
@@ -227,8 +222,8 @@ void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTup
 
 				n = (n + 1) % 3 - 1; // 0 1 2 => 0 1 -1
 
-				remote.outer_start[i] += global_count[i] * n;
-				remote.inner_start[i] += global_count[i] * n;
+				remote.outer_start[i] += global_count_[i] * n;
+				remote.inner_start[i] += global_count_[i] * n;
 			}
 
 			bool f_inner = Clipping(local_.outer_start, local_.outer_count, &remote.inner_start, &remote.inner_count);
@@ -236,7 +231,7 @@ void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTup
 
 			if (f_inner && f_outer)
 			{
-				send_recv_.emplace_back(adjoint_s(
+				send_recv_.emplace_back(send_recv_s(
 				{ dest, hash(remote.outer_start), hash(remote.inner_start), remote.outer_start, remote.outer_count,
 						remote.inner_start, remote.inner_count }));
 			}
@@ -249,7 +244,7 @@ void DistributedArray<N>::Init(int num_process, int process_num, size_t gw, nTup
 #ifdef USE_MPI
 template<int N>
 template<typename TV>
-void DistributedArray<N>::UpdateGhost(TV* data, MPI_Comm comm) const
+void DistributedArray<N>::UpdateGhosts(TV* data, MPI_Comm comm) const
 {
 
 	MPI_Request request[send_recv_.size() * 2];
