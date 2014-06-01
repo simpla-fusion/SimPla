@@ -54,14 +54,14 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
 	{
 	}
 
@@ -77,14 +77,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -103,6 +103,11 @@ public:
 		ASSERT(mesh == rhs.mesh);
 
 		std::swap(data_, rhs.data_);
+	}
+
+	void UpdateGhosts()
+	{
+		mesh.UpdateGhosts(this);
 	}
 
 	template<typename ...Args>
@@ -159,8 +164,8 @@ public:
 
 		typedef iterator_<TC> this_type;
 
-		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s)
-				: data_(d), mesh(m), it_(s)
+		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s) :
+				data_(d), mesh(m), it_(s)
 		{
 
 		}
