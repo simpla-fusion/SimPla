@@ -67,6 +67,8 @@ public:
 
 	std::string Save(std::string const & path) const;
 
+	void UpdateGhosts();
+
 	void Clear(mesh_iterator s);
 
 	void Add(mesh_iterator s, cell_type &&);
@@ -262,6 +264,9 @@ void ParticlePool<TM, TParticle>::Sort()
 	);
 
 	isSorted_ = true;
+
+	UpdateGhosts();
+
 }
 
 template<typename TM, typename TParticle>
