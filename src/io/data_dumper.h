@@ -22,7 +22,7 @@
 namespace simpla
 {
 template<typename TV>
-class DataSaveer
+class DataSaver
 {
 
 	TV const* data_;
@@ -34,7 +34,7 @@ public:
 	typedef TV value_type;
 
 	template<typename TI>
-	DataSaveer(TV const* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag =
+	DataSaver(TV const* d, std::string const &name = "unnamed", int rank = 1, TI const* dims = nullptr, bool flag =
 	        false)
 			: data_(d), name_(name), is_verbose_(flag)
 	{
@@ -54,7 +54,7 @@ public:
 	}
 
 	template<int N, typename TI>
-	DataSaveer(TV const* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
+	DataSaver(TV const* d, std::string const &name, nTuple<N, TI> const & dims, bool flag = false)
 			: data_(d), name_(name), is_verbose_(flag)
 	{
 		for (size_t i = 0; i < N; ++i)
@@ -64,42 +64,42 @@ public:
 	}
 
 	template<typename TI>
-	DataSaveer(TV const* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
+	DataSaver(TV const* d, std::string const &name, std::vector<TI> const & dims, bool flag = false)
 			: data_(d), name_(name), dims_(dims.size()), is_verbose_(flag)
 	{
 		std::copy(dims.begin(), dims.end(), dims_.begin());
 	}
 
-	DataSaveer(DataSaveer const& r) = delete;
+	DataSaver(DataSaver const& r) = delete;
 
-	DataSaveer(DataSaveer && r) = delete;
+	DataSaver(DataSaver && r) = delete;
 
-	~DataSaveer()
+	~DataSaver()
 	{
-		DataStream::instance().Write(data_, name_, dims_.size(), &dims_[0], is_verbose_);
+		GLOBAL_DATA_STREAM.Write(data_, name_, dims_.size(), &dims_[0], is_verbose_);
 	}
 
 	std::string GetName() const
 	{
-		return "\"" + DataStream::instance().GetCurrentPath() + name_ + "\"";
+		return "\"" + GLOBAL_DATA_STREAM.GetCurrentPath() + name_ + "\"";
 	}
 
 };
 
 template<typename TV, typename ... Args> inline std::string Save(std::shared_ptr<TV> const & d, Args const & ... args)
 {
-	return DataSaveer<TV>(d.get(), std::forward<Args const &>(args)...).GetName();
+	return DataSaver<TV>(d.get(), std::forward<Args const &>(args)...).GetName();
 }
 template<typename TV, typename ... Args> inline std::string Save(TV* d, Args const & ... args)
 {
-	return DataSaveer<TV>(d, std::forward<Args const &>(args)...).GetName();
+	return DataSaver<TV>(d, std::forward<Args const &>(args)...).GetName();
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::vector<TV>const & d, std::string const & name,
         Args const & ... args)
 {
 	size_t s = d.size();
-	return DataSaveer<TV>(&d[0], name, 1, &s, std::forward<Args const &>(args)...).GetName();
+	return DataSaver<TV>(&d[0], name, 1, &s, std::forward<Args const &>(args)...).GetName();
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Save(std::map<TL, TR>const & d,
         std::string const & name, Args const & ... args)
@@ -123,7 +123,7 @@ template<typename TV, typename ... Args> inline std::string Save(std::map<TV, TV
 	return Save(d_, name, std::forward<Args const &>(args)...);
 }
 template<typename U>
-std::ostream & operator<<(std::ostream & os, DataSaveer<U> const &d)
+std::ostream & operator<<(std::ostream & os, DataSaver<U> const &d)
 {
 	os << d.GetName();
 	return os;

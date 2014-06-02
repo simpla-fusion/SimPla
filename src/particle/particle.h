@@ -30,6 +30,7 @@
 
 #include "../io/data_stream.h"
 
+#include "../fetl/save_field.h"
 #include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
@@ -201,17 +202,18 @@ std::string Particle<Engine>::Save(std::string const & path, bool is_verbose) co
 
 		;
 
-		os << "\n, n =" << simpla::Save(n, "n");
+		os << "\n, n =" << simpla::Save( "n",n);
 
-		os << "\n, J =" << simpla::Save(J, "J");
+		os << "\n, J =" << simpla::Save( "J",J);
 
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 	}
 	else
 	{
-		os << "\n, n =" << simpla::Save(n, "n");
 
-		os << "\n, J =" << simpla::Save(J, "J");
+		os << "\n, n =" << simpla::Save( "n",n);
+
+		os << "\n, J =" << simpla::Save( "J",J);
 
 	}
 

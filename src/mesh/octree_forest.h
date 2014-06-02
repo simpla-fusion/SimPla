@@ -338,9 +338,8 @@ struct OcForest
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
-	int GetDataSetShape(int IFORM, size_type * global_dims = nullptr, size_type * global_start = nullptr,
-	size_type * local_dims = nullptr, size_type * local_start = nullptr, size_type * local_count = nullptr,
-	size_type * local_stride = nullptr, size_type * local_block = nullptr) const
+	int GetDataSetShape(int IFORM, size_type * global_dims = nullptr, size_type * local_outer_start = nullptr,
+	size_type * local_outer_count = nullptr, size_type * local_inner_start = nullptr, size_type * local_inner_count = nullptr ) const
 	{
 		int rank = 0;
 
@@ -351,17 +350,17 @@ struct OcForest
 				if (global_dims != nullptr)
 				global_dims[rank] = global_count_[i];
 
-				if (global_start != nullptr)
-				global_start[rank] = local_inner_start_[i] - global_start_[i];
+				if (local_outer_start != nullptr)
+				local_outer_start[rank] = local_inner_start_[i];
 
-				if (local_dims != nullptr)
-				local_dims[rank] = local_outer_count_[i];
+				if (local_outer_count != nullptr)
+				local_outer_count[rank] = local_outer_count_[i];
 
-				if (local_start != nullptr)
-				local_start[rank] = (local_inner_start_[i] - local_outer_start_[i]);
+				if (local_inner_start != nullptr)
+				local_inner_start[rank] = local_inner_start_[i];
 
-				if (local_count != nullptr)
-				local_count[rank] = (local_inner_count_[i]);
+				if (local_inner_count != nullptr)
+				local_inner_count[rank] = local_inner_count_[i];
 
 				++rank;
 			}
@@ -372,17 +371,17 @@ struct OcForest
 			if (global_dims != nullptr)
 			global_dims[rank] = 3;
 
-			if (global_start != nullptr)
-			global_start[rank] = 0;
+			if (local_outer_start != nullptr)
+			local_outer_start[rank] = 0;
 
-			if (local_dims != nullptr)
-			local_dims[rank] = 3;
+			if (local_outer_count != nullptr)
+			local_outer_count[rank] = 3;
 
-			if (local_start != nullptr)
-			local_start[rank] = 0;
+			if (local_inner_start != nullptr)
+			local_inner_start[rank] = 0;
 
-			if (local_count != nullptr)
-			local_count[rank] = 3;
+			if (local_inner_count != nullptr)
+			local_inner_count[rank] = 3;
 
 			++rank;
 		}

@@ -68,7 +68,7 @@ template<typename TI, typename TFun> inline void InsertDataItemWithFun(XdmfDataI
 	std::copy(pdims, pdims + rank, dims);
 	dataitem->SetShape(rank, dims);
 //	dataitem->SetFormat(XDMF_FORMAT_HDF);
-//	dataitem->SetArrayIsMine(true);s
+//	dataitem->SetArrayIsMine(true);
 	dataitem->SetHeavyDataSetName(HeavyDataSetName.c_str());
 
 	XdmfArray * myArray = dataitem->GetArray(1);

@@ -359,13 +359,13 @@ std::string ExplicitEMContext<TM>::Save(std::string const & path) const
 
 	<< "\n, Fields = {" << "\n"
 
-	<< "\n, E = " << simpla::Save(E, "E")
+	<< "\n, E = " << SAVE(E )
 
-	<< "\n, B = " << simpla::Save(B, "B")
+	<< "\n, B = " << SAVE(B )
 
-	<< "\n, J = " << simpla::Save(Jext, "J")
+	<< "\n, J = " << SAVE(Jext)
 
-	<< "\n, J0 = " << simpla::Save(J0, "J0")
+	<< "\n, J0 = " << SAVE(J0 )
 
 	<< "\n} ";
 

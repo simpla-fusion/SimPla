@@ -67,7 +67,10 @@ public:
 
 	std::string Save(std::string const & path) const;
 
-	void UpdateGhosts(){};
+	void UpdateGhosts()
+	{
+	}
+	;
 
 	void Clear(mesh_iterator s);
 
@@ -199,7 +202,7 @@ ParticlePool<TM, TParticle>::~ParticlePool()
 template<typename TM, typename TParticle>
 std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 {
-	return simpla::Save(*this, name);
+	return simpla::Save(name, *this);
 }
 
 #define DISABLE_MULTI_THREAD
