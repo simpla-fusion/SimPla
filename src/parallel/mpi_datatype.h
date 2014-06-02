@@ -100,9 +100,9 @@ template<> struct MPIPredefineDataType<std::complex<float>>
 	}
 };
 
-template<typename TV, int NDIMS>
-MPI_Datatype MPICreateArray(MPIDataType<TV> const& old_type, nTuple<NDIMS, size_t> const &pouter,
-		nTuple<NDIMS, size_t> const &pinner, nTuple<NDIMS, size_t> const &pstart, int array_order_ = MPI_ORDER_C)
+template<typename TV, int NDIMS> typename std::enable_if<!is_nTuple<TV>::value, MPI_Datatype>::type MPICreateArray(
+		MPIDataType<TV> const& old_type, nTuple<NDIMS, size_t> const &pouter, nTuple<NDIMS, size_t> const &pinner,
+		nTuple<NDIMS, size_t> const &pstart, int array_order_ = MPI_ORDER_C)
 {
 
 	MPI_Datatype data_type;
@@ -115,10 +115,14 @@ MPI_Datatype MPICreateArray(MPIDataType<TV> const& old_type, nTuple<NDIMS, size_
 	MPI_Type_commit(&data_type);
 	return data_type;
 }
-template<int N, typename TV, int NDIMS>
-MPI_Datatype MPICreateArray(MPIDataType<nTuple<N, TV>> const& old_type, nTuple<NDIMS, size_t> const &outer,
-		nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start, int array_order_ = MPI_ORDER_C)
+template<typename TV, int NDIMS>
+typename std::enable_if<is_nTuple<TV>::value, MPI_Datatype>::type MPICreateArray(MPIDataType<TV> const& old_type,
+		nTuple<NDIMS, size_t> const &outer, nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start,
+		int array_order_ = MPI_ORDER_C)
 {
+	typedef typename nTupleTraits<TV>::value_type value_type;
+	int N = nTupleTraits<TV>::NDIMS;
+
 	nTuple<NDIMS + 1, size_t> outer1;
 	nTuple<NDIMS + 1, size_t> inner1;
 	nTuple<NDIMS + 1, size_t> start1;
@@ -130,10 +134,10 @@ MPI_Datatype MPICreateArray(MPIDataType<nTuple<N, TV>> const& old_type, nTuple<N
 		start1[i] = start[i];
 	}
 	outer1[NDIMS] = N;
-	inner1[NDIMS] = inner[NDIMS];
-	start1[NDIMS] = start[NDIMS];
+	inner1[NDIMS] = N;
+	start1[NDIMS] = 0;
 
-	return MPICreateArray(MPIDataType<TV>(), outer1, inner1, start1, array_order_);
+	return MPICreateArray(MPIDataType<value_type>(), outer1, inner1, start1, array_order_);
 }
 } // namespace _impl
 template<typename T>

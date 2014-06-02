@@ -246,8 +246,13 @@ struct OcForest
 		Decompose(1,0,0);
 	}
 
-	void Decompose(unsigned int num_process,unsigned int process_num,unsigned int ghost_width=0)
+	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
 	{
+		if(num_process<=1)
+		{
+			num_process=GLOBAL_COMM.GetSize();
+			process_num=GLOBAL_COMM.GetRank();
+		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
 		local_inner_start_=global_array_.local_.inner_start;

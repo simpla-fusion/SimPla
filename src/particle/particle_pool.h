@@ -67,7 +67,7 @@ public:
 
 	std::string Save(std::string const & path) const;
 
-	void UpdateGhosts();
+	void UpdateGhosts(){};
 
 	void Clear(mesh_iterator s);
 

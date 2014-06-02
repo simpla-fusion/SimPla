@@ -252,7 +252,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 
 	});
 
-	J->UpdateGhosts();
+	J.UpdateGhosts();
 
 	LOGGER << DONE;
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);

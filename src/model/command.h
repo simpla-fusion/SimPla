@@ -95,7 +95,7 @@ template<typename TM, int IFORM, typename TV>
 template<typename TDict, typename ...Others>
 Command<Field<TM, IFORM, TV>>::Command(TDict dict, Others const & ...others)
 {
-//	Select(&def_domain_, dict["Select"], std::forward<Others const &>(others)...);
+	Select(&def_domain_, dict["Select"], std::forward<Others const &>(others)...);
 
 	if (dict["Operation"])
 	{

@@ -141,16 +141,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \""
-			+ dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
 
 	LOGGER << description;
 
 	mesh.Load(dict["Grid"]);
 
-#ifdef USE_MPI
-	mesh.Decompose(GLOBAL_COMM.GetSize(),GLOBAL_COMM.GetRank());
-#endif
+	mesh.Decompose();
 
 	Form<VERTEX> ne0(mesh);
 	Form<VERTEX> Te0(mesh);
@@ -281,18 +278,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(
-						Command<TE>::Create(&E, item.second, model_));
+				commandToE_.push_back(Command<TE>::Create(&E, item.second, model_));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(
-						Command<TB>::Create(&B, item.second, model_));
+				commandToB_.push_back(Command<TB>::Create(&B, item.second, model_));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(
-						Command<TJ>::Create(&Jext, item.second, model_));
+				commandToJ_.push_back(Command<TJ>::Create(&Jext, item.second, model_));
 			}
 			else
 			{
@@ -304,7 +298,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (dict["FieldSolver"])
 	{
 		auto dict_ = dict["FieldSolver"];
-		LOGGER << "Load Electromagnetic fields solver";
+		LOGGER << "Load electromagnetic fields solver";
 
 		using namespace std::placeholders;
 
@@ -312,24 +306,20 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(
-					new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
 
-			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2,
-					_3, _4);
+			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
-			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2,
-					_3, _4);
+			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
 
 		}
 		else
 		{
-			E_plus_CurlB =
-					[mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-					{
-						auto & dE=*pdE;
-						LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-					};
+			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+			{
+				auto & dE=*pdE;
+				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+			};
 
 			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
@@ -344,11 +334,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (enableImplicit)
 	{
 
-		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(
-				new ImplicitPushE<mesh_type>(mesh));
-		Implicit_PushE =
-				[solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-				{	solver->NextTimeStep( pE,pB,p,dE);};
+		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(mesh));
+		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
+		{	solver->NextTimeStep( pE,pB,p,dE);};
 	}
 
 }
