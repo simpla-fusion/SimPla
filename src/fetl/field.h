@@ -60,6 +60,8 @@ public:
 
 	mesh_type const &mesh;
 
+	size_t num_of_ele_ = 0;
+
 	Field(mesh_type const &pmesh) :
 			mesh(pmesh), data_(nullptr)
 	{
@@ -108,6 +110,20 @@ public:
 	void UpdateGhosts()
 	{
 		mesh.UpdateGhosts(this);
+	}
+	void Init()
+	{
+		AllocMemory_();
+	}
+
+	void AllocMemory_()
+	{
+		if (data_ == nullptr)
+		{
+			num_of_ele_ = mesh.GetLocalNumOfElements(IForm);
+			data_ = mesh.template MakeContainer<IForm, value_type>();
+		}
+
 	}
 
 	template<typename ...Args>
@@ -230,13 +246,13 @@ public:
 
 	iterator begin()
 	{
-		Update();
+		AllocMemory_();
 		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).begin());
 	}
 
 	iterator end()
 	{
-		Update();
+		AllocMemory_();
 		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).end());
 	}
 
@@ -287,26 +303,11 @@ public:
 #endif
 		return *(data_.get() + mesh.Hash(s));
 	}
-	void Init()
-	{
-		Update();
-	}
-
-	size_t num_of_ele_ = 0;
-	void Update()
-	{
-		if (data_ == nullptr)
-		{
-			num_of_ele_ = mesh.GetLocalNumOfElements(IForm);
-			data_ = mesh.template MakeContainer<IForm, value_type>();
-		}
-
-	}
 
 	template<typename TD>
 	void Fill(TD default_value)
 	{
-		Update();
+		AllocMemory_();
 
 		ParallelForEach(mesh.GetRange(IForm),
 
@@ -330,7 +331,7 @@ public:
 	}
 	this_type & operator =(this_type const & rhs)
 	{
-		Update();
+		AllocMemory_();
 
 		ParallelForEach(mesh.GetRange(IForm),
 
@@ -340,12 +341,13 @@ public:
 		}
 
 		);
+
 		return (*this);
 	}
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
-		Update();
+		AllocMemory_();
 
 		ParallelForEach(mesh.GetRange(IForm),
 
@@ -355,13 +357,15 @@ public:
 		}
 
 		);
+
+		UpdateGhosts();
 		return (*this);
 	}
 
 #define DECL_SELF_ASSIGN( _OP_ )                                                                   \
 		template<typename TR> inline this_type &                                                   \
 		operator _OP_##= (TR const & rhs)                                                          \
-		{	Update(); *this = *this _OP_ rhs;                                                      \
+		{	AllocMemory_(); *this = *this _OP_ rhs;                                                      \
 			return (*this) ;                                                                        \
 		}                                                                                          \
 

@@ -30,11 +30,11 @@ rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
-NY = 1
-NZ = 1
+NY = 16
+NZ = 16
 LX = 10 --m --100000*rhoi --0.6
-LY = 0 --2.0*math.pi/k0
-LZ = 0 -- 2.0*math.pi/18
+LY = 1 --2.0*math.pi/k0
+LZ = 1 -- 2.0*math.pi/18
 GW = 5
 
 omega_ext=omega_ci*1.9
@@ -89,18 +89,12 @@ Grid=
 
 	UnitSystem={Type="SI"},
 
-	Topology =
-	{
-		Type="RectMesh",
-		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+	Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
-	},
-	Geometry=
-	{
-		Type="Origin_DxDyDz",
-		Min={0.0,0.0,0.0},
-		Max={LX,LY,LZ},
-	},
+	Min={0.0,0.0,0.0},
+
+	Max={LX,LY,LZ},
+
 	dt= 0.5*LX/NX/c -- time step
 }
 

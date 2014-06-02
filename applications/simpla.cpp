@@ -26,6 +26,8 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
+	GLOBAL_COMM.Init(argc,argv);
+
 	LOG_STREAM.SetStdOutVisableLevel(0);
 
 	LuaObject dict;
@@ -198,6 +200,9 @@ int main(int argc, char **argv)
 
 	VERBOSE << "Post-Process" << DONE;
 
+
+	GLOBAL_DATA_STREAM.Close();
+	GLOBAL_COMM.Close();
 	TheEnd();
 
 }

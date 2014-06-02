@@ -9,7 +9,6 @@
 #define MESSAGE_COMM_H_
 
 #include <mpi.h>
-
 namespace simpla
 {
 
@@ -31,8 +30,7 @@ public:
 	}
 	~MessageComm()
 	{
-		if (isInitilized_)
-			MPI_Finalize();
+		Close();
 	}
 
 	void Init(int argc = 0, char** argv = nullptr)
@@ -41,6 +39,12 @@ public:
 		MPI_Comm_size(MPI_COMM_WORLD, &num_process_);
 		MPI_Comm_rank(MPI_COMM_WORLD, &process_num_);
 		isInitilized_ = true;
+	}
+	void Close()
+	{
+		if (isInitilized_)
+			MPI_Finalize();
+		isInitilized_ = false;
 	}
 	MPI_Comm GetComm()
 	{

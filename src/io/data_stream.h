@@ -42,7 +42,6 @@ extern "C"
 namespace simpla
 {
 
-
 class DataStream
 {
 	std::string prefix_;
@@ -61,8 +60,8 @@ public:
 		HDF5, XDMF
 	};
 
-	DataStream()
-			: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+	DataStream() :
+			prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 			file_(-1), group_(-1),
 
@@ -79,7 +78,7 @@ public:
 
 	~DataStream()
 	{
-		CloseFile();
+		Close();
 	}
 	void SetLightDatLimit(size_t s)
 	{
@@ -134,10 +133,16 @@ public:
 	void CloseGroup();
 	void CloseFile();
 
+	void Close()
+	{
+		CloseGroup();
+		CloseFile();
+	}
+
 	template<typename TV>
 	std::string Write(TV const *v, std::string const &name, int rank, size_t const * global_dims,
-	        size_t const * offset = nullptr, size_t const * local_dims = nullptr, size_t const * start = nullptr,
-	        size_t const *counts = nullptr, size_t const * strides = nullptr, size_t const *blocks = nullptr) const
+			size_t const * offset = nullptr, size_t const * local_dims = nullptr, size_t const * start = nullptr,
+			size_t const *counts = nullptr, size_t const * strides = nullptr, size_t const *blocks = nullptr) const
 	{
 		hsize_t global_dims_[rank + 1];
 		hsize_t offset_[rank + 1];
@@ -166,8 +171,12 @@ public:
 		{
 			if (global_dims != nullptr)
 				global_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			if (offset != nullptr)
+				offset_[rank] = 0;
 			if (local_dims != nullptr)
 				local_dims_[rank] = nTupleTraits<TV>::NDIMS;
+			if (start != nullptr)
+				start_[rank] = 0;
 			if (counts != nullptr)
 				counts_[rank] = nTupleTraits<TV>::NDIMS;
 			if (blocks != nullptr)
@@ -198,8 +207,8 @@ public:
 	}
 
 	std::string WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank, hsize_t const *global_dims,
-	        hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start, hsize_t const *counts,
-	        hsize_t const *strides, hsize_t const *blocks) const;
+			hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start, hsize_t const *counts,
+			hsize_t const *strides, hsize_t const *blocks) const;
 
 }
 ;
@@ -218,20 +227,20 @@ template<typename TV, typename ... Args> inline std::string Save(std::shared_ptr
 }
 
 template<typename TV, int rank, typename TS> inline std::string Save(TV const* data, std::string const &name,
-        nTuple<rank, TS> const & d)
+		nTuple<rank, TS> const & d)
 {
 	return Save(reinterpret_cast<void const *>(data), name, rank, &d[0]);
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::vector<TV>const & d, std::string const & name,
-        Args const & ... args)
+		Args const & ... args)
 {
 	size_t s = d.size();
 
 	return Save(&d[0], name, 1, &s, std::forward<Args const &>(args)...);
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Save(std::map<TL, TR>const & d,
-        std::string const & name, Args const & ... args)
+		std::string const & name, Args const & ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
 	for (auto const & p : d)
@@ -242,12 +251,13 @@ template<typename TL, typename TR, typename ... Args> inline std::string Save(st
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::map<TV, TV>const & d, std::string const & name,
-        Args const & ... args)
+		Args const & ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
+		d_.emplace_back(nTuple<2, TV>(
+		{ p.first, p.second }));
 	}
 	return Save(d_, name, std::forward<Args const &>(args)...);
 }

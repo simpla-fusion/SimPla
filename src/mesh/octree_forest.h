@@ -240,52 +240,14 @@ struct OcForest
 
 		}
 
-		global_array_.global_start_=global_start_;
-		global_array_.global_count_=global_count_;
-		global_array_.Decompose(1,0,0);
+		global_array_.global_start_= global_start_;
+		global_array_.global_count_= global_count_;
 
-		local_outer_start_ = global_start_;
-		local_outer_count_ = global_count_;
-
-		local_inner_start_ = global_start_;
-		local_inner_count_ = global_count_;
-
-		UpdateHash();
+		Decompose(1,0,0);
 	}
 
 	void Decompose(unsigned int num_process,unsigned int process_num,unsigned int ghost_width=0)
 	{
-
-//		nTuple<NDIMS, size_type> mpi_grid_size,mpi_grid_rank;
-//
-//		for (int i = 0; i < NDIMS; ++i)
-//		{
-//
-//			if ((2 * ghost_width * mpi_grid_size[i] > local_inner_count_[i])||(mpi_grid_size[i] > local_inner_count_[i]) )
-//			{
-//				if(mpi_grid_rank[i]>0)
-//				{
-//					local_inner_count_[i]=0;
-//				}
-//			}
-//			else
-//			{
-//
-//				auto start = (local_inner_count_[i] * mpi_grid_rank[i]) / mpi_grid_size[i];
-//
-//				auto end = (local_inner_count_[i] * (mpi_grid_rank[i] + 1)) / mpi_grid_size[i];
-//
-//				local_inner_start_[i] += start;
-//				local_inner_count_[i] = end - start;
-//
-//				local_outer_start_[i] = local_inner_start_[i] - ghost_width;
-//				local_outer_count_[i] = local_inner_count_[i] + ghost_width*2;
-//			}
-//		}
-
-		global_array_.global_start_=global_start_;
-		global_array_.global_count_=global_count_;
-
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
 		local_inner_start_=global_array_.local_.inner_start;

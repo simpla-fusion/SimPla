@@ -57,6 +57,9 @@ void DataStream::OpenFile(std::string const &fname)
 {
 
 	CloseFile();
+
+	MPI_Barrier(GLOBAL_COMM.GetComm());
+
 	if (fname != "")
 		prefix_ = fname;
 
@@ -82,13 +85,11 @@ void DataStream::OpenFile(std::string const &fname)
 
 	) + ".h5";
 
-	hid_t plist_id = H5P_DEFAULT;
+	MPI_Barrier(GLOBAL_COMM.GetComm());
 
-	if (GLOBAL_COMM.IsInitilized())
-	{
-		plist_id = H5Pcreate(H5P_FILE_ACCESS);
-		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
-	}
+	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
 
 	H5_ERROR( file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
@@ -121,8 +122,9 @@ void DataStream::CloseFile()
 }
 
 std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t mdtype, int rank,
-        hsize_t const *global_dims, hsize_t const *offset, hsize_t const *local_dims, hsize_t const *start,
-        hsize_t const *counts, hsize_t const *strides, hsize_t const *blocks) const
+		hsize_t const *global_dims, hsize_t const *local_outer_start, hsize_t const *local_outer_count,
+		hsize_t const *local_inner_start, hsize_t const *local_inner_count, hsize_t const *strides,
+		hsize_t const *blocks) const
 {
 
 	if (v == nullptr)
@@ -134,7 +136,18 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
-
+//
+//	CHECK(name);
+//	CHECK(rank);
+//	CHECK(global_dims[0]) << " " << global_dims[1] << " " << global_dims[2] << " " << global_dims[3];
+//	CHECK(local_outer_start[0]) << " " << local_outer_start[1] << " " << local_outer_start[2] << " "
+//			<< local_outer_start[3];
+//	CHECK(local_outer_count[0]) << " " << local_outer_count[1] << " " << local_outer_count[2] << " "
+//			<< local_outer_count[3];
+//	CHECK(local_inner_start[0]) << " " << local_inner_start[1] << " " << local_inner_start[2] << " "
+//			<< local_inner_start[3];
+//	CHECK(local_inner_count[0]) << " " << local_inner_count[1] << " " << local_inner_count[2] << " "
+//			<< local_inner_count[3];
 	std::string dsname = name;
 
 	hid_t dset;
@@ -162,10 +175,10 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 		H5_ERROR(H5Fflush(group_, H5F_SCOPE_GLOBAL));
 
 		file_space = H5Dget_space(dset);
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset, NULL, counts, NULL));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, local_outer_start, NULL, local_inner_count, NULL));
 
-		mem_space = H5Screate_simple(rank, local_dims, NULL);
-		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start, NULL, counts,
+		mem_space = H5Screate_simple(rank, local_outer_count, NULL);
+		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, local_inner_start, NULL, local_inner_count,
 		NULL);
 
 	}
@@ -227,9 +240,9 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 		counts_[0] = 1;
 
-		std::copy(offset, offset + rank - 1, offset_ + 1);
+		std::copy(local_outer_start, local_outer_start + rank - 1, offset_ + 1);
 
-		std::copy(counts, counts + rank - 1, counts_ + 1);
+		std::copy(local_inner_count, local_inner_count + rank - 1, counts_ + 1);
 
 		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset_, nullptr, counts_, nullptr));
 
@@ -237,9 +250,9 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 
 		hsize_t start_[rank];
 
-		std::copy(local_dims, local_dims + rank - 1, local_dims_ + 1);
+		std::copy(local_outer_count, local_outer_count + rank - 1, local_dims_ + 1);
 
-		std::copy(start, start + rank - 1, start_ + 1);
+		std::copy(local_inner_start, local_inner_start + rank - 1, start_ + 1);
 
 		local_dims_[0] = 1;
 
@@ -252,17 +265,17 @@ std::string DataStream::WriteHDF5(void const *v, std::string const &name, hid_t 
 	}
 
 	// Create property list for collective dataset write.
-	if (GLOBAL_COMM.IsInitilized())
-	{
-		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE));
-		H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, plist_id, v));
-		H5_ERROR(H5Pclose(plist_id));
-	}
-	else
-	{
-		H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, H5P_DEFAULT, v));
-	}
+//	if (GLOBAL_COMM.IsInitilized())
+//	{
+	hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+	H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE));
+	H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, plist_id, v));
+	H5_ERROR(H5Pclose(plist_id));
+//	}
+//	else
+//	{
+//		H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, H5P_DEFAULT, v));
+//	}
 
 	H5_ERROR(H5Dclose(dset));
 

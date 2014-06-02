@@ -66,10 +66,11 @@ public:
 
 	void Decompose(int num_process, int process_num, size_t gw);
 
-	template<typename TV> void UpdateGhost(TV* data) const;
-
 #ifdef USE_MPI
-	template<typename TV> void UpdateGhosts(TV* data, MPI_Comm comm) const;
+	template<typename TV> void UpdateGhosts(TV* data, MPI_Comm comm = MPI_COMM_NULL) const;
+#else
+	template<typename TV> void UpdateGhost(TV* data) const
+	{};
 #endif
 
 	nTuple<NDIMS, size_t> global_start_;
@@ -113,7 +114,7 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 	local->inner_count = global_count_;
 	local->inner_start = global_start_;
 
-	if (num_process == 1)
+	if (num_process <= 1)
 		return;
 
 	int n = 0;
@@ -175,6 +176,10 @@ bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const
 template<int N>
 void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 {
+	Decomposer_(num_process, process_num, gw, &local_);
+	self_id_ = (process_num);
+	if (num_process <= 1)
+		return;
 
 	if (array_order_ == MPI_ORDER_C)
 	{
@@ -193,10 +198,6 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 		}
 
 	}
-
-	self_id_ = (process_num);
-
-	Decomposer_(num_process, process_num, gw, &local_);
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
@@ -242,10 +243,18 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 }
 
 #ifdef USE_MPI
+
 template<int N>
 template<typename TV>
 void DistributedArray<N>::UpdateGhosts(TV* data, MPI_Comm comm) const
 {
+	if (send_recv_.size() == 0)
+		return;
+
+	if (comm == MPI_COMM_NULL)
+	{
+		comm = GLOBAL_COMM.GetComm();
+	}
 
 	MPI_Request request[send_recv_.size() * 2];
 
@@ -253,24 +262,8 @@ void DistributedArray<N>::UpdateGhosts(TV* data, MPI_Comm comm) const
 	for (auto const & item : send_recv_)
 	{
 
-//		if (GLOBAL_COMM.GetRank()==0)
-//		{
-//			CHECK(local_.outer_count);
-//			CHECK(local_.outer_start);
-//			CHECK(node.second.inner_start );
-//			CHECK(node.second.inner_start-local_.outer_start);
-//			CHECK(node.second.inner_count);
-//			CHECK(node.second.outer_start );
-//			CHECK(node.second.outer_start-local_.outer_start);
-//			CHECK(node.second.outer_count);
-//		}
 		MPIDataType<TV> send_type(comm, local_.outer_count, item.send_count, item.send_start - local_.outer_start);
 		MPIDataType<TV> recv_type(comm, local_.outer_count, item.recv_count, item.recv_start - local_.outer_start);
-
-//		MPI_Sendrecv(
-//		data, 1, recv_type.type(), node.first, hash(sub_array.outer_start),
-//		data, 1, send_type.type(), node.first, hash(sub_array.inner_start),
-//		comm, MPI_STATUS_IGNORE);
 
 		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm, &request[count * 2]);
 		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm, &request[count * 2 + 1]);
@@ -280,18 +273,8 @@ void DistributedArray<N>::UpdateGhosts(TV* data, MPI_Comm comm) const
 	MPI_Waitall(send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
 
 }
-#endif
 
-template<int N>
-template<typename TV>
-void DistributedArray<N>::UpdateGhost(TV* data) const
-{
-#ifdef USE_MPI
-	UpdateGhost(data, SingletonHolder<simpla::MessageComm>::instance().GetComm());
-#else
-	UNIMPLEMENT
 #endif
-}
 }
 // namespace simpla
 

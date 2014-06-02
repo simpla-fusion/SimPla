@@ -147,7 +147,9 @@ struct EuclideanGeometry: public TTopology
 	{
 		std::stringstream os;
 
-		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_;
+		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", "
+
+		<< topology_type::Save(path);
 
 		return os.str();
 	}

@@ -120,7 +120,7 @@ inline void TheEnd(int flag = 1)
 	LOGGER <<std::endl;
 	INFORM<<std::endl;
 
-	exit(1);
+	exit(0);
 }
 
 template<typename T>

@@ -62,7 +62,7 @@ TEST_P(TestDistArray, UpdateGhost)
 		++count;
 	}
 
-	darray.UpdateGhost(&data[0]);
+	darray.UpdateGhosts(&data[0]);
 
 	MPI_Barrier( GLOBAL_COMM.GetComm());
 
