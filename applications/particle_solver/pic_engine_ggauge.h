@@ -103,7 +103,7 @@ public:
 
 			<< "}";
 
-			GLOBAL_HDF5_DATA_TYPE_FACTORY.Register < Point_s > (os.str());
+			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register <Point_s> (os.str());
 
 		}
 

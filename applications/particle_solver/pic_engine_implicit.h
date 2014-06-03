@@ -37,26 +37,6 @@ public:
 		Real f;
 		scalar_type w;
 
-		static std::string DataTypeDesc()
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"w\" : " << (offsetof(Point_s, w)) << ";"
-
-			<< "}";
-
-			return os.str();
-		}
-
 	};
 
 private:
@@ -99,7 +79,7 @@ public:
 	void Load(TDict const &dict)
 	{
 
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
 
 		m_ = dict["Mass"].template as<Real>(1.0);
 		q_ = dict["Charge"].template as<Real>(1.0);

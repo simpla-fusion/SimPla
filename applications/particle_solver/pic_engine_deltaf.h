@@ -15,6 +15,7 @@
 #include "../../src/fetl/ntuple.h"
 #include "../../src/fetl/primitives.h"
 #include "../../src/physics/physical_constants.h"
+#include "../../src/io/hdf5_datatype.h"
 
 namespace simpla
 {
@@ -40,9 +41,8 @@ public:
 
 	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
-			Field<mesh_type, EDGE, scalar_type> >::type J_type;
+	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
+	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<8, Real> storage_value_type;
 
@@ -52,31 +52,6 @@ public:
 		Vec3 v;
 		Real f;
 		scalar_type w;
-
-		static std::string DataTypeDesc()
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
-					<< (offsetof(Point_s, x)) << ";"
-
-					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
-					<< (offsetof(Point_s, v)) << ";"
-
-					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
-					<< (offsetof(Point_s, f)) << ";"
-
-					<< "   H5T_NATIVE_DOUBLE    \"w\" : "
-					<< (offsetof(Point_s, w)) << ";"
-
-					<< "}";
-
-			return os.str();
-		}
-
 	};
 
 private:
@@ -86,18 +61,34 @@ public:
 
 public:
 	template<typename TDict, typename ...Args>
-	PICEngineDeltaF(mesh_type const &pmesh, TDict const& dict,
-			Args const & ...args) :
-			mesh(pmesh), m(dict["Mass"].template as<Real>(1.0)), q(
-					dict["Charge"].template as<Real>(1.0)),
+	PICEngineDeltaF(mesh_type const &pmesh, TDict const& dict, Args const & ...args)
+			: mesh(pmesh), m(dict["Mass"].template as<Real>(1.0)), q(dict["Charge"].template as<Real>(1.0)),
 
 			cmr_(q / m), q_kT_(1.0)
 	{
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
-		q_kT_ = q
-				/ (dict["Temperature"].template as<Real>(1.0)
-						* boltzmann_constant);
+		q_kT_ = q / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
+
+		{
+			std::ostringstream os;
+			os
+
+			<< "H5T_COMPOUND {          "
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+			<< "   H5T_NATIVE_DOUBLE    \"w\" : " << (offsetof(Point_s, w)) << ";"
+
+			<< "}";
+
+			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
+		}
 
 	}
 	~PICEngineDeltaF()
@@ -109,12 +100,12 @@ public:
 		return "DeltaF";
 	}
 
-	std::string Save(std::string const & path = "",
-			bool is_verbose = false) const
+	std::string Save(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
 
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
@@ -137,8 +128,8 @@ public:
 		return std::move(p);
 	}
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+			Others const &...others) const
 	{
 		p->x += p->v * dt * 0.5;
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -169,8 +160,7 @@ public:
 
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 	}
 //	// x(-1/2->1/2), w(-1/2,1/2)
@@ -217,29 +207,25 @@ public:
 //
 //	}
 	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TV> * n,
-			Args const & ...) const
+	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TV> * n, Args const & ...) const
 	{
 		interpolator_type::Scatter(p.x, q * p.f * p.w, n);
 	}
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x,
-			nTuple<3, Real> * v) const
+	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{
 		*x = p.x;
 		*v = p.v;
 		return p.f * p.w;
 	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v,
-			Point_s * p) const
+	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
 		p->x = x;
 		p->v = v;
 	}
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
-			Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s(
-		{ x, v, f, 0 }));
+						{	x, v, f, 0}));
 	}
 
 };
@@ -247,8 +233,7 @@ public:
 template<typename ... TS> std::ostream&
 operator<<(std::ostream& os, typename PICEngineDeltaF<TS...>::Point_s const & p)
 {
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w="
-			<< p.w << " }";
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
 	return os;
 }

@@ -16,6 +16,7 @@
 #include "../../src/fetl/fetl.h"
 #include "../../src/physics/physical_constants.h"
 #include "../../src/utilities/type_utilites.h"
+#include "../../src/io/hdf5_datatype.h"
 
 namespace simpla
 {
@@ -51,24 +52,6 @@ public:
 		Vec3 v;
 		Real f;
 
-		static std::string DataTypeDesc()
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-			<< "}";
-
-			return os.str();
-		}
-
 	};
 
 private:
@@ -88,6 +71,23 @@ public:
 
 			cmr_(q / m)
 	{
+		{
+			std::ostringstream os;
+			os
+
+			<< "H5T_COMPOUND {          "
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+			<< "}";
+
+			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
+		}
+
 	}
 
 	~PICEngineDefault()
@@ -103,7 +103,8 @@ public:
 	{
 		std::stringstream os;
 
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
@@ -124,7 +125,7 @@ public:
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+			Others const &...others) const
 	{
 		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
 	}
@@ -133,10 +134,10 @@ public:
 	{
 		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
 	}
-	// x(-1/2->1/2),v(0)
+// x(-1/2->1/2),v(0)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+			Others const &...others) const
 	{
 		//		auto B = interpolator_type::Gather(fB, p->x);
 		//		auto E = interpolator_type::Gather(fE, p->x);
@@ -146,10 +147,10 @@ public:
 		v = p->v * p->f * q;
 		interpolator_type::Scatter(p->x, v, J);
 	}
-	// v(0->1)
+// v(0->1)
 	template<typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
-	        Others const &...others) const
+			Others const &...others) const
 	{
 
 		auto B = interpolator_type::Gather(fB, p->x);
@@ -170,10 +171,10 @@ public:
 		p->v += E * (cmr_ * dt * 0.5);
 
 	}
-	// x(-1/2->1/2), v(-1/2/1/2)
+// x(-1/2->1/2), v(-1/2/1/2)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepZero(Bool2Type<false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-	        Others const &...others) const
+			Others const &...others) const
 	{
 
 		p->x += p->v * dt * 0.5;
@@ -202,7 +203,7 @@ public:
 	}
 	template<typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepHalf(Bool2Type<false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
-	        Others const &...others) const
+			Others const &...others) const
 	{
 	}
 
@@ -214,7 +215,8 @@ public:
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+						{	x, v, f}));
 	}
 
 };

@@ -28,9 +28,7 @@ std::string Save(std::string const & name, Field<TM, IFORM, TV> const & d)
 	d.GetDataSetShape(global_start, global_count, local_outer_start, local_outer_count, local_inner_start,
 	        local_inner_count);
 
-	return simpla::Save(name,
-
-	d.data().get(),
+	return simpla::Save(name, d.data().get(),
 
 	rank, global_start, global_count, local_outer_start, local_outer_count, local_inner_start, local_inner_count);
 
