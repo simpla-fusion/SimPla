@@ -106,7 +106,7 @@ private:                                                                        
                                                                                                       \
 public:                                                                                               \
                                                                                                       \
-	static constexpr bool value = !std::is_same<decltype(0), no>::value;                     \
+	static constexpr bool value = !std::is_same<decltype(test(0)), no>::value;                     \
 };
 
 #define HAS_OPERATOR(_NAME_,_OP_)                                                                   \

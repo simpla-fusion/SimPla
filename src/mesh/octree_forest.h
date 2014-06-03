@@ -55,7 +55,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
@@ -96,7 +96,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -120,8 +120,7 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>(
-		{
+		return nTuple<NDIMS, size_type>( {
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -338,7 +337,7 @@ struct OcForest
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
-	int GetDataSetShape(int IFORM, size_type * global_dims = nullptr, size_type * local_outer_start = nullptr,
+	int GetDataSetShape(int IFORM, size_type * global_start = nullptr, size_type * global_count = nullptr, size_type * local_outer_start = nullptr,
 	size_type * local_outer_count = nullptr, size_type * local_inner_start = nullptr, size_type * local_inner_count = nullptr ) const
 	{
 		int rank = 0;
@@ -347,8 +346,12 @@ struct OcForest
 		{
 			if ( global_count_[i] > 1)
 			{
-				if (global_dims != nullptr)
-				global_dims[rank] = global_count_[i];
+
+				if (global_start != nullptr)
+				global_start[rank] = global_start_[i];
+
+				if (global_count != nullptr)
+				global_count[rank] = global_count_[i];
 
 				if (local_outer_start != nullptr)
 				local_outer_start[rank] = local_inner_start_[i];
@@ -368,8 +371,8 @@ struct OcForest
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
-			if (global_dims != nullptr)
-			global_dims[rank] = 3;
+			if (global_count != nullptr)
+			global_count[rank] = 3;
 
 			if (local_outer_start != nullptr)
 			local_outer_start[rank] = 0;

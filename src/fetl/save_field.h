@@ -18,16 +18,17 @@ template<typename TM, int IFORM, typename TV> inline std::string Save(std::strin
 const & d)
 {
 	int rank = d.GetDataSetShape();
-
-	size_t global_dims[rank];
+	size_t global_start[rank];
+	size_t global_count[rank];
 	size_t local_outer_start[rank];
 	size_t local_outer_count[rank];
 	size_t local_inner_start[rank];
 	size_t local_inner_count[rank];
 
-	d.GetDataSetShape(global_dims, local_outer_start, local_outer_count, local_inner_start, local_inner_count);
+	d.GetDataSetShape(global_start, global_count, local_outer_start, local_outer_count, local_inner_start,
+	        local_inner_count);
 
-	return GLOBAL_DATA_STREAM.Write(name, &(*d.data()), rank,global_dims,local_outer_start,
+	return GLOBAL_DATA_STREAM.Write(name, &(*d.data()), rank,global_start,global_count,local_outer_start,
 			local_outer_count, local_inner_start, local_inner_count );
 
 }

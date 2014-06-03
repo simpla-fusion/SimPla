@@ -8,27 +8,34 @@
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
 #include <string>
+
 namespace simpla
 {
 
-struct DataTypeDesc
-{
-
-	int array_length = 1;
-	std::string type_name, sub_type_name;
-};
-
-template<typename T>
-class DataType
+struct DataType
 {
 public:
-	DataTypeDesc desc_;
-	DataTypeDesc const &Desc() const
+
+	DataType(std::type_index const & t_idx)
+			: t_idx_(t_idx)
 	{
-		return desc_;
 	}
+
+	~DataType()
+	{
+	}
+
+	template<typename TV> static DataType Create()
+	{
+		return std::move(DataType(std::type_index(typeid(TV))));
+	}
+
+	int array_length = 1;
+	std::type_index t_idx_;
+
 };
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* DATA_TYPE_H_ */

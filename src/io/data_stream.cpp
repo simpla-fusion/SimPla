@@ -5,15 +5,14 @@
  *      Author: salmon
  */
 
-#include "data_stream.h"
-
 extern "C"
 {
-#include "hdf5.h"
-#include "hdf5_hl.h"
-
+#include <hdf5.h>
+#include <hdf5_hl.h>
 }
+
 #include "hdf5_datatype.h"
+#include "data_stream.h"
 #include "../parallel/parallel.h"
 
 namespace simpla
@@ -24,8 +23,8 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 };
-DataStream::DataStream() :
-		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+DataStream::DataStream()
+		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -35,8 +34,7 @@ DataStream::DataStream() :
 
 		enable_xdmf_(false),
 
-		pimpl_(new pimpl_s(
-		{ -1, -1 }))
+		pimpl_(new pimpl_s( { -1, -1 }))
 
 {
 	hid_t error_stack = H5Eget_current_stack();
@@ -160,11 +158,13 @@ void DataStream::CloseFile()
 	pimpl_->file_ = -1;
 }
 
-std::string DataStream::WriteHDF5(std::string const &name, void const *v, DataTypeDesc const & mdtype_s,
+std::string DataStream::WriteHDF5(std::string const & name, void const *v, std::type_index const & t_idx,
 
 int rank,
 
-size_t const *p_global_dims,
+size_t const *p_global_start,
+
+size_t const *p_global_count,
 
 size_t const *p_local_outer_start,
 
@@ -172,11 +172,16 @@ size_t const *p_local_outer_count,
 
 size_t const *p_local_inner_start,
 
-size_t const *p_local_inner_count) const
+size_t const *p_local_inner_count,
+
+int array_length) const
 {
+
+	auto dsname = name;
+
 	if (v == nullptr)
 	{
-		WARNING << name << " is empty!";
+		WARNING << dsname << " is empty!";
 	}
 
 	if (pimpl_->group_ <= 0)
@@ -184,49 +189,34 @@ size_t const *p_local_inner_count) const
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
 
-	hsize_t global_dims[rank + 2];
-	hsize_t local_outer_start[rank + 2];
-	hsize_t local_outer_count[rank + 2];
-	hsize_t local_inner_start[rank + 2];
-	hsize_t local_inner_count[rank + 2];
+	hsize_t g_shape[rank + 2];
+	hsize_t f_start[rank + 2];
+	hsize_t m_shape[rank + 2];
+	hsize_t m_start[rank + 2];
+	hsize_t m_count[rank + 2];
 
-	std::copy(p_global_dims, p_global_dims + rank, global_dims);
-	std::copy(p_local_outer_start, p_local_outer_start + rank, local_outer_start);
-	std::copy(p_local_outer_count, p_local_outer_count + rank, local_outer_count);
-	std::copy(p_local_inner_start, p_local_inner_start + rank, local_inner_start);
-	std::copy(p_local_inner_count, p_local_inner_count + rank, local_inner_count);
-
-	std::string mdtype_str = mdtype_s.type_name;
-	if (mdtype_s.array_length > 1)
+	for (int i = 0; i < rank; ++i)
 	{
-		global_dims[rank] = mdtype_s.array_length;
-		local_outer_start[rank] = 0;
-		local_outer_count[rank] = mdtype_s.array_length;
-		local_inner_start[rank] = 0;
-		local_inner_count[rank] = mdtype_s.array_length;
+		g_shape[i] = p_global_count[i];
+		f_start[i] = p_local_inner_start[i] - p_global_start[i];
+		m_shape[i] = p_local_outer_count[i];
+		m_start[i] = p_local_inner_start[i] - p_local_outer_start[i];
+		m_count[i] = p_local_inner_count[i];
+	}
 
-		mdtype_str = mdtype_s.sub_type_name;
+	if (array_length > 1)
+	{
+
+		g_shape[rank] = array_length;
+		f_start[rank] = 0;
+		m_shape[rank] = array_length;
+		m_start[rank] = 0;
+		m_count[rank] = array_length;
+
 		++rank;
 	}
 
-//
-//	CHECK(name);
-//	CHECK(rank);
-//	CHECK(global_dims[0]) << " " << global_dims[1] << " " << global_dims[2] << " " << global_dims[3];
-//	CHECK(local_outer_start[0]) << " " << local_outer_start[1] << " " << local_outer_start[2] << " "
-//			<< local_outer_start[3];
-//	CHECK(local_outer_count[0]) << " " << local_outer_count[1] << " " << local_outer_count[2] << " "
-//			<< local_outer_count[3];
-//	CHECK(local_inner_start[0]) << " " << local_inner_start[1] << " " << local_inner_start[2] << " "
-//			<< local_inner_start[3];
-//	CHECK(local_inner_count[0]) << " " << local_inner_count[1] << " " << local_inner_count[2] << " "
-//			<< local_inner_count[3];
-
-	hid_t mdtype;
-
-	H5_ERROR(mdtype = H5LTtext_to_dtype(mdtype_str.c_str(), H5LT_DDL));
-
-	std::string dsname = name;
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.Create(t_idx);
 
 	hid_t dset;
 
@@ -235,16 +225,16 @@ size_t const *p_local_inner_count) const
 	if (!enable_compact_storable_)
 	{
 
-		dsname = name +
+		dsname = dsname +
 
 		AutoIncrease([&](std::string const & s )->bool
 		{
-			return H5Lexists(pimpl_->group_, (name + s ).c_str(), H5P_DEFAULT) > 0;
+			return H5Lexists(pimpl_->group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
 		}, 0, 4);
 
-		file_space = H5Screate_simple(rank, global_dims, nullptr);
+		file_space = H5Screate_simple(rank, g_shape, nullptr);
 
-		dset = H5Dcreate(pimpl_->group_, dsname.c_str(), mdtype, file_space,
+		dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, file_space,
 		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
@@ -253,40 +243,36 @@ size_t const *p_local_inner_count) const
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, local_inner_start, NULL, local_inner_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_start, NULL, m_count, NULL));
 
-		mem_space = H5Screate_simple(rank, local_outer_count, NULL);
+		mem_space = H5Screate_simple(rank, m_shape, NULL);
 
-		for (int i = 0; i < rank; ++i)
-		{
-			local_inner_start[i] -= local_outer_start[i];
-		}
-
-		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, local_inner_start, NULL, local_inner_count,
-		NULL);
+		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_start, NULL, m_count, NULL);
 
 	}
 	else
 	{
+		g_shape[rank] = 1;
+		f_start[rank] = 0;
+		m_shape[rank] = 1;
+		m_start[rank] = 0;
+		m_count[rank] = 0;
 
 		if (H5Lexists(pimpl_->group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
-			hsize_t chunk_dims[rank + 1];
 			hsize_t max_dims[rank + 1];
 
-			std::copy(global_dims, global_dims + rank, chunk_dims + 1);
-			std::copy(global_dims, global_dims + rank, max_dims + 1);
+			std::copy(g_shape, g_shape + rank, max_dims);
 
-			chunk_dims[0] = 1;
-			max_dims[0] = H5S_UNLIMITED;
+			max_dims[rank] = H5S_UNLIMITED;
 
-			hid_t space = H5Screate_simple(rank + 1, chunk_dims, max_dims);
+			hid_t space = H5Screate_simple(rank + 1, g_shape, max_dims);
 
 			hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
 
-			H5_ERROR(H5Pset_chunk(dcpl_id, rank + 1, chunk_dims));
+			H5_ERROR(H5Pset_chunk(dcpl_id, rank + 1, g_shape));
 
-			dset = H5Dcreate(pimpl_->group_, dsname.c_str(), mdtype, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(space));
 
@@ -298,52 +284,38 @@ size_t const *p_local_inner_count) const
 
 			dset = H5Dopen(pimpl_->group_, dsname.c_str(), H5P_DEFAULT);
 
-			hsize_t fdims[rank + 1];
-
 			file_space = H5Dget_space(dset);
 
-			H5Sget_simple_extent_dims(file_space, fdims, nullptr);
+			H5Sget_simple_extent_dims(file_space, g_shape, nullptr);
 
 			H5Sclose(file_space);
 
-			++fdims[0];
+			++g_shape[rank];
 
-			H5Dset_extent(dset, fdims);
+			H5Dset_extent(dset, g_shape);
 		}
+
+//		CHECK(name);
+//		CHECK(rank);
+//		CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
+//		CHECK(f_start[0]) << " " << f_start[1] << " " << f_start[2] << " " << f_start[3];
+//		CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
+//		CHECK(m_start[0]) << " " << m_start[1] << " " << m_start[2] << " " << m_start[3];
+//		CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
 
 		file_space = H5Dget_space(dset);
 
-		hsize_t counts_[rank + 1];
+		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
 
-		hsize_t offset_[rank + 1];
+		f_start[rank] = g_shape[rank] - 1;
 
-		H5_ERROR(H5Sget_simple_extent_dims(file_space, counts_, nullptr));
+		m_count[rank] = 1;
 
-		offset_[0] = counts_[0] - 1;
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_start, nullptr, m_count, nullptr));
 
-		counts_[0] = 1;
+		mem_space = H5Screate_simple(rank + 1, m_shape, nullptr);
 
-		std::copy(local_outer_start, local_outer_start + rank, offset_ + 1);
-
-		std::copy(local_inner_count, local_inner_count + rank, counts_ + 1);
-
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, offset_, nullptr, counts_, nullptr));
-
-		hsize_t local_dims_[rank + 1];
-
-		hsize_t start_[rank + 1];
-
-		std::copy(local_outer_count, local_outer_count + rank, local_dims_ + 1);
-
-		std::copy(local_inner_start, local_inner_start + rank, start_ + 1);
-
-		local_dims_[0] = 1;
-
-		start_[0] = 0;
-
-		mem_space = H5Screate_simple(rank + 1, local_dims_, nullptr);
-
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, start_, NULL, counts_, NULL));
+		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_start, NULL, m_count, NULL));
 
 	}
 
@@ -352,12 +324,12 @@ size_t const *p_local_inner_count) const
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_COLLECTIVE));
-		H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, plist_id, v));
+		H5_ERROR(H5Dwrite(dset,m_type, mem_space, file_space, plist_id, v));
 		H5_ERROR(H5Pclose(plist_id));
 	}
 	else
 	{
-		H5_ERROR(H5Dwrite(dset, mdtype, mem_space, file_space, H5P_DEFAULT, v));
+		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, v));
 	}
 
 	H5_ERROR(H5Dclose(dset));
@@ -366,9 +338,10 @@ size_t const *p_local_inner_count) const
 
 	H5_ERROR(H5Sclose(file_space));
 
-	H5_ERROR(H5Tclose(mdtype));
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
-	return "\"" + GetCurrentPath() + name + "\"";
+	return "\"" + GetCurrentPath() + dsname + "\"";
 }
 
 }  // namespace simpla

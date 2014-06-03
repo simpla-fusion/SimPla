@@ -18,9 +18,9 @@
 #include <string>
 #include <type_traits>
 #include <vector>
+#include <typeindex>
 
 #include "../fetl/ntuple.h"
-#include "../utilities/data_type.h"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/pretty_stream.h"
@@ -114,15 +114,23 @@ public:
 	template<typename TV, typename ... Args>
 	std::string Write(std::string const &name, TV const *v, Args ...args) const
 	{
-		return WriteHDF5(name, reinterpret_cast<void const*>(v), DataType<TV>().Desc(),
-				std::forward<Args const & >(args)...);
-	}
 
-	std::string WriteHDF5(std::string const &name, void const *v, DataTypeDesc const & mdtype,
+		return WriteHDF5(name, reinterpret_cast<void const*>(v), std::type_index(typeid(TV)),
+		        std::forward<Args const & >(args)...);
+	}
+	template<int N, typename TV, typename ... Args>
+	std::string Write(std::string const &name, nTuple<N, TV> const *v, Args ...args) const
+	{
+		return WriteHDF5(name, reinterpret_cast<void const*>(v), std::type_index(typeid(TV)),
+		        std::forward<Args const & >(args)..., N);
+	}
+	std::string WriteHDF5(std::string const &name, void const *v, std::type_index const & t_idx,
 
 	int rank,
 
-	size_t const *global_dims,
+	size_t const *global_start,
+
+	size_t const *global_count,
 
 	size_t const *local_outer_start = nullptr,
 
@@ -130,7 +138,9 @@ public:
 
 	size_t const *local_inner_start = nullptr,
 
-	size_t const *local_inner_count = nullptr) const;
+	size_t const *local_inner_count = nullptr,
+
+	int array_length = 1) const;
 
 private:
 
@@ -149,26 +159,26 @@ inline std::string Save(std::string const & name, TV const *data, Args const & .
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const name, std::shared_ptr<TV> const & d,
-		Args const & ... args)
+        Args const & ... args)
 {
 	return Save(name, d.get(), std::forward<Args const &>(args)...);
 }
 
 template<typename TV, int rank, typename TS> inline std::string Save(std::string const &name, TV const* data,
-		nTuple<rank, TS> const & d)
+        nTuple<rank, TS> const & d)
 {
 	return Save(name, reinterpret_cast<void const *>(data), rank, &d[0]);
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::vector<TV>const & d,
-		Args const & ... args)
+        Args const & ... args)
 {
 	size_t s = d.size();
 
 	return Save(name, &d[0], 1, &s, std::forward<Args const &>(args)...);
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Save(std::string const & name,
-		std::map<TL, TR>const & d, Args const & ... args)
+        std::map<TL, TR>const & d, Args const & ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
 	for (auto const & p : d)
@@ -179,13 +189,12 @@ template<typename TL, typename TR, typename ... Args> inline std::string Save(st
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::map<TV, TV>const & d,
-		Args const & ... args)
+        Args const & ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<2, TV>(
-		{ p.first, p.second }));
+		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
 	}
 	return Save(name, d_, std::forward<Args const &>(args)...);
 }

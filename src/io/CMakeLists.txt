@@ -2,7 +2,7 @@ SET(HDF5_USE_STATIC_LIBRARIES TRUE)
 FIND_PACKAGE(HDF5 1.8 COMPONENTS CXX HL )
 include_directories(BEFORE ${HDF5_INCLUDE_DIR} )
 
-add_library(io  data_stream.cpp)
+add_library(io  data_stream.cpp hdf5_datatype.cpp)
 
 TARGET_LINK_LIBRARIES(io ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} hdf5 hdf5_hl)
 

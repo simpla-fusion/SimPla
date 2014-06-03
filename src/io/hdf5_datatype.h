@@ -7,15 +7,18 @@
 
 #ifndef HDF5_DATATYPE_H_
 #define HDF5_DATATYPE_H_
-
-#include <H5Ipublic.h>
-#include <H5LTpublic.h>
-#include <H5Tpublic.h>
+extern "C"
+{
+#include <hdf5.h>
+#include <hdf5_hl.h>
+}
 #include <complex>
-#include <type_traits>
 #include <utility>
+#include <typeindex>
+#include <unordered_map>
 
 #include "../utilities/utilities.h"
+#include "../utilities/singleton_holder.h"
 #include "../fetl/ntuple.h"
 
 namespace simpla
@@ -23,109 +26,34 @@ namespace simpla
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 
-namespace _impl
+struct HDF5DataTypeFactory
 {
+	HDF5DataTypeFactory();
 
-HAS_STATIC_MEMBER_FUNCTION(DataTypeDesc);
+	~HDF5DataTypeFactory();
 
-template<typename T>
-typename std::enable_if<has_static_member_function_DataTypeDesc<T>::value, hid_t>::type GetH5Type()
-{
-	hid_t res;
-	H5_ERROR(res = H5LTtext_to_dtype(T::DataTypeDesc().c_str(), H5LT_DDL));
-	return res;
+	void Init();
+
+	hid_t Create(std::type_index const & t_idx_) const;
+
+	typedef std::function<hid_t()> create_fun_type;
+
+	template<typename T> void Register(create_fun_type const &fun)
+	{
+		factory_[std::type_index(typeid(T))] = fun;
+	}
+	template<typename T> void Unegister(create_fun_type const &fun)
+	{
+		factory_.erase(std::type_index(typeid(T)));
+	}
+
+	std::unordered_map<std::type_index, create_fun_type> factory_;
 }
-template<typename T>
-typename std::enable_if<!has_static_member_function_DataTypeDesc<T>::value, hid_t>::type GetH5Type()
-{
-	return H5T_OPAQUE;
+;
+
+#define GLOBAL_HDF5_DATA_TYPE_FACTORY  SingletonHolder<HDF5DataTypeFactory> ::instance()
+
 }
-
-}  // namespace _impl
-
-template<typename T>
-struct HDF5DataType
-{
-	hid_t type(...) const
-	{
-		return _impl::GetH5Type<T>();
-	}
-};
-
-template<> struct HDF5DataType<int>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_INT;
-	}
-};
-
-template<> struct HDF5DataType<float>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_FLOAT;
-	}
-};
-
-template<> struct HDF5DataType<double>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_DOUBLE;
-	}
-};
-
-template<> struct HDF5DataType<long double>
-{
-	hid_t type() const
-	{
-		return H5T_NATIVE_LDOUBLE;
-	}
-};
-template<typename T> struct HDF5DataType<std::complex<T>>
-{
-	hid_t type_;
-	HDF5DataType()
-	{
-		type_ = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<T>));
-		H5Tinsert(type_, "r", 0, HDF5DataType<T>().type());
-		H5Tinsert(type_, "i", sizeof(T), HDF5DataType<T>().type());
-	}
-
-	~ HDF5DataType()
-	{
-		H5Tclose(type_);
-	}
-
-	hid_t type() const
-	{
-		return type_;
-	}
-};
-
-template<typename TL, typename TR>
-struct HDF5DataType<std::pair<TL, TR> >
-{
-	typedef std::pair<TL, TR> value_type;
-	hid_t type_;
-	HDF5DataType()
-	{
-		type_ = H5Tcreate(H5T_COMPOUND, sizeof(value_type));
-		H5Tinsert(type_, "first", offsetof(value_type, first), HDF5DataType<TL>().type());
-		H5Tinsert(type_, "second", offsetof(value_type, second), HDF5DataType<TR>().type());
-	}
-
-	~ HDF5DataType()
-	{
-		H5Tclose(type_);
-	}
-
-	hid_t type() const
-	{
-		return type_;
-	}
-};
-}  // namespace simpla
+// namespace simpla
 
 #endif /* HDF5_DATATYPE_H_ */
