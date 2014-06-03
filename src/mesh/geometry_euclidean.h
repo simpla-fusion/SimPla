@@ -33,14 +33,14 @@ struct EuclideanGeometry: public TTopology
 
 	EuclideanGeometry(this_type const & rhs) = delete;
 
-	EuclideanGeometry() :
-			topology_type()
+	EuclideanGeometry()
+			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	EuclideanGeometry(TDict const & dict) :
-			topology_type(dict)
+	EuclideanGeometry(TDict const & dict)
+			: topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -71,20 +71,15 @@ struct EuclideanGeometry: public TTopology
 		return dt_;
 	}
 
-	coordinates_type xmin_ =
-	{ 0, 0, 0 };
+	coordinates_type xmin_ = { 0, 0, 0 };
 
-	coordinates_type xmax_ =
-	{ 1, 1, 1 };
+	coordinates_type xmax_ = { 1, 1, 1 };
 
-	coordinates_type inv_dx_ =
-	{ 1.0, 1.0, 1.0 };
+	coordinates_type inv_dx_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type dx_ =
-	{ 1.0, 1.0, 1.0 };
+	coordinates_type dx_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ =
-	{ 0, 0, 0 };
+	coordinates_type shift_ = { 0, 0, 0 };
 
 	/**
 	 *
@@ -107,24 +102,20 @@ struct EuclideanGeometry: public TTopology
 	 *
 	 */
 
-	Real volume_[8] =
-	{ 1, // 000
-			1, //001
-			1, //010
-			1, //011
-			1, //100
-			1, //101
-			1, //110
-			1  //111
-			};
-	Real inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real volume_[8] = { 1, // 000
+	        1, //001
+	        1, //010
+	        1, //011
+	        1, //100
+	        1, //101
+	        1, //110
+	        1  //111
+	        };
+	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others const &...)
@@ -141,13 +132,14 @@ struct EuclideanGeometry: public TTopology
 
 			dict["Max"].template as<nTuple<NDIMS, Real>>());
 		}
+		dt_ = dict["dt"].template as<Real>();
 	}
 
 	std::string Save(std::string const &path) const
 	{
 		std::stringstream os;
 
-		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", "
+		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_ << ", "
 
 		<< topology_type::Save(path);
 
@@ -289,8 +281,7 @@ struct EuclideanGeometry: public TTopology
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		x[0] * dx_[0] + shift_[0],
 
@@ -303,8 +294,7 @@ struct EuclideanGeometry: public TTopology
 	}
 	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		(x[0] - shift_[0]) * inv_dx_[0],
 
@@ -392,7 +382,7 @@ struct EuclideanGeometry: public TTopology
 
 	template<int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-			nTuple<NDIMS, TV> const & v) const
+	        nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}

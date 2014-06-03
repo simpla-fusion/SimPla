@@ -371,6 +371,9 @@ struct OcForest
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
+			if (global_start != nullptr)
+			global_start[rank] = 0;
+
 			if (global_count != nullptr)
 			global_count[rank] = 3;
 

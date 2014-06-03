@@ -26,7 +26,7 @@
 class XdmfArray;
 namespace simpla
 {
-void GEqdsk::Write(std::string const &fname, int flag)
+void GEqdsk::Write(std::string const &fname)
 {
 
 	XdmfDOM dom;

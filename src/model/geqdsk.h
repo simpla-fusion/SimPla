@@ -51,12 +51,9 @@ private:
 	Real bcentr; // Vacuum toroidal magnetic field in Tesla at RCENTR
 	Real current; // Plasma current in Ampere
 
-	nTuple<NDIMS, size_t> dims_ =
-	{ 0, 0 };
-	nTuple<NDIMS, Real> rzmin_ =
-	{ 0, 0 };
-	nTuple<NDIMS, Real> rzmax_ =
-	{ 0, 0 };
+	nTuple<NDIMS, size_t> dims_ = { 0, 0 };
+	nTuple<NDIMS, Real> rzmin_ = { 0, 0 };
+	nTuple<NDIMS, Real> rzmax_ = { 0, 0 };
 
 //	inter_type fpol_; // Poloidal current function in m-T $F=RB_T$ on flux grid
 //	inter_type pres_; // Plasma pressure in $nt/m^2$ on uniform flux grid
@@ -144,8 +141,7 @@ public:
 	{
 		auto gradPsi = psirz_.diff(x, y);
 
-		return nTuple<3, Real>(
-		{
+		return nTuple<3, Real>( {
 
 		gradPsi[1] / x,
 

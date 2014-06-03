@@ -199,10 +199,9 @@ size_t const *p_local_inner_count
 
 	for (int i = 0; i < rank; ++i)
 	{
-		auto g_start = p_global_start == nullptr ? 0 : p_global_start[i];
 
 		g_shape[i] = p_global_count[i];
-		f_start[i] = p_local_inner_start[i] - g_start;
+		f_start[i] = p_local_inner_start[i] - p_global_start[i];
 		m_shape[i] = p_local_outer_count[i];
 		m_start[i] = p_local_inner_start[i] - p_local_outer_start[i];
 		m_count[i] = p_local_inner_count[i];
