@@ -21,22 +21,22 @@ HDF5DataTypeFactory::~HDF5DataTypeFactory()
 void HDF5DataTypeFactory::Init()
 {
 
-	factory_[std::type_index(typeid(long))] = []()->hid_t
+	factory_[std::type_index(typeid(long)).hash_code()] = []()->hid_t
 	{	return H5T_NATIVE_LONG;};
 
-	factory_[std::type_index(typeid(int))] = []()->hid_t
+	factory_[std::type_index(typeid(int)).hash_code()] = []()->hid_t
 	{	return H5T_NATIVE_INT;};
 
-	factory_[std::type_index(typeid(unsigned long))] = []()->hid_t
+	factory_[std::type_index(typeid(unsigned long)).hash_code()] = []()->hid_t
 	{	return H5T_NATIVE_ULONG;};
 
-	factory_[std::type_index(typeid(float))] = []()->hid_t
+	factory_[std::type_index(typeid(float)).hash_code()] = []()->hid_t
 	{	return H5T_NATIVE_FLOAT;};
 
-	factory_[std::type_index(typeid(double))] = []()->hid_t
+	factory_[std::type_index(typeid(double)).hash_code()] = []()->hid_t
 	{	return H5T_NATIVE_DOUBLE;};
 
-	factory_[std::type_index(typeid(std::complex<double>))] = []()->hid_t
+	factory_[std::type_index(typeid(std::complex<double>)).hash_code()] = []()->hid_t
 	{
 		hid_t type_ =
 
@@ -48,7 +48,7 @@ void HDF5DataTypeFactory::Init()
 	};
 
 }
-hid_t HDF5DataTypeFactory::Create(std::type_index const & t_idx_) const
+hid_t HDF5DataTypeFactory::Create(size_t t_idx_) const
 {
 	hid_t res;
 

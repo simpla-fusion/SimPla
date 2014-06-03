@@ -158,7 +158,9 @@ void DataStream::CloseFile()
 	pimpl_->file_ = -1;
 }
 
-std::string DataStream::WriteHDF5(std::string const & name, void const *v, std::type_index const & t_idx,
+std::string DataStream::WriteHDF5(std::string const & name, void const *v,
+
+size_t t_idx, int type_rank, size_t const * type_dims,
 
 int rank,
 
@@ -172,9 +174,9 @@ size_t const *p_local_outer_count,
 
 size_t const *p_local_inner_start,
 
-size_t const *p_local_inner_count,
+size_t const *p_local_inner_count
 
-int array_length) const
+) const
 {
 
 	auto dsname = name;
@@ -189,33 +191,37 @@ int array_length) const
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
 
-	hsize_t g_shape[rank + 2];
-	hsize_t f_start[rank + 2];
-	hsize_t m_shape[rank + 2];
-	hsize_t m_start[rank + 2];
-	hsize_t m_count[rank + 2];
+	hsize_t g_shape[rank + type_rank + 1];
+	hsize_t f_start[rank + type_rank + 1];
+	hsize_t m_shape[rank + type_rank + 1];
+	hsize_t m_start[rank + type_rank + 1];
+	hsize_t m_count[rank + type_rank + 1];
 
 	for (int i = 0; i < rank; ++i)
 	{
+		auto g_start = p_global_start == nullptr ? 0 : p_global_start[i];
+
 		g_shape[i] = p_global_count[i];
-		f_start[i] = p_local_inner_start[i] - p_global_start[i];
+		f_start[i] = p_local_inner_start[i] - g_start;
 		m_shape[i] = p_local_outer_count[i];
 		m_start[i] = p_local_inner_start[i] - p_local_outer_start[i];
 		m_count[i] = p_local_inner_count[i];
 	}
 
-	if (array_length > 1)
+	if (type_rank > 0)
 	{
+		for (int j = 0; j < type_rank; ++j)
+		{
 
-		g_shape[rank] = array_length;
-		f_start[rank] = 0;
-		m_shape[rank] = array_length;
-		m_start[rank] = 0;
-		m_count[rank] = array_length;
+			g_shape[rank + j] = type_dims[j];
+			f_start[rank + j] = 0;
+			m_shape[rank + j] = type_dims[j];
+			m_start[rank + j] = 0;
+			m_count[rank + j] = type_dims[j];
 
-		++rank;
+			++rank;
+		}
 	}
-
 	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.Create(t_idx);
 
 	hid_t dset;

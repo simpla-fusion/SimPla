@@ -110,21 +110,44 @@ public:
 		CloseGroup();
 		CloseFile();
 	}
-
-	template<typename TV, typename ... Args>
-	std::string Write(std::string const &name, TV const *v, Args ...args) const
+	template<typename TV, typename ...Args>
+	std::string Write(std::string const & name, TV const *data, Args const & ...args)
 	{
 
-		return WriteHDF5(name, reinterpret_cast<void const*>(v), std::type_index(typeid(TV)),
-		        std::forward<Args const & >(args)...);
+		return WriteHDF5(name, reinterpret_cast<void const*>(data),
+
+		std::type_index(typeid(TV)).hash_code(), 0, nullptr,
+
+		std::forward<Args const &>(args)...);
 	}
-	template<int N, typename TV, typename ... Args>
-	std::string Write(std::string const &name, nTuple<N, TV> const *v, Args ...args) const
+	template<int N, typename TV, typename ...Args>
+	std::string Write(std::string const & name, nTuple<N, TV> const *data, Args const & ...args)
 	{
-		return WriteHDF5(name, reinterpret_cast<void const*>(v), std::type_index(typeid(TV)),
-		        std::forward<Args const & >(args)..., N);
+
+		size_t type_dims = N;
+
+		return WriteHDF5(name, reinterpret_cast<void const*>(data),
+
+		std::type_index(typeid(TV)).hash_code(), 1, &type_dims,
+
+		std::forward<Args const &>(args)...);
 	}
-	std::string WriteHDF5(std::string const &name, void const *v, std::type_index const & t_idx,
+
+	template<int N, int M, typename TV, typename ...Args>
+	std::string Write(std::string const & name, nTuple<N, nTuple<M, TV>> const *data, Args const & ...args)
+	{
+		size_t type_dims[] = { N, M };
+
+		return WriteHDF5(name, reinterpret_cast<void const*>(data),
+
+		std::type_index(typeid(TV)).hash_code(), 2, &type_dims,
+
+		std::forward<Args const &>(args)...);
+	}
+
+	std::string WriteHDF5(std::string const &name, void const *v,
+
+	size_t t_idx, int type_rank, size_t const * type_dims,
 
 	int rank,
 
@@ -138,9 +161,9 @@ public:
 
 	size_t const *local_inner_start = nullptr,
 
-	size_t const *local_inner_count = nullptr,
+	size_t const *local_inner_count = nullptr
 
-	int array_length = 1) const;
+	) const;
 
 private:
 
@@ -153,29 +176,24 @@ private:
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
 template<typename TV, typename ...Args>
-inline std::string Save(std::string const & name, TV const *data, Args const & ...args)
+std::string Save(std::string const & name, TV const *data, Args ...args)
 {
-	return GLOBAL_DATA_STREAM.Write(name,data, std::forward<Args const &>(args)...);
+	return GLOBAL_DATA_STREAM.Write(name, data , std::forward<Args >(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(std::string const name, std::shared_ptr<TV> const & d,
-        Args const & ... args)
+template<typename TV, typename ... Args> inline std::string Save(std::string const & name,
+        std::shared_ptr<TV> const & d, Args const & ... args)
 {
 	return Save(name, d.get(), std::forward<Args const &>(args)...);
-}
-
-template<typename TV, int rank, typename TS> inline std::string Save(std::string const &name, TV const* data,
-        nTuple<rank, TS> const & d)
-{
-	return Save(name, reinterpret_cast<void const *>(data), rank, &d[0]);
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::vector<TV>const & d,
         Args const & ... args)
 {
-	size_t s = d.size();
+	size_t s = 0;
+	size_t n = d.size();
 
-	return Save(name, &d[0], 1, &s, std::forward<Args const &>(args)...);
+	return Save(name, &d[0], 1, &s, &n, std::forward<Args const &>(args)...);
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Save(std::string const & name,
         std::map<TL, TR>const & d, Args const & ... args)

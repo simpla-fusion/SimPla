@@ -159,11 +159,11 @@ void GEqdsk::ReadProfile(std::string const &fname)
 
 void GEqdsk::Save(std::ostream & os) const
 {
-	os << simpla::Save("psi", psirz_.data(), 2, &dims_[0]) << std::endl;
+	os << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
 
 	size_t num = rzbbb_.size();
 
-	os << simpla::Save("rzbbb", &rzbbb_[0], 1, &num) << std::endl;
+	os << simpla::Save("rzbbb", &rzbbb_[0], 1, nullptr, &num) << std::endl;
 
 	num = rzlim_.size();
 
@@ -193,7 +193,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcentr
-			<< "\t--                                                                    " << std::endl;
+	        << "\t--                                                                    " << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -204,10 +204,10 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rmaxis" << "\t= " << rmaxis
-			<< "\t-- R of magnetic axis in meter                                        " << std::endl;
+	        << "\t-- R of magnetic axis in meter                                        " << std::endl;
 
 	std::cout << "rmaxis" << "\t= " << zmaxis
-			<< "\t-- Z of magnetic axis in meter                                        " << std::endl;
+	        << "\t-- Z of magnetic axis in meter                                        " << std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -218,13 +218,13 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcentr
-			<< "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
+	        << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
 	std::cout << "bcentr" << "\t= " << bcentr
-			<< "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
+	        << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
 	std::cout << "current" << "\t= " << current
-			<< "\t-- Plasma current in Ampere                                          " << std::endl;
+	        << "\t-- Plasma current in Ampere                                          " << std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "

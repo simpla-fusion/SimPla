@@ -15,7 +15,7 @@ extern "C"
 #include <complex>
 #include <utility>
 #include <typeindex>
-#include <unordered_map>
+#include <map>
 
 #include "../utilities/utilities.h"
 #include "../utilities/singleton_holder.h"
@@ -34,20 +34,27 @@ struct HDF5DataTypeFactory
 
 	void Init();
 
-	hid_t Create(std::type_index const & t_idx_) const;
+	hid_t Create(size_t t_idx_) const;
 
 	typedef std::function<hid_t()> create_fun_type;
 
+	template<typename T> void Register(std::string const &desc)
+	{
+		factory_[std::type_index(typeid(T)).hash_code()] = [desc]()->hid_t
+		{
+			return H5LTtext_to_dtype(desc.c_str(),H5LT_DDL);
+		};
+	}
 	template<typename T> void Register(create_fun_type const &fun)
 	{
-		factory_[std::type_index(typeid(T))] = fun;
+		factory_[std::type_index(typeid(T)).hash_code()] = fun;
 	}
 	template<typename T> void Unegister(create_fun_type const &fun)
 	{
-		factory_.erase(std::type_index(typeid(T)));
+		factory_.erase(std::type_index(typeid(T)).hash_code());
 	}
 
-	std::unordered_map<std::type_index, create_fun_type> factory_;
+	std::map<size_t, create_fun_type> factory_;
 }
 ;
 

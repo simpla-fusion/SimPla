@@ -18,11 +18,10 @@
 #include "../../src/physics/physical_constants.h"
 #include "../../src/physics/constants.h"
 #include "../../src/utilities/utilities.h"
-
+#include "../../src/io/hdf5_datatype.h"
 namespace simpla
 {
-template<typename TM, int NMATE, bool IsImplicit = false,
-		typename Interpolator = typename TM::interpolator_type>
+template<typename TM, int NMATE, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
 {
 
@@ -45,9 +44,8 @@ public:
 
 	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
-			Field<mesh_type, EDGE, scalar_type> >::type J_type;
+	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
+	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7 + NMATE, Real> storage_value_type;
 private:
@@ -64,36 +62,11 @@ public:
 		Real f;
 		nTuple<NMATE, scalar_type> w;
 
-		static std::string DataTypeDesc()
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : "
-					<< (offsetof(Point_s, x)) << ";"
-
-					<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  "
-					<< (offsetof(Point_s, v)) << ";"
-
-					<< "   H5T_NATIVE_DOUBLE    \"f\" : "
-					<< (offsetof(Point_s, f)) << ";"
-
-					<< "   H5T_ARRAY { [" << NMATE
-					<< "] H5T_NATIVE_DOUBLE}    \"w\" :  "
-					<< (offsetof(Point_s, w)) << ";"
-
-					<< "}";
-
-			return os.str();
-		}
 	};
 
 	template<typename TDict, typename ...Args>
-	PICEngineGGauge(mesh_type const &pmesh, TDict const & dict,
-			Args const & ...args) :
-			mesh(pmesh),
+	PICEngineGGauge(mesh_type const &pmesh, TDict const & dict, Args const & ...args)
+			: mesh(pmesh),
 
 			m(dict["Mass"].template as<Real>(1.0)),
 
@@ -114,6 +87,26 @@ public:
 			cosdq[i] = std::cos(theta * i);
 		}
 
+		{
+			std::ostringstream os;
+			os
+
+			<< "H5T_COMPOUND {          "
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+			<< "   H5T_ARRAY { [" << NMATE << "] H5T_NATIVE_DOUBLE}    \"w\" :  " << (offsetof(Point_s, w)) << ";"
+
+			<< "}";
+
+			GLOBAL_HDF5_DATA_TYPE_FACTORY.Register < Point_s > (os.str());
+
+		}
+
 	}
 
 	~PICEngineGGauge()
@@ -125,11 +118,11 @@ public:
 		return "GGauge" + ToString(NMATE);
 	}
 
-	std::string Save(std::string const & path = "",
-			bool is_verbose = false) const
+	std::string Save(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 
@@ -137,8 +130,7 @@ public:
 
 		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
-		<< " , " << "Temperature = "
-				<< T_ * boltzmann_constant / elementary_charge << "* eV";
+		<< " , " << "Temperature = " << T_ * boltzmann_constant / elementary_charge << "* eV";
 
 		return os.str();
 	}
@@ -151,22 +143,20 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+			Others const &...others) const
 	{
 		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE,
-			TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
 	}
 
-	template<bool BOOL, typename TJ, typename TB, typename TE,
-			typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<BOOL>, Point_s * p, Real dt, TJ *J,
-			TE const &fE, TB const & fB, Others const &...others) const
+	template<bool BOOL, typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStepZero(Bool2Type<BOOL>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+			Others const &...others) const
 	{
 //		RVec3 B0 = interpolator_type::Gather(fB, p->x);
 //		Real BB = Dot(B0, B0);
@@ -235,8 +225,8 @@ public:
 	}
 
 	template<bool BOOL, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<BOOL>, Point_s * p, Real dt,
-			TE const &fE, TB const & fB, Others const &...others) const
+	inline void NextTimeStepHalf(Bool2Type<BOOL>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+			Others const &...others) const
 	{
 
 	}
@@ -246,17 +236,14 @@ public:
 		UNIMPLEMENT;
 	}
 
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x,
-			nTuple<3, Real> * v) const
+	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{
 		return 1.0;
 	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v,
-			Point_s * p) const
+	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
 	}
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v,
-			Real f)
+	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
 		Point_s res;
 		res.x = x;
@@ -272,8 +259,7 @@ public:
 template<typename OS, typename ... T> OS&
 operator<<(OS& os, typename PICEngineGGauge<T...>::Point_s const & p)
 {
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w="
-			<< p.w << " }";
+	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
 
 	return os;
 }
