@@ -26,6 +26,7 @@ namespace simpla
 {
 
 //*******************************************************************************************************
+
 template<typename TM, typename TParticle>
 class ParticlePool
 {
@@ -47,7 +48,7 @@ public:
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
-	typedef std::vector<cell_type> container_type;
+	typedef std::map<mesh_iterator, cell_type> container_type;
 
 	typedef typename container_type::iterator iterator;
 
@@ -67,11 +68,6 @@ public:
 
 	std::string Save(std::string const & path) const;
 
-	void UpdateGhosts()
-	{
-	}
-	;
-
 	void Clear(mesh_iterator s);
 
 	void Add(mesh_iterator s, cell_type &&);
@@ -80,9 +76,13 @@ public:
 
 	void Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter);
 
+	void Merge(container_type * other);
+
 	void Modify(mesh_iterator s, std::function<void(particle_type*)> const & foo);
 
 	void Traversal(mesh_iterator s, std::function<void(particle_type*)> const & op);
+
+	void UpdateGhosts(MPI_Comm comm = MPI_COMM_NULL);
 
 	//***************************************************************************************************
 
@@ -92,23 +92,23 @@ public:
 	}
 	inline void Insert(mesh_iterator s, particle_type p)
 	{
-		this->at(s).emplace_back(p);
+		data_[s].emplace_back(p);
 	}
 	cell_type & operator[](mesh_iterator s)
 	{
-		return data_[mesh.Hash(s)];
+		return data_.at(s);
 	}
 	cell_type const & operator[](mesh_iterator s) const
 	{
-		return data_[mesh.Hash(s)];
+		return data_.at(s);
 	}
 	cell_type &at(mesh_iterator s)
 	{
-		return data_.at(mesh.Hash(s));
+		return data_.at(s);
 	}
 	cell_type const & at(mesh_iterator s) const
 	{
-		return data_.at(mesh.Hash(s));
+		return data_.at(s);
 	}
 
 //	iterator begin()
@@ -150,7 +150,7 @@ public:
 
 		for (auto const & v : data_)
 		{
-			res += v.size();
+			res += v.second.size();
 		}
 		return res;
 	}
@@ -180,15 +180,18 @@ private:
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
 	 */
-	template<typename TDest> void Sort(mesh_iterator id_src, TDest *dest);
+	template<typename TSrc, typename TDest> void Sort_(TSrc *, TDest *dest);
 
 };
 
+/***
+ * TODO:  We need a  thread-safe and  high performance allocator for
+ *    std::map<mesh_iterator,std::list<allocator> > !!
+ */
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
 ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others) :
-		mesh(pmesh), isSorted_(false), allocator_(),	//
-		data_(mesh.GetNumOfElements(IForm), cell_type(allocator_))
+		mesh(pmesh), isSorted_(false), allocator_()
 {
 }
 
@@ -205,15 +208,14 @@ std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 	return simpla::Save(name, *this);
 }
 
-#define DISABLE_MULTI_THREAD
-
 //*************************************************************************************************
 template<typename TM, typename TParticle>
-template<typename TDest>
-void ParticlePool<TM, TParticle>::Sort(mesh_iterator id_src, TDest *dest)
+template<typename TSrc, typename TDest>
+void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest)
 {
 
-	auto & src = this->at(id_src);
+	auto & src = *p_src;
+	auto & dest = *p_dest;
 
 	auto pt = src.begin();
 
@@ -226,10 +228,7 @@ void ParticlePool<TM, TParticle>::Sort(mesh_iterator id_src, TDest *dest)
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 
-		if (id_dest != id_src)
-		{
-			(*dest)[id_dest].splice((*dest)[id_dest].begin(), src, p);
-		}
+		dest[id_dest].splice(dest[id_dest].begin(), src, p);
 
 	}
 
@@ -248,20 +247,12 @@ void ParticlePool<TM, TParticle>::Sort()
 
 	[this](int t_num,int t_id)
 	{
-		std::map<mesh_iterator,cell_type> dest;
+		container_type dest;
 		for(auto s:this->mesh.GetRange(IForm).Split(t_num,t_id))
 		{
-			this->Sort(s, &dest);
+			this->Sort_(&(this->at(s)), &dest);
 		}
-
-		write_lock_.lock();
-		for(auto & v :dest)
-		{
-			auto & c = this->at(v.first);
-
-			c.splice(c.begin(), v.second);
-		}
-		write_lock_.unlock();
+		Merge(&dest);
 	}
 
 	);
@@ -271,16 +262,19 @@ void ParticlePool<TM, TParticle>::Sort()
 	UpdateGhosts();
 
 }
-
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::UpdateGhosts(MPI_Comm comm)
+{
+}
 template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Clear(mesh_iterator s)
 {
-	this->at(s).clear();
+	data_.erase(s);
 }
 template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Add(mesh_iterator s, cell_type && other)
 {
-	this->at(s).slice(this->at(s).begin(), other);
+	data_[s].slice(this->at(s).begin(), other);
 }
 
 template<typename TM, typename TParticle>
@@ -288,10 +282,22 @@ void ParticlePool<TM, TParticle>::Add(mesh_iterator s, std::function<void(partic
 {
 	particle_type p;
 	gen(&p);
-	this->at(s).push_back(p);
+	data_[s].push_back(p);
 
 }
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::Merge(container_type * dest)
 
+{
+	this->write_lock_.lock();
+	for (auto & v : *dest)
+	{
+		auto & c = this->at(v.first);
+		c.splice(c.begin(), v.second);
+	}
+	this->write_lock_.unlock();
+
+}
 template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter)
 {
@@ -328,7 +334,6 @@ void ParticlePool<TM, TParticle>::Traversal(mesh_iterator s, std::function<void(
 
 	for (auto const & p : this->at(s))
 	{
-
 		op(p);
 	}
 

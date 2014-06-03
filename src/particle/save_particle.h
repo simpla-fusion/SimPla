@@ -26,7 +26,7 @@ Save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 
 	for (auto const & l : d.GetTree())
 	{
-		std::copy(l.begin(), l.end(), std::back_inserter(res));
+		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
 	}
 
 	return Save(name, res);
