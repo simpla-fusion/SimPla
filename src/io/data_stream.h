@@ -4,8 +4,6 @@
  *  Created on: 2013年12月11日
  *      Author: salmon
  *
- *
- * TODO: DataStream and DataSet need improvement!!!
  */
 
 #ifndef DATA_STREAM_

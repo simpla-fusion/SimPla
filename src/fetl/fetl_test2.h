@@ -25,11 +25,14 @@ struct TestFETLParam2
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin =
+		{ -1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax =
+		{ 1.0, 1.0, 1.0 };
 
-		nTuple<3, size_t> dims = { 16, 32, 67 };
+		nTuple<3, size_t> dims =
+		{ 16, 32, 67 };
 
 		mesh->SetExtents(dims, xmin, xmax);
 
@@ -71,7 +74,6 @@ TYPED_TEST_CASE_P(TestFETLVecAlgegbra);
 
 TYPED_TEST_P(TestFETLVecAlgegbra, vector_arithmetic){
 {
-	//FIXME  should test with non-uniform field
 
 	typedef typename TestFixture::value_type value_type;
 	typename TestFixture::mesh_type const & mesh=TestFixture::mesh;

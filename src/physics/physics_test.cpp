@@ -72,9 +72,9 @@ TEST_F(TestPhysicsUnitSystem, arithmetic)
 	Length l = 1.0 * km;
 	Time t = 2.0 * s;
 	v = l / t;
-	EXPECT_EQ(500.0*m/s, v);
-	EXPECT_DOUBLE_EQ(500.0, v/(m/s));
-	EXPECT_DOUBLE_EQ(500.0/SI_speed_of_light, v/(speed_of_light));
+	EXPECT_EQ(500.0 * m / s, v);
+	EXPECT_DOUBLE_EQ(500.0, v / (m / s));
+	EXPECT_DOUBLE_EQ(500.0 / SI_speed_of_light, v / (speed_of_light));
 }
 
 TEST_F(TestPhysicsUnitSystem, si)
@@ -83,9 +83,9 @@ TEST_F(TestPhysicsUnitSystem, si)
 	using namespace physics::units::si;
 	namespace unit_sys = physics::units::si;
 
-	EXPECT_DOUBLE_EQ( unit_sys::m.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::kg.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::s.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::m.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::kg.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::s.value(), 1.0);
 
 	DECLARE_TEST_UNITS
 }
@@ -94,9 +94,9 @@ TEST_F(TestPhysicsUnitSystem, cgs)
 	using namespace physics::units::si;
 	namespace unit_sys = physics::units::cgs;
 
-	EXPECT_DOUBLE_EQ( unit_sys::cm.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::g.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::s.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::cm.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::g.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::s.value(), 1.0);
 
 	DECLARE_TEST_UNITS
 }
@@ -105,19 +105,16 @@ TEST_F(TestPhysicsUnitSystem, nature)
 	using namespace physics::units::si;
 	namespace unit_sys = physics::units::nature;
 
-	EXPECT_DOUBLE_EQ( unit_sys::speed_of_light.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::elementary_charge.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::elementary_charge.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::permittivity_of_free_space.value(), 1.0);
-	EXPECT_DOUBLE_EQ( unit_sys::permeability_of_free_space .value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::speed_of_light.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::elementary_charge.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::elementary_charge.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::permittivity_of_free_space.value(), 1.0);
+	EXPECT_DOUBLE_EQ(unit_sys::permeability_of_free_space.value(), 1.0);
 	DECLARE_TEST_OF_UNIT(m, m)
 
 	DECLARE_TEST_UNITS
 }
 
-/**
- * TODO: need some test on dimensioned ntuple and field !!!
- **/
 //
 //#include "fetl/fetl.h"
 //using namespace simpla;

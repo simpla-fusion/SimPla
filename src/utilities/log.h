@@ -349,7 +349,6 @@ private:
 
 #define LOG_STREAM SingletonHolder<LoggerStreams>::instance()
 
-//FIXME The operator<< eat first input and transform to integral
 #define ERROR Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
 
 #define LOGIC_ERROR Logger(LOG_LOGIC_ERROR)<<1<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
@@ -410,47 +409,40 @@ private:
 
 inline Logger & DONE(Logger & self)
 {
-	//TODO: trigger timer
 	self.surffix("[DONE]");
 	return self;
 }
 
 inline Logger & START(Logger & self)
 {
-	//TODO: trigger timer
 	self.surffix("[START]");
 	return self;
 }
 
 inline Logger & flush(Logger & self)
 {
-	//TODO: trigger timer
 	self.flush();
 	return self;
 }
 
 inline Logger & endl(Logger & self)
 {
-	//TODO: trigger timer
 	self.endl();
 	return self;
 }
 inline Logger & not_endl(Logger & self)
 {
-	//TODO: trigger timer
 	self.not_endl();
 	return self;
 }
 inline Logger & indent(Logger & self)
 {
-	//TODO: trigger timer
 	self.SetIndent();
 	return self;
 }
 
 inline Logger & TimeStamp(Logger & self)
 {
-	//TODO: trigger timer
 	self << self.TimeStamp();
 	return self;
 }

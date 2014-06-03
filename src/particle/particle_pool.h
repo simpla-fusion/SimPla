@@ -185,8 +185,7 @@ private:
 };
 
 /***
- * TODO:  We need a  thread-safe and  high performance allocator for
- *    std::map<mesh_iterator,std::list<allocator> > !!
+ * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<mesh_iterator,std::list<allocator> > !!
  */
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>

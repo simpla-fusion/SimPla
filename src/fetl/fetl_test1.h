@@ -27,11 +27,14 @@ struct TestFETLParam1
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin =
+		{ -1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax =
+		{ 1.0, 1.0, 1.0 };
 
-		nTuple<3, size_t> dims = { 16, 32, 67 };
+		nTuple<3, size_t> dims =
+		{ 16, 32, 67 };
 
 		mesh->SetExtents(dims, xmin, xmax);
 
@@ -187,7 +190,6 @@ TYPED_TEST_P(TestFETL, constant_real){
 
 TYPED_TEST_P(TestFETL, scalar_field){
 {
-	//FIXME  should test with non-uniform field
 
 	typedef typename TestFixture::FieldType::value_type value_type;
 	typedef typename TestFixture::FieldType::iterator iterator;
