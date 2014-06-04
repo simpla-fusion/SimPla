@@ -39,7 +39,7 @@ struct OcForest
 
 	struct iterator;
 
-	struct Range;
+	struct range;
 
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
@@ -337,6 +337,11 @@ struct OcForest
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
+	size_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
+	{
+		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
+		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
+	}
 	int GetDataSetShape(int IFORM, size_type * global_start = nullptr, size_type * global_count = nullptr, size_type * local_outer_start = nullptr,
 	size_type * local_outer_count = nullptr, size_type * local_inner_start = nullptr, size_type * local_inner_count = nullptr ) const
 	{
@@ -394,7 +399,7 @@ struct OcForest
 		return rank;
 	}
 
-	Range GetRange(int IFORM = VERTEX) const
+	range GetRange(int IFORM = VERTEX) const
 	{
 		compact_index_type shift = 0UL;
 
@@ -414,7 +419,7 @@ struct OcForest
 
 		}
 
-		return Range(global_start_, global_count_, shift);
+		return range(global_start_, global_count_, shift);
 	}
 
 	template<int I>
@@ -1037,7 +1042,7 @@ struct OcForest
 	struct iterator
 	{
 /// One of the @link iterator_tags tag types@endlink.
-		typedef std::input_iterator_tag iterator_category;
+		typedef std::bidirectional_iterator_tag iterator_category;
 
 /// The type "pointed to" by the iterator.
 		typedef compact_index_type value_type;
@@ -1055,6 +1060,10 @@ struct OcForest
 
 		compact_index_type start_, end_;
 
+		iterator(iterator const & r)
+		: self_(r.self_),start_(r.start_),end_(r.end_)
+		{
+		}
 		iterator(compact_index_type s = 0, compact_index_type b = 0, compact_index_type e = 0)
 		: self_(s), start_(b), end_(e)
 		{
@@ -1087,44 +1096,62 @@ struct OcForest
 			return this;
 		}
 
+		bool isNull()const
+		{
+			return self_==0UL;
+		}
 		void NextCell()
 		{
-			auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
-
-			self_ += D;
-
-			if ((self_ & _MRK) >= (end_ & _MRK))
+			if(self_!=end_)
 			{
-				self_ &= ~_MRK;
-				self_ |= start_ & _MRK;
-				self_ += D << (INDEX_DIGITS);
+				auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
+
+				self_ += D;
+
+				if ((self_ & _MRK) >= (end_ & _MRK))
+				{
+					self_ &= ~_MRK;
+					self_ |= start_ & _MRK;
+					self_ += D << (INDEX_DIGITS);
+				}
+				if ((self_ & _MRJ) >= (end_ & _MRJ))
+				{
+					self_ &= ~_MRJ;
+					self_ |= start_ & _MRJ;
+					self_ += D << (INDEX_DIGITS * 2);
+				}
 			}
-			if ((self_ & _MRJ) >= (end_ & _MRJ))
+			else
 			{
-				self_ &= ~_MRJ;
-				self_ |= start_ & _MRJ;
-				self_ += D << (INDEX_DIGITS * 2);
+				self_=0UL;
 			}
 
 		}
 
 		void PreviousCell()
 		{
-			auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
-
-			self_ -= D;
-
-			if ((self_ & _MRK) < (start_ & _MRK))
+			if(self_!=start_)
 			{
-				self_ &= ~_MRK;
-				self_ |= (end_ - D) & _MRK;
-				self_ -= D << (INDEX_DIGITS);
+				auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
+
+				self_ -= D;
+
+				if ((self_ & _MRK) < (start_ & _MRK))
+				{
+					self_ &= ~_MRK;
+					self_ |= (end_ - D) & _MRK;
+					self_ -= D << (INDEX_DIGITS);
+				}
+				if ((self_ & _MRJ) < (end_ & _MRJ))
+				{
+					self_ &= ~_MRJ;
+					self_ |= (end_ - (D << INDEX_DIGITS)) & _MRK;
+					self_ -= D << (INDEX_DIGITS * 2);
+				}
 			}
-			if ((self_ & _MRJ) < (end_ & _MRJ))
+			else
 			{
-				self_ &= ~_MRJ;
-				self_ |= (end_ - (D << INDEX_DIGITS)) & _MRK;
-				self_ -= D << (INDEX_DIGITS * 2);
+				self_=0UL;
 			}
 
 		}
@@ -1211,7 +1238,7 @@ struct OcForest
 
 	}; // class iterator
 
-	struct Range
+	struct range
 	{
 	public:
 		typedef typename OcForest::iterator iterator;
@@ -1223,17 +1250,20 @@ struct OcForest
 
 		compact_index_type shift_ = 0UL;
 
-		Range():shift_(0UL)
+		range():shift_(0UL)
 		{
-
 		}
-		Range(nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count,
+
+		range(range const & r ):start_(r.start_),count_(r.count_),shift_(r.shift_)
+		{
+		}
+		range(nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count,
 		compact_index_type node_shift = 0UL)
 		: start_(start), count_(count), shift_(node_shift)
 		{
 		}
 
-		~Range()
+		~range()
 		{
 		}
 
@@ -1305,7 +1335,7 @@ struct OcForest
 			}
 			return n;
 		}
-		Range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
+		range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
 		{
 			int n=0;
 			size_type L=0;
@@ -1333,9 +1363,11 @@ struct OcForest
 				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
 			}
 
-			return Range(start,count,shift_);
+			return range(start,count,shift_);
 		}
 	};
+	typedef range Range;
+	typedef range const_range;
 	// class Range
 
 	/***************************************************************************************************

@@ -13,7 +13,7 @@
 #ifndef IDENTIFY
 #	define IDENTIFY "UNKNOWN"
 #endif
-#define SIMPLA_LOGO                                                        \
+#define SIMPLA_LOGO      "\n"                                    \
 "===================================================\n"\
 "|             ┏━┓╻┏┳┓┏━┓╻  ┏━┓                    |\n" \
 "|             ┗━┓┃┃┃┃┣━┛┃  ┣━┫                    |\n" \
@@ -23,7 +23,6 @@
 " Build Date: " __DATE__ " " __TIME__"                   \n"\
 " ID:" IDENTIFY  "                                        \n"\
 " Author: YU Zhi. All rights reserved.           \n"
-
 
 inline std::string ShowShortVersion()
 {

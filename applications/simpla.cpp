@@ -200,7 +200,6 @@ int main(int argc, char **argv)
 
 	VERBOSE << "Post-Process" << DONE;
 
-
 	GLOBAL_DATA_STREAM.Close();
 	GLOBAL_COMM.Close();
 	TheEnd();

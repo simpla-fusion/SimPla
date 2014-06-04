@@ -29,9 +29,9 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 128
-NY = 1
-NZ = 1
+NX = 256
+NY = 16
+NZ = 16
 LX = 10 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = 1 -- 2.0*math.pi/18
