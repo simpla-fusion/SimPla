@@ -66,20 +66,13 @@ public:
 
 	void Decompose(int num_process, int process_num, size_t gw);
 
-#ifdef USE_MPI
-	template<typename TV> void UpdateGhosts(TV* data, MPI_Comm comm = MPI_COMM_NULL) const;
-#else
-	template<typename TV> void UpdateGhost(TV* data) const
-	{};
-#endif
-
 	nTuple<NDIMS, size_t> global_start_;
 	nTuple<NDIMS, size_t> global_count_;
 
 	nTuple<NDIMS, size_t> global_strides_;
 
 	sub_array_s local_;
-private:
+
 	struct send_recv_s
 	{
 		int dest;
@@ -90,6 +83,7 @@ private:
 		nTuple<NDIMS, size_t> recv_start;
 		nTuple<NDIMS, size_t> recv_count;
 	};
+
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
 	void Decomposer_(int num_process, int process_num, unsigned int gw, sub_array_s *) const;
@@ -242,39 +236,6 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 
 }
 
-#ifdef USE_MPI
-
-template<int N>
-template<typename TV>
-void DistributedArray<N>::UpdateGhosts(TV* data, MPI_Comm comm) const
-{
-	if (send_recv_.size() == 0)
-		return;
-
-	if (comm == MPI_COMM_NULL)
-	{
-		comm = GLOBAL_COMM.GetComm();
-	}
-
-	MPI_Request request[send_recv_.size() * 2];
-
-	int count = 0;
-	for (auto const & item : send_recv_)
-	{
-
-		MPIDataType<TV> send_type(comm, local_.outer_count, item.send_count, item.send_start - local_.outer_start);
-		MPIDataType<TV> recv_type(comm, local_.outer_count, item.recv_count, item.recv_start - local_.outer_start);
-
-		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm, &request[count * 2]);
-		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm, &request[count * 2 + 1]);
-		++count;
-	}
-
-	MPI_Waitall(send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
-
-}
-
-#endif
 }
 // namespace simpla
 

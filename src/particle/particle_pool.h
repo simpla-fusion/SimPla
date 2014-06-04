@@ -8,14 +8,11 @@
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
 #include "../utilities/log.h"
-#include "../io/data_stream.h"
-#include "../utilities/memory_pool.h"
-#include "../utilities/singleton_holder.h"
 #include "../utilities/type_utilites.h"
 
 #include "../parallel/parallel.h"
-
 #include "save_particle.h"
+
 #ifndef NO_STD_CXX
 //need  libstdc++
 #include <ext/mt_allocator.h>
@@ -26,8 +23,7 @@ namespace simpla
 {
 
 //*******************************************************************************************************
-template<typename TM, typename TParticle>
-void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NULL);
+
 template<typename TM, typename TParticle>
 class ParticlePool
 {
@@ -60,7 +56,7 @@ public:
 	//***************************************************************************************************
 	// Constructor
 	template<typename TDict, typename ...Args> ParticlePool(mesh_type const & pmesh, TDict const & dict,
-	        Args const & ...others);
+			Args const & ...others);
 
 	// Destructor
 	~ParticlePool();
@@ -135,22 +131,20 @@ private:
 		typedef typename std::conditional<std::is_const<TV>::value, container_type const &, container_type&>::type container_reference;
 
 		typedef typename std::conditional<std::is_const<TV>::value, typename container_type::const_iterator,
-		        typename container_type::iterator>::type cell_iterator;
+				typename container_type::iterator>::type cell_iterator;
 
-	private:
 		container_reference data_;
 		mesh_iterator m_it_;
 		cell_iterator c_it_;
 
-	public:
-		cell_iterator_(container_reference data, mesh_iterator m_it)
-				: data_(data), m_it_(m_it)
+		cell_iterator_(container_reference data, mesh_iterator m_it) :
+				data_(data), m_it_(m_it)
 		{
 			this->operator++();
 		}
 		template<typename ...Args>
-		cell_iterator_(container_reference data, Args const & ...args)
-				: data_(data), m_it_(std::forward<Args const &>(args)...)
+		cell_iterator_(container_reference data, Args const & ...args) :
+				data_(data), m_it_(std::forward<Args const &>(args)...)
 		{
 			this->operator++();
 		}
@@ -243,19 +237,19 @@ private:
 		typedef cell_iterator_<value_type> cell_iterator;
 
 		typedef typename std::conditional<std::is_const<TV>::value, typename cell_iterator::value_type::const_iterator,
-		        typename cell_iterator::value_type::iterator>::type element_iterator;
+				typename cell_iterator::value_type::iterator>::type element_iterator;
 
 		cell_iterator c_it_;
 		element_iterator e_it_;
 
 		template<typename ...Args>
-		iterator_(Args const & ...args)
-				: c_it_(std::forward<Args const &>(args)...), e_it_(c_it_->begin())
+		iterator_(Args const & ...args) :
+				c_it_(std::forward<Args const &>(args)...), e_it_(c_it_->begin())
 		{
 
 		}
-		iterator_(cell_iterator c_it, element_iterator e_it)
-				: c_it_(c_it), e_it_(e_it)
+		iterator_(cell_iterator c_it, element_iterator e_it) :
+				c_it_(c_it), e_it_(e_it)
 		{
 
 		}
@@ -349,14 +343,14 @@ private:
 
 		container_reference data_;
 
-		cell_range_(container_reference data, mesh_range const & m_range)
-				: mesh_range(m_range), data_(data)
+		cell_range_(container_reference data, mesh_range const & m_range) :
+				mesh_range(m_range), data_(data)
 		{
 		}
 
 		template<typename ...Args>
-		cell_range_(container_reference data, Args const & ...args)
-				: mesh_range(std::forward<Args const &>(args)...), data_(data)
+		cell_range_(container_reference data, Args const & ...args) :
+				mesh_range(std::forward<Args const &>(args)...), data_(data)
 		{
 		}
 
@@ -410,13 +404,13 @@ private:
 		typedef cell_range_<TV> cell_range_type;
 		typedef typename std::conditional<std::is_const<TV>::value, const container_type &, container_type&>::type container_reference;
 
-		range_(cell_range_type range)
-				: cell_range_type(range)
+		range_(cell_range_type range) :
+				cell_range_type(range)
 		{
 		}
 		template<typename ...Args>
-		range_(container_reference d, Args const & ... args)
-				: cell_range_type(d, std::forward<Args const &>(args)...)
+		range_(container_reference d, Args const & ... args) :
+				cell_range_type(d, std::forward<Args const &>(args)...)
 		{
 		}
 
@@ -496,9 +490,25 @@ public:
 		return const_cell_range(data_, mesh.GetRange(IForm));
 	}
 
-	const_cell_range SelectCell(typename mesh_type::range const & m_range) const
+	cell_range SelectCells(typename mesh_type::range const & m_range)
+	{
+		return cell_range(data_, m_range);
+	}
+
+	template<typename ...Args>
+	cell_range SelectCells(Args const & ... args)
+	{
+		return cell_range(data_, mesh.GetRange(std::forward<Args const &>(args)...));
+	}
+	const_cell_range SelectCells(typename mesh_type::range const & m_range) const
 	{
 		return const_cell_range(data_, m_range);
+	}
+
+	template<typename ...Args>
+	const_cell_range SelectCells(Args const & ... args) const
+	{
+		return const_cell_range(data_, mesh.GetRange(std::forward<Args const &>(args)...));
 	}
 
 //	iterator begin()
@@ -561,21 +571,24 @@ public:
 
 	//***************************************************************************************************
 	// Cell operation
-	void Clear(mesh_iterator s);
+
+	void Clear(cell_iterator it);
+
+	void ClearEmpty();
 
 	void Merge(container_type * other);
 
 	void Add(size_t num, std::function<void(particle_type*)> const & generator);
 
-	void Modify(range r, std::function<void(particle_type*)> const & op);
+	void Add(cell_type *src);
 
-	void Remove(range r, std::function<bool(particle_type const&)> const & filter);
+	template<typename TRange>
+	void Remove(TRange r, std::function<bool(particle_type const&)> const & filter, cell_type* other = nullptr);
 
-	void Remove(cell_iterator it);
+	template<typename TRange>
+	void Remove(TRange r, cell_type *other = nullptr);
 
-	void MoveIn(cell_type *src);
-
-	void MoveOut(cell_iterator it, cell_type *other = nullptr);
+	void Remove(cell_iterator it, cell_type *other = nullptr);
 
 //***************************************************************************************************
 
@@ -637,8 +650,8 @@ private:
  */
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-		: mesh(pmesh), isSorted_(false), allocator_(), buffer_(allocator_)
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others) :
+		mesh(pmesh), isSorted_(false), allocator_(), buffer_(allocator_)
 {
 }
 
@@ -702,44 +715,34 @@ void ParticlePool<TM, TParticle>::Sort()
 
 	isSorted_ = true;
 
-	UpdateGhosts();
+	UpdateGhosts(this);
 
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Clear(mesh_iterator s)
+void ParticlePool<TM, TParticle>::ClearEmpty()
 {
-	data_.erase(s);
-}
+	auto it = data_.begin(), ie = data_.end();
+	while (it != ie)
+	{
+		auto t = it;
+		++it;
+		if (t->empty())
+			data_.erase(t);
+	}
 
+}
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(cell_type* other)
+void ParticlePool<TM, TParticle>::Clear(cell_iterator it)
 {
-	//TODO NEED parallel optimize
-	Sort_(other, &data_);
-}
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(mesh_iterator s, cell_type && other)
-{
-	auto & dest = GetCell(&data_, s);
-
-	dest.slice(dest.begin(), other);
+	data_.erase(it.c_it_);
 }
 
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(mesh_iterator s, std::function<void(particle_type*)> const & gen)
-{
-	particle_type p;
-	gen(&p);
-	GetCell(&data_, s).push_back(p);
-
-}
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Merge(container_type * dest)
-
+void ParticlePool<TM, TParticle>::Merge(container_type * other)
 {
 	write_lock_.lock();
-	for (auto & v : *dest)
+	for (auto & v : *other)
 	{
 		auto & c = GetCell(&data_, v.first);
 		c.splice(c.begin(), v.second);
@@ -748,55 +751,65 @@ void ParticlePool<TM, TParticle>::Merge(container_type * dest)
 
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter)
+void ParticlePool<TM, TParticle>::Add(cell_type* other)
 {
-	try
+	//TODO NEED parallel optimize
+	Sort_(other, &data_);
+}
+
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::Add(size_t num, std::function<void(particle_type*)> const & gen)
+{
+
+	cell_type buffer = GetCell();
+
+	for (size_t i = 0; i < num; ++i)
 	{
-		auto & cell = this->at(s);
-
-		auto pt = cell.begin();
-
-		while (pt != cell.end())
-		{
-			if (filter(*pt))
-			{
-				pt = cell.erase(pt);
-			}
-			else
-			{
-				++pt;
-			}
-
-		}
-	} catch (std::out_of_range const &)
-	{
-
+		particle_type p;
+		gen(&p);
+		buffer.emplace_back(p);
 	}
+	Sort_(&buffer, &data_);
 }
+
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Remove(cell_iterator it)
+void ParticlePool<TM, TParticle>::Remove(cell_iterator it, cell_type *other)
 {
-	MoveOut(it);
-	data_.erase(it.c_it_);
-}
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::MoveOut(cell_iterator it, cell_type * other)
-{
+	if (other == nullptr)
+		other = &buffer_;
 	other->splice(other->begin(), *it);
 }
-template<typename TM, typename TParticle> template<typename TOther>
-void ParticlePool<TM, TParticle>::MoveOut(cell_range r, TOther *other)
+template<typename TM, typename TParticle>
+template<typename TRange>
+void ParticlePool<TM, TParticle>::Remove(TRange r, cell_type * other)
 {
 	for (auto it = r.begin(), ie = r.end(); it != ie; ++it)
 	{
-		if (other != nullptr)
-		{
-			std::copy(it->begin(), it->end(), std::back_inserter(*other));
-		}
-
-		Remove(it, &buffer_);
+		Remove(it, other);
 	}
 }
+
+template<typename TM, typename TParticle>
+template<typename TRange>
+void ParticlePool<TM, TParticle>::Remove(TRange r, std::function<bool(particle_type const&)> const & filter,
+		cell_type * other)
+{
+	if (other == nullptr)
+		other = *buffer_;
+
+	auto it = r.begin(), ie = r.end();
+	while (it != ie)
+	{
+		auto c_it = it.c_it_;
+		auto e_it = it.e_it_;
+		++it;
+		if (filter(*e_it))
+		{
+			other->splice(other->begin(), *c_it, e_it);
+		}
+	}
+}
+
 }  // namespace simpla
 
 #endif /* PARTICLE_POOL_H_ */

@@ -254,7 +254,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 
 	});
 
-	J.UpdateGhosts();
+	UpdateGhosts(&J);
 
 	LOGGER << DONE;
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
@@ -321,7 +321,8 @@ void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 	{
 		Scatter(this->mesh.GetRange(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
 	});
-	pJ->UpdateGhosts();
+
+	UpdateGhosts(pJ);
 }
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline

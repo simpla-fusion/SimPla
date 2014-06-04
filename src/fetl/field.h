@@ -107,10 +107,6 @@ public:
 		std::swap(data_, rhs.data_);
 	}
 
-	void UpdateGhosts()
-	{
-		mesh.UpdateGhosts(this);
-	}
 	void Init()
 	{
 		AllocMemory_();
@@ -358,7 +354,8 @@ public:
 
 		);
 
-		UpdateGhosts();
+		UpdateGhosts(this);
+
 		return (*this);
 	}
 

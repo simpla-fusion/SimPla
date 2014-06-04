@@ -12,6 +12,12 @@
 
 #ifdef USE_MPI
 #	include "message_comm.h"
+#	include "update_ghosts.h"
+#else
+template<typename T>
+void UpdateGhosts(T *, MPI_Comm comm = MPI_COMM_NULL)
+{
+}
 #endif
 
 #endif /* PARALLEL_H_ */
