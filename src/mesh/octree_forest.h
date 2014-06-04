@@ -401,6 +401,11 @@ struct OcForest
 
 	range GetRange(int IFORM = VERTEX) const
 	{
+		return GetRange(global_start_, global_count_, IFORM);
+	}
+
+	range GetRange(nTuple<NDIMS,size_t>const& start,nTuple<NDIMS,size_t>const& count,int IFORM = VERTEX) const
+	{
 		compact_index_type shift = 0UL;
 
 		if (IFORM == EDGE)
@@ -419,7 +424,7 @@ struct OcForest
 
 		}
 
-		return range(global_start_, global_count_, shift);
+		return range(start, count, shift);
 	}
 
 	template<int I>

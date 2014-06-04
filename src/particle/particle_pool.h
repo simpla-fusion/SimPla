@@ -26,7 +26,8 @@ namespace simpla
 {
 
 //*******************************************************************************************************
-
+template<typename TM, typename TParticle>
+void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NULL);
 template<typename TM, typename TParticle>
 class ParticlePool
 {
@@ -66,27 +67,16 @@ public:
 
 	std::string Save(std::string const & path) const;
 
-	void Clear(mesh_iterator s);
-
-	void Add(mesh_iterator s, cell_type &&);
-
-	void Add(mesh_iterator s, std::function<void(particle_type*)> const & generator);
-
-	void Remove(mesh_iterator s, std::function<bool(particle_type const&)> const & filter);
-
-	void Merge(container_type * other);
-
-	void Modify(mesh_iterator s, std::function<void(particle_type*)> const & foo);
-
-	void Traversal(mesh_iterator s, std::function<void(particle_type*)> const & op);
-
-	void UpdateGhosts(MPI_Comm comm = MPI_COMM_NULL);
-
 	//***************************************************************************************************
 
 	allocator_type GetAllocator()
 	{
 		return allocator_;
+	}
+
+	cell_type GetCell()
+	{
+		return std::move(cell_type(allocator_));
 	}
 
 	cell_type & GetCell(container_type * c, mesh_iterator s)
@@ -95,7 +85,7 @@ public:
 
 		if (it == c->end())
 		{
-			it = c->emplace(s, cell_type(allocator_)).first;
+			it = c->emplace(s, GetCell()).first;
 		}
 
 		return it->second;
@@ -400,6 +390,15 @@ private:
 		{
 			return this_type(data_, mesh_range::Split(std::forward<Args const &>(args)...));
 		}
+		size_t size() const
+		{
+			size_t count = 0;
+			for (auto it = begin(), ie = end(); it != ie; ++it)
+			{
+				++count;
+			}
+			return count;
+		}
 	};
 
 	template<typename TV>
@@ -449,6 +448,15 @@ private:
 			return iterator(cit, cit->rend());
 		}
 
+		size_t size() const
+		{
+			size_t count = 0;
+			for (auto it = cell_range_type::begin(), ie = cell_range_type::end(); it != ie; ++it)
+			{
+				count += it->size();
+			}
+			return count;
+		}
 		template<typename ...Args>
 		this_type Split(Args const & ... args) const
 		{
@@ -459,6 +467,9 @@ public:
 
 	typedef iterator_<particle_type> iterator;
 	typedef iterator_<const particle_type> const_iterator;
+
+	typedef cell_iterator_<particle_type> cell_iterator;
+	typedef cell_iterator_<const particle_type> const_cell_iterator;
 
 	typedef range_<particle_type> range;
 	typedef range_<const particle_type> const_range;
@@ -484,6 +495,12 @@ public:
 	{
 		return const_cell_range(data_, mesh.GetRange(IForm));
 	}
+
+	const_cell_range SelectCell(typename mesh_type::range const & m_range) const
+	{
+		return const_cell_range(data_, m_range);
+	}
+
 //	iterator begin()
 //	{
 //		return iterator(data_.begin());
@@ -541,6 +558,25 @@ public:
 	{
 		return (data_.crend());
 	}
+
+	//***************************************************************************************************
+	// Cell operation
+	void Clear(mesh_iterator s);
+
+	void Merge(container_type * other);
+
+	void Add(size_t num, std::function<void(particle_type*)> const & generator);
+
+	void Modify(range r, std::function<void(particle_type*)> const & op);
+
+	void Remove(range r, std::function<bool(particle_type const&)> const & filter);
+
+	void Remove(cell_iterator it);
+
+	void MoveIn(cell_type *src);
+
+	void MoveOut(cell_iterator it, cell_type *other = nullptr);
+
 //***************************************************************************************************
 
 	void Sort();
@@ -586,6 +622,7 @@ private:
 
 	allocator_type allocator_;
 	container_type data_;
+	cell_type buffer_;
 
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -601,7 +638,7 @@ private:
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Others>
 ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-		: mesh(pmesh), isSorted_(false), allocator_()
+		: mesh(pmesh), isSorted_(false), allocator_(), buffer_(allocator_)
 {
 }
 
@@ -610,15 +647,12 @@ ParticlePool<TM, TParticle>::~ParticlePool()
 {
 }
 
-//*************************************************************************************************
-
 template<typename TM, typename TParticle>
 std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
 {
 	return simpla::Save(name, *this);
 }
 
-//*************************************************************************************************
 template<typename TM, typename TParticle>
 template<typename TSrc, typename TDest>
 void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
@@ -671,14 +705,18 @@ void ParticlePool<TM, TParticle>::Sort()
 	UpdateGhosts();
 
 }
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::UpdateGhosts(MPI_Comm comm)
-{
-}
+
 template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Clear(mesh_iterator s)
 {
 	data_.erase(s);
+}
+
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::Add(cell_type* other)
+{
+	//TODO NEED parallel optimize
+	Sort_(other, &data_);
 }
 template<typename TM, typename TParticle>
 void ParticlePool<TM, TParticle>::Add(mesh_iterator s, cell_type && other)
@@ -735,7 +773,30 @@ void ParticlePool<TM, TParticle>::Remove(mesh_iterator s, std::function<bool(par
 
 	}
 }
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::Remove(cell_iterator it)
+{
+	MoveOut(it);
+	data_.erase(it.c_it_);
+}
+template<typename TM, typename TParticle>
+void ParticlePool<TM, TParticle>::MoveOut(cell_iterator it, cell_type * other)
+{
+	other->splice(other->begin(), *it);
+}
+template<typename TM, typename TParticle> template<typename TOther>
+void ParticlePool<TM, TParticle>::MoveOut(cell_range r, TOther *other)
+{
+	for (auto it = r.begin(), ie = r.end(); it != ie; ++it)
+	{
+		if (other != nullptr)
+		{
+			std::copy(it->begin(), it->end(), std::back_inserter(*other));
+		}
 
+		Remove(it, &buffer_);
+	}
+}
 }  // namespace simpla
 
 #endif /* PARTICLE_POOL_H_ */
