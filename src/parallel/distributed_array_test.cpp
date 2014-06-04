@@ -10,6 +10,7 @@
 #include "../fetl/ntuple.h"
 #include "../utilities/pretty_stream.h"
 #include <stddef.h>
+#include "update_ghosts.h"
 
 using namespace simpla;
 
@@ -62,7 +63,7 @@ TEST_P(TestDistArray, UpdateGhost)
 		++count;
 	}
 
-	darray.UpdateGhosts(&data[0]);
+	UpdateGhosts(&data[0],darray);
 
 	MPI_Barrier( GLOBAL_COMM.GetComm());
 

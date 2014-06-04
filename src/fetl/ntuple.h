@@ -285,14 +285,29 @@ struct nTupleTraits
 {
 	static constexpr unsigned int NDIMS = 1;
 	typedef TV value_type;
+	typedef value_type element_type;
+	template<typename TVec>
+	static void GetDims(TVec* dims)
+	{
+	}
+
 };
 
 template<int N, typename TV>
 struct nTupleTraits<nTuple<N, TV>>
 {
 	static constexpr unsigned int NDIMS = N;
+
 	typedef TV value_type;
 
+	typedef typename nTupleTraits<TV>::element_type element_type;
+
+	template<typename TVec>
+	static void GetDims(TVec* dims)
+	{
+		dims->push_back(NDIMS);
+		nTupleTraits<TV>::GetDims(dims);
+	}
 };
 
 template<int N, class T>

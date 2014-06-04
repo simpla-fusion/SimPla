@@ -13,154 +13,114 @@
 #include <cstddef>
 #include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "../utilities/type_utilites.h"
 
 namespace simpla
 {
-template<typename T> struct MPIDataType;
 namespace _impl
 {
-
-//HAS_STATIC_MEMBER_FUNCTION(MPIDataTypeDesc);
-//
-//template<typename T>
-//typename std::enable_if<has_static_member_function_DataTypeDesc<T>::value, MPI_Datatype>::type GetMPIDataType()
-//{
-//	MPI_Datatype res;
-//
-//	return res;
-//}
-//template<typename T>
-//typename std::enable_if<!has_static_member_function_DataTypeDesc<T>::value, MPI_Datatype>::type GetMPIDataType()
-//{
-//	return MPI_DATATYPE_NULL;
-//}
-
-template<typename T> struct MPIPredefineDataType
+template<typename T>
+bool GetMPIType(MPI_Datatype * new_type)
 {
-	static MPI_Datatype type()
+	bool is_commited = false;
+	if (typeid(T) == typeid(int))
 	{
-		return MPI_DATATYPE_NULL;
+		*new_type = MPI_INT;
+	}
+	else if (typeid(T) == typeid(long))
+	{
+		*new_type = MPI_LONG;
+	}
+	else if (typeid(T) == typeid(float))
+	{
+		*new_type = MPI_FLOAT;
+	}
+	else if (typeid(T) == typeid(double))
+	{
+		*new_type = MPI_DOUBLE;
+	}
+	else if (typeid(T) == typeid(long double))
+	{
+		*new_type = MPI_LONG_DOUBLE;
+	}
+	else if (typeid(T) == typeid(std::complex<double>))
+	{
+		*new_type = MPI_2DOUBLE_COMPLEX;
+	}
+	else if (typeid(T) == typeid(std::complex<float>))
+	{
+		*new_type = MPI_2COMPLEX;
+	}
+	else if (is_nTuple<T>::value)
+	{
+		// FIXME incomplete implement , need nTuple<N,nTuple<M,TV>>
+		typedef typename nTupleTraits<T>::element_type value_type;
+		std::vector<int> dims;
+		nTupleTraits<T>::GetDims(&dims);
+
+		MPI_Datatype old_type;
+
+		GetMPIType<value_type>(&old_type);
+
+		MPI_Type_contiguous(nTupleTraits<T>::NDIMS, old_type, new_type);
+
+		MPI_Type_commit(new_type);
+
+		is_commited = true;
+	}
+	else
+	{
+		MPI_Type_contiguous(sizeof(T) / sizeof(char), MPI_CHAR, new_type);
+		MPI_Type_commit(new_type);
+		is_commited = true;
+
 	}
 
-};
-template<> struct MPIPredefineDataType<int>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_INT;
-	}
-
-};
-template<> struct MPIPredefineDataType<long>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_LONG;
-	}
-};
-
-template<> struct MPIPredefineDataType<float>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_FLOAT;
-	}
-};
-
-template<> struct MPIPredefineDataType<double>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_DOUBLE;
-	}
-};
-
-template<> struct MPIPredefineDataType<long double>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_LONG_DOUBLE;
-	}
-};
-template<> struct MPIPredefineDataType<std::complex<double>>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_2DOUBLE_COMPLEX;
-	}
-};
-
-template<> struct MPIPredefineDataType<std::complex<float>>
-{
-	static MPI_Datatype type()
-	{
-		return MPI_2COMPLEX;
-	}
-};
-
-template<typename TV, int NDIMS> typename std::enable_if<!is_nTuple<TV>::value, MPI_Datatype>::type MPICreateArray(
-		MPIDataType<TV> const& old_type, nTuple<NDIMS, size_t> const &pouter, nTuple<NDIMS, size_t> const &pinner,
-		nTuple<NDIMS, size_t> const &pstart, int array_order_ = MPI_ORDER_C)
-{
-
-	MPI_Datatype data_type;
-	nTuple<NDIMS, int> outer, inner, start;
-	outer = pouter;
-	inner = pinner;
-	start = pstart;
-
-	MPI_Type_create_subarray(NDIMS, &outer[0], &inner[0], &start[0], array_order_, old_type.type(), &data_type);
-	MPI_Type_commit(&data_type);
-	return data_type;
+	return is_commited;
 }
-template<typename TV, int NDIMS>
-typename std::enable_if<is_nTuple<TV>::value, MPI_Datatype>::type MPICreateArray(MPIDataType<TV> const& old_type,
-		nTuple<NDIMS, size_t> const &outer, nTuple<NDIMS, size_t> const &inner, nTuple<NDIMS, size_t> const &start,
-		int array_order_ = MPI_ORDER_C)
-{
-	typedef typename nTupleTraits<TV>::value_type value_type;
-	int N = nTupleTraits<TV>::NDIMS;
 
-	nTuple<NDIMS + 1, size_t> outer1;
-	nTuple<NDIMS + 1, size_t> inner1;
-	nTuple<NDIMS + 1, size_t> start1;
-
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		outer1[i] = outer[i];
-		inner1[i] = inner[i];
-		start1[i] = start[i];
-	}
-	outer1[NDIMS] = N;
-	inner1[NDIMS] = N;
-	start1[NDIMS] = 0;
-
-	return MPICreateArray(MPIDataType<value_type>(), outer1, inner1, start1, array_order_);
-}
-} // namespace _impl
+}  // namespace _impl
 template<typename T>
 struct MPIDataType
 {
 	MPI_Datatype type_;
-	bool need_free_ = false;
-
+	bool is_commited_ = false;
+	static constexpr int MAX_NTUPLE_RANK = 10;
 	MPIDataType() :
-			type_(_impl::MPIPredefineDataType<T>::type()), need_free_(false)
+			is_commited_(_impl::GetMPIType<T>(&type_))
 	{
 	}
-
-	template<typename ...Args>
-	MPIDataType(MPI_Comm comm, Args const & ... args) :
-			type_(MPI_DATATYPE_NULL), need_free_(true)
+	template<int NDIMS>
+	MPIDataType(nTuple<NDIMS, size_t> const &outer, nTuple<NDIMS, size_t> const &inner,
+			nTuple<NDIMS, size_t> const &start, int array_order_ =
+			MPI_ORDER_C)
 	{
-		type_ = _impl::MPICreateArray<T>(MPIDataType<T>(), std::forward<Args const &>(args)...);
 
+		std::vector<int> outer1;
+		std::vector<int> inner1;
+		std::vector<int> start1;
+		std::copy(&outer[0], &outer[NDIMS], std::back_inserter(outer1));
+		std::copy(&inner[0], &inner[NDIMS], std::back_inserter(inner1));
+		std::copy(&start[0], &start[NDIMS], std::back_inserter(start1));
+
+		nTupleTraits<T>::GetDims(&outer1);
+		nTupleTraits<T>::GetDims(&inner1);
+		for (int i = start1.size(), ie = outer1.size(); i < ie; ++i)
+		{
+			start1.push_back(0);
+		}
+
+		MPI_Type_create_subarray(outer1.size(), &outer1[0], &inner1[0], &start1[0], array_order_,
+				MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
+		MPI_Type_commit(&type_);
+		is_commited_ = true;
 	}
+
 	~MPIDataType()
 	{
-		if (need_free_)
+		if (is_commited_)
 			MPI_Type_free(&type_);
 	}
 
