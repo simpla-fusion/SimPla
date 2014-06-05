@@ -29,8 +29,8 @@ public:
 	{
 		EnableImplicit = IsImplicit
 	};
-	const Real m;
-	const Real q;
+	  Real m;
+	  Real q;
 
 	typedef PICEngineDefault<TM, IsImplicit, Interpolator> this_type;
 	typedef TM mesh_type;
@@ -44,14 +44,11 @@ public:
 	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
 	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
 
-	typedef nTuple<7, Real> storage_value_type;
-
 	struct Point_s
 	{
 		coordinates_type x;
 		Vec3 v;
 		Real f;
-
 	};
 
 private:
@@ -60,17 +57,23 @@ public:
 	mesh_type const &mesh;
 
 public:
-
-	template<typename TDict, typename ...Args>
-	PICEngineDefault(mesh_type const &pmesh, TDict const & dict, Args const & ...args)
-			: mesh(pmesh),
-
-			m(dict["Mass"].template as<Real>(1.0)),
-
-			q(dict["Charge"].template as<Real>(1.0)),
-
-			cmr_(q / m)
+	PICEngineDefault(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
+	}
+	template<typename ...Others>
+	PICEngineDefault(mesh_type const &pmesh, Others const & ...others)
+			: PICEngineDefault(pmesh)
+	{
+		Load(std::forward<Others const &>(others)...);
+	}
+	template<typename TDict, typename ...Args>
+	void Load(TDict const& dict, Args const & ...args)
+	{
+		m = (dict["Mass"].template as<Real>(1.0));
+		q = (dict["Charge"].template as<Real>(1.0));
+
+		cmr_ = (q / m);
 		{
 			std::ostringstream os;
 			os

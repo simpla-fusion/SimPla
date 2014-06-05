@@ -29,8 +29,8 @@ public:
 	{
 		EnableImplicit = false
 	};
-	const Real m;
-	const Real q;
+	Real m;
+	Real q;
 
 	typedef PICEngineDeltaF<TM, Interpolator> this_type;
 	typedef TM mesh_type;
@@ -43,8 +43,6 @@ public:
 
 	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
 	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
-
-	typedef nTuple<8, Real> storage_value_type;
 
 	struct Point_s
 	{
@@ -60,14 +58,26 @@ public:
 	mesh_type const &mesh;
 
 public:
-	template<typename TDict, typename ...Args>
-	PICEngineDeltaF(mesh_type const &pmesh, TDict const& dict, Args const & ...args)
-			: mesh(pmesh), m(dict["Mass"].template as<Real>(1.0)), q(dict["Charge"].template as<Real>(1.0)),
 
-			cmr_(q / m), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
+	}
+	template<typename ...Others>
+	PICEngineDeltaF(mesh_type const &pmesh, Others const & ...others)
+			: PICEngineDeltaF(pmesh)
+	{
+		Load(std::forward<Others const &>(others)...);
+	}
+	template<typename TDict, typename ...Args>
+	void Load(TDict const& dict, Args const & ...args)
+	{
+		m = (dict["Mass"].template as<Real>(1.0));
+		q = (dict["Charge"].template as<Real>(1.0));
+
+		cmr_ = (q / m);
+
 		DEFINE_PHYSICAL_CONST
-		;
 
 		q_kT_ = q / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
 

@@ -63,21 +63,30 @@ public:
 		nTuple<NMATE, scalar_type> w;
 
 	};
-
-	template<typename TDict, typename ...Args>
-	PICEngineGGauge(mesh_type const &pmesh, TDict const & dict, Args const & ...args)
-			: mesh(pmesh),
-
-			m(dict["Mass"].template as<Real>(1.0)),
-
-			q(dict["Charge"].template as<Real>(1.0)),
-
-			cmr_(q / m),
-
-			T_(dict["Temperature"].template as<Real>(1.0)),
-
-			vT_(std::sqrt(2.0 * T_ / m))
+	PICEngineGGauge(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0)
 	{
+	}
+
+	template<typename ...Others>
+	PICEngineGGauge(mesh_type const &m, Others const & ...others)
+			: PICEngineGGauge(m)
+	{
+		Load(std::forward<Others const &>(others)...);
+	}
+	template<typename TDict, typename ...Args>
+	void Load(TDict const & dict, Args const & ...args)
+
+	{
+		m = (dict["Mass"].template as<Real>(1.0));
+
+		q = (dict["Charge"].template as<Real>(1.0));
+
+		cmr_ = (q / m);
+
+		T_ = (dict["Temperature"].template as<Real>(1.0));
+
+		vT_ = (std::sqrt(2.0 * T_ / m));
 
 		constexpr Real theta = TWOPI / static_cast<Real>(NMATE);
 

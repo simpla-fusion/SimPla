@@ -55,14 +55,14 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
 	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
 
-	static constexpr Real R_INV_DX = static_cast<Real>(1UL << D_FP_POS);
-	static constexpr Real R_DX = 1.0 / R_INV_DX;
+	nTuple<NDIMS, Real> R_INV_DX;
+	nTuple<NDIMS, Real> R_DX;
 	//***************************************************************************************************
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
@@ -96,7 +96,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -120,8 +120,7 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>(
-		{
+		return nTuple<NDIMS, size_type>( {
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -238,6 +237,10 @@ struct OcForest
 			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2);
 			global_count_[i] = length;
 
+//			R_INV_DX[i]=static_cast<Real>(length);
+//			R_DX[i]=1.0/R_INV_DX[i];
+			R_DX [i]=static_cast<Real>(length);
+			R_INV_DX [i]=1.0/R_DX[i];
 		}
 
 		global_array_.global_start_= global_start_;
@@ -393,33 +396,40 @@ struct OcForest
 		}
 		return rank;
 	}
-
-	range GetRange(int IFORM = VERTEX) const
+	compact_index_type GetShift(int IFORM,compact_index_type h=0UL)const
 	{
-		return GetRange(global_start_, global_count_, IFORM);
-	}
-
-	range GetRange(nTuple<NDIMS,size_t>const& start,nTuple<NDIMS,size_t>const& count,int IFORM = VERTEX) const
-	{
-		compact_index_type shift = 0UL;
+		compact_index_type shift = h << (INDEX_DIGITS * 3);
 
 		if (IFORM == EDGE)
 		{
-			shift = (_DI >> 1);
+			shift |= (_DI >> (h+1));
 
 		}
 		else if (IFORM == FACE)
 		{
-			shift = ((_DJ | _DK) >> 1);
+			shift |= ((_DJ | _DK) >> (h+1));
 
 		}
 		else if (IFORM == VOLUME)
 		{
-			shift = ((_DI | _DJ | _DK) >> 1);
-
+			shift |= ((_DI | _DJ | _DK) >> (h+1));
 		}
 
-		return range(start, count, shift);
+		return shift;
+	}
+	range GetRange(int IFORM = VERTEX) const
+	{
+		return GetRange( IFORM,global_start_, global_count_);
+	}
+	range GetRange(int IFORM ,range const& r ) const
+	{
+		range res=r;
+		res.shift_= GetShift(IFORM);
+		return res;
+	}
+	range GetRange(int IFORM , nTuple<NDIMS,size_t>const& start, nTuple<NDIMS,size_t>const& count ) const
+	{
+		return range(start, count, GetShift(IFORM));
 	}
 
 	template<int I>
@@ -1399,9 +1409,9 @@ struct OcForest
 
 		return coordinates_type(
 		{
-			static_cast<Real>(d[0] )*R_DX ,
-			static_cast<Real>(d[1] )*R_DX ,
-			static_cast<Real>(d[2] )*R_DX ,
+			static_cast<Real>(d[0] )*R_DX[0] ,
+			static_cast<Real>(d[1] )*R_DX[1],
+			static_cast<Real>(d[2] )*R_DX[2] ,
 		});
 	}
 
@@ -1412,7 +1422,8 @@ struct OcForest
 
 	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
-		return CoordinatesGlobalToLocal(px, shift);
+
+		return (CoordinatesGlobalToLocal(px, Dual(shift)));
 	}
 	const Real zero= ((((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS));
 	const Real dx= (1UL << (D_FP_POS ));
@@ -1423,28 +1434,26 @@ struct OcForest
 	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
 		auto & x = *px;
-
-		x = x*dx +zero;
+		CHECK(x);
+		compact_index_type mask=~((1UL << (D_FP_POS-HeightOfTree(shift) ))-1);
+		Real dh = static_cast<Real>(1UL << (D_FP_POS-HeightOfTree(shift) ));
 
 		nTuple<NDIMS, size_type> idx;
+		nTuple<NDIMS, Real> r;
+		nTuple<NDIMS, Real> h;
 
-		idx = x;
+		h= Decompact(shift);
 
-		idx -= Decompact(shift);
-		idx = idx >> (D_FP_POS );
-		idx = idx << (D_FP_POS );
-
-//		x[0] = (x[0] - static_cast<Real>(idx[0]))*inv_dx;
-//
-//		x[1] = (x[1] - static_cast<Real>(idx[1]))*inv_dx;
-//
-//		x[2] = (x[2] - static_cast<Real>(idx[2]))*inv_dx;
-
-		x=(x-idx)*inv_dx;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			Real t=std::floor( x[i]*dx+zero+h[i]+ 0.5*dh);
+			idx[i]=static_cast<size_type>(t)&mask;
+			x[i]=(x[i]-t)/dh;
+		}
 
 		return iterator(
 
-		Compact(idx) | shift,
+		(Compact(idx) | shift) ,
 
 		local_outer_start_index_ | shift,
 

@@ -19,7 +19,7 @@
 #include "../numeric/rectangle_distribution.h"
 #include "../utilities/log.h"
 #include "../physics/physical_constants.h"
-
+#include "../parallel/update_ghosts.h"
 namespace simpla
 {
 
@@ -108,6 +108,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	nTuple<3, Real> x, v;
 
+	auto buffer = p->GetCell();
 	for (auto s : range)
 	{
 
@@ -125,10 +126,12 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			v = mesh.PushForward(x, v) * std::sqrt(boltzmann_constant * Ts(x) / p->m);
 
-			p->Insert(s, engine_type::make_point(x, v, ns(x) * inv_sample_density));
+			buffer.push_back(engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}
-
 	}
+
+	p->Add(&buffer);
+//	UpdateGhosts(p);
 }
 }  // namespace simpla
 

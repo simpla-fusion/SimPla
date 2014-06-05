@@ -179,9 +179,9 @@ struct EuclideanGeometry: public TTopology
 			{
 				xmax_[i] = pmax[i];
 
-				inv_dx_[i] = static_cast<Real>(dims[i]) / (xmax_[i] - xmin_[i]);
+				inv_dx_[i] = 1.0 / (xmax_[i] - xmin_[i]);
 
-				dx_[i] = (xmax_[i] - xmin_[i]) / static_cast<Real>(dims[i]);
+				dx_[i] = (xmax_[i] - xmin_[i]);
 
 				volume_[1UL << i] = dx_[i];
 
@@ -193,8 +193,6 @@ struct EuclideanGeometry: public TTopology
 
 			}
 		}
-
-		topology_type::SetDimensions(dims);
 
 		/**
 		 *
@@ -261,6 +259,7 @@ struct EuclideanGeometry: public TTopology
 
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
+		topology_type::SetDimensions(dims);
 	}
 
 	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
@@ -311,10 +310,17 @@ struct EuclideanGeometry: public TTopology
 		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args const &>(args)...));
 	}
 
-	index_type CoordinatesGlobalToLocal(coordinates_type * px) const
+	index_type CoordinatesGlobalToLocal(coordinates_type * px,
+	        typename topology_type::compact_index_type shift = 0UL) const
 	{
 		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesGlobalToLocal(px);
+		return topology_type::CoordinatesGlobalToLocal(px, shift);
+	}
+	index_type CoordinatesGlobalToLocalDual(coordinates_type * px, typename topology_type::compact_index_type shift =
+	        0UL) const
+	{
+		*px = CoordinatesToTopology(*px);
+		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
 	}
 
 	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const

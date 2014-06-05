@@ -73,11 +73,14 @@ public:
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	template<typename TDict, typename ...Args> Particle(mesh_type const & pmesh, TDict const & dict,
-			Args const & ...others);
+	Particle(mesh_type const & pmesh);
+
+	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...others);
 
 	// Destructor
 	virtual ~Particle();
+
+	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args const & ...others);
 
 	void AddCommand(std::function<void()> const &foo)
 	{
@@ -112,18 +115,26 @@ private:
 
 	std::list<std::function<void()> > commands_;
 };
+template<typename Engine>
 
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+{
+}
+template<typename Engine>
+template<typename ...Others>
+Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others)
+		: Particle(pmesh)
+{
+	Load(std::forward<Others const &>(others)...);
+}
 template<typename Engine>
 template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, TDict const & dict, Others const & ...others)
-
-:
-		engine_type(pmesh, dict, std::forward<Others const&>(others)...),
-
-		storage_type(pmesh, dict),
-
-		mesh(pmesh), n(mesh), J(mesh)
+void Particle<Engine>::Load(TDict const & dict, Others const & ...others)
 {
+	engine_type::Load(dict, std::forward<Others const &>(others)...);
+
+	storage_type::Load(dict, std::forward<Others const &>(others)...);
 
 	LoadParticle(this, dict, std::forward<Others const &>(others)...);
 
@@ -137,7 +148,7 @@ Particle<Engine>::~Particle()
 }
 template<typename Engine>
 template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-		Others const & ...others)
+        Others const & ...others)
 {
 	if (!dict.is_table())
 		return;
@@ -151,8 +162,8 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-					Command<typename engine_type::n_type>::Create(&n, item.second,
-							std::forward<Others const &>(others)...));
+			        Command<typename engine_type::n_type>::Create(&n, item.second,
+			                std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == "J")
@@ -161,8 +172,8 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-					Command<typename engine_type::J_type>::Create(&J, item.second,
-							std::forward<Others const &>(others)...));
+			        Command<typename engine_type::J_type>::Create(&J, item.second,
+			                std::forward<Others const &>(others)...));
 
 		}
 		else if (dof == "ParticlesBoundary")
@@ -171,7 +182,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 			LOGGER << "Add constraint to " << dof;
 
 			commands_.push_back(
-					BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
+			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
 		}
 		else
 		{
@@ -226,7 +237,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -267,7 +278,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 

@@ -29,9 +29,9 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 256
-NY = 16
-NZ = 16
+NX = 16
+NY = 1 
+NZ = 1 
 LX = 10 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = 1 -- 2.0*math.pi/18
@@ -185,15 +185,15 @@ ParticleConstraints=
 
 ---[[
 Particles={
-	--		H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
-	--			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	 	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+	 			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
 	--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
-	-- ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+	  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
 	-- H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
