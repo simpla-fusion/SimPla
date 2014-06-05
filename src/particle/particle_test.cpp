@@ -124,18 +124,12 @@ TEST_P(TestParticle,Add)
 	nTuple<3, size_t> start =
 	{ 0, 0, 0 };
 
-	for (auto const & v : p.data_)
-	{
-		CHECK(mesh.Hash(v.first)) << " " << v.second.size();
+	auto r = p.SelectCell(start, dims);
 
-	}
-//
-//	for (auto const & s : mesh.GetRange(pool_type::IForm))
-//	{
-//		CHECK(mesh.Hash(s));
-//	}
+	CHECK(mesh.Hash(r.mesh_type::range::begin()));
 
 	p.Remove(p.SelectCell(start, dims));
+
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
 	CHECK(p.data_.size());
 
