@@ -55,7 +55,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
@@ -96,7 +96,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -120,7 +120,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>( {
+		return nTuple<NDIMS, size_type>(
+		{
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -216,6 +217,10 @@ struct OcForest
 
 	int array_order_ = SLOW_FIRST;
 
+	compact_index_type global_start_index_= 0UL;
+	compact_index_type local_outer_start_index_= 0UL;
+	compact_index_type local_outer_end_index_= 0UL;
+
 	DistributedArray<NDIMS> global_array_;
 	//
 	//   |----------------|----------------|---------------|--------------|------------|
@@ -237,10 +242,8 @@ struct OcForest
 			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2);
 			global_count_[i] = length;
 
-//			R_INV_DX[i]=static_cast<Real>(length);
-//			R_DX[i]=1.0/R_INV_DX[i];
-			R_DX [i]=static_cast<Real>(length);
-			R_INV_DX [i]=1.0/R_DX[i];
+			R_INV_DX[i]=static_cast<Real>(length<<D_FP_POS);
+			R_DX[i]=1.0/R_INV_DX[i];
 		}
 
 		global_array_.global_start_= global_start_;
@@ -280,9 +283,9 @@ struct OcForest
 			hash_stride_[1] = (local_outer_count_[0]);
 			hash_stride_[2] = ((local_outer_count_[1])) * hash_stride_[1];
 		}
-
-		local_outer_start_index_= Compact(local_outer_start_);
-		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_);
+		global_start_index_=Compact(global_start_)<<D_FP_POS;
+		local_outer_start_index_= Compact(local_outer_start_)<<D_FP_POS;
+		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_)<<D_FP_POS;
 	}
 
 	inline size_type Hash(iterator s) const
@@ -1417,7 +1420,15 @@ struct OcForest
 
 	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
 	{
-		return GetCoordinates(s) + r * static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
+		auto d = Decompact(s.self_)-(global_start_<<D_FP_POS);
+		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
+		coordinates_type res;
+
+		for(int i=0;i<NDIMS;++i)
+		{
+			res[i]=(static_cast<Real>(d[i])+r[i]*scale)*R_DX[i];
+		}
+		return std::move(res);
 	}
 
 	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
@@ -1425,30 +1436,28 @@ struct OcForest
 
 		return (CoordinatesGlobalToLocal(px, Dual(shift)));
 	}
-	const Real zero= ((((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS));
-	const Real dx= (1UL << (D_FP_POS ));
-	const Real inv_dx= 1.0/dx;
 
-	compact_index_type local_outer_start_index_= 0UL;
-	compact_index_type local_outer_end_index_= 0UL;
 	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
 		auto & x = *px;
-		CHECK(x);
+
+		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(shift)));
+
 		compact_index_type mask=~((1UL << (D_FP_POS-HeightOfTree(shift) ))-1);
+
 		Real dh = static_cast<Real>(1UL << (D_FP_POS-HeightOfTree(shift) ));
 
 		nTuple<NDIMS, size_type> idx;
-		nTuple<NDIMS, Real> r;
 		nTuple<NDIMS, Real> h;
 
 		h= Decompact(shift);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			Real t=std::floor( x[i]*dx+zero+h[i]+ 0.5*dh);
-			idx[i]=static_cast<size_type>(t)&mask;
-			x[i]=(x[i]-t)/dh;
+			x[i]*=R_INV_DX[i];
+			idx[i]=static_cast<size_type>(x[i]+ h[i])&mask;
+			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
+			idx[i]+=global_start_[i]<<D_FP_POS;
 		}
 
 		return iterator(

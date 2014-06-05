@@ -55,22 +55,7 @@ public:
 
 TEST_P(TestMesh2,Coordinates)
 {
-	mesh_type::coordinates_type x;
-
-	x = (xmax + xmin) * 0.5;
-
-	auto r = x;
-
-	CHECK(r);
-
-	auto idx = mesh.CoordinatesGlobalToLocal(&r);
-
-	CHECK(mesh.Decompact(idx.self_));
-
-	CHECK(r);
-
-	EXPECT_EQ(mesh.CoordinatesLocalToGlobal(idx, r), x);
-}
+	}
 
 INSTANTIATE_TEST_CASE_P(SimPla, TestMesh2,
 

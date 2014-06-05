@@ -657,8 +657,6 @@ void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 
 		mesh_iterator id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x), shift);
 
-		CHECK(mesh.Decompact(id_dest.self_));
-
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 		auto & dest = GetCell(p_dest_contianer, id_dest);
 		dest.splice(dest.begin(), *p_src, p);

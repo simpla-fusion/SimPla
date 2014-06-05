@@ -127,9 +127,11 @@ TEST_P(TestMesh, VerboseShow)
 
 		Range range(
 
-		nTuple<3, size_t>( { 1, 3, 5 }),
+		nTuple<3, size_t>(
+		{ 1, 3, 5 }),
 
-		nTuple<3, size_t>( { 2, 4, 5 }),
+		nTuple<3, size_t>(
+		{ 2, 4, 5 }),
 
 		s);
 
@@ -194,7 +196,7 @@ TEST_P(TestMesh, coordinates)
 	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()), extents.second);
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()) * mesh.Volume(range3.begin()),
-	        mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
+			mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()), mesh.DualVolume(range3.begin()));
 	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()), mesh.DualVolume(range2.begin()));
@@ -211,6 +213,19 @@ TEST_P(TestMesh, coordinates)
 	EXPECT_EQ(mesh.ComponentNum(it.self_), 1);
 	++it;
 	EXPECT_EQ(mesh.ComponentNum(it.self_), 2);
+
+}
+TEST_P(TestMesh, local_coordinates)
+{
+	mesh_type::coordinates_type x;
+
+	x = (xmax + xmin) * 0.5123;
+
+	auto r = x;
+
+	auto idx = mesh.CoordinatesGlobalToLocal(&r);
+
+	EXPECT_EQ(mesh.CoordinatesLocalToGlobal(idx, r), x);
 
 }
 TEST_P(TestMesh, volume)
