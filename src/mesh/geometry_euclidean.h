@@ -146,7 +146,8 @@ struct EuclideanGeometry: public TTopology
 		return os.str();
 	}
 
-	inline void SetExtents(nTuple<NDIMS, size_type> dims, nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
+	template<typename ...Others>
+	inline void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax, Others const & ... others)
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -155,12 +156,10 @@ struct EuclideanGeometry: public TTopology
 
 			shift_[i] = xmin_[i];
 
-			if ((std::abs(pmax[i] - pmin[i]) < EPSILON) || (dims[i] <= 1))
+			if ((pmax[i] - pmin[i]) < EPSILON)
 			{
 
 				xmax_[i] = xmin_[i];
-
-				dims[i] = 1;
 
 				inv_dx_[i] = 0.0;
 
@@ -259,7 +258,7 @@ struct EuclideanGeometry: public TTopology
 
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
-		topology_type::SetDimensions(dims);
+		topology_type::SetDimensions(std::forward<const Others &>(others)...);
 	}
 
 	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
@@ -280,6 +279,7 @@ struct EuclideanGeometry: public TTopology
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
+
 		return coordinates_type( {
 
 		x[0] * dx_[0] + shift_[0],

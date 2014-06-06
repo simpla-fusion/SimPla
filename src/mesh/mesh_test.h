@@ -13,17 +13,22 @@
 #include "../utilities/pretty_stream.h"
 #include "../utilities/log.h"
 #include "../parallel/message_comm.h"
+
 using namespace simpla;
 
 typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
 class TestMesh: public testing::TestWithParam<
 
-std::tuple<nTuple<TMesh::NDIMS, size_t>,
+std::tuple<
 
 typename TMesh::coordinates_type,
 
-typename TMesh::coordinates_type> >
+typename TMesh::coordinates_type,
+
+nTuple<TMesh::NDIMS, size_t>
+
+> >
 {
 protected:
 	virtual void SetUp()
@@ -32,11 +37,11 @@ protected:
 
 		auto param = GetParam();
 
-		dims=std::get<0>(param);
+		xmin=std::get<0>(param);
 
-		xmin=std::get<1>(param);
+		xmax=std::get<1>(param);
 
-		xmax=std::get<2>(param);
+		dims=std::get<2>(param);
 
 		mesh.SetExtents(std::get<0>(param),std::get<1>(param), std::get<2>(param));
 
@@ -45,7 +50,7 @@ public:
 	typedef TMesh mesh_type;
 	typedef typename mesh_type::Range Range;
 	typedef typename Range::iterator iterator;
-	static constexpr unsigned int NDIMS=TMesh::NDIMS;
+	unsigned int NDIMS=TMesh::NDIMS;
 
 	mesh_type mesh;
 
@@ -127,11 +132,9 @@ TEST_P(TestMesh, VerboseShow)
 
 		Range range(
 
-		nTuple<3, size_t>(
-		{ 1, 3, 5 }),
+		nTuple<3, size_t>( { 1, 3, 5 }),
 
-		nTuple<3, size_t>(
-		{ 2, 4, 5 }),
+		nTuple<3, size_t>( { 2, 4, 5 }),
 
 		s);
 
@@ -193,10 +196,16 @@ TEST_P(TestMesh, coordinates)
 
 	auto it = range1.begin();
 
-	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()), extents.second);
+	auto x = extents.second;
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (dims[i] <= 1 || xmax[i] <= xmin[i])
+			x[i] = xmin[i];
+	}
+	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()), x);
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()) * mesh.Volume(range3.begin()),
-			mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
+	        mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()), mesh.DualVolume(range3.begin()));
 	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()), mesh.DualVolume(range2.begin()));
@@ -219,13 +228,21 @@ TEST_P(TestMesh, local_coordinates)
 {
 	mesh_type::coordinates_type x;
 
-	x = (xmax + xmin) * 0.5123;
+	x = (xmax - xmin) * 0.5123 + xmin;
 
 	auto r = x;
 
 	auto idx = mesh.CoordinatesGlobalToLocal(&r);
 
-	EXPECT_EQ(mesh.CoordinatesLocalToGlobal(idx, r), x);
+	auto y = mesh.CoordinatesLocalToGlobal(idx, r);
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (dims[i] <= 1 || xmax[i] <= xmin[i])
+			x[i] = xmin[i];
+	}
+	EXPECT_LE(abs(r), NDIMS);
+	EXPECT_LE(abs(y - x), EPSILON) << x << " " << y;
 
 }
 TEST_P(TestMesh, volume)

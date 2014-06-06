@@ -55,7 +55,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 
@@ -96,7 +96,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -120,8 +120,7 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>(
-		{
+		return nTuple<NDIMS, size_type>( {
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -242,8 +241,16 @@ struct OcForest
 			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2);
 			global_count_[i] = length;
 
-			R_INV_DX[i]=static_cast<Real>(length<<D_FP_POS);
-			R_DX[i]=1.0/R_INV_DX[i];
+			if(global_count_[i] >1)
+			{
+				R_INV_DX[i]=static_cast<Real>(length<<D_FP_POS);
+				R_DX[i]=1.0/R_INV_DX[i];
+			}
+			else
+			{
+				R_INV_DX[i]=0;
+				R_DX[i]=0;
+			}
 		}
 
 		global_array_.global_start_= global_start_;
