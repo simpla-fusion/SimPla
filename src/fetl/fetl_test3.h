@@ -37,11 +37,13 @@ class TestDiffCalculus: public testing::TestWithParam<
 
 std::tuple<
 
-nTuple<TMesh::NDIMS, size_t>,
+typename TMesh::coordinates_type,
 
 typename TMesh::coordinates_type,
 
-typename TMesh::coordinates_type>
+nTuple<TMesh::NDIMS, size_t>
+
+>
 
 >
 {
@@ -51,7 +53,13 @@ protected:
 	{
 		auto param = GetParam();
 
-		mesh.SetExtents(std::get<0>(param), std::get<1>(param), std::get<2>(param));
+		xmin = std::get<0>(param);
+
+		xmax = std::get<1>(param);
+
+		dims = std::get<2>(param);
+
+		mesh.SetExtents(xmin, xmax, dims);
 
 		SetDefaultValue(&default_value);
 	}
@@ -68,16 +76,38 @@ public:
 
 	mesh_type mesh;
 
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+
+	nTuple<NDIMS, Real> xmin;
+
+	nTuple<NDIMS, Real> xmax;
+
+	nTuple<NDIMS, size_t> dims;
+
 	static constexpr double PI = 3.141592653589793;
 
 	static constexpr nTuple<3, Real> K = { 2.0 * PI, 3.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
+	bool CheckValideParam()
+	{
+		bool res = true;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (xmax[i] - xmin[i] < EPSILON && dims[i] > 1)
+				res = false;
+		}
+		return res;
+	}
+
 };
 
 TEST_P(TestDiffCalculus, grad0)
 {
+	if (!CheckValideParam())
+		return;
+
 	auto d = mesh.GetDimensions();
 	nTuple<3, Real> k = K;
 
@@ -133,6 +163,9 @@ TEST_P(TestDiffCalculus, grad0)
 
 TEST_P(TestDiffCalculus, grad3)
 {
+	if (!CheckValideParam())
+		return;
+
 	auto d = mesh.GetDimensions();
 
 	nTuple<3, Real> k = K;
@@ -190,8 +223,9 @@ TEST_P(TestDiffCalculus, grad3)
 }
 
 TEST_P(TestDiffCalculus, diverge1)
-
 {
+	if (!CheckValideParam())
+		return;
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
 
@@ -245,6 +279,8 @@ TEST_P(TestDiffCalculus, diverge1)
 
 TEST_P(TestDiffCalculus, diverge2)
 {
+	if (!CheckValideParam())
+		return;
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
 
@@ -295,6 +331,8 @@ TEST_P(TestDiffCalculus, diverge2)
 
 TEST_P(TestDiffCalculus, curl1)
 {
+	if (!CheckValideParam())
+		return;
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
 
@@ -357,6 +395,8 @@ TEST_P(TestDiffCalculus, curl1)
 
 TEST_P(TestDiffCalculus, curl2)
 {
+	if (!CheckValideParam())
+		return;
 	nTuple<3, Real> k = K;
 	auto d = mesh.GetDimensions();
 
@@ -420,6 +460,8 @@ TEST_P(TestDiffCalculus, curl2)
 
 TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 {
+	if (!CheckValideParam())
+		return;
 
 	TZeroForm f0(mesh);
 
@@ -465,7 +507,8 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 {
-
+	if (!CheckValideParam())
+		return;
 	TThreeForm f3(mesh);
 	TOneForm f1a(mesh);
 	TOneForm f1b(mesh);
@@ -511,7 +554,8 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 {
-
+	if (!CheckValideParam())
+		return;
 	TOneForm f1(mesh);
 	TTwoForm f2(mesh);
 	TZeroForm f0a(mesh);
@@ -558,7 +602,8 @@ TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 
 TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0)
 {
-
+	if (!CheckValideParam())
+		return;
 	TOneForm f1(mesh);
 	TTwoForm f2(mesh);
 	TThreeForm f3a(mesh);

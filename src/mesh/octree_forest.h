@@ -172,9 +172,7 @@ struct OcForest
 		{
 			LOGGER << "Load OcForest ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
-
 		}
-
 	}
 
 	std::string Save(std::string const &path) const
@@ -406,7 +404,7 @@ struct OcForest
 		}
 		return rank;
 	}
-	compact_index_type GetShift(int IFORM,compact_index_type h=0UL)const
+	static compact_index_type GetShift(int IFORM,compact_index_type h=0UL)
 	{
 		compact_index_type shift = h << (INDEX_DIGITS * 3);
 
@@ -429,17 +427,7 @@ struct OcForest
 	}
 	range GetRange(int IFORM = VERTEX) const
 	{
-		return GetRange( IFORM,global_start_, global_count_);
-	}
-	range GetRange(int IFORM ,range const& r ) const
-	{
-		range res=r;
-		res.shift_= GetShift(IFORM);
-		return res;
-	}
-	range GetRange(int IFORM , nTuple<NDIMS,size_t>const& start, nTuple<NDIMS,size_t>const& count ) const
-	{
-		return range(start, count, GetShift(IFORM));
+		return range(IFORM,global_start_, global_count_ );
 	}
 
 	template<int I>
@@ -1268,18 +1256,19 @@ struct OcForest
 
 		nTuple<NDIMS, size_type> count_;
 
+		unsigned int iform_=VERTEX;
+
 		compact_index_type shift_ = 0UL;
 
-		range():shift_(0UL)
+		range():shift_(GetShift(VERTEX))
 		{
 		}
 
-		range(range const & r ):start_(r.start_),count_(r.count_),shift_(r.shift_)
+		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(GetShift(iform))
 		{
 		}
-		range(nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count,
-		compact_index_type node_shift = 0UL)
-		: start_(start), count_(count), shift_(node_shift)
+		range(unsigned int iform,nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count )
+		: start_(start), count_(count), iform_(iform),shift_(GetShift(iform))
 		{
 		}
 
@@ -1383,12 +1372,9 @@ struct OcForest
 				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
 			}
 
-			return range(start,count,shift_);
+			return range(iform_,start,count );
 		}
-	};
-	typedef range Range;
-	typedef range const_range;
-	// class Range
+	};	// class Range
 
 	/***************************************************************************************************
 	 *

@@ -43,13 +43,13 @@ protected:
 
 		dims=std::get<2>(param);
 
-		mesh.SetExtents(std::get<0>(param),std::get<1>(param), std::get<2>(param));
+		mesh.SetExtents(xmin,xmax,dims);
 
 	}
 public:
 	typedef TMesh mesh_type;
-	typedef typename mesh_type::Range Range;
-	typedef typename Range::iterator iterator;
+	typedef typename mesh_type::range range;
+	typedef typename range::iterator iterator;
 	unsigned int NDIMS=TMesh::NDIMS;
 
 	mesh_type mesh;
@@ -71,9 +71,9 @@ public:
 TEST_P(TestMesh, ForAll)
 {
 
-	for (auto const & s : shift)
+	for (auto const & s : iforms)
 	{
-		Range range(dims, dims, s);
+		range r(s, dims, dims);
 
 		size_t size = 1;
 
@@ -87,16 +87,16 @@ TEST_P(TestMesh, ForAll)
 			size *= dims[i];
 		}
 
-		EXPECT_EQ(range.size(), size);
+		EXPECT_EQ(r.size(), size);
 
 		size_t count = 0;
 
-		for (auto a : range)
+		for (auto a : r)
 		{
 			++count;
 		}
 
-		if (s == 0 || s == (mesh_type::_DA >> 1))
+		if (s == VERTEX || s == VOLUME)
 		{
 			EXPECT_EQ(count, size);
 		}
@@ -127,16 +127,16 @@ TEST_P(TestMesh, ForAll)
 TEST_P(TestMesh, VerboseShow)
 {
 
-	for (auto const & s : shift)
+	for (auto const & s : iforms)
 	{
 
-		Range range(
+		range r(s,
 
 		nTuple<3, size_t>( { 1, 3, 5 }),
 
-		nTuple<3, size_t>( { 2, 4, 5 }),
+		nTuple<3, size_t>( { 2, 4, 5 })
 
-		s);
+		);
 
 		size_t total = 4;
 
@@ -145,20 +145,20 @@ TEST_P(TestMesh, VerboseShow)
 		std::vector<size_t> data;
 
 		for (int sub = 0; sub < total; ++sub)
-			for (auto a : range.Split(total, sub))
+			for (auto a : r.Split(total, sub))
 			{
 				data.push_back(sub);
 			}
 
 		CHECK(data);
 
-		if (s == 0 || s == (mesh_type::_DA >> 1))
+		if (s == VERTEX || s == VOLUME)
 		{
-			EXPECT_EQ(data.size(), range.size());
+			EXPECT_EQ(data.size(), r.size());
 		}
 		else
 		{
-			EXPECT_EQ(data.size(), range.size() * 3);
+			EXPECT_EQ(data.size(), r.size() * 3);
 		}
 	}
 

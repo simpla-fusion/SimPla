@@ -16,15 +16,15 @@ class MessageComm
 {
 	int num_process_;
 	int process_num_;
-	bool isInitilized_;
+	MPI_Comm comm_;
 public:
-	MessageComm() :
-			num_process_(1), process_num_(0), isInitilized_(false)
+	MessageComm()
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL)
 	{
 	}
 
-	MessageComm(int argc, char** argv) :
-			isInitilized_(false)
+	MessageComm(int argc, char** argv)
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL)
 	{
 		Init(argc, argv);
 	}
@@ -36,19 +36,22 @@ public:
 	void Init(int argc = 0, char** argv = nullptr)
 	{
 		MPI_Init(&argc, &argv);
-		MPI_Comm_size(MPI_COMM_WORLD, &num_process_);
-		MPI_Comm_rank(MPI_COMM_WORLD, &process_num_);
-		isInitilized_ = true;
+		if (comm_ == MPI_COMM_NULL)
+			comm_ = MPI_COMM_WORLD;
+
+		MPI_Comm_size(comm_, &num_process_);
+		MPI_Comm_rank(comm_, &process_num_);
 	}
 	void Close()
 	{
-		if (isInitilized_)
+		if (comm_ != MPI_COMM_NULL)
 			MPI_Finalize();
-		isInitilized_ = false;
+
+		comm_ = MPI_COMM_NULL;
 	}
 	MPI_Comm GetComm()
 	{
-		return MPI_COMM_WORLD;
+		return comm_;
 	}
 	MPI_Info GetInfo()
 	{
@@ -57,7 +60,7 @@ public:
 
 	bool IsInitilized() const
 	{
-		return isInitilized_;
+		return comm_ != MPI_COMM_NULL;
 	}
 	int GetRank() const
 	{
@@ -75,6 +78,12 @@ public:
 	int NumProcess() const
 	{
 		return num_process_;
+	}
+
+	void Barrier()
+	{
+		if (comm_ != MPI_COMM_NULL)
+			MPI_Barrier(comm_);
 	}
 
 }

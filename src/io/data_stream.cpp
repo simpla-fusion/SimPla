@@ -94,7 +94,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 	CloseFile();
 
-	MPI_Barrier(GLOBAL_COMM.GetComm());
+	GLOBAL_COMM.Barrier();
 
 	if (fname != "")
 		prefix_ = fname;
@@ -121,7 +121,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 	) + ".h5";
 
-	MPI_Barrier(GLOBAL_COMM.GetComm());
+	GLOBAL_COMM.Barrier();
 
 	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
