@@ -42,14 +42,13 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	//container
+//	template<typename TV> using Cell=std::list<TV, FixedSmallSizeAlloc<TV> >;
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
 	typedef std::map<mesh_iterator, cell_type> container_type;
 
 	typedef typename cell_type::allocator_type allocator_type;
-
-	template<typename TV> using Cell=std::list<TV, FixedSmallSizeAlloc<TV> >;
 
 public:
 	mesh_type const & mesh;
@@ -66,6 +65,15 @@ public:
 	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args const & ...others);
 
 	std::string Save(std::string const & path) const;
+
+	container_type &data()
+	{
+		return data_;
+	}
+	container_type const&data() const
+	{
+		return data_;
+	}
 
 	//***************************************************************************************************
 
@@ -114,17 +122,17 @@ public:
 
 private:
 
-	template<typename TV>
+	template<bool IsConst>
 	struct cell_iterator_
 	{
 
-		typedef cell_iterator_<TV> this_type;
+		typedef cell_iterator_<IsConst> this_type;
 
 		/// One of the @link iterator_tags tag types@endlink.
 		typedef std::forward_iterator_tag iterator_category;
 
 		/// The type "pointed to" by the iterator.
-		typedef typename std::conditional<std::is_const<TV>::value, const Cell<TV>, Cell<TV>>::type value_type;
+		typedef typename std::conditional<IsConst, const cell_type, cell_type>::type value_type;
 
 		/// This type represents a pointer-to-value_type.
 		typedef value_type * pointer;
@@ -132,9 +140,9 @@ private:
 		/// This type represents a reference-to-value_type.
 		typedef value_type & reference;
 
-		typedef typename std::conditional<std::is_const<TV>::value, container_type const &, container_type&>::type container_reference;
+		typedef typename std::conditional<IsConst, container_type const &, container_type&>::type container_reference;
 
-		typedef typename std::conditional<std::is_const<TV>::value, typename container_type::const_iterator,
+		typedef typename std::conditional<IsConst, typename container_type::const_iterator,
 		        typename container_type::iterator>::type cell_iterator;
 
 		container_reference data_;
@@ -198,17 +206,18 @@ private:
 				++m_it_;
 				c_it_ = data_.find(m_it_);
 			}
+			CHECK(m_it_ == m_ie_);
 		}
 	};
 
-	template<typename TV>
+	template<bool IsConst>
 	struct cell_range_: public mesh_type::range
 	{
 
-		typedef cell_iterator_<TV> iterator;
-		typedef cell_range_<TV> this_type;
+		typedef cell_iterator_<IsConst> iterator;
+		typedef cell_range_<IsConst> this_type;
 		typedef typename mesh_type::range mesh_range;
-		typedef typename std::conditional<std::is_const<TV>::value, const container_type &, container_type&>::type container_reference;
+		typedef typename std::conditional<IsConst, const container_type &, container_type&>::type container_reference;
 
 		container_reference data_;
 
@@ -446,14 +455,14 @@ public:
 //	typedef iterator_<particle_type> iterator;
 //	typedef iterator_<const particle_type> const_iterator;
 
-	typedef cell_iterator_<particle_type> cell_iterator;
-	typedef cell_iterator_<const particle_type> const_cell_iterator;
+	typedef cell_iterator_<false> cell_iterator;
+	typedef cell_iterator_<true> const_cell_iterator;
 
 //	typedef range_<particle_type> range;
 //	typedef range_<const particle_type> const_range;
 
-	typedef cell_range_<particle_type> cell_range;
-	typedef cell_range_<const particle_type> const_cell_range;
+	typedef cell_range_<false> cell_range;
+	typedef cell_range_<true> const_cell_range;
 
 //	template<typename ... Args>
 //	range GetRange(Args const & ... args)
@@ -466,6 +475,16 @@ public:
 //	{
 //		return const_range(data_, mesh.GetRange(IForm, std::forward<Args const &>(args)...));
 //	}
+
+	cell_range SelectCell()
+	{
+		return cell_range(data_, mesh.GetRange(IForm));
+	}
+
+	cell_range SelectCell() const
+	{
+		return cell_range(data_, mesh.GetRange(IForm));
+	}
 	template<typename ... Args>
 	cell_range SelectCell(Args const & ... args)
 	{

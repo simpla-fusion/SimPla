@@ -224,27 +224,26 @@ TEST_P(TestMesh, coordinates)
 	EXPECT_EQ(mesh.ComponentNum(it.self_), 2);
 
 }
-TEST_P(TestMesh, local_coordinates)
-{
-	mesh_type::coordinates_type x;
 
-	x = (xmax - xmin) * 0.5123 + xmin;
+//TEST_P(TestMesh, local_coordinates_test)
+//{
+//	typename mesh_type::coordinates_type x, z;
+//
+//	x = (xmax - xmin) * 0.5123 + xmin;
+//
+//	auto idx = mesh.CoordinatesGlobalToLocal(&z);
+//	auto y = mesh.CoordinatesLocalToGlobal(idx, z);
+//
+//	for (int i = 0; i < NDIMS; ++i)
+//	{
+//		if (dims[i] <= 1 || xmax[i] <= xmin[i])
+//			x[i] = xmin[i];
+//	}
+//	EXPECT_LE(abs(z), NDIMS);
+//	EXPECT_LE(abs(y - x), EPSILON) << x << " " << y;
+//
+//}
 
-	auto r = x;
-
-	auto idx = mesh.CoordinatesGlobalToLocal(&r);
-
-	auto y = mesh.CoordinatesLocalToGlobal(idx, r);
-
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		if (dims[i] <= 1 || xmax[i] <= xmin[i])
-			x[i] = xmin[i];
-	}
-	EXPECT_LE(abs(r), NDIMS);
-	EXPECT_LE(abs(y - x), EPSILON) << x << " " << y;
-
-}
 TEST_P(TestMesh, volume)
 {
 
@@ -290,7 +289,7 @@ TEST_P(TestMesh, traversal)
 
 		for (auto s : mesh.GetRange(IForm))
 		{
-			data[mesh.Hash(s)] = s.self_;
+			data[mesh.Hash(s)] = s;
 		}
 
 		EXPECT_EQ(data.size(), mesh.GetNumOfElements(IForm)) << mesh.GetDimensions();

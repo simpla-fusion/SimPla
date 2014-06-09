@@ -62,6 +62,12 @@ protected:
 		mesh.SetExtents(xmin, xmax, dims);
 
 		SetDefaultValue(&default_value);
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (xmax[i] - xmin[i] < EPSILON || dims[i] <= 1)
+				K[i] = 0.0;
+		}
 	}
 public:
 
@@ -86,38 +92,18 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	static constexpr nTuple<3, Real> K = { 2.0 * PI, 3.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K = { 2.0 * PI, 3.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
-
-	bool CheckValideParam()
-	{
-		bool res = true;
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if (xmax[i] - xmin[i] < EPSILON && dims[i] > 1)
-				res = false;
-		}
-		return res;
-	}
 
 };
 
 TEST_P(TestDiffCalculus, grad0)
 {
-	if (!CheckValideParam())
-		return;
 
 	auto d = mesh.GetDimensions();
-	nTuple<3, Real> k = K;
 
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-
-	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = 0.5 * std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TOneForm f1(mesh);
 	TOneForm f1b(mesh);
@@ -128,7 +114,7 @@ TEST_P(TestDiffCalculus, grad0)
 	f1b.Clear();
 	for (auto s : mesh.GetRange(VERTEX))
 	{
-		f0[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		f0[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	LOG_CMD(f1 = Grad(f0));
@@ -141,7 +127,7 @@ TEST_P(TestDiffCalculus, grad0)
 	for (auto s : mesh.GetRange(EDGE))
 	{
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * k[mesh.ComponentNum(s.self_)];
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * K[mesh.ComponentNum(s)];
 
 		f1b[s] = expect;
 
@@ -163,20 +149,10 @@ TEST_P(TestDiffCalculus, grad0)
 
 TEST_P(TestDiffCalculus, grad3)
 {
-	if (!CheckValideParam())
-		return;
 
 	auto d = mesh.GetDimensions();
 
-	nTuple<3, Real> k = K;
-
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-
-	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = 0.5 * std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TTwoForm f2(mesh);
 	TTwoForm f2b(mesh);
@@ -188,7 +164,7 @@ TEST_P(TestDiffCalculus, grad3)
 
 	for (auto s : mesh.GetRange(VOLUME))
 	{
-		f3[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		f3[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	LOG_CMD(f2 = Grad(f3));
@@ -201,7 +177,7 @@ TEST_P(TestDiffCalculus, grad3)
 	for (auto s : mesh.GetRange(FACE))
 	{
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * k[mesh.ComponentNum(s.self_)];
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * K[mesh.ComponentNum(s)];
 
 		f2b[s] = expect;
 
@@ -224,18 +200,10 @@ TEST_P(TestDiffCalculus, grad3)
 
 TEST_P(TestDiffCalculus, diverge1)
 {
-	if (!CheckValideParam())
-		return;
-	nTuple<3, Real> k = K;
+
 	auto d = mesh.GetDimensions();
 
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-
-	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = 0.5 * std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TOneForm f1(mesh);
 	TZeroForm f0(mesh);
@@ -245,7 +213,7 @@ TEST_P(TestDiffCalculus, diverge1)
 
 	for (auto s : mesh.GetRange(EDGE))
 	{
-		f1[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		f1[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	f0 = Diverge(f1);
@@ -256,7 +224,7 @@ TEST_P(TestDiffCalculus, diverge1)
 	for (auto s : mesh.GetRange(VERTEX))
 	{
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[0] + k[1] + k[2]);
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[0] + K[1] + K[2]);
 
 		variance += abs((f0[s] - expect) * (f0[s] - expect));
 
@@ -279,17 +247,10 @@ TEST_P(TestDiffCalculus, diverge1)
 
 TEST_P(TestDiffCalculus, diverge2)
 {
-	if (!CheckValideParam())
-		return;
-	nTuple<3, Real> k = K;
+
 	auto d = mesh.GetDimensions();
 
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-	auto error = 0.5 * std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = 0.5 * std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TTwoForm f2(mesh);
 	TThreeForm f3(mesh);
@@ -299,7 +260,7 @@ TEST_P(TestDiffCalculus, diverge2)
 
 	for (auto s : mesh.GetRange(FACE))
 	{
-		f2[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		f2[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	f3 = Diverge(f2);
@@ -310,7 +271,7 @@ TEST_P(TestDiffCalculus, diverge2)
 	for (auto s : mesh.GetRange(VOLUME))
 	{
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[0] + k[1] + k[2]);
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[0] + K[1] + K[2]);
 
 		variance += abs((f3[s] - expect) * (f3[s] - expect));
 
@@ -331,17 +292,10 @@ TEST_P(TestDiffCalculus, diverge2)
 
 TEST_P(TestDiffCalculus, curl1)
 {
-	if (!CheckValideParam())
-		return;
-	nTuple<3, Real> k = K;
+
 	auto d = mesh.GetDimensions();
 
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-	auto error = std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TOneForm vf1(mesh);
 	TOneForm vf1b(mesh);
@@ -360,7 +314,7 @@ TEST_P(TestDiffCalculus, curl1)
 
 	for (auto s : mesh.GetRange(EDGE))
 	{
-		vf1[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		vf1[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	LOG_CMD(vf2 = Curl(vf1));
@@ -370,9 +324,9 @@ TEST_P(TestDiffCalculus, curl1)
 	LOGGER << SAVE(vf1);
 	for (auto s : mesh.GetRange(FACE))
 	{
-		auto n = mesh.ComponentNum(s.self_);
+		auto n = mesh.ComponentNum(s);
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[(n + 1) % 3] - k[(n + 2) % 3]);
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[(n + 1) % 3] - K[(n + 2) % 3]);
 
 		variance += abs((vf2[s] - expect) * (vf2[s] - expect));
 
@@ -395,17 +349,10 @@ TEST_P(TestDiffCalculus, curl1)
 
 TEST_P(TestDiffCalculus, curl2)
 {
-	if (!CheckValideParam())
-		return;
-	nTuple<3, Real> k = K;
+
 	auto d = mesh.GetDimensions();
 
-	for (int i = 0; i < mesh.NDIMS; ++i)
-	{
-		if (d[i] <= 1)
-			k[i] = 0;
-	}
-	auto error = std::pow(Dot(k, mesh.GetDx()), 2.0);
+	auto error = std::pow(Dot(K, mesh.GetDx()), 2.0);
 
 	TOneForm vf1(mesh);
 	TOneForm vf1b(mesh);
@@ -424,7 +371,7 @@ TEST_P(TestDiffCalculus, curl2)
 
 	for (auto s : mesh.GetRange(FACE))
 	{
-		vf2[s] = std::sin(Dot(k, mesh.GetCoordinates(s)));
+		vf2[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
 
 	LOG_CMD(vf1 = Curl(vf2));
@@ -434,9 +381,9 @@ TEST_P(TestDiffCalculus, curl2)
 	for (auto s : mesh.GetRange(EDGE))
 	{
 
-		auto n = mesh.ComponentNum(s.self_);
+		auto n = mesh.ComponentNum(s);
 
-		auto expect = std::cos(Dot(k, mesh.GetCoordinates(s))) * (k[(n + 1) % 3] - k[(n + 2) % 3]);
+		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[(n + 1) % 3] - K[(n + 2) % 3]);
 
 		vf1b[s] = expect;
 
@@ -460,8 +407,6 @@ TEST_P(TestDiffCalculus, curl2)
 
 TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 {
-	if (!CheckValideParam())
-		return;
 
 	TZeroForm f0(mesh);
 
@@ -507,8 +452,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 {
-	if (!CheckValideParam())
-		return;
+
 	TThreeForm f3(mesh);
 	TOneForm f1a(mesh);
 	TOneForm f1b(mesh);
@@ -554,8 +498,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 {
-	if (!CheckValideParam())
-		return;
+
 	TOneForm f1(mesh);
 	TTwoForm f2(mesh);
 	TZeroForm f0a(mesh);
@@ -602,8 +545,7 @@ TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 
 TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0)
 {
-	if (!CheckValideParam())
-		return;
+
 	TOneForm f1(mesh);
 	TTwoForm f2(mesh);
 	TThreeForm f3a(mesh);

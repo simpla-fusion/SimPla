@@ -427,9 +427,13 @@ struct OcForest
 	}
 	range GetRange(int IFORM = VERTEX) const
 	{
-		return range(IFORM,global_start_, global_count_ );
+		return range(IFORM, global_start_, global_count_ );
 	}
-
+	template<typename ...Args>
+	range GetRange(int IFORM ,Args const & ...args) const
+	{
+		return range(IFORM,std::forward<Args const & >(args)...);
+	}
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, iterator s, iterator *v) const
 	{
@@ -1094,14 +1098,14 @@ struct OcForest
 		{
 			return (self_<rhs.self_);
 		}
-		iterator const & operator*() const
+		value_type const & operator*() const
 		{
-			return *this;
+			return self_;
 		}
 
-		iterator const* operator ->() const
+		value_type const* operator ->() const
 		{
-			return this;
+			return &self_;
 		}
 
 		bool isNull()const
