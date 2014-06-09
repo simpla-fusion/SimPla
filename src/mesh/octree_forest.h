@@ -58,7 +58,6 @@ struct OcForest
 	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
-
 	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
 
 	nTuple<NDIMS, Real> R_INV_DX;
@@ -429,11 +428,11 @@ struct OcForest
 	{
 		return range(IFORM, global_start_, global_count_ );
 	}
-	template<typename ...Args>
-	range GetRange(int IFORM ,Args const & ...args) const
-	{
-		return range(IFORM,std::forward<Args const & >(args)...);
-	}
+//	template<typename ...Args>
+//	range GetRange(int IFORM ,Args const & ...args) const
+//	{
+//		return range(IFORM,std::forward<Args const & >(args)...);
+//	}
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, iterator s, iterator *v) const
 	{
@@ -1272,7 +1271,7 @@ struct OcForest
 		{
 		}
 		range(unsigned int iform,nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count )
-		: start_(start), count_(count), iform_(iform),shift_(GetShift(iform))
+		: start_(start ), count_(count), iform_(iform),shift_(GetShift(iform))
 		{
 		}
 
@@ -1454,7 +1453,7 @@ struct OcForest
 			x[i]*=R_INV_DX[i];
 			idx[i]=static_cast<size_type>(x[i]+ h[i])&mask;
 			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
-			idx[i]+=global_start_[i]<<D_FP_POS;
+			idx[i]+= R_INDEX_ZERO;
 		}
 
 		return iterator(

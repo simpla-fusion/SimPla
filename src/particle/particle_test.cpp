@@ -54,7 +54,11 @@ protected:
 
 		auto param = GetParam();
 
-		mesh.SetExtents(std::get<0>(param), std::get<1>(param), std::get<2>(param));
+		xmin=std::get<0>(param);
+		xmax= std::get<1>(param);
+		dims= std::get<2>(param);
+
+		mesh.SetExtents(xmin,xmax,dims);
 
 		mesh.Decompose();
 
@@ -77,6 +81,10 @@ public:
 
 	mesh_type mesh;
 
+	nTuple<3, Real> xmin,xmax;
+
+	nTuple<3, size_t> dims;
+
 	std::string cfg_str;
 
 	bool enable_sorting;
@@ -97,49 +105,40 @@ TEST_P(TestParticle,Add)
 	nTuple<3, Real> x = { 0, 0, 0 };
 	int pic = (GLOBAL_COMM.GetRank() +1)*10;
 
-//	for (auto s : mesh.GetRange(VERTEX))
-//	{
-//
-//		for (int i = 0; i < pic; ++i)
-//		{
-//			x_dist(rnd_gen, &x[0]);
-//
-//			x = mesh.CoordinatesLocalToGlobal(s, x);
-//
-//			buffer.emplace_back(Point_s( { x, v, 1.0 }));
-//		}
-//	}
+	for (auto s : mesh.GetRange(VERTEX))
+	{
 
-	buffer.emplace_back(Point_s( { x, v, 1.0 }));
+		for (int i = 0; i < pic; ++i)
+		{
+			x_dist(rnd_gen, &x[0]);
+
+			x = mesh.CoordinatesLocalToGlobal(s, x);
+
+			buffer.emplace_back(Point_s( { x, v, 1.0 }));
+		}
+	}
 
 	p.Add(&buffer);
 	INFORM << "Add particle DONE " << p.size() << std::endl;
 
-	for (auto s : p.data())
-	{
-		CHECK(s.first.self_);
-		CHECK(s.second.front().x);
-	}
+//	for (auto const & v : p.data())
+//	{
+//		CHECK_BIT(v.first.self_);
+//	}
+//
+	INFORM << "Sort particle DONE " << p.size() << std::endl;
 
-	for (auto s : p.SelectCell())
-	{
-		CHECK(s.front().x);
-	}
-//	p.Sort();
-//	INFORM << "Sort particle DONE " << p.size() << std::endl;
-//
-//	auto dims = mesh.GetDimensions();
-//	dims /= 2;
-//	nTuple<3, size_t> start = { 0, 0, 0 };
-//
-//	auto r = p.SelectCell(start, dims);
-//
-//	CHECK(mesh.Hash(r.mesh_type::range::begin()));
-//
-//	p.Remove(p.SelectCell(start, dims));
-//
-//	INFORM << "Remove particle DONE " << p.size() << std::endl;
-//	CHECK(p.data_.size());
+	CHECK_BIT(p.data().begin()->first.self_);
+	CHECK_BIT(*mesh.GetRange(VERTEX).begin());
+
+	auto r = p.SelectCell();
+
+	CHECK(r.size());
+	CHECK(p.data_.size());
+	p.Remove(p.SelectCell());
+
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+	CHECK(p.data_.size());
 //
 //	UpdateGhosts(&p);
 //	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;

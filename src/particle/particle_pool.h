@@ -206,7 +206,6 @@ private:
 				++m_it_;
 				c_it_ = data_.find(m_it_);
 			}
-			CHECK(m_it_ == m_ie_);
 		}
 	};
 
@@ -674,7 +673,7 @@ void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 		auto p = pt;
 		++pt;
 
-		mesh_iterator id_dest = mesh.CoordinatesGlobalToLocalDual(&(p->x), shift);
+		mesh_iterator id_dest = mesh.CoordinatesGlobalToLocal(&(p->x), shift);
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 		auto & dest = GetCell(p_dest_contianer, id_dest);

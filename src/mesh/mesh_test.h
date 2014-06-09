@@ -48,6 +48,7 @@ protected:
 	}
 public:
 	typedef TMesh mesh_type;
+	typedef typename mesh_type::size_type size_type;
 	typedef typename mesh_type::range range;
 	typedef typename range::iterator iterator;
 	unsigned int NDIMS=TMesh::NDIMS;
@@ -65,7 +66,7 @@ public:
 	{	VERTEX, EDGE, FACE, VOLUME};
 
 	typename TMesh::coordinates_type xmin,xmax;
-	nTuple<TMesh::NDIMS, size_t> dims;
+	nTuple<TMesh::NDIMS, size_type> dims;
 };
 
 TEST_P(TestMesh, ForAll)
@@ -132,9 +133,9 @@ TEST_P(TestMesh, VerboseShow)
 
 		range r(s,
 
-		nTuple<3, size_t>( { 1, 3, 5 }),
+		nTuple<3, size_type>( { 1, 3, 5 }),
 
-		nTuple<3, size_t>( { 2, 4, 5 })
+		nTuple<3, size_type>( { 2, 4, 5 })
 
 		);
 
