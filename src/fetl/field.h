@@ -19,6 +19,8 @@
 #include "primitives.h"
 #include "../parallel/parallel.h"
 #include "../utilities/log.h"
+#include "../model/range.h"
+
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
@@ -154,113 +156,127 @@ public:
 	{
 		write_lock_.unlock();
 	}
-	template<typename TC>
-	struct iterator_
-	{
-		/// One of the @link iterator_tags tag types@endlink.
-		typedef std::output_iterator_tag iterator_category;
-		/// The type "pointed to" by the iterator.
-		typedef typename std::remove_reference<decltype(*std::declval<TC>() )>::type value_type;
-		/// Distance between iterators is represented as this type.
-		typedef size_t difference_type;
-		/// This type represents a pointer-to-value_type.
-		typedef value_type* pointer;
-		/// This type represents a reference-to-value_type.
-		typedef value_type& reference;
-
-		TC data_;
-
-		mesh_type const & mesh;
-
-		typename mesh_type::iterator it_;
-
-		typedef iterator_<TC> this_type;
-
-		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s) :
-				data_(d), mesh(m), it_(s)
-		{
-
-		}
-//		iterator_(this_type &rhs)
-//				: data_(rhs.data_), it_(rhs.it_)
+//	template<typename TC>
+//	struct iterator_
+//	{
+//		/// One of the @link iterator_tags tag types@endlink.
+//		typedef std::output_iterator_tag iterator_category;
+//		/// The type "pointed to" by the iterator.
+//		typedef typename std::remove_reference<decltype(*std::declval<TC>() )>::type value_type;
+//		/// Distance between iterators is represented as this type.
+//		typedef size_t difference_type;
+//		/// This type represents a pointer-to-value_type.
+//		typedef value_type* pointer;
+//		/// This type represents a reference-to-value_type.
+//		typedef value_type& reference;
+//
+//		TC data_;
+//
+//		mesh_type const & mesh;
+//
+//		typename mesh_type::iterator it_;
+//
+//		typedef iterator_<TC> this_type;
+//
+//		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s) :
+//				data_(d), mesh(m), it_(s)
 //		{
+//
 //		}
-//		iterator_(this_type const&rhs)
-//				: data_(rhs.data_), it_(rhs.it_)
+////		iterator_(this_type &rhs)
+////				: data_(rhs.data_), it_(rhs.it_)
+////		{
+////		}
+////		iterator_(this_type const&rhs)
+////				: data_(rhs.data_), it_(rhs.it_)
+////		{
+////		}
+////		~iterator_()
+////		{
+////		}
+//
+//		value_type & operator*()
 //		{
+//			return *(data_.get() + mesh.Hash(it_));
 //		}
-//		~iterator_()
+//		value_type const& operator*() const
 //		{
+//			return *(data_.get() + mesh.Hash(it_));
 //		}
+//
+//		pointer operator ->()
+//		{
+//			return (data_.get() + make_hash(it_));
+//		}
+//		pointer operator ->() const
+//		{
+//			return (data_.get() + make_hash(it_));
+//		}
+//
+//		this_type & operator++()
+//		{
+//			++it_;
+//
+//			return *this;
+//		}
+//
+//		this_type operator++(int)
+//		{
+//			this_type res(*this);
+//			++res;
+//			return std::move(res);
+//		}
+//
+//		bool operator==(this_type const &rhs) const
+//		{
+//			return it_ == rhs.it_ && data_ == rhs.data_;
+//		}
+//
+//		bool operator!=(this_type const &rhs) const
+//		{
+//			return it_ != rhs.it_ || data_ != rhs.data_;
+//		}
+//	};
+//
+//	typedef iterator_<container_type> iterator;
+//
+//	typedef iterator_<const container_type> const_iterator;
 
-		value_type & operator*()
-		{
-			return *(data_.get() + mesh.Hash(it_));
-		}
-		value_type const& operator*() const
-		{
-			return *(data_.get() + mesh.Hash(it_));
-		}
+//	iterator begin()
+//	{
+//		AllocMemory_();
+//		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).begin());
+//	}
+//
+//	iterator end()
+//	{
+//		AllocMemory_();
+//		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).end());
+//	}
+//
+//	const_iterator begin() const
+//	{
+//		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).begin());
+//	}
+//
+//	const_iterator end() const
+//	{
+//		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).end());
+//	}
 
-		pointer operator ->()
-		{
-			return (data_.get() + make_hash(it_));
-		}
-		pointer operator ->() const
-		{
-			return (data_.get() + make_hash(it_));
-		}
+	template<typename ... Args>
+	auto Select(Args const & ... args)
+	DECL_RET_TYPE((make_range_wrapper( *this, mesh.GetRange(IForm).SubRange(std::forward<Args const &>(args)...))))
 
-		this_type & operator++()
-		{
-			++it_;
+	template<typename ... Args>
+	auto Select(Args const & ... args) const
+	DECL_RET_TYPE((make_range_wrapper( *this, mesh.GetRange(IForm).SubRange(std::forward<Args const &>(args)...))))
 
-			return *this;
-		}
+	auto begin() DECL_RET_TYPE(this->Select().begin())
+	auto end() DECL_RET_TYPE(this->Select().end())
 
-		this_type operator++(int)
-		{
-			this_type res(*this);
-			++res;
-			return std::move(res);
-		}
-
-		bool operator==(this_type const &rhs) const
-		{
-			return it_ == rhs.it_ && data_ == rhs.data_;
-		}
-
-		bool operator!=(this_type const &rhs) const
-		{
-			return it_ != rhs.it_ || data_ != rhs.data_;
-		}
-	};
-
-	typedef iterator_<container_type> iterator;
-
-	typedef iterator_<const container_type> const_iterator;
-
-	iterator begin()
-	{
-		AllocMemory_();
-		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).begin());
-	}
-
-	iterator end()
-	{
-		AllocMemory_();
-		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).end());
-	}
-
-	const_iterator begin() const
-	{
-		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).begin());
-	}
-
-	const_iterator end() const
-	{
-		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).end());
-	}
+	auto begin() const DECL_RET_TYPE(this->Select().begin())
+	auto end() const DECL_RET_TYPE(this->Select().end())
 
 	inline value_type & operator[](index_type s)
 	{

@@ -27,11 +27,14 @@ struct TestFETLParam1
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin =
+		{ -1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax =
+		{ 1.0, 1.0, 1.0 };
 
-		nTuple<3, size_t> dims = { 16, 32, 67 };
+		nTuple<3, size_t> dims =
+		{ 16, 32, 67 };
 
 		mesh->SetExtents(xmin, xmax, dims);
 
@@ -60,7 +63,6 @@ public:
 	typedef typename TParam::value_type value_type;
 	static constexpr int IForm = TParam::IForm;
 
-	typedef typename mesh_type::iterator iterator;
 	typedef Field<mesh_type, VERTEX, Real> RScalarField;
 	typedef Field<mesh_type, IForm, value_type> FieldType;
 
@@ -189,7 +191,6 @@ TYPED_TEST_P(TestFETL, scalar_field){
 {
 
 	typedef typename TestFixture::FieldType::value_type value_type;
-	typedef typename TestFixture::FieldType::iterator iterator;
 
 	typename TestFixture::mesh_type const &mesh=TestFixture::mesh;
 	typename TestFixture::FieldType f1( mesh),f2( mesh),

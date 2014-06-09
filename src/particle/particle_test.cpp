@@ -101,8 +101,10 @@ TEST_P(TestParticle,Add)
 	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extent.first, extent.second);
 	std::mt19937 rnd_gen(mesh_type::GetNumOfDimensions());
 
-	nTuple<3, Real> v = { 0, 0, 0 };
-	nTuple<3, Real> x = { 0, 0, 0 };
+	nTuple<3, Real> v =
+	{ 0, 0, 0 };
+	nTuple<3, Real> x =
+	{ 0, 0, 0 };
 	int pic = (GLOBAL_COMM.GetRank() +1)*10;
 
 	for (auto s : mesh.GetRange(VERTEX))
@@ -114,7 +116,8 @@ TEST_P(TestParticle,Add)
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
 
-			buffer.emplace_back(Point_s( { x, v, 1.0 }));
+			buffer.emplace_back(Point_s(
+			{ x, v, 1.0 }));
 		}
 	}
 
@@ -131,14 +134,17 @@ TEST_P(TestParticle,Add)
 	CHECK_BIT(p.data().begin()->first.self_);
 	CHECK_BIT(*mesh.GetRange(VERTEX).begin());
 
-	auto r = p.SelectCell();
+	nTuple<3, size_t> start =
+	{ 0, 0, 0 };
+	nTuple<3, size_t> count;
 
-	CHECK(r.size());
-	CHECK(p.data_.size());
-	p.Remove(p.SelectCell());
+	count = dims / 2;
+
+	auto r = p.Select(start, count);
+
+	p.Remove(p.Select());
 
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
-	CHECK(p.data_.size());
 //
 //	UpdateGhosts(&p);
 //	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
@@ -327,14 +333,16 @@ INSTANTIATE_TEST_CASE_P(FETL, TestParticle,
 
 testing::Combine(
 
-testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
+testing::Values(nTuple<3, Real>(
+{ 0.0, 0.0, 0.0, })  //
 //        , nTuple<3, Real>( { -1.0, -2.0, -3.0 })
 
-        ),
+		),
 
 testing::Values(
 
-nTuple<3, Real>( { 1.0, 2.0, 3.0 })  //
+nTuple<3, Real>(
+{ 1.0, 2.0, 3.0 })  //
 //        , nTuple<3, Real>( { 2.0, 0.0, 0.0 }) //
 //        , nTuple<3, Real>( { 0.0, 2.0, 0.0 }) //
 //        , nTuple<3, Real>( { 0.0, 0.0, 2.0 }) //
@@ -342,19 +350,20 @@ nTuple<3, Real>( { 1.0, 2.0, 3.0 })  //
 //        , nTuple<3, Real>( { 2.0, 0.0, 2.0 }) //
 //        , nTuple<3, Real>( { 2.0, 2.0, 0.0 }) //
 
-        ),
+		),
 
 testing::Values(
 
-nTuple<3, size_t>( { 12, 16, 10 }) //
-        // ,nTuple<3, size_t>( { 1, 1, 1 }) //
-        //        , nTuple<3, size_t>( { 17, 1, 1 }) //
-        //        , nTuple<3, size_t>( { 1, 17, 1 }) //
-        //        , nTuple<3, size_t>( { 1, 1, 10 }) //
-        //        , nTuple<3, size_t>( { 1, 10, 20 }) //
-        //        , nTuple<3, size_t>( { 17, 1, 17 }) //
-        //        , nTuple<3, size_t>( { 17, 17, 1 }) //
-        //        , nTuple<3, size_t>( { 12, 16, 10 })
+nTuple<3, size_t>(
+{ 12, 16, 10 }) //
+		// ,nTuple<3, size_t>( { 1, 1, 1 }) //
+		//        , nTuple<3, size_t>( { 17, 1, 1 }) //
+		//        , nTuple<3, size_t>( { 1, 17, 1 }) //
+		//        , nTuple<3, size_t>( { 1, 1, 10 }) //
+		//        , nTuple<3, size_t>( { 1, 10, 20 }) //
+		//        , nTuple<3, size_t>( { 17, 1, 17 }) //
+		//        , nTuple<3, size_t>( { 17, 17, 1 }) //
+		//        , nTuple<3, size_t>( { 12, 16, 10 })
 
-        )));
+		)));
 

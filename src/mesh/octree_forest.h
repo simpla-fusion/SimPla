@@ -41,6 +41,10 @@ struct OcForest
 
 	struct range;
 
+	typedef range Range;
+
+	typedef range range_type;
+
 	typedef nTuple<NDIMS, Real> coordinates_type;
 
 	typedef std::map<iterator, nTuple<3, coordinates_type>> surface_type;
@@ -55,7 +59,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
@@ -95,7 +99,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -119,7 +123,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>( {
+		return nTuple<NDIMS, size_type>(
+		{
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -225,6 +230,10 @@ struct OcForest
 	//global          local_outer      local_inner    local_inner    local_outer     global
 	// _start          _start          _start           _end           _end          _end
 	//
+
+	void SetDimensions( )
+	{
+	}
 
 	template<typename TI>
 	void SetDimensions(TI const &d)
@@ -428,11 +437,7 @@ struct OcForest
 	{
 		return range(IFORM, global_start_, global_count_ );
 	}
-//	template<typename ...Args>
-//	range GetRange(int IFORM ,Args const & ...args) const
-//	{
-//		return range(IFORM,std::forward<Args const & >(args)...);
-//	}
+
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, iterator s, iterator *v) const
 	{
@@ -1377,6 +1382,26 @@ struct OcForest
 
 			return range(iform_,start,count );
 		}
+		range SubRange()const
+		{
+			return *this;
+		}
+		range SubRange(nTuple<NDIMS,size_type> sub_start,nTuple<NDIMS,size_type> sub_count ) const
+		{
+			sub_start+=start_;
+
+			for (int i = 0; i < NDIMS; ++i)
+			{
+				sub_count[i]=std::min(sub_count[i],start_[i]+count_[i]-sub_start[i]);
+			}
+
+			return range(iform_,sub_start,sub_count);
+		}
+
+		template<typename ...Args>
+		auto SubRange(Args const & ... args)const
+		DECL_RET_TYPE (Select(*this,std::forward<Args const&>(args)...))
+
 	};	// class Range
 
 	/***************************************************************************************************
@@ -1450,10 +1475,9 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			x[i]*=R_INV_DX[i];
+			x[i]=x[i]*R_INV_DX[i]+static_cast<Real>(global_start_[i]<<D_FP_POS);
 			idx[i]=static_cast<size_type>(x[i]+ h[i])&mask;
 			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
-			idx[i]+= R_INDEX_ZERO;
 		}
 
 		return iterator(
