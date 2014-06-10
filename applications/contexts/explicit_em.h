@@ -189,7 +189,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 //
 //			B.Clear();
 //
-//			for (auto s : mesh.GetRange(FACE))
+//			for (auto s : mesh.Select(FACE))
 //			{
 //				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
 //				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));

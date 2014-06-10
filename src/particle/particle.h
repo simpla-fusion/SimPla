@@ -253,7 +253,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 		Cache<TB const &> cB(B);
 		Cache<typename engine_type::J_type*> cJ(&J);
 
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		for(auto s: this->mesh.Select(IForm).Split(t_num,t_id))
 		{
 			RefreshCache(s,cE,cB,cJ);
 			for (auto & p : this->at(s) )
@@ -292,7 +292,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 		Cache<TE const &> cE(E);
 		Cache<TB const &> cB(B);
 
-		for(auto s: this->mesh.GetRange(IForm).Split(t_num,t_id))
+		for(auto s: this->mesh.Select(IForm).Split(t_num,t_id))
 		{
 			RefreshCache(s,cE,cB);
 			for (auto & p : this->at(s) )
@@ -330,7 +330,7 @@ void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
 
 	[&](int t_num,int t_id)
 	{
-		Scatter(this->mesh.GetRange(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
+		Scatter(this->mesh.Select(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
 	});
 
 	UpdateGhosts(pJ);

@@ -70,7 +70,7 @@ public:
 		}
 		else
 		{
-			for (auto s : f->mesh.GetRange(IForm))
+			for (auto s : f->mesh.Select(IForm))
 			{
 				auto x = f->mesh.GetCoordinates(s);
 

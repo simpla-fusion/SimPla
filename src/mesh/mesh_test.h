@@ -50,7 +50,7 @@ public:
 	typedef TMesh mesh_type;
 	typedef typename mesh_type::size_type size_type;
 	typedef typename mesh_type::range range;
-	typedef typename range::iterator iterator;
+	typedef typename mesh_type::iterator iterator;
 	unsigned int NDIMS=TMesh::NDIMS;
 
 	mesh_type mesh;
@@ -74,92 +74,78 @@ TEST_P(TestMesh, ForAll)
 
 	for (auto const & s : iforms)
 	{
-		range r(s, dims, dims);
+		nTuple<3, size_type> begin = { 0, 0, 0 };
+
+		range r(s, begin, dims);
 
 		size_t size = 1;
-
-//		CHECK( range.start_ );
-//		CHECK( range.count_ );
-//		CHECK_BIT( range.begin()->self_ );
-//		CHECK_BIT( range.end()->self_ );
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			size *= dims[i];
 		}
 
-		EXPECT_EQ(r.size(), size);
+		size_t number = 0;
 
-		size_t count = 0;
+		std::vector<size_t> data;
 
 		for (auto a : r)
 		{
-			++count;
+			data.push_back(number);
+			++number;
 		}
+
+		CHECK(data);
 
 		if (s == VERTEX || s == VOLUME)
 		{
-			EXPECT_EQ(count, size);
+			EXPECT_EQ(data.size(), size);
 		}
 		else
 		{
-			EXPECT_EQ(count, size * 3);
+			EXPECT_EQ(data.size(), size * 3);
 		}
-
-		//	CHECK(mesh.global_start_);
-		//	CHECK(mesh.global_end_);
-
-		//	auto it= range.begin();
-		//
-		//	CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//	++it; CHECK_BIT(it->self_);
-		//
-
 	}
 }
-TEST_P(TestMesh, VerboseShow)
+TEST_P(TestMesh, Split)
 {
 
 	for (auto const & s : iforms)
 	{
 
-		range r(s,
+		nTuple<3, size_type> begin = { 1, 3, 5 };
 
-		nTuple<3, size_type>( { 1, 3, 5 }),
+		nTuple<3, size_type> count = dims;
 
-		nTuple<3, size_type>( { 2, 4, 5 })
-
-		);
+		range r(s, begin, count);
 
 		size_t total = 4;
-
-		size_t count = 0;
 
 		std::vector<size_t> data;
 
 		for (int sub = 0; sub < total; ++sub)
 			for (auto a : r.Split(total, sub))
 			{
+				CHECK(data.size());
 				data.push_back(sub);
 			}
 
 		CHECK(data);
 
+		size_t size = 1;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			size *= dims[i];
+		}
+
 		if (s == VERTEX || s == VOLUME)
 		{
-			EXPECT_EQ(data.size(), r.size());
+			EXPECT_EQ(data.size(), size);
 		}
 		else
 		{
-			EXPECT_EQ(data.size(), r.size() * 3);
+			EXPECT_EQ(data.size(), size * 3);
 		}
 	}
 
@@ -190,10 +176,10 @@ TEST_P(TestMesh, coordinates)
 
 	auto extents = mesh.GetExtents();
 
-	auto range0 = mesh.GetRange(VERTEX);
-	auto range1 = mesh.GetRange(EDGE);
-	auto range2 = mesh.GetRange(FACE);
-	auto range3 = mesh.GetRange(VOLUME);
+	auto range0 = mesh.Select(VERTEX);
+	auto range1 = mesh.Select(EDGE);
+	auto range2 = mesh.Select(FACE);
+	auto range3 = mesh.Select(VOLUME);
 
 	auto it = range1.begin();
 
@@ -250,10 +236,10 @@ TEST_P(TestMesh, volume)
 
 	auto extents = mesh.GetExtents();
 
-	auto range0 = mesh.GetRange(VERTEX);
-	auto range1 = mesh.GetRange(EDGE);
-	auto range2 = mesh.GetRange(FACE);
-	auto range3 = mesh.GetRange(VOLUME);
+	auto range0 = mesh.Select(VERTEX);
+	auto range1 = mesh.Select(EDGE);
+	auto range2 = mesh.Select(FACE);
+	auto range3 = mesh.Select(VOLUME);
 
 	auto s = range1.begin();
 	auto X = mesh.topology_type::DeltaIndex(0, s.self_);
@@ -286,9 +272,9 @@ TEST_P(TestMesh, traversal)
 
 		std::map<size_t, mesh_type::compact_index_type> data;
 
-		auto range = mesh.GetRange(IForm);
+		auto range = mesh.Select(IForm);
 
-		for (auto s : mesh.GetRange(IForm))
+		for (auto s : mesh.Select(IForm))
 		{
 			data[mesh.Hash(s)] = s;
 		}
@@ -308,12 +294,12 @@ TEST_P(TestMesh, partial_traversal)
 
 		std::map<size_t, int> data;
 
-		auto range = mesh.GetRange(IForm);
+		auto r = mesh.Select(IForm);
 
 		for (int sub = 0; sub < total; ++sub)
 		{
 
-			for (auto s : range.Split(total, sub))
+			for (auto s : r.Split(total, sub))
 			{
 				data[mesh.Hash(s)] = sub;
 			}

@@ -107,7 +107,7 @@ TEST_P(TestParticle,Add)
 	{ 0, 0, 0 };
 	int pic = (GLOBAL_COMM.GetRank() +1)*10;
 
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 
 		for (int i = 0; i < pic; ++i)
@@ -132,7 +132,7 @@ TEST_P(TestParticle,Add)
 	INFORM << "Sort particle DONE " << p.size() << std::endl;
 
 	CHECK_BIT(p.data().begin()->first.self_);
-	CHECK_BIT(*mesh.GetRange(VERTEX).begin());
+	CHECK_BIT(*mesh.Select(VERTEX).begin());
 
 	nTuple<3, size_t> start =
 	{ 0, 0, 0 };
@@ -186,7 +186,7 @@ TEST_P(TestParticle,Add)
 //
 //		Real pic = cfg["ion"]["PIC"].template as<Real>();
 //
-//		for (auto s : mesh.GetRange(VERTEX))
+//		for (auto s : mesh.Select(VERTEX))
 //		{
 //			coordinates_type x = mesh.GetCoordinates(s);
 //
@@ -270,13 +270,13 @@ TEST_P(TestParticle,Add)
 //
 //	Real pic =cfg["ion"]["PIC"].template as<Real>();
 //
-//	for(auto s:mesh.GetRange(VERTEX))
+//	for(auto s:mesh.Select(VERTEX))
 //	{
 //		auto x =mesh.GetCoordinates(s);
 //		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
 //	}
 //
-//	for (auto s : mesh.GetRange(EDGE))
+//	for (auto s : mesh.Select(EDGE))
 //	{
 //		auto x=mesh.GetCoordinates(s);
 //
@@ -287,7 +287,7 @@ TEST_P(TestParticle,Add)
 //		E[s]=mesh.Sample(Int2Type<EDGE>(),s,Ev);
 //	}
 //
-//	for (auto s : mesh.GetRange(FACE))
+//	for (auto s : mesh.Select(FACE))
 //	{
 //		B[s]= mesh.Sample(Int2Type<FACE>(),s,Bv);
 //	}
@@ -309,7 +309,7 @@ TEST_P(TestParticle,Add)
 //
 //	Real average=0.0;
 //
-//	for(auto s:mesh.GetRange(VERTEX))
+//	for(auto s:mesh.Select(VERTEX))
 //	{
 //		auto expect=J0[s];
 //

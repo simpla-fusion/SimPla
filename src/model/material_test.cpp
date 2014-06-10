@@ -89,7 +89,7 @@ TYPED_TEST_P(TestMaterial,create ){
 
 	f.Clear();
 
-	for(auto s:material.Select(mesh.GetRange( TestFixture::IForm ),"Plasma" ))
+	for(auto s:material.Select(mesh.Select( TestFixture::IForm ),"Plasma" ))
 	{
 		f[s]=1;
 	}
@@ -104,7 +104,7 @@ TYPED_TEST_P(TestMaterial,create ){
 		v2[i] = v[0][i]-TestFixture::dh[i]*2;
 		v3[i] = v[1][i]+TestFixture::dh[i]*2;
 	}
-	for (auto s : mesh.GetRange(TestFixture::IForm))
+	for (auto s : mesh.Select(TestFixture::IForm))
 	{
 		auto x=mesh.GetCoordinates(s);
 
@@ -132,19 +132,19 @@ TYPED_TEST_P(TestMaterial,create ){
 
 	f.Clear();
 
-	for(auto s: material.Select ( mesh.GetRange( TestFixture::IForm ) ,"Plasma" ))
+	for(auto s: material.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ))
 	{
 		f[s]=1;
 	}
 
 	LOGGER<<SAVE(f );
 
-	for(auto s: material.Select ( mesh.GetRange( TestFixture::IForm ) ,"Plasma" ,"NONE"))
+	for(auto s: material.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
 		f[s]=10;
 	}
 
-//	for(auto s:material.Select( mesh.GetRange( TestFixture::IForm ) , "Vacuum","Plasma" ))
+//	for(auto s:material.Select( mesh.Select( TestFixture::IForm ) , "Vacuum","Plasma" ))
 //	{
 //		f[s]=-10;
 //	}

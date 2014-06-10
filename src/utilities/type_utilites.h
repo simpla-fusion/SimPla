@@ -235,43 +235,6 @@ inline unsigned int count_bits(unsigned long s)
 	return n;
 }
 
-//******************************************************************************************************
-// iterator
-//******************************************************************************************************
-
-template<typename TI>
-struct Range
-{
-	typedef TI iterator;
-	iterator ib, ie;
-	Range()
-	{
-	}
-
-	template<typename T>
-	Range(T b, T e)
-			: ib(b), ie(e)
-	{
-	}
-
-	~Range()
-	{
-	}
-	iterator begin() const
-	{
-		return ib;
-	}
-	iterator end() const
-	{
-		return ie;
-	}
-
-	Range<TI> split(int num, int id)
-	{
-		return Range<TI>(ib + (ie - ib) * id / num, ib + (ie - ib) * (id + 1) / num);
-	}
-};
-
 
 template<typename T> inline T* PointerTo(T & v)
 {

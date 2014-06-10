@@ -54,8 +54,8 @@ public:
 
 	mesh_type const &mesh;
 
-	Material(mesh_type const & m) :
-			null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
+	Material(mesh_type const & m)
+			: null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
 	{
 		register_material_.emplace("NONE", null_material);
 
@@ -204,21 +204,21 @@ public:
 		auto select = cmd["Select"];
 		if (select.empty())
 		{
-			std::vector<coordinates_type> Range;
+			std::vector<coordinates_type> r;
 
-			cmd["Range"].as(&Range);
+			cmd["Range"].as(&r);
 
 			if (op == "Set")
 			{
-				Set(type, Range);
+				Set(type, r);
 			}
 			else if (op == "Remove")
 			{
-				Remove(type, Range);
+				Remove(type, r);
 			}
 			else if (op == "Add")
 			{
-				Add(type, Range);
+				Add(type, r);
 			}
 		}
 		else
@@ -338,12 +338,12 @@ public:
 		return isChanged_;
 	}
 
-	typedef FilterRange<typename mesh_type::Range> range_type;
+	typedef FilterRange<typename mesh_type::range_type> range_type;
 
 	template<int IFORM, typename ...Args>
 	range_type SelectCell(Args const & ... args) const
 	{
-		return Select(mesh.GetRange(IFORM), std::forward<Args const &>(args)...);
+		return Select(mesh.Select(IFORM), std::forward<Args const &>(args)...);
 	}
 
 	/**
@@ -356,28 +356,28 @@ public:
 	 * @param flag
 	 */
 
-	range_type Select(typename TM::Range range, material_type in, material_type out) const;
+	range_type Select(typename TM::range_type range, material_type in, material_type out) const;
 
-	range_type Select(typename TM::Range range, std::string const & in, std::string const & out) const
+	range_type Select(typename TM::range_type range, std::string const & in, std::string const & out) const
 	{
 		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
-	range_type Select(typename TM::Range range, char const in[], char const out[]) const
+	range_type Select(typename TM::range_type range, char const in[], char const out[]) const
 	{
 		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
 	}
-	range_type Select(typename TM::Range range, material_type) const;
+	range_type Select(typename TM::range_type range, material_type) const;
 
-	range_type Select(typename TM::Range range, std::string const & m) const
+	range_type Select(typename TM::range_type range, std::string const & m) const
 	{
 		return Select(range, GetMaterialFromString(m));
 	}
-	range_type Select(typename TM::Range range, char const m[]) const
+	range_type Select(typename TM::range_type range, char const m[]) const
 	{
 		return Select(range, GetMaterialFromString(m));
 	}
 	template<typename TDict>
-	range_type Select(typename TM::Range range, TDict const &dict) const;
+	range_type Select(typename TM::range_type range, TDict const &dict) const;
 
 private:
 
@@ -395,7 +395,7 @@ private:
 
 		Init(VERTEX);
 
-		for (auto s : Filter(mesh.GetRange(VERTEX), mesh, std::forward<Args const&>(args)...))
+		for (auto s : Filter(mesh.Select(VERTEX), mesh, std::forward<Args const&>(args)...))
 		{
 			fun(material_[VERTEX].at(mesh.Hash(s)));
 		}
@@ -408,7 +408,7 @@ private:
 
 		try
 		{
-			for (auto s : mesh.GetRange(IFORM))
+			for (auto s : mesh.Select(IFORM))
 			{
 				iterator v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
@@ -438,8 +438,8 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type in,
-		material_type out) const
+typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, material_type in,
+        material_type out) const
 {
 	if (IsChanged())
 	{
@@ -550,7 +550,7 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range,
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, material_type material) const
+typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, material_type material) const
 {
 	return Material<TM>::range_type(range, [= ]( typename TM::iterator it )->bool
 	{
@@ -561,7 +561,7 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range,
 
 template<typename TM>
 template<typename TDict>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::Range range, TDict const & dict) const
+typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, TDict const & dict) const
 {
 	range_type res;
 	if (!dict["Type"])

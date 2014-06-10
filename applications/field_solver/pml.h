@@ -126,7 +126,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	auto ymin = mesh.GetExtents().first;
 	auto ymax = mesh.GetExtents().second;
 
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 		coordinates_type x = mesh.GetCoordinates(s);
 

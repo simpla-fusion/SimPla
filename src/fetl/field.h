@@ -20,7 +20,6 @@
 #include "../parallel/parallel.h"
 #include "../utilities/log.h"
 #include "../model/range.h"
-
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
@@ -56,16 +55,14 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	size_t num_of_ele_ = 0;
-
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh)
+			: mesh(pmesh), data_(nullptr)
 	{
 	}
 
@@ -81,14 +78,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs)
+			: mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs)
+			: mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -118,7 +115,6 @@ public:
 	{
 		if (data_ == nullptr)
 		{
-			num_of_ele_ = mesh.GetLocalNumOfElements(IForm);
 			data_ = mesh.template MakeContainer<IForm, value_type>();
 		}
 
@@ -156,6 +152,138 @@ public:
 	{
 		write_lock_.unlock();
 	}
+
+	inline value_type & at(index_type s)
+	{
+		if (!mesh.CheckLocalMemoryBounds(IForm, s))
+			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+
+		return get(s);
+	}
+
+	inline value_type const & at(index_type s) const
+	{
+		if (!mesh.CheckLocalMemoryBounds(IForm, s))
+			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+
+		return get(s);
+	}
+
+	inline value_type & get(index_type s)
+	{
+
+		return *(data_.get() + mesh.Hash(s));
+	}
+
+	inline value_type const & get(index_type s) const
+	{
+		return *(data_.get() + mesh.Hash(s));
+	}
+
+	inline value_type & operator[](index_type s)
+	{
+		return get(s);
+	}
+
+	inline value_type const & operator[](index_type s) const
+	{
+		return get(s);
+	}
+	template<typename ... Args>
+	auto Select()
+	DECL_RET_TYPE((make_range( *this, mesh.Select(IForm ))))
+
+	template<typename ... Args>
+	auto Select(Args const & ... args)
+	DECL_RET_TYPE((make_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+
+	auto begin() DECL_RET_TYPE(this->Select().begin())
+	auto end() DECL_RET_TYPE(this->Select().end())
+
+	template<typename TD>
+	void Fill(TD default_value)
+	{
+		AllocMemory_();
+
+		ParallelForEach(mesh.Select(IForm),
+
+		[this,default_value](index_type s)
+		{
+			this->get(s) = default_value;
+		}
+
+		);
+	}
+
+	void Clear()
+	{
+		Fill(0);
+	}
+
+	this_type & operator =(value_type rhs)
+	{
+		Fill(rhs);
+		return (*this);
+	}
+	this_type & operator =(this_type const & rhs)
+	{
+		AllocMemory_();
+
+		ParallelForEach(mesh.Select(IForm),
+
+		[this,&rhs](index_type s)
+		{
+			this->get(s) = rhs.get(s);
+		}
+
+		);
+
+		return (*this);
+	}
+	template<typename TR>
+	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
+	{
+		AllocMemory_();
+
+		ParallelForEach(mesh.Select(IForm),
+
+		[this,&rhs](index_type s)
+		{
+			this->get(s) = rhs.get(s);
+		}
+
+		);
+
+		UpdateGhosts(this);
+
+		return (*this);
+	}
+
+#define DECL_SELF_ASSIGN( _OP_ )                                                                   \
+		template<typename TR> inline this_type &                                                   \
+		operator _OP_##= (TR const & rhs)                                                          \
+		{	AllocMemory_(); *this = *this _OP_ rhs;                                                      \
+			return (*this) ;                                                                        \
+		}                                                                                          \
+
+
+	DECL_SELF_ASSIGN(+ )
+
+DECL_SELF_ASSIGN	(- )
+
+	DECL_SELF_ASSIGN(* )
+
+	DECL_SELF_ASSIGN(/ )
+#undef DECL_SELF_ASSIGN
+
+	inline field_value_type operator()(coordinates_type const &x) const
+	{
+		return mesh.Gather(*this,x);
+	}
+
+}
+;
+
 //	template<typename TC>
 //	struct iterator_
 //	{
@@ -183,17 +311,17 @@ public:
 //		{
 //
 //		}
-////		iterator_(this_type &rhs)
-////				: data_(rhs.data_), it_(rhs.it_)
-////		{
-////		}
-////		iterator_(this_type const&rhs)
-////				: data_(rhs.data_), it_(rhs.it_)
-////		{
-////		}
-////		~iterator_()
-////		{
-////		}
+//		iterator_(this_type &rhs)
+//				: data_(rhs.data_), it_(rhs.it_)
+//		{
+//		}
+//		iterator_(this_type const&rhs)
+//				: data_(rhs.data_), it_(rhs.it_)
+//		{
+//		}
+//		~iterator_()
+//		{
+//		}
 //
 //		value_type & operator*()
 //		{
@@ -245,160 +373,24 @@ public:
 //	iterator begin()
 //	{
 //		AllocMemory_();
-//		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).begin());
+//		return iterator_<container_type>(data_, mesh, mesh.Select(IForm).begin());
 //	}
 //
 //	iterator end()
 //	{
 //		AllocMemory_();
-//		return iterator_<container_type>(data_, mesh, mesh.GetRange(IForm).end());
+//		return iterator_<container_type>(data_, mesh, mesh.Select(IForm).end());
 //	}
 //
 //	const_iterator begin() const
 //	{
-//		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).begin());
+//		return iterator_<const container_type>(data_, mesh, mesh.Select(IForm).begin());
 //	}
 //
 //	const_iterator end() const
 //	{
-//		return iterator_<const container_type>(data_, mesh, mesh.GetRange(IForm).end());
+//		return iterator_<const container_type>(data_, mesh, mesh.Select(IForm).end());
 //	}
-
-	template<typename ... Args>
-	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_range_wrapper( *this, mesh.GetRange(IForm).SubRange(std::forward<Args const &>(args)...))))
-
-	template<typename ... Args>
-	auto Select(Args const & ... args) const
-	DECL_RET_TYPE((make_range_wrapper( *this, mesh.GetRange(IForm).SubRange(std::forward<Args const &>(args)...))))
-
-	auto begin() DECL_RET_TYPE(this->Select().begin())
-	auto end() DECL_RET_TYPE(this->Select().end())
-
-	auto begin() const DECL_RET_TYPE(this->Select().begin())
-	auto end() const DECL_RET_TYPE(this->Select().end())
-
-	inline value_type & operator[](index_type s)
-	{
-		return get(s);
-	}
-
-	inline value_type const & operator[](index_type s) const
-	{
-		return get(s);
-	}
-
-	inline value_type & at(index_type s)
-	{
-		return get(s);
-	}
-
-	inline value_type const & at(index_type s) const
-	{
-		return get(s);
-	}
-
-	inline value_type & get(index_type s)
-	{
-#ifdef DEBUG
-		if (mesh.Hash(s) >= num_of_ele_)
-			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
-#endif
-		return *(data_.get() + mesh.Hash(s));
-	}
-
-	inline value_type const & get(index_type s) const
-	{
-#ifdef DEBUG
-		if (mesh.Hash(s) >= num_of_ele_)
-			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
-#endif
-		return *(data_.get() + mesh.Hash(s));
-	}
-
-	template<typename TD>
-	void Fill(TD default_value)
-	{
-		AllocMemory_();
-
-		ParallelForEach(mesh.GetRange(IForm),
-
-		[this,default_value](index_type s)
-		{
-			this->get(s) = default_value;
-		}
-
-		);
-	}
-
-	void Clear()
-	{
-		Fill(0);
-	}
-
-	this_type & operator =(value_type rhs)
-	{
-		Fill(rhs);
-		return (*this);
-	}
-	this_type & operator =(this_type const & rhs)
-	{
-		AllocMemory_();
-
-		ParallelForEach(mesh.GetRange(IForm),
-
-		[this,&rhs](index_type s)
-		{
-			this->get(s) = rhs.get(s);
-		}
-
-		);
-
-		return (*this);
-	}
-	template<typename TR>
-	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
-	{
-		AllocMemory_();
-
-		ParallelForEach(mesh.GetRange(IForm),
-
-		[this,&rhs](index_type s)
-		{
-			this->get(s) = rhs.get(s);
-		}
-
-		);
-
-		UpdateGhosts(this);
-
-		return (*this);
-	}
-
-#define DECL_SELF_ASSIGN( _OP_ )                                                                   \
-		template<typename TR> inline this_type &                                                   \
-		operator _OP_##= (TR const & rhs)                                                          \
-		{	AllocMemory_(); *this = *this _OP_ rhs;                                                      \
-			return (*this) ;                                                                        \
-		}                                                                                          \
-
-
-	DECL_SELF_ASSIGN(+ )
-
-DECL_SELF_ASSIGN	(- )
-
-	DECL_SELF_ASSIGN(* )
-
-	DECL_SELF_ASSIGN(/ )
-#undef DECL_SELF_ASSIGN
-
-	inline field_value_type operator()(coordinates_type const &x) const
-	{
-		return mesh.Gather(*this,x);
-	}
-
-}
-;
 
 }
 // namespace simpla

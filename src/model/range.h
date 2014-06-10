@@ -8,6 +8,8 @@
 #ifndef RANGE_H_
 #define RANGE_H_
 
+#include <utility>
+
 namespace simpla
 {
 
@@ -16,7 +18,7 @@ namespace _impl
 
 template<typename Key, typename Mapped, typename key_iterator>
 auto FindValue_(std::map<Key, Mapped> & data_, key_iterator const & k_ie_,
-		key_iterator * k_it) ->decltype(&(data_.find(*k_it)->second))
+        key_iterator * k_it) ->decltype(&(data_.find(*k_it)->second))
 {
 
 	auto res = data_.find(*k_it);
@@ -65,8 +67,8 @@ public:
 	key_iterator k_it_, k_ie_;
 
 	template<typename ...Args>
-	IteratorWrapper(container_type & data, key_iterator k_it, key_iterator k_ib, key_iterator k_ie) :
-			data_(data), k_it_(k_it), k_ie_(k_ie)
+	IteratorWrapper(container_type & data, key_iterator k_it, key_iterator k_ib, key_iterator k_ie)
+			: data_(data), k_it_(k_it), k_ie_(k_ie)
 	{
 	}
 
@@ -123,27 +125,78 @@ public:
 		return std::move(res);
 	}
 };
+template<typename TIterator>
+struct Range
+{
+	typedef TIterator iterator;
 
-template<typename TContainer, typename TIterator>
-struct RangeWrapper
+	typedef Range<iterator> this_type;
+
+	iterator ib_, ie_;
+
+	Range()
+	{
+	}
+	template<typename TR>
+	Range(TR const & r)
+			: ib_(r.begin()), ie_(r.end())
+	{
+	}
+	Range(iterator ib, iterator ie)
+			: ib_(ib), ie_(ie)
+	{
+	}
+
+	Range(std::pair<iterator, iterator> const &r)
+			: ib_(r.first), ie_(r.second)
+	{
+	}
+	iterator begin() const
+	{
+		return ib_;
+	}
+	iterator end() const
+	{
+		return ie_;
+	}
+	typename std::enable_if<std::is_same<typename iterator::iterator_category, std::bidirectional_iterator_tag>::value,
+	        iterator>::type rbegin() const
+	{
+		return --iterator(ie_);
+	}
+	typename std::enable_if<std::is_same<typename iterator::iterator_category, std::bidirectional_iterator_tag>::value,
+	        iterator>::type rend() const
+	{
+		return --iterator(ib_);
+	}
+
+	template<typename ...Args>
+	this_type Split(Args const & ... args) const
+	{
+		return this_type();
+	}
+};
+
+template<typename TIterator, typename TContainer>
+struct RangeWrapper: public Range<TIterator>
 {
 public:
 	typedef TIterator orig_iterator;
 	typedef TContainer container_type;
+	typedef Range<orig_iterator> orig_range_type;
 
 	typedef RangeWrapper<container_type, orig_iterator> this_type;
 	typedef IteratorWrapper<container_type, orig_iterator> iterator;
 private:
 	container_type & data_;
-	orig_iterator ib_, ie_;
 public:
 	template<typename TR>
-	RangeWrapper(container_type & data, TR const & r) :
-			data_(data), ib_(r.begin()), ie_(r.end())
+	RangeWrapper(container_type & data, TR const & r)
+			: orig_range_type(r), data_(data)
 	{
 	}
-	RangeWrapper(container_type & data, orig_iterator ib, orig_iterator ie) :
-			data_(data), ib_(ib), ie_(ie)
+	RangeWrapper(container_type & data, orig_iterator ib, orig_iterator ie)
+			: orig_range_type(ib, ie), data_(data)
 	{
 	}
 
@@ -153,53 +206,50 @@ public:
 
 	iterator begin() const
 	{
-		return iterator(data_, ib_, ib_, ie_);
+		return iterator(data_, orig_range_type::begin(), orig_range_type::begin(), orig_range_type::end());
 	}
 	iterator end() const
 	{
-		return iterator(data_, ie_, ib_, ie_);
+		return iterator(data_, orig_range_type::end(), orig_range_type::begin(), orig_range_type::end());
 	}
 
 	typename std::enable_if<
-			std::is_same<typename orig_iterator::iterator_category, std::bidirectional_iterator_tag>::value, iterator>::type rbegin() const
+	        std::is_same<typename orig_iterator::iterator_category, std::bidirectional_iterator_tag>::value, iterator>::type rbegin() const
 	{
-		orig_iterator rb = ie_;
-		--rb;
-		orig_iterator re = ib_;
-		--re;
-		return iterator(data_, rb, rb, re);
+		return iterator(data_, orig_range_type::rbegin(), orig_range_type::rbegin(), orig_range_type::rend());
 	}
 	typename std::enable_if<
-			std::is_same<typename orig_iterator::iterator_category, std::bidirectional_iterator_tag>::value, iterator>::type rend() const
+	        std::is_same<typename orig_iterator::iterator_category, std::bidirectional_iterator_tag>::value, iterator>::type rend() const
 	{
-		orig_iterator rb = ie_;
-		--rb;
-		orig_iterator re = ib_;
-		--re;
-		return iterator(data_, re, rb, re);
+		return iterator(data_, orig_range_type::rend(), orig_range_type::rbegin(), orig_range_type::rend());
+	}
+	template<typename ...Args>
+	this_type Split(Args const & ... args) const
+	{
+		return this_type(data_, orig_range_type::Split(std::forward<Args const &>(args)...));
 	}
 
 }
 ;
 
 template<typename TContainer, typename TRange>
-RangeWrapper<TContainer, typename TRange::iterator> make_range_wrapper(TContainer & data, TRange const& r)
+RangeWrapper<typename TRange::iterator, TContainer> make_range(TContainer & data, TRange const& r)
 {
-	return RangeWrapper<TContainer, typename TRange::iterator>(data, r);
+	return RangeWrapper<typename TRange::iterator, TContainer>(data, r);
 }
 
-template<typename TContainer, typename TIterator>
-RangeWrapper<TContainer, TIterator> make_range_wrapper(TContainer & data, TIterator const& ib, TIterator const &ie)
+template<typename TIterator, typename TContainer>
+RangeWrapper<TIterator, TContainer> make_range(TContainer & data, TIterator const& ib, TIterator const &ie)
 {
-	return RangeWrapper<TContainer, TIterator>(data, ib, ie);
+	return RangeWrapper<TIterator, TContainer>(data, ib, ie);
 }
 
-template<typename TRange, typename ...Args>
-TRange Split(TRange const & r, Args const & ... args)
-{
-	return TRange(Split(r.begin(), r.end(), std::forward<Args const &>(args) ...));
-}
+//template<typename TRange, typename ...Args>
+//TRange Split(TRange const & r, Args const & ... args)
+//{
+//	return TRange(Split(r.begin(), r.end(), std::forward<Args const &>(args) ...));
+//}
 
-}  // namespace simpla
+}// namespace simpla
 
 #endif /* RANGE_H_ */

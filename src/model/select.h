@@ -276,9 +276,9 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 
 }
 
-template<typename TRect, typename TDict, typename ...Args>
-void Select(TRect * res, TDict const & dict, Args const & ... args)
-{
+//template<typename TRange, typename TDict, typename ...Args>
+//FilterRange<TRange>  Select(TRange * res, TDict const & dict, Args const & ... args)
+//{
 //	FilterRange<TRange> range;
 //
 //	auto type_str = dict["Type"].template as<std::string>();
@@ -301,7 +301,7 @@ void Select(TRect * res, TDict const & dict, Args const & ... args)
 //	{
 //		res->push_back(s);
 //	}
-}
+//}
 
 } // namespace simpla
 

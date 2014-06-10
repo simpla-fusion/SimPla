@@ -58,7 +58,7 @@ void InitParticle(TP *p, TDict const &dict)
 
 	dict["Temperature"].as(&Ts);
 
-	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
+	InitParticle(p, p->mesh.Select(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
 
 }
 
@@ -75,7 +75,7 @@ void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
 
 	Real n0 = dict["Proportion"].template as<Real>(1.0);
 
-	InitParticle(p, p->mesh.GetRange(TP::IForm), dict["PIC"].template as<size_t>(100),
+	InitParticle(p, p->mesh.Select(TP::IForm), dict["PIC"].template as<size_t>(100),
 
 	[&](coordinates_type x)->Real
 	{	return n0*ne(x);},

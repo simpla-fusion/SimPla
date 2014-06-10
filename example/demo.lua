@@ -29,9 +29,9 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 16
-NY = 1 
-NZ = 1 
+NX = 256
+NY = 1
+NZ = 1
 LX = 10 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = 1 -- 2.0*math.pi/18
@@ -61,21 +61,21 @@ end
 
 InitValue = {
 
-	---[[
+	 --[[
 	E=function(x)
 
-	local res = 0.0;
-	for i=1,20 do
-	res=res+math.sin(x[0]/LX*TWOPI* i);
+		local res = 0.0;
+		for i=1,20 do
+			res=res+math.sin(x[0]/LX*TWOPI* i);
 
-	end;
-	
-	return {0,res,0}
+		end;
+
+		return {0,res,0}
 	end
 	--]]
 
 
---	E 	= 0.0
+	 E 	= 0.0
 	, J 	= 0.0
 	, B 	= InitB0
 	, ne 	= InitN0
@@ -114,7 +114,7 @@ end
 
 FieldSolver=
 {
-	--PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
 }
 
 
@@ -123,14 +123,14 @@ FieldSolver=
 
 Constraints=
 {
-	--[[
+	---[[
 	{
 		DOF="J",
 		Select={Type="Range",Value={{0.1*LX,0,0}}},
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			print(f[1])
+		 	print(amp)
 			return { f[0],f[1]+amp,f[2]}
 		end
 	},
@@ -185,16 +185,16 @@ ParticleConstraints=
 
 ---[[
 Particles={
-	 	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
-	 			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
-	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-	--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-	--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
-	--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
-	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
-	  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
-	-- H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+--	 	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+--	 			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
+--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
+--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
+--  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+-- H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
 

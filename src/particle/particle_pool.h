@@ -9,7 +9,6 @@
 #define PARTICLE_POOL_H_
 #include "../utilities/log.h"
 #include "../utilities/type_utilites.h"
-#include "../model/range.h"
 #include "../parallel/parallel.h"
 #include "save_particle.h"
 
@@ -33,16 +32,20 @@ public:
 	static constexpr int IForm = VERTEX;
 
 	typedef TM mesh_type;
+
 	typedef TParticle particle_type;
+
 	typedef ParticlePool<mesh_type, particle_type> this_type;
+
 	typedef particle_type value_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;
+
 	typedef typename mesh_type::scalar_type scalar_type;
+
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	//container
-//	template<typename TV> using Cell=std::list<TV, FixedSmallSizeAlloc<TV> >;
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
 
@@ -51,10 +54,15 @@ public:
 	typedef typename cell_type::allocator_type allocator_type;
 
 private:
+
 	bool isSorted_;
+
 	allocator_type allocator_;
+
 	container_type data_;
+
 public:
+
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
@@ -103,10 +111,6 @@ public:
 		return it->second;
 	}
 
-	inline void Insert(mesh_iterator s, particle_type p)
-	{
-		GetCell(&data_, s).emplace_back(p);
-	}
 	cell_type & operator[](mesh_iterator s)
 	{
 		return GetCell(&data_, s);
@@ -126,7 +130,7 @@ public:
 
 	template<typename ... Args>
 	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_range_wrapper( data_, mesh.GetRange(IForm).SubRange(std::forward<Args const &>(args)...))))
+	DECL_RET_TYPE((make_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
 
 	//***************************************************************************************************
 	// Cell operation
@@ -181,7 +185,16 @@ public:
 	{
 		write_lock_.unlock();
 	}
+	void lock()
+	{
+		write_lock_.lock();
+	}
+	void unlock()
+	{
+		write_lock_.unlock();
+	}
 
+private:
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
 	 * @param
@@ -194,21 +207,21 @@ public:
  * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<mesh_iterator,std::list<allocator> > !!
  */
 template<typename TM, typename TParticle>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh) :
-		mesh(pmesh), isSorted_(false), allocator_()
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh)
+		: mesh(pmesh), isSorted_(false), allocator_()
 {
 
 }
 template<typename TM, typename TParticle>
 template<typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, Others const & ...others) :
-		ParticlePool(pmesh)
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, Others const & ...others)
+		: ParticlePool(pmesh)
 {
 	Load(std::forward<Others const &>(others)...);
 }
 template<typename TM, typename TParticle>
 template<typename TDict, typename ...Args> void ParticlePool<TM, TParticle>::Load(TDict const & dict,
-		Args const & ...others)
+        Args const & ...others)
 {
 
 }
@@ -260,7 +273,7 @@ void ParticlePool<TM, TParticle>::Sort()
 //	[this](int t_num,int t_id)
 //	{
 //		container_type dest;
-//		for (auto s : mesh.GetRange(IForm).Split(t_num,t_id))
+//		for (auto s : mesh.Select(IForm).Split(t_num,t_id))
 //		{
 //
 // 			CHECK(mesh.Hash(s));
@@ -275,7 +288,7 @@ void ParticlePool<TM, TParticle>::Sort()
 
 	//FIXME Here should be PARALLEL (multi-thread)
 	container_type dest;
-	for (auto s : mesh.GetRange(IForm))
+	for (auto s : mesh.Select(IForm))
 	{
 
 		auto it = data_.find(s);

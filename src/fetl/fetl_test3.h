@@ -112,7 +112,7 @@ TEST_P(TestDiffCalculus, grad0)
 	f0.Clear();
 	f1.Clear();
 	f1b.Clear();
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 		f0[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -124,7 +124,7 @@ TEST_P(TestDiffCalculus, grad0)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 
 		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * K[mesh.ComponentNum(s)];
@@ -162,7 +162,7 @@ TEST_P(TestDiffCalculus, grad3)
 	f2.Clear();
 	f2b.Clear();
 
-	for (auto s : mesh.GetRange(VOLUME))
+	for (auto s : mesh.Select(VOLUME))
 	{
 		f3[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -174,7 +174,7 @@ TEST_P(TestDiffCalculus, grad3)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 
 		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * K[mesh.ComponentNum(s)];
@@ -211,7 +211,7 @@ TEST_P(TestDiffCalculus, diverge1)
 	f0.Clear();
 	f1.Clear();
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 		f1[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -221,7 +221,7 @@ TEST_P(TestDiffCalculus, diverge1)
 	Real variance = 0;
 	value_type average = 0.0;
 
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 
 		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[0] + K[1] + K[2]);
@@ -258,7 +258,7 @@ TEST_P(TestDiffCalculus, diverge2)
 	f3.Clear();
 	f2.Clear();
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 		f2[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -268,7 +268,7 @@ TEST_P(TestDiffCalculus, diverge2)
 	Real variance = 0;
 	value_type average = 0.0;
 
-	for (auto s : mesh.GetRange(VOLUME))
+	for (auto s : mesh.Select(VOLUME))
 	{
 
 		auto expect = std::cos(Dot(K, mesh.GetCoordinates(s))) * (K[0] + K[1] + K[2]);
@@ -312,7 +312,7 @@ TEST_P(TestDiffCalculus, curl1)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 		vf1[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -322,7 +322,7 @@ TEST_P(TestDiffCalculus, curl1)
 	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
 	LOGGER << SAVE(vf2);
 	LOGGER << SAVE(vf1);
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 		auto n = mesh.ComponentNum(s);
 
@@ -369,7 +369,7 @@ TEST_P(TestDiffCalculus, curl2)
 	value_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 		vf2[s] = std::sin(Dot(K, mesh.GetCoordinates(s)));
 	};
@@ -378,7 +378,7 @@ TEST_P(TestDiffCalculus, curl2)
 
 	vf1b.Clear();
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 
 		auto n = mesh.ComponentNum(s);
@@ -419,7 +419,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 
 	Real m = 0.0;
 	f0.Clear();
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 
 		auto a = uniform_dist(gen);
@@ -436,7 +436,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f0_eq_0)
 	size_t count = 0;
 	Real relative_error = 0;
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 
 		relative_error += abs(f2b[s]);
@@ -464,7 +464,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 
 	f3.Clear();
 
-	for (auto s : mesh.GetRange(VOLUME))
+	for (auto s : mesh.Select(VOLUME))
 	{
 		auto a = uniform_dist(gen);
 		f3[s] = a * default_value;
@@ -480,7 +480,7 @@ TEST_P(TestDiffCalculus, identity_curl_grad_f3_eq_0)
 	size_t count = 0;
 	Real relative_error = 0;
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 
 		EXPECT_EQ((f1a[s]), (f1b[s]));
@@ -511,7 +511,7 @@ TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.GetRange(FACE))
+	for (auto s : mesh.Select(FACE))
 	{
 		auto a = uniform_dist(gen);
 
@@ -531,7 +531,7 @@ TEST_P(TestDiffCalculus, identity_div_curl_f1_eq0)
 	size_t count = 0;
 	Real relative_error = 0;
 
-	for (auto s : mesh.GetRange(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
 		relative_error += abs(f0b[s]);
 		EXPECT_EQ((f0a[s]), (f0b[s]));
@@ -558,7 +558,7 @@ TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.GetRange(EDGE))
+	for (auto s : mesh.Select(EDGE))
 	{
 		auto a = uniform_dist(gen);
 		f1[s] = default_value * a;
@@ -577,7 +577,7 @@ TEST_P(TestDiffCalculus, identity_div_curl_f2_eq0)
 
 	Real relative_error = 0;
 
-	for (auto s : mesh.GetRange(VOLUME))
+	for (auto s : mesh.Select(VOLUME))
 	{
 
 		EXPECT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));

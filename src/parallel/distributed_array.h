@@ -13,6 +13,7 @@
 #include <tuple>
 #include "../fetl/ntuple.h"
 #include "../utilities/singleton_holder.h"
+#include "../utilities/geometric_algorithm.h"
 #include "message_comm.h"
 
 #ifdef USE_MPI
@@ -36,8 +37,8 @@ public:
 		nTuple<NDIMS, size_t> inner_start;
 		nTuple<NDIMS, size_t> inner_count;
 	};
-	DistributedArray() :
-			self_id_(0)
+	DistributedArray()
+			: self_id_(0)
 	{
 	}
 
@@ -133,40 +134,13 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 	{
 		local->inner_start[n] += (global_count_[n] * process_num) / num_process;
 		local->inner_count[n] = (global_count_[n] * (process_num + 1)) / num_process
-				- (global_count_[n] * process_num) / num_process;
+		        - (global_count_[n] * process_num) / num_process;
 		local->outer_start[n] = local->inner_start[n] - gw;
 		local->outer_count[n] = local->inner_count[n] + gw * 2;
 	}
 
 }
-template<int NDIMS>
-bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const &l_count,
-		nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
-{
-	bool has_overlap = false;
 
-	nTuple<NDIMS, size_t> & r_start = *pr_start;
-	nTuple<NDIMS, size_t> & r_count = *pr_count;
-
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		if (r_start[i] + r_count[i] <= l_start[i] || r_start[i] >= l_start[i] + l_count[i])
-			return false;
-
-		size_t start = std::max(l_start[i], r_start[i]);
-		size_t end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
-
-		if (end > start)
-		{
-			r_start[i] = start;
-			r_count[i] = end - start;
-
-			has_overlap = true;
-		}
-	}
-
-	return has_overlap;
-}
 template<int N>
 void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 {
@@ -226,9 +200,9 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
 
 			if (f_inner && f_outer)
 			{
-				send_recv_.emplace_back(send_recv_s(
-				{ dest, hash(remote.outer_start), hash(remote.inner_start), remote.outer_start, remote.outer_count,
-						remote.inner_start, remote.inner_count }));
+				send_recv_.emplace_back(
+				        send_recv_s( { dest, hash(remote.outer_start), hash(remote.inner_start), remote.outer_start,
+				                remote.outer_count, remote.inner_start, remote.inner_count }));
 			}
 		}
 

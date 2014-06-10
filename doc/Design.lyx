@@ -2,7 +2,7 @@
 \lyxformat 413
 \begin_document
 \begin_header
-\textclass report
+\textclass docbook-book
 \use_default_options false
 \maintain_unincluded_children false
 \language english
@@ -13,7 +13,7 @@
 \font_sans Adobe 楷体 Std
 \font_typewriter Adobe 黑体 Std
 \font_default_family default
-\use_non_tex_fonts true
+\use_non_tex_fonts false
 \font_sc false
 \font_osf false
 \font_sf_scale 100
@@ -73,6 +73,11 @@
 
 \begin_body
 
+\begin_layout Revision
+Rev.
+ 0.0.1
+\end_layout
+
 \begin_layout Title
 SimPla 概要设计报告
 \end_layout
@@ -91,6 +96,206 @@ SimPla 概要设计报告
 
 \begin_layout Chapter
 整体结构
+\end_layout
+
+\begin_layout Section
+Conecpts
+\end_layout
+
+\begin_layout Subsection
+container
+\end_layout
+
+\begin_layout Description
+container A Container is an object used to store other objects and taking
+ care of the management of the memory used by the objects it contains.
+ -- http://en.cppreference.com/w/cpp/concept/Container
+\end_layout
+
+\begin_layout Code
+
+template<typename TV,typename ...
+ Others>
+\end_layout
+
+\begin_layout Code
+
+struct Container { 	
+\end_layout
+
+\begin_layout Code
+
+ 
+\end_layout
+
+\begin_layout Code
+
+	typedef TV value_type;
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	typedef Container<TV,Others...> this_type;
+\end_layout
+
+\begin_layout Code
+
+	 
+\end_layout
+
+\begin_layout Code
+
+	typedef typename mesh_type::iterator index_type;
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	typedef std::shared_ptr<value_type> container_type;
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	Container( );  
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	Container(this_type const & rhs); 
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	~Container();
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	template<typename TVistor>  void Accept(TVistor const & visitor); 
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	void swap(this_type & rhs); 	 
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	void Init();  
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	template<typename ...Args>  int GetDataSetShape(Args ...others) const  ;
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	container_type & data();
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	const container_type & data() const ;
+\end_layout
+
+\begin_layout Code
+
+\end_layout
+
+\begin_layout Code
+
+	bool empty() const ;
+\end_layout
+
+\begin_layout Code
+
+	 
+\end_layout
+
+\begin_layout Code
+
+	inline value_type & at(index_type s) ; 
+\end_layout
+
+\begin_layout Code
+
+	inline value_type const & at(index_type s) const  ;
+\end_layout
+
+\begin_layout Code
+
+	inline value_type & get(index_type s) ;	 
+\end_layout
+
+\begin_layout Code
+
+	inline value_type const & get(index_type s) const  ;
+\end_layout
+
+\begin_layout Code
+
+	inline value_type & operator[](index_type s);	 
+\end_layout
+
+\begin_layout Code
+
+	inline value_type const & operator[](index_type s) const  ;
+\end_layout
+
+\begin_layout Code
+
+	template<typename ...
+ Args>  auto Select(Args const & ...
+ args);
+\end_layout
+
+\begin_layout Code
+
+};
 \end_layout
 
 \begin_layout Section

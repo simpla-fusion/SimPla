@@ -34,7 +34,7 @@ bool LoadField(TDict const &dict, Field<TM, IFORM, TV> *f)
 	if (dict.is_function())
 	{
 
-		for (auto s : mesh.GetRange(IFORM))
+		for (auto s : mesh.Select(IFORM))
 		{
 			auto x = mesh.GetCoordinates(s);
 
@@ -49,7 +49,7 @@ bool LoadField(TDict const &dict, Field<TM, IFORM, TV> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		for (auto s : mesh.GetRange(IFORM))
+		for (auto s : mesh.Select(IFORM))
 		{
 			auto x = mesh.GetCoordinates(s);
 
