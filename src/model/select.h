@@ -15,11 +15,11 @@ namespace simpla
 {
 
 template<typename TRange>
-class FilterRange
+class RangeFilter
 {
 public:
 
-	typedef FilterRange<TRange> this_type;
+	typedef RangeFilter<TRange> this_type;
 
 	typedef TRange base_range;
 
@@ -34,16 +34,16 @@ private:
 	filter_type filter_;
 public:
 
-	FilterRange(base_range range, filter_type filter)
+	RangeFilter(base_range range, filter_type filter)
 			: range_(range), filter_(filter)
 	{
 	}
 
-	FilterRange()
+	RangeFilter()
 			: range_(base_range())
 	{
 	}
-	~FilterRange()
+	~RangeFilter()
 	{
 	}
 
@@ -149,20 +149,20 @@ public:
 };
 
 template<typename TM>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
         std::function<bool(typename TM::iterator::value_type)> filter)
 {
-	return FilterRange<typename TM::Range>(range,
+	return RangeFilter<typename TM::Range>(range,
 	        [filter](typename TM::iterator s,typename TM::iterator::value_type*c)->int
 	        {	c[0]=*s; return filter(c[0])?1:0;});
 }
 
 template<typename TM>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
 {
 	typename TM::iterator s = mesh.GetCellIndex(x);
 
-	return FilterRange<typename TM::Range>(range,
+	return RangeFilter<typename TM::Range>(range,
 
 	[=, &mesh](typename TM::iterator it )->bool
 	{
@@ -171,10 +171,10 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 }
 
 template<typename TM>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, typename TM::coordinates_type v0,
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, typename TM::coordinates_type v0,
         typename TM::coordinates_type v1)
 {
-	return FilterRange<typename TM::Range>(range,
+	return RangeFilter<typename TM::Range>(range,
 	        [=,&mesh]( typename TM::iterator s )->bool
 	        {
 		        auto x = mesh.GetCoordinates(*s);
@@ -185,9 +185,9 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh
 }
 
 template<typename TM>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, PointInPolygen checkPointsInPolygen)
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, PointInPolygen checkPointsInPolygen)
 {
-	return FilterRange<typename TM::Range>(range, [ =,&mesh ](typename TM::iterator s )->bool
+	return RangeFilter<typename TM::Range>(range, [ =,&mesh ](typename TM::iterator s )->bool
 	{	return (checkPointsInPolygen(mesh.GetCoordinates(*s) ));});
 }
 
@@ -211,10 +211,10 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const & mesh
  *           Z>=3
  */
 template<typename TM, int N>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
         std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
-	FilterRange<typename TM::Range> res;
+	RangeFilter<typename TM::Range> res;
 	if (points.size() == 1)
 	{
 
@@ -249,9 +249,9 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 }
 
 template<typename TM, typename TDict>
-FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, TDict const & dict)
+RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, TDict const & dict)
 {
-	FilterRange<typename TM::Range> res;
+	RangeFilter<typename TM::Range> res;
 
 	if (dict.is_table())
 	{
@@ -265,7 +265,7 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 	else if (dict.is_function())
 	{
 
-		res = FilterRange<typename TM::Range>(range, [dict, &mesh](typename TM::iterator s )->bool
+		res = RangeFilter<typename TM::Range>(range, [dict, &mesh](typename TM::iterator s )->bool
 		{
 			auto x = mesh.GetCoordinates(*s);
 			return (dict(x).template as<bool>());
@@ -276,32 +276,32 @@ FilterRange<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 
 }
 
-//template<typename TRange, typename TDict, typename ...Args>
-//FilterRange<TRange>  Select(TRange * res, TDict const & dict, Args const & ... args)
-//{
-//	FilterRange<TRange> range;
-//
-//	auto type_str = dict["Type"].template as<std::string>();
-//	if (type_str == "Range")
-//	{
-//		range = Filter(srange, mesh, dict["Value"]);
-//
-//	}
-//	else if (type_str == "Model")
-//	{
-//		range = model.Select(srange, dict);
-//	}
-//	else
-//	{
-//		WARNING << "Unknown Configuration :" << type_str;
-//		return;
-//	}
-//
-//	for (auto s : range)
-//	{
-//		res->push_back(s);
-//	}
-//}
+template<typename TRange, typename TDict, typename ...Args>
+RangeWrapper<typename TM::range_type,Field<> >  Select(TRange * res, TDict const & dict, Args const & ... args)
+{
+	RangeFilter<TRange> range;
+
+	auto type_str = dict["Type"].template as<std::string>();
+	if (type_str == "Range")
+	{
+		range = Filter(srange, mesh, dict["Value"]);
+
+	}
+	else if (type_str == "Model")
+	{
+		range = model.Select(srange, dict);
+	}
+	else
+	{
+		WARNING << "Unknown Configuration :" << type_str;
+		return;
+	}
+
+	for (auto s : range)
+	{
+		res->push_back(s);
+	}
+}
 
 } // namespace simpla
 

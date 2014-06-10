@@ -13,7 +13,7 @@
 #include <tuple>
 #include "../fetl/ntuple.h"
 #include "../utilities/singleton_holder.h"
-#include "../utilities/geometric_algorithm.h"
+#include "../model/geometric_algorithm.h"
 #include "message_comm.h"
 
 #ifdef USE_MPI

@@ -12,7 +12,7 @@
 
 #include "../fetl/ntuple.h"
 #include "../utilities/visitor.h"
-#include "../model/geometry_algorithm.h"
+#include "../model/geometric_algorithm.h"
 
 namespace simpla
 {

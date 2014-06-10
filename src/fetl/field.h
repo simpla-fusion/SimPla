@@ -55,14 +55,14 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
 	{
 	}
 
@@ -78,14 +78,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -197,8 +197,15 @@ public:
 	auto Select(Args const & ... args)
 	DECL_RET_TYPE((make_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
 
+	template<typename ... Args>
+	auto Select(Args const & ... args) const
+	DECL_RET_TYPE((make_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+
 	auto begin() DECL_RET_TYPE(this->Select().begin())
 	auto end() DECL_RET_TYPE(this->Select().end())
+
+	auto begin() const DECL_RET_TYPE(this->Select().begin())
+	auto end() const DECL_RET_TYPE(this->Select().end())
 
 	template<typename TD>
 	void Fill(TD default_value)

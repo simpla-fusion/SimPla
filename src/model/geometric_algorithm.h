@@ -18,6 +18,36 @@
 
 namespace simpla
 {
+
+template<int NDIMS>
+bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const &l_count,
+		nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
+{
+	bool has_overlap = false;
+
+	nTuple<NDIMS, size_t> & r_start = *pr_start;
+	nTuple<NDIMS, size_t> & r_count = *pr_count;
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (r_start[i] + r_count[i] <= l_start[i] || r_start[i] >= l_start[i] + l_count[i])
+			return false;
+
+		size_t start = std::max(l_start[i], r_start[i]);
+		size_t end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
+
+		if (end > start)
+		{
+			r_start[i] = start;
+			r_count[i] = end - start;
+
+			has_overlap = true;
+		}
+	}
+
+	return has_overlap;
+}
+
 template<typename TL, typename TR>
 auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0])
 {
