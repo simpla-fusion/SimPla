@@ -117,14 +117,14 @@ private:
 };
 template<typename Engine>
 
-Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others)
-		: Particle(pmesh)
+Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others) :
+		Particle(pmesh)
 {
 	Load(std::forward<Others const &>(others)...);
 }
@@ -148,7 +148,7 @@ Particle<Engine>::~Particle()
 }
 template<typename Engine>
 template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-        Others const & ...others)
+		Others const & ...others)
 {
 	if (!dict.is_table())
 		return;
@@ -156,38 +156,34 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 	{
 		auto dof = item.second["DOF"].template as<std::string>("");
 
-		if (dof == "n")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-			        Command<typename engine_type::n_type>::Create(&n, item.second,
-			                std::forward<Others const &>(others)...));
-
-		}
-		else if (dof == "J")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-			        Command<typename engine_type::J_type>::Create(&J, item.second,
-			                std::forward<Others const &>(others)...));
-
-		}
-		else if (dof == "ParticlesBoundary")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			commands_.push_back(
-			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
-		}
-		else
-		{
-			UNIMPLEMENT2("Unknown DOF!");
-		}
+//		if (dof == "n")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(CreateCommand(&n, item.second, std::forward<Others const &>(others)...));
+//
+//		}
+//		else if (dof == "J")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(CreateCommand(&J, item.second, std::forward<Others const &>(others)...));
+//
+//		}
+//		else if (dof == "ParticlesBoundary")
+//		{
+//
+//			LOGGER << "Add constraint to " << dof;
+//
+//			commands_.push_back(
+//					BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
+//		}
+//		else
+//		{
+//			UNIMPLEMENT2("Unknown DOF!");
+//		}
 		LOGGER << DONE;
 	}
 
@@ -237,7 +233,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -278,7 +274,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 

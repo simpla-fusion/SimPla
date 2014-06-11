@@ -41,6 +41,7 @@
 
 namespace simpla
 {
+
 template<typename TM>
 struct ExplicitEMContext
 {
@@ -55,8 +56,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args) :
+			ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -118,13 +119,48 @@ private:
 
 	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
 
+	template< int IFORM, typename TV, typename TDict>
+	std::function<void()> CreateCommand(Field<mesh_type, IFORM, TV>* f, TDict const & dict)
+	{
+		std::function<void()> res = []()
+		{};
+		if (dict["Operation"] && dict["Select"])
+		{
+			auto def_domain = mesh.Select(IFORM, dict["Select"],model_);
+
+			typedef typename Field<mesh_type, IFORM, TV>::field_value_type field_value_type;
+
+			typedef typename mesh_type::iterator iterator;
+
+			typedef typename mesh_type::coordinates_type coordinates_type;
+
+			typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
+
+			auto op_ = dict["Operation"].template as<field_fun>();
+
+			res = [f,def_domain,op_]()
+			{
+				for(auto const& s:def_domain)
+				{
+					auto x = f->mesh.GetCoordinates(s);
+
+					(*f)[s] = f->mesh.Sample(Int2Type<IFORM>(), s, op_(f->mesh.GetTime(), x, (*f)(x)));
+				}
+			};
+
+		}
+		else
+		{
+			ERROR << "illegal configure! ";
+		}
+		return res;
+	}
 }
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(
-		        mesh)
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(mesh)
 {
 }
 
@@ -270,15 +306,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(CreateCommand(&E, item.second, model_));
+				commandToE_.push_back(CreateCommand(&E, item.second));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(CreateCommand(&B, item.second, model_));
+				commandToB_.push_back(CreateCommand(&B, item.second));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(CreateCommand(&Jext, item.second, model_));
+				commandToJ_.push_back(CreateCommand(&Jext, item.second));
 			}
 			else
 			{
