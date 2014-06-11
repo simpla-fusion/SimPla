@@ -52,7 +52,7 @@ public:
 
 	enum
 	{
-		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, PLATEAU, LIMTER,
+		NONE = 0, VACUUM = 1, PLASMA, CORE, BOUNDARY, LIMTER,
 		// @NOTE: add materials for different physical area or media
 		CUSTOM = 20
 	};
@@ -68,7 +68,6 @@ public:
 		register_material_.emplace("Plasma", material_type(1 << PLASMA));
 		register_material_.emplace("Core", material_type(1 << CORE));
 		register_material_.emplace("Boundary", material_type(1 << BOUNDARY));
-		register_material_.emplace("Plateau", material_type(1 << PLATEAU));
 		register_material_.emplace("Limter", material_type(1 << LIMTER));
 
 	}
@@ -547,8 +546,7 @@ typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type 
 }
 
 template<typename TM>
-typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range,
-        material_type material) const
+typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, material_type material) const
 {
 	filter_fun_type pred = [= ]( typename TM::iterator::value_type s )->bool
 	{

@@ -55,8 +55,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args)
+			: ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -122,12 +122,9 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		model_(mesh), E(mesh), B(mesh),
-
-		Jext(mesh), J0(mesh), dE(mesh), dB(mesh),
-
-		n(mesh), n0(mesh), phi(mesh), Bv(mesh)
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(
+		        mesh)
 {
 }
 
@@ -161,71 +158,66 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dE.Clear();
 	J0.Clear();
 
-//	if (dict["Model"])
-//	{
-//		model_.Update();
-//
-//		if (dict["Model"]["GFile"])
-//		{
-//
-//			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
-//
-//			nTuple<3, Real> xmin, xmax;
-//
-//			xmin[0] = geqdsk.GetMin()[0];
-//			xmin[1] = geqdsk.GetMin()[1];
-//			xmin[2] = 0;
-//			xmax[0] = geqdsk.GetMax()[0];
-//			xmax[1] = geqdsk.GetMax()[1];
-//			xmax[2] = 0;
-//
-//			mesh.SetExtent(xmin, xmax);
-//
-//			model_.Add("Plasma", geqdsk.Boundary());
-//			model_.Add("Vacuum", geqdsk.Limiter());
-//			model_.Update();
-//
-//			geqdsk.Save(std::cout);
-//
-//			B.Clear();
-//
-//			for (auto s : mesh.Select(FACE))
-//			{
-//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-//				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
-//
-//			}
-//
-//			ne0.Clear();
-//			Te0.Clear();
-//			Ti0.Clear();
-//
-//			for (auto s : model_.template SelectCell<VERTEX>("Plasma"))
-//			{
-//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-//				auto p = geqdsk.psi(x[0], x[1]);
-//
-//				ne0[s] = geqdsk.Profile("ne", p);
-//				Te0[s] = geqdsk.Profile("Te", p);
-//				Ti0[s] = geqdsk.Profile("Ti", p);
-//
-//			}
-//
-//			J0 = Curl(B) / CONSTANTS["permeability of free space"];
-//
-//			description = description + "\n GEqdsk ID:" + geqdsk.Description();
-//
-//			LOGGER << simpla::Save(ne0, "ne");
-//			LOGGER << simpla::Save(Te0, "Te");
-//			LOGGER << simpla::Save(Ti0, "Ti");
-//		}
-//
-//	}
-//
-//	if (mesh.CheckCourantDt(CONSTANTS["speed of light"]) < mesh.GetDt())
-//	{
-//		mesh.SetDt(mesh.CheckCourantDt(CONSTANTS["speed of light"]));
-//	}
+	if (dict["Model"])
+	{
+		model_.Update();
+
+		if (dict["Model"]["GFile"])
+		{
+
+			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+
+			nTuple<3, Real> xmin, xmax;
+
+			xmin[0] = geqdsk.GetMin()[0];
+			xmin[1] = geqdsk.GetMin()[1];
+			xmin[2] = 0;
+			xmax[0] = geqdsk.GetMax()[0];
+			xmax[1] = geqdsk.GetMax()[1];
+			xmax[2] = 0;
+
+			mesh.SetExtents(xmin, xmax);
+
+			model_.Add("Plasma", geqdsk.Boundary());
+			model_.Add("Vacuum", geqdsk.Limiter());
+			model_.Update();
+
+			geqdsk.Save(std::cout);
+
+			B.Clear();
+
+			for (auto s : mesh.Select(FACE))
+			{
+				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+
+			}
+
+			ne0.Clear();
+			Te0.Clear();
+			Ti0.Clear();
+
+			for (auto s : model_.template SelectCell<VERTEX>("Plasma"))
+			{
+				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				auto p = geqdsk.psi(x[0], x[1]);
+
+				ne0[s] = geqdsk.Profile("ne", p);
+				Te0[s] = geqdsk.Profile("Te", p);
+				Ti0[s] = geqdsk.Profile("Ti", p);
+
+			}
+
+			J0 = Curl(B) / CONSTANTS["permeability of free space"];
+
+			description = description + "\n GEqdsk ID:" + geqdsk.Description();
+
+			LOGGER << simpla::Save("ne", ne0);
+			LOGGER << simpla::Save("Te", Te0);
+			LOGGER << simpla::Save("Ti", Ti0);
+		}
+
+	}
 
 	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
@@ -278,15 +270,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(Command<TE>::Create(&E, item.second, model_));
+				commandToE_.push_back(CreateCommand(&E, item.second, model_));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(Command<TB>::Create(&B, item.second, model_));
+				commandToB_.push_back(CreateCommand(&B, item.second, model_));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(Command<TJ>::Create(&Jext, item.second, model_));
+				commandToJ_.push_back(CreateCommand(&Jext, item.second, model_));
 			}
 			else
 			{
