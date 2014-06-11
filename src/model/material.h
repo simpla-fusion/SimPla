@@ -20,6 +20,7 @@
 #include "../fetl/primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
+#include "../utilities/range.h"
 #include "pointinpolygen.h"
 #include "select.h"
 namespace simpla
@@ -338,14 +339,12 @@ public:
 		return isChanged_;
 	}
 
-	typedef FilterRange<typename mesh_type::range_type> range_type;
-
+	typedef Range<FilterIterator<std::function<bool(typename iterator::value_type const &)>, iterator>> filter_range_type;
 	template<int IFORM, typename ...Args>
-	range_type SelectCell(Args const & ... args) const
+	filter_range_type SelectCell(Args const & ... args) const
 	{
 		return Select(mesh.Select(IFORM), std::forward<Args const &>(args)...);
 	}
-
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -355,29 +354,24 @@ public:
 	 * @param out_material
 	 * @param flag
 	 */
+	filter_range_type Select(typename TM::range_type range, material_type in, material_type out) const;
 
-	range_type Select(typename TM::range_type range, material_type in, material_type out) const;
+	filter_range_type Select(typename TM::range_type range, material_type) const;
 
-	range_type Select(typename TM::range_type range, std::string const & in, std::string const & out) const
-	{
-		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
-	}
-	range_type Select(typename TM::range_type range, char const in[], char const out[]) const
-	{
-		return Select(range, GetMaterialFromString(in), GetMaterialFromString(out));
-	}
-	range_type Select(typename TM::range_type range, material_type) const;
-
-	range_type Select(typename TM::range_type range, std::string const & m) const
-	{
-		return Select(range, GetMaterialFromString(m));
-	}
-	range_type Select(typename TM::range_type range, char const m[]) const
-	{
-		return Select(range, GetMaterialFromString(m));
-	}
 	template<typename TDict>
-	range_type Select(typename TM::range_type range, TDict const &dict) const;
+	filter_range_type Select(typename TM::range_type range, TDict const &dict) const;
+
+	auto Select(typename TM::range_type range, std::string const & in, std::string const & out) const
+	DECL_RET_TYPE( Select(range, GetMaterialFromString(in), GetMaterialFromString(out)) )
+
+	auto Select(typename TM::range_type range, char const in[], char const out[]) const
+	DECL_RET_TYPE( Select(range, GetMaterialFromString(in), GetMaterialFromString(out)))
+
+	auto Select(typename TM::range_type range, std::string const & m) const
+	DECL_RET_TYPE( Select(range, GetMaterialFromString(m)))
+
+	auto Select(typename TM::range_type range, char const m[]) const
+	DECL_RET_TYPE( Select(range, GetMaterialFromString(m)))
 
 private:
 
@@ -429,7 +423,8 @@ private:
 			<< e.what();
 		}
 	}
-};
+}
+;
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 {
@@ -438,7 +433,7 @@ inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, material_type in,
+typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range, material_type in,
         material_type out) const
 {
 	if (IsChanged())
@@ -505,32 +500,30 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type r
 	//   +-------+  |          |
 	//              |          |
 	//              +----------+
-	int IFORM = mesh._IForm(*range.begin());
+	int IFORM = mesh.IForm(*range.begin());
 
-	range_type res;
+	return make_range(
 
-	res = typename Material<TM>::range_type(range,
-
-	[=]( typename TM::iterator it )->bool
+	[=]( typename TM::iterator::value_type s )->bool
 	{
-		if ((this->material_[IFORM].at(this->mesh.Hash((*it))) & in).none()
-				&& (this->material_[IFORM].at(this->mesh.Hash((*it))) & out).any())
+		if ((this->material_[IFORM].at(this->mesh.Hash(s)) & in).none()
+				&& (this->material_[IFORM].at(this->mesh.Hash(s)) & out).any())
 		{
 			iterator neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
 			switch(IFORM)
 			{	case VERTEX:
-				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), (*it), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case EDGE:
-				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), (*it), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case FACE:
-				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), (*it), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case VOLUME:
-				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), (*it), neighbours);
+				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 			}
 			for (int i = 0; i < num; ++i)
@@ -543,27 +536,31 @@ typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type r
 		}
 
 		return false;
-	});
+	},
 
-	return res;
+	range
+
+	);
 
 }
 
 template<typename TM>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, material_type material) const
+typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range,
+        material_type material) const
 {
-	return Material<TM>::range_type(range, [= ]( typename TM::iterator it )->bool
+	return make_range([= ]( typename TM::iterator::value_type s )->bool
 	{
-		return (((this->material_[this->mesh._IForm(*it)].at(this->mesh.Hash(*it)) & material)).any());
-	});
+		return (((this->material_[this->mesh.IForm(s )].at(this->mesh.Hash(s )) & material)).any());
+	}, range);
 
 }
 
 template<typename TM>
 template<typename TDict>
-typename Material<TM>::range_type Material<TM>::Select(typename TM::range_type range, TDict const & dict) const
+typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range, TDict const & dict) const
 {
-	range_type res;
+	filter_range_type res;
+
 	if (!dict["Type"])
 		return res;
 

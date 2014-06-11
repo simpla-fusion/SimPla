@@ -1,10 +1,10 @@
 
 
-my_test(material_test    
-        material_test.cpp 
+my_test(model_test    
+        model_test.cpp 
      
       )
-target_link_libraries(material_test physics mesh io)
+target_link_libraries(model_test physics mesh io)
 
 ADD_EXECUTABLE(geqdsk_convert geqdsk.cpp geqdsk_xdmf.cpp geqdsk_convert.cpp) 
 TARGET_LINK_LIBRARIES(geqdsk_convert   Xdmf io  ${MPI_LIBRARIES} )

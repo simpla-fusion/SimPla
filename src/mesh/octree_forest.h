@@ -1604,4 +1604,21 @@ struct OcForest
 }
 // namespace simpla
 
+namespace std
+{
+template<typename TI> struct iterator_traits;
+
+template<>
+struct iterator_traits<simpla::OcForest::iterator>
+{
+typedef typename simpla::OcForest::iterator iterator;
+typedef typename iterator::iterator_category iterator_category;
+typedef typename iterator::value_type value_type;
+typedef typename iterator::difference_type difference_type;
+typedef typename iterator::pointer pointer;
+typedef typename iterator::reference reference;
+
+};
+}  // namespace std
+
 #endif /* OCTREE_FOREST_H_ */

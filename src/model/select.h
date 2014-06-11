@@ -14,182 +14,180 @@
 namespace simpla
 {
 
-template<typename TRange>
-class RangeFilter
-{
-public:
-
-	typedef RangeFilter<TRange> this_type;
-
-	typedef TRange base_range;
-
-	typedef typename base_range::iterator base_iterator;
-
-	typedef typename base_iterator::value_type value_type;
-
-	typedef std::function<bool(base_iterator)> filter_type;
-
-private:
-	base_range range_;
-	filter_type filter_;
-public:
-
-	RangeFilter(base_range range, filter_type filter)
-			: range_(range), filter_(filter)
-	{
-	}
-
-	RangeFilter()
-			: range_(base_range())
-	{
-	}
-	~RangeFilter()
-	{
-	}
-
-	struct iterator
-	{
-		static constexpr int MAX_CACHE_DEPTH = 12;
-
-		filter_type filter_;
-
-		base_iterator it_, ie_;
-
-		iterator()
-		{
-		}
-
-		iterator(base_iterator ib, base_iterator ie, filter_type filter)
-				: it_(ib), ie_(ie), filter_(filter)
-		{
-			this->operator ++();
-		}
-		iterator(base_iterator it)
-				: it_(it), ie_(it)
-		{
-		}
-		iterator(iterator const &) = default;
-
-//	iterator(iterator &&) = default;
-
-		~iterator()
-		{
-		}
-
-		bool operator==(iterator const & rhs)
-		{
-			return (it_ == rhs.it_);
-		}
-		bool operator!=(iterator const & rhs)
-		{
-			return !(this->operator==(rhs));
-		}
-		iterator & operator ++()
-		{
-
-//			++cache_head_;
-//			if (cache_head_ >= cache_tail_)
+//template<typename TRange>
+//class RangeFilter
+//{
+//public:
+//
+//	typedef RangeFilter<TRange> this_type;
+//
+//	typedef TRange base_range;
+//
+//	typedef typename base_range::iterator base_iterator;
+//
+//	typedef typename base_iterator::value_type value_type;
+//
+//	typedef std::function<bool(base_iterator)> filter_type;
+//
+//private:
+//	base_range range_;
+//	filter_type filter_;
+//public:
+//
+//	RangeFilter(base_range range, filter_type filter)
+//			: range_(range), filter_(filter)
+//	{
+//	}
+//
+//	RangeFilter()
+//			: range_(base_range())
+//	{
+//	}
+//	~RangeFilter()
+//	{
+//	}
+//
+//	struct iterator
+//	{
+//		static constexpr int MAX_CACHE_DEPTH = 12;
+//
+//		filter_type filter_;
+//
+//		base_iterator it_, ie_;
+//
+//		iterator()
+//		{
+//		}
+//
+//		iterator(base_iterator ib, base_iterator ie, filter_type filter)
+//				: it_(ib), ie_(ie), filter_(filter)
+//		{
+//			this->operator ++();
+//		}
+//		iterator(base_iterator it)
+//				: it_(it), ie_(it)
+//		{
+//		}
+//		iterator(iterator const &) = default;
+//
+////	iterator(iterator &&) = default;
+//
+//		~iterator()
+//		{
+//		}
+//
+//		bool operator==(iterator const & rhs)
+//		{
+//			return (it_ == rhs.it_);
+//		}
+//		bool operator!=(iterator const & rhs)
+//		{
+//			return !(this->operator==(rhs));
+//		}
+//		iterator & operator ++()
+//		{
+//
+////			++cache_head_;
+////			if (cache_head_ >= cache_tail_)
+////			{
+////				cache_tail_ = 0;
+////				cache_head_ = 0;
+////				while (it_ != ie_)
+////				{
+////					++it_;
+////					cache_tail_ = filter_(it_, s_);
+////					if (cache_tail_ > 0)
+////						break;
+////				}
+////			}
+//
+//			for (++it_; it_ != ie_ && !filter_(it_); ++it_)
 //			{
-//				cache_tail_ = 0;
-//				cache_head_ = 0;
-//				while (it_ != ie_)
-//				{
-//					++it_;
-//					cache_tail_ = filter_(it_, s_);
-//					if (cache_tail_ > 0)
-//						break;
-//				}
 //			}
-
-			for (++it_; it_ != ie_ && !filter_(it_); ++it_)
-			{
-			}
-			return *this;
-		}
-		this_type operator ++(int) const
-		{
-			this_type res(*this);
-			++res;
-			return res;
-		}
-
-		value_type const & operator*() const
-		{
-			return it_.operator*();
-		}
-
-		value_type * operator ->()
-		{
-			return it_.operator->();
-		}
-		value_type const* operator ->() const
-		{
-			return it_.operator->();
-		}
-
-	};
-	bool empty()
-	{
-		return begin() == end();
-	}
-
-	iterator begin() const
-	{
-		return iterator(range_.begin(), range_.end(), filter_);
-	}
-	iterator end() const
-	{
-		return iterator(range_.end());
-	}
-	this_type split(size_t num, size_t id)
-	{
-		return this_type(range_.split(num, id), filter_);
-	}
-
-};
+//			return *this;
+//		}
+//		this_type operator ++(int) const
+//		{
+//			this_type res(*this);
+//			++res;
+//			return res;
+//		}
+//
+//		value_type const & operator*() const
+//		{
+//			return it_.operator*();
+//		}
+//
+//		value_type * operator ->()
+//		{
+//			return it_.operator->();
+//		}
+//		value_type const* operator ->() const
+//		{
+//			return it_.operator->();
+//		}
+//
+//	};
+//	bool empty()
+//	{
+//		return begin() == end();
+//	}
+//
+//	iterator begin() const
+//	{
+//		return iterator(range_.begin(), range_.end(), filter_);
+//	}
+//	iterator end() const
+//	{
+//		return iterator(range_.end());
+//	}
+//	this_type split(size_t num, size_t id)
+//	{
+//		return this_type(range_.split(num, id), filter_);
+//	}
+//
+//};
 
 template<typename TM>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
-        std::function<bool(typename TM::iterator::value_type)> filter)
-{
-	return RangeFilter<typename TM::Range>(range,
-	        [filter](typename TM::iterator s,typename TM::iterator::value_type*c)->int
-	        {	c[0]=*s; return filter(c[0])?1:0;});
-}
+auto Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
+DECL_RET_TYPE((make_range(
+
+						[=, &mesh](typename TM::iterator::value_type const &s )->bool
+						{
+							return mesh.GetCellIndex(s)== mesh.GetCellIndex(x);;
+						},
+
+						range)
+
+		))
 
 template<typename TM>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, nTuple<3, Real> const & x)
-{
-	typename TM::iterator s = mesh.GetCellIndex(x);
-
-	return RangeFilter<typename TM::Range>(range,
-
-	[=, &mesh](typename TM::iterator it )->bool
-	{
-		return mesh.GetCellIndex(*it)==s;
-	});
-}
-
-template<typename TM>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, typename TM::coordinates_type v0,
+auto Filter(typename TM::Range range, TM const & mesh, typename TM::coordinates_type v0,
         typename TM::coordinates_type v1)
-{
-	return RangeFilter<typename TM::Range>(range,
-	        [=,&mesh]( typename TM::iterator s )->bool
-	        {
-		        auto x = mesh.GetCoordinates(*s);
-		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
-	        });
+                DECL_RET_TYPE(( make_range(
 
-}
+						                [=,&mesh]( typename TM::iterator::value_type const &s )->bool
+						                {
+							                auto x = mesh.GetCoordinates(s);
+							                return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+									                && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
+						                }
+
+						                ,range)
+
+		                ))
 
 template<typename TM>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const & mesh, PointInPolygen checkPointsInPolygen)
-{
-	return RangeFilter<typename TM::Range>(range, [ =,&mesh ](typename TM::iterator s )->bool
-	{	return (checkPointsInPolygen(mesh.GetCoordinates(*s) ));});
-}
+auto Filter(typename TM::Range range, TM const & mesh, PointInPolygen checkPointsInPolygen)
+DECL_RET_TYPE(( make_range(
+
+						[ =,&mesh ](typename TM::iterator::value_type const &s )->bool
+						{
+							return (checkPointsInPolygen(mesh.GetCoordinates(s) ));
+						}
+
+						, range)
+		))
 
 /**
  *
@@ -211,10 +209,10 @@ RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const & mesh
  *           Z>=3
  */
 template<typename TM, int N>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
-        std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
+Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
+        typename TM::Range range, TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
-	RangeFilter<typename TM::Range> res;
+	Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> res;
 	if (points.size() == 1)
 	{
 
@@ -249,9 +247,10 @@ RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 }
 
 template<typename TM, typename TDict>
-RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh, TDict const & dict)
+Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
+        typename TM::Range range, TM const &mesh, TDict const & dict)
 {
-	RangeFilter<typename TM::Range> res;
+	Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> res;
 
 	if (dict.is_table())
 	{
@@ -265,42 +264,14 @@ RangeFilter<typename TM::Range> Filter(typename TM::Range range, TM const &mesh,
 	else if (dict.is_function())
 	{
 
-		res = RangeFilter<typename TM::Range>(range, [dict, &mesh](typename TM::iterator s )->bool
+		res = make_range([dict, &mesh](typename TM::iterator::value_type const & s )->bool
 		{
-			auto x = mesh.GetCoordinates(*s);
-			return (dict(x).template as<bool>());
-		});
+			return (dict( mesh.GetCoordinates( s)).template as<bool>());
+		}, range);
 
 	}
 	return res;
 
-}
-
-template<typename TRange, typename TDict, typename ...Args>
-RangeWrapper<typename TM::range_type,Field<> >  Select(TRange * res, TDict const & dict, Args const & ... args)
-{
-	RangeFilter<TRange> range;
-
-	auto type_str = dict["Type"].template as<std::string>();
-	if (type_str == "Range")
-	{
-		range = Filter(srange, mesh, dict["Value"]);
-
-	}
-	else if (type_str == "Model")
-	{
-		range = model.Select(srange, dict);
-	}
-	else
-	{
-		WARNING << "Unknown Configuration :" << type_str;
-		return;
-	}
-
-	for (auto s : range)
-	{
-		res->push_back(s);
-	}
 }
 
 } // namespace simpla

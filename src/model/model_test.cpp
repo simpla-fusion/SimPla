@@ -1,5 +1,5 @@
 /*
- * media_tag_test.cpp
+ * model_test.cpp
  *
  *  Created on: 2014年3月12日
  *      Author: salmon
@@ -23,8 +23,6 @@ class TestMaterial: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		Logger::Verbose(10);
-
 		TParam::SetUpMesh(&mesh);
 		auto dims = mesh.GetDimensions();
 
@@ -157,9 +155,9 @@ REGISTER_TYPED_TEST_CASE_P(TestMaterial, create);
 template<typename TM, typename TV, int IFORM> struct TestFETLParam;
 
 template<typename TV, int IFORM>
-struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
+struct TestFETLParam<Mesh<EuclideanGeometry<OcForest>>, TV, IFORM>
 {
-	typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+	typedef Mesh<EuclideanGeometry<OcForest>> mesh_type;
 	typedef TV value_type;
 	static constexpr int IForm = IFORM;
 
@@ -168,16 +166,15 @@ struct TestFETLParam<RectMesh<OcForest, EuclideanGeometry>, TV, IFORM>
 
 		nTuple<3, Real> xmin = { 0, 0, 0 };
 		nTuple<3, Real> xmax = { 1, 1, 1 };
-		mesh->SetExtent(xmin, xmax);
 
 		nTuple<3, size_t> dims = { 200, 200, 0 };
-		mesh->SetDimensions(dims, true);
-		mesh->Update();
+
+		mesh->SetExtents(xmin, xmax, dims);
 	}
 
 };
 
-typedef RectMesh<OcForest, EuclideanGeometry> mesh_type;
+typedef Mesh<EuclideanGeometry<OcForest>> mesh_type;
 
 typedef testing::Types<
 
