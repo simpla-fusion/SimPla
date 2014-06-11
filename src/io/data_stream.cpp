@@ -125,8 +125,10 @@ void DataStream::OpenFile(std::string const &fname)
 
 	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
-	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
-
+	if (GLOBAL_COMM.IsInitilized())
+	{
+		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
+	}
 	H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 	H5Pclose(plist_id);

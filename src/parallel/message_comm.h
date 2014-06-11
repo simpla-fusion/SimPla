@@ -35,12 +35,15 @@ public:
 
 	void Init(int argc = 0, char** argv = nullptr)
 	{
-		MPI_Init(&argc, &argv);
 		if (comm_ == MPI_COMM_NULL)
-			comm_ = MPI_COMM_WORLD;
+		{
+			MPI_Init(&argc, &argv);
+			if (comm_ == MPI_COMM_NULL)
+				comm_ = MPI_COMM_WORLD;
 
-		MPI_Comm_size(comm_, &num_process_);
-		MPI_Comm_rank(comm_, &process_num_);
+			MPI_Comm_size(comm_, &num_process_);
+			MPI_Comm_rank(comm_, &process_num_);
+		}
 	}
 	void Close()
 	{

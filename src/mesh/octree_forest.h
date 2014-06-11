@@ -926,7 +926,12 @@ struct OcForest
 		| ((~(r & (_DA >> (HeightOfTree(r) + 1)))) & (_DA >> (HeightOfTree(r) + 1)));
 
 	}
+	static unsigned int GetCellIndex(compact_index_type r)
+	{
+		compact_index_type mask=(1UL<<(D_FP_POS-HeightOfTree(r)))-1;
 
+		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
+	}
 	static unsigned int NodeId(compact_index_type r)
 	{
 		auto s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);

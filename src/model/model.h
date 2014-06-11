@@ -1,12 +1,12 @@
 /*
- * material.h
+ * model.h
  *
  *  Created on: 2013年12月15日
  *      Author: salmon
  */
 
-#ifndef MATERIAL_H_
-#define MATERIAL_H_
+#ifndef MODEL_H_
+#define MODEL_H_
 
 #include <algorithm>
 #include <bitset>
@@ -23,11 +23,15 @@
 #include "../utilities/range.h"
 #include "pointinpolygen.h"
 #include "select.h"
+namespace std
+{
+template<typename TI> struct iterator_traits;
+}
 namespace simpla
 {
 
 template<typename TM>
-class Material
+class Model
 {
 
 public:
@@ -55,7 +59,7 @@ public:
 
 	mesh_type const &mesh;
 
-	Material(mesh_type const & m)
+	Model(mesh_type const & m)
 			: null_material(1 << NONE), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
 	{
 		register_material_.emplace("NONE", null_material);
@@ -68,7 +72,7 @@ public:
 		register_material_.emplace("Limter", material_type(1 << LIMTER));
 
 	}
-	~Material()
+	~Model()
 	{
 	}
 
@@ -339,7 +343,9 @@ public:
 		return isChanged_;
 	}
 
-	typedef Range<FilterIterator<std::function<bool(typename iterator::value_type const &)>, iterator>> filter_range_type;
+	typedef std::function<bool(typename TM::iterator::value_type)> filter_fun_type;
+	typedef Range<FilterIterator<filter_fun_type, iterator>> filter_range_type;
+
 	template<int IFORM, typename ...Args>
 	filter_range_type SelectCell(Args const & ... args) const
 	{
@@ -426,14 +432,14 @@ private:
 }
 ;
 template<typename TM>
-inline std::ostream & operator<<(std::ostream & os, Material<TM> const &self)
+inline std::ostream & operator<<(std::ostream & os, Model<TM> const &self)
 {
 	self.Save(os);
 	return os;
 }
 
 template<typename TM>
-typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range, material_type in,
+typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, material_type in,
         material_type out) const
 {
 	if (IsChanged())
@@ -502,9 +508,7 @@ typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range
 	//              +----------+
 	int IFORM = mesh.IForm(*range.begin());
 
-	return make_range(
-
-	[=]( typename TM::iterator::value_type s )->bool
+	filter_fun_type pred = [=]( typename TM::iterator::value_type s )->bool
 	{
 		if ((this->material_[IFORM].at(this->mesh.Hash(s)) & in).none()
 				&& (this->material_[IFORM].at(this->mesh.Hash(s)) & out).any())
@@ -536,28 +540,27 @@ typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range
 		}
 
 		return false;
-	},
+	};
 
-	range
-
-	);
+	return make_filter_range(pred, range);
 
 }
 
 template<typename TM>
-typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range,
+typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range,
         material_type material) const
 {
-	return make_range([= ]( typename TM::iterator::value_type s )->bool
+	filter_fun_type pred = [= ]( typename TM::iterator::value_type s )->bool
 	{
 		return (((this->material_[this->mesh.IForm(s )].at(this->mesh.Hash(s )) & material)).any());
-	}, range);
+	};
+	return make_filter_range(pred, range);
 
 }
 
 template<typename TM>
 template<typename TDict>
-typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range_type range, TDict const & dict) const
+typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, TDict const & dict) const
 {
 	filter_range_type res;
 
@@ -587,4 +590,4 @@ typename Material<TM>::filter_range_type Material<TM>::Select(typename TM::range
 }
 // namespace simpla
 
-#endif /* MATERIAL_H_ */
+#endif /* MODEL_H_ */

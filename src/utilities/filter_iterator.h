@@ -35,195 +35,14 @@ namespace simpla
  *  @ref boost::filter_iterator
  *
  */
-template<typename TContainer, typename TIterator>
-struct FilterIterator
-{
 
-	typedef TContainer conatiner_type;
-	typedef TIterator key_iterator;
-
-	typedef FilterIterator<conatiner_type, key_iterator> this_type;
-
-	typedef typename std::iterator_traits<key_iterator>::iterator_category iterator_category;
-	typedef typename std::iterator_traits<key_iterator>::difference_type difference_type;
-
-	typedef typename TContainer::value_type value_type;
-	typedef value_type* pointer;
-	typedef value_type& reference;
-
-	conatiner_type * data_;
-	key_iterator k_it_;
-
-	FilterIterator()
-			: data_(nullptr)
-	{
-	}
-	FilterIterator(this_type const & other)
-			: data_(other.data_), k_it_(other.k_it_)
-	{
-	}
-
-	FilterIterator(conatiner_type &d, key_iterator const & ib, key_iterator const&)
-			: data_(&d), k_it_(ib)
-	{
-	}
-
-	~FilterIterator()
-	{
-	}
-	bool operator==(this_type const & other) const
-	{
-		return data_ == other.data_ && k_it_ == other.k_it_;
-	}
-	bool operator!=(this_type const & other) const
-	{
-		return !(operator==(other));
-	}
-	this_type & operator ++()
-	{
-		++k_it_;
-		return *this;
-	}
-	this_type operator ++(int)
-	{
-		this_type res(*this);
-		++res;
-		return std::move(res);
-	}
-	this_type & operator --()
-	{
-		--k_it_;
-		return *this;
-	}
-	this_type operator --(int)
-	{
-		this_type res(*this);
-		--res;
-		return std::move(res);
-	}
-	reference operator*()
-	{
-		return (*data_)[*k_it_];
-	}
-	const reference operator*() const
-	{
-		return (*data_)[*k_it_];
-	}
-	pointer operator->()
-	{
-		return &(*data_)[*k_it_];
-	}
-	const pointer operator->() const
-	{
-		return &(*data_)[*k_it_];
-	}
-};
-
-template<typename TMapped, typename TIterator>
-struct FilterIterator<std::map<typename TIterator::value_type, TMapped>, TIterator> : public std::map<
-        typename TIterator::value_type, TMapped>::iterator
-{
-
-	typedef std::map<typename std::iterator_traits<TIterator>::value_type, TMapped> conatiner_type;
-
-	typedef TIterator key_iterator;
-
-	typedef FilterIterator<conatiner_type, key_iterator> this_type;
-
-	typedef typename conatiner_type::iterator base_iterator;
-
-	typedef typename std::iterator_traits<key_iterator>::iterator_category iterator_category;
-	typedef typename std::iterator_traits<key_iterator>::difference_type difference_type;
-
-	typedef typename std::iterator_traits<base_iterator>::value_type value_type;
-	typedef typename std::iterator_traits<base_iterator>::pointer pointer;
-	typedef typename std::iterator_traits<base_iterator>::reference reference;
-
-	conatiner_type * data_;
-	key_iterator k_it_, k_it_end_;
-
-	FilterIterator()
-			: data_(nullptr)
-	{
-
-	}
-	FilterIterator(this_type const & other)
-			: base_iterator(other), data_(other.data_), k_it_(other.k_it_), k_it_end_(other.k_it_end_)
-	{
-
-	}
-
-	FilterIterator(conatiner_type &d, key_iterator const & ib, key_iterator ie = key_iterator())
-			: base_iterator(d.find(*ib)), data_(&d), k_it_(ib), k_it_end_(ie)
-	{
-		find_next_value_in_container();
-	}
-
-	~FilterIterator()
-	{
-	}
-	bool operator==(this_type const & other) const
-	{
-		return data_ == other.data_ && k_it_ == other.k_it_;
-	}
-	this_type & operator ++()
-	{
-		++k_it_;
-		*this = data_->find(*k_it_);
-		find_next_value_in_container();
-
-		return *this;
-	}
-	this_type operator ++(int)
-	{
-		this_type res(*this);
-		++res;
-		return std::move(res);
-	}
-	this_type & operator --()
-	{
-		--k_it_;
-		*this = data_->find(*k_it_);
-
-		find_prev_value_in_container();
-
-		return *this;
-	}
-	this_type operator --(int)
-	{
-		this_type res(*this);
-		--res;
-		return std::move(res);
-	}
-
-private:
-	void find_next_value_in_container()
-	{
-
-		while (k_it_ != k_it_end_ && (*this == data_->end()))
-		{
-			++k_it_;
-			*this = data_->find(*k_it_);
-		}
-	}
-
-	void find_prev_value_in_container()
-	{
-
-		while (k_it_ != k_it_end_ && (*this == data_->end()))
-		{
-			--k_it_;
-			*this = data_->find(*k_it_);
-		}
-	}
-};
-template<typename TIterator>
-struct FilterIterator<std::function<bool(typename std::iterator_traits<TIterator>::value_type const &)>, TIterator> : public TIterator
+template<typename TPred, typename TIterator>
+struct FilterIterator: public TIterator
 {
 
 	typedef TIterator base_iterator;
 
-	typedef std::function<bool(typename std::iterator_traits<TIterator>::value_type const &)> predicate_fun;
+	typedef TPred predicate_fun;
 
 	typedef FilterIterator<predicate_fun, base_iterator> this_type;
 
@@ -287,13 +106,11 @@ private:
 	}
 };
 
-template<typename TMapOrPred, typename TIterator>
-FilterIterator<TMapOrPred, TIterator> make_filter_iterator(TMapOrPred & container, TIterator k_ib, TIterator k_ie =
-        TIterator())
+template<typename TPred, typename TIterator>
+FilterIterator<TPred, TIterator> make_filter_iterator(TPred const & pred, TIterator k_ib, TIterator k_ie = TIterator())
 {
-	return ((FilterIterator<TMapOrPred, TIterator>(container, k_ib, k_ie)));
+	return ((FilterIterator<TPred, TIterator>(pred, k_ib, k_ie)));
 }
-
 //
 //template<typename TContainer, typename TRange>
 //RangeWrapper<typename TRange::iterator, TContainer> make_range(TContainer & data, TRange const& r)

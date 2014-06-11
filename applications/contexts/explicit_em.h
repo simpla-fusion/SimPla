@@ -30,7 +30,7 @@
 #include "../../src/particle/particle_base.h"
 
 // Model
-#include "../../src/model/material.h"
+#include "../../src/model/model.h"
 #include "../../src/model/command.h"
 #include "../../src/model/geqdsk.h"
 
@@ -76,7 +76,7 @@ public:
 
 	std::string description;
 
-	Material<mesh_type> model_;
+	Model<mesh_type> model_;
 
 	Form<EDGE> E, dE;
 	Form<FACE> B, dB;

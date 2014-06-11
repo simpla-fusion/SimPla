@@ -10,7 +10,7 @@
 #include "../io/data_stream.h"
 #include "../fetl/save_field.h"
 
-#include "material.h"
+#include "model.h"
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_euclidean.h"
@@ -18,7 +18,7 @@
 
 using namespace simpla;
 template<typename TParam>
-class TestMaterial: public testing::Test
+class TestModel: public testing::Test
 {
 protected:
 	virtual void SetUp()
@@ -26,8 +26,8 @@ protected:
 		TParam::SetUpMesh(&mesh);
 		auto dims = mesh.GetDimensions();
 
-		materials = std::shared_ptr<material_type>(new material_type(mesh));
-		auto extent = mesh.GetExtent();
+		model = std::shared_ptr<model_type>(new model_type(mesh));
+		auto extent = mesh.GetExtents();
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			dh[i] = (dims[i] > 1) ? (extent.second[i] - extent.first[i]) / dims[i] : 0;
@@ -45,20 +45,20 @@ public:
 
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	typedef Material<mesh_type> material_type;
+	typedef Model<mesh_type> model_type;
 	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	mesh_type mesh;
-	std::shared_ptr<material_type> materials;
+	std::shared_ptr<model_type> model;
 
 	nTuple<NDIMS, Real> dh;
 
 };
 
-TYPED_TEST_CASE_P(TestMaterial);
+TYPED_TEST_CASE_P(TestModel);
 
-TYPED_TEST_P(TestMaterial,create ){
+TYPED_TEST_P(TestModel,create ){
 {
 
 //	std::mt19937 gen;
@@ -68,9 +68,9 @@ TYPED_TEST_P(TestMaterial,create ){
 	typedef typename TestFixture::iterator iterator;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typename TestFixture::mesh_type const & mesh=TestFixture::mesh;
-	typename TestFixture::material_type material(TestFixture::mesh);
+	typename TestFixture::model_type model(TestFixture::mesh);
 
-	auto extent=mesh.GetExtent();
+	auto extent=mesh.GetExtents();
 
 	std::vector<coordinates_type> v;
 
@@ -80,14 +80,14 @@ TYPED_TEST_P(TestMaterial,create ){
 	v.emplace_back(coordinates_type(
 					{	0.8*extent.second[0], 0.8*extent.second[1], 0.2*extent.first[2]}));
 
-	material.Set("Plasma",v);
-	material.Update();
+	model.Set("Plasma",v);
+	model.Update();
 
 	typename TestFixture::field_type f(mesh);
 
 	f.Clear();
 
-	for(auto s:material.Select(mesh.Select( TestFixture::IForm ),"Plasma" ))
+	for(auto s:model.Select(mesh.Select( TestFixture::IForm ),"Plasma" ))
 	{
 		f[s]=1;
 	}
@@ -125,24 +125,24 @@ TYPED_TEST_P(TestMaterial,create ){
 	v.emplace_back(coordinates_type(
 					{	0.3*extent.second[0], 0.6*extent.second[1], 0.2*extent.first[2]}));
 
-	material.Remove("Plasma",v );
-	material.Update();
+	model.Remove("Plasma",v );
+	model.Update();
 
 	f.Clear();
 
-	for(auto s: material.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ))
+	for(auto s: model.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ))
 	{
 		f[s]=1;
 	}
 
 	LOGGER<<SAVE(f );
 
-	for(auto s: material.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ,"NONE"))
+	for(auto s: model.Select ( mesh.Select( TestFixture::IForm ) ,"Plasma" ,"NONE"))
 	{
 		f[s]=10;
 	}
 
-//	for(auto s:material.Select( mesh.Select( TestFixture::IForm ) , "Vacuum","Plasma" ))
+//	for(auto s:model.Select( mesh.Select( TestFixture::IForm ) , "Vacuum","Plasma" ))
 //	{
 //		f[s]=-10;
 //	}
@@ -150,12 +150,12 @@ TYPED_TEST_P(TestMaterial,create ){
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestMaterial, create);
+REGISTER_TYPED_TEST_CASE_P(TestModel, create);
 
-template<typename TM, typename TV, int IFORM> struct TestFETLParam;
+template<typename TM, typename TV, int IFORM> struct TestModelParam;
 
 template<typename TV, int IFORM>
-struct TestFETLParam<Mesh<EuclideanGeometry<OcForest>>, TV, IFORM>
+struct TestModelParam<Mesh<EuclideanGeometry<OcForest>>, TV, IFORM>
 {
 	typedef Mesh<EuclideanGeometry<OcForest>> mesh_type;
 	typedef TV value_type;
@@ -178,14 +178,14 @@ typedef Mesh<EuclideanGeometry<OcForest>> mesh_type;
 
 typedef testing::Types<
 
-TestFETLParam<mesh_type, Real, VERTEX>,
+TestModelParam<mesh_type, Real, VERTEX>,
 
-TestFETLParam<mesh_type, Real, EDGE>,
+TestModelParam<mesh_type, Real, EDGE>,
 
-TestFETLParam<mesh_type, Real, FACE>,
+TestModelParam<mesh_type, Real, FACE>,
 
-TestFETLParam<mesh_type, Real, VOLUME>
+TestModelParam<mesh_type, Real, VOLUME>
 
 > ParamList;
 
-INSTANTIATE_TYPED_TEST_CASE_P(MATERIAL, TestMaterial, ParamList);
+INSTANTIATE_TYPED_TEST_CASE_P(MATERIAL, TestModel, ParamList);

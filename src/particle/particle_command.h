@@ -85,7 +85,7 @@ private:
 }
 
 template<typename TP, typename TDict>
-void CreateParticleConstraint(Material<typename TP::mesh_type> const & model_,
+void CreateParticleConstraint(Model<typename TP::mesh_type> const & model_,
 		TDict const & dict, TP * p)
 {
 
