@@ -130,8 +130,10 @@ public:
 
 	template<typename ... Args>
 	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
-
+	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+	template<typename ... Args>
+	auto Select(Args const & ... args) const
+	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
 	//***************************************************************************************************
 	// Cell operation
 
@@ -356,7 +358,7 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, cell_type * other)
 
 	for (auto it = r.begin(), ie = r.end(); it != ie; ++it)
 	{
-		buffer.splice(buffer.begin(), *it);
+		buffer.splice(buffer.begin(), it->second);
 	}
 
 	if (other != nullptr)

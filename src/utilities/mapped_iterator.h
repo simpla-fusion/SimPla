@@ -16,10 +16,14 @@ template<typename TI> struct iterator_traits;
 }  // namespace std
 namespace simpla
 {
+
+HAS_MEMBER_FUNCTION (at);
+
 template<typename TContainer, typename TIterator>
 struct MappedIterator
 {
 
+public:
 	typedef TContainer conatiner_type;
 	typedef TIterator key_iterator;
 
@@ -27,8 +31,9 @@ struct MappedIterator
 
 	typedef typename std::iterator_traits<key_iterator>::iterator_category iterator_category;
 	typedef typename std::iterator_traits<key_iterator>::difference_type difference_type;
-
-	typedef typename TContainer::value_type value_type;
+	typedef typename std::conditional<std::is_pointer<conatiner_type>::value,
+	        typename std::remove_pointer<conatiner_type>::type, typename conatiner_type::value_type>::type value_type;
+	;
 	typedef value_type* pointer;
 	typedef value_type& reference;
 
@@ -86,26 +91,35 @@ struct MappedIterator
 	{
 		return (*data_)[*k_it_];
 	}
-	const reference operator*() const
-	{
-		return (*data_)[*k_it_];
-	}
 	pointer operator->()
 	{
 		return &(*data_)[*k_it_];
 	}
+
+	const reference operator*() const
+	{
+		return get(typename std::integral_constant<bool, has_member_function_at<conatiner_type>::value>());
+	}
 	const pointer operator->() const
 	{
-		return &(*data_)[*k_it_];
+		return &get(typename std::integral_constant<bool, has_member_function_at<conatiner_type>::value>());
+
+	}
+	const reference get(std::false_type) const
+	{
+		return (*data_)[*k_it_];
+	}
+	const reference get(std::true_type) const
+	{
+		return (*data_).at(*k_it_);
 	}
 };
 
-template<typename TMapped, typename TIterator>
-struct MappedIterator<std::map<typename TIterator::value_type, TMapped>, TIterator> : public std::map<
-        typename TIterator::value_type, TMapped>::iterator
+template<typename TKey, typename TMapped, typename TIterator>
+struct MappedIterator<std::map<TKey, TMapped>, TIterator> : public std::map<TKey, TMapped>::iterator
 {
 
-	typedef std::map<typename std::iterator_traits<TIterator>::value_type, TMapped> conatiner_type;
+	typedef std::map<TKey, TMapped> conatiner_type;
 
 	typedef TIterator key_iterator;
 
@@ -150,7 +164,7 @@ struct MappedIterator<std::map<typename TIterator::value_type, TMapped>, TIterat
 	this_type & operator ++()
 	{
 		++k_it_;
-		*this = data_->find(*k_it_);
+		*dynamic_cast<base_iterator*>(this) = data_->find(*k_it_);
 		find_next_value_in_container();
 
 		return *this;
@@ -164,7 +178,7 @@ struct MappedIterator<std::map<typename TIterator::value_type, TMapped>, TIterat
 	this_type & operator --()
 	{
 		--k_it_;
-		*this = data_->find(*k_it_);
+		*dynamic_cast<base_iterator*>(this) = data_->find(*k_it_);
 
 		find_prev_value_in_container();
 
@@ -181,20 +195,20 @@ private:
 	void find_next_value_in_container()
 	{
 
-		while (k_it_ != k_it_end_ && (*this == data_->end()))
+		while (k_it_ != k_it_end_ && (*dynamic_cast<base_iterator*>(this) == data_->end()))
 		{
 			++k_it_;
-			*this = data_->find(*k_it_);
+			*dynamic_cast<base_iterator*>(this) = data_->find(*k_it_);
 		}
 	}
 
 	void find_prev_value_in_container()
 	{
 
-		while (k_it_ != k_it_end_ && (*this == data_->end()))
+		while (k_it_ != k_it_end_ && (*dynamic_cast<base_iterator*>(this) == data_->end()))
 		{
 			--k_it_;
-			*this = data_->find(*k_it_);
+			*dynamic_cast<base_iterator*>(this) = data_->find(*k_it_);
 		}
 	}
 };
