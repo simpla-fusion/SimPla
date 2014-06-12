@@ -110,42 +110,93 @@ public:
 		CloseGroup();
 		CloseFile();
 	}
+
+private:
+	template<typename TV>
+	struct h5type_traits_
+	{
+		const size_t idx;
+		static constexpr int rank = 0;
+		const size_t extent[1] =
+		{ 0 };
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
+		{
+		}
+		~h5type_traits_()
+		{
+		}
+	};
+	template<int N, typename TV>
+	struct h5type_traits_<nTuple<N, TV>>
+	{
+		const size_t idx;
+		static constexpr int rank = 1;
+		const size_t extent[2] =
+		{ N, 0 };
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
+		{
+		}
+		~h5type_traits_()
+		{
+		}
+	};
+	template<int N, int M, typename TV>
+	struct h5type_traits_<nTuple<M, nTuple<N, TV>> >
+	{
+		const size_t idx;
+		static constexpr int rank = 2;
+		const size_t extent[3] =
+		{ M, N, 0 };
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
+		{
+		}
+		~h5type_traits_()
+		{
+		}
+	};
+
+public:
+
 	template<typename TV, typename ...Args>
 	std::string Write(std::string const & name, TV const *data, Args const & ...args)
 	{
-
-		return WriteHDF5(name, reinterpret_cast<void const*>(data),
-
-		std::type_index(typeid(TV)).hash_code(), 0, nullptr,
-
-		std::forward<Args const &>(args)...);
-	}
-	template<int N, typename TV, typename ...Args>
-	std::string Write(std::string const & name, nTuple<N, TV> const *data, Args const & ...args)
-	{
-
-		size_t type_dims = N;
-
-		return WriteHDF5(name, reinterpret_cast<void const*>(data),
-
-		std::type_index(typeid(TV)).hash_code(), 1, &type_dims,
-
-		std::forward<Args const &>(args)...);
+		h5type_traits_<TV> h5t;
+		return WriteHDF5(name, reinterpret_cast<void const*>(data), h5t.idx, h5t.rank, h5t.extent,
+				std::forward<Args const &>(args)...);
 	}
 
-	template<int N, int M, typename TV, typename ...Args>
-	std::string Write(std::string const & name, nTuple<N, nTuple<M, TV>> const *data, Args const & ...args)
+	template<typename TV, typename ...Args>
+	std::string Append(std::string const & name, TV const *data, Args const & ...args)
 	{
-		size_t type_dims[] = { N, M };
-
-		return WriteHDF5(name, reinterpret_cast<void const*>(data),
-
-		std::type_index(typeid(TV)).hash_code(), 2, &type_dims,
-
-		std::forward<Args const &>(args)...);
+		h5type_traits_<TV> h5t;
+		return AppendHDF5(name, reinterpret_cast<void const*>(data), h5t.idx, h5t.rank, h5t.extent,
+				std::forward<Args const &>(args)...);
 	}
 
 	std::string WriteHDF5(std::string const &name, void const *v,
+
+	size_t t_idx, int type_rank, size_t const * type_dims,
+
+	int rank,
+
+	size_t const *global_start,
+
+	size_t const *global_count,
+
+	size_t const *local_outer_start = nullptr,
+
+	size_t const *local_outer_count = nullptr,
+
+	size_t const *local_inner_start = nullptr,
+
+	size_t const *local_inner_count = nullptr
+
+	) const;
+
+	std::string AppendHDF5(std::string const &name, void const *v,
 
 	size_t t_idx, int type_rank, size_t const * type_dims,
 
@@ -182,13 +233,13 @@ std::string Save(std::string const & name, TV const *data, Args ...args)
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name,
-        std::shared_ptr<TV> const & d, Args const & ... args)
+		std::shared_ptr<TV> const & d, Args const & ... args)
 {
 	return Save(name, d.get(), std::forward<Args const &>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::vector<TV>const & d,
-        Args const & ... args)
+		Args const & ... args)
 {
 	size_t s = 0;
 	size_t n = d.size();
@@ -196,7 +247,7 @@ template<typename TV, typename ... Args> inline std::string Save(std::string con
 	return Save(name, &d[0], 1, &s, &n, std::forward<Args const &>(args)...);
 }
 template<typename TL, typename TR, typename ... Args> inline std::string Save(std::string const & name,
-        std::map<TL, TR>const & d, Args const & ... args)
+		std::map<TL, TR>const & d, Args const & ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
 	for (auto const & p : d)
@@ -207,12 +258,13 @@ template<typename TL, typename TR, typename ... Args> inline std::string Save(st
 }
 
 template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::map<TV, TV>const & d,
-        Args const & ... args)
+		Args const & ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
+		d_.emplace_back(nTuple<2, TV>(
+		{ p.first, p.second }));
 	}
 	return Save(name, d_, std::forward<Args const &>(args)...);
 }
