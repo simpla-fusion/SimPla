@@ -374,7 +374,7 @@ private:
 #define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
         << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 
-#define PARSER_ERROR(_MSG_)  { Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"[CONFIGURE FAILED]:"<<(_MSG_);}throw(std::runtime_error("[CONFIGURE FAILED]"));
+#define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\t Configure FAILED :"<<(_MSG_);}throw(std::runtime_error(""));}
 
 #include <cassert>
 #ifdef NDEBUG

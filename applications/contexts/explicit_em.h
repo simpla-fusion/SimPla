@@ -263,7 +263,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		} catch (std::runtime_error const & e)
 		{
-			PARSER_ERROR("Configure particle '" + key + "' error! ");
+
+			PARSER_ERROR("Configure particle '" + key + "' error!! [" + e.what() + "]");
 
 		}
 
@@ -275,7 +276,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		try
 		{
-
 
 			auto dof = item.second["DOF"].template as<std::string>("");
 

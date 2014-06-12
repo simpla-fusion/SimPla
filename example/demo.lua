@@ -61,21 +61,21 @@ end
 
 InitValue = {
 
-	 --[[
+	--[[
 	E=function(x)
 
-		local res = 0.0;
-		for i=1,20 do
-			res=res+math.sin(x[0]/LX*TWOPI* i);
+	local res = 0.0;
+	for i=1,20 do
+	res=res+math.sin(x[0]/LX*TWOPI* i);
 
-		end;
+	end;
 
-		return {0,res,0}
+	return {0,res,0}
 	end
 	--]]
 
 
-	 E 	= 0.0
+	E 	= 0.0
 	, J 	= 0.0
 	, B 	= InitB0
 	, ne 	= InitN0
@@ -130,7 +130,7 @@ Constraints=
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-		 	print(amp)
+			print(amp)
 			return { f[0],f[1]+amp,f[2]}
 		end
 	},
@@ -185,16 +185,16 @@ ParticleConstraints=
 
 ---[[
 Particles={
---	 	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
---	 			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
---	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
---	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
---		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
---	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
---  ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
--- H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+	--	 	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+	--	 			EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
+	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+	--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
+	--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
+	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+	H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]
 

@@ -412,10 +412,6 @@ public:
 
 	size_t size() const
 	{
-		return std::move(GetSize());
-	}
-	size_t GetSize() const
-	{
 		if (IsNull())
 			return 0;
 
@@ -538,10 +534,10 @@ public:
 			LOGIC_ERROR(path_ + " is not indexable!");
 		}
 
-		if (s > GetSize())
+		if (s > size())
 		{
 			throw(std::out_of_range(
-			        "index out of range! " + path_ + "[" + ToString(s) + " > " + ToString(GetSize()) + " ]"));
+			        "index out of range! " + path_ + "[" + ToString(s) + " > " + ToString(size()) + " ]"));
 		}
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);

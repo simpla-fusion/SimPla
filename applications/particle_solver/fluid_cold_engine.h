@@ -66,10 +66,10 @@ public:
 	}
 
 	void NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
 	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-			Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
 	std::string Save(std::string const & name) const;
 
@@ -80,8 +80,8 @@ private:
 
 template<typename TM>
 template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh,
-		TDict const & dict, Args const & ...args) :
-		mesh(pmesh),
+        TDict const & dict, Args const & ...args)
+		: mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -89,14 +89,19 @@ template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mes
 
 		n(mesh), J(mesh)
 {
-	J.Clear();
-	n.Clear();
 
-	LoadField(dict["Density"], &(n));
+	try
+	{
+		J.Clear();
+		n.Clear();
 
-	n *= q;
-
-	LoadField(dict["Current"], &(J));
+		LoadField(dict["Density"], &(n));
+		LoadField(dict["Current"], &(J));
+		n *= q;
+	} catch (...)
+	{
+		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
+	}
 
 }
 
@@ -132,7 +137,7 @@ std::string Particle<ColdFluid<TM>>::Save(std::string const & path) const
 }
 template<typename TM>
 void Particle<ColdFluid<TM>>::NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles Step Zero[ " << GetTypeAsString() << "]";
 	Real dt = mesh.GetDt();
@@ -140,7 +145,7 @@ void Particle<ColdFluid<TM>>::NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3
 }
 template<typename TM>
 void Particle<ColdFluid<TM>>::NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-		Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles Step Half[ " << GetTypeAsString() << "]";
 
