@@ -603,6 +603,15 @@ public:
 		as(&res);
 		return std::move(res);
 	}
+	template<typename ...T>
+	inline std::tuple<T...> as_tuple() const
+	{
+		/// @FIXME unimplement
+
+		UNIMPLEMENT;
+
+		return std::tuple<T...>();
+	}
 
 	template<typename TRect, typename ...Args>
 	void as(std::function<TRect(Args ...)> *res) const
@@ -1015,7 +1024,7 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 		}
 		else
 		{
-			v = default_value;
+			*v = default_value;
 		}
 	}
 	static inline void To(lua_State*L, value_type const & v)
@@ -1033,7 +1042,7 @@ template<typename TV> inline TV TypeCast(LuaObject const & obj)
 }
 inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
 {
-	os << obj.as<std::string>();
+	os << obj.template as<std::string>();
 	return os;
 }
 

@@ -334,6 +334,13 @@ struct EuclideanGeometry: public TTopology
 		return x;
 	}
 
+	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+
+	template<typename ...Args>
+	auto Select(unsigned int iform, Args const & ...args) const
+	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args const &>(args)...)))
+
 	template<typename TV>
 	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
 	{

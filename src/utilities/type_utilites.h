@@ -7,7 +7,7 @@
 
 #ifndef TYPE_UTILITES_H_
 #define TYPE_UTILITES_H_
-
+#include <type_traits>
 #include "log.h"
 
 namespace simpla
@@ -35,6 +35,46 @@ enum CONST_NUMBER
 {
 	ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9
 };
+
+#define HAS_MEMBER(_NAME_)                                                                 \
+template<typename _T>                                                                      \
+struct has_member_##_NAME_                                                                 \
+{                                                                                          \
+private:                                                                                   \
+	typedef std::true_type yes;                                                            \
+	typedef std::false_type no;                                                            \
+                                                                                           \
+	template<typename U>                                                                   \
+	static auto test(int) ->  decltype(std::declval<U>()._NAME_  )                         \
+	template<typename > static no test(...);                                               \
+                                                                                           \
+public:                                                                                    \
+	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;        \
+};
+
+#define HAS_TYPE_MEMBER(_NAME_)                                                            \
+template<typename _T,typename _D>                                                          \
+struct has_type_member_##_NAME_                                                            \
+{                                                                                          \
+private:                                                                                   \
+	typedef std::true_type yes;                                                            \
+	typedef std::false_type no;                                                            \
+                                                                                           \
+	template<typename U>                                                                   \
+	static auto test(int) ->  decltype(std::declval<U>()._NAME_  )                         \
+	template<typename > static no test(...);                                               \
+                                                                                           \
+public:                                                                                    \
+	static constexpr bool value = std::is_same<decltype(test< _T>(0)), _D>::value;         \
+};                                                                                         \
+                                                                                           \
+template<typename _T, typename _D>                                                         \
+typename std::enable_if<has_type_member_##_NAME_<_T, _D>::value, _D>::type                 \
+GetMember_##_NAME_(_T const & c, _D const & def){	return c._NAME_; }                     \
+template<typename _T, typename _D>                                                         \
+typename std::enable_if<!has_type_member_##_NAME_<_T, _D>::value, _D>::type                \
+GetMember_##_NAME_(_T const & c, _D const & def){	return def;}                           \
+
 
 #define HAS_MEMBER_FUNCTION(_NAME_)                                                                   \
 template<typename _T, typename ..._Args>                                                                \
@@ -234,7 +274,6 @@ inline unsigned int count_bits(unsigned long s)
 	}
 	return n;
 }
-
 
 template<typename T> inline T* PointerTo(T & v)
 {

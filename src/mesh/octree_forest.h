@@ -57,7 +57,7 @@ struct OcForest
 	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
 	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
@@ -97,7 +97,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-			<< (INDEX_DIGITS * 3 + 1);
+	        << (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -121,8 +121,7 @@ struct OcForest
 	}
 	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>(
-		{
+		return nTuple<NDIMS, size_type>( {
 
 		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
@@ -1384,8 +1383,21 @@ struct OcForest
 
 	};	// class Range
 
-	range Select( unsigned int iform, nTuple<NDIMS, size_type> start,
-	nTuple<NDIMS, size_type> count)const
+	template<typename T>
+	range Select( unsigned int iform, std::pair<T,T> domain)const
+	{
+		return Select(iform,domain.first,domain.second);
+	}
+
+	range Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax)const
+	{
+		auto start=CoordinatesToIndex(&xmin,GetShift(iform));
+		auto end=CoordinatesToIndex(&xmin,GetShift(iform));
+
+		return Select(iform,start,end-start);
+	}
+
+	range Select( unsigned int iform, nTuple<NDIMS, size_type> start, nTuple<NDIMS, size_type> count)const
 	{
 		if (Clipping( local_inner_start_, local_inner_count_, &start, &count))
 		{
@@ -1396,14 +1408,12 @@ struct OcForest
 			return range();
 		}
 	}
+
 	range Select(unsigned int iform)const
 	{
 		return range(iform, local_inner_start_,local_inner_count_);
 	}
 
-	template<typename TDict,typename ...Others>
-	auto Select(unsigned int iform,TDict const & dict,Others const & ... others)const
-	DECL_RET_TYPE((Filter(this->Select(iform),dict,*this,std::forward<Others const &>(others)...)))
 	/***************************************************************************************************
 	 *
 	 *  Geomertry dependence
@@ -1458,9 +1468,11 @@ struct OcForest
 		return (CoordinatesGlobalToLocal(px, Dual(shift)));
 	}
 
-	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	inline nTuple<NDIMS,size_type> CoordinatesToIndex(coordinates_type *px, compact_index_type shift = 0UL)const
 	{
 		auto & x = *px;
+
+		nTuple<NDIMS,size_type> idx;
 
 		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(shift)));
 
@@ -1468,7 +1480,6 @@ struct OcForest
 
 		Real dh = static_cast<Real>(1UL << (D_FP_POS-HeightOfTree(shift) ));
 
-		nTuple<NDIMS, size_type> idx;
 		nTuple<NDIMS, Real> h;
 
 		h= Decompact(shift);
@@ -1479,10 +1490,15 @@ struct OcForest
 			idx[i]=static_cast<size_type>(x[i]+ h[i])&mask;
 			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
 		}
+		return std::move(idx);
+	}
+
+	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
 
 		return iterator(
 
-		(Compact(idx) | shift) ,
+		(Compact(CoordinatesToIndex(px, shift)) | shift) ,
 
 		local_outer_start_index_ | shift,
 

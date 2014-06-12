@@ -155,41 +155,41 @@ namespace simpla
 
 template<typename TM>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
-		typename TM::range_type range, TM const &mesh, nTuple<3, Real> x)
+        typename TM::range_type range, TM const &mesh, nTuple<3, Real> x)
 {
 	auto dest = *mesh.CoordinatesGlobalToLocal(&x);
 
 	std::function<bool(typename TM::iterator::value_type const &)> pred =
-			[dest,&mesh](typename TM::iterator::value_type const &s )->bool
-			{
-				return mesh.GetCellIndex(s)==dest;
-			};
+	        [dest,&mesh](typename TM::iterator::value_type const &s )->bool
+	        {
+		        return mesh.GetCellIndex(s)==dest;
+	        };
 
 	return make_filter_range(pred, range);
 }
 
 template<typename TM>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
-		typename TM::range_type range, TM const & mesh, typename TM::coordinates_type v0,
-		typename TM::coordinates_type v1)
+        typename TM::range_type range, TM const & mesh, typename TM::coordinates_type v0,
+        typename TM::coordinates_type v1)
 {
 	std::function<bool(typename TM::iterator::value_type const &)> pred =
-			[v0,v1,&mesh]( typename TM::iterator::value_type const &s )->bool
-			{
-				auto x = mesh.GetCoordinates(s);
-				return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
-			};
+	        [v0,v1,&mesh]( typename TM::iterator::value_type const &s )->bool
+	        {
+		        auto x = mesh.GetCoordinates(s);
+		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
+	        };
 	return make_filter_range(pred, range);
 }
 
 template<typename TM>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
-		typename TM::range_type range, TM const & mesh, PointInPolygen checkPointsInPolygen)
+        typename TM::range_type range, TM const & mesh, PointInPolygen checkPointsInPolygen)
 {
 	std::function<bool(typename TM::iterator::value_type const &)> pred =
-			[ checkPointsInPolygen,&mesh ](typename TM::iterator::value_type const &s )->bool
-			{	return (checkPointsInPolygen(mesh.GetCoordinates(s) ));};
+	        [ checkPointsInPolygen,&mesh ](typename TM::iterator::value_type const &s )->bool
+	        {	return (checkPointsInPolygen(mesh.GetCoordinates(s) ));};
 
 	return make_filter_range(pred, range);
 
@@ -215,15 +215,14 @@ Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const 
  */
 template<typename TM, int N>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
-		typename TM::range_type range, TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
+        typename TM::range_type range, TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
 	Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> res;
 
 	if (points.size() == 1)
 	{
 
-		typename TM::coordinates_type x =
-		{ 0, 0, 0 };
+		typename TM::coordinates_type x = { 0, 0, 0 };
 
 		for (int i = 0; i < N; ++i)
 		{
@@ -233,10 +232,8 @@ Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const 
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
-		typename TM::coordinates_type v0 =
-		{ 0, 0, 0 };
-		typename TM::coordinates_type v1 =
-		{ 0, 0, 0 };
+		typename TM::coordinates_type v0 = { 0, 0, 0 };
+		typename TM::coordinates_type v1 = { 0, 0, 0 };
 		for (int i = 0; i < N; ++i)
 		{
 			v0[(i + Z + 1) % 3] = points[0][i];
@@ -255,9 +252,9 @@ Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const 
 	return res;
 }
 
-template<typename TRange, typename TDict, typename TM, typename ...Others>
+template<typename TRange, typename TDict, typename TM>
 Range<FilterIterator<std::function<bool(typename TRange::iterator::value_type const &)>, typename TRange::iterator>> Filter(
-		TRange const & range, TDict const & dict, TM const & mesh, Others const & ...others)
+        TRange const & range, TM const & mesh, TDict const & dict)
 {
 	typedef typename TRange::iterator::value_type value_type;
 	Range<FilterIterator<std::function<bool(value_type const &)>, typename TRange::iterator>> res;
@@ -268,12 +265,12 @@ Range<FilterIterator<std::function<bool(typename TRange::iterator::value_type co
 
 		dict.as(&points);
 
-		res = Filter(range, points, mesh);
+		res = Filter(range, mesh, points);
 
 	}
 	else if (dict.is_function())
 	{
-		auto pred = [dict, &mesh]( value_type const & s )->bool
+		std::function<bool(value_type const &)> pred = [dict, &mesh]( value_type const & s )->bool
 		{
 			return (dict( mesh.GetCoordinates( s)).template as<bool>());
 		};
@@ -284,8 +281,6 @@ Range<FilterIterator<std::function<bool(typename TRange::iterator::value_type co
 	return res;
 
 }
-
-
 
 } // namespace simpla
 

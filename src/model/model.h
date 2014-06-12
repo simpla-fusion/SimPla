@@ -174,22 +174,28 @@ public:
 		}
 
 	}
-	template<typename OS>
-	void Save(OS &os) const
+	std::string Save(std::string const & path, bool is_verbose = false) const
 	{
 		UNIMPLEMENT;
-//		os << "{ \n" << "\t -- register media type\n";
-//
-//		for (auto const& p : register_material_)
-//		{
-//			os << std::setw(10) << p.first << " = 0x" << std::hex << p.second.to_ulong() << std::dec << ", \n";
-//		}
-//
-//		os << " }\n"
-//
-//		;
-	}
 
+		return "UNIMPLEMENT!";
+	}
+	template<typename OS>
+	OS & Print(OS &os) const
+	{
+		UNIMPLEMENT;
+		//		os << "{ \n" << "\t -- register media type\n";
+		//
+		//		for (auto const& p : register_material_)
+		//		{
+		//			os << std::setw(10) << p.first << " = 0x" << std::hex << p.second.to_ulong() << std::dec << ", \n";
+		//		}
+		//
+		//		os << " }\n"
+		//
+		//		;
+		return os;
+	}
 	template<typename TCmd>
 	void Modify(TCmd const& cmd)
 	{
@@ -342,14 +348,13 @@ public:
 		return isChanged_;
 	}
 
-	typedef std::function<bool(typename TM::iterator::value_type)> filter_fun_type;
-	typedef Range<FilterIterator<filter_fun_type, iterator>> filter_range_type;
+	template<typename TR> using filter_pred_fun_type=std::function<bool(typename TR::iterator::value_type)>;
 
-	template<int IFORM, typename ...Args>
-	filter_range_type SelectCell(Args const & ... args) const
-	{
-		return Select(mesh.Select(IFORM), std::forward<Args const &>(args)...);
-	}
+	template<typename TR> using filter_range_type=
+	Range<FilterIterator<std::function<bool(typename TR::iterator::value_type)> , typename TR::iterator>>;
+
+	template<typename TR, typename TDict>
+	filter_range_type<TR> Select(TR const & range, TDict const & dict) const;
 	/**
 	 *  Choice elements that most close to and out of the interface,
 	 *  No element cross interface.
@@ -359,23 +364,23 @@ public:
 	 * @param out_material
 	 * @param flag
 	 */
-	filter_range_type Select(typename TM::range_type range, material_type in, material_type out) const;
 
-	filter_range_type Select(typename TM::range_type range, material_type) const;
+	template<typename TR> filter_range_type<TR>
+	Select(TR const &range, material_type in, material_type out) const;
 
-	template<typename TDict>
-	filter_range_type Select(typename TM::range_type range, TDict const &dict) const;
+	template<typename TR> filter_range_type<TR>
+	Select(TR const &range, material_type) const;
 
-	auto Select(typename TM::range_type range, std::string const & in, std::string const & out) const
+	template<typename TR> auto Select(TR const &range, std::string const & in, std::string const & out) const
 	DECL_RET_TYPE( Select(range, GetMaterialFromString(in), GetMaterialFromString(out)) )
 
-	auto Select(typename TM::range_type range, char const in[], char const out[]) const
+	template<typename TR> auto Select(TR const &range, char const in[], char const out[]) const
 	DECL_RET_TYPE( Select(range, GetMaterialFromString(in), GetMaterialFromString(out)))
 
-	auto Select(typename TM::range_type range, std::string const & m) const
+	template<typename TR> auto Select(TR const &range, std::string const & m) const
 	DECL_RET_TYPE( Select(range, GetMaterialFromString(m)))
 
-	auto Select(typename TM::range_type range, char const m[]) const
+	template<typename TR> auto Select(TR const &range, char const m[]) const
 	DECL_RET_TYPE( Select(range, GetMaterialFromString(m)))
 
 private:
@@ -433,12 +438,41 @@ private:
 template<typename TM>
 inline std::ostream & operator<<(std::ostream & os, Model<TM> const &self)
 {
-	self.Save(os);
+	self.Print(os);
 	return os;
 }
 
 template<typename TM>
-typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, material_type in,
+template<typename TR, typename TDict>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::Select(TR const & range, TDict const & dict) const
+{
+	filter_range_type<TR> res;
+
+	if (!dict["Type"])
+		return res;
+
+	auto type = dict["Type"].template as<std::string>("");
+
+	if (type == "Boundary")
+	{
+		res = Select(range, dict["Material"].template as<std::string>(), "NONE");
+
+	}
+	else if (type == "Interface")
+	{
+		res = Select(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
+	}
+	else if (type == "Element")
+	{
+		res = Select(range, dict["Material"].template as<std::string>());
+	}
+
+	return res;
+
+}
+template<typename TM>
+template<typename TR>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::Select(TR const & range, material_type in,
         material_type out) const
 {
 	if (IsChanged())
@@ -505,17 +539,20 @@ typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type 
 	//   +-------+  |          |
 	//              |          |
 	//              +----------+
-	int IFORM = mesh.IForm(*range.begin());
 
-	filter_fun_type pred = [=]( typename TM::iterator::value_type s )->bool
+	filter_pred_fun_type<TR> pred =
+
+	[=]( typename TR::iterator::value_type s )->bool
 	{
-		if ((this->material_[IFORM].at(this->mesh.Hash(s)) & in).none()
-				&& (this->material_[IFORM].at(this->mesh.Hash(s)) & out).any())
+		auto iform = mesh.IForm(s);
+
+		if ((this->material_[iform].at(this->mesh.Hash(s)) & in).none()
+				&& (this->material_[iform].at(this->mesh.Hash(s)) & out).any())
 		{
 			iterator neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
-			switch(IFORM)
+			switch(iform)
 			{	case VERTEX:
 				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
@@ -545,43 +582,14 @@ typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type 
 
 }
 
-template<typename TM>
-typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, material_type material) const
+template<typename TM> template<typename TR>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::Select(TR const & range, material_type material) const
 {
-	filter_fun_type pred = [= ]( typename TM::iterator::value_type s )->bool
+	filter_pred_fun_type<TR> pred = [= ]( typename TM::iterator::value_type s )->bool
 	{
 		return (((this->material_[this->mesh.IForm(s )].at(this->mesh.Hash(s )) & material)).any());
 	};
 	return make_filter_range(pred, range);
-
-}
-
-template<typename TM>
-template<typename TDict>
-typename Model<TM>::filter_range_type Model<TM>::Select(typename TM::range_type range, TDict const & dict) const
-{
-	filter_range_type res;
-
-	if (!dict["Type"])
-		return res;
-
-	auto type = dict["Type"].template as<std::string>("");
-
-	if (type == "Boundary")
-	{
-		res = Select(range, dict["Material"].template as<std::string>(), "NONE");
-
-	}
-	else if (type == "Interface")
-	{
-		res = Select(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
-	}
-	else if (type == "Element")
-	{
-		res = Select(range, dict["Material"].template as<std::string>());
-	}
-
-	return res;
 
 }
 

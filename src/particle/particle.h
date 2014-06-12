@@ -36,7 +36,6 @@
 #include "save_particle.h"
 #include "particle_boundary.h"
 
-#include "../model/command.h"
 #include "../model/model.h"
 
 namespace simpla
