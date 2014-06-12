@@ -73,6 +73,8 @@ public:
 		return enable_compact_storable_;
 	}
 
+	bool IsOpened() const;
+
 	inline std::string GetCurrentPath() const
 	{
 		return filename_ + ":" + grpname_;

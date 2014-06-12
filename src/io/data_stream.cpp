@@ -46,7 +46,10 @@ DataStream::~DataStream()
 	Close();
 	delete pimpl_;
 }
-
+bool DataStream::IsOpened() const
+{
+	return pimpl_->file_ > 0;
+}
 void DataStream::OpenGroup(std::string const & gname)
 {
 	if (gname == "")
@@ -84,7 +87,7 @@ void DataStream::OpenGroup(std::string const & gname)
 	}
 	if (pimpl_->group_ <= 0)
 	{
-		ERROR << "Can not open group " << grpname_ << " in file " << prefix_;
+		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + prefix_);
 	}
 
 }
@@ -135,7 +138,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 	if (pimpl_->file_ < 0)
 	{
-		ERROR << "Create HDF5 file " << filename_ << " failed!" << std::endl;
+		RUNTIME_ERROR("Create HDF5 file " + filename_ + " failed!");
 	}
 
 	OpenGroup("");

@@ -37,7 +37,6 @@ int main(int argc, char **argv)
 	size_t record_stride = 1;
 
 	bool just_a_test = false;
-
 	ParseCmdLine(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
 			{
@@ -133,6 +132,8 @@ int main(int argc, char **argv)
 			}
 
 	);
+
+	if(!GLOBAL_DATA_STREAM.IsOpened()) GLOBAL_DATA_STREAM.OpenFile("./");
 
 	INFORM << SIMPLA_LOGO;
 

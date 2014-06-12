@@ -120,20 +120,27 @@ struct EuclideanGeometry: public TTopology
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others const &...others)
 	{
-		if (dict["Min"] && dict["Max"])
+		try
 		{
-			LOGGER << "Load EuclideanGeometry ";
+			if (dict["Min"] && dict["Max"])
+			{
+				LOGGER << "Load EuclideanGeometry ";
 
-			SetExtents(
+				SetExtents(
 
-			dict["Min"].template as<nTuple<NDIMS, Real>>(),
+				dict["Min"].template as<nTuple<NDIMS, Real>>(),
 
-			dict["Max"].template as<nTuple<NDIMS, Real>>());
+				dict["Max"].template as<nTuple<NDIMS, Real>>());
+			}
+
+			topology_type::Load(dict, std::forward<Others const &>(others)...);
+
+			dt_ = dict["dt"].template as<Real>();
+
+		} catch (...)
+		{
+			PARSER_ERROR("Configure EuclideanGeometry error!");
 		}
-
-		topology_type::Load(dict, std::forward<Others const &>(others)...);
-
-		dt_ = dict["dt"].template as<Real>();
 	}
 
 	std::string Save(std::string const &path) const

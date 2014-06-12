@@ -157,79 +157,87 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dB.Clear();
 	dE.Clear();
 	J0.Clear();
+//
+////	if (dict["Model"])
+////	{
+////		model_.Update();
+////
+////		if (dict["Model"]["GFile"])
+////		{
+////
+////			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+////
+////			nTuple<3, Real> xmin, xmax;
+////
+////			xmin[0] = geqdsk.GetMin()[0];
+////			xmin[1] = geqdsk.GetMin()[1];
+////			xmin[2] = 0;
+////			xmax[0] = geqdsk.GetMax()[0];
+////			xmax[1] = geqdsk.GetMax()[1];
+////			xmax[2] = 0;
+////
+////			mesh.SetExtents(xmin, xmax);
+////
+////			model_.Add("Plasma", geqdsk.Boundary());
+////			model_.Add("Vacuum", geqdsk.Limiter());
+////			model_.Update();
+////
+////			geqdsk.Save(std::cout);
+////
+////			B.Clear();
+////
+////			for (auto s : mesh.Select(FACE))
+////			{
+////				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+////				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
+////
+////			}
+////
+////			ne0.Clear();
+////			Te0.Clear();
+////			Ti0.Clear();
+////
+////			for (auto s : model_.Select(VERTEX, "Plasma"))
+////			{
+////				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+////				auto p = geqdsk.psi(x[0], x[1]);
+////
+////				ne0[s] = geqdsk.Profile("ne", p);
+////				Te0[s] = geqdsk.Profile("Te", p);
+////				Ti0[s] = geqdsk.Profile("Ti", p);
+////
+////			}
+////
+////			J0 = Curl(B) / CONSTANTS["permeability of free space"];
+////
+////			description = description + "\n GEqdsk ID:" + geqdsk.Description();
+////
+////			LOGGER << simpla::Save("ne", ne0);
+////			LOGGER << simpla::Save("Te", Te0);
+////			LOGGER << simpla::Save("Ti", Ti0);
+////		}
+////
+////	}
+//
+	try
+	{
 
-//	if (dict["Model"])
-//	{
-//		model_.Update();
-//
-//		if (dict["Model"]["GFile"])
-//		{
-//
-//			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
-//
-//			nTuple<3, Real> xmin, xmax;
-//
-//			xmin[0] = geqdsk.GetMin()[0];
-//			xmin[1] = geqdsk.GetMin()[1];
-//			xmin[2] = 0;
-//			xmax[0] = geqdsk.GetMax()[0];
-//			xmax[1] = geqdsk.GetMax()[1];
-//			xmax[2] = 0;
-//
-//			mesh.SetExtents(xmin, xmax);
-//
-//			model_.Add("Plasma", geqdsk.Boundary());
-//			model_.Add("Vacuum", geqdsk.Limiter());
-//			model_.Update();
-//
-//			geqdsk.Save(std::cout);
-//
-//			B.Clear();
-//
-//			for (auto s : mesh.Select(FACE))
-//			{
-//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-//				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
-//
-//			}
-//
-//			ne0.Clear();
-//			Te0.Clear();
-//			Ti0.Clear();
-//
-//			for (auto s : model_.Select(VERTEX, "Plasma"))
-//			{
-//				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-//				auto p = geqdsk.psi(x[0], x[1]);
-//
-//				ne0[s] = geqdsk.Profile("ne", p);
-//				Te0[s] = geqdsk.Profile("Te", p);
-//				Ti0[s] = geqdsk.Profile("Ti", p);
-//
-//			}
-//
-//			J0 = Curl(B) / CONSTANTS["permeability of free space"];
-//
-//			description = description + "\n GEqdsk ID:" + geqdsk.Description();
-//
-//			LOGGER << simpla::Save("ne", ne0);
-//			LOGGER << simpla::Save("Te", Te0);
-//			LOGGER << simpla::Save("Ti", Ti0);
-//		}
-//
-//	}
+		LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
-	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
+		LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
 
-	LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
+		LOG_CMD(LoadField(dict["InitValue"]["J"], &Jext));
 
-	LOG_CMD(LoadField(dict["InitValue"]["J"], &Jext));
+		LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
 
-	LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
+		LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
 
-	LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
+		LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
 
-	LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
+	} catch (...)
+	{
+		PARSER_ERROR("Configure initialize fields  ! ");
+	}
 
 	bool enableImplicit = false;
 
@@ -237,15 +245,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	DEFINE_PHYSICAL_CONST
 
-	if (dict["Particles"])
+	LOGGER << "Load Particles";
+
+	for (auto opt : dict["Particles"])
 	{
-		LOGGER << "Load Particles";
-
-		for (auto opt : dict["Particles"])
+		auto key = opt.first.template as<std::string>("unnamed");
+		try
 		{
-
-			auto key = opt.first.template as<std::string>("unnamed");
-
 			auto p = ParticleFactory<mesh_type>(mesh, opt.second, ne0, Te0);
 
 			if (p != nullptr)
@@ -254,15 +260,22 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
+
+		} catch (std::runtime_error const & e)
+		{
+			PARSER_ERROR("Configure particle '" + key + "' error! ");
+
 		}
 
 	}
 
-	if (dict["Constraints"])
+	LOGGER << "Load Constraints";
+
+	for (auto const & item : dict["Constraints"])
 	{
-		LOGGER << "Load Constraints";
-		for (auto const & item : dict["Constraints"])
+		try
 		{
+
 
 			auto dof = item.second["DOF"].template as<std::string>("");
 
@@ -282,14 +295,18 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			}
 			else
 			{
-				UNIMPLEMENT2("Unknown DOF!");
+				PARSER_ERROR("Unknown DOF!");
 			}
+
+		} catch (std::runtime_error const & e)
+		{
+
+			PARSER_ERROR("Load 'Constraints' error! ");
 		}
 	}
 
-	if (dict["FieldSolver"])
+	try
 	{
-		auto dict_ = dict["FieldSolver"];
 		LOGGER << "Load electromagnetic fields solver";
 
 		using namespace std::placeholders;
@@ -320,6 +337,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			};
 		}
 
+	} catch (std::runtime_error const & e)
+	{
+		PARSER_ERROR("Configure field solver error! ");
 	}
 	Implicit_PushE = [] ( TE const &, TB const &, TParticles const&, TE*)
 	{};

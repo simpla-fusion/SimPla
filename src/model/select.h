@@ -10,6 +10,8 @@
 
 #include "../utilities/log.h"
 #include "../utilities/type_utilites.h"
+#include "../utilities/utilities.h"
+
 #include "pointinpolygen.h"
 
 namespace std
@@ -213,11 +215,11 @@ Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const 
  *           Z==2    polyline on xy-plane
  *           Z>=3
  */
-template<typename TM, int N>
+template<typename TR, typename TM, int N>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
-        typename TM::range_type range, TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
+        TR range, TM const &mesh, std::vector<nTuple<N, Real>> const & points, unsigned int Z = 2)
 {
-	Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> res;
+	Range<FilterIterator<std::function<bool(typename TR::iterator::value_type const &)>, typename TR::iterator>> res;
 
 	if (points.size() == 1)
 	{
@@ -247,7 +249,8 @@ Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const 
 	}
 	else
 	{
-		ERROR << "Illegal input";
+		CHECK("WWWW");
+		PARSER_ERROR("too less points " + ToString(points.size()));
 	}
 	return res;
 }
@@ -256,14 +259,22 @@ template<typename TRange, typename TDict, typename TM>
 Range<FilterIterator<std::function<bool(typename TRange::iterator::value_type const &)>, typename TRange::iterator>> Filter(
         TRange const & range, TM const & mesh, TDict const & dict)
 {
+
+	if (!dict)
+	{
+		CHECK("WWWW1");
+		PARSER_ERROR("Empty configure information! ");
+	}
+
 	typedef typename TRange::iterator::value_type value_type;
+
 	Range<FilterIterator<std::function<bool(value_type const &)>, typename TRange::iterator>> res;
 
-	if (dict.is_table())
+	if (dict["Type"].template as<std::string>() == "Range" && dict["Points"].is_table())
 	{
 		std::vector<typename TM::coordinates_type> points;
 
-		dict.as(&points);
+		dict["Points"].as(&points);
 
 		res = Filter(range, mesh, points);
 

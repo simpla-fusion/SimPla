@@ -46,7 +46,7 @@ std::shared_ptr<ParticleBase<Mesh>> ParticleFactory(Args const & ...args)
 		res = CreateParticle<Particle<ColdFluid<Mesh> >>(std::forward<Args const &>(args)...);
 
 	if (res == nullptr)
-		ERROR << "illegal particle configure";
+		PARSER_ERROR("illegal particle configure");
 
 	return res;
 }

@@ -126,7 +126,7 @@ Constraints=
 	---[[
 	{
 		DOF="J",
-		Select={Type="Range",Value={{0.1*LX,0,0}}},
+		Select={Type="Range",Points={{0.1*LX,0,0}}},
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)

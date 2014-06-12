@@ -169,10 +169,14 @@ struct OcForest
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others const& ...)
 	{
-		if (dict["Dimensions"])
+		try
 		{
 			LOGGER << "Load OcForest ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
+		}
+		catch(...)
+		{
+			PARSER_ERROR("Configure OcForest error!");
 		}
 	}
 

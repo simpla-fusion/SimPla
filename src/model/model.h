@@ -21,6 +21,8 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/range.h"
+#include "../utilities/utilities.h"
+
 #include "pointinpolygen.h"
 #include "select.h"
 namespace std
@@ -99,7 +101,7 @@ public:
 		}
 		else
 		{
-			ERROR << "Too much media Type";
+			RUNTIME_ERROR("Too much media Type");
 		}
 		return res;
 	}
@@ -125,7 +127,7 @@ public:
 
 		} catch (...)
 		{
-			ERROR << "Unknown material name : " << name;
+			RUNTIME_ERROR("Unknown material name : " + name);
 		}
 		return std::move(res);
 	}
@@ -353,6 +355,12 @@ public:
 	template<typename TR> using filter_range_type=
 	Range<FilterIterator<std::function<bool(typename TR::iterator::value_type)> , typename TR::iterator>>;
 
+	template<typename TDict>
+	filter_range_type<typename mesh_type::range_type> Select(unsigned int iform, TDict const & dict) const
+	{
+		return Select(mesh.Select(iform), dict);
+	}
+
 	template<typename TR, typename TDict>
 	filter_range_type<TR> Select(TR const & range, TDict const & dict) const;
 	/**
@@ -428,9 +436,7 @@ private:
 			}
 		} catch (std::out_of_range const &e)
 		{
-			ERROR << " I = " << IFORM << std::endl
-
-			<< e.what();
+			RUNTIME_ERROR(" I = " + ToString(IFORM) + e.what());
 		}
 	}
 }
@@ -477,7 +483,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::Select(TR const & 
 {
 	if (IsChanged())
 	{
-		ERROR << "need update!!";
+		LOGIC_ERROR("need update!!");
 	}
 
 	// Good

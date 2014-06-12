@@ -58,7 +58,7 @@ hid_t HDF5DataTypeFactory::Create(size_t t_idx_) const
 
 	} catch (std::out_of_range const &)
 	{
-		ERROR << "unknown type!" << std::endl;
+		RUNTIME_ERROR("unknown type!");
 	}
 	return res;
 }

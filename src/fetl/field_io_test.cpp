@@ -38,7 +38,7 @@ int main(int argc, char **argv)
 
 	mesh_type mesh;
 
-	mesh.SetExtents(dims,xmin, xmax);
+	mesh.SetExtents(xmin, xmax,dims);
 
 #if USE_PARALLEL_IO
 	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());

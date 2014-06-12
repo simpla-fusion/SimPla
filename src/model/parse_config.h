@@ -31,8 +31,14 @@ std::function<void()> CreateCommand(TF * f, Model<TM> const & model, TDict const
 
 	if (dict["DefineDomain"])
 	{
-		def_domain = model.mesh.Select(TF::IForm,
-		        dict["DefineDomain"].template as<std::pair<coordinates_type, coordinates_type>>());
+		try
+		{
+			def_domain = model.mesh.Select(TF::IForm,
+			        dict["DefineDomain"].template as<std::pair<coordinates_type, coordinates_type>>());
+		} catch (...)
+		{
+			PARSER_ERROR("Configure define domain of a command error!");
+		}
 	}
 	else
 	{
@@ -41,21 +47,20 @@ std::function<void()> CreateCommand(TF * f, Model<TM> const & model, TDict const
 
 	if (dict["Select"])
 	{
-		return CreateCommand(f, Filter(def_domain, f->mesh, dict["Select"]), dict);
+		return CreateCommand(f, Filter(def_domain, f->mesh, dict["Select"]), dict["Operation"]);
 	}
 	else
 	{
-		return CreateCommand(f, def_domain, dict);
+		return CreateCommand(f, def_domain, dict["Operation"]);
 	}
 }
 
 template<typename TF, typename TR, typename TDict>
 std::function<void()> CreateCommand(TF* f, TR const &def_domain, TDict const & dict)
 {
-
-	if (!dict["Operation"])
+	if (!dict)
 	{
-		ERROR << "illegal configure! ";
+		PARSER_ERROR("'Operation' is not defined!");
 	}
 
 	typedef typename TF::mesh_type mesh_type;

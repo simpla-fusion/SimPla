@@ -30,7 +30,7 @@
 namespace simpla
 {
 
-#define LUA_ERROR(_L, _MSG_)  ERROR<< (_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ;   lua_pop(_L, 1);
+#define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
 
 class LuaIterator;
 class LuaObject;
@@ -246,7 +246,7 @@ public:
 
 			if (lua_isnil(L_.get(), tidx))
 			{
-				LOGIC_ERROR << path_ << " is not iteraterable!";
+				LOGIC_ERROR(path_ + " is not iteraterable!");
 			}
 
 			if (key_ == LUA_NOREF)
@@ -321,7 +321,7 @@ public:
 
 			if (!is_table)
 			{
-				LOGIC_ERROR << "Object is not indexable!";
+				LOGIC_ERROR("Object is not indexable!");
 			}
 			else
 			{
@@ -360,7 +360,7 @@ public:
 		{
 			if (key_ == LUA_NOREF || value_ == LUA_NOREF)
 			{
-				LOGIC_ERROR << "the value of this iterator is invalid!";
+				LOGIC_ERROR("the value of this iterator is invalid!");
 			}
 
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, key_);
@@ -380,8 +380,7 @@ public:
 			Next();
 			return *this;
 		}
-	}
-	;
+	};
 
 	iterator begin()
 	{
@@ -403,8 +402,7 @@ public:
 		return iterator();
 	}
 
-	template<typename T>
-	inline LuaObject GetChild(T const & key) const
+	template<typename T> inline LuaObject GetChild(T const & key) const
 	{
 		if (IsNull())
 			return LuaObject();
@@ -501,7 +499,7 @@ public:
 
 		if (self_ < 0 || L_ == nullptr)
 		{
-			LOGIC_ERROR << path_ << " is not indexable!";
+			LOGIC_ERROR(path_ + " is not indexable!");
 		}
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int tidx = lua_gettop(L_.get());
@@ -514,8 +512,7 @@ public:
 	}
 
 // index operator with out_of_range exception
-	template<typename TIDX>
-	inline LuaObject at(TIDX const & s) const
+	template<typename TIDX> inline LuaObject at(TIDX const & s) const
 	{
 		if (IsNull())
 			return LuaObject();
@@ -538,7 +535,7 @@ public:
 
 		if (self_ < 0 || L_ == nullptr)
 		{
-			LOGIC_ERROR << path_ << " is not indexable!";
+			LOGIC_ERROR(path_ + " is not indexable!");
 		}
 
 		if (s > GetSize())
@@ -557,8 +554,7 @@ public:
 
 	}
 
-	template<typename ...Args>
-	LuaObject operator()(Args const &... args) const
+	template<typename ...Args> LuaObject operator()(Args const &... args) const
 	{
 		if (IsNull())
 			return LuaObject();
@@ -569,7 +565,7 @@ public:
 
 		if (!lua_isfunction(L_.get(), idx))
 		{
-			LOGIC_ERROR << path_ << " is not  a function!";
+			LOGIC_ERROR(path_ + " is not  a function!");
 		}
 
 		ToLua(L_.get(), args...);
@@ -580,8 +576,7 @@ public:
 
 	}
 
-	template<typename T>
-	inline T Get(std::string const & name, T const & default_value = T()) const noexcept
+	template<typename T> inline T Get(std::string const & name, T const & default_value = T()) const noexcept
 	{
 		LuaObject res = this->operator[](name);
 
@@ -596,15 +591,13 @@ public:
 		}
 	}
 
-	template<typename T>
-	inline T as() const
+	template<typename T> inline T as() const
 	{
 		T res;
 		as(&res);
 		return std::move(res);
 	}
-	template<typename ...T>
-	inline std::tuple<T...> as_tuple() const
+	template<typename ...T> inline std::tuple<T...> as_tuple() const
 	{
 		/// @FIXME unimplement
 
@@ -613,8 +606,7 @@ public:
 		return std::tuple<T...>();
 	}
 
-	template<typename TRect, typename ...Args>
-	void as(std::function<TRect(Args ...)> *res) const
+	template<typename TRect, typename ...Args> void as(std::function<TRect(Args ...)> *res) const
 	{
 
 		if (is_number() || is_table())
@@ -622,32 +614,26 @@ public:
 			auto value = this->as<TRect>();
 
 			*res = [value](Args ...args )->TRect
-			{
-				return value;
-			};
+			{	return value;};
 
 		}
 		else if (is_function())
 		{
 			LuaObject obj = *this;
 			*res = [obj](Args ...args)->TRect
-			{
-				return obj(std::forward<Args>(args)...).template as<TRect>();
-			};
+			{	return obj(std::forward<Args>(args)...).template as<TRect>();};
 		}
 
 	}
 
-	template<typename T>
-	inline T as(T const &default_value) const
+	template<typename T> inline T as(T const &default_value) const
 	{
 		T res = default_value;
 		as(&res);
 		return (res);
 	}
 
-	template<typename T>
-	inline void as(T* res) const
+	template<typename T> inline void as(T* res) const
 	{
 		if (!IsNull())
 		{
@@ -657,20 +643,17 @@ public:
 		}
 	}
 
-	template<typename T>
-	inline void GetValue(std::string const & name, T *v) const noexcept
+	template<typename T> inline void GetValue(std::string const & name, T *v) const noexcept
 	{
 		operator[](name).as(v);
 	}
 
-	template<typename T>
-	inline void GetValue(int s, T *v) const noexcept
+	template<typename T> inline void GetValue(int s, T *v) const noexcept
 	{
 		operator[](s).as(v);
 	}
 
-	template<typename T>
-	inline void SetValue(std::string const & name, T const &v) const
+	template<typename T> inline void SetValue(std::string const & name, T const &v) const
 	{
 		if (IsNull())
 			return;
@@ -682,8 +665,7 @@ public:
 		lua_pop(L_.get(), 1);
 	}
 
-	template<typename T>
-	inline void SetValue(int s, T const &v) const
+	template<typename T> inline void SetValue(int s, T const &v) const
 	{
 		if (IsNull())
 			return;
@@ -694,8 +676,7 @@ public:
 		lua_pop(L_.get(), 1);
 	}
 
-	template<typename T>
-	inline void AddValue(T const &v) const
+	template<typename T> inline void AddValue(T const &v) const
 	{
 		if (IsNull())
 			return;
@@ -744,8 +725,7 @@ public:
 		lua_pop(L_.get(), 1);
 		return std::move(res);
 	}
-}
-;
+};
 
 #define DEF_LUA_TRANS(_TYPE_,_TO_FUN_,_FROM_FUN_,_CHECK_FUN_)                                     \
 template<> struct LuaTrans<_TYPE_>                                                    \

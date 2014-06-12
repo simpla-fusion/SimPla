@@ -156,7 +156,7 @@ public:
 	inline value_type & at(index_type s)
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+			OUT_RANGE_ERROR(ToString((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_));
 
 		return get(s);
 	}
@@ -164,7 +164,7 @@ public:
 	inline value_type const & at(index_type s) const
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR << ((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_);
+			OUT_RANGE_ERROR(ToString((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_));
 
 		return get(s);
 	}

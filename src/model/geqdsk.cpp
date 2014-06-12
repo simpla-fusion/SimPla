@@ -27,7 +27,7 @@ void GEqdsk::Read(std::string const &fname)
 
 	if (!inFileStream_.is_open())
 	{
-		ERROR << "File " << fname << " is not opend!";
+		RUNTIME_ERROR("File " + fname + " is not opend!");
 		return;
 	}
 
@@ -118,8 +118,7 @@ void GEqdsk::ReadProfile(std::string const &fname)
 
 	if (!inFileStream_.is_open())
 	{
-		ERROR << "File " << fname << " is not opend!";
-		return;
+		RUNTIME_ERROR("File " + fname + " is not opend!");
 	}
 
 	std::string line;
