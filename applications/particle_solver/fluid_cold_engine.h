@@ -71,7 +71,7 @@ public:
 	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
 	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
 
-	std::string Save(std::string const & name) const;
+	std::string Save(std::string const & name, bool is_verbose = false) const;
 
 private:
 
@@ -111,7 +111,7 @@ Particle<ColdFluid<TM>>::~Particle()
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Save(std::string const & path) const
+std::string Particle<ColdFluid<TM>>::Save(std::string const & path, bool is_verbose) const
 {
 	std::stringstream os;
 
@@ -119,15 +119,18 @@ std::string Particle<ColdFluid<TM>>::Save(std::string const & path) const
 
 	DEFINE_PHYSICAL_CONST;
 
-	os
+	if (is_verbose)
+	{
+		os
 
-	<< "Engine = '" << GetTypeAsString()
+		<< "Engine = '" << GetTypeAsString()
 
-	<< " , " << "Mass = " << m / proton_mass << " * m_p"
+		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 
-	<< " , " << "Charge = " << q / elementary_charge << " * q_e"
+		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
-	;
+		;
+	}
 
 	os << "\n, n =" << simpla::Save("n", n);
 

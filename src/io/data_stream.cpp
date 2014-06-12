@@ -189,6 +189,7 @@ size_t const *p_local_inner_count
 	if (v == nullptr)
 	{
 		WARNING << dsname << " is empty!";
+		return "";
 	}
 
 	if (pimpl_->group_ <= 0)

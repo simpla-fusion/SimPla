@@ -16,21 +16,22 @@
 namespace simpla
 {
 
-template<typename > class DataSaver;
 template<typename, typename > class ParticlePool;
 
 template<typename TM, typename TPoints> inline std::string //
 Save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 {
-	std::vector<TPoints> res;
-
-	for (auto const & l : d.GetTree())
-	{
-		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
-	}
-
-	return Save(name, res);
-
+	//	std::vector<TPoints> res;
+	//
+	//	for (auto const & l : d.data())
+	//	{
+	//		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
+	//	}
+	//
+	//	return Save(name, res);
+	///@FIXME  Particle Save is not implemented!!
+	UNIMPLEMENT;
+	return "";
 }
 
 }  // namespace simpla

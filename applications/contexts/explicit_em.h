@@ -66,7 +66,7 @@ public:
 
 	void NextTimeStep();
 
-	std::string Save(std::string const & path = "") const;
+	std::string Save(std::string const & path = "", bool is_verbose = false) const;
 
 	double CheckCourantDt() const;
 
@@ -354,7 +354,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 }
 
 template<typename TM>
-std::string ExplicitEMContext<TM>::Save(std::string const & path) const
+std::string ExplicitEMContext<TM>::Save(std::string const & path, bool is_verbose) const
 {
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
@@ -387,7 +387,7 @@ std::string ExplicitEMContext<TM>::Save(std::string const & path) const
 		os << "\n , Particles = { \n";
 		for (auto const & p : particles_)
 		{
-			os << p.first << " = { " << p.second->Save(path + "/" + p.first) << "\n},";
+			os << p.first << " = { " << p.second->Save(path + "/" + p.first,is_verbose) << "\n},";
 		}
 		os << "\n} ";
 	}

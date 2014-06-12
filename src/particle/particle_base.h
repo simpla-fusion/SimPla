@@ -41,7 +41,7 @@ public:
 
 	//interface
 
-	virtual std::string Save(std::string const & path) const=0;
+	virtual std::string Save(std::string const & path, bool is_verbose) const=0;
 
 	virtual Real GetMass() const=0;
 
@@ -139,9 +139,9 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 		NextTimeStepHalf_(Bool2Type<particle_type::EnableImplicit>(), E, B);
 	}
 
-	std::string Save(std::string const & path) const
+	std::string Save(std::string const & path, bool is_verbose = false) const
 	{
-		return self_.Save(path);
+		return self_.Save(path, is_verbose);
 	}
 
 private:
