@@ -185,7 +185,7 @@ ParticleConstraints=
 
 ---[[
 Particles={
-	H 	= {Type="Default1",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
 		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },

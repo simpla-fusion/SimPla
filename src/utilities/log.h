@@ -40,7 +40,7 @@ enum
 
 	LOG_WARNING = -1,
 
-	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = 20
+	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -20
 };
 class LoggerStreams //: public SingletonHolder<LoggerStreams>
 {

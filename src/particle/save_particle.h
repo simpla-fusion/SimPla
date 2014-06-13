@@ -21,17 +21,17 @@ template<typename, typename > class ParticlePool;
 template<typename TM, typename TPoints> inline std::string //
 Save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 {
-//	std::vector<TPoints> res;
-//
-//	for (auto const & l : d.data())
-//	{
-//		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
-//	}
-//
-//	return Append(name, res);
-	return "";
+	std::vector<TPoints> res;
+
+	for (auto const & l : d.data())
+	{
+		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
+	}
+
+	return GLOBAL_DATA_STREAM.UnorderedWrite(name,res);
 }
 
-}  // namespace simpla
+}
+ // namespace simpla
 
 #endif /* SAVE_PARTICLE_H_ */

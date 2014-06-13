@@ -14,7 +14,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
-
+#include "../fetl/ntuple.h"
 #include "../utilities/type_utilites.h"
 
 namespace simpla
@@ -88,14 +88,14 @@ struct MPIDataType
 	MPI_Datatype type_;
 	bool is_commited_ = false;
 	static constexpr int MAX_NTUPLE_RANK = 10;
-	MPIDataType() :
-			is_commited_(_impl::GetMPIType<T>(&type_))
+	MPIDataType()
+			: is_commited_(_impl::GetMPIType<T>(&type_))
 	{
 	}
 	template<int NDIMS>
 	MPIDataType(nTuple<NDIMS, size_t> const &outer, nTuple<NDIMS, size_t> const &inner,
-			nTuple<NDIMS, size_t> const &start, int array_order_ =
-			MPI_ORDER_C)
+	        nTuple<NDIMS, size_t> const &start, int array_order_ =
+	        MPI_ORDER_C)
 	{
 
 		std::vector<int> outer1;
@@ -113,7 +113,7 @@ struct MPIDataType
 		}
 
 		MPI_Type_create_subarray(outer1.size(), &outer1[0], &inner1[0], &start1[0], array_order_,
-				MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
+		        MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
 		MPI_Type_commit(&type_);
 		is_commited_ = true;
 	}
