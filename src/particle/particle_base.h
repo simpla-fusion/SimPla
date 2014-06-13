@@ -230,7 +230,7 @@ private:
 
 };
 template<typename TParticle, typename TDict, typename ...Args>
-std::shared_ptr<typename ParticleWrap<TParticle>::base_type> CreateParticle(typename TParticle::mesh_type const & mesh,
+std::shared_ptr<typename ParticleWrap<TParticle>::base_type> CreateParticleWrap(typename TParticle::mesh_type const & mesh,
         TDict const & dict, Args const & ... args)
 {
 	typedef typename ParticleWrap<TParticle>::base_type base_type;

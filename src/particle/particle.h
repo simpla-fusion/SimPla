@@ -116,14 +116,14 @@ private:
 };
 template<typename Engine>
 
-Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others) :
-		Particle(pmesh)
+Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others)
+		: Particle(pmesh)
 {
 	Load(std::forward<Others const &>(others)...);
 }
@@ -147,7 +147,7 @@ Particle<Engine>::~Particle()
 }
 template<typename Engine>
 template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-		Others const & ...others)
+        Others const & ...others)
 {
 	if (!dict.is_table())
 		return;
@@ -232,7 +232,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
-			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
@@ -273,7 +273,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
-			<< " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	Real dt = mesh.GetDt();
 

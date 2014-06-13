@@ -24,10 +24,11 @@
 // Field
 #include "../../src/fetl/fetl.h"
 #include "../../src/fetl/save_field.h"
+#include "../../src/fetl/load_field.h"
 
 // Particle
 #include "../../src/particle/particle_base.h"
-
+#include "../../src/particle/particle_factory.h"
 // Model
 #include "../../src/model/model.h"
 #include "../../src/model/parse_config.h"
@@ -36,7 +37,7 @@
 // Solver
 #include "../field_solver/pml.h"
 #include "../field_solver/implicitPushE.h"
-#include "../particle_solver/particle_factory.h"
+#include "../particle_solver/register_particle.h"
 
 namespace simpla
 {
@@ -55,8 +56,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args const & ...args)
+			: ExplicitEMContext()
 	{
 		Load(std::forward<Args const &>(args)...);
 	}
@@ -122,8 +123,9 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(mesh)
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(
+		        mesh)
 {
 }
 
@@ -246,16 +248,21 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load Particles";
 
+	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
+
 	for (auto opt : dict["Particles"])
 	{
-		auto key = opt.first.template as<std::string>("unnamed");
+		auto id = opt.first.template as<std::string>("unnamed");
+
 		try
 		{
-			auto p = ParticleFactory<mesh_type>(mesh, opt.second, ne0, Te0);
+			auto type_str = opt.second["Type"].template as<std::string>("");
+
+			auto p = CreateParticle(type_str, mesh, opt.second, ne0, Te0);
 
 			if (p != nullptr)
 			{
-				particles_.emplace(key, p);
+				particles_.emplace(id, p);
 
 				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
@@ -263,7 +270,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		} catch (std::runtime_error const & e)
 		{
 
-			PARSER_ERROR("Configure particle '" + key + "' error!! [" + e.what() + "]");
+			PARSER_ERROR("Configure particle '" + id + "' error!! [" + e.what() + "]");
 
 		}
 

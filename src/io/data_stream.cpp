@@ -15,6 +15,8 @@ extern "C"
 #include "data_stream.h"
 #include "../parallel/parallel.h"
 
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
+
 namespace simpla
 {
 
@@ -23,8 +25,8 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 };
-DataStream::DataStream() :
-		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+DataStream::DataStream()
+		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -34,8 +36,7 @@ DataStream::DataStream() :
 
 		enable_xdmf_(false),
 
-		pimpl_(new pimpl_s(
-		{ -1, -1 }))
+		pimpl_(new pimpl_s( { -1, -1 }))
 
 {
 	hid_t error_stack = H5Eget_current_stack();
@@ -100,42 +101,51 @@ void DataStream::OpenFile(std::string const &fname)
 
 	GLOBAL_COMM.Barrier();
 
-	if (fname != "")
+	if (GLOBAL_COMM.GetRank()==0)
+	{
+		if (fname != "")
 		prefix_ = fname;
 
-	if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
-	{
-		prefix_ = fname.substr(0, fname.size() - 3);
+		if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
+		{
+			prefix_ = fname.substr(0, fname.size() - 3);
+		}
+
+		/// @TODO auto mkdir directory
+
+		filename_ = prefix_ +
+
+		AutoIncrease(
+
+		[&](std::string const & suffix)->bool
+		{
+			std::string fname=(prefix_+suffix);
+			return
+			fname==""
+			|| *(fname.rbegin())=='/'
+			|| (CheckFileExists(fname + ".h5"));
+		}
+
+		) + ".h5";
 	}
-
-	/// @TODO auto mkdir directory
-
-	filename_ = prefix_ +
-
-	AutoIncrease(
-
-	[&](std::string const & suffix)->bool
-	{
-		std::string fname=(prefix_+suffix);
-		return
-		fname==""
-		|| *(fname.rbegin())=='/'
-		|| (CheckFileExists(fname + ".h5"));
-	}
-
-	) + ".h5";
 
 	GLOBAL_COMM.Barrier();
 
-	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-
 	if (GLOBAL_COMM.IsInitilized())
 	{
-		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
-	}
-	H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
-	H5Pclose(plist_id);
+		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
+
+		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+
+		H5Pclose(plist_id);
+	}
+	else
+	{
+		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+	}
 
 	if (pimpl_->file_ < 0)
 	{
