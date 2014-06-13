@@ -250,14 +250,16 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
 
+	// @TODO load particle engine plugins
+
 	for (auto opt : dict["Particles"])
 	{
 		auto id = opt.first.template as<std::string>("unnamed");
 
+		auto type_str = opt.second["Type"].template as<std::string>("");
+
 		try
 		{
-			auto type_str = opt.second["Type"].template as<std::string>("");
-
 			auto p = CreateParticle(type_str, mesh, opt.second, ne0, Te0);
 
 			if (p != nullptr)
@@ -267,10 +269,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
 
-		} catch (std::runtime_error const & e)
+		} catch (...)
 		{
 
-			PARSER_ERROR("Configure particle '" + id + "' error!! [" + e.what() + "]");
+			PARSER_ERROR("Particles={" + id + " = { Type = " + type_str + "}}" + "  ");
 
 		}
 

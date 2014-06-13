@@ -40,7 +40,7 @@ enum
 
 	LOG_WARNING = -1,
 
-	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -1
+	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = 20
 };
 class LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
@@ -71,8 +71,32 @@ public:
 	{
 		if (msg != "")
 		{
-			if (level <= std_out_visable_level_)
-				std::cerr << msg;
+			std::string prefix(""), surfix("");
+
+			switch (level)
+			{
+			case LOG_FORCE_OUTPUT:
+			case LOG_OUT_RANGE_ERROR:
+			case LOG_LOGIC_ERROR:
+			case LOG_ERROR:
+				prefix = "[E]";
+				break;
+			case LOG_WARNING:
+				prefix = "[W]"; //red
+				break;
+			case LOG_LOG:
+				prefix = "[L]";
+				break;
+			case LOG_VERBOSE:
+				prefix = "[V]";
+				break;
+			case LOG_INFORM:
+				prefix = "[I]";
+				break;
+			case LOG_DEBUG:
+				prefix = "[D]";
+				break;
+			}
 
 			if (fs.good())
 			{
@@ -82,6 +106,29 @@ public:
 			{
 				OpenFile("simpla.log");
 			}
+
+			if (level <= std_out_visable_level_)
+			{
+				surfix += "\e[0m";
+
+				switch (level)
+				{
+				case LOG_FORCE_OUTPUT:
+				case LOG_OUT_RANGE_ERROR:
+				case LOG_LOGIC_ERROR:
+				case LOG_ERROR:
+					prefix = "\e[1;31m" + prefix + "\e[1;37m"; //red
+					break;
+				case LOG_WARNING:
+					prefix = "\e[1;32m" + prefix + "\e[1;37m"; //red
+					break;
+
+				}
+
+				std::cerr << prefix << msg << surfix;
+
+			}
+
 		}
 
 	}
@@ -159,36 +206,14 @@ public:
 	Logger(int lv, size_t indent = 0)
 			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
 	{
-		buffer_ << std::endl << std::boolalpha;
+		buffer_ << std::boolalpha;
 
 #ifdef USE_MPI
 		buffer_ << "[" << GLOBAL_COMM.GetRank() << "/" << GLOBAL_COMM.GetSize()
 		<< "]";
 #endif
-
-		if (level_ == LOG_LOGIC_ERROR || level_ == LOG_ERROR || level_ == LOG_OUT_RANGE_ERROR)
-		{
-			buffer_ << "[E]";
-		}
-		else if (level_ == LOG_WARNING)
-		{
-			buffer_ << "[W]";
-		}
-		else if (level_ == LOG_LOG)
-		{
-			buffer_ << "[L]" << "[" << TimeStamp() << "]" << " ";
-		}
-		else if (level_ == LOG_VERBOSE)
-		{
-			buffer_ << "[V]" << "[" << TimeStamp() << "]" << " ";
-		}
-		else if (level_ == LOG_INFORM)
-		{
-		}
-		else if (level_ == LOG_DEBUG)
-		{
-			buffer_ << "[D]";
-		}
+		if (level_ == LOG_LOG || level_ == LOG_VERBOSE)
+			buffer_ << "[" << TimeStamp() << "]" << " ";
 
 		size_t indent_width = SingletonHolder<LoggerStreams>::instance().GetIndent();
 		if (indent_width > 0)
@@ -363,18 +388,18 @@ private:
 
 #define VERBOSE Logger(LOG_VERBOSE)
 
-#define ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<(_MSG_);}throw(std::logic_error(""));
+#define ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));
 
-#define RUNTIME_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<(_MSG_);}throw(std::runtime_error(""));
+#define RUNTIME_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error(""));
 
-#define LOGIC_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<(_MSG_);}throw(std::logic_error(""));
+#define LOGIC_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));
 
-#define OUT_RANGE_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<(_MSG_);}throw(std::out_of_range(""));
+#define OUT_RANGE_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range(""));
 
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:"<< "Can not get enough memory! [ "  \
+#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:\n\t"<< "Can not get enough memory! [ "  \
         << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
 
-#define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\t Configure FAILED :"<<(_MSG_);}throw(std::runtime_error(""));}
+#define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
 #include <cassert>
 #ifdef NDEBUG
