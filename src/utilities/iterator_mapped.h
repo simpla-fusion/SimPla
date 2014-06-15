@@ -10,6 +10,7 @@
 
 #include <iterator>
 #include <map>
+#include "../utilities/sp_type_traits.h"
 namespace std
 {
 template<typename TI> struct iterator_traits;
@@ -17,7 +18,7 @@ template<typename TI> struct iterator_traits;
 namespace simpla
 {
 
-HAS_MEMBER_FUNCTION (at);
+HAS_MEMBER_FUNCTION(at);
 
 template<typename TContainer, typename TIterator>
 struct MappedIterator
@@ -218,6 +219,28 @@ MappedIterator<TContainer, TIterator> make_mapped_iterator(TContainer & containe
 {
 	return ((MappedIterator<TContainer, TIterator>(container, k_ib, k_ie)));
 }
-}  // namespace simpla
+
+template<typename > struct Range;
+
+template<typename TContainer, typename TIterator>
+auto make_mapped_range(TContainer & m, TIterator const & ib, TIterator const & ie)
+DECL_RET_TYPE ((Range<MappedIterator<TContainer,TIterator>>(
+						make_mapped_iterator(m, ib, ie),
+						make_mapped_iterator(m, ie, ie))))
+
+template<typename TContainer, typename TIterator>
+auto make_mapped_range(TContainer & m, std::pair<TIterator, TIterator> const & r)
+DECL_RET_TYPE((Range<MappedIterator<TContainer,TIterator>>(
+						make_mapped_iterator(m, r.first, r.second),
+						make_mapped_iterator(m, r.second, r.second))))
+
+template<typename TContainer, typename TRange>
+auto make_mapped_range(TContainer & m, TRange const & r)
+DECL_RET_TYPE ((Range<MappedIterator<TContainer,typename TRange::iterator>>(
+						make_mapped_iterator(m, r.begin(), r.end()),
+						make_mapped_iterator(m, r.end(), r.end()))))
+
+}
+// namespace simpla
 
 #endif /* ITERATOR_MAPPED_H_ */

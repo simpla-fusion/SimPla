@@ -10,6 +10,7 @@
 
 #include <iterator>
 #include <map>
+#include "../utilities/sp_type_traits.h"
 
 namespace std
 {
@@ -111,157 +112,28 @@ FilterIterator<TPred, TIterator> make_filter_iterator(TPred const & pred, TItera
 {
 	return ((FilterIterator<TPred, TIterator>(pred, k_ib, k_ie)));
 }
-//
-//template<typename TContainer, typename TRange>
-//RangeWrapper<typename TRange::iterator, TContainer> make_range(TContainer & data, TRange const& r)
-//{
-//	return RangeWrapper<typename TRange::iterator, TContainer>(data, r);
-//}
-//
-//template<typename TIterator>
-//struct IteratorWrapper<TIterator, std::function<bool(TIterator const&)> >
-//{
-//public:
-//
-//	typedef TIterator base_iterator;
-//	typedef std::function<bool(base_iterator const&)> filter_fun;
-//	typedef IteratorWrapper<base_iterator, std::function<bool(TIterator const&)>> this_type;
-//
-///// One of the @link iterator_tags tag types@endlink.
-//	typedef std::forward_iterator_tag iterator_category;
-//
-///// The type "pointed to" by the iterator.
-//	typedef typename base_iterator::value_type value_type;
-//
-///// This type represents a pointer-to-value_type.
-//	typedef value_type * pointer;
-//
-///// This type represents a reference-to-value_type.
-//	typedef value_type & reference;
-//
-//	filter_fun filter_;
-//
-//	base_iterator k_it_, k_ie_;
-//
-//	template<typename ...Args>
-//	IteratorWrapper(filter_fun & data, base_iterator k_it, base_iterator k_ib, base_iterator k_ie) :
-//			filter_(data), k_it_(k_it), k_ie_(k_ie)
-//	{
-//	}
-//
-//	~IteratorWrapper()
-//	{
-//	}
-//
-//	void FindValue_()
-//	{
-//		while (k_it_ != k_ie_ && !filter_(k_it_))
-//		{
-//			++k_it_;
-//		}
-//	}
-//
-//	reference operator*()
-//	{
-//		while (k_it_ != k_ie_ && !filter_(k_it_))
-//		{
-//			++k_it_;
-//		}
-//		return *k_it_;
-//	}
-//	pointer operator ->()
-//	{
-//		return &(operator*());
-//	}
-//	const reference operator*() const
-//	{
-//		return *k_it_;
-//	}
-//	const pointer operator ->() const
-//	{
-//		return &(operator*());
-//	}
-//
-//	bool operator==(this_type const & rhs) const
-//	{
-//		return k_it_ == rhs.k_it_;
-//	}
-//
-//	bool operator!=(this_type const & rhs) const
-//	{
-//		return !(this->operator==(rhs));
-//	}
-//
-//	this_type & operator ++()
-//	{
-//		++k_it_;
-//		return *this;
-//	}
-//	this_type operator ++(int)
-//	{
-//		this_type res(*this);
-//		++res;
-//		return std::move(res);
-//	}
-//
-//}
-//;
-//template<typename TRange>
-//struct RangeWrapper<TRange, std::function<bool(typename TRange::iterator const&)> > : public TRange
-//{
-//
-//	typedef RangeWrapper<TRange, std::function<bool(typename TRange::iterator const&)> > this_type;
-//
-//	typedef TRange base_range;
-//
-//	typedef typename base_range::iterator base_iterator;
-//
-//	typedef typename base_iterator::value_type value_type;
-//
-//	typedef std::function<bool(base_iterator)> filter_type;
-//
-//	typedef IteratorWrapper<base_iterator, filter_type> iterator;
-//
-//private:
-//	base_range range_;
-//	filter_type filter_;
-//public:
-//
-//	RangeWrapper(base_range range, filter_type filter) :
-//			range_(range), filter_(filter)
-//	{
-//	}
-//
-//	RangeWrapper() :
-//			range_(base_range())
-//	{
-//	}
-//	~RangeWrapper()
-//	{
-//	}
-//
-//	bool empty()
-//	{
-//		return begin() == end();
-//	}
-//
-//	iterator begin() const
-//	{
-//		return iterator(range_.begin(), range_.end(), filter_);
-//	}
-//	iterator end() const
-//	{
-//		return iterator(range_.end());
-//	}
-//
-//	this_type Split(size_t num, size_t id)
-//	{
-//		return this_type(TRange::Split(num, id), filter_);
-//	}
-//
-//};
 
-}// namespace simpla
+template<typename > struct Range;
+
+template<typename TPred, typename TIterator>
+auto make_filter_range(TPred & m, TIterator const & ib, TIterator const & ie)
+DECL_RET_TYPE ((Range<FilterIterator<TPred, TIterator>>(make_filter_iterator(m, ib, ie),
+						make_filter_iterator(m, ie, ie))))
+
+template<typename TPred, typename TIterator>
+auto make_filter_range(TPred & m, std::pair<TIterator, TIterator> const & r)
+DECL_RET_TYPE ((Range<FilterIterator<TPred, TIterator>>(
+						make_filter_iterator(m, r.first, r.second),
+						make_filter_iterator(m, r.second, r.second))))
+
+template<typename TPred, typename TRange>
+auto make_filter_range(TPred & m, TRange const & r)
+DECL_RET_TYPE ((Range<FilterIterator<TPred, typename TRange::iterator>> (
+						make_filter_iterator(m, r.begin(), r.end()),
+						make_filter_iterator(m, r.end(), r.end()))))
+
+}
+// namespace simpla
 namespace std
 {
 

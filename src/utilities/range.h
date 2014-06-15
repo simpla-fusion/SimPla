@@ -12,7 +12,6 @@
 #include <type_traits>
 #include <utility>
 #include "iterator_filter.h"
-#include "iterator_mapped.h"
 namespace std
 {
 template<typename TI> struct iterator_traits;
@@ -84,29 +83,7 @@ template<typename TIterator>
 auto create_range(TIterator const & ib, TIterator const & ie)
 DECL_RET_TYPE (Range<TIterator>(ib, ie))
 
-template< typename TPred,typename TIterator>
-auto make_filter_range(TPred & m, TIterator const & ib, TIterator const & ie)
-DECL_RET_TYPE (create_range(make_filter_iterator(m, ib, ie), make_filter_iterator(m, ie, ie)))
 
-template<typename TPred,typename TIterator>
-auto make_filter_range(TPred & m, std::pair<TIterator, TIterator> const & r)
-DECL_RET_TYPE (create_range(make_filter_iterator(m, r.first, r.second), make_filter_iterator(m, r.second, r.second)))
-
-template<typename TPred,typename TRange>
-auto make_filter_range(TPred & m, TRange const & r)
-DECL_RET_TYPE (create_range(make_filter_iterator(m, r.begin(), r.end()), make_filter_iterator(m, r.end(), r.end())))
-
-template< typename TContainer,typename TIterator>
-auto make_mapped_range(TContainer & m, TIterator const & ib, TIterator const & ie)
-DECL_RET_TYPE (create_range(make_mapped_iterator(m, ib, ie), make_mapped_iterator(m, ie, ie)))
-
-template<typename TContainer,typename TIterator>
-auto make_mapped_range(TContainer & m, std::pair<TIterator, TIterator> const & r)
-DECL_RET_TYPE (create_range(make_mapped_iterator(m, r.first, r.second), make_mapped_iterator(m, r.second, r.second)))
-
-template<typename TContainer,typename TRange>
-auto make_mapped_range(TContainer & m, TRange const & r)
-DECL_RET_TYPE (create_range(make_mapped_iterator(m, r.begin(), r.end()), make_mapped_iterator(m, r.end(), r.end())))
 
 }
   // namespace simpla

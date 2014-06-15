@@ -20,6 +20,8 @@
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 #include "../utilities/range.h"
+#include "../utilities/iterator_mapped.h"
+
 namespace simpla
 {
 template<typename TG, int IFORM, typename TValue> struct Field;
