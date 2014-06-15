@@ -11,8 +11,8 @@
 #include <iterator>
 #include <type_traits>
 #include <utility>
-#include "filter_iterator.h"
-#include "mapped_iterator.h"
+#include "iterator_filter.h"
+#include "iterator_mapped.h"
 namespace std
 {
 template<typename TI> struct iterator_traits;

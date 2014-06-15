@@ -1,12 +1,12 @@
 /*
- * mapped_iterator.h
+ * iterator_mapped.h
  *
  *  Created on: 2014年6月11日
  *      Author: salmon
  */
 
-#ifndef MAPPED_ITERATOR_H_
-#define MAPPED_ITERATOR_H_
+#ifndef ITERATOR_MAPPED_H_
+#define ITERATOR_MAPPED_H_
 
 #include <iterator>
 #include <map>
@@ -220,4 +220,4 @@ MappedIterator<TContainer, TIterator> make_mapped_iterator(TContainer & containe
 }
 }  // namespace simpla
 
-#endif /* MAPPED_ITERATOR_H_ */
+#endif /* ITERATOR_MAPPED_H_ */

@@ -1,12 +1,12 @@
 /*
- * filter_iterator.h
+ * iterator_filter.h
  *
  *  Created on: 2014年6月5日
  *      Author: salmon
  */
 
-#ifndef FILTER_ITERATOR_H_
-#define FILTER_ITERATOR_H_
+#ifndef ITERATOR_FILTER_H_
+#define ITERATOR_FILTER_H_
 
 #include <iterator>
 #include <map>
@@ -277,4 +277,4 @@ struct iterator_traits<::simpla::FilterIterator<TM, TI>>
 
 };
 }  // namespace std
-#endif /* FILTER_ITERATOR_H_ */
+#endif /* ITERATOR_FILTER_H_ */
