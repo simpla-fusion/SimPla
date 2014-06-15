@@ -188,13 +188,13 @@ struct nTuple
 	template<typename TR>
 	inline bool operator ==(TR const &rhs) const
 	{
-		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::equal_to<void>(), *this, rhs);
+		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::equal_to<T>(), *this, rhs);
 	}
 
 	template<typename TExpr>
 	inline bool operator !=(nTuple<NDIMS, TExpr> const &rhs) const
 	{
-		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::not_equal_to<void>(), *this, rhs);
+		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::not_equal_to<T>(), *this, rhs);
 	}
 	template<typename TR>
 	inline operator nTuple<N,TR>() const

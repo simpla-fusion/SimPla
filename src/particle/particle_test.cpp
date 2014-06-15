@@ -17,9 +17,9 @@
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_euclidean.h"
 #include "../parallel/parallel.h"
-#include "../parallel/update_ghosts.h"
 
 #include "particle.h"
+#include "particle_update_ghosts.h"
 #include "save_particle.h"
 
 using namespace simpla;
@@ -99,10 +99,6 @@ TEST_P(TestParticle,Add)
 
 	auto extent = mesh.GetExtents();
 
-	CHECK(mesh.local_outer_start_);
-	CHECK(mesh.global_start_ << mesh.D_FP_POS);
-	CHECK(mesh.global_count_ << mesh.D_FP_POS);
-
 	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extent.first, extent.second);
 	std::mt19937 rnd_gen(mesh_type::GetNumOfDimensions());
 
@@ -128,28 +124,29 @@ TEST_P(TestParticle,Add)
 
 	p.Add(&buffer);
 
-	EXPECT_EQ(p.size(), mesh.GetLocalMemorySize(VERTEX, pic));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-
-	p.Remove(p.Select(mesh.local_outer_start_, mesh.local_outer_count_));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-
 	INFORM << "Add particle DONE " << p.size() << std::endl;
 
-	p.Remove(p.Select());
-	CHECK(p.data().size());
+	EXPECT_EQ(p.size(), mesh.GetLocalMemorySize(VERTEX, pic));
 
-	for (auto const & v : p.data())
-	{
-		if (v.second.size() > 0)
-			CHECK((mesh.Decompact(v.first) - (mesh.global_start_ << 4)) >> 4);
-	}
-	EXPECT_EQ(p.size(), 0);
+	p.Remove(
+	        p.Select(extent.first + (extent.second - extent.first) * 0.25,
+	                extent.first + (extent.second - extent.first) * 0.75));
 
-//	UpdateGhosts(&p);
-//	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+
+//	p.Remove(p.Select());
+//
+//	INFORM << "Remove particle DONE " << p.size() << std::endl;
+//
+//	for (auto const & v : p.data())
+//	{
+//		if (v.second.size() > 0)
+//			CHECK((mesh.DecompactRoot(v.first)));
+//	}
+//	EXPECT_EQ(p.size(), 0);
+
+	UpdateGhosts(&p);
+	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
 }
 
 //TEST_P(TestParticle,scatter_n)

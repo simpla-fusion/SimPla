@@ -50,6 +50,14 @@ DEF_BOP(bit_xor, ^)
 
 #undef DEF_UOP
 #undef DEF_BOP
+
+template<> struct equal_to<double>
+{
+	constexpr bool operator()(double l, double r) const
+	{
+		return std::abs(l - r) <= std::numeric_limits<double>::epsilon();;
+	}
+};
 }  // namespace std
 
 #endif /* SP_FUNCTIONAL_H_ */

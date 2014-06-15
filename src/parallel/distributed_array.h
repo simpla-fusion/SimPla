@@ -32,10 +32,10 @@ public:
 	int self_id_;
 	struct sub_array_s
 	{
-		nTuple<NDIMS, size_t> outer_start;
-		nTuple<NDIMS, size_t> outer_count;
-		nTuple<NDIMS, size_t> inner_start;
-		nTuple<NDIMS, size_t> inner_count;
+		nTuple<NDIMS, long> outer_start;
+		nTuple<NDIMS, long> outer_count;
+		nTuple<NDIMS, long> inner_start;
+		nTuple<NDIMS, long> inner_count;
 	};
 	DistributedArray()
 			: self_id_(0)
@@ -43,7 +43,7 @@ public:
 	}
 
 	template<typename ...Args>
-	DistributedArray(nTuple<NDIMS, size_t> global_start, nTuple<NDIMS, size_t> global_count, Args const & ... args)
+	DistributedArray(nTuple<NDIMS, long> global_start, nTuple<NDIMS, long> global_count, Args const & ... args)
 
 	{
 
@@ -65,12 +65,12 @@ public:
 		return NProduct(local_.outer_count);
 	}
 
-	void Decompose(int num_process, int process_num, size_t gw);
+	void Decompose(int num_process, int process_num, long gw);
 
-	nTuple<NDIMS, size_t> global_start_;
-	nTuple<NDIMS, size_t> global_count_;
+	nTuple<NDIMS, long> global_start_;
+	nTuple<NDIMS, long> global_count_;
 
-	nTuple<NDIMS, size_t> global_strides_;
+	nTuple<NDIMS, long> global_strides_;
 
 	sub_array_s local_;
 
@@ -79,17 +79,17 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<NDIMS, size_t> send_start;
-		nTuple<NDIMS, size_t> send_count;
-		nTuple<NDIMS, size_t> recv_start;
-		nTuple<NDIMS, size_t> recv_count;
+		nTuple<NDIMS, long> send_start;
+		nTuple<NDIMS, long> send_count;
+		nTuple<NDIMS, long> recv_start;
+		nTuple<NDIMS, long> recv_count;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
 	void Decomposer_(int num_process, int process_num, unsigned int gw, sub_array_s *) const;
 
-	int hash(nTuple<NDIMS, size_t> const & d) const
+	int hash(nTuple<NDIMS, long> const & d) const
 	{
 		int res = 0;
 		for (int i = 0; i < NDIMS; ++i)
@@ -113,7 +113,7 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 		return;
 
 	int n = 0;
-	size_t L = 0;
+	long L = 0;
 	for (int i = 0; i < NDIMS; ++i)
 	{
 		if (global_count_[i] > L)
@@ -123,7 +123,7 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 		}
 	}
 
-	nTuple<NDIMS, size_t> start, count;
+	nTuple<NDIMS, long> start, count;
 
 	if ((2 * gw * num_process > global_count_[n] || num_process > global_count_[n]))
 	{
@@ -142,7 +142,7 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 }
 
 template<int N>
-void DistributedArray<N>::Decompose(int num_process, int process_num, size_t gw)
+void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 {
 	Decomposer_(num_process, process_num, gw, &local_);
 	self_id_ = (process_num);

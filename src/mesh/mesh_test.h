@@ -43,6 +43,15 @@ protected:
 
 		dims=std::get<2>(param);
 
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (dims[i] <= 1 || xmax[i] <= xmin[i])
+			{
+				xmax[i] = xmin[i];
+				dims[i] = 1;
+			}
+		}
+
 		mesh.SetExtents(xmin,xmax,dims);
 
 	}
@@ -181,13 +190,23 @@ TEST_P(TestMesh, coordinates)
 	auto it = range1.begin();
 
 	auto x = extents.second;
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		if (dims[i] <= 1 || xmax[i] <= xmin[i])
-			x[i] = xmin[i];
-	}
+
 	EXPECT_EQ(x, mesh.GetCoordinates(*range0.rbegin()));
 
+	x = 0.2323 * (extents.second - extents.first) + extents.first;
+
+	auto y = x;
+	auto idx = mesh.CoordinatesGlobalToLocal(&y, mesh.GetShift(VERTEX));
+	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx, y)) << x;
+	y = x;
+	idx = mesh.CoordinatesGlobalToLocal(&y, mesh.GetShift(EDGE));
+	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx, y)) << x;
+	y = x;
+	idx = mesh.CoordinatesGlobalToLocal(&y, mesh.GetShift(FACE));
+	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx, y)) << x;
+	y = x;
+	idx = mesh.CoordinatesGlobalToLocal(&y, mesh.GetShift(VOLUME));
+	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx, y)) << x;
 	EXPECT_DOUBLE_EQ(mesh.Volume(*range0.begin()) * mesh.Volume(*range3.begin()),
 	        mesh.Volume(*range1.begin()) * mesh.Volume(*range2.begin()));
 
@@ -219,6 +238,19 @@ TEST_P(TestMesh, select )
 	}
 	CHECK(count);
 	EXPECT_EQ(count, dims[0] * dims[1] * dims[2]);
+
+	auto extents = mesh.GetExtents();
+	r = mesh.Select(VERTEX, extents.first + (extents.second - extents.first) * 0.25,
+	        extents.first + (extents.second - extents.first) * 0.75);
+
+	count = 0;
+	for (auto a : r)
+	{
+		++count;
+	}
+	CHECK(count);
+	EXPECT_EQ(count, dims[0] * dims[1] * dims[2] * 0.25);
+
 //	auto extent = mesh.GetExtents();
 //	auto xmin = extent.first;
 //	auto xmax = extent.second;

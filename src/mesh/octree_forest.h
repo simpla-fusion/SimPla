@@ -65,7 +65,9 @@ struct OcForest
 
 	static constexpr index_type FP_POS = 1UL << D_FP_POS;
 
-	static constexpr Real R_INV_FP_POS = 1.0 / static_cast<Real>(FP_POS);
+	static constexpr Real R_FP_POS = static_cast<Real>(FP_POS);
+
+	static constexpr Real R_INV_FP_POS = 1.0 / R_FP_POS;
 
 	nTuple<NDIMS, Real> R_INV_DX;
 	nTuple<NDIMS, Real> R_DX;
@@ -265,7 +267,7 @@ struct OcForest
 
 			if(global_count_[i] >1)
 			{
-				R_INV_DX[i]=static_cast<Real>(length );
+				R_INV_DX[i]=static_cast<Real>(length);
 				R_DX[i]=1.0/R_INV_DX[i];
 			}
 			else
@@ -428,28 +430,40 @@ struct OcForest
 		}
 		return rank;
 	}
-	static compact_index_type GetShift(int IFORM,compact_index_type h=0UL)
+	static compact_index_type GetShift(unsigned int nodeid,compact_index_type h=0UL)
 	{
 		compact_index_type shift = h << (INDEX_DIGITS * 3);
 
-		if (IFORM == EDGE)
-		{
-			shift |= (_DI >> (h+1));
+		return
 
-		}
-		else if (IFORM == FACE)
-		{
-			shift |= ((_DJ | _DK) >> (h+1));
+		(((nodeid>>2) & 1UL)<<(INDEX_DIGITS*2+D_FP_POS-h-1)) |
 
-		}
-		else if (IFORM == VOLUME)
-		{
-			shift |= ((_DI | _DJ | _DK) >> (h+1));
-		}
+		(((nodeid>>1) & 1UL)<<(INDEX_DIGITS+D_FP_POS-h-1)) |
 
-		return shift;
+		((nodeid & 1UL)<<( D_FP_POS-h-1))
+		;
 	}
 
+	static compact_index_type get_first_node_shift(int iform)
+	{
+		compact_index_type res;
+		switch(iform)
+		{
+			case VERTEX:
+			res=0;
+			break;
+			case EDGE:
+			res=4;
+			break;
+			case FACE:
+			res=3;
+			break;
+			case VOLUME:
+			res=7;
+			break;
+		}
+		return GetShift(res);
+	}
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
 	{
@@ -1280,16 +1294,23 @@ struct OcForest
 
 		compact_index_type shift_ = 0UL;
 
-		range():shift_(GetShift(VERTEX))
+		range():shift_(GetShift(0))
 		{
+			for(int i=0;i<NDIMS;++i)
+			{
+				start_[i]=0;
+				count_[i]=0;
+			}
 		}
 
-		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(GetShift(iform))
+		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(get_first_node_shift(iform))
 		{
+
 		}
 		range(unsigned int iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
-		: start_(start ), count_(count), iform_(iform),shift_(GetShift(iform))
+		: start_(start ), count_(count), iform_(iform),shift_(get_first_node_shift(iform))
 		{
+
 		}
 
 		~range()
@@ -1405,22 +1426,23 @@ struct OcForest
 
 	range Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax)const
 	{
-		auto start=CoordinatesToIndex(&xmin,GetShift(iform));
-		auto end=CoordinatesToIndex(&xmin,GetShift(iform));
+		auto start=CoordinatesToIndex(&xmin,get_first_node_shift(iform))>>D_FP_POS;
+		auto count=(CoordinatesToIndex(&xmax,get_first_node_shift(iform))>>D_FP_POS)- start+1;
 
-		return Select(iform,start,end-start);
+		return Select(iform,start,count);
 	}
 
 	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
 	{
-		if (Clipping( local_inner_start_, local_inner_count_, &start, &count))
+		auto flag=Clipping( local_inner_start_, local_inner_count_, &start, &count);
+
+		if (!flag)
 		{
-			return range( iform,start,count);
+			start=local_inner_start_;
+			count*=0;
 		}
-		else
-		{
-			return range();
-		}
+
+		return range( iform,start,count);
 	}
 
 	range Select(unsigned int iform)const
@@ -1453,7 +1475,8 @@ struct OcForest
 	// Coordinates
 	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
-		auto d = Decompact(s)-(global_start_<<D_FP_POS);
+
+		auto d = Decompact(s) - (global_start_<<D_FP_POS);
 
 		return coordinates_type(
 		{
@@ -1472,7 +1495,7 @@ struct OcForest
 
 		for(int i=0;i<NDIMS;++i)
 		{
-			res[i]=(static_cast<Real>(d[i])+r[i]*scale)*R_DX[i];
+			res[i]=(static_cast<Real>(d[i])+r[i]*scale)*R_DX[i]*R_INV_FP_POS;
 		}
 		return std::move(res);
 	}
@@ -1489,34 +1512,57 @@ struct OcForest
 
 		nTuple<NDIMS,index_type> idx;
 
-		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(shift)));
+		int height=HeightOfTree(shift);
 
-		compact_index_type mask=~((1UL << (D_FP_POS-HeightOfTree(shift) ))-1);
+		Real w=static_cast<Real>(1UL<<(height));
 
-		Real dh = static_cast<Real>(1UL << (D_FP_POS-HeightOfTree(shift) ));
+		Real w2=static_cast<Real>(1UL<<(D_FP_POS));
 
-		nTuple<NDIMS, Real> h;
+		x*=w;
 
-		h= Decompact(shift);
+		nTuple<NDIMS, index_type> h =
+		{
+			static_cast<index_type>((shift >> (INDEX_DIGITS * 2)) & INDEX_MASK) ,
+
+			static_cast<index_type>((shift >> (INDEX_DIGITS)) & INDEX_MASK),
+
+			static_cast<index_type>(shift & INDEX_MASK)
+
+		};
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
 
-			x[i]=x[i]*R_INV_DX[i]; // [0,1) -> [0,N) N is number of grid
+			x[i]=x[i]*R_INV_DX[i] - static_cast<Real>(h[i])*w/w2; // [0,1) -> [0,N) N is number of grid
 
-			idx[i]=static_cast<index_type>(x[i]+ h[i])&mask;
+			Real I;
 
-			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
+			x[i]=std::modf(x[i],&I);
 
-			idx[i]=(idx[i]+global_count_[i]-(global_start_[i]<<D_FP_POS))%global_count_[i]+global_start_[i];
+			if(global_count_[i]<=1) x[i]=0;
+
+			idx[i]=((static_cast<index_type>(I)) <<(D_FP_POS-height)) + h[i];
+
+			auto s=(global_start_[i]<<D_FP_POS);
+			auto l=(global_count_[i]<<D_FP_POS);
+			idx[i]=(idx[i]-s+l)%l+s;
+
 		}
+
 		return std::move(idx);
 	}
 
 	inline compact_index_type CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
+		auto idx= (CoordinatesToIndex(px, shift));
 
-		return Compact(CoordinatesToIndex(px, shift));
+		return ((static_cast<compact_index_type>(idx[0] + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+
+		((static_cast<compact_index_type>(idx[1] + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS)) |
+
+		((static_cast<compact_index_type>(idx[2] + COMPACT_INDEX_ZERO) & INDEX_MASK)) |
+
+		shift;
 
 	}
 

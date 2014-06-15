@@ -34,7 +34,7 @@ nTuple<3, Real>( { 1.0, 3.0, 2.0 })  //
 
 testing::Values(
 
-nTuple<3, size_t>( { 12, 11, 1  }) //
+nTuple<3, size_t>( { 15, 18, 1  }) //
 //        , nTuple<3, size_t>( { 17, 1, 1 }) //
 //        , nTuple<3, size_t>( { 1, 17, 1 }) //
 //        , nTuple<3, size_t>( { 1, 1, 10 }) //

@@ -44,12 +44,9 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 	for (auto const & item : g_array.send_recv_)
 	{
 
-		auto t_cell = pool->GetCell();
+		auto t_cell = pool->CreateBuffer();
 
 		pool->Remove(pool->Select(item.send_start, item.send_count), &t_cell);
-
-		CHECK(pool->Select(item.send_start, item.send_count).size());
-		CHECK(t_cell.size());
 
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
 
@@ -69,7 +66,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 		// attributes of the incoming message. Get the size of the message
 		int number = 0;
 		MPI_Get_count(&status, dtype.type(), &number);
-		CHECK(number);
+
 		buffer[count].resize(number);
 
 		MPI_Irecv(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.recv_tag, comm,
@@ -79,7 +76,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 
 	MPI_Waitall(num_of_neighbour, requests, MPI_STATUSES_IGNORE);
 
-	auto cell_buffer = pool->GetCell();
+	auto cell_buffer = pool->CreateBuffer();
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
 		std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
