@@ -84,7 +84,7 @@ public:
 	{
 		Read(fname);
 	}
-	void Save(std::ostream & os = std::cout) const;
+	std::string Save(std::string const & path) const;
 
 	void Read(std::string const &fname);
 

@@ -173,7 +173,7 @@ void DataStream::OpenFile(std::string const &fname)
 		RUNTIME_ERROR("Create HDF5 file " + filename_ + " failed!");
 	}
 
-	OpenGroup("");
+	OpenGroup("/");
 }
 
 void DataStream::CloseGroup()
@@ -230,7 +230,7 @@ bool is_append
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
-
+	hsize_t g_start[rank + type_rank + 1];
 	hsize_t g_shape[rank + type_rank + 1];
 	hsize_t f_start[rank + type_rank + 1];
 	hsize_t m_shape[rank + type_rank + 1];
@@ -239,12 +239,14 @@ bool is_append
 
 	for (int i = 0; i < rank; ++i)
 	{
-
-		g_shape[i] = p_global_count[i];
-		f_start[i] = p_local_inner_start[i] - p_global_start[i];
-		m_shape[i] = p_local_outer_count[i];
-		m_start[i] = p_local_inner_start[i] - p_local_outer_start[i];
-		m_count[i] = p_local_inner_count[i];
+		g_start[i] = (p_global_start != nullptr) ? p_global_start[i] : 0;
+		g_shape[i] = (p_global_count != nullptr) ? p_global_count[i] : 1;
+		f_start[i] = (p_local_inner_start != nullptr) ? (p_local_inner_start[i] - g_start[i]) : 0;
+		m_shape[i] = (p_local_outer_count != nullptr) ? p_local_outer_count[i] : g_shape[i];
+		m_start[i] =
+		        (p_local_inner_start != nullptr && p_local_outer_start != nullptr) ?
+		                (p_local_inner_start[i] - p_local_outer_start[i]) : 0;
+		m_count[i] = (p_local_inner_count != nullptr) ? p_local_inner_count[i] : g_shape[i];
 	}
 
 	if (type_rank > 0)

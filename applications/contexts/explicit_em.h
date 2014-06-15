@@ -167,6 +167,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		{
 
 			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+			geqdsk.Save("/Geqdsk");
 
 			nTuple<3, Real> xmin, xmax;
 
@@ -182,8 +183,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			model_.Add("Plasma", geqdsk.Boundary());
 			model_.Add("Vacuum", geqdsk.Limiter());
 			model_.Update();
-
-			geqdsk.Save(std::cout);
 
 			B.Clear();
 
@@ -213,6 +212,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
+			LOGGER << "GFile is loaded!" << std::endl;
+
+			GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
 			LOGGER << simpla::Save("ne", ne0);
 			LOGGER << simpla::Save("Te", Te0);
 			LOGGER << simpla::Save("Ti", Ti0);

@@ -103,6 +103,7 @@ void GEqdsk::Read(std::string const &fname)
 	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
+
 	rzbbb_.resize(nbbbs);
 	rzlim_.resize(limitr);
 	inFileStream_ >> std::setw(16) >> rzbbb_;
@@ -156,22 +157,22 @@ void GEqdsk::ReadProfile(std::string const &fname)
 	}
 }
 
-void GEqdsk::Save(std::ostream & os) const
+std::string GEqdsk::Save(std::string const & path) const
 {
-	os << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
+	GLOBAL_DATA_STREAM.OpenGroup(path);
 
-	size_t num = rzbbb_.size();
+	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
 
-	os << simpla::Save("rzbbb", &rzbbb_[0], 1, nullptr, &num) << std::endl;
+	CHECK(rzbbb_.size());
+	LOGGER << simpla::Save("rzbbb", rzbbb_ ) << std::endl;
 
-	num = rzlim_.size();
-
-	os << simpla::Save("rzlim", rzlim_) << std::endl;
+	LOGGER << simpla::Save("rzlim", rzlim_) << std::endl;
 
 	for (auto const & p : profile_)
 	{
-		os << simpla::Save(p.first, p.second.data()) << std::endl;
+		LOGGER << simpla::Save(p.first, p.second.data()) << std::endl;
 	}
+	return path;
 }
 std::ostream & GEqdsk::Print(std::ostream & os)
 {

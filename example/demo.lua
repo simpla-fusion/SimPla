@@ -30,7 +30,7 @@ rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 256
-NY = 1
+NY = 256
 NZ = 1
 LX = 10 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
@@ -99,18 +99,20 @@ Grid=
 	dt= 0.5*LX/NX/c -- time step
 }
 
---[[
+ 
 Model=
 {
-{Type="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
-{Type="Plasma",
-Select=function(x,y,z)
-return x>1.0 and x<2.0
-end
-,Op="Set"},
+	{Type="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+
+	{Type="Plasma",
+	Select=function(x,y,z)
+	return x>1.0 and x<2.0
+	end
+	,Op="Set"},
 }
---]]
+ 
 
 FieldSolver=
 {
@@ -185,8 +187,8 @@ ParticleConstraints=
 
 ---[[
 Particles={
-	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
-		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+--	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,

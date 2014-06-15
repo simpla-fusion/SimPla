@@ -7,10 +7,8 @@
 
 #ifndef KSP_CG_H_
 #define KSP_CG_H_
-#include "include/simpla_defs.h"
 #include "fetl/fetl.h"
 #include "utilities/log.h"
-#include "engine/solver.h"
 #include <iostream>
 
 namespace simpla
@@ -18,9 +16,9 @@ namespace simpla
 namespace linear_solver
 {
 
-template<typename TG1, typename TG2, typename F1, typename F3> //
-void ksp_cg(Field<TG1, F1> const & Ax, Field<TG2, F3> & x,
-		size_t max_iterative_num = 1000, double residual = 1.0e-10)
+template<typename TM, int IFORM, typename F1, typename F3> //
+void ksp_cg(Field<TM, IFORM, F1> const & Ax, Field<TM, IFORM, F3> & x, size_t max_iterative_num = 1000,
+        double residual = 1.0e-10)
 {
 //	if (!CheckEquationHasVariable(Ax, x_))
 //	{
@@ -29,9 +27,9 @@ void ksp_cg(Field<TG1, F1> const & Ax, Field<TG2, F3> & x,
 
 	typedef decltype(x[0]) ValueType;
 
-	typename Field<TG1, F1>::Mesh const * mesh = x.mesh;
+	typename Field<TM, IFORM, F1>::Mesh const & mesh = x.mesh;
 
-	Field<TG1, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
+	Field<TM, IFORM, F3> r(mesh), Ap(mesh), p(mesh), b(mesh);
 
 	INFORM << "KSP_CG Solver: Start";
 

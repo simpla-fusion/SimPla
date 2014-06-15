@@ -191,11 +191,11 @@ operator<<(std::ostream& os, std::map<T1, T2>const & p)
 template<typename TV, typename ...Others> std::istream&
 operator>>(std::istream& is, std::vector<TV, Others...> & a)
 {
-//	for (auto & v : a)
-//	{
-//		is >> v;
-//	}
-	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
+	for (auto & v : a)
+	{
+		is >> v;
+	}
+//	std::copy(std::istream_iterator<TV>(is), std::istream_iterator<TV>(), std::back_inserter(a));
 	return is;
 
 }

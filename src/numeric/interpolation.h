@@ -7,7 +7,6 @@
 
 #ifndef INTERPOLATION_H_
 #define INTERPOLATION_H_
-#include "../simpla_defs.h"
 #include "../utilities/log.h"
 #include "../utilities/ntuple.h"
 #include <vector>

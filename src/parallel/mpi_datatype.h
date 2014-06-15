@@ -91,9 +91,9 @@ struct MPIDataType
 			: is_commited_(_impl::GetMPIType<T>(&type_))
 	{
 	}
-	template<int NDIMS>
-	MPIDataType(nTuple<NDIMS, size_t> const &outer, nTuple<NDIMS, size_t> const &inner,
-	        nTuple<NDIMS, size_t> const &start, int array_order_ =
+	template<int NDIMS, typename TI>
+	MPIDataType(nTuple<NDIMS, TI> const &outer, nTuple<NDIMS, TI> const &inner, nTuple<NDIMS, TI> const &start,
+	        int array_order_ =
 	        MPI_ORDER_C)
 	{
 

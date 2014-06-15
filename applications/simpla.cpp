@@ -133,7 +133,10 @@ int main(int argc, char **argv)
 
 	);
 
-	if(!GLOBAL_DATA_STREAM.IsOpened()) GLOBAL_DATA_STREAM.OpenFile("./");
+	if(!GLOBAL_DATA_STREAM.IsOpened())
+	{
+		GLOBAL_DATA_STREAM.OpenFile("./");
+	}
 
 	INFORM << SIMPLA_LOGO;
 
