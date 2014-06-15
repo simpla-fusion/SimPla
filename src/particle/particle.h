@@ -19,24 +19,21 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
-#ifndef NO_RW_CACHE
-#	include "../fetl/field_rw_cache.h"
-#endif //NO_RW_CACHE
+#include "../fetl/field_rw_cache.h"
+#include "../fetl/save_field.h"
+
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/sp_type_traits.h"
 
 #include "../parallel/parallel.h"
+#include "../model/model.h"
 
-#include "../io/data_stream.h"
-
-#include "../fetl/save_field.h"
 #include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
-#include "particle_boundary.h"
 
-#include "../model/model.h"
+#include "particle_boundary.h"
 
 namespace simpla
 {

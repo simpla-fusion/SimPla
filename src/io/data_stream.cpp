@@ -14,6 +14,7 @@ extern "C"
 #include "hdf5_datatype.h"
 #include "data_stream.h"
 #include "../parallel/parallel.h"
+#include "../parallel/mpi_datatype.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 

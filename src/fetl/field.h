@@ -16,11 +16,13 @@
 #include <utility>
 #include <mutex>
 
-#include "../parallel/parallel.h"
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 #include "../utilities/range.h"
+
+#include "../parallel/parallel.h"
 #include "../utilities/iterator_mapped.h"
+#include "field_update_ghosts.h"
 
 namespace simpla
 {
