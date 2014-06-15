@@ -159,7 +159,7 @@ template<typename TM>
 Range<FilterIterator<std::function<bool(typename TM::iterator::value_type const &)>, typename TM::iterator>> Filter(
         typename TM::range_type range, TM const &mesh, nTuple<3, Real> x)
 {
-	auto dest = *mesh.CoordinatesGlobalToLocal(&x);
+	auto dest = mesh.CoordinatesGlobalToLocal(&x);
 
 	std::function<bool(typename TM::iterator::value_type const &)> pred =
 	        [dest,&mesh](typename TM::iterator::value_type const &s )->bool

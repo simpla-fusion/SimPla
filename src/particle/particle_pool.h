@@ -51,7 +51,9 @@ public:
 
 	typedef cell_type buffer_type;
 
-	typedef std::map<mesh_iterator, cell_type> container_type;
+	typedef typename mesh_type::compact_index_type key_type;
+
+	typedef std::map<key_type, cell_type> container_type;
 
 	typedef typename cell_type::allocator_type allocator_type;
 
@@ -101,7 +103,7 @@ public:
 		return std::move(cell_type(allocator_));
 	}
 
-	cell_type & GetCell(container_type * c, mesh_iterator s)
+	cell_type & GetCell(container_type * c, key_type s)
 	{
 		auto it = c->find(s);
 
@@ -113,19 +115,19 @@ public:
 		return it->second;
 	}
 
-	cell_type & operator[](mesh_iterator s)
+	cell_type & operator[](key_type s)
 	{
 		return GetCell(&data_, s);
 	}
-	cell_type const & operator[](mesh_iterator s) const
+	cell_type const & operator[](key_type s) const
 	{
 		return data_.at(s);
 	}
-	cell_type &at(mesh_iterator s)
+	cell_type &at(key_type s)
 	{
 		return data_.at(s);
 	}
-	cell_type const & at(mesh_iterator s) const
+	cell_type const & at(key_type s) const
 	{
 		return data_.at(s);
 	}
@@ -213,7 +215,7 @@ private:
 };
 
 /***
- * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<mesh_iterator,std::list<allocator> > !!
+ * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
  */
 template<typename TM, typename TParticle>
 ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh)
@@ -260,7 +262,7 @@ void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 		auto p = pt;
 		++pt;
 
-		mesh_iterator id_dest = mesh.CoordinatesGlobalToLocal(&(p->x), shift);
+		key_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x), shift);
 
 		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
 		auto & dest = GetCell(p_dest_contianer, id_dest);
@@ -401,7 +403,7 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //				typename container_type::iterator>::type cell_iterator;
 //
 //		container_reference data_;
-//		mesh_iterator m_it_, m_ie_;
+//		key_type m_it_, m_ie_;
 //		cell_iterator c_it_;
 //
 //		cell_iterator_(container_reference data, mesh_iterator m_ib, mesh_iterator m_ie) :

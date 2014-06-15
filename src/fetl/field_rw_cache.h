@@ -136,11 +136,13 @@ private:
 	}
 public:
 
-	inline value_type get(iterator const &s) const
+	template<typename TI>
+	inline value_type get(TI s) const
 	{
 		return f_.get(s);
 	}
-	inline value_type& get(iterator const &s)
+	template<typename TI>
+	inline value_type& get(TI s)
 	{
 		return f_.get(s);
 	}
@@ -256,11 +258,15 @@ public:
 			is_fresh_ = true;
 		}
 	}
-	inline value_type get(iterator const &s) const
+
+	template<typename TI>
+	inline value_type get(TI s) const
 	{
 		return f_->get(s);
 	}
-	inline value_type& get(iterator const &s)
+
+	template<typename TI>
+	inline value_type& get(TI s)
 	{
 		return f_->get(s);
 	}

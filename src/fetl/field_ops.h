@@ -394,11 +394,11 @@ public:
 			: mesh(l.mesh), l_(l)
 	{
 	}
-
-	inline auto get(iterator s) const
+	template<typename TI>
+	inline auto get(TI s) const
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
-
-	inline auto operator[](iterator s) const
+	template<typename TI>
+	inline auto operator[](TI s) const
 	DECL_RET_TYPE((this->get(s)))
 
 };
@@ -425,10 +425,11 @@ public:
 	{
 	}
 
-	inline auto get(iterator s) const
+	template<typename TI>
+	inline auto get(TI s) const
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
-
-	inline auto operator[](iterator s) const
+	template<typename TI>
+	inline auto operator[](TI s) const
 	DECL_RET_TYPE( (this->get(s)) )
 
 private:

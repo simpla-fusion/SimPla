@@ -54,7 +54,9 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename mesh_type::iterator index_type;
+	typedef typename mesh_type::index_type index_type;
+
+	typedef typename mesh_type::iterator mesh_iterator;
 
 	typedef std::shared_ptr<value_type> container_type;
 
@@ -160,16 +162,25 @@ public:
 	inline value_type & at(index_type s)
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR(ToString((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_));
-
+			OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
 	inline value_type const & at(index_type s) const
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR(ToString((mesh.Decompact(s.self_) >> mesh.D_FP_POS) - mesh.local_outer_start_));
+			OUT_RANGE_ERROR(mesh.Decompact(s));
 
+		return get(s);
+	}
+
+	inline value_type & operator[](index_type s)
+	{
+		return get(s);
+	}
+
+	inline value_type const & operator[](index_type s) const
+	{
 		return get(s);
 	}
 
@@ -184,15 +195,6 @@ public:
 		return *(data_.get() + mesh.Hash(s));
 	}
 
-	inline value_type & operator[](index_type s)
-	{
-		return get(s);
-	}
-
-	inline value_type const & operator[](index_type s) const
-	{
-		return get(s);
-	}
 	template<typename ... Args>
 	auto Select()
 	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
@@ -219,9 +221,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,default_value](index_type s)
+		[this,default_value](mesh_iterator const & s)
 		{
-			this->get(s) = default_value;
+			this->get(*s) = default_value;
 		}
 
 		);
@@ -243,9 +245,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](index_type s)
+		[this,&rhs](mesh_iterator const & s)
 		{
-			this->get(s) = rhs.get(s);
+			this->get(*s) = rhs.get(*s);
 		}
 
 		);
@@ -259,9 +261,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](index_type s)
+		[this,&rhs](mesh_iterator const & s)
 		{
-			this->get(s) = rhs.get(s);
+			this->get(*s) = rhs.get(*s);
 		}
 
 		);

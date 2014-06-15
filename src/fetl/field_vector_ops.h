@@ -100,13 +100,13 @@ public:
 			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}
-
-	inline auto get(iterator s) const->decltype( Cross(l_.get(s) , r_.get(s)) )
+	template<typename TI>
+	inline auto get(TI s) const->decltype( Cross(l_.get(s) , r_.get(s)) )
 	{
 		return (Cross(l_.get(s), r_.get(s)));
 	}
-
-	inline auto operator[](iterator s) const
+	template<typename TI>
+	inline auto operator[](TI s) const
 	DECL_RET_TYPE( (get(s)) )
 
 }
@@ -134,13 +134,13 @@ public:
 			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}
-
-	inline auto get(iterator s) const->decltype( Dot(l_.get(s) , r_.get(s)) )
+	template<typename TI>
+	inline auto get(TI s) const->decltype( Dot(l_.get(s) , r_.get(s)) )
 	{
 		return Dot(l_.get(s), r_.get(s));
 	}
-
-	inline auto operator[](iterator s) const
+	template<typename TI>
+	inline auto operator[](TI s) const
 	DECL_RET_TYPE( (get(s)) )
 
 }

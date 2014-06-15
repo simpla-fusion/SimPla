@@ -99,12 +99,19 @@ TEST_P(TestParticle,Add)
 
 	auto extent = mesh.GetExtents();
 
+	CHECK(mesh.local_outer_start_);
+	CHECK(mesh.global_start_ << mesh.D_FP_POS);
+	CHECK(mesh.global_count_ << mesh.D_FP_POS);
+
 	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extent.first, extent.second);
 	std::mt19937 rnd_gen(mesh_type::GetNumOfDimensions());
 
 	nTuple<3, Real> v = { 0, 0, 0 };
 	nTuple<3, Real> x = { 0, 0, 0 };
+
 	int pic = (GLOBAL_COMM.GetRank() +1)*10;
+
+	x = extent.first;
 
 	for (auto s : mesh.Select(VERTEX))
 	{
@@ -120,20 +127,26 @@ TEST_P(TestParticle,Add)
 	}
 
 	p.Add(&buffer);
+
+	EXPECT_EQ(p.size(), mesh.GetLocalMemorySize(VERTEX, pic));
+
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+
+	p.Remove(p.Select(mesh.local_outer_start_, mesh.local_outer_count_));
+
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+
 	INFORM << "Add particle DONE " << p.size() << std::endl;
 
-	nTuple<3, size_t> start = { 0, 0, 0 };
-	nTuple<3, size_t> count;
+	p.Remove(p.Select());
+	CHECK(p.data().size());
 
-	count = dims / 2;
-
-	p.Remove(p.Select(mesh));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-
-	p.Remove(p.Select(start, dims));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
+	for (auto const & v : p.data())
+	{
+		if (v.second.size() > 0)
+			CHECK((mesh.Decompact(v.first) - (mesh.global_start_ << 4)) >> 4);
+	}
+	EXPECT_EQ(p.size(), 0);
 
 //	UpdateGhosts(&p);
 //	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
@@ -341,7 +354,7 @@ nTuple<3, Real>( { 1.0, 2.0, 3.0 })  //
 
 testing::Values(
 
-nTuple<3, size_t>( { 12, 16, 10 }) //
+nTuple<3, size_t>( { 10, 10, 1 }) //
         // ,nTuple<3, size_t>( { 1, 1, 1 }) //
         //        , nTuple<3, size_t>( { 17, 1, 1 }) //
         //        , nTuple<3, size_t>( { 1, 17, 1 }) //

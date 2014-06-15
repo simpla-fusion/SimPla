@@ -48,7 +48,7 @@ protected:
 	}
 public:
 	typedef TMesh mesh_type;
-	typedef typename mesh_type::size_type size_type;
+	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::range range;
 	typedef typename mesh_type::iterator iterator;
 	unsigned int NDIMS=TMesh::NDIMS;
@@ -66,7 +66,7 @@ public:
 	{	VERTEX, EDGE, FACE, VOLUME};
 
 	typename TMesh::coordinates_type xmin,xmax;
-	nTuple<TMesh::NDIMS, size_type> dims;
+	nTuple<TMesh::NDIMS, index_type> dims;
 };
 
 TEST_P(TestMesh, ForAll)
@@ -74,7 +74,7 @@ TEST_P(TestMesh, ForAll)
 
 	for (auto const & s : iforms)
 	{
-		nTuple<3, size_type> begin = { 0, 0, 0 };
+		nTuple<3, index_type> begin = { 0, 0, 0 };
 
 		range r(s, begin, dims);
 
@@ -113,9 +113,9 @@ TEST_P(TestMesh, Split)
 	for (auto const & s : iforms)
 	{
 
-		nTuple<3, size_type> begin = { 1, 3, 5 };
+		nTuple<3, index_type> begin = { 1, 3, 5 };
 
-		nTuple<3, size_type> count = dims;
+		nTuple<3, index_type> count = dims;
 
 		range r(s, begin, count);
 
@@ -126,11 +126,8 @@ TEST_P(TestMesh, Split)
 		for (int sub = 0; sub < total; ++sub)
 			for (auto a : r.Split(total, sub))
 			{
-				CHECK(data.size());
 				data.push_back(sub);
 			}
-
-		CHECK(data);
 
 		size_t size = 1;
 
@@ -189,13 +186,13 @@ TEST_P(TestMesh, coordinates)
 		if (dims[i] <= 1 || xmax[i] <= xmin[i])
 			x[i] = xmin[i];
 	}
-	EXPECT_EQ(mesh.GetCoordinates(range0.rbegin()), x);
+	EXPECT_EQ(x, mesh.GetCoordinates(*range0.rbegin()));
 
-	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()) * mesh.Volume(range3.begin()),
-	        mesh.Volume(range1.begin()) * mesh.Volume(range2.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(*range0.begin()) * mesh.Volume(*range3.begin()),
+	        mesh.Volume(*range1.begin()) * mesh.Volume(*range2.begin()));
 
-	EXPECT_DOUBLE_EQ(mesh.Volume(range0.begin()), mesh.DualVolume(range3.begin()));
-	EXPECT_DOUBLE_EQ(mesh.Volume(range1.begin()), mesh.DualVolume(range2.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(*range0.begin()), mesh.DualVolume(*range3.begin()));
+	EXPECT_DOUBLE_EQ(mesh.Volume(*range1.begin()), mesh.DualVolume(*range2.begin()));
 
 	it = range1.begin();
 	EXPECT_EQ(mesh.ComponentNum(it.self_), 0);
@@ -212,24 +209,27 @@ TEST_P(TestMesh, coordinates)
 
 }
 
-//TEST_P(TestMesh, local_coordinates_test)
-//{
-//	typename mesh_type::coordinates_type x, z;
+TEST_P(TestMesh, select )
+{
+	auto r = mesh.Select(VERTEX);
+	size_t count = 0;
+	for (auto a : r)
+	{
+		++count;
+	}
+	CHECK(count);
+	EXPECT_EQ(count, dims[0] * dims[1] * dims[2]);
+//	auto extent = mesh.GetExtents();
+//	auto xmin = extent.first;
+//	auto xmax = extent.second;
 //
-//	x = (xmax - xmin) * 0.5123 + xmin;
+//	nTuple<3, size_t> start = { 0, 0, 0 };
+//	CHECK(dims);
 //
-//	auto idx = mesh.CoordinatesGlobalToLocal(&z);
-//	auto y = mesh.CoordinatesLocalToGlobal(idx, z);
-//
-//	for (int i = 0; i < NDIMS; ++i)
-//	{
-//		if (dims[i] <= 1 || xmax[i] <= xmin[i])
-//			x[i] = xmin[i];
-//	}
-//	EXPECT_LE(abs(z), NDIMS);
-//	EXPECT_LE(abs(y - x), EPSILON) << x << " " << y;
-//
-//}
+//	EXPECT_EQ(mesh.Decompact(*mesh.CoordinatesGlobalToLocal(&xmin)) - (mesh.global_start_ << mesh.D_FP_POS), start);
+//	EXPECT_EQ(mesh.Decompact(*mesh.CoordinatesGlobalToLocal(&xmax)) - (mesh.global_start_ << mesh.D_FP_POS),
+//	        dims << mesh.D_FP_POS);
+}
 
 TEST_P(TestMesh, volume)
 {
@@ -241,26 +241,26 @@ TEST_P(TestMesh, volume)
 	auto range2 = mesh.Select(FACE);
 	auto range3 = mesh.Select(VOLUME);
 
-	auto s = range1.begin();
-	auto X = mesh.topology_type::DeltaIndex(0, s.self_);
-	auto Y = mesh.topology_type::DeltaIndex(1, s.self_);
-	auto Z = mesh.topology_type::DeltaIndex(2, s.self_);
+	auto s = *range1.begin();
+	auto X = mesh.topology_type::DeltaIndex(0, s);
+	auto Y = mesh.topology_type::DeltaIndex(1, s);
+	auto Z = mesh.topology_type::DeltaIndex(2, s);
 
-	CHECK(mesh.geometry_type::Volume(s));
-	CHECK(mesh.geometry_type::Volume(s + X));
-	CHECK(mesh.geometry_type::Volume(s - X));
-	CHECK(mesh.geometry_type::Volume(s + Y));
-	CHECK(mesh.geometry_type::Volume(s - Y));
-	CHECK(mesh.geometry_type::Volume(s + Z));
-	CHECK(mesh.geometry_type::Volume(s - Z));
-
-	CHECK(mesh.geometry_type::DualVolume(s));
-	CHECK(mesh.geometry_type::DualVolume(s + X));
-	CHECK(mesh.geometry_type::DualVolume(s - X));
-	CHECK(mesh.geometry_type::DualVolume(s + Y));
-	CHECK(mesh.geometry_type::DualVolume(s - Y));
-	CHECK(mesh.geometry_type::DualVolume(s + Z));
-	CHECK(mesh.geometry_type::DualVolume(s - Z));
+//	CHECK(mesh.geometry_type::Volume(s));
+//	CHECK(mesh.geometry_type::Volume(s + X));
+//	CHECK(mesh.geometry_type::Volume(s - X));
+//	CHECK(mesh.geometry_type::Volume(s + Y));
+//	CHECK(mesh.geometry_type::Volume(s - Y));
+//	CHECK(mesh.geometry_type::Volume(s + Z));
+//	CHECK(mesh.geometry_type::Volume(s - Z));
+//
+//	CHECK(mesh.geometry_type::DualVolume(s));
+//	CHECK(mesh.geometry_type::DualVolume(s + X));
+//	CHECK(mesh.geometry_type::DualVolume(s - X));
+//	CHECK(mesh.geometry_type::DualVolume(s + Y));
+//	CHECK(mesh.geometry_type::DualVolume(s - Y));
+//	CHECK(mesh.geometry_type::DualVolume(s + Z));
+//	CHECK(mesh.geometry_type::DualVolume(s - Z));
 
 }
 TEST_P(TestMesh, traversal)

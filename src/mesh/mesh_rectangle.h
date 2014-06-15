@@ -41,7 +41,7 @@ public:
 	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::iterator index_type;
+	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 
 	Mesh()
@@ -129,7 +129,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, VERTEX, TL> const & f,
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
-		auto D = topology_type::DeltaIndex(s.self_);
+		auto D = topology_type::DeltaIndex(s);
 
 		return (f[s + D] - f[s - D]) * geometry_type::InvVolume(s);
 	}
@@ -137,7 +137,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -157,9 +157,9 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, FACE, TL> const & f,
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return (
 
@@ -187,9 +187,9 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, EDGE, TL> const & f,
 	        index_type s) const->decltype(f[s]-f[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return
 
@@ -214,7 +214,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
-		auto X = topology_type::DeltaIndex(s.self_);
+		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -236,7 +236,7 @@ public:
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, VOLUME, TL> const & f,
 	        index_type s) const-> decltype(f[s]-f[s])
 	{
-		auto d = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto d = topology_type::DeltaIndex(topology_type::Dual(s));
 		return
 
 		-(
@@ -260,7 +260,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
 	        Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(s.self_);
+		auto X = topology_type::DeltaIndex(s);
 
 		return (l[s - X] + l[s + X]) * 0.5 * r[s];
 	}
@@ -268,7 +268,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
 	        Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -288,9 +288,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
 	        Field<this_type, VOLUME, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return (
 
@@ -316,15 +316,15 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
 	        Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(s.self_);
+		auto X = topology_type::DeltaIndex(s);
 		return l[s] * (r[s - X] + r[s + X]) * 0.5;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
 	        Field<this_type, EDGE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s.self_)));
-		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s.self_)));
+		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
+		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
 
 		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
 	}
@@ -332,9 +332,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
 	        Field<this_type, FACE, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return
 
@@ -348,8 +348,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &l,
 	        Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s.self_)));
-		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s.self_)));
+		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
+		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
 
 		return l[s] * (r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * 0.25;
 	}
@@ -357,9 +357,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &r,
 	        Field<this_type, EDGE, TR> const &l, index_type s) const ->decltype(l[s]*r[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return
 
@@ -373,9 +373,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VOLUME, TL> const &l,
 	        Field<this_type, VERTEX, TR> const &r, index_type s) const ->decltype(r[s]*l[s])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return
 
@@ -405,9 +405,9 @@ public:
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<this_type, IL, TL> const & f,
 	        index_type s) const-> decltype(f[s]*1.0)
 	{
-//		auto X = topology_type::DeltaIndex(0,s.self_);
-//		auto Y = topology_type::DeltaIndex(1,s.self_);
-//		auto Z =topology_type::DeltaIndex(2,s.self_);
+//		auto X = topology_type::DeltaIndex(0,s);
+//		auto Y = topology_type::DeltaIndex(1,s);
+//		auto Z =topology_type::DeltaIndex(2,s);
 //
 //		return
 //
@@ -440,9 +440,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, EDGE, TL> const & f, index_type s) const->decltype(f[s]*v[0])
 	{
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return
 
@@ -456,9 +456,9 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, FACE, TL> const & f, index_type s) const->decltype(f[s]*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(s.self_);
+		unsigned int n = topology_type::ComponentNum(s);
 
-		auto X = topology_type::DeltaIndex(s.self_);
+		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 		return
@@ -471,8 +471,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, VOLUME, TL> const & f, index_type s) const->decltype(f[s]*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s.self_));
-		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
+		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
 
 		return (f[s + D] - f[s - D]) * 0.5 * v[n];
 	}
@@ -485,7 +485,7 @@ public:
 	        Int2Type<N>, index_type s) const-> decltype(f[s]-f[s])
 	{
 
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -499,7 +499,7 @@ public:
 	        Int2Type<N>, index_type s) const-> decltype(f[s]-f[s])
 	{
 
-		auto X = topology_type::DeltaIndex(s.self_);
+		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -526,9 +526,9 @@ public:
 	        Field<this_type, EDGE, TR> const & f, index_type s) const->nTuple<3,decltype(f[s]*1.0)>
 	{
 
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return nTuple<3, decltype(f[s]*1.0)>(
 		        { (f[s - X] + f[s + X]) * 0.5, (f[s - Y] + f[s + Y]) * 0.5, (f[s - Z] + f[s + Z]) * 0.5 });
@@ -538,8 +538,8 @@ public:
 	        Field<this_type, VERTEX, TR> const & f, index_type s) const->decltype(f[s][0]*1.0)
 	{
 
-		auto n = topology_type::ComponentNum(s.self_);
-		auto D = topology_type::DeltaIndex(s.self_);
+		auto n = topology_type::ComponentNum(s);
+		auto D = topology_type::DeltaIndex(s);
 
 		return ((f[s - D][n] + f[s + D][n]) * 0.5);
 	}
@@ -548,9 +548,9 @@ public:
 	        Field<this_type, FACE, TR> const & f, index_type s) const->nTuple<3,decltype(f[s]*1.0)>
 	{
 
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return nTuple<3, decltype(f[s]*1.0)>( { (
 
@@ -595,8 +595,8 @@ public:
 	        Field<this_type, VERTEX, TR> const & f, index_type s) const->decltype(f[s][0]*1.0)
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s.self_));
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto n = topology_type::ComponentNum(topology_type::Dual(s));
+		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 
@@ -621,9 +621,9 @@ public:
 	        index_type s) const->nTuple<3,decltype(f[s]*1.0)>
 	{
 
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return nTuple<3, decltype(f[s]*1.0)>( { (f[s - X] + f[s + X]) * 0.5,
 
@@ -636,8 +636,8 @@ public:
 	        index_type s) const->decltype(f[s][0]*1.0)
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s.self_));
-		auto D = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto n = topology_type::ComponentNum(topology_type::Dual(s));
+		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
 
 		return ((f[s - D][n] + f[s + D][n]) * 0.5);
 	}
@@ -646,9 +646,9 @@ public:
 	        index_type s) const->nTuple<3,decltype(f[s]*1.0)>
 	{
 
-		auto X = topology_type::DeltaIndex(0, s.self_);
-		auto Y = topology_type::DeltaIndex(1, s.self_);
-		auto Z = topology_type::DeltaIndex(2, s.self_);
+		auto X = topology_type::DeltaIndex(0, s);
+		auto Y = topology_type::DeltaIndex(1, s);
+		auto Z = topology_type::DeltaIndex(2, s);
 
 		return nTuple<3, decltype(f[s]*1.0)>( { (
 
@@ -693,8 +693,8 @@ public:
 	        index_type s) const->decltype(f[s][0]*1.0)
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s.self_));
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s.self_));
+		auto n = topology_type::ComponentNum(topology_type::Dual(s));
+		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
 		auto Z = topology_type::InverseRoate(X);
 		return (

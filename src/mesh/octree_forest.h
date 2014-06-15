@@ -33,9 +33,9 @@ struct OcForest
 	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr int NDIMS = 3;
 
-	typedef unsigned long size_type;
+	typedef long index_type;
 
-	typedef size_type compact_index_type;
+	typedef unsigned long compact_index_type;
 
 	struct iterator;
 
@@ -54,13 +54,18 @@ struct OcForest
 
 	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
 
-	static constexpr size_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
-	static constexpr size_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
-	static constexpr size_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
+	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
+	static constexpr index_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
+	static constexpr index_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
 	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
-	static constexpr size_type INDEX_ZERO = ((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS;
-	static constexpr Real R_INDEX_ZERO = static_cast<Real>(INDEX_ZERO);
+	static constexpr index_type INDEX_ZERO = (((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1));
+
+	static constexpr index_type COMPACT_INDEX_ZERO = (INDEX_ZERO << D_FP_POS);
+
+	static constexpr index_type FP_POS = 1UL << D_FP_POS;
+
+	static constexpr Real R_INV_FP_POS = 1.0 / static_cast<Real>(FP_POS);
 
 	nTuple<NDIMS, Real> R_INV_DX;
 	nTuple<NDIMS, Real> R_DX;
@@ -109,31 +114,41 @@ struct OcForest
 	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
 	static constexpr compact_index_type _MRK = _MK & (~_MTK);
 
-	static compact_index_type Compact(nTuple<NDIMS, size_type> const & idx)
+	static compact_index_type Compact(nTuple<NDIMS, index_type> const & idx, compact_index_type shift = 0UL)
 	{
 		return
 
-		(((idx[0]) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+		((static_cast<compact_index_type>(idx[0] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
 
-		(((idx[1]) & INDEX_MASK) << (INDEX_DIGITS)) |
+		((static_cast<compact_index_type>(idx[1] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS)) |
 
-		(((idx[2]) & INDEX_MASK));
+		((static_cast<compact_index_type>(idx[2] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK)) |
+
+		shift;
 	}
-	static nTuple<NDIMS, size_type> Decompact(compact_index_type s)
+	static nTuple<NDIMS, index_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, size_type>( {
+		return nTuple<NDIMS, index_type>( {
 
-		((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
+		static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) - COMPACT_INDEX_ZERO,
 
-		((s >> (INDEX_DIGITS)) & INDEX_MASK),
+		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK) - COMPACT_INDEX_ZERO,
 
-		(s & INDEX_MASK)
+		static_cast<index_type>(s & INDEX_MASK) - COMPACT_INDEX_ZERO
 
 		});
 	}
-	static nTuple<NDIMS, size_type> DecompactRoot(compact_index_type s)
+	static nTuple<NDIMS, index_type> DecompactRoot(compact_index_type s)
 	{
-		return (Decompact(s) - (((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1) << D_FP_POS)) >> D_FP_POS;
+		return nTuple<NDIMS, index_type>( {
+
+		static_cast<index_type>((s >> (INDEX_DIGITS * 2 + D_FP_POS)) & INDEX_MASK) - INDEX_ZERO,
+
+		static_cast<index_type>((s >> (INDEX_DIGITS + D_FP_POS)) & INDEX_MASK) - INDEX_ZERO,
+
+		static_cast<index_type>((s >> D_FP_POS) & INDEX_MASK) - INDEX_ZERO
+
+		});
 
 	}
 	//***************************************************************************************************
@@ -172,7 +187,7 @@ struct OcForest
 		try
 		{
 			LOGGER << "Load OcForest ";
-			SetDimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
+			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch(...)
 		{
@@ -203,13 +218,13 @@ struct OcForest
 	//***************************************************************************************************
 	// Local Data Set
 
-	nTuple<NDIMS, size_type> global_start_, global_count_;
+	nTuple<NDIMS, index_type> global_start_, global_count_;
 
-	nTuple<NDIMS, size_type> local_outer_start_, local_outer_count_;
+	nTuple<NDIMS, index_type> local_outer_start_, local_outer_count_;
 
-	nTuple<NDIMS, size_type> local_inner_start_, local_inner_count_;
+	nTuple<NDIMS, index_type> local_inner_start_, local_inner_count_;
 
-	nTuple<NDIMS, size_type> hash_stride_ =
+	nTuple<NDIMS, index_type> hash_stride_ =
 	{	0, 0, 0};
 
 	enum
@@ -241,16 +256,16 @@ struct OcForest
 	{
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			size_type length = d[i] > 0 ? d[i] : 1;
+			index_type length = d[i] > 0 ? d[i] : 1;
 
-			ASSERT(length<INDEX_ZERO );
+			ASSERT(length<COMPACT_INDEX_ZERO );
 
-			global_start_[i] = ((INDEX_ZERO >> D_FP_POS) - length / 2);
+			global_start_[i] = 0;
 			global_count_[i] = length;
 
 			if(global_count_[i] >1)
 			{
-				R_INV_DX[i]=static_cast<Real>(length<<D_FP_POS);
+				R_INV_DX[i]=static_cast<Real>(length );
 				R_DX[i]=1.0/R_INV_DX[i];
 			}
 			else
@@ -302,11 +317,11 @@ struct OcForest
 		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_)<<D_FP_POS;
 	}
 
-	inline size_type Hash(iterator s) const
+	inline index_type Hash(compact_index_type s) const
 	{
-		auto d =( Decompact(s.self_ ) >> D_FP_POS)-local_outer_start_+local_outer_count_;
+		auto d =( Decompact(s ) >> D_FP_POS)-local_outer_start_+local_outer_count_;
 
-		size_type res =
+		index_type res =
 
 		((d[0] )%local_outer_count_[0]) * hash_stride_[0] +
 
@@ -314,7 +329,7 @@ struct OcForest
 
 		((d[2] )%local_outer_count_[2]) * hash_stride_[2];
 
-		switch (NodeId(s.self_))
+		switch (NodeId(s))
 		{
 			case 1:
 			case 6:
@@ -333,32 +348,32 @@ struct OcForest
 		return res;
 	}
 
-	nTuple<NDIMS, size_type> const& GetDimensions() const
+	nTuple<NDIMS, index_type> const& GetDimensions() const
 	{
 		return global_count_;
 	}
 
-	size_type GetNumOfElements(int IFORM = VERTEX) const
+	index_type GetNumOfElements(int IFORM = VERTEX) const
 	{
 		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 
-	nTuple<NDIMS, size_type> const& GetLocalDimensions() const
+	nTuple<NDIMS, index_type> const& GetLocalDimensions() const
 	{
 		return local_outer_count_;
 	}
-	size_type GetLocalNumOfElements(int IFORM = VERTEX) const
+	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
 	{
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
-	size_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
+	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
 	{
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
 	}
-	int GetDataSetShape(int IFORM, size_type * global_start = nullptr, size_type * global_count = nullptr, size_type * local_outer_start = nullptr,
-	size_type * local_outer_count = nullptr, size_type * local_inner_start = nullptr, size_type * local_inner_count = nullptr ) const
+	int GetDataSetShape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
+	size_t * local_outer_count = nullptr, size_t * local_inner_start = nullptr, size_t * local_inner_count = nullptr ) const
 	{
 		int rank = 0;
 
@@ -436,20 +451,20 @@ struct OcForest
 	}
 
 	template<int I>
-	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
-		v[0] = s + DeltaIndex(s.self_);
-		v[1] = s - DeltaIndex(s.self_);
+		v[0] = s + DeltaIndex(s);
+		v[1] = s - DeltaIndex(s);
 		return 2;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -472,8 +487,8 @@ struct OcForest
 		 *
 		 */
 
-		auto di = DeltaIndex(Roate(Dual(s.self_)));
-		auto dj = DeltaIndex(InverseRoate(Dual(s.self_)));
+		auto di = DeltaIndex(Roate(Dual(s)));
+		auto dj = DeltaIndex(InverseRoate(Dual(s)));
 
 		v[0] = s - di - dj;
 		v[1] = s - di - dj;
@@ -483,7 +498,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, iterator const &s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -505,9 +520,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -522,7 +537,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -545,9 +560,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = s + di;
 		v[1] = s - di;
@@ -561,7 +576,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -584,8 +599,8 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto d1 = DeltaIndex(Roate(Dual(s.self_)));
-		auto d2 = DeltaIndex(InverseRoate(Dual(s.self_)));
+		auto d1 = DeltaIndex(Roate(Dual(s)));
+		auto d2 = DeltaIndex(InverseRoate(Dual(s)));
 		v[0] = s - d1;
 		v[1] = s + d1;
 		v[2] = s - d2;
@@ -594,7 +609,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -617,9 +632,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -639,7 +654,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -675,9 +690,9 @@ struct OcForest
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -697,7 +712,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -735,8 +750,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = DeltaIndex(Roate((s.self_)));
-		auto d2 = DeltaIndex(InverseRoate((s.self_)));
+		auto d1 = DeltaIndex(Roate((s)));
+		auto d2 = DeltaIndex(InverseRoate((s)));
 
 		v[0] = s - d1;
 		v[1] = s + d1;
@@ -746,7 +761,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -770,9 +785,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = s - di;
 		v[1] = s + di;
@@ -786,7 +801,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -823,9 +838,9 @@ struct OcForest
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s.self_) + 1);
-		auto dj = _DJ >> (HeightOfTree(s.self_) + 1);
-		auto dk = _DK >> (HeightOfTree(s.self_) + 1);
+		auto di = _DI >> (HeightOfTree(s) + 1);
+		auto dj = _DJ >> (HeightOfTree(s) + 1);
+		auto dk = _DK >> (HeightOfTree(s) + 1);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -840,7 +855,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -878,8 +893,8 @@ struct OcForest
 		 *
 		 */
 
-		auto d1 = DeltaIndex(Roate((s.self_)));
-		auto d2 = DeltaIndex(InverseRoate((s.self_)));
+		auto d1 = DeltaIndex(Roate((s)));
+		auto d2 = DeltaIndex(InverseRoate((s)));
 
 		v[0] = s - d1 - d2;
 		v[1] = s + d1 - d2;
@@ -888,7 +903,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, iterator s, iterator *v) const
+	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -912,7 +927,7 @@ struct OcForest
 		 *
 		 */
 
-		auto d = DeltaIndex(Dual(s.self_));
+		auto d = DeltaIndex(Dual(s));
 		v[0] = s + d;
 		v[1] = s - d;
 
@@ -988,7 +1003,7 @@ struct OcForest
 		return (r & (_DA >> (HeightOfTree(r) + 1)));
 	}
 
-	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r =0UL)
+	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
 	{
 		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1));
 	}
@@ -1006,9 +1021,9 @@ struct OcForest
 	 * @param s
 	 * @return
 	 */
-	static size_type ComponentNum(compact_index_type r)
+	static index_type ComponentNum(compact_index_type r)
 	{
-		size_type res = 0;
+		index_type res = 0;
 		switch (NodeId(r))
 		{
 			case 1:
@@ -1027,9 +1042,9 @@ struct OcForest
 		return res;
 	}
 
-	static size_type IForm(compact_index_type r)
+	static index_type IForm(compact_index_type r)
 	{
-		size_type res = 0;
+		index_type res = 0;
 		switch (NodeId(r))
 		{
 			case 0:
@@ -1066,7 +1081,7 @@ struct OcForest
 		typedef compact_index_type value_type;
 
 /// Distance between iterators is represented as this type.
-		typedef typename simpla::OcForest::iterator difference_type;
+		typedef index_type difference_type;
 
 /// This type represents a pointer-to-value_type.
 		typedef value_type* pointer;
@@ -1122,7 +1137,7 @@ struct OcForest
 		{
 			if(self_!=end_)
 			{
-				auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
+				auto D = (1UL << (D_FP_POS ));
 
 				self_ += D;
 
@@ -1183,7 +1198,7 @@ struct OcForest
 				NextCell();
 			}
 
-			self_ = OcForest::Roate(self_);
+			self_ = Roate(self_);
 
 			return *this;
 		}
@@ -1230,7 +1245,7 @@ struct OcForest
 		                                                                                           \
 				inline iterator  operator _OP_(compact_index_type const &r) const                 \
 				{   iterator res(*this);                                                                               \
-				   res.self_=(( ( ((self_ _OP_ (r & _MI)) & _MI) |                              \
+				   res=(( ( ((self_ _OP_ (r & _MI)) & _MI) |                              \
 				                     ((self_ _OP_ (r & _MJ)) & _MJ) |                               \
 				                     ((self_ _OP_ (r & _MK)) & _MK)                                 \
 				                        )& (NO_HEAD_FLAG) ));   \
@@ -1249,11 +1264,6 @@ struct OcForest
 		DEF_OP(|)
 #undef DEF_OP
 
-		nTuple<NDIMS,size_type> Decompact()const
-		{
-			return (OcForest::Decompact(self_)>>D_FP_POS)- (OcForest::Decompact(start_)>>D_FP_POS);
-		}
-
 	}; // class iterator
 
 	struct range
@@ -1262,9 +1272,9 @@ struct OcForest
 		typedef typename OcForest::iterator iterator;
 		typedef iterator value_type;
 
-		nTuple<NDIMS, size_type> start_;
+		nTuple<NDIMS, index_type> start_;
 
-		nTuple<NDIMS, size_type> count_;
+		nTuple<NDIMS, index_type> count_;
 
 		unsigned int iform_=VERTEX;
 
@@ -1277,7 +1287,7 @@ struct OcForest
 		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(GetShift(iform))
 		{
 		}
-		range(unsigned int iform,nTuple<NDIMS, size_type> const & start, nTuple<NDIMS, size_type> const& count )
+		range(unsigned int iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
 		: start_(start ), count_(count), iform_(iform),shift_(GetShift(iform))
 		{
 		}
@@ -1288,8 +1298,8 @@ struct OcForest
 
 		iterator begin() const
 		{
-			return iterator((Compact(start_) << D_FP_POS) | shift_, ((Compact(start_) << D_FP_POS) | shift_),
-			((Compact(start_ + count_) << D_FP_POS) | shift_));
+			return iterator((Compact(start_,shift_) ) | shift_, ((Compact(start_) ) | shift_),
+			((Compact(start_ + count_) ) | shift_));
 		}
 		iterator end() const
 		{
@@ -1299,11 +1309,11 @@ struct OcForest
 			{
 				res = iterator(
 
-				(Compact(start_ + count_ - 1) << D_FP_POS) | shift_,
+				(Compact(start_ + count_ - 1) ) | shift_,
 
-				((Compact(start_) << D_FP_POS) | shift_),
+				((Compact(start_) ) | shift_),
 
-				((Compact(start_ + count_) << D_FP_POS) | shift_)
+				((Compact(start_ + count_) ) | shift_)
 
 				);
 				res.NextCell();
@@ -1319,11 +1329,11 @@ struct OcForest
 			{
 				res = iterator(
 
-				(Compact(start_ + count_ ) << D_FP_POS) | shift_,
+				(Compact(start_ + count_ ,shift_) ) ,
 
-				((Compact(start_) << D_FP_POS) | shift_),
+				(Compact(start_,shift_)),
 
-				((Compact(start_ + count_) << D_FP_POS) | shift_)
+				(Compact(start_ + count_,shift_) )
 
 				);
 			}
@@ -1336,17 +1346,17 @@ struct OcForest
 			return res;
 		}
 
-		nTuple<NDIMS, size_type> const& Extents() const
+		nTuple<NDIMS, index_type> const& Extents() const
 		{
 			return count_;
 		}
-		size_type Size() const
+		index_type Size() const
 		{
 			return size();
 		}
-		size_type size() const
+		index_type size() const
 		{
-			size_type n = 1;
+			index_type n = 1;
 
 			for (int i = 0; i < NDIMS; ++i)
 			{
@@ -1357,7 +1367,7 @@ struct OcForest
 		range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
 		{
 			int n=0;
-			size_type L=0;
+			index_type L=0;
 			for (int i = 0; i < NDIMS; ++i)
 			{
 				if(count_[i]>L)
@@ -1367,7 +1377,7 @@ struct OcForest
 				}
 			}
 
-			nTuple<NDIMS,size_type> start,count;
+			nTuple<NDIMS,index_type> start,count;
 
 			count = count_;
 			start = start_;
@@ -1401,7 +1411,7 @@ struct OcForest
 		return Select(iform,start,end-start);
 	}
 
-	range Select( unsigned int iform, nTuple<NDIMS, size_type> start, nTuple<NDIMS, size_type> count)const
+	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
 	{
 		if (Clipping( local_inner_start_, local_inner_count_, &start, &count))
 		{
@@ -1441,22 +1451,23 @@ struct OcForest
 
 	//***************************************************************************************************
 	// Coordinates
-	inline coordinates_type GetCoordinates(iterator const& s) const
+	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
-		auto d = Decompact(s.self_)-(global_start_<<D_FP_POS);
+		auto d = Decompact(s)-(global_start_<<D_FP_POS);
 
 		return coordinates_type(
 		{
-			static_cast<Real>(d[0] )*R_DX[0] ,
-			static_cast<Real>(d[1] )*R_DX[1],
-			static_cast<Real>(d[2] )*R_DX[2] ,
+			static_cast<Real>(d[0] )*R_DX[0]*R_INV_FP_POS ,
+			static_cast<Real>(d[1] )*R_DX[1]*R_INV_FP_POS ,
+			static_cast<Real>(d[2] )*R_DX[2]*R_INV_FP_POS
+
 		});
 	}
 
-	coordinates_type CoordinatesLocalToGlobal(iterator const& s, coordinates_type r) const
+	coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type r) const
 	{
-		auto d = Decompact(s.self_)-(global_start_<<D_FP_POS);
-		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s.self_)));
+		auto d = Decompact(s)-(global_start_<<D_FP_POS);
+		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s)));
 		coordinates_type res;
 
 		for(int i=0;i<NDIMS;++i)
@@ -1466,17 +1477,17 @@ struct OcForest
 		return std::move(res);
 	}
 
-	inline iterator CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
+	inline compact_index_type CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
 
 		return (CoordinatesGlobalToLocal(px, Dual(shift)));
 	}
 
-	inline nTuple<NDIMS,size_type> CoordinatesToIndex(coordinates_type *px, compact_index_type shift = 0UL)const
+	inline nTuple<NDIMS,index_type> CoordinatesToIndex(coordinates_type *px, compact_index_type shift = 0UL)const
 	{
 		auto & x = *px;
 
-		nTuple<NDIMS,size_type> idx;
+		nTuple<NDIMS,index_type> idx;
 
 		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(shift)));
 
@@ -1490,29 +1501,26 @@ struct OcForest
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			x[i]=x[i]*R_INV_DX[i]+static_cast<Real>(global_start_[i]<<D_FP_POS);
-			idx[i]=static_cast<size_type>(x[i]+ h[i])&mask;
+
+			x[i]=x[i]*R_INV_DX[i]; // [0,1) -> [0,N) N is number of grid
+
+			idx[i]=static_cast<index_type>(x[i]+ h[i])&mask;
+
 			x[i]=(x[i]-static_cast<Real>(idx[i]))/dh;
+
+			idx[i]=(idx[i]+global_count_[i]-(global_start_[i]<<D_FP_POS))%global_count_[i]+global_start_[i];
 		}
 		return std::move(idx);
 	}
 
-	inline iterator CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	inline compact_index_type CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
 	{
 
-		return iterator(
-
-		(Compact(CoordinatesToIndex(px, shift)) | shift) ,
-
-		local_outer_start_index_ | shift,
-
-		local_outer_end_index_ | shift
-
-		);
+		return Compact(CoordinatesToIndex(px, shift));
 
 	}
 
-	static Real Volume(iterator s)
+	static Real Volume(compact_index_type s)
 	{
 //		static constexpr double volume_[8][D_FP_POS] =
 //		{
@@ -1534,12 +1542,12 @@ struct OcForest
 //			1, 1.0 / 8, 1.0 / 64, 1.0 / 512// 111
 //
 //		};
-//		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+//		return volume_[NodeId(s)][HeightOfTree(s)];
 
 		return 1.0;
 	}
 
-	static Real InvVolume(iterator s)
+	static Real InvVolume(compact_index_type s)
 	{
 //		static constexpr double inv_volume_[8][D_FP_POS] =
 //		{
@@ -1561,11 +1569,11 @@ struct OcForest
 //			1, 8, 64, 512// 111
 //
 //		};
-//		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+//		return inv_volume_[NodeId(s)][HeightOfTree(s)];
 		return 1.0;
 	}
 
-//	static Real Volume(iterator s)
+//	static Real Volume(compact_index_type s)
 //	{
 //		static constexpr double volume_[8][D_FP_POS] =
 //		{
@@ -1588,10 +1596,10 @@ struct OcForest
 //
 //		};
 //
-//		return volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+//		return volume_[NodeId(s)][HeightOfTree(s)];
 //	}
 //
-//	static Real InvVolume(iterator s)
+//	static Real InvVolume(compact_index_type s)
 //	{
 //		static constexpr double inv_volume_[8][D_FP_POS] =
 //		{
@@ -1614,16 +1622,16 @@ struct OcForest
 //
 //		};
 //
-//		return inv_volume_[NodeId(s.self_)][HeightOfTree(s.self_)];
+//		return inv_volume_[NodeId(s)][HeightOfTree(s)];
 //	}
 
-	static Real InvDualVolume(iterator s)
+	static Real InvDualVolume(compact_index_type s)
 	{
-		return InvVolume(Dual(s.self_));
+		return InvVolume(Dual(s));
 	}
-	static Real DualVolume(iterator s)
+	static Real DualVolume(compact_index_type s)
 	{
-		return Volume(Dual(s.self_));
+		return Volume(Dual(s));
 	}
 	//***************************************************************************************************
 

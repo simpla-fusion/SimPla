@@ -26,8 +26,10 @@ struct EuclideanGeometry: public TTopology
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::iterator index_type;
-	typedef typename topology_type::size_type size_type;
+	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::compact_index_type compact_index_type;
+	typedef typename topology_type::iterator iterator;
+
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
@@ -331,19 +333,24 @@ struct EuclideanGeometry: public TTopology
 		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args const &>(args)...));
 	}
 
-	index_type CoordinatesGlobalToLocal(coordinates_type * px,
+	compact_index_type CoordinatesGlobalToLocal(coordinates_type * px,
 	        typename topology_type::compact_index_type shift = 0UL) const
 	{
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesGlobalToLocal(px, shift);
 	}
-	index_type CoordinatesGlobalToLocalDual(coordinates_type * px, typename topology_type::compact_index_type shift =
-	        0UL) const
+	compact_index_type CoordinatesGlobalToLocalDual(coordinates_type * px,
+	        typename topology_type::compact_index_type shift = 0UL) const
 	{
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
 	}
-
+	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
+	        typename topology_type::compact_index_type shift = 0UL) const
+	{
+		*px = CoordinatesToTopology(*px);
+		return topology_type::CoordinatesToIndex(px, shift);
+	}
 	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
 	{
 		return x;
@@ -381,7 +388,7 @@ struct EuclideanGeometry: public TTopology
 	template<typename TV>
 	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
-		return v[topology_type::ComponentNum(s.self_)];
+		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
@@ -399,13 +406,13 @@ struct EuclideanGeometry: public TTopology
 	template<typename TV>
 	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s.self_)];
+		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
 	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s.self_)];
+		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<int IFORM, typename TV>
@@ -426,20 +433,20 @@ struct EuclideanGeometry: public TTopology
 //***************************************************************************************************
 	Real Volume(index_type s) const
 	{
-		return topology_type::Volume(s) * volume_[topology_type::NodeId(s.self_)];
+		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];
 	}
 	Real InvVolume(index_type s) const
 	{
-		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s.self_)];
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)];
 	}
 
 	Real DualVolume(index_type s) const
 	{
-		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s.self_)];
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)];
 	}
 	Real InvDualVolume(index_type s) const
 	{
-		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s.self_)];
+		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)];
 	}
 
 }

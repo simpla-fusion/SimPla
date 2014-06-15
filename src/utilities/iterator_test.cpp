@@ -6,6 +6,7 @@
  */
 
 #include <gtest/gtest.h>
+#include "log.h"
 using namespace simpla;
 
 class TestIterator: public testing::TestWithParam<nTuple<3, size_t> >
@@ -13,37 +14,12 @@ class TestIterator: public testing::TestWithParam<nTuple<3, size_t> >
 protected:
 	virtual void SetUp()
 	{
-		GLOBAL_COMM.Init(0, nullptr);
 		LOG_STREAM.SetStdOutVisableLevel(12);
 
 		auto param = GetParam();
 
-		xmin = std::get<0>(param);
-		xmax = std::get<1>(param);
-		dims = std::get<2>(param);
-
-		mesh.SetExtents(xmin, xmax, dims);
-
-		mesh.Decompose();
-
-		cfg_str = "n0=function(x,y,z)"
-				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
-				" end "
-				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=500,Temperature=300 ,Density=n0"
-				"}";
-
 	}
 public:
-
-	typedef typename pool_type::mesh_type mesh_type;
-
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	typedef typename mesh_type::iterator iterator;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	mesh_type mesh;
 
 	nTuple<3, Real> xmin, xmax;
 
@@ -54,3 +30,23 @@ public:
 	bool enable_sorting;
 
 };
+
+TEST_P(TestIterator,Add)
+{
+
+}
+INSTANTIATE_TEST_CASE_P(FETL, TestIterator,
+
+		testing::Values(
+				nTuple<3, size_t>(
+						{	12, 16, 10}) //
+				// ,nTuple<3, size_t>( { 1, 1, 1 }) //
+				//        , nTuple<3, size_t>( { 17, 1, 1 }) //
+				//        , nTuple<3, size_t>( { 1, 17, 1 }) //
+				//        , nTuple<3, size_t>( { 1, 1, 10 }) //
+				//        , nTuple<3, size_t>( { 1, 10, 20 }) //
+				//        , nTuple<3, size_t>( { 17, 1, 17 }) //
+				//        , nTuple<3, size_t>( { 17, 17, 1 }) //
+				//        , nTuple<3, size_t>( { 12, 16, 10 })
+
+		)));

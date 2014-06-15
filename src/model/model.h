@@ -422,7 +422,7 @@ private:
 		{
 			for (auto s : mesh.Select(IFORM))
 			{
-				iterator v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
+				typename iterator::value_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
 
 				int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
 
@@ -555,7 +555,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::Select(TR const & 
 		if ((this->material_[iform].at(this->mesh.Hash(s)) & in).none()
 				&& (this->material_[iform].at(this->mesh.Hash(s)) & out).any())
 		{
-			iterator neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+			typename TR::iterator::value_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
 			switch(iform)
