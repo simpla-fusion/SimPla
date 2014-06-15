@@ -20,6 +20,7 @@
 
 #include "particle.h"
 #include "particle_update_ghosts.h"
+
 #include "save_particle.h"
 
 using namespace simpla;
@@ -134,16 +135,16 @@ TEST_P(TestParticle,Add)
 
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
 
-//	p.Remove(p.Select());
-//
-//	INFORM << "Remove particle DONE " << p.size() << std::endl;
-//
-//	for (auto const & v : p.data())
-//	{
-//		if (v.second.size() > 0)
-//			CHECK((mesh.DecompactRoot(v.first)));
-//	}
-//	EXPECT_EQ(p.size(), 0);
+	p.Remove(p.Select());
+
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+
+	for (auto const & v : p.data())
+	{
+		if (v.second.size() > 0)
+			CHECK((mesh.DecompactRoot(v.first)));
+	}
+	EXPECT_EQ(p.size(), 0);
 
 	UpdateGhosts(&p);
 	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
