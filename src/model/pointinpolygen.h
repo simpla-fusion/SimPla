@@ -11,8 +11,8 @@
 #include <cstddef>
 #include <vector>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
 
 namespace simpla
 {

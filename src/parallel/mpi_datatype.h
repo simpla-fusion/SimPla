@@ -11,11 +11,10 @@
 #include <mpi.h>
 #include <complex>
 #include <cstddef>
-#include <type_traits>
 #include <utility>
 #include <vector>
-#include "../fetl/ntuple.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {

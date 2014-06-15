@@ -7,7 +7,7 @@
 
 #ifndef CACHE_H_
 #define CACHE_H_
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 namespace simpla
 {
 
@@ -25,8 +25,8 @@ struct Cache
 	T & f_;
 
 	template<typename ... Args>
-	Cache(T& f, Args ...) :
-			f_(f)
+	Cache(T& f, Args ...)
+			: f_(f)
 	{
 
 	}
@@ -43,8 +43,8 @@ struct Cache<T const &>
 	T const & f_;
 
 	template<typename ... Args>
-	Cache(T const & f, Args ...) :
-			f_(f)
+	Cache(T const & f, Args ...)
+			: f_(f)
 	{
 
 	}
@@ -61,8 +61,8 @@ struct Cache<T*>
 	T * f_;
 
 	template<typename ... Args>
-	Cache(T* f, Args ...) :
-			f_(f)
+	Cache(T* f, Args ...)
+			: f_(f)
 	{
 	}
 

@@ -108,7 +108,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	nTuple<3, Real> x, v;
 
-	auto buffer = p->GetCell();
+	auto buffer = p->CreateBuffer();
 	for (auto s : range)
 	{
 

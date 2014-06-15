@@ -132,6 +132,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 		name_len=filename_.size();
 	}
+	if (GLOBAL_COMM.IsInitilized())
 	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.GetComm());
 
 	std::vector<char> buffer(name_len);
@@ -140,7 +141,7 @@ void DataStream::OpenFile(std::string const &fname)
 	{
 		std::copy(filename_.begin(),filename_.end(),buffer.begin());
 	}
-
+	if (GLOBAL_COMM.IsInitilized())
 	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.GetComm());
 
 	if (GLOBAL_COMM.GetRank()!=0)

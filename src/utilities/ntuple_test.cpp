@@ -7,10 +7,10 @@
 
 #include <gtest/gtest.h>
 #include <iostream>
-#include <complex>
 #include "ntuple.h"
-#include "../utilities/log.h"
-#include "../utilities/pretty_stream.h"
+#include "ntuple_noet.h"
+#include "log.h"
+#include "pretty_stream.h"
 
 using namespace simpla;
 

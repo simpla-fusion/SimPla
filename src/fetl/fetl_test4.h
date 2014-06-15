@@ -11,9 +11,7 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "fetl_test.h"
-
 #include "fetl.h"
-#include "ntuple.h"
 
 using namespace simpla;
 

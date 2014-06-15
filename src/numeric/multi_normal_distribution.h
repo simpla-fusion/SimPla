@@ -9,7 +9,7 @@
 #define MULTI_NORMAL_DISTRIBUTION_H_
 
 #include <random>
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include "cholesky.h"
 
 namespace simpla

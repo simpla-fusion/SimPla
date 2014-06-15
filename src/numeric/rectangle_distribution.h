@@ -12,7 +12,7 @@
 #include <iterator>
 #include <numeric>
 #include <vector>
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 namespace simpla
 {
 

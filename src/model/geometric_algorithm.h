@@ -13,15 +13,17 @@
 #include <complex>
 #include <valarray>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/ntuple_noet.h"
+#include "../utilities/primitives.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
 
 template<int NDIMS>
 bool Clipping(nTuple<NDIMS, size_t> const & l_start, nTuple<NDIMS, size_t> const &l_count,
-		nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
+        nTuple<NDIMS, size_t> *pr_start, nTuple<NDIMS, size_t> *pr_count)
 {
 	bool has_overlap = false;
 

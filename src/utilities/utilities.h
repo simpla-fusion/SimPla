@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-#include "../fetl/ntuple.h"
+#include "ntuple.h"
 #include "log.h"
 
 namespace simpla

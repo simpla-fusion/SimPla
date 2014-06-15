@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "../fetl/primitives.h"
-#include "../fetl/ntuple.h"
+#include "../utilities/primitives.h"
+#include "../utilities/ntuple.h"
 
 namespace simpla
 {

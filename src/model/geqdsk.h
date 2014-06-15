@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../io/data_stream.h"
 namespace simpla

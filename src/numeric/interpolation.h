@@ -9,7 +9,7 @@
 #define INTERPOLATION_H_
 #include "../simpla_defs.h"
 #include "../utilities/log.h"
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include <vector>
 #include <cmath>
 #include <algorithm>

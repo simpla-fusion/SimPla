@@ -10,7 +10,7 @@
 
 #include <utility>
 
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 
 namespace simpla
 {

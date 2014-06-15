@@ -1,14 +1,14 @@
 /*
- * type_utilites.h
+ * sp_type_traits.h
  *
- *  Created on: 2013年12月14日
+ *  Created on: 2014年6月15日
  *      Author: salmon
  */
 
-#ifndef TYPE_UTILITES_H_
-#define TYPE_UTILITES_H_
+#ifndef SP_TYPE_TRAITS_H_
+#define SP_TYPE_TRAITS_H_
+
 #include <type_traits>
-#include "log.h"
 
 namespace simpla
 {
@@ -285,6 +285,10 @@ template<typename T> inline T* PointerTo(T * v)
 	return v;
 }
 
+template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
+{
+	return std::move(static_cast<TV>(obj));
+}
 } // namespace simpla
 
-#endif /* TYPE_UTILITES_H_ */
+#endif /* SP_TYPE_TRAITS_H_ */

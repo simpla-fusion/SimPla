@@ -9,15 +9,13 @@
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
 
-#include <complex>
 #include <cstddef>
-#include <initializer_list>
-#include "complex_ops.h"
+
+//#include "ntuple_noet.h"
 #include "primitives.h"
-
-#include "ntuple_noet.h"
-
-#include "../utilities/type_utilites.h"
+#include "sp_complex.h"
+#include "sp_functional.h"
+#include "sp_type_traits.h"
 
 namespace simpla
 {
@@ -80,7 +78,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r[M - 1]);
 		_assign<M - 1>::eval(fun, l, r);
@@ -93,7 +91,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r);
 		_assign<M - 1>::eval(fun, l, r);
@@ -114,14 +112,14 @@ template<> struct _assign<1>
 	template<typename TFun, typename TL, typename TR>
 
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[0] = fun(l[0], r[0]);
 	}
 
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[0] = fun(l[0], r);
 	}
@@ -142,7 +140,7 @@ struct _inner_product
 {
 	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
 	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const &r)
-	DECL_RET_TYPE((plus_op(multi_op(l[N-1],r[N-1]),_inner_product<N-1>::eval(plus_op,multi_op,l,r))))
+	DECL_RET_TYPE ((plus_op(multi_op(l[N - 1], r[N - 1]), _inner_product<N - 1>::eval(plus_op, multi_op, l, r))))
 
 };
 
@@ -151,12 +149,12 @@ struct _inner_product<1>
 {
 	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
 	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const &r)
-	DECL_RET_TYPE((multi_op(l[0],r[0])))
+	DECL_RET_TYPE ((multi_op(l[0], r[0])))
 
 };
 template<int N, typename TPlus, typename TMultiplies, typename TL, typename TR>
 auto inner_product(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const & r)
-DECL_RET_TYPE(_inner_product<N>::eval(plus_op,multi_op,l, r))
+DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
 
 }
 // namespace ntuple_impl
@@ -190,13 +188,13 @@ struct nTuple
 	template<typename TR>
 	inline bool operator ==(TR const &rhs) const
 	{
-		return _ntuple_impl::inner_product<N>(ops::logical_and(), ops::equal_to(), *this, rhs);
+		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::equal_to<void>(), *this, rhs);
 	}
 
 	template<typename TExpr>
 	inline bool operator !=(nTuple<NDIMS, TExpr> const &rhs) const
 	{
-		return _ntuple_impl::inner_product<N>(ops::logical_and(), ops::not_equal_to(), *this, rhs);
+		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::not_equal_to<void>(), *this, rhs);
 	}
 	template<typename TR>
 	inline operator nTuple<N,TR>() const
@@ -234,28 +232,28 @@ struct nTuple
 	inline this_type & operator +=(TR const &rhs)
 	{
 
-		_ntuple_impl::assign<N>(ops::plus(), data_, rhs);
+		_ntuple_impl::assign<N>(std::plus<void>(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator -=(TR const &rhs)
 	{
-		_ntuple_impl::assign<N>(ops::minus(), data_, rhs);
+		_ntuple_impl::assign<N>(std::minus<void>(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		_ntuple_impl::assign<N>(ops::multiplies(), data_, rhs);
+		_ntuple_impl::assign<N>(std::multiplies<void>(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator /=(TR const &rhs)
 	{
-		_ntuple_impl::assign<N>(ops::divides(), data_, rhs);
+		_ntuple_impl::assign<N>(std::divides<void>(), data_, rhs);
 		return (*this);
 	}
 
@@ -278,6 +276,30 @@ struct is_nTuple<nTuple<N, TV>>
 {
 	static constexpr bool value = true;
 
+};
+
+template<typename T>
+struct is_ntuple_expression
+{
+	static constexpr bool value = false;
+};
+
+template<int N, int TOP, typename TL, typename TR>
+struct is_ntuple_expression<nTuple<N, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<int N, int TOP, typename TL, typename TR>
+struct is_expression<nTuple<N, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<int N, typename TE>
+struct is_primitive<nTuple<N, TE> >
+{
+	static constexpr bool value = is_arithmetic_scalar<TE>::value;
 };
 
 template<typename TV>
@@ -320,7 +342,7 @@ public:
 //***********************************************************************************
 template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
-DECL_RET_TYPE ((_ntuple_impl::inner_product<N>(ops::plus(), ops::multiplies(), l, r)))
+DECL_RET_TYPE ((_ntuple_impl::inner_product<N>(std::plus<void>(), std::multiplies<void>(), l, r)))
 
 template<typename T> inline auto Determinant(nTuple<3, nTuple<3, T> > const & m)
 DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
@@ -401,8 +423,7 @@ template<typename T> inline
 auto real(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res =
-	{ std::real(l[0]), std::real(l[1]), std::real(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res = { std::real(l[0]), std::real(l[1]), std::real(l[2]) };
 	return std::move(res);
 }
 
@@ -410,8 +431,7 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res =
-	{ std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res = { std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
 	return std::move(res);
 
 }
@@ -427,10 +447,20 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
 {
-	nTuple<3, T> res =
-	{ 0, 0, 0 };
+	nTuple<3, T> res = { 0, 0, 0 };
 	return l;
 }
+
+template<typename T> inline constexpr nTuple<3, T> real(nTuple<3, std::complex<T>> const &v)
+{
+	return std::move(nTuple<3, T>( { v[0].real(), v[1].real(), v[2].real() }));
+}
+
+template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T>> const &v)
+{
+	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
+}
+
 template<int NDIMS, typename TExpr>
 auto operator >>(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,decltype(v[0] >> n )>
 {
@@ -452,6 +482,27 @@ auto operator <<(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,
 	}
 	return res;
 }
+
+template<int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
+{
+	nTuple<N, T> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = v[i].real();
+	}
+	return std::move(res);
+}
+
+template<int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> const &v)
+{
+	nTuple<N, T> res;
+	for (int i = 0; i < N; ++i)
+	{
+		res[i] = v[i].imag();
+	}
+	return std::move(res);
+}
+
 }
 //namespace simpla
 

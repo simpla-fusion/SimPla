@@ -15,7 +15,7 @@
 
 #include "select.h"
 #include "../utilities/log.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "../fetl/fetl.h"
 #include "model.h"
 namespace simpla

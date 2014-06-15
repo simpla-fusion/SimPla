@@ -8,11 +8,11 @@
 #ifndef PARTICLE_COMMAND_H_
 #define PARTICLE_COMMAND_H_
 
-#include <fetl/primitives.h>
+#include <utilities/primitives.h>
 #include <model/material.h>
 #include <particle/particle.h>
 //#include <utilities/log.h>
-#include <utilities/type_utilites.h>
+#include <utilities/sp_type_traits.h>
 #include <utilities/visitor.h>
 #include <functional>
 #include <initializer_list>

@@ -21,7 +21,7 @@ extern "C"
 #include "../utilities/utilities.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/factory.h"
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 
 namespace simpla
 {

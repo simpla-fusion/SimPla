@@ -11,8 +11,8 @@
 #include <iostream>
 #include <utility>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
 
 namespace simpla
 {
@@ -153,9 +153,23 @@ struct EuclideanGeometry: public TTopology
 
 		return os.str();
 	}
-
 	template<typename ...Others>
-	inline void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax, Others const & ... others)
+	inline void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	        Others const & ... others)
+	{
+		SetExtents(pmin, pmax);
+		topology_type::SetDimensions(std::forward<const Others &>(others)...);
+
+	}
+
+	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	        nTuple<NDIMS, Real> const & dims)
+	{
+		SetExtents(pmin, pmax);
+		topology_type::SetDimensions(dims);
+
+	}
+	void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -266,7 +280,6 @@ struct EuclideanGeometry: public TTopology
 
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
-		topology_type::SetDimensions(std::forward<const Others &>(others)...);
 	}
 
 	inline std::pair<coordinates_type, coordinates_type> GetExtents() const

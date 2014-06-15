@@ -11,8 +11,8 @@
 #include <memory>
 #include <string>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
 #include "particle_boundary.h"
 
 namespace simpla

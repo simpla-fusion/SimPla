@@ -99,11 +99,12 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 
 		auto t_cell = pool->GetCell();
 
-		pool->Remove(pool->SelectCell(item.send_start, item.send_count), &t_cell);
+		pool->Remove(pool->Select(item.send_start, item.send_count), &t_cell);
+
+		CHECK(pool->Select(item.send_start, item.send_count).size());
+		CHECK(t_cell.size());
 
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
-
-		CHECK(buffer[count].size());
 
 		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
 		        &requests[count]);

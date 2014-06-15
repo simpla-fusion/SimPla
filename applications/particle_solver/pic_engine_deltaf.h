@@ -12,8 +12,8 @@
 #include <sstream>
 #include <string>
 
-#include "../../src/fetl/ntuple.h"
-#include "../../src/fetl/primitives.h"
+#include "../../src/utilities/ntuple.h"
+#include "../../src/utilities/primitives.h"
 #include "../../src/physics/physical_constants.h"
 #include "../../src/io/hdf5_datatype.h"
 

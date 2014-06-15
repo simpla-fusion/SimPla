@@ -9,24 +9,26 @@
 #define FETL_TEST3_H_
 
 #include <gtest/gtest.h>
-
 #include <stddef.h>
 #include <cmath>
 #include <complex>
-#include <cstdlib>
 #include <limits>
 #include <random>
+#include <string>
 #include <tuple>
+#include <utility>
 #include <valarray>
-
+#include "fetl_test.h"
+#include "../io/data_stream.h"
 #include "../mesh/mesh.h"
 #include "../utilities/log.h"
-
-#include "fetl_test.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/ntuple_noet.h"
+#include "../utilities/primitives.h"
+#include "../utilities/singleton_holder.h"
 #include "fetl.h"
-#include "ntuple.h"
-#include "primitives.h"
 #include "save_field.h"
+
 using namespace simpla;
 
 static constexpr auto epsilon = 1e7 * std::numeric_limits<Real>::epsilon();

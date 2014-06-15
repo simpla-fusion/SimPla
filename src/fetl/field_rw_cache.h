@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "../utilities/log.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
 #include "field.h"
 #include "cache.h"

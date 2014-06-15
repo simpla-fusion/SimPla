@@ -8,13 +8,12 @@
 #ifndef FIELD_VECTOR_OPS_H_
 #define FIELD_VECTOR_OPS_H_
 #include <cstddef>
-#include <type_traits>
-
-#include "constant_ops.h"
 #include "field.h"
-#include "primitives.h"
-#include "ntuple.h"
-#include "../utilities/type_utilites.h"
+
+#include "../utilities/constant_ops.h"
+#include "../utilities/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -97,8 +96,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r) :
-			mesh(l.mesh), l_(l), r_(r)
+	Field(TL const & l, TR const & r)
+			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}
 
@@ -131,8 +130,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r) :
-			mesh(l.mesh), l_(l), r_(r)
+	Field(TL const & l, TR const & r)
+			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}
 

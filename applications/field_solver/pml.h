@@ -11,9 +11,9 @@
 #include <string>
 
 #include "../../src/fetl/fetl.h"
-#include "../../src/fetl/primitives.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../src/utilities/primitives.h"
 #include "../../src/utilities/log.h"
+#include "../../src/physics/physical_constants.h"
 
 namespace simpla
 {

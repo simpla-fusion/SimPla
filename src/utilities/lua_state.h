@@ -23,9 +23,9 @@
 #include <utility>
 #include <vector>
 
-#include "../fetl/ntuple.h"
 #include "log.h"
 #include "utilities.h"
+#include "ntuple.h"
 
 namespace simpla
 {

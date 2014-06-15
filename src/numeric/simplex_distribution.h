@@ -7,7 +7,7 @@
 
 #ifndef SIMPLEX_DISTRIBUTION_H_
 #define SIMPLEX_DISTRIBUTION_H_
-#include "fetl/ntuple.h"
+#include "utilities/ntuple.h"
 #include <vector>
 #include <random>
 #include <numeric>

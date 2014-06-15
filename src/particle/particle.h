@@ -24,7 +24,7 @@
 #endif //NO_RW_CACHE
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 
 #include "../parallel/parallel.h"
 

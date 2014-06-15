@@ -11,8 +11,7 @@ my_test(field_io_test
       )
 target_link_libraries(field_io_test physics io ${MPI_LIBRARIES} )
 
-my_test(ntuple_test   )
-target_link_libraries(ntuple_test physics ${MPI_LIBRARIES} )
+
 #my_test(equation_test   physics)
 #add_executable(ntuple_test   test/ntuple_test.cpp)
 #

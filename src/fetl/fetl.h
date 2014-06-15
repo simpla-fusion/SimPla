@@ -9,16 +9,15 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-#include "primitives.h"
+#include "../utilities/primitives.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/sp_complex.h"
 
-#include "ntuple.h"
 #include "field.h"
 #include "field_ops.h"
 #include "field_vector_ops.h"
 #include "field_constant.h"
-#include "complex_ops.h"
 #include "cache.h"
-
 
 namespace simpla
 {

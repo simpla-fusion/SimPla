@@ -9,7 +9,7 @@
 #define SELECT_H_
 
 #include "../utilities/log.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "../utilities/utilities.h"
 
 #include "pointinpolygen.h"

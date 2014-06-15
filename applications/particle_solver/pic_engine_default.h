@@ -15,7 +15,7 @@
 
 #include "../../src/fetl/fetl.h"
 #include "../../src/physics/physical_constants.h"
-#include "../../src/utilities/type_utilites.h"
+#include "../../src/utilities/sp_type_traits.h"
 #include "../../src/io/hdf5_datatype.h"
 
 namespace simpla
@@ -29,8 +29,8 @@ public:
 	{
 		EnableImplicit = IsImplicit
 	};
-	  Real m;
-	  Real q;
+	Real m;
+	Real q;
 
 	typedef PICEngineDefault<TM, IsImplicit, Interpolator> this_type;
 	typedef TM mesh_type;

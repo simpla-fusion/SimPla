@@ -7,7 +7,7 @@
 
 #include <gtest/gtest.h>
 #include "distributed_array.h"
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include "../utilities/pretty_stream.h"
 #include <stddef.h>
 #include "update_ghosts.h"

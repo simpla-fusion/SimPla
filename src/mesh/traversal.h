@@ -10,7 +10,7 @@
 
 #include <thread>
 #include <vector>
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "../fetl/cache.h"
 
 namespace simpla

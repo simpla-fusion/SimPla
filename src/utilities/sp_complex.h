@@ -8,7 +8,8 @@
 #ifndef COMPLEX_OPS_H_
 #define COMPLEX_OPS_H_
 #include <complex>
-namespace simpla
+
+namespace std
 {
 
 #define DEF_COMPLEX_OP(_OP_, _OTHER_)                                                                   \
@@ -27,7 +28,6 @@ template<typename T> inline auto operator _OP_(_OTHER_ const & l,  std::complex<
 //->decltype(static_cast<double>(l) _OP_ r)                                                                        \
 //{return std::move(static_cast<double>(l) _OP_ r);}
 
-
 #define DEF_COMPLEX_OP_BUNDLE(_OTHER_)                                                                  \
 DEF_COMPLEX_OP(+, _OTHER_)                                                                              \
 DEF_COMPLEX_OP(-, _OTHER_)                                                                              \
@@ -41,7 +41,37 @@ DEF_COMPLEX_OP_BUNDLE(unsigned long)
 
 #undef DEF_COMPLEX_OP_BUNDLE
 #undef DEF_COMPLEX_OP
+
+template<typename T> inline constexpr T real(T const &v)
+{
+	return v;
 }
-// namespace simpla
+template<typename T> inline constexpr T imag(T const &)
+{
+	return 0;
+}
+
+}  // namespace std
+
+namespace simpla
+{
+
+template<typename > struct is_complex
+{
+	static constexpr bool value = false;
+};
+template<typename T> struct is_complex<std::complex<T> >
+{
+	static constexpr bool value = true;
+};
+
+template<typename TL> struct is_arithmetic_scalar;
+
+template<typename T>
+struct is_arithmetic_scalar<std::complex<T>>
+{
+	static constexpr bool value = true;
+};
+}  // namespace simpla
 
 #endif /* COMPLEX_OPS_H_ */

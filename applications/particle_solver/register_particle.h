@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "../../src/fetl/primitives.h"
+#include "../../src/utilities/primitives.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/particle_base.h"
 #include "../../src/particle/particle_factory.h"

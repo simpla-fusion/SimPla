@@ -8,10 +8,12 @@
 #ifndef FIELD_CONSTANT_H_
 #define FIELD_CONSTANT_H_
 
-#include "constant_ops.h"
+#include "../utilities/constant_ops.h"
 
 namespace simpla
 {
+template<typename, int> struct Geometry;
+
 template<typename TG, int IFORM, typename TValue> struct Field;
 
 template<typename TM, int IFORM, typename TV>

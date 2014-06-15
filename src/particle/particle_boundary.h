@@ -10,7 +10,7 @@
 
 #include <map>
 
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include "../utilities/visitor.h"
 #include "../model/geometric_algorithm.h"
 

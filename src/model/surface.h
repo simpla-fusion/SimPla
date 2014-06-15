@@ -12,9 +12,9 @@
 #include <utility>
 #include <vector>
 
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {

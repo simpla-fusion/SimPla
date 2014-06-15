@@ -17,11 +17,11 @@
 #include <utility>
 #include <vector>
 
-#include "../fetl/primitives.h"
+#include "../utilities/primitives.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/range.h"
 #include "../utilities/utilities.h"
+#include "../utilities/range.h"
 
 #include "pointinpolygen.h"
 #include "select.h"

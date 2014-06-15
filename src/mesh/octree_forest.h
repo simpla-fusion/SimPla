@@ -15,9 +15,9 @@
 #include <limits>
 #include <thread>
 #include <iterator>
-#include "../fetl/ntuple.h"
-#include "../fetl/primitives.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/primitives.h"
+#include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/memory_pool.h"
 #include "../parallel/distributed_array.h"

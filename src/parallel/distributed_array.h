@@ -11,7 +11,7 @@
 #include <vector>
 #include <functional>
 #include <tuple>
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../model/geometric_algorithm.h"
 #include "message_comm.h"

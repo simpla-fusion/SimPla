@@ -16,9 +16,9 @@
 #include <utility>
 #include <mutex>
 
-#include "primitives.h"
 #include "../parallel/parallel.h"
 #include "../utilities/log.h"
+#include "../utilities/primitives.h"
 #include "../utilities/range.h"
 namespace simpla
 {
@@ -292,113 +292,47 @@ DECL_SELF_ASSIGN	(- )
 }
 ;
 
-//	template<typename TC>
-//	struct iterator_
-//	{
-//		/// One of the @link iterator_tags tag types@endlink.
-//		typedef std::output_iterator_tag iterator_category;
-//		/// The type "pointed to" by the iterator.
-//		typedef typename std::remove_reference<decltype(*std::declval<TC>() )>::type value_type;
-//		/// Distance between iterators is represented as this type.
-//		typedef size_t difference_type;
-//		/// This type represents a pointer-to-value_type.
-//		typedef value_type* pointer;
-//		/// This type represents a reference-to-value_type.
-//		typedef value_type& reference;
-//
-//		TC data_;
-//
-//		mesh_type const & mesh;
-//
-//		typename mesh_type::iterator it_;
-//
-//		typedef iterator_<TC> this_type;
-//
-//		iterator_(TC d, mesh_type const & m, typename mesh_type::iterator s) :
-//				data_(d), mesh(m), it_(s)
-//		{
-//
-//		}
-//		iterator_(this_type &rhs)
-//				: data_(rhs.data_), it_(rhs.it_)
-//		{
-//		}
-//		iterator_(this_type const&rhs)
-//				: data_(rhs.data_), it_(rhs.it_)
-//		{
-//		}
-//		~iterator_()
-//		{
-//		}
-//
-//		value_type & operator*()
-//		{
-//			return *(data_.get() + mesh.Hash(it_));
-//		}
-//		value_type const& operator*() const
-//		{
-//			return *(data_.get() + mesh.Hash(it_));
-//		}
-//
-//		pointer operator ->()
-//		{
-//			return (data_.get() + make_hash(it_));
-//		}
-//		pointer operator ->() const
-//		{
-//			return (data_.get() + make_hash(it_));
-//		}
-//
-//		this_type & operator++()
-//		{
-//			++it_;
-//
-//			return *this;
-//		}
-//
-//		this_type operator++(int)
-//		{
-//			this_type res(*this);
-//			++res;
-//			return std::move(res);
-//		}
-//
-//		bool operator==(this_type const &rhs) const
-//		{
-//			return it_ == rhs.it_ && data_ == rhs.data_;
-//		}
-//
-//		bool operator!=(this_type const &rhs) const
-//		{
-//			return it_ != rhs.it_ || data_ != rhs.data_;
-//		}
-//	};
-//
-//	typedef iterator_<container_type> iterator;
-//
-//	typedef iterator_<const container_type> const_iterator;
+template<typename TL>
+struct is_field
+{
+	static const bool value = false;
+};
 
-//	iterator begin()
-//	{
-//		AllocMemory_();
-//		return iterator_<container_type>(data_, mesh, mesh.Select(IForm).begin());
-//	}
-//
-//	iterator end()
-//	{
-//		AllocMemory_();
-//		return iterator_<container_type>(data_, mesh, mesh.Select(IForm).end());
-//	}
-//
-//	const_iterator begin() const
-//	{
-//		return iterator_<const container_type>(data_, mesh, mesh.Select(IForm).begin());
-//	}
-//
-//	const_iterator end() const
-//	{
-//		return iterator_<const container_type>(data_, mesh, mesh.Select(IForm).end());
-//	}
+template<typename TG, int IF, typename TL>
+struct is_field<Field<TG, IF, TL>>
+{
+	static const bool value = true;
+};
+
+template<typename T>
+struct is_field_expression
+{
+	static constexpr bool value = false;
+};
+
+template<typename TG, int IF, int TOP, typename TL, typename TR>
+struct is_field_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<typename TG, int IF, int TOP, typename TL>
+struct is_field_expression<Field<TG, IF, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
+};
+
+template<typename TG, int IF, int TOP, typename TL, typename TR>
+struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
+{
+	static constexpr bool value = true;
+};
+
+template<typename TG, int IF, int TOP, typename TL>
+struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
+};
 
 }
 // namespace simpla

@@ -8,7 +8,7 @@
 #ifndef PARTICLE_POOL_H_
 #define PARTICLE_POOL_H_
 #include "../utilities/log.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "../parallel/parallel.h"
 #include "save_particle.h"
 
@@ -48,6 +48,8 @@ public:
 	//container
 
 	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
+
+	typedef cell_type buffer_type;
 
 	typedef std::map<mesh_iterator, cell_type> container_type;
 
@@ -94,7 +96,7 @@ public:
 		return allocator_;
 	}
 
-	cell_type GetCell()
+	cell_type CreateOneCell()
 	{
 		return std::move(cell_type(allocator_));
 	}
@@ -105,7 +107,7 @@ public:
 
 		if (it == c->end())
 		{
-			it = c->emplace(s, GetCell()).first;
+			it = c->emplace(s, CreateOneCell()).first;
 		}
 
 		return it->second;
@@ -137,6 +139,11 @@ public:
 	//***************************************************************************************************
 	// Cell operation
 
+	buffer_type CreateBuffer()
+	{
+		return std::move(buffer_type(allocator_));
+	}
+
 	template<typename TIterator>
 	void Clear(TIterator it);
 
@@ -144,10 +151,10 @@ public:
 
 	void Merge(container_type * other, container_type *dest = nullptr);
 
-	void Add(cell_type *src);
+	void Add(buffer_type *src);
 
 	template<typename TRange>
-	void Remove(TRange r, cell_type *other = nullptr);
+	void Remove(TRange r, buffer_type *other = nullptr);
 
 //***************************************************************************************************
 
@@ -345,16 +352,16 @@ void ParticlePool<TM, TParticle>::Merge(container_type * other, container_type *
 
 }
 template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(cell_type* other)
+void ParticlePool<TM, TParticle>::Add(buffer_type* other)
 {
 	Sort_(other, &data_);
 }
 
 template<typename TM, typename TParticle>
 template<typename TRange>
-void ParticlePool<TM, TParticle>::Remove(TRange r, cell_type * other)
+void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 {
-	cell_type buffer = GetCell();
+	auto buffer = CreateBuffer();
 
 	for (auto it = r.begin(), ie = r.end(); it != ie; ++it)
 	{

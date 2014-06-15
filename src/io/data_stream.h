@@ -18,7 +18,7 @@
 #include <vector>
 #include <typeindex>
 
-#include "../fetl/ntuple.h"
+#include "../utilities/ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/pretty_stream.h"

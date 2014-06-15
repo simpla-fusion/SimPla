@@ -14,7 +14,7 @@
 #include <type_traits>
 
 #include "../fetl/fetl.h"
-#include "../utilities/type_utilites.h"
+#include "../utilities/sp_type_traits.h"
 #include "interpolator.h"
 namespace simpla
 {

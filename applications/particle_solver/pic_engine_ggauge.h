@@ -14,7 +14,7 @@
 #include <string>
 
 #include "../../src/fetl/fetl.h"
-#include "../../src/fetl/primitives.h"
+#include "../../src/utilities/primitives.h"
 #include "../../src/physics/physical_constants.h"
 #include "../../src/physics/constants.h"
 #include "../../src/utilities/utilities.h"

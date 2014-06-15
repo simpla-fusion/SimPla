@@ -8,6 +8,7 @@
 #ifndef PRETTY_STREAM_H_
 #define PRETTY_STREAM_H_
 
+#include <complex>
 #include <cstddef>
 #include <iterator>
 #include <list>
@@ -15,10 +16,11 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "../fetl/ntuple.h"
-#include "type_utilites.h"
+#include "ntuple.h"
+#include "sp_type_traits.h"
 
 namespace simpla
 {
