@@ -53,9 +53,11 @@ protected:
 			dh[i] = (dims[i] > 1) ? (extent.second[i] - extent.first[i]) / dims[i] : 0;
 		}
 
-		points.emplace_back(coordinates_type( { 0.2 * xmax[0], 0.2 * xmax[1], 0.2 * xmin[2] }));
+		points.emplace_back(coordinates_type(
+		{ 0.2 * xmax[0], 0.2 * xmax[1], 0.2 * xmin[2] }));
 
-		points.emplace_back(coordinates_type( { 0.8 * xmax[0], 0.8 * xmax[1], 0.2 * xmin[2] }));
+		points.emplace_back(coordinates_type(
+		{ 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
 		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
 		GLOBAL_DATA_STREAM.OpenGroup("/");
@@ -99,94 +101,101 @@ TEST_P(TestModel,ZeroForm )
 //	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	auto extent = mesh.GetExtents();
-	CHECK(points);
-	model->Set("Plasma", points);
+
+	model->Set(model->SelectByPoints(IForm, points), "Plasma");
+
 	model->Update();
 
 	CHECK(model->material_.size());
 
-//	TZeroForm f(mesh);
-//
-//	f.Clear();
-//
-//	for (auto s : model->SelectByName(mesh.Select(IForm), "Plasma"))
-//	{
-//		f[s] = 1;
-//	}
-//	LOGGER << SAVE(f);
-//
-//	coordinates_type v0, v1, v2, v3;
-//	for (int i = 0; i < NDIMS; ++i)
-//	{
-//		v0[i] = points[0][i] + dh[i];
-//		v1[i] = points[1][i] - dh[i];
-//
-//		v2[i] = points[0][i] - dh[i] * 2;
-//		v3[i] = points[1][i] + dh[i] * 2;
-//	}
-//	for (auto s : mesh.Select(IForm))
-//	{
-//		auto x = mesh.GetCoordinates(s);
-//
-//		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-//		        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
-//		{
-//			EXPECT_EQ(1,f[s] ) << (mesh.GetCoordinates(s));
-//		}
-//
-//		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
-//		        && (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
-//		{
-//			EXPECT_NE(1,f[s]) << (mesh.GetCoordinates(s));
-//		}
-//	}
-//
-//	points.emplace_back(coordinates_type( { 0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2] }));
-//
-//	model->Remove("Plasma", points);
-//	model->Update();
-//
-//	f.Clear();
-//
-//	for (auto s : model->SelectByName(mesh.Select(IForm), "Plasma"))
-//	{
-//		f[s] = 1;
-//	}
-//
-//	LOGGER << SAVE(f);
-//
-//	for (auto s : model->SelectInterface(mesh.Select(IForm), "Plasma", "NONE"))
-//	{
-//		f[s] = 10;
-//	}
-//
-//	for (auto s : model->SelectInterface(mesh.Select(IForm), "Vacuum", "Plasma"))
-//	{
-//		f[s] = -10;
-//	}
-//	LOGGER << SAVE(f);
+	TZeroForm f(mesh);
+
+	f.Clear();
+
+	for (auto s : model->SelectByMaterial(IForm, "Plasma"))
+	{
+		f[s] = 1;
+	}
+	LOGGER << SAVE(f);
+
+	coordinates_type v0, v1, v2, v3;
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		v0[i] = points[0][i] + dh[i];
+		v1[i] = points[1][i] - dh[i];
+
+		v2[i] = points[0][i] - dh[i] * 2;
+		v3[i] = points[1][i] + dh[i] * 2;
+	}
+	for (auto s : model->Select(IForm))
+	{
+		auto x = mesh.GetCoordinates(s);
+
+		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+				&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
+		{
+			EXPECT_EQ(1,f[s] ) << (mesh.GetCoordinates(s));
+		}
+
+		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
+				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
+		{
+			EXPECT_NE(1,f[s]) << (mesh.GetCoordinates(s));
+		}
+	}
+
+	points.emplace_back(coordinates_type(
+	{ 0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2] }));
+
+	model->Remove(model->SelectByPoints(IForm, points), "Plasma");
+	model->Update();
+
+	f.Clear();
+
+	for (auto s : model->SelectByMaterial(IForm, "Plasma"))
+	{
+		f[s] = 1;
+	}
+
+	LOGGER << SAVE(f);
+
+	f.Clear();
+
+	for (auto s : model->SelectInterface(IForm, "Plasma", "NONE"))
+	{
+		f[s] = 10;
+	}
+
+	for (auto s : model->SelectInterface(IForm, "Vacuum", "Plasma"))
+	{
+		f[s] = -10;
+	}
+	LOGGER << SAVE(f);
 
 }
 
 INSTANTIATE_TEST_CASE_P(FETL, TestModel,
 
-testing::Combine(testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
+testing::Combine(testing::Values(nTuple<3, Real>(
+{ 0.0, 0.0, 0.0, })  //
 //        , nTuple<3, Real>( { -1.0, -2.0, -3.0 } )
-        ),
+		),
 
 testing::Values(
 
-nTuple<3, Real>( { 1.0, 2.0, 3.0 })  //
+nTuple<3, Real>(
+{ 1.0, 2.0, 3.0 })  //
 //        , nTuple<3, Real>( { 2.0, 0.0, 2.0 }) //
 //        , nTuple<3, Real>( { 2.0, 2.0, 0.0 }) //
 
-        ),
+		),
 
-testing::Values(nTuple<3, size_t>( { 12, 16, 10 }) //
+testing::Values(nTuple<3, size_t>(
+{ 50, 60, 10 }) //
 //        , nTuple<3, size_t>( { 1, 10, 20 }) //
 //        , nTuple<3, size_t>( { 17, 1, 17 }) //
 //        , nTuple<3, size_t>( { 17, 17, 1 }) //
 
-        )
+		)
 
-        ));
+		));
