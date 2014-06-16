@@ -106,7 +106,8 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 {
 	LOGGER << "Create PML solver [" << xmin << " , " << xmax << " ]";
 
-	DEFINE_PHYSICAL_CONST;
+	DEFINE_PHYSICAL_CONST
+	;
 
 	Real dB = 100, expN = 2;
 
@@ -173,19 +174,20 @@ template<typename TM>
 void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
 {
 	LOGGER << "PML push E";
-	DEFINE_PHYSICAL_CONST;
+	DEFINE_PHYSICAL_CONST
+	;
 
 	Form<1> dX1(mesh);
 
-	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1 * speed_of_light2) * dt) / (a0 + s0 * dt);
+	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
 	X10 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1 * speed_of_light2) * dt) / (a1 + s1 * dt);
+	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
 	X11 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1 * speed_of_light2) * dt) / (a2 + s2 * dt);
+	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
 	X12 += dX1;
 	*dE += dX1;
 
@@ -197,7 +199,8 @@ void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2
 {
 	LOGGER << "PML Push B";
 
-	DEFINE_PHYSICAL_CONST;
+	DEFINE_PHYSICAL_CONST
+	;
 
 	Form<2> dX2(mesh);
 

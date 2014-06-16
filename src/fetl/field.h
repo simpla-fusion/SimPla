@@ -221,9 +221,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,default_value](mesh_iterator const & s)
+		[this,default_value](index_type s)
 		{
-			this->get(*s) = default_value;
+			this->get( s) = default_value;
 		}
 
 		);
@@ -245,9 +245,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](mesh_iterator const & s)
+		[this,&rhs](index_type s)
 		{
-			this->get(*s) = rhs.get(*s);
+			this->get( s) = rhs.get( s);
 		}
 
 		);
@@ -261,9 +261,9 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](mesh_iterator const & s)
+		[this,&rhs](index_type s)
 		{
-			this->get(*s) = rhs.get(*s);
+			this->get( s) = rhs.get( s);
 		}
 
 		);

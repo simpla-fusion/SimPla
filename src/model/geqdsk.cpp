@@ -73,14 +73,15 @@ void GEqdsk::Read(std::string const &fname)
 
 	inter2d_type(dims_, rzmin_, rzmax_).swap(psirz_);
 
+
 #define INPUT_VALUE(_NAME_)                                                            \
 	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
 		value_type y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
 		profile_[ _NAME_ ].data().emplace(                                                         \
-	     std::make_pair(static_cast<value_type>(s)                                     \
-	          /static_cast<value_type>(nw-1), y));                               \
+	      static_cast<value_type>(s)                                              \
+	          /static_cast<value_type>(nw-1), y );                               \
 	}                                                                                  \
 
 	INPUT_VALUE("fpol");

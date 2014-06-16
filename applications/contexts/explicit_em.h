@@ -136,6 +136,7 @@ ExplicitEMContext<TM>::~ExplicitEMContext()
 template<typename TM> template<typename TDict>
 void ExplicitEMContext<TM>::Load(TDict const & dict)
 {
+	DEFINE_PHYSICAL_CONST
 
 	LOGGER << "Load ExplicitEMContext ";
 
@@ -167,18 +168,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		{
 
 			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+
 			geqdsk.Save("/Geqdsk");
 
-			nTuple<3, Real> xmin, xmax;
-
-			xmin[0] = geqdsk.GetMin()[0];
-			xmin[1] = geqdsk.GetMin()[1];
-			xmin[2] = 0;
-			xmax[0] = geqdsk.GetMax()[0];
-			xmax[1] = geqdsk.GetMax()[1];
-			xmax[2] = 0;
-
-			mesh.SetExtents(xmin, xmax);
+			mesh.SetExtents(nTuple<3, Real>( { geqdsk.GetMin()[0], geqdsk.GetMin()[1], 0 }),
+			        nTuple<3, Real>( { geqdsk.GetMax()[0], geqdsk.GetMax()[1], 0 }));
 
 			model_.Add("Plasma", geqdsk.Boundary());
 			model_.Add("Vacuum", geqdsk.Limiter());
@@ -189,15 +183,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			for (auto s : mesh.Select(FACE))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
-				B[s] = mesh.template Sample<FACE>(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 
+				B[s] = mesh.Sample(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 			}
 
 			ne0.Clear();
 			Te0.Clear();
 			Ti0.Clear();
 
-			for (auto s : model_.Select(VERTEX, "Plasma"))
+			for (auto s : model_.SelectByName(VERTEX, "Plasma"))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
 				auto p = geqdsk.psi(x[0], x[1]);
@@ -208,23 +202,25 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			}
 
-			J0 = Curl(B) / CONSTANTS["permeability of free space"];
+			J0 = Curl(B) / mu0;
+
+			Jext = J0;
 
 			description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
 			LOGGER << "GFile is loaded!" << std::endl;
 
-			GLOBAL_DATA_STREAM.OpenGroup("/InitValue");
-			LOGGER << simpla::Save("ne", ne0);
-			LOGGER << simpla::Save("Te", Te0);
-			LOGGER << simpla::Save("Ti", Ti0);
+			LOGGER << simpla::Save("B", B);
+			LOGGER << simpla::Save("J0", J0);
+			LOGGER << simpla::Save("ne_", ne0);
+			LOGGER << simpla::Save("Te_", Te0);
+			LOGGER << simpla::Save("Ti_", Ti0);
 		}
 
 	}
 
 	try
 	{
-
 		LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
 		LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
@@ -245,8 +241,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	bool enableImplicit = false;
 
 	bool enablePML = false;
-
-	DEFINE_PHYSICAL_CONST
 
 	LOGGER << "Load Particles";
 
@@ -385,9 +379,7 @@ std::string ExplicitEMContext<TM>::Save(std::string const & path, bool is_verbos
 
 	<< "\n, B = " << SAVE(B )
 
-	<< "\n, J = " << SAVE(Jext)
-
-	<< "\n, J0 = " << SAVE(J0 )
+	<< "\n, J = " << simpla::Save("J",Jext)
 
 	<< "\n} ";
 

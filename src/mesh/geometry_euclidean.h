@@ -135,9 +135,9 @@ struct EuclideanGeometry: public TTopology
 				dict["Max"].template as<nTuple<NDIMS, Real>>());
 			}
 
-			topology_type::Load(dict, std::forward<Others const &>(others)...);
-
 			dt_ = dict["dt"].template as<Real>();
+
+			topology_type::Load(dict, std::forward<Others const &>(others)...);
 
 		} catch (...)
 		{
@@ -351,9 +351,9 @@ struct EuclideanGeometry: public TTopology
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesToIndex(px, shift);
 	}
-	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
+	coordinates_type const &CoordinatesToCartesian(coordinates_type const &x) const
 	{
-		return x;
+		return std::forward<coordinates_type const &>(x);
 	}
 
 	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const

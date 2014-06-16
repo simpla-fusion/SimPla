@@ -236,10 +236,11 @@ public:
 	}
 
 	template<typename ...TArgs>
-	auto diff(TArgs const &... x) const
-	DECL_RET_TYPE(
-			std::move(interpolate_op_.diff(data_.get(), std::forward<TArgs const &>(x)...))
-	)
+	nTuple<NDIMS, value_type> diff(TArgs const &... x) const
+	{
+		return std::move(interpolate_op_.diff(data_.get(), std::forward<TArgs const &>(x)...));
+	}
+
 };
 
 class BiLinearInterpolation
@@ -350,7 +351,7 @@ public:
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline auto diff(TV const * v, TX x, TX y, Args const &...) const -> nTuple<NDIMS,TV>
+	inline nTuple<NDIMS, TV> diff(TV const * v, TX x, TX y, Args const &...) const
 	{
 
 		x = (x - xmin_[0]) * inv_dx_[0];
@@ -375,10 +376,9 @@ public:
 	}
 
 	template<typename TV, int N, typename TX>
-	inline auto diff(TV const & v, nTuple<N, TX> const & x) const->decltype(diff(v, x[0], x[1]))
-	{
-		return diff(v, x[0], x[1]);
-	}
+	inline auto diff(TV const & v, nTuple<N, TX> const & x) const
+	DECL_RET_TYPE(std::move(diff(v, x[0], x[1])))
+
 }
 ;
 

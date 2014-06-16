@@ -13,7 +13,6 @@
 #include <list>
 #include <string>
 
-#include "select.h"
 #include "../utilities/log.h"
 #include "../utilities/sp_type_traits.h"
 #include "../fetl/fetl.h"
@@ -47,7 +46,7 @@ std::function<void()> CreateCommand(TF * f, Model<TM> const & model, TDict const
 
 	if (dict["Select"])
 	{
-		return CreateCommand(f, Filter(def_domain, f->mesh, dict["Select"]), dict["Operation"]);
+		return CreateCommand(f, model.SelectByConfig(def_domain, dict["Select"]), dict["Operation"]);
 	}
 	else
 	{

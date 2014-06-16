@@ -76,9 +76,9 @@ InitValue = {
 
 
 	E 	= 0.0
-	, J 	= 0.0
-	, B 	= InitB0
-	, ne 	= InitN0
+	--	, J 	= 0.0
+	--	, B 	= InitB0
+	--	, ne 	= InitN0
 
 }
 
@@ -99,24 +99,24 @@ Grid=
 	dt= 0.5*LX/NX/c -- time step
 }
 
- 
+
 Model=
 {
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
-	{Type="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
-
-	{Type="Plasma",
-	Select=function(x,y,z)
-	return x>1.0 and x<2.0
-	end
-	,Op="Set"},
+--	{Type="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+--
+--	{Type="Plasma",
+--		Select=function(x,y,z)
+--			return x>1.0 and x<2.0
+--		end
+--		,Op="Set"},
 }
- 
+
 
 FieldSolver=
 {
-	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+--	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
 }
 
 
@@ -126,27 +126,24 @@ FieldSolver=
 Constraints=
 {
 	---[[
-	{
-		DOF="J",
-		Select={Type="Range",Points={{0.1*LX,0,0}}},
-		Operation= function(t,x,f )
-			local tau = t*omega_ext
-			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			print(amp)
-			return { f[0],f[1]+amp,f[2]}
-		end
-	},
 --	{
---		DOF="E",
---		Select={Type="Range",
---			Value= function(x)
---				return x[0]< 0.05*LX or x[0]>0.95*LX
---			end
---		},
+--		DOF="J",
+--		Select={Type="Range",Points={{0.9*LX,0,0}}},
 --		Operation= function(t,x,f )
---			return {  0, 0, 0}
+--			local tau = t*omega_ext
+--			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+--			print(amp)
+--			return { f[0],f[1]+amp,f[2]}
 --		end
 --	},
+	{
+		DOF="E",
+		Select={Type="Interface",In="Vacuum",Out="Plasma"},
+		Operation= function(t,x,f )
+			print(f)
+			return {  199900, 0, 0}
+		end
+	},
 
 --]]
 }
@@ -187,15 +184,15 @@ ParticleConstraints=
 
 ---[[
 Particles={
---	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
---		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
+	--	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
+	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
 	--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
 	--		EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
 	--	ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
 	--		EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
-	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+--	ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
 --	H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
 --]]

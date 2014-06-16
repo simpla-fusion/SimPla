@@ -37,11 +37,11 @@ inline void ParallelDo(std::function<void(int, int)> fun)
 }
 
 template<typename TRange>
-void ParallelForEach(TRange r, std::function<void(typename TRange::value_type)> fun)
+void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::value_type)> fun)
 {
 	ParallelDo([r,fun](int t_num,int t_id)
 	{
-		for(auto const & s:r.Split(t_num,t_id))
+		for(auto s:r.Split(t_num,t_id))
 		{
 			fun(s);
 		}

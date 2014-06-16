@@ -13,7 +13,7 @@
 
 #include "../fetl/fetl.h"
 #include "../io/data_stream.h"
-#include "../model/select.h"
+#include "../model/model.h"
 #include "../model/surface.h"
 namespace simpla
 {
