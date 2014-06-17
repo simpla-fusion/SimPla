@@ -461,6 +461,9 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 
 	[=]( compact_index_type s )->bool
 	{
+
+		material_type res;
+
 		auto iform = this->mesh.IForm(s);
 
 		auto self=this->get(s);
@@ -484,16 +487,14 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 			}
+
 			for (int i = 0; i < num; ++i)
 			{
-				if (((this->get(neighbours[i]) & in)).any())
-				{
-					return true;
-				}
+				res |=this->get(neighbours[i]);
 			}
 		}
 
-		return false;
+		return (res & in).any();
 	};
 
 	return make_filter_range(pred, range);
