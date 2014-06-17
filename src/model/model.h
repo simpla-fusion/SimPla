@@ -351,12 +351,13 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 
 	if (type == "Boundary")
 	{
-		res = SelectInterface(range, dict["In"].template as<std::string>(), "NONE");
+		res = SelectInterface(range, dict["In"].template as<std::string>("NONE"), "NONE");
 
 	}
 	else if (type == "Interface")
 	{
-		res = SelectInterface(range, dict["In"].template as<std::string>(), dict["Out"].template as<std::string>());
+		res = SelectInterface(range, dict["In"].template as<std::string>("NONE"),
+		        dict["Out"].template as<std::string>("NONE"));
 	}
 
 	else if (type == "Range" && dict["Points"].is_table())
@@ -390,68 +391,71 @@ template<typename TR, typename T1, typename T2>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR const & range, T1 const & pin,
         T2 const & pout) const
 {
+
+// Good
+//  +----------#----------+
+//  |          #          |
+//  |    A     #-> B   C  |
+//  |          #          |
+//  +----------#----------+
+//
+//  +--------------------+
+//  |         ^          |
+//  |       B |     C    |
+//  |     ########       |
+//  |     #      #       |
+//  |     #  A   #       |
+//  |     #      #       |
+//  |     ########       |
+//  +--------------------+
+//
+//             +----------+
+//             |      C   |
+//  +----------######     |
+//  |          | A  #     |
+//  |    A     | &  #  B  |
+//  |          | B  #->   |
+//  +----------######     |
+//             |          |
+//             +----------+
+//
+//     	       +----------+
+//       C     |          |
+//  +----------#----+     |
+//  |          # A  |     |
+//  |    B   <-# &  |  A  |
+//  |          # B  |     |
+//  +----------#----+     |
+//             |          |
+//             +----------+
+//
+//
+// 	 Bad
+//
+//  +--------------------+
+//  |                    |
+//  |        A           |
+//  |     ########       |
+//  |     #      #       |
+//  |     #->B C #       |
+//  |     #      #       |
+//  |     ########       |
+//  +--------------------+
+//
+// 	            +----------+
+//              |          |
+//   +-------+  |          |
+//   |       |  |          |
+//   |   B   |  |    A     |
+//   |       |  |          |
+//   +-------+  |          |
+//              |          |
+//              +----------+
 	material_type in = GetMaterial(pin);
 	material_type out = GetMaterial(pout);
 
-	// Good
-	//  +----------#----------+
-	//  |          #          |
-	//  |    A     #-> B   C  |
-	//  |          #          |
-	//  +----------#----------+
-	//
-	//  +--------------------+
-	//  |         ^          |
-	//  |       B |     C    |
-	//  |     ########       |
-	//  |     #      #       |
-	//  |     #  A   #       |
-	//  |     #      #       |
-	//  |     ########       |
-	//  +--------------------+
-	//
-	//             +----------+
-	//             |      C   |
-	//  +----------######     |
-	//  |          | A  #     |
-	//  |    A     | &  #  B  |
-	//  |          | B  #->   |
-	//  +----------######     |
-	//             |          |
-	//             +----------+
-	//
-	//     	       +----------+
-	//       C     |          |
-	//  +----------#----+     |
-	//  |          # A  |     |
-	//  |    B   <-# &  |  A  |
-	//  |          # B  |     |
-	//  +----------#----+     |
-	//             |          |
-	//             +----------+
-	//
-	//
-	// 	 Bad
-	//
-	//  +--------------------+
-	//  |                    |
-	//  |        A           |
-	//  |     ########       |
-	//  |     #      #       |
-	//  |     #->B C #       |
-	//  |     #      #       |
-	//  |     ########       |
-	//  +--------------------+
-	//
-	// 	            +----------+
-	//              |          |
-	//   +-------+  |          |
-	//   |       |  |          |
-	//   |   B   |  |    A     |
-	//   |       |  |          |
-	//   +-------+  |          |
-	//              |          |
-	//              +----------+
+	if (in == out)
+		out = null_material;
 
 	filter_pred_fun_type<TR> pred =
 

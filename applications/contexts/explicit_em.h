@@ -103,6 +103,7 @@ public:
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
 	{
+		LOGGER << "Apply constraints";
 		for (auto const & command : batch)
 		{
 			command();
@@ -162,7 +163,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	if (dict["Model"])
 	{
-		model_.Update();
 
 		if (dict["Model"]["GFile"])
 		{
@@ -174,9 +174,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			mesh.SetExtents(nTuple<3, Real>( { geqdsk.GetMin()[0], geqdsk.GetMin()[1], 0 }),
 			        nTuple<3, Real>( { geqdsk.GetMax()[0], geqdsk.GetMax()[1], 0 }));
 
-			model_.Add("Plasma", geqdsk.Boundary());
-			model_.Add("Vacuum", geqdsk.Limiter());
-			model_.Update();
+			model_.Set(model_.SelectByPoints(VERTEX, geqdsk.Boundary()), "Plasma");
+			model_.Set(model_.SelectByPoints(VERTEX, geqdsk.Limiter()), "Vacuum");
 
 			B.Clear();
 
@@ -191,7 +190,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			Te0.Clear();
 			Ti0.Clear();
 
-			for (auto s : model_.SelectByName(VERTEX, "Plasma"))
+			for (auto s : model_.SelectByMaterial(VERTEX, "Plasma"))
 			{
 				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
 				auto p = geqdsk.psi(x[0], x[1]);

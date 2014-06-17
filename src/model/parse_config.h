@@ -24,33 +24,13 @@ template<typename TF, typename TM, typename TDict>
 std::function<void()> CreateCommand(TF * f, Model<TM> const & model, TDict const & dict)
 {
 
-	typedef typename TM::coordinates_type coordinates_type;
-
-	typename TM::range_type def_domain;
-
-	if (dict["DefineDomain"])
-	{
-		try
-		{
-			def_domain = model.mesh.Select(TF::IForm,
-			        dict["DefineDomain"].template as<std::pair<coordinates_type, coordinates_type>>());
-		} catch (...)
-		{
-			PARSER_ERROR("Configure define domain of a command error!");
-		}
-	}
-	else
-	{
-		def_domain = model.mesh.Select(TF::IForm);
-	}
-
 	if (dict["Select"])
 	{
-		return CreateCommand(f, model.SelectByConfig(def_domain, dict["Select"]), dict["Operation"]);
+		return CreateCommand(f, model.SelectByConfig(TF::IForm, dict["Select"]), dict["Operation"]);
 	}
 	else
 	{
-		return CreateCommand(f, def_domain, dict["Operation"]);
+		return CreateCommand(f, model.Select(TF::IForm), dict["Operation"]);
 	}
 }
 
