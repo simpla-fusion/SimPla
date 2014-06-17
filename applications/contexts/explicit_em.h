@@ -174,8 +174,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			mesh.SetExtents(nTuple<3, Real>( { geqdsk.GetMin()[0], geqdsk.GetMin()[1], 0 }),
 			        nTuple<3, Real>( { geqdsk.GetMax()[0], geqdsk.GetMax()[1], 0 }));
 
-			model_.Set(model_.SelectByPoints(VERTEX, geqdsk.Limiter()), "Vacuum");
-			model_.Set(model_.SelectByPoints(VERTEX, geqdsk.Boundary()), "Plasma");
+			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Limiter()), "Vacuum");
+			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Boundary()), "Plasma");
 
 			B.Clear();
 

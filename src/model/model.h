@@ -269,22 +269,22 @@ public:
 	}
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPoints(TR const& range, std::vector<coordinates_type> const & points, unsigned int Z =
+	filter_range_type<TR> SelectByPolylines(TR const& range, std::vector<coordinates_type> const & points, unsigned int Z =
 	        2) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPoints(TR const& range, nTuple<3, Real> x) const;
+	filter_range_type<TR> SelectByPolylines(TR const& range, nTuple<3, Real> x) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPoints(TR const& range, coordinates_type v0, coordinates_type v1) const;
+	filter_range_type<TR> SelectByPolylines(TR const& range, coordinates_type v0, coordinates_type v1) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPoints(TR const& range, PointInPolygen checkPointsInPolygen) const;
+	filter_range_type<TR> SelectByPolylines(TR const& range, PointInPolygen checkPointsInPolygen) const;
 
 	template<typename ...Args>
-	filter_mesh_range SelectByPoints(int iform, Args const &...args) const
+	filter_mesh_range SelectByPolylines(int iform, Args const &...args) const
 	{
-		return SelectByPoints(mesh.Select(iform), std::forward<Args const &>(args)...);
+		return SelectByPolylines(mesh.Select(iform), std::forward<Args const &>(args)...);
 	}
 
 	typename mesh_type::range Select(unsigned int iform) const
@@ -366,7 +366,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 
 		dict["Points"].as(&points);
 
-		res = SelectByPoints(range, points);
+		res = SelectByPolylines(range, points);
 
 	}
 	else if (!dict["Material"])
@@ -459,7 +459,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 
 	filter_pred_fun_type<TR> pred =
 
-	[=]( compact_index_type s )->bool
+	[this,in,out]( compact_index_type s )->bool
 	{
 
 		material_type res;
@@ -468,7 +468,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 
 		auto self=this->get(s);
 
-		if (( self & in).none() && ( (self & out).any() || self == out ))
+		if (( self & in).none() && ( (self & out).any() || (out == null_material) ))
 		{
 			compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
@@ -504,7 +504,7 @@ template<typename TM>
 typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 {
 
-	material_type res = null_material;
+	material_type res;
 
 	if (this->mesh.IForm(s) == VERTEX)
 	{
@@ -543,7 +543,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range, nTuple<3, Real> x) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range, nTuple<3, Real> x) const
 {
 	auto dest = mesh.CoordinatesGlobalToLocal(&x);
 
@@ -556,7 +556,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range, coordinates_type v0,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range, coordinates_type v0,
         coordinates_type v1) const
 {
 	filter_pred_fun_type<TR> pred =
@@ -571,7 +571,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
         PointInPolygen checkPointsInPolygen) const
 {
 	filter_pred_fun_type<TR> pred = [ checkPointsInPolygen,this](compact_index_type s )->bool
@@ -600,22 +600,22 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
  *           Z>=3
  */
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
         std::vector<coordinates_type> const & points, unsigned int Z) const
 {
 	filter_range_type<TR> res;
 
 	if (points.size() == 1)
 	{
-		res = SelectByPoints(range, points[0]);
+		res = SelectByPolylines(range, points[0]);
 	}
 	else if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 	{
-		res = SelectByPoints(range, points[0], points[1]);
+		res = SelectByPolylines(range, points[0], points[1]);
 	}
 	else if (Z < 3 && points.size() > 2) //select points in polyline
 	{
-		res = SelectByPoints(range, PointInPolygen(points, Z));
+		res = SelectByPolylines(range, PointInPolygen(points, Z));
 	}
 	else
 	{

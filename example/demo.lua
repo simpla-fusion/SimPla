@@ -140,18 +140,18 @@ Constraints=
 		DOF="E",
 		Select={Type="Boundary",In="Vacuum"},
 		Operation= function(t,x,f )
-			return {  199900, 0, 0}
+			return {  0, 0, 0}
 		end
 	},
-
-	{
-		DOF="E",
-		Select={Type="Interface",In="Plasma",Out="Vacuum"},
-
-		Operation= function(t,x,f )
-			return { -199900, 0, 0}
-		end
-	},
+--
+--	{
+--		DOF="E",
+--		Select={Type="Interface",In="Plasma",Out="Vacuum"},
+--
+--		Operation= function(t,x,f )
+--			return { -100, -100,-100}
+--		end
+--	},
 
 --]]
 }

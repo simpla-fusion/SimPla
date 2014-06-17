@@ -77,13 +77,13 @@ TYPED_TEST_CASE_P(TestModel);
 TYPED_TEST_P(TestModel,Vertex ){
 {
 
-	TestFixture::model->Set( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points), "Plasma");
+	TestFixture::model->Set( TestFixture::model->SelectByPolylines(VERTEX, TestFixture::points), "Vacuum");
 
 	Field<typename TestFixture::mesh_type, TestFixture::IForm,Real> f(TestFixture::mesh);
 
 	f.Clear();
 
-	for (auto s : TestFixture::model->SelectByMaterial(TestFixture::IForm, "Plasma"))
+	for (auto s : TestFixture::model->SelectByMaterial(TestFixture::IForm, "Vacuum"))
 	{
 		f[s] = 1;
 	}
@@ -115,31 +115,26 @@ TYPED_TEST_P(TestModel,Vertex ){
 		}
 	}
 
-	f.Clear();
-
 	auto extent = TestFixture::mesh.GetExtents();
 
 	TestFixture::points.emplace_back(typename TestFixture::coordinates_type(
 					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
 
-	TestFixture::model->Erase( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points));
+	TestFixture::model->Erase( TestFixture::model->SelectByPolylines(VERTEX, TestFixture::points));
 
-	TestFixture::model->Set( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points), "Vacuum");
+	TestFixture::model->Set( TestFixture::model->SelectByPolylines(VERTEX, TestFixture::points), "Plasma");
 
 	for (auto s : TestFixture::model->SelectByMaterial( TestFixture::IForm, "Plasma"))
 	{
-		f[s] = 1;
+		f[s] = -1;
 	}
 
-	LOGGER << SAVE(f);
-	f.Clear();
-
-	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Plasma", "NONE"))
+	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Plasma", "Vacuum"))
 	{
 		f[s] = 10;
 	}
 
-	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Vacuum", "Plasma"))
+	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Vacuum", "NONE"))
 	{
 		f[s] = -10;
 	}
@@ -149,6 +144,6 @@ TYPED_TEST_P(TestModel,Vertex ){
 
 REGISTER_TYPED_TEST_CASE_P(TestModel, Vertex);
 
-typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME>> ParamList;
+typedef testing::Types</*Int2Type<VERTEX>,*/Int2Type<EDGE> /*, Int2Type<FACE>, Int2Type<VOLUME>*/> ParamList;
 
 INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);

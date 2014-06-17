@@ -499,69 +499,6 @@ struct OcForest
 			break;
 			case VOLUME:
 			{
-				auto di = DeltaIndex(2,s);
-				auto dj = DeltaIndex(1,s);
-				auto dk = DeltaIndex(0,s);
-
-				v[0] = ((s - di) - dj) - dk;
-				v[1] = ((s - di) - dj) + dk;
-				v[2] = ((s - di) + dj) - dk;
-				v[3] = ((s - di) + dj) + dk;
-
-				v[4] = ((s + di) - dj) - dk;
-				v[5] = ((s + di) - dj) + dk;
-				v[6] = ((s + di) + dj) - dk;
-				v[7] = ((s + di) + dj) + dk;
-				n=8;
-			}
-			break;
-		}
-		return n;
-	}
-	inline unsigned int GetNeighbourVertices( compact_index_type s, compact_index_type *v) const
-	{
-		unsigned int n=0;
-		switch(IForm(s))
-		{
-			case VERTEX:
-			{
-				auto di = _DI >> (HeightOfTree(s) );
-				auto dj = _DJ >> (HeightOfTree(s) );
-				auto dk = _DK >> (HeightOfTree(s) );
-				v[0]=s - di;
-				v[1]=s + di;
-				v[2]=s - dj;
-				v[3]=s + dj;
-				v[4]=s - dk;
-				v[5]=s + dk;
-			}
-			n=1;
-			break;
-			case EDGE:
-			{
-				auto di=DeltaIndex(s);
-				auto dj=Roate(di)<<1;
-				auto dk=InverseRoate(di)<<1;
-				v[0] = s + di;
-				v[1] = s - di;
-			}
-			n=2;
-			break;
-
-			case FACE:
-			{
-				auto di = DeltaIndex(Roate(Dual(s)));
-				auto dj = DeltaIndex(InverseRoate(Dual(s)));
-
-				v[0] = s - di - dj;
-				v[1] = s - di - dj;
-				v[2] = s + di + dj;
-				v[3] = s + di + dj;
-				n=4;
-			}
-			break;
-			case VOLUME:
-			{
 				auto di = _DI >> (HeightOfTree(s) + 1);
 				auto dj = _DJ >> (HeightOfTree(s) + 1);
 				auto dk = _DK >> (HeightOfTree(s) + 1);
@@ -581,6 +518,7 @@ struct OcForest
 		}
 		return n;
 	}
+
 	template<int I>
 	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
 	{
@@ -1136,7 +1074,7 @@ struct OcForest
 
 	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
 	{
-		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1));
+		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1))&r;
 	}
 
 	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
