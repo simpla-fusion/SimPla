@@ -19,28 +19,12 @@ using namespace simpla;
 
 typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
 
-class TestModel: public testing::TestWithParam<
-
-std::tuple<
-
-typename TMesh::coordinates_type,
-
-typename TMesh::coordinates_type,
-
-nTuple<TMesh::NDIMS, size_t>
-
-> >
+template<typename TInt>
+class TestModel: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
-		auto param = GetParam();
-
-		xmin = std::get<0>(param);
-
-		xmax = std::get<1>(param);
-
-		dims = std::get<2>(param);
 
 		mesh.SetExtents(xmin, xmax, dims);
 
@@ -53,11 +37,9 @@ protected:
 			dh[i] = (dims[i] > 1) ? (extent.second[i] - extent.first[i]) / dims[i] : 0;
 		}
 
-		points.emplace_back(coordinates_type(
-		{ 0.2 * xmax[0], 0.2 * xmax[1], 0.2 * xmin[2] }));
+		points.emplace_back(coordinates_type( { 0.2 * xmax[0], 0.2 * xmax[1], 0.2 * xmin[2] }));
 
-		points.emplace_back(coordinates_type(
-		{ 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
+		points.emplace_back(coordinates_type( { 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
 		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
 		GLOBAL_DATA_STREAM.OpenGroup("/");
@@ -68,23 +50,20 @@ public:
 	typedef Real value_type;
 	typedef mesh_type::iterator iterator;
 	typedef mesh_type::coordinates_type coordinates_type;
-	typedef Field<mesh_type, VERTEX, value_type> TZeroForm;
-	typedef Field<mesh_type, EDGE, value_type> TOneForm;
-	typedef Field<mesh_type, FACE, value_type> TTwoForm;
-	typedef Field<mesh_type, VOLUME, value_type> TThreeForm;
 	typedef Model<mesh_type> model_type;
 
 	mesh_type mesh;
-
+	static constexpr unsigned int IForm = TInt::value;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	static constexpr unsigned int IForm = VERTEX;
+	nTuple<NDIMS, Real> xmin=
+	{	0.0, 0.0, 0.0,};
 
-	nTuple<NDIMS, Real> xmin;
+	nTuple<NDIMS, Real> xmax=
+	{	1.0, 2.0, 3.0};
 
-	nTuple<NDIMS, Real> xmax;
-
-	nTuple<NDIMS, size_t> dims;
+	nTuple<NDIMS, size_t> dims=
+	{	50, 60, 10};
 
 	std::shared_ptr<model_type> model;
 
@@ -93,109 +72,83 @@ public:
 	std::vector<coordinates_type> points;
 
 };
+TYPED_TEST_CASE_P(TestModel);
 
-TEST_P(TestModel,ZeroForm )
+TYPED_TEST_P(TestModel,Vertex ){
 {
 
-//	std::mt19937 gen;
-//	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
+	TestFixture::model->Set( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points), "Plasma");
 
-	auto extent = mesh.GetExtents();
-
-	model->Set(model->SelectByPoints(IForm, points), "Plasma");
-
-	model->Update();
-
-	CHECK(model->material_.size());
-
-	TZeroForm f(mesh);
+	Field<typename TestFixture::mesh_type, TestFixture::IForm,Real> f(TestFixture::mesh);
 
 	f.Clear();
 
-	for (auto s : model->SelectByMaterial(IForm, "Plasma"))
+	for (auto s : TestFixture::model->SelectByMaterial(TestFixture::IForm, "Plasma"))
 	{
 		f[s] = 1;
 	}
 	LOGGER << SAVE(f);
 
-	coordinates_type v0, v1, v2, v3;
-	for (int i = 0; i < NDIMS; ++i)
+	typename TestFixture::coordinates_type v0, v1, v2, v3;
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
-		v0[i] = points[0][i] + dh[i];
-		v1[i] = points[1][i] - dh[i];
+		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
+		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
 
-		v2[i] = points[0][i] - dh[i] * 2;
-		v3[i] = points[1][i] + dh[i] * 2;
+		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
+		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
 	}
-	for (auto s : model->Select(IForm))
+	for (auto s : TestFixture::model->Select(TestFixture::IForm))
 	{
-		auto x = mesh.GetCoordinates(s);
+		auto x = TestFixture::mesh.GetCoordinates(s);
 
 		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-				&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
+						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
 		{
-			EXPECT_EQ(1,f[s] ) << (mesh.GetCoordinates(s));
+			EXPECT_EQ(1,f[s] ) << ( TestFixture::mesh.GetCoordinates(s));
 		}
 
 		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
 				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
 		{
-			EXPECT_NE(1,f[s]) << (mesh.GetCoordinates(s));
+			EXPECT_NE(1,f[s]) << ( TestFixture::mesh.GetCoordinates(s));
 		}
 	}
 
-	points.emplace_back(coordinates_type(
-	{ 0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2] }));
-
-	model->Remove(model->SelectByPoints(IForm, points), "Plasma");
-	model->Update();
-
 	f.Clear();
 
-	for (auto s : model->SelectByMaterial(IForm, "Plasma"))
+	auto extent = TestFixture::mesh.GetExtents();
+
+	TestFixture::points.emplace_back(typename TestFixture::coordinates_type(
+					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
+
+	TestFixture::model->Erase( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points));
+
+	TestFixture::model->Set( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points), "Vacuum");
+
+	for (auto s : TestFixture::model->SelectByMaterial( TestFixture::IForm, "Plasma"))
 	{
 		f[s] = 1;
 	}
 
 	LOGGER << SAVE(f);
-
 	f.Clear();
 
-	for (auto s : model->SelectInterface(IForm, "Plasma", "NONE"))
+	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Plasma", "NONE"))
 	{
 		f[s] = 10;
 	}
 
-	for (auto s : model->SelectInterface(IForm, "Vacuum", "Plasma"))
+	for (auto s : TestFixture::model->SelectInterface( TestFixture::IForm, "Vacuum", "Plasma"))
 	{
 		f[s] = -10;
 	}
 	LOGGER << SAVE(f);
 
-}
+}}
 
-INSTANTIATE_TEST_CASE_P(FETL, TestModel,
+REGISTER_TYPED_TEST_CASE_P(TestModel, Vertex);
 
-testing::Combine(testing::Values(nTuple<3, Real>(
-{ 0.0, 0.0, 0.0, })  //
-//        , nTuple<3, Real>( { -1.0, -2.0, -3.0 } )
-		),
+typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME>> ParamList;
 
-testing::Values(
-
-nTuple<3, Real>(
-{ 1.0, 2.0, 3.0 })  //
-//        , nTuple<3, Real>( { 2.0, 0.0, 2.0 }) //
-//        , nTuple<3, Real>( { 2.0, 2.0, 0.0 }) //
-
-		),
-
-testing::Values(nTuple<3, size_t>(
-{ 50, 60, 10 }) //
-//        , nTuple<3, size_t>( { 1, 10, 20 }) //
-//        , nTuple<3, size_t>( { 17, 1, 17 }) //
-//        , nTuple<3, size_t>( { 17, 17, 1 }) //
-
-		)
-
-		));
+INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);

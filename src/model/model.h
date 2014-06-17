@@ -36,7 +36,7 @@ class Model
 {
 
 public:
-	static constexpr int MAX_NUM_OF_MEIDA_TYPE = 64;
+	static constexpr int MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<unsigned long>::digits;
 	typedef TM mesh_type;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 	typedef std::bitset<MAX_NUM_OF_MEIDA_TYPE> material_type;
@@ -50,7 +50,6 @@ public:
 	std::map<std::string, material_type> registered_material_;
 
 	unsigned int max_material_;
-	bool isChanged_;
 public:
 
 	enum
@@ -62,8 +61,8 @@ public:
 
 	mesh_type const &mesh;
 
-	Model(mesh_type const & m) :
-			null_material(), mesh(m), max_material_(CUSTOM + 1), isChanged_(true)
+	Model(mesh_type const & m)
+			: null_material(), mesh(m), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -139,16 +138,7 @@ public:
 		return std::move(res);
 	}
 
-	material_type get(compact_index_type s) const
-	{
-		material_type res = null_material;
-		auto it = material_.find(s);
-		if (it != material_.end())
-		{
-			res = it->second;
-		}
-		return res;
-	}
+	material_type get(compact_index_type s) const;
 
 	material_type operator[](compact_index_type s) const
 	{
@@ -168,23 +158,12 @@ public:
 	std::string Save(std::string const & path, bool is_verbose = false) const
 	{
 		UNIMPLEMENT;
-
 		return "UNIMPLEMENT!";
 	}
 	template<typename OS>
 	OS & Print(OS &os) const
 	{
 		UNIMPLEMENT;
-		//		os << "{ \n" << "\t -- register media type\n";
-		//
-		//		for (auto const& p : register_material_)
-		//		{
-		//			os << std::setw(10) << p.first << " = 0x" << std::hex << p.second.to_ulong() << std::dec << ", \n";
-		//		}
-		//
-		//		os << " }\n"
-		//
-		//		;
 		return os;
 	}
 
@@ -222,7 +201,6 @@ public:
 
 		LOGGER << op << " material " << DONE;
 
-		isChanged_ = true;
 	}
 
 	template<typename TR>
@@ -236,16 +214,17 @@ public:
 		}
 	}
 
-	template<typename TR, typename M>
-	void Set(TR const & r, M const& material)
+	template<typename TR>
+	void Erase(TR const & r)
 	{
-		auto t = GetMaterial(material);
-		Modify(r, [t](material_type const & )->material_type
-		{	return t;});
+		for (auto s : r)
+		{
+			material_.erase(s);
+		}
 	}
 
 	template<typename TR, typename M>
-	void Add(TR const & r, M const& material)
+	void Set(TR const & r, M const& material)
 	{
 		auto t = GetMaterial(material);
 		Modify(r, [t](material_type const & m)->material_type
@@ -253,30 +232,11 @@ public:
 	}
 
 	template<typename TR, typename M>
-	void Remove(TR const & r, M const& material)
+	void Unset(TR const & r, M const& material)
 	{
 		auto t = GetMaterial(material);
 		Modify(r, [t](material_type const & m)->material_type
 		{	return m&(~t);});
-	}
-
-	/**
-	 *  Update material on edge ,face and cell, base on material on vertics
-	 */
-	void Update()
-	{
-
-		if (isChanged_)
-		{
-			_UpdateMaterials<EDGE>();
-			_UpdateMaterials<FACE>();
-			_UpdateMaterials<VOLUME>();
-			isChanged_ = false;
-		}
-	}
-	bool IsChanged() const
-	{
-		return isChanged_;
 	}
 
 	template<typename TDict>
@@ -292,6 +252,7 @@ public:
 
 	template<typename TR, typename ...Args>
 	filter_range_type<TR> SelectByMaterial(TR const& r, Args const &...args) const;
+
 	template<typename ...Args>
 	filter_mesh_range SelectByMaterial(int iform, Args const &...args) const
 	{
@@ -309,7 +270,7 @@ public:
 
 	template<typename TR>
 	filter_range_type<TR> SelectByPoints(TR const& range, std::vector<coordinates_type> const & points, unsigned int Z =
-			2) const;
+	        2) const;
 
 	template<typename TR>
 	filter_range_type<TR> SelectByPoints(TR const& range, nTuple<3, Real> x) const;
@@ -331,43 +292,43 @@ public:
 		return mesh.Select(iform);
 	}
 
-private:
-
-	template<int IFORM>
-	void _UpdateMaterials()
-	{
-		LOGGER << "Update Material " << IFORM;
-
-//		for (auto s : mesh.Select(IFORM))
+//private:
+//
+//	template<int IFORM>
+//	void _UpdateMaterials()
+//	{
+//		LOGGER << "Update Material " << IFORM;
+//
+////		for (auto s : mesh.Select(IFORM))
+////		{
+////			typename iterator::value_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
+////
+////			int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
+////
+////			material_type flag = null_material;
+////			for (int i = 0; i < n; ++i)
+////			{
+////				flag |= get(v[i]);
+////			}
+////			if (flag != null_material)
+////				material_[s] = flag;
+////
+////		}
+//
+//		for (auto const & p : material_)
 //		{
-//			typename iterator::value_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
+//			if (mesh.IForm(p.first) != VERTEX || p.second == null_material)
+//				continue;
+//			compact_index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
+//			int n = mesh.template GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<IFORM>(), p.first, v);
 //
-//			int n = mesh.template GetAdjacentCells(Int2Type<IFORM>(), Int2Type<VERTEX>(), s, v);
-//
-//			material_type flag = null_material;
 //			for (int i = 0; i < n; ++i)
 //			{
-//				flag |= get(v[i]);
+//				material_[v[i]] |= p.second;
 //			}
-//			if (flag != null_material)
-//				material_[s] = flag;
-//
 //		}
-
-		for (auto const & p : material_)
-		{
-			if (mesh.IForm(p.first) != VERTEX || p.second == null_material)
-				continue;
-			compact_index_type v[mesh_type::MAX_NUM_VERTEX_PER_CEL];
-			int n = mesh.template GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<IFORM>(), p.first, v);
-
-			for (int i = 0; i < n; ++i)
-			{
-				material_[v[i]] |= p.second;
-			}
-		}
-
-	}
+//
+//	}
 }
 ;
 template<typename TM>
@@ -413,7 +374,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	}
 	else if (dict.is_function())
 	{
-		filter_pred_fun_type<TR> pred = [dict,this]( typename TR::iterator::value_type const & s )->bool
+		filter_pred_fun_type<TR> pred = [dict,this]( compact_index_type s )->bool
 		{
 			return (dict( this->mesh.GetCoordinates( s)).template as<bool>());
 		};
@@ -427,14 +388,10 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 template<typename TM>
 template<typename TR, typename T1, typename T2>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR const & range, T1 const & pin,
-		T2 const & pout) const
+        T2 const & pout) const
 {
 	material_type in = GetMaterial(pin);
 	material_type out = GetMaterial(pout);
-	if (IsChanged())
-	{
-		LOGIC_ERROR("need update!!");
-	}
 
 	// Good
 	//  +----------#----------+
@@ -498,13 +455,15 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 
 	filter_pred_fun_type<TR> pred =
 
-	[=]( typename TR::iterator::value_type s )->bool
+	[=]( compact_index_type s )->bool
 	{
-		auto iform = mesh.IForm(s);
+		auto iform = this->mesh.IForm(s);
 
-		if ((this->get(s) & in).none() && (this->get(s) & out).any())
+		auto self=this->get(s);
+
+		if (( self & in).none() && ( (self & out).any() || self == out ))
 		{
-			typename TR::iterator::value_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+			compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
 			int num=0;
 			switch(iform)
@@ -536,16 +495,43 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	return make_filter_range(pred, range);
 
 }
+template<typename TM>
+typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
+{
+
+	material_type res = null_material;
+
+	if (this->mesh.IForm(s) == VERTEX)
+	{
+		auto it = material_.find(s);
+		if (it != material_.end())
+		{
+			res = it->second;
+		}
+	}
+	else
+	{
+		compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+
+		int num = this->mesh.GetVertices(s, neighbours);
+
+		for (int i = 0; i < num; ++i)
+		{
+			res |= this->get(neighbours[i]);
+		}
+	}
+	return res;
+}
 
 template<typename TM> template<typename TR, typename ...Args>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(TR const & range,
-		Args const & ... args) const
+        Args const & ... args) const
 {
 	auto material = GetMaterial(std::forward<Args const&>(args)...);
 
-	filter_pred_fun_type<TR> pred = [material,this]( typename TR::iterator::value_type s )->bool
+	filter_pred_fun_type<TR> pred = [material,this]( compact_index_type s )->bool
 	{
-		return (((this->get(s) & material)).any());
+		return (this->get(s) & material).any();
 	};
 	return make_filter_range(pred, range);
 
@@ -556,7 +542,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 {
 	auto dest = mesh.CoordinatesGlobalToLocal(&x);
 
-	filter_pred_fun_type<TR> pred = [dest,this](typename iterator::value_type const &s )->bool
+	filter_pred_fun_type<TR> pred = [dest,this](compact_index_type s )->bool
 	{
 		return this->mesh.GetCellIndex(s)==dest;
 	};
@@ -566,24 +552,24 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 
 template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range, coordinates_type v0,
-		coordinates_type v1) const
+        coordinates_type v1) const
 {
 	filter_pred_fun_type<TR> pred =
-			[v0,v1,this]( typename iterator::value_type const &s )->bool
-			{
+	        [v0,v1,this]( compact_index_type s )->bool
+	        {
 
-				auto x = this->mesh.GetCoordinates(s);
-				return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
-			};
+		        auto x = this->mesh.GetCoordinates(s);
+		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
+	        };
 	return make_filter_range(pred, range);
 }
 
 template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
-		PointInPolygen checkPointsInPolygen) const
+        PointInPolygen checkPointsInPolygen) const
 {
-	filter_pred_fun_type<TR> pred = [ checkPointsInPolygen,this](typename iterator::value_type const &s )->bool
+	filter_pred_fun_type<TR> pred = [ checkPointsInPolygen,this](compact_index_type s )->bool
 	{	return (checkPointsInPolygen(this->mesh.GetCoordinates(s) ));};
 
 	return make_filter_range(pred, range);
@@ -610,7 +596,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
  */
 template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
-		std::vector<coordinates_type> const & points, unsigned int Z) const
+        std::vector<coordinates_type> const & points, unsigned int Z) const
 {
 	filter_range_type<TR> res;
 
