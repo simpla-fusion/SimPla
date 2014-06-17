@@ -424,9 +424,9 @@ private:
 #define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
 //"-----------------------------------------------------------------"
 
-#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_)<<flush;_CMD_;__logger<<DONE;}
+#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
-#define LOG_CMD2(_MSG_,_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<_MSG_<<flush;_CMD_;__logger<<DONE;}
+#define LOG_CMD2(_MSG_,_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
 inline Logger & DONE(Logger & self)
 {
