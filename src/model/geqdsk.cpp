@@ -164,7 +164,6 @@ std::string GEqdsk::Save(std::string const & path) const
 
 	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
 
-	CHECK(rzbbb_.size());
 	LOGGER << simpla::Save("rzbbb", rzbbb_ ) << std::endl;
 
 	LOGGER << simpla::Save("rzlim", rzlim_) << std::endl;

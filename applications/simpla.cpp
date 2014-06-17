@@ -26,9 +26,9 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
+	LOG_STREAM.Init(argc,argv);
 	GLOBAL_COMM.Init(argc,argv);
-
-	LOG_STREAM.SetStdOutVisableLevel(0);
+	GLOBAL_DATA_STREAM.Init(argc,argv);
 
 	LuaObject dict;
 
@@ -48,10 +48,6 @@ int main(int argc, char **argv)
 				{
 					record_stride =ToValue<size_t>(value);
 				}
-				else if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
-				{
-					GLOBAL_DATA_STREAM.OpenFile(value);
-				}
 				else if(opt=="i"||opt=="input")
 				{
 					dict.ParseFile(value);
@@ -59,26 +55,6 @@ int main(int argc, char **argv)
 				else if(opt=="c"|| opt=="command")
 				{
 					dict.ParseString(value);
-				}
-				else if(opt=="l"|| opt=="log")
-				{
-					LOG_STREAM.OpenFile (value);
-				}
-				else if(opt=="v")
-				{
-					LOG_STREAM.SetStdOutVisableLevel(ToValue<int>(value));
-				}
-				else if( opt=="verbose")
-				{
-					LOG_STREAM.SetStdOutVisableLevel(LOG_VERBOSE);
-				}
-				else if(opt=="q"|| opt=="quiet")
-				{
-					LOG_STREAM.SetStdOutVisableLevel(LOG_INFORM-1);
-				}
-				else if(opt=="w"|| opt=="log_width")
-				{
-					LOG_STREAM.SetLineWidth(ToValue<int>(value));
 				}
 				else if(opt=="g"|| opt=="generator")
 				{
@@ -107,26 +83,27 @@ int main(int argc, char **argv)
 					INFORM
 					<< ShowCopyRight() << std::endl
 					<< "Too lazy to write a complete help information\n"<< std::endl;
-					TheEnd(0);}
-				else
-				{
-					INFORM
-					<< ShowCopyRight() << std::endl
-					<<
-					" -h        \t print this information\n"
-					" -n<NUM>   \t number of steps\n"
-					" -s<NUM>   \t recorder per <NUM> steps\n"
-					" -o<STRING>\t output directory\n"
-					" -i<STRING>\t configure file \n"
-					" -c,--config <STRING>\t Lua script passed in as string \n"
-					" -t        \t only read and parse input file, but do not process  \n"
-					" -g,--generator   \t generator a demo input script file \n"
-					" -v<NUM>   \t verbose  \n"
-					" -V        \t print version  \n"
-					" -q        \t quiet mode, standard out  \n"
-					;
 					TheEnd(0);
 				}
+//				else
+//				{
+//					INFORM
+//					<< ShowCopyRight() << std::endl
+//					<<
+//					" -h        \t print this information\n"
+//					" -n<NUM>   \t number of steps\n"
+//					" -s<NUM>   \t recorder per <NUM> steps\n"
+//					" -o<STRING>\t output directory\n"
+//					" -i<STRING>\t configure file \n"
+//					" -c,--config <STRING>\t Lua script passed in as string \n"
+//					" -t        \t only read and parse input file, but do not process  \n"
+//					" -g,--generator   \t generator a demo input script file \n"
+//					" -v<NUM>   \t verbose  \n"
+//					" -V        \t print version  \n"
+//					" -q        \t quiet mode, standard out  \n"
+//					;
+//					TheEnd(0);
+//				}
 				return CONTINUE;
 
 			}
@@ -147,6 +124,7 @@ int main(int argc, char **argv)
 		LOGGER << "Nothing to do !!";
 		TheEnd(-1);
 	}
+	INFORM << SINGLELINE;
 
 	LOGGER << "Pre-Process" << START;
 
@@ -164,7 +142,7 @@ int main(int argc, char **argv)
 	// Preprocess    ====================================
 	// Main Loop ============================================
 
-	LOGGER << "\n" << SINGLELINE<< "\n";
+	INFORM << SINGLELINE;
 	LOGGER << "Process " << START;
 
 	TheStart();
@@ -196,14 +174,17 @@ int main(int argc, char **argv)
 	}
 	LOGGER << "Process" << DONE;
 
-	VERBOSE << "Post-Process" << START;
+	INFORM << SINGLELINE;
+
+	LOGGER << "Post-Process" << START;
 
 	ctx.Save("/Output",true);
 
 	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
 
-	VERBOSE << "Post-Process" << DONE;
+	LOGGER << "Post-Process" << DONE;
 
+	INFORM << SINGLELINE;
 	GLOBAL_DATA_STREAM.Close();
 	GLOBAL_COMM.Close();
 	TheEnd();

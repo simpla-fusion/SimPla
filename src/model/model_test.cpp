@@ -144,6 +144,6 @@ TYPED_TEST_P(TestModel,Vertex ){
 
 REGISTER_TYPED_TEST_CASE_P(TestModel, Vertex);
 
-typedef testing::Types</*Int2Type<VERTEX>,*/Int2Type<EDGE> /*, Int2Type<FACE>, Int2Type<VOLUME>*/> ParamList;
+typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > ParamList;
 
 INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);

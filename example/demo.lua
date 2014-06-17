@@ -125,25 +125,25 @@ FieldSolver=
 
 Constraints=
 {
-	---[[
-	--	{
-	--		DOF="J",
-	--		Select={Type="Range",Points={{0.9*LX,0,0}}},
-	--		Operation= function(t,x,f )
-	--			local tau = t*omega_ext
-	--			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-	--			print(amp)
-	--			return { f[0],f[1]+amp,f[2]}
-	--		end
-	--	},
+---[[
+	{
+		DOF="J",
+		Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ}}},
+		Operation= function(t,x,f )
+			local tau = t*omega_ext
+			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+			print(amp)
+			return { f[0],f[1]+amp,f[2]}
+		end
+	},
 	{
 		DOF="E",
 		Select={Type="Boundary",In="Vacuum"},
 		Operation= function(t,x,f )
-			return {  0, 0, 0}
+			return {  1000, 1000, 1000}
 		end
 	},
---
+
 --	{
 --		DOF="E",
 --		Select={Type="Interface",In="Plasma",Out="Vacuum"},

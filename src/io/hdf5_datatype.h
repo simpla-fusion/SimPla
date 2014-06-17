@@ -22,7 +22,7 @@ extern "C"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/factory.h"
 #include "../utilities/ntuple.h"
-
+#include "../utilities/log.h"
 namespace simpla
 {
 
@@ -68,8 +68,10 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 	}
 
 private:
-	template<typename T> auto hash()
-	DECL_RET_TYPE((std::type_index(typeid(T)).hash_code()))
+	template<typename T> size_t hash()
+	{
+		return (std::type_index(typeid(T)).hash_code());
+	}
 
 }
 ;

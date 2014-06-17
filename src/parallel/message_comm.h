@@ -9,22 +9,28 @@
 #define MESSAGE_COMM_H_
 
 #include <mpi.h>
+#include <algorithm>
+#include <thread>
+#include "../utilities/parse_command_line.h"
+#include "../utilities/utilities.h"
+
 namespace simpla
 {
 
 class MessageComm
 {
+	int num_threads_;
 	int num_process_;
 	int process_num_;
 	MPI_Comm comm_;
 public:
 	MessageComm()
-			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL)
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL), num_threads_(1)
 	{
 	}
 
 	MessageComm(int argc, char** argv)
-			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL)
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL), num_threads_(1)
 	{
 		Init(argc, argv);
 	}
@@ -44,6 +50,22 @@ public:
 			MPI_Comm_size(comm_, &num_process_);
 			MPI_Comm_rank(comm_, &process_num_);
 		}
+
+		ParseCmdLine(argc, argv,
+
+		[&](std::string const & opt,std::string const & value)->int
+		{
+			if( opt=="number_of_thread")
+			{
+				num_threads_ =ToValue<size_t>(value);
+			}
+
+			return CONTINUE;
+
+		}
+
+		);
+
 	}
 	void Close()
 	{
@@ -89,6 +111,15 @@ public:
 			MPI_Barrier(comm_);
 	}
 
+	void SetNumThread(int num)
+	{
+		int local_num_cpu = std::thread::hardware_concurrency();
+		num_threads_ = std::min(num, local_num_cpu);
+	}
+	unsigned int GetNumThreads() const
+	{
+		return num_threads_;
+	}
 }
 ;
 #define GLOBAL_COMM   SingletonHolder<simpla::MessageComm>::instance()

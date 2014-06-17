@@ -8,14 +8,28 @@
 #ifndef MULTI_THREAD_H_
 #define MULTI_THREAD_H_
 #include <vector>
-#include <thread>
+
+#ifdef _OPENMP
+#	include <omp.h>
+#else
+#	include <thread>
+#endif
 namespace simpla
 {
 
 inline void ParallelDo(std::function<void(int, int)> fun)
 {
-#ifndef DISABLE_MULTI_THREAD
-	const unsigned int num_threads = std::thread::hardware_concurrency();
+
+#ifdef _OPENMP
+	int num_threads = omp_get_num_procs();
+
+#pragma omp parallel for
+	for ( int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		fun(num_threads, thread_id);
+	}
+#else
+	const unsigned int num_threads = GLOBAL_COMM.GetNumThreads();
 	std::vector<std::thread> threads;
 	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
@@ -31,14 +45,26 @@ inline void ParallelDo(std::function<void(int, int)> fun)
 
 	for (auto & t : threads)
 		t.join();
-#else
-	fun(1, 0);
 #endif
 }
 
 template<typename TRange>
 void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::value_type)> fun)
 {
+#ifdef _OPENMP
+
+	int num_threads = omp_get_num_procs();
+
+#pragma omp parallel for
+	for ( int thread_id = 0; thread_id < num_threads; ++thread_id)
+	{
+		for(auto s:r.Split(num_threads,thread_id))
+		{
+			fun(s);
+		}
+	}
+#else
+
 	ParallelDo([r,fun](int t_num,int t_id)
 	{
 		for(auto s:r.Split(t_num,t_id))
@@ -46,7 +72,7 @@ void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::val
 			fun(s);
 		}
 	});
-
+#endif
 }
 
 }  // namespace simpla

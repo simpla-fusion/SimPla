@@ -41,6 +41,8 @@ public:
 
 	DataStream();
 	~DataStream();
+	void Init(int argc = 0, char** argv = nullptr);
+
 	void SetLightDatLimit(size_t s)
 	{
 		LIGHT_DATA_LIMIT_ = s;

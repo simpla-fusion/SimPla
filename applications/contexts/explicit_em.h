@@ -400,17 +400,15 @@ std::string ExplicitEMContext<TM>::Save(std::string const & path, bool is_verbos
 template<typename TM>
 void ExplicitEMContext<TM>::NextTimeStep()
 {
-	Real dt = mesh.GetDt();
-
 	DEFINE_PHYSICAL_CONST
 
-	VERBOSE
+	INFORM
 
-	<< "Simulation Time = "
+	<< "[" << mesh.GetClock() << "]"
 
-	<< (mesh.GetTime() / CONSTANTS["s"]) << "[s]"
+	<< "Simulation Time = " << (mesh.GetTime() / CONSTANTS["s"]) << "[s]";
 
-	<< " dt = " << (dt / CONSTANTS["s"]) << "[s]";
+	Real dt = mesh.GetDt();
 
 	//************************************************************
 	// Compute Cycle Begin
@@ -435,7 +433,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	ExcuteCommands(commandToB_);
 
 	dE.Clear();
-	E_plus_CurlB(dt, E, B, &dE); 	// dE += Curl(B)*dt
+	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
@@ -448,8 +446,10 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	dB.Clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
-	LOG_CMD(B += dB * 0.5); //	B(t=1/2 -> 1)
+	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
+
+	mesh.NextTimeStep();
 
 //************************************************************
 // Compute Cycle End

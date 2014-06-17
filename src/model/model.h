@@ -167,8 +167,6 @@ public:
 		return os;
 	}
 
-	template<typename TR> using filter_pred_fun_type=std::function<bool(typename TR::iterator::value_type)>;
-
 	template<typename TR> using filter_range_type=
 	Range<FilterIterator<std::function<bool(typename TR::iterator::value_type)> , typename TR::iterator>>;
 
@@ -242,8 +240,16 @@ public:
 	template<typename TDict>
 	filter_mesh_range SelectByConfig(TDict const & dict) const;
 
+	template<typename TR>
+	filter_range_type<TR> SelectByFunction(TR const & r, std::function<bool(coordinates_type)> const & fun) const;
+
+	filter_mesh_range SelectByFunction(int iform, std::function<bool(coordinates_type)> const & fun) const
+	{
+		return SelectByFunction(mesh.Select(iform), fun);
+	}
 	template<typename TR, typename TDict>
 	filter_range_type<TR> SelectByConfig(TR const & r, TDict const & dict) const;
+
 	template<typename ...Args>
 	filter_mesh_range SelectByConfig(int iform, Args const &...args) const
 	{
@@ -269,8 +275,8 @@ public:
 	}
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPolylines(TR const& range, std::vector<coordinates_type> const & points, unsigned int Z =
-	        2) const;
+	filter_range_type<TR> SelectByPolylines(TR const& range, std::vector<coordinates_type> const & points,
+	        unsigned int Z = 2) const;
 
 	template<typename TR>
 	filter_range_type<TR> SelectByPolylines(TR const& range, nTuple<3, Real> x) const;
@@ -375,7 +381,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	}
 	else if (dict.is_function())
 	{
-		filter_pred_fun_type<TR> pred = [dict,this]( compact_index_type s )->bool
+		std::function<bool(compact_index_type)> pred = [dict,this]( compact_index_type s )->bool
 		{
 			return (dict( this->mesh.GetCoordinates( s)).template as<bool>());
 		};
@@ -386,6 +392,18 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	return res;
 
 }
+template<typename TM> template<typename TR>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(TR const & r,
+        std::function<bool(coordinates_type)> const & fun) const
+{
+	std::function<bool(compact_index_type)> pred = [fun,this]( compact_index_type s )->bool
+	{
+		return fun( this->mesh.GetCoordinates( s));
+	};
+
+	return make_filter_range(pred, r);
+}
+
 template<typename TM>
 template<typename TR, typename T1, typename T2>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR const & range, T1 const & pin,
@@ -457,7 +475,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	if (in == out)
 		out = null_material;
 
-	filter_pred_fun_type<TR> pred =
+	std::function<bool(compact_index_type)> pred =
 
 	[this,in,out]( compact_index_type s )->bool
 	{
@@ -534,7 +552,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 {
 	auto material = GetMaterial(std::forward<Args const&>(args)...);
 
-	filter_pred_fun_type<TR> pred = [material,this]( compact_index_type s )->bool
+	std::function<bool(compact_index_type)> pred = [material,this]( compact_index_type s )->bool
 	{
 		return (this->get(s) & material).any();
 	};
@@ -543,11 +561,12 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range, nTuple<3, Real> x) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
+        nTuple<3, Real> x) const
 {
 	auto dest = mesh.CoordinatesGlobalToLocal(&x);
 
-	filter_pred_fun_type<TR> pred = [dest,this](compact_index_type s )->bool
+	std::function<bool(compact_index_type)> pred = [dest,this](compact_index_type s )->bool
 	{
 		return this->mesh.GetCellIndex(s)==dest;
 	};
@@ -559,7 +578,7 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range, coordinates_type v0,
         coordinates_type v1) const
 {
-	filter_pred_fun_type<TR> pred =
+	std::function<bool(compact_index_type)> pred =
 	        [v0,v1,this]( compact_index_type s )->bool
 	        {
 
@@ -574,7 +593,7 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
         PointInPolygen checkPointsInPolygen) const
 {
-	filter_pred_fun_type<TR> pred = [ checkPointsInPolygen,this](compact_index_type s )->bool
+	std::function<bool(compact_index_type)> pred = [ checkPointsInPolygen,this](compact_index_type s )->bool
 	{	return (checkPointsInPolygen(this->mesh.GetCoordinates(s) ));};
 
 	return make_filter_range(pred, range);

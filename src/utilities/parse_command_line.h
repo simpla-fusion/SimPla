@@ -8,15 +8,20 @@
 #ifndef PARSE_COMMAND_LINE_H_
 #define PARSE_COMMAND_LINE_H_
 
+#include <functional>
+#include <string>
+
+namespace simpla
+{
+
 enum
 {
 	CONTINUE = 0, TERMINATE = 1
-
 }
 ;
 
 inline void ParseCmdLine(int argc, char **argv,
-		std::function<int(std::string const &, std::string const &)> const & fun)
+        std::function<int(std::string const &, std::string const &)> const & fun)
 {
 	int i = 1;
 
@@ -27,8 +32,7 @@ inline void ParseCmdLine(int argc, char **argv,
 	while (i < argc)
 	{
 		char * str = argv[i];
-		if (str[0] == '-'
-				&& ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure flag
+		if (str[0] == '-' && ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure flag
 		{
 			if (opt == "") // if buffer is not empty, clear it
 			{
@@ -75,4 +79,5 @@ inline void ParseCmdLine(int argc, char **argv,
 	}
 }
 
+}  // namespace simpla
 #endif /* PARSE_COMMAND_LINE_H_ */

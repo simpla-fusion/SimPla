@@ -7,6 +7,8 @@
  */
 #ifndef INCLUDE_SINGLETON_HOLDER_H_
 #define INCLUDE_SINGLETON_HOLDER_H_
+namespace simpla
+{
 
 /*
  *@NOTE  Meyers Singleton，
@@ -15,13 +17,17 @@
  * 2001 Addison Wesley ),
  */
 template<class T>
-class SingletonHolder {
+class SingletonHolder
+{
 public:
-	static T & instance() {
-		if (!pInstance_) {
+	static T & instance()
+	{
+		if (!pInstance_)
+		{
 //#pragma omp critical
 			//TOD add some for mt critical
-			if (!pInstance_) {
+			if (!pInstance_)
+			{
 				static T tmp;
 				pInstance_ = &tmp;
 			}
@@ -29,13 +35,15 @@ public:
 		return *pInstance_;
 	}
 protected:
-	SingletonHolder() {
+	SingletonHolder()
+	{
 	}
-	~SingletonHolder() {
+	~SingletonHolder()
+	{
 	}
 	static T * volatile pInstance_;
 };
 template<class T>
 T * volatile SingletonHolder<T>::pInstance_ = 0;
-
+}  // namespace simpla
 #endif  // INCLUDE_SINGLETON_HOLDER_H_

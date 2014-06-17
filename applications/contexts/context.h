@@ -31,6 +31,9 @@ struct Context
 
 	std::function<void()> NextTimeStep;
 
+	std::function<std::string()> Begin;
+	std::function<std::string()> End;
+
 	bool empty() const
 	{
 		return false;

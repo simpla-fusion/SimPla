@@ -49,6 +49,24 @@ DataStream::~DataStream()
 	Close();
 	delete pimpl_;
 }
+
+void DataStream::Init(int argc, char** argv)
+{
+
+	ParseCmdLine(argc, argv,
+
+	[&,this](std::string const & opt,std::string const & value)->int
+	{
+		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
+		{
+			this->OpenFile(value);
+		}
+		return CONTINUE;
+	}
+
+	);
+
+}
 bool DataStream::IsOpened() const
 {
 	return pimpl_->file_ > 0;

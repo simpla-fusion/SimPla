@@ -27,10 +27,15 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-
+#include <bitset>
 #ifdef USE_MPI
 #	include "../parallel/message_comm.h"
 #endif
+#include "../utilities/parse_command_line.h"
+#include "../utilities/utilities.h"
+
+namespace simpla
+{
 
 enum
 {
@@ -50,13 +55,47 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int l = LOG_LOG)
+	LoggerStreams(int l = 0)
 			: std_out_visable_level_(l), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
 	{
 		fs.close();
+	}
+
+	void Init(int argc, char** argv)
+	{
+
+		ParseCmdLine(argc, argv,
+
+		[&,this](std::string const & opt,std::string const & value)->int
+		{
+			if( opt=="log")
+			{
+				this->OpenFile (value);
+			}
+			else if(opt=="v")
+			{
+				this->SetStdOutVisableLevel(ToValue<int>(value));
+			}
+			else if( opt=="verbose")
+			{
+				this->SetStdOutVisableLevel(LOG_VERBOSE);
+			}
+			else if( opt=="quiet")
+			{
+				this->SetStdOutVisableLevel(LOG_INFORM-1);
+			}
+			else if( opt=="log_width")
+			{
+				this->SetLineWidth(ToValue<int>(value));
+			}
+			return CONTINUE;
+		}
+
+		);
+
 	}
 
 	inline void OpenFile(std::string const & name)
@@ -69,31 +108,31 @@ public:
 
 	void put(int level, std::string const & msg)
 	{
-		if (msg != "")
+		if (msg != "" && (!(level == LOG_INFORM && GLOBAL_COMM.GetRank()>0)))
 		{
 			std::string prefix(""), surfix("");
 
 			switch (level)
 			{
-			case LOG_FORCE_OUTPUT:
-			case LOG_OUT_RANGE_ERROR:
-			case LOG_LOGIC_ERROR:
-			case LOG_ERROR:
+				case LOG_FORCE_OUTPUT:
+				case LOG_OUT_RANGE_ERROR:
+				case LOG_LOGIC_ERROR:
+				case LOG_ERROR:
 				prefix = "[E]";
 				break;
-			case LOG_WARNING:
+				case LOG_WARNING:
 				prefix = "[W]"; //red
 				break;
-			case LOG_LOG:
+				case LOG_LOG:
 				prefix = "[L]";
 				break;
-			case LOG_VERBOSE:
+				case LOG_VERBOSE:
 				prefix = "[V]";
 				break;
-			case LOG_INFORM:
+				case LOG_INFORM:
 				prefix = "[I]";
 				break;
-			case LOG_DEBUG:
+				case LOG_DEBUG:
 				prefix = "[D]";
 				break;
 			}
@@ -113,14 +152,14 @@ public:
 
 				switch (level)
 				{
-				case LOG_FORCE_OUTPUT:
-				case LOG_OUT_RANGE_ERROR:
-				case LOG_LOGIC_ERROR:
-				case LOG_ERROR:
+					case LOG_FORCE_OUTPUT:
+					case LOG_OUT_RANGE_ERROR:
+					case LOG_LOGIC_ERROR:
+					case LOG_ERROR:
 					prefix = "\e[1;31m" + prefix + "\e[1;37m"; //red
 					break;
-				case LOG_WARNING:
-					prefix = "\e[1;32m" + prefix + "\e[1;37m"; //red
+					case LOG_WARNING:
+					prefix = "\e[1;32m" + prefix + "\e[1;37m";//red
 					break;
 
 				}
@@ -148,9 +187,9 @@ public:
 	void DecreaseIndent(size_t n = 1)
 	{
 		if (indent_ > n)
-			indent_ -= n;
+		indent_ -= n;
 		else
-			indent_ = 0;
+		indent_ = 0;
 	}
 	size_t GetIndent() const
 	{
@@ -212,8 +251,9 @@ public:
 		buffer_ << "[" << GLOBAL_COMM.GetRank() << "/" << GLOBAL_COMM.GetSize()
 		<< "]";
 #endif
-		if (level_ == LOG_LOG || level_ == LOG_VERBOSE)
-			buffer_ << "[" << TimeStamp() << "]" << " ";
+//		if (level_ == LOG_INFORM || level_ == LOG_LOG || level_ == LOG_VERBOSE)
+
+		buffer_ << "[" << TimeStamp() << "]" << " ";
 
 		size_t indent_width = SingletonHolder<LoggerStreams>::instance().GetIndent();
 		if (indent_width > 0)
@@ -488,7 +528,6 @@ inline LoggerStreams & operator<<(LoggerStreams & os, SetLineWidth const &setw)
 	return os;
 
 }
-#include <bitset>
 
 inline std::string ShowBit(unsigned long s)
 {
@@ -501,4 +540,5 @@ inline std::string ShowBit(unsigned long s)
 //#define DONE    std::right<< " [Done]"
 //#define START    std::right<<  " [START]"
 
+}// namespace simpla
 #endif /* LOG_H_ */

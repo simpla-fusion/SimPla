@@ -226,8 +226,7 @@ struct OcForest
 
 	nTuple<NDIMS, index_type> local_inner_start_, local_inner_count_;
 
-	nTuple<NDIMS, index_type> hash_stride_ =
-	{	0, 0, 0};
+	nTuple<NDIMS, index_type> hash_stride_;
 
 	enum
 	{

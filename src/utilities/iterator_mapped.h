@@ -97,20 +97,20 @@ public:
 		return &(*data_)[*k_it_];
 	}
 
-	const reference operator*() const
+	reference operator*() const
 	{
 		return get(typename std::integral_constant<bool, has_member_function_at<conatiner_type>::value>());
 	}
-	const pointer operator->() const
+	pointer operator->() const
 	{
 		return &get(typename std::integral_constant<bool, has_member_function_at<conatiner_type>::value>());
 
 	}
-	const reference get(std::false_type) const
+	reference get(std::false_type) const
 	{
 		return (*data_)[*k_it_];
 	}
-	const reference get(std::true_type) const
+	reference get(std::true_type) const
 	{
 		return (*data_).at(*k_it_);
 	}
