@@ -18,11 +18,10 @@ template<typename TI> struct iterator_traits;
 namespace simpla
 {
 
-HAS_MEMBER_FUNCTION(at);
-
 template<typename TContainer, typename TIterator>
 struct MappedIterator
 {
+	HAS_MEMBER_FUNCTION(at);
 
 public:
 	typedef TContainer conatiner_type;
@@ -33,7 +32,7 @@ public:
 	typedef typename std::iterator_traits<key_iterator>::iterator_category iterator_category;
 	typedef typename std::iterator_traits<key_iterator>::difference_type difference_type;
 	typedef typename std::conditional<std::is_pointer<conatiner_type>::value,
-	        typename std::remove_pointer<conatiner_type>::type, typename conatiner_type::value_type>::type value_type;
+	typename std::remove_pointer<conatiner_type>::type, typename conatiner_type::value_type>::type value_type;
 	;
 	typedef value_type* pointer;
 	typedef value_type& reference;
@@ -42,16 +41,16 @@ public:
 	key_iterator k_it_;
 
 	MappedIterator()
-			: data_(nullptr)
+	: data_(nullptr)
 	{
 	}
 	MappedIterator(this_type const & other)
-			: data_(other.data_), k_it_(other.k_it_)
+	: data_(other.data_), k_it_(other.k_it_)
 	{
 	}
 
 	MappedIterator(conatiner_type &d, key_iterator const & ib, key_iterator const&)
-			: data_(&d), k_it_(ib)
+	: data_(&d), k_it_(ib)
 	{
 	}
 
@@ -220,24 +219,19 @@ MappedIterator<TContainer, TIterator> make_mapped_iterator(TContainer & containe
 	return ((MappedIterator<TContainer, TIterator>(container, k_ib, k_ie)));
 }
 
-template<typename > struct Range;
-
 template<typename TContainer, typename TIterator>
 auto make_mapped_range(TContainer & m, TIterator const & ib, TIterator const & ie)
-DECL_RET_TYPE ((Range<MappedIterator<TContainer,TIterator>>(
-						make_mapped_iterator(m, ib, ie),
+DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, ib, ie),
 						make_mapped_iterator(m, ie, ie))))
 
 template<typename TContainer, typename TIterator>
 auto make_mapped_range(TContainer & m, std::pair<TIterator, TIterator> const & r)
-DECL_RET_TYPE((Range<MappedIterator<TContainer,TIterator>>(
-						make_mapped_iterator(m, r.first, r.second),
+DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, r.first, r.second),
 						make_mapped_iterator(m, r.second, r.second))))
 
 template<typename TContainer, typename TRange>
 auto make_mapped_range(TContainer & m, TRange const & r)
-DECL_RET_TYPE ((Range<MappedIterator<TContainer,typename TRange::iterator>>(
-						make_mapped_iterator(m, r.begin(), r.end()),
+DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, r.begin(), r.end()),
 						make_mapped_iterator(m, r.end(), r.end()))))
 
 }

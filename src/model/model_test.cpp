@@ -74,7 +74,67 @@ public:
 };
 TYPED_TEST_CASE_P(TestModel);
 
-TYPED_TEST_P(TestModel,Vertex ){
+TYPED_TEST_P(TestModel,SelectByPolylines ){
+{
+	typename TestFixture::coordinates_type v0, v1, v2, v3;
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	{
+		v0[i] = TestFixture::points[0][i];
+		v1[i] = TestFixture::points[1][i];
+
+	}
+	Field<typename TestFixture::mesh_type, TestFixture::IForm,Real> f(TestFixture::mesh);
+
+	f.Clear();
+
+	for (auto s : TestFixture::model->SelectByPolylines( TestFixture::IForm, TestFixture::points))
+	{
+		f[s] = 1;
+		auto x = TestFixture::mesh.GetCoordinates(s);
+
+		ASSERT_TRUE (
+
+				( (v2[0] - x[0]) * (x[0] - v3[0]) >= 0) &&
+
+				( (v2[1] - x[1]) * (x[1] - v3[1]) >= 0) &&
+
+				( (v2[2] - x[2]) * (x[2] - v3[2]) >= 0)
+
+		)
+
+		;
+	}
+	LOGGER << SAVE(f);
+	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	{
+		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
+		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
+
+		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
+		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
+	}
+	for (auto s : TestFixture::model->Select(TestFixture::IForm))
+	{
+		auto x = TestFixture::mesh.GetCoordinates(s);
+
+		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
+		{
+			ASSERT_EQ(1,f[s] ) << ( TestFixture::mesh.GetCoordinates(s));
+		}
+
+		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
+				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
+		{
+			ASSERT_NE(1,f[s]) << ( TestFixture::mesh.GetCoordinates(s));
+		}
+	}
+
+	LOGGER << SAVE(f);
+
+}}
+
+TYPED_TEST_P(TestModel,SelectByMaterial ){
 {
 
 	TestFixture::model->Set( TestFixture::model->SelectByPolylines(VERTEX, TestFixture::points), "Vacuum");
@@ -142,7 +202,7 @@ TYPED_TEST_P(TestModel,Vertex ){
 
 }}
 
-REGISTER_TYPED_TEST_CASE_P(TestModel, Vertex);
+REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByPolylines,SelectByMaterial);
 
 typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > ParamList;
 

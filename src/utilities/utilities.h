@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "ntuple.h"
 
@@ -79,6 +80,7 @@ inline unsigned long make_hash(T s)
 {
 	return static_cast<unsigned long>(s);
 }
+
 }  // namespace simpla
 
 #endif /* UTILITIES_H_ */

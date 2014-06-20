@@ -37,7 +37,7 @@ namespace simpla
  *
  */
 
-template<typename TPred, typename TIterator>
+template<typename TIterator, typename TPred>
 struct FilterIterator: public TIterator
 {
 
@@ -45,7 +45,7 @@ struct FilterIterator: public TIterator
 
 	typedef TPred predicate_fun;
 
-	typedef FilterIterator<predicate_fun, base_iterator> this_type;
+	typedef FilterIterator<base_iterator, predicate_fun> this_type;
 
 	typedef typename std::iterator_traits<base_iterator>::iterator_category iterator_category;
 	typedef typename std::iterator_traits<base_iterator>::value_type value_type;
@@ -59,6 +59,16 @@ struct FilterIterator: public TIterator
 	FilterIterator()
 	{
 	}
+
+	FilterIterator(this_type const & other)
+			: base_iterator(other), predicate_(other.predicate_), it_end_(other.it_end_)
+	{
+	}
+
+//	FilterIterator(this_type && other)
+//			: base_iterator(other), predicate_(other.predicate_), it_end_(other.it_end_)
+//	{
+//	}
 	FilterIterator(predicate_fun const &p, base_iterator const & ib, base_iterator ie = base_iterator())
 			: base_iterator(ib), predicate_(p), it_end_(ie)
 	{
@@ -108,39 +118,35 @@ private:
 };
 
 template<typename TPred, typename TIterator>
-FilterIterator<TPred, TIterator> make_filter_iterator(TPred const & pred, TIterator k_ib, TIterator k_ie = TIterator())
-{
-	return ((FilterIterator<TPred, TIterator>(pred, k_ib, k_ie)));
-}
+auto make_filter_iterator(TPred pred, TIterator k_ib, TIterator k_ie = TIterator())
+DECL_RET_TYPE((FilterIterator< TIterator,TPred>(pred, k_ib, k_ie)))
 
 template<typename > struct Range;
 
 template<typename TPred, typename TIterator>
-auto make_filter_range(TPred & m, TIterator const & ib, TIterator const & ie)
-DECL_RET_TYPE ((Range<FilterIterator<TPred, TIterator>>(make_filter_iterator(m, ib, ie),
-						make_filter_iterator(m, ie, ie))))
+auto make_filter_range(TPred pred, TIterator ib, TIterator ie)
+DECL_RET_TYPE ((std::make_pair( make_filter_iterator(pred, ib, ie),
+						make_filter_iterator(pred, ie, ie))))
 
 template<typename TPred, typename TIterator>
-auto make_filter_range(TPred & m, std::pair<TIterator, TIterator> const & r)
-DECL_RET_TYPE ((Range<FilterIterator<TPred, TIterator>>(
-						make_filter_iterator(m, r.first, r.second),
-						make_filter_iterator(m, r.second, r.second))))
+auto make_filter_range(TPred pred, std::pair<TIterator, TIterator> const & r)
+DECL_RET_TYPE ((std::make_pair( make_filter_iterator(pred, r.first, r.second),
+						make_filter_iterator(pred, r.second, r.second))))
 
 template<typename TPred, typename TRange>
-auto make_filter_range(TPred & m, TRange const & r)
-DECL_RET_TYPE ((Range<FilterIterator<TPred, typename TRange::iterator>> (
-						make_filter_iterator(m, r.begin(), r.end()),
-						make_filter_iterator(m, r.end(), r.end()))))
+auto make_filter_range(TPred pred, TRange const & r)
+DECL_RET_TYPE ((std::make_pair( make_filter_iterator(pred, r.begin(), r.end()),
+						make_filter_iterator(pred, r.end(), r.end()))))
 
 }
 // namespace simpla
 namespace std
 {
 
-template<typename TM, typename TI>
-struct iterator_traits<::simpla::FilterIterator<TM, TI>>
+template<typename TPred, typename TI>
+struct iterator_traits<::simpla::FilterIterator<TI, TPred>>
 {
-	typedef simpla::FilterIterator<TM, TI> iterator;
+	typedef simpla::FilterIterator<TI, TPred> iterator;
 	typedef typename iterator::iterator_category iterator_category;
 	typedef typename iterator::value_type value_type;
 	typedef typename iterator::difference_type difference_type;

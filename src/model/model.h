@@ -21,7 +21,7 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/utilities.h"
-#include "../utilities/range.h"
+#include "../utilities/iterator_filter.h"
 
 #include "pointinpolygen.h"
 namespace std
@@ -167,8 +167,9 @@ public:
 		return os;
 	}
 
-	template<typename TR> using filter_range_type=
-	Range<FilterIterator<std::function<bool(typename TR::iterator::value_type)> , typename TR::iterator>>;
+	template<typename TR> using filter_iterator_type = FilterIterator<typename TR::iterator,std::function<bool(typename TR::iterator::value_type)> >;
+
+	template<typename TR> using filter_range_type = std::pair<filter_iterator_type<TR>,filter_iterator_type<TR> >;
 
 	typedef filter_range_type<typename mesh_type::range> filter_mesh_range;
 

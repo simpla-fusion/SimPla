@@ -289,6 +289,18 @@ template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
 {
 	return std::move(static_cast<TV>(obj));
 }
+
+template<typename T>
+T begin(std::pair<T, T>const & range)
+{
+	return std::move(range.first);
+}
+template<typename T>
+T end(std::pair<T, T>const & range)
+{
+	return std::move(range.second);
+}
+
 } // namespace simpla
 
 #endif /* SP_TYPE_TRAITS_H_ */

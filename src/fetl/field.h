@@ -18,7 +18,6 @@
 
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
-#include "../utilities/range.h"
 
 #include "../parallel/parallel.h"
 #include "../utilities/iterator_mapped.h"
@@ -209,10 +208,10 @@ public:
 	auto Select(Args const & ... args) const
 	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
 
-	auto begin() DECL_RET_TYPE(this->Select().begin())
-	auto begin() const DECL_RET_TYPE(this->Select().begin())
-	auto end() DECL_RET_TYPE(this->Select().end())
-	auto end() const DECL_RET_TYPE(this->Select().end())
+	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
+	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))
+	auto end() DECL_RET_TYPE(simpla::end(this->Select()))
+	auto end() const DECL_RET_TYPE(simpla::end(this->Select()))
 
 	template<typename TD>
 	void Fill(TD default_value)
