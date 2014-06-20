@@ -327,8 +327,8 @@ struct Cache<const Field<TM, IFORM, TValue> >
 	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TValue> > > type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TValue> const & f, Args const & ... args)
-			: f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue> const & f, Args && ... args)
+			: f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "Field read cache applied!";
 	}
@@ -353,8 +353,8 @@ struct Cache<Field<TM, IFORM, TValue>*>
 	typedef Field<TM, IFORM, Cache<Field<TM, IFORM, TValue>*> > type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TValue>* f, Args const & ... args)
-			: f_(f, std::forward<Args const &>(args)...)
+	Cache(Field<TM, IFORM, TValue>* f, Args && ... args)
+			: f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "Field write cache applied!";
 	}

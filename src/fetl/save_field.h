@@ -25,12 +25,17 @@ std::string Save(std::string const & name, Field<TM, IFORM, TV> const & d)
 	size_t local_inner_start[rank];
 	size_t local_inner_count[rank];
 
-	d.GetDataSetShape(global_start, global_count, local_outer_start, local_outer_count, local_inner_start,
-	        local_inner_count);
+	d.GetDataSetShape(
+
+	static_cast<size_t*>(global_start), static_cast<size_t*>(global_count), static_cast<size_t*>(local_outer_start),
+	        static_cast<size_t*>(local_outer_count), static_cast<size_t*>(local_inner_start),
+	        static_cast<size_t*>(local_inner_count));
 
 	return simpla::Save(name, d.data().get(),
 
-	rank, global_start, global_count, local_outer_start, local_outer_count, local_inner_start, local_inner_count);
+	rank, static_cast<size_t*>(global_start), static_cast<size_t*>(global_count),
+	        static_cast<size_t*>(local_outer_start), static_cast<size_t*>(local_outer_count),
+	        static_cast<size_t*>(local_inner_start), static_cast<size_t*>(local_inner_count));
 
 }
 }

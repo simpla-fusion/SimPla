@@ -108,7 +108,11 @@ public:
 
 	void put(int level, std::string const & msg)
 	{
-		if (msg != "" && (!(level == LOG_INFORM && GLOBAL_COMM.GetRank()>0)))
+		if (msg != "" && (!(level == LOG_INFORM
+#ifdef USE_MPI
+				&& GLOBAL_COMM.GetRank()>0
+#endif
+		)))
 		{
 			std::string prefix(""), surfix("");
 

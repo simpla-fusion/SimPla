@@ -25,10 +25,10 @@ namespace simpla
 
 template<typename TP, typename ...Args> bool RegistOneParticle()
 {
-	std::function<std::shared_ptr<ParticleBase<typename TP::mesh_type>>(typename TP::mesh_type const &, Args const&...)> callback =
-	        [](typename TP::mesh_type const &m, Args const & ...args)
+	std::function<std::shared_ptr<ParticleBase<typename TP::mesh_type>>(typename TP::mesh_type const &, Args &&...)> callback =
+	        [](typename TP::mesh_type const &m, Args && ...args)
 	        {
-		        return CreateParticleWrap<TP, Args...>(m, std::forward<Args const &>(args)...);
+		        return CreateParticleWrap<TP, Args...>(m, std::forward<Args >(args)...);
 	        };
 
 	return RegisterParticle(TP::GetTypeAsString(), callback);

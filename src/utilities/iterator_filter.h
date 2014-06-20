@@ -65,10 +65,11 @@ struct FilterIterator: public TIterator
 	{
 	}
 
-//	FilterIterator(this_type && other)
-//			: base_iterator(other), predicate_(other.predicate_), it_end_(other.it_end_)
-//	{
-//	}
+	FilterIterator(this_type && other)
+			: base_iterator(other), predicate_(other.predicate_), it_end_(other.it_end_)
+	{
+	}
+
 	FilterIterator(predicate_fun const &p, base_iterator const & ib, base_iterator ie = base_iterator())
 			: base_iterator(ib), predicate_(p), it_end_(ie)
 	{

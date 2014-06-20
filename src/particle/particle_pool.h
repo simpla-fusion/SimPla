@@ -73,12 +73,12 @@ public:
 
 	ParticlePool(mesh_type const & pmesh);
 
-	template<typename ...Others> ParticlePool(mesh_type const & pmesh, Others const & ...);
+	template<typename ...Others> ParticlePool(mesh_type const & pmesh, Others && ...);
 
 	// Destructor
 	~ParticlePool();
 
-	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args const & ...others);
+	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args && ...others);
 
 	std::string Save(std::string const & path) const;
 
@@ -134,10 +134,10 @@ public:
 
 	template<typename ... Args>
 	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args >(args)...))))
 	template<typename ... Args>
 	auto Select(Args const & ... args) const
-	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args >(args)...))))
 	//***************************************************************************************************
 	// Cell operation
 
@@ -225,14 +225,13 @@ ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh)
 }
 template<typename TM, typename TParticle>
 template<typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, Others const & ...others)
+ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, Others && ...others)
 		: ParticlePool(pmesh)
 {
-	Load(std::forward<Others const &>(others)...);
+	Load(std::forward<Others >(others)...);
 }
 template<typename TM, typename TParticle>
-template<typename TDict, typename ...Args> void ParticlePool<TM, TParticle>::Load(TDict const & dict,
-        Args const & ...others)
+template<typename TDict, typename ...Args> void ParticlePool<TM, TParticle>::Load(TDict const & dict, Args && ...others)
 {
 
 }
@@ -483,8 +482,8 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //		}
 //
 //		template<typename ...Args>
-//		cell_range_(container_reference data, Args const & ...args) :
-//				mesh_range(std::forward<Args const &>(args)...), data_(data)
+//		cell_range_(container_reference data,Args && ...args) :
+//				mesh_range(std::forward<Args >(args)...), data_(data)
 //		{
 //		}
 //
@@ -516,13 +515,13 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //		template<typename ...Args>
 //		this_type Split(Args const & ... args) const
 //		{
-//			return this_type(data_, mesh_range::Split(std::forward<Args const &>(args)...));
+//			return this_type(data_, mesh_range::Split(std::forward<Args >(args)...));
 //		}
 //
 //		template<typename ...Args>
 //		this_type SubRange(Args const & ... args) const
 //		{
-//			return this_type(data_, mesh_range::SubRange(std::forward<Args const &>(args)...));
+//			return this_type(data_, mesh_range::SubRange(std::forward<Args >(args)...));
 //		}
 //		size_t size() const
 //		{
@@ -562,7 +561,7 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //
 //		template<typename ...Args>
 //		iterator_(Args const & ...args)
-//				: c_it_(std::forward<Args const &>(args)...), e_it_(c_it_->begin())
+//				: c_it_(std::forward<Args >(args)...), e_it_(c_it_->begin())
 //		{
 //
 //		}
@@ -664,8 +663,8 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //		{
 //		}
 //		template<typename ...Args>
-//		range_(container_reference d, Args const & ... args)
-//				: cell_range_type(d, std::forward<Args const &>(args)...)
+//		range_(container_reference d,Args && ... args)
+//				: cell_range_type(d, std::forward<Args >(args)...)
 //		{
 //		}
 //
@@ -709,7 +708,7 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //		template<typename ...Args>
 //		this_type Split(Args const & ... args) const
 //		{
-//			return this_type(cell_range_type::Split(std::forward<Args const &>(args)...));
+//			return this_type(cell_range_type::Split(std::forward<Args >(args)...));
 //		}
 //	};
 //	typedef iterator_<particle_type> iterator;

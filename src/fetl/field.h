@@ -126,9 +126,9 @@ public:
 	}
 
 	template<typename ...Args>
-	int GetDataSetShape(Args ...others) const
+	int GetDataSetShape(Args &&...others) const
 	{
-		return mesh.GetDataSetShape(IForm, std::forward<Args >(others)...);
+		return mesh.GetDataSetShape(IForm, std::forward<Args>(others)...);
 	}
 
 	container_type & data()
@@ -194,19 +194,17 @@ public:
 		return *(data_.get() + mesh.Hash(s));
 	}
 
-	template<typename ... Args>
 	auto Select()
 	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
-	template<typename ... Args>
 	auto Select() const
 	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
 
 	template<typename ... Args>
-	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+	auto Select(Args &&... args)
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
 	template<typename ... Args>
-	auto Select(Args const & ... args) const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args const &>(args)...))))
+	auto Select(Args &&... args) const
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
 
 	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
 	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))

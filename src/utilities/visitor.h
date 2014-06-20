@@ -102,10 +102,10 @@ private:
  *   	}
  *
  *   	template<typename T, typename ... Others>
- *   	void Print(T const &v, Others const & ... others)
+ *   	void Print(T const &v, Others && ... others)
  *   	{
  *   		std::cout << v << " ";
- *   		Print(std::forward<Others const &>(others )...);
+ *   		Print(std::forward<Others >(others )...);
  *   	}
  *
  *   };
@@ -218,7 +218,7 @@ private:
 //{
 //	return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
 //
-//	new Visitor<T, Args...>(name, std::forward<Args &>(args)...)));
+//	new Visitor<T, Args...>(name, std::forward<Args >(args)...)));
 //}
 }// namespace simpla
 

@@ -64,10 +64,10 @@ public:
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others const & ...others)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
 			: PICEngineDeltaF(pmesh)
 	{
-		Load(std::forward<Others const &>(others)...);
+		Load(std::forward<Others >(others)...);
 	}
 	template<typename TDict, typename ...Args>
 	void Load(TDict const& dict, Args const & ...args)

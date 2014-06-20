@@ -71,12 +71,12 @@ public:
 	// Constructor
 	Particle(mesh_type const & pmesh);
 
-	template<typename ...Args> Particle(mesh_type const & pmesh, Args const & ...others);
+	template<typename ...Others> Particle(mesh_type const & pmesh, Others && ...others);
 
 	// Destructor
 	virtual ~Particle();
 
-	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args const & ...others);
+	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others && ...others);
 
 	void AddCommand(std::function<void()> const &foo)
 	{
@@ -96,18 +96,18 @@ public:
 	template<typename TE, typename TB>
 	void NextTimeStepHalf(TE const &E, TB const & B);
 
-	template<typename TJ, typename ...Args>
-	void Scatter(TJ *J, Args const & ... args) const;
+	template<typename TJ, typename ...Others>
+	void Scatter(TJ *J, Others && ... args) const;
 
 	std::string Save(std::string const & path, bool is_verbose = false) const;
 
 private:
 
-	template<typename TRange, typename ...Args>
-	void Scatter(TRange const & range, Cache<Args> &&... args) const;
+	template<typename TRange, typename ...Others>
+	void Scatter(TRange const & range, Cache<Others> &&... args) const;
 
 	template<typename TDict, typename ...Others>
-	void AddCommand(TDict const & dict, Others const & ...others);
+	void AddCommand(TDict const & dict, Others && ...others);
 
 	std::list<std::function<void()> > commands_;
 };
@@ -119,22 +119,22 @@ Particle<Engine>::Particle(mesh_type const & pmesh)
 }
 template<typename Engine>
 template<typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, Others const & ...others)
+Particle<Engine>::Particle(mesh_type const & pmesh, Others && ...others)
 		: Particle(pmesh)
 {
-	Load(std::forward<Others const &>(others)...);
+	Load(std::forward<Others>(others)...);
 }
 template<typename Engine>
 template<typename TDict, typename ...Others>
-void Particle<Engine>::Load(TDict const & dict, Others const & ...others)
+void Particle<Engine>::Load(TDict const & dict, Others && ...others)
 {
-	engine_type::Load(dict, std::forward<Others const &>(others)...);
+	engine_type::Load(dict, std::forward<Others>(others)...);
 
-	storage_type::Load(dict, std::forward<Others const &>(others)...);
+	storage_type::Load(dict, std::forward<Others>(others)...);
 
-	LoadParticle(this, dict, std::forward<Others const &>(others)...);
+	LoadParticle(this, dict, std::forward<Others>(others)...);
 
-	AddCommand(dict["Commands"], std::forward<Others const &>(others)...);
+	AddCommand(dict["Commands"], std::forward<Others>(others)...);
 
 }
 
@@ -143,8 +143,7 @@ Particle<Engine>::~Particle()
 {
 }
 template<typename Engine>
-template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict,
-        Others const & ...others)
+template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict, Others && ...others)
 {
 	if (!dict.is_table())
 		return;
@@ -157,7 +156,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 //
 //			LOGGER << "Add constraint to " << dof;
 //
-//			commands_.push_back(CreateCommand(&n, item.second, std::forward<Others const &>(others)...));
+//			commands_.push_back(CreateCommand(&n, item.second, std::forward<Others >(others)...));
 //
 //		}
 //		else if (dof == "J")
@@ -165,7 +164,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 //
 //			LOGGER << "Add constraint to " << dof;
 //
-//			commands_.push_back(CreateCommand(&J, item.second, std::forward<Others const &>(others)...));
+//			commands_.push_back(CreateCommand(&J, item.second, std::forward<Others >(others)...));
 //
 //		}
 //		else if (dof == "ParticlesBoundary")
@@ -174,7 +173,7 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 //			LOGGER << "Add constraint to " << dof;
 //
 //			commands_.push_back(
-//					BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others const &>(others)...));
+//					BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others >(others)...));
 //		}
 //		else
 //		{
@@ -300,8 +299,8 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 	LOGGER << DONE;
 }
 template<typename Engine>
-template<typename TRange, typename ...Args>
-void Particle<Engine>::Scatter(TRange const & range, Cache<Args> &&... args) const
+template<typename TRange, typename ...Others>
+void Particle<Engine>::Scatter(TRange const & range, Cache<Others> &&... args) const
 {
 
 	for (auto s : range)
@@ -315,14 +314,14 @@ void Particle<Engine>::Scatter(TRange const & range, Cache<Args> &&... args) con
 	}
 
 }
-template<typename Engine> template<typename TJ, typename ...Args>
-void Particle<Engine>::Scatter(TJ *pJ, Args const &... args) const
+template<typename Engine> template<typename TJ, typename ...Others>
+void Particle<Engine>::Scatter(TJ *pJ, Others &&... args) const
 {
 	ParallelDo(
 
 	[&](int t_num,int t_id)
 	{
-		Scatter(this->mesh.Select(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Args const &>(args)...);
+		Scatter(this->mesh.Select(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Others>(args)...);
 	});
 
 	UpdateGhosts(pJ);

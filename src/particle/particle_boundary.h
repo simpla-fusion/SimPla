@@ -52,10 +52,10 @@ public:
 	virtual ~BoundaryCondition();
 
 	template<typename ...Others>
-	static std::function<void()> Create(particle_type* f, Others const & ...);
+	static std::function<void()> Create(particle_type* f, Others && ...);
 
 //	template<typename ... Others>
-//	static std::function<void(particle_type*)> Create(Others const & ...);
+//	static std::function<void(particle_type*)> Create(Others && ...);
 
 	void Visit(particle_type * p) const;
 
@@ -103,21 +103,20 @@ BoundaryCondition<Particle<Engine>>::~BoundaryCondition()
 
 template<typename Engine>
 template<typename ... Others>
-std::function<void()> BoundaryCondition<Particle<Engine>>::Create(particle_type* f, Others const & ...others)
+std::function<void()> BoundaryCondition<Particle<Engine>>::Create(particle_type* f, Others && ...others)
 {
 
-	return std::bind(&this_type::Visit,
-	        std::shared_ptr<this_type>(new this_type(std::forward<Others const &>(others)...)), f);
+	return std::bind(&this_type::Visit, std::shared_ptr<this_type>(new this_type(std::forward<Others >(others)...)), f);
 }
 //template<typename Engine>
 //template<typename ... Others>
 //std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine >>::Create(
-//		Others const & ...others)
+//		Others && ...others)
 //{
 //
 //	return std::bind(&this_type::Visit,
 //			std::shared_ptr<this_type>(
-//					new this_type(std::forward<Others const &>(others)...)),
+//					new this_type(std::forward<Others  >(others)...)),
 //			std::placeholders::_1);
 //}
 

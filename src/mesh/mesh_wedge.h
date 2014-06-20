@@ -42,10 +42,10 @@ public:
 	typedef typename topology_type::iterator iterator;
 
 	template<typename ... Args>
-	WedgeMesh(Args const &... args)
+	WedgeMesh(Args && ... args)
 			: geometry_type(static_cast<TTopology const &>(*this)), dt_(1.0), time_(0.0)
 	{
-		Load(std::forward<Args const &>(args)...);
+		Load(std::forward<Args >(args)...);
 	}
 	~WedgeMesh()
 	{
@@ -63,10 +63,10 @@ public:
 	}
 
 	template<typename ... Args>
-	void Load(Args const &... args)
+	void Load(Args && ... args)
 	{
-		topology_type::Load(std::forward<Args const &>(args)...);
-		geometry_type::Load(std::forward<Args const &>(args)...);
+		topology_type::Load(std::forward<Args >(args)...);
+		geometry_type::Load(std::forward<Args >(args)...);
 	}
 
 	std::ostream & Save(std::ostream &os) const
@@ -95,7 +95,7 @@ public:
 
 	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
-		return (MEMPOOL.allocate_shared_ptr < TV > (topology_type::GetNumOfElements(iform)));
+		return (MEMPOOL.allocate_shared_ptr< TV > (topology_type::GetNumOfElements(iform)));
 	}
 
 	PhysicalConstants constants_;
@@ -742,7 +742,5 @@ operator<<(std::ostream & os, WedgeMesh<TTopology, TGeo> const & d)
 }
 }
 // namespace simpla
-
-
 
 #endif /* MESH_WEDGE_H_ */

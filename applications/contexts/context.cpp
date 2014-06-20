@@ -37,7 +37,7 @@ Context::~Context()
 }
 
 template<typename TC, typename TDict, typename ... Others>
-void CreateContext(Context* ctx, TDict const &dict, Others const & ...others)
+void CreateContext(Context* ctx, TDict const &dict, Others && ...others)
 {
 
 	std::shared_ptr<TC> ctx_ptr(new TC(dict, std::forward<Others>(others)...));

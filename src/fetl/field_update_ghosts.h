@@ -16,7 +16,7 @@ namespace simpla
 template<typename TG, int IFORM, typename TV> class Field;
 
 template<typename TM, int IFORM, typename TV, typename ...Others>
-void UpdateGhosts(Field<TM, IFORM, TV>* field, Others const &...others)
+void UpdateGhosts(Field<TM, IFORM, TV>* field, Others &&...others)
 {
 
 	auto const & global_array = field->mesh.global_array_;
@@ -25,11 +25,11 @@ void UpdateGhosts(Field<TM, IFORM, TV>* field, Others const &...others)
 
 	if (IFORM == VERTEX || IFORM == VOLUME)
 	{
-		UpdateGhosts(data, global_array, std::forward<Others const &>(others)...);
+		UpdateGhosts(data, global_array, std::forward<Others >(others)...);
 	}
 	else
 	{
-		UpdateGhosts(reinterpret_cast<nTuple<3, TV>*>(data), global_array, std::forward<Others const &>(others)...);
+		UpdateGhosts(reinterpret_cast<nTuple<3, TV>*>(data), global_array, std::forward<Others >(others)...);
 	}
 }
 

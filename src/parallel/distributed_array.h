@@ -43,14 +43,14 @@ public:
 	}
 
 	template<typename ...Args>
-	DistributedArray(nTuple<NDIMS, long> global_start, nTuple<NDIMS, long> global_count, Args const & ... args)
+	DistributedArray(nTuple<NDIMS, long> global_start, nTuple<NDIMS, long> global_count, Args && ... args)
 
 	{
 
 		global_count_ = global_count;
 		global_start_ = global_start;
 
-		Decompose(std::forward<Args const &>(args)...);
+		Decompose(std::forward<Args >(args)...);
 	}
 
 	~DistributedArray()

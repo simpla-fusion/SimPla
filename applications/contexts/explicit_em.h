@@ -56,10 +56,10 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args const & ...args)
+	ExplicitEMContext(Args && ...args)
 			: ExplicitEMContext()
 	{
-		Load(std::forward<Args const &>(args)...);
+		Load(std::forward<Args >(args)...);
 	}
 	~ExplicitEMContext();
 

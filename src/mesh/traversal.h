@@ -31,8 +31,7 @@ void Traversal(IT it, IT ie, TF &&fun, Args && ...args)
 }
 
 template<typename IT, typename TF, typename ... Args>
-void ParallelFor(Range<IT> range, std::function<void(typename IT::value_type, Args const & ...)> fun,
-		Args const & ...args)
+void ParallelFor(Range<IT> range, std::function<void(typename IT::value_type, Args && ...)> fun, Args && ...args)
 {
 
 	const unsigned int num_threads = std::thread::hardware_concurrency();
@@ -45,12 +44,12 @@ void ParallelFor(Range<IT> range, std::function<void(typename IT::value_type, Ar
 
 		std::thread(
 
-		[num_threads,thread_id](Args const & ... args2)
+		[num_threads,thread_id](Args && ... args2)
 		{	for(auto s: range.split(num_threads,thread_id))
 			{
-				fun(s,std::forward<Args const &>(args2)...);
+				fun(s,std::forward<Args >(args2)...);
 			}
-		}, std::forward<Args const &>(args)...)
+		}, std::forward<Args >(args)...)
 
 		);
 	}

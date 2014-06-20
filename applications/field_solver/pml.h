@@ -49,7 +49,7 @@ private:
 	bool is_loaded_;
 public:
 	template<typename ... Args>
-	PML(mesh_type const & pmesh, Args const & ...);
+	PML(mesh_type const & pmesh, Args && ...);
 
 	~PML();
 
@@ -73,7 +73,7 @@ public:
 
 template<typename TM>
 template<typename ... Args>
-PML<TM>::PML(mesh_type const & pmesh, Args const & ...args)
+PML<TM>::PML(mesh_type const & pmesh, Args && ...args)
 		: mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
@@ -86,7 +86,7 @@ PML<TM>::PML(mesh_type const & pmesh, Args const & ...args)
 
 		is_loaded_(false)
 {
-	Load(std::forward<Args const &>(args)...);
+	Load(std::forward<Args >(args)...);
 }
 
 template<typename TM>

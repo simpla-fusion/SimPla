@@ -24,7 +24,7 @@ namespace simpla
 {
 
 template<typename TP, typename TDict, typename ...Args>
-void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
+void LoadParticle(TP *p, TDict const &dict, Args && ... args)
 {
 	if (!dict)
 	{
@@ -40,7 +40,7 @@ void LoadParticle(TP *p, TDict const &dict, Args const & ... args)
 	p->J.Clear();
 	p->n.Clear();
 
-	InitParticle(p, dict, std::forward<Args const &>(args)...);
+	InitParticle(p, dict, std::forward<Args >(args)...);
 
 	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
 

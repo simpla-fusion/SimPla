@@ -82,8 +82,8 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 	typedef ParticleBase<mesh_type> base_type;
 
 	template<typename TDict, typename ...Args>
-	ParticleWrap(mesh_type const & mesh, TDict const & dict, Args const & ... args)
-			: self_(mesh, dict, std::forward<Args const &>(args)...), dummy_J(mesh), dummy_Jv(mesh)
+	ParticleWrap(mesh_type const & mesh, TDict const & dict, Args && ... args)
+			: self_(mesh, dict, std::forward<Args >(args)...), dummy_J(mesh), dummy_Jv(mesh)
 	{
 	}
 	~ParticleWrap()
@@ -230,8 +230,8 @@ private:
 
 };
 template<typename TParticle, typename TDict, typename ...Args>
-std::shared_ptr<typename ParticleWrap<TParticle>::base_type> CreateParticleWrap(typename TParticle::mesh_type const & mesh,
-        TDict const & dict, Args const & ... args)
+std::shared_ptr<typename ParticleWrap<TParticle>::base_type> CreateParticleWrap(
+        typename TParticle::mesh_type const & mesh, TDict const & dict, Args && ... args)
 {
 	typedef typename ParticleWrap<TParticle>::base_type base_type;
 
@@ -242,7 +242,7 @@ std::shared_ptr<typename ParticleWrap<TParticle>::base_type> CreateParticleWrap(
 	{
 		res = std::dynamic_pointer_cast<base_type>(
 		        std::shared_ptr<ParticleWrap<TParticle>>(
-		                new ParticleWrap<TParticle>(mesh, dict, std::forward<Args const &>(args)...)));
+		                new ParticleWrap<TParticle>(mesh, dict, std::forward<Args >(args)...)));
 	}
 	return res;
 }

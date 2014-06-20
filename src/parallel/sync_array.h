@@ -30,10 +30,10 @@ public:
 	}
 
 	template<typename ...Args>
-	DistributedArray(Args const & ... args)
+	DistributedArray(Args && ... args)
 
 	{
-		Init(std::forward<Args const &>(args)...);
+		Init(std::forward<Args >(args)...);
 	}
 
 	~DistributedArray()

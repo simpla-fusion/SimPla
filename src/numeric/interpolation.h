@@ -39,22 +39,21 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args const & ...args)
-			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args && ...args)
+			: data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args const & ...args)
-			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(
-			        std::forward<Args const &>(args)...)
+	Interpolation(Args && ...args)
+			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args const & ...args)
+	Interpolation(TC const &y, Args && ...args)
 			: data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
-			        std::forward<Args const &>(args)...)
+			        std::forward<Args >(args)...)
 	{
 	}
 
@@ -171,15 +170,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args const & ...args)
-			: data_(y), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args)
+			: data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args const & ...args)
-			: data_(nullptr), interpolate_op_(std::forward<Args const &>(args)...)
+	MultiDimesionInterpolation(Args && ...args)
+			: data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}

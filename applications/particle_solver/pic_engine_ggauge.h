@@ -69,10 +69,10 @@ public:
 	}
 
 	template<typename ...Others>
-	PICEngineGGauge(mesh_type const &m, Others const & ...others)
+	PICEngineGGauge(mesh_type const &m, Others && ...others)
 			: PICEngineGGauge(m)
 	{
-		Load(std::forward<Others const &>(others)...);
+		Load(std::forward<Others >(others)...);
 	}
 	template<typename TDict, typename ...Args>
 	void Load(TDict const & dict, Args const & ...args)
