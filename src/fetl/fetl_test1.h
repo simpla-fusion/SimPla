@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "fetl.h"
-#include "fetl_test.h"
+#include "fetl_test_suit.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 

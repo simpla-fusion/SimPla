@@ -10,10 +10,6 @@
 
 #include <gtest/gtest.h>
 
-#include "../utilities/log.h"
-#include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
-#include "fetl.h"
 #include "fetl_test_suit.h"
 
 using namespace simpla;
@@ -22,9 +18,8 @@ static constexpr auto epsilon = 1e7 * std::numeric_limits<Real>::epsilon();
 
 TEST_P(TestFETL, grad0)
 {
-	auto d = mesh.GetDimensions();
 	Real error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
-//
+
 	Field<mesh_type, VERTEX, scalar_type> f0(mesh);
 
 	Field<mesh_type, EDGE, scalar_type> f1(mesh);
@@ -57,10 +52,9 @@ TEST_P(TestFETL, grad0)
 		average += (f1[s] - expect);
 
 		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
-			ASSERT_LE( abs(2.0*(f1[s]-expect)/(f1[s] + expect)), error )<< " " << f1[s] << " " << expect << " "
-			<< mesh.GetCoordinates(s);
+			ASSERT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error);
 
-		}
+	}
 
 	variance /= f1.size();
 	average /= f1.size();
@@ -105,10 +99,9 @@ TEST_P(TestFETL, grad3)
 		average += (f2[s] - expect);
 
 		if (abs(f2[s]) > epsilon || abs(expect) > epsilon)
-			ASSERT_LE(abs(2.0*(f2[s]-expect)/(f2[s] + expect)), error )<< " " << f2[s] << " "
-			<< f2b[s];
+			ASSERT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error);
 
-		}
+	}
 
 	variance /= f2.size();
 	average /= f2.size();
@@ -149,9 +142,7 @@ TEST_P(TestFETL, diverge1)
 
 		auto x = mesh.GetCoordinates(s);
 		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0*(f0[s]-expect)/(f0[s] + expect)), error )<< expect / f0[s] << " " << f0[s] << " "
-			<< expect << " " << (mesh.GetCoordinates(s));
-		;
+			ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
 
 	}
 
@@ -164,8 +155,6 @@ TEST_P(TestFETL, diverge1)
 
 TEST_P(TestFETL, diverge2)
 {
-
-	auto d = mesh.GetDimensions();
 
 	auto error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
@@ -195,10 +184,9 @@ TEST_P(TestFETL, diverge2)
 		average += (f3[s] - expect);
 
 		if (abs(f3[s]) > epsilon || abs(expect) > epsilon)
-			ASSERT_LE(abs(2.0*(f3[s]-expect)/(f3[s] + expect)), error )<< " " << expect / f3[s] << " " << f3[s]
-			<< " " << expect;
+			ASSERT_LE(abs(2.0 * (f3[s] - expect) / (f3[s] + expect)), error);
 
-		}
+	}
 
 	variance /= f3.size();
 	average /= f3.size();
@@ -209,9 +197,6 @@ TEST_P(TestFETL, diverge2)
 
 TEST_P(TestFETL, curl1)
 {
-
-	auto d = mesh.GetDimensions();
-
 	auto error = std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, EDGE, scalar_type> vf1(mesh);
@@ -251,7 +236,7 @@ TEST_P(TestFETL, curl1)
 		auto x = mesh.GetCoordinates(s);
 		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
 		{
-			ASSERT_LE(abs(2.0*(vf2[s]-expect)/(vf2[s] + expect)), error )<< vf2[s] << " " << expect << " " << x<<" "<<mesh.GetExtents();
+			ASSERT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error);
 
 		}
 
@@ -266,9 +251,6 @@ TEST_P(TestFETL, curl1)
 
 TEST_P(TestFETL, curl2)
 {
-
-	auto d = mesh.GetDimensions();
-
 	auto error = std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, EDGE, scalar_type> vf1(mesh);
@@ -310,10 +292,9 @@ TEST_P(TestFETL, curl2)
 
 		auto x = mesh.GetCoordinates(s);
 		if ((abs(vf1[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0*(vf1[s]-expect)/(vf1[s] + expect)), error )<< vf1[s] << " " << expect << " "
-			<< mesh.GetCoordinates(s);
+			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error);
 
-		}
+	}
 
 	variance /= vf1.size();
 	average /= vf1.size();

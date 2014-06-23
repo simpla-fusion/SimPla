@@ -20,9 +20,9 @@ TEST_P(TestFETL ,vec_zero_form)
 	typedef Field<mesh_type, VERTEX, scalar_type> ScalarField;
 	typedef Field<mesh_type, VERTEX, nTuple<3, scalar_type> > VectorField;
 
-	Vec3 vc1 = { 1.0, 2.0, 3.0 };
+	nTuple<3,scalar_type> vc1 = { 1.0, 2.0, 3.0 };
 
-	Vec3 vc2 = { -1.0, 4.0, 2.0 };
+	nTuple<3,scalar_type> vc2 = { -1.0, 4.0, 2.0 };
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -33,8 +33,8 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	res_vector_field(mesh);
 
-	vaf.Init();
-	vbf.Init();
+	vaf.Clear();
+	vbf.Clear();
 
 	for (auto & p : vaf)
 	{
