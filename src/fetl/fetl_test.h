@@ -20,7 +20,7 @@ using namespace simpla;
 #include "../mesh/geometry_cartesian.h"
 #include "../mesh/mesh_rectangle.h"
 
-typedef Mesh<CartesianGeometry<OcForest, true>> TMesh;
+typedef Mesh<CartesianGeometry<OcForest, false>> TMesh;
 #else
 typedef TMESH TMesh;
 #endif
@@ -70,7 +70,7 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	nTuple<3, Real> K = { 2.0 * PI, 3.0 * PI, 4.0 * PI }; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K = { 4.0 * PI, 3.0 * PI, 2.0 * PI }; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 

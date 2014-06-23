@@ -58,7 +58,7 @@ struct OcForest
 	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr index_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
 	static constexpr index_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
+			| (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
 
 	static constexpr index_type INDEX_ZERO = (((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1));
 
@@ -105,7 +105,7 @@ struct OcForest
 	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
 	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
 	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
+			<< (INDEX_DIGITS * 3 + 1);
 
 	// mask of sub-tree
 	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
@@ -131,7 +131,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, index_type> Decompact(compact_index_type s)
 	{
-		return nTuple<NDIMS, index_type>( {
+		return nTuple<NDIMS, index_type>(
+		{
 
 		static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) - COMPACT_INDEX_ZERO,
 
@@ -143,7 +144,8 @@ struct OcForest
 	}
 	static nTuple<NDIMS, index_type> DecompactRoot(compact_index_type s)
 	{
-		return nTuple<NDIMS, index_type>( {
+		return nTuple<NDIMS, index_type>(
+		{
 
 		static_cast<index_type>((s >> (INDEX_DIGITS * 2 + D_FP_POS)) & INDEX_MASK) - INDEX_ZERO,
 
@@ -280,9 +282,132 @@ struct OcForest
 		global_array_.global_start_= global_start_;
 		global_array_.global_count_= global_count_;
 
+		UpdateVolume();
+
 		Decompose(1,0,0);
+
 	}
 
+private:
+
+	Real volume_[8] =
+	{	1, // 000
+		1,//001
+		1,//010
+		1,//011
+		1,//100
+		1,//101
+		1,//110
+		1//111
+	};
+	Real inv_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
+
+	Real dual_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
+
+	Real inv_dual_volume_[8] =
+	{	1, 1, 1, 1, 1, 1, 1, 1};
+
+	void UpdateVolume()
+	{
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+
+			if (global_count_[i]<=1)
+			{
+
+				volume_[1UL << i] = 1.0;
+
+				dual_volume_[7 - (1UL << i)] = 1.0;
+
+				inv_volume_[1UL << i] = 1.0;
+
+				inv_dual_volume_[7 - (1UL << i)] = 1.0;
+
+			}
+			else
+			{
+
+				volume_[1UL << i] = 1.0/static_cast<Real>(global_count_[i]);
+
+				dual_volume_[7 - (1UL << i)] = 1.0/static_cast<Real>(global_count_[i]);
+
+				inv_volume_[1UL << i] = static_cast<Real>(global_count_[i]);
+
+				inv_dual_volume_[7 - (1UL << i)] = static_cast<Real>(global_count_[i]);
+
+			}
+		}
+
+		/**
+		 *
+		 *                ^y
+		 *               /
+		 *        z     /
+		 *        ^    /
+		 *        |  110-------------111
+		 *        |  /|              /|
+		 *        | / |             / |
+		 *        |/  |            /  |
+		 *       100--|----------101  |
+		 *        | m |           |   |
+		 *        |  010----------|--011
+		 *        |  /            |  /
+		 *        | /             | /
+		 *        |/              |/
+		 *       000-------------001---> x
+		 *
+		 *
+		 */
+
+		volume_[0] = 1;
+//		volume_[1] /* 001 */= dx_[0];
+//		volume_[2] /* 010 */= dx_[1];
+//		volume_[4] /* 100 */= dx_[2];
+
+		volume_[3] /* 011 */= volume_[1] * volume_[2];
+		volume_[5] /* 101 */= volume_[4] * volume_[1];
+		volume_[6] /* 110 */= volume_[2] * volume_[4];
+
+		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
+
+		dual_volume_[7] = 1;
+//		dual_volume_[6] /* 001 */= dx_[0];
+//		dual_volume_[5] /* 010 */= dx_[1];
+//		dual_volume_[3] /* 100 */= dx_[2];
+
+		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
+		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
+		dual_volume_[1] /* 110 */= dual_volume_[5] * dual_volume_[3];
+
+		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5] * dual_volume_[3];
+
+		inv_volume_[0] = 1;
+//		inv_volume_[1] /* 001 */= inv_dx_[0];
+//		inv_volume_[2] /* 010 */= inv_dx_[1];
+//		inv_volume_[4] /* 100 */= inv_dx_[2];
+
+		inv_volume_[3] /* 011 */= inv_volume_[1] * inv_volume_[2];
+		inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
+		inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
+
+		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
+
+		inv_dual_volume_[7] = 1;
+//		inv_dual_volume_[6] /* 001 */= inv_dx_[0];
+//		inv_dual_volume_[5] /* 010 */= inv_dx_[1];
+//		inv_dual_volume_[3] /* 100 */= inv_dx_[2];
+
+		inv_dual_volume_[4] /* 011 */= inv_dual_volume_[6] * inv_dual_volume_[5];
+		inv_dual_volume_[2] /* 101 */= inv_dual_volume_[3] * inv_dual_volume_[6];
+		inv_dual_volume_[1] /* 110 */= inv_dual_volume_[5] * inv_dual_volume_[3];
+
+		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
+
+	}
+public:
 	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
 	{
 		if(num_process<=1)
@@ -1079,9 +1204,13 @@ struct OcForest
 		return (r & (_DA >> (HeightOfTree(r) + 1)));
 	}
 
+	static compact_index_type DI(unsigned int i,compact_index_type r )
+	{
+		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1));
+	}
 	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
 	{
-		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1))&r;
+		return DI(i,r)&r;
 	}
 
 	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
@@ -1652,24 +1781,23 @@ struct OcForest
 
 public:
 
-	Real Volume(compact_index_type s)const
+	Real const & Volume(compact_index_type s)const
 	{
-		return 1.0;
+		return volume_[NodeId(s)];
 	}
 
 	Real InvVolume(compact_index_type s)const
 	{
-
-		return 1.0;
+		return inv_volume_[NodeId(s)];
 	}
 
 	Real InvDualVolume(compact_index_type s)const
 	{
-		return std::move(InvVolume(Dual(s)));
+		return inv_dual_volume_[NodeId(s)];
 	}
 	Real DualVolume(compact_index_type s)const
 	{
-		return std::move(Volume(Dual(s)));
+		return dual_volume_[NodeId(s)];
 	}
 	//***************************************************************************************************
 

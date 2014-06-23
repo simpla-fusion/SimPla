@@ -18,6 +18,7 @@ static constexpr auto epsilon = 1e7 * std::numeric_limits<Real>::epsilon();
 
 TEST_P(TestFETL, grad0)
 {
+
 	Real error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, VERTEX, scalar_type> f0(mesh);
@@ -40,15 +41,11 @@ TEST_P(TestFETL, grad0)
 	scalar_type average;
 	average *= 0.0;
 
-//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/grad0");
-//	LOGGER << SAVE(f1);
-
 	for (auto s : mesh.Select(EDGE))
 	{
 
 		auto expect = mesh.Sample(Int2Type<EDGE>(), s, K)
-		        * std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+				* std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
 
 		f1b[s] = expect;
 
@@ -71,7 +68,7 @@ TEST_P(TestFETL, grad0)
 		}
 
 	}
-//	LOGGER << SAVE(f1b);
+
 	variance /= f1.size();
 	average /= f1.size();
 	CHECK(variance);
@@ -129,6 +126,9 @@ TEST_P(TestFETL, grad3)
 TEST_P(TestFETL, diverge1)
 {
 
+//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/div1");
+
 	auto error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, EDGE, scalar_type> f1(mesh);
@@ -141,9 +141,9 @@ TEST_P(TestFETL, diverge1)
 	{
 		f1[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
-
+//	LOGGER << SAVE(f1);
 	f0 = Diverge(f1);
-
+//	LOGGER << SAVE(f0);
 	Real variance = 0;
 	scalar_type average = 0.0;
 
@@ -157,8 +157,10 @@ TEST_P(TestFETL, diverge1)
 		average += (f0[s] - expect);
 
 		auto x = mesh.GetCoordinates(s);
+
+
 		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
+		ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
 
 	}
 
