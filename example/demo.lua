@@ -104,9 +104,9 @@ Model=
 {
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
---	{Type="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+--	{Material="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
 --
---	{Type="Plasma",
+--	{Material="Plasma",
 --		Select=function(x,y,z)
 --			return x>1.0 and x<2.0
 --		end
@@ -125,14 +125,13 @@ FieldSolver=
 
 Constraints=
 {
----[[
+	---[[
 	{
 		DOF="J",
-		Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ}}},
+		Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ},{0.1*LX,0.1*LY,0.1*LZ},{0.1*LX,0.3*LY,0.3*LZ}}},
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			print(amp)
 			return { f[0],f[1]+amp,f[2]}
 		end
 	},
@@ -140,7 +139,8 @@ Constraints=
 		DOF="E",
 		Select={Type="Boundary",In="Vacuum"},
 		Operation= function(t,x,f )
-			return {  1000, 1000, 1000}
+
+			return {  0, 0,0}
 		end
 	},
 
