@@ -7,34 +7,48 @@
 
 #ifndef FETL_TEST_H_
 #define FETL_TEST_H_
-
+#include <gtest/gtest.h>
 #include "fetl.h"
-#include "../utilities/log.h"
-#include "../utilities/pretty_stream.h"
-
-#include "../mesh/mesh.h"
+#include "fetl_test_suit.h"
+#include "fetl_test1.h"
+#include "fetl_test2.h"
+#include "fetl_test3.h"
+#include "fetl_test4.h"
 
 using namespace simpla;
 
-template<typename T>
-void SetDefaultValue(T* v)
-{
-	*v = 1;
-}
-template<typename T>
-void SetDefaultValue(std::complex<T>* v)
-{
-	T r;
-	SetDefaultValue(&r);
-	*v = std::complex<T>();
-}
+INSTANTIATE_TEST_CASE_P(FETLEuclidean, TestFETL,
 
-template<int N, typename T>
-void SetDefaultValue(nTuple<N, T>* v)
-{
-	for (int i = 0; i < N; ++i)
-	{
-		(*v)[i] = i;
-	}
-}
+testing::Combine(testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
+        , nTuple<3, Real>( { -1.0, -2.0, -3.0 })
+
+),
+
+testing::Values(
+
+nTuple<3, Real>( { 1.0, 2.0, 3.0 })  //
+        , nTuple<3, Real>( { 2.0, 0.0, 0.0 }) //
+        , nTuple<3, Real>( { 0.0, 2.0, 0.0 }) //
+        , nTuple<3, Real>( { 0.0, 0.0, 2.0 }) //
+        , nTuple<3, Real>( { 0.0, 2.0, 2.0 }) //
+        , nTuple<3, Real>( { 2.0, 0.0, 2.0 }) //
+        , nTuple<3, Real>( { 2.0, 2.0, 0.0 }) //
+
+        ),
+
+testing::Values(
+
+nTuple<3, size_t>( { 1, 1, 1 }) //
+        , nTuple<3, size_t>( { 17, 1, 1 }) //
+        , nTuple<3, size_t>( { 1, 17, 1 }) //
+        , nTuple<3, size_t>( { 1, 1, 10 }) //
+        , nTuple<3, size_t>( { 1, 10, 20 }) //
+        , nTuple<3, size_t>( { 17, 1, 17 }) //
+        , nTuple<3, size_t>( { 17, 17, 1 }) //
+        , nTuple<3, size_t>( { 12, 16, 10 })   //
+
+        )
+
+        ));
+
 #endif /* FETL_TEST_H_ */

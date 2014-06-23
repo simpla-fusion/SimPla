@@ -46,9 +46,9 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 {
 
 	DEFINE_PHYSICAL_CONST
-	;
 
 	Real dt = mesh.GetDt();
+
 	LOGGER << "Implicit Push E ";
 
 	if (Ev.empty())

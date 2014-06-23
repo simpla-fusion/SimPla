@@ -344,6 +344,15 @@ template<int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE ((_ntuple_impl::inner_product<N>(std::plus<void>(), std::multiplies<void>(), l, r)))
 
+template<int N, typename TL, typename TR>
+inline auto InnerProductNTuple(nTuple<N, TL> const &l, nTuple<N, TR> const &r)->decltype(l[0]*r[0])
+{
+	decltype(l[0]*r[0]) res = 0;
+	for (int i = 0; i < N; ++i)
+		res += l[i] * r[i];
+	return res;
+}
+
 template<typename T> inline auto Determinant(nTuple<3, nTuple<3, T> > const & m)
 DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
 		* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//

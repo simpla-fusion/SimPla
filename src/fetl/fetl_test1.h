@@ -17,24 +17,21 @@
 
 using namespace simpla;
 
-template<typename TM, typename TV, int IFORM>
+template<typename TV, int IFORM>
 struct TestFETLParam1
 {
-	typedef TM mesh_type;
+	typedef TMesh mesh_type;
 	typedef TV value_type;
 	static constexpr int IForm = IFORM;
 
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin =
-		{ -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
 
-		nTuple<3, Real> xmax =
-		{ 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
 
-		nTuple<3, size_t> dims =
-		{ 16, 32, 67 };
+		nTuple<3, size_t> dims = { 16, 32, 67 };
 
 		mesh->SetExtents(xmin, xmax, dims);
 
@@ -42,12 +39,33 @@ struct TestFETLParam1
 
 	static void SetDefaultValue(value_type * v)
 	{
-		::SetDefaultValue(v);
+		SetDefaultValue(v);
+	}
+	template<typename T>
+	void SetDefaultValue(T* v)
+	{
+		*v = 1;
+	}
+	template<typename T>
+	void SetDefaultValue(std::complex<T>* v)
+	{
+		T r;
+		SetDefaultValue(&r);
+		*v = std::complex<T>();
+	}
+
+	template<int N, typename T>
+	void SetDefaultValue(nTuple<N, T>* v)
+	{
+		for (int i = 0; i < N; ++i)
+		{
+			(*v)[i] = i;
+		}
 	}
 };
 
 template<typename TParam>
-class TestFETL: public testing::Test
+class TestFETLBase: public testing::Test
 {
 protected:
 	virtual void SetUp()
@@ -71,9 +89,61 @@ public:
 
 };
 
-TYPED_TEST_CASE_P(TestFETL);
+typedef testing::Types<
 
-TYPED_TEST_P(TestFETL,create_write_read){
+TestFETLParam1<Real, VERTEX>,
+
+TestFETLParam1<Real, EDGE>,
+
+TestFETLParam1<Real, FACE>,
+
+TestFETLParam1<Real, VOLUME>,
+
+TestFETLParam1<Complex, VERTEX>,
+
+TestFETLParam1<Complex, EDGE>,
+
+TestFETLParam1<Complex, FACE>,
+
+TestFETLParam1<Complex, VOLUME>,
+
+TestFETLParam1<nTuple<3, Real>, VERTEX>,
+
+TestFETLParam1<nTuple<3, Real>, EDGE>,
+
+TestFETLParam1<nTuple<3, Real>, FACE>,
+
+TestFETLParam1<nTuple<3, Real>, VOLUME>,
+
+TestFETLParam1<nTuple<3, Complex>, VERTEX>,
+
+TestFETLParam1<nTuple<3, Complex>, EDGE>,
+
+TestFETLParam1<nTuple<3, Complex>, FACE>,
+
+TestFETLParam1<nTuple<3, Complex>, VOLUME>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, VERTEX>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, EDGE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, FACE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, VOLUME>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VERTEX>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, EDGE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, FACE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VOLUME>
+
+> TypeParamList;
+
+TYPED_TEST_CASE(TestFETLBase, TypeParamList);
+
+TYPED_TEST(TestFETLBase,create_write_read){
 {
 
 	typename TestFixture::mesh_type const & mesh = TestFixture::mesh;
@@ -103,7 +173,7 @@ TYPED_TEST_P(TestFETL,create_write_read){
 }
 }
 
-TYPED_TEST_P(TestFETL,assign){
+TYPED_TEST(TestFETLBase,assign){
 {
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
@@ -158,7 +228,7 @@ TYPED_TEST_P(TestFETL,assign){
 }
 }
 
-TYPED_TEST_P(TestFETL, constant_real){
+TYPED_TEST(TestFETLBase, constant_real){
 {
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
@@ -187,7 +257,7 @@ TYPED_TEST_P(TestFETL, constant_real){
 }
 }
 
-TYPED_TEST_P(TestFETL, scalar_field){
+TYPED_TEST(TestFETLBase, scalar_field){
 {
 
 	typedef typename TestFixture::FieldType::value_type value_type;
@@ -262,5 +332,4 @@ TYPED_TEST_P(TestFETL, scalar_field){
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestFETL, create_write_read, assign, constant_real, scalar_field);
 #endif /* FETL_TEST1_H_ */

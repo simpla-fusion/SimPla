@@ -1641,45 +1641,45 @@ struct OcForest
 	}
 
 private:
-	Real VolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
+	constexpr Real VolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
 	{
 		return 1.0;
 	}
-	Real InvVolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
+	constexpr Real InvVolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
 	{
 		return 1.0;
 	}
 
 	scalar_type VolumeTraits(std::integral_constant<bool,true> ,compact_index_type s )const
 	{
-		return (global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, 1.0 / TWOPI);
+		return std::move(global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, 1.0 / TWOPI);
 	}
 
 	scalar_type InvVolumeTraits(std::integral_constant<bool,true> ,compact_index_type s )const
 	{
-		return (global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, -TWOPI);
+		return std::move(global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, -TWOPI);
 	}
 
 public:
 
 	scalar_type Volume(compact_index_type s)const
 	{
-		return VolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s);
+		return std::move(VolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s));
 	}
 
 	scalar_type InvVolume(compact_index_type s)const
 	{
 
-		return InvVolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s);
+		return std::move(InvVolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s));
 	}
 
 	scalar_type InvDualVolume(compact_index_type s)const
 	{
-		return InvVolume(Dual(s));
+		return std::move(InvVolume(Dual(s)));
 	}
 	scalar_type DualVolume(compact_index_type s)const
 	{
-		return Volume(Dual(s));
+		return std::move(Volume(Dual(s)));
 	}
 	//***************************************************************************************************
 

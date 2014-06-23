@@ -17,43 +17,46 @@
 namespace simpla
 {
 
-/**
- *  RZphi
+/***
+ *
+ *   R Z phi
  */
-template<typename Topology>
-struct CylindricalGeometry
+template<typename TTopology, int IZAxis = 2>
+struct CylindricalGeometry: public TTopology
 {
-	typedef Topology topology_type;
+	typedef TTopology topology_type;
 
-	typedef CylindricalGeometry<topology_type> this_type;
+	static constexpr unsigned int ZAxis = IZAxis;
+
+	typedef CylindricalGeometry<topology_type, ZAxis> this_type;
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
+	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::scalar_type scalar_type;
+	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
-	topology_type const & topology;
-
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry(topology_type const & t)
-			: topology(t)
+	CylindricalGeometry()
+			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CylindricalGeometry(topology_type const & t, TDict const & dict)
-			: topology(t)
+	CylindricalGeometry(TDict const & dict)
+			: topology_type(dict)
 	{
-
+		Load(dict);
 	}
 
 	~CylindricalGeometry()
 	{
-
 	}
 
 	//***************************************************************************************************
@@ -61,30 +64,30 @@ struct CylindricalGeometry
 	// Metric
 	//***************************************************************************************************
 
-	void Update()
+	Real dt_ = 0.0;
+	Real time0_ = 0.0;
+	// Time
+	void NextTimeStep()
 	{
-
+		topology_type::NextTimeStep();
 	}
-	template<typename TDict>
-	void Load(TDict const & dict)
+	Real GetTime() const
 	{
-
+		return static_cast<double>(topology_type::GetClock()) * dt_ + time0_;
 	}
 
-	std::ostream & Save(std::ostream & os) const
+	Real GetDt() const
 	{
-		return os;
+		return dt_;
 	}
 
 	coordinates_type xmin_ = { 0, 0, 0 };
 
 	coordinates_type xmax_ = { 1, 1, 1 };
 
-	coordinates_type inv_L = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_dx_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type scale_ = { 1.0, 1.0, 1.0 };
-
-	coordinates_type inv_scale_ = { 1.0, 1.0, 1.0 };
+	coordinates_type dx_ = { 1.0, 1.0, 1.0 };
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
@@ -108,26 +111,119 @@ struct CylindricalGeometry
 	 *
 	 *
 	 */
-	Real dh_[NDIMS] = { 1, 1, 1 };
 
+	Real volume_[8] = { 1, // 000
+	        1, //001
+	        1, //010
+	        1, //011
+	        1, //100
+	        1, //101
+	        1, //110
+	        1  //111
+	        };
 	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	template<int IN, typename T>
-	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
+	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real length_[3];
+
+	template<typename TDict, typename ...Others>
+	void Load(TDict const & dict, Others &&...others)
 	{
-		int n = IN < NDIMS ? IN : NDIMS;
+		try
+		{
+			if (dict["Min"] && dict["Max"])
+			{
+				LOGGER << "Load CylindricalGeometry ";
 
-		auto const & dims = topology.GetDimensions();
+				SetExtents(
 
-		for (int i = 0; i < n; ++i)
+				dict["Min"].template as<nTuple<NDIMS, Real>>(),
+
+				dict["Max"].template as<nTuple<NDIMS, Real>>());
+			}
+
+			dt_ = dict["dt"].template as<Real>();
+
+			topology_type::Load(dict, std::forward<Others >(others)...);
+
+		} catch (...)
+		{
+			PARSER_ERROR("Configure CylindricalGeometry error!");
+		}
+	}
+
+	std::string Save(std::string const &path) const
+	{
+		std::stringstream os;
+
+		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_ << ", "
+
+		<< topology_type::Save(path);
+
+		return os.str();
+	}
+	template<typename ...Others>
+	inline void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax, Others&& ... others)
+	{
+		SetExtents(pmin, pmax);
+		topology_type::SetDimensions(std::forward<Others >(others)...);
+
+	}
+
+	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	        nTuple<NDIMS, Real> const & dims)
+	{
+		SetExtents(pmin, pmax);
+		topology_type::SetDimensions(dims);
+
+	}
+	void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
+	{
+
+		for (int i = 0; i < NDIMS; ++i)
 		{
 			xmin_[i] = pmin[i];
-			xmax_[i] = pmax[i];
 
-			shift_[i] = pmin[i];
+			shift_[i] = xmin_[i];
 
-			scale_[i] = (pmax[i] > pmin[i]) ? ((static_cast<Real>(dims[i])) / (pmax[i] - pmin[i])) : 0;
-			inv_scale_[i] = (pmax[i] - pmin[i]) / (static_cast<Real>(dims[i]));
+			if ((pmax[i] - pmin[i]) < EPSILON)
+			{
+
+				xmax_[i] = xmin_[i];
+
+				inv_dx_[i] = 0.0;
+
+				dx_[i] = 0.0;
+
+				volume_[1UL << i] = 1.0;
+
+				dual_volume_[7 - (1UL << i)] = 1.0;
+
+				inv_volume_[1UL << i] = 1.0;
+
+				inv_dual_volume_[7 - (1UL << i)] = 1.0;
+
+			}
+			else
+			{
+				xmax_[i] = pmax[i];
+
+				inv_dx_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+
+				dx_[i] = (xmax_[i] - xmin_[i]);
+
+				volume_[1UL << i] = dx_[i];
+
+				dual_volume_[7 - (1UL << i)] = dx_[i];
+
+				inv_volume_[1UL << i] = inv_dx_[i];
+
+				inv_dual_volume_[7 - (1UL << i)] = inv_dx_[i];
+
+			}
 		}
 
 		/**
@@ -151,99 +247,262 @@ struct CylindricalGeometry
 		 *
 		 */
 
-		dh_[0] /* R   */= (dims[0] > 1) ? (xmax_[0] - xmin_[0]) / dims[0] : 1;
-		dh_[1] /* Z   */= (dims[1] > 1) ? (xmax_[1] - xmin_[1]) / dims[1] : 1;
-		dh_[2] /* Phi */= (dims[2] > 1) ? (xmax_[2] - xmin_[2]) / dims[2] : 1;
+		volume_[0] = 1;
+//		volume_[1] /* 001 */= dx_[0];
+//		volume_[2] /* 010 */= dx_[1];
+//		volume_[4] /* 100 */= dx_[2];
+
+		volume_[3] /* 011 */= volume_[1] * volume_[2];
+		volume_[5] /* 101 */= volume_[4] * volume_[1];
+		volume_[6] /* 110 */= volume_[2] * volume_[4];
+
+		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
+
+		dual_volume_[7] = 1;
+//		dual_volume_[6] /* 001 */= dx_[0];
+//		dual_volume_[5] /* 010 */= dx_[1];
+//		dual_volume_[3] /* 100 */= dx_[2];
+
+		dual_volume_[4] /* 011 */= dual_volume_[6] * dual_volume_[5];
+		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
+		dual_volume_[1] /* 110 */= dual_volume_[5] * dual_volume_[3];
+
+		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5] * dual_volume_[3];
+
+		inv_volume_[0] = 1;
+//		inv_volume_[1] /* 001 */= inv_dx_[0];
+//		inv_volume_[2] /* 010 */= inv_dx_[1];
+//		inv_volume_[4] /* 100 */= inv_dx_[2];
+
+		inv_volume_[3] /* 011 */= inv_volume_[1] * inv_volume_[2];
+		inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
+		inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
+
+		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
+
+		inv_dual_volume_[7] = 1;
+//		inv_dual_volume_[6] /* 001 */= inv_dx_[0];
+//		inv_dual_volume_[5] /* 010 */= inv_dx_[1];
+//		inv_dual_volume_[3] /* 100 */= inv_dx_[2];
+
+		inv_dual_volume_[4] /* 011 */= inv_dual_volume_[6] * inv_dual_volume_[5];
+		inv_dual_volume_[2] /* 101 */= inv_dual_volume_[3] * inv_dual_volume_[6];
+		inv_dual_volume_[1] /* 110 */= inv_dual_volume_[5] * inv_dual_volume_[3];
+
+		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	template<typename TV>
-	TV const& Normal(iterator s, nTuple<3, TV> const & v) const
+	inline coordinates_type const & GetDx() const
 	{
-		return v[topology.topology_type::_C(s)];
+		return dx_;
 	}
 
-	Real Volume(iterator s) const
+	template<typename ... Args>
+	inline coordinates_type GetCoordinates(Args && ... args) const
 	{
-		auto x = topology.GetCoordinates(s);
-		Real res = 1;
-
-		switch (topology._N(s))
-		{
-		case 0:
-			res = 1;
-			break;
-		case 1:  //001 r
-			res = dh_[0];
-			break;
-		case 2:  //010 z
-			res = dh_[1];
-			break;
-		case 4:  //100 phi
-			res = x[0] * x[2];
-			break;
-		case 3: //011 rz
-			res = dh_[0] * dh_[1];
-			break;
-		case 5: //101 r phi  phi*( (r+d)^2-r^2)/2
-			res = x[2] * (2 * x[0] + dh_[1]) * dh_[1] * 0.5;
-			break;
-		case 6: //110 z phi
-			res = dh_[2] * x[0] * x[2];
-			break;
-		case 7: //111
-			res = x[2] * (2 * x[0] + dh_[0]) * 0.5 * dh_[0] * dh_[1];
-			break;
-		}
-
-		return res;
-	}
-	Real InvVolume(iterator s) const
-	{
-		return 1.0 / Volume(s);
+		return CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...));
 	}
 
-	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
+	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
 
 		return coordinates_type( {
 
-		x[0] * inv_scale_[0] + shift_[0],
+		x[0] * dx_[0] + shift_[0],
 
-		x[1] * inv_scale_[1] + shift_[1],
+		x[1] * dx_[1] + shift_[1],
 
-		x[2] * inv_scale_[2] + shift_[2]
+		x[2] * dx_[2] + shift_[2]
 
 		});
+
 	}
-	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
 		return coordinates_type( {
 
-		(x[0] - shift_[0]) * scale_[0],
+		(x[0] - shift_[0]) * inv_dx_[0],
 
-		(x[1] - shift_[1]) * scale_[1],
+		(x[1] - shift_[1]) * inv_dx_[1],
 
-		(x[2] - shift_[2]) * scale_[2]
+		(x[2] - shift_[2]) * inv_dx_[2]
 
 		});
+
+	}
+	template<typename ... Args>
+	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
+	{
+		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...));
+	}
+
+	compact_index_type CoordinatesGlobalToLocal(coordinates_type * px,
+	        typename topology_type::compact_index_type shift = 0UL) const
+	{
+		*px = CoordinatesToTopology(*px);
+		return topology_type::CoordinatesGlobalToLocal(px, shift);
+	}
+	compact_index_type CoordinatesGlobalToLocalDual(coordinates_type * px,
+	        typename topology_type::compact_index_type shift = 0UL) const
+	{
+		*px = CoordinatesToTopology(*px);
+		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
+	}
+	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
+	        typename topology_type::compact_index_type shift = 0UL) const
+	{
+		*px = CoordinatesToTopology(*px);
+		return topology_type::CoordinatesToIndex(px, shift);
+	}
+	coordinates_type const &CoordinatesToCartesian(coordinates_type const &x) const
+	{
+		return std::forward<coordinates_type const &>(x);
+	}
+
+	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
+	{
+		return x;
+	}
+
+	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+
+	template<typename ...Args>
+	auto Select(unsigned int iform, Args && ...args) const
+	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
+
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
+	}
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PullBack(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
 	}
 
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PushForward(coordinates_type const & x, nTuple<NDIMS, TV> const & v) const
+	TV const& Normal(index_type s, TV const & v) const
 	{
 		return v;
 	}
+
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PullBack(coordinates_type const & x, nTuple<NDIMS, TV> const & v) const
+	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
+	{
+		return v[topology_type::ComponentNum(s)];
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
 	{
 		return v;
 	}
+
+	template<typename TV>
+	TV Sample(Int2Type<VOLUME>, index_type s, TV const &v) const
+	{
+		return v;
+	}
+
+//	template<typename TV>
+//	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
+//	{
+//		return v[topology_type::ComponentNum(s)];
+//	}
+//
+//	template<typename TV>
+//	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
+//	{
+//		return v[topology_type::ComponentNum(s)];
+//	}
+
+	template<int IFORM, typename TV>
+	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
+	{
+		return v;
+	}
+
+	template<int IFORM, typename TV>
+	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
+	        nTuple<NDIMS, TV> const & v) const
+	{
+		return Normal(s, v);
+	}
+
+//***************************************************************************************************
+// Cell-wise operation
+//***************************************************************************************************
+
+	/**
+	 *
+	 *                ^Z
+	 *               /
+	 *        phi   /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> R
+	 *
+	 *
+	 */
+
+	scalar_type Volume(compact_index_type s) const
+	{
+		unsigned int n = topology_type::NodeId(s);
+		return topology_type::Volume(s) * volume_[n]
+		        * (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		        ;
+	}
+
+	scalar_type InvVolume(compact_index_type s) const
+	{
+		unsigned int n = topology_type::NodeId(s);
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)]
+		        / (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		        ;
+	}
+
+	scalar_type DualVolume(compact_index_type s) const
+	{
+		unsigned int n = topology_type::NodeId(s);
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)]
+		        * ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		        ;
+	}
+	scalar_type InvDualVolume(compact_index_type s) const
+	{
+		unsigned int n = topology_type::NodeId(s);
+		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)]
+		        / ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		        ;
+	}
+
+	Real HodgeStarVolumeScale(compact_index_type s) const
+	{
+		return 1.0;
+	}
+
+	Real CellVolume(compact_index_type s) const
+	{
+		return volume_[topology_type::NodeId(s)];
+	}
+
 }
 ;
 
