@@ -9,7 +9,7 @@
 //#include "../mesh/octree_forest.h"
 //#include "../mesh/geometry_cartesian.h"
 //
-//#define TMESH Mesh<CartesianGeometry<OcForest<Real>>>
+//#define TMESH Mesh<CartesianGeometry<OcForest>>
 #include <gtest/gtest.h>
 #include "fetl.h"
 #include "fetl_test.h"
@@ -41,14 +41,14 @@ nTuple<3, Real>( { 5.0, 2.0, 3.0 })  //
 
 testing::Values(
 
-nTuple<3, size_t>( { 12, 13, 15 }) //
-        , nTuple<3, size_t>( { 17, 1, 1 }) //
-        , nTuple<3, size_t>( { 1, 17, 1 }) //
-        , nTuple<3, size_t>( { 1, 1, 10 }) //
-        , nTuple<3, size_t>( { 1, 10, 20 }) //
-        , nTuple<3, size_t>( { 17, 1, 17 }) //
-        , nTuple<3, size_t>( { 17, 17, 1 }) //
-        , nTuple<3, size_t>( { 12, 16, 10 })   //
+nTuple<3, size_t>( { 102, 103, 105 }) //
+        , nTuple<3, size_t>( { 127, 1, 1 }) //
+        , nTuple<3, size_t>( { 1, 127, 1 }) //
+        , nTuple<3, size_t>( { 1, 1, 100 }) //
+        , nTuple<3, size_t>( { 1, 100, 200 }) //
+        , nTuple<3, size_t>( { 127, 1, 127 }) //
+        , nTuple<3, size_t>( { 127, 127, 1 }) //
+        , nTuple<3, size_t>( { 102, 106, 100 })   //
 
         )
 

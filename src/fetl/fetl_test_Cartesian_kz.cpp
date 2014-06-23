@@ -9,8 +9,7 @@
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_cartesian.h"
 
-#define TMESH Mesh<CartesianGeometry<OcForest<std::complex<Real>>>>
-
+#define TMESH Mesh<CartesianGeometry<OcForest,true>>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"

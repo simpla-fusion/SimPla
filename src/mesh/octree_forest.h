@@ -26,7 +26,6 @@
 namespace simpla
 {
 
-template<typename TS = Real>
 struct OcForest
 {
 
@@ -38,8 +37,6 @@ struct OcForest
 	typedef long index_type;
 
 	typedef unsigned long compact_index_type;
-
-	typedef TS scalar_type;
 
 	struct iterator;
 
@@ -352,7 +349,14 @@ struct OcForest
 
 		return res;
 	}
+	coordinates_type GetDx() const
+	{
+		coordinates_type res;
 
+		for (int i = 0; i < NDIMS; ++i) res[i] = 1.0/static_cast<Real>(global_count_[i]);
+
+		return std::move(res);
+	}
 	nTuple<NDIMS, index_type> const& GetDimensions() const
 	{
 		return global_count_;
@@ -1646,44 +1650,24 @@ struct OcForest
 
 	}
 
-private:
-	constexpr Real VolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
-	{
-		return 1.0;
-	}
-	constexpr Real InvVolumeTraits(std::integral_constant<bool,false> ,compact_index_type s )const
-	{
-		return 1.0;
-	}
-
-	scalar_type VolumeTraits(std::integral_constant<bool,true> ,compact_index_type s )const
-	{
-		return std::move(global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, 1.0 / TWOPI);
-	}
-
-	scalar_type InvVolumeTraits(std::integral_constant<bool,true> ,compact_index_type s )const
-	{
-		return std::move(global_count_[ComponentNum(s)] > 1) ? 1.0 : scalar_type(0.0, -TWOPI);
-	}
-
 public:
 
-	scalar_type Volume(compact_index_type s)const
+	Real Volume(compact_index_type s)const
 	{
-		return std::move(VolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s));
+		return 1.0;
 	}
 
-	scalar_type InvVolume(compact_index_type s)const
+	Real InvVolume(compact_index_type s)const
 	{
 
-		return std::move(InvVolumeTraits(std::integral_constant<bool,is_complex<scalar_type>::value>(),s));
+		return 1.0;
 	}
 
-	scalar_type InvDualVolume(compact_index_type s)const
+	Real InvDualVolume(compact_index_type s)const
 	{
 		return std::move(InvVolume(Dual(s)));
 	}
-	scalar_type DualVolume(compact_index_type s)const
+	Real DualVolume(compact_index_type s)const
 	{
 		return std::move(Volume(Dual(s)));
 	}
@@ -1700,9 +1684,9 @@ namespace std
 template<typename TI> struct iterator_traits;
 
 template<>
-struct iterator_traits<simpla::OcForest<simpla::Real>::iterator>
+struct iterator_traits<simpla::OcForest::iterator>
 {
-typedef typename simpla::OcForest<simpla::Real>::iterator iterator;
+typedef typename simpla::OcForest::iterator iterator;
 typedef typename iterator::iterator_category iterator_category;
 typedef typename iterator::value_type value_type;
 typedef typename iterator::difference_type difference_type;
@@ -1711,17 +1695,6 @@ typedef typename iterator::reference reference;
 
 };
 
-template<>
-struct iterator_traits<simpla::OcForest<std::complex<simpla::Real>>::iterator>
-{
-typedef typename simpla::OcForest<std::complex<simpla::Real>>::iterator iterator;
-typedef typename iterator::iterator_category iterator_category;
-typedef typename iterator::value_type value_type;
-typedef typename iterator::difference_type difference_type;
-typedef typename iterator::pointer pointer;
-typedef typename iterator::reference reference;
-
-};
 }  // namespace std
 
 #endif /* OCTREE_FOREST_H_ */

@@ -20,7 +20,7 @@ using namespace simpla;
 #include "../mesh/geometry_cartesian.h"
 #include "../mesh/mesh_rectangle.h"
 
-typedef Mesh<CartesianGeometry<OcForest<Real>>> TMesh;
+typedef Mesh<CartesianGeometry<OcForest, true>> TMesh;
 #else
 typedef TMESH TMesh;
 #endif
@@ -97,7 +97,5 @@ public:
 	}
 
 };
-
-
 
 #endif /* FETL_TEST_H_ */

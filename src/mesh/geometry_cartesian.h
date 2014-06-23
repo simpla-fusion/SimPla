@@ -16,18 +16,18 @@
 
 namespace simpla
 {
-template<typename TTopology>
+template<typename TTopology, bool EnableSpectralMethod = false>
 struct CartesianGeometry: public TTopology
 {
 	typedef TTopology topology_type;
 
-	typedef CartesianGeometry<topology_type> this_type;
+	typedef CartesianGeometry<topology_type, EnableSpectralMethod> this_type;
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::scalar_type scalar_type;
+	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
@@ -289,12 +289,15 @@ struct CartesianGeometry: public TTopology
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type const & GetDx() const
+	inline coordinates_type GetDx() const
 	{
-		auto d = topology_type::GetDimensions();
 		coordinates_type res;
+
+		auto d = topology_type::GetDx();
+
 		for (int i = 0; i < NDIMS; ++i)
-			res[i] = length_[i] / d[i];
+			res[i] = length_[i] * d[i];
+
 		return std::move(res);
 	}
 

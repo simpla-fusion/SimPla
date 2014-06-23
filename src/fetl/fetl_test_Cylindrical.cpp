@@ -9,8 +9,7 @@
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_cylindrical.h"
 
-#define TMESH Mesh<CylindricalGeometry<OcForest<Real>>>
-
+#define TMESH Mesh<CylindricalGeometry<OcForest>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"
@@ -25,7 +24,7 @@ INSTANTIATE_TEST_CASE_P(FETLCylindrical, TestFETL,
 testing::Combine(testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
 //        , nTuple<3, Real>( { -1.0, -2.0, -3.0 })
 
-),
+        ),
 
 testing::Values(
 

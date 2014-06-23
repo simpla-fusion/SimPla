@@ -10,8 +10,7 @@
 #include "../mesh/geometry_cylindrical.h"
 #include "fetl.h"
 
-#define TMESH Mesh<CylindricalGeometry<OcForest<std::complex<Real>>>>
-
+#define TMESH Mesh<CylindricalGeometry<OcForest>>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"
