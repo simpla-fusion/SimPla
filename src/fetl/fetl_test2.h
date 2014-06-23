@@ -14,7 +14,7 @@
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
 #include "fetl.h"
-#include "fetl_test_suit.h"
+#include "fetl_test.h"
 
 using namespace simpla;
 

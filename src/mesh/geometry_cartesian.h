@@ -1,12 +1,12 @@
 /*
- * geometry_euclidean.h
+ * geometry_cartesian.h
  *
  *  Created on: 2014年3月13日
  *      Author: salmon
  */
 
-#ifndef GEOMETRY_EUCLIDEAN_H_
-#define GEOMETRY_EUCLIDEAN_H_
+#ifndef GEOMETRY_CARTESIAN_H_
+#define GEOMETRY_CARTESIAN_H_
 
 #include <iostream>
 #include <utility>
@@ -17,11 +17,11 @@
 namespace simpla
 {
 template<typename TTopology>
-struct EuclideanGeometry: public TTopology
+struct CartesianGeometry: public TTopology
 {
 	typedef TTopology topology_type;
 
-	typedef EuclideanGeometry<topology_type> this_type;
+	typedef CartesianGeometry<topology_type> this_type;
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
@@ -34,21 +34,21 @@ struct EuclideanGeometry: public TTopology
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
-	EuclideanGeometry(this_type const & rhs) = delete;
+	CartesianGeometry(this_type const & rhs) = delete;
 
-	EuclideanGeometry()
+	CartesianGeometry()
 			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	EuclideanGeometry(TDict const & dict)
+	CartesianGeometry(TDict const & dict)
 			: topology_type(dict)
 	{
 		Load(dict);
 	}
 
-	~EuclideanGeometry()
+	~CartesianGeometry()
 	{
 	}
 
@@ -78,9 +78,9 @@ struct EuclideanGeometry: public TTopology
 
 	coordinates_type xmax_ = { 1, 1, 1 };
 
-	coordinates_type inv_dx_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type dx_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ = { 1.0, 1.0, 1.0 };
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
@@ -127,7 +127,7 @@ struct EuclideanGeometry: public TTopology
 		{
 			if (dict["Min"] && dict["Max"])
 			{
-				LOGGER << "Load EuclideanGeometry ";
+				LOGGER << "Load CartesianGeometry ";
 
 				SetExtents(
 
@@ -142,7 +142,7 @@ struct EuclideanGeometry: public TTopology
 
 		} catch (...)
 		{
-			PARSER_ERROR("Configure EuclideanGeometry error!");
+			PARSER_ERROR("Configure CartesianGeometry error!");
 		}
 	}
 
@@ -185,9 +185,9 @@ struct EuclideanGeometry: public TTopology
 
 				xmax_[i] = xmin_[i];
 
-				inv_dx_[i] = 0.0;
+				inv_length_[i] = 0.0;
 
-				dx_[i] = 0.0;
+				length_[i] = 0.0;
 
 				volume_[1UL << i] = 1.0;
 
@@ -202,17 +202,17 @@ struct EuclideanGeometry: public TTopology
 			{
 				xmax_[i] = pmax[i];
 
-				inv_dx_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+				inv_length_[i] = 1.0 / (xmax_[i] - xmin_[i]);
 
-				dx_[i] = (xmax_[i] - xmin_[i]);
+				length_[i] = (xmax_[i] - xmin_[i]);
 
-				volume_[1UL << i] = dx_[i];
+				volume_[1UL << i] = length_[i];
 
-				dual_volume_[7 - (1UL << i)] = dx_[i];
+				dual_volume_[7 - (1UL << i)] = length_[i];
 
-				inv_volume_[1UL << i] = inv_dx_[i];
+				inv_volume_[1UL << i] = inv_length_[i];
 
-				inv_dual_volume_[7 - (1UL << i)] = inv_dx_[i];
+				inv_dual_volume_[7 - (1UL << i)] = inv_length_[i];
 
 			}
 		}
@@ -291,7 +291,11 @@ struct EuclideanGeometry: public TTopology
 
 	inline coordinates_type const & GetDx() const
 	{
-		return dx_;
+		auto d = topology_type::GetDimensions();
+		coordinates_type res;
+		for (int i = 0; i < NDIMS; ++i)
+			res[i] = length_[i] / d[i];
+		return std::move(res);
 	}
 
 	template<typename ... Args>
@@ -305,11 +309,11 @@ struct EuclideanGeometry: public TTopology
 
 		return coordinates_type( {
 
-		x[0] * dx_[0] + shift_[0],
+		x[0] * length_[0] + shift_[0],
 
-		x[1] * dx_[1] + shift_[1],
+		x[1] * length_[1] + shift_[1],
 
-		x[2] * dx_[2] + shift_[2]
+		x[2] * length_[2] + shift_[2]
 
 		});
 
@@ -318,11 +322,11 @@ struct EuclideanGeometry: public TTopology
 	{
 		return coordinates_type( {
 
-		(x[0] - shift_[0]) * inv_dx_[0],
+		(x[0] - shift_[0]) * inv_length_[0],
 
-		(x[1] - shift_[1]) * inv_dx_[1],
+		(x[1] - shift_[1]) * inv_length_[1],
 
-		(x[2] - shift_[2]) * inv_dx_[2]
+		(x[2] - shift_[2]) * inv_length_[2]
 
 		});
 
@@ -351,9 +355,9 @@ struct EuclideanGeometry: public TTopology
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesToIndex(px, shift);
 	}
-	coordinates_type const &CoordinatesToCartesian(coordinates_type const &x) const
+	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
 	{
-		return std::forward<coordinates_type const &>(x);
+		return x;
 	}
 
 	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
@@ -464,4 +468,4 @@ struct EuclideanGeometry: public TTopology
 
 }  // namespace simpla
 
-#endif /* GEOMETRY_EUCLIDEAN_H_ */
+#endif /* GEOMETRY_CARTESIAN_H_ */

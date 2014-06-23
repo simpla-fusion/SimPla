@@ -9,8 +9,8 @@
 #define FETL_TEST3_H_
 
 #include <gtest/gtest.h>
-
-#include "fetl_test_suit.h"
+#include "field_io_test.h"
+#include "fetl_test.h"
 
 using namespace simpla;
 
@@ -30,7 +30,7 @@ TEST_P(TestFETL, grad0)
 	f1b.Clear();
 	for (auto s : mesh.Select(VERTEX))
 	{
-		f0[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
+		f0[s] = std::sin(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
 	};
 
 	LOG_CMD(f1 = Grad(f0));
@@ -40,10 +40,15 @@ TEST_P(TestFETL, grad0)
 	scalar_type average;
 	average *= 0.0;
 
+//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/grad0");
+//	LOGGER << SAVE(f1);
+
 	for (auto s : mesh.Select(EDGE))
 	{
 
-		auto expect = std::cos(InnerProductNTuple(K, mesh.GetCoordinates(s))) * K[mesh.ComponentNum(s)];
+		auto expect = mesh.Sample(Int2Type<EDGE>(), s, K)
+		        * std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
 
 		f1b[s] = expect;
 
@@ -52,10 +57,21 @@ TEST_P(TestFETL, grad0)
 		average += (f1[s] - expect);
 
 		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
-			ASSERT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error);
+		{
+			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
+			{
+				CHECK(mesh.Sample(Int2Type<EDGE>(), s, K));
+				CHECK(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+				CHECK(f1[s]);
+				CHECK(expect);
+				CHECK(error);
+			}
+			ASSERT_GE(error, abs(2.0 * (f1[s] - expect) / (f1[s] + expect)));
+
+		}
 
 	}
-
+//	LOGGER << SAVE(f1b);
 	variance /= f1.size();
 	average /= f1.size();
 	CHECK(variance);
@@ -220,10 +236,7 @@ TEST_P(TestFETL, curl1)
 	};
 
 	LOG_CMD(vf2 = Curl(vf1));
-//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
-//	LOGGER << SAVE(vf2);
-//	LOGGER << SAVE(vf1);
+
 	for (auto s : mesh.Select(FACE))
 	{
 		auto n = mesh.ComponentNum(s);
@@ -338,7 +351,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	{
 
 		relative_error += abs(f2b[s]);
-		EXPECT_EQ((f2a[s]), (f2b[s]));
+		ASSERT_EQ((f2a[s]), (f2b[s]));
 	}
 
 	relative_error /= m;
@@ -381,7 +394,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	for (auto s : mesh.Select(EDGE))
 	{
 
-		EXPECT_EQ((f1a[s]), (f1b[s]));
+		ASSERT_EQ((f1a[s]), (f1b[s]));
 
 		relative_error += abs(f1b[s]);
 
@@ -432,7 +445,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	for (auto s : mesh.Select(VERTEX))
 	{
 		relative_error += abs(f0b[s]);
-		EXPECT_EQ((f0a[s]), (f0b[s]));
+		ASSERT_EQ((f0a[s]), (f0b[s]));
 	}
 
 	relative_error /= m;
@@ -478,7 +491,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	for (auto s : mesh.Select(VOLUME))
 	{
 
-		EXPECT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));
+		ASSERT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));
 
 		relative_error += abs(f3b[s]);
 

@@ -10,7 +10,7 @@
 
 #include <iostream>
 #include <utility>
-
+#include <cmath>
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 
@@ -85,9 +85,9 @@ struct CylindricalGeometry: public TTopology
 
 	coordinates_type xmax_ = { 1, 1, 1 };
 
-	coordinates_type inv_dx_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type dx_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ = { 1.0, 1.0, 1.0 };
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
@@ -126,8 +126,6 @@ struct CylindricalGeometry: public TTopology
 	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
-	Real length_[3];
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
@@ -194,9 +192,9 @@ struct CylindricalGeometry: public TTopology
 
 				xmax_[i] = xmin_[i];
 
-				inv_dx_[i] = 0.0;
+				inv_length_[i] = 0.0;
 
-				dx_[i] = 0.0;
+				length_[i] = 0.0;
 
 				volume_[1UL << i] = 1.0;
 
@@ -211,17 +209,24 @@ struct CylindricalGeometry: public TTopology
 			{
 				xmax_[i] = pmax[i];
 
-				inv_dx_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+				length_[i] = (xmax_[i] - xmin_[i]);
 
-				dx_[i] = (xmax_[i] - xmin_[i]);
+				if (i == ZAxis && length_[i] > TWOPI)
+				{
+					xmax_[i] = xmin_[i] + TWOPI;
 
-				volume_[1UL << i] = dx_[i];
+					length_[i] = TWOPI;
+				}
 
-				dual_volume_[7 - (1UL << i)] = dx_[i];
+				inv_length_[i] = 1.0 / (xmax_[i] - xmin_[i]);
 
-				inv_volume_[1UL << i] = inv_dx_[i];
+				volume_[1UL << i] = length_[i];
 
-				inv_dual_volume_[7 - (1UL << i)] = inv_dx_[i];
+				dual_volume_[7 - (1UL << i)] = length_[i];
+
+				inv_volume_[1UL << i] = inv_length_[i];
+
+				inv_dual_volume_[7 - (1UL << i)] = inv_length_[i];
 
 			}
 		}
@@ -300,7 +305,11 @@ struct CylindricalGeometry: public TTopology
 
 	inline coordinates_type const & GetDx() const
 	{
-		return dx_;
+		auto d = topology_type::GetDimensions();
+		coordinates_type res;
+		for (int i = 0; i < NDIMS; ++i)
+			res[i] = length_[i] / d[i];
+		return std::move(res);
 	}
 
 	template<typename ... Args>
@@ -314,11 +323,11 @@ struct CylindricalGeometry: public TTopology
 
 		return coordinates_type( {
 
-		x[0] * dx_[0] + shift_[0],
+		x[0] * length_[0] + shift_[0],
 
-		x[1] * dx_[1] + shift_[1],
+		x[1] * length_[1] + shift_[1],
 
-		x[2] * dx_[2] + shift_[2]
+		x[2] * length_[2] + shift_[2]
 
 		});
 
@@ -327,11 +336,11 @@ struct CylindricalGeometry: public TTopology
 	{
 		return coordinates_type( {
 
-		(x[0] - shift_[0]) * inv_dx_[0],
+		(x[0] - shift_[0]) * inv_length_[0],
 
-		(x[1] - shift_[1]) * inv_dx_[1],
+		(x[1] - shift_[1]) * inv_length_[1],
 
-		(x[2] - shift_[2]) * inv_dx_[2]
+		(x[2] - shift_[2]) * inv_length_[2]
 
 		});
 
@@ -360,14 +369,27 @@ struct CylindricalGeometry: public TTopology
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesToIndex(px, shift);
 	}
-	coordinates_type const &CoordinatesToCartesian(coordinates_type const &x) const
+	coordinates_type CoordinatesToCartesian(coordinates_type const &r) const
 	{
-		return std::forward<coordinates_type const &>(x);
+		coordinates_type x;
+
+		x[ZAxis] = r[ZAxis];
+		x[(ZAxis + 1) % 3] = r[(ZAxis + 1) % 3] * std::cos(r[(ZAxis + 2) % 3]);
+		x[(ZAxis + 2) % 3] = r[(ZAxis + 1) % 3] * std::sin(r[(ZAxis + 2) % 3]);
+
+		return std::move(x);
 	}
 
 	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
 	{
-		return x;
+		coordinates_type r;
+
+		r[ZAxis] = x[ZAxis];
+		r[(ZAxis + 1) % 3] = std::sqrt(
+		        x[(ZAxis + 1) % 3] * x[(ZAxis + 1) % 3] + x[(ZAxis + 2) % 3] * x[(ZAxis + 2) % 3]);
+		r[(ZAxis + 2) % 3] = std::atan2(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
+
+		return r;
 	}
 
 	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
@@ -466,31 +488,27 @@ struct CylindricalGeometry: public TTopology
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::Volume(s) * volume_[n]
-		        * (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
-		        ;
+		        * (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
 	}
 
 	scalar_type InvVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)]
-		        / (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
-		        ;
+		        / (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)]
-		        * ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
-		        ;
+		        * ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)]
-		        / ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
-		        ;
+		        / ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const

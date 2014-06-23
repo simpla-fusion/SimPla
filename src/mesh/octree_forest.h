@@ -1547,6 +1547,12 @@ struct OcForest
 
 	//***************************************************************************************************
 	// Coordinates
+
+	/***
+	 *
+	 * @param s
+	 * @return Coordinates range in [0,1)
+	 */
 	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
 

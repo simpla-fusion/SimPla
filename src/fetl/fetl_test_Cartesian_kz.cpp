@@ -1,16 +1,15 @@
 /*
- * fetl_test_Cylindrical_kz.cpp
+ * fetl_test_Euclidean_kz.cpp
  *
  *  Created on: 2014年6月23日
  *      Author: salmon
  */
-#include <gtest/gtest.h>
+
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/octree_forest.h"
-#include "../mesh/geometry_cylindrical.h"
-#include "fetl.h"
+#include "../mesh/geometry_cartesian.h"
 
-#define TMESH Mesh<CylindricalGeometry<OcForest<std::complex<Real>>>>
+#define TMESH Mesh<CartesianGeometry<OcForest<std::complex<Real>>>>
 
 
 #include "fetl_test.h"
@@ -19,7 +18,9 @@
 #include "fetl_test3.h"
 #include "fetl_test4.h"
 
-INSTANTIATE_TEST_CASE_P(FETLCylindricalKz, TestFETL,
+using namespace simpla;
+
+INSTANTIATE_TEST_CASE_P(FETLEuclideanKz, TestFETL,
 
 testing::Combine(testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
         , nTuple<3, Real>( { -1.0, -2.0, -3.0 })
