@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	nTuple<3, size_t> dims =
 	{	32, 20, 5};
 
-	typedef Mesh< EuclideanGeometry<OcForest>> mesh_type;
+	typedef Mesh< EuclideanGeometry<OcForest<>>> mesh_type;
 
 	mesh_type mesh;
 

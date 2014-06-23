@@ -67,9 +67,12 @@ void Context::Load(LuaObject const & dict)
 
 		if (mesh_str == "RectMesh")
 		{
-			typedef Mesh<EuclideanGeometry<OcForest> > mesh_type;
-			CreateContext<ExplicitEMContext<mesh_type>>(this, dict);
+			CreateContext<ExplicitEMContext<Mesh<EuclideanGeometry<OcForest<Real>>> >>(this, dict);
 
+		}
+		else if (mesh_str == "RectMeshKz")
+		{
+			CreateContext<ExplicitEMContext<Mesh<EuclideanGeometry<OcForest<Complex>>>>>(this, dict);
 		}
 		else
 		{

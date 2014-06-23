@@ -49,8 +49,6 @@ public:
 
 	typedef TM mesh_type;
 
-	DEFINE_FIELDS(TM)
-
 	typedef ExplicitEMContext<mesh_type> this_type;
 
 	ExplicitEMContext();
@@ -75,16 +73,20 @@ public:
 
 	mesh_type mesh;
 
+	typedef typename mesh_type::scalar_type scalar_type;
+
 	std::string description;
 
 	Model<mesh_type> model_;
 
-	Form<EDGE> E, dE;
-	Form<FACE> B, dB;
-	Form<VERTEX> n, n0, phi; // electrostatic potential
+	Field<mesh_type, EDGE, scalar_type> E, dE;
+	Field<mesh_type, FACE, scalar_type> B, dB;
+	Field<mesh_type, VERTEX, scalar_type> n, phi; // electrostatic potential
 
-	Form<EDGE> J0; //background current density J0+Curl(B(t=0))=0
-	Form<EDGE> Jext; // current density
+	Field<mesh_type, VERTEX, Real> n0; // electrostatic potential
+
+	Field<mesh_type, EDGE, scalar_type> J0; //background current density J0+Curl(B(t=0))=0
+	Field<mesh_type, EDGE, scalar_type> Jext; // current density
 
 	Field<mesh_type, VERTEX, nTuple<3, Real> > Bv;
 
@@ -149,9 +151,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	mesh.Decompose();
 
-	Form<VERTEX> ne0(mesh);
-	Form<VERTEX> Te0(mesh);
-	Form<VERTEX> Ti0(mesh);
+	Field<mesh_type, VERTEX, Real> ne0(mesh);
+	Field<mesh_type, VERTEX, Real> Te0(mesh);
+	Field<mesh_type, VERTEX, Real> Ti0(mesh);
 
 	E.Clear();
 	B.Clear();

@@ -6,13 +6,17 @@
  */
 #include "fetl_test4.h"
 
-typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
+typedef Mesh<EuclideanGeometry<OcForest<>>> TMesh;
 
 typedef testing::Types<
 
-TestFETLParam4<TMesh, Real, VERTEX>,
+TestFETLParam4<Mesh<EuclideanGeometry<OcForest<Real>>> , Real, VERTEX>,
 
-TestFETLParam4<TMesh, Complex, VERTEX>
+TestFETLParam4<Mesh<EuclideanGeometry<OcForest<Real>>> , Complex, VERTEX>,
+
+TestFETLParam4<Mesh<EuclideanGeometry<OcForest<std::complex<Real>>>> , Real, VERTEX>,
+
+TestFETLParam4<Mesh<EuclideanGeometry<OcForest<std::complex<Real>>>> , Complex, VERTEX>
 
 > ParamList;
 

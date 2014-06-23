@@ -31,20 +31,21 @@ class PML
 		return (1.0 + 2.0 * pow(r, expN));
 	}
 public:
-	DEFINE_FIELDS (TM)
 
-	typedef Mesh mesh_type;
+	typedef TM mesh_type;
+	typedef typename mesh_type::scalar_type scalar_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	Mesh const & mesh;
+	mesh_type const & mesh;
 
 private:
-	Form<1> X10, X11, X12;
-	Form<2> X20, X21, X22;
+	Field<mesh_type, EDGE, scalar_type> X10, X11, X12;
+	Field<mesh_type, FACE, scalar_type> X20, X21, X22;
 
 	// alpha
-	Form<0> a0, a1, a2;
+	Field<mesh_type, VERTEX, Real> a0, a1, a2;
 	// sigma
-	Form<0> s0, s1, s2;
+	Field<mesh_type, VERTEX, Real> s0, s1, s2;
 
 	bool is_loaded_;
 public:
@@ -65,9 +66,11 @@ public:
 
 	void Save(std::string const & path, bool is_verbose) const;
 
-	void NextTimeStepE(Real dt, Form<1> const &E1, Form<2> const &B1, Form<1> *dE);
+	void NextTimeStepE(Real dt, Field<mesh_type, EDGE, scalar_type> const &E1,
+	        Field<mesh_type, FACE, scalar_type> const &B1, Field<mesh_type, EDGE, scalar_type> *dE);
 
-	void NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const &B1, Form<2> *dB);
+	void NextTimeStepB(Real dt, Field<mesh_type, EDGE, scalar_type> const &E1,
+	        Field<mesh_type, FACE, scalar_type> const &B1, Field<mesh_type, FACE, scalar_type> *dB);
 
 };
 
@@ -171,13 +174,14 @@ OS &operator<<(OS & os, PML<TM> const& self)
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1> *dE)
+void PML<TM>::NextTimeStepE(Real dt, Field<mesh_type, EDGE, scalar_type> const&E1,
+        Field<mesh_type, FACE, scalar_type> const&B1, Field<mesh_type, EDGE, scalar_type> *dE)
 {
 	LOGGER << "PML push E";
 	DEFINE_PHYSICAL_CONST
 	;
 
-	Form<1> dX1(mesh);
+	Field<mesh_type, EDGE, scalar_type> dX1(mesh);
 
 	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
 	X10 += dX1;
@@ -195,14 +199,15 @@ void PML<TM>::NextTimeStepE(Real dt, Form<1> const&E1, Form<2> const&B1, Form<1>
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepB(Real dt, Form<1> const &E1, Form<2> const&B1, Form<2> *dB)
+void PML<TM>::NextTimeStepB(Real dt, Field<mesh_type, EDGE, scalar_type> const &E1,
+        Field<mesh_type, FACE, scalar_type> const&B1, Field<mesh_type, FACE, scalar_type> *dB)
 {
 	LOGGER << "PML Push B";
 
 	DEFINE_PHYSICAL_CONST
 	;
 
-	Form<2> dX2(mesh);
+	Field<mesh_type, FACE, scalar_type> dX2(mesh);
 
 	dX2 = (-2.0 * dt * s0 * X20 + CurlPDX(E1) * dt) / (a0 + s0 * dt);
 	X20 += dX2;

@@ -16,7 +16,8 @@ namespace simpla
 
 typedef int8_t byte_type;
 void deallocate_m(void *p);
-class MemoryPool: public SingletonHolder<MemoryPool>
+
+class MemoryPool
 {
 private:
 	enum
@@ -195,11 +196,11 @@ private:
 	}
 };
 
-#define MEMPOOL MemoryPool::instance()
+#define MEMPOOL  SingletonHolder<MemoryPool>::instance()
 
 inline void deallocate_m(void *p)
 {
-	MemoryPool::instance().deallocate(p);
+	SingletonHolder<MemoryPool>::instance().deallocate(p);
 }
 }  // namespace simpla
 

@@ -142,9 +142,9 @@ public:
 			Others const &...others) const
 	{
 		p->x += p->v * dt * 0.5;
-		auto B = interpolator_type::Gather(fB, p->x);
-		auto E = interpolator_type::Gather(fE, p->x);
-
+		auto cE = interpolator_type::Gather(fE, p->x);
+		auto B = real(interpolator_type::Gather(fB, p->x));
+		auto E = real(cE);
 		Vec3 v_;
 
 		auto t = B * (cmr_ * dt * 0.5);
@@ -156,7 +156,7 @@ public:
 		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
 
 		p->v += v_;
-		auto a = (-Dot(E, p->v) * q_kT_ * dt);
+		auto a = (-Dot(cE, p->v) * q_kT_ * dt);
 		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
 		p->v += v_;
@@ -164,7 +164,7 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		Vec3 v;
+		nTuple<3,scalar_type> v;
 		v = p->v * p->f * p->w * q;
 		interpolator_type::Scatter(p->x, v, J);
 

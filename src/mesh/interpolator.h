@@ -105,8 +105,8 @@ public:
 
 	}
 
-	template<typename TF>
-	static inline void Scatter_(coordinates_type r, typename TF::value_type const & v, compact_index_type shift, TF *f)
+	template<typename TV, typename TF>
+	static inline void Scatter_(coordinates_type r, TV & v, compact_index_type shift, TF *f)
 	{
 
 		mesh_type const & mesh = f->mesh;
@@ -135,16 +135,16 @@ public:
 		f->get(((s - X) - Y) - Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 
-	template<typename TExpr>
-	static inline void Scatter(coordinates_type x, typename Field<mesh_type, VERTEX, TExpr>::field_value_type const & v,
-	        Field<mesh_type, VERTEX, TExpr> *f, unsigned long h = 0)
+	template<typename TV, typename TExpr>
+	static inline void Scatter(coordinates_type x, TV const & v, Field<mesh_type, VERTEX, TExpr> *f,
+	        unsigned long h = 0)
 	{
 		Scatter_(x, v, 0UL, f);
 	}
 
-	template<typename TExpr>
-	static inline void Scatter(coordinates_type x, typename Field<mesh_type, EDGE, TExpr>::field_value_type const & v,
-	        Field<mesh_type, EDGE, TExpr> *f, unsigned long h = 0)
+	template<typename TV, typename TExpr>
+	static inline void Scatter(coordinates_type x, nTuple<3, TV> const & v, Field<mesh_type, EDGE, TExpr> *f,
+	        unsigned long h = 0)
 	{
 
 		Scatter_(x, v[0], (topology_type::_DI >> (1 + h)), f);
@@ -154,9 +154,9 @@ public:
 		Scatter_(x, v[2], (topology_type::_DK >> (1 + h)), f);
 	}
 
-	template<typename TExpr>
-	static inline void Scatter(coordinates_type x, typename Field<mesh_type, FACE, TExpr>::field_value_type const & v,
-	        Field<mesh_type, FACE, TExpr> *f, unsigned long h = 0)
+	template<typename TV, typename TExpr>
+	static inline void Scatter(coordinates_type x, nTuple<3, TV> const & v, Field<mesh_type, FACE, TExpr> *f,
+	        unsigned long h = 0)
 	{
 
 		Scatter_(x, v[0], ((topology_type::_DJ | topology_type::_DK) >> (1 + h)), f);
@@ -166,9 +166,9 @@ public:
 		Scatter_(x, v[2], ((topology_type::_DI | topology_type::_DJ) >> (1 + h)), f);
 	}
 
-	template<typename TExpr>
-	static inline void Scatter(coordinates_type x, typename Field<mesh_type, VOLUME, TExpr>::field_value_type const & v,
-	        Field<mesh_type, VOLUME, TExpr> *f, unsigned long h = 0)
+	template<typename TV, typename TExpr>
+	static inline void Scatter(coordinates_type x, TV const & v, Field<mesh_type, VOLUME, TExpr> *f,
+	        unsigned long h = 0)
 	{
 		Scatter_(x, v, (topology_type::_DA >> (1 + h)), f);
 	}

@@ -10,13 +10,17 @@
 
 #include "../mesh/mesh.h"
 
-typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
+typedef Mesh<EuclideanGeometry<OcForest<>>> TMesh;
 
 typedef testing::Types<
 
-TestFETLParam2<TMesh, Real, VERTEX>,
+TestFETLParam2<Mesh<EuclideanGeometry<OcForest<Real>>> , Real, VERTEX>,
 
-TestFETLParam2<TMesh, Complex, VERTEX>
+TestFETLParam2<Mesh<EuclideanGeometry<OcForest<Real>>>, Complex, VERTEX>,
+
+TestFETLParam2<Mesh<EuclideanGeometry<OcForest<std::complex<Real> >>>, Real, VERTEX>,
+
+TestFETLParam2<Mesh<EuclideanGeometry<OcForest<std::complex<Real>>>>, Complex, VERTEX>
 
 > ParamList;
 

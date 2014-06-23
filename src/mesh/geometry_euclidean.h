@@ -27,6 +27,7 @@ struct EuclideanGeometry: public TTopology
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::scalar_type scalar_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
@@ -430,22 +431,32 @@ struct EuclideanGeometry: public TTopology
 //***************************************************************************************************
 // Cell-wise operation
 //***************************************************************************************************
-	Real Volume(index_type s) const
+	scalar_type Volume(compact_index_type s) const
 	{
 		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];
 	}
-	Real InvVolume(index_type s) const
+	scalar_type InvVolume(compact_index_type s) const
 	{
 		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)];
 	}
 
-	Real DualVolume(index_type s) const
+	scalar_type DualVolume(compact_index_type s) const
 	{
 		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)];
 	}
-	Real InvDualVolume(index_type s) const
+	scalar_type InvDualVolume(compact_index_type s) const
 	{
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)];
+	}
+
+	Real HodgeStarVolumeScale(compact_index_type s) const
+	{
+		return 1.0;
+	}
+
+	Real CellVolume(compact_index_type s) const
+	{
+		return volume_[topology_type::NodeId(s)];
 	}
 
 }

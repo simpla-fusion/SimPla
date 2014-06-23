@@ -38,6 +38,14 @@ template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(
         Field<TM, IL, TL> const & f, TI s)
         DECL_RET_TYPE((1.0/f.get(s)) )
 
+template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<REAL>,
+        Field<TM, IL, TL> const & f, TI s)
+        DECL_RET_TYPE((real(f.get(s)) ))
+
+template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<IMAGINE>,
+        Field<TM, IL, TL> const & f, TI s)
+        DECL_RET_TYPE((imag(f.get(s)) ))
+
 }
 // namespace fetl_impl
 
@@ -56,6 +64,14 @@ DECL_RET_TYPE( (f))
 template<typename TM, int IL, typename TL>
 inline auto Reciprocal(Field<TM, IL, TL> const & f)
 DECL_RET_TYPE( ( Field<TM,IL, UniOp<RECIPROCAL,Field<TM,IL, TL> > > (f)))
+
+template<typename TM, int IR, typename TR>
+inline auto real(Field<TM, IR, TR> const & f)
+DECL_RET_TYPE( (Field< TM, IR ,UniOp<REAL, Field<TM,IR , TR> > >( f)))
+
+template<typename TM, int IR, typename TR>
+inline auto imag(Field<TM, IR, TR> const & f)
+DECL_RET_TYPE( (Field< TM, IR ,UniOp<IMAGINE, Field<TM,IR , TR> > >( f)))
 
 //****************************************************************************************************
 namespace fetl_impl

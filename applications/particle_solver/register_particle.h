@@ -42,19 +42,19 @@ bool RegisterAllParticles()
 
 	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, true>>, Args...>();
 
-	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, false>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineDeltaF<Mesh>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 4, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 16, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 32, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<ColdFluid<Mesh> >, Args...>();
+//	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, true>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, false>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<PICEngineDeltaF<Mesh>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 4, true>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 16, true>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 32, true>>, Args...>();
+//
+//	res &= RegistOneParticle<Particle<ColdFluid<Mesh> >, Args...>();
 
 	return res;
 }

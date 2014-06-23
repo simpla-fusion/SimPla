@@ -156,8 +156,8 @@ public:
 			Others const &...others) const
 	{
 
-		auto B = interpolator_type::Gather(fB, p->x);
-		auto E = interpolator_type::Gather(fE, p->x);
+		auto B = real(interpolator_type::Gather(fB, p->x));
+		auto E = real(interpolator_type::Gather(fE, p->x));
 
 		Vec3 v_;
 
@@ -181,8 +181,8 @@ public:
 	{
 
 		p->x += p->v * dt * 0.5;
-		auto B = interpolator_type::Gather(fB, p->x);
-		auto E = interpolator_type::Gather(fE, p->x);
+		auto B = real(interpolator_type::Gather(fB, p->x));
+		auto E = real(interpolator_type::Gather(fE, p->x));
 
 		Vec3 v_;
 

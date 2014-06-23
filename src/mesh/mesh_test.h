@@ -16,7 +16,7 @@
 
 using namespace simpla;
 
-typedef Mesh<EuclideanGeometry<OcForest>> TMesh;
+typedef Mesh<EuclideanGeometry<OcForest<>>> TMesh;
 
 class TestMesh: public testing::TestWithParam<
 
