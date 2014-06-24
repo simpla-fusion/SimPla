@@ -37,7 +37,7 @@ testing::Values(
 testing::Values(
 
 nTuple<3, size_t>(
-{ 6, 1, 1 }) //
+{ 1, 1, 6 }) //
 //        , nTuple<3, size_t>( { 17, 1, 1 }) //
 //        , nTuple<3, size_t>( { 1, 17, 1 }) //
 //        , nTuple<3, size_t>( { 1, 1, 10 }) //

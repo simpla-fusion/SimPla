@@ -285,6 +285,7 @@ struct UniformArray
 	static constexpr compact_index_type FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
 	static constexpr compact_index_type INDEX_DIGITS = (FULL_DIGITS - CountBits<FULL_DIGITS>::n) / 3;
 	static constexpr compact_index_type MAX_INDEX = (1UL << (INDEX_DIGITS-1));
+	static constexpr compact_index_type NO_FLAG = ~((1UL << (INDEX_DIGITS-1))|(1UL << (INDEX_DIGITS*2-1))|(1UL << (INDEX_DIGITS*3-1)));
 	static constexpr compact_index_type INDEX_MASK = (MAX_INDEX-1);
 
 	const Real dh = 1.0e-18;
@@ -566,11 +567,54 @@ struct UniformArray
 
 		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
 	}
-	static unsigned int NodeId(compact_index_type r)
+	static unsigned int NodeId(compact_index_type s)
 	{
-		auto s = (r & (_DA >> (DepthOfTree(r) + 1))) >> (INDEX_DIGITS - DepthOfTree(r) - 1);
+		auto h = DepthOfTree(s);
 
-		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+		return
+
+		((s >> (INDEX_DIGITS * 3 -h +2)) & 4UL) |
+
+		((s >> (INDEX_DIGITS * 2 -h +1)) & 2UL) |
+
+		((s >> (INDEX_DIGITS -h-1))&1UL);
+	}
+
+	compact_index_type GetShift(unsigned int nodeid,compact_index_type h )const
+	{
+
+		return
+
+		(((nodeid>>2)&1UL) <<(INDEX_DIGITS * 3 - h )) |
+
+		(((nodeid>>1)&1UL) <<(INDEX_DIGITS * 2 - h )) |
+
+		((nodeid&1UL) <<(INDEX_DIGITS -h ))|
+
+		(h<< (INDEX_DIGITS * 3))
+		;
+	}
+
+	compact_index_type get_first_node_shift(int iform)const
+	{
+		compact_index_type nid;
+		switch(iform)
+		{
+			case VERTEX:
+			nid=0;
+			break;
+			case EDGE:
+			nid=4;
+			break;
+			case FACE:
+			nid=3;
+			break;
+			case VOLUME:
+			nid=7;
+			break;
+		}
+
+		return GetShift(nid,depth_of_trees_);
 	}
 
 	static unsigned int DepthOfTree(compact_index_type r)
@@ -583,19 +627,11 @@ struct UniformArray
 
 		compact_index_type res;
 
-		CHECK_BIT(r );
-
 		res = r & (~(_DA >> (DepthOfTree(r) + 1)));
-
-		CHECK_BIT(res);
 
 		res |= (r & ((_DA >> (DepthOfTree(r) + 1))))<<INDEX_DIGITS;
 
-		CHECK_BIT(res);
-
 		res |= (r & (1UL << (INDEX_DIGITS*3- DepthOfTree(r)-1 )))>>(INDEX_DIGITS*2);
-
-		CHECK_BIT(res);
 
 		return std::move(res);
 
@@ -739,44 +775,6 @@ struct UniformArray
 		return res;
 	}
 
-	compact_index_type GetShift(unsigned int nodeid,compact_index_type h=0UL)const
-	{
-		h =( h==0)?depth_of_trees_:h;
-
-		return
-
-		((nodeid&4) <<(INDEX_DIGITS*3-h-1-2)) |
-
-		((nodeid&2) <<(INDEX_DIGITS*2 -h-1-1)) |
-
-		((nodeid&1) <<(INDEX_DIGITS-h-1))|
-
-		(h<< (INDEX_DIGITS * 3))
-		;
-	}
-
-	compact_index_type get_first_node_shift(int iform)const
-	{
-		compact_index_type res;
-		switch(iform)
-		{
-			case VERTEX:
-			res=0;
-			break;
-			case EDGE:
-			res=4;
-			break;
-			case FACE:
-			res=3;
-			break;
-			case VOLUME:
-			res=7;
-			break;
-		}
-
-		return GetShift(res);
-	}
-
 	//****************************************************************************************************
 	//iterator
 	//****************************************************************************************************
@@ -846,56 +844,37 @@ struct UniformArray
 		}
 		void NextCell()
 		{
-			if(self_!=end_)
+			self_ += step_;
+			if ((self_ & _MK) >= (end_ & _MK))
 			{
-				self_ += step_;
-				CHECK_BIT(self_);
-				if ((self_ & _MK) >= (end_ & _MK))
-				{
-					self_ &= ~_MK;
-					self_ |= begin_ & _MK;
-					self_ += step_ << (INDEX_DIGITS);
-				}
-				CHECK_BIT(self_);
-				if ((self_ & _MJ ) >= (end_ & _MJ ))
-				{
-					self_ &= ~(_MJ);
-					self_ |= begin_ & (_MJ);
-					self_ += step_ << (INDEX_DIGITS * 2);
-				}
-				CHECK_BIT(self_);
+				self_ &= ~_MK;
+				self_ |= begin_ & _MK;
+				self_ += step_ << (INDEX_DIGITS);
 			}
-			else
+			if ((self_ & _MJ ) >= (end_ & _MJ ))
 			{
-				self_=0UL;
+				self_ &= ~(_MJ);
+				self_ |= begin_ & (_MJ);
+				self_ += step_ << (INDEX_DIGITS * 2);
 			}
 
 		}
 
 		void PreviousCell()
 		{
-			if(self_!=begin_)
+			self_ -= step_;
+
+			if ((self_ & _MK) < (begin_ & _MK))
 			{
-				auto D = (1UL << (INDEX_DIGITS - DepthOfTree(self_) ));
-
-				self_ -= D;
-
-				if ((self_ & _MK) < (begin_ & _MK))
-				{
-					self_ &= ~_MK;
-					self_ |= (end_ - D) & _MK;
-					self_ -= D << (INDEX_DIGITS);
-				}
-				if ((self_ & (_MJ)) < (end_ & (_MJ)))
-				{
-					self_ &= ~ (_MJ);
-					self_ |= (end_ - (D << INDEX_DIGITS)) & (_MJ);
-					self_ -= D << (INDEX_DIGITS * 2);
-				}
+				self_ &= ~_MK;
+				self_ |= (end_ - step_) & _MK;
+				self_ -= step_ << (INDEX_DIGITS);
 			}
-			else
+			if ((self_ & (_MJ)) < (end_ & (_MJ)))
 			{
-				self_=0UL;
+				self_ &= ~ (_MJ);
+				self_ |= (end_ - (step_ << INDEX_DIGITS)) & (_MJ);
+				self_ -= step_ << (INDEX_DIGITS * 2);
 			}
 
 		}
@@ -981,7 +960,7 @@ struct UniformArray
 
 	range_type Select( unsigned int iform, nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> end)const
 	{
-		auto flag=Clipping2( local_inner_begin_, local_inner_end_, &begin, &end);
+		auto flag=Clipping(local_inner_begin_, local_inner_end_, &begin, &end);
 
 		if (!flag)
 		{
@@ -992,10 +971,12 @@ struct UniformArray
 		compact_index_type shift=get_first_node_shift(iform);
 
 		auto b=Compact(begin,shift);
-
 		auto e=Compact(end,shift);
+		iterator ib(b,b,e);
+		begin[0]=end[0];
+		iterator ie(Compact(begin,shift) ,b,e);
 
-		return std::move(std::make_pair(iterator(b,b,e),iterator(e,b,e)));
+		return std::move(std::make_pair(ib,ie ));
 	}
 
 	auto Select(unsigned int iform)const

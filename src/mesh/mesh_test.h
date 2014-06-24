@@ -81,7 +81,7 @@ public:
 TEST_P(TestMesh, ForAll)
 {
 
-	range_type r = mesh.Select(VERTEX);
+	range_type r = mesh.Select(EDGE);
 	auto it = begin(r);
 	auto MI = mesh_type::INDEX_MASK << (mesh_type::INDEX_DIGITS * 2);
 	auto MJ = mesh_type::INDEX_MASK << (mesh_type::INDEX_DIGITS);
@@ -113,40 +113,39 @@ TEST_P(TestMesh, ForAll)
 	++it;
 	CHECK_BIT(*it);
 
-//	for (auto const & s : iforms)
-//	{
-//
-//		range r(s, begin, dims);
-//
-//		size_t size = 1;
-//
-//		for (int i = 0; i < NDIMS; ++i)
-//		{
-//			size *= dims[i];
-//		}
-//
-//		size_t number = 0;
-//
-//		std::vector<size_t> data;
-//
-//		for (auto a : r)
-//		{
-//			CHECK_BIT(a);
-//			data.push_back(number);
-//			++number;
-//		}
-//
-//		CHECK(data);
-//
-//		if (s == VERTEX || s == VOLUME)
-//		{
-//			EXPECT_EQ(data.size(), size);
-//		}
-//		else
-//		{
-//			EXPECT_EQ(data.size(), size * 3);
-//		}
-//	}
+	for (auto const & s : iforms)
+	{
+
+		range_type r = mesh.Select(s);
+
+		size_t size = 1;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			size *= dims[i];
+		}
+
+		size_t number = 0;
+
+		std::vector<size_t> data;
+
+		for (auto a : r)
+		{
+			data.push_back(number);
+			++number;
+		}
+
+		CHECK(data);
+
+		if (s == VERTEX || s == VOLUME)
+		{
+			EXPECT_EQ(data.size(), size);
+		}
+		else
+		{
+			EXPECT_EQ(data.size(), size * 3);
+		}
+	}
 }
 //TEST_P(TestMesh, Split)
 //{

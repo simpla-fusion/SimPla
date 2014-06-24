@@ -194,8 +194,8 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 				remote.inner_begin[i] += (global_end_[i] - global_begin_[i]) * n;
 			}
 
-			bool f_inner = Clipping2(local_.outer_begin, local_.outer_end, &remote.inner_begin, &remote.inner_end);
-			bool f_outer = Clipping2(local_.inner_begin, local_.inner_end, &remote.outer_begin, &remote.outer_end);
+			bool f_inner = Clipping(local_.outer_begin, local_.outer_end, &remote.inner_begin, &remote.inner_end);
+			bool f_outer = Clipping(local_.inner_begin, local_.inner_end, &remote.outer_begin, &remote.outer_end);
 
 			if (f_inner && f_outer)
 			{
