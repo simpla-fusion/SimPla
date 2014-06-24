@@ -23,7 +23,7 @@ namespace simpla
 
 template<typename TS, int NDIMS>
 bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_count, nTuple<NDIMS, TS> *pr_start,
-        nTuple<NDIMS, TS> *pr_count)
+		nTuple<NDIMS, TS> *pr_count)
 {
 	bool has_overlap = false;
 
@@ -50,6 +50,34 @@ bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_coun
 	return has_overlap;
 }
 
+template<typename TS, int NDIMS>
+bool Clipping2(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_end, nTuple<NDIMS, TS> *pr_start,
+		nTuple<NDIMS, TS> *pr_end)
+{
+	bool has_overlap = false;
+
+	nTuple<NDIMS, TS> & r_start = *pr_start;
+	nTuple<NDIMS, TS> & r_end = *pr_end;
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (r_end[i] <= l_start[i] || r_start[i] >= l_end[i])
+			return false;
+
+		TS start = std::max(l_start[i], r_start[i]);
+		TS end = std::min(l_end[i], r_end[i]);
+
+		if (end > start)
+		{
+			r_start[i] = start;
+			r_end[i] = end;
+
+			has_overlap = true;
+		}
+	}
+
+	return has_overlap;
+}
 template<typename TL, typename TR>
 auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0])
 {

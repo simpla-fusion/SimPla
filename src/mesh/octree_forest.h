@@ -278,7 +278,7 @@ struct OcForest
 		}
 
 		global_array_.global_start_= global_start_;
-		global_array_.global_count_= global_count_;
+		global_array_.global_end_= global_count_;
 
 		UpdateVolume();
 

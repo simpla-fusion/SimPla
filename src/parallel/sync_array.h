@@ -61,24 +61,24 @@ public:
 			for (int i = 0; i < NDIMS; ++i)
 			{
 				// periodic shift
-				if (local_.outer_start[i] < global_start[i]
+				if (local_.outer_begin[i] < global_start[i]
 				        && node.remote.inner_start[i] > node.remote.outer_start[i] + global_count[i])
 				{
 					node.remote.outer_start[i] -= global_count[i];
 					node.remote.inner_start[i] -= global_count[i];
 				}
 
-				if (local_.outer_start[i] + local_.outer_count[i] > global_start[i] + global_count[i]
+				if (local_.outer_begin[i] + local_.outer_end[i] > global_start[i] + global_count[i]
 				        && node.remote.inner_start[i] + node.remote.inner_count[i]
-				                < local_.outer_start[i] - global_count[i])
+				                < local_.outer_begin[i] - global_count[i])
 				{
 					node.remote.outer_start[i] += global_count[i];
 					node.remote.inner_start[i] += global_count[i];
 				}
 				size_t start, end;
 
-				start = std::max(local_.outer_start[i], node.remote.inner_start[i]);
-				end = std::min(local_.inner_start[i], node.remote.inner_start[i] + node.remote.inner_count[i]);
+				start = std::max(local_.outer_begin[i], node.remote.inner_start[i]);
+				end = std::min(local_.inner_begin[i], node.remote.inner_start[i] + node.remote.inner_count[i]);
 
 				if (end > start)
 				{
@@ -88,8 +88,8 @@ public:
 					continue;
 				}
 
-				start = std::max(local_.inner_start[i] + local_.inner_count[i], node.remote.inner_start[i]);
-				end = std::min(local_.outer_start[i] + local_.outer_count[i],
+				start = std::max(local_.inner_begin[i] + local_.inner_end[i], node.remote.inner_start[i]);
+				end = std::min(local_.outer_begin[i] + local_.outer_end[i],
 				        node.remote.inner_start[i] + node.remote.inner_count[i]);
 
 				if (end > start)
@@ -118,7 +118,7 @@ public:
 		}
 		MPI_Win win;
 
-		MPI_Win_create(data, NProduct(local_.outer_count), sizeof(TV), MPI_INFO_NULL, comm, &win);
+		MPI_Win_create(data, NProduct(local_.outer_end), sizeof(TV), MPI_INFO_NULL, comm, &win);
 
 		for (auto const & neighbour : recv_)
 		{
@@ -127,8 +127,8 @@ public:
 
 					data, 1,
 
-					MPIDataType<TV>(comm, local_.outer_count, neighbour.remote.inner_count,
-							neighbour.local_start - local_.outer_start).type(),
+					MPIDataType<TV>(comm, local_.outer_end, neighbour.remote.inner_count,
+							neighbour.local_start - local_.outer_begin).type(),
 
 					neighbour.dest, 0, 1,
 
@@ -150,10 +150,10 @@ public:
                 private:
 	                struct sub_array_s
 	                {
-		                nTuple<NDIMS, size_t> outer_start;
-		                nTuple<NDIMS, size_t> outer_count;
-		                nTuple<NDIMS, size_t> inner_start;
-		                nTuple<NDIMS, size_t> inner_count;
+		                nTuple<NDIMS, size_t> outer_begin;
+		                nTuple<NDIMS, size_t> outer_end;
+		                nTuple<NDIMS, size_t> inner_begin;
+		                nTuple<NDIMS, size_t> inner_end;
 	                };
 	                struct neighbour_s
 	                {

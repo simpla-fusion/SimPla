@@ -19,19 +19,18 @@
 
 using namespace simpla;
 
-typedef Mesh<CartesianGeometry<UniformArray>> TMesh;
+#ifndef TMESH
+#include "../mesh/uniform_array.h"
+#include "../mesh/geometry_cartesian.h"
+#include "../mesh/mesh_rectangle.h"
+
+typedef Mesh<CartesianGeometry<UniformArray, false>> TMesh;
+#else
+typedef TMESH TMesh;
+#endif
 
 class TestMesh: public testing::TestWithParam<
-
-std::tuple<
-
-typename TMesh::coordinates_type,
-
-typename TMesh::coordinates_type,
-
-nTuple<TMesh::NDIMS, size_t>
-
-> >
+		std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
 {
 protected:
 	virtual void SetUp()
@@ -61,7 +60,7 @@ protected:
 public:
 	typedef TMesh mesh_type;
 	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::range range;
+	typedef typename mesh_type::range_type range_type;
 	typedef typename mesh_type::iterator iterator;
 	unsigned int NDIMS=TMesh::NDIMS;
 
@@ -82,8 +81,8 @@ public:
 TEST_P(TestMesh, ForAll)
 {
 
-	range r = mesh.Select(VERTEX);
-	auto it = r.begin();
+	range_type r = mesh.Select(VERTEX);
+	auto it = begin(r);
 	auto MI = mesh_type::INDEX_MASK << (mesh_type::INDEX_DIGITS * 2);
 	auto MJ = mesh_type::INDEX_MASK << (mesh_type::INDEX_DIGITS);
 	auto MK = mesh_type::INDEX_MASK;
@@ -91,8 +90,8 @@ TEST_P(TestMesh, ForAll)
 	CHECK_BIT(MJ);
 	CHECK_BIT(MK);
 
-	CHECK_BIT(*r.begin());
-	CHECK_BIT(*r.end());
+	CHECK_BIT(*begin(r));
+	CHECK_BIT(*end(r));
 
 	CHECK_BIT(*it);
 	++it;

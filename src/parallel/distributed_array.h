@@ -32,23 +32,23 @@ public:
 	int self_id_;
 	struct sub_array_s
 	{
-		nTuple<NDIMS, long> outer_start;
-		nTuple<NDIMS, long> outer_count;
-		nTuple<NDIMS, long> inner_start;
-		nTuple<NDIMS, long> inner_count;
+		nTuple<NDIMS, long> outer_begin;
+		nTuple<NDIMS, long> outer_end;
+		nTuple<NDIMS, long> inner_begin;
+		nTuple<NDIMS, long> inner_end;
 	};
-	DistributedArray()
-			: self_id_(0)
+	DistributedArray() :
+			self_id_(0)
 	{
 	}
 
 	template<typename ...Args>
-	DistributedArray(nTuple<NDIMS, long> global_start, nTuple<NDIMS, long> global_count, Args && ... args)
+	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, Args && ... args)
 
 	{
 
-		global_count_ = global_count;
-		global_start_ = global_start;
+		global_end_ = global_end;
+		global_begin_ = global_begin;
 
 		Decompose(std::forward<Args >(args)...);
 	}
@@ -58,17 +58,17 @@ public:
 	}
 	size_t size() const
 	{
-		return NProduct(local_.inner_count);
+		return NProduct(local_.inner_end - local_.outer_begin);
 	}
 	size_t memory_size() const
 	{
-		return NProduct(local_.outer_count);
+		return NProduct(local_.outer_end - local_.outer_begin);
 	}
 
 	void Decompose(int num_process, int process_num, long gw);
 
-	nTuple<NDIMS, long> global_start_;
-	nTuple<NDIMS, long> global_count_;
+	nTuple<NDIMS, long> global_begin_;
+	nTuple<NDIMS, long> global_end_;
 
 	nTuple<NDIMS, long> global_strides_;
 
@@ -80,9 +80,9 @@ public:
 		int send_tag;
 		int recv_tag;
 		nTuple<NDIMS, long> send_start;
-		nTuple<NDIMS, long> send_count;
+		nTuple<NDIMS, long> send_end;
 		nTuple<NDIMS, long> recv_start;
-		nTuple<NDIMS, long> recv_count;
+		nTuple<NDIMS, long> recv_end;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
@@ -94,7 +94,7 @@ public:
 		int res = 0;
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			res += ((d[i] - global_start_[i] + global_count_[i]) % global_count_[i]) * global_strides_[i];
+			res += ((d[i] - global_end_[i]) % (global_end_[i] - global_begin_[i])) * global_strides_[i];
 		}
 		return res;
 	}
@@ -104,10 +104,10 @@ public:
 template<int N>
 void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned int gw, sub_array_s * local) const
 {
-	local->outer_count = global_count_;
-	local->outer_start = global_start_;
-	local->inner_count = global_count_;
-	local->inner_start = global_start_;
+	local->outer_end = global_end_;
+	local->outer_begin = global_begin_;
+	local->inner_end = global_end_;
+	local->inner_begin = global_begin_;
 
 	if (num_process <= 1)
 		return;
@@ -116,27 +116,26 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 	long L = 0;
 	for (int i = 0; i < NDIMS; ++i)
 	{
-		if (global_count_[i] > L)
+		if (global_end_[i] > L)
 		{
-			L = global_count_[i];
+			L = global_end_[i] - global_begin_[i];
 			n = i;
 		}
 	}
 
 	nTuple<NDIMS, long> start, count;
 
-	if ((2 * gw * num_process > global_count_[n] || num_process > global_count_[n]))
+	if ((2 * gw * num_process > global_end_[n] - global_begin_[n] || num_process > global_end_[n] - global_begin_[n]))
 	{
 		if (process_num > 0)
-			local->outer_count = 0;
+			local->outer_end = local->outer_begin;
 	}
 	else
 	{
-		local->inner_start[n] += (global_count_[n] * process_num) / num_process;
-		local->inner_count[n] = (global_count_[n] * (process_num + 1)) / num_process
-		        - (global_count_[n] * process_num) / num_process;
-		local->outer_start[n] = local->inner_start[n] - gw;
-		local->outer_count[n] = local->inner_count[n] + gw * 2;
+		local->inner_begin[n] += (global_end_[n] * process_num) / num_process;
+		local->inner_end[n] = (global_end_[n] * (process_num + 1)) / num_process;
+		local->outer_begin[n] = local->inner_begin[n] - gw;
+		local->outer_end[n] = local->inner_end[n] + gw;
 	}
 
 }
@@ -154,7 +153,7 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 		global_strides_[NDIMS - 1] = 1;
 		for (int i = NDIMS - 2; i >= 0; --i)
 		{
-			global_strides_[i] = global_count_[i] * global_strides_[i + 1];
+			global_strides_[i] = (global_end_[i] - global_begin_[i]) * global_strides_[i + 1];
 		}
 	}
 	else
@@ -162,7 +161,7 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 		global_strides_[0] = 1;
 		for (int i = 1; i < NDIMS; ++i)
 		{
-			global_strides_[i] = global_count_[i] * global_strides_[i - 1];
+			global_strides_[i] = (global_end_[i] - global_begin_[i]) * global_strides_[i - 1];
 		}
 
 	}
@@ -191,18 +190,19 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 
 				n = (n + 1) % 3 - 1; // 0 1 2 => 0 1 -1
 
-				remote.outer_start[i] += global_count_[i] * n;
-				remote.inner_start[i] += global_count_[i] * n;
+				remote.outer_begin[i] += (global_end_[i] - global_begin_[i]) * n;
+				remote.inner_begin[i] += (global_end_[i] - global_begin_[i]) * n;
 			}
 
-			bool f_inner = Clipping(local_.outer_start, local_.outer_count, &remote.inner_start, &remote.inner_count);
-			bool f_outer = Clipping(local_.inner_start, local_.inner_count, &remote.outer_start, &remote.outer_count);
+			bool f_inner = Clipping2(local_.outer_begin, local_.outer_end, &remote.inner_begin, &remote.inner_end);
+			bool f_outer = Clipping2(local_.inner_begin, local_.inner_end, &remote.outer_begin, &remote.outer_end);
 
 			if (f_inner && f_outer)
 			{
 				send_recv_.emplace_back(
-				        send_recv_s( { dest, hash(remote.outer_start), hash(remote.inner_start), remote.outer_start,
-				                remote.outer_count, remote.inner_start, remote.inner_count }));
+						send_recv_s(
+						{ dest, hash(remote.outer_begin), hash(remote.inner_begin), remote.outer_begin,
+								remote.outer_end, remote.inner_begin, remote.inner_end }));
 			}
 		}
 

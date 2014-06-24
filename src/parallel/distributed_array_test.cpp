@@ -49,7 +49,7 @@ TEST_P(TestDistArray, UpdateGhost)
 	GLOBAL_COMM.Init();
 
 	darray.global_start_=global_start;
-	darray.global_count_=global_count;
+	darray.global_end_=global_count;
 
 	darray.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2);
 
