@@ -251,6 +251,7 @@ public:
 	static const bool value = true;
 
 };
+
 // @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>
 struct CountBits
@@ -267,7 +268,7 @@ struct CountBits<0>
 inline unsigned int count_bits(unsigned long s)
 {
 	unsigned int n = 0;
-	while (s > 0)
+	while (s != 0)
 	{
 		++n;
 		s = s >> 1;

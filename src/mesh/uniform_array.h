@@ -1,12 +1,12 @@
 /*
- * octree_forest.h
+ * uniform_array.h
  *
  *  Created on: 2014年2月21日
  *      Author: salmon
  */
 
-#ifndef OCTREE_FOREST_H_
-#define OCTREE_FOREST_H_
+#ifndef UNIFORM_ARRAY_H_
+#define UNIFORM_ARRAY_H_
 
 #include <algorithm>
 #include <cassert>
@@ -26,10 +26,10 @@
 namespace simpla
 {
 
-struct OcForest
+struct UniformArray
 {
 
-	typedef OcForest this_type;
+	typedef UniformArray this_type;
 	static constexpr int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr int NDIMS = 3;
@@ -48,131 +48,28 @@ struct OcForest
 
 	typedef std::map<iterator, nTuple<3, coordinates_type>> surface_type;
 
-	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
-	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
-
-	static constexpr unsigned int D_FP_POS = 4; //!< default floating-point position
-
-	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
-
-	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
-	static constexpr index_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
-	static constexpr index_type ROOT_MASK = TREE_ROOT_MASK | (TREE_ROOT_MASK << INDEX_DIGITS)
-	        | (TREE_ROOT_MASK << (INDEX_DIGITS * 2));
-
-	static constexpr index_type INDEX_ZERO = (((1UL << (INDEX_DIGITS - D_FP_POS - 1)) - 1));
-
-	static constexpr index_type COMPACT_INDEX_ZERO = (INDEX_ZERO << D_FP_POS);
-
-	static constexpr index_type FP_POS = 1UL << D_FP_POS;
-
-	static constexpr Real R_FP_POS = static_cast<Real>(FP_POS);
-
-	static constexpr Real R_INV_FP_POS = 1.0 / R_FP_POS;
-
-	nTuple<NDIMS, Real> R_INV_DX;
-	nTuple<NDIMS, Real> R_DX;
 	//***************************************************************************************************
 
-	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
-	/**
-	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
-	 * 	    H          m  I           m    J           m K
-	 * 	|--------|--------------|--------------|-------------|
-	 * 	|11111111|00000000000000|00000000000000|0000000000000| <= _MH
-	 * 	|00000000|11111111111111|00000000000000|0000000000000| <= _MI
-	 * 	|00000000|00000000000000|11111111111111|0000000000000| <= _MJ
-	 * 	|00000000|00000000000000|00000000000000|1111111111111| <= _MK
-	 *
-	 * 	                    I/J/K
-	 *  | INDEX_DIGITS------------------------>|
-	 *  |  Root------------------->| Leaf ---->|
-	 *  |11111111111111111111111111|00000000000| <=_MRI
-	 *  |00000000000000000000000001|00000000000| <=_DI
-	 *  |00000000000000000000000000|11111111111| <=_MTI
-	 *  | Page NO.->| Tree Root  ->|
-	 *  |00000000000|11111111111111|11111111111| <=_MASK
-	 *
-	 */
-
-	static constexpr compact_index_type _DI = 1UL << (D_FP_POS + 2 * INDEX_DIGITS);
-	static constexpr compact_index_type _DJ = 1UL << (D_FP_POS + INDEX_DIGITS);
-	static constexpr compact_index_type _DK = 1UL << (D_FP_POS);
-	static constexpr compact_index_type _DA = _DI | _DJ | _DK;
-
-	//mask of direction
-	static constexpr compact_index_type _MI = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS * 2);
-	static constexpr compact_index_type _MJ = ((1UL << (INDEX_DIGITS)) - 1) << (INDEX_DIGITS);
-	static constexpr compact_index_type _MK = ((1UL << (INDEX_DIGITS)) - 1);
-	static constexpr compact_index_type _MH = ((1UL << (FULL_DIGITS - INDEX_DIGITS * 3 + 1)) - 1)
-	        << (INDEX_DIGITS * 3 + 1);
-
-	// mask of sub-tree
-	static constexpr compact_index_type _MTI = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS * 2);
-	static constexpr compact_index_type _MTJ = ((1UL << (D_FP_POS)) - 1) << (INDEX_DIGITS);
-	static constexpr compact_index_type _MTK = ((1UL << (D_FP_POS)) - 1);
-
-	// mask of root
-	static constexpr compact_index_type _MRI = _MI & (~_MTI);
-	static constexpr compact_index_type _MRJ = _MJ & (~_MTJ);
-	static constexpr compact_index_type _MRK = _MK & (~_MTK);
-
-	static compact_index_type Compact(nTuple<NDIMS, index_type> const & idx, compact_index_type shift = 0UL)
-	{
-		return
-
-		((static_cast<compact_index_type>(idx[0] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
-
-		((static_cast<compact_index_type>(idx[1] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS)) |
-
-		((static_cast<compact_index_type>(idx[2] * FP_POS + COMPACT_INDEX_ZERO) & INDEX_MASK)) |
-
-		shift;
-	}
-	static nTuple<NDIMS, index_type> Decompact(compact_index_type s)
-	{
-		return nTuple<NDIMS, index_type>( {
-
-		static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) - COMPACT_INDEX_ZERO,
-
-		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK) - COMPACT_INDEX_ZERO,
-
-		static_cast<index_type>(s & INDEX_MASK) - COMPACT_INDEX_ZERO
-
-		});
-	}
-	static nTuple<NDIMS, index_type> DecompactRoot(compact_index_type s)
-	{
-		return nTuple<NDIMS, index_type>( {
-
-		static_cast<index_type>((s >> (INDEX_DIGITS * 2 + D_FP_POS)) & INDEX_MASK) - INDEX_ZERO,
-
-		static_cast<index_type>((s >> (INDEX_DIGITS + D_FP_POS)) & INDEX_MASK) - INDEX_ZERO,
-
-		static_cast<index_type>((s >> D_FP_POS) & INDEX_MASK) - INDEX_ZERO
-
-		});
-
-	}
-	//***************************************************************************************************
-
-	OcForest()
+	UniformArray()
+			: depth_of_trees_(0)
 	{
 	}
 
 	template<typename TDict>
-	OcForest(TDict const & dict)
+	UniformArray(TDict const & dict)
+			: depth_of_trees_(0)
 	{
+		Load(dict);
 	}
 
-	virtual ~OcForest()
+	virtual ~UniformArray()
 	{
 	}
 
 	this_type & operator=(const this_type&) = delete;
-	OcForest(const this_type&) = delete;
+	UniformArray(const this_type&) = delete;
 
-	void swap(OcForest & rhs)
+	void swap(UniformArray & rhs)
 	{
 		//FIXME NOT COMPLETE!!
 	}
@@ -185,16 +82,16 @@ struct OcForest
 	}
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others && ...)
+	void Load(TDict const & dict, Others const& ...)
 	{
 		try
 		{
-			LOGGER << "Load OcForest ";
+			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch(...)
 		{
-			PARSER_ERROR("Configure OcForest error!");
+			PARSER_ERROR("Configure UniformArray error!");
 		}
 	}
 
@@ -227,18 +124,12 @@ struct OcForest
 
 	nTuple<NDIMS, index_type> local_inner_start_, local_inner_count_;
 
-	nTuple<NDIMS, index_type> hash_stride_;
-
 	enum
 	{
 		FAST_FIRST, SLOW_FIRST
 	};
 
 	int array_order_ = SLOW_FIRST;
-
-	compact_index_type global_start_index_= 0UL;
-	compact_index_type local_outer_start_index_= 0UL;
-	compact_index_type local_outer_end_index_= 0UL;
 
 	DistributedArray<NDIMS> global_array_;
 	//
@@ -264,17 +155,6 @@ struct OcForest
 
 			global_start_[i] = 0;
 			global_count_[i] = length;
-
-			if(global_count_[i] >1)
-			{
-				R_INV_DX[i]=static_cast<Real>(length);
-				R_DX[i]=1.0/R_INV_DX[i];
-			}
-			else
-			{
-				R_INV_DX[i]=0;
-				R_DX[i]=0;
-			}
 		}
 
 		global_array_.global_start_= global_start_;
@@ -284,9 +164,279 @@ struct OcForest
 
 		Decompose(1,0,0);
 
+		depth_of_trees_= (count_bits(std::max(global_count_[0],std::max(global_count_[1],global_count_[2]))))+1;
+
+		CHECK(depth_of_trees_);
+
 	}
 
-private:
+	nTuple<NDIMS, Real> GetExtents() const
+	{
+
+		nTuple<NDIMS, Real> res;
+
+		for (int i = 0; i < NDIMS; ++i )
+		{
+			res[i]=global_count_[i ]>1?static_cast<Real>(global_count_[i ]):0.0;
+		}
+
+		return res;
+	}
+	coordinates_type GetDx() const
+	{
+		coordinates_type res;
+
+		for (int i = 0; i < NDIMS; ++i) res[i] = 1.0/static_cast<Real>(global_count_[i]);
+
+		return std::move(res);
+	}
+	nTuple<NDIMS, index_type> const& GetDimensions() const
+	{
+		return global_count_;
+	}
+
+	index_type GetNumOfElements(int IFORM = VERTEX) const
+	{
+		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+	}
+
+	nTuple<NDIMS, index_type> const& GetLocalDimensions() const
+	{
+		return local_outer_count_;
+	}
+	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
+	{
+		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
+		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+	}
+	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
+	{
+		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
+		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
+	}
+
+	int GetDataSetShape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
+	size_t * local_outer_count = nullptr, size_t * local_inner_start = nullptr, size_t * local_inner_count = nullptr ) const
+	{
+		int rank = 0;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if ( global_count_[i] > 1)
+			{
+
+				if (global_start != nullptr)
+				global_start[rank] = global_start_[i];
+
+				if (global_count != nullptr)
+				global_count[rank] = global_count_[i];
+
+				if (local_outer_start != nullptr)
+				local_outer_start[rank] = local_inner_start_[i];
+
+				if (local_outer_count != nullptr)
+				local_outer_count[rank] = local_outer_count_[i];
+
+				if (local_inner_start != nullptr)
+				local_inner_start[rank] = local_inner_start_[i];
+
+				if (local_inner_count != nullptr)
+				local_inner_count[rank] = local_inner_count_[i];
+
+				++rank;
+			}
+
+		}
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			if (global_start != nullptr)
+			global_start[rank] = 0;
+
+			if (global_count != nullptr)
+			global_count[rank] = 3;
+
+			if (local_outer_start != nullptr)
+			local_outer_start[rank] = 0;
+
+			if (local_outer_count != nullptr)
+			local_outer_count[rank] = 3;
+
+			if (local_inner_start != nullptr)
+			local_inner_start[rank] = 0;
+
+			if (local_inner_count != nullptr)
+			local_inner_count[rank] = 3;
+
+			++rank;
+		}
+		return rank;
+	}
+
+	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
+	{
+		if(num_process<=1)
+		{
+			num_process=GLOBAL_COMM.GetSize();
+			process_num=GLOBAL_COMM.GetRank();
+		}
+		global_array_.Decompose(num_process,process_num,ghost_width);
+
+		local_inner_start_=global_array_.local_.inner_start;
+		local_inner_count_=global_array_.local_.inner_count;
+		local_outer_start_=global_array_.local_.outer_start;
+		local_outer_count_=global_array_.local_.outer_count;
+
+		UpdateHash();
+	}
+
+	//***************************************************************************************************
+	//
+	// Index Dependent
+	//
+	//***************************************************************************************************
+
+	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
+	static constexpr compact_index_type FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
+	static constexpr compact_index_type INDEX_DIGITS = (FULL_DIGITS - CountBits<FULL_DIGITS>::n) / 3;
+	static constexpr compact_index_type MAX_INDEX = (1UL << (INDEX_DIGITS-1));
+	static constexpr compact_index_type INDEX_MASK = (MAX_INDEX-1);
+
+	const Real dh = 1.0e-18;
+	const Real inv_dh = 1.0e18;
+
+	static constexpr compact_index_type _DA=(1UL<<(INDEX_DIGITS*3))|(1UL<<(INDEX_DIGITS*2 ))|(1UL<<(INDEX_DIGITS) );
+	static constexpr compact_index_type _MASK=(1UL<<INDEX_DIGITS)-1;
+	unsigned int depth_of_trees_;
+
+	//***************************************************************************************************
+
+	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
+	/**
+	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
+	 * 	    H          m  I           m    J           m K
+	 * 	|--------|--------------|--------------|-------------|
+	 * 	|11111111|00000000000000|00000000000000|0000000000000| <= _MH
+	 * 	|00000000|11111111111111|00000000000000|0000000000000| <= _MI
+	 * 	|00000000|00000000000000|11111111111111|0000000000000| <= _MJ
+	 * 	|00000000|00000000000000|00000000000000|1111111111111| <= _MK
+	 *
+	 * 	                    I/J/K
+	 *  | INDEX_DIGITS------------------------>|
+	 *  |  Root------------------->| Leaf ---->|
+	 *  |11111111111111111111111111|00000000000| <=_MRI
+	 *  |00000000000000000000000001|00000000000| <=_DI
+	 *  |00000000000000000000000000|11111111111| <=_MTI
+	 *  | Page NO.->| Tree Root  ->|
+	 *  |00000000000|11111111111111|11111111111| <=_MASK
+	 *
+	 */
+
+	//mask of direction
+	static compact_index_type Compact(nTuple<NDIMS, index_type> const & idx, compact_index_type shift = 0UL)
+	{
+		return
+
+		( static_cast<compact_index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+
+		( static_cast<compact_index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS)) |
+
+		( static_cast<compact_index_type>( idx[2] & INDEX_MASK)) |
+
+		shift;
+	}
+	static nTuple<NDIMS, index_type> Decompact(compact_index_type s)
+	{
+		return nTuple<NDIMS, index_type>(
+		{
+
+			static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) ,
+
+			static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK) ,
+
+			static_cast<index_type>(s & INDEX_MASK)
+
+		});
+	}
+
+	//***************************************************************************************************
+	// Coordinates
+
+	/***
+	 *
+	 * @param s
+	 * @return Coordinates range in [0,1)
+	 */
+	inline nTuple<NDIMS,index_type> CoordinatesToIndex(coordinates_type x) const
+	{
+
+		return std::move(nTuple<NDIMS,index_type> (
+				{
+					static_cast<index_type>(x[0]*inv_dh),
+					static_cast<index_type>(x[1]*inv_dh),
+					static_cast<index_type>(x[2]*inv_dh),
+
+				}));
+	}
+	inline coordinates_type GetCoordinates(compact_index_type s)const
+	{
+
+		auto d = Decompact(s);
+
+		return coordinates_type(
+		{
+			static_cast<Real>(d[0])*dh ,
+			static_cast<Real>(d[1])*dh ,
+			static_cast<Real>(d[2])*dh
+
+		});
+	}
+
+	inline coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type r)const
+	{
+		coordinates_type res= GetCoordinates(s)+r*static_cast<Real>(1UL << (INDEX_DIGITS - DepthOfTree(s)));
+
+		return std::move(res);
+	}
+
+	inline nTuple<NDIMS,index_type> CoordinatesToIndex (coordinates_type px, compact_index_type shift )const
+	{
+		return CoordinatesToIndex(&px,shift);
+	}
+
+	inline nTuple<NDIMS,index_type> CoordinatesToIndex (coordinates_type *px, compact_index_type shift = 0UL)const
+	{
+
+		auto & x = *px;
+
+		x*=inv_dh;
+
+		unsigned int depth = DepthOfTree(shift);
+
+		depth=(depth==0UL)?depth_of_trees_:depth;
+
+		nTuple<NDIMS,index_type> res;
+
+		res = x;
+
+		res+=Decompact(Dual(shift));
+
+		res[0]&= ( ~((1UL << (INDEX_DIGITS -depth))-1));
+		res[1]&= ( ~((1UL << (INDEX_DIGITS -depth))-1));
+		res[2]&= ( ~((1UL << (INDEX_DIGITS -depth))-1));
+
+		Real w = 1.0/static_cast<Real>(1UL << (INDEX_DIGITS -depth));
+
+		x[0]=(x[0]-static_cast<Real>(res[0]))*w;
+		x[1]=(x[1]-static_cast<Real>(res[1]))*w;
+		x[2]=(x[2]-static_cast<Real>(res[2]))*w;
+
+		return std::move(res);
+	}
+
+	inline compact_index_type CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
+	{
+		return Compact(CoordinatesToIndex(px,shift==0?depth_of_trees_:shift));
+	}
 
 	Real volume_[8] =
 	{	1, // 000
@@ -405,23 +555,158 @@ private:
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
-public:
-	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
+	Real const & Volume(compact_index_type s)const
 	{
-		if(num_process<=1)
-		{
-			num_process=GLOBAL_COMM.GetSize();
-			process_num=GLOBAL_COMM.GetRank();
-		}
-		global_array_.Decompose(num_process,process_num,ghost_width);
-
-		local_inner_start_=global_array_.local_.inner_start;
-		local_inner_count_=global_array_.local_.inner_count;
-		local_outer_start_=global_array_.local_.outer_start;
-		local_outer_count_=global_array_.local_.outer_count;
-
-		UpdateHash();
+		return volume_[NodeId(s)];
 	}
+
+	Real InvVolume(compact_index_type s)const
+	{
+		return inv_volume_[NodeId(s)];
+	}
+
+	Real InvDualVolume(compact_index_type s)const
+	{
+		return inv_dual_volume_[NodeId(s)];
+	}
+	Real DualVolume(compact_index_type s)const
+	{
+		return dual_volume_[NodeId(s)];
+	}
+
+	//***************************************************************************************************
+	//* Auxiliary functions
+	//***************************************************************************************************
+
+	static compact_index_type Dual(compact_index_type r)
+	{
+
+		return (r & (~(_DA >> (DepthOfTree(r) + 1))))
+		| ((~(r & (_DA >> (DepthOfTree(r) + 1)))) & (_DA >> (DepthOfTree(r) + 1)));
+
+	}
+	static unsigned int GetCellIndex(compact_index_type r)
+	{
+		compact_index_type mask=(1UL<<(INDEX_DIGITS-DepthOfTree(r)))-1;
+
+		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
+	}
+	static unsigned int NodeId(compact_index_type r)
+	{
+		auto s = (r & (_DA >> (DepthOfTree(r) + 1))) >> (INDEX_DIGITS - DepthOfTree(r) - 1);
+
+		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
+	}
+
+	static unsigned int DepthOfTree(compact_index_type r)
+	{
+		return r >> (INDEX_DIGITS * 3);
+	}
+
+	static compact_index_type Roate(compact_index_type r)
+	{
+
+		compact_index_type res;
+
+		res = r & (~(_DA >> (DepthOfTree(r) + 1)));
+
+		res |= (r & ((_DA >> (DepthOfTree(r) + 1))))<<INDEX_DIGITS;
+
+		res |= (r & (1UL << (INDEX_DIGITS*3- DepthOfTree(r) )))>>(INDEX_DIGITS*2);
+
+		return std::move(res);
+
+	}
+
+	/**
+	 *  rotate vector direction  mask
+	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
+	 * @param s
+	 * @return
+	 */
+
+	static compact_index_type InverseRoate(compact_index_type r)
+	{
+
+		compact_index_type res;
+
+		res = r & (~(_DA >> (DepthOfTree(r) + 1)));
+
+		res |= (r & ((_DA >> (DepthOfTree(r) + 1))))>>INDEX_DIGITS;
+
+		res |= (r & (1UL << (INDEX_DIGITS- DepthOfTree(r) )))<<(INDEX_DIGITS*2);
+
+		return std::move(res);
+
+	}
+
+	static compact_index_type DeltaIndex(compact_index_type r)
+	{
+		return (r & (_DA >> (DepthOfTree(r) + 1)));
+	}
+
+	static compact_index_type DI(unsigned int i,compact_index_type r )
+	{
+		return (1UL << (INDEX_DIGITS * (NDIMS - i) - DepthOfTree(r) - 1));
+	}
+	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
+	{
+		return DI(i,r)&r;
+	}
+
+	/**
+	 * Get component number or vector direction
+	 * @param s
+	 * @return
+	 */
+	static index_type ComponentNum(compact_index_type r)
+	{
+		index_type res = 0;
+		switch (NodeId(r))
+		{
+			case 1:
+			case 6:
+			res = 0;
+			break;
+			case 2:
+			case 5:
+			res = 1;
+			break;
+			case 4:
+			case 3:
+			res = 2;
+			break;
+		}
+		return res;
+	}
+
+	static index_type IForm(compact_index_type r)
+	{
+		index_type res = 0;
+		switch (NodeId(r))
+		{
+			case 0:
+			res = VERTEX;
+			break;
+			case 1:
+			case 2:
+			case 4:
+			res = EDGE;
+			break;
+
+			case 3:
+			case 5:
+			case 6:
+			res = FACE;
+			break;
+
+			case 7:
+			res = VOLUME;
+		}
+		return res;
+	}
+
+	nTuple<NDIMS, index_type> hash_stride_;
 
 	void UpdateHash()
 	{
@@ -437,14 +722,12 @@ public:
 			hash_stride_[1] = (local_outer_count_[0]);
 			hash_stride_[2] = ((local_outer_count_[1])) * hash_stride_[1];
 		}
-		global_start_index_=Compact(global_start_)<<D_FP_POS;
-		local_outer_start_index_= Compact(local_outer_start_)<<D_FP_POS;
-		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_)<<D_FP_POS;
+
 	}
 
 	inline index_type Hash(compact_index_type s) const
 	{
-		auto d =( Decompact(s ) >> D_FP_POS)-local_outer_start_+local_outer_count_;
+		auto d =( Decompact(s ) >> (INDEX_DIGITS-depth_of_trees_))-local_outer_start_+local_outer_count_;
 
 		index_type res =
 
@@ -472,109 +755,24 @@ public:
 
 		return res;
 	}
-	coordinates_type GetDx() const
+
+	compact_index_type GetShift(unsigned int nodeid,compact_index_type h=0UL)const
 	{
-		coordinates_type res;
-
-		for (int i = 0; i < NDIMS; ++i) res[i] = 1.0/static_cast<Real>(global_count_[i]);
-
-		return std::move(res);
-	}
-	nTuple<NDIMS, index_type> const& GetDimensions() const
-	{
-		return global_count_;
-	}
-
-	index_type GetNumOfElements(int IFORM = VERTEX) const
-	{
-		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-	}
-
-	nTuple<NDIMS, index_type> const& GetLocalDimensions() const
-	{
-		return local_outer_count_;
-	}
-	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
-	{
-		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
-		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-	}
-	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
-	{
-		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
-		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
-	}
-	int GetDataSetShape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
-	size_t * local_outer_count = nullptr, size_t * local_inner_start = nullptr, size_t * local_inner_count = nullptr ) const
-	{
-		int rank = 0;
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if ( global_count_[i] > 1)
-			{
-
-				if (global_start != nullptr)
-				global_start[rank] = global_start_[i];
-
-				if (global_count != nullptr)
-				global_count[rank] = global_count_[i];
-
-				if (local_outer_start != nullptr)
-				local_outer_start[rank] = local_inner_start_[i];
-
-				if (local_outer_count != nullptr)
-				local_outer_count[rank] = local_outer_count_[i];
-
-				if (local_inner_start != nullptr)
-				local_inner_start[rank] = local_inner_start_[i];
-
-				if (local_inner_count != nullptr)
-				local_inner_count[rank] = local_inner_count_[i];
-
-				++rank;
-			}
-
-		}
-		if (IFORM == EDGE || IFORM == FACE)
-		{
-			if (global_start != nullptr)
-			global_start[rank] = 0;
-
-			if (global_count != nullptr)
-			global_count[rank] = 3;
-
-			if (local_outer_start != nullptr)
-			local_outer_start[rank] = 0;
-
-			if (local_outer_count != nullptr)
-			local_outer_count[rank] = 3;
-
-			if (local_inner_start != nullptr)
-			local_inner_start[rank] = 0;
-
-			if (local_inner_count != nullptr)
-			local_inner_count[rank] = 3;
-
-			++rank;
-		}
-		return rank;
-	}
-	static compact_index_type GetShift(unsigned int nodeid,compact_index_type h=0UL)
-	{
-		compact_index_type shift = h << (INDEX_DIGITS * 3);
+		h =( h==0)?depth_of_trees_:h;
 
 		return
 
-		(((nodeid>>2) & 1UL)<<(INDEX_DIGITS*2+D_FP_POS-h-1)) |
+		(((nodeid>>2) & 1UL)<<(INDEX_DIGITS*3-h-1)) |
 
-		(((nodeid>>1) & 1UL)<<(INDEX_DIGITS+D_FP_POS-h-1)) |
+		(((nodeid>>1) & 1UL)<<(INDEX_DIGITS*2 -h-1)) |
 
-		((nodeid & 1UL)<<( D_FP_POS-h-1))
+		((nodeid & 1UL)<<( INDEX_DIGITS-h-1))|
+
+		(h<< (INDEX_DIGITS * 3))
 		;
 	}
 
-	static compact_index_type get_first_node_shift(int iform)
+	compact_index_type get_first_node_shift(int iform)const
 	{
 		compact_index_type res;
 		switch(iform)
@@ -592,6 +790,7 @@ public:
 			res=7;
 			break;
 		}
+
 		return GetShift(res);
 	}
 
@@ -629,9 +828,9 @@ public:
 			break;
 			case VOLUME:
 			{
-				auto di = _DI >> (HeightOfTree(s) + 1);
-				auto dj = _DJ >> (HeightOfTree(s) + 1);
-				auto dk = _DK >> (HeightOfTree(s) + 1);
+				auto di = DI(0,s);
+				auto dj = DI(1,s);
+				auto dk = DI(2,s);
 
 				v[0] = ((s - di) - dj) - dk;
 				v[1] = ((s - di) - dj) + dk;
@@ -719,9 +918,9 @@ public:
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -759,9 +958,9 @@ public:
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = s + di;
 		v[1] = s - di;
@@ -831,9 +1030,9 @@ public:
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -889,9 +1088,9 @@ public:
 		 *
 		 *
 		 */
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = (s + di) + dj;
 		v[1] = (s + di) - dj;
@@ -984,9 +1183,9 @@ public:
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = s - di;
 		v[1] = s + di;
@@ -1037,9 +1236,9 @@ public:
 		 *
 		 */
 
-		auto di = _DI >> (HeightOfTree(s) + 1);
-		auto dj = _DJ >> (HeightOfTree(s) + 1);
-		auto dk = _DK >> (HeightOfTree(s) + 1);
+		auto di = DI(0,s);
+		auto dj = DI(1,s);
+		auto dk = DI(2,s);
 
 		v[0] = ((s - di) - dj) - dk;
 		v[1] = ((s - di) - dj) + dk;
@@ -1133,144 +1332,6 @@ public:
 		return 2;
 	}
 
-	//***************************************************************************************************
-	//* Auxiliary functions
-	//***************************************************************************************************
-
-	static compact_index_type Dual(compact_index_type r)
-	{
-
-		return (r & (~(_DA >> (HeightOfTree(r) + 1))))
-		| ((~(r & (_DA >> (HeightOfTree(r) + 1)))) & (_DA >> (HeightOfTree(r) + 1)));
-
-	}
-	static unsigned int GetCellIndex(compact_index_type r)
-	{
-		compact_index_type mask=(1UL<<(D_FP_POS-HeightOfTree(r)))-1;
-
-		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
-	}
-	static unsigned int NodeId(compact_index_type r)
-	{
-		auto s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
-
-		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-	}
-
-	static unsigned int HeightOfTree(compact_index_type r)
-	{
-		return r >> (INDEX_DIGITS * 3);
-	}
-	static compact_index_type Roate(compact_index_type r)
-	{
-
-		compact_index_type res;
-
-		res = r & (~(_DA >> (HeightOfTree(r) + 1)));
-
-		res |= ((r & ((_DI | _DJ) >> (HeightOfTree(r) + 1))) >> INDEX_DIGITS) |
-
-		((r & (_DK >> (HeightOfTree(r) + 1))) << (INDEX_DIGITS * 2))
-
-		;
-		return res;
-
-	}
-
-	/**
-	 *  rotate vector direction  mask
-	 *  (1/2,0,0) => (0,0,1/2) or   (1/2,1/2,0) => (1/2,0,1/2)
-	 * @param s
-	 * @return
-	 */
-	static compact_index_type InverseRoate(compact_index_type r)
-	{
-		compact_index_type res;
-
-		res = r & ~(_DA >> (HeightOfTree(r) + 1));
-
-		res |= ((r & (_DI >> (HeightOfTree(r) + 1))) >> (INDEX_DIGITS * 2)) |
-
-		((r & (_DJ >> (HeightOfTree(r) + 1))) << INDEX_DIGITS) |
-
-		((r & (_DK >> (HeightOfTree(r) + 1))) << INDEX_DIGITS);
-
-		return res;
-	}
-	static compact_index_type DeltaIndex(compact_index_type r)
-	{
-		return (r & (_DA >> (HeightOfTree(r) + 1)));
-	}
-
-	static compact_index_type DI(unsigned int i,compact_index_type r )
-	{
-		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1));
-	}
-	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
-	{
-		return DI(i,r)&r;
-	}
-
-	//! get the direction of vector(edge) 0=>x 1=>y 2=>z
-	static compact_index_type DirectionOfVector(compact_index_type r)
-	{
-		compact_index_type s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
-
-		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
-	}
-
-	/**
-	 * Get component number or vector direction
-	 * @param s
-	 * @return
-	 */
-	static index_type ComponentNum(compact_index_type r)
-	{
-		index_type res = 0;
-		switch (NodeId(r))
-		{
-			case 1:
-			case 6:
-			res = 0;
-			break;
-			case 2:
-			case 5:
-			res = 1;
-			break;
-			case 4:
-			case 3:
-			res = 2;
-			break;
-		}
-		return res;
-	}
-
-	static index_type IForm(compact_index_type r)
-	{
-		index_type res = 0;
-		switch (NodeId(r))
-		{
-			case 0:
-			res = VERTEX;
-			break;
-			case 1:
-			case 2:
-			case 4:
-			res = EDGE;
-			break;
-
-			case 3:
-			case 5:
-			case 6:
-			res = FACE;
-			break;
-
-			case 7:
-			res = VOLUME;
-		}
-		return res;
-	}
-
 	//****************************************************************************************************
 	//iterator
 	//****************************************************************************************************
@@ -1340,20 +1401,20 @@ public:
 		{
 			if(self_!=end_)
 			{
-				auto D = (1UL << (D_FP_POS ));
+				auto D = (1UL << (INDEX_DIGITS - DepthOfTree(self_) ));
 
 				self_ += D;
 
-				if ((self_ & _MRK) >= (end_ & _MRK))
+				if ((self_ & _MASK) >= (end_ & _MASK))
 				{
-					self_ &= ~_MRK;
-					self_ |= start_ & _MRK;
+					self_ &= ~_MASK;
+					self_ |= start_ & _MASK;
 					self_ += D << (INDEX_DIGITS);
 				}
-				if ((self_ & _MRJ) >= (end_ & _MRJ))
+				if ((self_ & (_MASK<<INDEX_DIGITS)) >= (end_ & (_MASK<<INDEX_DIGITS)))
 				{
-					self_ &= ~_MRJ;
-					self_ |= start_ & _MRJ;
+					self_ &= ~(_MASK<<INDEX_DIGITS);
+					self_ |= start_ & (_MASK<<INDEX_DIGITS);
 					self_ += D << (INDEX_DIGITS * 2);
 				}
 			}
@@ -1368,20 +1429,20 @@ public:
 		{
 			if(self_!=start_)
 			{
-				auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
+				auto D = (1UL << (INDEX_DIGITS - DepthOfTree(self_) ));
 
 				self_ -= D;
 
-				if ((self_ & _MRK) < (start_ & _MRK))
+				if ((self_ & _MASK) < (start_ & _MASK))
 				{
-					self_ &= ~_MRK;
-					self_ |= (end_ - D) & _MRK;
+					self_ &= ~_MASK;
+					self_ |= (end_ - D) & _MASK;
 					self_ -= D << (INDEX_DIGITS);
 				}
-				if ((self_ & _MRJ) < (end_ & _MRJ))
+				if ((self_ & (_MASK<<INDEX_DIGITS)) < (end_ & (_MASK<<INDEX_DIGITS)))
 				{
-					self_ &= ~_MRJ;
-					self_ |= (end_ - (D << INDEX_DIGITS)) & _MRK;
+					self_ &= ~ (_MASK<<INDEX_DIGITS);
+					self_ |= (end_ - (D << INDEX_DIGITS)) & (_MASK<<INDEX_DIGITS);
 					self_ -= D << (INDEX_DIGITS * 2);
 				}
 			}
@@ -1434,6 +1495,9 @@ public:
 			return std::move(res);
 		}
 
+		static constexpr compact_index_type _MK=_MASK;
+		static constexpr compact_index_type _MJ=_MK<<INDEX_DIGITS;
+		static constexpr compact_index_type _MI=_MJ<<INDEX_DIGITS;
 #define DEF_OP(_OP_)                                                                       \
 				inline iterator & operator _OP_##=(compact_index_type r)                           \
 				{                                                                                  \
@@ -1472,26 +1536,21 @@ public:
 	struct range
 	{
 	public:
-		typedef typename OcForest::iterator iterator;
+		typedef typename UniformArray::iterator iterator;
 		typedef iterator value_type;
 
 		nTuple<NDIMS, index_type> start_;
 
 		nTuple<NDIMS, index_type> count_;
 
-		unsigned int iform_=VERTEX;
-
 		compact_index_type shift_ = 0UL;
 
-		range():shift_(GetShift(0))
+		range( nTuple<NDIMS, index_type> const& start,nTuple<NDIMS, index_type> const & count,compact_index_type shift):
+		start_(start),count_(count) ,shift_(shift)
 		{
-			for(int i=0;i<NDIMS;++i)
-			{
-				start_[i]=0;
-				count_[i]=0;
-			}
 		}
-		range(range const& r):start_(r.start_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
+
+		range(range const& r):start_(r.start_),count_(r.count_), shift_(r.shift_)
 		{
 
 		}
@@ -1500,22 +1559,11 @@ public:
 		{
 			start_=r.start_;
 			count_=r.count_;
-			iform_=r.iform_;
 			shift_=r.shift_;
 			return *this;
 		}
-		range(range && r):start_(r.start_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
+		range(range && r):start_(r.start_),count_(r.count_), shift_(r.shift_)
 		{
-
-		}
-		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(get_first_node_shift(iform))
-		{
-
-		}
-		range(unsigned int iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
-		: start_(start ), count_(count), iform_(iform),shift_(get_first_node_shift(iform))
-		{
-
 		}
 
 		~range()
@@ -1524,8 +1572,10 @@ public:
 
 		iterator begin() const
 		{
-			return iterator((Compact(start_,shift_) ) | shift_, ((Compact(start_) ) | shift_),
-			((Compact(start_ + count_) ) | shift_));
+			return iterator(
+			Compact(start_,shift_) ,
+			Compact(start_,shift_) ,
+			Compact(start_ + count_,shift_) );
 		}
 		iterator end() const
 		{
@@ -1535,11 +1585,11 @@ public:
 			{
 				res = iterator(
 
-				(Compact(start_ + count_ - 1) ) | shift_,
+				Compact(start_ + count_ - 1,shift_) ,
 
-				((Compact(start_) ) | shift_),
+				Compact(start_, shift_),
 
-				((Compact(start_ + count_) ) | shift_)
+				Compact(start_ + count_,shift_)
 
 				);
 				res.NextCell();
@@ -1590,55 +1640,54 @@ public:
 			}
 			return n;
 		}
-		range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
-		{
-			int n=0;
-			index_type L=0;
-			for (int i = 0; i < NDIMS; ++i)
-			{
-				if(count_[i]>L)
-				{
-					L=count_[i];
-					n=i;
-				}
-			}
-
-			nTuple<NDIMS,index_type> start,count;
-
-			count = count_;
-			start = start_;
-
-			if ((2 * ghost_width * num_process > count_[n] || num_process > count_[n]) )
-			{
-				if( process_num>0) count=0;
-			}
-			else
-			{
-				start[n] += (count_[n] * process_num ) / num_process;
-				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
-			}
-
-			return range(iform_,start,count );
-		}
+//		range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
+//		{
+//			int n=0;
+//			index_type L=0;
+//			for (int i = 0; i < NDIMS; ++i)
+//			{
+//				if(count_[i]>L)
+//				{
+//					L=count_[i];
+//					n=i;
+//				}
+//			}
+//
+//			nTuple<NDIMS,index_type> start,count;
+//
+//			count = count_;
+//			start = start_;
+//
+//			if ((2 * ghost_width * num_process > count_[n] || num_process > count_[n]) )
+//			{
+//				if( process_num>0) count=0;
+//			}
+//			else
+//			{
+//				start[n] += (count_[n] * process_num ) / num_process;
+//				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
+//			}
+//
+//			return range( start,count m);
+//		}
 
 	};	// class Range
 
 	template<typename T>
 	range Select( unsigned int iform, std::pair<T,T> domain)const
 	{
-		return Select(iform,domain.first,domain.second);
+		return Select(domain.first,domain.second,get_first_node_shift(iform));
 	}
 
 	range Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax)const
 	{
-		auto start=CoordinatesToIndex(&xmin,get_first_node_shift(iform))>>D_FP_POS;
-		auto count=(CoordinatesToIndex(&xmax,get_first_node_shift(iform))>>D_FP_POS)- start+1;
 
-		return Select(iform,start,count);
+		return range( CoordinatesToIndex(xmin) ,CoordinatesToIndex( xmax) , get_first_node_shift(iform));
 	}
 
-	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
+	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> end)const
 	{
+		nTuple<NDIMS, index_type> count= end- start;
 		auto flag=Clipping( local_inner_start_, local_inner_count_, &start, &count);
 
 		if (!flag)
@@ -1647,160 +1696,18 @@ public:
 			count*=0;
 		}
 
-		return range( iform,start,count);
+		return range( start,count,get_first_node_shift(iform));
 	}
 
 	range Select(unsigned int iform)const
 	{
-		return range(iform, local_inner_start_,local_inner_count_);
+		return range( local_inner_start_,local_inner_count_,get_first_node_shift(iform));
 	}
 
-	/***************************************************************************************************
-	 *
-	 *  Geomertry dependence
-	 *
-	 *  INDEX_ZERO <-> Coordinates Zero
-	 *
-	 */
-
-	nTuple<NDIMS, Real> GetExtents() const
-	{
-
-		nTuple<NDIMS, Real> res;
-
-		for (int i = 0; i < NDIMS; ++i )
-		{
-			res[i]=global_count_[i ]>1?static_cast<Real>(global_count_[i ]):0.0;
-		}
-
-		return res;
-	}
-
-	//***************************************************************************************************
-	// Coordinates
-
-	/***
-	 *
-	 * @param s
-	 * @return Coordinates range in [0,1)
-	 */
-	inline coordinates_type GetCoordinates(compact_index_type s) const
-	{
-
-		auto d = Decompact(s) - (global_start_<<D_FP_POS);
-
-		return coordinates_type(
-		{
-			static_cast<Real>(d[0] )*R_DX[0]*R_INV_FP_POS ,
-			static_cast<Real>(d[1] )*R_DX[1]*R_INV_FP_POS ,
-			static_cast<Real>(d[2] )*R_DX[2]*R_INV_FP_POS
-
-		});
-	}
-
-	coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type r) const
-	{
-		auto d = Decompact(s)-(global_start_<<D_FP_POS);
-		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s)));
-		coordinates_type res;
-
-		for(int i=0;i<NDIMS;++i)
-		{
-			res[i]=(static_cast<Real>(d[i])+r[i]*scale)*R_DX[i]*R_INV_FP_POS;
-		}
-		return std::move(res);
-	}
-
-	inline compact_index_type CoordinatesGlobalToLocalDual(coordinates_type *px, compact_index_type shift = 0UL) const
-	{
-
-		return (CoordinatesGlobalToLocal(px, Dual(shift)));
-	}
-
-	inline nTuple<NDIMS,index_type> CoordinatesToIndex(coordinates_type *px, compact_index_type shift = 0UL)const
-	{
-		auto & x = *px;
-
-		nTuple<NDIMS,index_type> idx;
-
-		int height=HeightOfTree(shift);
-
-		Real w=static_cast<Real>(1UL<<(height));
-
-		Real w2=static_cast<Real>(1UL<<(D_FP_POS));
-
-		x*=w;
-
-		nTuple<NDIMS, index_type> h =
-		{
-			static_cast<index_type>((shift >> (INDEX_DIGITS * 2)) & INDEX_MASK) ,
-
-			static_cast<index_type>((shift >> (INDEX_DIGITS)) & INDEX_MASK),
-
-			static_cast<index_type>(shift & INDEX_MASK)
-
-		};
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-
-			x[i]=x[i]*R_INV_DX[i] - static_cast<Real>(h[i])*w/w2; // [0,1) -> [0,N) N is number of grid
-
-			Real I;
-
-			x[i]=std::modf(x[i],&I);
-
-			if(global_count_[i]<=1) x[i]=0;
-
-			idx[i]=((static_cast<index_type>(I)) <<(D_FP_POS-height)) + h[i];
-
-			auto s=(global_start_[i]<<D_FP_POS);
-			auto l=(global_count_[i]<<D_FP_POS);
-			idx[i]=(idx[i]-s+l)%l+s;
-
-		}
-
-		return std::move(idx);
-	}
-
-	inline compact_index_type CoordinatesGlobalToLocal(coordinates_type *px, compact_index_type shift = 0UL) const
-	{
-		auto idx= (CoordinatesToIndex(px, shift));
-
-		return ((static_cast<compact_index_type>(idx[0] + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
-
-		((static_cast<compact_index_type>(idx[1] + COMPACT_INDEX_ZERO) & INDEX_MASK) << (INDEX_DIGITS)) |
-
-		((static_cast<compact_index_type>(idx[2] + COMPACT_INDEX_ZERO) & INDEX_MASK)) |
-
-		shift;
-
-	}
-
-public:
-
-	Real const & Volume(compact_index_type s)const
-	{
-		return volume_[NodeId(s)];
-	}
-
-	Real InvVolume(compact_index_type s)const
-	{
-		return inv_volume_[NodeId(s)];
-	}
-
-	Real InvDualVolume(compact_index_type s)const
-	{
-		return inv_dual_volume_[NodeId(s)];
-	}
-	Real DualVolume(compact_index_type s)const
-	{
-		return dual_volume_[NodeId(s)];
-	}
 	//***************************************************************************************************
 
 };
-// class OcForest
+// class UniformArray
 
 }
 // namespace simpla
@@ -1810,9 +1717,9 @@ namespace std
 template<typename TI> struct iterator_traits;
 
 template<>
-struct iterator_traits<simpla::OcForest::iterator>
+struct iterator_traits<simpla::UniformArray::iterator>
 {
-typedef typename simpla::OcForest::iterator iterator;
+typedef typename simpla::UniformArray::iterator iterator;
 typedef typename iterator::iterator_category iterator_category;
 typedef typename iterator::value_type value_type;
 typedef typename iterator::difference_type difference_type;
@@ -1823,4 +1730,4 @@ typedef typename iterator::reference reference;
 
 }  // namespace std
 
-#endif /* OCTREE_FOREST_H_ */
+#endif /* UNIFORM_ARRAY_H_ */

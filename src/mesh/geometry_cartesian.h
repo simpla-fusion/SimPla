@@ -138,7 +138,7 @@ struct CartesianGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-			topology_type::Load(dict, std::forward<Others >(others)...);
+			topology_type::Load(dict, std::forward<Others>(others)...);
 
 		} catch (...)
 		{

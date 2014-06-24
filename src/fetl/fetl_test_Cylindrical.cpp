@@ -9,7 +9,7 @@
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_cylindrical.h"
 
-#define TMESH Mesh<CylindricalGeometry<OcForest>>
+#define TMESH Mesh<CylindricalGeometry<UniformArray>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"

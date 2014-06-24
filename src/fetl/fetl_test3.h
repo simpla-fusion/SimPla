@@ -45,7 +45,7 @@ TEST_P(TestFETL, grad0)
 	{
 
 		auto expect = mesh.Sample(Int2Type<EDGE>(), s, K)
-				* std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+		        * std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
 
 		f1b[s] = expect;
 
@@ -126,9 +126,6 @@ TEST_P(TestFETL, grad3)
 TEST_P(TestFETL, diverge1)
 {
 
-//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/div1");
-
 	auto error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, EDGE, scalar_type> f1(mesh);
@@ -141,10 +138,10 @@ TEST_P(TestFETL, diverge1)
 	{
 		f1[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
-//	LOGGER << SAVE(f1);
 	f0 = Diverge(f1);
-//	LOGGER << SAVE(f0);
+
 	Real variance = 0;
+
 	scalar_type average = 0.0;
 
 	for (auto s : mesh.Select(VERTEX))
@@ -158,9 +155,8 @@ TEST_P(TestFETL, diverge1)
 
 		auto x = mesh.GetCoordinates(s);
 
-
 		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
-		ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
+			ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
 
 	}
 
@@ -215,6 +211,10 @@ TEST_P(TestFETL, diverge2)
 
 TEST_P(TestFETL, curl1)
 {
+
+	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
+
 	auto error = std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, EDGE, scalar_type> vf1(mesh);
@@ -236,8 +236,11 @@ TEST_P(TestFETL, curl1)
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
+	LOGGER << SAVE(vf1);
 
 	LOG_CMD(vf2 = Curl(vf1));
+
+	LOGGER << SAVE(vf2);
 
 	for (auto s : mesh.Select(FACE))
 	{
@@ -249,8 +252,18 @@ TEST_P(TestFETL, curl1)
 
 		average += (vf2[s] - expect);
 		auto x = mesh.GetCoordinates(s);
+
 		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
 		{
+			if(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)) > error)
+			{
+				CHECK(n);
+				CHECK(K);
+				CHECK( mesh.GetCoordinates(s));
+				CHECK( std::cos(InnerProductNTuple(K, mesh.GetCoordinates(s))));
+				CHECK(vf2[s]);
+				CHECK(expect);
+			}
 			ASSERT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error);
 
 		}

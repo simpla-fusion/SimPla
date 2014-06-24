@@ -16,11 +16,11 @@
 using namespace simpla;
 
 #ifndef TMESH
-#include "../mesh/octree_forest.h"
+#include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
 #include "../mesh/mesh_rectangle.h"
 
-typedef Mesh<CartesianGeometry<OcForest, false>> TMesh;
+typedef Mesh<CartesianGeometry<UniformArray, false>> TMesh;
 #else
 typedef TMESH TMesh;
 #endif
@@ -40,15 +40,18 @@ protected:
 
 		dims = std::get<2>(param);
 
-		mesh.SetExtents(xmin, xmax, dims);
-
 		SetDefaultValue(&default_value);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			if (xmax[i] - xmin[i] < EPSILON || dims[i] <= 1)
+			if (xmax[i] - xmin[i] <= EPSILON)
+				dims[i] = 1;
+
+			if (dims[i] <= 1)
 				K[i] = 0.0;
 		}
+
+		mesh.SetExtents(xmin, xmax, dims);
 	}
 public:
 

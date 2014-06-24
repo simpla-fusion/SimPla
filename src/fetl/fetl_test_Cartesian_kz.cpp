@@ -9,7 +9,7 @@
 #include "../mesh/octree_forest.h"
 #include "../mesh/geometry_cartesian.h"
 
-#define TMESH Mesh<CartesianGeometry<OcForest,true>>>
+#define TMESH Mesh<CartesianGeometry<UniformArray,true>>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"

@@ -12,8 +12,8 @@
 
 #include "model.h"
 #include "../mesh/mesh_rectangle.h"
-#include "../mesh/octree_forest.h"
-#include "../mesh/geometry_euclidean.h"
+#include "../mesh/uniform_array.h"
+#include "../mesh/geometry_cartesian.h"
 
 using namespace simpla;
 
@@ -44,7 +44,7 @@ protected:
 	}
 public:
 
-	typedef Mesh<EuclideanGeometry<OcForest<Real>>> mesh_type;
+	typedef Mesh<CartesianGeometry<UniformArray>> mesh_type;
 	typedef Real value_type;
 	typedef mesh_type::iterator iterator;
 	typedef mesh_type::coordinates_type coordinates_type;
