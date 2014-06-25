@@ -20,27 +20,54 @@
 
 namespace simpla
 {
-
 template<typename TS, int NDIMS>
-bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_end, nTuple<NDIMS, TS> *pr_start,
-		nTuple<NDIMS, TS> *pr_end)
+bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_count, nTuple<NDIMS, TS> *pr_start,
+        nTuple<NDIMS, TS> *pr_count)
 {
 	bool has_overlap = false;
 
 	nTuple<NDIMS, TS> & r_start = *pr_start;
-	nTuple<NDIMS, TS> & r_end = *pr_end;
+	nTuple<NDIMS, TS> & r_count = *pr_count;
 
 	for (int i = 0; i < NDIMS; ++i)
 	{
-		if (r_end[i] <= l_start[i] || r_start[i] >= l_end[i])
+		if (r_start[i] + r_count[i] <= l_start[i] || r_start[i] >= l_start[i] + l_count[i])
 			return false;
 
 		TS start = std::max(l_start[i], r_start[i]);
-		TS end = std::min(l_end[i], r_end[i]);
+		TS end = std::min(l_start[i] + l_count[i], r_start[i] + r_count[i]);
 
 		if (end > start)
 		{
 			r_start[i] = start;
+			r_count[i] = end - start;
+
+			has_overlap = true;
+		}
+	}
+
+	return has_overlap;
+}
+template<typename TS, int NDIMS>
+bool Clipping2(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
+        nTuple<NDIMS, TS> *pr_end)
+{
+	bool has_overlap = false;
+
+	nTuple<NDIMS, TS> & r_begin = *pr_begin;
+	nTuple<NDIMS, TS> & r_end = *pr_end;
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
+			return false;
+
+		TS begin = std::max(l_begin[i], r_begin[i]);
+		TS end = std::min(l_end[i], r_end[i]);
+
+		if (end > begin)
+		{
+			r_begin[i] = begin;
 			r_end[i] = end;
 
 			has_overlap = true;

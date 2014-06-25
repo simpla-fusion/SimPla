@@ -14,6 +14,7 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../model/geometric_algorithm.h"
+
 #include "message_comm.h"
 
 #ifdef USE_MPI
@@ -37,20 +38,20 @@ public:
 		nTuple<NDIMS, long> inner_begin;
 		nTuple<NDIMS, long> inner_end;
 	};
-	DistributedArray() :
-			self_id_(0)
+	DistributedArray()
+			: self_id_(0)
 	{
 	}
 
 	template<typename ...Args>
-	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, Args && ... args)
+	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, Args const & ... args)
 
 	{
 
 		global_end_ = global_end;
 		global_begin_ = global_begin;
 
-		Decompose(std::forward<Args >(args)...);
+		Decompose(std::forward<Args const &>(args)...);
 	}
 
 	~DistributedArray()
@@ -58,7 +59,7 @@ public:
 	}
 	size_t size() const
 	{
-		return NProduct(local_.inner_end - local_.outer_begin);
+		return NProduct(local_.inner_end - local_.inner_begin);
 	}
 	size_t memory_size() const
 	{
@@ -79,9 +80,9 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<NDIMS, long> send_start;
+		nTuple<NDIMS, long> send_begin;
 		nTuple<NDIMS, long> send_end;
-		nTuple<NDIMS, long> recv_start;
+		nTuple<NDIMS, long> recv_begin;
 		nTuple<NDIMS, long> recv_end;
 	};
 
@@ -94,7 +95,8 @@ public:
 		int res = 0;
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			res += ((d[i] - global_end_[i]) % (global_end_[i] - global_begin_[i])) * global_strides_[i];
+			res += ((d[i] - global_begin_[i] + (global_end_[i] - global_begin_[i]))
+			        % (global_end_[i] - global_begin_[i])) * global_strides_[i];
 		}
 		return res;
 	}
@@ -116,24 +118,23 @@ void DistributedArray<N>::Decomposer_(int num_process, int process_num, unsigned
 	long L = 0;
 	for (int i = 0; i < NDIMS; ++i)
 	{
-		if (global_end_[i] > L)
+		if ((global_end_[i] - global_begin_[i]) > L)
 		{
-			L = global_end_[i] - global_begin_[i];
+			L = (global_end_[i] - global_begin_[i]);
 			n = i;
 		}
 	}
 
-	nTuple<NDIMS, long> start, count;
-
-	if ((2 * gw * num_process > global_end_[n] - global_begin_[n] || num_process > global_end_[n] - global_begin_[n]))
+	if ((2 * gw * num_process > (global_end_[n] - global_begin_[n]) || num_process > (global_end_[n] - global_begin_[n])))
 	{
 		if (process_num > 0)
 			local->outer_end = local->outer_begin;
 	}
 	else
 	{
-		local->inner_begin[n] += (global_end_[n] * process_num) / num_process;
-		local->inner_end[n] = (global_end_[n] * (process_num + 1)) / num_process;
+		local->inner_begin[n] = ((global_end_[n] - global_begin_[n]) * process_num) / num_process + global_begin_[n];
+		local->inner_end[n] = ((global_end_[n] - global_begin_[n]) * (process_num + 1)) / num_process
+		        + global_begin_[n];
 		local->outer_begin[n] = local->inner_begin[n] - gw;
 		local->outer_end[n] = local->inner_end[n] + gw;
 	}
@@ -145,6 +146,7 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 {
 	Decomposer_(num_process, process_num, gw, &local_);
 	self_id_ = (process_num);
+
 	if (num_process <= 1)
 		return;
 
@@ -168,6 +170,8 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
+		if (dest == self_id_)
+			continue;
 
 		sub_array_s node;
 
@@ -181,28 +185,38 @@ void DistributedArray<N>::Decompose(int num_process, int process_num, long gw)
 		{
 			remote = node;
 
+			bool is_duplicate = false;
+
 			for (int i = 0; i < NDIMS; ++i)
 			{
+
 				int n = (s >> (i * 2)) & 3UL;
 
 				if (n == 3)
+				{
+					is_duplicate = true;
 					continue;
+				}
 
-				n = (n + 1) % 3 - 1; // 0 1 2 => 0 1 -1
+				auto L = (global_end_[i] - global_begin_[i]) * ((n + 1) % 3 - 1);		// 0 1 2 => 0 1 -1
 
-				remote.outer_begin[i] += (global_end_[i] - global_begin_[i]) * n;
-				remote.inner_begin[i] += (global_end_[i] - global_begin_[i]) * n;
+				remote.outer_begin[i] += L;
+				remote.outer_end[i] += L;
+				remote.inner_begin[i] += L;
+				remote.inner_end[i] += L;
+
 			}
 
-			bool f_inner = Clipping(local_.outer_begin, local_.outer_end, &remote.inner_begin, &remote.inner_end);
-			bool f_outer = Clipping(local_.inner_begin, local_.inner_end, &remote.outer_begin, &remote.outer_end);
-
-			if (f_inner && f_outer)
+			if (!is_duplicate)
 			{
-				send_recv_.emplace_back(
-						send_recv_s(
-						{ dest, hash(remote.outer_begin), hash(remote.inner_begin), remote.outer_begin,
-								remote.outer_end, remote.inner_begin, remote.inner_end }));
+				bool f_inner = Clipping2(local_.outer_begin, local_.outer_end, &remote.inner_begin, &remote.inner_end);
+				bool f_outer = Clipping2(local_.inner_begin, local_.inner_end, &remote.outer_begin, &remote.outer_end);
+
+				if (f_inner && f_outer && (remote.outer_begin != remote.outer_end))
+				{
+					send_recv_.emplace_back(send_recv_s( { dest, hash(remote.outer_begin), hash(remote.inner_begin),
+					        remote.outer_begin, remote.outer_end, remote.inner_begin, remote.inner_end }));
+				}
 			}
 		}
 

@@ -48,8 +48,8 @@ inline void ParallelDo(std::function<void(int, int)> fun)
 #endif
 }
 
-template<typename TRange>
-void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::value_type)> fun)
+template<typename TRange, typename TFun>
+void ParallelForEach(TRange r, TFun fun)
 {
 #ifdef _OPENMP
 
@@ -58,7 +58,7 @@ void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::val
 #pragma omp parallel for
 	for ( int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
-		for(auto s:r.Split(num_threads,thread_id))
+		for(auto s:Split(r,num_threads,thread_id))
 		{
 			fun(s);
 		}
@@ -67,7 +67,7 @@ void ParallelForEach(TRange r, std::function<void(typename TRange::iterator::val
 
 	ParallelDo([r,fun](int t_num,int t_id)
 	{
-		for(auto s:r.Split(t_num,t_id))
+		for(auto s:Split(r,t_num,t_id))
 		{
 			fun(s);
 		}

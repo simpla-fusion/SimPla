@@ -20,13 +20,13 @@ class TestDistArray: public testing::TestWithParam<nTuple<3, size_t> >
 protected:
 	virtual void SetUp()
 	{
-		global_count = GetParam();
-		global_start = 10000;
 
+		global_begin = 0;
+		global_end = global_begin + GetParam();
 	}
 public:
-	nTuple<3, size_t> global_start;
-	nTuple<3, size_t> global_count;
+	nTuple<3, size_t> global_begin;
+	nTuple<3, size_t> global_end;
 	static constexpr unsigned int NDIMS = 3;
 	DistributedArray<NDIMS> darray;
 };
@@ -48,8 +48,8 @@ TEST_P(TestDistArray, UpdateGhost)
 {
 	GLOBAL_COMM.Init();
 
-	darray.global_start_=global_start;
-	darray.global_end_=global_count;
+	darray.global_begin_=global_begin;
+	darray.global_end_=global_end;
 
 	darray.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2);
 
@@ -72,7 +72,7 @@ TEST_P(TestDistArray, UpdateGhost)
 		count =0;
 		for(auto const & v:data)
 		{
-			if((count%darray.local_.outer_count[1])==0)
+			if((count%(darray.local_.outer_end[1]-darray.local_.outer_begin[1]))==0)
 			{
 				std::cout<<std::endl<<"["<< GLOBAL_COMM.GetRank()<<"/"<<GLOBAL_COMM.GetSize()<<"]";
 			}
@@ -86,5 +86,4 @@ TEST_P(TestDistArray, UpdateGhost)
 	MPI_Barrier( GLOBAL_COMM.GetComm());
 }
 
-INSTANTIATE_TEST_CASE_P(Parallel, TestDistArray, testing::Values(nTuple<3, size_t>(
-{ 10, 20, 1 })));
+INSTANTIATE_TEST_CASE_P(Parallel, TestDistArray, testing::Values(nTuple<3, size_t>( { 10, 20, 1 })));
