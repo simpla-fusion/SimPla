@@ -44,14 +44,14 @@ struct UniformArray
 
 	//***************************************************************************************************
 
-	UniformArray()
-			: depth_of_trees_(0), global_shift_(0UL)
+	UniformArray() :
+			depth_of_trees_(0), global_shift_(0UL)
 	{
 	}
 
 	template<typename TDict>
-	UniformArray(TDict const & dict)
-			: depth_of_trees_(0), global_shift_(0UL)
+	UniformArray(TDict const & dict) :
+			depth_of_trees_(0), global_shift_(0UL)
 	{
 		Load(dict);
 	}
@@ -186,12 +186,12 @@ struct UniformArray
 	}
 	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
 	{
-		return local_outer_end_[0] * local_outer_end_[1] * local_outer_end_[2]
+		return (local_outer_end_[0]-local_outer_begin_[0]) * (local_outer_end_[1]-local_outer_begin_[1]) * (local_outer_end_[2]-local_outer_begin_[2])
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
 	{
-		return local_outer_end_[0] * local_outer_end_[1] * local_outer_end_[2]
+		return (local_outer_end_[0]-local_outer_begin_[0]) * (local_outer_end_[1]-local_outer_begin_[1]) * (local_outer_end_[2]-local_outer_begin_[2])
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
 	}
 
@@ -741,29 +741,29 @@ struct UniformArray
 		if (array_order_ == SLOW_FIRST)
 		{
 			hash_stride_[2] = 1;
-			hash_stride_[1] = (local_outer_end_[2]);
-			hash_stride_[0] = ((local_outer_end_[1])) * hash_stride_[1];
+			hash_stride_[1] = (local_outer_end_[2]-local_outer_begin_[2]);
+			hash_stride_[0] = ((local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1];
 		}
 		else
 		{
 			hash_stride_[0] = 1;
-			hash_stride_[1] = (local_outer_end_[0]);
-			hash_stride_[2] = ((local_outer_end_[1])) * hash_stride_[1];
+			hash_stride_[1] = (local_outer_end_[0]-local_outer_begin_[0]);
+			hash_stride_[2] = ((local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1];
 		}
 
 	}
 
 	inline index_type Hash(compact_index_type s) const
 	{
-		auto d = (Decompact(s) >> (INDEX_DIGITS - depth_of_trees_)) - local_outer_begin_ + local_outer_end_;
+		auto d = (Decompact(s) >> (INDEX_DIGITS - depth_of_trees_)) - local_outer_begin_ + local_outer_end_- local_outer_begin_;
 
 		index_type res =
 
-		((d[0]) % local_outer_end_[0]) * hash_stride_[0] +
+		((d[0]) % (local_outer_end_[0]-local_outer_begin_[0])) * hash_stride_[0] +
 
-		((d[1]) % local_outer_end_[1]) * hash_stride_[1] +
+		((d[1]) % (local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1] +
 
-		((d[2]) % local_outer_end_[2]) * hash_stride_[2];
+		((d[2]) % (local_outer_end_[2]-local_outer_begin_[2])) * hash_stride_[2];
 
 		switch (NodeId(s))
 		{
@@ -1563,7 +1563,7 @@ struct UniformArray
 ;
 // class UniformArray
 UniformArray::range_type Split(UniformArray::range_type const & range, unsigned int num_process,
-        unsigned int process_num, unsigned int ghost_width = 0)
+		unsigned int process_num, unsigned int ghost_width = 0)
 {
 	typedef UniformArray::index_type index_type;
 	static constexpr int NDIMS = UniformArray::NDIMS;

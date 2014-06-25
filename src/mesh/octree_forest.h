@@ -221,11 +221,11 @@ struct OcForest
 	//***************************************************************************************************
 	// Local Data Set
 
-	nTuple<NDIMS, index_type> global_begin_, global_count_;
+	nTuple<NDIMS, index_type> global_start_, global_count_;
 
-	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_count_;
+	nTuple<NDIMS, index_type> local_outer_start_, local_outer_count_;
 
-	nTuple<NDIMS, index_type> local_inner_begin_, local_inner_count_;
+	nTuple<NDIMS, index_type> local_inner_start_, local_inner_count_;
 
 	nTuple<NDIMS, index_type> hash_stride_;
 
@@ -236,8 +236,8 @@ struct OcForest
 
 	int array_order_ = SLOW_FIRST;
 
-	compact_index_type global_begin_index_= 0UL;
-	compact_index_type local_outer_begin_index_= 0UL;
+	compact_index_type global_start_index_= 0UL;
+	compact_index_type local_outer_start_index_= 0UL;
 	compact_index_type local_outer_end_index_= 0UL;
 
 	DistributedArray<NDIMS> global_array_;
@@ -246,7 +246,7 @@ struct OcForest
 	//   ^                ^                ^               ^              ^            ^
 	//   |                |                |               |              |            |
 	//global          local_outer      local_inner    local_inner    local_outer     global
-	// _begin          _begin          _begin           _end           _end          _end
+	// _start          _start          _start           _end           _end          _end
 	//
 
 	void SetDimensions( )
@@ -262,7 +262,7 @@ struct OcForest
 
 			ASSERT(length<COMPACT_INDEX_ZERO );
 
-			global_begin_[i] = 0;
+			global_start_[i] = 0;
 			global_count_[i] = length;
 
 			if(global_count_[i] >1)
@@ -277,7 +277,7 @@ struct OcForest
 			}
 		}
 
-		global_array_.global_begin_= global_begin_;
+		global_array_.global_start_= global_start_;
 		global_array_.global_end_= global_count_;
 
 		UpdateVolume();
@@ -415,9 +415,9 @@ public:
 		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
-		local_inner_begin_=global_array_.local_.inner_begin;
+		local_inner_start_=global_array_.local_.inner_start;
 		local_inner_count_=global_array_.local_.inner_count;
-		local_outer_begin_=global_array_.local_.outer_begin;
+		local_outer_start_=global_array_.local_.outer_start;
 		local_outer_count_=global_array_.local_.outer_count;
 
 		UpdateHash();
@@ -437,14 +437,14 @@ public:
 			hash_stride_[1] = (local_outer_count_[0]);
 			hash_stride_[2] = ((local_outer_count_[1])) * hash_stride_[1];
 		}
-		global_begin_index_=Compact(global_begin_)<<D_FP_POS;
-		local_outer_begin_index_= Compact(local_outer_begin_)<<D_FP_POS;
-		local_outer_end_index_= Compact(local_outer_begin_+local_outer_count_)<<D_FP_POS;
+		global_start_index_=Compact(global_start_)<<D_FP_POS;
+		local_outer_start_index_= Compact(local_outer_start_)<<D_FP_POS;
+		local_outer_end_index_= Compact(local_outer_start_+local_outer_count_)<<D_FP_POS;
 	}
 
 	inline index_type Hash(compact_index_type s) const
 	{
-		auto d =( Decompact(s ) >> D_FP_POS)-local_outer_begin_+local_outer_count_;
+		auto d =( Decompact(s ) >> D_FP_POS)-local_outer_start_+local_outer_count_;
 
 		index_type res =
 
@@ -504,8 +504,8 @@ public:
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
 	}
-	int GetDataSetShape(int IFORM, size_t * global_begin = nullptr, size_t * global_count = nullptr, size_t * local_outer_begin = nullptr,
-	size_t * local_outer_count = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_count = nullptr ) const
+	int GetDataSetShape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
+	size_t * local_outer_count = nullptr, size_t * local_inner_start = nullptr, size_t * local_inner_count = nullptr ) const
 	{
 		int rank = 0;
 
@@ -514,20 +514,20 @@ public:
 			if ( global_count_[i] > 1)
 			{
 
-				if (global_begin != nullptr)
-				global_begin[rank] = global_begin_[i];
+				if (global_start != nullptr)
+				global_start[rank] = global_start_[i];
 
 				if (global_count != nullptr)
 				global_count[rank] = global_count_[i];
 
-				if (local_outer_begin != nullptr)
-				local_outer_begin[rank] = local_inner_begin_[i];
+				if (local_outer_start != nullptr)
+				local_outer_start[rank] = local_inner_start_[i];
 
 				if (local_outer_count != nullptr)
 				local_outer_count[rank] = local_outer_count_[i];
 
-				if (local_inner_begin != nullptr)
-				local_inner_begin[rank] = local_inner_begin_[i];
+				if (local_inner_start != nullptr)
+				local_inner_start[rank] = local_inner_start_[i];
 
 				if (local_inner_count != nullptr)
 				local_inner_count[rank] = local_inner_count_[i];
@@ -538,20 +538,20 @@ public:
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
-			if (global_begin != nullptr)
-			global_begin[rank] = 0;
+			if (global_start != nullptr)
+			global_start[rank] = 0;
 
 			if (global_count != nullptr)
 			global_count[rank] = 3;
 
-			if (local_outer_begin != nullptr)
-			local_outer_begin[rank] = 0;
+			if (local_outer_start != nullptr)
+			local_outer_start[rank] = 0;
 
 			if (local_outer_count != nullptr)
 			local_outer_count[rank] = 3;
 
-			if (local_inner_begin != nullptr)
-			local_inner_begin[rank] = 0;
+			if (local_inner_start != nullptr)
+			local_inner_start[rank] = 0;
 
 			if (local_inner_count != nullptr)
 			local_inner_count[rank] = 3;
@@ -1294,14 +1294,14 @@ public:
 
 		compact_index_type self_;
 
-		compact_index_type begin_, end_;
+		compact_index_type start_, end_;
 
 		iterator(iterator const & r)
-		: self_(r.self_),begin_(r.begin_),end_(r.end_)
+		: self_(r.self_),start_(r.start_),end_(r.end_)
 		{
 		}
 		iterator(compact_index_type s = 0, compact_index_type b = 0, compact_index_type e = 0)
-		: self_(s), begin_(b), end_(e)
+		: self_(s), start_(b), end_(e)
 		{
 		}
 
@@ -1347,13 +1347,13 @@ public:
 				if ((self_ & _MRK) >= (end_ & _MRK))
 				{
 					self_ &= ~_MRK;
-					self_ |= begin_ & _MRK;
+					self_ |= start_ & _MRK;
 					self_ += D << (INDEX_DIGITS);
 				}
 				if ((self_ & _MRJ) >= (end_ & _MRJ))
 				{
 					self_ &= ~_MRJ;
-					self_ |= begin_ & _MRJ;
+					self_ |= start_ & _MRJ;
 					self_ += D << (INDEX_DIGITS * 2);
 				}
 			}
@@ -1366,13 +1366,13 @@ public:
 
 		void PreviousCell()
 		{
-			if(self_!=begin_)
+			if(self_!=start_)
 			{
 				auto D = (1UL << (D_FP_POS - HeightOfTree(self_)));
 
 				self_ -= D;
 
-				if ((self_ & _MRK) < (begin_ & _MRK))
+				if ((self_ & _MRK) < (start_ & _MRK))
 				{
 					self_ &= ~_MRK;
 					self_ |= (end_ - D) & _MRK;
@@ -1475,7 +1475,7 @@ public:
 		typedef typename OcForest::iterator iterator;
 		typedef iterator value_type;
 
-		nTuple<NDIMS, index_type> begin_;
+		nTuple<NDIMS, index_type> start_;
 
 		nTuple<NDIMS, index_type> count_;
 
@@ -1487,33 +1487,33 @@ public:
 		{
 			for(int i=0;i<NDIMS;++i)
 			{
-				begin_[i]=0;
+				start_[i]=0;
 				count_[i]=0;
 			}
 		}
-		range(range const& r):begin_(r.begin_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
+		range(range const& r):start_(r.start_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
 		{
 
 		}
 
 		range & operator=(range const&r)
 		{
-			begin_=r.begin_;
+			start_=r.start_;
 			count_=r.count_;
 			iform_=r.iform_;
 			shift_=r.shift_;
 			return *this;
 		}
-		range(range && r):begin_(r.begin_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
+		range(range && r):start_(r.start_),count_(r.count_),iform_(r.iform_ ),shift_(r.shift_)
 		{
 
 		}
-		range(int iform,range const & r ):begin_(r.begin_),count_(r.count_),iform_(iform ),shift_(get_first_node_shift(iform))
+		range(int iform,range const & r ):start_(r.start_),count_(r.count_),iform_(iform ),shift_(get_first_node_shift(iform))
 		{
 
 		}
-		range(unsigned int iform,nTuple<NDIMS, index_type> const & begin, nTuple<NDIMS, index_type> const& count )
-		: begin_(begin ), count_(count), iform_(iform),shift_(get_first_node_shift(iform))
+		range(unsigned int iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
+		: start_(start ), count_(count), iform_(iform),shift_(get_first_node_shift(iform))
 		{
 
 		}
@@ -1524,8 +1524,8 @@ public:
 
 		iterator begin() const
 		{
-			return iterator((Compact(begin_,shift_) ) | shift_, ((Compact(begin_) ) | shift_),
-			((Compact(begin_ + count_) ) | shift_));
+			return iterator((Compact(start_,shift_) ) | shift_, ((Compact(start_) ) | shift_),
+			((Compact(start_ + count_) ) | shift_));
 		}
 		iterator end() const
 		{
@@ -1535,11 +1535,11 @@ public:
 			{
 				res = iterator(
 
-				(Compact(begin_ + count_ - 1) ) | shift_,
+				(Compact(start_ + count_ - 1) ) | shift_,
 
-				((Compact(begin_) ) | shift_),
+				((Compact(start_) ) | shift_),
 
-				((Compact(begin_ + count_) ) | shift_)
+				((Compact(start_ + count_) ) | shift_)
 
 				);
 				res.NextCell();
@@ -1555,11 +1555,11 @@ public:
 			{
 				res = iterator(
 
-				(Compact(begin_ + count_ ,shift_) ) ,
+				(Compact(start_ + count_ ,shift_) ) ,
 
-				(Compact(begin_,shift_)),
+				(Compact(start_,shift_)),
 
-				(Compact(begin_ + count_,shift_) )
+				(Compact(start_ + count_,shift_) )
 
 				);
 			}
@@ -1603,10 +1603,10 @@ public:
 				}
 			}
 
-			nTuple<NDIMS,index_type> begin,count;
+			nTuple<NDIMS,index_type> start,count;
 
 			count = count_;
-			begin = begin_;
+			start = start_;
 
 			if ((2 * ghost_width * num_process > count_[n] || num_process > count_[n]) )
 			{
@@ -1614,11 +1614,11 @@ public:
 			}
 			else
 			{
-				begin[n] += (count_[n] * process_num ) / num_process;
+				start[n] += (count_[n] * process_num ) / num_process;
 				count[n]= (count_[n] * (process_num + 1)) / num_process -(count_[n] * process_num ) / num_process;
 			}
 
-			return range(iform_,begin,count );
+			return range(iform_,start,count );
 		}
 
 	};	// class Range
@@ -1631,28 +1631,28 @@ public:
 
 	range Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax)const
 	{
-		auto begin=CoordinatesToIndex(&xmin,get_first_node_shift(iform))>>D_FP_POS;
-		auto count=(CoordinatesToIndex(&xmax,get_first_node_shift(iform))>>D_FP_POS)- begin+1;
+		auto start=CoordinatesToIndex(&xmin,get_first_node_shift(iform))>>D_FP_POS;
+		auto count=(CoordinatesToIndex(&xmax,get_first_node_shift(iform))>>D_FP_POS)- start+1;
 
-		return Select(iform,begin,count);
+		return Select(iform,start,count);
 	}
 
-	range Select( unsigned int iform, nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> count)const
+	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
 	{
-		auto flag=Clipping( local_inner_begin_, local_inner_count_, &begin, &count);
+		auto flag=Clipping( local_inner_start_, local_inner_count_, &start, &count);
 
 		if (!flag)
 		{
-			begin=local_inner_begin_;
+			start=local_inner_start_;
 			count*=0;
 		}
 
-		return range( iform,begin,count);
+		return range( iform,start,count);
 	}
 
 	range Select(unsigned int iform)const
 	{
-		return range(iform, local_inner_begin_,local_inner_count_);
+		return range(iform, local_inner_start_,local_inner_count_);
 	}
 
 	/***************************************************************************************************
@@ -1687,7 +1687,7 @@ public:
 	inline coordinates_type GetCoordinates(compact_index_type s) const
 	{
 
-		auto d = Decompact(s) - (global_begin_<<D_FP_POS);
+		auto d = Decompact(s) - (global_start_<<D_FP_POS);
 
 		return coordinates_type(
 		{
@@ -1700,7 +1700,7 @@ public:
 
 	coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type r) const
 	{
-		auto d = Decompact(s)-(global_begin_<<D_FP_POS);
+		auto d = Decompact(s)-(global_start_<<D_FP_POS);
 		Real scale=static_cast<Real>(1UL << (D_FP_POS - HeightOfTree(s)));
 		coordinates_type res;
 
@@ -1754,7 +1754,7 @@ public:
 
 			idx[i]=((static_cast<index_type>(I)) <<(D_FP_POS-height)) + h[i];
 
-			auto s=(global_begin_[i]<<D_FP_POS);
+			auto s=(global_start_[i]<<D_FP_POS);
 			auto l=(global_count_[i]<<D_FP_POS);
 			idx[i]=(idx[i]-s+l)%l+s;
 
