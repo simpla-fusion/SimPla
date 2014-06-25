@@ -301,7 +301,16 @@ T end(std::pair<T, T>const & range)
 {
 	return std::move(range.second);
 }
-
+template<typename T>
+T rbegin(std::pair<T, T>const & range)
+{
+	return std::move(range.second--);
+}
+template<typename T>
+T rend(std::pair<T, T>const & range)
+{
+	return std::move(range.first--);
+}
 } // namespace simpla
 
 #endif /* SP_TYPE_TRAITS_H_ */

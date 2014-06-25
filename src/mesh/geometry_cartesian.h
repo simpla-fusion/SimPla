@@ -340,11 +340,10 @@ struct CartesianGeometry: public TTopology
 		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...));
 	}
 
-	compact_index_type CoordinatesGlobalToLocal(coordinates_type * px,
+	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
 	        typename topology_type::compact_index_type shift = 0UL) const
 	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesGlobalToLocal(px, shift);
+		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 	compact_index_type CoordinatesGlobalToLocalDual(coordinates_type * px,
 	        typename topology_type::compact_index_type shift = 0UL) const

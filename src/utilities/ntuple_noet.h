@@ -77,7 +77,8 @@ DEFINE_OP(+)
 DEFINE_OP(-)
 DEFINE_OP(*)
 DEFINE_OP(/)
-
+DEFINE_OP(&)
+DEFINE_OP(|)
 #undef DEFINE_OP
 
 //***********************************************************************************
