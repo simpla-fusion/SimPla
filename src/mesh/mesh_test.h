@@ -30,7 +30,7 @@ typedef TMESH TMesh;
 #endif
 
 class TestMesh: public testing::TestWithParam<
-        std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
+		std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
 {
 protected:
 	virtual void SetUp()
@@ -76,22 +76,25 @@ public:
 };
 TEST_P(TestMesh, ttest)
 {
-	coordinates_type x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
+	coordinates_type x0 =
+	{ 0, 0, 0 }, x1 =
+	{ 1, 1, 1 };
 
 	CHECK(mesh.CoordinatesToIndex(x0));
 	CHECK(mesh.CoordinatesToIndex(x1));
-	auto d = mesh.DeltaIndex(mesh.get_first_node_shift(EDGE)) << 1;
-	auto s0 = mesh.Compact(mesh.CoordinatesToIndex(x0)) | mesh.get_first_node_shift(EDGE);
-	auto s1 = mesh.Compact(mesh.CoordinatesToIndex(x1)) | mesh.get_first_node_shift(EDGE);
-	CHECK_BIT(mesh._DA);
+	auto d = mesh.DeltaIndex(mesh.get_first_node_shift(EDGE));
+	auto s0 = mesh.Compact(mesh.CoordinatesToIndex(x0)) | mesh.get_first_node_shift(VERTEX);
+	auto s1 = mesh.Compact(mesh.CoordinatesToIndex(x1)) | mesh.get_first_node_shift(VERTEX);
 	CHECK_BIT(s0);
-	CHECK_BIT(s1);
 	CHECK_BIT(d);
 	CHECK_BIT(s0 - d);
-	CHECK_BIT(s1 + d);
-
+	CHECK_BIT(s0 - d);
+	CHECK_BIT(s0 + d);
+	CHECK(mesh.Hash(s0));
+	CHECK(mesh.Hash(s0 - d));
+	CHECK(mesh.Hash(s0 + d));
 	CHECK(mesh.GetCoordinates(s0 - d));
-	CHECK(mesh.GetCoordinates(s1 + d));
+	CHECK(mesh.GetCoordinates(s0 + d));
 }
 
 TEST_P(TestMesh, compact_index_type)
@@ -235,7 +238,7 @@ TEST_P(TestMesh, volume)
 	auto range3 = mesh.Select(VOLUME);
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range0)) * mesh.Volume(*begin(range3)),
-	        mesh.Volume(*begin(range1)) * mesh.Volume(*begin(range2)));
+			mesh.Volume(*begin(range1)) * mesh.Volume(*begin(range2)));
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range0)), mesh.DualVolume(*begin(range3)));
 	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range1)), mesh.DualVolume(*begin(range2)));
@@ -299,7 +302,8 @@ TEST_P(TestMesh, Split)
 	unsigned int iform = VERTEX;
 	{
 
-		nTuple<3, index_type> begin = { 0, 0, 0 };
+		nTuple<3, index_type> begin =
+		{ 0, 0, 0 };
 
 		nTuple<3, index_type> end = dims;
 

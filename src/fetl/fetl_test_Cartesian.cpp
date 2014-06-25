@@ -45,8 +45,10 @@ testing::Values(
 
 nTuple<3, size_t>(
 { 1, 1, 100 }) //
-//        , nTuple<3, size_t>( { 17, 1, 1 }) //
-//        , nTuple<3, size_t>( { 1, 17, 1 }) //
+		, nTuple<3, size_t>(
+{ 100, 1, 1 }) //
+		, nTuple<3, size_t>(
+{ 1, 100, 1 }) //
 //        , nTuple<3, size_t>( { 1, 1, 10 }) //
 //        , nTuple<3, size_t>( { 1, 10, 20 }) //
 //        , nTuple<3, size_t>( { 17, 1, 17 }) //

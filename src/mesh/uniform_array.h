@@ -146,14 +146,12 @@ struct UniformArray
 
 			ASSERT(length<COMPACT_INDEX_ZERO);
 
-			global_begin_[i] = 0;
-			global_end_[i] = length;
+			global_begin_[i] = INDEX_ZERO -length/2;
+			global_end_[i] =global_begin_[i]+length;
 		}
 
 		global_array_.global_begin_= global_begin_;
 		global_array_.global_end_= global_end_;
-
-//		global_count_=global_end_-global_begin_;
 
 		Update();
 
@@ -364,7 +362,7 @@ struct UniformArray
 	void Update()
 	{
 		auto d=GetDimensions();
-		depth_of_trees_= (count_bits(std::max(d[0],std::max(d[1],d[2]))))+1;
+		depth_of_trees_= (count_bits(std::max(d[0],std::max(d[1],d[2]))))+2;
 		global_shift_=depth_of_trees_<<(INDEX_DIGITS*3);
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -518,9 +516,11 @@ struct UniformArray
 
 	inline nTuple<NDIMS, index_type> ToCellIndex(nTuple<NDIMS, index_type> idx)const
 	{
-		idx[0]>>= (INDEX_DIGITS-depth_of_trees_);
-		idx[1]>>= (INDEX_DIGITS-depth_of_trees_);
-		idx[2]>>= (INDEX_DIGITS-depth_of_trees_);
+		index_type M=(1UL<<depth_of_trees_);
+
+		idx[0]=((idx[0]>> (INDEX_DIGITS-depth_of_trees_))+M)%M;
+		idx[1]=((idx[1]>> (INDEX_DIGITS-depth_of_trees_))+M)%M;
+		idx[2]=((idx[2]>> (INDEX_DIGITS-depth_of_trees_))+M)%M;
 
 		return std::move(idx);
 	}
@@ -585,11 +585,11 @@ struct UniformArray
 
 		return
 
-		(((s >> (INDEX_DIGITS * 3 - h - 1)) & 1UL) << 2) |
+		(((s >> (INDEX_DIGITS * 3 - h )) & 1UL) << 2) |
 
-		(((s >> (INDEX_DIGITS * 2 - h - 1)) & 1UL) << 1) |
+		(((s >> (INDEX_DIGITS * 2 - h )) & 1UL) << 1) |
 
-		((s >> (INDEX_DIGITS - h - 1)) & 1UL);
+		((s >> (INDEX_DIGITS - h )) & 1UL);
 	}
 
 	compact_index_type GetShift(unsigned int nodeid, compact_index_type h) const
@@ -670,7 +670,7 @@ struct UniformArray
 
 	static compact_index_type DeltaIndex(compact_index_type r)
 	{
-		return (r & (_DA >> DepthOfTree(r) ));
+		return (r & (_DA >> (DepthOfTree(r))));
 	}
 
 	static compact_index_type DI(unsigned int i, compact_index_type r)
@@ -753,31 +753,39 @@ struct UniformArray
 
 	}
 
+	static index_type mod_(index_type a,index_type L)
+	{
+		return (a+L)%L;
+	}
+
 	inline index_type Hash(compact_index_type s) const
 	{
 		//@FIXME  when idx<0, this is wrong
-		auto d = (Decompact(s&(~_DA)) >> (INDEX_DIGITS - depth_of_trees_))+ global_end_- global_begin_ - local_outer_begin_;
+		auto d = ToCellIndex(Decompact(s&(~_DA))) - local_outer_begin_;
 
+		CHECK_BIT(s);
+		CHECK(d);
+		CHECK(local_outer_end_-local_outer_begin_);
 		index_type res =
 
-		((d[0]) % (local_outer_end_[0]-local_outer_begin_[0])) * hash_stride_[0] +
+		mod_( d[0], (local_outer_end_[0]-local_outer_begin_[0])) * hash_stride_[0] +
 
-		((d[1]) % (local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1] +
+		mod_( d[1], (local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1] +
 
-		((d[2]) % (local_outer_end_[2]-local_outer_begin_[2])) * hash_stride_[2];
+		mod_( d[2], (local_outer_end_[2]-local_outer_begin_[2])) * hash_stride_[2];
 
 		switch (NodeId(s))
 		{
-			case 1:
-			case 6:
+			case 4:
+			case 3:
 			res = ((res << 1) + res);
 			break;
 			case 2:
 			case 5:
 			res = ((res << 1) + res) + 1;
 			break;
-			case 4:
-			case 3:
+			case 1:
+			case 6:
 			res = ((res << 1) + res) + 2;
 			break;
 		}
