@@ -518,6 +518,15 @@ struct UniformArray
 				}));
 	}
 
+	inline nTuple<NDIMS, index_type> ToCellIndex(nTuple<NDIMS, index_type> idx)const
+	{
+		idx[0]>>= (INDEX_DIGITS-depth_of_trees_);
+		idx[1]>>= (INDEX_DIGITS-depth_of_trees_);
+		idx[2]>>= (INDEX_DIGITS-depth_of_trees_);
+
+		return std::move(idx);
+	}
+
 	inline coordinates_type
 	GetCoordinates(compact_index_type s)const
 	{
@@ -527,9 +536,15 @@ struct UniformArray
 	inline coordinates_type
 	CoordinatesLocalToGlobal(std::tuple<compact_index_type,coordinates_type> const& v)const
 	{
-		return std::move(IndexToCoordinates(Decompact(std::get<0>(v)))+std::get<1>(v)/ static_cast<Real>(1UL << ( DepthOfTree(std::get<0>(v)) )));
+		return std::move(GetCoordinates( std::get<0>(v) )+std::get<1>(v)/ static_cast<Real>(1UL << ( DepthOfTree(std::get<0>(v)) )));
 	}
 
+	/**
+	 *
+	 * @param x
+	 * @param shift
+	 * @return x \in [0,1)
+	 */
 	inline std::tuple<compact_index_type,coordinates_type>
 	CoordinatesGlobalToLocal(coordinates_type x, compact_index_type shift = DEFAULT_SHIFT) const
 	{
@@ -537,12 +552,17 @@ struct UniformArray
 		compact_index_type depth = DepthOfTree(shift);
 
 		nTuple<NDIMS, index_type> res;
+		auto m=(~((1UL << (INDEX_DIGITS - depth))- 1 ));
 
-		res= (CoordinatesToIndex(x)+Decompact(Dual(shift))) & (~((1UL << (INDEX_DIGITS - depth)) - 1));
+		res = ( CoordinatesToIndex(x)+Decompact(Dual(shift)))& (~((1UL << (INDEX_DIGITS - depth))- 1 ));
 
-		x=(x-IndexToCoordinates(res))* static_cast<Real>(1UL << ( depth ));
+		auto s=Compact(res)|(depth<<(INDEX_DIGITS*3));
 
-		return std::move(std::make_tuple( Compact(res)|(depth<<(INDEX_DIGITS*3)),x));
+		x= (x-GetCoordinates(s))* static_cast<Real>(1UL << ( depth ));
+
+//		if( std::sqrt(InnerProductNTuple(x,x))/3.0>1.0) CHECK(x);
+
+		return std::move(std::make_tuple( s,x));
 	}
 //***************************************************************************************************
 //* Auxiliary functions
@@ -957,10 +977,14 @@ struct UniformArray
 	inline static range_type make_range(nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> end,
 	compact_index_type shift = DEFAULT_SHIFT)
 	{
+
 		iterator b(begin, begin, end, shift);
-		iterator e(end - 1, begin, end, shift);
+
+		iterator e(end-1, begin, end, shift);
+
 		e.NextCell();
-		return std::move(std::make_pair(b, e));
+
+		return std::move(std::make_pair(std::move(b),std::move( e)));
 
 	}
 
@@ -986,8 +1010,14 @@ struct UniformArray
 	auto Select(unsigned int iform, std::pair<T, T> domain) const
 	DECL_RET_TYPE((Select(iform,domain.first,domain.second )))
 
-	auto Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax) const
-	DECL_RET_TYPE((Select(iform, CoordinatesToIndex(xmin ) ,CoordinatesToIndex( xmax ) )))
+	range_type Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax) const
+	{
+		auto b=ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmin, get_first_node_shift(iform)))));
+		auto e=ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmax, get_first_node_shift(iform)))));
+		e+=1;
+		return Select(iform,b,e);
+	}
+//	DECL_RET_TYPE((Select(iform, CoordinatesToIndex(xmin ) ,CoordinatesToIndex( xmax ) )))
 	;
 
 //***************************************************************************************************

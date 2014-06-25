@@ -190,8 +190,9 @@ TEST_P(TestMesh, coordinates)
 	auto it = begin(range1);
 
 	typename mesh_type::coordinates_type x = 0.21235 * (extents.second - extents.first) + extents.first;
+	auto idx = mesh.topology_type::CoordinatesToIndex(x);
 
-	EXPECT_EQ(x, mesh.topology_type::IndexToCoordinates(mesh.topology_type::CoordinatesToIndex(x)));
+	EXPECT_EQ(idx, mesh.topology_type::CoordinatesToIndex(mesh.topology_type::IndexToCoordinates(idx)));
 
 	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VERTEX))));
 	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(EDGE))));
@@ -212,78 +213,36 @@ TEST_P(TestMesh, volume)
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range0)), mesh.DualVolume(*begin(range3)));
 	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range1)), mesh.DualVolume(*begin(range2)));
-}
 
-//TEST_P(TestMesh, select )
-//{
-//	auto r = mesh.Select(VERTEX);
-//	size_t count = 0;
-//	for (auto a : r)
-//	{
-//		++count;
-//	}
-//	CHECK(count);
-//	EXPECT_EQ(count, dims[0] * dims[1] * dims[2]);
-//
-//	auto extents = mesh.GetExtents();
-//	auto xmin = extents.first + (extents.second - extents.first) * 0.25;
-//	auto xmax = extents.first + (extents.second - extents.first) * 0.75;
-//	CHECK(xmin);
-//	CHECK(xmax);
-//	r = mesh.Select(VERTEX, xmin, xmax);
-//
-//	count = 0;
-//	for (auto a : r)
-//	{
-//		++count;
-//	}
-//	CHECK(count);
-//	EXPECT_EQ(count, dims[0] * dims[1] * dims[2] * 0.25);
-//
-////	auto extent = mesh.GetExtents();
-////	auto xmin = extent.first;
-////	auto xmax = extent.second;
-////
-////	nTuple<3, size_t> start = { 0, 0, 0 };
-////	CHECK(dims);
-////
-////	EXPECT_EQ(mesh.Decompact(*mesh.CoordinatesGlobalToLocal(&xmin)) - (mesh.global_start_ << mesh.D_FP_POS), start);
-////	EXPECT_EQ(mesh.Decompact(*mesh.CoordinatesGlobalToLocal(&xmax)) - (mesh.global_start_ << mesh.D_FP_POS),
-////	        dims << mesh.D_FP_POS);
-//}
-//
-//TEST_P(TestMesh, volume)
-//{
-//
-//	auto extents = mesh.GetExtents();
-//
-//	auto range0 = mesh.Select(VERTEX);
-//	auto range1 = mesh.Select(EDGE);
-//	auto range2 = mesh.Select(FACE);
-//	auto range3 = mesh.Select(VOLUME);
-//
-//	auto s = *begin(range1);
+	auto extents = mesh.GetExtents();
+
+	auto s = *begin(range1);
+
+	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s + mesh.DeltaIndex(s)));
+	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s - mesh.DeltaIndex(s)));
+
 //	auto X = mesh.topology_type::DI(0, s);
 //	auto Y = mesh.topology_type::DI(1, s);
 //	auto Z = mesh.topology_type::DI(2, s);
 //
-////	CHECK(mesh.geometry_type::Volume(s));
-////	CHECK(mesh.geometry_type::Volume(s + X));
-////	CHECK(mesh.geometry_type::Volume(s - X));
-////	CHECK(mesh.geometry_type::Volume(s + Y));
-////	CHECK(mesh.geometry_type::Volume(s - Y));
-////	CHECK(mesh.geometry_type::Volume(s + Z));
-////	CHECK(mesh.geometry_type::Volume(s - Z));
-////
-////	CHECK(mesh.geometry_type::DualVolume(s));
-////	CHECK(mesh.geometry_type::DualVolume(s + X));
-////	CHECK(mesh.geometry_type::DualVolume(s - X));
-////	CHECK(mesh.geometry_type::DualVolume(s + Y));
-////	CHECK(mesh.geometry_type::DualVolume(s - Y));
-////	CHECK(mesh.geometry_type::DualVolume(s + Z));
-////	CHECK(mesh.geometry_type::DualVolume(s - Z));
+//	CHECK(mesh.geometry_type::Volume(s));
+//	CHECK(mesh.geometry_type::Volume(s + X));
+//	CHECK(mesh.geometry_type::Volume(s - X));
+//	CHECK(mesh.geometry_type::Volume(s + Y));
+//	CHECK(mesh.geometry_type::Volume(s - Y));
+//	CHECK(mesh.geometry_type::Volume(s + Z));
+//	CHECK(mesh.geometry_type::Volume(s - Z));
 //
-//}
+//	CHECK(mesh.geometry_type::DualVolume(s));
+//	CHECK(mesh.geometry_type::DualVolume(s + X));
+//	CHECK(mesh.geometry_type::DualVolume(s - X));
+//	CHECK(mesh.geometry_type::DualVolume(s + Y));
+//	CHECK(mesh.geometry_type::DualVolume(s - Y));
+//	CHECK(mesh.geometry_type::DualVolume(s + Z));
+//	CHECK(mesh.geometry_type::DualVolume(s - Z));
+
+}
+
 TEST_P(TestMesh, hash)
 {
 
@@ -372,6 +331,61 @@ TEST_P(TestMesh, partial_traversal)
 		EXPECT_EQ(data.rbegin()->first, mesh.GetNumOfElements(iform) - 1);
 	}
 }
+
+TEST_P(TestMesh, select )
+{
+	auto r = mesh.Select(VERTEX);
+
+	std::set<typename mesh_type::compact_index_type> data;
+
+	for (auto s : r)
+	{
+		data.insert(s);
+	}
+
+	EXPECT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
+
+	data.clear();
+
+	auto extents = mesh.GetExtents();
+	auto xmin = extents.first + (extents.second - extents.first) * 0.25;
+	auto xmax = extents.first + (extents.second - extents.first) * 0.75;
+
+	r = mesh.Select(VERTEX, xmin, xmax);
+
+	for (auto s : r)
+	{
+		auto x = mesh.GetCoordinates(s);
+
+		ASSERT_LE(xmin[0], x[0]);
+		ASSERT_LE(xmin[1], x[1]);
+		ASSERT_LE(xmin[2], x[2]);
+		ASSERT_GE(xmax[0], x[0]);
+		ASSERT_GE(xmax[1], x[1]);
+		ASSERT_GE(xmax[2], x[2]);
+
+		data.insert(s);
+	}
+	CHECK(data.size());
+
+//	for (auto s : mesh.Select(VERTEX))
+//	{
+//		auto x = mesh.GetCoordinates(s);
+//
+//		if ((xmin[0] <= x[0]) && (xmin[1] <= x[1]) && (xmin[2] <= x[2]) && (xmax[0] >= x[0]) && (xmax[1] >= x[1])
+//		        && (xmax[2] >= x[2]))
+//		{
+//			EXPECT_TRUE(data.find(s) != data.end()) << s;
+//		}
+//		else
+//		{
+//			EXPECT_TRUE(data.find(s) == data.end()) << s;
+//		}
+//
+//	}
+
+}
+
 //
 ////TEST_P(TestMesh,scatter )
 ////{
