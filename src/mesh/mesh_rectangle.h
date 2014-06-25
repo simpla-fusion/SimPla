@@ -209,11 +209,11 @@ public:
 
 		return
 
-		(
+		-(
 
-		-(f[s + Y] * (geometry_type::DualVolume(s + Y)) - f[s - Y] * (geometry_type::DualVolume(s - Y)))
+		(f[s + Y] * (geometry_type::DualVolume(s + Y)) - f[s - Y] * (geometry_type::DualVolume(s - Y)))
 
-		+ (f[s + Z] * (geometry_type::DualVolume(s + Z)) - f[s - Z] * (geometry_type::DualVolume(s - Z)))
+		- (f[s + Z] * (geometry_type::DualVolume(s + Z)) - f[s - Z] * (geometry_type::DualVolume(s - Z)))
 
 		) * geometry_type::InvDualVolume(s);
 	}

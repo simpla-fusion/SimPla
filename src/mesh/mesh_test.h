@@ -74,6 +74,26 @@ public:
 	nTuple<TMesh::NDIMS, index_type> dims;
 
 };
+TEST_P(TestMesh, ttest)
+{
+	coordinates_type x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
+
+	CHECK(mesh.CoordinatesToIndex(x0));
+	CHECK(mesh.CoordinatesToIndex(x1));
+	auto d = mesh.DeltaIndex(mesh.get_first_node_shift(EDGE)) << 1;
+	auto s0 = mesh.Compact(mesh.CoordinatesToIndex(x0)) | mesh.get_first_node_shift(EDGE);
+	auto s1 = mesh.Compact(mesh.CoordinatesToIndex(x1)) | mesh.get_first_node_shift(EDGE);
+	CHECK_BIT(mesh._DA);
+	CHECK_BIT(s0);
+	CHECK_BIT(s1);
+	CHECK_BIT(d);
+	CHECK_BIT(s0 - d);
+	CHECK_BIT(s1 + d);
+
+	CHECK(mesh.GetCoordinates(s0 - d));
+	CHECK(mesh.GetCoordinates(s1 + d));
+}
+
 TEST_P(TestMesh, compact_index_type)
 {
 	auto s = mesh.get_first_node_shift(VERTEX);
@@ -119,6 +139,12 @@ TEST_P(TestMesh, compact_index_type)
 	EXPECT_EQ(3, mesh.NodeId(mesh.Dual(s)));
 	EXPECT_EQ(5, mesh.NodeId(mesh.Dual(mesh.Roate(s))));
 	EXPECT_EQ(6, mesh.NodeId(mesh.Dual(mesh.InverseRoate(s))));
+
+	EXPECT_EQ(mesh.DI(0, s), mesh.DeltaIndex(s));
+	EXPECT_EQ(mesh.DI(1, s), mesh.DeltaIndex(mesh.Roate(s)));
+	EXPECT_EQ(mesh.DI(2, s), mesh.DeltaIndex(mesh.InverseRoate(s)));
+	CHECK_BIT(s);
+	CHECK_BIT(mesh.DI(2, s));
 
 	s = mesh.get_first_node_shift(FACE);
 	EXPECT_EQ(3, mesh.NodeId(s));
@@ -332,59 +358,59 @@ TEST_P(TestMesh, partial_traversal)
 	}
 }
 
-TEST_P(TestMesh, select )
-{
-	auto r = mesh.Select(VERTEX);
-
-	std::set<typename mesh_type::compact_index_type> data;
-
-	for (auto s : r)
-	{
-		data.insert(s);
-	}
-
-	EXPECT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
-
-	data.clear();
-
-	auto extents = mesh.GetExtents();
-	auto xmin = extents.first + (extents.second - extents.first) * 0.25;
-	auto xmax = extents.first + (extents.second - extents.first) * 0.75;
-
-	r = mesh.Select(VERTEX, xmin, xmax);
-
-	for (auto s : r)
-	{
-		auto x = mesh.GetCoordinates(s);
-
-		ASSERT_LE(xmin[0], x[0]);
-		ASSERT_LE(xmin[1], x[1]);
-		ASSERT_LE(xmin[2], x[2]);
-		ASSERT_GE(xmax[0], x[0]);
-		ASSERT_GE(xmax[1], x[1]);
-		ASSERT_GE(xmax[2], x[2]);
-
-		data.insert(s);
-	}
-	CHECK(data.size());
-
-//	for (auto s : mesh.Select(VERTEX))
+//TEST_P(TestMesh, select )
+//{
+//	auto r = mesh.Select(VERTEX);
+//
+//	std::set<typename mesh_type::compact_index_type> data;
+//
+//	for (auto s : r)
+//	{
+//		data.insert(s);
+//	}
+//
+//	EXPECT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
+//
+//	data.clear();
+//
+//	auto extents = mesh.GetExtents();
+//	auto xmin = extents.first + (extents.second - extents.first) * 0.25;
+//	auto xmax = extents.first + (extents.second - extents.first) * 0.75;
+//
+//	r = mesh.Select(VERTEX, xmin, xmax);
+//
+//	for (auto s : r)
 //	{
 //		auto x = mesh.GetCoordinates(s);
 //
-//		if ((xmin[0] <= x[0]) && (xmin[1] <= x[1]) && (xmin[2] <= x[2]) && (xmax[0] >= x[0]) && (xmax[1] >= x[1])
-//		        && (xmax[2] >= x[2]))
-//		{
-//			EXPECT_TRUE(data.find(s) != data.end()) << s;
-//		}
-//		else
-//		{
-//			EXPECT_TRUE(data.find(s) == data.end()) << s;
-//		}
+//		ASSERT_LE(xmin[0], x[0]);
+//		ASSERT_LE(xmin[1], x[1]);
+//		ASSERT_LE(xmin[2], x[2]);
+//		ASSERT_GE(xmax[0], x[0]);
+//		ASSERT_GE(xmax[1], x[1]);
+//		ASSERT_GE(xmax[2], x[2]);
 //
+//		data.insert(s);
 //	}
-
-}
+//	CHECK(data.size());
+//
+////	for (auto s : mesh.Select(VERTEX))
+////	{
+////		auto x = mesh.GetCoordinates(s);
+////
+////		if ((xmin[0] <= x[0]) && (xmin[1] <= x[1]) && (xmin[2] <= x[2]) && (xmax[0] >= x[0]) && (xmax[1] >= x[1])
+////		        && (xmax[2] >= x[2]))
+////		{
+////			EXPECT_TRUE(data.find(s) != data.end()) << s;
+////		}
+////		else
+////		{
+////			EXPECT_TRUE(data.find(s) == data.end()) << s;
+////		}
+////
+////	}
+//
+//}
 
 //
 ////TEST_P(TestMesh,scatter )

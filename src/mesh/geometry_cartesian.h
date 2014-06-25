@@ -351,12 +351,13 @@ struct CartesianGeometry: public TTopology
 		*px = CoordinatesToTopology(*px);
 		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
 	}
-	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
-	        typename topology_type::compact_index_type shift = 0UL) const
-	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesToIndex(px, shift);
-	}
+//	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
+//	        typename topology_type::compact_index_type shift = 0UL) const
+//	{
+//		*px = CoordinatesToTopology(*px);
+//		return topology_type::CoordinatesToIndex(px, shift);
+//	}
+
 	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
 	{
 		return x;

@@ -112,7 +112,15 @@ TEST_P(TestFETL, grad3)
 		average += (f2[s] - expect);
 
 		if (abs(f2[s]) > epsilon || abs(expect) > epsilon)
+		{
+			if (abs(2.0 * (f2[s] - expect) / (f2[s] + expect)) > error)
+			{
+				CHECK(f2[s]);
+				CHECK(expect);
+				CHECK(mesh.GetCoordinates(s));
+			}
 			ASSERT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error);
+		}
 
 	}
 
@@ -156,7 +164,15 @@ TEST_P(TestFETL, diverge1)
 		auto x = mesh.GetCoordinates(s);
 
 		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
-			ASSERT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
+		{
+			if (abs(2.0 * (f0[s] - expect) / (f0[s] + expect)) > error)
+			{
+				CHECK(f0[s]);
+				CHECK(expect);
+				CHECK(mesh.GetCoordinates(s));
+			}
+			EXPECT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
+		}
 
 	}
 

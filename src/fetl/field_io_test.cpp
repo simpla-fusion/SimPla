@@ -10,9 +10,9 @@
 
 #include "../utilities/log.h"
 
-#include "../mesh/octree_forest.h"
+#include "../mesh/uniform_array.h"
 #include "../mesh/mesh_rectangle.h"
-#include "../mesh/geometry_euclidean.h"
+#include "../mesh/geometry_cartesian.h"
 #include <iostream>
 #include "../parallel/parallel.h"
 #include "../utilities/log.h"
@@ -36,7 +36,7 @@ int main(int argc, char **argv)
 	nTuple<3, size_t> dims =
 	{	32, 20, 5};
 
-	typedef Mesh< EuclideanGeometry<OcForest<>>> mesh_type;
+	typedef Mesh< CartesianGeometry<UniformArray >> mesh_type;
 
 	mesh_type mesh;
 
