@@ -373,25 +373,25 @@ struct UniformArray
 			if (( global_end_[i]-global_begin_[i]) <= 1)
 			{
 
-				volume_[1UL << i] = 1.0;
+				volume_[1UL << (NDIMS - i - 1)] = 1.0;
 
-				dual_volume_[7 - (1UL << i)] = 1.0;
+				dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0;
 
-				inv_volume_[1UL << i] = 1.0;
+				inv_volume_[1UL << (NDIMS - i - 1)] = 1.0;
 
-				inv_dual_volume_[7 - (1UL << i)] = 1.0;
+				inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0;
 
 			}
 			else
 			{
 
-				volume_[1UL << i] = 1.0 / static_cast<Real>(( global_end_[i]-global_begin_[i]));
+				volume_[1UL << (NDIMS - i - 1)] = 1.0 / static_cast<Real>(( global_end_[i]-global_begin_[i]));
 
-				dual_volume_[7 - (1UL << i)] = 1.0 / static_cast<Real>(( global_end_[i]-global_begin_[i]));
+				dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0 / static_cast<Real>(( global_end_[i]-global_begin_[i]));
 
-				inv_volume_[1UL << i] = static_cast<Real>(( global_end_[i]-global_begin_[i]));
+				inv_volume_[1UL << (NDIMS - i - 1)] = static_cast<Real>(( global_end_[i]-global_begin_[i]));
 
-				inv_dual_volume_[7 - (1UL << i)] = static_cast<Real>(( global_end_[i]-global_begin_[i]));
+				inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = static_cast<Real>(( global_end_[i]-global_begin_[i]));
 
 			}
 

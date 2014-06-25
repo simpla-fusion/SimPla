@@ -36,14 +36,14 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry()
-			: topology_type()
+	CartesianGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CartesianGeometry(TDict const & dict)
-			: topology_type(dict)
+	CartesianGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -74,15 +74,20 @@ struct CartesianGeometry: public TTopology
 		return dt_;
 	}
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	coordinates_type xmax_ =
+	{ 1, 1, 1 };
 
-	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type shift_ =
+	{ 0, 0, 0 };
 
 	/**
 	 *
@@ -105,20 +110,24 @@ struct CartesianGeometry: public TTopology
 	 *
 	 */
 
-	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1  //111
-	        };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
@@ -165,7 +174,7 @@ struct CartesianGeometry: public TTopology
 	}
 
 	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
-	        nTuple<NDIMS, Real> const & dims)
+			nTuple<NDIMS, Real> const & dims)
 	{
 		SetExtents(pmin, pmax);
 		topology_type::SetDimensions(dims);
@@ -206,13 +215,13 @@ struct CartesianGeometry: public TTopology
 
 				length_[i] = (xmax_[i] - xmin_[i]);
 
-				volume_[1UL << i] = length_[i];
+				volume_[1UL << (NDIMS - i - 1)] = length_[i];
 
-				dual_volume_[7 - (1UL << i)] = length_[i];
+				dual_volume_[7 - (1UL << (NDIMS - i - 1))] = length_[i];
 
-				inv_volume_[1UL << i] = inv_length_[i];
+				inv_volume_[1UL << (NDIMS - i - 1)] = inv_length_[i];
 
-				inv_dual_volume_[7 - (1UL << i)] = inv_length_[i];
+				inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = inv_length_[i];
 
 			}
 		}
@@ -310,7 +319,8 @@ struct CartesianGeometry: public TTopology
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		x[0] * length_[0] + shift_[0],
 
@@ -323,7 +333,8 @@ struct CartesianGeometry: public TTopology
 	}
 	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -341,22 +352,10 @@ struct CartesianGeometry: public TTopology
 	}
 
 	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
-	        typename topology_type::compact_index_type shift = 0UL) const
+			typename topology_type::compact_index_type shift = 0UL) const
 	{
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
-	compact_index_type CoordinatesGlobalToLocalDual(coordinates_type * px,
-	        typename topology_type::compact_index_type shift = 0UL) const
-	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
-	}
-//	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
-//	        typename topology_type::compact_index_type shift = 0UL) const
-//	{
-//		*px = CoordinatesToTopology(*px);
-//		return topology_type::CoordinatesToIndex(px, shift);
-//	}
 
 	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
 	{
@@ -430,7 +429,7 @@ struct CartesianGeometry: public TTopology
 
 	template<int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
+			nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}
