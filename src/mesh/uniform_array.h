@@ -755,7 +755,8 @@ struct UniformArray
 
 	inline index_type Hash(compact_index_type s) const
 	{
-		auto d = (Decompact(s) >> (INDEX_DIGITS - depth_of_trees_)) - local_outer_begin_ + local_outer_end_- local_outer_begin_;
+		//@FIXME  when idx<0, this is wrong
+		auto d = (Decompact(s&(~_DA)) >> (INDEX_DIGITS - depth_of_trees_))+ global_end_- global_begin_ - local_outer_begin_;
 
 		index_type res =
 
