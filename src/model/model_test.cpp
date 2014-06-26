@@ -181,6 +181,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 	for (auto s : TestFixture::model->SelectByMaterial(TestFixture::IForm, "Vacuum"))
 	{
+		CHECK(s);
 		f[s] = 1;
 	}
 	LOGGER << SAVE(f);
