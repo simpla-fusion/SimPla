@@ -256,6 +256,9 @@ public:
 	template<typename TR>
 	filter_range_type<TR> SelectByPolylines(TR && range, PointInPolygen checkPointsInPolygen) const;
 
+	template<typename TR>
+	filter_range_type<TR> SelectByPoints(TR && range, std::vector<coordinates_type>const & points) const;
+
 	auto Select(unsigned int iform) const
 	DECL_RET_TYPE( (mesh.Select(iform)))
 
@@ -272,8 +275,8 @@ public:
 	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
-	auto SelectByPoint(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPoint(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	auto SelectByPoints(int iform, Args &&...args) const
+	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByRectangle(int iform, Args &&...args) const
@@ -348,6 +351,20 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	}
 	return filter_range_type<TR>();
 }
+template<typename TM> template<typename TR>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR && range,
+        std::vector<coordinates_type>const & points) const
+{
+	if (points.size() == 2)
+	{
+		return std::move(SelectByRectangle(range, points[0], points[1]));
+	}
+	else
+	{
+		return std::move(SelectByPolylines(range, PointInPolygen(points)));
+	}
+}
+
 template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(TR &&r,
         std::function<bool(coordinates_type)> fun) const

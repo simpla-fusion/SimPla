@@ -173,7 +173,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 TYPED_TEST_P(TestModel,SelectByMaterial ){
 {
 
-	TestFixture::model->Set( TestFixture::model->SelectByPolylines(VERTEX, TestFixture::points), "Vacuum");
+	TestFixture::model->Set( TestFixture::model->SelectByPoints(VERTEX, TestFixture::points), "Vacuum");
 
 	Field<typename TestFixture::mesh_type, TestFixture::IForm,Real> f(TestFixture::mesh);
 
@@ -181,7 +181,6 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 	for (auto s : TestFixture::model->SelectByMaterial(TestFixture::IForm, "Vacuum"))
 	{
-		CHECK(s);
 		f[s] = 1;
 	}
 	LOGGER << SAVE(f);
