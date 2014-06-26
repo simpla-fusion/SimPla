@@ -53,14 +53,12 @@ TEST_P(TestFETL, grad0)
 
 		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
 		{
-//			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
-//			{
-//				CHECK(mesh.Sample(Int2Type<EDGE>(), s, K));
-//				CHECK(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
-//				CHECK(f1[s]);
-//				CHECK(expect);
-//				CHECK(error);
-//			}
+			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
+			{
+  				CHECK(f1[s]);
+				CHECK(expect);
+				CHECK(error);
+			}
 			ASSERT_GE(error, abs(2.0 * (f1[s] - expect) / (f1[s] + expect)));
 
 		}

@@ -43,14 +43,14 @@ struct CylindricalGeometry: public TTopology
 
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry()
-			: topology_type()
+	CylindricalGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CylindricalGeometry(TDict const & dict)
-			: topology_type(dict)
+	CylindricalGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -81,15 +81,20 @@ struct CylindricalGeometry: public TTopology
 		return dt_;
 	}
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	coordinates_type xmax_ =
+	{ 1, 1, 1 };
 
-	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type shift_ =
+	{ 0, 0, 0 };
 
 	/**
 	 *
@@ -112,20 +117,24 @@ struct CylindricalGeometry: public TTopology
 	 *
 	 */
 
-	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1  //111
-	        };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
@@ -172,7 +181,7 @@ struct CylindricalGeometry: public TTopology
 	}
 
 	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
-	        nTuple<NDIMS, Real> const & dims)
+			nTuple<NDIMS, Real> const & dims)
 	{
 		SetExtents(pmin, pmax);
 		topology_type::SetDimensions(dims);
@@ -303,12 +312,18 @@ struct CylindricalGeometry: public TTopology
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type const & GetDx() const
+	inline coordinates_type GetDx() const
 	{
-		auto d = topology_type::GetDimensions();
+
 		coordinates_type res;
+
+		auto d = topology_type::GetDx();
+
 		for (int i = 0; i < NDIMS; ++i)
-			res[i] = length_[i] / d[i];
+		{
+			res[i] = length_[i] * d[i];
+		}
+
 		return std::move(res);
 	}
 
@@ -321,7 +336,8 @@ struct CylindricalGeometry: public TTopology
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		x[0] * length_[0] + shift_[0],
 
@@ -334,7 +350,8 @@ struct CylindricalGeometry: public TTopology
 	}
 	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -351,23 +368,10 @@ struct CylindricalGeometry: public TTopology
 		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...));
 	}
 
-	compact_index_type CoordinatesGlobalToLocal(coordinates_type * px,
-	        typename topology_type::compact_index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+			typename topology_type::compact_index_type shift = 0UL) const
 	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesGlobalToLocal(px, shift);
-	}
-	compact_index_type CoordinatesGlobalToLocalDual(coordinates_type * px,
-	        typename topology_type::compact_index_type shift = 0UL) const
-	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesGlobalToLocalDual(px, shift);
-	}
-	inline nTuple<NDIMS, index_type> CoordinatesToIndex(coordinates_type *px,
-	        typename topology_type::compact_index_type shift = 0UL) const
-	{
-		*px = CoordinatesToTopology(*px);
-		return topology_type::CoordinatesToIndex(px, shift);
+		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 	coordinates_type CoordinatesToCartesian(coordinates_type const &r) const
 	{
@@ -386,7 +390,7 @@ struct CylindricalGeometry: public TTopology
 
 		r[ZAxis] = x[ZAxis];
 		r[(ZAxis + 1) % 3] = std::sqrt(
-		        x[(ZAxis + 1) % 3] * x[(ZAxis + 1) % 3] + x[(ZAxis + 2) % 3] * x[(ZAxis + 2) % 3]);
+				x[(ZAxis + 1) % 3] * x[(ZAxis + 1) % 3] + x[(ZAxis + 2) % 3] * x[(ZAxis + 2) % 3]);
 		r[(ZAxis + 2) % 3] = std::atan2(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 
 		return r;
@@ -454,7 +458,7 @@ struct CylindricalGeometry: public TTopology
 
 	template<int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
+			nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}
@@ -488,27 +492,31 @@ struct CylindricalGeometry: public TTopology
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::Volume(s) * volume_[n]
-		        * (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
+//		        * (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		;
 	}
 
 	scalar_type InvVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)]
-		        / (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
+//		        / (((n & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		;
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)]
-		        * ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
+//				* ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		;
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)]
-		        / ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0);
+//				/ ((((~n) & (1UL << ZAxis)) > 0) ? GetCoordinates(s)[(ZAxis + 1) % 3] : 1.0)
+		;
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const
