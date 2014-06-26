@@ -201,13 +201,13 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
 		{
-			EXPECT_EQ(1,f[s] ) << ( TestFixture::mesh.GetCoordinates(s));
+			ASSERT_EQ(1,f[s] ) << ( TestFixture::mesh.GetCoordinates(s));
 		}
 
 		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
 				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
 		{
-			EXPECT_NE(1,f[s]) << ( TestFixture::mesh.GetCoordinates(s));
+			ASSERT_NE(1,f[s]) << ( TestFixture::mesh.GetCoordinates(s));
 		}
 	}
 

@@ -261,10 +261,9 @@ void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 		auto p = pt;
 		++pt;
 
-		key_type id_dest = mesh.CoordinatesGlobalToLocal(&(p->x), shift);
-
-		p->x = mesh.CoordinatesLocalToGlobal(id_dest, p->x);
-		auto & dest = GetCell(p_dest_contianer, id_dest);
+		auto id = mesh.CoordinatesGlobalToLocal((p->x), shift);
+		p->x = mesh.CoordinatesLocalToGlobal(std::get<0>(id), std::get<1>(id));
+		auto & dest = GetCell(p_dest_contianer, std::get<0>(id));
 		dest.splice(dest.begin(), *p_src, p);
 
 	}

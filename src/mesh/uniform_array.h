@@ -509,7 +509,12 @@ struct UniformArray
 	}
 
 	inline coordinates_type
-	CoordinatesLocalToGlobal(std::tuple<compact_index_type,coordinates_type> const& v)const
+	CoordinatesLocalToGlobal(compact_index_type s ,coordinates_type x )const
+	{
+		return std::move(CoordinatesLocalToGlobal(std::make_tuple(s,x)));
+	}
+	template<typename TI> inline coordinates_type
+	CoordinatesLocalToGlobal(TI const& v)const
 	{
 		coordinates_type r= std::get<1>(v) / static_cast<Real>(1UL << ( DepthOfTree(std::get<0>(v)) ));
 		r[0]*=inv_extents_[0];
@@ -556,6 +561,7 @@ struct UniformArray
 
 		return std::move(std::make_tuple( s,x));
 	}
+
 //***************************************************************************************************
 //* Auxiliary functions
 //***************************************************************************************************
@@ -809,7 +815,9 @@ struct UniformArray
 		compact_index_type shift_;
 
 		bool is_fast_first_ = true;
-
+		iterator( )
+		{
+		}
 		iterator(iterator const & r)
 		: self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
 		{

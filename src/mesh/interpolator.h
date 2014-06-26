@@ -34,13 +34,15 @@ public:
 	static inline typename TF::value_type Gather_(TF const &f, coordinates_type r, compact_index_type shift)
 	{
 		mesh_type const & mesh = f.mesh;
-		mesh.geometry_type::CoordinatesGlobalToLocal(&r);
 
 		auto X = topology_type::DeltaIndex(0, shift);
 		auto Y = topology_type::DeltaIndex(1, shift);
 		auto Z = topology_type::DeltaIndex(2, shift);
 
-		auto s = mesh.topology_type::CoordinatesGlobalToLocal(&r, shift) + topology_type::DeltaIndex(shift);
+		auto idx = mesh.topology_type::CoordinatesGlobalToLocal(r, shift);
+		r = std::get<1>(idx);
+
+		auto s = std::get<0>(idx) + topology_type::DeltaIndex(shift);
 
 		return
 
@@ -114,9 +116,11 @@ public:
 		auto Y = topology_type::DeltaIndex(1, shift);
 		auto Z = topology_type::DeltaIndex(2, shift);
 
-		mesh.geometry_type::CoordinatesGlobalToLocal(&r);
+		auto idx = mesh.topology_type::CoordinatesGlobalToLocal(r, shift);
 
-		auto s = mesh.topology_type::CoordinatesGlobalToLocal(&r, shift) + topology_type::DeltaIndex(shift);
+		r = std::get<1>(idx);
+
+		auto s = std::get<0>(idx) + topology_type::DeltaIndex(shift);
 
 		f->get(((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
 

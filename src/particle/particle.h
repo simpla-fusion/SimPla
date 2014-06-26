@@ -244,7 +244,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 		Cache<TB const &> cB(B);
 		Cache<typename engine_type::J_type*> cJ(&J);
 
-		for(auto s: this->mesh.Select(IForm).Split(t_num,t_id))
+		for(auto s: Split( this->mesh.Select(IForm),t_num,t_id))
 		{
 			RefreshCache(s,cE,cB,cJ);
 			for (auto & p : this->at(s) )
@@ -283,7 +283,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 		Cache<TE const &> cE(E);
 		Cache<TB const &> cB(B);
 
-		for(auto s: this->mesh.Select(IForm).Split(t_num,t_id))
+		for(auto s:Split(this->mesh.Select(IForm),t_num,t_id))
 		{
 			RefreshCache(s,cE,cB);
 			for (auto & p : this->at(s) )

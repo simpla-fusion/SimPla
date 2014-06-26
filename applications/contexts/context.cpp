@@ -12,10 +12,9 @@
 #include <new>
 #include <string>
 
-#include "../../src/mesh/octree_forest.h"
+#include "../../src/mesh/uniform_array.h"
+#include "../../src/mesh/geometry_cartesian.h"
 #include "../../src/mesh/mesh_rectangle.h"
-#include "../../src/mesh/geometry_euclidean.h"
-
 #include "../../src/utilities/primitives.h"
 #include "../../src/utilities/log.h"
 #include "../../src/utilities/lua_state.h"
@@ -67,12 +66,12 @@ void Context::Load(LuaObject const & dict)
 
 		if (mesh_str == "RectMesh")
 		{
-			CreateContext<ExplicitEMContext<Mesh<EuclideanGeometry<OcForest<Real>>> >>(this, dict);
+			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>> >>(this, dict);
 
 		}
 		else if (mesh_str == "RectMeshKz")
 		{
-			CreateContext<ExplicitEMContext<Mesh<EuclideanGeometry<OcForest<Complex>>>>>(this, dict);
+			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray,true>> >>(this, dict);
 		}
 		else
 		{
