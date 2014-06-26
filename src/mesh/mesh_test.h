@@ -262,22 +262,28 @@ TEST_P(TestMesh, coordinates)
 
 TEST_P(TestMesh, volume)
 {
-	auto range0 = mesh.Select(VERTEX);
-	auto range1 = mesh.Select(EDGE);
-	auto range2 = mesh.Select(FACE);
-	auto range3 = mesh.Select(VOLUME);
 
-	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range0)) * mesh.Volume(*begin(range3)),
-	        mesh.Volume(*begin(range1)) * mesh.Volume(*begin(range2)));
+	auto s0 = mesh.get_first_node_shift(VERTEX);
+	auto s1 = mesh.get_first_node_shift(EDGE);
+	auto s2 = mesh.get_first_node_shift(FACE);
+	auto s3 = mesh.get_first_node_shift(VOLUME);
 
-	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range0)), mesh.DualVolume(*begin(range3)));
-	EXPECT_DOUBLE_EQ(mesh.Volume(*begin(range1)), mesh.DualVolume(*begin(range2)));
+	auto dx = mesh.GetDx();
 
-	auto s = *begin(range1);
+	EXPECT_DOUBLE_EQ(mesh.Volume(s0) * mesh.Volume(s3), mesh.Volume(s1) * mesh.Volume(s2));
+	EXPECT_DOUBLE_EQ(mesh.Volume(s0), mesh.DualVolume(s3));
+	EXPECT_DOUBLE_EQ(mesh.Volume(s1), mesh.DualVolume(s2));
 
-	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s + mesh.DeltaIndex(s)));
-	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s - mesh.DeltaIndex(s)));
+	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s0));
+	EXPECT_DOUBLE_EQ(dx[0] , mesh.Volume(s1)) << dx;
+	EXPECT_DOUBLE_EQ(dx[1] , mesh.Volume(mesh.Roate(s1))) << dx;
+	EXPECT_DOUBLE_EQ(dx[2] , mesh.Volume(mesh.InverseRoate(s1))) << dx;
 
+	CHECK(mesh.topology_type::volume_[0]);
+	CHECK(mesh.topology_type::volume_[1]);
+	CHECK(mesh.topology_type::volume_[2]);
+	CHECK(mesh.topology_type::volume_[4]);
+	CHECK(mesh.Volume(s1));
 //	auto X = mesh.topology_type::DI(0, s);
 //	auto Y = mesh.topology_type::DI(1, s);
 //	auto Z = mesh.topology_type::DI(2, s);

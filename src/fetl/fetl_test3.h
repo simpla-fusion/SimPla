@@ -43,7 +43,7 @@ TEST_P(TestFETL, grad0)
 	{
 
 		auto expect = mesh.Sample(Int2Type<EDGE>(), s, K)
-				* std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+		        * std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
 
 		f1b[s] = expect;
 
@@ -53,14 +53,14 @@ TEST_P(TestFETL, grad0)
 
 		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
 		{
-			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
-			{
-				CHECK(mesh.Sample(Int2Type<EDGE>(), s, K));
-				CHECK(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
-				CHECK(f1[s]);
-				CHECK(expect);
-				CHECK(error);
-			}
+//			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
+//			{
+//				CHECK(mesh.Sample(Int2Type<EDGE>(), s, K));
+//				CHECK(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+//				CHECK(f1[s]);
+//				CHECK(expect);
+//				CHECK(error);
+//			}
 			ASSERT_GE(error, abs(2.0 * (f1[s] - expect) / (f1[s] + expect)));
 
 		}
@@ -75,8 +75,7 @@ TEST_P(TestFETL, grad0)
 
 TEST_P(TestFETL, grad3)
 {
-	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/grad3");
+
 	Real error = 0.5 * std::pow(InnerProductNTuple(K, mesh.GetDx()), 2.0);
 
 	Field<mesh_type, FACE, scalar_type> f2(mesh);
@@ -92,11 +91,7 @@ TEST_P(TestFETL, grad3)
 		f3[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
 
-	LOGGER << SAVE(f3);
-
 	LOG_CMD(f2 = Grad(f3));
-
-	LOGGER << SAVE(f2);
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -122,7 +117,7 @@ TEST_P(TestFETL, grad3)
 				CHECK(expect);
 				CHECK(mesh.GetCoordinates(s));
 			}
-			ASSERT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error);
+			EXPECT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error);
 		}
 
 	}
@@ -168,12 +163,12 @@ TEST_P(TestFETL, diverge1)
 
 		if ((abs(f0[s]) > epsilon || abs(expect) > epsilon))
 		{
-			if (abs(2.0 * (f0[s] - expect) / (f0[s] + expect)) > error)
-			{
-				CHECK(f0[s]);
-				CHECK(expect);
-				CHECK(mesh.GetCoordinates(s));
-			}
+//			if (abs(2.0 * (f0[s] - expect) / (f0[s] + expect)) > error)
+//			{
+//				CHECK(f0[s]);
+//				CHECK(expect);
+//				CHECK(mesh.GetCoordinates(s));
+//			}
 			EXPECT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error);
 		}
 
@@ -252,9 +247,11 @@ TEST_P(TestFETL, curl1)
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
-
+//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
+//	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
+//	LOGGER << SAVE(vf1);
 	LOG_CMD(vf2 = Curl(vf1));
-
+//	LOGGER << SAVE(vf2);
 	for (auto s : mesh.Select(FACE))
 	{
 		auto n = mesh.ComponentNum(s);
@@ -268,15 +265,15 @@ TEST_P(TestFETL, curl1)
 
 		if ((abs(vf2[s]) > epsilon || abs(expect) > epsilon))
 		{
-			if (abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)) > error)
-			{
-				CHECK(n);
-				CHECK(K);
-				CHECK(mesh.GetCoordinates(s));
-				CHECK(std::cos(InnerProductNTuple(K, mesh.GetCoordinates(s))));
-				CHECK(vf2[s]);
-				CHECK(expect);
-			}
+//			if (abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)) > error)
+//			{
+//				CHECK(n);
+//				CHECK(K);
+//				CHECK(mesh.GetCoordinates(s));
+//				CHECK(std::cos(InnerProductNTuple(K, mesh.GetCoordinates(s))));
+//				CHECK(vf2[s]);
+//				CHECK(expect);
+//			}
 			ASSERT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error);
 
 		}

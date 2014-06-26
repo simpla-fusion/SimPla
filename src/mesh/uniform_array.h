@@ -158,9 +158,13 @@ struct UniformArray
 
 	coordinates_type GetDx() const
 	{
+		auto d=GetDimensions();
 		coordinates_type res;
 
-		for (int i = 0; i < NDIMS; ++i) res[i] = 1.0/static_cast<Real>(( global_end_[i]-global_begin_[i]));
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			res[i] = 1.0/static_cast<Real>(d[i] );
+		}
 
 		return std::move(res);
 	}
@@ -748,7 +752,7 @@ struct UniformArray
 	inline index_type Hash(compact_index_type s) const
 	{
 		//@FIXME  when idx<0, this is wrong
-		auto d = Decompact(s)-local_outer_begin_;
+		nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
 
 		index_type res =
 
