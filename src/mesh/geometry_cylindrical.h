@@ -21,7 +21,7 @@ namespace simpla
  *
  *   R Z phi
  */
-template<typename TTopology, int IZAxis = 2>
+template<typename TTopology, int IZAxis = 2, bool EnableSpectralMethod = false>
 struct CylindricalGeometry: public TTopology
 {
 	typedef TTopology topology_type;
@@ -34,7 +34,7 @@ struct CylindricalGeometry: public TTopology
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::scalar_type scalar_type;
+	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 

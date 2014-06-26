@@ -6,7 +6,7 @@
  */
 
 #include "../mesh/mesh_rectangle.h"
-#include "../mesh/octree_forest.h"
+#include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cylindrical.h"
 
 #define TMESH Mesh<CylindricalGeometry<UniformArray>>

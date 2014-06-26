@@ -39,8 +39,8 @@ protected:
 
 		points.emplace_back(coordinates_type( { 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
-		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
-		GLOBAL_DATA_STREAM.OpenGroup("/");
+//		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
+//		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 public:
 
@@ -54,14 +54,11 @@ public:
 	static constexpr unsigned int IForm = TInt::value;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	nTuple<NDIMS, Real> xmin=
-	{	0.0, 0.0, 0.0,};
+	nTuple<NDIMS, Real> xmin = { 0.0, 0.0, 0.0, };
 
-	nTuple<NDIMS, Real> xmax=
-	{	1.0, 2.0, 3.0};
+	nTuple<NDIMS, Real> xmax = { 1.0, 2.0, 3.0 };
 
-	nTuple<NDIMS, size_t> dims=
-	{	50, 60, 10};
+	nTuple<NDIMS, size_t> dims = { 50, 60, 10 };
 
 	std::shared_ptr<model_type> model;
 
@@ -104,7 +101,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 		;
 	}
-	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
 	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
 		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
@@ -130,7 +127,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 		}
 	}
 
-	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
 
 }}
 
@@ -166,7 +163,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 
 		;
 	}
-	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
 
 }}
 
@@ -183,7 +180,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 	{
 		f[s] = 1;
 	}
-	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
 
 	typename TestFixture::coordinates_type v0, v1, v2, v3;
 	for (int i = 0; i < TestFixture::NDIMS; ++i)
@@ -234,7 +231,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 	{
 		f[s] = -10;
 	}
-	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
 
 }}
 
