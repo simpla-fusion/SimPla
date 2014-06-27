@@ -262,7 +262,7 @@ struct CylindricalGeometry: public TTopology
 	{
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
-	coordinates_type CoordinatesToCartesian(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type x;
 
@@ -273,7 +273,7 @@ struct CylindricalGeometry: public TTopology
 		return std::move(x);
 	}
 
-	coordinates_type CoordinatesFromCartesian(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type r;
 
@@ -281,17 +281,10 @@ struct CylindricalGeometry: public TTopology
 		r[RAxis] = std::sqrt(
 				x[(CartesianZAxis + 1) % 3] * x[(CartesianZAxis + 1) % 3]
 						+ x[(CartesianZAxis + 2) % 3] * x[(CartesianZAxis + 2) % 3]);
-		r[ThetaAxis] = std::atan2(x[(CartesianZAxis + 1) % 3], x[(CartesianZAxis + 2) % 3]);
+		r[ThetaAxis] = std::atan2(x[(CartesianZAxis + 2) % 3], x[(CartesianZAxis + 1) % 3]);
 
 		return r;
 	}
-
-	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
-
-	template<typename ...Args>
-	auto Select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
 
 	/**
 	 *
@@ -302,13 +295,28 @@ struct CylindricalGeometry: public TTopology
 	 * @param ZAxisOfVector
 	 * @return  (r,z,theta)
 	 *          v = v[RAixs] \partial_r +  v[1] 1/x[RAxis] \partial_theta + v[ZAixs] \partial_z
+	 *
+	 *
+	 *
+	 *
+	 *
+	 *     theta   y   r
+	 *          \  |  /
+	 *           \ | /
+	 *            \|/------x
+	 *          y  /
+	 *          | /
+	 *          |/)theta
+	 *          0------x
+	 *
+	 *
 	 */
 
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
 			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
 	{
-		coordinates_type r = CoordinatesFromCartesian(std::get<0>(Z), CartesianZAxis);
+		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
 
 		auto const & v = std::get<1>(Z);
 
@@ -318,9 +326,9 @@ struct CylindricalGeometry: public TTopology
 
 		u[ZAxis] = v[CartesianZAxis % 3];
 
-		u[RAxis] = v[(CartesianZAxis + 2) % 3] * c + v[(CartesianZAxis + 1) % 3] * s;
+		u[RAxis] = v[(CartesianZAxis + 1) % 3] * c + v[(CartesianZAxis + 2) % 3] * s;
 
-		u[ThetaAxis] = (v[(CartesianZAxis + 2) % 3] * s - v[(CartesianZAxis + 1) % 3] * c) / r[RAxis];
+		u[ThetaAxis] = (-v[(CartesianZAxis + 1) % 3] * s + v[(CartesianZAxis + 2) % 3] * c) / r[RAxis];
 
 		return std::move(std::make_tuple(r, u));
 	}
@@ -344,12 +352,19 @@ struct CylindricalGeometry: public TTopology
 
 		nTuple<NDIMS, TV> v;
 
-		v[(CartesianZAxis + 1) % 3] = u[ThetaAxis] * r[RAxis] * c + u[RAxis] * s;
-		v[(CartesianZAxis + 2) % 3] = -u[ThetaAxis] * r[RAxis] * s + u[RAxis] * c;
+		v[(CartesianZAxis + 1) % 3] = u[RAxis] * c - u[ThetaAxis] * r[RAxis] * s;
+		v[(CartesianZAxis + 2) % 3] = u[RAxis] * s + u[ThetaAxis] * r[RAxis] * c;
 		v[(CartesianZAxis + 3) % 3] = u[ZAxis];
 
-		return std::move(std::make_tuple(CoordinatesToCartesian(r), v));
+		return std::move(std::make_tuple(InvMapTo(r), v));
 	}
+
+	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+
+	template<typename ...Args>
+	auto Select(unsigned int iform, Args && ...args) const
+	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
 
 	template<typename TV>
 	TV const& Normal(index_type s, TV const & v) const

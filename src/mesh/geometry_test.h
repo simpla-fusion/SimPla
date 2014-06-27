@@ -196,8 +196,8 @@ TEST_P(TestGeometry,conversion)
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 	auto z = std::make_tuple(x, v);
 
-	EXPECT_EQ(x, geometry.CoordinatesToCartesian(geometry.CoordinatesFromCartesian(x)));
-	EXPECT_EQ(x, geometry.CoordinatesFromCartesian(geometry.CoordinatesToCartesian(x)));
+	EXPECT_EQ(x, geometry.InvMapTo(geometry.MapTo(x)));
+	EXPECT_EQ(x, geometry.MapTo(geometry.InvMapTo(x)));
 
 	auto z1 = geometry.PushForward(geometry.PullBack(z));
 	EXPECT_EQ(std::get<0>(z), std::get<0>(z1));
