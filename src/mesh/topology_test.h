@@ -74,6 +74,16 @@ public:
 //	CHECK(mesh.GetCoordinates(s0 + d));
 //}
 
+//TEST_P(TestTopology,misc)
+//{
+//	EXPECT_EQ(NProduct(dims), topology.GetNumOfElements());
+//
+//	for (auto s : topology.Select(VERTEX))
+//	{
+//		CHECK(topology.GetCoordinates(s)) << dims;
+//	}
+//}
+
 TEST_P(TestTopology, compact_index_type)
 {
 

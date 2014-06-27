@@ -16,24 +16,24 @@
 
 using namespace simpla;
 
-INSTANTIATE_TEST_CASE_P(Test_CylindricalGeometry, TestGeometry,
+INSTANTIATE_TEST_CASE_P(CylindricalGeometry, TestGeometry,
 
 testing::Combine(
 
 testing::Values(nTuple<3, Real>( { 1.0, 0.0, 0.0, }) //
-        , nTuple<3, Real>( { 1.0, -2.0, -3.0 })    //
+//        , nTuple<3, Real>( { 1.0, -2.0, -3.0 })    //
 //        , nTuple<3, Real>( { 1.0, 1.0, 1.0 })    //
         ),
 
 testing::Values(
 //
-        nTuple<3, Real>( { 2.0, 0.0, 0.0 }), //
-        nTuple<3, Real>( { 0.0, 2.0, 0.0 }), //
-        nTuple<3, Real>( { 0.0, 0.0, 2.0 }), //
-        nTuple<3, Real>( { 0.0, 2.0, 2.0 }), //
-        nTuple<3, Real>( { 2.0, 0.0, 2.0 }), //
-        nTuple<3, Real>( { 2.0, 2.0, 0.0 }), //
-        nTuple<3, Real>( { 1.0, 3.0, 2.0 })  //
+        nTuple<3, Real>( { 2.0, 0.0, 0.0 }) //,
+//        nTuple<3, Real>( { 0.0, 2.0, 0.0 }), //
+//        nTuple<3, Real>( { 0.0, 0.0, 2.0 }), //
+//        nTuple<3, Real>( { 0.0, 2.0, 2.0 }), //
+//        nTuple<3, Real>( { 2.0, 0.0, 2.0 }), //
+//        nTuple<3, Real>( { 2.0, 2.0, 0.0 }), //
+//        nTuple<3, Real>( { 1.0, 3.0, 2.0 })  //
 
                 ),
 

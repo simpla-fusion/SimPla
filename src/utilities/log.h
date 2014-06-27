@@ -55,8 +55,8 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int level = LOG_INFORM) :
-			std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int level = LOG_INFORM)
+			: std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -232,25 +232,25 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger() :
-			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
+	Logger()
+			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
 	{
 	}
 
-	Logger(Logger const & r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_), endl_(r.endl_)
+	Logger(Logger const & r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(Logger && r) :
-			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
-					r.indent_), endl_(r.endl_)
+	Logger(Logger && r)
+			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0) :
-			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
+	Logger(int lv, size_t indent = 0)
+			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
 	{
 		buffer_ << std::boolalpha;
 
@@ -417,13 +417,13 @@ private:
 
 #define VERBOSE Logger(LOG_VERBOSE)
 
-#define ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));
+#define ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));}
 
-#define RUNTIME_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error(""));
+#define RUNTIME_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error(""));}
 
-#define LOGIC_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));
+#define LOGIC_ERROR(_MSG_)  {{Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error(""));}
 
-#define OUT_RANGE_ERROR(_MSG_)  {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range(""));
+#define OUT_RANGE_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range(""));}
 
 #define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:\n\t"<< "Can not get enough memory! [ "  \
         << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
@@ -501,8 +501,8 @@ struct SetLineWidth
 {
 	int width_;
 
-	SetLineWidth(int width) :
-			width_(width)
+	SetLineWidth(int width)
+			: width_(width)
 	{
 	}
 	~SetLineWidth()

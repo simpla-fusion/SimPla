@@ -8,8 +8,6 @@
 //#include "../mesh/mesh_rectangle.h"
 //#include "../mesh/octree_forest.h"
 //#include "../mesh/geometry_cartesian.h"
-//
-//#define TMESH Mesh<CartesianGeometry<OcForest>>
 #include <gtest/gtest.h>
 #include "fetl.h"
 #include "fetl_test.h"
@@ -48,7 +46,11 @@ nTuple<3, size_t>( { 1, 1, 100 }) //
         , nTuple<3, size_t>( { 1, 10, 20 }) //
         , nTuple<3, size_t>( { 51, 1, 51 }) //
         , nTuple<3, size_t>( { 51, 51, 1 }) //
-        )));
+        ),
+
+testing::Values(nTuple<3, Real>( { TWOPI, 3 * TWOPI, TWOPI }))
+
+));
 
 //INSTANTIATE_TEST_CASE_P(FETLEuclideanPerformance, TestFETL,
 //

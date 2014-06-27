@@ -9,8 +9,8 @@
 #define FETL_TEST3_H_
 
 #include <gtest/gtest.h>
-#include "field_io_test.h"
 #include "fetl_test.h"
+#include "save_field.h"
 
 using namespace simpla;
 
@@ -31,9 +31,14 @@ TEST_P(TestFETL, grad0)
 	f1b.Clear();
 	for (auto s : mesh.Select(VERTEX))
 	{
-		f0[s] = std::sin(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+		f0[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
+	GLOBAL_DATA_STREAM.OpenGroup("/grad0/");
+	LOGGER << SAVE(f0);
+
 	LOG_CMD(f1 = Grad(f0));
+
+	LOGGER << SAVE(f1);
 	Real m = 0.0;
 	Real variance = 0;
 	scalar_type average;
@@ -42,8 +47,7 @@ TEST_P(TestFETL, grad0)
 	for (auto s : mesh.Select(EDGE))
 	{
 
-		auto expect = mesh.Sample(Int2Type<EDGE>(), s, K)
-		        * std::cos(InnerProductNTuple(K, mesh.CoordinatesToCartesian(mesh.GetCoordinates(s))));
+		auto expect = mesh.PullBack(s, K) * std::cos(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 
 		f1b[s] = expect;
 
@@ -53,20 +57,23 @@ TEST_P(TestFETL, grad0)
 
 		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
 		{
+
 			if (error < abs(2.0 * (f1[s] - expect) / (f1[s] + expect)))
 			{
-  				CHECK(f1[s]);
+				CHECK(f1[s]);
 				CHECK(expect);
 				CHECK(error);
 			}
+			ASSERT_FALSE(std::isnan(f1[s]));
+			ASSERT_FALSE(std::isnan(f1b[s]));
 			ASSERT_GE(error, abs(2.0 * (f1[s] - expect) / (f1[s] + expect)));
 
 		}
 
 	}
 
-	variance /= f1.size();
-	average /= f1.size();
+	variance /= mesh.GetNumOfElements(EDGE);
+	average /= mesh.GetNumOfElements(EDGE);
 	CHECK(variance);
 	CHECK(average);
 }

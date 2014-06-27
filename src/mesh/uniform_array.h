@@ -511,6 +511,7 @@ struct UniformArray
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
+#ifndef ENABLE_SUB_TREE_DEPTH
 	Real const & Volume(compact_index_type s) const
 	{
 		return volume_[NodeId(s)];
@@ -529,6 +530,37 @@ struct UniformArray
 	{
 		return dual_volume_[NodeId(s)];
 	}
+
+	Real CellVolume(compact_index_type s)const
+	{
+		return volume_[1] * volume_[2] * volume_[4];
+	}
+#else
+#error UNIMPLEMENT!!
+	Real const & Volume(compact_index_type s) const
+	{
+		return volume_[NodeId(s)];
+	}
+
+	Real InvVolume(compact_index_type s) const
+	{
+		return inv_volume_[NodeId(s)];
+	}
+
+	Real InvDualVolume(compact_index_type s) const
+	{
+		return inv_dual_volume_[NodeId(s)];
+	}
+	Real DualVolume(compact_index_type s) const
+	{
+		return dual_volume_[NodeId(s)];
+	}
+
+	Real CellVolume(compact_index_type s)const
+	{
+		return volume_[1] * volume_[2] * volume_[4];
+	}
+#endif
 	//***************************************************************************************************
 	// Coordinates
 

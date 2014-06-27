@@ -25,6 +25,10 @@ struct CartesianGeometry: public TTopology
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
+	static constexpr unsigned int XAxis = 0;
+	static constexpr unsigned int YAxis = 1;
+	static constexpr unsigned int ZAxis = 2;
+
 	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
@@ -443,7 +447,10 @@ struct CartesianGeometry: public TTopology
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
-
+	Real CellVolume(compact_index_type s) const
+	{
+		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4];
+	}
 	scalar_type Volume(compact_index_type s) const
 	{
 		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];
@@ -465,11 +472,6 @@ struct CartesianGeometry: public TTopology
 	Real HodgeStarVolumeScale(compact_index_type s) const
 	{
 		return 1.0;
-	}
-
-	Real CellVolume(compact_index_type s) const
-	{
-		return volume_[topology_type::NodeId(s)];
 	}
 
 }

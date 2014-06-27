@@ -1,13 +1,13 @@
-my_test(topology_test_UniformArray    )  
-target_link_libraries(topology_test_UniformArray  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
+my_test(topology_UniformArray_test    )  
+target_link_libraries(topology_UniformArray_test  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
 
 
-my_test(geometry_test_Cartesian     )  
-target_link_libraries(geometry_test_Cartesian   ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
+my_test(geometry_cartesian_test     )  
+target_link_libraries(geometry_cartesian_test   ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
 
 
-my_test(geometry_test_Cylindrical    )  
-target_link_libraries(geometry_test_Cylindrical  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
+my_test(geometry_cylindrical_test    )  
+target_link_libraries(geometry_cylindrical_test  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
 
 
 my_test(mesh_test    )  

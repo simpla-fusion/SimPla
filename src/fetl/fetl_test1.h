@@ -27,9 +27,9 @@ struct TestFETLParam1
 	static void SetUpMesh(mesh_type * mesh)
 	{
 
-		nTuple<3, Real> xmin = { -1.0, -1.0, -1.0 };
+		nTuple<3, Real> xmin = { 1.0, 1.0, 1.0 };
 
-		nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+		nTuple<3, Real> xmax = { 2.0, 3.0, 4.0 };
 
 		nTuple<3, size_t> dims = { 16, 32, 67 };
 

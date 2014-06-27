@@ -26,19 +26,22 @@ typedef TMESH TMesh;
 #endif
 
 class TestFETL: public testing::TestWithParam<
-        std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
+        std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t>,
+                nTuple<TMesh::NDIMS, Real> > >
 {
 
 protected:
 	void SetUp()
 	{
-//		auto param = GetParam();
-//
-//		xmin = std::get<0>(param);
-//
-//		xmax = std::get<1>(param);
-//
-//		dims = std::get<2>(param);
+		auto param = GetParam();
+
+		xmin = std::get<0>(param);
+
+		xmax = std::get<1>(param);
+
+		dims = std::get<2>(param);
+
+		K = std::get<3>(param);
 
 		SetDefaultValue(&default_value);
 
@@ -55,9 +58,11 @@ protected:
 
 		if (!GLOBAL_DATA_STREAM.IsOpened())
 		{
+
 			GLOBAL_DATA_STREAM.OpenFile("MeshTest");
 			GLOBAL_DATA_STREAM.OpenGroup("/");
 		}
+
 	}
 public:
 
@@ -77,10 +82,7 @@ public:
 
 	nTuple<NDIMS, size_t> dims;
 
-	static constexpr double PI = 3.141592653589793;
-
-	nTuple<3, Real> K =
-	{	4.0 * PI, 3.0 * PI, 2.0 * PI}; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
