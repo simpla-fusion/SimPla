@@ -16,7 +16,7 @@
 
 using namespace simpla;
 
-INSTANTIATE_TEST_CASE_P(SimPla, TestGeometry,
+INSTANTIATE_TEST_CASE_P(Test_CylindricalGeometry, TestGeometry,
 
 testing::Combine(
 

@@ -23,7 +23,7 @@ class TestMesh: public testing::TestWithParam<
         std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
 {
 protected:
-	virtual void SetUp()
+	void SetUp()
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 
@@ -46,6 +46,11 @@ protected:
 
 		mesh.SetExtents(xmin,xmax,dims);
 
+		if( !GLOBAL_DATA_STREAM.IsOpened())
+		{
+			GLOBAL_DATA_STREAM.OpenFile("MeshTest");
+			GLOBAL_DATA_STREAM.OpenGroup("/");
+		}
 	}
 public:
 	typedef TMesh mesh_type;
@@ -64,14 +69,6 @@ public:
 	coordinates_type xmin,xmax;
 
 	nTuple<TMesh::NDIMS, index_type> dims;
-
-	TestMesh()
-	{
-		GLOBAL_DATA_STREAM.OpenFile("MeshTest");
-		GLOBAL_DATA_STREAM.OpenGroup("/");
-	}
-	virtual ~TestMesh()
-	{}
 
 };
 

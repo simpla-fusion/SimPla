@@ -30,7 +30,7 @@ class TestFETL: public testing::TestWithParam<
 {
 
 protected:
-	virtual void SetUp()
+	void SetUp()
 	{
 //		auto param = GetParam();
 //
@@ -52,6 +52,12 @@ protected:
 		}
 
 		mesh.SetExtents(xmin, xmax, dims);
+
+		if (!GLOBAL_DATA_STREAM.IsOpened())
+		{
+			GLOBAL_DATA_STREAM.OpenFile("MeshTest");
+			GLOBAL_DATA_STREAM.OpenGroup("/");
+		}
 	}
 public:
 
@@ -73,7 +79,8 @@ public:
 
 	static constexpr double PI = 3.141592653589793;
 
-	nTuple<3, Real> K = { 4.0 * PI, 3.0 * PI, 2.0 * PI }; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K =
+	{	4.0 * PI, 3.0 * PI, 2.0 * PI}; // @NOTE must   k = n TWOPI, period condition
 
 	value_type default_value;
 
@@ -97,14 +104,6 @@ public:
 		{
 			(*v)[i] = i;
 		}
-	}
-
-	TestFETL()
-			: default_value(0)
-	{
-
-		simpla::GLOBAL_DATA_STREAM.OpenFile("MeshTest");
-		simpla::GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
 
 	virtual ~TestFETL()

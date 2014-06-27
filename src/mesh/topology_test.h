@@ -25,7 +25,7 @@ typedef TOPOLOGY TopologyType;
 class TestTopology: public testing::TestWithParam<std::tuple<nTuple<TopologyType::NDIMS, size_t> > >
 {
 protected:
-	virtual void SetUp()
+	void SetUp()
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 

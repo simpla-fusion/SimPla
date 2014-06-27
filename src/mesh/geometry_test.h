@@ -30,7 +30,7 @@ class TestGeometry: public testing::TestWithParam<
                 nTuple<TGeometry::NDIMS, size_t> > >
 {
 protected:
-	virtual void SetUp()
+	void SetUp()
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 
@@ -71,8 +71,6 @@ public:
 	nTuple<geometry_type::NDIMS, index_type> dims;
 
 };
-
-
 
 TEST_P(TestGeometry, coordinates)
 {
