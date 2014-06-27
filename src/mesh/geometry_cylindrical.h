@@ -29,8 +29,8 @@ struct CylindricalGeometry: public TTopology
 	static constexpr bool enable_spectral_method = BEnableSpectralMethod;
 
 	static constexpr unsigned int ZAxis = IZAxis;
-	static constexpr unsigned int RAxis = (IZAxis + 2) % 3;
-	static constexpr unsigned int ThetaAxis = (IZAxis + 1) % 3;
+	static constexpr unsigned int RAxis = (IZAxis + 1) % 3;
+	static constexpr unsigned int ThetaAxis = (IZAxis + 2) % 3;
 
 	typedef CylindricalGeometry<topology_type, enable_spectral_method, ZAxis> this_type;
 
@@ -47,14 +47,14 @@ struct CylindricalGeometry: public TTopology
 
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry()
-			: topology_type()
+	CylindricalGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CylindricalGeometry(TDict const & dict)
-			: topology_type(dict)
+	CylindricalGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -85,51 +85,20 @@ struct CylindricalGeometry: public TTopology
 		return dt_;
 	}
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmin_ =
+	{ 0, 0, 0 };
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	coordinates_type xmax_ =
+	{ 1, 1, 1 };
 
-	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ =
+	{ 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ = { 0, 0, 0 };
-
-	/**
-	 *
-	 *                ^y
-	 *               /
-	 *        z     /
-	 *        ^    /
-	 *        |  110-------------111
-	 *        |  /|              /|
-	 *        | / |             / |
-	 *        |/  |            /  |
-	 *       100--|----------101  |
-	 *        | m |           |   |
-	 *        |  010----------|--011
-	 *        |  /            |  /
-	 *        | /             | /
-	 *        |/              |/
-	 *       000-------------001---> x
-	 *
-	 *
-	 */
-
-	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1  //111
-	        };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	coordinates_type shift_ =
+	{ 0, 0, 0 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
@@ -176,7 +145,7 @@ struct CylindricalGeometry: public TTopology
 	}
 
 	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
-	        nTuple<NDIMS, Real> const & dims)
+			nTuple<NDIMS, Real> const & dims)
 	{
 		topology_type::SetDimensions(dims);
 		SetExtents(pmin, pmax);
@@ -256,7 +225,8 @@ struct CylindricalGeometry: public TTopology
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		x[0] * length_[0] + shift_[0],
 
@@ -269,7 +239,8 @@ struct CylindricalGeometry: public TTopology
 	}
 	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -287,28 +258,30 @@ struct CylindricalGeometry: public TTopology
 	}
 
 	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
-	        typename topology_type::compact_index_type shift = 0UL) const
+			typename topology_type::compact_index_type shift = 0UL) const
 	{
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
-	coordinates_type CoordinatesToCartesian(coordinates_type const &from, unsigned int ToZAxis = 2) const
+	coordinates_type CoordinatesToCartesian(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
 	{
-		coordinates_type to;
+		coordinates_type x;
 
-		to[(ToZAxis + 1) % 3] = from[RAxis] * std::cos(from[ThetaAxis]);
-		to[(ToZAxis + 2) % 3] = from[RAxis] * std::sin(from[ThetaAxis]);
-		to[(ToZAxis + 3) % 3] = from[ZAxis];
+		x[(CartesianZAxis + 1) % 3] = r[RAxis] * std::cos(r[ThetaAxis]);
+		x[(CartesianZAxis + 2) % 3] = r[RAxis] * std::sin(r[ThetaAxis]);
+		x[(CartesianZAxis + 3) % 3] = r[ZAxis];
 
-		return std::move(to);
+		return std::move(x);
 	}
 
-	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
+	coordinates_type CoordinatesFromCartesian(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type r;
 
-		r[ZAxis] = x[ZAxis];
-		r[RAxis] = std::sqrt(x[(ZAxis + 1) % 3] * x[(ZAxis + 1) % 3] + x[(ZAxis + 2) % 3] * x[(ZAxis + 2) % 3]);
-		r[ThetaAxis] = std::atan2(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
+		r[ZAxis] = x[CartesianZAxis];
+		r[RAxis] = std::sqrt(
+				x[(CartesianZAxis + 1) % 3] * x[(CartesianZAxis + 1) % 3]
+						+ x[(CartesianZAxis + 2) % 3] * x[(CartesianZAxis + 2) % 3]);
+		r[ThetaAxis] = std::atan2(x[(CartesianZAxis + 1) % 3], x[(CartesianZAxis + 2) % 3]);
 
 		return r;
 	}
@@ -319,46 +292,63 @@ struct CylindricalGeometry: public TTopology
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args && ...args) const
 	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
+
 	/**
 	 *
 	 *   transform vector from Cartesian to Cylindrical
 	 *
-	 * @param x
-	 * @param u = u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z
+	 * @param x (x,y,z)
+	 *         u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z
 	 * @param ZAxisOfVector
-	 * @return v = v[RAixs] \partial_r +  v[1] 1/x[RAxis] \partial_theta + v[ZAixs] \partial_z
+	 * @return  (r,z,theta)
+	 *          v = v[RAixs] \partial_r +  v[1] 1/x[RAxis] \partial_theta + v[ZAixs] \partial_z
 	 */
 
 	template<typename TV>
-	nTuple<NDIMS, TV> PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & u,
-	        unsigned int ZAxisOfVector = 2) const
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
+			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
 	{
-		nTuple<NDIMS, TV> v;
-		v[ZAxisOfVector] = u[ZAxis];
-		return std::move(v);
+		coordinates_type r = CoordinatesFromCartesian(std::get<0>(Z), CartesianZAxis);
+
+		auto const & v = std::get<1>(Z);
+
+		nTuple<NDIMS, TV> u;
+
+		Real c = std::cos(r[ThetaAxis]), s = std::sin(r[ThetaAxis]);
+
+		u[ZAxis] = v[CartesianZAxis % 3];
+
+		u[RAxis] = v[(CartesianZAxis + 2) % 3] * c + v[(CartesianZAxis + 1) % 3] * s;
+
+		u[ThetaAxis] = (v[(CartesianZAxis + 2) % 3] * s - v[(CartesianZAxis + 1) % 3] * c) / r[RAxis];
+
+		return std::move(std::make_tuple(r, u));
 	}
 
 	/**
 	 *
 	 *  transform vector  from    Cylindrical to Cartesian
-	 * @param x
-	 * @param v = v[RAixs] \partial_r +  v[1]  x[RAxis] \partial_theta + v[ZAixs] \partial_z
+	 * @param r z theta
+	 *  u = u[RAixs] \partial_r +  u[1]  r[RAxis] \partial_theta + u[ZAixs] \partial_z
 	 * @param ZAxisOfVector
-	 * @return  u = u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z
+	 * @return  x, v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z
 	 */
 	template<typename TV>
-	nTuple<NDIMS, TV> PullBack(coordinates_type const &x, nTuple<NDIMS, TV> const & v,
-	        unsigned int ZAxisOfVector = 2) const
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
+			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
 	{
-		nTuple<NDIMS, TV> u;
+		auto const & r = std::get<0>(R);
+		auto const & u = std::get<1>(R);
 
-		u[(ZAxisOfVector + 1) % 3] = v[ThetaAxis] * x[RAxis] * std::cos(x[ThetaAxis])
-		        + v[RAxis] * std::cos(x[ThetaAxis]);
-		u[(ZAxisOfVector + 2) % 3] = -v[ThetaAxis] * x[RAxis] * std::sin(x[ThetaAxis])
-		        + v[RAxis] * std::cos(x[ThetaAxis]);
-		u[(ZAxisOfVector + 3) % 3] = v[ZAxis];
+		Real c = std::cos(r[ThetaAxis]), s = std::sin(r[ThetaAxis]);
 
-		return std::move(u);
+		nTuple<NDIMS, TV> v;
+
+		v[(CartesianZAxis + 1) % 3] = u[ThetaAxis] * r[RAxis] * c + u[RAxis] * s;
+		v[(CartesianZAxis + 2) % 3] = -u[ThetaAxis] * r[RAxis] * s + u[RAxis] * c;
+		v[(CartesianZAxis + 3) % 3] = u[ZAxis];
+
+		return std::move(std::make_tuple(CoordinatesToCartesian(r), v));
 	}
 
 	template<typename TV>
@@ -387,11 +377,50 @@ struct CylindricalGeometry: public TTopology
 
 	template<int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
+			nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}
 
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	/**
+	 *
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *
+	 */
 	void UpdateVolume()
 	{
 
@@ -523,27 +552,27 @@ struct CylindricalGeometry: public TTopology
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::Volume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+				* (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type InvVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(s);
 		return topology_type::InvVolume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+				/ (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::DualVolume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+				* (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::InvDualVolume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+				/ (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 
 }

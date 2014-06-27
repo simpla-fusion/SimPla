@@ -26,8 +26,8 @@ typedef GEOMETRY TGeometry;
 #endif
 
 class TestGeometry: public testing::TestWithParam<
-        std::tuple<typename TGeometry::coordinates_type, typename TGeometry::coordinates_type,
-                nTuple<TGeometry::NDIMS, size_t> > >
+		std::tuple<typename TGeometry::coordinates_type, typename TGeometry::coordinates_type,
+				nTuple<TGeometry::NDIMS, size_t> > >
 {
 protected:
 	void SetUp()
@@ -71,14 +71,6 @@ public:
 	nTuple<geometry_type::NDIMS, index_type> dims;
 
 };
-
-//TEST_P(TestGeometry,misc)
-//{
-//	for (auto s : geometry.Select(VERTEX))
-//	{
-//		CHECK(geometry.GetCoordinates(s)) << dims;
-//	}
-//}
 
 TEST_P(TestGeometry, coordinates)
 {
@@ -192,6 +184,28 @@ TEST_P(TestGeometry, volume)
 
 		}
 	}
+
+}
+
+TEST_P(TestGeometry,conversion)
+{
+
+	nTuple<3, Real> v =
+	{ 1.0, 2.0, 3.0 };
+	auto extents = geometry.GetExtents();
+	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
+	auto z = std::make_tuple(x, v);
+
+	EXPECT_EQ(x, geometry.CoordinatesToCartesian(geometry.CoordinatesFromCartesian(x)));
+	EXPECT_EQ(x, geometry.CoordinatesFromCartesian(geometry.CoordinatesToCartesian(x)));
+
+	auto z1 = geometry.PushForward(geometry.PullBack(z));
+	EXPECT_EQ(std::get<0>(z), std::get<0>(z1));
+	EXPECT_EQ(std::get<1>(z), std::get<1>(z1));
+
+	auto z2 = geometry.PullBack(geometry.PushForward(z));
+	EXPECT_EQ(std::get<0>(z), std::get<0>(z2));
+	EXPECT_EQ(std::get<1>(z), std::get<1>(z2));
 
 }
 
