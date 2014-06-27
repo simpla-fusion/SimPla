@@ -12,23 +12,13 @@
 
 #include "../utilities/pretty_stream.h"
 #include "../utilities/log.h"
+#include "../physics/constants.h"
+#include "../io/data_stream.h"
 #include "../parallel/message_comm.h"
-#include "uniform_array.h"
-#include "geometry_cartesian.h"
-#include "mesh_rectangle.h"
 
 using namespace simpla;
 
-#ifndef TMESH
-#include "../mesh/uniform_array.h"
-#include "../mesh/geometry_cartesian.h"
-#include "../mesh/mesh_rectangle.h"
-
-typedef Mesh<CartesianGeometry<UniformArray, false>> TMesh;
-#else
-typedef TMESH TMesh;
-#endif
-
+template<typename TMesh>
 class TestMesh: public testing::TestWithParam<
         std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
 {
@@ -37,13 +27,13 @@ protected:
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 
-		auto param = GetParam();
-
-		xmin=std::get<0>(param);
-
-		xmax=std::get<1>(param);
-
-		dims=std::get<2>(param);
+//		auto param = GetParam();
+//
+//		xmin=std::get<0>(param);
+//
+//		xmax=std::get<1>(param);
+//
+//		dims=std::get<2>(param);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -70,449 +60,70 @@ public:
 
 	std::vector<unsigned int> iform_list =
 	{	VERTEX, EDGE, FACE, VOLUME};
+
 	coordinates_type xmin,xmax;
+
 	nTuple<TMesh::NDIMS, index_type> dims;
+
+	TestMesh()
+	{
+		GLOBAL_DATA_STREAM.OpenFile("MeshTest");
+		GLOBAL_DATA_STREAM.OpenGroup("/");
+	}
+	virtual ~TestMesh()
+	{}
 
 };
 
-//TEST_P(TestMesh, ttest)
-//{
-//	coordinates_type x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
+TYPED_TEST_CASE_P(TestMesh);
+
+TYPED_TEST_P(TestMesh,scatter ){
+{
+
+//	Field<mesh_type, VERTEX, Real> n(mesh);
+//	Field<mesh_type, EDGE, Real> J(mesh);
 //
-//	CHECK(mesh.CoordinatesToIndex(x0));
-//	CHECK(mesh.CoordinatesToIndex(x1));
-//	auto d = mesh.DeltaIndex(mesh.get_first_node_shift(EDGE));
-//	auto s0 = mesh.Compact(mesh.CoordinatesToIndex(x0)) | mesh.get_first_node_shift(VERTEX);
-//	auto s1 = mesh.Compact(mesh.CoordinatesToIndex(x1)) | mesh.get_first_node_shift(VERTEX);
-//	CHECK_BIT(s0);
-//	CHECK_BIT(d);
-//	CHECK_BIT(s0 - d);
-//	CHECK_BIT(s0 - d);
-//	CHECK_BIT(s0 + d);
-//	CHECK(mesh.Hash(s0));
-//	CHECK(mesh.Hash(s0 - d));
-//	CHECK(mesh.Hash(s0 + d));
-//	CHECK(mesh.GetCoordinates(s0 - d));
-//	CHECK(mesh.GetCoordinates(s0 + d));
-//}
-
-TEST_P(TestMesh, compact_index_type)
-{
-
-	for (int depth = 0; depth < mesh_type::MAX_DEPTH_OF_TREE; ++depth)
-	{
-		for (int noid = 0; noid < 8; ++noid)
-			ASSERT_EQ(noid, mesh.NodeId(mesh.GetShift(noid, depth)));
-	}
-
-	auto s = mesh.get_first_node_shift(VERTEX);
-	EXPECT_EQ(0, mesh.NodeId(s));
-	EXPECT_EQ(0, mesh.NodeId(mesh.Roate(s)));
-	EXPECT_EQ(0, mesh.NodeId(mesh.InverseRoate(s)));
-	EXPECT_EQ(0, mesh.ComponentNum(mesh.Roate(s)));
-	EXPECT_EQ(0, mesh.ComponentNum(mesh.InverseRoate(s)));
-	EXPECT_EQ(VERTEX, mesh.NodeId(s));
-	EXPECT_EQ(VERTEX, mesh.IForm(mesh.Roate(s)));
-	EXPECT_EQ(VERTEX, mesh.IForm(mesh.InverseRoate(s)));
-
-	s = mesh.get_first_node_shift(VOLUME);
-
-	EXPECT_EQ(7, mesh.NodeId(s));
-	EXPECT_EQ(7, mesh.NodeId(mesh.Roate(s)));
-	EXPECT_EQ(7, mesh.NodeId(mesh.InverseRoate(s)));
-	EXPECT_EQ(0, mesh.ComponentNum(mesh.Roate(s)));
-	EXPECT_EQ(0, mesh.ComponentNum(mesh.InverseRoate(s)));
-
-	EXPECT_EQ(VOLUME, mesh.IForm(s));
-	EXPECT_EQ(VOLUME, mesh.IForm(mesh.Roate(s)));
-	EXPECT_EQ(VOLUME, mesh.IForm(mesh.InverseRoate(s)));
-
-	s = mesh.get_first_node_shift(EDGE);
-	EXPECT_EQ(4, mesh.NodeId(s));
-	EXPECT_EQ(2, mesh.NodeId(mesh.Roate(s)));
-	EXPECT_EQ(1, mesh.NodeId(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(1, mesh.NodeId(mesh.InverseRoate(s)));
-	EXPECT_EQ(2, mesh.NodeId(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(0, mesh.ComponentNum(s));
-	EXPECT_EQ(1, mesh.ComponentNum(mesh.Roate(s)));
-	EXPECT_EQ(2, mesh.ComponentNum(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(2, mesh.ComponentNum(mesh.InverseRoate(s)));
-	EXPECT_EQ(1, mesh.ComponentNum(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(EDGE, mesh.IForm(s));
-	EXPECT_EQ(EDGE, mesh.IForm(mesh.Roate(s)));
-	EXPECT_EQ(EDGE, mesh.IForm(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(EDGE, mesh.IForm(mesh.InverseRoate(s)));
-	EXPECT_EQ(EDGE, mesh.IForm(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(3, mesh.NodeId(mesh.Dual(s)));
-	EXPECT_EQ(5, mesh.NodeId(mesh.Dual(mesh.Roate(s))));
-	EXPECT_EQ(6, mesh.NodeId(mesh.Dual(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(mesh.DI(0, s), mesh.DeltaIndex(s));
-	EXPECT_EQ(mesh.DI(1, s), mesh.DeltaIndex(mesh.Roate(s)));
-	EXPECT_EQ(mesh.DI(2, s), mesh.DeltaIndex(mesh.InverseRoate(s)));
-
-	s = mesh.get_first_node_shift(FACE);
-	EXPECT_EQ(3, mesh.NodeId(s));
-	EXPECT_EQ(5, mesh.NodeId(mesh.Roate(s)));
-	EXPECT_EQ(6, mesh.NodeId(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(6, mesh.NodeId(mesh.InverseRoate(s)));
-	EXPECT_EQ(5, mesh.NodeId(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(0, mesh.ComponentNum(s));
-	EXPECT_EQ(1, mesh.ComponentNum(mesh.Roate(s)));
-	EXPECT_EQ(2, mesh.ComponentNum(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(2, mesh.ComponentNum(mesh.InverseRoate(s)));
-	EXPECT_EQ(1, mesh.ComponentNum(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(FACE, mesh.IForm(s));
-	EXPECT_EQ(FACE, mesh.IForm(mesh.Roate(s)));
-	EXPECT_EQ(FACE, mesh.IForm(mesh.Roate(mesh.Roate(s))));
-	EXPECT_EQ(FACE, mesh.IForm(mesh.InverseRoate(s)));
-	EXPECT_EQ(FACE, mesh.IForm(mesh.InverseRoate(mesh.InverseRoate(s))));
-
-	EXPECT_EQ(4, mesh.NodeId(mesh.Dual(s)));
-	EXPECT_EQ(2, mesh.NodeId(mesh.Dual(mesh.Roate(s))));
-	EXPECT_EQ(1, mesh.NodeId(mesh.Dual(mesh.InverseRoate(s))));
-
-}
-TEST_P(TestMesh,range)
-{
-	auto range0 = mesh.Select(VERTEX);
-	auto range1 = mesh.Select(EDGE);
-	auto range2 = mesh.Select(FACE);
-	auto range3 = mesh.Select(VOLUME);
-
-	EXPECT_EQ(0, mesh.NodeId(*begin(range0)));
-	EXPECT_EQ(4, mesh.NodeId(*begin(range1)));
-	EXPECT_EQ(3, mesh.NodeId(*begin(range2)));
-	EXPECT_EQ(7, mesh.NodeId(*begin(range3)));
-
-}
-TEST_P(TestMesh, iterator)
-{
-
-	for (auto const & iform : iform_list)
-	{
-
-		range_type r = mesh.Select(iform);
-
-		size_t size = 1;
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			size *= dims[i];
-		}
-
-		std::set<typename mesh_type::compact_index_type> data;
-
-		auto extents = mesh.GetExtents();
-		auto xmin = extents.first;
-		auto xmax = extents.second;
-
-		for (auto s : r)
-		{
-			auto x = mesh.GetCoordinates(s);
-
-			data.insert(s);
-		}
-
-		if (iform == VERTEX || iform == VOLUME)
-		{
-			EXPECT_EQ(size, data.size()) << iform;
-		}
-		else
-		{
-			EXPECT_EQ(size * 3, data.size()) << iform;
-		}
-	}
-
-}
-
-TEST_P(TestMesh, coordinates)
-{
-
-	auto extents = mesh.GetExtents();
-
-	auto range0 = mesh.Select(VERTEX);
-	auto range1 = mesh.Select(EDGE);
-	auto range2 = mesh.Select(FACE);
-	auto range3 = mesh.Select(VOLUME);
-
-	auto half_dx = mesh.GetDx() / 2;
-
-	EXPECT_EQ(extents.first, mesh.GetCoordinates(*begin(range0)));
-	EXPECT_EQ(extents.first + coordinates_type( { half_dx[0], 0, 0 }), mesh.GetCoordinates(*begin(range1)));
-	EXPECT_EQ(extents.first + coordinates_type( { 0, half_dx[1], half_dx[2] }), mesh.GetCoordinates(*begin(range2)));
-	EXPECT_EQ(extents.first + half_dx, mesh.GetCoordinates(*begin(range3)));
-
-	typename mesh_type::coordinates_type x = 0.21235 * (extents.second - extents.first) + extents.first;
-
-	for (auto iform : iform_list)
-	{
-		auto idx = mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(iform));
-		EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx) ) << "IForm =" << iform;
-
-		auto s = std::get<0>(idx);
-		EXPECT_EQ(iform, mesh.IForm(s));
-		EXPECT_EQ(mesh.NodeId(mesh.get_first_node_shift(iform)), mesh.NodeId(s));
-		EXPECT_EQ(mesh.ComponentNum(mesh.get_first_node_shift(iform)), mesh.ComponentNum(s));
-
-	}
-
-	auto idx = mesh.topology_type::CoordinatesToIndex(x);
-
-	EXPECT_EQ(idx, mesh.topology_type::CoordinatesToIndex(mesh.topology_type::IndexToCoordinates(idx)));
-
-}
-
-TEST_P(TestMesh, volume)
-{
-	auto extents = mesh.GetExtents();
-	coordinates_type x = (std::get<0>(extents) + std::get<1>(extents)) * 0.5 + std::get<0>(extents);
-	auto s0 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VERTEX)));
-	auto s1 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(EDGE)));
-	auto s2 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(FACE)));
-	auto s3 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VOLUME)));
-
-//	CHECK(mesh.length_);
-//	CHECK(mesh.Volume(s0));
-//	CHECK(mesh.Volume(s1));
-//	CHECK(mesh.NodeId(s2));
+//	n.Clear();
+//	J.Clear();
 //
-//	CHECK(mesh.volume_[0]);
-//	CHECK(mesh.volume_[1]);
-//	CHECK(mesh.volume_[2]);
-//	CHECK(mesh.volume_[4]);
-//	CHECK(mesh.volume_[mesh.NodeId(s2)]);
-//	CHECK(mesh.GetCoordinates(s2));
-//	CHECK(mesh.Volume(s2));
-//	CHECK(mesh.Volume(s3));
-
-	EXPECT_DOUBLE_EQ(mesh.Volume(s0) * mesh.Volume(s3), mesh.Volume(s1) * mesh.Volume(s2));
-	EXPECT_DOUBLE_EQ(mesh.Volume(s0), mesh.DualVolume(s3));
-	EXPECT_DOUBLE_EQ(mesh.Volume(s1), mesh.DualVolume(s2));
-	auto d = mesh.GetDimensions();
-	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s0));
-	EXPECT_DOUBLE_EQ(d[0] <= 1 ? 1.0 : mesh.GetDx(s1)[0], mesh.Volume(s1)) << mesh.GetDx(s1)[2];
-	EXPECT_DOUBLE_EQ(d[1] <= 1 ? 1.0 : mesh.GetDx(mesh.Roate(s1))[1], mesh.Volume(mesh.Roate(s1)));
-	EXPECT_DOUBLE_EQ(d[2] <= 1 ? 1.0 : mesh.GetDx(mesh.InverseRoate(s1))[2], mesh.Volume(mesh.InverseRoate(s1)));
-
-//	CHECK(mesh.topology_type::volume_[0]);
-//	CHECK(mesh.topology_type::volume_[1]);
-//	CHECK(mesh.topology_type::volume_[2]);
-//	CHECK(mesh.topology_type::volume_[4]);
-//	CHECK(mesh.Volume(s1));
-//	auto X = mesh.topology_type::DI(0, s);
-//	auto Y = mesh.topology_type::DI(1, s);
-//	auto Z = mesh.topology_type::DI(2, s);
+//	nTuple<3, Real> x =
+//	{	-0.01, -0.01, -0.01};
+//	nTuple<3, Real> v =
+//	{	1, 2, 3};
 //
-//	CHECK(mesh.geometry_type::Volume(s));
-//	CHECK(mesh.geometry_type::Volume(s + X));
-//	CHECK(mesh.geometry_type::Volume(s - X));
-//	CHECK(mesh.geometry_type::Volume(s + Y));
-//	CHECK(mesh.geometry_type::Volume(s - Y));
-//	CHECK(mesh.geometry_type::Volume(s + Z));
-//	CHECK(mesh.geometry_type::Volume(s - Z));
-//
-//	CHECK(mesh.geometry_type::DualVolume(s));
-//	CHECK(mesh.geometry_type::DualVolume(s + X));
-//	CHECK(mesh.geometry_type::DualVolume(s - X));
-//	CHECK(mesh.geometry_type::DualVolume(s + Y));
-//	CHECK(mesh.geometry_type::DualVolume(s - Y));
-//	CHECK(mesh.geometry_type::DualVolume(s + Z));
-//	CHECK(mesh.geometry_type::DualVolume(s - Z));
-
-}
-
-TEST_P(TestMesh, hash)
-{
-
-//	for (auto iform : iform_list)
-	unsigned int iform = VERTEX;
-	{
-		size_t num = mesh.GetLocalMemorySize(iform);
-
-		for (auto s : mesh.Select(iform))
-		{
-
-			ASSERT_GT(num, mesh.Hash(s));
-			ASSERT_LE(0, mesh.Hash(s));
-
-			ASSERT_GT(num, mesh.Hash(mesh.Roate(s)));
-			ASSERT_LE(0, mesh.Hash(mesh.InverseRoate(s)));
-
-		}
-
-		num = mesh.GetLocalMemorySize(iform % 3 + 1);
-
-		for (auto s : mesh.Select(iform))
-		{
-			auto DX = mesh.DI(0, s);
-			auto DY = mesh.DI(1, s);
-			auto DZ = mesh.DI(2, s);
-			ASSERT_GT(num, mesh.Hash(s + DX));
-
-			ASSERT_GT(num, mesh.Hash(s + DY));
-
-			ASSERT_GT(num, mesh.Hash(s + DZ));
-
-		}
-
-		num = mesh.GetLocalMemorySize(iform % 3 - 1);
-
-		for (auto s : mesh.Select(iform))
-		{
-			auto DX = mesh.DI(0, s);
-			auto DY = mesh.DI(1, s);
-			auto DZ = mesh.DI(2, s);
-			ASSERT_LE(0, mesh.Hash(s - DX));
-
-			ASSERT_LE(0, mesh.Hash(s - DY));
-
-			ASSERT_LE(0, mesh.Hash(s - DZ));
-		}
-
-	}
-}
-
-TEST_P(TestMesh, Split)
-{
-
-//	for (auto const & iform : iform_list)
-
-	unsigned int iform = VERTEX;
-	{
-
-		nTuple<3, index_type> begin = { 0, 0, 0 };
-
-		nTuple<3, index_type> end = dims;
-
-		auto r = mesh.make_range(begin, end, mesh.get_first_node_shift(iform));
-
-		size_t total = 4;
-
-		std::set<typename mesh_type::compact_index_type> data;
-
-		for (int sub = 0; sub < total; ++sub)
-			for (auto const & a : Split(r, total, sub))
-			{
-				data.insert(a);
-			}
-
-		size_t size = NProduct(dims);
-
-		if (iform == VERTEX || iform == VOLUME)
-		{
-			ASSERT_EQ(data.size(), size);
-		}
-		else
-		{
-			ASSERT_EQ(data.size(), size * 3);
-		}
-	}
-
-}
-
-//TEST_P(TestMesh, select )
-//{
-//	auto r = mesh.Select(VERTEX);
-//
-//	std::set<typename mesh_type::compact_index_type> data;
-//
-//	for (auto s : r)
+//	for (auto const & v : n)
 //	{
-//		data.insert(s);
+//		std::cout << " " << v;
+//	}
+//	std::cout << std::endl;
+//	for (auto const & v : J)
+//	{
+//		std::cout << " " << v;
+//	}
+//	std::cout << std::endl;
+//	mesh.Scatter(x, 1.0, &n);
+//	mesh.Scatter(x, v, &J);
+//	for (auto const & v : n)
+//	{
+//		std::cout << " " << v;
+//	}
+//	std::cout << std::endl;
+//	for (auto const & v : J)
+//	{
+//		std::cout << " " << v;
 //	}
 //
-//	ASSERT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
-//
-//	data.clear();
-//
-//	auto extents = mesh.GetExtents();
-//	auto xmin = extents.first + (extents.second - extents.first) * 0.25;
-//	auto xmax = extents.first + (extents.second - extents.first) * 0.75;
-//
-//	r = mesh.Select(VERTEX, xmin, xmax);
-//
-//	for (auto s : r)
-//	{
-//		auto x = mesh.GetCoordinates(s);
-//
-//		ASSERT_LE(xmin[0], x[0]);
-//		ASSERT_LE(xmin[1], x[1]);
-//		ASSERT_LE(xmin[2], x[2]);
-//		ASSERT_GE(xmax[0], x[0]);
-//		ASSERT_GE(xmax[1], x[1]);
-//		ASSERT_GE(xmax[2], x[2]);
-//
-//		data.insert(s);
-//	}
-//	CHECK(data.size());
-//
-////	for (auto s : mesh.Select(VERTEX))
-////	{
-////		auto x = mesh.GetCoordinates(s);
-////
-////		if ((xmin[0] <= x[0]) && (xmin[1] <= x[1]) && (xmin[2] <= x[2]) && (xmax[0] >= x[0]) && (xmax[1] >= x[1])
-////		        && (xmax[2] >= x[2]))
-////		{
-////			ASSERT_TRUE(data.find(s) != data.end()) << s;
-////		}
-////		else
-////		{
-////			ASSERT_TRUE(data.find(s) == data.end()) << s;
-////		}
-////
-////	}
-//
-//}
+//	std::cout << std::endl;
 
-//
-////TEST_P(TestMesh,scatter )
-////{
-////
-////	Field<mesh_type, VERTEX, Real> n(mesh);
-////	Field<mesh_type, EDGE, Real> J(mesh);
-////
-////	n.Clear();
-////	J.Clear();
-////
-////	nTuple<3, Real> x = { -0.01, -0.01, -0.01 };
-////	nTuple<3, Real> v = { 1, 2, 3 };
-////
-////	for (auto const & v : n)
-////	{
-////		std::cout << " " << v;
-////	}
-////	std::cout << std::endl;
-////	for (auto const & v : J)
-////	{
-////		std::cout << " " << v;
-////	}
-////	std::cout << std::endl;
-////	mesh.Scatter(x, 1.0, &n);
-////	mesh.Scatter(x, v, &J);
-////	for (auto const & v : n)
-////	{
-////		std::cout << " " << v;
-////	}
-////	std::cout << std::endl;
-////	for (auto const & v : J)
-////	{
-////		std::cout << " " << v;
-////	}
-////
-////	std::cout << std::endl;
-////
-////}
-////
-////TEST_P(TestMesh,gather)
-////{
-////
-////}
+}}
+
+TYPED_TEST_P(TestMesh,gather){
+{
+
+}
+}
+
+REGISTER_TYPED_TEST_CASE_P(TestMesh, scatter, gather);
 //
 ////typedef testing::Types<RectMesh<>
 //////, CoRectMesh<Complex>

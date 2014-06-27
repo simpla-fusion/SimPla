@@ -67,7 +67,7 @@ struct UniformArray
 
 	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
-		return (MEMPOOL.allocate_shared_ptr<TV> (GetLocalNumOfElements(iform)));
+		return (MEMPOOL.allocate_shared_ptr<TV> (GetLocalMemorySize(iform)));
 	}
 
 	template<typename TDict, typename ...Others>
@@ -111,7 +111,9 @@ struct UniformArray
 	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_end_, local_outer_count_;
 
 	nTuple<NDIMS, index_type> local_inner_begin_, local_inner_end_, local_inner_count_;
-compact_index_type global_begin_index_;
+
+	compact_index_type global_begin_compact_index_=0UL;
+
 	enum
 	{
 		FAST_FIRST, SLOW_FIRST
@@ -143,8 +145,10 @@ compact_index_type global_begin_index_;
 			global_end_[i] =global_begin_[i]+length;
 
 		}
+		global_begin_compact_index_=Compact(global_begin_)<<MAX_DEPTH_OF_TREE;
 
 		global_array_.global_begin_= global_begin_;
+
 		global_array_.global_end_= global_end_;
 
 		global_count_=global_end_-global_begin_;
@@ -195,6 +199,10 @@ compact_index_type global_begin_index_;
 	nTuple<NDIMS, index_type> GetGlobalDimensions() const
 	{
 		return global_count_;
+	}
+	index_type GetNumOfElements(int iform = VERTEX) const
+	{
+		return GetGlobalNumOfElements(iform);
 	}
 
 	index_type GetGlobalNumOfElements(int iform = VERTEX) const
@@ -328,9 +336,13 @@ compact_index_type global_begin_index_;
 	static constexpr compact_index_type _DK= (1UL<<(MAX_DEPTH_OF_TREE-1));
 	static constexpr compact_index_type _DA= _DI|_DJ|_DK;
 
-	//***************************************************************************************************
+	static constexpr compact_index_type INDEX_ROOT_MASK= ( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE ))-1)<<MAX_DEPTH_OF_TREE;
+
+	static constexpr compact_index_type COMPACT_INDEX_ROOT_MASK=
+	INDEX_ROOT_MASK|(INDEX_ROOT_MASK<<INDEX_DIGITS)|(INDEX_ROOT_MASK<<INDEX_DIGITS*2);
 
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
+
 	/**
 	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
 	 * 	    H          m  I           m    J           m K
@@ -361,15 +373,28 @@ compact_index_type global_begin_index_;
 	}
 
 	//mask of direction
-	static compact_index_type Compact(nTuple<NDIMS, index_type> const & idx )
+//	static compact_index_type Compact(nTuple<NDIMS, index_type> const & idx )
+//	{
+//		return
+//
+//		( static_cast<compact_index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+//
+//		( static_cast<compact_index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
+//
+//		( static_cast<compact_index_type>( idx[2] & INDEX_MASK) )
+//
+//		;
+//	}
+	template<typename TS>
+	static compact_index_type Compact(nTuple<NDIMS, TS> const & x )
 	{
 		return
 
-		( static_cast<compact_index_type>( idx[0] & INDEX_MASK) << (INDEX_DIGITS * 2)) |
+		( (static_cast<compact_index_type>( x[0]) & INDEX_MASK) << (INDEX_DIGITS * 2)) |
 
-		( static_cast<compact_index_type>( idx[1] & INDEX_MASK) << (INDEX_DIGITS )) |
+		( (static_cast<compact_index_type>( x[1]) & INDEX_MASK) << (INDEX_DIGITS )) |
 
-		( static_cast<compact_index_type>( idx[2] & INDEX_MASK) )
+		( (static_cast<compact_index_type>( x[2]) & INDEX_MASK) )
 
 		;
 	}
@@ -553,14 +578,26 @@ compact_index_type global_begin_index_;
 	{
 		return std::move(CoordinatesLocalToGlobal(std::make_tuple(s,x)));
 	}
+
 	template<typename TI> inline coordinates_type
 	CoordinatesLocalToGlobal(TI const& v)const
 	{
-		auto idx=Decompact(std::get<0>(v))- (global_begin_ <<MAX_DEPTH_OF_TREE);
-		coordinates_type r= std::get<1>(v);
 
-		r*=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(std::get<0>(v))));
-		r+=idx;
+#ifndef ENABLE_SUB_TREE_DEPTH
+		static constexpr Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
+		static constexpr Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
+		coordinates_type r;
+		r = std::get<1>(v) * CELL_SCALE_R + Decompact(std::get<0>(v)-global_begin_compact_index_);
+
+#else
+
+		coordinates_type r= std::get<1>(v)
+
+		* static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(std::get<0>(v))));
+
+		+Decompact(std::get<0>(v-global_begin_compact_index_));
+#endif
+
 		r[0]*=inv_extents_[0];
 		r[1]*=inv_extents_[1];
 		r[2]*=inv_extents_[2];
@@ -578,15 +615,39 @@ compact_index_type global_begin_index_;
 	CoordinatesGlobalToLocal(coordinates_type x, compact_index_type shift = 0UL) const
 	{
 
-		compact_index_type depth = DepthOfTree(shift);
-
 		x[0] *= extents_[0];
 		x[1] *= extents_[1];
 		x[2] *= extents_[2];
 
-		nTuple<NDIMS, index_type> idx;
+#ifndef ENABLE_SUB_TREE_DEPTH
 
+		static constexpr Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
+		static constexpr Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
+
+		compact_index_type s=((Compact(x)+((~shift)&_DA)) &COMPACT_INDEX_ROOT_MASK) |shift;
+
+		x-=Decompact(s);
+
+		x*=INV_CELL_SCALE_R;
+
+		s+=global_begin_compact_index_;
 		//*********************************************
+#else
+		compact_index_type depth = DepthOfTree(shift);
+
+		auto m=( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE+depth))-1)<<MAX_DEPTH_OF_TREE;
+
+		m=m|(m<<INDEX_DIGITS)|(m<<(INDEX_DIGITS*2));
+
+		auto s= ((Compact(x)+((~shift)&(_DA>>depth))) &m) |shift;
+
+		x-=Decompact(s);
+
+		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
+
+		s+= global_begin_compact_index_;
+
+//		nTuple<NDIMS, index_type> idx;
 //		idx=x;
 //
 //		idx=((idx+Decompact((~shift)&(_DA>>depth)))&(~((1UL<<(MAX_DEPTH_OF_TREE-depth))-1)))+Decompact(shift);
@@ -598,31 +659,7 @@ compact_index_type global_begin_index_;
 //		idx+=global_begin_<<MAX_DEPTH_OF_TREE;
 //
 //		auto s= Compact(idx);
-
-		//*********************************************
-
-		idx=x;
-
-		auto s=Compact(idx);
-
-		auto m=( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE))-1)<<MAX_DEPTH_OF_TREE;
-
-		m=m|(m<<INDEX_DIGITS)|(m<<(INDEX_DIGITS*2));
-
-		CHECK_BIT(_DA);
-
-		CHECK_BIT(m);
-
-		 //
-		s=((s+((~shift)&(_DA>>depth))) &m) |shift;
-
-		x-=Decompact(s);
-
-		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
-
-		s+= Compact(global_begin_<<MAX_DEPTH_OF_TREE);
-		//*********************************************
-
+#endif
 		return std::move(std::make_tuple( s,x));
 	}
 
@@ -632,19 +669,31 @@ compact_index_type global_begin_index_;
 
 	static compact_index_type Dual(compact_index_type r)
 	{
-
+#ifndef ENABLE_SUB_TREE_DEPTH
+		return (r & (~_DA)) | ((~(r & _DA)) & _DA);
+#else
 		return (r & (~(_DA >> DepthOfTree(r) )))
 		| ((~(r & (_DA >> DepthOfTree(r) ))) & (_DA >> DepthOfTree(r) ));
-
+#endif
 	}
-	static unsigned int GetCellIndex(compact_index_type r)
+	static compact_index_type GetCellIndex(compact_index_type r)
 	{
-		compact_index_type mask = (1UL << (INDEX_DIGITS - DepthOfTree(r))) - 1;
-
-		return r & (~(mask | (mask << INDEX_DIGITS) | (mask << (INDEX_DIGITS * 2))));
+//		compact_index_type mask = (1UL << (INDEX_DIGITS - DepthOfTree(r))) - 1;
+//
+//		return r & (~(mask | (mask << INDEX_DIGITS) | (mask << (INDEX_DIGITS * 2))));
+		return r & COMPACT_INDEX_ROOT_MASK;
 	}
 	static unsigned int NodeId(compact_index_type s)
 	{
+
+#ifndef ENABLE_SUB_TREE_DEPTH
+		return
+		(((s >> (INDEX_DIGITS*2+MAX_DEPTH_OF_TREE -1))& 1UL) << 2) |
+
+		(((s >>(INDEX_DIGITS +MAX_DEPTH_OF_TREE -1 )) & 1UL) << 1) |
+
+		((s >> (MAX_DEPTH_OF_TREE -1)) & 1UL);
+#else
 		auto h = DepthOfTree(s);
 
 		return
@@ -654,11 +703,21 @@ compact_index_type global_begin_index_;
 		(((s >>(INDEX_DIGITS +MAX_DEPTH_OF_TREE - h -1 )) & 1UL) << 1) |
 
 		((s >> (MAX_DEPTH_OF_TREE - h -1)) & 1UL);
+#endif
 	}
 
 	compact_index_type GetShift(unsigned int nodeid, compact_index_type h=0UL) const
 	{
 
+#ifndef ENABLE_SUB_TREE_DEPTH
+		return
+
+		(((nodeid & 4UL) >> 2) << (INDEX_DIGITS*2+MAX_DEPTH_OF_TREE -1)) |
+
+		(((nodeid & 2UL) >> 1) << (INDEX_DIGITS +MAX_DEPTH_OF_TREE -1 )) |
+
+		((nodeid & 1UL) << (MAX_DEPTH_OF_TREE -1));
+#else
 		return
 
 		(((nodeid & 4UL) >> 2) << (INDEX_DIGITS*2+MAX_DEPTH_OF_TREE - h -1)) |
@@ -668,6 +727,7 @@ compact_index_type global_begin_index_;
 		((nodeid & 1UL) << (MAX_DEPTH_OF_TREE - h -1)) |
 
 		(h << (INDEX_DIGITS * 3));
+#endif
 	}
 
 	compact_index_type get_first_node_shift(int iform) const
@@ -692,13 +752,25 @@ compact_index_type global_begin_index_;
 		return GetShift(nid );
 	}
 
+#ifdef ENABLE_SUB_TREE_DEPTH
 	static unsigned int DepthOfTree(compact_index_type r)
 	{
 		return r >> (INDEX_DIGITS * 3);
 	}
+#endif
 
 	static compact_index_type Roate(compact_index_type r)
 	{
+
+#ifndef ENABLE_SUB_TREE_DEPTH
+
+		return (r & (~_DA))
+
+		| ((r & (((_DI|_DJ) ))) >> INDEX_DIGITS)
+
+		| ((r & (((_DK) )))<< (INDEX_DIGITS * 2));
+
+#else
 		compact_index_type h = DepthOfTree(r);
 
 		return (r & (~(_DA >> h)))
@@ -706,6 +778,7 @@ compact_index_type global_begin_index_;
 		| ((r & (((_DI|_DJ) >> h))) >> INDEX_DIGITS)
 
 		| ((r & (((_DK) >> h)))<< (INDEX_DIGITS * 2));
+#endif
 	}
 
 	/**
@@ -718,6 +791,16 @@ compact_index_type global_begin_index_;
 	static compact_index_type InverseRoate(compact_index_type r)
 	{
 
+#ifndef ENABLE_SUB_TREE_DEPTH
+
+		return
+		(r & (~(_DA)))
+
+		| ((r & (((_DK|_DJ)))) << INDEX_DIGITS)
+
+		| ((r & (((_DI)))) >> (INDEX_DIGITS * 2));
+
+#else
 		compact_index_type h = DepthOfTree(r);
 
 		return
@@ -726,17 +809,26 @@ compact_index_type global_begin_index_;
 		| ((r & (((_DK|_DJ) >> h))) << INDEX_DIGITS)
 
 		| ((r & (((_DI) >> h))) >> (INDEX_DIGITS * 2));
-
+#endif
 	}
 
 	static compact_index_type DeltaIndex(compact_index_type r)
 	{
+#ifndef ENABLE_SUB_TREE_DEPTH
+		return (r & _DA);
+#else
 		return (r & (_DA >> (DepthOfTree(r))));
+#endif
 	}
 
 	static compact_index_type DI(unsigned int i, compact_index_type r)
 	{
+#ifndef ENABLE_SUB_TREE_DEPTH
+		return (1UL << (INDEX_DIGITS * (NDIMS-i-1)+MAX_DEPTH_OF_TREE - 1));
+#else
 		return (1UL << (INDEX_DIGITS * (NDIMS-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
+
+#endif
 	}
 	static compact_index_type DeltaIndex(unsigned int i, compact_index_type r)
 	{

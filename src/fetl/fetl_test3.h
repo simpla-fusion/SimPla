@@ -245,8 +245,7 @@ TEST_P(TestFETL, curl1)
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K, mesh.GetCoordinates(s)));
 	};
-//	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/curl1");
+
 //	LOGGER << SAVE(vf1);
 	LOG_CMD(vf2 = Curl(vf1));
 //	LOGGER << SAVE(vf2);

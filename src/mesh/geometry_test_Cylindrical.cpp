@@ -1,22 +1,27 @@
 /*
- * mesh_test.cpp
+ * geometry_test_Cylindrical.cpp
  *
- *  Created on: 2013年12月29日
+ *  Created on: 2014年6月27日
  *      Author: salmon
  */
 
 #include <gtest/gtest.h>
 
-#include "mesh_test.h"
+#include "../mesh/uniform_array.h"
+#include "../mesh/geometry_cylindrical.h"
+
+#define GEOMETRY  CylindricalGeometry<UniformArray,false>
+
+#include "geometry_test.h"
 
 using namespace simpla;
 
-INSTANTIATE_TEST_CASE_P(SimPla, TestMesh,
+INSTANTIATE_TEST_CASE_P(SimPla, TestGeometry,
 
 testing::Combine(
 
-testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, }) //
-        , nTuple<3, Real>( { -1.0, -2.0, -3.0 })    //
+testing::Values(nTuple<3, Real>( { 1.0, 0.0, 0.0, }) //
+        , nTuple<3, Real>( { 1.0, -2.0, -3.0 })    //
 //        , nTuple<3, Real>( { 1.0, 1.0, 1.0 })    //
         ),
 
@@ -44,3 +49,4 @@ nTuple<3, size_t>( { 10, 1, 1 }) //
         , nTuple<3, size_t>( { 13, 16, 10 })   //
 
         )));
+

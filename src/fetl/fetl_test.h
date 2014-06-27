@@ -12,7 +12,7 @@
 #include "fetl.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-
+#include "../io/data_stream.h"
 using namespace simpla;
 
 #ifndef TMESH
@@ -32,13 +32,13 @@ class TestFETL: public testing::TestWithParam<
 protected:
 	virtual void SetUp()
 	{
-		auto param = GetParam();
-
-		xmin = std::get<0>(param);
-
-		xmax = std::get<1>(param);
-
-		dims = std::get<2>(param);
+//		auto param = GetParam();
+//
+//		xmin = std::get<0>(param);
+//
+//		xmax = std::get<1>(param);
+//
+//		dims = std::get<2>(param);
 
 		SetDefaultValue(&default_value);
 
@@ -97,6 +97,19 @@ public:
 		{
 			(*v)[i] = i;
 		}
+	}
+
+	TestFETL()
+			: default_value(0)
+	{
+
+		simpla::GLOBAL_DATA_STREAM.OpenFile("MeshTest");
+		simpla::GLOBAL_DATA_STREAM.OpenGroup("/");
+	}
+
+	virtual ~TestFETL()
+	{
+
 	}
 
 };
