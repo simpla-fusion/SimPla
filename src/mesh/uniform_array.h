@@ -33,14 +33,11 @@ struct UniformArray
 	static constexpr int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr int NDIMS = 3;
-
 	typedef long index_type;
-
 	typedef unsigned long compact_index_type;
-
-	struct iterator;
-
 	typedef nTuple<NDIMS, Real> coordinates_type;
+	struct iterator;
+	typedef std::pair<iterator, iterator> range_type;
 
 	//***************************************************************************************************
 
@@ -109,12 +106,12 @@ struct UniformArray
 	//***************************************************************************************************
 	// Local Data Set
 
-	nTuple<NDIMS, index_type> global_begin_, global_end_/*,global_count_*/;
+	nTuple<NDIMS, index_type> global_begin_, global_end_ ,global_count_;
 
-	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_end_;
+	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_end_, local_outer_count_;
 
-	nTuple<NDIMS, index_type> local_inner_begin_, local_inner_end_;
-
+	nTuple<NDIMS, index_type> local_inner_begin_, local_inner_end_, local_inner_count_;
+compact_index_type global_begin_index_;
 	enum
 	{
 		FAST_FIRST, SLOW_FIRST
@@ -150,48 +147,95 @@ struct UniformArray
 		global_array_.global_begin_= global_begin_;
 		global_array_.global_end_= global_end_;
 
+		global_count_=global_end_-global_begin_;
+
 		Update();
 
 		Decompose(1,0,0);
 
 	}
-
-	coordinates_type GetDx() const
+	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
 	{
-		auto d=GetDimensions();
-		coordinates_type res;
-
-		for (int i = 0; i < NDIMS; ++i)
+		if(num_process<=1)
 		{
-			res[i] = 1.0/static_cast<Real>(d[i] );
+			num_process=GLOBAL_COMM.GetSize();
+			process_num=GLOBAL_COMM.GetRank();
 		}
+		global_array_.Decompose(num_process,process_num,ghost_width);
+
+		local_inner_begin_=global_array_.local_.inner_begin;
+		local_inner_end_=global_array_.local_.inner_end;
+		local_inner_count_=local_inner_end_-local_inner_begin_;
+
+		local_outer_begin_=global_array_.local_.outer_begin;
+		local_outer_end_=global_array_.local_.outer_end;
+		local_outer_count_=local_outer_end_-local_outer_begin_;
+
+		UpdateHash();
+	}
+
+	auto GetExtents() const
+	DECL_RET_TYPE(std::make_tuple(
+
+			nTuple<NDIMS,Real>(
+					{	0,0,0}),
+
+			nTuple<NDIMS,Real>(
+					{
+						global_count_[0]>1?1.0:0.0,
+						global_count_[1]>1?1.0:0.0,
+						global_count_[2]>1?1.0:0.0,
+					})))
+
+	nTuple<NDIMS, index_type> GetDimensions() const
+	{
+		return std::move(GetGlobalDimensions());
+	}
+
+	nTuple<NDIMS, index_type> GetGlobalDimensions() const
+	{
+		return global_count_;
+	}
+
+	index_type GetGlobalNumOfElements(int iform = VERTEX) const
+	{
+		return NProduct(GetGlobalDimensions()) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+	}
+
+	nTuple<NDIMS, index_type> GetLocalDimensions() const
+	{
+		return local_inner_count_;
+	}
+
+	index_type GetMemorySize(int iform = VERTEX ) const
+	{
+		return GetLocalMemorySize(iform);
+	}
+	/**
+	 *
+	 * @return tuple <memory shape, begin, count>
+	 */
+	std::tuple<nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>>
+	GetLocalMemoryShape() const
+	{
+		std::tuple<nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>> res;
+
+		std::get<0>(res)=local_outer_count_;
+
+		std::get<1>(res)=local_inner_begin_ - local_outer_begin_;
+
+		std::get<2>(res)=local_inner_count_;
 
 		return std::move(res);
 	}
-	nTuple<NDIMS, index_type> GetDimensions() const
-	{
-		return global_end_-global_begin_;
-	}
 
-	index_type GetNumOfElements(int IFORM = VERTEX) const
+	index_type GetLocalNumOfElements(int iform = VERTEX) const
 	{
-		auto d=GetDimensions();
-		return d[0] * d[1] * d[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+		return NProduct(std::get<2>(GetLocalMemoryShape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
-
-	nTuple<NDIMS, index_type> const& GetLocalDimensions() const
+	index_type GetLocalMemorySize(int iform = VERTEX ) const
 	{
-		return local_outer_end_;
-	}
-	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
-	{
-		return (local_outer_end_[0]-local_outer_begin_[0]) * (local_outer_end_[1]-local_outer_begin_[1]) * (local_outer_end_[2]-local_outer_begin_[2])
-		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-	}
-	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
-	{
-		return (local_outer_end_[0]-local_outer_begin_[0]) * (local_outer_end_[1]-local_outer_begin_[1]) * (local_outer_end_[2]-local_outer_begin_[2])
-		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
+		return NProduct(std::get<0>(GetLocalMemoryShape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
 
 	int GetDataSetShape(int IFORM, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
@@ -251,21 +295,17 @@ struct UniformArray
 		return rank;
 	}
 
-	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
+	coordinates_type GetDx( ) const
 	{
-		if(num_process<=1)
+		auto d=GetGlobalDimensions();
+		coordinates_type res;
+
+		for (int i = 0; i < NDIMS; ++i)
 		{
-			num_process=GLOBAL_COMM.GetSize();
-			process_num=GLOBAL_COMM.GetRank();
+			res[i] = global_count_[i]>1? (1.0/static_cast<Real>(d[i] )):0.0;
 		}
-		global_array_.Decompose(num_process,process_num,ghost_width);
 
-		local_inner_begin_=global_array_.local_.inner_begin;
-		local_inner_end_=global_array_.local_.inner_end;
-		local_outer_begin_=global_array_.local_.outer_begin;
-		local_outer_end_=global_array_.local_.outer_end;
-
-		UpdateHash();
+		return std::move(res);
 	}
 
 	//***************************************************************************************************
@@ -360,8 +400,8 @@ struct UniformArray
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			Real L=static_cast<Real>(( global_end_[i]-global_begin_[i]));
-			if((global_end_[i]-global_begin_[i])<=1)
+			Real L=static_cast<Real>(global_count_[i]);
+			if(global_count_[i]<=1)
 			{
 				extents_[i]=0.0;
 				inv_extents_[i]=0.0;
@@ -369,7 +409,7 @@ struct UniformArray
 			}
 			else
 			{
-				extents_[i]=static_cast<Real>(( global_end_[i]-global_begin_[i])<<MAX_DEPTH_OF_TREE);
+				extents_[i]=static_cast<Real>(global_count_[i] <<MAX_DEPTH_OF_TREE);
 				inv_extents_[i]=1.0/extents_[i];
 			}
 
@@ -516,11 +556,15 @@ struct UniformArray
 	template<typename TI> inline coordinates_type
 	CoordinatesLocalToGlobal(TI const& v)const
 	{
-		coordinates_type r= std::get<1>(v) / static_cast<Real>(1UL << ( DepthOfTree(std::get<0>(v)) ));
+		auto idx=Decompact(std::get<0>(v))- (global_begin_ <<MAX_DEPTH_OF_TREE);
+		coordinates_type r= std::get<1>(v);
+
+		r*=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(std::get<0>(v))));
+		r+=idx;
 		r[0]*=inv_extents_[0];
 		r[1]*=inv_extents_[1];
 		r[2]*=inv_extents_[2];
-		r+=IndexToCoordinates( Decompact(std::get<0>(v)) );
+
 		return std::move(r);
 	}
 
@@ -540,24 +584,44 @@ struct UniformArray
 		x[1] *= extents_[1];
 		x[2] *= extents_[2];
 
-		nTuple<NDIMS, index_type> res(
-		{
-			static_cast<index_type>( x[0] ) ,
-			static_cast<index_type>( x[1] ) ,
-			static_cast<index_type>( x[2] )
-		});
+		nTuple<NDIMS, index_type> idx;
 
-		auto m=(~((1UL << (MAX_DEPTH_OF_TREE - depth))- 1 ));
+		//*********************************************
+//		idx=x;
+//
+//		idx=((idx+Decompact((~shift)&(_DA>>depth)))&(~((1UL<<(MAX_DEPTH_OF_TREE-depth))-1)))+Decompact(shift);
+//
+//		x-=idx;
+//
+//		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
+//
+//		idx+=global_begin_<<MAX_DEPTH_OF_TREE;
+//
+//		auto s= Compact(idx);
 
-		res = ( res+Decompact(Dual(shift)))& m;
+		//*********************************************
 
-		x[0]=(x[0]-static_cast<Real>(res[0]))* static_cast<Real>(1UL << ( depth ));
-		x[1]=(x[1]-static_cast<Real>(res[1]))* static_cast<Real>(1UL << ( depth ));
-		x[2]=(x[2]-static_cast<Real>(res[2]))* static_cast<Real>(1UL << ( depth ));
+		idx=x;
 
-		res+=global_begin_<<MAX_DEPTH_OF_TREE;
+		auto s=Compact(idx);
 
-		auto s=Compact(res)|(depth<<(INDEX_DIGITS*3));
+		auto m=( (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE))-1)<<MAX_DEPTH_OF_TREE;
+
+		m=m|(m<<INDEX_DIGITS)|(m<<(INDEX_DIGITS*2));
+
+		CHECK_BIT(_DA);
+
+		CHECK_BIT(m);
+
+		 //
+		s=((s+((~shift)&(_DA>>depth))) &m) |shift;
+
+		x-=Decompact(s);
+
+		x/=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE-depth));
+
+		s+= Compact(global_begin_<<MAX_DEPTH_OF_TREE);
+		//*********************************************
 
 		return std::move(std::make_tuple( s,x));
 	}
@@ -738,16 +802,15 @@ struct UniformArray
 		if (array_order_ == SLOW_FIRST)
 		{
 			hash_stride_[2] = 1;
-			hash_stride_[1] = (local_outer_end_[2]-local_outer_begin_[2]);
-			hash_stride_[0] = ((local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1];
+			hash_stride_[1] = local_outer_count_[2];
+			hash_stride_[0] = local_outer_count_[1] * hash_stride_[1];
 		}
 		else
 		{
 			hash_stride_[0] = 1;
-			hash_stride_[1] = (local_outer_end_[0]-local_outer_begin_[0]);
-			hash_stride_[2] = ((local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1];
+			hash_stride_[1] = local_outer_count_[0];
+			hash_stride_[2] = local_outer_count_[1] * hash_stride_[1];
 		}
-
 	}
 
 	static index_type mod_(index_type a,index_type L)
@@ -762,11 +825,11 @@ struct UniformArray
 
 		index_type res =
 
-		mod_( d[0], (local_outer_end_[0]-local_outer_begin_[0])) * hash_stride_[0] +
+		mod_( d[0], (local_outer_count_[0] )) * hash_stride_[0] +
 
-		mod_( d[1], (local_outer_end_[1]-local_outer_begin_[1])) * hash_stride_[1] +
+		mod_( d[1], (local_outer_count_[1] )) * hash_stride_[1] +
 
-		mod_( d[2], (local_outer_end_[2]-local_outer_begin_[2])) * hash_stride_[2];
+		mod_( d[2], (local_outer_count_[2] )) * hash_stride_[2];
 
 		switch (NodeId(s))
 		{
@@ -815,7 +878,7 @@ struct UniformArray
 		compact_index_type shift_;
 
 		bool is_fast_first_ = true;
-		iterator( )
+		iterator( ):shift_(0UL)
 		{
 		}
 		iterator(iterator const & r)
@@ -974,8 +1037,6 @@ struct UniformArray
 
 	};	// class iterator
 
-	typedef std::pair<iterator, iterator> range_type;
-
 	inline static range_type make_range(nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> end,
 	compact_index_type shift = 0UL)
 	{
@@ -1006,7 +1067,6 @@ struct UniformArray
 
 	auto Select(unsigned int iform) const
 	DECL_RET_TYPE((Select(iform,local_inner_begin_, local_inner_end_ )))
-	;
 
 	template<typename T>
 	auto Select(unsigned int iform, std::pair<T, T> domain) const

@@ -25,14 +25,12 @@ struct CartesianGeometry: public TTopology
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
+	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
+
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
-
-	typedef nTuple<NDIMS, Real> vector_type;
-	typedef nTuple<NDIMS, Real> covector_type;
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
@@ -157,7 +155,7 @@ struct CartesianGeometry: public TTopology
 		return os.str();
 	}
 	template<typename ...Others>
-	inline void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax, Others&& ... others)
+	inline void SetExtents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
 	{
 		SetExtents(pmin, pmax);
 		topology_type::SetDimensions(std::forward<Others >(others)...);
@@ -189,6 +187,173 @@ struct CartesianGeometry: public TTopology
 
 				length_[i] = 0.0;
 
+			}
+			else
+			{
+				xmax_[i] = pmax[i];
+
+				inv_length_[i] = 1.0 / (xmax_[i] - xmin_[i]);
+
+				length_[i] = (xmax_[i] - xmin_[i]);
+
+			}
+		}
+
+		UpdateVolume();
+	}
+
+	inline auto GetExtents() const
+	DECL_RET_TYPE(std::make_pair(xmin_, xmax_))
+
+	inline coordinates_type GetDx(compact_index_type s = 0UL) const
+	{
+		coordinates_type res;
+
+		auto d = topology_type::GetDx();
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			res[i] = length_[i] * d[i];
+		}
+
+		return std::move(res);
+	}
+
+	template<typename ... Args>
+	inline coordinates_type GetCoordinates(Args && ... args) const
+	{
+		return std::move(CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...)));
+	}
+
+	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
+	{
+
+		return coordinates_type( {
+
+		x[0] * length_[0] + shift_[0],
+
+		x[1] * length_[1] + shift_[1],
+
+		x[2] * length_[2] + shift_[2]
+
+		});
+
+	}
+	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
+	{
+		return coordinates_type( {
+
+		(x[0] - shift_[0]) * inv_length_[0],
+
+		(x[1] - shift_[1]) * inv_length_[1],
+
+		(x[2] - shift_[2]) * inv_length_[2]
+
+		});
+
+	}
+	template<typename ... Args>
+	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
+	{
+		return std::move(CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...)));
+	}
+
+	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	        compact_index_type shift = 0UL) const
+	{
+		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
+	}
+	template<typename TX>
+	coordinates_type CoordinatesToCartesian(TX &&x) const
+	{
+		return std::move(std::forward<TX>(x));
+	}
+	template<typename TX>
+	coordinates_type CoordinatesFromCartesian(TX &&x) const
+	{
+		return std::move(std::forward<TX>(x));
+	}
+
+	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+
+	template<typename ...Args>
+	auto Select(unsigned int iform, Args && ...args) const
+	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
+
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
+	}
+	template<typename TV>
+	nTuple<NDIMS, TV> const& PullBack(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV const& Normal(index_type s, TV const & v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
+	{
+		return v[topology_type::ComponentNum(s)];
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<VOLUME>, index_type s, TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
+	{
+		return v[topology_type::ComponentNum(s)];
+	}
+
+	template<typename TV>
+	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
+	{
+		return v[topology_type::ComponentNum(s)];
+	}
+
+	template<int IFORM, typename TV>
+	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
+	{
+		return v;
+	}
+
+	template<int IFORM, typename TV>
+	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
+	        nTuple<NDIMS, TV> const & v) const
+	{
+		return Normal(s, v);
+	}
+
+	//***************************************************************************************************
+	// Volume
+	//***************************************************************************************************
+
+	void UpdateVolume()
+	{
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+
+			if ((xmax_[i] - xmin_[i]) < EPSILON)
+			{
+
 				volume_[1UL << (NDIMS - i - 1)] = 1.0;
 
 				dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0;
@@ -200,11 +365,6 @@ struct CartesianGeometry: public TTopology
 			}
 			else
 			{
-				xmax_[i] = pmax[i];
-
-				inv_length_[i] = 1.0 / (xmax_[i] - xmin_[i]);
-
-				length_[i] = (xmax_[i] - xmin_[i]);
 
 				volume_[1UL << (NDIMS - i - 1)] = length_[i];
 
@@ -284,150 +444,6 @@ struct CartesianGeometry: public TTopology
 
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
-	{
-		return std::move(std::make_pair(xmin_, xmax_));
-	}
-
-	inline coordinates_type GetDx() const
-	{
-		coordinates_type res;
-
-		auto d = topology_type::GetDx();
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			res[i] = length_[i] * d[i];
-		}
-
-		return std::move(res);
-	}
-
-	template<typename ... Args>
-	inline coordinates_type GetCoordinates(Args && ... args) const
-	{
-		return CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...));
-	}
-
-	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
-	{
-
-		return coordinates_type( {
-
-		x[0] * length_[0] + shift_[0],
-
-		x[1] * length_[1] + shift_[1],
-
-		x[2] * length_[2] + shift_[2]
-
-		});
-
-	}
-	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
-	{
-		return coordinates_type( {
-
-		(x[0] - shift_[0]) * inv_length_[0],
-
-		(x[1] - shift_[1]) * inv_length_[1],
-
-		(x[2] - shift_[2]) * inv_length_[2]
-
-		});
-
-	}
-	template<typename ... Args>
-	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
-	{
-		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...));
-	}
-
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
-	        typename topology_type::compact_index_type shift = 0UL) const
-	{
-		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
-	}
-
-	coordinates_type CoordinatesToCartesian(coordinates_type const &x) const
-	{
-		return x;
-	}
-
-	coordinates_type CoordinatesFromCartesian(coordinates_type const &x) const
-	{
-		return x;
-	}
-
-	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
-
-	template<typename ...Args>
-	auto Select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
-
-	template<typename TV>
-	nTuple<NDIMS, TV> const& PushForward(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
-	{
-		return v;
-	}
-	template<typename TV>
-	nTuple<NDIMS, TV> const& PullBack(coordinates_type const &x, nTuple<NDIMS, TV> const & v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV const& Normal(index_type s, TV const & v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
-	{
-		return v[topology_type::ComponentNum(s)];
-	}
-
-	template<typename TV>
-	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV Sample(Int2Type<VOLUME>, index_type s, TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
-	{
-		return v[topology_type::ComponentNum(s)];
-	}
-
-	template<typename TV>
-	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
-	{
-		return v[topology_type::ComponentNum(s)];
-	}
-
-	template<int IFORM, typename TV>
-	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
-	{
-		return v;
-	}
-
-	template<int IFORM, typename TV>
-	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
-	{
-		return Normal(s, v);
-	}
-
-//***************************************************************************************************
-// Cell-wise operation
-//***************************************************************************************************
 	scalar_type Volume(compact_index_type s) const
 	{
 		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];

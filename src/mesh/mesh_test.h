@@ -102,7 +102,7 @@ TEST_P(TestMesh, compact_index_type)
 	for (int depth = 0; depth < mesh_type::MAX_DEPTH_OF_TREE; ++depth)
 	{
 		for (int noid = 0; noid < 8; ++noid)
-			EXPECT_EQ(noid, mesh.NodeId(mesh.GetShift(noid, depth)));
+			ASSERT_EQ(noid, mesh.NodeId(mesh.GetShift(noid, depth)));
 	}
 
 	auto s = mesh.get_first_node_shift(VERTEX);
@@ -249,10 +249,18 @@ TEST_P(TestMesh, coordinates)
 	EXPECT_EQ(extents.first + half_dx, mesh.GetCoordinates(*begin(range3)));
 
 	typename mesh_type::coordinates_type x = 0.21235 * (extents.second - extents.first) + extents.first;
-	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VERTEX))));
-	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(EDGE))));
-	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(FACE))));
-	EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VOLUME))));
+
+	for (auto iform : iform_list)
+	{
+		auto idx = mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(iform));
+		EXPECT_EQ(x, mesh.CoordinatesLocalToGlobal(idx) ) << "IForm =" << iform;
+
+		auto s = std::get<0>(idx);
+		EXPECT_EQ(iform, mesh.IForm(s));
+		EXPECT_EQ(mesh.NodeId(mesh.get_first_node_shift(iform)), mesh.NodeId(s));
+		EXPECT_EQ(mesh.ComponentNum(mesh.get_first_node_shift(iform)), mesh.ComponentNum(s));
+
+	}
 
 	auto idx = mesh.topology_type::CoordinatesToIndex(x);
 
@@ -262,28 +270,41 @@ TEST_P(TestMesh, coordinates)
 
 TEST_P(TestMesh, volume)
 {
+	auto extents = mesh.GetExtents();
+	coordinates_type x = (std::get<0>(extents) + std::get<1>(extents)) * 0.5 + std::get<0>(extents);
+	auto s0 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VERTEX)));
+	auto s1 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(EDGE)));
+	auto s2 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(FACE)));
+	auto s3 = std::get<0>(mesh.CoordinatesGlobalToLocal(x, mesh.get_first_node_shift(VOLUME)));
 
-	auto s0 = mesh.get_first_node_shift(VERTEX);
-	auto s1 = mesh.get_first_node_shift(EDGE);
-	auto s2 = mesh.get_first_node_shift(FACE);
-	auto s3 = mesh.get_first_node_shift(VOLUME);
-
-	auto dx = mesh.GetDx();
+//	CHECK(mesh.length_);
+//	CHECK(mesh.Volume(s0));
+//	CHECK(mesh.Volume(s1));
+//	CHECK(mesh.NodeId(s2));
+//
+//	CHECK(mesh.volume_[0]);
+//	CHECK(mesh.volume_[1]);
+//	CHECK(mesh.volume_[2]);
+//	CHECK(mesh.volume_[4]);
+//	CHECK(mesh.volume_[mesh.NodeId(s2)]);
+//	CHECK(mesh.GetCoordinates(s2));
+//	CHECK(mesh.Volume(s2));
+//	CHECK(mesh.Volume(s3));
 
 	EXPECT_DOUBLE_EQ(mesh.Volume(s0) * mesh.Volume(s3), mesh.Volume(s1) * mesh.Volume(s2));
 	EXPECT_DOUBLE_EQ(mesh.Volume(s0), mesh.DualVolume(s3));
 	EXPECT_DOUBLE_EQ(mesh.Volume(s1), mesh.DualVolume(s2));
-
+	auto d = mesh.GetDimensions();
 	EXPECT_DOUBLE_EQ(1.0, mesh.Volume(s0));
-	EXPECT_DOUBLE_EQ(dx[0] , mesh.Volume(s1)) << dx;
-	EXPECT_DOUBLE_EQ(dx[1] , mesh.Volume(mesh.Roate(s1))) << dx;
-	EXPECT_DOUBLE_EQ(dx[2] , mesh.Volume(mesh.InverseRoate(s1))) << dx;
+	EXPECT_DOUBLE_EQ(d[0] <= 1 ? 1.0 : mesh.GetDx(s1)[0], mesh.Volume(s1)) << mesh.GetDx(s1)[2];
+	EXPECT_DOUBLE_EQ(d[1] <= 1 ? 1.0 : mesh.GetDx(mesh.Roate(s1))[1], mesh.Volume(mesh.Roate(s1)));
+	EXPECT_DOUBLE_EQ(d[2] <= 1 ? 1.0 : mesh.GetDx(mesh.InverseRoate(s1))[2], mesh.Volume(mesh.InverseRoate(s1)));
 
-	CHECK(mesh.topology_type::volume_[0]);
-	CHECK(mesh.topology_type::volume_[1]);
-	CHECK(mesh.topology_type::volume_[2]);
-	CHECK(mesh.topology_type::volume_[4]);
-	CHECK(mesh.Volume(s1));
+//	CHECK(mesh.topology_type::volume_[0]);
+//	CHECK(mesh.topology_type::volume_[1]);
+//	CHECK(mesh.topology_type::volume_[2]);
+//	CHECK(mesh.topology_type::volume_[4]);
+//	CHECK(mesh.Volume(s1));
 //	auto X = mesh.topology_type::DI(0, s);
 //	auto Y = mesh.topology_type::DI(1, s);
 //	auto Z = mesh.topology_type::DI(2, s);
@@ -309,6 +330,52 @@ TEST_P(TestMesh, volume)
 TEST_P(TestMesh, hash)
 {
 
+//	for (auto iform : iform_list)
+	unsigned int iform = VERTEX;
+	{
+		size_t num = mesh.GetLocalMemorySize(iform);
+
+		for (auto s : mesh.Select(iform))
+		{
+
+			ASSERT_GT(num, mesh.Hash(s));
+			ASSERT_LE(0, mesh.Hash(s));
+
+			ASSERT_GT(num, mesh.Hash(mesh.Roate(s)));
+			ASSERT_LE(0, mesh.Hash(mesh.InverseRoate(s)));
+
+		}
+
+		num = mesh.GetLocalMemorySize(iform % 3 + 1);
+
+		for (auto s : mesh.Select(iform))
+		{
+			auto DX = mesh.DI(0, s);
+			auto DY = mesh.DI(1, s);
+			auto DZ = mesh.DI(2, s);
+			ASSERT_GT(num, mesh.Hash(s + DX));
+
+			ASSERT_GT(num, mesh.Hash(s + DY));
+
+			ASSERT_GT(num, mesh.Hash(s + DZ));
+
+		}
+
+		num = mesh.GetLocalMemorySize(iform % 3 - 1);
+
+		for (auto s : mesh.Select(iform))
+		{
+			auto DX = mesh.DI(0, s);
+			auto DY = mesh.DI(1, s);
+			auto DZ = mesh.DI(2, s);
+			ASSERT_LE(0, mesh.Hash(s - DX));
+
+			ASSERT_LE(0, mesh.Hash(s - DY));
+
+			ASSERT_LE(0, mesh.Hash(s - DZ));
+		}
+
+	}
 }
 
 TEST_P(TestMesh, Split)
@@ -339,11 +406,11 @@ TEST_P(TestMesh, Split)
 
 		if (iform == VERTEX || iform == VOLUME)
 		{
-			EXPECT_EQ(data.size(), size);
+			ASSERT_EQ(data.size(), size);
 		}
 		else
 		{
-			EXPECT_EQ(data.size(), size * 3);
+			ASSERT_EQ(data.size(), size * 3);
 		}
 	}
 
@@ -360,7 +427,7 @@ TEST_P(TestMesh, Split)
 //		data.insert(s);
 //	}
 //
-//	EXPECT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
+//	ASSERT_EQ(data.size(), dims[0] * dims[1] * dims[2]);
 //
 //	data.clear();
 //
@@ -392,11 +459,11 @@ TEST_P(TestMesh, Split)
 ////		if ((xmin[0] <= x[0]) && (xmin[1] <= x[1]) && (xmin[2] <= x[2]) && (xmax[0] >= x[0]) && (xmax[1] >= x[1])
 ////		        && (xmax[2] >= x[2]))
 ////		{
-////			EXPECT_TRUE(data.find(s) != data.end()) << s;
+////			ASSERT_TRUE(data.find(s) != data.end()) << s;
 ////		}
 ////		else
 ////		{
-////			EXPECT_TRUE(data.find(s) == data.end()) << s;
+////			ASSERT_TRUE(data.find(s) == data.end()) << s;
 ////		}
 ////
 ////	}
@@ -620,22 +687,22 @@ TEST_P(TestMesh, Split)
 ////
 ////	mesh_type & mesh=mesh;
 ////
-////	EXPECT_EQ(mesh.Shift(mesh.INC(0),105),6L);
-////	EXPECT_EQ(mesh.Shift(mesh.INC(1),105),5L);
-////	EXPECT_EQ(mesh.Shift(mesh.INC(2),105),5L);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(0),105),6L);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(1),105),5L);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(2),105),5L);
 ////
-////	EXPECT_EQ(mesh.Shift(mesh.DES(0),105),4L);
-////	EXPECT_EQ(mesh.Shift(mesh.DES(1),105),5L);
-////	EXPECT_EQ(mesh.Shift(mesh.DES(2),105),5L);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(0),105),4L);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(1),105),5L);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(2),105),5L);
 ////
 ////	auto s= mesh.GetIndex(3,4,5);
-////	EXPECT_EQ(mesh.Shift(mesh.DES(0),3,4,5),s-1);
-////	EXPECT_EQ(mesh.Shift(mesh.DES(1),3,4,5),s);
-////	EXPECT_EQ(mesh.Shift(mesh.DES(2),3,4,5),s);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(0),3,4,5),s-1);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(1),3,4,5),s);
+////	ASSERT_EQ(mesh.Shift(mesh.DES(2),3,4,5),s);
 ////
-////	EXPECT_EQ(mesh.Shift(mesh.INC(0),3,4,5),s+1);
-////	EXPECT_EQ(mesh.Shift(mesh.INC(1),3,4,5),s);
-////	EXPECT_EQ(mesh.Shift(mesh.INC(2),3,4,5),s);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(0),3,4,5),s+1);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(1),3,4,5),s);
+////	ASSERT_EQ(mesh.Shift(mesh.INC(2),3,4,5),s);
 ////
 ////}}
 
