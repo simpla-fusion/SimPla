@@ -47,12 +47,13 @@ protected:
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			if (xmax[i] - xmin[i] <= EPSILON)
+			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
+			{
 				dims[i] = 1;
-
-			if (dims[i] <= 1)
 				K[i] = 0.0;
+			}
 		}
+
 		mesh.SetExtents(xmin, xmax, dims);
 
 		if (!GLOBAL_DATA_STREAM.IsOpened())
@@ -85,6 +86,17 @@ public:
 
 	value_type default_value;
 
+	void AddImageK(Real *,int n,Real scale)
+	{
+
+	}
+	void AddImageK(std::complex<Real> * v,int n,Real scale)
+	{
+		if( dims[n]<=1 &&  (xmax[n] > xmin[n]) )
+		{
+			*v+=std::complex<Real>(0,TWOPI/(xmax[n]-xmin[n])*scale);
+		}
+	}
 	template<typename T>
 	void SetDefaultValue(T* v)
 	{

@@ -5,20 +5,22 @@
  *      Author: salmon
  */
 
-//#include "../mesh/mesh_rectangle.h"
-//#include "../mesh/octree_forest.h"
-//#include "../mesh/geometry_cartesian.h"
-#include <gtest/gtest.h>
+#include "../mesh/mesh_rectangle.h"
+#include "../mesh/uniform_array.h"
+#include "../mesh/geometry_cartesian.h"
+
+#define TMESH Mesh<CartesianGeometry<UniformArray,false>>
+
 #include "fetl.h"
 #include "fetl_test.h"
-#include "fetl_test1.h"
-#include "fetl_test2.h"
+//#include "fetl_test1.h"
+//#include "fetl_test2.h"
 #include "fetl_test3.h"
-#include "fetl_test4.h"
+//#include "fetl_test4.h"
 
 using namespace simpla;
 
-INSTANTIATE_TEST_CASE_P(FETLEuclidean, TestFETL,
+INSTANTIATE_TEST_CASE_P(FETLCartesian, TestFETL,
 
 testing::Combine(testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0 })  //
         , nTuple<3, Real>( { -1.0, -2.0, -3.0 })

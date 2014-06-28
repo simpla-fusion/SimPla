@@ -512,23 +512,72 @@ struct UniformArray
 
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
-	Real const & Volume(compact_index_type s) const
+
+	Real const & Volume(compact_index_type s ) const
 	{
 		return volume_[NodeId(s)];
 	}
 
-	Real InvVolume(compact_index_type s) const
+	Real InvVolume(compact_index_type s ) const
 	{
 		return inv_volume_[NodeId(s)];
 	}
 
-	Real InvDualVolume(compact_index_type s) const
+	Real DualVolume(compact_index_type s ) const
+	{
+		return dual_volume_[NodeId(s)];
+	}
+
+	Real InvDualVolume(compact_index_type s ) const
 	{
 		return inv_dual_volume_[NodeId(s)];
 	}
-	Real DualVolume(compact_index_type s) const
+
+	Real Volume(compact_index_type s, std::integral_constant<bool, false> ) const
 	{
-		return dual_volume_[NodeId(s)];
+		return Volume(s);
+	}
+
+	Real InvVolume(compact_index_type s, std::integral_constant<bool, false>) const
+	{
+		return InvVolume(s);
+	}
+
+	Real InvDualVolume(compact_index_type s, std::integral_constant<bool, false>) const
+	{
+		return InvDualVolume(s);
+	}
+	Real DualVolume(compact_index_type s, std::integral_constant<bool, false>) const
+	{
+		return DualVolume(s);
+	}
+
+	bool InRange(compact_index_type s)const
+	{
+		auto idx=Decompact(s)>>MAX_DEPTH_OF_TREE;
+
+		return ( (idx[0]<global_end_[0] && idx[0]>=global_begin_[0])
+		&& (idx[1]<global_end_[1] && idx[1]>=global_begin_[1])
+		&& (idx[2]<global_end_[2] && idx[2]>=global_begin_[2])
+		);
+	}
+	Real Volume(compact_index_type s, std::integral_constant<bool, true>) const
+	{
+		return InRange(s)?Volume(s):0.0;
+	}
+
+	Real InvVolume(compact_index_type s, std::integral_constant<bool, true>) const
+	{
+		return InRange(s)?InvVolume(s):0.0;
+	}
+
+	Real DualVolume(compact_index_type s, std::integral_constant<bool, true>) const
+	{
+		return InRange(s)?DualVolume(s):0.0;
+	}
+	Real InvDualVolume(compact_index_type s, std::integral_constant<bool, true>) const
+	{
+		return InRange(s)?InvDualVolume(s):0.0;
 	}
 
 	Real CellVolume(compact_index_type s)const
