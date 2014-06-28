@@ -10,7 +10,7 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cylindrical.h"
 
-#define GEOMETRY  CylindricalGeometry<UniformArray,false,1>
+#define GEOMETRY  CylindricalGeometry<UniformArray,1>
 
 #include "geometry_test.h"
 

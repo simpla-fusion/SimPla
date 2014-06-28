@@ -20,7 +20,7 @@ using namespace simpla;
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
 
-typedef CartesianGeometry<UniformArray, false> TGeometry;
+typedef CartesianGeometry<UniformArray> TGeometry;
 #else
 typedef GEOMETRY TGeometry;
 #endif
@@ -114,22 +114,20 @@ TEST_P(TestGeometry, Volume)
 			auto IY = geometry_type::DI(1, s);
 			auto IZ = geometry_type::DI(2, s);
 
-			ASSERT_LE(abs(geometry.CellVolume(s) - geometry.DualVolume(s) * geometry.Volume(s)), epsilon);
-			ASSERT_LE(abs(1.0 / geometry.CellVolume(s) - geometry.InvDualVolume(s) * geometry.InvVolume(s)),
-			        10 * epsilon);
+			ASSERT_DOUBLE_EQ(geometry.CellVolume(s), geometry.DualVolume(s) * geometry.Volume(s));
+			ASSERT_DOUBLE_EQ(1.0 / geometry.CellVolume(s), geometry.InvDualVolume(s) * geometry.InvVolume(s));
 
-			ASSERT_LE(abs(1.0 - geometry.InvVolume(s) * geometry.Volume(s)), epsilon);
-			ASSERT_LE(abs(1.0 - geometry.InvDualVolume(s) * geometry.DualVolume(s)), epsilon);
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvVolume(s) * geometry.Volume(s));
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvDualVolume(s) * geometry.DualVolume(s));
 
-			ASSERT_LE(abs(1.0 - geometry.InvVolume(s + IX) * geometry.Volume(s + IX)), epsilon);
-			ASSERT_LE(abs(1.0 - geometry.InvDualVolume(s + IX) * geometry.DualVolume(s + IX)), epsilon);
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvVolume(s + IX) * geometry.Volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvDualVolume(s + IX) * geometry.DualVolume(s + IX));
 
-			ASSERT_LE(abs(1.0 - geometry.InvVolume(s - IY) * geometry.Volume(s - IY)), epsilon);
-			ASSERT_LE(abs(1.0 - geometry.InvDualVolume(s - IY) * geometry.DualVolume(s - IY)), epsilon);
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvVolume(s - IY) * geometry.Volume(s - IY));
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvDualVolume(s - IY) * geometry.DualVolume(s - IY));
 
-			ASSERT_LE(abs(1.0 - geometry.InvVolume(s - IZ) * geometry.Volume(s - IZ)), epsilon);
-			ASSERT_LE(abs(1.0 - geometry.InvDualVolume(s - IZ) * geometry.DualVolume(s - IZ)), epsilon);
-
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvVolume(s - IZ) * geometry.Volume(s - IZ));
+			ASSERT_DOUBLE_EQ(1.0, geometry.InvDualVolume(s - IZ) * geometry.DualVolume(s - IZ));
 		}
 	}
 
@@ -161,30 +159,30 @@ TEST_P(TestGeometry,Coordinates_transform)
 	auto z = std::make_tuple(x, v);
 
 	coordinates_type y = geometry.InvMapTo(geometry.MapTo(x));
-	EXPECT_LE(abs(x[0] - y[0]), epsilon);
-	EXPECT_LE(abs(x[1] - y[1]), epsilon);
-	EXPECT_LE(abs(x[2] - y[2]), epsilon);
+	EXPECT_DOUBLE_EQ(x[0], y[0]);
+	EXPECT_DOUBLE_EQ(x[1], y[1]);
+	EXPECT_DOUBLE_EQ(x[2], y[2]);
 
 	y = geometry.MapTo(geometry.InvMapTo(x));
-	EXPECT_LE(abs(x[0] - y[0]), epsilon);
-	EXPECT_LE(abs(x[1] - y[1]), epsilon);
-	EXPECT_LE(abs(x[2] - y[2]), epsilon);
+	EXPECT_DOUBLE_EQ(x[0], y[0]);
+	EXPECT_DOUBLE_EQ(x[1], y[1]);
+	EXPECT_DOUBLE_EQ(x[2], y[2]);
 
 	auto z1 = geometry.PushForward(geometry.PullBack(z));
-	EXPECT_LE(abs(std::get<0>(z)[0] - std::get<0>(z1)[0]), epsilon);
-	EXPECT_LE(abs(std::get<0>(z)[1] - std::get<0>(z1)[1]), epsilon);
-	EXPECT_LE(abs(std::get<0>(z)[2] - std::get<0>(z1)[2]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[0] - std::get<1>(z1)[0]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[1] - std::get<1>(z1)[1]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[2] - std::get<1>(z1)[2]), epsilon);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z1)[0]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z1)[1]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z1)[2]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[0], std::get<1>(z1)[0]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[1], std::get<1>(z1)[1]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[2], std::get<1>(z1)[2]);
 
 	auto z2 = geometry.PullBack(geometry.PushForward(z));
-	EXPECT_LE(abs(std::get<0>(z)[0] - std::get<0>(z2)[0]), epsilon);
-	EXPECT_LE(abs(std::get<0>(z)[1] - std::get<0>(z2)[1]), epsilon);
-	EXPECT_LE(abs(std::get<0>(z)[2] - std::get<0>(z2)[2]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[0] - std::get<1>(z2)[0]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[1] - std::get<1>(z2)[1]), epsilon);
-	EXPECT_LE(abs(std::get<1>(z)[2] - std::get<1>(z2)[2]), epsilon);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z2)[0]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z2)[1]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z2)[2]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[0], std::get<1>(z2)[0]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[1], std::get<1>(z2)[1]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[2], std::get<1>(z2)[2]);
 
 }
 

@@ -533,6 +533,11 @@ struct UniformArray
 		return inv_dual_volume_[NodeId(s)];
 	}
 
+	Real CellVolume(compact_index_type s)const
+	{
+		return volume_[1] * volume_[2] * volume_[4];
+	}
+
 	Real Volume(compact_index_type s, std::integral_constant<bool, false> ) const
 	{
 		return Volume(s);
@@ -556,9 +561,11 @@ struct UniformArray
 	{
 		auto idx=Decompact(s)>>MAX_DEPTH_OF_TREE;
 
-		return ( (idx[0]<global_end_[0] && idx[0]>=global_begin_[0])
-		&& (idx[1]<global_end_[1] && idx[1]>=global_begin_[1])
-		&& (idx[2]<global_end_[2] && idx[2]>=global_begin_[2])
+		return true||
+
+		( ( global_count_[0]>1 || idx[0]>=global_begin_[0])
+		&& ( global_count_[1]>1 || idx[1]>=global_begin_[1])
+		&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
 		);
 	}
 	Real Volume(compact_index_type s, std::integral_constant<bool, true>) const
@@ -580,10 +587,6 @@ struct UniformArray
 		return InRange(s)?InvDualVolume(s):0.0;
 	}
 
-	Real CellVolume(compact_index_type s)const
-	{
-		return volume_[1] * volume_[2] * volume_[4];
-	}
 #else
 #error UNIMPLEMENT!!
 	Real const & Volume(compact_index_type s) const

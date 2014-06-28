@@ -8,7 +8,7 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
 
-#define GEOMETRY  CartesianGeometry<UniformArray,false>
+#define GEOMETRY  CartesianGeometry<UniformArray>
 #include "geometry_test.h"
 
 using namespace simpla;

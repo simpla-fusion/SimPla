@@ -9,7 +9,7 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cylindrical.h"
 
-#define TMESH Mesh<CylindricalGeometry<UniformArray,false,1>>
+#define TMESH Mesh<CylindricalGeometry<UniformArray,1>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"

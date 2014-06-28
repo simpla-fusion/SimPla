@@ -21,24 +21,23 @@ namespace simpla
  *
  *   R Z theta
  */
-template<typename TTopology, bool BEnableSpectralMethod = false, unsigned int IZAxis = 1>
+template<typename TTopology, unsigned int IZAxis = 1>
 struct CylindricalGeometry: public TTopology
 {
 	typedef TTopology topology_type;
-
-	static constexpr bool enable_spectral_method = BEnableSpectralMethod;
 
 	static constexpr unsigned int ZAxis = (IZAxis + 3) % 3;
 	static constexpr unsigned int RAxis = (IZAxis + 2) % 3;
 	static constexpr unsigned int ThetaAxis = (IZAxis + 1) % 3;
 
-	typedef CylindricalGeometry<topology_type, enable_spectral_method, ZAxis> this_type;
+	typedef CylindricalGeometry<topology_type, ZAxis> this_type;
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
+	typedef Real scalar_type;
+
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename std::conditional<enable_spectral_method, std::complex<Real>, Real>::type scalar_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 

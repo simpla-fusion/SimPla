@@ -9,14 +9,14 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
 
-#define TMESH Mesh<CartesianGeometry<UniformArray,false>>
+#define TMESH Mesh<CartesianGeometry<UniformArray>>
 
 #include "fetl.h"
 #include "fetl_test.h"
-//#include "fetl_test1.h"
-//#include "fetl_test2.h"
+#include "fetl_test1.h"
+#include "fetl_test2.h"
 #include "fetl_test3.h"
-//#include "fetl_test4.h"
+#include "fetl_test4.h"
 
 using namespace simpla;
 

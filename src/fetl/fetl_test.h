@@ -41,7 +41,7 @@ protected:
 
 		dims = std::get<2>(param);
 
-		K = std::get<3>(param);
+		K_real = std::get<3>(param);
 
 		SetDefaultValue(&default_value);
 
@@ -50,11 +50,13 @@ protected:
 			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
 			{
 				dims[i] = 1;
-				K[i] = 0.0;
+				K_real[i] = 0.0;
 			}
 		}
 
 		mesh.SetExtents(xmin, xmax, dims);
+
+		K_imag = mesh.k_imag;
 
 		if (!GLOBAL_DATA_STREAM.IsOpened())
 		{
@@ -82,21 +84,12 @@ public:
 
 	nTuple<NDIMS, size_t> dims;
 
-	nTuple<3, Real> K; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K_real; // @NOTE must   k = n TWOPI, period condition
+
+	nTuple<3, scalar_type> K_imag;
 
 	value_type default_value;
 
-	void AddImageK(Real *,int n,Real scale)
-	{
-
-	}
-	void AddImageK(std::complex<Real> * v,int n,Real scale)
-	{
-		if( dims[n]<=1 &&  (xmax[n] > xmin[n]) )
-		{
-			*v+=std::complex<Real>(0,TWOPI/(xmax[n]-xmin[n])*scale);
-		}
-	}
 	template<typename T>
 	void SetDefaultValue(T* v)
 	{

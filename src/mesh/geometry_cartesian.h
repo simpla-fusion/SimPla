@@ -16,12 +16,11 @@
 
 namespace simpla
 {
-template<typename TTopology, bool EnableSpectralMethod = false>
+template<typename TTopology>
 struct CartesianGeometry: public TTopology
 {
 	typedef TTopology topology_type;
-	static constexpr bool enable_spectral_method = EnableSpectralMethod;
-	typedef CartesianGeometry<topology_type, enable_spectral_method> this_type;
+	typedef CartesianGeometry<topology_type > this_type;
 
 	static constexpr int NDIMS = topology_type::NDIMS;
 
@@ -29,7 +28,7 @@ struct CartesianGeometry: public TTopology
 	static constexpr unsigned int YAxis = 1;
 	static constexpr unsigned int ZAxis = 2;
 
-	typedef typename std::conditional<EnableSpectralMethod, std::complex<Real>, Real>::type scalar_type;
+	typedef Real scalar_type;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
@@ -90,47 +89,14 @@ struct CartesianGeometry: public TTopology
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
-	/**
-	 *
-	 *                ^y
-	 *               /
-	 *        z     /
-	 *        ^    /
-	 *        |  110-------------111
-	 *        |  /|              /|
-	 *        | / |             / |
-	 *        |/  |            /  |
-	 *       100--|----------101  |
-	 *        | m |           |   |
-	 *        |  010----------|--011
-	 *        |  /            |  /
-	 *        | /             | /
-	 *        |/              |/
-	 *       000-------------001---> x
-	 *
-	 *
-	 */
-
-	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1  //111
-	        };
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
 	{
 		try
 		{
+
+			topology_type::Load(dict, std::forward<Others>(others)...);
+
 			if (dict["Min"] && dict["Max"])
 			{
 				LOGGER << "Load CartesianGeometry ";
@@ -143,8 +109,6 @@ struct CartesianGeometry: public TTopology
 			}
 
 			dt_ = dict["dt"].template as<Real>();
-
-			topology_type::Load(dict, std::forward<Others>(others)...);
 
 		} catch (...)
 		{
@@ -165,17 +129,15 @@ struct CartesianGeometry: public TTopology
 	template<typename ...Others>
 	inline void SetExtents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
 	{
-		SetExtents(pmin, pmax);
 		topology_type::SetDimensions(std::forward<Others >(others)...);
-
+		SetExtents(pmin, pmax);
 	}
 
 	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
 	        nTuple<NDIMS, Real> const & dims)
 	{
-		SetExtents(pmin, pmax);
 		topology_type::SetDimensions(dims);
-
+		SetExtents(pmin, pmax);
 	}
 	void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
 	{
@@ -412,31 +374,42 @@ struct CartesianGeometry: public TTopology
 	//***************************************************************************************************
 	// Volume
 	//***************************************************************************************************
-private:
-	void UpdateVolume_(Real *volume, Real * inv_volume, Real *dual_volume, Real * inv_dual_volume)
-	{
-	}
 
-	void UpdateVolume_(std::complex<Real> *volume, std::complex<Real> * inv_volume, std::complex<Real> * dual_volume,
-	        std::complex<Real> * inv_dual_volume)
-	{
-		auto dims = topology_type::GetDimensions();
+	/**
+	 *
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *
+	 */
 
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if (dims[i] <= 1 && (xmax_[i] > xmin_[i]))
-			{
-				volume[1UL << (NDIMS - i - 1)] = std::complex<Real>(0, -length_[i] / TWOPI);
+	scalar_type volume_[8] = { 1, // 000
+	        1, //001
+	        1, //010
+	        1, //011
+	        1, //100
+	        1, //101
+	        1, //110
+	        1  //111
+	        };
+	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-				inv_volume[1UL << (NDIMS - i - 1)] = std::complex<Real>(0, TWOPI * inv_length_[i]);
+	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-				inv_volume[1UL << (NDIMS - i - 1)] = std::complex<Real>(0, length_[i] / TWOPI);
-
-				inv_dual_volume[7 - (1UL << (NDIMS - i - 1))] = std::complex<Real>(0, -TWOPI * inv_length_[i]);
-			}
-
-		}
-	}
+	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 	void UpdateVolume()
@@ -471,7 +444,6 @@ public:
 			}
 		}
 
-		UpdateVolume_(volume_, inv_volume_, inv_volume_, inv_dual_volume_);
 		/**
 		 *
 		 *                ^y
@@ -538,26 +510,26 @@ public:
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
-	Real CellVolume(compact_index_type s) const
+	scalar_type CellVolume(compact_index_type s) const
 	{
 		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4];
 	}
 	scalar_type Volume(compact_index_type s) const
 	{
-		return topology_type::Volume(s, std::integral_constant<bool, enable_spectral_method>()) * volume_[topology_type::NodeId(s)];
+		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];
 	}
 	scalar_type InvVolume(compact_index_type s) const
 	{
-		return topology_type::InvVolume(s, std::integral_constant<bool, enable_spectral_method>()) * inv_volume_[topology_type::NodeId(s)];
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)];
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
-		return topology_type::DualVolume(s, std::integral_constant<bool, enable_spectral_method>()) * dual_volume_[topology_type::NodeId(s)];
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)];
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
-		return topology_type::InvDualVolume(s, std::integral_constant<bool, enable_spectral_method>()) * inv_dual_volume_[topology_type::NodeId(s)];
+		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)];
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const
