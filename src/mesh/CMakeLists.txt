@@ -9,5 +9,5 @@ my_test(geometry_cylindrical_test    )
 target_link_libraries(geometry_cylindrical_test  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
 
 
-my_test(mesh_test    )  
-target_link_libraries(mesh_test  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )
+#my_test(mesh_test    )  
+#target_link_libraries(mesh_test  ${LUA_LIBRARIES}  io  physics  ${MPI_LIBRARIES} )

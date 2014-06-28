@@ -14,15 +14,13 @@
 
 typedef ::testing::Types<
 
-Mesh<CartesianGeometry<UniformArray, true>>,
+Mesh<CartesianGeometry<UniformArray>, true>,
 
-Mesh<CartesianGeometry<UniformArray, false>>,
+Mesh<CartesianGeometry<UniformArray>, false>,
 
-Mesh<CylindricalGeometry<UniformArray, true, 2>>,
+Mesh<CylindricalGeometry<UniformArray, 2>, true>,
 
-Mesh<CylindricalGeometry<UniformArray, false, 2>
-
->
+Mesh<CylindricalGeometry<UniformArray, 2>, false>
 
 > MeshTypeList;
 
