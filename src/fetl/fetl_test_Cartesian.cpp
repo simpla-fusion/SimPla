@@ -11,10 +11,10 @@
 #include <gtest/gtest.h>
 #include "fetl.h"
 #include "fetl_test.h"
-//#include "fetl_test1.h"
-//#include "fetl_test2.h"
+#include "fetl_test1.h"
+#include "fetl_test2.h"
 #include "fetl_test3.h"
-//#include "fetl_test4.h"
+#include "fetl_test4.h"
 
 using namespace simpla;
 

@@ -26,8 +26,8 @@ typedef GEOMETRY TGeometry;
 #endif
 
 class TestGeometry: public testing::TestWithParam<
-		std::tuple<typename TGeometry::coordinates_type, typename TGeometry::coordinates_type,
-				nTuple<TGeometry::NDIMS, size_t> > >
+        std::tuple<typename TGeometry::coordinates_type, typename TGeometry::coordinates_type,
+                nTuple<TGeometry::NDIMS, size_t> > >
 {
 protected:
 	void SetUp()
@@ -72,23 +72,8 @@ public:
 
 };
 
-TEST_P(TestGeometry, coordinates)
+TEST_P(TestGeometry, Coordinates)
 {
-
-//
-//
-//	auto range0 = geometry.Select(VERTEX);
-//	auto range1 = geometry.Select(EDGE);
-//	auto range2 = geometry.Select(FACE);
-//	auto range3 = geometry.Select(VOLUME);
-//
-//	auto half_dx = geometry.GetDx() / 2;
-//
-//	EXPECT_EQ(extents.first, geometry.GetCoordinates(*begin(range0)));
-//	EXPECT_EQ(extents.first + coordinates_type( { half_dx[0], 0, 0 }), geometry.GetCoordinates(*begin(range1)));
-//	EXPECT_EQ(extents.first + coordinates_type( { 0, half_dx[1], half_dx[2] }),
-//	        geometry.GetCoordinates(*begin(range2)));
-//	EXPECT_EQ(extents.first + half_dx, geometry.GetCoordinates(*begin(range3)));
 
 	auto extents = geometry.GetExtents();
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
@@ -113,51 +98,10 @@ TEST_P(TestGeometry, coordinates)
 
 }
 
-TEST_P(TestGeometry, volume)
+TEST_P(TestGeometry, Volume)
 {
 //	auto extents = geometry.GetExtents();
 //	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
-//
-//	auto s0 = std::get<0>(geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(VERTEX)));
-//	auto s1 = std::get<0>(geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(EDGE)));
-//	auto s2 = std::get<0>(geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(FACE)));
-//	auto s3 = std::get<0>(geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(VOLUME)));
-//
-////	CHECK(mesh.length_);
-////	CHECK(mesh.Volume(s0));
-////	CHECK(mesh.Volume(s1));
-////	CHECK(mesh.NodeId(s2));
-////
-//	CHECK(geometry.volume_[0]);
-//	CHECK(geometry.volume_[1]);
-//	CHECK(geometry.volume_[2]);
-//	CHECK(geometry.volume_[4]);
-////	CHECK(mesh.volume_[mesh.NodeId(s2)]);
-////	CHECK(mesh.GetCoordinates(s2));
-////	CHECK(mesh.Volume(s2));
-//
-//	CHECK(geometry.topology_type::Volume(s0));
-//	CHECK(geometry.topology_type::Volume(s1));
-//	CHECK(geometry.topology_type::Volume(s2));
-//	CHECK(geometry.topology_type::Volume(s3));
-//
-//	CHECK(geometry.GetCoordinates(s0));
-//
-//	CHECK(geometry.Volume(s0));
-//	CHECK(geometry.Volume(s1));
-//	CHECK(geometry.Volume(s2));
-//	CHECK(geometry.Volume(s3));
-//
-//	EXPECT_DOUBLE_EQ(geometry.Volume(s0), geometry.DualVolume(s3));
-//	EXPECT_DOUBLE_EQ(geometry.Volume(s1), geometry.DualVolume(s2));
-//	EXPECT_DOUBLE_EQ(geometry.Volume(s0) * geometry.Volume(s3), geometry.Volume(s1) * geometry.Volume(s2));
-//
-//	auto d = geometry.GetDimensions();
-//	EXPECT_DOUBLE_EQ(1.0, geometry.Volume(s0));
-//	EXPECT_DOUBLE_EQ(d[0] <= 1 ? 1.0 : geometry.GetDx(s1)[0], geometry.Volume(s1)) << geometry.GetDx(s1)[2];
-//	EXPECT_DOUBLE_EQ(d[1] <= 1 ? 1.0 : geometry.GetDx(geometry.Roate(s1))[1], geometry.Volume(geometry.Roate(s1)));
-//	EXPECT_DOUBLE_EQ(d[2] <= 1 ? 1.0 : geometry.GetDx(geometry.InverseRoate(s1))[2],
-//	        geometry.Volume(geometry.InverseRoate(s1)));
 
 	for (auto iform : iform_list)
 	{
@@ -187,25 +131,39 @@ TEST_P(TestGeometry, volume)
 
 }
 
-TEST_P(TestGeometry,conversion)
+TEST_P(TestGeometry,Coordinates_transform)
 {
 
-	nTuple<3, Real> v =
-	{ 1.0, 2.0, 3.0 };
+	nTuple<3, Real> v = { 1.0, 2.0, 3.0 };
 	auto extents = geometry.GetExtents();
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 	auto z = std::make_tuple(x, v);
 
-	EXPECT_EQ(x, geometry.InvMapTo(geometry.MapTo(x)));
-	EXPECT_EQ(x, geometry.MapTo(geometry.InvMapTo(x)));
+	coordinates_type y = geometry.InvMapTo(geometry.MapTo(x));
+	EXPECT_DOUBLE_EQ(x[0], y[0]);
+	EXPECT_DOUBLE_EQ(x[1], y[1]);
+	EXPECT_DOUBLE_EQ(x[2], y[2]);
+
+	y = geometry.MapTo(geometry.InvMapTo(x));
+	EXPECT_DOUBLE_EQ(x[0], y[0]);
+	EXPECT_DOUBLE_EQ(x[1], y[1]);
+	EXPECT_DOUBLE_EQ(x[2], y[2]);
 
 	auto z1 = geometry.PushForward(geometry.PullBack(z));
-	EXPECT_EQ(std::get<0>(z), std::get<0>(z1));
-	EXPECT_EQ(std::get<1>(z), std::get<1>(z1));
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z1)[0]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z1)[1]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z1)[2]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[0], std::get<1>(z1)[0]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[1], std::get<1>(z1)[1]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[2], std::get<1>(z1)[2]);
 
 	auto z2 = geometry.PullBack(geometry.PushForward(z));
-	EXPECT_EQ(std::get<0>(z), std::get<0>(z2));
-	EXPECT_EQ(std::get<1>(z), std::get<1>(z2));
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z2)[0]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z2)[1]);
+	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z2)[2]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[0], std::get<1>(z2)[0]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[1], std::get<1>(z2)[1]);
+	EXPECT_DOUBLE_EQ(std::get<1>(z)[2], std::get<1>(z2)[2]);
 
 }
 

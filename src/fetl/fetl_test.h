@@ -53,7 +53,6 @@ protected:
 			if (dims[i] <= 1)
 				K[i] = 0.0;
 		}
-
 		mesh.SetExtents(xmin, xmax, dims);
 
 		if (!GLOBAL_DATA_STREAM.IsOpened())
