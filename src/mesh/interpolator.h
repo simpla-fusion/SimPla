@@ -14,12 +14,10 @@
 
 namespace simpla
 {
-template<typename, int, typename > class Field;
 
 template<typename TM, typename Policy = std::nullptr_t>
 class Interpolator
 {
-
 public:
 
 	typedef TM mesh_type;
@@ -45,29 +43,22 @@ private:
 
 		return
 
-		f[((s + X) + Y) + Z] * (r[0]) * (r[1]) * (r[2])
-
-		+ f[((s + X) + Y) - Z] * (r[0]) * (r[1]) * (1.0 - r[2])
-
-		+ f[((s + X) - Y) + Z] * (r[0]) * (1.0 - r[1]) * (r[2])
-
-		+ f[((s + X) - Y) - Z] * (r[0]) * (1.0 - r[1]) * (1.0 - r[2])
-
-		+ f[((s - X) + Y) + Z] * (1.0 - r[0]) * (r[1]) * (r[2])
-
-		+ f[((s - X) + Y) - Z] * (1.0 - r[0]) * (r[1]) * (1.0 - r[2])
-
-		+ f[((s - X) - Y) + Z] * (1.0 - r[0]) * (1.0 - r[1]) * (r[2])
-
+		f[((s + X) + Y) + Z] * (r[0]) * (r[1]) * (r[2]) //
+		+ f[((s + X) + Y) - Z] * (r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ f[((s + X) - Y) + Z] * (r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ f[((s + X) - Y) - Z] * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ f[((s - X) + Y) + Z] * (1.0 - r[0]) * (r[1]) * (r[2]) //
+		+ f[((s - X) + Y) - Z] * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ f[((s - X) - Y) + Z] * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
 		+ f[((s - X) - Y) - Z] * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF>
-	static inline auto Gather_(Int2Type<VERTEX>, TF const &f, mesh_type const & mesh, coordinates_type r)
+	static inline auto Gather_(mesh_type const & mesh, Int2Type<VERTEX>, TF const &f, coordinates_type r)
 	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), 0UL))
 
 	template<typename TF>
-	static inline auto Gather_(Int2Type<EDGE>, TF const &f, mesh_type const& mesh, coordinates_type r)
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<EDGE>, TF const &f, coordinates_type r)
 	DECL_RET_TYPE(
 			make_ntuple(
 
@@ -77,7 +68,7 @@ public:
 			))
 
 	template<typename TF>
-	static inline auto Gather_(Int2Type<FACE>, TF const &f, mesh_type const& mesh, coordinates_type r)
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<FACE>, TF const &f, coordinates_type r)
 
 	DECL_RET_TYPE( make_ntuple(
 
@@ -103,34 +94,26 @@ private:
 		auto Z = topology_type::DeltaIndex(2, shift);
 
 		coordinates_type r = std::get<1>(idx);
-
 		auto s = std::get<0>(idx) + topology_type::DeltaIndex(shift);
 
-		f->get(((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-
-		f->get(((s + X) + Y) - Z) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-
-		f->get(((s + X) - Y) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-
-		f->get(((s + X) - Y) - Z) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-
-		f->get(((s - X) + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-
-		f->get(((s - X) + Y) - Z) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-
-		f->get(((s - X) - Y) + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-
-		f->get(((s - X) - Y) - Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		f[((s + X) + Y) + Z] += v * (r[0]) * (r[1]) * (r[2]);
+		f[((s + X) + Y) - Z] += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+		f[((s + X) - Y) + Z] += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+		f[((s + X) - Y) - Z] += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		f[((s - X) + Y) + Z] += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+		f[((s - X) + Y) - Z] += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+		f[((s - X) - Y) + Z] += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+		f[((s - X) - Y) - Z] += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF, typename TV>
-	static inline void Scatter_(Int2Type<VERTEX>, TF *f, mesh_type const& mesh, coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VERTEX>, TF *f, coordinates_type r, TV const & v)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), v, 0UL);
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(Int2Type<EDGE>, TF *f, mesh_type const& mesh, coordinates_type r,
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<EDGE>, TF *f, coordinates_type r,
 			nTuple<3, TV> const & u)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DK)), u[2], (topology_type::_DK));
@@ -139,7 +122,7 @@ public:
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(Int2Type<FACE>, TF *f, mesh_type const& mesh, coordinates_type r,
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<FACE>, TF *f, coordinates_type r,
 			nTuple<3, TV> const & u)
 	{
 
@@ -152,32 +135,34 @@ public:
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(Int2Type<VOLUME>, TF *f, mesh_type const& mesh, coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VOLUME>, TF *f, coordinates_type r, TV const & v)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, topology_type::_DA), v, topology_type::_DA);
 	}
 
+	/***
+	 *  @param z (x,v) tangent bundle space coordinates on  Cartesian configure space
+	 *  @param weight scatter weight
+	 */
 	template<int IFORM, typename TF, typename TZ, typename TS>
-	static inline void Scatter(Int2Type<IFORM>, TF *f, mesh_type const& mesh, TZ const & z, scalar_type scale = 1.0)
+	static inline void Scatter(mesh_type const& mesh, Int2Type<IFORM>, TF *f, TZ const & z, scalar_type weight = 1.0)
 	{
 		auto Z = mesh.PushForward(z);
-		Scatter_(Int2Type<IFORM>(), f, mesh, std::get<0>(Z), std::get<1>(Z) * scale);
+		Scatter_(mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
+
+	/***
+	 *  @param x tangent bundle space coordinates on  Cartesian configure space
+	 *  @return  field value(vector/scalar) on Cartesian configure space
+	 */
 	template<int IFORM, typename TF>
-	static inline auto Gather(Int2Type<IFORM>, TF const &f, mesh_type const & mesh, coordinates_type const & x)
-	->decltype(Gather_(Int2Type<IFORM>(),f,mesh,x))
+	static inline auto Gather(mesh_type const & mesh, Int2Type<IFORM>, TF const &f, coordinates_type const & x)
+	->decltype(Gather_(mesh,Int2Type<IFORM>(),f,x))
 	{
 		auto r = f.mesh.MapTo(x);
 		return std::move(std::get<1>(f->mesh.PullBack(std::make_tuple(r, Gather_(Int2Type<IFORM>(), f, mesh, r)))));
 	}
 
-	template<int IFORM, typename TF, typename ... Others>
-	static inline auto Scatter(Field<mesh_type, IFORM, TF> *f, Others &&... others)
-	DECL_RET_TYPE(Scatter(Int2Type<IFORM>(), f, f->mesh, std::forward<Others>(others)...))
-
-	template<int IFORM, typename TF, typename ... Others>
-	static inline auto Gather(Field<mesh_type, IFORM, TF> const &f, Others &&... others)
-	DECL_RET_TYPE(Gather(Int2Type<IFORM>(), f, f.mesh, std::forward<Others>(others)...))
 }
 ;
 

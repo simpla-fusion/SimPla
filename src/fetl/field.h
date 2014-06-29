@@ -53,21 +53,21 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename mesh_type::index_type index_type;
+	typedef typename mesh_type::compact_index_type compact_index_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;
 
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh)
-			: mesh(pmesh), data_(nullptr)
+	Field(mesh_type const &pmesh) :
+			mesh(pmesh), data_(nullptr)
 	{
 	}
 
@@ -83,14 +83,14 @@ public:
 	 * @param rhs
 	 */
 
-	Field(this_type const & rhs)
-			: mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs) :
+			mesh(rhs.mesh), data_(nullptr)
 	{
 	}
 
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs) :
+			mesh(rhs.mesh), data_(rhs.data_)
 	{
 	}
 
@@ -158,14 +158,14 @@ public:
 		write_lock_.unlock();
 	}
 
-	inline value_type & at(index_type s)
+	inline value_type & at(compact_index_type s)
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
 			OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
-	inline value_type const & at(index_type s) const
+	inline value_type const & at(compact_index_type s) const
 	{
 		if (!mesh.CheckLocalMemoryBounds(IForm, s))
 			OUT_RANGE_ERROR(mesh.Decompact(s));
@@ -173,23 +173,23 @@ public:
 		return get(s);
 	}
 
-	inline value_type & operator[](index_type s)
+	inline value_type & operator[](compact_index_type s)
 	{
 		return get(s);
 	}
 
-	inline value_type const & operator[](index_type s) const
+	inline value_type const & operator[](compact_index_type s) const
 	{
 		return get(s);
 	}
 
-	inline value_type & get(index_type s)
+	inline value_type & get(compact_index_type s)
 	{
 
 		return *(data_.get() + mesh.Hash(s));
 	}
 
-	inline value_type const & get(index_type s) const
+	inline value_type const & get(compact_index_type s) const
 	{
 		return *(data_.get() + mesh.Hash(s));
 	}
@@ -218,7 +218,7 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,default_value](index_type s)
+		[this,default_value](compact_index_type s)
 		{
 			this->get( s) = default_value;
 		}
@@ -242,7 +242,7 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](index_type s)
+		[this,&rhs](compact_index_type s)
 		{
 			this->get( s) = rhs.get( s);
 		}
@@ -258,7 +258,7 @@ public:
 
 		ParallelForEach(mesh.Select(IForm),
 
-		[this,&rhs](index_type s)
+		[this,&rhs](compact_index_type s)
 		{
 			this->get( s) = rhs.get( s);
 		}
@@ -289,7 +289,13 @@ DECL_SELF_ASSIGN	(- )
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return mesh.Gather(*this,x);
+		return mesh.Gather(Int2Type<IForm>(),*this,x);
+	}
+
+	template<typename TZ>
+	inline void Add(coordinates_type const &x,TZ const & z)
+	{
+		return mesh.Scatter(Int2Type<IForm>(),this,z);
 	}
 
 }
