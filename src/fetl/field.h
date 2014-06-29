@@ -25,7 +25,7 @@
 
 namespace simpla
 {
-template<typename TG, int IFORM, typename TValue> struct Field;
+template<typename TM, int IFORM, typename TValue> struct Field;
 
 /***
  *
