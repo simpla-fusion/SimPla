@@ -15,6 +15,8 @@
 namespace simpla
 {
 
+template<typename, int, typename > class Field;
+
 template<typename TM, typename Policy = std::nullptr_t>
 class Interpolator
 {
@@ -158,7 +160,17 @@ public:
 	static inline auto Gather(mesh_type const & mesh, Int2Type<IFORM>, TF const &f, coordinates_type const & x)
 	DECL_RET_TYPE ( std::get<1>(
 					mesh.PullBack(std::make_tuple(mesh.MapTo(x), Gather_(mesh, Int2Type<IFORM>(), f, mesh.MapTo(x))))))
-	//	->decltype(std::get<1>(Gather_(mesh,Int2Type<IFORM>(),f,x)))
+
+	template<int IFORM, typename TV, typename ... Args>
+	static inline void Scatter(Field<mesh_type, IFORM, TV> *f, Args && ... args)
+	{
+		Scatter(f->mesh, Int2Type<IFORM>(), f, std::forward<Args>(args)...);
+	}
+
+	template<int IFORM, typename TV, typename ... Args>
+	static inline auto Gather(Field<mesh_type, IFORM, TV> const &f, Args && ... args)
+	DECL_RET_TYPE ( Gather(f.mesh, Int2Type<IFORM>(), f, std::forward<Args>(args)...))
+
 }
 ;
 

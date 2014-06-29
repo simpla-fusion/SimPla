@@ -14,6 +14,7 @@
 
 #include "../../src/mesh/uniform_array.h"
 #include "../../src/mesh/geometry_cartesian.h"
+#include "../../src/mesh/geometry_cylindrical.h"
 #include "../../src/mesh/mesh_rectangle.h"
 #include "../../src/utilities/primitives.h"
 #include "../../src/utilities/log.h"
@@ -66,12 +67,21 @@ void Context::Load(LuaObject const & dict)
 
 		if (mesh_str == "RectMesh")
 		{
-			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>> >>(this, dict);
+			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, false> >>(this, dict);
 
 		}
 		else if (mesh_str == "RectMeshKz")
 		{
-			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray,true>> >>(this, dict);
+			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, true> >>(this, dict);
+		}
+		else if (mesh_str == "CylindricalRectMesh")
+		{
+			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, false> >>(this, dict);
+
+		}
+		else if (mesh_str == "CylindricalRectMeshKz")
+		{
+			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, true> >>(this, dict);
 		}
 		else
 		{

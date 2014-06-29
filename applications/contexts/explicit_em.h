@@ -183,7 +183,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			for (auto s : mesh.Select(FACE))
 			{
-				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				auto x = mesh.InvMapTo(mesh.GetCoordinates(s));
 
 				B[s] = mesh.Sample(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 			}
@@ -194,7 +194,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			for (auto s : model_.SelectByMaterial(VERTEX, "Plasma"))
 			{
-				auto x = mesh.CoordinatesToCartesian(mesh.GetCoordinates(s));
+				auto x = mesh.InvMapTo(mesh.GetCoordinates(s));
 				auto p = geqdsk.psi(x[0], x[1]);
 
 				ne0[s] = geqdsk.Profile("ne", p);

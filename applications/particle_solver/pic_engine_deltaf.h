@@ -59,13 +59,13 @@ public:
 
 public:
 
-	PICEngineDeltaF(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDeltaF(pmesh)
 	{
 		Load(std::forward<Others >(others)...);
 	}
@@ -142,7 +142,7 @@ public:
 			Others const &...others) const
 	{
 		p->x += p->v * dt * 0.5;
-		auto cE = interpolator_type::Gather(fE, p->x);
+		auto cE = interpolator_type::Gather( fE, p->x);
 		auto B = real(interpolator_type::Gather(fB, p->x));
 		auto E = real(cE);
 		Vec3 v_;
@@ -164,9 +164,7 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		nTuple<3,scalar_type> v;
-		v = p->v * p->f * p->w * q;
-		interpolator_type::Scatter(p->x, v, J);
+		interpolator_type::Scatter( J,std::make_tuple(p->x,p->v), p->f * p->w * q);
 
 	}
 	template<typename TE, typename TB, typename ... Others>
@@ -219,7 +217,7 @@ public:
 	template<typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, VERTEX, TV> * n, Args const & ...) const
 	{
-		interpolator_type::Scatter(p.x, q * p.f * p.w, n);
+		interpolator_type::Scatter( n,std::make_tuple(p.x, q * p.f * p.w));
 	}
 	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{

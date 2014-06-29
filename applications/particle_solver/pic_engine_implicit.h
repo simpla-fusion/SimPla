@@ -45,8 +45,8 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineImplicit(mesh_type const &pmesh)
-			: mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineImplicit(mesh_type const &pmesh) :
+			mesh(pmesh), m_(1.0), q_(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	~PICEngineImplicit()
@@ -161,16 +161,13 @@ public:
 	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
-		mesh.Scatter(p.x, p.f * p.w * q_, n);
+		mesh.Scatter(n, std::make_tuple(p.x, p.f * p.w * q_));
 	}
 
 	template<int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
-		typename Field<mesh_type, IFORM, TV>::field_value_type v;
-
-		v = p.v * (p.f * p.w * q_);
-		mesh.Scatter(p.x, v, J);
+		mesh.Scatter(J, std::make_tuple(p.x, p.v), p.w * q_);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

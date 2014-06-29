@@ -178,6 +178,27 @@ struct UniformArray
 		UpdateHash();
 	}
 
+	bool CheckLocalMemoryBounds(compact_index_type s)const
+	{
+		auto idx = Decompact(s)>>MAX_DEPTH_OF_TREE;
+		return
+
+		idx[0]>= local_outer_begin_[0]
+
+		&&idx[0]< local_outer_end_[0]
+
+		&&idx[1]>= local_outer_begin_[1]
+
+		&&idx[1]< local_outer_end_[1]
+
+		&&idx[2]>= local_outer_begin_[2]
+
+		&&idx[2]< local_outer_end_[2]
+
+		;
+
+	}
+
 	auto GetExtents() const
 	DECL_RET_TYPE(std::make_tuple(
 
@@ -1828,8 +1849,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0)
-			count = 0;
+		if (process_num > 0) count = 0;
 	}
 	else
 	{

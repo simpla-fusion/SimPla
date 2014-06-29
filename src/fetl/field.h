@@ -60,7 +60,7 @@ public:
 	typedef std::shared_ptr<value_type> container_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	container_type data_;
 
@@ -160,15 +160,13 @@ public:
 
 	inline value_type & at(compact_index_type s)
 	{
-		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR(mesh.Decompact(s));
+//		if (!mesh.CheckLocalMemoryBounds(s)) OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
 	inline value_type const & at(compact_index_type s) const
 	{
-		if (!mesh.CheckLocalMemoryBounds(IForm, s))
-			OUT_RANGE_ERROR(mesh.Decompact(s));
+//		if (!mesh.CheckLocalMemoryBounds(s)) OUT_RANGE_ERROR(mesh.Decompact(s));
 
 		return get(s);
 	}

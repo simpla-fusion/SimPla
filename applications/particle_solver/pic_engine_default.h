@@ -57,13 +57,13 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDefault(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineDefault(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDefault(pmesh)
+	PICEngineDefault(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDefault(pmesh)
 	{
 		Load(std::forward<Others >(others)...);
 	}
@@ -146,9 +146,8 @@ public:
 		//		auto E = interpolator_type::Gather(fE, p->x);
 
 		p->x += p->v * dt;
-		Vec3 v;
-		v = p->v * p->f * q;
-		interpolator_type::Scatter(p->x, v, J);
+
+		interpolator_type::Scatter(J,std::make_tuple(p->x,p-> v) ,p->f * q);
 	}
 // v(0->1)
 	template<typename TE, typename TB, typename ... Others>
@@ -199,9 +198,8 @@ public:
 		p->v += E * (cmr_ * dt * 0.5);
 
 		p->x += p->v * dt * 0.5;
-		Vec3 v;
-		v = p->v * p->f * q;
-		interpolator_type::Scatter(p->x, v, J);
+
+		interpolator_type::Scatter(J,std::make_tuple(p->x,p-> v) ,p->f * q);
 
 	}
 	template<typename TE, typename TB, typename ... Others>
@@ -213,7 +211,7 @@ public:
 	template<int IFORM, typename TV, typename ...Args>
 	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
 	{
-		interpolator_type::Scatter(p.x, q * p.f, n);
+		interpolator_type::Scatter( n,std::make_tuple(p.x, q * p.f));
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
