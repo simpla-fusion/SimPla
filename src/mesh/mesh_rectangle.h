@@ -14,9 +14,7 @@
 #include <type_traits>
 
 #include "../utilities/sp_type_traits.h"
-#include "../utilities/conatiner_dense.h"
-#include "../utilities/container_sparse.h"
-
+#include "../utilities/container_dense.h"
 #include "../physics/constants.h"
 
 #include "interpolator.h"
@@ -56,15 +54,15 @@ public:
 
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
-	Mesh()
-			: geometry_type()
+	Mesh() :
+			geometry_type()
 	{
 		UpdateK(&k_imag);
 	}
 
 	template<typename TDict>
-	Mesh(TDict && dict)
-			: geometry_type(std::forward<TDict>(dict))
+	Mesh(TDict && dict) :
+			geometry_type(std::forward<TDict>(dict))
 	{
 		UpdateK(&k_imag);
 	}
@@ -121,46 +119,23 @@ private:
 	}
 public:
 
-	template<int IFORM, typename TV> using DenseForm=Field<this_type,IFORM,DenseContainer<TV,compact_index_type>>;
+	template<typename TV> using DefaultContainer=DenseContainer<compact_index_type,TV>;
 
-	template<int IFORM, typename TV> using SparseForm=Field<this_type,IFORM,SparseContainer<TV,compact_index_type>>;
+	template<int IFORM, typename TV> using field_type=Field<this_type,IFORM,DefaultContainer<TV>>;
 
-	template<int IFORM, typename TV> using field_type=DenseForm<IFORM,TV>;
-
-	template<int IFORM, typename TV, typename ... Args> DenseForm<IFORM, TV>  //
-	make_form(std::integral_constant<bool, true>, typename topology_type::range_type range, Args && ... args) const
+	template<typename TF, typename ... Args> TF  //
+	make_field(typename topology_type::range_type range, Args && ... args) const
 	{
-		return std::move(DenseForm<IFORM, TV>(*this, range, //
-		        topology_type::make_hash(range), std::forward<Args>(args)...));
+		return std::move(TF(*this, range, topology_type::make_hash(range), std::forward<Args>(args)...));
 	}
 
-	template<int IFORM, typename TV, typename ... Args> SparseForm<IFORM, TV> //
-	make_form(std::integral_constant<bool, false>, typename topology_type::range_type range, Args && ... args) const
-	{
-		return std::move(SparseForm<IFORM, TV>(*this, range, std::forward<Args>(args)...));
-	}
-
-	template<int IFORM, typename TV, bool is_dense, typename ... Args> auto //
-	make_form(std::integral_constant<bool, is_dense>, Args && ... args) const
-	DECL_RET_TYPE( (make_form<IFORM, TV>(std::integral_constant<bool, is_dense>(),
-							topology_type::Select(IFORM), std::forward<Args>(args)...)))
-
-	template<int IFORM, typename TV, typename ...Args> inline auto //
-	make_field_dense(Args &&... args) const
-	DECL_RET_TYPE((make_form<IFORM,TV>(std::integral_constant<bool,true>(), std::forward<Args>(args)...)))
-
-	template<int IFORM, typename TV, typename ...Args> inline auto //
-	make_field_sparse(Args &&... args) const
-	DECL_RET_TYPE((make_form<IFORM,TV>(std::integral_constant<bool,false>(), std::forward<Args>(args)...)))
+	template<typename TF, typename ... Args> inline auto //
+	make_field(Args && ... args) const
+	DECL_RET_TYPE((make_field<TF>(topology_type::Select(TF::IForm),std::forward<Args>(args)...)))
 
 	template<int IFORM, typename TV, typename ...Args> inline auto //
 	make_field(Args &&...args) const
-	DECL_RET_TYPE((make_form<IFORM,TV>( std::integral_constant<bool,true>(),std::forward<Args>(args)... )))
-
-	template<typename TF, typename ... Args> inline auto //
-	clone_field(Args && ... args) const
-	DECL_RET_TYPE(( make_form<TF::IForm, typename TF::value_type>(
-							std::integral_constant<bool, TF::is_dense_storage>(), std::forward<Args>(args)...)))
+	DECL_RET_TYPE((make_field<field_type< IFORM, TV >>(std::forward<Args>(args)... )))
 
 	//******************************************************************************************************
 

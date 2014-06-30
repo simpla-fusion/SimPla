@@ -70,7 +70,8 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -1286,6 +1287,9 @@ struct UniformArray
 		return std::move(res);
 	}
 
+	auto make_hash(unsigned int iform )const
+	DECL_RET_TYPE(make_hash(Select(iform)))
+
 //***************************************************************************************************
 // Topology
 
@@ -1856,8 +1860,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0)
-			count = 0;
+		if (process_num > 0) count = 0;
 	}
 	else
 	{

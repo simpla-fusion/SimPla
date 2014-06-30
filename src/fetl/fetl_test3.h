@@ -19,14 +19,14 @@ TEST_P(TestFETL, grad0)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, VERTEX, scalar_type> f0(mesh);
+	auto f0 = mesh.make_field<VERTEX, scalar_type>();
+	auto f1 = mesh.make_field<EDGE, scalar_type>();
+	auto f1b = mesh.make_field<EDGE, scalar_type>();
 
-	Field<mesh_type, EDGE, scalar_type> f1(mesh);
-	Field<mesh_type, EDGE, scalar_type> f1b(mesh);
+	f0.initialize();
+	f1.initialize();
+	f1b.initialize();
 
-	f0.Clear();
-	f1.Clear();
-	f1b.Clear();
 	for (auto s : mesh.Select(VERTEX))
 	{
 		f0[s] = std::sin(InnerProductNTuple(K_real, mesh.GetCoordinates(s)));
@@ -94,13 +94,13 @@ TEST_P(TestFETL, grad3)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, FACE, scalar_type> f2(mesh);
-	Field<mesh_type, FACE, scalar_type> f2b(mesh);
-	Field<mesh_type, VOLUME, scalar_type> f3(mesh);
+	auto f2 = mesh.make_field<FACE, scalar_type>();
+	auto f2b = mesh.make_field<FACE, scalar_type>();
+	auto f3 = mesh.make_field<VOLUME, scalar_type>();
 
-	f3.Clear();
-	f2.Clear();
-	f2b.Clear();
+	f3.initialize();
+	f2.initialize();
+	f2b.initialize();
 
 	for (auto s : mesh.Select(VOLUME))
 	{
@@ -167,12 +167,12 @@ TEST_P(TestFETL, diverge1)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, EDGE, scalar_type> f1(mesh);
-	Field<mesh_type, VERTEX, scalar_type> f0(mesh);
-	Field<mesh_type, VERTEX, scalar_type> f0b(mesh);
-	f0.Clear();
-	f0b.Clear();
-	f1.Clear();
+	auto f1 = mesh.make_field<EDGE, scalar_type>();
+	auto f0 = mesh.make_field<VERTEX, scalar_type>();
+	auto f0b = mesh.make_field<VERTEX, scalar_type>();
+	f0.initialize();
+	f0b.initialize();
+	f1.initialize();
 
 	for (auto s : mesh.Select(EDGE))
 	{
@@ -259,11 +259,11 @@ TEST_P(TestFETL, diverge2)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, FACE, scalar_type> f2(mesh);
-	Field<mesh_type, VOLUME, scalar_type> f3(mesh);
+	auto f2 = mesh.make_field<FACE, scalar_type>();
+	auto f3 = mesh.make_field<VOLUME, scalar_type>();
 
-	f3.Clear();
-	f2.Clear();
+	f3.initialize();
+	f2.initialize();
 
 	for (auto s : mesh.Select(FACE))
 	{
@@ -332,15 +332,15 @@ TEST_P(TestFETL, curl1)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, EDGE, scalar_type> vf1(mesh);
-	Field<mesh_type, EDGE, scalar_type> vf1b(mesh);
-	Field<mesh_type, FACE, scalar_type> vf2(mesh);
-	Field<mesh_type, FACE, scalar_type> vf2b(mesh);
+	auto vf1 = mesh.make_field<EDGE, scalar_type>();
+	auto vf1b = mesh.make_field<EDGE, scalar_type>();
+	auto vf2 = mesh.make_field<FACE, scalar_type>();
+	auto vf2b = mesh.make_field<FACE, scalar_type>();
 
-	vf1.Clear();
-	vf1b.Clear();
-	vf2.Clear();
-	vf2b.Clear();
+	vf1.initialize();
+	vf1b.initialize();
+	vf2.initialize();
+	vf2b.initialize();
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -428,15 +428,15 @@ TEST_P(TestFETL, curl2)
 {
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, EDGE, scalar_type> vf1(mesh);
-	Field<mesh_type, EDGE, scalar_type> vf1b(mesh);
-	Field<mesh_type, FACE, scalar_type> vf2(mesh);
-	Field<mesh_type, FACE, scalar_type> vf2b(mesh);
+	auto vf1 = mesh.make_field<EDGE, scalar_type>();
+	auto vf1b = mesh.make_field<EDGE, scalar_type>();
+	auto vf2 = mesh.make_field<FACE, scalar_type>();
+	auto vf2b = mesh.make_field<FACE, scalar_type>();
 
-	vf1.Clear();
-	vf1b.Clear();
-	vf2.Clear();
-	vf2b.Clear();
+	vf1.initialize();
+	vf1b.initialize();
+	vf2.initialize();
+	vf2b.initialize();
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -450,7 +450,7 @@ TEST_P(TestFETL, curl2)
 
 	LOG_CMD(vf1 = Curl(vf2));
 
-	vf1b.Clear();
+	vf1b.initialize();
 
 	for (auto s : mesh.Select(EDGE))
 	{
@@ -527,17 +527,16 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, VERTEX, scalar_type> f0(mesh);
-
-	Field<mesh_type, EDGE, scalar_type> f1(mesh);
-	Field<mesh_type, FACE, scalar_type> f2a(mesh);
-	Field<mesh_type, FACE, scalar_type> f2b(mesh);
+	auto f0 = mesh.make_field<VERTEX, scalar_type>();
+	auto f1 = mesh.make_field<EDGE, scalar_type>();
+	auto f2a = mesh.make_field<FACE, scalar_type>();
+	auto f2b = mesh.make_field<FACE, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	Real m = 0.0;
-	f0.Clear();
+	f0.initialize();
 	for (auto s : mesh.Select(VERTEX))
 	{
 
@@ -574,16 +573,16 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 {
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, VOLUME, scalar_type> f3(mesh);
-	Field<mesh_type, EDGE, scalar_type> f1a(mesh);
-	Field<mesh_type, EDGE, scalar_type> f1b(mesh);
-	Field<mesh_type, FACE, scalar_type> f2(mesh);
+	auto f3 = mesh.make_field<VOLUME, scalar_type>();
+	auto f1a = mesh.make_field<EDGE, scalar_type>();
+	auto f1b = mesh.make_field<EDGE, scalar_type>();
+	auto f2 = mesh.make_field<FACE, scalar_type>();
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	Real m = 0.0;
 
-	f3.Clear();
+	f3.initialize();
 
 	for (auto s : mesh.Select(VOLUME))
 	{
@@ -620,15 +619,15 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 {
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, EDGE, scalar_type> f1(mesh);
-	Field<mesh_type, FACE, scalar_type> f2(mesh);
-	Field<mesh_type, VERTEX, scalar_type> f0a(mesh);
-	Field<mesh_type, VERTEX, scalar_type> f0b(mesh);
+	auto f1 = mesh.make_field<EDGE, scalar_type>();
+	auto f2 = mesh.make_field<FACE, scalar_type>();
+	auto f0a = mesh.make_field<VERTEX, scalar_type>();
+	auto f0b = mesh.make_field<VERTEX, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	f2.Clear();
+	f2.initialize();
 
 	Real m = 0.0;
 
@@ -669,15 +668,15 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.GetDx()), 2.0));
 
-	Field<mesh_type, EDGE, scalar_type> f1(mesh);
-	Field<mesh_type, FACE, scalar_type> f2(mesh);
-	Field<mesh_type, VOLUME, scalar_type> f3a(mesh);
-	Field<mesh_type, VOLUME, scalar_type> f3b(mesh);
+	auto f1 = mesh.make_field<EDGE, scalar_type>();
+	auto f2 = mesh.make_field<FACE, scalar_type>();
+	auto f3a = mesh.make_field<VOLUME, scalar_type>();
+	auto f3b = mesh.make_field<VOLUME, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	f1.Clear();
+	f1.initialize();
 
 	Real m = 0.0;
 

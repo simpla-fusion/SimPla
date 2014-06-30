@@ -17,7 +17,7 @@ using namespace simpla;
 
 TEST_P(TestFETL ,vec_zero_form)
 {
-	typedef Field<mesh_type, VERTEX, scalar_type> ScalarField;
+
 	typedef Field<mesh_type, VERTEX, nTuple<3, scalar_type> > VectorField;
 
 	nTuple<3, scalar_type> vc1 = { 1.0, 2.0, 3.0 };
@@ -27,14 +27,15 @@ TEST_P(TestFETL ,vec_zero_form)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	ScalarField res_scalar_field(mesh);
+	auto res_scalar_field = mesh.make_field<VERTEX, scalar_type>();
 
-	VectorField vaf(mesh), vbf(mesh),
+	auto vaf = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto vbf = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
 
-	res_vector_field(mesh);
+	auto res_vector_field = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
 
-	vaf.Clear();
-	vbf.Clear();
+	vaf.initialize();
+	vbf.initialize();
 
 	for (auto & p : vaf)
 	{

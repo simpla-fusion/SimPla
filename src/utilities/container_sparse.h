@@ -16,7 +16,7 @@
 namespace simpla
 {
 
-template<typename TV, typename TI = int>
+template<typename TI, typename TV>
 class SparseContainer: public std::map<TI, TV>
 {
 public:
@@ -24,7 +24,7 @@ public:
 	typedef TV value_type;
 	typedef TI key_type;
 
-	typedef SparseContainer<value_type, key_type> this_type;
+	typedef SparseContainer<key_type, value_type> this_type;
 
 	static constexpr bool is_dense_storage = false;
 
@@ -32,25 +32,25 @@ public:
 
 	const value_type default_value_;
 
-	SparseContainer()
-			: base_container_type(), default_value_(value_type() * 0)
+	SparseContainer() :
+			base_container_type(), default_value_(value_type() * 0)
 	{
 
 	}
 
-	template<typename TR, typename ...Others>
-	SparseContainer(TR const &, value_type d, Others && ... others)
-			: base_container_type(std::forward<Others>(others)...), default_value_(d)
+	template<typename TR, typename THash, typename ...Others>
+	SparseContainer(TR const &, THash const&, value_type d, Others && ... others) :
+			base_container_type(std::forward<Others>(others)...), default_value_(d)
 	{
 	}
 
-	SparseContainer(this_type const & rhs)
-			: base_container_type(rhs), default_value_(rhs.default_value_)
+	SparseContainer(this_type const & rhs) :
+			base_container_type(rhs), default_value_(rhs.default_value_)
 	{
 	}
 
-	SparseContainer(this_type &&rhs)
-			: base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
+	SparseContainer(this_type &&rhs) :
+			base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
 	{
 	}
 

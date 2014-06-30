@@ -91,7 +91,7 @@ TYPED_TEST_P(TestField,create){
 
 	v=3.14145926;
 
-	auto f=(mesh.template clone_field<field_type>(v));
+	auto f=(mesh.template make_field<field_type>(v));
 
 	EXPECT_EQ(v,f.default_value());
 

@@ -89,16 +89,18 @@ public:
 
 };
 
-TYPED_TEST(TestFETLBase, constant_real){
+TYPED_TEST_CASE_P(TestFETLBase);
+
+TYPED_TEST_P(TestFETLBase, constant_real){
 {
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
 	typedef typename TestFixture::value_type value_type;
 	typedef typename TestFixture::field_type field_type;
 
-	auto f1 = mesh.clone<field_type>();
-	auto f2 = mesh.clone<field_type>();
-	auto f3 = mesh.clone<field_type>();
+	auto f1 = mesh.template make_field<field_type>();
+	auto f2 = mesh.template make_field<field_type>();
+	auto f3 = mesh.template make_field<field_type>();
 
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
@@ -112,7 +114,7 @@ TYPED_TEST(TestFETLBase, constant_real){
 
 	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
-	for(auto s :mesh.Select( TestFixture::FieldType::IForm))
+	for(auto s :mesh.Select( field_type::IForm))
 	{
 		value_type res;
 		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
@@ -121,7 +123,7 @@ TYPED_TEST(TestFETLBase, constant_real){
 }
 }
 
-TYPED_TEST(TestFETLBase, scalar_field){
+TYPED_TEST_P(TestFETLBase, scalar_field){
 {
 
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
@@ -130,14 +132,14 @@ TYPED_TEST(TestFETLBase, scalar_field){
 	typedef typename TestFixture::field_type field_type;
 	typedef typename TestFixture::scalar_field_type scalar_field_type;
 
-	auto f1 = mesh.clone<field_type>();
-	auto f2 = mesh.clone<field_type>();
-	auto f3 = mesh.clone<field_type>();
-	auto f4 = mesh.clone<field_type>();
+	auto f1 = mesh.template make_field<field_type>();
+	auto f2 = mesh.template make_field<field_type>();
+	auto f3 = mesh.template make_field<field_type>();
+	auto f4 = mesh.template make_field<field_type>();
 
-	auto a=mesh.clone<scalar_field_type>();
-	auto b=mesh.clone<scalar_field_type>();
-	auto c=mesh.clone<scalar_field_type>();
+	auto a=mesh.template make_field<scalar_field_type>();
+	auto b=mesh.template make_field<scalar_field_type>();
+	auto c=mesh.template make_field<scalar_field_type>();
 
 	Real ra=1.0,rb=10.0,rc=100.0;
 
@@ -151,9 +153,9 @@ TYPED_TEST(TestFETLBase, scalar_field){
 	b.Fill(rb);
 	c.Fill(rc);
 
-	f1.Init();
-	f2.Init();
-	f3.Init();
+	f1.initialize();
+	f2.initialize();
+	f3.initialize();
 	f4.Fill(0);
 
 	size_t count=0;
@@ -190,17 +192,21 @@ TYPED_TEST(TestFETLBase, scalar_field){
 	 * */
 	count =0;
 
-	for(auto s :mesh.Select( TestFixture::FieldType::IForm ) )
+	auto hash=mesh.make_hash(mesh.Select( field_type::IForm ));
+
+	for(auto s :mesh.Select( field_type::IForm ) )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(mesh.Hash(s));
+		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 
 }
 }
+
+REGISTER_TYPED_TEST_CASE_P(TestFETLBase, constant_real, scalar_field);
 
 typedef testing::Types<
 
@@ -254,6 +260,6 @@ TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VOLUME>
 
 > TypeParamList;
 
-TYPED_TEST_CASE(TestFETLBase, TypeParamList);
+INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLBase, TypeParamList);
 
 #endif /* FETL_TEST1_H_ */
