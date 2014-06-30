@@ -238,7 +238,7 @@ public:
 
 		);
 
-		//UpdateGhosts(this);
+		UpdateGhosts(this);
 
 		return (*this);
 	}

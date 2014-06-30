@@ -20,6 +20,8 @@
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/memory_pool.h"
+#include "../utilities/iterator_index_base.h"
+
 #include "../parallel/distributed_array.h"
 #include "../physics/constants.h"
 
@@ -1066,22 +1068,10 @@ struct UniformArray
 //iterator
 //****************************************************************************************************
 
-	struct iterator
+	struct iterator:public IndexBaseIterator<compact_index_type>
 	{
-/// One of the @link iterator_tags tag types@endlink.
-		typedef std::bidirectional_iterator_tag iterator_category;
-
-/// The type "pointed to" by the iterator.
-		typedef compact_index_type value_type;
-
-/// Distance between iterators is represented as this type.
-		typedef index_type difference_type;
-
-/// This type represents a pointer-to-value_type.
-		typedef value_type* pointer;
-
-/// This type represents a reference-to-value_type.
-		typedef value_type& reference;
+		typedef IndexBaseIterator<compact_index_type> base_iterator;
+		typedef iterator this_type;
 
 		nTuple<NDIMS, index_type> self_;
 
@@ -1124,7 +1114,7 @@ struct UniformArray
 		}
 		bool operator==(iterator const & rhs) const
 		{
-			return self_ == rhs.self_ && shift_ == rhs.shift_;
+			return is_same(rhs);
 		}
 
 		bool operator!=(iterator const & rhs) const
@@ -1134,7 +1124,7 @@ struct UniformArray
 
 		value_type operator*() const
 		{
-			return Compact(self_<<MAX_DEPTH_OF_TREE)|shift_;
+			return get();
 		}
 
 		iterator const * operator->() const
@@ -1211,14 +1201,7 @@ struct UniformArray
 
 		iterator & operator ++()
 		{
-			auto n = NodeId(shift_);
-
-			if (n == 0 || n == 1 || n == 6 || n == 7)
-			{
-				NextCell();
-			}
-
-			shift_ = Roate(shift_);
+			next();
 			return *this;
 		}
 		iterator operator ++(int) const
@@ -1230,6 +1213,33 @@ struct UniformArray
 
 		iterator & operator --()
 		{
+			prev(); return *this;
+		}
+
+		iterator operator --(int) const
+		{
+			iterator res(*this);
+			--res;
+			return std::move(res);
+		}
+
+		compact_index_type get() const
+		{
+			return Compact(self_<<MAX_DEPTH_OF_TREE)|shift_;
+		};
+		void next()
+		{
+			auto n = NodeId(shift_);
+
+			if (n == 0 || n == 1 || n == 6 || n == 7)
+			{
+				NextCell();
+			}
+
+			shift_ = Roate(shift_);
+		}
+		void prev()
+		{
 			auto n = NodeId(shift_);
 
 			if (n == 0 || n == 4 || n == 3 || n == 7)
@@ -1238,14 +1248,11 @@ struct UniformArray
 			}
 
 			shift_ = InverseRoate(shift_);
-			return *this;
+			;
 		}
-
-		iterator operator --(int) const
+		bool is_same(iterator const& rhs) const
 		{
-			iterator res(*this);
-			--res;
-			return std::move(res);
+			return self_ == rhs.self_ && shift_ == rhs.shift_;
 		}
 
 	};	// class iterator
