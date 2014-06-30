@@ -173,32 +173,34 @@ TEST_P(TestTopology, hash)
 	{
 		size_t num = topology.GetLocalMemorySize(iform);
 
+		auto hash = topology.make_hash(topology.Select(iform));
+
 		for (auto s : topology.Select(iform))
 		{
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s)), topology.Hash(s));
-			ASSERT_LE(0, topology.Hash(s));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s)), hash(s));
+			ASSERT_LE(0, hash(s));
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(topology.Roate(s))), topology.Hash(topology.Roate(s)));
-			ASSERT_LE(0, topology.Hash(topology.InverseRoate(s)));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(topology.Roate(s))), hash(topology.Roate(s)));
+			ASSERT_LE(0, hash(topology.InverseRoate(s)));
 
 			auto DX = topology.DI(0, s);
 			auto DY = topology.DI(1, s);
 			auto DZ = topology.DI(2, s);
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DX)), topology.Hash(s + DX));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DY)), topology.Hash(s + DY));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DZ)), topology.Hash(s + DZ));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DX)), topology.Hash(s - DX));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DY)), topology.Hash(s - DY));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DZ)), topology.Hash(s - DZ));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DX)), hash(s + DX));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DY)), hash(s + DY));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DZ)), hash(s + DZ));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DX)), hash(s - DX));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DY)), hash(s - DY));
+			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DZ)), hash(s - DZ));
 
-			ASSERT_LE(0, topology.Hash(s + DX));
-			ASSERT_LE(0, topology.Hash(s + DY));
-			ASSERT_LE(0, topology.Hash(s + DZ));
-			ASSERT_LE(0, topology.Hash(s - DX));
-			ASSERT_LE(0, topology.Hash(s - DY));
-			ASSERT_LE(0, topology.Hash(s - DZ));
+			ASSERT_LE(0, hash(s + DX));
+			ASSERT_LE(0, hash(s + DY));
+			ASSERT_LE(0, hash(s + DZ));
+			ASSERT_LE(0, hash(s - DX));
+			ASSERT_LE(0, hash(s - DY));
+			ASSERT_LE(0, hash(s - DZ));
 		}
 
 	}
@@ -227,10 +229,12 @@ TEST_P(TestTopology, iterator)
 
 		size_t count = 0;
 
+		auto hash = topology.make_hash(topology.Select(iform));
+
 		for (auto s : topology.Select(iform))
 		{
 			++count;
-			data.insert(topology.Hash(s));
+			data.insert(hash(s));
 		}
 
 		EXPECT_EQ(expect_count, data.size()) << iform;

@@ -14,7 +14,6 @@
 #include <type_traits>
 #include <vector>
 #include <utility>
-#include <mutex>
 
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
@@ -25,7 +24,7 @@
 
 namespace simpla
 {
-template<typename TM, int IFORM, typename TValue> struct Field;
+template<typename TM, int IFORM, typename > struct Field;
 
 /***
  *
@@ -34,22 +33,23 @@ template<typename TM, int IFORM, typename TValue> struct Field;
  * @ingroup Field Expression
  *
  */
-
-template<typename TM, int IFORM, typename TValue>
-struct Field
+template<typename TM, int IFORM, typename TContainer>
+struct Field: public TContainer
 {
-	std::mutex write_lock_;
+
 public:
 
 	typedef TM mesh_type;
 
 	static constexpr unsigned int IForm = IFORM;
 
-	typedef TValue value_type;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	typedef Field<mesh_type, IForm, value_type> this_type;
+	typedef TContainer container_type;
 
-	static const int NDIMS = mesh_type::NDIMS;
+	typedef Field<mesh_type, IForm, container_type> this_type;
+
+	typedef typename container_type::value_type value_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
@@ -57,20 +57,30 @@ public:
 
 	typedef typename mesh_type::iterator mesh_iterator;
 
-	typedef std::shared_ptr<value_type> container_type;
+	typedef typename mesh_type::range_type mesh_range_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
 	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
-	container_type data_;
+	friend mesh_type;
 
 	mesh_type const &mesh;
 
-	Field(mesh_type const &pmesh) :
-			mesh(pmesh), data_(nullptr)
+private:
+
+	mesh_range_type range_;
+
+	/***
+	 *  Field
+	 * @param pmesh
+	 * @param args
+	 */
+	template<typename ...Args>
+	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args)
+			: container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
 	{
 	}
-
+public:
 	/**
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector
@@ -82,20 +92,30 @@ public:
 	 *
 	 * @param rhs
 	 */
-
-	Field(this_type const & rhs) :
-			mesh(rhs.mesh), data_(nullptr)
+	Field(this_type const & rhs)
+			: container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
 	{
 	}
-
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			mesh(rhs.mesh), data_(rhs.data_)
+	Field(this_type &&rhs)
+			: container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
+			        std::forward<typename mesh_type::range_type>(rhs.range_))
 	{
 	}
 
 	~Field()
 	{
+	}
+	/**
+	 *  Assign operator
+	 * @param rhs
+	 * @return
+	 */
+	this_type & operator =(this_type const & rhs)
+	{
+		container_type::operator=(rhs);
+
+		return (*this);
 	}
 
 	template<typename TVistor>
@@ -108,66 +128,39 @@ public:
 	{
 		ASSERT(mesh == rhs.mesh);
 
-		std::swap(data_, rhs.data_);
+		container_type::swap(rhs);
+
+		std::swap(range_, rhs.range_);
+
 	}
 
-	void Init()
+	const mesh_range_type& GetRange() const
 	{
-		AllocMemory_();
+		return range_;
 	}
 
-	void AllocMemory_()
+	void SetRange(const mesh_range_type& range)
 	{
-		if (data_ == nullptr)
-		{
-			data_ = mesh.template MakeContainer<IForm, value_type>();
-		}
-
+		range_ = range;
 	}
 
 	template<typename ...Args>
 	int GetDataSetShape(Args &&...others) const
 	{
-		return mesh.GetDataSetShape(IForm, std::forward<Args>(others)...);
-	}
-
-	container_type & data()
-	{
-		return data_;
-	}
-
-	const container_type & data() const
-	{
-		return data_;
-	}
-	size_t size() const
-	{
-		return mesh.GetNumOfElements(IForm);
-	}
-	bool empty() const
-	{
-		return data_ == nullptr;
-	}
-
-	void lock()
-	{
-		write_lock_.lock();
-	}
-	void unlock()
-	{
-		write_lock_.unlock();
+		return mesh.GetDataSetShape(range_, std::forward<Args>(others)...);
 	}
 
 	inline value_type & at(compact_index_type s)
 	{
-//		if (!mesh.CheckLocalMemoryBounds(s)) OUT_RANGE_ERROR(mesh.Decompact(s));
+		if (!mesh.CheckLocalMemoryBounds(s))
+			OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
 	inline value_type const & at(compact_index_type s) const
 	{
-//		if (!mesh.CheckLocalMemoryBounds(s)) OUT_RANGE_ERROR(mesh.Decompact(s));
-
+		if (!mesh.CheckLocalMemoryBounds(s))
+			OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
@@ -183,50 +176,46 @@ public:
 
 	inline value_type & get(compact_index_type s)
 	{
-
-		return *(data_.get() + mesh.Hash(s));
+		return container_type::get(s);
 	}
 
 	inline value_type const & get(compact_index_type s) const
 	{
-		return *(data_.get() + mesh.Hash(s));
+		return container_type::get(s);
 	}
 
+public:
+
 	auto Select()
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
+	DECL_RET_TYPE((make_mapped_range( *this, range_)))
 	auto Select() const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
+	DECL_RET_TYPE((make_mapped_range( *this, range_)))
 
 	template<typename ... Args>
 	auto Select(Args &&... args)
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(range_,std::forward<Args>(args)...))))
 	template<typename ... Args>
 	auto Select(Args &&... args) const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(range_,std::forward<Args>(args)...))))
 
 	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
 	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))
 	auto end() DECL_RET_TYPE(simpla::end(this->Select()))
 	auto end() const DECL_RET_TYPE(simpla::end(this->Select()))
 
-	template<typename TD>
-	void Fill(TD default_value)
+	template<typename T>
+	void Fill(T v)
 	{
-		AllocMemory_();
+		container_type::allocate();
 
-		ParallelForEach(mesh.Select(IForm),
+		ParallelForEach(range_,
 
-		[this,default_value](compact_index_type s)
+		[this,v](compact_index_type s)
 		{
-			this->get( s) = default_value;
+			this->get(s) = v;
 		}
 
 		);
-	}
-
-	void Clear()
-	{
-		Fill(0);
 	}
 
 	this_type & operator =(value_type rhs)
@@ -234,27 +223,13 @@ public:
 		Fill(rhs);
 		return (*this);
 	}
-	this_type & operator =(this_type const & rhs)
-	{
-		AllocMemory_();
 
-		ParallelForEach(mesh.Select(IForm),
-
-		[this,&rhs](compact_index_type s)
-		{
-			this->get( s) = rhs.get( s);
-		}
-
-		);
-
-		return (*this);
-	}
 	template<typename TR>
 	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
 	{
-		AllocMemory_();
+		container_type::allocate();
 
-		ParallelForEach(mesh.Select(IForm),
+		ParallelForEach(range_,
 
 		[this,&rhs](compact_index_type s)
 		{
@@ -263,37 +238,44 @@ public:
 
 		);
 
-		UpdateGhosts(this);
+		//UpdateGhosts(this);
 
 		return (*this);
 	}
 
-#define DECL_SELF_ASSIGN( _OP_ )                                                                   \
-		template<typename TR> inline this_type &                                                   \
-		operator _OP_##= (TR const & rhs)                                                          \
-		{	AllocMemory_(); *this = *this _OP_ rhs;                                                      \
-			return (*this) ;                                                                        \
-		}                                                                                          \
-
-
-	DECL_SELF_ASSIGN(+ )
-
-DECL_SELF_ASSIGN	(- )
-
-	DECL_SELF_ASSIGN(* )
-
-	DECL_SELF_ASSIGN(/ )
-#undef DECL_SELF_ASSIGN
+	template<typename TR> inline this_type &
+	operator +=(TR const & rhs)
+	{
+		*this = *this + rhs;
+		return (*this);
+	}
+	template<typename TR> inline this_type &
+	operator -=(TR const & rhs)
+	{
+		*this = *this - rhs;
+		return (*this);
+	}
+	template<typename TR> inline this_type &
+	operator *=(TR const & rhs)
+	{
+		*this = *this * rhs;
+		return (*this);
+	}
+	template<typename TR> inline this_type &
+	operator /=(TR const & rhs)
+	{
+		*this = *this / rhs;
+		return (*this);
+	}
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return mesh.Gather(Int2Type<IForm>(),*this,x);
+		return mesh.Gather(Int2Type<IForm>(), *this, x);
 	}
-
 	template<typename TZ>
-	inline void Add(coordinates_type const &x,TZ const & z)
+	inline void Add(coordinates_type const &x, TZ const & z)
 	{
-		return mesh.Scatter(Int2Type<IForm>(),this,z);
+		return mesh.Scatter(Int2Type<IForm>(), this, z);
 	}
 
 }

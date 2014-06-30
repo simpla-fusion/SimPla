@@ -63,13 +63,6 @@ struct UniformArray
 		//FIXME NOT COMPLETE!!
 	}
 
-	template<typename TV> using Container=std::shared_ptr<TV>;
-
-	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
-	{
-		return (MEMPOOL.allocate_shared_ptr<TV> (GetLocalMemorySize(iform)));
-	}
-
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others const& ...)
 	{
@@ -77,10 +70,10 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		}
-		catch(...)
+		} catch (...)
 		{
-			PARSER_ERROR("Configure UniformArray error!");}
+			PARSER_ERROR("Configure UniformArray error!");
+		}
 	}
 
 	std::string Save(std::string const &path) const
@@ -106,13 +99,13 @@ struct UniformArray
 	//***************************************************************************************************
 	// Local Data Set
 
-	nTuple<NDIMS, index_type> global_begin_, global_end_ ,global_count_;
+	nTuple<NDIMS, index_type> global_begin_, global_end_, global_count_;
 
 	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_end_, local_outer_count_;
 
 	nTuple<NDIMS, index_type> local_inner_begin_, local_inner_end_, local_inner_count_;
 
-	compact_index_type global_begin_compact_index_=0UL;
+	compact_index_type global_begin_compact_index_ = 0UL;
 
 	enum
 	{
@@ -130,7 +123,7 @@ struct UniformArray
 	// _begin          _begin          _begin           _end           _end          _end
 	//
 
-	void SetDimensions( )
+	void SetDimensions()
 	{
 	}
 
@@ -141,28 +134,36 @@ struct UniformArray
 		{
 			index_type length = d[i] > 0 ? d[i] : 1;
 
-			global_begin_[i] = (1UL<<(INDEX_DIGITS-MAX_DEPTH_OF_TREE-1)) -length/2;
-			global_end_[i] =global_begin_[i]+length;
+			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1)) - length / 2;
+			global_end_[i] = global_begin_[i] + length;
 
 		}
-		global_begin_compact_index_=Compact(global_begin_)<<MAX_DEPTH_OF_TREE;
+		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
 
-		global_array_.global_begin_= global_begin_;
+		global_array_.global_begin_ = global_begin_;
 
-		global_array_.global_end_= global_end_;
+		global_array_.global_end_ = global_end_;
 
-		global_count_=global_end_-global_begin_;
+		global_count_ = global_end_ - global_begin_;
+
+		local_inner_begin_ = global_begin_;
+		local_inner_end_ = global_end_;
+		local_inner_count_ = global_count_;
+
+		local_outer_begin_ = global_begin_;
+		local_outer_end_ = global_end_;
+		local_outer_count_ = global_count_;
 
 		Update();
 
-		Decompose(1,0,0);
+//		Decompose(1, 0, 0);
 
 	}
-	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
+	void Decompose(unsigned int num_process = 0, unsigned int process_num = 0, unsigned int ghost_width = 0)
 	{
-		if(num_process<=1)
+		if (num_process <= 1)
 		{
-			num_process=GLOBAL_COMM.GetSize();
+			num_process = GLOBAL_COMM.GetSize();
 			process_num=GLOBAL_COMM.GetRank();
 		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
@@ -175,7 +176,6 @@ struct UniformArray
 		local_outer_end_=global_array_.local_.outer_end;
 		local_outer_count_=local_outer_end_-local_outer_begin_;
 
-		UpdateHash();
 	}
 
 	bool CheckLocalMemoryBounds(compact_index_type s)const
@@ -202,15 +202,15 @@ struct UniformArray
 	auto GetExtents() const
 	DECL_RET_TYPE(std::make_tuple(
 
-			nTuple<NDIMS,Real>(
-					{	0,0,0}),
+					nTuple<NDIMS,Real>(
+							{	0,0,0}),
 
-			nTuple<NDIMS,Real>(
-					{
-						global_count_[0]>1?1.0:0.0,
-						global_count_[1]>1?1.0:0.0,
-						global_count_[2]>1?1.0:0.0,
-					})))
+					nTuple<NDIMS,Real>(
+							{
+								global_count_[0]>1?1.0:0.0,
+								global_count_[1]>1?1.0:0.0,
+								global_count_[2]>1?1.0:0.0,
+							})))
 
 	nTuple<NDIMS, index_type> GetDimensions() const
 	{
@@ -268,7 +268,7 @@ struct UniformArray
 	}
 
 	int GetDataSetShape(int IFORM, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
-	size_t * local_outer_end = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_end = nullptr ) const
+			size_t * local_outer_end = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_end = nullptr ) const
 	{
 		int rank = 0;
 
@@ -424,14 +424,14 @@ struct UniformArray
 	{
 
 		return std::move(nTuple<NDIMS, index_type>(
-				{
-					static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) ,
+						{
+							static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK) ,
 
-					static_cast<index_type>((s >> (INDEX_DIGITS )) & INDEX_MASK) ,
+							static_cast<index_type>((s >> (INDEX_DIGITS )) & INDEX_MASK) ,
 
-					static_cast<index_type>( s & INDEX_MASK)
+							static_cast<index_type>( s & INDEX_MASK)
 
-				}));
+						}));
 	}
 
 	Real volume_[8];
@@ -585,8 +585,8 @@ struct UniformArray
 		return true||
 
 		( ( global_count_[0]>1 || idx[0]>=global_begin_[0])
-		&& ( global_count_[1]>1 || idx[1]>=global_begin_[1])
-		&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
+				&& ( global_count_[1]>1 || idx[1]>=global_begin_[1])
+				&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
 		);
 	}
 	Real Volume(compact_index_type s, std::integral_constant<bool, true>) const
@@ -647,22 +647,22 @@ struct UniformArray
 	IndexToCoordinates(nTuple<NDIMS, index_type> const&idx )const
 	{
 		return std::move(coordinates_type(
-				{
-					static_cast<Real>(idx[0]- (global_begin_[0]<<MAX_DEPTH_OF_TREE)) * inv_extents_[0] ,
-					static_cast<Real>(idx[1]- (global_begin_[1]<<MAX_DEPTH_OF_TREE)) * inv_extents_[1] ,
-					static_cast<Real>(idx[2]- (global_begin_[2]<<MAX_DEPTH_OF_TREE)) * inv_extents_[2]
-				}));
+						{
+							static_cast<Real>(idx[0]- (global_begin_[0]<<MAX_DEPTH_OF_TREE)) * inv_extents_[0] ,
+							static_cast<Real>(idx[1]- (global_begin_[1]<<MAX_DEPTH_OF_TREE)) * inv_extents_[1] ,
+							static_cast<Real>(idx[2]- (global_begin_[2]<<MAX_DEPTH_OF_TREE)) * inv_extents_[2]
+						}));
 	}
 
 	inline nTuple<NDIMS, index_type>
 	CoordinatesToIndex(coordinates_type x ) const
 	{
 		return std::move(nTuple<NDIMS, index_type>(
-				{
-					static_cast<index_type>( x[0] * extents_[0]) + (global_begin_[0]<<MAX_DEPTH_OF_TREE),
-					static_cast<index_type>( x[1] * extents_[1]) + (global_begin_[1]<<MAX_DEPTH_OF_TREE),
-					static_cast<index_type>( x[2] * extents_[2]) + (global_begin_[2]<<MAX_DEPTH_OF_TREE)
-				}));
+						{
+							static_cast<index_type>( x[0] * extents_[0]) + (global_begin_[0]<<MAX_DEPTH_OF_TREE),
+							static_cast<index_type>( x[1] * extents_[1]) + (global_begin_[1]<<MAX_DEPTH_OF_TREE),
+							static_cast<index_type>( x[2] * extents_[2]) + (global_begin_[2]<<MAX_DEPTH_OF_TREE)
+						}));
 	}
 
 	inline nTuple<NDIMS, index_type> ToCellIndex(nTuple<NDIMS, index_type> idx)const
@@ -992,61 +992,6 @@ struct UniformArray
 		return res;
 	}
 
-	nTuple<NDIMS, index_type> hash_stride_;
-
-	void UpdateHash()
-	{
-		if (array_order_ == SLOW_FIRST)
-		{
-			hash_stride_[2] = 1;
-			hash_stride_[1] = local_outer_count_[2];
-			hash_stride_[0] = local_outer_count_[1] * hash_stride_[1];
-		}
-		else
-		{
-			hash_stride_[0] = 1;
-			hash_stride_[1] = local_outer_count_[0];
-			hash_stride_[2] = local_outer_count_[1] * hash_stride_[1];
-		}
-	}
-
-	static index_type mod_(index_type a,index_type L)
-	{
-		return (a+L)%L;
-	}
-
-	inline index_type Hash(compact_index_type s) const
-	{
-		//@FIXME  when idx<0, this is wrong
-		nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
-
-		index_type res =
-
-		mod_( d[0], (local_outer_count_[0] )) * hash_stride_[0] +
-
-		mod_( d[1], (local_outer_count_[1] )) * hash_stride_[1] +
-
-		mod_( d[2], (local_outer_count_[2] )) * hash_stride_[2];
-
-		switch (NodeId(s))
-		{
-			case 4:
-			case 3:
-			res = ((res << 1) + res);
-			break;
-			case 2:
-			case 5:
-			res = ((res << 1) + res) + 1;
-			break;
-			case 1:
-			case 6:
-			res = ((res << 1) + res) + 2;
-			break;
-		}
-
-		return res;
-	}
-
 //****************************************************************************************************
 //iterator
 //****************************************************************************************************
@@ -1075,6 +1020,7 @@ struct UniformArray
 		compact_index_type shift_;
 
 		bool is_fast_first_ = true;
+
 		iterator( ):shift_(0UL)
 		{
 		}
@@ -1087,7 +1033,7 @@ struct UniformArray
 		{
 		}
 		iterator(nTuple<NDIMS, index_type> s, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e,
-		compact_index_type shift = 0UL)
+				compact_index_type shift = 0UL)
 		: self_(s), begin_(b), end_(e), shift_(shift)
 		{
 		}
@@ -1235,7 +1181,7 @@ struct UniformArray
 	};	// class iterator
 
 	inline static range_type make_range(nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> end,
-	compact_index_type shift = 0UL)
+			compact_index_type shift = 0UL)
 	{
 
 		iterator b(begin, begin, end, shift);
@@ -1265,9 +1211,9 @@ struct UniformArray
 	auto Select(unsigned int iform) const
 	DECL_RET_TYPE((Select(iform,local_inner_begin_, local_inner_end_ )))
 
-	template<typename T>
-	auto Select(unsigned int iform, std::pair<T, T> domain) const
-	DECL_RET_TYPE((Select(iform,domain.first,domain.second )))
+	template<typename TR>
+	auto Select(unsigned int iform, TR range) const
+	DECL_RET_TYPE((Select(iform,std::get<0>(range),std::get<1>(range) )))
 
 	range_type Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax) const
 	{
@@ -1276,8 +1222,69 @@ struct UniformArray
 		e+=1;
 		return Select(iform,b,e);
 	}
-//	DECL_RET_TYPE((Select(iform, CoordinatesToIndex(xmin ) ,CoordinatesToIndex( xmax ) )))
-	;
+
+	static index_type mod_(index_type a,index_type L)
+	{
+		return (a+L)%L;
+	}
+
+	std::function<size_t(compact_index_type)> make_hash(range_type range )const
+	{
+		std::function<size_t(compact_index_type)> res;
+
+		bool is_fast_first_=std::get<0>(range).is_fast_first_;
+
+		nTuple<NDIMS, index_type> begin,count,stride;
+
+		begin = std::get<0>(range).self_+(-local_inner_begin_+local_outer_begin_);
+		count = (std::get<1>(range)--).self_+(-local_inner_end_+local_outer_end_)-begin+1;
+
+		if (is_fast_first_ == SLOW_FIRST)
+		{
+			stride[0] = 1;
+			stride[1] = count[0];
+			stride[2] = count[1] * stride[1];
+		}
+		else
+		{
+			stride[2] = 1;
+			stride[1] = count[2];
+			stride[0] = count[1] * stride[1];
+		}
+
+		res=[begin,count,stride](compact_index_type s)->size_t
+		{
+			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-begin;
+
+			index_type res =
+
+			mod_( d[0], (count[0] )) * stride[0] +
+
+			mod_( d[1], (count[1] )) * stride[1] +
+
+			mod_( d[2], (count[2] )) * stride[2];
+
+			switch (NodeId(s))
+			{
+				case 4:
+				case 3:
+				res = ((res << 1) + res);
+				break;
+				case 2:
+				case 5:
+				res = ((res << 1) + res) + 1;
+				break;
+				case 1:
+				case 6:
+				res = ((res << 1) + res) + 2;
+				break;
+			}
+
+			return res;
+		};
+
+		return std::move(res);
+	}
 
 //***************************************************************************************************
 // Topology
@@ -1849,7 +1856,8 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{
@@ -1879,7 +1887,27 @@ struct iterator_traits<simpla::UniformArray::iterator>
 	typedef typename iterator::reference reference;
 
 };
+typename iterator_traits<simpla::UniformArray::iterator>::difference_type //
+distance(simpla::UniformArray::iterator b, simpla::UniformArray::iterator e)
+{
 
+	typename iterator_traits<simpla::UniformArray::iterator>::difference_type res;
+
+	--e;
+
+	res = simpla::NProduct((e).self_ - b.self_ + 1);
+
+	switch (simpla::UniformArray::IForm(b.shift_))
+	{
+	case simpla::EDGE:
+	case simpla::FACE:
+		res = res * 3 + (simpla::UniformArray::ComponentNum(e.shift_) - simpla::UniformArray::ComponentNum(b.shift_))
+		        + 1;
+		break;
+	}
+
+	return res;
+}
 }  // namespace std
 
 #endif /* UNIFORM_ARRAY_H_ */

@@ -81,163 +81,27 @@ public:
 	typedef typename TParam::value_type value_type;
 	static constexpr int IForm = TParam::IForm;
 
-	typedef Field<mesh_type, VERTEX, Real> RScalarField;
-	typedef Field<mesh_type, IForm, value_type> FieldType;
+	typedef typename mesh_type::template field_type< VERTEX, Real> scalar_field_type;
+	typedef typename mesh_type::template field_type< VERTEX, value_type> field_type;
 
 	mesh_type mesh;
 	value_type default_value;
 
 };
 
-typedef testing::Types<
-
-TestFETLParam1<Real, VERTEX>,
-
-TestFETLParam1<Real, EDGE>,
-
-TestFETLParam1<Real, FACE>,
-
-TestFETLParam1<Real, VOLUME>,
-
-TestFETLParam1<Complex, VERTEX>,
-
-TestFETLParam1<Complex, EDGE>,
-
-TestFETLParam1<Complex, FACE>,
-
-TestFETLParam1<Complex, VOLUME>,
-
-TestFETLParam1<nTuple<3, Real>, VERTEX>,
-
-TestFETLParam1<nTuple<3, Real>, EDGE>,
-
-TestFETLParam1<nTuple<3, Real>, FACE>,
-
-TestFETLParam1<nTuple<3, Real>, VOLUME>,
-
-TestFETLParam1<nTuple<3, Complex>, VERTEX>,
-
-TestFETLParam1<nTuple<3, Complex>, EDGE>,
-
-TestFETLParam1<nTuple<3, Complex>, FACE>,
-
-TestFETLParam1<nTuple<3, Complex>, VOLUME>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, VERTEX>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, EDGE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, FACE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, VOLUME>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VERTEX>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, EDGE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, FACE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VOLUME>
-
-> TypeParamList;
-
-TYPED_TEST_CASE(TestFETLBase, TypeParamList);
-
-TYPED_TEST(TestFETLBase,create_write_read){
-{
-
-	typename TestFixture::mesh_type const & mesh = TestFixture::mesh;
-
-	typename TestFixture::FieldType f( mesh );
-
-	typename TestFixture::value_type a; a= 1.0;
-
-	f.Clear();
-	f.Init();
-	double s=0;
-
-	for(auto & v : f )
-	{
-		v= a*(s);
-		s+=1.0;
-	}
-	s=0;
-	for(auto const & v : f )
-	{
-		typename TestFixture::value_type res;
-		res=a* (s);
-		EXPECT_EQ(res,v ) <<"s =" << s;
-		s+=1.0;
-	}
-
-}
-}
-
-TYPED_TEST(TestFETLBase,assign){
-{
-	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
-
-	typename TestFixture::FieldType f1(mesh),f2(mesh);
-
-	typedef typename TestFixture::value_type value_type;
-
-	value_type a; a = 3.0;
-
-	f1.Init();
-	f2.Init();
-
-	for(auto s :mesh.Select( TestFixture::FieldType::IForm))
-	{
-		f1[s]=0;
-		f2[s]=a;
-	}
-
-	for(value_type const & v : f2)
-	{
-		ASSERT_EQ(a,v)<<"v ="<< v;
-	}
-
-	for(value_type & v:f1)
-	{
-		v=a*2.0;
-	}
-
-	LOG_CMD(f1 += f2);
-
-	value_type res;
-
-	res=a+a*2.0;
-
-	size_t count=0;
-
-	for(auto v:f1)
-	{
-		count+=(res!=v?1:0);
-	}
-
-	ASSERT_EQ(count,0);
-
-	LOG_CMD(f1*=2.0);
-
-	res=(a+a*2.0)*2.0;
-
-	for(auto v:f1)
-	{
-		ASSERT_EQ( res,v);
-	}
-}
-}
-
 TYPED_TEST(TestFETLBase, constant_real){
 {
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
-	typename TestFixture::FieldType f1( mesh),f2(mesh),f3(mesh);
+	typedef typename TestFixture::value_type value_type;
+	typedef typename TestFixture::field_type field_type;
+
+	auto f1 = mesh.clone<field_type>();
+	auto f2 = mesh.clone<field_type>();
+	auto f3 = mesh.clone<field_type>();
 
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
-
-	typedef typename TestFixture::FieldType::value_type value_type;
 
 	value_type va,vb;
 
@@ -260,18 +124,24 @@ TYPED_TEST(TestFETLBase, constant_real){
 TYPED_TEST(TestFETLBase, scalar_field){
 {
 
-	typedef typename TestFixture::FieldType::value_type value_type;
+	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
-	typename TestFixture::mesh_type const &mesh=TestFixture::mesh;
-	typename TestFixture::FieldType f1( mesh),f2( mesh),
-	f3( mesh),f4( mesh);
+	typedef typename TestFixture::value_type value_type;
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::scalar_field_type scalar_field_type;
 
-	typename TestFixture::RScalarField a( mesh);
-	typename TestFixture::RScalarField b( mesh);
-	typename TestFixture::RScalarField c( mesh);
+	auto f1 = mesh.clone<field_type>();
+	auto f2 = mesh.clone<field_type>();
+	auto f3 = mesh.clone<field_type>();
+	auto f4 = mesh.clone<field_type>();
+
+	auto a=mesh.clone<scalar_field_type>();
+	auto b=mesh.clone<scalar_field_type>();
+	auto c=mesh.clone<scalar_field_type>();
 
 	Real ra=1.0,rb=10.0,rc=100.0;
-	typename TestFixture::FieldType::value_type va,vb,vc;
+
+	value_type va,vb,vc;
 
 	va=ra;
 	vb=rb;
@@ -331,5 +201,59 @@ TYPED_TEST(TestFETLBase, scalar_field){
 
 }
 }
+
+typedef testing::Types<
+
+TestFETLParam1<Real, VERTEX>,
+
+TestFETLParam1<Real, EDGE>,
+
+TestFETLParam1<Real, FACE>,
+
+TestFETLParam1<Real, VOLUME>,
+
+TestFETLParam1<Complex, VERTEX>,
+
+TestFETLParam1<Complex, EDGE>,
+
+TestFETLParam1<Complex, FACE>,
+
+TestFETLParam1<Complex, VOLUME>,
+
+TestFETLParam1<nTuple<3, Real>, VERTEX>,
+
+TestFETLParam1<nTuple<3, Real>, EDGE>,
+
+TestFETLParam1<nTuple<3, Real>, FACE>,
+
+TestFETLParam1<nTuple<3, Real>, VOLUME>,
+
+TestFETLParam1<nTuple<3, Complex>, VERTEX>,
+
+TestFETLParam1<nTuple<3, Complex>, EDGE>,
+
+TestFETLParam1<nTuple<3, Complex>, FACE>,
+
+TestFETLParam1<nTuple<3, Complex>, VOLUME>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, VERTEX>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, EDGE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, FACE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Real>>, VOLUME>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VERTEX>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, EDGE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, FACE>,
+
+TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VOLUME>
+
+> TypeParamList;
+
+TYPED_TEST_CASE(TestFETLBase, TypeParamList);
 
 #endif /* FETL_TEST1_H_ */

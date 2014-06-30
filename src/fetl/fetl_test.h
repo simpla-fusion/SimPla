@@ -33,6 +33,7 @@ class TestFETL: public testing::TestWithParam<
 protected:
 	void SetUp()
 	{
+		LOG_STREAM.SetStdOutVisableLevel(LOG_DEBUG);
 		auto param = GetParam();
 
 		xmin = std::get<0>(param);

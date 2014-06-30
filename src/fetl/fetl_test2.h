@@ -20,10 +20,13 @@ using namespace simpla;
 
 TEST_P(TestFETL, vector_arithmetic)
 {
-	Field<mesh_type, VERTEX, value_type> f0(mesh);
-	Field<mesh_type, EDGE, value_type> f1a(mesh), f1b(mesh);
-	Field<mesh_type, FACE, value_type> f2a(mesh), f2b(mesh);
-	Field<mesh_type, VOLUME, value_type> f3(mesh);
+	auto f0 = mesh.template make_field<VERTEX, value_type>();
+	auto f1 = mesh.template make_field<EDGE, value_type>();
+	auto f1a = mesh.template make_field<EDGE, value_type>();
+	auto f1b = mesh.template make_field<EDGE, value_type>();
+	auto f2a = mesh.template make_field<FACE, value_type>();
+	auto f2b = mesh.template make_field<FACE, value_type>();
+	auto f3 = mesh.template make_field<VOLUME, value_type>();
 
 	Real ra = 1.0, rb = 10.0, rc = 100.0;
 	value_type va, vb, vc;
@@ -32,13 +35,13 @@ TEST_P(TestFETL, vector_arithmetic)
 	vb = rb;
 	vc = rc;
 
-	f0.Init();
-	f1a.Init();
+	f0.initialize();
+	f1a.initialize();
 
-	f1b.Init();
-	f2a.Init();
-	f2b.Init();
-	f3.Init();
+	f1b.initialize();
+	f2a.initialize();
+	f2b.initialize();
+	f3.initialize();
 
 	size_t count = 0;
 

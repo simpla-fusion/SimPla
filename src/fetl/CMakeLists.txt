@@ -9,10 +9,10 @@ my_test(fetl_test_Cylindrical_kz  fetl_test_Cylindrical_kz.cpp  )
 target_link_libraries(fetl_test_Cylindrical_kz physics io ${MPI_LIBRARIES} )
 
 
+my_test(field_test )
+target_link_libraries(field_test physics io ${MPI_LIBRARIES} )
 
-my_test(field_io_test    
-  field_io_test.cpp  
-      )
+my_test(field_io_test     field_io_test.cpp        )
 target_link_libraries(field_io_test physics io ${MPI_LIBRARIES} )
 
 
