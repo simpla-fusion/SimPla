@@ -29,10 +29,6 @@ public:
 	typedef typename TParam::value_type value_type;
 	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef Field<mesh_type, VERTEX, value_type> TZeroForm;
-	typedef Field<mesh_type, EDGE, value_type> TOneForm;
-	typedef Field<mesh_type, FACE, value_type> TTwoForm;
-	typedef Field<mesh_type, VOLUME, value_type> TThreeForm;
 
 	mesh_type mesh;
 
@@ -49,14 +45,15 @@ TYPED_TEST_CASE_P(TestFieldIO);
 TYPED_TEST_P(TestFieldIO, write){
 {
 	auto const & mesh= TestFixture::mesh;
+	typedef typename TestFixture::value_type value_type;
 
-	typename TestFixture::TTwoForm f2(mesh);
-	typename TestFixture::TTwoForm f2b(mesh);
-	typename TestFixture::TThreeForm f3(mesh);
+	auto f2=mesh.template make_field<FACE,value_type>();
+	auto f2b=mesh.template make_field<FACE,value_type>();
+	auto f3=mesh.template make_field<VOLUME,value_type>();
 
-	f3.Clear();
-	f2.Clear();
-	f2b.Clear();
+	f3.initialize();
+	f2.initialize();
+	f2b.initialize();
 
 	LOGGER<<SAVE(f3);
 	LOGGER<<SAVE(f2);

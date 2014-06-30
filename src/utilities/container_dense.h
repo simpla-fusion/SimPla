@@ -111,6 +111,15 @@ public:
 		}
 	}
 
+	const std::shared_ptr<value_type > data()const
+	{
+		return data_;
+	}
+	std::shared_ptr<value_type >data()
+	{
+		return data_;
+	}
+
 	void clear()
 	{
 		data_=nullptr;

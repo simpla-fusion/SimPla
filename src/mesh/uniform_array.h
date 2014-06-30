@@ -285,7 +285,7 @@ struct UniformArray
 				global_end[rank] = global_end_[i];
 
 				if (local_outer_begin != nullptr)
-				local_outer_begin[rank] = local_inner_begin_[i];
+				local_outer_begin[rank] = local_outer_begin_[i];
 
 				if (local_outer_end != nullptr)
 				local_outer_end[rank] = local_outer_end_[i];
@@ -295,6 +295,75 @@ struct UniformArray
 
 				if (local_inner_end != nullptr)
 				local_inner_end[rank] = local_inner_end_[i];
+
+				++rank;
+			}
+
+		}
+		if (IFORM == EDGE || IFORM == FACE)
+		{
+			if (global_begin != nullptr)
+			global_begin[rank] = 0;
+
+			if (global_end != nullptr)
+			global_end[rank] = 3;
+
+			if (local_outer_begin != nullptr)
+			local_outer_begin[rank] = 0;
+
+			if (local_outer_end != nullptr)
+			local_outer_end[rank] = 3;
+
+			if (local_inner_begin != nullptr)
+			local_inner_begin[rank] = 0;
+
+			if (local_inner_end != nullptr)
+			local_inner_end[rank] = 3;
+
+			++rank;
+		}
+		return rank;
+	}
+
+	int GetDataSetShape(range_type const& range, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+			size_t * local_outer_end = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_end = nullptr ) const
+	{
+		unsigned int IFORM=IForm(*std::get<0>(range));
+		int rank = 0;
+
+		nTuple<NDIMS, index_type> outer_begin, outer_end, outer_count;
+
+		nTuple<NDIMS, index_type> inner_begin, inner_end, inner_count;
+
+		inner_begin = std::get<0>(range).self_;
+		inner_end = (std::get<1>(range)--).self_+1;
+
+		outer_begin=inner_begin+(-local_inner_begin_+local_outer_begin_);
+
+		outer_end=inner_end+(-local_inner_end_+local_outer_end_);
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if ( global_end_[i] -global_begin_[i]>1)
+			{
+
+				if (global_begin != nullptr)
+				global_begin[rank] = global_begin_[i];
+
+				if (global_end != nullptr)
+				global_end[rank] = global_end_[i];
+
+				if (local_outer_begin != nullptr)
+				local_outer_begin[rank] = outer_begin[i];
+
+				if (local_outer_end != nullptr)
+				local_outer_end[rank] = outer_end[i];
+
+				if (local_inner_begin != nullptr)
+				local_inner_begin[rank] = inner_begin[i];
+
+				if (local_inner_end != nullptr)
+				local_inner_end[rank] = inner_end[i];
 
 				++rank;
 			}

@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-//#include "fetl.h"
+#include "field.h"
 #include "save_field.h"
 
 #include "../utilities/log.h"
@@ -34,9 +34,9 @@ int main(int argc, char **argv)
 	{	1.0, 1.0, 1.0};
 
 	nTuple<3, size_t> dims =
-	{	32, 20, 5};
+	{	20, 10, 1};
 
-	typedef Mesh< CartesianGeometry<UniformArray >> mesh_type;
+	typedef Mesh< CartesianGeometry<UniformArray>,false> mesh_type;
 
 	mesh_type mesh;
 
@@ -44,7 +44,7 @@ int main(int argc, char **argv)
 
 	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
 
-	Field<mesh_type, VERTEX, Real> f(mesh);
+	auto f=mesh.template make_field< 0,Real> ();
 
 	f.Fill(GLOBAL_COMM.GetRank()+100);
 

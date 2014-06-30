@@ -8,14 +8,16 @@
 #ifndef SAVE_FIELD_H_
 #define SAVE_FIELD_H_
 
+#include "../utilities/container_dense.h"
 #include "../io/data_stream.h"
 
 namespace simpla
 {
-template<typename, int, typename > struct Field;
+template<typename, int, typename > class Field;
 
 template<typename TM, int IFORM, typename TV>
-std::string Save(std::string const & name, Field<TM, IFORM, TV> const & d)
+std::string Save(std::string const & name,
+        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d)
 {
 	int rank = d.GetDataSetShape();
 	size_t global_begin[rank];
