@@ -15,17 +15,11 @@ namespace simpla
 
 #include <tuple>
 
-template<bool N> struct Bool2Type
-{
-	static const bool value = N;
-};
+template<bool B> using Bool2Type=std::integral_constant<bool,B>;
 
-template<int N> struct Int2Type
-{
-	static const int value = N;
-};
+template<int B> using Int2Type=std::integral_constant<int,B>;
 
-struct NullType;
+typedef std::nullptr_t NullType;
 
 struct EmptyType
 {
