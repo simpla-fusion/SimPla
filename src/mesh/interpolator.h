@@ -124,9 +124,9 @@ public:
 	        nTuple<3, TV> const & u)
 	{
 
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DJ | topology_type::_DK))), u[2]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DK | topology_type::_DI))), u[0]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DI | topology_type::_DJ))), u[1]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DJ | topology_type::_DK))), u[0]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DK | topology_type::_DI))), u[1]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DI | topology_type::_DJ))), u[2]);
 	}
 
 	template<typename TF, typename TV>
@@ -140,9 +140,8 @@ public:
 	 *  @param weight scatter weight
 	 */
 	template<int IFORM, typename TF, typename TZ>
-	static inline void Scatter(mesh_type const& mesh, Int2Type<IFORM>, TF *f, TZ const & z, scalar_type weight = 1.0)
+	static inline void Scatter(mesh_type const& mesh, Int2Type<IFORM>, TF *f, TZ const & Z, scalar_type weight = 1.0)
 	{
-		auto Z = mesh.PushForward(z);
 		Scatter_(mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 
@@ -152,9 +151,7 @@ public:
 	 */
 	template<int IFORM, typename TF>
 	static inline auto Gather(mesh_type const & mesh, Int2Type<IFORM>, TF const &f, coordinates_type const & x)
-	DECL_RET_TYPE ( std::get<1>(mesh.PullBack(
-							std::make_tuple(mesh.MapTo(x), Gather_(mesh, Int2Type<IFORM>(), f, mesh.MapTo(x))
-							) ) ) )
+	DECL_RET_TYPE ( Gather_(mesh, Int2Type<IFORM>(), f, x))
 
 	template<int IFORM, typename TContainer, typename ... Args>
 	static inline void Scatter(Field<mesh_type, IFORM, TContainer> *f, Args && ... args)
@@ -165,6 +162,29 @@ public:
 	template<int IFORM, typename TContainer, typename ... Args>
 	static inline auto Gather(Field<mesh_type, IFORM, TContainer> const &f, Args && ... args)
 	DECL_RET_TYPE ( Gather(f.mesh, Int2Type<IFORM>(), f, std::forward<Args>(args)...))
+//
+//	/***
+//	 *  @param z (x,v) tangent bundle space coordinates on  Cartesian configure space
+//	 *  @param weight scatter weight
+//	 */
+//	template<int IFORM, typename TF, typename TZ>
+//	static inline void ScatterCartesian(mesh_type const& mesh, Int2Type<IFORM>, TF *f, TZ const & z,
+//	        scalar_type weight = 1.0)
+//	{
+//		auto Z = mesh.PushForward(z);
+//		Scatter_(mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
+//	}
+//
+//	/***
+//	 *  @param x tangent bundle space coordinates on  Cartesian configure space
+//	 *  @return  field value(vector/scalar) on Cartesian configure space
+//	 */
+//	template<int IFORM, typename TF>
+//	static inline auto GatherCartesian(mesh_type const & mesh, Int2Type<IFORM>, TF const &f, coordinates_type const & x)
+//	DECL_RET_TYPE (
+//			std::get<1>(mesh.PullBack(std::make_tuple(mesh.MapTo(x),
+//									Gather_(mesh, Int2Type<IFORM>(), f, mesh.MapTo(x)))))
+//	)
 
 }
 ;

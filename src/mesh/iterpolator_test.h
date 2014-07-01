@@ -53,10 +53,10 @@ public:
 	mesh_type mesh;
 
 	coordinates_type xmin =
-	{	0,0,0};
+	{	12,0,0};
 
 	coordinates_type xmax =
-	{	1,1,1};
+	{	14,1,1};
 
 	nTuple<NDIMS, index_type> dims =
 	{	50,30,20};
@@ -105,7 +105,7 @@ TYPED_TEST_P(TestIterpolator,scatter){
 	}
 	else
 	{
-		EXPECT_LE(abs( w*3-b),EPSILON*10);
+		EXPECT_LE(abs( w*3-b),EPSILON*100);
 	}
 
 }
@@ -128,65 +128,25 @@ TYPED_TEST_P(TestIterpolator,gather){
 
 	auto extents= mesh.GetExtents();
 
+	auto xmax= std::get<1>(extents);
+	auto xmin= std::get<0>(extents);
+
 	nTuple<NDIMS,Real> K=
-	{	TWOPI,PI, PI};
+	{	5/(xmax[0]-xmin[0]), 3/(xmax[1]-xmin[1]), 2/(xmax[2]-xmin[2])};
 
 	for(auto s:mesh.Select(IForm))
 	{
-		f[s]=std::cos(InnerProductNTuple(K,mesh.GetCoordinates(s)-std::get<0>(extents)));
+		f[s]= (InnerProductNTuple(K,mesh.GetCoordinates(s)-xmin));
 	}
-	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.34567*(std::get<1>(extents)-std::get<0>(extents)));
+	coordinates_type x = (xmin+0.34567*(xmax-xmin));
 
-	Real expect=std::cos(InnerProductNTuple(K,x));
+	Real expect= (InnerProductNTuple(K,x-xmin));
 
-	Real error = abs(std::pow(InnerProductNTuple(K , mesh.GetDx()) , 2.0));
+	Real error = abs(InnerProductNTuple(K , mesh.GetDx()));
 
-	auto actual= mesh.Gather(Int2Type<IForm>(), f ,x);
-
-	CHECK(actual);
-	CHECK(expect);
+	auto actual= mesh.Gather(Int2Type<IForm>(), f ,(x));
 
 	EXPECT_LE(abs( (actual -expect)/expect),error)<<actual <<" "<<expect;
-
-//	nTuple<NDIMS,scalar_type> a=
-//	{	3.1415926 , -3.1415926,3.0*3.1415926};
-//	typedef typename TestFixture::mesh_type mesh_type;
-//	typedef typename TestFixture::compact_index_type compact_index_type;
-//	typedef typename TestFixture::coordinates_type coordinates_type;
-//	typedef typename TestFixture::scalar_type scalar_type;
-//
-//	auto const & mesh=TestFixture::mesh;
-//
-//	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
-//
-//	auto extents= mesh.GetExtents();
-//
-//	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
-//
-//	Real w=2;
-//
-//	scalar_type a=1.0;
-//
-//	auto f= mesh.template make_field<Field<mesh_type,VERTEX,SparseContainer<compact_index_type,scalar_type>>> ();
-//
-//	mesh.Scatter(Int2Type<VERTEX>(),&f,std::make_tuple(x,a),w);
-//
-//	scalar_type b=0;
-//	SparseContainer<compact_index_type,scalar_type>& g=f;
-//
-//	for(auto const & v:g)
-//	{
-//		b+=v.second;
-//	}
-//
-//	EXPECT_LE(abs(a*w-b),EPSILON);
-//
-//	for(auto & v:g)
-//	{
-//		v.second=a;
-//	}
-//
-//	EXPECT_LE(abs(a - mesh.Gather(Int2Type<VERTEX>(),f,x)),EPSILON);
 
 }
 }

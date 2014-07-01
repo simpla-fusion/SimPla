@@ -317,7 +317,7 @@ TEST_P(TestTopology, coordinates)
 		EXPECT_EQ(topology.NodeId(shift), topology.NodeId(s));
 		EXPECT_EQ(topology.ComponentNum(shift), topology.ComponentNum(s));
 
-		EXPECT_GT(3, InnerProductNTuple(std::get<1>(idx), std::get<1>(idx))) << std::get<1>(idx) << "IForm =" << iform;
+		EXPECT_LT( InnerProductNTuple(std::get<1>(idx), std::get<1>(idx)),3) << std::get<1>(idx) << "IForm =" << iform;
 
 	}
 

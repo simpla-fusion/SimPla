@@ -24,10 +24,21 @@ TParam<Mesh<CartesianGeometry<UniformArray>, false>, VERTEX> //
         , TParam<Mesh<CartesianGeometry<UniformArray>, false>, FACE> //
         , TParam<Mesh<CartesianGeometry<UniformArray>, false>, VOLUME> //
 
+        , TParam<Mesh<CartesianGeometry<UniformArray>, true>, VERTEX> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, true>, EDGE> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, true>, FACE> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, true>, VOLUME> //
+
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, VERTEX> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, EDGE> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, FACE> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, VOLUME> //
+//
+
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, VERTEX> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, EDGE> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, FACE> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, VOLUME> //
 //
 //,Mesh<CartesianGeometry<UniformArray>, true>    //
 //,Mesh<CylindricalGeometry<UniformArray>, true>   //
