@@ -53,8 +53,7 @@ Field<TM,VERTEX,Container<typename TM::compact_index_type,Real> >
 >;
 
 typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, DenseContainer> ParamList0d;
-//typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, SparseContainer> ParamList0s;
-
+typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, SparseContainer> ParamList0s;
 
 //typedef ParamList<Mesh<CartesianGeometry<UniformArray>, true> > ParamList1;
 //typedef ParamList<Mesh<CylindricalGeometry<UniformArray>, false> > ParamList2;

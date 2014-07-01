@@ -81,6 +81,12 @@ private:
 	{
 	}
 public:
+
+	Field(mesh_type const & mesh, value_type d = value_type())
+			: container_type(d), mesh(mesh)
+	{
+	}
+
 	/**
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector
@@ -106,32 +112,43 @@ public:
 	~Field()
 	{
 	}
-	/**
-	 *  Assign operator
-	 * @param rhs
-	 * @return
-	 */
-	this_type & operator =(this_type const & rhs)
-	{
-		container_type::operator=(rhs);
 
-		return (*this);
+	void swap(this_type & rhs)
+	{
+		ASSERT( mesh==rhs.mesh);
+
+		container_type::swap(rhs);
+
+		std::swap(range_, rhs.range_);
+
+	}
+
+	void allocate()
+	{
+		if (container_type::empty())
+		{
+			mesh.template make_field<this_type>().swap(*this);
+		}
+		container_type::allocate();
+
+	}
+
+	void initialize()
+	{
+		allocate();
+
+		container_type::clear();
+	}
+
+	void clear()
+	{
+		initialize();
 	}
 
 	template<typename TVistor>
 	void Accept(TVistor const & visitor)
 	{
 		visitor.Visit(this);
-	}
-
-	void swap(this_type & rhs)
-	{
-		ASSERT(mesh == rhs.mesh);
-
-		container_type::swap(rhs);
-
-		std::swap(range_, rhs.range_);
-
 	}
 
 	const mesh_range_type& GetRange() const
@@ -153,14 +170,14 @@ public:
 	inline value_type & at(compact_index_type s)
 	{
 		if (!mesh.CheckLocalMemoryBounds(s))
-			OUT_RANGE_ERROR(mesh.Decompact(s));
+		OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
 	inline value_type const & at(compact_index_type s) const
 	{
 		if (!mesh.CheckLocalMemoryBounds(s))
-			OUT_RANGE_ERROR(mesh.Decompact(s));
+		OUT_RANGE_ERROR(mesh.Decompact(s));
 		return get(s);
 	}
 
@@ -211,12 +228,35 @@ public:
 
 		ParallelForEach(range_,
 
-		[this,v](compact_index_type s)
-		{
-			get_value(*this, s) = v;
-		}
+				[this,v](compact_index_type s)
+				{
+					get_value(*this, s) = v;
+				}
 
 		);
+	}
+	template<typename TR>
+	void assign(TR const & rhs)
+	{
+		container_type::allocate();
+
+		ParallelForEach(range_,
+
+				[this,&rhs](compact_index_type s)
+				{
+					get_value(*this, s) = get_value( rhs, s);
+				}
+
+		);
+
+		UpdateGhosts(this);
+
+	}
+
+	this_type & operator =(this_type const & rhs)
+	{
+		assign(rhs);
+		return *this;
 	}
 
 	this_type & operator =(value_type rhs)
@@ -228,18 +268,7 @@ public:
 	template<typename TR>
 	this_type & operator =(TR const & rhs)
 	{
-		container_type::allocate();
-
-		ParallelForEach(range_,
-
-		[this,&rhs](compact_index_type s)
-		{
-			get_value(*this, s) = get_value( rhs, s);
-		}
-
-		);
-
-		UpdateGhosts(this);
+		assign(rhs);
 
 		return (*this);
 	}

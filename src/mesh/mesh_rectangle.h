@@ -113,7 +113,6 @@ private:
 			{
 				(*k)[i] = 0;
 			}
-
 		}
 
 	}
@@ -121,7 +120,7 @@ public:
 
 	template<typename TV> using DefaultContainer=DenseContainer<compact_index_type,TV>;
 
-	template<int IFORM, typename TV> using field_type=Field<this_type,IFORM,DefaultContainer<TV>>;
+	template<int IFORM, typename TV> using field=Field<this_type,IFORM,DefaultContainer<TV>>;
 
 	template<typename TF, typename ... Args> TF  //
 	make_field(typename topology_type::range_type range, Args && ... args) const
@@ -135,7 +134,7 @@ public:
 
 	template<int IFORM, typename TV, typename ...Args> inline auto //
 	make_field(Args &&...args) const
-	DECL_RET_TYPE((make_field<field_type< IFORM, TV >>(std::forward<Args>(args)... )))
+	DECL_RET_TYPE((make_field<field< IFORM, TV >>(std::forward<Args>(args)... )))
 
 	//******************************************************************************************************
 

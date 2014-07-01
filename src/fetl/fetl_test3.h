@@ -23,9 +23,9 @@ TEST_P(TestFETL, grad0)
 	auto f1 = mesh.make_field<EDGE, scalar_type>();
 	auto f1b = mesh.make_field<EDGE, scalar_type>();
 
-	f0.initialize();
-	f1.initialize();
-	f1b.initialize();
+	f0.clear();
+	f1.clear();
+	f1b.clear();
 
 	for (auto s : mesh.Select(VERTEX))
 	{
@@ -98,9 +98,9 @@ TEST_P(TestFETL, grad3)
 	auto f2b = mesh.make_field<FACE, scalar_type>();
 	auto f3 = mesh.make_field<VOLUME, scalar_type>();
 
-	f3.initialize();
-	f2.initialize();
-	f2b.initialize();
+	f3.clear();
+	f2.clear();
+	f2b.clear();
 
 	for (auto s : mesh.Select(VOLUME))
 	{
@@ -170,9 +170,9 @@ TEST_P(TestFETL, diverge1)
 	auto f1 = mesh.make_field<EDGE, scalar_type>();
 	auto f0 = mesh.make_field<VERTEX, scalar_type>();
 	auto f0b = mesh.make_field<VERTEX, scalar_type>();
-	f0.initialize();
-	f0b.initialize();
-	f1.initialize();
+	f0.clear();
+	f0b.clear();
+	f1.clear();
 
 	for (auto s : mesh.Select(EDGE))
 	{
@@ -262,8 +262,8 @@ TEST_P(TestFETL, diverge2)
 	auto f2 = mesh.make_field<FACE, scalar_type>();
 	auto f3 = mesh.make_field<VOLUME, scalar_type>();
 
-	f3.initialize();
-	f2.initialize();
+	f3.clear();
+	f2.clear();
 
 	for (auto s : mesh.Select(FACE))
 	{
@@ -337,10 +337,10 @@ TEST_P(TestFETL, curl1)
 	auto vf2 = mesh.make_field<FACE, scalar_type>();
 	auto vf2b = mesh.make_field<FACE, scalar_type>();
 
-	vf1.initialize();
-	vf1b.initialize();
-	vf2.initialize();
-	vf2b.initialize();
+	vf1.clear();
+	vf1b.clear();
+	vf2.clear();
+	vf2b.clear();
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -433,10 +433,10 @@ TEST_P(TestFETL, curl2)
 	auto vf2 = mesh.make_field<FACE, scalar_type>();
 	auto vf2b = mesh.make_field<FACE, scalar_type>();
 
-	vf1.initialize();
-	vf1b.initialize();
-	vf2.initialize();
-	vf2b.initialize();
+	vf1.clear();
+	vf1b.clear();
+	vf2.clear();
+	vf2b.clear();
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -450,7 +450,7 @@ TEST_P(TestFETL, curl2)
 
 	LOG_CMD(vf1 = Curl(vf2));
 
-	vf1b.initialize();
+	vf1b.clear();
 
 	for (auto s : mesh.Select(EDGE))
 	{
@@ -536,7 +536,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
 	Real m = 0.0;
-	f0.initialize();
+	f0.clear();
 	for (auto s : mesh.Select(VERTEX))
 	{
 
@@ -582,7 +582,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 	Real m = 0.0;
 
-	f3.initialize();
+	f3.clear();
 
 	for (auto s : mesh.Select(VOLUME))
 	{
@@ -627,7 +627,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	f2.initialize();
+	f2.clear();
 
 	Real m = 0.0;
 
@@ -676,7 +676,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	f1.initialize();
+	f1.clear();
 
 	Real m = 0.0;
 

@@ -19,7 +19,6 @@
 #include <vector>
 
 #include "../fetl/fetl.h"
-#include "../fetl/field_rw_cache.h"
 #include "../fetl/save_field.h"
 
 #include "../utilities/log.h"
@@ -233,27 +232,16 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 
 	Real dt = mesh.GetDt();
 
-	J.Clear();
+	J.clear();
 
-	ParallelDo(
-
-	[&](int t_num,int t_id)
+	for (auto & cell : *this)
 	{
-		Cache<TE const &> cE(E);
-		Cache<TB const &> cB(B);
-		Cache<typename engine_type::J_type*> cJ(&J);
-
-		for(auto s: Split( this->mesh.Select(IForm),t_num,t_id))
+		//TODO add rw cache
+		for (auto & p : cell.second)
 		{
-			RefreshCache(s,cE,cB,cJ);
-			for (auto & p : this->at(s) )
-			{
-				this->engine_type::NextTimeStepZero(&p,dt , (*cJ),*cE,*cB);
-			}
-			FlushCache(s,cJ);
+			this->engine_type::NextTimeStepZero(&p, dt, &J, E, B);
 		}
-
-	});
+	}
 
 	UpdateGhosts(&J);
 
@@ -274,56 +262,37 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 
 	storage_type::Sort();
 
-	ParallelDo(
-
-	[&](int t_num,int t_id)
+	for (auto & cell : *this)
 	{
-
-		Cache<TE const &> cE(E);
-		Cache<TB const &> cB(B);
-
-		for(auto s:Split(this->mesh.Select(IForm),t_num,t_id))
+		//TODO add rw cache
+		for (auto & p : cell.second)
 		{
-			RefreshCache(s,cE,cB);
-			for (auto & p : this->at(s) )
-			{
-				this->engine_type::NextTimeStepHalf(&p,dt ,*cE,*cB);
-			}
+			this->engine_type::NextTimeStepHalf(&p, dt, E, B);
 		}
-
-	});
+	}
 
 	storage_type::Sort();
 
 	LOGGER << DONE;
 }
-template<typename Engine>
-template<typename TRange, typename ...Others>
-void Particle<Engine>::Scatter(TRange const & range, Cache<Others> &&... args) const
-{
 
-	for (auto s : range)
-	{
-		RefreshCache(s, args...);
-		for (auto const& p : this->at(s))
-		{
-			this->engine_type::Scatter(p, (*args)...);
-		}
-		FlushCache(s, args...);
-	}
-
-}
 template<typename Engine> template<typename TJ, typename ...Others>
 void Particle<Engine>::Scatter(TJ *pJ, Others &&... args) const
 {
-	ParallelDo(
 
-	[&](int t_num,int t_id)
+	LOGGER << "Scatter particles   ";
+
+	for (auto & cell : *this)
 	{
-		Scatter(this->mesh.Select(IForm).Split(t_num, t_id), Cache<TJ*> (pJ),Cache<Others>(args)...);
-	});
+		for (auto const& p : cell.second)
+		{
+			this->engine_type::Scatter(p, pJ, std::forward<Others> (args)...);
+		}
+	}
 
 	UpdateGhosts(pJ);
+
+	LOGGER << DONE;
 }
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline

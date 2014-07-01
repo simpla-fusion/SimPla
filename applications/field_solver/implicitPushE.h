@@ -23,11 +23,11 @@ public:
 
 	mesh_type const &mesh;
 
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Ev, Bv;
+	typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> Ev, Bv;
 
-	Field<mesh_type, VERTEX, nTuple<3, Real>> B0;
+	typename mesh_type:: template field<VERTEX, nTuple<3, Real>> B0;
 
-	Field<mesh_type, VERTEX, Real> BB;
+	typename mesh_type:: template field<VERTEX, Real> BB;
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
@@ -36,13 +36,15 @@ public:
 	}
 
 	template<typename TP>
-	void NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E, Field<mesh_type, FACE, scalar_type> const &B,
-	        TP const & particles, Field<mesh_type, EDGE, scalar_type> *pdE);
+	void NextTimeStep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
+	        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
+	        typename mesh_type:: template field<EDGE, scalar_type> *pdE);
 };
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &E,
-        Field<mesh_type, FACE, scalar_type> const &B, TP const & particles, Field<mesh_type, EDGE, scalar_type> *pdE)
+void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
+        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
+        typename mesh_type:: template field<EDGE, scalar_type> *pdE)
 {
 
 	DEFINE_PHYSICAL_CONST
@@ -57,17 +59,18 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 	B0 = real(Bv);
 	BB = Dot(B0, B0);
 
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> Q(mesh);
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> K(mesh);
+	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 
 	Q = MapTo<VERTEX>(*pdE);
 
-	Field<mesh_type, VERTEX, scalar_type> a(mesh);
-	Field<mesh_type, VERTEX, scalar_type> b(mesh);
-	Field<mesh_type, VERTEX, scalar_type> c(mesh);
-	a.Clear();
-	b.Clear();
-	c.Clear();
+	auto a = mesh.template make_field<VERTEX, scalar_type>();
+	auto b = mesh.template make_field<VERTEX, scalar_type>();
+	auto c = mesh.template make_field<VERTEX, scalar_type>();
+
+	a.clear();
+	b.clear();
+	c.clear();
 
 	for (auto &p : particles)
 	{
@@ -99,7 +102,7 @@ void ImplicitPushE<TM>::NextTimeStep(Field<mesh_type, EDGE, scalar_type> const &
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> dEv(mesh);
+	auto dEv = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 
 	dEv = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 

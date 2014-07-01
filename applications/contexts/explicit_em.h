@@ -79,16 +79,16 @@ public:
 
 	Model<mesh_type> model_;
 
-	Field<mesh_type, EDGE, scalar_type> E, dE;
-	Field<mesh_type, FACE, scalar_type> B, dB;
-	Field<mesh_type, VERTEX, scalar_type> n, phi; // electrostatic potential
+	typename mesh_type::template field<EDGE, scalar_type> E, dE;
+	typename mesh_type::template field<FACE, scalar_type> B, dB;
+	typename mesh_type::template field<VERTEX, scalar_type> n, phi; // electrostatic potential
 
-	Field<mesh_type, VERTEX, Real> n0; // electrostatic potential
+	typename mesh_type::template field<VERTEX, Real> n0; // electrostatic potential
 
-	Field<mesh_type, EDGE, scalar_type> J0; //background current density J0+Curl(B(t=0))=0
-	Field<mesh_type, EDGE, scalar_type> Jext; // current density
+	typename mesh_type::template field<EDGE, scalar_type> J0; //background current density J0+Curl(B(t=0))=0
+	typename mesh_type::template field<EDGE, scalar_type> Jext; // current density
 
-	Field<mesh_type, VERTEX, nTuple<3, Real> > Bv;
+	typename mesh_type::template field<VERTEX, nTuple<3, Real> > Bv;
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
@@ -127,8 +127,8 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), phi(mesh), Bv(
-		        mesh)
+		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), //
+		phi(mesh), Bv(mesh)
 {
 }
 
@@ -151,17 +151,17 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	mesh.Decompose();
 
-	Field<mesh_type, VERTEX, Real> ne0(mesh);
-	Field<mesh_type, VERTEX, Real> Te0(mesh);
-	Field<mesh_type, VERTEX, Real> Ti0(mesh);
+	auto ne0 = mesh.template make_field<VERTEX, Real>();
+	auto Te0 = mesh.template make_field<VERTEX, Real>();
+	auto Ti0 = mesh.template make_field<VERTEX, Real>();
 
-	E.Clear();
-	B.Clear();
-	Jext.Clear();
+	E.clear();
+	B.clear();
+	Jext.clear();
 
-	dB.Clear();
-	dE.Clear();
-	J0.Clear();
+	dB.clear();
+	dE.clear();
+	J0.clear();
 
 	if (dict["Model"])
 	{
@@ -179,7 +179,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Limiter()), "Vacuum");
 			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Boundary()), "Plasma");
 
-			B.Clear();
+			B.clear();
 
 			for (auto s : mesh.Select(FACE))
 			{
@@ -188,9 +188,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 				B[s] = mesh.Sample(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
 			}
 
-			ne0.Clear();
-			Te0.Clear();
-			Ti0.Clear();
+			ne0.clear();
+			Te0.clear();
+			Ti0.clear();
 
 			for (auto s : model_.SelectByMaterial(VERTEX, "Plasma"))
 			{
@@ -236,7 +236,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	} catch (...)
 	{
-		PARSER_ERROR("Configure initialize fields  ! ");
+		PARSER_ERROR("Configure clear fields  ! ");
 	}
 
 	bool enableImplicit = false;
@@ -434,7 +434,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
-	dE.Clear();
+	dE.clear();
 	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
@@ -445,7 +445,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(E += dE);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
-	dB.Clear();
+	dB.clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
 	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)

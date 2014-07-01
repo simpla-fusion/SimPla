@@ -89,7 +89,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	auto f = mesh.template make_field<IForm,Real>( );
 
-	f.initialize();
+	f.clear();
 
 	for (auto s : model.SelectByRectangle( TestFixture::IForm, TestFixture::points[0],TestFixture::points[1]))
 	{
@@ -147,7 +147,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 
 	auto f = mesh.template make_field<IForm,Real>( );
 
-	f.initialize();
+	f.clear();
 	typename TestFixture::coordinates_type v0, v1, v2, v3;
 	for (int i = 0; i < TestFixture::NDIMS; ++i)
 	{
@@ -189,7 +189,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 	model.Set( model.SelectByPoints(VERTEX, TestFixture::points), "Vacuum");
 
-	f.initialize();
+	f.clear();
 
 	for (auto s : model.SelectByMaterial(TestFixture::IForm, "Vacuum"))
 	{

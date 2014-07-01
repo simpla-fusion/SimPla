@@ -34,8 +34,8 @@ public:
 
 	const value_type default_value_;
 
-	SparseContainer()
-			: base_container_type(), default_value_(value_type())
+	SparseContainer(value_type d = value_type(0))
+			: base_container_type(), default_value_(d)
 	{
 
 	}

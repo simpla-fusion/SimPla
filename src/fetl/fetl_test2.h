@@ -35,13 +35,13 @@ TEST_P(TestFETL, vector_arithmetic)
 	vb = rb;
 	vc = rc;
 
-	f0.initialize();
-	f1a.initialize();
+	f0.clear();
+	f1a.clear();
 
-	f1b.initialize();
-	f2a.initialize();
-	f2b.initialize();
-	f3.initialize();
+	f1b.clear();
+	f2a.clear();
+	f2b.clear();
+	f3.clear();
 
 	size_t count = 0;
 

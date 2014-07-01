@@ -42,10 +42,11 @@ public:
 	typedef typename mesh_type::scalar_type scalar_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
+	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
-	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
+	typedef typename std::conditional<EnableImplicit,
+	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
+	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7 + NMATE, Real> storage_value_type;
 private:

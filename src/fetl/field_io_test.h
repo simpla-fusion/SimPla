@@ -51,9 +51,9 @@ TYPED_TEST_P(TestFieldIO, write){
 	auto f2b=mesh.template make_field<FACE,value_type>();
 	auto f3=mesh.template make_field<VOLUME,value_type>();
 
-	f3.initialize();
-	f2.initialize();
-	f2b.initialize();
+	f3.clear();
+	f2.clear();
+	f2b.clear();
 
 	LOGGER<<SAVE(f3);
 	LOGGER<<SAVE(f2);

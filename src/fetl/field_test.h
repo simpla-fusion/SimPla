@@ -91,13 +91,13 @@ TYPED_TEST_P(TestField,create){
 
 	v=3.14145926;
 
-	auto f=(mesh.template make_field<field_type>(v));
+	field_type f(mesh,v);
 
 	EXPECT_EQ(v,f.default_value());
 
 	EXPECT_EQ(0,f.size());
 
-	f.initialize();
+	f.clear();
 
 	if(field_type::is_dense_storage)
 	{
@@ -132,7 +132,7 @@ TYPED_TEST_P(TestField,assign){
 
 	auto f=(mesh.template make_field<field_type>( ));
 
-	f.initialize();
+	f.clear();
 
 	for(auto s:mesh.Select(IForm))
 	{
@@ -168,7 +168,7 @@ TYPED_TEST_P(TestField,traversal){
 
 	auto f=(mesh.template make_field<field_type>( ));
 
-	f.initialize();
+	f.clear();
 
 	size_t count =0;
 

@@ -39,9 +39,9 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
+	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef Field<mesh_type, VERTEX, nTuple<3, scalar_type>> J_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
 
 	enum
 	{
@@ -65,11 +65,11 @@ public:
 		return "ColdFluid";
 	}
 
-	void NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+	void NextTimeStepZero(typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
+	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B);
 
-	void NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-	        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B);
+	void NextTimeStepHalf(typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
+	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B);
 
 	std::string Save(std::string const & name, bool is_verbose = false) const;
 
@@ -92,8 +92,8 @@ template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mes
 
 	try
 	{
-		J.Clear();
-		n.Clear();
+		J.clear();
+		n.clear();
 
 		LoadField(dict["Density"], &(n));
 		LoadField(dict["Current"], &(J));
@@ -139,20 +139,22 @@ std::string Particle<ColdFluid<TM>>::Save(std::string const & path, bool is_verb
 	return os.str();
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStepZero(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStepZero(
+        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
+        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles Step Zero[ " << GetTypeAsString() << "]";
 	Real dt = mesh.GetDt();
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStepHalf(Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & E,
-        Field<mesh_type, VERTEX, nTuple<3, scalar_type>> const & B)
+void Particle<ColdFluid<TM>>::NextTimeStepHalf(
+        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
+        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
 {
 	LOGGER << "Push particles Step Half[ " << GetTypeAsString() << "]";
 
-	Field<mesh_type, VERTEX, nTuple<3, scalar_type>> K(mesh);
+	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 
 	Real as = 0.5 * q / m * mesh.GetDt();
 

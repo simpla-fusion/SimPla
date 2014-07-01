@@ -36,6 +36,10 @@ public:
 
 	const value_type default_value_;
 
+	DenseContainer(value_type d = value_type())
+			: num_of_ele_(0), default_value_(d)
+	{
+	}
 	template<typename TR, typename ... Others>
 	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, value_type d, Others && ...)
 			: data_(nullptr),
@@ -69,19 +73,24 @@ public:
 	{
 	}
 
-	~DenseContainer()
+	virtual ~DenseContainer()
 	{
 	}
-
+	const std::shared_ptr<value_type> data() const
+	{
+		return data_;
+	}
+	std::shared_ptr<value_type> data()
+	{
+		return data_;
+	}
 	void swap(this_type & rhs)
 	{
-		data_.swap(rhs.data_);
-
-		std::swap(hash_fun_, rhs.hash_fun_);
-		std::swap(num_of_ele_, rhs.num_of_ele_);
-		std::swap(default_value_, rhs.default_value_);
-
+		std::swap(rhs.data_, data_);
+		std::swap(rhs.hash_fun_, hash_fun_);
+		std::swap(rhs.num_of_ele_, num_of_ele_);
 	}
+
 	bool empty() const
 	{
 		return data_ == nullptr;
@@ -104,26 +113,14 @@ public:
 
 	void initialize()
 	{
-		if(data_ == nullptr)
-		{
-			allocate();
-
-			fill(default_value_);
-		}
-	}
-
-	const std::shared_ptr<value_type > data()const
-	{
-		return data_;
-	}
-	std::shared_ptr<value_type >data()
-	{
-		return data_;
+		clear();
 	}
 
 	void clear()
 	{
-		data_=nullptr;
+		allocate();
+
+		fill(default_value_);
 	}
 
 	void fill(value_type v)

@@ -39,10 +39,11 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	typedef Field<mesh_type, VERTEX, scalar_type> n_type;
+	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit, Field<mesh_type, VERTEX, nTuple<3, scalar_type>>,
-	        Field<mesh_type, EDGE, scalar_type> >::type J_type;
+	typedef typename std::conditional<EnableImplicit,
+	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
+	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
 
 	struct Point_s
 	{
@@ -57,13 +58,13 @@ public:
 	mesh_type const &mesh;
 
 public:
-	PICEngineDefault(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineDefault(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDefault(mesh_type const &pmesh, Others && ...others) :
-			PICEngineDefault(pmesh)
+	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
+			: PICEngineDefault(pmesh)
 	{
 		Load(std::forward<Others >(others)...);
 	}
@@ -209,7 +210,7 @@ public:
 	}
 
 	template<int IFORM, typename TV, typename ...Args>
-	void Scatter(Point_s const & p, Field<mesh_type, IFORM, TV> * n, Args const & ...) const
+	void Scatter(Point_s const & p, typename mesh_type:: template field < IFORM, TV> * n, Args const & ...) const
 	{
 		interpolator_type::Scatter( n,std::make_tuple(p.x, q * p.f));
 	}

@@ -17,19 +17,19 @@
 namespace simpla
 {
 template<typename, int, typename > class Field;
-template<typename TDict, int IFORM, typename TM, typename TV>
-bool LoadField(TDict const &dict, Field<TM, IFORM, TV> *f)
+template<typename TDict, int IFORM, typename TM, typename Container>
+bool LoadField(TDict const &dict, Field<TM, IFORM, Container> *f)
 {
 	if (!dict)
 		return false;
 
 	typedef TM mesh_type;
-	typedef typename Field<TM, IFORM, TV>::value_type value_type;
-	typedef typename Field<TM, IFORM, TV>::field_value_type field_value_type;
+	typedef typename Field<TM, IFORM, Container>::value_type value_type;
+	typedef typename Field<TM, IFORM, Container>::field_value_type field_value_type;
 
 	mesh_type const &mesh = f->mesh;
 
-	f->Clear();
+	f->allocate();
 
 	if (dict.is_function())
 	{

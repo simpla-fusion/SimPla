@@ -37,8 +37,8 @@ void LoadParticle(TP *p, TDict const &dict, Args && ... args)
 		return;
 	}
 
-	p->J.Clear();
-	p->n.Clear();
+	p->J.clear();
+	p->n.clear();
 
 	InitParticle(p, dict, std::forward<Args >(args)...);
 
@@ -108,7 +108,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	nTuple<3, Real> x, v;
 
-	auto buffer = p->CreateBuffer();
+	auto buffer = p->create_child();
 	for (auto s : range)
 	{
 

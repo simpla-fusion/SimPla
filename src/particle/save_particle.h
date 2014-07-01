@@ -23,7 +23,7 @@ Save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 {
 	std::vector<TPoints> res;
 
-	for (auto const & l : d.data())
+	for (auto const & l : d)
 	{
 		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
 	}

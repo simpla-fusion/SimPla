@@ -32,8 +32,8 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	auto res_vector_field = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
 
-	vaf.initialize();
-	vbf.initialize();
+	vaf.clear();
+	vbf.clear();
 
 	for (auto & p : vaf)
 	{

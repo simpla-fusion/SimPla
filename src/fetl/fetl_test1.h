@@ -82,8 +82,8 @@ public:
 	typedef typename TParam::value_type value_type;
 	static constexpr int IForm = TParam::IForm;
 
-	typedef typename mesh_type::template field_type< VERTEX, Real> scalar_field_type;
-	typedef typename mesh_type::template field_type< VERTEX, value_type> field_type;
+	typedef typename mesh_type::template field< VERTEX, Real> scalar_field_type;
+	typedef typename mesh_type::template field< VERTEX, value_type> field_type;
 
 	mesh_type mesh;
 	value_type default_value;
@@ -154,9 +154,9 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	b.Fill(rb);
 	c.Fill(rc);
 
-	f1.initialize();
-	f2.initialize();
-	f3.initialize();
+	f1.clear();
+	f2.clear();
+	f3.clear();
 	f4.Fill(0);
 
 	size_t count=0;
