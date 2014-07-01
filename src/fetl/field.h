@@ -62,6 +62,7 @@ public:
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
 	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
+	typedef typename mesh_type::interpolator_type interpolator_type;
 	friend mesh_type;
 
 	mesh_type const &mesh;
@@ -76,14 +77,14 @@ private:
 	 * @param args
 	 */
 	template<typename ...Args>
-	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args)
-			: container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
+	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args) :
+			container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
 	{
 	}
 public:
 
-	Field(mesh_type const & mesh, value_type d = value_type())
-			: container_type(d), mesh(mesh)
+	Field(mesh_type const & mesh, value_type d = value_type()) :
+			container_type(d), mesh(mesh)
 	{
 	}
 
@@ -98,13 +99,13 @@ public:
 	 *
 	 * @param rhs
 	 */
-	Field(this_type const & rhs)
-			: container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
+	Field(this_type const & rhs) :
+			container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
 	{
 	}
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
+	Field(this_type &&rhs) :
+			container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
 			        std::forward<typename mesh_type::range_type>(rhs.range_))
 	{
 	}
@@ -300,12 +301,12 @@ public:
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return mesh.Gather(Int2Type<IForm>(), *this, x);
+		return interpolator_type::Gather( *this, x);
 	}
-	template<typename TZ>
-	inline void Add(coordinates_type const &x, TZ const & z)
+	template<typename TZ,typename TV>
+	inline void Add(coordinates_type const &x, TZ const & z,TV const &v)
 	{
-		return mesh.Scatter(Int2Type<IForm>(), this, z);
+		return interpolator_type::Scatter( this, z,v);
 	}
 
 }

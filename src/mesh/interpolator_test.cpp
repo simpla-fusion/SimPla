@@ -1,11 +1,11 @@
 /*
- * iterpolator_test.cpp
+ * interpolator_test.cpp
  *
  *  Created on: 2014年6月29日
  *      Author: salmon
  */
 
-#include "iterpolator_test.h"
+#include "interpolator_test.h"
 
 #include "mesh_rectangle.h"
 #include "geometry_cartesian.h"
@@ -33,7 +33,6 @@ TParam<Mesh<CartesianGeometry<UniformArray>, false>, VERTEX> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, EDGE> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, FACE> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, VOLUME> //
-//
 
         , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, VERTEX> //
         , TParam<Mesh<CylindricalGeometry<UniformArray>, true>, EDGE> //
@@ -46,4 +45,4 @@ TParam<Mesh<CartesianGeometry<UniformArray>, false>, VERTEX> //
 
 > MeshTypeList;
 
-INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestIterpolator, MeshTypeList);
+INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestInterpolator, MeshTypeList);

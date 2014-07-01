@@ -1,12 +1,12 @@
 /*
- * iterpolator_test.h
+ * interpolator_test.h
  *
  *  Created on: 2014年6月29日
  *      Author: salmon
  */
 
-#ifndef ITERPOLATOR_TEST_H_
-#define ITERPOLATOR_TEST_H_
+#ifndef INTERPOLATOR_TEST_H_
+#define INTERPOLATOR_TEST_H_
 
 #include <gtest/gtest.h>
 
@@ -21,7 +21,7 @@
 using namespace simpla;
 
 template<typename TP>
-class TestIterpolator: public testing::Test
+class TestInterpolator: public testing::Test
 {
 protected:
 	void SetUp()
@@ -63,9 +63,9 @@ public:
 
 };
 
-TYPED_TEST_CASE_P(TestIterpolator);
+TYPED_TEST_CASE_P(TestInterpolator);
 
-TYPED_TEST_P(TestIterpolator,scatter){
+TYPED_TEST_P(TestInterpolator,scatter){
 {
 
 	auto const & mesh=TestFixture::mesh;
@@ -75,6 +75,7 @@ TYPED_TEST_P(TestIterpolator,scatter){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
+	typedef typename mesh_type::interpolator_type interpolator_type;
 
 	auto f= mesh.template make_field<Field<mesh_type,IForm,SparseContainer<compact_index_type,scalar_type>>> ();
 
@@ -88,7 +89,7 @@ TYPED_TEST_P(TestIterpolator,scatter){
 
 	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
 
-	mesh.Scatter(Int2Type<IForm>(),&f,std::make_tuple(x,a),w);
+	interpolator_type::Scatter(&f,std::make_tuple(x,a),w);
 
 	scalar_type b=0;
 
@@ -111,7 +112,7 @@ TYPED_TEST_P(TestIterpolator,scatter){
 }
 }
 
-TYPED_TEST_P(TestIterpolator,gather){
+TYPED_TEST_P(TestInterpolator,gather){
 {
 
 	auto const & mesh=TestFixture::mesh;
@@ -121,6 +122,7 @@ TYPED_TEST_P(TestIterpolator,gather){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
+	typedef typename mesh_type::interpolator_type interpolator_type;
 
 	auto f= mesh.template make_field<IForm,scalar_type > ();
 
@@ -144,13 +146,13 @@ TYPED_TEST_P(TestIterpolator,gather){
 
 	Real error = abs(InnerProductNTuple(K , mesh.GetDx()));
 
-	auto actual= mesh.Gather(Int2Type<IForm>(), f ,(x));
+	auto actual= interpolator_type::Gather( f ,(x));
 
 	EXPECT_LE(abs( (actual -expect)/expect),error)<<actual <<" "<<expect;
 
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestIterpolator, scatter, gather);
+REGISTER_TYPED_TEST_CASE_P(TestInterpolator, scatter, gather);
 
-#endif /* ITERPOLATOR_TEST_H_ */
+#endif /* INTERPOLATOR_TEST_H_ */

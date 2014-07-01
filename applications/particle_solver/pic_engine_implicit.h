@@ -9,9 +9,10 @@
 #define PIC_ENGINE_IMPLICIT_H_
 
 #include <string>
-
-#include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
+#include "../../src/physics/physical_constants.h"
+#include "../../src/utilities/primitives.h"
+#include "../../src/utilities/ntuple.h"
+#include "../../src/utilities/log.h"
 
 namespace simpla
 {
@@ -92,7 +93,8 @@ public:
 	{
 		std::stringstream os;
 
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
 		os << "Engine = '" << GetTypeAsString() << "' "
 

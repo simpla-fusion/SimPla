@@ -64,14 +64,14 @@ public:
 		nTuple<NMATE, scalar_type> w;
 
 	};
-	PICEngineGGauge(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0)
+	PICEngineGGauge(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0)
 	{
 	}
 
 	template<typename ...Others>
-	PICEngineGGauge(mesh_type const &m, Others && ...others)
-			: PICEngineGGauge(m)
+	PICEngineGGauge(mesh_type const &m, Others && ...others) :
+			PICEngineGGauge(m)
 	{
 		Load(std::forward<Others >(others)...);
 	}
@@ -156,86 +156,91 @@ public:
 	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
-		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
+		NextTimeStepZero(std::integral_constant<bool,EnableImplicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
+		NextTimeStepHalf(std::integral_constant<bool,EnableImplicit>(), p, dt, fE, fB);
 	}
 
-	template<bool BOOL, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<BOOL>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	template<bool IS_IMPLICIT, typename TJ, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStepZero(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
-//		RVec3 B0 = interpolator_type::Gather(fB, p->x);
-//		Real BB = Dot(B0, B0);
-//
-//		RVec3 b = B0 / std::sqrt(BB);
-//		Vec3 v0, v1, r0, r1;
-//		Vec3 Vc;
-//		Vc = (Dot(p->v, B0) * B0) / BB;
-//		v1 = Cross(p->v, b);
-//		v0 = -Cross(v1, b);
-//		r0 = -Cross(v0, B0) / (cmr_ * BB);
-//		r1 = -Cross(v1, B0) / (cmr_ * BB);
-//
-//		for (int ms = 0; ms < NMATE; ++ms)
-//		{
-//			Vec3 v, r;
-//			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-//			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-//			p->w[ms] += 0.5 * Dot(fE(r), v) * dt;
-//		}
-//
-//		Vec3 t, V_;
-//
-//		t = B0 * cmr_ * dt * 0.5;
-//
-//		V_ = p->v + Cross(p->v, t);
-//
-//		p->v += Cross(V_, t) / (Dot(t, t) + 1.0) * 2.0;
-//
-//		Vc = (Dot(p->v, B0) * B0) / BB;
-//
-//		p->x += Vc * dt * 0.5;
-//
-//		v1 = Cross(p->v, b);
-//		v0 = -Cross(v1, b);
-//		r0 = -Cross(v0, B0) / (cmr_ * BB);
-//		r1 = -Cross(v1, B0) / (cmr_ * BB);
-//
-//		for (int ms = 0; ms < NMATE; ++ms)
-//		{
-//			Vec3 v, r;
-//			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-//			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-//			p->w[ms] += 0.5 * Dot(interpolator_type::Gather(fE, r), v) * q / T_
-//					* dt;
-//
-//		}
-//		p->x += Vc * dt * 0.5;
-//
-//		Vc = (Dot(p->v, B0) * B0) / BB;
-//
-//		v1 = Cross(p->v, b);
-//		v0 = -Cross(v1, b);
-//		r0 = -Cross(v0, B0) / (cmr_ * BB);
-//		r1 = -Cross(v1, B0) / (cmr_ * BB);
-//
-//		for (int ms = 0; ms < NMATE; ++ms)
-//		{
-//			Vec3 v, r;
-//			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
-//			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-//
-//			interpolator_type::Scatter(r, v * p->w[ms] * q * p->f, J);
-//		}
+
+		auto B0 = real(interpolator_type::GatherCartesian(fB, p->x));
+
+		Real BB = InnerProductNTuple(B0, B0);
+
+		RVec3 b = B0 / std::sqrt(BB);
+		Vec3 v0, v1, r0, r1;
+		Vec3 Vc;
+		Vc = (InnerProductNTuple(p->v, B0) * B0) / BB;
+		v1 = Cross(p->v, b);
+		v0 = -Cross(v1, b);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
+
+		for (int ms = 0; ms < NMATE; ++ms)
+		{
+
+			Vec3 v, r;
+			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
+
+			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::GatherCartesian(fE, p->x), v) * dt;
+		}
+
+		Vec3 t, V_;
+
+		t = B0 * cmr_ * dt * 0.5;
+
+		V_ = p->v + Cross(p->v, t);
+
+		p->v += Cross(V_, t) / (InnerProductNTuple(t, t) + 1.0) * 2.0;
+
+		Vc = (InnerProductNTuple(p->v, B0) * B0) / BB;
+
+		p->x += Vc * dt * 0.5;
+
+		v1 = Cross(p->v, b);
+		v0 = -Cross(v1, b);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
+
+		for (int ms = 0; ms < NMATE; ++ms)
+		{
+
+			Vec3 v, r;
+			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
+			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::GatherCartesian(fE, r), v) * q / T_
+			* dt;
+
+		}
+		p->x += Vc * dt * 0.5;
+
+		Vc = (InnerProductNTuple(p->v, B0) * B0) / BB;
+
+		v1 = Cross(p->v, b);
+		v0 = -Cross(v1, b);
+		r0 = -Cross(v0, B0) / (cmr_ * BB);
+		r1 = -Cross(v1, B0) / (cmr_ * BB);
+
+		for (int ms = 0; ms < NMATE; ++ms)
+		{
+			Vec3 v, r;
+			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
+			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
+
+			interpolator_type::ScatterCartesian(J,std::make_tuple(r, v), p->w[ms] * q * p->f );
+		}
 
 	}
 
-	template<bool BOOL, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<BOOL>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	template<bool IS_IMPLICIT, typename TB, typename TE, typename ... Others>
+	inline void NextTimeStepHalf(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
