@@ -236,21 +236,38 @@ struct StorageTraits
 
 };
 
+HAS_OPERATOR(sub_script, []);
+HAS_MEMBER_FUNCTION(at);
 template<class T, typename TI = int>
 class is_indexable
 {
-//	HAS_OPERATOR(index, []);
 public:
-	static const bool value = false; // has_operator_index<T, TI>::value;
-
+	static const bool value = has_operator_sub_script<T, TI>::value; // has_operator_index<T, TI>::value;
 };
 template<class T>
-class is_indexable<T*>
+class is_indexable<T*, size_t>
 {
 public:
 	static const bool value = true;
-
 };
+template<class T>
+class is_indexable<T*, int>
+{
+public:
+	static const bool value = true;
+};
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
 
 // @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>

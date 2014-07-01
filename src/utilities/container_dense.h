@@ -37,8 +37,8 @@ public:
 	const value_type default_value_;
 
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, value_type d, Others && ...) :
-			data_(nullptr),
+	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, value_type d, Others && ...)
+			: data_(nullptr),
 
 			hash_fun_(hash),
 
@@ -49,18 +49,19 @@ public:
 	}
 
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, Others && ...others) :
-			DenseContainer(range, hash, value_type() * 0, std::forward<Others>(others)...)
+	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, Others && ...others)
+			: DenseContainer(range, hash, value_type(), std::forward<Others>(others)...)
 	{
 	}
 
-	DenseContainer(this_type const & rhs) :
-			data_(rhs.data_), hash_fun_(rhs.hash_fun_), num_of_ele_(rhs.num_of_ele_), default_value_(rhs.default_value_)
+	DenseContainer(this_type const & rhs)
+			: data_(rhs.data_), hash_fun_(rhs.hash_fun_), num_of_ele_(rhs.num_of_ele_), default_value_(
+			        rhs.default_value_)
 	{
 	}
 
-	DenseContainer(this_type &&rhs) :
-			data_(std::forward<std::shared_ptr<value_type>>(rhs.data_)),
+	DenseContainer(this_type &&rhs)
+			: data_(std::forward<std::shared_ptr<value_type>>(rhs.data_)),
 
 			hash_fun_(std::forward<std::function<size_t(key_type)> >(rhs.hash_fun_)),
 

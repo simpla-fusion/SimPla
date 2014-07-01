@@ -18,8 +18,6 @@ using namespace simpla;
 TEST_P(TestFETL ,vec_zero_form)
 {
 
-	typedef Field<mesh_type, VERTEX, nTuple<3, scalar_type> > VectorField;
-
 	nTuple<3, scalar_type> vc1 = { 1.0, 2.0, 3.0 };
 
 	nTuple<3, scalar_type> vc2 = { -1.0, 4.0, 2.0 };

@@ -33,7 +33,7 @@ public:
 private:
 	template<typename TF, typename TIDX>
 	static inline auto Gather_impl_(TF const & f, TIDX idx,
-	        compact_index_type shift)->decltype(f.at( std::get<0>(idx) +shift)* std::get<1>(idx)[0])
+	        compact_index_type shift)->decltype(get_value(f, std::get<0>(idx) +shift)* std::get<1>(idx)[0])
 	{
 
 		auto X = topology_type::DeltaIndex(0, shift);
@@ -46,14 +46,14 @@ private:
 
 		return
 
-		f.at(((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
-		+ f.at(((s + X) + Y) - Z) * (r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ f.at(((s + X) - Y) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ f.at(((s + X) - Y) - Z) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
-		+ f.at(((s - X) + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-		+ f.at(((s - X) + Y) - Z) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ f.at(((s - X) - Y) + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ f.at(((s - X) - Y) - Z) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		get_value(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
+		+ get_value(f, ((s + X) + Y) - Z) * (r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ get_value(f, ((s + X) - Y) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ get_value(f, ((s + X) - Y) - Z) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ get_value(f, ((s - X) + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
+		+ get_value(f, ((s - X) + Y) - Z) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ get_value(f, ((s - X) - Y) + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ get_value(f, ((s - X) - Y) - Z) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF>
@@ -97,14 +97,14 @@ private:
 		coordinates_type r = std::get<1>(idx);
 		auto s = std::get<0>(idx) + topology_type::DeltaIndex(shift);
 
-		(*f)[((s + X) + Y) + Z] += v * (r[0]) * (r[1]) * (r[2]);
-		(*f)[((s + X) + Y) - Z] += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-		(*f)[((s + X) - Y) + Z] += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-		(*f)[((s + X) - Y) - Z] += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-		(*f)[((s - X) + Y) + Z] += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-		(*f)[((s - X) + Y) - Z] += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-		(*f)[((s - X) - Y) + Z] += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-		(*f)[((s - X) - Y) - Z] += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		get_value(*f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
+		get_value(*f, ((s + X) + Y) - Z) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+		get_value(*f, ((s + X) - Y) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+		get_value(*f, ((s + X) - Y) - Z) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		get_value(*f, ((s - X) + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+		get_value(*f, ((s - X) + Y) - Z) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+		get_value(*f, ((s - X) - Y) + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+		get_value(*f, ((s - X) - Y) - Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF, typename TV>

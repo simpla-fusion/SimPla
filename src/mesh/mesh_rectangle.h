@@ -54,15 +54,15 @@ public:
 
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
-	Mesh() :
-			geometry_type()
+	Mesh()
+			: geometry_type()
 	{
 		UpdateK(&k_imag);
 	}
 
 	template<typename TDict>
-	Mesh(TDict && dict) :
-			geometry_type(std::forward<TDict>(dict))
+	Mesh(TDict && dict)
+			: geometry_type(std::forward<TDict>(dict))
 	{
 		UpdateK(&k_imag);
 	}
@@ -188,24 +188,23 @@ public:
 //***************************************************************************************************
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, VERTEX, TL> const & f,
-	        compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = topology_type::DeltaIndex(s);
 
 		return
 
-		(f[s + D] * geometry_type::Volume(s + D) - f[s - D] * geometry_type::Volume(s - D))
-
-		* geometry_type::InvVolume(s)
+		(get_value(f, s + D) * geometry_type::Volume(s + D) - get_value(f, s - D) * geometry_type::Volume(s - D))
+		        * geometry_type::InvVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        + f[s + D] * k_imag[geometry_type::ComponentNum(D)];
+		        + get_value(f, s + D) * k_imag[geometry_type::ComponentNum(D)];
 #endif
 		;
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
-	        compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
@@ -213,21 +212,23 @@ public:
 
 		return (
 
-		(f[s + Y] * geometry_type::Volume(s + Y) - f[s - Y] * geometry_type::Volume(s - Y))
-
-		- (f[s + Z] * geometry_type::Volume(s + Z) - f[s - Z] * geometry_type::Volume(s - Z))
+		(get_value(f, s + Y) * geometry_type::Volume(s + Y) //
+		- get_value(f, s - Y) * geometry_type::Volume(s - Y)) //
+		- (get_value(f, s + Z) * geometry_type::Volume(s + Z) //
+		- get_value(f, s - Z) * geometry_type::Volume(s - Z)) //
 
 		) * geometry_type::InvVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        + f[s + Y] * k_imag[geometry_type::ComponentNum(Y)] - f[s + Z] * k_imag[geometry_type::ComponentNum(Z)]
+		        + get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
+		        - get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
 #endif
 
 		;
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, FACE, TL> const & f,
-	        compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -235,24 +236,21 @@ public:
 
 		return (
 
-		f[s + X] * geometry_type::Volume(s + X)
+		get_value(f, s + X) * geometry_type::Volume(s + X)
 
-		- f[s - X] * geometry_type::Volume(s - X)
-
-		+ f[s + Y] * geometry_type::Volume(s + Y)
-
-		- f[s - Y] * geometry_type::Volume(s - Y)
-
-		+ f[s + Z] * geometry_type::Volume(s + Z)
-
-		- f[s - Z] * geometry_type::Volume(s - Z)
+		- get_value(f, s - X) * geometry_type::Volume(s - X) //
+		+ get_value(f, s + Y) * geometry_type::Volume(s + Y) //
+		- get_value(f, s - Y) * geometry_type::Volume(s - Y) //
+		+ get_value(f, s + Z) * geometry_type::Volume(s + Z) //
+		- get_value(f, s - Z) * geometry_type::Volume(s - Z) //
 
 		) * geometry_type::InvVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
 
-		        + f[s + X] * k_imag[geometry_type::ComponentNum(X)] + f[s + Y] * k_imag[geometry_type::ComponentNum(Y)]
-		        + f[s + Z] * k_imag[geometry_type::ComponentNum(Z)]
+		        + get_value(f, s + X) * k_imag[geometry_type::ComponentNum(X)]
+		        + get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
+		        + get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
 
 #endif
 
@@ -266,7 +264,7 @@ public:
 	        compact_index_type s) const = delete;
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, EDGE, TL> const & f,
-	        compact_index_type s) const->decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -276,30 +274,31 @@ public:
 
 		-(
 
-		f[s + X] * geometry_type::DualVolume(s + X)
+		get_value(f, s + X) * geometry_type::DualVolume(s + X)
 
-		- f[s - X] * geometry_type::DualVolume(s - X)
+		- get_value(f, s - X) * geometry_type::DualVolume(s - X)
 
-		+ f[s + Y] * geometry_type::DualVolume(s + Y)
+		+ get_value(f, s + Y) * geometry_type::DualVolume(s + Y)
 
-		- f[s - Y] * geometry_type::DualVolume(s - Y)
+		- get_value(f, s - Y) * geometry_type::DualVolume(s - Y)
 
-		+ f[s + Z] * geometry_type::DualVolume(s + Z)
+		+ get_value(f, s + Z) * geometry_type::DualVolume(s + Z)
 
-		- f[s - Z] * geometry_type::DualVolume(s - Z)
+		- get_value(f, s - Z) * geometry_type::DualVolume(s - Z)
 
 		) * geometry_type::InvDualVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - f[s + X] * k_imag[geometry_type::ComponentNum(X)] - f[s + Y] * k_imag[geometry_type::ComponentNum(Y)]
-		        - f[s + Z] * k_imag[geometry_type::ComponentNum(Z)]
+		        - get_value(f, s + X) * k_imag[geometry_type::ComponentNum(X)]
+		        - get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
+		        - get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
 #endif
 		;
 
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
-	        compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
@@ -309,29 +308,36 @@ public:
 
 		-(
 
-		(f[s + Y] * (geometry_type::DualVolume(s + Y)) - f[s - Y] * (geometry_type::DualVolume(s - Y)))
+		(get_value(f, s + Y) * (geometry_type::DualVolume(s + Y))
+		        - get_value(f, s - Y) * (geometry_type::DualVolume(s - Y)))
 
-		- (f[s + Z] * (geometry_type::DualVolume(s + Z)) - f[s - Z] * (geometry_type::DualVolume(s - Z)))
+		        - (get_value(f, s + Z) * (geometry_type::DualVolume(s + Z))
+		                - get_value(f, s - Z) * (geometry_type::DualVolume(s - Z)))
 
 		) * geometry_type::InvDualVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - f[s + Y] * k_imag[geometry_type::ComponentNum(Y)] + f[s + Z] * k_imag[geometry_type::ComponentNum(Z)]
+		        - get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
+		        + get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
 #endif
 		;
 	}
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, VOLUME, TL> const & f,
-	        compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
 		return
 
-		-(f[s + D] * (geometry_type::DualVolume(s + D)) - f[s - D] * (geometry_type::DualVolume(s - D)))
-		        * geometry_type::InvDualVolume(s)
+		-(
+
+		get_value(f, s + D) * (geometry_type::DualVolume(s + D)) //
+		- get_value(f, s - D) * (geometry_type::DualVolume(s - D))
+
+		) * geometry_type::InvDualVolume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - f[s + D] * k_imag[geometry_type::ComponentNum(D)]
+		        - get_value(f, s + D) * k_imag[geometry_type::ComponentNum(D)]
 #endif
 
 		;
@@ -341,21 +347,21 @@ public:
 
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		return l[s] * r[s];
+		return get_value(l, s) * get_value(r, s);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(s);
 
-		return (l[s - X] + l[s + X]) * 0.5 * r[s];
+		return (get_value(l, s - X) + get_value(l, s + X)) * 0.5 * get_value(r, s);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
@@ -363,19 +369,19 @@ public:
 
 		return (
 
-		l[(s - Y) - Z] +
+		get_value(l, (s - Y) - Z) +
 
-		l[(s - Y) + Z] +
+		get_value(l, (s - Y) + Z) +
 
-		l[(s + Y) - Z] +
+		get_value(l, (s + Y) - Z) +
 
-		l[(s + Y) + Z]
+		get_value(l, (s + Y) + Z)
 
-		) * 0.25 * r[s];
+		) * 0.25 * get_value(r, s);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, VOLUME, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, VOLUME, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -383,43 +389,43 @@ public:
 
 		return (
 
-		l[((s - X) - Y) - Z] +
+		get_value(l, ((s - X) - Y) - Z) +
 
-		l[((s - X) - Y) + Z] +
+		get_value(l, ((s - X) - Y) + Z) +
 
-		l[((s - X) + Y) - Z] +
+		get_value(l, ((s - X) + Y) - Z) +
 
-		l[((s - X) + Y) + Z] +
+		get_value(l, ((s - X) + Y) + Z) +
 
-		l[((s + X) - Y) - Z] +
+		get_value(l, ((s + X) - Y) - Z) +
 
-		l[((s + X) - Y) + Z] +
+		get_value(l, ((s + X) - Y) + Z) +
 
-		l[((s + X) + Y) - Z] +
+		get_value(l, ((s + X) + Y) - Z) +
 
-		l[((s + X) + Y) + Z]
+		get_value(l, ((s + X) + Y) + Z)
 
-		) * 0.125 * r[s];
+		) * 0.125 * get_value(r, s);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(s);
-		return l[s] * (r[s - X] + r[s + X]) * 0.5;
+		return get_value(l, s) * (get_value(r, s - X) + get_value(r, s + X)) * 0.5;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
 
-		return ((l[s - Y] + l[s + Y]) * (l[s - Z] + l[s + Z]) * 0.25);
+		return ((get_value(l, s - Y) + get_value(l, s + Y)) * (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -427,24 +433,35 @@ public:
 
 		return
 
-		((l[(s - Y) - Z] + l[(s - Y) + Z] + l[(s + Y) - Z] + l[(s + Y) + Z]) * (r[s - X] + r[s + X]) +
+		(
 
-		(l[(s - Z) - X] + l[(s - Z) + X] + l[(s + Z) - X] + l[(s + Z) + X]) * (r[s - Y] + r[s + Y]) +
+		(get_value(l, (s - Y) - Z) + get_value(l, (s - Y) + Z) + get_value(l, (s + Y) - Z) + get_value(l, (s + Y) + Z))
+		        * (get_value(r, s - X) + get_value(r, s + X))
+		        +
 
-		(l[(s - X) - Y] + l[(s - X) + Y] + l[(s + X) - Y] + l[(s + X) + Y]) * (r[s - Z] + r[s + Z])) * 0.125;
+		        (get_value(l, (s - Z) - X) + get_value(l, (s - Z) + X) + get_value(l, (s + Z) - X)
+		                + get_value(l, (s + Z) + X)) * (get_value(r, s - Y) + get_value(r, s + Y))
+		        +
+
+		        (get_value(l, (s - X) - Y) + get_value(l, (s - X) + Y) + get_value(l, (s + X) - Y)
+		                + get_value(l, (s + X) + Y)) * (get_value(r, s - Z) + get_value(r, s + Z))
+
+		) * 0.125;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
 
-		return l[s] * (r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * 0.25;
+		return get_value(l, s)
+		        * (get_value(r, (s - Y) - Z) + get_value(r, (s - Y) + Z) + get_value(r, (s + Y) - Z)
+		                + get_value(r, (s + Y) + Z)) * 0.25;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, FACE, TL> const &r,
-	        Field<this_type, EDGE, TR> const &l, compact_index_type s) const ->decltype(l[s]*r[s])
+	        Field<this_type, EDGE, TR> const &l, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -452,15 +469,22 @@ public:
 
 		return
 
-		((r[(s - Y) - Z] + r[(s - Y) + Z] + r[(s + Y) - Z] + r[(s + Y) + Z]) * (l[s - X] + l[s + X])
+		(
 
-		+ (r[(s - Z) - X] + r[(s - Z) + X] + r[(s + Z) - X] + r[(s + Z) + X]) * (l[s - Y] + l[s + Y])
+		(get_value(r, (s - Y) - Z) + get_value(r, (s - Y) + Z) + get_value(r, (s + Y) - Z) + get_value(r, (s + Y) + Z))
+		        * (get_value(l, s - X) + get_value(l, s + X))
 
-		+ (r[(s - X) - Y] + r[(s - X) + Y] + r[(s + X) - Y] + r[(s + X) + Y]) * (l[s - Z] + l[s + Z])) * 0.125;
+		        + (get_value(r, (s - Z) - X) + get_value(r, (s - Z) + X) + get_value(r, (s + Z) - X)
+		                + get_value(r, (s + Z) + X)) * (get_value(l, s - Y) + get_value(l, s + Y))
+
+		        + (get_value(r, (s - X) - Y) + get_value(r, (s - X) + Y) + get_value(r, (s + X) - Y)
+		                + get_value(r, (s + X) + Y)) * (get_value(l, s - Z) + get_value(l, s + Z))
+
+		) * 0.125;
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<WEDGE>, Field<this_type, VOLUME, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(r[s]*l[s])
+	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -468,23 +492,16 @@ public:
 
 		return
 
-		l[s] * (
+		get_value(l, s) * (
 
-		r[((s - X) - Y) - Z] +
-
-		r[((s - X) - Y) + Z] +
-
-		r[((s - X) + Y) - Z] +
-
-		r[((s - X) + Y) + Z] +
-
-		r[((s + X) - Y) - Z] +
-
-		r[((s + X) - Y) + Z] +
-
-		r[((s + X) + Y) - Z] +
-
-		r[((s + X) + Y) + Z]
+		get_value(r, ((s - X) - Y) - Z) + //
+		        get_value(r, ((s - X) - Y) + Z) + //
+		        get_value(r, ((s - X) + Y) - Z) + //
+		        get_value(r, ((s - X) + Y) + Z) + //
+		        get_value(r, ((s + X) - Y) - Z) + //
+		        get_value(r, ((s + X) - Y) + Z) + //
+		        get_value(r, ((s + X) + Y) - Z) + //
+		        get_value(r, ((s + X) + Y) + Z)   //
 
 		) * 0.125;
 	}
@@ -492,7 +509,7 @@ public:
 //***************************************************************************************************
 
 	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<this_type, IL, TL> const & f,
-	        compact_index_type s) const-> typename std::remove_reference<decltype(f[s])>::type
+	        compact_index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
 //		auto X = topology_type::DI(0,s);
 //		auto Y = topology_type::DI(1,s);
@@ -502,32 +519,32 @@ public:
 //
 //		(
 //
-//		f[((s + X) - Y) - Z]*geometry_type::InvVolume(((s + X) - Y) - Z) +
+//		get_value(f,((s + X) - Y) - Z)*geometry_type::InvVolume(((s + X) - Y) - Z) +
 //
-//		f[((s + X) - Y) + Z]*geometry_type::InvVolume(((s + X) - Y) + Z) +
+//		get_value(f,((s + X) - Y) + Z)*geometry_type::InvVolume(((s + X) - Y) + Z) +
 //
-//		f[((s + X) + Y) - Z]*geometry_type::InvVolume(((s + X) + Y) - Z) +
+//		get_value(f,((s + X) + Y) - Z)*geometry_type::InvVolume(((s + X) + Y) - Z) +
 //
-//		f[((s + X) + Y) + Z]*geometry_type::InvVolume(((s + X) + Y) + Z) +
+//		get_value(f,((s + X) + Y) + Z)*geometry_type::InvVolume(((s + X) + Y) + Z) +
 //
-//		f[((s - X) - Y) - Z]*geometry_type::InvVolume(((s - X) - Y) - Z) +
+//		get_value(f,((s - X) - Y) - Z)*geometry_type::InvVolume(((s - X) - Y) - Z) +
 //
-//		f[((s - X) - Y) + Z]*geometry_type::InvVolume(((s - X) - Y) + Z) +
+//		get_value(f,((s - X) - Y) + Z)*geometry_type::InvVolume(((s - X) - Y) + Z) +
 //
-//		f[((s - X) + Y) - Z]*geometry_type::InvVolume(((s - X) + Y) - Z) +
+//		get_value(f,((s - X) + Y) - Z)*geometry_type::InvVolume(((s - X) + Y) - Z) +
 //
-//		f[((s - X) + Y) + Z]*geometry_type::InvVolume(((s - X) + Y) + Z)
+//		get_value(f,((s - X) + Y) + Z)*geometry_type::InvVolume(((s - X) + Y) + Z)
 //
 //		) * 0.125 * geometry_type::Volume(s);
 
-		return f[s] /** geometry_type::HodgeStarVolumeScale(s)*/;
+		return get_value(f, s) /** geometry_type::HodgeStarVolumeScale(s)*/;
 	}
 
 	template<typename TL, typename TR> void OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, VERTEX, TL> const & f, compact_index_type s) const = delete;
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, EDGE, TL> const & f, compact_index_type s) const->decltype(f[s]*v[0])
+	        Field<this_type, EDGE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -535,15 +552,13 @@ public:
 
 		return
 
-		(f[s + X] - f[s - X]) * 0.5 * v[0] +
-
-		(f[s + Y] - f[s - Y]) * 0.5 * v[1] +
-
-		(f[s + Z] - f[s - Z]) * 0.5 * v[2];
+		(get_value(f, s + X) - get_value(f, s - X)) * 0.5 * v[0]  //
+		+ (get_value(f, s + Y) - get_value(f, s - Y)) * 0.5 * v[1]   //
+		+ (get_value(f, s + Z) - get_value(f, s - Z)) * 0.5 * v[2];
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, FACE, TL> const & f, compact_index_type s) const->decltype(f[s]*v[0])
+	        Field<this_type, FACE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::ComponentNum(s);
 
@@ -552,18 +567,18 @@ public:
 		auto Z = topology_type::InverseRoate(X);
 		return
 
-		(f[s + Y] + f[s - Y]) * 0.5 * v[(n + 2) % 3] -
+		(get_value(f, s + Y) + get_value(f, s - Y)) * 0.5 * v[(n + 2) % 3] -
 
-		(f[s + Z] + f[s - Z]) * 0.5 * v[(n + 1) % 3];
+		(get_value(f, s + Z) + get_value(f, s - Z)) * 0.5 * v[(n + 1) % 3];
 	}
 
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, VOLUME, TL> const & f, compact_index_type s) const->decltype(f[s]*v[0])
+	        Field<this_type, VOLUME, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
 		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
 
-		return (f[s + D] - f[s - D]) * 0.5 * v[n];
+		return (get_value(f, s + D) - get_value(f, s - D)) * 0.5 * v[n];
 	}
 
 //**************************************************************************************************
@@ -571,7 +586,7 @@ public:
 // For curlpdx
 
 	template<int N, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
-	        Int2Type<N>, compact_index_type s) const-> decltype(f[s]-f[s])
+	        Int2Type<N>, compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
@@ -581,11 +596,12 @@ public:
 		Y = (topology_type::ComponentNum(Y) == N) ? Y : 0UL;
 		Z = (topology_type::ComponentNum(Z) == N) ? Z : 0UL;
 
-		return (f[s + Y] - f[s - Y]) - (f[s + Z] - f[s - Z]);
+		return (get_value(f, s + Y) - get_value(f, s - Y)) - (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
 	template<int N, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
-	        Int2Type<N>, compact_index_type s) const-> decltype((f[s]-f[s])*std::declval<scalar_type>())
+	        Int2Type<N>,
+	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 
 		auto X = topology_type::DeltaIndex(s);
@@ -597,86 +613,88 @@ public:
 
 		return (
 
-		f[s + Y] * (geometry_type::DualVolume(s + Y))
-
-		- f[s - Y] * (geometry_type::DualVolume(s - Y))
-
-		- f[s + Z] * (geometry_type::DualVolume(s + Z))
-
-		+ f[s - Z] * (geometry_type::DualVolume(s - Z))
+		get_value(f, s + Y) * (geometry_type::DualVolume(s + Y))      //
+		- get_value(f, s - Y) * (geometry_type::DualVolume(s - Y))    //
+		- get_value(f, s + Z) * (geometry_type::DualVolume(s + Z))    //
+		+ get_value(f, s - Z) * (geometry_type::DualVolume(s - Z))    //
 
 		) * geometry_type::InvDualVolume(s);
 	}
 	template<int IL, typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<IL> const &,
 	        Field<this_type, IL, TR> const & f, compact_index_type s) const
-	        DECL_RET_TYPE(f[s])
+	        DECL_RET_TYPE(get_value(f,s))
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VERTEX> const &,
 	        Field<this_type, EDGE, TR> const & f,
-	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(f[s])>::type>
+	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
 		auto Z = topology_type::DI(2, s);
 
-		return nTuple<3, typename std::remove_reference<decltype(f[s])>::type>(
-		        { (f[s - X] + f[s + X]) * 0.5, (f[s - Y] + f[s + Y]) * 0.5, (f[s - Z] + f[s + Z]) * 0.5 });
+		return nTuple<3, typename std::remove_reference<decltype(get_value(f,s))>::type>( {
+
+		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
+
+		});
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<EDGE> const &,
 	        Field<this_type, VERTEX, TR> const & f,
-	        compact_index_type s) const->typename std::remove_reference<decltype(f[s][0])>::type
+	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::ComponentNum(s);
 		auto D = topology_type::DeltaIndex(s);
 
-		return ((f[s - D][n] + f[s + D][n]) * 0.5);
+		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VERTEX> const &,
 	        Field<this_type, FACE, TR> const & f,
-	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(f[s])>::type>
+	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
 		auto Z = topology_type::DI(2, s);
 
-		return nTuple<3, typename std::remove_reference<decltype(f[s])>::type>( { (
+		return nTuple<3, typename std::remove_reference<decltype(get_value(f,s))>::type>( { (
 
-		f[(s - Y) - Z] +
+		get_value(f, (s - Y) - Z) +
 
-		f[(s - Y) + Z] +
+		get_value(f, (s - Y) + Z) +
 
-		f[(s + Y) - Z] +
+		get_value(f, (s + Y) - Z) +
 
-		f[(s + Y) + Z]
-
-		) * 0.25,
-
-		(
-
-		f[(s - Z) - X] +
-
-		f[(s - Z) + X] +
-
-		f[(s + Z) - X] +
-
-		f[(s + Z) + X]
+		get_value(f, (s + Y) + Z)
 
 		) * 0.25,
 
 		(
 
-		f[(s - X) - Y] +
+		get_value(f, (s - Z) - X) +
 
-		f[(s - X) + Y] +
+		get_value(f, (s - Z) + X) +
 
-		f[(s + X) - Y] +
+		get_value(f, (s + Z) - X) +
 
-		f[(s + X) + Y]
+		get_value(f, (s + Z) + X)
+
+		) * 0.25,
+
+		(
+
+		get_value(f, (s - X) - Y) +
+
+		get_value(f, (s - X) + Y) +
+
+		get_value(f, (s + X) - Y) +
+
+		get_value(f, (s + X) + Y)
 
 		) * 0.25
 
@@ -685,7 +703,7 @@ public:
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<FACE> const &,
 	        Field<this_type, VERTEX, TR> const & f,
-	        compact_index_type s) const->typename std::remove_reference<decltype(f[s][0])>::type
+	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::ComponentNum(topology_type::Dual(s));
@@ -697,13 +715,13 @@ public:
 
 		(
 
-		f[(s - Y) - Z][n] +
+		get_value(f, (s - Y) - Z)[n] +
 
-		f[(s - Y) + Z][n] +
+		get_value(f, (s - Y) + Z)[n] +
 
-		f[(s + Y) - Z][n] +
+		get_value(f, (s + Y) - Z)[n] +
 
-		f[(s + Y) + Z][n]
+		get_value(f, (s + Y) + Z)[n]
 
 		) * 0.25
 
@@ -711,71 +729,73 @@ public:
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VOLUME>, Field<this_type, FACE, TR> const & f,
-	        compact_index_type s) const->nTuple<3,decltype(f[s] )>
+	        compact_index_type s) const->nTuple<3,decltype(get_value(f,s) )>
 	{
 
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
 		auto Z = topology_type::DI(2, s);
 
-		return nTuple<3, typename std::remove_reference<decltype(f[s])>::type>( { (f[s - X] + f[s + X]) * 0.5,
+		return nTuple<3, typename std::remove_reference<decltype(get_value(f,s))>::type>( {
 
-		(f[s - Y] + f[s + Y]) * 0.5,
+		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
 
-		(f[s - Z] + f[s + Z]) * 0.5 });
+		});
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<FACE>, Field<this_type, VOLUME, TR> const & f,
-	        compact_index_type s) const->typename std::remove_reference<decltype(f[s][0])>::type
+	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::ComponentNum(topology_type::Dual(s));
 		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
 
-		return ((f[s - D][n] + f[s + D][n]) * 0.5);
+		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<VOLUME>, Field<this_type, EDGE, TR> const & f,
-	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(f[s] )>::type>
+	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
 	{
 
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
 		auto Z = topology_type::DI(2, s);
 
-		return nTuple<3, typename std::remove_reference<decltype(f[s])>::type>( { (
+		return nTuple<3, typename std::remove_reference<decltype(get_value(f,s))>::type>( { (
 
-		f[(s - Y) - Z] +
+		get_value(f, (s - Y) - Z) +
 
-		f[(s - Y) + Z] +
+		get_value(f, (s - Y) + Z) +
 
-		f[(s + Y) - Z] +
+		get_value(f, (s + Y) - Z) +
 
-		f[(s + Y) + Z]
-
-		) * 0.25,
-
-		(
-
-		f[(s - Z) - X] +
-
-		f[(s - Z) + X] +
-
-		f[(s + Z) - X] +
-
-		f[(s + Z) + X]
+		get_value(f, (s + Y) + Z)
 
 		) * 0.25,
 
 		(
 
-		f[(s - X) - Y] +
+		get_value(f, (s - Z) - X) +
 
-		f[(s - X) + Y] +
+		get_value(f, (s - Z) + X) +
 
-		f[(s + X) - Y] +
+		get_value(f, (s + Z) - X) +
 
-		f[(s + X) + Y]
+		get_value(f, (s + Z) + X)
+
+		) * 0.25,
+
+		(
+
+		get_value(f, (s - X) - Y) +
+
+		get_value(f, (s - X) + Y) +
+
+		get_value(f, (s + X) - Y) +
+
+		get_value(f, (s + X) + Y)
 
 		) * 0.25,
 
@@ -783,7 +803,7 @@ public:
 	}
 
 	template<typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<EDGE>, Field<this_type, VOLUME, TR> const & f,
-	        compact_index_type s) const->typename std::remove_reference<decltype(f[s][0])>::type
+	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = topology_type::ComponentNum(topology_type::Dual(s));
@@ -794,13 +814,13 @@ public:
 
 		(
 
-		f[(s - Y) - Z][n] +
+		get_value(f, (s - Y) - Z)[n] +
 
-		f[(s - Y) + Z][n] +
+		get_value(f, (s - Y) + Z)[n] +
 
-		f[(s + Y) - Z][n] +
+		get_value(f, (s + Y) - Z)[n] +
 
-		f[(s + Y) + Z][n]
+		get_value(f, (s + Y) + Z)[n]
 
 		) * 0.25
 

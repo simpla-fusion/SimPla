@@ -81,4 +81,5 @@ TEST_P(TestFETL, vector_arithmetic)
 	LOG_CMD(f3 = Wedge(f2a, f1b));
 
 }
+
 #endif /* FETL_TEST2_H_ */

@@ -15,7 +15,8 @@
 #include "../physics/constants.h"
 #include "../io/data_stream.h"
 #include "../parallel/message_comm.h"
-#include "../fetl/dummy_field.h"
+#include "../fetl/field.h"
+#include "../utilities/container_sparse.h"
 
 using namespace simpla;
 
@@ -84,7 +85,7 @@ TYPED_TEST_P(TestIterpolator,vertex){
 
 	scalar_type a=3.1415926;
 
-	DummyField<mesh_type,VERTEX,scalar_type> f(mesh,0.0);
+	auto f= mesh.template make_field<Field<mesh_type,VERTEX,SparseContainer<compact_index_type,scalar_type>>> ();
 
 	mesh.Scatter(Int2Type<VERTEX>(),&f,std::make_tuple(x,a),w);
 
@@ -116,7 +117,7 @@ TYPED_TEST_P(TestIterpolator,edge){
 	nTuple<NDIMS,scalar_type> a=
 	{	3.1415926 , -3.1415926,3.0*3.1415926};
 
-	DummyField<mesh_type,EDGE,scalar_type> f(mesh,0.0);
+	auto f= mesh.template make_field<Field<mesh_type,EDGE,SparseContainer<compact_index_type,scalar_type>>>( );
 
 	mesh.Scatter(Int2Type<EDGE>(),&f,std::make_tuple(x,a),w);
 
@@ -150,7 +151,7 @@ TYPED_TEST_P(TestIterpolator,face){
 	nTuple<NDIMS,scalar_type> a=
 	{	3.1415926 , -3.1415926,3.0*3.1415926};
 
-	DummyField<mesh_type,FACE,scalar_type> f(mesh,0.0);
+	auto f= mesh.template make_field<Field<mesh_type,FACE,SparseContainer<compact_index_type,scalar_type>>> ( );
 
 	mesh.Scatter(Int2Type<FACE>(),&f,std::make_tuple(x,a),w);
 
@@ -183,7 +184,7 @@ TYPED_TEST_P(TestIterpolator,volume){
 
 	scalar_type a=3.1415926;
 
-	DummyField<mesh_type,VOLUME,scalar_type> f(mesh,0.0);
+	auto f= mesh.template make_field<Field<mesh_type,VOLUME,SparseContainer<compact_index_type,scalar_type>>> ( );
 
 	mesh.Scatter(Int2Type<VOLUME>(),&f,std::make_tuple(x,a),w);
 

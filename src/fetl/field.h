@@ -212,7 +212,7 @@ public:
 
 		[this,v](compact_index_type s)
 		{
-			this->get(s) = v;
+			get_value(*this, s) = v;
 		}
 
 		);
@@ -225,7 +225,7 @@ public:
 	}
 
 	template<typename TR>
-	this_type & operator =(Field<mesh_type, IForm, TR> const & rhs)
+	this_type & operator =(TR const & rhs)
 	{
 		container_type::allocate();
 
@@ -233,7 +233,7 @@ public:
 
 		[this,&rhs](compact_index_type s)
 		{
-			this->get( s) = rhs.get( s);
+			get_value(*this, s) = get_value( rhs, s);
 		}
 
 		);

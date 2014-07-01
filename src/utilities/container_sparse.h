@@ -32,25 +32,29 @@ public:
 
 	const value_type default_value_;
 
-	SparseContainer() :
-			base_container_type(), default_value_(value_type() * 0)
+	SparseContainer()
+			: base_container_type(), default_value_(value_type())
 	{
 
 	}
-
 	template<typename TR, typename THash, typename ...Others>
-	SparseContainer(TR const &, THash const&, value_type d, Others && ... others) :
-			base_container_type(std::forward<Others>(others)...), default_value_(d)
+	SparseContainer(TR const &, THash const&, Others && ... others)
+			: base_container_type(std::forward<Others>(others)...), default_value_(value_type())
+	{
+	}
+	template<typename TR, typename THash, typename ...Others>
+	SparseContainer(TR const &, THash const&, value_type d, Others && ... others)
+			: base_container_type(std::forward<Others>(others)...), default_value_(d)
 	{
 	}
 
-	SparseContainer(this_type const & rhs) :
-			base_container_type(rhs), default_value_(rhs.default_value_)
+	SparseContainer(this_type const & rhs)
+			: base_container_type(rhs), default_value_(rhs.default_value_)
 	{
 	}
 
-	SparseContainer(this_type &&rhs) :
-			base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
+	SparseContainer(this_type &&rhs)
+			: base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
 	{
 	}
 

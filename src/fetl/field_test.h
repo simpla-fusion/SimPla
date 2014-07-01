@@ -108,6 +108,8 @@ TYPED_TEST_P(TestField,create){
 		EXPECT_EQ(0,f.size());
 	}
 
+	// Check default value
+
 	for(auto s:mesh.Select(IForm))
 	{
 		EXPECT_EQ(v,f[s]);
@@ -118,21 +120,37 @@ TYPED_TEST_P(TestField,create){
 
 TYPED_TEST_P(TestField,assign){
 {
-//	typedef typename TestFixture::mesh_type mesh_type;
-//	typedef typename TestFixture::value_type value_type;
-//
-//	typedef typename mesh_type::scalar_type scalar_type;
-//	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
-//	static constexpr unsigned int IForm = TestFixture::IForm;
-//
-//	mesh_type const & mesh = TestFixture::mesh;
-//
-//	auto f0=mesh.template make_form<IForm,value_type>();
-//
-//	for(auto s:mesh.Select(IForm))
-//	{
-//
-//	}
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::mesh_type mesh_type;
+	typedef typename TestFixture::value_type value_type;
+
+	typedef typename mesh_type::scalar_type scalar_type;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+
+	mesh_type const & mesh = TestFixture::mesh;
+
+	auto f=(mesh.template make_field<field_type>( ));
+
+	f.initialize();
+
+	for(auto s:mesh.Select(IForm))
+	{
+		value_type ss;
+		ss=s;
+		f[s]=ss;
+	}
+
+	EXPECT_EQ(mesh.GetLocalMemorySize(IForm),f.size());
+
+	for(auto s:mesh.Select(IForm))
+	{
+		value_type ss;
+		ss=s;
+
+		EXPECT_EQ(ss,f[s]);
+	}
+
 }
 }
 

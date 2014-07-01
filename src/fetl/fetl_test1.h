@@ -17,7 +17,7 @@
 
 using namespace simpla;
 
-template<typename TV, int IFORM>
+template<int IFORM, typename TV>
 struct TestFETLParam1
 {
 	typedef TMesh mesh_type;
@@ -210,53 +210,35 @@ REGISTER_TYPED_TEST_CASE_P(TestFETLBase, constant_real, scalar_field);
 
 typedef testing::Types<
 
-TestFETLParam1<Real, VERTEX>,
+TestFETLParam1<VERTEX, Real>	//
+        , TestFETLParam1<EDGE, Real>	//
+        , TestFETLParam1<FACE, Real>	//
+        , TestFETLParam1<VOLUME, Real>	//
 
-TestFETLParam1<Real, EDGE>,
+        , TestFETLParam1<VERTEX, Complex>	//
+        , TestFETLParam1<EDGE, Complex>	//
+        , TestFETLParam1<FACE, Complex>	//
+        , TestFETLParam1<VOLUME, Complex>	//
 
-TestFETLParam1<Real, FACE>,
+        , TestFETLParam1<VERTEX, nTuple<3, Real> >	//
+        , TestFETLParam1<EDGE, nTuple<3, Real> >	//
+        , TestFETLParam1<FACE, nTuple<3, Real> >	//
+        , TestFETLParam1<VOLUME, nTuple<3, Real> >	//
 
-TestFETLParam1<Real, VOLUME>,
+        , TestFETLParam1<VERTEX, nTuple<3, Complex> >	//
+        , TestFETLParam1<EDGE, nTuple<3, Complex> >	//
+        , TestFETLParam1<FACE, nTuple<3, Complex> >	//
+        , TestFETLParam1<VOLUME, nTuple<3, Complex> >	//
 
-TestFETLParam1<Complex, VERTEX>,
+        , TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
+        , TestFETLParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
+        , TestFETLParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
+        , TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
 
-TestFETLParam1<Complex, EDGE>,
-
-TestFETLParam1<Complex, FACE>,
-
-TestFETLParam1<Complex, VOLUME>,
-
-TestFETLParam1<nTuple<3, Real>, VERTEX>,
-
-TestFETLParam1<nTuple<3, Real>, EDGE>,
-
-TestFETLParam1<nTuple<3, Real>, FACE>,
-
-TestFETLParam1<nTuple<3, Real>, VOLUME>,
-
-TestFETLParam1<nTuple<3, Complex>, VERTEX>,
-
-TestFETLParam1<nTuple<3, Complex>, EDGE>,
-
-TestFETLParam1<nTuple<3, Complex>, FACE>,
-
-TestFETLParam1<nTuple<3, Complex>, VOLUME>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, VERTEX>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, EDGE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, FACE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Real>>, VOLUME>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VERTEX>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, EDGE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, FACE>,
-
-TestFETLParam1<nTuple<3, nTuple<3, Complex>>, VOLUME>
+        , TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
+        , TestFETLParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
+        , TestFETLParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
+        , TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
 
 > TypeParamList;
 
