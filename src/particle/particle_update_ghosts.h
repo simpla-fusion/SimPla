@@ -29,7 +29,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 		comm = GLOBAL_COMM.GetComm();
 	}
 
-	typedef typename pool_type::value_type value_type;
+	typedef typename pool_type::particle_type value_type;
 
 	MPIDataType<value_type> dtype;
 
@@ -44,9 +44,9 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 	for (auto const & item : g_array.send_recv_)
 	{
 
-		auto t_cell = pool->CreateBuffer();
+		auto t_cell = pool->create_child();
 
-		pool->Remove(pool->Select(item.send_start, item.send_count), &t_cell);
+		pool->Remove(pool->Select(item.send_begin, item.send_end), &t_cell);
 
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
 
@@ -76,7 +76,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 
 	MPI_Waitall(num_of_neighbour, requests, MPI_STATUSES_IGNORE);
 
-	auto cell_buffer = pool->CreateBuffer();
+	auto cell_buffer = pool->create_child();
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
 		std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),

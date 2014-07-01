@@ -8,7 +8,7 @@
 #ifndef PARTICLE_TEST_H_
 #define PARTICLE_TEST_H_
 #include <gtest/gtest.h>
-
+#include <random>
 #include "../fetl/fetl.h"
 #include "../fetl/save_field.h"
 #include "../utilities/log.h"
@@ -19,14 +19,13 @@
 
 #include "particle.h"
 #include "particle_update_ghosts.h"
-
-#include "save_particle.h"
-
-#include "../mesh/mesh_rectangle.h"
-
+//
+//#include "save_particle.h"
+#include "particle_pool.h"
 using namespace simpla;
 
 #ifndef TMESH
+#include "../mesh/mesh_rectangle.h"
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
 typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
@@ -34,91 +33,71 @@ typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
 typedef TMESH TMesh;
 #endif
 
-struct Point_s
-{
-	nTuple<3, Real> x;
-	nTuple<3, Real> v;
-	Real f;
-};
-
-typedef ParticlePool<TMesh, Point_s> pool_type;
-
 class TestParticle: public testing::TestWithParam<
         std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
 {
 protected:
 	virtual void SetUp()
 	{
-		GLOBAL_COMM.Init(0,nullptr);
-		LOG_STREAM.SetStdOutVisableLevel(12);
 
 		auto param = GetParam();
 
-		xmin=std::get<0>(param);
-		xmax= std::get<1>(param);
-		dims= std::get<2>(param);
-
-		mesh.SetExtents(xmin,xmax,dims);
+		xmin = std::get<0>(param);
+		xmax = std::get<1>(param);
+		dims = std::get<2>(param);
+		mesh.SetExtents(xmin, xmax, dims);
 
 		mesh.Decompose();
-
-		cfg_str = "n0=function(x,y,z)"
-		"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
-		" end "
-		"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=500,Temperature=300 ,Density=n0"
-		"}";
+//
+//		cfg_str = "n0=function(x,y,z)"
+//				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
+//				" end "
+//				"ion={ Name=\"H\",Mass=1.0e-31,Charge=1.6021892E-19 ,PIC=500,Temperature=300 ,Density=n0"
+//				"}";
 
 	}
 public:
 
-	typedef typename pool_type::mesh_type mesh_type;
+	typedef TMesh mesh_type;
 
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	typedef typename mesh_type::iterator iterator;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	struct Point_s
+	{
+		nTuple<3, Real> x;
+		nTuple<3, Real> v;
+		Real f;
+	};
+	typedef ParticlePool<mesh_type, Point_s> pool_type;
 
 	mesh_type mesh;
 
-	nTuple<3, Real> xmin,xmax;
+	nTuple<3, Real> xmin, xmax;
 
 	nTuple<3, size_t> dims;
-
-	std::string cfg_str;
-
-	bool enable_sorting;
 
 };
 
 TEST_P(TestParticle,Add)
 {
+
 	pool_type p(mesh);
 
-	auto buffer = p.CreateBuffer();
+	auto buffer = p.create_child();
 
-	auto extent = mesh.GetExtents();
+	auto extents = mesh.GetExtents();
 
-	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extent.first, extent.second);
+	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extents.first, extents.second);
+
 	std::mt19937 rnd_gen(mesh_type::GetNumOfDimensions());
 
 	nTuple<3, Real> v = { 0, 0, 0 };
-	nTuple<3, Real> x = { 0, 0, 0 };
 
 	int pic = (GLOBAL_COMM.GetRank() +1)*10;
 
-	x = extent.first;
-
 	for (auto s : mesh.Select(VERTEX))
 	{
-
 		for (int i = 0; i < pic; ++i)
 		{
-			x_dist(rnd_gen, &x[0]);
-
-			x = mesh.CoordinatesLocalToGlobal(s, x);
-
-			buffer.emplace_back(Point_s( { x, v, 1.0 }));
+			buffer.emplace_back(Point_s( { mesh.CoordinatesLocalToGlobal(s, x_dist(rnd_gen)), v, 1.0 }));
 		}
 	}
 
@@ -129,23 +108,31 @@ TEST_P(TestParticle,Add)
 	EXPECT_EQ(p.size(), mesh.GetLocalMemorySize(VERTEX) * pic);
 
 	std::vector<double> a;
-	a.begin();
+
 	p.Remove(
-	        p.Select(std::get<0>(extent) + (std::get<1>(extent) - std::get<0>(extent)) * 0.25,
-	                std::get<0>(extent) + (std::get<1>(extent) - std::get<0>(extent)) * 0.75));
+	        p.Select(
+
+	        std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
+	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75
+
+	                )
+
+	                );
 
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
-
 	p.Remove(p.Select());
 
+	INFORM << "Remove particle DONE " << p.size() << std::endl;
+	EXPECT_NE(p.size(), 0);
+
+	p.clear();
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
 
 //	for (auto const & v : p.data())
 //	{
 //		if (v.second.size() > 0)
 //			CHECK((mesh.DecompactRoot(v.first)));
-//}
-	EXPECT_EQ(p.size(), 0);
+//	}
 
 	UpdateGhosts(&p);
 	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;

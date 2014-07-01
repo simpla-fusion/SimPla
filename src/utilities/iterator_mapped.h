@@ -221,18 +221,12 @@ MappedIterator<TContainer, TIterator> make_mapped_iterator(TContainer & containe
 
 template<typename TContainer, typename TIterator>
 auto make_mapped_range(TContainer & m, TIterator const & ib, TIterator const & ie)
-DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, ib, ie),
+DECL_RET_TYPE(std::move(std::make_tuple( make_mapped_iterator(m, ib, ie),
 						make_mapped_iterator(m, ie, ie))))
-
-template<typename TContainer, typename TIterator>
-auto make_mapped_range(TContainer & m, std::pair<TIterator, TIterator> const & r)
-DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, r.first, r.second),
-						make_mapped_iterator(m, r.second, r.second))))
 
 template<typename TContainer, typename TRange>
 auto make_mapped_range(TContainer & m, TRange const & r)
-DECL_RET_TYPE(std::move(std::make_pair( make_mapped_iterator(m, r.begin(), r.end()),
-						make_mapped_iterator(m, r.end(), r.end()))))
+DECL_RET_TYPE(std::move(make_mapped_range( m, std::get<0>(r), std::get<1>(r) )))
 
 }
 // namespace simpla

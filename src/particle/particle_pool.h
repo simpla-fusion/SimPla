@@ -9,22 +9,17 @@
 #define PARTICLE_POOL_H_
 #include "../utilities/log.h"
 #include "../utilities/sp_type_traits.h"
+#include "../utilities/container_container.h"
 #include "../parallel/parallel.h"
 #include "save_particle.h"
-
-#ifndef NO_STD_CXX
-//need  libstdc++
-#include <ext/mt_allocator.h>
-template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
-#endif
 
 namespace simpla
 {
 
 //*******************************************************************************************************
 
-template<typename TM, typename TParticle>
-class ParticlePool
+template<typename TM, typename TPoint>
+class ParticlePool: public ContainerContainer<typename TM::compact_index_type, TPoint>
 {
 	std::mutex write_lock_;
 
@@ -33,11 +28,15 @@ public:
 
 	typedef TM mesh_type;
 
-	typedef TParticle particle_type;
+	typedef TPoint particle_type;
+
+	typedef typename TM::compact_index_type key_type;
 
 	typedef ParticlePool<mesh_type, particle_type> this_type;
 
-	typedef particle_type value_type;
+	typedef ContainerContainer<key_type, particle_type> container_type;
+
+	typedef typename container_type::value_type child_container_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;
 
@@ -45,106 +44,41 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	//container
-
-	typedef std::list<value_type, FixedSmallSizeAlloc<value_type> > cell_type;
-
-	typedef cell_type buffer_type;
-
-	typedef typename mesh_type::compact_index_type key_type;
-
-	typedef std::map<key_type, cell_type> container_type;
-
-	typedef typename cell_type::allocator_type allocator_type;
+	typedef typename mesh_type::range_type range_type;
 
 private:
 
 	bool isSorted_;
 
-	allocator_type allocator_;
-
-	container_type data_;
-
 public:
 
 	mesh_type const & mesh;
+	typename mesh_type::range_type range_;
 	//***************************************************************************************************
 	// Constructor
 
-	ParticlePool(mesh_type const & pmesh);
-
 	template<typename ...Others> ParticlePool(mesh_type const & pmesh, Others && ...);
+	template<typename ...Others> ParticlePool(mesh_type const & pmesh, range_type const &, Others && ...);
 
 	// Destructor
 	~ParticlePool();
+
+	void Load()
+	{
+	}
 
 	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args && ...others);
 
 	std::string Save(std::string const & path) const;
 
-	container_type &data()
-	{
-		return data_;
-	}
-	container_type const&data() const
-	{
-		return data_;
-	}
-
 	//***************************************************************************************************
 
-	allocator_type GetAllocator()
-	{
-		return allocator_;
-	}
-
-	cell_type CreateOneCell()
-	{
-		return std::move(cell_type(allocator_));
-	}
-
-	cell_type & GetCell(container_type * c, key_type s)
-	{
-		auto it = c->find(s);
-
-		if (it == c->end())
-		{
-			it = c->emplace(s, CreateOneCell()).first;
-		}
-
-		return it->second;
-	}
-
-	cell_type & operator[](key_type s)
-	{
-		return GetCell(&data_, s);
-	}
-	cell_type const & operator[](key_type s) const
-	{
-		return data_.at(s);
-	}
-	cell_type &at(key_type s)
-	{
-		return data_.at(s);
-	}
-	cell_type const & at(key_type s) const
-	{
-		return data_.at(s);
-	}
-
 	template<typename ... Args>
-	auto Select(Args const & ... args)
-	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args >(args)...))))
+	auto Select(Args && ... args)
+	DECL_RET_TYPE((make_mapped_range(*this, mesh.Select(range_,std::forward<Args >(args)...))))
 	template<typename ... Args>
-	auto Select(Args const & ... args) const
-	DECL_RET_TYPE((make_mapped_range( data_, mesh.Select(IForm,std::forward<Args >(args)...))))
-	//***************************************************************************************************
-	// Cell operation
-
-	buffer_type CreateBuffer()
-	{
-		return std::move(buffer_type(allocator_));
-	}
+	auto Select(Args && ... args) const
+	DECL_RET_TYPE((make_mapped_range(*this, mesh.Select(range_,std::forward<Args >(args)...))))
 
 	template<typename TIterator>
 	void Clear(TIterator it);
@@ -153,10 +87,10 @@ public:
 
 	void Merge(container_type * other, container_type *dest = nullptr);
 
-	void Add(buffer_type *src);
+	void Add(child_container_type *src);
 
 	template<typename TRange>
-	void Remove(TRange r, buffer_type *other = nullptr);
+	void Remove(TRange r, child_container_type *other = nullptr);
 
 //***************************************************************************************************
 
@@ -172,39 +106,6 @@ public:
 		isSorted_ = false;
 	}
 
-	size_t size() const
-	{
-		size_t res = 0;
-
-		for (auto const & v : data_)
-		{
-			res += v.second.size();
-		}
-		return res;
-	}
-
-	container_type const & GetTree() const
-	{
-		return data_;
-	}
-
-	void WriteLock()
-	{
-		write_lock_.lock();
-	}
-	void WriteUnLock()
-	{
-		write_lock_.unlock();
-	}
-	void lock()
-	{
-		write_lock_.lock();
-	}
-	void unlock()
-	{
-		write_lock_.unlock();
-	}
-
 private:
 	/**
 	 *  resort particles in cell 's', and move out boundary particles to 'dest' container
@@ -217,39 +118,41 @@ private:
 /***
  * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
  */
-template<typename TM, typename TParticle>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh)
-		: mesh(pmesh), isSorted_(false), allocator_()
-{
-
-}
-template<typename TM, typename TParticle>
+template<typename TM, typename TPoint>
 template<typename ...Others>
-ParticlePool<TM, TParticle>::ParticlePool(mesh_type const & pmesh, Others && ...others)
-		: ParticlePool(pmesh)
+ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh, Others && ...others)
+		: container_type(), mesh(pmesh), isSorted_(false), range_(pmesh.Select(IForm))
 {
 	Load(std::forward<Others >(others)...);
 }
-template<typename TM, typename TParticle>
-template<typename TDict, typename ...Args> void ParticlePool<TM, TParticle>::Load(TDict const & dict, Args && ...others)
+template<typename TM, typename TPoint>
+template<typename ...Others>
+ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh, range_type const &range, Others && ...others)
+		: container_type(), mesh(pmesh), isSorted_(false), range_(range)
+{
+	Load(std::forward<Others >(others)...);
+}
+
+template<typename TM, typename TPoint>
+template<typename TDict, typename ...Args> void ParticlePool<TM, TPoint>::Load(TDict const & dict, Args && ...others)
 {
 
 }
 
-template<typename TM, typename TParticle>
-ParticlePool<TM, TParticle>::~ParticlePool()
+template<typename TM, typename TPoint>
+ParticlePool<TM, TPoint>::~ParticlePool()
 {
 }
 
-template<typename TM, typename TParticle>
-std::string ParticlePool<TM, TParticle>::Save(std::string const & name) const
+template<typename TM, typename TPoint>
+std::string ParticlePool<TM, TPoint>::Save(std::string const & name) const
 {
 	return simpla::Save(name, *this);
 }
 
-template<typename TM, typename TParticle>
+template<typename TM, typename TPoint>
 template<typename TSrc, typename TDest>
-void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
+void ParticlePool<TM, TPoint>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 {
 
 	auto pt = p_src->begin();
@@ -263,15 +166,15 @@ void ParticlePool<TM, TParticle>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 
 		auto id = mesh.CoordinatesGlobalToLocal((p->x), shift);
 		p->x = mesh.CoordinatesLocalToGlobal(std::get<0>(id), std::get<1>(id));
-		auto & dest = GetCell(p_dest_contianer, std::get<0>(id));
+		auto & dest = p_dest_contianer->get(std::get<0>(id));
 		dest.splice(dest.begin(), *p_src, p);
 
 	}
 
 }
 
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Sort()
+template<typename TM, typename TPoint>
+void ParticlePool<TM, TPoint>::Sort()
 {
 
 	if (is_sorted())
@@ -286,9 +189,9 @@ void ParticlePool<TM, TParticle>::Sort()
 //		{
 //
 // 			CHECK(mesh.Hash(s));
-//			auto it = data_.find(s);
+//			auto it = base_container_type::find(s);
 //
-//			if (it != data_.end()) this->Sort_(&(it->second), &dest);
+//			if (it != base_container_type::end()) this->Sort_(&(it->second), &dest);
 //		}
 //		Merge(&dest);
 //	}
@@ -300,21 +203,21 @@ void ParticlePool<TM, TParticle>::Sort()
 	for (auto s : mesh.Select(IForm))
 	{
 
-		auto it = data_.find(s);
+		auto it = container_type::find(s);
 
-		if (it != data_.end())
+		if (it != container_type::end())
 			this->Sort_(&(it->second), &dest);
 	}
-	Merge(&dest, &data_);
+	Merge(&dest, this);
 	isSorted_ = true;
 
 }
 
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::ClearEmpty()
+template<typename TM, typename TPoint>
+void ParticlePool<TM, TPoint>::ClearEmpty()
 {
-	write_lock_.lock();
-	auto it = data_.begin(), ie = data_.end();
+	container_type::lock();
+	auto it = container_type::begin(), ie = container_type::end();
 
 	while (it != ie)
 	{
@@ -322,50 +225,50 @@ void ParticlePool<TM, TParticle>::ClearEmpty()
 		++it;
 		if (t->second.empty())
 		{
-			data_.erase(t);
+			container_type::erase(t);
 		}
 	}
-	write_lock_.unlock();
+	container_type::unlock();
 }
-template<typename TM, typename TParticle>
+template<typename TM, typename TPoint>
 template<typename TIterator>
-void ParticlePool<TM, TParticle>::Clear(TIterator it)
+void ParticlePool<TM, TPoint>::Clear(TIterator it)
 {
-	write_lock_.lock();
-	data_.erase(it.c_it_);
-	write_lock_.unlock();
+	container_type::lock();
+	container_type::erase(it.c_it_);
+	container_type::unlock();
 }
 
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Merge(container_type * other, container_type *dest)
+template<typename TM, typename TPoint>
+void ParticlePool<TM, TPoint>::Merge(container_type * other, container_type *dest)
 {
 	if (dest == nullptr)
-		dest = &data_;
+		dest = this;
 
-	write_lock_.lock();
+	container_type::lock();
 	for (auto & v : *other)
 	{
-		auto & c = GetCell(dest, v.first);
+		auto & c = dest->get(v.first);
 		c.splice(c.begin(), v.second);
 	}
-	write_lock_.unlock();
+	container_type::unlock();
 
 }
-template<typename TM, typename TParticle>
-void ParticlePool<TM, TParticle>::Add(buffer_type* other)
+template<typename TM, typename TPoint>
+void ParticlePool<TM, TPoint>::Add(child_container_type* other)
 {
-	Sort_(other, &data_);
+	Sort_(other, this);
 }
 
-template<typename TM, typename TParticle>
+template<typename TM, typename TPoint>
 template<typename TRange>
-void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
+void ParticlePool<TM, TPoint>::Remove(TRange r, child_container_type * other)
 {
-	auto buffer = CreateBuffer();
+	auto buffer = container_type::create_child();
 
-	for (auto it = r.begin(), ie = r.end(); it != ie; ++it)
+	for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
 	{
-		buffer.splice(buffer.begin(), it->second);
+		buffer.splice(buffer.begin(), *it);
 	}
 
 	if (other != nullptr)
@@ -405,7 +308,7 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //		cell_iterator c_it_;
 //
 //		cell_iterator_(container_reference data, mesh_iterator m_ib, mesh_iterator m_ie) :
-//				data_(data), m_it_(m_ib), m_ie_(m_ie), c_it_(data_.find(m_ib))
+//				data_(data), m_it_(m_ib), m_ie_(m_ie), c_it_(base_container_type::find(m_ib))
 //		{
 //			UpldateCellIteraor_();
 //		}
@@ -455,11 +358,11 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 //	private:
 //		void UpldateCellIteraor_()
 //		{
-//			c_it_ = data_.find(m_it_);
-//			while (c_it_ == data_.end() && m_it_ != m_ie_)
+//			c_it_ = base_container_type::find(m_it_);
+//			while (c_it_ == base_container_type::end() && m_it_ != m_ie_)
 //			{
 //				++m_it_;
-//				c_it_ = data_.find(m_it_);
+//				c_it_ = base_container_type::find(m_it_);
 //			}
 //		}
 //	};
@@ -721,59 +624,59 @@ void ParticlePool<TM, TParticle>::Remove(TRange r, buffer_type * other)
 
 //	iterator begin()
 //	{
-//		return iterator(data_.begin());
+//		return iterator(base_container_type::begin());
 //	}
 //
 //	iterator end()
 //	{
-//		return iterator(data_.rbegin(), data_.rbegin()->end());
+//		return iterator(base_container_type::rbegin(), base_container_type::rbegin()->end());
 //	}
 //
 //	iterator rbegin()
 //	{
-//		return iterator(data_.rbegin(), data_.rbeing()->rbegin());
+//		return iterator(base_container_type::rbegin(), base_container_type::rbeing()->rbegin());
 //	}
 //
 //	iterator rend()
 //	{
-//		return iterator(data_.begin(), data_.begin()->rend());
+//		return iterator(base_container_type::begin(), base_container_type::begin()->rend());
 //	}
 //
 //	typename container_type::iterator cell_begin()
 //	{
-//		return (data_.begin());
+//		return (base_container_type::begin());
 //	}
 //
 //	typename container_type::iterator cell_end()
 //	{
-//		return (data_.end());
+//		return (base_container_type::end());
 //	}
 //	typename container_type::iterator cell_rbegin()
 //	{
-//		return (data_.rbegin());
+//		return (base_container_type::rbegin());
 //	}
 //
 //	typename container_type::iterator cell_rend()
 //	{
-//		return (data_.rend());
+//		return (base_container_type::rend());
 //	}
 //	typename container_type::const_iterator cell_begin() const
 //	{
-//		return (data_.cbegin());
+//		return (base_container_type::cbegin());
 //	}
 //
 //	typename container_type::const_iterator cell_end() const
 //	{
-//		return (data_.cend());
+//		return (base_container_type::cend());
 //	}
 //
 //	typename container_type::const_iterator cell_rbegin() const
 //	{
-//		return (data_.crbegin());
+//		return (base_container_type::crbegin());
 //	}
 //
 //	typename container_type::const_iterator cell_rend() const
 //	{
-//		return (data_.crend());
+//		return (base_container_type::crend());
 //	}
 #endif /* PARTICLE_POOL_H_ */

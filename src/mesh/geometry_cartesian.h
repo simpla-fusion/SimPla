@@ -37,14 +37,14 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry() :
-			topology_type()
+	CartesianGeometry()
+			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CartesianGeometry(TDict const & dict) :
-			topology_type(dict)
+	CartesianGeometry(TDict const & dict)
+			: topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -79,20 +79,15 @@ struct CartesianGeometry: public TTopology
 		return dt_;
 	}
 
-	coordinates_type xmin_ =
-	{ 0, 0, 0 };
+	coordinates_type xmin_ = { 0, 0, 0 };
 
-	coordinates_type xmax_ =
-	{ 1, 1, 1 };
+	coordinates_type xmax_ = { 1, 1, 1 };
 
-	coordinates_type inv_length_ =
-	{ 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type length_ =
-	{ 1.0, 1.0, 1.0 };
+	coordinates_type length_ = { 1.0, 1.0, 1.0 };
 
-	coordinates_type shift_ =
-	{ 0, 0, 0 };
+	coordinates_type shift_ = { 0, 0, 0 };
 
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
@@ -125,23 +120,21 @@ struct CartesianGeometry: public TTopology
 	{
 		std::stringstream os;
 
-		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", "
-				<< " dt  = " << dt_ << ", "
+		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_ << ", "
 
-				<< topology_type::Save(path);
+		<< topology_type::Save(path);
 
 		return os.str();
 	}
 	template<typename ...Others>
-	inline void SetExtents(coordinates_type const & pmin,
-			coordinates_type const & pmax, Others&& ... others)
+	inline void SetExtents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
 	{
 		topology_type::SetDimensions(std::forward<Others >(others)...);
 		SetExtents(pmin, pmax);
 	}
 
-	void SetExtents(nTuple<NDIMS, Real> const & pmin,
-			nTuple<NDIMS, Real> const & pmax, nTuple<NDIMS, Real> const & dims)
+	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	        nTuple<NDIMS, Real> const & dims)
 	{
 		topology_type::SetDimensions(dims);
 		SetExtents(pmin, pmax);
@@ -199,17 +192,13 @@ struct CartesianGeometry: public TTopology
 	template<typename ... Args>
 	inline coordinates_type GetCoordinates(Args && ... args) const
 	{
-		return std::move(
-				CoordinatesFromTopology(
-						topology_type::GetCoordinates(
-								std::forward<Args >(args)...)));
+		return std::move(CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...)));
 	}
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
 	{
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -222,8 +211,7 @@ struct CartesianGeometry: public TTopology
 	}
 	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -237,22 +225,16 @@ struct CartesianGeometry: public TTopology
 	template<typename ... Args>
 	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
 	{
-		return std::move(
-				CoordinatesFromTopology(
-						topology_type::CoordinatesLocalToGlobal(
-								std::forward<Args >(args)...)));
+		return std::move(CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...)));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(
-			coordinates_type x, compact_index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	        compact_index_type shift = 0UL) const
 	{
-		return std::move(
-				topology_type::CoordinatesGlobalToLocal(
-						std::move(CoordinatesToTopology(x)), shift));
+		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &x,
-			unsigned int CartesianZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type y;
 
@@ -263,8 +245,7 @@ struct CartesianGeometry: public TTopology
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &y,
-			unsigned int CartesianZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &y, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type x;
 
@@ -276,23 +257,17 @@ struct CartesianGeometry: public TTopology
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PushForward(
-			std::tuple<coordinates_type, TV> const & Z,
-			unsigned int CartesianZAxis = 2) const
+	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
+	        unsigned int CartesianZAxis = 2) const
 	{
-		return std::move(
-				std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis),
-						std::get<1>(Z)));
+		return std::move(std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(
-			std::tuple<coordinates_type, TV> const & R,
-			unsigned int CartesianZAxis = 2) const
+	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R, unsigned int CartesianZAxis =
+	        2) const
 	{
-		return std::move(
-				std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis),
-						std::get<1>(R)));
+		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
 	}
 
 	/**
@@ -308,8 +283,7 @@ struct CartesianGeometry: public TTopology
 
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z,
-			unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
 
@@ -336,8 +310,7 @@ struct CartesianGeometry: public TTopology
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R,
-			unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -351,13 +324,13 @@ struct CartesianGeometry: public TTopology
 		return std::move(std::make_tuple(InvMapTo(r), v));
 	}
 
-	auto Select(unsigned int iform, coordinates_type const & xmin,
-			coordinates_type const & xmax) const
-					DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+	template<typename TR>
+	auto Select(TR range, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::Select(range, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
 
-	template<typename ...Args>
-	auto Select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
+	template<typename TR, typename ...Args>
+	auto Select(TR range, Args && ...args) const
+	DECL_RET_TYPE((topology_type::Select(range,std::forward<Args >(args)...)))
 
 	template<typename TV>
 	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
@@ -414,24 +387,20 @@ struct CartesianGeometry: public TTopology
 	 *
 	 */
 
-	scalar_type volume_[8] =
-	{ 1, // 000
-			1, //001
-			1, //010
-			1, //011
-			1, //100
-			1, //101
-			1, //110
-			1  //111
-			};
-	scalar_type inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type volume_[8] = { 1, // 000
+	        1, //001
+	        1, //010
+	        1, //011
+	        1, //100
+	        1, //101
+	        1, //110
+	        1  //111
+	        };
+	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 	void UpdateVolume()
@@ -507,8 +476,7 @@ public:
 		dual_volume_[2] /* 101 */= dual_volume_[3] * dual_volume_[6];
 		dual_volume_[1] /* 110 */= dual_volume_[5] * dual_volume_[3];
 
-		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5]
-				* dual_volume_[3];
+		dual_volume_[0] /* 111 */= dual_volume_[6] * dual_volume_[5] * dual_volume_[3];
 
 		inv_volume_[0] = 1;
 //		inv_volume_[1] /* 001 */= inv_dx_[0];
@@ -519,29 +487,23 @@ public:
 		inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
 		inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
 
-		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2]
-				* inv_volume_[4];
+		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
 
 		inv_dual_volume_[7] = 1;
 //		inv_dual_volume_[6] /* 001 */= inv_dx_[0];
 //		inv_dual_volume_[5] /* 010 */= inv_dx_[1];
 //		inv_dual_volume_[3] /* 100 */= inv_dx_[2];
 
-		inv_dual_volume_[4] /* 011 */= inv_dual_volume_[6]
-				* inv_dual_volume_[5];
-		inv_dual_volume_[2] /* 101 */= inv_dual_volume_[3]
-				* inv_dual_volume_[6];
-		inv_dual_volume_[1] /* 110 */= inv_dual_volume_[5]
-				* inv_dual_volume_[3];
+		inv_dual_volume_[4] /* 011 */= inv_dual_volume_[6] * inv_dual_volume_[5];
+		inv_dual_volume_[2] /* 101 */= inv_dual_volume_[3] * inv_dual_volume_[6];
+		inv_dual_volume_[1] /* 110 */= inv_dual_volume_[5] * inv_dual_volume_[3];
 
-		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5]
-				* inv_dual_volume_[3];
+		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 	}
 	scalar_type CellVolume(compact_index_type s) const
 	{
-		return topology_type::CellVolume(s) * volume_[1] * volume_[2]
-				* volume_[4];
+		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4];
 	}
 	scalar_type Volume(compact_index_type s) const
 	{
@@ -549,19 +511,16 @@ public:
 	}
 	scalar_type InvVolume(compact_index_type s) const
 	{
-		return topology_type::InvVolume(s)
-				* inv_volume_[topology_type::NodeId(s)];
+		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)];
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
-		return topology_type::DualVolume(s)
-				* dual_volume_[topology_type::NodeId(s)];
+		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)];
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
-		return topology_type::InvDualVolume(s)
-				* inv_dual_volume_[topology_type::NodeId(s)];
+		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)];
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const

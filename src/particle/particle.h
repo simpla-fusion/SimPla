@@ -42,7 +42,6 @@ namespace simpla
 template<class Engine>
 class Particle: public Engine, public ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>
 {
-	std::mutex write_lock_;
 
 public:
 	static constexpr int IForm = VERTEX;

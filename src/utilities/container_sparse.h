@@ -19,6 +19,8 @@ namespace simpla
 template<typename TI, typename TV>
 class SparseContainer: public std::map<TI, TV>
 {
+	std::mutex write_lock_;
+
 public:
 
 	typedef TV value_type;
@@ -77,11 +79,11 @@ public:
 
 	void lock()
 	{
-		UNIMPLEMENT;
+		write_lock_.lock();
 	}
 	void unlock()
 	{
-		UNIMPLEMENT;
+		write_lock_.unlock();
 	}
 
 	value_type const & default_value() const

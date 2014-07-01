@@ -193,10 +193,10 @@ public:
 
 	template<typename ... Args>
 	auto Select(Args &&... args)
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(range_,std::forward<Args>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,range_,std::forward<Args>(args)...))))
 	template<typename ... Args>
 	auto Select(Args &&... args) const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(range_,std::forward<Args>(args)...))))
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,range_,std::forward<Args>(args)...))))
 
 	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
 	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))

@@ -4,11 +4,10 @@
  *  Created on: 2013年11月6日
  *      Author: salmon
  */
+
 #include "particle_test.h"
 
-INSTANTIATE_TEST_CASE_P(Particle, TestParticle,
-
-testing::Combine(
+INSTANTIATE_TEST_CASE_P(Particle, TestParticle, testing::Combine(
 
 testing::Values(nTuple<3, Real>( { 0.0, 0.0, 0.0, })  //
 //        , nTuple<3, Real>( { -1.0, -2.0, -3.0 })

@@ -321,9 +321,9 @@ TEST_P(TestTopology, coordinates)
 
 	}
 
-//	auto idx = topology.CoordinatesToIndex(x);
-//
-//	EXPECT_EQ(idx, topology.CoordinatesToIndex(topology.IndexToCoordinates(idx)));
+	auto idx = topology.CoordinatesToIndex(x);
+
+	EXPECT_EQ(idx, topology.CoordinatesToIndex(topology.IndexToCoordinates(idx)));
 
 }
 #endif /* TOPOLOGY_TEST_H_ */

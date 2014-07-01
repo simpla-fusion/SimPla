@@ -72,8 +72,7 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -753,26 +752,19 @@ struct UniformArray
 	inline coordinates_type
 	CoordinatesLocalToGlobal(compact_index_type s ,coordinates_type x )const
 	{
-		return std::move(CoordinatesLocalToGlobal(std::make_tuple(s,x)));
-	}
-
-	template<typename TI> inline coordinates_type
-	CoordinatesLocalToGlobal(TI const& v)const
-	{
-
 #ifndef ENABLE_SUB_TREE_DEPTH
 		static constexpr Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
 		static constexpr Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
+
 		coordinates_type r;
-		r = std::get<1>(v) * CELL_SCALE_R + Decompact(std::get<0>(v)-global_begin_compact_index_);
+
+		r = x * CELL_SCALE_R + Decompact(s-global_begin_compact_index_);
 
 #else
 
-		coordinates_type r= std::get<1>(v)
-
-		* static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(std::get<0>(v))));
-
-		+Decompact(std::get<0>(v-global_begin_compact_index_));
+		coordinates_type r= x
+		* static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(s)));
+		+Decompact((s-global_begin_compact_index_));
 #endif
 
 		r[0]*=inv_extents_[0];
@@ -781,6 +773,10 @@ struct UniformArray
 
 		return std::move(r);
 	}
+
+	template<typename TI> inline auto
+	CoordinatesLocalToGlobal(TI const& idx)const
+	DECL_RET_TYPE(CoordinatesLocalToGlobal(std::get<0>(idx) ,std::get<1>(idx) ))
 
 	/**
 	 *
@@ -1271,34 +1267,51 @@ struct UniformArray
 
 	}
 
-	range_type Select(unsigned int iform, nTuple<NDIMS, index_type> begin, nTuple<NDIMS, index_type> end) const
+private:
+	range_type SelectRectangle_(int iform ,nTuple<NDIMS, index_type> const & ib, nTuple<NDIMS, index_type> const & ie, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e) const
 	{
-		auto flag = Clipping(local_inner_begin_, local_inner_end_, &begin, &end);
+		auto flag = Clipping(ib,ie, &b, &e);
 
 		if (!flag)
 		{
-			begin = local_inner_begin_;
-			end = begin;
+			b = ib;
+			e = ib;
 		}
 
-		return std::move(make_range(begin, end, get_first_node_shift(iform)));
+		return std::move(make_range(b, e, get_first_node_shift(iform)));
 
 	}
-
-	auto Select(unsigned int iform) const
-	DECL_RET_TYPE((Select(iform,local_inner_begin_, local_inner_end_ )))
-
-	template<typename TR>
-	auto Select(unsigned int iform, TR range) const
-	DECL_RET_TYPE((Select(iform,std::get<0>(range),std::get<1>(range) )))
-
-	range_type Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax) const
+public:
+	range_type Select(unsigned int iform) const
 	{
-		auto b=ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmin, get_first_node_shift(iform)))));
-		auto e=ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmax, get_first_node_shift(iform)))));
-		e+=1;
-		return Select(iform,b,e);
+		return std::move(make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
 	}
+
+	range_type Select(range_type range)const
+	{
+		return std::move(range);
+	}
+
+	auto Select(range_type range, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e) const
+	DECL_RET_TYPE(SelectRectangle_( IForm(*std::get<0>(range)) ,std::get<0>(range).self_,std::get<1>(range).self_, b, e))
+
+	auto Select(range_type range, coordinates_type xmin, coordinates_type xmax) const
+	DECL_RET_TYPE(SelectRectangle_(
+					IForm(*std::get<0>(range)),	//
+					std::get<0>(range).self_, std::get<1>(range).self_,//
+					ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmin, get_first_node_shift(IForm(*std::get<0>(range))))))),
+					ToCellIndex(Decompact(std::get<0>(CoordinatesGlobalToLocal( xmax, get_first_node_shift(IForm(*std::get<0>(range)))))))+1
+			))
+
+	auto Select(range_type range1, range_type range2) const
+	DECL_RET_TYPE(SelectRectangle_(IForm(*std::get<0>(range1)),
+					std::get<0>(range1).self_, std::get<1>(range1).self_,//
+					std::get<0>(range2).self_, std::get<1>(range2).self_//
+			))
+
+	template<typename ...Args>
+	auto Select(unsigned int iform, Args &&... args) const
+	DECL_RET_TYPE (Select(Select(iform),std::forward<Args>(args)...))
 
 	static index_type mod_(index_type a,index_type L)
 	{
@@ -1936,7 +1949,8 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{

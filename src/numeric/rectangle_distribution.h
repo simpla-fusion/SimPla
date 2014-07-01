@@ -70,7 +70,10 @@ public:
 	{
 		nTuple<NDIM, double> res;
 
-		this->operator()(g, res);
+		for (int i = 0; i < NDIM; ++i)
+		{
+			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
+		}
 
 		return std::move(res);
 

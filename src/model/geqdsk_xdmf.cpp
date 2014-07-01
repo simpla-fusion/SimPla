@@ -164,7 +164,7 @@ void GEqdsk::Write(std::string const &fname)
 
 //		root.Build();
 	std::ofstream ss(fname + ".xmf");
-	ss << dom.Serialize() << endl;
+	ss << dom.Serialize() << std::endl;
 
 }
 }  // namespace simpla
