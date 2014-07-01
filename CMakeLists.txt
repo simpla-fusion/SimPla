@@ -9,7 +9,7 @@ include(${PROJECT_SOURCE_DIR}/CMake/utils.cmake)
  
 SET(CMAKE_VERBOSE_MAKEFILE ON)
 #SET(CMAKE_BUILD_TYPE Release)
-SET(CMAKE_BUILD_TYPE Debug)
+#SET(CMAKE_BUILD_TYPE Debug)
 
 
 INCLUDE(ExternalProject)

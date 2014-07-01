@@ -24,44 +24,36 @@ struct TestFETLParam1
 	typedef TV value_type;
 	static constexpr int IForm = IFORM;
 
-	static void SetUpMesh(mesh_type * mesh)
-	{
-
-		nTuple<3, Real> xmin = { 1.0, 1.0, 1.0 };
-
-		nTuple<3, Real> xmax = { 2.0, 3.0, 4.0 };
-
-		nTuple<3, size_t> dims = { 16, 32, 67 };
-
-		mesh->SetExtents(xmin, xmax, dims);
-
-	}
-
-	static void SetDefaultValue(value_type * v)
-	{
-		SetDefaultValue(v);
-	}
-	template<typename T>
-	void SetDefaultValue(T* v)
-	{
-		*v = 1;
-	}
-	template<typename T>
-	void SetDefaultValue(std::complex<T>* v)
-	{
-		T r;
-		SetDefaultValue(&r);
-		*v = std::complex<T>();
-	}
-
-	template<int N, typename T>
-	void SetDefaultValue(nTuple<N, T>* v)
-	{
-		for (int i = 0; i < N; ++i)
-		{
-			(*v)[i] = i;
-		}
-	}
+//	static void SetUpMesh(mesh_type * mesh)
+//	{
+//
+//	}
+//
+//	static void SetDefaultValue(value_type * v)
+//	{
+//		SetDefaultValue(v);
+//	}
+//	template<typename T>
+//	void SetDefaultValue(T* v)
+//	{
+//		*v = 1;
+//	}
+//	template<typename T>
+//	void SetDefaultValue(std::complex<T>* v)
+//	{
+//		T r;
+//		SetDefaultValue(&r);
+//		*v = std::complex<T>();
+//	}
+//
+//	template<int N, typename T>
+//	void SetDefaultValue(nTuple<N, T>* v)
+//	{
+//		for (int i = 0; i < N; ++i)
+//		{
+//			(*v)[i] = i;
+//		}
+//	}
 };
 
 template<typename TParam>
@@ -72,8 +64,17 @@ protected:
 	{
 		LOG_STREAM.SetStdOutVisableLevel(10);
 
-		TParam::SetUpMesh(&mesh);
-		TParam::SetDefaultValue(&default_value);
+		nTuple<3, Real> xmin =
+		{	1.0, 1.0, 1.0};
+
+		nTuple<3, Real> xmax =
+		{	2.0, 3.0, 4.0};
+
+		nTuple<3, size_t> dims =
+		{	16, 32, 67};
+
+		mesh.SetExtents(xmin, xmax, dims);
+
 	}
 public:
 

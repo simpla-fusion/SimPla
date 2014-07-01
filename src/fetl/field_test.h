@@ -70,7 +70,7 @@ public:
 	{	12, 1, 1};
 
 	nTuple<NDIMS, index_type> dims =
-	{	20, 30, 1};
+	{	5, 6, 10};
 };
 
 TYPED_TEST_CASE_P(TestField);
@@ -154,6 +154,47 @@ TYPED_TEST_P(TestField,assign){
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestField, create, assign);
+TYPED_TEST_P(TestField,traversal){
+{
+	typedef typename TestFixture::field_type field_type;
+	typedef typename TestFixture::mesh_type mesh_type;
+	typedef typename TestFixture::value_type value_type;
+
+	typedef typename mesh_type::scalar_type scalar_type;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+
+	mesh_type const & mesh = TestFixture::mesh;
+
+	auto f=(mesh.template make_field<field_type>( ));
+
+	f.initialize();
+
+	size_t count =0;
+
+	for(auto s:mesh.Select(IForm))
+	{
+		value_type ss;
+		ss=count;
+		f[s]=ss;
+		++count;
+	}
+
+	EXPECT_EQ(mesh.GetLocalMemorySize(IForm),f.size());
+
+	count=0;
+
+	for(auto const &v:f )
+	{
+		value_type ss;
+		ss=count;
+		EXPECT_EQ(ss,v);
+		++count;
+	}
+
+}
+}
+
+REGISTER_TYPED_TEST_CASE_P(TestField, create, assign, traversal);
 
 #endif /* FIELD_TEST_H_ */

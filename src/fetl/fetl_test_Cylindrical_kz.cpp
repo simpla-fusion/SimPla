@@ -9,6 +9,7 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cylindrical.h"
 
+using namespace simpla;
 #define TMESH Mesh<CylindricalGeometry<UniformArray,1>,true>
 
 #include "fetl_test.h"
@@ -16,8 +17,6 @@
 #include "fetl_test2.h"
 #include "fetl_test3.h"
 #include "fetl_test4.h"
-
-using namespace simpla;
 
 INSTANTIATE_TEST_CASE_P(FETLCylindrical, TestFETL,
 

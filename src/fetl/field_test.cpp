@@ -53,7 +53,7 @@ Field<TM,VERTEX,Container<typename TM::compact_index_type,Real> >
 >;
 
 typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, DenseContainer> ParamList0d;
-typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, SparseContainer> ParamList0s;
+//typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, SparseContainer> ParamList0s;
 
 
 //typedef ParamList<Mesh<CartesianGeometry<UniformArray>, true> > ParamList1;
@@ -61,7 +61,7 @@ typedef ParamList<Mesh<CartesianGeometry<UniformArray>, false>, SparseContainer>
 //typedef ParamList<Mesh<CylindricalGeometry<UniformArray>, true> > ParamList3;
 
 INSTANTIATE_TYPED_TEST_CASE_P(Cartesian_d, TestField, ParamList0d);
-INSTANTIATE_TYPED_TEST_CASE_P(Cartesian_s, TestField, ParamList0s);
+//INSTANTIATE_TYPED_TEST_CASE_P(Cartesian_s, TestField, ParamList0s);
 
 //INSTANTIATE_TYPED_TEST_CASE_P(Cartesian_kz, TestField, ParamList1);
 //INSTANTIATE_TYPED_TEST_CASE_P(Cylindrical, TestField, ParamList2);
