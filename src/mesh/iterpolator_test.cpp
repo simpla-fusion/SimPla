@@ -12,12 +12,26 @@
 #include "geometry_cylindrical.h"
 #include "uniform_array.h"
 
+template<typename TM, int IFORM> struct TParam
+{
+	typedef TM mesh_type;
+	static constexpr unsigned int IForm = IFORM;
+};
 typedef ::testing::Types<
 
-Mesh<CartesianGeometry<UniformArray>, false>     //
-,Mesh<CartesianGeometry<UniformArray>, true>    //
-,Mesh<CylindricalGeometry<UniformArray>, true>   //
-,Mesh<CylindricalGeometry<UniformArray>, false>  //
+TParam<Mesh<CartesianGeometry<UniformArray>, false>, VERTEX> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, false>, EDGE> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, false>, FACE> //
+        , TParam<Mesh<CartesianGeometry<UniformArray>, false>, VOLUME> //
+
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, VERTEX> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, EDGE> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, FACE> //
+        , TParam<Mesh<CylindricalGeometry<UniformArray>, false>, VOLUME> //
+//
+//,Mesh<CartesianGeometry<UniformArray>, true>    //
+//,Mesh<CylindricalGeometry<UniformArray>, true>   //
+//,Mesh<CylindricalGeometry<UniformArray>, false>  //
 
 > MeshTypeList;
 

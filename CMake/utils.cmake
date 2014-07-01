@@ -11,7 +11,7 @@ function(my_test name )
   
   target_link_libraries(${name} gtest_main gtest pthread)   
  
-  add_test(${name}  ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${name}  )  
+  add_test(${name}  ${EXECUTABLE_OUTPUT_PATH}/${name}  )  
  
   ADD_DEPENDENCIES(${name} googletest) 
 endfunction()

@@ -20,7 +20,7 @@
 
 using namespace simpla;
 
-template<typename TMesh>
+template<typename TP>
 class TestIterpolator: public testing::Test
 {
 protected:
@@ -41,160 +41,156 @@ protected:
 
 	}
 public:
-	typedef TMesh mesh_type;
+	typedef typename TP::mesh_type mesh_type;
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::compact_index_type compact_index_type;
 	typedef typename mesh_type::range_type range_type;
 	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr unsigned int NDIMS = TMesh::NDIMS;
-
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int IForm = TP::IForm;
 	mesh_type mesh;
 
 	coordinates_type xmin =
-	{	10,0,0};
+	{	0,0,0};
 
 	coordinates_type xmax =
-	{	12,1,1};
+	{	1,1,1};
 
 	nTuple<NDIMS, index_type> dims =
-	{	20,30,1};
+	{	50,30,20};
 
 };
 
 TYPED_TEST_CASE_P(TestIterpolator);
 
-TYPED_TEST_P(TestIterpolator,vertex){
+TYPED_TEST_P(TestIterpolator,scatter){
 {
 
+	auto const & mesh=TestFixture::mesh;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
 
-	auto const & mesh=TestFixture::mesh;
+	auto f= mesh.template make_field<Field<mesh_type,IForm,SparseContainer<compact_index_type,scalar_type>>> ();
 
-	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
+	typename decltype(f)::field_value_type a;
+
+	a=1.0;
+
+	Real w=2;
 
 	auto extents= mesh.GetExtents();
 
 	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
 
-	Real w=2;
+	mesh.Scatter(Int2Type<IForm>(),&f,std::make_tuple(x,a),w);
 
-	scalar_type a=3.1415926;
+	scalar_type b=0;
 
-	auto f= mesh.template make_field<Field<mesh_type,VERTEX,SparseContainer<compact_index_type,scalar_type>>> ();
+	SparseContainer<compact_index_type,scalar_type>& g=f;
 
-	mesh.Scatter(Int2Type<VERTEX>(),&f,std::make_tuple(x,a),w);
+	for(auto const & v:g)
+	{
+		b+=v.second;
+	}
 
-	auto b= mesh.Gather(Int2Type<VERTEX>(),f,x);
-
-	EXPECT_LE(abs(a*w-b),EPSILON);
+	if(IForm==VERTEX || IForm==VOLUME)
+	{
+		EXPECT_LE(abs( w-b),EPSILON*10);
+	}
+	else
+	{
+		EXPECT_LE(abs( w*3-b),EPSILON*10);
+	}
 
 }
 }
 
-TYPED_TEST_P(TestIterpolator,edge){
+TYPED_TEST_P(TestIterpolator,gather){
 {
 
+	auto const & mesh=TestFixture::mesh;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
 
-	auto const & mesh=TestFixture::mesh;
+	auto f= mesh.template make_field<IForm,scalar_type > ();
 
-	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
-
-	auto extents= mesh.GetExtents();
-
-	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
-
-	Real w=2;
-
-	nTuple<NDIMS,scalar_type> a=
-	{	3.1415926 , -3.1415926,3.0*3.1415926};
-
-	auto f= mesh.template make_field<Field<mesh_type,EDGE,SparseContainer<compact_index_type,scalar_type>>>( );
-
-	mesh.Scatter(Int2Type<EDGE>(),&f,std::make_tuple(x,a),w);
-
-	auto b= mesh.Gather(Int2Type<EDGE>(),f,x);
-
-	EXPECT_LE(abs(a[0]*w-b[0]),EPSILON);
-	EXPECT_LE(abs(a[1]*w-b[1]),EPSILON);
-	EXPECT_LE(abs(a[2]*w-b[2]),EPSILON);
-
-}
-}
-
-TYPED_TEST_P(TestIterpolator,face){
-{
-
-	typedef typename TestFixture::mesh_type mesh_type;
-	typedef typename TestFixture::compact_index_type compact_index_type;
-	typedef typename TestFixture::coordinates_type coordinates_type;
-	typedef typename TestFixture::scalar_type scalar_type;
-
-	auto const & mesh=TestFixture::mesh;
-
-	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
+	f.clear();
 
 	auto extents= mesh.GetExtents();
 
-	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
+	nTuple<NDIMS,Real> K=
+	{	TWOPI,PI, PI};
 
-	Real w=2;
+	for(auto s:mesh.Select(IForm))
+	{
+		f[s]=std::cos(InnerProductNTuple(K,mesh.GetCoordinates(s)-std::get<0>(extents)));
+	}
+	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.34567*(std::get<1>(extents)-std::get<0>(extents)));
 
-	nTuple<NDIMS,scalar_type> a=
-	{	3.1415926 , -3.1415926,3.0*3.1415926};
+	Real expect=std::cos(InnerProductNTuple(K,x));
 
-	auto f= mesh.template make_field<Field<mesh_type,FACE,SparseContainer<compact_index_type,scalar_type>>> ( );
+	Real error = abs(std::pow(InnerProductNTuple(K , mesh.GetDx()) , 2.0));
 
-	mesh.Scatter(Int2Type<FACE>(),&f,std::make_tuple(x,a),w);
+	auto actual= mesh.Gather(Int2Type<IForm>(), f ,x);
 
-	auto b=mesh.Gather(Int2Type<FACE>(),f,x);
+	CHECK(actual);
+	CHECK(expect);
 
-	EXPECT_LE(abs(a[0]*w-b[0]),EPSILON);
-	EXPECT_LE(abs(a[1]*w-b[1]),EPSILON);
-	EXPECT_LE(abs(a[2]*w-b[2]),EPSILON);
+	EXPECT_LE(abs( (actual -expect)/expect),error)<<actual <<" "<<expect;
+
+//	nTuple<NDIMS,scalar_type> a=
+//	{	3.1415926 , -3.1415926,3.0*3.1415926};
+//	typedef typename TestFixture::mesh_type mesh_type;
+//	typedef typename TestFixture::compact_index_type compact_index_type;
+//	typedef typename TestFixture::coordinates_type coordinates_type;
+//	typedef typename TestFixture::scalar_type scalar_type;
+//
+//	auto const & mesh=TestFixture::mesh;
+//
+//	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
+//
+//	auto extents= mesh.GetExtents();
+//
+//	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
+//
+//	Real w=2;
+//
+//	scalar_type a=1.0;
+//
+//	auto f= mesh.template make_field<Field<mesh_type,VERTEX,SparseContainer<compact_index_type,scalar_type>>> ();
+//
+//	mesh.Scatter(Int2Type<VERTEX>(),&f,std::make_tuple(x,a),w);
+//
+//	scalar_type b=0;
+//	SparseContainer<compact_index_type,scalar_type>& g=f;
+//
+//	for(auto const & v:g)
+//	{
+//		b+=v.second;
+//	}
+//
+//	EXPECT_LE(abs(a*w-b),EPSILON);
+//
+//	for(auto & v:g)
+//	{
+//		v.second=a;
+//	}
+//
+//	EXPECT_LE(abs(a - mesh.Gather(Int2Type<VERTEX>(),f,x)),EPSILON);
 
 }
 }
 
-TYPED_TEST_P(TestIterpolator,volume){
-{
-
-	typedef typename TestFixture::mesh_type mesh_type;
-	typedef typename TestFixture::compact_index_type compact_index_type;
-	typedef typename TestFixture::coordinates_type coordinates_type;
-	typedef typename TestFixture::scalar_type scalar_type;
-
-	auto const & mesh=TestFixture::mesh;
-
-	static constexpr unsigned int NDIMS=TestFixture::NDIMS;
-
-	auto extents= mesh.GetExtents();
-
-	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
-
-	Real w=2;
-
-	scalar_type a=3.1415926;
-
-	auto f= mesh.template make_field<Field<mesh_type,VOLUME,SparseContainer<compact_index_type,scalar_type>>> ( );
-
-	mesh.Scatter(Int2Type<VOLUME>(),&f,std::make_tuple(x,a),w);
-
-	auto b= mesh.Gather(Int2Type<VOLUME>(),f,x);
-
-	EXPECT_LE(abs(a*w-mesh.Gather(Int2Type<VOLUME>(),f,x)),EPSILON);
-
-}
-}
-
-REGISTER_TYPED_TEST_CASE_P(TestIterpolator, vertex, edge, face, volume);
+REGISTER_TYPED_TEST_CASE_P(TestIterpolator, scatter, gather);
 
 #endif /* ITERPOLATOR_TEST_H_ */
