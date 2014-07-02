@@ -20,7 +20,9 @@ int main(int argc, char** argv)
 			"tt={6,6,7,3,e=12, d=13,h=2} \n"
 			"function f(x,y) \n"
 			"    return x+y  \n"
-			"end \n");
+			"end \n"
+			"tuple={123,456}"
+			"");
 
 	if (argc > 1)
 	{
@@ -123,6 +125,14 @@ int main(int argc, char** argv)
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
+
+	auto fobj = pt["f"];
+
+	std::cout << "1.23340 + 2.4560 = " << pt["f"](1.23340, 2.4560).as<double>() << std::endl;
+//
+	double a, b;
+	auto c = pt["tuple"].as<std::pair<double, double>>();
+	std::cout << " a= " << std::get<0>(c) << "  b= " << std::get<1>(c) << std::endl;
 
 }
 

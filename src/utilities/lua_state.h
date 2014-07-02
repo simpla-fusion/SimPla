@@ -37,56 +37,26 @@ class LuaObject;
 
 template<typename T> struct LuaTrans;
 
-inline void ToLua(std::shared_ptr<lua_State> L)
+inline int ToLua(std::shared_ptr<lua_State> L)
 {
+	return 0;
 }
 template<typename T, typename ... Args>
-inline void ToLua(std::shared_ptr<lua_State> L, T const & v, Args const & ... rest)
+inline int ToLua(std::shared_ptr<lua_State> L, T const & v, Args const & ... rest)
 {
-	LuaTrans<T>::To(L, v);
-	ToLua(L, rest...);
+	return LuaTrans<T>::To(L, v) + ToLua(L, rest...);
 }
 
-inline void FromLua(std::shared_ptr<lua_State> L, int)
+inline int FromLua(std::shared_ptr<lua_State> L, int)
 {
+	return 0;
 }
 
 template<typename T, typename ... Args>
-inline void FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... rest)
+inline int FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... rest)
 {
-	LuaTrans<T>::From(L, idx, v);
-	FromLua(L, idx + 1, rest...);
+	return LuaTrans<T>::From(L, idx, v) + FromLua(L, idx + 1, rest...);
 }
-
-//******************************************************************************************************
-
-template<typename ... Args>
-inline void ToLua(std::shared_ptr<lua_State> L, std::tuple<Args ...> const & rest)
-{
-	typedef typename _impl::to_index_tuple<Args...>::type indices;
-	ToLua(L, rest, indices());
-}
-
-template<typename TTuple, unsigned int ...I>
-inline void ToLua(std::shared_ptr<lua_State> L, TTuple const & rest, _impl::index_tuple<I...>)
-{
-	ToLua(L, std::get<I>(rest)...);
-}
-
-template<typename ... Args>
-inline void FromLua(std::shared_ptr<lua_State> L, std::tuple<Args ...> *rest)
-{
-	typedef typename _impl::to_index_tuple<Args...>::type indices;
-	FromLua(L, rest, indices());
-}
-
-template<typename TTuple, unsigned int ...I>
-inline void FromLua(std::shared_ptr<lua_State> L, int idx, TTuple * rest, _impl::index_tuple<I...>)
-{
-	FromLua(L, idx, &std::get<I>(*rest)...);
-}
-
-//******************************************************************************************************
 
 class LuaObject
 {
@@ -100,26 +70,26 @@ public:
 
 	typedef LuaObject this_type;
 
-	LuaObject()
-			: L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
+	LuaObject() :
+			L_(nullptr), self_(0), GLOBAL_REF_IDX_(0)
 
 	{
 	}
 
-	LuaObject(std::shared_ptr<lua_State> l, int G, int s, std::string const & path = "")
-			: L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
+	LuaObject(std::shared_ptr<lua_State> l, int G, int s, std::string const & path = "") :
+			L_(l), GLOBAL_REF_IDX_(G), self_(s), path_(path)
 	{
 	}
-	LuaObject(LuaObject const & r)
-			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
+	LuaObject(LuaObject const & r) :
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), path_(r.path_)
 	{
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, r.self_);
 		self_ = luaL_ref(L_.get(), GLOBAL_REF_IDX_);
 	}
 
-	LuaObject(LuaObject && r)
-			: L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_)
+	LuaObject(LuaObject && r) :
+			L_(r.L_), GLOBAL_REF_IDX_(r.GLOBAL_REF_IDX_), self_(r.self_), path_(r.path_)
 	{
 		r.self_ = 0;
 	}
@@ -300,10 +270,8 @@ public:
 				k = LUA_NOREF;
 				v = LUA_NOREF;
 			}
-			if (key_ != LUA_NOREF)
-				luaL_unref(L_.get(), GLOBAL_IDX_, key_);
-			if (value_ != LUA_NOREF)
-				luaL_unref(L_.get(), GLOBAL_IDX_, value_);
+			if (key_ != LUA_NOREF) luaL_unref(L_.get(), GLOBAL_IDX_, key_);
+			if (value_ != LUA_NOREF) luaL_unref(L_.get(), GLOBAL_IDX_, value_);
 
 			key_ = k;
 			value_ = v;
@@ -311,14 +279,14 @@ public:
 			lua_pop(L_.get(), 1);
 		}
 	public:
-		iterator()
-				: L_(nullptr), GLOBAL_IDX_(0), parent_( LUA_NOREF), key_(
+		iterator() :
+				L_(nullptr), GLOBAL_IDX_(0), parent_( LUA_NOREF), key_(
 				LUA_NOREF), value_( LUA_NOREF)
 		{
 
 		}
-		iterator(iterator const& r)
-				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
+		iterator(iterator const& r) :
+				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_)
 		{
 
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, r.parent_);
@@ -334,15 +302,15 @@ public:
 			value_ = luaL_ref(L_.get(), GLOBAL_IDX_);
 
 		}
-		iterator(iterator && r)
-				: L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(r.value_)
+		iterator(iterator && r) :
+				L_(r.L_), GLOBAL_IDX_(r.GLOBAL_IDX_), parent_(r.parent_), key_(r.key_), value_(r.value_)
 		{
 			r.parent_ = LUA_NOREF;
 			r.key_ = LUA_NOREF;
 			r.value_ = LUA_NOREF;
 		}
-		iterator(std::shared_ptr<lua_State> L, int G, int p, std::string path)
-				: L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
+		iterator(std::shared_ptr<lua_State> L, int G, int p, std::string path) :
+				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
 				LUA_NOREF), path_(path + "[iterator]")
 		{
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
@@ -414,10 +382,8 @@ public:
 
 	iterator begin()
 	{
-		if (empty())
-			return end();
-		else
-			return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
+		if (empty()) return end();
+		else return iterator(L_, GLOBAL_REF_IDX_, self_, path_);
 	}
 	iterator end()
 	{
@@ -434,16 +400,14 @@ public:
 
 	template<typename T> inline LuaObject GetChild(T const & key) const
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		return std::move(at(key));
 	}
 
 	size_t size() const
 	{
-		if (IsNull())
-			return 0;
+		if (IsNull()) return 0;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		size_t res = lua_rawlen(L_.get(), -1);
@@ -483,8 +447,7 @@ public:
 	}
 	inline LuaObject operator[](std::string const & s) const noexcept
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		bool is_global = (self_ < 0);
 		if (is_global)
@@ -520,8 +483,7 @@ public:
 // unsafe fast access, no boundary check, no path information
 	inline LuaObject operator[](int s) const noexcept
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		if (self_ < 0 || L_ == nullptr)
 		{
@@ -540,8 +502,7 @@ public:
 // index operator with out_of_range exception
 	template<typename TIDX> inline LuaObject at(TIDX const & s) const
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 		LuaObject res = this->operator[](s);
 		if (res.IsNull())
 		{
@@ -556,8 +517,7 @@ public:
 // safe access, with boundary check, no path information
 	inline LuaObject at(int s) const
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		if (self_ < 0 || L_ == nullptr)
 		{
@@ -582,8 +542,7 @@ public:
 
 	template<typename ...Args> LuaObject operator()(Args const &... args) const
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 
@@ -594,9 +553,9 @@ public:
 			LOGIC_ERROR(path_ + " is not  a function!");
 		}
 
-		ToLua(L_, args...);
+//		ToLua(L_, args...);
 
-		lua_pcall(L_.get(), sizeof...(args), 1, 0);
+		lua_pcall(L_.get(), ToLua(L_, args...), 1, 0);
 
 		return LuaObject(L_, GLOBAL_REF_IDX_, luaL_ref(L_.get(), GLOBAL_REF_IDX_), path_ + "[ret]");
 
@@ -636,18 +595,10 @@ public:
 		as(&res);
 		return std::move(res);
 	}
-	template<typename ...T> inline std::tuple<T...> as_tuple() const
+
+	template<typename ... T> inline std::tuple<T...> as_tuple() const
 	{
-		std::tuple<T...> res;
-
-		if (!is_table() && size() > sizeof...(T))
-		{
-			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-			FromLua(L_, lua_gettop(L_.get()), res);
-			lua_pop(L_.get(), 1);
-		}
-
-		return std::move(res);
+		return std::move(as<std::tuple<T...>>());
 	}
 
 	template<typename TRect, typename ...Args> void as(std::function<TRect(Args ...)> *res) const
@@ -699,8 +650,7 @@ public:
 
 	template<typename T> inline void SetValue(std::string const & name, T const &v) const
 	{
-		if (IsNull())
-			return;
+		if (IsNull()) return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
@@ -711,8 +661,7 @@ public:
 
 	template<typename T> inline void SetValue(int s, T const &v) const
 	{
-		if (IsNull())
-			return;
+		if (IsNull()) return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
@@ -722,8 +671,7 @@ public:
 
 	template<typename T> inline void AddValue(T const &v) const
 	{
-		if (IsNull())
-			return;
+		if (IsNull()) return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		ToLua(L_.get(), v);
@@ -748,8 +696,7 @@ public:
 	 */
 	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec = 0)
 	{
-		if (IsNull())
-			return LuaObject();
+		if (IsNull()) return LuaObject();
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		int tidx = lua_gettop(L_.get());
@@ -776,7 +723,7 @@ template<> struct LuaTrans<_TYPE_>                                              
 {                                                                                     \
 	typedef _TYPE_ value_type;                                                        \
                                                                                       \
-	static inline void From(std::shared_ptr<lua_State>L, int idx, value_type * v,                    \
+	static inline int From(std::shared_ptr<lua_State>L, int idx, value_type * v,                    \
             value_type const &default_value=value_type())                            \
 	{                                                                                 \
 		if (_CHECK_FUN_(L.get(), idx))                                                     \
@@ -784,12 +731,13 @@ template<> struct LuaTrans<_TYPE_>                                              
 			*v = _FROM_FUN_(L.get(), idx);                                                   \
 		}                                                                             \
 		else                                                                          \
-		{   *v = default_value;                                                                         \
+		{   *v = default_value;                                                       \
 		}                                                                             \
+        return 1;                                                                     \
 	}                                                                                 \
-	static inline void To(std::shared_ptr<lua_State>L, value_type const & v)                       \
+	static inline int To(std::shared_ptr<lua_State>L, value_type const & v)                       \
 	{                                                                                 \
-		_TO_FUN_(L.get(), v);                                                               \
+		_TO_FUN_(L.get(), v);return 1;                                                \
 	}                                                                                 \
 };                                                                                    \
 
@@ -805,7 +753,7 @@ template<typename T> struct LuaTrans
 {
 	typedef std::string value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_isstring(L.get(), idx))
@@ -818,10 +766,12 @@ template<typename T> struct LuaTrans
 //			LOGIC_ERROR << "Can not convert type "
 //					<< lua_typename(L, lua_type(L, idx)) << " to double !";
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		lua_pushstring(L.get(), v.c_str());
+		return 1;
 	}
 };
 
@@ -829,7 +779,7 @@ template<> struct LuaTrans<std::string>
 {
 	typedef std::string value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_isstring(L.get(), idx))
@@ -842,10 +792,12 @@ template<> struct LuaTrans<std::string>
 //			LOGIC_ERROR << "Can not convert type "
 //					<< lua_typename(L, lua_type(L, idx)) << " to double !";
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		lua_pushstring(L.get(), v.c_str());
+		return 1;
 	}
 };
 
@@ -853,7 +805,7 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 {
 	typedef nTuple<N, T> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -871,8 +823,9 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 		{
 			*v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		lua_newtable(L.get());
 
@@ -882,6 +835,7 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 			LuaTrans<T>::To(L, v[i]);
 			lua_settable(L.get(), -3);
 		}
+		return 1;
 
 	}
 };
@@ -904,7 +858,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 {
 	typedef std::vector<T> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -929,17 +883,19 @@ template<typename T> struct LuaTrans<std::vector<T> >
 		{
 			*v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		PushContainer(L, v);
+		return 1;
 	}
 };
 template<typename T> struct LuaTrans<std::list<T> >
 {
 	typedef std::list<T> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -960,10 +916,12 @@ template<typename T> struct LuaTrans<std::list<T> >
 		{
 			v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		PushContainer(L, v);
+		return 1;
 	}
 };
 
@@ -971,7 +929,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 {
 	typedef std::map<T1, T2> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -997,8 +955,9 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 		{
 			v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		lua_newtable(L.get());
 
@@ -1008,6 +967,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 			LuaTrans<T2>::To(L, vv.second);
 			lua_settable(L.get(), -3);
 		}
+		return 1;
 	}
 };
 
@@ -1015,7 +975,7 @@ template<typename T> struct LuaTrans<std::complex<T> >
 {
 	typedef std::complex<T> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -1044,8 +1004,9 @@ template<typename T> struct LuaTrans<std::complex<T> >
 		{
 			*v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		LuaTrans<int>::To(L, 0);
 		LuaTrans<T>::To(L, v.real());
@@ -1053,6 +1014,8 @@ template<typename T> struct LuaTrans<std::complex<T> >
 		LuaTrans<int>::To(L, 1);
 		LuaTrans<T>::To(L, v.imag());
 		lua_settable(L.get(), -3);
+
+		return 1;
 	}
 };
 
@@ -1060,7 +1023,7 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 {
 	typedef std::pair<T1, T2> value_type;
 
-	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
 	        value_type())
 	{
 		if (lua_istable(L.get(), idx))
@@ -1081,14 +1044,53 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 		{
 			*v = default_value;
 		}
+		return 1;
 	}
-	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		LuaTrans<T1>::To(L, v.first);
 		LuaTrans<T2>::To(L, v.second);
 		lua_settable(L.get(), -3);
+		return 1;
+	}
+};
+
+template<typename ... T> struct LuaTrans<std::tuple<T...> >
+{
+	typedef std::tuple<T...> value_type;
+
+private:
+	template<typename TT, unsigned int ...I> static inline int From_(std::shared_ptr<lua_State> L, int idx, TT* v,
+	        _impl::index_tuple<I...>)
+	{
+// @FIXME get tuple is not work
+		size_t num = lua_rawlen(L.get(), idx);
+		for (size_t s = 0; s < N; ++s)
+		{
+			lua_rawgeti(L.get(), idx, s % num + 1);
+			FromLua(L, -1, &((*v)[s]));
+			lua_pop(L.get(), 1);
+		}
+
+		return FromLua(L, idx, & std::get<I>(*v)...);
+	}
+	template<typename TT, unsigned int ...I> static inline int To_(std::shared_ptr<lua_State> L, TT const& v,
+	        _impl::index_tuple<I...>)
+	{
+		return ToLua(L, std::get<I>( v)...);
+	}
+public:
+	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
+	{
+		return From_(L, idx, v, typename _impl::make_index_tuple<sizeof...(T)>::type());
 
 	}
+	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
+	{
+		return To_(L, v, typename _impl::make_index_tuple<sizeof...(T)>::type());
+	}
+
 };
 
 template<typename TV> inline TV TypeCast(LuaObject const & obj)
