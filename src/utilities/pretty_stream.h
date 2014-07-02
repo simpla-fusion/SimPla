@@ -89,7 +89,7 @@ template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 	return (res);
 }
 template<typename TX, typename TY, typename ...Others> std::istream&
-get(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
+get_(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 {
 
 	for (size_t s = 0; s < num; ++s)
@@ -97,7 +97,7 @@ get(std::istream& is, size_t num, std::map<TX, TY, Others...> & a)
 		TX x;
 		TY y;
 		is >> x >> y;
-		a.emplace(std::make_pair(x, y));
+		a.emplace(x, y);
 	}
 	return is;
 }

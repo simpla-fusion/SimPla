@@ -47,13 +47,15 @@ public:
 
 	typedef Engine engine_type;
 
-	typedef ParticlePool<typename Engine::mesh_type, typename Engine::Point_s> storage_type;
+	typedef ParticlePool<typename Engine::mesh_type, typename Engine::compact_point_s> storage_type;
 
 	typedef Particle<engine_type> this_type;
 
 	typedef typename engine_type::mesh_type mesh_type;
 
 	typedef typename engine_type::Point_s particle_type;
+
+	typedef typename engine_type::compact_point_s compact_point_s;
 
 	typedef typename engine_type::scalar_type scalar_type;
 
@@ -69,16 +71,22 @@ public:
 	// Constructor
 	Particle(mesh_type const & pmesh);
 
-	template<typename ...Others> Particle(mesh_type const & pmesh, Others && ...others);
+	template<typename TDict, typename ...Others> Particle(TDict const & dict, mesh_type const & pmesh,
+	        Others && ...others);
 
 	// Destructor
 	virtual ~Particle();
 
 	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others && ...others);
 
-	void AddCommand(std::function<void()> const &foo)
+	template<typename TModel, typename TDict, typename ...Others>
+	void AddBoundaryCondition(TModel const & model, TDict const & dict, Others && ...others)
 	{
-		commands_.push_back(foo);
+		boundary_.push_back(model.make_commend(*this, dict, std::forward<Others>(others)...));
+	}
+	void AddBoundaryCondition(std::function<void()> const &foo)
+	{
+		boundary_.push_back(foo);
 	}
 
 	//***************************************************************************************************
@@ -99,15 +107,7 @@ public:
 
 	std::string Save(std::string const & path, bool is_verbose = false) const;
 
-private:
-
-	template<typename TRange, typename ...Others>
-	void Scatter(TRange const & range, Cache<Others> &&... args) const;
-
-	template<typename TDict, typename ...Others>
-	void AddCommand(TDict const & dict, Others && ...others);
-
-	std::list<std::function<void()> > commands_;
+	std::list<std::function<void()> > boundary_;
 };
 template<typename Engine>
 
@@ -116,11 +116,11 @@ Particle<Engine>::Particle(mesh_type const & pmesh)
 {
 }
 template<typename Engine>
-template<typename ...Others>
-Particle<Engine>::Particle(mesh_type const & pmesh, Others && ...others)
+template<typename TDict, typename ...Others>
+Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh, Others && ...others)
 		: Particle(pmesh)
 {
-	Load(std::forward<Others>(others)...);
+	Load(dict, std::forward<Others>(others)...);
 }
 template<typename Engine>
 template<typename TDict, typename ...Others>
@@ -131,8 +131,6 @@ void Particle<Engine>::Load(TDict const & dict, Others && ...others)
 	storage_type::Load(dict, std::forward<Others>(others)...);
 
 	LoadParticle(this, dict, std::forward<Others>(others)...);
-
-	AddCommand(dict["Commands"], std::forward<Others>(others)...);
 
 }
 
@@ -149,34 +147,34 @@ template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(T
 	{
 		auto dof = item.second["DOF"].template as<std::string>("");
 
-//		if (dof == "n")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(CreateCommand(&n, item.second, std::forward<Others >(others)...));
-//
-//		}
-//		else if (dof == "J")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(CreateCommand(&J, item.second, std::forward<Others >(others)...));
-//
-//		}
-//		else if (dof == "ParticlesBoundary")
-//		{
-//
-//			LOGGER << "Add constraint to " << dof;
-//
-//			commands_.push_back(
-//					BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others >(others)...));
-//		}
-//		else
-//		{
-//			UNIMPLEMENT2("Unknown DOF!");
-//		}
+		if (dof == "n")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			boundary_.push_back(CreateCommand(&n, item.second, std::forward<Others >(others)...));
+
+		}
+		else if (dof == "J")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			boundary_.push_back(CreateCommand(&J, item.second, std::forward<Others >(others)...));
+
+		}
+		else if (dof == "ParticlesBoundary")
+		{
+
+			LOGGER << "Add constraint to " << dof;
+
+			boundary_.push_back(
+			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others >(others)...));
+		}
+		else
+		{
+			UNIMPLEMENT2("Unknown DOF!");
+		}
 		LOGGER << DONE;
 	}
 
@@ -316,7 +314,41 @@ void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 	(*x) += (*v) * dt;
 
 }
+template<template<typename > class TModel, typename TDict, typename TEngine>
+std::function<void()> CreateCommand(TModel<TEngine::mesh_type> const & model, TDict const & dict, Particle<TEngine> * f)
+{
 
+	auto range = model.SelectByConfig(IForm, dict["Select"]);
+
+	if (!dict["Operation"])
+	{
+		PARSER_ERROR("'Operation' is not defined!");
+	}
+
+	typedef typename TM mesh_type;
+
+	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
+
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
+
+	auto op_ = dict.template as<field_fun>();
+
+	std::function<void()> res = [f,range,op_]()
+	{
+		for(auto s:range)
+		{
+			auto x = f->mesh.GetCoordinates(s);
+
+			(*f)[s] = f->mesh.Sample(std::integral_constant<int, IForm>(),
+					s, op_(f->mesh.GetTime(), x, (*f)(x)));
+		}
+	};
+
+	return res;
+
+}
 }
 // namespace simpla
 

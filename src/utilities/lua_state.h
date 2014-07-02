@@ -22,7 +22,7 @@
 #include <string>
 #include <utility>
 #include <vector>
-
+#include <tuple>
 #include "log.h"
 #include "utilities.h"
 #include "ntuple.h"
@@ -57,6 +57,36 @@ inline void FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... res
 	LuaTrans<T>::From(L, idx, v);
 	FromLua(L, idx + 1, rest...);
 }
+
+//******************************************************************************************************
+
+template<typename ... Args>
+inline void ToLua(std::shared_ptr<lua_State> L, std::tuple<Args ...> const & rest)
+{
+	typedef typename _impl::to_index_tuple<Args...>::type indices;
+	ToLua(L, rest, indices());
+}
+
+template<typename TTuple, unsigned int ...I>
+inline void ToLua(std::shared_ptr<lua_State> L, TTuple const & rest, _impl::index_tuple<I...>)
+{
+	ToLua(L, std::get<I>(rest)...);
+}
+
+template<typename ... Args>
+inline void FromLua(std::shared_ptr<lua_State> L, std::tuple<Args ...> *rest)
+{
+	typedef typename _impl::to_index_tuple<Args...>::type indices;
+	FromLua(L, rest, indices());
+}
+
+template<typename TTuple, unsigned int ...I>
+inline void FromLua(std::shared_ptr<lua_State> L, int idx, TTuple * rest, _impl::index_tuple<I...>)
+{
+	FromLua(L, idx, &std::get<I>(*rest)...);
+}
+
+//******************************************************************************************************
 
 class LuaObject
 {
@@ -608,11 +638,16 @@ public:
 	}
 	template<typename ...T> inline std::tuple<T...> as_tuple() const
 	{
-		/// @FIXME unimplement
+		std::tuple<T...> res;
 
-		UNIMPLEMENT;
+		if (!is_table() && size() > sizeof...(T))
+		{
+			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
+			FromLua(L_, lua_gettop(L_.get()), res);
+			lua_pop(L_.get(), 1);
+		}
 
-		return std::tuple<T...>();
+		return std::move(res);
 	}
 
 	template<typename TRect, typename ...Args> void as(std::function<TRect(Args ...)> *res) const

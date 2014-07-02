@@ -275,7 +275,44 @@ void ParticlePool<TM, TPoint>::Remove(TRange r, child_container_type * other)
 		other->splice(other->begin(), buffer);
 
 }
+template<typename TM, template<typename > class TModel, typename TDict, typename TPoint>
+std::function<void()> CreateCommand(TModel<TM> const & model, TDict const & dict, ParticlePool<TM, TPoint> * f)
+{
 
+	if (!dict["Operation"])
+	{
+		PARSER_ERROR("'Operation' is not defined!");
+	}
+
+	typedef typename TM mesh_type;
+
+	typedef typename ParticlePool<TM, TPoint>::child_container_type child_container_type;
+
+	typedef typename ParticlePool<TM, TPoint>::particle_type particle_type;
+	typedef typename ParticlePool<TM, TPoint>::particle_type particle_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
+
+	typedef std::function<particle_type(Real, particle_type const &)> field_fun;
+
+	auto op_ = dict.template as<field_fun>();
+
+	auto range = f->Select(dict["Select"]);
+
+	std::function<void()> res = [range,op_]()
+	{
+		for(auto & cell:range)
+		{
+			for(auto & p :cell)
+			{
+				p = op_(f->mesh.GetTime(), p);
+			}
+
+		}
+	};
+
+	return res;
+
+}
 }  // namespace simpla
 
 //private:

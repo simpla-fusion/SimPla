@@ -297,6 +297,11 @@ template<typename TR, typename TDict>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR && range, TDict dict) const
 {
 
+	if (!dict)
+	{
+		return filter_range_type<TR>(std::forward<TR>(range));
+	}
+
 	auto type = dict["Type"].template as<std::string>("");
 
 	if (type == "Boundary")

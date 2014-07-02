@@ -53,12 +53,16 @@ public:
 		scalar_type w;
 	};
 
+	typedef std::tuple<coordinates_type, Vec3, Real, scalar_type> compact_point_type;
+
+	auto Compact(Point_s && p) DECL_RET_TYPE(std::tie(p.x,p.v,p.f,p.w))
+
+	auto Decompact(compact_point_type && p) DECL_RET_TYPE(Point_s(
+					{	std::get<0>(p),std::get<1>(p),std::get<2>(p),std::get<3>(p.w)}))
 private:
 	Real cmr_, q_kT_;
 public:
 	mesh_type const &mesh;
-
-public:
 
 	PICEngineDeltaF(mesh_type const &m)
 			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)

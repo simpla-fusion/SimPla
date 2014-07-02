@@ -235,9 +235,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (p != nullptr)
 			{
+				p->AddBoundaryCondition(model_, opt.second);
+
 				particles_.emplace(id, p);
 
-				enableImplicit = enableImplicit || p->EnableImplicit();
 			}
 
 		} catch (...)
@@ -247,6 +248,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		}
 
+	}
+
+	for (auto const &p : particles_)
+	{
+		enableImplicit = enableImplicit || p->EnableImplicit();
 	}
 
 	LOGGER << "Load Constraints";
@@ -262,15 +268,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(CreateCommand(&E, model_, item.second));
+				commandToE_.push_back(CreateCommand(model_, &E, item.second));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(CreateCommand(&B, model_, item.second));
+				commandToB_.push_back(CreateCommand(model_, &B, item.second));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(CreateCommand(&Jext, model_, item.second));
+				commandToJ_.push_back(CreateCommand(model_, &Jext, item.second));
 			}
 			else
 			{

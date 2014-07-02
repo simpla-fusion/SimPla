@@ -322,6 +322,19 @@ T rend(std::pair<T, T>const & range)
 {
 	return std::move(range.first--);
 }
+namespace _impl
+{
+template<int ...I>
+struct index_tuple
+{
+};
+template<typename ...Args>
+struct to_index_tuple
+{
+	typedef index_tuple<0> type;
+};
+
+}  // namespace _impl
 } // namespace simpla
 
 #endif /* SP_TYPE_TRAITS_H_ */

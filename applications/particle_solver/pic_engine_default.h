@@ -52,12 +52,18 @@ public:
 		Real f;
 	};
 
+	typedef std::tuple<coordinates_type, Vec3, Real> compact_point_type;
+
+	auto Compact(Point_s & p) DECL_RET_TYPE(std::tie(p.x,p.v,p.f))
+	auto Compact(Point_s && p) DECL_RET_TYPE(std::make_tuple(p.x,p.v,p.f))
+	auto Decompact(compact_point_type && p) DECL_RET_TYPE(Point_s(
+					{	std::get<0>(p),std::get<1>(p),std::get<2>(p)}))
+
 private:
 	Real cmr_;
 public:
 	mesh_type const &mesh;
 
-public:
 	PICEngineDefault(mesh_type const &m)
 			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
@@ -200,7 +206,7 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		interpolator_type::ScatterCartesian(J,std::make_tuple(p->x,p-> v) ,p->f * q);
+		interpolator_type::ScatterCartesian(J, p->x, p->v ,p->f * q);
 
 	}
 	template<typename TE, typename TB, typename ... Others>
@@ -212,7 +218,7 @@ public:
 	template<int IFORM, typename TV, typename ...Args>
 	void Scatter(Point_s const & p, typename mesh_type:: template field < IFORM, TV> * n, Args const & ...) const
 	{
-		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x, q * p.f));
+		interpolator_type::ScatterCartesian( n, p.x, q * p.f);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
@@ -231,6 +237,7 @@ operator<<(OS& os, typename PICEngineDefault<TM...>::Point_s const & p)
 	return os;
 }
 
-} // namespace simpla
+}
+// namespace simpla
 
 #endif /* PIC_ENGINE_DEFAULT_H_ */
