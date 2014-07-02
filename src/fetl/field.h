@@ -77,14 +77,14 @@ private:
 	 * @param args
 	 */
 	template<typename ...Args>
-	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args) :
-			container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
+	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args)
+			: container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
 	{
 	}
 public:
 
-	Field(mesh_type const & mesh, value_type d = value_type()) :
-			container_type(d), mesh(mesh)
+	Field(mesh_type const & mesh, value_type d = value_type())
+			: container_type(d), mesh(mesh)
 	{
 	}
 
@@ -99,13 +99,13 @@ public:
 	 *
 	 * @param rhs
 	 */
-	Field(this_type const & rhs) :
-			container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
+	Field(this_type const & rhs)
+			: container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
 	{
 	}
 	/// Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
+	Field(this_type &&rhs)
+			: container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
 			        std::forward<typename mesh_type::range_type>(rhs.range_))
 	{
 	}
@@ -201,8 +201,6 @@ public:
 	{
 		return container_type::get(s);
 	}
-
-public:
 
 	auto Select()
 	DECL_RET_TYPE((make_mapped_range( *this, range_)))

@@ -163,64 +163,31 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	dE.clear();
 	J0.clear();
 
-	if (dict["Model"])
+	if (dict["Model"]["GFile"])
 	{
+		GEqdsk geqdsk = dict["Model"]["GFile"].template create_object<GEqdsk>();
 
-		if (dict["Model"]["GFile"])
-		{
+		geqdsk.Save("/Geqdsk");
 
-			GEqdsk geqdsk(dict["Model"]["GFile"].template as<std::string>());
+		geqdsk.SetUpModel(&model_);
 
-			geqdsk.Save("/Geqdsk");
+		ne0.clear();
+		Te0.clear();
+		Ti0.clear();
 
-			mesh.SetExtents(nTuple<3, Real>( { geqdsk.GetMin()[0], geqdsk.GetMin()[1], 0 }),
-			        nTuple<3, Real>( { geqdsk.GetMax()[0], geqdsk.GetMax()[1], 0 }));
+		geqdsk.GetProfile("B", &B);
+		geqdsk.GetProfile("ne", &ne0);
+		geqdsk.GetProfile("Te", &Te0);
+		geqdsk.GetProfile("Ti", &Ti0);
 
-			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Limiter()), "Vacuum");
-			model_.Set(model_.SelectByPolylines(VERTEX, geqdsk.Boundary()), "Plasma");
+		J0 = Curl(B) / mu0;
 
-			B.clear();
+		Jext = J0;
 
-			for (auto s : mesh.Select(FACE))
-			{
-				auto x = mesh.InvMapTo(mesh.GetCoordinates(s));
-
-				B[s] = mesh.Sample(Int2Type<FACE>(), s, geqdsk.B(x[0], x[1]));
-			}
-
-			ne0.clear();
-			Te0.clear();
-			Ti0.clear();
-
-			for (auto s : model_.SelectByMaterial(VERTEX, "Plasma"))
-			{
-				auto x = mesh.InvMapTo(mesh.GetCoordinates(s));
-				auto p = geqdsk.psi(x[0], x[1]);
-
-				ne0[s] = geqdsk.Profile("ne", p);
-				Te0[s] = geqdsk.Profile("Te", p);
-				Ti0[s] = geqdsk.Profile("Ti", p);
-
-			}
-
-			J0 = Curl(B) / mu0;
-
-			Jext = J0;
-
-			description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
-			LOGGER << "GFile is loaded!" << std::endl;
-
-			LOGGER << simpla::Save("B", B);
-			LOGGER << simpla::Save("J0", J0);
-			LOGGER << simpla::Save("ne_", ne0);
-			LOGGER << simpla::Save("Te_", Te0);
-			LOGGER << simpla::Save("Ti_", Ti0);
-		}
+		description = description + "\n GEqdsk ID:" + geqdsk.Description();
 
 	}
-
-	try
+	else
 	{
 		LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
@@ -234,10 +201,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
 
-	} catch (...)
-	{
-		PARSER_ERROR("Configure clear fields  ! ");
 	}
+
+//	LOGGER << simpla::Save("B", B);
+//	LOGGER << simpla::Save("J0", J0);
+//	LOGGER << simpla::Save("ne_", ne0);
+//	LOGGER << simpla::Save("Te_", Te0);
+//	LOGGER << simpla::Save("Ti_", Ti0);
 
 	bool enableImplicit = false;
 
@@ -247,8 +217,12 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
 
-	// @TODO load particle engine plugins
-
+	/***
+	 * @TODO load particle engine plugins
+	 *
+	 *  add new creator at here
+	 *
+	 */
 	for (auto opt : dict["Particles"])
 	{
 		auto id = opt.first.template as<std::string>("unnamed");

@@ -16,7 +16,6 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
-#include "../io/data_stream.h"
 namespace simpla
 {
 
@@ -31,6 +30,10 @@ public:
 	typedef Real value_type;
 	typedef Interpolation<LinearInterpolation, value_type, Real> inter_type;
 	typedef MultiDimesionInterpolation<BiLinearInterpolation, value_type> inter2d_type;
+
+	static constexpr int ZAxis = 2;
+	static constexpr int XAxis = (ZAxis + 1) % 3;
+	static constexpr int YAxis = (ZAxis + 2) % 3;
 	enum
 	{
 		NDIMS = 2
@@ -43,13 +46,13 @@ private:
 //	Real zdim; // Vertical dimension in meter of computational box
 //	Real rleft; // Minimum R in meter of rectangular computational box
 //	Real zmid; // Z of center of computational box in meter
-	Real rmaxis; // R of magnetic axis in meter
-	Real zmaxis; // Z of magnetic axis in meter
+	Real rmaxis = 1.0; // R of magnetic axis in meter
+	Real zmaxis = 1.0; // Z of magnetic axis in meter
 //	Real simag; // Poloidal flux at magnetic axis in Weber / rad
 //	Real sibry; // Poloidal flux at the plasma boundary in Weber / rad
-	Real rcentr; // R in meter of  vacuum toroidal magnetic field BCENTR
-	Real bcentr; // Vacuum toroidal magnetic field in Tesla at RCENTR
-	Real current; // Plasma current in Ampere
+	Real rcentr = 0.5; // R in meter of  vacuum toroidal magnetic field BCENTR
+	Real bcentr = 0.5; // Vacuum toroidal magnetic field in Tesla at RCENTR
+	Real current = 1.0; // Plasma current in Ampere
 
 	nTuple<NDIMS, size_t> dims_;
 	nTuple<NDIMS, Real> rzmin_;
@@ -70,10 +73,18 @@ private:
 	std::map<std::string, inter_type> profile_;
 
 public:
+	GEqdsk()
+	{
 
-	GEqdsk(std::string const &fname = "")
+	}
+	GEqdsk(std::string const &fname)
 	{
 		Read(fname);
+	}
+	template<typename TDict>
+	GEqdsk(TDict const &dict)
+	{
+		Read(dict["File"].template as<std::string>());
 	}
 
 	~GEqdsk()
@@ -137,25 +148,117 @@ public:
 		return psirz_.eval(x, y);
 	}
 
-	inline nTuple<3, Real> B(Real x, Real y) const
+	inline nTuple<3, Real> B(Real x, Real y, unsigned int VecZAxis = 2) const
 	{
 		auto gradPsi = psirz_.diff(x, y);
 
-		return nTuple<3, Real>( {
-
-		gradPsi[1] / x,
-
-		-gradPsi[0] / x,
-
-		Profile("fpol", x, y) / x });
+		nTuple<3, Real> res;
+		res[(VecZAxis + 1) % 3] = gradPsi[1] / x;
+		res[(VecZAxis + 2) % 3] = -gradPsi[0] / x;
+		res[(VecZAxis + 3) % 3] = Profile("fpol", x, y) / x;
+		return std::move(res);
 
 	}
 
-	inline Real JT(Real x, Real y) const
+	inline Real JT(Real x, Real y, unsigned int ToZAxis = 2) const
 	{
 		return x * Profile("pprim", x, y) + Profile("ffprim", x, y) / x;
 	}
-};
+
+	bool CheckProfile(std::string const & name) const
+	{
+		return (name == "psi") || (name == "JT") || (name == "B") || (profile_.find(name) != profile_.end());
+	}
+
+	template<typename TModel>
+	void SetUpModel(TModel *model) const;
+
+	template<typename TF>
+	void GetProfile(std::string const & name, TF* f) const
+	{
+		GetProfile_(std::integral_constant<bool, is_nTuple<decltype(get_value(*f,0UL))>::value>(), name, f);
+	}
+
+private:
+
+	template<typename TF>
+	void GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const;
+	template<typename TF>
+	void GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const;
+}
+;
+template<typename TModel>
+void GEqdsk::SetUpModel(TModel *model) const
+{
+
+	model->Set(model->SelectByPolylines(VERTEX, Limiter()), model->RegisterMaterial("Vacuum"));
+
+	model->Set(model->SelectByPolylines(VERTEX, Boundary()), model->RegisterMaterial("Plasma"));
+
+}
+template<typename TF>
+void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const
+{
+	typedef typename TF::mesh_type mesh_type;
+	static constexpr unsigned int IForm = TF::IForm;
+
+	if (name == "B")
+	{
+
+		for (auto s : f->GetRange())
+		{
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+
+			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, B(x[XAxis], x[YAxis], mesh_type::ZAxis));
+		}
+	}
+	else if (name == "JT")
+	{
+
+		for (auto s : f->GetRange())
+		{
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+
+			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, JT(x[XAxis], x[YAxis], mesh_type::ZAxis));
+		}
+	}
+	else
+	{
+		WARNING << "Geqdsk:  Object '" << name << "'[vector]  does not exist!";
+	}
+	UpdateGhosts(f);
+}
+
+template<typename TF>
+void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const
+{
+	typedef typename TF::mesh_type mesh_type;
+	static constexpr unsigned int IForm = TF::IForm;
+
+	if (name == "psi")
+	{
+
+		for (auto s : f->GetRange())
+		{
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+
+			get_value(*f, s) = psi(x[XAxis], x[YAxis]);
+		}
+	}
+	else if (CheckProfile(name))
+	{
+		for (auto s : f->GetRange())
+		{
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+			get_value(*f, s) = Profile(name, x[XAxis], x[YAxis]);
+		}
+	}
+	else
+	{
+		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
+	}
+	UpdateGhosts(f);
+}
 std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag);
 
 }

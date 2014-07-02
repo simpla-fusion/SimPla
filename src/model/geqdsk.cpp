@@ -16,6 +16,7 @@
 
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
+#include "../io/data_stream.h"
 
 namespace simpla
 {
@@ -156,6 +157,8 @@ void GEqdsk::ReadProfile(std::string const &fname)
 
 		}
 	}
+
+	LOGGER << "GFile is read!" << std::endl;
 }
 
 std::string GEqdsk::Save(std::string const & path) const

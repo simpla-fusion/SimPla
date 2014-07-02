@@ -234,24 +234,24 @@ struct CartesianGeometry: public TTopology
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &x, unsigned int ToZAxis = 2) const
 	{
 		coordinates_type y;
 
-		y[(CartesianZAxis + 1) % 3] = x[XAxis];
-		y[(CartesianZAxis + 2) % 3] = x[YAxis];
-		y[(CartesianZAxis + 3) % 3] = x[ZAxis];
+		y[(ToZAxis + 1) % 3] = x[XAxis];
+		y[(ToZAxis + 2) % 3] = x[YAxis];
+		y[(ToZAxis + 3) % 3] = x[ZAxis];
 
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &y, unsigned int CartesianZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &y, unsigned int ToZAxis = 2) const
 	{
 		coordinates_type x;
 
-		x[XAxis] = y[(CartesianZAxis + 1) % 3];
-		x[YAxis] = y[(CartesianZAxis + 2) % 3];
-		x[ZAxis] = y[(CartesianZAxis + 3) % 3];
+		x[XAxis] = y[(ToZAxis + 1) % 3];
+		x[YAxis] = y[(ToZAxis + 2) % 3];
+		x[ZAxis] = y[(ToZAxis + 3) % 3];
 
 		return std::move(x);
 	}

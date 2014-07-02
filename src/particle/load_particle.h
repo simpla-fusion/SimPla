@@ -126,7 +126,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			v *= std::sqrt(boltzmann_constant * Ts(x) / p->m);
 
-			buffer.push_back(engine_type::make_point(mesh.InvMapTo(x), v, ns(x) * inv_sample_density));
+			buffer.push_back(engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}
 	}
 

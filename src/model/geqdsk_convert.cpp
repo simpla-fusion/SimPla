@@ -11,7 +11,7 @@
 using namespace simpla;
 int main(int argc, char ** argv)
 {
-	GEqdsk geqdsk(argv[1]);
+	GEqdsk geqdsk((std::string(argv[1])));
 
 	geqdsk.Print(std::cout);
 	geqdsk.Write(argv[1]);

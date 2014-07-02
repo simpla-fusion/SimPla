@@ -37,22 +37,22 @@ class LuaObject;
 
 template<typename T> struct LuaTrans;
 
-inline void ToLua(lua_State*L)
+inline void ToLua(std::shared_ptr<lua_State> L)
 {
 }
 template<typename T, typename ... Args>
-inline void ToLua(lua_State*L, T const & v, Args const & ... rest)
+inline void ToLua(std::shared_ptr<lua_State> L, T const & v, Args const & ... rest)
 {
 	LuaTrans<T>::To(L, v);
 	ToLua(L, rest...);
 }
 
-inline void FromLua(lua_State*L, int)
+inline void FromLua(std::shared_ptr<lua_State> L, int)
 {
 }
 
 template<typename T, typename ... Args>
-inline void FromLua(lua_State*L, int idx, T * v, Args * ... rest)
+inline void FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... rest)
 {
 	LuaTrans<T>::From(L, idx, v);
 	FromLua(L, idx + 1, rest...);
@@ -564,7 +564,7 @@ public:
 			LOGIC_ERROR(path_ + " is not  a function!");
 		}
 
-		ToLua(L_.get(), args...);
+		ToLua(L_, args...);
 
 		lua_pcall(L_.get(), sizeof...(args), 1, 0);
 
@@ -585,6 +585,19 @@ public:
 
 			return std::move(res.as<T>());
 		}
+	}
+
+	template<typename T, typename ...Args> inline T create_object(Args && ... args) const
+	{
+		if (IsNull())
+		{
+			return std::move(T());
+		}
+		else
+		{
+			return std::move(T(*this, std::forward<Args>(args)...));
+		}
+
 	}
 
 	template<typename T> inline T as() const
@@ -634,7 +647,7 @@ public:
 		if (!IsNull())
 		{
 			lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-			FromLua(L_.get(), lua_gettop(L_.get()), res);
+			FromLua(L_, lua_gettop(L_.get()), res);
 			lua_pop(L_.get(), 1);
 		}
 	}
@@ -728,20 +741,20 @@ template<> struct LuaTrans<_TYPE_>                                              
 {                                                                                     \
 	typedef _TYPE_ value_type;                                                        \
                                                                                       \
-	static inline void From(lua_State*L, int idx, value_type * v,                    \
+	static inline void From(std::shared_ptr<lua_State>L, int idx, value_type * v,                    \
             value_type const &default_value=value_type())                            \
 	{                                                                                 \
-		if (_CHECK_FUN_(L, idx))                                                     \
+		if (_CHECK_FUN_(L.get(), idx))                                                     \
 		{                                                                             \
-			*v = _FROM_FUN_(L, idx);                                                   \
+			*v = _FROM_FUN_(L.get(), idx);                                                   \
 		}                                                                             \
 		else                                                                          \
 		{   *v = default_value;                                                                         \
 		}                                                                             \
 	}                                                                                 \
-	static inline void To(lua_State*L, value_type const & v)                       \
+	static inline void To(std::shared_ptr<lua_State>L, value_type const & v)                       \
 	{                                                                                 \
-		_TO_FUN_(L, v);                                                               \
+		_TO_FUN_(L.get(), v);                                                               \
 	}                                                                                 \
 };                                                                                    \
 
@@ -753,15 +766,16 @@ DEF_LUA_TRANS(unsigned long, lua_pushunsigned, lua_tounsigned, lua_isnumber)
 DEF_LUA_TRANS(bool, lua_pushboolean, lua_toboolean, lua_isboolean)
 #undef DEF_LUA_TRANS
 
-template<> struct LuaTrans<std::string>
+template<typename T> struct LuaTrans
 {
 	typedef std::string value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_isstring(L, idx))
+		if (lua_isstring(L.get(), idx))
 		{
-			*v = lua_tostring(L, idx);
+			*v = lua_tostring(L.get(), idx);
 		}
 		else
 		{
@@ -770,9 +784,33 @@ template<> struct LuaTrans<std::string>
 //					<< lua_typename(L, lua_type(L, idx)) << " to double !";
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
-		lua_pushstring(L, v.c_str());
+		lua_pushstring(L.get(), v.c_str());
+	}
+};
+
+template<> struct LuaTrans<std::string>
+{
+	typedef std::string value_type;
+
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
+	{
+		if (lua_isstring(L.get(), idx))
+		{
+			*v = lua_tostring(L.get(), idx);
+		}
+		else
+		{
+			*v = default_value;
+//			LOGIC_ERROR << "Can not convert type "
+//					<< lua_typename(L, lua_type(L, idx)) << " to double !";
+		}
+	}
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
+	{
+		lua_pushstring(L.get(), v.c_str());
 	}
 };
 
@@ -780,16 +818,17 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 {
 	typedef nTuple<N, T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			size_t num = lua_rawlen(L, idx);
+			size_t num = lua_rawlen(L.get(), idx);
 			for (size_t s = 0; s < N; ++s)
 			{
-				lua_rawgeti(L, idx, s % num + 1);
+				lua_rawgeti(L.get(), idx, s % num + 1);
 				FromLua(L, -1, &((*v)[s]));
-				lua_pop(L, 1);
+				lua_pop(L.get(), 1);
 			}
 
 		}
@@ -798,30 +837,30 @@ template<int N, typename T> struct LuaTrans<nTuple<N, T>>
 			*v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
-		lua_newtable(L);
+		lua_newtable(L.get());
 
 		for (int i = 0; i < N; ++i)
 		{
-			lua_pushinteger(L, i);
+			lua_pushinteger(L.get(), i);
 			LuaTrans<T>::To(L, v[i]);
-			lua_settable(L, -3);
+			lua_settable(L.get(), -3);
 		}
 
 	}
 };
 
-template<typename TC> void PushContainer(lua_State*L, TC const & v)
+template<typename TC> void PushContainer(std::shared_ptr<lua_State> L, TC const & v)
 {
-	lua_newtable(L);
+	lua_newtable(L.get());
 
 	size_t s = 0;
 	for (auto const & vv : v)
 	{
-		lua_pushinteger(L, s);
+		lua_pushinteger(L.get(), s);
 		LuaTrans<decltype(vv)>::To(L, vv);
-		lua_settable(L, -3);
+		lua_settable(L.get(), -3);
 		++s;
 	}
 }
@@ -830,11 +869,12 @@ template<typename T> struct LuaTrans<std::vector<T> >
 {
 	typedef std::vector<T> value_type;
 
-	static inline void From(lua_State* L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			size_t fnum = lua_rawlen(L, idx);
+			size_t fnum = lua_rawlen(L.get(), idx);
 
 			if (fnum > 0)
 			{
@@ -842,9 +882,9 @@ template<typename T> struct LuaTrans<std::vector<T> >
 				for (size_t s = 0; s < fnum; ++s)
 				{
 					T res;
-					lua_rawgeti(L, idx, s % fnum + 1);
+					lua_rawgeti(L.get(), idx, s % fnum + 1);
 					FromLua(L, -1, &(res));
-					lua_pop(L, 1);
+					lua_pop(L.get(), 1);
 					v->emplace_back(res);
 				}
 			}
@@ -855,7 +895,7 @@ template<typename T> struct LuaTrans<std::vector<T> >
 			*v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		PushContainer(L, v);
 	}
@@ -864,19 +904,20 @@ template<typename T> struct LuaTrans<std::list<T> >
 {
 	typedef std::list<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			size_t fnum = lua_rawlen(L, idx);
+			size_t fnum = lua_rawlen(L.get(), idx);
 
 			for (size_t s = 0; s < fnum; ++s)
 			{
-				lua_rawgeti(L, idx, s % fnum + 1);
+				lua_rawgeti(L.get(), idx, s % fnum + 1);
 				T tmp;
 				FromLua(L, -1, tmp);
 				v->push_back(tmp);
-				lua_pop(L, 1);
+				lua_pop(L.get(), 1);
 			}
 
 		}
@@ -885,7 +926,7 @@ template<typename T> struct LuaTrans<std::list<T> >
 			v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		PushContainer(L, v);
 	}
@@ -895,16 +936,17 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 {
 	typedef std::map<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			lua_pushnil(L); /* first key */
+			lua_pushnil(L.get()); /* first key */
 
 			T1 key;
 			T2 value;
 
-			while (lua_next(L, idx))
+			while (lua_next(L.get(), idx))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 
@@ -912,7 +954,7 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 				FromLua(L, -1, &value);
 				(*v)[key] = value;
 				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(L, 1);
+				lua_pop(L.get(), 1);
 			}
 
 		}
@@ -921,15 +963,15 @@ template<typename T1, typename T2> struct LuaTrans<std::map<T1, T2> >
 			v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
-		lua_newtable(L);
+		lua_newtable(L.get());
 
 		for (auto const & vv : v)
 		{
 			LuaTrans<T1>::To(L, vv.first);
 			LuaTrans<T2>::To(L, vv.second);
-			lua_settable(L, -3);
+			lua_settable(L.get(), -3);
 		}
 	}
 };
@@ -938,25 +980,26 @@ template<typename T> struct LuaTrans<std::complex<T> >
 {
 	typedef std::complex<T> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			lua_pushnil(L); /* first key */
-			while (lua_next(L, idx))
+			lua_pushnil(L.get()); /* first key */
+			while (lua_next(L.get(), idx))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 				T r, i;
 				FromLua(L, -2, &r);
 				FromLua(L, -1, &i);
 				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(L, 1);
+				lua_pop(L.get(), 1);
 
 				*v = std::complex<T>(r, i);
 			}
 
 		}
-		else if (lua_isnumber(L, idx))
+		else if (lua_isnumber(L.get(), idx))
 		{
 			T r;
 			FromLua(L, idx, &r);
@@ -967,14 +1010,14 @@ template<typename T> struct LuaTrans<std::complex<T> >
 			*v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		LuaTrans<int>::To(L, 0);
 		LuaTrans<T>::To(L, v.real());
-		lua_settable(L, -3);
+		lua_settable(L.get(), -3);
 		LuaTrans<int>::To(L, 1);
 		LuaTrans<T>::To(L, v.imag());
-		lua_settable(L, -3);
+		lua_settable(L.get(), -3);
 	}
 };
 
@@ -982,19 +1025,20 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 {
 	typedef std::pair<T1, T2> value_type;
 
-	static inline void From(lua_State*L, int idx, value_type * v, value_type const &default_value = value_type())
+	static inline void From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
+	        value_type())
 	{
-		if (lua_istable(L, idx))
+		if (lua_istable(L.get(), idx))
 		{
-			lua_pushnil(L); /* first key */
-			while (lua_next(L, idx))
+			lua_pushnil(L.get()); /* first key */
+			while (lua_next(L.get(), idx))
 			{
 				/* uses 'key' (at index -2) and 'value' (at index -1) */
 
 				FromLua(L, -2, &(v->first));
 				FromLua(L, -1, &(v->second));
 				/* removes 'value'; keeps 'key' for next iteration */
-				lua_pop(L, 1);
+				lua_pop(L.get(), 1);
 			}
 
 		}
@@ -1003,11 +1047,11 @@ template<typename T1, typename T2> struct LuaTrans<std::pair<T1, T2> >
 			*v = default_value;
 		}
 	}
-	static inline void To(lua_State*L, value_type const & v)
+	static inline void To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
 		LuaTrans<T1>::To(L, v.first);
 		LuaTrans<T2>::To(L, v.second);
-		lua_settable(L, -3);
+		lua_settable(L.get(), -3);
 
 	}
 };

@@ -145,7 +145,7 @@ public:
 		return get(s);
 	}
 
-	void Clear()
+	void clear()
 	{
 		material_.clear();
 	}
