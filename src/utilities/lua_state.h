@@ -1060,39 +1060,41 @@ template<typename ... T> struct LuaTrans<std::tuple<T...> >
 	typedef std::tuple<T...> value_type;
 
 private:
-	template<unsigned int s, typename TT> static inline int FromOne_(std::shared_ptr<lua_State> L, int idx, TT* v)
+	static inline int From_(std::shared_ptr<lua_State> L, int idx, value_type* v,
+	        std::integral_constant<unsigned int, 0>)
 	{
-		// @FIXME get tuple is not work
+		return 0;
+	}
 
-		lua_rawgeti(L.get(), idx, s);
-		FromLua(L, -1, &std::get<s>(*v));
+	template<unsigned int N>
+	static inline int From_(std::shared_ptr<lua_State> L, int idx, value_type* v,
+	        std::integral_constant<unsigned int, N>)
+	{
+		lua_rawgeti(L.get(), idx, N); // lua table's index starts from 1
+		auto num = FromLua(L, -1, &std::get<N - 1>(*v)); // C++ tuple index start from 0
 		lua_pop(L.get(), 1);
 
+		return num + From_(L, idx, v, std::integral_constant<unsigned int, N - 1>());
 	}
-
-	template<unsigned int ...I, typename TT> static inline int From_(std::shared_ptr<lua_State> L, int idx, TT* v,
-	        _impl::index_tuple<I...>)
+	static inline int To_(std::shared_ptr<lua_State> L, value_type const& v, std::integral_constant<unsigned int, 0>)
 	{
-
-		FromOne_<I>(*v)
-		...;
-		return 1;
+		return 0;
 	}
-	template<typename TT, unsigned int ...I> static inline int To_(std::shared_ptr<lua_State> L, TT const& v,
-	        _impl::index_tuple<I...>)
+	template<unsigned int N> static inline int To_(std::shared_ptr<lua_State> L, value_type const& v,
+	        std::integral_constant<unsigned int, N>)
 	{
-		return ToLua(L, std::get<I>( v)...);
+		return ToLua(L, std::get<sizeof...(T) - N >(v)) + To_(L, v, std::integral_constant<unsigned int, N - 1>());
 	}
 public:
 	static inline int From(std::shared_ptr<lua_State> L, int idx, value_type * v, value_type const &default_value =
-	        value_type())
+	value_type())
 	{
-		return From_(L, idx, v, typename _impl::make_index_tuple<sizeof...(T)>::type());
+		return From_(L, idx, v, std::integral_constant<unsigned int, sizeof...(T)>());
 
 	}
 	static inline int To(std::shared_ptr<lua_State> L, value_type const & v)
 	{
-		return To_(L, v, typename _impl::make_index_tuple<sizeof...(T)>::type());
+		return To_(L, v,std::integral_constant<unsigned int, sizeof...(T)>());
 	}
 
 };

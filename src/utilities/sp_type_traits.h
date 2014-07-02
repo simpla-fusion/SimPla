@@ -322,45 +322,45 @@ T rend(std::pair<T, T>const & range)
 {
 	return std::move(range.first--);
 }
-namespace _impl
-{
-//******************************************************************************************************
-// Third-part code begin
-// ref: https://gitorious.org/redistd/redistd
-// Copyright Jonathan Wakely 2012
-// Distributed under the Boost Software License, Version 1.0.
-// (See accompanying file LICENSE_1_0.txt or copy at
-// http://www.boost.org/LICENSE_1_0.txt)
-
-/// A type that represents a parameter pack of zero or more integers.
-template<unsigned ... Indices>
-struct index_tuple
-{
-	/// Generate an index_tuple with an additional element.
-	template<unsigned N>
-	using append = index_tuple<Indices..., N>;
-};
-
-/// Unary metafunction that generates an index_tuple containing [0, Size)
-template<unsigned Size>
-struct make_index_tuple
-{
-	typedef typename make_index_tuple<Size - 1>::type::template append<Size - 1> type;
-};
-
-// Terminal case of the recursive metafunction.
-template<>
-struct make_index_tuple<0u>
-{
-	typedef index_tuple<> type;
-};
-
-template<typename ... Types>
-using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::type;
-// Third-part code end
-//******************************************************************************************************
-
-}// namespace _impl
+//namespace _impl
+//{
+////******************************************************************************************************
+//// Third-part code begin
+//// ref: https://gitorious.org/redistd/redistd
+//// Copyright Jonathan Wakely 2012
+//// Distributed under the Boost Software License, Version 1.0.
+//// (See accompanying file LICENSE_1_0.txt or copy at
+//// http://www.boost.org/LICENSE_1_0.txt)
+//
+///// A type that represents a parameter pack of zero or more integers.
+//template<unsigned ... Indices>
+//struct index_tuple
+//{
+//	/// Generate an index_tuple with an additional element.
+//	template<unsigned N>
+//	using append = index_tuple<Indices..., N>;
+//};
+//
+///// Unary metafunction that generates an index_tuple containing [0, Size)
+//template<unsigned Size>
+//struct make_index_tuple
+//{
+//	typedef typename make_index_tuple<Size - 1>::type::template append<Size - 1> type;
+//};
+//
+//// Terminal case of the recursive metafunction.
+//template<>
+//struct make_index_tuple<0u>
+//{
+//	typedef index_tuple<> type;
+//};
+//
+//template<typename ... Types>
+//using to_index_tuple = typename make_index_tuple<sizeof...(Types)>::type;
+//// Third-part code end
+////******************************************************************************************************
+//
+//}// namespace _impl
 } // namespace simpla
 
 #endif /* SP_TYPE_TRAITS_H_ */
