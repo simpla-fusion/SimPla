@@ -1060,19 +1060,23 @@ template<typename ... T> struct LuaTrans<std::tuple<T...> >
 	typedef std::tuple<T...> value_type;
 
 private:
-	template<typename TT, unsigned int ...I> static inline int From_(std::shared_ptr<lua_State> L, int idx, TT* v,
+	template<unsigned int s, typename TT> static inline int FromOne_(std::shared_ptr<lua_State> L, int idx, TT* v)
+	{
+		// @FIXME get tuple is not work
+
+		lua_rawgeti(L.get(), idx, s);
+		FromLua(L, -1, &std::get<s>(*v));
+		lua_pop(L.get(), 1);
+
+	}
+
+	template<unsigned int ...I, typename TT> static inline int From_(std::shared_ptr<lua_State> L, int idx, TT* v,
 	        _impl::index_tuple<I...>)
 	{
-// @FIXME get tuple is not work
-		size_t num = lua_rawlen(L.get(), idx);
-		for (size_t s = 0; s < N; ++s)
-		{
-			lua_rawgeti(L.get(), idx, s % num + 1);
-			FromLua(L, -1, &((*v)[s]));
-			lua_pop(L.get(), 1);
-		}
 
-		return FromLua(L, idx, & std::get<I>(*v)...);
+		FromOne_<I>(*v)
+		...;
+		return 1;
 	}
 	template<typename TT, unsigned int ...I> static inline int To_(std::shared_ptr<lua_State> L, TT const& v,
 	        _impl::index_tuple<I...>)
