@@ -1,8 +1,8 @@
 /*
  * pic_engine_implicit.h
  *
- *  Created on: 2014年4月10日
- *      Author: salmon
+ * \date  2014年4月10日
+ *      \author  salmon
  */
 
 #ifndef PIC_ENGINE_IMPLICIT_H_

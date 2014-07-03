@@ -9,7 +9,7 @@
 #define NTUPLE_ET_H_
 
 #include "primitives.h"
-#include <cstddef>
+
 #include <sstream>
 #include <string>
 #include "complex_ops.h"

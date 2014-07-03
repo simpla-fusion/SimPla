@@ -37,7 +37,7 @@ PROJECT_NUMBER         = @PROJECT_IDENTIFY@
 # for a project that appears at the top of each page and should give viewer
 # a quick idea about the purpose of the project. Keep the description short.
 
-PROJECT_BRIEF          = "SimPLA is a framework of plasma simulation. The name "SIMPLA" is the abbreviation of four word, Simulation , Integrated, Multi-method and PLAsma."
+PROJECT_BRIEF          = "SimPLA is a unified and hierarchical development framework for plasma simulation."
 
 # With the PROJECT_LOGO tag one can specify an logo or icon that is
 # included in the documentation. The maximum height of the logo should not
@@ -1534,7 +1534,7 @@ MSCGEN_PATH            =   @DOXYGEN_DOT_PATH@
 # inheritance and usage relations if the target is undocumented
 # or is not a class.
 
-HIDE_UNDOC_RELATIONS   = YES
+HIDE_UNDOC_RELATIONS   = NO
 
 # If you set the HAVE_DOT tag to YES then doxygen will assume the dot tool is
 # available from the path. This tool is part of Graphviz, a graph visualization
@@ -1564,7 +1564,7 @@ DOT_FONTNAME           = Helvetica
 # The DOT_FONTSIZE tag can be used to set the size of the font of dot graphs.
 # The default size is 10pt.
 
-DOT_FONTSIZE           = 10
+DOT_FONTSIZE           = 12
 
 # By default doxygen will tell dot to use the output directory to look for the
 # FreeSans.ttf font (which doxygen will put there itself). If you specify a

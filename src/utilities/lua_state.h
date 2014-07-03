@@ -12,17 +12,17 @@
 #include <lua.hpp>
 #include <algorithm>
 #include <complex>
-#include <cstddef>
+
 #include <iostream>
 #include <list>
 #include <map>
 #include <memory>
-//#include <new>
 #include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 #include <tuple>
+
 #include "log.h"
 #include "utilities.h"
 #include "ntuple.h"

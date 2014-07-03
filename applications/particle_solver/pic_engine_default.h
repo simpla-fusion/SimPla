@@ -1,14 +1,14 @@
 /*
  * pic_engine_default.h
  *
- *  Created on: 2013年11月6日
- *      Author: salmon
+ * \date  2013年11月6日
+ *      \author  salmon
  */
 
 #ifndef PIC_ENGINE_DEFAULT_H_
 #define PIC_ENGINE_DEFAULT_H_
 
-#include <cstddef>
+
 #include <sstream>
 #include <string>
 #include <type_traits>

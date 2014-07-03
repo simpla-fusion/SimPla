@@ -1,8 +1,8 @@
 /*
  * refcount.h
  *
- *  Created on: 2013年9月24日
- *      Author: salmon
+ * \date  2013年9月24日
+ *      \author  salmon
  */
 
 #ifndef REFCOUNT_H_

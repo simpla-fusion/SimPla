@@ -1,8 +1,8 @@
 /*
  * register_particle.h
  *
- *  Created on: 2014年6月13日
- *      Author: salmon
+ * \date  2014年6月13日
+ *      \author  salmon
  */
 
 #ifndef REGISTER_PARTICLE_H_

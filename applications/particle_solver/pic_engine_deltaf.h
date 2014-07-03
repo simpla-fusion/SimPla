@@ -1,14 +1,14 @@
 /*
  * pic_engine_deltaf.h
  *
- *  Created on: 2013年12月10日
- *      Author: salmon
+ * \date  2013年12月10日
+ *      \author  salmon
  */
 
 #ifndef PIC_ENGINE_DELTAF_H_
 #define PIC_ENGINE_DELTAF_H_
 
-#include <cstddef>
+
 #include <sstream>
 #include <string>
 

@@ -8,7 +8,7 @@
 #ifndef INTERPOLATOR_H_
 #define INTERPOLATOR_H_
 
-#include <cstddef>
+
 
 #include "../utilities/primitives.h"
 

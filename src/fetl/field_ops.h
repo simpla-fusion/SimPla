@@ -8,7 +8,7 @@
 #ifndef OPERATIONS_H_
 #define OPERATIONS_H_
 
-#include <cstddef>
+
 #include <type_traits>
 
 #include "field.h"

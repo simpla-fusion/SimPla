@@ -2,8 +2,8 @@
  * $Id$
  * Maxwell/PML.h
  *
- *  Created on: 2010-12-7
- *      Author: salmon
+ * \date  2010-12-7
+ *      \author  salmon
  */
 
 #include <cmath>

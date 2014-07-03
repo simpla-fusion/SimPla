@@ -1,14 +1,14 @@
 /*
  * allocator_fixed_small.h
  *
- *  Created on: 2013年12月9日
- *      Author: salmon
+ * \date  2013年12月9日
+ *      \author  salmon
  */
 
 #ifndef ALLOCATOR_FIXED_SMALL_H_
 #define ALLOCATOR_FIXED_SMALL_H_
 
-#include <cstddef>
+
 #include <list>
 
 #include "allocator_mempool.h"

@@ -1,8 +1,8 @@
 /*
  * implicitPushE.h
  *
- *  Created on: 2014年4月16日
- *      Author: salmon
+ * \date  2014年4月16日
+ *      \author  salmon
  */
 
 #ifndef IMPLICITPUSHE_H_

@@ -14,7 +14,6 @@
 namespace simpla
 {
 
-typedef int8_t byte_type;
 void deallocate_m(void *p);
 
 class MemoryPool
@@ -25,9 +24,11 @@ private:
 		MAX_POOL_DEPTH = 128
 	};
 
-	std::map<size_t, std::shared_ptr<void>> released_raw_ptr_;
+	typedef unsigned char byte_type;
 
-	std::multimap<size_t, std::shared_ptr<void> > pool_;
+	std::map<size_t, std::shared_ptr<byte_type>> released_raw_ptr_;
+
+	std::multimap<size_t, std::shared_ptr<byte_type> > pool_;
 
 	size_t MAX_POOL_SIZE;
 
@@ -103,11 +104,11 @@ public:
 		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
 	}
 
-	inline void * allocate(size_t size)
+	inline byte_type * allocate(size_t size)
 	{
-		std::shared_ptr<void> res = _allocate_shared_ptr(size);
+		std::shared_ptr<byte_type> res = _allocate_shared_ptr(size);
 
-		released_raw_ptr_[std::hash<std::shared_ptr<void>>()(res)] = res;
+		released_raw_ptr_[std::hash<std::shared_ptr<byte_type>>()(res)] = res;
 
 		return res.get();
 
@@ -115,7 +116,7 @@ public:
 
 	inline void deallocate(void * p, size_t size = 0)
 	{
-		auto it = released_raw_ptr_.find(std::hash<void *>()(p));
+		auto it = released_raw_ptr_.find(std::hash<byte_type *>()(reinterpret_cast<byte_type*>(p)));
 
 		if (it != released_raw_ptr_.end())
 		{
@@ -124,7 +125,7 @@ public:
 		ReleaseMemory();
 	}
 
-	inline void deallocate(std::shared_ptr<void>& p, size_t size = 0)
+	inline void deallocate(std::shared_ptr<byte_type>& p, size_t size = 0)
 	{
 		p.reset();
 		ReleaseMemory();
@@ -138,9 +139,9 @@ public:
 
 private:
 
-	inline std::shared_ptr<void> _allocate_shared_ptr(size_t demand)
+	inline std::shared_ptr<byte_type> _allocate_shared_ptr(size_t demand)
 	{
-		std::shared_ptr<void> res(nullptr);
+		std::shared_ptr<byte_type> res(nullptr);
 
 		// find memory block which is not smaller than demand size
 		auto pt = pool_.lower_bound(demand);
@@ -160,7 +161,7 @@ private:
 		{
 			try
 			{
-				res = std::shared_ptr<void>(new byte_type[demand]);
+				res = std::shared_ptr<byte_type>(new byte_type[demand]);
 
 			} catch (std::bad_alloc const &error)
 			{

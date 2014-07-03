@@ -1,8 +1,8 @@
 /*
  * properties_pugixml.h
  *
- *  Created on: 2013年11月18日
- *      Author: salmon
+ * \date  2013年11月18日
+ *      \author  salmon
  */
 
 #ifndef PROPERTIES_PUGIXML_H_

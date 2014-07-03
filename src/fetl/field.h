@@ -363,7 +363,7 @@ std::function<void()> CreateCommand(TModel<TM> const & model, TDict const & dict
 		PARSER_ERROR("'Operation' is not defined!");
 	}
 
-	typedef typename TM mesh_type;
+	typedef TM mesh_type;
 
 	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
 

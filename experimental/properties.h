@@ -1,8 +1,8 @@
 /*
  * properties.h
  *
- *  Created on: 2012-3-6
- *      Author: salmon
+ * \date  2012-3-6
+ *      \author  salmon
  */
 
 #ifndef PROPERTIES_H_

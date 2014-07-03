@@ -8,7 +8,7 @@
 #ifndef POINTINPOLYGEN_H_
 #define POINTINPOLYGEN_H_
 
-#include <cstddef>
+
 #include <vector>
 
 #include "../utilities/ntuple.h"

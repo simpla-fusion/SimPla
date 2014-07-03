@@ -1,11 +1,11 @@
 /*
  * simpla.cpp
  *
- *  Created on: 2013年11月13日
- *      Author: salmon
+ * \date  2013年11月13日
+ *      \author  salmon
  */
 
-#include <cstddef>
+
 #include <functional>
 #include <iomanip>
 #include <iostream>

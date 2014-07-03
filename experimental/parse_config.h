@@ -1,8 +1,8 @@
 /*
  * parse_config.h
  *
- *  Created on: 2012-3-6
- *      Author: salmon
+ * \date  2012-3-6
+ *      \author  salmon
  */
 
 #ifndef PARSE_CONFIG_H_

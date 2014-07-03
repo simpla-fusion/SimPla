@@ -8,7 +8,7 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-#include <cstddef>
+
 #include <exception>
 #include <iostream>
 #include <list>

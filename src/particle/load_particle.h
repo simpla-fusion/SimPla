@@ -8,7 +8,7 @@
 #ifndef LOAD_PARTICLE_H_
 #define LOAD_PARTICLE_H_
 
-#include <cstddef>
+
 #include <random>
 #include <string>
 #include <functional>

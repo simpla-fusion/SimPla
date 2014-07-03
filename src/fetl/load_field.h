@@ -8,7 +8,7 @@
 #ifndef LOAD_FIELD_H_
 #define LOAD_FIELD_H_
 
-#include <cstddef>
+
 #include <string>
 
 #include "../utilities/log.h"

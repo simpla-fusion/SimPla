@@ -1,8 +1,8 @@
 /*
  * explicit_em_impl.h
  *
- *  Created on: 2013年12月29日
- *      Author: salmon
+ * \date  2013年12月29日
+ *      \author  salmon
  */
 
 #ifndef EXPLICIT_EM_IMPL_H_
@@ -217,7 +217,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
 
-	/***
+	/**
 	 * @TODO load particle engine plugins
 	 *
 	 *  add new creator at here
@@ -392,9 +392,9 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	Real dt = mesh.GetDt();
 
-	//************************************************************
+	//***********************************************************
 	// Compute Cycle Begin
-	//************************************************************
+	//***********************************************************
 	// E0 B0,
 	LOG_CMD(Jext = J0);
 	ExcuteCommands(commandToJ_);
@@ -433,9 +433,9 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	mesh.NextTimeStep();
 
-//************************************************************
+//***********************************************************
 // Compute Cycle End
-//************************************************************
+//***********************************************************
 }
 
 }

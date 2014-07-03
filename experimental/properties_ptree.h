@@ -1,8 +1,8 @@
 /*
  * properties_ptree.h
  *
- *  Created on: 2013年11月17日
- *      Author: salmon
+ * \date  2013年11月17日
+ *      \author  salmon
  */
 
 #ifndef PROPERTIES_PTREE_H_

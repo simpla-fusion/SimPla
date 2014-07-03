@@ -1,8 +1,8 @@
 /*
  * optional.h
  *
- *  Created on: 2014年4月1日
- *      Author: salmon
+ * \date  2014年4月1日
+ *      \author  salmon
  */
 
 #ifndef OPTIONAL_H_

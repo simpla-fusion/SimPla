@@ -1,8 +1,8 @@
 /*
  * fluid_cold_engine.h
  *
- *  Created on: 2014年4月15日
- *      Author: salmon
+ * \date  2014年4月15日
+ *      \author  salmon
  */
 
 #ifndef FLUID_COLD_ENGINE_H_

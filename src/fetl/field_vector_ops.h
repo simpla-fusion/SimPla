@@ -7,7 +7,7 @@
 
 #ifndef FIELD_VECTOR_OPS_H_
 #define FIELD_VECTOR_OPS_H_
-#include <cstddef>
+
 #include "field.h"
 
 #include "../utilities/constant_ops.h"

@@ -1,15 +1,15 @@
 /*
  * pic_engine_ggauge.h
  *
- *  Created on: 2013年10月23日
- *      Author: salmon
+ * \date  2013年10月23日
+ *      \author  salmon
  */
 
 #ifndef PIC_ENGINE_GGAUGE_H_
 #define PIC_ENGINE_GGAUGE_H_
 
 #include <cmath>
-#include <cstddef>
+
 #include <sstream>
 #include <string>
 

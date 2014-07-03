@@ -9,7 +9,7 @@
 #define PRETTY_STREAM_H_
 
 #include <complex>
-#include <cstddef>
+
 #include <iterator>
 #include <list>
 #include <map>

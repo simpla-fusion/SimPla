@@ -1,8 +1,8 @@
 /*
  * properties.cpp
  *
- *  Created on: 2012-10-7
- *      Author: salmon
+ * \date  2012-10-7
+ *      \author  salmon
  */
 
 #include "properties.h"

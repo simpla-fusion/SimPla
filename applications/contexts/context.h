@@ -1,8 +1,8 @@
 /*
  * \file explicit_em.h
  *
- *  Created on: 2013年12月12日
- *      Author: salmon
+ * \date  2013年12月12日
+ *      \author  salmon
  */
 
 #ifndef EXPLICIT_EM_H_

@@ -1,15 +1,15 @@
 /*
  * allocator_mempool.h
  *
- *  Created on: 2013年12月9日
- *      Author: salmon
+ * \date  2013年12月9日
+ *      \author  salmon
  */
 
 #ifndef ALLOCATOR_MEMPOOL_H_
 #define ALLOCATOR_MEMPOOL_H_
 
 #include <memory>
-#include <cstddef>
+
 #include <new>
 #include <vector>
 

@@ -1,8 +1,8 @@
 /*
  * explicit_em.cpp
  *
- *  Created on: 2013年12月29日
- *      Author: salmon
+ * \date  2013年12月29日
+ *      \author  salmon
  */
 
 #include "context.h"
