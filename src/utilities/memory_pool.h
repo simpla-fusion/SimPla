@@ -15,7 +15,7 @@ namespace simpla
 {
 
 void deallocate_m(void *p);
-
+//! @ingroup Utilities
 class MemoryPool
 {
 private:

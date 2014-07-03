@@ -9,8 +9,6 @@
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
 
-
-
 //#include "ntuple_noet.h"
 #include "primitives.h"
 #include "sp_complex.h"
@@ -19,22 +17,6 @@
 
 namespace simpla
 {
-
-/**
- *  nTuple :n-tuple
- *  @Semantics:
- *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
- *    integer. There is also one 0-tuple, an empty sequence. An n-tuple is defined
- *    inductively using the construction of an ordered pair. Tuples are usually
- *    written by listing the elements within parenthesis '( )' and separated by
- *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
- *    @url: http://en.wikipedia.org/wiki/Tuple
- *  @Implement
- *   template<int n,typename T> struct nTuple;
- *   nTuple<5,double> t={1,2,3,4,5};
- *
- *	@ingroup ntuple
- * */
 
 namespace _ntuple_impl
 {
@@ -78,7 +60,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r[M - 1]);
 		_assign<M - 1>::eval(fun, l, r);
@@ -91,7 +73,7 @@ template<int M> struct _assign
 	}
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[M - 1] = fun(l[M - 1], r);
 		_assign<M - 1>::eval(fun, l, r);
@@ -112,14 +94,14 @@ template<> struct _assign<1>
 	template<typename TFun, typename TL, typename TR>
 
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[0] = fun(l[0], r[0]);
 	}
 
 	template<typename TFun, typename TL, typename TR>
 	static inline typename std::enable_if<!is_indexable<TR>::value, void>::type eval(TFun const & fun, TL & l,
-			TR const &r)
+	        TR const &r)
 	{
 		l[0] = fun(l[0], r);
 	}
@@ -158,8 +140,22 @@ DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
 
 }
 // namespace ntuple_impl
-
-//--------------------------------------------------------------------------------------------
+/**
+ * @ingroup DataStruct
+ * @brief nTuple :n-tuple
+ *
+ *  @Semantics:
+ *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
+ *    integer. There is also one 0-tuple, an empty sequence. An n-tuple is defined
+ *    inductively using the construction of an ordered pair. Tuples are usually
+ *    written by listing the elements within parenthesis '( )' and separated by
+ *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
+ *    @url: http://en.wikipedia.org/wiki/Tuple
+ *  @Implement
+ *   template<int n,typename T> struct nTuple;
+ *   nTuple<5,double> t={1,2,3,4,5};
+ *
+ **/
 template<int N, typename T>
 struct nTuple
 {
@@ -271,15 +267,18 @@ DECL_RET_TYPE(v0)
 
 template<typename T>
 auto make_ntuple(T v0, T v1)
-DECL_RET_TYPE((nTuple<2,T>({v0,v1})))
+DECL_RET_TYPE((nTuple<2,T>(
+						{	v0,v1})))
 
 template<typename T>
 auto make_ntuple(T v0, T v1, T v2)
-DECL_RET_TYPE((nTuple<3,T>({v0,v1,v2})))
+DECL_RET_TYPE((nTuple<3,T>(
+						{	v0,v1,v2})))
 
 template<typename T>
 auto make_ntuple(T v0, T v1, T v2, T v3)
-DECL_RET_TYPE((nTuple<3,T>({v0,v1,v2,v3})))
+DECL_RET_TYPE((nTuple<3,T>(
+						{	v0,v1,v2,v3})))
 
 template<typename TV>
 struct is_nTuple
@@ -449,8 +448,7 @@ template<typename T> inline
 auto real(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res =
-	{ std::real(l[0]), std::real(l[1]), std::real(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res = { std::real(l[0]), std::real(l[1]), std::real(l[2]) };
 	return std::move(res);
 }
 
@@ -458,8 +456,7 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<is_complex<T>::value,nTuple<3,decltype(std::real(l[0]))>>::type
 {
-	nTuple<3, decltype(std::real(l[0]))> res =
-	{ std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
+	nTuple<3, decltype(std::real(l[0]))> res = { std::imag(l[0]), std::imag(l[1]), std::imag(l[2]) };
 	return std::move(res);
 
 }
@@ -475,21 +472,18 @@ template<typename T> inline
 auto imag(nTuple<3, T> const & l)
 ->typename std::enable_if<!is_complex<T>::value,nTuple<3,T> const &>::type
 {
-	nTuple<3, T> res =
-	{ 0, 0, 0 };
+	nTuple<3, T> res = { 0, 0, 0 };
 	return l;
 }
 
 template<typename T> inline constexpr nTuple<3, T> real(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>(
-	{ v[0].real(), v[1].real(), v[2].real() }));
+	return std::move(nTuple<3, T>( { v[0].real(), v[1].real(), v[2].real() }));
 }
 
 template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T>> const &v)
 {
-	return std::move(nTuple<3, T>(
-	{ v[0].imag(), v[1].imag(), v[2].imag() }));
+	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
 }
 
 template<int NDIMS, typename TExpr>

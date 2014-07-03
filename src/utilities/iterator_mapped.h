@@ -17,7 +17,10 @@ template<typename TI> struct iterator_traits;
 }  // namespace std
 namespace simpla
 {
-
+/**
+ *  @ingroup iterator
+ *  @brief map iterator
+ */
 template<typename TContainer, typename TIterator>
 struct MappedIterator
 {

@@ -14,6 +14,9 @@
 
 namespace simpla
 {
+
+//! @ingroup Utilities
+
 /**
  *  @ref Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
  */

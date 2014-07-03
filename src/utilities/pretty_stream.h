@@ -24,6 +24,9 @@
 
 namespace simpla
 {
+
+//! @ingroup Utilities
+
 template<typename TV> inline TV const *
 PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d, std::string const & left_brace = "{",
         std::string const & sep = ",", std::string const & right_brace = "}")

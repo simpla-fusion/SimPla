@@ -15,7 +15,11 @@
 
 namespace simpla
 {
-
+/**
+ * @ingroup DataStruct
+ * @brief  Sparse Container
+ *
+ */
 template<typename TI, typename TV>
 class SparseContainer: public std::map<TI, TV>
 {

@@ -8,7 +8,6 @@
 #ifndef PARTICLE_H_
 #define PARTICLE_H_
 
-
 #include <exception>
 #include <iostream>
 #include <list>
@@ -37,7 +36,13 @@
 namespace simpla
 {
 
-//*******************************************************************************************************
+/** @defgroup Particle
+ *
+ */
+
+/**
+ *  @brief Particle class
+ */
 template<class Engine>
 class Particle: public Engine, public ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>
 {
@@ -317,34 +322,7 @@ void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 template<template<typename > class TModel, typename TDict, typename TEngine>
 std::function<void()> CreateCommand(TModel<TEngine::mesh_type> const & model, TDict const & dict, Particle<TEngine> * f)
 {
-
-	auto range = model.SelectByConfig(IForm, dict["Select"]);
-
-	if (!dict["Operation"])
-	{
-		PARSER_ERROR("'Operation' is not defined!");
-	}
-
-	typedef typename TM mesh_type;
-
-	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
-
-	auto op_ = dict.template as<field_fun>();
-
-	std::function<void()> res = [f,range,op_]()
-	{
-		for(auto s:range)
-		{
-			auto x = f->mesh.GetCoordinates(s);
-
-			(*f)[s] = f->mesh.Sample(std::integral_constant<int, IForm>(),
-					s, op_(f->mesh.GetTime(), x, (*f)(x)));
-		}
-	};
+	std::function<void()> res;
 
 	return res;
 

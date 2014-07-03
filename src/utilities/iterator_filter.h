@@ -31,12 +31,16 @@ namespace simpla
  *     Range split(int num_process,int process_num); //optional
  *   }
  */
+/**
+ *  @defgroup iterator
+ */
 
 /**
+ *  @ingroup iterator
+ *
  *  @ref boost::filter_iterator
  *
  */
-
 template<typename TIterator, typename TPred>
 struct FilterIterator: public TIterator
 {

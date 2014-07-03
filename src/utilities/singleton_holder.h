@@ -9,7 +9,7 @@
 #define INCLUDE_SINGLETON_HOLDER_H_
 namespace simpla
 {
-
+//! @ingroup Utilities
 /*
  *@NOTE  Meyers Singleton，
  * Ref:Andrei Alexandrescu,《Ｃ++设计新思维》 候捷 译 p133. Charpt 6.4

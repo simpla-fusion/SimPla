@@ -17,8 +17,7 @@
 namespace simpla
 {
 /**
- * @ingroup Mesh   geometry
- *
+ * @ingroup geometry
  *  @brief  Cartesian geometry (X Y Z)
  */
 template<typename TTopology>

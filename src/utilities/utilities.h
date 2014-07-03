@@ -15,7 +15,16 @@
 #include <utility>
 
 #include "ntuple.h"
-
+/**
+ *  @defgroup Utilities
+ *  @{
+ *    @defgroup DataStruct
+ *    @defgroup Logging
+ *    @defgroup Configure
+ *    @defgroup iterator
+ *  @}
+ *
+ */
 namespace simpla
 {
 

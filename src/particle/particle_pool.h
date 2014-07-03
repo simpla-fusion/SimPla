@@ -16,8 +16,12 @@
 namespace simpla
 {
 
-//*******************************************************************************************************
-
+/**
+ *  @ingroup Particle
+ *
+ *  @brief particle container
+ *
+ */
 template<typename TM, typename TPoint>
 class ParticlePool: public ContainerContainer<typename TM::compact_index_type, TPoint>
 {
