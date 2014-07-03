@@ -289,6 +289,12 @@ public:
 	auto SelectByFunction(int iform, std::function<bool(coordinates_type)> fun) const
 	DECL_RET_TYPE( (SelectByFunction(std::move(mesh.Select(iform)), fun)))
 
+
+	template<typename TR, typename T1, typename T2>
+	filter_range_type<TR> SelectOnSurface(TR && range, T1 in, T2 out) const;
+	template<typename TR, typename T1, typename T2>
+	filter_range_type<TR> SelectCrossSurface(TR && range, T1 in, T2 out) const;
+
 }
 ;
 
