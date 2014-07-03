@@ -36,7 +36,16 @@
 
 namespace simpla
 {
-
+/**
+ * \page Logging The Logging System
+ *
+ *  SimPla Log system
+ *
+ * \link Logging View All Logging Classes \endlink
+ *
+ * \defgroup Logging Diagnostic logging features
+ * See \ref Logging     for a detailed description.
+ */
 enum
 {
 	LOG_FORCE_OUTPUT = -10000,
@@ -47,6 +56,11 @@ enum
 
 	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -20
 };
+
+/**
+ *  @ingroup Logging
+ *  @brief Logging stream, shuold be used  as a singleton
+ */
 class LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
 	size_t line_width_;
@@ -215,10 +229,9 @@ private:
 
 };
 
-/***
- *
- *  log message buffer,
- *
+/**
+ *  @ingroup Logging
+ *  @brief log message buffer,
  */
 class Logger
 {
@@ -370,11 +383,11 @@ public:
 //		return stream;
 //	}
 
-// this is the function signature of std::endl
+	// this is the function signature of std::endl
 	typedef std::basic_ostream<char, std::char_traits<char> > StdCoutType;
 	typedef StdCoutType& (*StandardEndLine)(StdCoutType&);
 
-// define an operator<< to take in std::endl
+	//! define an operator<< to take in std::endl
 	this_type const& operator<<(StandardEndLine manip) const
 	{
 		// call the function, but we cannot return it's value
@@ -392,70 +405,12 @@ public:
 private:
 };
 
-#define LOG_STREAM SingletonHolder<LoggerStreams>::instance()
-
-#define WARNING Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
-
-#define INFORM Logger(LOG_INFORM)
-
-#define UNIMPLEMENT Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "Sorry, this function is not implemented. Try again next year, good luck!"
-
-#define UNIMPLEMENT2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
-
-#define UNDEFINE_FUNCTION Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "This function is not defined!"
-
-#define NOTHING_TODO Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-	          << "oh....... NOTHING TODO!"
-
-#define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
-        << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
-
-#define LOGGER Logger(LOG_LOG)
-
-#define VERBOSE Logger(LOG_VERBOSE)
-
-#define ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
-
-#define RUNTIME_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
-
-#define LOGIC_ERROR(_MSG_)  {{Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
-
-#define OUT_RANGE_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
-
-#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:\n\t"<< "Can not get enough memory! [ "  \
-        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
-
-#define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
-
-#include <cassert>
-#ifdef NDEBUG
-#  define ASSERT(_EXP_)
-#else
-#  define ASSERT(_COND_)    assert(_COND_);
-#endif
-
-//#ifndef NDEBUG
-#	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
-	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<" "
-//#else
-//#	define CHECK(_MSG_)
-//#endif
-
-#define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
-
-#define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
-//"--=============================================================--"
-#define SINGLELINE  std::setw(80) << std::setfill('-') << "-"
-
-#define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
-//"-----------------------------------------------------------------"
-
-#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
-
-#define LOG_CMD2(_MSG_,_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+/**
+ * @ingroup Logging
+ * @defgroup logmanip  manip for Logger
+ *
+ * @{
+ **/
 
 inline Logger & DONE(Logger & self)
 {
@@ -522,12 +477,90 @@ inline std::string ShowBit(unsigned long s)
 {
 	return std::bitset<64>(s).to_string();
 }
+/** @} */
+
+/**
+ *  @ingroup Logging
+ *  @defgroup LogShortCut    Shortcuts for logging
+ *  @{
+ */
+#define LOG_STREAM SingletonHolder<LoggerStreams>::instance()
+
+#define WARNING Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"
+
+#define INFORM Logger(LOG_INFORM)
+
+#define UNIMPLEMENT Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "Sorry, this function is not implemented. Try again next year, good luck!"
+
+#define UNIMPLEMENT2(_MSG_) Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "Sorry, I don't know how to '"<< _MSG_ <<"'. Try again next year, good luck!"
+
+#define UNDEFINE_FUNCTION Logger(LOG_WARNING)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "This function is not defined!"
+
+#define NOTHING_TODO Logger(LOG_VERBOSE)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+	          << "oh....... NOTHING TODO!"
+
+#define DEADEND Logger(LOG_DEBUG)  <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:" \
+        << "WHAT YOU DO!! YOU SHOULD NOT GET HERE!!"
+
+#define LOGGER Logger(LOG_LOG)
+
+#define VERBOSE Logger(LOG_VERBOSE)
+
+#define ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
+
+#define RUNTIME_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::runtime_error("runtime error"));}
+
+#define LOGIC_ERROR(_MSG_)  {{Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("logic error"));}
+
+#define OUT_RANGE_ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::out_of_range("out of range"));}
+
+#define ERROR_BAD_ALLOC_MEMORY(_SIZE_,_error_)    Logger(LOG_ERROR)<<__FILE__<<"["<<__LINE__<<"]:\n\t"<< "Can not get enough memory! [ "  \
+        << _SIZE_ / 1024.0 / 1024.0 / 1024.0 << " GiB ]" << std::endl; throw(_error_);
+
+#define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
+
+#include <cassert>
+#ifdef NDEBUG
+#  define ASSERT(_EXP_)
+#else
+#  define ASSERT(_COND_)    assert(_COND_);
+#endif
+
+//#ifndef NDEBUG
+#	define CHECK(_MSG_)    Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
+	<<"\n\t"<< __STRING(_MSG_)<<"="<< ( _MSG_)<<" "
+//#else
+//#	define CHECK(_MSG_)
+//#endif
+
+#define INFORM2(_MSG_) Logger(LOG_INFORM)<<__STRING(_MSG_)<<" = "<<_MSG_;
+
+#define DOUBLELINE  std::setw(80) << std::setfill('=') << "="
+//"--=============================================================--"
+#define SINGLELINE  std::setw(80) << std::setfill('-') << "-"
+
+#define SEPERATOR(_C_) std::setw(80) << std::setfill(_C_) << _C_
+//"-----------------------------------------------------------------"
+
+#define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+
+#define LOG_CMD2(_MSG_,_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
+
+
+
+
+
 #define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0b"<< ShowBit( _MSG_)  << std::endl
 
 #define CHECK_HEX(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0x"<<std::setw(20)<<std::setfill('0')<< std::hex<< ( _MSG_) << std::dec<< std::endl
 
 //#define DONE    std::right<< " [Done]"
 //#define START    std::right<<  " [START]"
+
+/** @} */
 
 }// namespace simpla
 #endif /* LOG_H_ */

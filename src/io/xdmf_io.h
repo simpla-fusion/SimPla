@@ -16,6 +16,9 @@
 namespace simpla
 {
 
+/** @ingroup XDMF
+ * @{
+ */
 template<typename T>
 struct XdmfTypeTraits
 {
@@ -99,7 +102,9 @@ template<typename TI, typename TFun> inline void InsertDataItemWithFun(XdmfDataI
 	}
 
 }
-
+/**
+ * @}
+ */
 }  // namespace simpla
 
 #endif /* XDMF_IO_H_ */

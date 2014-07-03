@@ -16,7 +16,12 @@
 #endif
 namespace simpla
 {
-
+/**
+ *  @ingroup MULTICORE
+ *
+ * @brief Parallel do
+ * @param fun
+ */
 inline void ParallelDo(std::function<void(int, int)> fun)
 {
 
@@ -47,7 +52,13 @@ inline void ParallelDo(std::function<void(int, int)> fun)
 		t.join();
 #endif
 }
-
+/**
+ *  @ingroup MULTICORE
+ *
+ * @brief Parallel for each
+ * @param r
+ * @param fun
+ */
 template<typename TRange, typename TFun>
 void ParallelForEach(TRange r, TFun fun)
 {

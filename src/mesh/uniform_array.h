@@ -27,7 +27,11 @@
 
 namespace simpla
 {
-
+/**
+ *  @ingroup topology
+ *
+ *  @brief starndard rectangle grid  (1~3 dimensions)
+ */
 struct UniformArray
 {
 
@@ -98,8 +102,8 @@ struct UniformArray
 		return clock_;
 	}
 
-	//***************************************************************************************************
-	// Local Data Set
+	//! @name Local Data Set
+	//! @{
 
 	nTuple<NDIMS, index_type> global_begin_, global_end_, global_count_;
 
@@ -117,6 +121,8 @@ struct UniformArray
 	int array_order_ = SLOW_FIRST;
 
 	DistributedArray<NDIMS> global_array_;
+
+	//  \verbatim
 	//
 	//   |----------------|----------------|---------------|--------------|------------|
 	//   ^                ^                ^               ^              ^            ^
@@ -124,6 +130,7 @@ struct UniformArray
 	//global          local_outer      local_inner    local_inner    local_outer     global
 	// _begin          _begin          _begin           _end           _end          _end
 	//
+	//  \endverbatim
 
 	void SetDimensions()
 	{
@@ -408,13 +415,21 @@ struct UniformArray
 		return std::move(res);
 	}
 
-	//***************************************************************************************************
-	//
-	// Index Dependent
-	//
-	//***************************************************************************************************
+	bool InRange(compact_index_type s)const
+	{
+		auto idx=Decompact(s)>>MAX_DEPTH_OF_TREE;
 
-	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
+		return true||
+
+		( ( global_count_[0]>1 || idx[0]>=global_begin_[0])
+				&& ( global_count_[1]>1 || idx[1]>=global_begin_[1])
+				&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
+		);
+	}
+	//! @}
+	//! @name Index Dependent
+	//! @{
+	//!  signed long is 63bit, unsigned long is 64 bit, add a sign bit
 	static constexpr compact_index_type FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
 
 	static constexpr compact_index_type INDEX_DIGITS = (FULL_DIGITS - CountBits<FULL_DIGITS>::n) / 3;
@@ -436,15 +451,18 @@ struct UniformArray
 	static constexpr compact_index_type NO_HEAD_FLAG = ~((~0UL) << (INDEX_DIGITS * 3));
 
 	/**
+	 *  !! this is obsolete
+	 *  \note
+	 *  \verbatim
 	 * 	Thanks my wife Dr. CHEN Xiang Lan, for her advice on bitwise operation
 	 * 	    H          m  I           m    J           m K
-	 * 	|--------|--------------|--------------|-------------|
-	 * 	|11111111|00000000000000|00000000000000|0000000000000| <= _MH
-	 * 	|00000000|11111111111111|00000000000000|0000000000000| <= _MI
-	 * 	|00000000|00000000000000|11111111111111|0000000000000| <= _MJ
-	 * 	|00000000|00000000000000|00000000000000|1111111111111| <= _MK
+	 *  |--------|--------------|--------------|-------------|
+	 *  |11111111|00000000000000|00000000000000|0000000000000| <= _MH
+	 *  |00000000|11111111111111|00000000000000|0000000000000| <= _MI
+	 *  |00000000|00000000000000|11111111111111|0000000000000| <= _MJ
+	 *  |00000000|00000000000000|00000000000000|1111111111111| <= _MK
 	 *
-	 * 	                    I/J/K
+	 *                      I/J/K
 	 *  | INDEX_DIGITS------------------------>|
 	 *  |  Root------------------->| Leaf ---->|
 	 *  |11111111111111111111111111|00000000000| <=_MRI
@@ -452,7 +470,7 @@ struct UniformArray
 	 *  |00000000000000000000000000|11111111111| <=_MTI
 	 *  | Page NO.->| Tree Root  ->|
 	 *  |00000000000|11111111111111|11111111111| <=_MASK
-	 *
+	 *  \endverbatim
 	 */
 	static compact_index_type CompactCellIndex(nTuple<NDIMS, index_type> const & idx ,compact_index_type shift)
 	{
@@ -504,7 +522,10 @@ struct UniformArray
 
 						}));
 	}
+	//! @}
 
+	//! @name Geometry
+	//! @{
 	Real volume_[8];
 	Real inv_volume_[8];
 	Real dual_volume_[8];
@@ -538,7 +559,8 @@ struct UniformArray
 		}
 
 		/**
-		 *
+		 * \note
+		 *  \verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -554,8 +576,7 @@ struct UniformArray
 		 *        | /             | /
 		 *        |/              |/
 		 *       000-------------001---> x
-		 *
-		 *
+		 * \endverbatim
 		 */
 
 		volume_[0] = 1;
@@ -649,17 +670,6 @@ struct UniformArray
 		return DualVolume(s);
 	}
 
-	bool InRange(compact_index_type s)const
-	{
-		auto idx=Decompact(s)>>MAX_DEPTH_OF_TREE;
-
-		return true||
-
-		( ( global_count_[0]>1 || idx[0]>=global_begin_[0])
-				&& ( global_count_[1]>1 || idx[1]>=global_begin_[1])
-				&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
-		);
-	}
 	Real Volume(compact_index_type s, std::integral_constant<bool, true>) const
 	{
 		return InRange(s)?Volume(s):0.0;
@@ -705,8 +715,11 @@ struct UniformArray
 		return volume_[1] * volume_[2] * volume_[4];
 	}
 #endif
-	//***************************************************************************************************
-	// Coordinates
+
+	//! @}
+
+	//! @name Coordinates
+	//! @{
 
 	/***
 	 *
@@ -753,8 +766,8 @@ struct UniformArray
 	CoordinatesLocalToGlobal(compact_index_type s ,coordinates_type x )const
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
-		static constexpr Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
-		static constexpr Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
+		Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
+		Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
 
 		coordinates_type r;
 
@@ -804,7 +817,6 @@ struct UniformArray
 		x*=INV_CELL_SCALE_R;
 
 		s+=global_begin_compact_index_;
-		//*********************************************
 #else
 		compact_index_type depth = DepthOfTree(shift);
 
@@ -835,11 +847,10 @@ struct UniformArray
 #endif
 		return std::move(std::make_tuple( s,x));
 	}
+	//! @}
 
-//***************************************************************************************************
-//* Auxiliary functions
-//***************************************************************************************************
-
+	//! @name Index auxiliary functions
+	//! @{
 	static compact_index_type Dual(compact_index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1059,11 +1070,13 @@ struct UniformArray
 		}
 		return res;
 	}
+	//! @}
 
-//****************************************************************************************************
-//iterator
-//****************************************************************************************************
-
+	/**
+	 *   @name iterator
+	 *   @{
+	 */
+	//! iterator
 	struct iterator:public IndexBaseIterator<compact_index_type>
 	{
 		typedef IndexBaseIterator<compact_index_type> base_iterator;
@@ -1266,7 +1279,12 @@ struct UniformArray
 		return std::move(std::make_pair(std::move(b),std::move( e)));
 
 	}
+	/** @}*/
 
+	/**
+	 *  @name Select
+	 *  @{
+	 */
 private:
 	range_type SelectRectangle_(int iform ,nTuple<NDIMS, index_type> const & ib, nTuple<NDIMS, index_type> const & ie, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e) const
 	{
@@ -1312,7 +1330,11 @@ public:
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args &&... args) const
 	DECL_RET_TYPE (Select(Select(iform),std::forward<Args>(args)...))
-
+	/**  @} */
+	/**
+	 *  @name Hash
+	 *  @{
+	 */
 	static index_type mod_(index_type a,index_type L)
 	{
 		return (a+L)%L;
@@ -1379,8 +1401,11 @@ public:
 	auto make_hash(unsigned int iform )const
 	DECL_RET_TYPE(make_hash(Select(iform)))
 
-//***************************************************************************************************
-// Topology
+	/** @}*/
+
+	/** @name   Topology
+	 *  @{
+	 */
 
 	inline unsigned int GetVertices(compact_index_type s, compact_index_type *v) const
 	{
@@ -1453,7 +1478,7 @@ public:
 	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
-		 *
+		 * \verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1469,7 +1494,7 @@ public:
 		 *        | /             | /
 		 *        |/              |/
 		 *        0---------------*---> x
-		 *
+		 * \endverbatim
 		 *
 		 */
 
@@ -1487,7 +1512,7 @@ public:
 	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
-		 *
+		 * \verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1504,7 +1529,7 @@ public:
 		 *        |/              |/
 		 *        0---------------1   ---> x
 		 *
-		 *
+		 *   \endverbatim
 		 */
 		auto di = DI(0, s);
 		auto dj = DI(1, s);
@@ -1526,6 +1551,7 @@ public:
 	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
+		 * \verbatim
 		 *
 		 *                ^y
 		 *               /
@@ -1543,7 +1569,7 @@ public:
 		 *        |/              |/
 		 *        0------E0-------1   ---> x
 		 *
-		 *
+		 * \endverbatim
 		 */
 
 		auto di = DI(0, s);
@@ -1566,7 +1592,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1583,7 +1609,7 @@ public:
 		 *        |/              |/
 		 *        0---------------1   ---> x
 		 *
-		 *
+		 *\endverbatim
 		 */
 		auto d1 = DeltaIndex(Roate(Dual(s)));
 		auto d2 = DeltaIndex(InverseRoate(Dual(s)));
@@ -1599,7 +1625,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1616,7 +1642,7 @@ public:
 		 *        |/              |/
 		 *        0-------0-------1   ---> x
 		 *
-		 *
+		 *\endverbatim
 		 */
 		auto di = DI(0, s);
 		auto dj = DI(1, s);
@@ -1643,7 +1669,7 @@ public:
 	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1674,7 +1700,7 @@ public:
 		 *          6   |   5
 		 *              |
 		 *
-		 *
+		 *\endverbatim
 		 */
 		auto di = DI(0, s);
 		auto dj = DI(1, s);
@@ -1702,7 +1728,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1733,7 +1759,7 @@ public:
 		 *          6   |   5
 		 *              |
 		 *
-		 *
+		 *\endverbatim
 		 */
 
 		auto d1 = DeltaIndex(Roate((s)));
@@ -1751,7 +1777,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1768,7 +1794,7 @@ public:
 		 *        |/              |/
 		 * -------0---------------1   ---> x
 		 *       /|
-		 *
+		 *\endverbatim
 		 */
 
 		auto di = DI(0, s);
@@ -1790,7 +1816,7 @@ public:
 	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1821,7 +1847,7 @@ public:
 		 *          6   |   5
 		 *              |
 		 *
-		 *
+		 *\endverbatim
 		 */
 
 		auto di = DI(0, s);
@@ -1845,7 +1871,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1876,7 +1902,7 @@ public:
 		 *          6   |   5
 		 *              |
 		 *
-		 *
+		 *\endverbatim
 		 */
 
 		auto d1 = DeltaIndex(Roate((s)));
@@ -1893,7 +1919,7 @@ public:
 	{
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -1910,7 +1936,7 @@ public:
 		 *        |/              |/
 		 * -------0---------------1   ---> x
 		 *       /|
-		 *
+		 *\endverbatim
 		 */
 
 		auto d = DeltaIndex(Dual(s));
@@ -1919,7 +1945,7 @@ public:
 
 		return 2;
 	}
-
+	/** @}*/
 }
 ;
 // class UniformArray

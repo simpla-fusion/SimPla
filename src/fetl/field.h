@@ -1,8 +1,8 @@
 /*
- * field.h
+ * @file field.h
  *
- *  Created on: 2013-7-19
- *      Author: salmon
+ * @date  2013-7-19
+ * @author  salmon
  */
 
 #ifndef FIELD_H_
@@ -26,11 +26,10 @@ namespace simpla
 {
 template<typename TM, int IFORM, typename > struct Field;
 
-/***
- *
- * @brief Field
- *
- * @ingroup Field Expression
+/**
+ * @ingroup FETL
+ * @class Field
+ * @brief Field object
  *
  */
 template<typename TM, int IFORM, typename TContainer>
@@ -71,8 +70,8 @@ private:
 
 	mesh_range_type range_;
 
-	/***
-	 *  Field
+	/**
+	 *  create constructer
 	 * @param pmesh
 	 * @param args
 	 */
@@ -83,12 +82,20 @@ private:
 	}
 public:
 
+	/**
+	 *  default constructer
+	 * @param mesh
+	 * @param d
+	 */
+
 	Field(mesh_type const & mesh, value_type d = value_type())
 			: container_type(d), mesh(mesh)
 	{
 	}
 
 	/**
+	 *
+	 *  @brief Copy Constructer
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector
 	 *    \code
@@ -103,7 +110,7 @@ public:
 			: container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
 	{
 	}
-	/// Move Construct copy mesh, and move data,
+	//! Move Construct copy mesh, and move data,
 	Field(this_type &&rhs)
 			: container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
 			        std::forward<typename mesh_type::range_type>(rhs.range_))
@@ -353,17 +360,15 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 };
 
 template<typename TM, template<typename > class TModel, typename TDict, int IForm, typename TContainer>
-std::function<void()> CreateCommand(TModel<TM> const & model, TDict const & dict, Field<TM, IForm, TContainer> * f)
+std::function<void()> CreateCommand(Field<TM, IForm, TContainer> * f, TModel<TM> const & model, TDict const & dict)
 {
-
-	auto range = model.SelectByConfig(IForm, dict["Select"]);
 
 	if (!dict["Operation"])
 	{
 		PARSER_ERROR("'Operation' is not defined!");
 	}
 
-	typedef TM mesh_type;
+	typedef typename TM mesh_type;
 
 	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
 
@@ -373,14 +378,16 @@ std::function<void()> CreateCommand(TModel<TM> const & model, TDict const & dict
 
 	auto op_ = dict.template as<field_fun>();
 
+	auto range = model.SelectByConfig(IForm, dict["Select"]);
+
 	std::function<void()> res = [f,range,op_]()
 	{
 		for(auto s:range)
 		{
 			auto x = f->mesh.GetCoordinates(s);
 
-			(*f)[s] = f->mesh.Sample(std::integral_constant<int, IForm>(),
-					s, op_(f->mesh.GetTime(), x, (*f)(x)));
+			get_value(*f,s) = f->mesh.Sample(std::integral_constant<int, IForm>(),
+					s, op_(f->mesh.GetTime(), x, get_value(*f,s)));
 		}
 	};
 

@@ -16,6 +16,11 @@
 
 namespace simpla
 {
+/**
+ * @ingroup Mesh   geometry
+ *
+ *  @brief  Cartesian geometry (X Y Z)
+ */
 template<typename TTopology>
 struct CartesianGeometry: public TTopology
 {
@@ -367,7 +372,7 @@ struct CartesianGeometry: public TTopology
 	//***************************************************************************************************
 
 	/**
-	 *
+	 *\verbatim
 	 *                ^y
 	 *               /
 	 *        z     /
@@ -384,7 +389,7 @@ struct CartesianGeometry: public TTopology
 	 *        |/              |/
 	 *       000-------------001---> x
 	 *
-	 *
+	 *\endverbatim
 	 */
 
 	scalar_type volume_[8] = { 1, // 000
@@ -436,7 +441,7 @@ public:
 		}
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -453,7 +458,7 @@ public:
 		 *        |/              |/
 		 *       000-------------001---> x
 		 *
-		 *
+		 *\endverbatim
 		 */
 
 		volume_[0] = 1;

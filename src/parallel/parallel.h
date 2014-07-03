@@ -19,4 +19,12 @@ void UpdateGhosts(T *, MPI_Comm comm = MPI_COMM_NULL)
 }
 #endif
 
+/**
+ *  @defgroup Parallel Parallel
+ *  @{
+ *  	@defgroup MPI MPI Communicaion
+ *  	@defgroup MULTICORE Multi-thread/core and many-core support
+ *  @}
+ */
+
 #endif /* PARALLEL_H_ */

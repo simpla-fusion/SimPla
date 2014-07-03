@@ -17,9 +17,10 @@
 namespace simpla
 {
 
-/***
+/**
+ *  @ingroup geometry
  *
- *   R Z theta
+ *  @brief  cylindrical geometry (R Z theta)
  */
 template<typename TTopology, unsigned int IZAxis = 1>
 struct CylindricalGeometry: public TTopology
@@ -46,14 +47,14 @@ struct CylindricalGeometry: public TTopology
 
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry() :
-			topology_type()
+	CylindricalGeometry()
+			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CylindricalGeometry(TDict const & dict) :
-			topology_type(dict)
+	CylindricalGeometry(TDict const & dict)
+			: topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -118,8 +119,7 @@ struct CylindricalGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure CylindricalGeometry error!");
 		}
@@ -235,6 +235,8 @@ struct CylindricalGeometry: public TTopology
 
 		return std::move(res);
 	}
+	//! @name Normalize coordiantes to  [0,1 )
+	//!@{
 
 	template<typename ... Args>
 	inline coordinates_type GetCoordinates(Args && ... args) const
@@ -280,10 +282,27 @@ struct CylindricalGeometry: public TTopology
 	{
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
+
+	//!@}
+	//! @name Coordiantes convert Cylindrical <-> Cartesian
+	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
+	//! @{
+
 	coordinates_type InvMapTo(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type x;
 
+		/**
+		 *  @note
+		 * coordinates transforam
+		 *
+		 *  \f{eqnarray*}{
+		 *		x & = & r\cos\phi\\
+		 *		y & = & r\sin\phi\\
+		 *		z & = & Z
+		 *  \f}
+		 *
+		 */
 		x[(CartesianZAxis + 1) % 3] = r[RAxis] * std::cos(r[ThetaAxis]);
 		x[(CartesianZAxis + 2) % 3] = r[RAxis] * std::sin(r[ThetaAxis]);
 		x[(CartesianZAxis + 3) % 3] = r[ZAxis];
@@ -294,7 +313,16 @@ struct CylindricalGeometry: public TTopology
 	coordinates_type MapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
 	{
 		coordinates_type r;
-
+		/**
+		 *  @note
+		 *  coordinates transforam
+		 *  \f{eqnarray*}{
+		 *		r&=&\sqrt{x^{2}+y^{2}}\\
+		 *		Z&=&z\\
+		 *		\phi&=&\arg\left(x,y\right)
+		 *  \f}
+		 *
+		 */
 		r[ZAxis] = x[CartesianZAxis];
 		r[RAxis] = std::sqrt(
 		        x[(CartesianZAxis + 1) % 3] * x[(CartesianZAxis + 1) % 3]
@@ -303,32 +331,6 @@ struct CylindricalGeometry: public TTopology
 
 		return r;
 	}
-
-	/**
-	 *
-	 *   transform vector from Cartesian to Cylindrical
-	 *
-	 * @param x (x,y,z)
-	 *         u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z
-	 * @param ZAxisOfVector
-	 * @return  (r,z,theta)
-	 *          v = v[RAixs] \partial_r +  v[1] 1/x[RAxis] \partial_theta + v[ZAixs] \partial_z
-	 *
-	 *
-	 *
-	 *
-	 *
-	 *     theta   y   r
-	 *          \  |  /
-	 *           \ | /
-	 *            \|/------x
-	 *          y  /
-	 *          | /
-	 *          |/)theta
-	 *          0------x
-	 *
-	 *
-	 */
 
 	template<typename TV>
 	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
@@ -344,6 +346,29 @@ struct CylindricalGeometry: public TTopology
 		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
 	}
 
+	/**
+	 *
+	 *   transform vector from Cartesian to Cylindrical
+	 *
+	 *
+	 * \verbatim
+	 *
+	 *     theta   y   r
+	 *          \  |  /
+	 *           \ | /
+	 *            \|/------x
+	 *          y  /
+	 *          | /
+	 *          |/)theta
+	 *          0------x
+	 *
+	 * \endverbatim
+	 *
+	 * @param z  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
+	 * @param ZAxisOfVector
+	 * @return  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
+	 *
+	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
@@ -364,14 +389,16 @@ struct CylindricalGeometry: public TTopology
 
 		return std::move(std::make_tuple(r, u));
 	}
-
 	/**
 	 *
-	 *  transform vector  from    Cylindrical to Cartesian
-	 * @param r z theta
-	 *  u = u[RAixs] \partial_r +  u[1]  r[RAxis] \partial_theta + u[ZAixs] \partial_z
+	 *   PullBack vector from Cylindrical  to Cartesian
+	 *
+	 * \endverbatim
+	 *
+	 * @param z  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
 	 * @param ZAxisOfVector
-	 * @return  x, v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z
+	 * @return  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
+	 *
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
@@ -390,6 +417,7 @@ struct CylindricalGeometry: public TTopology
 
 		return std::move(std::make_tuple(InvMapTo(r), v));
 	}
+	//! @}
 
 	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
 	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
@@ -447,6 +475,9 @@ struct CylindricalGeometry: public TTopology
 		return Normal(s, v);
 	}
 
+	//! @name Matric/coordinates  depend transform
+	//! @{
+
 	Real volume_[8] = { 1, // 000
 	        1, //001
 	        1, //010
@@ -459,7 +490,7 @@ struct CylindricalGeometry: public TTopology
 	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	/**
-	 *
+	 *\verbatim
 	 *                ^y
 	 *               /
 	 *        z     /
@@ -476,7 +507,7 @@ struct CylindricalGeometry: public TTopology
 	 *        |/              |/
 	 *       000-------------001---> x
 	 *
-	 *
+	 *\endverbatim
 	 */
 	void UpdateVolume()
 	{
@@ -502,7 +533,7 @@ struct CylindricalGeometry: public TTopology
 		}
 
 		/**
-		 *
+		 *\verbatim
 		 *                ^y
 		 *               /
 		 *        z     /
@@ -519,7 +550,7 @@ struct CylindricalGeometry: public TTopology
 		 *        |/              |/
 		 *       000-------------001---> x
 		 *
-		 *
+		 *\endverbatim
 		 */
 
 		volume_[0] = 1;
@@ -544,19 +575,6 @@ struct CylindricalGeometry: public TTopology
 
 		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
 
-	}
-
-	nTuple<NDIMS, scalar_type> BaseVector(compact_index_type s) const
-	{
-		nTuple<NDIMS, scalar_type> v;
-
-		v[ZAxis] = 1.0;
-
-		v[RAxis] = 1.0;
-
-		v[ThetaAxis] = 1.0 / GetCoordinates(s)[RAxis];
-
-		return std::move(v);
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const
@@ -595,7 +613,7 @@ struct CylindricalGeometry: public TTopology
 		return topology_type::InvDualVolume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
-
+	//! @}
 }
 ;
 

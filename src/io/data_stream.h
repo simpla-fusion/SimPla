@@ -25,7 +25,18 @@
 
 namespace simpla
 {
+/** @defgroup DataIO Data input/output system
+ *  @{
+ *   @defgroup HDF5  handle hdf5 file
+ *   @defgroup XDMF  handle XDMF file
+ *  @}
+ *  */
 
+/**
+ * @ingroup DataIO
+ * @class DataStream
+ * @brief data stream , should be a singleton
+ */
 class DataStream
 {
 	std::string prefix_;
@@ -210,6 +221,7 @@ private:
 }
 ;
 
+//! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
 template<typename TV, typename ...Args>

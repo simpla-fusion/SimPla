@@ -19,9 +19,60 @@ enum
 	CONTINUE = 0, TERMINATE = 1
 }
 ;
+/**
+ * @ingroup Configure
+ * @fun ParseCmdLine
+ * @brief Command line parser
+ *
+ *
 
+ * example:
+ * @code{
+ * 	ParseCmdLine(argc, argv,
+ *		[&](std::string const & opt,std::string const & value)->int
+ *		{
+ *			if(opt=="n"||opt=="num_of_step")
+ *			{
+ *				num_of_step =ToValue<size_t>(value);
+ *			}
+ *			else if(opt=="s"||opt=="record_stride")
+ *			{
+ *				record_stride =ToValue<size_t>(value);
+ *			}
+ *			else if(opt=="i"||opt=="input")
+ *			{
+ *				dict.ParseFile(value);
+ *			}
+ *			else if(opt=="c"|| opt=="command")
+ *			{
+ *				dict.ParseString(value);
+ *			}
+ *			else if(opt=="version")
+ *			{
+ *				INFORM<<ShowVersion()<< std::endl;
+ *				TheEnd(0);
+ *			}
+ *			else if(opt=="help")
+ *			{
+ *				INFORM
+ *				<< ShowCopyRight() << std::endl
+ *				<< "Too lazy to write a complete help information\n"<< std::endl;
+ *				TheEnd(0);
+ *			}
+ *
+ *			return CONTINUE;
+ *		}
+ *
+ *);
+ * @code}
+ *
+ * @param argc
+ * @param argv
+ * @param options  response operation to configure options ,  std::function<int(std::string const &, std::string const &)>
+ *
+ */
 inline void ParseCmdLine(int argc, char **argv,
-        std::function<int(std::string const &, std::string const &)> const & fun)
+        std::function<int(std::string const &, std::string const &)> const & options)
 {
 	int i = 1;
 
@@ -68,7 +119,7 @@ inline void ParseCmdLine(int argc, char **argv,
 		if (ready_to_process || i >= argc)  // buffer is ready to process
 		{
 
-			if (fun(opt, value) == TERMINATE)
+			if (options(opt, value) == TERMINATE)
 				break; // terminate paser stream;
 
 			opt = "";
