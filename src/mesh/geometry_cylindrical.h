@@ -18,7 +18,7 @@ namespace simpla
 {
 
 /**
- *  @ingroup geometry
+ *  @ingroup Geometry
  *
  *  @brief  cylindrical geometry (R Z theta)
  */

@@ -17,11 +17,14 @@ namespace simpla
 {
 
 /**
- * @ref Numerical Recipes (C++ ,3rd 2007) Chap. 3
  *
- *
+ * @defgroup Numeric
+ * @ingroup Numeric
+ * @{
  */
-
+/*
+ * @brief interpolation
+ */
 template<typename TInterpolator, typename TV, typename TX>
 class Interpolation
 {
@@ -39,21 +42,20 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args && ...args)
-			: data_(y), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args && ...args) :
+			data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args && ...args)
-			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(Args && ...args) :
+			data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args && ...args)
-			: data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
-			        std::forward<Args >(args)...)
+	Interpolation(TC const &y, Args && ...args) :
+			data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
@@ -118,7 +120,11 @@ public:
 	}
 
 };
-
+/**
+ * @ingroup Numeric
+ *
+ * @brief Linear Interpolation
+ */
 struct LinearInterpolation
 {
 	typedef LinearInterpolation this_type;
@@ -152,6 +158,10 @@ struct LinearInterpolation
 	}
 };
 
+/**
+ * @brief MultiDimesion Interpolation
+ */
+
 template<typename TInterpolator, typename TV, typename ...TX>
 class MultiDimesionInterpolation: public TInterpolator
 {
@@ -170,15 +180,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args)
-			: data_(y), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args) :
+			data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args && ...args)
-			: data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(Args && ...args) :
+			data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}
@@ -241,7 +251,9 @@ public:
 	}
 
 };
-
+/**
+ * @brief BiLinear Interpolation
+ */
 class BiLinearInterpolation
 {
 public:
@@ -263,8 +275,8 @@ public:
 			dims_[s] = 1;
 		}
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
-			: dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax) :
+			dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
 		Update();
 	}
@@ -380,7 +392,7 @@ public:
 
 }
 ;
-
+//! @}
 //
 //class PolynomialInterpolation
 //{

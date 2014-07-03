@@ -20,6 +20,9 @@ namespace simpla
 {
 
 /**
+ * @ingroup Model
+ *
+ * @brief GEqdsk file paser
  * @ref http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
 class GEqdsk

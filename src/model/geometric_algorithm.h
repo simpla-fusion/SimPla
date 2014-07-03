@@ -48,6 +48,11 @@ namespace simpla
 //
 //	return has_overlap;
 //}
+
+/**
+ *  @ingroup Geometry Model
+ *  @{
+ */
 template<typename TS, int NDIMS>
 bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
         nTuple<NDIMS, TS> *pr_end)
@@ -194,6 +199,7 @@ void CreateSurface(TModel const & model, Real width, TSurface * surf)
 ////	}
 }
 
+//! @}
 }  // namespace simpla
 
 #endif /* GEOMETRY_ALGORITHM_H_ */

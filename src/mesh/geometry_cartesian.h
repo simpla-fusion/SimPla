@@ -17,8 +17,11 @@
 namespace simpla
 {
 /**
- * @ingroup geometry
+ *  @ingroup Geometry
+ *
  *  @brief  Cartesian geometry (X Y Z)
+ *
+ *
  */
 template<typename TTopology>
 struct CartesianGeometry: public TTopology
@@ -41,14 +44,14 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry()
-			: topology_type()
+	CartesianGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CartesianGeometry(TDict const & dict)
-			: topology_type(dict)
+	CartesianGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -114,7 +117,8 @@ struct CartesianGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure CartesianGeometry error!");
 		}

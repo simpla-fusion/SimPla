@@ -23,6 +23,12 @@
 namespace simpla
 {
 
+/**
+ *  @ingroup Particle
+ *  @{  @defgroup ParticleEngine
+ *  @}
+ */
+
 template<typename TP, typename ...Args> bool RegistOneParticle()
 {
 	std::function<std::shared_ptr<ParticleBase<typename TP::mesh_type>>(typename TP::mesh_type const &, Args &&...)> callback =

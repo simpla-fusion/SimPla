@@ -54,7 +54,7 @@ bool GetMPIType(MPI_Datatype * new_type)
 	}
 	else if (is_nTuple<T>::value)
 	{
-		// FIXME incomplete implement , need nTuple<N,nTuple<M,TV>>
+		// @todo incomplete implement , need nTuple<N,nTuple<M,TV>>
 		typedef typename nTupleTraits<T>::element_type value_type;
 		std::vector<int> dims;
 		nTupleTraits<T>::GetDims(&dims);

@@ -27,8 +27,9 @@ namespace simpla
 {
 /** @defgroup DataIO Data input/output system
  *  @{
- *   @defgroup HDF5  handle hdf5 file
- *   @defgroup XDMF  handle XDMF file
+ *   @defgroup HDF5  HDF5 interface
+ *   @defgroup XDMF   XDMF interface
+ *   @defgroup NetCDF  NetCDF interface
  *  @}
  *  */
 
@@ -153,8 +154,8 @@ private:
 		const size_t idx;
 		static constexpr int rank = 0;
 		const size_t extent[1] = { 0 };
-		h5type_traits_()
-				: idx(std::type_index(typeid(TV)).hash_code())
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
 		{
 		}
 		~h5type_traits_()
@@ -167,8 +168,8 @@ private:
 		const size_t idx;
 		static constexpr int rank = 1;
 		const size_t extent[2] = { N, 0 };
-		h5type_traits_()
-				: idx(std::type_index(typeid(TV)).hash_code())
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
 		{
 		}
 		~h5type_traits_()
@@ -181,8 +182,8 @@ private:
 		const size_t idx;
 		static constexpr int rank = 2;
 		const size_t extent[3] = { M, N, 0 };
-		h5type_traits_()
-				: idx(std::type_index(typeid(TV)).hash_code())
+		h5type_traits_() :
+				idx(std::type_index(typeid(TV)).hash_code())
 		{
 		}
 		~h5type_traits_()

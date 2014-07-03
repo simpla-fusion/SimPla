@@ -120,7 +120,7 @@ private:
 };
 
 /***
- * FIXME (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
+ * @todo (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
  */
 template<typename TM, typename TPoint>
 template<typename ...Others>
@@ -202,7 +202,7 @@ void ParticlePool<TM, TPoint>::Sort()
 //
 //	);
 
-	//FIXME Here should be PARALLEL (multi-thread)
+	//@bug Here should be PARALLEL (multi-threads)
 	container_type dest;
 	for (auto s : mesh.Select(IForm))
 	{

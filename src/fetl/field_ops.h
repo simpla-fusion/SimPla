@@ -29,6 +29,7 @@ template<int, typename > class nTuple;
  *  	@defgroup VectorAlgebra Vector algebra
  *  	@defgroup NonstandardOperations Non-standard operations
  *  @}
+ *
  */
 
 /**
@@ -59,7 +60,10 @@ template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(
         DECL_RET_TYPE((imag(f.get(s)) ))
 
 }
+//! @}
 
+//!  @ingroup   BasicAlgebra
+//! @{
 template<typename TM, int IL, typename TL>
 inline auto operator-(Field<TM, IL, TL> const & f)
 DECL_RET_TYPE( ( Field<TM,IL, UniOp<NEGATE,Field<TM,IL, TL> > > (f)))
@@ -83,48 +87,50 @@ DECL_RET_TYPE( (Field< TM, IR ,UniOp<REAL, Field<TM,IR , TR> > >( f)))
 template<typename TM, int IR, typename TR>
 inline auto imag(Field<TM, IR, TR> const & f)
 DECL_RET_TYPE( (Field< TM, IR ,UniOp<IMAGINE, Field<TM,IR , TR> > >( f)))
-
+//! @}
 namespace fetl_impl
 {
 
-template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>,
-        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
-        DECL_RET_TYPE((l.get(s)+r.get(s)))
+template<typename TM, int IL, typename TL, typename TR, typename TI>
+inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+DECL_RET_TYPE((l.get(s)+r.get(s)))
 
-template<typename TM, int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>,
-        Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
-        DECL_RET_TYPE((l.get(s)-r.get(s)))
+template<typename TM, int IL, typename TL, typename TR, typename TI>
+inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+DECL_RET_TYPE((l.get(s)-r.get(s)))
 
-template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, VERTEX, TL> const &l,
-        Real r, TI s)
-        DECL_RET_TYPE((l.get(s)+r*l.mesh.Volume(s)) )
+template<typename TM, typename TL, typename TI>
+inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+DECL_RET_TYPE((l.get(s)+r*l.mesh.Volume(s)) )
 
-template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<PLUS>, Real l,
-        Field<TM, VERTEX, TR> const &r, TI s)
-        DECL_RET_TYPE((l*r.mesh.Volume(s) +r.get(s)))
+template<typename TM, typename TR, typename TI>
+inline auto FieldOpEval(Int2Type<PLUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+DECL_RET_TYPE((l*r.mesh.Volume(s) +r.get(s)))
 
-template<typename TM, typename TL, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, VERTEX, TL> const &l,
-        Real r, TI s)
-        DECL_RET_TYPE((l.get(s)-r*l.mesh.Volume(s)) )
+template<typename TM, typename TL, typename TI>
+inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+DECL_RET_TYPE((l.get(s)-r*l.mesh.Volume(s)) )
 
-template<typename TM, typename TR, typename TI> inline auto FieldOpEval(Int2Type<MINUS>, Real l,
-        Field<TM, VERTEX, TR> const &r, TI s)
-        DECL_RET_TYPE((l*r.mesh.Volume(s) -r.get(s)))
+template<typename TM, typename TR, typename TI>
+inline auto FieldOpEval(Int2Type<MINUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+DECL_RET_TYPE((l*r.mesh.Volume(s) -r.get(s)))
 
 }
 
-template<typename TM, int IL, typename TL, typename TR> inline auto operator+(Field<TM, IL, TL> const & lhs,
-        Field<TM, IL, TR> const & rhs)
-        DECL_RET_TYPE( ( Field<TM,IL , BiOp<PLUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
+template<typename TM, int IL, typename TL, typename TR>
+inline auto operator+(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE( ( Field<TM,IL , BiOp<PLUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
 
-template<typename TM, int IL, typename TL, typename TR> inline auto operator-(Field<TM, IL, TL> const & lhs,
-        Field<TM, IL, TR> const & rhs)
-        DECL_RET_TYPE( ( Field<TM,IL , BiOp<MINUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
+template<typename TM, int IL, typename TL, typename TR>
+inline auto operator-(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
+DECL_RET_TYPE( ( Field<TM,IL , BiOp<MINUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
 
-template<typename TM, typename TL> inline auto operator+(Field<TM, VERTEX, TL> const & lhs, Real rhs)
+template<typename TM, typename TL>
+inline auto operator+(Field<TM, VERTEX, TL> const & lhs, Real rhs)
 DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<PLUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
 
-template<typename TM, typename TL> inline auto operator-(Field<TM, VERTEX, TL> const & lhs, Real rhs)
+template<typename TM, typename TL>
+inline auto operator-(Field<TM, VERTEX, TL> const & lhs, Real rhs)
 DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<MINUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
 
 namespace fetl_impl
@@ -177,9 +183,7 @@ DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)
 
 template<typename TM, int IL, typename TL> inline auto operator/(Field<TM, IL, TL> const & lhs, Complex rhs)
 DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
-
-/**   @}  */
-
+//! @}
 /** @ingroup  ExteriorAlgebra
  *  @{
  */
@@ -242,7 +246,7 @@ DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 /**   @}  */
 
 /** @ingroup  VectorAlgebra
- *  @{
+ * @{
  */
 template<typename TG, int IL, typename TL, typename TR> inline auto InnerProduct(Field<TG, IL, TL> const & lhs,
         Field<TG, IL, TR> const & rhs)
@@ -298,7 +302,7 @@ template<typename TM, typename TR>
 inline auto Curl(Field<TM, FACE, TR> const & f)
 DECL_RET_TYPE(Negate(Codifferential(f)))
 
-/**   @}  */
+//!   @}
 
 /** @ingroup  NonstandardOperations
  *  @{
@@ -353,7 +357,7 @@ DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(In
 template<int IL, typename TM, int IR, typename TR>
 inline auto MapTo(Int2Type<IL>, Field<TM, IR, TR> const & f)
 DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
-
+//!   @}
 namespace fetl_impl
 {
 
@@ -390,11 +394,9 @@ ENABLE_IF_DECL_RET_TYPE(
 
 }
 
-/**   @}  */
-
 /**
  *  @ingroup FELT
- * @{
+ *  @{
  *  @brief  Uni-operation field expression
  */
 template<typename TM, int IFORM, int TOP, typename TL>
@@ -415,8 +417,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l)
-			: mesh(l.mesh), l_(l)
+	Field(TL const & l) :
+			mesh(l.mesh), l_(l)
 	{
 	}
 	template<typename TI>
@@ -428,9 +430,10 @@ public:
 	DECL_RET_TYPE((this->get(s)))
 
 };
-
+//! @}
 /**
- *
+ * @ingroup FETL
+ * @{
  *  @brief Bi-operation field expression
  */
 template<typename TM, int IFORM, int TOP, typename TL, typename TR>
@@ -450,8 +453,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
-			: mesh(get_mesh(l, r)), l_(l), r_(r)
+	Field(TL const & l, TR const & r) :
+			mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 
@@ -483,7 +486,7 @@ private:
 
 }
 ;
-/** @} */
+//! @}
 template<typename TM, int IFORM, int TOP, typename TL, typename TR>
 struct can_not_reference<Field<TM, IFORM, BiOp<TOP, TL, TR> >>
 {

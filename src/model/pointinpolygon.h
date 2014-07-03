@@ -1,8 +1,8 @@
 /*
- * pointinpolygen.h
+ * @file pointinpolygon.h
  *
  *  Created on: 2013年12月4日
- *      Author: salmon
+ *  @author salmon
  */
 
 #ifndef POINTINPOLYGEN_H_
@@ -16,8 +16,11 @@
 
 namespace simpla
 {
-
-class PointInPolygen
+/**
+ *  @ingroup Algorithm  Geometry
+ *  @brief check a point in 2D polygon
+ */
+class PointInPolygon
 {
 
 	std::vector<nTuple<2, double> > polygen_;
@@ -27,7 +30,7 @@ class PointInPolygen
 	const int Z_;
 public:
 	template<int N>
-	PointInPolygen(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
+	PointInPolygon(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
 			: num_of_vertex_(0), Z_(Z)
 	{
 
@@ -56,13 +59,13 @@ public:
 		}
 	}
 
-	PointInPolygen(PointInPolygen const& rhs)
+	PointInPolygon(PointInPolygon const& rhs)
 			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
 			        rhs.multiple_), Z_(rhs.Z_)
 	{
 
 	}
-	PointInPolygen(PointInPolygen && rhs)
+	PointInPolygon(PointInPolygon && rhs)
 			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
 			        rhs.multiple_), Z_(rhs.Z_)
 	{

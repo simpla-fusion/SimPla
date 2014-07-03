@@ -14,6 +14,13 @@
 
 namespace simpla
 {
+
+
+/**
+ *   @ingroup FieldSolver
+ *
+ *   @brief implicit electric field pusher
+ */
 template<typename TM>
 class ImplicitPushE
 {

@@ -23,7 +23,7 @@
 #include "../utilities/utilities.h"
 #include "../utilities/iterator_filter.h"
 
-#include "pointinpolygen.h"
+#include "pointinpolygon.h"
 namespace std
 {
 template<typename TI> struct iterator_traits;
@@ -31,6 +31,15 @@ template<typename TI> struct iterator_traits;
 namespace simpla
 {
 
+/**
+ *  @defgroup Model
+ *   @brief Geometry modeling
+ */
+
+/**
+ *  @ingroup Model
+ *  @brief Model
+ */
 template<typename TM>
 class Model
 {
@@ -254,7 +263,7 @@ public:
 	filter_range_type<TR> SelectByRectangle(TR && range, coordinates_type v0, coordinates_type v1) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPolylines(TR && range, PointInPolygen checkPointsInPolygen) const;
+	filter_range_type<TR> SelectByPolylines(TR && range, PointInPolygon checkPointsInPolygen) const;
 
 	template<typename TR>
 	filter_range_type<TR> SelectByPoints(TR && range, std::vector<coordinates_type>const & points) const;
@@ -335,7 +344,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 		{
 			return std::move(
 			        SelectByPolylines(std::forward<TR>(range),
-			                PointInPolygen(points, dict["Z-Axis"].template as<int>(2))));
+			                PointInPolygon(points, dict["Z-Axis"].template as<int>(2))));
 		}
 		else
 		{
@@ -372,7 +381,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 	}
 	else
 	{
-		return std::move(SelectByPolylines(range, PointInPolygen(points)));
+		return std::move(SelectByPolylines(range, PointInPolygon(points)));
 	}
 }
 
@@ -559,7 +568,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(
 
 template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR &&range,
-        PointInPolygen checkPointsInPolygen) const
+        PointInPolygon checkPointsInPolygen) const
 {
 	std::function<bool(compact_index_type)> pred = [=](compact_index_type s )->bool
 	{	return (checkPointsInPolygen(this->mesh.GetCoordinates(s) ));};

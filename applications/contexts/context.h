@@ -18,7 +18,18 @@
 
 namespace simpla
 {
+/**
+ *   @defgroup Application
+ *   @{
+ *      @defgroup FieldSolver
+ *      @defgroup ParticleEngine
+ *   @}
+ *
+ */
 
+/**
+ *  @brief Context wrapper
+ */
 struct Context
 {
 	Context(LuaObject const & dict);

@@ -132,7 +132,7 @@ void DataStream::OpenFile(std::string const &fname)
 			prefix_ = fname.substr(0, fname.size() - 3);
 		}
 
-		/// @TODO auto mkdir directory
+		/// @todo auto mkdir directory
 
 		filename_ = prefix_ +
 

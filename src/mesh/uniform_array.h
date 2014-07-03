@@ -28,9 +28,10 @@
 namespace simpla
 {
 /**
- *  @ingroup topology
+
+ *  @ingroup Topology
  *
- *  @brief starndard rectangle grid  (1~3 dimensions)
+ *  @brief standard rectangle grid  (1~3 dimensions)
  */
 struct UniformArray
 {
@@ -66,7 +67,7 @@ struct UniformArray
 
 	void swap(UniformArray & rhs)
 	{
-		//FIXME NOT COMPLETE!!
+		//@todo NOT COMPLETE!!
 	}
 
 	template<typename TDict, typename ...Others>
@@ -76,7 +77,8 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -1975,8 +1977,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0)
-			count = 0;
+		if (process_num > 0) count = 0;
 	}
 	else
 	{

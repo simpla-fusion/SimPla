@@ -33,9 +33,15 @@ namespace simpla
  *  @defgroup Configure  Configuration
  *  @{
  *  @defgroup EmScript Embaded Scirpt
+ *   @{
+ *      @defgroup Convert
+ *       @brief Transfer data  between different lanuage
+ *      @defgroup Lua
+ *   @}
  *  @}
  */
 
+//! @ingroup Lua
 
 #define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
 
@@ -68,7 +74,7 @@ inline int FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... rest
 
 /**
  *
- *  @ingroup   EmScript
+ *  @ingroup   Lua
  *  @class LuaObject
  *  @brief interface to Lua Script
  */
@@ -720,9 +726,8 @@ public:
 };
 
 /**
- *     @ingroup   EmScript
- *     @defgroup LuaCXXConvert Lua <-> C++ convert
  *
+ *     @ingroup Convert  Lua
  *     @{
  */
 #define DEF_LUA_TRANS(_TYPE_,_TO_FUN_,_FROM_FUN_,_CHECK_FUN_)                                     \

@@ -68,8 +68,8 @@ public:
 	Field<mesh_type, EDGE, Real> gradn0;
 	Field<mesh_type, EDGE, Real> gradT0;
 public:
-	PICEngineDeltaF(mesh_type const &pmesh)
-			: mesh(pmesh), m(1.0), q(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
+	PICEngineDeltaF(mesh_type const &pmesh) :
+			mesh(pmesh), m(1.0), q(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
 	{
 	}
 	~PICEngineDeltaF()
@@ -101,8 +101,6 @@ public:
 	template<typename TDict, typename TN, typename TT>
 	void Load(TDict const &dict, TN const & n, TT const &T)
 	{
-
-		DEFINE_PHYSICAL_CONST;
 
 		m = dict["Mass"].template as<Real>(1.0);
 		q = dict["Charge"].template as<Real>(1.0);

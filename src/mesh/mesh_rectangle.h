@@ -27,10 +27,10 @@ namespace simpla
  *   @defgroup Mesh
  *   @brief define all basic discrete scheme, i.e. finite difference , finite volume, finite element
  *   @{
- *      @defgroup geometry
- *        @brief cooridnate and metric dependent information
- *      @defgroup topology
- *        @brief cooridnate  and metric  independent information
+ *      @defgroup Geometry
+ *        @brief coordinates and metric dependent information
+ *     	@defgroup Topology
+ *        @brief coordinates and metric  independent information
  *   @}
  */
 

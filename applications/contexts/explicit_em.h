@@ -42,6 +42,11 @@
 namespace simpla
 {
 
+/**
+ * @ingroup Application
+ *
+ * @brief Electromagnetic solver
+ */
 template<typename TM>
 struct ExplicitEMContext
 {
@@ -81,12 +86,11 @@ public:
 
 	typename mesh_type::template field<EDGE, scalar_type> E, dE;
 	typename mesh_type::template field<FACE, scalar_type> B, dB;
-	typename mesh_type::template field<VERTEX, scalar_type> n, phi; // electrostatic potential
+	typename mesh_type::template field<VERTEX, scalar_type> n, phi; //!< electrostatic potential
 
-	typename mesh_type::template field<VERTEX, Real> n0; // electrostatic potential
-
-	typename mesh_type::template field<EDGE, scalar_type> J0; //background current density J0+Curl(B(t=0))=0
-	typename mesh_type::template field<EDGE, scalar_type> Jext; // current density
+	typename mesh_type::template field<VERTEX, Real> n0; //!< density
+	typename mesh_type::template field<EDGE, scalar_type> J0; //!<background current density J0+Curl(B(t=0))=0
+	typename mesh_type::template field<EDGE, scalar_type> Jext; //!< current density
 
 	typename mesh_type::template field<VERTEX, nTuple<3, Real> > Bv;
 
@@ -218,7 +222,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
 
 	/**
-	 * @TODO load particle engine plugins
+	 * @todo load particle engine plugins
 	 *
 	 *  add new creator at here
 	 *

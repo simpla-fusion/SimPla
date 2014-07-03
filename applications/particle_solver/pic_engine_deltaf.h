@@ -19,7 +19,10 @@
 
 namespace simpla
 {
-
+/**
+ * @ingroup ParticleEngine
+ * @brief \f$\delta f\f$ engine
+ */
 template<typename TM, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDeltaF
 {
