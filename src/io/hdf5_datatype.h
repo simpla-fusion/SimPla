@@ -33,26 +33,24 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 {
 	typedef Factory<size_t, hid_t> base_type;
 
-	typedef std::function<hid_t()> create_fun_callback;
-
 	HDF5DataTypeFactory();
 
 	~HDF5DataTypeFactory();
 
+	product_type Create(identifier_type const &id) const
+	{
+		return base_type::Create(id);
+	}
+
 	template<typename T>
-	hid_t Create() const
+	product_type Create() const
 	{
 		return base_type::Create(hash<T>());
 	}
 
-	hid_t Create(size_t idx) const
-	{
-		return base_type::Create(idx);
-	}
-
 	template<typename T> bool Register(std::string const &desc)
 	{
-		create_fun_callback callback = [desc]()->hid_t
+		create_fun_callback callback = [desc]()->product_type
 		{
 			return H5LTtext_to_dtype(desc.c_str(),H5LT_DDL);
 		};
@@ -71,7 +69,7 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 	}
 
 private:
-	template<typename T> size_t hash()
+	template<typename T> identifier_type hash()
 	{
 		return (std::type_index(typeid(T)).hash_code());
 	}

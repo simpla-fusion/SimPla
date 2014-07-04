@@ -8,7 +8,6 @@
 #ifndef LOAD_PARTICLE_H_
 #define LOAD_PARTICLE_H_
 
-
 #include <random>
 #include <string>
 #include <functional>
@@ -23,65 +22,103 @@
 namespace simpla
 {
 
-template<typename TP, typename TDict, typename ...Args>
-void LoadParticle(TP *p, TDict const &dict, Args && ... args)
+template<typename TP, typename TDict, typename TModel, typename TN, typename TT>
+std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
 {
-	if (!dict)
+	if (!dict || (TP::GetTypeAsString() != dict["Type"].template as<std::string>()))
 	{
-		WARNING << "Empty particle configure!";
-		return;
-	}
-	else if (!dict["URL"].empty()) // Load Data from file
-	{
-		UNIMPLEMENT2("Read  particle data from file");
-		return;
+		PARSER_ERROR("illegal particle configure!");
 	}
 
-	p->J.clear();
-	p->n.clear();
+	typedef typename TP::mesh_type mesh_type;
+	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	InitParticle(p, dict, std::forward<Args >(args)...);
+	std::shared_ptr<TP> p(new TP(dict, model.mesh));
+
+	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
+
+	std::function<Real(coordinates_type const&)> ns;
+
+	std::function<Real(coordinates_type const&)> Ts;
+
+	if (!T0.empty())
+	{
+		Ts = [&T0](coordinates_type x)->Real
+		{	return T0(x);};
+	}
+	else if (dict["Temperature"].is_number())
+	{
+		Real T = dict["Temperature"].template as<Real>();
+		Ts = [T](coordinates_type x)->Real
+		{	return T;};
+	}
+	else if (dict["Temperature"].is_function())
+	{
+		Ts = dict["Temperature"].template as<std::function<Real(coordinates_type const&)>>();
+	}
+
+	if (!ne0.empty())
+	{
+		Real ratio = dict["Ratio"].template as<Real>(1.0);
+		ns = [&ne0,ratio](coordinates_type x)->Real
+		{	return ne0(x)*ratio;};
+	}
+	else if (dict["Density"].is_number())
+	{
+		Real n0 = dict["Density"].template as<Real>();
+		ns = [n0](coordinates_type x)->Real
+		{	return n0;};
+	}
+	else if (dict["Density"].is_function())
+	{
+		ns = dict["Density"].template as<std::function<Real(coordinates_type const&)>>();
+	}
+
+	unsigned int pic = dict["PIC"].template as<size_t>(100);
+
+	InitParticle(p.get(), range, pic, ns, Ts);
+
+	LoadParticleConstriant(p.get(), range, model, dict["Constriants"]);
 
 	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
 
 	LOGGER << DONE;
-}
 
-template<typename TP, typename TDict>
-void InitParticle(TP *p, TDict const &dict)
-{
-	typedef typename TP::mesh_type::coordinates_type coordinates_type;
-
-	std::function<Real(coordinates_type const &)> ns, Ts;
-
-	dict["Density"].as(&ns);
-
-	dict["Temperature"].as(&Ts);
-
-	InitParticle(p, p->mesh.Select(TP::IForm), dict["PIC"].template as<size_t>(100), ns, Ts);
+	return p;
 
 }
 
-template<typename TDict, typename TP, typename TN, typename TT>
-void InitParticle(TP *p, TDict const &dict, TN const & ne, TT const & Ti)
+template<typename TP, typename TRange, typename TModel, typename TDict>
+void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
-	if (ne.empty() || Ti.empty())
+	for (auto const & key_item : dict)
 	{
-		InitParticle(p, dict);
-		return;
+		auto const & item = std::get<1>(key_item);
+
+		auto r = model.SelectByConfig(range, item["Select"]);
+
+		auto type = item["Type"].template as<std::string>("Modify");
+
+		if (type == "Modify")
+		{
+			p->AddConstraint([=]()
+			{	p->Modify(r, item["Operations"]);});
+		}
+		else if (type == "Remove")
+		{
+			if (item["Operation"])
+			{
+				p->AddConstraint([=]()
+				{	p->Remove(r);});
+			}
+			else if (item["Condiition"])
+			{
+				p->AddConstraint([=]()
+				{	p->Remove(r,item["Condiition"]);});
+			}
+		}
+
 	}
-
-	typedef typename TP::mesh_type::coordinates_type coordinates_type;
-
-	Real n0 = dict["Proportion"].template as<Real>(1.0);
-
-	InitParticle(p, p->mesh.Select(TP::IForm), dict["PIC"].template as<size_t>(100),
-
-	[&](coordinates_type x)->Real
-	{	return n0*ne(x);},
-
-	Ti);
-
 }
 
 template<typename TP, typename TR, typename TN, typename TT>
@@ -131,6 +168,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	}
 
 	p->Add(&buffer);
+	p->Sort();
 //	UpdateGhosts(p);
 }
 }  // namespace simpla

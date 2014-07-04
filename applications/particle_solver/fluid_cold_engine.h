@@ -59,10 +59,32 @@ public:
 	n_type n;
 	J_type J;
 
-	template<typename TDict, typename ...Args>
-	Particle(mesh_type const & pmesh, TDict const & dict, Args const & ...);
+	template<typename TDict>
+	Particle(TDict const & dict, mesh_type const & pmesh);
 
 	~Particle();
+
+	template<typename TDict, typename TModel, typename ...Args>
+	static std::shared_ptr<this_type> Create(TDict dict, TModel const & model, Args && ... args)
+	{
+		std::shared_ptr<this_type> res(new this_type(dict, model.mesh));
+
+		try
+		{
+			res->J.clear();
+			res->n.clear();
+
+			LoadField(dict["Density"], &(res->n));
+			LoadField(dict["Current"], &(res->J));
+
+			res->n *= res->q;
+		} catch (...)
+		{
+			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
+		}
+
+		return res;
+	}
 
 	static std::string GetTypeAsString()
 	{
@@ -83,8 +105,7 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mesh_type const & pmesh,
-        TDict const & dict, Args const & ...args)
+template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
 		: mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
@@ -93,20 +114,6 @@ template<typename TDict, typename ...Args> Particle<ColdFluid<TM>>::Particle(mes
 
 		n(mesh), J(mesh)
 {
-
-	try
-	{
-		J.clear();
-		n.clear();
-
-		LoadField(dict["Density"], &(n));
-		LoadField(dict["Current"], &(J));
-		n *= q;
-	} catch (...)
-	{
-		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
-	}
-
 }
 
 template<typename TM>

@@ -251,25 +251,25 @@ public:
 	}
 
 	template<typename TR, typename TDict>
-	filter_range_type<TR> SelectByConfig(TR && range, TDict dict) const;
+	filter_range_type<TR> SelectByConfig(TR const& range, TDict const& dict) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByFunction(TR && range, std::function<bool(coordinates_type)> fun) const;
+	filter_range_type<TR> SelectByFunction(TR const& range, std::function<bool(coordinates_type)> fun) const;
 
 	template<typename TR, typename ...Args>
-	filter_range_type<TR> SelectByMaterial(TR && range, Args &&...args) const;
+	filter_range_type<TR> SelectByMaterial(TR const& range, Args &&...args) const;
 
 	template<typename TR, typename T1, typename T2>
-	filter_range_type<TR> SelectInterface(TR && range, T1 in, T2 out) const;
+	filter_range_type<TR> SelectInterface(TR const& range, T1 in, T2 out) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByRectangle(TR && range, coordinates_type v0, coordinates_type v1) const;
+	filter_range_type<TR> SelectByRectangle(TR const& range, coordinates_type v0, coordinates_type v1) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPolylines(TR && range, PointInPolygon checkPointsInPolygen) const;
+	filter_range_type<TR> SelectByPolylines(TR const& range, PointInPolygon checkPointsInPolygen) const;
 
 	template<typename TR>
-	filter_range_type<TR> SelectByPoints(TR && range, std::vector<coordinates_type>const & points) const;
+	filter_range_type<TR> SelectByPoints(TR const& range, std::vector<coordinates_type>const & points) const;
 
 	auto Select(unsigned int iform) const
 	DECL_RET_TYPE( (mesh.Select(iform)))
@@ -302,34 +302,29 @@ public:
 	DECL_RET_TYPE( (SelectByFunction(std::move(mesh.Select(iform)), fun)))
 
 	template<typename TR, typename T1, typename T2>
-	filter_range_type<TR> SelectOnSurface(TR && range, T1 in, T2 out) const;
+	filter_range_type<TR> SelectOnSurface(TR const& range, T1 in, T2 out) const;
 	template<typename TR, typename T1, typename T2>
-	filter_range_type<TR> SelectCrossSurface(TR && range, T1 in, T2 out) const;
+	filter_range_type<TR> SelectCrossSurface(TR const& range, T1 in, T2 out) const;
 
 }
 ;
 
 template<typename TM>
 template<typename TR, typename TDict>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR && range, TDict dict) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR const& range, TDict const& dict) const
 {
-
-	if (!dict)
-	{
-		return filter_range_type<TR>(std::forward<TR>(range));
-	}
 
 	auto type = dict["Type"].template as<std::string>("");
 
 	if (type == "Boundary")
 	{
-		return std::move(SelectInterface(std::forward<TR>(range), dict["In"].template as<std::string>("NONE"), "NONE"));
+		return std::move(SelectInterface(range, dict["In"].template as<std::string>("NONE"), "NONE"));
 
 	}
 	else if (type == "Interface")
 	{
 		return std::move(
-		        SelectInterface(std::forward<TR>(range), dict["In"].template as<std::string>("NONE"),
+		        SelectInterface(range, dict["In"].template as<std::string>("NONE"),
 		                dict["Out"].template as<std::string>("NONE")));
 	}
 	else if (type == "Range" && dict["Points"].is_table())
@@ -340,13 +335,11 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 
 		if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
 		{
-			return std::move(SelectByRectangle(std::forward<TR>(range), points[0], points[1]));
+			return std::move(SelectByRectangle(range, points[0], points[1]));
 		}
 		else if (points.size() > 2) //select points in polylines
 		{
-			return std::move(
-			        SelectByPolylines(std::forward<TR>(range),
-			                PointInPolygon(points, dict["Z-Axis"].template as<int>(2))));
+			return std::move(SelectByPolylines(range, PointInPolygon(points, dict["Z-Axis"].template as<int>(2))));
 		}
 		else
 		{
@@ -356,7 +349,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	}
 	else if (!dict["Material"])
 	{
-		return std::move(SelectByMaterial(std::forward<TR>(range), dict["Material"].template as<std::string>()));
+		return std::move(SelectByMaterial(range, dict["Material"].template as<std::string>()));
 	}
 	else if (dict.is_function())
 	{
@@ -365,7 +358,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 			return (dict( this->mesh.GetCoordinates( s)).template as<bool>());
 		};
 
-		return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+		return std::move(make_range_filter(range, std::move(pred)));
 	}
 	else
 	{
@@ -374,21 +367,21 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	return filter_range_type<TR>();
 }
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR && range,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
         std::vector<coordinates_type>const & points) const
 {
 	if (points.size() == 2)
 	{
-		return std::move(SelectByRectangle(std::forward<TR>(range), points[0], points[1]));
+		return std::move(SelectByRectangle(range, points[0], points[1]));
 	}
 	else
 	{
-		return std::move(SelectByPolylines(std::forward<TR>(range), PointInPolygon(points)));
+		return std::move(SelectByPolylines(range, PointInPolygon(points)));
 	}
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(TR && range,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(TR const& range,
         std::function<bool(coordinates_type)> fun) const
 {
 	pred_fun_type pred = [fun,this]( compact_index_type const & s )->bool
@@ -396,12 +389,12 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(T
 		return fun( this->mesh.GetCoordinates( s));
 	};
 
-	return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+	return std::move(make_range_filter(range, std::move(pred)));
 }
 
 template<typename TM>
 template<typename TR, typename T1, typename T2>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR && range, T1 pin, T2 pout) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR const& range, T1 pin, T2 pout) const
 {
 
 // Good
@@ -509,7 +502,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 		return (res & in).any();
 	};
 
-	return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+	return std::move(make_range_filter(range, std::move(pred)));
 
 }
 template<typename TM>
@@ -541,7 +534,7 @@ typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 }
 
 template<typename TM> template<typename TR, typename ...Args>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(TR && range, Args && ... args) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(TR const& range, Args && ... args) const
 {
 	auto material = GetMaterial(std::forward<Args>(args)...);
 
@@ -549,12 +542,12 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 	{
 		return (this->get(s) & material).any();
 	};
-	return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+	return std::move(make_range_filter(range, std::move(pred)));
 
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(TR && range, coordinates_type v0,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(TR const& range, coordinates_type v0,
         coordinates_type v1) const
 {
 	pred_fun_type pred =
@@ -565,17 +558,17 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(
 		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
 	        };
-	return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+	return std::move(make_range_filter(range, std::move(pred)));
 }
 
 template<typename TM> template<typename TR>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR && range,
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
         PointInPolygon checkPointsInPolygen) const
 {
 	pred_fun_type pred = [=](compact_index_type s )->bool
 	{	return (checkPointsInPolygen(this->mesh.GetCoordinates(s) ));};
 
-	return std::move(make_range_filter(std::forward<TR>(range), std::move(pred)));
+	return std::move(make_range_filter(range, std::move(pred)));
 
 }
 

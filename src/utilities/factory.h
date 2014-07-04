@@ -20,13 +20,15 @@ namespace simpla
 /**
  *  @ref Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
  */
-template<typename TId, typename TProdcut, typename ...Args>
+template<typename TId, typename TProduct, typename ...Args>
 struct Factory
 {
 public:
 	typedef TId identifier_type;
-	typedef TProdcut product_type;
-	typedef std::function<product_type(Args...)> create_fun_callback;
+
+	typedef typename std::conditional<std::is_fundamental<TProduct>::value, TProduct, std::shared_ptr<TProduct>>::type product_type;
+
+	typedef std::function<product_type(Args ...)> create_fun_callback;
 
 	typedef std::map<identifier_type, create_fun_callback> CallbackMap;
 
@@ -50,13 +52,13 @@ public:
 		return (it->second)(std::forward<Args>(args)...);
 	}
 
-	bool Register(identifier_type const & id, create_fun_callback const &fun)
+	int Register(identifier_type const & id, create_fun_callback const &fun)
 	{
-		return callbacks_.insert(typename CallbackMap::value_type(id, fun)).second;
+		return callbacks_.insert(typename CallbackMap::value_type(id, fun)).second ? 1 : 0;
 	}
-	bool Unregister(identifier_type const & id)
+	int Unregister(identifier_type const & id)
 	{
-		return callbacks_.erase(id) == 1;
+		return callbacks_.erase(id);
 	}
 private:
 	CallbackMap callbacks_;

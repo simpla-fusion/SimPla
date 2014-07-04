@@ -219,7 +219,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << "Load Particles";
 
-	RegisterAllParticles<mesh_type, TDict, decltype(ne0), decltype(Te0)>();
+	auto particle_factory = RegisterAllParticles<mesh_type, TDict, Model<mesh_type> const &, decltype(ne0),
+	        decltype(Te0)>();
 
 	/**
 	 * @todo load particle engine plugins
@@ -235,11 +236,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		try
 		{
-			auto p = CreateParticle(type_str, mesh, opt.second, ne0, Te0);
+			auto p = particle_factory.Create(type_str, opt.second, model_, ne0, Te0);
 
 			if (p != nullptr)
 			{
-				p->AddBoundaryCondition(model_, opt.second);
 
 				particles_.emplace(id, p);
 
@@ -256,7 +256,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	for (auto const &p : particles_)
 	{
-		enableImplicit = enableImplicit || p->EnableImplicit();
+		enableImplicit = enableImplicit || p.second->EnableImplicit();
 	}
 
 	LOGGER << "Load Constraints";
@@ -272,15 +272,19 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(CreateCommand(model_, &E, item.second));
+
+				commandToE_.push_back(E.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
-				commandToB_.push_back(CreateCommand(model_, &B, item.second));
+
+				commandToB_.push_back(B.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
-				commandToJ_.push_back(CreateCommand(model_, &Jext, item.second));
+
+				commandToJ_.push_back(
+				        Jext.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else
 			{

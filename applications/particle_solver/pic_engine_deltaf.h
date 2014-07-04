@@ -8,7 +8,6 @@
 #ifndef PIC_ENGINE_DELTAF_H_
 #define PIC_ENGINE_DELTAF_H_
 
-
 #include <sstream>
 #include <string>
 
@@ -54,14 +53,25 @@ public:
 		Vec3 v;
 		Real f;
 		scalar_type w;
+
+		typedef std::tuple<coordinates_type, Vec3, Real, scalar_type> compact_type;
+
+		static compact_type Compact(Point_s const& p)
+		{
+			return ((std::make_tuple(p.x, p.v, p.f, p.w)));
+		}
+
+		static Point_s Decompact(compact_type const & t)
+		{
+			Point_s p;
+			p.x = std::get<0>(t);
+			p.v = std::get<1>(t);
+			p.f = std::get<2>(t);
+			p.w = std::get<3>(t);
+			return std::move(p);
+		}
 	};
 
-	typedef std::tuple<coordinates_type, Vec3, Real, scalar_type> compact_point_type;
-
-	auto Compact(Point_s && p) DECL_RET_TYPE(std::tie(p.x,p.v,p.f,p.w))
-
-	auto Decompact(compact_point_type && p) DECL_RET_TYPE(Point_s(
-					{	std::get<0>(p),std::get<1>(p),std::get<2>(p),std::get<3>(p.w)}))
 private:
 	Real cmr_, q_kT_;
 public:

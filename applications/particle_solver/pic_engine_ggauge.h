@@ -68,15 +68,32 @@ public:
 		Real f;
 		nTuple<NMATE, scalar_type> w;
 
+		typedef std::tuple<coordinates_type, Vec3, Real, nTuple<NMATE, scalar_type>> compact_type;
+
+		static compact_type Compact(Point_s const& p)
+		{
+			return ((std::make_tuple(p.x, p.v, p.f, p.w)));
+		}
+
+		static Point_s Decompact(compact_type const & t)
+		{
+			Point_s p;
+			p.x = std::get<0>(t);
+			p.v = std::get<1>(t);
+			p.f = std::get<2>(t);
+			p.w = std::get<3>(t);
+			return std::move(p);
+		}
+
 	};
-	PICEngineGGauge(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0)
+	PICEngineGGauge(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0)
 	{
 	}
 
 	template<typename ...Others>
-	PICEngineGGauge(mesh_type const &m, Others && ...others) :
-			PICEngineGGauge(m)
+	PICEngineGGauge(mesh_type const &m, Others && ...others)
+			: PICEngineGGauge(m)
 	{
 		Load(std::forward<Others >(others)...);
 	}

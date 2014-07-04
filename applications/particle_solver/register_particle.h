@@ -14,7 +14,6 @@
 #include "../../src/utilities/primitives.h"
 #include "../../src/particle/particle.h"
 #include "../../src/particle/particle_base.h"
-#include "../../src/particle/particle_factory.h"
 #include "fluid_cold_engine.h"
 #include "pic_engine_default.h"
 #include "pic_engine_deltaf.h"
@@ -29,40 +28,21 @@ namespace simpla
  *  @}
  */
 
-template<typename TP, typename ...Args> bool RegistOneParticle()
-{
-	std::function<std::shared_ptr<ParticleBase<typename TP::mesh_type>>(typename TP::mesh_type const &, Args &&...)> callback =
-	        [](typename TP::mesh_type const &m, Args && ...args)
-	        {
-		        return CreateParticleWrap<TP, Args...>(m, std::forward<Args >(args)...);
-	        };
-
-	return RegisterParticle(TP::GetTypeAsString(), callback);
-}
-
 template<typename Mesh, typename ...Args>
-bool RegisterAllParticles()
+Factory<std::string, ParticleBase<Mesh>, Args ...> RegisterAllParticles()
 {
 
-	bool res = true;
+	Factory<std::string, ParticleBase<Mesh>, Args ...> factory;
 
-	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, true>>, Args...>();
+	ParticleWrap<Particle<PICEngineDefault<Mesh, true>>> ::Register(&factory);
+	ParticleWrap<Particle<PICEngineDefault<Mesh, false>>> ::Register(&factory);
+	ParticleWrap<Particle<PICEngineDeltaF<Mesh>>> ::Register(&factory);
+	ParticleWrap<Particle<PICEngineGGauge<Mesh, 4, true>>> ::Register(&factory);
+	ParticleWrap<Particle<PICEngineGGauge<Mesh, 16, true>>> ::Register(&factory);
+	ParticleWrap<Particle<PICEngineGGauge<Mesh, 32, true>>> ::Register(&factory);
+	ParticleWrap<Particle<ColdFluid<Mesh>>> ::Register(&factory);
 
-	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineDefault<Mesh, false>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineDeltaF<Mesh>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 4, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 16, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<PICEngineGGauge<Mesh, 32, true>>, Args...>();
-
-	res &= RegistOneParticle<Particle<ColdFluid<Mesh> >, Args...>();
-
-	return res;
+	return std::move(factory);
 }
 
 }

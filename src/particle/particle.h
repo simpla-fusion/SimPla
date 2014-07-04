@@ -52,15 +52,13 @@ public:
 
 	typedef Engine engine_type;
 
-	typedef ParticlePool<typename Engine::mesh_type, typename Engine::compact_point_s> storage_type;
+	typedef ParticlePool<typename Engine::mesh_type, typename Engine::Point_s> storage_type;
 
 	typedef Particle<engine_type> this_type;
 
 	typedef typename engine_type::mesh_type mesh_type;
 
 	typedef typename engine_type::Point_s particle_type;
-
-	typedef typename engine_type::compact_point_s compact_point_s;
 
 	typedef typename engine_type::scalar_type scalar_type;
 
@@ -76,13 +74,18 @@ public:
 	// Constructor
 	Particle(mesh_type const & pmesh);
 
-	template<typename TDict, typename ...Others> Particle(TDict const & dict, mesh_type const & pmesh,
-	        Others && ...others);
+	template<typename TDict> Particle(TDict const & dict, mesh_type const & pmesh);
 
 	// Destructor
 	~Particle();
 
-	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others && ...others);
+	template<typename TDict> void Load(TDict const & dict);
+
+	template<typename ...Args>
+	static std::shared_ptr<this_type> Create(Args && ... args)
+	{
+		return LoadParticle<this_type>(std::forward<Args>(args)...);
+	}
 
 	void AddConstraint(std::function<void()> const &foo)
 	{
@@ -121,22 +124,23 @@ Particle<Engine>::Particle(mesh_type const & pmesh)
 {
 }
 template<typename Engine>
-template<typename TDict, typename ...Others>
-Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh, Others && ...others)
+template<typename TDict>
+Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
 		: Particle(pmesh)
 {
-	Load(dict, std::forward<Others>(others)...);
+	Load(dict);
 }
 template<typename Engine>
-template<typename TDict, typename ...Others>
-void Particle<Engine>::Load(TDict const & dict, Others && ...others)
+template<typename TDict>
+void Particle<Engine>::Load(TDict const & dict)
 {
-	engine_type::Load(dict, std::forward<Others>(others)...);
+	engine_type::Load(dict);
 
-	storage_type::Load(dict, std::forward<Others>(others)...);
+	storage_type::Load(dict["url"].template as<std::string>());
 
-	LoadParticle(this, dict, std::forward<Others>(others)...);
+	J.clear();
 
+	n.clear();
 }
 
 template<typename Engine>

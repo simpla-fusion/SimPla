@@ -34,7 +34,7 @@ class Surface: public std::map<typename TM::compact_index_type, Vec3>
 {
 public:
 	typedef TM mesh_type;
-	typedef Surface<TM> this_type
+	typedef Surface<TM> this_type;
 	typedef std::map<typename TM::compact_index_type, Vec3> base_container_type;
 
 	typedef typename mesh_type::iterator mesh_iterator;

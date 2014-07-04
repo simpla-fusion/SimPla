@@ -63,6 +63,8 @@ public:
 
 	typedef typename mesh_type::interpolator_type interpolator_type;
 
+	typedef std::function<field_value_type(Real, coordinates_type, field_value_type)> picewise_fun_type;
+
 	friend mesh_type;
 
 	mesh_type const &mesh;
@@ -357,15 +359,18 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 };
 
 template<typename TM, int IForm, typename TContainer> template<typename TRange, typename TFun>
-std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & fun)
+std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & object)
 {
+	auto fun = TypeCast<picewise_fun_type>(object);
 
 	std::function<void()> res = [this,range,fun]()
 	{
 		for(auto s: range)
 		{
+			auto x=this->mesh.GetCoordinates(s);
+
 			get_value(*this,s) = this->mesh.Sample(std::integral_constant<int, IForm>(),
-					s, fun(this->mesh.GetTime(), this->mesh.GetCoordinates(s), get_value(*this,s)));
+					s, fun(this->mesh.GetTime(),x ,(*this)(x)));
 		}
 	};
 
