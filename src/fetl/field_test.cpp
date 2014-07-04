@@ -20,35 +20,35 @@ template<typename TM, template<typename, typename > class Container> using Param
 testing::Types<
 Field<TM,VERTEX,Container<typename TM::compact_index_type,Real> >
 
-,Field<TM,EDGE,Container<typename TM::compact_index_type,Real> >
-
-,Field<TM,FACE,Container<typename TM::compact_index_type,Real> >
-
-,Field<TM,VOLUME,Container<typename TM::compact_index_type,Real> >
-
-,Field<TM,VERTEX,Container<typename TM::compact_index_type,Complex> >
-
-,Field<TM,EDGE,Container<typename TM::compact_index_type,Complex> >
-
-,Field<TM,FACE,Container<typename TM::compact_index_type,Complex> >
-
-,Field<TM,VOLUME,Container<typename TM::compact_index_type,Complex> >
-
-,Field<TM,VERTEX,Container<typename TM::compact_index_type,nTuple<3,Real>> >
-
-,Field<TM,EDGE,Container<typename TM::compact_index_type,nTuple<3,Real>> >
-
-,Field<TM,FACE,Container<typename TM::compact_index_type,nTuple<3,Real>> >
-
-,Field<TM,VOLUME,Container<typename TM::compact_index_type,nTuple<3,Real>> >
-
-,Field<TM,VERTEX,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
-
-,Field<TM,EDGE,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
-
-,Field<TM,FACE,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
-
-,Field<TM,VOLUME,Container<typename TM::compact_index_type,nTuple<3,Complex> > >
+//,Field<TM,EDGE,Container<typename TM::compact_index_type,Real> >
+//
+//,Field<TM,FACE,Container<typename TM::compact_index_type,Real> >
+//
+//,Field<TM,VOLUME,Container<typename TM::compact_index_type,Real> >
+//
+//,Field<TM,VERTEX,Container<typename TM::compact_index_type,Complex> >
+//
+//,Field<TM,EDGE,Container<typename TM::compact_index_type,Complex> >
+//
+//,Field<TM,FACE,Container<typename TM::compact_index_type,Complex> >
+//
+//,Field<TM,VOLUME,Container<typename TM::compact_index_type,Complex> >
+//
+//,Field<TM,VERTEX,Container<typename TM::compact_index_type,nTuple<3,Real>> >
+//
+//,Field<TM,EDGE,Container<typename TM::compact_index_type,nTuple<3,Real>> >
+//
+//,Field<TM,FACE,Container<typename TM::compact_index_type,nTuple<3,Real>> >
+//
+//,Field<TM,VOLUME,Container<typename TM::compact_index_type,nTuple<3,Real>> >
+//
+//,Field<TM,VERTEX,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
+//
+//,Field<TM,EDGE,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
+//
+//,Field<TM,FACE,Container<typename TM::compact_index_type,nTuple<3,Complex>> >
+//
+//,Field<TM,VOLUME,Container<typename TM::compact_index_type,nTuple<3,Complex> > >
 
 >;
 

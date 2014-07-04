@@ -417,8 +417,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l) :
-			mesh(l.mesh), l_(l)
+	Field(TL const & l)
+			: mesh(l.mesh), l_(l)
 	{
 	}
 	template<typename TI>
@@ -453,8 +453,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r) :
-			mesh(get_mesh(l, r)), l_(l), r_(r)
+	Field(TL const & l, TR const & r)
+			: mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 
@@ -499,6 +499,5 @@ struct can_not_reference<Field<TM, IFORM, UniOp<TOP, TL> > >
 	static constexpr bool value = true;
 };
 
-}
-namespace simpla
+} //namespace simpla
 #endif /* OPERATIONS_H_ */

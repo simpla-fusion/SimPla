@@ -9,11 +9,11 @@
 #define SP_TYPE_TRAITS_H_
 
 #include <type_traits>
+#include <memory>
+#include <tuple>
 
 namespace simpla
 {
-
-#include <tuple>
 
 template<bool B> using Bool2Type=std::integral_constant<bool,B>;
 
@@ -263,6 +263,10 @@ template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
 ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
 
+template<typename T, typename TI>
+auto get_value(std::shared_ptr<T> v, TI const & s)
+DECL_RET_TYPE(get_value(*v ,s))
+
 // @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>
 struct CountBits
@@ -302,26 +306,6 @@ template<typename TV, typename TR> inline TV TypeCast(TR const & obj)
 	return std::move(static_cast<TV>(obj));
 }
 
-template<typename T>
-T begin(std::pair<T, T>const & range)
-{
-	return std::move(range.first);
-}
-template<typename T>
-T end(std::pair<T, T>const & range)
-{
-	return std::move(range.second);
-}
-template<typename T>
-T rbegin(std::pair<T, T>const & range)
-{
-	return std::move(range.second--);
-}
-template<typename T>
-T rend(std::pair<T, T>const & range)
-{
-	return std::move(range.first--);
-}
 //namespace _impl
 //{
 ////******************************************************************************************************
@@ -361,6 +345,28 @@ T rend(std::pair<T, T>const & range)
 ////******************************************************************************************************
 //
 //}// namespace _impl
-} // namespace simpla
-
+}// namespace simpla
+namespace std
+{
+template<typename T>
+T begin(std::pair<T, T>const & range)
+{
+	return std::move(range.first);
+}
+template<typename T>
+T end(std::pair<T, T>const & range)
+{
+	return std::move(range.second);
+}
+template<typename T>
+T rbegin(std::pair<T, T>const & range)
+{
+	return std::move(range.second--);
+}
+template<typename T>
+T rend(std::pair<T, T>const & range)
+{
+	return std::move(range.first--);
+}
+}
 #endif /* SP_TYPE_TRAITS_H_ */

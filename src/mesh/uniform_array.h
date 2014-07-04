@@ -20,7 +20,6 @@
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/memory_pool.h"
-#include "../utilities/iterator_index_base.h"
 
 #include "../parallel/distributed_array.h"
 #include "../physics/constants.h"
@@ -77,8 +76,7 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -1079,9 +1077,15 @@ struct UniformArray
 	 *   @{
 	 */
 	//! iterator
-	struct iterator:public IndexBaseIterator<compact_index_type>
+	struct iterator:public std::iterator<
+	std::bidirectional_iterator_tag,/// One of the @link iterator_tags tag types@endlink.
+	compact_index_type,/// The type "pointed to" by the iterator.
+	compact_index_type,/// Distance between iterators is represented as this type.
+	compact_index_type*,/// This type represents a pointer-to-value_type.
+	compact_index_type/// This type represents a reference-to-value_type.
+	>
 	{
-		typedef IndexBaseIterator<compact_index_type> base_iterator;
+
 		typedef iterator this_type;
 
 		nTuple<NDIMS, index_type> self_;
@@ -1298,13 +1302,13 @@ private:
 			e = ib;
 		}
 
-		return std::move(make_range(b, e, get_first_node_shift(iform)));
+		return std::move(this_type::make_range(b, e, get_first_node_shift(iform)));
 
 	}
 public:
 	range_type Select(unsigned int iform) const
 	{
-		return std::move(make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
+		return std::move(this_type::make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
 	}
 
 	range_type Select(range_type range)const
@@ -1331,7 +1335,7 @@ public:
 
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args &&... args) const
-	DECL_RET_TYPE (Select(Select(iform),std::forward<Args>(args)...))
+	DECL_RET_TYPE (this_type::Select(this_type::Select(iform),std::forward<Args>(args)...))
 	/**  @} */
 	/**
 	 *  @name Hash
@@ -1977,7 +1981,8 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{
@@ -1994,24 +1999,12 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 namespace std
 {
-template<typename TI> struct iterator_traits;
 
-template<>
-struct iterator_traits<simpla::UniformArray::iterator>
-{
-	typedef typename simpla::UniformArray::iterator iterator;
-	typedef typename iterator::iterator_category iterator_category;
-	typedef typename iterator::value_type value_type;
-	typedef typename iterator::difference_type difference_type;
-	typedef typename iterator::pointer pointer;
-	typedef typename iterator::reference reference;
-
-};
 typename iterator_traits<simpla::UniformArray::iterator>::difference_type //
 distance(simpla::UniformArray::iterator b, simpla::UniformArray::iterator e)
 {
 
-	typename iterator_traits<simpla::UniformArray::iterator>::difference_type res;
+	typename simpla::UniformArray::iterator::difference_type res;
 
 	--e;
 

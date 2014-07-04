@@ -1,27 +1,27 @@
 /*
- * iterator_index_base.h
+ * sp_iterator_index_base.h
  *
  *  Created on: 2014年6月20日
  *      Author: salmon
  */
 
-#ifndef ITERATOR_INDEX_BASE_H_
-#define ITERATOR_INDEX_BASE_H_
+#ifndef SP_ITERATOR_INDEX_BASE_H_
+#define SP_ITERATOR_INDEX_BASE_H_
 
-#include <iterator>
+#include "sp_iterator.h"
 namespace simpla
 {
 
 template<typename T>
-class IndexBaseIterator: public std::iterator<std::bidirectional_iterator_tag, T>
+class Iterator<T*, std::nullptr_t, std::nullptr_t> : public std::iterator<std::bidirectional_iterator_tag, T>
 {
 public:
-	typedef IndexBaseIterator<T> this_type;
+	typedef Iterator<T*, std::nullptr_t, std::nullptr_t> this_type;
 
-	IndexBaseIterator()
+	Iterator()
 	{
 	}
-	virtual ~IndexBaseIterator()
+	virtual ~Iterator()
 	{
 	}
 	virtual T get() const =0;
@@ -57,4 +57,4 @@ public:
 };
 }  // namespace simpla
 
-#endif /* ITERATOR_INDEX_BASE_H_ */
+#endif /* SP_ITERATOR_INDEX_BASE_H_ */

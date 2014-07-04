@@ -72,7 +72,7 @@ TYPED_TEST_CASE_P(TestModel);
 TYPED_TEST_P(TestModel,SelectByRectangle ){
 {
 
-	auto   & model= *TestFixture::model;
+	auto & model= *TestFixture::model;
 	auto const & mesh= TestFixture::mesh;
 	static constexpr unsigned int IForm=TestFixture::IForm;
 
@@ -91,8 +91,12 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	f.clear();
 
-	for (auto s : model.SelectByRectangle( TestFixture::IForm, TestFixture::points[0],TestFixture::points[1]))
+	auto r=model.SelectByRectangle( TestFixture::IForm, TestFixture::points[0],TestFixture::points[1]);
+
+	for (auto it=std::begin(r), ie=std::end(r); it!=ie;++it)
 	{
+		auto s=*it;
+
 		f[s] = 1;
 		auto x = mesh.GetCoordinates(s);
 
@@ -141,7 +145,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 TYPED_TEST_P(TestModel,SelectByPolylines ){
 {
 
-	auto   & model= *TestFixture::model;
+	auto & model= *TestFixture::model;
 	auto const & mesh= TestFixture::mesh;
 	static constexpr unsigned int IForm=TestFixture::IForm;
 

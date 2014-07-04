@@ -19,7 +19,7 @@
 #include "../utilities/primitives.h"
 
 #include "../parallel/parallel.h"
-#include "../utilities/iterator_mapped.h"
+#include "../utilities/sp_iterator_mapped.h"
 #include "field_update_ghosts.h"
 
 namespace simpla
@@ -62,6 +62,7 @@ public:
 	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	typedef typename mesh_type::interpolator_type interpolator_type;
+
 	friend mesh_type;
 
 	mesh_type const &mesh;
@@ -209,23 +210,21 @@ public:
 		return container_type::get(s);
 	}
 
-	auto Select()
-	DECL_RET_TYPE((make_mapped_range( *this, range_)))
-	auto Select() const
-	DECL_RET_TYPE((make_mapped_range( *this, range_)))
+	//@todo add shared_ptr iterator
 
 	template<typename ... Args>
 	auto Select(Args &&... args)
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select( range_,std::forward<Args>(args)...))))
+	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*this) )
+
 	template<typename ... Args>
 	auto Select(Args &&... args) const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select( range_,std::forward<Args>(args)...))))
+	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*this) )
 
-	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
-	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))
+	auto begin() DECL_RET_TYPE(std::begin(make_range_mapped( range_,*this)))
+	auto begin() const DECL_RET_TYPE(std::begin(make_range_mapped( range_,*this)))
 
-	auto end() DECL_RET_TYPE(simpla::end(this->Select()))
-	auto end() const DECL_RET_TYPE(simpla::end(this->Select()))
+	auto end() DECL_RET_TYPE( std::end(make_range_mapped( range_,*this)))
+	auto end() const DECL_RET_TYPE( std::end(make_range_mapped( range_,*this)))
 
 	template<typename T>
 	void Fill(T v)
@@ -359,41 +358,41 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 	static constexpr bool value = true;
 };
 
-template<typename TM, template<typename > class TModel, typename TDict, int IForm, typename TContainer>
-std::function<void()> CreateCommand(Field<TM, IForm, TContainer> * f, TModel<TM> const & model, TDict const & dict)
-{
-
-	if (!dict["Operation"])
-	{
-		PARSER_ERROR("'Operation' is not defined!");
-	}
-
-	typedef typename TM mesh_type;
-
-	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
-
-	auto op_ = dict.template as<field_fun>();
-
-	auto range = model.SelectByConfig(IForm, dict["Select"]);
-
-	std::function<void()> res = [f,range,op_]()
-	{
-		for(auto s:range)
-		{
-			auto x = f->mesh.GetCoordinates(s);
-
-			get_value(*f,s) = f->mesh.Sample(std::integral_constant<int, IForm>(),
-					s, op_(f->mesh.GetTime(), x, get_value(*f,s)));
-		}
-	};
-
-	return res;
-
-}
+//template<typename TM, template<typename > class TModel, typename TDict, int IForm, typename TContainer>
+//std::function<void()> CreateCommand(Field<TM, IForm, TContainer> * f, TModel<TM> const & model, TDict const & dict)
+//{
+//
+//	if (!dict["Operation"])
+//	{
+//		PARSER_ERROR("'Operation' is not defined!");
+//	}
+//
+//	typedef TM mesh_type;
+//
+//	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
+//
+//	typedef typename mesh_type::coordinates_type coordinates_type;
+//
+//	typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
+//
+//	auto op_ = dict.template as<field_fun>();
+//
+//	auto range = model.SelectByConfig(IForm, dict["Select"]);
+//
+//	std::function<void()> res = [f,range,op_]()
+//	{
+//		for(auto s:range)
+//		{
+//			auto x = f->mesh.GetCoordinates(s);
+//
+//			get_value(*f,s) = f->mesh.Sample(std::integral_constant<int, IForm>(),
+//					s, op_(f->mesh.GetTime(), x, get_value(*f,s)));
+//		}
+//	};
+//
+//	return res;
+//
+//}
 }
 // namespace simpla
 
