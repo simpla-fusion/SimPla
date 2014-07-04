@@ -23,8 +23,8 @@ class _iterator_policy_mapped
  *  @ingroup iterator
  *  @brief mapped iterator
  */
-template<typename TIterator, typename TContainer, bool IsShared>
-struct Iterator<TIterator, TContainer, _iterator_policy_mapped, IsShared> : public std::iterator_traits<TIterator>
+template<typename TIterator, typename TContainer, bool IsReference>
+struct Iterator<TIterator, TContainer, _iterator_policy_mapped, IsReference>
 {
 	HAS_MEMBER_FUNCTION(at);
 
@@ -32,17 +32,18 @@ public:
 	typedef TContainer conatiner_type;
 	typedef TIterator key_iterator;
 
-	typedef Iterator< key_iterator, conatiner_type,_iterator_policy_mapped, IsShared> this_type;
+	typedef Iterator< key_iterator, conatiner_type,_iterator_policy_mapped, IsReference> this_type;
 
 	typedef typename std::conditional<std::is_pointer<conatiner_type>::value,
 	typename std::remove_pointer<conatiner_type>::type, typename conatiner_type::value_type>::type value_type;
 
+	typedef typename key_iterator::iterator_category iterator_category;
 	typedef value_type* pointer;
 	typedef value_type& reference;
 	typedef value_type const* const_pointer;
 	typedef value_type const& const_reference;
 
-	typedef typename std::conditional<IsShared,std::shared_ptr<conatiner_type> ,conatiner_type&>::type storage_type;
+	typedef typename std::conditional<IsReference, conatiner_type&, conatiner_type >::type storage_type;
 
 	storage_type data_;
 	key_iterator k_it_;
@@ -130,18 +131,19 @@ public:
 	}
 };
 
-template<typename TKey, typename TMapped, typename TIterator, bool IsShared>
-struct Iterator<TIterator, std::map<TKey, TMapped>, _iterator_policy_mapped, IsShared> : public std::iterator_traits<
-        TIterator>
+template<typename TKey, typename TMapped, typename TIterator, bool IsReference>
+struct Iterator<TIterator, std::map<TKey, TMapped>, _iterator_policy_mapped, IsReference>
 {
 
 	typedef std::map<TKey, TMapped> conatiner_type;
 
 	typedef TIterator key_iterator;
 
-	typedef Iterator<key_iterator, conatiner_type, _iterator_policy_mapped, IsShared> this_type;
+	typedef Iterator<key_iterator, conatiner_type, _iterator_policy_mapped, IsReference> this_type;
 
 	typedef typename conatiner_type::iterator base_iterator;
+
+	typedef typename key_iterator::iterator_category iterator_category;
 
 	typedef typename conatiner_type::mapped_type value_type;
 	typedef value_type* pointer;
@@ -149,7 +151,7 @@ struct Iterator<TIterator, std::map<TKey, TMapped>, _iterator_policy_mapped, IsS
 	typedef value_type const* const_pointer;
 	typedef value_type const& const_reference;
 
-	typedef typename std::conditional<IsShared, std::shared_ptr<conatiner_type>, conatiner_type&>::type storage_type;
+	typedef typename std::conditional<IsReference, conatiner_type&, conatiner_type>::type storage_type;
 
 	storage_type data_;
 	key_iterator k_it_, k_it_end_;

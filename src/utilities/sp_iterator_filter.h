@@ -24,10 +24,16 @@ class _iterator_policy_filter
  *
  */
 template<typename TIterator, typename TPred>
-struct Iterator<TIterator, TPred, _iterator_policy_filter, true> : public std::iterator_traits<TIterator>
+struct Iterator<TIterator, TPred, _iterator_policy_filter, true>
 {
 
 	typedef TIterator base_iterator;
+
+	typedef typename base_iterator::iterator_category iterator_category;
+	typedef typename base_iterator::value_type value_type;
+	typedef typename base_iterator::difference_type difference_type;
+	typedef typename base_iterator::pointer pointer;
+	typedef typename base_iterator::reference reference;
 
 	typedef TPred predicate_fun;
 

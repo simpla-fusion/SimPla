@@ -1077,16 +1077,21 @@ struct UniformArray
 	 *   @{
 	 */
 	//! iterator
-	struct iterator:public std::iterator<
-	std::bidirectional_iterator_tag,/// One of the @link iterator_tags tag types@endlink.
-	compact_index_type,/// The type "pointed to" by the iterator.
-	compact_index_type,/// Distance between iterators is represented as this type.
-	compact_index_type*,/// This type represents a pointer-to-value_type.
-	compact_index_type/// This type represents a reference-to-value_type.
-	>
+	struct iterator
 	{
 
 		typedef iterator this_type;
+
+		/// One of the @link iterator_tags tag types@endlink.
+		typedef std::bidirectional_iterator_tag iterator_category;
+		/// The type "pointed to" by the iterator.
+		typedef compact_index_type value_type;
+		/// Distance between iterators is represented as this type.
+		typedef long difference_type;
+		/// This type represents a pointer-to-value_type.
+		typedef compact_index_type * pointer;
+		/// This type represents a reference-to-value_type.
+		typedef compact_index_type reference;
 
 		nTuple<NDIMS, index_type> self_;
 

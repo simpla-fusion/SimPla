@@ -184,7 +184,7 @@ TYPED_TEST_P(TestField,traversal){
 
 	count=0;
 
-	for(auto const &v:f )
+	for(auto const &v:f.Select() )
 	{
 		value_type ss;
 		ss=count;

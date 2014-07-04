@@ -214,17 +214,20 @@ public:
 
 	template<typename ... Args>
 	auto Select(Args &&... args)
-	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*this) )
+	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*( this)) )
 
 	template<typename ... Args>
 	auto Select(Args &&... args) const
-	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*this) )
+	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*( this)) )
 
-	auto begin() DECL_RET_TYPE(std::begin(make_range_mapped( range_,*this)))
-	auto begin() const DECL_RET_TYPE(std::begin(make_range_mapped( range_,*this)))
+	typedef Iterator<mesh_iterator,this_type,_iterator_policy_mapped,true> iterator;
+	typedef Iterator<mesh_iterator,const this_type,_iterator_policy_mapped,true> const_iterator;
 
-	auto end() DECL_RET_TYPE( std::end(make_range_mapped( range_,*this)))
-	auto end() const DECL_RET_TYPE( std::end(make_range_mapped( range_,*this)))
+	auto begin() DECL_RET_TYPE( iterator( std::get<0>(range_),std::get<1>(range_), *this))
+	auto begin() const DECL_RET_TYPE( const_iterator( std::get<0>(range_),std::get<1>(range_), *this))
+
+	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this))
+	auto end() const DECL_RET_TYPE( const_iterator( std::get<1>(range_),std::get<1>(range_), *this))
 
 	template<typename T>
 	void Fill(T v)

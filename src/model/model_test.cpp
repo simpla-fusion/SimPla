@@ -8,6 +8,7 @@
 #include <random>
 #include <string>
 #include "../fetl/fetl.h"
+#include "../fetl/field.h"
 #include "../fetl/save_field.h"
 
 #include "model.h"

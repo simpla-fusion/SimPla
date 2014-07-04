@@ -30,6 +30,9 @@ public:
 	typedef TKey key_type;
 	typedef DenseContainer<key_type, value_type> this_type;
 
+	typedef value_type & reference;
+	typedef value_type * pointer;
+
 	static constexpr bool is_dense_storage = true;
 
 	std::shared_ptr<value_type> data_;
