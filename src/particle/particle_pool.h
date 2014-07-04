@@ -10,6 +10,7 @@
 #include "../utilities/log.h"
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/container_container.h"
+#include "../utilities/sp_iterator_mapped.h"
 #include "../parallel/parallel.h"
 #include "save_particle.h"
 
@@ -57,44 +58,50 @@ private:
 public:
 
 	mesh_type const & mesh;
-	typename mesh_type::range_type range_;
+
 	//***************************************************************************************************
 	// Constructor
 
 	template<typename ...Others> ParticlePool(mesh_type const & pmesh, Others && ...);
-	template<typename ...Others> ParticlePool(mesh_type const & pmesh, range_type const &, Others && ...);
 
 	// Destructor
 	~ParticlePool();
 
-	void Load()
+	template<typename ...Args> void Load(Args && ...others)
 	{
 	}
-
-	template<typename TDict, typename ...Args> void Load(TDict const & dict, Args && ...others);
 
 	std::string Save(std::string const & path) const;
 
 	//***************************************************************************************************
 
-	template<typename ... Args>
-	auto Select(Args && ... args)
-	DECL_RET_TYPE((make_mapped_range(*this, mesh.Select(range_,std::forward<Args >(args)...))))
-	template<typename ... Args>
-	auto Select(Args && ... args) const
-	DECL_RET_TYPE((make_mapped_range(*this, mesh.Select(range_,std::forward<Args >(args)...))))
-
-	template<typename TIterator>
-	void Clear(TIterator it);
+//	template<typename ... Args>
+//	auto Select(Args && ... args)
+//	DECL_RET_TYPE(make_range_mapped(mesh.Select(IForm), *this))
+////	{
+////		auto r = mesh.Select(mesh.Select(IForm), std::forward<Args >(args)...);
+////		return make_range_mapped(mesh.Select(IForm), *this);
+////	}
+//
+//	template<typename ... Args>
+//	auto Select(Args && ... args) const
+//	DECL_RET_TYPE((make_range_mapped( mesh.Select(mesh.Select(IForm),std::forward<Args >(args)...),*this)))
 
 	void ClearEmpty();
 
-	void Merge(container_type * other, container_type *dest = nullptr);
+	void Add(container_type * other);
 
 	void Add(child_container_type *src);
 
 	template<typename TRange>
-	void Remove(TRange r, child_container_type *other = nullptr);
+	void Remove(TRange const & range, child_container_type *other = nullptr);
+
+	template<typename TRange>
+	void Remove(TRange const & range, std::function<bool(particle_type)> const fun, child_container_type * other =
+	        nullptr);
+
+	template<typename TRange>
+	void Modify(TRange const & range, std::function<particle_type(particle_type)> const & fun);
 
 //***************************************************************************************************
 
@@ -117,7 +124,8 @@ private:
 	 */
 	template<typename TSrc, typename TDest> void Sort_(TSrc *, TDest *dest);
 
-};
+}
+;
 
 /***
  * @todo (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
@@ -125,22 +133,9 @@ private:
 template<typename TM, typename TPoint>
 template<typename ...Others>
 ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh, Others && ...others)
-		: container_type(), mesh(pmesh), isSorted_(false), range_(pmesh.Select(IForm))
+		: container_type(), mesh(pmesh), isSorted_(false)
 {
 	Load(std::forward<Others >(others)...);
-}
-template<typename TM, typename TPoint>
-template<typename ...Others>
-ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh, range_type const &range, Others && ...others)
-		: container_type(), mesh(pmesh), isSorted_(false), range_(range)
-{
-	Load(std::forward<Others >(others)...);
-}
-
-template<typename TM, typename TPoint>
-template<typename TDict, typename ...Args> void ParticlePool<TM, TPoint>::Load(TDict const & dict, Args && ...others)
-{
-
 }
 
 template<typename TM, typename TPoint>
@@ -184,24 +179,6 @@ void ParticlePool<TM, TPoint>::Sort()
 	if (is_sorted())
 		return;
 
-//	ParallelDo(
-//
-//	[this](int t_num,int t_id)
-//	{
-//		container_type dest;
-//		for (auto s : mesh.Select(IForm).Split(t_num,t_id))
-//		{
-//
-// 			CHECK(mesh.Hash(s));
-//			auto it = base_container_type::find(s);
-//
-//			if (it != base_container_type::end()) this->Sort_(&(it->second), &dest);
-//		}
-//		Merge(&dest);
-//	}
-//
-//	);
-
 	//@bug Here should be PARALLEL (multi-threads)
 	container_type dest;
 	for (auto s : mesh.Select(IForm))
@@ -212,7 +189,7 @@ void ParticlePool<TM, TPoint>::Sort()
 		if (it != container_type::end())
 			this->Sort_(&(it->second), &dest);
 	}
-	Merge(&dest, this);
+	Add(&dest);
 	isSorted_ = true;
 
 }
@@ -234,28 +211,19 @@ void ParticlePool<TM, TPoint>::ClearEmpty()
 	}
 	container_type::unlock();
 }
-template<typename TM, typename TPoint>
-template<typename TIterator>
-void ParticlePool<TM, TPoint>::Clear(TIterator it)
-{
-	container_type::lock();
-	container_type::erase(it.c_it_);
-	container_type::unlock();
-}
 
 template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::Merge(container_type * other, container_type *dest)
+void ParticlePool<TM, TPoint>::Add(container_type * other)
 {
-	if (dest == nullptr)
-		dest = this;
 
 	container_type::lock();
 	for (auto & v : *other)
 	{
-		auto & c = dest->get(v.first);
+		auto & c = this->get(v.first);
 		c.splice(c.begin(), v.second);
 	}
 	container_type::unlock();
+	Sort();
 
 }
 template<typename TM, typename TPoint>
@@ -266,57 +234,82 @@ void ParticlePool<TM, TPoint>::Add(child_container_type* other)
 
 template<typename TM, typename TPoint>
 template<typename TRange>
-void ParticlePool<TM, TPoint>::Remove(TRange r, child_container_type * other)
+void ParticlePool<TM, TPoint>::Remove(TRange const & r, child_container_type * other)
 {
-	auto buffer = container_type::create_child();
+	child_container_type buffer = container_type::create_child();
 
-	for (auto it = std::get<0>(r), ie = std::get<1>(r); it != ie; ++it)
+	for (auto s : r)
 	{
-		buffer.splice(buffer.begin(), *it);
+		auto cell_it = container_type::find(s);
+
+		if (cell_it == container_type::end())
+			continue;
+
+		buffer.splice(buffer.begin(), cell_it->second);
+
+		container_type::erase(cell_it);
 	}
 
 	if (other != nullptr)
 		other->splice(other->begin(), buffer);
 
 }
-template<typename TM, template<typename > class TModel, typename TDict, typename TPoint>
-std::function<void()> CreateCommand(TModel<TM> const & model, TDict const & dict, ParticlePool<TM, TPoint> * f)
+template<typename TM, typename TPoint>
+template<typename TRange>
+void ParticlePool<TM, TPoint>::Remove(TRange const & range, std::function<bool(particle_type)> const fun,
+        child_container_type * other)
 {
+	auto buffer = container_type::create_child();
 
-	if (!dict["Operation"])
+	for (auto s : range)
 	{
-		PARSER_ERROR("'Operation' is not defined!");
-	}
+		auto cell_it = container_type::find(s);
 
-	typedef typename TM mesh_type;
+		if (cell_it == container_type::end())
+			continue;
 
-	typedef typename ParticlePool<TM, TPoint>::child_container_type child_container_type;
+		auto it = cell_it->second.begin();
+		auto ie = cell_it->second.end();
 
-	typedef typename ParticlePool<TM, TPoint>::particle_type particle_type;
-	typedef typename ParticlePool<TM, TPoint>::particle_type particle_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef std::function<particle_type(Real, particle_type const &)> field_fun;
-
-	auto op_ = dict.template as<field_fun>();
-
-	auto range = f->Select(dict["Select"]);
-
-	std::function<void()> res = [range,op_]()
-	{
-		for(auto & cell:range)
+		do
 		{
-			for(auto & p :cell)
+			auto it_p = it;
+			++it;
+
+			if (fun(*it_p))
 			{
-				p = op_(f->mesh.GetTime(), p);
+				buffer->splice(buffer->begin(), cell_it->second, it_p);
 			}
 
-		}
-	};
+		} while (it != ie);
 
-	return res;
+	}
+	if (other != nullptr)
+		other->splice(other->begin(), buffer);
 
 }
+
+template<typename TM, typename TPoint> template<typename TRange>
+void ParticlePool<TM, TPoint>::Modify(TRange const & range, std::function<particle_type(particle_type)> const & fun)
+{
+	size_t count = 0;
+	for (auto s : range)
+	{
+		auto it = container_type::find(s);
+		if (it != container_type::end())
+		{
+			for (auto & p : it->second)
+			{
+				p = fun(p);
+			}
+			++count;
+		}
+	}
+	if (count > 0)
+		isSorted_ = false;
+
+}
+
 }  // namespace simpla
 
 //private:

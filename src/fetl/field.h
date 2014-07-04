@@ -212,14 +212,6 @@ public:
 
 	//@todo add shared_ptr iterator
 
-	template<typename ... Args>
-	auto Select(Args &&... args)
-	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*( this)) )
-
-	template<typename ... Args>
-	auto Select(Args &&... args) const
-	DECL_RET_TYPE( make_range_mapped( mesh.Select( range_,std::forward<Args>(args)...),*( this)) )
-
 	typedef Iterator<mesh_iterator,this_type,_iterator_policy_mapped,true> iterator;
 	typedef Iterator<mesh_iterator,const this_type,_iterator_policy_mapped,true> const_iterator;
 
@@ -228,6 +220,9 @@ public:
 
 	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this))
 	auto end() const DECL_RET_TYPE( const_iterator( std::get<1>(range_),std::get<1>(range_), *this))
+
+	template<typename TRange, typename TFun>
+	std::function<void()> CreateCommand(TRange const & range, TFun const & fun);
 
 	template<typename T>
 	void Fill(T v)
@@ -361,41 +356,22 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 	static constexpr bool value = true;
 };
 
-//template<typename TM, template<typename > class TModel, typename TDict, int IForm, typename TContainer>
-//std::function<void()> CreateCommand(Field<TM, IForm, TContainer> * f, TModel<TM> const & model, TDict const & dict)
-//{
-//
-//	if (!dict["Operation"])
-//	{
-//		PARSER_ERROR("'Operation' is not defined!");
-//	}
-//
-//	typedef TM mesh_type;
-//
-//	typedef typename Field<mesh_type, IForm, TContainer>::field_value_type field_value_type;
-//
-//	typedef typename mesh_type::coordinates_type coordinates_type;
-//
-//	typedef std::function<field_value_type(Real, coordinates_type const &, field_value_type const &)> field_fun;
-//
-//	auto op_ = dict.template as<field_fun>();
-//
-//	auto range = model.SelectByConfig(IForm, dict["Select"]);
-//
-//	std::function<void()> res = [f,range,op_]()
-//	{
-//		for(auto s:range)
-//		{
-//			auto x = f->mesh.GetCoordinates(s);
-//
-//			get_value(*f,s) = f->mesh.Sample(std::integral_constant<int, IForm>(),
-//					s, op_(f->mesh.GetTime(), x, get_value(*f,s)));
-//		}
-//	};
-//
-//	return res;
-//
-//}
+template<typename TM, int IForm, typename TContainer> template<typename TRange, typename TFun>
+std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & fun)
+{
+
+	std::function<void()> res = [this,range,fun]()
+	{
+		for(auto s: range)
+		{
+			get_value(*this,s) = this->mesh.Sample(std::integral_constant<int, IForm>(),
+					s, fun(this->mesh.GetTime(), this->mesh.GetCoordinates(s), get_value(*this,s)));
+		}
+	};
+
+	return res;
+
+}
 }
 // namespace simpla
 

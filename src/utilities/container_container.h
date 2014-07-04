@@ -23,7 +23,6 @@ namespace simpla
 
 template<typename TV> using ListOfSmallObject=std::list<TV/*,FixedSmallSizeAlloc<TV>*/>;
 
-
 /**
  * @ingroup DataStruct
  * @brief  Container of container. i.e. std::map<TKey,std::list<TV>>, *  sub-containers share same allocator
@@ -65,19 +64,16 @@ public:
 
 	ContainerContainer()
 	{
-		CHECK("Construct");
 	}
 
 	ContainerContainer(allocator_type const & alloc)
 			: default_value_(alloc)
 	{
-		CHECK("Construct");
 	}
 
 	// Destructor
 	~ContainerContainer()
 	{
-		;
 	}
 
 	this_type clone() const

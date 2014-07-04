@@ -46,7 +46,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 
 		auto t_cell = pool->create_child();
 
-		pool->Remove(pool->Select(item.send_begin, item.send_end), &t_cell);
+		pool->Remove(pool->mesh.Select(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end), &t_cell);
 
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
 

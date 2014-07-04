@@ -110,17 +110,11 @@ TEST_P(TestParticle,Add)
 	std::vector<double> a;
 
 	p.Remove(
-	        p.Select(
-
-	        std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
-	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75
-
-	                )
-
-	                );
+	        mesh.Select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
+	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75));
 
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
-	p.Remove(p.Select());
+	p.Remove(mesh.Select(pool_type::IForm));
 
 	INFORM << "Remove particle DONE " << p.size() << std::endl;
 	EXPECT_NE(p.size(), 0);

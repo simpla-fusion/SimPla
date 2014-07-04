@@ -80,22 +80,22 @@ public:
 	        Others && ...others);
 
 	// Destructor
-	virtual ~Particle();
+	~Particle();
 
 	template<typename TDict, typename ...Others> void Load(TDict const & dict, Others && ...others);
 
-	template<typename TModel, typename TDict, typename ...Others>
-	void AddBoundaryCondition(TModel const & model, TDict const & dict, Others && ...others)
+	void AddConstraint(std::function<void()> const &foo)
 	{
-		boundary_.push_back(model.make_commend(*this, dict, std::forward<Others>(others)...));
-	}
-	void AddBoundaryCondition(std::function<void()> const &foo)
-	{
-		boundary_.push_back(foo);
+		constraint_.push_back(foo);
 	}
 
-	//***************************************************************************************************
-	// Interface
+	void ApplyConstraints()
+	{
+		for (auto & f : constraint_)
+		{
+			f();
+		}
+	}
 
 	typename engine_type::n_type n;
 
@@ -112,7 +112,7 @@ public:
 
 	std::string Save(std::string const & path, bool is_verbose = false) const;
 
-	std::list<std::function<void()> > boundary_;
+	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
 
@@ -142,47 +142,6 @@ void Particle<Engine>::Load(TDict const & dict, Others && ...others)
 template<typename Engine>
 Particle<Engine>::~Particle()
 {
-}
-template<typename Engine>
-template<typename TDict, typename ...Others> void Particle<Engine>::AddCommand(TDict const & dict, Others && ...others)
-{
-	if (!dict.is_table())
-		return;
-	for (auto item : dict)
-	{
-		auto dof = item.second["DOF"].template as<std::string>("");
-
-		if (dof == "n")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			boundary_.push_back(CreateCommand(&n, item.second, std::forward<Others >(others)...));
-
-		}
-		else if (dof == "J")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			boundary_.push_back(CreateCommand(&J, item.second, std::forward<Others >(others)...));
-
-		}
-		else if (dof == "ParticlesBoundary")
-		{
-
-			LOGGER << "Add constraint to " << dof;
-
-			boundary_.push_back(
-			        BoundaryCondition<this_type>::Create(this, item.second, std::forward<Others >(others)...));
-		}
-		else
-		{
-			UNIMPLEMENT2("Unknown DOF!");
-		}
-		LOGGER << DONE;
-	}
-
 }
 
 //*************************************************************************************************
@@ -275,7 +234,8 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 	}
 
 	storage_type::Sort();
-
+	ApplyConstraints();
+	storage_type::Sort();
 	LOGGER << DONE;
 }
 
@@ -319,14 +279,7 @@ void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 	(*x) += (*v) * dt;
 
 }
-template<template<typename > class TModel, typename TDict, typename TEngine>
-std::function<void()> CreateCommand(TModel<TEngine::mesh_type> const & model, TDict const & dict, Particle<TEngine> * f)
-{
-	std::function<void()> res;
 
-	return res;
-
-}
 }
 // namespace simpla
 
