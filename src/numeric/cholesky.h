@@ -10,7 +10,12 @@
 #include "../utilities/ntuple.h"
 namespace simpla
 {
-
+/**
+ * \ingroup Numeric
+ * cholesky decomposition
+ * @param a
+ * @return
+ */
 template<int N, typename T>
 Matrix<N, T> && cholesky_decomposition(Matrix<N, T> &a)
 {

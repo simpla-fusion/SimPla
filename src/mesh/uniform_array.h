@@ -219,7 +219,7 @@ struct UniformArray
 								global_count_[0]>1?1.0:0.0,
 								global_count_[1]>1?1.0:0.0,
 								global_count_[2]>1?1.0:0.0,
-							})))
+							})));
 
 	nTuple<NDIMS, index_type> GetDimensions() const
 	{

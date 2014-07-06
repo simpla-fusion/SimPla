@@ -19,7 +19,7 @@ namespace simpla
 {
 
 /**
- *  @defgroup FieldSolver Field Solver
+ *  \defgroup  FieldSolver Field Solver
  */
 /**
  *  \ingroup FieldSolver

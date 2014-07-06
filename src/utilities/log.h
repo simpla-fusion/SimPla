@@ -407,7 +407,7 @@ private:
 
 /**
  * \ingroup Logging
- * @defgroup logmanip  manip for Logger
+ * \defgroup  logmanip  manip for Logger
  *
  * @{
  **/
@@ -481,7 +481,7 @@ inline std::string ShowBit(unsigned long s)
 
 /**
  *  \ingroup Logging
- *  @defgroup LogShortCut    Shortcuts for logging
+ *  \defgroup  LogShortCut    Shortcuts for logging
  *  @{
  */
 #define LOG_STREAM SingletonHolder<LoggerStreams>::instance()

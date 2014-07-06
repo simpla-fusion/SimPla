@@ -24,7 +24,7 @@ namespace simpla
 
 /**
  *  \ingroup Particle
- *  @{  @defgroup ParticleEngine Particle Engine
+ *  @{  \defgroup  ParticleEngine Particle Engine
  *  @}
  */
 

@@ -24,12 +24,12 @@ namespace simpla
 
 
 /**
- *   @defgroup Mesh Mesh
+ *   \defgroup  Mesh Mesh
  *   \brief define all basic discrete scheme, i.e. finite difference , finite volume, finite element
  *   @{
- *      @defgroup Geometry Geometry
+ *      \defgroup  Geometry Geometry
  *        \brief coordinates and metric dependent information
- *     	@defgroup Topology Topology
+ *     	\defgroup  Topology Topology
  *        \brief coordinates and metric  independent information
  *   @}
  */

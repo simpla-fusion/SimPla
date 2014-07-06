@@ -16,7 +16,7 @@ namespace simpla
 {
 
 /**
- *  @defgroup Algorithm Algorithm
+ *  \defgroup  Algorithm Algorithm
  *
  *
  */

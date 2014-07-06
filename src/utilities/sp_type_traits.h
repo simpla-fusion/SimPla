@@ -253,19 +253,19 @@ public:
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s]);
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
+ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s));
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
+ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v));
 
 template<typename T, typename TI>
 auto get_value(std::shared_ptr<T> v, TI const & s)
-DECL_RET_TYPE(get_value(*v ,s))
+DECL_RET_TYPE(get_value(*v ,s));
 
 // \cite  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>

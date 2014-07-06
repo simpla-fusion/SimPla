@@ -8,7 +8,7 @@
 
 #ifndef INCLUDE_NTUPLE_H_
 #define INCLUDE_NTUPLE_H_
-
+#include <utility>
 //#include "ntuple_noet.h"
 #include "primitives.h"
 #include "sp_complex.h"
@@ -264,21 +264,25 @@ struct nTuple
 template<typename T>
 auto make_ntuple(T v0)
 DECL_RET_TYPE(v0)
+;
 
 template<typename T>
-auto make_ntuple(T v0, T v1)
-DECL_RET_TYPE((nTuple<2,T>(
-						{	v0,v1})))
+nTuple<2, T> make_ntuple(T v0, T v1)
+{
+	return std::move(nTuple<2, T>( { v0, v1 }));
+}
 
 template<typename T>
 auto make_ntuple(T v0, T v1, T v2)
 DECL_RET_TYPE((nTuple<3,T>(
 						{	v0,v1,v2})))
+;
 
 template<typename T>
 auto make_ntuple(T v0, T v1, T v2, T v3)
 DECL_RET_TYPE((nTuple<3,T>(
 						{	v0,v1,v2,v3})))
+;
 
 template<typename TV>
 struct is_nTuple

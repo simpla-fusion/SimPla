@@ -33,7 +33,7 @@ namespace simpla
 {
 
 /**
- *  @defgroup Model Model
+ *  \defgroup  Model Model
  *   \brief Geometry modeling
  */
 

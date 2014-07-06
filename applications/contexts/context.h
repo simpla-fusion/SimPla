@@ -19,10 +19,10 @@
 namespace simpla
 {
 /**
- *   @defgroup Application Application
+ *   \defgroup  Application Application
  *   @{
- *      @defgroup FieldSolver Field Solver
- *      @defgroup ParticleEngine Particle Engine
+ *      \defgroup  FieldSolver Field Solver
+ *      \defgroup  ParticleEngine Particle Engine
  *   @}
  *
  */

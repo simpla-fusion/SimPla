@@ -36,7 +36,7 @@
 namespace simpla
 {
 
-/** @defgroup Particle Particle
+/** \defgroup  Particle Particle
  *
  */
 

@@ -25,11 +25,11 @@
 
 namespace simpla
 {
-/** @defgroup DataIO Data input/output system
+/** \defgroup  DataIO Data input/output system
  *  @{
- *   @defgroup HDF5  HDF5 interface
- *   @defgroup XDMF   XDMF interface
- *   @defgroup NetCDF  NetCDF interface
+ *   \defgroup  HDF5  HDF5 interface
+ *   \defgroup  XDMF   XDMF interface
+ *   \defgroup  NetCDF  NetCDF interface
  *     \brief UNIMPLEMENT notfix
  *  @}
  *  */

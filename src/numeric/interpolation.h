@@ -18,7 +18,7 @@ namespace simpla
 
 /**
  *
- * @defgroup Numeric Numeric
+ * \defgroup  Numeric Numeric
  * @{
  */
 /*
@@ -113,9 +113,9 @@ public:
 	{
 		return std::move(interpolate_op_.eval(*data_, find(x), x));
 	}
-	value_type diff(key_x_type const &x) const
+	value_type grad(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_.diff(*data_, find(x), x));
+		return std::move(interpolate_op_.grad(*data_, find(x), x));
 	}
 
 };
@@ -147,7 +147,7 @@ struct LinearInterpolation
 	}
 
 	template<typename container>
-	inline typename container::mapped_type diff(container const &, typename container::iterator const &it,
+	inline typename container::mapped_type grad(container const &, typename container::iterator const &it,
 	        typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
@@ -244,9 +244,9 @@ public:
 	}
 
 	template<typename ...TArgs>
-	nTuple<NDIMS, value_type> diff(TArgs const &... x) const
+	nTuple<NDIMS, value_type> grad(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.diff(data_.get(), std::forward<TArgs const &>(x)...));
+		return std::move(interpolate_op_.grad(data_.get(), std::forward<TArgs const &>(x)...));
 	}
 
 };
@@ -361,7 +361,7 @@ public:
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline nTuple<NDIMS, TV> diff(TV const * v, TX x, TX y, Args const &...) const
+	inline nTuple<NDIMS, TV> grad(TV const * v, TX x, TX y, Args const &...) const
 	{
 
 		x = (x - xmin_[0]) * inv_dx_[0];
@@ -386,8 +386,8 @@ public:
 	}
 
 	template<typename TV, int N, typename TX>
-	inline auto diff(TV const & v, nTuple<N, TX> const & x) const
-	DECL_RET_TYPE(std::move(diff(v, x[0], x[1])))
+	inline auto grad(TV const & v, nTuple<N, TX> const & x) const
+	DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 
 }
 ;

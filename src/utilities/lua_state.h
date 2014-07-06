@@ -30,13 +30,13 @@
 namespace simpla
 {
 /**
- *  @defgroup Configure  Configuration
+ *  \defgroup  Configure  Configuration
  *  @{
- *  @defgroup EmScript Embaded Scirpt
+ *  \defgroup  EmScript Embaded Scirpt
  *   @{
- *      @defgroup Convert Convert
+ *      \defgroup  Convert Convert
  *       \brief Transfer data  between different lanuage
- *      @defgroup Lua Lua
+ *      \defgroup  Lua Lua
  *   @}
  *  @}
  */

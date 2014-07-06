@@ -220,7 +220,7 @@ public:
 	auto begin() DECL_RET_TYPE( iterator( std::get<0>(range_),std::get<1>(range_), *this))
 	auto begin() const DECL_RET_TYPE( const_iterator( std::get<0>(range_),std::get<1>(range_), *this))
 
-	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this))
+	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this));
 	auto end() const DECL_RET_TYPE( const_iterator( std::get<1>(range_),std::get<1>(range_), *this))
 
 	/**

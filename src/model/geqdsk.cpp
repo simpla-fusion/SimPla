@@ -16,7 +16,12 @@
 
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/ntuple_noet.h"
+#include "../physics/constants.h"
 #include "../io/data_stream.h"
+#include "../numeric/find_root.h"
+#include "pointinpolygon.h"
 
 namespace simpla
 {
@@ -36,10 +41,6 @@ void GEqdsk::Read(std::string const &fname)
 
 	int nw; //Number of horizontal R grid points
 	int nh; //Number of vertical Z grid points
-	double rdim; // Horizontal dimension in meter of computational box
-	double zdim; // Vertical dimension in meter of computational box
-	double rleft; // Minimum R in meter of rectangular computational box
-	double zmid; // Z of center of computational box in meter
 	double simag; // Poloidal flux at magnetic axis in Weber / rad
 	double sibry; // Poloidal flux at the plasma boundary in Weber / rad
 	int idum;
@@ -55,9 +56,9 @@ void GEqdsk::Read(std::string const &fname)
 
 	inFileStream_ >> std::setw(16)
 
-	>> rdim >> zdim >> rcentr >> rleft >> zmid
+	>> rdim >> zdim >> rcenter >> rleft >> zmid
 
-	>> rmaxis >> zmaxis >> simag >> sibry >> bcentr
+	>> rmaxis >> zmaxis >> simag >> sibry >> bcenter
 
 	>> current >> simag >> xdum >> rmaxis >> xdum
 
@@ -193,7 +194,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< "\t-- Vertical dimension in meter of computational box                   "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << rcentr
+	std::cout << "rcentr" << "\t= " << rcenter
 	        << "\t--                                                                    " << std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
@@ -218,10 +219,10 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< "\t-- Poloidal flux at the plasma boundary in Weber / rad                "
 //			<< std::endl;
 
-	std::cout << "rcentr" << "\t= " << rcentr
+	std::cout << "rcentr" << "\t= " << rcenter
 	        << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
 
-	std::cout << "bcentr" << "\t= " << bcentr
+	std::cout << "bcentr" << "\t= " << bcenter
 	        << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
 
 	std::cout << "current" << "\t= " << current
@@ -270,14 +271,58 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis)
+bool GEqdsk::InteralFluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis)
 {
+	bool success = true;
+
+	PointInPolygon boundary(rzbbb_, PhiAxis);
+
+	nTuple<3, Real> center;
+
+	center[PhiAxis] = 0;
+	center[RAxis] = rcenter;
+	center[ZAxis] = zmid;
+
+	nTuple<3, Real> drz;
+
+	drz[PhiAxis] = 0;
+
+	Real resolution = 0.001;
+
+	std::function<value_type(nTuple<3, Real> const &)> fun = [this ](nTuple<3, Real> const & x)->value_type
+	{
+		return this->psi(x);
+	};
+
 	for (int i = 0; i < M; ++i)
 	{
+		Real theta = static_cast<Real>(i) * TWOPI / static_cast<Real>(M);
+
+		drz[RAxis] = std::cos(theta);
+		drz[ZAxis] = std::sin(theta);
+
+		nTuple<3, Real> rmax;
+
+		std::tie(success, rmax) = boundary.Intersection(center,
+		        center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5);
+
+		if (!success)
+		{
+			RUNTIME_ERROR("Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
+		}
+
+		std::tie(success, res[i]) = find_root(center + (rmax - center) * 0.1, rmax, fun, psi_j, resolution);
+
+		if (!success)
+		{
+			WARNING << "Construct flux surface failed!" << "at theta = " << theta << " psi = " << psi_j;
+			break;
+		}
 
 	}
 
-	return true;
+	return success;
+
 }
 
 }  // namespace simpla

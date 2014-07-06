@@ -8,11 +8,11 @@
 #ifndef POINTINPOLYGEN_H_
 #define POINTINPOLYGEN_H_
 
-
 #include <vector>
 
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
+#include "../numeric/find_root.h"
 
 namespace simpla
 {
@@ -27,11 +27,10 @@ class PointInPolygon
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
-	const int Z_;
 public:
 	template<int N>
 	PointInPolygon(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
-			: num_of_vertex_(0), Z_(Z)
+			: num_of_vertex_(0)
 	{
 
 		for (auto const & v : polygen)
@@ -61,18 +60,30 @@ public:
 
 	PointInPolygon(PointInPolygon const& rhs)
 			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
-			        rhs.multiple_), Z_(rhs.Z_)
+			        rhs.multiple_)
 	{
 
 	}
 	PointInPolygon(PointInPolygon && rhs)
 			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
-			        rhs.multiple_), Z_(rhs.Z_)
+			        rhs.multiple_)
 	{
 
 	}
 
-	inline bool operator()(Real x, Real y) const
+	template<typename ...Args>
+	inline bool operator()(Args &&... args) const
+	{
+		return IsInside(std::forward<Args>(args)...);
+	}
+
+	template<int N>
+	inline bool IsInside(nTuple<N, Real> x, unsigned int ZAxis = 2) const
+	{
+		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
+	}
+
+	inline bool IsInside(Real x, Real y) const
 	{
 
 		bool oddNodes = false;
@@ -89,10 +100,17 @@ public:
 
 		return oddNodes;
 	}
+
 	template<int N>
-	inline bool operator()(nTuple<N, Real> x) const
+	std::tuple<bool, nTuple<N, Real>> Intersection(nTuple<N, Real> const & x0, nTuple<N, Real> const &x1,
+	        unsigned int ZAxis = 2, Real error = 0.001) const
 	{
-		return this->operator()(x[(Z_ + 1) % 3], x[(Z_ + 2) % 3]);
+		std::function<bool(nTuple<N, Real> const &)> fun = [this,ZAxis](nTuple<N,Real> const & x)->bool
+		{
+			return this->IsInside(x,ZAxis);
+		};
+
+		return std::move(find_root(x0, x1, fun, error));
 	}
 }
 ;
