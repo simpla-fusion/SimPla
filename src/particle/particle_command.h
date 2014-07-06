@@ -42,7 +42,7 @@ public:
 
 	typedef std::list<iterator> define_domain_type;
 
-	static constexpr unsigned int IForm = particle_type::IForm;
+	static constexpr   unsigned int   IForm = particle_type::IForm;
 
 	typedef typename particle_type::value_type value_type;
 

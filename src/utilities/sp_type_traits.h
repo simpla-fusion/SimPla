@@ -17,7 +17,7 @@ namespace simpla
 
 template<bool B> using Bool2Type=std::integral_constant<bool,B>;
 
-template<int B> using Int2Type=std::integral_constant<int,B>;
+template<unsigned int B> using Int2Type=std::integral_constant<unsigned int ,B>;
 
 typedef std::nullptr_t NullType;
 
@@ -173,9 +173,6 @@ public:                                                                         
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
 
-#define COND_DECL_RET_TYPE(_COND_,_EXPR_,_FAILSAFE_) \
-        ->typename std::conditional<_COND_,decltype((_EXPR_)),_FAILSAFE_>::type {return (_EXPR_);}
-
 //template<typename T>
 //struct remove_const_reference
 //{
@@ -253,22 +250,26 @@ public:
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s]);
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
+;
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s));
+ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
+;
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v));
+ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
+;
 
 template<typename T, typename TI>
 auto get_value(std::shared_ptr<T> v, TI const & s)
-DECL_RET_TYPE(get_value(*v ,s));
+DECL_RET_TYPE(get_value(*v ,s))
+;
 
 // \cite  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
-template<int N>
+template<unsigned int N>
 struct CountBits
 {
 	static const unsigned int n = CountBits<N / 2>::n + 1;

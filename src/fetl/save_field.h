@@ -13,9 +13,9 @@
 
 namespace simpla
 {
-template<typename, int, typename > class Field;
+template<typename, unsigned int , typename > class Field;
 
-template<typename TM, int IFORM, typename TV>
+template<typename TM,  unsigned int  IFORM, typename TV>
 std::string Save(std::string const & name,
         Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d)
 {

@@ -34,7 +34,7 @@ namespace simpla
  *   @}
  */
 
-template<typename, int, typename > class Field;
+template<typename, unsigned int , typename > class Field;
 
 template<typename TM, typename Policy> class Interpolator;
 
@@ -63,9 +63,9 @@ public:
 
 	typedef Interpolator<this_type, std::nullptr_t> interpolator_type;
 
-	static constexpr unsigned int NDIMS = 3;
+	static constexpr   unsigned int   NDIMS = 3;
 
-	static constexpr int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
+	static constexpr  unsigned int  NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
@@ -135,7 +135,7 @@ public:
 
 	template<typename TV> using DefaultContainer=DenseContainer<compact_index_type,TV>;
 
-	template<int IFORM, typename TV> using field=Field<this_type,IFORM,DefaultContainer<TV>>;
+	template<unsigned int IFORM, typename TV> using field=Field<this_type,IFORM,DefaultContainer<TV>>;
 
 	template<typename TF, typename ... Args> TF  //
 	make_field(typename topology_type::range_type range, Args && ... args) const
@@ -147,13 +147,13 @@ public:
 	make_field(Args && ... args) const
 	DECL_RET_TYPE((make_field<TF>(topology_type::Select(TF::IForm),std::forward<Args>(args)...)))
 
-	template<int IFORM, typename TV, typename ...Args> inline auto //
+	template<unsigned int IFORM, typename TV, typename ...Args> inline auto //
 	make_field(Args &&...args) const
 	DECL_RET_TYPE((make_field<field< IFORM, TV >>(std::forward<Args>(args)... )))
 
 	//******************************************************************************************************
 
-	static constexpr int GetNumOfDimensions()
+	static constexpr  unsigned int  GetNumOfDimensions()
 	{
 		return NDIMS;
 	}
@@ -271,10 +271,10 @@ public:
 		;
 	}
 
-	template<int IL, typename TL> void OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, IL, TL> const & f,
+	template<unsigned int IL, typename TL> void OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, IL, TL> const & f,
 	        compact_index_type s) const = delete;
 
-	template<int IL, typename TL> void OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, IL, TL> const & f,
+	template<unsigned int IL, typename TL> void OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, IL, TL> const & f,
 	        compact_index_type s) const = delete;
 
 	template<typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, EDGE, TL> const & f,
@@ -522,7 +522,7 @@ public:
 
 //***************************************************************************************************
 
-	template<int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<this_type, IL, TL> const & f,
+	template<unsigned int IL, typename TL> inline auto OpEval(Int2Type<HODGESTAR>, Field<this_type, IL, TL> const & f,
 	        compact_index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
 //		auto X = topology_type::DI(0,s);
@@ -574,7 +574,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, FACE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(s);
+		  unsigned int   n = topology_type::ComponentNum(s);
 
 		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
@@ -589,8 +589,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, VOLUME, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
-		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
+		  unsigned int   n = topology_type::ComponentNum(topology_type::Dual(s));
+		  unsigned int   D = topology_type::DeltaIndex(topology_type::Dual(s));
 
 		return (get_value(f, s + D) - get_value(f, s - D)) * 0.5 * v[n];
 	}
@@ -599,7 +599,7 @@ public:
 // Non-standard operation
 // For curlpdx
 
-	template<int N, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
+	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
 	        Int2Type<N>, compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
@@ -613,7 +613,7 @@ public:
 		return (get_value(f, s + Y) - get_value(f, s - Y)) - (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<int N, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
+	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
 	        Int2Type<N>,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
@@ -634,7 +634,7 @@ public:
 
 		) * geometry_type::InvDualVolume(s);
 	}
-	template<int IL, typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<IL> const &,
+	template<unsigned int IL, typename TR> inline auto OpEval(Int2Type<MAPTO>, Int2Type<IL> const &,
 	        Field<this_type, IL, TR> const & f, compact_index_type s) const
 	        DECL_RET_TYPE(get_value(f,s))
 

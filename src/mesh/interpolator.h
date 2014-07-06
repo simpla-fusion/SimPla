@@ -13,7 +13,7 @@
 namespace simpla
 {
 
-template<typename, int, typename > class Field;
+template<typename, unsigned int , typename > class Field;
 /**
  * \ingroup Mesh
  *
@@ -141,7 +141,7 @@ public:
 	 *  @param z (x,v) tangent bundle space coordinates,  base on "mesh_type::geometry_type"
 	 *  @param weight scatter weight
 	 */
-	template<int IFORM, typename TContainer, typename TZ, typename TW>
+	template<unsigned int IFORM, typename TContainer, typename TZ, typename TW>
 	static inline void Scatter(Field<mesh_type, IFORM, TContainer> *f, TZ const & Z, TW weight = 1.0)
 	{
 		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
@@ -151,7 +151,7 @@ public:
 	 *  @param x configure space coordiantes,   base on "mesh_type::geometry_type"
 	 *  @return  field value(vector/scalar) on Cartesian configure space
 	 */
-	template<int IFORM, typename TContainer, typename ... Args>
+	template<unsigned int IFORM, typename TContainer, typename ... Args>
 	static inline auto Gather(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const & x)
 	DECL_RET_TYPE ( Gather_(f.mesh, Int2Type<IFORM>(), f, x))
 
@@ -159,7 +159,7 @@ public:
 	 *  @param z (x,v) tangent bundle space coordinates on  Cartesian configure space
 	 *  @param weight scatter weight
 	 */
-	template<int IFORM, typename TContainer, typename TZ, typename TW>
+	template<unsigned int IFORM, typename TContainer, typename TZ, typename TW>
 	static inline void ScatterCartesian(Field<mesh_type, IFORM, TContainer> *f, TZ const &z, TW weight)
 	{
 		auto Z = f->mesh.PushForward(z);
@@ -170,7 +170,7 @@ public:
 	 *  @param x tangent bundle space coordinates on  Cartesian configure space
 	 *  @return  field value(vector/scalar) on Cartesian configure space
 	 */
-	template<int IFORM, typename TContainer>
+	template<unsigned int IFORM, typename TContainer>
 	static inline auto GatherCartesian(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const& x)
 	DECL_RET_TYPE (
 			std::get<1>(f.mesh.PullBack(std::make_tuple(f.mesh.MapTo(x),

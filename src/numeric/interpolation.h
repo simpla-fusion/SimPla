@@ -385,7 +385,7 @@ public:
 
 	}
 
-	template<typename TV, int N, typename TX>
+	template<typename TV,  unsigned int  N, typename TX>
 	inline auto grad(TV const & v, nTuple<N, TX> const & x) const
 	DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 

@@ -21,7 +21,7 @@ namespace simpla
 namespace _ntuple_impl
 {
 
-template<int M, typename TL, typename TR> struct _swap
+template<unsigned int M, typename TL, typename TR> struct _swap
 {
 	static inline void eval(TL & l, TR &r)
 	{
@@ -36,7 +36,7 @@ template<typename TL, typename TR> struct _swap<1, TL, TR>
 		std::swap(l[0], r[0]);
 	}
 };
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 void swap(TL & l, TR & r)
 {
 	_swap<N, TL, TR>::eval(l, r);
@@ -50,7 +50,7 @@ struct binary_right
 		return r;
 	}
 };
-template<int M> struct _assign
+template<unsigned int M> struct _assign
 {
 	template<typename TL, typename TR>
 	static inline typename std::enable_if<is_indexable<TR>::value, void>::type eval(TL & l, TR const &r)
@@ -107,17 +107,17 @@ template<> struct _assign<1>
 	}
 };
 
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 void assign(TL & l, TR const & r)
 {
 	_assign<N>::eval(l, r);
 }
-template<int N, typename TFun, typename TL, typename TR>
+template<unsigned int N, typename TFun, typename TL, typename TR>
 void assign(TFun const & fun, TL & l, TR const & r)
 {
 	_assign<N>::eval(fun, l, r);
 }
-template<int N>
+template<unsigned int N>
 struct _inner_product
 {
 	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
@@ -134,7 +134,7 @@ struct _inner_product<1>
 	DECL_RET_TYPE ((multi_op(l[0], r[0])))
 
 };
-template<int N, typename TPlus, typename TMultiplies, typename TL, typename TR>
+template<unsigned int N, typename TPlus, typename TMultiplies, typename TL, typename TR>
 auto inner_product(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l, TR const & r)
 DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
 
@@ -146,20 +146,20 @@ DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
  *
  *   Semantics:
  *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
- *    integer. There is also one 0-tuple, an empty sequence. An n-tuple is defined
+ *      unsigned int   eger. There is also one 0-tuple, an empty sequence. An n-tuple is defined
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
  *    \cite  http://en.wikipedia.org/wiki/Tuple
  *   Implement
- *   template<int n,typename T> struct nTuple;
+ *   template< unsigned int     n,typename T> struct nTuple;
  *   nTuple<5,double> t={1,2,3,4,5};
  *
  **/
-template<int N, typename T>
+template<unsigned int N, typename T>
 struct nTuple
 {
-	static const int NDIMS = N;
+	static const unsigned int NDIMS = N;
 	typedef nTuple<NDIMS, T> this_type;
 	typedef T value_type;
 
@@ -253,10 +253,10 @@ struct nTuple
 		return (*this);
 	}
 
-	template<int NR, typename TR>
+	template<unsigned int NR, typename TR>
 	void operator*(nTuple<NR, TR> const & rhs) = delete;
 
-	template<int NR, typename TR>
+	template<unsigned int NR, typename TR>
 	void operator/(nTuple<NR, TR> const & rhs) = delete;
 
 };
@@ -291,7 +291,7 @@ struct is_nTuple
 
 };
 
-template<int N, typename TV>
+template<unsigned int N, typename TV>
 struct is_nTuple<nTuple<N, TV>>
 {
 	static constexpr bool value = true;
@@ -304,19 +304,19 @@ struct is_ntuple_expression
 	static constexpr bool value = false;
 };
 
-template<int N, int TOP, typename TL, typename TR>
+template<unsigned int N, unsigned int TOP, typename TL, typename TR>
 struct is_ntuple_expression<nTuple<N, BiOp<TOP, TL, TR> > >
 {
 	static constexpr bool value = true;
 };
 
-template<int N, int TOP, typename TL, typename TR>
+template<unsigned int N, unsigned int TOP, typename TL, typename TR>
 struct is_expression<nTuple<N, BiOp<TOP, TL, TR> > >
 {
 	static constexpr bool value = true;
 };
 
-template<int N, typename TE>
+template<unsigned int N, typename TE>
 struct is_primitive<nTuple<N, TE> >
 {
 	static constexpr bool value = is_arithmetic_scalar<TE>::value;
@@ -335,7 +335,7 @@ struct nTupleTraits
 
 };
 
-template<int N, typename TV>
+template<unsigned int N, typename TV>
 struct nTupleTraits<nTuple<N, TV>>
 {
 	static constexpr unsigned int NDIMS = N;
@@ -352,7 +352,7 @@ struct nTupleTraits<nTuple<N, TV>>
 	}
 };
 
-template<int N, class T>
+template<unsigned int N, class T>
 class is_indexable<nTuple<N, T> >
 {
 public:
@@ -360,15 +360,15 @@ public:
 
 };
 //***********************************************************************************
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE ((_ntuple_impl::inner_product<N>(std::plus<void>(), std::multiplies<void>(), l, r)))
 
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto InnerProductNTuple(nTuple<N, TL> const &l, nTuple<N, TR> const &r)->decltype(l[0]*r[0])
 {
 	decltype(l[0]*r[0]) res = 0;
-	for (int i = 0; i < N; ++i)
+	for (unsigned int i = 0; i < N; ++i)
 		res += l[i] * r[i];
 	return res;
 }
@@ -409,38 +409,38 @@ template<typename T> inline auto Determinant(nTuple<4, nTuple<4, T> > const & m)
 		* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 ))
 
-template<int N, typename T> auto abs(nTuple<N, T> const & m)
+template<unsigned int N, typename T> auto abs(nTuple<N, T> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(Dot(m, m)))))
 
-template<int N, typename T> inline auto NProduct(nTuple<N, T> const & v)
+template<unsigned int N, typename T> inline auto NProduct(nTuple<N, T> const & v)
 ->decltype(v[0]*v[1])
 {
 	decltype(v[0]*v[1]) res;
 	res = 1;
-	for (int i = 0; i < N; ++i)
+	for (unsigned int i = 0; i < N; ++i)
 	{
 		res *= v[i];
 	}
 	return res;
 
 }
-template<int N, typename T> inline auto NSum(nTuple<N, T> const & v)
+template<unsigned int N, typename T> inline auto NSum(nTuple<N, T> const & v)
 ->decltype(v[0]+v[1])
 {
 	decltype(v[0]+v[1]) res;
 	res = 0;
-	for (int i = 0; i < N; ++i)
+	for (unsigned int i = 0; i < N; ++i)
 	{
 		res += v[i];
 	}
 	return res;
 
 }
-template<int N, int M, typename T> Real abs(nTuple<N, nTuple<M, T>> const & m)
+template<unsigned int N, unsigned int M, typename T> Real abs(nTuple<N, nTuple<M, T>> const & m)
 {
 	T res = 0.0;
-	for (int i = 0; i < N; ++i)
-		for (int j = 0; j < M; ++j)
+	for (unsigned int i = 0; i < N; ++i)
+		for (unsigned int j = 0; j < M; ++j)
 		{
 			res += m[i][j] * m[i][j];
 		}
@@ -490,42 +490,42 @@ template<typename T> inline constexpr nTuple<3, T> imag(nTuple<3, std::complex<T
 	return std::move(nTuple<3, T>( { v[0].imag(), v[1].imag(), v[2].imag() }));
 }
 
-template<int NDIMS, typename TExpr>
+template<unsigned int NDIMS, typename TExpr>
 auto operator >>(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,decltype(v[0] >> n )>
 {
 	nTuple<NDIMS, decltype(v[0] >> n )> res;
-	for (int i = 0; i < NDIMS; ++i)
+	for (unsigned int i = 0; i < NDIMS; ++i)
 	{
 		res[i] = v[i] >> n;
 	}
 	return res;
 }
 
-template<int NDIMS, typename TExpr>
+template<unsigned int NDIMS, typename TExpr>
 auto operator <<(nTuple<NDIMS, TExpr> const & v, unsigned int n)-> nTuple<NDIMS,decltype(v[0] << n )>
 {
 	nTuple<NDIMS, decltype(v[0] >> n )> res;
-	for (int i = 0; i < NDIMS; ++i)
+	for (unsigned int i = 0; i < NDIMS; ++i)
 	{
 		res[i] = v[i] << n;
 	}
 	return res;
 }
 
-template<int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
+template<unsigned int N, typename T> inline nTuple<N, T> real(nTuple<N, std::complex<T>> const &v)
 {
 	nTuple<N, T> res;
-	for (int i = 0; i < N; ++i)
+	for (unsigned int i = 0; i < N; ++i)
 	{
 		res[i] = v[i].real();
 	}
 	return std::move(res);
 }
 
-template<int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> const &v)
+template<unsigned int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> const &v)
 {
 	nTuple<N, T> res;
-	for (int i = 0; i < N; ++i)
+	for (unsigned int i = 0; i < N; ++i)
 	{
 		res[i] = v[i].imag();
 	}
@@ -539,7 +539,7 @@ template<int N, typename T> inline nTuple<N, T> imag(nTuple<N, std::complex<T>> 
 //{
 //template<typename > struct hash;
 //template<>
-//template<int N,typename TV>
+//template< unsigned int     N,typename TV>
 //struct hash<simpla::nTuple<N, TV>>
 //{
 //	typedef S argument_type;

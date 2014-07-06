@@ -29,11 +29,11 @@ struct CartesianGeometry: public TTopology
 	typedef TTopology topology_type;
 	typedef CartesianGeometry<topology_type> this_type;
 
-	static constexpr int NDIMS = topology_type::NDIMS;
+	static constexpr  unsigned int   NDIMS = topology_type::NDIMS;
 
-	static constexpr unsigned int XAxis = 0;
-	static constexpr unsigned int YAxis = 1;
-	static constexpr unsigned int ZAxis = 2;
+	static constexpr  unsigned int   XAxis = 0;
+	static constexpr  unsigned int   YAxis = 1;
+	static constexpr  unsigned int   ZAxis = 2;
 
 	typedef Real scalar_type;
 
@@ -44,14 +44,14 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry()
-			: topology_type()
+	CartesianGeometry() :
+			topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CartesianGeometry(TDict const & dict)
-			: topology_type(dict)
+	CartesianGeometry(TDict const & dict) :
+			topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -117,7 +117,8 @@ struct CartesianGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure CartesianGeometry error!");
 		}
@@ -149,7 +150,7 @@ struct CartesianGeometry: public TTopology
 	void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
 	{
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
 			xmin_[i] = pmin[i];
 
@@ -188,7 +189,7 @@ struct CartesianGeometry: public TTopology
 
 		auto d = topology_type::GetDx();
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
 			res[i] = length_[i] * d[i];
 		}
@@ -241,7 +242,7 @@ struct CartesianGeometry: public TTopology
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &x, unsigned int ToZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &x,  unsigned int   ToZAxis = 2) const
 	{
 		coordinates_type y;
 
@@ -252,7 +253,7 @@ struct CartesianGeometry: public TTopology
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &y, unsigned int ToZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &y,  unsigned int   ToZAxis = 2) const
 	{
 		coordinates_type x;
 
@@ -265,13 +266,13 @@ struct CartesianGeometry: public TTopology
 
 	template<typename TV>
 	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
-	        unsigned int CartesianZAxis = 2) const
+	         unsigned int   CartesianZAxis = 2) const
 	{
 		return std::move(std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R, unsigned int CartesianZAxis =
+	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R,  unsigned int   CartesianZAxis =
 	        2) const
 	{
 		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
@@ -289,7 +290,7 @@ struct CartesianGeometry: public TTopology
 
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z,  unsigned int   CartesianZAxis = 2) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
 
@@ -316,7 +317,7 @@ struct CartesianGeometry: public TTopology
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R,  unsigned int   CartesianZAxis = 2) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -362,7 +363,7 @@ struct CartesianGeometry: public TTopology
 		return v[topology_type::ComponentNum(s)];
 	}
 
-	template<int IFORM, typename TV>
+	template<  unsigned int   IFORM, typename TV>
 	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
 	{
 		return v;
@@ -412,7 +413,7 @@ public:
 	void UpdateVolume()
 	{
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
 
 			if ((xmax_[i] - xmin_[i]) < EPSILON)

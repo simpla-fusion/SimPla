@@ -16,7 +16,7 @@
 namespace simpla
 {
 
-template<int N, typename TV>
+template<unsigned int N, typename TV>
 void UpdateGhosts(TV* data, DistributedArray<N> const & global_array, MPI_Comm comm = MPI_COMM_NULL)
 {
 	if (global_array.send_recv_.size() == 0)

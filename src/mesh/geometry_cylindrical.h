@@ -22,18 +22,18 @@ namespace simpla
  *
  *  \brief  cylindrical geometry (R Z theta)
  */
-template<typename TTopology, unsigned int IZAxis = 1>
+template<typename TTopology,   unsigned int   IZAxis = 1>
 struct CylindricalGeometry: public TTopology
 {
 	typedef TTopology topology_type;
 
-	static constexpr unsigned int ZAxis = (IZAxis + 3) % 3;
-	static constexpr unsigned int RAxis = (IZAxis + 2) % 3;
-	static constexpr unsigned int ThetaAxis = (IZAxis + 1) % 3;
+	static constexpr   unsigned int   ZAxis = (IZAxis + 3) % 3;
+	static constexpr   unsigned int   RAxis = (IZAxis + 2) % 3;
+	static constexpr   unsigned int   ThetaAxis = (IZAxis + 1) % 3;
 
 	typedef CylindricalGeometry<topology_type, ZAxis> this_type;
 
-	static constexpr int NDIMS = topology_type::NDIMS;
+	static constexpr  unsigned int  NDIMS = topology_type::NDIMS;
 
 	typedef Real scalar_type;
 
@@ -288,7 +288,7 @@ struct CylindricalGeometry: public TTopology
 	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
 	//! @{
 
-	coordinates_type InvMapTo(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &r,   unsigned int   CartesianZAxis = 2) const
 	{
 		coordinates_type x;
 
@@ -310,7 +310,7 @@ struct CylindricalGeometry: public TTopology
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &x,   unsigned int   CartesianZAxis = 2) const
 	{
 		coordinates_type r;
 		/**
@@ -334,13 +334,13 @@ struct CylindricalGeometry: public TTopology
 
 	template<typename TV>
 	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
-	        unsigned int CartesianZAxis = 2) const
+	          unsigned int   CartesianZAxis = 2) const
 	{
 		return std::move(std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R, unsigned int CartesianZAxis =
+	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R,   unsigned int   CartesianZAxis =
 	        2) const
 	{
 		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
@@ -371,7 +371,7 @@ struct CylindricalGeometry: public TTopology
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z,   unsigned int   CartesianZAxis = 2) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
 
@@ -401,7 +401,7 @@ struct CylindricalGeometry: public TTopology
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R,   unsigned int   CartesianZAxis = 2) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -418,11 +418,11 @@ struct CylindricalGeometry: public TTopology
 	}
 	//! @}
 
-	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
+	auto Select(  unsigned int   iform, coordinates_type const & xmin, coordinates_type const & xmax) const
 	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
-	auto Select(unsigned int iform, Args && ...args) const
+	auto Select(  unsigned int   iform, Args && ...args) const
 	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
 
 	template<typename TV>
@@ -461,13 +461,13 @@ struct CylindricalGeometry: public TTopology
 		return std::get<1>(PushForward(std::make_tuple(GetCoordinates(s), v)))[topology_type::ComponentNum(s)];
 	}
 
-	template<int IFORM, typename TV>
+	template<unsigned int IFORM, typename TV>
 	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
 	{
 		return v;
 	}
 
-	template<int IFORM, typename TV>
+	template<unsigned int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(Int2Type<IFORM>, index_type s,
 	        nTuple<NDIMS, TV> const & v) const
 	{
@@ -588,27 +588,27 @@ struct CylindricalGeometry: public TTopology
 
 	scalar_type Volume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(s);
+		  unsigned int   n = topology_type::NodeId(s);
 		return topology_type::Volume(s) * volume_[n]
 		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type InvVolume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(s);
+		  unsigned int   n = topology_type::NodeId(s);
 		return topology_type::InvVolume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
+		  unsigned int   n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::DualVolume(s) * volume_[n]
 		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
+		  unsigned int   n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::InvDualVolume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
 	}

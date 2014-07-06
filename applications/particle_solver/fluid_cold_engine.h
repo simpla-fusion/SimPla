@@ -27,7 +27,7 @@ template<typename TM>
 class Particle<ColdFluid<TM> >
 {
 public:
-	static constexpr int IForm = VERTEX;
+	static constexpr  unsigned int  IForm = VERTEX;
 
 	typedef TM mesh_type;
 

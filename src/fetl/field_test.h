@@ -19,11 +19,11 @@
 
 using namespace simpla;
 
-template<typename TM, int IFORM, typename TV>
+template<typename TM,   unsigned int   IFORM, typename TV>
 struct ParamType
 {
 	typedef TM mesh_type;
-	static constexpr unsigned int IForm = IFORM;
+	static constexpr   unsigned int   IForm = IFORM;
 	typedef TV value_type;
 };
 
@@ -35,7 +35,7 @@ protected:
 	{
 		LOG_STREAM.SetStdOutVisableLevel(LOG_DEBUG);
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
 			if (dims[i] <= 1 || xmax[i] <= xmin[i])
 			{
@@ -51,8 +51,8 @@ public:
 	typedef TF field_type;
 	typedef typename field_type::mesh_type mesh_type;
 	typedef typename field_type::value_type value_type;
-	static constexpr unsigned int IForm = field_type::IForm;
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr   unsigned int   IForm = field_type::IForm;
+	static constexpr   unsigned int   NDIMS = mesh_type::NDIMS;
 
 	typedef typename mesh_type::index_type index_type;
 	typedef typename mesh_type::compact_index_type compact_index_type;
@@ -82,8 +82,8 @@ TYPED_TEST_P(TestField,create){
 	typedef typename TestFixture::value_type value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
-	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr   unsigned int   NDIMS = TestFixture::NDIMS;
+	static constexpr   unsigned int   IForm = TestFixture::IForm;
 
 	mesh_type const & mesh = TestFixture::mesh;
 
@@ -125,8 +125,8 @@ TYPED_TEST_P(TestField,assign){
 	typedef typename TestFixture::value_type value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
-	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr   unsigned int   NDIMS = TestFixture::NDIMS;
+	static constexpr   unsigned int   IForm = TestFixture::IForm;
 
 	mesh_type const & mesh = TestFixture::mesh;
 
@@ -161,8 +161,8 @@ TYPED_TEST_P(TestField,traversal){
 	typedef typename TestFixture::value_type value_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
-	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr   unsigned int   NDIMS = TestFixture::NDIMS;
+	static constexpr   unsigned int   IForm = TestFixture::IForm;
 
 	mesh_type const & mesh = TestFixture::mesh;
 

@@ -16,7 +16,7 @@ namespace simpla
 namespace linear_solver
 {
 
-template<typename TM, int IFORM, typename F1, typename F3> //
+template<typename TM,  unsigned int  IFORM, typename F1, typename F3> //
 void ksp_cg(Field<TM, IFORM, F1> const & Ax, Field<TM, IFORM, F3> & x, size_t max_iterative_num = 1000,
         double residual = 1.0e-10)
 {

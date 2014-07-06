@@ -22,21 +22,21 @@ namespace simpla
  * \brief Parallel do
  * @param fun
  */
-inline void ParallelDo(std::function<void(int, int)> fun)
+inline void ParallelDo(std::function<void(unsigned int , int)> fun)
 {
 
 #ifdef _OPENMP
 	int num_threads = omp_get_num_procs();
 
 #pragma omp parallel for
-	for ( int thread_id = 0; thread_id < num_threads; ++thread_id)
+	for (  unsigned int  thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		fun(num_threads, thread_id);
 	}
 #else
-	const unsigned int num_threads = GLOBAL_COMM.GetNumThreads();
+	const   unsigned int   num_threads = GLOBAL_COMM.GetNumThreads();
 	std::vector<std::thread> threads;
-	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	for (  unsigned int   thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(std::thread(
 
@@ -67,7 +67,7 @@ void ParallelForEach(TRange r, TFun fun)
 	int num_threads = omp_get_num_procs();
 
 #pragma omp parallel for
-	for ( int thread_id = 0; thread_id < num_threads; ++thread_id)
+	for (  unsigned int  thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		for(auto s:Split(r,num_threads,thread_id))
 		{

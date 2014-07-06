@@ -14,9 +14,9 @@ namespace simpla
 {
 template<typename, int> struct Geometry;
 
-template<typename TG, int IFORM, typename TValue> struct Field;
+template<typename TG,  unsigned int  IFORM, typename TValue> struct Field;
 
-template<typename TM, int IFORM, typename TV>
+template<typename TM,  unsigned int  IFORM, typename TV>
 struct Field<TM, IFORM, Constant<TV> >
 {
 
@@ -24,9 +24,9 @@ struct Field<TM, IFORM, Constant<TV> >
 
 	typedef TV value_type;
 
-	static const int IForm = IFORM;
+	static const  unsigned int  IForm = IFORM;
 
-	static const int NDIMS = mesh_type::NDIMS;
+	static const  unsigned int  NDIMS = mesh_type::NDIMS;
 
 	typedef typename mesh_type::iterator iterator;
 

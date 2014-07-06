@@ -15,7 +15,7 @@
 namespace simpla
 {
 
-template<int N, typename T> struct nTuple;
+template<unsigned int N, typename T> struct nTuple;
 
 template<typename ... TOthers>
 class Properties<boost::property_tree::ptree, TOthers...> : public Properties<
@@ -156,7 +156,7 @@ private:
 		}
 
 	};
-	template<int N, class T>
+	template<unsigned int N, class T>
 	struct pt_trans<nTuple<N, T>, std::string>
 	{
 		typedef nTuple<N, T> external_type;
@@ -186,7 +186,7 @@ private:
 
 	};
 
-	template<int M, int N, class T>
+	template<unsigned int M,  unsigned int  N, class T>
 	struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
 	{
 		typedef nTuple<M, nTuple<N, T> > external_type;

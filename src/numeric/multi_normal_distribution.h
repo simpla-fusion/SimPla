@@ -25,7 +25,7 @@ namespace simpla
  *            e^{- \frac{{x - \mu}^ {2}}{2 \sigma ^ {2}} }
  * @f]
  */
-template<int N, typename RealType = double, typename TNormalGen = std::normal_distribution<double> >
+template<unsigned int N, typename RealType = double, typename TNormalGen = std::normal_distribution<double> >
 class multi_normal_distribution
 {
 	nTuple<N, nTuple<N, RealType>> A_;
@@ -34,7 +34,7 @@ class multi_normal_distribution
 
 	typedef multi_normal_distribution<N, RealType, TNormalGen> this_type;
 public:
-	static const int NDIMS = N;
+	static const  unsigned int  NDIMS = N;
 
 	multi_normal_distribution(RealType pT = 1.0, //
 			nTuple<N, RealType> const &pu =

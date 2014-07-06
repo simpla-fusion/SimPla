@@ -27,7 +27,7 @@ protected:
 public:
 	nTuple<3, size_t> global_begin;
 	nTuple<3, size_t> global_end;
-	static constexpr unsigned int NDIMS = 3;
+	static constexpr   unsigned int   NDIMS = 3;
 	DistributedArray<NDIMS> darray;
 };
 

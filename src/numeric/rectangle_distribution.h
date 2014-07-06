@@ -16,7 +16,7 @@
 namespace simpla
 {
 
-template<int NDIM>
+template<unsigned int NDIM>
 class rectangle_distribution
 {
 

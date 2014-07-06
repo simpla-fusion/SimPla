@@ -20,7 +20,7 @@
 
 namespace simpla
 {
-//template<typename TS, int NDIMS>
+//template<typename TS,  unsigned int  NDIMS>
 //bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_count, nTuple<NDIMS, TS> *pr_start,
 //        nTuple<NDIMS, TS> *pr_count)
 //{
@@ -53,7 +53,7 @@ namespace simpla
  *  \ingroup Geometry
  *  @{
  */
-template<typename TS, int NDIMS>
+template<typename TS,  unsigned int  NDIMS>
 bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
         nTuple<NDIMS, TS> *pr_end)
 {

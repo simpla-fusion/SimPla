@@ -16,8 +16,8 @@
 namespace simpla
 {
 // Expression template of nTuple
-template<int N, typename T> struct nTuple;
-template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
+template<unsigned int N, typename T> struct nTuple;
+template<unsigned int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 //***********************************************************************************
 
 namespace ntuple_impl
@@ -28,7 +28,7 @@ template<typename TOP, typename TL, typename TR> struct nTupleBiOp;
 template<typename TOP, typename TL> struct nTupleUniOp;
 
 }  // namespace ntuple_impl
-template<int N, typename TOP, typename TL, typename TR>
+template<unsigned int N, typename TOP, typename TL, typename TR>
 struct nTuple<N, ntuple_impl::nTupleBiOp<TOP, TL, TR>>
 {
 	typename StorageTraits<TL>::const_reference l_;
@@ -47,7 +47,7 @@ struct nTuple<N, ntuple_impl::nTupleBiOp<TOP, TL, TR>>
 	DECL_RET_TYPE(ops::eval(TOP(),l_,r_,s))
 
 };
-template<int N, typename TOP, typename TL>
+template<unsigned int N, typename TOP, typename TL>
 struct nTuple<N, ntuple_impl::nTupleUniOp<TOP, TL>>
 {
 	typename StorageTraits<TL>::const_reference l_;
@@ -58,27 +58,27 @@ struct nTuple<N, ntuple_impl::nTupleUniOp<TOP, TL>>
 };
 //***********************************************************************************
 
-template<int N, typename TL> inline
+template<unsigned int N, typename TL> inline
 auto operator-(nTuple<N, TL> const & l)
 DECL_RET_TYPE(( nTuple<N, ntuple_impl::nTupleUniOp<ops::negate,nTuple<N, TL> > > (l)))
 
-template<int N, typename TL> inline
+template<unsigned int N, typename TL> inline
 auto operator+(nTuple<N, TL> const & f)
 DECL_RET_TYPE(f)
 
-template<int N, typename TL, typename TR> inline auto //
+template<unsigned int N, typename TL, typename TR> inline auto //
 operator +(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE(((nTuple<N, ntuple_impl::nTupleBiOp<ops::plus ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
 
-template<int N, typename TL, typename TR> inline auto //
+template<unsigned int N, typename TL, typename TR> inline auto //
 operator -(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE(((nTuple<N, ntuple_impl::nTupleBiOp<ops::minus ,nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
 
-template<int N, typename TL, typename TR> inline auto //
+template<unsigned int N, typename TL, typename TR> inline auto //
 operator *(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE(((nTuple<N,ntuple_impl::nTupleBiOp<ops::multiplies, nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
 
-template<int N, typename TL, typename TR> inline auto //
+template<unsigned int N, typename TL, typename TR> inline auto //
 operator /(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE(((nTuple<N, ntuple_impl::nTupleBiOp<ops::divides, nTuple<N, TL>, nTuple<N, TR> > >(l, r))))
 
@@ -86,9 +86,9 @@ DECL_RET_TYPE(((nTuple<N, ntuple_impl::nTupleBiOp<ops::divides, nTuple<N, TL>, n
 // nTuple vs other and other vs nTuple
 //*******************************************************************************************************
 #define DEF_BIOP(_NAME_,_OP_ , _OTHER_)                                                                 \
-template<int N, typename TL> inline auto operator _OP_(nTuple<N, TL> const & l, _OTHER_ const &  r)    \
+template<unsigned int N, typename TL> inline auto operator _OP_(nTuple<N, TL> const & l, _OTHER_ const &  r)    \
 DECL_RET_TYPE(((nTuple<N, ntuple_impl::nTupleBiOp<_NAME_, nTuple<N, TL>, _OTHER_ > >(l, r))))          \
-template<int N, typename TR> inline auto operator _OP_(_OTHER_  const & l, nTuple<N, TR> const & r)    \
+template<unsigned int N, typename TR> inline auto operator _OP_(_OTHER_  const & l, nTuple<N, TR> const & r)    \
 DECL_RET_TYPE(((nTuple<N,ntuple_impl:: nTupleBiOp<_NAME_, _OTHER_, nTuple<N, TR> > >(l, r))))          \
 
 #define DEF_BIOP_BUNDLE(_OTHER_)                                                                        \
@@ -99,7 +99,7 @@ DEF_BIOP(ops::divides,/,  _OTHER_)                                              
 
 DEF_BIOP_BUNDLE(int)
 DEF_BIOP_BUNDLE(long)
-DEF_BIOP_BUNDLE(unsigned int)
+DEF_BIOP_BUNDLE( unsigned int  )
 DEF_BIOP_BUNDLE(unsigned long)
 DEF_BIOP_BUNDLE(float)
 DEF_BIOP_BUNDLE(double)
@@ -113,17 +113,17 @@ DEF_BIOP_BUNDLE(std::complex<double>)
 namespace ntuple_impl
 {
 
-template<int M, typename TL, typename TR> struct _inner_product_s;
+template<unsigned int M, typename TL, typename TR> struct _inner_product_s;
 
 template<typename TL, typename TR>
 inline auto _inner_product(TL const & l, TR const &r)
 DECL_RET_TYPE((l*r))
 
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto _inner_product(nTuple<N, TL> const & l, nTuple<N, TR> const &r)
 DECL_RET_TYPE(( _inner_product_s<N, nTuple<N, TL>, nTuple<N, TR> >::eval(l,r)))
 
-template<int M, typename TL, typename TR>
+template<unsigned int M, typename TL, typename TR>
 struct _inner_product_s
 {
 	static inline auto eval(TL const & l, TR const &r)
@@ -139,22 +139,22 @@ struct _inner_product_s<1, TL, TR>
 
 }
 //namespace ntuple_impl
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto Dot(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto InnerProduct(nTuple<N, TL> const &l, nTuple<N, TR> const &r)
 DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 //***********************************************************************************
 namespace ntuple_impl
 {
-template<int N, typename TL, typename TR>
+template<unsigned int N, typename TL, typename TR>
 inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
 DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 }  // namespace ntuple_impl
 
-template<int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
+template<unsigned int N, typename TL, typename TR> inline auto Cross(nTuple<N, TL> const & l, nTuple<N, TR> const & r)
 DECL_RET_TYPE( (nTuple<N,BiOp<CROSS, nTuple<N, TL>,nTuple<N, TR> > > (l, r)))
 
 template<typename TL, typename TR> inline auto Cross(nTuple<3, TL> const & l, nTuple<3, TR> const & r)

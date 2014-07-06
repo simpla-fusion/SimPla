@@ -48,7 +48,7 @@ protected:
 	}
 
 public:
-	static constexpr int NDIMS = T::NDIMS;
+	static constexpr  unsigned int  NDIMS = T::NDIMS;
 	typedef typename T::value_type value_type;
 	value_type m;
 
@@ -210,8 +210,8 @@ protected:
 	}
 
 public:
-	static constexpr int NDIMS = T::NDIMS;
-	static constexpr int MDIMS = T::value_type::NDIMS;
+	static constexpr  unsigned int  NDIMS = T::NDIMS;
+	static constexpr  unsigned int  MDIMS = T::value_type::NDIMS;
 
 	typedef typename T::value_type::value_type value_type;
 

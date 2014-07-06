@@ -16,8 +16,8 @@
 
 namespace simpla
 {
-template<typename, int, typename > class Field;
-template<typename TDict, int IFORM, typename TM, typename Container>
+template<typename, unsigned int , typename > class Field;
+template<typename TDict,  unsigned int  IFORM, typename TM, typename Container>
 bool LoadField(TDict const &dict, Field<TM, IFORM, Container> *f)
 {
 	if (!dict)

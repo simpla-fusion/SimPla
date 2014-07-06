@@ -11,11 +11,11 @@
 namespace simpla
 {
 
-template<typename TMesh, int IFORM, typename TV>
+template<typename TMesh,  unsigned int  IFORM, typename TV>
 class DummyField
 {
 public:
-	static constexpr unsigned int IForm = IFORM;
+	static constexpr   unsigned int   IForm = IFORM;
 
 	typedef TMesh mesh_type;
 
@@ -23,7 +23,7 @@ public:
 
 	typedef DummyField<mesh_type, IForm, value_type> this_type;
 
-	static const int NDIMS = mesh_type::NDIMS;
+	static const  unsigned int  NDIMS = mesh_type::NDIMS;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 

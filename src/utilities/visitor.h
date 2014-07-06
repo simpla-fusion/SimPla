@@ -82,9 +82,9 @@ private:
  *   		std::cout << "This is Foo1::Command2(string). args=" << s << std::endl;
  *   	}
  *
- *   	void Command(int a, int b)
+ *   	void Command(int a,  unsigned int  b)
  *   	{
- *   		std::cout << "This is Foo1::Command(int,int). args=" << a << "     " << b << std::endl;
+ *   		std::cout << "This is Foo1::Command(unsigned int ,int). args=" << a << "     " << b << std::endl;
  *   	}
  *
  *   	template<typename ... Args>
@@ -110,7 +110,7 @@ private:
  *
  *   };
  *
- *   int main(int argc, char **argv)
+ *    unsigned int  main(int argc, char **argv)
  *   {
  *   	AcceptorBase * f1 = dynamic_cast<AcceptorBase*>(new Foo1);
  *   	auto v1 = CreateVisitor<Foo1>("Command1", 5, 6);
@@ -194,18 +194,18 @@ private:
 //	struct Seq
 //	{};
 //
-//	template<int N, int ...S>
+//	template<unsigned int N,  unsigned int  ...S>
 //	struct GenSeq: GenSeq<N - 1, N - 1, S...>
 //	{
 //	};
 //
-//	template<int ...S>
+//	template<unsigned int ...S>
 //	struct GenSeq<0, S...>
 //	{
 //		typedef Seq<S...> type;
 //	};
 //
-//	template<typename TFUN, int ...S>
+//	template<typename TFUN,  unsigned int  ...S>
 //	inline void callFunc(TFUN const & fun, Seq<S...>)
 //	{
 //		fun(std::get<S>(args_) ...);

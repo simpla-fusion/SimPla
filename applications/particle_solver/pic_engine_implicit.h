@@ -166,7 +166,7 @@ public:
 		mesh.Scatter(n, std::make_tuple(p.x, p.f * p.w * q_));
 	}
 
-	template<int IFORM, typename TV, typename ...Others>
+	template<unsigned int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
 		mesh.Scatter(J, std::make_tuple(p.x, p.v), p.w * q_);

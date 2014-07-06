@@ -41,7 +41,7 @@ TEST_P(TestFETL, grad0)
 
 	for (auto s : mesh.Select(EDGE))
 	{
-		unsigned int n = mesh.ComponentNum(s);
+		  unsigned int   n = mesh.ComponentNum(s);
 
 		auto x = mesh.GetCoordinates(s);
 
@@ -117,7 +117,7 @@ TEST_P(TestFETL, grad3)
 	for (auto s : mesh.Select(FACE))
 	{
 
-		unsigned int n = mesh.ComponentNum(s);
+		  unsigned int   n = mesh.ComponentNum(s);
 
 		auto x = mesh.GetCoordinates(s);
 

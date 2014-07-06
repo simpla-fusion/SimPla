@@ -16,7 +16,7 @@ namespace simpla
  * @param a
  * @return
  */
-template<int N, typename T>
+template<unsigned int N, typename T>
 Matrix<N, T> && cholesky_decomposition(Matrix<N, T> &a)
 {
 	/**

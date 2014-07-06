@@ -77,7 +77,7 @@ public:
 
 	mesh_type mesh;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr   unsigned int   NDIMS = mesh_type::NDIMS;
 
 	nTuple<NDIMS, Real> xmin;
 
@@ -104,7 +104,7 @@ public:
 		*v = std::complex<T>();
 	}
 
-	template<int N, typename T>
+	template<unsigned int N, typename T>
 	void SetDefaultValue(nTuple<N, T>* v)
 	{
 		for (int i = 0; i < N; ++i)

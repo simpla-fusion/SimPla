@@ -229,7 +229,7 @@ public:
 	{
 	}
 
-	template<int IFORM, typename TV, typename ...Args>
+	template<unsigned int IFORM, typename TV, typename ...Args>
 	void Scatter(Point_s const & p, typename mesh_type:: template field < IFORM, TV> * n, Args const & ...) const
 	{
 		interpolator_type::ScatterCartesian( n, p.x, q * p.f);

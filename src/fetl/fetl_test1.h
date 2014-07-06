@@ -17,12 +17,12 @@
 
 using namespace simpla;
 
-template<int IFORM, typename TV>
+template<unsigned int IFORM, typename TV>
 struct TestFETLParam1
 {
 	typedef TMesh mesh_type;
 	typedef TV value_type;
-	static constexpr int IForm = IFORM;
+	static constexpr  unsigned int  IForm = IFORM;
 
 //	static void SetUpMesh(mesh_type * mesh)
 //	{
@@ -46,7 +46,7 @@ struct TestFETLParam1
 //		*v = std::complex<T>();
 //	}
 //
-//	template<int N, typename T>
+//	template<unsigned int N, typename T>
 //	void SetDefaultValue(nTuple<N, T>* v)
 //	{
 //		for (int i = 0; i < N; ++i)
@@ -80,7 +80,7 @@ public:
 
 	typedef typename TParam::mesh_type mesh_type;
 	typedef typename TParam::value_type value_type;
-	static constexpr int IForm = TParam::IForm;
+	static constexpr  unsigned int  IForm = TParam::IForm;
 
 	typedef typename mesh_type::template field< VERTEX, Real> scalar_field_type;
 	typedef typename mesh_type::template field< VERTEX, value_type> field_type;

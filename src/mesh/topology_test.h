@@ -42,11 +42,11 @@ public:
 	typedef typename topology_type::range_type range_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
 
-	unsigned int NDIMS=topology_type::NDIMS;
+	  unsigned int   NDIMS=topology_type::NDIMS;
 
 	topology_type topology;
 
-	std::vector<unsigned int> iform_list =
+	std::vector< unsigned int  > iform_list =
 	{	VERTEX, EDGE, FACE, VOLUME};
 
 	nTuple<TopologyType::NDIMS, index_type> dims;
@@ -251,7 +251,7 @@ TEST_P(TestTopology, Split)
 
 //	for (auto const & iform : iform_list)
 
-	unsigned int iform = VERTEX;
+	  unsigned int   iform = VERTEX;
 	{
 
 		nTuple<3, index_type> begin = { 0, 0, 0 };

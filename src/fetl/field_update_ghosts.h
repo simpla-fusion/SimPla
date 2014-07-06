@@ -14,14 +14,14 @@
 namespace simpla
 {
 
-template<typename TG, int IFORM, typename TV> class Field;
-template<typename TM, int IFORM, typename TC, typename ...Others>
+template<typename TG,   unsigned int   IFORM, typename TV> class Field;
+template<typename TM,   unsigned int   IFORM, typename TC, typename ...Others>
 void UpdateGhosts(Field<TM, IFORM, TC>* field, Others &&...others)
 {
 
 	UNIMPLEMENT;
 }
-template<typename TM, int IFORM, typename TV, typename ...Others>
+template<typename TM,   unsigned int   IFORM, typename TV, typename ...Others>
 void UpdateGhosts(Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>* field, Others &&...others)
 {
 

@@ -26,7 +26,7 @@ namespace simpla
  * \ingroup ParticleEngine
  * \brief GGauge engine
  */
-template<typename TM, int NMATE, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
+template<typename TM,  unsigned int  NMATE, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
 {
 

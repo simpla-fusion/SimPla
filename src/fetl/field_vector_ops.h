@@ -87,8 +87,8 @@ public:
 	typename StorageTraits<TR>::const_reference r_;
 	typedef TM mesh_type;
 
-	static constexpr int IForm = VERTEX;
-	static constexpr int TOP = CROSS;
+	static constexpr   unsigned int   IForm = VERTEX;
+	static constexpr   unsigned int   TOP = CROSS;
 
 	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
@@ -121,8 +121,8 @@ public:
 	typename StorageTraits<TR>::const_reference r_;
 	typedef TM mesh_type;
 
-	static constexpr int IForm = VERTEX;
-	static constexpr int TOP = DOT;
+	static constexpr   unsigned int   IForm = VERTEX;
+	static constexpr   unsigned int   TOP = DOT;
 
 	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 

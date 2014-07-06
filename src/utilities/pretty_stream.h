@@ -28,7 +28,7 @@ namespace simpla
 //! \ingroup Utilities
 
 template<typename TV> inline TV const *
-PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d, std::string const & left_brace = "{",
+PrintNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* d, std::string const & left_brace = "{",
         std::string const & sep = ",", std::string const & right_brace = "}")
 {
 	if (rank == 1)
@@ -62,7 +62,7 @@ PrintNdArray(std::ostream & os, TV const *v, int rank, size_t const* d, std::str
 	}
 }
 
-template<int N, typename T> std::ostream &
+template<unsigned int N, typename T> std::ostream &
 operator<<(std::ostream& os, const nTuple<N, T> & tv)
 {
 	os << "{" << tv[0];
@@ -73,7 +73,7 @@ operator<<(std::ostream& os, const nTuple<N, T> & tv)
 	os << "}";
 	return (os);
 }
-template<int N, typename T> std::istream &
+template<unsigned int N, typename T> std::istream &
 operator>>(std::istream& is, nTuple<N, T> & tv)
 {
 	for (int i = 0; i < N && is; ++i)
@@ -84,7 +84,7 @@ operator>>(std::istream& is, nTuple<N, T> & tv)
 	return (is);
 }
 
-template<int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
+template<unsigned int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
 {
 	std::istringstream ss(str);
 	nTuple<N, T> res;

@@ -116,7 +116,7 @@ public:
 		int local_num_cpu = std::thread::hardware_concurrency();
 		num_threads_ = std::min(num, local_num_cpu);
 	}
-	unsigned int GetNumThreads() const
+	  unsigned int   GetNumThreads() const
 	{
 		return num_threads_;
 	}

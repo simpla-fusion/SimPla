@@ -165,7 +165,7 @@ public:
 		mesh.Scatter(p.x, p.f * p.w * q, n);
 	}
 
-	template<int IFORM, typename TV, typename ...Others>
+	template<unsigned int IFORM, typename TV, typename ...Others>
 	inline void Scatter(Point_s const &p, Field<mesh_type, IFORM, TV>* J, Others const &... others) const
 	{
 		typename Field<mesh_type, IFORM, TV>::field_value_type v;

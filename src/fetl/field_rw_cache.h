@@ -19,7 +19,7 @@
 namespace simpla
 {
 
-template<typename TM, int IFORM, typename TContainer>
+template<typename TM,  unsigned int  IFORM, typename TContainer>
 class Field<TM, IFORM, Cache<const Field<TM, IFORM, TContainer> > >
 {
 
@@ -35,7 +35,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const int IForm = IFORM;
+	static const  unsigned int  IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -84,7 +84,7 @@ public:
 	{
 	}
 
-	Field(field_type const & f, iterator const &s, int affect_Range = 2)
+	Field(field_type const & f, iterator const &s,  unsigned int  affect_Range = 2)
 			: mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
 	{
 	}
@@ -199,7 +199,7 @@ public:
 }
 ;
 
-template<typename TM, int IFORM, typename TContainer>
+template<typename TM,  unsigned int  IFORM, typename TContainer>
 class Field<TM, IFORM, Cache<Field<TM, IFORM, TContainer> *> >
 {
 
@@ -215,7 +215,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const int IForm = IFORM;
+	static const  unsigned int  IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -261,7 +261,7 @@ public:
 	{
 	}
 
-	Field(field_type * f, int affect_Range = 2)
+	Field(field_type * f,  unsigned int  affect_Range = 2)
 			: mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(0), is_fresh_(false)
 	{
 	}
@@ -366,7 +366,7 @@ public:
 
 };
 
-template<typename TM, int IFORM, typename TContainer>
+template<typename TM,  unsigned int  IFORM, typename TContainer>
 struct Cache<const Field<TM, IFORM, TContainer> >
 {
 
@@ -394,7 +394,7 @@ private:
 	type f_;
 };
 
-template<typename TM, int IFORM, typename TContainer>
+template<typename TM,  unsigned int  IFORM, typename TContainer>
 struct Cache<Field<TM, IFORM, TContainer>*>
 {
 	typedef Cache<Field<TM, IFORM, TContainer>*> this_type;
@@ -418,13 +418,13 @@ private:
 	type f_;
 };
 
-template<typename TM, int IFORM, typename TF>
+template<typename TM,  unsigned int  IFORM, typename TF>
 void RefreshCache(size_t s, Field<TM, IFORM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
-template<typename TM, int IFORM, typename TF>
+template<typename TM,  unsigned int  IFORM, typename TF>
 void FlushCache(Field<TM, IFORM, Cache<TF*>> & f)
 {
 	f.FlushCache();

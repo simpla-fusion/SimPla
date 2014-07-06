@@ -24,11 +24,8 @@
 #include "../utilities/sp_iterator_filter.h"
 #include "../utilities/sp_type_traits.h"
 
-#include "pointinpolygon.h"
-namespace std
-{
-template<typename TI> struct iterator_traits;
-}
+#include "../numeric/pointinpolygon.h"
+
 namespace simpla
 {
 
@@ -46,7 +43,7 @@ class Model
 {
 
 public:
-	static constexpr int MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<unsigned long>::digits;
+	static constexpr unsigned int MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<unsigned long>::digits;
 	typedef TM mesh_type;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 	typedef std::bitset<MAX_NUM_OF_MEIDA_TYPE> material_type;
@@ -71,8 +68,8 @@ public:
 
 	mesh_type const &mesh;
 
-	Model(mesh_type const & m)
-			: null_material(), mesh(m), max_material_(CUSTOM + 1)
+	Model(mesh_type const & m) :
+			null_material(), mesh(m), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -141,7 +138,8 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -220,8 +218,7 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material)
-				material_.erase(s);
+			if (material_[s] == null_material) material_.erase(s);
 		}
 	}
 
@@ -396,71 +393,71 @@ template<typename TM>
 template<typename TR, typename T1, typename T2>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR const& range, T1 pin, T2 pout) const
 {
-
-// Good
-//  +----------#----------+
-//  |          #          |
-//  |    A     #-> B   C  |
-//  |          #          |
-//  +----------#----------+
-//
-//  +--------------------+
-//  |         ^          |
-//  |       B |     C    |
-//  |     ########       |
-//  |     #      #       |
-//  |     #  A   #       |
-//  |     #      #       |
-//  |     ########       |
-//  +--------------------+
-//
-//             +----------+
-//             |      C   |
-//  +----------######     |
-//  |          | A  #     |
-//  |    A     | &  #  B  |
-//  |          | B  #->   |
-//  +----------######     |
-//             |          |
-//             +----------+
-//
-//     	       +----------+
-//       C     |          |
-//  +----------#----+     |
-//  |          # A  |     |
-//  |    B   <-# &  |  A  |
-//  |          # B  |     |
-//  +----------#----+     |
-//             |          |
-//             +----------+
-//
-//
-// 	 Bad
-//
-//  +--------------------+
-//  |                    |
-//  |        A           |
-//  |     ########       |
-//  |     #      #       |
-//  |     #->B C #       |
-//  |     #      #       |
-//  |     ########       |
-//  +--------------------+
-//
-// 	            +----------+
-//              |          |
-//   +-------+  |          |
-//   |       |  |          |
-//   |   B   |  |    A     |
-//   |       |  |          |
-//   +-------+  |          |
-//              |          |
-//              +----------+
+	/** \note
+	 * Good
+	 *  +----------#----------+
+	 *  |          #          |
+	 *  |    A     #-> B   C  |
+	 *  |          #          |
+	 *  +----------#----------+
+	 *
+	 *  +--------------------+
+	 *  |         ^          |
+	 *  |       B |     C    |
+	 *  |     ########       |
+	 *  |     #      #       |
+	 *  |     #  A   #       |
+	 *  |     #      #       |
+	 *  |     ########       |
+	 *  +--------------------+
+	 *
+	 *             +----------+
+	 *             |      C   |
+	 *  +----------######     |
+	 *  |          | A  #     |
+	 *  |    A     | &  #  B  |
+	 *  |          | B  #->   |
+	 *  +----------######     |
+	 *             |          |
+	 *             +----------+
+	 *
+	 *     	       +----------+
+	 *       C     |          |
+	 *  +----------#----+     |
+	 *  |          # A  |     |
+	 *  |    B   <-# &  |  A  |
+	 *  |          # B  |     |
+	 *  +----------#----+     |
+	 *             |          |
+	 *             +----------+
+	 *
+	 *
+	 * 	 Bad
+	 *
+	 *  +--------------------+
+	 *  |                    |
+	 *  |        A           |
+	 *  |     ########       |
+	 *  |     #      #       |
+	 *  |     #->B C #       |
+	 *  |     #      #       |
+	 *  |     ########       |
+	 *  +--------------------+
+	 *
+	 * 	            +----------+
+	 *              |          |
+	 *   +-------+  |          |
+	 *   |       |  |          |
+	 *   |   B   |  |    A     |
+	 *   |       |  |          |
+	 *   +-------+  |          |
+	 *              |          |
+	 *              +----------+
+	 */
 	material_type in = GetMaterial(pin);
 	material_type out = GetMaterial(pout);
 
-	if (in == out)
-		out = null_material;
+	if (in == out) out = null_material;
 
 	pred_fun_type pred =
 

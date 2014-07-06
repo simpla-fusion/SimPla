@@ -11,11 +11,11 @@
 namespace simpla
 {
 
-template<int N, typename T> struct nTuple;
+template<unsigned int  N, typename T> struct nTuple;
 
-template<int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
+template<unsigned int  N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
-template<int N, typename TL>
+template<unsigned int  N, typename TL>
 auto operator -(nTuple<N, TL> const & lhs)
 ->nTuple<N ,typename std::remove_cv<typename std::remove_reference<decltype(lhs[0])>::type>::type>
 {
@@ -23,51 +23,51 @@ auto operator -(nTuple<N, TL> const & lhs)
 
 	nTuple<N, T> res;
 
-	for (int i = 0; i < N; ++i)
+	for (unsigned int  i = 0; i < N; ++i)
 	{
 		res[i] = -lhs[i];
 	}
 	return std::move(res);
 }
 
-template<int N, typename TL>
+template<unsigned int  N, typename TL>
 nTuple<N, TL> operator +(nTuple<N, TL> const & lhs)
 {
 	return std::move(lhs);
 }
 
 #define DEFINE_OP(_OP_)                                                          \
-template<int N, typename TL, typename TR>                                        \
+template<unsigned int  N, typename TL, typename TR>                                        \
 auto operator _OP_ (nTuple<N, TL> const & lhs, nTuple<N, TR> const & rhs)        \
 ->nTuple<N ,decltype(lhs[0] _OP_ rhs[0])>                                        \
 {                                                                                \
 	nTuple<N, decltype(lhs[0] _OP_ rhs[0])> res;                                 \
                                                                                  \
-	for (int i = 0; i < N; ++i)                                                  \
+	for (unsigned int  i = 0; i < N; ++i)                                                  \
 	{                                                                            \
 		res[i] = lhs[i] _OP_ rhs[i];                                             \
 	}                                                                            \
 	return std::move(res);                                                       \
 }                                                                                \
-template<int N, typename TL, typename TR>                                        \
+template<unsigned int  N, typename TL, typename TR>                                        \
 auto operator _OP_ (nTuple<N, TL> const & lhs, TR const & rhs)        \
 ->nTuple<N ,decltype(lhs[0] _OP_ rhs )>                                        \
 {                                                                                \
 	nTuple<N, decltype(lhs[0] _OP_ rhs )> res;                                 \
                                                                                  \
-	for (int i = 0; i < N; ++i)                                                  \
+	for (unsigned int  i = 0; i < N; ++i)                                                  \
 	{                                                                            \
 		res[i] = lhs[i] _OP_ rhs ;                                             \
 	}                                                                            \
 	return std::move(res);                                                       \
 }                                                                                \
-template<int N, typename TL, typename TR>                                        \
+template<unsigned int  N, typename TL, typename TR>                                        \
 auto operator _OP_ (TL const & lhs, nTuple<N, TR> const & rhs)        \
 ->nTuple<N ,decltype(lhs _OP_ rhs[0])>                                        \
 {                                                                                \
 	nTuple<N, decltype(lhs  _OP_ rhs[0])> res;                                 \
                                                                                  \
-	for (int i = 0; i < N; ++i)                                                  \
+	for (unsigned int  i = 0; i < N; ++i)                                                  \
 	{                                                                            \
 		res[i] = lhs  _OP_ rhs[i];                                             \
 	}                                                                            \

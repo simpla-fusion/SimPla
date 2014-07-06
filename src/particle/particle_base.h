@@ -91,7 +91,7 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 	}
 
 	template<typename ...Args>
-	static int Register(Factory<std::string, ParticleBase<mesh_type>, Args ...>* factory)
+	static  unsigned int  Register(Factory<std::string, ParticleBase<mesh_type>, Args ...>* factory)
 	{
 		typename Factory<std::string, ParticleBase<mesh_type>, Args ...>::create_fun_callback call_back;
 

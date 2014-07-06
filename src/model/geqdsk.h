@@ -38,10 +38,10 @@ public:
 	typedef Interpolation<LinearInterpolation, value_type, Real> inter_type;
 	typedef MultiDimesionInterpolation<BiLinearInterpolation, value_type> inter2d_type;
 	typedef nTuple<3, value_type> coordinates_type;
-	static constexpr int PhiAxis = 2;
-	static constexpr int RAxis = (PhiAxis + 1) % 3;
-	static constexpr int ZAxis = (PhiAxis + 2) % 3;
-	static constexpr int NDIMS = 2;
+	static constexpr  unsigned int  PhiAxis = 2;
+	static constexpr  unsigned int  RAxis = (PhiAxis + 1) % 3;
+	static constexpr  unsigned int  ZAxis = (PhiAxis + 2) % 3;
+	static constexpr  unsigned int  NDIMS = 2;
 
 private:
 	std::string desc;
@@ -158,7 +158,7 @@ public:
 		return psirz_.eval(x[RAxis], x[ZAxis]);
 	}
 
-	inline coordinates_type B(Real R, Real Z, unsigned int VecPhiAxis = 2) const
+	inline coordinates_type B(Real R, Real Z,   unsigned int   VecPhiAxis = 2) const
 	{
 		auto gradPsi = psirz_.grad(R, Z);
 
@@ -170,7 +170,7 @@ public:
 
 	}
 
-	inline auto B(nTuple<3, Real> const&x, unsigned int VecPhiAxis = 2) const
+	inline auto B(nTuple<3, Real> const&x,   unsigned int   VecPhiAxis = 2) const
 	DECL_RET_TYPE(B(x[RAxis], x[ZAxis],VecPhiAxis))
 	;
 
@@ -197,9 +197,9 @@ public:
 		GetProfile_(std::integral_constant<bool, is_nTuple<decltype(get_value(*f,0UL))>::value>(), name, f);
 	}
 
-	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;
+	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi,   unsigned int   VecZAxis = 2) const;
 
-	coordinates_type MapFluxFromCylindrical(coordinates_type const & x, unsigned int VecZAxis = 2) const;
+	coordinates_type MapFluxFromCylindrical(coordinates_type const & x,   unsigned int   VecZAxis = 2) const;
 	/**
 	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
 	 *  \cite  Jardin:2010:CMP:1855040
@@ -213,7 +213,7 @@ public:
 	 *
 	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
-	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis = 2, Real resoluton = 0.001);
+	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res,   unsigned int   ToPhiAxis = 2, Real resoluton = 0.001);
 
 	/**
 	 *
@@ -233,7 +233,7 @@ public:
 	 *
 	 */
 	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
-	        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis = 2);
+	        std::function<Real(Real, Real)> const & h,   unsigned int   PhiAxis = 2);
 private:
 
 	template<typename TF>
@@ -255,7 +255,7 @@ template<typename TF>
 void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const
 {
 	typedef typename TF::mesh_type mesh_type;
-	static constexpr unsigned int IForm = TF::IForm;
+	static constexpr   unsigned int   IForm = TF::IForm;
 
 	if (name == "B")
 	{
@@ -288,7 +288,7 @@ template<typename TF>
 void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const
 {
 	typedef typename TF::mesh_type mesh_type;
-	static constexpr unsigned int IForm = TF::IForm;
+	static constexpr   unsigned int   IForm = TF::IForm;
 
 	if (name == "psi")
 	{
@@ -314,7 +314,7 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const 
 	}
 	UpdateGhosts(f);
 }
-std::string XDMFWrite(GEqdsk const & self, std::string const &fname, int flag);
+std::string XDMFWrite(GEqdsk const & self, std::string const &fname,  unsigned int  flag);
 
 }
 // namespace simpla

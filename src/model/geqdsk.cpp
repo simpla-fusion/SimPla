@@ -21,7 +21,7 @@
 #include "../physics/constants.h"
 #include "../io/data_stream.h"
 #include "../numeric/find_root.h"
-#include "pointinpolygon.h"
+#include "../numeric/pointinpolygon.h"
 
 namespace simpla
 {
@@ -102,7 +102,7 @@ void GEqdsk::Read(std::string const &fname)
 
 #undef INPUT_VALUE
 
-	unsigned int nbbbs, limitr;
+	  unsigned int   nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
 	rzbbb_.resize(nbbbs);
@@ -271,7 +271,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis, Real resolution)
+bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res,   unsigned int   ToPhiAxis, Real resolution)
 {
 	bool success = true;
 
@@ -324,7 +324,7 @@ bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned in
 }
 
 bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
-        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis)
+        std::function<Real(Real, Real)> const & h,   unsigned int   PhiAxis)
 {
 	bool success = false;
 

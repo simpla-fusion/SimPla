@@ -29,7 +29,7 @@ struct MagneticFluxGeometry
 
 	typedef MagneticFluxGeometry<topology_type> this_type;
 
-	static constexpr int NDIMS = topology_type::NDIMS;
+	static constexpr  unsigned int  NDIMS = topology_type::NDIMS;
 
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
@@ -136,7 +136,7 @@ struct MagneticFluxGeometry
 		return dx_;
 	}
 
-	template<int IN, typename T>
+	template<unsigned int IN, typename T>
 	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
 	{
 		int n = IN < NDIMS ? IN : NDIMS;

@@ -153,7 +153,7 @@ private:
 	struct h5type_traits_
 	{
 		const size_t idx;
-		static constexpr int rank = 0;
+		static constexpr  unsigned int  rank = 0;
 		const size_t extent[1] = { 0 };
 		h5type_traits_() :
 				idx(std::type_index(typeid(TV)).hash_code())
@@ -163,11 +163,11 @@ private:
 		{
 		}
 	};
-	template<int N, typename TV>
+	template<unsigned int N, typename TV>
 	struct h5type_traits_<nTuple<N, TV>>
 	{
 		const size_t idx;
-		static constexpr int rank = 1;
+		static constexpr  unsigned int  rank = 1;
 		const size_t extent[2] = { N, 0 };
 		h5type_traits_() :
 				idx(std::type_index(typeid(TV)).hash_code())
@@ -177,11 +177,11 @@ private:
 		{
 		}
 	};
-	template<int N, int M, typename TV>
+	template<unsigned int N,  unsigned int  M, typename TV>
 	struct h5type_traits_<nTuple<M, nTuple<N, TV>> >
 	{
 		const size_t idx;
-		static constexpr int rank = 2;
+		static constexpr  unsigned int  rank = 2;
 		const size_t extent[3] = { M, N, 0 };
 		h5type_traits_() :
 				idx(std::type_index(typeid(TV)).hash_code())
@@ -194,7 +194,7 @@ private:
 
 	std::string WriteHDF5(std::string const &name, void const *v,
 
-	size_t t_idx, int type_rank, size_t const * type_dims,
+	size_t t_idx,  unsigned int  type_rank, size_t const * type_dims,
 
 	int rank,
 
@@ -214,7 +214,7 @@ private:
 
 	) const;
 
-	std::string UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx, int type_rank,
+	std::string UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx,  unsigned int  type_rank,
 	        size_t const * type_dims, size_t number) const;
 
 	struct pimpl_s;

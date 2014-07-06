@@ -70,7 +70,7 @@ public:
 			nTuple<3, Real> v;
 			for (auto & point : p[s.first])
 			{
-				p.PullBack(point, &x, &v);
+				p.PullBack(pounsigned int , &x, &v);
 				Relection(s.second, &x, &v);
 				p.PushForward(x, v, &point);
 			}

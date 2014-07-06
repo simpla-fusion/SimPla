@@ -36,9 +36,9 @@ struct UniformArray
 {
 
 	typedef UniformArray this_type;
-	static constexpr int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
-	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
-	static constexpr int NDIMS = 3;
+	static constexpr unsigned int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
+	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
+	static constexpr unsigned int NDIMS = 3;
 	typedef long index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
@@ -76,7 +76,8 @@ struct UniformArray
 		{
 			LOGGER << "Load UniformArray ";
 			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -890,7 +891,7 @@ struct UniformArray
 #endif
 	}
 
-	compact_index_type GetShift(unsigned int nodeid, compact_index_type h=0UL) const
+	compact_index_type GetShift( unsigned int nodeid, compact_index_type h=0UL) const
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1005,7 +1006,7 @@ struct UniformArray
 #endif
 	}
 
-	static compact_index_type DI(unsigned int i, compact_index_type r)
+	static compact_index_type DI( unsigned int i, compact_index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		return (1UL << (INDEX_DIGITS * (NDIMS-i-1)+MAX_DEPTH_OF_TREE - 1));
@@ -1014,7 +1015,7 @@ struct UniformArray
 
 #endif
 	}
-	static compact_index_type DeltaIndex(unsigned int i, compact_index_type r)
+	static compact_index_type DeltaIndex( unsigned int i, compact_index_type r)
 	{
 		return DI(i, r) & r;
 	}
@@ -1306,7 +1307,7 @@ private:
 
 	}
 public:
-	range_type Select(unsigned int iform) const
+	range_type Select( unsigned int iform) const
 	{
 		return std::move(this_type::make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
 	}
@@ -1345,7 +1346,7 @@ public:
 			))
 
 	template<typename ...Args>
-	auto Select(unsigned int iform, Args &&... args) const
+	auto Select( unsigned int iform, Args &&... args) const
 	DECL_RET_TYPE (this_type::Select(this_type::Select(iform),std::forward<Args>(args)...))
 	/**  @} */
 	/**
@@ -1415,7 +1416,7 @@ public:
 		return std::move(res);
 	}
 
-	auto make_hash(unsigned int iform )const
+	auto make_hash( unsigned int iform )const
 	DECL_RET_TYPE(make_hash(Select(iform)))
 
 	/** @}*/
@@ -1478,21 +1479,21 @@ public:
 		return n;
 	}
 
-	template<int I>
-	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
+	template<unsigned int I>
+	inline unsigned int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s + DeltaIndex(s);
 		v[1] = s - DeltaIndex(s);
 		return 2;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1526,7 +1527,7 @@ public:
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1565,7 +1566,7 @@ public:
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1605,7 +1606,7 @@ public:
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1638,7 +1639,7 @@ public:
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1683,7 +1684,7 @@ public:
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -1741,7 +1742,7 @@ public:
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1790,7 +1791,7 @@ public:
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1830,7 +1831,7 @@ public:
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -1884,7 +1885,7 @@ public:
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1932,7 +1933,7 @@ public:
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1970,7 +1971,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
         unsigned int process_num, unsigned int ghost_width = 0)
 {
 	typedef UniformArray::index_type index_type;
-	static constexpr int NDIMS = UniformArray::NDIMS;
+	static constexpr unsigned int NDIMS = UniformArray::NDIMS;
 
 	auto b = begin(range).self_;
 	auto e = (--end(range)).self_ + 1;
@@ -1992,8 +1993,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0)
-			count = 0;
+		if (process_num > 0) count = 0;
 	}
 	else
 	{

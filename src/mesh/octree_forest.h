@@ -29,9 +29,9 @@ struct OcForest
 {
 
 	typedef OcForest this_type;
-	static constexpr int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
-	static constexpr int MAX_NUM_VERTEX_PER_CEL = 8;
-	static constexpr int NDIMS = 3;
+	static constexpr  unsigned int  MAX_NUM_NEIGHBOUR_ELEMENT = 12;
+	static constexpr  unsigned int  MAX_NUM_VERTEX_PER_CEL = 8;
+	static constexpr  unsigned int  NDIMS = 3;
 
 	typedef long index_type;
 
@@ -48,11 +48,11 @@ struct OcForest
 	typedef std::map<iterator, nTuple<3, coordinates_type>> surface_type;
 
 	//!< signed long is 63bit, unsigned long is 64 bit, add a sign bit
-	static constexpr unsigned int FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
+	static constexpr   unsigned int   FULL_DIGITS = std::numeric_limits<compact_index_type>::digits;
 
-	static constexpr unsigned int D_FP_POS = 4; //!< default floating-point position
+	static constexpr   unsigned int   D_FP_POS = 4; //!< default floating-point position
 
-	static constexpr unsigned int INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
+	static constexpr   unsigned int   INDEX_DIGITS = (FULL_DIGITS - CountBits<D_FP_POS>::n) / 3;
 
 	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 	static constexpr index_type TREE_ROOT_MASK = ((1UL << (INDEX_DIGITS - D_FP_POS)) - 1) << D_FP_POS;
@@ -178,7 +178,7 @@ struct OcForest
 
 	template<typename TV> using Container=std::shared_ptr<TV>;
 
-	template<int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
+	template<unsigned int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
 		return (MEMPOOL.allocate_shared_ptr < TV > (GetLocalNumOfElements(iform)));
 	}
@@ -282,7 +282,7 @@ struct OcForest
 		Decompose(1,0,0);
 	}
 
-	void Decompose(unsigned int num_process=0,unsigned int process_num=0,unsigned int ghost_width=0)
+	void Decompose(  unsigned int   num_process=0,  unsigned int   process_num=0,  unsigned int   ghost_width=0)
 	{
 		if(num_process<=1)
 		{
@@ -429,7 +429,7 @@ struct OcForest
 		}
 		return rank;
 	}
-	static compact_index_type GetShift(unsigned int nodeid,compact_index_type h=0UL)
+	static compact_index_type GetShift(  unsigned int   nodeid,compact_index_type h=0UL)
 	{
 		compact_index_type shift = h << (INDEX_DIGITS * 3);
 
@@ -464,9 +464,9 @@ struct OcForest
 		return GetShift(res);
 	}
 
-	inline unsigned int GetVertices( compact_index_type s, compact_index_type *v) const
+	inline   unsigned int   GetVertices( compact_index_type s, compact_index_type *v) const
 	{
-		unsigned int n=0;
+		  unsigned int   n=0;
 		switch(IForm(s))
 		{
 			case VERTEX:
@@ -518,21 +518,21 @@ struct OcForest
 		return n;
 	}
 
-	template<int I>
-	inline int GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
+	template<unsigned int I>
+	inline  unsigned int  GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s + DeltaIndex(s);
 		v[1] = s - DeltaIndex(s);
 		return 2;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -566,7 +566,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -605,7 +605,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -644,7 +644,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -677,7 +677,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -722,7 +722,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -780,7 +780,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -829,7 +829,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -869,7 +869,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline int GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -923,7 +923,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline int GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -971,7 +971,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline int GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1013,20 +1013,20 @@ struct OcForest
 		| ((~(r & (_DA >> (HeightOfTree(r) + 1)))) & (_DA >> (HeightOfTree(r) + 1)));
 
 	}
-	static unsigned int GetCellIndex(compact_index_type r)
+	static   unsigned int   GetCellIndex(compact_index_type r)
 	{
 		compact_index_type mask=(1UL<<(D_FP_POS-HeightOfTree(r)))-1;
 
 		return r&(~(mask|(mask<<INDEX_DIGITS)|(mask<<(INDEX_DIGITS*2))));
 	}
-	static unsigned int NodeId(compact_index_type r)
+	static   unsigned int   NodeId(compact_index_type r)
 	{
 		auto s = (r & (_DA >> (HeightOfTree(r) + 1))) >> (D_FP_POS - HeightOfTree(r) - 1);
 
 		return ((s >> (INDEX_DIGITS * 2)) | (s >> (INDEX_DIGITS - 1)) | (s << 2UL)) & (7UL);
 	}
 
-	static unsigned int HeightOfTree(compact_index_type r)
+	static   unsigned int   HeightOfTree(compact_index_type r)
 	{
 		return r >> (INDEX_DIGITS * 3);
 	}
@@ -1071,7 +1071,7 @@ struct OcForest
 		return (r & (_DA >> (HeightOfTree(r) + 1)));
 	}
 
-	static compact_index_type DeltaIndex(unsigned int i,compact_index_type r )
+	static compact_index_type DeltaIndex(  unsigned int   i,compact_index_type r )
 	{
 		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + D_FP_POS - HeightOfTree(r) - 1))&r;
 	}
@@ -1339,7 +1339,7 @@ struct OcForest
 
 		nTuple<NDIMS, index_type> count_;
 
-		unsigned int iform_=VERTEX;
+		  unsigned int   iform_=VERTEX;
 
 		compact_index_type shift_ = 0UL;
 
@@ -1363,7 +1363,7 @@ struct OcForest
 		{
 
 		}
-		range(unsigned int iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
+		range(  unsigned int   iform,nTuple<NDIMS, index_type> const & start, nTuple<NDIMS, index_type> const& count )
 		: start_(start ), count_(count), iform_(iform),shift_(get_first_node_shift(iform))
 		{
 
@@ -1441,7 +1441,7 @@ struct OcForest
 			}
 			return n;
 		}
-		range Split(unsigned int num_process, unsigned int process_num, unsigned int ghost_width = 0) const
+		range Split(  unsigned int   num_process,   unsigned int   process_num,   unsigned int   ghost_width = 0) const
 		{
 			int n=0;
 			index_type L=0;
@@ -1475,12 +1475,12 @@ struct OcForest
 	};	// class Range
 
 	template<typename T>
-	range Select( unsigned int iform, std::pair<T,T> domain)const
+	range Select(   unsigned int   iform, std::pair<T,T> domain)const
 	{
 		return Select(iform,domain.first,domain.second);
 	}
 
-	range Select(unsigned int iform, coordinates_type xmin, coordinates_type xmax)const
+	range Select(  unsigned int   iform, coordinates_type xmin, coordinates_type xmax)const
 	{
 		auto start=CoordinatesToIndex(&xmin,get_first_node_shift(iform))>>D_FP_POS;
 		auto count=(CoordinatesToIndex(&xmax,get_first_node_shift(iform))>>D_FP_POS)- start+1;
@@ -1488,7 +1488,7 @@ struct OcForest
 		return Select(iform,start,count);
 	}
 
-	range Select( unsigned int iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
+	range Select(   unsigned int   iform, nTuple<NDIMS, index_type> start, nTuple<NDIMS, index_type> count)const
 	{
 		auto flag=Clipping( local_inner_start_, local_inner_count_, &start, &count);
 
@@ -1501,7 +1501,7 @@ struct OcForest
 		return range( iform,start,count);
 	}
 
-	range Select(unsigned int iform)const
+	range Select(  unsigned int   iform)const
 	{
 		return range(iform, local_inner_start_,local_inner_count_);
 	}

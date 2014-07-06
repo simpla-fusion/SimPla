@@ -14,7 +14,7 @@ namespace simpla
 /**
  * \brief Quasi-Random Sequences
  *
- * \cite  http://web.maths.unsw.edu.au/~fkuo/sobol/index.html
+ * \note  http://web.maths.unsw.edu.au/~fkuo/sobol/index.html
  *  - Numerical Recipes 3rd pp.403, 7.8
  *  - S. Joe and F. Y. Kuo, Remark on Algorithm 659:
  *     Implementing Sobol's quasirandom sequence generator,
@@ -47,15 +47,15 @@ namespace simpla
  19      6       25      1 1 5 5 19 61
  20      7       1       1 3 7 11 23 15 103
  * */
-template<int N, typename T = unsigned int>
+template<unsigned int N, typename T =  unsigned int  >
 class sobol_engine
 {
 	typedef T result_type;
 
-	static const int MAXDIM = 6;
-	static const int MAXBIT = sizeof(result_type) * 8;
+	static const  unsigned int  MAXDIM = 6;
+	static const  unsigned int  MAXBIT = sizeof(result_type) * 8;
 
-	const int mdeg[MAXDIM] =
+	const  unsigned int  mdeg[MAXDIM] =
 	{ 1, 2, 3, 3, 4, 4 };
 
 	result_type ix[MAXDIM];

@@ -17,7 +17,7 @@
 namespace simpla
 {
 /**
- *  \ingroup Algorithm  Geometry
+ *  \ingroup Numeric  Geometry
  *  \brief check a point in 2D polygon
  */
 class PointInPolygon
@@ -28,8 +28,8 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	template<int N>
-	PointInPolygon(std::vector<nTuple<N, Real> > const &polygen, unsigned int Z = 2)
+	template<unsigned int N>
+	PointInPolygon(std::vector<nTuple<N, Real> > const &polygen,   unsigned int   Z = 2)
 			: num_of_vertex_(0)
 	{
 
@@ -77,8 +77,8 @@ public:
 		return IsInside(std::forward<Args>(args)...);
 	}
 
-	template<int N>
-	inline bool IsInside(nTuple<N, Real> x, unsigned int ZAxis = 2) const
+	template<unsigned int N>
+	inline bool IsInside(nTuple<N, Real> x,   unsigned int   ZAxis = 2) const
 	{
 		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 	}
@@ -101,9 +101,9 @@ public:
 		return oddNodes;
 	}
 
-	template<int N>
+	template<unsigned int N>
 	std::tuple<bool, nTuple<N, Real>> Intersection(nTuple<N, Real> const & x0, nTuple<N, Real> const &x1,
-	        unsigned int ZAxis = 2, Real error = 0.001) const
+	          unsigned int   ZAxis = 2, Real error = 0.001) const
 	{
 		std::function<bool(nTuple<N, Real> const &)> fun = [this,ZAxis](nTuple<N,Real> const & x)->bool
 		{

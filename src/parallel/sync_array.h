@@ -18,11 +18,11 @@
 
 namespace simpla
 {
-template<int N>
+template<unsigned int N>
 struct DistributedArray
 {
 public:
-	static constexpr int NDIMS = N;
+	static constexpr  unsigned int  NDIMS = N;
 
 	DistributedArray()
 
@@ -41,8 +41,8 @@ public:
 
 	}
 
-	void Init(nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count, int num_process,
-	        int process_num, size_t gw)
+	void Init(nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count,  unsigned int  num_process,
+	         unsigned int  process_num, size_t gw)
 
 	{
 		Decompose(num_process, process_num, gw, global_start, global_count, &local_);
@@ -157,7 +157,7 @@ public:
 	                };
 	                struct neighbour_s
 	                {
-		                unsigned int dest;
+		                  unsigned int   dest;
 
 		                sub_array_s remote;
 
@@ -166,10 +166,10 @@ public:
 
 	                sub_array_s local_;
 
-	                unsigned int array_order_ = MPI_ORDER_C;
+	                  unsigned int   array_order_ = MPI_ORDER_C;
 
 	                std::vector<neighbour_s> recv_;
-	                void Decompose(int num_process, int process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
+	                void Decompose(int num_process,  unsigned int  process_num, size_t gw, nTuple<NDIMS, size_t> const &global_start,
 			nTuple<NDIMS, size_t> const &global_count, sub_array_s * local) const
 	{
 

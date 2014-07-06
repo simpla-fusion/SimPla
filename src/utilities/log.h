@@ -28,6 +28,7 @@
 #include <stdexcept>
 #include <string>
 #include <bitset>
+#include <cassert>
 #ifdef USE_MPI
 #	include "../parallel/message_comm.h"
 #endif
@@ -67,7 +68,7 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 	size_t indent_;
 
 public:
-	static constexpr int DEFAULT_LINE_WIDTH = 100;
+	static constexpr  unsigned int  DEFAULT_LINE_WIDTH = 100;
 
 	LoggerStreams(int level = LOG_INFORM)
 			: std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
@@ -522,7 +523,7 @@ inline std::string ShowBit(unsigned long s)
 
 #define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
-#include <cassert>
+
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)
 #else

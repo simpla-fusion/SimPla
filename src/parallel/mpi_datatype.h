@@ -91,14 +91,14 @@ struct MPIDataType
 {
 	MPI_Datatype type_;
 	bool is_commited_ = false;
-	static constexpr int MAX_NTUPLE_RANK = 10;
+	static constexpr  unsigned int  MAX_NTUPLE_RANK = 10;
 	MPIDataType()
 			: is_commited_(_impl::GetMPIType<T>(&type_))
 	{
 	}
-	template<int NDIMS, typename TI>
+	template<unsigned int NDIMS, typename TI>
 	MPIDataType(nTuple<NDIMS, TI> const &outer, nTuple<NDIMS, TI> const &inner, nTuple<NDIMS, TI> const &start,
-	        int array_order_ =
+	         unsigned int  array_order_ =
 	        MPI_ORDER_C)
 	{
 

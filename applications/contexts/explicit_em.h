@@ -31,7 +31,6 @@
 #include "../../src/particle/particle_factory.h"
 // Model
 #include "../../src/model/model.h"
-#include "../../src/model/parse_config.h"
 #include "../../src/model/geqdsk.h"
 
 // Solver

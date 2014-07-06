@@ -48,7 +48,7 @@ class Particle: public Engine, public ParticlePool<typename Engine::mesh_type, t
 {
 
 public:
-	static constexpr int IForm = VERTEX;
+	static constexpr  unsigned int  IForm = VERTEX;
 
 	typedef Engine engine_type;
 

@@ -19,7 +19,7 @@ namespace simpla
  * @cite  http://www.cs.cmu.edu/~nasmith/papers/smith+tromble.tr04.pdf
  *
  * */
-template<int NDIM>
+template<unsigned int NDIM>
 class simplex_distribution
 {
 public:

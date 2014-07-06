@@ -215,7 +215,7 @@ void DataStream::CloseFile()
 
 std::string DataStream::WriteHDF5(std::string const & name, void const *v,
 
-size_t t_idx, int type_rank, size_t const * type_dims,
+size_t t_idx,  unsigned int  type_rank, size_t const * type_dims,
 
 int rank,
 
@@ -454,7 +454,7 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 }
 
-std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx, int type_rank,
+std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx,  unsigned int  type_rank,
         size_t const * type_dims, size_t count) const
 
 {

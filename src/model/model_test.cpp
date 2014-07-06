@@ -52,8 +52,8 @@ public:
 	typedef Model<mesh_type> model_type;
 
 	mesh_type mesh;
-	static constexpr unsigned int IForm = TInt::value;
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr   unsigned int   IForm = TInt::value;
+	static constexpr   unsigned int   NDIMS = mesh_type::NDIMS;
 
 	nTuple<NDIMS, Real> xmin = { 0.0, 0.0, 0.0, };
 
@@ -75,7 +75,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	auto & model= *TestFixture::model;
 	auto const & mesh= TestFixture::mesh;
-	static constexpr unsigned int IForm=TestFixture::IForm;
+	static constexpr   unsigned int   IForm=TestFixture::IForm;
 
 	typename TestFixture::coordinates_type v0, v1, v2, v3;
 
@@ -148,7 +148,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 
 	auto & model= *TestFixture::model;
 	auto const & mesh= TestFixture::mesh;
-	static constexpr unsigned int IForm=TestFixture::IForm;
+	static constexpr   unsigned int   IForm=TestFixture::IForm;
 
 	auto f = mesh.template make_field<IForm,Real>( );
 
@@ -188,7 +188,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 	auto & model= *TestFixture::model;
 	auto const & mesh= TestFixture::mesh;
-	static constexpr unsigned int IForm=TestFixture::IForm;
+	static constexpr   unsigned int   IForm=TestFixture::IForm;
 
 	auto f = mesh.template make_field<IForm,Real>( );
 

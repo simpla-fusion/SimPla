@@ -12,10 +12,10 @@
 #include "geometry_cylindrical.h"
 #include "uniform_array.h"
 
-template<typename TM, int IFORM> struct TParam
+template<typename TM,  unsigned int  IFORM> struct TParam
 {
 	typedef TM mesh_type;
-	static constexpr unsigned int IForm = IFORM;
+	static constexpr   unsigned int   IForm = IFORM;
 };
 typedef ::testing::Types<
 

@@ -46,7 +46,7 @@ typedef long Integral;
 
 typedef std::complex<Real> Complex;
 
-template<int N, typename T> struct nTuple;
+template<  unsigned int   N, typename T> struct nTuple;
 
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 
@@ -118,9 +118,9 @@ typedef nTuple<FOUR, nTuple<FOUR, Real> > RTensor4;
 
 typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 
-template<int TOP, typename TL, typename TR> struct BiOp;
+template<  unsigned int    TOP, typename TL, typename TR> struct BiOp;
 
-template<int TOP, typename TL> struct UniOp;
+template<  unsigned int    TOP, typename TL> struct UniOp;
 
 template<typename > struct has_PlaceHolder
 {
@@ -137,12 +137,12 @@ template<> struct is_real<Real>
 	static constexpr bool value = true;
 };
 
-template<int TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
+template<  unsigned int    TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
 {
 	static constexpr bool value = is_real<TL>::value && is_real<TR>::value;
 };
 
-template<int TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
+template<  unsigned int    TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
 {
 	static constexpr bool value = is_complex<TL>::value || is_complex<TR>::value;
 };
@@ -188,7 +188,7 @@ DECL_RET_TYPE ((std::abs(m)))
 //		return l[s];
 //	}
 //	;
-//	template<int N, typename TL, typename TI>
+//	template<  unsigned int    N, typename TL, typename TI>
 //	constexpr auto get_index(nTuple<N, TL> const & l, TI s)->TL const&
 //	{
 //		return l[s];

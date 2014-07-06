@@ -29,7 +29,7 @@ class ParticlePool: public ContainerContainer<typename TM::compact_index_type, T
 	std::mutex write_lock_;
 
 public:
-	static constexpr int IForm = VERTEX;
+	static constexpr  unsigned int  IForm = VERTEX;
 
 	typedef TM mesh_type;
 
