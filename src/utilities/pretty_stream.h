@@ -1,7 +1,7 @@
 /*
  * pretty_stream.h
  *
- *  Created on: 2013年11月29日
+ *  Created on: 2013-11-29
  *      Author: salmon
  */
 

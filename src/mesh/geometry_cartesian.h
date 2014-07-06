@@ -1,7 +1,7 @@
 /*
  * geometry_cartesian.h
  *
- *  Created on: 2014年3月13日
+ *  Created on: 2014-3-13
  *      Author: salmon
  */
 

@@ -1,7 +1,7 @@
 /*
  * init_load_particle.h
  *
- *  Created on: 2013年12月21日
+ *  Created on: 2013-12-21
  *      Author: salmon
  */
 

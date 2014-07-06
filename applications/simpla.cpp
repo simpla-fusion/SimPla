@@ -1,7 +1,7 @@
 /*
  * simpla.cpp
  *
- * \date  2013年11月13日
+ * \date  2013-11-13
  *      \author  salmon
  */
 

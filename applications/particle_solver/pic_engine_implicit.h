@@ -1,7 +1,7 @@
 /*
  * pic_engine_implicit.h
  *
- * \date  2014年4月10日
+ * \date  2014-4-10
  *      \author  salmon
  */
 

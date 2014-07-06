@@ -1,7 +1,7 @@
 /*
  * mesh_rectangle.h
  *
- *  Created on: 2014年2月26日
+ *  Created on: 2014-2-26
  *      Author: salmon
  */
 

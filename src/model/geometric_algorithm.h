@@ -1,7 +1,7 @@
 /*
  * geometry_algorithm.h
  *
- *  Created on: 2014年4月21日
+ *  Created on: 2014-4-21
  *      Author: salmon
  */
 

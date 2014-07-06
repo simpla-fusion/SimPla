@@ -1,7 +1,7 @@
 /*
  * properties_pugixml.h
  *
- * \date  2013年11月18日
+ * \date  2013-11-18
  *      \author  salmon
  */
 

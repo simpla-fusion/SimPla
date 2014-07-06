@@ -1,7 +1,7 @@
 /*
  * model.h
  *
- *  Created on: 2013年12月15日
+ *  Created on: 2013-12-15
  *      Author: salmon
  */
 

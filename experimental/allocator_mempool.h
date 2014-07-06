@@ -1,7 +1,7 @@
 /*
  * allocator_mempool.h
  *
- * \date  2013年12月9日
+ * \date  2013-12-9
  *      \author  salmon
  */
 

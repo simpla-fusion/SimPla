@@ -1,7 +1,7 @@
 /*
  * data_stream.cpp
  *
- *  Created on: 2013年12月12日
+ *  Created on: 2013-12-12
  *      Author: salmon
  */
 

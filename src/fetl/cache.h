@@ -1,7 +1,7 @@
 /*
  * cache.h
  *
- *  Created on: 2013年11月12日
+ *  Created on: 2013-11-12
  *      Author: salmon
  */
 

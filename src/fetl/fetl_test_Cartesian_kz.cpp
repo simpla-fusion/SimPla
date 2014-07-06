@@ -1,7 +1,7 @@
 /*
  * fetl_test_Euclidean_kz.cpp
  *
- *  Created on: 2014年6月23日
+ *  Created on: 2014-6-23
  *      Author: salmon
  */
 

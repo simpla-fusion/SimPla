@@ -1,7 +1,7 @@
 /*
  * ntuple_noet.h
  *
- *  Created on: 2014年4月1日
+ *  Created on: 2014-4-1
  *      Author: salmon
  */
 

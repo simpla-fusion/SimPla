@@ -1,7 +1,7 @@
 /*
  * particle_update_ghosts.h
  *
- *  Created on: 2014年6月15日
+ *  Created on: 2014-6-15
  *      Author: salmon
  */
 

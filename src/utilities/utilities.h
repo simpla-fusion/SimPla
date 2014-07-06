@@ -1,7 +1,7 @@
 /*
  * utilities.h
  *
- *  Created on: 2013年11月24日
+ *  Created on: 2013-11-24
  *      Author: salmon
  */
 

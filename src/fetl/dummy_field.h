@@ -1,7 +1,7 @@
 /*
  * dummy_field.h
  *
- *  Created on: 2014年6月29日
+ *  Created on: 2014-6-29
  *      Author: salmon
  */
 

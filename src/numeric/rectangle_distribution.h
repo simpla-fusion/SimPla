@@ -1,7 +1,7 @@
 /*
  * rectangle_distribution.h
  *
- *  Created on: 2013年10月24日
+ *  Created on: 2013-10-24
  *      Author: salmon
  */
 

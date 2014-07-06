@@ -1,7 +1,7 @@
 /*
  * fluid_cold_engine.h
  *
- * \date  2014年4月15日
+ * \date  2014-4-15
  *      \author  salmon
  */
 

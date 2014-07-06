@@ -1,7 +1,7 @@
 /*
  * load_field.h
  *
- *  Created on: 2013年12月9日
+ *  Created on: 2013-12-9
  *      Author: salmon
  */
 

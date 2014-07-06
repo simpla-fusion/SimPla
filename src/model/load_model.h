@@ -1,7 +1,7 @@
 /*
  * load_model.h
  *
- *  Created on: 2014年5月9日
+ *  Created on: 2014-5-9
  *      Author: salmon
  */
 

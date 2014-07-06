@@ -1,7 +1,7 @@
 /*
  * octree_forest.h
  *
- *  Created on: 2014年2月21日
+ *  Created on: 2014-2-21
  *      Author: salmon
  */
 

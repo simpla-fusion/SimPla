@@ -1,7 +1,7 @@
 /*
  * optional.h
  *
- * \date  2014年4月1日
+ * \date  2014-4-1
  *      \author  salmon
  */
 

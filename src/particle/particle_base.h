@@ -1,7 +1,7 @@
 /*
  * particle_base.h
  *
- *  Created on: 2014年1月16日
+ *  Created on: 2014-1-16
  *      Author: salmon
  */
 

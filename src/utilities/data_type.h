@@ -1,7 +1,7 @@
 /*
  * data_type.h
  *
- *  Created on: 2014年6月2日
+ *  Created on: 2014-6-2
  *      Author: salmon
  */
 

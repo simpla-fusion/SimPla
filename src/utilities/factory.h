@@ -1,7 +1,7 @@
 /*
  * factory.h
  *
- *  Created on: 2014年6月13日
+ *  Created on: 2014-6-13
  *      Author: salmon
  */
 

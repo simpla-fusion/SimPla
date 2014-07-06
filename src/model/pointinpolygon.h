@@ -1,7 +1,7 @@
 /*
  * @file pointinpolygon.h
  *
- *  Created on: 2013年12月4日
+ *  Created on: 2013-12-4
  *  @author salmon
  */
 

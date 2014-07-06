@@ -1,7 +1,7 @@
 /*
  * register_particle.h
  *
- * \date  2014年6月13日
+ * \date  2014-6-13
  *      \author  salmon
  */
 

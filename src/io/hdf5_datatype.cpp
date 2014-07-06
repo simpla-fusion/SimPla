@@ -1,7 +1,7 @@
 /*
  * hdf5_datatype.cpp
  *
- *  Created on: 2014年6月3日
+ *  Created on: 2014-6-3
  *      Author: salmon
  */
 

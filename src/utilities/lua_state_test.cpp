@@ -1,7 +1,7 @@
 /*
  * lua_parser_test.cpp
  *
- *  Created on: 2013年9月24日
+ *  Created on: 2013-9-24
  *      Author: salmon
  */
 

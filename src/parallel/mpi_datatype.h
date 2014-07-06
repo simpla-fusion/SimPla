@@ -1,7 +1,7 @@
 /*
  * mpi_datatype.h
  *
- *  Created on: 2014年5月26日
+ *  Created on: 2014-5-26
  *      Author: salmon
  */
 

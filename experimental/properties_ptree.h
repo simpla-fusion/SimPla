@@ -1,7 +1,7 @@
 /*
  * properties_ptree.h
  *
- * \date  2013年11月17日
+ * \date  2013-11-17
  *      \author  salmon
  */
 

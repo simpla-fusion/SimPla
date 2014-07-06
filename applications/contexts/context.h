@@ -1,7 +1,7 @@
 /*
  * \file explicit_em.h
  *
- * \date  2013年12月12日
+ * \date  2013-12-12
  *      \author  salmon
  */
 

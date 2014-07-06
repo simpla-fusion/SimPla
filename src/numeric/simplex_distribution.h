@@ -1,7 +1,7 @@
 /*
  * simplex_distribution.h
  *
- *  Created on: 2013年10月23日
+ *  Created on: 2013-10-23
  *      Author: salmon
  */
 

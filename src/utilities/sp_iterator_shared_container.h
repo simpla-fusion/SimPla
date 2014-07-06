@@ -1,7 +1,7 @@
 /*
  * iterator_shared_container.h
  *
- *  Created on: 2014年6月20日
+ *  Created on: 2014-6-20
  *      Author: salmon
  */
 

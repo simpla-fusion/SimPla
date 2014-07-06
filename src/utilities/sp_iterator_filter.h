@@ -1,7 +1,7 @@
 /*
  * sp_iterator_filter.h
  *
- *  Created on: 2014年6月5日
+ *  Created on: 2014-6-5
  *      Author: salmon
  */
 

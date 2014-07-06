@@ -1,7 +1,7 @@
 /*
  * interpolator.h
  *
- *  Created on: 2014年4月17日
+ *  Created on: 2014-4-17
  *      Author: salmon
  */
 

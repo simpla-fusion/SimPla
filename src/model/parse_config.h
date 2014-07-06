@@ -1,7 +1,7 @@
 /*
  * parse_config.h
  *
- *  Created on: 2014年6月12日
+ *  Created on: 2014-6-12
  *      Author: salmon
  */
 

@@ -1,7 +1,7 @@
 /*
  * boundary.h
  *
- *  Created on: 2014年5月6日
+ *  Created on: 2014-5-6
  *      Author: salmon
  */
 

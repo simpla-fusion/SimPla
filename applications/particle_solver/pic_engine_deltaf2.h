@@ -1,7 +1,7 @@
 /*
  * pic_engine_deltaf.h
  *
- * \date  2013年12月10日
+ * \date  2013-12-10
  *      \author  salmon
  */
 

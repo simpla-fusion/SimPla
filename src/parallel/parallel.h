@@ -1,7 +1,7 @@
 /*
  * parallel.h
  *
- *  Created on: 2014年3月27日
+ *  Created on: 2014-3-27
  *      Author: salmon
  */
 

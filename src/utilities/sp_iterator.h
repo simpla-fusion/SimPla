@@ -1,7 +1,7 @@
 /**
  * sp_iterator.h
  *
- * \date 2014年7月4日
+ * \date 2014-7-4
  * \author salmon
  */
 

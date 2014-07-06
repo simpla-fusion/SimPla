@@ -1,7 +1,7 @@
 /*
  * graph_algorithm.h
  *
- *  Created on: 2014年5月27日
+ *  Created on: 2014-5-27
  *      Author: salmon
  */
 

@@ -1,7 +1,7 @@
 /*
  * multi_thread.h
  *
- *  Created on: 2014年5月12日
+ *  Created on: 2014-5-12
  *      Author: salmon
  */
 

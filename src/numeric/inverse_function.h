@@ -1,7 +1,7 @@
 /*
  * inverse_function.h
  *
- *  Created on: 2013年12月2日
+ *  Created on: 2013-12-2
  *      Author: salmon
  */
 

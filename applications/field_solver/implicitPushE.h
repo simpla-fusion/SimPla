@@ -1,7 +1,7 @@
 /*
  * implicitPushE.h
  *
- * \date  2014年4月16日
+ * \date  2014-4-16
  *      \author  salmon
  */
 

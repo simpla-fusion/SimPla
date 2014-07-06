@@ -1,7 +1,7 @@
 /**
  * find_root.h
  *
- * \date 2014年7月6日
+ * \date 2014-7-6
  * \author salmon
  */
 

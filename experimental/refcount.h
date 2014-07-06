@@ -1,7 +1,7 @@
 /*
  * refcount.h
  *
- * \date  2013年9月24日
+ * \date  2013-9-24
  *      \author  salmon
  */
 

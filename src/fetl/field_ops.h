@@ -31,143 +31,7 @@ template<int, typename > class nTuple;
  *
  */
 
-namespace fetl_impl
-{
 
-//! Check the availability of member function OpEval
-HAS_MEMBER_FUNCTION(OpEval);
-
-template<int TOP, typename TM, typename TL, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
-        TI s)
-                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI >::value), (mesh.OpEval(Int2Type<TOP>(), l, s )))
-;
-
-template<int TOP, typename TM, typename TL, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
-        TI s)
-                ENABLE_IF_DECL_RET_TYPE( (!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l, s)))
-;
-
-template<int TOP, typename TM, typename TL, typename TR, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
-        TI s)
-                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (mesh.OpEval(Int2Type<TOP>(), l,r, s)) )
-;
-template<int TOP, typename TM, typename TL, typename TR, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
-        TI s)
-                ENABLE_IF_DECL_RET_TYPE((!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l,r, s)) )
-;
-
-}
-
-/**
- *  \brief Bi-operation field expression
- */
-template<typename TM, int IFORM, int TOP, typename TL, typename TR>
-struct Field<TM, IFORM, BiOp<TOP, TL, TR> >
-{
-
-public:
-	typename StorageTraits<TL>::const_reference l_;
-	typename StorageTraits<TR>::const_reference r_;
-	typedef TM mesh_type;
-
-	static constexpr int IForm = IFORM;
-
-	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
-
-	typedef typename mesh_type::iterator iterator;
-
-	mesh_type const & mesh;
-
-	Field(TL const & l, TR const & r)
-			: mesh(get_mesh(l, r)), l_(l), r_(r)
-	{
-	}
-
-	template<typename TI>
-	inline auto get(TI s) const
-	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
-	;
-	template<typename TI>
-	inline auto operator[](TI s) const
-	DECL_RET_TYPE( (this->get(s)) )
-	;
-
-private:
-
-	template<int IL, typename VL, typename VR> static inline mesh_type const &
-	get_mesh(Field<mesh_type, IL, VL> const & l, VR const & r)
-	{
-		return (l.mesh);
-	}
-	template<typename VL, int IR, typename VR> static inline mesh_type const &
-	get_mesh(VL const & l, Field<mesh_type, IR, VR> const & r)
-	{
-		return (r.mesh);
-	}
-
-	template<int IL, typename VL, int IR, typename VR> static inline mesh_type const &
-	get_mesh(Field<mesh_type, IL, VL> const & l, Field<mesh_type, IR, VR> const & r)
-	{
-		return (l.mesh);
-	}
-
-}
-;
-
-/**
- *   \brief  Uni-operation field expression
- */
-template<typename TM, int IFORM, int TOP, typename TL>
-struct Field<TM, IFORM, UniOp<TOP, TL> >
-{
-
-public:
-
-	typename StorageTraits<TL>::const_reference l_;
-
-	typedef TM mesh_type;
-
-	static constexpr int IForm = IFORM;
-
-	typedef Field<TM, IForm, UniOp<TOP, TL> > this_type;
-
-	typedef typename mesh_type::iterator iterator;
-
-	mesh_type const & mesh;
-
-	Field(TL const & l)
-			: mesh(l.mesh), l_(l)
-	{
-	}
-	template<typename TI>
-	inline auto get(TI s) const
-	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
-	;
-
-	template<typename TI>
-	inline auto operator[](TI s) const
-	DECL_RET_TYPE((this->get(s)))
-	;
-
-};
-
-template<typename TM, int IFORM, int TOP, typename TL, typename TR>
-struct can_not_reference<Field<TM, IFORM, BiOp<TOP, TL, TR> >>
-{
-	static constexpr bool value = true;
-};
-
-template<typename TM, int IFORM, int TOP, typename TL>
-struct can_not_reference<Field<TM, IFORM, UniOp<TOP, TL> > >
-{
-	static constexpr bool value = true;
-};
-
-//! @}
 
 //! \ingroup   BasicAlgebra
 //! @{
@@ -536,6 +400,144 @@ DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(In
 ;
 
 //!   @}
+
+namespace fetl_impl
+{
+
+//! Check the availability of member function OpEval
+HAS_MEMBER_FUNCTION(OpEval);
+
+template<int TOP, typename TM, typename TL, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
+        TI s)
+                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI >::value), (mesh.OpEval(Int2Type<TOP>(), l, s )))
+;
+
+template<int TOP, typename TM, typename TL, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
+        TI s)
+                ENABLE_IF_DECL_RET_TYPE( (!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l, s)))
+;
+
+template<int TOP, typename TM, typename TL, typename TR, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
+        TI s)
+                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (mesh.OpEval(Int2Type<TOP>(), l,r, s)) )
+;
+template<int TOP, typename TM, typename TL, typename TR, typename TI>
+auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
+        TI s)
+                ENABLE_IF_DECL_RET_TYPE((!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l,r, s)) )
+;
+
+}
+
+/**
+ *  \brief Bi-operation field expression
+ */
+template<typename TM, int IFORM, int TOP, typename TL, typename TR>
+struct Field<TM, IFORM, BiOp<TOP, TL, TR> >
+{
+
+public:
+	typename StorageTraits<TL>::const_reference l_;
+	typename StorageTraits<TR>::const_reference r_;
+	typedef TM mesh_type;
+
+	static constexpr int IForm = IFORM;
+
+	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
+
+	typedef typename mesh_type::iterator iterator;
+
+	mesh_type const & mesh;
+
+	Field(TL const & l, TR const & r)
+			: mesh(get_mesh(l, r)), l_(l), r_(r)
+	{
+	}
+
+	template<typename TI>
+	inline auto get(TI s) const
+	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
+	;
+	template<typename TI>
+	inline auto operator[](TI s) const
+	DECL_RET_TYPE( (this->get(s)) )
+	;
+
+private:
+
+	template<int IL, typename VL, typename VR> static inline mesh_type const &
+	get_mesh(Field<mesh_type, IL, VL> const & l, VR const & r)
+	{
+		return (l.mesh);
+	}
+	template<typename VL, int IR, typename VR> static inline mesh_type const &
+	get_mesh(VL const & l, Field<mesh_type, IR, VR> const & r)
+	{
+		return (r.mesh);
+	}
+
+	template<int IL, typename VL, int IR, typename VR> static inline mesh_type const &
+	get_mesh(Field<mesh_type, IL, VL> const & l, Field<mesh_type, IR, VR> const & r)
+	{
+		return (l.mesh);
+	}
+
+}
+;
+
+/**
+ *   \brief  Uni-operation field expression
+ */
+template<typename TM, int IFORM, int TOP, typename TL>
+struct Field<TM, IFORM, UniOp<TOP, TL> >
+{
+
+public:
+
+	typename StorageTraits<TL>::const_reference l_;
+
+	typedef TM mesh_type;
+
+	static constexpr int IForm = IFORM;
+
+	typedef Field<TM, IForm, UniOp<TOP, TL> > this_type;
+
+	typedef typename mesh_type::iterator iterator;
+
+	mesh_type const & mesh;
+
+	Field(TL const & l)
+			: mesh(l.mesh), l_(l)
+	{
+	}
+	template<typename TI>
+	inline auto get(TI s) const
+	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
+	;
+
+	template<typename TI>
+	inline auto operator[](TI s) const
+	DECL_RET_TYPE((this->get(s)))
+	;
+
+};
+
+template<typename TM, int IFORM, int TOP, typename TL, typename TR>
+struct can_not_reference<Field<TM, IFORM, BiOp<TOP, TL, TR> >>
+{
+	static constexpr bool value = true;
+};
+
+template<typename TM, int IFORM, int TOP, typename TL>
+struct can_not_reference<Field<TM, IFORM, UniOp<TOP, TL> > >
+{
+	static constexpr bool value = true;
+};
+
+//! @}
 
 }//namespace simpla
 #endif /* OPERATIONS_H_ */

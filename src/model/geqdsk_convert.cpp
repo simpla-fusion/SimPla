@@ -1,7 +1,7 @@
 /*
  * geqdsk_convert.cpp
  *
- *  Created on: 2013年12月3日
+ *  Created on: 2013-12-3
  *      Author: salmon
  */
 

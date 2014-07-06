@@ -1,7 +1,7 @@
 /*
  * particle_pool.h
  *
- *  Created on: 2014年4月29日
+ *  Created on: 2014-4-29
  *      Author: salmon
  */
 

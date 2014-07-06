@@ -1,7 +1,7 @@
 /*
  * visitor.h
  *
- *  Created on: 2014年4月23日
+ *  Created on: 2014-4-23
  *      Author: salmon
  */
 

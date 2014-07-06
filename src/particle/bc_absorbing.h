@@ -1,7 +1,7 @@
 /*
  * bc_absorbing.h
  *
- *  Created on: 2014年4月24日
+ *  Created on: 2014-4-24
  *      Author: salmon
  */
 

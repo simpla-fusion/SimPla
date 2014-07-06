@@ -1,7 +1,7 @@
 /*
  * pic_engine_ggauge.h
  *
- * \date  2013年10月23日
+ * \date  2013-10-23
  *      \author  salmon
  */
 

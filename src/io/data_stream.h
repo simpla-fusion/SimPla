@@ -1,7 +1,7 @@
 /*
  * data_stream.h
  *
- *  Created on: 2013年12月11日
+ *  Created on: 2013-12-11
  *      Author: salmon
  *
  */
