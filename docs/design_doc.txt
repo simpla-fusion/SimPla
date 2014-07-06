@@ -1,3 +1,4 @@
+/**
 \mainpage Design of SimPla
 
 \b SimPla is a unified and hierarchical development framework for plasma simulation.
@@ -8,8 +9,8 @@ Its long term goal is to provide complete modeling of a fusion device.
 
 \li \ref Background
 \li \ref Requirement
+\li \ref Preliminarydesign
 \li \ref Detail
-\li \ref SeeAlso
 
 \page  Background  Background
  In the tokamak, from edge to core, the physical processes of plasma have different temporal-spatial
@@ -37,7 +38,7 @@ Its long term goal is to provide complete modeling of a fusion device.
   achieve this goal.
 
 \section  Detail  Detail
-f[
+\f[
   |I_2|=\left| \int_{0}^T \psi(t)
            \left\{
               u(a,t)-
@@ -53,16 +54,14 @@ f[
 
 
 
- \page Requirement Requirement
- Requirements
-=======================================
-
+\page Requirement Requirement
+ 
 The final objective of SimPla is to provide a complete and efficient framework for fusion plasma
  simulation. A list of strategic requirements has been established. They are explained in this section
  , and listed as:
 * Req(1) Requirements are expressed like this.
 
-.1 Physics model and numerical algorithm
+1.1 Physics model and numerical algorithm
 -----------------------
 In the tokamak, from edge to core, the physical processes of plasma have different temporal-spatial
 scales and are described by different physical models.
@@ -90,32 +89,32 @@ toroidal coordinates and magnetic flus coordinates etc.
 * Req(4) Supports different numerical algorithm, i.e. FDM, FVM, FEM, DG-FEM, PIC, Delta-f etc.
 * Req(5) Automatize or simplify the conversion from physical equation to numerical algorithm;
 
-.2 Flexible and verifiability
+1.2 Flexible and verifiability
 -----------------------
 
 * Req(6) Physical model and numerical algorithm can be verified independently.
 * Req(7) Be flexible to efficiently solve different scale problems, from one-dimensional slab model to
 three-dimensional global toroidal model.
-.3 Module and Integration
+1.3 Module and Integration
 -----------------------
 * Req(8) Different physical model and numerical algorithms shall be coupled in memory;
 * Req(9) Each module can be independent validated;
 * Req(10) Support flexible task flow control;
 * Req(11) Support global (device-scale) multi-module integration;
-.4 High performance computing
+1.4 High performance computing
 -----------------------
 * Req(12) Supports large scale high performance computing;
 * Req(13) Has good portability on different hardware architectures, supports main-stream high performance
 hardware architectures, i.e. multi-core CPU, many-core GPU;
-.5 Input/output
+1.5 Input/output
 -----------------------
 * Req(14) Provide interface for external pre-process software, i.e. modeling and mesh generate tools;
 * Req(15) Provide interface for external post-process software, i.e. visualization tools
 * Req(16) Flexible configuration;
 * Req(17) Comprehensive and expressive logging information;
 
-2 Preliminary design
-========================================
+\page  Preliminarydesign Preliminary design
+
 SimPla is a unified and hierarchical development framework for plasma simulation. Its long term goal
  is to provide complete modeling of a fusion device. “SimPla” is abbreviation of four words, Simulation,
   Integration, Multi-physics and Plasma.
@@ -164,3 +163,6 @@ Usually, MHD theory is expressed by a group PDEs. Using C++ expression template 
  which has a lot successful applications, i.e. OpenFOAM.
 
 
+
+
+*/
