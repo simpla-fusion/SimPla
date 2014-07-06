@@ -141,17 +141,17 @@ DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
 }
 // namespace ntuple_impl
 /**
- * @ingroup DataStruct
- * @brief nTuple :n-tuple
+ * \ingroup DataStruct
+ * \brief nTuple :n-tuple
  *
- *  @Semantics:
+ *   Semantics:
  *    n-tuple is a sequence (or ordered list) of n elements, where n is a positive
  *    integer. There is also one 0-tuple, an empty sequence. An n-tuple is defined
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
- *    @url: http://en.wikipedia.org/wiki/Tuple
- *  @Implement
+ *    \cite  http://en.wikipedia.org/wiki/Tuple
+ *   Implement
  *   template<int n,typename T> struct nTuple;
  *   nTuple<5,double> t={1,2,3,4,5};
  *

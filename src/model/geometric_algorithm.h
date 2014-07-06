@@ -50,7 +50,7 @@ namespace simpla
 //}
 
 /**
- *  @ingroup Geometry Model
+ *  \ingroup Geometry
  *  @{
  */
 template<typename TS, int NDIMS>

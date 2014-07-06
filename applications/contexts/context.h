@@ -19,16 +19,16 @@
 namespace simpla
 {
 /**
- *   @defgroup Application
+ *   @defgroup Application Application
  *   @{
- *      @defgroup FieldSolver
- *      @defgroup ParticleEngine
+ *      @defgroup FieldSolver Field Solver
+ *      @defgroup ParticleEngine Particle Engine
  *   @}
  *
  */
 
 /**
- *  @brief Context wrapper
+ *  \brief Context wrapper
  */
 struct Context
 {

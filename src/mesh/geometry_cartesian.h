@@ -17,9 +17,9 @@
 namespace simpla
 {
 /**
- *  @ingroup Geometry
+ *  \ingroup Geometry
  *
- *  @brief  Cartesian geometry (X Y Z)
+ *  \brief  Cartesian geometry (X Y Z)
  *
  *
  */
@@ -44,14 +44,14 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry() :
-			topology_type()
+	CartesianGeometry()
+			: topology_type()
 	{
 
 	}
 	template<typename TDict>
-	CartesianGeometry(TDict const & dict) :
-			topology_type(dict)
+	CartesianGeometry(TDict const & dict)
+			: topology_type(dict)
 	{
 		Load(dict);
 	}
@@ -117,8 +117,7 @@ struct CartesianGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure CartesianGeometry error!");
 		}
@@ -282,9 +281,8 @@ struct CartesianGeometry: public TTopology
 	 *
 	 *   transform vector from Cartesian to Cartesian
 	 *
-	 * @param x v
-	 *         u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z
-	 * @param ZAxisOfVector
+	 * @param Z \f$\left(x,v\right)\f$\f$ u[XAixs] \partial_x +  u[YAixs] \partial_y + u[ZAixs] \partial_z \f$
+	 * @param CartesianZAxis
 	 * @return y u
 	 *
 	 */
@@ -311,10 +309,10 @@ struct CartesianGeometry: public TTopology
 	/**
 	 *
 	 *  transform vector  from    Cylindrical to Cartesian
-	 * @param r z theta
-	 *  u = u[RAixs] \partial_r +  u[1]  r[RAxis] \partial_theta + u[ZAixs] \partial_z
-	 * @param ZAxisOfVector
-	 * @return  x, v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z
+	 * @param R \f$\left(r, z ,\theta\right)\f$
+	 *  \f$ u = u[RAixs] \partial_r +  u[1]  r[RAxis] \partial_theta + u[ZAixs] \partial_z\f$
+	 * @param CartesianZAxis
+	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(

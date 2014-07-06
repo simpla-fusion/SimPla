@@ -33,13 +33,13 @@ namespace simpla
 {
 
 /**
- *  @defgroup Model
- *   @brief Geometry modeling
+ *  @defgroup Model Model
+ *   \brief Geometry modeling
  */
 
 /**
- *  @ingroup Model
- *  @brief Model
+ *  \ingroup Model
+ *  \brief Model
  */
 template<typename TM>
 class Model

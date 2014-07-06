@@ -18,9 +18,9 @@ namespace simpla
 {
 
 /**
- *  @ingroup Particle
+ *  \ingroup Particle
  *
- *  @brief particle container
+ *  \brief particle container
  *
  */
 template<typename TM, typename TPoint>

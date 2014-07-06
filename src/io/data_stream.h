@@ -30,14 +30,14 @@ namespace simpla
  *   @defgroup HDF5  HDF5 interface
  *   @defgroup XDMF   XDMF interface
  *   @defgroup NetCDF  NetCDF interface
- *     @brief UNIMPLEMENT notfix
+ *     \brief UNIMPLEMENT notfix
  *  @}
  *  */
 
 /**
- * @ingroup DataIO
+ * \ingroup DataIO
  * @class DataStream
- * @brief data stream , should be a singleton
+ * \brief data stream , should be a singleton
  */
 class DataStream
 {

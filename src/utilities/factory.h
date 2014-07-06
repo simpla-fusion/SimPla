@@ -15,10 +15,10 @@
 namespace simpla
 {
 
-//! @ingroup Utilities
+//! \ingroup Utilities
 
 /**
- *  @ref Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
+ *  \cite  Modern C++ Design, Andrei Alexandrescu , Addison Wesley 2001  Charpt 8
  */
 template<typename TId, typename TProduct, typename ...Args>
 struct Factory

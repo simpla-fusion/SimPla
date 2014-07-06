@@ -58,8 +58,8 @@ enum
 };
 
 /**
- *  @ingroup Logging
- *  @brief Logging stream, shuold be used  as a singleton
+ *  \ingroup Logging
+ *  \brief Logging stream, shuold be used  as a singleton
  */
 class LoggerStreams //: public SingletonHolder<LoggerStreams>
 {
@@ -230,8 +230,8 @@ private:
 };
 
 /**
- *  @ingroup Logging
- *  @brief log message buffer,
+ *  \ingroup Logging
+ *  \brief log message buffer,
  */
 class Logger
 {
@@ -406,7 +406,7 @@ private:
 };
 
 /**
- * @ingroup Logging
+ * \ingroup Logging
  * @defgroup logmanip  manip for Logger
  *
  * @{
@@ -480,7 +480,7 @@ inline std::string ShowBit(unsigned long s)
 /** @} */
 
 /**
- *  @ingroup Logging
+ *  \ingroup Logging
  *  @defgroup LogShortCut    Shortcuts for logging
  *  @{
  */

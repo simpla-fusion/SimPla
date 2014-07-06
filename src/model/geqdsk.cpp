@@ -74,7 +74,6 @@ void GEqdsk::Read(std::string const &fname)
 
 	inter2d_type(dims_, rzmin_, rzmax_).swap(psirz_);
 
-
 #define INPUT_VALUE(_NAME_)                                                            \
 	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
@@ -104,7 +103,6 @@ void GEqdsk::Read(std::string const &fname)
 
 	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
-
 
 	rzbbb_.resize(nbbbs);
 	rzlim_.resize(limitr);
@@ -146,7 +144,7 @@ void GEqdsk::ReadProfile(std::string const &fname)
 		auto it = names.begin();
 		auto ie = names.end();
 		Real psi;
-		inFileStream_ >> psi; 		/// @NOTE assume first row is psi
+		inFileStream_ >> psi; 		/// \note assume first row is psi
 		*it = psi;
 
 		for (++it; it != ie; ++it)
@@ -270,6 +268,16 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 //			<< std::endl << rzlim_ << std::endl;
 
 	return os;
+}
+
+bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis)
+{
+	for (int i = 0; i < M; ++i)
+	{
+
+	}
+
+	return true;
 }
 
 }  // namespace simpla

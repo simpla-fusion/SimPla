@@ -43,9 +43,9 @@ namespace simpla
 {
 
 /**
- * @ingroup Application
+ * \ingroup Application
  *
- * @brief Electromagnetic solver
+ * \brief Electromagnetic solver
  */
 template<typename TM>
 struct ExplicitEMContext

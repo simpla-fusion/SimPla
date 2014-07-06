@@ -21,8 +21,8 @@ namespace simpla
 {
 
 /**
- *  @ingroup ParticleEngine
- *  @brief default PIC pusher, using Boris mover
+ *  \ingroup ParticleEngine
+ *  \brief default PIC pusher, using Boris mover
  */
 template<typename TM, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDefault

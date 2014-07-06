@@ -28,9 +28,9 @@ namespace simpla
 {
 /**
 
- *  @ingroup Topology
+ *  \ingroup Topology
  *
- *  @brief standard rectangle grid  (1~3 dimensions)
+ *  \brief standard rectangle grid  (1~3 dimensions)
  */
 struct UniformArray
 {
@@ -795,7 +795,7 @@ struct UniformArray
 	 *
 	 * @param x
 	 * @param shift
-	 * @return x \in [0,1)
+	 * @return x \f$\in \left[0,1\right)\f$
 	 */
 	inline std::tuple<compact_index_type,coordinates_type>
 	CoordinatesGlobalToLocal(coordinates_type x, compact_index_type shift = 0UL) const
@@ -972,27 +972,27 @@ struct UniformArray
 	 * @return
 	 */
 
-	static compact_index_type InverseRoate(compact_index_type r)
+	static compact_index_type InverseRoate(compact_index_type s)
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
 
 		return
-		(r & (~(_DA)))
+		(s & (~(_DA)))
 
-		| ((r & (((_DK|_DJ)))) << INDEX_DIGITS)
+		| ((s & (((_DK|_DJ)))) << INDEX_DIGITS)
 
-		| ((r & (((_DI)))) >> (INDEX_DIGITS * 2));
+		| ((s & (((_DI)))) >> (INDEX_DIGITS * 2));
 
 #else
-		compact_index_type h = DepthOfTree(r);
+		compact_index_type h = DepthOfTree(s);
 
 		return
-		(r & (~(_DA >> h)))
+		(s & (~(_DA >> h)))
 
-		| ((r & (((_DK|_DJ) >> h))) << INDEX_DIGITS)
+		| ((s & (((_DK|_DJ) >> h))) << INDEX_DIGITS)
 
-		| ((r & (((_DI) >> h))) >> (INDEX_DIGITS * 2));
+		| ((s & (((_DI) >> h))) >> (INDEX_DIGITS * 2));
 #endif
 	}
 
@@ -1024,10 +1024,10 @@ struct UniformArray
 	 * @param s
 	 * @return
 	 */
-	static index_type ComponentNum(compact_index_type r)
+	static index_type ComponentNum(compact_index_type s)
 	{
 		index_type res = 0;
-		switch (NodeId(r))
+		switch (NodeId(s))
 		{
 			case 4:
 			case 3:
@@ -1082,15 +1082,10 @@ struct UniformArray
 
 		typedef iterator this_type;
 
-		/// One of the @link iterator_tags tag types@endlink.
 		typedef std::bidirectional_iterator_tag iterator_category;
-		/// The type "pointed to" by the iterator.
 		typedef compact_index_type value_type;
-		/// Distance between iterators is represented as this type.
 		typedef long difference_type;
-		/// This type represents a pointer-to-value_type.
 		typedef compact_index_type * pointer;
-		/// This type represents a reference-to-value_type.
 		typedef compact_index_type reference;
 
 		nTuple<NDIMS, index_type> self_;
@@ -1321,9 +1316,20 @@ public:
 		return std::move(range);
 	}
 
+	/**
+	 * \fn Select
+	 * \brief
+	 * @param range
+	 * @param b
+	 * @param e
+	 * @return
+	 */
 	auto Select(range_type range, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e) const
 	DECL_RET_TYPE(SelectRectangle_( IForm(*std::get<0>(range)) ,std::get<0>(range).self_,std::get<1>(range).self_, b, e))
 
+	/**
+	 *
+	 */
 	auto Select(range_type range, coordinates_type xmin, coordinates_type xmax) const
 	DECL_RET_TYPE(SelectRectangle_(
 					IForm(*std::get<0>(range)),	//

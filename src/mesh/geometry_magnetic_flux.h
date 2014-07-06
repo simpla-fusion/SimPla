@@ -18,9 +18,9 @@
 namespace simpla
 {
 /**
- *  @ingroup Geometry
+ *  \ingroup Geometry
  *
- *  @brief  Magnetic flus coordinates ( R psi phi ) @todo !!!UNIMPLEMENT !!!
+ *  \brief  Magnetic flus coordinates ( R psi phi ) @todo !!!UNIMPLEMENT !!!
  */
 template<typename Topology>
 struct MagneticFluxGeometry

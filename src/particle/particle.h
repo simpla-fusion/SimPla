@@ -36,12 +36,12 @@
 namespace simpla
 {
 
-/** @defgroup Particle
+/** @defgroup Particle Particle
  *
  */
 
 /**
- *  @brief Particle class
+ *  \brief Particle class
  */
 template<class Engine>
 class Particle: public Engine, public ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>
@@ -265,7 +265,7 @@ void Particle<Engine>::Scatter(TJ *pJ, Others &&... args) const
 template<typename TX, typename TV, typename TE, typename TB> inline
 void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 {
-// @ref  Birdsall(1991)   p.62
+// \cite   Birdsall(1991)   p.62
 // Bories Method
 
 	Vec3 v_;

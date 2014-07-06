@@ -15,9 +15,9 @@ namespace simpla
 
 template<typename, int, typename > class Field;
 /**
- * @ingroup Mesh
+ * \ingroup Mesh
  *
- * @brief Interpolator
+ * \brief Interpolator
  */
 template<typename TM, typename Policy = std::nullptr_t>
 class Interpolator

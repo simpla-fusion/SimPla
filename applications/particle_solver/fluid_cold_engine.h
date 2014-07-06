@@ -20,8 +20,8 @@ template<typename > class ColdFluid;
 template<typename > class Particle;
 
 /**
- * @ingroup ParticleEngine
- * @brief Cold Plasma fluid
+ * \ingroup ParticleEngine
+ * \brief Cold Plasma fluid
  */
 template<typename TM>
 class Particle<ColdFluid<TM> >

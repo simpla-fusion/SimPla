@@ -15,7 +15,7 @@ namespace simpla
 {
 
 void deallocate_m(void *p);
-//! @ingroup Utilities
+//! \ingroup Utilities
 class MemoryPool
 {
 private:
@@ -54,8 +54,8 @@ public:
 
 	/**
 	 *
-	 * @param not_used
-	 * @param in_used
+	 * @param p_unused
+	 * @param p_used
 	 * @return
 	 */
 	size_t GetMemorySize(size_t * p_unused = nullptr, size_t * p_used = nullptr) const

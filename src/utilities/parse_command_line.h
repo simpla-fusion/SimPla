@@ -20,14 +20,12 @@ enum
 }
 ;
 /**
- * @ingroup Configure
- * @fun ParseCmdLine
- * @brief Command line parser
+ * \ingroup Configure
+ * \brief Command line parser
  *
  *
-
  * example:
- * @code{
+ * @code{.Cpp}
  * 	ParseCmdLine(argc, argv,
  *		[&](std::string const & opt,std::string const & value)->int
  *		{
@@ -64,7 +62,7 @@ enum
  *		}
  *
  *);
- * @code}
+ * @endcode
  *
  * @param argc
  * @param argv

@@ -18,9 +18,9 @@ namespace simpla
 {
 
 /**
- *  @ingroup Geometry
+ *  \ingroup Geometry
  *
- *  @brief  cylindrical geometry (R Z theta)
+ *  \brief  cylindrical geometry (R Z theta)
  */
 template<typename TTopology, unsigned int IZAxis = 1>
 struct CylindricalGeometry: public TTopology
@@ -364,8 +364,8 @@ struct CylindricalGeometry: public TTopology
 	 *
 	 * \endverbatim
 	 *
-	 * @param z  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
-	 * @param ZAxisOfVector
+	 * @param Z  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
+	 * @param CartesianZAxis
 	 * @return  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
 	 *
 	 */
@@ -393,10 +393,9 @@ struct CylindricalGeometry: public TTopology
 	 *
 	 *   PullBack vector from Cylindrical  to Cartesian
 	 *
-	 * \endverbatim
-	 *
-	 * @param z  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
-	 * @param ZAxisOfVector
+ 	 *
+	 * @param R  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
+	 * @param CartesianZAxis
 	 * @return  \f$ \left(x,y,z\right),u=u_{x}\partial_{x}+u_{y}\partial_{y}+u_{z}\partial_{z} \f$
 	 *
 	 */

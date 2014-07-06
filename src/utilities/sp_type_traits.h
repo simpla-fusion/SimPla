@@ -267,7 +267,7 @@ template<typename T, typename TI>
 auto get_value(std::shared_ptr<T> v, TI const & s)
 DECL_RET_TYPE(get_value(*v ,s))
 
-// @ref http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
+// \cite  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<int N>
 struct CountBits
 {

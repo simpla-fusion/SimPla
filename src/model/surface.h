@@ -20,13 +20,13 @@ namespace simpla
 {
 
 /**
- *  @ingroup Model Geometry
+ *  \ingroup Model Geometry
  *
  *
  */
 
 /**
- *  @brief surface
+ *  \brief surface
  */
 
 template<typename TM>

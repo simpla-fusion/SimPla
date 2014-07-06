@@ -33,7 +33,7 @@ template<int, typename > class nTuple;
  */
 
 /**
- * @ingroup   BasicAlgebra
+ * \ingroup   BasicAlgebra
  * @{
  */
 template<typename TM, int IL, typename TL, typename TR> inline auto operator==(Field<TM, IL, TL> const & lhs,
@@ -62,7 +62,7 @@ template<typename TM, int IL, typename TL, typename TI> inline auto FieldOpEval(
 }
 //! @}
 
-//!  @ingroup   BasicAlgebra
+//!  \ingroup   BasicAlgebra
 //! @{
 template<typename TM, int IL, typename TL>
 inline auto operator-(Field<TM, IL, TL> const & f)
@@ -87,6 +87,7 @@ DECL_RET_TYPE( (Field< TM, IR ,UniOp<REAL, Field<TM,IR , TR> > >( f)))
 template<typename TM, int IR, typename TR>
 inline auto imag(Field<TM, IR, TR> const & f)
 DECL_RET_TYPE( (Field< TM, IR ,UniOp<IMAGINE, Field<TM,IR , TR> > >( f)))
+
 //! @}
 namespace fetl_impl
 {
@@ -184,7 +185,7 @@ DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)
 template<typename TM, int IL, typename TL> inline auto operator/(Field<TM, IL, TL> const & lhs, Complex rhs)
 DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
 //! @}
-/** @ingroup  ExteriorAlgebra
+/** \ingroup  ExteriorAlgebra
  *  @{
  */
 template<typename TM, int IL, typename TL>
@@ -245,7 +246,7 @@ DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 
 /**   @}  */
 
-/** @ingroup  VectorAlgebra
+/** \ingroup  VectorAlgebra
  * @{
  */
 template<typename TG, int IL, typename TL, typename TR> inline auto InnerProduct(Field<TG, IL, TL> const & lhs,
@@ -304,7 +305,7 @@ DECL_RET_TYPE(Negate(Codifferential(f)))
 
 //!   @}
 
-/** @ingroup  NonstandardOperations
+/** \ingroup  NonstandardOperations
  *  @{
  */
 
@@ -395,9 +396,9 @@ ENABLE_IF_DECL_RET_TYPE(
 }
 
 /**
- *  @ingroup FELT
+ *  \ingroup FELT
  *  @{
- *  @brief  Uni-operation field expression
+ *  \brief  Uni-operation field expression
  */
 template<typename TM, int IFORM, int TOP, typename TL>
 struct Field<TM, IFORM, UniOp<TOP, TL> >
@@ -424,17 +425,20 @@ public:
 	template<typename TI>
 	inline auto get(TI s) const
 	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
+	;
 
 	template<typename TI>
 	inline auto operator[](TI s) const
 	DECL_RET_TYPE((this->get(s)))
+	;
 
 };
+
 //! @}
 /**
- * @ingroup FETL
+ * \ingroup FETL
  * @{
- *  @brief Bi-operation field expression
+ *  \brief Bi-operation field expression
  */
 template<typename TM, int IFORM, int TOP, typename TL, typename TR>
 struct Field<TM, IFORM, BiOp<TOP, TL, TR> >

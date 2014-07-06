@@ -17,9 +17,9 @@
 namespace simpla
 {
 /**
- *  @ingroup MULTICORE
+ *  \ingroup MULTICORE
  *
- * @brief Parallel do
+ * \brief Parallel do
  * @param fun
  */
 inline void ParallelDo(std::function<void(int, int)> fun)
@@ -53,9 +53,9 @@ inline void ParallelDo(std::function<void(int, int)> fun)
 #endif
 }
 /**
- *  @ingroup MULTICORE
+ *  \ingroup MULTICORE
  *
- * @brief Parallel for each
+ * \brief Parallel for each
  * @param r
  * @param fun
  */

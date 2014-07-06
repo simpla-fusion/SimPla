@@ -18,12 +18,11 @@ namespace simpla
 
 /**
  *
- * @defgroup Numeric
- * @ingroup Numeric
+ * @defgroup Numeric Numeric
  * @{
  */
 /*
- * @brief interpolation
+ * \brief interpolation
  */
 template<typename TInterpolator, typename TV, typename TX>
 class Interpolation
@@ -121,9 +120,9 @@ public:
 
 };
 /**
- * @ingroup Numeric
+ * \ingroup Numeric
  *
- * @brief Linear Interpolation
+ * \brief Linear Interpolation
  */
 struct LinearInterpolation
 {
@@ -159,7 +158,7 @@ struct LinearInterpolation
 };
 
 /**
- * @brief MultiDimesion Interpolation
+ * \brief MultiDimesion Interpolation
  */
 
 template<typename TInterpolator, typename TV, typename ...TX>
@@ -252,7 +251,7 @@ public:
 
 };
 /**
- * @brief BiLinear Interpolation
+ * \brief BiLinear Interpolation
  */
 class BiLinearInterpolation
 {

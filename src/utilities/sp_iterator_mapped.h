@@ -20,8 +20,8 @@ class _iterator_policy_mapped
 };
 
 /**
- *  @ingroup iterator
- *  @brief mapped iterator
+ *  \ingroup iterator
+ *  \brief mapped iterator
  */
 template<typename TIterator, typename TContainer, bool IsReference>
 struct Iterator<TIterator, TContainer, _iterator_policy_mapped, IsReference>

@@ -24,8 +24,8 @@ namespace simpla
 template<typename TV> using ListOfSmallObject=std::list<TV/*,FixedSmallSizeAlloc<TV>*/>;
 
 /**
- * @ingroup DataStruct
- * @brief  Container of container. i.e. std::map<TKey,std::list<TV>>, *  sub-containers share same allocator
+ * \ingroup DataStruct
+ * \brief  Container of container. i.e. std::map<TKey,std::list<TV>>, *  sub-containers share same allocator
  *
  *  index behavior:  operator[], at
  *   if key exist return reference of value at key;

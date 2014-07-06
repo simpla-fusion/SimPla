@@ -19,11 +19,11 @@ namespace simpla
 {
 
 /**
- *  @defgroup FieldSolver
+ *  @defgroup FieldSolver Field Solver
  */
 /**
- *  @ingroup FieldSolver
- *  @brief absorb boundary condition, PML
+ *  \ingroup FieldSolver
+ *  \brief absorb boundary condition, PML
  */
 template<typename TM>
 class PML

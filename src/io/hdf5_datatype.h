@@ -25,9 +25,9 @@ extern "C"
 #include "../utilities/log.h"
 namespace simpla
 {
-/** @ingroup HDF5
+/** \ingroup HDF5
  *
- *  @brief HDF5 data type factory
+ *  \brief HDF5 data type factory
  */
 struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 {

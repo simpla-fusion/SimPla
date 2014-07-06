@@ -16,12 +16,12 @@
 
 #include "ntuple.h"
 /**
- *  @defgroup Utilities
+ *  @defgroup Utilities Utilities
  *  @{
- *    @defgroup DataStruct
- *    @defgroup Logging
- *    @defgroup Configure
- *    @defgroup iterator
+ *    @defgroup DataStruct Data Struct
+ *    @defgroup Logging Logging
+ *    @defgroup Configure Configure
+ *    @defgroup iterator iterator
  *  @}
  *
  */

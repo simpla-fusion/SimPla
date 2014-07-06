@@ -24,13 +24,13 @@ namespace simpla
 
 
 /**
- *   @defgroup Mesh
- *   @brief define all basic discrete scheme, i.e. finite difference , finite volume, finite element
+ *   @defgroup Mesh Mesh
+ *   \brief define all basic discrete scheme, i.e. finite difference , finite volume, finite element
  *   @{
- *      @defgroup Geometry
- *        @brief coordinates and metric dependent information
- *     	@defgroup Topology
- *        @brief coordinates and metric  independent information
+ *      @defgroup Geometry Geometry
+ *        \brief coordinates and metric dependent information
+ *     	@defgroup Topology Topology
+ *        \brief coordinates and metric  independent information
  *   @}
  */
 
@@ -39,7 +39,7 @@ template<typename, int, typename > class Field;
 template<typename TM, typename Policy> class Interpolator;
 
 /**
- *  @brief template of Mesh
+ *  \brief template of Mesh
  */
 template<typename TGeometry, bool EnableSpectralMethod = false>
 class Mesh: public TGeometry

@@ -16,8 +16,8 @@
 namespace simpla
 {
 /**
- * @ingroup DataStruct
- * @brief  Sparse Container
+ * \ingroup DataStruct
+ * \brief  Sparse Container
  *
  */
 template<typename TI, typename TV>

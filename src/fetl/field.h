@@ -27,9 +27,9 @@ namespace simpla
 template<typename TM, int IFORM, typename > struct Field;
 
 /**
- * @ingroup FETL
+ * \ingroup FETL
  * @class Field
- * @brief Field object
+ * \brief Field object
  *
  */
 template<typename TM, int IFORM, typename TContainer>
@@ -98,7 +98,7 @@ public:
 
 	/**
 	 *
-	 *  @brief Copy Constructer
+	 *  \brief Copy Constructer
 	 *  Copy/clone Construct only copy mesh reference, but do not copy/move data, which is designed to
 	 *  initializie stl containers, such as std::vector
 	 *    \code
@@ -223,9 +223,15 @@ public:
 	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this))
 	auto end() const DECL_RET_TYPE( const_iterator( std::get<1>(range_),std::get<1>(range_), *this))
 
-	template<typename TRange, typename TFun>
-	std::function<void()> CreateCommand(TRange const & range, TFun const & fun);
+	/**
+	 * Create Command
+	 */
+	template<typename TRange, typename TFun>std::function<void()>
+	CreateCommand(TRange const & range, TFun const & fun);
 
+	/**
+	 *
+	 */
 	template<typename T>
 	void Fill(T v)
 	{

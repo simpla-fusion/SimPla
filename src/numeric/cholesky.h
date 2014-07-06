@@ -17,7 +17,7 @@ Matrix<N, T> && cholesky_decomposition(Matrix<N, T> &a)
 	/**
 	 *  Constructor.Given a positive-definite symmetric matrix
 	 *  a[0..n - 1][0..n - 1], construct and store its Cholesky
-	 *  decomposition, $A= L \cdot  L^T$.
+	 *  decomposition, \f$A= L \cdot  L^T\f$.
 	 */
 	Matrix<N, T> el;
 

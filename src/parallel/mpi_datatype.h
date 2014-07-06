@@ -83,8 +83,8 @@ bool GetMPIType(MPI_Datatype * new_type)
 }  // namespace _impl
 
 /**
- *  @ingroup MPI
- *  @brief MPI convert C++ data type to mpi data type
+ *  \ingroup MPI
+ *  \brief MPI convert C++ data type to mpi data type
  */
 template<typename T>
 struct MPIDataType

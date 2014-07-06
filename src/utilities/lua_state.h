@@ -34,15 +34,14 @@ namespace simpla
  *  @{
  *  @defgroup EmScript Embaded Scirpt
  *   @{
- *      @defgroup Convert
- *       @brief Transfer data  between different lanuage
- *      @defgroup Lua
+ *      @defgroup Convert Convert
+ *       \brief Transfer data  between different lanuage
+ *      @defgroup Lua Lua
  *   @}
  *  @}
  */
 
-//! @ingroup Lua
-
+//! \ingroup Lua
 #define LUA_ERROR(_L, _MSG_)  Logger(LOG_ERROR)<<"[Lua error]"<<(_MSG_)<<std::string("\n") << lua_tostring(_L, -1) ; lua_pop(_L, 1);throw(std::runtime_error(""));
 
 class LuaIterator;
@@ -71,12 +70,11 @@ inline int FromLua(std::shared_ptr<lua_State> L, int idx, T * v, Args * ... rest
 	return LuaTrans<T>::From(L, idx, v) + FromLua(L, idx + 1, rest...);
 }
 
-
 /**
  *
- *  @ingroup   Lua
+ *  \ingroup   Lua
  *  @class LuaObject
- *  @brief interface to Lua Script
+ *  \brief interface to Lua Script
  */
 class LuaObject
 {
@@ -698,7 +696,7 @@ public:
 	 *  This pre-allocation is useful for performance when you know in advance how
 	 *   many elements the table will have.
 	 *
-	 *  @url http://www.lua.org/manual/5.2/manual.html#lua_createtable
+	 *  \cite Lua.org:createtable
 	 */
 	inline LuaObject NewTable(std::string const & name, int narr = 0, int nrec = 0)
 	{
@@ -727,7 +725,7 @@ public:
 
 /**
  *
- *     @ingroup Convert  Lua
+ *     \ingroup Convert
  *     @{
  */
 #define DEF_LUA_TRANS(_TYPE_,_TO_FUN_,_FROM_FUN_,_CHECK_FUN_)                                     \

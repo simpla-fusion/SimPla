@@ -16,7 +16,7 @@ namespace simpla
 {
 
 /**
- * @brief A normal continuous distribution for random numbers.
+ * \brief A normal continuous distribution for random numbers.
  *
  * The formula for the normal probability density function is
  * @f[

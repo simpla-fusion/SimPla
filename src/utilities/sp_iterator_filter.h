@@ -18,9 +18,9 @@ class _iterator_policy_filter
 };
 
 /**
- *  @ingroup iterator
+ *  \ingroup iterator
  *
- *  @ref boost::filter_iterator
+ *  \cite  boost::filter_iterator
  *
  */
 template<typename TIterator, typename TPred>

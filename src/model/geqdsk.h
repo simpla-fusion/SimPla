@@ -8,7 +8,6 @@
 #ifndef GEQDSK_H_
 #define GEQDSK_H_
 
-
 #include <iostream>
 #include <string>
 #include <vector>
@@ -20,10 +19,11 @@ namespace simpla
 {
 
 /**
- * @ingroup Model
+ * \ingroup Model
  *
- * @brief GEqdsk file paser
- * @ref http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
+ * \brief GEqdsk file paser
+ *  default using cylindrical coordinates \f$R,Z,\phi\f$
+ * \cite http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
 class GEqdsk
 {
@@ -33,14 +33,12 @@ public:
 	typedef Real value_type;
 	typedef Interpolation<LinearInterpolation, value_type, Real> inter_type;
 	typedef MultiDimesionInterpolation<BiLinearInterpolation, value_type> inter2d_type;
+	typedef nTuple<3, value_type> coordinates_type;
+	static constexpr int PhiAxis = 2;
+	static constexpr int RAxis = (PhiAxis + 1) % 3;
+	static constexpr int ZAxis = (PhiAxis + 2) % 3;
+	static constexpr int NDIMS = 2;
 
-	static constexpr int ZAxis = 2;
-	static constexpr int XAxis = (ZAxis + 1) % 3;
-	static constexpr int YAxis = (ZAxis + 2) % 3;
-	enum
-	{
-		NDIMS = 2
-	};
 private:
 	std::string desc;
 //	size_t nw; // Number of horizontal R grid  points
@@ -146,26 +144,26 @@ public:
 		return rzlim_;
 	}
 
-	inline value_type psi(Real x, Real y) const
+	inline value_type psi(Real R, Real Z) const
 	{
-		return psirz_.eval(x, y);
+		return psirz_.eval(R, Z);
 	}
 
-	inline nTuple<3, Real> B(Real x, Real y, unsigned int VecZAxis = 2) const
+	inline coordinates_type B(Real R, Real Z, unsigned int VecPhiAxis = 2) const
 	{
-		auto gradPsi = psirz_.diff(x, y);
+		auto gradPsi = psirz_.diff(R, Z);
 
-		nTuple<3, Real> res;
-		res[(VecZAxis + 1) % 3] = gradPsi[1] / x;
-		res[(VecZAxis + 2) % 3] = -gradPsi[0] / x;
-		res[(VecZAxis + 3) % 3] = Profile("fpol", x, y) / x;
+		coordinates_type res;
+		res[(VecPhiAxis + 1) % 3] = gradPsi[1] / R;
+		res[(VecPhiAxis + 2) % 3] = -gradPsi[0] / R;
+		res[(VecPhiAxis + 3) % 3] = Profile("fpol", R, Z) / R;
 		return std::move(res);
 
 	}
 
-	inline Real JT(Real x, Real y, unsigned int ToZAxis = 2) const
+	inline Real JT(Real R, Real Z) const
 	{
-		return x * Profile("pprim", x, y) + Profile("ffprim", x, y) / x;
+		return R * Profile("pprim", R, Z) + Profile("ffprim", R, Z) / R;
 	}
 
 	bool CheckProfile(std::string const & name) const
@@ -181,6 +179,20 @@ public:
 	{
 		GetProfile_(std::integral_constant<bool, is_nTuple<decltype(get_value(*f,0UL))>::value>(), name, f);
 	}
+
+	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;
+
+	coordinates_type MapFluxFromCylindrical(coordinates_type const & x, unsigned int VecZAxis = 2) const;
+	/**
+	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
+	 *  \cite  Jardin:2010:CMP:1855040
+	 * @param psi_j \f$\Psi_j\f$
+	 * @param M  \f$\theta_{i}=i2\pi/N\f$,
+	 * @param ToPhiAxis \f$\in\left(0,1,2\right)\f$,ToPhiAxis the \f$\phi\f$ coordinates component  of result coordinats,
+	 * @param res points in RZ coordinats
+	 * @return   if success return true, else return false
+	 */
+	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis = 2);
 
 private:
 
@@ -210,9 +222,9 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const &
 
 		for (auto s : f->GetRange())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), PhiAxis);
 
-			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, B(x[XAxis], x[YAxis], mesh_type::ZAxis));
+			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, B(x[RAxis], x[ZAxis], mesh_type::ZAxis));
 		}
 	}
 	else if (name == "JT")
@@ -220,9 +232,9 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const &
 
 		for (auto s : f->GetRange())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), PhiAxis);
 
-			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, JT(x[XAxis], x[YAxis], mesh_type::ZAxis));
+			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, JT(x[RAxis], x[ZAxis]));
 		}
 	}
 	else
@@ -243,17 +255,17 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const 
 
 		for (auto s : f->GetRange())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), PhiAxis);
 
-			get_value(*f, s) = psi(x[XAxis], x[YAxis]);
+			get_value(*f, s) = psi(x[RAxis], x[ZAxis]);
 		}
 	}
 	else if (CheckProfile(name))
 	{
 		for (auto s : f->GetRange())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), ZAxis);
-			get_value(*f, s) = Profile(name, x[XAxis], x[YAxis]);
+			auto x = f->mesh.InvMapTo(f->mesh.GetCoordinates(s), PhiAxis);
+			get_value(*f, s) = Profile(name, x[RAxis], x[ZAxis]);
 		}
 	}
 	else

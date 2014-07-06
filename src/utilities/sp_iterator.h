@@ -13,7 +13,7 @@ namespace simpla
 {
 
 /**
- *  @concept Range is a container
+ *   concept Range is a container
  *   class Range
  *   {
  *     typedef iterator;
@@ -26,9 +26,6 @@ namespace simpla
  *   }
  */
 
-/**
- *  @defgroup iterator
- */
 template<typename Iterator, typename TPred = std::nullptr_t, typename TPolicy = std::nullptr_t,
         bool IsReferenceStorage = false> class Iterator;
 

@@ -16,14 +16,14 @@ namespace simpla
 {
 
 /**
- *  @defgroup Algorithm
+ *  @defgroup Algorithm Algorithm
  *
  *
  */
 
 /**
- * @ingroup Algorithm Geometry
- * @brief calculate the overlap of two  hexahedron
+ * \ingroup  Geometry
+ * \brief calculate the overlap of two  hexahedron
  */
 template<int N, typename T>
 void Clipping(nTuple<N, T> const&xmin, nTuple<N, T> const&xcount, nTuple<N, T> const&ymin, nTuple<N, T> const& ycount,

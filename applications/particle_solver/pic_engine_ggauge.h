@@ -23,8 +23,8 @@ namespace simpla
 {
 
 /**
- * @ingroup ParticleEngine
- * @brief GGauge engine
+ * \ingroup ParticleEngine
+ * \brief GGauge engine
  */
 template<typename TM, int NMATE, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
