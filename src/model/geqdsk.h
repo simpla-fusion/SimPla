@@ -171,16 +171,17 @@ public:
 	}
 
 	inline auto B(nTuple<3, Real> const&x, unsigned int VecPhiAxis = 2) const
-	DECL_RET_TYPE(B(x[RAxis], x[ZAxis],VecPhiAxis));
+	DECL_RET_TYPE(B(x[RAxis], x[ZAxis],VecPhiAxis))
+	;
 
 	inline Real JT(Real R, Real Z) const
 	{
 		return R * Profile("pprim", R, Z) + Profile("ffprim", R, Z) / R;
 	}
 
-	inline auto JT(nTuple<3, Real> const&x ) const
-	DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]));
-
+	inline auto JT(nTuple<3, Real> const&x) const
+	DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]))
+	;
 
 	bool CheckProfile(std::string const & name) const
 	{
@@ -207,11 +208,32 @@ public:
 	 * @param res points coordinats
 	 *
 	 * @param ToPhiAxis \f$\in\left(0,1,2\right)\f$,ToPhiAxis the \f$\phi\f$ coordinates component  of result coordinats,
-	 * @param to_RZ if true return \f$\left(R,Z,0\right)\f$ coordinates; else return   \f$\left(r,\theta,0\right)\f$ coordinates;
+	 * @param resoluton
 	 * @return   if success return true, else return false
+	 *
+	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
-	bool InteralFluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis = 2);
+	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis = 2, Real resoluton = 0.001);
 
+	/**
+	 *
+	 *
+	 * @param surface 	flux surface constituted by  poings on RZ coordinats
+	 * @param res 		flux surface constituted by points on flux coordiantes
+	 * @param h 		\f$h\left(\psi,\theta\right)=h\left(R,Z\right)\f$ , input
+	 * @param PhiAxis
+	 * @return  		if success return true, else return false
+	 * \note Ref. page. 133 in \cite  Jardin:2010:CMP:1855040
+	 *  \f$h\left(\psi,\theta\right)\f$  | \f$\theta\f$
+	 *	------------- | -------------
+	 *	\f$R/\left|\nabla \psi\right| \f$  | constant arc length
+	 *	\f$R^2\f$  | straight field lines
+	 *	\f$R\f$ | constant area
+	 *   1  | constant volume
+	 *
+	 */
+	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
+	        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis = 2);
 private:
 
 	template<typename TF>

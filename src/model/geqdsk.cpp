@@ -271,7 +271,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::InteralFluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis)
+bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis, Real resolution)
 {
 	bool success = true;
 
@@ -286,8 +286,6 @@ bool GEqdsk::InteralFluxSurface(Real psi_j, size_t M, coordinates_type*res, unsi
 	nTuple<3, Real> drz;
 
 	drz[PhiAxis] = 0;
-
-	Real resolution = 0.001;
 
 	std::function<value_type(nTuple<3, Real> const &)> fun = [this ](nTuple<3, Real> const & x)->value_type
 	{
@@ -320,6 +318,17 @@ bool GEqdsk::InteralFluxSurface(Real psi_j, size_t M, coordinates_type*res, unsi
 		}
 
 	}
+
+	return success;
+
+}
+
+bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
+        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis)
+{
+	bool success = false;
+
+	UNIMPLEMENT;
 
 	return success;
 

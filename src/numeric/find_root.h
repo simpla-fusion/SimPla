@@ -20,8 +20,9 @@ namespace simpla
  * @param x0 \f$x_{0}\f$
  * @param x1 \f$x_{1}\f$
  * @param f function
- * @param y0 \f$y_{0}\f$
+ * @param y_m \f$y_m\f$
  * @param resolution
+ * @param max_iterator_num
  * @return
  */
 template<typename TX, typename TY>
@@ -75,6 +76,7 @@ std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<TY(TX const&)> const 
  * @param x1 \f$x_{1}\f$
  * @param f function
  * @param resolution
+ * @param max_iterator_num
  * @return
  */
 template<typename TX>
