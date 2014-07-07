@@ -20,7 +20,7 @@ using namespace simpla;
 #include "../mesh/geometry_cartesian.h"
 #include "../mesh/mesh_rectangle.h"
 
-typedef Mesh<CartesianGeometry<UniformArray, false>> TMesh;
+typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
 #else
 typedef TMESH TMesh;
 #endif
@@ -52,10 +52,12 @@ protected:
 			{
 				dims[i] = 1;
 				K_real[i] = 0.0;
+				xmax[i] = xmin[i];
 			}
 		}
 
-		mesh.set_extents(xmin, xmax, dims);
+		mesh.set_dimensions( dims);
+		mesh.set_extents(xmin, xmax);
 
 		K_imag = mesh.k_imag;
 
@@ -77,7 +79,7 @@ public:
 
 	mesh_type mesh;
 
-	static constexpr   unsigned int   NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
 	nTuple<NDIMS, Real> xmin;
 

@@ -110,7 +110,7 @@ public:
 	template<typename ...Args>
 	inline void set_extents(Args&& ... args)
 	{
-		geometry_type::set_extents(std::forward<Args >(args)...);
+		geometry_type::set_extents(std::forward<Args>(args)...);
 
 		UpdateK(&k_imag);
 	}
@@ -121,6 +121,19 @@ private:
 	template<typename T>
 	void UpdateK(T* k)
 	{
+		auto dims = geometry_type::get_dimensions();
+		auto extents = geometry_type::get_extents();
+		coordinates_type xmin = std::get<0>(extents);
+		coordinates_type xmax = std::get<1>(extents);
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (dims[i] <= 1 || (xmax[i] - xmin[i]) < EPSILON)
+			{
+				xmax[i] = xmin[i];
+			}
+		}
+		geometry_type::set_extents(xmin, xmax);
 
 	}
 	void UpdateK(nTuple<NDIMS, Complex>* k)
@@ -132,15 +145,16 @@ private:
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			if (dims[i] <= 1 && xmax[i] > xmin[i])
+			(*k)[i] = 0;
+
+			if (dims[i] <= 1)
 			{
-				(*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
-			}
-			else
-			{
-				(*k)[i] = 0;
+				if (xmax[i] > xmin[i]) (*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
+
+				xmax[i] = xmin[i];
 			}
 		}
+		geometry_type::set_extents(xmin, xmax);
 
 	}
 public:

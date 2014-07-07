@@ -48,7 +48,7 @@ TEST_P(TestFETL, grad0)
 		scalar_type expect = K_real[n] * std::cos(InnerProductNTuple(K_real, x))
 		        + K_imag[n] * std::sin(InnerProductNTuple(K_real, x));
 
-		if (mesh.TypeAsString() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
+		if (mesh.get_type_as_string() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
 		{
 			auto r = mesh.get_coordinates(s);
 			expect /= r[(mesh_type::ZAxis + 2) % 3];
@@ -124,7 +124,7 @@ TEST_P(TestFETL, grad3)
 		scalar_type expect = K_real[n] * std::cos(InnerProductNTuple(K_real, x))
 		        + K_imag[n] * std::sin(InnerProductNTuple(K_real, x));
 
-		if (mesh.TypeAsString() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
+		if (mesh.get_type_as_string() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
 		{
 			auto r = mesh.get_coordinates(s);
 			expect /= r[(mesh_type::ZAxis + 2) % 3];
@@ -195,7 +195,7 @@ TEST_P(TestFETL, diverge1)
 
 		scalar_type expect;
 
-		if (mesh.TypeAsString() == "Cylindrical")
+		if (mesh.get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -284,7 +284,7 @@ TEST_P(TestFETL, diverge2)
 
 		scalar_type expect;
 
-		if (mesh.TypeAsString() == "Cylindrical")
+		if (mesh.get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -365,7 +365,7 @@ TEST_P(TestFETL, curl1)
 
 		scalar_type expect;
 
-		if (mesh.TypeAsString() == "Cylindrical")
+		if (mesh.get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
@@ -464,7 +464,7 @@ TEST_P(TestFETL, curl2)
 
 		scalar_type expect;
 
-		if (mesh.TypeAsString() == "Cylindrical")
+		if (mesh.get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{

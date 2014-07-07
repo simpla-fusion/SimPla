@@ -136,10 +136,6 @@ struct UniformArray
 	//
 	//  \endverbatim
 
-	void set_dimensions()
-	{
-	}
-
 	template<typename TI>
 	void set_dimensions(TI const &d)
 	{
@@ -153,7 +149,6 @@ struct UniformArray
 			global_end_[i] = global_begin_[i] + length;
 
 		}
-		CHECK(global_count_);
 
 		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
 

@@ -60,7 +60,7 @@ struct CartesianGeometry: public TTopology
 	{
 	}
 
-	static std::string TypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "Cartesian";
 	}

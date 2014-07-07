@@ -22,7 +22,7 @@ struct TestFETLParam1
 {
 	typedef TMesh mesh_type;
 	typedef TV value_type;
-	static constexpr  unsigned int  IForm = IFORM;
+	static constexpr unsigned int IForm = IFORM;
 
 //	static void SetUpMesh(mesh_type * mesh)
 //	{
@@ -65,22 +65,23 @@ protected:
 		LOG_STREAM.set_stdout_visable_level(10);
 
 		nTuple<3, Real> xmin =
-		{	1.0, 1.0, 1.0};
+		{	1.0, 1.0, 0.0};
 
 		nTuple<3, Real> xmax =
-		{	2.0, 3.0, 4.0};
+		{	2.0, 3.0, TWOPI};
 
 		nTuple<3, size_t> dims =
 		{	16, 32, 67};
 
-		mesh.set_extents(xmin, xmax, dims);
+		mesh.set_dimensions( dims);
+		mesh.set_extents(xmin, xmax );
 
 	}
 public:
 
 	typedef typename TParam::mesh_type mesh_type;
 	typedef typename TParam::value_type value_type;
-	static constexpr  unsigned int  IForm = TParam::IForm;
+	static constexpr unsigned int IForm = TParam::IForm;
 
 	typedef typename mesh_type::template field< VERTEX, Real> scalar_field_type;
 	typedef typename mesh_type::template field< VERTEX, value_type> field_type;

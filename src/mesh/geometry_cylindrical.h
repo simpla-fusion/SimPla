@@ -64,7 +64,7 @@ struct CylindricalGeometry: public TTopology
 	~CylindricalGeometry()
 	{
 	}
-	static std::string TypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "Cylindrical";
 	}
@@ -133,7 +133,7 @@ struct CylindricalGeometry: public TTopology
 	{
 		topology_type::Print(os) << std::endl
 
-		<< " , " << " Min = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_;
+		<< " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
 
 		return os;
 	}
@@ -143,12 +143,6 @@ struct CylindricalGeometry: public TTopology
 		return path;
 	}
 
-	template<typename ...Others>
-	inline void set_extents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
-	{
-		topology_type::set_dimensions(std::forward<Others >(others)...);
-		set_extents(pmin, pmax);
-	}
 	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
 	{
 		auto dims = topology_type::get_dimensions();
@@ -185,7 +179,7 @@ struct CylindricalGeometry: public TTopology
 
 			shift_[i] = xmin_[i];
 
-			if ((pmax[i] - pmin[i]) < EPSILON || dims[i] <= 1)
+			if ((pmax[i] - pmin[i]) < EPSILON)
 			{
 
 				xmax_[i] = xmin_[i];

@@ -9,7 +9,7 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cylindrical.h"
 using namespace simpla;
-#define TMESH Mesh<CylindricalGeometry<UniformArray,1>>
+#define TMESH Mesh<CylindricalGeometry<UniformArray>>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"

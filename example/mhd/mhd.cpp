@@ -1,12 +1,12 @@
 /**
- *  \file idea_mhd.cpp
+ *  \file  mhd.cpp
  *
  *  \date  2014-7-7
  *  \author salmon
  */
 /**
- *   \example IdealMHD_ELM  Ideal MHD, ELM
- *
+ *   \example  mhd/mhd.cpp
+ *    This is an example of ideal MHD instability, ELM
  */
 
 #include <iostream>
@@ -38,15 +38,15 @@ int main(int argc, char **argv)
 	GLOBAL_COMM.Init(argc,argv);
 	GLOBAL_DATA_STREAM.Init(argc,argv);
 
-	typedef Mesh<CylindricalGeometry<UniformArray>, true> mesh_type;
+	typedef Mesh<CylindricalGeometry<UniformArray>, true> cylindrical_mesh;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int NDIMS = cylindrical_mesh::NDIMS;
 
 	GEqdsk geqdsk;
 
-	Model<mesh_type> model;
+	Model<cylindrical_mesh> model;
 
-	mesh_type & mesh=model.mesh;
+	cylindrical_mesh & mesh=model.mesh;
 
 	nTuple<NDIMS, size_t> dims =
 	{	256, 256, 1};
@@ -144,20 +144,8 @@ int main(int argc, char **argv)
 	if(gfile!="")
 	{
 		mesh.set_dimensions(dims);
+
 		geqdsk.Read(gfile);
-		nTuple<NDIMS, Real> min;
-		nTuple<NDIMS, Real> max;
-
-		ASSERT(mesh_type::PhiAxis==GEqdsk::PhiAxis);
-
-		min[mesh_type::PhiAxis] = 0;
-		max[mesh_type::PhiAxis] = TWOPI / static_cast<Real>(toridal_model_number);
-		min[mesh_type::RAxis] = std::get<0>(geqdsk.get_extents())[0];
-		min[mesh_type::RAxis] = std::get<1>(geqdsk.get_extents())[0];
-		min[mesh_type::ZAxis] = std::get<0>(geqdsk.get_extents())[1];
-		min[mesh_type::ZAxis] = std::get<1>(geqdsk.get_extents())[1];
-
-		mesh.set_extents(min, max);
 
 		geqdsk.SetUpModel(&model);
 
@@ -185,20 +173,20 @@ int main(int argc, char **argv)
 
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
-		/// todo save initial value
-//		LOGGER << SAVE();
+		// todo save initial value
+		//	LOGGER << SAVE();
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
 			LOGGER << "STEP: " << i;
 
-			/// todo Next time step
+			// todo Next time step
 
 			mesh.NextTimeStep();
 
 			if (i % record_stride == 0)
 			{
-				/// todo dump data
+				// todo dump data
 			}
 		}
 

@@ -15,6 +15,7 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
+#include "../physics/constants.h"
 namespace simpla
 {
 
@@ -190,7 +191,7 @@ public:
 	}
 
 	template<typename TModel>
-	void SetUpModel(TModel *model) const;
+	void SetUpModel(TModel *model, unsigned int toridal_model_number = 0) const;
 
 	template<typename TF>
 	void GetProfile(std::string const & name, TF* f) const
@@ -244,8 +245,23 @@ private:
 }
 ;
 template<typename TModel>
-void GEqdsk::SetUpModel(TModel *model) const
+void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number) const
 {
+
+	typename TModel::mesh_type::coordinates_type min;
+	typename TModel::mesh_type::coordinates_type max;
+
+	ASSERT(TModel::mesh_type::PhiAxis==GEqdsk::PhiAxis);
+
+	min[TModel::mesh_type::RAxis] = rzmin_[RAxis];
+	max[TModel::mesh_type::RAxis] = rzmax_[RAxis];
+	min[TModel::mesh_type::ZAxis] = rzmin_[ZAxis];
+	max[TModel::mesh_type::ZAxis] = rzmax_[ZAxis];
+
+	min[TModel::mesh_type::PhiAxis] = 0;
+	max[TModel::mesh_type::PhiAxis] = toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
+
+	model->mesh.set_extents(min, max);
 
 	model->Set(model->SelectByPolylines(VERTEX, Limiter()), model->RegisterMaterial("Vacuum"));
 

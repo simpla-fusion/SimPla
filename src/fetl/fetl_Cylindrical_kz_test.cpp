@@ -10,7 +10,7 @@
 #include "../mesh/geometry_cylindrical.h"
 
 using namespace simpla;
-#define TMESH Mesh<CylindricalGeometry<UniformArray,1>,true>
+#define TMESH Mesh<CylindricalGeometry<UniformArray>,true>
 
 #include "fetl_test.h"
 #include "fetl_test1.h"
@@ -35,9 +35,7 @@ nTuple<3, Real>( { 12.0, 2.0, PI })  //
 
 testing::Values(
 
-nTuple<3, size_t>( { 100, 1, 1 }) //
-        , nTuple<3, size_t>( { 11, 101, 1 }) //
-        , nTuple<3, size_t>( { 12, 1, 30 }) //
+nTuple<3, size_t>( { 101, 101, 1 }) //
         , nTuple<3, size_t>( { 32, 36, 20 })   //
 
         ),
