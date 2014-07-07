@@ -66,10 +66,10 @@ public:
 		CUSTOM = 20
 	};
 
-	mesh_type const &mesh;
+	mesh_type mesh;
 
-	Model(mesh_type const & m) :
-			null_material(), mesh(m), max_material_(CUSTOM + 1)
+	Model() :
+			null_material(), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -171,8 +171,7 @@ public:
 	template<typename OS>
 	OS & Print(OS &os) const
 	{
-		UNIMPLEMENT;
-		return os;
+		return mesh.Print(os);
 	}
 
 	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
@@ -305,7 +304,11 @@ public:
 
 }
 ;
-
+template<typename TM>
+std::ostream & operator<<(std::ostream & os, Model<TM> const & model)
+{
+	return model.Print(os);
+}
 template<typename TM>
 template<typename TR, typename TDict>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR const& range, TDict const& dict) const

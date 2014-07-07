@@ -22,7 +22,6 @@
 namespace simpla
 {
 
-
 /**
  *   \defgroup  Mesh Mesh
  *
@@ -37,7 +36,7 @@ namespace simpla
  *   @}
  */
 
-template<typename, unsigned int , typename > class Field;
+template<typename, unsigned int, typename > class Field;
 
 template<typename TM, typename Policy> class Interpolator;
 
@@ -66,21 +65,21 @@ public:
 
 	typedef Interpolator<this_type, std::nullptr_t> interpolator_type;
 
-	static constexpr   unsigned int   NDIMS = 3;
+	static constexpr unsigned int NDIMS = 3;
 
-	static constexpr  unsigned int  NUM_OF_COMPONENT_TYPE = NDIMS + 1;
+	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = NDIMS + 1;
 
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
-	Mesh()
-			: geometry_type()
+	Mesh() :
+			geometry_type()
 	{
 		UpdateK(&k_imag);
 	}
 
 	template<typename TDict>
-	Mesh(TDict && dict)
-			: geometry_type(std::forward<TDict>(dict))
+	Mesh(TDict && dict) :
+			geometry_type(std::forward<TDict>(dict))
 	{
 		UpdateK(&k_imag);
 	}
@@ -96,6 +95,16 @@ public:
 	inline bool operator==(this_type const & r) const
 	{
 		return (this == &r);
+	}
+
+	template<typename OS>
+	OS & Print(OS &os) const
+	{
+		geometry_type::Print(os) << std::endl
+
+		<< " , " << "K_img = " << k_imag;
+
+		return os;
 	}
 
 	template<typename ...Args>
@@ -156,7 +165,7 @@ public:
 
 	//******************************************************************************************************
 
-	static constexpr  unsigned int  get_num_of_dimensions()
+	static constexpr unsigned int get_num_of_dimensions()
 	{
 		return NDIMS;
 	}
@@ -577,7 +586,7 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, FACE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		  unsigned int   n = topology_type::ComponentNum(s);
+		unsigned int n = topology_type::ComponentNum(s);
 
 		auto X = topology_type::DeltaIndex(s);
 		auto Y = topology_type::Roate(X);
@@ -592,8 +601,8 @@ public:
 	template<typename TL, typename TR> inline auto OpEval(Int2Type<INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
 	        Field<this_type, VOLUME, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		  unsigned int   n = topology_type::ComponentNum(topology_type::Dual(s));
-		  unsigned int   D = topology_type::DeltaIndex(topology_type::Dual(s));
+		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
+		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
 
 		return (get_value(f, s + D) - get_value(f, s - D)) * 0.5 * v[n];
 	}
@@ -602,8 +611,9 @@ public:
 // Non-standard operation
 // For curlpdx
 
-	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
-	        Int2Type<N>, compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
+	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<EXTRIORDERIVATIVE>,
+	        Field<this_type, EDGE, TL> const & f, Int2Type<N>,
+	        compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
@@ -616,8 +626,8 @@ public:
 		return (get_value(f, s + Y) - get_value(f, s - Y)) - (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
-	        Int2Type<N>,
+	template<unsigned int N, typename TL> inline auto OpEval(Int2Type<CODIFFERENTIAL>,
+	        Field<this_type, FACE, TL> const & f, Int2Type<N>,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 

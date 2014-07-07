@@ -83,13 +83,16 @@ struct UniformArray
 		}
 	}
 
+	template<typename OS>
+	OS & Print(OS &os) const
+	{
+		os << " Dimensions =  " << get_dimensions();
+		return os;
+	}
+
 	std::string Save(std::string const &path) const
 	{
-		std::stringstream os;
-
-		os << "\tDimensions =  " << get_dimensions();
-
-		return os.str();
+		return path;
 	}
 
 	unsigned long clock_ = 0UL;
@@ -140,21 +143,25 @@ struct UniformArray
 	template<typename TI>
 	void set_dimensions(TI const &d)
 	{
+
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			index_type length = d[i] > 0 ? d[i] : 1;
 
+			global_count_[i] = length;
 			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1)) - length / 2;
 			global_end_[i] = global_begin_[i] + length;
 
 		}
+		CHECK(global_count_);
+
 		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
 
 		global_array_.global_begin_ = global_begin_;
 
 		global_array_.global_end_ = global_end_;
 
-		global_count_ = global_end_ - global_begin_;
+//		global_count_ = global_end_ - global_begin_;
 
 		local_inner_begin_ = global_begin_;
 		local_inner_end_ = global_end_;
@@ -166,7 +173,7 @@ struct UniformArray
 
 		Update();
 
-//		Decompose(1, 0, 0);
+		Decompose(1, 0, 0);
 
 	}
 	void Decompose(unsigned int num_process = 0, unsigned int process_num = 0, unsigned int ghost_width = 0)
@@ -222,15 +229,14 @@ struct UniformArray
 								global_count_[2]>1?1.0:0.0,
 							})));
 
-	nTuple<NDIMS, index_type> get_dimensions() const
-	{
-		return std::move(get_global_dimensions());
-	}
-
-	nTuple<NDIMS, index_type> get_global_dimensions() const
+	nTuple<NDIMS, index_type> const & get_global_dimensions() const
 	{
 		return global_count_;
 	}
+
+	auto get_dimensions() const
+	DECL_RET_TYPE(get_global_dimensions());
+
 	index_type get_num_of_elements(int iform = VERTEX) const
 	{
 		return get_global_num_of_elements(iform);

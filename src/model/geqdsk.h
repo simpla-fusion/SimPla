@@ -44,6 +44,7 @@ public:
 	static constexpr unsigned int NDIMS = 2;
 
 private:
+	bool is_ready_ = false;
 	std::string desc;
 //	size_t nw;//!< Number of horizontal R grid  points
 //	size_t nh;//!< Number of vertical Z grid points
@@ -124,9 +125,14 @@ public:
 	}
 	std::tuple<nTuple<NDIMS, Real>, nTuple<NDIMS, Real>> get_extents() const
 	{
-		return std::make_tuple(rzmin_, rzmax_);
+		return std::move(std::make_tuple(rzmin_, rzmax_));
 	}
 
+	bool is_ready() const
+	{
+		return is_ready_;
+
+	}
 	nTuple<NDIMS, size_t> const &get_dimensions() const
 	{
 		return dims_;

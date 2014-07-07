@@ -102,7 +102,7 @@ void GEqdsk::Read(std::string const &fname)
 
 #undef INPUT_VALUE
 
-	  unsigned int   nbbbs, limitr;
+	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
 	rzbbb_.resize(nbbbs);
@@ -135,8 +135,7 @@ void GEqdsk::ReadProfile(std::string const &fname)
 		{
 			std::string t;
 			lineStream >> t;
-			if (t != "")
-				names.push_back(t);
+			if (t != "") names.push_back(t);
 		};
 	}
 
@@ -157,16 +156,23 @@ void GEqdsk::ReadProfile(std::string const &fname)
 		}
 	}
 
-	LOGGER << "GFile is read!" << std::endl;
+	LOGGER << "GFile is ready!" << std::endl;
+
+	is_ready_ = true;
 }
 
 std::string GEqdsk::Save(std::string const & path) const
 {
+	if (!is_ready())
+	{
+		return "";
+	}
+
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
 	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
 
-	LOGGER << simpla::Save("rzbbb", rzbbb_ ) << std::endl;
+	LOGGER << simpla::Save("rzbbb", rzbbb_) << std::endl;
 
 	LOGGER << simpla::Save("rzlim", rzlim_) << std::endl;
 
@@ -271,7 +277,7 @@ std::ostream & GEqdsk::Print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res,   unsigned int   ToPhiAxis, Real resolution)
+bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis, Real resolution)
 {
 	bool success = true;
 
@@ -324,7 +330,7 @@ bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res,   unsigned 
 }
 
 bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
-        std::function<Real(Real, Real)> const & h,   unsigned int   PhiAxis)
+        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis)
 {
 	bool success = false;
 

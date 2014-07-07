@@ -138,6 +138,7 @@ SET(EXT_LIBRARIES    ${LUA_LIBRARIES} ${MPI_LIBRARIES} )
  
 add_subdirectory(src )
 add_subdirectory(applications )
+add_subdirectory(example )
 add_subdirectory(docs )
 
 

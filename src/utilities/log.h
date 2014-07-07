@@ -63,8 +63,8 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 public:
 	static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
-	LoggerStreams(int level = LOG_INFORM)
-			: std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
+	LoggerStreams(int level = LOG_INFORM) :
+			std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
 	{
 	}
 	~LoggerStreams()
@@ -108,8 +108,7 @@ public:
 
 	inline void OpenFile(std::string const & name)
 	{
-		if (fs.is_open())
-			fs.close();
+		if (fs.is_open()) fs.close();
 
 		fs.open(name.c_str(), std::ios_base::out);
 	}
@@ -240,31 +239,30 @@ class Logger
 public:
 	typedef Logger this_type;
 
-	Logger()
-			: null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
+	Logger() :
+			null_dump_(true), level_(0), current_line_char_count_(0), indent_(0), endl_(true)
 	{
 	}
 
-	Logger(Logger const & r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+	Logger(Logger const & r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
 			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(Logger && r)
-			: null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
+	Logger(Logger && r) :
+			null_dump_(r.null_dump_), level_(r.level_), current_line_char_count_(r.current_line_char_count_), indent_(
 			        r.indent_), endl_(r.endl_)
 	{
 	}
 
-	Logger(int lv, size_t indent = 0)
-			: null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
+	Logger(int lv, size_t indent = 0) :
+			null_dump_(false), level_(lv), current_line_char_count_(0), indent_(indent), endl_(true)
 	{
 		buffer_ << std::boolalpha;
 
 		size_t indent_width = SingletonHolder<LoggerStreams>::instance().get_indent();
-		if (indent_width > 0)
-			buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
+		if (indent_width > 0) buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
 
 		set_indent(indent_);
 
@@ -273,11 +271,9 @@ public:
 
 	~Logger()
 	{
-		if (null_dump_)
-			return;
+		if (null_dump_) return;
 
-		if (current_line_char_count_ > 0 && endl_)
-			buffer_ << std::endl;
+		if (current_line_char_count_ > 0 && endl_) buffer_ << std::endl;
 		SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 
 		unset_indent(indent_);
@@ -290,8 +286,7 @@ public:
 	}
 	void unset_indent(size_t n = 1)
 	{
-		if (indent_ >= n)
-			SingletonHolder<LoggerStreams>::instance().DecreaseIndent(n);
+		if (indent_ >= n) SingletonHolder<LoggerStreams>::instance().DecreaseIndent(n);
 		indent_ -= n;
 	}
 
@@ -329,10 +324,22 @@ public:
 		endl_ = false;
 	}
 
+//private:
+//	HAS_CONST_MEMBER_FUNCTION(Print);
+//public:
+//
+//	template<typename OS, typename T>
+//	auto Print(OS & os, T const & obj)
+//	ENABLE_IF_DECL_RET_TYPE((has_const_member_function_Print<T,OS>::value),obj.Print(os) )
+//	;
+//
+//	template<typename OS, typename T>
+//	auto Print(OS & os, T const & obj)
+//	ENABLE_IF_DECL_RET_TYPE((! has_const_member_function_Print<T,OS>::value), (os<<obj) )
+//	;
 	template<typename T> inline this_type & operator<<(T const& value)
 	{
-		if (null_dump_)
-			return *this;
+		if (null_dump_) return *this;
 
 		current_line_char_count_ -= get_buffer_length();
 
@@ -340,8 +347,7 @@ public:
 
 		current_line_char_count_ += get_buffer_length();
 
-		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().get_line_width())
-			endl();
+		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().get_line_width()) endl();
 
 		return *this;
 	}
@@ -451,8 +457,8 @@ struct SetLineWidth
 {
 	int width_;
 
-	SetLineWidth(int width)
-			: width_(width)
+	SetLineWidth(int width) :
+			width_(width)
 	{
 	}
 	~SetLineWidth()
