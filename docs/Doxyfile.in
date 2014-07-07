@@ -754,9 +754,7 @@ WARN_LOGFILE           =
 # spaces.
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = @PROJECT_SOURCE_DIR@/src/ \
-                         @PROJECT_SOURCE_DIR@/applications \
-			 @PROJECT_SOURCE_DIR@/docs/design_doc.txt
+INPUT                  = @PROJECT_SOURCE_DIR@/
 
 # This tag can be used to specify the character encoding of the source files
 # that doxygen parses. Internally doxygen uses the UTF-8 encoding. Doxygen uses
@@ -777,7 +775,8 @@ INPUT_ENCODING         = UTF-8
 # *.qsf, *.as and *.js.
 
 FILE_PATTERNS          = *.cpp \
-                         *.h
+                         *.h \
+                         *.md
 
 # The RECURSIVE tag can be used to specify whether or not subdirectories should
 # be searched for input files as well.
@@ -792,7 +791,7 @@ RECURSIVE              = YES
 # Note that relative paths are relative to the directory from which doxygen is
 # run.
 
-EXCLUDE                = *_test.cpp
+EXCLUDE                =  third_part
 
 # The EXCLUDE_SYMLINKS tag can be used to select whether or not files or
 # directories that are symbolic links (a Unix file system feature) are excluded
@@ -808,7 +807,7 @@ EXCLUDE_SYMLINKS       = NO
 # Note that the wildcards are matched against the file with absolute path, so to
 # exclude all test directories for example use the pattern */test/*
 
-EXCLUDE_PATTERNS       =
+EXCLUDE_PATTERNS       = */build* */third_part/*
 
 # The EXCLUDE_SYMBOLS tag can be used to specify one or more symbol names
 # (namespaces, classes, functions, etc.) that should be excluded from the
@@ -820,8 +819,7 @@ EXCLUDE_PATTERNS       =
 # exclude all test directories use the pattern */test/*
 
 EXCLUDE_SYMBOLS        = Test* \
-                         , \
-                         *_impl, \
+                         *_impl\
                          _impl*
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or directories

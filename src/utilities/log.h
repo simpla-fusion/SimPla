@@ -42,10 +42,7 @@ namespace simpla
  *
  *  SimPla Log system
  *
- * \link Logging View All Logging Classes \endlink
- *
  * \defgroup Logging Diagnostic logging features
- * See \ref Logging     for a detailed description.
  */
 enum
 {
