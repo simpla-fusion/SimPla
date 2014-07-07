@@ -71,7 +71,7 @@ public:
 
 		return q_.at(s);
 	}
-	std::string GetUnit(std::string const & s) const
+	std::string get_unit(std::string const & s) const
 	{
 		return unitSymbol_.at(s);
 

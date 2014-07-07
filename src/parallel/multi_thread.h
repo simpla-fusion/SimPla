@@ -34,7 +34,7 @@ inline void ParallelDo(std::function<void(unsigned int , int)> fun)
 		fun(num_threads, thread_id);
 	}
 #else
-	const   unsigned int   num_threads = GLOBAL_COMM.GetNumThreads();
+	const   unsigned int   num_threads = GLOBAL_COMM.get_num_of_threads();
 	std::vector<std::thread> threads;
 	for (  unsigned int   thread_id = 0; thread_id < num_threads; ++thread_id)
 	{

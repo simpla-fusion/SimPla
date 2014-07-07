@@ -149,11 +149,11 @@ void CreateSurface(TModel const & model, Real width, TSurface * surf)
 //
 ////	typedef typename TSurface::plane_type plane_type;
 //
-////	auto extent = mesh.GetExtent();
-////	auto dims = mesh.GetDimensions();
+////	auto extent = mesh.get_extents();
+////	auto dims = mesh.get_dimensions();
 ////	auto xmin = extent.first;
 ////	auto xmax = extent.second;
-////	auto d = mesh.GetDx();
+////	auto d = mesh.get_dx();
 ////	nTuple<3, Real> x0 = { 0, 0, 0 };
 ////	nTuple<3, Real> x1 = { d[0], 0, 0 };
 ////	nTuple<3, Real> x2 = { 0, d[1], 0 };
@@ -161,7 +161,7 @@ void CreateSurface(TModel const & model, Real width, TSurface * surf)
 ////
 ////	for (auto s : mesh.Select(VERTEX))
 ////	{
-////		auto x = mesh.GetCoordinates(s);
+////		auto x = mesh.get_coordinates(s);
 ////
 ////		if (x[0] < xmin[0] + width)
 ////		{

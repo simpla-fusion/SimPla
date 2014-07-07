@@ -76,12 +76,12 @@ struct CartesianGeometry: public TTopology
 	{
 		topology_type::NextTimeStep();
 	}
-	Real GetTime() const
+	Real get_time() const
 	{
-		return static_cast<double>(topology_type::GetClock()) * dt_ + time0_;
+		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
 	}
 
-	Real GetDt() const
+	Real get_dt() const
 	{
 		return dt_;
 	}
@@ -108,7 +108,7 @@ struct CartesianGeometry: public TTopology
 			{
 				LOGGER << "Load CartesianGeometry ";
 
-				SetExtents(
+				set_extents(
 
 				dict["Min"].template as<nTuple<NDIMS, Real>>(),
 
@@ -135,19 +135,19 @@ struct CartesianGeometry: public TTopology
 		return os.str();
 	}
 	template<typename ...Others>
-	inline void SetExtents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
+	inline void set_extents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
 	{
-		topology_type::SetDimensions(std::forward<Others >(others)...);
-		SetExtents(pmin, pmax);
+		topology_type::set_dimensions(std::forward<Others >(others)...);
+		set_extents(pmin, pmax);
 	}
 
-	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
 	        nTuple<NDIMS, Real> const & dims)
 	{
-		topology_type::SetDimensions(dims);
-		SetExtents(pmin, pmax);
+		topology_type::set_dimensions(dims);
+		set_extents(pmin, pmax);
 	}
-	void SetExtents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
+	void set_extents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
 	{
 
 		for (  unsigned int   i = 0; i < NDIMS; ++i)
@@ -180,14 +180,14 @@ struct CartesianGeometry: public TTopology
 		UpdateVolume();
 	}
 
-	inline auto GetExtents() const
+	inline auto get_extents() const
 	DECL_RET_TYPE(std::make_pair(xmin_, xmax_))
 
-	inline coordinates_type GetDx(compact_index_type s = 0UL) const
+	inline coordinates_type get_dx(compact_index_type s = 0UL) const
 	{
 		coordinates_type res;
 
-		auto d = topology_type::GetDx();
+		auto d = topology_type::get_dx();
 
 		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
@@ -198,9 +198,9 @@ struct CartesianGeometry: public TTopology
 	}
 
 	template<typename ... Args>
-	inline coordinates_type GetCoordinates(Args && ... args) const
+	inline coordinates_type get_coordinates(Args && ... args) const
 	{
-		return std::move(CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...)));
+		return std::move(CoordinatesFromTopology(topology_type::get_coordinates(std::forward<Args >(args)...)));
 	}
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const

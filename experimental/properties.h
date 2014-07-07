@@ -26,7 +26,7 @@ public:
 	void ParseFile(std::string const &);
 	void ParseString(std::string const &);
 
-	this_type GetChild(std::string const & key) const
+	this_type get_child(std::string const & key) const
 	{
 		return std::move(this_type());
 	}

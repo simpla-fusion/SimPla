@@ -39,7 +39,7 @@ public:
 	{
 		std::shared_ptr<this_type> res(nullptr);
 
-		if (dict["Type"].template as<std::string>("Unknown") == GetTypeAsString())
+		if (dict["Type"].template as<std::string>("Unknown") == get_type_as_string())
 		{
 			res = std::shared_ptr<this_type>(new this_type(mesh, dict));
 		}
@@ -47,17 +47,17 @@ public:
 		return res;
 	}
 
-	static std::string GetTypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "Cyclic";
 	}
-	std::string GetTypeAsString_() const
+	std::string get_type_as_string() const
 	{
-		return GetTypeAsString();
+		return get_type_as_string();
 	}
 	void Visit(void * pp) const
 	{
-		LOGGER << "Apply boundary constraint [" << GetTypeAsString() << "] to particles [" << TP::GetTypeAsString()
+		LOGGER << "Apply boundary constraint [" << get_type_as_string() << "] to particles [" << TP::get_type_as_string()
 		        << "]";
 
 		VERBOSE << "Cyclic boundary is the default boundary condition.";

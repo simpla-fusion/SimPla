@@ -47,7 +47,7 @@ public:
 	}
 
 	// unused memory will be freed when total memory size >= pool size
-	void SetPoolSizeInGB(size_t s)
+	void set_pool_size_in_GB(size_t s)
 	{
 		MAX_POOL_SIZE = s * ONE_GIGA;
 	}
@@ -58,7 +58,7 @@ public:
 	 * @param p_used
 	 * @return
 	 */
-	size_t GetMemorySize(size_t * p_unused = nullptr, size_t * p_used = nullptr) const
+	size_t get_memory_size(size_t * p_unused = nullptr, size_t * p_used = nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
@@ -85,11 +85,11 @@ public:
 		return unused_memory + used_memory;
 	}
 
-	double GetMemorySizeInGB(double * p_unused = nullptr, double * p_used = nullptr) const
+	double get_memory_sizeInGB(double * p_unused = nullptr, double * p_used = nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
-		size_t total = GetMemorySize(&unused_memory, &used_memory);
+		size_t total = get_memory_size(&unused_memory, &used_memory);
 
 		if (p_unused != nullptr)
 		{
@@ -176,7 +176,7 @@ private:
 	inline void ReleaseMemory()
 	{
 		// the size of allocated memory
-		size_t total_size = GetMemorySize();
+		size_t total_size = get_memory_size();
 
 		auto it = pool_.begin();
 

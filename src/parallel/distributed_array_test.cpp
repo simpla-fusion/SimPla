@@ -51,30 +51,30 @@ TEST_P(TestDistArray, UpdateGhost)
 	darray.global_begin_=global_begin;
 	darray.global_end_=global_end;
 
-	darray.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank(), 2);
+	darray.Decompose(GLOBAL_COMM.get_size(), GLOBAL_COMM.get_rank(), 2);
 
 	std::vector<double> data(darray.memory_size());
 
-	std::fill(data.begin(), data.end(),GLOBAL_COMM.GetRank());
+	std::fill(data.begin(), data.end(),GLOBAL_COMM.get_rank());
 	size_t count =0;
 	for(auto & v:data)
 	{
-		v=count+(GLOBAL_COMM.GetRank()+1)*1000;
+		v=count+(GLOBAL_COMM.get_rank()+1)*1000;
 		++count;
 	}
 
 	UpdateGhosts(&data[0],darray);
 
-	MPI_Barrier( GLOBAL_COMM.GetComm());
+	MPI_Barrier( GLOBAL_COMM.comm());
 
-	if(GLOBAL_COMM.GetRank()==0)
+	if(GLOBAL_COMM.get_rank()==0)
 	{
 		count =0;
 		for(auto const & v:data)
 		{
 			if((count%(darray.local_.outer_end[1]-darray.local_.outer_begin[1]))==0)
 			{
-				std::cout<<std::endl<<"["<< GLOBAL_COMM.GetRank()<<"/"<<GLOBAL_COMM.GetSize()<<"]";
+				std::cout<<std::endl<<"["<< GLOBAL_COMM.get_rank()<<"/"<<GLOBAL_COMM.get_size()<<"]";
 			}
 
 			std::cout<<v<<" ";
@@ -83,7 +83,7 @@ TEST_P(TestDistArray, UpdateGhost)
 		}
 		std::cout<<std::endl;
 	}
-	MPI_Barrier( GLOBAL_COMM.GetComm());
+	MPI_Barrier( GLOBAL_COMM.comm());
 }
 
 INSTANTIATE_TEST_CASE_P(Parallel, TestDistArray, testing::Values(nTuple<3, size_t>( { 10, 20, 1 })));

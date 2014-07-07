@@ -162,20 +162,20 @@ public:
 		visitor.Visit(this);
 	}
 
-	const mesh_range_type& GetRange() const
+	const mesh_range_type& get_range() const
 	{
 		return range_;
 	}
 
-	void SetRange(const mesh_range_type& range)
+	void set_range(const mesh_range_type& range)
 	{
 		range_ = range;
 	}
 
 	template<typename ...Args>
-	  unsigned int   GetDataSetShape(Args &&...others) const
+	  unsigned int   get_dataset_shape(Args &&...others) const
 	{
-		return mesh.GetDataSetShape(range_, std::forward<Args>(others)...);
+		return mesh.get_dataset_shape(range_, std::forward<Args>(others)...);
 	}
 
 	inline value_type & at(compact_index_type s)
@@ -373,10 +373,10 @@ std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const &
 	{
 		for(auto s: range)
 		{
-			auto x=this->mesh.GetCoordinates(s);
+			auto x=this->mesh.get_coordinates(s);
 
 			get_value(*this,s) = this->mesh.Sample(std::integral_constant<unsigned int , IForm>(),
-					s, fun(this->mesh.GetTime(),x ,(*this)(x)));
+					s, fun(this->mesh.get_time(),x ,(*this)(x)));
 		}
 	};
 

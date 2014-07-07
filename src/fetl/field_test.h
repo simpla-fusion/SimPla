@@ -33,7 +33,7 @@ class TestField: public testing::Test
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(LOG_DEBUG);
+		LOG_STREAM.set_stdout_visable_level(LOG_DEBUG);
 
 		for (  unsigned int   i = 0; i < NDIMS; ++i)
 		{
@@ -44,7 +44,7 @@ protected:
 			}
 		}
 
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 	}
 public:
@@ -101,7 +101,7 @@ TYPED_TEST_P(TestField,create){
 
 	if(field_type::is_dense_storage)
 	{
-		EXPECT_EQ(mesh.GetLocalMemorySize(IForm),f.size());
+		EXPECT_EQ(mesh.get_local_memory_size(IForm),f.size());
 	}
 	else
 	{
@@ -141,7 +141,7 @@ TYPED_TEST_P(TestField,assign){
 		f[s]=ss;
 	}
 
-	EXPECT_EQ(mesh.GetLocalMemorySize(IForm),f.size());
+	EXPECT_EQ(mesh.get_local_memory_size(IForm),f.size());
 
 	for(auto s:mesh.Select(IForm))
 	{
@@ -180,7 +180,7 @@ TYPED_TEST_P(TestField,traversal){
 		++count;
 	}
 
-	EXPECT_EQ(mesh.GetLocalMemorySize(IForm),f.size());
+	EXPECT_EQ(mesh.get_local_memory_size(IForm),f.size());
 
 	count=0;
 

@@ -53,7 +53,7 @@ public:
 		base_type::template ParseString(str);
 	}
 
-	this_type GetChild(std::string const & key) const
+	this_type get_child(std::string const & key) const
 	{
 		return std::move(
 				this_type(ptree::get_child(key), base_type::get_child(key)));

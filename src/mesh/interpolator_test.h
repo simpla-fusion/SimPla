@@ -26,7 +26,7 @@ class TestInterpolator: public testing::Test
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(10);
+		LOG_STREAM.set_stdout_visable_level(10);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -37,7 +37,7 @@ protected:
 			}
 		}
 
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 	}
 public:
@@ -85,7 +85,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 
 	Real w=2;
 
-	auto extents= mesh.GetExtents();
+	auto extents= mesh.get_extents();
 
 	coordinates_type x = mesh.InvMapTo(std::get<0>(extents)+0.1234567*(std::get<1>(extents)-std::get<0>(extents)));
 
@@ -128,7 +128,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 
 	f.clear();
 
-	auto extents= mesh.GetExtents();
+	auto extents= mesh.get_extents();
 
 	auto xmax= std::get<1>(extents);
 	auto xmin= std::get<0>(extents);
@@ -138,13 +138,13 @@ TYPED_TEST_P(TestInterpolator,gather){
 
 	for(auto s:mesh.Select(IForm))
 	{
-		f[s]= (InnerProductNTuple(K,mesh.GetCoordinates(s)-xmin));
+		f[s]= (InnerProductNTuple(K,mesh.get_coordinates(s)-xmin));
 	}
 	coordinates_type x = (xmin+0.34567*(xmax-xmin));
 
 	Real expect= (InnerProductNTuple(K,x-xmin));
 
-	Real error = abs(InnerProductNTuple(K , mesh.GetDx()));
+	Real error = abs(InnerProductNTuple(K , mesh.get_dx()));
 
 	auto actual= interpolator_type::Gather( f ,(x));
 

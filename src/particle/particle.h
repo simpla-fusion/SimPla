@@ -191,12 +191,12 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to zero step [ " << engine_type::GetTypeAsString() << std::boolalpha
+	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << std::boolalpha
 	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
 	storage_type::Sort();
 
-	Real dt = mesh.GetDt();
+	Real dt = mesh.get_dt();
 
 	J.clear();
 
@@ -221,10 +221,10 @@ template<typename TE, typename TB>
 void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to half step[ " << engine_type::GetTypeAsString() << std::boolalpha
+	LOGGER << "Push particles to half step[ " << engine_type::get_type_as_string() << std::boolalpha
 	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
 
-	Real dt = mesh.GetDt();
+	Real dt = mesh.get_dt();
 
 	storage_type::Sort();
 

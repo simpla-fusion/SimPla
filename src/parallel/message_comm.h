@@ -74,11 +74,11 @@ public:
 
 		comm_ = MPI_COMM_NULL;
 	}
-	MPI_Comm GetComm()
+	MPI_Comm comm()
 	{
 		return comm_;
 	}
-	MPI_Info GetInfo()
+	MPI_Info info()
 	{
 		return MPI_INFO_NULL;
 	}
@@ -87,20 +87,20 @@ public:
 	{
 		return comm_ != MPI_COMM_NULL;
 	}
-	int GetRank() const
+	int get_rank() const
 	{
 		return process_num_;
 	}
-	int ProcessNum() const
+	int process_num() const
 	{
 		return process_num_;
 	}
 
-	int GetSize() const
+	int get_size() const
 	{
 		return num_process_;
 	}
-	int NumProcess() const
+	int num_of_process() const
 	{
 		return num_process_;
 	}
@@ -111,12 +111,12 @@ public:
 			MPI_Barrier(comm_);
 	}
 
-	void SetNumThread(int num)
+	void set_num_of_threads(int num)
 	{
 		int local_num_cpu = std::thread::hardware_concurrency();
 		num_threads_ = std::min(num, local_num_cpu);
 	}
-	  unsigned int   GetNumThreads() const
+	unsigned int get_num_of_threads() const
 	{
 		return num_threads_;
 	}

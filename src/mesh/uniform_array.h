@@ -75,7 +75,7 @@ struct UniformArray
 		try
 		{
 			LOGGER << "Load UniformArray ";
-			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
+			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch (...)
 		{
@@ -87,7 +87,7 @@ struct UniformArray
 	{
 		std::stringstream os;
 
-		os << "\tDimensions =  " << GetDimensions();
+		os << "\tDimensions =  " << get_dimensions();
 
 		return os.str();
 	}
@@ -98,7 +98,7 @@ struct UniformArray
 	{
 		++clock_;
 	}
-	unsigned long GetClock() const
+	unsigned long get_clock() const
 	{
 		return clock_;
 	}
@@ -133,12 +133,12 @@ struct UniformArray
 	//
 	//  \endverbatim
 
-	void SetDimensions()
+	void set_dimensions()
 	{
 	}
 
 	template<typename TI>
-	void SetDimensions(TI const &d)
+	void set_dimensions(TI const &d)
 	{
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -173,8 +173,8 @@ struct UniformArray
 	{
 		if (num_process <= 1)
 		{
-			num_process = GLOBAL_COMM.GetSize();
-			process_num=GLOBAL_COMM.GetRank();
+			num_process = GLOBAL_COMM.get_size();
+			process_num=GLOBAL_COMM.get_rank();
 		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
@@ -209,7 +209,7 @@ struct UniformArray
 
 	}
 
-	auto GetExtents() const
+	auto get_extents() const
 	DECL_RET_TYPE(std::make_tuple(
 
 					nTuple<NDIMS,Real>(
@@ -222,40 +222,40 @@ struct UniformArray
 								global_count_[2]>1?1.0:0.0,
 							})));
 
-	nTuple<NDIMS, index_type> GetDimensions() const
+	nTuple<NDIMS, index_type> get_dimensions() const
 	{
-		return std::move(GetGlobalDimensions());
+		return std::move(get_global_dimensions());
 	}
 
-	nTuple<NDIMS, index_type> GetGlobalDimensions() const
+	nTuple<NDIMS, index_type> get_global_dimensions() const
 	{
 		return global_count_;
 	}
-	index_type GetNumOfElements(int iform = VERTEX) const
+	index_type get_num_of_elements(int iform = VERTEX) const
 	{
-		return GetGlobalNumOfElements(iform);
+		return get_global_num_of_elements(iform);
 	}
 
-	index_type GetGlobalNumOfElements(int iform = VERTEX) const
+	index_type get_global_num_of_elements(int iform = VERTEX) const
 	{
-		return NProduct(GetGlobalDimensions()) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+		return NProduct(get_global_dimensions()) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
 
-	nTuple<NDIMS, index_type> GetLocalDimensions() const
+	nTuple<NDIMS, index_type> get_local_dimensions() const
 	{
 		return local_inner_count_;
 	}
 
-	index_type GetMemorySize(int iform = VERTEX ) const
+	index_type get_memory_size(int iform = VERTEX ) const
 	{
-		return GetLocalMemorySize(iform);
+		return get_local_memory_size(iform);
 	}
 	/**
 	 *
 	 * @return tuple <memory shape, begin, count>
 	 */
 	std::tuple<nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>>
-	GetLocalMemoryShape() const
+	get_local_memory_shape() const
 	{
 		std::tuple<nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>,nTuple<NDIMS, index_type>> res;
 
@@ -268,16 +268,16 @@ struct UniformArray
 		return std::move(res);
 	}
 
-	index_type GetLocalNumOfElements(int iform = VERTEX) const
+	index_type get_local_num_of_elements(int iform = VERTEX) const
 	{
-		return NProduct(std::get<2>(GetLocalMemoryShape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+		return NProduct(std::get<2>(get_local_memory_shape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
-	index_type GetLocalMemorySize(int iform = VERTEX ) const
+	index_type get_local_memory_size(int iform = VERTEX ) const
 	{
-		return NProduct(std::get<0>(GetLocalMemoryShape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+		return NProduct(std::get<0>(get_local_memory_shape())) * ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
 
-	int GetDataSetShape(int IFORM, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+	int get_dataset_shape(int IFORM, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
 			size_t * local_outer_end = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_end = nullptr ) const
 	{
 		int rank = 0;
@@ -334,7 +334,7 @@ struct UniformArray
 		return rank;
 	}
 
-	int GetDataSetShape(range_type const& range, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+	int get_dataset_shape(range_type const& range, size_t * global_begin = nullptr, size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
 			size_t * local_outer_end = nullptr, size_t * local_inner_begin = nullptr, size_t * local_inner_end = nullptr ) const
 	{
 		unsigned int IFORM=IForm(*std::get<0>(range));
@@ -403,9 +403,9 @@ struct UniformArray
 		return rank;
 	}
 
-	coordinates_type GetDx( ) const
+	coordinates_type get_dx( ) const
 	{
-		auto d=GetGlobalDimensions();
+		auto d=get_global_dimensions();
 		coordinates_type res;
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -758,7 +758,7 @@ struct UniformArray
 	}
 
 	inline coordinates_type
-	GetCoordinates(compact_index_type s)const
+	get_coordinates(compact_index_type s)const
 	{
 		return std::move(IndexToCoordinates(Decompact(s)));
 	}

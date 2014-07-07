@@ -26,7 +26,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NU
 
 	if (comm == MPI_COMM_NULL)
 	{
-		comm = GLOBAL_COMM.GetComm();
+		comm = GLOBAL_COMM.comm();
 	}
 
 	typedef typename pool_type::particle_type value_type;

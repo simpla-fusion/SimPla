@@ -96,9 +96,9 @@ public:
 	}
 
 	template<typename ...Args>
-	inline void SetExtents(Args&& ... args)
+	inline void set_extents(Args&& ... args)
 	{
-		geometry_type::SetExtents(std::forward<Args >(args)...);
+		geometry_type::set_extents(std::forward<Args >(args)...);
 
 		UpdateK(&k_imag);
 	}
@@ -113,8 +113,8 @@ private:
 	}
 	void UpdateK(nTuple<NDIMS, Complex>* k)
 	{
-		auto dims = geometry_type::GetDimensions();
-		auto extents = geometry_type::GetExtents();
+		auto dims = geometry_type::get_dimensions();
+		auto extents = geometry_type::get_extents();
 		auto xmin = std::get<0>(extents);
 		auto xmax = std::get<1>(extents);
 
@@ -153,17 +153,17 @@ public:
 
 	//******************************************************************************************************
 
-	static constexpr  unsigned int  GetNumOfDimensions()
+	static constexpr  unsigned int  get_num_of_dimensions()
 	{
 		return NDIMS;
 	}
 	Real CheckCourantDt(nTuple<3, Real> const & u) const
 	{
 
-		Real dt = geometry_type::GetDt();
+		Real dt = geometry_type::get_dt();
 
-		auto dims = geometry_type::GetDimensions();
-		auto extent = geometry_type::GetExtent();
+		auto dims = geometry_type::get_dimensions();
+		auto extent = geometry_type::get_extents();
 
 		Real r = 0.0;
 		for (int s = 0; s < 3; ++s)

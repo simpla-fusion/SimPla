@@ -127,7 +127,7 @@ void BoundaryCondition<Particle<Engine>>::Visit(particle_type * p) const
 //	if (op_str_ == "Cycling")
 //		return;
 //
-//	LOGGER << "Apply boundary constraint [" << op_str_ << "] to particles [" << p->GetTypeAsString() << "]";
+//	LOGGER << "Apply boundary constraint [" << op_str_ << "] to particles [" << p->get_type_as_string() << "]";
 //
 //	for (auto const & cell : surface_)
 //	{

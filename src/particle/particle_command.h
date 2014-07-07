@@ -70,10 +70,10 @@ public:
 
 		for (auto s : def_domain_)
 		{
-			auto x = mesh.GetCoordinates(s);
+			auto x = mesh.get_coordinates(s);
 
 			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s,
-					op_(mesh.GetTime(), x, (*f)(x)));
+					op_(mesh.get_time(), x, (*f)(x)));
 		}
 	}
 

@@ -27,11 +27,11 @@ class TestTopology: public testing::TestWithParam<std::tuple<nTuple<TopologyType
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(10);
+		LOG_STREAM.set_stdout_visable_level(10);
 
 		dims=std::get<0>(GetParam());
 
-		topology.SetDimensions(dims);
+		topology.set_dimensions(dims);
 
 	}
 public:
@@ -70,17 +70,17 @@ public:
 //	CHECK(mesh.Hash(s0));
 //	CHECK(mesh.Hash(s0 - d));
 //	CHECK(mesh.Hash(s0 + d));
-//	CHECK(mesh.GetCoordinates(s0 - d));
-//	CHECK(mesh.GetCoordinates(s0 + d));
+//	CHECK(mesh.get_coordinates(s0 - d));
+//	CHECK(mesh.get_coordinates(s0 + d));
 //}
 
 //TEST_P(TestTopology,misc)
 //{
-//	EXPECT_EQ(NProduct(dims), topology.GetNumOfElements());
+//	EXPECT_EQ(NProduct(dims), topology.get_num_of_elements());
 //
 //	for (auto s : topology.Select(VERTEX))
 //	{
-//		CHECK(topology.GetCoordinates(s)) << dims;
+//		CHECK(topology.get_coordinates(s)) << dims;
 //	}
 //}
 
@@ -171,29 +171,29 @@ TEST_P(TestTopology, hash)
 
 	for (auto iform : iform_list)
 	{
-		size_t num = topology.GetLocalMemorySize(iform);
+		size_t num = topology.get_local_memory_size(iform);
 
 		auto hash = topology.make_hash(topology.Select(iform));
 
 		for (auto s : topology.Select(iform))
 		{
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s)), hash(s));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)), hash(s));
 			ASSERT_LE(0, hash(s));
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(topology.Roate(s))), hash(topology.Roate(s)));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(topology.Roate(s))), hash(topology.Roate(s)));
 			ASSERT_LE(0, hash(topology.InverseRoate(s)));
 
 			auto DX = topology.DI(0, s);
 			auto DY = topology.DI(1, s);
 			auto DZ = topology.DI(2, s);
 
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DX)), hash(s + DX));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DY)), hash(s + DY));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s + DZ)), hash(s + DZ));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DX)), hash(s - DX));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DY)), hash(s - DY));
-			ASSERT_GT(topology.GetLocalMemorySize(topology.IForm(s - DZ)), hash(s - DZ));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DX)), hash(s + DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DY)), hash(s + DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DZ)), hash(s + DZ));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DX)), hash(s - DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DY)), hash(s - DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DZ)), hash(s - DZ));
 
 			ASSERT_LE(0, hash(s + DX));
 			ASSERT_LE(0, hash(s + DY));
@@ -287,7 +287,7 @@ TEST_P(TestTopology, Split)
 TEST_P(TestTopology, coordinates)
 {
 
-	auto extents = topology.GetExtents();
+	auto extents = topology.get_extents();
 	auto xmin = std::get<0>(extents);
 	auto xmax = std::get<1>(extents);
 
@@ -296,12 +296,12 @@ TEST_P(TestTopology, coordinates)
 	auto range2 = topology.Select(FACE);
 	auto range3 = topology.Select(VOLUME);
 
-	auto half_dx = topology.GetDx() / 2;
+	auto half_dx = topology.get_dx() / 2;
 
-	EXPECT_EQ(xmin, topology.GetCoordinates(*begin(range0)));
-	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }), topology.GetCoordinates(*begin(range1)));
-	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }), topology.GetCoordinates(*begin(range2)));
-	EXPECT_EQ(xmin + half_dx, topology.GetCoordinates(*begin(range3)));
+	EXPECT_EQ(xmin, topology.get_coordinates(*begin(range0)));
+	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }), topology.get_coordinates(*begin(range1)));
+	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }), topology.get_coordinates(*begin(range2)));
+	EXPECT_EQ(xmin + half_dx, topology.get_coordinates(*begin(range3)));
 
 	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
 

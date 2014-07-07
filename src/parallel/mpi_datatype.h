@@ -57,7 +57,7 @@ bool GetMPIType(MPI_Datatype * new_type)
 		// @todo incomplete implement , need nTuple<N,nTuple<M,TV>>
 		typedef typename nTupleTraits<T>::element_type value_type;
 		std::vector<int> dims;
-		nTupleTraits<T>::GetDims(&dims);
+		nTupleTraits<T>::get_dimensions(&dims);
 
 		MPI_Datatype old_type;
 
@@ -91,14 +91,14 @@ struct MPIDataType
 {
 	MPI_Datatype type_;
 	bool is_commited_ = false;
-	static constexpr  unsigned int  MAX_NTUPLE_RANK = 10;
+	static constexpr unsigned int MAX_NTUPLE_RANK = 10;
 	MPIDataType()
 			: is_commited_(_impl::GetMPIType<T>(&type_))
 	{
 	}
 	template<unsigned int NDIMS, typename TI>
 	MPIDataType(nTuple<NDIMS, TI> const &outer, nTuple<NDIMS, TI> const &inner, nTuple<NDIMS, TI> const &start,
-	         unsigned int  array_order_ =
+	        unsigned int array_order_ =
 	        MPI_ORDER_C)
 	{
 
@@ -109,8 +109,8 @@ struct MPIDataType
 		std::copy(&inner[0], &inner[NDIMS], std::back_inserter(inner1));
 		std::copy(&start[0], &start[NDIMS], std::back_inserter(start1));
 
-		nTupleTraits<T>::GetDims(&outer1);
-		nTupleTraits<T>::GetDims(&inner1);
+		nTupleTraits<T>::get_dimensions(&outer1);
+		nTupleTraits<T>::get_dimensions(&inner1);
 		for (int i = start1.size(), ie = outer1.size(); i < ie; ++i)
 		{
 			start1.push_back(0);

@@ -56,7 +56,7 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 
 	DEFINE_PHYSICAL_CONST
 
-	Real dt = mesh.GetDt();
+	Real dt = mesh.get_dt();
 
 	LOGGER << "Implicit Push E ";
 
@@ -88,8 +88,8 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 			auto & rhos = p.second->n();
 			auto & Js = p.second->Jv();
 
-			Real ms = p.second->GetMass();
-			Real qs = p.second->GetCharge();
+			Real ms = p.second->get_mass();
+			Real qs = p.second->get_charge();
 
 			Real as = (dt * qs) / (2.0 * ms);
 

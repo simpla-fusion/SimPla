@@ -19,7 +19,7 @@ template<typename TM,  unsigned int  IFORM, typename TV>
 std::string Save(std::string const & name,
         Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d)
 {
-	int rank = d.GetDataSetShape();
+	int rank = d.get_dataset_shape();
 	size_t global_begin[rank];
 	size_t global_end[rank];
 	size_t global_count[rank];
@@ -30,7 +30,7 @@ std::string Save(std::string const & name,
 	size_t local_inner_end[rank];
 	size_t local_inner_count[rank];
 
-	d.GetDataSetShape(static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
+	d.get_dataset_shape(static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 	        static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
 	        static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end));
 

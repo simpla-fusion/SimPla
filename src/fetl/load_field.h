@@ -36,7 +36,7 @@ bool LoadField(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 		for (auto s : mesh.Select(IFORM))
 		{
-			auto x = mesh.GetCoordinates(s);
+			auto x = mesh.get_coordinates(s);
 
 			auto v = dict(x).template as<field_value_type>();
 
@@ -51,7 +51,7 @@ bool LoadField(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 		for (auto s : mesh.Select(IFORM))
 		{
-			auto x = mesh.GetCoordinates(s);
+			auto x = mesh.get_coordinates(s);
 
 			(*f)[s] = mesh.Sample(Int2Type<IFORM>(), s, v);
 		}

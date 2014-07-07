@@ -14,7 +14,7 @@ class TestIterator: public testing::TestWithParam<nTuple<3, size_t> >
 protected:
 	virtual void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(12);
+		LOG_STREAM.set_stdout_visable_level(12);
 
 		auto param = GetParam();
 

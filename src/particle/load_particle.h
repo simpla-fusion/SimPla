@@ -25,7 +25,7 @@ namespace simpla
 template<typename TP, typename TDict, typename TModel, typename TN, typename TT>
 std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
 {
-	if (!dict || (TP::GetTypeAsString() != dict["Type"].template as<std::string>()))
+	if (!dict || (TP::get_type_as_string() != dict["Type"].template as<std::string>()))
 	{
 		PARSER_ERROR("illegal particle configure!");
 	}
@@ -80,7 +80,7 @@ std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN con
 
 	LoadParticleConstriant(p.get(), range, model, dict["Constriants"]);
 
-	LOGGER << "Create Particles:[ Engine=" << p->GetTypeAsString() << ", Number of Particles=" << p->size() << "]";
+	LOGGER << "Create Particles:[ Engine=" << p->get_type_as_string() << ", Number of Particles=" << p->size() << "]";
 
 	LOGGER << DONE;
 
@@ -151,7 +151,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 		Real inv_sample_density = mesh.CellVolume(s) / pic;
 
-		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->q * ns(mesh.GetCoordinates(s)));
+		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
 
 		for (int i = 0; i < pic; ++i)
 		{

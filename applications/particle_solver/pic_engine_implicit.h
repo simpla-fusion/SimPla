@@ -58,17 +58,17 @@ public:
 	{
 		return "DeltaF";
 	}
-	static std::string GetTypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "DeltaF";
 	}
 
-	Real GetMass() const
+	Real get_mass() const
 	{
 		return m_;
 	}
 
-	Real GetCharge() const
+	Real get_charge() const
 	{
 		return q_;
 	}
@@ -96,7 +96,7 @@ public:
 		DEFINE_PHYSICAL_CONST
 		;
 
-		os << "Engine = '" << GetTypeAsString() << "' "
+		os << "Engine = '" << get_type_as_string() << "' "
 
 		<< " , " << "Mass = " << m_
 

@@ -45,7 +45,7 @@ protected:
 		xmin = std::get<0>(param);
 		xmax = std::get<1>(param);
 		dims = std::get<2>(param);
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 		mesh.Decompose();
 //
@@ -83,15 +83,15 @@ TEST_P(TestParticle,Add)
 
 	auto buffer = p.create_child();
 
-	auto extents = mesh.GetExtents();
+	auto extents = mesh.get_extents();
 
-	rectangle_distribution<mesh_type::GetNumOfDimensions()> x_dist(extents.first, extents.second);
+	rectangle_distribution<mesh_type::get_num_of_dimensions()> x_dist(extents.first, extents.second);
 
-	std::mt19937 rnd_gen(mesh_type::GetNumOfDimensions());
+	std::mt19937 rnd_gen(mesh_type::get_num_of_dimensions());
 
 	nTuple<3, Real> v = { 0, 0, 0 };
 
-	int pic = (GLOBAL_COMM.GetRank() +1)*10;
+	int pic = (GLOBAL_COMM.get_rank() +1)*10;
 
 	for (auto s : mesh.Select(VERTEX))
 	{
@@ -105,7 +105,7 @@ TEST_P(TestParticle,Add)
 
 	INFORM << "Add particle DONE " << p.size() << std::endl;
 
-	EXPECT_EQ(p.size(), mesh.GetLocalMemorySize(VERTEX) * pic);
+	EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
 
 	std::vector<double> a;
 
@@ -170,7 +170,7 @@ TEST_P(TestParticle,Add)
 //
 //		for (auto s : mesh.Select(VERTEX))
 //		{
-//			coordinates_type x = mesh.GetCoordinates(s);
+//			coordinates_type x = mesh.get_coordinates(s);
 //
 //			Real expect = q * n_obj(x[0], x[1], x[2]).template as<Real>();
 //
@@ -246,7 +246,7 @@ TEST_P(TestParticle,Add)
 //	nTuple<3,Real> k=
 //	{	2.0*PI,4.0*PI,2.0*PI};
 //
-//	Real q=ion.GetCharge();
+//	Real q=ion.get_charge();
 //
 //	auto n0_cfg= cfg["ion"]["Density"];
 //
@@ -254,17 +254,17 @@ TEST_P(TestParticle,Add)
 //
 //	for(auto s:mesh.Select(VERTEX))
 //	{
-//		auto x =mesh.GetCoordinates(s);
+//		auto x =mesh.get_coordinates(s);
 //		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
 //	}
 //
 //	for (auto s : mesh.Select(EDGE))
 //	{
-//		auto x=mesh.GetCoordinates(s);
+//		auto x=mesh.get_coordinates(s);
 //
 //		nTuple<3,Real> Ev;
 //
-//		Ev=E0*std::sin(Dot(k,mesh.GetCoordinates(s)));
+//		Ev=E0*std::sin(Dot(k,mesh.get_coordinates(s)));
 //
 //		E[s]=mesh.Sample(Int2Type<EDGE>(),s,Ev);
 //	}
@@ -275,7 +275,7 @@ TEST_P(TestParticle,Add)
 //	}
 //
 //	Real dt=1.0e-12;
-//	Real a=0.5*(dt*q/ion.GetMass());
+//	Real a=0.5*(dt*q/ion.get_mass());
 //
 //	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
 //
@@ -306,7 +306,7 @@ TEST_P(TestParticle,Add)
 //		Real relative_error=std::sqrt(variance)/abs(average);
 //
 //		CHECK(relative_error);
-//		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.GetDimensions();
+//		EXPECT_LE(relative_error,1.0/std::sqrt(pic))<<mesh.get_dimensions();
 //	}
 //
 //}

@@ -11,39 +11,8 @@
 namespace simpla
 {
 
-//******************************************************************************************************
-// Generic Visitor
-//******************************************************************************************************
-
-struct VisitorBase
-{
-
-	VisitorBase()
-	{
-	}
-	virtual ~VisitorBase()
-	{
-	}
-
-	void Visit(void*p) const
-	{
-		Visit_(p);
-	}
-	std::string GetTypeAsString() const
-	{
-		return GetTypeAsString_();
-	}
-
-private:
-	virtual std::string GetTypeAsString_() const
-	{
-		return "Custom";
-	}
-	virtual void Visit_(void*) const=0;
-};
-
-/***
- *  \brief Vistor<T>
+/**
+ *  \brief  Generic Visitor
  *
  *  Double Visitor pattern :
  *  purpose: pass variadic parameters to acceptor
@@ -126,6 +95,29 @@ private:
  *  \endcode
  *
  */
+struct VisitorBase
+{
+
+	VisitorBase()
+	{
+	}
+	virtual ~VisitorBase()
+	{
+	}
+
+	void Visit(void*p) const
+	{
+		Visit_(p);
+	}
+	virtual std::string get_type_as_string() const
+	{
+		return "Custom";
+	}
+
+private:
+
+	virtual void Visit_(void*) const=0;
+};
 
 //
 //struct AcceptorBase

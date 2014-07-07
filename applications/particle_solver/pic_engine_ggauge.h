@@ -26,7 +26,8 @@ namespace simpla
  * \ingroup ParticleEngine
  * \brief GGauge engine
  */
-template<typename TM,  unsigned int  NMATE, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
+template<typename TM, unsigned int NMATE, bool IsImplicit = false,
+        typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
 {
 
@@ -145,7 +146,7 @@ public:
 	{
 	}
 
-	static std::string GetTypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "GGauge" + ToString(NMATE);
 	}
@@ -156,7 +157,7 @@ public:
 		DEFINE_PHYSICAL_CONST
 		;
 
-		os << "Engine = '" << GetTypeAsString() << "' "
+		os << "Engine = '" << get_type_as_string() << "' "
 
 		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 

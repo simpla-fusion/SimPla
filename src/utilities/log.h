@@ -68,7 +68,7 @@ class LoggerStreams //: public SingletonHolder<LoggerStreams>
 	size_t indent_;
 
 public:
-	static constexpr  unsigned int  DEFAULT_LINE_WIDTH = 100;
+	static constexpr unsigned int DEFAULT_LINE_WIDTH = 100;
 
 	LoggerStreams(int level = LOG_INFORM)
 			: std_out_visable_level_(level), line_width_(DEFAULT_LINE_WIDTH), indent_(0)
@@ -92,19 +92,19 @@ public:
 			}
 			else if(opt=="v")
 			{
-				this->SetStdOutVisableLevel(ToValue<int>(value));
+				this->set_stdout_visable_level(ToValue<int>(value));
 			}
 			else if( opt=="verbose")
 			{
-				this->SetStdOutVisableLevel(LOG_VERBOSE);
+				this->set_stdout_visable_level(LOG_VERBOSE);
 			}
 			else if( opt=="quiet")
 			{
-				this->SetStdOutVisableLevel(LOG_INFORM-1);
+				this->set_stdout_visable_level(LOG_INFORM-1);
 			}
 			else if( opt=="log_width")
 			{
-				this->SetLineWidth(ToValue<int>(value));
+				this->set_line_width(ToValue<int>(value));
 			}
 			return CONTINUE;
 		}
@@ -124,7 +124,7 @@ public:
 	void put(int level, std::string const & msg)
 	{
 
-		if (msg == "" || (level == LOG_INFORM && GLOBAL_COMM.GetRank()>0) ) return;
+		if (msg == "" || (level == LOG_INFORM && GLOBAL_COMM.get_rank()>0) ) return;
 
 		std::string prefix(""), surfix("");
 
@@ -155,9 +155,9 @@ public:
 
 #ifdef USE_MPI
 		if(level != LOG_INFORM)
-		prefix+="[" + ToString(GLOBAL_COMM.GetRank()) + "/" + ToString(GLOBAL_COMM.GetSize())+ "]";
+		prefix+="[" + ToString(GLOBAL_COMM.get_rank()) + "/" + ToString(GLOBAL_COMM.get_size())+ "]";
 #endif
-		prefix+="[" + TimeStamp() + "]";
+		prefix+="[" + time_stamp() + "]";
 
 		if (!fs.good()) OpenFile("simpla.log");
 
@@ -183,15 +183,21 @@ public:
 		}
 
 	}
-	inline void SetStdOutVisableLevel(int l)
+	inline void set_stdout_visable_level(int l)
 	{
 		std_out_visable_level_ = l;
 	}
 
-	size_t GetLineWidth() const
+	size_t get_line_width() const
 	{
 		return line_width_;
 	}
+
+	void set_line_width(size_t lineWidth)
+	{
+		line_width_ = lineWidth;
+	}
+
 	void IncreaseIndent(size_t n = 1)
 	{
 		indent_ += n;
@@ -203,17 +209,12 @@ public:
 		else
 		indent_ = 0;
 	}
-	size_t GetIndent() const
+	size_t get_indent() const
 	{
 		return indent_;
 	}
 
-	void SetLineWidth(size_t lineWidth)
-	{
-		line_width_ = lineWidth;
-	}
-
-	static std::string TimeStamp()
+	static std::string time_stamp()
 	{
 
 		auto now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
@@ -268,13 +269,13 @@ public:
 	{
 		buffer_ << std::boolalpha;
 
-		size_t indent_width = SingletonHolder<LoggerStreams>::instance().GetIndent();
+		size_t indent_width = SingletonHolder<LoggerStreams>::instance().get_indent();
 		if (indent_width > 0)
 			buffer_ << std::setfill('-') << std::setw(indent_width) << "+";
 
-		SetIndent(indent_);
+		set_indent(indent_);
 
-		current_line_char_count_ = GetBufferLength();
+		current_line_char_count_ = get_buffer_length();
 	}
 
 	~Logger()
@@ -286,22 +287,22 @@ public:
 			buffer_ << std::endl;
 		SingletonHolder<LoggerStreams>::instance().put(level_, buffer_.str());
 
-		UnsetIndent(indent_);
+		unset_indent(indent_);
 	}
 
-	void SetIndent(size_t n = 1)
+	void set_indent(size_t n = 1)
 	{
 		SingletonHolder<LoggerStreams>::instance().IncreaseIndent(n);
 		indent_ += n;
 	}
-	void UnsetIndent(size_t n = 1)
+	void unset_indent(size_t n = 1)
 	{
 		if (indent_ >= n)
 			SingletonHolder<LoggerStreams>::instance().DecreaseIndent(n);
 		indent_ -= n;
 	}
 
-	size_t GetBufferLength() const
+	size_t get_buffer_length() const
 	{
 		return buffer_.str().size();
 	}
@@ -315,7 +316,7 @@ public:
 	{
 		const_cast<this_type*>(this)->buffer_ << std::setfill('.')
 
-		<< std::setw(SingletonHolder<LoggerStreams>::instance().GetLineWidth() - current_line_char_count_)
+		<< std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width() - current_line_char_count_)
 
 		<< std::right << s << std::left;
 
@@ -340,13 +341,13 @@ public:
 		if (null_dump_)
 			return *this;
 
-		current_line_char_count_ -= GetBufferLength();
+		current_line_char_count_ -= get_buffer_length();
 
 		const_cast<this_type*>(this)->buffer_ << value;
 
-		current_line_char_count_ += GetBufferLength();
+		current_line_char_count_ += get_buffer_length();
 
-		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().GetLineWidth())
+		if (current_line_char_count_ > SingletonHolder<LoggerStreams>::instance().get_line_width())
 			endl();
 
 		return *this;
@@ -443,13 +444,13 @@ inline Logger & not_endl(Logger & self)
 }
 inline Logger & indent(Logger & self)
 {
-	self.SetIndent();
+	self.set_indent();
 	return self;
 }
 
 inline Logger & TimeStamp(Logger & self)
 {
-	self << LoggerStreams::TimeStamp();
+	self << LoggerStreams::time_stamp();
 	return self;
 }
 
@@ -469,7 +470,7 @@ struct SetLineWidth
 
 inline LoggerStreams & operator<<(LoggerStreams & os, SetLineWidth const &setw)
 {
-	os.SetLineWidth(setw.width_);
+	os.set_line_width(setw.width_);
 	return os;
 
 }
@@ -523,7 +524,6 @@ inline std::string ShowBit(unsigned long s)
 
 #define PARSER_ERROR(_MSG_)  {{ Logger(LOG_ERROR)<<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:"<<"\n\tConfigure fails :"<<(_MSG_) ;}throw(std::runtime_error(""));}
 
-
 #ifdef NDEBUG
 #  define ASSERT(_EXP_)
 #else
@@ -549,10 +549,6 @@ inline std::string ShowBit(unsigned long s)
 #define LOG_CMD(_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
 
 #define LOG_CMD2(_MSG_,_CMD_) {auto __logger=Logger(LOG_LOG);__logger<<_MSG_<<__STRING(_CMD_);_CMD_;__logger<<DONE;}
-
-
-
-
 
 #define CHECK_BIT(_MSG_)  std::cout<<std::setfill(' ')<<std::setw(30) <<__STRING(_MSG_)<<" = 0b"<< ShowBit( _MSG_)  << std::endl
 

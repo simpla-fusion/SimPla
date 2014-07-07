@@ -49,7 +49,7 @@ int main(int argc, char** argv)
 ////	std::cout << "t1 \t=" << tt1.as<double>() << std::endl;
 //
 ////	std::cout << "t2.f \t=" << std::boolalpha
-////			<< pt.GetChild("t2")["f"].as<bool>() << std::endl;
+////			<< pt.get_child("t2")["f"].as<bool>() << std::endl;
 //
 	std::cout << "f(2,2.5) \t=" << pt["f"](2.0, 2.5).as<double>() << std::endl;
 
@@ -62,26 +62,26 @@ int main(int argc, char** argv)
 	for (int i = 0; i < 10; ++i)
 	{
 
-		std::cout << "t3 \t=" << pt.GetChild("t3").as<nTuple<3, double>>() << std::endl;
+		std::cout << "t3 \t=" << pt.get_child("t3").as<nTuple<3, double>>() << std::endl;
 	}
 
 	LuaObject * t1 = new LuaObject(pt["t1"]);
 
-	LuaObject * e = new LuaObject(t1->GetChild("e"));
+	LuaObject * e = new LuaObject(t1->get_child("e"));
 
 	delete t1;
 
-	std::cout << "t1.e.a \t= " << e->GetChild("a").as<double>() << std::endl;
+	std::cout << "t1.e.a \t= " << e->get_child("a").as<double>() << std::endl;
 
 	delete e;
 
-	for (auto it = pt.GetChild("tt").begin(), e = pt.GetChild("tt").end(); it != e; ++it)
+	for (auto it = pt.get_child("tt").begin(), e = pt.get_child("tt").end(); it != e; ++it)
 	{
 		std::cout << (*it).first.as<std::string>() << " = " << (*it).second.as<int>() << std::endl;
 
 	}
 	std::cout << "============================" << std::endl;
-	auto pp = pt.GetChild("tt");
+	auto pp = pt.get_child("tt");
 
 	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
 	{
@@ -97,7 +97,7 @@ int main(int argc, char** argv)
 
 	}
 	std::cout << "============================" << std::endl;
-	//	pt.GetChild("tt").ForEach(
+	//	pt.get_child("tt").ForEach(
 //
 //	[&](LuaObject const& key,LuaObject const&value)
 //	{
@@ -106,22 +106,22 @@ int main(int argc, char** argv)
 //	}
 //
 //	);
-//	auto obj = pt.GetChild("tt");
+//	auto obj = pt.get_child("tt");
 //	size_t num = obj.GetLength();
 //	for (size_t i = 0; i < num; ++i)
 //	{
 //		std::cout << obj[i].as<int>() << std::endl;
 //	}
 //
-	for (auto const &p : pt.GetChild("tt"))
+	for (auto const &p : pt.get_child("tt"))
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
-	for (auto const &p : pt.GetChild("tt"))
+	for (auto const &p : pt.get_child("tt"))
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}
-	for (auto const &p : pt.GetChild("tt"))
+	for (auto const &p : pt.get_child("tt"))
 	{
 		std::cout << p.first.as<std::string>() << " = " << p.second.as<int>() << std::endl;
 	}

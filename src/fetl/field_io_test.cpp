@@ -40,13 +40,13 @@ int main(int argc, char **argv)
 
 	mesh_type mesh;
 
-	mesh.SetExtents(xmin, xmax,dims);
+	mesh.set_extents(xmin, xmax,dims);
 
-	mesh.Decompose(GLOBAL_COMM.GetSize(), GLOBAL_COMM.GetRank());
+	mesh.Decompose(GLOBAL_COMM.get_size(), GLOBAL_COMM.get_rank());
 
 	auto f=mesh.template make_field< 0,Real> ();
 
-	f.Fill(GLOBAL_COMM.GetRank()+100);
+	f.Fill(GLOBAL_COMM.get_rank()+100);
 
 	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
 	GLOBAL_DATA_STREAM.OpenGroup("/t1");
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 	LOGGER << SAVE(f);
 	LOGGER << endl;
 
-	int rank=GLOBAL_COMM.GetRank();
+	int rank=GLOBAL_COMM.get_rank();
 	std::vector<int> vec(12);
 	std::generate(vec.begin(), vec.end(),[rank]()->int
 			{	return (std::rand()%1000+(rank+1)*1000);});

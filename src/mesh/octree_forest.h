@@ -180,7 +180,7 @@ struct OcForest
 
 	template<unsigned int iform, typename TV> inline std::shared_ptr<TV> MakeContainer() const
 	{
-		return (MEMPOOL.allocate_shared_ptr < TV > (GetLocalNumOfElements(iform)));
+		return (MEMPOOL.allocate_shared_ptr < TV > (get_local_num_of_elements(iform)));
 	}
 
 	template<typename TDict, typename ...Others>
@@ -189,7 +189,7 @@ struct OcForest
 		try
 		{
 			LOGGER << "Load OcForest ";
-			SetDimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
+			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch(...)
 		{
@@ -201,7 +201,7 @@ struct OcForest
 	{
 		std::stringstream os;
 
-		os << "\tDimensions =  " << GetDimensions();
+		os << "\tDimensions =  " << get_dimensions();
 
 		return os.str();
 	}
@@ -212,7 +212,7 @@ struct OcForest
 	{
 		++clock_;
 	}
-	unsigned long GetClock() const
+	unsigned long get_clock() const
 	{
 		return clock_;
 	}
@@ -248,12 +248,12 @@ struct OcForest
 	// _start          _start          _start           _end           _end          _end
 	//
 
-	void SetDimensions( )
+	void set_dimensions( )
 	{
 	}
 
 	template<typename TI>
-	void SetDimensions(TI const &d)
+	void set_dimensions(TI const &d)
 	{
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -286,8 +286,8 @@ struct OcForest
 	{
 		if(num_process<=1)
 		{
-			num_process=GLOBAL_COMM.GetSize();
-			process_num=GLOBAL_COMM.GetRank();
+			num_process=GLOBAL_COMM.get_size();
+			process_num=GLOBAL_COMM.get_rank();
 		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
@@ -349,31 +349,31 @@ struct OcForest
 		return res;
 	}
 
-	nTuple<NDIMS, index_type> const& GetDimensions() const
+	nTuple<NDIMS, index_type> const& get_dimensions() const
 	{
 		return global_count_;
 	}
 
-	index_type GetNumOfElements(int IFORM = VERTEX) const
+	index_type get_num_of_elements(int IFORM = VERTEX) const
 	{
 		return global_count_[0] * global_count_[1] * global_count_[2] * ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
 
-	nTuple<NDIMS, index_type> const& GetLocalDimensions() const
+	nTuple<NDIMS, index_type> const& get_local_dimensions() const
 	{
 		return local_outer_count_;
 	}
-	index_type GetLocalNumOfElements(int IFORM = VERTEX) const
+	index_type get_local_num_of_elements(int IFORM = VERTEX) const
 	{
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
 	}
-	index_type GetLocalMemorySize(int IFORM = VERTEX,int ele_size=1) const
+	index_type get_local_memory_size(int IFORM = VERTEX,int ele_size=1) const
 	{
 		return local_outer_count_[0] * local_outer_count_[1] * local_outer_count_[2]
 		* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3)*ele_size;
 	}
-	int GetDataSetShape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
+	int get_dataset_shape(int IFORM, size_t * global_start = nullptr, size_t * global_count = nullptr, size_t * local_outer_start = nullptr,
 	size_t * local_outer_count = nullptr, size_t * local_inner_start = nullptr, size_t * local_inner_count = nullptr ) const
 	{
 		int rank = 0;
@@ -1514,7 +1514,7 @@ struct OcForest
 	 *
 	 */
 
-	nTuple<NDIMS, Real> GetExtents() const
+	nTuple<NDIMS, Real> get_extents() const
 	{
 
 		nTuple<NDIMS, Real> res;
@@ -1529,7 +1529,7 @@ struct OcForest
 
 	//***************************************************************************************************
 	// Coordinates
-	inline coordinates_type GetCoordinates(compact_index_type s) const
+	inline coordinates_type get_coordinates(compact_index_type s) const
 	{
 
 		auto d = Decompact(s) - (global_start_<<D_FP_POS);

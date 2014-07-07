@@ -32,7 +32,7 @@ class TestGeometry: public testing::TestWithParam<
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(10);
+		LOG_STREAM.set_stdout_visable_level(10);
 
 		auto param = GetParam();
 
@@ -51,7 +51,7 @@ protected:
 			}
 		}
 
-		geometry.SetExtents(xmin,xmax,dims);
+		geometry.set_extents(xmin,xmax,dims);
 
 	}
 public:
@@ -78,7 +78,7 @@ public:
 TEST_P(TestGeometry, Coordinates)
 {
 
-	auto extents = geometry.GetExtents();
+	auto extents = geometry.get_extents();
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 
 	for (auto iform : iform_list)
@@ -103,7 +103,7 @@ TEST_P(TestGeometry, Coordinates)
 
 TEST_P(TestGeometry, Volume)
 {
-//	auto extents = geometry.GetExtents();
+//	auto extents = geometry.get_extents();
 //	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 
 	for (auto iform : iform_list)
@@ -131,7 +131,7 @@ TEST_P(TestGeometry, Volume)
 		}
 	}
 
-	auto extents = geometry.GetExtents();
+	auto extents = geometry.get_extents();
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 	auto idx = geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(VERTEX));
 
@@ -154,7 +154,7 @@ TEST_P(TestGeometry,Coordinates_transform)
 {
 
 	nTuple<3, Real> v = { 1.0, 2.0, 3.0 };
-	auto extents = geometry.GetExtents();
+	auto extents = geometry.get_extents();
 	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 	auto z = std::make_tuple(x, v);
 

@@ -44,13 +44,13 @@ public:
 
 	virtual std::string Save(std::string const & path, bool is_verbose) const=0;
 
-	virtual Real GetMass() const=0;
+	virtual Real get_mass() const=0;
 
-	virtual Real GetCharge() const=0;
+	virtual Real get_charge() const=0;
 
 	virtual bool EnableImplicit() const = 0;
 
-	virtual std::string GetTypeAsString() const = 0;
+	virtual std::string get_type_as_string() const = 0;
 
 	virtual typename mesh_type:: template field<VERTEX, scalar_type> const& n() const=0;
 	virtual typename mesh_type:: template field<EDGE, scalar_type> const&J() const=0;
@@ -102,15 +102,15 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 							new ParticleWrap<particle_type>(particle_type::Create( std::forward<Args>(args)...))));
 		};
 
-		return factory->Register(particle_type::GetTypeAsString(), call_back);
+		return factory->Register(particle_type::get_type_as_string(), call_back);
 	}
 
-	Real GetMass() const
+	Real get_mass() const
 	{
 		return self_->m;
 	}
 
-	Real GetCharge() const
+	Real get_charge() const
 	{
 		return self_->q;
 	}
@@ -119,9 +119,9 @@ struct ParticleWrap: public ParticleBase<typename TP::mesh_type>
 	{
 		return self_->EnableImplicit;
 	}
-	std::string GetTypeAsString() const
+	std::string get_type_as_string() const
 	{
-		return self_->GetTypeAsString();
+		return self_->get_type_as_string();
 	}
 	typename mesh_type:: template field<VERTEX, scalar_type> const& n() const
 	{

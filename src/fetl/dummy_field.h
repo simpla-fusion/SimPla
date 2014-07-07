@@ -87,9 +87,9 @@ public:
 	}
 
 	template<typename ...Args>
-	int GetDataSetShape(Args &&...others) const
+	int get_dataset_shape(Args &&...others) const
 	{
-		return mesh.GetDataSetShape(IForm, std::forward<Args>(others)...);
+		return mesh.get_dataset_shape(IForm, std::forward<Args>(others)...);
 	}
 
 	container_type & data()
@@ -103,7 +103,7 @@ public:
 	}
 	size_t size() const
 	{
-		return mesh.GetNumOfElements(IForm);
+		return mesh.get_num_of_elements(IForm);
 	}
 	bool empty() const
 	{

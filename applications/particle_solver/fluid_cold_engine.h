@@ -86,7 +86,7 @@ public:
 		return res;
 	}
 
-	static std::string GetTypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "ColdFluid";
 	}
@@ -134,7 +134,7 @@ std::string Particle<ColdFluid<TM>>::Save(std::string const & path, bool is_verb
 	{
 		os
 
-		<< "Engine = '" << GetTypeAsString()
+		<< "Engine = '" << get_type_as_string()
 
 		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 
@@ -154,8 +154,8 @@ void Particle<ColdFluid<TM>>::NextTimeStepZero(
         typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
         typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
 {
-	LOGGER << "Push particles Step Zero[ " << GetTypeAsString() << "]";
-	Real dt = mesh.GetDt();
+	LOGGER << "Push particles Step Zero[ " << get_type_as_string() << "]";
+	Real dt = mesh.get_dt();
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 }
 template<typename TM>
@@ -163,11 +163,11 @@ void Particle<ColdFluid<TM>>::NextTimeStepHalf(
         typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
         typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
 {
-	LOGGER << "Push particles Step Half[ " << GetTypeAsString() << "]";
+	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 
-	Real as = 0.5 * q / m * mesh.GetDt();
+	Real as = 0.5 * q / m * mesh.get_dt();
 
 	K = J + Cross(J, B) * as + 2.0 * as * n * E;
 

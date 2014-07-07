@@ -118,7 +118,7 @@ public:
 	{
 	}
 
-	static std::string GetTypeAsString()
+	static std::string get_type_as_string()
 	{
 		return "Default";
 	}
@@ -130,7 +130,7 @@ public:
 		DEFINE_PHYSICAL_CONST
 		;
 
-		os << "Engine = '" << GetTypeAsString() << "' "
+		os << "Engine = '" << get_type_as_string() << "' "
 
 		<< " , " << "Mass = " << m / proton_mass << " * m_p"
 

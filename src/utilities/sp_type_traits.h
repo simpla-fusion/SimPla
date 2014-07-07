@@ -64,10 +64,10 @@ public:                                                                         
                                                                                            \
 template<typename _T, typename _D>                                                         \
 typename std::enable_if<has_type_member_##_NAME_<_T, _D>::value, _D>::type                 \
-GetMember_##_NAME_(_T const & c, _D const & def){	return c._NAME_; }                     \
+get_member_##_NAME_(_T const & c, _D const & def){	return c._NAME_; }                     \
 template<typename _T, typename _D>                                                         \
 typename std::enable_if<!has_type_member_##_NAME_<_T, _D>::value, _D>::type                \
-GetMember_##_NAME_(_T const & c, _D const & def){	return def;}                           \
+get_member_##_NAME_(_T const & c, _D const & def){	return def;}                           \
 
 
 #define HAS_MEMBER_FUNCTION(_NAME_)                                                                   \

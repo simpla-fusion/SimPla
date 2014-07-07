@@ -62,7 +62,7 @@ class TestFETLBase: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(10);
+		LOG_STREAM.set_stdout_visable_level(10);
 
 		nTuple<3, Real> xmin =
 		{	1.0, 1.0, 1.0};
@@ -73,7 +73,7 @@ protected:
 		nTuple<3, size_t> dims =
 		{	16, 32, 67};
 
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 	}
 public:

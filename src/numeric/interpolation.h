@@ -217,7 +217,7 @@ public:
 
 		if (data_ == nullptr)
 		{
-			data_ = std::shared_ptr<value_type>(new value_type[interpolate_op_.GetNumberOfElement()]);
+			data_ = std::shared_ptr<value_type>(new value_type[interpolate_op_.get_number_of_elements()]);
 		}
 
 	}
@@ -290,27 +290,27 @@ public:
 		std::swap(xmax_, r.xmax_);
 		std::swap(inv_dx_, r.inv_dx_);
 	}
-	inline void SetDimension(nTuple<NDIMS, size_t> const &dims)
+	inline void set_dimensions(nTuple<NDIMS, size_t> const &dims)
 	{
 		dims_ = dims;
 	}
-	inline void GetDimension(nTuple<NDIMS, size_t> * dims) const
+	inline void get_dimensions(nTuple<NDIMS, size_t> * dims) const
 	{
 		*dims = dims_;
 	}
-	inline void SetDefineDomain(nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const & xmax)
+	inline void set_define_domain(nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const & xmax)
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
 	}
 
-	inline void GetDefineDomain(nTuple<NDIMS, Real> *xmin, nTuple<NDIMS, Real> * xmax)
+	inline void get_define_domain(nTuple<NDIMS, Real> *xmin, nTuple<NDIMS, Real> * xmax)
 	{
 		*xmin = xmin_;
 		*xmax = xmax_;
 	}
 
-	size_t GetNumberOfElement() const
+	size_t get_number_of_elements() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < NDIMS; ++i)

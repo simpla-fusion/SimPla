@@ -136,12 +136,12 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 	X21.Fill(0.0);
 	X22.Fill(0.0);
 
-	auto ymin = mesh.GetExtents().first;
-	auto ymax = mesh.GetExtents().second;
+	auto ymin = mesh.get_extents().first;
+	auto ymax = mesh.get_extents().second;
 
 	for (auto s : mesh.Select(VERTEX))
 	{
-		coordinates_type x = mesh.GetCoordinates(s);
+		coordinates_type x = mesh.get_coordinates(s);
 
 #define DEF(_N_)                                                                    \
 		if (x[_N_] < xmin[_N_])                                                         \

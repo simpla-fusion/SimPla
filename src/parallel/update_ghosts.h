@@ -24,7 +24,7 @@ void UpdateGhosts(TV* data, DistributedArray<N> const & global_array, MPI_Comm c
 
 	if (comm == MPI_COMM_NULL)
 	{
-		comm = GLOBAL_COMM.GetComm();
+		comm = GLOBAL_COMM.comm();
 	}
 
 	MPI_Request request[global_array.send_recv_.size() * 2];

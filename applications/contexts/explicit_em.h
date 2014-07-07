@@ -393,11 +393,11 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	INFORM
 
-	<< "[" << mesh.GetClock() << "]"
+	<< "[" << mesh.get_clock() << "]"
 
-	<< "Simulation Time = " << (mesh.GetTime() / CONSTANTS["s"]) << "[s]";
+	<< "Simulation Time = " << (mesh.get_time() / CONSTANTS["s"]) << "[s]";
 
-	Real dt = mesh.GetDt();
+	Real dt = mesh.get_dt();
 
 	//***********************************************************
 	// Compute Cycle Begin

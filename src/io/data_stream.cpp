@@ -122,7 +122,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 	int name_len;
 
-	if (GLOBAL_COMM.GetRank()==0)
+	if (GLOBAL_COMM.get_rank()==0)
 	{
 		if (fname != "")
 		prefix_ = fname;
@@ -152,18 +152,18 @@ void DataStream::OpenFile(std::string const &fname)
 		name_len=filename_.size();
 	}
 	if (GLOBAL_COMM.IsInitilized())
-	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.GetComm());
+	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
 
 	std::vector<char> buffer(name_len);
 
-	if (GLOBAL_COMM.GetRank()==0)
+	if (GLOBAL_COMM.get_rank()==0)
 	{
 		std::copy(filename_.begin(),filename_.end(),buffer.begin());
 	}
 	if (GLOBAL_COMM.IsInitilized())
-	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.GetComm());
+	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
 
-	if (GLOBAL_COMM.GetRank()!=0)
+	if (GLOBAL_COMM.get_rank()!=0)
 	{
 		filename_=&buffer[0];
 	}
@@ -173,7 +173,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
-		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.GetComm(), GLOBAL_COMM.GetInfo());
+		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 
 		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
@@ -476,7 +476,7 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 
 	if (GLOBAL_COMM.IsInitilized())
 	{
-		sync_location(pos, GLOBAL_COMM.GetComm());
+		sync_location(pos, GLOBAL_COMM.comm());
 	}
 
 	int rank = type_rank + 1;

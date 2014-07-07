@@ -79,12 +79,12 @@ struct CylindricalGeometry: public TTopology
 	{
 		topology_type::NextTimeStep();
 	}
-	Real GetTime() const
+	Real get_time() const
 	{
-		return static_cast<double>(topology_type::GetClock()) * dt_ + time0_;
+		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
 	}
 
-	Real GetDt() const
+	Real get_dt() const
 	{
 		return dt_;
 	}
@@ -110,7 +110,7 @@ struct CylindricalGeometry: public TTopology
 			{
 				LOGGER << "Load CylindricalGeometry ";
 
-				SetExtents(
+				set_extents(
 
 				dict["Min"].template as<nTuple<NDIMS, Real>>(),
 
@@ -136,23 +136,23 @@ struct CylindricalGeometry: public TTopology
 		return os.str();
 	}
 	template<typename ...Others>
-	inline void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax, Others&& ... others)
+	inline void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax, Others&& ... others)
 	{
 
-		topology_type::SetDimensions(std::forward<Others >(others)...);
-		SetExtents(pmin, pmax);
+		topology_type::set_dimensions(std::forward<Others >(others)...);
+		set_extents(pmin, pmax);
 	}
 
-	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
+	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax,
 	        nTuple<NDIMS, size_t> const & dims)
 	{
-		topology_type::SetDimensions(dims);
+		topology_type::set_dimensions(dims);
 
-		SetExtents(pmin, pmax);
+		set_extents(pmin, pmax);
 	}
-	void SetExtents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
+	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
 	{
-		auto dims = topology_type::GetDimensions();
+		auto dims = topology_type::get_dimensions();
 
 		if (pmin[RAxis] < EPSILON || dims[RAxis] <= 1)
 		{
@@ -216,17 +216,17 @@ struct CylindricalGeometry: public TTopology
 
 		UpdateVolume();
 	}
-	inline std::pair<coordinates_type, coordinates_type> GetExtents() const
+	inline std::pair<coordinates_type, coordinates_type> get_extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type GetDx(compact_index_type s = 0UL) const
+	inline coordinates_type get_dx(compact_index_type s = 0UL) const
 	{
 
 		coordinates_type res;
 
-		auto d = topology_type::GetDx();
+		auto d = topology_type::get_dx();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -239,9 +239,9 @@ struct CylindricalGeometry: public TTopology
 	//!@{
 
 	template<typename ... Args>
-	inline coordinates_type GetCoordinates(Args && ... args) const
+	inline coordinates_type get_coordinates(Args && ... args) const
 	{
-		return CoordinatesFromTopology(topology_type::GetCoordinates(std::forward<Args >(args)...));
+		return CoordinatesFromTopology(topology_type::get_coordinates(std::forward<Args >(args)...));
 	}
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
@@ -452,13 +452,13 @@ struct CylindricalGeometry: public TTopology
 	template<typename TV>
 	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return std::get<1>(PushForward(std::make_tuple(GetCoordinates(s), v)))[topology_type::ComponentNum(s)];
+		return std::get<1>(PushForward(std::make_tuple(get_coordinates(s), v)))[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
 	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return std::get<1>(PushForward(std::make_tuple(GetCoordinates(s), v)))[topology_type::ComponentNum(s)];
+		return std::get<1>(PushForward(std::make_tuple(get_coordinates(s), v)))[topology_type::ComponentNum(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
@@ -583,34 +583,34 @@ struct CylindricalGeometry: public TTopology
 
 	Real CellVolume(compact_index_type s) const
 	{
-		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4] * GetCoordinates(s)[RAxis];
+		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4] * get_coordinates(s)[RAxis];
 	}
 
 	scalar_type Volume(compact_index_type s) const
 	{
 		  unsigned int   n = topology_type::NodeId(s);
 		return topology_type::Volume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type InvVolume(compact_index_type s) const
 	{
 		  unsigned int   n = topology_type::NodeId(s);
 		return topology_type::InvVolume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type DualVolume(compact_index_type s) const
 	{
 		  unsigned int   n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::DualVolume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+		        * (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type InvDualVolume(compact_index_type s) const
 	{
 		  unsigned int   n = topology_type::NodeId(topology_type::Dual(s));
 		return topology_type::InvDualVolume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? GetCoordinates(s)[RAxis] : 1.0);
+		        / (((n & (1UL << (NDIMS - ThetaAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 	//! @}
 }

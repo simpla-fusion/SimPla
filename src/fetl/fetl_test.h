@@ -33,7 +33,7 @@ class TestFETL: public testing::TestWithParam<
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.SetStdOutVisableLevel(LOG_DEBUG);
+		LOG_STREAM.set_stdout_visable_level(LOG_DEBUG);
 		auto param = GetParam();
 
 		xmin = std::get<0>(param);
@@ -55,7 +55,7 @@ protected:
 			}
 		}
 
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 		K_imag = mesh.k_imag;
 

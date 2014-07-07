@@ -203,7 +203,7 @@ public:
 	DEF_TYPE_CHECK(is_table,lua_istable)
 #undef DEF_TYPE_CHECK
 
-	inline std::string GetTypeName() const
+	inline std::string get_typename() const
 	{
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
 		std::string res = lua_typename(L_.get(), -1);
@@ -416,7 +416,7 @@ public:
 		return iterator();
 	}
 
-	template<typename T> inline LuaObject GetChild(T const & key) const
+	template<typename T> inline LuaObject get_child(T const & key) const
 	{
 		if (IsNull()) return LuaObject();
 

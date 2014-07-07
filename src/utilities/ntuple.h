@@ -329,7 +329,7 @@ struct nTupleTraits
 	typedef TV value_type;
 	typedef value_type element_type;
 	template<typename TVec>
-	static void GetDims(TVec* dims)
+	static void get_dimensions(TVec* dims)
 	{
 	}
 
@@ -345,10 +345,10 @@ struct nTupleTraits<nTuple<N, TV>>
 	typedef typename nTupleTraits<TV>::element_type element_type;
 
 	template<typename TVec>
-	static void GetDims(TVec* dims)
+	static void get_dimensions(TVec* dims)
 	{
 		dims->push_back(NDIMS);
-		nTupleTraits<TV>::GetDims(dims);
+		nTupleTraits<TV>::get_dimensions(dims);
 	}
 };
 

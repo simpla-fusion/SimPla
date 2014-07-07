@@ -131,17 +131,17 @@ struct MagneticFluxGeometry
 
 	DenseContainer<compact_index_type, coordinates_type> volumes_[4];
 
-	nTuple<NDIMS, Real> const & GetDx() const
+	nTuple<NDIMS, Real> const & get_dx() const
 	{
 		return dx_;
 	}
 
 	template<unsigned int IN, typename T>
-	inline void SetExtent(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
+	inline void set_extents(nTuple<IN, T> const & pmin, nTuple<IN, T> const & pmax)
 	{
 		int n = IN < NDIMS ? IN : NDIMS;
 
-		auto const & dims = topology.GetDimensions();
+		auto const & dims = topology.get_dimensions();
 
 		for (int i = 0; i < n; ++i)
 		{
@@ -181,7 +181,7 @@ struct MagneticFluxGeometry
 
 	}
 
-	inline std::pair<coordinates_type, coordinates_type> GetExtent() const
+	inline std::pair<coordinates_type, coordinates_type> get_extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}

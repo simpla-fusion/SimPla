@@ -68,36 +68,29 @@ public:
 	Field<mesh_type, EDGE, Real> gradn0;
 	Field<mesh_type, EDGE, Real> gradT0;
 public:
-	PICEngineDeltaF(mesh_type const &pmesh) :
-			mesh(pmesh), m(1.0), q(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
+	PICEngineDeltaF(mesh_type const &pmesh)
+			: mesh(pmesh), m(1.0), q(1.0), cmr_(1.0), q_k_(1.0), n0(mesh), T0(mesh), gradn0(mesh), gradT0(mesh)
 	{
 	}
 	~PICEngineDeltaF()
 	{
 	}
 
-	static std::string TypeName()
-	{
-		return "DeltaF";
-	}
-	std::string GetTypeAsString() const
+	std::string get_type_as_string() const
 	{
 		return "DeltaF";
 	}
 
-	Real GetMass() const
+	Real get_mass() const
 	{
 		return m;
 	}
 
-	Real GetCharge() const
+	Real get_charge() const
 	{
 		return q;
 	}
-	size_t GetAffectedRange() const
-	{
-		return 2;
-	}
+
 	template<typename TDict, typename TN, typename TT>
 	void Load(TDict const &dict, TN const & n, TT const &T)
 	{
@@ -110,9 +103,10 @@ public:
 	std::ostream & Print(std::ostream & os) const
 	{
 
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
 
-		os << "Engine = '" << GetTypeAsString() << "' "
+		os
+		<< "Engine = '" << get_type_as_string() << "' "
 
 		<< " , " << "Mass = " << m
 

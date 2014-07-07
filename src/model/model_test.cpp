@@ -25,11 +25,11 @@ protected:
 	virtual void SetUp()
 	{
 
-		mesh.SetExtents(xmin, xmax, dims);
+		mesh.set_extents(xmin, xmax, dims);
 
 		model = std::shared_ptr<model_type>(new model_type(mesh));
 
-		auto extent = mesh.GetExtents();
+		auto extent = mesh.get_extents();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -99,7 +99,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 		auto s=*it;
 
 		f[s] = 1;
-		auto x = mesh.GetCoordinates(s);
+		auto x = mesh.get_coordinates(s);
 
 		ASSERT_TRUE (
 
@@ -124,18 +124,18 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 	}
 	for (auto s : model.Select(TestFixture::IForm))
 	{
-		auto x = mesh.GetCoordinates(s);
+		auto x = mesh.get_coordinates(s);
 
 		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
 		{
-			ASSERT_EQ(1,f[s] ) << ( mesh.GetCoordinates(s));
+			ASSERT_EQ(1,f[s] ) << ( mesh.get_coordinates(s));
 		}
 
 		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
 				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
 		{
-			ASSERT_NE(1,f[s]) << ( mesh.GetCoordinates(s));
+			ASSERT_NE(1,f[s]) << ( mesh.get_coordinates(s));
 		}
 	}
 
@@ -165,7 +165,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 	for (auto s : model.SelectByPolylines( TestFixture::IForm, TestFixture::points))
 	{
 		f[s] = 1;
-		auto x = mesh.GetCoordinates(s);
+		auto x = mesh.get_coordinates(s);
 
 		ASSERT_TRUE (
 
@@ -213,22 +213,22 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 	}
 	for (auto s : model.Select(TestFixture::IForm))
 	{
-		auto x = mesh.GetCoordinates(s);
+		auto x = mesh.get_coordinates(s);
 
 		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
 		{
-			ASSERT_EQ(1,f[s] ) << ( mesh.GetCoordinates(s));
+			ASSERT_EQ(1,f[s] ) << ( mesh.get_coordinates(s));
 		}
 
 		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
 				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
 		{
-			ASSERT_NE(1,f[s]) << ( mesh.GetCoordinates(s));
+			ASSERT_NE(1,f[s]) << ( mesh.get_coordinates(s));
 		}
 	}
 
-	auto extent = mesh.GetExtents();
+	auto extent = mesh.get_extents();
 
 	TestFixture::points.emplace_back(typename TestFixture::coordinates_type(
 					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
