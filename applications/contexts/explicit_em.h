@@ -58,8 +58,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args && ...args) :
+			ExplicitEMContext()
 	{
 		Load(std::forward<Args >(args)...);
 	}
@@ -75,13 +75,13 @@ public:
 
 public:
 
-	mesh_type mesh;
-
 	typedef typename mesh_type::scalar_type scalar_type;
 
 	std::string description;
 
 	Model<mesh_type> model_;
+
+	mesh_type & mesh;
 
 	typename mesh_type::template field<EDGE, scalar_type> E, dE;
 	typename mesh_type::template field<FACE, scalar_type> B, dB;
@@ -129,8 +129,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: model_(mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), //
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		mesh(model_.mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), //
 		phi(mesh), Bv(mesh)
 {
 }
@@ -244,7 +244,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			}
 
-		} catch (...)
+		}
+		catch (...)
 		{
 
 			PARSER_ERROR("Particles={" + id + " = { Type = " + type_str + "}}" + "  ");
@@ -290,7 +291,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		} catch (std::runtime_error const & e)
+		}
+		catch (std::runtime_error const & e)
 		{
 
 			PARSER_ERROR("Load 'Constraints' error! ");
@@ -329,7 +331,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			};
 		}
 
-	} catch (std::runtime_error const & e)
+	}
+	catch (std::runtime_error const & e)
 	{
 		PARSER_ERROR("Configure field solver error! ");
 	}

@@ -40,6 +40,8 @@ int main(int argc, char **argv)
 
 	typedef Mesh<CylindricalGeometry<UniformArray>, true> cylindrical_mesh;
 
+	typedef typename cylindrical_mesh::scalar_type scalar_type;
+
 	static constexpr unsigned int NDIMS = cylindrical_mesh::NDIMS;
 
 	GEqdsk geqdsk;
@@ -157,6 +159,19 @@ int main(int argc, char **argv)
 	}
 
 	INFORM <<"Configuration: \n" << model;
+
+
+	auto E = mesh.template make_field<EDGE,scalar_type>();
+	auto B = mesh.template make_field<FACE,scalar_type>();
+	auto u = mesh.template make_field<VERTEX,nTuple<3,scalar_type>>();
+	auto T = mesh.template make_field<VERTEX,scalar_type>();
+	auto n = mesh.template make_field<VERTEX,scalar_type>();
+	auto p = mesh.template make_field<VERTEX,scalar_type>();
+
+	auto limiter_B=model.SelectInterface(FACE,"VACUUM","NONE");
+	auto limiter_E=model.SelectInterface(EDGE,"VACUUM","NONE");
+
+
 
 	INFORM << SINGLELINE;
 

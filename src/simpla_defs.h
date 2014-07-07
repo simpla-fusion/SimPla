@@ -27,7 +27,7 @@ namespace simpla
 " SimPla, Plasma Simulator        \n"                         \
 " Build Date: " __DATE__ " " __TIME__"                   \n"\
 " ID:" IDENTIFY "                                        \n"\
-" \author  YU Zhi. All rights reserved.           \n"
+" Author:  YU Zhi. All rights reserved.           \n"
 
 inline std::string ShowShortVersion()
 {

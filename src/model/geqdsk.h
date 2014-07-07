@@ -253,13 +253,14 @@ void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number) const
 
 	ASSERT(TModel::mesh_type::PhiAxis==GEqdsk::PhiAxis);
 
-	min[TModel::mesh_type::RAxis] = rzmin_[RAxis];
-	max[TModel::mesh_type::RAxis] = rzmax_[RAxis];
+	min[(TModel::mesh_type::ZAxis + 2) % 3] = rzmin_[RAxis];
+	max[(TModel::mesh_type::ZAxis + 2) % 3] = rzmax_[RAxis];
 	min[TModel::mesh_type::ZAxis] = rzmin_[ZAxis];
 	max[TModel::mesh_type::ZAxis] = rzmax_[ZAxis];
 
-	min[TModel::mesh_type::PhiAxis] = 0;
-	max[TModel::mesh_type::PhiAxis] = toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
+	min[(TModel::mesh_type::ZAxis + 1) % 3] = 0;
+	max[(TModel::mesh_type::ZAxis + 1) % 3] =
+	        toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
 
 	model->mesh.set_extents(min, max);
 
