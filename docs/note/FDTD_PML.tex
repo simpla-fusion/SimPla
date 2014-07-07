@@ -1,0 +1,72 @@
+%% LyX 2.0.6 created this file.  For more info, see http://www.lyx.org/.
+%% Do not edit unless you really know what you are doing.
+% \documentclass[english]{article}
+% \usepackage[T1]{fontenc}
+% \usepackage[latin9]{inputenc}
+% \usepackage{amsmath}
+% \usepackage{esint}
+% \usepackage{babel}
+% \begin{document}
+\begin{equation}
+\partial_{x}\to s_{x}^{-1}\partial_{x}
+\end{equation}
+\begin{equation}
+s_{\zeta}\equiv\alpha_{\zeta}+\sigma_{\zeta}/i\omega,\quad\zeta=x,y,z
+\end{equation}
+ 
+\begin{equation}
+\exp\left[i\left(\omega t-kx\right)\right]\to\exp\left[i\left(\omega t-\alpha_{x}kx\right)-\frac{k}{\omega}\int^{x}\sigma_{x}\left(x^{\prime}\right)dx^{\prime}\right]
+\end{equation}
+ 
+\begin{equation}
+\tilde{\nabla}\equiv\boldsymbol{e}_{x}s_{x}^{-1}\partial_{x}+\boldsymbol{e}_{y}s_{y}^{-1}\partial_{y}+\boldsymbol{e}_{z}s_{z}^{-1}\partial_{z}\,.
+\end{equation}
+ 
+\begin{equation}
+\tilde{\nabla}\times\tilde{\boldsymbol{A}}=i\omega\tilde{\boldsymbol{X}}_{1}+i\omega\tilde{\boldsymbol{Y}}_{1}+i\omega\tilde{\boldsymbol{Z}}_{1}
+\end{equation}
+\begin{equation}
+\begin{cases}
+i\omega\tilde{\boldsymbol{X}}_{1} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\tilde{\boldsymbol{A}}\\
+i\omega\tilde{\boldsymbol{Y}}_{1} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\tilde{\boldsymbol{A}}\\
+i\omega\tilde{\boldsymbol{Z}}_{1} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\tilde{\boldsymbol{A}}
+\end{cases}\label{eq:PML X1 Freq}
+\end{equation}
+ 
+\begin{equation}
+\tilde{\nabla}\times\tilde{\nabla}\times\tilde{\boldsymbol{A}}=i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}
+\end{equation}
+\begin{equation}
+\begin{cases}
+i\omega\tilde{\boldsymbol{X}}_{2} & =s_{x}^{-1}\boldsymbol{e}_{x}\times\partial_{x}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
+i\omega\tilde{\boldsymbol{Y}}_{2} & =s_{y}^{-1}\boldsymbol{e}_{y}\times\partial_{y}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)\\
+i\omega\tilde{\boldsymbol{Z}}_{2} & =s_{z}^{-1}\boldsymbol{e}_{z}\times\partial_{z}\left(i\omega\tilde{\boldsymbol{X}}_{2}+i\omega\tilde{\boldsymbol{Y}}_{2}+i\omega\tilde{\boldsymbol{Z}}_{2}\right)
+\end{cases}\label{eq:PML X2 freq}
+\end{equation}
+ 
+\begin{equation}
+\begin{cases}
+\alpha_{x}\partial_{t}\boldsymbol{X}_{1}+\sigma_{x}\boldsymbol{X}_{1} & =\boldsymbol{e}_{x}\times\partial_{x}\boldsymbol{A}\\
+\alpha_{y}\partial_{t}\boldsymbol{Y}_{1}+\sigma_{y}\boldsymbol{Y}_{1} & =\boldsymbol{e}_{y}\times\partial_{y}\boldsymbol{A}\\
+\alpha_{z}\partial_{t}\boldsymbol{Z}_{1}+\sigma_{z}\boldsymbol{Z}_{1} & =\boldsymbol{e}_{z}\times\partial_{z}\boldsymbol{A}
+\end{cases}\label{eq:PML X1 time}
+\end{equation}
+\begin{equation}
+\begin{cases}
+\alpha_{x}\partial_{t}\boldsymbol{X}_{2}+\sigma_{x}\boldsymbol{X}_{2} & =\boldsymbol{e}_{x}\times\partial_{x}\left(\partial_{t}\boldsymbol{X}_{1}+\partial_{t}\boldsymbol{Y}_{1}+\partial_{t}\boldsymbol{Z}_{1}\right)\\
+\alpha_{y}\partial_{t}\boldsymbol{Y}_{2}+\sigma_{y}\boldsymbol{Y}_{2} & =\boldsymbol{e}_{y}\times\partial_{y}\left(\partial_{t}\boldsymbol{X}_{1}+\partial_{t}\boldsymbol{Y}_{1}+\partial_{t}\boldsymbol{Z}_{1}\right)\\
+\alpha_{z}\partial_{t}\boldsymbol{Z}_{2}+\sigma_{z}\boldsymbol{Z}_{2} & =\boldsymbol{e}_{z}\times\partial_{z}\left(\partial_{t}\boldsymbol{X}_{1}+\partial_{t}\boldsymbol{Y}_{1}+\partial_{t}\boldsymbol{Z}_{1}\right)
+\end{cases}\label{eq:PML X2 time}
+\end{equation}
+ 
+\begin{eqnarray}
+\frac{1}{c^{2}}\partial_{t}\boldsymbol{E} & = & \nabla\times\nabla\times\boldsymbol{A}-\boldsymbol{j}=\partial_{t}\boldsymbol{X}_{2}+\partial_{t}\boldsymbol{Y}_{2}+\partial_{t}\boldsymbol{Z}_{2}-\boldsymbol{J}\label{eq:PML Maxwell}
+\end{eqnarray}
+
+
+\begin{eqnarray}
+\sigma_{\zeta}\left(\rho\right) & = & \sigma_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n+1}=\frac{\left(n+2\right)\ln\left(R_{0}^{-1}\right)}{2\delta}\left(\frac{\rho}{\delta}\right)^{n+1}\\
+\alpha_{\zeta}\left(\rho\right) & = & 1+\varepsilon_{\zeta}^{max}\left(\frac{\rho}{\delta}\right)^{n},\quad\rho\in\left[0,\delta\right],\:\zeta=x,y,z
+\end{eqnarray}
+
+% \end{document}

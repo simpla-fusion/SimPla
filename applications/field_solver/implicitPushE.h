@@ -19,7 +19,10 @@ namespace simpla
 /**
  *   \ingroup FieldSolver
  *
+ *   \class ImplicitPushE
  *   \brief implicit electric field pusher
+ *   \see \ref FDTD_Plasma
+ *
  */
 template<typename TM>
 class ImplicitPushE
@@ -47,6 +50,14 @@ public:
 	        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
 	        typename mesh_type:: template field<EDGE, scalar_type> *pdE);
 };
+
+/**
+ *
+ * @param E
+ * @param B
+ * @param particles
+ * @param pdE
+ */
 template<typename TM>
 template<typename TP>
 void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
@@ -130,5 +141,7 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 
 }
 // namespace simpla
+
+
 
 #endif /* IMPLICITPUSHE_H_ */

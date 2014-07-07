@@ -18,9 +18,7 @@
 namespace simpla
 {
 
-/**
- *  \defgroup  FieldSolver Field Solver
- */
+
 /**
  *  \ingroup FieldSolver
  *  \brief absorb boundary condition, PML

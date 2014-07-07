@@ -1,0 +1,586 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass report
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Paragraph
+FDTD scheme of electromagnetic field and plasma current.
+\end_layout
+
+\begin_layout Subparagraph
+Update Equaitions
+\end_layout
+
+\begin_layout Subparagraph
+Maxwell's equations
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray}
+\partial_{t}\boldsymbol{E} & = & \frac{1}{c^{2}}\nabla\times\boldsymbol{B}-\frac{1}{\varepsilon_{0}}\sum_{s}\boldsymbol{J}_{s}-\boldsymbol{J}_{ext}\label{eq:Ampere's Law}\\
+\partial_{t}\boldsymbol{B} & = & -\nabla\times\boldsymbol{E}
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subparagraph
+Cold plasma
+\end_layout
+
+\begin_layout Standard
+The update equation of each linear current are
+\begin_inset Formula 
+\begin{eqnarray}
+\partial_{t}\boldsymbol{J}_{s1} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{s0}\boldsymbol{E}_{1}+\boldsymbol{J}_{s1}\times\boldsymbol{B}_{0}\right)\,,
+\end{eqnarray}
+
+\end_inset
+
+where
+\begin_inset Formula $\boldsymbol{B}_{0}$
+\end_inset
+
+and
+\begin_inset Formula $n_{s0}$
+\end_inset
+
+ are background magnetic field and density,
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula $\boldsymbol{E}_{1}$
+\end_inset
+
+ and
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\noun default
+\color inherit
+ 
+\begin_inset Formula $\boldsymbol{J}_{s1}$
+\end_inset
+
+ are linear electrotic field and current density, and
+\begin_inset Formula $\nu$
+\end_inset
+
+ is an artificial damping coefficient.
+ 
+\end_layout
+
+\begin_layout Subparagraph
+Time domain difference scheme
+\end_layout
+
+\begin_layout Standard
+The time difference equation of Ampere's law, Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:Ampere's Law"
+
+\end_inset
+
+, is given by
+\begin_inset Formula 
+\[
+\varepsilon_{0}\frac{E^{1}-E^{0}}{\Delta t}=\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{equation}
+\varepsilon_{0}\frac{E^{+}-E^{-}}{\Delta t}=-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\end{equation}
+
+\end_inset
+
+where
+\begin_inset Formula 
+\begin{eqnarray}
+E^{-} & = & E^{0}+\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)\\
+E^{+} & = & E^{1}-\frac{\Delta t}{2\varepsilon_{0}}\left(\frac{1}{\mu_{0}}\nabla\times B_{1}^{1/2}-J_{ext}^{1/2}\right)
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The linear cold plasma currents
+\begin_inset Formula $\boldsymbol{J}_{s1}$
+\end_inset
+
+ and electric field
+\begin_inset Formula $\boldsymbol{E}_{1}$
+\end_inset
+
+ are put at full time steps, the hot plasma current
+\begin_inset Formula $J_{p}$
+\end_inset
+
+, which are obtained from the kinetic simulation, and linear magnetic field
+ 
+\begin_inset Formula $B_{1}$
+\end_inset
+
+ are put at he half time steps.
+ The time difference equation is given by
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray}
+\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{0s}\frac{E^{1}+E^{0}}{2}+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)\label{eq:discrete Current Equation}
+\end{eqnarray}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{eqnarray*}
+J_{s}^{1}-J_{s}^{0} & = & \underbrace{\frac{\Delta tq_{s}}{2m_{s}}}_{\alpha_{s}}\left(q_{s}n_{0s}\left(E^{+}+E^{-}\right)+\left(J_{s}^{1}+J_{s}^{0}\right)\times\boldsymbol{B}_{0}\right)
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\alpha_{s}\equiv\frac{\Delta tZ_{s}}{2m_{s}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & \underbrace{J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}q_{s}n_{s}E^{-}}_{K_{s}^{0}}+\alpha_{s}q_{s}n_{s}E^{+}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:discrete Current Equation"
+
+\end_inset
+
+ can be wrote as a linear equation of
+\begin_inset Formula $J_{s}^{1}$
+\end_inset
+
+ 
+\begin_inset Formula 
+\begin{equation}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}=K_{s}^{0}+\alpha_{s}q_{s}n_{0s}E^{+}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Note Comment
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\[
+J_{s\parallel}^{1}=K_{\parallel}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B} & = & K\\
+J_{s}^{1}\cdot B & = & K\cdot B\\
+J_{s}^{1}\times\boldsymbol{B}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}\times\boldsymbol{B} & = & K\times\boldsymbol{B}\\
+\alpha J_{s}^{1}\times\boldsymbol{B}-\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}+\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}\\
+J-K=\alpha J_{s}^{1}\times\boldsymbol{B} & = & \alpha K\times\boldsymbol{B}+\alpha^{2}J_{s}^{1}\cdot\boldsymbol{B}\boldsymbol{B}-\alpha^{2}J_{s}^{1}\boldsymbol{B}\cdot\boldsymbol{B}\\
+\left(1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}\right)J_{s}^{1} & = & K+\alpha K\times\boldsymbol{B}+\alpha^{2}K\cdot\boldsymbol{B}\boldsymbol{B}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+where
+\begin_inset Formula 
+\begin{eqnarray*}
+K_{s}^{0} & \equiv & J_{s}^{0}+\alpha_{s}J_{s}^{0}\times\boldsymbol{B}+\alpha_{s}q_{s}n_{s}E^{-}
+\end{eqnarray*}
+
+\end_inset
+
+Solve it we get,
+\begin_inset Formula 
+\begin{eqnarray}
+J_{s}^{1} & = & \overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}Z_{s}n_{s}E^{+}\right)\label{eq:J1}
+\end{eqnarray}
+
+\end_inset
+
+where
+\begin_inset Formula 
+\begin{eqnarray*}
+\overleftrightarrow{M_{s}} & \equiv & \frac{\overleftrightarrow{I}+\alpha\overleftrightarrow{I}\times\boldsymbol{B}+\alpha^{2}\overleftrightarrow{I}\cdot\boldsymbol{B}\boldsymbol{B}}{1+\alpha^{2}\boldsymbol{B}\cdot\boldsymbol{B}}
+\end{eqnarray*}
+
+\end_inset
+
+Substituting Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:J1"
+
+\end_inset
+
+ into Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:discrete Ampere Law"
+
+\end_inset
+
+ yields
+\begin_inset Formula 
+\[
+\varepsilon_{0}\frac{E^{+}-E^{-}}{\Delta t}=-\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+}-E^{-} & = & -\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left[\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{s}E^{+}\right)+J_{s}^{0}\right]\\
+E^{+}+\frac{\Delta t}{2\varepsilon_{0}}\left(\sum_{s}\alpha_{s}q_{s}n_{s}\overleftrightarrow{M_{s}}\right)\cdot E^{+} & = & \underbrace{E^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
+\end{eqnarray*}
+
+\end_inset
+
+where 
+\begin_inset Formula 
+\[
+aE^{+}+bE^{+}\times B+cE^{+}\cdot BB=Q
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+a & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}}{\alpha_{s}^{2}B\cdot B+1}+1\\
+b & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{2}}{\alpha_{s}^{2}B\cdot B+1}\\
+c & \equiv & \frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\frac{q_{s}n_{s}\alpha_{s}^{3}}{\alpha_{s}^{2}B\cdot B+1}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Note Comment
+status collapsed
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\[
+\alpha_{s}\equiv\frac{\Delta tZ_{s}}{2m_{s}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E_{\parallel}^{+} & = & E_{\parallel}^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}\left(E^{+}+E^{-}\right)_{\parallel}+2J_{s\parallel}^{0}\right)\\
+ & = & E_{\parallel}^{-}-\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}E_{\parallel}^{-}+2J_{s\parallel}^{0}\right)\\
+ &  & -\frac{\Delta t}{2\varepsilon_{0}}\sum\left(\alpha_{s}Z_{s}n_{0s}\right)E_{\parallel}^{+}\\
+ & = & \frac{\left(1-a\right)}{1+a}E_{\parallel}^{-}-\frac{\Delta t}{\varepsilon_{0}\left(1+a\right)}\sum J_{s\parallel}^{0}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+}\cdot B\left(a+cB^{2}\right) & = & Q\cdot B\\
+aE^{+}\times B+bE^{+}\cdot BB-bE^{+}B^{2} & = & Q\times B
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+}\cdot B & = & \frac{Q\cdot B}{a+cB^{2}}\\
+E^{+}\times B & = & \frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b}{a}E^{+}B^{2}\\
+aE^{+}+b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)+\frac{b^{2}}{a}E^{+}B^{2}+c\frac{Q\cdot B}{a+cB^{2}}B & = & Q\\
+\left(a+\frac{b^{2}}{a}B^{2}\right)E^{+} & = & Q-b\frac{1}{a}\left(Q\times B-b\frac{Q\cdot B}{a+cB^{2}}B\right)-c\frac{Q\cdot B}{a+cB^{2}}B\\
+\left(a^{a}+b^{2}B^{2}\right)E^{+} & = & aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+} & = & \left(aQ-bQ\times B+\frac{b^{2}-ca}{a+cB^{2}}Q\cdot BB\right)/\left(a^{2}+b^{2}B^{2}\right)
+\end{eqnarray*}
+
+\end_inset
+
+Then,
+\begin_inset Formula $E_{1}^{1}$
+\end_inset
+
+is solved from Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:E1-1"
+
+\end_inset
+
+ asSubstituting Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:E1"
+
+\end_inset
+
+ back to Eq.
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:E1"
+
+\end_inset
+
+, we get
+\begin_inset Formula $J_{s1}^{1}$
+\end_inset
+
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status collapsed
+
+\begin_layout Section
+Double Cross Product Version
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Formula 
+\[
+\alpha_{s}\equiv\frac{2m_{s}}{\Delta tZ_{s}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\overleftrightarrow{M_{s}} & \equiv & \frac{K}{\alpha_{s}}+\frac{K\times B}{BB+\alpha_{s}^{2}}+\frac{K\times B\times B}{\alpha_{s}\left(BB+\alpha_{s}^{2}\right)}\\
+ & = & \frac{\left(BB+\alpha_{s}^{2}\right)K+\alpha_{s}\left(K\times B\right)+K\times B\times B}{\alpha_{s}\left(BB+\alpha_{s}^{2}\right)}\\
+ & = & \frac{\alpha_{s}^{2}K+\alpha_{s}\left(K\times B\right)+K\cdot BB}{\alpha_{s}\left(BB+\alpha_{s}^{2}\right)}
+\end{eqnarray*}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+E^{+} & = & \frac{Q}{a}\\
+ &  & -Q\times B\frac{b}{\left(cBB-a\right)^{2}+b^{2}BB}\\
+ &  & -Q\times B\times B\frac{\left(-c^{2}BB+ca-bb\right)}{a\left(\left(cBB-a\right)^{2}+b^{2}BB\right)}\\
+ & = & \frac{Q\left(-c^{2}BB+ca-bb\right)-Q\times Bab-Q\times B\times B\left(-c^{2}BB+ca-bb\right)}{a\left(\left(cBB-a\right)^{2}+b^{2}BB\right)}\\
+ & = & \frac{Q\left(a^{2}-acBB\right)-Q\times Bab-Q\cdot BB\left(-c^{2}BB+ca-bb\right)}{a\left(\left(cBB-a\right)^{2}+b^{2}BB\right)}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subparagraph
+Second Version
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+\frac{\Delta E}{\Delta t}=\frac{1}{\varepsilon_{0}\mu_{0}}\nabla\times B_{1}^{1/2}-\frac{1}{\varepsilon_{0}}J_{ext}^{1/2}-\frac{1}{\varepsilon_{0}}\sum_{s}\frac{J_{s}^{1}+J_{s}^{0}}{2}
+\end{equation}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\Delta E=\underbrace{\Delta t\left(\frac{1}{\varepsilon_{0}\mu_{0}}\nabla\times B_{1}^{1/2}-\frac{1}{\varepsilon_{0}}J_{ext}^{1/2}\right)}_{\Delta\tilde{E}}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(J_{s}^{1}+J_{s}^{0}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+\frac{J_{s}^{1}-J_{s}^{0}}{\Delta t} & = & \frac{q_{s}}{m_{s}}\left(q_{s}n_{0s}\left(\frac{\Delta E}{2}+E^{0}\right)+\frac{J_{s}^{1}+J_{s}^{0}}{2}\times\boldsymbol{B}_{0}\right)
+\end{eqnarray}
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray}
+J_{s}^{1} & = & J_{s}^{0}+\underbrace{\frac{\Delta tq_{s}}{2m_{s}}}_{\alpha_{s}}\left[q_{s}n_{0s}\left(\Delta E+2E^{0}\right)+\left(J_{s}^{1}+J_{s}^{0}\right)\times\boldsymbol{B}_{0}\right]
+\end{eqnarray}
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+J_{s}^{1}-\alpha_{s}J_{s}^{1}\times\boldsymbol{B}_{0}=\underbrace{J_{s}^{0}+\alpha_{s}\left(2q_{s}n_{0s}E^{0}+J_{s}^{0}\times\boldsymbol{B}_{0}\right)}_{K_{s}}+\alpha_{s}q_{s}n_{0s}\Delta E
+\]
+
+\end_inset
+
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula 
+\[
+J_{s}^{1}=\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{0s}\Delta E\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\overleftrightarrow{M_{s}}\equiv\frac{\overleftrightarrow{I}+\alpha_{s}\overleftrightarrow{I}\times\boldsymbol{B}+\alpha_{s}^{2}\overleftrightarrow{I}\cdot\boldsymbol{B}\boldsymbol{B}}{1+\alpha_{s}^{2}\boldsymbol{B}\cdot\boldsymbol{B}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\begin{eqnarray*}
+\Delta E & = & \Delta\tilde{E}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot\left(K_{s}^{0}+\alpha_{s}q_{s}n_{0s}\Delta E\right)+J_{s}^{0}\right)\\
+\Delta E+\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\alpha_{s}q_{s}n_{0s}\overleftrightarrow{M_{s}}\right)\cdot\left(\Delta E\right) & = & \underbrace{\Delta\tilde{E}-\frac{\Delta t}{2\varepsilon_{0}}\sum_{s}\left(\overleftrightarrow{M_{s}}\cdot K_{s}^{0}+J_{s}^{0}\right)}_{Q}
+\end{eqnarray*}
+
+\end_inset
+
+
+\end_layout
+
+\end_body
+\end_document
