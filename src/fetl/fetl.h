@@ -9,8 +9,6 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-
-
 #include "../utilities/primitives.h"
 #include "../utilities/ntuple.h"
 #include "../utilities/sp_complex.h"
@@ -21,6 +19,12 @@
 #include "field_constant.h"
 #include "cache.h"
 
+/**
+ * \defgroup  FETL Field expression template library
+ *
+ *  \brief Field expression template library
+ *
+ */
 //namespace simpla
 //{
 //#define DEFINE_FIELDS(TM)                                                                              \

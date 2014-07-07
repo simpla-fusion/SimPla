@@ -45,35 +45,35 @@ public:
 
 private:
 	std::string desc;
-//	size_t nw; // Number of horizontal R grid  points
-//	size_t nh; // Number of vertical Z grid points
-	Real rdim; // Horizontal dimension in meter of computational box
-	Real zdim; // Vertical dimension in meter of computational box
-	Real rleft; // Minimum R in meter of rectangular computational box
-	Real zmid; // Z of center of computational box in meter
-	Real rmaxis = 1.0; // R of magnetic axis in meter
-	Real zmaxis = 1.0; // Z of magnetic axis in meter
-//	Real simag; // Poloidal flux at magnetic axis in Weber / rad
-//	Real sibry; // Poloidal flux at the plasma boundary in Weber / rad
-	Real rcenter = 0.5; // R in meter of  vacuum toroidal magnetic field BCENTR
-	Real bcenter = 0.5; // Vacuum toroidal magnetic field in Tesla at RCENTR
-	Real current = 1.0; // Plasma current in Ampere
+//	size_t nw;//!< Number of horizontal R grid  points
+//	size_t nh;//!< Number of vertical Z grid points
+	Real rdim; //!< Horizontal dimension in meter of computational box
+	Real zdim; //!< Vertical dimension in meter of computational box
+	Real rleft; //!< Minimum R in meter of rectangular computational box
+	Real zmid; //!< Z of center of computational box in meter
+	Real rmaxis = 1.0; //!< R of magnetic axis in meter
+	Real zmaxis = 1.0; //!< Z of magnetic axis in meter
+//	Real simag;//!< Poloidal flux at magnetic axis in Weber / rad
+//	Real sibry;//!< Poloidal flux at the plasma boundary in Weber / rad
+	Real rcenter = 0.5; //!< R in meter of  vacuum toroidal magnetic field BCENTR
+	Real bcenter = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
+	Real current = 1.0; //!< Plasma current in Ampere
 
 	nTuple<NDIMS, size_t> dims_;
 	nTuple<NDIMS, Real> rzmin_;
 	nTuple<NDIMS, Real> rzmax_;
 
-//	inter_type fpol_; // Poloidal current function in m-T $F=RB_T$ on flux grid
-//	inter_type pres_; // Plasma pressure in $nt/m^2$ on uniform flux grid
-//	inter_type ffprim_; // $FF^\prime(\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
-//	inter_type pprim_; // $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
+//	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
+//	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
+//	inter_type ffprim_;//!< $FF^\prime(\psi)$ in $(mT)^2/(Weber/rad)$ on uniform flux grid
+//	inter_type pprim_;//!< $P^\prime(\psi)$ in $(nt/m^2)/(Weber/rad)$ on uniform flux grid
 
-	inter2d_type psirz_; // Poloidal flux in Webber/rad on the rectangular grid points
+	inter2d_type psirz_; //!< Poloidal flux in Webber/rad on the rectangular grid points
 
-//	inter_type qpsi_; // q values on uniform flux grid from axis to boundary
+//	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-	std::vector<nTuple<NDIMS, Real> > rzbbb_; // R,Z of boundary points in meter
-	std::vector<nTuple<NDIMS, Real> > rzlim_; // R,Z of surrounding limiter contour in meter
+	std::vector<nTuple<NDIMS, Real> > rzbbb_; //!< R,Z of boundary points in meter
+	std::vector<nTuple<NDIMS, Real> > rzlim_; //!< R,Z of surrounding limiter contour in meter
 
 	std::map<std::string, inter_type> profile_;
 

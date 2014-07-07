@@ -38,10 +38,6 @@
 namespace simpla
 {
 /**
- * \page Logging The Logging System
- *
- *  SimPla Log system
- *
  * \defgroup Logging Diagnostic logging features
  */
 enum

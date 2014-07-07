@@ -6,7 +6,8 @@ SimPla is a unified and hierarchical development framework for plasma simulation
 The principle design ideas are explained in this section, and listed as:
 * Idea(1) Ideas are expressed like this.
 
-## Design ideas
+# TEst
+# Design ideas
  
 * Idea(2) SimPla is a unified framework.
 
@@ -25,7 +26,7 @@ reviewed and verified;
 This decision is reasonable, but the cost for recoding all physical models will be very expensive. We
 need reduce the development cost for the implement of physical model.
 
-* Idea(3) SimPla is a hierarchical framework.
+### Idea(3) SimPla is a hierarchical framework.
 
  “Hierarchical” means physical model, numerical algorithm and computing implement shall be decoupled.
 The relationship between physical models and numerical algorithms is not 1:1. One physical equation

@@ -25,7 +25,10 @@ namespace simpla
 
 /**
  *   \defgroup  Mesh Mesh
- *   \brief define all basic discrete scheme, i.e. finite difference , finite volume, finite element
+ *
+ *     define all basic discrete scheme, i.e. finite difference , finite volume, finite element
+ *
+ *
  *   @{
  *      \defgroup  Geometry Geometry
  *        \brief coordinates and metric dependent information

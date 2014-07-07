@@ -682,7 +682,7 @@ public:
 	 *  This pre-allocation is useful for performance when you know in advance how
 	 *   many elements the table will have.
 	 *
-	 *  \cite Lua.org:createtable
+	 *  \note Lua.org:createtable
 	 */
 	inline LuaObject NewTable(std::string const & name, unsigned int narr = 0, unsigned int nrec = 0)
 	{

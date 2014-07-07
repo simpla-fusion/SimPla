@@ -2,7 +2,7 @@
  * \file simpla_defs.h
  *
  *    \date 2011-12-24
- *    \author: salmon
+ *    \author  salmon
  */
 
 #ifndef SIMPLA_DEFS_H_

@@ -265,7 +265,7 @@ void Particle<Engine>::Scatter(TJ *pJ, Others &&... args) const
 template<typename TX, typename TV, typename TE, typename TB> inline
 void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
 {
-// \cite   Birdsall(1991)   p.62
+// \note   Birdsall(1991)   p.62
 // Bories Method
 
 	Vec3 v_;

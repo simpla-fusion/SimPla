@@ -150,7 +150,7 @@ DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
  *    inductively using the construction of an ordered pair. Tuples are usually
  *    written by listing the elements within parenthesis '( )' and separated by
  *    commas; for example, (2, 7, 4, 1, 7) denotes a 5-tuple.
- *    \cite  http://en.wikipedia.org/wiki/Tuple
+ *    \note  http://en.wikipedia.org/wiki/Tuple
  *   Implement
  *   template< unsigned int     n,typename T> struct nTuple;
  *   nTuple<5,double> t={1,2,3,4,5};

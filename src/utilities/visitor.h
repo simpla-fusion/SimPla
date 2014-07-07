@@ -180,7 +180,7 @@ private:
 //
 //private:
 //// Unpack tuple to args...
-////\cite  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
+////\note  http://stackoverflow.com/questions/7858817/unpacking-a-tuple-to-call-a-matching-function-pointer
 //
 //	template<int...>
 //	struct Seq

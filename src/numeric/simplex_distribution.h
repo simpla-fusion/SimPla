@@ -16,7 +16,7 @@ namespace simpla
 
 /**
  * \brief Sampling Uniformly from the Unit Simplex
- * @cite  http://www.cs.cmu.edu/~nasmith/papers/smith+tromble.tr04.pdf
+ * \note  http://www.cs.cmu.edu/~nasmith/papers/smith+tromble.tr04.pdf
  *
  * */
 template<unsigned int NDIM>

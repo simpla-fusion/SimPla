@@ -20,7 +20,7 @@ class _iterator_policy_filter
 /**
  *  \ingroup iterator
  *
- *  \cite  boost::filter_iterator
+ *  \note  boost::filter_iterator
  *
  */
 template<typename TIterator, typename TPred>

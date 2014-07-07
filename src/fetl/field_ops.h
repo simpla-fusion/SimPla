@@ -21,17 +21,9 @@ namespace simpla
 
 template<unsigned int, typename > class nTuple;
 
-/**
- *  \defgroup  FETL Field expression template library
- *  @{
- *  	\defgroup  BasicAlgebra Basic algebra
- *  	\defgroup  ExteriorAlgebra Exterior algebra
- *  	\defgroup  VectorAlgebra Vector algebra
- *  	\defgroup  NonstandardOperations Non-standard operations
- *
- */
 
-//! \ingroup   BasicAlgebra
+//! \ingroup FETL
+//! \defgroup   BasicAlgebra Basic algebra
 //! @{
 template<typename TM, unsigned int IL, typename TL, typename TR> inline auto operator==(Field<TM, IL, TL> const & lhs,
         Field<TM, IL, TR> const & rhs)
@@ -214,7 +206,9 @@ DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)
 ;
 //! @}
 
-//! \ingroup  ExteriorAlgebra
+
+//! \ingroup FETL
+//! \defgroup  ExteriorAlgebra Exterior algebra
 //! @{
 
 template<typename TM, unsigned int IL, typename TL>
@@ -301,7 +295,8 @@ DECL_RET_TYPE( (Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Field<TM,IL , TL> ,Int2Typ
 
 //!  @}
 
-//!  \ingroup  VectorAlgebra
+//!  \ingroup  FETL
+//!  \defgroup  VectorAlgebra Vector algebra
 //!  @{
 template<typename TG, unsigned int IL, typename TL, typename TR> inline auto InnerProduct(Field<TG, IL, TL> const & lhs,
         Field<TG, IL, TR> const & rhs)
@@ -373,7 +368,8 @@ DECL_RET_TYPE(Negate(Codifferential(f)))
 
 //!   @}
 
-//!  \ingroup  NonstandardOperations
+//!  \ingroup  FETL
+//!  \defgroup  NonstandardOperations Non-standard operations
 //!   @{
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, EDGE, TR> const & f)
@@ -448,7 +444,7 @@ auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
 
 }
 
-/**
+/**  \ingroup  FETL
  *  \brief Bi-operation field expression
  */
 template<typename TM, unsigned int IFORM, unsigned int TOP, typename TL, typename TR>
@@ -468,8 +464,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r) :
-			mesh(get_mesh(l, r)), l_(l), r_(r)
+	Field(TL const & l, TR const & r)
+			: mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 
@@ -504,7 +500,7 @@ private:
 }
 ;
 
-/**
+/**  \ingroup  FETL
  *   \brief  Uni-operation field expression
  */
 template<typename TM, unsigned int IFORM, unsigned int TOP, typename TL>
@@ -525,8 +521,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l) :
-			mesh(l.mesh), l_(l)
+	Field(TL const & l)
+			: mesh(l.mesh), l_(l)
 	{
 	}
 	template<typename TI>
