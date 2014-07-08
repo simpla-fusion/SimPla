@@ -69,19 +69,19 @@ void Context::Load(LuaObject const & dict)
 		{
 			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, false> >>(this, dict);
 		}
-		else if (mesh_str == "RectMeshKz")
-		{
-			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, true> >>(this, dict);
-		}
-		else if (mesh_str == "CylindricalRectMesh")
-		{
-			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, false> >>(this, dict);
-
-		}
-		else if (mesh_str == "CylindricalRectMeshKz")
-		{
-			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, true> >>(this, dict);
-		}
+//		else if (mesh_str == "RectMeshKz")
+//		{
+//			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, true> >>(this, dict);
+//		}
+//		else if (mesh_str == "CylindricalRectMesh")
+//		{
+//			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, false> >>(this, dict);
+//
+//		}
+//		else if (mesh_str == "CylindricalRectMeshKz")
+//		{
+//			CreateContext<ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>, true> >>(this, dict);
+//		}
 		else
 		{
 			LOGGER << "Unknown Grid type: " << mesh_str;

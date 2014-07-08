@@ -85,13 +85,13 @@ InitValue = {
 Model=
 {
 
-	Type = "CylindricalRectMesh",
+	Type = "RectMesh",
 
 	UnitSystem={Type="SI"},
 
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
-	Grid={
+	Mesh={
 
 
 		Min={1.2,-1.4,0.0},

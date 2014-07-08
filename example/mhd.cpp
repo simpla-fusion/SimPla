@@ -22,6 +22,7 @@
 #include "../src/model/geqdsk.h"
 
 #include "../src/fetl/fetl.h"
+#include "../src/fetl/field_ops.h"
 #include "../src/fetl/save_field.h"
 
 using namespace simpla;
@@ -51,8 +52,6 @@ int main(int argc, char **argv)
 	GEqdsk geqdsk;
 
 	model_type model;
-
-	auto & mesh = model.mesh;
 
 	nTuple<NDIMS, size_t> dims = { 256, 256, 1 };
 
@@ -152,9 +151,9 @@ int main(int argc, char **argv)
 
 	if (gfile != "")
 	{
-		mesh.set_dimensions(dims);
+		model.set_dimensions(dims);
 
-		mesh.set_dt(dt);
+		model.set_dt(dt);
 
 		geqdsk.Load(gfile);
 
@@ -166,7 +165,7 @@ int main(int argc, char **argv)
 		typename mesh_type::coordinates_type min;
 		typename mesh_type::coordinates_type max;
 
-		std::tie(min, max) = mesh.get_extents();
+		std::tie(min, max) = model.get_extents();
 
 		min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
 		max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
@@ -174,7 +173,7 @@ int main(int argc, char **argv)
 		min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
 		max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
 
-		mesh.set_extents(min, max);
+		model.set_extents(min, max);
 
 		geqdsk.SetUpMaterial(&model, toridal_model_number);
 
@@ -187,41 +186,41 @@ int main(int argc, char **argv)
 		TheEnd(-1);
 	}
 
-	mesh.Update();
+	model.Update();
 
 	INFORM << "Configuration: \n" << model;
 
-	auto E = mesh.template make_field<EDGE, scalar_type>();
+	auto E = model.template make_field<EDGE, scalar_type>();
 	E.clear();
 
-	auto B = mesh.template make_field<EDGE, scalar_type>();
+	auto B = model.template make_field<EDGE, scalar_type>();
 	B.clear();
 
-	auto dE = mesh.template make_field<EDGE, scalar_type>();
+	auto dE = model.template make_field<EDGE, scalar_type>();
 	dE.clear();
 
-	auto dB = mesh.template make_field<EDGE, scalar_type>();
+	auto dB = model.template make_field<EDGE, scalar_type>();
 	dB.clear();
 
-	auto J0 = mesh.template make_field<EDGE, scalar_type>();
+	auto J0 = model.template make_field<EDGE, scalar_type>();
 	J0.clear();
 
-	auto Jext = mesh.template make_field<EDGE, scalar_type>();
+	auto Jext = model.template make_field<EDGE, scalar_type>();
 	Jext.clear();
 
-	auto u = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto u = model.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	u.clear();
 
-	auto T = mesh.template make_field<VERTEX, scalar_type>();
+	auto T = model.template make_field<VERTEX, scalar_type>();
 	T.clear();
 
-	auto n = mesh.template make_field<VERTEX, scalar_type>();
+	auto n = model.template make_field<VERTEX, scalar_type>();
 	n.clear();
 
-	auto J = mesh.template make_field<EDGE, scalar_type>();
+	auto J = model.template make_field<EDGE, scalar_type>();
 	J.clear();
 
-	auto p = mesh.template make_field<VERTEX, scalar_type>();
+	auto p = model.template make_field<VERTEX, scalar_type>();
 	p.clear();
 
 	auto limiter_face = model.SelectInterface(FACE, model_type::VACUUM, model_type::NONE);
@@ -280,13 +279,13 @@ int main(int argc, char **argv)
 
 			LOG_CMD(B += dB * 0.5);//	B(t=1/2 -> 1)
 
-			mesh.NextTimeStep();
+			model.NextTimeStep();
 
 			DEFINE_PHYSICAL_CONST
 
-			INFORM << "[" <<mesh. get_clock() << "]"
+			INFORM << "[" <<model. get_clock() << "]"
 
-			<< "Simulation Time = " << (mesh.get_time() / CONSTANTS["s"]) << "[s]";
+			<< "Simulation Time = " << (model.get_time() / CONSTANTS["s"]) << "[s]";
 
 			// todo Next time step
 

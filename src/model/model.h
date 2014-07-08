@@ -39,7 +39,7 @@ namespace simpla
  *  \brief Model
  */
 template<typename TM>
-class Model
+class Model: public TM
 {
 private:
 	bool is_ready_ = false;
@@ -67,10 +67,8 @@ public:
 		CUSTOM = 20
 	};
 
-	mesh_type mesh;
-
-	Model()
-			: null_material(), max_material_(CUSTOM + 1), mesh()
+	Model() :
+			mesh_type(), null_material(), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -92,14 +90,14 @@ public:
 
 	bool is_ready() const
 	{
-		return is_ready_ && mesh.is_ready();
+		return is_ready_ && mesh_type::is_ready();
 	}
 
 	void Update()
 	{
-		mesh.Update();
+		mesh_type::Update();
 
-		is_ready_ = mesh.is_ready();
+		is_ready_ = mesh_type::is_ready();
 	}
 
 	operator bool() const
@@ -151,7 +149,8 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -183,7 +182,7 @@ public:
 	template<typename OS>
 	OS & Print(OS &os) const
 	{
-		return mesh.Print(os);
+		return mesh_type::Print(os);
 	}
 
 	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
@@ -229,8 +228,7 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material)
-				material_.erase(s);
+			if (material_[s] == null_material) material_.erase(s);
 		}
 	}
 
@@ -281,34 +279,34 @@ public:
 	filter_range_type<TR> SelectByPoints(TR const& range, std::vector<coordinates_type>const & points) const;
 
 	auto Select(unsigned int iform) const
-	DECL_RET_TYPE( (mesh.Select(iform)))
+	DECL_RET_TYPE( (mesh_type::Select(iform)))
 
 	template<typename ...Args>
 	auto SelectInterface(int iform, Args &&...args) const
-	DECL_RET_TYPE((SelectInterface(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE((SelectInterface(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByConfig(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByConfig(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (SelectByConfig(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByMaterial(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPoints(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByRectangle(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByRectangle(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByRectangle(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPolylines(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPolylines(std::move(mesh.Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByPolylines(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	auto SelectByFunction(int iform, std::function<bool(coordinates_type)> fun) const
-	DECL_RET_TYPE( (SelectByFunction(std::move(mesh.Select(iform)), fun)))
+	DECL_RET_TYPE( (SelectByFunction(std::move(mesh_type::Select(iform)), fun)))
 
 	template<typename TR, typename T1, typename T2>
 	filter_range_type<TR> SelectOnSurface(TR const& range, T1 in, T2 out) const;
@@ -368,7 +366,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	{
 		pred_fun_type pred = [=]( compact_index_type const & s )->bool
 		{
-			return (dict( this->mesh.get_coordinates( s)).template as<bool>());
+			return (dict( this->mesh_type::get_coordinates( s)).template as<bool>());
 		};
 
 		return std::move(make_range_filter(range, std::move(pred)));
@@ -399,7 +397,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(T
 {
 	pred_fun_type pred = [fun,this]( compact_index_type const & s )->bool
 	{
-		return fun( this->mesh.get_coordinates( s));
+		return fun( this->mesh_type::get_coordinates( s));
 	};
 
 	return std::move(make_range_filter(range, std::move(pred)));
@@ -473,8 +471,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out)
-		out = null_material;
+	if (in == out) out = null_material;
 
 	pred_fun_type pred =
 
@@ -483,7 +480,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 
 		material_type res;
 
-		auto iform = this->mesh.IForm(s);
+		auto iform = this->mesh_type::IForm(s);
 
 		auto self=this->get(s);
 
@@ -494,16 +491,16 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 			int num=0;
 			switch(iform)
 			{	case VERTEX:
-				num= this->mesh.GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case EDGE:
-				num= this->mesh.GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case FACE:
-				num= this->mesh.GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 				case VOLUME:
-				num= this->mesh.GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), s, neighbours);
 				break;
 			}
 
@@ -525,7 +522,7 @@ typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 
 	material_type res;
 
-	if (this->mesh.IForm(s) == VERTEX)
+	if (this->mesh_type::IForm(s) == VERTEX)
 	{
 		auto it = material_.find(s);
 		if (it != material_.end())
@@ -537,7 +534,7 @@ typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 	{
 		compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-		int num = this->mesh.GetVertices(s, neighbours);
+		int num = this->mesh_type::GetVertices(s, neighbours);
 
 		for (int i = 0; i < num; ++i)
 		{
@@ -568,7 +565,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(
 	        [v0,v1,this]( compact_index_type const & s )->bool
 	        {
 
-		        auto x = this->mesh.get_coordinates(s);
+		        auto x = this->mesh_type::get_coordinates(s);
 		        return ((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
 				        && (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0));
 	        };
@@ -580,7 +577,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(
         PointInPolygon checkPointsInPolygen) const
 {
 	pred_fun_type pred = [=](compact_index_type s )->bool
-	{	return (checkPointsInPolygen(this->mesh.get_coordinates(s) ));};
+	{	return (checkPointsInPolygen(this->mesh_type::get_coordinates(s) ));};
 
 	return std::move(make_range_filter(range, std::move(pred)));
 

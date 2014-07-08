@@ -33,7 +33,7 @@ std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN con
 	typedef typename TP::mesh_type mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	std::shared_ptr<TP> p(new TP(dict, model.mesh));
+	std::shared_ptr<TP> p(new TP(dict, model));
 
 	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
 
@@ -74,7 +74,7 @@ std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN con
 		ns = dict["Density"].template as<std::function<Real(coordinates_type const&)>>();
 	}
 
-	  unsigned int   pic = dict["PIC"].template as<size_t>(100);
+	unsigned int pic = dict["PIC"].template as<size_t>(100);
 
 	InitParticle(p.get(), range, pic, ns, Ts);
 
@@ -130,7 +130,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static constexpr  unsigned int  NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
 	mesh_type const &mesh = p->mesh;
 

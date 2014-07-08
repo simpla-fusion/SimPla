@@ -58,8 +58,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args && ...args) :
+			ExplicitEMContext()
 	{
 		Load(std::forward<Args >(args)...);
 	}
@@ -79,9 +79,7 @@ public:
 
 	std::string description;
 
-	Model<mesh_type> model_;
-
-	mesh_type & mesh;
+	Model<mesh_type> model;
 
 	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
@@ -131,9 +129,9 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: mesh(model_.mesh), E(mesh), B(mesh), Jext(mesh), J0(mesh), dE(mesh), dB(mesh), n(mesh), n0(mesh), //
-		phi(mesh), Bv(mesh)
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
+		phi(model), Bv(model)
 {
 }
 
@@ -152,11 +150,11 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << description;
 
-	field<VERTEX, Real> ne0(mesh);
-	field<VERTEX, Real> Te0(mesh);
-	field<VERTEX, Real> Ti0(mesh);
+	field<VERTEX, Real> ne0(model);
+	field<VERTEX, Real> Te0(model);
+	field<VERTEX, Real> Ti0(model);
 
-	model_.mesh.Load(dict["Model"]["Grid"]);
+	model.Load(dict["Model"]);
 
 	if (dict["Model"]["GFile"])
 	{
@@ -172,7 +170,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		typename mesh_type::coordinates_type min;
 		typename mesh_type::coordinates_type max;
 
-		std::tie(min, max) = model_.mesh.get_extents();
+		std::tie(min, max) = model.get_extents();
 
 		min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
 		max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
@@ -180,13 +178,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
 		max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
 
-		model_.mesh.set_extents(min, max);
+		model.set_extents(min, max);
 
-		geqdsk.SetUpMaterial(&model_);
+		geqdsk.SetUpMaterial(&model);
 
 		geqdsk.Save("/Geqdsk");
 
-		model_.Update();
+		model.Update();
 
 		E.clear();
 		B.clear();
@@ -209,7 +207,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	}
 	else
 	{
-		model_.Update();
+		model.Update();
 
 		B.clear();
 
@@ -257,7 +255,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		try
 		{
-			auto p = particle_factory.Create(type_str, opt.second, model_, ne0, Te0);
+			auto p = particle_factory.Create(type_str, opt.second, model, ne0, Te0);
 
 			if (p != nullptr)
 			{
@@ -266,7 +264,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			}
 
-		} catch (...)
+		}
+		catch (...)
 		{
 
 			PARSER_ERROR("Particles={" + id + " = { Type = " + type_str + "}}" + "  ");
@@ -295,25 +294,26 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(E.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
+				commandToE_.push_back(E.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
-				commandToB_.push_back(B.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
+				commandToB_.push_back(B.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        Jext.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
+				        Jext.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else
 			{
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		} catch (std::runtime_error const & e)
+		}
+		catch (std::runtime_error const & e)
 		{
 
 			PARSER_ERROR("Load 'Constraints' error! ");
@@ -332,7 +332,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		if (dict["FieldSolver"]["PML"])
 		{
-			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(mesh, dict["FieldSolver"]["PML"]));
+			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(model, dict["FieldSolver"]["PML"]));
 
 			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
 
@@ -354,7 +354,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			};
 		}
 
-	} catch (std::runtime_error const & e)
+	}
+	catch (std::runtime_error const & e)
 	{
 		PARSER_ERROR("Configure field solver error! ");
 	}
@@ -365,7 +366,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	if (enableImplicit)
 	{
 
-		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(mesh));
+		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(model));
 		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
 		{	solver->NextTimeStep( pE,pB,p,dE);};
 	}
@@ -383,7 +384,7 @@ std::string ExplicitEMContext<TM>::Save(std::string const & path, bool is_verbos
 
 	<< description
 
-	<< "\n, Grid = { \n" << mesh.Save(path ) << " \n} "
+	<< "\n, Grid = { \n" << model.Save(path ) << " \n} "
 	;
 
 	os
@@ -421,11 +422,11 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	INFORM
 
-	<< "[" << mesh.get_clock() << "]"
+	<< "[" << model.get_clock() << "]"
 
-	<< "Simulation Time = " << (mesh.get_time() / CONSTANTS["s"]) << "[s]";
+	<< "Simulation Time = " << (model.get_time() / CONSTANTS["s"]) << "[s]";
 
-	Real dt = mesh.get_dt();
+	Real dt = model.get_dt();
 
 	//***********************************************************
 	// Compute Cycle Begin
@@ -467,7 +468,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
-	mesh.NextTimeStep();
+	model.NextTimeStep();
 
 //***********************************************************
 // Compute Cycle End

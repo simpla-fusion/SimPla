@@ -21,7 +21,6 @@ namespace simpla
 
 template<unsigned int, typename > class nTuple;
 
-
 //! \ingroup FETL
 //! \defgroup   BasicAlgebra Basic algebra
 //! @{
@@ -205,7 +204,6 @@ template<typename TM, unsigned int IL, typename TL> inline auto operator/(Field<
 DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
 ;
 //! @}
-
 
 //! \ingroup FETL
 //! \defgroup  ExteriorAlgebra Exterior algebra
@@ -464,8 +462,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
-			: mesh(get_mesh(l, r)), l_(l), r_(r)
+	Field(TL const & l, TR const & r) :
+			mesh(get_mesh(l, r)), l_(l), r_(r)
 	{
 	}
 
@@ -521,8 +519,8 @@ public:
 
 	mesh_type const & mesh;
 
-	Field(TL const & l)
-			: mesh(l.mesh), l_(l)
+	Field(TL const & l) :
+			mesh(l.mesh), l_(l)
 	{
 	}
 	template<typename TI>

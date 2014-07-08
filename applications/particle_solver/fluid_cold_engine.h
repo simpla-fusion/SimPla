@@ -67,7 +67,7 @@ public:
 	template<typename TDict, typename TModel, typename ...Args>
 	static std::shared_ptr<this_type> Create(TDict dict, TModel const & model, Args && ... args)
 	{
-		std::shared_ptr<this_type> res(new this_type(dict, model.mesh));
+		std::shared_ptr<this_type> res(new this_type(dict, model));
 
 		try
 		{
