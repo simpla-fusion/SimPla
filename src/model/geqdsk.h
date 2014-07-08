@@ -104,6 +104,10 @@ public:
 
 	void LoadProfile(std::string const &fname);
 
+	inline Real Profile(std::string const & name, coordinates_type const & x) const
+	{
+		return Profile(name, psi(x[RAxis], x[ZAxis]));
+	}
 	inline Real Profile(std::string const & name, Real R, Real Z) const
 	{
 		return Profile(name, psi(R, Z));
@@ -191,6 +195,7 @@ public:
 	void GetProfile(std::string const & name, TF* f) const
 	{
 		GetProfile_(std::integral_constant<bool, is_nTuple<typename TF::field_value_type>::value>(), name, f);
+		UpdateGhosts(f);
 	}
 
 	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;
@@ -273,87 +278,51 @@ void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number, unsign
 template<typename TF>
 void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const
 {
-	typedef typename TF::mesh_type mesh_type;
-
-	static constexpr unsigned int IForm = TF::IForm;
-
-	static_assert ( std::is_same<typename mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
-
 	if (name == "B")
 	{
-		for (auto s : f->get_range())
-		{
-			get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-			        B(f->mesh.get_coordinates(s)));
-		}
-	}
-	else
-	{
-		WARNING << "Geqdsk:  Object '" << name << "'[vector]  does not exist!";
-	}
 
-//	else
-//	{
-//
-//		if (name == "B")
-//		{
-//
-//			for (auto s : f->get_range())
-//			{
-//				coordinates_type r = MapTo(f->mesh.InvMapTo(f->mesh.get_coordinates(s)));
-//
-//				get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-//				        std::get<1>(f->mesh.PushForward(PullBack(std::make_tuple(r, B(r))))));
-//
-//			}
-//		}
-//
-//	}
-	UpdateGhosts(f);
-}
+		f->pull_back(*this, [this](coordinates_type const & x)
+		{	return this->B(x);});
 
-template<typename TF>
-void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const
-{
-	typedef typename TF::mesh_type mesh_type;
-	static constexpr unsigned int IForm = TF::IForm;
-
-	static_assert ( std::is_same<typename mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
-
-	if (name == "psi")
-	{
-
-		for (auto s : f->get_range())
-		{
-			auto x = f->mesh.get_coordinates(s);
-
-			get_value(*f, s) = psi(x[RAxis], x[ZAxis]);
-		}
-	}
-	else if (name == "JT")
-	{
-
-		for (auto s : f->get_range())
-		{
-
-			get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-			        JT(f->mesh.get_coordinates(s)));
-		}
-	}
-	else if (CheckProfile(name))
-	{
-		for (auto s : f->get_range())
-		{
-			auto x = f->mesh.get_coordinates(s);
-			get_value(*f, s) = Profile(name, x[RAxis], x[ZAxis]);
-		}
 	}
 	else
 	{
 		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
 	}
-	UpdateGhosts(f);
+
 }
+
+template<typename TF>
+void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const
+{
+
+	if (name == "psi")
+	{
+
+		f->pull_back(*this, [this](coordinates_type const & x)
+		{	return this->psi(x);});
+
+	}
+	else if (name == "JT")
+	{
+
+		f->pull_back(*this, [this](coordinates_type const & x)
+		{	return this->JT(x);});
+	}
+	else if (CheckProfile(name))
+	{
+
+		f->pull_back(*this, [this,name](coordinates_type const & x)
+		{	return this->Profile(name,x);});
+
+	}
+	else
+	{
+		WARNING << "Geqdsk:  Object '" << name << "'[scalar]  does not exist!";
+	}
+
+}
+
 std::string XDMFWrite(GEqdsk const & self, std::string const &fname, unsigned int flag);
 
 }
