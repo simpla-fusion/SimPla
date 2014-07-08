@@ -44,16 +44,17 @@ struct CartesianGeometry: public TTopology
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry() :
-			topology_type()
+	CartesianGeometry()
+			: topology_type()
 	{
 
 	}
-	template<typename TDict>
-	CartesianGeometry(TDict const & dict) :
-			topology_type(dict)
+
+	template<typename ... Args>
+	CartesianGeometry(Args && ... args)
+			: topology_type(std::forward<Args>(args)...)
 	{
-		Load(dict);
+		Load(std::forward<Args>(args)...);
 	}
 
 	~CartesianGeometry()
@@ -64,6 +65,8 @@ struct CartesianGeometry: public TTopology
 	{
 		return "Cartesian";
 	}
+
+
 	//***************************************************************************************************
 	// Geometric properties
 	// Metric
@@ -76,9 +79,18 @@ struct CartesianGeometry: public TTopology
 	{
 		topology_type::NextTimeStep();
 	}
+	void set_time(Real p_time)
+	{
+		time0_ = p_time;
+	}
 	Real get_time() const
 	{
 		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
+	}
+
+	void set_dt(Real p_dt)
+	{
+		dt_ = p_dt;
 	}
 
 	Real get_dt() const
@@ -117,8 +129,7 @@ struct CartesianGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure CartesianGeometry error!");
 		}

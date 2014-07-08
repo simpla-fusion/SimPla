@@ -16,6 +16,9 @@
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../physics/constants.h"
+#include "../mesh/uniform_array.h"
+#include "../mesh/geometry_cylindrical.h"
+
 namespace simpla
 {
 
@@ -30,19 +33,15 @@ namespace simpla
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk
+class GEqdsk: public CylindricalGeometry<UniformArray, 2>
 {
 
 public:
+	typedef CylindricalGeometry<UniformArray, 2> geometry_type;
 
-	typedef Real value_type;
-	typedef Interpolation<LinearInterpolation, value_type, Real> inter_type;
-	typedef MultiDimesionInterpolation<BiLinearInterpolation, value_type> inter2d_type;
-	typedef nTuple<3, value_type> coordinates_type;
-	static constexpr unsigned int PhiAxis = 2;
-	static constexpr unsigned int RAxis = (PhiAxis + 1) % 3;
-	static constexpr unsigned int ZAxis = (PhiAxis + 2) % 3;
-	static constexpr unsigned int NDIMS = 2;
+	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
+
+	typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
 private:
 	bool is_ready_ = false;
@@ -61,9 +60,8 @@ private:
 	Real bcenter = 0.5; //!< Vacuum toroidal magnetic field in Tesla at RCENTR
 	Real current = 1.0; //!< Plasma current in Ampere
 
-	nTuple<NDIMS, size_t> dims_;
-	nTuple<NDIMS, Real> rzmin_;
-	nTuple<NDIMS, Real> rzmax_;
+//	coordinates_type rzmin_;
+//	coordinates_type rzmax_;
 
 //	inter_type fpol_; //!< Poloidal current function in m-T $F=RB_T$ on flux grid
 //	inter_type pres_;//!< Plasma pressure in $nt/m^2$ on uniform flux grid
@@ -74,8 +72,8 @@ private:
 
 //	inter_type qpsi_;//!< q values on uniform flux grid from axis to boundary
 
-	std::vector<nTuple<NDIMS, Real> > rzbbb_; //!< R,Z of boundary points in meter
-	std::vector<nTuple<NDIMS, Real> > rzlim_; //!< R,Z of surrounding limiter contour in meter
+	std::vector<coordinates_type> rzbbb_; //!< R,Z of boundary points in meter
+	std::vector<coordinates_type> rzlim_; //!< R,Z of surrounding limiter contour in meter
 
 	std::map<std::string, inter_type> profile_;
 
@@ -86,47 +84,39 @@ public:
 	}
 	GEqdsk(std::string const &fname)
 	{
-		Read(fname);
+		Load(fname);
 	}
 	template<typename TDict>
 	GEqdsk(TDict const &dict)
 	{
-		Read(dict["File"].template as<std::string>());
+		Load(dict["File"].template as<std::string>());
 	}
 
 	~GEqdsk()
 	{
 	}
 
-	void Load(std::string const & fname)
-	{
-		Read(fname);
-	}
 	std::string Save(std::string const & path) const;
 
-	void Read(std::string const &fname);
+	void Load(std::string const &fname);
 
 	void Write(std::string const &fname);
 
-	void ReadProfile(std::string const &fname);
+	void LoadProfile(std::string const &fname);
 
-	inline value_type Profile(std::string const & name, Real x, Real y) const
+	inline Real Profile(std::string const & name, Real R, Real Z) const
 	{
-		return profile_.at(name)(psi(x, y));
+		return Profile(name, psi(R, Z));
 	}
 
-	inline value_type Profile(std::string const & name, Real p) const
+	inline Real Profile(std::string const & name, Real p_psi) const
 	{
-		return profile_.at(name)(p);
+		return profile_.at(name)(p_psi);
 	}
 
 	std::string const &Description() const
 	{
 		return desc;
-	}
-	std::tuple<nTuple<NDIMS, Real>, nTuple<NDIMS, Real>> get_extents() const
-	{
-		return std::move(std::make_tuple(rzmin_, rzmax_));
 	}
 
 	bool is_ready() const
@@ -134,46 +124,49 @@ public:
 		return is_ready_;
 
 	}
-	nTuple<NDIMS, size_t> const &get_dimensions() const
-	{
-		return dims_;
-	}
 
 	std::ostream & Print(std::ostream & os);
 
-	inline std::vector<nTuple<NDIMS, Real> > const & Boundary() const
+	inline std::vector<coordinates_type> const & Boundary() const
 	{
 		return rzbbb_;
 	}
-	inline std::vector<nTuple<NDIMS, Real> > const & Limiter() const
+	inline std::vector<coordinates_type> const & Limiter() const
 	{
 		return rzlim_;
 	}
 
-	inline value_type psi(Real R, Real Z) const
+	inline Real psi(Real R, Real Z) const
 	{
 		return psirz_.eval(R, Z);
 	}
 
-	inline value_type psi(nTuple<3, Real> const&x) const
+	inline Real psi(coordinates_type const&x) const
 	{
 		return psirz_.eval(x[RAxis], x[ZAxis]);
 	}
 
-	inline coordinates_type B(Real R, Real Z, unsigned int VecPhiAxis = 2) const
+	/**
+	 *
+	 * @param R
+	 * @param Z
+	 * @return magenetic field on cylindrical coordiantes \f$\left(R,Z,\phi\right)\f$
+	 */
+	inline Vec3 B(Real R, Real Z) const
 	{
 		auto gradPsi = psirz_.grad(R, Z);
 
-		coordinates_type res;
-		res[(VecPhiAxis + 1) % 3] = gradPsi[1] / R;
-		res[(VecPhiAxis + 2) % 3] = -gradPsi[0] / R;
-		res[(VecPhiAxis + 3) % 3] = Profile("fpol", R, Z) / R;
+		Vec3 res;
+		res[RAxis] = gradPsi[1] / R;
+		res[ZAxis] = -gradPsi[0] / R;
+		res[PhiAxis] = Profile("fpol", R, Z) / R;
+
 		return std::move(res);
 
 	}
 
-	inline auto B(nTuple<3, Real> const&x, unsigned int VecPhiAxis = 2) const
-	DECL_RET_TYPE(B(x[RAxis], x[ZAxis],VecPhiAxis))
+	inline auto B(coordinates_type const&x) const
+	DECL_RET_TYPE(B(x[RAxis], x[ZAxis] ))
 	;
 
 	inline Real JT(Real R, Real Z) const
@@ -181,7 +174,7 @@ public:
 		return R * Profile("pprim", R, Z) + Profile("ffprim", R, Z) / R;
 	}
 
-	inline auto JT(nTuple<3, Real> const&x) const
+	inline auto JT(coordinates_type const&x) const
 	DECL_RET_TYPE(JT(x[RAxis], x[ZAxis]))
 	;
 
@@ -191,12 +184,13 @@ public:
 	}
 
 	template<typename TModel>
-	void SetUpModel(TModel *model, unsigned int toridal_model_number = 0) const;
+	void SetUpModel(TModel *model, unsigned int toridal_model_number = 0,
+	        unsigned int DestPhiAxis = CARTESIAN_ZAXIS) const;
 
 	template<typename TF>
 	void GetProfile(std::string const & name, TF* f) const
 	{
-		GetProfile_(std::integral_constant<bool, is_nTuple<decltype(get_value(*f,0UL))>::value>(), name, f);
+		GetProfile_(std::integral_constant<bool, is_nTuple<typename TF::field_value_type>::value>(), name, f);
 	}
 
 	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;
@@ -245,22 +239,29 @@ private:
 }
 ;
 template<typename TModel>
-void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number) const
+void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number, unsigned int DestPhiAxis) const
 {
 
-	typename TModel::mesh_type::coordinates_type min;
-	typename TModel::mesh_type::coordinates_type max;
+	typedef typename TModel::mesh_type mesh_type;
 
-	ASSERT(TModel::mesh_type::PhiAxis==GEqdsk::PhiAxis);
+	coordinates_type src_min;
+	coordinates_type src_max;
 
-	min[(TModel::mesh_type::ZAxis + 2) % 3] = rzmin_[RAxis];
-	max[(TModel::mesh_type::ZAxis + 2) % 3] = rzmax_[RAxis];
-	min[TModel::mesh_type::ZAxis] = rzmin_[ZAxis];
-	max[TModel::mesh_type::ZAxis] = rzmax_[ZAxis];
+	std::tie(src_min, src_max) = geometry_type::get_extents();
 
-	min[(TModel::mesh_type::ZAxis + 1) % 3] = 0;
-	max[(TModel::mesh_type::ZAxis + 1) % 3] =
-	        toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
+//	static_assert ( std::is_same<typename TModel::mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
+
+	typename mesh_type::coordinates_type min;
+	typename mesh_type::coordinates_type max;
+
+	min[(DestPhiAxis + 1) % 3] = src_min[RAxis];
+	max[(DestPhiAxis + 1) % 3] = src_max[RAxis];
+
+	min[(DestPhiAxis + 2) % 3] = src_min[ZAxis];
+	max[(DestPhiAxis + 2) % 3] = src_max[ZAxis];
+
+	min[DestPhiAxis] = 0;
+	max[DestPhiAxis] = toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
 
 	model->mesh.set_extents(min, max);
 
@@ -273,32 +274,41 @@ template<typename TF>
 void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const
 {
 	typedef typename TF::mesh_type mesh_type;
+
 	static constexpr unsigned int IForm = TF::IForm;
+
+	static_assert ( std::is_same<typename mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
 
 	if (name == "B")
 	{
-
 		for (auto s : f->get_range())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.get_coordinates(s), PhiAxis);
-
-			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, B(x[RAxis], x[ZAxis], mesh_type::ZAxis));
-		}
-	}
-	else if (name == "JT")
-	{
-
-		for (auto s : f->get_range())
-		{
-			auto x = f->mesh.InvMapTo(f->mesh.get_coordinates(s), PhiAxis);
-
-			get_value(*f, s) = f->mesh.Sample(Int2Type<IForm>(), s, JT(x[RAxis], x[ZAxis]));
+			get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
+			        B(f->mesh.get_coordinates(s)));
 		}
 	}
 	else
 	{
 		WARNING << "Geqdsk:  Object '" << name << "'[vector]  does not exist!";
 	}
+
+//	else
+//	{
+//
+//		if (name == "B")
+//		{
+//
+//			for (auto s : f->get_range())
+//			{
+//				coordinates_type r = MapTo(f->mesh.InvMapTo(f->mesh.get_coordinates(s)));
+//
+//				get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
+//				        std::get<1>(f->mesh.PushForward(PullBack(std::make_tuple(r, B(r))))));
+//
+//			}
+//		}
+//
+//	}
 	UpdateGhosts(f);
 }
 
@@ -308,21 +318,33 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const 
 	typedef typename TF::mesh_type mesh_type;
 	static constexpr unsigned int IForm = TF::IForm;
 
+	static_assert ( std::is_same<typename mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
+
 	if (name == "psi")
 	{
 
 		for (auto s : f->get_range())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.get_coordinates(s), PhiAxis);
+			auto x = f->mesh.get_coordinates(s);
 
 			get_value(*f, s) = psi(x[RAxis], x[ZAxis]);
+		}
+	}
+	else if (name == "JT")
+	{
+
+		for (auto s : f->get_range())
+		{
+
+			get_value(*f, s) = f->mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
+			        JT(f->mesh.get_coordinates(s)));
 		}
 	}
 	else if (CheckProfile(name))
 	{
 		for (auto s : f->get_range())
 		{
-			auto x = f->mesh.InvMapTo(f->mesh.get_coordinates(s), PhiAxis);
+			auto x = f->mesh.get_coordinates(s);
 			get_value(*f, s) = Profile(name, x[RAxis], x[ZAxis]);
 		}
 	}

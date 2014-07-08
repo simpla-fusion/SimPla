@@ -50,8 +50,8 @@ protected:
 				dims[i] = 1;
 			}
 		}
-
-		geometry.set_extents(xmin,xmax,dims);
+		geometry.set_dimensions(dims);
+		geometry.set_extents(xmin,xmax);
 
 	}
 public:
@@ -62,11 +62,11 @@ public:
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 
-	  unsigned int   NDIMS=geometry_type::NDIMS;
+	unsigned int NDIMS=geometry_type::NDIMS;
 
 	geometry_type geometry;
 
-	std::vector< unsigned int  > iform_list =
+	std::vector< unsigned int > iform_list =
 	{	VERTEX, EDGE, FACE, VOLUME};
 	coordinates_type xmin,xmax;
 	nTuple<geometry_type::NDIMS, index_type> dims;

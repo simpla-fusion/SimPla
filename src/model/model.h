@@ -68,8 +68,8 @@ public:
 
 	mesh_type mesh;
 
-	Model() :
-			null_material(), max_material_(CUSTOM + 1)
+	Model()
+			: null_material(), max_material_(CUSTOM + 1), mesh()
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -138,8 +138,7 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -217,7 +216,8 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material) material_.erase(s);
+			if (material_[s] == null_material)
+				material_.erase(s);
 		}
 	}
 
@@ -460,7 +460,8 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out) out = null_material;
+	if (in == out)
+		out = null_material;
 
 	pred_fun_type pred =
 

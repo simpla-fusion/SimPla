@@ -51,10 +51,10 @@ struct UniformArray
 	{
 	}
 
-	template<typename TDict>
-	UniformArray(TDict const & dict)
+	template<typename ... Args>
+	UniformArray(Args &&... args)
 	{
-		Load(dict);
+		Load(std::forward<Args>(args)...);
 	}
 
 	virtual ~UniformArray()
@@ -70,14 +70,13 @@ struct UniformArray
 	}
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others const& ...)
+	void Load(TDict const & dict, Others && ...)
 	{
 		try
 		{
 			LOGGER << "Load UniformArray ";
 			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure UniformArray error!");
 		}
@@ -109,7 +108,9 @@ struct UniformArray
 	//! @name Local Data Set
 	//! @{
 
-	nTuple<NDIMS, index_type> global_begin_, global_end_, global_count_;
+	nTuple<NDIMS, size_t> global_count_;
+
+	nTuple<NDIMS, index_type> global_begin_, global_end_;
 
 	nTuple<NDIMS, index_type> local_outer_begin_, local_outer_end_, local_outer_count_;
 
@@ -224,13 +225,11 @@ struct UniformArray
 								global_count_[2]>1?1.0:0.0,
 							})));
 
-	nTuple<NDIMS, index_type> const & get_global_dimensions() const
-	{
-		return global_count_;
-	}
+	auto get_global_dimensions() const
+	DECL_RET_TYPE(global_count_);
 
 	auto get_dimensions() const
-	DECL_RET_TYPE(get_global_dimensions());
+	DECL_RET_TYPE(global_count_ );
 
 	index_type get_num_of_elements(int iform = VERTEX) const
 	{
@@ -1968,7 +1967,7 @@ public:
 }
 ;
 // class UniformArray
-UniformArray::range_type Split(UniformArray::range_type const & range, unsigned int num_process,
+inline UniformArray::range_type Split(UniformArray::range_type const & range, unsigned int num_process,
         unsigned int process_num, unsigned int ghost_width = 0)
 {
 	typedef UniformArray::index_type index_type;
@@ -1994,7 +1993,8 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{
@@ -2012,7 +2012,7 @@ UniformArray::range_type Split(UniformArray::range_type const & range, unsigned 
 namespace std
 {
 
-typename iterator_traits<simpla::UniformArray::iterator>::difference_type //
+typename iterator_traits<simpla::UniformArray::iterator>::difference_type inline //
 distance(simpla::UniformArray::iterator b, simpla::UniformArray::iterator e)
 {
 

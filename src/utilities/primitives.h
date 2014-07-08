@@ -46,7 +46,7 @@ typedef long Integral;
 
 typedef std::complex<Real> Complex;
 
-template<  unsigned int   N, typename T> struct nTuple;
+template<unsigned int N, typename T> struct nTuple;
 
 static const Real INIFITY = std::numeric_limits<Real>::infinity();
 
@@ -98,6 +98,10 @@ typedef enum
 
 } MathFunType;
 
+static constexpr unsigned int CARTESIAN_XAXIS = 0;
+static constexpr unsigned int CARTESIAN_YAXIS = 1;
+static constexpr unsigned int CARTESIAN_ZAXIS = 2;
+
 typedef nTuple<THREE, Real> Vec3;
 
 typedef nTuple<THREE, nTuple<THREE, Real> > Tensor3;
@@ -118,9 +122,9 @@ typedef nTuple<FOUR, nTuple<FOUR, Real> > RTensor4;
 
 typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
 
-template<  unsigned int    TOP, typename TL, typename TR> struct BiOp;
+template<unsigned int TOP, typename TL, typename TR> struct BiOp;
 
-template<  unsigned int    TOP, typename TL> struct UniOp;
+template<unsigned int TOP, typename TL> struct UniOp;
 
 template<typename > struct has_PlaceHolder
 {
@@ -137,12 +141,12 @@ template<> struct is_real<Real>
 	static constexpr bool value = true;
 };
 
-template<  unsigned int    TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
+template<unsigned int TOP, typename TL, typename TR> struct is_real<BiOp<TOP, TL, TR> >
 {
 	static constexpr bool value = is_real<TL>::value && is_real<TR>::value;
 };
 
-template<  unsigned int    TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
+template<unsigned int TOP, typename TL, typename TR> struct is_complex<BiOp<TOP, TL, TR> >
 {
 	static constexpr bool value = is_complex<TL>::value || is_complex<TR>::value;
 };

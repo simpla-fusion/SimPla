@@ -26,7 +26,7 @@
 namespace simpla
 {
 
-void GEqdsk::Read(std::string const &fname)
+void GEqdsk::Load(std::string const &fname)
 {
 
 	std::ifstream inFileStream_(fname);
@@ -36,6 +36,10 @@ void GEqdsk::Read(std::string const &fname)
 		RUNTIME_ERROR("File " + fname + " is not opend!");
 		return;
 	}
+
+	nTuple<NDIMS, size_t> dims;
+	coordinates_type rzmin;
+	coordinates_type rzmax;
 
 	LOGGER << "Load GFile : " << fname;
 
@@ -64,25 +68,34 @@ void GEqdsk::Read(std::string const &fname)
 
 	>> zmaxis >> xdum >> sibry >> xdum >> xdum;
 
-	rzmin_[0] = rleft;
-	rzmax_[0] = rleft + rdim;
+	rzmin[RAxis] = rleft;
+	rzmax[RAxis] = rleft + rdim;
 
-	rzmin_[1] = zmid - zdim / 2;
-	rzmax_[1] = zmid + zdim / 2;
+	rzmin[ZAxis] = zmid - zdim / 2;
+	rzmax[ZAxis] = zmid + zdim / 2;
 
-	dims_[0] = nw;
-	dims_[1] = nh;
+	rzmin[PhiAxis] = 0;
+	rzmax[PhiAxis] = 0;
 
-	inter2d_type(dims_, rzmin_, rzmax_).swap(psirz_);
+	dims[RAxis] = nw;
+	dims[ZAxis] = nh;
+	dims[PhiAxis] = 0;
+
+	geometry_type::set_dimensions(dims);
+	geometry_type::set_extents(rzmin, rzmax);
+
+	unsigned int phi_axis = PhiAxis;
+
+	inter2d_type(dims, rzmin, rzmax, phi_axis).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                                            \
 	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
-		value_type y;                                                                  \
+		Real y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
 		profile_[ _NAME_ ].data().emplace(                                                         \
-	      static_cast<value_type>(s)                                              \
-	          /static_cast<value_type>(nw-1), y );                               \
+	      static_cast<Real>(s)                                              \
+	          /static_cast<Real>(nw-1), y );                               \
 	}                                                                                  \
 
 	INPUT_VALUE("fpol");
@@ -93,7 +106,7 @@ void GEqdsk::Read(std::string const &fname)
 	for (int j = 0; j < nh; ++j)
 		for (int i = 0; i < nw; ++i)
 		{
-			value_type v;
+			Real v;
 			inFileStream_ >> std::setw(16) >> v;
 			psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
 		}
@@ -105,15 +118,32 @@ void GEqdsk::Read(std::string const &fname)
 	unsigned int nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
+	std::vector<nTuple<2, Real>> rzbbb(nbbbs);
+	std::vector<nTuple<2, Real>> rzlim(limitr);
+
+	inFileStream_ >> std::setw(16) >> rzbbb;
+	inFileStream_ >> std::setw(16) >> rzlim;
+
 	rzbbb_.resize(nbbbs);
 	rzlim_.resize(limitr);
-	inFileStream_ >> std::setw(16) >> rzbbb_;
-	inFileStream_ >> std::setw(16) >> rzlim_;
 
-	ReadProfile(fname + "_profiles.txt");
+	for (size_t s = 0; s < nbbbs; ++s)
+	{
+		rzbbb_[s][RAxis] = rzbbb[s][0];
+		rzbbb_[s][ZAxis] = rzbbb[s][1];
+		rzbbb_[s][PhiAxis] = 0;
+	}
+
+	for (size_t s = 0; s < limitr; ++s)
+	{
+		rzlim_[s][RAxis] = rzlim[s][0];
+		rzlim_[s][ZAxis] = rzlim[s][1];
+		rzlim_[s][PhiAxis] = 0;
+	}
+	LoadProfile(fname + "_profiles.txt");
 
 }
-void GEqdsk::ReadProfile(std::string const &fname)
+void GEqdsk::LoadProfile(std::string const &fname)
 {
 	LOGGER << "Load GFile Profiles: " << fname;
 	std::ifstream inFileStream_(fname);
@@ -135,7 +165,8 @@ void GEqdsk::ReadProfile(std::string const &fname)
 		{
 			std::string t;
 			lineStream >> t;
-			if (t != "") names.push_back(t);
+			if (t != "")
+				names.push_back(t);
 		};
 	}
 
@@ -155,8 +186,14 @@ void GEqdsk::ReadProfile(std::string const &fname)
 
 		}
 	}
+	std::string profile_list = "psi,B";
 
-	LOGGER << "GFile is ready!" << std::endl;
+	for (auto const & item : profile_)
+	{
+		profile_list += " , " + item.first;
+	}
+
+	LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
 
 	is_ready_ = true;
 }
@@ -170,7 +207,11 @@ std::string GEqdsk::Save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.OpenGroup(path);
 
-	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, &dims_[0]) << std::endl;
+	auto dd = geometry_type::get_dimensions();
+
+	size_t d[2] = { dd[RAxis], dd[ZAxis] };
+
+	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
 
 	LOGGER << simpla::Save("rzbbb", rzbbb_) << std::endl;
 
@@ -293,7 +334,7 @@ bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned in
 
 	drz[PhiAxis] = 0;
 
-	std::function<value_type(nTuple<3, Real> const &)> fun = [this ](nTuple<3, Real> const & x)->value_type
+	std::function<Real(nTuple<3, Real> const &)> fun = [this ](nTuple<3, Real> const & x)->Real
 	{
 		return this->psi(x);
 	};

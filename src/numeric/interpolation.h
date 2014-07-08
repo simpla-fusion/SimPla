@@ -41,20 +41,21 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args && ...args) :
-			data_(y), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args && ...args)
+			: data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args && ...args) :
-			data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(Args && ...args)
+			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args && ...args) :
-			data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(TC const &y, Args && ...args)
+			: data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
+			        std::forward<Args >(args)...)
 	{
 	}
 
@@ -179,15 +180,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args) :
-			data_(y), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args)
+			: data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args && ...args) :
-			data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(Args && ...args)
+			: data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
 	{
 		Update();
 	}
@@ -274,9 +275,23 @@ public:
 			dims_[s] = 1;
 		}
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax) :
-			dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
+			: dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
+		Update();
+	}
+
+	BiLinearInterpolation(nTuple<NDIMS + 1, size_t> dims, nTuple<NDIMS + 1, Real> const &xmin,
+	        nTuple<NDIMS + 1, Real> const &xmax, unsigned int ZAxis = NDIMS)
+
+	{
+		dims_[0] = dims[(ZAxis + 1) % 3];
+		dims_[1] = dims[(ZAxis + 2) % 3];
+		xmin_[0] = xmin[(ZAxis + 1) % 3];
+		xmin_[1] = xmin[(ZAxis + 2) % 3];
+		xmax_[0] = xmax[(ZAxis + 1) % 3];
+		xmax_[1] = xmax[(ZAxis + 2) % 3];
+
 		Update();
 	}
 	~BiLinearInterpolation()
@@ -385,7 +400,7 @@ public:
 
 	}
 
-	template<typename TV,  unsigned int  N, typename TX>
+	template<typename TV, unsigned int N, typename TX>
 	inline auto grad(TV const & v, nTuple<N, TX> const & x) const
 	DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 

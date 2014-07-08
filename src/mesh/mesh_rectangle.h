@@ -71,15 +71,14 @@ public:
 
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
-	Mesh() :
-			geometry_type()
+	Mesh()
+			: geometry_type()
 	{
-		UpdateK(&k_imag);
 	}
 
-	template<typename TDict>
-	Mesh(TDict && dict) :
-			geometry_type(std::forward<TDict>(dict))
+	template<typename ... Args>
+	Mesh(Args && ... args)
+			: geometry_type(std::forward<Args>(args)...)
 	{
 		UpdateK(&k_imag);
 	}
@@ -149,7 +148,8 @@ private:
 
 			if (dims[i] <= 1)
 			{
-				if (xmax[i] > xmin[i]) (*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
+				if (xmax[i] > xmin[i])
+					(*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
 
 				xmax[i] = xmin[i];
 			}

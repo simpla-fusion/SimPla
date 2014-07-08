@@ -15,7 +15,7 @@
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 #include "../physics/constants.h"
-
+#include "../physics/physical_constants.h"
 namespace simpla
 {
 
@@ -49,16 +49,15 @@ struct CylindricalGeometry: public TTopology
 
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry() :
-			topology_type()
+	CylindricalGeometry()
+			: topology_type()
 	{
-
 	}
-	template<typename TDict>
-	CylindricalGeometry(TDict const & dict) :
-			topology_type(dict)
+	template<typename ... Args>
+	CylindricalGeometry(Args && ... args)
+			: topology_type(std::forward<Args>(args)...)
 	{
-		Load(dict);
+		Load(std::forward<Args>(args)...);
 	}
 
 	~CylindricalGeometry()
@@ -81,9 +80,19 @@ struct CylindricalGeometry: public TTopology
 	{
 		topology_type::NextTimeStep();
 	}
+
+	void set_time(Real p_time)
+	{
+		time0_ = p_time;
+	}
 	Real get_time() const
 	{
 		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
+	}
+
+	void set_dt(Real p_dt)
+	{
+		dt_ = p_dt;
 	}
 
 	Real get_dt() const
@@ -106,7 +115,6 @@ struct CylindricalGeometry: public TTopology
 	{
 		try
 		{
-			topology_type::Load(dict, std::forward<Others >(others)...);
 
 			if (dict["Min"] && dict["Max"])
 			{
@@ -121,8 +129,7 @@ struct CylindricalGeometry: public TTopology
 
 			dt_ = dict["dt"].template as<Real>();
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure CylindricalGeometry error!");
 		}
@@ -296,9 +303,9 @@ struct CylindricalGeometry: public TTopology
 		 *  \f}
 		 *
 		 */
-		x[(CartesianZAxis + 1) % 3] = r[RAxis] * std::cos(r[PhiAxis]);
-		x[(CartesianZAxis + 2) % 3] = r[RAxis] * std::sin(r[PhiAxis]);
-		x[(CartesianZAxis + 3) % 3] = r[ZAxis];
+		x[(CartesianZAxis + 1) % 3] = r[RAxis] * std::sin(r[PhiAxis]);
+		x[(CartesianZAxis + 2) % 3] = r[RAxis] * std::cos(r[PhiAxis]);
+		x[CartesianZAxis % 3] = r[ZAxis];
 
 		return std::move(x);
 	}
@@ -316,11 +323,11 @@ struct CylindricalGeometry: public TTopology
 		 *  \f}
 		 *
 		 */
-		r[ZAxis] = x[CartesianZAxis];
+		r[ZAxis] = x[CartesianZAxis % 3];
 		r[RAxis] = std::sqrt(
 		        x[(CartesianZAxis + 1) % 3] * x[(CartesianZAxis + 1) % 3]
 		                + x[(CartesianZAxis + 2) % 3] * x[(CartesianZAxis + 2) % 3]);
-		r[PhiAxis] = std::atan2(x[(CartesianZAxis + 2) % 3], x[(CartesianZAxis + 1) % 3]);
+		r[PhiAxis] = std::atan2(x[(CartesianZAxis + 1) % 3], x[(CartesianZAxis + 2) % 3]);
 
 		return r;
 	}
@@ -445,13 +452,13 @@ struct CylindricalGeometry: public TTopology
 	template<typename TV>
 	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return std::get<1>(PushForward(std::make_tuple(get_coordinates(s), v)))[topology_type::ComponentNum(s)];
+		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
 	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return std::get<1>(PushForward(std::make_tuple(get_coordinates(s), v)))[topology_type::ComponentNum(s)];
+		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
@@ -477,7 +484,7 @@ struct CylindricalGeometry: public TTopology
 	        1, //100
 	        1, //101
 	        1, //110
-	        1  //111
+	        1 //111
 	        };
 	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
@@ -609,6 +616,7 @@ struct CylindricalGeometry: public TTopology
 }
 ;
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* GEOMETRY_CYLINDRICAL_H_ */

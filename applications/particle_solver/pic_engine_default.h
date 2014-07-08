@@ -151,16 +151,16 @@ public:
 	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
-		NextTimeStepZero(Bool2Type<EnableImplicit>(), p, dt, J, fE, fB);
+		NextTimeStepZero(std::integral_constant<bool,EnableImplicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
 	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		NextTimeStepHalf(Bool2Type<EnableImplicit>(), p, dt, fE, fB);
+		NextTimeStepHalf(std::integral_constant<bool,EnableImplicit>(), p, dt, fE, fB);
 	}
 // x(-1/2->1/2),v(0)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void NextTimeStepZero(std::integral_constant<bool,true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 		//		auto B = interpolator_type::Gather(fB, p->x);
@@ -172,7 +172,7 @@ public:
 	}
 // v(0->1)
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	inline void NextTimeStepHalf(std::integral_constant<bool,true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
@@ -196,7 +196,7 @@ public:
 	}
 // x(-1/2->1/2), v(-1/2/1/2)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Bool2Type<false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void NextTimeStepZero(std::integral_constant<bool,false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
@@ -224,7 +224,7 @@ public:
 
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Bool2Type<false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	inline void NextTimeStepHalf(std::integral_constant<bool,false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 	}
