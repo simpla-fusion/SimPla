@@ -85,7 +85,7 @@ InitValue = {
 Model=
 {
 
-	Type = "RectMesh",
+	Type = "CylindricalRectMesh",
 
 	UnitSystem={Type="SI"},
 
@@ -94,9 +94,9 @@ Model=
 	Grid={
 
 
-		Min={0.0,0.0,0.0},
+		Min={1.2,-1.4,0.0},
 
-		Max={LX,LY,LZ},
+		Max={2.8,1.4,TWOPI},
 
 		dt= 0.5*LX/NX/c, -- time step
 

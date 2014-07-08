@@ -7,22 +7,22 @@
 
 #include <iostream>
 
-#include "../../src/utilities/log.h"
-#include "../../src/io/data_stream.h"
-#include "../../src/physics/constants.h"
-#include "../../src/utilities/parse_command_line.h"
-#include "../../src/parallel/message_comm.h"
-#include "../../src/simpla_defs.h"
+#include "../src/utilities/log.h"
+#include "../src/io/data_stream.h"
+#include "../src/physics/constants.h"
+#include "../src/utilities/parse_command_line.h"
+#include "../src/parallel/message_comm.h"
+#include "../src/simpla_defs.h"
 
-#include "../../src/mesh/geometry_cylindrical.h"
-#include "../../src/mesh/mesh_rectangle.h"
-#include "../../src/mesh/uniform_array.h"
+#include "../src/mesh/geometry_cylindrical.h"
+#include "../src/mesh/mesh_rectangle.h"
+#include "../src/mesh/uniform_array.h"
 
-#include "../../src/model/model.h"
-#include "../../src/model/geqdsk.h"
+#include "../src/model/model.h"
+#include "../src/model/geqdsk.h"
 
-#include "../../src/fetl/fetl.h"
-#include "../../src/fetl/save_field.h"
+#include "../src/fetl/fetl.h"
+#include "../src/fetl/save_field.h"
 
 using namespace simpla;
 
@@ -36,13 +36,13 @@ static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single 
 int main(int argc, char **argv)
 {
 
-	typedef Mesh<CylindricalGeometry<UniformArray>, true> cylindrical_mesh;
+	typedef Mesh<CylindricalGeometry<UniformArray>, true> mesh_type;
 
-	typedef Model<cylindrical_mesh> model_type;
+	typedef Model<mesh_type> model_type;
 
-	typedef typename cylindrical_mesh::scalar_type scalar_type;
+	typedef typename mesh_type::scalar_type scalar_type;
 
-	static constexpr unsigned int NDIMS = cylindrical_mesh::NDIMS;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
 	LOG_STREAM.Init(argc,argv);
 	GLOBAL_COMM.Init(argc,argv);
@@ -158,7 +158,25 @@ int main(int argc, char **argv)
 
 		geqdsk.Load(gfile);
 
-		geqdsk.SetUpModel(&model, toridal_model_number);
+		typename mesh_type::coordinates_type src_min;
+		typename mesh_type::coordinates_type src_max;
+
+		std::tie(src_min, src_max) = geqdsk.get_extents();
+
+		typename mesh_type::coordinates_type min;
+		typename mesh_type::coordinates_type max;
+
+		std::tie(min, max) = mesh.get_extents();
+
+		min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
+		max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+
+		min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
+		max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
+
+		mesh.set_extents(min, max);
+
+		geqdsk.SetUpMaterial(&model, toridal_model_number);
 
 		INFORM << geqdsk.Save("/Input");
 	}
@@ -169,6 +187,8 @@ int main(int argc, char **argv)
 		TheEnd(-1);
 	}
 
+	mesh.Update();
+
 	INFORM << "Configuration: \n" << model;
 
 	auto E = mesh.template make_field<EDGE, scalar_type>();
@@ -176,6 +196,18 @@ int main(int argc, char **argv)
 
 	auto B = mesh.template make_field<EDGE, scalar_type>();
 	B.clear();
+
+	auto dE = mesh.template make_field<EDGE, scalar_type>();
+	dE.clear();
+
+	auto dB = mesh.template make_field<EDGE, scalar_type>();
+	dB.clear();
+
+	auto J0 = mesh.template make_field<EDGE, scalar_type>();
+	J0.clear();
+
+	auto Jext = mesh.template make_field<EDGE, scalar_type>();
+	Jext.clear();
 
 	auto u = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	u.clear();
@@ -224,8 +256,29 @@ int main(int argc, char **argv)
 		LOGGER << SAVE(T);
 		LOGGER << SAVE(J);
 
+		DEFINE_PHYSICAL_CONST
+
 		for (int i = 0; i < num_of_step; ++i)
 		{
+
+			LOG_CMD(Jext = J0);
+
+			LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+
+			dE.clear();
+			LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+
+			LOG_CMD(dE -= Jext * (dt / epsilon0));
+
+			dE = Jext * (dt / epsilon0);
+			//   particle 1/2 -> 1  . To n[1/2], J[1/2]
+
+			LOG_CMD(E += dE);// E(t=0 -> 1)
+
+			dB.clear();
+			LOG_CMD( dB -= Curl(E)*dt);
+
+			LOG_CMD(B += dB * 0.5);//	B(t=1/2 -> 1)
 
 			mesh.NextTimeStep();
 
