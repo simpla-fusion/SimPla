@@ -25,8 +25,11 @@ namespace simpla
  *  \brief  cylindrical geometry (R Z phi)
  */
 template<typename TTopology, unsigned int IPhiAxis = 2>
-struct CylindricalGeometry: public TTopology
+class CylindricalGeometry: public TTopology
 {
+private:
+	bool is_ready_ = false;
+public:
 	typedef TTopology topology_type;
 
 	static constexpr unsigned int PhiAxis = (IPhiAxis) % 3;
@@ -113,6 +116,7 @@ struct CylindricalGeometry: public TTopology
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
 	{
+		topology_type::Load(dict, std::forward<Others>(others));
 		try
 		{
 
@@ -148,6 +152,17 @@ struct CylindricalGeometry: public TTopology
 	std::string Save(std::string const &path) const
 	{
 		return path;
+	}
+
+	bool is_ready() const
+	{
+		return is_ready_ && topology_type::is_ready();
+	}
+	void Update()
+	{
+		topology_type::Update();
+
+		is_ready_ = topology_type::is_ready() && UpdateVolume();
 	}
 
 	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
@@ -214,7 +229,6 @@ struct CylindricalGeometry: public TTopology
 			}
 		}
 
-		UpdateVolume();
 	}
 	inline std::pair<coordinates_type, coordinates_type> get_extents() const
 	{
@@ -508,7 +522,7 @@ struct CylindricalGeometry: public TTopology
 	 *
 	 *\endverbatim
 	 */
-	void UpdateVolume()
+	bool UpdateVolume()
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -574,6 +588,7 @@ struct CylindricalGeometry: public TTopology
 
 		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
 
+		return true;
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const

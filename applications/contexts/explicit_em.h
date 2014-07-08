@@ -150,29 +150,42 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << description;
 
-	mesh.Load(dict["Grid"]);
-
-	mesh.Decompose();
-
 	auto ne0 = mesh.template make_field<VERTEX, Real>();
 	auto Te0 = mesh.template make_field<VERTEX, Real>();
 	auto Ti0 = mesh.template make_field<VERTEX, Real>();
 
-	E.clear();
-	B.clear();
-	Jext.clear();
-
-	dB.clear();
-	dE.clear();
-	J0.clear();
+	model_.mesh.Load(dict["Model"]["Grid"]);
 
 	if (dict["Model"]["GFile"])
 	{
-		GEqdsk geqdsk = dict["Model"]["GFile"].template create_object<GEqdsk>();
+		GEqdsk geqdsk;
 
-		geqdsk.Save("/Geqdsk");
+		geqdsk.Load(dict["Model"]["GFile"]["File"].template as<std::string>());
+
+		if (!model_.is_ready())
+		{
+			typename mesh_type::coordinates_type src_min;
+			typename mesh_type::coordinates_type src_max;
+
+			std::tie(src_min, src_max) = geqdsk.get_extents();
+
+			typename mesh_type::coordinates_type min;
+			typename mesh_type::coordinates_type max;
+
+			std::tie(min, max) = model_.mesh.get_extents();
+
+			min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
+			max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+
+			min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
+			max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
+
+			model_.mesh.set_extents(min, max);
+		}
 
 		geqdsk.SetUpModel(&model_);
+
+		model_.Update();
 
 		ne0.clear();
 		Te0.clear();
@@ -183,16 +196,24 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		geqdsk.GetProfile("Te", &Te0);
 		geqdsk.GetProfile("Ti", &Ti0);
 
+		description = description + "\n GEqdsk ID:" + geqdsk.Description();
+
+		geqdsk.Save("/Geqdsk");
+
 		J0 = Curl(B) / mu0;
 
 		Jext = J0;
 
-		description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
 	}
 	else
 	{
-		LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
+		model_.Update();
+
+		B.clear();
+
+		Jext.clear();
+
+		J0.clear();
 
 		LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
 
@@ -203,8 +224,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
 
 		LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
-
 	}
+
+	dB.clear();
+
+	dE.clear();
+
+	E.clear();
+
+	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
 
 //	LOGGER << simpla::Save("B", B);
 //	LOGGER << simpla::Save("J0", J0);

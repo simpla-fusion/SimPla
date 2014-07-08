@@ -93,6 +93,18 @@ struct UniformArray
 	{
 		return path;
 	}
+private:
+	bool is_ready_ = false;
+public:
+
+	bool is_ready() const
+	{
+		return is_ready_;
+	}
+
+	void Update()
+	{
+	}
 
 	unsigned long clock_ = 0UL;
 
@@ -167,9 +179,13 @@ struct UniformArray
 		local_outer_end_ = global_end_;
 		local_outer_count_ = global_count_;
 
+		is_ready_ = true;
+
 		Update();
 
 		Decompose(1, 0, 0);
+
+		Update();
 
 	}
 	void Decompose(unsigned int num_process = 0, unsigned int process_num = 0, unsigned int ghost_width = 0)

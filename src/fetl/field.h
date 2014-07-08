@@ -322,7 +322,8 @@ public:
 	}
 
 	template<typename TG, typename TRange,typename TObj>
-	auto pull_back_assign(TG const & geo,TRange const & range,TObj const & obj)->typename std::enable_if<std::is_same<TG,geometry_type>::value,void> ::type
+	auto pull_back(TRange const & range,TG const & geo, TObj const & obj)
+	->typename std::enable_if<std::is_same<TG,geometry_type>::value,void> ::type
 	{
 		for (auto s : range)
 		{
@@ -331,7 +332,8 @@ public:
 	}
 
 	template<typename TG,typename TRange,typename TObj>
-	auto pull_back_assign(TG const & geo,TRange const & range,TObj const & obj)->typename std::enable_if<!std::is_same<TG,geometry_type>::value,void>::type
+	auto pull_back(TRange const & range,TG const & geo,TObj const & obj)
+	->typename std::enable_if<!std::is_same<TG,geometry_type>::value,void>::type
 	{
 		for (auto s : range)
 		{
@@ -346,13 +348,13 @@ public:
 	template<typename TG, typename TObj>
 	void pull_back(TG const & geo, TObj const & obj)
 	{
-		pull_back_assign (geo, range_,obj);
+		pull_back ( range_,geo,obj);
 	}
 
 	template< typename TG,typename TC>
 	void pull_back( Field<TG,IForm,TC> const & obj)
 	{
-		pull_back_assign(obj.mesh, range_,obj);
+		pull_back(range_,obj.mesh, obj);
 	}
 
 }

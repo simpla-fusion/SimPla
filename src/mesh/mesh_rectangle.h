@@ -80,7 +80,6 @@ public:
 	Mesh(Args && ... args)
 			: geometry_type(std::forward<Args>(args)...)
 	{
-		UpdateK(&k_imag);
 	}
 
 	~Mesh()
@@ -110,8 +109,21 @@ public:
 	inline void set_extents(Args&& ... args)
 	{
 		geometry_type::set_extents(std::forward<Args>(args)...);
+	}
 
-		UpdateK(&k_imag);
+	void Update()
+	{
+		geometry_type::Update();
+
+		is_ready_ = UpdateK(&k_imag);
+	}
+private:
+	bool is_ready_ = false;
+public:
+
+	bool is_ready() const
+	{
+		return is_ready_;
 	}
 
 	//******************************************************************************************************
@@ -133,9 +145,9 @@ private:
 			}
 		}
 		geometry_type::set_extents(xmin, xmax);
-
+		return true;
 	}
-	void UpdateK(nTuple<NDIMS, Complex>* k)
+	bool UpdateK(nTuple<NDIMS, Complex>* k)
 	{
 		auto dims = geometry_type::get_dimensions();
 		auto extents = geometry_type::get_extents();
@@ -155,7 +167,7 @@ private:
 			}
 		}
 		geometry_type::set_extents(xmin, xmax);
-
+		return true;
 	}
 public:
 

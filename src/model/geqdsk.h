@@ -163,7 +163,7 @@ public:
 		Vec3 res;
 		res[RAxis] = gradPsi[1] / R;
 		res[ZAxis] = -gradPsi[0] / R;
-		res[PhiAxis] = Profile("fpol", R, Z) / R;
+		res[PhiAxis] = Profile("fpol", R, Z);
 
 		return std::move(res);
 
@@ -246,30 +246,6 @@ private:
 template<typename TModel>
 void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number, unsigned int DestPhiAxis) const
 {
-
-	typedef typename TModel::mesh_type mesh_type;
-
-	coordinates_type src_min;
-	coordinates_type src_max;
-
-	std::tie(src_min, src_max) = geometry_type::get_extents();
-
-//	static_assert ( std::is_same<typename TModel::mesh_type::geometry_type, geometry_type>::value,"different geometry type" );
-
-	typename mesh_type::coordinates_type min;
-	typename mesh_type::coordinates_type max;
-
-	min[(DestPhiAxis + 1) % 3] = src_min[RAxis];
-	max[(DestPhiAxis + 1) % 3] = src_max[RAxis];
-
-	min[(DestPhiAxis + 2) % 3] = src_min[ZAxis];
-	max[(DestPhiAxis + 2) % 3] = src_max[ZAxis];
-
-	min[DestPhiAxis] = 0;
-	max[DestPhiAxis] = toridal_model_number == 0 ? 0 : TWOPI / static_cast<Real>(toridal_model_number);
-
-	model->mesh.set_extents(min, max);
-
 	model->Set(model->SelectByPolylines(VERTEX, Limiter()), model->RegisterMaterial("Vacuum"));
 
 	model->Set(model->SelectByPolylines(VERTEX, Boundary()), model->RegisterMaterial("Plasma"));

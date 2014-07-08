@@ -26,6 +26,9 @@ namespace simpla
 template<typename TTopology>
 struct CartesianGeometry: public TTopology
 {
+private:
+	bool is_ready_ = false;
+public:
 	typedef TTopology topology_type;
 	typedef CartesianGeometry<topology_type> this_type;
 
@@ -66,7 +69,6 @@ struct CartesianGeometry: public TTopology
 		return "Cartesian";
 	}
 
-
 	//***************************************************************************************************
 	// Geometric properties
 	// Metric
@@ -98,6 +100,16 @@ struct CartesianGeometry: public TTopology
 		return dt_;
 	}
 
+	bool is_ready() const
+	{
+		return is_ready_ && topology_type::is_ready();
+	}
+	void Update()
+	{
+		topology_type::Update();
+
+		is_ready_ = topology_type::is_ready() && UpdateVolume();
+	}
 	coordinates_type xmin_ = { 0, 0, 0 };
 
 	coordinates_type xmax_ = { 1, 1, 1 };
@@ -415,7 +427,7 @@ struct CartesianGeometry: public TTopology
 	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
-	void UpdateVolume()
+	bool UpdateVolume()
 	{
 
 		for (unsigned int i = 0; i < NDIMS; ++i)
@@ -512,6 +524,7 @@ public:
 
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
+		return true;
 	}
 	scalar_type CellVolume(compact_index_type s) const
 	{

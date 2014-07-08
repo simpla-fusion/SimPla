@@ -41,7 +41,8 @@ namespace simpla
 template<typename TM>
 class Model
 {
-
+private:
+	bool is_ready_ = false;
 public:
 	static constexpr unsigned int MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<unsigned long>::digits;
 	typedef TM mesh_type;
@@ -89,9 +90,21 @@ public:
 		return material_.empty();
 	}
 
+	bool is_ready() const
+	{
+		return is_ready_ && mesh.is_ready();
+	}
+
+	void Update()
+	{
+		mesh.Update();
+
+		is_ready_ = mesh.is_ready();
+	}
+
 	operator bool() const
 	{
-		return material_.empty();
+		return !material_.empty() && is_ready();
 	}
 
 	material_type RegisterMaterial(std::string const & name)

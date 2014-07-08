@@ -82,35 +82,40 @@ InitValue = {
 
 }
 
-
-
-Grid=
-{
-	Type = "RectMesh",
-
-	UnitSystem={Type="SI"},
-
-	Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
-
-	Min={0.0,0.0,0.0},
-
-	Max={LX,LY,LZ},
-
-	dt= 0.5*LX/NX/c -- time step
-}
-
-
 Model=
 {
+	UnitSystem={Type="SI"},
+
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
---	{Material="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
---
---	{Material="Plasma",
---		Select=function(x,y,z)
---			return x>1.0 and x<2.0
---		end
---		,Op="Set"},
+	Geometry=
+	{
+		Type = "RectMesh",
+
+		Min={0.0,0.0,0.0},
+
+		Max={LX,LY,LZ},
+
+		dt= 0.5*LX/NX/c -- time step
+	},
+
+	Topology=	{
+
+		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+
+	},
+
+	Material={
+
+	--	{Material="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
+	--
+	--	{Material="Plasma",
+	--		Select=function(x,y,z)
+	--			return x>1.0 and x<2.0
+	--		end
+	--		,Op="Set"},
+
+	}
 }
 
 
