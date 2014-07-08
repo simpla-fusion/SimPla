@@ -14,7 +14,7 @@
 
 #include "../../src/mesh/uniform_array.h"
 #include "../../src/mesh/geometry_cartesian.h"
-#include "../../src/mesh/geometry_cylindrical.h"
+//#include "../../src/mesh/geometry_cylindrical.h"
 #include "../../src/mesh/mesh_rectangle.h"
 #include "../../src/utilities/primitives.h"
 #include "../../src/utilities/log.h"
@@ -63,12 +63,11 @@ void Context::Load(LuaObject const & dict)
 	if (dict)
 	{
 
-		auto mesh_str = dict["Grid"]["Type"].as<std::string>();
+		auto mesh_str = dict["Model"]["Type"].as<std::string>();
 
 		if (mesh_str == "RectMesh")
 		{
 			CreateContext<ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>, false> >>(this, dict);
-
 		}
 		else if (mesh_str == "RectMeshKz")
 		{

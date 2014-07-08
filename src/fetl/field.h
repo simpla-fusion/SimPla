@@ -138,24 +138,22 @@ public:
 
 	void allocate()
 	{
-		if (container_type::empty())
-		{
-			mesh.template make_field<this_type>().swap(*this);
-		}
-		container_type::allocate();
+		mesh.template make_field<this_type>().swap(*this);
 
+		container_type::allocate();
 	}
 
 	void initialize()
 	{
-		allocate();
-
-		container_type::clear();
+		if (container_type::empty())
+		{
+			allocate();
+		}
 	}
 
 	void clear()
 	{
-		initialize();
+		initialize();container_type::clear();
 	}
 
 	template<typename TVistor>
@@ -237,7 +235,7 @@ public:
 	template<typename T>
 	void Fill(T v)
 	{
-		container_type::allocate();
+		initialize();
 
 		ParallelForEach(range_,
 
@@ -251,7 +249,7 @@ public:
 	template<typename TR>
 	void assign(TR const & rhs)
 	{
-		container_type::allocate();
+		initialize();
 
 		ParallelForEach(range_,
 

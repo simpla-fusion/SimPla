@@ -102,10 +102,6 @@ public:
 		return is_ready_;
 	}
 
-	void Update()
-	{
-	}
-
 	unsigned long clock_ = 0UL;
 
 	void NextTimeStep()
@@ -1376,6 +1372,8 @@ public:
 
 	std::function<size_t(compact_index_type)> make_hash(range_type range )const
 	{
+		if(!is_ready()) RUNTIME_ERROR("Mesh is not defined!!");
+
 		std::function<size_t(compact_index_type)> res;
 
 		bool is_fast_first_=std::get<0>(range).is_fast_first_;

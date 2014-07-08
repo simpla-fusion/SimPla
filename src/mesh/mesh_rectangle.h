@@ -130,7 +130,7 @@ public:
 
 private:
 	template<typename T>
-	void UpdateK(T* k)
+	bool UpdateK(T* k)
 	{
 		auto dims = geometry_type::get_dimensions();
 		auto extents = geometry_type::get_extents();

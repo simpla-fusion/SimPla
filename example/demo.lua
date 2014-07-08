@@ -84,22 +84,21 @@ InitValue = {
 
 Model=
 {
+
+	Type = "RectMesh",
+
 	UnitSystem={Type="SI"},
 
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
-	Geometry=
-	{
-		Type = "RectMesh",
+	Grid={
+
 
 		Min={0.0,0.0,0.0},
 
 		Max={LX,LY,LZ},
 
-		dt= 0.5*LX/NX/c -- time step
-	},
-
-	Topology=	{
+		dt= 0.5*LX/NX/c, -- time step
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
@@ -128,38 +127,38 @@ FieldSolver=
 
 
 
-Constraints=
-{
-	---[[
-	{
-		DOF="J",
-		Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ},{0.1*LX,0.1*LY,0.1*LZ},{0.1*LX,0.3*LY,0.3*LZ}}},
-		Operation= function(t,x,f )
-			local tau = t*omega_ext
-			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			return { f[0],f[1]+amp,f[2]}
-		end
-	},
-	{
-		DOF="E",
-		Select={Type="Boundary",In="Vacuum"},
-		Operation= function(t,x,f )
-
-			return {  0, 0,0}
-		end
-	},
-
---	{
---		DOF="E",
---		Select={Type="Interface",In="Plasma",Out="Vacuum"},
+--Constraints=
+--{
+----	---[[
+----	{
+----		DOF="J",
+----		Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ},{0.1*LX,0.1*LY,0.1*LZ},{0.1*LX,0.3*LY,0.3*LZ}}},
+----		Operation= function(t,x,f )
+----			local tau = t*omega_ext
+----			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+----			return { f[0],f[1]+amp,f[2]}
+----		end
+----	},
+----	{
+----		DOF="E",
+----		Select={Type="Boundary",In="Vacuum"},
+----		Operation= function(t,x,f )
+----
+----			return {  0, 0,0}
+----		end
+----	},
 --
---		Operation= function(t,x,f )
---			return { -100, -100,-100}
---		end
---	},
-
---]]
-}
+----	{
+----		DOF="E",
+----		Select={Type="Interface",In="Plasma",Out="Vacuum"},
+----
+----		Operation= function(t,x,f )
+----			return { -100, -100,-100}
+----		end
+----	},
+--
+----]]
+--}
 
 
 ParticleConstraints=

@@ -46,6 +46,13 @@ public:
 	DenseContainer(value_type d = value_type())
 			: num_of_ele_(0), default_value_(d)
 	{
+		hash_fun_ = [](key_type)
+		{
+			UNIMPLEMENT;
+
+			return 0;
+		};
+
 	}
 	template<typename TR, typename ... Others>
 	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, value_type d, Others && ...)

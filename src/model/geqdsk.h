@@ -188,7 +188,7 @@ public:
 	}
 
 	template<typename TModel>
-	void SetUpModel(TModel *model, unsigned int toridal_model_number = 0,
+	void SetUpMaterial(TModel *model, unsigned int toridal_model_number = 0,
 	        unsigned int DestPhiAxis = CARTESIAN_ZAXIS) const;
 
 	template<typename TF>
@@ -244,7 +244,7 @@ private:
 }
 ;
 template<typename TModel>
-void GEqdsk::SetUpModel(TModel *model, unsigned int toridal_model_number, unsigned int DestPhiAxis) const
+void GEqdsk::SetUpMaterial(TModel *model, unsigned int toridal_model_number, unsigned int DestPhiAxis) const
 {
 	model->Set(model->SelectByPolylines(VERTEX, Limiter()), model->RegisterMaterial("Vacuum"));
 

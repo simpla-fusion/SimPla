@@ -83,15 +83,17 @@ public:
 
 	mesh_type & mesh;
 
-	typename mesh_type::template field<EDGE, scalar_type> E, dE;
-	typename mesh_type::template field<FACE, scalar_type> B, dB;
-	typename mesh_type::template field<VERTEX, scalar_type> n, phi; //!< electrostatic potential
+	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	typename mesh_type::template field<VERTEX, Real> n0; //!< density
-	typename mesh_type::template field<EDGE, scalar_type> J0; //!<background current density J0+Curl(B(t=0))=0
-	typename mesh_type::template field<EDGE, scalar_type> Jext; //!< current density
+	field<EDGE, scalar_type> E, dE;
+	field<FACE, scalar_type> B, dB;
+	field<VERTEX, scalar_type> n, phi; //!< electrostatic potential
 
-	typename mesh_type::template field<VERTEX, nTuple<3, Real> > Bv;
+	field<VERTEX, Real> n0; //!< density
+	field<EDGE, scalar_type> J0; //!<background current density J0+Curl(B(t=0))=0
+	field<EDGE, scalar_type> Jext; //!< current density
+
+	field<VERTEX, nTuple<3, Real> > Bv;
 
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
@@ -150,9 +152,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	LOGGER << description;
 
-	auto ne0 = mesh.template make_field<VERTEX, Real>();
-	auto Te0 = mesh.template make_field<VERTEX, Real>();
-	auto Ti0 = mesh.template make_field<VERTEX, Real>();
+	field<VERTEX, Real> ne0(mesh);
+	field<VERTEX, Real> Te0(mesh);
+	field<VERTEX, Real> Ti0(mesh);
 
 	model_.mesh.Load(dict["Model"]["Grid"]);
 
@@ -160,33 +162,35 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		GEqdsk geqdsk;
 
-		geqdsk.Load(dict["Model"]["GFile"]["File"].template as<std::string>());
+		geqdsk.Load(dict["Model"]["GFile"].template as<std::string>());
 
-		if (!model_.is_ready())
-		{
-			typename mesh_type::coordinates_type src_min;
-			typename mesh_type::coordinates_type src_max;
+		typename mesh_type::coordinates_type src_min;
+		typename mesh_type::coordinates_type src_max;
 
-			std::tie(src_min, src_max) = geqdsk.get_extents();
+		std::tie(src_min, src_max) = geqdsk.get_extents();
 
-			typename mesh_type::coordinates_type min;
-			typename mesh_type::coordinates_type max;
+		typename mesh_type::coordinates_type min;
+		typename mesh_type::coordinates_type max;
 
-			std::tie(min, max) = model_.mesh.get_extents();
+		std::tie(min, max) = model_.mesh.get_extents();
 
-			min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
-			max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+		min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
+		max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
 
-			min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
-			max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
+		min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
+		max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
 
-			model_.mesh.set_extents(min, max);
-		}
+		model_.mesh.set_extents(min, max);
 
-		geqdsk.SetUpModel(&model_);
+		geqdsk.SetUpMaterial(&model_);
+
+		geqdsk.Save("/Geqdsk");
 
 		model_.Update();
 
+		E.clear();
+		B.clear();
+		J0.clear();
 		ne0.clear();
 		Te0.clear();
 		Ti0.clear();
@@ -197,8 +201,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		geqdsk.GetProfile("Ti", &Ti0);
 
 		description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
-		geqdsk.Save("/Geqdsk");
 
 		J0 = Curl(B) / mu0;
 
@@ -211,38 +213,30 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		B.clear();
 
+		J0.clear();
+
 		Jext.clear();
 
-		J0.clear();
+		E.clear();
 
 		LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
 
-		LOG_CMD(LoadField(dict["InitValue"]["J"], &Jext));
+		LOG_CMD(LoadField(dict["InitValue"]["J"], &J0));
 
 		LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
 
 		LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
 
 		LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
+
+		Jext = J0;
 	}
 
 	dB.clear();
 
 	dE.clear();
 
-	E.clear();
-
 	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
-
-//	LOGGER << simpla::Save("B", B);
-//	LOGGER << simpla::Save("J0", J0);
-//	LOGGER << simpla::Save("ne_", ne0);
-//	LOGGER << simpla::Save("Te_", Te0);
-//	LOGGER << simpla::Save("Ti_", Ti0);
-
-	bool enableImplicit = false;
-
-	bool enablePML = false;
 
 	LOGGER << "Load Particles";
 
@@ -281,6 +275,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	}
 
+	bool enableImplicit = false;
+
 	for (auto const &p : particles_)
 	{
 		enableImplicit = enableImplicit || p.second->EnableImplicit();
@@ -299,7 +295,6 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-
 				commandToE_.push_back(E.CreateCommand(model_.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "B")
@@ -324,6 +319,8 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			PARSER_ERROR("Load 'Constraints' error! ");
 		}
 	}
+
+	bool enablePML = false;
 
 	try
 	{
@@ -361,8 +358,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	{
 		PARSER_ERROR("Configure field solver error! ");
 	}
+
 	Implicit_PushE = [] ( TE const &, TB const &, TParticles const&, TE*)
 	{};
+
 	if (enableImplicit)
 	{
 
@@ -455,6 +454,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
+	dE = Jext * (dt / epsilon0);
 	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 

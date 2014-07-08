@@ -116,7 +116,7 @@ public:
 	template<typename TDict, typename ...Others>
 	void Load(TDict const & dict, Others &&...others)
 	{
-		topology_type::Load(dict, std::forward<Others>(others));
+		topology_type::Load(dict, std::forward<Others>(others)...);
 		try
 		{
 
