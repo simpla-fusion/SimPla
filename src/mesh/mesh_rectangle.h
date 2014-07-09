@@ -115,7 +115,7 @@ public:
 	{
 		geometry_type::print(os);
 
-		os << " , " << "K_img = " << k_imag;
+		os << " K_img = " << k_imag << std::endl;
 
 		return os;
 	}

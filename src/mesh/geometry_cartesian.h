@@ -24,7 +24,7 @@ namespace simpla
  *
  *
  */
-template<typename TTopology>
+template<typename TTopology, unsigned int ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianGeometry: public TTopology
 {
 private:
@@ -35,9 +35,9 @@ public:
 
 	static constexpr unsigned int NDIMS = topology_type::NDIMS;
 
-	static constexpr unsigned int XAxis = CARTESIAN_XAXIS;
-	static constexpr unsigned int YAxis = CARTESIAN_YAXIS;
-	static constexpr unsigned int ZAxis = CARTESIAN_ZAXIS;
+	static constexpr unsigned int XAxis = (ZAXIS + 2) % 3;
+	static constexpr unsigned int YAxis = (ZAXIS + 1) % 3;
+	static constexpr unsigned int ZAxis = ZAXIS;
 
 	typedef Real scalar_type;
 
@@ -163,9 +163,16 @@ public:
 	{
 		topology_type::print(os);
 
-		os << " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
+		os
+
+		<< " Min = " << xmin_ << " ," << std::endl
+
+		<< " Max  = " << xmax_ << "," << std::endl
+
+		<< " dt  = " << dt_ << "," << std::endl;
 
 		return os;
+
 	}
 
 	void set_extents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
@@ -263,41 +270,39 @@ public:
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &y, unsigned int ToZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &y) const
 	{
 		coordinates_type x;
 
-		x[XAxis] = y[(ToZAxis + 1) % 3];
-		x[YAxis] = y[(ToZAxis + 2) % 3];
-		x[ZAxis] = y[(ToZAxis + 3) % 3];
+		x[CARTESIAN_XAXIS] = y[XAxis];
+		x[CARTESIAN_YAXIS] = y[YAxis];
+		x[CARTESIAN_ZAXIS] = y[ZAxis];
 
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &x, unsigned int ToZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &x) const
 	{
 
 		coordinates_type y;
 
-		y[(ToZAxis + 1) % 3] = x[XAxis];
-		y[(ToZAxis + 2) % 3] = x[YAxis];
-		y[(ToZAxis + 3) % 3] = x[ZAxis];
+		y[XAxis] = x[CARTESIAN_XAXIS];
+		y[YAxis] = x[CARTESIAN_YAXIS];
+		y[ZAxis] = x[CARTESIAN_ZAXIS];
 
 		return std::move(y);
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
-	        unsigned int CartesianZAxis = 2) const
+	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z) const
 	{
-		return std::move(std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis), std::get<1>(Z)));
+		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R, unsigned int CartesianZAxis =
-	        2) const
+	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R) const
 	{
-		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
+		return std::move(std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
 	}
 
 	/**
@@ -312,19 +317,19 @@ public:
 
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
 	{
-		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
+		coordinates_type y = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
 		nTuple<NDIMS, TV> u;
 
-		u[(CartesianZAxis + 1) % 3] = v[CARTESIAN_XAXIS];
-		u[(CartesianZAxis + 2) % 3] = v[YAxis];
-		u[(CartesianZAxis + 3) % 3] = v[ZAxis];
+		u[XAxis] = v[CARTESIAN_XAXIS];
+		u[YAxis] = v[CARTESIAN_YAXIS];
+		u[ZAxis] = v[CARTESIAN_ZAXIS];
 
-		return std::move(std::make_tuple(r, u));
+		return std::move(std::make_tuple(y, u));
 	}
 
 	/**
@@ -339,18 +344,16 @@ public:
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
 	{
-		auto const & r = std::get<0>(R);
-		auto const & v = std::get<1>(R);
+		auto x = InvMapTo(std::get<0>(R));
+		auto const & u = std::get<1>(R);
 
-		nTuple<NDIMS, TV> u;
+		nTuple<NDIMS, TV> v;
 
-		u[XAxis] = v[(CartesianZAxis + 1) % 3];
+		v[CARTESIAN_XAXIS] = u[XAxis];
+		v[CARTESIAN_YAXIS] = u[YAxis];
+		v[CARTESIAN_ZAXIS] = u[ZAxis];
 
-		u[YAxis] = v[(CartesianZAxis + 2) % 3];
-
-		u[ZAxis] = v[(CartesianZAxis + 3) % 3];
-
-		return std::move(std::make_tuple(InvMapTo(r), u));
+		return std::move(std::make_tuple(x, v));
 	}
 
 	template<typename TR>

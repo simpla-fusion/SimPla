@@ -86,7 +86,8 @@ struct UniformArray
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		os << " Dimensions =  " << get_dimensions();
+		os << " Dimensions =  " << get_dimensions() << "," << std::endl;
+
 		return os;
 	}
 	static std::string get_type_as_string_static()

@@ -1,4 +1,4 @@
-Description="For Cold Plasma Dispersion" -- description or other text things.
+Description="RF Wave in Tokamak" -- description or other text things.
 -- SI Unit System
 c 	 	= 299792458  -- m/s
 e		= 1.60217656e-19 -- C
@@ -29,9 +29,9 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 512
-NY = 512
-NZ = 1
+NX = 1
+NY = 256
+NZ = 256
 LX = 10 --m --100000*rhoi --0.6
 LY = 1 --2.0*math.pi/k0
 LZ = 1 -- 2.0*math.pi/18
@@ -87,8 +87,8 @@ Model=
 
 	--Type = "ExplicitEMContext_Cylindrical2_UniformArray",
 
-    Type ="ExplicitEMContext_Cartesian_UniformArray",
-	
+	Type ="ExplicitEMContext_Cartesian_UniformArray",
+
 	UnitSystem={Type="SI"},
 
 	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
@@ -96,9 +96,9 @@ Model=
 	Mesh={
 
 
-		Min={1.2,-1.4,0.0},
+		Min={0.0,1.2,-2.0 },
 
-		Max={2.8,1.4,TWOPI},
+		Max={TWOPI,2.4,2.0 },
 
 		dt= 0.5*LX/NX/c, -- time step
 

@@ -151,7 +151,13 @@ public:
 	{
 		topology_type::print(os);
 
-		os << " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
+		os
+
+		<< " Min = " << xmin_ << " ," << std::endl
+
+		<< " Max  = " << xmax_ << "," << std::endl
+
+		<< " dt  = " << dt_ << "," << std::endl;
 
 		return os;
 	}
@@ -309,7 +315,7 @@ public:
 //! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
 //! @{
 
-	coordinates_type InvMapTo(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &r) const
 	{
 		coordinates_type x;
 
@@ -324,14 +330,14 @@ public:
 		 *  \f}
 		 *
 		 */
-		x[(CartesianZAxis + 1) % 3] = r[RAxis] * std::sin(r[PhiAxis]);
-		x[(CartesianZAxis + 2) % 3] = r[RAxis] * std::cos(r[PhiAxis]);
-		x[CartesianZAxis % 3] = r[ZAxis];
+		x[CARTESIAN_XAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
+		x[CARTESIAN_YAXIS] = r[RAxis] * std::cos(r[PhiAxis]);
+		x[CARTESIAN_ZAXIS] = r[ZAxis];
 
 		return std::move(x);
 	}
 
-	coordinates_type MapTo(coordinates_type const &x, unsigned int CartesianZAxis = 2) const
+	coordinates_type MapTo(coordinates_type const &x) const
 	{
 		coordinates_type r;
 		/**
@@ -344,27 +350,23 @@ public:
 		 *  \f}
 		 *
 		 */
-		r[ZAxis] = x[CartesianZAxis % 3];
-		r[RAxis] = std::sqrt(
-		        x[(CartesianZAxis + 1) % 3] * x[(CartesianZAxis + 1) % 3]
-		                + x[(CartesianZAxis + 2) % 3] * x[(CartesianZAxis + 2) % 3]);
-		r[PhiAxis] = std::atan2(x[(CartesianZAxis + 1) % 3], x[(CartesianZAxis + 2) % 3]);
+		r[ZAxis] = x[CARTESIAN_ZAXIS];
+		r[RAxis] = std::sqrt(x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS] + x[CARTESIAN_YAXIS] * x[CARTESIAN_YAXIS]);
+		r[PhiAxis] = std::atan2(x[CARTESIAN_XAXIS], x[CARTESIAN_YAXIS]);
 
 		return r;
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z,
-	        unsigned int CartesianZAxis = 2) const
+	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z) const
 	{
-		return std::move(std::make_tuple(MapTo(std::get<0>(Z), CartesianZAxis), std::get<1>(Z)));
+		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R, unsigned int CartesianZAxis =
-	        2) const
+	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R) const
 	{
-		return std::move(std::make_tuple(InvMapTo(std::get<0>(R), CartesianZAxis), std::get<1>(R)));
+		return std::move(std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
 	}
 
 	/**
@@ -392,9 +394,9 @@ public:
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
 	{
-		coordinates_type r = MapTo(std::get<0>(Z), CartesianZAxis);
+		coordinates_type r = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
@@ -402,11 +404,11 @@ public:
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
-		u[ZAxis] = v[CartesianZAxis % 3];
+		u[ZAxis] = v[CARTESIAN_ZAXIS];
 
-		u[RAxis] = v[(CartesianZAxis + 1) % 3] * c + v[(CartesianZAxis + 2) % 3] * s;
+		u[RAxis] = v[CARTESIAN_XAXIS] * c + v[CARTESIAN_YAXIS] * s;
 
-		u[PhiAxis] = (-v[(CartesianZAxis + 1) % 3] * s + v[(CartesianZAxis + 2) % 3] * c) / r[RAxis];
+		u[PhiAxis] = (-v[CARTESIAN_XAXIS] * s + v[CARTESIAN_YAXIS] * c) / r[RAxis];
 
 		return std::move(std::make_tuple(r, u));
 	}
@@ -422,7 +424,7 @@ public:
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
+	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -431,9 +433,9 @@ public:
 
 		nTuple<NDIMS, TV> v;
 
-		v[(CartesianZAxis + 1) % 3] = u[RAxis] * c - u[PhiAxis] * r[RAxis] * s;
-		v[(CartesianZAxis + 2) % 3] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
-		v[(CartesianZAxis + 3) % 3] = u[ZAxis];
+		v[CARTESIAN_XAXIS] = u[RAxis] * c - u[PhiAxis] * r[RAxis] * s;
+		v[CARTESIAN_YAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
+		v[CARTESIAN_ZAXIS] = u[ZAxis];
 
 		return std::move(std::make_tuple(InvMapTo(r), v));
 	}

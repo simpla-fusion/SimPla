@@ -33,6 +33,7 @@
 #include "../../src/model/model.h"
 #include "../../src/model/geqdsk.h"
 #include "../../src/flow_control/context_base.h"
+#include "../../src/numeric/geometric_algorithm.h"
 
 // Solver
 #include "../field_solver/pml.h"
@@ -199,11 +200,11 @@ template<typename OS>
 OS &ExplicitEMContext<TM>::print_(OS & os) const
 {
 
-	os << description << std::endl
+	os
 
-	<< " Model = ";
+	<< "Description = \"" << description << "\"," << std::endl
 
-	model.print(os);
+	<< " Model = { " << model << "} ," << std::endl;
 
 	if (particles_.size() > 0)
 	{
@@ -219,13 +220,6 @@ OS &ExplicitEMContext<TM>::print_(OS & os) const
 	return os;
 
 }
-
-//template<typename TM>
-//std::string ExplicitEMContext<TM>::load(std::string const & path)
-//{
-//	UNIMPLEMENT2("Load context from file");
-//	return "";
-//}
 
 template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
@@ -251,7 +245,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"";
+	description = dict["Description"].template as<std::string>();
 
 	LOGGER << description;
 
@@ -276,18 +270,21 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		std::tie(src_min, src_max) = geqdsk.get_extents();
 
-		typename mesh_type::coordinates_type min;
-		typename mesh_type::coordinates_type max;
+		typename mesh_type::coordinates_type min1, min2, max1, max2;
 
-		std::tie(min, max) = model.get_extents();
+		std::tie(min1, max1) = model.get_extents();
 
-		min[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
-		max[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+		min2[(mesh_type::ZAxis + 1) % 3] = min1[(mesh_type::ZAxis + 1) % 3];
+		min2[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
+		min2[(mesh_type::ZAxis + 3) % 3] = src_min[GEqdsk::ZAxis];
 
-		min[mesh_type::ZAxis] = src_min[GEqdsk::ZAxis];
-		max[mesh_type::ZAxis] = src_max[GEqdsk::ZAxis];
+		max2[(mesh_type::ZAxis + 1) % 3] = max1[(mesh_type::ZAxis + 1) % 3];
+		max2[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+		max2[(mesh_type::ZAxis + 3) % 3] = src_max[GEqdsk::ZAxis];
 
-		model.set_extents(min, max);
+		Clipping(min1, max1, &min2, &max2);
+
+		model.set_extents(min2, max2);
 
 		model.Update();
 

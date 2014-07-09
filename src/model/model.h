@@ -104,7 +104,13 @@ public:
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		return mesh_type::print(os);
+		os << std::endl
+
+		<< " Type= \"" << mesh_type::get_type_as_string() << "\"," << std::endl;
+
+		mesh_type::print(os);
+
+		return os;
 	}
 
 	void Update()

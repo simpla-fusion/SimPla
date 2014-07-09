@@ -166,7 +166,7 @@ int main(int argc, char **argv)
 		else
 		{
 			INFORM << ctx->save("/Input" );
-			LOGGER<< *ctx;
+			INFORM <<std::endl<< *ctx;
 		}
 	}
 
