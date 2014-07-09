@@ -188,7 +188,7 @@ struct OcForest
 	{
 		try
 		{
-			LOGGER << "load OcForest ";
+			LOGGER << "Load OcForest ";
 			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch(...)

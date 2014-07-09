@@ -67,8 +67,8 @@ public:
 		CUSTOM = 20
 	};
 
-	Model() :
-			mesh_type(), null_material(), max_material_(CUSTOM + 1)
+	Model()
+			: mesh_type(), null_material(), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -92,11 +92,24 @@ public:
 	{
 		return is_ready_ && mesh_type::is_ready();
 	}
+	template<typename TDict>
+	bool load(TDict const & dict)
+	{
+		return mesh_type::load(dict);
+	}
+	std::string save(std::string const & path) const
+	{
+		return mesh_type::save(path);
+	}
+	template<typename OS>
+	OS & print(OS &os) const
+	{
+		return mesh_type::print(os);
+	}
 
 	void Update()
 	{
 		mesh_type::Update();
-
 		is_ready_ = mesh_type::is_ready();
 	}
 
@@ -149,8 +162,7 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -167,22 +179,6 @@ public:
 	void clear()
 	{
 		material_.clear();
-	}
-
-	template<typename TDict>
-	void load(TDict const & dict)
-	{
-		UNIMPLEMENT;
-	}
-	std::string save(std::string const & path, bool is_verbose = false) const
-	{
-		UNIMPLEMENT;
-		return "UNIMPLEMENT!";
-	}
-	template<typename OS>
-	OS & print(OS &os) const
-	{
-		return mesh_type::print(os);
 	}
 
 	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
@@ -228,7 +224,8 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material) material_.erase(s);
+			if (material_[s] == null_material)
+				material_.erase(s);
 		}
 	}
 
@@ -471,7 +468,8 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out) out = null_material;
+	if (in == out)
+		out = null_material;
 
 	pred_fun_type pred =
 

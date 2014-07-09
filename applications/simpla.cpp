@@ -150,6 +150,7 @@ int main(int argc, char **argv)
 	LOGGER << "Pre-Process" << START;
 
 	std::shared_ptr<ContextBase> ctx;
+
 	// Preprocess    ====================================
 
 	{
@@ -165,6 +166,7 @@ int main(int argc, char **argv)
 		else
 		{
 			INFORM << ctx->save("/Input" );
+			LOGGER<< *ctx;
 		}
 	}
 

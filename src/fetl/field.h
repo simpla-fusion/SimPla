@@ -319,9 +319,8 @@ public:
 		return interpolator_type::Scatter( this, z,v);
 	}
 
-	template<typename TG, typename TRange,typename TObj>
-	auto pull_back(TRange const & range,TG const & geo, TObj const & obj)
-	->typename std::enable_if<std::is_same<TG,geometry_type>::value,void> ::type
+	template< typename TRange,typename TObj>
+	void pull_back(TRange const & range,geometry_type const & geo, TObj const & obj)
 	{
 		for (auto s : range)
 		{
@@ -330,8 +329,7 @@ public:
 	}
 
 	template<typename TG,typename TRange,typename TObj>
-	auto pull_back(TRange const & range,TG const & geo,TObj const & obj)
-	->typename std::enable_if<!std::is_same<TG,geometry_type>::value,void>::type
+	void pull_back(TRange const & range,TG const & geo,TObj const & obj)
 	{
 		for (auto s : range)
 		{

@@ -91,8 +91,8 @@ public:
 			res->J.clear();
 			res->n.clear();
 
-			loadField(dict["Density"], &(res->n));
-			loadField(dict["Current"], &(res->J));
+			load_field(dict["Density"], &(res->n));
+			load_field(dict["Current"], &(res->J));
 
 			res->n *= res->q;
 		} catch (...)

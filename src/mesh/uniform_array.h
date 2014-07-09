@@ -69,17 +69,18 @@ struct UniformArray
 		//@todo NOT COMPLETE!!
 	}
 
-	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others && ...)
+	template<typename TDict>
+	bool load(TDict const & dict)
 	{
-		try
+		if (!dict["Dimensions"])
 		{
-			LOGGER << "load UniformArray ";
-			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
-		} catch (...)
-		{
-			PARSER_ERROR("Configure UniformArray error!");
+			WARNING << ("Configure  error: no 'Dimensions'!");
+			return false;
 		}
+
+		set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
+
+		return true;
 	}
 
 	template<typename OS>

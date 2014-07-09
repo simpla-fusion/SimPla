@@ -68,7 +68,8 @@ public:
 	}
 	static std::string get_type_as_string_static()
 	{
-		return "Cylindrical" + ToString(PhiAxis);
+		auto phi_axis = PhiAxis;
+		return "Cylindrical" + ToString(phi_axis);
 	}
 
 	std::string get_type_as_string() const
@@ -118,38 +119,39 @@ public:
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
-	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others &&...others)
+	template<typename TDict>
+	bool load(TDict const & dict)
 	{
-		topology_type::load(dict, std::forward<Others>(others)...);
-		try
+
+		if (topology_type::load(dict) && dict["Min"] && dict["Max"])
 		{
 
-			if (dict["Min"] && dict["Max"])
-			{
-				LOGGER << "load CylindricalGeometry ";
+			LOGGER << "Load Cylindrical Geometry ";
 
-				set_extents(
+			set_extents(
 
-				dict["Min"].template as<nTuple<NDIMS, Real>>(),
+			dict["Min"].template as<nTuple<NDIMS, Real>>(),
 
-				dict["Max"].template as<nTuple<NDIMS, Real>>());
-			}
+			dict["Max"].template as<nTuple<NDIMS, Real>>());
 
 			dt_ = dict["dt"].template as<Real>();
 
-		} catch (...)
-		{
-			PARSER_ERROR("Configure CylindricalGeometry error!");
+			return true;
+
 		}
+
+		WARNING << "Configure Error: no Min or Max ";
+
+		return false;
+
 	}
 
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		topology_type::print(os) << std::endl
+		topology_type::print(os);
 
-		<< " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
+		os << " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
 
 		return os;
 	}
@@ -254,8 +256,8 @@ public:
 
 		return std::move(res);
 	}
-	//! @name Normalize coordiantes to  [0,1 )
-	//!@{
+//! @name Normalize coordiantes to  [0,1 )
+//!@{
 
 	template<typename ... Args>
 	inline coordinates_type get_coordinates(Args && ... args) const
@@ -302,10 +304,10 @@ public:
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	//!@}
-	//! @name Coordiantes convert Cylindrical <-> Cartesian
-	//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
-	//! @{
+//!@}
+//! @name Coordiantes convert Cylindrical <-> Cartesian
+//! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
+//! @{
 
 	coordinates_type InvMapTo(coordinates_type const &r, unsigned int CartesianZAxis = 2) const
 	{
@@ -435,7 +437,7 @@ public:
 
 		return std::move(std::make_tuple(InvMapTo(r), v));
 	}
-	//! @}
+//! @}
 
 	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
 	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
@@ -493,8 +495,8 @@ public:
 		return Normal(s, v);
 	}
 
-	//! @name Matric/coordinates  depend transform
-	//! @{
+//! @name Matric/coordinates  depend transform
+//! @{
 
 	Real volume_[8] = { 1, // 000
 	        1, //001
@@ -632,7 +634,7 @@ public:
 		return topology_type::InvDualVolume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
-	//! @}
+//! @}
 }
 ;
 

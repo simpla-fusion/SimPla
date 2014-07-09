@@ -27,7 +27,7 @@ public:
 
 	virtual std::string get_type_as_string() const =0;
 
-	virtual std::string load(std::string const &) =0;
+//	virtual std::string load(std::string const &) =0;
 
 	virtual std::string save(std::string const &) const =0;
 
@@ -46,6 +46,10 @@ public:
 		return !empty();
 	}
 };
+inline std::ostream & operator<<(std::ostream& os, ContextBase const & ctx)
+{
+	return ctx.print(os);
+}
 
 }  // namespace simpla
 

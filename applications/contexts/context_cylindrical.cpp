@@ -1,7 +1,7 @@
 /**
- * context_cylindical.cpp
+ * context_cylindrical.cpp
  *
- * \date 2014年7月9日
+ * \date 2014-7-9
  * \author salmon
  */
 

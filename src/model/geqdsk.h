@@ -102,7 +102,7 @@ public:
 
 	void Write(std::string const &fname);
 
-	void loadProfile(std::string const &fname);
+	void load_profile(std::string const &fname);
 
 	inline Real Profile(std::string const & name, coordinates_type const & x) const
 	{

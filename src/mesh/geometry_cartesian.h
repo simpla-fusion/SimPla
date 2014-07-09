@@ -35,9 +35,9 @@ public:
 
 	static constexpr unsigned int NDIMS = topology_type::NDIMS;
 
-	static constexpr unsigned int XAxis = 0;
-	static constexpr unsigned int YAxis = 1;
-	static constexpr unsigned int ZAxis = 2;
+	static constexpr unsigned int XAxis = CARTESIAN_XAXIS;
+	static constexpr unsigned int YAxis = CARTESIAN_YAXIS;
+	static constexpr unsigned int ZAxis = CARTESIAN_ZAXIS;
 
 	typedef Real scalar_type;
 
@@ -126,47 +126,46 @@ public:
 	coordinates_type shift_ = { 0, 0, 0 };
 
 	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others &&...others)
+	bool load(TDict const & dict, Others &&...others)
 	{
-		try
+
+		if (topology_type::load(dict) && dict["Min"] && dict["Max"])
 		{
 
-			topology_type::load(dict, std::forward<Others>(others)...);
+			LOGGER << "Load CartesianGeometry ";
 
-			if (dict["Min"] && dict["Max"])
-			{
-				LOGGER << "load CartesianGeometry ";
+			set_extents(
 
-				set_extents(
+			dict["Min"].template as<nTuple<NDIMS, Real>>(),
 
-				dict["Min"].template as<nTuple<NDIMS, Real>>(),
-
-				dict["Max"].template as<nTuple<NDIMS, Real>>());
-			}
+			dict["Max"].template as<nTuple<NDIMS, Real>>());
 
 			dt_ = dict["dt"].template as<Real>();
 
-		} catch (...)
-		{
-			PARSER_ERROR("Configure CartesianGeometry error!");
+			return true;
+
 		}
+
+		WARNING << "Configure Error: no Min or Max ";
+
+		return false;
+
 	}
 
 	std::string save(std::string const &path) const
 	{
-		std::stringstream os;
+		return topology_type::save(path);
 
-		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_ << ", "
-
-		<< topology_type::save(path);
-
-		return os.str();
 	}
-	template<typename ...Others>
-	inline void set_extents(coordinates_type const & pmin, coordinates_type const & pmax, Others&& ... others)
+
+	template<typename OS>
+	OS & print(OS &os) const
 	{
-		topology_type::set_dimensions(std::forward<Others >(others)...);
-		set_extents(pmin, pmax);
+		topology_type::print(os);
+
+		os << " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
+
+		return os;
 	}
 
 	void set_extents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
@@ -264,18 +263,7 @@ public:
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
 
-	coordinates_type InvMapTo(coordinates_type const &x, unsigned int ToZAxis = 2) const
-	{
-		coordinates_type y;
-
-		y[(ToZAxis + 1) % 3] = x[XAxis];
-		y[(ToZAxis + 2) % 3] = x[YAxis];
-		y[(ToZAxis + 3) % 3] = x[ZAxis];
-
-		return std::move(x);
-	}
-
-	coordinates_type MapTo(coordinates_type const &y, unsigned int ToZAxis = 2) const
+	coordinates_type InvMapTo(coordinates_type const &y, unsigned int ToZAxis = 2) const
 	{
 		coordinates_type x;
 
@@ -284,6 +272,18 @@ public:
 		x[ZAxis] = y[(ToZAxis + 3) % 3];
 
 		return std::move(x);
+	}
+
+	coordinates_type MapTo(coordinates_type const &x, unsigned int ToZAxis = 2) const
+	{
+
+		coordinates_type y;
+
+		y[(ToZAxis + 1) % 3] = x[XAxis];
+		y[(ToZAxis + 2) % 3] = x[YAxis];
+		y[(ToZAxis + 3) % 3] = x[ZAxis];
+
+		return std::move(y);
 	}
 
 	template<typename TV>
@@ -320,11 +320,9 @@ public:
 
 		nTuple<NDIMS, TV> u;
 
-		u[XAxis] = v[(CartesianZAxis + 1) % 3];
-
-		u[YAxis] = v[(CartesianZAxis + 2) % 3];
-
-		u[ZAxis] = v[CartesianZAxis % 3];
+		u[(CartesianZAxis + 1) % 3] = v[CARTESIAN_XAXIS];
+		u[(CartesianZAxis + 2) % 3] = v[YAxis];
+		u[(CartesianZAxis + 3) % 3] = v[ZAxis];
 
 		return std::move(std::make_tuple(r, u));
 	}
@@ -342,15 +340,17 @@ public:
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
 	{
 		auto const & r = std::get<0>(R);
-		auto const & u = std::get<1>(R);
+		auto const & v = std::get<1>(R);
 
-		nTuple<NDIMS, TV> v;
+		nTuple<NDIMS, TV> u;
 
-		v[(CartesianZAxis + 1) % 3] = u[XAxis];
-		v[(CartesianZAxis + 2) % 3] = u[YAxis];
-		v[(CartesianZAxis + 3) % 3] = u[ZAxis];
+		u[XAxis] = v[(CartesianZAxis + 1) % 3];
 
-		return std::move(std::make_tuple(InvMapTo(r), v));
+		u[YAxis] = v[(CartesianZAxis + 2) % 3];
+
+		u[ZAxis] = v[(CartesianZAxis + 3) % 3];
+
+		return std::move(std::make_tuple(InvMapTo(r), u));
 	}
 
 	template<typename TR>
@@ -391,9 +391,9 @@ public:
 		return v;
 	}
 
-	//***************************************************************************************************
-	// Volume
-	//***************************************************************************************************
+//***************************************************************************************************
+// Volume
+//***************************************************************************************************
 
 	/**
 	 *\verbatim

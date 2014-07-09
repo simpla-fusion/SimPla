@@ -32,13 +32,12 @@
 // Model
 #include "../../src/model/model.h"
 #include "../../src/model/geqdsk.h"
+#include "../../src/flow_control/context_base.h"
 
 // Solver
 #include "../field_solver/pml.h"
 #include "../field_solver/implicitPushE.h"
 #include "../particle_solver/register_particle.h"
-
-#include "../../src/flow_control/context_base.h"
 
 namespace simpla
 {
@@ -69,10 +68,6 @@ public:
 
 	~ExplicitEMContext();
 
-	template<typename TDict> void load(TDict const & dict);
-
-	template<typename OS> OS& print_(OS &) const;
-
 	double CheckCourantDt() const;
 
 	template<typename ...Args>
@@ -94,7 +89,11 @@ public:
 
 	// interface begin
 
-	std::string load(std::string const & path = "");
+	template<typename TDict> void load(TDict const & dict);
+
+	template<typename OS> OS& print_(OS &) const;
+
+//	std::string load(std::string const & path = "");
 
 	std::string save(std::string const & path = "") const;
 
@@ -221,12 +220,12 @@ OS &ExplicitEMContext<TM>::print_(OS & os) const
 
 }
 
-template<typename TM>
-std::string ExplicitEMContext<TM>::load(std::string const & path)
-{
-	UNIMPLEMENT2("Load context from file");
-	return "";
-}
+//template<typename TM>
+//std::string ExplicitEMContext<TM>::load(std::string const & path)
+//{
+//	UNIMPLEMENT2("Load context from file");
+//	return "";
+//}
 
 template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
@@ -236,7 +235,6 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	LOGGER << SAVE(E);
 	LOGGER << SAVE(B);
-	LOGGER << SAVE(n);
 	LOGGER << SAVE(Jext);
 
 	for (auto const & p : particles_)
@@ -251,9 +249,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 {
 	DEFINE_PHYSICAL_CONST
 
-	LOGGER << "load ExplicitEMContext ";
+	LOGGER << "Load ExplicitEMContext ";
 
-	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
+	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"";
 
 	LOGGER << description;
 
@@ -261,13 +259,17 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	field<VERTEX, Real> Te0(model);
 	field<VERTEX, Real> Ti0(model);
 
-	model.load(dict["Model"]);
+	if (!model.load(dict["Model"]["Mesh"]))
+	{
+		PARSER_ERROR("Configure 'Model' fail!");
+	}
 
 	if (dict["Model"]["GFile"])
 	{
 		GEqdsk geqdsk;
 
 		geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
+		geqdsk.save("/Geqdsk");
 
 		typename mesh_type::coordinates_type src_min;
 		typename mesh_type::coordinates_type src_max;
@@ -287,11 +289,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		model.set_extents(min, max);
 
-		geqdsk.SetUpMaterial(&model);
-
-		geqdsk.save("/Geqdsk");
-
 		model.Update();
+
+		geqdsk.SetUpMaterial(&model);
 
 		E.clear();
 		B.clear();
@@ -324,15 +324,15 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		E.clear();
 
-		LOG_CMD(loadField(dict["InitValue"]["B"], &B));
+		LOG_CMD(load_field(dict["InitValue"]["B"], &B));
 
-		LOG_CMD(loadField(dict["InitValue"]["J"], &J0));
+		LOG_CMD(load_field(dict["InitValue"]["J"], &J0));
 
-		LOG_CMD(loadField(dict["InitValue"]["ne"], &ne0));
+		LOG_CMD(load_field(dict["InitValue"]["ne"], &ne0));
 
-		LOG_CMD(loadField(dict["InitValue"]["Te"], &Te0));
+		LOG_CMD(load_field(dict["InitValue"]["Te"], &Te0));
 
-		LOG_CMD(loadField(dict["InitValue"]["Ti"], &Ti0));
+		LOG_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
 
 		Jext = J0;
 	}
@@ -341,9 +341,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	dE.clear();
 
-	LOG_CMD(loadField(dict["InitValue"]["E"], &E));
+	LOG_CMD(load_field(dict["InitValue"]["E"], &E));
 
-	LOGGER << "load Particles";
+	LOGGER << "Load Particles";
 
 	auto particle_factory = RegisterAllParticles<mesh_type, TDict, Model<mesh_type> const &, decltype(ne0),
 	        decltype(Te0)>();
@@ -387,7 +387,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		enableImplicit = enableImplicit || p.second->is_implicit();
 	}
 
-	LOGGER << "load Constraints";
+	LOGGER << "Load Constraints";
 
 	for (auto const & item : dict["Constraints"])
 	{
@@ -421,7 +421,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		} catch (std::runtime_error const & e)
 		{
 
-			PARSER_ERROR("load 'Constraints' error! ");
+			PARSER_ERROR("Load 'Constraints' error! ");
 		}
 	}
 
@@ -429,7 +429,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	try
 	{
-		LOGGER << "load electromagnetic fields solver";
+		LOGGER << "Load electromagnetic fields solver";
 
 		using namespace std::placeholders;
 

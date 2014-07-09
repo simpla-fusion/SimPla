@@ -29,7 +29,7 @@ namespace simpla
 typedef Factory<std::string, ContextBase, LuaObject> context_factory;
 
 void RegisterEMContextCartesian(context_factory *);
-//void RegisterEMContextCylindical(context_factory *);
+void RegisterEMContextCylindrical(context_factory *);
 
 context_factory RegisterContext()
 {
@@ -37,7 +37,7 @@ context_factory RegisterContext()
 	context_factory factory;
 
 	RegisterEMContextCartesian(&factory);
-//	RegisterEMContextCylindical(&factory);
+	RegisterEMContextCylindrical(&factory);
 
 	return std::move(factory);
 }

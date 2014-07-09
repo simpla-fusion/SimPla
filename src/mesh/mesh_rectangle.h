@@ -88,6 +88,12 @@ public:
 
 	Mesh(const this_type&) = delete;
 
+	template<typename TDict>
+	bool load(TDict const& dict)
+	{
+		return geometry_type::load(dict);
+	}
+
 	this_type & operator=(const this_type&) = delete;
 
 	inline bool operator==(this_type const & r) const
@@ -107,9 +113,9 @@ public:
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		geometry_type::print(os) << std::endl
+		geometry_type::print(os);
 
-		<< " , " << "K_img = " << k_imag;
+		os << " , " << "K_img = " << k_imag;
 
 		return os;
 	}

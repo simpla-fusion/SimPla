@@ -41,7 +41,7 @@ void GEqdsk::load(std::string const &fname)
 	coordinates_type rzmin;
 	coordinates_type rzmax;
 
-	LOGGER << "load GFile : " << fname;
+	LOGGER << "Load GFile : " << fname;
 
 	int nw; //Number of horizontal R grid points
 	int nh; //Number of vertical Z grid points
@@ -140,12 +140,12 @@ void GEqdsk::load(std::string const &fname)
 		rzlim_[s][ZAxis] = rzlim[s][1];
 		rzlim_[s][PhiAxis] = 0;
 	}
-	loadProfile(fname + "_profiles.txt");
+	load_profile(fname + "_profiles.txt");
 
 }
-void GEqdsk::loadProfile(std::string const &fname)
+void GEqdsk::load_profile(std::string const &fname)
 {
-	LOGGER << "load GFile Profiles: " << fname;
+	LOGGER << "Load GFile Profiles: " << fname;
 	std::ifstream inFileStream_(fname);
 
 	if (!inFileStream_.is_open())
