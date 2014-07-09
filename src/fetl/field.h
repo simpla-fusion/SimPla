@@ -153,7 +153,8 @@ public:
 
 	void clear()
 	{
-		initialize();container_type::clear();
+		initialize();
+		container_type::clear();
 	}
 
 	template<typename TVistor>

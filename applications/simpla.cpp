@@ -131,7 +131,7 @@ int main(int argc, char **argv)
 		context_type=dict["Model"]["Type"].template as<std::string>();
 	}
 
-	if(!GLOBAL_DATA_STREAM.IsOpened())
+	if(!GLOBAL_DATA_STREAM.is_ready())
 	{
 		GLOBAL_DATA_STREAM.OpenFile("./");
 	}
@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
-		LOGGER << ctx->save("/saveData" );
+		LOGGER << ctx->save("/Save" );
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				LOGGER << ctx->save("/saveData" );
+				LOGGER << ctx->save("/Save" );
 			}
 		}
 

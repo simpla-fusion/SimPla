@@ -88,7 +88,7 @@ public:
 		return enable_compact_storable_;
 	}
 
-	bool IsOpened() const;
+	bool is_ready() const;
 
 	inline std::string GetCurrentPath() const
 	{

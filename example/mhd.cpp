@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	}
 
 	);
-	if (!GLOBAL_DATA_STREAM.IsOpened())
+	if (!GLOBAL_DATA_STREAM.is_ready())
 	{
 		GLOBAL_DATA_STREAM.OpenFile("./");
 	}

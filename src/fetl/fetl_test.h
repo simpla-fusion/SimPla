@@ -59,9 +59,11 @@ protected:
 		mesh.set_dimensions( dims);
 		mesh.set_extents(xmin, xmax);
 
+		mesh.Update();
+
 		K_imag = mesh.k_imag;
 
-		if (!GLOBAL_DATA_STREAM.IsOpened())
+		if (!GLOBAL_DATA_STREAM.is_ready())
 		{
 
 			GLOBAL_DATA_STREAM.OpenFile("MeshTest");

@@ -229,6 +229,8 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	LOGGER << SAVE(E);
 	LOGGER << SAVE(B);
+	LOGGER << SAVE(dE);
+	LOGGER << SAVE(dB);
 	LOGGER << SAVE(Jext);
 
 	for (auto const & p : particles_)
@@ -523,7 +525,6 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
-	dE = Jext * (dt / epsilon0);
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 

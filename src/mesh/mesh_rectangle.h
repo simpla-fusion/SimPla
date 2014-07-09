@@ -72,13 +72,6 @@ public:
 	nTuple<NDIMS, scalar_type> k_imag = { 0, 0, 0 };
 
 	Mesh()
-			: geometry_type()
-	{
-	}
-
-	template<typename ... Args>
-	Mesh(Args && ... args)
-			: geometry_type(std::forward<Args>(args)...)
 	{
 	}
 
