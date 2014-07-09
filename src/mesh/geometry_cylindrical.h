@@ -134,7 +134,24 @@ public:
 
 			dict["Max"].template as<nTuple<NDIMS, Real>>());
 
-			dt_ = dict["dt"].template as<Real>();
+			DEFINE_PHYSICAL_CONST
+
+			coordinates_type min, max;
+
+			std::tie(min, max) = get_extents();
+
+			auto dx = get_dx();
+
+			Real R0 = (min[RAxis] + max[RAxis]) * 0.5;
+
+			dt_ = dict["dt"].template as<Real>(
+
+			        dict["CFL"].template as<Real>(0.5)
+
+			        * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
+			                / speed_of_light
+
+			                );
 
 			return true;
 

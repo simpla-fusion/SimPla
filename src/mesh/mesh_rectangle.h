@@ -115,7 +115,10 @@ public:
 	{
 		geometry_type::print(os);
 
-		os << " K_img = " << k_imag << std::endl;
+		if (enable_spectral_method)
+		{
+			os << " K_img = " << k_imag << std::endl;
+		}
 
 		return os;
 	}

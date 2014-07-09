@@ -10,10 +10,11 @@
 
 #include <iostream>
 #include <utility>
-
+#include <cmath>
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
+#include "../physics/physical_constants.h"
 
 namespace simpla
 {
@@ -109,12 +110,7 @@ public:
 	{
 		return is_ready_ && topology_type::is_ready();
 	}
-	void Update()
-	{
-		topology_type::Update();
 
-		is_ready_ = topology_type::is_ready() && UpdateVolume();
-	}
 	coordinates_type xmin_ = { 0, 0, 0 };
 
 	coordinates_type xmax_ = { 1, 1, 1 };
@@ -140,10 +136,19 @@ public:
 
 			dict["Max"].template as<nTuple<NDIMS, Real>>());
 
-			dt_ = dict["dt"].template as<Real>();
+			auto dx = get_dx();
+
+			DEFINE_PHYSICAL_CONST
+
+			dt_ = dict["dt"].template as<Real>(
+
+			dict["CFL"].template as<Real>(0.5) *
+
+			std::sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]) / speed_of_light
+
+			);
 
 			return true;
-
 		}
 
 		WARNING << "Configure Error: no Min or Max ";
@@ -205,11 +210,17 @@ public:
 			}
 		}
 
-		UpdateVolume();
 	}
 
 	inline auto get_extents() const
 	DECL_RET_TYPE(std::make_pair(xmin_, xmax_))
+
+	void Update()
+	{
+		topology_type::Update();
+
+		is_ready_ = topology_type::is_ready() && UpdateVolume();
+	}
 
 	inline coordinates_type get_dx(compact_index_type s = 0UL) const
 	{

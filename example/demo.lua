@@ -100,9 +100,11 @@ Model=
 
 		Max={TWOPI,2.4,2.0 },
 
-		dt= 0.5*LX/NX/c, -- time step
+--		dt= 0.5*LX/NX/c, -- time step
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+		
+		CFL =0.5,
 
 	},
 
