@@ -40,7 +40,10 @@ int main(int argc, char **argv)
 
 	mesh_type mesh;
 
-	mesh.set_extents(xmin, xmax,dims);
+	mesh.set_dimensions(dims);
+	mesh.set_extents(xmin, xmax);
+
+	mesh.Update();
 
 	mesh.Decompose(GLOBAL_COMM.get_size(), GLOBAL_COMM.get_rank());
 

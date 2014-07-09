@@ -22,7 +22,7 @@ namespace simpla
 template<typename T>
 struct XdmfTypeTraits
 {
-	static const  unsigned int  value = XDMF_UNKNOWN_TYPE;
+	static const unsigned int value = XDMF_UNKNOWN_TYPE;
 };
 
 #define DEF_XDMF_TYPE_TRAITS(_T_,_V_) \
@@ -30,16 +30,16 @@ template<> struct XdmfTypeTraits<_T_>{ static const  unsigned int  value = _V_;}
 
 DEF_XDMF_TYPE_TRAITS(char, XDMF_INT8_TYPE);
 DEF_XDMF_TYPE_TRAITS(short, XDMF_INT16_TYPE);
-DEF_XDMF_TYPE_TRAITS(unsigned int , XDMF_INT32_TYPE);
+DEF_XDMF_TYPE_TRAITS(int, XDMF_INT32_TYPE);
 DEF_XDMF_TYPE_TRAITS(long long, XDMF_INT64_TYPE);
 DEF_XDMF_TYPE_TRAITS(float, XDMF_FLOAT32_TYPE);
 DEF_XDMF_TYPE_TRAITS(double, XDMF_FLOAT64_TYPE);
 DEF_XDMF_TYPE_TRAITS(unsigned char, XDMF_UINT8_TYPE);
 DEF_XDMF_TYPE_TRAITS(unsigned short, XDMF_UINT16_TYPE);
-DEF_XDMF_TYPE_TRAITS( unsigned int  , XDMF_UINT32_TYPE);
+DEF_XDMF_TYPE_TRAITS(unsigned int, XDMF_UINT32_TYPE);
 #undef DEF_XDMF_TYPE_TRAITS
 
-template<typename TI, typename T> inline void InsertDataItem(XdmfDataItem *dataitem,  unsigned int  rank, TI* pdims,
+template<typename TI, typename T> inline void InsertDataItem(XdmfDataItem *dataitem, unsigned int rank, TI* pdims,
         T const * data, std::string const & HeavyDataSetName = "")
 {
 
@@ -63,8 +63,8 @@ template<typename T> inline void InsertDataItem(XdmfDataItem *dataitem, size_t n
 	InsertDataItem(dataitem, 1, &num, data, HeavyDataSetName);
 }
 
-template<typename TI, typename TFun> inline void InsertDataItemWithFun(XdmfDataItem *dataitem,  unsigned int  rank, TI* pdims,
-        TFun const &fun, std::string const & HeavyDataSetName)
+template<typename TI, typename TFun> inline void InsertDataItemWithFun(XdmfDataItem *dataitem, unsigned int rank,
+        TI* pdims, TFun const &fun, std::string const & HeavyDataSetName)
 {
 
 	XdmfInt64 dims[rank];

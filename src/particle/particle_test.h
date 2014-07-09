@@ -45,7 +45,10 @@ protected:
 		xmin = std::get<0>(param);
 		xmax = std::get<1>(param);
 		dims = std::get<2>(param);
-		mesh.set_extents(xmin, xmax, dims);
+
+		mesh.set_dimensions(dims);
+		mesh.set_extents(xmin, xmax);
+		mesh.Update();
 
 		mesh.Decompose();
 //

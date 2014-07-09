@@ -36,8 +36,9 @@ protected:
 				dims[i] = 1;
 			}
 		}
-
-		mesh.set_extents(xmin, xmax, dims);
+		mesh.set_dimensions(dims);
+		mesh.set_extents(xmin, xmax);
+		mesh.Update();
 
 	}
 public:
@@ -48,8 +49,8 @@ public:
 	typedef typename mesh_type::iterator iterator;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr   unsigned int   NDIMS = mesh_type::NDIMS;
-	static constexpr   unsigned int   IForm = TP::IForm;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int IForm = TP::IForm;
 	mesh_type mesh;
 
 	coordinates_type xmin =
@@ -69,8 +70,8 @@ TYPED_TEST_P(TestInterpolator,scatter){
 {
 
 	auto const & mesh=TestFixture::mesh;
-	static constexpr   unsigned int   IForm = TestFixture::IForm;
-	static constexpr   unsigned int   NDIMS = TestFixture::NDIMS;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
@@ -116,8 +117,8 @@ TYPED_TEST_P(TestInterpolator,gather){
 {
 
 	auto const & mesh=TestFixture::mesh;
-	static constexpr   unsigned int   IForm = TestFixture::IForm;
-	static constexpr   unsigned int   NDIMS = TestFixture::NDIMS;
+	static constexpr unsigned int IForm = TestFixture::IForm;
+	static constexpr unsigned int NDIMS = TestFixture::NDIMS;
 	typedef typename TestFixture::mesh_type mesh_type;
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;

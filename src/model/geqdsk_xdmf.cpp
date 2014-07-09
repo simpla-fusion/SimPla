@@ -36,6 +36,12 @@ void GEqdsk::Write(std::string const &fname)
 	root.Build();
 
 	XdmfDomain domain;
+
+	auto dims_ = get_dimensions();
+	coordinates_type rzmin_, rzmax_;
+
+	std::tie(rzmin_, rzmax_) = get_extents();
+
 	root.Insert(&domain);
 
 	{
@@ -83,7 +89,7 @@ void GEqdsk::Write(std::string const &fname)
 
 		grid.GetTopology()->Insert(data);
 
-		InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)-> unsigned int  
+		InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)-> unsigned int
 		{
 			return d[1]==0?d[0]:(d[0]+1)%dims[0];
 		},
@@ -130,7 +136,7 @@ void GEqdsk::Write(std::string const &fname)
 
 		grid.GetTopology()->Insert(data);
 
-		InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)-> unsigned int  
+		InsertDataItemWithFun(data, 2, dims, [&](XdmfInt64 *d)-> unsigned int
 		{
 			return d[1]==0?d[0]:(d[0]+1)%dims[0];
 		},

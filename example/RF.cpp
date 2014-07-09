@@ -7,22 +7,22 @@
 
 #include <iostream>
 
-#include "../../src/utilities/log.h"
-#include "../../src/io/data_stream.h"
-#include "../../src/physics/constants.h"
-#include "../../src/utilities/parse_command_line.h"
-#include "../../src/parallel/message_comm.h"
-#include "../../src/simpla_defs.h"
+#include "../src/utilities/log.h"
+#include "../src/io/data_stream.h"
+#include "../src/physics/constants.h"
+#include "../src/utilities/parse_command_line.h"
+#include "../src/parallel/message_comm.h"
+#include "../src/simpla_defs.h"
 
-#include "../../src/mesh/geometry_cylindrical.h"
-#include "../../src/mesh/mesh_rectangle.h"
-#include "../../src/mesh/uniform_array.h"
+#include "../src/mesh/geometry_cylindrical.h"
+#include "../src/mesh/mesh_rectangle.h"
+#include "../src/mesh/uniform_array.h"
 
-#include "../../src/model/model.h"
-#include "../../src/model/geqdsk.h"
+#include "../src/model/model.h"
+#include "../src/model/geqdsk.h"
 
-#include "../../src/fetl/fetl.h"
-#include "../../src/fetl/save_field.h"
+#include "../src/fetl/fetl.h"
+#include "../src/fetl/save_field.h"
 
 using namespace simpla;
 

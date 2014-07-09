@@ -347,8 +347,8 @@ public:
 		 *  \f}
 		 *
 		 */
-		x[CARTESIAN_XAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
-		x[CARTESIAN_YAXIS] = r[RAxis] * std::cos(r[PhiAxis]);
+		x[CARTESIAN_XAXIS] = r[RAxis] * std::cos(r[PhiAxis]);
+		x[CARTESIAN_YAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
 		x[CARTESIAN_ZAXIS] = r[ZAxis];
 
 		return std::move(x);
@@ -363,15 +363,15 @@ public:
 		 *  \f{eqnarray*}{
 		 *		r&=&\sqrt{x^{2}+y^{2}}\\
 		 *		Z&=&z\\
-		 *		\phi&=&\arg\left(x,y\right)
+		 *		\phi&=&\arg\left(y,x\right)
 		 *  \f}
 		 *
 		 */
 		r[ZAxis] = x[CARTESIAN_ZAXIS];
 		r[RAxis] = std::sqrt(x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS] + x[CARTESIAN_YAXIS] * x[CARTESIAN_YAXIS]);
-		r[PhiAxis] = std::atan2(x[CARTESIAN_XAXIS], x[CARTESIAN_YAXIS]);
+		r[PhiAxis] = std::atan2(x[CARTESIAN_YAXIS], x[CARTESIAN_XAXIS]);
 
-		return r;
+		return std::move(r);
 	}
 
 	template<typename TV>
