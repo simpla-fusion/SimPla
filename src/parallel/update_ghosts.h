@@ -1,7 +1,7 @@
 /*
  * update_ghosts.h
  *
- *  Created on: 2014-6-4
+ *  created on: 2014-6-4
  *      Author: salmon
  */
 

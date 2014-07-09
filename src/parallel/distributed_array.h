@@ -1,7 +1,7 @@
 /*
  * distributed_array.h
  *
- *  Created on: 2014-5-30
+ *  created on: 2014-5-30
  *      Author: salmon
  */
 

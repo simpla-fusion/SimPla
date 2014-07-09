@@ -1,7 +1,7 @@
 /*
  * read_geqdsk.h
  *
- *  Created on: 2013-11-29
+ *  created on: 2013-11-29
  *      Author: salmon
  */
 
@@ -84,25 +84,25 @@ public:
 	}
 	GEqdsk(std::string const &fname)
 	{
-		Load(fname);
+		load(fname);
 	}
 	template<typename TDict>
 	GEqdsk(TDict const &dict)
 	{
-		Load(dict["File"].template as<std::string>());
+		load(dict["File"].template as<std::string>());
 	}
 
 	~GEqdsk()
 	{
 	}
 
-	std::string Save(std::string const & path) const;
+	std::string save(std::string const & path) const;
 
-	void Load(std::string const &fname);
+	void load(std::string const &fname);
 
 	void Write(std::string const &fname);
 
-	void LoadProfile(std::string const &fname);
+	void loadProfile(std::string const &fname);
 
 	inline Real Profile(std::string const & name, coordinates_type const & x) const
 	{
@@ -129,7 +129,7 @@ public:
 
 	}
 
-	std::ostream & Print(std::ostream & os);
+	std::ostream & print(std::ostream & os);
 
 	inline std::vector<coordinates_type> const & Boundary() const
 	{

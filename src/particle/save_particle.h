@@ -1,7 +1,7 @@
 /*
  * save_particle.h
  *
- *  Created on: 2013-12-21
+ *  created on: 2013-12-21
  *      Author: salmon
  */
 
@@ -19,7 +19,7 @@ namespace simpla
 template<typename, typename > class ParticlePool;
 
 template<typename TM, typename TPoints> inline std::string //
-Save(std::string const & name, ParticlePool<TM, TPoints> const & d)
+save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 {
 	std::vector<TPoints> res;
 

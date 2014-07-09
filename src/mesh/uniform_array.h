@@ -1,7 +1,7 @@
 /*
  * uniform_array.h
  *
- *  Created on: 2014-2-21
+ *  created on: 2014-2-21
  *      Author: salmon
  */
 
@@ -54,7 +54,7 @@ struct UniformArray
 	template<typename ... Args>
 	UniformArray(Args &&... args)
 	{
-		Load(std::forward<Args>(args)...);
+		load(std::forward<Args>(args)...);
 	}
 
 	virtual ~UniformArray()
@@ -70,11 +70,11 @@ struct UniformArray
 	}
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others && ...)
+	void load(TDict const & dict, Others && ...)
 	{
 		try
 		{
-			LOGGER << "Load UniformArray ";
+			LOGGER << "load UniformArray ";
 			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		} catch (...)
 		{
@@ -83,13 +83,21 @@ struct UniformArray
 	}
 
 	template<typename OS>
-	OS & Print(OS &os) const
+	OS & print(OS &os) const
 	{
 		os << " Dimensions =  " << get_dimensions();
 		return os;
 	}
+	static std::string get_type_as_string_static()
+	{
+		return "UniformArray";
+	}
 
-	std::string Save(std::string const &path) const
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
+	std::string save(std::string const &path) const
 	{
 		return path;
 	}
@@ -104,7 +112,7 @@ public:
 
 	unsigned long clock_ = 0UL;
 
-	void NextTimeStep()
+	void next_timestep()
 	{
 		++clock_;
 	}

@@ -1,7 +1,7 @@
 /*
  * particle.h
  *
- *  Created on: 2012-11-1
+ *  created on: 2012-11-1
  *      Author: salmon
  */
 
@@ -27,6 +27,7 @@
 #include "../parallel/parallel.h"
 #include "../model/model.h"
 
+#include "particle_base.h"
 #include "particle_pool.h"
 #include "load_particle.h"
 #include "save_particle.h"
@@ -42,13 +43,16 @@ namespace simpla
 
 /**
  *  \brief Particle class
+ *
+ *  this class is a proxy between ParticleBase and Engine,ParticlePool
  */
 template<class Engine>
-class Particle: public Engine, public ParticlePool<typename Engine::mesh_type, typename Engine::Point_s>
+class Particle: public ParticleBase, public Engine, public ParticlePool<typename Engine::mesh_type,
+        typename Engine::Point_s>
 {
 
 public:
-	static constexpr  unsigned int  IForm = VERTEX;
+	static constexpr unsigned int IForm = VERTEX;
 
 	typedef Engine engine_type;
 
@@ -79,13 +83,86 @@ public:
 	// Destructor
 	~Particle();
 
-	template<typename TDict> void Load(TDict const & dict);
+	template<typename TDict> void load(TDict const & dict);
 
 	template<typename ...Args>
-	static std::shared_ptr<this_type> Create(Args && ... args)
+	static std::shared_ptr<ParticleBase> create(Args && ... args)
 	{
 		return LoadParticle<this_type>(std::forward<Args>(args)...);
 	}
+
+	template<typename ...Args>
+	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
+	{
+		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
+		{
+			return this_type::create(args...);
+		};
+		return std::move(std::make_pair(get_type_as_string_static(), call_back));
+	}
+	//***************************************************************************************************
+	// interface begin
+
+	bool same_mesh_type(std::type_info const & t_info) const
+	{
+		return t_info == typeid(mesh_type);
+	}
+
+	std::string save(std::string const & path) const;
+
+	std::ostream& print(std::ostream & os) const
+	{
+		engine_type::print(os);
+		return os;
+	}
+
+	Real get_mass() const
+	{
+		return engine_type::get_mass();
+	}
+
+	Real get_charge() const
+	{
+		return engine_type::get_charge();
+	}
+
+	bool is_implicit() const
+	{
+		return engine_type::is_implicit;
+	}
+
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
+
+	static std::string get_type_as_string_static()
+	{
+		return engine_type::get_type_as_string();
+	}
+
+	void const * get_n() const
+	{
+		return reinterpret_cast<void const*>(&n);
+	}
+
+	void const * get_J() const
+	{
+		return reinterpret_cast<void const*>(&J);
+	}
+
+	void next_timestep_zero_(void const * E, void const*B)
+	{
+		next_timestep_zero(*reinterpret_cast<E_type const *>(E), *reinterpret_cast<B_type const*>(B));
+	}
+
+	void next_timestep_half_(void const * E, void const*B)
+	{
+		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
+	}
+
+	//***************************************************************************************************
+	// interface end
 
 	void AddConstraint(std::function<void()> const &foo)
 	{
@@ -104,21 +181,21 @@ public:
 
 	typename engine_type::J_type J;
 
-	template<typename TE, typename TB>
-	void NextTimeStepZero(TE const &E, TB const & B);
+	typedef typename mesh_type::template field<EDGE, scalar_type> E_type;
+	typedef typename mesh_type::template field<FACE, scalar_type> B_type;
 
 	template<typename TE, typename TB>
-	void NextTimeStepHalf(TE const &E, TB const & B);
+	void next_timestep_zero(TE const &E, TB const & B);
+
+	template<typename TE, typename TB>
+	void next_timestep_half(TE const &E, TB const & B);
 
 	template<typename TJ, typename ...Others>
 	void Scatter(TJ *J, Others && ... args) const;
 
-	std::string Save(std::string const & path, bool is_verbose = false) const;
-
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-
 Particle<Engine>::Particle(mesh_type const & pmesh)
 		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
@@ -128,15 +205,15 @@ template<typename TDict>
 Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
 		: Particle(pmesh)
 {
-	Load(dict);
+	load(dict);
 }
 template<typename Engine>
 template<typename TDict>
-void Particle<Engine>::Load(TDict const & dict)
+void Particle<Engine>::load(TDict const & dict)
 {
-	engine_type::Load(dict);
+	engine_type::load(dict);
 
-	storage_type::Load(dict["url"].template as<std::string>());
+	storage_type::load(dict["url"].template as<std::string>());
 
 	J.clear();
 
@@ -151,35 +228,35 @@ Particle<Engine>::~Particle()
 //*************************************************************************************************
 
 template<typename Engine>
-std::string Particle<Engine>::Save(std::string const & path, bool is_verbose) const
+std::string Particle<Engine>::save(std::string const & path) const
 {
 	std::stringstream os;
 
 	GLOBAL_DATA_STREAM.OpenGroup(path );
 
-	if (is_verbose)
+//	if (is_verbose)
+//	{
+//		GLOBAL_DATA_STREAM.DisableCompactStorable();
+//		os
+//
+//		<< engine_type::save(path)
+//
+//		<< "\n, particles = " << storage_type::save("particles")
+//
+//		;
+//
+//		os << "\n, n =" << simpla::save( "n",n);
+//
+//		os << "\n, J =" << simpla::save( "J",J);
+//
+//		GLOBAL_DATA_STREAM.EnableCompactStorable();
+//	}
+//	else
 	{
-		GLOBAL_DATA_STREAM.DisableCompactStorable();
-		os
 
-		<< engine_type::Save(path)
+		os << "\n, n =" << simpla::save("n", n);
 
-		<< "\n, particles = " << storage_type::Save("particles")
-
-		;
-
-		os << "\n, n =" << simpla::Save( "n",n);
-
-		os << "\n, J =" << simpla::Save( "J",J);
-
-		GLOBAL_DATA_STREAM.EnableCompactStorable();
-	}
-	else
-	{
-
-		os << "\n, n =" << simpla::Save( "n",n);
-
-		os << "\n, J =" << simpla::Save( "J",J);
+		os << "\n, J =" << simpla::save("J", J);
 
 	}
 
@@ -188,11 +265,11 @@ std::string Particle<Engine>::Save(std::string const & path, bool is_verbose) co
 
 template<typename Engine>
 template<typename TE, typename TB>
-void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
+void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::is_implicit << " ]";
 
 	storage_type::Sort();
 
@@ -205,7 +282,7 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::NextTimeStepZero(&p, dt, &J, E, B);
+			this->engine_type::next_timestep_zero(&p, dt, &J, E, B);
 		}
 	}
 
@@ -218,11 +295,11 @@ void Particle<Engine>::NextTimeStepZero(TE const & E, TB const & B)
 
 template<typename Engine>
 template<typename TE, typename TB>
-void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
+void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 {
 
 	LOGGER << "Push particles to half step[ " << engine_type::get_type_as_string() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::EnableImplicit << " ]";
+	        << " , Enable Implicit =" << engine_type::is_implicit << " ]";
 
 	Real dt = mesh.get_dt();
 
@@ -233,7 +310,7 @@ void Particle<Engine>::NextTimeStepHalf(TE const & E, TB const & B)
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::NextTimeStepHalf(&p, dt, E, B);
+			this->engine_type::next_timestep_half(&p, dt, E, B);
 		}
 	}
 

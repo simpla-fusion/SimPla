@@ -65,17 +65,17 @@ public:
 	}
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const &dict, Others const & ...);
+	void load(TDict const &dict, Others const & ...);
 
-	void Load(coordinates_type xmin, coordinates_type xmax);
+	void load(coordinates_type xmin, coordinates_type xmax);
 
-	void Save(std::string const & path, bool is_verbose) const;
+	void save(std::string const & path, bool is_verbose) const;
 
-	void NextTimeStepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+	void next_timestepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
 	        typename mesh_type:: template field<FACE, scalar_type> const &B1,
 	        typename mesh_type:: template field<EDGE, scalar_type> *dE);
 
-	void NextTimeStepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+	void next_timestepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
 	        typename mesh_type:: template field<FACE, scalar_type> const &B1,
 	        typename mesh_type:: template field<FACE, scalar_type> *dB);
 
@@ -96,7 +96,7 @@ PML<TM>::PML(mesh_type const & pmesh, Args && ...args)
 
 		is_loaded_(false)
 {
-	Load(std::forward<Args >(args)...);
+	load(std::forward<Args >(args)...);
 }
 
 template<typename TM>
@@ -106,15 +106,15 @@ PML<TM>::~PML()
 
 template<typename TM>
 template<typename TDict, typename ...Others>
-void PML<TM>::Load(TDict const &dict, Others const & ...)
+void PML<TM>::load(TDict const &dict, Others const & ...)
 {
-	Load(dict["Min"].template as<coordinates_type>(), dict["Max"].template as<coordinates_type>());
+	load(dict["Min"].template as<coordinates_type>(), dict["Max"].template as<coordinates_type>());
 }
 
 template<typename TM>
-void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
+void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
 {
-	LOGGER << "Create PML solver [" << xmin << " , " << xmax << " ]";
+	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
 	DEFINE_PHYSICAL_CONST
 	;
@@ -168,7 +168,7 @@ void PML<TM>::Load(coordinates_type xmin, coordinates_type xmax)
 }
 
 template<typename TM>
-void PML<TM>::Save(std::string const & path, bool is_verbose) const
+void PML<TM>::save(std::string const & path, bool is_verbose) const
 {
 	UNIMPLEMENT;
 }
@@ -176,12 +176,12 @@ void PML<TM>::Save(std::string const & path, bool is_verbose) const
 template<typename OS, typename TM>
 OS &operator<<(OS & os, PML<TM> const& self)
 {
-	self.Print(os);
+	self.print(os);
 	return os;
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const&E1,
+void PML<TM>::next_timestepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const&E1,
         typename mesh_type:: template field<FACE, scalar_type> const&B1,
         typename mesh_type:: template field<EDGE, scalar_type> *dE)
 {
@@ -207,7 +207,7 @@ void PML<TM>::NextTimeStepE(Real dt, typename mesh_type:: template field<EDGE, s
 }
 
 template<typename TM>
-void PML<TM>::NextTimeStepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+void PML<TM>::next_timestepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
         typename mesh_type:: template field<FACE, scalar_type> const&B1,
         typename mesh_type:: template field<FACE, scalar_type> *dB)
 {

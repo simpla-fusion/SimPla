@@ -1,7 +1,7 @@
 /*
  * ksp_cg.h
  *
- *  Created on: 2012-3-30
+ *  created on: 2012-3-30
  *      Author: salmon
  */
 

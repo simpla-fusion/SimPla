@@ -1,7 +1,7 @@
 /*
  * particle_pool.h
  *
- *  Created on: 2014-4-29
+ *  created on: 2014-4-29
  *      Author: salmon
  */
 
@@ -69,12 +69,12 @@ public:
 	// Destructor
 	~ParticlePool();
 
-	void Load(std::string const & path)
+	void load(std::string const & path)
 	{
 		//@todo load data from file
 	}
 
-	std::string Save(std::string const & path) const;
+	std::string save(std::string const & path) const;
 
 	void ClearEmpty();
 
@@ -128,9 +128,9 @@ ParticlePool<TM, TPoint>::~ParticlePool()
 }
 
 template<typename TM, typename TPoint>
-std::string ParticlePool<TM, TPoint>::Save(std::string const & name) const
+std::string ParticlePool<TM, TPoint>::save(std::string const & name) const
 {
-	return simpla::Save(name, *this);
+	return simpla::save(name, *this);
 }
 
 template<typename TM, typename TPoint>

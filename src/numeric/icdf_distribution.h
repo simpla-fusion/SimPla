@@ -1,7 +1,7 @@
 /*
  * icdf_distribution.h
  *
- *  Created on: 2013-10-23
+ *  created on: 2013-10-23
  *      Author: salmon
  */
 

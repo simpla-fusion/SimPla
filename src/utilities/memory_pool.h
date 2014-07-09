@@ -2,7 +2,7 @@
  * $Id$
  * MemoryPool.h
  *
- *  Created on: 2011-3-2
+ *  created on: 2011-3-2
  *      Author: salmon
  */
 #ifndef INCLUDE_MEMORY_POOL_H_

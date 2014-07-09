@@ -1,7 +1,7 @@
 /*
  * particle_factory.h
  *
- *  Created on: 2014-6-13
+ *  created on: 2014-6-13
  *      Author: salmon
  */
 
@@ -16,7 +16,8 @@
 namespace simpla
 {
 
-template<typename TM, typename ...Args> using ParticleFactory= Factory<std::string, ParticleBase<TM>, TM const&, Args && ...>;
+template<typename TM, typename ...Args> using ParticleFactory=
+Factory<std::string, ParticleBase , TM const&, Args && ...>;
 
 }  // namespace simpla
 

@@ -38,6 +38,8 @@
 #include "../field_solver/implicitPushE.h"
 #include "../particle_solver/register_particle.h"
 
+#include "../../src/flow_control/context_base.h"
+
 namespace simpla
 {
 
@@ -47,35 +49,90 @@ namespace simpla
  * \brief Electromagnetic solver
  */
 template<typename TM>
-struct ExplicitEMContext
+struct ExplicitEMContext: public ContextBase
 {
 public:
 
 	typedef TM mesh_type;
-
+	typedef typename mesh_type::scalar_type scalar_type;
 	typedef ExplicitEMContext<mesh_type> this_type;
+	typedef ContextBase base_type;
 
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args && ...args)
+			: ExplicitEMContext()
 	{
-		Load(std::forward<Args >(args)...);
+		load(std::forward<Args >(args)...);
 	}
+
 	~ExplicitEMContext();
 
-	template<typename TDict> void Load(TDict const & dict);
+	template<typename TDict> void load(TDict const & dict);
 
-	void NextTimeStep();
-
-	std::string Save(std::string const & path = "", bool is_verbose = false) const;
+	template<typename OS> OS& print_(OS &) const;
 
 	double CheckCourantDt() const;
 
-public:
+	template<typename ...Args>
+	static std::shared_ptr<base_type> create(Args && ... args)
+	{
+		return std::dynamic_pointer_cast<base_type>(
+		        std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)));
+	}
 
-	typedef typename mesh_type::scalar_type scalar_type;
+	template<typename ...Args>
+	static std::pair<std::string, std::function<std::shared_ptr<base_type>(Args const &...)>> CreateFactoryFun()
+	{
+		std::function<std::shared_ptr<base_type>(Args const &...)> call_back = []( Args const& ...args)
+		{
+			return this_type::create(args...);
+		};
+		return std::move(std::make_pair(get_type_as_string_static(), call_back));
+	}
+
+	// interface begin
+
+	std::string load(std::string const & path = "");
+
+	std::string save(std::string const & path = "") const;
+
+	static std::string get_type_as_string_static()
+	{
+		return "ExplicitEMContext_" + mesh_type::get_type_as_string_static();
+	}
+
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
+
+	std::ostream & print(std::ostream & os) const
+	{
+		print_(os);
+		return os;
+	}
+
+	void next_timestep();
+
+	bool pre_process();
+
+	bool post_process();
+
+	bool empty() const
+	{
+		return !model.is_ready();
+	}
+
+	operator bool() const
+	{
+		return model.is_ready();
+	}
+
+	// interface end
+
+public:
 
 	std::string description;
 
@@ -92,12 +149,12 @@ public:
 	field<EDGE, scalar_type> Jext; //!< current density
 
 	field<VERTEX, nTuple<3, Real> > Bv;
-
+private:
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
 	typedef decltype(Jext) TJ;
 
-	typedef std::map<std::string, std::shared_ptr<ParticleBase<mesh_type> > > TParticles;
+	typedef std::map<std::string, std::shared_ptr<ParticleBase> > TParticles;
 
 	std::function<void(Real, TE const &, TB const &, TE*)> E_plus_CurlB;
 
@@ -115,22 +172,20 @@ public:
 		}
 	}
 
-private:
-
 	std::list<std::function<void()> > commandToE_;
 
 	std::list<std::function<void()> > commandToB_;
 
 	std::list<std::function<void()> > commandToJ_;
 
-	std::map<std::string, std::shared_ptr<ParticleBase<mesh_type>>>particles_;
+	std::map<std::string, std::shared_ptr<ParticleBase>> particles_;
 
 }
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
 		phi(model), Bv(model)
 {
 }
@@ -139,12 +194,64 @@ template<typename TM>
 ExplicitEMContext<TM>::~ExplicitEMContext()
 {
 }
+
+template<typename TM>
+template<typename OS>
+OS &ExplicitEMContext<TM>::print_(OS & os) const
+{
+
+	os << description << std::endl
+
+	<< " Model = ";
+
+	model.print(os);
+
+	if (particles_.size() > 0)
+	{
+
+		os << "\n , Particles = { \n";
+		for (auto const & p : particles_)
+		{
+			p.second->print(os);
+		}
+		os << "\n} ";
+	}
+
+	return os;
+
+}
+
+template<typename TM>
+std::string ExplicitEMContext<TM>::load(std::string const & path)
+{
+	UNIMPLEMENT2("Load context from file");
+	return "";
+}
+
+template<typename TM>
+std::string ExplicitEMContext<TM>::save(std::string const & path) const
+{
+
+	GLOBAL_DATA_STREAM.OpenGroup(path);
+
+	LOGGER << SAVE(E);
+	LOGGER << SAVE(B);
+	LOGGER << SAVE(n);
+	LOGGER << SAVE(Jext);
+
+	for (auto const & p : particles_)
+	{
+		LOGGER << p.second->save(path);
+	}
+
+	return path;
+}
 template<typename TM> template<typename TDict>
-void ExplicitEMContext<TM>::Load(TDict const & dict)
+void ExplicitEMContext<TM>::load(TDict const & dict)
 {
 	DEFINE_PHYSICAL_CONST
 
-	LOGGER << "Load ExplicitEMContext ";
+	LOGGER << "load ExplicitEMContext ";
 
 	description = "Description = \"" + dict["Description"].template as<std::string>() + "\"\n";
 
@@ -154,13 +261,13 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 	field<VERTEX, Real> Te0(model);
 	field<VERTEX, Real> Ti0(model);
 
-	model.Load(dict["Model"]);
+	model.load(dict["Model"]);
 
 	if (dict["Model"]["GFile"])
 	{
 		GEqdsk geqdsk;
 
-		geqdsk.Load(dict["Model"]["GFile"].template as<std::string>());
+		geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
 
 		typename mesh_type::coordinates_type src_min;
 		typename mesh_type::coordinates_type src_max;
@@ -182,7 +289,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		geqdsk.SetUpMaterial(&model);
 
-		geqdsk.Save("/Geqdsk");
+		geqdsk.save("/Geqdsk");
 
 		model.Update();
 
@@ -217,15 +324,15 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		E.clear();
 
-		LOG_CMD(LoadField(dict["InitValue"]["B"], &B));
+		LOG_CMD(loadField(dict["InitValue"]["B"], &B));
 
-		LOG_CMD(LoadField(dict["InitValue"]["J"], &J0));
+		LOG_CMD(loadField(dict["InitValue"]["J"], &J0));
 
-		LOG_CMD(LoadField(dict["InitValue"]["ne"], &ne0));
+		LOG_CMD(loadField(dict["InitValue"]["ne"], &ne0));
 
-		LOG_CMD(LoadField(dict["InitValue"]["Te"], &Te0));
+		LOG_CMD(loadField(dict["InitValue"]["Te"], &Te0));
 
-		LOG_CMD(LoadField(dict["InitValue"]["Ti"], &Ti0));
+		LOG_CMD(loadField(dict["InitValue"]["Ti"], &Ti0));
 
 		Jext = J0;
 	}
@@ -234,9 +341,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	dE.clear();
 
-	LOG_CMD(LoadField(dict["InitValue"]["E"], &E));
+	LOG_CMD(loadField(dict["InitValue"]["E"], &E));
 
-	LOGGER << "Load Particles";
+	LOGGER << "load Particles";
 
 	auto particle_factory = RegisterAllParticles<mesh_type, TDict, Model<mesh_type> const &, decltype(ne0),
 	        decltype(Te0)>();
@@ -255,7 +362,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		try
 		{
-			auto p = particle_factory.Create(type_str, opt.second, model, ne0, Te0);
+			auto p = particle_factory.create(type_str, opt.second, model, ne0, Te0);
 
 			if (p != nullptr)
 			{
@@ -264,8 +371,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			}
 
-		}
-		catch (...)
+		} catch (...)
 		{
 
 			PARSER_ERROR("Particles={" + id + " = { Type = " + type_str + "}}" + "  ");
@@ -278,10 +384,10 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	for (auto const &p : particles_)
 	{
-		enableImplicit = enableImplicit || p.second->EnableImplicit();
+		enableImplicit = enableImplicit || p.second->is_implicit();
 	}
 
-	LOGGER << "Load Constraints";
+	LOGGER << "load Constraints";
 
 	for (auto const & item : dict["Constraints"])
 	{
@@ -294,29 +400,28 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(E.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				commandToE_.push_back(E.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
-				commandToB_.push_back(B.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				commandToB_.push_back(B.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        Jext.CreateCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				        Jext.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
 			}
 			else
 			{
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		}
-		catch (std::runtime_error const & e)
+		} catch (std::runtime_error const & e)
 		{
 
-			PARSER_ERROR("Load 'Constraints' error! ");
+			PARSER_ERROR("load 'Constraints' error! ");
 		}
 	}
 
@@ -324,7 +429,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 	try
 	{
-		LOGGER << "Load electromagnetic fields solver";
+		LOGGER << "load electromagnetic fields solver";
 
 		using namespace std::placeholders;
 
@@ -334,9 +439,9 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 		{
 			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(model, dict["FieldSolver"]["PML"]));
 
-			E_plus_CurlB = std::bind(&PML<TM>::NextTimeStepE, solver, _1, _2, _3, _4);
+			E_plus_CurlB = std::bind(&PML<TM>::next_timestepE, solver, _1, _2, _3, _4);
 
-			B_minus_CurlE = std::bind(&PML<TM>::NextTimeStepB, solver, _1, _2, _3, _4);
+			B_minus_CurlE = std::bind(&PML<TM>::next_timestepB, solver, _1, _2, _3, _4);
 
 		}
 		else
@@ -354,8 +459,7 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 			};
 		}
 
-	}
-	catch (std::runtime_error const & e)
+	} catch (std::runtime_error const & e)
 	{
 		PARSER_ERROR("Configure field solver error! ");
 	}
@@ -368,57 +472,25 @@ void ExplicitEMContext<TM>::Load(TDict const & dict)
 
 		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(model));
 		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-		{	solver->NextTimeStep( pE,pB,p,dE);};
+		{	solver->next_timestep( pE,pB,p,dE);};
 	}
 
 }
-
 template<typename TM>
-std::string ExplicitEMContext<TM>::Save(std::string const & path, bool is_verbose) const
+bool ExplicitEMContext<TM>::pre_process()
 {
-	GLOBAL_DATA_STREAM.OpenGroup(path);
-
-	std::stringstream os;
-
-	os
-
-	<< description
-
-	<< "\n, Grid = { \n" << model.Save(path ) << " \n} "
-	;
-
-	os
-
-	<< "\n, Fields = {" << "\n"
-
-	<< "\n, E = " << SAVE(E )
-
-	<< "\n, B = " << SAVE(B )
-
-	<< "\n, J = " << simpla::Save("J",Jext)
-
-	<< "\n} ";
-
-	if (particles_.size() > 0)
-	{
-
-		os << "\n , Particles = { \n";
-		for (auto const & p : particles_)
-		{
-			os << p.first << " = { " << p.second->Save(path + "/" + p.first,is_verbose) << "\n},";
-		}
-		os << "\n} ";
-	}
-
-	return os.str();
-
+	return true;
 }
 
 template<typename TM>
-void ExplicitEMContext<TM>::NextTimeStep()
+bool ExplicitEMContext<TM>::post_process()
+{
+	return true;
+}
+template<typename TM>
+void ExplicitEMContext<TM>::next_timestep()
 {
 	DEFINE_PHYSICAL_CONST
-	;
 
 	INFORM
 
@@ -428,21 +500,20 @@ void ExplicitEMContext<TM>::NextTimeStep()
 
 	Real dt = model.get_dt();
 
-	//***********************************************************
-	// Compute Cycle Begin
-	//***********************************************************
-	// E0 B0,
+// Compute Cycle Begin
+
+// E0 B0,
 	LOG_CMD(Jext = J0);
 	ExcuteCommands(commandToJ_);
 
-	//   particle 0-> 1/2 . To n[1/2], J[1/2]
+//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
-		if (!p.second->EnableImplicit())
+		if (!p.second->is_implicit())
 		{
-			p.second->NextTimeStepZero(E, B);
+			p.second->next_timestep_zero(E, B);
 
-			auto const & Js = p.second->J();
+			auto const & Js = p.second->template J<TJ>();
 			LOG_CMD(Jext += Js);
 		}
 	}
@@ -456,7 +527,7 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
 	dE = Jext * (dt / epsilon0);
-	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
+//   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 
 	LOG_CMD(E += dE);	// E(t=0 -> 1)
@@ -468,11 +539,9 @@ void ExplicitEMContext<TM>::NextTimeStep()
 	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
-	model.NextTimeStep();
+	model.next_timestep();
 
-//***********************************************************
 // Compute Cycle End
-//***********************************************************
 }
 
 }

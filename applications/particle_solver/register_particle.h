@@ -29,18 +29,18 @@ namespace simpla
  */
 
 template<typename Mesh, typename ...Args>
-Factory<std::string, ParticleBase<Mesh>, Args ...> RegisterAllParticles()
+Factory<std::string, ParticleBase, Args ...> RegisterAllParticles()
 {
 
-	Factory<std::string, ParticleBase<Mesh>, Args ...> factory;
+	Factory<std::string, ParticleBase, Args ...> factory;
 
-	ParticleWrap<Particle<PICEngineDefault<Mesh, true>>> ::Register(&factory);
-	ParticleWrap<Particle<PICEngineDefault<Mesh, false>>> ::Register(&factory);
-	ParticleWrap<Particle<PICEngineDeltaF<Mesh>>> ::Register(&factory);
-	ParticleWrap<Particle<PICEngineGGauge<Mesh, 4, true>>> ::Register(&factory);
-	ParticleWrap<Particle<PICEngineGGauge<Mesh, 16, true>>> ::Register(&factory);
-	ParticleWrap<Particle<PICEngineGGauge<Mesh, 32, true>>> ::Register(&factory);
-	ParticleWrap<Particle<ColdFluid<Mesh>>> ::Register(&factory);
+	factory.Register(Particle<PICEngineDefault<Mesh, true>>:: template CreateFactoryFun<Args...>());
+	factory.Register(Particle<PICEngineDefault<Mesh, false>>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<PICEngineDeltaF<Mesh>>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<PICEngineGGauge<Mesh, 4, true>>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<PICEngineGGauge<Mesh, 16, true>>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<PICEngineGGauge<Mesh, 32, true>>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<ColdFluid<Mesh>>::template CreateFactoryFun<Args...>());
 
 	return std::move(factory);
 }

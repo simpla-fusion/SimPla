@@ -1,7 +1,7 @@
 /*
  * physical_constants.h
  *
- *  Created on: 2012-10-17
+ *  created on: 2012-10-17
  *      Author: salmon
  */
 
@@ -29,7 +29,7 @@ public:
 	friend std::ostream & operator<<(std::ostream &os, PhysicalConstants const &self);
 
 	template<typename TDict>
-	void Load(TDict const & dict)
+	void load(TDict const & dict)
 	{
 		if (dict.empty())
 		{
@@ -48,9 +48,9 @@ public:
 		}
 	}
 
-	std::ostream & Save(std::ostream & os) const;
+	std::ostream & save(std::ostream & os) const;
 
-	void Print(std::basic_ostream<char> & os) const;
+	void print(std::basic_ostream<char> & os) const;
 
 	void SetBaseUnit(std::string const & type_name = "SI", double pm = 1, double ps = 1, double pkg = 1, double pC = 1,
 	        double pK = 1, double pMol = 1);

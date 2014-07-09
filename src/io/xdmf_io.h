@@ -1,7 +1,7 @@
 /*
  * xdmf_io.h
  *
- *  Created on: 2013-12-10
+ *  created on: 2013-12-10
  *      Author: salmon
  */
 

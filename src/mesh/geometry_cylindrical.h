@@ -1,7 +1,7 @@
 /*
  * geometry_cylindrical.h
  *
- *  Created on: 2014-3-13
+ *  created on: 2014-3-13
  *      Author: salmon
  */
 
@@ -60,15 +60,20 @@ public:
 	CylindricalGeometry(Args && ... args)
 			: topology_type(std::forward<Args>(args)...)
 	{
-		Load(std::forward<Args>(args)...);
+		load(std::forward<Args>(args)...);
 	}
 
 	~CylindricalGeometry()
 	{
 	}
-	static std::string get_type_as_string()
+	static std::string get_type_as_string_static()
 	{
-		return "Cylindrical";
+		return "Cylindrical" + ToString(PhiAxis);
+	}
+
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
 	}
 
 	//***************************************************************************************************
@@ -79,9 +84,9 @@ public:
 	Real dt_ = 0.0;
 	Real time0_ = 0.0;
 	// Time
-	void NextTimeStep()
+	void next_timestep()
 	{
-		topology_type::NextTimeStep();
+		topology_type::next_timestep();
 	}
 
 	void set_time(Real p_time)
@@ -114,15 +119,15 @@ public:
 	coordinates_type shift_ = { 0, 0, 0 };
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others &&...others)
+	void load(TDict const & dict, Others &&...others)
 	{
-		topology_type::Load(dict, std::forward<Others>(others)...);
+		topology_type::load(dict, std::forward<Others>(others)...);
 		try
 		{
 
 			if (dict["Min"] && dict["Max"])
 			{
-				LOGGER << "Load CylindricalGeometry ";
+				LOGGER << "load CylindricalGeometry ";
 
 				set_extents(
 
@@ -140,16 +145,16 @@ public:
 	}
 
 	template<typename OS>
-	OS & Print(OS &os) const
+	OS & print(OS &os) const
 	{
-		topology_type::Print(os) << std::endl
+		topology_type::print(os) << std::endl
 
 		<< " , Min = " << xmin_ << " ,  Max  = " << xmax_ << ", dt  = " << dt_;
 
 		return os;
 	}
 
-	std::string Save(std::string const &path) const
+	std::string save(std::string const &path) const
 	{
 		return path;
 	}

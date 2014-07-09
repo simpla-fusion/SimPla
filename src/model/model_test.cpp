@@ -1,7 +1,7 @@
 /*
  * model_test.cpp
  *
- *  Created on: 2014-3-12
+ *  created on: 2014-3-12
  *      Author: salmon
  */
 #include <gtest/gtest.h>

@@ -1,7 +1,7 @@
 /*
  * topology_test_UniformArray.cpp
  *
- *  Created on: 2014-6-27
+ *  created on: 2014-6-27
  *      Author: salmon
  */
 #define TOPOLOGY UniformArray

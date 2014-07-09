@@ -24,18 +24,18 @@ namespace simpla
  *  \ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
-template<typename TM, bool IsImplicit = false, typename Interpolator = typename TM::interpolator_type>
+template<typename TM, bool IMPLICIT = false, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDefault
 {
 public:
 	enum
 	{
-		EnableImplicit = IsImplicit
+		is_implicit = IMPLICIT
 	};
 	Real m;
 	Real q;
 
-	typedef PICEngineDefault<TM, IsImplicit, Interpolator> this_type;
+	typedef PICEngineDefault<TM, IMPLICIT, Interpolator> this_type;
 	typedef TM mesh_type;
 	typedef Interpolator interpolator_type;
 
@@ -44,8 +44,7 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
+	typedef typename std::conditional<is_implicit, typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
 	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
 
 	struct Point_s
@@ -86,10 +85,10 @@ public:
 	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
 			: PICEngineDefault(pmesh)
 	{
-		Load(std::forward<Others >(others)...);
+		load(std::forward<Others >(others)...);
 	}
 	template<typename TDict, typename ...Args>
-	void Load(TDict const& dict, Args const & ...args)
+	void load(TDict const& dict, Args const & ...args)
 	{
 		m = (dict["Mass"].template as<Real>(1.0));
 		q = (dict["Charge"].template as<Real>(1.0));
@@ -123,9 +122,19 @@ public:
 		return "Default";
 	}
 
-	std::string Save(std::string const & path = "", bool is_verbose = false) const
+	Real get_mass()const
 	{
-		std::stringstream os;
+		return m;
+
+	}
+	Real get_charge()const
+	{
+		return q;
+
+	}
+	template<typename OS>
+	OS & print(OS & os) const
+	{
 
 		DEFINE_PHYSICAL_CONST
 		;
@@ -137,7 +146,7 @@ public:
 		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
 
 		;
-		return os.str();
+		return os;
 
 	}
 	static inline Point_s DefaultValue()
@@ -148,19 +157,19 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
-		NextTimeStepZero(std::integral_constant<bool,EnableImplicit>(), p, dt, J, fE, fB);
+		next_timestep_zero(std::integral_constant<bool,is_implicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		NextTimeStepHalf(std::integral_constant<bool,EnableImplicit>(), p, dt, fE, fB);
+		next_timestep_half(std::integral_constant<bool,is_implicit>(), p, dt, fE, fB);
 	}
 // x(-1/2->1/2),v(0)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(std::integral_constant<bool,true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(std::integral_constant<bool,true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 		//		auto B = interpolator_type::Gather(fB, p->x);
@@ -172,7 +181,7 @@ public:
 	}
 // v(0->1)
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(std::integral_constant<bool,true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	inline void next_timestep_half(std::integral_constant<bool,true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
@@ -196,7 +205,7 @@ public:
 	}
 // x(-1/2->1/2), v(-1/2/1/2)
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(std::integral_constant<bool,false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(std::integral_constant<bool,false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
@@ -224,7 +233,7 @@ public:
 
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(std::integral_constant<bool,false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	inline void next_timestep_half(std::integral_constant<bool,false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 	}

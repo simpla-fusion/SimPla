@@ -1,7 +1,7 @@
 /*
  * sp_math.h
  *
- *  Created on: 2014-5-19
+ *  created on: 2014-5-19
  *      Author: salmon
  */
 

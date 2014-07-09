@@ -1,7 +1,7 @@
 /*
  * units_test.cpp
  *
- *  Created on: 2012-3-3
+ *  created on: 2012-3-3
  *      Author: salmon
  */
 

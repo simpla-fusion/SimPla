@@ -77,7 +77,7 @@ public:
 		return 2;
 	}
 	template<typename TDict>
-	void Load(TDict const &dict)
+	void load(TDict const &dict)
 	{
 
 		DEFINE_PHYSICAL_CONST
@@ -89,7 +89,7 @@ public:
 		CHECK(q_kT_);
 	}
 
-	std::string Save(std::string const & path = "", bool is_verbose = false) const
+	std::string save(std::string const & path = "", bool is_verbose = false) const
 	{
 		std::stringstream os;
 
@@ -120,7 +120,7 @@ public:
 	}
 
 	template<typename TB, typename TE, typename ... Others> inline
-	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 
 		// $ x_{1/2} - x_{0} = v_0   \Delta t /2$

@@ -9,7 +9,7 @@
  *
  * log.h
  *
- *  Created on: 2012-3-21
+ *  created on: 2012-3-21
  *      Author: salmon
  */
 
@@ -325,17 +325,17 @@ public:
 	}
 
 //private:
-//	HAS_CONST_MEMBER_FUNCTION(Print);
+//	HAS_CONST_MEMBER_FUNCTION(print);
 //public:
 //
 //	template<typename OS, typename T>
-//	auto Print(OS & os, T const & obj)
-//	ENABLE_IF_DECL_RET_TYPE((has_const_member_function_Print<T,OS>::value),obj.Print(os) )
+//	auto print(OS & os, T const & obj)
+//	ENABLE_IF_DECL_RET_TYPE((has_const_member_function_print<T,OS>::value),obj.print(os) )
 //	;
 //
 //	template<typename OS, typename T>
-//	auto Print(OS & os, T const & obj)
-//	ENABLE_IF_DECL_RET_TYPE((! has_const_member_function_Print<T,OS>::value), (os<<obj) )
+//	auto print(OS & os, T const & obj)
+//	ENABLE_IF_DECL_RET_TYPE((! has_const_member_function_print<T,OS>::value), (os<<obj) )
 //	;
 	template<typename T> inline this_type & operator<<(T const& value)
 	{

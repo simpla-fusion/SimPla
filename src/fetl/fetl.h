@@ -3,7 +3,7 @@
  * $Id: FETL.h 1009 2011-02-07 23:20:45Z salmon $
  * FETL.h
  *
- *  Created on: 2009-3-31
+ *  created on: 2009-3-31
  *      Author: salmon
  */
 #ifndef FETL_H_

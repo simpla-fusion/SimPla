@@ -1,7 +1,7 @@
 /*
  * data_type.h
  *
- *  Created on: 2014-6-2
+ *  created on: 2014-6-2
  *      Author: salmon
  */
 
@@ -25,7 +25,7 @@ public:
 	{
 	}
 
-	template<typename TV> static DataType Create()
+	template<typename TV> static DataType create()
 	{
 		return std::move(DataType(std::type_index(typeid(TV))));
 	}

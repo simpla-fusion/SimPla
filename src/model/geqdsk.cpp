@@ -1,7 +1,7 @@
 /*
  * read_geqdsk.cpp
  *
- *  Created on: 2013-11-29
+ *  created on: 2013-11-29
  *      Author: salmon
  */
 
@@ -26,7 +26,7 @@
 namespace simpla
 {
 
-void GEqdsk::Load(std::string const &fname)
+void GEqdsk::load(std::string const &fname)
 {
 
 	std::ifstream inFileStream_(fname);
@@ -41,7 +41,7 @@ void GEqdsk::Load(std::string const &fname)
 	coordinates_type rzmin;
 	coordinates_type rzmax;
 
-	LOGGER << "Load GFile : " << fname;
+	LOGGER << "load GFile : " << fname;
 
 	int nw; //Number of horizontal R grid points
 	int nh; //Number of vertical Z grid points
@@ -140,12 +140,12 @@ void GEqdsk::Load(std::string const &fname)
 		rzlim_[s][ZAxis] = rzlim[s][1];
 		rzlim_[s][PhiAxis] = 0;
 	}
-	LoadProfile(fname + "_profiles.txt");
+	loadProfile(fname + "_profiles.txt");
 
 }
-void GEqdsk::LoadProfile(std::string const &fname)
+void GEqdsk::loadProfile(std::string const &fname)
 {
-	LOGGER << "Load GFile Profiles: " << fname;
+	LOGGER << "load GFile Profiles: " << fname;
 	std::ifstream inFileStream_(fname);
 
 	if (!inFileStream_.is_open())
@@ -198,7 +198,7 @@ void GEqdsk::LoadProfile(std::string const &fname)
 	is_ready_ = true;
 }
 
-std::string GEqdsk::Save(std::string const & path) const
+std::string GEqdsk::save(std::string const & path) const
 {
 	if (!is_ready())
 	{
@@ -211,19 +211,19 @@ std::string GEqdsk::Save(std::string const & path) const
 
 	size_t d[2] = { dd[RAxis], dd[ZAxis] };
 
-	LOGGER << simpla::Save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
+	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
 
-	LOGGER << simpla::Save("rzbbb", rzbbb_) << std::endl;
+	LOGGER << simpla::save("rzbbb", rzbbb_) << std::endl;
 
-	LOGGER << simpla::Save("rzlim", rzlim_) << std::endl;
+	LOGGER << simpla::save("rzlim", rzlim_) << std::endl;
 
 	for (auto const & p : profile_)
 	{
-		LOGGER << simpla::Save(p.first, p.second.data()) << std::endl;
+		LOGGER << simpla::save(p.first, p.second.data()) << std::endl;
 	}
 	return path;
 }
-std::ostream & GEqdsk::Print(std::ostream & os)
+std::ostream & GEqdsk::print(std::ostream & os)
 {
 	std::cout << "--" << desc << std::endl;
 

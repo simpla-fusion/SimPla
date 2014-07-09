@@ -45,7 +45,7 @@ public:
 };
 
 template<typename T>
-Properties<T> CreateProperties(T const & pt)
+Properties<T> createProperties(T const & pt)
 {
 	return Properties<T>(pt);
 }

@@ -1,7 +1,7 @@
 /*
  * constant_ops.h
  *
- *  Created on: 2013-11-7
+ *  created on: 2013-11-7
  *      Author: salmon
  */
 

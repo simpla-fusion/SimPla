@@ -2,7 +2,7 @@
  * $Id: nTuple.h 990 2010-12-14 11:06:21Z salmon $
  * nTuple.h
  *
- *  Created on: Jan 27, 2010
+ *  created on: Jan 27, 2010
  *      Author: yuzhi
  */
 

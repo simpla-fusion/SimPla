@@ -5,7 +5,6 @@
  *      \author  salmon
  */
 
-
 #include <functional>
 #include <iomanip>
 #include <iostream>
@@ -19,7 +18,7 @@
 #include "../src/utilities/parse_command_line.h"
 #include "../src/utilities/utilities.h"
 
-#include "contexts/context.h"
+#include "contexts/context_factory.h"
 
 using namespace simpla;
 
@@ -30,13 +29,20 @@ int main(int argc, char **argv)
 	GLOBAL_COMM.Init(argc,argv);
 	GLOBAL_DATA_STREAM.Init(argc,argv);
 
+	LOGGER<< "Register contexts."<<std::endl;
+
+	auto context_factory=RegisterContext();
+
 	LuaObject dict;
+
+	std::string context_type ="";
 
 	size_t num_of_step = 10;
 
 	size_t record_stride = 1;
 
-	bool just_a_test = false;
+	bool just_a_test =false;
+
 	ParseCmdLine(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
 			{
@@ -63,6 +69,10 @@ int main(int argc, char **argv)
 					<< "Too lazy to implemented it\n"<< std::endl;
 					TheEnd(1);
 				}
+				else if( opt=="context")
+				{
+					context_type =ToValue<std::string>(value);
+				}
 				else if(opt=="t")
 				{
 					just_a_test=true;
@@ -82,7 +92,13 @@ int main(int argc, char **argv)
 				{
 					INFORM
 					<< ShowCopyRight() << std::endl
-					<< "Too lazy to write a complete help information\n"<< std::endl;
+
+					<< " avaible contexts ["<<context_factory.size() <<"]  :"<<std::endl
+
+					<< context_factory
+
+					<< std::endl;
+
 					TheEnd(0);
 				}
 //				else
@@ -110,6 +126,11 @@ int main(int argc, char **argv)
 
 	);
 
+	if(context_type=="" &&dict["Model"]["Type"])
+	{
+		context_type=dict["Model"]["Type"].template as<std::string>();
+	}
+
 	if(!GLOBAL_DATA_STREAM.IsOpened())
 	{
 		GLOBAL_DATA_STREAM.OpenFile("./");
@@ -128,18 +149,25 @@ int main(int argc, char **argv)
 
 	LOGGER << "Pre-Process" << START;
 
-	Context ctx(dict);
-
-	if (ctx.empty())
-	{
-		INFORM << "illegal configure! ";
-		TheEnd(-2);
-	}
-	else
-	{
-		INFORM << ctx.Save("/Input",true);
-	}
+	std::shared_ptr<ContextBase> ctx;
 	// Preprocess    ====================================
+
+	{
+
+		ctx=context_factory.create(context_type,dict );
+
+		if (ctx==nullptr)
+		{
+			INFORM << "Configure fail!"<<std::endl;
+
+			TheEnd(-2);
+		}
+		else
+		{
+			INFORM << ctx->save("/Input" );
+		}
+	}
+
 	// Main Loop ============================================
 
 	INFORM << SINGLELINE;
@@ -156,17 +184,17 @@ int main(int argc, char **argv)
 
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
-		LOGGER << ctx.Save("/SaveData",false);
+		LOGGER << ctx->save("/saveData" );
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
 			LOGGER << "STEP: " << i;
 
-			ctx.NextTimeStep();
+			ctx->next_timestep();
 
 			if (i % record_stride == 0)
 			{
-				LOGGER << ctx.Save("/SaveData",false);
+				LOGGER << ctx->save("/saveData" );
 			}
 		}
 
@@ -178,7 +206,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Post-Process" << START;
 
-	ctx.Save("/Output",true);
+	ctx->save("/Output" );
 
 	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
 

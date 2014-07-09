@@ -26,8 +26,7 @@ namespace simpla
  * \ingroup ParticleEngine
  * \brief GGauge engine
  */
-template<typename TM, unsigned int NMATE, bool IsImplicit = false,
-        typename Interpolator = typename TM::interpolator_type>
+template<typename TM, unsigned int NMATE, bool IMPLICIT = false, typename Interpolator = typename TM::interpolator_type>
 class PICEngineGGauge
 {
 
@@ -35,12 +34,12 @@ public:
 
 	enum
 	{
-		EnableImplicit = IsImplicit
+		is_implicit = IMPLICIT
 	};
 	Real m;
 	Real q;
 
-	typedef PICEngineGGauge<TM, NMATE, IsImplicit, Interpolator> this_type;
+	typedef PICEngineGGauge<TM, NMATE, IMPLICIT, Interpolator> this_type;
 
 	typedef TM mesh_type;
 	typedef Interpolator interpolator_type;
@@ -50,8 +49,7 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
+	typedef typename std::conditional<is_implicit, typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
 	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7 + NMATE, Real> storage_value_type;
@@ -96,10 +94,10 @@ public:
 	PICEngineGGauge(mesh_type const &m, Others && ...others)
 			: PICEngineGGauge(m)
 	{
-		Load(std::forward<Others >(others)...);
+		load(std::forward<Others >(others)...);
 	}
 	template<typename TDict, typename ...Args>
-	void Load(TDict const & dict, Args const & ...args)
+	void load(TDict const & dict, Args const & ...args)
 
 	{
 		m = (dict["Mass"].template as<Real>(1.0));
@@ -151,11 +149,10 @@ public:
 		return "GGauge" + ToString(NMATE);
 	}
 
-	std::string Save(std::string const & path = "", bool is_verbose = false) const
+	template<typename OS>
+	OS & print(OS & os) const
 	{
-		std::stringstream os;
 		DEFINE_PHYSICAL_CONST
-		;
 
 		os << "Engine = '" << get_type_as_string() << "' "
 
@@ -165,9 +162,18 @@ public:
 
 		<< " , " << "Temperature = " << T_ * boltzmann_constant / elementary_charge << "* eV";
 
-		return os.str();
+		return os;
 	}
+	Real get_mass()const
+	{
+		return m;
 
+	}
+	Real get_charge()const
+	{
+		return q;
+
+	}
 	static Point_s DefaultValue()
 	{
 		Point_s p;
@@ -176,19 +182,19 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
-		NextTimeStepZero(std::integral_constant<bool,EnableImplicit>(), p, dt, J, fE, fB);
+		next_timestep_zero(std::integral_constant<bool,is_implicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		NextTimeStepHalf(std::integral_constant<bool,EnableImplicit>(), p, dt, fE, fB);
+		next_timestep_half(std::integral_constant<bool,is_implicit>(), p, dt, fE, fB);
 	}
 
 	template<bool IS_IMPLICIT, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStepZero(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 
@@ -263,7 +269,7 @@ public:
 	}
 
 	template<bool IS_IMPLICIT, typename TB, typename TE, typename ... Others>
-	inline void NextTimeStepHalf(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TE const &fE, TB const & fB,
+	inline void next_timestep_half(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 

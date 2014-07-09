@@ -1,7 +1,7 @@
 /*
  * load_particle.h
  *
- *  Created on: 2013-12-21
+ *  created on: 2013-12-21
  *      Author: salmon
  */
 
@@ -19,13 +19,15 @@
 #include "../utilities/log.h"
 #include "../physics/physical_constants.h"
 #include "../parallel/update_ghosts.h"
+
+#include "../particle/particle_base.h"
 namespace simpla
 {
 
 template<typename TP, typename TDict, typename TModel, typename TN, typename TT>
-std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
+std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
 {
-	if (!dict || (TP::get_type_as_string() != dict["Type"].template as<std::string>()))
+	if (!dict || (TP::get_type_as_string_static() != dict["Type"].template as<std::string>()))
 	{
 		PARSER_ERROR("illegal particle configure!");
 	}
@@ -33,7 +35,7 @@ std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN con
 	typedef typename TP::mesh_type mesh_type;
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	std::shared_ptr<TP> p(new TP(dict, model));
+	std::shared_ptr<TP> res(new TP(dict, model));
 
 	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
 
@@ -76,15 +78,16 @@ std::shared_ptr<TP> LoadParticle(TDict const &dict, TModel const & model, TN con
 
 	unsigned int pic = dict["PIC"].template as<size_t>(100);
 
-	InitParticle(p.get(), range, pic, ns, Ts);
+	InitParticle(res.get(), range, pic, ns, Ts);
 
-	LoadParticleConstriant(p.get(), range, model, dict["Constriants"]);
+	LoadParticleConstriant(res.get(), range, model, dict["Constriants"]);
 
-	LOGGER << "Create Particles:[ Engine=" << p->get_type_as_string() << ", Number of Particles=" << p->size() << "]";
+	LOGGER << "create Particles:[ Engine=" << res->get_type_as_string() << ", Number of Particles=" << res->size()
+	        << "]";
 
 	LOGGER << DONE;
 
-	return p;
+	return std::dynamic_pointer_cast<ParticleBase>(res);
 
 }
 

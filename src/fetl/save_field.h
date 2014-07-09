@@ -1,7 +1,7 @@
 /*
  * save_field.h
  *
- *  Created on: 2013-12-21
+ *  created on: 2013-12-21
  *      Author: salmon
  */
 
@@ -16,7 +16,7 @@ namespace simpla
 template<typename, unsigned int , typename > class Field;
 
 template<typename TM,  unsigned int  IFORM, typename TV>
-std::string Save(std::string const & name,
+std::string save(std::string const & name,
         Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d)
 {
 	int rank = d.get_dataset_shape();
@@ -43,7 +43,7 @@ std::string Save(std::string const & name,
 		local_inner_count[i] = local_inner_end[i] - local_inner_begin[i];
 	}
 
-	return simpla::Save(name, d.data().get(), rank, static_cast<size_t*>(global_begin),
+	return simpla::save(name, d.data().get(), rank, static_cast<size_t*>(global_begin),
 	        static_cast<size_t*>(global_count), static_cast<size_t*>(local_outer_begin),
 	        static_cast<size_t*>(local_outer_count), static_cast<size_t*>(local_inner_begin),
 	        static_cast<size_t*>(local_inner_count));

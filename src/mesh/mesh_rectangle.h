@@ -1,7 +1,7 @@
 /*
  * mesh_rectangle.h
  *
- *  Created on: 2014-2-26
+ *  created on: 2014-2-26
  *      Author: salmon
  */
 
@@ -94,11 +94,20 @@ public:
 	{
 		return (this == &r);
 	}
-
-	template<typename OS>
-	OS & Print(OS &os) const
+	static std::string get_type_as_string_static()
 	{
-		geometry_type::Print(os) << std::endl
+		return geometry_type::get_type_as_string_static() + "_" + topology_type::get_type_as_string_static()
+		        + ((enable_spectral_method) ? "_kz" : "");
+	}
+
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
+	template<typename OS>
+	OS & print(OS &os) const
+	{
+		geometry_type::print(os) << std::endl
 
 		<< " , " << "K_img = " << k_imag;
 

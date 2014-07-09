@@ -1,7 +1,7 @@
 /*
  * data_wrapper.h
  *
- *  Created on: 2014-5-7
+ *  created on: 2014-5-7
  *      Author: salmon
  */
 
@@ -14,8 +14,8 @@ namespace simpla
 template<typename T>
 class DataWrapper
 {
-	void Load() const;
-	void Save() const;
+	void load() const;
+	void save() const;
 	void Sync() const;
 };
 }  // namespace simpla

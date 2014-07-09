@@ -92,7 +92,7 @@ public:
 	}
 
 	template<typename TDict, typename TN, typename TT>
-	void Load(TDict const &dict, TN const & n, TT const &T)
+	void load(TDict const &dict, TN const & n, TT const &T)
 	{
 
 		m = dict["Mass"].template as<Real>(1.0);
@@ -100,7 +100,7 @@ public:
 		cmr_ = q / m;
 	}
 
-	std::ostream & Print(std::ostream & os) const
+	std::ostream & print(std::ostream & os) const
 	{
 
 		DEFINE_PHYSICAL_CONST
@@ -130,7 +130,7 @@ public:
 	}
 
 	template<typename TB, typename TE, typename ... Others> inline
-	void NextTimeStep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 		BorisMethod(dt, cmr_, fE, fB, &(p->x), &(p->v));
 		DEFINE_PHYSICAL_CONST;

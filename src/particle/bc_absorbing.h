@@ -1,7 +1,7 @@
 /*
  * bc_absorbing.h
  *
- *  Created on: 2014-4-24
+ *  created on: 2014-4-24
  *      Author: salmon
  */
 
@@ -36,7 +36,7 @@ public:
 	}
 
 	template<typename TDict>
-	static std::shared_ptr<this_type> Create(mesh_type const & mesh, TDict const & dict)
+	static std::shared_ptr<this_type> create(mesh_type const & mesh, TDict const & dict)
 	{
 		std::shared_ptr<this_type> res(nullptr);
 

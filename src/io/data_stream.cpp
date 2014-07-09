@@ -1,7 +1,7 @@
 /*
  * data_stream.cpp
  *
- *  Created on: 2013-12-12
+ *  created on: 2013-12-12
  *      Author: salmon
  */
 
@@ -188,7 +188,7 @@ void DataStream::OpenFile(std::string const &fname)
 
 	if (pimpl_->file_ < 0)
 	{
-		RUNTIME_ERROR("Create HDF5 file " + filename_ + " failed!");
+		RUNTIME_ERROR("create HDF5 file " + filename_ + " failed!");
 	}
 
 	OpenGroup("/");
@@ -281,7 +281,7 @@ bool is_append
 			++rank;
 		}
 	}
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.Create(t_idx);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(t_idx);
 
 	hid_t dset;
 
@@ -384,7 +384,7 @@ bool is_append
 
 	}
 
-	// Create property list for collective dataset write.
+	// create property list for collective dataset write.
 	if (GLOBAL_COMM.IsInitilized())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -503,7 +503,7 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 		}
 	}
 
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.Create(t_idx);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(t_idx);
 
 	hid_t dset;
 
@@ -530,7 +530,7 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 
 	mem_space = H5Screate_simple(rank, m_count, NULL);
 
-	// Create property list for collective dataset write.
+	// create property list for collective dataset write.
 	if (GLOBAL_COMM.IsInitilized())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);

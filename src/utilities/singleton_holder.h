@@ -2,7 +2,7 @@
  * $Id$
  * SingletonHolder.h
  *
- *  Created on: 2008-04-16
+ *  created on: 2008-04-16
  *      Author: salmon
  */
 #ifndef INCLUDE_SINGLETON_HOLDER_H_

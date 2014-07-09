@@ -1,7 +1,7 @@
 /*
  * particle_test.h
  *
- *  Created on: 2014-6-30
+ *  created on: 2014-6-30
  *      Author: salmon
  */
 
@@ -65,6 +65,22 @@ public:
 		nTuple<3, Real> x;
 		nTuple<3, Real> v;
 		Real f;
+
+		typedef std::tuple<nTuple<3, Real>, nTuple<3, Real>, Real> compact_type;
+
+		static compact_type Compact(Point_s const& p)
+		{
+			return ((std::make_tuple(p.x, p.v, p.f)));
+		}
+
+		static Point_s Decompact(compact_type const & t)
+		{
+			Point_s p;
+			p.x = std::get<0>(t);
+			p.v = std::get<1>(t);
+			p.f = std::get<2>(t);
+			return std::move(p);
+		}
 	};
 	typedef ParticlePool<mesh_type, Point_s> pool_type;
 
@@ -157,7 +173,7 @@ TEST_P(TestParticle,Add)
 //	GLOBAL_DATA_STREAM.OpenGroup("/");
 //	LOGGER << SAVE(n);
 //	LOGGER << SAVE(ion);
-//	LOGGER << Save("ion_n", ion.n);
+//	LOGGER << save("ion_n", ion.n);
 //	Real q = ion.q;
 //	{
 //		Real variance = 0.0;
@@ -279,7 +295,7 @@ TEST_P(TestParticle,Add)
 //
 //	J0=2*n0*a*(E+a* Cross(E,B)+a*a* Dot(E,B)*B)/(1.0+Dot(Bv,Bv)*a*a);
 //
-//	LOG_CMD(ion.NextTimeStep(dt,E, B));
+//	LOG_CMD(ion.next_timestep(dt,E, B));
 //
 //	LOGGER<<SAVE1(E);
 //	LOGGER<<SAVE1(B);

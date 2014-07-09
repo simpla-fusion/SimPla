@@ -156,11 +156,11 @@ int main(int argc, char **argv)
 
 		mesh.set_dt(dt);
 
-		geqdsk.Load(gfile);
+		geqdsk.load(gfile);
 
 		geqdsk.SetUpModel(&model, toridal_model_number);
 
-		INFORM << geqdsk.Save("/Input");
+		INFORM << geqdsk.save("/Input");
 	}
 	else
 	{
@@ -217,7 +217,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.OpenGroup("/Save");
+		GLOBAL_DATA_STREAM.OpenGroup("/save");
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
 		//   save initial value
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
 		for (int i = 0; i < num_of_step; ++i)
 		{
 
-			mesh.NextTimeStep();
+			mesh.next_timestep();
 
 			DEFINE_PHYSICAL_CONST
 

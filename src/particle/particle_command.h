@@ -1,7 +1,7 @@
 /*
  * particle_command.h
  *
- *  Created on: 2014-4-21
+ *  created on: 2014-4-21
  *      Author: salmon
  */
 
@@ -59,10 +59,10 @@ public:
 	Command(TDict const & dict, TModel const &model, Others const & ...);
 
 	template<typename ...Others>
-	static std::function<void()> Create(field_type* f, Others const & ...);
+	static std::function<void()> create(field_type* f, Others const & ...);
 
 	template<typename ... Others>
-	std::function<void(field_type*)> Create(Others const & ...);
+	std::function<void(field_type*)> create(Others const & ...);
 
 	void Visit(field_type * f) const
 	{
@@ -85,11 +85,11 @@ private:
 }
 
 template<typename TP, typename TDict>
-void CreateParticleConstraint(Model<typename TP::mesh_type> const & model_,
+void createParticleConstraint(Model<typename TP::mesh_type> const & model_,
 		TDict const & dict, TP * p)
 {
 
-	CreateParticleConstriant<this_type>(dict["Constriants"], &commands_);
+	createParticleConstriant<this_type>(dict["Constriants"], &commands_);
 
 	return std::dynamic_pointer_cast<VisitorBase>(
 			std::shared_ptr<ParticleBoundary<typename TM::mesh_type>>(

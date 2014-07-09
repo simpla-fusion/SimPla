@@ -12,7 +12,7 @@
 #include "../../src/fetl/fetl.h"
 #include "../../src/fetl/load_field.h"
 #include "../../src/fetl/save_field.h"
-
+#include "../../src/particle/particle_base.h"
 namespace simpla
 {
 
@@ -24,18 +24,16 @@ template<typename > class Particle;
  * \brief Cold Plasma fluid
  */
 template<typename TM>
-class Particle<ColdFluid<TM> >
+class Particle<ColdFluid<TM> > : public ParticleBase
 {
 public:
-	static constexpr  unsigned int  IForm = VERTEX;
+	static constexpr unsigned int IForm = VERTEX;
 
 	typedef TM mesh_type;
 
 	typedef ColdFluid<mesh_type> engine_type;
 
 	typedef Particle<engine_type> this_type;
-
-	typedef ParticleBase<mesh_type> base_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
@@ -47,9 +45,12 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
 
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> TE;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> TB;
+
 	enum
 	{
-		EnableImplicit = true
+		is_implicit_ = true
 	};
 	const Real m;
 	const Real q;
@@ -64,8 +65,24 @@ public:
 
 	~Particle();
 
+	template<typename OS>
+	OS & print_(OS& os) const
+	{
+		DEFINE_PHYSICAL_CONST;
+
+		os << "Engine = '" << get_type_as_string() << "' "
+
+		<< " , " << "Mass = " << m / proton_mass << " * m_p"
+
+		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
+
+		;
+
+		return os;
+	}
+
 	template<typename TDict, typename TModel, typename ...Args>
-	static std::shared_ptr<this_type> Create(TDict dict, TModel const & model, Args && ... args)
+	static std::shared_ptr<ParticleBase> create(TDict dict, TModel const & model, Args && ... args)
 	{
 		std::shared_ptr<this_type> res(new this_type(dict, model));
 
@@ -74,8 +91,8 @@ public:
 			res->J.clear();
 			res->n.clear();
 
-			LoadField(dict["Density"], &(res->n));
-			LoadField(dict["Current"], &(res->J));
+			loadField(dict["Density"], &(res->n));
+			loadField(dict["Current"], &(res->J));
 
 			res->n *= res->q;
 		} catch (...)
@@ -83,21 +100,81 @@ public:
 			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 		}
 
-		return res;
+		return std::dynamic_pointer_cast<ParticleBase>(res);
 	}
 
-	static std::string get_type_as_string()
+	template<typename ...Args>
+	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
+	{
+		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
+		{
+			return this_type::create(args...);
+		};
+		return std::move(std::make_pair(get_type_as_string_static(), call_back));
+	}
+
+	void next_timestep_zero(TE const & E, TB const & B);
+
+	void next_timestep_half(TE const & E, TB const & B);
+
+	// interface
+
+	bool same_mesh_type(std::type_info const & t_info) const
+	{
+		return t_info == typeid(mesh_type);
+	}
+
+	std::string save(std::string const & path) const;
+
+	std::ostream& print(std::ostream & os) const
+	{
+		return print_(os);
+	}
+
+	Real get_mass() const
+	{
+		return m;
+	}
+
+	Real get_charge() const
+	{
+		return q;
+	}
+
+	bool is_implicit() const
+	{
+		return is_implicit_;
+	}
+
+	static std::string get_type_as_string_static()
 	{
 		return "ColdFluid";
 	}
 
-	void NextTimeStepZero(typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
-	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B);
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
 
-	void NextTimeStepHalf(typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
-	        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B);
+	void const * get_n() const
+	{
+		return reinterpret_cast<void const*>(&n);
+	}
 
-	std::string Save(std::string const & name, bool is_verbose = false) const;
+	void const * get_J() const
+	{
+		return reinterpret_cast<void const*>(&J);
+	}
+
+	void next_timestep_zero_(void const * E, void const*B)
+	{
+		next_timestep_zero(*reinterpret_cast<TE const*>(E), *reinterpret_cast<TB const*>(B));
+	}
+
+	void next_timestep_half_(void const * E, void const*B)
+	{
+		next_timestep_half(*reinterpret_cast<TE const*>(E), *reinterpret_cast<TB const*>(B));
+	}
 
 private:
 
@@ -122,46 +199,42 @@ Particle<ColdFluid<TM>>::~Particle()
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::Save(std::string const & path, bool is_verbose) const
+std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 {
 	std::stringstream os;
 
 	GLOBAL_DATA_STREAM.OpenGroup(path );
 
 	DEFINE_PHYSICAL_CONST;
+//
+//	if (is_verbose)
+//	{
+//		os
+//
+//		<< "Engine = '" << get_type_as_string()
+//
+//		<< " , " << "Mass = " << m / proton_mass << " * m_p"
+//
+//		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
+//
+//		;
+//	}
 
-	if (is_verbose)
-	{
-		os
+	os << "\n, n =" << simpla::save("n", n);
 
-		<< "Engine = '" << get_type_as_string()
-
-		<< " , " << "Mass = " << m / proton_mass << " * m_p"
-
-		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
-
-		;
-	}
-
-	os << "\n, n =" << simpla::Save("n", n);
-
-	os << "\n, J =" << simpla::Save("J", J);
+	os << "\n, J =" << simpla::save("J", J);
 
 	return os.str();
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStepZero(
-        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
-        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
+void Particle<ColdFluid<TM>>::next_timestep_zero(TE const & E, TB const & B)
 {
 	LOGGER << "Push particles Step Zero[ " << get_type_as_string() << "]";
 	Real dt = mesh.get_dt();
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::NextTimeStepHalf(
-        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & E,
-        typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> const & B)
+void Particle<ColdFluid<TM>>::next_timestep_half(TE const & E, TB const & B)
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 

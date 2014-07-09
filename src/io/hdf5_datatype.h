@@ -1,7 +1,7 @@
 /*
  * hdf5_datatype.h
  *
- *  Created on: 2014-5-26
+ *  created on: 2014-5-26
  *      Author: salmon
  */
 
@@ -37,15 +37,15 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 
 	~HDF5DataTypeFactory();
 
-	product_type Create(identifier_type const &id) const
+	product_type create(identifier_type const &id) const
 	{
-		return base_type::Create(id);
+		return base_type::create(id);
 	}
 
 	template<typename T>
-	product_type Create() const
+	product_type create() const
 	{
-		return base_type::Create(hash<T>());
+		return base_type::create(hash<T>());
 	}
 
 	template<typename T> bool Register(std::string const &desc)
@@ -55,23 +55,22 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 			return H5LTtext_to_dtype(desc.c_str(),H5LT_DDL);
 		};
 
-		return Register<T>(callback);
-	}
-
-	template<typename T> bool Register(create_fun_callback const &callback)
-	{
-		return base_type::Register(hash<T>(), callback);;
-
-	}
-	template<typename T> bool Unregister()
-	{
-		return base_type::Unregister(hash<T>());
+		return Register<T>(callback).second;
 	}
 
 private:
 	template<typename T> identifier_type hash()
 	{
 		return (std::type_index(typeid(T)).hash_code());
+	}
+public:
+
+	template<typename T> auto Register(create_fun_callback const &callback)
+	DECL_RET_TYPE(base_type::Register(std::make_pair(hash<T>(), callback)))
+
+	template<typename T> bool Unregister()
+	{
+		return base_type::Unregister(hash<T>());
 	}
 
 }

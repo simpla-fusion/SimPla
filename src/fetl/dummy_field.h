@@ -1,7 +1,7 @@
 /*
  * dummy_field.h
  *
- *  Created on: 2014-6-29
+ *  created on: 2014-6-29
  *      Author: salmon
  */
 
@@ -62,7 +62,7 @@ public:
 	{
 	}
 
-	void Print() const
+	void print() const
 	{
 		for (auto const & v : data_)
 		{

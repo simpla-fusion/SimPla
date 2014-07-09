@@ -1,7 +1,7 @@
 /*
  * interpolation.h
  *
- *  Created on: 2013-12-2
+ *  created on: 2013-12-2
  *      Author: salmon
  */
 

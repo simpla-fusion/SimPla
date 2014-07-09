@@ -1,7 +1,7 @@
 /*
  * pretty_stream.h
  *
- *  Created on: 2013-11-29
+ *  created on: 2013-11-29
  *      Author: salmon
  */
 
@@ -28,7 +28,7 @@ namespace simpla
 //! \ingroup Utilities
 
 template<typename TV> inline TV const *
-PrintNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* d, std::string const & left_brace = "{",
+printNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* d, std::string const & left_brace = "{",
         std::string const & sep = ",", std::string const & right_brace = "}")
 {
 	if (rank == 1)
@@ -50,12 +50,12 @@ PrintNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* 
 	{
 
 		os << left_brace;
-		v = PrintNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
+		v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
 
 		for (int s = 1; s < d[0]; ++s)
 		{
 			os << sep << std::endl;
-			v = PrintNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
+			v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
 		}
 		os << right_brace << std::endl;
 		return (v);

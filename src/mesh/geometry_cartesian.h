@@ -1,7 +1,7 @@
 /*
  * geometry_cartesian.h
  *
- *  Created on: 2014-3-13
+ *  created on: 2014-3-13
  *      Author: salmon
  */
 
@@ -13,6 +13,7 @@
 
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
@@ -57,18 +58,22 @@ public:
 	CartesianGeometry(Args && ... args)
 			: topology_type(std::forward<Args>(args)...)
 	{
-		Load(std::forward<Args>(args)...);
+		load(std::forward<Args>(args)...);
 	}
 
 	~CartesianGeometry()
 	{
 	}
 
-	static std::string get_type_as_string()
+	static std::string get_type_as_string_static()
 	{
 		return "Cartesian";
 	}
 
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_static();
+	}
 	//***************************************************************************************************
 	// Geometric properties
 	// Metric
@@ -77,9 +82,9 @@ public:
 	Real dt_ = 0.0;
 	Real time0_ = 0.0;
 	// Time
-	void NextTimeStep()
+	void next_timestep()
 	{
-		topology_type::NextTimeStep();
+		topology_type::next_timestep();
 	}
 	void set_time(Real p_time)
 	{
@@ -121,16 +126,16 @@ public:
 	coordinates_type shift_ = { 0, 0, 0 };
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others &&...others)
+	void load(TDict const & dict, Others &&...others)
 	{
 		try
 		{
 
-			topology_type::Load(dict, std::forward<Others>(others)...);
+			topology_type::load(dict, std::forward<Others>(others)...);
 
 			if (dict["Min"] && dict["Max"])
 			{
-				LOGGER << "Load CartesianGeometry ";
+				LOGGER << "load CartesianGeometry ";
 
 				set_extents(
 
@@ -147,13 +152,13 @@ public:
 		}
 	}
 
-	std::string Save(std::string const &path) const
+	std::string save(std::string const &path) const
 	{
 		std::stringstream os;
 
 		os << "\tMin = " << xmin_ << " , " << "Max  = " << xmax_ << ", " << " dt  = " << dt_ << ", "
 
-		<< topology_type::Save(path);
+		<< topology_type::save(path);
 
 		return os.str();
 	}

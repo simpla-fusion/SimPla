@@ -1,7 +1,7 @@
 /*
  * interpolator_test.cpp
  *
- *  Created on: 2014-6-29
+ *  created on: 2014-6-29
  *      Author: salmon
  */
 

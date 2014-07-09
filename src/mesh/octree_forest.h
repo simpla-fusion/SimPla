@@ -1,7 +1,7 @@
 /*
  * octree_forest.h
  *
- *  Created on: 2014-2-21
+ *  created on: 2014-2-21
  *      Author: salmon
  */
 
@@ -184,11 +184,11 @@ struct OcForest
 	}
 
 	template<typename TDict, typename ...Others>
-	void Load(TDict const & dict, Others const& ...)
+	void load(TDict const & dict, Others const& ...)
 	{
 		try
 		{
-			LOGGER << "Load OcForest ";
+			LOGGER << "load OcForest ";
 			set_dimensions(dict["Dimensions"].template as<nTuple<3, index_type>>());
 		}
 		catch(...)
@@ -197,7 +197,7 @@ struct OcForest
 		}
 	}
 
-	std::string Save(std::string const &path) const
+	std::string save(std::string const &path) const
 	{
 		std::stringstream os;
 
@@ -208,7 +208,7 @@ struct OcForest
 
 	unsigned long clock_ = 0UL;
 
-	void NextTimeStep()
+	void next_timestep()
 	{
 		++clock_;
 	}

@@ -1,7 +1,7 @@
 /*
  * geometry_algorithm.h
  *
- *  Created on: 2014-4-21
+ *  created on: 2014-4-21
  *      Author: salmon
  */
 
@@ -132,11 +132,11 @@ inline void Reflect(TPlane const & p, nTuple<3, Real>*x, nTuple<3, Real> * v)
 
 }
 template<typename TDict, typename TModel, typename TSurface>
-void CreateSurface(TDict const & dict, TModel const & model, TSurface * surf)
+void createSurface(TDict const & dict, TModel const & model, TSurface * surf)
 {
 	if (dict["Width"].is_number())
 	{
-		CreateSurface(model, dict["Width"].template as<Real>(), surf);
+		createSurface(model, dict["Width"].template as<Real>(), surf);
 	}
 	else
 	{
@@ -144,7 +144,7 @@ void CreateSurface(TDict const & dict, TModel const & model, TSurface * surf)
 	}
 }
 template<typename TModel, typename TSurface>
-void CreateSurface(TModel const & model, Real width, TSurface * surf)
+void createSurface(TModel const & model, Real width, TSurface * surf)
 {
 //
 ////	typedef typename TSurface::plane_type plane_type;

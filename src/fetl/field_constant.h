@@ -1,7 +1,7 @@
 /*
  * field_constant.h
  *
- *  Created on: 2012-3-15
+ *  created on: 2012-3-15
  *      Author: salmon
  */
 

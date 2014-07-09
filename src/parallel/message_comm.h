@@ -1,7 +1,7 @@
 /*
  * message_comm.h
  *
- *  Created on: 2014-5-12
+ *  created on: 2014-5-12
  *      Author: salmon
  */
 

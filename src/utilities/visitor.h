@@ -1,7 +1,7 @@
 /*
  * visitor.h
  *
- *  Created on: 2014-4-23
+ *  created on: 2014-4-23
  *      Author: salmon
  */
 
@@ -61,20 +61,20 @@ namespace simpla
  *   	{
  *   		std::cout << "This is Foo1::Command(args...). args=";
  *
- *   		Print(args...);
+ *   		print(args...);
  *
  *   		std::cout << std::endl;
  *   	}
  *
- *   	void Print()
+ *   	void print()
  *   	{
  *   	}
  *
  *   	template<typename T, typename ... Others>
- *   	void Print(T const &v, Others && ... others)
+ *   	void print(T const &v, Others && ... others)
  *   	{
  *   		std::cout << v << " ";
- *   		Print(std::forward<Others >(others )...);
+ *   		print(std::forward<Others >(others )...);
  *   	}
  *
  *   };
@@ -82,9 +82,9 @@ namespace simpla
  *    unsigned int  main(int argc, char **argv)
  *   {
  *   	AcceptorBase * f1 = dynamic_cast<AcceptorBase*>(new Foo1);
- *   	auto v1 = CreateVisitor<Foo1>("Command1", 5, 6);
- *   	auto v2 = CreateVisitor<Foo1>("Command2", "hello world");
- *   	auto v3 = CreateVisitor<Foo1>("Command3", 5, 6, 3);
+ *   	auto v1 = createVisitor<Foo1>("Command1", 5, 6);
+ *   	auto v2 = createVisitor<Foo1>("Command2", "hello world");
+ *   	auto v3 = createVisitor<Foo1>("Command3", 5, 6, 3);
  *   	f1->accept(v1);
  *   	f1->accept(v2);
  *   	f1->accept(v3);
@@ -206,7 +206,7 @@ private:
 //};
 //
 //template<typename T, typename ...Args>
-//std::shared_ptr<VisitorBase> CreateVisitor(std::string const & name, Args ...args)
+//std::shared_ptr<VisitorBase> createVisitor(std::string const & name, Args ...args)
 //{
 //	return std::dynamic_pointer_cast<VisitorBase>(std::shared_ptr<Visitor<T, Args...>>(
 //

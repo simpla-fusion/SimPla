@@ -1,7 +1,7 @@
 /*
  * factory.h
  *
- *  Created on: 2014-6-13
+ *  created on: 2014-6-13
  *      Author: salmon
  */
 
@@ -23,25 +23,39 @@ namespace simpla
 template<typename TId, typename TProduct, typename ...Args>
 struct Factory
 {
-public:
 	typedef TId identifier_type;
 
 	typedef typename std::conditional<std::is_fundamental<TProduct>::value, TProduct, std::shared_ptr<TProduct>>::type product_type;
-
 	typedef std::function<product_type(Args ...)> create_fun_callback;
 
 	typedef std::map<identifier_type, create_fun_callback> CallbackMap;
 
+private:
+	CallbackMap callbacks_;
+public:
+
 	Factory()
 	{
 	}
-	;
 
 	~Factory()
 	{
 	}
+	template<typename OS>
+	OS & print(OS & os) const
+	{
+		for (auto const& item : callbacks_)
+		{
+			os << "\t" << item.first << std::endl;
+		}
+		return os;
+	}
+	size_t size() const
+	{
+		return callbacks_.size();
+	}
 
-	product_type Create(identifier_type const &id, Args ... args) const
+	product_type create(identifier_type const &id, Args ... args) const
 	{
 		auto it = callbacks_.find(id);
 
@@ -52,19 +66,22 @@ public:
 		return (it->second)(std::forward<Args>(args)...);
 	}
 
-	int Register(identifier_type const & id, create_fun_callback const &fun)
-	{
-		return callbacks_.insert(typename CallbackMap::value_type(id, fun)).second ? 1 : 0;
-	}
+	template<typename ... Others>
+	auto Register(Others && ... args)
+	DECL_RET_TYPE((callbacks_.insert(std::forward<Others>(args)...)))
+
 	int Unregister(identifier_type const & id)
 	{
 		return callbacks_.erase(id);
 	}
-private:
-	CallbackMap callbacks_;
 
 }
 ;
+template<typename ...T>
+std::ostream & operator<<(std::ostream & os, Factory<T...> const & f)
+{
+	return f.print(os);
+}
 }
 // namespace simpla
 

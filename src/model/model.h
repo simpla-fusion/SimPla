@@ -1,7 +1,7 @@
 /*
  * model.h
  *
- *  Created on: 2013-12-15
+ *  created on: 2013-12-15
  *      Author: salmon
  */
 
@@ -170,19 +170,19 @@ public:
 	}
 
 	template<typename TDict>
-	void Load(TDict const & dict)
+	void load(TDict const & dict)
 	{
 		UNIMPLEMENT;
 	}
-	std::string Save(std::string const & path, bool is_verbose = false) const
+	std::string save(std::string const & path, bool is_verbose = false) const
 	{
 		UNIMPLEMENT;
 		return "UNIMPLEMENT!";
 	}
 	template<typename OS>
-	OS & Print(OS &os) const
+	OS & print(OS &os) const
 	{
-		return mesh_type::Print(os);
+		return mesh_type::print(os);
 	}
 
 	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
@@ -318,7 +318,7 @@ public:
 template<typename TM>
 std::ostream & operator<<(std::ostream & os, Model<TM> const & model)
 {
-	return model.Print(os);
+	return model.print(os);
 }
 template<typename TM>
 template<typename TR, typename TDict>

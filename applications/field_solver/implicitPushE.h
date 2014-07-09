@@ -15,7 +15,6 @@
 namespace simpla
 {
 
-
 /**
  *   \ingroup FieldSolver
  *
@@ -39,6 +38,10 @@ public:
 
 	typename mesh_type:: template field<VERTEX, Real> BB;
 
+	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
+
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
 			: mesh(m), B0(mesh), Bv(mesh), BB(mesh), Ev(mesh)
@@ -46,7 +49,7 @@ public:
 	}
 
 	template<typename TP>
-	void NextTimeStep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
+	void next_timestep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
 	        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
 	        typename mesh_type:: template field<EDGE, scalar_type> *pdE);
 };
@@ -60,7 +63,7 @@ public:
  */
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
+void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
         typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
         typename mesh_type:: template field<EDGE, scalar_type> *pdE)
 {
@@ -92,12 +95,12 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 
 	for (auto &p : particles)
 	{
-		if (p.second->EnableImplicit())
+		if (p.second->is_implicit())
 		{
-			p.second->NextTimeStepZero(Ev, Bv);
+			p.second->next_timestep_zero(Ev, Bv);
 
-			auto & rhos = p.second->n();
-			auto & Js = p.second->Jv();
+			auto & rhos = p.second->template n<n_type>();
+			auto & Js = p.second->template J<J_type>();
 
 			Real ms = p.second->get_mass();
 			Real qs = p.second->get_charge();
@@ -128,8 +131,8 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 
 	for (auto &p : particles)
 	{
-		if (p.second->EnableImplicit())
-			p.second->NextTimeStepHalf(Ev, Bv);
+		if (p.second->is_implicit())
+			p.second->next_timestep_half(Ev, Bv);
 	}
 	Ev += dEv * 0.5;
 
@@ -141,7 +144,5 @@ void ImplicitPushE<TM>::NextTimeStep(typename mesh_type:: template field<EDGE, s
 
 }
 // namespace simpla
-
-
 
 #endif /* IMPLICITPUSHE_H_ */

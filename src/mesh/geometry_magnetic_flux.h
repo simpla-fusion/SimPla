@@ -1,7 +1,7 @@
 /*
  * geometry_magnetic_flux.h
  *
- *  Created on: 2014-3-13
+ *  created on: 2014-3-13
  *      Author: salmon
  */
 
@@ -69,12 +69,12 @@ struct MagneticFluxGeometry
 
 	}
 	template<typename TDict>
-	void Load(TDict const & dict)
+	void load(TDict const & dict)
 	{
 
 	}
 
-	std::ostream & Save(std::ostream & os) const
+	std::ostream & save(std::ostream & os) const
 	{
 		return os;
 	}

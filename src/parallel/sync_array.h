@@ -1,7 +1,7 @@
 /*
  * sync_array.h
  *
- *  Created on: 2014-5-26
+ *  created on: 2014-5-26
  *      Author: salmon
  */
 

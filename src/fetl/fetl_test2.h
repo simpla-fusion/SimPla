@@ -1,7 +1,7 @@
 /*
  * fetl_test2.h
  *
- *  Created on: 2014-3-24
+ *  created on: 2014-3-24
  *      Author: salmon
  */
 

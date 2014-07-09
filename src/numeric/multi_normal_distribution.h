@@ -1,7 +1,7 @@
 /*
  * multi_normal_distribution.h
  *
- *  Created on: 2013-10-22
+ *  created on: 2013-10-22
  *      Author: salmon
  */
 

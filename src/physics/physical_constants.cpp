@@ -1,7 +1,7 @@
 /*
  * physical_constants.cpp
  *
- *  Created on: 2012-10-17
+ *  created on: 2012-10-17
  *      Author: salmon
  */
 
@@ -21,7 +21,7 @@ PhysicalConstants::~PhysicalConstants()
 {
 }
 
-std::ostream & PhysicalConstants::Save(std::ostream &os) const
+std::ostream & PhysicalConstants::save(std::ostream &os) const
 {
 	os
 
@@ -48,7 +48,7 @@ std::ostream & PhysicalConstants::Save(std::ostream &os) const
 }
 std::ostream & operator<<(std::ostream & os, PhysicalConstants const & self)
 {
-	return self.Save(os);
+	return self.save(os);
 }
 void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double ps, double pkg, double pC, double pK,
         double pMol)
@@ -176,7 +176,7 @@ void PhysicalConstants::SetBaseUnit(std::string const & type, double pm, double 
 
 }
 
-void PhysicalConstants::Print(std::ostream & os) const
+void PhysicalConstants::print(std::ostream & os) const
 {
 	os
 

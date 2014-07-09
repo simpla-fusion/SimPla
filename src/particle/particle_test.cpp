@@ -1,7 +1,7 @@
 /*
  * particle_test.cpp
  *
- *  Created on: 2013-11-6
+ *  created on: 2013-11-6
  *      Author: salmon
  */
 

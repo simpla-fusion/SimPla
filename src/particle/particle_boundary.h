@@ -1,7 +1,7 @@
 /*
  * particle_boundary.h
  *
- *  Created on: 2014-4-24
+ *  created on: 2014-4-24
  *      Author: salmon
  */
 
@@ -52,10 +52,10 @@ public:
 	virtual ~BoundaryCondition();
 
 	template<typename ...Others>
-	static std::function<void()> Create(particle_type* f, Others && ...);
+	static std::function<void()> create(particle_type* f, Others && ...);
 
 //	template<typename ... Others>
-//	static std::function<void(particle_type*)> Create(Others && ...);
+//	static std::function<void(particle_type*)> create(Others && ...);
 
 	void Visit(particle_type * p) const;
 
@@ -75,7 +75,7 @@ BoundaryCondition<Particle<Engine> >::BoundaryCondition(TDict const & dict, Othe
 {
 //	mesh_type const & mesh = model.mesh;
 //
-//	CreateSurface(dict["Select"], model, &surface_);
+//	createSurface(dict["Select"], model, &surface_);
 //
 //	if (dict["Operation"].is_string())
 //	{
@@ -103,14 +103,14 @@ BoundaryCondition<Particle<Engine>>::~BoundaryCondition()
 
 template<typename Engine>
 template<typename ... Others>
-std::function<void()> BoundaryCondition<Particle<Engine>>::Create(particle_type* f, Others && ...others)
+std::function<void()> BoundaryCondition<Particle<Engine>>::create(particle_type* f, Others && ...others)
 {
 
 	return std::bind(&this_type::Visit, std::shared_ptr<this_type>(new this_type(std::forward<Others >(others)...)), f);
 }
 //template<typename Engine>
 //template<typename ... Others>
-//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine >>::Create(
+//std::function<void(Particle<Engine>*)> BoundaryCondition<Particle<Engine >>::create(
 //		Others && ...others)
 //{
 //

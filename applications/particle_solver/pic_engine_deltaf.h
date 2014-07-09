@@ -29,7 +29,7 @@ struct PICEngineDeltaF
 public:
 	enum
 	{
-		EnableImplicit = false
+		is_implicit = false
 	};
 	Real m;
 	Real q;
@@ -43,8 +43,7 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<EnableImplicit,
-	        typename mesh_type::template field<VERTEX, nTuple<3, scalar_type>>,
+	typedef typename std::conditional<is_implicit, typename mesh_type::template field<VERTEX, nTuple<3, scalar_type>>,
 	        typename mesh_type::template field<EDGE, scalar_type> >::type J_type;
 
 	struct Point_s
@@ -85,10 +84,10 @@ public:
 	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
 			: PICEngineDeltaF(pmesh)
 	{
-		Load(std::forward<Others >(others)...);
+		load(std::forward<Others >(others)...);
 	}
 	template<typename TDict, typename ...Args>
-	void Load(TDict const& dict, Args const & ...args)
+	void load(TDict const& dict, Args const & ...args)
 	{
 		m = (dict["Mass"].template as<Real>(1.0));
 		q = (dict["Charge"].template as<Real>(1.0));
@@ -128,12 +127,21 @@ public:
 		return "DeltaF";
 	}
 
-	std::string Save(std::string const & path = "", bool is_verbose = false) const
+	Real get_mass()const
 	{
-		std::stringstream os;
+		return m;
+
+	}
+	Real get_charge()const
+	{
+		return q;
+
+	}
+	template<typename OS>
+	OS & print(OS & os) const
+	{
 
 		DEFINE_PHYSICAL_CONST
-		;
 
 		os << "Engine = '" << get_type_as_string() << "' "
 
@@ -145,7 +153,7 @@ public:
 
 		;
 
-		return os.str();
+		return os;
 	}
 
 	static Point_s DefaultValue()
@@ -156,7 +164,7 @@ public:
 		return std::move(p);
 	}
 	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepZero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
+	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
 			Others const &...others) const
 	{
 		p->x += p->v * dt * 0.5;
@@ -186,12 +194,12 @@ public:
 
 	}
 	template<typename TE, typename TB, typename ... Others>
-	inline void NextTimeStepHalf(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
 	}
 //	// x(-1/2->1/2), w(-1/2,1/2)
 //	template<typename TJ, typename TE, typename TB, typename ... Others>
-//	inline void NextTimeStepZero(Bool2Type<true>, Point_s * p, Real dt, TJ *J,
+//	inline void next_timestep_zero(Bool2Type<true>, Point_s * p, Real dt, TJ *J,
 //			TE const &fE, TB const & fB, Others const &...others) const
 //	{
 //		p->x += p->v * dt * 0.5;
@@ -210,7 +218,7 @@ public:
 //
 //	}
 //	template<typename TE, typename TB, typename ... Others>
-//	inline void NextTimeStepHalf(Bool2Type<true>, Point_s * p, Real dt,
+//	inline void next_timestep_half(Bool2Type<true>, Point_s * p, Real dt,
 //			TE const &fE, TB const & fB, Others const &...others) const
 //	{
 //

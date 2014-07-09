@@ -1,7 +1,7 @@
 /*
  * data_stream.h
  *
- *  Created on: 2013-12-11
+ *  created on: 2013-12-11
  *      Author: salmon
  *
  */
@@ -227,26 +227,26 @@ private:
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
 template<typename TV, typename ...Args>
-std::string Save(std::string const & name, TV const *data, Args && ...args)
+std::string save(std::string const & name, TV const *data, Args && ...args)
 {
 	return GLOBAL_DATA_STREAM.Write(name, data , std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(std::string const & name,
+template<typename TV, typename ... Args> inline std::string save(std::string const & name,
         std::shared_ptr<TV> const & d, Args && ... args)
 {
-	return Save(name, d.get(), std::forward<Args>(args)...);
+	return save(name, d.get(), std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::vector<TV>const & d,
+template<typename TV, typename ... Args> inline std::string save(std::string const & name, std::vector<TV>const & d,
         Args && ... args)
 {
 	size_t s = 0;
 	size_t n = d.size();
 
-	return Save(name, &d[0], 1, &s, &n, std::forward<Args>(args)...);
+	return save(name, &d[0], 1, &s, &n, std::forward<Args>(args)...);
 }
-template<typename TL, typename TR, typename ... Args> inline std::string Save(std::string const & name,
+template<typename TL, typename TR, typename ... Args> inline std::string save(std::string const & name,
         std::map<TL, TR>const & d, Args && ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
@@ -254,10 +254,10 @@ template<typename TL, typename TR, typename ... Args> inline std::string Save(st
 	{
 		d_.emplace_back(p);
 	}
-	return Save(name, d_, std::forward<Args>(args)...);
+	return save(name, d_, std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string Save(std::string const & name, std::map<TV, TV>const & d,
+template<typename TV, typename ... Args> inline std::string save(std::string const & name, std::map<TV, TV>const & d,
         Args && ... args)
 {
 	std::vector<nTuple<2, TV> > d_;
@@ -266,12 +266,12 @@ template<typename TV, typename ... Args> inline std::string Save(std::string con
 		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
 	}
 
-	return Save(name, d_, std::forward<Args>(args)...);
+	return save(name, d_, std::forward<Args>(args)...);
 }
 
-#define SAVE(_F_) simpla::Save(__STRING(_F_),_F_  )
+#define SAVE(_F_) simpla::save(__STRING(_F_),_F_  )
 #ifndef NDEBUG
-#	define DEBUG_SAVE(_F_) simpla::Save(__STRING(_F_),_F_ )
+#	define DEBUG_SAVE(_F_) simpla::save(__STRING(_F_),_F_ )
 #else
 #   define DEBUG_SAVE(_F_) ""
 #endif

@@ -155,7 +155,7 @@ int main(int argc, char **argv)
 
 		model.set_dt(dt);
 
-		geqdsk.Load(gfile);
+		geqdsk.load(gfile);
 
 		typename mesh_type::coordinates_type src_min;
 		typename mesh_type::coordinates_type src_max;
@@ -177,7 +177,7 @@ int main(int argc, char **argv)
 
 		geqdsk.SetUpMaterial(&model, toridal_model_number);
 
-		INFORM << geqdsk.Save("/Input");
+		INFORM << geqdsk.save("/Input");
 	}
 	else
 	{
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.OpenGroup("/Save");
+		GLOBAL_DATA_STREAM.OpenGroup("/save");
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
 		//   save initial value
@@ -279,7 +279,7 @@ int main(int argc, char **argv)
 
 			LOG_CMD(B += dB * 0.5);//	B(t=1/2 -> 1)
 
-			model.NextTimeStep();
+			model.next_timestep();
 
 			DEFINE_PHYSICAL_CONST
 
