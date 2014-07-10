@@ -7,7 +7,6 @@
 
 #ifndef MESSAGE_COMM_H_
 #define MESSAGE_COMM_H_
-
 #include <mpi.h>
 #include <algorithm>
 #include <thread>
