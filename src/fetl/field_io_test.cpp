@@ -5,6 +5,8 @@
  *      Author: salmon
  */
 
+#include <iostream>
+#include <cmath>
 #include "field.h"
 #include "save_field.h"
 
@@ -13,28 +15,31 @@
 #include "../mesh/uniform_array.h"
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/geometry_cartesian.h"
-#include <iostream>
+
 #include "../parallel/parallel.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../io/data_stream.h"
+#include "../physics/constants.h"
 
 using namespace simpla;
 
 int main(int argc, char **argv)
 {
+	LOG_STREAM.set_stdout_visable_level(12);
+
 	GLOBAL_COMM.Init(argc,argv);
 
 	using namespace simpla;
 
 	nTuple<3, Real> xmin =
-	{	-1.0, -1.0, -1.0};
+	{	0, 0, 0};
 
 	nTuple<3, Real> xmax =
 	{	1.0, 1.0, 1.0};
 
 	nTuple<3, size_t> dims =
-	{	20, 10, 1};
+	{	10, 10, 1};
 
 	typedef Mesh< CartesianGeometry<UniformArray>,false> mesh_type;
 
@@ -45,26 +50,37 @@ int main(int argc, char **argv)
 
 	mesh.Update();
 
-	mesh.Decompose(GLOBAL_COMM.get_size(), GLOBAL_COMM.get_rank());
+	auto f0=mesh.template make_field<VERTEX,Real> ();
+	auto f1=mesh.template make_field<VERTEX,Real> ();
 
-	auto f=mesh.template make_field< 0,Real> ();
+	f0.clear();
+	f1.clear();
 
-	f.Fill(GLOBAL_COMM.get_rank()+100);
+	for(auto s: mesh.Select(VERTEX))
+	{
+		auto idx=(mesh_type::Decompact(s)>>mesh_type::MAX_DEPTH_OF_TREE)-mesh.local_outer_begin_;
 
-	GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-	GLOBAL_DATA_STREAM.OpenGroup("/t1");
-	LOGGER << SAVE(f);
-	GLOBAL_DATA_STREAM.OpenGroup("/t2");
-	GLOBAL_DATA_STREAM.EnableCompactStorable( );
-	LOGGER << SAVE(f);
-	LOGGER << SAVE(f);
-	LOGGER << endl;
+		f0[s]=idx[0];
 
-	int rank=GLOBAL_COMM.get_rank();
-	std::vector<int> vec(12);
-	std::generate(vec.begin(), vec.end(),[rank]()->int
-			{	return (std::rand()%1000+(rank+1)*1000);});
-	LOGGER << GLOBAL_DATA_STREAM.UnorderedWrite("data",vec);
+		f1[s]=idx[1];
+
+	}
+	GLOBAL_DATA_STREAM.OpenFile("field_io_test");
+	GLOBAL_DATA_STREAM.OpenGroup("/");
+	LOGGER << SAVE(f0);
+	LOGGER << SAVE(f1);
+
+	//	GLOBAL_DATA_STREAM.OpenGroup("/t2");
+//	GLOBAL_DATA_STREAM.EnableCompactStorable( );
+//	LOGGER << SAVE(f);
+//	LOGGER << SAVE(f);
+//	LOGGER << endl;
+//
+//	int rank=GLOBAL_COMM.get_rank();
+//	std::vector<int> vec(12);
+//	std::generate(vec.begin(), vec.end(),[rank]()->int
+//			{	return (std::rand()%1000+(rank+1)*1000);});
+//	LOGGER << GLOBAL_DATA_STREAM.UnorderedWrite("data",vec);
 
 }
 

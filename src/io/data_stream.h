@@ -9,20 +9,16 @@
 #ifndef DATA_STREAM_
 #define DATA_STREAM_
 
-#include <complex>
-#include <functional>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <type_traits>
 #include <vector>
-#include <typeindex>
 
 #include "../utilities/ntuple.h"
 #include "../utilities/log.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/pretty_stream.h"
-
+#include "../utilities/data_type.h"
 namespace simpla
 {
 /** \defgroup  DataIO Data input/output system
@@ -129,93 +125,48 @@ public:
 	template<typename TV, typename ...Args>
 	std::string Write(std::string const & name, TV const *data, Args && ...args) const
 	{
-		h5type_traits_<TV> h5t;
-		return WriteHDF5(name, reinterpret_cast<void const*>(data), h5t.idx, h5t.rank, h5t.extent,
+		return WriteRawData(name, reinterpret_cast<void const*>(data), DataType::create<TV>(),
 		        std::forward<Args>(args)...);
 	}
 
 	template<typename TV>
 	std::string UnorderedWrite(std::string const & name, TV const *data, size_t number) const
 	{
-		h5type_traits_<TV> h5t;
-		return UnorderedWriteHDF5(name, reinterpret_cast<void const*>(data), h5t.idx, h5t.rank, h5t.extent, number);
+		return WriteUnorderedRawData(name, reinterpret_cast<void const*>(data), DataType::create<TV>(), number);
 	}
 
 	template<typename TV>
 	std::string UnorderedWrite(std::string const & name, std::vector<TV> const &data) const
 	{
-		h5type_traits_<TV> h5t;
-		return UnorderedWriteHDF5(name, reinterpret_cast<void const*>(&data[0]), h5t.idx, h5t.rank, h5t.extent,
-		        data.size());
+
+		return WriteUnorderedRawData(name, reinterpret_cast<void const*>(&data[0]), DataType::create<TV>(), data.size());
 	}
 private:
-	template<typename TV>
-	struct h5type_traits_
-	{
-		const size_t idx;
-		static constexpr  unsigned int  rank = 0;
-		const size_t extent[1] = { 0 };
-		h5type_traits_() :
-				idx(std::type_index(typeid(TV)).hash_code())
-		{
-		}
-		~h5type_traits_()
-		{
-		}
-	};
-	template<unsigned int N, typename TV>
-	struct h5type_traits_<nTuple<N, TV>>
-	{
-		const size_t idx;
-		static constexpr  unsigned int  rank = 1;
-		const size_t extent[2] = { N, 0 };
-		h5type_traits_() :
-				idx(std::type_index(typeid(TV)).hash_code())
-		{
-		}
-		~h5type_traits_()
-		{
-		}
-	};
-	template<unsigned int N,  unsigned int  M, typename TV>
-	struct h5type_traits_<nTuple<M, nTuple<N, TV>> >
-	{
-		const size_t idx;
-		static constexpr  unsigned int  rank = 2;
-		const size_t extent[3] = { M, N, 0 };
-		h5type_traits_() :
-				idx(std::type_index(typeid(TV)).hash_code())
-		{
-		}
-		~h5type_traits_()
-		{
-		}
-	};
 
-	std::string WriteHDF5(std::string const &name, void const *v,
+	std::string WriteRawData(std::string const &name, void const *v,
 
-	size_t t_idx,  unsigned int  type_rank, size_t const * type_dims,
+	DataType const & datatype,
 
 	int rank,
 
-	size_t const *global_start,
+	size_t const *global_begin,
 
-	size_t const *global_count,
+	size_t const *global_end,
 
-	size_t const *local_outer_start = nullptr,
+	size_t const *local_outer_begin,
 
-	size_t const *local_outer_count = nullptr,
+	size_t const *local_outer_end,
 
-	size_t const *local_inner_start = nullptr,
+	size_t const *local_inner_begin,
 
-	size_t const *local_inner_count = nullptr,
+	size_t const *local_inner_end,
 
 	bool is_append = false
 
 	) const;
 
-	std::string UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx,  unsigned int  type_rank,
-	        size_t const * type_dims, size_t number) const;
+	std::string WriteUnorderedRawData(std::string const &name, void const *v, DataType const & datatype,
+	        size_t number) const;
 
 	struct pimpl_s;
 	pimpl_s *pimpl_;

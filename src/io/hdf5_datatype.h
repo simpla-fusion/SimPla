@@ -44,6 +44,11 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 		return base_type::create(id);
 	}
 
+	product_type create(std::type_info const &t_info) const
+	{
+		return base_type::create(std::type_index(t_info).hash_code());
+	}
+
 	template<typename T>
 	product_type create() const
 	{

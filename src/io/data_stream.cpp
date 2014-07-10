@@ -26,8 +26,8 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 };
-DataStream::DataStream()
-		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+DataStream::DataStream() :
+		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -73,8 +73,7 @@ bool DataStream::is_ready() const
 }
 void DataStream::OpenGroup(std::string const & gname)
 {
-	if (gname == "")
-		return;
+	if (gname == "") return;
 
 	hid_t h5fg = pimpl_->file_;
 
@@ -87,8 +86,7 @@ void DataStream::OpenGroup(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (pimpl_->group_ > 0)
-			h5fg = pimpl_->group_;
+		if (pimpl_->group_ > 0) h5fg = pimpl_->group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -120,8 +118,6 @@ void DataStream::OpenFile(std::string const &fname)
 
 	GLOBAL_COMM.Barrier();
 
-	int name_len;
-
 	if (GLOBAL_COMM.get_rank()==0)
 	{
 		if (fname != "")
@@ -149,27 +145,29 @@ void DataStream::OpenFile(std::string const &fname)
 
 		) + ".h5";
 
-		name_len=filename_.size();
 	}
-	if (GLOBAL_COMM.IsInitilized())
-	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
-
-	std::vector<char> buffer(name_len);
-
-	if (GLOBAL_COMM.get_rank()==0)
-	{
-		std::copy(filename_.begin(),filename_.end(),buffer.begin());
-	}
-	if (GLOBAL_COMM.IsInitilized())
-	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
-
-	if (GLOBAL_COMM.get_rank()!=0)
-	{
-		filename_=&buffer[0];
-	}
-
+	// sync filename and open file
 	if (GLOBAL_COMM.IsInitilized())
 	{
+		int name_len;
+
+		if (GLOBAL_COMM.get_rank()==0) name_len=filename_.size();
+
+		MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
+
+		std::vector<char> buffer(name_len);
+
+		if (GLOBAL_COMM.get_rank()==0)
+		{
+			std::copy(filename_.begin(),filename_.end(),buffer.begin());
+		}
+
+		MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
+
+		if (GLOBAL_COMM.get_rank()!=0)
+		{
+			filename_=&buffer[0];
+		}
 
 		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -178,12 +176,12 @@ void DataStream::OpenFile(std::string const &fname)
 		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 		H5Pclose(plist_id);
+
 	}
 	else
 	{
 		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
 	}
-
 	GLOBAL_COMM.Barrier();
 
 	if (pimpl_->file_ < 0)
@@ -213,23 +211,23 @@ void DataStream::CloseFile()
 	pimpl_->file_ = -1;
 }
 
-std::string DataStream::WriteHDF5(std::string const & name, void const *v,
+std::string DataStream::WriteRawData(std::string const & name, void const *v,
 
-size_t t_idx, unsigned int type_rank, size_t const * type_dims,
+DataType const & data_desc,
 
 int rank,
 
-size_t const *p_global_start,
+size_t const *p_global_begin,
 
-size_t const *p_global_count,
+size_t const *p_global_end,
 
-size_t const *p_local_outer_start,
+size_t const *p_local_outer_begin,
 
-size_t const *p_local_outer_count,
+size_t const *p_local_outer_end,
 
-size_t const *p_local_inner_start,
+size_t const *p_local_inner_begin,
 
-size_t const *p_local_inner_count,
+size_t const *p_local_inner_end,
 
 bool is_append
 
@@ -248,40 +246,43 @@ bool is_append
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
-	hsize_t g_start[rank + type_rank + 1];
-	hsize_t g_shape[rank + type_rank + 1];
-	hsize_t f_start[rank + type_rank + 1];
-	hsize_t m_shape[rank + type_rank + 1];
-	hsize_t m_start[rank + type_rank + 1];
-	hsize_t m_count[rank + type_rank + 1];
+	hsize_t g_begin[rank + data_desc.NDIMS + 1];
+	hsize_t g_shape[rank + data_desc.NDIMS + 1];
+	hsize_t f_begin[rank + data_desc.NDIMS + 1];
+	hsize_t m_shape[rank + data_desc.NDIMS + 1];
+	hsize_t m_begin[rank + data_desc.NDIMS + 1];
+	hsize_t m_count[rank + data_desc.NDIMS + 1];
 
 	for (int i = 0; i < rank; ++i)
 	{
-		g_start[i] = (p_global_start != nullptr) ? p_global_start[i] : 0;
-		g_shape[i] = (p_global_count != nullptr) ? p_global_count[i] : 1;
-		f_start[i] = (p_local_inner_start != nullptr) ? (p_local_inner_start[i] - g_start[i]) : 0;
-		m_shape[i] = (p_local_outer_count != nullptr) ? p_local_outer_count[i] : g_shape[i];
-		m_start[i] =
-		        (p_local_inner_start != nullptr && p_local_outer_start != nullptr) ?
-		                (p_local_inner_start[i] - p_local_outer_start[i]) : 0;
-		m_count[i] = (p_local_inner_count != nullptr) ? p_local_inner_count[i] : g_shape[i];
+		g_begin[i] = p_global_begin[i];
+
+		g_shape[i] = p_global_end[i] - p_global_begin[i];
+
+		f_begin[i] = p_local_inner_begin[i] - g_begin[i];
+
+		m_shape[i] = p_local_outer_end[i] - p_local_outer_begin[i];
+
+		m_begin[i] = p_local_inner_begin[i] - p_local_outer_begin[i];
+
+		m_count[i] = p_local_inner_end[i] - p_local_inner_begin[i];
 	}
 
-	if (type_rank > 0)
+	if (data_desc.NDIMS > 0)
 	{
-		for (int j = 0; j < type_rank; ++j)
+		for (int j = 0; j < data_desc.NDIMS; ++j)
 		{
 
-			g_shape[rank + j] = type_dims[j];
-			f_start[rank + j] = 0;
-			m_shape[rank + j] = type_dims[j];
-			m_start[rank + j] = 0;
-			m_count[rank + j] = type_dims[j];
+			g_shape[rank + j] = data_desc.dimensions_[j];
+			f_begin[rank + j] = 0;
+			m_shape[rank + j] = data_desc.dimensions_[j];
+			m_begin[rank + j] = 0;
+			m_count[rank + j] = data_desc.dimensions_[j];
 
 			++rank;
 		}
 	}
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(t_idx);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
 
 	hid_t dset;
 
@@ -308,19 +309,19 @@ bool is_append
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_start, NULL, m_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, NULL, m_count, NULL));
 
 		mem_space = H5Screate_simple(rank, m_shape, NULL);
 
-		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_start, NULL, m_count, NULL);
+		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL);
 
 	}
 	else
 	{
 		g_shape[rank] = 1;
-		f_start[rank] = 0;
+		f_begin[rank] = 0;
 		m_shape[rank] = 1;
-		m_start[rank] = 0;
+		m_begin[rank] = 0;
 		m_count[rank] = 0;
 
 		if (H5Lexists(pimpl_->group_, dsname.c_str(), H5P_DEFAULT) == 0)
@@ -363,24 +364,24 @@ bool is_append
 //		CHECK(name);
 //		CHECK(rank);
 //		CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
-//		CHECK(f_start[0]) << " " << f_start[1] << " " << f_start[2] << " " << f_start[3];
+//		CHECK(f_begin[0]) << " " << f_begin[1] << " " << f_begin[2] << " " << f_begin[3];
 //		CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
-//		CHECK(m_start[0]) << " " << m_start[1] << " " << m_start[2] << " " << m_start[3];
+//		CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
 //		CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
 
 		file_space = H5Dget_space(dset);
 
 		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
 
-		f_start[rank] = g_shape[rank] - 1;
+		f_begin[rank] = g_shape[rank] - 1;
 
 		m_count[rank] = 1;
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_start, nullptr, m_count, nullptr));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, nullptr, m_count, nullptr));
 
 		mem_space = H5Screate_simple(rank + 1, m_shape, nullptr);
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_start, NULL, m_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL));
 
 	}
 
@@ -403,8 +404,7 @@ bool is_append
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
@@ -427,8 +427,7 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 	std::vector<hsize_t> buffer;
 
-	if (rank == 0)
-		buffer.resize(size);
+	if (rank == 0) buffer.resize(size);
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
@@ -454,8 +453,8 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 }
 
-std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *v, size_t t_idx, unsigned int type_rank,
-        size_t const * type_dims, size_t count) const
+std::string DataStream::WriteUnorderedRawData(std::string const &name, void const *v, DataType const & data_desc,
+        size_t count) const
 
 {
 
@@ -479,31 +478,31 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 		sync_location(pos, GLOBAL_COMM.comm());
 	}
 
-	int rank = type_rank + 1;
+	int rank = data_desc.NDIMS + 1;
 
 	hsize_t f_count[rank];
-	hsize_t f_start[rank];
+	hsize_t f_begin[rank];
 	hsize_t m_count[rank];
 
-	f_start[0] = pos[0];
+	f_begin[0] = pos[0];
 	f_count[0] = pos[1];
 	m_count[0] = count;
 
-	if (type_rank > 0)
+	if (data_desc.NDIMS > 0)
 	{
-		for (int j = 0; j < type_rank; ++j)
+		for (int j = 0; j < data_desc.NDIMS; ++j)
 		{
 
-			f_count[1 + j] = type_dims[j];
+			f_count[1 + j] = data_desc.dimensions_[j];
 
-			f_start[1 + j] = 0;
+			f_begin[1 + j] = 0;
 
-			m_count[1 + j] = type_dims[j];
+			m_count[1 + j] = data_desc.dimensions_[j];
 
 		}
 	}
 
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(t_idx);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
 
 	hid_t dset;
 
@@ -526,11 +525,11 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 
 	file_space = H5Dget_space(dset);
 
-	H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_start, NULL, m_count, NULL));
+	H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, NULL, m_count, NULL));
 
 	mem_space = H5Screate_simple(rank, m_count, NULL);
 
-	// create property list for collective dataset write.
+	// create property list for collective data set write.
 	if (GLOBAL_COMM.IsInitilized())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -549,8 +548,7 @@ std::string DataStream::UnorderedWriteHDF5(std::string const &name, void const *
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
