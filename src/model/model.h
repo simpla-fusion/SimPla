@@ -280,6 +280,8 @@ public:
 
 	template<typename TR>
 	filter_range_type<TR> SelectByPoints(TR const& range, std::vector<coordinates_type>const & points) const;
+	template<typename TR>
+	filter_range_type<TR> SelectByNGP(TR const& range, coordinates_type const & points) const;
 
 	auto Select(unsigned int iform) const
 	DECL_RET_TYPE( (mesh_type::Select(iform)))
@@ -311,6 +313,10 @@ public:
 	auto SelectByFunction(int iform, std::function<bool(coordinates_type)> fun) const
 	DECL_RET_TYPE( (SelectByFunction(std::move(mesh_type::Select(iform)), fun)))
 
+	template<typename ...Args>
+	auto SelectByNGP(int iform, Args &&...args) const
+	DECL_RET_TYPE( ( SelectByNGP(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+
 	template<typename TR, typename T1, typename T2>
 	filter_range_type<TR> SelectOnSurface(TR const& range, T1 in, T2 out) const;
 	template<typename TR, typename T1, typename T2>
@@ -330,7 +336,12 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 
 	auto type = dict["Type"].template as<std::string>("");
 
-	if (type == "Boundary")
+	if (type == "NGP")
+	{
+		return std::move(SelectByNGP(range, dict["Points"].template as<coordinates_type>()));
+
+	}
+	else if (type == "Boundary")
 	{
 		return std::move(SelectInterface(range, dict["In"].template as<std::string>("NONE"), "NONE"));
 
@@ -384,7 +395,11 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR const& range,
         std::vector<coordinates_type>const & points) const
 {
-	if (points.size() == 2)
+	if (points.size() == 1)
+	{
+		return std::move(SelectByNGP(range, points[0]));
+	}
+	else if (points.size() == 2)
 	{
 		return std::move(SelectByRectangle(range, points[0], points[1]));
 	}
@@ -392,6 +407,23 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPoints(TR 
 	{
 		return std::move(SelectByPolylines(range, PointInPolygon(points)));
 	}
+}
+
+template<typename TM> template<typename TR>
+typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByNGP(TR const& range,
+        coordinates_type const & x) const
+{
+
+	compact_index_type dest;
+
+	std::tie(dest, std::ignore) = mesh_type::CoordinatesGlobalToLocal(x);
+
+	pred_fun_type pred = [dest]( compact_index_type const & s )->bool
+	{
+		return mesh_type::GetCellIndex(s)==mesh_type::GetCellIndex(dest);
+	};
+
+	return std::move(make_range_filter(range, std::move(pred)));
 }
 
 template<typename TM> template<typename TR>

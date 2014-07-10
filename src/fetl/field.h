@@ -228,7 +228,7 @@ public:
 	 * create Command
 	 */
 	template<typename TRange, typename TFun>std::function<void()>
-	createCommand(TRange const & range, TFun const & fun);
+	CreateCommand(TRange const & range, TFun const & fun);
 
 	/**
 	 *
@@ -400,7 +400,7 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 };
 
 template<typename TM, unsigned int IForm, typename TContainer> template<typename TRange, typename TFun>
-std::function<void()> Field<TM, IForm, TContainer>::createCommand(TRange const & range, TFun const & object)
+std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & object)
 {
 	auto fun = TypeCast<picewise_fun_type>(object);
 

@@ -71,6 +71,39 @@ public:
 };
 TYPED_TEST_CASE_P(TestModel);
 
+TYPED_TEST_P(TestModel,SelectByNGP){
+{
+	auto & model= TestFixture::model;
+
+	typedef typename TestFixture::mesh_type mesh_type;
+
+	typename TestFixture::coordinates_type min,max,x;
+
+	std::tie(min,max)=model.get_extents();
+
+	x=min*0.7+max*0.3;
+
+	typename mesh_type::compact_index_type dest;
+
+	std::tie(dest,std::ignore)=model.CoordinatesGlobalToLocal(x);
+
+	static constexpr unsigned int IForm=TestFixture::IForm;
+
+	auto range=model.SelectByNGP( TestFixture::IForm, x);
+
+	size_t count =0;
+
+	for(auto s :range)
+	{
+		EXPECT_EQ( mesh_type::GetCellIndex(s),mesh_type::GetCellIndex(dest));
+		++count;
+	}
+
+	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(IForm));
+
+}
+}
+
 TYPED_TEST_P(TestModel,SelectByRectangle ){
 {
 
@@ -255,7 +288,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 }}
 
-REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByRectangle, SelectByPolylines, SelectByMaterial);
+REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByRectangle, SelectByPolylines, SelectByMaterial, SelectByNGP);
 
 typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > ParamList;
 

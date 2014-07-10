@@ -959,6 +959,28 @@ public:
 		return GetShift(nid );
 	}
 
+	static unsigned int get_num_of_comp_per_cell(int iform)
+	{
+		unsigned int res;
+		switch (iform)
+		{
+			case VERTEX:
+			res = 1;
+			break;
+			case EDGE:
+			res = 3;
+			break;
+			case FACE:
+			res = 3;
+			break;
+			case VOLUME:
+			res = 1;
+			break;
+		}
+
+		return res;
+	}
+
 #ifdef ENABLE_SUB_TREE_DEPTH
 	static unsigned int DepthOfTree(compact_index_type r)
 	{
@@ -1130,6 +1152,12 @@ public:
 		: self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
 		{
 		}
+
+		iterator( compact_index_type s )
+		: self_(DecompactCellIndex(s)), begin_(DecompactCellIndex(s)),
+		end_(DecompactCellIndex(s)+1), shift_(DeltaIndex(s))
+		{
+		}
 		iterator(nTuple<NDIMS, index_type> s, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e,
 				compact_index_type shift = 0UL)
 		: self_(s), begin_(b), end_(e), shift_(shift)
@@ -1173,6 +1201,26 @@ public:
 		{
 			return this;
 		}
+
+		void reset(compact_index_type s)
+		{
+			self_=Decompact(s);
+
+			shift_=DeltaIndex(s);
+
+			NextCell();
+			PreviousCell();
+		}
+
+		this_type get_end()const
+		{
+			iterator e(end_-1, begin_, end_, shift_);
+
+			e.NextCell();
+
+			return std::move(e);
+		}
+
 		void NextCell()
 		{
 
@@ -1301,11 +1349,7 @@ public:
 
 		iterator b(begin, begin, end, shift);
 
-		iterator e(end-1, begin, end, shift);
-
-		e.NextCell();
-
-		return std::move(std::make_pair(std::move(b),std::move( e)));
+		return std::move(std::make_pair(std::move(b),std::move( b.get_end())));
 
 	}
 	/** @}*/

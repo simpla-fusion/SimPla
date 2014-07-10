@@ -399,18 +399,23 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 			if (dof == "E")
 			{
-				commandToE_.push_back(E.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				commandToE_.push_back(
+				        E.CreateCommand(model.SelectByConfig(E.IForm, item.second["Select"]),
+				                item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
-				commandToB_.push_back(B.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				commandToB_.push_back(
+				        B.CreateCommand(model.SelectByConfig(B.IForm, item.second["Select"]),
+				                item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        Jext.createCommand(model.Select(item.second["Select"]), item.second["Operation"]));
+				        Jext.CreateCommand(model.SelectByConfig(Jext.IForm, item.second["Select"]),
+				                item.second["Operation"]));
 			}
 			else
 			{

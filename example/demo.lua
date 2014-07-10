@@ -33,11 +33,11 @@ NX = 256
 NY = 256
 NZ = 256
 LX = 1  --m --100000*rhoi --0.6
-LY = 1 --2.0*math.pi/k0
-LZ = 1 -- 2.0*math.pi/18
+LY = 2 --2.0*math.pi/k0
+LZ = 3 -- 2.0*math.pi/18
 GW = 5
 
-omega_ext=omega_ci*1.9
+omega_ext=omega_ci*1.9*10
 
 
 -- From Gan
@@ -61,21 +61,21 @@ end
 
 InitValue = {
 
-	---[[
+	--[[
 	E=function(x)
 
-		local res = 0.0;
-		for i=1,1 do
-			res=res+math.sin(x[0]/LX*TWOPI* i);
+	local res = 0.0;
+	for i=1,1 do
+	res=res+math.sin(x[0]/LX*TWOPI* i);
 
-		end;
+	end;
 
-		return {res,res,res}
+	return {res,res,res}
 	end
 	--]]
 
 
-	--	E 	= 0.0
+	E 	= 0.0
 	--	, J 	= 0.0
 	--	, B 	= InitB0
 	--	, ne 	= InitN0
@@ -134,10 +134,10 @@ Model=
 }
 
 
---[[
+
 FieldSolver=
 {
---	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
+	PML=  {Min={0.1*LX,0.1*LY,0.1*LZ},Max={0.9*LX,0.9*LY,0.9*LZ}}
 }
 
 
@@ -146,15 +146,19 @@ FieldSolver=
 Constraints=
 {
 
-{
-DOF="J",
-Select={Type="Range",Points={{0.9*LX,0.9*LY,0.9*LZ},{0.1*LX,0.1*LY,0.1*LZ},{0.1*LX,0.3*LY,0.3*LZ}}},
-Operation= function(t,x,f )
-local tau = t*omega_ext
-local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-return { f[0],f[1]+amp,f[2]}
-end
-},
+	{
+		DOF="J",
+		Select={Type="NGP",Points={0.5*LX,0.9*LY,0.9*LZ}},
+		Operation= function(t,x,f )
+			local tau = t*omega_ext
+			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+			print(x[0])
+			print(x[1])
+			print(x[2])
+			return { f[0],f[1]+amp,f[2]}
+		end
+	},
+--[[
 {
 DOF="E",
 Select={Type="Boundary",In="Vacuum"},
@@ -172,10 +176,10 @@ Operation= function(t,x,f )
 return { -100, -100,-100}
 end
 },
-
+--]]
 
 }
---]]
+
 --[[
 ParticleConstraints=
 {
