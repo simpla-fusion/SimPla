@@ -43,7 +43,9 @@ std::string save(std::string const & name,
 
 	static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
 
-	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end)
+	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
+
+	d.mesh.array_order_
 
 	);
 

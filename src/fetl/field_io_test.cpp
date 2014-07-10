@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 	{	1.0, 1.0, 1.0};
 
 	nTuple<3, size_t> dims =
-	{	10, 10, 1};
+	{	10, 16, 1};
 
 	typedef Mesh< CartesianGeometry<UniformArray>,false> mesh_type;
 
@@ -58,11 +58,11 @@ int main(int argc, char **argv)
 
 	for(auto s: mesh.Select(VERTEX))
 	{
-		auto idx=(mesh_type::Decompact(s)>>mesh_type::MAX_DEPTH_OF_TREE)-mesh.local_outer_begin_;
+		auto idx=(mesh_type::Decompact(s)>>mesh_type::MAX_DEPTH_OF_TREE)-mesh.global_begin_;
 
-		f0[s]=idx[0];
+		f0[s]=idx[0]+(GLOBAL_COMM.get_rank())*100;
 
-		f1[s]=idx[1];
+		f1[s]=idx[1]+(GLOBAL_COMM.get_rank())*100;
 
 	}
 	GLOBAL_DATA_STREAM.OpenFile("field_io_test");
@@ -76,11 +76,11 @@ int main(int argc, char **argv)
 //	LOGGER << SAVE(f);
 //	LOGGER << endl;
 //
-//	int rank=GLOBAL_COMM.get_rank();
-//	std::vector<int> vec(12);
-//	std::generate(vec.begin(), vec.end(),[rank]()->int
-//			{	return (std::rand()%1000+(rank+1)*1000);});
-//	LOGGER << GLOBAL_DATA_STREAM.UnorderedWrite("data",vec);
+	int rank=GLOBAL_COMM.get_rank();
+	std::vector<int> vec(12);
+	std::generate(vec.begin(), vec.end(),[rank]()->int
+			{	return (std::rand()%1000+(rank+1)*1000);});
+	LOGGER << GLOBAL_DATA_STREAM.UnorderedWrite("data",vec);
 
 }
 

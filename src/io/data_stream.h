@@ -49,7 +49,9 @@ class DataStream
 public:
 
 	DataStream();
+
 	~DataStream();
+
 	void Init(int argc = 0, char** argv = nullptr);
 
 	void SetLightDatLimit(size_t s)
@@ -153,13 +155,15 @@ private:
 
 	size_t const *global_end,
 
-	size_t const *local_outer_begin,
+	size_t const *local_outer_begin = nullptr,
 
-	size_t const *local_outer_end,
+	size_t const *local_outer_end = nullptr,
 
-	size_t const *local_inner_begin,
+	size_t const *local_inner_begin = nullptr,
 
-	size_t const *local_inner_end,
+	size_t const *local_inner_end = nullptr,
+
+	bool is_fast_first = false,
 
 	bool is_append = false
 

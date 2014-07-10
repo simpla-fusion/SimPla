@@ -111,6 +111,32 @@ void DataStream::OpenGroup(std::string const & gname)
 
 }
 
+void sync_string(std::string * filename_)
+{
+	int name_len;
+
+	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
+
+	MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
+
+	std::vector<char> buffer(name_len);
+
+	if (GLOBAL_COMM.get_rank()==0)
+	{
+		std::copy(filename_->begin(),filename_->end(),buffer.begin());
+	}
+
+	MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
+
+	buffer.push_back('\0');
+
+	if (GLOBAL_COMM.get_rank()!=0)
+	{
+		*filename_=&buffer[0];
+	}
+
+}
+
 void DataStream::OpenFile(std::string const &fname)
 {
 
@@ -149,25 +175,7 @@ void DataStream::OpenFile(std::string const &fname)
 	// sync filename and open file
 	if (GLOBAL_COMM.IsInitilized())
 	{
-		int name_len;
-
-		if (GLOBAL_COMM.get_rank()==0) name_len=filename_.size();
-
-		MPI_Bcast(&name_len, 1, MPI_INT, 0, GLOBAL_COMM.comm());
-
-		std::vector<char> buffer(name_len);
-
-		if (GLOBAL_COMM.get_rank()==0)
-		{
-			std::copy(filename_.begin(),filename_.end(),buffer.begin());
-		}
-
-		MPI_Bcast((&buffer[0]), name_len, MPI_CHAR, 0, GLOBAL_COMM.comm());
-
-		if (GLOBAL_COMM.get_rank()!=0)
-		{
-			filename_=&buffer[0];
-		}
+		sync_string(&filename_);
 
 		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -229,12 +237,18 @@ size_t const *p_local_inner_begin,
 
 size_t const *p_local_inner_end,
 
+bool array_order,
+
 bool is_append
 
 ) const
 {
 
-	auto dsname = name;
+	assert(array_order == SLOW_FIRST);
+
+	/// @todo add support for FASF_FIRST array
+
+	std::string dsname = name;
 
 	if (v == nullptr)
 	{
@@ -255,17 +269,23 @@ bool is_append
 
 	for (int i = 0; i < rank; ++i)
 	{
-		g_begin[i] = p_global_begin[i];
+		g_begin[i] = (p_global_begin == nullptr) ? 0 : p_global_begin[i];
 
-		g_shape[i] = p_global_end[i] - p_global_begin[i];
+		g_shape[i] = (p_global_end == nullptr) ? 1 : p_global_end[i] - g_begin[i];
 
-		f_begin[i] = p_local_inner_begin[i] - g_begin[i];
+		f_begin[i] = (p_local_inner_begin == nullptr) ? 0 : p_local_inner_begin[i] - g_begin[i];
 
-		m_shape[i] = p_local_outer_end[i] - p_local_outer_begin[i];
+		m_shape[i] =
+		        (p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
+		                1 : p_local_outer_end[i] - p_local_outer_begin[i];
 
-		m_begin[i] = p_local_inner_begin[i] - p_local_outer_begin[i];
+		m_begin[i] =
+		        (p_local_inner_begin == nullptr || p_local_outer_begin == nullptr) ?
+		                0 : p_local_inner_begin[i] - p_local_outer_begin[i];
 
-		m_count[i] = p_local_inner_end[i] - p_local_inner_begin[i];
+		m_count[i] =
+		        (p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
+		                1 : p_local_inner_end[i] - p_local_inner_begin[i];
 	}
 
 	if (data_desc.NDIMS > 0)
@@ -290,17 +310,22 @@ bool is_append
 
 	if (!(enable_compact_storable_ || is_append))
 	{
-
-		dsname = dsname +
-
-		AutoIncrease([&](std::string const & s )->bool
+		if (GLOBAL_COMM.get_rank()==0)
 		{
-			return H5Lexists(pimpl_->group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
-		}, 0, 4);
+			dsname = dsname +
+
+			AutoIncrease([&](std::string const & s )->bool
+			{
+				return H5Lexists(pimpl_->group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
+			}, 0, 4);
+		}
+
+		sync_string(&dsname);
 
 		file_space = H5Screate_simple(rank, g_shape, nullptr);
 
 		dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, file_space,
+
 		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
@@ -385,7 +410,7 @@ bool is_append
 
 	}
 
-	// create property list for collective dataset write.
+// create property list for collective dataset write.
 	if (GLOBAL_COMM.IsInitilized())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
@@ -455,7 +480,6 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 std::string DataStream::WriteUnorderedRawData(std::string const &name, void const *v, DataType const & data_desc,
         size_t count) const
-
 {
 
 	auto dsname = name;
