@@ -53,7 +53,22 @@ namespace simpla
  *  \ingroup Geometry
  *  @{
  */
-template<typename TS,  unsigned int  NDIMS>
+template<unsigned int DIM, typename TR, typename TRange>
+bool PointInRectangle(nTuple<DIM, TR> const &x, TRange const & range)
+{
+	bool res = true;
+
+	auto min = std::get<0>(range);
+
+	auto max = std::get<1>(range);
+
+	for (unsigned int i = 0; i < DIM; ++i)
+	{
+		res = res && (x[i] >= min[i] && x[i] <= max[i]);
+	}
+	return res;
+}
+template<typename TS, unsigned int NDIMS>
 bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
         nTuple<NDIMS, TS> *pr_end)
 {
@@ -200,6 +215,6 @@ void createSurface(TModel const & model, Real width, TSurface * surf)
 }
 
 //! @}
-}  // namespace simpla
+}// namespace simpla
 
 #endif /* GEOMETRY_ALGORITHM_H_ */

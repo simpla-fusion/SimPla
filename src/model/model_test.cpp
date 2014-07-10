@@ -42,6 +42,7 @@ protected:
 
 		points.emplace_back(coordinates_type( { 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
+		LOG_STREAM.set_stdout_visable_level(12);
 //		GLOBAL_DATA_STREAM.OpenFile("MaterialTest");
 //		GLOBAL_DATA_STREAM.OpenGroup("/");
 	}
@@ -56,11 +57,14 @@ public:
 	static constexpr unsigned int IForm = TInt::value;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	nTuple<NDIMS, Real> xmin = { 0.0, 0.0, 0.0, };
+	nTuple<NDIMS, Real> xmin =
+	{	0.0, 0.0, 0.0,};
 
-	nTuple<NDIMS, Real> xmax = { 1.0, 2.0, 3.0 };
+	nTuple<NDIMS, Real> xmax =
+	{	1.0, 2.0, 3.0};
 
-	nTuple<NDIMS, size_t> dims = { 50, 60, 10 };
+	nTuple<NDIMS, size_t> dims =
+	{	50, 60, 10};
 
 	model_type model;
 
@@ -99,7 +103,24 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 		++count;
 	}
 
+	LOGGER<<count;
+
 	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(IForm));
+//
+//	x= min-100;
+//
+//	std::tie(dest,std::ignore)=model.CoordinatesGlobalToLocal(x);
+//
+//	auto range2=model.SelectByNGP( TestFixture::IForm, x);
+//
+//	count =0;
+//
+//	for(auto s :range2)
+//	{
+//		EXPECT_EQ( mesh_type::GetCellIndex(s),mesh_type::GetCellIndex(dest));
+//		++count;
+//	}
+//	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(IForm));
 
 }
 }

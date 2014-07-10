@@ -29,9 +29,9 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 256
-NY = 256
-NZ = 256
+NX = 128
+NY = 128
+NZ = 128
 LX = 1  --m --100000*rhoi --0.6
 LY = 2 --2.0*math.pi/k0
 LZ = 3 -- 2.0*math.pi/18
@@ -61,21 +61,20 @@ end
 
 InitValue = {
 
-	--[[
+	---[[
 	E=function(x)
 
-	local res = 0.0;
-	for i=1,1 do
-	res=res+math.sin(x[0]/LX*TWOPI* i);
+		local res = 0.0;
+		for i=1,2 do
+			res=res+math.sin(x[0]/LX*TWOPI* i + x[1]/LY*TWOPI);
+		end;
 
-	end;
-
-	return {res,res,res}
+		return {res,res,res}
 	end
 	--]]
 
 
-	E 	= 0.0
+	-- E 	= 0.0
 	--	, J 	= 0.0
 	--	, B 	= InitB0
 	--	, ne 	= InitN0
@@ -114,9 +113,11 @@ Model=
 
 		Max={LX,LY,LZ},
 
-		Dimensions={NX,1,1}, -- number of grid, now only first dimension is valid
+		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
 
-		CFL =0.5,
+		dt=0.0,
+
+	--		CFL =0.5,
 
 	},
 
@@ -148,13 +149,10 @@ Constraints=
 
 	{
 		DOF="J",
-		Select={Type="NGP",Points={0.5*LX,0.9*LY,0.9*LZ}},
+		Select={Type="NGP",Points={0.2*LX,0.5*LY,0.9*LZ}},
 		Operation= function(t,x,f )
 			local tau = t*omega_ext
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-			print(x[0])
-			print(x[1])
-			print(x[2])
 			return { f[0],f[1]+amp,f[2]}
 		end
 	},

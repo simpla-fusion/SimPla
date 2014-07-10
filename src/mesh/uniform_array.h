@@ -449,6 +449,20 @@ public:
 				&& ( global_count_[2]>1 || idx[2]>=global_begin_[2])
 		);
 	}
+
+	bool InLocalRange(compact_index_type s)const
+	{
+		auto idx=Decompact(s)>>MAX_DEPTH_OF_TREE;
+
+		return
+
+		( ( global_count_[0]>1 || (idx[0]>=local_inner_begin_[0] && idx[0]< local_inner_end_[0] )))
+
+		&& ( ( global_count_[1]>1 || (idx[1]>=local_inner_begin_[1] && idx[1] < local_inner_end_[1] )))
+
+		&& ( ( global_count_[2]>1 || (idx[2]>=local_inner_begin_[2] && idx[2] < local_inner_end_[2] ))
+		);
+	}
 	//! @}
 	//! @name Index Dependent
 	//! @{

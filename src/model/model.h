@@ -25,7 +25,7 @@
 #include "../utilities/sp_type_traits.h"
 
 #include "../numeric/pointinpolygon.h"
-
+#include "../numeric/geometric_algorithm.h"
 namespace simpla
 {
 
@@ -413,17 +413,30 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByNGP(TR const& range,
         coordinates_type const & x) const
 {
-
 	compact_index_type dest;
 
 	std::tie(dest, std::ignore) = mesh_type::CoordinatesGlobalToLocal(x);
 
-	pred_fun_type pred = [dest]( compact_index_type const & s )->bool
+	if (mesh_type::InLocalRange(dest))
 	{
-		return mesh_type::GetCellIndex(s)==mesh_type::GetCellIndex(dest);
-	};
 
-	return std::move(make_range_filter(range, std::move(pred)));
+		pred_fun_type pred = [dest]( compact_index_type const & s )->bool
+		{
+			return mesh_type::GetCellIndex(s)==mesh_type::GetCellIndex(dest);
+		};
+
+		return std::move(make_range_filter(range, std::move(pred)));
+	}
+	else
+	{
+		pred_fun_type pred = []( compact_index_type const & )->bool
+		{
+			return false;
+		};
+
+		return std::move(make_range_filter(range, std::move(pred)));
+	}
+
 }
 
 template<typename TM> template<typename TR>
