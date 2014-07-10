@@ -4,5 +4,5 @@ ADD_SUBDIRECTORY( contexts )
               
 ADD_EXECUTABLE(simpla  simpla.cpp   )
 
-TARGET_LINK_LIBRARIES(simpla  physics context  geqdsk io ${MPI_LIBRARIES})
+TARGET_LINK_LIBRARIES(simpla  physics context  geqdsk io parallel)
 

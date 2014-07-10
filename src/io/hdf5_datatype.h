@@ -28,6 +28,8 @@ namespace simpla
 /** \ingroup HDF5
  *
  *  \brief HDF5 data type factory
+ *
+ *  @todo transform to DataType interface
  */
 struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 {

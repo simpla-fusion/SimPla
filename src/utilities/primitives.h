@@ -48,9 +48,11 @@ typedef std::complex<Real> Complex;
 
 template<unsigned int N, typename T> struct nTuple;
 
-static const Real INIFITY = std::numeric_limits<Real>::infinity();
+static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
-static const Real EPSILON = std::numeric_limits<Real>::epsilon();
+static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
+
+static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
 
 typedef enum
 {

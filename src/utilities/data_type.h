@@ -7,31 +7,69 @@
 
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
-#include <string>
+#include <typeinfo>
+
+#include "../utilities/primitives.h"
+#include "../utilities/ntuple.h"
 
 namespace simpla
 {
-
+/**
+ *  @todo need support for compound data type
+ */
 struct DataType
 {
 public:
 
-	DataType(std::type_index const & t_idx)
-			: t_idx_(t_idx)
+	DataType(std::type_info const & t_info, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
+			: t_info_(t_info), ele_size_in_byte_(ele_size_in_byte), NDIMS(ndims)
 	{
+		if (ndims > 0 && dims != nullptr)
+		{
+			for (int i = 0; i < NDIMS; ++i)
+			{
+				dimensions_[i] = dims[i];
+			}
+
+		}
 	}
 
 	~DataType()
 	{
 	}
 
-	template<typename TV> static DataType create()
+	template<typename T> static DataType create()
 	{
-		return std::move(DataType(std::type_index(typeid(TV))));
+		static_assert( nTupleTraits<T>::NDIMS< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
+
+		typedef typename nTupleTraits<T>::element_type element_type;
+
+		size_t ele_size_in_byte = sizeof(element_type) / sizeof(ByteType);
+
+		unsigned int NDIMS = nTupleTraits<T>::NDIMS;
+
+		size_t dimensions[nTupleTraits<T>::NDIMS + 1];
+
+		nTupleTraits<T>::get_dimensions(dimensions);
+
+		return std::move(DataType(typeid(element_type), ele_size_in_byte, NDIMS, dimensions));
 	}
 
-	int array_length = 1;
-	std::type_index t_idx_;
+	size_t size_in_byte() const
+	{
+		size_t res = ele_size_in_byte_;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			res *= dimensions_[i];
+		}
+		return res;
+	}
+
+	const size_t ele_size_in_byte_;
+	const std::type_info & t_info_;
+	const unsigned int NDIMS = 0;
+	size_t dimensions_[MAX_NDIMS_OF_ARRAY];
 
 };
 

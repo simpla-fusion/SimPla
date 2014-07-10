@@ -159,8 +159,8 @@ DECL_RET_TYPE (_inner_product<N>::eval(plus_op, multi_op, l, r))
 template<unsigned int N, typename T>
 struct nTuple
 {
-	static const unsigned int NDIMS = N;
-	typedef nTuple<NDIMS, T> this_type;
+	static const unsigned int DIMENSION = N;
+	typedef nTuple<DIMENSION, T> this_type;
 	typedef T value_type;
 
 	value_type data_[N];
@@ -188,7 +188,7 @@ struct nTuple
 	}
 
 	template<typename TExpr>
-	inline bool operator !=(nTuple<NDIMS, TExpr> const &rhs) const
+	inline bool operator !=(nTuple<DIMENSION, TExpr> const &rhs) const
 	{
 		return _ntuple_impl::inner_product<N>(std::logical_and<void>(), std::not_equal_to<T>(), *this, rhs);
 	}
@@ -325,11 +325,13 @@ struct is_primitive<nTuple<N, TE> >
 template<typename TV>
 struct nTupleTraits
 {
-	static constexpr unsigned int NDIMS = 1;
+	static constexpr unsigned int NDIMS = 0;
+	static constexpr unsigned int DIMENSION = 1;
 	typedef TV value_type;
 	typedef value_type element_type;
-	template<typename TVec>
-	static void get_dimensions(TVec* dims)
+
+	template<typename TI>
+	static void get_dimensions(TI *)
 	{
 	}
 
@@ -338,18 +340,23 @@ struct nTupleTraits
 template<unsigned int N, typename TV>
 struct nTupleTraits<nTuple<N, TV>>
 {
-	static constexpr unsigned int NDIMS = N;
+	static constexpr unsigned int NDIMS = nTupleTraits<TV>::NDIMS + 1;
+	static constexpr unsigned int DIMENSION = N;
 
 	typedef TV value_type;
 
 	typedef typename nTupleTraits<TV>::element_type element_type;
 
-	template<typename TVec>
-	static void get_dimensions(TVec* dims)
+	template<typename TI>
+	static void get_dimensions(TI* dims)
 	{
-		dims->push_back(NDIMS);
-		nTupleTraits<TV>::get_dimensions(dims);
+		if (dims != nullptr)
+		{
+			dims[NDIMS - 1] = DIMENSION;
+			nTupleTraits<TV>::get_dimensions(dims);
+		}
 	}
+
 };
 
 template<unsigned int N, class T>

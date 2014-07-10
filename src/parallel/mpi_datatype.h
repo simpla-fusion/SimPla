@@ -15,70 +15,14 @@
 #include <vector>
 #include "../utilities/ntuple.h"
 #include "../utilities/sp_type_traits.h"
+#include "../utilities/data_type.h"
 
 namespace simpla
 {
 namespace _impl
 {
-template<typename T>
-bool GetMPIType(MPI_Datatype * new_type)
-{
-	bool is_commited = false;
-	if (typeid(T) == typeid(int))
-	{
-		*new_type = MPI_INT;
-	}
-	else if (typeid(T) == typeid(long))
-	{
-		*new_type = MPI_LONG;
-	}
-	else if (typeid(T) == typeid(float))
-	{
-		*new_type = MPI_FLOAT;
-	}
-	else if (typeid(T) == typeid(double))
-	{
-		*new_type = MPI_DOUBLE;
-	}
-	else if (typeid(T) == typeid(long double))
-	{
-		*new_type = MPI_LONG_DOUBLE;
-	}
-	else if (typeid(T) == typeid(std::complex<double>))
-	{
-		*new_type = MPI_2DOUBLE_COMPLEX;
-	}
-	else if (typeid(T) == typeid(std::complex<float>))
-	{
-		*new_type = MPI_2COMPLEX;
-	}
-	else if (is_nTuple<T>::value)
-	{
-		// @todo incomplete implement , need nTuple<N,nTuple<M,TV>>
-		typedef typename nTupleTraits<T>::element_type value_type;
-		std::vector<int> dims;
-		nTupleTraits<T>::get_dimensions(&dims);
 
-		MPI_Datatype old_type;
-
-		GetMPIType<value_type>(&old_type);
-
-		MPI_Type_contiguous(nTupleTraits<T>::NDIMS, old_type, new_type);
-
-		MPI_Type_commit(new_type);
-
-		is_commited = true;
-	}
-	else
-	{
-		MPI_Type_contiguous(sizeof(T) / sizeof(char), MPI_CHAR, new_type);
-		MPI_Type_commit(new_type);
-		is_commited = true;
-
-	}
-
-	return is_commited;
-}
+bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type);
 
 }  // namespace _impl
 
@@ -94,7 +38,7 @@ struct MPIDataType
 	bool is_commited_ = false;
 	static constexpr unsigned int MAX_NTUPLE_RANK = 10;
 	MPIDataType()
-			: is_commited_(_impl::GetMPIType<T>(&type_))
+			: is_commited_(_impl::GetMPIType(DataType::create<T>(), &type_))
 	{
 	}
 	template<unsigned int NDIMS, typename TI>
@@ -102,22 +46,26 @@ struct MPIDataType
 	        unsigned int array_order_ =
 	        MPI_ORDER_C)
 	{
+		const int v_ndims = nTupleTraits<T>::NDIMS;
 
-		std::vector<int> outer1;
-		std::vector<int> inner1;
-		std::vector<int> start1;
-		std::copy(&outer[0], &outer[NDIMS], std::back_inserter(outer1));
-		std::copy(&inner[0], &inner[NDIMS], std::back_inserter(inner1));
-		std::copy(&start[0], &start[NDIMS], std::back_inserter(start1));
-
-		nTupleTraits<T>::get_dimensions(&outer1);
-		nTupleTraits<T>::get_dimensions(&inner1);
-		for (int i = start1.size(), ie = outer1.size(); i < ie; ++i)
+		int outer1[NDIMS + v_ndims];
+		int inner1[NDIMS + v_ndims];
+		int start1[NDIMS + v_ndims];
+		for (int i = 0; i < NDIMS; ++i)
 		{
-			start1.push_back(0);
+			outer1[i] = outer[i];
+			inner1[i] = inner[i];
+			start1[i] = start[i];
 		}
 
-		MPI_Type_create_subarray(outer1.size(), &outer1[0], &inner1[0], &start1[0], array_order_,
+		nTupleTraits<T>::get_dimensions(outer1 + NDIMS);
+		nTupleTraits<T>::get_dimensions(inner1 + NDIMS);
+		for (int i = 0; i < v_ndims; ++i)
+		{
+			start1[NDIMS + i] = 0;
+		}
+
+		MPI_Type_create_subarray(NDIMS + v_ndims, outer1, inner1, start1, array_order_,
 		        MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
 		MPI_Type_commit(&type_);
 		is_commited_ = true;
@@ -136,27 +84,6 @@ struct MPIDataType
 
 };
 
-//template<typename TL, typename TR>
-//struct MPIDataType<std::pair<TL, TR> >
-//{
-//	typedef std::pair<TL, TR> value_type;
-//	MPI_Datatype type_;
-//	MPIDataType()
-//	{
-//
-//	}
-//
-//	~ MPIDataType()
-//	{
-//
-//	}
-//
-//	MPI_Datatype type() const
-//	{
-//		return type_;
-//	}
-//};
-
-}// namespace simpla
+}  // namespace simpla
 
 #endif /* MPI_DATATYPE_H_ */
