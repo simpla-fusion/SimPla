@@ -95,9 +95,9 @@ Model=
 	Mesh={
 
 
-		Min={1.2,-2.0,0.0 },
+		Min={-1.4,1.2,0.0 },
 
-		Max={2.4,2.0,TWOPI },
+		Max={2.8,2.8,TWOPI },
 
 		--		dt= 0.5*LX/NX/c, -- time step
 
