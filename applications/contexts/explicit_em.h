@@ -262,6 +262,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	if (dict["Model"]["GFile"])
 	{
+
+		model.Update();
+
 		GEqdsk geqdsk;
 
 		geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
@@ -269,20 +272,22 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		typename mesh_type::coordinates_type src_min;
 		typename mesh_type::coordinates_type src_max;
+		typename mesh_type::coordinates_type min1, min2, max1, max2;
 
 		std::tie(src_min, src_max) = geqdsk.get_extents();
 
-		typename mesh_type::coordinates_type min1, min2, max1, max2;
+		min1 = model.MapTo(geqdsk.InvMapTo(src_min));
+		max1 = model.MapTo(geqdsk.InvMapTo(src_max));
 
-		std::tie(min1, max1) = model.get_extents();
+		std::tie(min2, max2) = model.get_extents();
 
-		min2[(mesh_type::ZAxis + 1) % 3] = min1[(mesh_type::ZAxis + 1) % 3];
-		min2[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
-		min2[(mesh_type::ZAxis + 3) % 3] = src_min[GEqdsk::ZAxis];
-
-		max2[(mesh_type::ZAxis + 1) % 3] = max1[(mesh_type::ZAxis + 1) % 3];
-		max2[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
-		max2[(mesh_type::ZAxis + 3) % 3] = src_max[GEqdsk::ZAxis];
+//		min2[(mesh_type::ZAxis + 1) % 3] = min1[(mesh_type::ZAxis + 1) % 3];
+//		min2[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
+//		min2[(mesh_type::ZAxis + 3) % 3] = src_min[GEqdsk::ZAxis];
+//
+//		max2[(mesh_type::ZAxis + 1) % 3] = max1[(mesh_type::ZAxis + 1) % 3];
+//		max2[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
+//		max2[(mesh_type::ZAxis + 3) % 3] = src_max[GEqdsk::ZAxis];
 
 		Clipping(min1, max1, &min2, &max2);
 

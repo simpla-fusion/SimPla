@@ -9,11 +9,13 @@ extern "C"
 {
 #include <hdf5.h>
 #include <hdf5_hl.h>
+#include <mpi.h>
 }
 
 #include "hdf5_datatype.h"
 #include "data_stream.h"
 #include "../parallel/parallel.h"
+#include "../parallel/message_comm.h"
 #include "../parallel/mpi_datatype.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
@@ -26,8 +28,8 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 };
-DataStream::DataStream() :
-		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+DataStream::DataStream()
+		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -73,7 +75,8 @@ bool DataStream::is_ready() const
 }
 void DataStream::OpenGroup(std::string const & gname)
 {
-	if (gname == "") return;
+	if (gname == "")
+		return;
 
 	hid_t h5fg = pimpl_->file_;
 
@@ -86,7 +89,8 @@ void DataStream::OpenGroup(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (pimpl_->group_ > 0) h5fg = pimpl_->group_;
+		if (pimpl_->group_ > 0)
+			h5fg = pimpl_->group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -277,7 +281,7 @@ bool is_append
 
 		m_shape[i] =
 		        (p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
-		                1 : p_local_outer_end[i] - p_local_outer_begin[i];
+		                g_shape[i] : p_local_outer_end[i] - p_local_outer_begin[i];
 
 		m_begin[i] =
 		        (p_local_inner_begin == nullptr || p_local_outer_begin == nullptr) ?
@@ -285,7 +289,7 @@ bool is_append
 
 		m_count[i] =
 		        (p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
-		                1 : p_local_inner_end[i] - p_local_inner_begin[i];
+		                g_shape[i] : p_local_inner_end[i] - p_local_inner_begin[i];
 	}
 
 	if (data_desc.NDIMS > 0)
@@ -302,6 +306,7 @@ bool is_append
 			++rank;
 		}
 	}
+
 	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
 
 	hid_t dset;
@@ -429,7 +434,8 @@ bool is_append
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
@@ -452,7 +458,8 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 	std::vector<hsize_t> buffer;
 
-	if (rank == 0) buffer.resize(size);
+	if (rank == 0)
+		buffer.resize(size);
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
@@ -572,7 +579,8 @@ std::string DataStream::WriteUnorderedRawData(std::string const &name, void cons
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }

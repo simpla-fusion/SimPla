@@ -7,7 +7,10 @@
 
 #ifndef MESSAGE_COMM_H_
 #define MESSAGE_COMM_H_
+extern "C"
+{
 #include <mpi.h>
+}
 #include <algorithm>
 #include <thread>
 #include "../utilities/parse_command_line.h"

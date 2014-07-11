@@ -348,8 +348,8 @@ public:
 		 *
 		 */
 		x[CARTESIAN_XAXIS] = r[RAxis] * std::cos(r[PhiAxis]);
-		x[CARTESIAN_YAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
-		x[CARTESIAN_ZAXIS] = r[ZAxis];
+		x[CARTESIAN_ZAXIS] = r[RAxis] * std::sin(r[PhiAxis]);
+		x[CARTESIAN_YAXIS] = r[ZAxis];
 
 		return std::move(x);
 	}
@@ -367,9 +367,9 @@ public:
 		 *  \f}
 		 *
 		 */
-		r[ZAxis] = x[CARTESIAN_ZAXIS];
-		r[RAxis] = std::sqrt(x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS] + x[CARTESIAN_YAXIS] * x[CARTESIAN_YAXIS]);
-		r[PhiAxis] = std::atan2(x[CARTESIAN_YAXIS], x[CARTESIAN_XAXIS]);
+		r[ZAxis] = x[CARTESIAN_YAXIS];
+		r[RAxis] = std::sqrt(x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS] + x[CARTESIAN_ZAXIS] * x[CARTESIAN_ZAXIS]);
+		r[PhiAxis] = std::atan2(x[CARTESIAN_ZAXIS], x[CARTESIAN_XAXIS]);
 
 		return std::move(r);
 	}
@@ -421,11 +421,11 @@ public:
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
-		u[ZAxis] = v[CARTESIAN_ZAXIS];
+		u[ZAxis] = v[CARTESIAN_YAXIS];
 
-		u[RAxis] = v[CARTESIAN_XAXIS] * c + v[CARTESIAN_YAXIS] * s;
+		u[RAxis] = v[CARTESIAN_XAXIS] * c + v[CARTESIAN_ZAXIS] * s;
 
-		u[PhiAxis] = (-v[CARTESIAN_XAXIS] * s + v[CARTESIAN_YAXIS] * c) / r[RAxis];
+		u[PhiAxis] = (-v[CARTESIAN_XAXIS] * s + v[CARTESIAN_ZAXIS] * c) / r[RAxis];
 
 		return std::move(std::make_tuple(r, u));
 	}
@@ -451,8 +451,8 @@ public:
 		nTuple<NDIMS, TV> v;
 
 		v[CARTESIAN_XAXIS] = u[RAxis] * c - u[PhiAxis] * r[RAxis] * s;
-		v[CARTESIAN_YAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
-		v[CARTESIAN_ZAXIS] = u[ZAxis];
+		v[CARTESIAN_ZAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
+		v[CARTESIAN_YAXIS] = u[ZAxis];
 
 		return std::move(std::make_tuple(InvMapTo(r), v));
 	}

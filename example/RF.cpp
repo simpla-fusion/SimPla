@@ -144,6 +144,8 @@ int main(int argc, char **argv)
 		GLOBAL_DATA_STREAM.OpenFile("./");
 	}
 
+	Particle < PICEngineDeltaF234 < mesh_type >> p;
+
 	INFORM << SIMPLA_LOGO << std::endl
 
 	<< "Keyword: " << key_words << std::endl;
