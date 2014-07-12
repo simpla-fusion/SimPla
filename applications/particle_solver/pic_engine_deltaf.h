@@ -76,13 +76,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDeltaF(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDeltaF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -163,9 +163,8 @@ public:
 		p.w = 0.0;
 		return std::move(p);
 	}
-	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
+	template< typename TE, typename TB >
+	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
 		p->x += p->v * dt * 0.5;
 		auto cE = interpolator_type::GatherCartesian( fE, p->x);
@@ -190,12 +189,26 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
+	}
+	template< typename TE, typename TB,typename TJ >
+	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB, TJ *J ) const
+	{
+
+		next_timestep_zero(p,dt,fE,fB);
+
 		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * p->w * q);
 
 	}
-	template<typename TE, typename TB, typename ... Others>
-	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
+	template<typename TE, typename TB>
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
+	}
+
+	template<typename TE, typename TB,typename TJ>
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB,TJ* J ) const
+	{
+		next_timestep_half(p,dt,fE,fB);
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * p->w * q);
 	}
 //	// x(-1/2->1/2), w(-1/2,1/2)
 //	template<typename TJ, typename TE, typename TB, typename ... Others>

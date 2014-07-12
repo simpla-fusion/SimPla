@@ -24,18 +24,18 @@ namespace simpla
  *  \ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
-template<typename TM, bool IMPLICIT = false, typename Interpolator = typename TM::interpolator_type>
+template<typename TM, typename Interpolator = typename TM::interpolator_type>
 struct PICEngineDefault
 {
 public:
 	enum
 	{
-		is_implicit = IMPLICIT
+		is_implicit = false
 	};
 	Real m;
 	Real q;
 
-	typedef PICEngineDefault<TM, IMPLICIT, Interpolator> this_type;
+	typedef PICEngineDefault<TM, Interpolator> this_type;
 	typedef TM mesh_type;
 	typedef Interpolator interpolator_type;
 
@@ -77,13 +77,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDefault(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineDefault(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDefault(pmesh)
+	PICEngineDefault(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDefault(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -156,57 +156,9 @@ public:
 		return std::move(p);
 	}
 
-	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
-	{
-		next_timestep_zero(std::integral_constant<bool,is_implicit>(), p, dt, J, fE, fB);
-	}
-	template<typename TE, typename TB, typename ... Others>
-	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
-	{
-		next_timestep_half(std::integral_constant<bool,is_implicit>(), p, dt, fE, fB);
-	}
-// x(-1/2->1/2),v(0)
-	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void next_timestep_zero(std::integral_constant<bool,true>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
-	{
-		//		auto B = interpolator_type::Gather(fB, p->x);
-		//		auto E = interpolator_type::Gather(fE, p->x);
-
-		p->x += p->v * dt;
-
-		interpolator_type::ScatterCartesian(J,std::make_tuple(p->x,p-> v) ,p->f * q);
-	}
-// v(0->1)
-	template<typename TE, typename TB, typename ... Others>
-	inline void next_timestep_half(std::integral_constant<bool,true>, Point_s * p, Real dt, TE const &fE, TB const & fB,
-			Others const &...others) const
-	{
-
-		auto B = real(interpolator_type::GatherCartesian(fB, p->x));
-		auto E = real(interpolator_type::GatherCartesian(fE, p->x));
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-		v_ = p->v + Cross(p->v, t);
-
-		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
-
-		p->v += v_ * 2.0;
-
-		p->v += E * (cmr_ * dt * 0.5);
-
-	}
-// x(-1/2->1/2), v(-1/2/1/2)
-	template<typename TJ, typename TE, typename TB, typename ... Others>
-	inline void next_timestep_zero(std::integral_constant<bool,false>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
+	// x(-1/2->1/2), v(-1/2/1/2)
+	template< typename TE, typename TB >
+	inline void next_timestep_zero( Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
 
 		p->x += p->v * dt * 0.5;
@@ -229,12 +181,21 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		interpolator_type::ScatterCartesian(J,std::make_tuple( p->x, p->v) ,p->f * q);
-
 	}
-	template<typename TE, typename TB, typename ... Others>
-	inline void next_timestep_half(std::integral_constant<bool,false>, Point_s * p, Real dt, TE const &fE, TB const & fB,
-			Others const &...others) const
+
+	template< typename TE, typename TB,typename TJ >
+	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB, TJ *J ) const
+	{
+
+		next_timestep_zero(p,dt,fE,fB);
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * q);
+	}
+	template<typename TE, typename TB >
+	inline void next_timestep_half( Point_s * p, Real dt, TE const &fE, TB const & fB) const
+	{
+	}
+	template<typename TE, typename TB,typename TJ>
+	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB,TJ* J ) const
 	{
 	}
 

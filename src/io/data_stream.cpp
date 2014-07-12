@@ -28,8 +28,8 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 };
-DataStream::DataStream()
-		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+DataStream::DataStream() :
+		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -75,8 +75,7 @@ bool DataStream::is_ready() const
 }
 void DataStream::OpenGroup(std::string const & gname)
 {
-	if (gname == "")
-		return;
+	if (gname == "") return;
 
 	hid_t h5fg = pimpl_->file_;
 
@@ -89,8 +88,7 @@ void DataStream::OpenGroup(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (pimpl_->group_ > 0)
-			h5fg = pimpl_->group_;
+		if (pimpl_->group_ > 0) h5fg = pimpl_->group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -313,7 +311,7 @@ bool is_append
 
 	hid_t file_space, mem_space;
 
-	if (!(enable_compact_storable_ || is_append))
+	if (!enable_compact_storable_)
 	{
 		if (GLOBAL_COMM.get_rank()==0)
 		{
@@ -346,8 +344,9 @@ bool is_append
 		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL);
 
 	}
-	else
+	else if(!is_append) // add new record, extent the 'rank' dimension; file data has rank+1 dimension
 	{
+
 		g_shape[rank] = 1;
 		f_begin[rank] = 0;
 		m_shape[rank] = 1;
@@ -414,6 +413,71 @@ bool is_append
 		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL));
 
 	}
+	else //   append, extent first dimension; file data has rank dimension
+	{
+
+		if (H5Lexists(pimpl_->group_, dsname.c_str(), H5P_DEFAULT) == 0)
+		{
+			hsize_t max_dims[rank ];
+
+			std::copy(g_shape, g_shape + rank, max_dims);
+
+			max_dims[0] = H5S_UNLIMITED;
+
+			hid_t space = H5Screate_simple(rank , g_shape, max_dims);
+
+			hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
+
+			H5_ERROR(H5Pset_chunk(dcpl_id, rank , g_shape));
+
+			dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+
+			H5_ERROR(H5Sclose(space));
+
+			H5_ERROR(H5Pclose(dcpl_id));
+
+		}
+		else
+		{
+
+			dset = H5Dopen(pimpl_->group_, dsname.c_str(), H5P_DEFAULT);
+
+			file_space = H5Dget_space(dset);
+
+			int ndims= H5Sget_simple_extent_ndims(file_space);
+
+			assert(ndims==rank);
+
+			H5Sget_simple_extent_dims(file_space, g_shape, nullptr);
+
+			H5Sclose(file_space);
+
+			g_shape[0]+=m_count[0];
+
+			H5Dset_extent(dset, g_shape);
+		}
+
+		//		CHECK(name);
+		//		CHECK(rank);
+		//		CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
+		//		CHECK(f_begin[0]) << " " << f_begin[1] << " " << f_begin[2] << " " << f_begin[3];
+		//		CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
+		//		CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
+		//		CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
+
+		file_space = H5Dget_space(dset);
+
+		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
+
+		f_begin[0] = g_shape[0] - m_count[0];
+
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, nullptr, m_count, nullptr));
+
+		mem_space = H5Screate_simple(rank , m_shape, nullptr);
+
+		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL));
+
+	}
 
 // create property list for collective dataset write.
 	if (GLOBAL_COMM.IsInitilized())
@@ -434,8 +498,7 @@ bool is_append
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
@@ -458,8 +521,7 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 	std::vector<hsize_t> buffer;
 
-	if (rank == 0)
-		buffer.resize(size);
+	if (rank == 0) buffer.resize(size);
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
@@ -579,8 +641,7 @@ std::string DataStream::WriteUnorderedRawData(std::string const &name, void cons
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }

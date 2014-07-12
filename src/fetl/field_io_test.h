@@ -58,6 +58,10 @@ TYPED_TEST_P(TestFieldIO, write){
 	LOGGER<<SAVE(f3);
 	LOGGER<<SAVE(f2);
 	LOGGER<<SAVE(f2b);
+
+	LOGGER<<simpla::save("f3",f3,true);
+	LOGGER<<simpla::save("f3",f3,true);
+	LOGGER<<simpla::save("f3",f3,true);
 }
 }
 

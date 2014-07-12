@@ -17,7 +17,7 @@ template<typename, unsigned int, typename > class Field;
 
 template<typename TM, unsigned int IFORM, typename TV>
 std::string save(std::string const & name,
-        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d)
+        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, bool is_append = false)
 {
 	int rank = d.get_dataset_shape();
 	size_t global_begin[rank];
@@ -45,7 +45,9 @@ std::string save(std::string const & name,
 
 	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
 
-	d.mesh.array_order_
+	d.mesh.array_order_,
+
+	is_append
 
 	);
 
