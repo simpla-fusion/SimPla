@@ -200,17 +200,13 @@ template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push probe particles to zero step [ " << engine_type::get_type_as_string() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::is_implicit << " ]";
+	LOGGER << "Push probe particles to zero step [ " << engine_type::get_type_as_string();
 
 	Real dt = mesh.get_dt();
 
-	for (auto & cell : *this)
+	for (auto & p : *this)
 	{
-		for (auto & p : cell.second)
-		{
-			this->engine_type::next_timestep_zero(&p, dt, E, B);
-		}
+		this->engine_type::next_timestep_zero(&p, dt, E, B);
 	}
 
 	LOGGER << DONE;
@@ -222,19 +218,13 @@ template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push probe particles to half step[ " << engine_type::get_type_as_string() << std::boolalpha
-	        << " , Enable Implicit =" << engine_type::is_implicit << " ]";
+	LOGGER << "Push probe particles to half step[ " << engine_type::get_type_as_string();
 
 	Real dt = mesh.get_dt();
 
-	storage_type::Sort();
-
-	for (auto & cell : *this)
+	for (auto & p : *this)
 	{
-		for (auto & p : cell.second)
-		{
-			this->engine_type::next_timestep_half(&p, dt, E, B);
-		}
+		this->engine_type::next_timestep_half(&p, dt, E, B);
 	}
 
 	LOGGER << DONE;
