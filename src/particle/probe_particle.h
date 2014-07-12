@@ -19,7 +19,6 @@
 #include "../fetl/fetl.h"
 #include "../utilities/log.h"
 #include "../utilities/sp_type_traits.h"
-#include "../utilities/container_save_cache.h"
 
 #include "../parallel/parallel.h"
 #include "../model/model.h"
@@ -32,7 +31,7 @@ namespace simpla
 {
 
 template<typename Engine>
-class ProbeParticle: public Engine, public ParticleBase, public ContainerSaveCache<typename Engine::Point_s>
+class ProbeParticle: public Engine, public ParticleBase, public std::vector<typename Engine::Point_s>
 {
 public:
 
@@ -55,12 +54,11 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 public:
-	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
-	ProbeParticle(mesh_type const & pmesh);
+	ProbeParticle();
 
-	template<typename TDict> ProbeParticle(TDict const & dict, mesh_type const & pmesh);
+	template<typename TDict, typename ...Others> ProbeParticle(TDict const & dict, Others &&...othes);
 
 	// Destructor
 	~ProbeParticle();
@@ -124,6 +122,9 @@ public:
 		return engine_type::get_type_as_string();
 	}
 
+	typedef typename mesh_type::template field<EDGE, scalar_type> E_type;
+	typedef typename mesh_type::template field<FACE, scalar_type> B_type;
+
 	void next_timestep_zero_(void const * E, void const*B)
 	{
 		next_timestep_zero(*reinterpret_cast<E_type const *>(E), *reinterpret_cast<B_type const*>(B));
@@ -133,9 +134,6 @@ public:
 	{
 		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
 	}
-
-	typedef typename mesh_type::template field<EDGE, scalar_type> E_type;
-	typedef typename mesh_type::template field<FACE, scalar_type> B_type;
 
 	template<typename TE, typename TB>
 	void next_timestep_zero(TE const &E, TB const & B);
@@ -150,8 +148,8 @@ Particle<Engine>::Particle(mesh_type const & pmesh) :
 {
 }
 template<typename Engine>
-template<typename TDict>
-ProbeParticle<Engine>::ProbeParticle(TDict const & dict, mesh_type const & pmesh) :
+template<typename TDict, typename ...Others>
+ProbeParticle<Engine>::ProbeParticle(TDict const & dict, Others &&...others) :
 		ProbeParticle(pmesh)
 {
 	load(dict);
