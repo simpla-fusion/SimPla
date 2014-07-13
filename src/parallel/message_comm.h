@@ -85,7 +85,7 @@ public:
 		return MPI_INFO_NULL;
 	}
 
-	bool IsInitilized() const
+	bool is_ready() const
 	{
 		return comm_ != MPI_COMM_NULL;
 	}

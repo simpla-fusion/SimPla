@@ -28,8 +28,8 @@ template<unsigned int N>
 struct DistributedArray
 {
 public:
-	static constexpr  unsigned int  NDIMS = N;
-	  unsigned int   array_order_ = MPI_ORDER_C;
+	static constexpr unsigned int NDIMS = N;
+	unsigned int is_fast_first_ = false;
 	int self_id_;
 	struct sub_array_s
 	{
@@ -66,7 +66,7 @@ public:
 		return NProduct(local_.outer_end - local_.outer_begin);
 	}
 
-	void Decompose(int num_process,  unsigned int  process_num, long gw);
+	void Decompose(int num_process, unsigned int process_num, long gw);
 
 	nTuple<NDIMS, long> global_begin_;
 	nTuple<NDIMS, long> global_end_;
@@ -88,7 +88,7 @@ public:
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
-	void Decomposer_(int num_process,  unsigned int  process_num,   unsigned int   gw, sub_array_s *) const;
+	void Decomposer_(int num_process, unsigned int process_num, unsigned int gw, sub_array_s *) const;
 
 	int hash(nTuple<NDIMS, long> const & d) const
 	{
@@ -104,7 +104,8 @@ public:
 ;
 
 template<unsigned int N>
-void DistributedArray<N>::Decomposer_(int num_process,  unsigned int  process_num,   unsigned int   gw, sub_array_s * local) const
+void DistributedArray<N>::Decomposer_(int num_process, unsigned int process_num, unsigned int gw,
+        sub_array_s * local) const
 {
 	local->outer_end = global_end_;
 	local->outer_begin = global_begin_;
@@ -142,7 +143,7 @@ void DistributedArray<N>::Decomposer_(int num_process,  unsigned int  process_nu
 }
 
 template<unsigned int N>
-void DistributedArray<N>::Decompose(int num_process,  unsigned int  process_num, long gw)
+void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, long gw)
 {
 	Decomposer_(num_process, process_num, gw, &local_);
 	self_id_ = (process_num);
@@ -150,7 +151,7 @@ void DistributedArray<N>::Decompose(int num_process,  unsigned int  process_num,
 	if (num_process <= 1)
 		return;
 
-	if (array_order_ == MPI_ORDER_C)
+	if (!is_fast_first_)
 	{
 		global_strides_[NDIMS - 1] = 1;
 		for (int i = NDIMS - 2; i >= 0; --i)

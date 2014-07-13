@@ -184,6 +184,10 @@ void DataStream::pimpl_s::open_group(std::string const & gname)
 
 void sync_string(std::string * filename_)
 {
+
+	if (!GLOBAL_COMM.is_ready() )
+	return;
+
 	int name_len;
 
 	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
@@ -247,7 +251,7 @@ void DataStream::pimpl_s::open_file(std::string const &fname)
 
 	}
 	// sync filename and open file
-	if (GLOBAL_COMM.IsInitilized())
+	if (GLOBAL_COMM.is_ready())
 	{
 		sync_string(& filename_);
 
@@ -333,8 +337,17 @@ unsigned int flag
 	{
 		rank = ndims_or_number;
 	}
-
 	/// @todo add support for FASF_FIRST array
+//
+//	CHECK(rank);
+//	CHECK(p_global_begin[0]) << " " << p_global_end[0];
+//	CHECK(p_global_begin[1]) << " " << p_global_end[1];
+//
+//	CHECK(p_local_outer_begin[0]) << " " << p_local_outer_end[0];
+//	CHECK(p_local_outer_begin[1]) << " " << p_local_outer_end[1];
+//
+//	CHECK(p_local_inner_begin[0]) << " " << p_local_inner_end[0];
+//	CHECK(p_local_inner_begin[1]) << " " << p_local_inner_end[1];
 
 	std::string dsname = name;
 
@@ -390,6 +403,14 @@ unsigned int flag
 			++rank;
 		}
 	}
+
+//	CHECK(name);
+//	CHECK(rank);
+//	CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
+//	CHECK(f_begin[0]) << " " << f_begin[1] << " " << f_begin[2] << " " << f_begin[3];
+//	CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
+//	CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
+//	CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
 
 	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
 
@@ -476,14 +497,6 @@ unsigned int flag
 			H5Dset_extent(dset, g_shape);
 		}
 
-//		CHECK(name);
-//		CHECK(rank);
-//		CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
-//		CHECK(f_begin[0]) << " " << f_begin[1] << " " << f_begin[2] << " " << f_begin[3];
-//		CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
-//		CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
-//		CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
-
 		file_space = H5Dget_space(dset);
 
 		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
@@ -566,7 +579,7 @@ unsigned int flag
 	}
 
 // create property list for collective dataset write.
-	if (GLOBAL_COMM.IsInitilized())
+	if (GLOBAL_COMM.is_ready())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
@@ -590,11 +603,16 @@ unsigned int flag
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
 
-void sync_location(hsize_t count[2], MPI_Comm comm)
+void sync_location(hsize_t count[2])
 {
 
-	int size = 1;
-	int rank = 0;
+	if (!GLOBAL_COMM.is_ready() )
+	return;
+
+	auto comm=GLOBAL_COMM.comm();
+
+	int size = GLOBAL_COMM.get_size();
+	int rank = GLOBAL_COMM.get_rank();
 
 	MPI_Comm_size(comm, &size);
 	MPI_Comm_rank(comm, &rank);
@@ -609,11 +627,11 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 	std::vector<hsize_t> buffer;
 
 	if (rank == 0)
-		buffer.resize(size);
+	buffer.resize(size);
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
-	MPI_Barrier(comm);
+	MPI_Barrier (comm);
 	if (rank == 0)
 	{
 		for (int i = 1; i < size; ++i)
@@ -654,10 +672,7 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 
 	hsize_t pos[2] = { 0, count };
 
-	if (GLOBAL_COMM.IsInitilized())
-	{
-		sync_location(pos, GLOBAL_COMM.comm());
-	}
+	sync_location(pos);
 
 	int rank = data_desc.NDIMS + 1;
 
@@ -711,7 +726,7 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 	mem_space = H5Screate_simple(rank, m_count, NULL);
 
 	// create property list for collective data set write.
-	if (GLOBAL_COMM.IsInitilized())
+	if (GLOBAL_COMM.is_ready())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));

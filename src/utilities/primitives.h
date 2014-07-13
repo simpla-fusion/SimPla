@@ -38,6 +38,10 @@ enum GeometryFormTypeID
 	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
 };
 
+enum ArrayOrder
+{
+	FAST_FIRST, SLOW_FIRST
+};
 typedef int8_t ByteType; // int8_t
 
 typedef double Real;
@@ -64,14 +68,9 @@ typedef enum
 	TENSOR_PRODUCT, // outer product
 	TENSOR_CONTRACTION,
 
-	WEDGE = 20,
-	HODGESTAR,
-	EXTRIORDERIVATIVE,
-	CODIFFERENTIAL,
-	INTERIOR_PRODUCT,
+	WEDGE = 20, HODGESTAR, EXTRIORDERIVATIVE, CODIFFERENTIAL, INTERIOR_PRODUCT,
 
-	DOT,
-	CROSS,
+	DOT, CROSS,
 //
 //
 //	GRAD,
@@ -83,12 +82,9 @@ typedef enum
 
 	MAPTO,
 
-	EQUAL,
-	LESS,
-	GREATER,
+	EQUAL, LESS, GREATER,
 
-	REAL,
-	IMAGINE,
+	REAL, IMAGINE,
 
 	NULL_OP
 

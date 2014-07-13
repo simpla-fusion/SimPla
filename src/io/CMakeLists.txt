@@ -7,3 +7,5 @@ add_library(io  data_stream.cpp hdf5_datatype.cpp)
 TARGET_LINK_LIBRARIES(io utilities ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} hdf5 hdf5_hl)
 
 
+my_test(data_stream_test           )
+target_link_libraries(data_stream_test   io parallel utilities)

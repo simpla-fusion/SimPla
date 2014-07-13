@@ -38,15 +38,15 @@ std::string save(std::string const & name,
 
 	);
 
-	return GLOBAL_DATA_STREAM.write(name, d.data().get(), DataType::create<value_type>(),rank,
+	return simpla::save(name, d.data().get(), rank,
 
-			static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
+	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 
-			static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
+	static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
 
-			static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
+	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
 
-			(d.mesh.is_fast_first()?DataStream::SP_FAST_FIRST:0UL)|flag
+	(d.mesh.is_fast_first() ? DataStream::SP_FAST_FIRST : 0UL) | flag
 
 	);
 

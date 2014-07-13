@@ -52,7 +52,7 @@ public:
 
 	template<typename T> void set_property(std::string const & name, T const&v)
 	{
-		set_property(name, Any(v));
+		set_property_(name, Any(v));
 	}
 
 	template<typename T> T get_property(std::string const & name) const
@@ -126,7 +126,7 @@ private:
 template<typename TV, typename ...Args>
 std::string save(std::string const & name, TV const *data, Args && ...args)
 {
-	return GLOBAL_DATA_STREAM.write(name, data , std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, data , DataType::create<TV>(), std::forward<Args>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string save(std::string const & name,
