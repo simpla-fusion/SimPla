@@ -42,7 +42,6 @@ int main(int argc, char** argv)
 
 	std::cout << "c \t=" << pt["c"].as<double>() << std::endl;
 
-	std::cout << "b \t=" << pt.Get<int>("b", 120) << std::endl;
 ////
 //	auto tt1 = pt.at("t1");
 //

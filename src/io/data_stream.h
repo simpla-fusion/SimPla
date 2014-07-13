@@ -9,16 +9,17 @@
 #ifndef DATA_STREAM_
 #define DATA_STREAM_
 
-#include <iostream>
+#include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "../utilities/ntuple.h"
-#include "../utilities/log.h"
-#include "../utilities/singleton_holder.h"
-#include "../utilities/pretty_stream.h"
 #include "../utilities/data_type.h"
+F
+#include "../utilities/ntuple.h"
+#include "../utilities/singleton_holder.h"
+
 namespace simpla
 {
 /** \defgroup  DataIO Data input/output system
@@ -38,123 +39,50 @@ namespace simpla
  */
 class DataStream
 {
-	std::string prefix_;
-	int suffix_width_;
-
-	std::string filename_;
-	std::string grpname_;
-	size_t LIGHT_DATA_LIMIT_;
-	bool enable_compact_storable_;
-	bool enable_xdmf_;
-
 public:
+
+	enum
+	{
+		SP_FAST_FIRST = 1UL << 1, SP_APPEND = 1UL << 2, SP_CACHE = 1UL << 10
+	};
 
 	DataStream();
 
 	~DataStream();
 
-	void Init(int argc = 0, char** argv = nullptr);
+	template<typename T> void set_property(std::string const & name, T const &);
 
-	void SetLightDatLimit(size_t s)
-	{
-		LIGHT_DATA_LIMIT_ = s;
-	}
-	size_t GetLightDatLimit() const
-	{
-		return LIGHT_DATA_LIMIT_;
-	}
+	template<typename T> T get_property(std::string const & name) const;
 
-	void EnableCompactStorable()
-	{
-		enable_compact_storable_ = true;
-	}
-	void DisableCompactStorable()
-	{
-		enable_compact_storable_ = false;
-	}
-
-	void EnableXDMF()
-	{
-		enable_xdmf_ = true;
-	}
-	void DisableXDMF()
-	{
-		enable_xdmf_ = false;
-	}
-
-	bool CheckCompactStorable() const
-	{
-		return enable_compact_storable_;
-	}
-
-	bool is_ready() const;
-
-	inline std::string GetCurrentPath() const
-	{
-		return filename_ + ":" + grpname_;
-	}
-
-	inline std::string GetPrefix() const
-	{
-		return prefix_;
-	}
-
-	inline void SetPrefix(const std::string& prefix)
-	{
-		prefix_ = prefix;
-	}
-
-	int GetSuffixWidth() const
-	{
-		return suffix_width_;
-	}
-
-	void SetSuffixWidth(int suffixWidth)
-	{
-		suffix_width_ = suffixWidth;
-	}
-
-	void OpenGroup(std::string const & gname);
-	void OpenFile(std::string const &fname = "unnamed");
-	void CloseGroup();
-	void CloseFile();
-
-	void Close()
-	{
-		CloseGroup();
-		CloseFile();
-	}
-
-	template<typename TV, typename ...Args>
-	std::string Write(std::string const & name, TV const *data, Args && ...args) const
-	{
-		return WriteRawData(name, reinterpret_cast<void const*>(data), DataType::create<TV>(),
-		        std::forward<Args>(args)...);
-	}
-
-	template<typename TV>
-	std::string UnorderedWrite(std::string const & name, TV const *data, size_t number) const
-	{
-		return WriteUnorderedRawData(name, reinterpret_cast<void const*>(data), DataType::create<TV>(), number);
-	}
-
-	template<typename TV>
-	std::string UnorderedWrite(std::string const & name, std::vector<TV> const &data) const
-	{
-
-		return WriteUnorderedRawData(name, reinterpret_cast<void const*>(&data[0]), DataType::create<TV>(), data.size());
-	}
-private:
-
-	std::string WriteRawData(std::string const &name, void const *v,
+	/**
+	 *
+	 * @param name             dataset name or path
+	 * @param v                pointer to data
+	 * @param datatype		   data type
+	 * @param ndims_or_number  if data shapes are  nullptr , represents the number of dimensions;
+	 *                         else represents the  number of data
+	 *
+	 * \group data shape
+	 * \{
+	 * @param global_begin
+	 * @param global_end
+	 * @param local_outer_begin
+	 * @param local_outer_end
+	 * @param local_inner_begin
+	 * @param local_inner_end
+	 * \}
+	 * @param flag             flag to define the operation
+	 * @return
+	 */
+	std::string Write(std::string const &name, void const *v,
 
 	DataType const & datatype,
 
-	int rank,
+	size_t ndims_or_number,
 
-	size_t const *global_begin,
+	size_t const *global_begin = nullptr,
 
-	size_t const *global_end,
+	size_t const *global_end = nullptr,
 
 	size_t const *local_outer_begin = nullptr,
 
@@ -164,18 +92,14 @@ private:
 
 	size_t const *local_inner_end = nullptr,
 
-	bool is_fast_first = false,
-
-	bool is_append = false
+	unsigned int flag = 0UL
 
 	) const;
 
-	std::string WriteUnorderedRawData(std::string const &name, void const *v, DataType const & datatype,
-	        size_t number) const;
-
+private:
 	struct pimpl_s;
-	pimpl_s *pimpl_;
 
+	std::unique_ptr<pimpl_s> pimpl_;
 }
 ;
 

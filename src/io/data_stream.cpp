@@ -27,9 +27,118 @@ struct DataStream::pimpl_s
 {
 	hid_t file_;
 	hid_t group_;
+
+	std::string prefix_;
+	int suffix_width_;
+
+	std::string filename_;
+	std::string grpname_;
+	size_t LIGHT_DATA_LIMIT_;
+	bool enable_compact_storable_;
+	bool enable_xdmf_;
+
+public:
+
+	pimpl_s();
+	~pimpl_s();
+
+	void Init(int argc = 0, char** argv = nullptr);
+
+	void SetLightDatLimit(size_t s)
+	{
+		LIGHT_DATA_LIMIT_ = s;
+	}
+	size_t GetLightDatLimit() const
+	{
+		return LIGHT_DATA_LIMIT_;
+	}
+
+	void EnableCompactStorable()
+	{
+		enable_compact_storable_ = true;
+	}
+	void DisableCompactStorable()
+	{
+		enable_compact_storable_ = false;
+	}
+
+	void EnableXDMF()
+	{
+		enable_xdmf_ = true;
+	}
+	void DisableXDMF()
+	{
+		enable_xdmf_ = false;
+	}
+
+	bool CheckCompactStorable() const
+	{
+		return enable_compact_storable_;
+	}
+
+	bool is_ready() const;
+
+	inline std::string GetCurrentPath() const
+	{
+		return filename_ + ":" + grpname_;
+	}
+
+	inline std::string GetPrefix() const
+	{
+		return prefix_;
+	}
+
+	inline void SetPrefix(const std::string& prefix)
+	{
+		prefix_ = prefix;
+	}
+
+	int GetSuffixWidth() const
+	{
+		return suffix_width_;
+	}
+
+	void SetSuffixWidth(int suffixWidth)
+	{
+		suffix_width_ = suffixWidth;
+	}
+
+	void OpenGroup(std::string const & gname);
+	void OpenFile(std::string const &fname = "unnamed");
+	void CloseGroup();
+	void CloseFile();
+
+	void Close()
+	{
+		CloseGroup();
+		CloseFile();
+	}
+
+	std::string Write(std::string const &name, void const *v,
+
+	DataType const & datatype,
+
+	size_t rank_or_number,
+
+	size_t const *global_begin = nullptr,
+
+	size_t const *global_end = nullptr,
+
+	size_t const *local_outer_begin = nullptr,
+
+	size_t const *local_outer_end = nullptr,
+
+	size_t const *local_inner_begin = nullptr,
+
+	size_t const *local_inner_end = nullptr,
+
+	unsigned int flag = 0UL
+
+	) const;
 };
-DataStream::DataStream() :
-		prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
+
+DataStream::DataStream()
+		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
 
 		suffix_width_(4),
 
@@ -75,7 +184,8 @@ bool DataStream::is_ready() const
 }
 void DataStream::OpenGroup(std::string const & gname)
 {
-	if (gname == "") return;
+	if (gname == "")
+		return;
 
 	hid_t h5fg = pimpl_->file_;
 
@@ -88,7 +198,8 @@ void DataStream::OpenGroup(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (pimpl_->group_ > 0) h5fg = pimpl_->group_;
+		if (pimpl_->group_ > 0)
+			h5fg = pimpl_->group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -498,7 +609,8 @@ bool is_append
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
@@ -521,7 +633,8 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 	std::vector<hsize_t> buffer;
 
-	if (rank == 0) buffer.resize(size);
+	if (rank == 0)
+		buffer.resize(size);
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
@@ -547,8 +660,7 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 }
 
-std::string DataStream::WriteUnorderedRawData(std::string const &name, void const *v, DataType const & data_desc,
-        size_t count) const
+std::string DataStream::Write(std::string const &name, void const *v, DataType const & data_desc, size_t count) const
 {
 
 	auto dsname = name;
@@ -641,7 +753,8 @@ std::string DataStream::WriteUnorderedRawData(std::string const &name, void cons
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
 }
