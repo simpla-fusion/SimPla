@@ -143,14 +143,14 @@ public:
 
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), mesh(pmesh)
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), mesh(pmesh)
 {
 }
 template<typename Engine>
 template<typename TDict, typename ...Others>
-ProbeParticle<Engine>::ProbeParticle(TDict const & dict, Others &&...others) :
-		ProbeParticle(pmesh)
+ProbeParticle<Engine>::ProbeParticle(TDict const & dict, Others &&...others)
+		: ProbeParticle(pmesh)
 {
 	load(dict);
 }
@@ -169,7 +169,6 @@ ProbeParticle<Engine>::~ProbeParticle()
 template<typename Engine>
 std::string ProbeParticle<Engine>::save(std::string const & path) const
 {
-	std::stringstream os;
 
 	GLOBAL_DATA_STREAM.open_group(path);
 

@@ -107,7 +107,7 @@ public:
 		return num_process_;
 	}
 
-	void Barrier()
+	void barrier()
 	{
 		if (comm_ != MPI_COMM_NULL)
 			MPI_Barrier(comm_);

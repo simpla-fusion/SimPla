@@ -8,7 +8,7 @@
 #ifndef DATA_TYPE_H_
 #define DATA_TYPE_H_
 #include <typeinfo>
-
+#include <typeindex>
 #include "../utilities/primitives.h"
 #include "../utilities/ntuple.h"
 
@@ -20,9 +20,14 @@ namespace simpla
 struct DataType
 {
 public:
+	DataType()
+			: t_index_(std::type_index(typeid(void)))
+	{
 
-	DataType(std::type_info const & t_info, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
-			: t_info_(t_info), ele_size_in_byte_(ele_size_in_byte), NDIMS(ndims)
+	}
+
+	DataType(std::type_index t_index, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
+			: t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), NDIMS(ndims)
 	{
 		if (ndims > 0 && dims != nullptr)
 		{
@@ -31,6 +36,14 @@ public:
 				dimensions_[i] = dims[i];
 			}
 
+		}
+	}
+	DataType(const DataType & other)
+			: ele_size_in_byte_(other.ele_size_in_byte_), t_index_(other.t_index_), NDIMS(other.NDIMS)
+	{
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			dimensions_[i] = other.dimensions_[i];
 		}
 	}
 
@@ -52,7 +65,7 @@ public:
 
 		nTupleTraits<T>::get_dimensions(dimensions);
 
-		return std::move(DataType(typeid(element_type), ele_size_in_byte, NDIMS, dimensions));
+		return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte, NDIMS, dimensions));
 	}
 
 	size_t size_in_byte() const
@@ -66,9 +79,9 @@ public:
 		return res;
 	}
 
-	const size_t ele_size_in_byte_;
-	const std::type_info & t_info_;
-	const unsigned int NDIMS = 0;
+	size_t ele_size_in_byte_ = 0;
+	std::type_index t_index_;
+	unsigned int NDIMS = 0;
 	size_t dimensions_[MAX_NDIMS_OF_ARRAY];
 
 };

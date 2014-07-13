@@ -6,41 +6,42 @@
  */
 #include <mpi.h>
 #include <typeinfo>
+#include <typeindex>
 #include "../utilities/data_type.h"
 
 namespace simpla
 {
 namespace _impl
 {
-bool GetMPIType(std::type_info const & t_info, size_t size_in_byte, MPI_Datatype * new_type)
+bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Datatype * new_type)
 {
 	bool is_commited = false;
 
-	if (t_info == typeid(int))
+	if (t_index == std::type_index(typeid(int)))
 	{
 		*new_type = MPI_INT;
 	}
-	else if (t_info == typeid(long))
+	else if (t_index == std::type_index(typeid(long)))
 	{
 		*new_type = MPI_LONG;
 	}
-	else if (t_info == typeid(float))
+	else if (t_index == std::type_index(typeid(float)))
 	{
 		*new_type = MPI_FLOAT;
 	}
-	else if (t_info == typeid(double))
+	else if (t_index == std::type_index(typeid(double)))
 	{
 		*new_type = MPI_DOUBLE;
 	}
-	else if (t_info == typeid(long double))
+	else if (t_index == std::type_index(typeid(long double)))
 	{
 		*new_type = MPI_LONG_DOUBLE;
 	}
-	else if (t_info == typeid(std::complex<double>))
+	else if (t_index == std::type_index(typeid(std::complex<double>)))
 	{
 		*new_type = MPI_2DOUBLE_COMPLEX;
 	}
-	else if (t_info == typeid(std::complex<float>))
+	else if (t_index == std::type_index(typeid(std::complex<float>)))
 	{
 		*new_type = MPI_2COMPLEX;
 	}
@@ -59,7 +60,7 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type)
 
 	if (datatype_desc.NDIMS == 0)
 	{
-		is_commited = GetMPIType(datatype_desc.t_info_, datatype_desc.ele_size_in_byte_, new_type);
+		is_commited = GetMPIType(datatype_desc.t_index_, datatype_desc.ele_size_in_byte_, new_type);
 	}
 	else
 	{
@@ -74,7 +75,7 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type)
 
 		MPI_Datatype ele_type;
 
-		GetMPIType(datatype_desc.t_info_, datatype_desc.ele_size_in_byte_, &ele_type);
+		GetMPIType(datatype_desc.t_index_, datatype_desc.ele_size_in_byte_, &ele_type);
 
 		MPI_Type_contiguous(ndims, ele_type, new_type);
 

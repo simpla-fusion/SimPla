@@ -18,6 +18,7 @@ extern "C"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_datatype.h"
 #include "../utilities/properties.h"
+#include "../utilities/memory_pool.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 
@@ -29,15 +30,37 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 
-//	std::string prefix_;
-//	std::string filename_;
-//	std::string grpname_;
-//	int suffix_width_;
-//	size_t LIGHT_DATA_LIMIT_;
-//	bool enable_compact_storable_;
-//	bool enable_xdmf_;
-
 	Properties prop_;
+
+	struct DataSet
+	{
+		void const*data_;
+
+		DataType data_desc;
+
+		unsigned int ndims;
+
+		hsize_t g_begin[MAX_NDIMS_OF_ARRAY];
+		hsize_t g_shape[MAX_NDIMS_OF_ARRAY];
+		hsize_t f_begin[MAX_NDIMS_OF_ARRAY];
+		hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
+		hsize_t m_begin[MAX_NDIMS_OF_ARRAY];
+		hsize_t m_count[MAX_NDIMS_OF_ARRAY];
+	};
+
+	struct cache_s
+	{
+
+		unsigned int ndims;
+
+		size_t dims[MAX_NDIMS_OF_ARRAY];
+
+		std::shared_ptr<ByteType> data_;
+
+		size_t size_;
+		size_t tail_;
+	};
+	std::map<std::string, cache_s> cache_;
 
 public:
 
@@ -69,7 +92,24 @@ public:
 		return prop_["File Name"].template as<std::string>() + ":" + prop_["Group Name"].template as<std::string>();
 	}
 
-	std::string write(std::string const &name, void const *v,
+	template<typename ... Args>
+	std::string write(unsigned int flag, std::string const &name, Args &&... args) const;
+
+	/**
+	 *
+	 * @param res
+	 * @param v
+	 * @param datatype
+	 * @param rank_or_number
+	 * @param global_begin
+	 * @param global_end
+	 * @param local_outer_begin
+	 * @param local_outer_end
+	 * @param local_inner_begin
+	 * @param local_inner_end
+	 * @return  if data has struct (global_end!=nullptr) return true ,else return  false
+	 */
+	bool create_data_set(DataSet*res, void const *v,
 
 	DataType const & datatype,
 
@@ -85,13 +125,15 @@ public:
 
 	size_t const *local_inner_begin = nullptr,
 
-	size_t const *local_inner_end = nullptr,
-
-	unsigned int flag = 0UL
+	size_t const *local_inner_end = nullptr
 
 	) const;
 
-	std::string write2(std::string const &name, void const *v, DataType const & data_desc, size_t count) const;
+	std::string write1(unsigned int flag, std::string const &name, DataSet) const;
+
+	std::string write2(unsigned int flag, std::string const &name, DataSet) const;
+
+	std::string write_cache(unsigned int flag, std::string const &name, DataSet) const;
 };
 
 DataStream::pimpl_s::pimpl_s()
@@ -113,6 +155,8 @@ DataStream::pimpl_s::pimpl_s()
 	prop_["Enable Compact Storage"] = false;
 
 	prop_["Enable XDMF"] = false;
+
+	prop_["Cache Size In Bytes"] = static_cast<size_t>(1024 * 1024);
 
 }
 DataStream::pimpl_s::~pimpl_s()
@@ -217,7 +261,7 @@ void DataStream::pimpl_s::open_file(std::string const &fname)
 
 	close_file();
 
-	GLOBAL_COMM.Barrier();
+	GLOBAL_COMM.barrier();
 
 	std::string filename_ = prop_["File Name"].template as<std::string>();
 	std::string & prefix = prop_["Prefix"].template as<std::string>();
@@ -268,7 +312,7 @@ void DataStream::pimpl_s::open_file(std::string const &fname)
 	{
 		H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
 	}
-	GLOBAL_COMM.Barrier();
+	GLOBAL_COMM.barrier();
 
 	if (file_ < 0)
 	{
@@ -302,11 +346,12 @@ void DataStream::pimpl_s::close()
 	close_group();
 	close_file();
 }
-std::string DataStream::pimpl_s::write(std::string const & name, void const *v,
 
-DataType const & data_desc,
+bool DataStream::pimpl_s::create_data_set(DataSet*res,
 
-size_t ndims_or_number,
+void const *v, DataType const & data_desc,
+
+size_t ndims,
 
 size_t const *p_global_begin,
 
@@ -318,40 +363,124 @@ size_t const *p_local_outer_end,
 
 size_t const *p_local_inner_begin,
 
-size_t const *p_local_inner_end,
-
-unsigned int flag
+size_t const *p_local_inner_end
 
 ) const
 {
 
-	assert((flag&SP_FAST_FIRST) == 0UL);
+	res->data_desc = data_desc;
 
-	int rank = 1;
+	res->data_ = v;
+
+	res->ndims = ndims;
 
 	if (p_global_end == nullptr)
 	{
-		return write2(name, v, data_desc, ndims_or_number);
+		return false;
 	}
 	else
 	{
-		rank = ndims_or_number;
+		for (int i = 0; i < ndims; ++i)
+		{
+			res->g_begin[i] = (p_global_begin == nullptr) ? 0 : p_global_begin[i];
+
+			res->g_shape[i] = (p_global_end == nullptr) ? 1 : p_global_end[i] - res->g_begin[i];
+
+			res->f_begin[i] = (p_local_inner_begin == nullptr) ? 0 : p_local_inner_begin[i] - res->g_begin[i];
+
+			res->m_shape[i] =
+			        (p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
+			                res->g_shape[i] : p_local_outer_end[i] - p_local_outer_begin[i];
+
+			res->m_begin[i] =
+			        (p_local_inner_begin == nullptr || p_local_outer_begin == nullptr) ?
+			                0 : p_local_inner_begin[i] - p_local_outer_begin[i];
+
+			res->m_count[i] =
+			        (p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
+			                res->g_shape[i] : p_local_inner_end[i] - p_local_inner_begin[i];
+		}
+
+		if (data_desc.NDIMS > 0)
+		{
+			for (int j = 0; j < data_desc.NDIMS; ++j)
+			{
+
+				res->g_shape[ndims + j] = data_desc.dimensions_[j];
+				res->f_begin[ndims + j] = 0;
+				res->m_shape[ndims + j] = data_desc.dimensions_[j];
+				res->m_begin[ndims + j] = 0;
+				res->m_count[ndims + j] = data_desc.dimensions_[j];
+
+				++ndims;
+			}
+		}
+		res->ndims = ndims;
 	}
-	/// @todo add support for FASF_FIRST array
+	return true;
+
+}
+template<typename ...Args>
+std::string DataStream::pimpl_s::write(unsigned int flag, std::string const &name, Args &&... args) const
+{
+	std::string url = get_current_path() + "/" + name;
+
+	DataSet ds;
+
+	bool has_struct = create_data_set(&ds, std::forward<Args>(args)...);
+
+	if (cache_.find(url) != cache_.end() || (flag & SP_CACHE) > 0)
+	{
+		return write_cache(flag, url, ds);
+	}
+	else if (has_struct)
+	{
+		return write1(flag, name, ds);
+	}
+	else
+	{
+		return write2(flag, name, ds);
+
+	}
+
+}
+std::string DataStream::pimpl_s::write_cache(unsigned int flag, std::string const & name, DataSet ds) const
+
+{
+//	size_t size = 1024 * 1024;
 //
-//	CHECK(rank);
-//	CHECK(p_global_begin[0]) << " " << p_global_end[0];
-//	CHECK(p_global_begin[1]) << " " << p_global_end[1];
+//	if (prop_["Cache Size In Bytes"])
+//		size = prop_["Cache Size In Bytes"].template as<size_t>();
 //
-//	CHECK(p_local_outer_begin[0]) << " " << p_local_outer_end[0];
-//	CHECK(p_local_outer_begin[1]) << " " << p_local_outer_end[1];
+//	cache_s item;
 //
-//	CHECK(p_local_inner_begin[0]) << " " << p_local_inner_end[0];
-//	CHECK(p_local_inner_begin[1]) << " " << p_local_inner_end[1];
+//	item.data_desc = data_desc;
+//
+//	item.ndims = ndims;
+//
+//	for (int i = 0; i < ndims; ++i)
+//	{
+//	item.dims[i]=
+//}
+//
+//size_t dims[MAX_NDIMS_OF_ARRAY];
+//
+//item.data_ = MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
+//
+//	size_t tail_;
+//
+//	MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
+	return "\"" + name + "\" is write to cache";
+
+}
+std::string DataStream::pimpl_s::write1(unsigned int flag, std::string const & name, DataSet ds) const
+{
+
+	assert((flag&SP_FAST_FIRST) == 0UL);	/// @todo add support for FASF_FIRST array
 
 	std::string dsname = name;
 
-	if (v == nullptr)
+	if (ds.data_ == nullptr)
 	{
 		WARNING << dsname << " is empty!";
 		return "";
@@ -360,48 +489,6 @@ unsigned int flag
 	if (group_ <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
-	}
-	hsize_t g_begin[rank + data_desc.NDIMS + 1];
-	hsize_t g_shape[rank + data_desc.NDIMS + 1];
-	hsize_t f_begin[rank + data_desc.NDIMS + 1];
-	hsize_t m_shape[rank + data_desc.NDIMS + 1];
-	hsize_t m_begin[rank + data_desc.NDIMS + 1];
-	hsize_t m_count[rank + data_desc.NDIMS + 1];
-
-	for (int i = 0; i < rank; ++i)
-	{
-		g_begin[i] = (p_global_begin == nullptr) ? 0 : p_global_begin[i];
-
-		g_shape[i] = (p_global_end == nullptr) ? 1 : p_global_end[i] - g_begin[i];
-
-		f_begin[i] = (p_local_inner_begin == nullptr) ? 0 : p_local_inner_begin[i] - g_begin[i];
-
-		m_shape[i] =
-		        (p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
-		                g_shape[i] : p_local_outer_end[i] - p_local_outer_begin[i];
-
-		m_begin[i] =
-		        (p_local_inner_begin == nullptr || p_local_outer_begin == nullptr) ?
-		                0 : p_local_inner_begin[i] - p_local_outer_begin[i];
-
-		m_count[i] =
-		        (p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
-		                g_shape[i] : p_local_inner_end[i] - p_local_inner_begin[i];
-	}
-
-	if (data_desc.NDIMS > 0)
-	{
-		for (int j = 0; j < data_desc.NDIMS; ++j)
-		{
-
-			g_shape[rank + j] = data_desc.dimensions_[j];
-			f_begin[rank + j] = 0;
-			m_shape[rank + j] = data_desc.dimensions_[j];
-			m_begin[rank + j] = 0;
-			m_count[rank + j] = data_desc.dimensions_[j];
-
-			++rank;
-		}
 	}
 
 //	CHECK(name);
@@ -412,7 +499,7 @@ unsigned int flag
 //	CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
 //	CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
 
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(ds.data_desc.t_index_);
 
 	hid_t dset;
 
@@ -420,7 +507,7 @@ unsigned int flag
 
 	if (!prop_["Enable Compact Storage"].template as<bool>())
 	{
-		if (GLOBAL_COMM.get_rank()==0)
+		if (GLOBAL_COMM.get_rank() == 0)
 		{
 			dsname = dsname +
 
@@ -432,7 +519,7 @@ unsigned int flag
 
 		sync_string(&dsname);
 
-		file_space = H5Screate_simple(rank, g_shape, nullptr);
+		file_space = H5Screate_simple(ds.ndims, ds.g_shape, nullptr);
 
 		dset = H5Dcreate(group_, dsname.c_str(), m_type, file_space,
 
@@ -444,35 +531,35 @@ unsigned int flag
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, NULL, m_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_begin, NULL, ds.m_count, NULL));
 
-		mem_space = H5Screate_simple(rank, m_shape, NULL);
+		mem_space = H5Screate_simple(ds.ndims, ds.m_shape, NULL);
 
-		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL);
+		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET,ds. m_begin, NULL, ds.m_count, NULL);
 
 	}
-	else if(!(flag&SP_APPEND)) // add new record, extent the 'rank' dimension; file data has rank+1 dimension
+	else if (!(flag & SP_APPEND)) // add new record, extent the 'rank' dimension; file data has rank+1 dimension
 	{
 
-		g_shape[rank] = 1;
-		f_begin[rank] = 0;
-		m_shape[rank] = 1;
-		m_begin[rank] = 0;
-		m_count[rank] = 0;
+		ds.g_shape[ds.ndims] = 1;
+		ds.f_begin[ds.ndims] = 0;
+		ds.m_shape[ds.ndims] = 1;
+		ds.m_begin[ds.ndims] = 0;
+		ds.m_count[ds.ndims] = 0;
 
 		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
-			hsize_t max_dims[rank + 1];
+			hsize_t max_dims[ds.ndims + 1];
 
-			std::copy(g_shape, g_shape + rank, max_dims);
+			std::copy(ds.g_shape, ds.g_shape + ds.ndims, max_dims);
 
-			max_dims[rank] = H5S_UNLIMITED;
+			max_dims[ds.ndims] = H5S_UNLIMITED;
 
-			hid_t space = H5Screate_simple(rank + 1, g_shape, max_dims);
+			hid_t space = H5Screate_simple(ds.ndims + 1, ds.g_shape, max_dims);
 
 			hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
 
-			H5_ERROR(H5Pset_chunk(dcpl_id, rank + 1, g_shape));
+			H5_ERROR(H5Pset_chunk(dcpl_id, ds.ndims + 1, ds.g_shape));
 
 			dset = H5Dcreate(group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
@@ -488,28 +575,28 @@ unsigned int flag
 
 			file_space = H5Dget_space(dset);
 
-			H5Sget_simple_extent_dims(file_space, g_shape, nullptr);
+			H5Sget_simple_extent_dims(file_space, ds.g_shape, nullptr);
 
 			H5Sclose(file_space);
 
-			++g_shape[rank];
+			++ds.g_shape[ds.ndims];
 
-			H5Dset_extent(dset, g_shape);
+			H5Dset_extent(dset, ds.g_shape);
 		}
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
+		H5_ERROR(H5Sget_simple_extent_dims(file_space, ds.g_shape, nullptr));
 
-		f_begin[rank] = g_shape[rank] - 1;
+		ds.f_begin[ds.ndims] = ds.g_shape[ds.ndims] - 1;
 
-		m_count[rank] = 1;
+		ds.m_count[ds.ndims] = 1;
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, nullptr, m_count, nullptr));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_begin, nullptr, ds.m_count, nullptr));
 
-		mem_space = H5Screate_simple(rank + 1, m_shape, nullptr);
+		mem_space = H5Screate_simple(ds.ndims + 1, ds.m_shape, nullptr);
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_begin, NULL, ds.m_count, NULL));
 
 	}
 	else //   append, extent first dimension; file data has rank dimension
@@ -517,17 +604,17 @@ unsigned int flag
 
 		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
-			hsize_t max_dims[rank ];
+			hsize_t max_dims[ds.ndims];
 
-			std::copy(g_shape, g_shape + rank, max_dims);
+			std::copy(ds.g_shape, ds.g_shape + ds.ndims, max_dims);
 
 			max_dims[0] = H5S_UNLIMITED;
 
-			hid_t space = H5Screate_simple(rank , g_shape, max_dims);
+			hid_t space = H5Screate_simple(ds.ndims, ds.g_shape, max_dims);
 
 			hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
 
-			H5_ERROR(H5Pset_chunk(dcpl_id, rank , g_shape));
+			H5_ERROR(H5Pset_chunk(dcpl_id, ds.ndims,ds. g_shape));
 
 			dset = H5Dcreate(group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
@@ -543,52 +630,52 @@ unsigned int flag
 
 			file_space = H5Dget_space(dset);
 
-			int ndims= H5Sget_simple_extent_ndims(file_space);
+			int ndims = H5Sget_simple_extent_ndims(file_space);
 
-			assert(ndims==rank);
+			assert(ndims==ndims);
 
-			H5Sget_simple_extent_dims(file_space, g_shape, nullptr);
+			H5Sget_simple_extent_dims(file_space, ds.g_shape, nullptr);
 
 			H5Sclose(file_space);
 
-			g_shape[0]+=m_count[0];
+			ds.g_shape[0] += ds.m_count[0];
 
-			H5Dset_extent(dset, g_shape);
+			H5Dset_extent(dset, ds.g_shape);
 		}
 
 		//		CHECK(name);
 		//		CHECK(rank);
-		//		CHECK(g_shape[0]) << " " << g_shape[1] << " " << g_shape[2] << " " << g_shape[3];
-		//		CHECK(f_begin[0]) << " " << f_begin[1] << " " << f_begin[2] << " " << f_begin[3];
-		//		CHECK(m_shape[0]) << " " << m_shape[1] << " " << m_shape[2] << " " << m_shape[3];
+		//		CHECK(ds.g_shape[0]) << " " << ds.g_shape[1] << " " << ds.g_shape[2] << " " << ds.g_shape[3];
+		//		CHECK(ds.f_begin[0]) << " " << ds.f_begin[1] << " " << ds.f_begin[2] << " " << ds.f_begin[3];
+		//		CHECK(ds.m_shape[0]) << " " << ds.m_shape[1] << " " << ds.m_shape[2] << " " << ds.m_shape[3];
 		//		CHECK(m_begin[0]) << " " << m_begin[1] << " " << m_begin[2] << " " << m_begin[3];
 		//		CHECK(m_count[0]) << " " << m_count[1] << " " << m_count[2] << " " << m_count[3];
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sget_simple_extent_dims(file_space, g_shape, nullptr));
+		H5_ERROR(H5Sget_simple_extent_dims(file_space, ds.g_shape, nullptr));
 
-		f_begin[0] = g_shape[0] - m_count[0];
+		ds.f_begin[0] = ds.g_shape[0] - ds.m_count[0];
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_begin, nullptr, m_count, nullptr));
+		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_begin, nullptr, ds.m_count, nullptr));
 
-		mem_space = H5Screate_simple(rank , m_shape, nullptr);
+		mem_space = H5Screate_simple(ds.ndims, ds.m_shape, nullptr);
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL));
+		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_begin, NULL, ds.m_count, NULL));
 
 	}
 
-// create property list for collective dataset write.
+// create property list for collective DataSet write.
 	if (GLOBAL_COMM.is_ready())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
-		H5_ERROR(H5Dwrite(dset,m_type, mem_space, file_space, plist_id, v));
+		H5_ERROR(H5Dwrite(dset, m_type, mem_space, file_space, plist_id, ds.data_));
 		H5_ERROR(H5Pclose(plist_id));
 	}
 	else
 	{
-		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, v));
+		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, ds.data_));
 	}
 
 	H5_ERROR(H5Dclose(dset));
@@ -606,10 +693,10 @@ unsigned int flag
 void sync_location(hsize_t count[2])
 {
 
-	if (!GLOBAL_COMM.is_ready() )
+	if (!GLOBAL_COMM.is_ready())
 	return;
 
-	auto comm=GLOBAL_COMM.comm();
+	auto comm = GLOBAL_COMM.comm();
 
 	int size = GLOBAL_COMM.get_size();
 	int rank = GLOBAL_COMM.get_rank();
@@ -631,7 +718,7 @@ void sync_location(hsize_t count[2])
 
 	MPI_Gather(&count[1], 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
 
-	MPI_Barrier (comm);
+	MPI_Barrier(comm);
 	if (rank == 0)
 	{
 		for (int i = 1; i < size; ++i)
@@ -653,13 +740,12 @@ void sync_location(hsize_t count[2])
 
 }
 
-std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, DataType const & data_desc,
-        size_t count) const
+std::string DataStream::pimpl_s::write2(unsigned int flag, std::string const &name, DataSet ds) const
 {
 
 	auto dsname = name;
 
-	if (v == nullptr)
+	if (ds.data_ == nullptr)
 	{
 		WARNING << dsname << " is empty!";
 		return "";
@@ -670,11 +756,11 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
 
-	hsize_t pos[2] = { 0, count };
+	hsize_t pos[2] = { 0, ds.ndims };
 
 	sync_location(pos);
 
-	int rank = data_desc.NDIMS + 1;
+	int rank = ds.data_desc.NDIMS + 1;
 
 	hsize_t f_count[rank];
 	hsize_t f_begin[rank];
@@ -682,23 +768,23 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 
 	f_begin[0] = pos[0];
 	f_count[0] = pos[1];
-	m_count[0] = count;
+	m_count[0] = ds.ndims;
 
-	if (data_desc.NDIMS > 0)
+	if (ds.data_desc.NDIMS > 0)
 	{
-		for (int j = 0; j < data_desc.NDIMS; ++j)
+		for (int j = 0; j < ds.data_desc.NDIMS; ++j)
 		{
 
-			f_count[1 + j] = data_desc.dimensions_[j];
+			f_count[1 + j] = ds.data_desc.dimensions_[j];
 
 			f_begin[1 + j] = 0;
 
-			m_count[1 + j] = data_desc.dimensions_[j];
+			m_count[1 + j] = ds.data_desc.dimensions_[j];
 
 		}
 	}
 
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(data_desc.t_info_);
+	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create(ds.data_desc.t_index_);
 
 	hid_t dset;
 
@@ -725,17 +811,17 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 
 	mem_space = H5Screate_simple(rank, m_count, NULL);
 
-	// create property list for collective data set write.
+// create property list for collective data set write.
 	if (GLOBAL_COMM.is_ready())
 	{
 		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
 		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
-		H5_ERROR(H5Dwrite(dset,m_type, mem_space, file_space, plist_id, v));
+		H5_ERROR(H5Dwrite(dset, m_type, mem_space, file_space, plist_id, ds.data_));
 		H5_ERROR(H5Pclose(plist_id));
 	}
 	else
 	{
-		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, v));
+		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, ds.data_));
 	}
 
 	H5_ERROR(H5Dclose(dset));
@@ -803,7 +889,7 @@ std::string DataStream::get_current_path() const
 
 std::string DataStream::write(std::string const &name, void const *v,
 
-DataType const & datatype,
+DataType const & data_desc,
 
 size_t ndims_or_number,
 
@@ -823,7 +909,7 @@ unsigned int flag
 
 ) const
 {
-	return pimpl_->write(name, v, datatype, ndims_or_number, global_begin,
+	return pimpl_->write(flag, name, v, data_desc, ndims_or_number, global_begin,
 
 	global_end,
 
@@ -833,7 +919,7 @@ unsigned int flag
 
 	local_inner_begin,
 
-	local_inner_end, flag);
+	local_inner_end);
 }
 }
 // namespace simpla
