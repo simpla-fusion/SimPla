@@ -212,7 +212,10 @@ OS &ExplicitEMContext<TM>::print_(OS & os) const
 		os << "\n , Particles = { \n";
 		for (auto const & p : particles_)
 		{
-			os << " { " << p.second << " }, " << std::endl;
+			os << p.first << " = { ";
+			p.second->print(os);
+			os << "}," << std::endl;
+//			os << " { " << p.second << " }, " << std::endl;
 		}
 		os << "\n} ";
 	}
@@ -516,7 +519,7 @@ void ExplicitEMContext<TM>::next_timestep()
 // Compute Cycle Begin
 
 // E0 B0,
-	VERBOSE_CMD(Jext = J0);
+	LOG_CMD(Jext = J0);
 	ExcuteCommands(commandToJ_);
 
 //   particle 0-> 1/2 . To n[1/2], J[1/2]
@@ -527,28 +530,28 @@ void ExplicitEMContext<TM>::next_timestep()
 			p.second->next_timestep_zero(E, B);
 
 			auto const & Js = p.second->template J<TJ>();
-			VERBOSE_CMD(Jext += Js);
+			LOG_CMD(Jext += Js);
 		}
 	}
 
-	VERBOSE_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
 	dE.clear();
 	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
 
-	VERBOSE_CMD(dE -= Jext * (dt / epsilon0));
+	LOG_CMD(dE -= Jext * (dt / epsilon0));
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 
-	VERBOSE_CMD(E += dE);	// E(t=0 -> 1)
+	LOG_CMD(E += dE);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
 	dB.clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
-	VERBOSE_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
+	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
 	model.next_timestep();

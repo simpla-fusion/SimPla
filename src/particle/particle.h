@@ -104,6 +104,25 @@ public:
 	//***************************************************************************************************
 	// interface begin
 
+	void set_property_(std::string const & name, Any const&v)
+	{
+		properties[name] = v;
+	}
+	Any const & get_property_(std::string const &name) const
+	{
+		return properties[name].template as<Any>();
+	}
+
+	template<typename T> void set_property(std::string const & name, T const&v)
+	{
+		set_property_(name, Any(v));
+	}
+
+	template<typename T> T get_property(std::string const & name) const
+	{
+		return get_property_(name).template as<T>();
+	}
+
 	bool same_mesh_type(std::type_info const & t_info) const
 	{
 		return t_info == typeid(mesh_type);
@@ -114,6 +133,7 @@ public:
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
+		os << ",";
 		properties.print(os);
 		return os;
 	}

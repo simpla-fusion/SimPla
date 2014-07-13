@@ -8,11 +8,13 @@
 #ifndef FLUID_COLD_ENGINE_H_
 #define FLUID_COLD_ENGINE_H_
 #include <functional>
-
+#include <typeinfo>
 #include "../../src/fetl/fetl.h"
 #include "../../src/fetl/load_field.h"
 #include "../../src/fetl/save_field.h"
 #include "../../src/particle/particle_base.h"
+#include "../../src/utilities/properties.h"
+#include "../../src/utilities/any.h"
 namespace simpla
 {
 
@@ -65,6 +67,27 @@ public:
 
 	~Particle();
 
+	Properties properties;
+
+	void set_property_(std::string const & name, Any const&v)
+	{
+		properties[name] = v;
+	}
+	Any const & get_property_(std::string const &name) const
+	{
+		return properties[name].template as<Any>();
+	}
+
+	template<typename T> void set_property(std::string const & name, T const&v)
+	{
+		set_property_(name, Any(v));
+	}
+
+	template<typename T> T get_property(std::string const & name) const
+	{
+		return get_property_(name).template as<T>();
+	}
+
 	template<typename OS>
 	OS & print_(OS& os) const
 	{
@@ -95,7 +118,8 @@ public:
 			load_field(dict["Current"], &(res->J));
 
 			res->n *= res->q;
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 		}
@@ -182,8 +206,8 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
-		: mesh(pmesh),
+template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh) :
+		mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 

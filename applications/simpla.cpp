@@ -165,14 +165,13 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			INFORM << ctx->save("/Input" );
+			ctx->save("/Input" );
 			INFORM <<std::endl<< *ctx;
 		}
 	}
 
 	// Main Loop ============================================
 
-	INFORM << SINGLELINE;
 	LOGGER << "Process " << START;
 
 	TheStart();

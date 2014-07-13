@@ -11,10 +11,11 @@ namespace simpla
 const Properties Properties::fail_safe_;
 std::ostream & Properties::print(std::ostream & os) const
 {
-	os << value_;
 	for (auto const& item : *this)
 	{
-		os << item.first << " = " << item.second << "," << std::endl;
+		os << item.first << " = " << item.second.value_ << " , ";
+		if (item.second.size() > 0) os << item.second;
+		os << std::endl;
 	}
 	return os;
 }

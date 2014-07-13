@@ -8,12 +8,12 @@
 #ifndef PARTICLE_BASE_H_
 #define PARTICLE_BASE_H_
 
-//#include <sstream>
-
 #include <iostream>
 #include <string>
+#include <typeindex>
 #include <typeinfo>
-
+#include "../utilities/properties.h"
+#include "../utilities/any.h"
 #include "../utilities/primitives.h"
 
 namespace simpla
@@ -57,6 +57,20 @@ public:
 	virtual void next_timestep_zero_(void const * E, void const*B) =0;
 
 	virtual void next_timestep_half_(void const * E, void const*B) =0;
+
+	virtual void set_property_(std::string const & name, Any const&v)=0;
+
+	virtual Any const & get_property_(std::string const &name) const=0;
+
+	template<typename T> void set_property(std::string const & name, T const&v)
+	{
+		set_property_(name, Any(v));
+	}
+
+	template<typename T> T get_property(std::string const & name) const
+	{
+		return get_property_(name).template as<T>();
+	}
 
 	template<typename T>
 	T const & n() const
