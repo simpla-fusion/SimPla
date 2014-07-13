@@ -11,7 +11,7 @@
 #include <memory>
 #include <typeindex>
 #include <iostream>
-
+#include "log.h"
 namespace simpla
 {
 /**
@@ -67,7 +67,7 @@ struct Any
 	{
 		if (!is<U>())
 		{
-			std::cout << "can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
+			WARNING << "can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
 			throw std::bad_cast();
 		}
 		auto derived = dynamic_cast<Derived<U>*>(m_ptr.get());
@@ -79,7 +79,7 @@ struct Any
 	{
 		if (!is<U>())
 		{
-			std::cout << "can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
+			WARNING << "Can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
 			throw std::bad_cast();
 		}
 		auto derived = dynamic_cast<Derived<U> const*>(m_ptr.get());

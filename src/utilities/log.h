@@ -81,7 +81,7 @@ public:
 		{
 			if( opt=="log")
 			{
-				this->OpenFile (value);
+				this->open_file (value);
 			}
 			else if(opt=="v")
 			{
@@ -106,7 +106,7 @@ public:
 
 	}
 
-	inline void OpenFile(std::string const & name)
+	inline void open_file(std::string const & name)
 	{
 		if (fs.is_open()) fs.close();
 
@@ -151,7 +151,7 @@ public:
 #endif
 		prefix+="[" + time_stamp() + "]";
 
-		if (!fs.good()) OpenFile("simpla.log");
+		if (!fs.good()) open_file("simpla.log");
 
 		if (fs.good()) fs << prefix << msg << surfix;;
 

@@ -20,8 +20,8 @@ protected:
 	{
 		TParam::SetUpMesh(&mesh);
 		TParam::SetDefaultValue(&default_value);
-		GLOBAL_DATA_STREAM.OpenFile("FetlTest");
-		GLOBAL_DATA_STREAM.OpenGroup("/");
+		GLOBAL_DATA_STREAM.open_file("FetlTest");
+		GLOBAL_DATA_STREAM.open_group("/");
 	}
 public:
 

@@ -205,7 +205,7 @@ std::string GEqdsk::save(std::string const & path) const
 		return "";
 	}
 
-	GLOBAL_DATA_STREAM.OpenGroup(path);
+	GLOBAL_DATA_STREAM.open_group(path);
 
 	auto dd = geometry_type::get_dimensions();
 

@@ -13,7 +13,7 @@ my_test(field_test )
 target_link_libraries(field_test physics io parallel)
 
 my_test(field_io_test     field_io_test.cpp        )
-target_link_libraries(field_io_test physics io parallel)
+target_link_libraries(field_io_test physics io parallel utilities)
 
 
 #my_test(equation_test   physics)

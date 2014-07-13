@@ -66,8 +66,8 @@ protected:
 		if (!GLOBAL_DATA_STREAM.is_ready())
 		{
 
-			GLOBAL_DATA_STREAM.OpenFile("MeshTest");
-			GLOBAL_DATA_STREAM.OpenGroup("/");
+			GLOBAL_DATA_STREAM.open_file("MeshTest");
+			GLOBAL_DATA_STREAM.open_group("/");
 		}
 
 	}

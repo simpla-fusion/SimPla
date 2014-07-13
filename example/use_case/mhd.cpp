@@ -140,7 +140,7 @@ int main(int argc, char **argv)
 	);
 	if (!GLOBAL_DATA_STREAM.is_ready())
 	{
-		GLOBAL_DATA_STREAM.OpenFile("./");
+		GLOBAL_DATA_STREAM.open_file("./");
 	}
 
 	INFORM << SIMPLA_LOGO << std::endl
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.OpenGroup("/save");
+		GLOBAL_DATA_STREAM.open_group("/save");
 		GLOBAL_DATA_STREAM.EnableCompactStorable();
 
 		//   save initial value

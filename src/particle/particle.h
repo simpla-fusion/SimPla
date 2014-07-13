@@ -232,7 +232,7 @@ std::string Particle<Engine>::save(std::string const & path) const
 {
 	std::stringstream os;
 
-	GLOBAL_DATA_STREAM.OpenGroup(path );
+	GLOBAL_DATA_STREAM.open_group(path );
 
 //	if (is_verbose)
 //	{

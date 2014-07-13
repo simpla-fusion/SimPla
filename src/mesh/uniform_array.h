@@ -136,9 +136,10 @@ public:
 
 	compact_index_type global_begin_compact_index_ = 0UL;
 
-
-
-	int array_order_ = SLOW_FIRST;
+	static constexpr bool is_fast_first()
+	{
+		return false;
+	}
 
 	DistributedArray<NDIMS> global_array_;
 
@@ -1150,7 +1151,7 @@ public:
 
 		compact_index_type shift_;
 
-		int array_order = FAST_FIRST;
+		bool is_fast_first_=false;
 
 		iterator( ):shift_(0UL)
 		{
@@ -1198,7 +1199,10 @@ public:
 		{
 			return !(this->operator==(rhs));
 		}
-
+		bool is_fast_first()const
+		{
+			return is_fast_first_;
+		}
 		value_type operator*() const
 		{
 			return get();
@@ -1235,7 +1239,7 @@ public:
 		void NextCell()
 		{
 
-			if (array_order==FAST_FIRST)
+			if (is_fast_first_)
 			{
 				++self_[NDIMS - 1];
 
@@ -1267,7 +1271,7 @@ public:
 		void PreviousCell()
 		{
 
-			if (array_order==FAST_FIRST)
+			if ( is_fast_first_)
 			{
 				--self_[NDIMS - 1];
 
@@ -1441,14 +1445,14 @@ public:
 
 		std::function<size_t(compact_index_type)> res;
 
-		int array_order=std::get<0>(range).array_order;
+		bool is_fast_first=std::get<0>(range).is_fast_first();
 
 		nTuple<NDIMS, index_type> begin,count,stride;
 
 		begin = std::get<0>(range).self_+(-local_inner_begin_+local_outer_begin_);
 		count = (std::get<1>(range)--).self_+(-local_inner_end_+local_outer_end_)-begin+1;
 
-		if (array_order == SLOW_FIRST)
+		if (!is_fast_first)
 		{
 			stride[0] = 1;
 			stride[1] = count[0];
@@ -2072,7 +2076,8 @@ inline UniformArray::range_type Split(UniformArray::range_type const & range, un
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{

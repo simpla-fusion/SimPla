@@ -17,6 +17,7 @@ extern "C"
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_datatype.h"
+#include "../utilities/properties.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
 
@@ -28,93 +29,47 @@ struct DataStream::pimpl_s
 	hid_t file_;
 	hid_t group_;
 
-	std::string prefix_;
-	int suffix_width_;
+//	std::string prefix_;
+//	std::string filename_;
+//	std::string grpname_;
+//	int suffix_width_;
+//	size_t LIGHT_DATA_LIMIT_;
+//	bool enable_compact_storable_;
+//	bool enable_xdmf_;
 
-	std::string filename_;
-	std::string grpname_;
-	size_t LIGHT_DATA_LIMIT_;
-	bool enable_compact_storable_;
-	bool enable_xdmf_;
+	Properties prop_;
 
 public:
 
 	pimpl_s();
 	~pimpl_s();
 
-	void Init(int argc = 0, char** argv = nullptr);
-
-	void SetLightDatLimit(size_t s)
+	bool is_ready()
 	{
-		LIGHT_DATA_LIMIT_ = s;
+		return file_ > 0;
 	}
-	size_t GetLightDatLimit() const
+	void set_property(std::string const & name, Any const&v)
 	{
-		return LIGHT_DATA_LIMIT_;
+		prop_[name] = v;
 	}
-
-	void EnableCompactStorable()
+	Any const & get_property_any(std::string const &name) const
 	{
-		enable_compact_storable_ = true;
-	}
-	void DisableCompactStorable()
-	{
-		enable_compact_storable_ = false;
+		return prop_[name].template as<Any>();
 	}
 
-	void EnableXDMF()
-	{
-		enable_xdmf_ = true;
-	}
-	void DisableXDMF()
-	{
-		enable_xdmf_ = false;
-	}
-
-	bool CheckCompactStorable() const
-	{
-		return enable_compact_storable_;
-	}
-
-	bool is_ready() const;
+	void init(int argc = 0, char** argv = nullptr);
+	void open_group(std::string const & gname);
+	void open_file(std::string const &fname = "unnamed");
+	void close_group();
+	void close_file();
+	void close();
 
 	inline std::string GetCurrentPath() const
 	{
-		return filename_ + ":" + grpname_;
+		return prop_["File Name"].template as<std::string>() + ":" + prop_["Group Name"].template as<std::string>();
 	}
 
-	inline std::string GetPrefix() const
-	{
-		return prefix_;
-	}
-
-	inline void SetPrefix(const std::string& prefix)
-	{
-		prefix_ = prefix;
-	}
-
-	int GetSuffixWidth() const
-	{
-		return suffix_width_;
-	}
-
-	void SetSuffixWidth(int suffixWidth)
-	{
-		suffix_width_ = suffixWidth;
-	}
-
-	void OpenGroup(std::string const & gname);
-	void OpenFile(std::string const &fname = "unnamed");
-	void CloseGroup();
-	void CloseFile();
-
-	void Close()
-	{
-		CloseGroup();
-		CloseFile();
-	}
-
-	std::string Write(std::string const &name, void const *v,
+	std::string write(std::string const &name, void const *v,
 
 	DataType const & datatype,
 
@@ -135,33 +90,37 @@ public:
 	unsigned int flag = 0UL
 
 	) const;
+
+	std::string write2(std::string const &name, void const *v, DataType const & data_desc, size_t count) const;
 };
 
-DataStream::DataStream()
-		: prefix_("simpla_unnamed"), filename_("unnamed"), grpname_(""),
-
-		suffix_width_(4),
-
-		LIGHT_DATA_LIMIT_(20),
-
-		enable_compact_storable_(false),
-
-		enable_xdmf_(false),
-
-		pimpl_(new pimpl_s( { -1, -1 }))
-
+DataStream::pimpl_s::pimpl_s()
+		: file_(-1), group_(-1)
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
-}
 
-DataStream::~DataStream()
+	prop_["Prefix"] = std::string("simpla_unnamed");
+
+	prop_["File Name"] = std::string("unnamed");
+
+	prop_["Group Name"] = std::string("");
+
+	prop_["Suffix Width"] = 4;
+
+	prop_["Light Data Limit"] = 20;
+
+	prop_["Enable Compact Storage"] = false;
+
+	prop_["Enable XDMF"] = false;
+
+}
+DataStream::pimpl_s::~pimpl_s()
 {
-	Close();
-	delete pimpl_;
+	close();
 }
 
-void DataStream::Init(int argc, char** argv)
+void DataStream::pimpl_s::init(int argc, char** argv)
 {
 
 	ParseCmdLine(argc, argv,
@@ -170,7 +129,7 @@ void DataStream::Init(int argc, char** argv)
 	{
 		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 		{
-			this->OpenFile(value);
+			this->open_file(value);
 		}
 		return CONTINUE;
 	}
@@ -178,18 +137,17 @@ void DataStream::Init(int argc, char** argv)
 	);
 
 }
-bool DataStream::is_ready() const
-{
-	return pimpl_->file_ > 0;
-}
-void DataStream::OpenGroup(std::string const & gname)
+
+void DataStream::pimpl_s::open_group(std::string const & gname)
 {
 	if (gname == "")
 		return;
 
-	hid_t h5fg = pimpl_->file_;
+	hid_t h5fg = file_;
 
-	CloseGroup();
+	close_group();
+
+	std::string & grpname_ = prop_["Group Name"].template as<std::string>();
 
 	if (gname[0] == '/')
 	{
@@ -198,8 +156,8 @@ void DataStream::OpenGroup(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (pimpl_->group_ > 0)
-			h5fg = pimpl_->group_;
+		if (group_ > 0)
+			h5fg = group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -211,15 +169,15 @@ void DataStream::OpenGroup(std::string const & gname)
 
 	if (grpname_ == "/" || res != 0)
 	{
-		H5_ERROR(pimpl_->group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
+		H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
 	}
 	else
 	{
-		H5_ERROR(pimpl_->group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+		H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 	}
-	if (pimpl_->group_ <= 0)
+	if (group_ <= 0)
 	{
-		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + prefix_);
+		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + prop_["Prefix"].template as<std::string>());
 	}
 
 }
@@ -250,32 +208,35 @@ void sync_string(std::string * filename_)
 
 }
 
-void DataStream::OpenFile(std::string const &fname)
+void DataStream::pimpl_s::open_file(std::string const &fname)
 {
 
-	CloseFile();
+	close_file();
 
 	GLOBAL_COMM.Barrier();
+
+	std::string filename_ = prop_["File Name"].template as<std::string>();
+	std::string & prefix = prop_["Prefix"].template as<std::string>();
 
 	if (GLOBAL_COMM.get_rank()==0)
 	{
 		if (fname != "")
-		prefix_ = fname;
+		prefix = fname;
 
 		if (fname.size() > 3 && fname.substr(fname.size() - 3) == ".h5")
 		{
-			prefix_ = fname.substr(0, fname.size() - 3);
+			prefix = fname.substr(0, fname.size() - 3);
 		}
 
 		/// @todo auto mkdir directory
 
-		filename_ = prefix_ +
+		filename_ = prefix +
 
 		AutoIncrease(
 
 		[&](std::string const & suffix)->bool
 		{
-			std::string fname=(prefix_+suffix);
+			std::string fname=( prefix+suffix);
 			return
 			fname==""
 			|| *(fname.rbegin())=='/'
@@ -288,55 +249,60 @@ void DataStream::OpenFile(std::string const &fname)
 	// sync filename and open file
 	if (GLOBAL_COMM.IsInitilized())
 	{
-		sync_string(&filename_);
+		sync_string(& filename_);
 
 		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
 		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 
-		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+		H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 		H5Pclose(plist_id);
 
 	}
 	else
 	{
-		H5_ERROR(pimpl_->file_ = H5Fcreate(filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
+		H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
 	}
 	GLOBAL_COMM.Barrier();
 
-	if (pimpl_->file_ < 0)
+	if (file_ < 0)
 	{
 		RUNTIME_ERROR("create HDF5 file " + filename_ + " failed!");
 	}
 
-	OpenGroup("/");
+	prop_["File Name"].template as<std::string>() = filename_;
+	open_group("/");
 }
 
-void DataStream::CloseGroup()
+void DataStream::pimpl_s::close_group()
 {
-	if (pimpl_->group_ > 0)
+	if (group_ > 0)
 	{
-		H5Gclose(pimpl_->group_);
+		H5Gclose(group_);
 	}
-	pimpl_->group_ = -1;
+	group_ = -1;
 }
-void DataStream::CloseFile()
+void DataStream::pimpl_s::close_file()
 {
-	CloseGroup();
+	close_group();
 
-	if (pimpl_->file_ > 0)
+	if (file_ > 0)
 	{
-		H5Fclose(pimpl_->file_);
+		H5Fclose(file_);
 	}
-	pimpl_->file_ = -1;
+	file_ = -1;
 }
-
-std::string DataStream::WriteRawData(std::string const & name, void const *v,
+void DataStream::pimpl_s::close()
+{
+	close_group();
+	close_file();
+}
+std::string DataStream::pimpl_s::write(std::string const & name, void const *v,
 
 DataType const & data_desc,
 
-int rank,
+size_t ndims_or_number,
 
 size_t const *p_global_begin,
 
@@ -350,14 +316,23 @@ size_t const *p_local_inner_begin,
 
 size_t const *p_local_inner_end,
 
-bool array_order,
-
-bool is_append
+unsigned int flag
 
 ) const
 {
 
-	assert(array_order == SLOW_FIRST);
+	assert((flag&SP_FAST_FIRST) == 0UL);
+
+	int rank = 1;
+
+	if (p_global_end == nullptr)
+	{
+		return write2(name, v, data_desc, ndims_or_number);
+	}
+	else
+	{
+		rank = ndims_or_number;
+	}
 
 	/// @todo add support for FASF_FIRST array
 
@@ -369,7 +344,7 @@ bool is_append
 		return "";
 	}
 
-	if (pimpl_->group_ <= 0)
+	if (group_ <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
@@ -422,7 +397,7 @@ bool is_append
 
 	hid_t file_space, mem_space;
 
-	if (!enable_compact_storable_)
+	if (!prop_["Enable Compact Storage"].template as<bool>())
 	{
 		if (GLOBAL_COMM.get_rank()==0)
 		{
@@ -430,7 +405,7 @@ bool is_append
 
 			AutoIncrease([&](std::string const & s )->bool
 			{
-				return H5Lexists(pimpl_->group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
+				return H5Lexists(group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
 			}, 0, 4);
 		}
 
@@ -438,13 +413,13 @@ bool is_append
 
 		file_space = H5Screate_simple(rank, g_shape, nullptr);
 
-		dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, file_space,
+		dset = H5Dcreate(group_, dsname.c_str(), m_type, file_space,
 
 		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
 
-		H5_ERROR(H5Fflush(pimpl_->group_, H5F_SCOPE_GLOBAL));
+		H5_ERROR(H5Fflush(group_, H5F_SCOPE_GLOBAL));
 
 		file_space = H5Dget_space(dset);
 
@@ -455,7 +430,7 @@ bool is_append
 		H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, m_begin, NULL, m_count, NULL);
 
 	}
-	else if(!is_append) // add new record, extent the 'rank' dimension; file data has rank+1 dimension
+	else if(!(flag&SP_APPEND)) // add new record, extent the 'rank' dimension; file data has rank+1 dimension
 	{
 
 		g_shape[rank] = 1;
@@ -464,7 +439,7 @@ bool is_append
 		m_begin[rank] = 0;
 		m_count[rank] = 0;
 
-		if (H5Lexists(pimpl_->group_, dsname.c_str(), H5P_DEFAULT) == 0)
+		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
 			hsize_t max_dims[rank + 1];
 
@@ -478,7 +453,7 @@ bool is_append
 
 			H5_ERROR(H5Pset_chunk(dcpl_id, rank + 1, g_shape));
 
-			dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(space));
 
@@ -488,7 +463,7 @@ bool is_append
 		else
 		{
 
-			dset = H5Dopen(pimpl_->group_, dsname.c_str(), H5P_DEFAULT);
+			dset = H5Dopen(group_, dsname.c_str(), H5P_DEFAULT);
 
 			file_space = H5Dget_space(dset);
 
@@ -527,7 +502,7 @@ bool is_append
 	else //   append, extent first dimension; file data has rank dimension
 	{
 
-		if (H5Lexists(pimpl_->group_, dsname.c_str(), H5P_DEFAULT) == 0)
+		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
 			hsize_t max_dims[rank ];
 
@@ -541,7 +516,7 @@ bool is_append
 
 			H5_ERROR(H5Pset_chunk(dcpl_id, rank , g_shape));
 
-			dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			dset = H5Dcreate(group_, dsname.c_str(), m_type, space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(space));
 
@@ -551,7 +526,7 @@ bool is_append
 		else
 		{
 
-			dset = H5Dopen(pimpl_->group_, dsname.c_str(), H5P_DEFAULT);
+			dset = H5Dopen(group_, dsname.c_str(), H5P_DEFAULT);
 
 			file_space = H5Dget_space(dset);
 
@@ -660,7 +635,8 @@ void sync_location(hsize_t count[2], MPI_Comm comm)
 
 }
 
-std::string DataStream::Write(std::string const &name, void const *v, DataType const & data_desc, size_t count) const
+std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, DataType const & data_desc,
+        size_t count) const
 {
 
 	auto dsname = name;
@@ -671,7 +647,7 @@ std::string DataStream::Write(std::string const &name, void const *v, DataType c
 		return "";
 	}
 
-	if (pimpl_->group_ <= 0)
+	if (group_ <= 0)
 	{
 		WARNING << "HDF5 file is not opened! No data is saved!";
 	}
@@ -717,16 +693,16 @@ std::string DataStream::Write(std::string const &name, void const *v, DataType c
 
 	AutoIncrease([&](std::string const & s )->bool
 	{
-		return H5Lexists(pimpl_->group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
+		return H5Lexists(group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
 	}, 0, 4);
 
 	file_space = H5Screate_simple(rank, f_count, nullptr);
 
-	dset = H5Dcreate(pimpl_->group_, dsname.c_str(), m_type, file_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+	dset = H5Dcreate(group_, dsname.c_str(), m_type, file_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 	H5_ERROR(H5Sclose(file_space));
 
-	H5_ERROR(H5Fflush(pimpl_->group_, H5F_SCOPE_GLOBAL));
+	H5_ERROR(H5Fflush(group_, H5F_SCOPE_GLOBAL));
 
 	file_space = H5Dget_space(dset);
 
@@ -757,6 +733,83 @@ std::string DataStream::Write(std::string const &name, void const *v, DataType c
 		H5Tclose(m_type);
 
 	return "\"" + GetCurrentPath() + dsname + "\"";
+}
+
+//=====================================================================================
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
+{
+}
+DataStream::~DataStream()
+{
+}
+
+void DataStream::init(int argc, char** argv)
+{
+	pimpl_->init(argc, argv);
+}
+void DataStream::open_group(std::string const & gname)
+{
+	pimpl_->open_group(gname);
+}
+void DataStream::open_file(std::string const &fname)
+{
+	pimpl_->open_file(fname);
+}
+void DataStream::close_group()
+{
+	pimpl_->close_group();
+}
+void DataStream::close_file()
+{
+	pimpl_->close_file();
+}
+void DataStream::close()
+{
+	pimpl_->close();
+}
+
+void DataStream::set_property_(std::string const & name, Any const &v)
+{
+	pimpl_->set_property(name, v);
+}
+Any DataStream::get_property_(std::string const & name) const
+{
+	return pimpl_->get_property_any(name);
+}
+std::string DataStream::write(std::string const &name, void const *v,
+
+DataType const & datatype,
+
+size_t ndims_or_number,
+
+size_t const *global_begin,
+
+size_t const *global_end,
+
+size_t const *local_outer_begin,
+
+size_t const *local_outer_end,
+
+size_t const *local_inner_begin,
+
+size_t const *local_inner_end,
+
+unsigned int flag
+
+) const
+{
+	return pimpl_->write(name, v, datatype, ndims_or_number, global_begin,
+
+	global_end,
+
+	local_outer_begin,
+
+	local_outer_end,
+
+	local_inner_begin,
+
+	local_inner_end, flag);
 }
 }
 // namespace simpla

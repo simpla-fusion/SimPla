@@ -13,7 +13,7 @@
 namespace simpla
 {
 /**
- *
+ *   Properties Tree
  *  @todo using shared_ptr storage data
  */
 class Properties: public std::map<std::string, Properties>

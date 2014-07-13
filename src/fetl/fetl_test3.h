@@ -79,7 +79,7 @@ TEST_P(TestFETL, grad0)
 //		}
 
 	}
-//	GLOBAL_DATA_STREAM.OpenGroup("/grad0/");
+//	GLOBAL_DATA_STREAM.open_group("/grad0/");
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f1b);
@@ -155,7 +155,7 @@ TEST_P(TestFETL, grad3)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error);
 
-//	GLOBAL_DATA_STREAM.OpenGroup("/grad3/");
+//	GLOBAL_DATA_STREAM.open_group("/grad3/");
 //	LOGGER << SAVE(f3);
 //	LOGGER << SAVE(f2);
 //	LOGGER << SAVE(f2b);
@@ -247,7 +247,7 @@ TEST_P(TestFETL, diverge1)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= " << K_imag << " mesh.Ki=" << mesh.k_imag;
 
-//	GLOBAL_DATA_STREAM.OpenGroup("/diverge1/");
+//	GLOBAL_DATA_STREAM.open_group("/diverge1/");
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f0b);

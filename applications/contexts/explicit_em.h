@@ -225,7 +225,7 @@ template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
 {
 
-	GLOBAL_DATA_STREAM.OpenGroup(path);
+	GLOBAL_DATA_STREAM.open_group(path);
 
 	LOGGER << SAVE(E);
 	LOGGER << SAVE(B);

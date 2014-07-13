@@ -17,8 +17,9 @@ template<typename, unsigned int, typename > class Field;
 
 template<typename TM, unsigned int IFORM, typename TV>
 std::string save(std::string const & name,
-        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, bool is_append = false)
+        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, unsigned int flag = 0UL)
 {
+	typedef typename Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>::value_type value_type;
 	int rank = d.get_dataset_shape();
 	size_t global_begin[rank];
 	size_t global_end[rank];
@@ -37,17 +38,15 @@ std::string save(std::string const & name,
 
 	);
 
-	return simpla::save(name, d.data().get(), rank,
+	return GLOBAL_DATA_STREAM.write(name, d.data().get(), DataType::create<value_type>(),rank,
 
-	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
+			static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 
-	static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
+			static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
 
-	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
+			static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
 
-	d.mesh.array_order_,
-
-	is_append
+			(d.mesh.is_fast_first()?DataStream::SP_FAST_FIRST:0UL)|flag
 
 	);
 

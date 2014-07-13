@@ -16,9 +16,9 @@
 #include <vector>
 
 #include "../utilities/data_type.h"
-F
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
+#include "../utilities/any.h"
 
 namespace simpla
 {
@@ -50,9 +50,22 @@ public:
 
 	~DataStream();
 
-	template<typename T> void set_property(std::string const & name, T const &);
+	template<typename T> void set_property(std::string const & name, T const&v)
+	{
+		set_property(name, Any(v));
+	}
 
-	template<typename T> T get_property(std::string const & name) const;
+	template<typename T> T get_property(std::string const & name) const
+	{
+		return get_property_(name).template as<T>();
+	}
+
+	void init(int argc = 0, char** argv = nullptr);
+	void open_group(std::string const & gname);
+	void open_file(std::string const &fname = "unnamed");
+	void close_group();
+	void close_file();
+	void close();
 
 	/**
 	 *
@@ -74,7 +87,7 @@ public:
 	 * @param flag             flag to define the operation
 	 * @return
 	 */
-	std::string Write(std::string const &name, void const *v,
+	std::string write(std::string const &name, void const *v,
 
 	DataType const & datatype,
 
@@ -100,6 +113,10 @@ private:
 	struct pimpl_s;
 
 	std::unique_ptr<pimpl_s> pimpl_;
+
+	void set_property_(std::string const & name, Any const&);
+	Any get_property_(std::string const & name) const;
+
 }
 ;
 
@@ -109,7 +126,7 @@ private:
 template<typename TV, typename ...Args>
 std::string save(std::string const & name, TV const *data, Args && ...args)
 {
-	return GLOBAL_DATA_STREAM.Write(name, data , std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, data , std::forward<Args>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string save(std::string const & name,

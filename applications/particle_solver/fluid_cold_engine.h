@@ -203,7 +203,7 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 {
 	std::stringstream os;
 
-	GLOBAL_DATA_STREAM.OpenGroup(path );
+	GLOBAL_DATA_STREAM.open_group(path );
 
 	DEFINE_PHYSICAL_CONST;
 //

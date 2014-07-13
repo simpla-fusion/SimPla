@@ -172,8 +172,8 @@ TEST_P(TestParticle,Add)
 //
 //	ion.Scatter(&n, E, B);
 //
-//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	GLOBAL_DATA_STREAM.open_file("ParticleTest");
+//	GLOBAL_DATA_STREAM.open_group("/");
 //	LOGGER << SAVE(n);
 //	LOGGER << SAVE(ion);
 //	LOGGER << save("ion_n", ion.n);
@@ -223,8 +223,8 @@ TEST_P(TestParticle,Add)
 
 //TYPED_TEST_P(TestParticle,move){
 //{
-//	GLOBAL_DATA_STREAM.OpenFile("ParticleTest");
-//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	GLOBAL_DATA_STREAM.open_file("ParticleTest");
+//	GLOBAL_DATA_STREAM.open_group("/");
 //	typedef mesh_type mesh_type;
 //
 //	typedef particle_pool_type pool_type;

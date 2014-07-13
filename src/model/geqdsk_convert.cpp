@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 	geqdsk.print(std::cout);
 	geqdsk.Write(argv[1]);
 
-//	GLOBAL_DATA_STREAM.OpenFile("geqdsk_test");
-//	GLOBAL_DATA_STREAM.OpenGroup("/");
+//	GLOBAL_DATA_STREAM.open_file("geqdsk_test");
+//	GLOBAL_DATA_STREAM.open_group("/");
 //	geqdsk.save();
 }
