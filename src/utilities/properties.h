@@ -100,6 +100,8 @@ public:
 	{
 		return get(key);
 	}
+
+	std::ostream & print(std::ostream & os) const;
 	//	template<typename T>
 	//	bool set(std::string const & key, T && v)
 	//	{
@@ -119,6 +121,7 @@ public:
 	//	}
 };
 
+std::ostream & operator<<(std::ostream & os, Properties const & prop);
 }  // namespace simpla
 
 #endif /* PROPERTIES_H_ */

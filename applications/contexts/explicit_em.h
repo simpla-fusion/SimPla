@@ -165,7 +165,7 @@ private:
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
 	{
-		LOGGER << "Apply constraints";
+		VERBOSE << "Apply constraints";
 		for (auto const & command : batch)
 		{
 			command();
@@ -212,7 +212,7 @@ OS &ExplicitEMContext<TM>::print_(OS & os) const
 		os << "\n , Particles = { \n";
 		for (auto const & p : particles_)
 		{
-			p.second->print(os);
+			os << " { " << p.second << " }, " << std::endl;
 		}
 		os << "\n} ";
 	}
@@ -227,15 +227,15 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.open_group(path);
 
-	LOGGER << SAVE(E);
-	LOGGER << SAVE(B);
-	LOGGER << SAVE(dE);
-	LOGGER << SAVE(dB);
-	LOGGER << SAVE(Jext);
+	VERBOSE << SAVE(E);
+	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(dE);
+	VERBOSE << SAVE(dB);
+	VERBOSE << SAVE(Jext);
 
 	for (auto const & p : particles_)
 	{
-		LOGGER << p.second->save(path);
+		VERBOSE << p.second->save(path);
 	}
 
 	return path;
@@ -329,15 +329,15 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		E.clear();
 
-		LOG_CMD(load_field(dict["InitValue"]["B"], &B));
+		VERBOSE_CMD(load_field(dict["InitValue"]["B"], &B));
 
-		LOG_CMD(load_field(dict["InitValue"]["J"], &J0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J0));
 
-		LOG_CMD(load_field(dict["InitValue"]["ne"], &ne0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["ne"], &ne0));
 
-		LOG_CMD(load_field(dict["InitValue"]["Te"], &Te0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["Te"], &Te0));
 
-		LOG_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
 
 		Jext = J0;
 	}
@@ -346,7 +346,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	dE.clear();
 
-	LOG_CMD(load_field(dict["InitValue"]["E"], &E));
+	VERBOSE_CMD(load_field(dict["InitValue"]["E"], &E));
 
 	LOGGER << "Load Particles";
 
@@ -354,7 +354,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	        decltype(Te0)>();
 
 	/**
-	 * @todo load particle engine plugins
+	 * @todo load particle engine plugin
 	 *
 	 *  add new creator at here
 	 *
@@ -380,7 +380,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		catch (...)
 		{
 
-			PARSER_ERROR("Particles={" + id + " = { Type = " + type_str + "}}" + "  ");
+			PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
 
 		}
 
@@ -402,7 +402,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 			auto dof = item.second["DOF"].template as<std::string>("");
 
-			LOGGER << "Add constraint to " << dof;
+			VERBOSE << "Add constraint to " << dof;
 
 			if (dof == "E")
 			{
@@ -461,13 +461,13 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
 			{
 				auto & dE=*pdE;
-				LOG_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+				VERBOSE_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
 			};
 
 			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 			{
 				auto & dB=*pdB;
-				LOG_CMD( dB -= Curl(E)*dt);
+				VERBOSE_CMD( dB -= Curl(E)*dt);
 			};
 		}
 
@@ -516,7 +516,7 @@ void ExplicitEMContext<TM>::next_timestep()
 // Compute Cycle Begin
 
 // E0 B0,
-	LOG_CMD(Jext = J0);
+	VERBOSE_CMD(Jext = J0);
 	ExcuteCommands(commandToJ_);
 
 //   particle 0-> 1/2 . To n[1/2], J[1/2]
@@ -527,28 +527,28 @@ void ExplicitEMContext<TM>::next_timestep()
 			p.second->next_timestep_zero(E, B);
 
 			auto const & Js = p.second->template J<TJ>();
-			LOG_CMD(Jext += Js);
+			VERBOSE_CMD(Jext += Js);
 		}
 	}
 
-	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+	VERBOSE_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
 	dE.clear();
 	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
 
-	LOG_CMD(dE -= Jext * (dt / epsilon0));
+	VERBOSE_CMD(dE -= Jext * (dt / epsilon0));
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	Implicit_PushE(E, B, particles_, &dE);
 
-	LOG_CMD(E += dE);	// E(t=0 -> 1)
+	VERBOSE_CMD(E += dE);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
 	dB.clear();
 	B_minus_CurlE(dt, E, B, &dB);
 
-	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
+	VERBOSE_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
 	model.next_timestep();

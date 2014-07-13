@@ -222,7 +222,8 @@ public:
 
 		auto range = SelectByConfig(VERTEX, dict["Select"]);
 
-		auto material = get_material(dict["Value"].template as<std::string>(""));
+		auto material_name = dict["Value"].template as<std::string>("");
+		auto material = get_material(material_name);
 
 		std::string op = dict["Op"].template as<std::string>("");
 
@@ -238,7 +239,7 @@ public:
 		{
 			Erase(range);
 		}
-		LOGGER << op << " material " << DONE;
+		LOGGER << op << " material [" << material_name << "]" << DONE;
 
 	}
 
@@ -350,8 +351,16 @@ template<typename TM>
 template<typename TR, typename TDict>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR const& range, TDict const& dict) const
 {
+	if (!dict)
+	{
+		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		{
+			return true;
+		};
 
-	if (dict.is_function())
+		return std::move(make_range_filter(range, std::move(pred)));
+	}
+	else if (dict.is_function())
 	{
 		pred_fun_type pred = [=]( compact_index_type const & s )->bool
 		{

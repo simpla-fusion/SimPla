@@ -80,12 +80,10 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 
 	InitParticle(res.get(), range, pic, ns, Ts);
 
-	LoadParticleConstriant(res.get(), range, model, dict["Constriants"]);
+	LoadParticleConstriant(res.get(), range, model, dict["Constraints"]);
 
-	LOGGER << "create Particles:[ Engine=" << res->get_type_as_string() << ", Number of Particles=" << res->size()
-	        << "]";
-
-	LOGGER << DONE;
+	LOGGER << "Create Particles:[ Engine=" << res->get_type_as_string() << ", Number of Particles=" << res->size()
+	        << "]" << DONE;
 
 	return std::dynamic_pointer_cast<ParticleBase>(res);
 
@@ -94,6 +92,8 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 template<typename TP, typename TRange, typename TModel, typename TDict>
 void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
+	if (!dict) return;
+
 	for (auto const & key_item : dict)
 	{
 		auto const & item = std::get<1>(key_item);
@@ -114,10 +114,10 @@ void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TD
 				p->AddConstraint([=]()
 				{	p->Remove(r);});
 			}
-			else if (item["Condiition"])
+			else if (item["Condition"])
 			{
 				p->AddConstraint([=]()
-				{	p->Remove(r,item["Condiition"]);});
+				{	p->Remove(r,item["Condition"]);});
 			}
 		}
 
@@ -151,7 +151,6 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	auto buffer = p->create_child();
 	for (auto s : range)
 	{
-
 		Real inv_sample_density = mesh.CellVolume(s) / pic;
 
 		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
@@ -171,8 +170,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	}
 
 	p->Add(&buffer);
-	p->Sort();
-//	UpdateGhosts(p);
+
 }
 }  // namespace simpla
 

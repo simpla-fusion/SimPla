@@ -23,7 +23,7 @@
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/sp_type_traits.h"
-
+#include "../utilities/properties.h"
 #include "../parallel/parallel.h"
 #include "../model/model.h"
 
@@ -73,6 +73,7 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 public:
+	Properties properties;
 	mesh_type const & mesh;
 	//***************************************************************************************************
 	// Constructor
@@ -113,6 +114,7 @@ public:
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
+		properties.print(os);
 		return os;
 	}
 
@@ -225,6 +227,13 @@ Particle<Engine>::~Particle()
 {
 }
 
+template<typename ...T>
+std::ostream &operator<<(std::ostream&os, Particle<T...> const & p)
+{
+	p.print(os);
+	return os;
+}
+
 //*************************************************************************************************
 
 template<typename Engine>
@@ -267,8 +276,9 @@ template<typename Engine>
 template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 {
+	auto __logger = Logger(LOG_LOG);
 
-	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
+	__logger << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
 
 	storage_type::Sort();
 
@@ -287,9 +297,12 @@ void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 
 	UpdateGhosts(&J);
 
-	LOGGER << DONE;
-	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+	__logger << DONE;
 
+	if (properties["Update Density"] && properties["Update Density"].template as<bool>())
+	{
+		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+	}
 }
 
 template<typename Engine>
@@ -297,7 +310,9 @@ template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 {
 
-	LOGGER << "Push particles to half step[ " << engine_type::get_type_as_string() << " ]";
+	auto __logger = Logger(LOG_LOG);
+
+	__logger << "Push particles to half step[ " << engine_type::get_type_as_string() << " ]";
 
 	Real dt = mesh.get_dt();
 
@@ -312,10 +327,10 @@ void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 		}
 	}
 
-	storage_type::Sort();
 	ApplyConstraints();
 	storage_type::Sort();
-	LOGGER << DONE;
+
+	__logger << DONE;
 }
 
 template<typename Engine> template<typename TJ, typename ...Others>

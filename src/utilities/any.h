@@ -19,35 +19,35 @@ namespace simpla
  */
 struct Any
 {
-	template<typename U> Any(U && value)
-			: m_ptr(new Derived<typename std::decay<U>::type>(std::forward<U>(value))), m_tpIndex(
+	template<typename U> Any(U && value) :
+			ptr_(new Derived<typename std::decay<U>::type>(std::forward<U>(value))), t_index_(
 			        std::type_index(typeid(typename std::remove_pointer<U>::type)))
 	{
 	}
-	Any(void)
-			: m_tpIndex(std::type_index(typeid(void)))
+	Any(void) :
+			t_index_(std::type_index(typeid(void)))
 	{
 	}
-	Any(Any& that)
-			: m_ptr(that.clone()), m_tpIndex(that.m_tpIndex)
+	Any(Any& that) :
+			ptr_(that.clone()), t_index_(that.t_index_)
 	{
 	}
-	Any(Any const& that)
-			: m_ptr(that.clone()), m_tpIndex(that.m_tpIndex)
+	Any(Any const& that) :
+			ptr_(that.clone()), t_index_(that.t_index_)
 	{
 	}
-	Any(Any && that)
-			: m_ptr(std::move(that.m_ptr)), m_tpIndex(that.m_tpIndex)
+	Any(Any && that) :
+			ptr_(std::move(that.ptr_)), t_index_(that.t_index_)
 	{
 	}
 	void swap(Any & other)
 	{
-		std::swap(m_ptr, other.m_ptr);
-		std::swap(m_tpIndex, other.m_tpIndex);
+		std::swap(ptr_, other.ptr_);
+		std::swap(t_index_, other.t_index_);
 	}
 	bool empty() const
 	{
-		return !bool(m_ptr);
+		return !bool(ptr_);
 	}
 	inline bool IsNull() const
 	{
@@ -60,17 +60,17 @@ struct Any
 
 	template<class U> bool is() const
 	{
-		return m_tpIndex == std::type_index(typeid(U));
+		return t_index_ == std::type_index(typeid(U));
 	}
 	template<class U>
 	U& as()
 	{
 		if (!is<U>())
 		{
-			WARNING << "can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
+			WARNING << "can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U>*>(m_ptr.get());
+		auto derived = dynamic_cast<Derived<U>*>(ptr_.get());
 		return derived->m_value;
 	}
 
@@ -79,18 +79,17 @@ struct Any
 	{
 		if (!is<U>())
 		{
-			WARNING << "Can not cast " << typeid(U).name() << " to " << m_tpIndex.name() << std::endl;
+			WARNING << "Can not cast " << typeid(U).name() << " to " << t_index_.name() << std::endl;
 			throw std::bad_cast();
 		}
-		auto derived = dynamic_cast<Derived<U> const*>(m_ptr.get());
+		auto derived = dynamic_cast<Derived<U> const*>(ptr_.get());
 		return derived->m_value;
 	}
 	Any& operator=(const Any& a)
 	{
-		if (m_ptr == a.m_ptr)
-			return *this;
-		m_ptr = a.clone();
-		m_tpIndex = a.m_tpIndex;
+		if (ptr_ == a.ptr_) return *this;
+		ptr_ = a.clone();
+		t_index_ = a.t_index_;
 		return *this;
 	}
 	template<typename T>
@@ -106,6 +105,8 @@ struct Any
 		}
 		return *this;
 	}
+
+	std::ostream & print(std::ostream & os) const;
 private:
 	struct Base;
 	typedef std::unique_ptr<Base> BasePtr;
@@ -120,8 +121,8 @@ private:
 	struct Derived: Base
 	{
 		template<typename U>
-		Derived(U && value)
-				: m_value(std::forward<U>(value))
+		Derived(U && value) :
+				m_value(std::forward<U>(value))
 		{
 		}
 		BasePtr clone() const
@@ -132,12 +133,11 @@ private:
 	};
 	BasePtr clone() const
 	{
-		if (m_ptr != nullptr)
-			return m_ptr->clone();
+		if (ptr_ != nullptr) return ptr_->clone();
 		return nullptr;
 	}
-	BasePtr m_ptr;
-	std::type_index m_tpIndex;
+	BasePtr ptr_;
+	std::type_index t_index_;
 };
 }
 

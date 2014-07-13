@@ -30,7 +30,7 @@ rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
-NY = 128
+NY = 1
 NZ = 1
 LX = 10  --m --100000*rhoi --0.6
 LY = 20 --2.0*math.pi/k0
@@ -121,9 +121,9 @@ Model=
 
 	Material={
 
-		{Type="Vacuum",Select={Type="Range",Points={{0.2*LX,0,0},{0.8*LX,0,0}}},Op="Set"},
+		{Value="Vacuum",Select={Type="Range",Points={{0.2*LX,0,0},{0.8*LX,0,0}}},Op="Set"},
 
-		{Type="Plasma",
+		{Value="Plasma",
 			Select=function(x,y,z)
 				return x>1.0 and x<2.0
 			end
@@ -212,7 +212,7 @@ end
 --]]
 
 Particles={
-	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200	},
+	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=2	},
 --	ele = {Type="Implicit",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 --		EnableSorting=true,Commands=ParticleConstraints },
 --	H1 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,

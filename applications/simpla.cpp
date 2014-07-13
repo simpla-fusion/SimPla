@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 
 		GLOBAL_DATA_STREAM.set_property("Enable Compact Storage",true);
 
-		LOGGER << ctx->save("/Save" );
+		ctx->save("/Save" );
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
@@ -196,7 +196,7 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				LOGGER << ctx->save("/Save" );
+				ctx->save("/Save" );
 			}
 		}
 

@@ -29,7 +29,7 @@ class ParticlePool: public ContainerContainer<typename TM::compact_index_type, T
 	std::mutex write_lock_;
 
 public:
-	static constexpr  unsigned int  IForm = VERTEX;
+	static constexpr unsigned int IForm = VERTEX;
 
 	typedef TM mesh_type;
 
@@ -117,8 +117,8 @@ private:
  * @todo (salmon):  We need a  thread-safe and  high performance allocator for std::map<key_type,std::list<allocator> > !!
  */
 template<typename TM, typename TPoint>
-ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh)
-		: container_type(), mesh(pmesh), isSorted_(false)
+ParticlePool<TM, TPoint>::ParticlePool(mesh_type const & pmesh) :
+		container_type(), mesh(pmesh), isSorted_(false)
 {
 }
 
@@ -137,6 +137,10 @@ template<typename TM, typename TPoint>
 template<typename TSrc, typename TDest>
 void ParticlePool<TM, TPoint>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 {
+	if (p_src->size() == 0)
+	{
+		return;
+	}
 
 	auto pt = p_src->begin();
 
@@ -160,8 +164,7 @@ template<typename TM, typename TPoint>
 void ParticlePool<TM, TPoint>::Sort()
 {
 
-	if (is_sorted())
-		return;
+	if (is_sorted()) return;
 
 	//@bug Here should be PARALLEL (multi-threads)
 	container_type dest;
@@ -170,8 +173,7 @@ void ParticlePool<TM, TPoint>::Sort()
 
 		auto it = container_type::find(s);
 
-		if (it != container_type::end())
-			this->Sort_(&(it->second), &dest);
+		if (it != container_type::end()) this->Sort_(&(it->second), &dest);
 	}
 	Add(&dest);
 	isSorted_ = true;
@@ -181,7 +183,7 @@ void ParticlePool<TM, TPoint>::Sort()
 template<typename TM, typename TPoint>
 void ParticlePool<TM, TPoint>::ClearEmpty()
 {
-	container_type::lock();
+//	container_type::lock();
 	auto it = container_type::begin(), ie = container_type::end();
 
 	while (it != ie)
@@ -193,27 +195,27 @@ void ParticlePool<TM, TPoint>::ClearEmpty()
 			container_type::erase(t);
 		}
 	}
-	container_type::unlock();
+//	container_type::unlock();
 }
 
 template<typename TM, typename TPoint>
 void ParticlePool<TM, TPoint>::Add(container_type * other)
 {
 
-	container_type::lock();
+//	container_type::lock();
 	for (auto & v : *other)
 	{
 		auto & c = this->get(v.first);
 		c.splice(c.begin(), v.second);
 	}
-	container_type::unlock();
-	Sort();
+//	container_type::unlock();
+//	Sort();
 
 }
 template<typename TM, typename TPoint>
 void ParticlePool<TM, TPoint>::Add(child_container_type* other)
 {
-	Sort_(other, this);
+	LOG_CMD1(LOG_VERBOSE, ("Add " + ToString(other->size()) + " particles"), Sort_(other, this));
 }
 
 template<typename TM, typename TPoint>
@@ -226,16 +228,14 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & r, child_container_type * o
 	{
 		auto cell_it = container_type::find(s);
 
-		if (cell_it == container_type::end())
-			continue;
+		if (cell_it == container_type::end()) continue;
 
 		buffer.splice(buffer.begin(), cell_it->second);
 
 		container_type::erase(cell_it);
 	}
 
-	if (other != nullptr)
-		other->splice(other->begin(), buffer);
+	if (other != nullptr) other->splice(other->begin(), buffer);
 
 }
 template<typename TM, typename TPoint>
@@ -250,8 +250,7 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, ch
 	{
 		auto cell_it = container_type::find(s);
 
-		if (cell_it == container_type::end())
-			continue;
+		if (cell_it == container_type::end()) continue;
 
 		auto it = cell_it->second.begin();
 		auto ie = cell_it->second.end();
@@ -266,11 +265,11 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, ch
 				buffer.splice(buffer.begin(), cell_it->second, it_p);
 			}
 
-		} while (it != ie);
+		}
+		while (it != ie);
 
 	}
-	if (other != nullptr)
-		other->splice(other->begin(), buffer);
+	if (other != nullptr) other->splice(other->begin(), buffer);
 
 }
 
@@ -292,8 +291,7 @@ void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & obj)
 			++count;
 		}
 	}
-	if (count > 0)
-		isSorted_ = false;
+	if (count > 0) isSorted_ = false;
 
 }
 
