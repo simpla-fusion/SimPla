@@ -67,8 +67,8 @@ public:
 		CUSTOM = 20
 	};
 
-	Model()
-			: mesh_type(), null_material(), max_material_(CUSTOM + 1)
+	Model() :
+			mesh_type(), null_material(), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -95,7 +95,21 @@ public:
 	template<typename TDict>
 	bool load(TDict const & dict)
 	{
-		return mesh_type::load(dict);
+		auto res = mesh_type::load(dict["Mesh"]);
+
+		if (res)
+		{
+			mesh_type::Update();
+
+			if (dict["Material"].is_table())
+			{
+				for (auto const & item : dict["Material"])
+				{
+					Modify(item.second);
+				}
+			}
+		}
+		return res;
 	}
 	std::string save(std::string const & path) const
 	{
@@ -162,13 +176,18 @@ public:
 	material_type get_material(std::string const &name) const
 	{
 
+		if (name == "")
+		{
+			return null_material;
+		}
 		material_type res;
 
 		try
 		{
 			res = registered_material_.at(name);
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -201,7 +220,7 @@ public:
 
 		std::function<material_type(material_type const &)> fun;
 
-		auto range = SelectByConfig(dict["Select"]);
+		auto range = SelectByConfig(VERTEX, dict["Select"]);
 
 		auto material = get_material(dict["Value"].template as<std::string>(""));
 
@@ -211,15 +230,14 @@ public:
 		{
 			Set(range, material);
 		}
-		else if (op == "Remove")
+		else if (op == "Unset")
 		{
-			Remove(range, material);
+			Unset(range, material);
 		}
-		else if (op == "Add")
+		else if (op == "Erase")
 		{
-			Add(range, material);
+			Erase(range);
 		}
-
 		LOGGER << op << " material " << DONE;
 
 	}
@@ -230,8 +248,7 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material)
-				material_.erase(s);
+			if (material_[s] == null_material) material_.erase(s);
 		}
 	}
 
@@ -334,49 +351,7 @@ template<typename TR, typename TDict>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR const& range, TDict const& dict) const
 {
 
-	auto type = dict["Type"].template as<std::string>("");
-
-	if (type == "NGP")
-	{
-		return std::move(SelectByNGP(range, dict["Points"].template as<coordinates_type>()));
-
-	}
-	else if (type == "Boundary")
-	{
-		return std::move(SelectInterface(range, dict["In"].template as<std::string>("NONE"), "NONE"));
-
-	}
-	else if (type == "Interface")
-	{
-		return std::move(
-		        SelectInterface(range, dict["In"].template as<std::string>("NONE"),
-		                dict["Out"].template as<std::string>("NONE")));
-	}
-	else if (type == "Range" && dict["Points"].is_table())
-	{
-		std::vector<coordinates_type> points;
-
-		dict["Points"].as(&points);
-
-		if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
-		{
-			return std::move(SelectByRectangle(range, points[0], points[1]));
-		}
-		else if (points.size() > 2) //select points in polylines
-		{
-			return std::move(SelectByPolylines(range, PointInPolygon(points, dict["Z-Axis"].template as<int>(2))));
-		}
-		else
-		{
-			PARSER_ERROR("Number of points  [" + ToString(points.size()) + "]<2");
-		}
-
-	}
-	else if (!dict["Material"])
-	{
-		return std::move(SelectByMaterial(range, dict["Material"].template as<std::string>()));
-	}
-	else if (dict.is_function())
+	if (dict.is_function())
 	{
 		pred_fun_type pred = [=]( compact_index_type const & s )->bool
 		{
@@ -385,9 +360,56 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 
 		return std::move(make_range_filter(range, std::move(pred)));
 	}
+	else if (dict["Material"])
+	{
+		return std::move(SelectByMaterial(range, dict["Material"].template as<std::string>()));
+	}
+	else if (dict["Type"])
+	{
+		auto type = dict["Type"].template as<std::string>("");
+
+		if (type == "NGP")
+		{
+			return std::move(SelectByNGP(range, dict["Points"].template as<coordinates_type>()));
+
+		}
+		else if (type == "Boundary")
+		{
+			return std::move(SelectInterface(range, dict["In"].template as<std::string>("NONE"), "NONE"));
+
+		}
+		else if (type == "Interface")
+		{
+			return std::move(
+			        SelectInterface(range, dict["In"].template as<std::string>("NONE"),
+			                dict["Out"].template as<std::string>("NONE")));
+		}
+		else if (type == "Range" && dict["Points"].is_table())
+		{
+			std::vector<coordinates_type> points;
+
+			dict["Points"].as(&points);
+
+			if (points.size() == 2) //select points in a rectangle with diagonal  (x0,y0,z0)~(x1,y1,z1）,
+			{
+				return std::move(SelectByRectangle(range, points[0], points[1]));
+			}
+			else if (points.size() > 2) //select points in polylines
+			{
+				return std::move(SelectByPolylines(range, PointInPolygon(points, dict["Z-Axis"].template as<int>(2))));
+			}
+			else
+			{
+				PARSER_ERROR("Number of points  [" + ToString(points.size()) + "]<2");
+			}
+
+		}
+
+	}
+
 	else
 	{
-		PARSER_ERROR("Unknown 'Seltect' options");
+		PARSER_ERROR("Unknown 'Select' options");
 	}
 	return filter_range_type<TR>();
 }
@@ -519,8 +541,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out)
-		out = null_material;
+	if (in == out) out = null_material;
 
 	pred_fun_type pred =
 

@@ -90,48 +90,46 @@ Model=
 
 	UnitSystem={Type="SI"},
 
-	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
-
+	--	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
+	--
+	--	Mesh={
+	--
+	--
+	--		Min={-1.4,1.2,0.0 },
+	--
+	--		Max={2.8,2.8,TWOPI },
+	--
+	--		--		dt= 0.5*LX/NX/c, -- time step
+	--
+	--		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+	--
+	--		CFL =0.5,
+	--
+	--	},
 	Mesh={
 
 
-		Min={-1.4,1.2,0.0 },
+		Min={-LX,-LY,-LZ },
 
-		Max={2.8,2.8,TWOPI },
+		Max={LX,LY,LZ},
 
-		--		dt= 0.5*LX/NX/c, -- time step
-
-		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
+		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
 
 		CFL =0.5,
 
 	},
---	Mesh={
---
---
---		Min={-LX,-LY,-LZ },
---
---		Max={LX,LY,LZ},
---
---		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
---
---		dt=0.0,
---
---	--		CFL =0.5,
---
---	},
---
---	Material={
---
---		{Material="Vacuum",Range={{0.2*LX,0,0},{0.8*LX,0,0}},Op="Set"},
---
---		{Material="Plasma",
---			Select=function(x,y,z)
---				return x>1.0 and x<2.0
---			end
---			,Op="Set"},
---
---	}
+
+	Material={
+
+		{Type="Vacuum",Select={Type="Range",Points={{0.2*LX,0,0},{0.8*LX,0,0}}},Op="Set"},
+
+		{Type="Plasma",
+			Select=function(x,y,z)
+				return x>1.0 and x<2.0
+			end
+			,Op="Set"},
+
+	}
 }
 
 
@@ -211,21 +209,20 @@ end
 
 
 }
-
+--]]
 
 Particles={
-H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200,
-EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-ele = {Type="Default",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
-EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints },
-H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
-EnableImplicit =false,EnableSorting=true,Commands=ParticleConstraints },
-ele 	= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
-EnableImplicit =true,EnableSorting=true,Commands=ParticleConstraints }
-ele  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
-H  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=200	},
+--	ele = {Type="Implicit",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
+--		EnableSorting=true,Commands=ParticleConstraints },
+--	H1 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
+--		EnableSorting=true,Commands=ParticleConstraints },
+--	ele1= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
+--		EnableSorting=true,Commands=ParticleConstraints },
+--	ele2  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
+--	H3  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
 }
---]]
+
 
 
 -- The End ---------------------------------------

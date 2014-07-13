@@ -136,8 +136,8 @@ public:
 	std::string write_cache(unsigned int flag, std::string const &name, DataSet) const;
 };
 
-DataStream::pimpl_s::pimpl_s()
-		: file_(-1), group_(-1)
+DataStream::pimpl_s::pimpl_s() :
+		file_(-1), group_(-1)
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -184,8 +184,7 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 
 void DataStream::pimpl_s::open_group(std::string const & gname)
 {
-	if (gname == "")
-		return;
+	if (gname == "") return;
 
 	hid_t h5fg = file_;
 
@@ -200,8 +199,7 @@ void DataStream::pimpl_s::open_group(std::string const & gname)
 	else
 	{
 		grpname_ += gname;
-		if (group_ > 0)
-			h5fg = group_;
+		if (group_ > 0) h5fg = group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -423,19 +421,19 @@ size_t const *p_local_inner_end
 template<typename ...Args>
 std::string DataStream::pimpl_s::write(unsigned int flag, std::string const &name, Args &&... args) const
 {
-	std::string url = get_current_path() + "/" + name;
 
 	DataSet ds;
 
-	bool has_struct = create_data_set(&ds, std::forward<Args>(args)...);
-
-	if (cache_.find(url) != cache_.end() || (flag & SP_CACHE) > 0)
+	if (create_data_set(&ds, std::forward<Args>(args)...))
 	{
-		return write_cache(flag, url, ds);
-	}
-	else if (has_struct)
-	{
-		return write1(flag, name, ds);
+		if ((flag & SP_CACHE) > 0)
+		{
+			return write_cache(flag, name, ds);
+		}
+		else
+		{
+			return write1(flag, name, ds);
+		}
 	}
 	else
 	{
@@ -450,7 +448,9 @@ std::string DataStream::pimpl_s::write_cache(unsigned int flag, std::string cons
 //	size_t size = 1024 * 1024;
 //
 //	if (prop_["Cache Size In Bytes"])
+//	{
 //		size = prop_["Cache Size In Bytes"].template as<size_t>();
+//	}
 //
 //	cache_s item;
 //
@@ -470,6 +470,8 @@ std::string DataStream::pimpl_s::write_cache(unsigned int flag, std::string cons
 //	size_t tail_;
 //
 //	MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
+
+	UNIMPLEMENT;
 	return "\"" + name + "\" is write to cache";
 
 }
@@ -684,8 +686,7 @@ std::string DataStream::pimpl_s::write1(unsigned int flag, std::string const & n
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + get_current_path() + dsname + "\"";
 }
@@ -830,15 +831,14 @@ std::string DataStream::pimpl_s::write2(unsigned int flag, std::string const &na
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return "\"" + get_current_path() + dsname + "\"";
 }
 
 //=====================================================================================
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()
