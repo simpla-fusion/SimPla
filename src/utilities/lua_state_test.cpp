@@ -14,7 +14,7 @@ using namespace simpla;
 int main(int argc, char** argv)
 {
 	LuaObject pt;
-	pt.Init();
+	pt.init();
 
 	pt.ParseString("c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
 			"tt={6,6,7,3,e=12, d=13,h=2} \n"

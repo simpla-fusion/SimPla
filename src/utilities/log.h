@@ -72,7 +72,7 @@ public:
 		fs.close();
 	}
 
-	void Init(int argc, char** argv)
+	void init(int argc, char** argv)
 	{
 
 		ParseCmdLine(argc, argv,

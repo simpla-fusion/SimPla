@@ -45,9 +45,9 @@ int main(int argc, char **argv)
 
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	LOG_STREAM.Init(argc,argv);
-	GLOBAL_COMM.Init(argc,argv);
-	GLOBAL_DATA_STREAM.Init(argc,argv);
+	LOG_STREAM.init(argc,argv);
+	GLOBAL_COMM.init(argc,argv);
+	GLOBAL_DATA_STREAM.init(argc,argv);
 
 	GEqdsk geqdsk;
 

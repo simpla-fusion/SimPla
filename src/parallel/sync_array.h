@@ -33,7 +33,7 @@ public:
 	DistributedArray(Args && ... args)
 
 	{
-		Init(std::forward<Args >(args)...);
+		init(std::forward<Args >(args)...);
 	}
 
 	~DistributedArray()
@@ -41,7 +41,7 @@ public:
 
 	}
 
-	void Init(nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count,  unsigned int  num_process,
+	void init(nTuple<NDIMS, size_t> const &global_start, nTuple<NDIMS, size_t> const &global_count,  unsigned int  num_process,
 	         unsigned int  process_num, size_t gw)
 
 	{

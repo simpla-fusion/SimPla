@@ -67,6 +67,7 @@ public:
 	void close_file();
 	void close();
 	bool is_ready() const;
+	std::string get_current_path() const;
 
 	/**
 	 *
@@ -133,17 +134,15 @@ std::string save(std::string const & name, TV const *data, Args && ...args)
 template<typename TV, typename ... Args> inline std::string save(std::string const & name,
         std::shared_ptr<TV> const & d, Args && ... args)
 {
-	return save(name, d.get(), std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, d.get(), DataType::create<TV>(), std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string save(std::string const & name, std::vector<TV>const & d,
-        Args && ... args)
+template<typename TV> inline std::string save(std::string const & name, std::vector<TV>const & d)
 {
-	size_t s = 0;
-	size_t n = d.size();
 
-	return save(name, &d[0], 1, &s, &n, std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, &d[0], DataType::create<TV>(), d.size());
 }
+
 template<typename TL, typename TR, typename ... Args> inline std::string save(std::string const & name,
         std::map<TL, TR>const & d, Args && ... args)
 {

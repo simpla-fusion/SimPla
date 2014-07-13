@@ -11,7 +11,7 @@ int main(int argc, char** argv)
 
 	MPI_Win win;
 
-	MPI_Init(&argc, &argv);
+	MPI_init(&argc, &argv);
 
 	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 

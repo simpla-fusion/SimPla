@@ -34,14 +34,14 @@ public:
 	MessageComm(int argc, char** argv)
 			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL), num_threads_(1)
 	{
-		Init(argc, argv);
+		init(argc, argv);
 	}
 	~MessageComm()
 	{
 		Close();
 	}
 
-	void Init(int argc = 0, char** argv = nullptr)
+	void init(int argc = 0, char** argv = nullptr)
 	{
 		if (comm_ == MPI_COMM_NULL)
 		{

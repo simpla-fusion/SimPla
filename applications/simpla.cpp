@@ -25,9 +25,9 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-	LOG_STREAM.Init(argc,argv);
-	GLOBAL_COMM.Init(argc,argv);
-	GLOBAL_DATA_STREAM.Init(argc,argv);
+	LOG_STREAM.init(argc,argv);
+	GLOBAL_COMM.init(argc,argv);
+	GLOBAL_DATA_STREAM.init(argc,argv);
 
 	LOGGER<< "Register contexts."<<std::endl;
 
@@ -184,7 +184,7 @@ int main(int argc, char **argv)
 	else
 	{
 
-		GLOBAL_DATA_STREAM.EnableCompactStorable();
+		GLOBAL_DATA_STREAM.set_property("Enable Compact Storage",true);
 
 		LOGGER << ctx->save("/Save" );
 
@@ -200,7 +200,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		GLOBAL_DATA_STREAM.DisableCompactStorable();
+		GLOBAL_DATA_STREAM.set_property("Enable Compact Storage",false);
 	}
 	LOGGER << "Process" << DONE;
 
@@ -210,12 +210,12 @@ int main(int argc, char **argv)
 
 	ctx->save("/Output" );
 
-	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
+	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.get_current_path();
 
 	LOGGER << "Post-Process" << DONE;
 
 	INFORM << SINGLELINE;
-	GLOBAL_DATA_STREAM.Close();
+	GLOBAL_DATA_STREAM.close();
 	GLOBAL_COMM.Close();
 	TheEnd();
 

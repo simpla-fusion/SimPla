@@ -28,7 +28,7 @@ int main(int argc, char **argv)
 {
 	LOG_STREAM.set_stdout_visable_level(12);
 
-	GLOBAL_COMM.Init(argc,argv);
+	GLOBAL_COMM.init(argc,argv);
 
 	using namespace simpla;
 

@@ -82,7 +82,7 @@ public:
 		std::swap(data_, rhs.data_);
 	}
 
-	void Init()
+	void init()
 	{
 	}
 

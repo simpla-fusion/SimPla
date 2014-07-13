@@ -33,7 +33,7 @@ public:
 
 //TEST_P(TestDistArray, Init)
 //{
-//	darray.Init(3, 1, 2, global_start, global_count);
+//	darray.init(3, 1, 2, global_start, global_count);
 //
 //	CHECK(global_start);
 //	CHECK(global_count);
@@ -46,7 +46,7 @@ public:
 
 TEST_P(TestDistArray, UpdateGhost)
 {
-	GLOBAL_COMM.Init();
+	GLOBAL_COMM.init();
 
 	darray.global_begin_=global_begin;
 	darray.global_end_=global_end;
@@ -88,7 +88,7 @@ TEST_P(TestDistArray, UpdateGhost)
 
 TEST_P(TestDistArray, UpdateGhostVec)
 {
-	GLOBAL_COMM.Init();
+	GLOBAL_COMM.init();
 
 	darray.global_begin_=global_begin;
 	darray.global_end_=global_end;

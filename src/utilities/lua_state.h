@@ -216,7 +216,7 @@ public:
 		return res;
 	}
 
-	void Init()
+	void init()
 	{
 		if (self_ == 0)
 		{
@@ -237,7 +237,7 @@ public:
 
 	inline void ParseFile(std::string const & filename)
 	{
-		Init();
+		init();
 		if (filename != "" && luaL_dofile(L_.get(), filename.c_str()))
 		{
 			LUA_ERROR(L_.get(), "Can not parse file " + filename + " ! ");
@@ -245,7 +245,7 @@ public:
 	}
 	inline void ParseString(std::string const & str)
 	{
-		Init();
+		init();
 		if (luaL_dostring(L_.get(), str.c_str()))
 		{
 			LUA_ERROR(L_.get(), "Parsing string error! \n\t" + str);

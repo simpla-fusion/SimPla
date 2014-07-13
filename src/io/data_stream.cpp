@@ -64,7 +64,7 @@ public:
 	void close_file();
 	void close();
 
-	inline std::string GetCurrentPath() const
+	inline std::string get_current_path() const
 	{
 		return prop_["File Name"].template as<std::string>() + ":" + prop_["Group Name"].template as<std::string>();
 	}
@@ -600,7 +600,7 @@ unsigned int flag
 	if (H5Tcommitted(m_type) > 0)
 		H5Tclose(m_type);
 
-	return "\"" + GetCurrentPath() + dsname + "\"";
+	return "\"" + get_current_path() + dsname + "\"";
 }
 
 void sync_location(hsize_t count[2])
@@ -747,7 +747,7 @@ std::string DataStream::pimpl_s::write2(std::string const &name, void const *v, 
 	if (H5Tcommitted(m_type) > 0)
 		H5Tclose(m_type);
 
-	return "\"" + GetCurrentPath() + dsname + "\"";
+	return "\"" + get_current_path() + dsname + "\"";
 }
 
 //=====================================================================================
@@ -795,6 +795,12 @@ Any DataStream::get_property_(std::string const & name) const
 {
 	return pimpl_->get_property_any(name);
 }
+
+std::string DataStream::get_current_path() const
+{
+	return pimpl_->get_current_path();
+}
+
 std::string DataStream::write(std::string const &name, void const *v,
 
 DataType const & datatype,
