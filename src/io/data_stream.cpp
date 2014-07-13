@@ -758,7 +758,10 @@ DataStream::DataStream()
 DataStream::~DataStream()
 {
 }
-
+bool DataStream::is_ready() const
+{
+	return pimpl_->is_ready();
+}
 void DataStream::init(int argc, char** argv)
 {
 	pimpl_->init(argc, argv);

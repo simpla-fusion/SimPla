@@ -17,11 +17,6 @@
 
 #include "message_comm.h"
 
-#ifdef USE_MPI
-#	include <mpi.h>
-#	include "mpi_datatype.h"
-#endif
-
 namespace simpla
 {
 template<unsigned int N>
@@ -29,8 +24,16 @@ struct DistributedArray
 {
 public:
 	static constexpr unsigned int NDIMS = N;
-	unsigned int is_fast_first_ = false;
+
+	bool is_fast_first_ = false;
+
+	bool is_fast_first() const
+	{
+		return is_fast_first_;
+	}
+
 	int self_id_;
+
 	struct sub_array_s
 	{
 		nTuple<NDIMS, long> outer_begin;
@@ -43,15 +46,15 @@ public:
 	{
 	}
 
-	template<typename ...Args>
-	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, Args const & ... args)
-
+	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, int num_process = 1,
+	        unsigned int process_num = 0, long gw = 0, bool p_is_fast_first = false)
+			: is_fast_first_(p_is_fast_first)
 	{
 
 		global_end_ = global_end;
 		global_begin_ = global_begin;
 
-		Decompose(std::forward<Args const &>(args)...);
+		Decompose(num_process, process_num, gw);
 	}
 
 	~DistributedArray()

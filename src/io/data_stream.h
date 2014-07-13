@@ -66,6 +66,7 @@ public:
 	void close_group();
 	void close_file();
 	void close();
+	bool is_ready() const;
 
 	/**
 	 *

@@ -156,8 +156,10 @@ public:
 	//  \endverbatim
 
 	template<typename TI>
-	void set_dimensions(TI const &d)
+	void set_dimensions(TI const &d, bool p_is_fast_first = false)
 	{
+
+		is_fast_first_ = p_is_fast_first;
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -170,6 +172,8 @@ public:
 		}
 
 		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
+
+		global_array_.is_fast_first_ = is_fast_first_;
 
 		global_array_.global_begin_ = global_begin_;
 
@@ -184,10 +188,6 @@ public:
 		local_outer_begin_ = global_begin_;
 		local_outer_end_ = global_end_;
 		local_outer_count_ = global_count_;
-
-		is_ready_ = true;
-
-		Update();
 
 		Decompose(1, 0, 0);
 
@@ -660,6 +660,7 @@ public:
 
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
+		is_ready_ = true;
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
 
