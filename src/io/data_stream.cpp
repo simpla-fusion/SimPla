@@ -74,8 +74,8 @@ public:
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
-	void open_group(std::string const & gname);
-	void open_file(std::string const &fname = "unnamed");
+	void open_group(std::string const & gname, unsigned int flag = 0UL);
+	void open_file(std::string const &fname = "unnamed", unsigned int flag = 0UL);
 	void close_group();
 	void close_file();
 	void close();
@@ -177,7 +177,7 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 
 }
 
-void DataStream::pimpl_s::open_group(std::string const & gname)
+void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 {
 	if (gname == "") return;
 
@@ -252,7 +252,7 @@ void sync_string(std::string * filename_)
 
 }
 
-void DataStream::pimpl_s::open_file(std::string const &fname)
+void DataStream::pimpl_s::open_file(std::string const &fname, unsigned int flag)
 {
 
 	close_file();
@@ -289,26 +289,28 @@ void DataStream::pimpl_s::open_file(std::string const &fname)
 
 	}
 
+	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
+
+	if ((flag & SP_CACHE) > 0)
+	{
+		// @todo fixme ,this is nothing
+		H5Pset_cache(plist_id, 1 /*mdc_nelmts*/, 1 /* rdcc_nbytes*/, 1, 1.0 /*w0*/);
+	}
+
 #ifdef USE_MPI
-	// sync filename and open file
+
 	if (GLOBAL_COMM.is_ready())
 	{
-		sync_string(& filename_);
-
-		hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
-
+		sync_string(& filename_); // sync filename and open file
 		H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 
-		H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
-
-		H5Pclose(plist_id);
-
 	}
-	else
 #endif
-	{
-		H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT));
-	}
+
+	H5_ERROR(file_ = H5Fcreate( filename_.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+
+	H5Pclose(plist_id);
+
 	GLOBAL_COMM.barrier();
 
 	if (file_ < 0)
@@ -425,14 +427,7 @@ std::string DataStream::pimpl_s::write(std::string const &name, const void *v, A
 
 	if (create_data_set(&ds, std::forward<Args>(args)...))
 	{
-		if ((ds.flag & SP_CACHE) > 0)
-		{
-			return write_cache(name, v, ds);
-		}
-		else
-		{
-			return write_array(name, v, ds);
-		}
+		return write_array(name, v, ds);
 	}
 	else
 	{
@@ -441,110 +436,148 @@ std::string DataStream::pimpl_s::write(std::string const &name, const void *v, A
 	}
 
 }
-std::string DataStream::pimpl_s::write_cache(std::string const & name, const void *v, DataSet const & ds)
-{
-	size_t cache_depth = properties["Cache Depth"].as<size_t>(1000UL);
 
-	std::string url = get_current_path() + "/" + name;
-
-	auto data = std::get<0>(cache_[url]);
-	auto & item = std::get<1>(cache_[url]);
-
-	if (data == nullptr)
-	{
-		unsigned int ndims = ds.ndims;
-		item.ndims = ds.ndims;
-		item.data_desc = ds.data_desc;
-		item.flag = ds.flag;
-
-		size_t cache_memory_size = cache_depth * ds.data_desc.ele_size_in_byte_;
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			cache_memory_size *= ds.m_count[i];
-
-			item.f_shape[i] = ds.f_shape[i];
-			item.f_begin[i] = ds.f_begin[i];
-			item.m_begin[i] = 0;
-			item.m_shape[i] = ds.m_count[i];
-			item.m_count[i] = ds.m_count[i];
-		}
-
-		if ((item.flag & SP_APPEND) > 0)
-		{
-			item.f_shape[0] *= cache_depth;
-			item.m_shape[0] *= cache_depth;
-		}
-		else
-		{
-			item.f_shape[ndims] = cache_depth;
-			item.f_begin[ndims] = 0;
-			item.m_shape[ndims] = cache_depth;
-			item.m_begin[ndims] = 0;
-			item.m_count[ndims] = 1;
-			++item.ndims;
-		}
-		data = MEMPOOL.allocate_shared_ptr< ByteType> (cache_memory_size);
-	}
-	else
-	{
-		if ((item.flag & SP_APPEND) > 0)
-		{
-			item.m_count[0] += ds.m_count[0];
-		}
-		else
-		{
-			++item.m_count[item.ndims];
-		}
-	}
-
-	if ((item.flag & SP_APPEND) > 0)
-	{
-		if ((item.m_count[0] >= item.m_shape[0]))
-		{
-			write_array(name, data.get(), item);
-			item.m_count[0] = 0;
-		}
-	}
-	else
-	{
-		if (item.m_count[item.ndims] >= item.m_shape[item.ndims])
-		{
-			write_array(name, data.get(), item);
-			item.m_count[item.ndims] = 0;
-		}
-	}
-
-//	size_t size = 1024 * 1024;
+//void calc_strides(bool is_fast_first, unsigned int ndims, hsize_t const &count[], hsize_t * strides)
+//{
 //
-//	if (prop_["Cache Size In Bytes"])
+//}
+//std::string DataStream::pimpl_s::write_cache(std::string const & name, const void *v, DataSet const & ds)
+//{
+//	size_t cache_depth = properties["Cache Depth"].as<size_t>(1000UL);
+//
+//	std::string url = get_current_path() + "/" + name;
+//
+//	unsigned int ndims = ds.ndims;
+//	unsigned int ele_size_in_byte = ds.data_desc.ele_size_in_byte_;
+//
+//	auto data = std::get<0>(cache_[url]);
+//	auto & item = std::get<1>(cache_[url]);
+//
+//	if (data == nullptr)
 //	{
-//		size = prop_["Cache Size In Bytes"].template as<size_t>();
+//		item.ndims = ds.ndims;
+//		item.data_desc = ds.data_desc;
+//		item.flag = ds.flag;
+//
+//		size_t cache_memory_size = cache_depth * ds.data_desc.ele_size_in_byte_;
+//
+//		for (int i = 0; i < ndims; ++i)
+//		{
+//			cache_memory_size *= ds.m_count[i];
+//
+//			item.f_shape[i] = ds.f_shape[i];
+//			item.f_begin[i] = ds.f_begin[i];
+//			item.m_begin[i] = 0;
+//			item.m_shape[i] = ds.m_count[i];
+//			item.m_count[i] = ds.m_count[i];
+//		}
+//
+//		if ((item.flag & SP_APPEND) > 0)
+//		{
+//			item.f_shape[0] *= cache_depth;
+//			item.m_shape[0] *= cache_depth;
+//		}
+//		else
+//		{
+//			item.f_shape[ndims] = cache_depth;
+//			item.f_begin[ndims] = 0;
+//			item.m_shape[ndims] = cache_depth;
+//			item.m_begin[ndims] = 0;
+//			item.m_count[ndims] = 1;
+//			++item.ndims;
+//		}
+//		data = MEMPOOL.allocate_shared_ptr< ByteType> (cache_memory_size);
 //	}
 //
-//	cache_s item;
+//	hsize_t m_strides[MAX_NDIMS_OF_ARRAY];
+//	hsize_t f_strides[MAX_NDIMS_OF_ARRAY];
 //
-//	datadesc = data_desc;
+//	calc_strides((ds.flag & SP_FAST_FIRST) > 0, ds.ndims, ds.m_shape, m_strides);
+//	calc_strides((item.flag & SP_FAST_FIRST) > 0, item.ndims, item.m_shape, m_strides);
 //
-//	item.ndims = ndims;
+//	hsize_t idx[MAX_NDIMS_OF_ARRAY];
 //
 //	for (int i = 0; i < ndims; ++i)
 //	{
-//	item.dims[i]=
+//		idx[i] = 0;
+//	}
+//
+//	while (idx[0] < ds.m_count[0])
+//	{
+//		hsize_t f_pos = 0;
+//		hsize_t m_pos = 0;
+//
+//		for (int i = 0; i < ndims; ++i)
+//		{
+//			f_pos += (idx[i] + item.m_count[i] - ds.m_count[i]) * f_strides[i];
+//			m_pos += (idx[i] + ds.m_begin[i]) * m_strides[i];
+//		}
+//		for (int i = 0; i < ele_size_in_byte; ++i)
+//		{
+//			(data.get() + f_pos * ele_size_in_byte + i) = reinterpret_cast<ByteType*>(v) + m_pos * ele_size_in_byte + i;
+//		}
+//		++idx[ndims - 1];
+//		for (int i = ndims - 1; i > 0; --i)
+//		{
+//			if (idx[i] >= ds.m_count[i])
+//			{
+//				idx[i] = 0;
+//				++idx[i - 1];
+//			}
+//		}
+//	}
+//
+//	if ((item.flag & SP_APPEND) > 0)
+//	{
+//		item.m_count[0] += ds.m_count[0];
+//
+//		if ((item.m_count[0] >= item.m_shape[0]))
+//		{
+//			write_array(name, data.get(), item);
+//			item.m_count[0] = 0;
+//		}
+//	}
+//	else
+//	{
+//		++item.m_count[item.ndims];
+//
+//		if (item.m_count[item.ndims] >= item.m_shape[item.ndims])
+//		{
+//			write_array(name, data.get(), item);
+//			item.m_count[item.ndims] = 0;
+//		}
+//	}
+//
+////	size_t size = 1024 * 1024;
+////
+////	if (prop_["Cache Size In Bytes"])
+////	{
+////		size = prop_["Cache Size In Bytes"].template as<size_t>();
+////	}
+////
+////	cache_s item;
+////
+////	datadesc = data_desc;
+////
+////	item.ndims = ndims;
+////
+////	for (int i = 0; i < ndims; ++i)
+////	{
+////	item.dims[i]=
+////}
+////
+////size_t dims[MAX_NDIMS_OF_ARRAY];
+////
+////item.data_ = MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
+////
+////	size_t tail_;
+////
+////	MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
+//
+//	UNIMPLEMENT;
+//	return "\"" + url + "\" is write to cache";
+//
 //}
-//
-//size_t dims[MAX_NDIMS_OF_ARRAY];
-//
-//item.data_ = MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
-//
-//	size_t tail_;
-//
-//	MEMPOOL.allocate_shared_ptr< ByteType> (num_of_ele_);
-
-	UNIMPLEMENT;
-	return "\"" + url + "\" is write to cache";
-
-}
 
 std::string DataStream::pimpl_s::write_array(std::string const & name, const void *v, DataSet const &p_ds)
 {
