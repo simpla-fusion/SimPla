@@ -48,6 +48,19 @@ public:
 	}
 
 	template<typename T>
+	T as(T const & default_v) const
+	{
+		if (value_.empty())
+		{
+			return default_v;
+		}
+		else
+		{
+			return value_.template as<T>();
+		}
+	}
+
+	template<typename T>
 	T const & as() const
 	{
 		return value_.template as<T>();

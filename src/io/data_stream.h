@@ -109,7 +109,7 @@ public:
 
 	unsigned int flag = 0UL
 
-	) const;
+	);
 
 private:
 	struct pimpl_s;
