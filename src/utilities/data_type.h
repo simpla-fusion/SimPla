@@ -50,6 +50,18 @@ public:
 	~DataType()
 	{
 	}
+	DataType& operator=(DataType const& other)
+	{
+		t_index_ = other.t_index_;
+		ele_size_in_byte_ = other.ele_size_in_byte_;
+		NDIMS = other.NDIMS;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			dimensions_[i] = other.dimensions_[i];
+		}
+
+		return *this;
+	}
 
 	template<typename T> static DataType create()
 	{

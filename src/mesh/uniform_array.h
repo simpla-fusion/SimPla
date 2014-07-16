@@ -1148,6 +1148,11 @@ public:
 		typedef compact_index_type * pointer;
 		typedef compact_index_type reference;
 
+#ifndef USE_FORTRAN_ORDER_ARRAY
+		static constexpr unsigned int ARRAY_ORDER=C_ORDER;
+#else
+		static constexpr unsigned int ARRAY_ORDER=FOTRAN_ORDER;
+#endif
 		nTuple<NDIMS, index_type> self_;
 
 		nTuple<NDIMS, index_type> begin_, end_;
@@ -1181,11 +1186,6 @@ public:
 		{
 		}
 
-		bool is_fast_first_=false;
-		bool is_fast_first()const
-		{
-			return is_fast_first_;
-		}
 		iterator & operator=(iterator const & r)
 
 		{
@@ -1241,66 +1241,59 @@ public:
 
 		void NextCell()
 		{
+#ifndef USE_FORTRAN_ORDER_ARRAY
+			++self_[NDIMS - 1];
 
-			if (!is_fast_first_)
+			for (int i = NDIMS - 1; i > 0; --i)
 			{
-				++self_[NDIMS - 1];
-
-				for (int i = NDIMS - 1; i > 0; --i)
+				if (self_[i] >= end_[i])
 				{
-					if (self_[i] >= end_[i])
-					{
-						self_[i] = begin_[i];
-						++self_[i - 1];
-					}
+					self_[i] = begin_[i];
+					++self_[i - 1];
 				}
 			}
-			else
-			{
-				++self_[0];
+#else
+			++self_[0];
 
-				for (int i = 0; i < NDIMS - 1; ++i)
+			for (int i = 0; i < NDIMS - 1; ++i)
+			{
+				if (self_[i] >= end_[i])
 				{
-					if (self_[i] >= end_[i])
-					{
-						self_[i] = begin_[i];
-						++self_[i + 1];
-					}
+					self_[i] = begin_[i];
+					++self_[i + 1];
 				}
 			}
-
+#endif
 		}
 
 		void PreviousCell()
 		{
+#ifndef USE_FORTRAN_ORDER_ARRAY
+			--self_[NDIMS - 1];
 
-			if (!is_fast_first_)
+			for (int i = NDIMS - 1; i > 0; --i)
 			{
-				--self_[NDIMS - 1];
-
-				for (int i = NDIMS - 1; i > 0; --i)
+				if (self_[i] < begin_[i])
 				{
-					if (self_[i] < begin_[i])
-					{
-						self_[i] = end_[i] - 1;
-						--self_[i - 1];
-					}
-				}
-			}
-			else
-			{
-				++self_[0];
-
-				for (int i = 0; i < NDIMS; ++i)
-				{
-					if (self_[i] < begin_[i])
-					{
-						self_[i] = end_[i] - 1;
-						--self_[i + 1];
-					}
+					self_[i] = end_[i] - 1;
+					--self_[i - 1];
 				}
 			}
 
+#else
+
+			++self_[0];
+
+			for (int i = 0; i < NDIMS; ++i)
+			{
+				if (self_[i] < begin_[i])
+				{
+					self_[i] = end_[i] - 1;
+					--self_[i + 1];
+				}
+			}
+
+#endif //USE_FORTRAN_ORDER_ARRAY
 		}
 
 		iterator & operator ++()
@@ -1448,26 +1441,20 @@ public:
 
 		std::function<size_t(compact_index_type)> res;
 
-		bool is_fast_first=std::get<0>(range).is_fast_first();
-
 		nTuple<NDIMS, index_type> begin,count,stride;
 
 		begin = std::get<0>(range).self_+(-local_inner_begin_+local_outer_begin_);
 		count = (std::get<1>(range)--).self_+(-local_inner_end_+local_outer_end_)-begin+1;
 
-		if (is_fast_first)
-		{
-			stride[0] = 1;
-			stride[1] = count[0];
-			stride[2] = count[1] * stride[1];
-		}
-		else
-		{
-			stride[2] = 1;
-			stride[1] = count[2];
-			stride[0] = count[1] * stride[1];
-		}
-
+#ifdef USE_FORTRAN_ORDER_ARRAY
+		stride[0] = 1;
+		stride[1] = count[0];
+		stride[2] = count[1] * stride[1];
+#else
+		stride[2] = 1;
+		stride[1] = count[2];
+		stride[0] = count[1] * stride[1];
+#endif
 		res=[begin,count,stride](compact_index_type s)->size_t
 		{
 			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-begin;

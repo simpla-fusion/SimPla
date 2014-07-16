@@ -16,11 +16,13 @@ namespace simpla
 template<typename, unsigned int, typename > class Field;
 
 template<typename TM, unsigned int IFORM, typename TV>
-std::string save(std::string const & name,
+std::string save(std::string const & url,
         Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, unsigned int flag = 0UL)
 {
 	typedef typename Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>::value_type value_type;
+
 	int rank = d.get_dataset_shape();
+
 	size_t global_begin[rank];
 	size_t global_end[rank];
 	size_t local_outer_begin[rank];
@@ -38,7 +40,7 @@ std::string save(std::string const & name,
 
 	);
 
-	return simpla::save(name, d.data().get(), rank,
+	return simpla::save(url, d.data().get(), rank,
 
 	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 
@@ -46,7 +48,7 @@ std::string save(std::string const & name,
 
 	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
 
-	(d.mesh.is_fast_first() ? DataStream::SP_FAST_FIRST : 0UL) | flag
+	flag
 
 	);
 

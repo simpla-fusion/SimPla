@@ -43,7 +43,7 @@ public:
 
 	enum
 	{
-		SP_FAST_FIRST = 1UL << 1, SP_APPEND = 1UL << 2, SP_CACHE = 1UL << 10
+		SP_APPEND = 1UL << 2, SP_CACHE = SP_APPEND | (1UL << 3), SP_RECORD = SP_APPEND | (1UL << 4)
 	};
 
 	DataStream();
@@ -61,13 +61,14 @@ public:
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
-	void open_group(std::string const & gname);
-	void open_file(std::string const &fname = "unnamed");
-	void close_group();
-	void close_file();
-	void close();
+
+	std::string cd(std::string const & url, unsigned int flag = 0UL);
+
+	std::string pwd() const;
+
+	bool command(std::string const & cmd);
+
 	bool is_ready() const;
-	std::string get_current_path() const;
 
 	/**
 	 *

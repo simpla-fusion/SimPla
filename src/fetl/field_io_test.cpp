@@ -26,22 +26,20 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
+	using namespace simpla;
+
 	LOG_STREAM.set_stdout_visable_level(12);
 
 	GLOBAL_COMM.init(argc,argv);
+	GLOBAL_DATA_STREAM.cd("field_io_test.h5:/");
 
-	using namespace simpla;
+	nTuple<3, Real> xmin = { 0, 0, 0 };
 
-	nTuple<3, Real> xmin =
-	{	0, 0, 0};
+	nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
 
-	nTuple<3, Real> xmax =
-	{	1.0, 1.0, 1.0};
+	nTuple<3, size_t> dims = { 10, 16, 1 };
 
-	nTuple<3, size_t> dims =
-	{	10, 16, 1};
-
-	typedef Mesh< CartesianGeometry<UniformArray>,false> mesh_type;
+	typedef Mesh<CartesianGeometry<UniformArray>, false> mesh_type;
 
 	mesh_type mesh;
 
@@ -50,50 +48,59 @@ int main(int argc, char **argv)
 
 	mesh.Update();
 
-	auto f0=mesh.template make_field<VERTEX,Real> ();
-	auto f1=mesh.template make_field<VERTEX,Real> ();
+	auto f0 = mesh.template make_field<VERTEX, int>();
+	auto f1 = mesh.template make_field<VERTEX, int>();
 
 	f0.clear();
 	f1.clear();
 
-	for(auto s: mesh.Select(VERTEX))
+	for (auto s : mesh.Select(VERTEX))
 	{
-		auto idx=(mesh_type::Decompact(s)>>mesh_type::MAX_DEPTH_OF_TREE)-mesh.global_begin_;
+		auto idx = (mesh_type::Decompact(s) >> mesh_type::MAX_DEPTH_OF_TREE) - mesh.global_begin_;
 
-		f0[s]=idx[0]+(GLOBAL_COMM.get_rank())*100;
+		f0[s] = idx[0] + (GLOBAL_COMM.get_rank())*100;
 
-		f1[s]=idx[1]+(GLOBAL_COMM.get_rank())*100;
+		f1[s] = idx[1] + (GLOBAL_COMM.get_rank())*100;
 
 	}
-	GLOBAL_DATA_STREAM.open_file("field_io_test");
-	GLOBAL_DATA_STREAM.open_group("/");
 
 	INFORM << SAVE(f0);
 	INFORM << SAVE(f1);
 
 	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,true);
-	INFORM<<simpla::save("f1a",f1,DataStream::SP_APPEND );
-	INFORM<<simpla::save("f1a",f1 );
-	INFORM<<simpla::save("f1a",f1 );
-	INFORM<<simpla::save("f1b",f1,DataStream::SP_APPEND );
-	INFORM<<simpla::save("f1b",f1,DataStream::SP_APPEND );
-	INFORM<<simpla::save("f1b",f1,DataStream::SP_APPEND );
+
+	INFORM << simpla::save("f1a", f1);
+	INFORM << simpla::save("f1a", f1);
+	INFORM << simpla::save("f1a", f1);
+
 	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,false);
-	INFORM<<simpla::save("f1c",f1 );
-	INFORM<<simpla::save("f1c",f1 );
-	INFORM<<simpla::save("f1c",f1 );
 
-	//	GLOBAL_DATA_STREAM.open_group("/t2");
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
 
-//	INFORM << SAVE(f);
-//	INFORM << SAVE(f);
-//	INFORM << endl;
+	INFORM << simpla::save("f1c", f1);
+	INFORM << simpla::save("f1c", f1);
+	INFORM << simpla::save("f1c", f1);
+
+	size_t cache_depth = 5;
+
+	GLOBAL_DATA_STREAM.set_property("Cache Depth",cache_depth);
+	for (int i = 0; i < 12; ++i)
+	{
+		INFORM << simpla::save("f1d", f1, DataStream::SP_CACHE);
+		INFORM << simpla::save("f0d", f0, DataStream::SP_CACHE | DataStream::SP_RECORD);
+	}
+	GLOBAL_DATA_STREAM.command("Flush");
+
+//	GLOBAL_DATA_STREAM.open_group("/t2");
 //
-	int rank=GLOBAL_COMM.get_rank();
-	std::vector<int> vec(12);
-	std::generate(vec.begin(), vec.end(),[rank]()->int
-			{	return (std::rand()%1000+(rank+1)*1000);});
-	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),vec.size());
+//	int rank = GLOBAL_COMM.get_rank();
+//	std::vector<int> vec(3 * (rank + 1));
+//	std::generate(vec.begin(), vec.end(), [rank]()->int
+//	{	return ( (rank+1)*1000);});
+//	size_t size = vec.size();
+//	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr );
 
 }
 

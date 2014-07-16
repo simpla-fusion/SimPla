@@ -209,7 +209,7 @@ int main(int argc, char **argv)
 
 	ctx->save("/Output" );
 
-	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.get_current_path();
+	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.pwd();
 
 	LOGGER << "Post-Process" << DONE;
 
