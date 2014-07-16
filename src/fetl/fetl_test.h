@@ -63,12 +63,7 @@ protected:
 
 		K_imag = mesh.k_imag;
 
-		if (!GLOBAL_DATA_STREAM.is_ready())
-		{
-
-			GLOBAL_DATA_STREAM.open_file("MeshTest");
-			GLOBAL_DATA_STREAM.open_group("/");
-		}
+		GLOBAL_DATA_STREAM.cd("MeshTest.h5:/");
 
 	}
 public:

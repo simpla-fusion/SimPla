@@ -131,11 +131,6 @@ int main(int argc, char **argv)
 		context_type=dict["Model"]["Type"].template as<std::string>();
 	}
 
-	if(!GLOBAL_DATA_STREAM.is_ready())
-	{
-		GLOBAL_DATA_STREAM.open_file("./");
-	}
-
 	INFORM << SIMPLA_LOGO;
 
 	LOGGER << "Parse Command Line." << DONE;
@@ -165,7 +160,7 @@ int main(int argc, char **argv)
 		}
 		else
 		{
-			ctx->save("/Input" );
+			ctx->save("/Input/" );
 			INFORM <<std::endl<< *ctx;
 		}
 	}
@@ -183,9 +178,9 @@ int main(int argc, char **argv)
 	else
 	{
 
-		GLOBAL_DATA_STREAM.set_property("Enable Compact Storage",true);
+		GLOBAL_DATA_STREAM.set_property("Force Record Storage",true);
 
-		ctx->save("/Save" );
+		ctx->save("/Save/" );
 
 		for (int i = 0; i < num_of_step; ++i)
 		{
@@ -195,11 +190,11 @@ int main(int argc, char **argv)
 
 			if (i % record_stride == 0)
 			{
-				ctx->save("/Save" );
+				ctx->save("/Save/" );
 			}
 		}
 
-		GLOBAL_DATA_STREAM.set_property("Enable Compact Storage",false);
+		GLOBAL_DATA_STREAM.set_property("Force Record Storage",false);
 	}
 	LOGGER << "Process" << DONE;
 
@@ -207,7 +202,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Post-Process" << START;
 
-	ctx->save("/Output" );
+	ctx->save("/Output/" );
 
 	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.pwd();
 

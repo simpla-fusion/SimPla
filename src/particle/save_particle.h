@@ -28,7 +28,7 @@ save(std::string const & name, ParticlePool<TM, TPoints> const & d)
 		std::copy(l.second.begin(), l.second.end(), std::back_inserter(res));
 	}
 
-	return GLOBAL_DATA_STREAM.write(name,&res[0],res.size());
+	return GLOBAL_DATA_STREAM.write(name,&res[0],nullptr,res.size(),nullptr,nullptr,nullptr,nullptr,DataStream::SP_UNORDER);
 }
 
 }

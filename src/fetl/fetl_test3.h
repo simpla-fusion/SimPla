@@ -41,7 +41,7 @@ TEST_P(TestFETL, grad0)
 
 	for (auto s : mesh.Select(EDGE))
 	{
-		  unsigned int   n = mesh.ComponentNum(s);
+		unsigned int n = mesh.ComponentNum(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -79,7 +79,7 @@ TEST_P(TestFETL, grad0)
 //		}
 
 	}
-//	GLOBAL_DATA_STREAM.open_group("/grad0/");
+//	GLOBAL_DATA_STREAM.cd("/grad0/");
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f1b);
@@ -117,7 +117,7 @@ TEST_P(TestFETL, grad3)
 	for (auto s : mesh.Select(FACE))
 	{
 
-		  unsigned int   n = mesh.ComponentNum(s);
+		unsigned int n = mesh.ComponentNum(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -155,7 +155,7 @@ TEST_P(TestFETL, grad3)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error);
 
-//	GLOBAL_DATA_STREAM.open_group("/grad3/");
+//	GLOBAL_DATA_STREAM.cd("/grad3/");
 //	LOGGER << SAVE(f3);
 //	LOGGER << SAVE(f2);
 //	LOGGER << SAVE(f2b);
@@ -247,7 +247,7 @@ TEST_P(TestFETL, diverge1)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= " << K_imag << " mesh.Ki=" << mesh.k_imag;
 
-//	GLOBAL_DATA_STREAM.open_group("/diverge1/");
+//	GLOBAL_DATA_STREAM.cd("/diverge1/");
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f0b);

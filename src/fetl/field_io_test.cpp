@@ -66,13 +66,13 @@ int main(int argc, char **argv)
 
 	INFORM << SAVE(f0);
 	INFORM << SAVE(f1);
-
+	GLOBAL_DATA_STREAM.cd("/d1/");
 	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,true);
 
 	INFORM << simpla::save("f1a", f1);
 	INFORM << simpla::save("f1a", f1);
 	INFORM << simpla::save("f1a", f1);
-
+	GLOBAL_DATA_STREAM.cd("/d2//");
 	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,false);
 
 	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
@@ -84,7 +84,7 @@ int main(int argc, char **argv)
 	INFORM << simpla::save("f1c", f1);
 
 	size_t cache_depth = 5;
-
+	GLOBAL_DATA_STREAM.cd("/d3/");
 	GLOBAL_DATA_STREAM.set_property("Cache Depth",cache_depth);
 	for (int i = 0; i < 12; ++i)
 	{
@@ -93,14 +93,14 @@ int main(int argc, char **argv)
 	}
 	GLOBAL_DATA_STREAM.command("Flush");
 
-//	GLOBAL_DATA_STREAM.open_group("/t2");
-//
-//	int rank = GLOBAL_COMM.get_rank();
-//	std::vector<int> vec(3 * (rank + 1));
-//	std::generate(vec.begin(), vec.end(), [rank]()->int
-//	{	return ( (rank+1)*1000);});
-//	size_t size = vec.size();
-//	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr );
+	GLOBAL_DATA_STREAM.cd("/d4/");
+
+	int rank = GLOBAL_COMM.get_rank();
+	std::vector<int> vec(3 * (rank + 1));
+	std::generate(vec.begin(), vec.end(), [rank]()->int
+	{	return ( (rank+1)*1000);});
+	size_t size = vec.size();
+	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 
 }
 

@@ -25,7 +25,7 @@ extern "C"
 #include "../utilities/properties.h"
 #include "../utilities/memory_pool.h"
 
-#define H5_ERROR( _FUN_ ) if((_FUN_)<0){ H5Eprint(H5E_DEFAULT, stderr);}
+#define H5_ERROR( _FUN_ ) if((_FUN_)<0){LOGGER<<"HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);}
 
 namespace simpla
 {
@@ -157,11 +157,9 @@ DataStream::pimpl_s::pimpl_s()
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
 
-	properties["Prefix"] = std::string("simpla_unnamed");
+	properties["File Name"] = std::string("");
 
-	properties["File Name"] = std::string("unnamed");
-
-	properties["Group Name"] = std::string("");
+	properties["Group Name"] = std::string("/");
 
 	properties["Suffix Width"] = 4;
 
@@ -188,7 +186,7 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 	{
 		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 		{
-			this->open_file(value);
+			this->set_property("File Name",value);
 		}
 		return CONTINUE;
 	}
@@ -250,6 +248,8 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 	{
 		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + properties["Prefix"].template as<std::string>());
 	}
+
+	properties["Group Name"].template as<std::string>() = grpname_;
 
 }
 
@@ -336,12 +336,18 @@ void DataStream::pimpl_s::close()
 	close_file();
 }
 
+/**
+ *
+ * @param url_hint  <filename>:<group name>/<dataset name>
+ * @param flag
+ * @return
+ */
 std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &url_hint, unsigned int flag)
 {
 //@todo using regex parser url
 	std::string url = url_hint;
 
-	std::string file_path(""), grp_name("/"), dsname("unnamed");
+	std::string file_path(""), grp_name(""), dsname("");
 
 	auto it = url_hint.find(':');
 
@@ -364,8 +370,9 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 		dsname = url;
 	}
 
-	auto current_file_path = properties["File Name"].template as<std::string>();
-	auto current_group_name = properties["Group Name"].template as<std::string>();
+	auto current_file_path = properties["File Name"].template as<std::string>("");
+
+	auto current_group_name = properties["Group Name"].template as<std::string>("/");
 
 	if (file_path == "")
 		file_path = current_file_path;
@@ -413,7 +420,7 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 		open_group(grp_name);
 	}
 
-	if ((flag & SP_APPEND) != SP_APPEND)
+	if (dsname != "" && (flag & SP_APPEND) != SP_APPEND)
 	{
 		if (GLOBAL_COMM.get_rank() == 0)
 		{
@@ -555,7 +562,7 @@ unsigned int flag) const
 
 	}
 
-	if (p_global_begin == nullptr)
+	if ((flag & SP_UNORDER) == SP_UNORDER)
 	{
 		std::tie(res.f_offset[0], res.f_shape[0]) = sync_global_location(res.f_shape[0]);
 
@@ -588,6 +595,11 @@ unsigned int flag) const
 	if (properties["Enable Compact Storage"].template as<bool>(false))
 	{
 		res.flag |= SP_APPEND;
+	}
+
+	if (properties["Force Record Storage"].template as<bool>(false))
+	{
+		res.flag |= SP_RECORD;
 	}
 
 	return std::move(res);
@@ -890,7 +902,10 @@ std::string DataStream::pwd() const
 {
 	return pimpl_->pwd();
 }
-
+void DataStream::close()
+{
+	return pimpl_->close();
+}
 std::string DataStream::write(std::string const &name, void const *v,
 
 DataType const & data_desc,

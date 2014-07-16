@@ -172,8 +172,7 @@ TEST_P(TestParticle,Add)
 //
 //	ion.Scatter(&n, E, B);
 //
-//	GLOBAL_DATA_STREAM.open_file("ParticleTest");
-//	GLOBAL_DATA_STREAM.open_group("/");
+//	GLOBAL_DATA_STREAM.cd("ParticleTest.h5:/");
 //	LOGGER << SAVE(n);
 //	LOGGER << SAVE(ion);
 //	LOGGER << save("ion_n", ion.n);
@@ -223,8 +222,7 @@ TEST_P(TestParticle,Add)
 
 //TYPED_TEST_P(TestParticle,move){
 //{
-//	GLOBAL_DATA_STREAM.open_file("ParticleTest");
-//	GLOBAL_DATA_STREAM.open_group("/");
+//	GLOBAL_DATA_STREAM.cd("ParticleTest.h5:/");
 //	typedef mesh_type mesh_type;
 //
 //	typedef particle_pool_type pool_type;

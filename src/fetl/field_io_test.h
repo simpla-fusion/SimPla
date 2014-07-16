@@ -20,8 +20,7 @@ protected:
 	{
 		TParam::SetUpMesh(&mesh);
 		TParam::SetDefaultValue(&default_value);
-		GLOBAL_DATA_STREAM.open_file("FetlTest");
-		GLOBAL_DATA_STREAM.open_group("/");
+		GLOBAL_DATA_STREAM.cd("FetlTest.h5:/");
 	}
 public:
 

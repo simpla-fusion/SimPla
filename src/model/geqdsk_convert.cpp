@@ -17,6 +17,6 @@ int main(int argc, char ** argv)
 	geqdsk.Write(argv[1]);
 
 //	GLOBAL_DATA_STREAM.open_file("geqdsk_test");
-//	GLOBAL_DATA_STREAM.open_group("/");
+//	GLOBAL_DATA_STREAM.cd("/");
 //	geqdsk.save();
 }

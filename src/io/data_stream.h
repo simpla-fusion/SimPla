@@ -43,7 +43,9 @@ public:
 
 	enum
 	{
-		SP_APPEND = 1UL << 2, SP_CACHE = SP_APPEND | (1UL << 3), SP_RECORD = SP_APPEND | (1UL << 4)
+		SP_APPEND = 1UL << 2, SP_CACHE = SP_APPEND | (1UL << 3), SP_RECORD = SP_APPEND | (1UL << 4),
+
+		SP_UNORDER = (1UL << 5)
 	};
 
 	DataStream();
@@ -65,6 +67,8 @@ public:
 	std::string cd(std::string const & url, unsigned int flag = 0UL);
 
 	std::string pwd() const;
+
+	void close();
 
 	bool command(std::string const & cmd);
 
@@ -141,7 +145,8 @@ template<typename TV, typename ... Args> inline std::string save(std::string con
 template<typename TV> inline std::string save(std::string const & name, std::vector<TV>const & d)
 {
 
-	return GLOBAL_DATA_STREAM.write(name, &d[0], DataType::create<TV>(), d.size());
+	size_t s = d.size();
+	return GLOBAL_DATA_STREAM.write(name, &d[0], DataType::create<TV>(),1,nullptr,&s );
 }
 
 template<typename TL, typename TR, typename ... Args> inline std::string save(std::string const & name,

@@ -43,8 +43,7 @@ protected:
 		points.emplace_back(coordinates_type( { 0.8 * xmax[0], 0.8 * xmax[1], 0.8 * xmax[2] }));
 
 		LOG_STREAM.set_stdout_visable_level(12);
-//		GLOBAL_DATA_STREAM.open_file("MaterialTest");
-//		GLOBAL_DATA_STREAM.open_group("/");
+//		GLOBAL_DATA_STREAM.cd("MaterialTest.h5:/");
 	}
 public:
 

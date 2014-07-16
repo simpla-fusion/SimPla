@@ -32,8 +32,7 @@ TEST(datastream,write)
 		}
 	}
 
-	data_stream.open_file("data_stream_test");
-	data_stream.open_group("/");
+	data_stream.cd("data_stream_test.h5:/");
 
 	LOGGER << data_stream.write("f0", &f0[0], DataType::create<int>(), 2, nullptr, dims);
 	LOGGER << data_stream.write("f1", &f0[0], DataType::create<int>(), 2, nullptr, dims);

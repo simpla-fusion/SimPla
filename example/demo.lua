@@ -30,7 +30,7 @@ rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
-NY = 1
+NY = 128
 NZ = 1
 LX = 10  --m --100000*rhoi --0.6
 LY = 20 --2.0*math.pi/k0
@@ -90,34 +90,34 @@ Model=
 
 	UnitSystem={Type="SI"},
 
-	--	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
-	--
-	--	Mesh={
-	--
-	--
-	--		Min={-1.4,1.2,0.0 },
-	--
-	--		Max={2.8,2.8,TWOPI },
-	--
-	--		--		dt= 0.5*LX/NX/c, -- time step
-	--
-	--		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
-	--
-	--		CFL =0.5,
-	--
-	--	},
+	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
+
 	Mesh={
 
 
-		Min={-LX,-LY,-LZ },
+		Min={-1.4,1.2,0.0 },
 
-		Max={LX,LY,LZ},
+		Max={2.8,2.8,TWOPI },
 
-		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
+		--		dt= 0.5*LX/NX/c, -- time step
+
+		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
 		CFL =0.5,
 
 	},
+	--	Mesh={
+	--
+	--
+	--		Min={-LX,-LY,-LZ },
+	--
+	--		Max={LX,LY,LZ},
+	--
+	--		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
+	--
+	--		CFL =0.5,
+	--
+	--	},
 
 	Material={
 
@@ -212,7 +212,7 @@ end
 --]]
 
 Particles={
-	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=2	},
+--	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=2	},
 --	ele = {Type="Implicit",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
 --		EnableSorting=true,Commands=ParticleConstraints },
 --	H1 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,

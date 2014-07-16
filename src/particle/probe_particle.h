@@ -170,7 +170,8 @@ template<typename Engine>
 std::string ProbeParticle<Engine>::save(std::string const & path) const
 {
 
-	GLOBAL_DATA_STREAM.open_group(path);
+	VERBOSE( simpla:: save(path, * dynamic_cast<std::vector<typename Engine::Point_s>const *>(this),
+			DataStream::SP_CACHE|DataStream::SP_RECORD));
 
 //	if (is_verbose)
 //	{

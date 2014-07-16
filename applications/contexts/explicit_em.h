@@ -61,8 +61,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args && ...args)
+			: ExplicitEMContext()
 	{
 		load(std::forward<Args >(args)...);
 	}
@@ -184,8 +184,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
 		phi(model), Bv(model)
 {
 }
@@ -228,7 +228,7 @@ template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
 {
 
-	GLOBAL_DATA_STREAM.open_group(path);
+	GLOBAL_DATA_STREAM.cd(path);
 
 	VERBOSE << SAVE(E);
 	VERBOSE << SAVE(B);
@@ -268,7 +268,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
 
-		geqdsk.save("/Geqdsk");
+		geqdsk.save("/Geqdsk/");
 
 		typename mesh_type::coordinates_type src_min;
 		typename mesh_type::coordinates_type src_max;
@@ -379,8 +379,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 			}
 
-		}
-		catch (...)
+		} catch (...)
 		{
 
 			PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
@@ -432,8 +431,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		}
-		catch (std::runtime_error const & e)
+		} catch (std::runtime_error const & e)
 		{
 
 			PARSER_ERROR("Load 'Constraints' error! ");
@@ -474,8 +472,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			};
 		}
 
-	}
-	catch (std::runtime_error const & e)
+	} catch (std::runtime_error const & e)
 	{
 		PARSER_ERROR("Configure field solver error! ");
 	}

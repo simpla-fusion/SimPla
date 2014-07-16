@@ -218,14 +218,14 @@ public:
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename TDict>
-Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh) :
-		Particle(pmesh)
+Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
+		: Particle(pmesh)
 {
 	load(dict);
 }
@@ -261,7 +261,7 @@ std::string Particle<Engine>::save(std::string const & path) const
 {
 	std::stringstream os;
 
-	GLOBAL_DATA_STREAM.open_group(path );
+	GLOBAL_DATA_STREAM.cd(path);
 
 //	if (is_verbose)
 //	{
