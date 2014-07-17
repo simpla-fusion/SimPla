@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 	INFORM << simpla::save("f1c", f1);
 	INFORM << simpla::save("f1c", f1);
 
-	size_t cache_depth = 5;
+	int cache_depth = 5;
 	GLOBAL_DATA_STREAM.cd("/d3/");
 	GLOBAL_DATA_STREAM.set_property("Cache Depth",cache_depth);
 	for (int i = 0; i < 12; ++i)

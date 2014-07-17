@@ -1449,45 +1449,86 @@ public:
 
 		return res;
 	}
+
 	std::function<size_t(compact_index_type)> make_hash(range_type range )const
 	{
 		if(!is_ready()) RUNTIME_ERROR("Mesh is not defined!!");
 
 		std::function<size_t(compact_index_type)> res;
 
-		nTuple<NDIMS,index_type> stride;
+		nTuple<NDIMS, index_type> stride;
 
-		auto iform =IForm(*std::get<0>(range));
-
+		unsigned int iform=IForm(*std::get<0>(range));
 #ifdef USE_FORTRAN_ORDER_ARRAY
-		stride[0] = (iform ==EDGE ||iform==FACE)?3:1;;
-		stride[1] = local_outer_count_[0];
+		stride[0] = 1;
+		stride[1] = local_outer_count_[0] * stride[0];;
 		stride[2] = local_outer_count_[1] * stride[1];
 #else
-
-		stride[2] = (iform ==EDGE ||iform==FACE)?3:1;
-		stride[1] = local_outer_count_[2];
+		stride[2] = 1;
+		stride[1] = local_outer_count_[2] * stride[2];
 		stride[0] = local_outer_count_[1] * stride[1];
 #endif
-
-		//=====================================================================
-
-		res=[= ](compact_index_type s)->size_t
+		res=[=](compact_index_type s)->size_t
 		{
 			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
 
-			return
+			index_type res =
 
 			mod_( d[0], (local_outer_count_[0] )) * stride[0] +
 
 			mod_( d[1], (local_outer_count_[1] )) * stride[1] +
 
-			mod_( d[2], (local_outer_count_[2] )) * stride[2] +
+			mod_( d[2], (local_outer_count_[2] )) * stride[2];
 
-			ComponentNum(s)
-			;
+			switch (NodeId(s))
+			{
+				case 4:
+				case 3:
+				res = ((res << 1) + res);
+				break;
+				case 2:
+				case 5:
+				res = ((res << 1) + res) + 1;
+				break;
+				case 1:
+				case 6:
+				res = ((res << 1) + res) + 2;
+				break;
+			}
 
+			return res;
 		};
+
+		//+++++++++++++++++++++++++
+//
+//		unsigned int iform=IForm(*std::get<0>(range));
+//
+//#ifdef USE_FORTRAN_ORDER_ARRAY
+//		stride[0] = (iform==EDGE||iform==FACE)?3:1;
+//		stride[1] = local_outer_count_[0] * stride[0];
+//		stride[2] = local_outer_count_[1] * stride[1];
+//#else
+//		stride[2] = (iform==EDGE||iform==FACE)?3:1;
+//		stride[1] = local_outer_count_[2] * stride[2];
+//		stride[0] = local_outer_count_[1] * stride[1];
+//#endif
+//		res=[=](compact_index_type s)->size_t
+//		{
+//			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
+//
+//			return
+//
+//			mod_( d[0], (local_outer_count_[0] )) * stride[0] +
+//
+//			mod_( d[1], (local_outer_count_[1] )) * stride[1] +
+//
+//			mod_( d[2], (local_outer_count_[2] )) * stride[2] +
+//
+//			ComponentNum(s)
+//
+//			;
+//
+//		};
 
 		return std::move(res);
 	}
