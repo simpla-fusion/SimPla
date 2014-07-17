@@ -151,8 +151,8 @@ public:
 	std::string flush_cache(std::string const & name);
 };
 
-DataStream::pimpl_s::pimpl_s()
-		: file_(-1), group_(-1)
+DataStream::pimpl_s::pimpl_s() :
+		file_(-1), group_(-1)
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -216,8 +216,7 @@ bool DataStream::pimpl_s::command(std::string const & cmd)
 
 void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 {
-	if (gname == "")
-		return;
+	if (gname == "") return;
 
 	hid_t h5fg = file_;
 
@@ -232,8 +231,7 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 	else
 	{
 		grpname_ += gname;
-		if (group_ > 0)
-			h5fg = group_;
+		if (group_ > 0) h5fg = group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -381,11 +379,9 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 	auto current_group_name = properties["Group Name"].template as<std::string>("/");
 
-	if (file_path == "")
-		file_path = current_file_path;
+	if (file_path == "") file_path = current_file_path;
 
-	if (grp_name == "")
-		grp_name = current_group_name;
+	if (grp_name == "") grp_name = current_group_name;
 
 	if (file_ <= 0 || current_file_path != file_path)
 	{
@@ -654,54 +650,65 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 
 	std::string url = path + dsname;
 
-	size_t cache_depth = properties["Cache Depth"].as<int>(100);
-
-	unsigned int ele_size_in_byte = ds.data_desc.ele_size_in_byte_;
-
 	if (cache_.find(url) == cache_.end())
 	{
-		cache_.emplace(url, std::make_tuple(std::shared_ptr<ByteType>(nullptr), ds));
-	}
+		size_t cache_memory_size = ds.data_desc.ele_size_in_byte_;
+		for (int i = 0; i < ds.ndims; ++i)
+		{
+			cache_memory_size *= ds.m_shape[i];
+		}
 
+		size_t cache_depth = properties["Max Cache Size"].template as<size_t>(10 * 1024 * 1024UL) / cache_memory_size;
+
+		if (cache_depth <= properties["Min Cache Number"].template as<int>(5))
+		{
+			return write_array(url, v, ds);
+		}
+		else
+		{
+
+			mempool_.allocate_shared_ptr<ByteType>(cache_memory_size * cache_depth).swap(std::get<0>(cache_[url]));
+
+			DataSet & item = std::get<1>(cache_[url]);
+
+			item.data_desc = ds.data_desc;
+
+			item.flag = ds.flag | SP_APPEND;
+
+			item.ndims = ds.ndims;
+
+			for (int i = 0; i < ds.ndims; ++i)
+			{
+
+				item.f_shape[i] = ds.f_shape[i];
+
+				item.f_offset[i] = ds.f_offset[i];
+
+				item.f_stride[i] = ds.f_stride[i];
+
+				item.m_shape[i] = ds.m_shape[i];
+
+				item.m_offset[i] = ds.m_offset[i];
+
+				item.m_stride[i] = ds.m_stride[i];
+
+				item.count[i] = ds.count[i];
+
+				item.block[i] = ds.block[i];
+
+			}
+			item.count[0] = 0;
+			item.m_shape[0] = item.m_stride[0] * cache_depth + item.m_offset[0];
+			item.f_shape[0] = item.f_stride[0] * cache_depth + item.f_offset[0];
+
+		}
+	}
 	auto & data = std::get<0>(cache_[url]);
 	auto & item = std::get<1>(cache_[url]);
 
-	if (data == nullptr)
-	{
-		item.data_desc = ds.data_desc;
+	size_t memory_size = ds.data_desc.ele_size_in_byte_ * item.m_stride[0];
 
-		size_t cache_memory_size = cache_depth * ds.data_desc.ele_size_in_byte_;
-
-		for (int i = 0; i < ds.ndims; ++i)
-		{
-
-			item.f_shape[i] = ds.f_shape[i];
-
-			item.f_offset[i] = ds.f_offset[i];
-
-			item.f_stride[i] = ds.f_stride[i];
-
-			item.m_shape[i] = ds.m_shape[i];
-
-			item.m_offset[i] = ds.m_offset[i];
-
-			item.m_stride[i] = ds.m_stride[i];
-
-			item.count[i] = ds.count[i];
-
-			item.block[i] = ds.block[i];
-
-			cache_memory_size *= ds.m_shape[i];
-
-		}
-		item.count[0] = 0;
-
-		mempool_.allocate_shared_ptr<ByteType>(cache_memory_size * cache_depth).swap(data);
-	}
-
-	size_t memory_size = ds.data_desc.ele_size_in_byte_;
-
-	for (int i = 0; i < item.ndims; ++i)
+	for (int i = 1; i < item.ndims; ++i)
 	{
 		memory_size *= item.m_shape[i];
 	}
@@ -710,7 +717,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 
 	++item.count[0];
 
-	if (item.count[0] >= cache_depth)
+	if (item.count[0] * item.f_stride[0] + item.f_offset[0] >= item.m_shape[0])
 	{
 		return flush_cache(url);
 	}
@@ -729,16 +736,18 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 	}
 
 	auto & data = std::get<0>(cache_[url]);
-
 	auto & item = std::get<1>(cache_[url]);
 
-	item.f_shape[0] *= item.count[0];
-	item.m_shape[0] *= item.count[0];
+	hsize_t t_f_shape = item.f_shape[0];
+	hsize_t t_m_shape = item.m_shape[0];
+
+	item.m_shape[0] = item.count[0] * item.m_stride[0] + item.m_offset[0];
+	item.f_shape[0] = item.count[0] * item.f_stride[0] + item.f_offset[0];
 
 	auto res = write_array(url, data.get(), item);
 
-	item.m_shape[0] /= item.count[0];
-	item.f_shape[0] /= item.count[0];
+	item.m_shape[0] = t_f_shape;
+	item.f_shape[0] = t_m_shape;
 
 	item.count[0] = 0;
 
@@ -872,15 +881,14 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return url;
 }
 
 //=====================================================================================
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()
