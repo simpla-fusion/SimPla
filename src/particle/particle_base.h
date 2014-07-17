@@ -54,9 +54,17 @@ public:
 
 	virtual void const * get_J() const= 0;
 
-	virtual void next_timestep_zero_(void const * E, void const*B) =0;
+	virtual void next_timestep_zero_(void const * E, void const*B)
+	{
+	}
 
-	virtual void next_timestep_half_(void const * E, void const*B) =0;
+	virtual void next_timestep_half_(void const * E, void const*B)
+	{
+	}
+
+	virtual void updae_fields()
+	{
+	}
 
 	virtual void set_property_(std::string const & name, Any const&v)=0;
 

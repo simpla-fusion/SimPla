@@ -194,6 +194,7 @@ int main(int argc, char **argv)
 				ctx->save("/Save/" );
 			}
 		}
+		GLOBAL_DATA_STREAM.command("Flush");
 		GLOBAL_DATA_STREAM.set_property("Force Write Cache",false);
 		GLOBAL_DATA_STREAM.set_property("Force Record Storage",false);
 	}
@@ -203,7 +204,9 @@ int main(int argc, char **argv)
 
 	LOGGER << "Post-Process" << START;
 
-	INFORM << "OutPut Path:" <<ctx->save("/Output/");
+	ctx->save("/OutPut/");
+
+	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.pwd();
 
 	LOGGER << "Post-Process" << DONE;
 

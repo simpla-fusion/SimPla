@@ -15,21 +15,20 @@ namespace simpla
 template<typename TM, typename TParticle> class ParticlePool;
 
 template<typename TM, typename TParticle>
-void UpdateGhosts(ParticlePool<TM, TParticle> *pool, MPI_Comm comm = MPI_COMM_NULL)
+void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 {
-
-	typedef ParticlePool<TM, TParticle> pool_type;
 	auto const & g_array = pool->mesh.global_array_;
 
 	if (g_array.send_recv_.size() == 0)
 		return;
 
-	if (comm == MPI_COMM_NULL)
-	{
-		comm = GLOBAL_COMM.comm();
-	}
+	VERBOSE << "Update ghosts (particle pool) ";
+
+	typedef ParticlePool<TM, TParticle> pool_type;
 
 	typedef typename pool_type::particle_type value_type;
+
+	MPI_Comm comm = GLOBAL_COMM.comm();
 
 	MPIDataType<value_type> dtype;
 

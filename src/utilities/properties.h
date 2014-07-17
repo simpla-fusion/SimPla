@@ -104,7 +104,14 @@ public:
 			return it->second;
 		}
 	}
-
+	Any & value()
+	{
+		return value_;
+	}
+	Any const& value() const
+	{
+		return value_;
+	}
 	inline Properties const& operator[](key_type const & key) const
 	{
 		return get(key);

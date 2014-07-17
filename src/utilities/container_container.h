@@ -74,6 +74,7 @@ public:
 	// Destructor
 	~ContainerContainer()
 	{
+		base_container_type::clear();
 	}
 
 	this_type clone() const

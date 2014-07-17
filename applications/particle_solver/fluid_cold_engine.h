@@ -15,6 +15,9 @@
 #include "../../src/particle/particle_base.h"
 #include "../../src/utilities/properties.h"
 #include "../../src/utilities/any.h"
+
+#include "../../src/physics/physical_constants.h"
+
 namespace simpla
 {
 
@@ -91,7 +94,8 @@ public:
 	template<typename OS>
 	OS & print_(OS& os) const
 	{
-		DEFINE_PHYSICAL_CONST;
+		DEFINE_PHYSICAL_CONST
+		;
 
 		os << "Engine = '" << get_type_as_string() << "' "
 
@@ -118,8 +122,7 @@ public:
 			load_field(dict["Current"], &(res->J));
 
 			res->n *= res->q;
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 		}
@@ -206,8 +209,8 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh) :
-		mesh(pmesh),
+template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
+		: mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -229,7 +232,8 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.cd(path );
 
-	DEFINE_PHYSICAL_CONST;
+	DEFINE_PHYSICAL_CONST
+	;
 //
 //	if (is_verbose)
 //	{

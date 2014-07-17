@@ -110,7 +110,7 @@ public:
 	}
 	Any const & get_property_(std::string const &name) const
 	{
-		return properties[name].template as<Any>();
+		return properties[name].value();
 	}
 
 	template<typename T> void set_property(std::string const & name, T const&v)
@@ -175,13 +175,15 @@ public:
 
 	void next_timestep_zero_(void const * E, void const*B)
 	{
-		next_timestep_zero(*reinterpret_cast<E_type const *>(E), *reinterpret_cast<B_type const*>(B));
+		next_timestep_zero(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
 	}
 
 	void next_timestep_half_(void const * E, void const*B)
 	{
 		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
 	}
+
+	void updae_fields();
 
 	//***************************************************************************************************
 	// interface end
@@ -212,9 +214,6 @@ public:
 	template<typename TE, typename TB>
 	void next_timestep_half(TE const &E, TB const & B);
 
-	template<typename TJ, typename ...Others>
-	void Scatter(TJ *J, Others && ... args) const;
-
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
@@ -236,6 +235,8 @@ void Particle<Engine>::load(TDict const & dict)
 	engine_type::load(dict);
 
 	storage_type::load(dict["url"].template as<std::string>());
+
+	set_property<bool>("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 
 	J.clear();
 
@@ -263,30 +264,13 @@ std::string Particle<Engine>::save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.cd(path);
 
-//	if (is_verbose)
-//	{
-//		GLOBAL_DATA_STREAM.DisableCompactStorable();
-//		os
-//
-//		<< engine_type::save(path)
-//
-//		<< "\n, particles = " << storage_type::save("particles")
-//
-//		;
-//
-//		os << "\n, n =" << simpla::save( "n",n);
-//
-//		os << "\n, J =" << simpla::save( "J",J);
-//
-//		GLOBAL_DATA_STREAM.EnableCompactStorable();
-//	}
-//	else
+	os << "\n, n =" << simpla::save("n", n);
+
+	os << "\n, J =" << simpla::save("J", J);
+
+	if (get_property<bool>("DumpParticle"))
 	{
-
-		os << "\n, n =" << simpla::save("n", n);
-
-		os << "\n, J =" << simpla::save("J", J);
-
+		os << "\n, particles = " << storage_type::save("particles");
 	}
 
 	return os.str();
@@ -296,9 +280,8 @@ template<typename Engine>
 template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 {
-	auto __logger = Logger(LOG_LOG);
 
-	__logger << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
+	VERBOSE << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
 
 	storage_type::Sort();
 
@@ -311,32 +294,24 @@ void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::next_timestep_zero(&p, dt, E, B, &J);
+			this->engine_type::next_timestep_zero(&p, dt, E, B);
 		}
 	}
 
-	UpdateGhosts(&J);
-
-	__logger << DONE;
-
-	if (properties["Update Density"] && properties["Update Density"].template as<bool>())
-	{
-		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
-	}
+	storage_type::EnableSort();
 }
-
 template<typename Engine>
 template<typename TE, typename TB>
 void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 {
 
-	auto __logger = Logger(LOG_LOG);
+	VERBOSE << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
 
-	__logger << "Push particles to half step[ " << engine_type::get_type_as_string() << " ]";
+	storage_type::Sort();
 
 	Real dt = mesh.get_dt();
 
-	storage_type::Sort();
+	J.clear();
 
 	for (auto & cell : *this)
 	{
@@ -347,30 +322,38 @@ void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
 		}
 	}
 
-	ApplyConstraints();
-	storage_type::Sort();
-
-	__logger << DONE;
+	storage_type::EnableSort();
 }
 
-template<typename Engine> template<typename TJ, typename ...Others>
-void Particle<Engine>::Scatter(TJ *pJ, Others &&... args) const
+template<typename Engine>
+void Particle<Engine>::updae_fields()
 {
 
-	LOGGER << "Scatter particles   ";
+	VERBOSE << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
+
+	Real dt = mesh.get_dt();
+
+	storage_type::Sort();
+
+	J.clear();
 
 	for (auto & cell : *this)
 	{
-		for (auto const& p : cell.second)
+		//TODO add rw cache
+		for (auto & p : cell.second)
 		{
-			this->engine_type::Scatter(p, pJ, std::forward<Others> (args)...);
+			this->engine_type::Scatter(p, &J);
 		}
 	}
 
-	UpdateGhosts(pJ);
+	UpdateGhosts(&J);
 
-	LOGGER << DONE;
+	if (properties["Update Density"].template as<bool>(true))
+	{
+		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+	}
 }
+
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline
 void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
