@@ -146,13 +146,13 @@ public:
 
 	field<VERTEX, Real> n0; //!< density
 	field<EDGE, scalar_type> J0; //!<background current density J0+Curl(B(t=0))=0
-	field<EDGE, scalar_type> Jext; //!< current density
+	field<EDGE, scalar_type> J; //!< current density
 
 	field<VERTEX, nTuple<3, Real> > Bv;
 private:
 	typedef decltype(E) TE;
 	typedef decltype(B) TB;
-	typedef decltype(Jext) TJ;
+	typedef decltype(J) TJ;
 
 	typedef std::map<std::string, std::shared_ptr<ParticleBase> > TParticles;
 
@@ -185,7 +185,7 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: E(model), B(model), Jext(model), J0(model), dE(model), dB(model), n(model), n0(model), //
+		: E(model), B(model), J(model), J0(model), dE(model), dB(model), n(model), n0(model), //
 		phi(model), Bv(model)
 {
 }
@@ -228,17 +228,20 @@ template<typename TM>
 std::string ExplicitEMContext<TM>::save(std::string const & path) const
 {
 
-	GLOBAL_DATA_STREAM.cd(path);
+	auto abs_path = (GLOBAL_DATA_STREAM.cd(path));
 
 	VERBOSE << SAVE(E);
 	VERBOSE << SAVE(B);
+	VERBOSE << SAVE(J);
+
+#ifdef DEBUG
 	VERBOSE << SAVE(dE);
 	VERBOSE << SAVE(dB);
-	VERBOSE << SAVE(Jext);
+#endif
 
 	for (auto const & p : particles_)
 	{
-		VERBOSE << p.second->save(path);
+		VERBOSE << p.second->save(abs_path+p.first+"/");
 	}
 
 	return path;
@@ -281,14 +284,6 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		std::tie(min2, max2) = model.get_extents();
 
-//		min2[(mesh_type::ZAxis + 1) % 3] = min1[(mesh_type::ZAxis + 1) % 3];
-//		min2[(mesh_type::ZAxis + 2) % 3] = src_min[GEqdsk::RAxis];
-//		min2[(mesh_type::ZAxis + 3) % 3] = src_min[GEqdsk::ZAxis];
-//
-//		max2[(mesh_type::ZAxis + 1) % 3] = max1[(mesh_type::ZAxis + 1) % 3];
-//		max2[(mesh_type::ZAxis + 2) % 3] = src_max[GEqdsk::RAxis];
-//		max2[(mesh_type::ZAxis + 3) % 3] = src_max[GEqdsk::ZAxis];
-
 		Clipping(min1, max1, &min2, &max2);
 
 		model.set_extents(min2, max2);
@@ -313,7 +308,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		J0 = Curl(B) / mu0;
 
-		Jext = J0;
+		J = J0;
 
 	}
 	else
@@ -328,7 +323,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		J0.clear();
 
-		Jext.clear();
+		J.clear();
 
 		E.clear();
 
@@ -342,7 +337,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
 
-		Jext = J0;
+		J = J0;
 	}
 
 	dB.clear();
@@ -423,7 +418,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			{
 
 				commandToJ_.push_back(
-				        Jext.CreateCommand(model.SelectByConfig(Jext.IForm, item.second["Select"]),
+				        J.CreateCommand(model.SelectByConfig(J.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else
@@ -515,45 +510,41 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	// Compute Cycle Begin
 
-	LOG_CMD(B -= Curl(E) * dt / (mu0 * epsilon0));
+	// E0 B0,
+	LOG_CMD(J = J0);
+	ExcuteCommands(commandToJ_);
 
-	LOG_CMD(E += Curl(B) * dt);
+	//   particle 0-> 1/2 . To n[1/2], J[1/2]
+	for (auto &p : particles_)
+	{
+		if (!p.second->is_implicit())
+		{
+			p.second->next_timestep_zero(E, B);
 
-	//	// E0 B0,
-	//	LOG_CMD(Jext = J0);
-	//	ExcuteCommands(commandToJ_);
-	//
-	//	//   particle 0-> 1/2 . To n[1/2], J[1/2]
-	//	for (auto &p : particles_)
-	//	{
-	//		if (!p.second->is_implicit())
-	//		{
-	//			p.second->next_timestep_zero(E, B);
-	//
-	//			auto const & Js = p.second->template J<TJ>();
-	//			LOG_CMD(Jext += Js);
-	//		}
-	//	}
-	//
-	//	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
-	//	ExcuteCommands(commandToB_);
-	//
-	//	dE.clear();
-	//	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
-	//
-	//	LOG_CMD(dE -= Jext * (dt / epsilon0));
-	//
-	////   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	//	Implicit_PushE(E, B, particles_, &dE);
-	//
-	//	LOG_CMD(E += dE);	// E(t=0 -> 1)
-	//	ExcuteCommands(commandToE_);
-	//
-	//	dB.clear();
-	//	B_minus_CurlE(dt, E, B, &dB);
-	//
-	//	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
-	//	ExcuteCommands(commandToB_);
+			auto const & Js = p.second->template J<TJ>();
+			LOG_CMD(J += Js);
+		}
+	}
+
+	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+	ExcuteCommands(commandToB_);
+
+	dE.clear();
+	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
+
+	LOG_CMD(dE -= J * (dt / epsilon0));
+
+	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
+	Implicit_PushE(E, B, particles_, &dE);
+
+	LOG_CMD(E += dE);	// E(t=0 -> 1)
+	ExcuteCommands(commandToE_);
+
+	dB.clear();
+	B_minus_CurlE(dt, E, B, &dB);
+
+	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
+	ExcuteCommands(commandToB_);
 
 	// Compute Cycle End
 	model.next_timestep();

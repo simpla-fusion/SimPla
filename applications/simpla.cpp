@@ -45,62 +45,62 @@ int main(int argc, char **argv)
 	bool just_a_test = false;
 
 	ParseCmdLine(argc, argv, [&](std::string const & opt,std::string const & value)->int
-	{
-		if(opt=="n"||opt=="num_of_step")
-		{
-			num_of_step =ToValue<size_t>(value);
-		}
-		else if(opt=="s"||opt=="record_stride")
-		{
-			record_stride =ToValue<size_t>(value);
-		}
-		else if(opt=="i"||opt=="input")
-		{
-			dict.ParseFile(value);
-		}
-		else if(opt=="c"|| opt=="command")
-		{
-			dict.ParseString(value);
-		}
-		else if(opt=="g"|| opt=="generator")
-		{
-			INFORM
-			<< ShowCopyRight() << std::endl
-			<< "Too lazy to implemented it\n"<< std::endl;
-			TheEnd(1);
-		}
-		else if( opt=="context")
-		{
-			context_type =ToValue<std::string>(value);
-		}
-		else if(opt=="t")
-		{
-			just_a_test=true;
-		}
-		else if(opt=="V")
-		{
-			INFORM<<ShowShortVersion()<< std::endl;
-			TheEnd(0);
-		}
+			{
+				if(opt=="n"||opt=="num_of_step")
+				{
+					num_of_step =ToValue<size_t>(value);
+				}
+				else if(opt=="s"||opt=="record_stride")
+				{
+					record_stride =ToValue<size_t>(value);
+				}
+				else if(opt=="i"||opt=="input")
+				{
+					dict.ParseFile(value);
+				}
+				else if(opt=="c"|| opt=="command")
+				{
+					dict.ParseString(value);
+				}
+				else if(opt=="g"|| opt=="generator")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
+					<< "Too lazy to implemented it\n"<< std::endl;
+					TheEnd(1);
+				}
+				else if( opt=="context")
+				{
+					context_type =ToValue<std::string>(value);
+				}
+				else if(opt=="t")
+				{
+					just_a_test=true;
+				}
+				else if(opt=="V")
+				{
+					INFORM<<ShowShortVersion()<< std::endl;
+					TheEnd(0);
+				}
 
-		else if(opt=="version")
-		{
-			INFORM<<ShowVersion()<< std::endl;
-			TheEnd(0);
-		}
-		else if(opt=="help")
-		{
-			INFORM
-			<< ShowCopyRight() << std::endl
+				else if(opt=="version")
+				{
+					INFORM<<ShowVersion()<< std::endl;
+					TheEnd(0);
+				}
+				else if(opt=="help")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
 
-			<< " avaible contexts ["<<context_factory.size() <<"]  :"<<std::endl
+					<< " avaible contexts ["<<context_factory.size() <<"]  :"<<std::endl
 
-			<< context_factory
+					<< context_factory
 
-			<< std::endl;
+					<< std::endl;
 
-			TheEnd(0);
-		}
+					TheEnd(0);
+				}
 //				else
 //				{
 //					INFORM
@@ -120,11 +120,11 @@ int main(int argc, char **argv)
 //					;
 //					TheEnd(0);
 //				}
-		    return CONTINUE;
+				return CONTINUE;
 
-	    }
+			}
 
-	    );
+	);
 
 	if (context_type == "" && dict["Model"]["Type"])
 	{
@@ -177,9 +177,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		GLOBAL_DATA_STREAM.set_property< int>("Cache Depth", 20);
 
 		GLOBAL_DATA_STREAM.set_property("Force Record Storage",true);
-
+		GLOBAL_DATA_STREAM.set_property("Force Write Cache",true);
 		ctx->save("/Save/" );
 
 		for (int i = 0; i < num_of_step; ++i)
@@ -193,7 +194,7 @@ int main(int argc, char **argv)
 				ctx->save("/Save/" );
 			}
 		}
-
+		GLOBAL_DATA_STREAM.set_property("Force Write Cache",false);
 		GLOBAL_DATA_STREAM.set_property("Force Record Storage",false);
 	}
 	LOGGER << "Process" << DONE;
@@ -202,9 +203,7 @@ int main(int argc, char **argv)
 
 	LOGGER << "Post-Process" << START;
 
-	ctx->save("/Output/");
-
-	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.pwd();
+	INFORM << "OutPut Path:" <<ctx->save("/Output/");
 
 	LOGGER << "Post-Process" << DONE;
 

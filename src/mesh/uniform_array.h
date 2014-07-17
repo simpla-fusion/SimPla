@@ -1479,8 +1479,6 @@ public:
 			count[i]= 1;
 		}
 
-		CHECK(begin-global_begin_);
-		CHECK(count);
 
 #ifdef USE_FORTRAN_ORDER_ARRAY
 		stride[0] = 1;

@@ -169,7 +169,7 @@ DataStream::pimpl_s::pimpl_s()
 
 	properties["Enable XDMF"] = false;
 
-	properties["Cache Depth"] = static_cast<size_t>(20);
+	properties["Cache Depth"] = static_cast<int>(20);
 
 }
 DataStream::pimpl_s::~pimpl_s()
@@ -654,7 +654,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 
 	std::string url = path + dsname;
 
-	size_t cache_depth = properties["Cache Depth"].as<size_t>(1000UL);
+	size_t cache_depth = properties["Cache Depth"].as<int>(100);
 
 	unsigned int ele_size_in_byte = ds.data_desc.ele_size_in_byte_;
 
