@@ -52,22 +52,23 @@ public:
 
 			MPI_Comm_size(comm_, &num_process_);
 			MPI_Comm_rank(comm_, &process_num_);
-		}
 
-		ParseCmdLine(argc, argv,
+			ParseCmdLine(argc, argv,
 
-		[&](std::string const & opt,std::string const & value)->int
-		{
-			if( opt=="number_of_thread")
+			[&](std::string const & opt,std::string const & value)->int
 			{
-				num_threads_ =ToValue<size_t>(value);
+				if( opt=="number_of_thread")
+				{
+					num_threads_ =ToValue<size_t>(value);
+				}
+
+				return CONTINUE;
+
 			}
 
-			return CONTINUE;
+			);
 
 		}
-
-		);
 
 	}
 	void Close()
@@ -79,6 +80,8 @@ public:
 	}
 	MPI_Comm comm()
 	{
+		init();
+
 		return comm_;
 	}
 	MPI_Info info()

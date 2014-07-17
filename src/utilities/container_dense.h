@@ -55,20 +55,22 @@ public:
 
 	}
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, value_type d, Others && ...)
+	DenseContainer(TR const& range, size_t max_hash_value, std::function<size_t(key_type)> const & hash, value_type d,
+	        Others && ...)
 			: data_(nullptr),
 
 			hash_fun_(hash),
 
-			num_of_ele_(std::distance(std::get<0>(range), std::get<1>(range))),
+			num_of_ele_(max_hash_value),
 
 			default_value_(d)
 	{
 	}
 
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, std::function<size_t(key_type)> const & hash, Others && ...others)
-			: DenseContainer(range, hash, value_type(), std::forward<Others>(others)...)
+	DenseContainer(TR const& range, size_t max_hash_value, std::function<size_t(key_type)> const & hash,
+	        Others && ...others)
+			: DenseContainer(range, max_hash_value, hash, value_type(), std::forward<Others>(others)...)
 	{
 	}
 

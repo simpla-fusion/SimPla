@@ -520,6 +520,7 @@ void ExplicitEMContext<TM>::next_timestep()
 		if (!p.second->is_implicit())
 		{
 			p.second->next_timestep_zero(E, B);
+			p.second->update_fields();
 
 			auto const & Js = p.second->template J<TJ>();
 			LOG_CMD(J += Js);

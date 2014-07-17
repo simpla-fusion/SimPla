@@ -367,13 +367,12 @@ public:
 
 		nTuple<NDIMS, index_type> inner_begin, inner_end, inner_count;
 
-		outer_begin = std::get<0>(range).self_;
+		inner_begin = std::get<0>(range).self_;
+		inner_end = (std::get<1>(range)--).self_+1;
 
-		outer_end = (std::get<1>(range)--).self_+1;
+		outer_begin=inner_begin+(-local_inner_begin_+local_outer_begin_);
 
-		inner_begin=outer_begin+(local_inner_begin_-local_outer_begin_);
-
-		inner_end=outer_end+(local_inner_end_-local_outer_end_);
+		outer_end=inner_end+(-local_inner_end_+local_outer_end_);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -1388,7 +1387,7 @@ private:
 public:
 	range_type Select( unsigned int iform) const
 	{
-		return std::move(this_type::make_range(local_outer_begin_, local_outer_end_, get_first_node_shift(iform)));
+		return std::move(this_type::make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
 	}
 
 	range_type Select(range_type range)const
@@ -1437,87 +1436,57 @@ public:
 		return (a+L)%L;
 	}
 
+	size_t max_hash_value(range_type range)const
+	{
+		size_t res=NProduct(local_outer_count_);
+
+		auto iform =IForm(*std::get<0>(range));
+
+		if (iform ==EDGE ||iform==FACE)
+		{
+			res*=3;
+		}
+
+		return res;
+	}
 	std::function<size_t(compact_index_type)> make_hash(range_type range )const
 	{
 		if(!is_ready()) RUNTIME_ERROR("Mesh is not defined!!");
 
 		std::function<size_t(compact_index_type)> res;
 
-		int rank= get_dataset_shape(range);
-		size_t outer_begin[rank];
-		size_t outer_end[rank];
-
-		get_dataset_shape(range,
-
-				nullptr/*static_cast<size_t*>(global_begin)*/, nullptr/*static_cast<size_t*>(global_end)*/,
-
-				static_cast<size_t*>(outer_begin), static_cast<size_t*>(outer_end) ,
-
-				nullptr/*static_cast<size_t*>(local_inner_begin)*/,nullptr/* static_cast<size_t*>(local_inner_end)*/
-
-		);
-
-		nTuple<NDIMS,index_type> begin;
-		nTuple<NDIMS,index_type> count;
 		nTuple<NDIMS,index_type> stride;
 
-		unsigned int iform=IForm(*std::get<0>(range));
-
-		if(iform==EDGE||iform==FACE)
-		{
-			--rank;
-		}
-
-		for (int i = 0; i < rank; ++i)
-		{
-			begin[i]= outer_begin[i];
-			count[i]= outer_end[i]-outer_begin[i];
-		}
-		for (int i = rank; i < NDIMS; ++i)
-		{
-			begin[i]= global_begin_[i];
-			count[i]= 1;
-		}
-
+		auto iform =IForm(*std::get<0>(range));
 
 #ifdef USE_FORTRAN_ORDER_ARRAY
-		stride[0] = 1;
-		stride[1] = count[0];
-		stride[2] = count[1] * stride[1];
+		stride[0] = (iform ==EDGE ||iform==FACE)?3:1;;
+		stride[1] = local_outer_count_[0];
+		stride[2] = local_outer_count_[1] * stride[1];
 #else
-		stride[2] = 1;
-		stride[1] = count[2];
-		stride[0] = count[1] * stride[1];
+
+		stride[2] = (iform ==EDGE ||iform==FACE)?3:1;
+		stride[1] = local_outer_count_[2];
+		stride[0] = local_outer_count_[1] * stride[1];
 #endif
-		res=[begin,count,stride](compact_index_type s)->size_t
+
+		//=====================================================================
+
+		res=[= ](compact_index_type s)->size_t
 		{
-			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-begin;
+			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
 
-			index_type res =
+			return
 
-			mod_( d[0], (count[0] )) * stride[0] +
+			mod_( d[0], (local_outer_count_[0] )) * stride[0] +
 
-			mod_( d[1], (count[1] )) * stride[1] +
+			mod_( d[1], (local_outer_count_[1] )) * stride[1] +
 
-			mod_( d[2], (count[2] )) * stride[2];
+			mod_( d[2], (local_outer_count_[2] )) * stride[2] +
 
-			switch (NodeId(s))
-			{
-				case 4:
-				case 3:
-				res = ((res << 1) + res);
-				break;
-				case 2:
-				case 5:
-				res = ((res << 1) + res) + 1;
-				break;
-				case 1:
-				case 6:
-				res = ((res << 1) + res) + 2;
-				break;
-			}
+			ComponentNum(s)
+			;
 
-			return res;
 		};
 
 		return std::move(res);

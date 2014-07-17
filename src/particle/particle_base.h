@@ -62,7 +62,7 @@ public:
 	{
 	}
 
-	virtual void updae_fields()
+	virtual void update_fields()
 	{
 	}
 

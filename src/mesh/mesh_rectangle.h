@@ -189,7 +189,9 @@ public:
 	template<typename TF, typename ... Args> TF  //
 	make_field(typename topology_type::range_type range, Args && ... args) const
 	{
-		return std::move(TF(*this, range, topology_type::make_hash(range), std::forward<Args>(args)...));
+		return std::move(
+		        TF(*this, range, topology_type::max_hash_value(range), topology_type::make_hash(range),
+		                std::forward<Args>(args)...));
 	}
 
 	template<typename TF, typename ... Args> inline auto //
