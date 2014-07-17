@@ -169,7 +169,7 @@ DataStream::pimpl_s::pimpl_s()
 
 	properties["Enable XDMF"] = false;
 
-	properties["Cache Size In Bytes"] = static_cast<size_t>(1024 * 1024);
+	properties["Cache Depth"] = static_cast<size_t>(20);
 
 }
 DataStream::pimpl_s::~pimpl_s()
@@ -179,7 +179,6 @@ DataStream::pimpl_s::~pimpl_s()
 
 void DataStream::pimpl_s::init(int argc, char** argv)
 {
-
 	ParseCmdLine(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
@@ -187,6 +186,14 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 		{
 			this->set_property("File Name",value);
+		}
+		else if(opt=="force-write-cache")
+		{
+			this->set_property("Force Write Cache",true);
+		}
+		else if(opt=="cache-depth")
+		{
+			this->set_property("Cache Depth",ToValue<size_t>(value));
 		}
 		return CONTINUE;
 	}
@@ -601,7 +608,10 @@ unsigned int flag) const
 	{
 		res.flag |= SP_RECORD;
 	}
-
+	if (properties["Force Write Cache"].template as<bool>(false))
+	{
+		res.flag |= SP_CACHE;
+	}
 	return std::move(res);
 
 }

@@ -118,7 +118,7 @@ public:
 
 	static std::string get_type_as_string()
 	{
-		return "Default";
+		return "Implicit";
 	}
 
 	Real get_mass()const

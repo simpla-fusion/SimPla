@@ -35,9 +35,9 @@ int main(int argc, char **argv)
 
 	nTuple<3, Real> xmin = { 0, 0, 0 };
 
-	nTuple<3, Real> xmax = { 1.0, 1.0, 1.0 };
+	nTuple<3, Real> xmax = { 1.0, 2.0, 1.0 };
 
-	nTuple<3, size_t> dims = { 10, 16, 1 };
+	nTuple<3, size_t> dims = { 40, 50, 1 };
 
 	typedef Mesh<CartesianGeometry<UniformArray>, false> mesh_type;
 
@@ -102,5 +102,19 @@ int main(int argc, char **argv)
 	size_t size = vec.size();
 	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 
+	auto fv = mesh.template make_field<EDGE, Real>();
+
+	fv.clear();
+
+	for (auto s : mesh.Select(EDGE))
+	{
+		auto x = mesh.get_coordinates(s);
+
+		fv[s] = std::sin(x[0] * TWOPI / (xmax[0] - xmin[0]) + 2.0 * x[1] * TWOPI / (xmax[1] - xmin[1]));
+
+	}
+	INFORM << simpla::save("fv", fv, DataStream::SP_RECORD);
+	INFORM << simpla::save("fv", fv, DataStream::SP_RECORD);
+	INFORM << simpla::save("fv", fv, DataStream::SP_RECORD);
 }
 

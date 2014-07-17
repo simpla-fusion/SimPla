@@ -14,6 +14,9 @@
 #else
 #	include <thread>
 #endif
+
+#include "message_comm.h"
+
 namespace simpla
 {
 /**
@@ -22,34 +25,34 @@ namespace simpla
  * \brief Parallel do
  * @param fun
  */
-inline void ParallelDo(std::function<void(unsigned int , int)> fun)
+inline void ParallelDo(std::function<void(unsigned int, int)> fun)
 {
 
 #ifdef _OPENMP
 	int num_threads = omp_get_num_procs();
 
 #pragma omp parallel for
-	for (  unsigned int  thread_id = 0; thread_id < num_threads; ++thread_id)
+	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		fun(num_threads, thread_id);
 	}
 #else
-	const   unsigned int   num_threads = GLOBAL_COMM.get_num_of_threads();
+	const unsigned int num_threads = GLOBAL_COMM.get_num_of_threads();
 	std::vector<std::thread> threads;
-	for (  unsigned int   thread_id = 0; thread_id < num_threads; ++thread_id)
+	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(std::thread(
 
-		[fun](int t_num,int t_id)
-		{
-			fun( t_num, t_id);
-		},
+						[fun](int t_num,int t_id)
+						{
+							fun( t_num, t_id);
+						},
 
-		num_threads, thread_id));
+						num_threads, thread_id));
 	}
 
 	for (auto & t : threads)
-		t.join();
+	t.join();
 #endif
 }
 /**
@@ -67,7 +70,7 @@ void ParallelForEach(TRange r, TFun fun)
 	int num_threads = omp_get_num_procs();
 
 #pragma omp parallel for
-	for (  unsigned int  thread_id = 0; thread_id < num_threads; ++thread_id)
+	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		for(auto s:Split(r,num_threads,thread_id))
 		{

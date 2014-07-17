@@ -44,6 +44,8 @@ public:
 	}
 	~MemoryPool()
 	{
+		pool_.clear();
+		released_raw_ptr_.clear();
 	}
 
 	// unused memory will be freed when total memory size >= pool size

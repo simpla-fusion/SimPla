@@ -513,47 +513,51 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	Real dt = model.get_dt();
 
-// Compute Cycle Begin
+	// Compute Cycle Begin
 
-// E0 B0,
-	LOG_CMD(Jext = J0);
-	ExcuteCommands(commandToJ_);
+	LOG_CMD(B -= Curl(E) * dt / (mu0 * epsilon0));
 
-//   particle 0-> 1/2 . To n[1/2], J[1/2]
-	for (auto &p : particles_)
-	{
-		if (!p.second->is_implicit())
-		{
-			p.second->next_timestep_zero(E, B);
+	LOG_CMD(E += Curl(B) * dt);
 
-			auto const & Js = p.second->template J<TJ>();
-			LOG_CMD(Jext += Js);
-		}
-	}
+	//	// E0 B0,
+	//	LOG_CMD(Jext = J0);
+	//	ExcuteCommands(commandToJ_);
+	//
+	//	//   particle 0-> 1/2 . To n[1/2], J[1/2]
+	//	for (auto &p : particles_)
+	//	{
+	//		if (!p.second->is_implicit())
+	//		{
+	//			p.second->next_timestep_zero(E, B);
+	//
+	//			auto const & Js = p.second->template J<TJ>();
+	//			LOG_CMD(Jext += Js);
+	//		}
+	//	}
+	//
+	//	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+	//	ExcuteCommands(commandToB_);
+	//
+	//	dE.clear();
+	//	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
+	//
+	//	LOG_CMD(dE -= Jext * (dt / epsilon0));
+	//
+	////   particle 1/2 -> 1  . To n[1/2], J[1/2]
+	//	Implicit_PushE(E, B, particles_, &dE);
+	//
+	//	LOG_CMD(E += dE);	// E(t=0 -> 1)
+	//	ExcuteCommands(commandToE_);
+	//
+	//	dB.clear();
+	//	B_minus_CurlE(dt, E, B, &dB);
+	//
+	//	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
+	//	ExcuteCommands(commandToB_);
 
-	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
-	ExcuteCommands(commandToB_);
-
-	dE.clear();
-	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
-
-	LOG_CMD(dE -= Jext * (dt / epsilon0));
-
-//   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	Implicit_PushE(E, B, particles_, &dE);
-
-	LOG_CMD(E += dE);	// E(t=0 -> 1)
-	ExcuteCommands(commandToE_);
-
-	dB.clear();
-	B_minus_CurlE(dt, E, B, &dB);
-
-	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
-	ExcuteCommands(commandToB_);
-
+	// Compute Cycle End
 	model.next_timestep();
 
-// Compute Cycle End
 }
 
 }

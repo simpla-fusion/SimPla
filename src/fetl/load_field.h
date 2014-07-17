@@ -8,7 +8,6 @@
 #ifndef LOAD_FIELD_H_
 #define LOAD_FIELD_H_
 
-
 #include <string>
 
 #include "../utilities/log.h"
@@ -16,8 +15,8 @@
 
 namespace simpla
 {
-template<typename, unsigned int , typename > class Field;
-template<typename TDict,  unsigned int  IFORM, typename TM, typename Container>
+template<typename, unsigned int, typename > class Field;
+template<typename TDict, unsigned int IFORM, typename TM, typename Container>
 bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 {
 	if (!dict)
@@ -65,6 +64,8 @@ bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 		return false;
 	}
+
+	UpdateGhosts(f);
 
 	return true;
 }

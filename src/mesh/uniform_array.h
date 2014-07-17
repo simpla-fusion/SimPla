@@ -189,7 +189,7 @@ public:
 		local_outer_end_ = global_end_;
 		local_outer_count_ = global_count_;
 
-		Decompose(1, 0, 0);
+		Decompose();
 
 		Update();
 
@@ -200,6 +200,7 @@ public:
 		{
 			num_process = GLOBAL_COMM.get_size();
 			process_num=GLOBAL_COMM.get_rank();
+			ghost_width=2;
 		}
 		global_array_.Decompose(num_process,process_num,ghost_width);
 
@@ -366,12 +367,13 @@ public:
 
 		nTuple<NDIMS, index_type> inner_begin, inner_end, inner_count;
 
-		inner_begin = std::get<0>(range).self_;
-		inner_end = (std::get<1>(range)--).self_+1;
+		outer_begin = std::get<0>(range).self_;
 
-		outer_begin=inner_begin+(-local_inner_begin_+local_outer_begin_);
+		outer_end = (std::get<1>(range)--).self_+1;
 
-		outer_end=inner_end+(-local_inner_end_+local_outer_end_);
+		inner_begin=outer_begin+(local_inner_begin_-local_outer_begin_);
+
+		inner_end=outer_end+(local_inner_end_-local_outer_end_);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -1386,7 +1388,7 @@ private:
 public:
 	range_type Select( unsigned int iform) const
 	{
-		return std::move(this_type::make_range(local_inner_begin_, local_inner_end_, get_first_node_shift(iform)));
+		return std::move(this_type::make_range(local_outer_begin_, local_outer_end_, get_first_node_shift(iform)));
 	}
 
 	range_type Select(range_type range)const
@@ -1441,10 +1443,44 @@ public:
 
 		std::function<size_t(compact_index_type)> res;
 
-		nTuple<NDIMS, index_type> begin,count,stride;
+		int rank= get_dataset_shape(range);
+		size_t outer_begin[rank];
+		size_t outer_end[rank];
 
-		begin = std::get<0>(range).self_+(-local_inner_begin_+local_outer_begin_);
-		count = (std::get<1>(range)--).self_+(-local_inner_end_+local_outer_end_)-begin+1;
+		get_dataset_shape(range,
+
+				nullptr/*static_cast<size_t*>(global_begin)*/, nullptr/*static_cast<size_t*>(global_end)*/,
+
+				static_cast<size_t*>(outer_begin), static_cast<size_t*>(outer_end) ,
+
+				nullptr/*static_cast<size_t*>(local_inner_begin)*/,nullptr/* static_cast<size_t*>(local_inner_end)*/
+
+		);
+
+		nTuple<NDIMS,index_type> begin;
+		nTuple<NDIMS,index_type> count;
+		nTuple<NDIMS,index_type> stride;
+
+		unsigned int iform=IForm(*std::get<0>(range));
+
+		if(iform==EDGE||iform==FACE)
+		{
+			--rank;
+		}
+
+		for (int i = 0; i < rank; ++i)
+		{
+			begin[i]= outer_begin[i];
+			count[i]= outer_end[i]-outer_begin[i];
+		}
+		for (int i = rank; i < NDIMS; ++i)
+		{
+			begin[i]= global_begin_[i];
+			count[i]= 1;
+		}
+
+		CHECK(begin-global_begin_);
+		CHECK(count);
 
 #ifdef USE_FORTRAN_ORDER_ARRAY
 		stride[0] = 1;

@@ -12,7 +12,7 @@
 
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
-
+#include "../utilities/utilities.h"
 namespace simpla
 {
 /**
