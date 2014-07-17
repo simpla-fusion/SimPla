@@ -41,10 +41,13 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
+	typedef typename mesh_type::template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<is_implicit, typename mesh_type::template field<VERTEX, nTuple<3, scalar_type>>,
-	        typename mesh_type::template field<EDGE, scalar_type> >::type J_type;
+	typedef typename mesh_type::template field<EDGE, scalar_type> J_type;
+
+	typedef typename mesh_type:: template field<EDGE, scalar_type> E_type;
+
+	typedef typename mesh_type:: template field<FACE, scalar_type> B_type;
 
 	struct Point_s
 	{
@@ -76,13 +79,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDeltaF(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDeltaF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -156,8 +159,7 @@ public:
 		return os;
 	}
 
-	template< typename TE, typename TB >
-	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
+	inline void next_timestep_zero( Point_s * p, Real dt, E_type const &fE, B_type const & fB ) const
 	{
 		p->x += p->v * dt * 0.5;
 		auto cE = interpolator_type::GatherCartesian( fE, p->x);
@@ -184,18 +186,15 @@ public:
 
 	}
 
-	template<typename TE, typename TB>
-	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
+	inline void next_timestep_half( Point_s * p, Real dt, E_type const &fE, B_type const & fB ) const
 	{
 	}
 
-	template< typename TV >
 	void Scatter(Point_s const & p, J_type * J ) const
 	{
 		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q*p.w);
 	}
 
-	template< typename TV >
 	void Scatter(Point_s const & p, n_type * n) const
 	{
 		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q*p.w);

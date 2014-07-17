@@ -50,8 +50,9 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> TE;
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> TB;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B_type;
 
 	enum
 	{
@@ -140,9 +141,9 @@ public:
 		return std::move(std::make_pair(get_type_as_string_static(), call_back));
 	}
 
-	void next_timestep_zero(TE const & E, TB const & B);
+	void next_timestep_zero(E_type const & E, B_type const & B);
 
-	void next_timestep_half(TE const & E, TB const & B);
+	void next_timestep_half(E_type const & E, B_type const & B);
 
 	// interface
 
@@ -195,12 +196,12 @@ public:
 
 	void next_timestep_zero_(void const * E, void const*B)
 	{
-		next_timestep_zero(*reinterpret_cast<TE const*>(E), *reinterpret_cast<TB const*>(B));
+		next_timestep_zero(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
 	}
 
 	void next_timestep_half_(void const * E, void const*B)
 	{
-		next_timestep_half(*reinterpret_cast<TE const*>(E), *reinterpret_cast<TB const*>(B));
+		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
 	}
 
 private:
@@ -255,14 +256,14 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 	return os.str();
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_zero(TE const & E, TB const & B)
+void Particle<ColdFluid<TM>>::next_timestep_zero(E_type const & E, B_type const & B)
 {
 	LOGGER << "Push particles Step Zero[ " << get_type_as_string() << "]";
 	Real dt = mesh.get_dt();
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_half(TE const & E, TB const & B)
+void Particle<ColdFluid<TM>>::next_timestep_half(E_type const & E, B_type const & B)
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 

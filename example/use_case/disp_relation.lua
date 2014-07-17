@@ -30,7 +30,7 @@ rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
-NY = 128
+NY = 1
 NZ = 1
 LX = 10  --m --100000*rhoi --0.6
 LY = 20 --2.0*math.pi/k0
@@ -80,7 +80,7 @@ Model=
 
 
 Particles={
-	H 	= {Type="Implicit",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=20}, --, DumpParticle=true
+	H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=20, DumpParticle=true},
 --	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
 --	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=100  },
 

@@ -14,7 +14,10 @@ std::ostream & Properties::print(std::ostream & os) const
 	for (auto const& item : *this)
 	{
 		os << item.first << " = " << item.second.value_ << " , ";
-		if (item.second.size() > 0) os << item.second;
+		if (item.second.size() > 0)
+		{
+			os << item.second;
+		}
 		os << std::endl;
 	}
 	return os;

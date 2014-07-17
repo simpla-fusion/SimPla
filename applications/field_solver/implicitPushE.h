@@ -132,7 +132,7 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 	for (auto &p : particles)
 	{
 		if (p.second->is_implicit())
-			p.second->next_timestep_half(Ev, Bv);
+			p.second->next_timestep_half(E, B);
 	}
 	Ev += dEv * 0.5;
 

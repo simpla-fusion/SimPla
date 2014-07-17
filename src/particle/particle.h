@@ -205,26 +205,23 @@ public:
 
 	typename engine_type::J_type J;
 
-	typedef typename mesh_type::template field<EDGE, scalar_type> E_type;
-	typedef typename mesh_type::template field<FACE, scalar_type> B_type;
+	typedef typename engine_type::E_type E_type;
+	typedef typename engine_type::B_type B_type;
 
-	template<typename TE, typename TB>
-	void next_timestep_zero(TE const &E, TB const & B);
-
-	template<typename TE, typename TB>
-	void next_timestep_half(TE const &E, TB const & B);
+	void next_timestep_zero(E_type const &E, B_type const & B);
+	void next_timestep_half(E_type const &E, B_type const & B);
 
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename TDict>
-Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
-		: Particle(pmesh)
+Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh) :
+		Particle(pmesh)
 {
 	load(dict);
 }
@@ -236,7 +233,7 @@ void Particle<Engine>::load(TDict const & dict)
 
 	storage_type::load(dict["url"].template as<std::string>());
 
-	set_property<bool>("DumpParticle", dict["DumpParticle"].template as<bool>(false));
+	set_property("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 
 	J.clear();
 
@@ -277,8 +274,7 @@ std::string Particle<Engine>::save(std::string const & path) const
 }
 
 template<typename Engine>
-template<typename TE, typename TB>
-void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
+void Particle<Engine>::next_timestep_zero(E_type const & E, B_type const & B)
 {
 
 	VERBOSE << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
@@ -301,8 +297,7 @@ void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
 	storage_type::EnableSort();
 }
 template<typename Engine>
-template<typename TE, typename TB>
-void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
+void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
 {
 
 	VERBOSE << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";

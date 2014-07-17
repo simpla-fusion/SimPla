@@ -428,12 +428,11 @@ public:
 
 	coordinates_type get_dx( ) const
 	{
-		auto d=get_global_dimensions();
 		coordinates_type res;
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			res[i] = global_count_[i]>1? (1.0/static_cast<Real>(d[i] )):0.0;
+			res[i] = global_count_[i]>1? (1.0/static_cast<Real>(global_count_[i] )):0.0;
 		}
 
 		return std::move(res);
@@ -585,7 +584,7 @@ public:
 			}
 			else
 			{
-				extents_[i]=static_cast<Real>(global_count_[i] <<MAX_DEPTH_OF_TREE);
+				extents_[i]=static_cast<Real>((global_count_[i]) <<MAX_DEPTH_OF_TREE);
 				inv_extents_[i]=1.0/extents_[i];
 			}
 
@@ -2110,8 +2109,7 @@ inline UniformArray::range_type Split(UniformArray::range_type const & range, un
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0)
-			count = 0;
+		if (process_num > 0) count = 0;
 	}
 	else
 	{
