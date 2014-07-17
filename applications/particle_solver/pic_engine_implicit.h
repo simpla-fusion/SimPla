@@ -76,13 +76,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineImplicit(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineImplicit(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineImplicit(mesh_type const &pmesh, Others && ...others) :
-			PICEngineImplicit(pmesh)
+	PICEngineImplicit(mesh_type const &pmesh, Others && ...others)
+			: PICEngineImplicit(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -148,26 +148,15 @@ public:
 		return os;
 
 	}
-	static inline Point_s DefaultValue()
-	{
-		Point_s p;
-		p.f = 1.0;
-		return std::move(p);
-	}
 
-// x(-1/2->1/2),v(0)
+	// x(-1/2->1/2),v(0)
 	template<typename TE, typename TB >
 	inline void next_timestep_zero( Point_s * p, Real dt , TE const &fE, TB const & fB ) const
 	{
 		p->x += p->v * dt;
 	}
-	template< typename TE, typename TB,typename TJ >
-	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB, TJ *J ) const
-	{
-		next_timestep_zero(p,dt,fE,fB);
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * q);
-	}
-// v(0->1)
+
+	// v(0->1)
 	template<typename TE, typename TB >
 	inline void next_timestep_half( Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
@@ -196,12 +185,17 @@ public:
 	{
 	}
 
-	template<unsigned int IFORM, typename TV, typename ...Args>
-	void Scatter(Point_s const & p, typename mesh_type:: template field < IFORM, TV> * n, Args const & ...) const
+	template< typename TV >
+	void Scatter(Point_s const & p, J_type * J ) const
 	{
-		interpolator_type::ScatterCartesian( n, p.x, q * p.f);
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q);
 	}
 
+	template< typename TV >
+	void Scatter(Point_s const & p, n_type * n) const
+	{
+		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q);
+	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
 		return std::move(Point_s(

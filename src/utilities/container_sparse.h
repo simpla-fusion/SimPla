@@ -44,12 +44,12 @@ public:
 
 	}
 	template<typename TR, typename THash, typename ...Others>
-	SparseContainer(TR const &, THash const&, Others && ... others)
+	SparseContainer(TR const &, size_t max_hash_value, THash const&, Others && ... others)
 			: base_container_type(std::forward<Others>(others)...), default_value_(value_type())
 	{
 	}
 	template<typename TR, typename THash, typename ...Others>
-	SparseContainer(TR const &, THash const&, value_type d, Others && ... others)
+	SparseContainer(TR const &, size_t max_hash_value, THash const&, value_type d, Others && ... others)
 			: base_container_type(std::forward<Others>(others)...), default_value_(d)
 	{
 	}

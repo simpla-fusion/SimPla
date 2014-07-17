@@ -76,13 +76,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDeltaF(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
-			PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
+			: PICEngineDeltaF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -156,13 +156,6 @@ public:
 		return os;
 	}
 
-	static Point_s DefaultValue()
-	{
-		Point_s p;
-		p.f = 1.0;
-		p.w = 0.0;
-		return std::move(p);
-	}
 	template< typename TE, typename TB >
 	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
@@ -190,84 +183,22 @@ public:
 		p->x += p->v * dt * 0.5;
 
 	}
-	template< typename TE, typename TB,typename TJ >
-	inline void next_timestep_zero(Point_s * p, Real dt, TE const &fE, TB const & fB, TJ *J ) const
-	{
 
-		next_timestep_zero(p,dt,fE,fB);
-
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * p->w * q);
-
-	}
 	template<typename TE, typename TB>
 	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB ) const
 	{
 	}
 
-	template<typename TE, typename TB,typename TJ>
-	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB,TJ* J ) const
+	template< typename TV >
+	void Scatter(Point_s const & p, J_type * J ) const
 	{
-		next_timestep_half(p,dt,fE,fB);
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v), p->f * p->w * q);
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q*p.w);
 	}
-//	// x(-1/2->1/2), w(-1/2,1/2)
-//	template<typename TJ, typename TE, typename TB, typename ... Others>
-//	inline void next_timestep_zero(Bool2Type<true>, Point_s * p, Real dt, TJ *J,
-//			TE const &fE, TB const & fB, Others const &...others) const
-//	{
-//		p->x += p->v * dt * 0.5;
-//
-////		auto B = interpolator_type::Gather(fB, p->x);
-//		auto E = interpolator_type::Gather(fE, p->x);
-//
-//		auto a = (-Dot(E, p->v) * q_kT_ * dt);
-//		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
-//
-//		p->x += p->v * dt * 0.5;
-//
-//		Vec3 v;
-//		v = p->v * p->f * p->w * q;
-//		interpolator_type::Scatter(p->x, v, J);
-//
-//	}
-//	template<typename TE, typename TB, typename ... Others>
-//	inline void next_timestep_half(Bool2Type<true>, Point_s * p, Real dt,
-//			TE const &fE, TB const & fB, Others const &...others) const
-//	{
-//
-//		auto B = interpolator_type::Gather(fB, p->x);
-//		auto E = interpolator_type::Gather(fE, p->x);
-//
-//		Vec3 v_;
-//
-//		auto t = B * (cmr_ * dt * 0.5);
-//
-//		p->v += E * (cmr_ * dt * 0.5);
-//
-//		v_ = p->v + Cross(p->v, t);
-//
-//		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
-//
-//		p->v += v_ * 2.0;
-//
-//		p->v += E * (cmr_ * dt * 0.5);
-//
-//	}
-	template<typename TV, typename ...Args>
-	void Scatter(Point_s const & p, typename mesh_type:: template field < VERTEX, TV> * n, Args const & ...) const
+
+	template< typename TV >
+	void Scatter(Point_s const & p, n_type * n) const
 	{
-		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x, q * p.f * p.w));
-	}
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
-	{
-		*x = p.x;
-		*v = p.v;
-		return p.f * p.w;
-	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
-	{
-		p->x = x;
-		p->v = v;
+		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q*p.w);
 	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{

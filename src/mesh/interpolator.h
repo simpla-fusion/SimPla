@@ -13,7 +13,7 @@
 namespace simpla
 {
 
-template<typename, unsigned int , typename > class Field;
+template<typename, unsigned int, typename > class Field;
 /**
  * \ingroup Mesh
  *
@@ -147,6 +147,7 @@ public:
 		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 
+
 	/***
 	 *  @param x configure space coordiantes,   base on "mesh_type::geometry_type"
 	 *  @return  field value(vector/scalar) on Cartesian configure space
@@ -160,9 +161,10 @@ public:
 	 *  @param weight scatter weight
 	 */
 	template<unsigned int IFORM, typename TContainer, typename TZ, typename TW>
-	static inline void ScatterCartesian(Field<mesh_type, IFORM, TContainer> *f, TZ const &z, TW weight)
+	static inline void ScatterCartesian(Field<mesh_type, IFORM, TContainer> *f, TZ const&z, TW weight)
 	{
-		auto Z = f->mesh.PushForward(z);
+
+		TZ Z = f->mesh.PushForward(z);
 		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 

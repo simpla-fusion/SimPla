@@ -44,8 +44,7 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
 
-	typedef typename std::conditional<is_implicit, typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
-	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
+	typedef typename mesh_type:: template field<EDGE, scalar_type> J_type;
 
 	struct Point_s
 	{
@@ -149,12 +148,6 @@ public:
 		return os;
 
 	}
-	static inline Point_s DefaultValue()
-	{
-		Point_s p;
-		p.f = 1.0;
-		return std::move(p);
-	}
 
 	// x(-1/2->1/2), v(-1/2/1/2)
 	template< typename TE, typename TB >
@@ -188,10 +181,16 @@ public:
 	{
 	}
 
-	template<unsigned int IFORM, typename TV >
-	void Scatter(Point_s const & p, typename mesh_type::template field < IFORM, TV> * J ) const
+	template< typename TV >
+	void Scatter(Point_s const & p, J_type * J ) const
 	{
 		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q);
+	}
+
+	template< typename TV >
+	void Scatter(Point_s const & p, n_type * n) const
+	{
+		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

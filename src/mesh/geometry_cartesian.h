@@ -36,8 +36,8 @@ public:
 
 	static constexpr unsigned int NDIMS = topology_type::NDIMS;
 
-	static constexpr unsigned int XAxis = (ZAXIS + 2) % 3;
-	static constexpr unsigned int YAxis = (ZAXIS + 1) % 3;
+	static constexpr unsigned int XAxis = (ZAXIS + 1) % 3;
+	static constexpr unsigned int YAxis = (ZAXIS + 2) % 3;
 	static constexpr unsigned int ZAxis = ZAXIS;
 
 	typedef Real scalar_type;
@@ -340,7 +340,7 @@ public:
 		u[YAxis] = v[CARTESIAN_YAXIS];
 		u[ZAxis] = v[CARTESIAN_ZAXIS];
 
-		return std::move(std::make_tuple(y, u));
+		return (std::make_tuple(y, u));
 	}
 
 	/**

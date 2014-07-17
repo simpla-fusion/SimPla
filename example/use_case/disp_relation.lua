@@ -80,12 +80,11 @@ Model=
 
 
 Particles={
---	H 	= {Type="Default",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=20, DumpParticle=true},
+	H 	= {Type="Implicit",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=20}, --, DumpParticle=true
 --	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
 --	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=100  },
 
 --	ele1= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 },
-
 --	ele = {Type="ColdFluid",Mass=me,Charge=-e,Density=N0 },
 --	H   = {Type="ColdFluid",Mass=mp,Charge=e,Density=N0 },
 }

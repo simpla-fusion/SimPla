@@ -330,7 +330,6 @@ void Particle<Engine>::update_fields()
 {
 	VERBOSE << "Scatter particles to fields ";
 
-
 //	VERBOSE << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
 
 	Real dt = mesh.get_dt();
@@ -339,21 +338,21 @@ void Particle<Engine>::update_fields()
 
 	J.clear();
 
-//	for (auto & cell : *this)
-//	{
-//		//TODO add rw cache
-//		for (auto & p : cell.second)
-//		{
-//			this->engine_type::Scatter(p, &J);
-//		}
-//	}
-//
-//	UpdateGhosts(&J);
-//
-//	if (properties["Update Density"].template as<bool>(true))
-//	{
-//		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
-//	}
+	for (auto & cell : *this)
+	{
+		//TODO add rw cache
+		for (auto & p : cell.second)
+		{
+			this->engine_type::Scatter(p, &J);
+		}
+	}
+
+	UpdateGhosts(&J);
+
+	if (properties["Update Density"].template as<bool>(true))
+	{
+		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+	}
 }
 
 //*************************************************************************************************
