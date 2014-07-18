@@ -23,7 +23,6 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 	if (g_array.send_recv_.size() == 0)
 	{
-		CHECK(" Nothing to do");
 		return;
 	}
 
@@ -50,9 +49,9 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 		auto t_cell = pool->create_child();
 
-		pool->Remove(pool->mesh.Select(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end), &t_cell);
+		auto range = pool->mesh.SelectOuter(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
 
-		CHECK(t_cell.size());
+		pool->Remove(range, &t_cell);
 
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
 

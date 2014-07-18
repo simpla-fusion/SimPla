@@ -34,8 +34,8 @@ public:
 		nTuple<NDIMS, long> inner_begin;
 		nTuple<NDIMS, long> inner_end;
 	};
-	DistributedArray()
-			: self_id_(0)
+	DistributedArray() :
+			self_id_(0)
 	{
 	}
 
@@ -107,8 +107,7 @@ void DistributedArray<N>::Decomposer_(int num_process, unsigned int process_num,
 	local->inner_end = global_end_;
 	local->inner_begin = global_begin_;
 
-	if (num_process <= 1)
-		return;
+	if (num_process <= 1) return;
 
 	int n = 0;
 	long L = 0;
@@ -123,8 +122,7 @@ void DistributedArray<N>::Decomposer_(int num_process, unsigned int process_num,
 
 	if ((2 * gw * num_process > (global_end_[n] - global_begin_[n]) || num_process > (global_end_[n] - global_begin_[n])))
 	{
-		if (process_num > 0)
-			local->outer_end = local->outer_begin;
+		if (process_num > 0) local->outer_end = local->outer_begin;
 	}
 	else
 	{
@@ -143,8 +141,7 @@ void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, l
 	Decomposer_(num_process, process_num, gw, &local_);
 	self_id_ = (process_num);
 
-	if (num_process <= 1)
-		return;
+	if (num_process <= 1) return;
 
 	global_strides_[0] = 1;
 
@@ -155,15 +152,14 @@ void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, l
 
 	for (int dest = 0; dest < num_process; ++dest)
 	{
-		if (dest == self_id_)
-			continue;
+		if (dest == self_id_) continue;
 
 		sub_array_s node;
 
 		Decomposer_(num_process, dest, gw, &(node));
 
 		// assume no overlap in inner area
-		// consider periodic boundary condition, traversal all neighbour
+		// consider periodic boundary condition, traversal all neighbor
 
 		sub_array_s remote;
 		for (unsigned long s = 0, s_e = (1UL << (NDIMS * 2)); s < s_e; ++s)
@@ -204,7 +200,7 @@ void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, l
 				}
 			}
 		}
-
+		CHECK(send_recv_.size());
 	}
 
 }

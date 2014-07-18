@@ -50,8 +50,6 @@ protected:
 		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
 
-		mesh.Decompose();
-
 		mesh.Update();
 //
 //		cfg_str = "n0=function(x,y,z)"
@@ -154,13 +152,13 @@ TEST_P(TestParticle,Add)
 //	}
 
 	UpdateGhosts(&p);
-	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 
 	UpdateGhosts(&p);
-	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 
 	UpdateGhosts(&p);
-	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 }
 
 //TEST_P(TestParticle,scatter_n)

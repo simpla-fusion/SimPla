@@ -23,6 +23,7 @@ void UpdateGhosts(TV* data, DistributedArray<N> const & global_array)
 	{
 		return;
 	}
+
 	MPI_Comm comm = GLOBAL_COMM.comm();
 
 	MPI_Request request[global_array.send_recv_.size() * 2];
