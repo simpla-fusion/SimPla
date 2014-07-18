@@ -17,15 +17,13 @@ namespace simpla
 {
 
 template<unsigned int N, typename TV>
-void UpdateGhosts(TV* data, DistributedArray<N> const & global_array, MPI_Comm comm = MPI_COMM_NULL)
+void UpdateGhosts(TV* data, DistributedArray<N> const & global_array)
 {
 	if (global_array.send_recv_.size() == 0)
-		return;
-
-	if (comm == MPI_COMM_NULL)
 	{
-		comm = GLOBAL_COMM.comm();
+		return;
 	}
+	MPI_Comm comm = GLOBAL_COMM.comm();
 
 	MPI_Request request[global_array.send_recv_.size() * 2];
 

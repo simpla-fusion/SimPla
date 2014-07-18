@@ -10,9 +10,6 @@ extern "C"
 #include <hdf5.h>
 #include <hdf5_hl.h>
 
-#ifdef USE_MPI
-#include <mpi.h>
-#endif
 }
 
 #include <cstring> //for memcopy
@@ -21,7 +18,8 @@ extern "C"
 #include "data_stream.h"
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
-#include "../parallel/mpi_datatype.h"
+#include "../parallel/mpi_aux_functions.h"
+
 #include "../utilities/properties.h"
 #include "../utilities/memory_pool.h"
 
@@ -151,8 +149,8 @@ public:
 	std::string flush_cache(std::string const & name);
 };
 
-DataStream::pimpl_s::pimpl_s() :
-		file_(-1), group_(-1)
+DataStream::pimpl_s::pimpl_s()
+		: file_(-1), group_(-1)
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -216,7 +214,8 @@ bool DataStream::pimpl_s::command(std::string const & cmd)
 
 void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 {
-	if (gname == "") return;
+	if (gname == "")
+		return;
 
 	hid_t h5fg = file_;
 
@@ -231,7 +230,8 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 	else
 	{
 		grpname_ += gname;
-		if (group_ > 0) h5fg = group_;
+		if (group_ > 0)
+			h5fg = group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -379,9 +379,11 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 	auto current_group_name = properties["Group Name"].template as<std::string>("/");
 
-	if (file_path == "") file_path = current_file_path;
+	if (file_path == "")
+		file_path = current_file_path;
 
-	if (grp_name == "") grp_name = current_group_name;
+	if (grp_name == "")
+		grp_name = current_group_name;
 
 	if (file_ <= 0 || current_file_path != file_path)
 	{
@@ -439,57 +441,6 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 	}
 
 	return std::make_tuple(file_path + ":" + grp_name, dsname);
-}
-/**
- * @param pos in {0,count} out {begin,shape}
- */
-std::tuple<hsize_t, hsize_t> sync_global_location(hsize_t count)
-{
-	hsize_t begin = 0;
-
-#ifdef USE_MPI
-	if ( GLOBAL_COMM.is_ready() && GLOBAL_COMM.get_size()>1 )
-	{
-
-		auto comm = GLOBAL_COMM.comm();
-
-		int num_of_process = GLOBAL_COMM.get_size();
-		int porcess_number = GLOBAL_COMM.get_rank();
-
-		MPIDataType<hsize_t> m_type;
-
-		std::vector<hsize_t> buffer;
-
-		if (porcess_number == 0) buffer.resize(num_of_process);
-
-		MPI_Gather(&count, 1, m_type.type(), &buffer[0], 1, m_type.type(), 0, comm);
-
-		MPI_Barrier(comm);
-
-		if (porcess_number == 0)
-		{
-			for (int i = 1; i < num_of_process; ++i)
-			{
-				buffer[i] += buffer[i - 1];
-			}
-			buffer[0] =count;
-			count = buffer[num_of_process - 1];
-
-			for (int i = num_of_process - 1; i > 0; --i)
-			{
-				buffer[i] = buffer[i - 1];
-			}
-			buffer[0] = 0;
-		}
-		MPI_Barrier(comm);
-		MPI_Scatter(&buffer[0], 1, m_type.type(), &begin, 1, m_type.type(), 0, comm);
-		MPI_Bcast(&count, 1, m_type.type(), 0, comm);
-	}
-
-#endif
-
-	return std::make_tuple(begin, count);
-
 }
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
@@ -881,14 +832,15 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
 	return url;
 }
 
 //=====================================================================================
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()

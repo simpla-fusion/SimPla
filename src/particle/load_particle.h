@@ -14,13 +14,18 @@
 
 #include "../fetl/fetl.h"
 #include "../fetl/load_field.h"
+
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
-#include "../utilities/log.h"
+
 #include "../physics/physical_constants.h"
-#include "../parallel/update_ghosts.h"
 
 #include "../particle/particle_base.h"
+
+#include "../utilities/log.h"
+#include "../utilities/utilities.h"
+#include "../parallel/mpi_aux_functions.h"
+
 namespace simpla
 {
 
@@ -92,7 +97,8 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 template<typename TP, typename TRange, typename TModel, typename TDict>
 void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
-	if (!dict) return;
+	if (!dict)
+		return;
 
 	for (auto const & key_item : dict)
 	{
@@ -141,10 +147,18 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
 	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };
+
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
+
 	multi_normal_distribution<NDIMS> v_dist;
 
 	std::mt19937 rnd_gen(NDIMS * 2);
+
+	size_t number = size_of_range(range);
+
+	std::tie(number, std::ignore) = sync_global_location(number * pic * NDIMS * 2);
+
+	rnd_gen.discard(number);
 
 	nTuple<3, Real> x, v;
 

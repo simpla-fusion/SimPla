@@ -25,13 +25,6 @@ struct DistributedArray
 public:
 	static constexpr unsigned int NDIMS = N;
 
-	bool is_fast_first_ = false;
-
-	bool is_fast_first() const
-	{
-		return is_fast_first_;
-	}
-
 	int self_id_;
 
 	struct sub_array_s
@@ -48,7 +41,6 @@ public:
 
 	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, int num_process = 1,
 	        unsigned int process_num = 0, long gw = 0, bool p_is_fast_first = false)
-			: is_fast_first_(p_is_fast_first)
 	{
 
 		global_end_ = global_end;
@@ -154,22 +146,11 @@ void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, l
 	if (num_process <= 1)
 		return;
 
-	if (!is_fast_first_)
-	{
-		global_strides_[NDIMS - 1] = 1;
-		for (int i = NDIMS - 2; i >= 0; --i)
-		{
-			global_strides_[i] = (global_end_[i] - global_begin_[i]) * global_strides_[i + 1];
-		}
-	}
-	else
-	{
-		global_strides_[0] = 1;
-		for (int i = 1; i < NDIMS; ++i)
-		{
-			global_strides_[i] = (global_end_[i] - global_begin_[i]) * global_strides_[i - 1];
-		}
+	global_strides_[0] = 1;
 
+	for (int i = 1; i < NDIMS; ++i)
+	{
+		global_strides_[i] = (global_end_[i] - global_begin_[i]) * global_strides_[i - 1];
 	}
 
 	for (int dest = 0; dest < num_process; ++dest)

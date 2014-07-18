@@ -39,6 +39,7 @@ class TestParticle: public testing::TestWithParam<
 protected:
 	virtual void SetUp()
 	{
+		LOG_STREAM.set_stdout_visable_level(LOG_DEBUG);
 
 		auto param = GetParam();
 
@@ -48,9 +49,10 @@ protected:
 
 		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
-		mesh.Update();
 
 		mesh.Decompose();
+
+		mesh.Update();
 //
 //		cfg_str = "n0=function(x,y,z)"
 //				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
@@ -110,42 +112,52 @@ TEST_P(TestParticle,Add)
 
 	nTuple<3, Real> v = { 0, 0, 0 };
 
-	int pic = (GLOBAL_COMM.get_rank() +1)*10;
+	int pic = 100;
 
-	for (auto s : mesh.Select(VERTEX))
+	if (GLOBAL_COMM.get_rank() ==0)
 	{
-		for (int i = 0; i < pic; ++i)
+		for (auto s : mesh.Select(VERTEX))
 		{
-			buffer.emplace_back(Point_s( { mesh.CoordinatesLocalToGlobal(s, x_dist(rnd_gen)), v, 1.0 }));
+			for (int i = 0; i < pic; ++i)
+			{
+				buffer.emplace_back(Point_s(
+						{	mesh.CoordinatesLocalToGlobal(s, x_dist(rnd_gen)), v, 1.0}));
+			}
 		}
+
+		p.Add(&buffer);
+
+		INFORM << "Add particle DONE " << p.size() << std::endl;
+
+		EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
+
 	}
-
-	p.Add(&buffer);
-
-	INFORM << "Add particle DONE " << p.size() << std::endl;
-
-	EXPECT_EQ(p.size(), mesh.get_local_memory_size(VERTEX) * pic);
-
-	std::vector<double> a;
-
-	p.Remove(
-	        mesh.Select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
-	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-	p.Remove(mesh.Select(pool_type::IForm));
-
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-	EXPECT_NE(p.size(), 0);
-
-	p.clear();
-	INFORM << "Remove particle DONE " << p.size() << std::endl;
-
+//	std::vector<double> a;
+//
+//	p.Remove(
+//	        mesh.Select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
+//	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75));
+//
+//	INFORM << "Remove particle DONE " << p.size() << std::endl;
+//	p.Remove(mesh.Select(pool_type::IForm));
+//
+//	INFORM << "Remove particle DONE " << p.size() << std::endl;
+//	EXPECT_NE(p.size(), 0);
+//
+//	p.clear();
+//	INFORM << "Remove particle DONE " << p.size() << std::endl;
+//
 //	for (auto const & v : p.data())
 //	{
 //		if (v.second.size() > 0)
 //			CHECK((mesh.DecompactRoot(v.first)));
 //	}
+
+	UpdateGhosts(&p);
+	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
+
+	UpdateGhosts(&p);
+	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;
 
 	UpdateGhosts(&p);
 	INFORM << "UpdateGhosts particle DONE " << p.size() << std::endl;

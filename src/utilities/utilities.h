@@ -57,7 +57,7 @@ inline std::string ToString(nTuple<N, T> const & v, std::string const & sep = " 
 	return (os.str());
 }
 
-inline std::string AutoIncrease(std::function<bool(std::string)> const & fun, size_t count = 0,  unsigned int  width = 4)
+inline std::string AutoIncrease(std::function<bool(std::string)> const & fun, size_t count = 0, unsigned int width = 4)
 {
 	std::string res("");
 	while (fun(res))
@@ -89,7 +89,15 @@ inline unsigned long make_hash(T s)
 {
 	return static_cast<unsigned long>(s);
 }
-
+template<typename TR> size_t size_of_range(TR const &range)
+{
+	size_t count = 0;
+	for (auto const & item : range)
+	{
+		++count;
+	}
+	return count;
+}
 }  // namespace simpla
 
 #endif /* UTILITIES_H_ */

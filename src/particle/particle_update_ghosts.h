@@ -17,10 +17,15 @@ template<typename TM, typename TParticle> class ParticlePool;
 template<typename TM, typename TParticle>
 void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 {
+#ifdef USE_MPI
+
 	auto const & g_array = pool->mesh.global_array_;
 
 	if (g_array.send_recv_.size() == 0)
+	{
+		CHECK(" Nothing to do");
 		return;
+	}
 
 	VERBOSE << "Update ghosts (particle pool) ";
 
@@ -47,12 +52,15 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 		pool->Remove(pool->mesh.Select(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end), &t_cell);
 
+		CHECK(t_cell.size());
+
 		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
 
 		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
 		        &requests[count]);
 
 		++count;
+
 	}
 
 	for (auto const & item : g_array.send_recv_)
@@ -80,9 +88,12 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 	{
 		std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
 		        std::back_inserter(cell_buffer));
+
 	}
 
 	pool->Add(&cell_buffer);
+
+#endif
 }
 }  // namespace simpla
 

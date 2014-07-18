@@ -12,11 +12,6 @@
 
 #ifdef USE_MPI
 #	include "message_comm.h"
-#else
-template<typename T>
-void UpdateGhosts(T *, MPI_Comm comm = MPI_COMM_NULL)
-{
-}
 #endif
 
 /**

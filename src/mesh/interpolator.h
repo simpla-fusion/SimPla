@@ -147,7 +147,6 @@ public:
 		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 
-
 	/***
 	 *  @param x configure space coordiantes,   base on "mesh_type::geometry_type"
 	 *  @return  field value(vector/scalar) on Cartesian configure space

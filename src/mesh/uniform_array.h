@@ -173,13 +173,9 @@ public:
 
 		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
 
-		global_array_.is_fast_first_ = is_fast_first_;
-
 		global_array_.global_begin_ = global_begin_;
 
 		global_array_.global_end_ = global_end_;
-
-//		global_count_ = global_end_ - global_begin_;
 
 		local_inner_begin_ = global_begin_;
 		local_inner_end_ = global_end_;
@@ -831,30 +827,42 @@ public:
 
 	/**
 	 *
-	 * @param x
+	 * @param x \f$ x \in \left[0,1\right)\f$ is redisual of coordinate
 	 * @param shift
-	 * @return x \f$\in \left[0,1\right)\f$
+	 * @return s,r  \f$I=int(x*N),s= compact(I)\f$s is conmpact index and  \f$ r= (x- I)/dx \f$ is distance
 	 */
 	inline std::tuple<compact_index_type,coordinates_type>
 	CoordinatesGlobalToLocal(coordinates_type x, compact_index_type shift = 0UL) const
 	{
 
-		x[0] *= extents_[0];
-		x[1] *= extents_[1];
-		x[2] *= extents_[2];
-
 #ifndef ENABLE_SUB_TREE_DEPTH
 
-		static constexpr Real CELL_SCALE_R=static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE ));
-		static constexpr Real INV_CELL_SCALE_R=1.0/CELL_SCALE_R;
+		nTuple<NDIMS,index_type> I=Decompact(shift>>(MAX_DEPTH_OF_TREE-1));
 
-		compact_index_type s=((Compact(x)+((~shift)&_DA)) &COMPACT_INDEX_ROOT_MASK) |shift;
+		coordinates_type r;
 
-		x-=Decompact(s);
+		r[0] =x[0]* global_count_[0]+global_begin_[0]-0.5*static_cast<Real>(I[0]);
+		r[1] =x[1]* global_count_[1]+global_begin_[1]-0.5*static_cast<Real>(I[1]);
+		r[2] =x[2]* global_count_[2]+global_begin_[2]-0.5*static_cast<Real>(I[2]);
 
-		x*=INV_CELL_SCALE_R;
+		I[0]=std::lround(r[0]);
+		I[1]=std::lround(r[1]);
+		I[2]=std::lround(r[2]);
 
-		s+=global_begin_compact_index_;
+		r -=I;
+
+		compact_index_type s=(Compact(I)<<MAX_DEPTH_OF_TREE) |shift;
+
+#	ifdef DEGUB
+
+		if(InnerProductNTuple(r,r)>1.0)
+		{
+			CHECK(x);
+			CHECK(I);
+			CHECK(r);
+		}
+#	endif
+
 #else
 		compact_index_type depth = DepthOfTree(shift);
 
@@ -883,7 +891,7 @@ public:
 //
 //		auto s= Compact(idx);
 #endif
-		return std::move(std::make_tuple( s,x));
+		return std::move(std::make_tuple( s,r));
 	}
 	//! @}
 
@@ -2109,7 +2117,8 @@ inline UniformArray::range_type Split(UniformArray::range_type const & range, un
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{
