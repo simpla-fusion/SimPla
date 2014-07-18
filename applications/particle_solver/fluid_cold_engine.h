@@ -123,7 +123,8 @@ public:
 			load_field(dict["Current"], &(res->J));
 
 			res->n *= res->q;
-		} catch (...)
+		}
+		catch (...)
 		{
 			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 		}
@@ -210,8 +211,8 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
-		: mesh(pmesh),
+template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh) :
+		mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -268,12 +269,15 @@ void Particle<ColdFluid<TM>>::next_timestep_half(E_type const & E, B_type const 
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto B2 = mesh.template make_field<VERTEX, scalar_type>();
 
 	Real as = 0.5 * q / m * mesh.get_dt();
 
 	K = J + Cross(J, B) * as + 2.0 * as * n * E;
 
-	J = (K + Cross(K, B) * as + B * (Dot(K, B) * as * as)) / (Dot(B, B) * as * as + 1);
+	B2 = Dot(B, B);
+
+	J = (K + Cross(K, B) * as + B * (Dot(K, B) * as * as)) / (B2 * as * as + 1);
 
 }
 

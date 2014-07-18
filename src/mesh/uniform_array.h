@@ -39,7 +39,7 @@ struct UniformArray
 	static constexpr unsigned int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr unsigned int NDIMS = 3;
-	static constexpr unsigned int DEFAULT_GHOSTS_WIDTH = 2;
+	static constexpr unsigned int DEFAULT_GHOSTS_WIDTH = 3;
 	typedef long index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<NDIMS, Real> coordinates_type;
@@ -160,7 +160,7 @@ public:
 	//  \endverbatim
 
 	template<typename TI>
-	void set_dimensions(TI const &d, bool p_is_fast_first = false)
+	void set_dimensions(TI const &d)
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
