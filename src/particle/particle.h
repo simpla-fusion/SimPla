@@ -283,8 +283,6 @@ void Particle<Engine>::next_timestep_zero(E_type const & E, B_type const & B)
 
 	Real dt = mesh.get_dt();
 
-	J.clear();
-
 	for (auto & cell : *this)
 	{
 		//TODO add rw cache
@@ -306,8 +304,6 @@ void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
 
 	Real dt = mesh.get_dt();
 
-	J.clear();
-
 	for (auto & cell : *this)
 	{
 		//TODO add rw cache
@@ -323,9 +319,8 @@ void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
 template<typename Engine>
 void Particle<Engine>::update_fields()
 {
-	VERBOSE << "Scatter particles to fields ";
 
-//	VERBOSE << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
+	VERBOSE << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
 
 	Real dt = mesh.get_dt();
 
