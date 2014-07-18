@@ -61,8 +61,6 @@ protected:
 
 		mesh.Update();
 
-		mesh.Decompose();
-
 		K_imag = mesh.k_imag;
 
 		GLOBAL_DATA_STREAM.cd("MeshTest.h5:/");

@@ -77,7 +77,6 @@ protected:
 		mesh.set_extents(xmin, xmax );
 
 		mesh.Update();
-		mesh.Decompose();
 
 	}
 public:

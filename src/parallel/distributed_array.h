@@ -200,7 +200,6 @@ void DistributedArray<N>::Decompose(int num_process, unsigned int process_num, l
 				}
 			}
 		}
-		CHECK(send_recv_.size());
 	}
 
 }
