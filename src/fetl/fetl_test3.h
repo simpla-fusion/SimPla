@@ -16,7 +16,7 @@ using namespace simpla;
 
 TEST_P(TestFETL, grad0)
 {
-
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f0 = mesh.make_field<VERTEX, scalar_type>();
@@ -31,6 +31,7 @@ TEST_P(TestFETL, grad0)
 	{
 		f0[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
+	UpdateGhosts(&f0);
 
 	LOG_CMD(f1 = Grad(f0));
 
@@ -91,7 +92,7 @@ TEST_P(TestFETL, grad0)
 
 TEST_P(TestFETL, grad3)
 {
-
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f2 = mesh.make_field<FACE, scalar_type>();
@@ -106,7 +107,7 @@ TEST_P(TestFETL, grad3)
 	{
 		f3[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-
+	UpdateGhosts(&f3);
 	LOG_CMD(f2 = Grad(f3));
 
 	Real m = 0.0;
@@ -164,7 +165,7 @@ TEST_P(TestFETL, grad3)
 
 TEST_P(TestFETL, diverge1)
 {
-
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = mesh.make_field<EDGE, scalar_type>();
@@ -178,7 +179,7 @@ TEST_P(TestFETL, diverge1)
 	{
 		f1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-
+	UpdateGhosts(&f1);
 	f0 = Diverge(f1);
 
 	Real variance = 0;
@@ -247,15 +248,11 @@ TEST_P(TestFETL, diverge1)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= " << K_imag << " mesh.Ki=" << mesh.k_imag;
 
-//	GLOBAL_DATA_STREAM.cd("/diverge1/");
-//	LOGGER << SAVE(f1);
-//	LOGGER << SAVE(f0);
-//	LOGGER << SAVE(f0b);
-
 }
 
 TEST_P(TestFETL, diverge2)
 {
+	if (!mesh.is_valid()) return;
 
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
@@ -269,7 +266,7 @@ TEST_P(TestFETL, diverge2)
 	{
 		f2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-
+	UpdateGhosts(&f2);
 	f3 = Diverge(f2);
 
 	Real variance = 0;
@@ -329,7 +326,7 @@ TEST_P(TestFETL, diverge2)
 
 TEST_P(TestFETL, curl1)
 {
-
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto vf1 = mesh.make_field<EDGE, scalar_type>();
@@ -351,7 +348,7 @@ TEST_P(TestFETL, curl1)
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-
+	UpdateGhosts(&vf1);
 	LOG_CMD(vf2 = Curl(vf1));
 
 	for (auto s : mesh.Select(FACE))
@@ -426,6 +423,7 @@ TEST_P(TestFETL, curl1)
 
 TEST_P(TestFETL, curl2)
 {
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto vf1 = mesh.make_field<EDGE, scalar_type>();
@@ -447,7 +445,7 @@ TEST_P(TestFETL, curl2)
 	{
 		vf2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-
+	UpdateGhosts(&vf2);
 	LOG_CMD(vf1 = Curl(vf2));
 
 	vf1b.clear();
@@ -524,7 +522,7 @@ TEST_P(TestFETL, curl2)
 
 TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 {
-
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f0 = mesh.make_field<VERTEX, scalar_type>();
@@ -544,6 +542,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 		f0[s] = default_value * a;
 		m += a * a;
 	}
+	UpdateGhosts(&f0);
 
 	m = std::sqrt(m) * abs(default_value);
 
@@ -571,6 +570,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 {
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f3 = mesh.make_field<VOLUME, scalar_type>();
@@ -590,7 +590,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 		f3[s] = a * default_value;
 		m += a * a;
 	}
-
+	UpdateGhosts(&f3);
 	m = std::sqrt(m) * abs(default_value);
 
 	LOG_CMD(f2 = Grad(f3));
@@ -617,6 +617,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestFETL, identity_div_curl_f1_eq0)
 {
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = mesh.make_field<EDGE, scalar_type>();
@@ -639,6 +640,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 		m += a * a;
 	}
+	UpdateGhosts(&f2);
 
 	m = std::sqrt(m) * abs(default_value);
 
@@ -666,6 +668,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
+	if (!mesh.is_valid()) return;
 	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = mesh.make_field<EDGE, scalar_type>();
@@ -686,6 +689,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 		f1[s] = default_value * a;
 		m += a * a;
 	}
+	UpdateGhosts(&f1);
 
 	m = std::sqrt(m) * abs(default_value);
 

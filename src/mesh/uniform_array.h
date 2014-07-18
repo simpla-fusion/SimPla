@@ -124,6 +124,16 @@ public:
 		return clock_;
 	}
 
+	bool is_valid() const
+	{
+		bool res = true;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			res = res && (global_count_[i] <= 1);
+		}
+		return !res;
+	}
+
 	//! @name Local Data Set
 	//! @{
 

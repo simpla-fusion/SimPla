@@ -18,6 +18,8 @@ using namespace simpla;
 TEST_P(TestFETL ,vec_zero_form)
 {
 
+	if (!mesh.is_valid()) return;
+
 	nTuple<3, scalar_type> vc1 = { 1.0, 2.0, 3.0 };
 
 	nTuple<3, scalar_type> vc2 = { -1.0, 4.0, 2.0 };
@@ -39,10 +41,12 @@ TEST_P(TestFETL ,vec_zero_form)
 	{
 		p = vc1 * uniform_dist(gen);
 	}
+	UpdateGhosts(&vaf);
 	for (auto & p : vbf)
 	{
 		p = vc2 * uniform_dist(gen);
 	}
+	UpdateGhosts(&vbf);
 
 	LOG_CMD(res_vector_field = Cross(vaf, vbf));
 

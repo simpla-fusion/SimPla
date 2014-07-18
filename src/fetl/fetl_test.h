@@ -63,8 +63,6 @@ protected:
 
 		K_imag = mesh.k_imag;
 
-		GLOBAL_DATA_STREAM.cd("MeshTest.h5:/");
-
 	}
 public:
 

@@ -20,6 +20,8 @@ using namespace simpla;
 
 TEST_P(TestFETL, vector_arithmetic)
 {
+	if (!mesh.is_valid()) return;
+
 	auto f0 = mesh.template make_field<VERTEX, value_type>();
 	auto f1 = mesh.template make_field<EDGE, value_type>();
 	auto f1a = mesh.template make_field<EDGE, value_type>();
@@ -61,6 +63,10 @@ TEST_P(TestFETL, vector_arithmetic)
 	{
 		v = vc * uniform_dist(gen);
 	}
+
+	UpdateGhosts(&f1a);
+	UpdateGhosts(&f2a);
+	UpdateGhosts(&f3);
 
 	LOG_CMD(f2b = Cross(f1a, f1b));
 	LOG_CMD(f3 = Dot(f1a, f2a));

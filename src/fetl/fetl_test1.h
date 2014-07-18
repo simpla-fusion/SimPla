@@ -99,6 +99,8 @@ TYPED_TEST_P(TestFETLBase, constant_real){
 {
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
 
+	if (!mesh.is_valid()) return;
+
 	typedef typename TestFixture::value_type value_type;
 	typedef typename TestFixture::field_type field_type;
 
@@ -131,7 +133,7 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 {
 
 	typename TestFixture::mesh_type const & mesh= TestFixture::mesh;
-
+	if (!mesh.is_valid()) return;
 	typedef typename TestFixture::value_type value_type;
 	typedef typename TestFixture::field_type field_type;
 	typedef typename TestFixture::scalar_field_type scalar_field_type;
@@ -180,6 +182,9 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	{
 		v=vc *uniform_dist(gen);
 	}
+	UpdateGhosts(&f1);
+	UpdateGhosts(&f2);
+	UpdateGhosts(&f3);
 
 	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
 
