@@ -185,12 +185,12 @@ public:
 	}
 	inline value_type & get(key_type s)
 	{
-		return data_.get()[hash_fun_(s)];
+		return data_.get()[hash_fun_(s)%num_of_ele_];
 	}
 
 	inline value_type const & get(key_type s) const
 	{
-		return data_.get()[hash_fun_(s)];
+		return data_.get()[hash_fun_(s)%num_of_ele_];
 	}
 
 };

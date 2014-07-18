@@ -339,10 +339,10 @@ void Particle<Engine>::update_fields()
 
 	UpdateGhosts(&J);
 
-	if (properties["Update Density"].template as<bool>(true))
-	{
-		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
-	}
+//	if (properties["Update Density"].template as<bool>(true))
+//	{
+//		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+//	}
 }
 
 //*************************************************************************************************
