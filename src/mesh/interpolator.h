@@ -45,16 +45,20 @@ private:
 		coordinates_type r = std::get<1>(idx);
 		compact_index_type s = std::get<0>(idx);
 
+#ifdef DEBUG
+		assert (r[0] >= 0 && r[0] < 1.0);
+#endif
+
 		return
 
 		get_value(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
-		+ get_value(f, ((s + X) + Y) - Z) * (r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ get_value(f, ((s + X) - Y) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ get_value(f, ((s + X) - Y) - Z) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
-		+ get_value(f, ((s - X) + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-		+ get_value(f, ((s - X) + Y) - Z) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
-		+ get_value(f, ((s - X) - Y) + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ get_value(f, ((s - X) - Y) - Z) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		+ get_value(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ get_value(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ get_value(f, s + X) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ get_value(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
+		+ get_value(f, s + Y) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ get_value(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
+		+ get_value(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF>
@@ -95,14 +99,18 @@ private:
 		coordinates_type r = std::get<1>(idx);
 		compact_index_type s = std::get<0>(idx);
 
+#ifdef DEBUG
+		assert (r[0] >= 0 && r[0] < 1.0);
+#endif
+
 		get_value(*f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
-		get_value(*f, ((s + X) + Y) - Z) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
-		get_value(*f, ((s + X) - Y) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
-		get_value(*f, ((s + X) - Y) - Z) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
-		get_value(*f, ((s - X) + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
-		get_value(*f, ((s - X) + Y) - Z) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
-		get_value(*f, ((s - X) - Y) + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
-		get_value(*f, ((s - X) - Y) - Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		get_value(*f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
+		get_value(*f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
+		get_value(*f, s + X) += v * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
+		get_value(*f, (s + Y) + Z) += v * (1.0 - r[0]) * (r[1]) * (r[2]);
+		get_value(*f, s + Y) += v * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]);
+		get_value(*f, s + Z) += v * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]);
+		get_value(*f, s) += v * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF, typename TV>

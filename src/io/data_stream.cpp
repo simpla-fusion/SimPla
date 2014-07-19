@@ -442,10 +442,10 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
 {
-	if ((ds.flag & (SP_UNORDER | SP_RECORD)) == (SP_UNORDER | SP_RECORD))
-	{
-		ds.flag &= ~SP_RECORD;
-	}
+//	if ((ds.flag & (SP_UNORDER | SP_RECORD)) == (SP_UNORDER | SP_RECORD))
+//	{
+//		ds.flag &= ~SP_RECORD;
+//	}
 
 	if ((ds.flag & SP_RECORD) == SP_RECORD)
 	{

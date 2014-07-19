@@ -80,13 +80,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDefault(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineDefault(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDefault(mesh_type const &pmesh, Others && ...others) :
-			PICEngineDefault(pmesh)
+	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
+			: PICEngineDefault(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -158,6 +158,7 @@ public:
 	{
 
 		p->x += p->v * dt * 0.5;
+
 		auto B = real(interpolator_type::GatherCartesian(fB, p->x));
 		auto E = real(interpolator_type::GatherCartesian(fE, p->x));
 

@@ -300,17 +300,23 @@ public:
 			if (global_end_[i] - global_begin_[i] > 1)
 			{
 
-				if (global_begin != nullptr) global_begin[rank] = global_begin_[i];
+				if (global_begin != nullptr)
+					global_begin[rank] = global_begin_[i];
 
-				if (global_end != nullptr) global_end[rank] = global_end_[i];
+				if (global_end != nullptr)
+					global_end[rank] = global_end_[i];
 
-				if (local_outer_begin != nullptr) local_outer_begin[rank] = local_outer_begin_[i];
+				if (local_outer_begin != nullptr)
+					local_outer_begin[rank] = local_outer_begin_[i];
 
-				if (local_outer_end != nullptr) local_outer_end[rank] = local_outer_end_[i];
+				if (local_outer_end != nullptr)
+					local_outer_end[rank] = local_outer_end_[i];
 
-				if (local_inner_begin != nullptr) local_inner_begin[rank] = local_inner_begin_[i];
+				if (local_inner_begin != nullptr)
+					local_inner_begin[rank] = local_inner_begin_[i];
 
-				if (local_inner_end != nullptr) local_inner_end[rank] = local_inner_end_[i];
+				if (local_inner_end != nullptr)
+					local_inner_end[rank] = local_inner_end_[i];
 
 				++rank;
 			}
@@ -318,17 +324,23 @@ public:
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
-			if (global_begin != nullptr) global_begin[rank] = 0;
+			if (global_begin != nullptr)
+				global_begin[rank] = 0;
 
-			if (global_end != nullptr) global_end[rank] = 3;
+			if (global_end != nullptr)
+				global_end[rank] = 3;
 
-			if (local_outer_begin != nullptr) local_outer_begin[rank] = 0;
+			if (local_outer_begin != nullptr)
+				local_outer_begin[rank] = 0;
 
-			if (local_outer_end != nullptr) local_outer_end[rank] = 3;
+			if (local_outer_end != nullptr)
+				local_outer_end[rank] = 3;
 
-			if (local_inner_begin != nullptr) local_inner_begin[rank] = 0;
+			if (local_inner_begin != nullptr)
+				local_inner_begin[rank] = 0;
 
-			if (local_inner_end != nullptr) local_inner_end[rank] = 3;
+			if (local_inner_end != nullptr)
+				local_inner_end[rank] = 3;
 
 			++rank;
 		}
@@ -358,17 +370,23 @@ public:
 			if (global_end_[i] - global_begin_[i] > 1)
 			{
 
-				if (global_begin != nullptr) global_begin[rank] = global_begin_[i];
+				if (global_begin != nullptr)
+					global_begin[rank] = global_begin_[i];
 
-				if (global_end != nullptr) global_end[rank] = global_end_[i];
+				if (global_end != nullptr)
+					global_end[rank] = global_end_[i];
 
-				if (local_outer_begin != nullptr) local_outer_begin[rank] = outer_begin[i];
+				if (local_outer_begin != nullptr)
+					local_outer_begin[rank] = outer_begin[i];
 
-				if (local_outer_end != nullptr) local_outer_end[rank] = outer_end[i];
+				if (local_outer_end != nullptr)
+					local_outer_end[rank] = outer_end[i];
 
-				if (local_inner_begin != nullptr) local_inner_begin[rank] = inner_begin[i];
+				if (local_inner_begin != nullptr)
+					local_inner_begin[rank] = inner_begin[i];
 
-				if (local_inner_end != nullptr) local_inner_end[rank] = inner_end[i];
+				if (local_inner_end != nullptr)
+					local_inner_end[rank] = inner_end[i];
 
 				++rank;
 			}
@@ -376,17 +394,23 @@ public:
 		}
 		if (IFORM == EDGE || IFORM == FACE)
 		{
-			if (global_begin != nullptr) global_begin[rank] = 0;
+			if (global_begin != nullptr)
+				global_begin[rank] = 0;
 
-			if (global_end != nullptr) global_end[rank] = 3;
+			if (global_end != nullptr)
+				global_end[rank] = 3;
 
-			if (local_outer_begin != nullptr) local_outer_begin[rank] = 0;
+			if (local_outer_begin != nullptr)
+				local_outer_begin[rank] = 0;
 
-			if (local_outer_end != nullptr) local_outer_end[rank] = 3;
+			if (local_outer_end != nullptr)
+				local_outer_end[rank] = 3;
 
-			if (local_inner_begin != nullptr) local_inner_begin[rank] = 0;
+			if (local_inner_begin != nullptr)
+				local_inner_begin[rank] = 0;
 
-			if (local_inner_end != nullptr) local_inner_end[rank] = 3;
+			if (local_inner_end != nullptr)
+				local_inner_end[rank] = 3;
 
 			++rank;
 		}
@@ -807,11 +831,16 @@ public:
 		r[1] = x[1] * global_count_[1] + global_begin_[1] - 0.5 * static_cast<Real>(I[1]);
 		r[2] = x[2] * global_count_[2] + global_begin_[2] - 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = std::lround(r[0]);
-		I[1] = std::lround(r[1]);
-		I[2] = std::lround(r[2]);
+		I[0] = static_cast<index_type>(std::floor(r[0]));
+		I[1] = static_cast<index_type>(std::floor(r[1]));
+		I[2] = static_cast<index_type>(std::floor(r[2]));
 
 		r -= I;
+
+		if (r[0] < 0 || r[0] >= 1.0)
+		{
+			CHECK(r);
+		}
 
 		compact_index_type s = (Compact(I) << MAX_DEPTH_OF_TREE) | shift;
 
@@ -1127,27 +1156,27 @@ public:
 
 		compact_index_type shift_;
 
-		iterator() :
-				shift_(0UL)
+		iterator()
+				: shift_(0UL)
 		{
 		}
-		iterator(iterator const & r) :
-				self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
+		iterator(iterator const & r)
+				: self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
 		{
 		}
-		iterator(iterator && r) :
-				self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
+		iterator(iterator && r)
+				: self_(r.self_), begin_(r.begin_), end_(r.end_), shift_(r.shift_)
 		{
 		}
 
-		iterator(compact_index_type s) :
-				self_(DecompactCellIndex(s)), begin_(DecompactCellIndex(s)), end_(DecompactCellIndex(s) + 1), shift_(
+		iterator(compact_index_type s)
+				: self_(DecompactCellIndex(s)), begin_(DecompactCellIndex(s)), end_(DecompactCellIndex(s) + 1), shift_(
 				        DeltaIndex(s))
 		{
 		}
 		iterator(nTuple<NDIMS, index_type> s, nTuple<NDIMS, index_type> b, nTuple<NDIMS, index_type> e,
-		        compact_index_type shift = 0UL) :
-				self_(s), begin_(b), end_(e), shift_(shift)
+		        compact_index_type shift = 0UL)
+				: self_(s), begin_(b), end_(e), shift_(shift)
 		{
 		}
 
@@ -1440,7 +1469,8 @@ public:
 
 	std::function<size_t(compact_index_type)> make_hash(range_type range) const
 	{
-		if (!is_ready()) RUNTIME_ERROR("Mesh is not defined!!");
+		if (!is_ready())
+			RUNTIME_ERROR("Mesh is not defined!!");
 
 		std::function<size_t(compact_index_type)> res;
 
@@ -2110,7 +2140,8 @@ inline UniformArray::range_type Split(UniformArray::range_type const & range, un
 
 	if ((2 * ghost_width * num_process > count[n] || num_process > count[n]))
 	{
-		if (process_num > 0) count = 0;
+		if (process_num > 0)
+			count = 0;
 	}
 	else
 	{

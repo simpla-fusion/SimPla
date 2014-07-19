@@ -15,9 +15,9 @@ epsilon0	=8.8542e-12
 
 k_parallel=6.5
 Btor	= 1.0  * Tesla
-Ti 		=  0.0000005 * KeV
+Ti 		=  0.5 * KeV
 Te 		=  0.0000005 * KeV
-N0 		= 1.0e19 -- m^-3
+N0 		= 1.0e18 -- m^-3
 
 
 omega_ci = e * Btor/mp -- e/m_p B0 rad/s
@@ -29,10 +29,10 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 128
+NX = 32
 NY = 1
 NZ = 1
-LX = 1  --m --100000*rhoi --0.6
+LX = 10  --m --100000*rhoi --0.6
 LY = 20 --2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
 
@@ -49,8 +49,9 @@ InitValue = {
 		return {res,res,res}
 	end
 	--]]
+
 	, J 	= 0.0
-	, B 	=  {0,0,0.0}
+	, B 	=  {0,0,1.0}
 }
 
 Model=
@@ -69,8 +70,8 @@ Model=
 		Max={LX,LY,LZ},
 
 		Dimensions={NX,NY,1},
-
-		CFL =0.5,
+		dt=1.0e-8
+--		CFL =0.5,
 
 	},
 
@@ -80,7 +81,7 @@ Model=
 
 
 Particles={
-	H 	= {Type="Default",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200},
+	H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200,DumpParticle=true,DisableSorting=true,ScatterN=true},
 --	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
 --	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=200  },
 

@@ -107,7 +107,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	}
 	else
 	{
-		EXPECT_LE(abs( w*3-b),EPSILON*100);
+		EXPECT_LE(abs( w*3-b),EPSILON*10);
 	}
 
 }

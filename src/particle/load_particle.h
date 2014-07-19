@@ -162,10 +162,11 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	nTuple<3, Real> x, v;
 
+	Real inv_sample_density = 1.0 / pic;
+
 	auto buffer = p->create_child();
 	for (auto s : range)
 	{
-		Real inv_sample_density = mesh.CellVolume(s) / pic;
 
 		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
 

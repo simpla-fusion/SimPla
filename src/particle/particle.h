@@ -239,6 +239,8 @@ void Particle<Engine>::load(TDict const & dict)
 
 	set_property("ScatterN", dict["ScatterN"].template as<bool>(false));
 
+	storage_type::disable_sorting_ = dict["DisableSorting"].template as<bool>(false);
+
 	J.clear();
 
 	n.clear();
@@ -281,7 +283,7 @@ template<typename Engine>
 void Particle<Engine>::next_timestep_zero(E_type const & E, B_type const & B)
 {
 
-	VERBOSE << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
+	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
 
 	storage_type::Sort();
 
@@ -302,7 +304,7 @@ template<typename Engine>
 void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
 {
 
-	VERBOSE << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
+	LOGGER << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
 
 	storage_type::Sort();
 
@@ -324,7 +326,7 @@ template<typename Engine>
 void Particle<Engine>::update_fields()
 {
 
-	VERBOSE << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
+	LOGGER << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
 
 	Real dt = mesh.get_dt();
 
@@ -345,7 +347,7 @@ void Particle<Engine>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(false))
 	{
-		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
 	else if (properties["ScatterN"].template as<bool>(false))
 	{

@@ -62,6 +62,7 @@ private:
 	bool isSorted_;
 
 public:
+	bool disable_sorting_ = false;
 
 	mesh_type const & mesh;
 
@@ -102,7 +103,7 @@ public:
 
 	bool is_sorted() const
 	{
-		return isSorted_;
+		return isSorted_ || disable_sorting_;
 	}
 
 	void EnableSort()
