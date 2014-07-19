@@ -557,7 +557,7 @@ public:
 	Real dual_volume_[8];
 	Real inv_dual_volume_[8];
 
-	nTuple<NDIMS, Real> inv_extents_, extents_;
+	nTuple<NDIMS, Real> inv_extents_, extents_, dx_, inv_dx_;
 
 	void Update()
 	{
@@ -569,12 +569,17 @@ public:
 			{
 				extents_[i] = 0.0;
 				inv_extents_[i] = 0.0;
+				dx_[i] = 0.0;
+				inv_dx_[i] = 0.0;
 
 			}
 			else
 			{
 				extents_[i] = static_cast<Real>((global_count_[i]) << MAX_DEPTH_OF_TREE);
 				inv_extents_[i] = 1.0 / extents_[i];
+				inv_dx_[i] = static_cast<Real>(global_count_[i]);
+				dx_[i] = 1.0 / inv_dx_[i];
+
 			}
 
 			volume_[1UL << (NDIMS - i - 1)] = 1.0 / L;
@@ -784,28 +789,27 @@ public:
 		return std::move(IndexToCoordinates(Decompact(s)));
 	}
 
-	inline coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type x) const
+	inline coordinates_type CoordinatesLocalToGlobal(compact_index_type s, coordinates_type r) const
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		Real CELL_SCALE_R = static_cast<Real>(1UL << (MAX_DEPTH_OF_TREE));
 		Real INV_CELL_SCALE_R = 1.0 / CELL_SCALE_R;
 
-		coordinates_type r;
+		coordinates_type x;
 
-		r = x * CELL_SCALE_R + Decompact(s - global_begin_compact_index_);
+		x = r + ((Decompact(s) >> MAX_DEPTH_OF_TREE) - global_begin_)
+		        + 0.5 * (Decompact((s & _DA)) >> (MAX_DEPTH_OF_TREE - 1));
+
+		x[0] *= dx_[0];
+		x[1] *= dx_[1];
+		x[2] *= dx_[2];
 
 #else
 
-		coordinates_type r= x
-		* static_cast<Real>(1UL<<(MAX_DEPTH_OF_TREE- DepthOfTree(s)));
-		+Decompact((s-global_begin_compact_index_));
+		UNIMPLEMENT;
 #endif
 
-		r[0] *= inv_extents_[0];
-		r[1] *= inv_extents_[1];
-		r[2] *= inv_extents_[2];
-
-		return std::move(r);
+		return std::move(x);
 	}
 
 	template<typename TI> inline auto CoordinatesLocalToGlobal(TI const& idx) const

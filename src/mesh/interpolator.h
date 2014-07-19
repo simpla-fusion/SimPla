@@ -45,52 +45,44 @@ private:
 		coordinates_type r = std::get<1>(idx);
 		compact_index_type s = std::get<0>(idx);
 
-#ifdef DEBUG
-		assert (r[0] >= 0 && r[0] < 1.0);
-#endif
-
 		return
 
 		get_value(f, ((s + X) + Y) + Z) * (r[0]) * (r[1]) * (r[2]) //
 		+ get_value(f, (s + X) + Y) * (r[0]) * (r[1]) * (1.0 - r[2]) //
 		+ get_value(f, (s + X) + Z) * (r[0]) * (1.0 - r[1]) * (r[2]) //
-		+ get_value(f, s + X) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
+		+ get_value(f, (s + X)) * (r[0]) * (1.0 - r[1]) * (1.0 - r[2]) //
 		+ get_value(f, (s + Y) + Z) * (1.0 - r[0]) * (r[1]) * (r[2]) //
-		+ get_value(f, s + Y) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
+		+ get_value(f, (s + Y)) * (1.0 - r[0]) * (r[1]) * (1.0 - r[2]) //
 		+ get_value(f, s + Z) * (1.0 - r[0]) * (1.0 - r[1]) * (r[2]) //
 		+ get_value(f, s) * (1.0 - r[0]) * (1.0 - r[1]) * (1.0 - r[2]);
 	}
 public:
 	template<typename TF>
-	static inline auto Gather_(mesh_type const & mesh, std::integral_constant<unsigned int, VERTEX>, TF const &f,
-	        coordinates_type r)
-	        DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL) ))
+	static inline auto Gather_(mesh_type const & mesh, Int2Type<VERTEX>, TF const &f, coordinates_type r)
+	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL) ))
 
 	template<typename TF>
-	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int, EDGE>, TF const &f,
-	        coordinates_type r)
-	        DECL_RET_TYPE(
-			        make_ntuple(
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<EDGE>, TF const &f, coordinates_type r)
+	DECL_RET_TYPE(
+			make_ntuple(
 
-					        Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DI)) ),
-					        Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DJ)) ),
-					        Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DK)) )
-			        ))
-
-	template<typename TF>
-	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int, FACE>, TF const &f,
-	        coordinates_type r)
-	                DECL_RET_TYPE( make_ntuple(
-
-					                Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DJ | topology_type::_DK))) ),
-					                Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DK | topology_type::_DI))) ),
-					                Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DI | topology_type::_DJ))) )
-			                ) )
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DI)) ),
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DJ)) ),
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DK)) )
+			))
 
 	template<typename TF>
-	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int, VOLUME>, TF const &f,
-	        coordinates_type r)
-	        DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DA)) ))
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<FACE>, TF const &f, coordinates_type r)
+	DECL_RET_TYPE( make_ntuple(
+
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DJ | topology_type::_DK))) ),
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DK | topology_type::_DI))) ),
+					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DI | topology_type::_DJ))) )
+			) )
+
+	template<typename TF>
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<VOLUME>, TF const &f, coordinates_type r)
+	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DA)) ))
 private:
 	template<typename TF, typename IDX, typename TV>
 	static inline void Scatter_impl_(TF *f, IDX const& idx, TV & v)
@@ -103,10 +95,6 @@ private:
 		coordinates_type r = std::get<1>(idx);
 		compact_index_type s = std::get<0>(idx);
 
-#ifdef DEBUG
-		assert (r[0] >= 0 && r[0] < 1.0);
-#endif
-
 		get_value(*f, ((s + X) + Y) + Z) += v * (r[0]) * (r[1]) * (r[2]);
 		get_value(*f, (s + X) + Y) += v * (r[0]) * (r[1]) * (1.0 - r[2]);
 		get_value(*f, (s + X) + Z) += v * (r[0]) * (1.0 - r[1]) * (r[2]);
@@ -118,15 +106,14 @@ private:
 	}
 public:
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int, VERTEX>, TF *f,
-	        coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VERTEX>, TF *f, coordinates_type r, TV const & v)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), v);
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int, EDGE>, TF *f,
-	        coordinates_type r, nTuple<3, TV> const & u)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<EDGE>, TF *f, coordinates_type r,
+	        nTuple<3, TV> const & u)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DI)), u[0]);
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DJ)), u[1]);
@@ -135,8 +122,8 @@ public:
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int, FACE>, TF *f,
-	        coordinates_type r, nTuple<3, TV> const & u)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<FACE>, TF *f, coordinates_type r,
+	        nTuple<3, TV> const & u)
 	{
 
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DJ | topology_type::_DK))), u[0]);
@@ -145,8 +132,7 @@ public:
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int, VOLUME>, TF *f,
-	        coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VOLUME>, TF *f, coordinates_type r, TV const & v)
 	{
 		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, topology_type::_DA), v);
 	}
@@ -158,7 +144,7 @@ public:
 	template<unsigned int IFORM, typename TContainer, typename TZ, typename TW>
 	static inline void Scatter(Field<mesh_type, IFORM, TContainer> *f, TZ const & Z, TW weight = 1.0)
 	{
-		Scatter_(f->mesh, std::integral_constant<unsigned int, IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
+		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 
 	/***
@@ -167,7 +153,7 @@ public:
 	 */
 	template<unsigned int IFORM, typename TContainer, typename ... Args>
 	static inline auto Gather(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const & x)
-	DECL_RET_TYPE ( Gather_(f.mesh, std::integral_constant<unsigned int,IFORM>(), f, x))
+	DECL_RET_TYPE ( Gather_(f.mesh, Int2Type<IFORM>(), f, x))
 
 	/***
 	 *  @param z (x,v) tangent bundle space coordinates on  Cartesian configure space
@@ -178,9 +164,18 @@ public:
 	{
 
 		TZ Z = f->mesh.PushForward(z);
-		Scatter_(f->mesh, std::integral_constant<unsigned int, IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
+		Scatter_(f->mesh, Int2Type<IFORM>(), f, std::get<0>(Z), std::get<1>(Z) * weight);
 	}
 
+	/***
+	 *  @param x tangent bundle space coordinates on  Cartesian configure space
+	 *  @return  field value(vector/scalar) on Cartesian configure space
+	 */
+//	template<unsigned int IFORM, typename TContainer>
+//	static inline auto GatherCartesian(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const& x)
+//	DECL_RET_TYPE (
+//			std::get<1>(f.mesh.PullBack(std::make_tuple(f.mesh.MapTo(x),
+//									Gather_(f.mesh, Int2Type<IFORM>(), f, f.mesh.MapTo(x))))))
 	/***
 	 *  @param x tangent bundle space coordinates on  Cartesian configure space
 	 *  @return  field value(vector/scalar) on Cartesian configure space
@@ -195,7 +190,6 @@ public:
 
 		std::integral_constant<unsigned int, IFORM>(), f, y)))));
 	}
-
 }
 ;
 

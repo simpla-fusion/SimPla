@@ -42,7 +42,7 @@ InitValue = {
 	E=function(x)
 
 		local res = 0.0;
-		for i=1,1 do
+		for i=1,20 do
 			res=res+math.sin(x[0]/LX*TWOPI* i + x[1]/LY*TWOPI);
 		end;
 
@@ -81,13 +81,13 @@ Model=
 
 
 Particles={
-	H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200,DumpParticle=true },
---	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
---	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=200  },
+	-- 	H 	= {Type="Default",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 ,ScatterN=true},
+	H   = {Type="Implicit",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200},
+--		H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,PIC=200  },
 
 --	ele1= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 },
 --	ele = {Type="ColdFluid",Mass=me,Charge=-e,Density=N0 },
---	H   = {Type="ColdFluid",Mass=mp,Charge=e,Density=N0 },
+--c	H   = {Type="ColdFluid",Mass=mp,Charge=e,Density=N0 },
 }
 
 

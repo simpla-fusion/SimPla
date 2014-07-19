@@ -84,7 +84,10 @@ TEST_P(TestGeometry, Coordinates)
 	for (auto iform : iform_list)
 	{
 		auto idx = geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(iform));
-		EXPECT_EQ(x, geometry.CoordinatesLocalToGlobal(idx) ) << "IForm =" << iform;
+		auto y = geometry.CoordinatesLocalToGlobal(idx);
+		EXPECT_DOUBLE_EQ(x[0], y[0]) << y[0] - x[0];
+		EXPECT_DOUBLE_EQ(x[1], y[1]) << y[1] - x[1];
+		EXPECT_DOUBLE_EQ(x[2], y[2]) << y[2] - x[2];
 
 		auto s = std::get<0>(idx);
 		EXPECT_EQ(iform, geometry.IForm(s));
