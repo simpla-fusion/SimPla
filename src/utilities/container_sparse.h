@@ -9,7 +9,7 @@
 #define CONTAINER_SPARSE_H_
 
 #include <mutex>
-
+#include <cstring>
 #include "../utilities/log.h"
 #include "../utilities/sp_complex.h"
 
@@ -36,31 +36,38 @@ public:
 
 	typedef std::map<key_type, value_type> base_container_type;
 
-	const value_type default_value_;
+private:
+	value_type default_value_;
+public:
+	SparseContainer() :
+			base_container_type()
+	{
+		std::memset(&default_value_, 0, sizeof(value_type));
 
-	SparseContainer(value_type d = value_type(0))
-			: base_container_type(), default_value_(d)
+	}
+	SparseContainer(value_type d) :
+			base_container_type(), default_value_(d)
 	{
 
 	}
 	template<typename TR, typename THash, typename ...Others>
-	SparseContainer(TR const &, size_t max_hash_value, THash const&, Others && ... others)
-			: base_container_type(std::forward<Others>(others)...), default_value_(value_type())
+	SparseContainer(TR const &, size_t max_hash_value, THash const&, Others && ... others) :
+			base_container_type(std::forward<Others>(others)...), default_value_(value_type())
 	{
 	}
 	template<typename TR, typename THash, typename ...Others>
-	SparseContainer(TR const &, size_t max_hash_value, THash const&, value_type d, Others && ... others)
-			: base_container_type(std::forward<Others>(others)...), default_value_(d)
+	SparseContainer(TR const &, size_t max_hash_value, THash const&, value_type d, Others && ... others) :
+			base_container_type(std::forward<Others>(others)...), default_value_(d)
 	{
 	}
 
-	SparseContainer(this_type const & rhs)
-			: base_container_type(rhs), default_value_(rhs.default_value_)
+	SparseContainer(this_type const & rhs) :
+			base_container_type(rhs), default_value_(rhs.default_value_)
 	{
 	}
 
-	SparseContainer(this_type &&rhs)
-			: base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
+	SparseContainer(this_type &&rhs) :
+			base_container_type(std::forward<base_container_type>(rhs)), default_value_(rhs.default_value_)
 	{
 	}
 
