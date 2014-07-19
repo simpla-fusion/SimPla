@@ -47,7 +47,7 @@
 #include "../utilities/lua_state.h"
 
 #include "../parallel/parallel.h"
-
+#include "../parallel/mpi_aux_functions.h"
 #include "particle.h"
 #include "particle_update_ghosts.h"
 //
@@ -161,11 +161,19 @@ int main(int argc, char **argv)
 	//	}
 
 	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 
-	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	VERBOSE << "UpdateGhosts particle DONE. Local particle number =" << reduce(p.size()) << std::endl;
 
-	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	auto total=reduce(p.size());
+
+	if(GLOBAL_COMM.get_rank()==0)
+	{
+		VERBOSE << "UpdateGhosts particle DONE. Total particle number = " << total << std::endl;
+	}
+//
+//	UpdateGhosts(&p);
+//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+//
+//	UpdateGhosts(&p);
+//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 }

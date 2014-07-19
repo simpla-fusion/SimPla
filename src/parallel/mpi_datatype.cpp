@@ -25,6 +25,10 @@ bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Dataty
 	{
 		*new_type = MPI_LONG;
 	}
+	else if (t_index == std::type_index(typeid(unsigned long)))
+	{
+		*new_type = MPI_UNSIGNED_LONG;
+	}
 	else if (t_index == std::type_index(typeid(float)))
 	{
 		*new_type = MPI_FLOAT;

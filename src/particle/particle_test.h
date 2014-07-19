@@ -154,11 +154,11 @@ TEST_P(TestParticle,Add)
 	UpdateGhosts(&p);
 	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 
-	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
-
-	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+//	UpdateGhosts(&p);
+//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+//
+//	UpdateGhosts(&p);
+//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
 }
 
 //TEST_P(TestParticle,scatter_n)

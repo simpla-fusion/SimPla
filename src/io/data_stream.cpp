@@ -262,9 +262,6 @@ void sync_string(std::string * filename_)
 {
 #ifdef USE_MPI
 
-	if (!GLOBAL_COMM.is_ready() )
-	return;
-
 	int name_len;
 
 	if (GLOBAL_COMM.get_rank()==0) name_len=filename_->size();
@@ -445,6 +442,10 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
 {
+	if ((ds.flag & (SP_UNORDER | SP_RECORD)) == (SP_UNORDER | SP_RECORD))
+	{
+		ds.flag &= ~SP_RECORD;
+	}
 
 	if ((ds.flag & SP_RECORD) == SP_RECORD)
 	{
@@ -590,6 +591,8 @@ void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
 	pds->block[0] = 1;
 
 	++pds->ndims;
+
+	pds->flag |= SP_APPEND;
 
 }
 

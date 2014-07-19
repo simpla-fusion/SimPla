@@ -43,7 +43,7 @@ public:
 
 	enum
 	{
-		SP_APPEND = 1UL << 2, SP_CACHE = SP_APPEND | (1UL << 3), SP_RECORD = SP_APPEND | (1UL << 4),
+		SP_APPEND = 1UL << 2, SP_CACHE = (1UL << 3), SP_RECORD = (1UL << 4),
 
 		SP_UNORDER = (1UL << 5)
 	};

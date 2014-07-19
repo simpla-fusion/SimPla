@@ -19,6 +19,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 {
 #ifdef USE_MPI
 
+	GLOBAL_COMM.barrier();
 	auto const & g_array = pool->mesh.global_array_;
 
 	if (g_array.send_recv_.size() == 0)
@@ -47,13 +48,21 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 	for (auto const & item : g_array.send_recv_)
 	{
 
-		auto t_cell = pool->create_child();
+		auto range = pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
 
-		auto range = pool->mesh.SelectOuter(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
+		if (size_of_range(range) == 0)
+		{
+			CHECK(item.send_end - pool->mesh.global_begin_);
+			CHECK(item.send_begin - pool->mesh.global_begin_);
+		}
 
-		pool->Remove(range, &t_cell);
-
-		std::copy(t_cell.begin(), t_cell.end(), std::back_inserter(buffer[count]));
+		for (auto s : range)
+		{
+			for (auto const & p : pool->get(s))
+			{
+				buffer[count].push_back(p);
+			}
+		}
 
 		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
 		        &requests[count]);
@@ -64,6 +73,8 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 	for (auto const & item : g_array.send_recv_)
 	{
+		pool->Remove(pool->mesh.SelectOuter(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
+
 		MPI_Status status;
 
 		MPI_Probe(item.dest, item.recv_tag, comm, &status);
@@ -89,7 +100,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 		        std::back_inserter(cell_buffer));
 
 	}
-
+	GLOBAL_COMM.barrier();
 	pool->Add(&cell_buffer);
 
 #endif
