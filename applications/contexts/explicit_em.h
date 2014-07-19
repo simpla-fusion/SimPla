@@ -149,18 +149,17 @@ public:
 	field<EDGE, scalar_type> J; //!< current density
 
 	field<VERTEX, nTuple<3, Real> > Bv;
+
+	ImplicitPushE<mesh_type> implicit_push_E;
+
+//	PML<mesh_type> pml_push;
+
 private:
-	typedef decltype(E) TE;
-	typedef decltype(B) TB;
-	typedef decltype(J) TJ;
+	typedef decltype(E) E_type;
+	typedef decltype(B) B_type;
+	typedef decltype(J) J_type;
 
 	typedef std::map<std::string, std::shared_ptr<ParticleBase> > TParticles;
-
-	std::function<void(Real, TE const &, TB const &, TE*)> E_plus_CurlB;
-
-	std::function<void(Real, TE const &, TB const &, TB*)> B_minus_CurlE;
-
-	std::function<void(TE const &, TB const &, TParticles const&, TE*)> Implicit_PushE;
 
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
@@ -186,7 +185,7 @@ private:
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: E(model), B(model), J(model), J0(model), dE(model), dB(model), n(model), n0(model), //
-		phi(model), Bv(model)
+		phi(model), Bv(model), implicit_push_E(model)
 {
 }
 
@@ -329,7 +328,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["B"], &B));
 
-		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J));
+
+		VERBOSE_CMD(load_field(dict["InitValue"]["J0"], &J0));
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["ne"], &ne0));
 
@@ -337,7 +338,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
 
-		J = J0;
+		J += J0;
 	}
 
 	dB.clear();
@@ -383,13 +384,6 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	}
 
-	bool enableImplicit = false;
-
-	for (auto const &p : particles_)
-	{
-		enableImplicit = enableImplicit || p.second->is_implicit();
-	}
-
 	LOGGER << "Load Constraints";
 
 	for (auto const & item : dict["Constraints"])
@@ -432,56 +426,57 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			PARSER_ERROR("Load 'Constraints' error! ");
 		}
 	}
-
-	bool enablePML = false;
-
-	try
-	{
-		LOGGER << "Load electromagnetic fields solver";
-
-		using namespace std::placeholders;
-
-		Real ic2 = 1.0 / (mu0 * epsilon0);
-
-		if (dict["FieldSolver"]["PML"])
-		{
-			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(model, dict["FieldSolver"]["PML"]));
-
-			E_plus_CurlB = std::bind(&PML<TM>::next_timestepE, solver, _1, _2, _3, _4);
-
-			B_minus_CurlE = std::bind(&PML<TM>::next_timestepB, solver, _1, _2, _3, _4);
-
-		}
-		else
-		{
-			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
-			{
-				auto & dE=*pdE;
-				VERBOSE_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
-			};
-
-			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
-			{
-				auto & dB=*pdB;
-				VERBOSE_CMD( dB -= Curl(E)*dt);
-			};
-		}
-
-	} catch (std::runtime_error const & e)
-	{
-		PARSER_ERROR("Configure field solver error! ");
-	}
-
-	Implicit_PushE = [] ( TE const &, TB const &, TParticles const&, TE*)
-	{};
-
-	if (enableImplicit)
-	{
-
-		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new ImplicitPushE<mesh_type>(model));
-		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
-		{	solver->next_timestep( pE,pB,p,dE);};
-	}
+//	bool enableImplicit = false;
+//
+//	for (auto const &p : particles_)
+//	{
+//		enableImplicit = enableImplicit || p.second->is_implicit();
+//	}
+//	bool enablePML = false;
+//
+//	try
+//	{
+//		LOGGER << "Load electromagnetic fields solver";
+//
+//		using namespace std::placeholders;
+//
+//		Real ic2 = 1.0 / (mu0 * epsilon0);
+//
+//		if (dict["FieldSolver"]["PML"])
+//		{
+//			auto solver = std::shared_ptr<PML<TM> >(new PML<TM>(model, dict["FieldSolver"]["PML"]));
+//
+//			E_plus_CurlB = std::bind(&PML<TM>::next_timestepE, solver, _1, _2, _3, _4);
+//
+//			B_minus_CurlE = std::bind(&PML<TM>::next_timestepB, solver, _1, _2, _3, _4);
+//
+//		}
+//		else
+//		{
+//			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
+//			{
+//				auto & dE=*pdE;
+//				VERBOSE_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+//			};
+//
+//			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
+//			{
+//				auto & dB=*pdB;
+//				VERBOSE_CMD( dB -= Curl(E)*dt);
+//			};
+//		}
+//
+//	} catch (std::runtime_error const & e)
+//	{
+//		PARSER_ERROR("Configure field solver error! ");
+//	}
+//	if (enableImplicit)
+//	{
+//
+//		auto solver = std::shared_ptr<ImplicitPushE<mesh_type>>(new);
+//		Implicit_PushE = [solver] ( TE const & pE, TB const & pB, TParticles const&p, TE*dE)
+//		{	solver->next_timestep( pE,pB,p,dE);};
+//	}
 
 }
 template<typename TM>
@@ -510,8 +505,8 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	// Compute Cycle Begin
 
-	// E0 B0,
-	LOG_CMD(J = J0);
+	J.clear();
+	LOG_CMD(J += J0);
 	ExcuteCommands(commandToJ_);
 
 	//   particle 0-> 1/2 . To n[1/2], J[1/2]
@@ -522,7 +517,7 @@ void ExplicitEMContext<TM>::next_timestep()
 			p.second->next_timestep_zero(E, B);
 			p.second->update_fields();
 
-			auto const & Js = p.second->template J<TJ>();
+			auto const & Js = p.second->template J<J_type>();
 			LOG_CMD(J += Js);
 		}
 	}
@@ -530,19 +525,24 @@ void ExplicitEMContext<TM>::next_timestep()
 	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
-	dE.clear();
-	E_plus_CurlB(dt, E, B, &dE);	// dE += Curl(B)*dt
-
-	LOG_CMD(dE -= J * (dt / epsilon0));
+	LOG_CMD(dE = (Curl(B) / mu0 - J) / epsilon0 * dt);
 
 	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	Implicit_PushE(E, B, particles_, &dE);
+	implicit_push_E.next_timestep(E, B, particles_, &dE);
 
-	LOG_CMD(E += dE);	// E(t=0 -> 1)
+	LOG_CMD(E += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
-	dB.clear();
-	B_minus_CurlE(dt, E, B, &dB);
+	for (auto &p : particles_)
+	{
+		if (!p.second->is_implicit())
+		{
+			p.second->next_timestep_half(E, B);
+		}
+	}
+	LOG_CMD(E += dE * 0.5);	// E(t=0 -> 1)
+	ExcuteCommands(commandToE_);
+	VERBOSE_CMD(dB = -Curl(E) * dt);
 
 	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);

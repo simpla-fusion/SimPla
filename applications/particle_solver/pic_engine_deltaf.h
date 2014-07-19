@@ -79,13 +79,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDeltaF(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
-			PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
+			: PICEngineDeltaF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}

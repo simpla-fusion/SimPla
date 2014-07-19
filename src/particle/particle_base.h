@@ -62,9 +62,7 @@ public:
 	{
 	}
 
-	virtual void update_fields()
-	{
-	}
+	virtual void update_fields() =0;
 
 	virtual void set_property_(std::string const & name, Any const&v)=0;
 

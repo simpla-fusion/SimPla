@@ -15,7 +15,7 @@ epsilon0	=8.8542e-12
 
 k_parallel=6.5
 Btor	= 1.0  * Tesla
-Ti 		=  0.0003 * KeV
+Ti 		=  0.0000005 * KeV
 Te 		=  0.0000005 * KeV
 N0 		= 1.0e19 -- m^-3
 
@@ -32,7 +32,7 @@ omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 NX = 128
 NY = 1
 NZ = 1
-LX = 10  --m --100000*rhoi --0.6
+LX = 1  --m --100000*rhoi --0.6
 LY = 20 --2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
 
@@ -42,7 +42,7 @@ InitValue = {
 	E=function(x)
 
 		local res = 0.0;
-		for i=1,2 do
+		for i=1,1 do
 			res=res+math.sin(x[0]/LX*TWOPI* i + x[1]/LY*TWOPI);
 		end;
 
@@ -50,7 +50,7 @@ InitValue = {
 	end
 	--]]
 	, J 	= 0.0
-	, B 	=  {0,0,Btor}
+	, B 	=  {0,0,0.0}
 }
 
 Model=
@@ -80,9 +80,9 @@ Model=
 
 
 Particles={
-	H 	= {Type="Default",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=20},
+	H 	= {Type="Default",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200},
 --	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
---	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=100  },
+--	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=200  },
 
 --	ele1= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 },
 --	ele = {Type="ColdFluid",Mass=me,Charge=-e,Density=N0 },

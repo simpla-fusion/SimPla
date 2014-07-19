@@ -123,8 +123,7 @@ public:
 			load_field(dict["Current"], &(res->J));
 
 			res->n *= res->q;
-		}
-		catch (...)
+		} catch (...)
 		{
 			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 		}
@@ -194,6 +193,7 @@ public:
 	{
 		return reinterpret_cast<void const*>(&J);
 	}
+	void update_fields();
 
 	void next_timestep_zero_(void const * E, void const*B)
 	{
@@ -211,8 +211,8 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh) :
-		mesh(pmesh),
+template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
+		: mesh(pmesh),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -259,7 +259,12 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 template<typename TM>
 void Particle<ColdFluid<TM>>::next_timestep_zero(E_type const & E, B_type const & B)
 {
-	LOGGER << "Push particles Step Zero[ " << get_type_as_string() << "]";
+}
+
+template<typename TM>
+void Particle<ColdFluid<TM>>::update_fields()
+{
+	LOGGER << "Push particles update fields[ " << get_type_as_string() << "]";
 	Real dt = mesh.get_dt();
 	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 }

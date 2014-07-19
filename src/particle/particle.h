@@ -235,6 +235,10 @@ void Particle<Engine>::load(TDict const & dict)
 
 	set_property("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 
+	set_property("DivergeJ", dict["DivergeJ"].template as<bool>(false));
+
+	set_property("ScatterN", dict["ScatterN"].template as<bool>(false));
+
 	J.clear();
 
 	n.clear();
@@ -339,23 +343,25 @@ void Particle<Engine>::update_fields()
 
 	UpdateGhosts(&J);
 
-	n.clear();
-
-	for (auto & cell : *this)
+	if (properties["DivergeJ"].template as<bool>(false))
 	{
-		//TODO add rw cache
-		for (auto & p : cell.second)
-		{
-			this->engine_type::Scatter(p, &n);
-		}
+		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
+	else if (properties["ScatterN"].template as<bool>(false))
+	{
+		n.clear();
 
-	UpdateGhosts(&n);
+		for (auto & cell : *this)
+		{
+			//TODO add rw cache
+			for (auto & p : cell.second)
+			{
+				this->engine_type::Scatter(p, &n);
+			}
+		}
 
-//	if (properties["Update Density"].template as<bool>(true))
-//	{
-//		VERBOSE_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
-//	}
+		UpdateGhosts(&n);
+	}
 }
 
 //*************************************************************************************************

@@ -67,6 +67,16 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
         typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
         typename mesh_type:: template field<EDGE, scalar_type> *pdE)
 {
+	{
+		bool flag = false;
+		for (auto &p : particles)
+		{
+			flag |= (p.second->is_implicit());
+		}
+
+		if (!flag)
+			return;
+	}
 
 	DEFINE_PHYSICAL_CONST
 
@@ -76,9 +86,12 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 
 	if (Ev.empty())
 		Ev = MapTo<VERTEX>(E);
-	Bv = MapTo<VERTEX>(B);
-	B0 = real(Bv);
-	BB = Dot(B0, B0);
+
+	{
+		Bv = MapTo<VERTEX>(B);
+		B0 = real(Bv);
+		BB = Dot(B0, B0);
+	}
 
 	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
@@ -97,7 +110,8 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 	{
 		if (p.second->is_implicit())
 		{
-			p.second->next_timestep_zero(Ev, Bv);
+			p.second->next_timestep_zero(Ev, B0);
+			p.second->update_fields();
 
 			auto & rhos = p.second->template n<n_type>();
 			auto & Js = p.second->template J<J_type>();
@@ -132,7 +146,9 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 	for (auto &p : particles)
 	{
 		if (p.second->is_implicit())
-			p.second->next_timestep_half(E, B);
+		{
+			p.second->next_timestep_half(Ev, B0);
+		}
 	}
 	Ev += dEv * 0.5;
 

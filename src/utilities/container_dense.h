@@ -9,7 +9,7 @@
 #define CONATINER_DENSE_H_
 
 #include <mutex>
-
+#include <cstring>
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/utilities.h"
@@ -136,7 +136,7 @@ public:
 	{
 		allocate();
 
-		fill(default_value_);
+		std::memset(data_.get(), 0, sizeof(value_type)*num_of_ele_);
 	}
 
 	void fill(value_type v)
