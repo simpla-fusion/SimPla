@@ -51,7 +51,7 @@ InitValue = {
 	--]]
 
 	, J 	= 0.0
-	, B 	=  {0,0,1.0}
+	, B 	=  {0,0,0}
 }
 
 Model=
@@ -70,8 +70,8 @@ Model=
 		Max={LX,LY,LZ},
 
 		Dimensions={NX,NY,1},
-		dt=1.0e-8
---		CFL =0.5,
+
+		CFL =0.1,
 
 	},
 
@@ -81,7 +81,7 @@ Model=
 
 
 Particles={
-	H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200,DumpParticle=true,DisableSorting=true,ScatterN=true},
+	H 	= {Type="DeltaF",	Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200,DumpParticle=true },
 --	ele = {Type="Implicit",	Mass=me,Charge=-e,	Temperature=Te,	Density=N0,	PIC=20},
 --	H 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=N0,PIC=200  },
 
