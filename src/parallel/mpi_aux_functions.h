@@ -66,7 +66,7 @@ std::tuple<Integral, Integral> sync_global_location(Integral count)
 	return std::make_tuple(begin, count);
 
 }
-MPI_Op get_MPI_Op(std::string const & op_c)
+inline MPI_Op get_MPI_Op(std::string const & op_c)
 {
 	MPI_Op op = MPI_SUM;
 

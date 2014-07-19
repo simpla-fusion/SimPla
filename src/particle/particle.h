@@ -185,8 +185,8 @@ public:
 
 	void update_fields();
 
-	//***************************************************************************************************
 	// interface end
+	//***************************************************************************************************
 
 	void AddConstraint(std::function<void()> const &foo)
 	{
@@ -214,14 +214,14 @@ public:
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename TDict>
-Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh) :
-		Particle(pmesh)
+Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
+		: Particle(pmesh)
 {
 	load(dict);
 }
@@ -265,7 +265,7 @@ std::string Particle<Engine>::save(std::string const & path) const
 
 	os << "\n, J =" << simpla::save("J", J);
 
-	if (get_property<bool>("DumpParticle"))
+	if (properties["DumpParticle"].template as<bool>(false))
 	{
 		os << "\n, particles = " << storage_type::save("particles");
 	}
@@ -338,6 +338,19 @@ void Particle<Engine>::update_fields()
 	}
 
 	UpdateGhosts(&J);
+
+	n.clear();
+
+	for (auto & cell : *this)
+	{
+		//TODO add rw cache
+		for (auto & p : cell.second)
+		{
+			this->engine_type::Scatter(p, &n);
+		}
+	}
+
+	UpdateGhosts(&n);
 
 //	if (properties["Update Density"].template as<bool>(true))
 //	{

@@ -50,14 +50,10 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 		auto range = pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
 
-		if (size_of_range(range) == 0)
-		{
-			CHECK(item.send_end - pool->mesh.global_begin_);
-			CHECK(item.send_begin - pool->mesh.global_begin_);
-		}
-
 		for (auto s : range)
 		{
+			buffer[count].clear();
+
 			for (auto const & p : pool->get(s))
 			{
 				buffer[count].push_back(p);
@@ -65,7 +61,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 		}
 
 		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
-		        &requests[count]);
+				&requests[count]);
 
 		++count;
 
@@ -83,11 +79,10 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 		// attributes of the incoming message. Get the size of the message
 		int number = 0;
 		MPI_Get_count(&status, dtype.type(), &number);
-
 		buffer[count].resize(number);
 
 		MPI_Irecv(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.recv_tag, comm,
-		        &requests[count]);
+				&requests[count]);
 		++count;
 	}
 
@@ -97,7 +92,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
 		std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
-		        std::back_inserter(cell_buffer));
+				std::back_inserter(cell_buffer));
 
 	}
 	GLOBAL_COMM.barrier();
@@ -105,6 +100,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 #endif
 }
-}  // namespace simpla
+}
+		// namespace simpla
 
 #endif /* PARTICLE_UPDATE_GHOSTS_H_ */
