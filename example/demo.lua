@@ -14,32 +14,36 @@ epsilon0	=8.8542e-12
 --
 
 k_parallel=6.5
-Btor	= 1.0  * Tesla
-Ti 		=  0.0003 * KeV
-Te 		=  0.0000005 * KeV
-N0 		= 1.0e19 -- m^-3
+Btor	=  1.0  * Tesla
+Ti 		=  0.5 * KeV
+Te 		=  0.5 * KeV
+N0 		= 4.0e19 -- m^-3
 
 
 omega_ci = e * Btor/mp -- e/m_p B0 rad/s
 vTi		= math.sqrt(k_B*Ti*2/mp)
 rhoi 	= vTi/omega_ci    -- m
+omega_pi=math.sqrt(N0*e*e/(mp*epsilon0))
 
 omega_ce = e * Btor/me -- e/m_p B0 rad/s
 vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
-omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
+omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
 NY = 128
 NZ = 1
-LX = 10  --m --100000*rhoi --0.6
-LY = 20 --2.0*math.pi/k0
+LX = 10 --  --100000*rhoi --0.6
+LY = 20 -- 2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
 GW = 5
 
-omega_ext=omega_ci 
 
+oemga_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci)) 
 
+omega_ext=omega_ci
+
+print( "Angle Frequency of antenna =",omega_ext )
 InitValue = {
 
 	--[[
