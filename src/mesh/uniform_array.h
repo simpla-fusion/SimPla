@@ -817,11 +817,12 @@ public:
 
 	/**
 	 *
-	 * @param x \f$ x \in \left[0,1\right)\f$ is redisual of coordinate
+	 * @param x coordinates \f$ x \in \left[0,1\right)\f$
 	 * @param shift
-	 * @return s,r  \f$I=int(x*N),s= compact(I)\f$s is conmpact index and  \f$ r= (x- I)/dx \f$ is distance
+	 * @return s,r  s is the largest grid point not greater than x.
+	 *       and  \f$ r \in \left[0,1.0\right) \f$ is the normalize  distance between x and s
 	 */
-	inline std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	inline std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type const & x,
 	        compact_index_type shift = 0UL) const
 	{
 
@@ -885,6 +886,51 @@ public:
 //		idx+=global_begin_<<MAX_DEPTH_OF_TREE;
 //
 //		auto s= Compact(idx);
+#endif
+		return std::move(std::make_tuple(s, r));
+	}
+
+	/**
+	 *
+	 * @param x  coordinates \f$ x \in \left[0,1\right)\f$
+	 * @param shift
+	 * @return s,r   s is thte conmpact index of nearest grid point
+	 *    and  \f$ r \in \left[-0.5,0.5\right) \f$   is the normalize  distance between x and s
+	 */
+	inline std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocalNGP(coordinates_type const & x,
+	        compact_index_type shift = 0UL) const
+	{
+
+#ifndef ENABLE_SUB_TREE_DEPTH
+
+		nTuple<NDIMS, index_type> I = Decompact(shift >> (MAX_DEPTH_OF_TREE - 1));
+
+		coordinates_type r;
+
+		r[0] = x[0] * global_count_[0] + global_begin_[0] - 0.5 * static_cast<Real>(I[0]);
+		r[1] = x[1] * global_count_[1] + global_begin_[1] - 0.5 * static_cast<Real>(I[1]);
+		r[2] = x[2] * global_count_[2] + global_begin_[2] - 0.5 * static_cast<Real>(I[2]);
+
+		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
+		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
+		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
+
+		r -= I;
+
+		compact_index_type s = (Compact(I) << MAX_DEPTH_OF_TREE) | shift;
+
+#	ifdef DEGUB
+
+		if (r[0] < -0.5 || r[0] >= 0.5)
+		{
+			CHECK(x);
+			CHECK(I);
+			CHECK(r);
+		}
+#	endif
+
+#else
+		UNIMPLEMENT
 #endif
 		return std::move(std::make_tuple(s, r));
 	}

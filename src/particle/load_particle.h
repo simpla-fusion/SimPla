@@ -145,8 +145,8 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST
 
-	nTuple<NDIMS, Real> dxmin = { -0.5, -0.5, -0.5 };
-	nTuple<NDIMS, Real> dxmax = { 0.5, 0.5, 0.5 };
+	nTuple<NDIMS, Real> dxmin = { 0, 0, 1 };
+	nTuple<NDIMS, Real> dxmax = { 1, 1, 1 };
 
 	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
 
@@ -165,6 +165,8 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	Real inv_sample_density = 1.0 / pic;
 
 	auto buffer = p->create_child();
+
+	CHECK(size_of_range(range));
 	for (auto s : range)
 	{
 

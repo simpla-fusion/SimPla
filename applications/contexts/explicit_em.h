@@ -347,6 +347,12 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	VERBOSE_CMD(load_field(dict["InitValue"]["E"], &E));
 
+	GLOBAL_DATA_STREAM.cd("/Input/");
+
+	VERBOSE << SAVE(ne0);
+	VERBOSE << SAVE(Te0);
+	VERBOSE << SAVE(Ti0);
+
 	LOGGER << "Load Particles";
 
 	auto particle_factory = RegisterAllParticles<mesh_type, TDict, Model<mesh_type> const &, decltype(ne0),

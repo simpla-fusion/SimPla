@@ -81,8 +81,8 @@ public:
 			) )
 
 	template<typename TF>
-	static inline auto Gather_(mesh_type const& mesh, Int2Type<VOLUME>, TF const &f, coordinates_type r)
-	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DA)) ))
+	static inline auto Gather_(mesh_type const& mesh, Int2Type<VOLUME>, TF const &f, coordinates_type const & x)
+	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DA)) ))
 private:
 	template<typename TF, typename IDX, typename TV>
 	static inline void Scatter_impl_(TF *f, IDX const& idx, TV & v)
@@ -106,35 +106,38 @@ private:
 	}
 public:
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, Int2Type<VERTEX>, TF *f, coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VERTEX>, TF *f, coordinates_type const &x, TV const & v)
 	{
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), v);
+		get_value(*f, std::get<0>(mesh.CoordinatesGlobalToLocalNGP(x, 0UL))) += v;
+//		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), v);
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, Int2Type<EDGE>, TF *f, coordinates_type r,
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<EDGE>, TF *f, coordinates_type const & x,
 	        nTuple<3, TV> const & u)
 	{
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DI)), u[0]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DJ)), u[1]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DK)), u[2]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DI)), u[0]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DJ)), u[1]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DK)), u[2]);
 
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, Int2Type<FACE>, TF *f, coordinates_type r,
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<FACE>, TF *f, coordinates_type const & x,
 	        nTuple<3, TV> const & u)
 	{
 
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DJ | topology_type::_DK))), u[0]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DK | topology_type::_DI))), u[1]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, ((topology_type::_DI | topology_type::_DJ))), u[2]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DJ | topology_type::_DK))), u[0]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DK | topology_type::_DI))), u[1]);
+		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DI | topology_type::_DJ))), u[2]);
 	}
 
 	template<typename TF, typename TV>
-	static inline void Scatter_(mesh_type const& mesh, Int2Type<VOLUME>, TF *f, coordinates_type r, TV const & v)
+	static inline void Scatter_(mesh_type const& mesh, Int2Type<VOLUME>, TF *f, coordinates_type const & x,
+	        TV const & v)
 	{
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, topology_type::_DA), v);
+		get_value(*f, std::get<0>(mesh.CoordinatesGlobalToLocalNGP(x, topology_type::_DA))) += v;
+//		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, topology_type::_DA), v);
 	}
 
 	/***

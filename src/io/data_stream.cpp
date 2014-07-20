@@ -167,7 +167,7 @@ DataStream::pimpl_s::pimpl_s()
 
 	properties["Enable XDMF"] = false;
 
-	properties["Cache Depth"] = static_cast<int>(20);
+	properties["Cache Depth"] = static_cast<int>(50);
 
 }
 DataStream::pimpl_s::~pimpl_s()

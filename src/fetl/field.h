@@ -348,10 +348,10 @@ public:
 		pull_back ( range_,geo,obj);
 	}
 
-	template< typename TG,typename TC>
-	void pull_back( Field<TG,IForm,TC> const & obj)
+	template< typename TObj>
+	void pull_back( TObj const & obj)
 	{
-		pull_back(range_,obj.mesh, obj);
+		pull_back(range_, mesh, obj);
 	}
 
 }

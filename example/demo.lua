@@ -40,25 +40,6 @@ GW = 5
 omega_ext=omega_ci*1.9*10
 
 
--- From Gan
-InitN0 = function(x)
-	local X0 = 12*LX/NX;
-	local DEN_JUMP = 0.4*LX;
-	local DEN_GRAD = 0.2*LX;
-	local AtX0 = 2./math.pi*math.atan((-DEN_JUMP)/DEN_GRAD);
-	local AtLX = 2./math.pi*math.atan((LX-DEN_JUMP-X0)/DEN_GRAD);
-	local DenCof = 1./(AtLX-AtX0);
-	local dens1 = DenCof*(2./math.pi*math.atan((x[0]-DEN_JUMP)/DEN_GRAD)-AtX0);
-
-	return N0 *dens1
-end
-
-InitB0 = function(x)
-	return {0,0,Btor}
-end
-
-
-
 InitValue = {
 
 	--[[
@@ -72,8 +53,6 @@ InitValue = {
 	return {res,res,res}
 	end
 	--]]
-
-
 	E 	= 0.0
 	--	, J 	= 0.0
 	--	, B 	= InitB0
@@ -95,9 +74,9 @@ Model=
 	Mesh={
 
 
-		Min={-1.4,1.2,0.0 },
+		Min={1.2,-1.4,0.0 },
 
-		Max={2.8,2.8,TWOPI },
+		Max={2.8,1.4,TWOPI },
 
 		--		dt= 0.5*LX/NX/c, -- time step
 
@@ -212,15 +191,16 @@ end
 --]]
 
 Particles={
---	H 	= {Type="Default",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=2	},
---	ele = {Type="Implicit",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=200 ,
---		EnableSorting=true,Commands=ParticleConstraints },
---	H1 	= {Type="DeltaF",Mass=mp,Charge=e,Temperature=Ti,Density=InitN0,PIC=100,
---		EnableSorting=true,Commands=ParticleConstraints },
---	ele1= {Type="DeltaF",Mass=me,Charge=-e,Temperature=Te,Density=InitN0,PIC=100 ,
---		EnableSorting=true,Commands=ParticleConstraints },
---	ele2  = {Type="ColdFluid",Mass=me,Charge=-e,Density=InitN0, EnableImplicit=true },
---	H3  = {Type="ColdFluid",Mass=mp,Charge=e,Density=InitN0, EnableImplicit=true },
+	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
+	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
+	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
+	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} },
+
+
+--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
+	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"} },
 }
 
 

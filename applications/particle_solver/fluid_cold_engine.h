@@ -54,6 +54,9 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B_type;
 
+	mesh_type const & mesh;
+
+	Properties properties;
 	enum
 	{
 		is_implicit_ = true
@@ -61,18 +64,61 @@ public:
 	const Real m;
 	const Real q;
 
-	mesh_type const & mesh;
-
 	n_type n;
 	J_type J;
 
-	template<typename TDict>
-	Particle(TDict const & dict, mesh_type const & pmesh);
+	template<typename TDict, typename TModel, typename ...Args>
+	Particle(TDict const & dict, TModel const & model, Args && ... args);
 
 	~Particle();
 
-	Properties properties;
+	template<typename ...Args>
+	static std::shared_ptr<ParticleBase> create(Args && ... args)
+	{
+		std::shared_ptr<this_type> res(new this_type(std::forward<Args>(args)...));
 
+		return std::dynamic_pointer_cast<ParticleBase>(res);
+	}
+
+	template<typename ...Args>
+	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
+	{
+		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
+		{
+			return this_type::create(args...);
+		};
+		return std::move(std::make_pair(get_type_as_string_static(), call_back));
+	}
+
+	template<typename TDict, typename TModel>
+	void load(TDict const & dict, TModel const & model);
+
+	template<typename TDict, typename TModel, typename TN, typename TJ>
+	void load(TDict const & dict, TModel const & model, TN const &, TJ const &);
+
+	std::string save(std::string const & path) const;
+
+	std::ostream& print(std::ostream & os) const
+	{
+		return print_(os);
+	}
+
+	template<typename OS>
+	OS & print_(OS& os) const
+	{
+		DEFINE_PHYSICAL_CONST
+		;
+
+		os << "Engine = '" << get_type_as_string() << "' "
+
+		<< " , " << "Mass = " << m / proton_mass << " * m_p"
+
+		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
+
+		<< " , " << properties;
+
+		return os;
+	}
 	void set_property_(std::string const & name, Any const&v)
 	{
 		properties[name] = v;
@@ -92,71 +138,23 @@ public:
 		return get_property_(name).template as<T>();
 	}
 
-	template<typename OS>
-	OS & print_(OS& os) const
-	{
-		DEFINE_PHYSICAL_CONST
-		;
-
-		os << "Engine = '" << get_type_as_string() << "' "
-
-		<< " , " << "Mass = " << m / proton_mass << " * m_p"
-
-		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
-
-		;
-
-		return os;
-	}
-
-	template<typename TDict, typename TModel, typename ...Args>
-	static std::shared_ptr<ParticleBase> create(TDict dict, TModel const & model, Args && ... args)
-	{
-		std::shared_ptr<this_type> res(new this_type(dict, model));
-
-		try
-		{
-			res->J.clear();
-			res->n.clear();
-
-			load_field(dict["Density"], &(res->n));
-			load_field(dict["Current"], &(res->J));
-
-			res->n *= res->q;
-		} catch (...)
-		{
-			PARSER_ERROR("Configure  Particle<ColdFluid> error!");
-		}
-
-		return std::dynamic_pointer_cast<ParticleBase>(res);
-	}
-
-	template<typename ...Args>
-	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
-	{
-		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
-		{
-			return this_type::create(args...);
-		};
-		return std::move(std::make_pair(get_type_as_string_static(), call_back));
-	}
-
 	void next_timestep_zero(E_type const & E, B_type const & B);
 
 	void next_timestep_half(E_type const & E, B_type const & B);
 
-	// interface
+// interface
 
-	bool same_mesh_type(std::type_info const & t_info) const
+	bool check_mesh_type(std::type_info const & t_info) const
 	{
 		return t_info == typeid(mesh_type);
 	}
-
-	std::string save(std::string const & path) const;
-
-	std::ostream& print(std::ostream & os) const
+	bool check_E_type(std::type_info const & t_info) const
 	{
-		return print_(os);
+		return t_info == typeid(E_type);
+	}
+	bool check_B_type(std::type_info const & t_info) const
+	{
+		return t_info == typeid(B_type);
 	}
 
 	Real get_mass() const
@@ -211,8 +209,9 @@ private:
 ;
 
 template<typename TM>
-template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, mesh_type const & pmesh)
-		: mesh(pmesh),
+template<typename TDict, typename TModel, typename ...Args>
+Particle<ColdFluid<TM>>::Particle(TDict const & dict, TModel const & model, Args && ... args)
+		: mesh(model),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -220,41 +219,69 @@ template<typename TDict> Particle<ColdFluid<TM>>::Particle(TDict const & dict, m
 
 		n(mesh), J(mesh)
 {
+	load(dict, model, std::forward<Args>(args)...);
 }
 
 template<typename TM>
 Particle<ColdFluid<TM>>::~Particle()
 {
 }
+template<typename TM>
+template<typename TDict, typename TModel>
+void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model)
+{
+
+	try
+	{
+		load_field(dict["Density"], &(n));
+		load_field(dict["Current"], &(J));
+
+	} catch (...)
+	{
+		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
+	}
+
+	LOGGER << "Create Particles:[ Engine=" << get_type_as_string() << "]" << DONE;
+}
+
+template<typename TM>
+template<typename TDict, typename TModel, typename TN, typename TT>
+void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model, TN const & pn, TT const & pT)
+{
+
+	load(dict, model);
+
+	if (n.empty())
+	{
+		n.clear();
+
+		auto range = model.SelectByConfig(n_type::IForm, dict["Select"]);
+
+		n.pull_back(range, model, pn);
+
+		n *= get_charge() * dict["Ratio"].template as<Real>(1.0);
+	}
+	if (J.empty())
+	{
+		J.clear();
+	}
+
+//	LOGGER << "Create Particles:[ Engine=" << get_type_as_string() << "]" << DONE;
+}
 
 template<typename TM>
 std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 {
-	std::stringstream os;
 
 	GLOBAL_DATA_STREAM.cd(path );
 
-	DEFINE_PHYSICAL_CONST
+	return
+
+	"\n, n =" + simpla::save("n", n)+
+
+	"\n, J =" + simpla::save("J", J)
+
 	;
-//
-//	if (is_verbose)
-//	{
-//		os
-//
-//		<< "Engine = '" << get_type_as_string()
-//
-//		<< " , " << "Mass = " << m / proton_mass << " * m_p"
-//
-//		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
-//
-//		;
-//	}
-
-	os << "\n, n =" << simpla::save("n", n);
-
-	os << "\n, J =" << simpla::save("J", J);
-
-	return os.str();
 }
 template<typename TM>
 void Particle<ColdFluid<TM>>::next_timestep_zero(E_type const & E, B_type const & B)
@@ -265,8 +292,14 @@ template<typename TM>
 void Particle<ColdFluid<TM>>::update_fields()
 {
 	LOGGER << "Push particles update fields[ " << get_type_as_string() << "]";
+
 	Real dt = mesh.get_dt();
-	LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+
+	if (properties["DivergeJ"].template as<bool>(true))
+	{
+		LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+	}
+
 }
 template<typename TM>
 void Particle<ColdFluid<TM>>::next_timestep_half(E_type const & E, B_type const & B)

@@ -79,12 +79,13 @@ public:
 	// Constructor
 	Particle(mesh_type const & pmesh);
 
-	template<typename TDict> Particle(TDict const & dict, mesh_type const & pmesh);
+	template<typename TDict, typename TModel>
+	Particle(TDict const & dict, TModel const & model);
 
 	// Destructor
 	~Particle();
 
-	template<typename TDict> void load(TDict const & dict);
+	template<typename TDict, typename TModel> void load(TDict const & dict, TModel const & model);
 
 	template<typename ...Args>
 	static std::shared_ptr<ParticleBase> create(Args && ... args)
@@ -123,9 +124,18 @@ public:
 		return get_property_(name).template as<T>();
 	}
 
-	bool same_mesh_type(std::type_info const & t_info) const
+	bool check_mesh_type(std::type_info const & t_info) const
 	{
 		return t_info == typeid(mesh_type);
+	}
+
+	bool check_E_type(std::type_info const & t_info) const
+	{
+		return t_info == typeid(E_type);
+	}
+	bool check_B_type(std::type_info const & t_info) const
+	{
+		return t_info == typeid(B_type);
 	}
 
 	std::string save(std::string const & path) const;
@@ -219,15 +229,15 @@ Particle<Engine>::Particle(mesh_type const & pmesh)
 {
 }
 template<typename Engine>
-template<typename TDict>
-Particle<Engine>::Particle(TDict const & dict, mesh_type const & pmesh)
-		: Particle(pmesh)
+template<typename TDict, typename TModel>
+Particle<Engine>::Particle(TDict const & dict, TModel const & model)
+		: Particle(model)
 {
-	load(dict);
+	load(dict, model);
 }
 template<typename Engine>
-template<typename TDict>
-void Particle<Engine>::load(TDict const & dict)
+template<typename TDict, typename TModel>
+void Particle<Engine>::load(TDict const & dict, TModel const & model)
 {
 	engine_type::load(dict);
 

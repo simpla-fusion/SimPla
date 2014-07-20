@@ -93,6 +93,10 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 		BB = Dot(B0, B0);
 	}
 
+	GLOBAL_DATA_STREAM.cd("/Save/");
+
+	LOGGER << SAVE(Ev);
+	LOGGER << SAVE(Bv);
 	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 

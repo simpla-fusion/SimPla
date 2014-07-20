@@ -76,13 +76,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineImplicit(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineImplicit(mesh_type const &m)
+			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineImplicit(mesh_type const &pmesh, Others && ...others) :
-			PICEngineImplicit(pmesh)
+	PICEngineImplicit(mesh_type const &pmesh, Others && ...others)
+			: PICEngineImplicit(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -180,7 +180,7 @@ public:
 
 	void Scatter(Point_s const & p, J_type * J ) const
 	{
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q);
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v ), p.f * q);
 	}
 
 	void Scatter(Point_s const & p, n_type * n) const

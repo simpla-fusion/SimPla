@@ -28,7 +28,7 @@ bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 	mesh_type const &mesh = f->mesh;
 
-	f->allocate();
+	f->clear();
 
 	if (dict.is_function())
 	{

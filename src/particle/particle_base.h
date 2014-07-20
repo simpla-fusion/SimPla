@@ -36,7 +36,9 @@ public:
 
 	//interface
 
-	virtual bool same_mesh_type(std::type_info const & t_info) const=0;
+	virtual bool check_mesh_type(std::type_info const & t_info) const=0;
+	virtual bool check_E_type(std::type_info const & t_info) const=0;
+	virtual bool check_B_type(std::type_info const & t_info) const=0;
 
 	virtual std::string save(std::string const & path) const=0;
 
