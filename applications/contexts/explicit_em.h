@@ -294,6 +294,10 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		if (model.enable_spectral_method)
 		{
+
+			/**
+			 *  @bug Lua can not handle field with complex value!!
+			 */
 			auto dims = model.get_dimensions();
 
 			for (int i = 0; i < model.NDIMS; ++i)

@@ -32,7 +32,7 @@ omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
 NY = 128
-NZ = 1
+NZ = 16
 LX = 10 --  --100000*rhoi --0.6
 LY = 20 -- 2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
@@ -88,17 +88,6 @@ Model=
 
 	},
 
-	Material={
-
-		{Value="Vacuum",Select={Type="Range",Points={{0.2*LX,0,0},{0.8*LX,0,0}}},Op="Set"},
-
-		{Value="Plasma",
-			Select=function(x,y,z)
-				return x>1.0 and x<2.0
-			end
-			,Op="Set"},
-
-	}
 }
 
 
