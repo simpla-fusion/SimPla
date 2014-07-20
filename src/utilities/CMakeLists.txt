@@ -8,4 +8,4 @@ add_library(utilities   properties.cpp any.cpp )
 #target_link_libraries(ntuple_test ${EXT_LIBRARIES}  )
 
 my_test(properties_test    )  
-target_link_libraries(properties_test utilities )
+target_link_libraries(properties_test utilities parallel)

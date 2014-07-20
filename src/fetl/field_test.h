@@ -90,9 +90,9 @@ TYPED_TEST_P(TestField,create){
 
 	value_type v;
 
-	v=3.14145926;
+	std::memset(&v,0,sizeof(value_type));
 
-	field_type f(mesh,v);
+	field_type f(mesh,v );
 
 	EXPECT_EQ(v,f.default_value());
 
