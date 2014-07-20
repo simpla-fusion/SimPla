@@ -519,20 +519,20 @@ struct OcForest
 	}
 
 	template<unsigned int I>
-	inline  unsigned int  GetAdjacentCells(Int2Type<I>, Int2Type<I>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,I>, std::integral_constant<unsigned int ,I>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s + DeltaIndex(s);
 		v[1] = s - DeltaIndex(s);
 		return 2;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -566,7 +566,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<VERTEX>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -605,7 +605,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -644,7 +644,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -677,7 +677,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<EDGE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -722,7 +722,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -780,7 +780,7 @@ struct OcForest
 		return 12;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -829,7 +829,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VOLUME>, Int2Type<FACE>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -869,7 +869,7 @@ struct OcForest
 		return 6;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<VERTEX>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *
@@ -923,7 +923,7 @@ struct OcForest
 		return 8;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<EDGE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -971,7 +971,7 @@ struct OcForest
 		return 4;
 	}
 
-	inline  unsigned int  GetAdjacentCells(Int2Type<FACE>, Int2Type<VOLUME>, compact_index_type s, compact_index_type *v) const
+	inline  unsigned int  GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**

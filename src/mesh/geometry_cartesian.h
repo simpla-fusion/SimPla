@@ -386,31 +386,31 @@ public:
 	DECL_RET_TYPE((topology_type::Select(range,std::forward<Args >(args)...)))
 
 	template<typename TV>
-	TV Sample(Int2Type<VERTEX>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int ,VERTEX>, index_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(Int2Type<VOLUME>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int ,VOLUME>, index_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(Int2Type<EDGE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int ,EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
-	TV Sample(Int2Type<FACE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int ,FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
-	TV Sample(Int2Type<IFORM>, index_type s, TV const & v) const
+	TV Sample(std::integral_constant<unsigned int ,IFORM>, index_type s, TV const & v) const
 	{
 		return v;
 	}

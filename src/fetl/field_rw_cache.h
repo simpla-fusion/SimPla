@@ -96,7 +96,7 @@ public:
 	void RefreshCache(size_t s)
 	{
 //		cell_idx_ = s;
-//		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_,
+//		num_of_points_ = (mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //		if (num_of_points_ == 0)
 //		{
@@ -106,7 +106,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0],
+//		mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		for (size_t i = 0; i < num_of_points_; ++i)
@@ -114,23 +114,23 @@ public:
 //			cache_[i] = f_[points_[i]];
 //		}
 //
-//		UpdateMeanValue(Int2Type<IForm>());
+//		UpdateMeanValue(std::integral_constant<unsigned int ,IForm>());
 	}
 
 private:
-	void UpdateMeanValue(Int2Type<0>)
+	void UpdateMeanValue(std::integral_constant<unsigned int ,0>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void UpdateMeanValue(Int2Type<3>)
+	void UpdateMeanValue(std::integral_constant<unsigned int ,3>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void UpdateMeanValue(Int2Type<1>)
+	void UpdateMeanValue(std::integral_constant<unsigned int ,1>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
-	void UpdateMeanValue(Int2Type<2>)
+	void UpdateMeanValue(std::integral_constant<unsigned int ,2>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
@@ -178,7 +178,7 @@ public:
 //
 //		if (idx == cell_idx_)
 //		{
-//			mesh.template Gather(Int2Type<IForm>(), &pcoords[0], &cache_[0],
+//			mesh.template Gather(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], &cache_[0],
 //					&res, affect_Range_);
 //		}
 //		else //failsafe
@@ -320,7 +320,7 @@ public:
 	{
 //		cell_idx_ = s;
 //
-//		num_of_points_ = (mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_,
+//		num_of_points_ = (mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_,
 //				nullptr, affect_Range_));
 //
 //		if (num_of_points_ == 0)
@@ -331,7 +331,7 @@ public:
 //		points_.resize(num_of_points_);
 //		cache_.resize(num_of_points_);
 //
-//		mesh.GetAffectedPoints(Int2Type<IForm>(), cell_idx_, &points_[0],
+//		mesh.GetAffectedPoints(std::integral_constant<unsigned int ,IForm>(), cell_idx_, &points_[0],
 //				affect_Range_);
 //
 //		value_type zero_value_;
@@ -355,7 +355,7 @@ public:
 //		{
 //			field_value_type vv;
 //			vv = v;
-//			mesh.Scatter(Int2Type<IForm>(), &pcoords[0], vv, &cache_[0],
+//			mesh.Scatter(std::integral_constant<unsigned int ,IForm>(), &pcoords[0], vv, &cache_[0],
 //					affect_Range_);
 //		}
 //		else //failsafe

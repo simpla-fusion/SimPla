@@ -310,6 +310,6 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByRectangle, SelectByPolylines, SelectByMaterial, SelectByNGP);
 
-typedef testing::Types<Int2Type<VERTEX>, Int2Type<EDGE>, Int2Type<FACE>, Int2Type<VOLUME> > ParamList;
+typedef testing::Types<std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VOLUME> > ParamList;
 
 INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);

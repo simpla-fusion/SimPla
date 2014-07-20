@@ -571,16 +571,16 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 			int num=0;
 			switch(iform)
 			{	case VERTEX:
-				num= this->mesh_type::GetAdjacentCells(Int2Type<VERTEX>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				break;
 				case EDGE:
-				num= this->mesh_type::GetAdjacentCells(Int2Type<EDGE>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				break;
 				case FACE:
-				num= this->mesh_type::GetAdjacentCells(Int2Type<FACE>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,FACE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				break;
 				case VOLUME:
-				num= this->mesh_type::GetAdjacentCells(Int2Type<VOLUME>(), Int2Type<VOLUME>(), s, neighbours);
+				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				break;
 			}
 

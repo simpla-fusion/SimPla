@@ -170,7 +170,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	for (auto s : range)
 	{
 
-		p->n[s] = mesh.Sample(Int2Type<TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
+		p->n[s] = mesh.Sample(std::integral_constant<unsigned int ,TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
 
 		for (int i = 0; i < pic; ++i)
 		{

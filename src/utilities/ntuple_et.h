@@ -150,7 +150,7 @@ DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 namespace ntuple_impl
 {
 template<unsigned int N, typename TL, typename TR>
-inline auto OpEval(Int2Type<CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
+inline auto OpEval(std::integral_constant<unsigned int ,CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
 DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 }  // namespace ntuple_impl
 

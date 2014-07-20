@@ -16,8 +16,9 @@
 namespace simpla
 {
 template<typename, unsigned int, typename > class Field;
+
 template<typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
+bool load_field_(TDict const &dict, Field<TM, IFORM, Container> *f)
 {
 	if (!dict)
 		return false;
@@ -39,7 +40,7 @@ bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 			auto v = dict(x).template as<field_value_type>();
 
-			(*f)[s] = mesh.Sample(Int2Type<IFORM>(), s, v);
+			(*f)[s] = mesh.Sample(std::integral_constant<unsigned int, IFORM>(), s, v);
 		}
 
 	}
@@ -52,7 +53,7 @@ bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 		{
 			auto x = mesh.get_coordinates(s);
 
-			(*f)[s] = mesh.Sample(Int2Type<IFORM>(), s, v);
+			(*f)[s] = mesh.Sample(std::integral_constant<unsigned int, IFORM>(), s, v);
 		}
 
 	}
@@ -68,6 +69,51 @@ bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
 	UpdateGhosts(f);
 
 	return true;
+}
+template<int DIMS, typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
+bool load_field_wrap(nTuple<DIMS, std::complex<TV> >, TDict const &dict, Field<TM, IFORM, Container> *f)
+{
+
+	auto ff = f->mesh.template make_field<IFORM, nTuple<DIMS, Real>>();
+
+	ff.clear();
+
+	bool success = load_field_(dict, &ff);
+
+	if (success)
+		*f = ff;
+
+	return success;
+}
+
+template<typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
+bool load_field_wrap(std::complex<TV>, TDict const &dict, Field<TM, IFORM, Container> *f)
+{
+
+	auto ff = f->mesh.template make_field<IFORM, Real>();
+
+	ff.clear();
+
+	bool success = load_field_(dict, &ff);
+
+	if (success)
+		*f = ff;
+
+	return success;
+}
+
+template<typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
+bool load_field_wrap(TV, TDict const &dict, Field<TM, IFORM, Container> *f)
+{
+	return load_field_(dict, f);
+}
+
+template<typename TDict, unsigned int IFORM, typename TM, typename Container>
+bool load_field(TDict const &dict, Field<TM, IFORM, Container> *f)
+{
+	typedef typename Field<TM, IFORM, Container>::value_type value_type;
+
+	return load_field_wrap(value_type(), dict, f);
 }
 
 //template<typename TDict>

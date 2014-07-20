@@ -293,12 +293,12 @@ TEST_P(TestParticle,Add)
 //
 //		Ev=E0*std::sin(Dot(k,mesh.get_coordinates(s)));
 //
-//		E[s]=mesh.Sample(Int2Type<EDGE>(),s,Ev);
+//		E[s]=mesh.Sample(std::integral_constant<unsigned int ,EDGE>(),s,Ev);
 //	}
 //
 //	for (auto s : mesh.Select(FACE))
 //	{
-//		B[s]= mesh.Sample(Int2Type<FACE>(),s,Bv);
+//		B[s]= mesh.Sample(std::integral_constant<unsigned int ,FACE>(),s,Bv);
 //	}
 //
 //	Real dt=1.0e-12;

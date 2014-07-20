@@ -207,13 +207,13 @@ public:
 
 	inline field_value_type operator()(coordinates_type const &x) const
 	{
-		return mesh.Gather(Int2Type<IForm>(),*this,x);
+		return mesh.Gather(std::integral_constant<unsigned int ,IForm>(),*this,x);
 	}
 
 	template<typename TZ>
 	inline void Add(coordinates_type const &x,TZ const & z)
 	{
-		return mesh.Scatter(Int2Type<IForm>(),this,z);
+		return mesh.Scatter(std::integral_constant<unsigned int ,IForm>(),this,z);
 	}
 
 };

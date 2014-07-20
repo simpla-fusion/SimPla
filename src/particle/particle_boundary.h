@@ -177,7 +177,7 @@ void BoundaryCondition<Particle<Engine>>::Visit(particle_type * p) const
 //	if (other == nullptr)
 //		other = self;
 //
-//	tag.SelectBoundaryCell(Int2Type<0>(),
+//	tag.SelectBoundaryCell(std::integral_constant<unsigned int ,0>(),
 //
 //	[self,other](iterator src)
 //	{

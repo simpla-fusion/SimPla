@@ -36,7 +36,7 @@ DEF_COMPLEX_OP(/, _OTHER_)
 
 DEF_COMPLEX_OP_BUNDLE(int)
 DEF_COMPLEX_OP_BUNDLE(long)
-DEF_COMPLEX_OP_BUNDLE( unsigned int  )
+DEF_COMPLEX_OP_BUNDLE(unsigned int)
 DEF_COMPLEX_OP_BUNDLE(unsigned long)
 
 #undef DEF_COMPLEX_OP_BUNDLE
@@ -64,7 +64,11 @@ template<typename T> struct is_complex<std::complex<T> >
 {
 	static constexpr bool value = true;
 };
-
+template<unsigned int DIMS, typename T> class nTuple;
+template<unsigned int DIMS, typename T> struct is_complex<nTuple<DIMS, T> >
+{
+	static constexpr bool value = is_complex<T>::value;
+};
 template<typename TL> struct is_arithmetic_scalar;
 
 template<typename T>

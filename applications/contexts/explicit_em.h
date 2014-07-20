@@ -132,6 +132,12 @@ public:
 
 	// interface end
 
+	bool enable_PEC_boundary_ = false;
+	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
+	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
+	void InitPECboundary();
+	void PECboundaryE();
+	void PECboundaryB();
 public:
 
 	std::string description;
@@ -144,6 +150,7 @@ public:
 	field<FACE, scalar_type> B1, dB, B;
 
 	field<EDGE, scalar_type> J1; //!< current density
+	field<EDGE, Real> Jext; //!< external current
 
 //	field<VERTEX, scalar_type>  phi; //!< electrostatic potential
 
@@ -192,7 +199,7 @@ ExplicitEMContext<TM>::ExplicitEMContext()
 
 		B0(model), E0(model),
 
-		n0(model),
+		n0(model), Jext(model),
 
 		implicit_push_E(model)
 {
@@ -292,13 +299,14 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		Clipping(min2, max2, &min1, &max1);
 
+		auto dims = model.get_dimensions();
+
 		if (model.enable_spectral_method)
 		{
 
 			/**
 			 *  @bug Lua can not handle field with complex value!!
 			 */
-			auto dims = model.get_dimensions();
 
 			for (int i = 0; i < model.NDIMS; ++i)
 			{
@@ -308,6 +316,12 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 					max1[i] = max2[i];
 				}
 			}
+		}
+
+		if (dims[2] > 1)
+		{
+			min1[2] = min2[2];
+			max1[2] = max2[2];
 		}
 
 		model.set_extents(min1, max1);
@@ -330,7 +344,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		geqdsk.GetProfile("Ti", &Ti0);
 
 		description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
+		InitPECboundary();
 	}
 	else
 	{
@@ -361,7 +375,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	dB.clear();
 	dE.clear();
-
+	Jext.clear();
 	GLOBAL_DATA_STREAM.cd("/Input/");
 
 	VERBOSE << SAVE(ne0);
@@ -435,7 +449,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			{
 
 				commandToJ_.push_back(
-				        J1.CreateCommand(model.SelectByConfig(J1.IForm, item.second["Select"]),
+				        Jext.CreateCommand(model.SelectByConfig(Jext.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else
@@ -507,6 +521,51 @@ bool ExplicitEMContext<TM>::pre_process()
 {
 	return true;
 }
+template<typename TM>
+void ExplicitEMContext<TM>::InitPECboundary()
+{
+	for (auto s : model.Select(E_type::IForm))
+	{
+		if (model.get(s) == model.null_material)
+		{
+			conduct_wall_E_.push_back(s);
+		}
+	}
+	for (auto s : model.Select(B_type::IForm))
+	{
+		if (model.get(s) == model.null_material)
+		{
+			conduct_wall_B_.push_back(s);
+		}
+	}
+	enable_PEC_boundary_ = true;
+}
+
+template<typename TM>
+void ExplicitEMContext<TM>::PECboundaryE()
+{
+	if (!enable_PEC_boundary_)
+		return;
+
+	for (auto s : conduct_wall_E_)
+	{
+		get_value(E1, s) = 0;
+
+	}
+}
+
+template<typename TM>
+void ExplicitEMContext<TM>::PECboundaryB()
+{
+	if (!enable_PEC_boundary_)
+		return;
+
+	for (auto s : conduct_wall_B_)
+	{
+		get_value(B1, s) = 0;
+
+	}
+}
 
 template<typename TM>
 bool ExplicitEMContext<TM>::post_process()
@@ -526,12 +585,12 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	Real dt = model.get_dt();
 
-	// Compute Cycle Begin
+// Compute Cycle Begin
 
 	J1.clear();
 
 	B = B1 + B0;
-	//   particle 0-> 1/2 . To n[1/2], J[1/2]
+//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
@@ -543,19 +602,22 @@ void ExplicitEMContext<TM>::next_timestep()
 			LOG_CMD(J1 += Js);
 		}
 	}
-
+	Jext.clear();
 	ExcuteCommands(commandToJ_);
+	J1 += Jext;
 
 	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
+	PECboundaryB();
 
 	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
 
-	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
+//   particle 1/2 -> 1  . To n[1/2], J[1/2]
 	implicit_push_E.next_timestep(E0, B0, E1, B1, particles_, &dE);
 
 	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
+	PECboundaryE();
 
 	B = B1 + B0;
 	for (auto &p : particles_)
@@ -565,14 +627,16 @@ void ExplicitEMContext<TM>::next_timestep()
 			p.second->next_timestep_half(E1, B);
 		}
 	}
+
 	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
-	VERBOSE_CMD(dB = -Curl(E1) * dt);
+	PECboundaryE();
 
+	VERBOSE_CMD(dB = -Curl(E1) * dt);
 	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
-
-	// Compute Cycle End
+	PECboundaryB();
+// Compute Cycle End
 	model.next_timestep();
 
 }

@@ -23,27 +23,27 @@ namespace simpla
 
 //namespace fetl_impl
 //{
-//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(Int2Type<DOT>, TM const &mesh,
+//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(std::integral_constant<unsigned int ,DOT>, TM const &mesh,
 //        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
 //        DECL_RET_TYPE((Dot(l.get(s) , r.get(s))))
 ////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DOT>,
+////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DOT>,
 ////		Field<TM, VERTEX, TL> const &l, nTuple<3, TR> const &r, TI s)
 ////		DECL_RET_TYPE((Dot(l.get(s) , r)))
 ////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DOT>,
+////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DOT>,
 ////		nTuple<3, TL> const & l, Field<TM, VERTEX, TR> const & r, TI s)
 ////		DECL_RET_TYPE((Dot(l , r.get(s))))
 //
-//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(Int2Type<CROSS>, TM const &mesh,
+//template<typename TM, typename TL, typename TR, typename TI> inline auto OpEval(std::integral_constant<unsigned int ,CROSS>, TM const &mesh,
 //        Field<TM, VERTEX, TL> const &l, Field<TM, VERTEX, TR> const &r, TI s)
 //        DECL_RET_TYPE((Cross(l.get(s) , r.get(s))))
 //
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<CROSS>,
+////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,CROSS>,
 ////		Field<TM, VERTEX, TL> const &l, nTuple<3, TR> const &r, TI s)
 ////		DECL_RET_TYPE((Cross(l.get(s) , r)))
 ////
-////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<CROSS>,
+////template<typename TM, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,CROSS>,
 ////		nTuple<3, TL> const & l, Field<TM, VERTEX, TR> const & r, TI s)
 ////		DECL_RET_TYPE((Cross(l , r.get(s))))
 //

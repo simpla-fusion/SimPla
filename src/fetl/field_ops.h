@@ -32,22 +32,22 @@ template<typename TM, unsigned int IL, typename TL, typename TR> inline auto ope
 namespace fetl_impl
 {
 
-template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<NEGATE>,
+template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,NEGATE>,
         Field<TM, IL, TL> const & f, TI s)
         DECL_RET_TYPE((-f.get(s)) )
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<RECIPROCAL>,
+template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,RECIPROCAL>,
         Field<TM, IL, TL> const & f, TI s)
         DECL_RET_TYPE((1.0/f.get(s)) )
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<REAL>,
+template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,REAL>,
         Field<TM, IL, TL> const & f, TI s)
         DECL_RET_TYPE((real(f.get(s)) ))
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(Int2Type<IMAGINE>,
+template<typename TM, unsigned int IL, typename TL, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,IMAGINE>,
         Field<TM, IL, TL> const & f, TI s)
         DECL_RET_TYPE((imag(f.get(s)) ))
 ;
@@ -88,32 +88,32 @@ namespace fetl_impl
 {
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI>
-inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
 DECL_RET_TYPE((l.get(s)+r.get(s)))
 ;
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI>
-inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
 DECL_RET_TYPE((l.get(s)-r.get(s)))
 ;
 
 template<typename TM, typename TL, typename TI>
-inline auto FieldOpEval(Int2Type<PLUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
 DECL_RET_TYPE((l.get(s)+r*l.mesh.Volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
-inline auto FieldOpEval(Int2Type<PLUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
 DECL_RET_TYPE((l*r.mesh.Volume(s) +r.get(s)))
 ;
 
 template<typename TM, typename TL, typename TI>
-inline auto FieldOpEval(Int2Type<MINUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
 DECL_RET_TYPE((l.get(s)-r*l.mesh.Volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
-inline auto FieldOpEval(Int2Type<MINUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
 DECL_RET_TYPE((l*r.mesh.Volume(s) -r.get(s)))
 ;
 
@@ -143,21 +143,21 @@ namespace fetl_impl
 {
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(
-        Int2Type<MULTIPLIES>, Field<TM, IL, TL> const &l, TR const &r, TI s)
+        std::integral_constant<unsigned int ,MULTIPLIES>, Field<TM, IL, TL> const &l, TR const &r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) * r))
 ;
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(
-        Int2Type<MULTIPLIES>, TL const & l, Field<TM, IL, TR> const & r, TI s)
+        std::integral_constant<unsigned int ,MULTIPLIES>, TL const & l, Field<TM, IL, TR> const & r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l * r.get(s)))
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
+template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDES>,
         Field<TM, IL, TL> const &l, TR const &r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) / r))
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(Int2Type<DIVIDES>,
+template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDES>,
         TL const & l, Field<TM, IL, TR> const & r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l / r.get(s)))
 ;
@@ -282,13 +282,13 @@ DECL_RET_TYPE( (Wedge(lhs,rhs)) )
 ;
 
 template<typename TM, unsigned int N, unsigned int IL, typename TL>
-inline auto ExteriorDerivative(Field<TM, IL, TL> const & f, Int2Type<N>)
-DECL_RET_TYPE( ( Field<TM, IL+1 ,BiOp<EXTRIORDERIVATIVE,Field<TM,IL , TL>,Int2Type<N>> >(f,Int2Type<N>())))
+inline auto ExteriorDerivative(Field<TM, IL, TL> const & f, std::integral_constant<unsigned int ,N>)
+DECL_RET_TYPE( ( Field<TM, IL+1 ,BiOp<EXTRIORDERIVATIVE,Field<TM,IL , TL>,std::integral_constant<unsigned int ,N>> >(f,std::integral_constant<unsigned int ,N>())))
 ;
 
 template<unsigned int N, typename TM, unsigned int IL, typename TL>
-inline auto Codifferential(Field<TM, IL, TL> const & f, Int2Type<N>)
-DECL_RET_TYPE( (Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Field<TM,IL , TL> ,Int2Type<N>> >(f,Int2Type<N>() )) )
+inline auto Codifferential(Field<TM, IL, TL> const & f, std::integral_constant<unsigned int ,N>)
+DECL_RET_TYPE( (Field< TM, IL-1 , BiOp<CODIFFERENTIAL,Field<TM,IL , TL> ,std::integral_constant<unsigned int ,N>> >(f,std::integral_constant<unsigned int ,N>() )) )
 ;
 
 //!  @}
@@ -371,42 +371,42 @@ DECL_RET_TYPE(Negate(Codifferential(f)))
 //!   @{
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<0>())))
+DECL_RET_TYPE((ExteriorDerivative(f,std::integral_constant<unsigned int ,0>())))
 ;
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<1>())))
+DECL_RET_TYPE((ExteriorDerivative(f,std::integral_constant<unsigned int ,1>())))
 ;
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, EDGE, TR> const & f)
-DECL_RET_TYPE((ExteriorDerivative(f,Int2Type<2>())))
+DECL_RET_TYPE((ExteriorDerivative(f,std::integral_constant<unsigned int ,2>())))
 ;
 
 template<typename TM, typename TR>
 inline auto CurlPDX(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f,Int2Type<0>())))
+DECL_RET_TYPE((Codifferential(f,std::integral_constant<unsigned int ,0>())))
 ;
 
 template<typename TM, typename TR>
 inline auto CurlPDY(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f,Int2Type<1>())))
+DECL_RET_TYPE((Codifferential(f,std::integral_constant<unsigned int ,1>())))
 ;
 
 template<typename TM, typename TR>
 inline auto CurlPDZ(Field<TM, FACE, TR> const & f)
-DECL_RET_TYPE((Codifferential(f,Int2Type<2>())))
+DECL_RET_TYPE((Codifferential(f,std::integral_constant<unsigned int ,2>())))
 ;
 
 template<unsigned int IL, typename TM, unsigned int IR, typename TR>
 inline auto MapTo(Field<TM, IR, TR> const & f)
-DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
+DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<TM,IR , TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
 ;
 
 template<unsigned int IL, typename TM, unsigned int IR, typename TR>
-inline auto MapTo(Int2Type<IL>, Field<TM, IR, TR> const & f)
-DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,Int2Type<IL>,Field<TM,IR , TR> > >(Int2Type<IL>(), f)))
+inline auto MapTo(std::integral_constant<unsigned int ,IL>, Field<TM, IR, TR> const & f)
+DECL_RET_TYPE( (Field< TM, IL , BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<TM,IR , TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
 ;
 
 //!   @}
@@ -418,26 +418,26 @@ namespace fetl_impl
 HAS_MEMBER_FUNCTION(OpEval);
 
 template<unsigned int TOP, typename TM, typename TL, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
+auto OpEval(std::integral_constant<unsigned int ,TOP>, TM const & mesh, TL const &l,
         TI s)
-                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI >::value), (mesh.OpEval(Int2Type<TOP>(), l, s )))
+                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, std::integral_constant<unsigned int ,TOP>, TL const &,TI >::value), (mesh.OpEval(std::integral_constant<unsigned int ,TOP>(), l, s )))
 ;
 
 template<unsigned int TOP, typename TM, typename TL, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l,
+auto OpEval(std::integral_constant<unsigned int ,TOP>, TM const & mesh, TL const &l,
         TI s)
-                ENABLE_IF_DECL_RET_TYPE( (!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l, s)))
+                ENABLE_IF_DECL_RET_TYPE( (!has_member_function_OpEval<TM, std::integral_constant<unsigned int ,TOP>, TL const &,TI>::value), (FieldOpEval(std::integral_constant<unsigned int ,TOP>(), l, s)))
 ;
 
 template<unsigned int TOP, typename TM, typename TL, typename TR, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
+auto OpEval(std::integral_constant<unsigned int ,TOP>, TM const & mesh, TL const &l, TR const &r,
         TI s)
-                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (mesh.OpEval(Int2Type<TOP>(), l,r, s)) )
+                ENABLE_IF_DECL_RET_TYPE( (has_member_function_OpEval<TM, std::integral_constant<unsigned int ,TOP>, TL const &,TR const &,TI>::value), (mesh.OpEval(std::integral_constant<unsigned int ,TOP>(), l,r, s)) )
 ;
 template<unsigned int TOP, typename TM, typename TL, typename TR, typename TI>
-auto OpEval(Int2Type<TOP>, TM const & mesh, TL const &l, TR const &r,
+auto OpEval(std::integral_constant<unsigned int ,TOP>, TM const & mesh, TL const &l, TR const &r,
         TI s)
-                ENABLE_IF_DECL_RET_TYPE((!has_member_function_OpEval<TM, Int2Type<TOP>, TL const &,TR const &,TI>::value), (FieldOpEval(Int2Type<TOP>(), l,r, s)) )
+                ENABLE_IF_DECL_RET_TYPE((!has_member_function_OpEval<TM, std::integral_constant<unsigned int ,TOP>, TL const &,TR const &,TI>::value), (FieldOpEval(std::integral_constant<unsigned int ,TOP>(), l,r, s)) )
 ;
 
 }
@@ -469,7 +469,7 @@ public:
 
 	template<typename TI>
 	inline auto get(TI s) const
-	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, r_, s)))
+	DECL_RET_TYPE((fetl_impl::OpEval(std::integral_constant<unsigned int ,TOP>(), mesh, l_, r_, s)))
 	;
 	template<typename TI>
 	inline auto operator[](TI s) const
@@ -525,7 +525,7 @@ public:
 	}
 	template<typename TI>
 	inline auto get(TI s) const
-	DECL_RET_TYPE((fetl_impl::OpEval(Int2Type<TOP>(), mesh, l_, s)))
+	DECL_RET_TYPE((fetl_impl::OpEval(std::integral_constant<unsigned int ,TOP>(), mesh, l_, s)))
 	;
 
 	template<typename TI>

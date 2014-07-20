@@ -37,18 +37,18 @@ bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Dataty
 	{
 		*new_type = MPI_DOUBLE;
 	}
-	else if (t_index == std::type_index(typeid(long double)))
-	{
-		*new_type = MPI_LONG_DOUBLE;
-	}
-	else if (t_index == std::type_index(typeid(std::complex<double>)))
-	{
-		*new_type = MPI_2DOUBLE_COMPLEX;
-	}
-	else if (t_index == std::type_index(typeid(std::complex<float>)))
-	{
-		*new_type = MPI_2COMPLEX;
-	}
+//	else if (t_index == std::type_index(typeid(long double)))
+//	{
+//		*new_type = MPI_LONG_DOUBLE;
+//	}
+//	else if (t_index == std::type_index(typeid(std::complex<double>)))
+//	{
+//		*new_type = MPI_2DOUBLE_COMPLEX;
+//	}
+//	else if (t_index == std::type_index(typeid(std::complex<float>)))
+//	{
+//		*new_type = MPI_2COMPLEX;
+//	}
 	else
 	{
 		MPI_Type_contiguous(size_in_byte, MPI_CHAR, new_type);

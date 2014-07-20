@@ -72,7 +72,7 @@ public:
 		{
 			auto x = mesh.get_coordinates(s);
 
-			(*f)[s] = mesh.Sample(Int2Type<IForm>(), s,
+			(*f)[s] = mesh.Sample(std::integral_constant<unsigned int ,IForm>(), s,
 					op_(mesh.get_time(), x, (*f)(x)));
 		}
 	}

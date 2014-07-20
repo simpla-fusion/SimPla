@@ -32,16 +32,16 @@ omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 NX = 128
 NY = 128
-NZ = 16
+NZ = 1
 LX = 10 --  --100000*rhoi --0.6
 LY = 20 -- 2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
 GW = 5
 
 
-oemga_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
+omega_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
-omega_ext=omega_ci
+omega_ext=omega_lhw
 
 print( "Angle Frequency of antenna =",omega_ext )
 InitValue = {
@@ -67,9 +67,9 @@ InitValue = {
 Model=
 {
 
-	Type = "ExplicitEMContext_Cartesian_UniformArray",
+	--Type = "ExplicitEMContext_Cartesian_UniformArray",
 
-	--Type ="ExplicitEMContext_Cylindrical2_UniformArray",
+	Type ="ExplicitEMContext_Cylindrical2_UniformArray_kz",
 
 	UnitSystem={Type="SI"},
 
@@ -80,7 +80,7 @@ Model=
 
 		Min={1.2,-1.4,0.0 },
 
-		Max={2.8,1.4,TWOPI/10.0 },
+		Max={2.8,1.4,TWOPI/4.0 },
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
@@ -105,34 +105,36 @@ Constraints=
 
 	{
 		DOF="J",
-		Select={Type="NGP",Points={1.5,0,0}},
+		Select=function(x)
+			return x[0]>2.29 and x[0]<2.31
+		end,
 		Operation= function(t,x,f )
-			local tau = t*omega_ext
+			local tau = t*omega_ext+ x[2]*TWOPI/(Model.Mesh.Max[3]-Model.Mesh.Min[3])
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
 			return { f[0],f[1],f[2]+amp}
 		end
 	},
-
-	--	{
-	--		DOF="E",
-	--		Select={Type="Boundary",In="Vacuum"},
-	--		Operation= function(t,x,f )	 return { 0,  0, 0} end
-	--	},
-	--	{
-	--		DOF="B",
-	--		Select={Type="Boundary",In="Vacuum"},
-	--		Operation= function(t,x,f ) return {  0,  0, 0}	end
-	--	},
-	{
-		DOF="E",
-		Select={ Material="NONE"},
-		Operation= function(t,x,f )	 return { 0,0,0} end
-	},
-	{
-		DOF="B",
-		Select={ Material="NONE"},
-		Operation= function(t,x,f ) return { 0,0,0}	end
-	},
+--
+--	{
+--		DOF="E",
+--		Select={Type="Boundary",In="Vacuum"},
+--		Operation= function(t,x,f )	 return { 0,  0, 0} end
+--	},
+--	{
+--		DOF="B",
+--		Select={Type="Boundary",In="Vacuum"},
+--		Operation= function(t,x,f ) return {  0,  0, 0}	end
+--	},
+--	{
+--		DOF="E",
+--		Select={ Material="NONE"},
+--		Operation= function(t,x,f )	 return { 0,0,0} end
+--	},
+--	{
+--		DOF="B",
+--		Select={ Material="NONE"},
+--		Operation= function(t,x,f ) return { 0,0,0}	end
+--	},
 
 }
 --[[
