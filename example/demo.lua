@@ -39,7 +39,7 @@ LZ = 30 -- 2.0*math.pi/18
 GW = 5
 
 
-oemga_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci)) 
+oemga_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
 omega_ext=omega_ci
 
@@ -80,7 +80,7 @@ Model=
 
 		Min={1.2,-1.4,0.0 },
 
-		Max={2.8,1.4,TWOPI },
+		Max={2.8,1.4,TWOPI/10.0 },
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
@@ -183,15 +183,15 @@ end
 --]]
 
 Particles={
---	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
---	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
---  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
+	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
+	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
+	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
 	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} },
 
 
---	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
---	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
---	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
+	--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+	--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+	--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
 	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"} },
 }
 

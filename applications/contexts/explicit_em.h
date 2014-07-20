@@ -273,8 +273,6 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 	{
 		model.mesh_type::load(dict["Model"]["Mesh"]);
 
-		model.Update();
-
 		GEqdsk geqdsk;
 
 		geqdsk.load(dict["Model"]["GFile"].template as<std::string>());
@@ -292,9 +290,23 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		std::tie(min2, max2) = model.get_extents();
 
-		Clipping(min1, max1, &min2, &max2);
+		Clipping(min2, max2, &min1, &max1);
 
-		model.set_extents(min2, max2);
+		if (model.enable_spectral_method)
+		{
+			auto dims = model.get_dimensions();
+
+			for (int i = 0; i < model.NDIMS; ++i)
+			{
+				if (dims[i] <= 1)
+				{
+					min1[i] = min2[i];
+					max1[i] = max2[i];
+				}
+			}
+		}
+
+		model.set_extents(min1, max1);
 
 		model.Update();
 

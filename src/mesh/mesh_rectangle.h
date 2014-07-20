@@ -124,9 +124,8 @@ public:
 
 	void Update()
 	{
+		UpdateK(&k_imag);
 		geometry_type::Update();
-
-		is_ready_ = UpdateK(&k_imag);
 	}
 private:
 	bool is_ready_ = false;
