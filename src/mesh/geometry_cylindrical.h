@@ -84,6 +84,7 @@ public:
 
 	Real dt_ = 0.0;
 	Real time0_ = 0.0;
+	Real CFL_ = 0.5;
 	// Time
 	void next_timestep()
 	{
@@ -134,24 +135,9 @@ public:
 
 			dict["Max"].template as<nTuple<NDIMS, Real>>());
 
-			DEFINE_PHYSICAL_CONST
+			CFL_ = dict["CFL"].template as<Real>(0.5);
 
-			coordinates_type min, max;
-
-			std::tie(min, max) = get_extents();
-
-			auto dx = get_dx();
-
-			Real R0 = (min[RAxis] + max[RAxis]) * 0.5;
-
-			dt_ = dict["dt"].template as<Real>(
-
-			        dict["CFL"].template as<Real>(0.5)
-
-			        * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
-			                / speed_of_light
-
-			                );
+			dt_ = dict["dt"].template as<Real>(1.0);
 
 			return true;
 
@@ -191,6 +177,25 @@ public:
 	void Update()
 	{
 		topology_type::Update();
+
+		DEFINE_PHYSICAL_CONST
+
+		coordinates_type min, max;
+
+		std::tie(min, max) = get_extents();
+
+		auto dx = get_dx();
+
+		Real R0 = (min[RAxis] + max[RAxis]) * 0.5;
+
+		Real safe_dt = CFL_
+		        * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
+		        / speed_of_light;
+
+		if (dt_ > safe_dt)
+		{
+			dt_ = safe_dt;
+		}
 
 		is_ready_ = topology_type::is_ready() && UpdateVolume();
 	}

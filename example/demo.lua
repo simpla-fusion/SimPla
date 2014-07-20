@@ -37,7 +37,7 @@ LY = 20 --2.0*math.pi/k0
 LZ = 30 -- 2.0*math.pi/18
 GW = 5
 
-omega_ext=omega_ci*1.9*10
+omega_ext=omega_ci 
 
 
 InitValue = {
@@ -78,25 +78,11 @@ Model=
 
 		Max={2.8,1.4,TWOPI },
 
-		--		dt= 0.5*LX/NX/c, -- time step
-
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
-		CFL =0.5,
+		CFL =0.1,
 
 	},
-	--	Mesh={
-	--
-	--
-	--		Min={-LX,-LY,-LZ },
-	--
-	--		Max={LX,LY,LZ},
-	--
-	--		Dimensions={NX,NY,1}, -- number of grid, now only first dimension is valid
-	--
-	--		CFL =0.5,
-	--
-	--	},
 
 	Material={
 
@@ -119,42 +105,44 @@ Model=
 --}
 
 
---[[
+
 
 Constraints=
 {
 
-{
-DOF="J",
-Select={Type="NGP",Points={0.2*LX,0.5*LY,0.9*LZ}},
-Operation= function(t,x,f )
-local tau = t*omega_ext
-local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
-return { f[0],f[1]+amp,f[2]}
-end
-},
+	{
+		DOF="J",
+		Select={Type="NGP",Points={1.5,0,0}},
+		Operation= function(t,x,f )
+			local tau = t*omega_ext
+			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+			return { f[0],f[1],f[2]+amp}
+		end
+	},
 
-{
-DOF="E",
-Select={Type="Boundary",In="Vacuum"},
-Operation= function(t,x,f )
-
-return {  0, 0,0}
-end
-},
-
-{
-DOF="E",
-Select={Type="Interface",In="Plasma",Out="Vacuum"},
-
-Operation= function(t,x,f )
-return { -100, -100,-100}
-end
-},
-
+	--	{
+	--		DOF="E",
+	--		Select={Type="Boundary",In="Vacuum"},
+	--		Operation= function(t,x,f )	 return { 0,  0, 0} end
+	--	},
+	--	{
+	--		DOF="B",
+	--		Select={Type="Boundary",In="Vacuum"},
+	--		Operation= function(t,x,f ) return {  0,  0, 0}	end
+	--	},
+	{
+		DOF="E",
+		Select={ Material="NONE"},
+		Operation= function(t,x,f )	 return { 0,0,0} end
+	},
+	{
+		DOF="B",
+		Select={ Material="NONE"},
+		Operation= function(t,x,f ) return { 0,0,0}	end
+	},
 
 }
-
+--[[
 
 ParticleConstraints=
 {
@@ -191,9 +179,9 @@ end
 --]]
 
 Particles={
-	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
-	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
-	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
+--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
+--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
+--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
 	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} },
 
 

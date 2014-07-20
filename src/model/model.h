@@ -67,8 +67,8 @@ public:
 		CUSTOM = 20
 	};
 
-	Model() :
-			mesh_type(), null_material(), max_material_(CUSTOM + 1)
+	Model()
+			: mesh_type(), null_material(0), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -176,7 +176,7 @@ public:
 	material_type get_material(std::string const &name) const
 	{
 
-		if (name == "")
+		if (name == "" || name == "NONE")
 		{
 			return null_material;
 		}
@@ -186,8 +186,7 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		}
-		catch (...)
+		} catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -249,7 +248,8 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material) material_.erase(s);
+			if (material_[s] == null_material)
+				material_.erase(s);
 		}
 	}
 
@@ -550,7 +550,8 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out) out = null_material;
+	if (in == out)
+		out = null_material;
 
 	pred_fun_type pred =
 
@@ -599,7 +600,7 @@ template<typename TM>
 typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 {
 
-	material_type res;
+	material_type res = null_material;
 
 	if (this->mesh_type::IForm(s) == VERTEX)
 	{
@@ -628,11 +629,23 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 {
 	auto material = get_material(std::forward<Args>(args)...);
 
-	pred_fun_type pred = [=]( compact_index_type const & s )->bool
+	if (material != null_material)
 	{
-		return (this->get(s) & material).any();
-	};
-	return std::move(make_range_filter(range, std::move(pred)));
+		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		{
+			return (this->get(s) & material).any();
+		};
+		return std::move(make_range_filter(range, std::move(pred)));
+	}
+
+	else
+	{
+		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		{
+			return (this->get(s) == null_material);
+		};
+		return std::move(make_range_filter(range, std::move(pred)));
+	}
 
 }
 

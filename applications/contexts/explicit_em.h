@@ -140,24 +140,26 @@ public:
 
 	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	field<EDGE, scalar_type> E, dE;
-	field<FACE, scalar_type> B, dB;
-	field<VERTEX, scalar_type> n, phi; //!< electrostatic potential
+	field<EDGE, scalar_type> E1, dE, E;
+	field<FACE, scalar_type> B1, dB, B;
 
-	field<VERTEX, Real> n0; //!< density
-	field<EDGE, scalar_type> J0; //!<background current density J0+Curl(B(t=0))=0
-	field<EDGE, scalar_type> J; //!< current density
+	field<EDGE, scalar_type> J1; //!< current density
 
-	field<VERTEX, nTuple<3, Real> > Bv;
+//	field<VERTEX, scalar_type>  phi; //!< electrostatic potential
 
 	ImplicitPushE<mesh_type> implicit_push_E;
+
+	field<VERTEX, Real> n0; //!< background  equilibrium electron density
+	field<EDGE, Real> E0; //!<background  equilibrium electoric field  (B0)=0
+	field<FACE, Real> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
+//	field<EDGE, Real> J0; //!<background  equilibrium current density J0+Curl(B0)=0
 
 //	PML<mesh_type> pml_push;
 
 private:
-	typedef decltype(E) E_type;
-	typedef decltype(B) B_type;
-	typedef decltype(J) J_type;
+	typedef decltype(E1) E_type;
+	typedef decltype(B1) B_type;
+	typedef decltype(J1) J_type;
 
 	typedef std::map<std::string, std::shared_ptr<ParticleBase> > TParticles;
 
@@ -184,8 +186,15 @@ private:
 
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
-		: E(model), B(model), J(model), J0(model), dE(model), dB(model), n(model), n0(model), //
-		phi(model), Bv(model), implicit_push_E(model)
+		: E1(model), B1(model), J1(model), dE(model), dB(model),
+
+		B(model), E(model),
+
+		B0(model), E0(model),
+
+		n0(model),
+
+		implicit_push_E(model)
 {
 }
 
@@ -229,9 +238,9 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 
 	auto abs_path = (GLOBAL_DATA_STREAM.cd(path));
 
-	VERBOSE << SAVE(E);
-	VERBOSE << SAVE(B);
-	VERBOSE << SAVE(J);
+	VERBOSE << SAVE(E1);
+	VERBOSE << SAVE(B1);
+	VERBOSE << SAVE(J1);
 
 #ifdef DEBUG
 	VERBOSE << SAVE(dE);
@@ -291,23 +300,20 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		geqdsk.SetUpMaterial(&model);
 
-		E.clear();
-		B.clear();
-		J0.clear();
+		B1.clear();
+		E1.clear();
+		J1.clear();
+		B0.clear();
 		ne0.clear();
 		Te0.clear();
 		Ti0.clear();
 
-		geqdsk.GetProfile("B", &B);
+		geqdsk.GetProfile("B", &B0);
 		geqdsk.GetProfile("ne", &ne0);
 		geqdsk.GetProfile("Te", &Te0);
 		geqdsk.GetProfile("Ti", &Ti0);
 
 		description = description + "\n GEqdsk ID:" + geqdsk.Description();
-
-		J0 = Curl(B) / mu0;
-
-		J = J0;
 
 	}
 	else
@@ -318,19 +324,16 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		}
 		model.Update();
 
-		B.clear();
+		B1.clear();
+		E1.clear();
+		J1.clear();
+		B0.clear();
 
-		J0.clear();
+		VERBOSE_CMD(load_field(dict["InitValue"]["B"], &B1));
 
-		J.clear();
+		VERBOSE_CMD(load_field(dict["InitValue"]["E"], &E1));
 
-		E.clear();
-
-		VERBOSE_CMD(load_field(dict["InitValue"]["B"], &B));
-
-		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J));
-
-		VERBOSE_CMD(load_field(dict["InitValue"]["J0"], &J0));
+		VERBOSE_CMD(load_field(dict["InitValue"]["J"], &J1));
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["ne"], &ne0));
 
@@ -338,20 +341,18 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		VERBOSE_CMD(load_field(dict["InitValue"]["Ti"], &Ti0));
 
-		J += J0;
 	}
 
 	dB.clear();
-
 	dE.clear();
-
-	VERBOSE_CMD(load_field(dict["InitValue"]["E"], &E));
 
 	GLOBAL_DATA_STREAM.cd("/Input/");
 
 	VERBOSE << SAVE(ne0);
 	VERBOSE << SAVE(Te0);
 	VERBOSE << SAVE(Ti0);
+	VERBOSE << SAVE(B0);
+	VERBOSE << SAVE(E0);
 
 	LOGGER << "Load Particles";
 
@@ -404,21 +405,21 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			if (dof == "E")
 			{
 				commandToE_.push_back(
-				        E.CreateCommand(model.SelectByConfig(E.IForm, item.second["Select"]),
+				        E1.CreateCommand(model.SelectByConfig(E1.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
 				commandToB_.push_back(
-				        B.CreateCommand(model.SelectByConfig(B.IForm, item.second["Select"]),
+				        B1.CreateCommand(model.SelectByConfig(B1.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        J.CreateCommand(model.SelectByConfig(J.IForm, item.second["Select"]),
+				        J1.CreateCommand(model.SelectByConfig(J1.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else
@@ -511,46 +512,48 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	// Compute Cycle Begin
 
-	J.clear();
-	LOG_CMD(J += J0);
-	ExcuteCommands(commandToJ_);
+	J1.clear();
 
+	B = B1 + B0;
 	//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
 		{
-			p.second->next_timestep_zero(E, B);
+			p.second->next_timestep_zero(E1, B);
 			p.second->update_fields();
 
 			auto const & Js = p.second->template J<J_type>();
-			LOG_CMD(J += Js);
+			LOG_CMD(J1 += Js);
 		}
 	}
 
-	LOG_CMD(B += dB * 0.5);	//  B(t=0 -> 1/2)
+	ExcuteCommands(commandToJ_);
+
+	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 
-	LOG_CMD(dE = (Curl(B) / mu0 - J) / epsilon0 * dt);
+	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
 
 	//   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	implicit_push_E.next_timestep(E, B, particles_, &dE);
+	implicit_push_E.next_timestep(E0, B0, E1, B1, particles_, &dE);
 
-	LOG_CMD(E += dE * 0.5);	// E(t=0 -> 1)
+	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
+	B = B1 + B0;
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
 		{
-			p.second->next_timestep_half(E, B);
+			p.second->next_timestep_half(E1, B);
 		}
 	}
-	LOG_CMD(E += dE * 0.5);	// E(t=0 -> 1)
+	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
-	VERBOSE_CMD(dB = -Curl(E) * dt);
+	VERBOSE_CMD(dB = -Curl(E1) * dt);
 
-	LOG_CMD(B += dB * 0.5);	//	B(t=1/2 -> 1)
+	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 
 	// Compute Cycle End

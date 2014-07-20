@@ -32,26 +32,27 @@ public:
 
 	mesh_type const &mesh;
 
-	typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> Ev, Bv;
+	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	typename mesh_type:: template field<VERTEX, nTuple<3, Real>> B0;
+	field<VERTEX, nTuple<3, scalar_type>> Ev;
 
-	typename mesh_type:: template field<VERTEX, Real> BB;
+	field<VERTEX, nTuple<3, Real>> B0;
 
-	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
+	field<VERTEX, Real> BB;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
+	typedef field<VERTEX, scalar_type> n_type;
+
+	typedef field<VERTEX, nTuple<3, scalar_type>> J_type;
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
-			: mesh(m), B0(mesh), Bv(mesh), BB(mesh), Ev(mesh)
+			: mesh(m), B0(mesh), BB(mesh), Ev(mesh)
 	{
 	}
 
 	template<typename TP>
-	void next_timestep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
-	        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
-	        typename mesh_type:: template field<EDGE, scalar_type> *pdE);
+	void next_timestep(field<EDGE, Real> const &E0, field<FACE, Real> const & pB0, field<EDGE, scalar_type> const &E,
+	        field<FACE, scalar_type> const &B, TP const & particles, field<EDGE, scalar_type> *pdE);
 };
 
 /**
@@ -63,9 +64,9 @@ public:
  */
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, scalar_type> const &E,
-        typename mesh_type:: template field<FACE, scalar_type> const &B, TP const & particles,
-        typename mesh_type:: template field<EDGE, scalar_type> *pdE)
+void ImplicitPushE<TM>::next_timestep(field<EDGE, Real> const &E0, field<FACE, Real> const &pB0,
+        field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B, TP const & particles,
+        field<EDGE, scalar_type> *pdE)
 {
 	{
 		bool flag = false;
@@ -87,16 +88,12 @@ void ImplicitPushE<TM>::next_timestep(typename mesh_type:: template field<EDGE, 
 	if (Ev.empty())
 		Ev = MapTo<VERTEX>(E);
 
+	if (B0.empty())
 	{
-		Bv = MapTo<VERTEX>(B);
-		B0 = real(Bv);
+		B0 = MapTo<VERTEX>(pB0);
 		BB = Dot(B0, B0);
 	}
 
-	GLOBAL_DATA_STREAM.cd("/Save/");
-
-	LOGGER << SAVE(Ev);
-	LOGGER << SAVE(Bv);
 	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 
