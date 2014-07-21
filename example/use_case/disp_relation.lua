@@ -29,12 +29,12 @@ vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
 omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
-NX = 32
+NX = 128
 NY = 1
 NZ = 1
-LX = 10   --m --100000*rhoi --0.6
-LY = 20 --2.0*math.pi/k0
-LZ = 30 -- 2.0*math.pi/18
+LX = 0.2   --m --100000*rhoi --0.6
+LY = 2   --2.0*math.pi/k0
+LZ = 3   -- 2.0*math.pi/18
 
 InitValue = {
 
@@ -57,17 +57,17 @@ InitValue = {
 Model=
 {
 
-	Type = "ExplicitEMContext_Cartesian_UniformArray",
+	--Type = "ExplicitEMContext_Cartesian_UniformArray",
 
-	--Type ="ExplicitEMContext_Cylindrical2_UniformArray",
+	Type ="ExplicitEMContext_Cylindrical2_UniformArray_kz",
 
 	UnitSystem={Type="SI"},
 
 	Mesh={
 
-		Min={0,0,0 },
+		Min={1.0,0,0 },
 
-		Max={LX,LY,LZ},
+		Max={1.0+LX,LY,TWOPI/2},
 
 		Dimensions={NX,NY,1},
 
@@ -90,7 +90,7 @@ Particles={
 --	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 --	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 --	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
---	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
+	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
 }
 
 

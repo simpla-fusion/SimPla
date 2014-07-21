@@ -43,26 +43,8 @@ omega_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
 omega_ext=omega_lhw
 
-print( "Angle Frequency of antenna =",omega_ext )
-InitValue = {
+--print( "Angle Frequency of antenna =",omega_ext )
 
-	--[[
-	E=function(x)
-
-	local res = 0.0;
-	for i=1,2 do
-	res=res+math.sin(x[0]/LX*TWOPI* i + x[1]/LY*TWOPI);
-	end;
-
-	return {res,res,res}
-	end
-	--]]
-	E 	= 0.0
-	--	, J 	= 0.0
-	--	, B 	= InitB0
-	--	, ne 	= InitN0
-
-}
 
 Model=
 {
@@ -78,9 +60,9 @@ Model=
 	Mesh={
 
 
-		Min={1.2,-1.4,0.0 },
+		Min={1.2,-1.2,0.0 },
 
-		Max={2.8,1.4,TWOPI/4.0 },
+		Max={2.4,1.2,TWOPI/4.0 },
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
@@ -106,11 +88,12 @@ Constraints=
 	{
 		DOF="J",
 		Select=function(x)
-			return x[0]>2.29 and x[0]<2.31
+			return x[0]>2.29 and x[0]<2.31 and x[1]>-0.1 and x[1]<0.1
 		end,
 		Operation= function(t,x,f )
 			local tau = t*omega_ext+ x[2]*TWOPI/(Model.Mesh.Max[3]-Model.Mesh.Min[3])
 			local amp=	math.sin(tau) --*(1-math.exp(-tau*tau)
+
 			return { f[0],f[1],f[2]+amp}
 		end
 	},

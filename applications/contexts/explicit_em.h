@@ -132,7 +132,6 @@ public:
 
 	// interface end
 
-	bool enable_PEC_boundary_ = false;
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
 	void InitPECboundary();
@@ -248,7 +247,7 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 	VERBOSE << SAVE(E1);
 	VERBOSE << SAVE(B1);
 	VERBOSE << SAVE(J1);
-
+	VERBOSE << SAVE(Jext);
 #ifdef DEBUG
 	VERBOSE << SAVE(dE);
 	VERBOSE << SAVE(dB);
@@ -538,14 +537,11 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			conduct_wall_B_.push_back(s);
 		}
 	}
-	enable_PEC_boundary_ = true;
 }
 
 template<typename TM>
 void ExplicitEMContext<TM>::PECboundaryE()
 {
-	if (!enable_PEC_boundary_)
-		return;
 
 	for (auto s : conduct_wall_E_)
 	{
@@ -557,8 +553,6 @@ void ExplicitEMContext<TM>::PECboundaryE()
 template<typename TM>
 void ExplicitEMContext<TM>::PECboundaryB()
 {
-	if (!enable_PEC_boundary_)
-		return;
 
 	for (auto s : conduct_wall_B_)
 	{

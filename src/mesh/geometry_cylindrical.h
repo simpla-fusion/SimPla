@@ -174,96 +174,13 @@ public:
 	{
 		return is_ready_ && topology_type::is_ready();
 	}
-	void Update()
-	{
-		topology_type::Update();
-
-		DEFINE_PHYSICAL_CONST
-
-		coordinates_type min, max;
-
-		std::tie(min, max) = get_extents();
-
-		auto dx = get_dx();
-
-		Real R0 = (min[RAxis] + max[RAxis]) * 0.5;
-
-		Real safe_dt = CFL_
-		        * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
-		        / speed_of_light;
-
-		if (dt_ > safe_dt)
-		{
-			dt_ = safe_dt;
-		}
-
-		is_ready_ = topology_type::is_ready() && UpdateVolume();
-	}
+	bool Update();
 
 	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
 	{
-		auto dims = topology_type::get_dimensions();
 
-		if (pmin[RAxis] < EPSILON || dims[RAxis] <= 1)
-		{
-
-			RUNTIME_ERROR(
-
-			std::string(" illegal configure: Cylindrical R_min=0 or dims[R]<=1!!")
-
-			+ " coordinates = ("
-
-			+ " R=[ " + ToString(pmin[RAxis]) + " , " + ToString(pmax[RAxis]) + "]"
-
-			+ ", Z=[ " + ToString(pmin[ZAxis]) + " , " + ToString(pmax[ZAxis]) + "]"
-
-			+ ", Phi=[ " + ToString(pmin[PhiAxis]) + " , " + ToString(pmax[PhiAxis]) + "] )"
-
-			+ ", dimension = ("
-
-			+ " R = " + ToString(dims[RAxis])
-
-			+ ", Z = " + ToString(dims[RAxis])
-
-			+ ", Phi =" + ToString(dims[PhiAxis]) + ")"
-
-			);
-		}
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			xmin_[i] = pmin[i];
-
-			shift_[i] = xmin_[i];
-
-			if ((pmax[i] - pmin[i]) < EPSILON)
-			{
-
-				xmax_[i] = xmin_[i];
-
-				inv_length_[i] = 0.0;
-
-				length_[i] = 0.0;
-
-			}
-			else
-			{
-				xmax_[i] = pmax[i];
-
-				length_[i] = (xmax_[i] - xmin_[i]);
-
-				if (i == PhiAxis && length_[i] > TWOPI)
-				{
-					xmax_[i] = xmin_[i] + TWOPI;
-
-					length_[i] = TWOPI;
-				}
-
-				inv_length_[i] = 1.0 / length_[i];
-
-			}
-		}
-
+		xmin_ = pmin;
+		xmax_ = pmax;
 	}
 	inline std::pair<coordinates_type, coordinates_type> get_extents() const
 	{
@@ -483,38 +400,38 @@ public:
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int ,VERTEX>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int ,VOLUME>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VOLUME>, index_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int ,EDGE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int ,FACE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::ComponentNum(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
-	TV Sample(std::integral_constant<unsigned int ,IFORM>, index_type s, TV const & v) const
+	TV Sample(std::integral_constant<unsigned int, IFORM>, index_type s, TV const & v) const
 	{
 		return v;
 	}
 
 	template<unsigned int IFORM, typename TV>
-	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(std::integral_constant<unsigned int ,IFORM>, index_type s,
-	        nTuple<NDIMS, TV> const & v) const
+	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
+	        std::integral_constant<unsigned int, IFORM>, index_type s, nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}
@@ -553,74 +470,6 @@ public:
 	 *
 	 *\endverbatim
 	 */
-	bool UpdateVolume()
-	{
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-
-			if ((xmax_[i] - xmin_[i]) < EPSILON)
-			{
-
-				volume_[1UL << (NDIMS - i - 1)] = 1.0;
-
-				inv_volume_[1UL << (NDIMS - i - 1)] = 1.0;
-			}
-			else
-			{
-
-				volume_[1UL << (NDIMS - i - 1)] = length_[i];
-
-				inv_volume_[1UL << (NDIMS - i - 1)] = inv_length_[i];
-
-			}
-		}
-
-		/**
-		 *\verbatim
-		 *                ^y
-		 *               /
-		 *        z     /
-		 *        ^    /
-		 *        |  110-------------111
-		 *        |  /|              /|
-		 *        | / |             / |
-		 *        |/  |            /  |
-		 *       100--|----------101  |
-		 *        | m |           |   |
-		 *        |  010----------|--011
-		 *        |  /            |  /
-		 *        | /             | /
-		 *        |/              |/
-		 *       000-------------001---> x
-		 *
-		 *\endverbatim
-		 */
-
-		volume_[0] = 1;
-		//		volume_[1] /* 001 */= dx_[0];
-		//		volume_[2] /* 010 */= dx_[1];
-		//		volume_[4] /* 100 */= dx_[2];
-
-		volume_[3] /* 011 */= volume_[1] * volume_[2];
-		volume_[5] /* 101 */= volume_[4] * volume_[1];
-		volume_[6] /* 110 */= volume_[2] * volume_[4];
-
-		volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
-
-		inv_volume_[0] = 1;
-		//		inv_volume_[1] /* 001 */= inv_dx_[0];
-		//		inv_volume_[2] /* 010 */= inv_dx_[1];
-		//		inv_volume_[4] /* 100 */= inv_dx_[2];
-
-		inv_volume_[3] /* 011 */= inv_volume_[1] * inv_volume_[2];
-		inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
-		inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
-
-		inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
-
-		return true;
-	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const
 	{
@@ -662,6 +511,140 @@ public:
 }
 ;
 
+template<typename TTopology, unsigned int IPhiAxis>
+bool CylindricalGeometry<TTopology, IPhiAxis>::Update()
+{
+
+	if (!topology_type::Update())
+		return false;
+
+	DEFINE_PHYSICAL_CONST
+
+	auto dims = topology_type::get_dimensions();
+
+	if (xmin_[RAxis] < EPSILON || dims[RAxis] <= 1)
+	{
+
+		RUNTIME_ERROR(
+
+		std::string(" illegal configure: Cylindrical R_min=0 or dims[R]<=1!!")
+
+		+ " coordinates = ("
+
+		+ " R=[ " + ToString(xmin_[RAxis]) + " , " + ToString(xmax_[RAxis]) + "]"
+
+		+ ", Z=[ " + ToString(xmin_[ZAxis]) + " , " + ToString(xmax_[ZAxis]) + "]"
+
+		+ ", Phi=[ " + ToString(xmin_[PhiAxis]) + " , " + ToString(xmax_[PhiAxis]) + "] )"
+
+		+ ", dimension = ("
+
+		+ " R = " + ToString(dims[RAxis])
+
+		+ ", Z = " + ToString(dims[RAxis])
+
+		+ ", Phi =" + ToString(dims[PhiAxis]) + ")"
+
+		);
+	}
+
+	for (int i = 0; i < NDIMS; ++i)
+	{
+
+		shift_[i] = xmin_[i];
+
+		if ((xmax_[i] - xmin_[i]) < EPSILON || dims[i] <= 1)
+		{
+
+			xmax_[i] = xmin_[i];
+
+			inv_length_[i] = 0.0;
+
+			length_[i] = 0.0;
+
+			volume_[1UL << (NDIMS - i - 1)] = 1.0;
+
+			inv_volume_[1UL << (NDIMS - i - 1)] = 1.0;
+		}
+		else
+		{
+
+			length_[i] = (xmax_[i] - xmin_[i]);
+
+			if (i == PhiAxis && length_[i] > TWOPI)
+			{
+				xmax_[i] = xmin_[i] + TWOPI;
+
+				length_[i] = TWOPI;
+			}
+
+			inv_length_[i] = 1.0 / length_[i];
+
+			volume_[1UL << (NDIMS - i - 1)] = length_[i];
+
+			inv_volume_[1UL << (NDIMS - i - 1)] = inv_length_[i];
+
+		}
+	}
+
+	/**
+	 *\verbatim
+	 *                ^y
+	 *               /
+	 *        z     /
+	 *        ^    /
+	 *        |  110-------------111
+	 *        |  /|              /|
+	 *        | / |             / |
+	 *        |/  |            /  |
+	 *       100--|----------101  |
+	 *        | m |           |   |
+	 *        |  010----------|--011
+	 *        |  /            |  /
+	 *        | /             | /
+	 *        |/              |/
+	 *       000-------------001---> x
+	 *
+	 *\endverbatim
+	 */
+
+	volume_[0] = 1;
+	//		volume_[1] /* 001 */= dx_[0];
+	//		volume_[2] /* 010 */= dx_[1];
+	//		volume_[4] /* 100 */= dx_[2];
+
+	volume_[3] /* 011 */= volume_[1] * volume_[2];
+	volume_[5] /* 101 */= volume_[4] * volume_[1];
+	volume_[6] /* 110 */= volume_[2] * volume_[4];
+
+	volume_[7] /* 111 */= volume_[1] * volume_[2] * volume_[4];
+
+	inv_volume_[0] = 1;
+	//		inv_volume_[1] /* 001 */= inv_dx_[0];
+	//		inv_volume_[2] /* 010 */= inv_dx_[1];
+	//		inv_volume_[4] /* 100 */= inv_dx_[2];
+
+	inv_volume_[3] /* 011 */= inv_volume_[1] * inv_volume_[2];
+	inv_volume_[5] /* 101 */= inv_volume_[4] * inv_volume_[1];
+	inv_volume_[6] /* 110 */= inv_volume_[2] * inv_volume_[4];
+
+	inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
+
+	auto dx = get_dx();
+
+	Real R0 = (xmin_[RAxis] + xmax_[RAxis]) * 0.5;
+
+	Real safe_dt = CFL_ * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
+	        / speed_of_light;
+
+	if (dt_ > safe_dt)
+	{
+		dt_ = safe_dt;
+	}
+
+	return true;
+
+}
 }
 // namespace simpla
 

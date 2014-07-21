@@ -559,7 +559,7 @@ public:
 
 	nTuple<NDIMS, Real> inv_extents_, extents_, dx_, inv_dx_;
 
-	void Update()
+	bool Update()
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -655,6 +655,8 @@ public:
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
 		is_ready_ = true;
+
+		return is_ready_;
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
 
@@ -1665,22 +1667,23 @@ public:
 	}
 
 	template<unsigned int I>
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,I>, std::integral_constant<unsigned int ,I>, compact_index_type s, compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, I>,
+	        std::integral_constant<unsigned int, I>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, EDGE>,
+	        std::integral_constant<unsigned int, VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		v[0] = s + DeltaIndex(s);
 		v[1] = s - DeltaIndex(s);
 		return 2;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, FACE>,
+	        std::integral_constant<unsigned int, VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1714,8 +1717,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,VERTEX>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VOLUME>,
+	        std::integral_constant<unsigned int, VERTEX>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1754,8 +1757,8 @@ public:
 		return 8;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VERTEX>,
+	        std::integral_constant<unsigned int, EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 * \verbatim
@@ -1795,8 +1798,8 @@ public:
 		return 6;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, FACE>,
+	        std::integral_constant<unsigned int, EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1829,8 +1832,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,EDGE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VOLUME>,
+	        std::integral_constant<unsigned int, EDGE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1875,8 +1878,8 @@ public:
 		return 12;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,FACE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VERTEX>,
+	        std::integral_constant<unsigned int, FACE>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -1934,8 +1937,8 @@ public:
 		return 12;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,FACE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, EDGE>,
+	        std::integral_constant<unsigned int, FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -1984,8 +1987,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>, std::integral_constant<unsigned int ,FACE>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VOLUME>,
+	        std::integral_constant<unsigned int, FACE>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -2025,8 +2028,8 @@ public:
 		return 6;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, VERTEX>,
+	        std::integral_constant<unsigned int, VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 		/**
 		 *\verbatim
@@ -2080,8 +2083,8 @@ public:
 		return 8;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, EDGE>,
+	        std::integral_constant<unsigned int, VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**
@@ -2129,8 +2132,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VOLUME>, compact_index_type s,
-	        compact_index_type *v) const
+	inline unsigned int GetAdjacentCells(std::integral_constant<unsigned int, FACE>,
+	        std::integral_constant<unsigned int, VOLUME>, compact_index_type s, compact_index_type *v) const
 	{
 
 		/**

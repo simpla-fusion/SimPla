@@ -42,16 +42,11 @@ protected:
 
 		dims=std::get<2>(param);
 
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if (dims[i] <= 1 || xmax[i] <= xmin[i])
-			{
-				xmax[i] = xmin[i];
-				dims[i] = 1;
-			}
-		}
 		geometry.set_dimensions(dims);
 		geometry.set_extents(xmin,xmax);
+		geometry.Update();
+
+		std::tie(xmin,xmax)=geometry.get_extents();
 
 	}
 public:
@@ -85,9 +80,9 @@ TEST_P(TestGeometry, Coordinates)
 	{
 		auto idx = geometry.CoordinatesGlobalToLocal(x, geometry.get_first_node_shift(iform));
 		auto y = geometry.CoordinatesLocalToGlobal(idx);
-		EXPECT_DOUBLE_EQ(x[0], y[0]) << y[0] - x[0];
-		EXPECT_DOUBLE_EQ(x[1], y[1]) << y[1] - x[1];
-		EXPECT_DOUBLE_EQ(x[2], y[2]) << y[2] - x[2];
+		EXPECT_LE(abs(x[0]- y[0]),10000*EPSILON) << y[0] - x[0];
+		EXPECT_LE(abs(x[1]- y[1]),10000*EPSILON) << y[1] - x[1];
+		EXPECT_LE(abs(x[2]- y[2]),10000*EPSILON) << y[2] - x[2];
 
 		auto s = std::get<0>(idx);
 		EXPECT_EQ(iform, geometry.IForm(s));
