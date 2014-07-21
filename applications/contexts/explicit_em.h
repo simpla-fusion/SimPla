@@ -368,6 +368,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	dB.clear();
 	dE.clear();
+	E0.clear();
 	Jext.clear();
 	GLOBAL_DATA_STREAM.cd("/Input/");
 
@@ -627,6 +628,7 @@ void ExplicitEMContext<TM>::next_timestep()
 	ExcuteCommands(commandToE_);
 
 	LOG_CMD(dB = -Curl(E1) * dt);
+
 	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
 // Compute Cycle End

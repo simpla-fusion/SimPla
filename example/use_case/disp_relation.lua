@@ -32,7 +32,7 @@ omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
 
 omega_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
-NX = 128
+NX = 256
 NY = 1
 NZ = 1
 LX = 0.2   --m --100000*rhoi --0.6
@@ -44,7 +44,7 @@ InitValue = {
 	E=function(x)
 
 		local res = 0.0;
-		for i=1,1  do
+		for i=1,80  do
 			res=res+math.sin((x[0]-1.0)/LX*TWOPI* i );
 		end;
 
@@ -57,9 +57,9 @@ InitValue = {
 Model=
 {
 
-	Type = "ExplicitEMContext_Cartesian_UniformArray",
+--	Type = "ExplicitEMContext_Cartesian_UniformArray",
 
---	Type ="ExplicitEMContext_Cylindrical2_UniformArray",
+	Type ="ExplicitEMContext_Cylindrical2_UniformArray_kz",
 
 	UnitSystem={Type="SI"},
 
@@ -67,7 +67,7 @@ Model=
 
 		Min={1.0,0,0 },
 
-		Max={1.0+LX,0,TWOPI/20},
+		Max={1.0+LX,0,TWOPI/100},
 
 		Dimensions={NX,NY,NZ},
 
@@ -83,14 +83,14 @@ Model=
 Particles={
 --	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
 --	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
---  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
-	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Density=N0 },
+  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
+--	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Density=N0 },
 
 
 --	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 --	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
---	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
-	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
+	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
+--	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
 }
 
 

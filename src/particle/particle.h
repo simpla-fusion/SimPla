@@ -325,6 +325,7 @@ void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0
 
 	Real dt = mesh.get_dt();
 
+
 	for (auto & cell : *this)
 	{
 		//TODO add rw cache

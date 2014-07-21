@@ -50,9 +50,9 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > B0_type;
 
-	typedef typename mesh_type:: template field<EDGE, scalar_type> E1_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E1_type;
 
-	typedef typename mesh_type:: template field<FACE, scalar_type> B1_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B1_type;
 
 	struct Point_s
 	{
@@ -169,8 +169,11 @@ public:
 			E1_type const &fE1, B1_type const & fB1 ) const
 	{
 
-		auto B = real(interpolator_type::GatherCartesian(fB1, p->x))+interpolator_type::GatherCartesian(fB0, p->x);
-		auto E = real(interpolator_type::GatherCartesian(fE1, p->x))+interpolator_type::GatherCartesian(fE0, p->x);;
+		auto B = interpolator_type::GatherCartesian(fB0, p->x)+
+		real(interpolator_type::GatherCartesian(fB1, p->x));
+
+		auto E =interpolator_type::GatherCartesian(fE0, p->x)+
+		real(interpolator_type::GatherCartesian(fE1, p->x));
 
 		Vec3 v_;
 

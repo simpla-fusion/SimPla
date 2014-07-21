@@ -160,6 +160,7 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 			p.second->next_timestep_half(E0, B0, Ev, Bv);
 		}
 	}
+
 	Ev += dEv * 0.5;
 
 	*pdE = MapTo<EDGE>(dEv);

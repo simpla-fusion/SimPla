@@ -292,7 +292,11 @@ public:
 	{
 		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
 	}
-
+	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocalNGP(coordinates_type x,
+	        compact_index_type shift = 0UL) const
+	{
+		return std::move(topology_type::CoordinatesGlobalToLocalNGP(std::move(CoordinatesToTopology(x)), shift));
+	}
 //!@}
 //! @name Coordiantes convert Cylindrical <-> Cartesian
 //! \f$\left(r,z,\phi\right)\Longleftrightarrow\left(x,y,z\right)\f$
