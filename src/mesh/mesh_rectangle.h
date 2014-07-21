@@ -126,6 +126,7 @@ public:
 	{
 		UpdateK(&k_imag);
 		geometry_type::Update();
+		geometry_type::Updatedt(k_imag);
 	}
 private:
 	bool is_ready_ = false;
@@ -142,41 +143,26 @@ private:
 	template<typename T>
 	bool UpdateK(T* k)
 	{
-		auto dims = geometry_type::get_dimensions();
-		auto extents = geometry_type::get_extents();
-		coordinates_type xmin = std::get<0>(extents);
-		coordinates_type xmax = std::get<1>(extents);
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if (dims[i] <= 1 || (xmax[i] - xmin[i]) < EPSILON)
-			{
-				xmax[i] = xmin[i];
-			}
-		}
-		geometry_type::set_extents(xmin, xmax);
 		return true;
 	}
 	bool UpdateK(nTuple<NDIMS, Complex>* k)
 	{
+
+		coordinates_type xmin, xmax;
+
 		auto dims = geometry_type::get_dimensions();
-		auto extents = geometry_type::get_extents();
-		auto xmin = std::get<0>(extents);
-		auto xmax = std::get<1>(extents);
+
+		std::tie(xmin, xmax) = geometry_type::get_extents();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
 			(*k)[i] = 0;
 
-			if (dims[i] <= 1)
+			if (dims[i] <= 1 && xmax[i] > xmin[i])
 			{
-				if (xmax[i] > xmin[i])
-					(*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
-
-				xmax[i] = xmin[i];
+				(*k)[i] = Complex(0, TWOPI / (xmax[i] - xmin[i]));
 			}
 		}
-		geometry_type::set_extents(xmin, xmax);
 		return true;
 	}
 public:
@@ -251,7 +237,8 @@ public:
 // Exterior algebra
 //***************************************************************************************************
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,EXTRIORDERIVATIVE>, Field<this_type, VERTEX, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
+	        Field<this_type, VERTEX, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = topology_type::DeltaIndex(s);
@@ -267,7 +254,8 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,EXTRIORDERIVATIVE>, Field<this_type, EDGE, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
+	        Field<this_type, EDGE, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
@@ -291,7 +279,8 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,EXTRIORDERIVATIVE>, Field<this_type, FACE, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
+	        Field<this_type, FACE, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
@@ -321,13 +310,14 @@ public:
 		;
 	}
 
-	template<unsigned int IL, typename TL> void OpEval(std::integral_constant<unsigned int ,EXTRIORDERIVATIVE>, Field<this_type, IL, TL> const & f,
-	        compact_index_type s) const = delete;
+	template<unsigned int IL, typename TL> void OpEval(std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
+	        Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
 
-	template<unsigned int IL, typename TL> void OpEval(std::integral_constant<unsigned int ,CODIFFERENTIAL>, Field<this_type, IL, TL> const & f,
-	        compact_index_type s) const = delete;
+	template<unsigned int IL, typename TL> void OpEval(std::integral_constant<unsigned int, CODIFFERENTIAL>,
+	        Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,CODIFFERENTIAL>, Field<this_type, EDGE, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, CODIFFERENTIAL>,
+	        Field<this_type, EDGE, TL> const & f,
 	        compact_index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DI(0, s);
@@ -361,7 +351,8 @@ public:
 
 	}
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,CODIFFERENTIAL>, Field<this_type, FACE, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, CODIFFERENTIAL>,
+	        Field<this_type, FACE, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = topology_type::DeltaIndex(s);
@@ -387,7 +378,8 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int ,CODIFFERENTIAL>, Field<this_type, VOLUME, TL> const & f,
+	template<typename TL> inline auto OpEval(std::integral_constant<unsigned int, CODIFFERENTIAL>,
+	        Field<this_type, VOLUME, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
@@ -410,22 +402,25 @@ public:
 //***************************************************************************************************
 
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, VERTEX, TL> const &l, Field<this_type, VERTEX, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		return get_value(l, s) * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, VERTEX, TL> const &l, Field<this_type, EDGE, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(s);
 
 		return (get_value(l, s - X) + get_value(l, s + X)) * 0.5 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, VERTEX, TL> const &l, Field<this_type, FACE, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
 		auto Y = topology_type::Roate(X);
@@ -444,8 +439,9 @@ public:
 		) * 0.25 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, VERTEX, TL> const &l,
-	        Field<this_type, VOLUME, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, VERTEX, TL> const &l, Field<this_type, VOLUME, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -472,15 +468,17 @@ public:
 		) * 0.125 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, EDGE, TL> const &l, Field<this_type, VERTEX, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DeltaIndex(s);
 		return get_value(l, s) * (get_value(r, s - X) + get_value(r, s + X)) * 0.5;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, EDGE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, EDGE, TL> const &l, Field<this_type, EDGE, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
@@ -488,8 +486,9 @@ public:
 		return ((get_value(l, s - Y) + get_value(l, s + Y)) * (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, EDGE, TL> const &l,
-	        Field<this_type, FACE, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, EDGE, TL> const &l, Field<this_type, FACE, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -513,8 +512,9 @@ public:
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, FACE, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, FACE, TL> const &l, Field<this_type, VERTEX, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
 		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
@@ -524,8 +524,9 @@ public:
 		                + get_value(r, (s + Y) + Z)) * 0.25;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, FACE, TL> const &r,
-	        Field<this_type, EDGE, TR> const &l, compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, FACE, TL> const &r, Field<this_type, EDGE, TR> const &l,
+	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -547,8 +548,9 @@ public:
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,WEDGE>, Field<this_type, VOLUME, TL> const &l,
-	        Field<this_type, VERTEX, TR> const &r, compact_index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, WEDGE>,
+	        Field<this_type, VOLUME, TL> const &l, Field<this_type, VERTEX, TR> const &r,
+	        compact_index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -572,7 +574,8 @@ public:
 
 //***************************************************************************************************
 
-	template<unsigned int IL, typename TL> inline auto OpEval(std::integral_constant<unsigned int ,HODGESTAR>, Field<this_type, IL, TL> const & f,
+	template<unsigned int IL, typename TL> inline auto OpEval(std::integral_constant<unsigned int, HODGESTAR>,
+	        Field<this_type, IL, TL> const & f,
 	        compact_index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
 //		auto X = topology_type::DI(0,s);
@@ -604,11 +607,12 @@ public:
 		return get_value(f, s) /** geometry_type::HodgeStarVolumeScale(s)*/;
 	}
 
-	template<typename TL, typename TR> void OpEval(std::integral_constant<unsigned int ,INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, VERTEX, TL> const & f, compact_index_type s) const = delete;
+	template<typename TL, typename TR> void OpEval(std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
+	        nTuple<NDIMS, TR> const & v, Field<this_type, VERTEX, TL> const & f, compact_index_type s) const = delete;
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, EDGE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
+	        nTuple<NDIMS, TR> const & v, Field<this_type, EDGE, TL> const & f,
+	        compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		auto X = topology_type::DI(0, s);
 		auto Y = topology_type::DI(1, s);
@@ -621,8 +625,9 @@ public:
 		+ (get_value(f, s + Z) - get_value(f, s - Z)) * 0.5 * v[2];
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, FACE, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
+	        nTuple<NDIMS, TR> const & v, Field<this_type, FACE, TL> const & f,
+	        compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::ComponentNum(s);
 
@@ -636,8 +641,9 @@ public:
 		(get_value(f, s + Z) + get_value(f, s - Z)) * 0.5 * v[(n + 1) % 3];
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,INTERIOR_PRODUCT>, nTuple<NDIMS, TR> const & v,
-	        Field<this_type, VOLUME, TL> const & f, compact_index_type s) const->decltype(get_value(f,s)*v[0])
+	template<typename TL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
+	        nTuple<NDIMS, TR> const & v, Field<this_type, VOLUME, TL> const & f,
+	        compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
 		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
@@ -649,8 +655,8 @@ public:
 // Non-standard operation
 // For curlpdx
 
-	template<unsigned int N, typename TL> inline auto OpEval(std::integral_constant<unsigned int ,EXTRIORDERIVATIVE>,
-	        Field<this_type, EDGE, TL> const & f, std::integral_constant<unsigned int ,N>,
+	template<unsigned int N, typename TL> inline auto OpEval(std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
+	        Field<this_type, EDGE, TL> const & f, std::integral_constant<unsigned int, N>,
 	        compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
@@ -664,8 +670,8 @@ public:
 		return (get_value(f, s + Y) - get_value(f, s - Y)) - (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<unsigned int N, typename TL> inline auto OpEval(std::integral_constant<unsigned int ,CODIFFERENTIAL>,
-	        Field<this_type, FACE, TL> const & f, std::integral_constant<unsigned int ,N>,
+	template<unsigned int N, typename TL> inline auto OpEval(std::integral_constant<unsigned int, CODIFFERENTIAL>,
+	        Field<this_type, FACE, TL> const & f, std::integral_constant<unsigned int, N>,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 
@@ -685,12 +691,13 @@ public:
 
 		) * geometry_type::InvDualVolume(s);
 	}
-	template<unsigned int IL, typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,IL> const &,
-	        Field<this_type, IL, TR> const & f, compact_index_type s) const
+	template<unsigned int IL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, IL> const &, Field<this_type, IL, TR> const & f,
+	        compact_index_type s) const
 	        DECL_RET_TYPE(get_value(f,s))
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,VERTEX> const &,
-	        Field<this_type, EDGE, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, VERTEX> const &, Field<this_type, EDGE, TR> const & f,
 	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
@@ -707,8 +714,8 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,EDGE> const &,
-	        Field<this_type, VERTEX, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, EDGE> const &, Field<this_type, VERTEX, TR> const & f,
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
@@ -718,8 +725,8 @@ public:
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,VERTEX> const &,
-	        Field<this_type, FACE, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, VERTEX> const &, Field<this_type, FACE, TR> const & f,
 	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
@@ -766,8 +773,8 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,FACE> const &,
-	        Field<this_type, VERTEX, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, FACE> const &, Field<this_type, VERTEX, TR> const & f,
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
@@ -793,7 +800,8 @@ public:
 		);
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,VOLUME>, Field<this_type, FACE, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, VOLUME>, Field<this_type, FACE, TR> const & f,
 	        compact_index_type s) const->nTuple<3,decltype(get_value(f,s) )>
 	{
 
@@ -810,7 +818,8 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,FACE>, Field<this_type, VOLUME, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, FACE>, Field<this_type, VOLUME, TR> const & f,
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
@@ -820,7 +829,8 @@ public:
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,VOLUME>, Field<this_type, EDGE, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, VOLUME>, Field<this_type, EDGE, TR> const & f,
 	        compact_index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
 	{
 
@@ -867,7 +877,8 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int ,MAPTO>, std::integral_constant<unsigned int ,EDGE>, Field<this_type, VOLUME, TR> const & f,
+	template<typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
+	        std::integral_constant<unsigned int, EDGE>, Field<this_type, VOLUME, TR> const & f,
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 

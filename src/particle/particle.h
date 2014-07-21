@@ -173,9 +173,9 @@ public:
 		return engine_type::get_type_as_string();
 	}
 
-	void const * get_n() const
+	void const * get_rho() const
 	{
-		return reinterpret_cast<void const*>(&n);
+		return reinterpret_cast<void const*>(&rho);
 	}
 
 	void const * get_J() const
@@ -211,7 +211,7 @@ public:
 		}
 	}
 
-	typename engine_type::n_type n;
+	typename engine_type::rho_type rho;
 
 	typename engine_type::J_type J;
 
@@ -225,7 +225,7 @@ public:
 };
 template<typename Engine>
 Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), n(mesh), J(mesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
 {
 }
 template<typename Engine>
@@ -253,7 +253,7 @@ void Particle<Engine>::load(TDict const & dict, TModel const & model)
 
 	J.clear();
 
-	n.clear();
+	rho.clear();
 }
 
 template<typename Engine>
@@ -277,7 +277,7 @@ std::string Particle<Engine>::save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.cd(path);
 
-	os << "\n, n =" << simpla::save("n", n);
+	os << "\n, n =" << simpla::save("rho", rho);
 
 	os << "\n, J =" << simpla::save("J", J);
 
@@ -357,22 +357,22 @@ void Particle<Engine>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(false))
 	{
-		LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
 	else if (properties["ScatterN"].template as<bool>(false))
 	{
-		n.clear();
+		rho.clear();
 
 		for (auto & cell : *this)
 		{
 			//TODO add rw cache
 			for (auto & p : cell.second)
 			{
-				this->engine_type::Scatter(p, &n);
+				this->engine_type::Scatter(p, &rho);
 			}
 		}
 
-		UpdateGhosts(&n);
+		UpdateGhosts(&rho);
 	}
 }
 

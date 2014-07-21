@@ -15,6 +15,7 @@
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 #include "../physics/physical_constants.h"
+#include "../physics/constants.h"
 
 namespace simpla
 {
@@ -124,6 +125,47 @@ public:
 	coordinates_type shift_ = { 0, 0, 0 };
 
 	bool Update();
+
+	void Updatedt(Real dx2 = 0.0)
+	{
+		DEFINE_PHYSICAL_CONST
+
+		auto dx = get_dx();
+
+		Real safe_dt = CFL_ * std::sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]) / speed_of_light;
+
+		if (dt_ > safe_dt)
+		{
+			dt_ = safe_dt;
+		}
+
+	}
+
+	void Updatedt(nTuple<NDIMS, Real> const & kimg)
+	{
+		Updatedt(0.0);
+	}
+	void Updatedt(nTuple<NDIMS, Complex> const & kimg)
+	{
+		Real dx2 = 0.0;
+
+
+		if (std::imag(kimg[XAxis]) > EPSILON)
+		{
+			dx2 += TWOPI * TWOPI / (std::imag(kimg[XAxis]) * std::imag(kimg[XAxis]));
+		}
+		if (std::imag(kimg[ZAxis]) > EPSILON)
+		{
+			dx2 += TWOPI * TWOPI / (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
+		}
+		if (std::imag(kimg[YAxis]) > EPSILON)
+		{
+			dx2 += TWOPI * TWOPI / (std::imag(kimg[YAxis]) * std::imag(kimg[YAxis]));
+		}
+
+		Updatedt(dx2);
+
+	}
 
 	template<typename TDict, typename ...Others>
 	bool load(TDict const & dict, Others &&...others)
@@ -455,8 +497,6 @@ bool CartesianGeometry<TTopology, ZAXIS>::Update()
 {
 	topology_type::Update();
 
-	DEFINE_PHYSICAL_CONST
-
 	auto dims = topology_type::get_dimensions();
 
 	for (unsigned int i = 0; i < NDIMS; ++i)
@@ -563,14 +603,7 @@ bool CartesianGeometry<TTopology, ZAXIS>::Update()
 
 	inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
-	auto dx = get_dx();
-
-	Real safe_dt = CFL_ * std::sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2]) / speed_of_light;
-
-	if (dt_ > safe_dt)
-	{
-		dt_ = safe_dt;
-	}
+	Updatedt();
 
 	is_ready_ = true;
 

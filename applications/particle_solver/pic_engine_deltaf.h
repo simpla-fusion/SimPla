@@ -41,7 +41,7 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	typedef typename mesh_type::template field<VERTEX, scalar_type> n_type;
+	typedef typename mesh_type::template field<VERTEX, scalar_type> rho_type;
 
 	typedef typename mesh_type::template field<EDGE, scalar_type> J_type;
 
@@ -195,9 +195,9 @@ public:
 		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q*p.w);
 	}
 
-	void Scatter(Point_s const & p, n_type * n) const
+	void Scatter(Point_s const & p, rho_type * rho) const
 	{
-		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q*p.w);
+		interpolator_type::ScatterCartesian( rho,std::make_tuple(p.x,1.0),p.f * q*p.w);
 	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{

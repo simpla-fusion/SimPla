@@ -40,7 +40,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef std::list<iterator> define_domain_type;
+	typedef std::list<iterator> define_domairho_type;
 
 	static constexpr   unsigned int   IForm = particle_type::IForm;
 
@@ -50,7 +50,7 @@ public:
 
 private:
 
-	define_domain_type def_domain_;
+	define_domairho_type def_domain_;
 public:
 	std::function<
 			field_value_type(Real, coordinates_type, field_value_type const &)> op_;

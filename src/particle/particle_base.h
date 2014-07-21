@@ -52,7 +52,7 @@ public:
 
 	virtual std::string get_type_as_string() const = 0;
 
-	virtual void const * get_n() const= 0;
+	virtual void const * get_rho() const= 0;
 
 	virtual void const * get_J() const= 0;
 
@@ -81,9 +81,9 @@ public:
 	}
 
 	template<typename T>
-	T const & n() const
+	T const & rho() const
 	{
-		return *reinterpret_cast<T const*>(get_n());
+		return *reinterpret_cast<T const*>(get_rho());
 	}
 	template<typename T>
 	T const & J() const

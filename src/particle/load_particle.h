@@ -166,11 +166,11 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	auto buffer = p->create_child();
 
-	CHECK(size_of_range(range));
 	for (auto s : range)
 	{
 
-		p->n[s] = mesh.Sample(std::integral_constant<unsigned int ,TP::IForm>(), s, p->q * ns(mesh.get_coordinates(s)));
+		p->rho[s] = mesh.Sample(std::integral_constant<unsigned int, TP::IForm>(), s,
+		        p->q * ns(mesh.get_coordinates(s)));
 
 		for (int i = 0; i < pic; ++i)
 		{

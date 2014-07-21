@@ -36,23 +36,22 @@ public:
 
 	field<VERTEX, nTuple<3, scalar_type>> Ev;
 
-	field<VERTEX, nTuple<3, Real>> B0;
-
 	field<VERTEX, Real> BB;
 
-	typedef field<VERTEX, scalar_type> n_type;
+	typedef field<VERTEX, scalar_type> rho_type;
 
 	typedef field<VERTEX, nTuple<3, scalar_type>> J_type;
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
-			: mesh(m), B0(mesh), BB(mesh), Ev(mesh)
+			: mesh(m), BB(mesh), Ev(mesh)
 	{
 	}
 
 	template<typename TP>
-	void next_timestep(field<EDGE, Real> const &E0, field<FACE, Real> const & pB0, field<EDGE, scalar_type> const &E,
-	        field<FACE, scalar_type> const &B, TP const & particles, field<EDGE, scalar_type> *pdE);
+	void next_timestep(field<VERTEX, nTuple<3, Real>> const &E0, field<VERTEX, nTuple<3, Real>> const & pB0,
+	        field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B, TP const & particles,
+	        field<EDGE, scalar_type> *pdE);
 };
 
 /**
@@ -64,9 +63,13 @@ public:
  */
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::next_timestep(field<EDGE, Real> const &E0, field<FACE, Real> const &pB0,
-        field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B, TP const & particles,
-        field<EDGE, scalar_type> *pdE)
+void ImplicitPushE<TM>::next_timestep(
+
+field<VERTEX, nTuple<3, Real>> const &E0, field<VERTEX, nTuple<3, Real>> const & B0,
+
+field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B,
+
+TP const & particles, field<EDGE, scalar_type> *pdE)
 {
 	{
 		bool flag = false;
@@ -88,9 +91,8 @@ void ImplicitPushE<TM>::next_timestep(field<EDGE, Real> const &E0, field<FACE, R
 	if (Ev.empty())
 		Ev = MapTo<VERTEX>(E);
 
-	if (B0.empty())
+	if (BB.empty())
 	{
-		B0 = MapTo<VERTEX>(pB0);
 		BB = Dot(B0, B0);
 	}
 
@@ -114,7 +116,7 @@ void ImplicitPushE<TM>::next_timestep(field<EDGE, Real> const &E0, field<FACE, R
 			p.second->next_timestep_zero(Ev, B0);
 			p.second->update_fields();
 
-			auto & rhos = p.second->template n<n_type>();
+			auto & rhos = p.second->template rho<rho_type>();
 			auto & Js = p.second->template J<J_type>();
 
 			Real ms = p.second->get_mass();

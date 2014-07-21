@@ -23,11 +23,14 @@ N0 		= 1.0e18 -- m^-3
 omega_ci = e * Btor/mp -- e/m_p B0 rad/s
 vTi		= math.sqrt(k_B*Ti*2/mp)
 rhoi 	= vTi/omega_ci    -- m
+omega_pi=math.sqrt(N0*e*e/(mp*epsilon0))
 
 omega_ce = e * Btor/me -- e/m_p B0 rad/s
 vTe		= math.sqrt(k_B*Te*2/me)
 rhoe 	= vTe/omega_ce    -- m
-omeaga_pe=math.sqrt(N0*e*e/(me*epsilon0))
+omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
+
+omega_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
 NX = 128
 NY = 1
@@ -38,20 +41,17 @@ LZ = 3   -- 2.0*math.pi/18
 
 InitValue = {
 
-	---[[
 	E=function(x)
 
 		local res = 0.0;
-		for i=1,20 do
-			res=res+math.sin(x[0]/LX*TWOPI* i + x[1]/LY*TWOPI);
+		for i=1,1  do
+			res=res+math.sin((x[0]-1.0)/LX*TWOPI* i );
 		end;
 
 		return {res,res,res}
 	end
-	--]]
 
-	, J 	= 0.0
-	, B 	=  {0,0,0}
+
 }
 
 Model=
@@ -67,9 +67,9 @@ Model=
 
 		Min={1.0,0,0 },
 
-		Max={1.0+LX,LY,TWOPI/2},
+		Max={1.0+LX,0,TWOPI/4},
 
-		Dimensions={NX,NY,1},
+		Dimensions={NX,NY,NZ},
 
 		CFL =0.1,
 
@@ -87,9 +87,9 @@ Particles={
 	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Density=N0 },
 
 
---	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
---	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
---	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
+	--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+	--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+	--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
 	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
 }
 

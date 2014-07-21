@@ -65,7 +65,7 @@ public:
 
 	typedef typename mesh_type::interpolator_type interpolator_type;
 
-	typedef std::function<field_value_type(Real, coordinates_type, field_value_type)> picewise_fun_type;
+	typedef std::function<field_value_type(Real, coordinates_type, field_value_type)> picewise_furho_type;
 
 	friend mesh_type;
 
@@ -402,7 +402,7 @@ struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
 template<typename TM, unsigned int IForm, typename TContainer> template<typename TRange, typename TFun>
 std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & object)
 {
-	auto fun = TypeCast<picewise_fun_type>(object);
+	auto fun = TypeCast<picewise_furho_type>(object);
 
 	std::function<void()> res = [this,range,fun]()
 	{

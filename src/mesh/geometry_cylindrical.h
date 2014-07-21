@@ -176,6 +176,50 @@ public:
 	}
 	bool Update();
 
+	void Updatedt(Real dx2 = 0.0)
+	{
+		DEFINE_PHYSICAL_CONST
+
+		auto dx = get_dx();
+
+		Real R0 = (xmin_[RAxis] + xmax_[RAxis]) * 0.5;
+
+		dx2 += dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis];
+
+		Real safe_dt = CFL_ * std::sqrt(dx2) / speed_of_light;
+
+		if (dt_ > safe_dt)
+		{
+			dt_ = safe_dt;
+		}
+	}
+	void Updatedt(nTuple<NDIMS, Real> const & kimg)
+	{
+		Updatedt(0.0);
+	}
+	void Updatedt(nTuple<NDIMS, Complex> const & kimg)
+	{
+		Real dx2 = 0.0;
+
+		Real R0 = (xmin_[RAxis] + xmax_[RAxis]) * 0.5;
+
+		if (std::imag(kimg[RAxis]) > EPSILON)
+		{
+			dx2 += TWOPI * TWOPI / (std::imag(kimg[RAxis]) * std::imag(kimg[RAxis]));
+		}
+		if (std::imag(kimg[ZAxis]) > EPSILON)
+		{
+			dx2 += TWOPI * TWOPI / (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
+		}
+		if (std::imag(kimg[PhiAxis]) > EPSILON)
+		{
+			dx2 += R0 * R0 / (std::imag(kimg[PhiAxis]) * std::imag(kimg[PhiAxis]));
+		}
+
+		Updatedt(dx2);
+
+	}
+
 	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
 	{
 
@@ -630,17 +674,7 @@ bool CylindricalGeometry<TTopology, IPhiAxis>::Update()
 
 	inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
 
-	auto dx = get_dx();
-
-	Real R0 = (xmin_[RAxis] + xmax_[RAxis]) * 0.5;
-
-	Real safe_dt = CFL_ * std::sqrt(dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis])
-	        / speed_of_light;
-
-	if (dt_ > safe_dt)
-	{
-		dt_ = safe_dt;
-	}
+	Updatedt();
 
 	return true;
 

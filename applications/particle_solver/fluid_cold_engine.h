@@ -46,7 +46,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	typedef typename mesh_type:: template field<VERTEX, scalar_type> n_type;
+	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
 
@@ -64,7 +64,7 @@ public:
 	const Real m;
 	const Real q;
 
-	n_type n;
+	rho_type rho;
 	J_type J;
 
 	template<typename TDict, typename TModel, typename ...Args>
@@ -182,9 +182,9 @@ public:
 		return get_type_as_string_static();
 	}
 
-	void const * get_n() const
+	void const * get_rho() const
 	{
-		return reinterpret_cast<void const*>(&n);
+		return reinterpret_cast<void const*>(&rho);
 	}
 
 	void const * get_J() const
@@ -217,7 +217,7 @@ Particle<ColdFluid<TM>>::Particle(TDict const & dict, TModel const & model, Args
 
 		q(dict["Charge"].template as<Real>(1.0)),
 
-		n(mesh), J(mesh)
+		rho(mesh), J(mesh)
 {
 	load(dict, model, std::forward<Args>(args)...);
 }
@@ -233,8 +233,13 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model)
 
 	try
 	{
-		load_field(dict["Density"], &(n));
+		load_field(dict["Density"], &(rho));
 		load_field(dict["Current"], &(J));
+
+		if (!rho.empty())
+		{
+			rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
+		}
 
 	} catch (...)
 	{
@@ -251,16 +256,17 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model, TN 
 
 	load(dict, model);
 
-	if (n.empty())
+	if (rho.empty())
 	{
-		n.clear();
+		rho.clear();
 
-		auto range = model.SelectByConfig(n_type::IForm, dict["Select"]);
+		auto range = model.SelectByConfig(rho_type::IForm, dict["Select"]);
 
-		n.pull_back(range, model, pn);
+		rho.pull_back(range, model, pn);
 
-		n *= get_charge() * dict["Ratio"].template as<Real>(1.0);
+		rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
 	}
+
 	if (J.empty())
 	{
 		J.clear();
@@ -277,7 +283,7 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 
 	return
 
-	"\n, n =" + simpla::save("n", n)+
+	"\n, n =" + simpla::save("rho", rho)+
 
 	"\n, J =" + simpla::save("J", J)
 
@@ -297,7 +303,7 @@ void Particle<ColdFluid<TM>>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(true))
 	{
-		LOG_CMD(n -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
 
 }
@@ -311,7 +317,7 @@ void Particle<ColdFluid<TM>>::next_timestep_half(E_type const & E, B_type const 
 
 	Real as = 0.5 * q / m * mesh.get_dt();
 
-	K = J + Cross(J, B) * as + 2.0 * as * n * E;
+	K = J + Cross(J, B) * as + 2.0 * as * rho * E;
 
 	B2 = Dot(B, B);
 

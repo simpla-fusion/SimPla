@@ -132,11 +132,8 @@ public:
 
 	// interface end
 
-	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
-	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
 	void InitPECboundary();
-	void PECboundaryE();
-	void PECboundaryB();
+
 public:
 
 	std::string description;
@@ -156,8 +153,8 @@ public:
 	ImplicitPushE<mesh_type> implicit_push_E;
 
 	field<VERTEX, Real> n0; //!< background  equilibrium electron density
-	field<EDGE, Real> E0; //!<background  equilibrium electoric field  (B0)=0
-	field<FACE, Real> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
+	field<VERTEX, nTuple<3, Real>> E0; //!<background  equilibrium electoric field  (B0)=0
+	field<VERTEX, nTuple<3, Real>> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
 //	field<EDGE, Real> J0; //!<background  equilibrium current density J0+Curl(B0)=0
 
 //	PML<mesh_type> pml_push;
@@ -172,6 +169,8 @@ private:
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
 	{
+		if (batch.size() == 0)
+			return;
 		VERBOSE << "Apply constraints";
 		for (auto const & command : batch)
 		{
@@ -248,10 +247,8 @@ std::string ExplicitEMContext<TM>::save(std::string const & path) const
 	VERBOSE << SAVE(B1);
 	VERBOSE << SAVE(J1);
 	VERBOSE << SAVE(Jext);
-#ifdef DEBUG
 	VERBOSE << SAVE(dE);
 	VERBOSE << SAVE(dB);
-#endif
 
 	for (auto const & p : particles_)
 	{
@@ -351,7 +348,6 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		{
 			PARSER_ERROR("Configure 'Model' fail!");
 		}
-		model.Update();
 
 		B1.clear();
 		E1.clear();
@@ -523,6 +519,8 @@ bool ExplicitEMContext<TM>::pre_process()
 template<typename TM>
 void ExplicitEMContext<TM>::InitPECboundary()
 {
+	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
+
 	for (auto s : model.Select(E_type::IForm))
 	{
 		if (model.get(s) == model.null_material)
@@ -530,6 +528,22 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			conduct_wall_E_.push_back(s);
 		}
 	}
+	if (conduct_wall_E_.size() > 0)
+	{
+		std::function<void()> fun = [=]()
+		{
+			VERBOSE << "Apply PEC to E1";
+			for (auto s : conduct_wall_E_)
+			{
+				get_value(this->E1, s) = 0;
+
+			};
+		};
+		commandToE_.push_back(fun);
+	}
+
+	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
+
 	for (auto s : model.Select(B_type::IForm))
 	{
 		if (model.get(s) == model.null_material)
@@ -537,28 +551,21 @@ void ExplicitEMContext<TM>::InitPECboundary()
 			conduct_wall_B_.push_back(s);
 		}
 	}
-}
 
-template<typename TM>
-void ExplicitEMContext<TM>::PECboundaryE()
-{
-
-	for (auto s : conduct_wall_E_)
+	if (conduct_wall_B_.size() > 0)
 	{
-		get_value(E1, s) = 0;
+		std::function<void()> fun = [=]()
+		{
+			VERBOSE << "Apply PEC to B1 ";
+			for (auto s : conduct_wall_B_)
+			{
+				get_value(this->B1, s) = 0;
 
+			};
+		};
+		commandToE_.push_back(fun);
 	}
-}
 
-template<typename TM>
-void ExplicitEMContext<TM>::PECboundaryB()
-{
-
-	for (auto s : conduct_wall_B_)
-	{
-		get_value(B1, s) = 0;
-
-	}
 }
 
 template<typename TM>
@@ -583,8 +590,8 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	J1.clear();
 
-	B = B1 + B0;
-//   particle 0-> 1/2 . To n[1/2], J[1/2]
+	B = B1 + MapTo<FACE>(B0);
+	//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
@@ -602,7 +609,6 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
-	PECboundaryB();
 
 	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
 
@@ -611,9 +617,8 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
-	PECboundaryE();
 
-	B = B1 + B0;
+	B = B1 + MapTo<FACE>(B0);
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
@@ -624,12 +629,10 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
-	PECboundaryE();
 
-	VERBOSE_CMD(dB = -Curl(E1) * dt);
+	LOG_CMD(dB = -Curl(E1) * dt);
 	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);
-	PECboundaryB();
 // Compute Cycle End
 	model.next_timestep();
 

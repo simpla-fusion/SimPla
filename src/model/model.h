@@ -95,21 +95,19 @@ public:
 	template<typename TDict>
 	bool load(TDict const & dict)
 	{
-		auto res = mesh_type::load(dict["Mesh"]);
+		mesh_type::load(dict["Mesh"]);
 
-		if (res)
+		mesh_type::Update();
+
+		if (dict["Material"].is_table())
 		{
-			mesh_type::Update();
-
-			if (dict["Material"].is_table())
+			for (auto const & item : dict["Material"])
 			{
-				for (auto const & item : dict["Material"])
-				{
-					Modify(item.second);
-				}
+				Modify(item.second);
 			}
 		}
-		return res;
+
+		return true;
 	}
 	std::string save(std::string const & path) const
 	{
@@ -205,9 +203,9 @@ public:
 		material_.clear();
 	}
 
-	typedef std::function<bool(compact_index_type const &)> pred_fun_type;
+	typedef std::function<bool(compact_index_type const &)> pred_furho_type;
 	template<typename TR> using filter_iterator_type =
-	Iterator<typename std::remove_reference<decltype(std::get<0>(std::declval<TR>()))>::type, pred_fun_type ,_iterator_policy_filter,true >;
+	Iterator<typename std::remove_reference<decltype(std::get<0>(std::declval<TR>()))>::type, pred_furho_type ,_iterator_policy_filter,true >;
 
 	template<typename TR> using filter_range_type = std::pair<filter_iterator_type<TR>,filter_iterator_type<TR> >;
 
@@ -353,7 +351,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 {
 	if (!dict)
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_furho_type pred = [=]( compact_index_type const & s )->bool
 		{
 			return true;
 		};
@@ -362,7 +360,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR 
 	}
 	else if (dict.is_function())
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_furho_type pred = [=]( compact_index_type const & s )->bool
 		{
 			return (dict( this->mesh_type::get_coordinates( s)).template as<bool>());
 		};
@@ -451,7 +449,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByNGP(TR con
 	if (mesh_type::InLocalRange(dest))
 	{
 
-		pred_fun_type pred = [dest]( compact_index_type const & s )->bool
+		pred_furho_type pred = [dest]( compact_index_type const & s )->bool
 		{
 			return mesh_type::GetCellIndex(s)==mesh_type::GetCellIndex(dest);
 		};
@@ -460,7 +458,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByNGP(TR con
 	}
 	else
 	{
-		pred_fun_type pred = []( compact_index_type const & )->bool
+		pred_furho_type pred = []( compact_index_type const & )->bool
 		{
 			return false;
 		};
@@ -474,7 +472,7 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByFunction(TR const& range,
         std::function<bool(coordinates_type)> fun) const
 {
-	pred_fun_type pred = [fun,this]( compact_index_type const & s )->bool
+	pred_furho_type pred = [fun,this]( compact_index_type const & s )->bool
 	{
 		return fun( this->mesh_type::get_coordinates( s));
 	};
@@ -553,45 +551,45 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	if (in == out)
 		out = null_material;
 
-	pred_fun_type pred =
+	pred_furho_type pred =
 
-	[=]( compact_index_type const & s )->bool
-	{
+	        [=]( compact_index_type const & s )->bool
+	        {
 
-		material_type res;
+		        material_type res;
 
-		auto iform = this->mesh_type::IForm(s);
+		        auto iform = this->mesh_type::IForm(s);
 
-		auto self=this->get(s);
+		        auto self=this->get(s);
 
-		if (( self & in).none() && ( (self & out).any() || (out == null_material) ))
-		{
-			compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
+		        if (( self & in).none() && ( (self & out).any() || (out == null_material) ))
+		        {
+			        compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-			int num=0;
-			switch(iform)
-			{	case VERTEX:
-				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
-				break;
-				case EDGE:
-				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
-				break;
-				case FACE:
-				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,FACE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
-				break;
-				case VOLUME:
-				num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
-				break;
-			}
+			        int num=0;
+			        switch(iform)
+			        {	case VERTEX:
+				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        break;
+				        case EDGE:
+				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        break;
+				        case FACE:
+				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,FACE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        break;
+				        case VOLUME:
+				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        break;
+			        }
 
-			for (int i = 0; i < num; ++i)
-			{
-				res |=this->get(neighbours[i]);
-			}
-		}
+			        for (int i = 0; i < num; ++i)
+			        {
+				        res |=this->get(neighbours[i]);
+			        }
+		        }
 
-		return (res & in).any();
-	};
+		        return (res & in).any();
+	        };
 
 	return std::move(make_range_filter(range, std::move(pred)));
 
@@ -631,7 +629,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 
 	if (material != null_material)
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_furho_type pred = [=]( compact_index_type const & s )->bool
 		{
 			return (this->get(s) & material).any();
 		};
@@ -640,7 +638,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByMaterial(T
 
 	else
 	{
-		pred_fun_type pred = [=]( compact_index_type const & s )->bool
+		pred_furho_type pred = [=]( compact_index_type const & s )->bool
 		{
 			return (this->get(s) == null_material);
 		};
@@ -653,7 +651,7 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByRectangle(TR const& range, coordinates_type v0,
         coordinates_type v1) const
 {
-	pred_fun_type pred =
+	pred_furho_type pred =
 	        [v0,v1,this]( compact_index_type const & s )->bool
 	        {
 
@@ -668,7 +666,7 @@ template<typename TM> template<typename TR>
 typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByPolylines(TR const& range,
         PointInPolygon checkPointsInPolygen) const
 {
-	pred_fun_type pred = [=](compact_index_type s )->bool
+	pred_furho_type pred = [=](compact_index_type s )->bool
 	{	return (checkPointsInPolygen(this->mesh_type::get_coordinates(s) ));};
 
 	return std::move(make_range_filter(range, std::move(pred)));
