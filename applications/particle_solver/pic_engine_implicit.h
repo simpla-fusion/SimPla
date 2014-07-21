@@ -43,9 +43,17 @@ public:
 	typedef typename mesh_type::scalar_type scalar_type;
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
+
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E_type;
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > E0_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > B0_type;
+
+	typedef typename mesh_type:: template field<EDGE, scalar_type> E1_type;
+
+	typedef typename mesh_type:: template field<FACE, scalar_type> B1_type;
+
 	struct Point_s
 	{
 		coordinates_type x;
@@ -150,17 +158,19 @@ public:
 	}
 
 	// x(-1/2->1/2),v(0)
-	inline void next_timestep_zero( Point_s * p, Real dt, E_type const &fE, B_type const & fB ) const
+	inline void next_timestep_zero( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
+			E1_type const &fE1, B1_type const & fB1 ) const
 	{
 		p->x += p->v * dt;
 	}
 
 	// v(0->1)
-	inline void next_timestep_half( Point_s * p, Real dt, E_type const &fE, B_type const & fB ) const
+	inline void next_timestep_half( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
+			E1_type const &fE1, B1_type const & fB1 ) const
 	{
 
-		auto B = real(interpolator_type::GatherCartesian(fB, p->x));
-		auto E = real(interpolator_type::GatherCartesian(fE, p->x));
+		auto B = real(interpolator_type::GatherCartesian(fB1, p->x))+interpolator_type::GatherCartesian(fB0, p->x);
+		auto E = real(interpolator_type::GatherCartesian(fE1, p->x))+interpolator_type::GatherCartesian(fE0, p->x);;
 
 		Vec3 v_;
 

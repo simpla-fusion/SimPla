@@ -57,9 +57,9 @@ InitValue = {
 Model=
 {
 
-	--Type = "ExplicitEMContext_Cartesian_UniformArray",
+	Type = "ExplicitEMContext_Cartesian_UniformArray",
 
-	Type ="ExplicitEMContext_Cylindrical2_UniformArray_kz",
+--	Type ="ExplicitEMContext_Cylindrical2_UniformArray",
 
 	UnitSystem={Type="SI"},
 
@@ -67,7 +67,7 @@ Model=
 
 		Min={1.0,0,0 },
 
-		Max={1.0+LX,0,TWOPI/4},
+		Max={1.0+LX,0,TWOPI/20},
 
 		Dimensions={NX,NY,NZ},
 
@@ -81,15 +81,15 @@ Model=
 
 
 Particles={
-	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
-	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
-	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
+--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
+--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
+--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
 	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Density=N0 },
 
 
-	--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
-	--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
-	--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
+--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
+--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
 	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Density=N0 },
 }
 

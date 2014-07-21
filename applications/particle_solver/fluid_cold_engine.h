@@ -50,9 +50,13 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > E0_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > B0_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E1_type;
+
+	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B1_type;
 
 	mesh_type const & mesh;
 
@@ -138,9 +142,8 @@ public:
 		return get_property_(name).template as<T>();
 	}
 
-	void next_timestep_zero(E_type const & E, B_type const & B);
-
-	void next_timestep_half(E_type const & E, B_type const & B);
+	void next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
+	void next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
 
 // interface
 
@@ -150,11 +153,11 @@ public:
 	}
 	bool check_E_type(std::type_info const & t_info) const
 	{
-		return t_info == typeid(E_type);
+		return t_info == typeid(E1_type);
 	}
 	bool check_B_type(std::type_info const & t_info) const
 	{
-		return t_info == typeid(B_type);
+		return t_info == typeid(B1_type);
 	}
 
 	Real get_mass() const
@@ -193,14 +196,16 @@ public:
 	}
 	void update_fields();
 
-	void next_timestep_zero_(void const * E, void const*B)
+	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
-		next_timestep_zero(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
+		next_timestep_zero(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
+		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
 	}
 
-	void next_timestep_half_(void const * E, void const*B)
+	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
-		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
+		next_timestep_half(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
+		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
 	}
 
 private:
@@ -290,10 +295,29 @@ std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
 	;
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_zero(E_type const & E, B_type const & B)
+void Particle<ColdFluid<TM>>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+        B1_type const & B1)
 {
 }
 
+template<typename TM>
+void Particle<ColdFluid<TM>>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+        B1_type const & B1)
+{
+	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
+
+	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto B2 = mesh.template make_field<VERTEX, Real>();
+
+	Real as = 0.5 * q / m * mesh.get_dt();
+
+	K = J + Cross(J, B0) * as + 2.0 * as * rho * E1;
+
+	B2 = Dot(B0, B0);
+
+	J = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (B2 * as * as + 1);
+
+}
 template<typename TM>
 void Particle<ColdFluid<TM>>::update_fields()
 {
@@ -307,24 +331,6 @@ void Particle<ColdFluid<TM>>::update_fields()
 	}
 
 }
-template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_half(E_type const & E, B_type const & B)
-{
-	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
-
-	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
-	auto B2 = mesh.template make_field<VERTEX, scalar_type>();
-
-	Real as = 0.5 * q / m * mesh.get_dt();
-
-	K = J + Cross(J, B) * as + 2.0 * as * rho * E;
-
-	B2 = Dot(B, B);
-
-	J = (K + Cross(K, B) * as + B * (Dot(K, B) * as * as)) / (B2 * as * as + 1);
-
-}
-
 }
 // namespace simpla
 

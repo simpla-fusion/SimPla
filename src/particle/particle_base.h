@@ -56,11 +56,11 @@ public:
 
 	virtual void const * get_J() const= 0;
 
-	virtual void next_timestep_zero_(void const * E, void const*B)
+	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
 	}
 
-	virtual void next_timestep_half_(void const * E, void const*B)
+	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
 	}
 
@@ -91,15 +91,15 @@ public:
 		return *reinterpret_cast<T const*>(get_J());
 	}
 
-	template<typename TE, typename TB>
-	void next_timestep_zero(TE const & E, TB const &B)
+	template<typename TE0, typename TB0, typename TE1, typename TB1>
+	void next_timestep_zero(TE0 const & E0, TB0 const &B0, TE1 const & E1, TB1 const &B1)
 	{
-		next_timestep_zero_(&E, &B);
+		next_timestep_zero_(&E0, &B0, &E1, &B1);
 	}
-	template<typename TE, typename TB>
-	void next_timestep_half(TE const & E, TB const &B)
+	template<typename TE0, typename TB0, typename TE1, typename TB1>
+	void next_timestep_half(TE0 const & E0, TB0 const &B0, TE1 const & E1, TB1 const &B1)
 	{
-		next_timestep_half_(&E, &B);
+		next_timestep_half_(&E0, &B0, &E1, &B1);
 	}
 
 };

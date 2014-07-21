@@ -142,8 +142,8 @@ public:
 
 	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	field<EDGE, scalar_type> E1, dE, E;
-	field<FACE, scalar_type> B1, dB, B;
+	field<EDGE, scalar_type> E1, dE;
+	field<FACE, scalar_type> B1, dB;
 
 	field<EDGE, scalar_type> J1; //!< current density
 	field<EDGE, Real> Jext; //!< external current
@@ -192,8 +192,6 @@ private:
 template<typename TM>
 ExplicitEMContext<TM>::ExplicitEMContext()
 		: E1(model), B1(model), J1(model), dE(model), dB(model),
-
-		B(model), E(model),
 
 		B0(model), E0(model),
 
@@ -590,13 +588,12 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	J1.clear();
 
-	B = B1 + MapTo<FACE>(B0);
 	//   particle 0-> 1/2 . To n[1/2], J[1/2]
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
 		{
-			p.second->next_timestep_zero(E1, B);
+			p.second->next_timestep_zero(E0, B0, E1, B1);
 			p.second->update_fields();
 
 			auto const & Js = p.second->template J<J_type>();
@@ -618,12 +615,11 @@ void ExplicitEMContext<TM>::next_timestep()
 	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
-	B = B1 + MapTo<FACE>(B0);
 	for (auto &p : particles_)
 	{
 		if (!p.second->is_implicit())
 		{
-			p.second->next_timestep_half(E1, B);
+			p.second->next_timestep_half(E0, B0, E1, B1);
 		}
 	}
 

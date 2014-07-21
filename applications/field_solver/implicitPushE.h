@@ -34,7 +34,7 @@ public:
 
 	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	field<VERTEX, nTuple<3, scalar_type>> Ev;
+	field<VERTEX, nTuple<3, scalar_type>> Ev, Bv;
 
 	field<VERTEX, Real> BB;
 
@@ -44,13 +44,13 @@ public:
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
-			: mesh(m), BB(mesh), Ev(mesh)
+			: mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
 	{
 	}
 
 	template<typename TP>
 	void next_timestep(field<VERTEX, nTuple<3, Real>> const &E0, field<VERTEX, nTuple<3, Real>> const & pB0,
-	        field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B, TP const & particles,
+	        field<EDGE, scalar_type> const &E1, field<FACE, scalar_type> const &B1, TP const & particles,
 	        field<EDGE, scalar_type> *pdE);
 };
 
@@ -65,9 +65,13 @@ template<typename TM>
 template<typename TP>
 void ImplicitPushE<TM>::next_timestep(
 
-field<VERTEX, nTuple<3, Real>> const &E0, field<VERTEX, nTuple<3, Real>> const & B0,
+field<VERTEX, nTuple<3, Real>> const &E0,
 
-field<EDGE, scalar_type> const &E, field<FACE, scalar_type> const &B,
+field<VERTEX, nTuple<3, Real>> const &B0,
+
+field<EDGE, scalar_type> const &E1,
+
+field<FACE, scalar_type> const &B1,
 
 TP const & particles, field<EDGE, scalar_type> *pdE)
 {
@@ -89,12 +93,15 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 	LOGGER << "Implicit Push E ";
 
 	if (Ev.empty())
-		Ev = MapTo<VERTEX>(E);
+		Ev = MapTo<VERTEX>(E1);
 
-	if (BB.empty())
-	{
-		BB = Dot(B0, B0);
-	}
+	Bv = MapTo<VERTEX>(B1);
+
+	GLOBAL_DATA_STREAM.cd("/Save/");
+
+	VERBOSE << SAVE(Ev);
+
+	BB = Dot(B0, B0);
 
 	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
 	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
@@ -113,10 +120,10 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 	{
 		if (p.second->is_implicit())
 		{
-			p.second->next_timestep_zero(Ev, B0);
+			p.second->next_timestep_zero(E0, B0, Ev, Bv);
 			p.second->update_fields();
 
-			auto & rhos = p.second->template rho<rho_type>();
+			auto & rhos = (p.second->template rho<rho_type>());
 			auto & Js = p.second->template J<J_type>();
 
 			Real ms = p.second->get_mass();
@@ -150,7 +157,7 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 	{
 		if (p.second->is_implicit())
 		{
-			p.second->next_timestep_half(Ev, B0);
+			p.second->next_timestep_half(E0, B0, Ev, Bv);
 		}
 	}
 	Ev += dEv * 0.5;

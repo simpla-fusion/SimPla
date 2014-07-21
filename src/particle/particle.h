@@ -131,11 +131,11 @@ public:
 
 	bool check_E_type(std::type_info const & t_info) const
 	{
-		return t_info == typeid(E_type);
+		return t_info == typeid(E1_type);
 	}
 	bool check_B_type(std::type_info const & t_info) const
 	{
-		return t_info == typeid(B_type);
+		return t_info == typeid(B1_type);
 	}
 
 	std::string save(std::string const & path) const;
@@ -182,15 +182,16 @@ public:
 	{
 		return reinterpret_cast<void const*>(&J);
 	}
-
-	void next_timestep_zero_(void const * E, void const*B)
+	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
-		next_timestep_zero(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
+		next_timestep_zero(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
+		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
 	}
 
-	void next_timestep_half_(void const * E, void const*B)
+	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
 	{
-		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
+		next_timestep_half(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
+		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
 	}
 
 	void update_fields();
@@ -215,11 +216,13 @@ public:
 
 	typename engine_type::J_type J;
 
-	typedef typename engine_type::E_type E_type;
-	typedef typename engine_type::B_type B_type;
+	typedef typename engine_type::E0_type E0_type;
+	typedef typename engine_type::B0_type B0_type;
+	typedef typename engine_type::E1_type E1_type;
+	typedef typename engine_type::B1_type B1_type;
 
-	void next_timestep_zero(E_type const &E, B_type const & B);
-	void next_timestep_half(E_type const &E, B_type const & B);
+	void next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
+	void next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
 
 	std::list<std::function<void()> > constraint_;
 };
@@ -290,7 +293,8 @@ std::string Particle<Engine>::save(std::string const & path) const
 }
 
 template<typename Engine>
-void Particle<Engine>::next_timestep_zero(E_type const & E, B_type const & B)
+void Particle<Engine>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+        B1_type const & B1)
 {
 
 	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
@@ -304,14 +308,15 @@ void Particle<Engine>::next_timestep_zero(E_type const & E, B_type const & B)
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::next_timestep_zero(&p, dt, E, B);
+			this->engine_type::next_timestep_zero(&p, dt, E0, B0, E1, B1);
 		}
 	}
 
 	storage_type::EnableSort();
 }
 template<typename Engine>
-void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
+void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+        B1_type const & B1)
 {
 
 	LOGGER << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
@@ -325,7 +330,7 @@ void Particle<Engine>::next_timestep_half(E_type const & E, B_type const & B)
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::next_timestep_half(&p, dt, E, B);
+			this->engine_type::next_timestep_half(&p, dt, E0, B0, E1, B1);
 		}
 	}
 
