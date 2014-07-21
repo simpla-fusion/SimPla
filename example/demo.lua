@@ -14,7 +14,7 @@ epsilon0	=8.8542e-12
 --
 
 k_parallel=6.5
-Btor	=  1.0  * Tesla
+Btor	=  3.0  * Tesla
 Ti 		=  0.5 * KeV
 Te 		=  0.5 * KeV
 N0 		= 4.0e19 -- m^-3
@@ -43,7 +43,7 @@ GW = 5
 
 
 
-omega_ext=omega_lhw
+omega_ext=1.9*omega_ci
 
 --print( "Angle Frequency of antenna =",omega_ext )
 
@@ -53,7 +53,7 @@ Model=
 
 	--Type = "ExplicitEMContext_Cartesian_UniformArray",
 
-	Type ="ExplicitEMContext_Cylindrical2_UniformArray_kz",
+	Type ="ExplicitEMContext_Cylindrical2_UniformArray",
 
 	UnitSystem={Type="SI"},
 
@@ -62,13 +62,13 @@ Model=
 	Mesh={
 
 
-		Min={0,-1.2,0.0 },
+		Min={1.2,-1.2,0.0 },
 
-		Max={2.4,1.2,TWOPI/4.0 },
+		Max={2.4,1.2,TWOPI/2  },
 
 		Dimensions={NX,NY,NZ}, -- number of grid, now only first dimension is valid
 
-		CFL =0.1,
+		CFL =0.4,
 
 	},
 
@@ -83,14 +83,14 @@ Model=
 
 
 
-
+antenna_pos=2.25
 Constraints=
 {
 
 	{
 		DOF="J",
 		Select=function(x)
-			return x[0]>2.29 and x[0]<2.31 and x[1]>-0.1 and x[1]<0.1
+			return x[0]>antenna_pos-0.01 and x[0]<antenna_pos+0.01 and x[1]>-0.1 and x[1]<0.1
 		end,
 		Operation= function(t,x,f )
 			local tau = t*omega_ext+ x[2]*TWOPI/(Model.Mesh.Max[3]-Model.Mesh.Min[3])
@@ -162,13 +162,13 @@ Particles={
 	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
 	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
 	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
---	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} },
+	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} ,Ratio=0.1},
 
 
 	--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 	--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 	--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
---	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"} },
+	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"},Ratio=0.1 },
 }
 
 

@@ -57,7 +57,7 @@ public:
 
 			[&](std::string const & opt,std::string const & value)->int
 			{
-				if( opt=="number_of_thread")
+				if( opt=="number_of_threads")
 				{
 					num_threads_ =ToValue<size_t>(value);
 				}

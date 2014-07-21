@@ -48,7 +48,7 @@ enum
 
 	LOG_WARNING = -1,
 
-	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG =- 20
+	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -20
 };
 
 /**
@@ -111,7 +111,7 @@ public:
 		if (fs.is_open())
 			fs.close();
 
-		fs.open(name.c_str(), std::ios_base::out);
+		fs.open(name.c_str(), std::ios_base::trunc);
 	}
 
 	void put(int level, std::string const & msg)
@@ -153,7 +153,10 @@ public:
 
 		if (!fs.good()) open_file("simpla.log");
 
-		if (fs.good()) fs << prefix << msg << surfix;;
+
+		// @bug  can not write SimPla log to file
+
+		fs << prefix << msg << surfix;;
 
 		if (level <= std_out_visable_level_)
 		{
@@ -219,7 +222,7 @@ public:
 private:
 	int std_out_visable_level_;
 
-	std::fstream fs;
+	std::ofstream fs;
 
 };
 
