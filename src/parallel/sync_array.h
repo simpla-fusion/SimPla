@@ -110,7 +110,7 @@ public:
 	}
 #ifdef USE_MPI
 	template<typename TV>
-	void UpdateGhost(TV* data, MPI_Comm comm = nullptr) const
+	void updateGhost(TV* data, MPI_Comm comm = nullptr) const
 	{
 		if (comm == nullptr)
 		{

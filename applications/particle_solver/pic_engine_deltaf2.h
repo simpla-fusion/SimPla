@@ -118,7 +118,7 @@ public:
 
 		return os;
 	}
-	void Update()
+	void update()
 	{
 	}
 	static Point_s DefaultValue()

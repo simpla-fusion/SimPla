@@ -197,7 +197,7 @@ public:
 		local_outer_end_ = global_array_.local_.outer_end;
 		local_outer_count_ = local_outer_end_ - local_outer_begin_;
 
-		Update();
+		update();
 
 	}
 
@@ -559,7 +559,7 @@ public:
 
 	nTuple<NDIMS, Real> inv_extents_, extents_, dx_, inv_dx_;
 
-	bool Update()
+	bool update()
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -1480,6 +1480,11 @@ public:
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args &&... args) const
 	DECL_RET_TYPE (this_type::Select(this_type::Select(iform),std::forward<Args>(args)...))
+
+	range_type SelectOuter(unsigned int iform) const
+	{
+		return std::move(this_type::make_range(local_outer_begin_, local_outer_end_, get_first_node_shift(iform)));
+	}
 
 	/**
 	 * \fn Select

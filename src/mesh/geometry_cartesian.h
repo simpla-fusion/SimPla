@@ -124,9 +124,9 @@ public:
 
 	coordinates_type shift_ = { 0, 0, 0 };
 
-	bool Update();
+	bool update();
 
-	void Updatedt(Real dx2 = 0.0)
+	void updatedt(Real dx2 = 0.0)
 	{
 		DEFINE_PHYSICAL_CONST
 
@@ -141,11 +141,11 @@ public:
 
 	}
 
-	void Updatedt(nTuple<NDIMS, Real> const & kimg)
+	void updatedt(nTuple<NDIMS, Real> const & kimg)
 	{
-		Updatedt(0.0);
+		updatedt(0.0);
 	}
-	void Updatedt(nTuple<NDIMS, Complex> const & kimg)
+	void updatedt(nTuple<NDIMS, Complex> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -163,7 +163,7 @@ public:
 			dx2 += TWOPI * TWOPI / (std::imag(kimg[YAxis]) * std::imag(kimg[YAxis]));
 		}
 
-		Updatedt(dx2);
+		updatedt(dx2);
 
 	}
 
@@ -493,9 +493,9 @@ public:
 }
 ;
 template<typename TTopology, unsigned int ZAXIS>
-bool CartesianGeometry<TTopology, ZAXIS>::Update()
+bool CartesianGeometry<TTopology, ZAXIS>::update()
 {
-	topology_type::Update();
+	topology_type::update();
 
 	auto dims = topology_type::get_dimensions();
 
@@ -603,7 +603,7 @@ bool CartesianGeometry<TTopology, ZAXIS>::Update()
 
 	inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5] * inv_dual_volume_[3];
 
-	Updatedt();
+	updatedt();
 
 	is_ready_ = true;
 

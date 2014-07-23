@@ -15,7 +15,7 @@ namespace simpla
 template<typename TM, typename TParticle> class ParticlePool;
 
 template<typename TM, typename TParticle>
-void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
+void updateGhosts(ParticlePool<TM, TParticle> *pool)
 {
 #ifdef USE_MPI
 
@@ -27,7 +27,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 		return;
 	}
 
-	VERBOSE << "Update ghosts (particle pool) ";
+	VERBOSE << "update ghosts (particle pool) ";
 
 	typedef ParticlePool<TM, TParticle> pool_type;
 
@@ -47,6 +47,7 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 	for (auto const & item : g_array.send_recv_)
 	{
+		buffer[count].clear();
 
 		auto range = pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
 
@@ -62,7 +63,6 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 
 		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
 				&requests[count]);
-
 		++count;
 
 	}
@@ -91,8 +91,37 @@ void UpdateGhosts(ParticlePool<TM, TParticle> *pool)
 	auto cell_buffer = pool->create_child();
 	for (int i = 0; i < num_of_neighbour; ++i)
 	{
-		std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
-				std::back_inserter(cell_buffer));
+		typename TM::coordinates_type xmin,xmax,extents;
+
+		std::tie(xmin,xmax)=pool->mesh.get_extents();
+
+		for(int n=0;n<3;++n)
+		{
+			if(g_array.send_recv_[i].recv_begin[n]<pool->mesh.global_begin_[n])
+			{
+				extents[n]=xmin[n]-xmax[n];
+			}
+			else if(g_array.send_recv_[i].recv_begin[n]>=pool->mesh.global_end_[n])
+			{
+				extents[n]=xmax[n]-xmin[n];
+			}
+			else
+			{	extents[n]=0;}
+		}
+
+		if( extents[0]!=0.0 || extents[1]!=0.0|| extents[2]!=0.0)
+		{
+			for(auto p:buffer[num_of_neighbour + i])
+			{
+				p.x+=extents;
+				cell_buffer.push_back(std::move(p));
+			}
+		}
+		else
+		{
+			std::copy(buffer[num_of_neighbour + i].begin(), buffer[num_of_neighbour + i].end(),
+					std::back_inserter(cell_buffer));
+		}
 
 	}
 	GLOBAL_COMM.barrier();

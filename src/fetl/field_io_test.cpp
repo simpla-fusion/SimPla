@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 	mesh.set_dimensions(dims);
 	mesh.set_extents(xmin, xmax);
 
-	mesh.Update();
+	mesh.update();
 
 	auto f0 = mesh.template make_field<VERTEX, int>();
 	auto f1 = mesh.template make_field<VERTEX, int>();

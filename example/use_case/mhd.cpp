@@ -186,7 +186,7 @@ int main(int argc, char **argv)
 		TheEnd(-1);
 	}
 
-	model.Update();
+	model.update();
 
 	INFORM << "Configuration: \n" << model;
 

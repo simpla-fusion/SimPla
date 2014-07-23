@@ -44,7 +44,7 @@ public:
 //
 //}
 
-TEST_P(TestDistArray, UpdateGhost)
+TEST_P(TestDistArray, updateGhost)
 {
 	GLOBAL_COMM.init();
 
@@ -63,7 +63,7 @@ TEST_P(TestDistArray, UpdateGhost)
 		++count;
 	}
 
-	UpdateGhosts(&data[0],darray);
+	updateGhosts(&data[0],darray);
 
 	MPI_Barrier( GLOBAL_COMM.comm());
 
@@ -86,7 +86,7 @@ TEST_P(TestDistArray, UpdateGhost)
 	MPI_Barrier( GLOBAL_COMM.comm());
 }
 
-TEST_P(TestDistArray, UpdateGhostVec)
+TEST_P(TestDistArray, updateGhostVec)
 {
 	GLOBAL_COMM.init();
 
@@ -105,7 +105,7 @@ TEST_P(TestDistArray, UpdateGhostVec)
 		++count;
 	}
 
-	UpdateGhosts(&data[0],darray);
+	updateGhosts(&data[0],darray);
 
 	MPI_Barrier( GLOBAL_COMM.comm());
 

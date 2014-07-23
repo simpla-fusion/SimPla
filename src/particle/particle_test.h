@@ -50,7 +50,7 @@ protected:
 		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
 
-		mesh.Update();
+		mesh.update();
 //
 //		cfg_str = "n0=function(x,y,z)"
 //				"  return (x-0.5)*(x-0.5)+(y-0.5)*(y-0.5)+(z-0.5)*(z-0.5) "
@@ -151,14 +151,14 @@ TEST_P(TestParticle,Add)
 //			CHECK((mesh.DecompactRoot(v.first)));
 //	}
 
-	UpdateGhosts(&p);
-	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+	updateGhosts(&p);
+	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
 
-//	UpdateGhosts(&p);
-//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+//	updateGhosts(&p);
+//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
 //
-//	UpdateGhosts(&p);
-//	VERBOSE << "UpdateGhosts particle DONE " << p.size() << std::endl;
+//	updateGhosts(&p);
+//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
 }
 
 //TEST_P(TestParticle,scatter_n)
@@ -211,7 +211,7 @@ TEST_P(TestParticle,Add)
 //			variance += std::pow(abs(expect - actual), 2.0);
 //		}
 //
-//		if (std::is_same<engine_type, PICEngineDefault<mesh_type> >::value)
+//		if (std::is_same<engine_type, PICEngineFullF<mesh_type> >::value)
 //		{
 //			Real relative_error = std::sqrt(variance) / abs(average);
 //			CHECK(relative_error);

@@ -296,10 +296,10 @@ struct OcForest
 		local_outer_start_=global_array_.local_.outer_start;
 		local_outer_count_=global_array_.local_.outer_count;
 
-		UpdateHash();
+		updateHash();
 	}
 
-	void UpdateHash()
+	void updateHash()
 	{
 		if (array_order_ == SLOW_FIRST)
 		{

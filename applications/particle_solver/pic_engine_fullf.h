@@ -1,12 +1,12 @@
 /*
- * pic_engine_default.h
+ * pic_engine_fullf.h
  *
  * \date  2013-11-6
  *      \author  salmon
  */
 
-#ifndef PIC_ENGINE_DEFAULT_H_
-#define PIC_ENGINE_DEFAULT_H_
+#ifndef PIC_ENGINE_FULLF_H_
+#define PIC_ENGINE_FULLF_H_
 
 #include <sstream>
 #include <string>
@@ -25,7 +25,7 @@ namespace simpla
  *  \brief default PIC pusher, using Boris mover
  */
 template<typename TM, typename Interpolator = typename TM::interpolator_type>
-struct PICEngineDefault
+struct PICEngineFullF
 {
 public:
 	enum
@@ -35,7 +35,7 @@ public:
 	Real m;
 	Real q;
 
-	typedef PICEngineDefault<TM, Interpolator> this_type;
+	typedef PICEngineFullF<TM, Interpolator> this_type;
 	typedef TM mesh_type;
 	typedef Interpolator interpolator_type;
 
@@ -84,13 +84,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDefault(mesh_type const &m)
+	PICEngineFullF(mesh_type const &m)
 			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDefault(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDefault(pmesh)
+	PICEngineFullF(mesh_type const &pmesh, Others && ...others)
+			: PICEngineFullF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -101,40 +101,43 @@ public:
 		q = (dict["Charge"].template as<Real>(1.0));
 
 		cmr_ = (q / m);
-		{
-			std::ostringstream os;
-			os
 
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-			<< "}";
-
-			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
-		}
-
+		register_datatype();
 	}
 
-	~PICEngineDefault()
+	static void register_datatype()
+	{
+		std::ostringstream os;
+		os
+
+		<< "H5T_COMPOUND {          "
+
+		<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+		<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+		<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+		<< "}";
+
+		GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
+	}
+
+	~PICEngineFullF()
 	{
 	}
 
 	static std::string get_type_as_string()
 	{
-		return "Default";
+		return "FullF";
 	}
 
-	Real get_mass()const
+	Real get_mass() const
 	{
 		return m;
 
 	}
-	Real get_charge()const
+	Real get_charge() const
 	{
 		return q;
 
@@ -158,14 +161,15 @@ public:
 	}
 
 	// x(-1/2->1/2), v(-1/2/1/2)
-	inline void next_timestep_zero( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 ) const
+	inline void next_timestep_zero(Point_s * p, Real dt, E0_type const &fE0, B0_type const & fB0, E1_type const &fE1,
+			B1_type const & fB1) const
 	{
 
 		p->x += p->v * dt * 0.5;
 
-		auto B = real(interpolator_type::GatherCartesian(fB1, p->x))+interpolator_type::GatherCartesian(fB0, p->x);
-		auto E = real(interpolator_type::GatherCartesian(fE1, p->x))+interpolator_type::GatherCartesian(fE0, p->x);;
+		auto B = real(interpolator_type::GatherCartesian(fB1, p->x)) + interpolator_type::GatherCartesian(fB0, p->x);
+		auto E = real(interpolator_type::GatherCartesian(fE1, p->x)) + interpolator_type::GatherCartesian(fE0, p->x);
+		;
 
 		Vec3 v_;
 
@@ -185,19 +189,19 @@ public:
 
 	}
 
-	inline void next_timestep_half( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 ) const
+	inline void next_timestep_half(Point_s * p, Real dt, E0_type const &fE0, B0_type const & fB0, E1_type const &fE1,
+			B1_type const & fB1) const
 	{
 	}
 
-	void Scatter(Point_s const & p, J_type * J ) const
+	void Scatter(Point_s const & p, J_type * J) const
 	{
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q);
+		interpolator_type::ScatterCartesian(J, std::make_tuple(p.x, p.v), p.f * q);
 	}
 
 	void Scatter(Point_s const & p, rho_type * rho) const
 	{
-		interpolator_type::ScatterCartesian( rho,std::make_tuple(p.x,1.0),p.f * q);
+		interpolator_type::ScatterCartesian(rho, std::make_tuple(p.x, 1.0), p.f * q);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
@@ -208,7 +212,7 @@ public:
 
 };
 template<typename OS, typename ... TM> OS&
-operator<<(OS& os, typename PICEngineDefault<TM...>::Point_s const & p)
+operator<<(OS& os, typename PICEngineFullF<TM...>::Point_s const & p)
 {
 	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " }";
 
@@ -217,4 +221,4 @@ operator<<(OS& os, typename PICEngineDefault<TM...>::Point_s const & p)
 }
 // namespace simpla
 
-#endif /* PIC_ENGINE_DEFAULT_H_ */
+#endif /* PIC_ENGINE_FULLF_H_ */

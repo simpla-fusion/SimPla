@@ -710,11 +710,11 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 
 std::string DataStream::pimpl_s::write_array(std::string const & p_url, const void *v, DataSet const &ds)
 {
-	if (v == nullptr)
-	{
-		WARNING << "Data is empty! Can not write to " << p_url;
-		return "";
-	}
+//	if (v == nullptr)
+//	{
+//		WARNING << "Data is empty! Can not write to " << p_url;
+//		return "";
+//	}
 
 	std::string path, dsname;
 

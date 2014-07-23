@@ -17,7 +17,7 @@ namespace simpla
 {
 
 template<unsigned int N, typename TV>
-void UpdateGhosts(TV* data, DistributedArray<N> const & global_array)
+void updateGhosts(TV* data, DistributedArray<N> const & global_array)
 {
 	if (global_array.send_recv_.size() == 0)
 	{

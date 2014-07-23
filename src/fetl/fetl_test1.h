@@ -76,7 +76,7 @@ protected:
 		mesh.set_dimensions( dims);
 		mesh.set_extents(xmin, xmax );
 
-		mesh.Update();
+		mesh.update();
 
 	}
 public:
@@ -182,9 +182,9 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	{
 		v=vc *uniform_dist(gen);
 	}
-	UpdateGhosts(&f1);
-	UpdateGhosts(&f2);
-	UpdateGhosts(&f3);
+	updateGhosts(&f1);
+	updateGhosts(&f2);
+	updateGhosts(&f3);
 
 	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
 

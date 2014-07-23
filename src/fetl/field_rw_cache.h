@@ -114,23 +114,23 @@ public:
 //			cache_[i] = f_[points_[i]];
 //		}
 //
-//		UpdateMeanValue(std::integral_constant<unsigned int ,IForm>());
+//		updateMeanValue(std::integral_constant<unsigned int ,IForm>());
 	}
 
 private:
-	void UpdateMeanValue(std::integral_constant<unsigned int ,0>)
+	void updateMeanValue(std::integral_constant<unsigned int ,0>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void UpdateMeanValue(std::integral_constant<unsigned int ,3>)
+	void updateMeanValue(std::integral_constant<unsigned int ,3>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void UpdateMeanValue(std::integral_constant<unsigned int ,1>)
+	void updateMeanValue(std::integral_constant<unsigned int ,1>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
-	void UpdateMeanValue(std::integral_constant<unsigned int ,2>)
+	void updateMeanValue(std::integral_constant<unsigned int ,2>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}

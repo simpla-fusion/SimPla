@@ -16,13 +16,13 @@ namespace simpla
 
 template<typename TG,   unsigned int   IFORM, typename TV> class Field;
 template<typename TM,   unsigned int   IFORM, typename TC, typename ...Others>
-void UpdateGhosts(Field<TM, IFORM, TC>* field, Others &&...others)
+void updateGhosts(Field<TM, IFORM, TC>* field, Others &&...others)
 {
 
 	UNIMPLEMENT;
 }
 template<typename TM,   unsigned int   IFORM, typename TV, typename ...Others>
-void UpdateGhosts(Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>* field, Others &&...others)
+void updateGhosts(Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>* field, Others &&...others)
 {
 
 	typedef TV value_type;
@@ -32,11 +32,11 @@ void UpdateGhosts(Field<TM, IFORM, DenseContainer<typename TM::compact_index_typ
 
 	if (IFORM == VERTEX || IFORM == VOLUME)
 	{
-		UpdateGhosts(data, global_array, std::forward<Others >(others)...);
+		updateGhosts(data, global_array, std::forward<Others >(others)...);
 	}
 	else
 	{
-		UpdateGhosts(reinterpret_cast<nTuple<3, value_type>*>(data), global_array, std::forward<Others >(others)...);
+		updateGhosts(reinterpret_cast<nTuple<3, value_type>*>(data), global_array, std::forward<Others >(others)...);
 	}
 }
 

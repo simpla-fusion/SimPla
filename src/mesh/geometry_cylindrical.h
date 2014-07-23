@@ -174,9 +174,9 @@ public:
 	{
 		return is_ready_ && topology_type::is_ready();
 	}
-	bool Update();
+	bool update();
 
-	void Updatedt(Real dx2 = 0.0)
+	void updatedt(Real dx2 = 0.0)
 	{
 		DEFINE_PHYSICAL_CONST
 
@@ -193,11 +193,11 @@ public:
 			dt_ = safe_dt;
 		}
 	}
-	void Updatedt(nTuple<NDIMS, Real> const & kimg)
+	void updatedt(nTuple<NDIMS, Real> const & kimg)
 	{
-		Updatedt(0.0);
+		updatedt(0.0);
 	}
-	void Updatedt(nTuple<NDIMS, Complex> const & kimg)
+	void updatedt(nTuple<NDIMS, Complex> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -216,7 +216,7 @@ public:
 			dx2 += R0 * R0 / (std::imag(kimg[PhiAxis]) * std::imag(kimg[PhiAxis]));
 		}
 
-		Updatedt(dx2);
+		updatedt(dx2);
 
 	}
 
@@ -560,10 +560,10 @@ public:
 ;
 
 template<typename TTopology, unsigned int IPhiAxis>
-bool CylindricalGeometry<TTopology, IPhiAxis>::Update()
+bool CylindricalGeometry<TTopology, IPhiAxis>::update()
 {
 
-	if (!topology_type::Update())
+	if (!topology_type::update())
 		return false;
 
 	DEFINE_PHYSICAL_CONST
@@ -678,7 +678,7 @@ bool CylindricalGeometry<TTopology, IPhiAxis>::Update()
 
 	inv_volume_[7] /* 111 */= inv_volume_[1] * inv_volume_[2] * inv_volume_[4];
 
-	Updatedt();
+	updatedt();
 
 	return true;
 

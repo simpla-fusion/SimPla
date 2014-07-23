@@ -66,7 +66,7 @@ bool load_field_(TDict const &dict, Field<TM, IFORM, Container> *f)
 		return false;
 	}
 
-	UpdateGhosts(f);
+	updateGhosts(f);
 
 	return true;
 }

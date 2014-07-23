@@ -29,7 +29,7 @@ protected:
 
 		model.set_extents(xmin, xmax);
 
-		model.Update();
+		model.update();
 
 		auto extent = model.get_extents();
 

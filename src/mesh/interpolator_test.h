@@ -38,7 +38,7 @@ protected:
 		}
 		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
-		mesh.Update();
+		mesh.update();
 
 	}
 public:

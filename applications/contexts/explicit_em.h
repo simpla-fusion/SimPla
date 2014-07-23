@@ -320,7 +320,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		model.set_extents(min1, max1);
 
-		model.Update();
+		model.update();
 
 		geqdsk.SetUpMaterial(&model);
 

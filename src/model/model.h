@@ -97,7 +97,7 @@ public:
 	{
 		mesh_type::load(dict["Mesh"]);
 
-		mesh_type::Update();
+		mesh_type::update();
 
 		if (dict["Material"].is_table())
 		{
@@ -125,9 +125,9 @@ public:
 		return os;
 	}
 
-	void Update()
+	void update()
 	{
-		mesh_type::Update();
+		mesh_type::update();
 		is_ready_ = mesh_type::is_ready();
 	}
 

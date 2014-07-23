@@ -122,11 +122,11 @@ public:
 		geometry_type::set_extents(std::forward<Args>(args)...);
 	}
 
-	void Update()
+	void update()
 	{
-		UpdateK(&k_imag);
-		geometry_type::Update();
-		geometry_type::Updatedt(k_imag);
+		updateK(&k_imag);
+		geometry_type::update();
+		geometry_type::updatedt(k_imag);
 	}
 private:
 	bool is_ready_ = false;
@@ -141,11 +141,11 @@ public:
 
 private:
 	template<typename T>
-	bool UpdateK(T* k)
+	bool updateK(T* k)
 	{
 		return true;
 	}
-	bool UpdateK(nTuple<NDIMS, Complex>* k)
+	bool updateK(nTuple<NDIMS, Complex>* k)
 	{
 
 		coordinates_type xmin, xmax;

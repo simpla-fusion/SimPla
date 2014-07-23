@@ -64,9 +64,9 @@ TEST_P(TestFETL, vector_arithmetic)
 		v = vc * uniform_dist(gen);
 	}
 
-	UpdateGhosts(&f1a);
-	UpdateGhosts(&f2a);
-	UpdateGhosts(&f3);
+	updateGhosts(&f1a);
+	updateGhosts(&f2a);
+	updateGhosts(&f3);
 
 	LOG_CMD(f2b = Cross(f1a, f1b));
 	LOG_CMD(f3 = Dot(f1a, f2a));

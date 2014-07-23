@@ -188,7 +188,7 @@ void ParticlePool<TM, TPoint>::Sort_(TSrc * p_src, TDest *p_dest_contianer)
 		++pt;
 
 		auto id = mesh.CoordinatesGlobalToLocal((p->x), shift);
-		p->x = mesh.CoordinatesLocalToGlobal(std::get<0>(id), std::get<1>(id));
+//		p->x = mesh.CoordinatesLocalToGlobal(std::get<0>(id), std::get<1>(id));
 		auto & dest = p_dest_contianer->get(std::get<0>(id));
 		dest.splice(dest.begin(), *p_src, p);
 
@@ -216,7 +216,7 @@ void ParticlePool<TM, TPoint>::Sort()
 	}
 	Add(&dest);
 
-	UpdateGhosts(this);
+	updateGhosts(this);
 	VERBOSE << "Sorting Particles" << DONE;
 	isSorted_ = true;
 

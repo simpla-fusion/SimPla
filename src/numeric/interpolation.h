@@ -183,14 +183,14 @@ public:
 	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args)
 			: data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
-		Update();
+		update();
 	}
 
 	template<typename ...Args>
 	MultiDimesionInterpolation(Args && ...args)
 			: data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
 	{
-		Update();
+		update();
 	}
 
 	virtual ~MultiDimesionInterpolation()
@@ -211,10 +211,10 @@ public:
 	{
 		return data_;
 	}
-	void Update()
+	void update()
 	{
 
-		interpolate_op_.Update();
+		interpolate_op_.update();
 
 		if (data_ == nullptr)
 		{
@@ -278,7 +278,7 @@ public:
 	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
 			: dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
-		Update();
+		update();
 	}
 
 	BiLinearInterpolation(nTuple<NDIMS + 1, size_t> dims, nTuple<NDIMS + 1, Real> const &xmin,
@@ -292,7 +292,7 @@ public:
 		xmax_[0] = xmax[(ZAxis + 1) % 3];
 		xmax_[1] = xmax[(ZAxis + 2) % 3];
 
-		Update();
+		update();
 	}
 	~BiLinearInterpolation()
 	{
@@ -335,7 +335,7 @@ public:
 		return res;
 	}
 
-	inline void Update()
+	inline void update()
 	{
 		inv_dx_[0] = static_cast<Real>(dims_[0] - 1) / (xmax_[0] - xmin_[0]);
 		inv_dx_[1] = static_cast<Real>(dims_[1] - 1) / (xmax_[1] - xmin_[1]);
@@ -542,7 +542,7 @@ public:
 //	 * @param ypn
 //	 */
 //	template<typename container_type>
-//	void Update(container_type const &xy)
+//	void update(container_type const &xy)
 //	{
 //		if (static_cast<void const *>(&xy) == data_)
 //			return;
@@ -599,7 +599,7 @@ public:
 //			typename container::iterator const &it,
 //			typename container::key_type const &x)
 //	{
-//		Update(xy);
+//		update(xy);
 //		const_cast<this_type const *>(this)->operator()(xy, it, x);
 //	}
 //

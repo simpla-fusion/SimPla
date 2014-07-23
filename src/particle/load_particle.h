@@ -145,10 +145,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST
 
-	nTuple<NDIMS, Real> dxmin = { 0, 0, 1 };
-	nTuple<NDIMS, Real> dxmax = { 1, 1, 1 };
-
-	rectangle_distribution<NDIMS> x_dist(dxmin, dxmax);
+	rectangle_distribution<NDIMS> x_dist;
 
 	multi_normal_distribution<NDIMS> v_dist;
 
@@ -166,11 +163,19 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	auto buffer = p->create_child();
 
+	if (p->rho.empty())
+	{
+		p->rho.clear();
+	}
+
 	for (auto s : range)
 	{
 
-		p->rho[s] = mesh.Sample(std::integral_constant<unsigned int, TP::IForm>(), s,
-		        p->q * ns(mesh.get_coordinates(s)));
+//		p->rho[s] =
+////				mesh.Sample(std::integral_constant<unsigned int, TP::IForm>(), s,
+//		        p->q * ns(mesh.get_coordinates(s))
+////		)
+//		                ;
 
 		for (int i = 0; i < pic; ++i)
 		{
@@ -187,6 +192,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	}
 
 	p->Add(&buffer);
+	updateGhosts(p);
 
 }
 }  // namespace simpla

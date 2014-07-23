@@ -261,7 +261,7 @@ public:
 
 		);
 
-		UpdateGhosts(this);
+		updateGhosts(this);
 
 	}
 

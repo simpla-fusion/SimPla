@@ -359,13 +359,13 @@ void Particle<Engine>::update_fields()
 		}
 	}
 
-	UpdateGhosts(&J);
+	updateGhosts(&J);
 
-	if (properties["DivergeJ"].template as<bool>(false))
-	{
-		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
-	}
-	else if (properties["ScatterN"].template as<bool>(false))
+//	if (properties["DivergeJ"].template as<bool>(false))
+//	{
+//		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
+//	}
+//	else if (properties["ScatterN"].template as<bool>(false))
 	{
 		rho.clear();
 
@@ -378,7 +378,7 @@ void Particle<Engine>::update_fields()
 			}
 		}
 
-		UpdateGhosts(&rho);
+		updateGhosts(&rho);
 	}
 }
 

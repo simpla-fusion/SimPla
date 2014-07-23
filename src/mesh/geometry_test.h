@@ -44,7 +44,7 @@ protected:
 
 		geometry.set_dimensions(dims);
 		geometry.set_extents(xmin,xmax);
-		geometry.Update();
+		geometry.update();
 
 		std::tie(xmin,xmax)=geometry.get_extents();
 

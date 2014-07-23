@@ -59,7 +59,7 @@ protected:
 		mesh.set_dimensions( dims);
 		mesh.set_extents(xmin, xmax);
 
-		mesh.Update();
+		mesh.update();
 
 		K_imag = mesh.k_imag;
 
