@@ -131,11 +131,11 @@ int main(int argc, char **argv)
 
 	p.save("/H");
 
-	INFORM << "updateGhosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
+	INFORM << "update_ghosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
 
-	INFORM << "updateGhosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
+	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
 
-	updateGhosts(&p);
+	update_ghosts(&p);
 
 	p.update_fields();
 
@@ -150,9 +150,9 @@ int main(int argc, char **argv)
 //	}
 
 //
-//	updateGhosts(&p);
-//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
+//	update_ghosts(&p);
+//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
 //
-//	updateGhosts(&p);
-//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
+//	update_ghosts(&p);
+//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
 }

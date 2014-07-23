@@ -31,7 +31,7 @@ TEST_P(TestFETL, grad0)
 	{
 		f0[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&f0);
+	update_ghosts(&f0);
 
 	LOG_CMD(f1 = Grad(f0));
 
@@ -107,7 +107,7 @@ TEST_P(TestFETL, grad3)
 	{
 		f3[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&f3);
+	update_ghosts(&f3);
 	LOG_CMD(f2 = Grad(f3));
 
 	Real m = 0.0;
@@ -179,7 +179,7 @@ TEST_P(TestFETL, diverge1)
 	{
 		f1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&f1);
+	update_ghosts(&f1);
 	f0 = Diverge(f1);
 
 	Real variance = 0;
@@ -266,7 +266,7 @@ TEST_P(TestFETL, diverge2)
 	{
 		f2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&f2);
+	update_ghosts(&f2);
 	f3 = Diverge(f2);
 
 	Real variance = 0;
@@ -348,7 +348,7 @@ TEST_P(TestFETL, curl1)
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&vf1);
+	update_ghosts(&vf1);
 	LOG_CMD(vf2 = Curl(vf1));
 
 	for (auto s : mesh.Select(FACE))
@@ -445,7 +445,7 @@ TEST_P(TestFETL, curl2)
 	{
 		vf2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
-	updateGhosts(&vf2);
+	update_ghosts(&vf2);
 	LOG_CMD(vf1 = Curl(vf2));
 
 	vf1b.clear();
@@ -542,7 +542,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 		f0[s] = default_value * a;
 		m += a * a;
 	}
-	updateGhosts(&f0);
+	update_ghosts(&f0);
 
 	m = std::sqrt(m) * abs(default_value);
 
@@ -590,7 +590,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 		f3[s] = a * default_value;
 		m += a * a;
 	}
-	updateGhosts(&f3);
+	update_ghosts(&f3);
 	m = std::sqrt(m) * abs(default_value);
 
 	LOG_CMD(f2 = Grad(f3));
@@ -640,7 +640,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 		m += a * a;
 	}
-	updateGhosts(&f2);
+	update_ghosts(&f2);
 
 	m = std::sqrt(m) * abs(default_value);
 
@@ -689,7 +689,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 		f1[s] = default_value * a;
 		m += a * a;
 	}
-	updateGhosts(&f1);
+	update_ghosts(&f1);
 
 	m = std::sqrt(m) * abs(default_value);
 

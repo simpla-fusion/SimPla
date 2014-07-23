@@ -33,7 +33,7 @@ omega_pe=math.sqrt(N0*e*e/(me*epsilon0))
 omega_lhw=1.0/math.sqrt(1.0/(omega_pi*omega_pi)+1.0/(omega_ce*omega_ci))
 
 NX = 64
-NY = 1
+NY = 32
 NZ = 1
 LX = 2   --m --100000*rhoi --0.6
 LY = 2   --2.0*math.pi/k0
@@ -84,12 +84,12 @@ Particles={
 	H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti,
 
 		Density = function(x)
-			return 2.0
-			-- math.sin(((x[0])/LX + x[1]/LY)*TWOPI )
+			return  math.sin(((x[0])/LX + x[1]/LY)*TWOPI )
 		end,
 
 		PIC=200	,
-		ScatterN=true
+		ScatterN=true,
+		DumpParticle=true
 		 },
 --	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
 --  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },

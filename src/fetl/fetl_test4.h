@@ -41,12 +41,12 @@ TEST_P(TestFETL ,vec_zero_form)
 	{
 		p = vc1 * uniform_dist(gen);
 	}
-	updateGhosts(&vaf);
+	update_ghosts(&vaf);
 	for (auto & p : vbf)
 	{
 		p = vc2 * uniform_dist(gen);
 	}
-	updateGhosts(&vbf);
+	update_ghosts(&vbf);
 
 	LOG_CMD(res_vector_field = Cross(vaf, vbf));
 

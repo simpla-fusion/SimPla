@@ -195,7 +195,7 @@ public:
 	void GetProfile(std::string const & name, TF* f) const
 	{
 		GetProfile_(std::integral_constant<bool, is_nTuple<typename TF::field_value_type>::value>(), name, f);
-		updateGhosts(f);
+		update_ghosts(f);
 	}
 
 	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;

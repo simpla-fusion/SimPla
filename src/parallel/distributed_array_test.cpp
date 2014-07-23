@@ -63,7 +63,7 @@ TEST_P(TestDistArray, updateGhost)
 		++count;
 	}
 
-	updateGhosts(&data[0],darray);
+	update_ghosts(&data[0],darray);
 
 	MPI_Barrier( GLOBAL_COMM.comm());
 
@@ -105,7 +105,7 @@ TEST_P(TestDistArray, updateGhostVec)
 		++count;
 	}
 
-	updateGhosts(&data[0],darray);
+	update_ghosts(&data[0],darray);
 
 	MPI_Barrier( GLOBAL_COMM.comm());
 

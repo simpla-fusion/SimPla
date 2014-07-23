@@ -24,6 +24,14 @@ public:
 
 	rectangle_distribution()
 	{
+		nTuple<NDIM, double> xmin, xmax;
+
+		for (int i = 0; i < NDIM; ++i)
+		{
+			xmin[i] = 0;
+			xmax[i] = 1;
+		}
+		Reset(xmin, xmax);
 	}
 	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
 	{
@@ -42,7 +50,7 @@ public:
 	template<typename TR>
 	inline void Reset(TR const &xrange)
 	{
-		Reset(xrange[0], xrange[1]);
+		Reset(std::get<0>(xrange), std::get<1>(xrange));
 	}
 
 	inline void Reset(nTuple<NDIM, double> const *xrange)
@@ -58,10 +66,8 @@ public:
 		for (int i = 0; i < NDIM; ++i)
 		{
 
-			if (xmax_[i] > xmin_[i])
-				l_[i] = (xmax_[i] - xmin_[i]);
-			else
-				l_[i] = 0;
+			if (xmax_[i] > xmin_[i]) l_[i] = (xmax_[i] - xmin_[i]);
+			else l_[i] = 0;
 		}
 	}
 
@@ -89,8 +95,8 @@ public:
 		}
 	}
 private:
-	nTuple<NDIM, double> xmin_ = { 0, 0, 0 };
-	nTuple<NDIM, double> xmax_ = { 1, 1, 1 };
+	nTuple<NDIM, double> xmin_;
+	nTuple<NDIM, double> xmax_;
 	nTuple<NDIM, double> l_;
 
 };

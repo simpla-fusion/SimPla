@@ -227,14 +227,14 @@ public:
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh) :
+		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename TDict, typename TModel>
-Particle<Engine>::Particle(TDict const & dict, TModel const & model)
-		: Particle(model)
+Particle<Engine>::Particle(TDict const & dict, TModel const & model) :
+		Particle(model)
 {
 	load(dict, model);
 }
@@ -312,7 +312,7 @@ void Particle<Engine>::next_timestep_zero(E0_type const & E0, B0_type const & B0
 		}
 	}
 
-	storage_type::EnableSort();
+	storage_type::set_changed();
 }
 template<typename Engine>
 void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
@@ -325,7 +325,6 @@ void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0
 
 	Real dt = mesh.get_dt();
 
-
 	for (auto & cell : *this)
 	{
 		//TODO add rw cache
@@ -335,7 +334,7 @@ void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0
 		}
 	}
 
-	storage_type::EnableSort();
+	storage_type::set_changed();
 }
 
 template<typename Engine>
@@ -343,6 +342,8 @@ void Particle<Engine>::update_fields()
 {
 
 	LOGGER << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
+
+	update_ghosts(this);
 
 	Real dt = mesh.get_dt();
 
@@ -359,7 +360,7 @@ void Particle<Engine>::update_fields()
 		}
 	}
 
-	updateGhosts(&J);
+	update_ghosts(&J);
 
 //	if (properties["DivergeJ"].template as<bool>(false))
 //	{
@@ -378,7 +379,7 @@ void Particle<Engine>::update_fields()
 			}
 		}
 
-		updateGhosts(&rho);
+		update_ghosts(&rho);
 	}
 }
 

@@ -42,8 +42,6 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 
 	std::shared_ptr<TP> res(new TP(dict, model));
 
-	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
-
 	std::function<Real(coordinates_type const&)> ns;
 
 	std::function<Real(coordinates_type const&)> Ts;
@@ -83,6 +81,8 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 
 	unsigned int pic = dict["PIC"].template as<size_t>(100);
 
+	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
+
 	InitParticle(res.get(), range, pic, ns, Ts);
 
 	LoadParticleConstriant(res.get(), range, model, dict["Constraints"]);
@@ -97,8 +97,7 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 template<typename TP, typename TRange, typename TModel, typename TDict>
 void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
-	if (!dict)
-		return;
+	if (!dict) return;
 
 	for (auto const & key_item : dict)
 	{
@@ -145,10 +144,6 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	DEFINE_PHYSICAL_CONST
 
-	rectangle_distribution<NDIMS> x_dist;
-
-	multi_normal_distribution<NDIMS> v_dist;
-
 	std::mt19937 rnd_gen(NDIMS * 2);
 
 	size_t number = size_of_range(range);
@@ -157,7 +152,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	rnd_gen.discard(number);
 
-	nTuple<3, Real> x, v;
+	nTuple<3, Real> x = { 0, 0, 0 }, v;
 
 	Real inv_sample_density = 1.0 / pic;
 
@@ -167,6 +162,12 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	{
 		p->rho.clear();
 	}
+
+	Real x0 = 0.5 / static_cast<Real>(pic);
+
+	rectangle_distribution<NDIMS> x_dist;
+
+	multi_normal_distribution<NDIMS> v_dist;
 
 	for (auto s : range)
 	{
@@ -179,7 +180,9 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 		for (int i = 0; i < pic; ++i)
 		{
-			x_dist(rnd_gen, &x[0]);
+//			x_dist(rnd_gen, &x[0]);
+
+			x[0] = x0 + (i) / static_cast<Real>(pic);
 
 			v_dist(rnd_gen, &v[0]);
 
@@ -189,10 +192,13 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			buffer.push_back(engine_type::make_point(x, v, ns(x) * inv_sample_density));
 		}
+
+		auto & d = p->get(s);
+		d.splice(d.begin(), buffer);
 	}
 
 	p->Add(&buffer);
-	updateGhosts(p);
+	update_ghosts(p);
 
 }
 }  // namespace simpla

@@ -182,9 +182,9 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	{
 		v=vc *uniform_dist(gen);
 	}
-	updateGhosts(&f1);
-	updateGhosts(&f2);
-	updateGhosts(&f3);
+	update_ghosts(&f1);
+	update_ghosts(&f2);
+	update_ghosts(&f3);
 
 	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
 

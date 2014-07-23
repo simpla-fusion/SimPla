@@ -151,14 +151,14 @@ TEST_P(TestParticle,Add)
 //			CHECK((mesh.DecompactRoot(v.first)));
 //	}
 
-	updateGhosts(&p);
-	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
+	update_ghosts(&p);
+	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
 
-//	updateGhosts(&p);
-//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
+//	update_ghosts(&p);
+//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
 //
-//	updateGhosts(&p);
-//	VERBOSE << "updateGhosts particle DONE " << p.size() << std::endl;
+//	update_ghosts(&p);
+//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
 }
 
 //TEST_P(TestParticle,scatter_n)

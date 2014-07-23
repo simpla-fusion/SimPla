@@ -15,7 +15,7 @@ namespace simpla
 template<typename TM, typename TParticle> class ParticlePool;
 
 template<typename TM, typename TParticle>
-void updateGhosts(ParticlePool<TM, TParticle> *pool)
+void update_ghosts(ParticlePool<TM, TParticle> *pool)
 {
 #ifdef USE_MPI
 
@@ -125,7 +125,10 @@ void updateGhosts(ParticlePool<TM, TParticle> *pool)
 
 	}
 	GLOBAL_COMM.barrier();
+
 	pool->Add(&cell_buffer);
+
+	REDUCE_CHECK(pool->size());
 
 #endif
 }
