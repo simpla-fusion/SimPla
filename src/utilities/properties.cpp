@@ -18,7 +18,7 @@ std::ostream & Properties::print(std::ostream & os) const
 		{
 			os << item.second;
 		}
-		os << std::endl;
+
 	}
 	return os;
 }

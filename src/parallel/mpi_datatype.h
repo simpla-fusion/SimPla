@@ -29,7 +29,6 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type);
 /**
  *  \ingroup MPI
  *  \brief MPI convert C++ data type to mpi data type
- *  \todo change to pimpl
  */
 template<typename T>
 struct MPIDataType

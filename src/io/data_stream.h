@@ -35,7 +35,6 @@ namespace simpla
  * \ingroup DataIO
  * @class DataStream
  * \brief data stream , should be a singleton
- * @todo add write cache
  */
 class DataStream
 {

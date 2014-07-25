@@ -6,7 +6,7 @@
  */
 
 #include "log.h"
-
+using namespace simpla;
 int main(int argc, char **argv)
 {
 	int a;

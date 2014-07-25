@@ -107,7 +107,10 @@ struct Any
 		return *this;
 	}
 
-	std::ostream & print(std::ostream & os) const;
+	std::ostream & print(std::ostream & os) const
+	{
+		return ptr_->print(os);
+	}
 private:
 	struct Base;
 	typedef std::unique_ptr<Base> BasePtr;
@@ -117,6 +120,7 @@ private:
 		{
 		}
 		virtual BasePtr clone() const = 0;
+		virtual std::ostream & print(std::ostream & os) const=0;
 	};
 	template<typename T>
 	struct Derived: Base
@@ -130,6 +134,13 @@ private:
 		{
 			return BasePtr(new Derived<T>(m_value));
 		}
+
+		std::ostream & print(std::ostream & os) const
+		{
+			os << m_value;
+			return os;
+		}
+
 		T m_value;
 	};
 	BasePtr clone() const
@@ -138,9 +149,16 @@ private:
 			return ptr_->clone();
 		return nullptr;
 	}
+
 	BasePtr ptr_;
 	std::type_index t_index_;
 };
+
+inline std::ostream & operator<<(std::ostream & os, Any const& v)
+{
+	return v.print(os);
+
+}
 }
 
 #endif /* ANY_H_ */

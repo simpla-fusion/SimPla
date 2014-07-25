@@ -81,15 +81,8 @@ Model=
 
 
 Particles={
-	H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti,
-
-		Density = function(x)
-			return    math.sin(((x[0])/LX+x[1]/LY*2)*TWOPI )
-		end,
-		PIC=200	,
-		ScatterN=true,
-		DumpParticle=true
-	},
+	H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti, Density = N0, PIC=200	,
+		ScatterN=true,		DumpParticle=false	},
 --	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
 --  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
 --	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Density=N0 },

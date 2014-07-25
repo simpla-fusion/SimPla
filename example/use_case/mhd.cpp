@@ -287,7 +287,6 @@ int main(int argc, char **argv)
 
 			<< "Simulation Time = " << (model.get_time() / CONSTANTS["s"]) << "[s]";
 
-			// todo Next time step
 
 			// boundary constraints
 
