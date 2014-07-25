@@ -725,29 +725,6 @@ public:
 
 #else
 #error UNIMPLEMENT!!
-	Real const & Volume(compact_index_type s) const
-	{
-		return volume_[NodeId(s)];
-	}
-
-	Real InvVolume(compact_index_type s) const
-	{
-		return inv_volume_[NodeId(s)];
-	}
-
-	Real InvDualVolume(compact_index_type s) const
-	{
-		return inv_dual_volume_[NodeId(s)];
-	}
-	Real DualVolume(compact_index_type s) const
-	{
-		return dual_volume_[NodeId(s)];
-	}
-
-	Real CellVolume(compact_index_type s)const
-	{
-		return volume_[1] * volume_[2] * volume_[4];
-	}
 #endif
 
 	//! @}
@@ -844,22 +821,7 @@ public:
 
 		r -= I;
 
-		if (r[0] < 0 || r[0] >= 1.0)
-		{
-			CHECK(r);
-		}
-
 		compact_index_type s = (Compact(I) << MAX_DEPTH_OF_TREE) | shift;
-
-#	ifdef DEGUB
-
-		if(InnerProductNTuple(r,r)>1.0)
-		{
-			CHECK(x);
-			CHECK(I);
-			CHECK(r);
-		}
-#	endif
 
 #else
 		compact_index_type depth = DepthOfTree(shift);
@@ -892,6 +854,11 @@ public:
 		return std::move(std::make_tuple(s, r));
 	}
 
+	inline std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocalNGP(
+	        std::tuple<compact_index_type, coordinates_type> && z) const
+	{
+		return std::move(CoordinatesGlobalToLocalNGP(std::get<1>(z), std::get<0>(z)));
+	}
 	/**
 	 *
 	 * @param x  coordinates \f$ x \in \left[0,1\right)\f$
@@ -920,16 +887,6 @@ public:
 		r -= I;
 
 		compact_index_type s = (Compact(I) << MAX_DEPTH_OF_TREE) | shift;
-
-#	ifdef DEGUB
-
-		if (r[0] < -0.5 || r[0] >= 0.5)
-		{
-			CHECK(x);
-			CHECK(I);
-			CHECK(r);
-		}
-#	endif
 
 #else
 		UNIMPLEMENT
@@ -1534,15 +1491,11 @@ public:
 		nTuple<NDIMS, index_type> stride;
 
 		unsigned int iform = IForm(*std::get<0>(range));
-#ifdef USE_FORTRAN_ORDER_ARRAY
-		stride[0] = 1;
-		stride[1] = local_outer_count_[0] * stride[0];;
-		stride[2] = local_outer_count_[1] * stride[1];
-#else
+
 		stride[2] = 1;
 		stride[1] = local_outer_count_[2] * stride[2];
 		stride[0] = local_outer_count_[1] * stride[1];
-#endif
+
 		res = [=](compact_index_type s)->size_t
 		{
 			nTuple<NDIMS,index_type> d =( Decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;

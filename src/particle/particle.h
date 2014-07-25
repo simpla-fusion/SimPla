@@ -227,14 +227,14 @@ public:
 	std::list<std::function<void()> > constraint_;
 };
 template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh) :
-		engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
+Particle<Engine>::Particle(mesh_type const & pmesh)
+		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
 {
 }
 template<typename Engine>
 template<typename TDict, typename TModel>
-Particle<Engine>::Particle(TDict const & dict, TModel const & model) :
-		Particle(model)
+Particle<Engine>::Particle(TDict const & dict, TModel const & model)
+		: Particle(model)
 {
 	load(dict, model);
 }
@@ -343,8 +343,6 @@ void Particle<Engine>::update_fields()
 
 	LOGGER << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
 
-	update_ghosts(this);
-
 	Real dt = mesh.get_dt();
 
 	storage_type::Sort();
@@ -367,20 +365,20 @@ void Particle<Engine>::update_fields()
 //		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
 //	}
 //	else if (properties["ScatterN"].template as<bool>(false))
+//	{
+	rho.clear();
+
+	for (auto & cell : *this)
 	{
-		rho.clear();
-
-		for (auto & cell : *this)
+		//TODO add rw cache
+		for (auto & p : cell.second)
 		{
-			//TODO add rw cache
-			for (auto & p : cell.second)
-			{
-				this->engine_type::Scatter(p, &rho);
-			}
+			this->engine_type::Scatter(p, &rho);
 		}
-
-		update_ghosts(&rho);
 	}
+
+	update_ghosts(&rho);
+//	}
 }
 
 //*************************************************************************************************

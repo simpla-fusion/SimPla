@@ -49,12 +49,8 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 	{
 		buffer[count].clear();
 
-		auto range = pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm, item.send_begin, item.send_end);
-
-		for (auto s : range)
+		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm,item.send_begin , item.send_end))
 		{
-			buffer[count].clear();
-
 			for (auto const & p : pool->get(s))
 			{
 				buffer[count].push_back(p);
@@ -95,6 +91,7 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 		std::tie(xmin,xmax)=pool->mesh.get_extents();
 
+		bool flag=true;
 		for(int n=0;n<3;++n)
 		{
 			if(g_array.send_recv_[i].recv_begin[n]<pool->mesh.global_begin_[n])
@@ -107,6 +104,7 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 			}
 			else
 			{	extents[n]=0;}
+
 		}
 
 		if( extents[0]!=0.0 || extents[1]!=0.0|| extents[2]!=0.0)
@@ -127,8 +125,6 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 	GLOBAL_COMM.barrier();
 
 	pool->Add(&cell_buffer);
-
-	REDUCE_CHECK(pool->size());
 
 #endif
 }

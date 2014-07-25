@@ -97,7 +97,8 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 template<typename TP, typename TRange, typename TModel, typename TDict>
 void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
-	if (!dict) return;
+	if (!dict)
+		return;
 
 	for (auto const & key_item : dict)
 	{
@@ -152,18 +153,11 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	rnd_gen.discard(number);
 
-	nTuple<3, Real> x = { 0, 0, 0 }, v;
+	nTuple<3, Real> x, v;
 
 	Real inv_sample_density = 1.0 / pic;
 
 	auto buffer = p->create_child();
-
-	if (p->rho.empty())
-	{
-		p->rho.clear();
-	}
-
-	Real x0 = 0.5 / static_cast<Real>(pic);
 
 	rectangle_distribution<NDIMS> x_dist;
 
@@ -172,17 +166,9 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	for (auto s : range)
 	{
 
-//		p->rho[s] =
-////				mesh.Sample(std::integral_constant<unsigned int, TP::IForm>(), s,
-//		        p->q * ns(mesh.get_coordinates(s))
-////		)
-//		                ;
-
 		for (int i = 0; i < pic; ++i)
 		{
-//			x_dist(rnd_gen, &x[0]);
-
-			x[0] = x0 + (i) / static_cast<Real>(pic);
+			x_dist(rnd_gen, &x[0]);
 
 			v_dist(rnd_gen, &v[0]);
 

@@ -81,10 +81,10 @@ int main(int argc, char **argv)
 	nTuple<3, Real> xmin =
 	{	0, 0, 0};
 	nTuple<3, Real> xmax =
-	{	2, 2, 2};
+	{	20, 2, 2};
 
 	nTuple<3, size_t> dims =
-	{	128, 1, 1};
+	{	20 , 1, 1};
 
 	mesh.set_dimensions(dims);
 	mesh.set_extents(xmin, xmax);
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 
 	auto n=[](typename mesh_type::coordinates_type const & x )
 	{
-		return 2.0;//std::sin(x[0]*TWOPI);
+		return 2.0; //std::sin(x[0]*TWOPI);
 	};
 
 	auto T=[](typename mesh_type::coordinates_type const & x )
@@ -126,6 +126,19 @@ int main(int argc, char **argv)
 
 	InitParticle(&p,mesh.Select(VERTEX),500,n,T);
 
+//	{
+//		auto range=mesh.Select(VERTEX);
+//		auto s0=*std::get<0>(range);
+//		nTuple<3,Real> r=
+//		{	0.5,0.5,0.5};
+//
+//		particle_type::Point_s a;
+//		a.x = mesh.CoordinatesLocalToGlobal(s0, r);
+//		a.f = 1.0;
+//		p[s0].push_back(std::move(a));
+//
+//	}
+
 	p.save("/H");
 	p.update_fields();
 
@@ -135,11 +148,9 @@ int main(int argc, char **argv)
 
 	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
 
-	update_ghosts(&p);
-
 	p.update_fields();
 
-	p.save("/H");
+	p.save("/H/");
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{
