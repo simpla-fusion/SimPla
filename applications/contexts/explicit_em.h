@@ -395,23 +395,22 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 		auto type_str = opt.second["Type"].template as<std::string>("");
 
-		try
+//		try
+//		{
+		auto p = particle_factory.create(type_str, opt.second, model, ne0, Te0);
+
+		if (p != nullptr)
 		{
-			auto p = particle_factory.create(type_str, opt.second, model, ne0, Te0);
-
-			if (p != nullptr)
-			{
-
-				particles_.emplace(id, p);
-
-			}
-
-		} catch (...)
-		{
-
-			PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
+			particles_.emplace(id, p);
 
 		}
+
+//		} catch (...)
+//		{
+//
+//			PARSER_ERROR("Particle={" + id + " = { Type = " + type_str + "}}" + "  ");
+//
+//		}
 
 	}
 

@@ -35,8 +35,6 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 	MPI_Comm comm = GLOBAL_COMM.comm();
 
-	MPIDataType<value_type> dtype;
-
 	int num_of_neighbour = g_array.send_recv_.size();
 
 	MPI_Request requests[num_of_neighbour * 2];
@@ -47,17 +45,27 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 	for (auto const & item : g_array.send_recv_)
 	{
-		buffer[count].clear();
+
+		size_t num=0;
+		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm,item.send_begin , item.send_end))
+		{
+			num+=pool->get(s).size();
+		}
+
+		buffer[count].resize(num);
+
+		num=0;
 
 		for (auto s : pool->mesh.SelectInner(ParticlePool<TM, TParticle>::IForm,item.send_begin , item.send_end))
 		{
 			for (auto const & p : pool->get(s))
 			{
-				buffer[count].push_back(p);
+				buffer[count][num]=p;
+				++num;
 			}
 		}
 
-		MPI_Isend(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.send_tag, comm,
+		MPI_Isend(&buffer[count][0], buffer[count].size()*sizeof(value_type),MPI_BYTE, item.dest, item.send_tag, comm,
 				&requests[count]);
 		++count;
 
@@ -73,11 +81,16 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 		// When probe returns, the status object has the size and other
 		// attributes of the incoming message. Get the size of the message
-		int number = 0;
-		MPI_Get_count(&status, dtype.type(), &number);
-		buffer[count].resize(number);
+		int mem_size = 0;
+		MPI_Get_count(&status, MPI_BYTE, &mem_size);
 
-		MPI_Irecv(&buffer[count][0], buffer[count].size(), dtype.type(), item.dest, item.recv_tag, comm,
+		if(mem_size==MPI_UNDEFINED)
+		{
+			RUNTIME_ERROR("Update Ghosts Particle fail");
+		}
+		buffer[count].resize(mem_size/ sizeof(value_type));
+
+		MPI_Irecv(&buffer[count][0], buffer[count].size()*sizeof(value_type), MPI_BYTE, item.dest, item.recv_tag, comm,
 				&requests[count]);
 		++count;
 	}

@@ -139,6 +139,11 @@ public:
 		return std::shared_ptr<TV>(reinterpret_cast<TV*>(allocate(demand * sizeof(TV))), deallocate_m);
 	}
 
+	inline std::shared_ptr<ByteType> allocate_byte_shared_ptr(size_t demand)
+	{
+		return allocate_shared_ptr<ByteType>(demand);
+	}
+
 private:
 
 	inline std::shared_ptr<byte_type> _allocate_shared_ptr(size_t demand)

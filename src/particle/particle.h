@@ -360,25 +360,25 @@ void Particle<Engine>::update_fields()
 
 	update_ghosts(&J);
 
-//	if (properties["DivergeJ"].template as<bool>(false))
-//	{
-//		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
-//	}
-//	else if (properties["ScatterN"].template as<bool>(false))
-//	{
-	rho.clear();
-
-	for (auto & cell : *this)
+	if (properties["DivergeJ"].template as<bool>(false))
 	{
-		//TODO add rw cache
-		for (auto & p : cell.second)
-		{
-			this->engine_type::Scatter(p, &rho);
-		}
+		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
+	else if (properties["ScatterN"].template as<bool>(false))
+	{
+		rho.clear();
 
-	update_ghosts(&rho);
-//	}
+		for (auto & cell : *this)
+		{
+			//TODO add rw cache
+			for (auto & p : cell.second)
+			{
+				this->engine_type::Scatter(p, &rho);
+			}
+		}
+
+		update_ghosts(&rho);
+	}
 }
 
 //*************************************************************************************************

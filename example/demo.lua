@@ -159,16 +159,17 @@ end
 --]]
 
 Particles={
-	--	H 		= {Type="Default",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
+	--	H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200 },
 	--	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
-	--  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },
-	H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} ,Ratio=0.1},
+	  H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=40,Select={Material="Plasma"},
+	       ScatterN=true,DumpParticle=false,DumpParticle=true},
+	--H    	= {Type="ColdFluid",	Mass=mp,Charge=e,	Select={Material="Plasma"} ,Ratio=0.1},
 
 
 	--	ele 	= {Type="Default",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
 	--	ele 	= {Type="DeltaF",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te,	PIC=200 },
-	--	ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true },
-	ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"},Ratio=0.1 },
+--		ele 	= {Type="Implicit",	 Mass=me, Charge=-e,	Density=N0, Temperature=Te, PIC=200,ScatterN=true},
+	--ele 	= {Type="ColdFluid", Mass=me, Charge=-e,	Select={Material="Plasma"},Ratio=0.1 },
 }
 
 

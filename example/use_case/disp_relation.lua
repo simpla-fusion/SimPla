@@ -41,15 +41,15 @@ LZ = 3   -- 2.0*math.pi/18
 
 InitValue = {
 
-	E=function(x)
-
-		local res = 0.0;
-		for i=1,80  do
-			res=res+math.sin((x[0]-1.0)/LX*TWOPI* i );
-		end;
-
-		return {res,res,res}
-	end
+--	E=function(x)
+--
+--		local res = 0.0;
+--		for i=1,80  do
+--			res=res+math.sin((x[0]-1.0)/LX*TWOPI* i );
+--		end;
+--
+--		return {res,res,res}
+--	end
 
 
 }
@@ -81,7 +81,11 @@ Model=
 
 
 Particles={
-	H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti, Density = N0, PIC=200	,
+	H 		= {Type="FullF",		Mass=mp,Charge=e,	Temperature=Ti,
+		Density = function(x)
+			return math.sin((x[0] )/LX*TWOPI  )
+		end
+		, PIC=200	,
 		ScatterN=true,		DumpParticle=false	},
 --	H  		= {Type="Implicit",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0,	PIC=200	,ScatterN=true},
 --  H 		= {Type="DeltaF",		Mass=mp,Charge=e,	Temperature=Ti,	Density=N0, PIC=200 },

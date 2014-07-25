@@ -94,6 +94,18 @@ public:
 		        + properties["Group Name"].template as<std::string>();
 	}
 
+	bool check_null_dataset(DataSet const & ds)
+	{
+		bool is_null = true;
+
+		size_t s = 1;
+		for (int i = 0; i < ds.ndims; ++i)
+		{
+			s *= (ds.m_shape[i]);
+		}
+		return s == 0;
+	}
+
 	std::tuple<std::string, std::string> cd(std::string const &url_hint, unsigned int flag = 0UL);
 
 	std::string write(std::string const &url, const void *, DataSet ds);
@@ -442,9 +454,9 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
 {
-	if ((ds.flag & (SP_UNORDER | SP_RECORD)) == (SP_UNORDER | SP_RECORD))
+	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
 	{
-		ds.flag &= ~SP_RECORD;
+		return write_array(url, v, ds);
 	}
 
 	if ((ds.flag & SP_RECORD) == SP_RECORD)
@@ -716,6 +728,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 //		return "";
 //	}
 
+	//todo (salmon) need optimize for empty space
+
 	std::string path, dsname;
 
 	std::tie(path, dsname) = cd(p_url, ds.flag);
@@ -741,11 +755,19 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 		file_space = H5Dget_space(dset);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_offset, ds.f_stride, ds.count, ds.block));
+		if (check_null_dataset(ds))
+		{
+			mem_space = H5S_ALL;
+		}
+		else
+		{
 
-		mem_space = H5Screate_simple(ds.ndims, ds.m_shape, NULL);
+			H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_offset, ds.f_stride, ds.count, ds.block));
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, NULL);
+
+			H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+		}
 
 	}
 	else
@@ -782,33 +804,41 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 		dset = H5Dopen(group_, dsname.c_str(), H5P_DEFAULT);
 
-		file_space = H5Dget_space(dset);
+		if (check_null_dataset(ds))
+		{
+			mem_space = H5S_ALL;
+			file_space = H5S_ALL;
+		}
+		else
+		{
 
-		int ndims = H5Sget_simple_extent_ndims(file_space);
+			file_space = H5Dget_space(dset);
 
-		hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
-		hsize_t f_offset[MAX_NDIMS_OF_ARRAY];
+			int ndims = H5Sget_simple_extent_ndims(file_space);
 
-		H5Sget_simple_extent_dims(file_space, f_shape, nullptr);
+			hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
+			hsize_t f_offset[MAX_NDIMS_OF_ARRAY];
 
-		H5Sclose(file_space);
+			H5Sget_simple_extent_dims(file_space, f_shape, nullptr);
 
-		std::copy(ds.f_offset, ds.f_offset + ndims, f_offset);
+			H5Sclose(file_space);
 
-		f_offset[0] += f_shape[0];
+			std::copy(ds.f_offset, ds.f_offset + ndims, f_offset);
 
-		f_shape[0] += ds.f_shape[0];
+			f_offset[0] += f_shape[0];
 
-		H5Dset_extent(dset, f_shape);
+			f_shape[0] += ds.f_shape[0];
 
-		file_space = H5Dget_space(dset);
+			H5Dset_extent(dset, f_shape);
 
-		H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_offset, ds.f_stride, ds.count, ds.block));
+			file_space = H5Dget_space(dset);
 
-		mem_space = H5Screate_simple(ds.ndims, ds.m_shape, nullptr);
+			H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_offset, ds.f_stride, ds.count, ds.block));
 
-		H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, nullptr);
 
+			H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+		}
 		//	CHECK(ndims);
 		//	CHECK(f_shape[0]) << " " << f_shape[1];
 		//	CHECK(ds.f_offset[0]) << " " << ds.f_offset[1];
@@ -818,22 +848,28 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 		//	CHECK(ds.count[0]) << " " << ds.count[1];
 		//	CHECK(ds.block[0]) << " " << ds.block[1];
 	}
-
+	if (!check_null_dataset(ds) && v != nullptr)
+	{
 // create property list for collective DataSet write.
 #ifdef USE_MPI
-	hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
-	H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
-	H5_ERROR(H5Dwrite(dset, m_type, mem_space, file_space, plist_id, v));
-	H5_ERROR(H5Pclose(plist_id));
+
+		hid_t plist_id = H5Pcreate(H5P_DATASET_XFER);
+		H5_ERROR(H5Pset_dxpl_mpio(plist_id, H5FD_MPIO_INDEPENDENT));
+		H5_ERROR(H5Dwrite(dset, m_type, mem_space, file_space, plist_id, v));
+		H5_ERROR(H5Pclose(plist_id));
+
 #else
-	H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, v));
+		H5_ERROR(H5Dwrite(dset,m_type , mem_space, file_space, H5P_DEFAULT, v));
 #endif
+	}
 
 	H5_ERROR(H5Dclose(dset));
 
-	H5_ERROR(H5Sclose(mem_space));
+	if (mem_space != H5S_ALL)
+		H5_ERROR(H5Sclose(mem_space));
 
-	H5_ERROR(H5Sclose(file_space));
+	if (file_space != H5S_ALL)
+		H5_ERROR(H5Sclose(file_space));
 
 	if (H5Tcommitted(m_type) > 0)
 		H5Tclose(m_type);
