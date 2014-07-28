@@ -51,7 +51,7 @@ bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Dataty
 //	}
 	else
 	{
-		MPI_Type_contiguous(size_in_byte, MPI_CHAR, new_type);
+		MPI_Type_contiguous(size_in_byte, MPI_BYTE, new_type);
 		MPI_Type_commit(new_type);
 		is_commited = true;
 	}

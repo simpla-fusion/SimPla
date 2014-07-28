@@ -228,5 +228,17 @@ void allreduce(nTuple<DIMS, T> * p_send, std::string const & op_c = "Sum")
 
 }
 
+struct MPI_data_pack_s
+{
+
+	std::shared_ptr<ByteType> buffer;
+	int count;
+	DataType data_type;
+	int node_id;
+	int tag;
+
+};
+void send_recv(std::vector<MPI_data_pack_s> & send_buffer, std::vector<MPI_data_pack_s> & recv_buffer);
+
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */
