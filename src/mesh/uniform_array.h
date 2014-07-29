@@ -147,7 +147,7 @@ public:
 
 	compact_index_type global_begin_compact_index_ = 0UL;
 
-	DistributedArray<NDIMS> global_array_;
+	DistributedArray global_array_;
 
 	//  \verbatim
 	//
@@ -187,7 +187,7 @@ public:
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
 
-		global_array_.Decompose(GLOBAL_COMM.get_size(),GLOBAL_COMM.get_rank(),DEFAULT_GHOSTS_WIDTH);
+		global_array_.Decompose(DEFAULT_GHOSTS_WIDTH);
 
 		local_inner_begin_ = global_array_.local_.inner_begin;
 		local_inner_end_ = global_array_.local_.inner_end;

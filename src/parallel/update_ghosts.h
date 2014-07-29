@@ -36,8 +36,10 @@ void update_ghosts(TV* data, DistributedArray<N> const & global_array)
 		auto send_count = item.send_end - item.send_begin;
 		auto recv_count = item.recv_end - item.recv_begin;
 
-		MPIDataType<TV> send_type(g_outer_count, send_count, item.send_begin - global_array.local_.outer_begin);
-		MPIDataType<TV> recv_type(g_outer_count, recv_count, item.recv_begin - global_array.local_.outer_begin);
+		auto send_type = MPIDataType::create<TV>(g_outer_count, send_count,
+		        item.send_begin - global_array.local_.outer_begin);
+		auto recv_type = MPIDataType::create<TV>(g_outer_count, recv_count,
+		        item.recv_begin - global_array.local_.outer_begin);
 
 		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm, &request[count * 2]);
 		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm, &request[count * 2 + 1]);

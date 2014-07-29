@@ -9,9 +9,13 @@
 using namespace simpla;
 int main(int argc, char **argv)
 {
+	Logger::init(argc, argv);
+
 	int a;
 
 	LOG_CMD(a = 5);
+
+	Logger::set_stdout_visable_level(10);
 
 	auto logger = LOGGER;
 
@@ -23,5 +27,10 @@ int main(int argc, char **argv)
 
 	logger << DONE
 
-	<< a;
+	<< a << std::endl;
+
+	INFORM << "What?";
+	INFORM << "Why?";
+	INFORM << "Who?";
+	INFORM << "WHen?";
 }

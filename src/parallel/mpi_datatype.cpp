@@ -11,8 +11,7 @@
 
 namespace simpla
 {
-namespace _impl
-{
+
 bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Datatype * new_type)
 {
 	bool is_commited = false;
@@ -91,6 +90,36 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type)
 	return is_commited;
 }
 
-}  // namespace _impl
+template<typename T, unsigned int NDIMS, typename TI>
+static MPIDataType create(nTuple<NDIMS, TI> const &outer, nTuple<NDIMS, TI> const &inner,
+        nTuple<NDIMS, TI> const &start, unsigned int array_order_ =
+        MPI_ORDER_C)
+{
+	const int v_ndims = nTupleTraits<T>::NDIMS;
+
+	int outer1[NDIMS + v_ndims];
+	int inner1[NDIMS + v_ndims];
+	int start1[NDIMS + v_ndims];
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		outer1[i] = outer[i];
+		inner1[i] = inner[i];
+		start1[i] = start[i];
+	}
+
+	nTupleTraits<T>::get_dimensions(outer1 + NDIMS);
+	nTupleTraits<T>::get_dimensions(inner1 + NDIMS);
+	for (int i = 0; i < v_ndims; ++i)
+	{
+		start1[NDIMS + i] = 0;
+	}
+
+	MPI_Type_create_subarray(NDIMS + v_ndims, outer1, inner1, start1, array_order_,
+	        MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
+	MPI_Type_commit(&type_);
+	is_commited_ = true;
+}
+
+
 }  // namespace simpla
 

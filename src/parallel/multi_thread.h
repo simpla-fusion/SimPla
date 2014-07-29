@@ -14,7 +14,6 @@
 #else
 #	include <thread>
 #endif
-
 #include "message_comm.h"
 
 namespace simpla
@@ -39,7 +38,7 @@ inline void ParallelDo(std::function<void(unsigned int, int)> fun)
 #else
 	const unsigned int num_threads = GLOBAL_COMM.get_num_of_threads();
 	std::vector<std::thread> threads;
-	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
+	for (unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
 		threads.emplace_back(std::thread(
 
