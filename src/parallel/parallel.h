@@ -10,10 +10,6 @@
 
 #include "multi_thread.h"
 
-#ifdef USE_MPI
-#	include "message_comm.h"
-#endif
-
 /**
  *  \defgroup  Parallel Parallel
  *  @{

@@ -19,7 +19,7 @@ namespace simpla
 struct DistributedArray
 {
 public:
-	unsigned int ndims = 0;
+	unsigned int ndims = 3;
 
 	int self_id_ = 0;
 
@@ -72,16 +72,16 @@ public:
 
 	void Decompose(long gw = 2);
 
-	nTuple<5, long> global_begin_;
-	nTuple<5, long> global_end_;
-	nTuple<5, long> global_strides_;
+	nTuple<3, long> global_begin_;
+	nTuple<3, long> global_end_;
+	nTuple<3, long> global_strides_;
 
 	struct sub_array_s
 	{
-		nTuple<5, long> outer_begin;
-		nTuple<5, long> outer_end;
-		nTuple<5, long> inner_begin;
-		nTuple<5, long> inner_end;
+		nTuple<3, long> outer_begin;
+		nTuple<3, long> outer_end;
+		nTuple<3, long> inner_begin;
+		nTuple<3, long> inner_end;
 	};
 	sub_array_s local_;
 
@@ -90,10 +90,10 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<5, long> send_begin;
-		nTuple<5, long> send_end;
-		nTuple<5, long> recv_begin;
-		nTuple<5, long> recv_end;
+		nTuple<3, long> send_begin;
+		nTuple<3, long> send_end;
+		nTuple<3, long> recv_begin;
+		nTuple<3, long> recv_end;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s

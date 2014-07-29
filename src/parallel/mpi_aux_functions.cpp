@@ -13,6 +13,7 @@ extern "C"
 }
 
 #include "message_comm.h"
+#include "mpi_datatype.h"
 #include "distributed_array.h"
 
 #include "../utilities/log.h"
@@ -20,173 +21,12 @@ extern "C"
 namespace simpla
 {
 
-bool GetMPIType(std::type_index const & t_index, size_t size_in_byte, MPI_Datatype * new_type)
-{
-	bool is_commited = false;
-
-	if (t_index == std::type_index(typeid(int)))
-	{
-		*new_type = MPI_INT;
-	}
-	else if (t_index == std::type_index(typeid(long)))
-	{
-		*new_type = MPI_LONG;
-	}
-	else if (t_index == std::type_index(typeid(unsigned long)))
-	{
-		*new_type = MPI_UNSIGNED_LONG;
-	}
-	else if (t_index == std::type_index(typeid(float)))
-	{
-		*new_type = MPI_FLOAT;
-	}
-	else if (t_index == std::type_index(typeid(double)))
-	{
-		*new_type = MPI_DOUBLE;
-	}
-//	else if (t_index == std::type_index(typeid(long double)))
-//	{
-//		*new_type = MPI_LONG_DOUBLE;
-//	}
-//	else if (t_index == std::type_index(typeid(std::complex<double>)))
-//	{
-//		*new_type = MPI_2DOUBLE_COMPLEX;
-//	}
-//	else if (t_index == std::type_index(typeid(std::complex<float>)))
-//	{
-//		*new_type = MPI_2COMPLEX;
-//	}
-	else
-	{
-		MPI_Type_contiguous(size_in_byte, MPI_BYTE, new_type);
-		MPI_Type_commit(new_type);
-		is_commited = true;
-	}
-	return is_commited;
-}
-
-bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type)
-{
-	bool is_commited = false;
-
-	if (datatype_desc.ndims == 0)
-	{
-		is_commited = GetMPIType(datatype_desc.t_index_, datatype_desc.ele_size_in_byte_, new_type);
-	}
-	else
-	{
-		int ndims = datatype_desc.ndims;
-
-		int dims[ndims];
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			dims[i] = datatype_desc.dimensions_[i];
-		}
-
-		MPI_Datatype ele_type;
-
-		GetMPIType(datatype_desc.t_index_, datatype_desc.ele_size_in_byte_, &ele_type);
-
-		MPI_Type_contiguous(ndims, ele_type, new_type);
-
-		MPI_Type_commit(new_type);
-
-		is_commited = true;
-	}
-
-	return is_commited;
-}
-
-struct MPIDataType
-{
-	MPI_Datatype type_ = MPI_DATATYPE_NULL;
-	bool is_commited_ = false;
-	static constexpr unsigned int MAX_NTUPLE_RANK = 10;
-
-	MPIDataType()
-	{
-	}
-
-	static MPIDataType create(DataType const & datatype);
-
-	template<typename T>
-	static MPIDataType create()
-	{
-		return std::move(create(DataType::create<T>()));
-	}
-
-	static MPIDataType create(DataType const & data_type, int NDIMS, int const * outer, int const * inner,
-	        int const * start, bool c_order_array = true);
-
-	~MPIDataType()
-	{
-		if (is_commited_)
-			MPI_Type_free(&type_);
-	}
-
-	MPI_Datatype const & type(...) const
-	{
-		return type_;
-	}
-
-};
-MPIDataType MPIDataType::create(DataType const & datatype)
-{
-	MPIDataType res;
-	res.is_commited_ = (GetMPIType(datatype, &res.type_));
-	return res;
-
-}
-MPIDataType MPIDataType::create(DataType const & datatype, int NDIMS, int const * outer, int const * inner,
-        int const * start, bool c_order_array)
-{
-	MPIDataType res;
-
-	const int v_ndims = datatype.ndims;
-
-	int outer1[NDIMS + v_ndims];
-	int inner1[NDIMS + v_ndims];
-	int start1[NDIMS + v_ndims];
-	for (int i = 0; i < NDIMS; ++i)
-	{
-		outer1[i] = outer[i];
-		inner1[i] = inner[i];
-		start1[i] = start[i];
-	}
-
-	for (int i = 0; i < v_ndims; ++i)
-	{
-		outer1[NDIMS + i] = datatype.dimensions_[i];
-		inner1[NDIMS + i] = datatype.dimensions_[i];
-		start1[NDIMS + i] = 0;
-	}
-
-	for (int i = 0; i < v_ndims; ++i)
-	{
-		start1[NDIMS + i] = 0;
-	}
-	MPI_Datatype ele_type;
-
-	GetMPIType(datatype.t_index_, datatype.ele_size_in_byte_, &ele_type);
-
-	MPI_Type_create_subarray(NDIMS + v_ndims, outer1, inner1, start1, (c_order_array ? MPI_ORDER_C : MPI_ORDER_FORTRAN),
-	        ele_type, &res.type_);
-
-	MPI_Type_commit(&res.type_);
-
-	res.is_commited_ = true;
-
-	return res;
-}
-
 /**
  * @param pos in {0,count} out {begin,shape}
  */
-template<typename Integral>
-std::tuple<Integral, Integral> sync_global_location(Integral count)
+std::tuple<int, int> sync_global_location(int count)
 {
-	Integral begin = 0;
+	int begin = 0;
 
 	if ( GLOBAL_COMM.is_ready() && GLOBAL_COMM.get_size() > 1)
 	{
@@ -196,9 +36,9 @@ std::tuple<Integral, Integral> sync_global_location(Integral count)
 		int num_of_process = GLOBAL_COMM.get_size();
 		int porcess_number = GLOBAL_COMM.get_rank();
 
-		MPIDataType m_type =MPIDataType::create<Integral>();
+		MPIDataType m_type =MPIDataType::create<int>();
 
-		std::vector<Integral> buffer;
+		std::vector<int> buffer;
 
 		if (porcess_number == 0)
 		buffer.resize(num_of_process);
@@ -301,8 +141,6 @@ void allreduce(void const* send_data, void * recv_data, size_t count, DataType c
 	GLOBAL_COMM.barrier();
 
 }
-
-
 
 std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(void const* send_buffer, std::vector<
 

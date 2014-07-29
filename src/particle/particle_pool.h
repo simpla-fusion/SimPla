@@ -188,7 +188,7 @@ void ParticlePool<TM, TPoint>::add_to(TSrc * p_src, TDest *p_dest_contianer) con
 		++pt;
 
 		auto local_coordiantes = (mesh.CoordinatesGlobalToLocal((p->x), shift));
-		p->x = mesh.CoordinatesLocalToGlobal(local_coordiantes, shift);
+//		p->x = mesh.CoordinatesLocalToGlobal(local_coordiantes);
 		auto & dest = p_dest_contianer->get(std::get<0>(local_coordiantes));
 		dest.splice(dest.begin(), *p_src, p);
 

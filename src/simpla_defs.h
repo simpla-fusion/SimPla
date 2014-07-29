@@ -49,7 +49,7 @@ inline void TheStart(int flag = 1)
 	default:
 		INFORM << SINGLELINE;
 		VERBOSE << "So far so good, let's start work! ";
-		INFORM << "[MISSOIN     START]: " << TimeStamp;
+		INFORM << "[MISSOIN     START]: ";
 		INFORM << SINGLELINE;
 	}
 }
@@ -72,7 +72,7 @@ inline void TheEnd(int flag = 1)
 		LOGGER << "MISSION COMPLETED!";
 
 		INFORM << SINGLELINE;
-		INFORM << "[MISSION COMPLETED]: " << TimeStamp;
+		INFORM << "[MISSION COMPLETED]: ";
 		VERBOSE << "Job is Done!! ";
 		VERBOSE << "	I'm so GOOD!";
 		VERBOSE << "		Thanks me please!";
