@@ -68,6 +68,31 @@ bool PointInRectangle(nTuple<DIM, TR> const &x, TRange const & range)
 	}
 	return res;
 }
+
+template<typename TI>
+bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin, TI & r_end)
+{
+	bool has_overlap = false;
+
+	for (int i = 0; i < ndims; ++i)
+	{
+		if (r_end[i] <= l_begin[i] || r_begin[i] >= l_end[i])
+			return false;
+
+		auto begin = std::max(l_begin[i], r_begin[i]);
+		auto end = std::min(l_end[i], r_end[i]);
+
+		if (end > begin)
+		{
+			r_begin[i] = begin;
+			r_end[i] = end;
+
+			has_overlap = true;
+		}
+	}
+
+	return has_overlap;
+}
 template<typename TS, unsigned int NDIMS>
 bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
         nTuple<NDIMS, TS> *pr_end)

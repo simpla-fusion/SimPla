@@ -69,13 +69,13 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type)
 {
 	bool is_commited = false;
 
-	if (datatype_desc.NDIMS == 0)
+	if (datatype_desc.ndims == 0)
 	{
 		is_commited = GetMPIType(datatype_desc.t_index_, datatype_desc.ele_size_in_byte_, new_type);
 	}
 	else
 	{
-		int ndims = datatype_desc.NDIMS;
+		int ndims = datatype_desc.ndims;
 
 		int dims[ndims];
 
@@ -143,7 +143,7 @@ MPIDataType MPIDataType::create(DataType const & datatype, int NDIMS, int const 
 {
 	MPIDataType res;
 
-	const int v_ndims = datatype.NDIMS;
+	const int v_ndims = datatype.ndims;
 
 	int outer1[NDIMS + v_ndims];
 	int inner1[NDIMS + v_ndims];
@@ -302,39 +302,7 @@ void allreduce(void const* send_data, void * recv_data, size_t count, DataType c
 
 }
 
-void update_ghosts(void * data, DataType const & data_type, DistributedArray const & global_array)
-{
-	if (global_array.send_recv_.size() == 0)
-	{
-		return;
-	}
-	unsigned int ndims = global_array.ndims;
 
-	MPI_Comm comm = GLOBAL_COMM.comm();
-
-	MPI_Request request[global_array.send_recv_.size() * 2];
-
-	int count = 0;
-
-	for (auto const & item : global_array.send_recv_)
-	{
-		int g_outer_count[ndims] = global_array.local_.outer_end - global_array.local_.outer_begin;
-		int send_count[ndims] = item.send_end - item.send_begin;
-		int recv_count[ndims] = item.recv_end - item.recv_begin;
-		int send_begin[ndims] = item.send_begin - global_array.local_.outer_begin;
-		int recv_begin[ndims] = item.recv_begin - global_array.local_.outer_begin;
-
-		auto send_type = MPIDataType::create(data_type, ndims, g_outer_count, send_count, send_begin);
-		auto recv_type = MPIDataType::create(data_type, ndims, g_outer_count, recv_count, recv_begin);
-
-		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm, &request[count * 2]);
-		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm, &request[count * 2 + 1]);
-		++count;
-	}
-
-	MPI_Waitall(global_array.send_recv_.size() * 2, request, MPI_STATUSES_IGNORE);
-
-}
 
 std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(void const* send_buffer, std::vector<
 

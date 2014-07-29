@@ -175,10 +175,6 @@ public:
 
 		global_begin_compact_index_ = Compact(global_begin_) << MAX_DEPTH_OF_TREE;
 
-		global_array_.global_begin_ = global_begin_;
-
-		global_array_.global_end_ = global_end_;
-
 //		local_inner_begin_ = global_begin_;
 //		local_inner_end_ = global_end_;
 //		local_inner_count_ = global_count_;
@@ -187,7 +183,7 @@ public:
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
 
-		global_array_.Decompose(DEFAULT_GHOSTS_WIDTH);
+		global_array_.init(NDIMS, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH);
 
 		local_inner_begin_ = global_array_.local_.inner_begin;
 		local_inner_end_ = global_array_.local_.inner_end;

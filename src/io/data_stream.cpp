@@ -536,9 +536,9 @@ unsigned int flag) const
 		res.f_stride[0] = res.f_shape[0];
 	}
 
-	if (data_desc.NDIMS > 0)
+	if (data_desc.ndims > 0)
 	{
-		for (int j = 0; j < data_desc.NDIMS; ++j)
+		for (int j = 0; j < data_desc.ndims; ++j)
 		{
 
 			res.f_shape[ndims + j] = data_desc.dimensions_[j];
@@ -554,7 +554,7 @@ unsigned int flag) const
 
 		}
 
-		ndims += data_desc.NDIMS;
+		ndims += data_desc.ndims;
 	}
 
 	res.ndims = ndims;

@@ -151,10 +151,7 @@ void LoggerStreams::put(int level, std::string const & msg)
 	{
 		prefix+="[" + ToString(GLOBAL_COMM.get_rank()) + "/" + ToString(GLOBAL_COMM.get_size())+ "]";
 	}
-	else
-	{
-		prefix+="????";
-	}
+
 	prefix+="[" + time_stamp() + "]";
 
 	if (!fs.good()) open_file("simpla.log");

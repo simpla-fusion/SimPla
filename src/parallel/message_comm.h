@@ -22,17 +22,18 @@ namespace simpla
 
 class MessageComm
 {
-
-	int num_threads_ = 1;
-	int num_process_ = 1;
-	int process_num_ = 0;
-	MPI_Comm comm_ = MPI_COMM_NULL;
+	int num_threads_;
+	int num_process_;
+	int process_num_;
+	MPI_Comm comm_;
 public:
 	MessageComm()
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL), num_threads_(1)
 	{
 	}
 
 	MessageComm(int argc, char** argv)
+			: num_process_(1), process_num_(0), comm_(MPI_COMM_NULL), num_threads_(1)
 	{
 		init(argc, argv);
 	}

@@ -8,85 +8,98 @@
 #ifndef DISTRIBUTED_ARRAY_H_
 #define DISTRIBUTED_ARRAY_H_
 
+#include <stddef.h>
 #include <vector>
-#include <functional>
-#include <tuple>
+
+#include "../utilities/data_type.h"
 #include "../utilities/ntuple.h"
-#include "../utilities/singleton_holder.h"
-#include "../numeric/geometric_algorithm.h"
 
 namespace simpla
 {
 struct DistributedArray
 {
 public:
-	unsigned int ndims = MAX_NDIMS_OF_ARRAY;
+	unsigned int ndims = 0;
 
 	int self_id_ = 0;
-
-	struct sub_array_s
-	{
-		nTuple<MAX_NDIMS_OF_ARRAY, long> outer_begin;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> outer_end;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> inner_begin;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> inner_end;
-	};
-	struct send_recv_s
-	{
-		int dest;
-		int send_tag;
-		int recv_tag;
-		unsigned int ndims;
-
-		nTuple<MAX_NDIMS_OF_ARRAY, long> send_begin;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> send_end;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> recv_begin;
-		nTuple<MAX_NDIMS_OF_ARRAY, long> recv_end;
-	};
-
-	nTuple<MAX_NDIMS_OF_ARRAY, long> global_begin_;
-	nTuple<MAX_NDIMS_OF_ARRAY, long> global_end_;
-	nTuple<MAX_NDIMS_OF_ARRAY, long> global_strides_;
-
-	sub_array_s local_;
-
-	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
 
 	DistributedArray()
 			: self_id_(0)
 	{
 	}
 
-	template<int NDIMS, typename TS>
-	DistributedArray(nTuple<NDIMS, long> global_begin, nTuple<NDIMS, long> global_end, int num_process = 1,
-	        unsigned int process_num = 0, size_t gw = 0, bool p_is_fast_first = false)
-			: ndims(NDIMS)
+	template<typename TI>
+	DistributedArray(TI b, TI e, long gw = 0)
 	{
-
-		global_end_ = global_end;
-		global_begin_ = global_begin;
-
-		Decompose(gw);
+		init(b, e, gw);
 	}
 
+	template<typename TI>
+	void init(unsigned int nd, TI const & b, TI const & e, unsigned int gw = 2)
+	{
+		ndims = nd;
+
+		for (int i = 0; i < nd; ++i)
+		{
+			global_begin_[i] = b[i];
+			global_end_[i] = e[i];
+		}
+		Decompose(gw);
+	}
 	~DistributedArray()
 	{
 	}
 	size_t size() const
 	{
-		return NProduct(local_.inner_end - local_.inner_begin);
+		size_t res = 1;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			res *= (local_.inner_end[i] - local_.inner_begin[i]);
+		}
+		return res;
 	}
 	size_t memory_size() const
 	{
-		return NProduct(local_.outer_end - local_.outer_begin);
+		size_t res = 1;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			res *= (local_.outer_end[i] - local_.outer_begin[i]);
+		}
+		return res;
 	}
 
-	void Decompose(size_t gw = 2);
+	void Decompose(long gw = 2);
 
-	void Decomposer_(int num_process, unsigned int process_num, unsigned int gw, sub_array_s *) const;
+	nTuple<5, long> global_begin_;
+	nTuple<5, long> global_end_;
+	nTuple<5, long> global_strides_;
 
-	template<typename TS>
-	int hash(TS const * d) const
+	struct sub_array_s
+	{
+		nTuple<5, long> outer_begin;
+		nTuple<5, long> outer_end;
+		nTuple<5, long> inner_begin;
+		nTuple<5, long> inner_end;
+	};
+	sub_array_s local_;
+
+	struct send_recv_s
+	{
+		int dest;
+		int send_tag;
+		int recv_tag;
+		nTuple<5, long> send_begin;
+		nTuple<5, long> send_end;
+		nTuple<5, long> recv_begin;
+		nTuple<5, long> recv_end;
+	};
+
+	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
+
+	template<typename TI>
+	int hash(TI const & d) const
 	{
 		int res = 0;
 		for (int i = 0; i < ndims; ++i)
@@ -99,6 +112,13 @@ public:
 }
 ;
 
+void update_ghosts(void * data, DataType const & data_type, DistributedArray const & global_array);
+
+template<typename TV>
+void update_ghosts(TV * data, DistributedArray const & global_array)
+{
+	update_ghosts(data, DataType::create<TV>(), global_array);
+}
 }
 // namespace simpla
 

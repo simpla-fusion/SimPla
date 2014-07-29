@@ -16,8 +16,8 @@
 namespace simpla
 {
 
-template<unsigned int N, typename TV>
-void update_ghosts(TV* data, DistributedArray<N> const & global_array)
+template<typename TV>
+void update_ghosts(TV* data, DistributedArray const & global_array)
 {
 	if (global_array.send_recv_.size() == 0)
 	{
@@ -36,9 +36,9 @@ void update_ghosts(TV* data, DistributedArray<N> const & global_array)
 		auto send_count = item.send_end - item.send_begin;
 		auto recv_count = item.recv_end - item.recv_begin;
 
-		auto send_type = MPIDataType::create<TV>(g_outer_count, send_count,
+		MPIDataType<TV> send_type(global_array.ndims, g_outer_count, send_count,
 		        item.send_begin - global_array.local_.outer_begin);
-		auto recv_type = MPIDataType::create<TV>(g_outer_count, recv_count,
+		MPIDataType<TV> recv_type(global_array.ndims, g_outer_count, recv_count,
 		        item.recv_begin - global_array.local_.outer_begin);
 
 		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm, &request[count * 2]);

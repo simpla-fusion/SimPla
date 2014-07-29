@@ -9,8 +9,10 @@
 #define PARALLEL_H_
 
 #include "multi_thread.h"
-#include "message_comm.h"
-#include "mpi_aux_functions.h"
+
+#ifdef USE_MPI
+#	include "message_comm.h"
+#endif
 
 /**
  *  \defgroup  Parallel Parallel

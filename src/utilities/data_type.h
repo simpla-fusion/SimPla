@@ -27,11 +27,11 @@ public:
 	}
 
 	DataType(std::type_index t_index, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
-			: t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), NDIMS(ndims)
+			: t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), ndims(ndims)
 	{
 		if (ndims > 0 && dims != nullptr)
 		{
-			for (int i = 0; i < NDIMS; ++i)
+			for (int i = 0; i < ndims; ++i)
 			{
 				dimensions_[i] = dims[i];
 			}
@@ -39,9 +39,9 @@ public:
 		}
 	}
 	DataType(const DataType & other)
-			: ele_size_in_byte_(other.ele_size_in_byte_), t_index_(other.t_index_), NDIMS(other.NDIMS)
+			: ele_size_in_byte_(other.ele_size_in_byte_), t_index_(other.t_index_), ndims(other.ndims)
 	{
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
@@ -54,8 +54,8 @@ public:
 	{
 		t_index_ = other.t_index_;
 		ele_size_in_byte_ = other.ele_size_in_byte_;
-		NDIMS = other.NDIMS;
-		for (int i = 0; i < NDIMS; ++i)
+		ndims = other.ndims;
+		for (int i = 0; i < ndims; ++i)
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
@@ -84,7 +84,7 @@ public:
 	{
 		size_t res = ele_size_in_byte_;
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			res *= dimensions_[i];
 		}
@@ -93,7 +93,7 @@ public:
 
 	size_t ele_size_in_byte_ = 0;
 	std::type_index t_index_;
-	unsigned int NDIMS = 0;
+	unsigned int ndims = 0;
 	size_t dimensions_[MAX_NDIMS_OF_ARRAY];
 
 };

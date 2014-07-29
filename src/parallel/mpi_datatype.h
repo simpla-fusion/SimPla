@@ -30,50 +30,31 @@ bool GetMPIType(DataType const & datatype_desc, MPI_Datatype * new_type);
  *  \ingroup MPI
  *  \brief MPI convert C++ data type to mpi data type
  */
-template<typename T>
 struct MPIDataType
 {
-	MPI_Datatype type_;
+	MPI_Datatype type_ = MPI_DATATYPE_NULL;
 	bool is_commited_ = false;
 	static constexpr unsigned int MAX_NTUPLE_RANK = 10;
+
 	MPIDataType()
-			: is_commited_(_impl::GetMPIType(DataType::create<T>(), &type_))
 	{
-	}
-	template<unsigned int NDIMS, typename TI>
-	MPIDataType(nTuple<NDIMS, TI> const &outer, nTuple<NDIMS, TI> const &inner, nTuple<NDIMS, TI> const &start,
-	        unsigned int array_order_ =
-	        MPI_ORDER_C)
-	{
-		const int v_ndims = nTupleTraits<T>::NDIMS;
-
-		int outer1[NDIMS + v_ndims];
-		int inner1[NDIMS + v_ndims];
-		int start1[NDIMS + v_ndims];
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			outer1[i] = outer[i];
-			inner1[i] = inner[i];
-			start1[i] = start[i];
-		}
-
-		nTupleTraits<T>::get_dimensions(outer1 + NDIMS);
-		nTupleTraits<T>::get_dimensions(inner1 + NDIMS);
-		for (int i = 0; i < v_ndims; ++i)
-		{
-			start1[NDIMS + i] = 0;
-		}
-
-		MPI_Type_create_subarray(NDIMS + v_ndims, outer1, inner1, start1, array_order_,
-		        MPIDataType<typename nTupleTraits<T>::element_type>().type(), &type_);
-		MPI_Type_commit(&type_);
-		is_commited_ = true;
 	}
 
 	~MPIDataType()
 	{
 		if (is_commited_)
 			MPI_Type_free(&type_);
+	}
+
+	static MPIDataType create(DataType const &);
+
+	static MPIDataType create(DataType const & data_type, unsigned int NDIMS, size_t const *outer, size_t const * inner,
+	        size_t const * start, bool c_order_array = true);
+
+	template<typename T, typename ...Others>
+	static MPIDataType create(Others && ... others)
+	{
+		return create(DataType::create<T>(), std::forward<Others>(others)...);
 	}
 
 	MPI_Datatype const & type(...) const
