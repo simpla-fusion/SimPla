@@ -242,7 +242,7 @@ void Logger::surffix(std::string const & s)
 
 	<< std::setw(SingletonHolder<LoggerStreams>::instance().get_line_width() - current_line_char_count_)
 
-	<< std::right << s << std::left;
+	<< std::right << s << std::left << std::endl;
 
 	flush();
 }

@@ -10,6 +10,7 @@
 #include <map>
 #include <memory>
 #include "singleton_holder.h"
+#include "primitives.h"
 #include "log.h"
 namespace simpla
 {

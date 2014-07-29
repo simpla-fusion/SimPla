@@ -32,7 +32,7 @@ std::tuple<Integral, Integral> sync_global_location(Integral count)
 		int num_of_process = GLOBAL_COMM.get_size();
 		int porcess_number = GLOBAL_COMM.get_rank();
 
-		MPIDataType<Integral> m_type;
+		auto m_type=MPIDataType::create<Integral>();
 
 		std::vector<Integral> buffer;
 
@@ -117,7 +117,7 @@ template<typename T>
 T * reduce(T * send_data, T * recv_data, size_t count, std::string const & op_c)
 {
 
-	MPIDataType<T> m_type;
+	auto m_type=MPIDataType::create<T>();
 
 	auto communicator = GLOBAL_COMM.comm();
 	GLOBAL_COMM.barrier();
@@ -133,7 +133,7 @@ template<typename T>
 T * allreduce(T * send_data, T * recv_data, size_t count, std::string const & op_c)
 {
 
-	MPIDataType<T> m_type;
+	auto m_type=MPIDataType::create<T>();
 
 	auto communicator = GLOBAL_COMM.comm();
 	GLOBAL_COMM.barrier();

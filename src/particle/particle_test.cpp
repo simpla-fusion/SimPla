@@ -67,7 +67,7 @@ typedef TMesh mesh_type;
 
 int main(int argc, char **argv)
 {
-	LOG_STREAM.set_stdout_visable_level(12);
+	LOGGER.set_stdout_visable_level(12);
 	GLOBAL_COMM.init();
 
 	typedef typename PICEngineFullF<mesh_type>::Point_s Point_s;

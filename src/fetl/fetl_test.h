@@ -33,7 +33,7 @@ class TestFETL: public testing::TestWithParam<
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.set_stdout_visable_level(LOG_INFORM);
+		LOGGER.set_stdout_visable_level(LOG_INFORM);
 		auto param = GetParam();
 
 		xmin = std::get<0>(param);
@@ -56,7 +56,7 @@ protected:
 			}
 		}
 
-		mesh.set_dimensions( dims);
+		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
 
 		mesh.update();

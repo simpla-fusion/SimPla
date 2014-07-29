@@ -16,6 +16,7 @@
 #include <thread>
 #include <iterator>
 #include "../utilities/ntuple.h"
+#include "../utilities/ntuple_noet.h"
 #include "../utilities/primitives.h"
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/pretty_stream.h"
@@ -23,7 +24,7 @@
 
 #include "../parallel/distributed_array.h"
 #include "../physics/constants.h"
-
+#include "../numeric/geometric_algorithm.h"
 namespace simpla
 {
 /**

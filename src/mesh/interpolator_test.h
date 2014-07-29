@@ -26,7 +26,7 @@ class TestInterpolator: public testing::Test
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.set_stdout_visable_level(10);
+		LOGGER.set_stdout_visable_level(10);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{

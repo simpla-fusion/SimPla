@@ -15,7 +15,7 @@ using namespace simpla;
 
 TEST(datastream,write)
 {
-	LOG_STREAM.set_stdout_visable_level(12);
+	LOGGER.set_stdout_visable_level(12);
 	GLOBAL_COMM.init();
 
 	DataStream data_stream;

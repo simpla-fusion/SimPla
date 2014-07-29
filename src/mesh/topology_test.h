@@ -27,7 +27,7 @@ class TestTopology: public testing::TestWithParam<std::tuple<nTuple<TopologyType
 protected:
 	void SetUp()
 	{
-		LOG_STREAM.set_stdout_visable_level(10);
+		LOGGER.set_stdout_visable_level(10);
 
 		dims=std::get<0>(GetParam());
 

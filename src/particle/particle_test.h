@@ -39,7 +39,7 @@ class TestParticle: public testing::TestWithParam<
 protected:
 	virtual void SetUp()
 	{
-		LOG_STREAM.set_stdout_visable_level(LOG_DEBUG);
+		LOGGER.set_stdout_visable_level(LOG_DEBUG);
 
 		auto param = GetParam();
 

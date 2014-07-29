@@ -62,7 +62,7 @@ class TestFETLBase: public testing::Test
 protected:
 	virtual void SetUp()
 	{
-		LOG_STREAM.set_stdout_visable_level(10);
+		LOGGER.set_stdout_visable_level(10);
 
 		nTuple<3, Real> xmin =
 		{	1.0, 1.0, 0.0};
