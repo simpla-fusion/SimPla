@@ -11,6 +11,8 @@
 #include "../utilities/log.h"
 #include "../utilities/ntuple.h"
 #include "../physics/constants.h"
+
+#include "../parallel/message_comm.h"
 using namespace simpla;
 
 TEST(datastream,write)

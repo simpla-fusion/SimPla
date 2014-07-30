@@ -1123,7 +1123,7 @@ template<typename TV> inline TV TypeCast(LuaObject const & obj)
 }
 inline std::ostream & operator<<(std::ostream & os, LuaObject const & obj)
 {
-	os << obj.template as<std::string>();
+	os << obj.as<std::string>();
 	return os;
 }
 

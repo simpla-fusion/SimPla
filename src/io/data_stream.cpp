@@ -81,7 +81,7 @@ public:
 	}
 	Any const & get_property_any(std::string const &name) const
 	{
-		return properties[name].template as<Any>();
+		return properties[name].as<Any>();
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
@@ -90,8 +90,7 @@ public:
 
 	inline std::string pwd() const
 	{
-		return properties["File Name"].template as<std::string>() + ":"
-		        + properties["Group Name"].template as<std::string>();
+		return properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
 	}
 
 	bool check_null_dataset(DataSet const & ds)
@@ -233,7 +232,7 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 
 	close_group();
 
-	std::string & grpname_ = properties["Group Name"].template as<std::string>();
+	std::string & grpname_ = properties["Group Name"].as<std::string>();
 
 	if (gname[0] == '/')
 	{
@@ -263,10 +262,10 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 	}
 	if (group_ <= 0)
 	{
-		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + properties["Prefix"].template as<std::string>());
+		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + properties["Prefix"].as<std::string>());
 	}
 
-	properties["Group Name"].template as<std::string>() = grpname_;
+	properties["Group Name"].as<std::string>() = grpname_;
 
 }
 
@@ -322,7 +321,7 @@ void DataStream::pimpl_s::open_file(std::string const & fname, unsigned int flag
 		RUNTIME_ERROR("create HDF5 file " + file_name + " failed!");
 	}
 
-	properties["File Name"].template as<std::string>() = file_name;
+	properties["File Name"].as<std::string>() = file_name;
 
 }
 
@@ -384,9 +383,9 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 		dsname = url;
 	}
 
-	auto current_file_path = properties["File Name"].template as<std::string>("");
+	auto current_file_path = properties["File Name"].as<std::string>("");
 
-	auto current_group_name = properties["Group Name"].template as<std::string>("/");
+	auto current_group_name = properties["Group Name"].as<std::string>("/");
 
 	if (file_path == "")
 		file_path = current_file_path;
@@ -559,16 +558,16 @@ unsigned int flag) const
 
 	res.ndims = ndims;
 
-	if (properties["Enable Compact Storage"].template as<bool>(false))
+	if (properties["Enable Compact Storage"].as<bool>(false))
 	{
 		res.flag |= SP_APPEND;
 	}
 
-	if (properties["Force Record Storage"].template as<bool>(false))
+	if (properties["Force Record Storage"].as<bool>(false))
 	{
 		res.flag |= SP_RECORD;
 	}
-	if (properties["Force Write Cache"].template as<bool>(false))
+	if (properties["Force Write Cache"].as<bool>(false))
 	{
 		res.flag |= SP_CACHE;
 	}
@@ -624,9 +623,9 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 			cache_memory_size *= ds.m_shape[i];
 		}
 
-		size_t cache_depth = properties["Max Cache Size"].template as<size_t>(10 * 1024 * 1024UL) / cache_memory_size;
+		size_t cache_depth = properties["Max Cache Size"].as<size_t>(10 * 1024 * 1024UL) / cache_memory_size;
 
-		if (cache_depth <= properties["Min Cache Number"].template as<int>(5))
+		if (cache_depth <= properties["Min Cache Number"].as<int>(5))
 		{
 			return write_array(url, v, ds);
 		}

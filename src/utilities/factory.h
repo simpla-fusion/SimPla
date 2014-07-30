@@ -30,6 +30,8 @@ struct Factory
 
 	typedef std::map<identifier_type, create_fun_callback> CallbackMap;
 
+	typedef typename CallbackMap::iterator iterator;
+
 private:
 	CallbackMap callbacks_;
 public:
@@ -77,8 +79,8 @@ public:
 
 }
 ;
-template<typename ...T>
-std::ostream & operator<<(std::ostream & os, Factory<T...> const & f)
+template<typename TId, typename TProduct, typename ...Args>
+std::ostream & operator<<(std::ostream & os, Factory<TId, TProduct, Args...> const & f)
 {
 	return f.print(os);
 }

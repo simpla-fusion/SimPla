@@ -74,19 +74,25 @@ LINK_DIRECTORIES(${BINARY_DIR})
 SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
 SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -ftemplate-backtrace-limit=0 ")
 SET(CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -g  ")
 SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
+ 
+MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
+if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0 ")
 
-if(USE_CLANG)
-  SET(CMAKE_AR      "/usr/bin/llvm-ar")
-  SET(CMAKE_LINKER  "/usr/bin/llvm-ld")
-  SET(CMAKE_NM      "/usr/bin/llvm-nm")
-  SET(CMAKE_OBJDUMP "/usr/bin/llvm-objdump")
-  SET(CMAKE_RANLIB  "/usr/bin/llvm-ranlib")
+  SET(CMAKE_AR      "llvm-ar-3.5")
+  SET(CMAKE_LINKER  "llvm-ld-3.5")
+  SET(CMAKE_NM      "llvm-nm-3.5")
+  SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
+  SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
   #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
-endif(USE_CLANG)
+elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp    -gcc-name=g++-4.8 ")
+else()
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
+endif ()
 
  
 

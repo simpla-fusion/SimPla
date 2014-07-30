@@ -379,6 +379,17 @@ inline auto InnerProductNTuple(nTuple<N, TL> const &l, nTuple<N, TR> const &r)->
 		res += l[i] * r[i];
 	return res;
 }
+template<typename TL, typename TR>
+inline auto Dot(nTuple<2, TL> const &l, nTuple<2, TR> const &r)
+DECL_RET_TYPE((l[0]*r[0]+l[1]*r[1] ))
+
+template<typename TL, typename TR>
+inline auto Dot(nTuple<3, TL> const &l, nTuple<3, TR> const &r)
+DECL_RET_TYPE((l[0]*r[0]+l[1]*r[1]+l[2]*r[2]))
+
+template<typename TL, typename TR>
+inline auto Dot(nTuple<4, TL> const &l, nTuple<4, TR> const &r)
+DECL_RET_TYPE((l[0]*r[0]+l[1]*r[1]+l[2]*r[2]+l[3]*r[3]))
 
 template<typename T> inline auto Determinant(nTuple<3, nTuple<3, T> > const & m)
 DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //

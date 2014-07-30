@@ -9,6 +9,8 @@
 #define SIMPLA_DEFS_H_
 
 #include <string>
+#include <iostream>
+#include <iomanip>
 #include "utilities/log.h"
 
 namespace simpla
@@ -27,8 +29,12 @@ namespace simpla
 " SimPla, Plasma Simulator        \n"                         \
 " Build Date: " __DATE__ " " __TIME__"                   \n"\
 " ID:" IDENTIFY "                                        \n"\
-" Author:  YU Zhi. All rights reserved.           \n"
+" Author:  YU Zhi. All rights reserved.           " \
 
+inline std::string ShowLogo()
+{
+	return SIMPLA_LOGO;
+}
 inline std::string ShowShortVersion()
 {
 	return IDENTIFY;
@@ -86,6 +92,7 @@ inline void TheEnd(int flag = 1)
 
 	exit(0);
 }
+
 
 }
 /**

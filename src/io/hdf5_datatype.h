@@ -35,6 +35,8 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 {
 	typedef Factory<size_t, hid_t> base_type;
 
+	typedef typename base_type::iterator iterator;
+
 	HDF5DataTypeFactory();
 
 	~HDF5DataTypeFactory();
@@ -55,25 +57,26 @@ struct HDF5DataTypeFactory: public Factory<size_t, hid_t>
 		return base_type::create(hash<T>());
 	}
 
-	template<typename T> bool Register(std::string const &desc)
+	template<typename T> identifier_type hash()
+	{
+		return (std::type_index(typeid(T)).hash_code());
+	}
+
+	template<typename T> std::pair<iterator, bool> Register(std::string const &desc)
 	{
 		create_fun_callback callback = [desc]()->product_type
 		{
 			return H5LTtext_to_dtype(desc.c_str(),H5LT_DDL);
 		};
 
-		return Register<T>(callback).second;
+		return Register<T>(callback);
 	}
 
-private:
-	template<typename T> identifier_type hash()
+	template<typename T, typename TFun> std::pair<iterator, bool> Register(TFun const &callback)
 	{
-		return (std::type_index(typeid(T)).hash_code());
+		create_fun_callback fun = callback;
+		return base_type::Register(std::make_pair(hash<T>(), callback));
 	}
-public:
-
-	template<typename T> auto Register(create_fun_callback const &callback)
-	DECL_RET_TYPE(base_type::Register(std::make_pair(hash<T>(), callback)))
 
 	template<typename T> bool Unregister()
 	{

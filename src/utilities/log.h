@@ -83,6 +83,21 @@ public:
 		return *this;
 	}
 
+	inline this_type & operator<<(char const value[])
+	{
+
+		current_line_char_count_ -= get_buffer_length();
+
+		const_cast<this_type*>(this)->buffer_ << value;
+
+		current_line_char_count_ += get_buffer_length();
+
+		if (current_line_char_count_ > get_line_width())
+			endl();
+
+		return *this;
+	}
+
 	typedef Logger & (*LoggerStreamManipulator)(Logger &);
 
 	Logger & operator<<(LoggerStreamManipulator manip)
