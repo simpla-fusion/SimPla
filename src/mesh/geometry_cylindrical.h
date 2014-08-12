@@ -111,15 +111,15 @@ public:
 		return dt_;
 	}
 
-	coordinates_type xmin_ = { 1, 0, 0 };
+	coordinates_type xmin_/* = { 1, 0, 0 }*/;
 
-	coordinates_type xmax_ = { 2, 1, TWOPI };
+	coordinates_type xmax_ /*= { 2, 1, TWOPI }*/;
 
-	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 / TWOPI };
+	coordinates_type inv_length_/* = { 1.0, 1.0, 1.0 / TWOPI }*/;
 
-	coordinates_type length_ = { 2, 1, TWOPI };
+	coordinates_type length_/* = { 2, 1, TWOPI }*/;
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type shift_/* = { 0, 0, 0 }*/;
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -430,11 +430,11 @@ public:
 //! @}
 
 	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((topology_type::Select(iform, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+	DECL_RET_TYPE((this->topology_type::Select(this->topology_type::Select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((topology_type::Select(iform,std::forward<Args >(args)...)))
+	DECL_RET_TYPE((this->topology_type::Select(iform,std::forward<Args >(args)...)))
 
 	template<typename TV>
 	TV const& Normal(index_type s, TV const & v) const

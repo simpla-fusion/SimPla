@@ -61,8 +61,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args && ...args) :
+			ExplicitEMContext()
 	{
 		load(std::forward<Args >(args)...);
 	}
@@ -169,8 +169,7 @@ private:
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
 	{
-		if (batch.size() == 0)
-			return;
+		if (batch.size() == 0) return;
 		VERBOSE << "Apply constraints";
 		for (auto const & command : batch)
 		{
@@ -190,8 +189,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: E1(model), B1(model), J1(model), dE(model), dB(model),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		E1(model), B1(model), J1(model), dE(model), dB(model),
 
 		B0(model), E0(model),
 
@@ -450,7 +449,8 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		} catch (std::runtime_error const & e)
+		}
+		catch (std::runtime_error const & e)
 		{
 
 			PARSER_ERROR("Load 'Constraints' error! ");
@@ -586,48 +586,36 @@ void ExplicitEMContext<TM>::next_timestep()
 
 // Compute Cycle Begin
 
-	J1.clear();
-
-	//   particle 0-> 1/2 . To n[1/2], J[1/2]
-	for (auto &p : particles_)
-	{
-		if (!p.second->is_implicit())
-		{
-			p.second->next_timestep_zero(E0, B0, E1, B1);
-			p.second->update_fields();
-			auto const & Js = p.second->template J<J_type>();
-			LOG_CMD(J1 += Js);
-		}
-	}
-	Jext.clear();
-	ExcuteCommands(commandToJ_);
-	J1 += Jext;
-
-	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
-	ExcuteCommands(commandToB_);
-
 	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	implicit_push_E.next_timestep(E0, B0, E1, B1, particles_, &dE);
+	implicit_push_E.next_timestep(&dE);
 
-	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
-	ExcuteCommands(commandToE_);
+	LOG_CMD(E1 += dE);	// E(t=0 -> 1)
 
-	for (auto &p : particles_)
-	{
-		if (!p.second->is_implicit())
-		{
-			p.second->next_timestep_half(E0, B0, E1, B1);
-		}
-	}
-
-	LOG_CMD(E1 += dE * 0.5);	// E(t=0 -> 1)
 	ExcuteCommands(commandToE_);
 
 	LOG_CMD(dB = -Curl(E1) * dt);
 
 	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
+	ExcuteCommands(commandToB_);
+
+	J1.clear();
+
+	ExcuteCommands(commandToJ_);
+
+	//   particle 0-> 1. Get J[1/2]
+	for (auto &p : particles_)
+	{
+		p.second->next_timestep();
+
+		if (!p.second->is_implicit())
+		{
+			p.second->update_fields(&J1);
+		}
+	}
+
+	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)
 	ExcuteCommands(commandToB_);
 // Compute Cycle End
 	model.next_timestep();

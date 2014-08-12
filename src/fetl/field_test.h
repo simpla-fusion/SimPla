@@ -35,6 +35,12 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(LOG_DEBUG);
 
+		xmin = coordinates_type( { 10, 0, 0 });
+
+		xmax = coordinates_type( { 12, 1, 1 });
+
+		dims = nTuple<NDIMS, index_type>( { 5, 6, 10 });
+
 		for (unsigned int i = 0; i < NDIMS; ++i)
 		{
 			if (dims[i] <= 1 || xmax[i] <= xmin[i])
@@ -43,6 +49,7 @@ protected:
 				dims[i] = 1;
 			}
 		}
+
 		mesh.set_dimensions(dims);
 		mesh.set_extents(xmin, xmax);
 		mesh.update();
@@ -64,11 +71,11 @@ public:
 
 	mesh_type mesh;
 
-	coordinates_type xmin = { 10, 0, 0 };
+	coordinates_type xmin/* = { 10, 0, 0 }*/;
 
-	coordinates_type xmax = { 12, 1, 1 };
+	coordinates_type xmax/* = { 12, 1, 1 }*/;
 
-	nTuple<NDIMS, index_type> dims = { 5, 6, 10 };
+	nTuple<NDIMS, index_type> dims /*= { 5, 6, 10 }*/;
 };
 
 TYPED_TEST_CASE_P(TestField);

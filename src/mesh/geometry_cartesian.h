@@ -51,15 +51,15 @@ public:
 
 	CartesianGeometry(this_type const & rhs) = delete;
 
-	CartesianGeometry()
-			: topology_type()
+	CartesianGeometry() :
+			topology_type()
 	{
 
 	}
 
 	template<typename ... Args>
-	CartesianGeometry(Args && ... args)
-			: topology_type(std::forward<Args>(args)...)
+	CartesianGeometry(Args && ... args) :
+			topology_type(std::forward<Args>(args)...)
 	{
 		load(std::forward<Args>(args)...);
 	}
@@ -115,15 +115,15 @@ public:
 		return is_ready_ && topology_type::is_ready();
 	}
 
-	coordinates_type xmin_ = { 0, 0, 0 };
+	coordinates_type xmin_ /*= { 0, 0, 0 }*/;
 
-	coordinates_type xmax_ = { 1, 1, 1 };
+	coordinates_type xmax_ /*= { 1, 1, 1 }*/;
 
-	coordinates_type inv_length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type inv_length_ /*= { 1.0, 1.0, 1.0 }*/;
 
-	coordinates_type length_ = { 1.0, 1.0, 1.0 };
+	coordinates_type length_ /*= { 1.0, 1.0, 1.0 }*/;
 
-	coordinates_type shift_ = { 0, 0, 0 };
+	coordinates_type shift_/* = { 0, 0, 0 }*/;
 
 	bool update();
 
@@ -149,7 +149,6 @@ public:
 	void updatedt(nTuple<NDIMS, Complex> const & kimg)
 	{
 		Real dx2 = 0.0;
-
 
 		if (std::imag(kimg[XAxis]) > EPSILON)
 		{
@@ -386,11 +385,14 @@ public:
 
 	template<typename TR>
 	auto Select(TR range, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((topology_type::Select(range, CoordinatesToTopology(xmin),CoordinatesToTopology(xmax))))
+	DECL_RET_TYPE((topology_type::Select(range, this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename TR, typename ...Args>
 	auto Select(TR range, Args && ...args) const
 	DECL_RET_TYPE((topology_type::Select(range,std::forward<Args >(args)...)))
+
+	auto Select(unsigned int iform) const
+	DECL_RET_TYPE((this->topology_type::Select(iform)))
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s, TV const &v) const

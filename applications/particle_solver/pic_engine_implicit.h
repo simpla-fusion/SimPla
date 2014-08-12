@@ -84,13 +84,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineImplicit(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0)
+	PICEngineImplicit(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineImplicit(mesh_type const &pmesh, Others && ...others)
-			: PICEngineImplicit(pmesh)
+	PICEngineImplicit(mesh_type const &pmesh, Others && ...others) :
+			PICEngineImplicit(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
@@ -157,16 +157,9 @@ public:
 
 	}
 
-	// x(-1/2->1/2),v(0)
-	inline void next_timestep_zero( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 ) const
-	{
-		p->x += p->v * dt;
-	}
-
-	// v(0->1)
-	inline void next_timestep_half( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 ) const
+	template<typename TE0,typename TE1,typename TB0,typename TB1,typename TJ>
+	inline void next_timestep(Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
+			E1_type const &fE1, B1_type const & fB1, TJ *J ) const
 	{
 
 		auto B = interpolator_type::GatherCartesian(fB0, p->x)+
@@ -188,6 +181,10 @@ public:
 		p->v += v_ * 2.0;
 
 		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * dt;
+
+		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v ), p->f * q);
 
 	}
 

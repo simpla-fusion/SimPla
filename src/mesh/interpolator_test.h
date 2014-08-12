@@ -17,6 +17,7 @@
 #include "../parallel/message_comm.h"
 #include "../fetl/field.h"
 #include "../utilities/container_sparse.h"
+#include "interpolator.h"
 
 using namespace simpla;
 
@@ -27,6 +28,11 @@ protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
+		xmin = coordinates_type( { 12, 0, 0 });
+
+		xmax = coordinates_type( { 14, 1, 1 });
+
+		dims = nTuple<NDIMS, index_type>( { 50, 30, 20 });
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -53,14 +59,11 @@ public:
 	static constexpr unsigned int IForm = TP::IForm;
 	mesh_type mesh;
 
-	coordinates_type xmin =
-	{	12,0,0};
+	coordinates_type xmin/* = { 12, 0, 0 }*/;
 
-	coordinates_type xmax =
-	{	14,1,1};
+	coordinates_type xmax/* = { 14, 1, 1 }*/;
 
-	nTuple<NDIMS, index_type> dims =
-	{	50,30,20};
+	nTuple<NDIMS, index_type> dims/* = { 50, 30, 20 }*/;
 
 };
 
@@ -76,7 +79,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
-	typedef typename mesh_type::interpolator_type interpolator_type;
+	typedef Interpolator<mesh_type> interpolator_type;
 
 	auto f= mesh.template make_field<Field<mesh_type,IForm,SparseContainer<compact_index_type,scalar_type>>> ();
 
@@ -123,7 +126,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
-	typedef typename mesh_type::interpolator_type interpolator_type;
+	typedef Interpolator<mesh_type> interpolator_type;
 
 	auto f= mesh.template make_field<IForm,scalar_type > ();
 

@@ -26,7 +26,7 @@ namespace simpla
  *   }
  */
 
-template<typename Iterator, typename TPred = std::nullptr_t, typename TPolicy = std::nullptr_t,
+template<typename TIterator, typename TPred = std::nullptr_t, typename TPolicy = std::nullptr_t,
         bool IsReferenceStorage = false> class Iterator;
 
 template<typename Policy, typename TIterator, typename TPred>

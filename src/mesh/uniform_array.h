@@ -1431,9 +1431,9 @@ public:
 			std::get<0>(range2).self_, std::get<1>(range2).self_//
 	))
 
-	template<typename ...Args>
-	auto Select(unsigned int iform, Args &&... args) const
-	DECL_RET_TYPE (this_type::Select(this_type::Select(iform),std::forward<Args>(args)...))
+//	template<typename ...Args>
+//	auto Select(unsigned int iform, Args &&... args) const
+//	DECL_RET_TYPE (this_type::Select(this_type::Select(iform),std::forward<Args>(args)...))
 
 	range_type SelectOuter(unsigned int iform) const
 	{
