@@ -22,13 +22,13 @@ TEST_P(TestFETL, vector_arithmetic)
 {
 	if (!mesh.is_valid()) return;
 
-	auto f0 = mesh.template make_field<VERTEX, value_type>();
-	auto f1 = mesh.template make_field<EDGE, value_type>();
-	auto f1a = mesh.template make_field<EDGE, value_type>();
-	auto f1b = mesh.template make_field<EDGE, value_type>();
-	auto f2a = mesh.template make_field<FACE, value_type>();
-	auto f2b = mesh.template make_field<FACE, value_type>();
-	auto f3 = mesh.template make_field<VOLUME, value_type>();
+	auto f0 = mesh.make_field<VERTEX, value_type>();
+	auto f1 = mesh.make_field<EDGE, value_type>();
+	auto f1a = mesh.make_field<EDGE, value_type>();
+	auto f1b = mesh.make_field<EDGE, value_type>();
+	auto f2a = mesh.make_field<FACE, value_type>();
+	auto f2b = mesh.make_field<FACE, value_type>();
+	auto f3 = mesh.make_field<VOLUME, value_type>();
 
 	Real ra = 1.0, rb = 10.0, rc = 100.0;
 	value_type va, vb, vc;

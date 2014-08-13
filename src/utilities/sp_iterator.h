@@ -48,7 +48,7 @@ namespace std
 {
 
 template<typename TI, typename TPred, typename Policy>
-struct iterator_traits<::simpla::Iterator<TI, TPred, Policy>>
+struct iterator_traits<simpla::Iterator<TI, TPred, Policy>>
 {
 	typedef simpla::Iterator<TI, TPred> iterator;
 	typedef typename iterator::iterator_category iterator_category;

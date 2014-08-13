@@ -89,7 +89,7 @@ if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
   #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
 elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp    -gcc-name=g++-4.8 ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
 else()
   SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
 endif ()

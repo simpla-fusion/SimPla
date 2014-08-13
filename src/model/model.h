@@ -67,8 +67,8 @@ public:
 		CUSTOM = 20
 	};
 
-	Model()
-			: mesh_type(), null_material(0), max_material_(CUSTOM + 1)
+	Model() :
+			mesh_type(), null_material(0), max_material_(CUSTOM + 1)
 	{
 		registered_material_.emplace("NONE", null_material);
 
@@ -184,7 +184,8 @@ public:
 		{
 			res = registered_material_.at(name);
 
-		} catch (...)
+		}
+		catch (...)
 		{
 			RUNTIME_ERROR("Unknown material name : " + name);
 		}
@@ -246,8 +247,7 @@ public:
 		for (auto s : r)
 		{
 			material_[s] = fun(material_[s]);
-			if (material_[s] == null_material)
-				material_.erase(s);
+			if (material_[s] == null_material) material_.erase(s);
 		}
 	}
 
@@ -300,38 +300,38 @@ public:
 	filter_range_type<TR> SelectByNGP(TR const& range, coordinates_type const & points) const;
 
 	auto Select(unsigned int iform) const
-	DECL_RET_TYPE( (mesh_type::Select(iform)))
+	DECL_RET_TYPE( (this->mesh_type::Select(iform)))
 
 	template<typename ...Args>
 	auto SelectInterface(int iform, Args &&...args) const
-	DECL_RET_TYPE((SelectInterface(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE((this->SelectInterface(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByConfig(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByConfig(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (this->SelectByConfig(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByMaterial(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (this->SelectByMaterial(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPoints(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( this->SelectByPoints(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByRectangle(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByRectangle(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( this->SelectByRectangle(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPolylines(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPolylines(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( this->SelectByPolylines(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	auto SelectByFunction(int iform, std::function<bool(coordinates_type)> fun) const
-	DECL_RET_TYPE( (SelectByFunction(std::move(mesh_type::Select(iform)), fun)))
+	DECL_RET_TYPE( (this->SelectByFunction(std::move(this->mesh_type::Select(iform)), fun)))
 
 	template<typename ...Args>
 	auto SelectByNGP(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByNGP(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( this->SelectByNGP(std::move(this->mesh_type::Select(iform)), std::forward<Args>(args)...)))
 
 	template<typename TR, typename T1, typename T2>
 	filter_range_type<TR> SelectOnSurface(TR const& range, T1 in, T2 out) const;
@@ -548,8 +548,7 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 	material_type in = get_material(pin);
 	material_type out = get_material(pout);
 
-	if (in == out)
-		out = null_material;
+	if (in == out) out = null_material;
 
 	pred_furho_type pred =
 

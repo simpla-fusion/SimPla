@@ -535,6 +535,12 @@ public:
 
 };
 
+template<typename TM, unsigned int IFORM, typename TExpr, typename TI>
+auto get_value(Field<TM, IFORM, TExpr> const & f, TI const & s)->decltype(f.get(s))
+{
+	return f.get(s);
+}
+
 template<typename TM, unsigned int IFORM, unsigned int TOP, typename TL, typename TR>
 struct can_not_reference<Field<TM, IFORM, BiOp<TOP, TL, TR> >>
 {

@@ -25,6 +25,12 @@ protected:
 	virtual void SetUp()
 	{
 
+		xmin = nTuple<NDIMS, Real>( { 0.0, 0.0, 0.0 });
+
+		xmax = nTuple<NDIMS, Real>( { 1.0, 2.0, 3.0 });
+
+		dims = nTuple<NDIMS, size_t>( { 50, 60, 10 });
+
 		model.set_dimensions(dims);
 
 		model.set_extents(xmin, xmax);
@@ -56,14 +62,11 @@ public:
 	static constexpr unsigned int IForm = TInt::value;
 	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	nTuple<NDIMS, Real> xmin =
-	{	0.0, 0.0, 0.0,};
+	nTuple<NDIMS, Real> xmin/* = { 0.0, 0.0, 0.0, }*/;
 
-	nTuple<NDIMS, Real> xmax =
-	{	1.0, 2.0, 3.0};
+	nTuple<NDIMS, Real> xmax/* = { 1.0, 2.0, 3.0 }*/;
 
-	nTuple<NDIMS, size_t> dims =
-	{	50, 60, 10};
+	nTuple<NDIMS, size_t> dims/* = { 50, 60, 10 }*/;
 
 	model_type model;
 
@@ -310,6 +313,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 
 REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByRectangle, SelectByPolylines, SelectByMaterial, SelectByNGP);
 
-typedef testing::Types<std::integral_constant<unsigned int ,VERTEX>, std::integral_constant<unsigned int ,EDGE>, std::integral_constant<unsigned int ,FACE>, std::integral_constant<unsigned int ,VOLUME> > ParamList;
+typedef testing::Types<std::integral_constant<unsigned int, VERTEX>, std::integral_constant<unsigned int, EDGE>,
+        std::integral_constant<unsigned int, FACE>, std::integral_constant<unsigned int, VOLUME> > ParamList;
 
 INSTANTIATE_TYPED_TEST_CASE_P(SimPla, TestModel, ParamList);
