@@ -55,6 +55,15 @@ public:
 			topology_type()
 	{
 
+		xmin_ = coordinates_type( { 0, 0, 0 });
+
+		xmax_ = coordinates_type( { 1, 1, 1 });
+
+		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
+
+		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
+
+		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
 	template<typename ... Args>

@@ -53,13 +53,22 @@ public:
 
 	CylindricalGeometry(this_type const & rhs) = delete;
 
-	CylindricalGeometry()
-			: topology_type()
+	CylindricalGeometry() :
+			topology_type()
 	{
+		xmin_ = coordinates_type( { 1, 0, 0 });
+
+		xmax_ = coordinates_type( { 2, 1, TWOPI });
+
+		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 / TWOPI });
+
+		length_ = coordinates_type( { 2, 1, TWOPI });
+
+		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 	template<typename ... Args>
-	CylindricalGeometry(Args && ... args)
-			: topology_type(std::forward<Args>(args)...)
+	CylindricalGeometry(Args && ... args) :
+			topology_type(std::forward<Args>(args)...)
 	{
 		load(std::forward<Args>(args)...);
 	}
@@ -111,7 +120,7 @@ public:
 		return dt_;
 	}
 
-	coordinates_type xmin_/* = { 1, 0, 0 }*/;
+	coordinates_type xmin_ /* = { 1, 0, 0 }*/;
 
 	coordinates_type xmax_ /*= { 2, 1, TWOPI }*/;
 
@@ -429,8 +438,9 @@ public:
 	}
 //! @}
 
-	auto Select(unsigned int iform, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((this->topology_type::Select(this->topology_type::Select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+	auto Select(unsigned int iform, coordinates_type const & xmin,
+	        coordinates_type const & xmax) const
+	                DECL_RET_TYPE((this->topology_type::Select(this->topology_type::Select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
 	auto Select(unsigned int iform, Args && ...args) const
@@ -564,8 +574,7 @@ template<typename TTopology, unsigned int IPhiAxis>
 bool CylindricalGeometry<TTopology, IPhiAxis>::update()
 {
 
-	if (!topology_type::update())
-		return false;
+	if (!topology_type::update()) return false;
 
 	DEFINE_PHYSICAL_CONST
 

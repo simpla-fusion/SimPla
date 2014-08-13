@@ -48,8 +48,8 @@ int main(int argc, char **argv)
 
 	mesh.update();
 
-	auto f0 = mesh.template make_field<VERTEX, int>();
-	auto f1 = mesh.template make_field<VERTEX, int>();
+	auto f0 = mesh.make_field<VERTEX, int>();
+	auto f1 = mesh.make_field<VERTEX, int>();
 
 	f0.clear();
 	f1.clear();
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 	size_t size = vec.size();
 	INFORM << GLOBAL_DATA_STREAM.write("data",&vec[0],DataType::create<int>(),1,nullptr,&size,nullptr,nullptr,nullptr,nullptr ,DataStream::SP_UNORDER);
 
-	auto fv = mesh.template make_field<EDGE, Real>();
+	auto fv = mesh.make_field<EDGE, Real>();
 
 	fv.clear();
 

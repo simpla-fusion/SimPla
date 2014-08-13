@@ -29,8 +29,8 @@ inline void ParallelDo(std::function<void(unsigned int, int)> fun)
 {
 
 #ifdef _OPENMP
+	omp_set_num_threads(GLOBAL_COMM.get_num_of_threads());
 	int num_threads = omp_get_num_procs();
-
 #pragma omp parallel for
 	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
@@ -66,9 +66,8 @@ template<typename TRange, typename TFun>
 void ParallelForEach(TRange r, TFun fun)
 {
 #ifdef _OPENMP
-
+	omp_set_num_threads(GLOBAL_COMM.get_num_of_threads());
 	int num_threads = omp_get_num_procs();
-
 #pragma omp parallel for
 	for ( unsigned int thread_id = 0; thread_id < num_threads; ++thread_id)
 	{
