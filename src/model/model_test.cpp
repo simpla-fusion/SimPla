@@ -151,7 +151,9 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	auto r=model.SelectByRectangle( TestFixture::IForm, TestFixture::points[0],TestFixture::points[1]);
 
-	for (auto it=std::begin(r), ie=std::end(r); it!=ie;++it)
+	auto it=std::begin(r);
+	auto ie=std::end(r);
+	for (; it!=ie;++it)
 	{
 		auto s=*it;
 

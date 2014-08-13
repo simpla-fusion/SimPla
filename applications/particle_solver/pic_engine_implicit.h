@@ -20,12 +20,14 @@
 namespace simpla
 {
 
+template<typename TM, typename Policy> class Interpolator;
+
 /**
  *  \ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
-template<typename TM, typename Interpolator = typename TM::interpolator_type>
-struct PICEngineImplicit
+
+template<typename TM, typename TInterpolator = Interpolator<TM, std::nullptr_t>> struct PICEngineImplicit
 {
 public:
 	enum
@@ -35,9 +37,9 @@ public:
 	Real m;
 	Real q;
 
-	typedef PICEngineImplicit<TM, Interpolator> this_type;
 	typedef TM mesh_type;
-	typedef Interpolator interpolator_type;
+	typedef TInterpolator interpolator_type;
+	typedef PICEngineImplicit<mesh_type, interpolator_type> this_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;

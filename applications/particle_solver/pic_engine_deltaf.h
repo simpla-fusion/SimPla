@@ -18,11 +18,15 @@
 
 namespace simpla
 {
+
+template<typename TM, typename Policy> class Interpolator;
+
 /**
  * \ingroup ParticleEngine
  * \brief \f$\delta f\f$ engine
  */
-template<typename TM, typename Interpolator = typename TM::interpolator_type>
+
+template<typename TM, typename TInterpolator = Interpolator<TM, std::nullptr_t>>
 struct PICEngineDeltaF
 {
 
@@ -34,9 +38,10 @@ public:
 	Real m;
 	Real q;
 
-	typedef PICEngineDeltaF<TM, Interpolator> this_type;
 	typedef TM mesh_type;
-	typedef Interpolator interpolator_type;
+	typedef TInterpolator interpolator_type;
+
+	typedef PICEngineDeltaF<mesh_type, interpolator_type> this_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 	typedef typename mesh_type::scalar_type scalar_type;
@@ -83,13 +88,13 @@ private:
 public:
 	mesh_type const &mesh;
 
-	PICEngineDeltaF(mesh_type const &m)
-			: mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(mesh_type const &m) :
+			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
 	{
 	}
 	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others)
-			: PICEngineDeltaF(pmesh)
+	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
+			PICEngineDeltaF(pmesh)
 	{
 		load(std::forward<Others >(others)...);
 	}
