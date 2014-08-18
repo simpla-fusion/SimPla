@@ -163,7 +163,7 @@ public:
 	 *  @param weight scatter weight
 	 */
 	template<unsigned int IFORM, typename TContainer, typename TZ, typename TW>
-	static inline void ScatterCartesian(Field<mesh_type, IFORM, TContainer> *f, TZ const&z, TW weight)
+	static inline void scatter_cartesian(Field<mesh_type, IFORM, TContainer> *f, TZ const&z, TW weight)
 	{
 
 		TZ Z = f->mesh.PushForward(z);
@@ -175,7 +175,7 @@ public:
 	 *  @return  field value(vector/scalar) on Cartesian configure space
 	 */
 //	template<unsigned int IFORM, typename TContainer>
-//	static inline auto GatherCartesian(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const& x)
+//	static inline auto gather_cartesian(Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const& x)
 //	DECL_RET_TYPE (
 //			std::get<1>(f.mesh.PullBack(std::make_tuple(f.mesh.MapTo(x),
 //									Gather_(f.mesh, std::integral_constant<unsigned int ,IFORM>(), f, f.mesh.MapTo(x))))))
@@ -184,7 +184,7 @@ public:
 	 *  @return  field value(vector/scalar) on Cartesian configure space
 	 */
 	template<unsigned int IFORM, typename TContainer>
-	static inline typename Field<mesh_type, IFORM, TContainer>::field_value_type GatherCartesian(
+	static inline typename Field<mesh_type, IFORM, TContainer>::field_value_type gather_cartesian(
 	        Field<mesh_type, IFORM, TContainer> const &f, coordinates_type const& x)
 	{
 		auto y = f.mesh.MapTo(x);

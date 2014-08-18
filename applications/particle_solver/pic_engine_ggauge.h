@@ -198,7 +198,7 @@ public:
 			Others const &...others) const
 	{
 
-		auto B0 = real(interpolator_type::GatherCartesian(fB, p->x));
+		auto B0 = real(interpolator_type::gather_cartesian(fB, p->x));
 
 		Real BB = InnerProductNTuple(B0, B0);
 
@@ -218,7 +218,7 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::GatherCartesian(fE, p->x), v) * dt;
+			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::gather_cartesian(fE, p->x), v) * dt;
 		}
 
 		Vec3 t, V_;
@@ -244,7 +244,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::GatherCartesian(fE, r), v) * q / T_
+			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::gather_cartesian(fE, r), v) * q / T_
 			* dt;
 
 		}
@@ -263,7 +263,7 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			interpolator_type::ScatterCartesian(J,std::make_tuple(r, v), p->w[ms] * q * p->f );
+			interpolator_type::scatter_cartesian(J,std::make_tuple(r, v), p->w[ms] * q * p->f );
 		}
 
 	}

@@ -163,6 +163,8 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	multi_normal_distribution<NDIMS> v_dist;
 
+	auto mass = p->get_charge();
+
 	for (auto s : range)
 	{
 
@@ -174,9 +176,9 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			x = mesh.CoordinatesLocalToGlobal(s, x);
 
-			v *= std::sqrt(boltzmann_constant * Ts(x) / p->m);
+			v *= std::sqrt(boltzmann_constant * Ts(x) / mass);
 
-			buffer.push_back(engine_type::make_point(x, v, ns(x) * inv_sample_density));
+			buffer.push_back(engine_type::push_forward(x, v, ns(x) * inv_sample_density));
 		}
 
 		auto & d = p->get(s);

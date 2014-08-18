@@ -8,55 +8,35 @@
 #ifndef PIC_ENGINE_DELTAF_H_
 #define PIC_ENGINE_DELTAF_H_
 
-#include <sstream>
 #include <string>
+#include <tuple>
 
-#include "../../src/utilities/ntuple.h"
-#include "../../src/utilities/primitives.h"
 #include "../../src/physics/physical_constants.h"
-#include "../../src/io/hdf5_datatype.h"
+#include "../../src/utilities/primitives.h"
 
 namespace simpla
 {
-
-template<typename TM, typename Policy> class Interpolator;
 
 /**
  * \ingroup ParticleEngine
  * \brief \f$\delta f\f$ engine
  */
 
-template<typename TM, typename TInterpolator = Interpolator<TM, std::nullptr_t>>
 struct PICEngineDeltaF
 {
 
+private:
+
+	Real m_;
+	Real q_;
+
+	Real cmr_, q_kT_;
 public:
-	enum
-	{
-		is_implicit = false
-	};
-	Real m;
-	Real q;
-
-	typedef TM mesh_type;
-	typedef TInterpolator interpolator_type;
-
-	typedef PICEngineDeltaF<mesh_type, interpolator_type> this_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	typedef typename mesh_type::template field<VERTEX, scalar_type> rho_type;
-
-	typedef typename mesh_type::template field<EDGE, scalar_type> J_type;
-
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > E0_type;
-
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > B0_type;
-
-	typedef typename mesh_type:: template field<EDGE, scalar_type> E1_type;
-
-	typedef typename mesh_type:: template field<FACE, scalar_type> B1_type;
+	static constexpr bool is_implicit = false;
+	typedef PICEngineDeltaF this_type;
+	typedef Vec3 coordinates_type;
+	typedef Vec3 vector_type;
+	typedef Real scalar_type;
 
 	struct Point_s
 	{
@@ -65,71 +45,19 @@ public:
 		Real f;
 		scalar_type w;
 
-		typedef std::tuple<coordinates_type, Vec3, Real, scalar_type> compact_type;
+		typedef std::tuple<coordinates_type, vector_type, scalar_type, scalar_type> compact_point_s;
 
-		static compact_type Compact(Point_s const& p)
-		{
-			return ((std::make_tuple(p.x, p.v, p.f, p.w)));
-		}
-
-		static Point_s Decompact(compact_type const & t)
-		{
-			Point_s p;
-			p.x = std::get<0>(t);
-			p.v = std::get<1>(t);
-			p.f = std::get<2>(t);
-			p.w = std::get<3>(t);
-			return std::move(p);
-		}
 	};
 
-private:
-	Real cmr_, q_kT_;
 public:
-	mesh_type const &mesh;
-
-	PICEngineDeltaF(mesh_type const &m) :
-			mesh(m), m(1.0), q(1.0), cmr_(1.0), q_kT_(1.0)
+	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0)
+			: m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
 	{
-	}
-	template<typename ...Others>
-	PICEngineDeltaF(mesh_type const &pmesh, Others && ...others) :
-			PICEngineDeltaF(pmesh)
-	{
-		load(std::forward<Others >(others)...);
-	}
-	template<typename TDict, typename ...Args>
-	void load(TDict const& dict, Args const & ...args)
-	{
-		m = (dict["Mass"].template as<Real>(1.0));
-		q = (dict["Charge"].template as<Real>(1.0));
-
-		cmr_ = (q / m);
-
 		DEFINE_PHYSICAL_CONST
 
-		q_kT_ = q / (dict["Temperature"].template as<Real>(1.0) * boltzmann_constant);
-
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"w\" : " << (offsetof(Point_s, w)) << ";"
-
-			<< "}";
-
-			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
-		}
-
+		q_kT_ = q / (T * boltzmann_constant);
 	}
+
 	~PICEngineDeltaF()
 	{
 	}
@@ -139,45 +67,27 @@ public:
 		return "DeltaF";
 	}
 
-	Real get_mass()const
+	Real get_mass() const
 	{
-		return m;
+		return m_;
 
 	}
-	Real get_charge()const
+	Real get_charge() const
 	{
-		return q;
+		return q_;
 
 	}
-	template<typename OS>
-	OS & print(OS & os) const
-	{
 
-		DEFINE_PHYSICAL_CONST
-
-		os << "Engine = '" << get_type_as_string() << "' "
-
-		<< " , " << "Mass = " << m / proton_mass << " * m_p"
-
-		<< " , " << "Charge = " << q / elementary_charge << " * q_e"
-
-		<< " , " << "Temperature = " << q / q_kT_ / elementary_charge << "* eV"
-
-		;
-
-		return os;
-	}
-
-	inline void next_timestep_zero( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 ) const
+	template<typename TE0, typename TB0, typename TE1, typename TB1>
+	inline void next_timestep(Point_s * p, Real dt, TE0 const &fE0, TB0 const & fB0, TE1 const &fE1,
+	        TB1 const & fB1) const
 	{
 		p->x += p->v * dt * 0.5;
-		auto cE =interpolator_type::GatherCartesian(fE1, p->x);
 
-		auto B = real(interpolator_type::GatherCartesian(fB1, p->x))+interpolator_type::GatherCartesian(fB0, p->x);
-		auto E = real(cE)+interpolator_type::GatherCartesian(fE0, p->x);;
+		vector_type B = fB1(p->x) + fB0(p->x);
+		vector_type E = fE1(p->x) + fE0(p->x);
 
-		Vec3 v_;
+		vector_type v_;
 
 		auto t = B * (cmr_ * dt * 0.5);
 
@@ -188,7 +98,7 @@ public:
 		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
 
 		p->v += v_;
-		auto a = (-Dot(cE, p->v) * q_kT_ * dt);
+		auto a = (-Dot(E, p->v) * q_kT_ * dt);
 		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
 
 		p->v += v_;
@@ -198,34 +108,27 @@ public:
 
 	}
 
-	inline void next_timestep_half( Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1 )const
+	template<typename TJ>
+	void ScatterJ(Point_s const & p, TJ * J) const
 	{
+		J->scatter_cartesian(std::make_tuple(p.x, p.v), p.f * q_ * p.w);
 	}
 
-	void Scatter(Point_s const & p, J_type * J ) const
+	template<typename TJ>
+	void ScatterRho(Point_s const & p, TJ * rho) const
 	{
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v), p.f * q*p.w);
+		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * q_ * p.w);
 	}
 
-	void Scatter(Point_s const & p, rho_type * rho) const
+	static inline Point_s push_forward(coordinates_type const & x, vector_type const &v, scalar_type f)
 	{
-		interpolator_type::ScatterCartesian( rho,std::make_tuple(p.x,1.0),p.f * q*p.w);
+		return std::move(Point_s( { x, v, f }));
 	}
-	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
-	{
-		return std::move(Point_s(
-						{	x, v, f, 0}));
-	}
+
+	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 
 };
 
-template<typename ... TS> std::ostream&
-operator<<(std::ostream& os, typename PICEngineDeltaF<TS...>::Point_s const & p)
-{
-	os << "{ x= {" << p.x << "} , v={" << p.v << "}, f=" << p.f << " , w=" << p.w << " }";
-
-	return os;
 }
 
 } // namespace simpla

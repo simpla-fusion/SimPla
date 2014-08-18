@@ -36,10 +36,6 @@ public:
 
 	//interface
 
-	virtual bool check_mesh_type(std::type_info const & t_info) const=0;
-	virtual bool check_E_type(std::type_info const & t_info) const=0;
-	virtual bool check_B_type(std::type_info const & t_info) const=0;
-
 	virtual std::string save(std::string const & path) const=0;
 
 	virtual std::ostream& print(std::ostream & os) const =0;
@@ -56,13 +52,7 @@ public:
 
 	virtual void const * get_J() const= 0;
 
-	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
-	{
-	}
-
-	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
-	{
-	}
+	virtual void next_timestep() =0;
 
 	virtual void update_fields() =0;
 
@@ -89,17 +79,6 @@ public:
 	T const & J() const
 	{
 		return *reinterpret_cast<T const*>(get_J());
-	}
-
-	template<typename TE0, typename TB0, typename TE1, typename TB1>
-	void next_timestep_zero(TE0 const & E0, TB0 const &B0, TE1 const & E1, TB1 const &B1)
-	{
-		next_timestep_zero_(&E0, &B0, &E1, &B1);
-	}
-	template<typename TE0, typename TB0, typename TE1, typename TB1>
-	void next_timestep_half(TE0 const & E0, TB0 const &B0, TE1 const & E1, TB1 const &B1)
-	{
-		next_timestep_half_(&E0, &B0, &E1, &B1);
 	}
 
 };

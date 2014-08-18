@@ -32,8 +32,6 @@
 #include "load_particle.h"
 #include "save_particle.h"
 
-#include "particle_boundary.h"
-
 namespace simpla
 {
 
@@ -46,25 +44,24 @@ namespace simpla
  *
  *  this class is a proxy between ParticleBase and Engine,ParticlePool
  */
-template<class Engine>
-class Particle: public ParticleBase, public Engine, public ParticlePool<typename Engine::mesh_type,
-        typename Engine::Point_s>
+template<typename TM, class Engine>
+class Particle: public ParticleBase, public Engine, public ParticlePool<TM, typename Engine::Point_s>
 {
 
 public:
 	static constexpr unsigned int IForm = VERTEX;
 
+	typedef TM mesh_type;
+
 	typedef Engine engine_type;
 
-	typedef ParticlePool<typename Engine::mesh_type, typename Engine::Point_s> storage_type;
+	typedef ParticlePool<mesh_type, typename Engine::Point_s> storage_type;
 
-	typedef Particle<engine_type> this_type;
-
-	typedef typename engine_type::mesh_type mesh_type;
+	typedef Particle<mesh_type, engine_type> this_type;
 
 	typedef typename engine_type::Point_s particle_type;
 
-	typedef typename engine_type::scalar_type scalar_type;
+	typedef typename mesh_type::scalar_type scalar_type;
 
 	typedef particle_type value_type;
 
@@ -124,25 +121,10 @@ public:
 		return get_property_(name).template as<T>();
 	}
 
-	bool check_mesh_type(std::type_info const & t_info) const
-	{
-		return t_info == typeid(mesh_type);
-	}
-
-	bool check_E_type(std::type_info const & t_info) const
-	{
-		return t_info == typeid(E1_type);
-	}
-	bool check_B_type(std::type_info const & t_info) const
-	{
-		return t_info == typeid(B1_type);
-	}
-
 	std::string save(std::string const & path) const;
 
 	std::ostream& print(std::ostream & os) const
 	{
-		engine_type::print(os);
 		os << ",";
 		properties.print(os);
 		return os;
@@ -182,19 +164,9 @@ public:
 	{
 		return reinterpret_cast<void const*>(&J);
 	}
-	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
-	{
-		next_timestep_zero(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
-		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
-	}
+	virtual void next_timestep();
 
-	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
-	{
-		next_timestep_half(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
-		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
-	}
-
-	void update_fields();
+	virtual void update_fields();
 
 	// interface end
 	//***************************************************************************************************
@@ -212,35 +184,27 @@ public:
 		}
 	}
 
-	typename engine_type::rho_type rho;
+	typename mesh_type:: template field<VERTEX, scalar_type> rho;
 
-	typename engine_type::J_type J;
-
-	typedef typename engine_type::E0_type E0_type;
-	typedef typename engine_type::B0_type B0_type;
-	typedef typename engine_type::E1_type E1_type;
-	typedef typename engine_type::B1_type B1_type;
-
-	void next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
-	void next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
+	typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type> > J;
 
 	std::list<std::function<void()> > constraint_;
 };
-template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
+template<typename TM, typename Engine>
+Particle<TM, Engine>::Particle(mesh_type const & pmesh)
+		: storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
 {
 }
-template<typename Engine>
+template<typename TM, typename Engine>
 template<typename TDict, typename TModel>
-Particle<Engine>::Particle(TDict const & dict, TModel const & model)
-		: Particle(model)
+Particle<TM, Engine>::Particle(TDict const & dict, TModel const & model)
+		: engine_type(dict), storage_type(model), mesh(model), rho(model), J(model)
 {
 	load(dict, model);
 }
-template<typename Engine>
+template<typename TM, typename Engine>
 template<typename TDict, typename TModel>
-void Particle<Engine>::load(TDict const & dict, TModel const & model)
+void Particle<TM, Engine>::load(TDict const & dict, TModel const & model)
 {
 	engine_type::load(dict);
 
@@ -259,8 +223,8 @@ void Particle<Engine>::load(TDict const & dict, TModel const & model)
 	rho.clear();
 }
 
-template<typename Engine>
-Particle<Engine>::~Particle()
+template<typename TM, typename Engine>
+Particle<TM, Engine>::~Particle()
 {
 }
 
@@ -273,8 +237,8 @@ std::ostream &operator<<(std::ostream&os, Particle<T...> const & p)
 
 //*************************************************************************************************
 
-template<typename Engine>
-std::string Particle<Engine>::save(std::string const & path) const
+template<typename TM, typename Engine>
+std::string Particle<TM, Engine>::save(std::string const & path) const
 {
 	std::stringstream os;
 
@@ -292,31 +256,8 @@ std::string Particle<Engine>::save(std::string const & path) const
 	return os.str();
 }
 
-template<typename Engine>
-void Particle<Engine>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
-        B1_type const & B1)
-{
-
-	LOGGER << "Push particles to zero step [ " << engine_type::get_type_as_string() << " ]";
-
-	storage_type::Sort();
-
-	Real dt = mesh.get_dt();
-
-	for (auto & cell : *this)
-	{
-		//TODO add rw cache
-		for (auto & p : cell.second)
-		{
-			this->engine_type::next_timestep_zero(&p, dt, E0, B0, E1, B1);
-		}
-	}
-
-	storage_type::set_changed();
-}
-template<typename Engine>
-void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
-        B1_type const & B1)
+template<typename TM, typename Engine>
+void Particle<TM, Engine>::next_timestep()
 {
 
 	LOGGER << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
@@ -325,20 +266,20 @@ void Particle<Engine>::next_timestep_half(E0_type const & E0, B0_type const & B0
 
 	Real dt = mesh.get_dt();
 
-	for (auto & cell : *this)
-	{
-		//TODO add rw cache
-		for (auto & p : cell.second)
-		{
-			this->engine_type::next_timestep_half(&p, dt, E0, B0, E1, B1);
-		}
-	}
+//	for (auto & cell : *this)
+//	{
+//		//TODO add rw cache
+//		for (auto & p : cell.second)
+//		{
+//			this->engine_type::next_timestep(&p, dt, E0, B0, E1, B1);
+//		}
+//	}
 
 	storage_type::set_changed();
 }
 
-template<typename Engine>
-void Particle<Engine>::update_fields()
+template<typename TM, typename Engine>
+void Particle<TM, Engine>::update_fields()
 {
 
 	LOGGER << "Scatter particles to fields [ " << engine_type::get_type_as_string() << " ]";
@@ -354,7 +295,7 @@ void Particle<Engine>::update_fields()
 		//TODO add rw cache
 		for (auto & p : cell.second)
 		{
-			this->engine_type::Scatter(p, &J);
+			this->engine_type::ScatterJ(p, &J);
 		}
 	}
 
@@ -373,7 +314,7 @@ void Particle<Engine>::update_fields()
 			//TODO add rw cache
 			for (auto & p : cell.second)
 			{
-				this->engine_type::Scatter(p, &rho);
+				this->engine_type::ScatterRho(p, &rho);
 			}
 		}
 

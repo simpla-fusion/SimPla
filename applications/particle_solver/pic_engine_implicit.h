@@ -164,11 +164,11 @@ public:
 			E1_type const &fE1, B1_type const & fB1, TJ *J ) const
 	{
 
-		auto B = interpolator_type::GatherCartesian(fB0, p->x)+
-		real(interpolator_type::GatherCartesian(fB1, p->x));
+		auto B = interpolator_type::gather_cartesian(fB0, p->x)+
+		real(interpolator_type::gather_cartesian(fB1, p->x));
 
-		auto E =interpolator_type::GatherCartesian(fE0, p->x)+
-		real(interpolator_type::GatherCartesian(fE1, p->x));
+		auto E =interpolator_type::gather_cartesian(fE0, p->x)+
+		real(interpolator_type::gather_cartesian(fE1, p->x));
 
 		Vec3 v_;
 
@@ -186,18 +186,18 @@ public:
 
 		p->x += p->v * dt;
 
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p->x,p->v ), p->f * q);
+		interpolator_type::scatter_cartesian( J,std::make_tuple(p->x,p->v ), p->f * q);
 
 	}
 
 	void Scatter(Point_s const & p, J_type * J ) const
 	{
-		interpolator_type::ScatterCartesian( J,std::make_tuple(p.x,p.v ), p.f * q);
+		interpolator_type::scatter_cartesian( J,std::make_tuple(p.x,p.v ), p.f * q);
 	}
 
 	void Scatter(Point_s const & p, rho_type * n) const
 	{
-		interpolator_type::ScatterCartesian( n,std::make_tuple(p.x,1.0),p.f * q);
+		interpolator_type::scatter_cartesian( n,std::make_tuple(p.x,1.0),p.f * q);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

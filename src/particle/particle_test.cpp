@@ -70,21 +70,16 @@ int main(int argc, char **argv)
 	LOGGER.set_stdout_visable_level(12);
 	GLOBAL_COMM.init();
 
-	typedef typename PICEngineFullF<mesh_type>::Point_s Point_s;
+	typedef typename PICEngineFullF::Point_s Point_s;
 
-	typedef Particle<PICEngineFullF<mesh_type> > particle_type;
-
-	particle_type::register_datatype();
+	typedef Particle<mesh_type, PICEngineFullF> particle_type;
 
 	mesh_type mesh;
 
-	nTuple<3, Real> xmin =
-	{	0, 0, 0};
-	nTuple<3, Real> xmax =
-	{	20, 2, 2};
+	nTuple<3, Real> xmin = { 0, 0, 0 };
+	nTuple<3, Real> xmax = { 20, 2, 2 };
 
-	nTuple<3, size_t> dims =
-	{	20 , 1, 1};
+	nTuple<3, size_t> dims = { 20, 1, 1 };
 
 	mesh.set_dimensions(dims);
 	mesh.set_extents(xmin, xmax);
@@ -99,32 +94,29 @@ int main(int argc, char **argv)
 
 	auto extents = mesh.get_extents();
 
-	rectangle_distribution<mesh_type::get_num_of_dimensions()> x_dist(nTuple<3, Real> (
-					{	0, 0, 0})
-			, nTuple<3, Real> (
-					{	1, 1, 1}));
+	rectangle_distribution<mesh_type::get_num_of_dimensions()> x_dist(nTuple<3, Real>( { 0, 0, 0 }), nTuple<3, Real>( {
+	        1, 1, 1 }));
 
 	std::mt19937 rnd_gen(mesh_type::get_num_of_dimensions());
 
-	nTuple<3, Real> v =
-	{	1, 2, 3};
+	nTuple<3, Real> v = { 1, 2, 3 };
 
 	int pic = 500;
 
-	auto n=[](typename mesh_type::coordinates_type const & x )
+	auto n = [](typename mesh_type::coordinates_type const & x )
 	{
 		return 2.0; //std::sin(x[0]*TWOPI);
-	};
+	    };
 
-	auto T=[](typename mesh_type::coordinates_type const & x )
+	auto T = [](typename mesh_type::coordinates_type const & x )
 	{
 		return 1.0;
 	};
 
-	p.set_property( "DumpParticle" ,true);
-	p.set_property( "ScatterN" ,true);
+	p.set_property("DumpParticle", true);
+	p.set_property("ScatterN", true);
 
-	InitParticle(&p,mesh.Select(VERTEX),500,n,T);
+	InitParticle(&p, mesh.Select(VERTEX), 500, n, T);
 
 //	{
 //		auto range=mesh.Select(VERTEX);

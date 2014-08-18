@@ -53,7 +53,7 @@ public:
 
 	typedef typename mesh_type::range_type range_type;
 
-	typedef typename particle_type::compact_type compact_particle_type;
+	typedef typename particle_type::compact_point_s compact_particle_type;
 
 	typedef std::function<compact_particle_type(compact_particle_type)> pointwise_furho_type;
 
