@@ -158,14 +158,14 @@ public:
 
 	std::string flush_cache(std::string const & name);
 
-	hid_t create_datatype(DataType const &);
+	hid_t create_datatype(DataType const &, bool is_compact_array = false);
 
 	void set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v);
 	void remove_attribute(std::string const &name, std::string const & key);
 };
 
-DataStream::pimpl_s::pimpl_s()
-		: file_(-1), group_(-1)
+DataStream::pimpl_s::pimpl_s() :
+		file_(-1), group_(-1)
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -229,8 +229,7 @@ bool DataStream::pimpl_s::command(std::string const & cmd)
 
 void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 {
-	if (gname == "")
-		return;
+	if (gname == "") return;
 
 	hid_t h5fg = file_;
 
@@ -245,8 +244,7 @@ void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
 	else
 	{
 		grpname_ += gname;
-		if (group_ > 0)
-			h5fg = group_;
+		if (group_ > 0) h5fg = group_;
 	}
 
 	if (grpname_[grpname_.size() - 1] != '/')
@@ -402,11 +400,9 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 
 	auto current_group_name = properties["Group Name"].as<std::string>("/");
 
-	if (file_path == "")
-		file_path = current_file_path;
+	if (file_path == "") file_path = current_file_path;
 
-	if (grp_name == "")
-		grp_name = current_group_name;
+	if (grp_name == "") grp_name = current_group_name;
 
 	if (file_ <= 0 || current_file_path != file_path)
 	{
@@ -489,7 +485,7 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v, Da
 
 }
 
-hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type)
+hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type, bool is_compact_array)
 {
 
 	hid_t res;
@@ -527,7 +523,7 @@ hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type)
 
 		}
 
-		if (d_type.ndims > 0)
+		if (is_compact_array && d_type.ndims > 0)
 		{
 			hsize_t dims[d_type.ndims];
 			std::copy(d_type.dimensions_, d_type.dimensions_ + d_type.ndims, dims);
@@ -547,7 +543,7 @@ hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type)
 
 		for (auto const & item : d_type.data)
 		{
-			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datatype(std::get<0>(item)));
+			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datatype(std::get<0>(item), true));
 		}
 
 	}
@@ -946,20 +942,19 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 	H5_ERROR(H5Dclose(dset));
 
 	if (mem_space != H5S_ALL)
-		H5_ERROR(H5Sclose(mem_space));
+	H5_ERROR(H5Sclose(mem_space));
 
 	if (file_space != H5S_ALL)
-		H5_ERROR(H5Sclose(file_space));
+	H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0)
-		H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
 
 	return url;
 }
 
 //=====================================================================================
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()
