@@ -51,14 +51,17 @@ public:
 
 	~DataStream();
 
+	Properties & get_properties();
+	Properties const & get_properties() const;
+
 	template<typename T> void set_property(std::string const & name, T const&v)
 	{
-		set_property_(name, Any(v));
+		get_properties().set(name, Any(v));
 	}
 
 	template<typename T> T get_property(std::string const & name) const
 	{
-		return get_property_(name).template as<T>();
+		return get_properties().get(name).template as<T>();
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
@@ -115,13 +118,19 @@ public:
 
 	);
 
+	void set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v);
+
+	void remove_attribute(std::string const &name, std::string const & key);
+
+	template<typename T> void set_attribute(std::string const & name, T const&v)
+	{
+		set_attribute(name, Any(v));
+	}
+
 private:
 	struct pimpl_s;
 
 	std::unique_ptr<pimpl_s> pimpl_;
-
-	void set_property_(std::string const & name, Any const&);
-	Any get_property_(std::string const & name) const;
 
 }
 ;

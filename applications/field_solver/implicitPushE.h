@@ -43,8 +43,8 @@ public:
 	typedef field<VERTEX, nTuple<3, scalar_type>> J_type;
 
 	template<typename ...Others>
-	ImplicitPushE(mesh_type const & m, Others const &...) :
-			mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
+	ImplicitPushE(mesh_type const & m, Others const &...)
+			: mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
 	{
 	}
 
@@ -82,7 +82,8 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 			flag |= (p.second->is_implicit());
 		}
 
-		if (!flag) return;
+		if (!flag)
+			return;
 	}
 
 	DEFINE_PHYSICAL_CONST
@@ -91,13 +92,10 @@ TP const & particles, field<EDGE, scalar_type> *pdE)
 
 	LOGGER << "Implicit Push E ";
 
-	if (Ev.empty()) Ev = MapTo<VERTEX>(E1);
+	if (Ev.empty())
+		Ev = MapTo<VERTEX>(E1);
 
 	Bv = MapTo<VERTEX>(B1);
-
-	GLOBAL_DATA_STREAM.cd("/Save/");
-
-	VERBOSE << SAVE(Ev);
 
 	BB = Dot(B0, B0);
 

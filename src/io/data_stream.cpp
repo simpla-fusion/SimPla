@@ -14,7 +14,6 @@ extern "C"
 
 #include <cstring> //for memcopy
 
-#include "hdf5_datatype.h"
 #include "data_stream.h"
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
@@ -158,6 +157,11 @@ public:
 	std::string write_cache(std::string const &name, const void *, DataSet const &);
 
 	std::string flush_cache(std::string const & name);
+
+	hid_t create_datatype(DataType const &);
+
+	void set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v);
+	void remove_attribute(std::string const &name, std::string const & key);
 };
 
 DataStream::pimpl_s::pimpl_s()
@@ -349,6 +353,17 @@ void DataStream::pimpl_s::close()
 	close_file();
 }
 
+void DataStream::pimpl_s::set_attribute(std::string const &name, std::string const & key, DataType const &d_type,
+        void const * v)
+{
+	;
+}
+
+void DataStream::pimpl_s::remove_attribute(std::string const &name, std::string const & key)
+{
+	;
+}
+
 /**
  *
  * @param url_hint  <filename>:<group name>/<dataset name>
@@ -472,6 +487,72 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v, Da
 		return write_array(url, v, ds);
 	}
 
+}
+
+hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type)
+{
+
+	hid_t res;
+
+	if (!d_type.is_compound())
+	{
+
+		hid_t ele_type;
+
+		if (d_type.t_index_ == std::type_index(typeid(int)))
+		{
+			ele_type = H5T_NATIVE_INT;
+		}
+		else if (d_type.t_index_ == std::type_index(typeid(long)))
+		{
+			ele_type = H5T_NATIVE_LONG;
+		}
+		else if (d_type.t_index_ == std::type_index(typeid(unsigned long)))
+		{
+			ele_type = H5T_NATIVE_ULONG;
+		}
+		else if (d_type.t_index_ == std::type_index(typeid(float)))
+		{
+			ele_type = H5T_NATIVE_FLOAT;
+		}
+		else if (d_type.t_index_ == std::type_index(typeid(double)))
+		{
+			ele_type = H5T_NATIVE_DOUBLE;
+		}
+		else if (d_type.t_index_ == std::type_index(typeid(std::complex<double>)))
+		{
+			ele_type = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<double>));
+			H5Tinsert(ele_type, "r", 0, H5T_NATIVE_DOUBLE);
+			H5Tinsert(ele_type, "i", sizeof(double), H5T_NATIVE_DOUBLE);
+
+		}
+
+		if (d_type.ndims > 0)
+		{
+			hsize_t dims[d_type.ndims];
+			std::copy(d_type.dimensions_, d_type.dimensions_ + d_type.ndims, dims);
+			res = H5Tarray_create(ele_type, d_type.ndims, dims);
+
+		}
+		else
+		{
+			res = ele_type;
+		}
+
+	}
+	else
+	{
+
+		res = H5Tcreate(H5T_COMPOUND, d_type.size_in_byte());
+
+		for (auto const & item : d_type.data)
+		{
+			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datatype(std::get<0>(item)));
+		}
+
+	}
+
+	return (res);
 }
 
 DataStream::pimpl_s::DataSet DataStream::pimpl_s::create_data_set(
@@ -735,7 +816,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 	std::string url = path + dsname;
 
-	hid_t m_type = GLOBAL_HDF5_DATA_TYPE_FACTORY.create( ds.data_desc.t_index_);
+	hid_t m_type = create_datatype(ds.data_desc);
 
 	hid_t file_space, mem_space;
 
@@ -896,16 +977,14 @@ std::string DataStream::cd(std::string const & gname, unsigned int flag)
 {
 	return std::get<0>(pimpl_->cd(gname));
 }
-
-void DataStream::set_property_(std::string const & name, Any const &v)
+Properties & DataStream::get_properties()
 {
-	pimpl_->set_property(name, v);
+	return pimpl_->properties;
 }
-Any DataStream::get_property_(std::string const & name) const
+Properties const& DataStream::get_properties() const
 {
-	return pimpl_->get_property_any(name);
+	return pimpl_->properties;
 }
-
 std::string DataStream::pwd() const
 {
 	return pimpl_->pwd();
@@ -913,6 +992,15 @@ std::string DataStream::pwd() const
 void DataStream::close()
 {
 	return pimpl_->close();
+}
+
+void DataStream::set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v)
+{
+	pimpl_->set_attribute(name, key, d_type, v);
+}
+void DataStream::remove_attribute(std::string const &name, std::string const & key)
+{
+	pimpl_->remove_attribute(name, key);
 }
 std::string DataStream::write(std::string const &name, void const *v,
 

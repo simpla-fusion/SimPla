@@ -53,9 +53,8 @@ public:
 
 	typedef typename mesh_type::range_type range_type;
 
-	typedef typename particle_type::compact_point_s compact_particle_type;
-
-	typedef std::function<compact_particle_type(compact_particle_type)> pointwise_furho_type;
+	typedef typename particle_type::compact_type compact_particle_type;
+	typedef std::function<compact_particle_type(compact_particle_type)> pointwise_fun_type;
 
 private:
 
@@ -348,7 +347,7 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, ch
 template<typename TM, typename TPoint> template<typename TRange, typename TFun>
 void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & obj)
 {
-	pointwise_furho_type fun = TypeCast<pointwise_furho_type>(obj);
+	pointwise_fun_type fun = TypeCast<pointwise_fun_type>(obj);
 
 	size_t count = 0;
 	for (auto s : range)

@@ -10,6 +10,7 @@
 
 #include <string>
 #include <tuple>
+#include "../../src/utilities/data_type.h"
 
 namespace simpla
 {
@@ -38,7 +39,33 @@ public:
 		vector_type v;
 		scalar_type f;
 
-		typedef std::tuple<coordinates_type, vector_type, scalar_type> compact_point_s;
+		typedef std::tuple<coordinates_type, vector_type, scalar_type> compact_type;
+
+		static DataType create_datatype()
+		{
+			auto d_type = DataType::create<Point_s>();
+
+			d_type.push_back<coordinates_type>("x", offsetof(Point_s, x));
+			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
+			d_type.push_back<scalar_type>("f", offsetof(Point_s, f));
+
+			return std::move(d_type);
+		}
+
+		/**
+		 *
+		 *
+		 * 	 H5T_COMPOUND {
+
+		     H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
+
+		     H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
+
+		     H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
+
+		 << "}";
+		 *
+		 */
 	};
 
 	PICEngineFullF(Real m = 1.0, Real q = 1.0)

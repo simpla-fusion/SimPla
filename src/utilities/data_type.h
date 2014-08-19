@@ -11,7 +11,7 @@
 #include <typeindex>
 #include "../utilities/primitives.h"
 #include "../utilities/ntuple.h"
-
+#include "../utilities/log.h"
 namespace simpla
 {
 /**
@@ -23,7 +23,6 @@ public:
 	DataType()
 			: t_index_(std::type_index(typeid(void)))
 	{
-
 	}
 
 	DataType(std::type_index t_index, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
@@ -45,11 +44,14 @@ public:
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
+
+		std::copy(other.data.begin(), other.data.end(), std::back_inserter(data));
 	}
 
 	~DataType()
 	{
 	}
+
 	DataType& operator=(DataType const& other)
 	{
 		t_index_ = other.t_index_;
@@ -59,7 +61,7 @@ public:
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
-
+		std::copy(other.data.begin(), other.data.end(), std::back_inserter(data));
 		return *this;
 	}
 
@@ -91,10 +93,36 @@ public:
 		return res;
 	}
 
+	bool is_compound() const
+	{
+		return data.size() > 0;
+	}
+
+	template<typename T>
+	void push_back(std::string const & name, int pos = -1)
+	{
+		if (pos < 0)
+		{
+			if (data.empty())
+			{
+				pos = 0;
+			}
+			else
+			{
+				pos = std::get<2>(*(data.rbegin())) + std::get<0>(*(data.rbegin())).size_in_byte();
+			}
+		}
+
+		data.push_back(std::make_tuple(DataType::create<T>(), name, pos));
+
+	}
+
 	size_t ele_size_in_byte_ = 0;
 	std::type_index t_index_;
 	unsigned int ndims = 0;
 	size_t dimensions_[MAX_NDIMS_OF_ARRAY];
+
+	std::vector<std::tuple<DataType, std::string, int>> data;
 
 };
 

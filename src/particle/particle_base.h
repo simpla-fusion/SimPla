@@ -25,6 +25,7 @@ class ParticleBase
 {
 
 public:
+	Properties properties;
 
 	ParticleBase()
 	{
@@ -44,42 +45,11 @@ public:
 
 	virtual Real get_charge() const=0;
 
-	virtual bool is_implicit() const = 0;
-
 	virtual std::string get_type_as_string() const = 0;
-
-	virtual void const * get_rho() const= 0;
-
-	virtual void const * get_J() const= 0;
 
 	virtual void next_timestep() =0;
 
 	virtual void update_fields() =0;
-
-	virtual void set_property_(std::string const & name, Any const&v)=0;
-
-	virtual Any const & get_property_(std::string const &name) const=0;
-
-	template<typename T> void set_property(std::string const & name, T const&v)
-	{
-		set_property_(name, Any(v));
-	}
-
-	template<typename T> T get_property(std::string const & name) const
-	{
-		return get_property_(name).template as<T>();
-	}
-
-	template<typename T>
-	T const & rho() const
-	{
-		return *reinterpret_cast<T const*>(get_rho());
-	}
-	template<typename T>
-	T const & J() const
-	{
-		return *reinterpret_cast<T const*>(get_J());
-	}
 
 };
 //template<typename TP>

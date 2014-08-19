@@ -61,8 +61,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args) :
-			ExplicitEMContext()
+	ExplicitEMContext(Args && ...args)
+			: ExplicitEMContext()
 	{
 		load(std::forward<Args >(args)...);
 	}
@@ -169,7 +169,8 @@ private:
 	template<typename TBatch>
 	void ExcuteCommands(TBatch const & batch)
 	{
-		if (batch.size() == 0) return;
+		if (batch.size() == 0)
+			return;
 		VERBOSE << "Apply constraints";
 		for (auto const & command : batch)
 		{
@@ -189,8 +190,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext() :
-		E1(model), B1(model), J1(model), dE(model), dB(model),
+ExplicitEMContext<TM>::ExplicitEMContext()
+		: E1(model), B1(model), J1(model), dE(model), dB(model),
 
 		B0(model), E0(model),
 
@@ -449,8 +450,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 				PARSER_ERROR("Unknown DOF!");
 			}
 
-		}
-		catch (std::runtime_error const & e)
+		} catch (std::runtime_error const & e)
 		{
 
 			PARSER_ERROR("Load 'Constraints' error! ");
@@ -608,11 +608,6 @@ void ExplicitEMContext<TM>::next_timestep()
 	for (auto &p : particles_)
 	{
 		p.second->next_timestep();
-
-		if (!p.second->is_implicit())
-		{
-			p.second->update_fields(&J1);
-		}
 	}
 
 	LOG_CMD(B1 += dB * 0.5);	//  B(t=0 -> 1/2)

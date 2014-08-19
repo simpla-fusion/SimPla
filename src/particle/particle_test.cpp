@@ -113,36 +113,36 @@ int main(int argc, char **argv)
 		return 1.0;
 	};
 
-	p.set_property("DumpParticle", true);
-	p.set_property("ScatterN", true);
+	p.properties.set("DumpParticle", true);
+	p.properties.set("ScatterN", true);
 
 	InitParticle(&p, mesh.Select(VERTEX), 500, n, T);
-
-//	{
-//		auto range=mesh.Select(VERTEX);
-//		auto s0=*std::get<0>(range);
-//		nTuple<3,Real> r=
-//		{	0.5,0.5,0.5};
 //
-//		particle_type::Point_s a;
-//		a.x = mesh.CoordinatesLocalToGlobal(s0, r);
-//		a.f = 1.0;
-//		p[s0].push_back(std::move(a));
+////	{
+////		auto range=mesh.Select(VERTEX);
+////		auto s0=*std::get<0>(range);
+////		nTuple<3,Real> r=
+////		{	0.5,0.5,0.5};
+////
+////		particle_type::Point_s a;
+////		a.x = mesh.CoordinatesLocalToGlobal(s0, r);
+////		a.f = 1.0;
+////		p[s0].push_back(std::move(a));
+////
+////	}
 //
-//	}
-
 	p.save("/H");
-	p.update_fields();
-
-	p.save("/H");
-
-	INFORM << "update_ghosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
-
-	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
-
-	p.update_fields();
-
-	p.save("/H/");
+//	p.update_fields();
+//
+//	p.save("/H");
+//
+//	INFORM << "update_ghosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
+//
+//	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
+//
+//	p.update_fields();
+//
+//	p.save("/H/");
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{

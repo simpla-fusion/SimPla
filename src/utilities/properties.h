@@ -104,6 +104,12 @@ public:
 			return it->second;
 		}
 	}
+
+	template<typename T>
+	void set(std::string const & key, T const & v)
+	{
+		get(key) = v;
+	}
 	Any & value()
 	{
 		return value_;

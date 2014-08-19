@@ -186,8 +186,8 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 	}
 
 	p->Add(&buffer);
-	update_ghosts(p);
-	p->update_fields();
+//	update_ghosts(p);
+//	p->update_fields();
 
 }
 }  // namespace simpla
