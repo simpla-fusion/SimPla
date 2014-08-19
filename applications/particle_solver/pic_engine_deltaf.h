@@ -13,7 +13,8 @@
 
 #include "../../src/physics/physical_constants.h"
 #include "../../src/utilities/primitives.h"
-
+#include "../../src/utilities/ntuple.h"
+#include "../../src/utilities/ntuple_noet.h"
 namespace simpla
 {
 
@@ -44,21 +45,21 @@ public:
 		Real f;
 		scalar_type w;
 
+		static DataType create_datatype()
+		{
+			auto d_type = DataType::create<Point_s>();
+
+			d_type.push_back<coordinates_type>("x", offsetof(Point_s, x));
+			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
+			d_type.push_back<Real>("f", offsetof(Point_s, f));
+			d_type.push_back<scalar_type>("w", offsetof(Point_s, v));
+
+			return std::move(d_type);
+		}
 	};
-	static CompoundDataType create_datatype()
-	{
-		auto d_type = CompoundDataType::create<Point_s>();
-
-		d_type.push_back<coordinates_type>("x", offsetof(Point_s, x));
-		d_type.push_back<vector_type>("v", offsetof(Point_s, v));
-		d_type.push_back<Real>("f", offsetof(Point_s, f));
-		d_type.push_back<scalar_type>("w", offsetof(Point_s, v));
-
-		return std::move(d_type);
-	}
 public:
-	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0)
-			: m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
+	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0) :
+			m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
 	{
 		DEFINE_PHYSICAL_CONST
 
@@ -85,16 +86,15 @@ public:
 
 	}
 
-	template<typename TE0, typename TB0, typename TE1, typename TB1>
-	inline void next_timestep(Point_s * p, Real dt, TE0 const &fE0, TB0 const & fB0, TE1 const &fE1,
-	        TB1 const & fB1) const
+	template<typename TE, typename TB>
+	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const
 	{
 		p->x += p->v * dt * 0.5;
 
-		vector_type B = fB1(p->x) + fB0(p->x);
-		vector_type E = fE1(p->x) + fE0(p->x);
+		auto B = fB(p->x);
+		auto E = fE(p->x);
 
-		vector_type v_;
+		Vec3 v_;
 
 		auto t = B * (cmr_ * dt * 0.5);
 
@@ -127,7 +127,7 @@ public:
 		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * q_ * p.w);
 	}
 
-	static inline Point_s push_forward(coordinates_type const & x, vector_type const &v, scalar_type f)
+	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
 	{
 		return std::move(Point_s( { x, v, f }));
 	}
@@ -135,8 +135,6 @@ public:
 	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 
 };
-
-}
 
 } // namespace simpla
 

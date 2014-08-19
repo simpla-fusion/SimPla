@@ -21,24 +21,24 @@
 namespace simpla
 {
 
-template<typename > class ColdFluid;
-template<typename > class Particle;
+class ColdFluid;
+template<typename, typename > class Particle;
 
 /**
  * \ingroup ParticleEngine
  * \brief Cold Plasma fluid
  */
 template<typename TM>
-class Particle<ColdFluid<TM> > : public ParticleBase
+class Particle<TM, ColdFluid> : public ParticleBase
 {
 public:
 	static constexpr unsigned int IForm = VERTEX;
 
 	typedef TM mesh_type;
 
-	typedef ColdFluid<mesh_type> engine_type;
+	typedef ColdFluid engine_type;
 
-	typedef Particle<engine_type> this_type;
+	typedef Particle<mesh_type, engine_type> this_type;
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
@@ -215,12 +215,12 @@ private:
 
 template<typename TM>
 template<typename TDict, typename TModel, typename ...Args>
-Particle<ColdFluid<TM>>::Particle(TDict const & dict, TModel const & model, Args && ... args)
-		: mesh(model),
+Particle<TM,ColdFluid>::Particle(TDict const & dict, TModel const & model, Args && ... args) :
+		mesh(model),
 
-		m(dict["Mass"].template as<Real>(1.0)),
+		m(dict["Mass"].template as < Real > (1.0)),
 
-		q(dict["Charge"].template as<Real>(1.0)),
+		q(dict["Charge"].template as < Real > (1.0)),
 
 		rho(mesh), J(mesh)
 {
@@ -228,12 +228,12 @@ Particle<ColdFluid<TM>>::Particle(TDict const & dict, TModel const & model, Args
 }
 
 template<typename TM>
-Particle<ColdFluid<TM>>::~Particle()
+Particle<TM,ColdFluid>::~Particle()
 {
 }
 template<typename TM>
 template<typename TDict, typename TModel>
-void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model)
+void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model)
 {
 
 	try
@@ -243,10 +243,11 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model)
 
 		if (!rho.empty())
 		{
-			rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
+			rho *= get_charge() * dict["Ratio"].template as < Real > (1.0);
 		}
 
-	} catch (...)
+	}
+	catch (...)
 	{
 		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 	}
@@ -256,7 +257,7 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model)
 
 template<typename TM>
 template<typename TDict, typename TModel, typename TN, typename TT>
-void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model, TN const & pn, TT const & pT)
+void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model, TN const & pn, TT const & pT)
 {
 
 	load(dict, model);
@@ -269,7 +270,7 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model, TN 
 
 		rho.pull_back(range, model, pn);
 
-		rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
+		rho *= get_charge() * dict["Ratio"].template as < Real > (1.0);
 	}
 
 	if (J.empty())
@@ -281,27 +282,27 @@ void Particle<ColdFluid<TM>>::load(TDict const & dict, TModel const & model, TN 
 }
 
 template<typename TM>
-std::string Particle<ColdFluid<TM>>::save(std::string const & path) const
+std::string Particle<TM,ColdFluid>::save(std::string const & path) const
 {
 
-	GLOBAL_DATA_STREAM.cd(path );
+	GLOBAL_DATA_STREAM.cd(path);
 
 	return
 
-	"\n, n =" + simpla::save("rho", rho)+
+	"\n, n =" + simpla::save("rho", rho) +
 
 	"\n, J =" + simpla::save("J", J)
 
 	;
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+void Particle<TM,ColdFluid>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
         B1_type const & B1)
 {
 }
 
 template<typename TM>
-void Particle<ColdFluid<TM>>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+void Particle<TM,ColdFluid>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
         B1_type const & B1)
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
@@ -319,7 +320,7 @@ void Particle<ColdFluid<TM>>::next_timestep_half(E0_type const & E0, B0_type con
 
 }
 template<typename TM>
-void Particle<ColdFluid<TM>>::update_fields()
+void Particle<TM, ColdFluid>::update_fields()
 {
 	LOGGER << "Push particles update fields[ " << get_type_as_string() << "]";
 
@@ -327,7 +328,7 @@ void Particle<ColdFluid<TM>>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(true))
 	{
-		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(rho -= Diverge(MapTo < EDGE > (J)) * dt);
 	}
 
 }

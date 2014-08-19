@@ -11,6 +11,7 @@
 #include <string>
 #include <tuple>
 #include "../../src/utilities/data_type.h"
+#include "../../src/utilities/primitives.h"
 
 namespace simpla
 {
@@ -18,13 +19,14 @@ namespace simpla
  *  \ingroup ParticleEngine
  *  \brief default PIC pusher, using Boris mover
  */
-struct PICEngineFullF
+
+class PICEngineFullF
 {
-private:
 
 	Real m_;
 	Real q_;
 	Real cmr_;
+
 public:
 
 	static constexpr bool is_implicit = false;
@@ -52,24 +54,10 @@ public:
 			return std::move(d_type);
 		}
 
-		/**
-		 *
-		 *
-		 * 	 H5T_COMPOUND {
-
-		     H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-		     H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-		     H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-		 << "}";
-		 *
-		 */
 	};
 
-	PICEngineFullF(Real m = 1.0, Real q = 1.0)
-			: m_(m), q_(q), cmr_(q / m)
+	PICEngineFullF(Real m = 1.0, Real q = 1.0) :
+			m_(m), q_(q), cmr_(q / m)
 	{
 	}
 
@@ -90,19 +78,17 @@ public:
 	Real get_charge() const
 	{
 		return q_;
-
 	}
-
-	// x(-1/2->1/2), v(-1/2/1/2)
-	template<typename TE0, typename TB0, typename TE1, typename TB1>
-	inline void next_timestep(Point_s * p, Real dt, TE0 const &fE0, TB0 const & fB0, TE1 const &fE1,
-	        TB1 const & fB1) const
+//
+//	// x(-1/2->1/2), v(-1/2/1/2)
+	template<typename TE, typename TB>
+	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const
 	{
 
 		p->x += p->v * dt * 0.5;
 
-		vector_type B = fB1(p->x) + fB0(p->x);
-		vector_type E = fE1(p->x) + fE0(p->x);
+		auto B = fB(p->x);
+		auto E = fE(p->x);
 
 		vector_type v_;
 
@@ -119,7 +105,6 @@ public:
 		p->v += E * (cmr_ * dt * 0.5);
 
 		p->x += p->v * dt * 0.5;
-
 	}
 
 	template<typename TJ>
@@ -141,7 +126,8 @@ public:
 
 	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 
-};
+}
+;
 
 }
 // namespace simpla

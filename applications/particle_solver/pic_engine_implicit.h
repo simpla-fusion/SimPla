@@ -15,7 +15,6 @@
 #include "../../src/fetl/fetl.h"
 #include "../../src/physics/physical_constants.h"
 #include "../../src/utilities/sp_type_traits.h"
-#include "../../src/io/hdf5_datatype.h"
 
 namespace simpla
 {
@@ -42,6 +41,7 @@ public:
 	typedef PICEngineImplicit<mesh_type, interpolator_type> this_type;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef Vec3 vector_type;
 	typedef typename mesh_type::scalar_type scalar_type;
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
@@ -63,25 +63,18 @@ public:
 		Real f;
 
 		typedef std::tuple<coordinates_type, Vec3, Real> compact_type;
-
-		static compact_type Compact(Point_s const& p)
+		static DataType create_datatype()
 		{
-			return ((std::make_tuple(p.x, p.v, p.f)));
-		}
+			auto d_type = DataType::create<Point_s>();
 
-		static Point_s Decompact(compact_type const & t)
-		{
-			Point_s p;
-			p.x = std::get<0>(t);
-			p.v = std::get<1>(t);
-			p.f = std::get<2>(t);
-			return std::move(p);
+			d_type.push_back<coordinates_type>("x", offsetof(Point_s, x));
+			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
+			d_type.push_back<scalar_type>("f", offsetof(Point_s, f));
+
+			return std::move(d_type);
 		}
 	};
 
-	typedef std::tuple<coordinates_type, Vec3, Real> compact_point_type;
-
-private:
 	Real cmr_;
 public:
 	mesh_type const &mesh;
@@ -103,22 +96,6 @@ public:
 		q = (dict["Charge"].template as<Real>(1.0));
 
 		cmr_ = (q / m);
-		{
-			std::ostringstream os;
-			os
-
-			<< "H5T_COMPOUND {          "
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"x\" : " << (offsetof(Point_s, x)) << ";"
-
-			<< "   H5T_ARRAY { [3] H5T_NATIVE_DOUBLE}    \"v\" :  " << (offsetof(Point_s, v)) << ";"
-
-			<< "   H5T_NATIVE_DOUBLE    \"f\" : " << (offsetof(Point_s, f)) << ";"
-
-			<< "}";
-
-			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
-		}
 
 	}
 
@@ -131,12 +108,12 @@ public:
 		return "Implicit";
 	}
 
-	Real get_mass()const
+	Real get_mass() const
 	{
 		return m;
 
 	}
-	Real get_charge()const
+	Real get_charge() const
 	{
 		return q;
 
@@ -159,16 +136,14 @@ public:
 
 	}
 
-	template<typename TE0,typename TE1,typename TB0,typename TB1,typename TJ>
-	inline void next_timestep(Point_s * p, Real dt,E0_type const &fE0, B0_type const & fB0,
-			E1_type const &fE1, B1_type const & fB1, TJ *J ) const
+	template<typename TE0, typename TE1, typename TB0, typename TB1, typename TJ>
+	inline void next_timestep(Point_s * p, Real dt, E0_type const &fE0, B0_type const & fB0, E1_type const &fE1,
+	        B1_type const & fB1, TJ *J) const
 	{
 
-		auto B = interpolator_type::gather_cartesian(fB0, p->x)+
-		real(interpolator_type::gather_cartesian(fB1, p->x));
+		auto B = interpolator_type::gather_cartesian(fB0, p->x) + real(interpolator_type::gather_cartesian(fB1, p->x));
 
-		auto E =interpolator_type::gather_cartesian(fE0, p->x)+
-		real(interpolator_type::gather_cartesian(fE1, p->x));
+		auto E = interpolator_type::gather_cartesian(fE0, p->x) + real(interpolator_type::gather_cartesian(fE1, p->x));
 
 		Vec3 v_;
 
@@ -186,24 +161,23 @@ public:
 
 		p->x += p->v * dt;
 
-		interpolator_type::scatter_cartesian( J,std::make_tuple(p->x,p->v ), p->f * q);
+		interpolator_type::scatter_cartesian(J, std::make_tuple(p->x, p->v), p->f * q);
 
 	}
 
-	void Scatter(Point_s const & p, J_type * J ) const
+	void Scatter(Point_s const & p, J_type * J) const
 	{
-		interpolator_type::scatter_cartesian( J,std::make_tuple(p.x,p.v ), p.f * q);
+		interpolator_type::scatter_cartesian(J, std::make_tuple(p.x, p.v), p.f * q);
 	}
 
 	void Scatter(Point_s const & p, rho_type * n) const
 	{
-		interpolator_type::scatter_cartesian( n,std::make_tuple(p.x,1.0),p.f * q);
+		interpolator_type::scatter_cartesian(n, std::make_tuple(p.x, 1.0), p.f * q);
 	}
 
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)
 	{
-		return std::move(Point_s(
-						{	x, v, f}));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 };
