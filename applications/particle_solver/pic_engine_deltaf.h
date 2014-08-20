@@ -58,8 +58,8 @@ public:
 		}
 	};
 public:
-	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0) :
-			m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
+	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0)
+			: m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
 	{
 		DEFINE_PHYSICAL_CONST
 
@@ -69,7 +69,21 @@ public:
 	~PICEngineDeltaF()
 	{
 	}
+	template<typename TDict>
+	void load(TDict const & dict)
 
+	{
+		DEFINE_PHYSICAL_CONST
+
+		m_ = (dict["Mass"].template as<Real>(1.0));
+
+		q_ = (dict["Charge"].template as<Real>(1.0));
+
+		cmr_ = (q_ / m_);
+
+		q_kT_ = q_ / ((dict["Temperature"].template as<Real>(1.0)) * boltzmann_constant);
+
+	}
 	static std::string get_type_as_string()
 	{
 		return "DeltaF";

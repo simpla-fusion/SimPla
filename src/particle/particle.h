@@ -163,6 +163,14 @@ public:
 		}
 	}
 
+	template<typename TRange, typename TFun> void Modify(TRange const & range, TFun const & obj);
+	template<typename TRange, typename TFun> void Remove(TRange const & range, TFun const & obj);
+
+	template<typename TRange> void Remove(TRange const & range)
+	{
+		storage_type::Remove(range);
+	}
+
 	typename mesh_type:: template field<VERTEX, scalar_type> rho;
 
 	typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type> > J;
@@ -189,11 +197,11 @@ void Particle<TM, Engine>::load(TDict const & dict, TModel const & model)
 
 	storage_type::load(dict["url"].template as<std::string>());
 
-	set_property("DumpParticle", dict["DumpParticle"].template as<bool>(false));
+	properties.set("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 
-	set_property("DivergeJ", dict["DivergeJ"].template as<bool>(false));
+	properties.set("DivergeJ", dict["DivergeJ"].template as<bool>(false));
 
-	set_property("ScatterN", dict["ScatterN"].template as<bool>(false));
+	properties.set("ScatterN", dict["ScatterN"].template as<bool>(false));
 
 	storage_type::disable_sorting_ = dict["DisableSorting"].template as<bool>(false);
 
@@ -299,6 +307,45 @@ void Particle<TM, Engine>::update_fields()
 
 		update_ghosts(&rho);
 	}
+}
+
+template<typename TM, typename Engine>
+template<typename TRange, typename TFun>
+void Particle<TM, Engine>::Remove(TRange const & range, TFun const & obj)
+{
+	auto f1 = TypeCast<std::function<bool(coordinates_type const &, Vec3 const &)>>(obj);
+
+	std::function<bool(particle_type const&)> fun = [&](particle_type const & p)
+	{
+
+		auto z=engine_type::pull_back(p);
+
+		return f1(std::get<0>(z),std::get<1>(z));
+
+	};
+
+	storage_type::Remove(range, fun);
+
+}
+
+template<typename TM, typename Engine>
+template<typename TRange, typename TFun>
+void Particle<TM, Engine>::Modify(TRange const & range, TFun const & obj)
+{
+
+	auto f1 = TypeCast<std::function<std::tuple<coordinates_type, Vec3>(coordinates_type const &, Vec3 const &)>>(obj);
+
+	std::function<void(particle_type *)> fun = [&](particle_type * p)
+	{
+		auto z0=engine_type::pull_back(*p);
+
+		auto z1=f1(std::get<0>(z0),std::get<1>(z0));
+
+		*p=engine_type::push_forward( std::get<0>(z1),std::get<1>(z1),std::get<2>(z0));
+	};
+
+	storage_type::Modify(range, fun);
+
 }
 
 //*************************************************************************************************

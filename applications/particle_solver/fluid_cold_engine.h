@@ -194,18 +194,11 @@ public:
 	{
 		return reinterpret_cast<void const*>(&J);
 	}
+
 	void update_fields();
 
-	virtual void next_timestep_zero_(void const * E0, void const*B0, void const * E1, void const*B1)
+	void next_timestep()
 	{
-		next_timestep_zero(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
-		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
-	}
-
-	virtual void next_timestep_half_(void const * E0, void const*B0, void const * E1, void const*B1)
-	{
-		next_timestep_half(*reinterpret_cast<E0_type const*>(E0), *reinterpret_cast<B0_type const*>(B0),
-		        *reinterpret_cast<E1_type const*>(E1), *reinterpret_cast<B1_type const*>(B1));
 	}
 
 private:
@@ -215,12 +208,12 @@ private:
 
 template<typename TM>
 template<typename TDict, typename TModel, typename ...Args>
-Particle<TM,ColdFluid>::Particle(TDict const & dict, TModel const & model, Args && ... args) :
-		mesh(model),
+Particle<TM, ColdFluid>::Particle(TDict const & dict, TModel const & model, Args && ... args)
+		: mesh(model),
 
-		m(dict["Mass"].template as < Real > (1.0)),
+		m(dict["Mass"].template as<Real>(1.0)),
 
-		q(dict["Charge"].template as < Real > (1.0)),
+		q(dict["Charge"].template as<Real>(1.0)),
 
 		rho(mesh), J(mesh)
 {
@@ -228,12 +221,12 @@ Particle<TM,ColdFluid>::Particle(TDict const & dict, TModel const & model, Args 
 }
 
 template<typename TM>
-Particle<TM,ColdFluid>::~Particle()
+Particle<TM, ColdFluid>::~Particle()
 {
 }
 template<typename TM>
 template<typename TDict, typename TModel>
-void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model)
+void Particle<TM, ColdFluid>::load(TDict const & dict, TModel const & model)
 {
 
 	try
@@ -243,11 +236,10 @@ void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model)
 
 		if (!rho.empty())
 		{
-			rho *= get_charge() * dict["Ratio"].template as < Real > (1.0);
+			rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
 		}
 
-	}
-	catch (...)
+	} catch (...)
 	{
 		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 	}
@@ -257,7 +249,7 @@ void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model)
 
 template<typename TM>
 template<typename TDict, typename TModel, typename TN, typename TT>
-void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model, TN const & pn, TT const & pT)
+void Particle<TM, ColdFluid>::load(TDict const & dict, TModel const & model, TN const & pn, TT const & pT)
 {
 
 	load(dict, model);
@@ -270,7 +262,7 @@ void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model, TN c
 
 		rho.pull_back(range, model, pn);
 
-		rho *= get_charge() * dict["Ratio"].template as < Real > (1.0);
+		rho *= get_charge() * dict["Ratio"].template as<Real>(1.0);
 	}
 
 	if (J.empty())
@@ -282,7 +274,7 @@ void Particle<TM,ColdFluid>::load(TDict const & dict, TModel const & model, TN c
 }
 
 template<typename TM>
-std::string Particle<TM,ColdFluid>::save(std::string const & path) const
+std::string Particle<TM, ColdFluid>::save(std::string const & path) const
 {
 
 	GLOBAL_DATA_STREAM.cd(path);
@@ -296,13 +288,13 @@ std::string Particle<TM,ColdFluid>::save(std::string const & path) const
 	;
 }
 template<typename TM>
-void Particle<TM,ColdFluid>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+void Particle<TM, ColdFluid>::next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1,
         B1_type const & B1)
 {
 }
 
 template<typename TM>
-void Particle<TM,ColdFluid>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
+void Particle<TM, ColdFluid>::next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1,
         B1_type const & B1)
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
@@ -328,7 +320,7 @@ void Particle<TM, ColdFluid>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(true))
 	{
-		LOG_CMD(rho -= Diverge(MapTo < EDGE > (J)) * dt);
+		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
 	}
 
 }

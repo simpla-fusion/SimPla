@@ -53,9 +53,6 @@ public:
 
 	typedef typename mesh_type::range_type range_type;
 
-	typedef typename particle_type::compact_type compact_particle_type;
-	typedef std::function<compact_particle_type(compact_particle_type)> pointwise_fun_type;
-
 private:
 
 	bool is_changed_ = true;
@@ -310,9 +307,8 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & r, child_container_type * o
 }
 template<typename TM, typename TPoint>
 template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, child_container_type * other)
+void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & fun, child_container_type * other)
 {
-	std::function<bool(compact_particle_type)> fun = TypeCast<std::function<bool(compact_particle_type)>>(obj);
 
 	auto buffer = container_type::create_child();
 
@@ -331,7 +327,7 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, ch
 			auto it_p = it;
 			++it;
 
-			if (fun(particle_type::Compact(*it_p)))
+			if (fun(*it_p))
 			{
 				buffer.splice(buffer.begin(), cell_it->second, it_p);
 			}
@@ -345,9 +341,8 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & obj, ch
 }
 
 template<typename TM, typename TPoint> template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & obj)
+void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & fun)
 {
-	pointwise_fun_type fun = TypeCast<pointwise_fun_type>(obj);
 
 	size_t count = 0;
 	for (auto s : range)
@@ -357,7 +352,7 @@ void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & obj)
 		{
 			for (auto & p : it->second)
 			{
-				p = particle_type::Decompact(fun(particle_type::Compact(p)));
+				fun(&p);
 			}
 			++count;
 		}

@@ -56,8 +56,8 @@ public:
 
 	};
 
-	PICEngineFullF(Real m = 1.0, Real q = 1.0) :
-			m_(m), q_(q), cmr_(q / m)
+	PICEngineFullF(Real m = 1.0, Real q = 1.0)
+			: m_(m), q_(q), cmr_(q / m)
 	{
 	}
 
@@ -65,6 +65,17 @@ public:
 	{
 	}
 
+	template<typename TDict>
+	void load(TDict const & dict)
+
+	{
+		m_ = (dict["Mass"].template as<Real>(1.0));
+
+		q_ = (dict["Charge"].template as<Real>(1.0));
+
+		cmr_ = (q_ / m_);
+
+	}
 	static std::string get_type_as_string()
 	{
 		return "FullF";
@@ -124,7 +135,10 @@ public:
 		return std::move(Point_s( { x, v, f }));
 	}
 
-	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+	static inline std::tuple<coordinates_type, vector_type, scalar_type> pull_back(Point_s const & p)
+	{
+		return ((std::make_tuple(p.x, p.v, p.f)));
+	}
 
 }
 ;

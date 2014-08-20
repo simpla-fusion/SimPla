@@ -589,7 +589,7 @@ void ExplicitEMContext<TM>::next_timestep()
 	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
-	implicit_push_E.next_timestep(&dE);
+//	implicit_push_E.next_timestep(&dE);
 
 	LOG_CMD(E1 += dE);	// E(t=0 -> 1)
 
