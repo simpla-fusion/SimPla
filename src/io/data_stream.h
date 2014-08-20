@@ -66,7 +66,7 @@ public:
 
 	void init(int argc = 0, char** argv = nullptr);
 
-	std::string cd(std::string const & url, unsigned int flag = 0UL);
+	std::string cd(std::string const & url, unsigned int is_append = 0UL);
 
 	std::string pwd() const;
 
@@ -118,13 +118,36 @@ public:
 
 	);
 
-	void set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v);
+	/**
+	 *
+	 * @param url  <file name>:/<group path>/<obj name>.<attribute>
+	 * @param d_type
+	 * @param v
+	 */
 
-	void remove_attribute(std::string const &name, std::string const & key);
+	void set_attribute(std::string const &url, DataType const & d_type, void const * buff);
 
-	template<typename T> void set_attribute(std::string const & name, T const&v)
+	void get_attribute(std::string const &url, DataType const & d_type, void* buff);
+
+	void delete_attribute(std::string const &url);
+
+	void set_attribute(std::string const &url, char const str[])
 	{
-		set_attribute(name, Any(v));
+		set_attribute(url, std::string(str));
+	}
+
+	template<typename T> void set_attribute(std::string const & url, T const&v)
+	{
+		set_attribute(url, DataType::create<T>(), &v);
+	}
+	template<typename T>
+	T get_attribute(std::string const & url)
+	{
+		T res;
+
+		get_attribute(url, DataType::create<T>(), &res);
+
+		return std::move(res);
 	}
 
 private:

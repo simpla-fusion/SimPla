@@ -97,6 +97,10 @@ public:
 	{
 		return data.size() > 0;
 	}
+	template<typename T> bool is_same() const
+	{
+		return t_index_ == std::type_index(typeid(T));
+	}
 
 	template<typename T>
 	void push_back(std::string const & name, int pos = -1)

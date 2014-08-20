@@ -29,8 +29,11 @@ namespace simpla
 
 struct DataStream::pimpl_s
 {
-	hid_t file_;
-	hid_t group_;
+	hid_t base_file_id_;
+	hid_t base_group_id_;
+
+	std::string current_groupname_;
+	std::string current_filename_;
 
 	struct DataSet
 	{
@@ -53,43 +56,36 @@ struct DataStream::pimpl_s
 
 	};
 
-	Properties properties;
-
 	typedef std::tuple<std::shared_ptr<ByteType>, DataSet> CacheDataSet;
 
 	std::map<std::string, CacheDataSet> cache_;
-	void open_group(std::string const & gname, unsigned int flag = 0UL);
-	void open_file(std::string const &file_name = "unnamed", unsigned int flag = 0UL);
-	void close_group();
-	void close_file();
+
+	std::tuple<std::string, hid_t> open_group(std::string const & path);
+	std::tuple<std::string, hid_t> open_file(std::string const & path, bool is_append = false);
+
 	void close();
 
 	MemoryPool mempool_;
 public:
+
+	Properties properties;
 
 	pimpl_s();
 	~pimpl_s();
 
 	bool is_ready()
 	{
-		return file_ > 0;
-	}
-	void set_property(std::string const & name, Any const&v)
-	{
-		properties[name] = v;
-	}
-	Any const & get_property_any(std::string const &name) const
-	{
-		return properties[name].as<Any>();
+		return base_file_id_ > 0;
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
 
 	bool command(std::string const & cmd);
 
-	inline std::string pwd() const
+	std::string pwd() const
 	{
-		return properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
+		return current_filename_ + ":" + current_groupname_;
+//		properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
 	}
 
 	bool check_null_dataset(DataSet const & ds)
@@ -104,7 +100,9 @@ public:
 		return s == 0;
 	}
 
-	std::tuple<std::string, std::string> cd(std::string const &url_hint, unsigned int flag = 0UL);
+	std::string cd(std::string const &file_name, std::string const &grp_name, unsigned int is_append = 0UL);
+
+	std::string cd(std::string const &url, unsigned int is_append = 0UL);
 
 	std::string write(std::string const &url, const void *, DataSet ds);
 
@@ -160,12 +158,20 @@ public:
 
 	hid_t create_datatype(DataType const &, bool is_compact_array = false);
 
-	void set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v);
-	void remove_attribute(std::string const &name, std::string const & key);
+	void set_attribute(std::string const &url, DataType const &d_type, void const * buff);
+
+	void get_attribute(std::string const &url, DataType const &d_type, void *buff);
+
+	void delete_attribute(std::string const &url);
+
+	void delete_attribute(std::string const &obj_name, std::string const & attr_name);
+
+	std::tuple<std::string, std::string, std::string, std::string> parser_url(std::string const & url);
+
 };
 
-DataStream::pimpl_s::pimpl_s() :
-		file_(-1), group_(-1)
+DataStream::pimpl_s::pimpl_s()
+		: base_file_id_(-1), base_group_id_(-1), current_filename_("untitle.h5"), current_groupname_("/")
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -198,20 +204,23 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 	{
 		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
 		{
-			this->set_property("File Name",value);
+			properties.set("File Name",value);
 		}
 		else if(opt=="force-write-cache")
 		{
-			this->set_property("Force Write Cache",true);
+			properties.set("Force Write Cache",true);
 		}
 		else if(opt=="cache-depth")
 		{
-			this->set_property("Cache Depth",ToValue<size_t>(value));
+			properties.set("Cache Depth",ToValue<size_t>(value));
 		}
 		return CONTINUE;
 	}
 
 	);
+
+	current_filename_ = properties["File Name"].template as<std::string>();
+	cd(pwd());
 
 }
 
@@ -225,50 +234,6 @@ bool DataStream::pimpl_s::command(std::string const & cmd)
 		}
 	}
 	return true;
-}
-
-void DataStream::pimpl_s::open_group(std::string const & gname, unsigned int)
-{
-	if (gname == "") return;
-
-	hid_t h5fg = file_;
-
-	close_group();
-
-	std::string & grpname_ = properties["Group Name"].as<std::string>();
-
-	if (gname[0] == '/')
-	{
-		grpname_ = gname;
-	}
-	else
-	{
-		grpname_ += gname;
-		if (group_ > 0) h5fg = group_;
-	}
-
-	if (grpname_[grpname_.size() - 1] != '/')
-	{
-		grpname_ = grpname_ + "/";
-	}
-
-	auto res = H5Lexists(h5fg, grpname_.c_str(), H5P_DEFAULT);
-
-	if (grpname_ == "/" || res != 0)
-	{
-		H5_ERROR(group_ = H5Gopen(h5fg, grpname_.c_str(), H5P_DEFAULT));
-	}
-	else
-	{
-		H5_ERROR(group_ = H5Gcreate(h5fg, grpname_.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
-	}
-	if (group_ <= 0)
-	{
-		RUNTIME_ERROR("Can not open group " + grpname_ + " in file " + properties["Prefix"].as<std::string>());
-	}
-
-	properties["Group Name"].as<std::string>() = grpname_;
-
 }
 
 void sync_string(std::string * filename_)
@@ -301,12 +266,45 @@ void sync_string(std::string * filename_)
 
 }
 
-void DataStream::pimpl_s::open_file(std::string const & fname, unsigned int flag)
+std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(std::string const & fname, bool is_append)
 {
+	std::string filename = fname;
 
-	close_file();
+	if (filename == "")
+		filename = current_filename_;
 
-	std::string file_name = (fname == "") ? "SIMPla_untitled.h5" : fname;
+	if (!is_append)
+	{
+		if (GLOBAL_COMM.get_rank()==0 )
+		{
+			std::string prefix = filename;
+
+			if (filename.size() > 3 && filename.substr(filename.size() - 3) == ".h5")
+			{
+				prefix = filename.substr(0, filename.size() - 3);
+			}
+
+			/// @todo auto mkdir directory
+
+			filename = prefix +
+
+			AutoIncrease(
+
+			[&](std::string const & suffix)->bool
+			{
+				std::string f=( prefix+suffix);
+				return
+				f==""
+				|| *(f.rbegin())=='/'
+				|| (CheckFileExists(f + ".h5"));
+			}
+
+			) + ".h5";
+
+		}
+	}
+
+	hid_t f_id;
 
 	hid_t plist_id = H5Pcreate(H5P_FILE_ACCESS);
 
@@ -314,52 +312,40 @@ void DataStream::pimpl_s::open_file(std::string const & fname, unsigned int flag
 	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 #endif
 
-	H5_ERROR(file_ = H5Fcreate( file_name.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+	H5_ERROR(f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 	H5Pclose(plist_id);
 
-	if (file_ < 0)
+	return std::make_tuple(filename, f_id);
+
+}
+
+std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const & str)
+{
+	std::string path = str;
+	hid_t g_id = -1;
+
+	if (path[0] != '/')
 	{
-		RUNTIME_ERROR("create HDF5 file " + file_name + " failed!");
+		path = current_groupname_ + path;
 	}
 
-	properties["File Name"].as<std::string>() = file_name;
-
-}
-
-void DataStream::pimpl_s::close_group()
-{
-	if (group_ > 0)
+	if (path[path.size() - 1] != '/')
 	{
-		H5Gclose(group_);
+		path = path + "/";
 	}
-	group_ = -1;
-}
-void DataStream::pimpl_s::close_file()
-{
-	close_group();
 
-	if (file_ > 0)
+	if (path == "/" || H5Lexists(base_file_id_, path.c_str(), H5P_DEFAULT) != 0)
 	{
-		H5Fclose(file_);
+		H5_ERROR(g_id = H5Gopen(base_file_id_, path.c_str(), H5P_DEFAULT));
 	}
-	file_ = -1;
-}
-void DataStream::pimpl_s::close()
-{
-	close_group();
-	close_file();
-}
+	else
+	{
+		H5_ERROR(g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+	}
 
-void DataStream::pimpl_s::set_attribute(std::string const &name, std::string const & key, DataType const &d_type,
-        void const * v)
-{
-	;
-}
+	return std::make_tuple(path, g_id);
 
-void DataStream::pimpl_s::remove_attribute(std::string const &name, std::string const & key)
-{
-	;
 }
 
 /**
@@ -368,18 +354,173 @@ void DataStream::pimpl_s::remove_attribute(std::string const &name, std::string 
  * @param flag
  * @return
  */
-std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &url_hint, unsigned int flag)
+std::string DataStream::pimpl_s::cd(std::string const &url, unsigned int is_append)
+{
+	std::string file_name, grp_name, obj_name;
+	std::tie(file_name, grp_name, obj_name, std::ignore) = parser_url(url);
+	return cd(file_name, grp_name + "/" + obj_name, is_append);
+}
+
+std::string DataStream::pimpl_s::cd(std::string const &file_name, std::string const &grp_name, unsigned int is_append)
 {
 //@todo using regex parser url
+
+	if (current_filename_ != file_name)
+	{
+		if (base_group_id_ > 0)
+		{
+			H5Gclose(base_group_id_);
+			base_group_id_ = -1;
+		}
+
+		if (base_file_id_ > 0)
+		{
+			H5Fclose(base_file_id_);
+			base_file_id_ = -1;
+		}
+
+	}
+
+	if (base_file_id_ <= 0)
+	{
+		std::tie(current_filename_, base_file_id_) = open_file(file_name, is_append);
+	}
+
+	if (current_groupname_ != grp_name)
+	{
+		if (base_group_id_ > 0)
+		{
+			H5Gclose(base_group_id_);
+			base_group_id_ = -1;
+		}
+
+	}
+
+	if (base_group_id_ <= 0)
+	{
+		std::tie(current_groupname_, base_group_id_) = open_group(grp_name);
+	}
+
+	return pwd();
+}
+
+void DataStream::pimpl_s::close()
+{
+	if (base_group_id_ > 0)
+	{
+		H5Gclose(base_group_id_);
+		base_group_id_ = -1;
+	}
+
+	if (base_file_id_ > 0)
+	{
+		H5Fclose(base_file_id_);
+		base_file_id_ = -1;
+	}
+
+}
+
+void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &d_type, void const * buff)
+{
+
+	delete_attribute(url);
+
+	std::string file_name, grp_path, obj_name, attr_name;
+
+	std::tie(file_name, grp_path, obj_name, attr_name) = parser_url(url);
+
+	hid_t g_id;
+
+	std::tie(grp_path, g_id) = open_group(grp_path);
+
+	hid_t o_id = (obj_name != "") ? H5Oopen(g_id, obj_name.c_str(), H5P_DEFAULT) : g_id;
+
+	if (d_type.is_same<std::string>())
+	{
+		std::string const& s_str = *reinterpret_cast<std::string const*>(buff);
+
+		hid_t m_type = H5Tcopy(H5T_C_S1);
+
+		H5Tset_size(m_type, s_str.size());
+
+		H5Tset_strpad(m_type, H5T_STR_NULLTERM);
+
+		hid_t m_space = H5Screate(H5S_SCALAR);
+
+		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+
+		H5Awrite(a_id, m_type, s_str.c_str());
+
+		H5Tclose(m_type);
+
+		H5Aclose(a_id);
+	}
+	else
+	{
+		hid_t m_type = create_datatype(d_type);
+
+		hid_t m_space = H5Screate(H5S_SCALAR);
+
+		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+
+		H5Awrite(a_id, m_type, buff);
+
+		if (H5Tcommitted(m_type) > 0)
+			H5Tclose(m_type);
+
+		H5Aclose(a_id);
+
+		H5Sclose(m_space);
+	}
+
+	if (o_id != g_id)
+		H5Oclose(o_id);
+	if (g_id != base_group_id_)
+		H5Gclose(g_id);
+}
+
+void DataStream::pimpl_s::get_attribute(std::string const &url, DataType const &d_type, void * buff)
+{
+	UNIMPLEMENT;
+}
+void DataStream::pimpl_s::delete_attribute(std::string const &url)
+{
+	std::string file_name, grp_name, obj_name, attr_name;
+
+	std::tie(file_name, grp_name, obj_name, attr_name) = parser_url(url);
+
+	if (obj_name != "")
+	{
+		hid_t g_id;
+		std::tie(grp_name, g_id) = open_group(grp_name);
+
+		if (H5Aexists_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT))
+		{
+			H5Adelete_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT);
+		}
+		if (g_id != base_group_id_)
+			H5Gclose(g_id);
+	}
+
+}
+
+/**
+ *
+ * @param url =<local path>/<obj name>.<attribute>
+ * @return
+ */
+std::tuple<std::string, std::string, std::string, std::string> DataStream::pimpl_s::parser_url(
+        std::string const & url_hint)
+{
+	std::string file_name(current_filename_), grp_name(current_groupname_), obj_name(""), attribute("");
+
 	std::string url = url_hint;
 
-	std::string file_path(""), grp_name(""), dsname("");
-
-	auto it = url_hint.find(':');
+	auto it = url.find(':');
 
 	if (it != std::string::npos)
 	{
-		file_path = url.substr(0, it);
+		file_name = url.substr(0, it);
 		url = url.substr(it + 1);
 	}
 
@@ -391,75 +532,20 @@ std::tuple<std::string, std::string> DataStream::pimpl_s::cd(std::string const &
 		url = url.substr(it + 1);
 	}
 
-	if (url != "")
+	it = url.rfind('.');
+
+	if (it != std::string::npos)
 	{
-		dsname = url;
+		attribute = url.substr(it + 1);
+		obj_name = url.substr(0, it);
+	}
+	else
+	{
+		obj_name = url;
 	}
 
-	auto current_file_path = properties["File Name"].as<std::string>("");
+	return std::make_tuple(file_name, grp_name, obj_name, attribute);
 
-	auto current_group_name = properties["Group Name"].as<std::string>("/");
-
-	if (file_path == "") file_path = current_file_path;
-
-	if (grp_name == "") grp_name = current_group_name;
-
-	if (file_ <= 0 || current_file_path != file_path)
-	{
-
-		if (GLOBAL_COMM.get_rank()==0)
-		{
-			std::string prefix = file_path;
-
-			if (file_path.size() > 3 && file_path.substr(file_path.size() - 3) == ".h5")
-			{
-				prefix = file_path.substr(0, file_path.size() - 3);
-			}
-
-			/// @todo auto mkdir directory
-
-			file_path = prefix +
-
-			AutoIncrease(
-
-			[&](std::string const & suffix)->bool
-			{
-				std::string fname=( prefix+suffix);
-				return
-				fname==""
-				|| *(fname.rbegin())=='/'
-				|| (CheckFileExists(fname + ".h5"));
-			}
-
-			) + ".h5";
-
-		}
-		sync_string(&file_path); // sync filename and open file
-
-		open_file(file_path);
-		open_group(grp_name);
-	}
-	else if (group_ <= 0 || current_group_name != grp_name)
-	{
-		open_group(grp_name);
-	}
-
-	if (dsname != "" && (flag & SP_APPEND) != SP_APPEND)
-	{
-		if (GLOBAL_COMM.get_rank() == 0)
-		{
-			dsname = dsname +
-
-			AutoIncrease([&](std::string const & s )->bool
-			{
-				return H5Lexists(group_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
-			}, 0, 4);
-		}
-
-		sync_string(&dsname);
-	}
-
-	return std::make_tuple(file_path + ":" + grp_name, dsname);
 }
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
@@ -686,11 +772,9 @@ void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
 
 std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const void *v, DataSet const & ds)
 {
-	std::string path, dsname;
+	std::string dsname = cd(p_url, ds.flag);
 
-	std::tie(path, dsname) = cd(p_url, ds.flag);
-
-	std::string url = path + dsname;
+	std::string url = current_filename_ + ":" + current_groupname_ + "/" + dsname;
 
 	if (cache_.find(url) == cache_.end())
 	{
@@ -796,7 +880,7 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 	return res;
 }
 
-std::string DataStream::pimpl_s::write_array(std::string const & p_url, const void *v, DataSet const &ds)
+std::string DataStream::pimpl_s::write_array(std::string const & url, const void *v, DataSet const &ds)
 {
 //	if (v == nullptr)
 //	{
@@ -804,13 +888,28 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 //		return "";
 //	}
 
-	//todo (salmon) need optimize for empty space
+//todo (salmon) need optimize for empty space
 
-	std::string path, dsname;
+	std::string filename, grp_name, dsname;
 
-	std::tie(path, dsname) = cd(p_url, ds.flag);
+	std::tie(filename, grp_name, dsname, std::ignore) = parser_url(url);
 
-	std::string url = path + dsname;
+	cd(filename, grp_name, ds.flag);
+
+	if (dsname != "" && (ds.flag & SP_APPEND) != SP_APPEND)
+	{
+		if (GLOBAL_COMM.get_rank() == 0)
+		{
+			dsname = dsname +
+
+			AutoIncrease([&](std::string const & s )->bool
+			{
+				return H5Lexists(base_group_id_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
+			}, 0, 4);
+		}
+
+		sync_string(&dsname);
+	}
 
 	hid_t m_type = create_datatype(ds.data_desc);
 
@@ -823,11 +922,11 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 		file_space = H5Screate_simple(ds.ndims, ds.f_shape, nullptr);
 
-		dset = H5Dcreate(group_, dsname.c_str(), m_type, file_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, file_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
 
-		H5_ERROR(H5Fflush(group_, H5F_SCOPE_GLOBAL));
+		H5_ERROR(H5Fflush(base_group_id_, H5F_SCOPE_GLOBAL));
 
 		file_space = H5Dget_space(dset);
 
@@ -848,7 +947,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 	}
 	else
 	{
-		if (H5Lexists(group_, dsname.c_str(), H5P_DEFAULT) == 0)
+		if (H5Lexists(base_group_id_, dsname.c_str(), H5P_DEFAULT) == 0)
 		{
 			int f_ndims = ds.ndims;
 			hsize_t current_dims[MAX_NDIMS_OF_ARRAY];
@@ -868,7 +967,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 			hid_t f_space = H5Screate_simple(f_ndims, current_dims, maximum_dims);
 
-			hid_t t_dset = H5Dcreate(group_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id, H5P_DEFAULT);
+			hid_t t_dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id,
+			H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(f_space));
 
@@ -878,7 +978,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 
 		}
 
-		dset = H5Dopen(group_, dsname.c_str(), H5P_DEFAULT);
+		dset = H5Dopen(base_group_id_, dsname.c_str(), H5P_DEFAULT);
 
 		if (check_null_dataset(ds))
 		{
@@ -942,19 +1042,20 @@ std::string DataStream::pimpl_s::write_array(std::string const & p_url, const vo
 	H5_ERROR(H5Dclose(dset));
 
 	if (mem_space != H5S_ALL)
-	H5_ERROR(H5Sclose(mem_space));
+		H5_ERROR(H5Sclose(mem_space));
 
 	if (file_space != H5S_ALL)
-	H5_ERROR(H5Sclose(file_space));
+		H5_ERROR(H5Sclose(file_space));
 
-	if (H5Tcommitted(m_type) > 0) H5Tclose(m_type);
+	if (H5Tcommitted(m_type) > 0)
+		H5Tclose(m_type);
 
-	return url;
+	return pwd() + dsname;
 }
 
 //=====================================================================================
-DataStream::DataStream() :
-		pimpl_(new pimpl_s)
+DataStream::DataStream()
+		: pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()
@@ -968,9 +1069,9 @@ void DataStream::init(int argc, char** argv)
 {
 	pimpl_->init(argc, argv);
 }
-std::string DataStream::cd(std::string const & gname, unsigned int flag)
+std::string DataStream::cd(std::string const & url, unsigned int flag)
 {
-	return std::get<0>(pimpl_->cd(gname));
+	return pimpl_->cd(url, flag);
 }
 Properties & DataStream::get_properties()
 {
@@ -989,13 +1090,19 @@ void DataStream::close()
 	return pimpl_->close();
 }
 
-void DataStream::set_attribute(std::string const &name, std::string const & key, DataType const &d_type, void const * v)
+void DataStream::set_attribute(std::string const &url, DataType const &d_type, void const * buff)
 {
-	pimpl_->set_attribute(name, key, d_type, v);
+	pimpl_->set_attribute(url, d_type, buff);
 }
-void DataStream::remove_attribute(std::string const &name, std::string const & key)
+
+void DataStream::get_attribute(std::string const &url, DataType const & d_type, void* buff)
 {
-	pimpl_->remove_attribute(name, key);
+	pimpl_->get_attribute(url, d_type, buff);
+}
+
+void DataStream::delete_attribute(std::string const &url)
+{
+	pimpl_->delete_attribute(url);
 }
 std::string DataStream::write(std::string const &name, void const *v,
 
