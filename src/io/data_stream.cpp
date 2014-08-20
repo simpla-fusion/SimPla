@@ -220,6 +220,7 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 	);
 
 	current_filename_ = properties["File Name"].template as<std::string>();
+	current_groupname_ = "/";
 	cd(pwd());
 
 }
@@ -358,7 +359,7 @@ std::string DataStream::pimpl_s::cd(std::string const &url, unsigned int is_appe
 {
 	std::string file_name, grp_name, obj_name;
 	std::tie(file_name, grp_name, obj_name, std::ignore) = parser_url(url);
-	return cd(file_name, grp_name + "/" + obj_name, is_append);
+	return cd(file_name, grp_name + obj_name, is_append);
 }
 
 std::string DataStream::pimpl_s::cd(std::string const &file_name, std::string const &grp_name, unsigned int is_append)
@@ -772,9 +773,14 @@ void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
 
 std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const void *v, DataSet const & ds)
 {
-	std::string dsname = cd(p_url, ds.flag);
 
-	std::string url = current_filename_ + ":" + current_groupname_ + "/" + dsname;
+	std::string filename, grp_name, dsname;
+
+	std::tie(filename, grp_name, dsname, std::ignore) = parser_url(p_url);
+
+	cd(filename, grp_name, ds.flag);
+
+	std::string url = pwd() +   dsname;
 
 	if (cache_.find(url) == cache_.end())
 	{

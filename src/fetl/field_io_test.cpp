@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 	INFORM << simpla::save("f1a", f1);
 	INFORM << simpla::save("f1a", f1);
 	INFORM << simpla::save("f1a", f1);
-	GLOBAL_DATA_STREAM.cd("/d2//");
+	GLOBAL_DATA_STREAM.cd("/d2/");
 	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,false);
 
 	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);

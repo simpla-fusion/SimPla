@@ -32,6 +32,9 @@ public:
 	}
 	~LoggerStreams()
 	{
+		if (std_out_visable_level_ >= LOG_INFORM)
+			std::cout << std::endl;
+
 		fs.close();
 	}
 
