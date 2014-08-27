@@ -14,23 +14,25 @@ template<typename TI>
 class Range
 {
 public:
-	TI b_, e_;
-	Range(TI const & b, TI const & e)
-			: b_(b), e_(e)
-	{
 
+	typedef TI iterator;
+	typedef Range<iterator> this_type;
+
+	iterator b_, e_;
+
+	Range(iterator const & b, iterator const & e) :
+			b_(b), e_(e)
+	{
 	}
 	~Range()
 	{
-
 	}
 
-	Range split()
+	std::tuple<this_type, this_type> split() const
 	{
-		TI e2 = e_;
-		TI b2 = (e_ - b_) / 2u + b_;
-		e_ = b2;
-		return Range(b2, e2);
+		iterator m = (e_ - b_) / 2u + b_;
+
+		return std::forward_as_tuple(Range(b_, m), Range(m, e_));
 	}
 
 	size_t size() const
@@ -92,8 +94,9 @@ size_t size(Range<TI> const & range)
 	return range.size();
 }
 template<typename TI>
-Range<TI> split(Range<TI> & range)
+std::tuple<Range<TI>, Range<TI>> split(Range<TI> const & range)
 {
+
 	return std::move(range.split());
 }
 }  // namespace simpla

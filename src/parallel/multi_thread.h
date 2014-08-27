@@ -51,7 +51,6 @@ void parallel_for(TRange & range, std::function<TRange &> const & fun, size_t gr
 	if (grain_size == 0)
 	{
 		grain_size = size(range) / get_num_concurrency() + 1;
-
 	}
 
 	if (size(range) <= grain_size)
@@ -67,13 +66,12 @@ void parallel_for(TRange & range, std::function<TRange &> const & fun, size_t gr
 			parallel_for(split(range,omp_get_num_threads(),omp_get_thread_num()),fun,grain_size);
 		}
 #else
-		TRange r1(range);
 
-		auto r2 = r1.split();
+		auto t_r = split(range);
 
-		auto f1 = std::async(std::launch::async, parallel_for<TRange>, r1, fun, grain_size);
+		auto f1 = std::async(std::launch::async, parallel_for<TRange>, std::get<0>(t_r), fun, grain_size);
 
-		parallel_do(r2, fun, grain_size);
+		parallel_do(std::get<1>(t_r), fun, grain_size);
 
 		f1.get();
 #endif
@@ -137,17 +135,15 @@ void parallel_reduce(TRange const & range, TRes *res, TFun const &fun, Reduction
 
 		TRes tmp(*res);
 
-		TRange r1(range);
-
-		TRange r2(split(r1));
+		auto t_r = split(range);
 
 		auto f1 = std::async(std::launch::async, [&]()
 		{
-			parallel_reduce( r1,&tmp, fun, red_fun, grain_size);
+			parallel_reduce( std::get<0>(t_r),&tmp, fun, red_fun, grain_size);
 
 		});
 
-		parallel_reduce(r2, res, fun, red_fun, grain_size);
+		parallel_reduce(std::get<1>(t_r), res, fun, red_fun, grain_size);
 
 		f1.get();
 
