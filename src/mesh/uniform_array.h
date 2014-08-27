@@ -2122,7 +2122,7 @@ public:
 }
 ;
 // class UniformArray
-inline UniformArray::range_type Split(UniformArray::range_type const & range, unsigned int num_process,
+inline UniformArray::range_type split(UniformArray::range_type const & range, unsigned int num_process,
         unsigned int process_num, unsigned int ghost_width = 0)
 {
 	typedef UniformArray::index_type index_type;

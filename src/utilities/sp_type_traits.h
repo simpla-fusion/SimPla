@@ -120,7 +120,6 @@ public:                                                                         
 	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                     \
 };
 
-
 #define HAS_STATIC_MEMBER_FUNCTION(_NAME_)                                                                   \
 template<typename _T, typename ..._Args>                                                                \
 struct has_static_member_function_##_NAME_                                                                    \

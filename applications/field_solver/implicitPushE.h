@@ -49,9 +49,7 @@ public:
 	}
 
 	template<typename TP>
-	void next_timestep(field<VERTEX, nTuple<3, Real>> const &E0, field<VERTEX, nTuple<3, Real>> const & pB0,
-	        field<EDGE, scalar_type> const &E1, field<FACE, scalar_type> const &B1, TP const & particles,
-	        field<EDGE, scalar_type> *pdE);
+	void next_timestep(field<EDGE, scalar_type> *pdE);
 };
 
 /**
@@ -63,17 +61,7 @@ public:
  */
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::next_timestep(
-
-field<VERTEX, nTuple<3, Real>> const &E0,
-
-field<VERTEX, nTuple<3, Real>> const &B0,
-
-field<EDGE, scalar_type> const &E1,
-
-field<FACE, scalar_type> const &B1,
-
-TP const & particles, field<EDGE, scalar_type> *pdE)
+void ImplicitPushE<TM>::next_timestep(field<EDGE, scalar_type> *pdE)
 {
 	{
 		bool flag = false;

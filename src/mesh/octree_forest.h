@@ -1441,7 +1441,7 @@ struct OcForest
 			}
 			return n;
 		}
-		range Split(  unsigned int   num_process,   unsigned int   process_num,   unsigned int   ghost_width = 0) const
+		range split(  unsigned int   num_process,   unsigned int   process_num,   unsigned int   ghost_width = 0) const
 		{
 			int n=0;
 			index_type L=0;

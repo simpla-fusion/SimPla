@@ -15,7 +15,7 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 INCLUDE(ExternalProject)
 ExternalProject_Add(googletest
     PREFIX third_part 
-    #    URL   http://googletest.googlecode.com/files/gtest-1.6.0.zip
+    #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
     URL file:///${PROJECT_SOURCE_DIR}/third_part/src/gtest-1.7.0.zip
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/googletest
     INSTALL_COMMAND "" )
@@ -25,6 +25,17 @@ INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
 LINK_DIRECTORIES(${BINARY_DIR})
 
 
+INCLUDE(ExternalProject)
+ExternalProject_Add(trilinos
+    PREFIX third_part 
+ #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
+    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/trilinos-11.10.2-Source.tar.bz2
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/trilinos
+    INSTALL_COMMAND "" )
+ExternalProject_Get_Property(trilinos SOURCE_DIR)
+ExternalProject_Get_Property(trilinos BINARY_DIR)
+INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+LINK_DIRECTORIES(${BINARY_DIR})
 #ExternalProject_Add(pugixml
 #    PREFIX third_part 
 #    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz

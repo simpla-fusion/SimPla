@@ -502,9 +502,9 @@ void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & fun)
 //		}
 //
 //		template<typename ...Args>
-//		this_type Split(Args const & ... args) const
+//		this_type split(Args const & ... args) const
 //		{
-//			return this_type(data_, mesh_range::Split(std::forward<Args >(args)...));
+//			return this_type(data_, mesh_range::split(std::forward<Args >(args)...));
 //		}
 //
 //		template<typename ...Args>
@@ -695,9 +695,9 @@ void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & fun)
 //			return count;
 //		}
 //		template<typename ...Args>
-//		this_type Split(Args const & ... args) const
+//		this_type split(Args const & ... args) const
 //		{
-//			return this_type(cell_range_type::Split(std::forward<Args >(args)...));
+//			return this_type(cell_range_type::split(std::forward<Args >(args)...));
 //		}
 //	};
 //	typedef iterator_<particle_type> iterator;

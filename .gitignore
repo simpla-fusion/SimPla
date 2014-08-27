@@ -1,6 +1,4 @@
 /build*
-/third_part/src
-/third_part/googletest
 /third_part
 *~
 *.bak

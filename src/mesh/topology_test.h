@@ -246,7 +246,7 @@ TEST_P(TestTopology, iterator)
 
 }
 
-TEST_P(TestTopology, Split)
+TEST_P(TestTopology, split)
 {
 
 //	for (auto const & iform : iform_list)
@@ -265,7 +265,7 @@ TEST_P(TestTopology, Split)
 		std::set<compact_index_type> data;
 
 		for (int sub = 0; sub < total; ++sub)
-			for (auto const & a : Split(r, total, sub))
+			for (auto const & a : split(r, total, sub))
 			{
 				data.insert(a);
 			}

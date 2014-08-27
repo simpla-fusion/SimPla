@@ -238,7 +238,7 @@ public:
 	{
 		initialize();
 
-		ParallelForEach(range_,
+		parallel_for_each(range_,
 
 				[this,v](compact_index_type s)
 				{
@@ -252,7 +252,7 @@ public:
 	{
 		initialize();
 
-		ParallelForEach(range_,
+		parallel_for_each(range_,
 
 				[this,&rhs](compact_index_type s)
 				{
