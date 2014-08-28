@@ -148,30 +148,30 @@ public:
 	void add(sub_pool_type &src);
 
 	template<typename TRange>
-	void remove(TRange const & range);
+	void remove(TRange && index_range);
 
 	template<typename TRange, typename TPredFun>
-	void remove(TRange const & index_range, TPredFun const & pred_fun);
+	void remove(TRange && index_range, TPredFun && pred_fun);
 
 	template<typename TRange, typename TPredFun>
-	void modify(TRange const & index_range, TPredFun const & fun);
+	void modify(TRange && index_range, TPredFun && pred_fun);
 
-	template<typename TRange, typename TFun, typename TRes, typename ReduceFun>
-	void reduce(TRange const & index_range, TFun const & fun, TRes * res, ReduceFun const &) const;
+	template<typename TRange, typename TRes, typename Func, typename Reduction>
+	void reduce(TRange && index_range, TRes * res, Func && fun, Reduction &&) const;
 
 	template<typename TRange, typename HashFun>
-	void sort(TRange const & range, HashFun const &);
+	void sort(TRange && index_range, HashFun const &);
 
 	size_t count() const;
 
 	template<typename TRange>
-	size_t count(TRange const & range) const;
+	size_t count(TRange && index_range) const;
 
 };
 
 template<typename IndexType, typename ValueType, typename Alloc>
 template<typename TR>
-size_t ContainerPool<IndexType, ValueType, Alloc>::count(TR const & range) const
+size_t ContainerPool<IndexType, ValueType, Alloc>::count(TR && range) const
 {
 
 	VERBOSE << "Count Particles";
@@ -197,12 +197,12 @@ size_t ContainerPool<IndexType, ValueType, Alloc>::count() const
 
 template<typename IndexType, typename ValueType, typename Alloc>
 template<typename TRange, typename HashFun>
-void ContainerPool<IndexType, ValueType, Alloc>::sort(TRange const & range, HashFun const & hash)
+void ContainerPool<IndexType, ValueType, Alloc>::sort(TRange && range, HashFun const & hash)
 {
 
-	parallel_reduce(range,
+	parallel_reduce(range, *this, this,
 
-	[this](key_type const & s,this_type * t_buffer)
+	[this](TRange const & r,this_type * t_buffer)
 	{
 		auto it = this->base_type::find(s);
 
@@ -226,8 +226,6 @@ void ContainerPool<IndexType, ValueType, Alloc>::sort(TRange const & range, Hash
 
 	},
 
-	this,
-
 	[&](this_type & l,this_type * r)
 	{
 		r->merge(l);
@@ -236,7 +234,7 @@ void ContainerPool<IndexType, ValueType, Alloc>::sort(TRange const & range, Hash
 }
 
 template<typename IndexType, typename ValueType, typename Alloc>
-void ContainerPool<IndexType, ValueType, Alloc>::ClearEmpty()
+void ContainerPool<IndexType, ValueType, Alloc>::clear_empty()
 {
 	auto it = base_type::begin(), ie = base_type::end();
 
@@ -267,14 +265,12 @@ void ContainerPool<IndexType, ValueType, Alloc>::add(sub_pool_type &other)
 	if (other->size() <= 0)
 		return;
 
-	parallel_reduce(other,
+	parallel_reduce(other, *this, this,
 
-	[](su)
+	[](TRange && r)
 	{
 
 	},
-
-	this,
 
 	[](this_type & l ,this_type * r)
 	{
@@ -286,85 +282,92 @@ void ContainerPool<IndexType, ValueType, Alloc>::add(sub_pool_type &other)
 
 template<typename IndexType, typename ValueType, typename Alloc>
 template<typename TRange>
-void ContainerPool<IndexType, ValueType, Alloc>::remove(TRange const & r)
+void ContainerPool<IndexType, ValueType, Alloc>::remove(TRange && index_range)
 {
 
-	parallel_reduce(range,
+	parallel_reduce(std::forward<TRange>(index_range), defaut_value_, &defaut_value_,
 
-	[&](key_type const & s,sub_pool_type * t_buffer)
+	[&](TRange && r,sub_pool_type * t_buffer)
 	{
+		for(auto & s:r)
+		{
+			auto cell_it = base_type::find(s);
 
-		auto cell_it = base_type::find(s);
+			if (cell_it == base_type::end())
+			continue;
 
-		if (cell_it == base_type::end())
-		continue;
-
-		t_buffer->splice(t_buffer->begin(), cell_it->second);
-
+			t_buffer->splice(t_buffer->begin(), cell_it->second);
+		}
 	},
-
-	&defaut_value_,
 
 	[](sub_pool_type & l, sub_pool_type* r)
 	{
 		l.clear();
-	});
+	}
+
+	);
 }
 template<typename IndexType, typename ValueType, typename Alloc>
 template<typename TRange, typename TPredFun>
-void ContainerPool<IndexType, ValueType, Alloc>::remove(TRange const & index_range, TPredFun const & pred_fun)
+void ContainerPool<IndexType, ValueType, Alloc>::remove(TRange && index_range, TPredFun && pred_fun)
 {
 
-	parallel_reduce(index_range,
+	parallel_reduce(std::forward<TRange>(index_range), defaut_value_, &defaut_value_,
 
-	[&](key_type const & s,sub_pool_type * t_buffer)
+	[&](TRange && r,sub_pool_type * t_buffer)
 	{
 
-		auto cell_it = base_type::find(s);
-
-		if (cell_it == base_type::end())
-		continue;
-
-		auto it = cell_it->second.begin();
-		auto ie = cell_it->second.end();
-
-		do
+		for(auto const & s:r)
 		{
-			auto it_p = it;
-			++it;
+			auto cell_it = base_type::find(s);
 
-			if (pred_fun(*it_p))
+			if (cell_it == base_type::end())
+			continue;
+
+			auto it = cell_it->second.begin();
+			auto ie = cell_it->second.end();
+
+			do
 			{
-				t_buffer->splice(t_buffer->begin(), cell_it->second, it_p);
-			}
+				auto it_p = it;
+				++it;
 
-		}while (it != ie);
+				if (pred_fun(*it_p))
+				{
+					t_buffer->splice(t_buffer->begin(), cell_it->second, it_p);
+				}
+
+			}while (it != ie);
+		}
 
 	},
-
-	&defaut_value_,
 
 	[](sub_pool_type & l, sub_pool_type* r)
 	{
 		l.clear();
-	});
+	}
+
+	);
 
 }
 
-template<typename IndexType, typename ValueType, typename Alloc> template<typename TRange, typename TFun>
-void ContainerPool<IndexType, ValueType, Alloc>::modify(TRange const & index_range, TFun const & fun)
+template<typename IndexType, typename ValueType, typename Alloc> template<typename TRange, typename Func>
+void ContainerPool<IndexType, ValueType, Alloc>::modify(TRange && index_range, Func && fun)
 {
 
-	parallel_for_each(index_range,
+	parallel_for(std::forward<TRange>(index_range),
 
-	[&](key_type const & gid)
+	[&](TRange && r)
 	{
-		auto it = this->base_type::find(gid);
-		if (it != this->base_type::end())
+		for(auto & gid:r)
 		{
-			for (auto & p : it->second)
+			auto it = this->base_type::find(gid);
+			if (it != this->base_type::end())
 			{
-				fun(&p);
+				for (auto & p : it->second)
+				{
+					fun(&p);
+				}
 			}
 		}
 	}
@@ -373,25 +376,30 @@ void ContainerPool<IndexType, ValueType, Alloc>::modify(TRange const & index_ran
 
 }
 template<typename IndexType, typename ValueType, typename Alloc>
-template<typename TRange, typename TFun, typename TRes, typename ReduceFun>
-void ContainerPool<IndexType, ValueType, Alloc>::reduce(TRange const & index_range, TFun const & fun, TRes * res,
-        ReduceFun const & reduce) const
+template<typename TRange, typename TRes, typename Func, typename Reduction>
+void ContainerPool<IndexType, ValueType, Alloc>::reduce(TRange && index_range, TRes * res, Func && fun,
+        Reduction && reduce) const
 {
-	parallel_reduce(index_range,
+	parallel_reduce(std::forward<TRange>(index_range), defaut_value_, res,
 
-	[&](key_type const & gid,TRes * buffer)
+	[&](TRange & r,TRes * buffer)
 	{
-		auto it = this->base_type::find(gid);
-		if (it != this->base_type::end())
+		for(auto &gid:r)
 		{
-			for (auto const & p : it->second)
+			auto it = this->base_type::find(gid);
+			if (it != this->base_type::end())
 			{
-				fun( p,buffer);
+				for (auto const & p : it->second)
+				{
+					fun( p,buffer);
+				}
 			}
 		}
 	}
 
-	, res, reduce);
+	, std::forward<Reduction>(reduce)
+
+	);
 }
 }  // namespace simpla
 

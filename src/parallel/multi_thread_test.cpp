@@ -22,18 +22,17 @@ int main(int argc, char **argv)
 
 	std::vector<int> d(100);
 
-	for (int i = 0; i < 100; ++i)
-	{
-		d[i] = 1;
-	}
+	int total = 0;
 
-	int total = 1;
-
-	auto range = make_range(d.begin(), d.end());
+	auto range = make_divisible_range(d.begin(), d.end());
 
 	typedef decltype(range) range_type;
 
-	parallel_reduce(range, &total,
+	parallel_for(range, [](range_type &r )
+	{	for(auto & v:r)
+		{	v=2;}});
+
+	parallel_reduce(range, 0, &total,
 
 	[](range_type const &r, int *res )
 	{	for(auto const & v:r)
