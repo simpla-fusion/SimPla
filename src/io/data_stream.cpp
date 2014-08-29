@@ -156,7 +156,7 @@ public:
 
 	std::string flush_cache(std::string const & name);
 
-	hid_t create_datatype(DataType const &, bool is_compact_array = false);
+	hid_t create_datadesc(DataType const &, bool is_compact_array = false);
 
 	void set_attribute(std::string const &url, DataType const &d_type, void const * buff);
 
@@ -458,7 +458,7 @@ void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &
 	}
 	else
 	{
-		hid_t m_type = create_datatype(d_type);
+		hid_t m_type = create_datadesc(d_type);
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
@@ -572,7 +572,7 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v, Da
 
 }
 
-hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type, bool is_compact_array)
+hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type, bool is_compact_array)
 {
 
 	hid_t res;
@@ -630,7 +630,7 @@ hid_t DataStream::pimpl_s::create_datatype(DataType const &d_type, bool is_compa
 
 		for (auto const & item : d_type.data)
 		{
-			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datatype(std::get<0>(item), true));
+			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datadesc(std::get<0>(item), true));
 		}
 
 	}
@@ -917,7 +917,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 		sync_string(&dsname);
 	}
 
-	hid_t m_type = create_datatype(ds.data_desc);
+	hid_t m_type = create_datadesc(ds.data_desc);
 
 	hid_t file_space, mem_space;
 

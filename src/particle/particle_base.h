@@ -18,7 +18,8 @@
 
 namespace simpla
 {
-/***
+/**
+ *  \ingroup Particle
  *  \brief interface to Particle
  */
 class ParticleBase

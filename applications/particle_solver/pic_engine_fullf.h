@@ -29,7 +29,6 @@ class PICEngineFullF
 
 public:
 
-	static constexpr bool is_implicit = false;
 	typedef PICEngineFullF this_type;
 	typedef Vec3 coordinates_type;
 	typedef Vec3 vector_type;
@@ -43,7 +42,7 @@ public:
 
 		typedef std::tuple<coordinates_type, vector_type, scalar_type> compact_type;
 
-		static DataType create_datatype()
+		static DataType create_datadesc()
 		{
 			auto d_type = DataType::create<Point_s>();
 

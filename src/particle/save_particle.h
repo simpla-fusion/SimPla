@@ -32,7 +32,7 @@ save(std::string const & name, ParticlePool<TM, TPoints> const & pool)
 
 	auto s = res.size();
 
-	auto d_type = TPoints::create_datatype();
+	auto d_type = TPoints::create_datadesc();
 
 	return GLOBAL_DATA_STREAM.write(name,&res[0],d_type, 1,nullptr,&s,nullptr,nullptr,nullptr,nullptr,DataStream::SP_UNORDER );
 }

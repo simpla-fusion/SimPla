@@ -17,9 +17,6 @@
 #include <utility>
 #include <vector>
 
-#include "../fetl/fetl.h"
-#include "../fetl/save_field.h"
-
 #include "../utilities/log.h"
 #include "../utilities/memory_pool.h"
 #include "../utilities/sp_type_traits.h"

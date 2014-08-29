@@ -63,7 +63,7 @@ public:
 		Real f;
 
 		typedef std::tuple<coordinates_type, Vec3, Real> compact_type;
-		static DataType create_datatype()
+		static DataType create_datadesc()
 		{
 			auto d_type = DataType::create<Point_s>();
 

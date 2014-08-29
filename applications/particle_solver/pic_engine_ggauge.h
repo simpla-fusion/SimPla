@@ -32,10 +32,6 @@ class PICEngineGGauge
 
 public:
 
-	enum
-	{
-		is_implicit = IMPLICIT
-	};
 	Real m;
 	Real q;
 
@@ -48,9 +44,6 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
-
-	typedef typename std::conditional<is_implicit, typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>>,
-	        typename mesh_type:: template field<EDGE, scalar_type> >::type J_type;
 
 	typedef nTuple<7 + NMATE, Real> storage_value_type;
 private:
@@ -134,7 +127,7 @@ public:
 
 			<< "}";
 
-			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register <Point_s> (os.str());
+			GLOBAL_HDF5_DATA_TYPE_FACTORY.template Register < Point_s > (os.str());
 
 		}
 
@@ -164,12 +157,12 @@ public:
 
 		return os;
 	}
-	Real get_mass()const
+	Real get_mass() const
 	{
 		return m;
 
 	}
-	Real get_charge()const
+	Real get_charge() const
 	{
 		return q;
 
@@ -183,19 +176,19 @@ public:
 
 	template<typename TJ, typename TE, typename TB, typename ... Others>
 	inline void next_timestep_zero(Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
+	        Others const &...others) const
 	{
-		next_timestep_zero(std::integral_constant<bool,is_implicit>(), p, dt, J, fE, fB);
+		next_timestep_zero(std::integral_constant<bool, is_implicit>(), p, dt, J, fE, fB);
 	}
 	template<typename TE, typename TB, typename ... Others>
 	inline void next_timestep_half(Point_s * p, Real dt, TE const &fE, TB const & fB, Others const &...others) const
 	{
-		next_timestep_half(std::integral_constant<bool,is_implicit>(), p, dt, fE, fB);
+		next_timestep_half(std::integral_constant<bool, is_implicit>(), p, dt, fE, fB);
 	}
 
 	template<bool IS_IMPLICIT, typename TJ, typename TB, typename TE, typename ... Others>
-	inline void next_timestep_zero(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TJ *J, TE const &fE, TB const & fB,
-			Others const &...others) const
+	inline void next_timestep_zero(std::integral_constant<bool, IS_IMPLICIT>, Point_s * p, Real dt, TJ *J, TE const &fE,
+	        TB const & fB, Others const &...others) const
 	{
 
 		auto B0 = real(interpolator_type::gather_cartesian(fB, p->x));
@@ -244,8 +237,7 @@ public:
 			Vec3 v, r;
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
-			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::gather_cartesian(fE, r), v) * q / T_
-			* dt;
+			p->w[ms] += 0.5 * InnerProductNTuple(interpolator_type::gather_cartesian(fE, r), v) * q / T_ * dt;
 
 		}
 		p->x += Vc * dt * 0.5;
@@ -263,14 +255,14 @@ public:
 			v = Vc + v0 * cosdq[ms] + v1 * sindq[ms];
 			r = (p->x + r0 * cosdq[ms] + r1 * sindq[ms]);
 
-			interpolator_type::scatter_cartesian(J,std::make_tuple(r, v), p->w[ms] * q * p->f );
+			interpolator_type::scatter_cartesian(J, std::make_tuple(r, v), p->w[ms] * q * p->f);
 		}
 
 	}
 
 	template<bool IS_IMPLICIT, typename TB, typename TE, typename ... Others>
-	inline void next_timestep_half(std::integral_constant<bool,IS_IMPLICIT>, Point_s * p, Real dt, TE const &fE, TB const & fB,
-			Others const &...others) const
+	inline void next_timestep_half(std::integral_constant<bool, IS_IMPLICIT>, Point_s * p, Real dt, TE const &fE,
+	        TB const & fB, Others const &...others) const
 	{
 
 	}

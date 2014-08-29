@@ -15,6 +15,7 @@
 #include "../../src/utilities/primitives.h"
 #include "../../src/utilities/ntuple.h"
 #include "../../src/utilities/ntuple_noet.h"
+#include "../../src/particle/particle_engine.h"
 namespace simpla
 {
 
@@ -38,25 +39,12 @@ public:
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
-	struct Point_s
-	{
-		coordinates_type x;
-		Vec3 v;
-		Real f;
-		scalar_type w;
+	DEFINE_POINT_STRUCT(Point_s,
+			coordinates_type ,x,
+			Vec3, v,
+			Real, f,
+			scalar_type, w)
 
-		static DataType create_datatype()
-		{
-			auto d_type = DataType::create<Point_s>();
-
-			d_type.push_back<coordinates_type>("x", offsetof(Point_s, x));
-			d_type.push_back<vector_type>("v", offsetof(Point_s, v));
-			d_type.push_back<Real>("f", offsetof(Point_s, f));
-			d_type.push_back<scalar_type>("w", offsetof(Point_s, v));
-
-			return std::move(d_type);
-		}
-	};
 public:
 	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0)
 			: m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
@@ -148,7 +136,8 @@ public:
 
 	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 
-};
+}
+;
 
 } // namespace simpla
 

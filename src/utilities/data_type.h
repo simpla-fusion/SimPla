@@ -15,7 +15,8 @@
 namespace simpla
 {
 /**
- *  @todo need support for compound data type
+ *  \brief  Desciption of data type
+ *
  */
 struct DataType
 {
