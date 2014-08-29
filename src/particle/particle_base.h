@@ -26,7 +26,6 @@ class ParticleBase
 {
 
 public:
-	Properties properties;
 
 	ParticleBase()
 	{

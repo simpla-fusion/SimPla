@@ -11,8 +11,8 @@
 namespace simpla
 {
 
-template<typename IndexType, typename ValueType, typename Alloc>
-class ContainerPool: public std::map<IndexType, std::list<ValueType, Alloc>>
+template<typename IndexType, typename ValueType, typename InnerAlloc = std::allocator<ValueType> >
+class ContainerPool: public std::map<IndexType, std::list<ValueType, InnerAlloc>>
 {
 
 	std::mutex write_lock_;
@@ -44,8 +44,8 @@ public:
 	{
 	}
 
-	ContainerPool(allocator_type const & alloc)
-			: defaut_value_(alloc)
+	ContainerPool(allocator_type const & alloc) :
+			defaut_value_(alloc)
 	{
 	}
 
@@ -182,8 +182,7 @@ size_t ContainerPool<IndexType, ValueType, Alloc>::count(TR && range) const
 	{
 		auto it = base_type::find(s);
 
-		if (it != base_type::end())
-			count += it->second.size();
+		if (it != base_type::end()) count += it->second.size();
 	}
 
 	return count;
@@ -262,8 +261,7 @@ void ContainerPool<IndexType, ValueType, Alloc>::merge(this_type & other)
 template<typename IndexType, typename ValueType, typename Alloc>
 void ContainerPool<IndexType, ValueType, Alloc>::add(sub_pool_type &other)
 {
-	if (other->size() <= 0)
-		return;
+	if (other->size() <= 0) return;
 
 	parallel_reduce(other, *this, this,
 

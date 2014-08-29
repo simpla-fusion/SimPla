@@ -29,10 +29,7 @@ struct PICEngineDeltaF
 
 private:
 
-	Real m_;
-	Real q_;
-
-	Real cmr_, q_kT_;
+	Real m_, q_, T_, cmr_, q_kT_;
 public:
 	typedef PICEngineDeltaF this_type;
 	typedef Vec3 coordinates_type;
@@ -45,47 +42,29 @@ public:
 			Real, f,
 			scalar_type, w)
 
-public:
-	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0)
-			: m_(m), q_(q), cmr_(q / m), q_kT_(1.0)
+	PICEngineDeltaF(Real m, Real q, Real T)
 	{
+		m_ = m;
+		q_ = q;
+		T_ = T;
 		DEFINE_PHYSICAL_CONST
+		cmr_ = q_ / m_;
+		q_kT_ = q_ / (T_ * boltzmann_constant);
+	}
 
-		q_kT_ = q / (T * boltzmann_constant);
+	template<typename TDict, typename ... Args>
+	PICEngineDeltaF(TDict const & dict, Args && ...args)
+	{
+		load(std::forward<Args>(args)...);
 	}
 
 	~PICEngineDeltaF()
 	{
 	}
-	template<typename TDict>
-	void load(TDict const & dict)
 
-	{
-		DEFINE_PHYSICAL_CONST
-
-		m_ = (dict["Mass"].template as<Real>(1.0));
-
-		q_ = (dict["Charge"].template as<Real>(1.0));
-
-		cmr_ = (q_ / m_);
-
-		q_kT_ = q_ / ((dict["Temperature"].template as<Real>(1.0)) * boltzmann_constant);
-
-	}
 	static std::string get_type_as_string()
 	{
 		return "DeltaF";
-	}
-
-	Real get_mass() const
-	{
-		return m_;
-
-	}
-	Real get_charge() const
-	{
-		return q_;
-
 	}
 
 	template<typename TE, typename TB>

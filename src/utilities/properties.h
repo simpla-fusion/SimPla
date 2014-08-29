@@ -30,6 +30,10 @@ public:
 	Properties()
 	{
 	}
+	Properties(Any const &v) :
+			value_(v)
+	{
+	}
 	~Properties()
 	{
 	}
@@ -106,6 +110,20 @@ public:
 	}
 
 	template<typename T>
+	T get(std::string const & key, T const & v) const
+	{
+		auto it = base_type::find(key);
+		if (it != base_type::end() && it->second.value_.is<T>())
+		{
+			return it->second.value_.as<T>();
+		}
+		else
+		{
+			return v;
+		}
+	}
+
+	template<typename T>
 	void set(std::string const & key, T const & v)
 	{
 		get(key) = v;
@@ -128,23 +146,23 @@ public:
 	}
 
 	std::ostream & print(std::ostream & os) const;
-	//	template<typename T>
-	//	bool set(std::string const & key, T && v)
-	//	{
-	//		auto it = base_type::find(key);
-	//		if (it == base_type::end())
-	//		{
-	//			base_type::emplace(key, Any(v));
-	//		}
-	//		else if (it->second.value_.Is<T>())
-	//		{
-	//			it->second.value_.AnyCast<T>() = v;
-	//		}
-	//		else
-	//		{
-	//			ERROR("try to assign a value with incompatible type ");
-	//		}
-	//	}
+//	template<typename T>
+//	bool set(std::string const & key, T && v)
+//	{
+//		auto it = base_type::find(key);
+//		if (it == base_type::end())
+//		{
+//			base_type::emplace(key, Any(v));
+//		}
+//		else if (it->second.value_.Is<T>())
+//		{
+//			it->second.value_.AnyCast<T>() = v;
+//		}
+//		else
+//		{
+//			ERROR("try to assign a value with incompatible type ");
+//		}
+//	}
 };
 
 std::ostream & operator<<(std::ostream & os, Properties const & prop);

@@ -22,18 +22,17 @@ namespace simpla
  * Pseudo-Signature  |Semantics
  * ------------- | -------------
  * \code E::Point_s \endcode | data structure and description of single particle/sample point
- * \code E::Point_s::x \endcode | coordiantes of particle
+ * \code E::Point_s::x \endcode | coordinates of particle
  * \code DataType E::Point_s::create_datadesc() \endcode | get the description of Point_s's data strcut
  * \code E::E(...) \endcode  | Constructor
  * \code E::~E(...) \endcode | Destructor
- * \code void E::load(TDict const & dict);\endcode | Load configure information from dict
- * \code Real get_mass() const;\endcode | get mass
- * \code Real get_charge() const;\endcode | get charge
+ * \code E::properties \endcode | properties
+ * \code void E::update();\endcode | update charge/mass and properties cache
  * \code void E::next_timestep(Point_s * p, Real dt, TE const & E, TB const &  B) const; \endcode | Using field E,B push particle p, a  time step dt
  * \code void E::ScatterJ(Point_s const & p, TJ * J) const; \endcode | Scatter current density (v*f) to field J
  * \code void E::ScatterRho(Point_s const & p, TJ * rho) const; \endcode | Scatter density ( f) to field rho
- * \code static Point_s E::push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| push forward Cartesian Coordiantes x , velocity vector v  and sample weight f to paritlce's coordinates
- * \code static std::tuple<Vec3,Vec3,Real>  E::pull_back(Point_s const & p); \endcode| pull back particle coordiantes to Cartesian coordinates;
+ * \code static Point_s E::push_forward(Vec3 const & x, Vec3 const &v, Real f);\endcode| push forward Cartesian Coordinates x , velocity vector v  and sample weight f to paritlce's coordinates
+ * \code static std::tuple<Vec3,Vec3,Real>  E::pull_back(Point_s const & p); \endcode| pull back particle coordinates to Cartesian coordinates;
  *
  *
  * example:
@@ -57,16 +56,15 @@ namespace simpla
  *			};
  *		};
  *
+ *		Properties properties;
+ *
  *		PICEngineDefault(...);
  *
  *		~PICEngineDefault();
  *
- *		template<typename TDict> void load(TDict const & dict);
+ *      void update();
  *
  *		static std::string get_type_as_string();
- *
- *		Real get_mass() const;
- *		Real get_charge() const;
  *
  *		template<typename TE, typename TB>
  *		inline void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const;

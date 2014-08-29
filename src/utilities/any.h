@@ -18,25 +18,25 @@ namespace simpla
  */
 struct Any
 {
-	template<typename U> Any(U && value)
-			: ptr_(new Derived<typename std::decay<U>::type>(std::forward<U>(value))), t_index_(
+	template<typename U> Any(U && value) :
+			ptr_(new Derived<typename std::decay<U>::type>(std::forward<U>(value))), t_index_(
 			        std::type_index(typeid(typename std::remove_pointer<U>::type)))
 	{
 	}
-	Any(void)
-			: t_index_(std::type_index(typeid(void)))
+	Any(void) :
+			t_index_(std::type_index(typeid(void)))
 	{
 	}
-	Any(Any& that)
-			: ptr_(that.clone()), t_index_(that.t_index_)
+	Any(Any& that) :
+			ptr_(that.clone()), t_index_(that.t_index_)
 	{
 	}
-	Any(Any const& that)
-			: ptr_(that.clone()), t_index_(that.t_index_)
+	Any(Any const& that) :
+			ptr_(that.clone()), t_index_(that.t_index_)
 	{
 	}
-	Any(Any && that)
-			: ptr_(std::move(that.ptr_)), t_index_(that.t_index_)
+	Any(Any && that) :
+			ptr_(std::move(that.ptr_)), t_index_(that.t_index_)
 	{
 	}
 	void swap(Any & other)
@@ -84,10 +84,10 @@ struct Any
 		auto derived = dynamic_cast<Derived<U> const*>(ptr_.get());
 		return derived->m_value;
 	}
+
 	Any& operator=(const Any& a)
 	{
-		if (ptr_ == a.ptr_)
-			return *this;
+		if (ptr_ == a.ptr_) return *this;
 		ptr_ = a.clone();
 		t_index_ = a.t_index_;
 		return *this;
@@ -125,8 +125,8 @@ private:
 	struct Derived: Base
 	{
 		template<typename U>
-		Derived(U && value)
-				: m_value(std::forward<U>(value))
+		Derived(U && value) :
+				m_value(std::forward<U>(value))
 		{
 		}
 		BasePtr clone() const
@@ -144,8 +144,7 @@ private:
 	};
 	BasePtr clone() const
 	{
-		if (ptr_ != nullptr)
-			return ptr_->clone();
+		if (ptr_ != nullptr) return ptr_->clone();
 		return nullptr;
 	}
 

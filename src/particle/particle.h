@@ -160,12 +160,12 @@ public:
 		}
 	}
 
-	template<typename TRange, typename TFun> void Modify(TRange const & range, TFun const & obj);
-	template<typename TRange, typename TFun> void Remove(TRange const & range, TFun const & obj);
+	template<typename TRange, typename TFun> void modify(TRange const & range, TFun const & obj);
+	template<typename TRange, typename TFun> void remove(TRange const & range, TFun const & obj);
 
-	template<typename TRange> void Remove(TRange const & range)
+	template<typename TRange> void remove(TRange const & range)
 	{
-		storage_type::Remove(range);
+		storage_type::remove(range);
 	}
 
 	typename mesh_type:: template field<VERTEX, scalar_type> rho;
@@ -175,14 +175,15 @@ public:
 	std::list<std::function<void()> > constraint_;
 };
 template<typename TM, typename Engine>
-Particle<TM, Engine>::Particle(mesh_type const & pmesh)
-		: storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
+template<typename TModel, typename ...Others>
+Particle<TM, Engine>::Particle(TModel const & pmesh, Others && ...) :
+		storage_type(pmesh), mesh(pmesh), rho(mesh), J(mesh)
 {
 }
 template<typename TM, typename Engine>
 template<typename TDict, typename TModel>
-Particle<TM, Engine>::Particle(TDict const & dict, TModel const & model)
-		: engine_type(dict), storage_type(model), mesh(model), rho(model), J(model)
+Particle<TM, Engine>::Particle(TDict const & dict, TModel const & model) :
+		engine_type(dict), storage_type(model), mesh(model), rho(model), J(model)
 {
 	load(dict, model);
 }
@@ -308,7 +309,7 @@ void Particle<TM, Engine>::update_fields()
 
 template<typename TM, typename Engine>
 template<typename TRange, typename TFun>
-void Particle<TM, Engine>::Remove(TRange const & range, TFun const & obj)
+void Particle<TM, Engine>::remove(TRange const & range, TFun const & obj)
 {
 	auto f1 = TypeCast<std::function<bool(coordinates_type const &, Vec3 const &)>>(obj);
 
@@ -321,22 +322,23 @@ void Particle<TM, Engine>::Remove(TRange const & range, TFun const & obj)
 
 	};
 
-	storage_type::Remove(range, fun);
+	storage_type::remove(range, fun);
 
 }
 
 template<typename TM, typename Engine>
 template<typename TRange, typename TFun>
-void Particle<TM, Engine>::Modify(TRange const & range, TFun const & obj)
+void Particle<TM, Engine>::modify(TRange const & range, TFun const & obj)
 {
 
 	auto f1 = TypeCast<std::function<std::tuple<coordinates_type, Vec3>(coordinates_type const &, Vec3 const &)>>(obj);
 
 	std::function<void(particle_type *)> fun = [&](particle_type * p)
 	{
-		auto z0=engine_type::pull_back(*p);
-
-		auto z1=f1(std::get<0>(z0),std::get<1>(z0));
+		Vec3 x,v;
+		std::tie(x,v)=engine_type::pull_back(*p);
+		Vec3 x1,v1;
+		auto z1=f1(x,v);
 
 		*p=engine_type::push_forward( std::get<0>(z1),std::get<1>(z1),std::get<2>(z0));
 	};
@@ -347,7 +349,7 @@ void Particle<TM, Engine>::Modify(TRange const & range, TFun const & obj)
 
 //*************************************************************************************************
 template<typename TX, typename TV, typename TE, typename TB> inline
-void BorisMethod(Real dt, Real cmr, TE const & E, TB const &B, TX *x, TV *v)
+void BorisMethod(Real dt, Real cmr, TE const &E, TB const &B, TX *x, TV *v)
 {
 // \note   Birdsall(1991)   p.62
 // Bories Method
