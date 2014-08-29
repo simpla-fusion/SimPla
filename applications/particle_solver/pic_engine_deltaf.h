@@ -26,11 +26,6 @@ namespace simpla
 
 struct PICEngineDeltaF
 {
-
-private:
-
-	Real m_, q_, T_, cmr_, q_kT_;
-public:
 	typedef PICEngineDeltaF this_type;
 	typedef Vec3 coordinates_type;
 	typedef Vec3 vector_type;
@@ -42,20 +37,16 @@ public:
 			Real, f,
 			scalar_type, w)
 
-	PICEngineDeltaF(Real m, Real q, Real T)
+private:
+	Real m_, q_, T_, cmr_, q_kT_;
+public:
+
+	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0) :
+			m_(m), q_(q), T_(T)
 	{
-		m_ = m;
-		q_ = q;
-		T_ = T;
 		DEFINE_PHYSICAL_CONST
 		cmr_ = q_ / m_;
 		q_kT_ = q_ / (T_ * boltzmann_constant);
-	}
-
-	template<typename TDict, typename ... Args>
-	PICEngineDeltaF(TDict const & dict, Args && ...args)
-	{
-		load(std::forward<Args>(args)...);
 	}
 
 	~PICEngineDeltaF()
