@@ -122,9 +122,9 @@ template<typename TM, typename Engine>
 template<typename TDict, typename ...Others>
 void Particle<TM, Engine>::load(TDict const & dict, Others && ...others)
 {
-	load(dynamic_cast<engine_type*>(this), dict, std::forward<Others>(others)...);
+	engine_type::load(dict, std::forward<Others>(others)...);
 
-	load(dynamic_cast<storage_type*>(this), dict, std::forward<Others>(others)...);
+	storage_type::load(dict, std::forward<Others>(others)...);
 
 	properties.set("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 

@@ -31,22 +31,33 @@ struct PICEngineDeltaF
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
 
-	DEFINE_POINT_STRUCT(Point_s,
+	SP_DEFINE_POINT_STRUCT(Point_s,
 			coordinates_type ,x,
 			Vec3, v,
 			Real, f,
 			scalar_type, w)
 
+	SP_DEFINE_PROPERTIES(
+			Real, mass,
+			Real, charge,
+			Real, temperature
+	)
+
 private:
-	Real m_, q_, T_, cmr_, q_kT_;
+	Real cmr_, q_kT_;
 public:
 
-	PICEngineDeltaF(Real m = 1.0, Real q = 1.0, Real T = 1.0) :
-			m_(m), q_(q), T_(T)
+	PICEngineDeltaF() :
+			mass(1.0), charge(1.0), temperature(1.0)
+	{
+		update();
+	}
+
+	void update()
 	{
 		DEFINE_PHYSICAL_CONST
-		cmr_ = q_ / m_;
-		q_kT_ = q_ / (T_ * boltzmann_constant);
+		cmr_ = charge / mass;
+		q_kT_ = charge / (temperature * boltzmann_constant);
 	}
 
 	~PICEngineDeltaF()
@@ -90,13 +101,13 @@ public:
 	template<typename TJ>
 	void ScatterJ(Point_s const & p, TJ * J) const
 	{
-		J->scatter_cartesian(std::make_tuple(p.x, p.v), p.f * q_ * p.w);
+		J->scatter_cartesian(std::make_tuple(p.x, p.v), p.f * charge * p.w);
 	}
 
 	template<typename TJ>
 	void ScatterRho(Point_s const & p, TJ * rho) const
 	{
-		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * q_ * p.w);
+		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * charge * p.w);
 	}
 
 	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
@@ -104,7 +115,8 @@ public:
 		return std::move(Point_s( { x, v, f }));
 	}
 
-	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+	static inline auto pull_back(Point_s const & p)
+	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 
 }
 ;
