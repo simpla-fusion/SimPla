@@ -78,7 +78,7 @@ private:
 
 		((has_member_function_next_timestep<engine_type, particle_type*, rho_type *,Real,Args...>::value)?1:0) +
 
-		((has_member_function_next_timestep<engine_type,particle_type*, J_type *,Real,Args...>::value)?2:0 )
+		((has_member_function_next_timestep<engine_type, particle_type*, J_type *,Real,Args...>::value)?2:0 )
 
 		;
 	};
@@ -93,9 +93,20 @@ private:
 	}
 
 public:
+	template<typename TF>
+	void scatter(TF * pf)
+	{
+		pic_.reduce(range, *pf, pf, [](particle_type const & p,TF * t_f)
+				{
+					scatter_cartesian(t_f,this->engine_type::pull_back( p ));
+				});
+
+		update_ghosts(pf);
+
+	}
+
 	template<typename ...Args>
-	typename std::enable_if<next_timestep_rebind<Args...>::value==0,void>::value
-	next_timestep (Real dt, Args && ...args)
+	void next_timestep (Real dt, Args && ...args)
 	{
 
 		LOGGER << "Push particles to  next step [ " << engine_type::get_type_as_string() << " ]";
@@ -114,25 +125,13 @@ public:
 		if (engine_type::properties["ScatterJ"].template as<bool>(true))
 		{
 			J.clear();
-
-			pic_.reduce(range, J, &J, [](particle_type const & ,J_type * t_J)
-					{
-						this->engine_type::scatterJ(&p, t_J);
-					});
-
-			update_ghosts(&J);
+			scatter(&J);
 		}
 
 		if (engine_type::properties["ScatterRho"].template as<bool>(false))
 		{
 			rho.clear();
-
-			pic_.reduce(range, rho, &rho, [](particle_type const & ,rho_type * t_rho)
-					{
-						this->engine_type::scatterRho(&p, t_rho);
-					});
-
-			update_ghosts(&rho);
+			scatter(&rho);
 		}
 		else if (properties["ContinuityEquation"].template as<bool>(false))
 		{
@@ -141,9 +140,35 @@ public:
 
 	}
 
-	template<typename ...Args>
-	typename std::enable_if<next_timestep_rebind<Args...>::value==1,void>::value
-	next_timestep (Real dt, Args && ...args)
+	template< typename ...Args>
+	void next_timestep (Real dt,J_type * pJ, Args && ...args)
+	{
+		auto range = mesh.select(IForm);
+
+		sort(range);
+
+		if (properties["ContinuityEquation"].template as<bool>(false))
+		{
+			rho -= Diverge(MapTo<EDGE>(J)) * dt*0.5;
+		}
+
+		J.clear();
+
+		pic_.reduce(range, &J, J, [&](particle_type const & ,J_type * t_J)
+				{
+					this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
+				});
+
+		update_ghosts(&J);
+		if (properties["ContinuityEquation"].template as<bool>(false))
+		{
+			rho -= Diverge(MapTo<EDGE>(J)) * dt*0.5;
+		}
+
+	}
+
+	template< typename ...Args>
+	void next_timestep (Real dt,Rho_type * pJ, Args && ...args)
 	{
 		auto range = mesh.select(IForm);
 
@@ -151,43 +176,12 @@ public:
 
 		rho.clear();
 
-		pic_.reduce(range, rho, &rho, [&](particle_type const & ,rho_type * t_rho)
+		pic_.reduce(range, rho, &rho, [&](particle_type const & ,Rho_type * t_J)
 				{
-					this->engine_type::next_timestep(&p, t_rho,dt,std::forward<Args>(args)...);
+					this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
 				});
 
 		update_ghosts(&rho);
-
-	}
-
-	template<typename ...Args>
-	typename std::enable_if<next_timestep_rebind<Args...>::value==2,void>::value
-	next_timestep ( Real dt, Args && ...args)
-	{
-		auto range = mesh.select(IForm);
-
-		sort(range);
-
-		J.clear();
-
-		pic_.reduce(range, J, &J, [&](particle_type const & ,J_typr * t_J)
-				{
-					this->engine_type::next_timestep(&p, t_J,dt,std::forward<Args>(args)...);
-				});
-
-		update_ghosts(&J);
-
-		if (properties["ScatterRho"].template as<bool>(false))
-		{
-			rho.clear();
-
-			pic_.reduce(range, rho, &rho, [](particle_type const & ,rho_type * t_rho)
-					{
-						this->engine_type::scatterRho(&p, t_rho);
-					});
-
-			update_ghosts(&rho);
-		}
 
 	}
 

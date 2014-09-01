@@ -49,8 +49,8 @@ private:
 	Real cmr_, q_kT_;
 public:
 
-	PICEngineDeltaF()
-			: mass(1.0), charge(1.0), temperature(1.0)
+	PICEngineDeltaF() :
+			mass(1.0), charge(1.0), temperature(1.0)
 	{
 		update();
 	}
@@ -71,8 +71,8 @@ public:
 		return "DeltaF";
 	}
 
-	template<typename TE, typename TB>
-	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const
+	template<typename TJ, typename TE, typename TB>
+	void next_timestep(Point_s * p, TJ* J, Real dt, TE const &fE, TB const & fB) const
 	{
 		p->x += p->v * dt * 0.5;
 
@@ -98,18 +98,8 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-	}
+		J->scatter_cartesian(std::forward_as_tuple(p->x, p->v, p->f * charge * p->w));
 
-	template<typename TJ>
-	void ScatterJ(Point_s const & p, TJ * J) const
-	{
-		J->scatter_cartesian(std::make_tuple(p.x, p.v), p.f * charge * p.w);
-	}
-
-	template<typename TJ>
-	void ScatterRho(Point_s const & p, TJ * rho) const
-	{
-		rho->scatter_cartesian(std::make_tuple(p.x, 1.0), p.f * charge * p.w);
 	}
 
 	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
