@@ -76,14 +76,10 @@ private:
 	public:
 		static constexpr int value =
 
-		(has_member_function_next_timestep<engine_type, particle_type*, rho_type *,Args...>::value)?(
-				1:
-				(
+		((has_member_function_next_timestep<engine_type, particle_type*, rho_type *,Args...>::value)?1:0) +
 
-						(has_member_function_next_timestep<engine_type,particle_type*, J_type *,Args...>::value)?2:0
+		((has_member_function_next_timestep<engine_type,particle_type*, J_type *,Args...>::value)?2:0 )
 
-				)
-		)
 		;
 	};
 
@@ -191,10 +187,6 @@ public:
 					});
 
 			update_ghosts(&rho);
-		}
-		else if (properties["ContinuityEquation"].template as<bool>(false))
-		{
-			rho -= Diverge(MapTo<EDGE>(J)) * dt;
 		}
 
 	}
