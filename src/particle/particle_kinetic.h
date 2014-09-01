@@ -76,15 +76,15 @@ private:
 	public:
 		static constexpr int value =
 
-		((has_member_function_next_timestep<engine_type, particle_type*, rho_type *,Args...>::value)?1:0) +
+		((has_member_function_next_timestep<engine_type, particle_type*, rho_type *,Real,Args...>::value)?1:0) +
 
-		((has_member_function_next_timestep<engine_type,particle_type*, J_type *,Args...>::value)?2:0 )
+		((has_member_function_next_timestep<engine_type,particle_type*, J_type *,Real,Args...>::value)?2:0 )
 
 		;
 	};
 
 	template<typename TRange>
-	void sort_(TRange && range)
+	void sort(TRange && range)
 	{
 		pic_.sort(std::forward<TRange>(range), [&mesh](particle_type const & p)->mid_type
 				{
@@ -95,7 +95,7 @@ private:
 public:
 	template<typename ...Args>
 	typename std::enable_if<next_timestep_rebind<Args...>::value==0,void>::value
-	next_timestep ( Args && ...args)
+	next_timestep (Real dt, Args && ...args)
 	{
 
 		LOGGER << "Push particles to  next step [ " << engine_type::get_type_as_string() << " ]";
@@ -106,7 +106,7 @@ public:
 
 		pic_.modify(range, [this](particle_type & p)
 				{
-					this->engine_type::next_timestep(&p, std::forward<Args>(args)...);
+					this->engine_type::next_timestep(&p,dt, std::forward<Args>(args)...);
 				});
 
 		sort(range);
@@ -123,7 +123,7 @@ public:
 			update_ghosts(&J);
 		}
 
-		if (engine_type::properties["ScatterN"].template as<bool>(false))
+		if (engine_type::properties["ScatterRho"].template as<bool>(false))
 		{
 			rho.clear();
 
@@ -143,7 +143,7 @@ public:
 
 	template<typename ...Args>
 	typename std::enable_if<next_timestep_rebind<Args...>::value==1,void>::value
-	next_timestep ( Args && ...args)
+	next_timestep (Real dt, Args && ...args)
 	{
 		auto range = mesh.select(IForm);
 
@@ -153,7 +153,7 @@ public:
 
 		pic_.reduce(range, rho, &rho, [&](particle_type const & ,rho_type * t_rho)
 				{
-					this->engine_type::next_timestep(&p, t_rho,std::forward<Args>(args)...);
+					this->engine_type::next_timestep(&p, t_rho,dt,std::forward<Args>(args)...);
 				});
 
 		update_ghosts(&rho);
@@ -162,7 +162,7 @@ public:
 
 	template<typename ...Args>
 	typename std::enable_if<next_timestep_rebind<Args...>::value==2,void>::value
-	next_timestep ( Args && ...args)
+	next_timestep ( Real dt, Args && ...args)
 	{
 		auto range = mesh.select(IForm);
 
@@ -172,7 +172,7 @@ public:
 
 		pic_.reduce(range, J, &J, [&](particle_type const & ,J_typr * t_J)
 				{
-					this->engine_type::next_timestep(&p, t_J,std::forward<Args>(args)...);
+					this->engine_type::next_timestep(&p, t_J,dt,std::forward<Args>(args)...);
 				});
 
 		update_ghosts(&J);
@@ -195,8 +195,8 @@ public:
 
 template<typename TM, typename Engine>
 template<typename ... Others>
-KineticParticle<TM, Engine>::KineticParticle(mesh_type const & pmesh, Others && ...others)
-		: mesh(pmesh), rho(mesh), J(mesh)
+KineticParticle<TM, Engine>::KineticParticle(mesh_type const & pmesh, Others && ...others) :
+		mesh(pmesh), rho(mesh), J(mesh)
 {
 	load(std::forward<Others>(others)...);
 }
@@ -218,10 +218,6 @@ void KineticParticle<TM, Engine>::load(TDict const & dict, Others && ...others)
 	properties.set("ContinuityEquation", dict["ContinuityEquation"].template as<bool>(false));
 
 	properties.set("ScatterRho", dict["ScatterRho"].template as<bool>(false));
-
-	J.clear();
-
-	rho.clear();
 
 }
 

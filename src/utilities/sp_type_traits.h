@@ -193,6 +193,22 @@ public:                                                                         
 	static constexpr bool value = !std::is_same<decltype(test<_T>(0)), no>::value;                     \
 };
 
+#define HAS_TYPE(_NAME_)                                                                   \
+template<typename _T> struct has_type_##_NAME_                                                     \
+{                                                                                                     \
+private:                                                                                              \
+	typedef std::true_type yes;                                                                       \
+	typedef std::false_type no;                                                                       \
+                                                                                                      \
+	template<typename U> static auto test(int) ->typename U::_NAME_;                                  \
+	template<typename > static no test(...);                                                          \
+                                                                                                      \
+public:                                                                                               \
+                                                                                                      \
+	static constexpr bool value = !std::is_same<decltype(test< _T>(0)), no>::value;                   \
+}                                                                                                     \
+;
+
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return std::move(_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
