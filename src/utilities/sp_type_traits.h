@@ -55,7 +55,7 @@ private:                                                                        
 	typedef std::false_type no;                                                            \
                                                                                            \
 	template<typename U>                                                                   \
-	static auto test(int) ->  decltype(std::declval<U>()._NAME_  )                         \
+	static auto test(int) ->  U::_NAME_                        \
 	template<typename > static no test(...);                                               \
                                                                                            \
 public:                                                                                    \

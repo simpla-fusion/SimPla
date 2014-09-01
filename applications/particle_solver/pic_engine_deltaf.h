@@ -43,12 +43,14 @@ struct PICEngineDeltaF
 			Real, temperature
 	)
 
+	int J_at_the_center;
+
 private:
 	Real cmr_, q_kT_;
 public:
 
-	PICEngineDeltaF() :
-			mass(1.0), charge(1.0), temperature(1.0)
+	PICEngineDeltaF()
+			: mass(1.0), charge(1.0), temperature(1.0)
 	{
 		update();
 	}

@@ -32,8 +32,8 @@ template<typename TV> using ListOfSmallObject=std::list<TV/*,FixedSmallSizeAlloc
  *   else return reference of default value;
  *
  */
-template<typename TKey, typename TV, template<typename > class SubContainer = ListOfSmallObject>
-class ContainerContainer: public std::map<TKey, SubContainer<TV>>
+template<typename TKey, typename InnerContainer>
+class ContainerContainer: public std::map<TKey, InnerContainer>
 {
 	std::mutex write_lock_;
 

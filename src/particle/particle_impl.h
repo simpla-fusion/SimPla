@@ -8,108 +8,105 @@
 #ifndef PARTICLE_IMPL_H_
 #define PARTICLE_IMPL_H_
 
-#include <exception>
-#include <iostream>
-#include <list>
-#include <map>
-#include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "../utilities/log.h"
-#include "../utilities/sp_type_traits.h"
-#include "../utilities/container_pools.h"
-#include "../parallel/parallel.h"
-#include "../model/model.h"
-
-#include "particle_base.h"
-#include "particle_pool.h"
-#include "load_particle.h"
-#include "save_particle.h"
+#include "../utilities/container_pool.h"
 
 namespace simpla
 {
 
 /** \defgroup  Particle Particle
  *
+ *   \page Particle Conecpt Particle
+ *
+ *   \code
+ * template<typename TM, typename Engine>
+ * class Particle
+ * {
+ *
+ *	 public:
+ *	 static constexpr unsigned int IForm = VERTEX;
+ *
+ *	 typedef TM mesh_type;
+ *
+ *	 typedef Particle<mesh_type, engine_type> this_type;
+ *
+ *	 mesh_type const & mesh;
+ *
+ *	 Properties properties;
+ *
+ *	 template<typename ...Others>
+ *	 Particle(mesh_type const & pmesh, Others && ...); 	// Constructor
+ *
+ *	 ~Particle();	// Destructor
+ *
+ *	 void load();
+ *
+ *	 template<typename TDict, typename ...Others>
+ *	 void load(TDict const & dict, Others && ...others);
+ *
+ *	 std::string save(std::string const & path) const;
+ *
+ *	 std::ostream& print(std::ostream & os) const;
+ *
+ *	 template<typename ...Args> void next_timestep(Args && ...);
+ *
+ *	 template<typename TJ> void ScatterJ(TJ * J) const;
+ *
+ *	 template<typename TJ> void ScatterRho(TJ * rho) const;
+ *
+ * };
+ *
+ *   \endcode
+ *
  */
 
 /**
  *  \brief Particle class
  *
- *  this class is a proxy between ParticleBase and Engine,ParticlePool
  */
-template<typename TM, class Engine>
-class Particle: public Engine, public ContainerPool<size_t, typename Engine::Point_s>
+
+template<typename TM, typename Engine>
+class Particle
 {
 
 public:
 	static constexpr unsigned int IForm = VERTEX;
 
 	typedef TM mesh_type;
-
 	typedef Engine engine_type;
-
-	typedef typename engine_type::Point_s particle_type;
-
-	typedef ContainerPool<size_t, particle_type> storage_type;
-
 	typedef Particle<mesh_type, engine_type> this_type;
 
-	typedef typename mesh_type::scalar_type scalar_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-public:
 	mesh_type const & mesh;
-	Properties properties;
 
-	//***************************************************************************************************
-	// Constructor
-	template<typename TModel, typename ...Others>
-	Particle(TModel const & pmesh, Others && ...);
-	// Destructor
-	~Particle();
+	template<typename ...Others>
+	Particle(mesh_type const & pmesh, Others && ...); 	// Constructor
 
-	template<typename ...Args>
-	static std::shared_ptr<ParticleBase> create(Args && ... args)
-	{
-		return LoadParticle<this_type>(std::forward<Args>(args)...);
-	}
+	~Particle();	// Destructor
+
+	void load();
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
 
 	std::string save(std::string const & path) const;
 
-	std::ostream& print(std::ostream & os) const
-	{
-		os << ",";
-		engine_type::properties.print(os);
-		return os;
-	}
+	std::ostream& print(std::ostream & os) const;
 
-	bool is_implicit() const
-	{
-		return engine_type::properties.get("IsImplicit", false);
-	}
+	template<typename ...Args> void next_timestep(Args && ...);
 
-	template<typename ...Args>
-	void next_timestep(Args && ...);
+	template<typename TJ> void ScatterJ(TJ * J) const;
 
-	template<typename TJ>
-	void ScatterJ(TJ * J) const;
-
-	template<typename TJ>
-	void ScatterRho(TJ * rho) const;
+	template<typename TJ> void ScatterRho(TJ * rho) const;
 
 };
 
 template<typename TM, typename Engine>
-template<typename TModel, typename ... Others>
-Particle<TM, Engine>::Particle(TModel const & model, Others && ...others) :
-		storage_type(model), mesh(model), rho(model), J(model)
+template<typename ... Others>
+Particle<TM, Engine>::Particle(mesh_type const & model, Others && ...others)
+		: storage_type(model), mesh(model)
 {
 	this_type::load(std::forward<Others>(others)...);
 }
@@ -212,7 +209,7 @@ void Particle<TM, Engine>::update_fields()
 		}
 	}
 
-	update_ghosts(&J);
+	update_ghosts (&J);
 
 	if (engine_type::properties["DivergeJ"].template as<bool>(false))
 	{
@@ -231,7 +228,7 @@ void Particle<TM, Engine>::update_fields()
 			}
 		}
 
-		update_ghosts(&rho);
+		update_ghosts (&rho);
 	}
 }
 
