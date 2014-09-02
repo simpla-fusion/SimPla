@@ -1,12 +1,12 @@
 /**
- * \file particle_kinetic.h
+ * \file kinetic_particle.h
  *
  * \date    2014年9月1日  下午2:25:26 
  * \author salmon
  */
 
-#ifndef PARTICLE_KINETIC_H_
-#define PARTICLE_KINETIC_H_
+#ifndef KINETIC_PARTICLE_H_
+#define KINETIC_PARTICLE_H_
 
 #include <iostream>
 #include <string>
@@ -15,27 +15,34 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/primitives.h"
 #include "../utilities/container_pool.h"
+#include "../utilities/properties.h"
 
 namespace simpla
 {
+class PolicyKineticParticle;
+template<typename TM, typename Engine, typename Policy> class Particle;
+
+template<typename TM, typename Engine> using KineticParticle=Particle<TM, Engine, PolicyKineticParticle>;
 
 template<typename TM, typename Engine>
-class KineticParticle: public Engine
+class Particle<TM, Engine, PolicyKineticParticle> : public Engine, public ContainerPool<typename TM::compact_index_type,
+        typename Engine::Point_s>
 {
 public:
 	static constexpr unsigned int IForm = VERTEX;
 
 	typedef TM mesh_type;
 	typedef Engine engine_type;
-	typedef KineticParticle<mesh_type, engine_type> this_type;
+	typedef Particle<mesh_type, engine_type, PolicyKineticParticle> this_type;
 private:
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
 	typedef typename mesh_type::template field<VERTEX, scalar_type> rho_type;
 
-	HAS_MEMBER(J_at_the_center);
-	typedef typename std::conditional<has_member_J_at_the_center<engine_type>::value,
+	HAS_MEMBER(J_at_the_center)
+
+typedef	typename std::conditional<has_member_J_at_the_center<engine_type>::value,
 	typename mesh_type::template field<VERTEX, nTuple<3, scalar_type>>,
 	typename mesh_type::template field<EDGE, scalar_type> >::type J_type;
 
@@ -47,15 +54,22 @@ private:
 	storage_type pic_;
 public:
 	mesh_type const & mesh;
+
+	Properties properties;
 	rho_type rho;
 	J_type J;
 
 	template<typename ...Others>
-	KineticParticle(mesh_type const & pmesh, Others && ...);// Constructor
+	Particle(mesh_type const & pmesh, Others && ...);// Constructor
 
-	~KineticParticle();// Destructor
+	~Particle();// Destructor
 
-	void load();
+	static std::string get_type_as_string()
+	{
+		return "Kinetic"+engine_type::get_type_as_string();
+	}
+
+	void load(){};
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -65,6 +79,16 @@ public:
 	std::ostream& print(std::ostream & os) const;
 
 	template<typename ...Args> void next_timestep(Args && ...args);
+
+	template<typename TJ> void ScatterJ(TJ * pJ) const
+	{
+		*pJ+=MapTo<TJ>(J);
+	}
+
+	template<typename TRho> void ScatterRho(TRho * prho) const
+	{
+		*prho+=MapTo<TRho>(rho);
+	}
 
 private:
 
@@ -86,9 +110,9 @@ private:
 	template<typename TRange>
 	void sort(TRange && range)
 	{
-		pic_.sort(std::forward<TRange>(range), [&mesh](particle_type const & p)->mid_type
+		pic_.sort(std::forward<TRange>(range), [& ](particle_type const & p)->mid_type
 				{
-					return std::get<0>(mesh.CoordinatesGlobalToLocal(std::get<0>(engine_type::pull_back(p))));
+					return std::get<0>(mesh.coordinates_global_to_local(std::get<0>(engine_type::pull_back(p))));
 				});
 	}
 
@@ -96,7 +120,7 @@ public:
 	template<typename TF>
 	void scatter(TF * pf)
 	{
-		pic_.reduce(range, *pf, pf, [](particle_type const & p,TF * t_f)
+		pic_.reduce(mesh.select(IForm), *pf, pf, [this](particle_type const & p,TF * t_f)
 				{
 					scatter_cartesian(t_f,this->engine_type::pull_back( p ));
 				});
@@ -115,7 +139,7 @@ public:
 
 		sort(range);
 
-		pic_.modify(range, [this](particle_type & p)
+		pic_.modify(range, [&](particle_type & p)
 				{
 					this->engine_type::next_timestep(&p,dt, std::forward<Args>(args)...);
 				});
@@ -154,7 +178,7 @@ public:
 
 		J.clear();
 
-		pic_.reduce(range, &J, J, [&](particle_type const & ,J_type * t_J)
+		pic_.reduce(range, &J, J, [&](particle_type & p,J_type * t_J)
 				{
 					this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
 				});
@@ -168,7 +192,7 @@ public:
 	}
 
 	template< typename ...Args>
-	void next_timestep (Real dt,Rho_type * pJ, Args && ...args)
+	void next_timestep (Real dt,rho_type * pJ, Args && ...args)
 	{
 		auto range = mesh.select(IForm);
 
@@ -176,9 +200,9 @@ public:
 
 		rho.clear();
 
-		pic_.reduce(range, rho, &rho, [&](particle_type const & ,Rho_type * t_J)
+		pic_.reduce(range, rho, &rho, [&](particle_type & p ,rho_type * t_rho)
 				{
-					this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
+					this->engine_type::next_timestep(&p, dt,t_rho,std::forward<Args>(args)...);
 				});
 
 		update_ghosts(&rho);
@@ -189,25 +213,25 @@ public:
 
 template<typename TM, typename Engine>
 template<typename ... Others>
-KineticParticle<TM, Engine>::KineticParticle(mesh_type const & pmesh, Others && ...others) :
-		mesh(pmesh), rho(mesh), J(mesh)
+Particle<TM, Engine, PolicyKineticParticle>::Particle(mesh_type const & pmesh, Others && ...others)
+		: mesh(pmesh), rho(mesh), J(mesh)
 {
 	load(std::forward<Others>(others)...);
 }
 
 template<typename TM, typename Engine>
-KineticParticle<TM, Engine>::~KineticParticle()
+Particle<TM, Engine, PolicyKineticParticle>::~Particle()
 {
 }
 template<typename TM, typename Engine>
 template<typename TDict, typename ...Others>
-void KineticParticle<TM, Engine>::load(TDict const & dict, Others && ...others)
+void Particle<TM, Engine, PolicyKineticParticle>::load(TDict const & dict, Others && ...others)
 {
 	engine_type::load(dict, std::forward<Others>(others)...);
 
 	pic_.load(dict, std::forward<Others>(others)...);
 
-	properties.set("DumpKineticParticle", dict["DumpKineticParticle"].template as<bool>(false));
+	properties.set("DumpParticle", dict["DumpParticle"].template as<bool>(false));
 
 	properties.set("ContinuityEquation", dict["ContinuityEquation"].template as<bool>(false));
 
@@ -218,7 +242,7 @@ void KineticParticle<TM, Engine>::load(TDict const & dict, Others && ...others)
 //*************************************************************************************************
 
 template<typename TM, typename Engine>
-std::string KineticParticle<TM, Engine>::save(std::string const & path) const
+std::string Particle<TM, Engine, PolicyKineticParticle>::save(std::string const & path) const
 {
 	std::stringstream os;
 
@@ -228,15 +252,15 @@ std::string KineticParticle<TM, Engine>::save(std::string const & path) const
 
 	os << "\n, J_ =" << simpla::save("J_", J);
 
-	if (properties["DumpKineticParticle"].template as<bool>(false))
-	{
-		os << "\n, particles = " << pic_.save("particles");
-	}
+//	if (properties["DumpParticle"].template as<bool>(false))
+//	{
+//		os << "\n, particles = " << save(pic_, "particles");
+//	}
 
 	return os.str();
 }
 template<typename TM, typename Engine>
-std::ostream& KineticParticle<TM, Engine>::print(std::ostream & os) const
+std::ostream& Particle<TM, Engine, PolicyKineticParticle>::print(std::ostream & os) const
 {
 	engine_type::print(os);
 	properties.print(os);
@@ -244,4 +268,4 @@ std::ostream& KineticParticle<TM, Engine>::print(std::ostream & os) const
 
 }  // namespace simpla
 
-#endif /* PARTICLE_KINETIC_H_ */
+#endif /* KINETIC_PARTICLE_H_ */

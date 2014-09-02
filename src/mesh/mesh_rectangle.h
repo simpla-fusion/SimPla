@@ -177,7 +177,7 @@ public:
 //
 //	template<typename TF, typename ... Args> inline auto //
 //	make_field(Args && ... args) const
-//	DECL_RET_TYPE((make_field<TF>(topology_type::Select(TF::IForm),std::forward<Args>(args)...)))
+//	DECL_RET_TYPE((make_field<TF>(topology_type::select(TF::IForm),std::forward<Args>(args)...)))
 //
 //	template<unsigned int IFORM, typename TV, typename ...Args> inline auto //
 //	make_field(Args &&...args) const
@@ -192,14 +192,14 @@ public:
 	template<typename TF> inline TF //
 	make_field() const
 	{
-		auto range = topology_type::Select(TF::IForm);
+		auto range = topology_type::select(TF::IForm);
 		return std::move(TF(*this, range, topology_type::max_hash_value(range), topology_type::make_hash(range)));
 	}
 
 	template<unsigned int IFORM, typename TV> inline field<IFORM, TV> //
 	make_field() const
 	{
-		auto range = topology_type::Select(IFORM);
+		auto range = topology_type::select(IFORM);
 		return std::move(
 		        field<IFORM, TV>(*this, range, topology_type::max_hash_value(range), topology_type::make_hash(range)));
 	}
@@ -258,15 +258,15 @@ public:
 	        Field<this_type, VERTEX, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
-		auto D = topology_type::DeltaIndex(s);
+		auto D = topology_type::delta_index(s);
 
 		return
 
-		(get_value(f, s + D) * geometry_type::Volume(s + D) - get_value(f, s - D) * geometry_type::Volume(s - D))
-		        * geometry_type::InvVolume(s)
+		(get_value(f, s + D) * geometry_type::volume(s + D) - get_value(f, s - D) * geometry_type::volume(s - D))
+		        * geometry_type::inv_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        + get_value(f, s + D) * k_imag[geometry_type::ComponentNum(D)];
+		        + get_value(f, s + D) * k_imag[geometry_type::component_number(D)];
 #endif
 		;
 	}
@@ -275,22 +275,22 @@ public:
 	        Field<this_type, EDGE, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return (
 
-		(get_value(f, s + Y) * geometry_type::Volume(s + Y) //
-		- get_value(f, s - Y) * geometry_type::Volume(s - Y)) //
-		- (get_value(f, s + Z) * geometry_type::Volume(s + Z) //
-		- get_value(f, s - Z) * geometry_type::Volume(s - Z)) //
+		(get_value(f, s + Y) * geometry_type::volume(s + Y) //
+		- get_value(f, s - Y) * geometry_type::volume(s - Y)) //
+		- (get_value(f, s + Z) * geometry_type::volume(s + Z) //
+		- get_value(f, s - Z) * geometry_type::volume(s - Z)) //
 
-		) * geometry_type::InvVolume(s)
+		) * geometry_type::inv_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        + get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
-		        - get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
+		        + get_value(f, s + Y) * k_imag[geometry_type::component_number(Y)]
+		        - get_value(f, s + Z) * k_imag[geometry_type::component_number(Z)]
 #endif
 
 		;
@@ -306,21 +306,21 @@ public:
 
 		return (
 
-		get_value(f, s + X) * geometry_type::Volume(s + X)
+		get_value(f, s + X) * geometry_type::volume(s + X)
 
-		- get_value(f, s - X) * geometry_type::Volume(s - X) //
-		+ get_value(f, s + Y) * geometry_type::Volume(s + Y) //
-		- get_value(f, s - Y) * geometry_type::Volume(s - Y) //
-		+ get_value(f, s + Z) * geometry_type::Volume(s + Z) //
-		- get_value(f, s - Z) * geometry_type::Volume(s - Z) //
+		- get_value(f, s - X) * geometry_type::volume(s - X) //
+		+ get_value(f, s + Y) * geometry_type::volume(s + Y) //
+		- get_value(f, s - Y) * geometry_type::volume(s - Y) //
+		+ get_value(f, s + Z) * geometry_type::volume(s + Z) //
+		- get_value(f, s - Z) * geometry_type::volume(s - Z) //
 
-		) * geometry_type::InvVolume(s)
+		) * geometry_type::inv_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
 
-		        + get_value(f, s + X) * k_imag[geometry_type::ComponentNum(X)]
-		        + get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
-		        + get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
+		        + get_value(f, s + X) * k_imag[geometry_type::component_number(X)]
+		        + get_value(f, s + Y) * k_imag[geometry_type::component_number(Y)]
+		        + get_value(f, s + Z) * k_imag[geometry_type::component_number(Z)]
 
 #endif
 
@@ -345,24 +345,24 @@ public:
 
 		-(
 
-		get_value(f, s + X) * geometry_type::DualVolume(s + X)
+		get_value(f, s + X) * geometry_type::dual_volume(s + X)
 
-		- get_value(f, s - X) * geometry_type::DualVolume(s - X)
+		- get_value(f, s - X) * geometry_type::dual_volume(s - X)
 
-		+ get_value(f, s + Y) * geometry_type::DualVolume(s + Y)
+		+ get_value(f, s + Y) * geometry_type::dual_volume(s + Y)
 
-		- get_value(f, s - Y) * geometry_type::DualVolume(s - Y)
+		- get_value(f, s - Y) * geometry_type::dual_volume(s - Y)
 
-		+ get_value(f, s + Z) * geometry_type::DualVolume(s + Z)
+		+ get_value(f, s + Z) * geometry_type::dual_volume(s + Z)
 
-		- get_value(f, s - Z) * geometry_type::DualVolume(s - Z)
+		- get_value(f, s - Z) * geometry_type::dual_volume(s - Z)
 
-		) * geometry_type::InvDualVolume(s)
+		) * geometry_type::inv_dual_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - get_value(f, s + X) * k_imag[geometry_type::ComponentNum(X)]
-		        - get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
-		        - get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
+		        - get_value(f, s + X) * k_imag[geometry_type::component_number(X)]
+		        - get_value(f, s + Y) * k_imag[geometry_type::component_number(Y)]
+		        - get_value(f, s + Z) * k_imag[geometry_type::component_number(Z)]
 #endif
 		;
 
@@ -372,25 +372,25 @@ public:
 	        Field<this_type, FACE, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
-		auto X = topology_type::DeltaIndex(s);
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(s);
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return
 
 		-(
 
-		(get_value(f, s + Y) * (geometry_type::DualVolume(s + Y))
-		        - get_value(f, s - Y) * (geometry_type::DualVolume(s - Y)))
+		(get_value(f, s + Y) * (geometry_type::dual_volume(s + Y))
+		        - get_value(f, s - Y) * (geometry_type::dual_volume(s - Y)))
 
-		        - (get_value(f, s + Z) * (geometry_type::DualVolume(s + Z))
-		                - get_value(f, s - Z) * (geometry_type::DualVolume(s - Z)))
+		        - (get_value(f, s + Z) * (geometry_type::dual_volume(s + Z))
+		                - get_value(f, s - Z) * (geometry_type::dual_volume(s - Z)))
 
-		) * geometry_type::InvDualVolume(s)
+		) * geometry_type::inv_dual_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - get_value(f, s + Y) * k_imag[geometry_type::ComponentNum(Y)]
-		        + get_value(f, s + Z) * k_imag[geometry_type::ComponentNum(Z)]
+		        - get_value(f, s + Y) * k_imag[geometry_type::component_number(Y)]
+		        + get_value(f, s + Z) * k_imag[geometry_type::component_number(Z)]
 #endif
 		;
 	}
@@ -399,18 +399,18 @@ public:
 	        Field<this_type, VOLUME, TL> const & f,
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
-		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
+		auto D = topology_type::delta_index(topology_type::dual(s));
 		return
 
 		-(
 
-		get_value(f, s + D) * (geometry_type::DualVolume(s + D)) //
-		- get_value(f, s - D) * (geometry_type::DualVolume(s - D))
+		get_value(f, s + D) * (geometry_type::dual_volume(s + D)) //
+		- get_value(f, s - D) * (geometry_type::dual_volume(s - D))
 
-		) * geometry_type::InvDualVolume(s)
+		) * geometry_type::inv_dual_volume(s)
 
 #ifndef DISABLE_SPECTRAL_METHD
-		        - get_value(f, s + D) * k_imag[geometry_type::ComponentNum(D)]
+		        - get_value(f, s + D) * k_imag[geometry_type::component_number(D)]
 #endif
 
 		;
@@ -430,7 +430,7 @@ public:
 	        Field<this_type, VERTEX, TL> const &l, Field<this_type, EDGE, TR> const &r,
 	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		auto X = topology_type::DeltaIndex(s);
+		auto X = topology_type::delta_index(s);
 
 		return (get_value(l, s - X) + get_value(l, s + X)) * 0.5 * get_value(r, s);
 	}
@@ -439,9 +439,9 @@ public:
 	        Field<this_type, VERTEX, TL> const &l, Field<this_type, FACE, TR> const &r,
 	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return (
 
@@ -489,7 +489,7 @@ public:
 	        Field<this_type, EDGE, TL> const &l, Field<this_type, VERTEX, TR> const &r,
 	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		auto X = topology_type::DeltaIndex(s);
+		auto X = topology_type::delta_index(s);
 		return get_value(l, s) * (get_value(r, s - X) + get_value(r, s + X)) * 0.5;
 	}
 
@@ -497,8 +497,8 @@ public:
 	        Field<this_type, EDGE, TL> const &l, Field<this_type, EDGE, TR> const &r,
 	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
-		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
+		auto Y = topology_type::delta_index(topology_type::roate(topology_type::dual(s)));
+		auto Z = topology_type::delta_index(topology_type::inverse_roate(topology_type::dual(s)));
 
 		return ((get_value(l, s - Y) + get_value(l, s + Y)) * (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
 	}
@@ -533,8 +533,8 @@ public:
 	        Field<this_type, FACE, TL> const &l, Field<this_type, VERTEX, TR> const &r,
 	        compact_index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
 	{
-		auto Y = topology_type::DeltaIndex(topology_type::Roate(topology_type::Dual(s)));
-		auto Z = topology_type::DeltaIndex(topology_type::InverseRoate(topology_type::Dual(s)));
+		auto Y = topology_type::delta_index(topology_type::roate(topology_type::dual(s)));
+		auto Z = topology_type::delta_index(topology_type::inverse_roate(topology_type::dual(s)));
 
 		return get_value(l, s)
 		        * (get_value(r, (s - Y) - Z) + get_value(r, (s - Y) + Z) + get_value(r, (s + Y) - Z)
@@ -603,23 +603,23 @@ public:
 //
 //		(
 //
-//		get_value(f,((s + X) - Y) - Z)*geometry_type::InvVolume(((s + X) - Y) - Z) +
+//		get_value(f,((s + X) - Y) - Z)*geometry_type::inv_volume(((s + X) - Y) - Z) +
 //
-//		get_value(f,((s + X) - Y) + Z)*geometry_type::InvVolume(((s + X) - Y) + Z) +
+//		get_value(f,((s + X) - Y) + Z)*geometry_type::inv_volume(((s + X) - Y) + Z) +
 //
-//		get_value(f,((s + X) + Y) - Z)*geometry_type::InvVolume(((s + X) + Y) - Z) +
+//		get_value(f,((s + X) + Y) - Z)*geometry_type::inv_volume(((s + X) + Y) - Z) +
 //
-//		get_value(f,((s + X) + Y) + Z)*geometry_type::InvVolume(((s + X) + Y) + Z) +
+//		get_value(f,((s + X) + Y) + Z)*geometry_type::inv_volume(((s + X) + Y) + Z) +
 //
-//		get_value(f,((s - X) - Y) - Z)*geometry_type::InvVolume(((s - X) - Y) - Z) +
+//		get_value(f,((s - X) - Y) - Z)*geometry_type::inv_volume(((s - X) - Y) - Z) +
 //
-//		get_value(f,((s - X) - Y) + Z)*geometry_type::InvVolume(((s - X) - Y) + Z) +
+//		get_value(f,((s - X) - Y) + Z)*geometry_type::inv_volume(((s - X) - Y) + Z) +
 //
-//		get_value(f,((s - X) + Y) - Z)*geometry_type::InvVolume(((s - X) + Y) - Z) +
+//		get_value(f,((s - X) + Y) - Z)*geometry_type::inv_volume(((s - X) + Y) - Z) +
 //
-//		get_value(f,((s - X) + Y) + Z)*geometry_type::InvVolume(((s - X) + Y) + Z)
+//		get_value(f,((s - X) + Y) + Z)*geometry_type::inv_volume(((s - X) + Y) + Z)
 //
-//		) * 0.125 * geometry_type::Volume(s);
+//		) * 0.125 * geometry_type::volume(s);
 
 		return get_value(f, s) /** geometry_type::HodgeStarVolumeScale(s)*/;
 	}
@@ -646,11 +646,11 @@ public:
 	        nTuple<NDIMS, TR> const & v, Field<this_type, FACE, TL> const & f,
 	        compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(s);
+		unsigned int n = topology_type::component_number(s);
 
-		auto X = topology_type::DeltaIndex(s);
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(s);
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 		return
 
 		(get_value(f, s + Y) + get_value(f, s - Y)) * 0.5 * v[(n + 2) % 3] -
@@ -662,8 +662,8 @@ public:
 	        nTuple<NDIMS, TR> const & v, Field<this_type, VOLUME, TL> const & f,
 	        compact_index_type s) const->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = topology_type::ComponentNum(topology_type::Dual(s));
-		unsigned int D = topology_type::DeltaIndex(topology_type::Dual(s));
+		unsigned int n = topology_type::component_number(topology_type::dual(s));
+		unsigned int D = topology_type::delta_index(topology_type::dual(s));
 
 		return (get_value(f, s + D) - get_value(f, s - D)) * 0.5 * v[n];
 	}
@@ -677,12 +677,12 @@ public:
 	        compact_index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
 	{
 
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
-		Y = (topology_type::ComponentNum(Y) == N) ? Y : 0UL;
-		Z = (topology_type::ComponentNum(Z) == N) ? Z : 0UL;
+		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (get_value(f, s + Y) - get_value(f, s - Y)) - (get_value(f, s + Z) - get_value(f, s - Z));
 	}
@@ -692,21 +692,21 @@ public:
 	        compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 
-		auto X = topology_type::DeltaIndex(s);
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto X = topology_type::delta_index(s);
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
-		Y = (topology_type::ComponentNum(Y) == N) ? Y : 0UL;
-		Z = (topology_type::ComponentNum(Z) == N) ? Z : 0UL;
+		Y = (topology_type::component_number(Y) == N) ? Y : 0UL;
+		Z = (topology_type::component_number(Z) == N) ? Z : 0UL;
 
 		return (
 
-		get_value(f, s + Y) * (geometry_type::DualVolume(s + Y))      //
-		- get_value(f, s - Y) * (geometry_type::DualVolume(s - Y))    //
-		- get_value(f, s + Z) * (geometry_type::DualVolume(s + Z))    //
-		+ get_value(f, s - Z) * (geometry_type::DualVolume(s - Z))    //
+		get_value(f, s + Y) * (geometry_type::dual_volume(s + Y))      //
+		- get_value(f, s - Y) * (geometry_type::dual_volume(s - Y))    //
+		- get_value(f, s + Z) * (geometry_type::dual_volume(s + Z))    //
+		+ get_value(f, s - Z) * (geometry_type::dual_volume(s - Z))    //
 
-		) * geometry_type::InvDualVolume(s);
+		) * geometry_type::inv_dual_volume(s);
 	}
 	template<unsigned int IL, typename TR> inline auto OpEval(std::integral_constant<unsigned int, MAPTO>,
 	        std::integral_constant<unsigned int, IL> const &, Field<this_type, IL, TR> const & f,
@@ -736,8 +736,8 @@ public:
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
-		auto n = topology_type::ComponentNum(s);
-		auto D = topology_type::DeltaIndex(s);
+		auto n = topology_type::component_number(s);
+		auto D = topology_type::delta_index(s);
 
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
@@ -795,10 +795,10 @@ public:
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s));
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 
 		return (
 
@@ -840,8 +840,8 @@ public:
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s));
-		auto D = topology_type::DeltaIndex(topology_type::Dual(s));
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto D = topology_type::delta_index(topology_type::dual(s));
 
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
@@ -899,10 +899,10 @@ public:
 	        compact_index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
-		auto n = topology_type::ComponentNum(topology_type::Dual(s));
-		auto X = topology_type::DeltaIndex(topology_type::Dual(s));
-		auto Y = topology_type::Roate(X);
-		auto Z = topology_type::InverseRoate(X);
+		auto n = topology_type::component_number(topology_type::dual(s));
+		auto X = topology_type::delta_index(topology_type::dual(s));
+		auto Y = topology_type::roate(X);
+		auto Z = topology_type::inverse_roate(X);
 		return (
 
 		(

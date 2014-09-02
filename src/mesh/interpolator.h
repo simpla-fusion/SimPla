@@ -59,30 +59,30 @@ private:
 public:
 	template<typename TF>
 	static inline auto Gather_(mesh_type const & mesh, std::integral_constant<unsigned int ,VERTEX>, TF const &f, coordinates_type r)
-	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL) ))
+	DECL_RET_TYPE(Gather_impl_(f, mesh.coordinates_global_to_local(r, 0UL) ))
 
 	template<typename TF>
 	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int ,EDGE>, TF const &f, coordinates_type r)
 	DECL_RET_TYPE(
 			make_ntuple(
 
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DI)) ),
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DJ)) ),
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r, (topology_type::_DK)) )
+					Gather_impl_(f, mesh.coordinates_global_to_local(r, (topology_type::_DI)) ),
+					Gather_impl_(f, mesh.coordinates_global_to_local(r, (topology_type::_DJ)) ),
+					Gather_impl_(f, mesh.coordinates_global_to_local(r, (topology_type::_DK)) )
 			))
 
 	template<typename TF>
 	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int ,FACE>, TF const &f, coordinates_type r)
 	DECL_RET_TYPE( make_ntuple(
 
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DJ | topology_type::_DK))) ),
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DK | topology_type::_DI))) ),
-					Gather_impl_(f, mesh.CoordinatesGlobalToLocal(r,((topology_type::_DI | topology_type::_DJ))) )
+					Gather_impl_(f, mesh.coordinates_global_to_local(r,((topology_type::_DJ | topology_type::_DK))) ),
+					Gather_impl_(f, mesh.coordinates_global_to_local(r,((topology_type::_DK | topology_type::_DI))) ),
+					Gather_impl_(f, mesh.coordinates_global_to_local(r,((topology_type::_DI | topology_type::_DJ))) )
 			) )
 
 	template<typename TF>
 	static inline auto Gather_(mesh_type const& mesh, std::integral_constant<unsigned int ,VOLUME>, TF const &f, coordinates_type const & x)
-	DECL_RET_TYPE(Gather_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DA)) ))
+	DECL_RET_TYPE(Gather_impl_(f, mesh.coordinates_global_to_local(x, (topology_type::_DA)) ))
 private:
 	template<typename TF, typename IDX, typename TV>
 	static inline void Scatter_impl_(TF *f, IDX const& idx, TV & v)
@@ -108,17 +108,17 @@ public:
 	template<typename TF, typename TV>
 	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int ,VERTEX>, TF *f, coordinates_type const &x, TV const & v)
 	{
-		get_value(*f, std::get<0>(mesh.CoordinatesGlobalToLocalNGP(x, 0UL))) += v;
-//		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(r, 0UL), v);
+		get_value(*f, std::get<0>(mesh.coordinates_global_to_local_NGP(x, 0UL))) += v;
+//		Scatter_impl_(f, mesh.coordinates_global_to_local(r, 0UL), v);
 	}
 
 	template<typename TF, typename TV>
 	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int ,EDGE>, TF *f, coordinates_type const & x,
 	        nTuple<3, TV> const & u)
 	{
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DI)), u[0]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DJ)), u[1]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, (topology_type::_DK)), u[2]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, (topology_type::_DI)), u[0]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, (topology_type::_DJ)), u[1]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, (topology_type::_DK)), u[2]);
 
 	}
 
@@ -127,17 +127,17 @@ public:
 	        nTuple<3, TV> const & u)
 	{
 
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DJ | topology_type::_DK))), u[0]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DK | topology_type::_DI))), u[1]);
-		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, ((topology_type::_DI | topology_type::_DJ))), u[2]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, ((topology_type::_DJ | topology_type::_DK))), u[0]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, ((topology_type::_DK | topology_type::_DI))), u[1]);
+		Scatter_impl_(f, mesh.coordinates_global_to_local(x, ((topology_type::_DI | topology_type::_DJ))), u[2]);
 	}
 
 	template<typename TF, typename TV>
 	static inline void Scatter_(mesh_type const& mesh, std::integral_constant<unsigned int ,VOLUME>, TF *f, coordinates_type const & x,
 	        TV const & v)
 	{
-		get_value(*f, std::get<0>(mesh.CoordinatesGlobalToLocalNGP(x, topology_type::_DA))) += v;
-//		Scatter_impl_(f, mesh.CoordinatesGlobalToLocal(x, topology_type::_DA), v);
+		get_value(*f, std::get<0>(mesh.coordinates_global_to_local_NGP(x, topology_type::_DA))) += v;
+//		Scatter_impl_(f, mesh.coordinates_global_to_local(x, topology_type::_DA), v);
 	}
 
 	/***

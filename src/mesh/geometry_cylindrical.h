@@ -292,20 +292,20 @@ public:
 
 	}
 	template<typename ... Args>
-	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
+	inline coordinates_type coordinates_local_to_global(Args && ... args) const
 	{
-		return CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...));
+		return CoordinatesFromTopology(topology_type::coordinates_local_to_global(std::forward<Args >(args)...));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(coordinates_type x,
 	        typename topology_type::compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(topology_type::coordinates_global_to_local(std::move(CoordinatesToTopology(x)), shift));
 	}
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocalNGP(coordinates_type x,
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(coordinates_type x,
 	        compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::CoordinatesGlobalToLocalNGP(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(topology_type::coordinates_global_to_local_NGP(std::move(CoordinatesToTopology(x)), shift));
 	}
 //!@}
 //! @name Coordiantes convert Cylindrical <-> Cartesian
@@ -438,13 +438,13 @@ public:
 	}
 //! @}
 
-	auto Select(unsigned int iform, coordinates_type const & xmin,
+	auto select(unsigned int iform, coordinates_type const & xmin,
 	        coordinates_type const & xmax) const
-	                DECL_RET_TYPE((this->topology_type::Select(this->topology_type::Select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+	                DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
-	auto Select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((this->topology_type::Select(iform,std::forward<Args >(args)...)))
+	auto select(unsigned int iform, Args && ...args) const
+	DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
 
 	template<typename TV>
 	TV const& Normal(index_type s, TV const & v) const
@@ -455,7 +455,7 @@ public:
 	template<typename TV>
 	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
 	{
-		return v[topology_type::ComponentNum(s)];
+		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
@@ -473,13 +473,13 @@ public:
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s)];
+		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s)];
+		return v[topology_type::component_number(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
@@ -535,35 +535,35 @@ public:
 		return 1.0;
 	}
 
-	Real CellVolume(compact_index_type s) const
+	Real cell_volume(compact_index_type s) const
 	{
-		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4] * get_coordinates(s)[RAxis];
+		return topology_type::cell_volume(s) * volume_[1] * volume_[2] * volume_[4] * get_coordinates(s)[RAxis];
 	}
 
-	scalar_type Volume(compact_index_type s) const
+	scalar_type volume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(s);
-		return topology_type::Volume(s) * volume_[n]
+		unsigned int n = topology_type::node_id(s);
+		return topology_type::volume(s) * volume_[n]
 		        * (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type InvVolume(compact_index_type s) const
+	scalar_type inv_volume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(s);
-		return topology_type::InvVolume(s) * inv_volume_[n]
+		unsigned int n = topology_type::node_id(s);
+		return topology_type::inv_volume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 
-	scalar_type DualVolume(compact_index_type s) const
+	scalar_type dual_volume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
-		return topology_type::DualVolume(s) * volume_[n]
+		unsigned int n = topology_type::node_id(topology_type::dual(s));
+		return topology_type::dual_volume(s) * volume_[n]
 		        * (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
-	scalar_type InvDualVolume(compact_index_type s) const
+	scalar_type inv_dual_volume(compact_index_type s) const
 	{
-		unsigned int n = topology_type::NodeId(topology_type::Dual(s));
-		return topology_type::InvDualVolume(s) * inv_volume_[n]
+		unsigned int n = topology_type::node_id(topology_type::dual(s));
+		return topology_type::inv_dual_volume(s) * inv_volume_[n]
 		        / (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
 	}
 //! @}

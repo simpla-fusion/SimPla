@@ -519,7 +519,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 {
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
 
-	for (auto s : model.Select(E_type::IForm))
+	for (auto s : model.select(E_type::IForm))
 	{
 		if (model.get(s) == model.null_material)
 		{
@@ -542,7 +542,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
 
-	for (auto s : model.Select(B_type::IForm))
+	for (auto s : model.select(B_type::IForm))
 	{
 		if (model.get(s) == model.null_material)
 		{

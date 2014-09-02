@@ -39,7 +39,7 @@ private:                                                                        
 	typedef std::false_type no;                                                            \
                                                                                            \
 	template<typename U>                                                                   \
-	static auto test(int) ->  decltype(std::declval<U>()._NAME_  )                         \
+	static auto test(int) ->  decltype(std::declval<U>()._NAME_  )   ;                     \
 	template<typename > static no test(...);                                               \
                                                                                            \
 public:                                                                                    \
@@ -55,7 +55,7 @@ private:                                                                        
 	typedef std::false_type no;                                                            \
                                                                                            \
 	template<typename U>                                                                   \
-	static auto test(int) ->  U::_NAME_                        \
+	static auto test(int) ->  U::_NAME_   ;                     \
 	template<typename > static no test(...);                                               \
                                                                                            \
 public:                                                                                    \
@@ -411,12 +411,12 @@ T rend(std::pair<T, T>const & range)
 	return std::move(range.first--);
 }
 
-template<typename T> T const &Compact(T const &v)
+template<typename T> T const &compact(T const &v)
 {
 	return v;
 }
 
-template<typename T> void Decompact(T const &v, T * u)
+template<typename T> void decompact(T const &v, T * u)
 {
 	*u = v;
 }

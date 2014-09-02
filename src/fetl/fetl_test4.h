@@ -50,7 +50,7 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	LOG_CMD(res_vector_field = Cross(vaf, vbf));
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 		ASSERT_EQ(Cross(vaf[s], vbf[s]), res_vector_field[s]);
 
@@ -58,7 +58,7 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	LOG_CMD(res_scalar_field = Dot(vaf, vbf));
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 		ASSERT_EQ(InnerProductNTuple(vaf[s], vbf[s]), res_scalar_field[s]);
 	}

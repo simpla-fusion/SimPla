@@ -299,39 +299,39 @@ public:
 	template<typename TR>
 	filter_range_type<TR> SelectByNGP(TR const& range, coordinates_type const & points) const;
 
-	auto Select(unsigned int iform) const
-	DECL_RET_TYPE( (mesh_type::Select(iform)))
+	auto select(unsigned int iform) const
+	DECL_RET_TYPE( (mesh_type::select(iform)))
 
 	template<typename ...Args>
 	auto SelectInterface(int iform, Args &&...args) const
-	DECL_RET_TYPE((SelectInterface(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE((SelectInterface(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByConfig(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByConfig(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (SelectByConfig(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByMaterial(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( (SelectByMaterial(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPoints(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByPoints(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByRectangle(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByRectangle(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByRectangle(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByPolylines(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByPolylines(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByPolylines(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	auto SelectByFunction(int iform, std::function<bool(coordinates_type)> fun) const
-	DECL_RET_TYPE( (SelectByFunction(std::move(mesh_type::Select(iform)), fun)))
+	DECL_RET_TYPE( (SelectByFunction(std::move(mesh_type::select(iform)), fun)))
 
 	template<typename ...Args>
 	auto SelectByNGP(int iform, Args &&...args) const
-	DECL_RET_TYPE( ( SelectByNGP(std::move(mesh_type::Select(iform)), std::forward<Args>(args)...)))
+	DECL_RET_TYPE( ( SelectByNGP(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename TR, typename T1, typename T2>
 	filter_range_type<TR> SelectOnSurface(TR const& range, T1 in, T2 out) const;
@@ -444,14 +444,14 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByNGP(TR con
 {
 	compact_index_type dest;
 
-	std::tie(dest, std::ignore) = mesh_type::CoordinatesGlobalToLocal(x);
+	std::tie(dest, std::ignore) = mesh_type::coordinates_global_to_local(x);
 
-	if (mesh_type::InLocalRange(dest))
+	if (mesh_type::in_local_range(dest))
 	{
 
 		pred_fun_type pred = [dest]( compact_index_type const & s )->bool
 		{
-			return mesh_type::GetCellIndex(s)==mesh_type::GetCellIndex(dest);
+			return mesh_type::get_cell_index(s)==mesh_type::get_cell_index(dest);
 		};
 
 		return std::move(make_range_filter(range, std::move(pred)));
@@ -569,16 +569,16 @@ typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectInterface(TR
 			        int num=0;
 			        switch(iform)
 			        {	case VERTEX:
-				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VERTEX>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        num= this->mesh_type::get_adjacent_cells(std::integral_constant<unsigned int ,VERTEX>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				        break;
 				        case EDGE:
-				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,EDGE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        num= this->mesh_type::get_adjacent_cells(std::integral_constant<unsigned int ,EDGE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				        break;
 				        case FACE:
-				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,FACE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        num= this->mesh_type::get_adjacent_cells(std::integral_constant<unsigned int ,FACE>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				        break;
 				        case VOLUME:
-				        num= this->mesh_type::GetAdjacentCells(std::integral_constant<unsigned int ,VOLUME>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
+				        num= this->mesh_type::get_adjacent_cells(std::integral_constant<unsigned int ,VOLUME>(), std::integral_constant<unsigned int ,VOLUME>(), s, neighbours);
 				        break;
 			        }
 
@@ -612,7 +612,7 @@ typename Model<TM>::material_type Model<TM>::get(compact_index_type s) const
 	{
 		compact_index_type neighbours[mesh_type::MAX_NUM_NEIGHBOUR_ELEMENT];
 
-		int num = this->mesh_type::GetVertices(s, neighbours);
+		int num = this->mesh_type::get_vertices(s, neighbours);
 
 		for (int i = 0; i < num; ++i)
 		{

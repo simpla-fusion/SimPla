@@ -174,7 +174,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			v_dist(rnd_gen, &v[0]);
 
-			x = mesh.CoordinatesLocalToGlobal(s, x);
+			x = mesh.coordinates_local_to_global(s, x);
 
 			v *= std::sqrt(boltzmann_constant * Ts(x) / mass);
 

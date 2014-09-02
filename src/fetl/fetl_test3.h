@@ -27,7 +27,7 @@ TEST_P(TestFETL, grad0)
 	f1.clear();
 	f1b.clear();
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 		f0[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
@@ -40,9 +40,9 @@ TEST_P(TestFETL, grad0)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
-		unsigned int n = mesh.ComponentNum(s);
+		unsigned int n = mesh.component_number(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -103,7 +103,7 @@ TEST_P(TestFETL, grad3)
 	f2.clear();
 	f2b.clear();
 
-	for (auto s : mesh.Select(VOLUME))
+	for (auto s : mesh.select(VOLUME))
 	{
 		f3[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
@@ -115,10 +115,10 @@ TEST_P(TestFETL, grad3)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
 
-		unsigned int n = mesh.ComponentNum(s);
+		unsigned int n = mesh.component_number(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -175,7 +175,7 @@ TEST_P(TestFETL, diverge1)
 	f0b.clear();
 	f1.clear();
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 		f1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
@@ -186,7 +186,7 @@ TEST_P(TestFETL, diverge1)
 
 	scalar_type average = 0.0;
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 
 		auto x = mesh.get_coordinates(s);
@@ -262,7 +262,7 @@ TEST_P(TestFETL, diverge2)
 	f3.clear();
 	f2.clear();
 
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
 		f2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
@@ -272,7 +272,7 @@ TEST_P(TestFETL, diverge2)
 	Real variance = 0;
 	scalar_type average = 0.0;
 
-	for (auto s : mesh.Select(VOLUME))
+	for (auto s : mesh.select(VOLUME))
 	{
 		auto x = mesh.get_coordinates(s);
 
@@ -344,16 +344,16 @@ TEST_P(TestFETL, curl1)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 		vf1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
 	update_ghosts(&vf1);
 	LOG_CMD(vf2 = Curl(vf1));
 
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
-		auto n = mesh.ComponentNum(s);
+		auto n = mesh.component_number(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -441,7 +441,7 @@ TEST_P(TestFETL, curl2)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
 		vf2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
 	};
@@ -450,10 +450,10 @@ TEST_P(TestFETL, curl2)
 
 	vf1b.clear();
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 
-		auto n = mesh.ComponentNum(s);
+		auto n = mesh.component_number(s);
 
 		auto x = mesh.get_coordinates(s);
 
@@ -535,7 +535,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 	Real m = 0.0;
 	f0.clear();
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 
 		auto a = uniform_dist(gen);
@@ -553,7 +553,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
 
 		variance_a += abs(f2a[s]);
@@ -584,7 +584,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 	f3.clear();
 
-	for (auto s : mesh.Select(VOLUME))
+	for (auto s : mesh.select(VOLUME))
 	{
 		auto a = uniform_dist(gen);
 		f3[s] = a * default_value;
@@ -600,7 +600,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 
 //		ASSERT_EQ((f1a[s]), (f1b[s]));
@@ -632,7 +632,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.Select(FACE))
+	for (auto s : mesh.select(FACE))
 	{
 		auto a = uniform_dist(gen);
 
@@ -653,7 +653,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 		variance_b += abs(f0b[s] * f0b[s]);
 		variance_a += abs(f0a[s] * f0a[s]);
@@ -683,7 +683,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 		auto a = uniform_dist(gen);
 		f1[s] = default_value * a;
@@ -703,7 +703,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.Select(VOLUME))
+	for (auto s : mesh.select(VOLUME))
 	{
 
 //		ASSERT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));

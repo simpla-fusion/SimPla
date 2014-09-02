@@ -137,7 +137,7 @@ void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
 	auto ymin = mesh.get_extents().first;
 	auto ymax = mesh.get_extents().second;
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
 		coordinates_type x = mesh.get_coordinates(s);
 

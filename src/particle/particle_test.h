@@ -19,9 +19,7 @@
 
 #include "particle.h"
 #include "particle_update_ghosts.h"
-//
-//#include "save_particle.h"
-#include "particle_pool.h"
+
 using namespace simpla;
 
 #ifndef TMESH
@@ -71,12 +69,12 @@ public:
 
 		typedef std::tuple<nTuple<3, Real>, nTuple<3, Real>, Real> compact_type;
 
-		static compact_type Compact(Point_s const& p)
+		static compact_type compact(Point_s const& p)
 		{
 			return ((std::make_tuple(p.x, p.v, p.f)));
 		}
 
-		static Point_s Decompact(compact_type const & t)
+		static Point_s decompact(compact_type const & t)
 		{
 			Point_s p;
 			p.x = std::get<0>(t);
@@ -112,14 +110,13 @@ TEST_P(TestParticle,Add)
 
 	int pic = 100;
 
-	if (GLOBAL_COMM.get_rank() ==0)
+	if (GLOBAL_COMM.get_rank() == 0)
 	{
-		for (auto s : mesh.Select(VERTEX))
+		for (auto s : mesh.select(VERTEX))
 		{
 			for (int i = 0; i < pic; ++i)
 			{
-				buffer.emplace_back(Point_s(
-						{	mesh.CoordinatesLocalToGlobal(s, x_dist(rnd_gen)), v, 1.0}));
+				buffer.emplace_back(Point_s( { mesh.coordinates_local_to_global(s, x_dist(rnd_gen)), v, 1.0 }));
 			}
 		}
 
@@ -133,11 +130,11 @@ TEST_P(TestParticle,Add)
 //	std::vector<double> a;
 //
 //	p.Remove(
-//	        mesh.Select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
+//	        mesh.select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
 //	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75));
 //
 //	INFORM << "Remove particle DONE " << p.size() << std::endl;
-//	p.Remove(mesh.Select(pool_type::IForm));
+//	p.Remove(mesh.select(pool_type::IForm));
 //
 //	INFORM << "Remove particle DONE " << p.size() << std::endl;
 //	EXPECT_NE(p.size(), 0);
@@ -196,7 +193,7 @@ TEST_P(TestParticle,Add)
 //
 //		Real pic = cfg["ion"]["PIC"].template as<Real>();
 //
-//		for (auto s : mesh.Select(VERTEX))
+//		for (auto s : mesh.select(VERTEX))
 //		{
 //			coordinates_type x = mesh.get_coordinates(s);
 //
@@ -279,13 +276,13 @@ TEST_P(TestParticle,Add)
 //
 //	Real pic =cfg["ion"]["PIC"].template as<Real>();
 //
-//	for(auto s:mesh.Select(VERTEX))
+//	for(auto s:mesh.select(VERTEX))
 //	{
 //		auto x =mesh.get_coordinates(s);
 //		n0[s]=q* n0_cfg(x[0],x[1],x[2]).template as<Real>();
 //	}
 //
-//	for (auto s : mesh.Select(EDGE))
+//	for (auto s : mesh.select(EDGE))
 //	{
 //		auto x=mesh.get_coordinates(s);
 //
@@ -296,7 +293,7 @@ TEST_P(TestParticle,Add)
 //		E[s]=mesh.Sample(std::integral_constant<unsigned int ,EDGE>(),s,Ev);
 //	}
 //
-//	for (auto s : mesh.Select(FACE))
+//	for (auto s : mesh.select(FACE))
 //	{
 //		B[s]= mesh.Sample(std::integral_constant<unsigned int ,FACE>(),s,Bv);
 //	}
@@ -318,7 +315,7 @@ TEST_P(TestParticle,Add)
 //
 //	Real average=0.0;
 //
-//	for(auto s:mesh.Select(VERTEX))
+//	for(auto s:mesh.select(VERTEX))
 //	{
 //		auto expect=J0[s];
 //

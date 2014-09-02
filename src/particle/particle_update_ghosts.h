@@ -72,7 +72,7 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 	for (auto const & item : g_array.send_recv_)
 	{
-		pool->Remove(pool->mesh.SelectOuter(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
+		pool->Remove(pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
 
 		MPI_Status status;
 

@@ -197,18 +197,18 @@ struct MagneticFluxGeometry
 		return v[topology.topology_type::_C(s)];
 	}
 
-	Real Volume(iterator s) const
+	Real volume(iterator s) const
 	{
 		Real res = 1;
 
 		return res;
 	}
-	Real InvVolume(iterator s) const
+	Real inv_volume(iterator s) const
 	{
-		return 1.0 / Volume(s);
+		return 1.0 / volume(s);
 	}
 
-	coordinates_type CoordinatesLocalToGlobal(coordinates_type const &x) const
+	coordinates_type coordinates_local_to_global(coordinates_type const &x) const
 	{
 
 		return coordinates_type( {
@@ -221,7 +221,7 @@ struct MagneticFluxGeometry
 
 		});
 	}
-	coordinates_type CoordinatesGlobalToLocal(coordinates_type const &x) const
+	coordinates_type coordinates_global_to_local(coordinates_type const &x) const
 	{
 		return coordinates_type( {
 

@@ -120,7 +120,7 @@ TYPED_TEST_P(TestFETLBase, constant_real){
 
 	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
-	for(auto s :mesh.Select( field_type::IForm))
+	for(auto s :mesh.select( field_type::IForm))
 	{
 		value_type res;
 		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
@@ -201,9 +201,9 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	 * */
 	count =0;
 
-	auto hash=mesh.make_hash(mesh.Select( field_type::IForm ));
+	auto hash=mesh.make_hash(mesh.select( field_type::IForm ));
 
-	for(auto s :mesh.Select( field_type::IForm ) )
+	for(auto s :mesh.select( field_type::IForm ) )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 

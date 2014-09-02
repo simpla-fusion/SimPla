@@ -181,15 +181,15 @@ public:
 
 	inline value_type & at(compact_index_type s)
 	{
-		if (!mesh.CheckLocalMemoryBounds(s))
-		OUT_RANGE_ERROR(mesh.Decompact(s));
+		if (!mesh.check_local_memory_bounds(s))
+		OUT_RANGE_ERROR(mesh.decompact(s));
 		return get(s);
 	}
 
 	inline value_type const & at(compact_index_type s) const
 	{
-		if (!mesh.CheckLocalMemoryBounds(s))
-		OUT_RANGE_ERROR(mesh.Decompact(s));
+		if (!mesh.check_local_memory_bounds(s))
+		OUT_RANGE_ERROR(mesh.decompact(s));
 		return get(s);
 	}
 

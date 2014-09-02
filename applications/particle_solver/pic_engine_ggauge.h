@@ -62,12 +62,12 @@ public:
 
 		typedef std::tuple<coordinates_type, Vec3, Real, nTuple<NMATE, scalar_type>> compact_type;
 
-		static compact_type Compact(Point_s const& p)
+		static compact_type compact(Point_s const& p)
 		{
 			return ((std::make_tuple(p.x, p.v, p.f, p.w)));
 		}
 
-		static Point_s Decompact(compact_type const & t)
+		static Point_s decompact(compact_type const & t)
 		{
 			Point_s p;
 			p.x = std::get<0>(t);

@@ -140,7 +140,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	nTuple<NDIMS,Real> K=
 	{	5/(xmax[0]-xmin[0]), 3/(xmax[1]-xmin[1]), 2/(xmax[2]-xmin[2])};
 
-	for(auto s:mesh.Select(IForm))
+	for(auto s:mesh.select(IForm))
 	{
 		f[s]= (InnerProductNTuple(K,mesh.get_coordinates(s)-xmin));
 	}

@@ -115,7 +115,7 @@ TYPED_TEST_P(TestField,create){
 
 	// Check default value
 
-	for(auto s:mesh.Select(IForm))
+	for(auto s:mesh.select(IForm))
 	{
 		EXPECT_EQ(v,f[s]);
 	}
@@ -139,7 +139,7 @@ TYPED_TEST_P(TestField,assign){
 
 	f.clear();
 
-	for(auto s:mesh.Select(IForm))
+	for(auto s:mesh.select(IForm))
 	{
 		value_type ss;
 		ss=s;
@@ -148,7 +148,7 @@ TYPED_TEST_P(TestField,assign){
 
 	EXPECT_EQ(mesh.get_local_memory_size(IForm),f.size());
 
-	for(auto s:mesh.Select(IForm))
+	for(auto s:mesh.select(IForm))
 	{
 		value_type ss;
 		ss=s;
@@ -177,7 +177,7 @@ TYPED_TEST_P(TestField,traversal){
 
 	size_t count =0;
 
-	for(auto s:mesh.Select(IForm))
+	for(auto s:mesh.select(IForm))
 	{
 		value_type ss;
 		ss=count;
@@ -189,7 +189,7 @@ TYPED_TEST_P(TestField,traversal){
 
 	count=0;
 
-	for(auto s:mesh.Select(field_type::IForm) )
+	for(auto s:mesh.select(field_type::IForm) )
 	{
 		value_type ss;
 		ss=count;

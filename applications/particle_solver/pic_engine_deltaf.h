@@ -24,9 +24,15 @@ namespace simpla
  * \brief \f$\delta f\f$ engine
  */
 
-struct PICEngineDeltaF
+template<typename Policy> class ParticleEngine;
+class PolicyPICDeltaF;
+
+typedef ParticleEngine<PolicyPICDeltaF> PICDeltaF;
+
+template<>
+struct ParticleEngine<PolicyPICDeltaF>
 {
-	typedef PICEngineDeltaF this_type;
+	typedef ParticleEngine<PolicyPICDeltaF> this_type;
 	typedef Vec3 coordinates_type;
 	typedef Vec3 vector_type;
 	typedef Real scalar_type;
@@ -49,8 +55,8 @@ private:
 	Real cmr_, q_kT_;
 public:
 
-	PICEngineDeltaF() :
-			mass(1.0), charge(1.0), temperature(1.0)
+	ParticleEngine()
+			: mass(1.0), charge(1.0), temperature(1.0)
 	{
 		update();
 	}
@@ -62,7 +68,7 @@ public:
 		q_kT_ = charge / (temperature * boltzmann_constant);
 	}
 
-	~PICEngineDeltaF()
+	~ParticleEngine()
 	{
 	}
 

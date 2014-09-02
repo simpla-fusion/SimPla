@@ -54,9 +54,9 @@ int main(int argc, char **argv)
 	f0.clear();
 	f1.clear();
 
-	for (auto s : mesh.Select(VERTEX))
+	for (auto s : mesh.select(VERTEX))
 	{
-		auto idx = (mesh_type::Decompact(s) >> mesh_type::MAX_DEPTH_OF_TREE) - mesh.global_begin_;
+		auto idx = (mesh_type::decompact(s) >> mesh_type::MAX_DEPTH_OF_TREE) - mesh.global_begin_;
 
 		f0[s] = idx[0] + (GLOBAL_COMM.get_rank())*100;
 
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
 
 	fv.clear();
 
-	for (auto s : mesh.Select(EDGE))
+	for (auto s : mesh.select(EDGE))
 	{
 		auto x = mesh.get_coordinates(s);
 

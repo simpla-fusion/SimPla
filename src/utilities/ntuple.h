@@ -260,6 +260,7 @@ struct nTuple
 	void operator/(nTuple<NR, TR> const & rhs) = delete;
 
 };
+template<unsigned int N, typename T> using Matrix=nTuple<N,nTuple<N,T>>;
 
 template<typename T>
 auto make_ntuple(T v0)

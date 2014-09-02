@@ -91,7 +91,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	typename mesh_type::compact_index_type dest;
 
-	std::tie(dest,std::ignore)=model.CoordinatesGlobalToLocal(x);
+	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 
 	static constexpr unsigned int IForm=TestFixture::IForm;
 
@@ -101,7 +101,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	for(auto s :range)
 	{
-		EXPECT_EQ( mesh_type::GetCellIndex(s),mesh_type::GetCellIndex(dest));
+		EXPECT_EQ( mesh_type::get_cell_index(s),mesh_type::get_cell_index(dest));
 		++count;
 	}
 
@@ -111,7 +111,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 //
 //	x= min-100;
 //
-//	std::tie(dest,std::ignore)=model.CoordinatesGlobalToLocal(x);
+//	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 //
 //	auto range2=model.SelectByNGP( TestFixture::IForm, x);
 //
@@ -119,7 +119,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 //
 //	for(auto s :range2)
 //	{
-//		EXPECT_EQ( mesh_type::GetCellIndex(s),mesh_type::GetCellIndex(dest));
+//		EXPECT_EQ( mesh_type::get_cell_index(s),mesh_type::get_cell_index(dest));
 //		++count;
 //	}
 //	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(IForm));
@@ -181,7 +181,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
 		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
 	}
-	for (auto s : model.Select(TestFixture::IForm))
+	for (auto s : model.select(TestFixture::IForm))
 	{
 		auto x = model.get_coordinates(s);
 
@@ -269,7 +269,7 @@ TYPED_TEST_P(TestModel,SelectByMaterial ){
 		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
 		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
 	}
-	for (auto s : model.Select(TestFixture::IForm))
+	for (auto s : model.select(TestFixture::IForm))
 	{
 		auto x = model.get_coordinates(s);
 

@@ -46,14 +46,15 @@
 #include "../utilities/lua_state.h"
 
 #include "../parallel/parallel.h"
+#include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
-#include "particle.h"
+
+#include "kinetic_particle.h"
 #include "particle_update_ghosts.h"
 #include "load_particle.h"
 
 //
 //#include "save_particle.h"
-#include "particle_pool.h"
 using namespace simpla;
 
 #include "../mesh/mesh_rectangle.h"
@@ -72,7 +73,7 @@ int main(int argc, char **argv)
 
 	typedef typename PICEngineFullF::Point_s Point_s;
 
-	typedef Particle<mesh_type, PICEngineFullF> particle_type;
+	typedef KineticParticle<mesh_type, PICEngineFullF> particle_type;
 
 	mesh_type mesh;
 
@@ -116,16 +117,16 @@ int main(int argc, char **argv)
 	p.properties.set("DumpParticle", true);
 	p.properties.set("ScatterN", true);
 
-	InitParticle(&p, mesh.Select(VERTEX), 500, n, T);
+//	InitParticle(&p, mesh.select(VERTEX), 500, n, T);
 //
 ////	{
-////		auto range=mesh.Select(VERTEX);
+////		auto range=mesh.select(VERTEX);
 ////		auto s0=*std::get<0>(range);
 ////		nTuple<3,Real> r=
 ////		{	0.5,0.5,0.5};
 ////
 ////		particle_type::Point_s a;
-////		a.x = mesh.CoordinatesLocalToGlobal(s0, r);
+////		a.x = mesh.coordinates_local_to_global(s0, r);
 ////		a.f = 1.0;
 ////		p[s0].push_back(std::move(a));
 ////
@@ -146,7 +147,7 @@ int main(int argc, char **argv)
 
 //	if(GLOBAL_COMM.get_rank()==0)
 //	{
-//		for (auto s : mesh.Select(VERTEX))
+//		for (auto s : mesh.select(VERTEX))
 //		{
 //			rho[s]+=10;
 //		}

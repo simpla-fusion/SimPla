@@ -199,7 +199,7 @@ void createSurface(TModel const & model, Real width, TSurface * surf)
 ////	nTuple<3, Real> x2 = { 0, d[1], 0 };
 ////	nTuple<3, Real> x3 = { 0, 0, d[2] };
 ////
-////	for (auto s : mesh.Select(VERTEX))
+////	for (auto s : mesh.select(VERTEX))
 ////	{
 ////		auto x = mesh.get_coordinates(s);
 ////

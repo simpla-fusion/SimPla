@@ -7,41 +7,32 @@
 
 #ifndef PROBE_PARTICLE_H_
 #define PROBE_PARTICLE_H_
-#include <exception>
+
 #include <iostream>
-#include <list>
-#include <map>
-#include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
-#include "../fetl/fetl.h"
+#include "../io/data_stream.h"
 #include "../utilities/log.h"
-#include "../utilities/sp_type_traits.h"
-
-#include "../parallel/parallel.h"
-#include "../model/model.h"
-
-#include "particle_base.h"
-#include "load_particle.h"
-#include "save_particle.h"
+#include "../utilities/primitives.h"
+#include "../utilities/properties.h"
 
 namespace simpla
 {
+class PolicyProbeParticle;
+template<typename TM, typename Engine, typename Policy> class Particle;
+template<typename TM, typename Engine> using ProbeParticle=Particle<TM, Engine, PolicyProbeParticle>;
 
-template<typename Engine>
-class ProbeParticle: public Engine, public ParticleBase, public std::vector<typename Engine::Point_s>
+template<typename TM, typename Engine>
+class Particle<TM, Engine, PolicyProbeParticle> : public Engine
 {
 public:
-
+	typedef TM mesh_type;
 	typedef Engine engine_type;
 
-	typedef ProbeParticle<engine_type> this_type;
+	typedef Particle<mesh_type, engine_type, PolicyProbeParticle> this_type;
 
 	typedef ContainerSaveCache<typename Engine::Point_s> storage_type;
-
-	typedef typename engine_type::mesh_type mesh_type;
 
 	typedef typename engine_type::Point_s particle_type;
 
@@ -54,40 +45,31 @@ public:
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 public:
+
+	mesh_type const & mesh;
+
+	Properties properties;
+
 	//***************************************************************************************************
 	// Constructor
-	ProbeParticle();
-
-	template<typename TDict, typename ...Others> ProbeParticle(TDict const & dict, Others &&...othes);
+	template<typename ...Others>
+	Particle(mesh_type const & pmesh, Others && ...);	// Constructor
 
 	// Destructor
-	~ProbeParticle();
+	~Particle();
 
-	template<typename TDict> void load(TDict const & dict);
-
-	template<typename ...Args>
-	static std::shared_ptr<ParticleBase> create(Args && ... args)
+	static std::string get_type_as_string()
 	{
-		return std::dynamic_pointer_cast<ParticleBase>(
-		        std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)));
+		return "Probe" + engine_type::get_type_as_string();
 	}
 
-	template<typename ...Args>
-	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
-	{
-		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
-		{
-			return this_type::create(args...);
-		};
-		return std::move(std::make_pair(get_type_as_string_static(), call_back));
-	}
+	void load();
+
+	template<typename TDict, typename ...Others>
+	void load(TDict const & dict, Others && ...others);
+
 	//***************************************************************************************************
 	// interface begin
-
-	bool same_mesh_type(std::type_info const & t_info) const
-	{
-		return t_info == typeid(mesh_type);
-	}
 
 	std::string save(std::string const & path) const;
 
@@ -97,134 +79,73 @@ public:
 		return os;
 	}
 
-	Real get_mass() const
-	{
-		return engine_type::get_mass();
-	}
+	static std::string get_type_as_string();
 
-	Real get_charge() const
-	{
-		return engine_type::get_charge();
-	}
+	std::string save(std::string const & path) const;
 
-	bool is_implicit() const
-	{
-		return engine_type::is_implicit;
-	}
+	std::ostream& print(std::ostream & os) const;
 
-	std::string get_type_as_string() const
-	{
-		return get_type_as_string_static();
-	}
+	template<typename ...Args> void next_timestep(Real dt, Args && ...);
 
-	static std::string get_type_as_string_static()
-	{
-		return engine_type::get_type_as_string();
-	}
+	template<typename TJ> void ScatterJ(TJ * J) const;
 
-	typedef typename mesh_type::template field<EDGE, scalar_type> E_type;
-	typedef typename mesh_type::template field<FACE, scalar_type> B_type;
-
-	void next_timestep_zero_(void const * E, void const*B)
-	{
-		next_timestep_zero(*reinterpret_cast<E_type const *>(E), *reinterpret_cast<B_type const*>(B));
-	}
-
-	void next_timestep_half_(void const * E, void const*B)
-	{
-		next_timestep_half(*reinterpret_cast<E_type const*>(E), *reinterpret_cast<B_type const*>(B));
-	}
-
-	template<typename TE, typename TB>
-	void next_timestep_zero(TE const &E, TB const & B);
-
-	template<typename TE, typename TB>
-	void next_timestep_half(TE const &E, TB const & B);
+	template<typename TJ> void ScatterRho(TJ * rho) const;
 
 };
-template<typename Engine>
-Particle<Engine>::Particle(mesh_type const & pmesh)
-		: engine_type(pmesh), mesh(pmesh)
+
+template<typename TM, typename Engine>
+template<typename ... Others>
+Particle<TM, Engine, PolicyProbeParticle>::Particle(mesh_type const & pmesh, Others && ...others)
+		: mesh(pmesh)
+{
+	load(std::forward<Others>(others)...);
+}
+
+template<typename TM, typename Engine>
+Particle<TM, Engine, PolicyProbeParticle>::~Particle()
 {
 }
-template<typename Engine>
+template<typename TM, typename Engine>
 template<typename TDict, typename ...Others>
-ProbeParticle<Engine>::ProbeParticle(TDict const & dict, Others &&...others)
-		: ProbeParticle(pmesh)
+void Particle<TM, Engine, PolicyProbeParticle>::load(TDict const & dict, Others && ...others)
 {
-	load(dict);
-}
-template<typename Engine>
-template<typename TDict>
-void ProbeParticle<Engine>::load(TDict const & dict)
-{
-	engine_type::load(dict);
-}
+	engine_type::load(dict, std::forward<Others>(others)...);
 
-template<typename Engine>
-ProbeParticle<Engine>::~ProbeParticle()
-{
+	pic_.load(dict, std::forward<Others>(others)...);
+
+	properties.set("DumpParticle", dict["DumpParticle"].template as<bool>(false));
+
+	properties.set("ContinuityEquation", dict["ContinuityEquation"].template as<bool>(false));
+
+	properties.set("ScatterRho", dict["ScatterRho"].template as<bool>(false));
+
 }
 
-template<typename Engine>
-std::string ProbeParticle<Engine>::save(std::string const & path) const
+template<typename TM, typename Engine>
+Particle<TM, Engine, PolicyProbeParticle>::~Particle()
+{
+}
+
+template<typename TM, typename Engine>
+std::string Particle<TM, Engine, PolicyProbeParticle>::save(std::string const & path) const
 {
 
-	VERBOSE( simpla:: save(path, * dynamic_cast<std::vector<typename Engine::Point_s>const *>(this),
+	VERBOSE(simpla:: save(path, * dynamic_cast<std::vector<typename Engine::Point_s>const *>(this),
 			DataStream::SP_CACHE|DataStream::SP_RECORD));
-
-//	if (is_verbose)
-//	{
-//		GLOBAL_DATA_STREAM.DisableCompactStorable();
-//		os
-//
-//		<< engine_type::save(path)
-//
-//		<< "\n, ProbeParticles = " << storage_type::save("particles")
-//
-//		;
-//
-//		os << "\n, n =" << simpla::save( "n",n);
-//
-//		os << "\n, J =" << simpla::save( "J",J);
-//
-//		GLOBAL_DATA_STREAM.EnableCompactStorable();
-//	}
-//	else
 
 	return "";
 }
 
-template<typename Engine>
-template<typename TE, typename TB>
-void Particle<Engine>::next_timestep_zero(TE const & E, TB const & B)
+template<typename TM, typename Engine>
+template<typename ... Args>
+void Particle<TM, Engine, PolicyProbeParticle>::next_timestep(Real dt, Args && ... args)
 {
 
-	LOGGER << "Push probe particles to zero step [ " << engine_type::get_type_as_string();
-
-	Real dt = mesh.get_dt();
+	LOGGER << "Push probe particles to zero step [ " << get_type_as_string();
 
 	for (auto & p : *this)
 	{
-		this->engine_type::next_timestep_zero(&p, dt, E, B);
-	}
-
-	LOGGER << DONE;
-
-}
-
-template<typename Engine>
-template<typename TE, typename TB>
-void Particle<Engine>::next_timestep_half(TE const & E, TB const & B)
-{
-
-	LOGGER << "Push probe particles to half step[ " << engine_type::get_type_as_string();
-
-	Real dt = mesh.get_dt();
-
-	for (auto & p : *this)
-	{
-		this->engine_type::next_timestep_half(&p, dt, E, B);
+		this->engine_type::next_timestep(&p, dt, std::forward<Args>(args)...);
 	}
 
 	LOGGER << DONE;

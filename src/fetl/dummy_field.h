@@ -161,20 +161,20 @@ public:
 		}
 	}
 
-	auto Select() DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
-	auto Select() const DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm ))))
+	auto select() DECL_RET_TYPE((make_mapped_range( *this, mesh.select(IForm ))))
+	auto select() const DECL_RET_TYPE((make_mapped_range( *this, mesh.select(IForm ))))
 
 	template<typename ... Args>
-	auto Select(Args &&... args)
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
+	auto select(Args &&... args)
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.select(IForm,std::forward<Args>(args)...))))
 	template<typename ... Args>
-	auto Select(Args &&... args) const
-	DECL_RET_TYPE((make_mapped_range( *this, mesh.Select(IForm,std::forward<Args>(args)...))))
+	auto select(Args &&... args) const
+	DECL_RET_TYPE((make_mapped_range( *this, mesh.select(IForm,std::forward<Args>(args)...))))
 
-	auto begin() DECL_RET_TYPE(simpla::begin(this->Select()))
-	auto begin() const DECL_RET_TYPE(simpla::begin(this->Select()))
-	auto end() DECL_RET_TYPE(simpla::end(this->Select()))
-	auto end() const DECL_RET_TYPE(simpla::end(this->Select()))
+	auto begin() DECL_RET_TYPE(simpla::begin(this->select()))
+	auto begin() const DECL_RET_TYPE(simpla::begin(this->select()))
+	auto end() DECL_RET_TYPE(simpla::end(this->select()))
+	auto end() const DECL_RET_TYPE(simpla::end(this->select()))
 
 	template<typename TD>
 	void Fill(TD default_value)

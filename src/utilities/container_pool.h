@@ -10,7 +10,6 @@
 #include <map>
 #include <list>
 #include <scoped_allocator>
-#include <cstddef> // for size_t
 
 #ifdef NO_STD_CXX
 template<typename T> using FixedSmallSizeAlloc=std::allocator<T>;
@@ -73,9 +72,9 @@ public:
 	 *
 	 * @return a new child container with shared allocator
 	 */
-	value_type create_child() const
+	inner_container_type create_child() const
 	{
-		return std::move(sub_pool_type(default_value_));
+		return std::move(inner_container_type(default_value_));
 	}
 
 	//***************************************************************************************************
@@ -131,12 +130,6 @@ size_t ContainerPool<IndexType, ValueType>::count(TR && range) const
 
 	return count;
 }
-template<typename IndexType, typename ValueType>
-size_t ContainerPool<IndexType, ValueType>::count() const
-{
-
-	return count(mesh.Select(IForm));
-}
 
 template<typename IndexType, typename ValueType>
 template<typename TRange, typename HashFun>
@@ -145,7 +138,7 @@ void ContainerPool<IndexType, ValueType>::sort(TRange && range, HashFun const & 
 
 	parallel_reduce(range, *this, this,
 
-	[this](TRange const & r,this_type * t_buffer)
+	[&](TRange const & r,this_type * t_buffer)
 	{
 		for(auto const & s:r)
 		{
@@ -181,28 +174,28 @@ void ContainerPool<IndexType, ValueType>::sort(TRange && range, HashFun const & 
 
 }
 
-template<typename IndexType, typename ValueType>
-void ContainerPool<IndexType, ValueType>::clear_empty()
-{
-	auto it = base_type::begin(), ie = base_type::end();
-
-	while (it != ie)
-	{
-		auto t = it;
-		++it;
-		if (t->second.empty())
-		{
-			base_type::erase(t);
-		}
-	}
-}
+//template<typename IndexType, typename ValueType>
+//void ContainerPool<IndexType, ValueType>::clear_empty()
+//{
+//	auto it = base_type::begin(), ie = base_type::end();
+//
+//	while (it != ie)
+//	{
+//		auto t = it;
+//		++it;
+//		if (t->second.empty())
+//		{
+//			base_type::erase(t);
+//		}
+//	}
+//}
 
 template<typename IndexType, typename ValueType>
 void ContainerPool<IndexType, ValueType>::merge(this_type & other)
 {
 	for (auto & v : other.data_)
 	{
-		auto & c = data_[v.first];
+		auto & c = base_type::operator[](v.first);
 		c.splice(c.begin(), v.second);
 	}
 
@@ -213,19 +206,6 @@ void ContainerPool<IndexType, ValueType>::add(inner_container_type &other)
 	if (other->size() <= 0)
 		return;
 
-	parallel_reduce(other, *this, this,
-
-	[](TRange && r)
-	{
-
-	},
-
-	[](this_type & l ,this_type * r)
-	{
-		r->merge(l);
-	}
-
-	);
 }
 
 template<typename IndexType, typename ValueType>

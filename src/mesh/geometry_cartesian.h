@@ -290,20 +290,20 @@ public:
 	 * @return
 	 */
 	template<typename ... Args>
-	inline coordinates_type CoordinatesLocalToGlobal(Args && ... args) const
+	inline coordinates_type coordinates_local_to_global(Args && ... args) const
 	{
-		return std::move(CoordinatesFromTopology(topology_type::CoordinatesLocalToGlobal(std::forward<Args >(args)...)));
+		return std::move(CoordinatesFromTopology(topology_type::coordinates_local_to_global(std::forward<Args >(args)...)));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocal(coordinates_type x,
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(coordinates_type x,
 	        compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::CoordinatesGlobalToLocal(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(topology_type::coordinates_global_to_local(std::move(CoordinatesToTopology(x)), shift));
 	}
-	std::tuple<compact_index_type, coordinates_type> CoordinatesGlobalToLocalNGP(coordinates_type x,
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(coordinates_type x,
 	        compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::CoordinatesGlobalToLocalNGP(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(topology_type::coordinates_global_to_local_NGP(std::move(CoordinatesToTopology(x)), shift));
 	}
 
 	coordinates_type InvMapTo(coordinates_type const &y) const
@@ -393,15 +393,15 @@ public:
 	}
 
 	template<typename TR>
-	auto Select(TR range, coordinates_type const & xmin, coordinates_type const & xmax) const
-	DECL_RET_TYPE((topology_type::Select(range, this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+	auto select(TR range, coordinates_type const & xmin, coordinates_type const & xmax) const
+	DECL_RET_TYPE((topology_type::select(range, this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename TR, typename ...Args>
-	auto Select(TR range, Args && ...args) const
-	DECL_RET_TYPE((topology_type::Select(range,std::forward<Args >(args)...)))
+	auto select(TR range, Args && ...args) const
+	DECL_RET_TYPE((topology_type::select(range,std::forward<Args >(args)...)))
 
-	auto Select(unsigned int iform) const
-	DECL_RET_TYPE((this->topology_type::Select(iform)))
+	auto select(unsigned int iform) const
+	DECL_RET_TYPE((this->topology_type::select(iform)))
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s, TV const &v) const
@@ -418,13 +418,13 @@ public:
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s)];
+		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s, nTuple<3, TV> const &v) const
 	{
-		return v[topology_type::ComponentNum(s)];
+		return v[topology_type::component_number(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
@@ -475,26 +475,26 @@ public:
 
 public:
 
-	scalar_type CellVolume(compact_index_type s) const
+	scalar_type cell_volume(compact_index_type s) const
 	{
-		return topology_type::CellVolume(s) * volume_[1] * volume_[2] * volume_[4];
+		return topology_type::cell_volume(s) * volume_[1] * volume_[2] * volume_[4];
 	}
-	scalar_type Volume(compact_index_type s) const
+	scalar_type volume(compact_index_type s) const
 	{
-		return topology_type::Volume(s) * volume_[topology_type::NodeId(s)];
+		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
 	}
-	scalar_type InvVolume(compact_index_type s) const
+	scalar_type inv_volume(compact_index_type s) const
 	{
-		return topology_type::InvVolume(s) * inv_volume_[topology_type::NodeId(s)];
+		return topology_type::inv_volume(s) * inv_volume_[topology_type::node_id(s)];
 	}
 
-	scalar_type DualVolume(compact_index_type s) const
+	scalar_type dual_volume(compact_index_type s) const
 	{
-		return topology_type::DualVolume(s) * dual_volume_[topology_type::NodeId(s)];
+		return topology_type::dual_volume(s) * dual_volume_[topology_type::node_id(s)];
 	}
-	scalar_type InvDualVolume(compact_index_type s) const
+	scalar_type inv_dual_volume(compact_index_type s) const
 	{
-		return topology_type::InvDualVolume(s) * inv_dual_volume_[topology_type::NodeId(s)];
+		return topology_type::inv_dual_volume(s) * inv_dual_volume_[topology_type::node_id(s)];
 	}
 
 	Real HodgeStarVolumeScale(compact_index_type s) const

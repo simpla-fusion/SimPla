@@ -99,22 +99,22 @@ DECL_RET_TYPE((l.get(s)-r.get(s)))
 
 template<typename TM, typename TL, typename TI>
 inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
-DECL_RET_TYPE((l.get(s)+r*l.mesh.Volume(s)) )
+DECL_RET_TYPE((l.get(s)+r*l.mesh.volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
 inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
-DECL_RET_TYPE((l*r.mesh.Volume(s) +r.get(s)))
+DECL_RET_TYPE((l*r.mesh.volume(s) +r.get(s)))
 ;
 
 template<typename TM, typename TL, typename TI>
 inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
-DECL_RET_TYPE((l.get(s)-r*l.mesh.Volume(s)) )
+DECL_RET_TYPE((l.get(s)-r*l.mesh.volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
 inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
-DECL_RET_TYPE((l*r.mesh.Volume(s) -r.get(s)))
+DECL_RET_TYPE((l*r.mesh.volume(s) -r.get(s)))
 ;
 
 }

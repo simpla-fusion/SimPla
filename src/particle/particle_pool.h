@@ -161,7 +161,7 @@ template<typename TM, typename TPoint>
 size_t ParticlePool<TM, TPoint>::Count() const
 {
 
-	return Count(mesh.Select(IForm));
+	return Count(mesh.select(IForm));
 }
 
 template<typename TM, typename TPoint>
@@ -176,15 +176,15 @@ void ParticlePool<TM, TPoint>::add_to(TSrc * p_src, TDest *p_dest_contianer) con
 
 	auto pt = p_src->begin();
 
-	auto shift = 0UL; // mesh.GetShift(IForm);
+	auto shift = 0UL; // mesh.get_shift(IForm);
 
 	while (pt != p_src->end())
 	{
 		auto p = pt;
 		++pt;
 
-		auto local_coordiantes = (mesh.CoordinatesGlobalToLocal((p->x), shift));
-//		p->x = mesh.CoordinatesLocalToGlobal(local_coordiantes);
+		auto local_coordiantes = (mesh.coordinates_global_to_local((p->x), shift));
+//		p->x = mesh.coordinates_local_to_global(local_coordiantes);
 		auto & dest = p_dest_contianer->get(std::get<0>(local_coordiantes));
 		dest.splice(dest.begin(), *p_src, p);
 
@@ -203,7 +203,7 @@ void ParticlePool<TM, TPoint>::Sort()
 	//@bug Here should be PARALLEL (multi-threads)
 	container_type buffer;
 
-	for (auto s : mesh.Select(IForm))
+	for (auto s : mesh.select(IForm))
 	{
 
 		auto it = container_type::find(s);
@@ -213,14 +213,14 @@ void ParticlePool<TM, TPoint>::Sort()
 
 		auto pt = it->second.begin();
 
-		auto shift = mesh.GetShift(IForm);
+		auto shift = mesh.get_shift(IForm);
 
 		while (pt != it->second.end())
 		{
 			auto p = pt;
 			++pt;
 
-			auto id = std::get<0>(mesh.CoordinatesGlobalToLocal((p->x), shift));
+			auto id = std::get<0>(mesh.coordinates_global_to_local((p->x), shift));
 			if (id != s)
 			{
 				auto & dest = buffer.get((id));

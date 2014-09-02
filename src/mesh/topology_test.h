@@ -57,11 +57,11 @@ public:
 //{
 //	coordinates_type x0 = { 0, 0, 0 }, x1 = { 1, 1, 1 };
 //
-//	CHECK(mesh.CoordinatesToIndex(x0));
-//	CHECK(mesh.CoordinatesToIndex(x1));
-//	auto d = mesh.DeltaIndex(mesh.get_first_node_shift(EDGE));
-//	auto s0 = mesh.Compact(mesh.CoordinatesToIndex(x0)) | mesh.get_first_node_shift(VERTEX);
-//	auto s1 = mesh.Compact(mesh.CoordinatesToIndex(x1)) | mesh.get_first_node_shift(VERTEX);
+//	CHECK(mesh.coordinates_to_index(x0));
+//	CHECK(mesh.coordinates_to_index(x1));
+//	auto d = mesh.delta_index(mesh.get_first_node_shift(EDGE));
+//	auto s0 = mesh.compact(mesh.coordinates_to_index(x0)) | mesh.get_first_node_shift(VERTEX);
+//	auto s1 = mesh.compact(mesh.coordinates_to_index(x1)) | mesh.get_first_node_shift(VERTEX);
 //	CHECK_BIT(s0);
 //	CHECK_BIT(d);
 //	CHECK_BIT(s0 - d);
@@ -78,7 +78,7 @@ public:
 //{
 //	EXPECT_EQ(NProduct(dims), topology.get_num_of_elements());
 //
-//	for (auto s : topology.Select(VERTEX))
+//	for (auto s : topology.select(VERTEX))
 //	{
 //		CHECK(topology.get_coordinates(s)) << dims;
 //	}
@@ -90,80 +90,80 @@ TEST_P(TestTopology, compact_index_type)
 	for (int depth = 0; depth < topology_type::MAX_DEPTH_OF_TREE; ++depth)
 	{
 		for (int noid = 0; noid < 8; ++noid)
-			ASSERT_EQ(noid, topology.NodeId(topology.GetShift(noid, depth)));
+			ASSERT_EQ(noid, topology.node_id(topology.get_shift(noid, depth)));
 	}
 
 	auto s = topology.get_first_node_shift(VERTEX);
-	EXPECT_EQ(0, topology.NodeId(s));
-	EXPECT_EQ(0, topology.NodeId(topology.Roate(s)));
-	EXPECT_EQ(0, topology.NodeId(topology.InverseRoate(s)));
-	EXPECT_EQ(0, topology.ComponentNum(topology.Roate(s)));
-	EXPECT_EQ(0, topology.ComponentNum(topology.InverseRoate(s)));
-	EXPECT_EQ(VERTEX, topology.NodeId(s));
-	EXPECT_EQ(VERTEX, topology.IForm(topology.Roate(s)));
-	EXPECT_EQ(VERTEX, topology.IForm(topology.InverseRoate(s)));
+	EXPECT_EQ(0, topology.node_id(s));
+	EXPECT_EQ(0, topology.node_id(topology.roate(s)));
+	EXPECT_EQ(0, topology.node_id(topology.inverse_roate(s)));
+	EXPECT_EQ(0, topology.component_number(topology.roate(s)));
+	EXPECT_EQ(0, topology.component_number(topology.inverse_roate(s)));
+	EXPECT_EQ(VERTEX, topology.node_id(s));
+	EXPECT_EQ(VERTEX, topology.IForm(topology.roate(s)));
+	EXPECT_EQ(VERTEX, topology.IForm(topology.inverse_roate(s)));
 
 	s = topology.get_first_node_shift(VOLUME);
 
-	EXPECT_EQ(7, topology.NodeId(s));
-	EXPECT_EQ(7, topology.NodeId(topology.Roate(s)));
-	EXPECT_EQ(7, topology.NodeId(topology.InverseRoate(s)));
-	EXPECT_EQ(0, topology.ComponentNum(topology.Roate(s)));
-	EXPECT_EQ(0, topology.ComponentNum(topology.InverseRoate(s)));
+	EXPECT_EQ(7, topology.node_id(s));
+	EXPECT_EQ(7, topology.node_id(topology.roate(s)));
+	EXPECT_EQ(7, topology.node_id(topology.inverse_roate(s)));
+	EXPECT_EQ(0, topology.component_number(topology.roate(s)));
+	EXPECT_EQ(0, topology.component_number(topology.inverse_roate(s)));
 
 	EXPECT_EQ(VOLUME, topology.IForm(s));
-	EXPECT_EQ(VOLUME, topology.IForm(topology.Roate(s)));
-	EXPECT_EQ(VOLUME, topology.IForm(topology.InverseRoate(s)));
+	EXPECT_EQ(VOLUME, topology.IForm(topology.roate(s)));
+	EXPECT_EQ(VOLUME, topology.IForm(topology.inverse_roate(s)));
 
 	s = topology.get_first_node_shift(EDGE);
-	EXPECT_EQ(4, topology.NodeId(s));
-	EXPECT_EQ(2, topology.NodeId(topology.Roate(s)));
-	EXPECT_EQ(1, topology.NodeId(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(1, topology.NodeId(topology.InverseRoate(s)));
-	EXPECT_EQ(2, topology.NodeId(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(4, topology.node_id(s));
+	EXPECT_EQ(2, topology.node_id(topology.roate(s)));
+	EXPECT_EQ(1, topology.node_id(topology.roate(topology.roate(s))));
+	EXPECT_EQ(1, topology.node_id(topology.inverse_roate(s)));
+	EXPECT_EQ(2, topology.node_id(topology.inverse_roate(topology.inverse_roate(s))));
 
-	EXPECT_EQ(0, topology.ComponentNum(s));
-	EXPECT_EQ(1, topology.ComponentNum(topology.Roate(s)));
-	EXPECT_EQ(2, topology.ComponentNum(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(2, topology.ComponentNum(topology.InverseRoate(s)));
-	EXPECT_EQ(1, topology.ComponentNum(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(0, topology.component_number(s));
+	EXPECT_EQ(1, topology.component_number(topology.roate(s)));
+	EXPECT_EQ(2, topology.component_number(topology.roate(topology.roate(s))));
+	EXPECT_EQ(2, topology.component_number(topology.inverse_roate(s)));
+	EXPECT_EQ(1, topology.component_number(topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(EDGE, topology.IForm(s));
-	EXPECT_EQ(EDGE, topology.IForm(topology.Roate(s)));
-	EXPECT_EQ(EDGE, topology.IForm(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(EDGE, topology.IForm(topology.InverseRoate(s)));
-	EXPECT_EQ(EDGE, topology.IForm(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(EDGE, topology.IForm(topology.roate(s)));
+	EXPECT_EQ(EDGE, topology.IForm(topology.roate(topology.roate(s))));
+	EXPECT_EQ(EDGE, topology.IForm(topology.inverse_roate(s)));
+	EXPECT_EQ(EDGE, topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
 
-	EXPECT_EQ(3, topology.NodeId(topology.Dual(s)));
-	EXPECT_EQ(5, topology.NodeId(topology.Dual(topology.Roate(s))));
-	EXPECT_EQ(6, topology.NodeId(topology.Dual(topology.InverseRoate(s))));
+	EXPECT_EQ(3, topology.node_id(topology.dual(s)));
+	EXPECT_EQ(5, topology.node_id(topology.dual(topology.roate(s))));
+	EXPECT_EQ(6, topology.node_id(topology.dual(topology.inverse_roate(s))));
 
-	EXPECT_EQ(topology.DI(0, s), topology.DeltaIndex(s));
-	EXPECT_EQ(topology.DI(1, s), topology.DeltaIndex(topology.Roate(s)));
-	EXPECT_EQ(topology.DI(2, s), topology.DeltaIndex(topology.InverseRoate(s)));
+	EXPECT_EQ(topology.DI(0, s), topology.delta_index(s));
+	EXPECT_EQ(topology.DI(1, s), topology.delta_index(topology.roate(s)));
+	EXPECT_EQ(topology.DI(2, s), topology.delta_index(topology.inverse_roate(s)));
 
 	s = topology.get_first_node_shift(FACE);
-	EXPECT_EQ(3, topology.NodeId(s));
-	EXPECT_EQ(5, topology.NodeId(topology.Roate(s)));
-	EXPECT_EQ(6, topology.NodeId(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(6, topology.NodeId(topology.InverseRoate(s)));
-	EXPECT_EQ(5, topology.NodeId(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(3, topology.node_id(s));
+	EXPECT_EQ(5, topology.node_id(topology.roate(s)));
+	EXPECT_EQ(6, topology.node_id(topology.roate(topology.roate(s))));
+	EXPECT_EQ(6, topology.node_id(topology.inverse_roate(s)));
+	EXPECT_EQ(5, topology.node_id(topology.inverse_roate(topology.inverse_roate(s))));
 
-	EXPECT_EQ(0, topology.ComponentNum(s));
-	EXPECT_EQ(1, topology.ComponentNum(topology.Roate(s)));
-	EXPECT_EQ(2, topology.ComponentNum(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(2, topology.ComponentNum(topology.InverseRoate(s)));
-	EXPECT_EQ(1, topology.ComponentNum(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(0, topology.component_number(s));
+	EXPECT_EQ(1, topology.component_number(topology.roate(s)));
+	EXPECT_EQ(2, topology.component_number(topology.roate(topology.roate(s))));
+	EXPECT_EQ(2, topology.component_number(topology.inverse_roate(s)));
+	EXPECT_EQ(1, topology.component_number(topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(FACE, topology.IForm(s));
-	EXPECT_EQ(FACE, topology.IForm(topology.Roate(s)));
-	EXPECT_EQ(FACE, topology.IForm(topology.Roate(topology.Roate(s))));
-	EXPECT_EQ(FACE, topology.IForm(topology.InverseRoate(s)));
-	EXPECT_EQ(FACE, topology.IForm(topology.InverseRoate(topology.InverseRoate(s))));
+	EXPECT_EQ(FACE, topology.IForm(topology.roate(s)));
+	EXPECT_EQ(FACE, topology.IForm(topology.roate(topology.roate(s))));
+	EXPECT_EQ(FACE, topology.IForm(topology.inverse_roate(s)));
+	EXPECT_EQ(FACE, topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
 
-	EXPECT_EQ(4, topology.NodeId(topology.Dual(s)));
-	EXPECT_EQ(2, topology.NodeId(topology.Dual(topology.Roate(s))));
-	EXPECT_EQ(1, topology.NodeId(topology.Dual(topology.InverseRoate(s))));
+	EXPECT_EQ(4, topology.node_id(topology.dual(s)));
+	EXPECT_EQ(2, topology.node_id(topology.dual(topology.roate(s))));
+	EXPECT_EQ(1, topology.node_id(topology.dual(topology.inverse_roate(s))));
 
 }
 TEST_P(TestTopology, hash)
@@ -173,16 +173,16 @@ TEST_P(TestTopology, hash)
 	{
 		size_t num = topology.get_local_memory_size(iform);
 
-		auto hash = topology.make_hash(topology.Select(iform));
+		auto hash = topology.make_hash(topology.select(iform));
 
-		for (auto s : topology.Select(iform))
+		for (auto s : topology.select(iform))
 		{
 
 			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)), hash(s));
 			ASSERT_LE(0, hash(s));
 
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(topology.Roate(s))), hash(topology.Roate(s)));
-			ASSERT_LE(0, hash(topology.InverseRoate(s)));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(topology.roate(s))), hash(topology.roate(s)));
+			ASSERT_LE(0, hash(topology.inverse_roate(s)));
 
 			auto DX = topology.DI(0, s);
 			auto DY = topology.DI(1, s);
@@ -211,8 +211,8 @@ TEST_P(TestTopology, iterator)
 
 	for (auto const & iform : iform_list)
 	{
-		EXPECT_EQ(topology.NodeId(topology.get_first_node_shift(iform)),
-		        topology.NodeId(*begin(topology.Select(iform))));
+		EXPECT_EQ(topology.node_id(topology.get_first_node_shift(iform)),
+		        topology.node_id(*begin(topology.select(iform))));
 
 		size_t expect_count = 1;
 
@@ -229,9 +229,9 @@ TEST_P(TestTopology, iterator)
 
 		size_t count = 0;
 
-		auto hash = topology.make_hash(topology.Select(iform));
+		auto hash = topology.make_hash(topology.select(iform));
 
-		for (auto s : topology.Select(iform))
+		for (auto s : topology.select(iform))
 		{
 			++count;
 			data.insert(hash(s));
@@ -291,10 +291,10 @@ TEST_P(TestTopology, coordinates)
 	auto xmin = std::get<0>(extents);
 	auto xmax = std::get<1>(extents);
 
-	auto range0 = topology.Select(VERTEX);
-	auto range1 = topology.Select(EDGE);
-	auto range2 = topology.Select(FACE);
-	auto range3 = topology.Select(VOLUME);
+	auto range0 = topology.select(VERTEX);
+	auto range1 = topology.select(EDGE);
+	auto range2 = topology.select(FACE);
+	auto range3 = topology.select(VOLUME);
 
 	auto half_dx = topology.get_dx() / 2;
 
@@ -308,22 +308,22 @@ TEST_P(TestTopology, coordinates)
 	for (auto iform : iform_list)
 	{
 		auto shift = topology.get_first_node_shift(iform);
-		auto idx = topology.CoordinatesGlobalToLocal(x, shift);
-		EXPECT_EQ(x, topology.CoordinatesLocalToGlobal(idx) ) << "IForm =" << iform;
+		auto idx = topology.coordinates_global_to_local(x, shift);
+		EXPECT_EQ(x, topology.coordinates_local_to_global(idx) ) << "IForm =" << iform;
 
 		auto s = std::get<0>(idx);
 
 		EXPECT_EQ(iform, topology.IForm(s));
-		EXPECT_EQ(topology.NodeId(shift), topology.NodeId(s));
-		EXPECT_EQ(topology.ComponentNum(shift), topology.ComponentNum(s));
+		EXPECT_EQ(topology.node_id(shift), topology.node_id(s));
+		EXPECT_EQ(topology.component_number(shift), topology.component_number(s));
 
 		EXPECT_LT( InnerProductNTuple(std::get<1>(idx), std::get<1>(idx)),3) << std::get<1>(idx) << "IForm =" << iform;
 
 	}
 
-	auto idx = topology.CoordinatesToIndex(x);
+	auto idx = topology.coordinates_to_index(x);
 
-	EXPECT_EQ(idx, topology.CoordinatesToIndex(topology.IndexToCoordinates(idx)));
+	EXPECT_EQ(idx, topology.coordinates_to_index(topology.index_to_coordinates(idx)));
 
 }
 #endif /* TOPOLOGY_TEST_H_ */

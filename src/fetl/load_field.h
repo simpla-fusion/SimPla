@@ -34,7 +34,7 @@ bool load_field_(TDict const &dict, Field<TM, IFORM, Container> *f)
 	if (dict.is_function())
 	{
 
-		for (auto s : mesh.Select(IFORM))
+		for (auto s : mesh.select(IFORM))
 		{
 			auto x = mesh.get_coordinates(s);
 
@@ -49,7 +49,7 @@ bool load_field_(TDict const &dict, Field<TM, IFORM, Container> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		for (auto s : mesh.Select(IFORM))
+		for (auto s : mesh.select(IFORM))
 		{
 			auto x = mesh.get_coordinates(s);
 
