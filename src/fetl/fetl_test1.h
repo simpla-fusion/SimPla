@@ -155,14 +155,14 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	vb=rb;
 	vc=rc;
 
-	a.Fill(ra);
-	b.Fill(rb);
-	c.Fill(rc);
+	a.fill(ra);
+	b.fill(rb);
+	c.fill(rc);
 
 	f1.clear();
 	f2.clear();
 	f3.clear();
-	f4.Fill(0);
+	f4.fill(0);
 
 	size_t count=0;
 

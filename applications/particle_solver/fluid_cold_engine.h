@@ -260,7 +260,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict, TMod
 	{
 		rho.clear();
 
-		auto range = model.SelectByConfig(rho_type::IForm, dict["Select"]);
+		auto range = model.select_by_config(rho_type::IForm, dict["Select"]);
 
 		rho.pull_back(range, model, pn);
 

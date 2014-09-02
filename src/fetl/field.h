@@ -234,15 +234,18 @@ public:
 	 *
 	 */
 	template<typename T>
-	void Fill(T v)
+	void fill(T v)
 	{
 		initialize();
 
-		parallel_for_each(range_,
+		parallel_for(range_,
 
-				[this,v](compact_index_type s)
+				[this,v](mesh_range_type const &r)
 				{
-					get_value(*this, s) = v;
+					for(auto const & s:r)
+					{
+						get_value(*this, s) = v;
+					}
 				}
 
 		);
@@ -252,14 +255,26 @@ public:
 	{
 		initialize();
 
-		parallel_for_each(range_,
+		parallel_for(range_,
 
-				[this,&rhs](compact_index_type s)
+				[this,&rhs](mesh_range_type const &r)
 				{
-					get_value(*this, s) = get_value( rhs, s);
+					for(auto const & s:r)
+					{
+						get_value(*this, s) = get_value( rhs, s);
+					}
 				}
 
 		);
+
+//		parallel_for_each(range_,
+//
+//				[this,&rhs](compact_index_type s)
+//				{
+//					get_value(*this, s) = get_value( rhs, s);
+//				}
+//
+//		);
 
 		update_ghosts(this);
 
@@ -273,7 +288,7 @@ public:
 
 	this_type & operator =(value_type rhs)
 	{
-		Fill(rhs);
+		fill(rhs);
 		return (*this);
 	}
 
@@ -328,23 +343,41 @@ public:
 	template< typename TRange,typename TObj>
 	void pull_back(TRange const & range,geometry_type const & geo, TObj const & obj)
 	{
-		for (auto s : range)
-		{
-			get_value(*this, s) = obj(mesh.get_coordinates(s));
-		}
+
+		parallel_for(range,
+
+				[&](mesh_range_type const &r)
+				{
+					for (auto const & s : r)
+					{
+						get_value(*this, s) = obj(mesh.get_coordinates(s));
+					}
+				}
+
+		);
+
 	}
 
 	template<typename TG,typename TRange,typename TObj>
 	void pull_back(TRange const & range,TG const & geo,TObj const & obj)
 	{
-		for (auto s : range)
-		{
-			auto x=mesh.get_coordinates(s);
-			coordinates_type r = geo.MapTo( mesh.InvMapTo(x));
 
-			get_value(*this, s) = mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-					std::get<1>( mesh.PushForward(geo.PullBack(std::make_tuple(r, obj(r))))));
-		}
+		parallel_for(range,
+
+				[&](mesh_range_type const &r)
+				{
+					for (auto const & s : r)
+					{
+						auto x=mesh.get_coordinates(s);
+						coordinates_type r = geo.MapTo( mesh.InvMapTo(x));
+
+						get_value(*this, s) = mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
+								std::get<1>( mesh.PushForward(geo.PullBack(std::make_tuple(r, obj(r))))));
+					}
+				}
+
+		);
+
 	}
 
 	template<typename TG, typename TObj>
@@ -411,7 +444,7 @@ std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const &
 
 	std::function<void()> res = [this,range,fun]()
 	{
-		for(auto s: range)
+		for(auto const & s: range)
 		{
 			auto x=this->mesh.get_coordinates(s);
 

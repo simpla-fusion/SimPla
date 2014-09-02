@@ -86,20 +86,23 @@ public:
 	template<typename TRange>
 	void remove(TRange && index_range);
 
-	template<typename TRange, typename TPredFun>
-	void remove(TRange && index_range, TPredFun && pred_fun);
+	template<typename TPredFun>
+	void remove(TPredFun && pred_fun);
 
-	template<typename TRange, typename TPredFun>
-	void modify(TRange && index_range, TPredFun && pred_fun);
+	template<typename TPredFun>
+	void modify(TPredFun && pred_fun);
 
-	template<typename TRange, typename TRes, typename Func, typename Reduction>
-	void reduce(TRange && index_range, TRes const & identity, TRes * res, Func && fun, Reduction &&) const;
+	template<typename TRes, typename Func, typename Reduction>
+	void reduce(TRes const & identity, TRes * res, Func && fun, Reduction &&) const;
 
-	template<typename TRange, typename TRes, typename Func>
-	void reduce(TRange && index_range, TRes const & identity, TRes * res, Func && fun) const;
+	template<typename TRes, typename Func>
+	void reduce(TRes const & identity, TRes * res, Func && fun) const;
 
-	template<typename TRange, typename HashFun>
-	void sort(TRange && index_range, HashFun const &);
+	template<typename HashFun>
+	void add(inner_container_type & src, HashFun const &);
+
+	template<typename HashFun>
+	void sort(HashFun const &);
 
 	size_t size() const
 	{
@@ -132,39 +135,51 @@ size_t ContainerPool<IndexType, ValueType>::count(TR && range) const
 }
 
 template<typename IndexType, typename ValueType>
-template<typename TRange, typename HashFun>
-void ContainerPool<IndexType, ValueType>::sort(TRange && range, HashFun const & hash)
+template<typename HashFun>
+void ContainerPool<IndexType, ValueType>::add(inner_container_type & src, HashFun const & hash)
 {
+	auto pt = src.begin();
+
+	while (pt != src.end())
+	{
+		auto p = pt;
+		++pt;
+
+		auto & dest = t_buffer[hash(*p)];
+
+		dest->splice(dest->begin(), src, p);
+	}
+
+}
+template<typename IndexType, typename ValueType>
+template<typename HashFun>
+void ContainerPool<IndexType, ValueType>::sort(HashFun const & hash)
+{
+
+	auto range = make_range(this->begin(), this->end());
 
 	parallel_reduce(range, *this, this,
 
-	[&](TRange const & r,this_type * t_buffer)
+	[&](decltype(range) & r,this_type * t_buffer)
 	{
-		for(auto const & s:r)
+		for(auto & item:r)
 		{
-			auto it = this->base_type::find(s);
+			auto git=std::get<0>(item);
+			auto pt=std::get<1>(item).begin();
 
-			if (it != this->base_type::end())
+			while(pt!=std::get<1>(item).end())
 			{
+				auto p = pt;
+				++pt;
 
-				auto pt = it->second.begin();
-
-				while (pt != it->second.end())
+				auto gid = hash(*p);
+				if (gid != s)
 				{
-					auto p = pt;
-					++pt;
-
-					auto gid = hash(*p);
-					if (gid != s)
-					{
-						auto & dest = t_buffer[gid];
-						dest->splice(dest->begin(), it->second, p);
-					}
-
+					auto & dest = t_buffer[gid];
+					dest->splice(dest->begin(), it->second, p);
 				}
 			}
 		}
-
 	},
 
 	[&](this_type & l,this_type * r)
@@ -174,22 +189,6 @@ void ContainerPool<IndexType, ValueType>::sort(TRange && range, HashFun const & 
 
 }
 
-//template<typename IndexType, typename ValueType>
-//void ContainerPool<IndexType, ValueType>::clear_empty()
-//{
-//	auto it = base_type::begin(), ie = base_type::end();
-//
-//	while (it != ie)
-//	{
-//		auto t = it;
-//		++it;
-//		if (t->second.empty())
-//		{
-//			base_type::erase(t);
-//		}
-//	}
-//}
-
 template<typename IndexType, typename ValueType>
 void ContainerPool<IndexType, ValueType>::merge(this_type & other)
 {
@@ -198,13 +197,6 @@ void ContainerPool<IndexType, ValueType>::merge(this_type & other)
 		auto & c = base_type::operator[](v.first);
 		c.splice(c.begin(), v.second);
 	}
-
-}
-template<typename IndexType, typename ValueType>
-void ContainerPool<IndexType, ValueType>::add(inner_container_type &other)
-{
-	if (other->size() <= 0)
-		return;
 
 }
 
@@ -236,20 +228,20 @@ void ContainerPool<IndexType, ValueType>::remove(TRange && index_range)
 	);
 }
 
-template<typename IndexType, typename ValueType> template<typename TRange, typename Func>
-void ContainerPool<IndexType, ValueType>::modify(TRange && index_range, Func && fun)
+template<typename IndexType, typename ValueType> template<typename Func>
+void ContainerPool<IndexType, ValueType>::modify(Func && fun)
 {
+	auto range = make_range(this->begin(), this->end());
 
-	parallel_for(std::forward<TRange>(index_range),
+	parallel_for(range,
 
-	[&](TRange && r)
+	[&](decltype(range) && r)
 	{
-		for(auto & gid:r)
+		for(auto & item:r)
 		{
-			auto it = this->base_type::find(gid);
-			if (it != this->base_type::end())
+			for(auto & p:std::get<1>(item))
 			{
-				fun(it);
+				fun(&p);
 			}
 		}
 	}
@@ -258,38 +250,34 @@ void ContainerPool<IndexType, ValueType>::modify(TRange && index_range, Func && 
 
 }
 template<typename IndexType, typename ValueType>
-template<typename TRange, typename TRes, typename Func, typename Reduction>
-void ContainerPool<IndexType, ValueType>::reduce(TRange && index_range, TRes const & identity, TRes * res, Func && fun,
+template<typename TRes, typename Func, typename Reduction>
+void ContainerPool<IndexType, ValueType>::reduce(TRes const & identity, TRes * res, Func && fun,
         Reduction && reduce) const
 {
-	parallel_reduce(std::forward<TRange>(index_range), identity, res,
 
-	[&](TRange & r,TRes * buffer)
+	auto range = make_range(this->begin(), this->end());
+
+	parallel_reduce(range, identity, res,
+
+	[&](decltype(range) const& r,TRes * buffer)
 	{
-		for(auto &gid:r)
+		for(auto const& item:r)
 		{
-			auto it = this->base_type::find(gid);
-			if (it != this->base_type::end())
+			for(auto & p:std::get<1>(item))
 			{
-				for (auto const & p : it->second)
-				{
-					fun( p,buffer);
-				}
+				fun( &p,buffer);
 			}
 		}
-	}
-
-	, std::forward<Reduction>(reduce)
+	}, std::forward<Reduction>(reduce)
 
 	);
 }
 
 template<typename IndexType, typename ValueType>
-template<typename TRange, typename TRes, typename Func>
-void ContainerPool<IndexType, ValueType>::reduce(TRange && index_range, TRes const & identity, TRes * res,
-        Func && fun) const
+template<typename TRes, typename Func>
+void ContainerPool<IndexType, ValueType>::reduce(TRes const & identity, TRes * res, Func && fun) const
 {
-	parallel_reduce(std::forward<TRange>(index_range), identity, res, std::forward<Func>(fun), [](TRes & l,TRes *r)
+	reduce(identity, res, std::forward<Func>(fun), [](TRes & l,TRes *r)
 	{	*r+=l;});
 }
 }  // namespace simpla

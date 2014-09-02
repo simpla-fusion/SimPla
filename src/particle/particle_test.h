@@ -120,7 +120,7 @@ TEST_P(TestParticle,Add)
 			}
 		}
 
-		p.Add(&buffer);
+		p.add(&buffer);
 
 		INFORM << "Add particle DONE " << p.size() << std::endl;
 
@@ -129,12 +129,12 @@ TEST_P(TestParticle,Add)
 	}
 //	std::vector<double> a;
 //
-//	p.Remove(
+//	p.remove(
 //	        mesh.select(pool_type::IForm, std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.25,
 //	                std::get<0>(extents) + (std::get<1>(extents) - std::get<0>(extents)) * 0.75));
 //
 //	INFORM << "Remove particle DONE " << p.size() << std::endl;
-//	p.Remove(mesh.select(pool_type::IForm));
+//	p.remove(mesh.select(pool_type::IForm));
 //
 //	INFORM << "Remove particle DONE " << p.size() << std::endl;
 //	EXPECT_NE(p.size(), 0);

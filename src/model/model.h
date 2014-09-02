@@ -103,7 +103,7 @@ public:
 		{
 			for (auto const & item : dict["Material"])
 			{
-				Modify(item.second);
+				modify(item.second);
 			}
 		}
 
@@ -212,12 +212,12 @@ public:
 	typedef filter_range_type<typename mesh_type::range_type> filter_mesh_range;
 
 	template<typename TDict>
-	void Modify(TDict const& dict)
+	void modify(TDict const& dict)
 	{
 
 		std::function<material_type(material_type const &)> fun;
 
-		auto range = SelectByConfig(VERTEX, dict["Select"]);
+		auto range = select_by_config(VERTEX, dict["Select"]);
 
 		auto material_name = dict["Value"].template as<std::string>("");
 		auto material = get_material(material_name);
@@ -241,7 +241,7 @@ public:
 	}
 
 	template<typename TR>
-	void Modify(TR const & r, std::function<material_type(material_type const &)> const &fun)
+	void modify(TR const & r, std::function<material_type(material_type const &)> const &fun)
 	{
 		for (auto s : r)
 		{
@@ -264,7 +264,7 @@ public:
 	void Set(TR const & r, M const& material)
 	{
 		auto t = get_material(material);
-		Modify(r, [=](material_type const & m)->material_type
+		modify(r, [=](material_type const & m)->material_type
 		{	return m|t;});
 	}
 
@@ -272,12 +272,12 @@ public:
 	void Unset(TR const & r, M const& material)
 	{
 		auto t = get_material(material);
-		Modify(r, [=](material_type const & m)->material_type
+		modify(r, [=](material_type const & m)->material_type
 		{	return m&(~t);});
 	}
 
 	template<typename TR, typename TDict>
-	filter_range_type<TR> SelectByConfig(TR const& range, TDict const& dict) const;
+	filter_range_type<TR> select_by_config(TR const& range, TDict const& dict) const;
 
 	template<typename TR>
 	filter_range_type<TR> SelectByFunction(TR const& range, std::function<bool(coordinates_type)> fun) const;
@@ -307,8 +307,8 @@ public:
 	DECL_RET_TYPE((SelectInterface(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
-	auto SelectByConfig(int iform, Args &&...args) const
-	DECL_RET_TYPE( (SelectByConfig(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
+	auto select_by_config(int iform, Args &&...args) const
+	DECL_RET_TYPE( (select_by_config(std::move(mesh_type::select(iform)), std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto SelectByMaterial(int iform, Args &&...args) const
@@ -347,7 +347,7 @@ std::ostream & operator<<(std::ostream & os, Model<TM> const & model)
 }
 template<typename TM>
 template<typename TR, typename TDict>
-typename Model<TM>::template filter_range_type<TR> Model<TM>::SelectByConfig(TR const& range, TDict const& dict) const
+typename Model<TM>::template filter_range_type<TR> Model<TM>::select_by_config(TR const& range, TDict const& dict) const
 {
 	if (!dict)
 	{

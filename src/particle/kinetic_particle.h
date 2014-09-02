@@ -52,6 +52,8 @@ typedef	typename std::conditional<has_member_J_at_the_center<engine_type>::value
 	typedef ContainerPool<mid_type, particle_type> storage_type;
 
 	storage_type pic_;
+
+	std::function<compact_index_type(particle_type const &)> index_hash_;
 public:
 	mesh_type const & mesh;
 
@@ -69,7 +71,8 @@ public:
 		return "Kinetic"+engine_type::get_type_as_string();
 	}
 
-	void load(){};
+	void load()
+	{};
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
@@ -107,107 +110,18 @@ private:
 		;
 	};
 
-	template<typename TRange>
-	void sort(TRange && range)
-	{
-		pic_.sort(std::forward<TRange>(range), [& ](particle_type const & p)->mid_type
-				{
-					return std::get<0>(mesh.coordinates_global_to_local(std::get<0>(engine_type::pull_back(p))));
-				});
-	}
-
 public:
-	template<typename TF>
-	void scatter(TF * pf)
-	{
-		pic_.reduce(mesh.select(IForm), *pf, pf, [this](particle_type const & p,TF * t_f)
-				{
-					scatter_cartesian(t_f,this->engine_type::pull_back( p ));
-				});
-
-		update_ghosts(pf);
-
-	}
+	template<typename ...Args>
+	void next_timestep(Real dt, Args && ...args);
 
 	template<typename ...Args>
-	void next_timestep (Real dt, Args && ...args)
-	{
+	void next_timestep(Real dt, J_type * pJ, Args && ...args);
 
-		LOGGER << "Push particles to  next step [ " << engine_type::get_type_as_string() << " ]";
+	template<typename ...Args>
+	void next_timestep(Real dt, rho_type * pJ, Args && ...args);
 
-		auto range = mesh.select(IForm);
-
-		sort(range);
-
-		pic_.modify(range, [&](particle_type & p)
-				{
-					this->engine_type::next_timestep(&p,dt, std::forward<Args>(args)...);
-				});
-
-		sort(range);
-
-		if (engine_type::properties["ScatterJ"].template as<bool>(true))
-		{
-			J.clear();
-			scatter(&J);
-		}
-
-		if (engine_type::properties["ScatterRho"].template as<bool>(false))
-		{
-			rho.clear();
-			scatter(&rho);
-		}
-		else if (properties["ContinuityEquation"].template as<bool>(false))
-		{
-			rho -= Diverge(MapTo<EDGE>(J)) * dt;
-		}
-
-	}
-
-	template< typename ...Args>
-	void next_timestep (Real dt,J_type * pJ, Args && ...args)
-	{
-		auto range = mesh.select(IForm);
-
-		sort(range);
-
-		if (properties["ContinuityEquation"].template as<bool>(false))
-		{
-			rho -= Diverge(MapTo<EDGE>(J)) * dt*0.5;
-		}
-
-		J.clear();
-
-		pic_.reduce(range, &J, J, [&](particle_type & p,J_type * t_J)
-				{
-					this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
-				});
-
-		update_ghosts(&J);
-		if (properties["ContinuityEquation"].template as<bool>(false))
-		{
-			rho -= Diverge(MapTo<EDGE>(J)) * dt*0.5;
-		}
-
-	}
-
-	template< typename ...Args>
-	void next_timestep (Real dt,rho_type * pJ, Args && ...args)
-	{
-		auto range = mesh.select(IForm);
-
-		sort(range);
-
-		rho.clear();
-
-		pic_.reduce(range, rho, &rho, [&](particle_type & p ,rho_type * t_rho)
-				{
-					this->engine_type::next_timestep(&p, dt,t_rho,std::forward<Args>(args)...);
-				});
-
-		update_ghosts(&rho);
-
-	}
+	template<typename TRange,typename Fun >
+	void apply_constriant(TRange const & range,Fun const& );
 
 };
 
@@ -217,6 +131,10 @@ Particle<TM, Engine, PolicyKineticParticle>::Particle(mesh_type const & pmesh, O
 		: mesh(pmesh), rho(mesh), J(mesh)
 {
 	load(std::forward<Others>(others)...);
+	index_hash_ = [& ](particle_type const & p)->mid_type
+	{
+		return std::get<0>(mesh.coordinates_global_to_local(std::get<0>(engine_type::pull_back(p))));
+	};
 }
 
 template<typename TM, typename Engine>
@@ -238,9 +156,6 @@ void Particle<TM, Engine, PolicyKineticParticle>::load(TDict const & dict, Other
 	properties.set("ScatterRho", dict["ScatterRho"].template as<bool>(false));
 
 }
-
-//*************************************************************************************************
-
 template<typename TM, typename Engine>
 std::string Particle<TM, Engine, PolicyKineticParticle>::save(std::string const & path) const
 {
@@ -264,6 +179,106 @@ std::ostream& Particle<TM, Engine, PolicyKineticParticle>::print(std::ostream & 
 {
 	engine_type::print(os);
 	properties.print(os);
+}
+template<typename TM, typename Engine>
+template<typename TF>
+void Particle<TM, Engine, PolicyKineticParticle>::scatter(TF * pf)
+{
+	pic_.reduce(mesh.select(IForm), *pf, pf, [this](particle_type const & p,TF * t_f)
+	{
+		scatter_cartesian(t_f,this->engine_type::pull_back( p ));
+	});
+
+	update_ghosts(pf);
+
+}
+template<typename TM, typename Engine>
+template<typename ...Args>
+void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, Args && ...args)
+{
+
+	LOGGER << "Push particles to  next step [ " << engine_type::get_type_as_string() << " ]";
+
+	auto range = mesh.select(IForm);
+
+	pic_.sort(index_hash_);
+
+	pic_.modify(range, [&](particle_type & p)
+	{
+		this->engine_type::next_timestep(&p,dt, std::forward<Args>(args)...);
+	});
+
+	pic_.sort(index_hash_);
+
+	if (engine_type::properties["ScatterJ"].template as<bool>(true))
+	{
+		J.clear();
+		scatter(&J);
+	}
+
+	if (engine_type::properties["ScatterRho"].template as<bool>(false))
+	{
+		rho.clear();
+		scatter(&rho);
+	}
+	else if (properties["ContinuityEquation"].template as<bool>(false))
+	{
+		rho -= Diverge(MapTo<EDGE>(J)) * dt;
+	}
+
+}
+template<typename TM, typename Engine>
+template<typename ...Args>
+void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, J_type * pJ, Args && ...args)
+{
+	auto range = mesh.select(IForm);
+
+	pic_.sort(index_hash_);
+
+	if (properties["ContinuityEquation"].template as<bool>(false))
+	{
+		rho -= Diverge(MapTo<EDGE>(J)) * dt * 0.5;
+	}
+
+	J.clear();
+
+	pic_.reduce(range, &J, J, [&](particle_type & p,J_type * t_J)
+	{
+		this->engine_type::next_timestep(&p, dt,t_J,std::forward<Args>(args)...);
+	});
+
+	update_ghosts(&J);
+	if (properties["ContinuityEquation"].template as<bool>(false))
+	{
+		rho -= Diverge(MapTo<EDGE>(J)) * dt * 0.5;
+	}
+
+}
+template<typename TM, typename Engine>
+template<typename ...Args>
+void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, rho_type * pJ, Args && ...args)
+{
+	auto range = mesh.select(IForm);
+
+	pic_.sort(index_hash_);
+
+	rho.clear();
+
+	pic_.reduce(range, rho, &rho, [&](particle_type & p ,rho_type * t_rho)
+	{
+		this->engine_type::next_timestep(&p, dt,t_rho,std::forward<Args>(args)...);
+	});
+
+	update_ghosts(&rho);
+
+}
+template<typename TM, typename Engine>
+template<typename TRange, typename Fun>
+void Particle<TM, Engine, PolicyKineticParticle>::apply_constriant(TRange const & range, Fun const& fun)
+{
+	auto buffer = pic_.get_child();
+	pic_.reduce(std::forward<TRange>(range), buffer, &buffer, fun);
+	pic_.sort(buffer, index_hash_);
 }
 
 }  // namespace simpla

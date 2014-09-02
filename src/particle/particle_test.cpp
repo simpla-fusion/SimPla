@@ -95,10 +95,9 @@ int main(int argc, char **argv)
 
 	auto extents = mesh.get_extents();
 
-	rectangle_distribution<mesh_type::get_num_of_dimensions()> x_dist(nTuple<3, Real>( { 0, 0, 0 }), nTuple<3, Real>( {
-	        1, 1, 1 }));
+	rectangle_distribution<mesh_type::NDIMS> x_dist(nTuple<3, Real>( { 0, 0, 0 }), nTuple<3, Real>( { 1, 1, 1 }));
 
-	std::mt19937 rnd_gen(mesh_type::get_num_of_dimensions());
+	std::mt19937 rnd_gen(mesh_type::NDIMS);
 
 	nTuple<3, Real> v = { 1, 2, 3 };
 
@@ -117,7 +116,7 @@ int main(int argc, char **argv)
 	p.properties.set("DumpParticle", true);
 	p.properties.set("ScatterN", true);
 
-//	InitParticle(&p, mesh.select(VERTEX), 500, n, T);
+//	init_particle(&p, mesh.select(VERTEX), 500, n, T);
 //
 ////	{
 ////		auto range=mesh.select(VERTEX);

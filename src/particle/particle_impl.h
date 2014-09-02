@@ -267,7 +267,7 @@ void Particle<TM, Engine>::modify(TRange const & range, TFun const & obj)
 		*p=engine_type::push_forward( std::get<0>(z1),std::get<1>(z1),std::get<2>(z0));
 	};
 
-	storage_type::Modify(range, fun);
+	storage_type::modify(range, fun);
 
 }
 

@@ -121,18 +121,18 @@ void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
 
 	Real dB = 100, expN = 2;
 
-	a0.Fill(1.0);
-	a1.Fill(1.0);
-	a2.Fill(1.0);
-	s0.Fill(0.0);
-	s1.Fill(0.0);
-	s2.Fill(0.0);
-	X10.Fill(0.0);
-	X11.Fill(0.0);
-	X12.Fill(0.0);
-	X20.Fill(0.0);
-	X21.Fill(0.0);
-	X22.Fill(0.0);
+	a0.fill(1.0);
+	a1.fill(1.0);
+	a2.fill(1.0);
+	s0.fill(0.0);
+	s1.fill(0.0);
+	s2.fill(0.0);
+	X10.fill(0.0);
+	X11.fill(0.0);
+	X12.fill(0.0);
+	X20.fill(0.0);
+	X21.fill(0.0);
+	X22.fill(0.0);
 
 	auto ymin = mesh.get_extents().first;
 	auto ymax = mesh.get_extents().second;

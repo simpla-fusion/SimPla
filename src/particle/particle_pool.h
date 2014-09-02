@@ -77,18 +77,18 @@ public:
 
 	void ClearEmpty();
 
-	void Add(container_type * other);
+	void add(container_type * other);
 
-	void Add(child_container_type *src);
+	void add(child_container_type *src);
 
 	template<typename TRange>
-	void Remove(TRange const & range, child_container_type *other = nullptr);
+	void remove(TRange const & range, child_container_type *other = nullptr);
 
 	template<typename TRange, typename TFun>
-	void Remove(TRange const & range, TFun const & fun, child_container_type * other = nullptr);
+	void remove(TRange const & range, TFun const & fun, child_container_type * other = nullptr);
 
 	template<typename TRange, typename TFun>
-	void Modify(TRange const & range, TFun const & fun);
+	void modify(TRange const & range, TFun const & fun);
 
 	void Sort();
 
@@ -232,7 +232,7 @@ void ParticlePool<TM, TPoint>::Sort()
 
 	}
 
-	Add(&buffer);
+	add(&buffer);
 
 	update_ghosts(this);
 
@@ -259,7 +259,7 @@ void ParticlePool<TM, TPoint>::ClearEmpty()
 }
 
 template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::Add(container_type * other)
+void ParticlePool<TM, TPoint>::add(container_type * other)
 {
 
 //	container_type::lock();
@@ -273,7 +273,7 @@ void ParticlePool<TM, TPoint>::Add(container_type * other)
 	is_changed_ = false;
 }
 template<typename TM, typename TPoint>
-void ParticlePool<TM, TPoint>::Add(child_container_type* other)
+void ParticlePool<TM, TPoint>::add(child_container_type* other)
 {
 	if (other->size() > 0)
 	{
@@ -283,7 +283,7 @@ void ParticlePool<TM, TPoint>::Add(child_container_type* other)
 
 template<typename TM, typename TPoint>
 template<typename TRange>
-void ParticlePool<TM, TPoint>::Remove(TRange const & r, child_container_type * other)
+void ParticlePool<TM, TPoint>::remove(TRange const & r, child_container_type * other)
 {
 	child_container_type buffer = container_type::create_child();
 
@@ -307,7 +307,7 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & r, child_container_type * o
 }
 template<typename TM, typename TPoint>
 template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & fun, child_container_type * other)
+void ParticlePool<TM, TPoint>::remove(TRange const & range, TFun const & fun, child_container_type * other)
 {
 
 	auto buffer = container_type::create_child();
@@ -341,7 +341,7 @@ void ParticlePool<TM, TPoint>::Remove(TRange const & range, TFun const & fun, ch
 }
 
 template<typename TM, typename TPoint> template<typename TRange, typename TFun>
-void ParticlePool<TM, TPoint>::Modify(TRange const & range, TFun const & fun)
+void ParticlePool<TM, TPoint>::modify(TRange const & range, TFun const & fun)
 {
 
 	size_t count = 0;

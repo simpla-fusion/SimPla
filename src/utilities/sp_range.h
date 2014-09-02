@@ -101,11 +101,21 @@ size_t size(Range<TI> const & range)
 {
 	return range.size();
 }
+
+template<typename T>
+bool is_divisible(T const&)
+{
+	return false;
+}
+template<typename T>
+auto split(T const & range) DECL_RET_TYPE((std::forward_as_tuple(range,range)))
+
 template<typename TI>
 std::tuple<Range<TI>, Range<TI>> split(Range<TI> const & range)
 {
 	return std::move(range.split());
 }
+
 template<typename TI>
 bool is_divisible(Range<TI> const& range)
 {

@@ -428,21 +428,21 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			if (dof == "E")
 			{
 				commandToE_.push_back(
-				        E1.CreateCommand(model.SelectByConfig(E1.IForm, item.second["Select"]),
+				        E1.CreateCommand(model.select_by_config(E1.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
 				commandToB_.push_back(
-				        B1.CreateCommand(model.SelectByConfig(B1.IForm, item.second["Select"]),
+				        B1.CreateCommand(model.select_by_config(B1.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        Jext.CreateCommand(model.SelectByConfig(Jext.IForm, item.second["Select"]),
+				        Jext.CreateCommand(model.select_by_config(Jext.IForm, item.second["Select"]),
 				                item.second["Operation"]));
 			}
 			else

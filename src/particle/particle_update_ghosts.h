@@ -72,7 +72,7 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 
 	for (auto const & item : g_array.send_recv_)
 	{
-		pool->Remove(pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
+		pool->remove(pool->mesh.select_outer(ParticlePool<TM, TParticle>::IForm, item.recv_begin, item.recv_end));
 
 		MPI_Status status;
 
@@ -138,7 +138,7 @@ void update_ghosts(ParticlePool<TM, TParticle> *pool)
 	}
 	GLOBAL_COMM.barrier();
 
-	pool->Add(&cell_buffer);
+	pool->add(&cell_buffer);
 
 #endif
 }

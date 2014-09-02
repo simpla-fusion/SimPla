@@ -177,7 +177,7 @@ public:
 	auto end() const DECL_RET_TYPE(simpla::end(this->select()))
 
 	template<typename TD>
-	void Fill(TD default_value)
+	void fill(TD default_value)
 	{
 		UNIMPLEMENT;
 	}
@@ -211,7 +211,7 @@ public:
 	}
 
 	template<typename TZ>
-	inline void Add(coordinates_type const &x,TZ const & z)
+	inline void add(coordinates_type const &x,TZ const & z)
 	{
 		return mesh.Scatter(std::integral_constant<unsigned int ,IForm>(),this,z);
 	}

@@ -69,9 +69,9 @@ void parallel_for_each(TRange && range, Func && fun)
 
 	parallel_for(std::forward<TRange>(range),
 
-	[&](TRange & r1)
+	[&](TRange const & r1)
 	{
-		for( auto & v:r1 )
+		for( auto const & v:r1 )
 		{	fun(v);}
 
 	});

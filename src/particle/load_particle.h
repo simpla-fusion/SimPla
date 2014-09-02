@@ -30,14 +30,19 @@ namespace simpla
 {
 
 template<typename TP, typename TDict, typename TModel, typename TN, typename TT>
-std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
+std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
 {
-	if (!dict || (TP::get_type_as_string_static() != dict["Type"].template as<std::string>()))
+	if (!dict || (TP::get_type_as_string() != dict["Type"].template as<std::string>()))
 	{
-		PARSER_ERROR("illegal particle configure!");
+		PARSER_ERROR(
+		        "illegal particle configure!" + "\"" + TP::get_type_as_string() + ""\"!=" + "\""
+		                + dict["Type"].template as<std::string>("") + "\"")
+
+		;
 	}
 
 	typedef typename TP::mesh_type mesh_type;
+
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
 	std::shared_ptr<TP> res(new TP(dict, model));
@@ -81,11 +86,11 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 
 	unsigned int pic = dict["PIC"].template as<size_t>(100);
 
-	auto range = model.SelectByConfig(TP::IForm, dict["Select"]);
+	auto range = model.select_by_config(TP::IForm, dict["Select"]);
 
-	InitParticle(res.get(), range, pic, ns, Ts);
+	init_particle(res.get(), range, pic, ns, Ts);
 
-	LoadParticleConstriant(res.get(), range, model, dict["Constraints"]);
+	load_particle_constriant(res.get(), range, model, dict["Constraints"]);
 
 	LOGGER << "Create Particles:[ Engine=" << res->get_type_as_string() << ", Number of Particles=" << res->size()
 	        << "]" << DONE;
@@ -95,7 +100,7 @@ std::shared_ptr<ParticleBase> LoadParticle(TDict const &dict, TModel const & mod
 }
 
 template<typename TP, typename TRange, typename TModel, typename TDict>
-void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
+void load_particle_constriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
 {
 	if (!dict)
 		return;
@@ -104,26 +109,26 @@ void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TD
 	{
 		auto const & item = std::get<1>(key_item);
 
-		auto r = model.SelectByConfig(range, item["Select"]);
+		auto r = model.select_by_config(range, item["Select"]);
 
 		auto type = item["Type"].template as<std::string>("Modify");
 
 		if (type == "Modify")
 		{
-			p->AddConstraint([=]()
-			{	p->Modify(r, item["Operations"]);});
+			p->add_constraint([=]()
+			{	p->modify(r, item["Operations"]);});
 		}
 		else if (type == "Remove")
 		{
 			if (item["Operation"])
 			{
-				p->AddConstraint([=]()
-				{	p->Remove(r);});
+				p->add_constraint([=]()
+				{	p->remove(r);});
 			}
 			else if (item["Condition"])
 			{
-				p->AddConstraint([=]()
-				{	p->Remove(r,item["Condition"]);});
+				p->add_constraint([=]()
+				{	p->remove(r,item["Condition"]);});
 			}
 		}
 
@@ -131,7 +136,7 @@ void LoadParticleConstriant(TP *p, TRange const &range, TModel const & model, TD
 }
 
 template<typename TP, typename TR, typename TN, typename TT>
-void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
+void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 {
 	typedef typename TP::engine_type engine_type;
 
@@ -185,7 +190,7 @@ void InitParticle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 		d.splice(d.begin(), buffer);
 	}
 
-	p->Add(&buffer);
+	p->add(&buffer);
 //	update_ghosts(p);
 //	p->update_fields();
 
