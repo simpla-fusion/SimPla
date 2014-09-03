@@ -35,9 +35,19 @@ LINK_DIRECTORIES(${BINARY_DIR})
 #ExternalProject_Get_Property(trilinos SOURCE_DIR)
 #ExternalProject_Get_Property(trilinos BINARY_DIR)
 
-
+ 
+ExternalProject_Add(tbb
+    PREFIX third_part 
+ #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
+    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/tbb43_20140724oss_src.tgz
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss
+    INSTALL_COMMAND "" )
+ExternalProject_Get_Property(tbb SOURCE_DIR)
+ExternalProject_Get_Property(tbb BINARY_DIR)
 INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
 LINK_DIRECTORIES(${BINARY_DIR})
+
+SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
 #ExternalProject_Add(pugixml
 #    PREFIX third_part 
 #    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz
@@ -92,13 +102,14 @@ SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
  
 MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0 ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0   ")
 
-  SET(CMAKE_AR      "llvm-ar-3.5")
-  SET(CMAKE_LINKER  "llvm-ld-3.5")
-  SET(CMAKE_NM      "llvm-nm-3.5")
-  SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
-  SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
+#  SET(CMAKE_AR      "llvm-ar-3.5")
+ # SET(CMAKE_LINKER  "llvm-ld-3.5")
+  #SET(CMAKE_LINKER_FLAG " -L/usr/lib/gcc/x86_64-linux-gnu/4.8/")
+  #SET(CMAKE_NM      "llvm-nm-3.5")
+ # SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
+  #SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
   #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
 elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
@@ -140,6 +151,11 @@ execute_process(COMMAND  git describe --all  --dirty --long
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
  
+ find_package(TBB)
+IF(TBB_FOUND)
+    ADD_DEFINITIONS(-DHAVE_TBB )
+    MESSAGE(${TBB_INCLUDE_DIR})
+ENDIF(TBB_FOUND)
 ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
 ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
 #INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)

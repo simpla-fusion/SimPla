@@ -25,8 +25,7 @@ template<typename TM, typename Engine, typename Policy> class Particle;
 template<typename TM, typename Engine> using KineticParticle=Particle<TM, Engine, PolicyKineticParticle>;
 
 template<typename TM, typename Engine>
-class Particle<TM, Engine, PolicyKineticParticle> : public Engine, public ContainerPool<typename TM::compact_index_type,
-        typename Engine::Point_s>
+class Particle<TM, Engine, PolicyKineticParticle> : public Engine, public ContainerPool<typename Engine::Point_s>
 {
 public:
 	static constexpr unsigned int IForm = VERTEX;
@@ -53,7 +52,7 @@ typedef	typename std::conditional<has_member_J_at_the_center<engine_type>::value
 
 	storage_type pic_;
 
-	std::function<compact_index_type(particle_type const &)> index_hash_;
+	std::function<compact_index_type(particle_type const &)> hash_fun_;
 public:
 	mesh_type const & mesh;
 
@@ -121,7 +120,7 @@ public:
 	void next_timestep(Real dt, rho_type * pJ, Args && ...args);
 
 	template<typename TRange,typename Fun >
-	void apply_constriant(TRange const & range,Fun const& );
+	void modify(TRange const & range,Fun const& );
 
 };
 
@@ -131,7 +130,7 @@ Particle<TM, Engine, PolicyKineticParticle>::Particle(mesh_type const & pmesh, O
 		: mesh(pmesh), rho(mesh), J(mesh)
 {
 	load(std::forward<Others>(others)...);
-	index_hash_ = [& ](particle_type const & p)->mid_type
+	hash_fun_ = [& ](particle_type const & p)->mid_type
 	{
 		return std::get<0>(mesh.coordinates_global_to_local(std::get<0>(engine_type::pull_back(p))));
 	};
@@ -201,14 +200,14 @@ void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, Args &&
 
 	auto range = mesh.select(IForm);
 
-	pic_.sort(index_hash_);
+	pic_.sort(hash_fun_);
 
 	pic_.modify(range, [&](particle_type & p)
 	{
 		this->engine_type::next_timestep(&p,dt, std::forward<Args>(args)...);
 	});
 
-	pic_.sort(index_hash_);
+	pic_.sort(hash_fun_);
 
 	if (engine_type::properties["ScatterJ"].template as<bool>(true))
 	{
@@ -233,7 +232,7 @@ void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, J_type 
 {
 	auto range = mesh.select(IForm);
 
-	pic_.sort(index_hash_);
+	pic_.sort(hash_fun_);
 
 	if (properties["ContinuityEquation"].template as<bool>(false))
 	{
@@ -260,7 +259,7 @@ void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, rho_typ
 {
 	auto range = mesh.select(IForm);
 
-	pic_.sort(index_hash_);
+	pic_.sort(hash_fun_);
 
 	rho.clear();
 
@@ -274,11 +273,11 @@ void Particle<TM, Engine, PolicyKineticParticle>::next_timestep(Real dt, rho_typ
 }
 template<typename TM, typename Engine>
 template<typename TRange, typename Fun>
-void Particle<TM, Engine, PolicyKineticParticle>::apply_constriant(TRange const & range, Fun const& fun)
+void Particle<TM, Engine, PolicyKineticParticle>::modify(TRange const & range, Fun const& fun)
 {
 	auto buffer = pic_.get_child();
 	pic_.reduce(std::forward<TRange>(range), buffer, &buffer, fun);
-	pic_.sort(buffer, index_hash_);
+	pic_.add(buffer, hash_fun_);
 }
 
 }  // namespace simpla

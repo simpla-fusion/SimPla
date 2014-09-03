@@ -4,46 +4,58 @@
  * \date    2014年8月27日  上午7:25:40 
  * \author salmon
  */
-#include "multi_thread.h"
-//#include "../utilities/sp_iterator.h"
-//#include <iostream>
-//#include <vector>
-#include <thread>
-#include <future>
-#include <chrono>
 #include <iostream>
-#include <vector>
-#include <algorithm>
-#include <numeric>
-using namespace simpla;
+#include <tbb/tbb.h>
+#include <tbb/concurrent_unordered_map.h>
 
 int main(int argc, char **argv)
 {
+	typedef tbb::concurrent_unordered_map<int, int> container;
+	typedef typename container::iterator iterator;
+	typedef typename container::range_type range_type;
+	container a;
 
-	std::vector<int> d(100);
+	for (int i = 0; i < 100; ++i)
+	{
+		a[i] = 2 * i;
+	}
 
-	int total = 0;
+	tbb::parallel_for(a.range(),
 
-	auto range = make_divisible_range(d.begin(), d.end());
-
-	typedef decltype(range) range_type;
-
-	parallel_for(range, [](range_type &r )
-	{	for(auto & v:r)
-		{	v=2;}});
-
-	parallel_reduce(range, 0, &total,
-
-	[](range_type const &r, int *res )
-	{	for(auto const & v:r)
-		{	*res+=v;}},
-
-	[](int l,int *r)
-	{	*r+=l;}
+	[](range_type const &r )
+	{
+		for(auto ib=r.begin(),ie=r.end();ib!=ie;++ib)
+		{
+			std::cout<< ib->first<<","<<ib->second<<std::endl;
+		}
+	}
 
 	);
 
-	std::cout << total << std::endl;
+//	std::vector<int> d(100);
+//
+//	int total = 0;
+//
+//	auto range = make_divisible_range(d.begin(), d.end());
+//
+//	typedef decltype(range) range_type;
+//
+//	parallel_for(range, [](range_type &r )
+//	{	for(auto & v:r)
+//		{	v=2;}});
+//
+//	parallel_reduce(range, 0, &total,
+//
+//	[](range_type const &r, int *res )
+//	{	for(auto const & v:r)
+//		{	*res+=v;}},
+//
+//	[](int l,int *r)
+//	{	*r+=l;}
+//
+//	);
+//
+//	std::cout << total << std::endl;
 //
 ////	parallel_do([](int num_threads,int thread_num)
 ////	{

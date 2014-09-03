@@ -8,5 +8,6 @@ target_link_libraries(parallel ${MPI_LIBRARIES} )
 
 my_test(multi_thread_test    
          multi_thread_test.cpp  
+
       )
- 
+ target_link_libraries(multi_thread_test ${TBB_LIBRARIES} )
