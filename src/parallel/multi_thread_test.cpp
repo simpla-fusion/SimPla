@@ -5,32 +5,71 @@
  * \author salmon
  */
 #include <iostream>
-#include <tbb/tbb.h>
-#include <tbb/concurrent_unordered_map.h>
-
+#include <unordered_map>
+//#include <tbb/tbb.h>
+//#include <tbb/concurrent_unordered_map.h>
+struct my_hash
+{
+	int operator()(int i) const
+	{
+		return i % 2;
+	}
+};
 int main(int argc, char **argv)
 {
-	typedef tbb::concurrent_unordered_map<int, int> container;
-	typedef typename container::iterator iterator;
-	typedef typename container::range_type range_type;
-	container a;
+	std::unordered_multimap<int, int, my_hash> a;
 
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 2048; ++i)
 	{
-		a[i] = 2 * i;
+		a.emplace(i, i);
+		std::cout << a.bucket_count() << " " << a.max_load_factor() << std::endl;
 	}
 
-	tbb::parallel_for(a.range(),
+//	for (int i = 0; i < a.bucket_count(); ++i)
+//	{
+//		for (auto ib = a.begin(i), ie = a.end(i); ib != ie; ++ib)
+//		{
+//
+//		}
+//	}
 
-	[](range_type const &r )
-	{
-		for(auto ib=r.begin(),ie=r.end();ib!=ie;++ib)
-		{
-			std::cout<< ib->first<<","<<ib->second<<std::endl;
-		}
-	}
+//	for (auto &v : a)
+//	{
+//		v *= 2;
+//
+//	}
+//	for (int i = 0; i < a.bucket_count(); ++i)
+//	{
+//		std::cout << "[" << i << "] " << a.bucket_size(i) << std::endl;
+//
+////		for (auto ib = a.begin(i), ie = a.end(i); ib != ie; ++ib)
+////		{
+////			std::cout << *ib << " ";
+////		}
+////		std::cout << std::endl;
+//	}
 
-	);
+//	typedef tbb::concurrent_unordered_map<int, int> container;
+//	typedef typename container::iterator iterator;
+//	typedef typename container::range_type range_type;
+//	container a;
+//
+//	for (int i = 0; i < 100; ++i)
+//	{
+//		a[i] = 2 * i;
+//	}
+//
+//	tbb::parallel_for(a.range(),
+//
+//	[](range_type const &r )
+//	{
+//		for(auto ib=r.begin(),ie=r.end();ib!=ie;++ib)
+//		{
+//			std::cout<< ib->first<<","<<ib->second<<std::endl;
+//		}
+//	}
+//
+//	);
 
 //	std::vector<int> d(100);
 //

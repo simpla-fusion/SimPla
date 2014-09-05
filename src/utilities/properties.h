@@ -30,8 +30,8 @@ public:
 	Properties()
 	{
 	}
-	Properties(Any const &v) :
-			value_(v)
+	Properties(Any const &v)
+			: value_(v)
 	{
 	}
 	~Properties()
@@ -87,15 +87,6 @@ public:
 		return base_type::operator[](key);
 	}
 
-	inline Properties & operator[](key_type const & key)
-	{
-		return get(key);
-	}
-	inline Properties & operator[](const char key[])
-	{
-		return get(key);
-	}
-
 	Properties const &get(std::string const & key) const
 	{
 		auto it = base_type::find(key);
@@ -128,6 +119,26 @@ public:
 	{
 		get(key) = v;
 	}
+
+	inline Properties & operator[](key_type const & key)
+	{
+		return get(key);
+	}
+	inline Properties & operator[](const char key[])
+	{
+		return get(key);
+	}
+
+	Properties const & operator()(std::string const & key) const
+	{
+		return get(key);
+	}
+	template<typename T>
+	void operator()(std::string const & key, T && v)
+	{
+		return set(key, std::forward<T>(v));
+	}
+
 	Any & value()
 	{
 		return value_;

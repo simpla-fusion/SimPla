@@ -9,15 +9,7 @@
 #define CONTAINER_POOL_H_
 #include <map>
 #include <list>
-#include <scoped_allocator>
 #include "../utilities/range.h"
-//#ifdef NO_STD_CXX
-//template<typename T> using FixedSmallSizeAlloc=std::allocator<T>;
-//#else
-////need  libstdc++
-//#include <ext/mt_allocator.h>
-//template<typename T> using FixedSmallSizeAlloc=__gnu_cxx::__mt_alloc<T>;
-//#endif
 
 namespace simpla
 {
@@ -27,22 +19,16 @@ class ContainerPool
 {
 public:
 	typedef ValueType value_type;
-private:
 	typedef HashFunc hash_func;
 	typedef decltype(std::declval<hash_func>()(std::declval<value_type>())) key_type;
+private:
+	typedef std::vector<value_type> inner_container;
+	typedef typename inner_container::pointer inner_pointer;
+	typedef std::unordered_map<key_type, inner_pointer> map_container;
 
-	typedef __gnu_cxx ::__mt_alloc<value_type> inner_allocator_type;
+	inner_container data_;
 
-	typedef std::list<value_type, inner_allocator_type> inner_container_type;
-
-	typedef std::map<key_type, inner_container_type, std::less<key_type>,
-	        std::scoped_allocator_adaptor<std::allocator<std::pair<const key_type, inner_container_type> >,
-	                inner_allocator_type> > storage_type_;
-
-	typedef typename storage_type_::iterator iterator;
-	typedef typename storage_type_::const_iterator const_iterator;
-
-	typedef ContainerPool<key_type, value_type> this_type;
+	map_container hash_map;
 
 	inner_container_type default_value_;
 	storage_type_ data_;
