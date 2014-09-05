@@ -163,22 +163,47 @@ private:
 }
 ;
 template<typename T, unsigned int N>
-class BlockRange<T, N>
+class BlockRange<T, N> : public nTuple<N, BlockRange<T, 1>>
 {
 public:
 
 	typedef T const_iterator;
 
+	typedef T value_type;
+	//! Type for size of a range
+	typedef std::size_t size_type;
 	static constexpr unsigned ndims = N;
 
 	typedef BlockRange<T, N> this_type;
 
+	typedef nTuple<N, BlockRange<T, 1>> base_type;
+
 	/// \ingroup conecpt_range
-	BlockRange(this_type const &); //! Copy constructor
+	BlockRange(this_type const & r)  //! Copy constructor
+			: base_type(r)
+	{
 
-	BlockRange(this_type & r, split); //! Split range r into two subranges.
+	}
 
-	~BlockRange(); //! Destructor
+	BlockRange(this_type & r, split)  //! Split range r into two subranges.
+	{
+
+	}
+
+	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e, size_type grainsize = 1,
+	        size_type ghost_width = 2) //! Split range r into two subranges.
+	{
+
+	}
+	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e, nTuple<N, size_type> const & grainsize,
+	        nTuple<N, size_type> ghost_width) //! Split range r into two subranges.
+
+	{
+	}
+	~BlockRange() //! Destructor
+	{
+
+	}
 
 	bool empty() const; //! True if range is empty
 
