@@ -48,6 +48,18 @@ INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
 LINK_DIRECTORIES(${BINARY_DIR})
 
 SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
+
+
+ExternalProject_Add(thrust
+    PREFIX third_part 
+    URL  http://thrust.googlecode.com/files/thrust-1.5.1.zip
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/thrust
+    INSTALL_COMMAND "" )
+ExternalProject_Get_Property(thrust SOURCE_DIR)
+ExternalProject_Get_Property(thrust BINARY_DIR)
+INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+LINK_DIRECTORIES(${BINARY_DIR})
+
 #ExternalProject_Add(pugixml
 #    PREFIX third_part 
 #    #    URL   https://pugixml.googlecode.com/files/pugixml-1.2.tar.gz

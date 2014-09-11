@@ -14,10 +14,9 @@ namespace simpla
 /**
  *   is compatible with TBB block_range  1D,2D,3D
  */
-template<typename T, unsigned int N = 1> class BlockRange;
 
 template<typename T>
-class BlockRange<T, 1>
+class BlockRange
 {
 
 	typedef T const_iterator;
@@ -26,9 +25,7 @@ class BlockRange<T, 1>
 	//! Type for size of a range
 	typedef std::size_t size_type;
 
-	static constexpr unsigned ndims = 1;
-
-	typedef BlockRange<T, 1> this_type;
+	typedef BlockRange<T> this_type;
 
 	/// \ingroup conecpt_range
 	BlockRange(this_type const &)  //! Copy constructor
@@ -48,8 +45,8 @@ class BlockRange<T, 1>
 	{
 	}
 
-	BlockRange(this_type & r, split) //! Split range r into two subranges.
-			: i_e_(r.i_e_), i_b_(do_split(r, split())),
+	BlockRange(this_type & r, split_tag) //! Split range r into two subranges.
+			: i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
 
 			o_e_(r.i_e_),
 
@@ -150,7 +147,7 @@ private:
 	size_type grainsize_;
 	size_type ghostwidth_;
 
-	static value_type do_split(this_type & r, split)
+	static value_type do_split(this_type & r, split_tag)
 	{
 		ASSERT(r.is_divisible());
 
@@ -163,7 +160,7 @@ private:
 }
 ;
 template<typename T, unsigned int N>
-class BlockRange<T, N> : public nTuple<N, BlockRange<T, 1>>
+class BlockRange<nTuple<N, T>>
 {
 public:
 
@@ -185,7 +182,7 @@ public:
 
 	}
 
-	BlockRange(this_type & r, split)  //! Split range r into two subranges.
+	BlockRange(this_type & r, split_tag)  //! Split range r into two subranges.
 	{
 
 	}
