@@ -324,8 +324,8 @@ int main(int argc, char **argv)
 
 	LOGGER << "Post-Process" << DONE;
 
-	GLOBAL_DATA_STREAM.Close();
-	GLOBAL_COMM.Close();
+	GLOBAL_DATA_STREAM.close();
+	GLOBAL_COMM.close();
 	TheEnd();
 
 }

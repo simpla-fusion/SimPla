@@ -7,26 +7,127 @@
 
 #include <iostream>
 
-#include "../src/utilities/log.h"
-#include "../src/io/data_stream.h"
-#include "../src/physics/constants.h"
-#include "../src/utilities/parse_command_line.h"
-#include "../src/parallel/message_comm.h"
-#include "../src/simpla_defs.h"
+#include "../../src/utilities/log.h"
+#include "../../src/io/data_stream.h"
+#include "../../src/physics/constants.h"
+#include "../../src/utilities/parse_command_line.h"
+#include "../../src/parallel/message_comm.h"
+#include "../../src/simpla_defs.h"
 
-#include "../src/mesh/geometry_cylindrical.h"
-#include "../src/mesh/mesh_rectangle.h"
-#include "../src/mesh/uniform_array.h"
+#include "../../src/mesh/geometry_cylindrical.h"
+#include "../../src/mesh/mesh_rectangle.h"
+#include "../../src/mesh/uniform_array.h"
 
-#include "../src/model/model.h"
-#include "../src/model/geqdsk.h"
+#include "../../src/model/model.h"
+#include "../../src/fetl/field.h"
+#include "../../src/fetl/save_field.h"
 
-#include "../src/fetl/fetl.h"
-#include "../src/fetl/save_field.h"
-
+#include "../../src/particle/particle_engine.h"
 using namespace simpla;
 
-static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single toridal model number, RF  ";
+static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single toridial model number, RF  ";
+
+namespace simpla
+{
+
+/**
+ * \ingroup ParticleEngine
+ * \brief \f$\delta f\f$ engine
+ */
+
+typedef ParticleEngine<PolicyPICDeltaF> PICDeltaF;
+
+template<>
+struct ParticleEngine<PolicyPICDeltaF>
+{
+	typedef ParticleEngine<PolicyPICDeltaF> this_type;
+	typedef Vec3 coordinates_type;
+	typedef Vec3 vector_type;
+	typedef Real scalar_type;
+
+	SP_DEFINE_POINT_STRUCT(Point_s,
+			coordinates_type ,x,
+			Vec3, v,
+			Real, f,
+			scalar_type, w)
+
+	SP_DEFINE_PROPERTIES(
+			Real, mass,
+			Real, charge,
+			Real, temperature
+	)
+
+	int J_at_the_center;
+
+private:
+	Real cmr_, q_kT_;
+public:
+
+	ParticleEngine() :
+			mass(1.0), charge(1.0), temperature(1.0)
+	{
+		update();
+	}
+
+	void update()
+	{
+		DEFINE_PHYSICAL_CONST
+		cmr_ = charge / mass;
+		q_kT_ = charge / (temperature * boltzmann_constant);
+	}
+
+	~ParticleEngine()
+	{
+	}
+
+	static std::string get_type_as_string()
+	{
+		return "DeltaF";
+	}
+
+	template<typename TJ, typename TE, typename TB>
+	void next_timestep(Point_s * p, TJ* J, Real dt, TE const &fE, TB const & fB) const
+	{
+		p->x += p->v * dt * 0.5;
+
+		auto B = fB(p->x);
+		auto E = fE(p->x);
+
+		Vec3 v_;
+
+		auto t = B * (cmr_ * dt * 0.5);
+
+		p->v += E * (cmr_ * dt * 0.5);
+
+		v_ = p->v + Cross(p->v, t);
+
+		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
+
+		p->v += v_;
+		auto a = (-Dot(E, p->v) * q_kT_ * dt);
+		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+
+		p->v += v_;
+		p->v += E * (cmr_ * dt * 0.5);
+
+		p->x += p->v * dt * 0.5;
+
+		J->scatter_cartesian(std::forward_as_tuple(p->x, p->v, p->f * charge * p->w));
+
+	}
+
+	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
+	{
+		return std::move(Point_s( { x, v, f }));
+	}
+
+	static inline auto pull_back(Point_s const & p)
+	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+
+}
+;
+
+} // namespace simpla
 
 /**
  *   \example RF.cpp
@@ -36,23 +137,21 @@ static constexpr char key_words[] = "Cylindrical Geometry, Uniform Grid, single 
 int main(int argc, char **argv)
 {
 
-	typedef Mesh<CylindricalGeometry<UniformArray>, true> cylindrical_mesh;
+	typedef Mesh<CylindricalGeometry<UniformArray>, true> mesh_type;
 
-	typedef Model<cylindrical_mesh> model_type;
+	typedef Model<mesh_type> model_type;
 
-	typedef typename cylindrical_mesh::scalar_type scalar_type;
+	typedef typename mesh_type::scalar_type scalar_type;
 
-	static constexpr unsigned int NDIMS = cylindrical_mesh::NDIMS;
+	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
 
-	LOG_STREAM.init(argc,argv);
+	LOGGER.init(argc, argv);
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.init(argc,argv);
 
-	GEqdsk geqdsk;
-
 	model_type model;
 
-	auto & mesh = model.mesh;
+	auto & mesh = model;
 
 	nTuple<NDIMS, size_t> dims = { 256, 256, 1 };
 
@@ -139,12 +238,12 @@ int main(int argc, char **argv)
 	}
 
 	);
-	if (!GLOBAL_DATA_STREAM.is_ready())
-	{
-		GLOBAL_DATA_STREAM.open_file("./");
-	}
-
-	Particle < PICEngineDeltaF234 < mesh_type >> p;
+//	if (!GLOBAL_DATA_STREAM.is_ready())
+//	{
+//		GLOBAL_DATA_STREAM.open_file("./");
+//	}
+//
+	Particle<mesh_type, PICDeltaF> pp(model);
 
 	INFORM << SIMPLA_LOGO << std::endl
 
@@ -152,60 +251,44 @@ int main(int argc, char **argv)
 
 	LOGGER << "Pre-Process" << START;
 
-	if (gfile != "")
-	{
-		mesh.set_dimensions(dims);
-
-		mesh.set_dt(dt);
-
-		geqdsk.load(gfile);
-
-		geqdsk.SetUpModel(&model, toridal_model_number);
-
-		INFORM << geqdsk.save("/Input");
-	}
-	else
-	{
-		WARNING << ("No geqdsk-file is inputed!");
-
-		TheEnd(-1);
-	}
+//	if (gfile != "")
+//	{
+//		mesh.set_dimensions(dims);
+//
+//		mesh.set_dt(dt);
+//
+//		geqdsk.load(gfile);
+//
+//		geqdsk.SetUpModel(&model, toridal_model_number);
+//
+//		INFORM << geqdsk.save("/Input");
+//	}
+//	else
+//	{
+//		WARNING << ("No geqdsk-file is inputed!");
+//
+//		TheEnd(-1);
+//	}
 
 	INFORM << "Configuration: \n" << model;
 
-	auto E = mesh.template make_field<EDGE, scalar_type>();
-	E.clear();
+	mesh_type::field<EDGE, scalar_type> E(model);
+	mesh_type::field<FACE, scalar_type> B(model);
+	mesh_type::field<VERTEX, nTuple<3, scalar_type>> u(model);
+	mesh_type::field<VERTEX, scalar_type> Ti(model);
+	mesh_type::field<VERTEX, scalar_type> Te(model);
+	mesh_type::field<VERTEX, scalar_type> n(model);
+	mesh_type::field<EDGE, scalar_type> J(model);
+	mesh_type::field<EDGE, scalar_type> p(model);
 
-	auto B = mesh.template make_field<FACE, scalar_type>();
-	B.clear();
-
-	auto u = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
-	u.clear();
-
-	auto Ti = mesh.template make_field<VERTEX, scalar_type>();
-	Ti.clear();
-
-	auto Te = mesh.template make_field<VERTEX, scalar_type>();
-	Te.clear();
-
-	auto n = mesh.template make_field<VERTEX, scalar_type>();
-	n.clear();
-
-	auto J = mesh.template make_field<EDGE, scalar_type>();
-	J.clear();
-
-	auto p = mesh.template make_field<VERTEX, scalar_type>();
-	p.clear();
-
-	auto limiter_face = model.SelectInterface(FACE, model_type::VACUUM, model_type::NONE);
-
-	auto limiter_edge = model.SelectInterface(EDGE, model_type::VACUUM, model_type::NONE);
-
-	geqdsk.GetProfile("ne", &n);
-	geqdsk.GetProfile("pres", &p);
-	geqdsk.GetProfile("Ti", &Ti);
-	geqdsk.GetProfile("Ti", &Te);
-	geqdsk.GetProfile("B", &B);
+//	auto limiter_face = model.SelectInterface(FACE, model_type::VACUUM, model_type::NONE);
+//	auto limiter_edge = model.SelectInterface(EDGE, model_type::VACUUM, model_type::NONE);
+//
+//	geqdsk.GetProfile("ne", &n);
+//	geqdsk.GetProfile("pres", &p);
+//	geqdsk.GetProfile("Ti", &Ti);
+//	geqdsk.GetProfile("Ti", &Te);
+//	geqdsk.GetProfile("B", &B);
 
 	INFORM << SINGLELINE;
 
@@ -219,15 +302,15 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.open_group("/save");
-		GLOBAL_DATA_STREAM.EnableCompactStorable();
+		GLOBAL_DATA_STREAM.cd("/save");
+		GLOBAL_DATA_STREAM.property("compact storage",true);
 
 		//   save initial value
 		LOGGER << SAVE(B);
 		LOGGER << SAVE(n);
 		LOGGER << SAVE(p);
 		LOGGER << SAVE(u);
-		LOGGER << SAVE(T);
+		LOGGER << SAVE(Ti);
 		LOGGER << SAVE(J);
 
 		for (int i = 0; i < num_of_step; ++i)
@@ -241,20 +324,19 @@ int main(int argc, char **argv)
 
 			<< "Simulation Time = " << (mesh.get_time() / CONSTANTS["s"]) << "[s]";
 
-
 			// boundary constraints
-
-			{
-				for(auto s:limiter_face)
-				{
-					get_value(B,s)=0.0;
-				}
-
-				for(auto s:limiter_edge)
-				{
-					get_value(J,s)=0.0;
-				}
-			}
+//
+//			{
+//				for(auto s:limiter_face)
+//				{
+//					get_value(B,s)=0.0;
+//				}
+//
+//				for(auto s:limiter_edge)
+//				{
+//					get_value(J,s)=0.0;
+//				}
+//			}
 
 			if (i % record_stride == 0)
 			{
@@ -262,24 +344,23 @@ int main(int argc, char **argv)
 				LOGGER << SAVE(n);
 				LOGGER << SAVE(p);
 				LOGGER << SAVE(u);
-				LOGGER << SAVE(T);
+				LOGGER << SAVE(Ti);
 				LOGGER << SAVE(J);
 
 			}
 		}
 
-		GLOBAL_DATA_STREAM.DisableCompactStorable();
 	}
 	LOGGER << "Process" << DONE;
 
 	LOGGER << "Post-Process" << START;
 
-	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.GetCurrentPath();
+	INFORM << "OutPut Path:" << GLOBAL_DATA_STREAM.pwd();
 
 	LOGGER << "Post-Process" << DONE;
 
-	GLOBAL_DATA_STREAM.Close();
-	GLOBAL_COMM.Close();
+	GLOBAL_DATA_STREAM.close();
+	GLOBAL_COMM.close();
 	TheEnd();
 
 }

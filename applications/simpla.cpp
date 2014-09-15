@@ -212,7 +212,7 @@ int main(int argc, char **argv)
 
 	INFORM << SINGLELINE;
 	GLOBAL_DATA_STREAM.close();
-	GLOBAL_COMM.Close();
+	GLOBAL_COMM.close();
 	TheEnd();
 
 }

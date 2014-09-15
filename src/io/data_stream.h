@@ -54,6 +54,16 @@ public:
 	Properties & get_properties();
 	Properties const & get_properties() const;
 
+	template<typename T> void property(std::string const & name, T const&v)
+	{
+		get_properties().set(name, Any(v));
+	}
+
+	template<typename T> T property(std::string const & name) const
+	{
+		return get_properties().get(name).template as<T>();
+	}
+
 	template<typename T> void set_property(std::string const & name, T const&v)
 	{
 		get_properties().set(name, Any(v));

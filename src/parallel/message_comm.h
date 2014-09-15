@@ -39,7 +39,7 @@ public:
 	}
 	~MessageComm()
 	{
-		Close();
+		close();
 	}
 
 	void init(int argc = 0, char** argv = nullptr)
@@ -71,7 +71,7 @@ public:
 		}
 
 	}
-	void Close()
+	void close()
 	{
 		if (comm_ != MPI_COMM_NULL)
 			MPI_Finalize();
