@@ -33,11 +33,11 @@ namespace simpla
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk: public CylindricalGeometry<UniformArray, 2>
+class GEqdsk: public CylindricalCoordinates<SurturedMesh, 2>
 {
 
 public:
-	typedef CylindricalGeometry<UniformArray, 2> geometry_type;
+	typedef CylindricalCoordinates<SurturedMesh, 2> geometry_type;
 
 	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 

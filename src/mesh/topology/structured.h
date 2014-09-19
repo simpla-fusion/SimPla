@@ -1,12 +1,12 @@
 /*
- * uniform_array.h
+ * structured.h
  *
  *  created on: 2014-2-21
  *      Author: salmon
  */
 
-#ifndef UNIFORM_ARRAY_H_
-#define UNIFORM_ARRAY_H_
+#ifndef STRUCTURED_H_
+#define STRUCTURED_H_
 
 #include <algorithm>
 #include <cassert>
@@ -28,15 +28,15 @@
 namespace simpla
 {
 /**
-
- *  \ingroup Topology
- *
- *  \brief standard rectangle grid  (1~3 dimensions)
+ * \ingroup Topology
  */
-struct UniformArray
+/**
+ *  \brief  structured mesh, n-dimensional array
+ */
+struct StructuredMesh
 {
 
-	typedef UniformArray this_type;
+	typedef StructuredMesh this_type;
 	static constexpr unsigned int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr unsigned int NDIMS = 3;
@@ -49,24 +49,19 @@ struct UniformArray
 
 	//***************************************************************************************************
 
-	UniformArray()
+	StructuredMesh()
 	{
 	}
 
-	template<typename ... Args>
-	UniformArray(Args &&... args)
-	{
-		load(std::forward<Args>(args)...);
-	}
-
-	virtual ~UniformArray()
+	virtual ~StructuredMesh()
 	{
 	}
 
 	this_type & operator=(const this_type&) = delete;
-	UniformArray(const this_type&) = delete;
 
-	void swap(UniformArray & rhs)
+	StructuredMesh(const this_type&) = delete;
+
+	void swap(StructuredMesh & rhs)
 	{
 		//@todo NOT COMPLETE!!
 	}
@@ -2123,11 +2118,11 @@ public:
 }
 ;
 // class UniformArray
-inline UniformArray::range_type split(UniformArray::range_type const & range, unsigned int num_process,
+inline StructuredMesh::range_type split(StructuredMesh::range_type const & range, unsigned int num_process,
         unsigned int process_num, unsigned int ghost_width = 0)
 {
-	typedef UniformArray::index_type index_type;
-	static constexpr unsigned int NDIMS = UniformArray::NDIMS;
+	typedef StructuredMesh::index_type index_type;
+	static constexpr unsigned int NDIMS = StructuredMesh::NDIMS;
 
 	auto b = begin(range).self_;
 	auto e = (--end(range)).self_ + 1;
@@ -2159,37 +2154,37 @@ inline UniformArray::range_type split(UniformArray::range_type const & range, un
 
 	}
 
-	return std::move(UniformArray::make_range(b, e, shift));
+	return std::move(StructuredMesh::make_range(b, e, shift));
 }
 
 }
 // namespace simpla
 
-namespace std
-{
+//namespace std
+//{
+//
+//typename iterator_traits<simpla::StructuredMesh::iterator>::difference_type inline //
+//distance(simpla::StructuredMesh::iterator b, simpla::StructuredMesh::iterator e)
+//{
+//
+//	typename simpla::StructuredMesh::iterator::difference_type res;
+//
+//	--e;
+//
+//	res = simpla::NProduct((e).self_ - b.self_ + 1);
+//
+//	switch (simpla::StructuredMesh::IForm(b.shift_))
+//	{
+//	case simpla::EDGE:
+//	case simpla::FACE:
+//		res = res * 3
+//		        + (simpla::StructuredMesh::component_number(e.shift_)
+//		                - simpla::StructuredMesh::component_number(b.shift_)) + 1;
+//		break;
+//	}
+//
+//	return res;
+//}
+//}  // namespace std
 
-typename iterator_traits<simpla::UniformArray::iterator>::difference_type inline //
-distance(simpla::UniformArray::iterator b, simpla::UniformArray::iterator e)
-{
-
-	typename simpla::UniformArray::iterator::difference_type res;
-
-	--e;
-
-	res = simpla::NProduct((e).self_ - b.self_ + 1);
-
-	switch (simpla::UniformArray::IForm(b.shift_))
-	{
-	case simpla::EDGE:
-	case simpla::FACE:
-		res = res * 3
-		        + (simpla::UniformArray::component_number(e.shift_) - simpla::UniformArray::component_number(b.shift_))
-		        + 1;
-		break;
-	}
-
-	return res;
-}
-}  // namespace std
-
-#endif /* UNIFORM_ARRAY_H_ */
+#endif /* STRUCTURED_H_ */

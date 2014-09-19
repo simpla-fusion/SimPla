@@ -1,26 +1,26 @@
 /*
- * geometry_test.h
+ * coordinates_test.h
  *
  *  created on: 2014-6-27
  *      Author: salmon
  */
 
-#ifndef GEOMETRY_TEST_H_
-#define GEOMETRY_TEST_H_
+#ifndef COORDINATES_TEST_H_
+#define COORDINATES_TEST_H_
 
 #include <gtest/gtest.h>
 
-#include "../utilities/pretty_stream.h"
-#include "../utilities/log.h"
-#include "../parallel/message_comm.h"
+#include "../../utilities/pretty_stream.h"
+#include "../../utilities/log.h"
+#include "../../parallel/message_comm.h"
 
 using namespace simpla;
 
 #ifndef GEOMETRY
-#include "../mesh/uniform_array.h"
-#include "../mesh/geometry_cartesian.h"
+#include "../uniform_array.h"
+#include "cartesian.h"
 
-typedef CartesianGeometry<UniformArray> TGeometry;
+typedef CartesianCoordinates<UniformArray> TGeometry;
 #else
 typedef GEOMETRY TGeometry;
 #endif
@@ -36,17 +36,17 @@ protected:
 
 		auto param = GetParam();
 
-		xmin=std::get<0>(param);
+		xmin = std::get<0>(param);
 
-		xmax=std::get<1>(param);
+		xmax = std::get<1>(param);
 
-		dims=std::get<2>(param);
+		dims = std::get<2>(param);
 
 		geometry.set_dimensions(dims);
-		geometry.set_extents(xmin,xmax);
+		geometry.set_extents(xmin, xmax);
 		geometry.update();
 
-		std::tie(xmin,xmax)=geometry.get_extents();
+		std::tie(xmin, xmax) = geometry.get_extents();
 
 	}
 public:
@@ -57,16 +57,15 @@ public:
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 
-	unsigned int NDIMS=geometry_type::NDIMS;
+	unsigned int NDIMS = geometry_type::NDIMS;
 
 	geometry_type geometry;
 
-	std::vector< unsigned int > iform_list =
-	{	VERTEX, EDGE, FACE, VOLUME};
-	coordinates_type xmin,xmax;
+	std::vector<unsigned int> iform_list = { VERTEX, EDGE, FACE, VOLUME };
+	coordinates_type xmin, xmax;
 	nTuple<geometry_type::NDIMS, index_type> dims;
 
-	Real epsilon=EPSILON*10;
+	Real epsilon = EPSILON * 10;
 
 };
 
@@ -184,4 +183,4 @@ TEST_P(TestGeometry,Coordinates_transform)
 
 }
 
-#endif /* GEOMETRY_TEST_H_ */
+#endif /* COORDINATES_TEST_H_ */

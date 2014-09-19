@@ -17,7 +17,7 @@ using namespace simpla;
 
 #ifndef TOPOLOGY
 #include "../mesh/uniform_array.h"
-typedef UniformArray TopologyType;
+typedef SurturedMesh TopologyType;
 #else
 typedef TOPOLOGY TopologyType;
 #endif

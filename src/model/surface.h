@@ -20,7 +20,7 @@ namespace simpla
 {
 
 /**
- *  \ingroup Model Geometry
+ *  \ingroup Model
  *
  *
  */

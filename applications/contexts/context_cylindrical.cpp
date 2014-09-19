@@ -18,8 +18,8 @@ namespace simpla
 {
 void RegisterEMContextCylindrical(Factory<std::string, ContextBase, LuaObject> * factory)
 {
-	factory->Register(ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>>> ::template CreateFactoryFun<LuaObject>());
-	factory->Register(ExplicitEMContext<Mesh<CylindricalGeometry<UniformArray>,true>> ::template CreateFactoryFun<LuaObject>());
+	factory->Register(ExplicitEMContext<Mesh<CylindricalCoordinates<SurturedMesh>>> ::template CreateFactoryFun<LuaObject>());
+	factory->Register(ExplicitEMContext<Mesh<CylindricalCoordinates<SurturedMesh>,true>> ::template CreateFactoryFun<LuaObject>());
 }
 
 } // namespace simpla

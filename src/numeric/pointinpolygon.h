@@ -17,7 +17,7 @@
 namespace simpla
 {
 /**
- *  \ingroup Numeric  Geometry
+ *  \ingroup Numeric  GeometryAlgorithm
  *  \brief check a point in 2D polygon
  */
 class PointInPolygon

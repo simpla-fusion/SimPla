@@ -1,12 +1,12 @@
 /*
- * geometry_cylindrical.h
+ * coordinates_cylindrical.h
  *
  *  created on: 2014-3-13
  *      Author: salmon
  */
 
-#ifndef GEOMETRY_CYLINDRICAL_H_
-#define GEOMETRY_CYLINDRICAL_H_
+#ifndef COORDINATES_CYLINDRICAL_H_
+#define COORDINATES_CYLINDRICAL_H_
 
 #include <iostream>
 #include <utility>
@@ -23,10 +23,10 @@ namespace simpla
 /**
  *  \ingroup Geometry
  *
- *  \brief  cylindrical geometry (R Z phi)
+ *  \brief  cylindrical coordinates (R Z phi)
  */
 template<typename TTopology, unsigned int IPhiAxis = 2>
-class CylindricalGeometry: public TTopology
+class CylindricalCoordinates: public TTopology
 {
 private:
 	bool is_ready_ = false;
@@ -37,7 +37,7 @@ public:
 	static constexpr unsigned int RAxis = (PhiAxis + 1) % 3;
 	static constexpr unsigned int ZAxis = (PhiAxis + 2) % 3;
 
-	typedef CylindricalGeometry<topology_type, PhiAxis> this_type;
+	typedef CylindricalCoordinates<topology_type, PhiAxis> this_type;
 
 	static constexpr unsigned int NDIMS = topology_type::NDIMS;
 
@@ -51,9 +51,9 @@ public:
 	typedef nTuple<NDIMS, Real> vector_type;
 	typedef nTuple<NDIMS, Real> covector_type;
 
-	CylindricalGeometry(this_type const & rhs) = delete;
+	CylindricalCoordinates(this_type const & rhs) = delete;
 
-	CylindricalGeometry() :
+	CylindricalCoordinates() :
 			topology_type()
 	{
 		xmin_ = coordinates_type( { 1, 0, 0 });
@@ -67,13 +67,13 @@ public:
 		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 	template<typename ... Args>
-	CylindricalGeometry(Args && ... args) :
+	CylindricalCoordinates(Args && ... args) :
 			topology_type(std::forward<Args>(args)...)
 	{
 		load(std::forward<Args>(args)...);
 	}
 
-	~CylindricalGeometry()
+	~CylindricalCoordinates()
 	{
 	}
 	static std::string get_type_as_string_static()
@@ -571,7 +571,7 @@ public:
 ;
 
 template<typename TTopology, unsigned int IPhiAxis>
-bool CylindricalGeometry<TTopology, IPhiAxis>::update()
+bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 {
 
 	if (!topology_type::update()) return false;
@@ -696,4 +696,4 @@ bool CylindricalGeometry<TTopology, IPhiAxis>::update()
 }
 // namespace simpla
 
-#endif /* GEOMETRY_CYLINDRICAL_H_ */
+#endif /* COORDINATES_CYLINDRICAL_H_ */

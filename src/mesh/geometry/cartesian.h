@@ -1,12 +1,12 @@
 /*
- * geometry_cartesian.h
+ * coordinates_cartesian.h
  *
  *  created on: 2014-3-13
  *      Author: salmon
  */
 
-#ifndef GEOMETRY_CARTESIAN_H_
-#define GEOMETRY_CARTESIAN_H_
+#ifndef COORDINATES_CARTESIAN_H_
+#define COORDINATES_CARTESIAN_H_
 
 #include <iostream>
 #include <utility>
@@ -23,18 +23,17 @@ namespace simpla
 /**
  *  \ingroup Geometry
  *
- *  \brief  Cartesian geometry (X Y Z)
- *
+ *  \brief  Cartesian coordiantes (X Y Z)
  *
  */
 template<typename TTopology, unsigned int ZAXIS = CARTESIAN_ZAXIS>
-struct CartesianGeometry: public TTopology
+struct CartesianCoordinates: public TTopology
 {
 private:
 	bool is_ready_ = false;
 public:
 	typedef TTopology topology_type;
-	typedef CartesianGeometry<topology_type> this_type;
+	typedef CartesianCoordinates<topology_type> this_type;
 
 	static constexpr unsigned int NDIMS = topology_type::NDIMS;
 
@@ -49,9 +48,9 @@ public:
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
-	CartesianGeometry(this_type const & rhs) = delete;
+	CartesianCoordinates(this_type const & rhs) = delete;
 
-	CartesianGeometry() :
+	CartesianCoordinates() :
 			topology_type()
 	{
 
@@ -67,13 +66,13 @@ public:
 	}
 
 	template<typename ... Args>
-	CartesianGeometry(Args && ... args) :
+	CartesianCoordinates(Args && ... args) :
 			topology_type(std::forward<Args>(args)...)
 	{
 		load(std::forward<Args>(args)...);
 	}
 
-	~CartesianGeometry()
+	~CartesianCoordinates()
 	{
 	}
 
@@ -505,7 +504,7 @@ public:
 }
 ;
 template<typename TTopology, unsigned int ZAXIS>
-bool CartesianGeometry<TTopology, ZAXIS>::update()
+bool CartesianCoordinates<TTopology, ZAXIS>::update()
 {
 	topology_type::update();
 
@@ -624,4 +623,4 @@ bool CartesianGeometry<TTopology, ZAXIS>::update()
 
 }  // namespace simpla
 
-#endif /* GEOMETRY_CARTESIAN_H_ */
+#endif /* COORDINATES_CARTESIAN_H_ */

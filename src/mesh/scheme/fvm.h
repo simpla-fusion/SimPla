@@ -20,34 +20,21 @@
 namespace simpla
 {
 
-/**
- *   \defgroup  Mesh Mesh
- *
- *     define all basic discrete scheme, i.e. finite difference , finite volume, finite element
- *
- *
- *   @{
- *      \defgroup  Geometry Geometry
- *        \brief coordinates and metric dependent information
- *     	\defgroup  Topology Topology
- *        \brief coordinates and metric  independent information
- *   @}
- */
-
 template<typename, unsigned int, typename > class Field;
 
-/**
- *  \brief template of Mesh
+
+/** \ingroup Scheme
+ *  \brief template of FvMesh
  */
-template<typename TGeometry, bool EnableSpectralMethod = false>
-class Mesh: public TGeometry
+template<typename TGeometry>
+class FvMesh: public TGeometry
 {
 public:
 	typedef TGeometry geometry_type;
 
-	static constexpr bool enable_spectral_method = EnableSpectralMethod;
+	static constexpr bool enable_spectral_method = false;
 
-	typedef Mesh<geometry_type, enable_spectral_method> this_type;
+	typedef FvMesh<geometry_type> this_type;
 
 	typedef typename std::conditional<enable_spectral_method, Complex, Real>::type scalar_type;
 
@@ -67,15 +54,15 @@ public:
 
 	nTuple<NDIMS, scalar_type> k_imag/* = { 0, 0, 0 }*/;
 
-	Mesh()
+	FvMesh()
 	{
 	}
 
-	~Mesh()
+	~FvMesh()
 	{
 	}
 
-	Mesh(const this_type&) = delete;
+	FvMesh(const this_type&) = delete;
 
 	template<typename TDict>
 	bool load(TDict const& dict)
@@ -99,8 +86,7 @@ public:
 	{
 		return get_type_as_string_static();
 	}
-	template<typename OS>
-	OS & print(OS &os) const
+	std::ostream & print(std::ostream &os) const
 	{
 		geometry_type::print(os);
 

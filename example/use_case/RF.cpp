@@ -137,7 +137,7 @@ public:
 int main(int argc, char **argv)
 {
 
-	typedef Mesh<CylindricalGeometry<UniformArray>, true> mesh_type;
+	typedef FvMesh<CylindricalCoordinates<SurturedMesh>, true> mesh_type;
 
 	typedef Model<mesh_type> model_type;
 

@@ -19,8 +19,8 @@ namespace simpla
 
 void RegisterEMContextCartesian(Factory<std::string, ContextBase, LuaObject> * factory)
 {
-	factory->Register(ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>>> ::template CreateFactoryFun<LuaObject>());
-	factory->Register(ExplicitEMContext<Mesh<CartesianGeometry<UniformArray>,true>> ::template CreateFactoryFun<LuaObject>());
+	factory->Register(ExplicitEMContext<Mesh<CartesianCoordinates<SurturedMesh>>> ::template CreateFactoryFun<LuaObject>());
+	factory->Register(ExplicitEMContext<Mesh<CartesianCoordinates<SurturedMesh>,true>> ::template CreateFactoryFun<LuaObject>());
 }
 
 } // namespace simpla

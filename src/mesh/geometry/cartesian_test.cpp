@@ -6,10 +6,10 @@
  */
 
 #include "../mesh/uniform_array.h"
-#include "../mesh/geometry_cartesian.h"
+#include "cartesian.h"
 
-#define GEOMETRY  CartesianGeometry<UniformArray>
-#include "geometry_test.h"
+#define GEOMETRY  CartesianCoordinates<UniformArray>
+#include "coordinates_test.h"
 
 using namespace simpla;
 

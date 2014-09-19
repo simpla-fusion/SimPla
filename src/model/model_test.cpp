@@ -53,7 +53,7 @@ protected:
 	}
 public:
 
-	typedef Mesh<CartesianGeometry<UniformArray>> mesh_type;
+	typedef Mesh<CartesianCoordinates<SurturedMesh>> mesh_type;
 	typedef Real value_type;
 	typedef mesh_type::iterator iterator;
 	typedef mesh_type::coordinates_type coordinates_type;

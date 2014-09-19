@@ -50,7 +50,7 @@ namespace simpla
 //}
 
 /**
- *  \ingroup Geometry
+ *  \addtogroup GeometryAlgorithm
  *  @{
  */
 template<unsigned int DIM, typename TR, typename TRange>

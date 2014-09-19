@@ -62,7 +62,7 @@ using namespace simpla;
 #include "../mesh/geometry_cartesian.h"
 #include "../../applications/particle_solver/pic_engine_fullf.h"
 
-typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
+typedef Mesh<CartesianCoordinates<SurturedMesh>, false> TMesh;
 
 typedef TMesh mesh_type;
 

@@ -20,7 +20,7 @@ using namespace simpla;
 #include "../mesh/geometry_cartesian.h"
 #include "../mesh/mesh_rectangle.h"
 
-typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
+typedef FvMesh<CartesianCoordinates<SurturedMesh>, false> TMesh;
 #else
 typedef TMESH TMesh;
 #endif

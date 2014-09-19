@@ -39,7 +39,7 @@ int main(int argc, char **argv)
 
 	nTuple<3, size_t> dims = { 40, 50, 1 };
 
-	typedef Mesh<CartesianGeometry<UniformArray>, false> mesh_type;
+	typedef FvMesh<CartesianCoordinates<SurturedMesh>, false> mesh_type;
 
 	mesh_type mesh;
 
