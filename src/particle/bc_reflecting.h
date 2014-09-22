@@ -70,9 +70,9 @@ public:
 			nTuple<3, Real> v;
 			for (auto & point : p[s.first])
 			{
-				p.PullBack(pounsigned int , &x, &v);
+				p.pull_back(pounsigned int , &x, &v);
 				Relection(s.second, &x, &v);
-				p.PushForward(x, v, &point);
+				p.push_forward(x, v, &point);
 			}
 
 			p.Resort(s.first);

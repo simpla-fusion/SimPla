@@ -22,8 +22,7 @@
 #include "../utilities/sp_iterator_mapped.h"
 #include "field_update_ghosts.h"
 #include "../mesh/interpolator.h"
-namespace simpla
-{
+namespace simpla {
 template<typename TM, unsigned int IFORM, typename > struct Field;
 
 /**
@@ -33,8 +32,7 @@ template<typename TM, unsigned int IFORM, typename > struct Field;
  *
  */
 template<typename TM, unsigned int IFORM, typename TContainer>
-struct Field: public TContainer
-{
+struct Field: public TContainer {
 
 public:
 
@@ -61,11 +59,12 @@ public:
 	typedef typename mesh_type::range_type mesh_range_type;
 
 	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-	        value_type, nTuple<NDIMS, value_type> >::type field_value_type;
+			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
 
 	typedef Interpolator<mesh_type> interpolator_type;
 
-	typedef std::function<field_value_type(Real, coordinates_type, field_value_type)> picewise_furho_type;
+	typedef std::function<
+			field_value_type(Real, coordinates_type, field_value_type)> picewise_furho_type;
 
 	friend mesh_type;
 
@@ -81,9 +80,10 @@ private:
 	 * @param args
 	 */
 	template<typename ...Args>
-	Field(mesh_type const &pmesh, mesh_range_type const & range, Args && ... args)
-			: container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(range)
-	{
+	Field(mesh_type const &pmesh, mesh_range_type const & range,
+			Args && ... args) :
+			container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(
+					range) {
 	}
 public:
 
@@ -93,9 +93,8 @@ public:
 	 * @param d
 	 */
 
-	Field(mesh_type const & mesh, value_type d = value_type())
-			: container_type(d), mesh(mesh)
-	{
+	Field(mesh_type const & mesh, value_type d = value_type()) :
+			container_type(d), mesh(mesh) {
 	}
 
 	/**
@@ -111,24 +110,20 @@ public:
 	 *
 	 * @param rhs
 	 */
-	Field(this_type const & rhs)
-			: container_type(rhs), mesh(rhs.mesh), range_(rhs.range_)
-	{
+	Field(this_type const & rhs) :
+			container_type(rhs), mesh(rhs.mesh), range_(rhs.range_) {
 	}
 	//! Move Construct copy mesh, and move data,
-	Field(this_type &&rhs)
-			: container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
-			        std::forward<typename mesh_type::range_type>(rhs.range_))
-	{
+	Field(this_type &&rhs) :
+			container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
+					std::forward<typename mesh_type::range_type>(rhs.range_)) {
 	}
 
-	~Field()
-	{
+	~Field() {
 	}
 
-	void swap(this_type & rhs)
-	{
-		ASSERT( mesh==rhs.mesh);
+	void swap(this_type & rhs) {
+		ASSERT(mesh == rhs.mesh);
 
 		container_type::swap(rhs);
 
@@ -136,8 +131,7 @@ public:
 
 	}
 
-	void allocate()
-	{
+	void allocate() {
 		mesh.template make_field<this_type>().swap(*this);
 
 		container_type::allocate();
@@ -212,23 +206,6 @@ public:
 	{
 		return container_type::get(s);
 	}
-
-	//@todo add shared_ptr iterator
-
-	typedef Iterator<mesh_iterator,this_type,_iterator_policy_mapped,true> iterator;
-	typedef Iterator<mesh_iterator,const this_type,_iterator_policy_mapped,true> const_iterator;
-
-	auto begin() DECL_RET_TYPE( iterator( std::get<0>(range_),std::get<1>(range_), *this))
-	auto begin() const DECL_RET_TYPE( const_iterator( std::get<0>(range_),std::get<1>(range_), *this))
-
-	auto end() DECL_RET_TYPE( iterator( std::get<1>(range_),std::get<1>(range_), *this));
-	auto end() const DECL_RET_TYPE( const_iterator( std::get<1>(range_),std::get<1>(range_), *this))
-
-	/**
-	 * create Command
-	 */
-	template<typename TRange, typename TFun>std::function<void()>
-	CreateCommand(TRange const & range, TFun const & fun);
 
 	/**
 	 *
@@ -372,7 +349,7 @@ public:
 						coordinates_type r = geo.MapTo( mesh.InvMapTo(x));
 
 						get_value(*this, s) = mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-								std::get<1>( mesh.PushForward(geo.PullBack(std::make_tuple(r, obj(r))))));
+								std::get<1>( mesh.push_forward(geo.pull_back(std::make_tuple(r, obj(r))))));
 					}
 				}
 
@@ -396,62 +373,59 @@ public:
 ;
 
 template<typename TL>
-struct is_field
-{
+struct is_field {
 	static const bool value = false;
 };
 
 template<typename TG, unsigned int IF, typename TL>
-struct is_field<Field<TG, IF, TL>>
-{
+struct is_field<Field<TG, IF, TL>> {
 	static const bool value = true;
 };
 
 template<typename T>
-struct is_field_expression
-{
+struct is_field_expression {
 	static constexpr bool value = false;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL, typename TR>
-struct is_field_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
-{
+template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
+		typename TR>
+struct is_field_expression<Field<TG, IF, BiOp<TOP, TL, TR> > > {
 	static constexpr bool value = true;
 };
 
 template<typename TG, unsigned int IF, unsigned int TOP, typename TL>
-struct is_field_expression<Field<TG, IF, UniOp<TOP, TL> > >
-{
+struct is_field_expression<Field<TG, IF, UniOp<TOP, TL> > > {
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL, typename TR>
-struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
-{
+template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
+		typename TR>
+struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > > {
 	static constexpr bool value = true;
 };
 
 template<typename TG, unsigned int IF, unsigned int TOP, typename TL>
-struct is_expression<Field<TG, IF, UniOp<TOP, TL> > >
-{
+struct is_expression<Field<TG, IF, UniOp<TOP, TL> > > {
 	static constexpr bool value = true;
 };
 
-template<typename TM, unsigned int IForm, typename TContainer> template<typename TRange, typename TFun>
-std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(TRange const & range, TFun const & object)
-{
+template<typename TM, unsigned int IForm, typename TContainer> template<
+		typename TRange, typename TFun>
+std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(
+		TRange const & range, TFun const & object) {
 	auto fun = TypeCast<picewise_furho_type>(object);
 
-	std::function<void()> res = [this,range,fun]()
-	{
-		for(auto const & s: range)
-		{
-			auto x=this->mesh.get_coordinates(s);
+	std::function<void()> res =
+			[this,range,fun]()
+			{
+				for(auto const & s: range)
+				{
+					auto x=this->mesh.get_coordinates(s);
 
-			get_value(*this,s) = this->mesh.Sample(std::integral_constant<unsigned int , IForm>(),
-					s, fun(this->mesh.get_time(),x ,(*this)(x)));
-		}
-	};
+					get_value(*this,s) = this->mesh.Sample(std::integral_constant<unsigned int , IForm>(),
+							s, fun(this->mesh.get_time(),x ,(*this)(x)));
+				}
+			};
 
 	return res;
 

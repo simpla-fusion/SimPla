@@ -272,11 +272,11 @@ public:
 		UNIMPLEMENT;
 	}
 
-	inline Real PullBack(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
+	inline Real pull_back(Point_s const & p, nTuple<3, Real> *x, nTuple<3, Real> * v) const
 	{
 		return 1.0;
 	}
-	inline void PushForward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
+	inline void push_forward(nTuple<3, Real> const&x, nTuple<3, Real> const& v, Point_s * p) const
 	{
 	}
 	static inline Point_s make_point(coordinates_type const & x, Vec3 const &v, Real f)

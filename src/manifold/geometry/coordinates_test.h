@@ -165,7 +165,7 @@ TEST_P(TestGeometry,Coordinates_transform)
 	EXPECT_DOUBLE_EQ(x[1], y[1]);
 	EXPECT_DOUBLE_EQ(x[2], y[2]);
 
-	auto z1 = geometry.PushForward(geometry.PullBack(z));
+	auto z1 = geometry.push_forward(geometry.pull_back(z));
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z1)[0]);
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z1)[1]);
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z1)[2]);
@@ -173,7 +173,7 @@ TEST_P(TestGeometry,Coordinates_transform)
 	EXPECT_DOUBLE_EQ(std::get<1>(z)[1], std::get<1>(z1)[1]);
 	EXPECT_DOUBLE_EQ(std::get<1>(z)[2], std::get<1>(z1)[2]);
 
-	auto z2 = geometry.PullBack(geometry.PushForward(z));
+	auto z2 = geometry.pull_back(geometry.push_forward(z));
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[0], std::get<0>(z2)[0]);
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[1], std::get<0>(z2)[1]);
 	EXPECT_DOUBLE_EQ(std::get<0>(z)[2], std::get<0>(z2)[2]);

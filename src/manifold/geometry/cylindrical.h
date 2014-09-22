@@ -355,13 +355,13 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z) const
+	std::tuple<coordinates_type, TV> push_forward(std::tuple<coordinates_type, TV> const & Z) const
 	{
 		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R) const
+	std::tuple<coordinates_type, TV> pull_back(std::tuple<coordinates_type, TV> const & R) const
 	{
 		return std::move(std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
 	}
@@ -390,7 +390,7 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > push_forward(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z));
@@ -411,7 +411,7 @@ public:
 	}
 	/**
 	 *
-	 *   PullBack vector from Cylindrical  to Cartesian
+	 *   pull_back vector from Cylindrical  to Cartesian
 	 *
 	 *
 	 * @param R  \f$ v=v_{r}\partial_{r}+v_{Z}\partial_{Z}+v_{\theta}/r\partial_{\theta} \f$
@@ -420,7 +420,7 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > pull_back(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R) const
 	{
 		auto const & r = std::get<0>(R);

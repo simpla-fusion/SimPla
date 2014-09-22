@@ -235,12 +235,12 @@ struct MagneticFluxGeometry
 	}
 
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PushForward(iterator s, nTuple<NDIMS, TV> const & v) const
+	nTuple<NDIMS, TV> const& push_forward(iterator s, nTuple<NDIMS, TV> const & v) const
 	{
 		return v;
 	}
 	template<typename TV>
-	nTuple<NDIMS, TV> const& PullBack(iterator s, nTuple<NDIMS, TV> const & v) const
+	nTuple<NDIMS, TV> const& pull_back(iterator s, nTuple<NDIMS, TV> const & v) const
 	{
 		return v;
 	}

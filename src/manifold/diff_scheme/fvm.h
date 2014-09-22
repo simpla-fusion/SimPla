@@ -23,7 +23,7 @@ namespace simpla
 template<typename, unsigned int, typename > class Field;
 
 
-/** \ingroup Scheme
+/** \ingroup DiffScheme
  *  \brief template of FvMesh
  */
 template<typename TGeometry>

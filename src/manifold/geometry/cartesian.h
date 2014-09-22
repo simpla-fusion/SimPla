@@ -329,13 +329,13 @@ public:
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PushForward(std::tuple<coordinates_type, TV> const & Z) const
+	std::tuple<coordinates_type, TV> push_forward(std::tuple<coordinates_type, TV> const & Z) const
 	{
 		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> PullBack(std::tuple<coordinates_type, TV> const & R) const
+	std::tuple<coordinates_type, TV> pull_back(std::tuple<coordinates_type, TV> const & R) const
 	{
 		return std::move(std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
 	}
@@ -351,7 +351,7 @@ public:
 	 */
 
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PushForward(
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > push_forward(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
 	{
 		coordinates_type y = MapTo(std::get<0>(Z));
@@ -376,7 +376,7 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > PullBack(
+	std::tuple<coordinates_type, nTuple<NDIMS, TV> > pull_back(
 	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R, unsigned int CartesianZAxis = 2) const
 	{
 		auto x = InvMapTo(std::get<0>(R));

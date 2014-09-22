@@ -8,7 +8,7 @@ ADD_SUBDIRECTORY( particle)
 
 ADD_SUBDIRECTORY( io)
 
-ADD_SUBDIRECTORY( mesh  )
+ADD_SUBDIRECTORY( manifold  )
 
 ADD_SUBDIRECTORY( model )
 

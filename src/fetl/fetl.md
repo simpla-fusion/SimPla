@@ -1,4 +1,4 @@
-Overview of Field Expression Template Library (FETL)  {#FETL}
+Expression Template Library {#FETL}
 ==========================
  
 \f{eqnarray*}{

@@ -1,4 +1,4 @@
-Design Document {#DesignDocument}
+Design elements and principles {#DesignDocument}
 ===================================================
 
 Background  {#Background}
