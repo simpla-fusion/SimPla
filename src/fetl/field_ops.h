@@ -88,32 +88,32 @@ namespace fetl_impl
 {
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,ADD>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
 DECL_RET_TYPE((l.get(s)+r.get(s)))
 ;
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,SUBTRACT>, Field<TM, IL, TL> const &l, Field<TM, IL, TR> const &r, TI s)
 DECL_RET_TYPE((l.get(s)-r.get(s)))
 ;
 
 template<typename TM, typename TL, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,ADD>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
 DECL_RET_TYPE((l.get(s)+r*l.mesh.volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,PLUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,ADD>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
 DECL_RET_TYPE((l*r.mesh.volume(s) +r.get(s)))
 ;
 
 template<typename TM, typename TL, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,SUBTRACT>, Field<TM, VERTEX, TL> const &l, Real r, TI s)
 DECL_RET_TYPE((l.get(s)-r*l.mesh.volume(s)) )
 ;
 
 template<typename TM, typename TR, typename TI>
-inline auto FieldOpEval(std::integral_constant<unsigned int ,MINUS>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
+inline auto FieldOpEval(std::integral_constant<unsigned int ,SUBTRACT>, Real l, Field<TM, VERTEX, TR> const &r, TI s)
 DECL_RET_TYPE((l*r.mesh.volume(s) -r.get(s)))
 ;
 
@@ -121,43 +121,43 @@ DECL_RET_TYPE((l*r.mesh.volume(s) -r.get(s)))
 
 template<typename TM, unsigned int IL, typename TL, typename TR>
 inline auto operator+(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE( ( Field<TM,IL , BiOp<PLUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TM,IL , BiOp<ADD,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TL, typename TR>
 inline auto operator-(Field<TM, IL, TL> const & lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE( ( Field<TM,IL , BiOp<MINUS,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TM,IL , BiOp<SUBTRACT,Field<TM,IL, TL> , Field<TM,IL, TR> > > (lhs, rhs)))
 ;
 
 template<typename TM, typename TL>
 inline auto operator+(Field<TM, VERTEX, TL> const & lhs, Real rhs)
-DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<PLUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<ADD,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
 ;
 
 template<typename TM, typename TL>
 inline auto operator-(Field<TM, VERTEX, TL> const & lhs, Real rhs)
-DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<MINUS,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
+DECL_RET_TYPE( ( Field<TM,VERTEX , BiOp<SUBTRACT,Field<TM,VERTEX, TL> , Real > > (lhs, rhs)))
 ;
 
 namespace fetl_impl
 {
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(
-        std::integral_constant<unsigned int ,MULTIPLIES>, Field<TM, IL, TL> const &l, TR const &r, TI s)
+        std::integral_constant<unsigned int ,MULTIPLY>, Field<TM, IL, TL> const &l, TR const &r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) * r))
 ;
 
 template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(
-        std::integral_constant<unsigned int ,MULTIPLIES>, TL const & l, Field<TM, IL, TR> const & r, TI s)
+        std::integral_constant<unsigned int ,MULTIPLY>, TL const & l, Field<TM, IL, TR> const & r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l * r.get(s)))
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDES>,
+template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDE>,
         Field<TM, IL, TL> const &l, TR const &r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l.get(s) / r))
 ;
 
-template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDES>,
+template<typename TM, unsigned int IL, typename TL, typename TR, typename TI> inline auto FieldOpEval(std::integral_constant<unsigned int ,DIVIDE>,
         TL const & l, Field<TM, IL, TR> const & r, TI s)
         ENABLE_IF_DECL_RET_TYPE((!is_field<TR>::value),(l / r.get(s)))
 ;
@@ -175,33 +175,33 @@ template<typename TM, unsigned int IL, typename TL, unsigned int IR, typename TR
 ;
 
 template<typename TM, unsigned int IL, typename TR> inline auto operator*(Real lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLY,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
 ;
 template<typename TM, unsigned int IL, typename TL> inline auto operator*(Field<TM, IL, TL> const & lhs, Real rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLY,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TR> inline auto operator/(Real lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDE,Real,Field<TM,IL ,TR> > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TL> inline auto operator/(Field<TM, IL, TL> const & lhs, Real rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDE,Field<TM,IL ,TL>,Real > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TR> inline auto operator*(Complex lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLY,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
 ;
 template<typename TM, unsigned int IL, typename TL> inline auto operator*(Field<TM, IL, TL> const & lhs, Complex rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLIES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<MULTIPLY,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TR> inline auto operator/(Complex lhs, Field<TM, IL, TR> const & rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDE,Complex,Field<TM,IL ,TR> > > (lhs, rhs)))
 ;
 
 template<typename TM, unsigned int IL, typename TL> inline auto operator/(Field<TM, IL, TL> const & lhs, Complex rhs)
-DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDES,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
+DECL_RET_TYPE((Field<TM,IL ,BiOp<DIVIDE,Field<TM,IL ,TL>,Complex > > (lhs, rhs)))
 ;
 //! @}
 

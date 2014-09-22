@@ -24,8 +24,7 @@ The following table lists requirements for a Manifold type M,
 - \subpage concept_topology
 - \subpage concept_interpolator
 - \subpage concept_diff_scheme
-- \subpage concept_domain
- 
+
 
 
 

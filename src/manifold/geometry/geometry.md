@@ -1,4 +1,4 @@
-Geometry   Concept {#concept_geometry}
+Geometry     {#concept_geometry}
 =============================================
 ## Summary
   \note Contemporary differential geometry is intrinsic, meaning that the spaces it considers are smooth manifolds whose geometric structure is governed by a Riemannian metric, which determines how distances are measured near each point, and not a priori parts of some ambient flat Euclidean space. -- http://en.wikipedia.org/wiki/Geometry#Contemporary_geometry

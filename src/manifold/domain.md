@@ -1,4 +1,4 @@
-Domain Concept  {#concept_domain}
+Domain {#concept_domain}
 =========================================
 
 ## Summary
@@ -39,16 +39,20 @@ Additional requirements for  Domain type D
  size_t size( D const&)			| number of items in the domain
  D const & parent()const		| Parent domain
 
-Requirements for  Domain type D as mathematic object
+Requirements for  Domain type D as a geometric object, which could be a @ref concept_simplex or a chain of polytopes. 
 
  Pseudo-Signature  				| Semantics
  -------------------------------|-------------
- static constexprunsigned int ndims| number of dimensions of domain D
+ unsigned int ndims 			| number of dimensions of domain D
  PD boundary(  D const& )		| Boundary of domain D, PD::ndims=D::ndims-1.
  D const & parent()const		| Parent domain
+ boundbox() const				| boundbox on _this_ coordinates system
+ cartesian_boundbox() const		| boundbox on this _Cartesian_ coordinates system
+ 
 
 ##  See Also
-- \subpage domain_iterator
 - @ref concept_manifold
 - @ref concept_topology
-- @ref block_domain	 
+- @ref concept_simplex
+- \subpage domain_iterator
+- \subpage block_domain	 

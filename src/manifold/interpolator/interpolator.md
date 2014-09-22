@@ -1,2 +1,2 @@
-Interpolator Concept  {#concept_interpolator}
+Interpolator    {#concept_interpolator}
 =================================================
