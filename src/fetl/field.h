@@ -13,7 +13,7 @@
 #include <string>
 #include <type_traits>
 #include <vector>
-#include <utility>
+#include <utility> //for move
 
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
@@ -22,8 +22,9 @@
 #include "../utilities/sp_iterator_mapped.h"
 #include "field_update_ghosts.h"
 #include "../mesh/interpolator.h"
-namespace simpla {
-template<typename TM, unsigned int IFORM, typename > struct Field;
+namespace simpla
+{
+template<typename TM, typename > struct Field;
 
 /**
  * \ingroup FETL
@@ -31,70 +32,30 @@ template<typename TM, unsigned int IFORM, typename > struct Field;
  * \brief Field object
  *
  */
-template<typename TM, unsigned int IFORM, typename TContainer>
-struct Field: public TContainer {
+template<typename TDomain, typename TV>
+struct Field
+{
 
 public:
 
-	typedef TM mesh_type;
+	typedef TDomain domain_type;
 
-	static constexpr unsigned int IForm = IFORM;
+	typedef TV value_type;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	typedef Field<domain_type, value_type> this_type;
 
-	typedef TContainer container_type;
+	typedef typename domain_type::coordinates_type coordinates_type;
 
-	typedef Field<mesh_type, IForm, container_type> this_type;
-
-	typedef typename container_type::value_type value_type;
-
-	typedef typename mesh_type::geometry_type geometry_type;
-
-	typedef typename mesh_type::coordinates_type coordinates_type;
-
-	typedef typename mesh_type::compact_index_type compact_index_type;
-
-	typedef typename mesh_type::iterator mesh_iterator;
-
-	typedef typename mesh_type::range_type mesh_range_type;
-
-	typedef typename std::conditional<(IForm == VERTEX || IForm == VOLUME),  //
-			value_type, nTuple<NDIMS, value_type> >::type field_value_type;
-
-	typedef Interpolator<mesh_type> interpolator_type;
-
-	typedef std::function<
-			field_value_type(Real, coordinates_type, field_value_type)> picewise_furho_type;
-
-	friend mesh_type;
-
-	mesh_type const &mesh;
-
-private:
-
-	mesh_range_type range_;
+	typedef typename domain_type::index_type index_type;
 
 	/**
 	 *  create constructer
 	 * @param pmesh
 	 * @param args
 	 */
-	template<typename ...Args>
-	Field(mesh_type const &pmesh, mesh_range_type const & range,
-			Args && ... args) :
-			container_type(range, std::forward<Args>(args)...), mesh(pmesh), range_(
-					range) {
-	}
-public:
-
-	/**
-	 *  default constructer
-	 * @param mesh
-	 * @param d
-	 */
-
-	Field(mesh_type const & mesh, value_type d = value_type()) :
-			container_type(d), mesh(mesh) {
+	Field(domain_type const &d) :
+			domain_(d)
+	{
 	}
 
 	/**
@@ -111,134 +72,74 @@ public:
 	 * @param rhs
 	 */
 	Field(this_type const & rhs) :
-			container_type(rhs), mesh(rhs.mesh), range_(rhs.range_) {
-	}
-	//! Move Construct copy mesh, and move data,
-	Field(this_type &&rhs) :
-			container_type(std::forward<this_type>(rhs)), mesh(rhs.mesh), range_(
-					std::forward<typename mesh_type::range_type>(rhs.range_)) {
-	}
-
-	~Field() {
-	}
-
-	void swap(this_type & rhs) {
-		ASSERT(mesh == rhs.mesh);
-
-		container_type::swap(rhs);
-
-		std::swap(range_, rhs.range_);
-
-	}
-
-	void allocate() {
-		mesh.template make_field<this_type>().swap(*this);
-
-		container_type::allocate();
-	}
-
-	void initialize()
+			domain_(rhs.domain_)
 	{
-		if (container_type::empty())
-		{
-			allocate();
-		}
 	}
 
-	void clear()
+	~Field()
 	{
-		initialize();
-		container_type::clear();
 	}
 
-	template<typename TVistor>
-	void Accept(TVistor const & visitor)
+	void allocate()
 	{
-		visitor.Visit(this);
+		domain_.template make_field<this_type>().swap(*this);
+	}
+	void deallocate()
+	{
 	}
 
-	const mesh_range_type& get_range() const
+	void erase()
 	{
-		return range_;
+		deallocate();
 	}
 
-	void set_range(const mesh_range_type& range)
+	const domain_type & domain() const
 	{
-		range_ = range;
+		return domain_;
+	}
+	void domain(const domain_type & d) const
+	{
+		domain_=d;
+		deallocate();
 	}
 
-	template<typename ...Args>
-	unsigned int get_dataset_shape(Args &&...others) const
+	inline value_type & at(index_type s)
 	{
-		return mesh.get_dataset_shape(range_, std::forward<Args>(others)...);
+		if (!domain_.check_local_memory_bounds(s))
+		OUT_RANGE_ERROR(domain_.decompact(s));
+		return get(domain_.hash(s));
 	}
 
-	inline value_type & at(compact_index_type s)
+	inline value_type const & at(index_type s) const
 	{
-		if (!mesh.check_local_memory_bounds(s))
-		OUT_RANGE_ERROR(mesh.decompact(s));
-		return get(s);
+		if (!domain_.check_local_memory_bounds(s))
+		OUT_RANGE_ERROR(domain_.decompact(s));
+
+		return get(domain_.hash(s));
 	}
 
-	inline value_type const & at(compact_index_type s) const
+	inline value_type & operator[](index_type s)
 	{
-		if (!mesh.check_local_memory_bounds(s))
-		OUT_RANGE_ERROR(mesh.decompact(s));
-		return get(s);
+		return get(domain_.hash(s));
 	}
 
-	inline value_type & operator[](compact_index_type s)
+	inline value_type const & operator[](index_type s) const
 	{
-		return get(s);
+		return get(domain_.hash(s));
 	}
 
-	inline value_type const & operator[](compact_index_type s) const
+	template<typename TR,typename TFun>
+	void self_assign(TR const & rhs, TFun const & fun)
 	{
-		return get(s);
-	}
+		if(empty())allocate();
 
-	inline value_type & get(compact_index_type s)
-	{
-		return container_type::get(s);
-	}
+		parallel_for(domain_,
 
-	inline value_type const & get(compact_index_type s) const
-	{
-		return container_type::get(s);
-	}
-
-	/**
-	 *
-	 */
-	template<typename T>
-	void fill(T v)
-	{
-		initialize();
-
-		parallel_for(range_,
-
-				[this,v](mesh_range_type const &r)
+				[this,&rhs,&fun](domain_type const &r)
 				{
 					for(auto const & s:r)
 					{
-						get_value(*this, s) = v;
-					}
-				}
-
-		);
-	}
-	template<typename TR>
-	void assign(TR const & rhs)
-	{
-		initialize();
-
-		parallel_for(range_,
-
-				[this,&rhs](mesh_range_type const &r)
-				{
-					for(auto const & s:r)
-					{
-						get_value(*this, s) = get_value( rhs, s);
+						(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
 					}
 				}
 
@@ -257,24 +158,70 @@ public:
 
 	}
 
-	this_type & operator =(this_type const & rhs)
+	template<typename TR>
+	void assign(TR const & rhs)
 	{
-		assign(rhs);
-		return *this;
-	}
+		allocate();
 
-	this_type & operator =(value_type rhs)
+		parallel_for(domain_,
+
+				[this,&rhs ](domain_type const &r)
+				{
+					for(auto const & s:r)
+					{
+						(*this)[s] = get_value( rhs,r.hash( s));
+					}
+				}
+
+		);
+
+//		parallel_for_each(range_,
+//
+//				[this,&rhs](compact_index_type s)
+//				{
+//					get_value(*this, s) = get_value( rhs, s);
+//				}
+//
+//		);
+
+		update_ghosts(this);
+
+	}
+	template<typename TR>
+	void assign(Field<domain_type,TR> const & rhs)
 	{
-		fill(rhs);
-		return (*this);
+		if(empty()) allocate();
+
+		parallel_for( domain_ & rhs.domain(),
+
+				[this,&rhs ](domain_type const &r)
+				{
+					for(auto const & s:r)
+					{
+						(*this)[s] = rhs[s];
+					}
+				}
+
+		);
+
+//		parallel_for_each(range_,
+//
+//				[this,&rhs](compact_index_type s)
+//				{
+//					get_value(*this, s) = get_value( rhs, s);
+//				}
+//
+//		);
+
+		update_ghosts(this);
+
 	}
 
 	template<typename TR>
 	this_type & operator =(TR const & rhs)
 	{
 		assign(rhs);
-
-		return (*this);
+		return *this;
 	}
 
 	template<typename TR> inline this_type &
@@ -302,134 +249,64 @@ public:
 		return (*this);
 	}
 
-	inline field_value_type gather_cartesian(coordinates_type const &x) const
-	{
-		return std::move(interpolator_type::gather_cartesian( *this, x));
-	}
 	template<typename TZ,typename TF>
-	inline void scatter_cartesian( TZ const & z ,TF const & f )
+	inline void scatter( TZ const & z ,TF const & f )
 	{
-		interpolator_type::scatter_cartesian( this,z,f);
+		domain_.scatter( this,z,f);
 	}
+	inline auto gather(coordinates_type const &x) const
+	DECL_RET_TYPE( (domain_.gather( *this, x)))
 
-	inline field_value_type operator()(coordinates_type const &x) const
-	{
-		return std::move(gather_cartesian(x));
-	}
+	inline auto operator()(coordinates_type const &x) const
+	->decltype(((gather( x) )))
+	{	return std::move((gather( x) ));}
 
-	template< typename TRange,typename TObj>
-	void pull_back(TRange const & range,geometry_type const & geo, TObj const & obj)
-	{
+private:
+	domain_type const &domain_;
 
-		parallel_for(range,
+};
 
-				[&](mesh_range_type const &r)
-				{
-					for (auto const & s : r)
-					{
-						get_value(*this, s) = obj(mesh.get_coordinates(s));
-					}
-				}
-
-		);
-
-	}
-
-	template<typename TG,typename TRange,typename TObj>
-	void pull_back(TRange const & range,TG const & geo,TObj const & obj)
-	{
-
-		parallel_for(range,
-
-				[&](mesh_range_type const &r)
-				{
-					for (auto const & s : r)
-					{
-						auto x=mesh.get_coordinates(s);
-						coordinates_type r = geo.MapTo( mesh.InvMapTo(x));
-
-						get_value(*this, s) = mesh.Sample(std::integral_constant<unsigned int, IForm>(), s,
-								std::get<1>( mesh.push_forward(geo.pull_back(std::make_tuple(r, obj(r))))));
-					}
-				}
-
-		);
-
-	}
-
-	template<typename TG, typename TObj>
-	void pull_back(TG const & geo, TObj const & obj)
-	{
-		pull_back ( range_,geo,obj);
-	}
-
-	template< typename TObj>
-	void pull_back( TObj const & obj)
-	{
-		pull_back(range_, mesh, obj);
-	}
-
-}
-;
-
-template<typename TL>
-struct is_field {
+template<typename TL> struct is_field
+{
 	static const bool value = false;
 };
 
-template<typename TG, unsigned int IF, typename TL>
-struct is_field<Field<TG, IF, TL>> {
+template<typename TG, unsigned int IF, typename TL> struct is_field<
+		Field<TG, IF, TL>>
+{
 	static const bool value = true;
 };
 
-template<typename T>
-struct is_field_expression {
+template<typename T> struct is_field_expression
+{
 	static constexpr bool value = false;
 };
 
 template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
-		typename TR>
-struct is_field_expression<Field<TG, IF, BiOp<TOP, TL, TR> > > {
+		typename TR> struct is_field_expression<
+		Field<TG, IF, BiOp<TOP, TL, TR> > >
+{
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL>
-struct is_field_expression<Field<TG, IF, UniOp<TOP, TL> > > {
+template<typename TG, unsigned int IF, unsigned int TOP, typename TL> struct is_field_expression<
+		Field<TG, IF, UniOp<TOP, TL> > >
+{
 	static constexpr bool value = true;
 };
 
 template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
-		typename TR>
-struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > > {
+		typename TR> struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
+{
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL>
-struct is_expression<Field<TG, IF, UniOp<TOP, TL> > > {
+template<typename TG, unsigned int IF, unsigned int TOP, typename TL> struct is_expression<
+		Field<TG, IF, UniOp<TOP, TL> > >
+{
 	static constexpr bool value = true;
 };
 
-template<typename TM, unsigned int IForm, typename TContainer> template<
-		typename TRange, typename TFun>
-std::function<void()> Field<TM, IForm, TContainer>::CreateCommand(
-		TRange const & range, TFun const & object) {
-	auto fun = TypeCast<picewise_furho_type>(object);
-
-	std::function<void()> res =
-			[this,range,fun]()
-			{
-				for(auto const & s: range)
-				{
-					auto x=this->mesh.get_coordinates(s);
-
-					get_value(*this,s) = this->mesh.Sample(std::integral_constant<unsigned int , IForm>(),
-							s, fun(this->mesh.get_time(),x ,(*this)(x)));
-				}
-			};
-
-	return res;
-
-}
 }
 // namespace simpla
 

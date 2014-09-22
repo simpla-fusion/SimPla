@@ -17,6 +17,7 @@ The following table lists requirements for  Field expression F  .
  manifold_type					| manifold
  domain_type					| Domain on manifold
  Domain const &domain() const 	| Get define domain of field
+ void domain(Domain cont&)  	| Reset define domain of field
  value_type operator()(coordiantes_type x) const | field value on coordinates \f$x\f$, which is interpolated from discrete points
  
  The following table lists requirements for  Field with real data.

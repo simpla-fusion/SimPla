@@ -6,6 +6,8 @@
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -14,32 +16,26 @@
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildProperties="" description="" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082" name="Build (GNU)" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1925495914" name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.1836778881" name="LLVM with Clang (Linux)" superClass="cdt.managedbuild.toolchain.llvm.clang.linux.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.546831131" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.llvm.platform.base"/>
-							<builder autoBuildTarget="" buildPath="${workspace_loc:/SimPla}/Build (GNU)" cleanBuildTarget="" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.target.llvm.builder.base.689879368" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="false" superClass="cdt.managedbuild.target.llvm.builder.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.1810590149" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.144691578" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
-								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.216037856" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
+						<toolChain id="cdt.managedbuild.toolchain.gnu.base.1756543888" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.base">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.gnu.platform.base.1151589112" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.gnu.platform.base"/>
+							<builder buildPath="${workspace_loc:/SimPla}/Build (GNU)" id="cdt.managedbuild.target.gnu.builder.base.1100080992" keepEnvironmentInBuildfile="false" name="Gnu Make Builder" superClass="cdt.managedbuild.target.gnu.builder.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.archiver.base.2119505435" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.base.749748072" name="GCC C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.base">
+								<option id="gnu.cpp.compiler.option.dialect.std.952345826" superClass="gnu.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.234399789" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
-							<tool id="cdt.managedbuild.tool.llvm.cpp.linker.base.2073739338" name="LLVM Clang C++ linker" superClass="cdt.managedbuild.tool.llvm.cpp.linker.base">
-								<option id="llvm.c.link.option.libs.1966841395" name="Libraries (-l)" superClass="llvm.c.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="stdc++"/>
-								</option>
-								<option id="llvm.c.link.option.paths.1668431870" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
-								</option>
-								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.575644575" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
+							<tool id="cdt.managedbuild.tool.gnu.c.compiler.base.1966138966" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.base">
+								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.768941682" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
+							</tool>
+							<tool id="cdt.managedbuild.tool.gnu.c.linker.base.876822788" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.base"/>
+							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.base.16660358" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.base">
+								<inputType id="cdt.managedbuild.tool.gnu.cpp.linker.input.1433960096" superClass="cdt.managedbuild.tool.gnu.cpp.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
 								</inputType>
 							</tool>
-							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.101017197" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin">
-								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.81613310" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.llvm.archiver.base.538773191" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.assembler.base.1321349756" name="LLVM assembler" superClass="cdt.managedbuild.tool.llvm.assembler.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.801425064" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
-								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.177017258" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
+							<tool id="cdt.managedbuild.tool.gnu.assembler.base.2095804478" name="GCC Assembler" superClass="cdt.managedbuild.tool.gnu.assembler.base">
+								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.247284904" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>
@@ -52,41 +48,17 @@
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
-					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
 				<configuration artifactName="${ProjName}" buildProperties="" description="" errorParsers="org.eclipse.cdt.core.GCCErrorParser" id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475" name="LLVM" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475." name="/" resourcePath="">
-						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.69330885" name="LLVM with Clang (Linux)" superClass="cdt.managedbuild.toolchain.llvm.clang.linux.base">
-							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.1226874023" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx" superClass="cdt.managedbuild.target.llvm.platform.base"/>
-							<builder autoBuildTarget="" buildPath="${workspace_loc:/SimPla}/LLVM" cleanBuildTarget="" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.target.llvm.builder.base.734606462" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="false" superClass="cdt.managedbuild.target.llvm.builder.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.c.linker.base.1934139098" name="LLVM Clang C linker" superClass="cdt.managedbuild.tool.llvm.c.linker.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.c.compiler.base.2031065700" name="LLVM Clang" superClass="cdt.managedbuild.tool.llvm.c.compiler.base">
-								<inputType id="cdt.managedbuild.tool.llvm.c.compiler.input.627939794" superClass="cdt.managedbuild.tool.llvm.c.compiler.input"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.llvm.cpp.linker.base.520929713" name="LLVM Clang C++ linker" superClass="cdt.managedbuild.tool.llvm.cpp.linker.base">
-								<option id="llvm.c.link.option.libs.211527303" name="Libraries (-l)" superClass="llvm.c.link.option.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="stdc++"/>
-								</option>
-								<option id="llvm.c.link.option.paths.897834945" name="Library search path (-L)" superClass="llvm.c.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.9/"/>
-								</option>
-								<inputType id="cdt.managedbuild.tool.llvm.c.linker.input.752075518" superClass="cdt.managedbuild.tool.llvm.c.linker.input">
-									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
-									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
-								</inputType>
-							</tool>
+						<toolChain id="cdt.managedbuild.toolchain.llvm.clang.linux.base.69330885" name="LLVM with Clang (Linux)">
+							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.target.llvm.platform.base.1226874023" isAbstract="true" name="Debug Platform" osList="linux,hpux,aix,qnx"/>
+							<builder autoBuildTarget="" buildPath="${workspace_loc:/SimPla}/LLVM" cleanBuildTarget="" enableAutoBuild="false" enableCleanBuild="true" enabledIncrementalBuild="true" id="cdt.managedbuild.target.llvm.builder.base.734606462" incrementalBuildTarget="" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="CDT Internal Builder" parallelBuildOn="false"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin.845114270" name="Cygwin C++ Compiler" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.cygwin">
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin.328087682" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input.cygwin"/>
-							</tool>
-							<tool id="cdt.managedbuild.tool.llvm.archiver.base.445246602" name="LLVM archiver" superClass="cdt.managedbuild.tool.llvm.archiver.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.assembler.base.987523322" name="LLVM assembler" superClass="cdt.managedbuild.tool.llvm.assembler.base"/>
-							<tool id="cdt.managedbuild.tool.llvm.cpp.compiler.base.1610073819" name="LLVM Clang++" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.base">
-								<option id="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std.2084477040" name="Language standard" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.option.dialect.std" value="gnu.cpp.compiler.dialect.c++11" valueType="enumerated"/>
-								<inputType id="cdt.managedbuild.tool.llvm.cpp.compiler.input.853890529" superClass="cdt.managedbuild.tool.llvm.cpp.compiler.input"/>
 							</tool>
 						</toolChain>
 					</folderInfo>

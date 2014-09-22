@@ -38,6 +38,8 @@ Additional requirements for  Domain type D
  D::iterator end(  D const&)	| One past  last item in domain. 
  size_t size( D const&)			| number of items in the domain
  D const & parent()const		| Parent domain
+ D operator &(D const & D1)const		| \f$D_0 \cap \D_1\f$
+ D operator |(D const & D1)const		| \f$D_0 \cup \D_1\f$   
 
 Requirements for  Domain type D as a geometric object, which could be a @ref concept_simplex or a chain of polytopes. 
 
