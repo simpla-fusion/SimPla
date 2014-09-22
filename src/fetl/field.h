@@ -8,23 +8,15 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
-#include <iostream>
-#include <stdexcept>
 #include <string>
 #include <type_traits>
 #include <vector>
 #include <utility> //for move
 
 #include "../utilities/log.h"
-#include "../utilities/primitives.h"
-
 #include "../parallel/parallel.h"
-#include "../utilities/sp_iterator_mapped.h"
-#include "field_update_ghosts.h"
-#include "../mesh/interpolator.h"
 namespace simpla
 {
-template<typename TM, typename > struct Field;
 
 /**
  * \ingroup FETL
@@ -97,7 +89,7 @@ public:
 	{
 		return domain_;
 	}
-	void domain(const domain_type & d) const
+	void domain(const domain_type & d)
 	{
 		domain_=d;
 		deallocate();
@@ -153,8 +145,6 @@ public:
 //				}
 //
 //		);
-
-		update_ghosts(this);
 
 	}
 
@@ -265,14 +255,15 @@ private:
 	domain_type const &domain_;
 
 };
+template<unsigned int TOP, typename TL, typename TR> struct BiOp;
+template<unsigned int TOP, typename TL> struct UniOp;
 
 template<typename TL> struct is_field
 {
 	static const bool value = false;
 };
 
-template<typename TG, unsigned int IF, typename TL> struct is_field<
-		Field<TG, IF, TL>>
+template<typename TG, typename TL> struct is_field<Field<TG, TL>>
 {
 	static const bool value = true;
 };
@@ -282,27 +273,26 @@ template<typename T> struct is_field_expression
 	static constexpr bool value = false;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
-		typename TR> struct is_field_expression<
-		Field<TG, IF, BiOp<TOP, TL, TR> > >
+template<typename TG, unsigned int TOP, typename TL, typename TR> struct is_field_expression<
+		Field<TG, BiOp<TOP, TL, TR> > >
 {
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL> struct is_field_expression<
-		Field<TG, IF, UniOp<TOP, TL> > >
+template<typename TG, unsigned int TOP, typename TL> struct is_field_expression<
+		Field<TG, UniOp<TOP, TL> > >
 {
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL,
-		typename TR> struct is_expression<Field<TG, IF, BiOp<TOP, TL, TR> > >
+template<typename TG, unsigned int TOP, typename TL, typename TR> struct is_expression<
+		Field<TG, BiOp<TOP, TL, TR> > >
 {
 	static constexpr bool value = true;
 };
 
-template<typename TG, unsigned int IF, unsigned int TOP, typename TL> struct is_expression<
-		Field<TG, IF, UniOp<TOP, TL> > >
+template<typename TG, unsigned int TOP, typename TL> struct is_expression<
+		Field<TG, UniOp<TOP, TL> > >
 {
 	static constexpr bool value = true;
 };
