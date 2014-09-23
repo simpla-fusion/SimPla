@@ -8,11 +8,11 @@
 #ifndef SP_FUNCTIONAL_H_
 #define SP_FUNCTIONAL_H_
 #include <functional>
-namespace std
+namespace simpla
 {
 
 #define DEF_BOP(_NAME_,_OP_)                                                               \
-template<> struct _NAME_<void>                                                                             \
+template<typename T=void> struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL, typename TR>                                                         \
 	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l _OP_ r)                 \
@@ -20,7 +20,7 @@ template<> struct _NAME_<void>                                                  
 };
 
 #define DEF_UOP(_NAME_,_OP_)     \
-template<>struct _NAME_<void>                                                                             \
+template<typename T=void>struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL >                                                         \
 	constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
@@ -51,13 +51,29 @@ DEF_BOP(bit_xor, ^)
 #undef DEF_UOP
 #undef DEF_BOP
 
+template<typename T = void> struct op_imag
+{
+	template<typename T>
+	constexpr T operator()(std::complex<T> const & l) const
+	{
+		return std::imag(l);
+	}
+};
+template<typename T = void> struct op_real
+{
+	template<typename T>
+	constexpr T operator()(std::complex<T> const & l) const
+	{
+		return std::real(l);
+	}
+};
 template<> struct equal_to<double>
 {
 	constexpr bool operator()(double l, double r) const
 	{
-		return std::abs(l - r) <= std::numeric_limits<double>::epsilon();;
+		return std::abs(l - r) <= std::numeric_limits<double>::epsilon();
 	}
 };
-}  // namespace std
+}  // namespace simpla
 
 #endif /* SP_FUNCTIONAL_H_ */

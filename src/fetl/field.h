@@ -24,7 +24,7 @@ namespace simpla
  * \brief Field object
  *
  */
-template<typename TDomain, typename TV>
+template<typename TDomain, typename StoragePolicy>
 struct Field
 {
 
@@ -32,23 +32,21 @@ public:
 
 	typedef TDomain domain_type;
 
-	typedef TV value_type;
+	typedef StoragePolicy storage_type;
 
-	typedef Field<domain_type, value_type> this_type;
+	typedef typename storage_type::value_type value_type;
+
+	typedef Field<domain_type, storage_type> this_type;
 
 	typedef typename domain_type::coordinates_type coordinates_type;
 
 	typedef typename domain_type::index_type index_type;
+private:
+	domain_type domain_;
+	std::shared_ptr<storage_type> data_;
+public:
 
-	/**
-	 *  create constructer
-	 * @param pmesh
-	 * @param args
-	 */
-	Field(domain_type const &d) :
-			domain_(d)
-	{
-	}
+	Field() = default; // default constructor
 
 	/**
 	 *
@@ -63,77 +61,142 @@ public:
 	 *
 	 * @param rhs
 	 */
-	Field(this_type const & rhs) :
-			domain_(rhs.domain_)
-	{
-	}
+	Field(this_type const & rhs) = default;
 
-	~Field()
-	{
-	}
+	Field(this_type && rhs) = default; //< move constructor
 
+	~Field() = default;
+
+	friend void swap(this_type &l, this_type & r);
+
+	/// @defgroup Capacity Capacity
+	/// @{
+
+	bool empty() const
+	{
+		return !data_;
+	}
 	void allocate()
 	{
-		domain_.template make_field<this_type>().swap(*this);
+		if (empty())
+			data_.reset(new storage_type(domain_.max_hash()));
 	}
-	void deallocate()
+	void clear()
+	{
+		data_.reset(nullptr);
+	}
+
+	storage_type & data()
+	{
+		return *(data_->get());
+	}
+	storage_type const & data() const
+	{
+		return *(data_->get());
+	}
+	///@}
+
+	/// @defgroup DomainSplit Domain and Split
+	/// @{
+
+	Field(domain_type const &d) :
+			domain_(d)
+	{
+	}
+	Field(std::shared_ptr<storage_type> data, domain_type const &d) :
+			domain_(d), data_(data)
 	{
 	}
 
-	void erase()
+	this_type split(domain_type const &d)
 	{
-		deallocate();
+		return std::move(this_type(data_, domain_ & d));
+	}
+	this_type boundary()
+	{
+		return std::move(this_type(data_, domain_.boundary()));
 	}
 
 	const domain_type & domain() const
 	{
 		return domain_;
 	}
-	void domain(const domain_type & d)
+	void domain(domain_type d)
 	{
-		domain_=d;
-		deallocate();
+		clear();
+		swap(domain_, d);
 	}
+	/// @}
 
+	/// @defgroup  Element access
+	/// @{
 	inline value_type & at(index_type s)
 	{
-		if (!domain_.check_local_memory_bounds(s))
-		OUT_RANGE_ERROR(domain_.decompact(s));
-		return get(domain_.hash(s));
+		return data_->at(domain_.hash(s));
 	}
 
 	inline value_type const & at(index_type s) const
 	{
-		if (!domain_.check_local_memory_bounds(s))
-		OUT_RANGE_ERROR(domain_.decompact(s));
-
-		return get(domain_.hash(s));
+		return data_->at(domain_.hash(s));
 	}
 
 	inline value_type & operator[](index_type s)
 	{
-		return get(domain_.hash(s));
+		return data_->operator[](domain_.hash(s));
 	}
 
 	inline value_type const & operator[](index_type s) const
 	{
-		return get(domain_.hash(s));
+		return data_->operator[](domain_.hash(s));
 	}
 
-	template<typename TR,typename TFun>
+	template<typename ... Args>
+	inline void scatter(Args && ... args)
+	{
+		domain_.scatter(*data_, std::forward<Args>(args)...);
+	}
+	inline auto gather(coordinates_type const &x) const
+	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+
+	inline auto operator()(coordinates_type const &x) const
+	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+	/// @}
+
+	/// @defgroup Assignment
+	/// @{
+
+	this_type & operator=(this_type rhs)  //< copy and swap assignment operator
+	{
+		swap(*this, rhs);
+		return *this;
+	}
+
+	template<typename TR>
+	this_type & operator=(TR const & rhs)  //< copy and swap assignment operator
+	{
+		assign(rhs);
+		return *this;
+	}
+
+	this_type & operator=(this_type const &rhs) = delete;
+
+	this_type & operator=(this_type &&rhs) = delete;
+
+	template<typename TR, typename TFun>
 	void self_assign(TR const & rhs, TFun const & fun)
 	{
-		if(empty())allocate();
+		if (empty())
+			allocate();
 
 		parallel_for(domain_,
 
-				[this,&rhs,&fun](domain_type const &r)
-				{
-					for(auto const & s:r)
-					{
-						(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
-					}
-				}
+		[this,&rhs,&fun](domain_type const &r)
+		{
+			for(auto const & s:r)
+			{
+				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
+			}
+		}
 
 		);
 
@@ -155,13 +218,13 @@ public:
 
 		parallel_for(domain_,
 
-				[this,&rhs ](domain_type const &r)
-				{
-					for(auto const & s:r)
-					{
-						(*this)[s] = get_value( rhs,r.hash( s));
-					}
-				}
+		[this,&rhs ](domain_type const &r)
+		{
+			for(auto const & s:r)
+			{
+				(*this)[s] = get_value( rhs,r.hash( s));
+			}
+		}
 
 		);
 
@@ -174,23 +237,21 @@ public:
 //
 //		);
 
-		update_ghosts(this);
-
 	}
 	template<typename TR>
-	void assign(Field<domain_type,TR> const & rhs)
+	void assign(Field<domain_type, TR> const & rhs)
 	{
-		if(empty()) allocate();
+		allocate();
 
-		parallel_for( domain_ & rhs.domain(),
+		parallel_for(domain_ & rhs.domain(),
 
-				[this,&rhs ](domain_type const &r)
-				{
-					for(auto const & s:r)
-					{
-						(*this)[s] = rhs[s];
-					}
-				}
+		[this,&rhs ](domain_type const &r)
+		{
+			for(auto const & s:r)
+			{
+				(*this)[s] = rhs[s];
+			}
+		}
 
 		);
 
@@ -203,15 +264,6 @@ public:
 //
 //		);
 
-		update_ghosts(this);
-
-	}
-
-	template<typename TR>
-	this_type & operator =(TR const & rhs)
-	{
-		assign(rhs);
-		return *this;
 	}
 
 	template<typename TR> inline this_type &
@@ -239,63 +291,25 @@ public:
 		return (*this);
 	}
 
-	template<typename TZ,typename TF>
-	inline void scatter( TZ const & z ,TF const & f )
-	{
-		domain_.scatter( this,z,f);
-	}
-	inline auto gather(coordinates_type const &x) const
-	DECL_RET_TYPE( (domain_.gather( *this, x)))
-
-	inline auto operator()(coordinates_type const &x) const
-	->decltype(((gather( x) )))
-	{	return std::move((gather( x) ));}
-
-private:
-	domain_type const &domain_;
+	/// @}
 
 };
-template<unsigned int TOP, typename TL, typename TR> struct BiOp;
-template<unsigned int TOP, typename TL> struct UniOp;
 
-template<typename TL> struct is_field
+template<typename TDomain, typename TV>
+void swap(Field<TDomain, TV> &l, Field<TDomain, TV> &r)
 {
-	static const bool value = false;
-};
+	swap(l.domain_, r.domain_);
+	swap(l.data_, r.data_);
+}
+template<typename TD, typename TExpr>
+auto get_value(Field<TD, TExpr> const & f,
+		typename Field<TD, TExpr>::coordinates_type const & x)
+		DECL_RET_TYPE((f(x)))
 
-template<typename TG, typename TL> struct is_field<Field<TG, TL>>
-{
-	static const bool value = true;
-};
-
-template<typename T> struct is_field_expression
-{
-	static constexpr bool value = false;
-};
-
-template<typename TG, unsigned int TOP, typename TL, typename TR> struct is_field_expression<
-		Field<TG, BiOp<TOP, TL, TR> > >
-{
-	static constexpr bool value = true;
-};
-
-template<typename TG, unsigned int TOP, typename TL> struct is_field_expression<
-		Field<TG, UniOp<TOP, TL> > >
-{
-	static constexpr bool value = true;
-};
-
-template<typename TG, unsigned int TOP, typename TL, typename TR> struct is_expression<
-		Field<TG, BiOp<TOP, TL, TR> > >
-{
-	static constexpr bool value = true;
-};
-
-template<typename TG, unsigned int TOP, typename TL> struct is_expression<
-		Field<TG, UniOp<TOP, TL> > >
-{
-	static constexpr bool value = true;
-};
+template<typename TD, typename TExpr>
+auto get_value(Field<TD, TExpr> const & f,
+		typename Field<TD, TExpr>::index_type const & s)
+		DECL_RET_TYPE((f[s]))
 
 }
 // namespace simpla

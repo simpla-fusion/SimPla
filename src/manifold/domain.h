@@ -10,6 +10,7 @@
 
 namespace simpla
 {
+class split;
 
 template<typename TG, unsigned int IFORM>
 class Domain: public TG
