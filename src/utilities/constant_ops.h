@@ -33,7 +33,10 @@ struct Infinity
 struct Undefine
 {
 };
+struct Identity
+{
 
+};
 template<typename TE> inline TE const &
 operator +(TE const &e, Zero const &)
 {

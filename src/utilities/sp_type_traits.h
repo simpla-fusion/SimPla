@@ -15,19 +15,10 @@
 namespace simpla
 {
 
-template<bool B> using Bool2Type=std::integral_constant<bool,B>;
-
-template<unsigned int B> using Int2Type=std::integral_constant<unsigned int ,B>;
-
 typedef std::nullptr_t NullType;
 
 struct EmptyType
 {
-};
-
-enum CONST_NUMBER
-{
-	ZERO = 0, ONE = 1, TWO = 2, THREE = 3, FOUR = 4, FIVE = 5, SIX = 6, SEVEN = 7, EIGHT = 8, NINE = 9
 };
 
 #define HAS_MEMBER(_NAME_)                                                                 \
@@ -295,13 +286,15 @@ ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
 ;
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
+auto get_value(T & v,
+		TI const & s)
+				ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
 ;
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
+auto get_value(T & v,
+		TI const & s)
+				ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
 ;
 
 template<typename T, typename TI>
