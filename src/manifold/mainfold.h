@@ -44,8 +44,8 @@ class Manifold: public TG
 	DECL_RET_TYPE((diff_policy::eval(TOP(),*this, l, s)))
 
 	template<typename TL, typename ...Others>
-	auto scatter(TL & l, Others &&... others) const
-	DECL_RET_TYPE((interpoloator_policy::scatter(*this,
+	auto gather(TL & l, Others &&... others) const
+	DECL_RET_TYPE((interpoloator_policy::gather(*this,
 							l, std::forward<Others>(others)...)))
 
 	template<typename TL, typename ...Others>

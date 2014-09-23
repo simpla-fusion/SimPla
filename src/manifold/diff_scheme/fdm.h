@@ -54,6 +54,14 @@ struct FiniteDiffMehtod
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************
+	template<typename TOP, typename TL> static inline auto eval(TOP const & op,
+			manifold_type const & geo, TL const & f, index_type s) const
+			DECL_RET_TYPE(op(get_value(f,s) ) )
+
+	template<typename TOP, typename TL, typename TR> static inline auto eval(
+			TOP const & op, manifold_type const & geo, TL const & l,
+			TR const &r, index_type s) const
+			DECL_RET_TYPE(op(get_value(l,s),get_value(r,s) ) )
 
 	template<typename TL> static inline auto eval(ExteriorDerivative,
 			manifold_type const & geo,
