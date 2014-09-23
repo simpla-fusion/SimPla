@@ -166,7 +166,7 @@ public:
 	typename StorageTraits<TR>::const_reference r_;
 
 	typedef TD domain_type;
-
+	typedef typename domain_type::index_type index_type;
 	typedef Field<domain_type, BiOp<TOP, TL, TR> > this_type;
 
 	domain_type const & domain_;
@@ -181,8 +181,7 @@ public:
 		return domain_;
 	}
 
-	template<typename TI>
-	inline auto operator[](TI const & s) const
+	inline auto operator[](index_type const & s) const
 	DECL_RET_TYPE( (domain_.template eval<TOP>( l_,r_,s)))
 
 }
@@ -200,7 +199,7 @@ public:
 	typename StorageTraits<TL>::const_reference l_;
 
 	typedef TD domain_type;
-
+	typedef typename domain_type::index_type index_type;
 	typedef typename domain_type::coordinates_type coordinates_type;
 
 	typedef typename domain_type::index_type index_type;
@@ -219,8 +218,7 @@ public:
 		return domain_;
 	}
 
-	template<typename TI>
-	inline auto operator[](TI const s) const
+	inline auto operator[](index_type const &s) const
 	DECL_RET_TYPE( (domain_.template eval<TOP>( l_, s)))
 
 };

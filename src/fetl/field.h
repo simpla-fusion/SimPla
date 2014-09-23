@@ -155,8 +155,7 @@ public:
 	{
 		domain_.scatter(*data_, std::forward<Args>(args)...);
 	}
-	inline auto gather(coordinates_type const &x) const
-	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+	inline auto gather(coordinates_type const &x) const DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
 
 	inline auto operator()(coordinates_type const &x) const
 	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
@@ -165,7 +164,7 @@ public:
 	/// @defgroup Assignment
 	/// @{
 
-	this_type & operator=(this_type rhs)  //< copy and swap assignment operator
+	this_type & operator=(this_type rhs)//< copy and swap assignment operator
 	{
 		swap(*this, rhs);
 		return *this;
@@ -301,15 +300,16 @@ void swap(Field<TDomain, TV> &l, Field<TDomain, TV> &r)
 	swap(l.domain_, r.domain_);
 	swap(l.data_, r.data_);
 }
+
 template<typename TD, typename TExpr>
 auto get_value(Field<TD, TExpr> const & f,
 		typename Field<TD, TExpr>::coordinates_type const & x)
-		DECL_RET_TYPE((f(x)))
+DECL_RET_TYPE ((f(x)))
 
 template<typename TD, typename TExpr>
 auto get_value(Field<TD, TExpr> const & f,
 		typename Field<TD, TExpr>::index_type const & s)
-		DECL_RET_TYPE((f[s]))
+DECL_RET_TYPE ((f[s]))
 
 }
 // namespace simpla
