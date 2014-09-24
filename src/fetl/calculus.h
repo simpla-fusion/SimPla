@@ -518,20 +518,20 @@ inline Field<TD, BiOp<multiplies<>, Field<TD, TL>, TR>> operator*(
 
 template<typename TD, typename TL, typename TR>
 inline Field<TD, BiOp<divides<>, Field<TD, TL>, TR>> operator/(
-		Field<TD, TL> const & lhs, Real rhs)
+		Field<TD, TL> const & lhs, TR const & rhs)
 {
-	return std::move(Field<TD, BiOp<multiplies<>, Field<TD, TL>, TR>>(lhs, rhs));
+	return std::move(Field<TD, BiOp<divides<>, Field<TD, TL>, TR>>(lhs, rhs));
 }
 
 template<typename TD, typename TR>
-inline Field<TD, BiOp<minus<>, Real, Field<TD, TR> >> operator*(Real lhs,
+inline Field<TD, BiOp<multiplies<>, Real, Field<TD, TR> >> operator*(Real lhs,
 		Field<TD, TR> const & rhs)
 {
 	return std::move(Field<TD, BiOp<multiplies<>, Real, Field<TD, TR>>>(lhs,rhs));
 }
 
 template<typename TD, typename TR>
-inline Field<TD, BiOp<minus<>, Complex, Field<TD, TR> >> operator*(Complex lhs,
+inline Field<TD, BiOp<multiplies<>, Complex, Field<TD, TR> >> operator*(Complex lhs,
 		Field<TD, TR> const & rhs)
 {
 	return std::move(Field<TD, BiOp<multiplies<>, Complex, Field<TD, TR>>>(lhs,rhs));

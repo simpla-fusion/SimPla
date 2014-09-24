@@ -117,7 +117,7 @@ TYPED_TEST_P(TestFETLBase, constant_real){
 	f1=va;
 	f2=vb;
 
-//	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
+	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
 	for(auto s :manifold.select( field_type::iform))
 	{
@@ -158,36 +158,36 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	b.fill(rb);
 	c.fill(rc);
 
-	f1.clear();
-	f2.clear();
-	f3.clear();
-	f4.fill(0);
+	f1.allocate();
+	f2.allocate();
+	f3.allocate();
+	f4.allocate();
 
 	size_t count=0;
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-//	for(auto & v:f1)
-//	{
-//		v=va *uniform_dist(gen);
-//	}
-//	for(auto & v:f2)
-//	{
-//		v=vb *uniform_dist(gen);
-//	}
-//
-//	for(auto & v:f3)
-//	{
-//		v=vc *uniform_dist(gen);
-//	}
-	update_ghosts(&f1);
-	update_ghosts(&f2);
-	update_ghosts(&f3);
+	for(auto s:f1.domain())
+	{
+		f1[s]=va *uniform_dist(gen);
+	}
+	for(auto s:f2.domain())
+	{
+		f2[s]=vb *uniform_dist(gen);
+	}
 
-//	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
+	for(auto s:f3.domain())
+	{
+		f3[s]=vc *uniform_dist(gen);
+	}
+//	update_ghosts(&f1);
+//	update_ghosts(&f2);
+//	update_ghosts(&f3);
 
-	//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
+	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
+
+//	Plus( Minus(Negate(Wedge(f1,a)),Divides(f2,b)),Multiplies(f3,c) )
 
 	/**           (+)
 	 *           /   \
@@ -210,7 +210,6 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
-
 }
 }
 
@@ -219,34 +218,34 @@ REGISTER_TYPED_TEST_CASE_P(TestFETLBase, constant_real, scalar_field);
 typedef testing::Types<
 
 TestFETLParam1<VERTEX, Real>	//
-//		, TestFETLParam1<EDGE, Real>	//
-//		, TestFETLParam1<FACE, Real>	//
-//		, TestFETLParam1<VOLUME, Real>	//
-//
-//		, TestFETLParam1<VERTEX, Complex>	//
-//		, TestFETLParam1<EDGE, Complex>	//
-//		, TestFETLParam1<FACE, Complex>	//
-//		, TestFETLParam1<VOLUME, Complex>	//
-//
-//		, TestFETLParam1<VERTEX, nTuple<3, Real> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, Real> >	//
-//		, TestFETLParam1<FACE, nTuple<3, Real> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, Real> >	//
-//
-//		, TestFETLParam1<VERTEX, nTuple<3, Complex> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, Complex> >	//
-//		, TestFETLParam1<FACE, nTuple<3, Complex> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, Complex> >	//
-//
-//		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
-//
-//		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
+		, TestFETLParam1<EDGE, Real>	//
+		, TestFETLParam1<FACE, Real>	//
+		, TestFETLParam1<VOLUME, Real>	//
+
+		, TestFETLParam1<VERTEX, Complex>	//
+		, TestFETLParam1<EDGE, Complex>	//
+		, TestFETLParam1<FACE, Complex>	//
+		, TestFETLParam1<VOLUME, Complex>	//
+
+		, TestFETLParam1<VERTEX, nTuple<3, Real> >	//
+		, TestFETLParam1<EDGE, nTuple<3, Real> >	//
+		, TestFETLParam1<FACE, nTuple<3, Real> >	//
+		, TestFETLParam1<VOLUME, nTuple<3, Real> >	//
+
+		, TestFETLParam1<VERTEX, nTuple<3, Complex> >	//
+		, TestFETLParam1<EDGE, nTuple<3, Complex> >	//
+		, TestFETLParam1<FACE, nTuple<3, Complex> >	//
+		, TestFETLParam1<VOLUME, nTuple<3, Complex> >	//
+
+		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
+		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
+		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
+		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
+
+		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
+		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
+		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
+		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
 
 > TypeParamList;
 

@@ -198,26 +198,26 @@ public:
 		if (empty())
 			allocate();
 
-		parallel_for(domain_,
-
-		[this,&rhs,&fun](domain_type const &r)
-		{
-//			for(auto const & s:r)
-//			{
-//				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
-//			}
-		}
-
-		);
-
-//		parallel_for_each(range_,
+//		parallel_for(domain_,
 //
-//				[this,&rhs](compact_index_type s)
-//				{
-//					get_value(*this, s) = get_value( rhs, s);
-//				}
+//		[this,&rhs,&fun](domain_type const &r)
+//		{
+////			for(auto const & s:r)
+////			{
+////				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
+////			}
+//		}
 //
 //		);
+//
+////		parallel_for_each(range_,
+////
+////				[this,&rhs](compact_index_type s)
+////				{
+////					get_value(*this, s) = get_value( rhs, s);
+////				}
+////
+////		);
 
 	}
 
@@ -226,26 +226,26 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_,
-
-		[this,&rhs ](domain_type const &r)
-		{
-//			for(auto const & s:r)
-//			{
-//				(*this)[s] = get_value( rhs,r.hash( s));
+//		parallel_for(domain_,
+//
+//		[this,&rhs ](domain_type const &r)
+//		{
+////			for(auto const & s:r)
+////			{
+////				(*this)[s] = get_value( rhs,r.hash( s));
+////			}
 //			}
-			}
-
-			);
-
-//		parallel_for_each(range_,
 //
-//				[this,&rhs](compact_index_type s)
-//				{
-//					get_value(*this, s) = get_value( rhs, s);
-//				}
+//			);
 //
-//		);
+////		parallel_for_each(range_,
+////
+////				[this,&rhs](compact_index_type s)
+////				{
+////					get_value(*this, s) = get_value( rhs, s);
+////				}
+////
+////		);
 
 	}
 	template<typename TR>
@@ -253,26 +253,26 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_ & rhs.domain(),
-
-		[this,&rhs ](domain_type const &r)
-		{
-//			for(auto const & s:r)
-//			{
-//				(*this)[s] = rhs[s];
+//		parallel_for(domain_ & rhs.domain(),
+//
+//		[this,&rhs ](domain_type const &r)
+//		{
+////			for(auto const & s:r)
+////			{
+////				(*this)[s] = rhs[s];
+////			}
 //			}
-			}
-
-			);
-
-//		parallel_for_each(range_,
 //
-//				[this,&rhs](compact_index_type s)
-//				{
-//					get_value(*this, s) = get_value( rhs, s);
-//				}
+//			);
 //
-//		);
+////		parallel_for_each(range_,
+////
+////				[this,&rhs](compact_index_type s)
+////				{
+////					get_value(*this, s) = get_value( rhs, s);
+////				}
+////
+////		);
 
 	}
 

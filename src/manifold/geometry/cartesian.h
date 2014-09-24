@@ -44,8 +44,8 @@ public:
 	typedef Real scalar_type;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
+	typedef typename topology_type::size_type size_type;
 	typedef typename topology_type::index_type index_type;
-	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
 	CartesianCoordinates(this_type const & rhs) = delete;
@@ -235,7 +235,7 @@ public:
 	inline auto get_extents() const
 	DECL_RET_TYPE(std::make_pair(xmin_, xmax_))
 
-	inline coordinates_type get_dx(compact_index_type s = 0UL) const
+	inline coordinates_type get_dx(index_type s = 0UL) const
 	{
 		coordinates_type res;
 
@@ -294,13 +294,13 @@ public:
 		return std::move(CoordinatesFromTopology(topology_type::coordinates_local_to_global(std::forward<Args >(args)...)));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(coordinates_type x,
-	        compact_index_type shift = 0UL) const
+	std::tuple<index_type, coordinates_type> coordinates_global_to_local(coordinates_type x,
+	        index_type shift = 0UL) const
 	{
 		return std::move(topology_type::coordinates_global_to_local(std::move(CoordinatesToTopology(x)), shift));
 	}
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(coordinates_type x,
-	        compact_index_type shift = 0UL) const
+	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(coordinates_type x,
+	        index_type shift = 0UL) const
 	{
 		return std::move(topology_type::coordinates_global_to_local_NGP(std::move(CoordinatesToTopology(x)), shift));
 	}
@@ -403,31 +403,31 @@ public:
 	DECL_RET_TYPE((this->topology_type::select(iform)))
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VERTEX>, size_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VOLUME>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VOLUME>, size_type s, TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, EDGE>, size_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, FACE>, size_type s, nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
-	TV Sample(std::integral_constant<unsigned int, IFORM>, index_type s, TV const & v) const
+	TV Sample(std::integral_constant<unsigned int, IFORM>, size_type s, TV const & v) const
 	{
 		return v;
 	}
@@ -474,29 +474,29 @@ public:
 
 public:
 
-	scalar_type cell_volume(compact_index_type s) const
+	scalar_type cell_volume(index_type s) const
 	{
 		return topology_type::cell_volume(s) * volume_[1] * volume_[2] * volume_[4];
 	}
-	scalar_type volume(compact_index_type s) const
+	scalar_type volume(index_type s) const
 	{
 		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_volume(compact_index_type s) const
+	scalar_type inv_volume(index_type s) const
 	{
 		return topology_type::inv_volume(s) * inv_volume_[topology_type::node_id(s)];
 	}
 
-	scalar_type dual_volume(compact_index_type s) const
+	scalar_type dual_volume(index_type s) const
 	{
 		return topology_type::dual_volume(s) * dual_volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_dual_volume(compact_index_type s) const
+	scalar_type inv_dual_volume(index_type s) const
 	{
 		return topology_type::inv_dual_volume(s) * inv_dual_volume_[topology_type::node_id(s)];
 	}
 
-	Real HodgeStarVolumeScale(compact_index_type s) const
+	Real HodgeStarVolumeScale(index_type s) const
 	{
 		return 1.0;
 	}

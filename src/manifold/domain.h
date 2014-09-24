@@ -15,9 +15,7 @@ class split_tag;
 template<typename TG, unsigned int IFORM>
 class Domain
 {
-private:
-	TG const& manifold_;
-	std::shared_ptr<Domain<TG, IFORM>> parent_ = nullptr;
+
 public:
 
 //	static constexpr unsigned int ndims = geometry_type::ndims; // number of dimensions of domain D
@@ -27,35 +25,55 @@ public:
 	typedef TG manifold_type;
 
 	typedef Domain<manifold_type, iform> this_type;
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef typename manifold_type::topology_type topology_type;
 
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
 	typedef typename manifold_type::index_type index_type;
 
+	typedef size_t difference_type; // Type for difference of two iterators
+
+	typedef typename topology_type::iterator iterator;
+	typedef typename topology_type::range_type range_type;
+private:
+	TG const& manifold_;
+	Domain<TG, IFORM> const & parent_;
+	range_type range_;
+public:
+
 	Domain(manifold_type const & g) :
-			manifold_(g), parent_(nullptr)
+			manifold_(g), parent_(*this), range_(g.select(iform)), hash_(
+					g.make_hash(range_))
 	{
+		;
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			manifold_(rhs.manifold_), parent_(rhs.parent_)
+			manifold_(rhs.manifold_), parent_(rhs.parent_), range_(rhs.range_), hash_(
+					rhs.hash_)
 	{
 	}
+	Domain(this_type& d, split_tag); // Split d into two sub-domains.
 
 	~Domain() = default; // Destructor.
 
 	void swap(this_type& rhs);
 
 	bool empty() const; // True if domain is empty.
+
 	bool is_divisible() const; // True if domain can be partitioned into two subdomains.
 
-	Domain(this_type& d, split_tag); // Split d into two sub-domains.
+	iterator const & begin() const // First item in domain.
+	{
+		return std::get<0>(range_);
+	}
 
-	typedef size_t difference_type; // Type for difference of two iterators
-	struct iterator; // Iterator type for domain
-
-	iterator begin() const; // First item in domain.
-	iterator end() const; // One past last item in domain.
+	iterator const &end() const // One past last item in domain.
+	{
+		return std::get<1>(range_);
+	}
 
 	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
 	{
@@ -98,16 +116,48 @@ public:
 							std::forward<Args> (args)...)
 			));
 
-};
+private:
+	std::function<size_t(index_type)> hash_;
+
+}
+;
 template<typename TG, unsigned int IFORM>
 size_t Domain<TG, IFORM>::hash(index_type s) const
 {
-	return 0;
+	return hash_(s);
 }
 template<typename TG, unsigned int IFORM>
 size_t Domain<TG, IFORM>::max_hash() const
 {
-	return 0;
+	return manifold_.topology_type::max_hash(range_);
+}
+
+template<typename TG, unsigned int IL, unsigned int IR>
+Domain<TG, IL> operator &(Domain<TG, IL> const & l, Domain<TG, IL> const & r)
+{
+	return l;
+}
+
+template<typename TG, unsigned int IL>
+Domain<TG, IL> operator &(Domain<TG, IL> const & l, Identity)
+{
+	return l;
+}
+template<typename TG, unsigned int IL>
+Domain<TG, IL> operator &(Identity, Domain<TG, IL> const & l)
+{
+	return l;
+}
+
+template<typename TG, unsigned int IL>
+Zero operator &(Domain<TG, IL> const & l, Zero)
+{
+	return Zero();
+}
+template<typename TG, unsigned int IL>
+Zero operator &(Zero, Domain<TG, IL> const & l)
+{
+	return Zero();
 }
 }
 // namespace simpla
