@@ -4,8 +4,8 @@ TARGET_LINK_LIBRARIES(lua_state_test       parallel   physics  utilities  )
 
 add_library(utilities   properties.cpp log.cpp  )
 
-#my_test(ntuple_test    )  
-#target_link_libraries(ntuple_test ${EXT_LIBRARIES}  )
+my_test(ntuple_test    )  
+target_link_libraries(ntuple_test ${EXT_LIBRARIES}  utilities)
 
 my_test(properties_test    )  
 target_link_libraries(properties_test utilities   parallel   physics  utilities)

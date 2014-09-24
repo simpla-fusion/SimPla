@@ -11,6 +11,7 @@
 #include "../utilities/primitives.h"
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/sp_functional.h"
+#include "../utilities/constant_ops.h"
 namespace simpla
 {
 template<unsigned int, typename > class nTuple;
@@ -65,7 +66,7 @@ struct InteriorProduct
 
 };
 
-class Wedge
+struct Wedge
 {
 	template<typename, typename > struct domain_traits;
 
@@ -91,7 +92,7 @@ class Wedge
 
 };
 
-class ExteriorDerivative
+struct ExteriorDerivative
 {
 	template<typename > struct domain_traits;
 
@@ -113,7 +114,7 @@ class ExteriorDerivative
 	};
 };
 
-class CodifferentialDerivative
+struct CodifferentialDerivative
 {
 	template<typename > struct domain_traits;
 
@@ -169,7 +170,7 @@ public:
 	typedef typename domain_type::index_type index_type;
 	typedef Field<domain_type, BiOp<TOP, TL, TR> > this_type;
 
-	domain_type const & domain_;
+	domain_type domain_;
 
 	Field(TL const & l, TR const & r) :
 			domain_(_impl::get_domain(l) & _impl::get_domain(r)), l_(l), r_(r)
@@ -182,7 +183,7 @@ public:
 	}
 
 	inline auto operator[](index_type const & s) const
-	DECL_RET_TYPE( (domain_.template eval<TOP>( l_,r_,s)))
+	DECL_RET_TYPE( (domain_.template calculus<TOP>( l_,r_,s)))
 
 }
 ;
@@ -201,9 +202,6 @@ public:
 	typedef TD domain_type;
 	typedef typename domain_type::index_type index_type;
 	typedef typename domain_type::coordinates_type coordinates_type;
-
-	typedef typename domain_type::index_type index_type;
-
 	typedef Field<domain_type, UniOp<TOP, TL> > this_type;
 
 	domain_type domain_;
@@ -219,18 +217,17 @@ public:
 	}
 
 	inline auto operator[](index_type const &s) const
-	DECL_RET_TYPE( (domain_.template eval<TOP>( l_, s)))
+	DECL_RET_TYPE( (domain_.template calculus<TOP>( l_, s)))
 
 };
 
-template<typename TM, unsigned int IFORM, unsigned int TOP, typename TL,
-		typename TR>
+template<typename TM, unsigned int IFORM, typename TOP, typename TL, typename TR>
 struct can_not_reference<Field<Domain<TM, IFORM>, BiOp<TOP, TL, TR> >>
 {
 	static constexpr bool value = true;
 };
 
-template<typename TM, unsigned int IFORM, unsigned int TOP, typename TL>
+template<typename TM, unsigned int IFORM, typename TOP, typename TL>
 struct can_not_reference<Field<Domain<TM, IFORM>, UniOp<TOP, TL> > >
 {
 	static constexpr bool value = true;
@@ -425,17 +422,17 @@ inline auto CurlPDZ(
 				DECL_RET_TYPE((codifferential_derivative(f,std::integral_constant<unsigned int ,2>())))
 ;
 
-template<unsigned int IL, typename TM, unsigned int IR, typename TR>
-inline auto MapTo(
-		Field<Domain<TM, IR>, TR> const & f)
-				DECL_RET_TYPE( (Field<Domain<TM,IL>, BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<Domain<TM, IR>, TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
-;
-
-template<unsigned int IL, typename TM, unsigned int IR, typename TR>
-inline auto MapTo(std::integral_constant<unsigned int, IL>,
-		Field<Domain<TM, IR>, TR> const & f)
-				DECL_RET_TYPE( (Field<Domain<TM,IL>, BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<Domain<TM, IR>, TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
-;
+//template<unsigned int IL, typename TM, unsigned int IR, typename TR>
+//inline auto MapTo(
+//		Field<Domain<TM, IR>, TR> const & f)
+//				DECL_RET_TYPE( (Field<Domain<TM,IL>, BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<Domain<TM, IR>, TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
+//;
+//
+//template<unsigned int IL, typename TM, unsigned int IR, typename TR>
+//inline auto MapTo(std::integral_constant<unsigned int, IL>,
+//		Field<Domain<TM, IR>, TR> const & f)
+//				DECL_RET_TYPE( (Field<Domain<TM,IL>, BiOp<MAPTO,std::integral_constant<unsigned int ,IL>,Field<Domain<TM, IR>, TR> > >(std::integral_constant<unsigned int ,IL>(), f)))
+//;
 
 //!   @}
 
@@ -456,12 +453,12 @@ inline Field<TD, TL> const & operator+(Field<TD, TL> const & f)
 	return f;
 }
 
-template<typename TD, typename TL>
-inline Field<TD, UniOp<RECIPROCAL, Field<TD, TL> > > reciprocal(
-		Field<TD, TL> const & f)
-{
-	return std::move(Field<TD, UniOp<RECIPROCAL, Field<TD, TL> > >(f));
-}
+//template<typename TD, typename TL>
+//inline Field<TD, UniOp<RECIPROCAL, Field<TD, TL> > > reciprocal(
+//		Field<TD, TL> const & f)
+//{
+//	return std::move(Field<TD, UniOp<RECIPROCAL, Field<TD, TL> > >(f));
+//}
 
 template<typename TD, typename TR>
 inline Field<TD, UniOp<op_real<>, Field<TD, TR> > > real(

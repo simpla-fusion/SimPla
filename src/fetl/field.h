@@ -41,6 +41,9 @@ public:
 	typedef typename domain_type::coordinates_type coordinates_type;
 
 	typedef typename domain_type::index_type index_type;
+
+	static constexpr unsigned int iform = domain_type::iform;
+
 private:
 	domain_type domain_;
 	std::shared_ptr<storage_type> data_;
@@ -79,11 +82,12 @@ public:
 	void allocate()
 	{
 		if (empty())
-			data_.reset(new storage_type(domain_.max_hash()));
+			std::shared_ptr<storage_type>(new storage_type(domain_.max_hash())).swap(
+					data_);
 	}
 	void clear()
 	{
-		data_.reset(nullptr);
+		std::shared_ptr<storage_type>(nullptr).swap(data_);
 	}
 
 	storage_type & data()
@@ -155,7 +159,8 @@ public:
 	{
 		domain_.scatter(*data_, std::forward<Args>(args)...);
 	}
-	inline auto gather(coordinates_type const &x) const DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+	inline auto gather(coordinates_type const &x) const
+	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
 
 	inline auto operator()(coordinates_type const &x) const
 	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
@@ -163,6 +168,12 @@ public:
 
 	/// @defgroup Assignment
 	/// @{
+
+	template<typename T>
+	void fill(T const &v)
+	{
+		*this = v;
+	}
 
 	this_type & operator=(this_type rhs)//< copy and swap assignment operator
 	{
@@ -191,10 +202,10 @@ public:
 
 		[this,&rhs,&fun](domain_type const &r)
 		{
-			for(auto const & s:r)
-			{
-				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
-			}
+//			for(auto const & s:r)
+//			{
+//				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
+//			}
 		}
 
 		);
@@ -219,13 +230,13 @@ public:
 
 		[this,&rhs ](domain_type const &r)
 		{
-			for(auto const & s:r)
-			{
-				(*this)[s] = get_value( rhs,r.hash( s));
+//			for(auto const & s:r)
+//			{
+//				(*this)[s] = get_value( rhs,r.hash( s));
+//			}
 			}
-		}
 
-		);
+			);
 
 //		parallel_for_each(range_,
 //
@@ -246,13 +257,13 @@ public:
 
 		[this,&rhs ](domain_type const &r)
 		{
-			for(auto const & s:r)
-			{
-				(*this)[s] = rhs[s];
+//			for(auto const & s:r)
+//			{
+//				(*this)[s] = rhs[s];
+//			}
 			}
-		}
 
-		);
+			);
 
 //		parallel_for_each(range_,
 //
@@ -304,12 +315,12 @@ void swap(Field<TDomain, TV> &l, Field<TDomain, TV> &r)
 template<typename TD, typename TExpr>
 auto get_value(Field<TD, TExpr> const & f,
 		typename Field<TD, TExpr>::coordinates_type const & x)
-DECL_RET_TYPE ((f(x)))
+		DECL_RET_TYPE ((f(x)))
 
 template<typename TD, typename TExpr>
 auto get_value(Field<TD, TExpr> const & f,
 		typename Field<TD, TExpr>::index_type const & s)
-DECL_RET_TYPE ((f[s]))
+		DECL_RET_TYPE ((f[s]))
 
 }
 // namespace simpla

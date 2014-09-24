@@ -67,7 +67,7 @@ public:
 // Exterior algebra
 //***************************************************************************************************
 
-	template<typename TL> inline auto eval(ExteriorDerivative,
+	template<typename TL> inline auto calculus(ExteriorDerivative,
 			geometry_type const & geo, Field<this_type, VERTEX, TL> const & f,
 			index_type s) const-> decltype((geo.get_value(f,s)-geo.get_value(f,s))*std::declval<scalar_type>())
 	{
@@ -84,7 +84,7 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(
+	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			Field<this_type, EDGE, TL> const & f,
 			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
@@ -110,7 +110,7 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(
+	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			Field<this_type, FACE, TL> const & f,
 			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
@@ -142,15 +142,15 @@ public:
 		;
 	}
 
-	template<unsigned int IL, typename TL> void OpEval(
+	template<unsigned int IL, typename TL> void Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
 
-	template<unsigned int IL, typename TL> void OpEval(
+	template<unsigned int IL, typename TL> void Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			Field<this_type, IL, TL> const & f, compact_index_type s) const = delete;
 
-	template<typename TL> inline auto OpEval(
+	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			Field<this_type, EDGE, TL> const & f,
 			compact_index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
@@ -186,7 +186,7 @@ public:
 
 	}
 
-	template<typename TL> inline auto OpEval(
+	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			Field<this_type, FACE, TL> const & f,
 			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
@@ -214,7 +214,7 @@ public:
 		;
 	}
 
-	template<typename TL> inline auto OpEval(
+	template<typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			Field<this_type, VOLUME, TL> const & f,
 			compact_index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
@@ -239,7 +239,7 @@ public:
 //***************************************************************************************************
 
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, VERTEX, TL> const &l,
 			Field<this_type, VERTEX, TR> const &r,
@@ -248,7 +248,7 @@ public:
 		return get_value(l, s) * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, VERTEX, TL> const &l,
 			Field<this_type, EDGE, TR> const &r,
@@ -260,7 +260,7 @@ public:
 				* get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, VERTEX, TL> const &l,
 			Field<this_type, FACE, TR> const &r,
@@ -283,7 +283,7 @@ public:
 		) * 0.25 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, VERTEX, TL> const &l,
 			Field<this_type, VOLUME, TR> const &r,
@@ -314,7 +314,7 @@ public:
 		) * 0.125 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, EDGE, TL> const &l,
 			Field<this_type, VERTEX, TR> const &r,
@@ -325,7 +325,7 @@ public:
 				* 0.5;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, EDGE, TL> const &l,
 			Field<this_type, EDGE, TR> const &r,
@@ -340,7 +340,7 @@ public:
 				* (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, EDGE, TL> const &l,
 			Field<this_type, FACE, TR> const &r,
@@ -371,7 +371,7 @@ public:
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, FACE, TL> const &l,
 			Field<this_type, VERTEX, TR> const &r,
@@ -388,7 +388,7 @@ public:
 				* 0.25;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, FACE, TL> const &r,
 			Field<this_type, EDGE, TR> const &l,
@@ -417,7 +417,7 @@ public:
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, WEDGE>,
 			Field<this_type, VOLUME, TL> const &l,
 			Field<this_type, VERTEX, TR> const &r,
@@ -445,7 +445,7 @@ public:
 
 //***************************************************************************************************
 
-	template<unsigned int IL, typename TL> inline auto OpEval(
+	template<unsigned int IL, typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, HODGESTAR>,
 			Field<this_type, IL, TL> const & f,
 			compact_index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
@@ -479,12 +479,12 @@ public:
 		return get_value(f, s) /** geo.HodgeStarVolumeScale(s)*/;
 	}
 
-	template<typename TL, typename TR> void OpEval(
+	template<typename TL, typename TR> void Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, Field<this_type, VERTEX, TL> const & f,
 			compact_index_type s) const = delete;
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, Field<this_type, EDGE, TL> const & f,
 			compact_index_type s) const->decltype(get_value(f,s)*v[0])
@@ -500,7 +500,7 @@ public:
 		+ (get_value(f, s + Z) - get_value(f, s - Z)) * 0.5 * v[2];
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, Field<this_type, FACE, TL> const & f,
 			compact_index_type s) const->decltype(get_value(f,s)*v[0])
@@ -517,7 +517,7 @@ public:
 		(get_value(f, s + Z) + get_value(f, s - Z)) * 0.5 * v[(n + 1) % 3];
 	}
 
-	template<typename TL, typename TR> inline auto OpEval(
+	template<typename TL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, INTERIOR_PRODUCT>,
 			nTuple<NDIMS, TR> const & v, Field<this_type, VOLUME, TL> const & f,
 			compact_index_type s) const->decltype(get_value(f,s)*v[0])
@@ -533,7 +533,7 @@ public:
 // Non-standard operation
 // For curlpdx
 
-	template<unsigned int N, typename TL> inline auto OpEval(
+	template<unsigned int N, typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, EXTRIORDERIVATIVE>,
 			Field<this_type, EDGE, TL> const & f,
 			std::integral_constant<unsigned int, N>,
@@ -551,7 +551,7 @@ public:
 				- (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<unsigned int N, typename TL> inline auto OpEval(
+	template<unsigned int N, typename TL> inline auto Opcalculus(
 			std::integral_constant<unsigned int, CODIFFERENTIAL>,
 			Field<this_type, FACE, TL> const & f,
 			std::integral_constant<unsigned int, N>,
@@ -574,13 +574,13 @@ public:
 
 		) * geo.inv_dual_volume(s);
 	}
-	template<unsigned int IL, typename TR> inline auto OpEval(
+	template<unsigned int IL, typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, IL> const &,
 			Field<this_type, IL, TR> const & f, compact_index_type s) const
 			DECL_RET_TYPE(get_value(f,s))
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			Field<this_type, EDGE, TR> const & f,
@@ -602,7 +602,7 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, EDGE> const &,
 			Field<this_type, VERTEX, TR> const & f,
@@ -615,7 +615,7 @@ public:
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			Field<this_type, FACE, TR> const & f,
@@ -667,7 +667,7 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, FACE> const &,
 			Field<this_type, VERTEX, TR> const & f,
@@ -696,7 +696,7 @@ public:
 		);
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VOLUME>,
 			Field<this_type, FACE, TR> const & f,
@@ -718,7 +718,7 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, FACE>,
 			Field<this_type, VOLUME, TR> const & f,
@@ -731,7 +731,7 @@ public:
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, VOLUME>,
 			Field<this_type, EDGE, TR> const & f,
@@ -783,7 +783,7 @@ public:
 		});
 	}
 
-	template<typename TR> inline auto OpEval(
+	template<typename TR> inline auto Opcalculus(
 			std::integral_constant<unsigned int, MAPTO>,
 			std::integral_constant<unsigned int, EDGE>,
 			Field<this_type, VOLUME, TR> const & f,

@@ -44,7 +44,7 @@ struct nTuple<N, ntuple_impl::nTupleBiOp<TOP, TL, TR>>
 	}
 	template<typename TI>
 	constexpr auto operator[](TI s) const
-	DECL_RET_TYPE(ops::eval(TOP(),l_,r_,s))
+	DECL_RET_TYPE(ops::calculus(TOP(),l_,r_,s))
 
 };
 template<unsigned int N, typename TOP, typename TL>
@@ -54,7 +54,7 @@ struct nTuple<N, ntuple_impl::nTupleUniOp<TOP, TL>>
 
 	template<typename TI>
 	constexpr auto operator[](TI s) const
-	DECL_RET_TYPE(ops::eval(TOP(),l_, s))
+	DECL_RET_TYPE(ops::calculus(TOP(),l_, s))
 };
 //***********************************************************************************
 
@@ -121,18 +121,18 @@ DECL_RET_TYPE((l*r))
 
 template<unsigned int N, typename TL, typename TR>
 inline auto _inner_product(nTuple<N, TL> const & l, nTuple<N, TR> const &r)
-DECL_RET_TYPE(( _inner_product_s<N, nTuple<N, TL>, nTuple<N, TR> >::eval(l,r)))
+DECL_RET_TYPE(( _inner_product_s<N, nTuple<N, TL>, nTuple<N, TR> >::calculus(l,r)))
 
 template<unsigned int M, typename TL, typename TR>
 struct _inner_product_s
 {
-	static inline auto eval(TL const & l, TR const &r)
-	DECL_RET_TYPE((_inner_product(l[M - 1] , r[M - 1]) + _inner_product_s<M - 1, TL, TR>::eval(l, r)))
+	static inline auto calculus(TL const & l, TR const &r)
+	DECL_RET_TYPE((_inner_product(l[M - 1] , r[M - 1]) + _inner_product_s<M - 1, TL, TR>::calculus(l, r)))
 };
 template<typename TL, typename TR>
 struct _inner_product_s<1, TL, TR>
 {
-	static inline auto eval(TL const & l, TR const &r)
+	static inline auto calculus(TL const & l, TR const &r)
 	DECL_RET_TYPE(_inner_product(l[0],r[0]))
 }
 ;
@@ -150,7 +150,7 @@ DECL_RET_TYPE((ntuple_impl::_inner_product(l,r)))
 namespace ntuple_impl
 {
 template<unsigned int N, typename TL, typename TR>
-inline auto OpEval(std::integral_constant<unsigned int ,CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
+inline auto Opcalculus(std::integral_constant<unsigned int ,CROSS>, nTuple<N, TL> const & l, nTuple<N, TR> const &r, size_t s)
 DECL_RET_TYPE ((l[(s+1)%3] * r[(s+2)%3] - l[(s+2)%3] * r[(s+1)%3]))
 }  // namespace ntuple_impl
 

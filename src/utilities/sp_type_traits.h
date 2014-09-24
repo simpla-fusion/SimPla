@@ -303,6 +303,12 @@ auto get_value(std::shared_ptr<T> v, TI const & s)
 DECL_RET_TYPE(get_value(*v ,s))
 ;
 
+template<typename T, typename TI>
+T & get_value(T* v, TI const & s)
+{
+	return v[s];
+}
+
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned int N>
 struct CountBits

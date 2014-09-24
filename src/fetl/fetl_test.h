@@ -13,21 +13,28 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../io/data_stream.h"
+
 using namespace simpla;
 
-#ifndef TMESH
-#include "../mesh/uniform_array.h"
-#include "../mesh/geometry_cartesian.h"
-#include "../mesh/mesh_rectangle.h"
+//#ifndef TMESH
+#include "../manifold/manifold.h"
+#include "../manifold/domain.h"
+#include "../manifold/geometry/cartesian.h"
+#include "../manifold/topology/structured.h"
+#include "../manifold/diff_scheme/fdm.h"
+#include "../manifold/interpolator/interpolator.h"
 
-typedef FvMesh<CartesianCoordinates<SurturedMesh>, false> TMesh;
-#else
-typedef TMESH TMesh;
-#endif
+
+typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMehtod,
+		InterpolatorLinear> TMesh;
+//#else
+//typedef TMESH TMesh;
+//#endif
 
 class TestFETL: public testing::TestWithParam<
-        std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t>,
-                nTuple<TMesh::NDIMS, Real> > >
+		std::tuple<typename TMesh::coordinates_type,
+				typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t>,
+				nTuple<TMesh::NDIMS, Real> > >
 {
 
 protected:
@@ -60,8 +67,6 @@ protected:
 		mesh.set_extents(xmin, xmax);
 
 		mesh.update();
-
-		K_imag = mesh.k_imag;
 
 	}
 public:

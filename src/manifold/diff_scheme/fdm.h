@@ -13,10 +13,9 @@
 #include <memory>
 #include <type_traits>
 
-#include "../utilities/sp_type_traits.h"
-#include "../utilities/container_dense.h"
-#include "../physics/constants.h"
-
+#include "../../utilities/sp_type_traits.h"
+#include "../../physics/constants.h"
+#include "../../manifold/manifold.h"
 namespace simpla
 {
 
@@ -27,7 +26,9 @@ class InteriorProduct;
 class Wedge;
 class ExteriorDerivative;
 class CodifferentialDerivative;
-class MapTo;
+class MapTo
+{
+};
 
 /** \ingroup DiffScheme
  *  \brief template of FvMesh
@@ -54,19 +55,19 @@ struct FiniteDiffMehtod
 //***************************************************************************************************
 // Exterior algebra
 //***************************************************************************************************
-	template<typename TOP, typename TL> static inline auto eval(TOP const & op,
-			manifold_type const & geo, TL const & f, index_type s) const
+	template<typename TOP, typename TL> static inline auto calculus(TOP const & op,
+			manifold_type const & geo, TL const & f, index_type s)
 			DECL_RET_TYPE(op(get_value(f,s) ) )
 
-	template<typename TOP, typename TL, typename TR> static inline auto eval(
+	template<typename TOP, typename TL, typename TR> static inline auto calculus(
 			TOP const & op, manifold_type const & geo, TL const & l,
-			TR const &r, index_type s) const
+			TR const &r, index_type s)
 			DECL_RET_TYPE(op(get_value(l,s),get_value(r,s) ) )
 
-	template<typename TL> static inline auto eval(ExteriorDerivative,
+	template<typename TL> static inline auto calculus(ExteriorDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VERTEX>, TL> const & f,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = geo.delta_index(s);
 
@@ -76,10 +77,10 @@ struct FiniteDiffMehtod
 				- get_value(f, s - D) * geo.volume(s - D)) * geo.inv_volume(s);
 	}
 
-	template<typename TL> static inline auto eval(ExteriorDerivative,
+	template<typename TL> static inline auto calculus(ExteriorDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const & f,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo.delta_index(geo.dual(s));
 		auto Y = geo.roate(X);
@@ -95,10 +96,10 @@ struct FiniteDiffMehtod
 		) * geo.inv_volume(s);
 	}
 
-	template<typename TL> static inline auto eval(ExteriorDerivative,
+	template<typename TL> static inline auto calculus(ExteriorDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, FACE>, TL> const & f,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -119,18 +120,18 @@ struct FiniteDiffMehtod
 		;
 	}
 
-	template<unsigned int IL, typename TL> void eval(ExteriorDerivative,
-			manifold_type const & geo, Field<this_type, IL, TL> const & f,
-			index_type s) const = delete;
+	template<unsigned int IL, typename TL> void calculus(ExteriorDerivative,
+			manifold_type const & geo,
+			Field<Domain<manifold_type, IL>, TL> const & f, index_type s) const = delete;
 
-	template<unsigned int IL, typename TL> void eval(CodifferentialDerivative,
-			manifold_type const & geo, Field<this_type, IL, TL> const & f,
-			index_type s) const = delete;
+	template<unsigned int IL, typename TL> void calculus(CodifferentialDerivative,
+			manifold_type const & geo,
+			Field<Domain<manifold_type, IL>, TL> const & f, index_type s) const = delete;
 
-	template<typename TL> static inline auto eval(CodifferentialDerivative,
+	template<typename TL> static inline auto calculus(CodifferentialDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const & f,
-			index_type s) const->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) ->decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -158,10 +159,10 @@ struct FiniteDiffMehtod
 
 	}
 
-	template<typename TL> static inline auto eval(CodifferentialDerivative,
+	template<typename TL> static inline auto calculus(CodifferentialDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, FACE>, TL> const & f,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo.delta_index(s);
 		auto Y = geo.roate(X);
@@ -182,10 +183,10 @@ struct FiniteDiffMehtod
 		;
 	}
 
-	template<typename TL> static inline auto eval(CodifferentialDerivative,
+	template<typename TL> static inline auto calculus(CodifferentialDerivative,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VOLUME>, TL> const & f,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 		auto D = geo.delta_index(geo.dual(s));
 		return
@@ -203,20 +204,20 @@ struct FiniteDiffMehtod
 //***************************************************************************************************
 
 //! Form<IR> ^ Form<IR> => Form<IR+IL>
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VERTEX>, TL> const &l,
 			Field<Domain<manifold_type, VERTEX>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		return get_value(l, s) * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VERTEX>, TL> const &l,
 			Field<Domain<manifold_type, EDGE>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.delta_index(s);
 
@@ -224,11 +225,11 @@ struct FiniteDiffMehtod
 				* get_value(r, s);
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VERTEX>, TL> const &l,
 			Field<Domain<manifold_type, FACE>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.delta_index(geo.dual(s));
 		auto Y = geo.roate(X);
@@ -247,11 +248,11 @@ struct FiniteDiffMehtod
 		) * 0.25 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VERTEX>, TL> const &l,
 			Field<Domain<manifold_type, VOLUME>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -278,22 +279,22 @@ struct FiniteDiffMehtod
 		) * 0.125 * get_value(r, s);
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const &l,
 			Field<Domain<manifold_type, VERTEX>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.delta_index(s);
 		return get_value(l, s) * (get_value(r, s - X) + get_value(r, s + X))
 				* 0.5;
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const &l,
 			Field<Domain<manifold_type, EDGE>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = geo.delta_index(geo.roate(geo.dual(s)));
 		auto Z = geo.delta_index(geo.inverse_roate(geo.dual(s)));
@@ -302,11 +303,11 @@ struct FiniteDiffMehtod
 				* (get_value(l, s - Z) + get_value(l, s + Z)) * 0.25);
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const &l,
 			Field<Domain<manifold_type, FACE>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -333,11 +334,11 @@ struct FiniteDiffMehtod
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, FACE>, TL> const &l,
 			Field<Domain<manifold_type, VERTEX>, TR> const &r,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto Y = geo.delta_index(geo.roate(geo.dual(s)));
 		auto Z = geo.delta_index(geo.inverse_roate(geo.dual(s)));
@@ -348,11 +349,11 @@ struct FiniteDiffMehtod
 				* 0.25;
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, FACE>, TL> const &r,
 			Field<Domain<manifold_type, EDGE>, TR> const &l,
-			index_type s) const ->decltype(get_value(l,s)*get_value(r,s))
+			index_type s)->decltype(get_value(l,s)*get_value(r,s))
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -377,11 +378,11 @@ struct FiniteDiffMehtod
 		) * 0.125;
 	}
 
-	template<typename TL, typename TR> static inline auto eval(Wedge,
+	template<typename TL, typename TR> static inline auto calculus(Wedge,
 			manifold_type const & geo,
 			Field<Domain<manifold_type, VOLUME>, TL> const &l,
 			Field<Domain<manifold_type, VERTEX>, TR> const &r,
-			index_type s) const ->decltype(get_value(r,s)*get_value(l,s))
+			index_type s)->decltype(get_value(r,s)*get_value(l,s))
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -405,9 +406,10 @@ struct FiniteDiffMehtod
 
 //***************************************************************************************************
 
-	template<unsigned int IL, typename TL> static inline auto eval(HodgeStar,
-			manifold_type const & geo, Field<this_type, IL, TL> const & f,
-			index_type s) const-> typename std::remove_reference<decltype(get_value(f,s))>::type
+	template<unsigned int IL, typename TL> static inline auto calculus(HodgeStar,
+			manifold_type const & geo,
+			Field<Domain<manifold_type, IL>, TL> const & f,
+			index_type s) -> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
 //		auto X = geo.DI(0,s);
 //		auto Y = geo.DI(1,s);
@@ -438,15 +440,15 @@ struct FiniteDiffMehtod
 		return get_value(f, s) /** geo.HodgeStarVolumeScale(s)*/;
 	}
 
-	template<typename TL, typename TR> void eval(InteriorProduct,
+	template<typename TL, typename TR> void calculus(InteriorProduct,
 			manifold_type const & geo, nTuple<NDIMS, TR> const & v,
 			Field<Domain<manifold_type, VERTEX>, TL> const & f,
 			index_type s) const = delete;
 
-	template<typename TL, typename TR> static inline auto eval(InteriorProduct,
+	template<typename TL, typename TR> static inline auto calculus(InteriorProduct,
 			manifold_type const & geo, nTuple<NDIMS, TR> const & v,
 			Field<Domain<manifold_type, EDGE>, TL> const & f,
-			index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) ->decltype(get_value(f,s)*v[0])
 	{
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
@@ -459,10 +461,10 @@ struct FiniteDiffMehtod
 		+ (get_value(f, s + Z) - get_value(f, s - Z)) * 0.5 * v[2];
 	}
 
-	template<typename TL, typename TR> static inline auto eval(InteriorProduct,
+	template<typename TL, typename TR> static inline auto calculus(InteriorProduct,
 			manifold_type const & geo, nTuple<NDIMS, TR> const & v,
 			Field<Domain<manifold_type, FACE>, TL> const & f,
-			index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) ->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = geo.component_number(s);
 
@@ -476,10 +478,10 @@ struct FiniteDiffMehtod
 		(get_value(f, s + Z) + get_value(f, s - Z)) * 0.5 * v[(n + 1) % 3];
 	}
 
-	template<typename TL, typename TR> static inline auto eval(InteriorProduct,
+	template<typename TL, typename TR> static inline auto calculus(InteriorProduct,
 			manifold_type const & geo, nTuple<NDIMS, TR> const & v,
 			Field<Domain<manifold_type, VOLUME>, TL> const & f,
-			index_type s) const->decltype(get_value(f,s)*v[0])
+			index_type s) ->decltype(get_value(f,s)*v[0])
 	{
 		unsigned int n = geo.component_number(geo.dual(s));
 		unsigned int D = geo.delta_index(geo.dual(s));
@@ -491,11 +493,11 @@ struct FiniteDiffMehtod
 // Non-standard operation
 // For curlpdx
 
-	template<unsigned int N, typename TL> static inline auto eval(
+	template<unsigned int N, typename TL> static inline auto calculus(
 			ExteriorDerivative, manifold_type const & geo,
 			Field<Domain<manifold_type, EDGE>, TL> const & f,
 			std::integral_constant<unsigned int, N>,
-			index_type s) const-> decltype(get_value(f,s)-get_value(f,s))
+			index_type s) -> decltype(get_value(f,s)-get_value(f,s))
 	{
 
 		auto X = geo.delta_index(geo.dual(s));
@@ -509,11 +511,11 @@ struct FiniteDiffMehtod
 				- (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<unsigned int N, typename TL> static inline auto eval(
+	template<unsigned int N, typename TL> static inline auto calculus(
 			CodifferentialDerivative, manifold_type const & geo,
 			Field<Domain<manifold_type, FACE>, TL> const & f,
 			std::integral_constant<unsigned int, N>,
-			index_type s) const-> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
+			index_type s) -> decltype((get_value(f,s)-get_value(f,s))*std::declval<scalar_type>())
 	{
 
 		auto X = geo.delta_index(s);
@@ -532,17 +534,17 @@ struct FiniteDiffMehtod
 
 		) * geo.inv_dual_volume(s);
 	}
-	template<unsigned int IL, typename TR> static inline auto eval(MapTo,
+	template<unsigned int IL, typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, IL> const &,
-			Field<this_type, IL, TR> const & f, index_type s) const
+			Field<Domain<manifold_type, IL>, TR> const & f, index_type s)
 			DECL_RET_TYPE(get_value(f,s))
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			Field<Domain<manifold_type, EDGE>, TR> const & f,
-			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			index_type s) ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = geo.DI(0, s);
@@ -560,11 +562,11 @@ struct FiniteDiffMehtod
 		});
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, EDGE> const &,
 			Field<Domain<manifold_type, VERTEX>, TR> const & f,
-			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = geo.component_number(s);
@@ -573,11 +575,11 @@ struct FiniteDiffMehtod
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, VERTEX> const &,
 			Field<Domain<manifold_type, FACE>, TR> const & f,
-			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			index_type s) ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
 	{
 
 		auto X = geo.DI(0, s);
@@ -625,11 +627,11 @@ struct FiniteDiffMehtod
 		});
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, FACE> const &,
 			Field<Domain<manifold_type, VERTEX>, TR> const & f,
-			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = geo.component_number(geo.dual(s));
@@ -654,11 +656,11 @@ struct FiniteDiffMehtod
 		);
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, VOLUME>,
 			Field<Domain<manifold_type, FACE>, TR> const & f,
-			index_type s) const->nTuple<3,decltype(get_value(f,s) )>
+			index_type s) ->nTuple<3,decltype(get_value(f,s) )>
 	{
 
 		auto X = geo.DI(0, s);
@@ -676,11 +678,11 @@ struct FiniteDiffMehtod
 		});
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, FACE>,
 			Field<Domain<manifold_type, VOLUME>, TR> const & f,
-			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = geo.component_number(geo.dual(s));
@@ -689,11 +691,11 @@ struct FiniteDiffMehtod
 		return ((get_value(f, s - D)[n] + get_value(f, s + D)[n]) * 0.5);
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, VOLUME>,
 			Field<Domain<manifold_type, EDGE>, TR> const & f,
-			index_type s) const->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
+			index_type s) ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
 	{
 
 		auto X = geo.DI(0, s);
@@ -741,11 +743,11 @@ struct FiniteDiffMehtod
 		});
 	}
 
-	template<typename TR> static inline auto eval(MapTo,
+	template<typename TR> static inline auto calculus(MapTo,
 			manifold_type const & geo,
 			std::integral_constant<unsigned int, EDGE>,
 			Field<Domain<manifold_type, VOLUME>, TR> const & f,
-			index_type s) const->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
+			index_type s) ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
 
 		auto n = geo.component_number(geo.dual(s));

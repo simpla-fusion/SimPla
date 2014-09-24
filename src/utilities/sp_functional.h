@@ -12,7 +12,7 @@ namespace simpla
 {
 
 #define DEF_BOP(_NAME_,_OP_)                                                               \
-template<typename T=void> struct _NAME_                                                                             \
+template<typename T=std::nullptr_t> struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL, typename TR>                                                         \
 	constexpr auto operator()(TL const & l, TR const & r) const->decltype(l _OP_ r)                 \
@@ -20,7 +20,7 @@ template<typename T=void> struct _NAME_                                         
 };
 
 #define DEF_UOP(_NAME_,_OP_)     \
-template<typename T=void>struct _NAME_                                                                             \
+template<typename T=std::nullptr_t>struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL >                                                         \
 	constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
@@ -51,18 +51,18 @@ DEF_BOP(bit_xor, ^)
 #undef DEF_UOP
 #undef DEF_BOP
 
-template<typename T = void> struct op_imag
+template<typename T = std::nullptr_t> struct op_imag
 {
-	template<typename T>
-	constexpr T operator()(std::complex<T> const & l) const
+	template<typename TL>
+	constexpr TL operator()(std::complex<TL> const & l) const
 	{
 		return std::imag(l);
 	}
 };
-template<typename T = void> struct op_real
+template<typename T = std::nullptr_t> struct op_real
 {
-	template<typename T>
-	constexpr T operator()(std::complex<T> const & l) const
+	template<typename TL>
+	constexpr TL operator()(std::complex<TL> const & l) const
 	{
 		return std::real(l);
 	}

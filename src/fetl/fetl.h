@@ -14,10 +14,12 @@
 #include "../utilities/sp_complex.h"
 
 #include "field.h"
-#include "field_ops.h"
-#include "field_vector_ops.h"
-#include "field_constant.h"
-#include "cache.h"
+#include "calculus.h"
+
+
+//#include "field_vector_ops.h"
+//#include "field_constant.h"
+//#include "cache.h"
 
 /**
  * \defgroup  FETL Field expression template library

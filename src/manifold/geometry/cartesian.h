@@ -11,12 +11,12 @@
 #include <iostream>
 #include <utility>
 #include <cmath>
-#include "../utilities/ntuple.h"
-#include "../utilities/primitives.h"
-#include "../utilities/utilities.h"
-#include "../utilities/log.h"
-#include "../physics/physical_constants.h"
-#include "../physics/constants.h"
+#include "../../utilities/ntuple.h"
+#include "../../utilities/primitives.h"
+#include "../../utilities/utilities.h"
+#include "../../utilities/log.h"
+#include "../../physics/physical_constants.h"
+#include "../../physics/constants.h"
 
 namespace simpla
 {

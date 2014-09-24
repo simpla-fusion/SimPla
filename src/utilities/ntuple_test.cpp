@@ -32,7 +32,7 @@ protected:
 		b = 3;
 		c = 4;
 		d = 7;
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < DIMENSION; ++i)
 		{
 			aA[i] = i * 2;
 			aB[i] = 5 - i;
@@ -48,12 +48,12 @@ protected:
 	}
 
 public:
-	static constexpr  unsigned int  NDIMS = T::NDIMS;
+	static constexpr unsigned int DIMENSION = T::DIMENSION;
 	typedef typename T::value_type value_type;
 	value_type m;
 
 	T vA, vB, vC, vD;
-	value_type aA[NDIMS], aB[NDIMS], aC[NDIMS], aD[NDIMS];
+	value_type aA[DIMENSION], aB[DIMENSION], aC[DIMENSION], aD[DIMENSION];
 	value_type a, b, c, d;
 
 };
@@ -77,7 +77,7 @@ TYPED_TEST(TestNtuple,Assign_Scalar){
 
 	TestFixture::vD = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	{
 		EXPECT_DOUBLE_EQ(abs(TestFixture::aA[i]), abs(TestFixture::vD[i]) );
 	}
@@ -87,7 +87,7 @@ TYPED_TEST(TestNtuple,Assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	{
 		EXPECT_DOUBLE_EQ( abs(TestFixture::aA[i]), abs(TestFixture::vA[i]));
 	}
@@ -97,7 +97,7 @@ TYPED_TEST(TestNtuple, Arithmetic){
 {
 	TestFixture::vD = EQUATION(vA ,vB ,vC);
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	{
 		EXPECT_DOUBLE_EQ(abs(EQUATION(vA[i] ,vB[i] ,vC[i])),abs( TestFixture::vD[i]));
 	}
@@ -106,10 +106,10 @@ TYPED_TEST(TestNtuple, Arithmetic){
 
 TYPED_TEST(TestNtuple, self_assign){
 {
-	CHECK(TestFixture::vB );
-	CHECK(TestFixture::vA );
+//	CHECK(TestFixture::vB );
+//	CHECK(TestFixture::vA );
 	TestFixture::vB +=TestFixture::vA;
-	CHECK(TestFixture::vB );
+//	CHECK(TestFixture::vB );
 }
 }
 TYPED_TEST(TestNtuple, Dot){
@@ -118,7 +118,7 @@ TYPED_TEST(TestNtuple, Dot){
 
 	res=0;
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	{
 		res += TestFixture::vA[i] * TestFixture::vB[i];
 	}
@@ -151,11 +151,11 @@ TYPED_TEST(TestNtuple, performance_rawarray){
 
 	for (size_t s = 0; s < 10000000L; ++s)
 	{
-		for(int i=0;i<TestFixture::NDIMS;++i)
+		for(int i=0;i<TestFixture::DIMENSION;++i)
 		{	TestFixture::aD[i] +=EQUATION(aA[i] ,aB[i] ,aC[i])*s;};
 	}
 
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(EQUATION(aA[i] ,aB[i] ,aC[i])),abs(TestFixture::aD[i]/TestFixture::m) );
 //	}
@@ -170,7 +170,7 @@ TYPED_TEST(TestNtuple, performance_nTuple){
 		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
 	}
 
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
 //	}
@@ -193,7 +193,7 @@ protected:
 		b = 3;
 		c = 4;
 		d = 7;
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < DIMENSION; ++i)
 			for (int j = 0; j < MDIMS; ++j)
 			{
 				aA[i][j] = i * 2;
@@ -210,15 +210,15 @@ protected:
 	}
 
 public:
-	static constexpr  unsigned int  NDIMS = T::NDIMS;
-	static constexpr  unsigned int  MDIMS = T::value_type::NDIMS;
+	static constexpr  unsigned int  DIMENSION = T::DIMENSION;
+	static constexpr  unsigned int  MDIMS = T::value_type::DIMENSION;
 
 	typedef typename T::value_type::value_type value_type;
 
 	value_type m;
 
 	T vA, vB, vC, vD;
-	value_type aA[NDIMS][MDIMS], aB[NDIMS][MDIMS], aC[NDIMS][MDIMS], aD[NDIMS][MDIMS];
+	value_type aA[DIMENSION][MDIMS], aB[DIMENSION][MDIMS], aC[DIMENSION][MDIMS], aD[DIMENSION][MDIMS];
 	value_type a, b, c, d;
 
 };
@@ -244,7 +244,7 @@ TYPED_TEST(TestNMatrix,Assign_Scalar){
 
 	TestFixture::vD = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	for (int j = 0; j < TestFixture::MDIMS; ++j)
 
 	{
@@ -256,7 +256,7 @@ TYPED_TEST(TestNMatrix,Assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	for (int j = 0; j < TestFixture::MDIMS; ++j)
 	{
 		EXPECT_DOUBLE_EQ( abs(TestFixture::aA[i][j]), abs(TestFixture::vA[i][j]));
@@ -267,7 +267,7 @@ TYPED_TEST(TestNMatrix, Arithmetic){
 {
 	TestFixture::vD = EQUATION(vA ,vB ,vC);
 
-	for (int i = 0; i < TestFixture::NDIMS; ++i)
+	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 	for (int j = 0; j < TestFixture::MDIMS; ++j)
 	{
 		EXPECT_DOUBLE_EQ(abs(EQUATION(vA[i][j] ,vB[i][j] ,vC[i][j])),abs( TestFixture::vD[i][j]));
@@ -280,12 +280,12 @@ TYPED_TEST(TestNMatrix, performance_rawarray){
 
 	for (size_t s = 0; s < 10000000L; ++s)
 	{
-		for(int i=0;i<TestFixture::NDIMS;++i)
+		for(int i=0;i<TestFixture::DIMENSION;++i)
 		for (int j = 0; j < TestFixture::MDIMS; ++j)
 		{	TestFixture::aD[i][j] +=EQUATION(aA[i][j] ,aB[i][j] ,aC[i][j])*s;};
 	}
 
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(EQUATION(aA[i] ,aB[i] ,aC[i])),abs(TestFixture::aD[i]/TestFixture::m) );
 //	}
@@ -300,7 +300,7 @@ TYPED_TEST(TestNMatrix, performance_nTuple){
 		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
 	}
 
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
+//	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 //	{
 //		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
 //	}

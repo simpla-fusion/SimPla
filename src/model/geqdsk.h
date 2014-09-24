@@ -142,12 +142,12 @@ public:
 
 	inline Real psi(Real R, Real Z) const
 	{
-		return psirz_.eval(R, Z);
+		return psirz_.calculus(R, Z);
 	}
 
 	inline Real psi(coordinates_type const&x) const
 	{
-		return psirz_.eval(x[RAxis], x[ZAxis]);
+		return psirz_.calculus(x[RAxis], x[ZAxis]);
 	}
 
 	/**

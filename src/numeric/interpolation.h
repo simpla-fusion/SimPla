@@ -108,11 +108,11 @@ public:
 
 	value_type operator()(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_.eval(*data_, find(x), x));
+		return std::move(interpolate_op_.calculus(*data_, find(x), x));
 	}
-	value_type eval(key_x_type const &x) const
+	value_type calculus(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_.eval(*data_, find(x), x));
+		return std::move(interpolate_op_.calculus(*data_, find(x), x));
 	}
 	value_type grad(key_x_type const &x) const
 	{
@@ -135,7 +135,7 @@ struct LinearInterpolation
 	}
 
 	template<typename container>
-	inline typename container::mapped_type eval(container const &, typename container::iterator const &it,
+	inline typename container::mapped_type calculus(container const &, typename container::iterator const &it,
 	        typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
@@ -226,7 +226,7 @@ public:
 	template<typename ...TArgs>
 	inline value_type operator()(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.eval(data_, std::forward<TArgs const &>(x)...));
+		return std::move(interpolate_op_.calculus(data_, std::forward<TArgs const &>(x)...));
 	}
 
 	inline value_type const &operator[](size_t s) const
@@ -239,9 +239,9 @@ public:
 	}
 
 	template<typename ...TArgs>
-	value_type eval(TArgs const &... x) const
+	value_type calculus(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.eval(data_.get(), std::forward<TArgs const &>(x)...));
+		return std::move(interpolate_op_.calculus(data_.get(), std::forward<TArgs const &>(x)...));
 	}
 
 	template<typename ...TArgs>
@@ -342,7 +342,7 @@ public:
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline auto eval(TV const * v, TX x, TX y, Args const &...) const ->TV
+	inline auto calculus(TV const * v, TX x, TX y, Args const &...) const ->TV
 	{
 		x = (x - xmin_[0]) * inv_dx_[0];
 		y = (y - xmin_[1]) * inv_dx_[1];
@@ -370,9 +370,9 @@ public:
 	}
 
 	template<typename TV, typename TX>
-	inline auto eval(TV const * v, TX const & x) const->decltype(eval(v, x[0], x[1]))
+	inline auto calculus(TV const * v, TX const & x) const->decltype(calculus(v, x[0], x[1]))
 	{
-		return eval(v, x[0], x[1]);
+		return calculus(v, x[0], x[1]);
 	}
 
 	template<typename TV, typename TX, typename ... Args>

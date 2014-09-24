@@ -40,11 +40,6 @@ enum POSITION
 	FRONT = 32
 };
 
-enum GeometryFormTypeID
-{
-	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
-};
-
 enum ArrayOrder
 {
 	C_ORDER, // SLOW FIRST
@@ -66,75 +61,29 @@ static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
 
 static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
 
-typedef enum
-{
-	ADD = 1, SUBTRACT = 2, MULTIPLY = 3, DIVIDE = 4, NEGATE = 5, RECIPROCAL,
-
-	MODULUS, BITWISEXOR, BITWISEAND, BITWISEOR,
-
-	// Tensor product
-	TENSOR_PRODUCT, // outer product
-	TENSOR_CONTRACTION,
-
-	WEDGE = 20,
-	HODGESTAR,
-	EXTRIORDERIVATIVE,
-	CODIFFERENTIAL,
-	INTERIOR_PRODUCT,
-
-	DOT,
-	CROSS,
-//
-//
-//	GRAD,
-//	DIVERGE,
-//	CURL,
-//	CURLPDX,
-//	CURLPDY,
-//	CURLPDZ,
-
-	MAPTO,
-
-	EQUAL,
-	LESS,
-	GREATER,
-
-	REAL,
-	IMAGINE,
-
-	NULL_OP
-
-} OpType;
-
-typedef enum
-{
-	SIN = NULL_OP + 1, COS, TAN, CTAN, EXP, LOG10, LOG2, LN, ABS
-
-} MathFunType;
-
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
 
-typedef nTuple<THREE, Real> Vec3;
+typedef nTuple<3, Real> Vec3;
 
-typedef nTuple<THREE, nTuple<THREE, Real> > Tensor3;
+typedef nTuple<3, nTuple<3, Real> > Tensor3;
 
-typedef nTuple<FOUR, nTuple<FOUR, Real> > Tensor4;
+typedef nTuple<4, nTuple<4, Real> > Tensor4;
 
-typedef nTuple<THREE, Integral> IVec3;
+typedef nTuple<3, Integral> IVec3;
 
-typedef nTuple<THREE, Real> RVec3;
+typedef nTuple<3, Real> RVec3;
 
-typedef nTuple<THREE, Complex> CVec3;
+typedef nTuple<3, Complex> CVec3;
 
-typedef nTuple<THREE, nTuple<THREE, Real> > RTensor3;
+typedef nTuple<3, nTuple<3, Real> > RTensor3;
 
-typedef nTuple<THREE, nTuple<THREE, Complex> > CTensor3;
+typedef nTuple<3, nTuple<3, Complex> > CTensor3;
 
-typedef nTuple<FOUR, nTuple<FOUR, Real> > RTensor4;
+typedef nTuple<4, nTuple<4, Real> > RTensor4;
 
-typedef nTuple<FOUR, nTuple<FOUR, Complex> > CTensor4;
+typedef nTuple<4, nTuple<4, Complex> > CTensor4;
 
 template<typename TOP, typename TL, typename TR> struct BiOp;
 
@@ -223,11 +172,11 @@ DECL_RET_TYPE ((std::abs(m)))
 ////ENABLE_IF_DECL_RET_TYPE(!is_indexable<TL>::value ,l)
 //
 //	template<typename TOP, typename TL, typename TR, typename TI>
-//	auto eval(TOP op, TL const & l, TR const &r, TI s)
+//	auto calculus(TOP op, TL const & l, TR const &r, TI s)
 //	DECL_RET_TYPE(op(get_index(l,s),get_index(r,s)))
 //
 //	template<typename TOP, typename TL, typename TI>
-//	auto eval(TOP, TL const & l, TI s)
+//	auto calculus(TOP, TL const & l, TI s)
 //	DECL_RET_TYPE(op(get_index(l,s) ))
 //
 //}  // namespace ops
