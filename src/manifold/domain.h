@@ -90,10 +90,23 @@ public:
 	bool is_same(this_type const&);
 
 	this_type const & parent() const; // Parent domain
-	std::tuple<coordinates_type, coordinates_type> boundbox() const; // boundbox on _this_ coordinates system
-	std::tuple<nTuple<3, Real>, nTuple<3, Real>> cartesian_boundbox() const; // boundbox on   _Cartesian_ coordinates system
-	size_t hash(index_type) const; // get relative  postion of  grid point s in the memory
-	size_t max_hash() const; // get max number of grid points in memory
+
+	std::tuple<coordinates_type, coordinates_type> boundbox() const // boundbox on _this_ coordinates system
+	{
+		return manifold_.geometry_type::boundbox<iform>(range_);
+	}
+	std::tuple<nTuple<3, Real>, nTuple<3, Real>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
+	{
+		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
+	}
+	size_t hash(index_type s) const // get relative  position of grid point  in the memory
+	{
+		return manifold_.topology_type::hash<iform>(range_, s);
+	}
+	size_t max_hash() const	 // get max number of grid points in memory
+	{
+		return manifold_.topology_type::max_hash();
+	}
 
 	void for_each(std::function<void(index_type)>)
 	{
@@ -116,21 +129,8 @@ public:
 							std::forward<Args> (args)...)
 			));
 
-private:
-	std::function<size_t(index_type)> hash_;
-
 }
 ;
-template<typename TG, unsigned int IFORM>
-size_t Domain<TG, IFORM>::hash(index_type s) const
-{
-	return hash_(s);
-}
-template<typename TG, unsigned int IFORM>
-size_t Domain<TG, IFORM>::max_hash() const
-{
-	return manifold_.topology_type::max_hash(range_);
-}
 
 template<typename TG, unsigned int IL, unsigned int IR>
 Domain<TG, IL> operator &(Domain<TG, IL> const & l, Domain<TG, IL> const & r)
