@@ -44,15 +44,13 @@ private:
 public:
 
 	Domain(manifold_type const & g) :
-			manifold_(g), parent_(*this), range_(g.select(iform)), hash_(
-					g.make_hash(range_))
+			manifold_(g), parent_(*this), range_(g.select(iform))
 	{
 		;
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			manifold_(rhs.manifold_), parent_(rhs.parent_), range_(rhs.range_), hash_(
-					rhs.hash_)
+			manifold_(rhs.manifold_), parent_(rhs.parent_), range_(rhs.range_)
 	{
 	}
 	Domain(this_type& d, split_tag); // Split d into two sub-domains.
@@ -101,11 +99,11 @@ public:
 	}
 	size_t hash(index_type s) const // get relative  position of grid point  in the memory
 	{
-		return manifold_.topology_type::hash<iform>(range_, s);
+		return 0; // manifold_.topology_type::hash<iform>(range_, s);
 	}
 	size_t max_hash() const	 // get max number of grid points in memory
 	{
-		return manifold_.topology_type::max_hash();
+		return 0;	 //manifold_.topology_type::max_hash();
 	}
 
 	void for_each(std::function<void(index_type)>)
@@ -114,18 +112,16 @@ public:
 
 	template<typename ...Args>
 	auto gather(Args &&... args) const DECL_RET_TYPE ((this->manifold_.gather(
-							std::integral_constant<unsigned int, iform>(),
 							std::forward<Args> (args)...)
 			));
 
 	template<typename ...Args>
 	auto scatter(Args &&... args) const DECL_RET_TYPE ((this->manifold_.scatter(
-							std::integral_constant<unsigned int, iform>(),
 							std::forward<Args> (args)...)
 			));
 
-	template<typename TOP,typename ...Args>
-	auto calculus(Args &&... args) const DECL_RET_TYPE ((this->manifold_.template calculus<TOP>(
+	template< typename ...Args>
+	auto calculate(Args &&... args) const DECL_RET_TYPE ((this->manifold_.calculate(
 							std::forward<Args> (args)...)
 			));
 

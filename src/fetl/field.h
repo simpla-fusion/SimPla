@@ -157,13 +157,13 @@ public:
 	template<typename ... Args>
 	inline void scatter(Args && ... args)
 	{
-		domain_.scatter(*data_, std::forward<Args>(args)...);
+		domain_.scatter(*this, std::forward<Args>(args)...);
 	}
 	inline auto gather(coordinates_type const &x) const
-	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+	DECL_RET_TYPE( (this->domain_.gather( *this, x)))
 
 	inline auto operator()(coordinates_type const &x) const
-	DECL_RET_TYPE( (this->domain_.gather( *data_, x)))
+	DECL_RET_TYPE( (this->domain_.gather( *this, x)))
 	/// @}
 
 	/// @defgroup Assignment

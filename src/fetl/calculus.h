@@ -172,8 +172,19 @@ public:
 
 	domain_type domain_;
 
+	TOP op_;
+
 	Field(TL const & l, TR const & r) :
-			domain_(_impl::get_domain(l) & _impl::get_domain(r)), l_(l), r_(r)
+			domain_(_impl::get_domain(l) & _impl::get_domain(r)), l_(l), r_(r), op_()
+	{
+	}
+
+	Field(TOP op, TL const & l, TR const & r) :
+			domain_(_impl::get_domain(l) & _impl::get_domain(r)), l_(l), r_(r), op_(
+					op)
+	{
+	}
+	~Field()
 	{
 	}
 
@@ -183,7 +194,7 @@ public:
 	}
 
 	inline auto operator[](index_type const & s) const
-	DECL_RET_TYPE( (domain_.template calculus<TOP>( l_,r_,s)))
+	DECL_RET_TYPE( (domain_. calculate(op_, l_,r_,s)))
 
 }
 ;
@@ -205,19 +216,22 @@ public:
 	typedef Field<domain_type, UniOp<TOP, TL> > this_type;
 
 	domain_type domain_;
-
+	TOP op_;
 	Field(TL const & l) :
-			l_(l), domain_(_impl::get_domain(l))
+			l_(l), domain_(_impl::get_domain(l)), op_()
 	{
 	}
-
+	Field(TOP op, TL const & l) :
+			domain_(_impl::get_domain(l)), l_(l), op_(op)
+	{
+	}
 	domain_type const &domain() const
 	{
 		return domain_;
 	}
 
 	inline auto operator[](index_type const &s) const
-	DECL_RET_TYPE( (domain_.template calculus<TOP>( l_, s)))
+	DECL_RET_TYPE( (domain_.calculate(op_, l_, s)))
 
 };
 
@@ -531,8 +545,8 @@ inline Field<TD, BiOp<multiplies<>, Real, Field<TD, TR> >> operator*(Real lhs,
 }
 
 template<typename TD, typename TR>
-inline Field<TD, BiOp<multiplies<>, Complex, Field<TD, TR> >> operator*(Complex lhs,
-		Field<TD, TR> const & rhs)
+inline Field<TD, BiOp<multiplies<>, Complex, Field<TD, TR> >> operator*(
+		Complex lhs, Field<TD, TR> const & rhs)
 {
 	return std::move(Field<TD, BiOp<multiplies<>, Complex, Field<TD, TR>>>(lhs,rhs));
 }

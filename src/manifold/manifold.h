@@ -25,23 +25,37 @@ enum GeometryFormTypeID
 };
 
 template<typename TG, //
-		template<typename > class DiffSchemePolicy = FiniteDiffMethod, //
-		template<typename > class InterpoloatorPolicy = InterpolatorLinear>
-class Manifold: public TG
+		template<typename > class Policy1 = FiniteDiffMethod, //
+		template<typename > class Policy2 = InterpolatorLinear>
+class Manifold: public TG, public Policy1<TG>, public Policy2<TG>
 {
 public:
-	Manifold() = default;
-	~Manifold() = default;
 
-	typedef Manifold<TG, DiffSchemePolicy, InterpoloatorPolicy> this_type;
+	typedef Manifold<TG, Policy1, Policy2> this_type;
 	typedef TG geometry_type;
-
+	typedef Policy1<geometry_type> policy1;
+	typedef Policy2<geometry_type> policy2;
 	typedef typename geometry_type::topology_type topology_type;
-	typedef DiffSchemePolicy<this_type> diff_policy;
-	typedef InterpoloatorPolicy<this_type> interpoloator_policy;
-
 	typedef typename geometry_type::coordinates_type coordiantes_type;
 	typedef typename geometry_type::index_type index_type;
+
+	template<typename ...Args>
+	Manifold(Args && ... args) :
+			geometry_type(std::forward<Args>(args)...), //
+			policy1(dynamic_cast<geometry_type const &>(*this)), //
+			policy2(dynamic_cast<geometry_type const &>(*this))
+	{
+	}
+
+	~Manifold() = default;
+
+	Manifold(this_type const & r) :
+			geometry_type(dynamic_cast<geometry_type const &>(r)), //
+			policy1(dynamic_cast<policy1 const &>(r)), //
+			policy2(dynamic_cast<policy2 const &>(r))
+	{
+	}
+	this_type & operator=(this_type const &) = delete;
 
 	template<unsigned int IFORM = VERTEX>
 	Domain<this_type, IFORM> domain() const
@@ -55,26 +69,6 @@ public:
 	{
 		return std::move(TF(domain<TF::iform>()));
 	}
-
-	template<typename TOP, typename ...Args>
-	auto calculus(Args && ...args) const
-	DECL_RET_TYPE((
-					diff_policy::calculus(TOP(),*this,
-							std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto gather(Args &&... args) const
-	DECL_RET_TYPE((
-					interpoloator_policy::gather_(*this,
-							std::forward<Args>(args)...)
-			))
-
-	template<typename ...Args>
-	auto scatter(Args &&... args) const
-	DECL_RET_TYPE((
-					interpoloator_policy::gather_(*this,
-							std::forward<Args>(args)...)
-			))
 
 };
 
