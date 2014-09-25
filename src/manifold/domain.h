@@ -11,6 +11,7 @@
 namespace simpla
 {
 class split_tag;
+template<typename ...> class Field;
 
 template<typename TG, unsigned int IFORM>
 class Domain
@@ -58,6 +59,11 @@ public:
 	~Domain() = default; // Destructor.
 
 	void swap(this_type& rhs);
+
+	manifold_type const & manifold() const
+	{
+		return manifold_;
+	}
 
 	bool empty() const; // True if domain is empty.
 
@@ -124,6 +130,44 @@ public:
 	auto calculate(Args &&... args) const DECL_RET_TYPE ((this->manifold_.calculate(
 							std::forward<Args> (args)...)
 			));
+
+private:
+	HAS_MEMBER_FUNCTION (domain);
+
+	template<typename TF> static Identity get_domain(TF const & f)
+	{
+		return Identity();
+	}
+
+	static Zero get_domain(Zero)
+	{
+		return Zero();
+	}
+
+	template<typename M,unsigned int I , typename TL>
+	static auto get_domain(Field<Domain<M, I>, TL> const & f) DECL_RET_TYPE((f.domain()))
+
+	template<typename TOP, typename TL>
+	static auto get_domain(Field<TOP, TL > const & expr) DECL_RET_TYPE ((get_domain(expr.lhs) ))
+
+	template<typename TOP, typename TL, typename TR>
+	static auto get_domain(Field<TOP, TL, TR> const & expr)
+	DECL_RET_TYPE ((get_domain(expr.lhs)&get_domain(expr.rhs)))
+
+public:
+	template<typename TL, typename TR>
+	void assign(TL & lhs, TR const & rhs) const
+	{
+		parallel_for(get_domain(lhs) & get_domain(rhs),
+
+				[& ](this_type const &r)
+				{
+					for(auto const & s:r)
+					{
+						lhs[s]= manifold_.get_value( rhs,s );
+					}
+				});
+	}
 
 }
 ;

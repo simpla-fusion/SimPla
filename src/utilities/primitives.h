@@ -53,7 +53,7 @@ typedef long Integral;
 
 typedef std::complex<Real> Complex;
 
-template<unsigned int N, typename T> struct nTuple;
+template<unsigned int N, typename ...> struct nTuple;
 
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
@@ -85,10 +85,6 @@ typedef nTuple<4, nTuple<4, Real> > RTensor4;
 
 typedef nTuple<4, nTuple<4, Complex> > CTensor4;
 
-template<typename TOP, typename TL, typename TR> struct BiOp;
-
-template<typename TOP, typename TL> struct UniOp;
-
 template<typename > struct has_PlaceHolder
 {
 	static constexpr bool value = false;
@@ -102,19 +98,6 @@ template<typename > struct is_real
 template<> struct is_real<Real>
 {
 	static constexpr bool value = true;
-};
-
-template<typename TOP, typename TL, typename TR> struct is_real<
-		BiOp<TOP, TL, TR> >
-{
-	static constexpr bool value = is_real<TL>::value && is_real<TR>::value;
-};
-
-template<typename TOP, typename TL, typename TR> struct is_complex<
-		BiOp<TOP, TL, TR> >
-{
-	static constexpr bool value = is_complex<TL>::value
-			|| is_complex<TR>::value;
 };
 
 template<typename TL>

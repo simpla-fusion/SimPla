@@ -14,7 +14,6 @@
 #include <valarray>
 
 #include "../utilities/ntuple.h"
-#include "../utilities/ntuple_noet.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"
 
@@ -70,7 +69,8 @@ bool PointInRectangle(nTuple<DIM, TR> const &x, TRange const & range)
 }
 
 template<typename TI>
-bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin, TI & r_end)
+bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin,
+		TI & r_end)
 {
 	bool has_overlap = false;
 
@@ -94,8 +94,8 @@ bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin, TI 
 	return has_overlap;
 }
 template<typename TS, unsigned int NDIMS>
-bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, TS> *pr_begin,
-        nTuple<NDIMS, TS> *pr_end)
+bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end,
+		nTuple<NDIMS, TS> *pr_begin, nTuple<NDIMS, TS> *pr_end)
 {
 	bool has_overlap = false;
 
@@ -121,8 +121,8 @@ bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end, nTuple<NDIMS, 
 
 	return has_overlap;
 }
-template<typename TL, typename TR>
-auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0])
+template<typename TR, typename ... T>
+auto _DOT3(nTuple<3, T...> const & l, TR const & r)->decltype(l[0]*r[0])
 {
 	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
 }
@@ -133,10 +133,11 @@ auto _DOT3(nTuple<3, TL> const & l, nTuple<3, TR> const & r)->decltype(l[0]*r[0]
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
 //	return std::move(u);
 //}
-inline Real Distance(nTuple<3, nTuple<3, Real>> const & p, nTuple<3, Real> const &x)
+inline Real Distance(nTuple<3, nTuple<3, Real>> const & p,
+		nTuple<3, Real> const &x)
 {
 	nTuple<3, Real> v;
-	v = Cross(p[1] - p[0], p[2] - p[0]);
+	v = cross(p[1] - p[0], p[2] - p[0]);
 	return _DOT3(x - p[0], v) / std::sqrt(_DOT3(v, v));
 }
 
@@ -159,7 +160,7 @@ inline void Reflect(TPlane const & p, nTuple<3, Real>*x, nTuple<3, Real> * v)
 {
 	nTuple<3, Real> u;
 
-	u = Cross(p[1] - p[0], p[2] - p[0]);
+	u = cross(p[1] - p[0], p[2] - p[0]);
 
 	Real a = _DOT3(u, *x - p[0]);
 

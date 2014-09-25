@@ -17,22 +17,23 @@
 #include "../parallel/parallel.h"
 namespace simpla
 {
-
+template<typename ...> struct Field;
+template<typename, unsigned int> struct Domain;
 /**
  * \ingroup FETL
  * @class Field
  * \brief Field object
  *
  */
-template<typename TDomain, typename StoragePolicy>
-struct Field
+template<typename TM, unsigned int IFORM, typename TV>
+struct Field<Domain<TM, IFORM>, TV>
 {
 
 public:
 
-	typedef TDomain domain_type;
+	typedef Domain<TM, IFORM> domain_type;
 
-	typedef StoragePolicy storage_type;
+	typedef TV storage_type;
 
 	typedef typename storage_type::value_type value_type;
 
@@ -46,6 +47,7 @@ public:
 
 private:
 	domain_type domain_;
+
 	std::shared_ptr<storage_type> data_;
 public:
 
@@ -182,43 +184,10 @@ public:
 	}
 
 	template<typename TR>
-	this_type & operator=(TR const & rhs)  //< copy and swap assignment operator
+	this_type & operator=(TR const & rhs)
 	{
 		assign(rhs);
 		return *this;
-	}
-
-	this_type & operator=(this_type const &rhs) = delete;
-
-	this_type & operator=(this_type &&rhs) = delete;
-
-	template<typename TR, typename TFun>
-	void self_assign(TR const & rhs, TFun const & fun)
-	{
-		if (empty())
-			allocate();
-
-//		parallel_for(domain_,
-//
-//		[this,&rhs,&fun](domain_type const &r)
-//		{
-////			for(auto const & s:r)
-////			{
-////				(*this)[s] =fun((*this)[s], r.get_value( rhs, s));
-////			}
-//		}
-//
-//		);
-//
-////		parallel_for_each(range_,
-////
-////				[this,&rhs](compact_index_type s)
-////				{
-////					get_value(*this, s) = get_value( rhs, s);
-////				}
-////
-////		);
-
 	}
 
 	template<typename TR>
@@ -226,53 +195,7 @@ public:
 	{
 		allocate();
 
-//		parallel_for(domain_,
-//
-//		[this,&rhs ](domain_type const &r)
-//		{
-////			for(auto const & s:r)
-////			{
-////				(*this)[s] = get_value( rhs,r.hash( s));
-////			}
-//			}
-//
-//			);
-//
-////		parallel_for_each(range_,
-////
-////				[this,&rhs](compact_index_type s)
-////				{
-////					get_value(*this, s) = get_value( rhs, s);
-////				}
-////
-////		);
-
-	}
-	template<typename TR>
-	void assign(Field<domain_type, TR> const & rhs)
-	{
-		allocate();
-
-//		parallel_for(domain_ & rhs.domain(),
-//
-//		[this,&rhs ](domain_type const &r)
-//		{
-////			for(auto const & s:r)
-////			{
-////				(*this)[s] = rhs[s];
-////			}
-//			}
-//
-//			);
-//
-////		parallel_for_each(range_,
-////
-////				[this,&rhs](compact_index_type s)
-////				{
-////					get_value(*this, s) = get_value( rhs, s);
-////				}
-////
-////		);
+		domain_.assign(*this, rhs);
 
 	}
 
@@ -301,6 +224,12 @@ public:
 		return (*this);
 	}
 
+//	template<typename TR> inline bool operator ==(TR const & rhs)
+//	{
+//		return (reduce(Field<_impl::equal_to, this_type, TR>(*this, rhs),
+//				_impl::logical_and(), true));
+//	}
+
 	/// @}
 
 };
@@ -312,15 +241,9 @@ void swap(Field<TDomain, TV> &l, Field<TDomain, TV> &r)
 	swap(l.data_, r.data_);
 }
 
-template<typename TD, typename TExpr>
-auto get_value(Field<TD, TExpr> const & f,
-		typename Field<TD, TExpr>::coordinates_type const & x)
-		DECL_RET_TYPE ((f(x)))
-
-template<typename TD, typename TExpr>
-auto get_value(Field<TD, TExpr> const & f,
-		typename Field<TD, TExpr>::index_type const & s)
-		DECL_RET_TYPE ((f[s]))
+template<typename TD, typename TExpr, typename TI>
+auto get_value(Field<TD, TExpr> const & f, TI const & s)
+DECL_RET_TYPE ((f[s]))
 
 }
 // namespace simpla

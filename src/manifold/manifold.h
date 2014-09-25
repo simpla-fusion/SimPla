@@ -11,13 +11,14 @@
 #include <utility>
 #include <vector>
 #include "../utilities/sp_type_traits.h"
+#include <valarray>
 namespace simpla
 {
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 template<typename, unsigned int> class Domain;
-template<typename, typename > class Field;
+template<typename ... > class Field;
 
 enum GeometryFormTypeID
 {
@@ -69,6 +70,22 @@ public:
 	{
 		return std::move(TF(domain<TF::iform>()));
 	}
+	template<typename T>
+	auto get_value(T const & expr, index_type const & s) const
+	DECL_RET_TYPE((simpla::get_value(expr,s)))
+
+	template<typename M, unsigned int I, typename TL>
+	auto get_value(Field<Domain<M, I>, TL> const & expr,
+			index_type const & s) const
+			DECL_RET_TYPE((expr[s]))
+
+	template<typename TOP, typename TL>
+	auto get_value(Field<TOP, TL> const & expr, index_type const & s) const
+	DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
+
+	template<typename TOP, typename TL, typename TR>
+	auto get_value(Field<TOP, TL, TR> const & expr, index_type const & s) const
+	DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
 
 };
 

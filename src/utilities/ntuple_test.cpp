@@ -8,13 +8,13 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "ntuple.h"
-#include "ntuple_noet.h"
+#include "ntuple_et.h"
 #include "log.h"
 #include "pretty_stream.h"
 
 using namespace simpla;
 
-#define EQUATION(_A,_B,_C)  ( -TestFixture::_A  *TestFixture::a     -   TestFixture::_B /TestFixture::b   - TestFixture::_C)
+#define EQUATION(_A,_B,_C)  ( -(TestFixture::_A  +TestFixture::a )/(   TestFixture::_B *TestFixture::b -TestFixture::c  )- TestFixture::_C)
 
 template<typename T>
 class TestNtuple: public testing::Test
@@ -37,11 +37,14 @@ protected:
 			aA[i] = i * 2;
 			aB[i] = 5 - i;
 			aC[i] = i * 5 + 1;
-			aD[i] = (aA[i] + a) / (aB[i] * b + c) - aC[i];
+			aD[i] = 0;
 			vA[i] = aA[i];
 			vB[i] = aB[i];
 			vC[i] = aC[i];
 			vD[i] = 0;
+
+			res[i] = -(aA[i] + a) / (aB[i] * b - c) - aC[i];
+
 		}
 
 		m = 1000000L;
@@ -50,17 +53,21 @@ protected:
 public:
 	static constexpr unsigned int DIMENSION = T::DIMENSION;
 	typedef typename T::value_type value_type;
-	value_type m;
+
+	size_t m = 10000000L;
 
 	T vA, vB, vC, vD;
-	value_type aA[DIMENSION], aB[DIMENSION], aC[DIMENSION], aD[DIMENSION];
+	value_type aA[DIMENSION], aB[DIMENSION], aC[DIMENSION], aD[DIMENSION],
+			res[DIMENSION];
 	value_type a, b, c, d;
 
 };
 
 typedef testing::Types<
 
-nTuple<3, double>, nTuple<10, double>, nTuple<20, double>
+nTuple<3, double>
+
+, nTuple<10, double>, nTuple<20, double>
 
 , nTuple<10, std::complex<double> >
 
@@ -122,7 +129,7 @@ TYPED_TEST(TestNtuple, Dot){
 	{
 		res += TestFixture::vA[i] * TestFixture::vB[i];
 	}
-	EXPECT_DOUBLE_EQ(abs(res),abs( Dot( TestFixture::vA, TestFixture::vB)));
+	EXPECT_DOUBLE_EQ(abs(res),abs( dot( TestFixture::vA, TestFixture::vB)));
 }}
 
 TYPED_TEST(TestNtuple, Cross){
@@ -141,15 +148,14 @@ TYPED_TEST(TestNtuple, Cross){
 		- vA[(i + 2) % 3] * vB[(i + 1) % 3];
 	}
 
-	vC=Cross(vA,vB);
+	vC=cross(vA,vB);
 
 	EXPECT_EQ(vD ,vC);
 }}
-
+//
 TYPED_TEST(TestNtuple, performance_rawarray){
 {
-
-	for (size_t s = 0; s < 10000000L; ++s)
+	for (size_t s = 0; s < TestFixture::m; ++s)
 	{
 		for(int i=0;i<TestFixture::DIMENSION;++i)
 		{	TestFixture::aD[i] +=EQUATION(aA[i] ,aB[i] ,aC[i])*s;};
@@ -165,14 +171,14 @@ TYPED_TEST(TestNtuple, performance_rawarray){
 TYPED_TEST(TestNtuple, performance_nTuple){
 {
 
-	for (size_t s = 0; s < 10000000L; ++s)
+	for (size_t s = 0; s < TestFixture::m; ++s)
 	{
 		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
 	}
 
 //	for (int i = 0; i < TestFixture::DIMENSION; ++i)
 //	{
-//		EXPECT_DOUBLE_EQ(abs(TestFixture::aD[i]) ,abs(TestFixture::vD[i]/TestFixture::m));
+//		EXPECT_DOUBLE_EQ(abs(EQUATION(vA[i] ,vB[i] ,vC[i])) ,abs(TestFixture::vD[i]/TestFixture::m));
 //	}
 }
 }
@@ -210,15 +216,16 @@ protected:
 	}
 
 public:
-	static constexpr  unsigned int  DIMENSION = T::DIMENSION;
-	static constexpr  unsigned int  MDIMS = T::value_type::DIMENSION;
+	static constexpr unsigned int DIMENSION = T::DIMENSION;
+	static constexpr unsigned int MDIMS = T::value_type::DIMENSION;
 
 	typedef typename T::value_type::value_type value_type;
 
 	value_type m;
 
 	T vA, vB, vC, vD;
-	value_type aA[DIMENSION][MDIMS], aB[DIMENSION][MDIMS], aC[DIMENSION][MDIMS], aD[DIMENSION][MDIMS];
+	value_type aA[DIMENSION][MDIMS], aB[DIMENSION][MDIMS], aC[DIMENSION][MDIMS],
+			aD[DIMENSION][MDIMS];
 	value_type a, b, c, d;
 
 };
@@ -233,7 +240,7 @@ nTuple<3, nTuple<3, int>>,
 
 nTuple<10, nTuple<5, double>>,
 
-nTuple<20, nTuple<20, double>>
+nTuple<10, nTuple<10, double>>
 
 > MatrixTypes;
 

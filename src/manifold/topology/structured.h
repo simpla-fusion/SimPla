@@ -15,8 +15,9 @@
 #include <limits>
 #include <thread>
 #include <iterator>
+#include <utility>
+#include <tuple>
 #include "../../utilities/ntuple.h"
-#include "../../utilities/ntuple_noet.h"
 #include "../../utilities/primitives.h"
 #include "../../utilities/sp_type_traits.h"
 #include "../../utilities/pretty_stream.h"
@@ -199,7 +200,8 @@ public:
 
 	bool check_local_memory_bounds(index_type s) const
 	{
-		auto idx = decompact(s) >> MAX_DEPTH_OF_TREE;
+		unsigned mtree = MAX_DEPTH_OF_TREE;
+		auto idx = decompact(s) >> mtree;
 		return
 
 		idx[0] >= local_outer_begin_[0]
@@ -437,7 +439,7 @@ public:
 
 	bool in_range(index_type s) const
 	{
-		auto idx = decompact(s) >> MAX_DEPTH_OF_TREE;
+		nTuple<NDIMS, size_type> idx = decompact(s) >> MAX_DEPTH_OF_TREE;
 
 		return true
 				||
@@ -520,12 +522,15 @@ public:
 	static index_type compact_cell_index(nTuple<NDIMS, size_type> const & idx,
 			index_type shift)
 	{
-		return compact(idx << MAX_DEPTH_OF_TREE) | shift;
+		unsigned int mtree = MAX_DEPTH_OF_TREE;
+		return compact(idx << mtree) | shift;
 	}
 
 	static nTuple<NDIMS, size_type> decompact_cell_index(index_type s)
 	{
-		return std::move(decompact(s) >> (MAX_DEPTH_OF_TREE));
+		unsigned int mtree = MAX_DEPTH_OF_TREE;
+
+		return std::move(decompact(s) >> (mtree));
 	}
 
 	//mask of direction
@@ -541,8 +546,8 @@ public:
 //
 //		;
 //	}
-	template<typename TS>
-	static index_type compact(nTuple<NDIMS, TS> const & x)
+	template<typename ... TS>
+	static index_type compact(nTuple<NDIMS, TS...> const & x)
 	{
 		return
 
@@ -797,7 +802,7 @@ public:
 	{
 		idx = idx >> MAX_DEPTH_OF_TREE;
 
-		return std::move(idx);
+		return std::move(nTuple<NDIMS, size_type>(idx));
 	}
 
 	inline coordinates_type get_coordinates(index_type s) const
@@ -1432,7 +1437,7 @@ private:
 			nTuple<NDIMS, size_type> const & ie, nTuple<NDIMS, size_type> b,
 			nTuple<NDIMS, size_type> e) const
 	{
-		auto flag = Clipping(ib, ie, &b, &e);
+		bool flag = Clipping(ib, ie, &b, &e);
 
 		if (!flag)
 		{
@@ -1556,7 +1561,8 @@ public:
 		res =
 				[=](index_type s)->size_t
 				{
-					nTuple<NDIMS,size_type> d =( decompact(s)>>MAX_DEPTH_OF_TREE)-local_outer_begin_;
+					unsigned int m_tree=MAX_DEPTH_OF_TREE;
+					nTuple<NDIMS,size_type> d =( decompact(s)>>m_tree)-local_outer_begin_;
 
 					size_type res =
 
@@ -2217,11 +2223,11 @@ inline StructuredMesh::range_type split(
 	static constexpr unsigned int NDIMS = StructuredMesh::NDIMS;
 
 	auto b = begin(range).self_;
-	auto e = (--end(range)).self_ + 1;
+	decltype(b) e = (--end(range)).self_ + 1;
 
 	auto shift = begin(range).shift_;
 
-	auto count = e - b;
+	decltype(b) count = e - b;
 
 	int n = 0;
 	index_type L = 0;

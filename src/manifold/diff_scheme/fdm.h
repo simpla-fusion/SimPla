@@ -19,7 +19,7 @@
 namespace simpla
 {
 
-template<typename, typename > class Field;
+template<typename ... > class Field;
 template<typename, unsigned int> class Domain;
 
 class HodgeStar;

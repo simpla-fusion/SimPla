@@ -309,6 +309,10 @@ T & get_value(T* v, TI const & s)
 	return v[s];
 }
 
+//template<typename T, typename ...Args>
+//auto get_value(T const & f, Args && ... args)
+//DECL_RET_TYPE ((f(std::forward<Args>(args)...)))
+
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned int N>
 struct CountBits

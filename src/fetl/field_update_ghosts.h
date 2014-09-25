@@ -12,8 +12,9 @@
 #include "../parallel/distributed_array.h"
 namespace simpla
 {
+template<typename, unsigned int> class Domain;
+template<typename ...> class Field;
 
-template<typename TG, typename TV> class Field;
 template<typename TM, unsigned int IFORM, typename TC, typename ...Others>
 void update_ghosts(Field<Domain<TM, IFORM>, TC>* field, Others &&...others)
 {
