@@ -403,46 +403,6 @@ template<typename T> void decompact(T const &v, T * u)
 	*u = v;
 }
 
-#if __cplusplus > 201103L
-template<typename T, T ...N> using integer_sequence=std::integer_sequence<T,N...>;
-#else
-template<typename _Tp, _Tp ... _Idx>
-struct integer_sequence
-
-{
-	typedef _Tp value_type;
-
-	static constexpr size_t size()
-	{
-		return (sizeof...(_Idx));
-			}
-
-		};
-
-#endif
-		template<typename ...> class cat_integer_sequence;
-
-template<typename T, T ... N1, T ... N2>
-struct cat_integer_sequence<integer_sequence<T, N1...>,
-		integer_sequence<T, N2...>>
-{
-	typedef integer_sequence<T, N1..., N2...> type;
-};
-
-template<unsigned int N, typename ...> struct seq_get_value;
-
-template<unsigned int N, typename Tp, Tp M, Tp ...I>
-struct seq_get_value<N, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value =
-			seq_get_value<N - 1, integer_sequence<Tp, I ...> >::value;
-};
-
-template<typename Tp, Tp M, Tp ...I>
-struct seq_get_value<0, integer_sequence<Tp, M, I ...> >
-{
-	static constexpr Tp value = M;
-};
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

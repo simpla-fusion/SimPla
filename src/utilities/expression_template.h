@@ -111,6 +111,24 @@ struct binary_right
 	}
 };
 
+struct _swap
+{
+	template<typename TL, typename TR>
+	void operator()(TL & l, TR & r) const
+	{
+		std::swap(l, r);
+	}
+};
+
+struct _assign
+{
+	template<typename TL, typename TR>
+	void operator()(TL & l, TR const& r) const
+	{
+		l = r;
+	}
+};
+
 #define DEF_BOP(_NAME_,_OP_)                                                               \
 struct _NAME_                                                                             \
 {                                                                                              \
