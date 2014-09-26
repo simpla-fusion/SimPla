@@ -12,8 +12,6 @@
 namespace simpla
 {
 
-template<unsigned int N, typename T> struct nTuple;
-
 template<typename ... TOthers>
 class Properties<pugi::xml_node, TOthers...> : public Properties<TOthers...>
 {

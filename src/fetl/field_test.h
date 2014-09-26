@@ -94,7 +94,7 @@ TYPED_TEST_P(TestField,create){
 
 	value_type v;
 
-	std::memset(&v,0,sizeof(value_type));
+//	std::memset(&v,0,sizeof(value_type));
 
 	field_type f(mesh,v );
 

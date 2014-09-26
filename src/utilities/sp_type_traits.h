@@ -202,9 +202,62 @@ public:                                                                         
 ;
 
 #define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return std::move(_EXPR_);}
+#define DECL_RET_TYPE2(_EXPR_) ->decltype((_EXPR_)){return  (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
+
+namespace _impl
+{
+
+HAS_OPERATOR(sub_script, []);
+HAS_MEMBER_FUNCTION(at);
+
+}  // namespace _impl
+
+template<class T, typename TI = int>
+class is_indexable
+{
+public:
+	static const bool value = _impl::has_operator_sub_script<T, TI>::value; // has_operator_index<T, TI>::value;
+};
+template<class T>
+class is_indexable<T*, size_t>
+{
+public:
+	static const bool value = true;
+};
+template<class T>
+class is_indexable<T*, int>
+{
+public:
+	static const bool value = true;
+};
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE(
+		((!is_indexable<T,TI>::value) &&
+				_impl::has_member_function_at<T,TI>::value), v.at(s))
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value
+						|| _impl::has_member_function_at<T,TI>::value)),(v))
+
+template<typename T, typename TI>
+auto get_value(std::shared_ptr<T> & v, TI const & s)
+DECL_RET_TYPE(get_value(*v ,s))
+
+template<typename T, typename TI>
+T & get_value(T* v, TI const & s)
+{
+	return v[s];
+}
 
 //template<typename T>
 //struct remove_const_reference
@@ -234,80 +287,6 @@ public:                                                                         
 //	typedef typename remove_const_reference<T>::type TL;
 //	typedef typename std::conditional<is_storage_type<TL>::value, TL const &, const TL>::type type;
 //};
-
-template<typename T>
-struct can_not_reference
-{
-	static constexpr bool value = false;
-};
-
-template<typename T>
-struct StorageTraits
-{
-	static constexpr bool not_refercne = std::is_pointer<T>::value
-
-	|| std::is_reference<T>::value
-
-	|| std::is_scalar<T>::value
-
-	|| can_not_reference<T>::value;
-
-	typedef typename std::conditional<not_refercne, T, T&>::type type;
-
-	typedef typename std::conditional<not_refercne, T, const T&>::type const_reference;
-
-	typedef typename std::conditional<not_refercne, T, T&>::type reference;
-
-};
-
-HAS_OPERATOR(sub_script, []);
-HAS_MEMBER_FUNCTION(at);
-template<class T, typename TI = int>
-class is_indexable
-{
-public:
-	static const bool value = has_operator_sub_script<T, TI>::value; // has_operator_index<T, TI>::value;
-};
-template<class T>
-class is_indexable<T*, size_t>
-{
-public:
-	static const bool value = true;
-};
-template<class T>
-class is_indexable<T*, int>
-{
-public:
-	static const bool value = true;
-};
-
-template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
-;
-
-template<typename T, typename TI>
-auto get_value(T & v,
-		TI const & s)
-				ENABLE_IF_DECL_RET_TYPE(((!is_indexable<T,TI>::value) && has_member_function_at<T,TI>::value), v.at(s))
-;
-
-template<typename T, typename TI>
-auto get_value(T & v,
-		TI const & s)
-				ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value || has_member_function_at<T,TI>::value)),(v))
-;
-
-template<typename T, typename TI>
-auto get_value(std::shared_ptr<T> v, TI const & s)
-DECL_RET_TYPE(get_value(*v ,s))
-;
-
-template<typename T, typename TI>
-T & get_value(T* v, TI const & s)
-{
-	return v[s];
-}
 
 //template<typename T, typename ...Args>
 //auto get_value(T const & f, Args && ... args)
@@ -352,6 +331,7 @@ template<typename TV, typename TR> inline TV TypeCast(TR const& obj)
 	return std::move(static_cast<TV>(obj));
 }
 
+template<int...> class int_tuple_t;
 //namespace _impl
 //{
 ////******************************************************************************************************
@@ -391,9 +371,7 @@ template<typename TV, typename TR> inline TV TypeCast(TR const& obj)
 ////******************************************************************************************************
 //
 //}// namespace _impl
-}// namespace simpla
-namespace std
-{
+
 template<typename T>
 T begin(std::pair<T, T>const & range)
 {
@@ -424,5 +402,47 @@ template<typename T> void decompact(T const &v, T * u)
 {
 	*u = v;
 }
+
+#if __cplusplus > 201103L
+template<typename T, T ...N> using integer_sequence=std::integer_sequence<T,N...>;
+#else
+template<typename _Tp, _Tp ... _Idx>
+struct integer_sequence
+
+{
+	typedef _Tp value_type;
+
+	static constexpr size_t size()
+	{
+		return (sizeof...(_Idx));
+			}
+
+		};
+
+#endif
+		template<typename ...> class cat_integer_sequence;
+
+template<typename T, T ... N1, T ... N2>
+struct cat_integer_sequence<integer_sequence<T, N1...>,
+		integer_sequence<T, N2...>>
+{
+	typedef integer_sequence<T, N1..., N2...> type;
+};
+
+template<unsigned int N, typename ...> struct seq_get_value;
+
+template<unsigned int N, typename Tp, Tp M, Tp ...I>
+struct seq_get_value<N, integer_sequence<Tp, M, I ...> >
+{
+	static constexpr Tp value =
+			seq_get_value<N - 1, integer_sequence<Tp, I ...> >::value;
+};
+
+template<typename Tp, Tp M, Tp ...I>
+struct seq_get_value<0, integer_sequence<Tp, M, I ...> >
+{
+	static constexpr Tp value = M;
+};
 }
+// namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

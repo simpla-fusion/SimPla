@@ -18,9 +18,12 @@
 
 namespace simpla
 {
+template<typename, unsigned int> class Domain;
+template<typename ...> class Field;
 
-template<typename TM,  unsigned int  IFORM, typename TContainer>
-class Field<TM, IFORM, Cache<const Field<TM, IFORM, TContainer> > >
+template<typename TM, unsigned int IFORM, typename TContainer>
+class Field<Domain<TM, IFORM>,
+		Cache<const Field<Domain<TM, IFORM>, TContainer> > >
 {
 
 public:
@@ -35,7 +38,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const  unsigned int  IForm = IFORM;
+	static const unsigned int IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -60,8 +63,8 @@ private:
 
 public:
 
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -72,8 +75,8 @@ public:
 	{
 	}
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -84,8 +87,10 @@ public:
 	{
 	}
 
-	Field(field_type const & f, iterator const &s,  unsigned int  affect_Range = 2)
-			: mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(0)
+	Field(field_type const & f, iterator const &s,
+			unsigned int affect_Range = 2) :
+			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
+					0)
 	{
 	}
 
@@ -118,19 +123,19 @@ public:
 	}
 
 private:
-	void updateMeanValue(std::integral_constant<unsigned int ,0>)
+	void updateMeanValue(std::integral_constant<unsigned int, 0>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void updateMeanValue(std::integral_constant<unsigned int ,3>)
+	void updateMeanValue(std::integral_constant<unsigned int, 3>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_, affect_Range_);
 	}
-	void updateMeanValue(std::integral_constant<unsigned int ,1>)
+	void updateMeanValue(std::integral_constant<unsigned int, 1>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
-	void updateMeanValue(std::integral_constant<unsigned int ,2>)
+	void updateMeanValue(std::integral_constant<unsigned int, 2>)
 	{
 		mesh.template GetMeanValue<IForm>(&cache_[0], &mean_[0], affect_Range_);
 	}
@@ -199,8 +204,8 @@ public:
 }
 ;
 
-template<typename TM,  unsigned int  IFORM, typename TContainer>
-class Field<TM, IFORM, Cache<Field<TM, IFORM, TContainer> *> >
+template<typename TM, unsigned int IFORM, typename TContainer>
+class Field<Domain<TM, IFORM>, Cache<Field<TM, IFORM, TContainer> *> >
 {
 
 public:
@@ -215,7 +220,7 @@ public:
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static const  unsigned int  IForm = IFORM;
+	static const unsigned int IForm = IFORM;
 
 	typedef typename field_type::value_type value_type;
 
@@ -239,8 +244,8 @@ private:
 
 public:
 
-	Field(this_type && r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type && r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -249,8 +254,8 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 	}
-	Field(this_type const& r)
-			: mesh(r.mesh), f_(r.f_),
+	Field(this_type const& r) :
+			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
 
@@ -261,8 +266,9 @@ public:
 	{
 	}
 
-	Field(field_type * f,  unsigned int  affect_Range = 2)
-			: mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(0), is_fresh_(false)
+	Field(field_type * f, unsigned int affect_Range = 2) :
+			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(
+					0), is_fresh_(false)
 	{
 	}
 
@@ -366,7 +372,7 @@ public:
 
 };
 
-template<typename TM,  unsigned int  IFORM, typename TContainer>
+template<typename TM, unsigned int IFORM, typename TContainer>
 struct Cache<const Field<TM, IFORM, TContainer> >
 {
 
@@ -375,8 +381,8 @@ struct Cache<const Field<TM, IFORM, TContainer> >
 	typedef typename Field<TM, IFORM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TContainer> const & f, Args && ... args)
-			: f_(f, std::forward<Args >(args)...)
+	Cache(Field<TM, IFORM, TContainer> const & f, Args && ... args) :
+			f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "Field read cache applied!";
 	}
@@ -394,7 +400,7 @@ private:
 	type f_;
 };
 
-template<typename TM,  unsigned int  IFORM, typename TContainer>
+template<typename TM, unsigned int IFORM, typename TContainer>
 struct Cache<Field<TM, IFORM, TContainer>*>
 {
 	typedef Cache<Field<TM, IFORM, TContainer>*> this_type;
@@ -404,8 +410,8 @@ struct Cache<Field<TM, IFORM, TContainer>*>
 	typedef typename Field<TM, IFORM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TContainer>* f, Args && ... args)
-			: f_(f, std::forward<Args >(args)...)
+	Cache(Field<TM, IFORM, TContainer>* f, Args && ... args) :
+			f_(f, std::forward<Args >(args)...)
 	{
 		VERBOSE << "Field write cache applied!";
 	}
@@ -418,13 +424,13 @@ private:
 	type f_;
 };
 
-template<typename TM,  unsigned int  IFORM, typename TF>
+template<typename TM, unsigned int IFORM, typename TF>
 void RefreshCache(size_t s, Field<TM, IFORM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
-template<typename TM,  unsigned int  IFORM, typename TF>
+template<typename TM, unsigned int IFORM, typename TF>
 void FlushCache(Field<TM, IFORM, Cache<TF*>> & f)
 {
 	f.FlushCache();

@@ -1,4 +1,12 @@
 eclipse.preferences.version=1
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/CPATH/delimiter=\:
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/CPATH/operation=remove
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/CPLUS_INCLUDE_PATH/delimiter=\:
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/CPLUS_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/C_INCLUDE_PATH/delimiter=\:
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/C_INCLUDE_PATH/operation=remove
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/append=true
+environment/buildEnvironmentInclude/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/appendContributed=true
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/CPATH/delimiter=\:
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/CPATH/operation=remove
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/CPLUS_INCLUDE_PATH/delimiter=\:
@@ -15,6 +23,10 @@ environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.to
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082/C_INCLUDE_PATH/operation=remove
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082/append=true
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082/appendContributed=true
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/delimiter=\:
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/append=true
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/appendContributed=true
 environment/buildEnvironmentLibrary/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/LIBRARY_PATH/delimiter=\:
 environment/buildEnvironmentLibrary/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/LIBRARY_PATH/operation=remove
 environment/buildEnvironmentLibrary/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/append=true

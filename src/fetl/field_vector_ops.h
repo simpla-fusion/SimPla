@@ -83,8 +83,8 @@ struct Field<TM, VERTEX, BiOp<CROSS, TL, TR> >
 {
 
 public:
-	typename StorageTraits<TL>::const_reference l_;
-	typename StorageTraits<TR>::const_reference r_;
+	typename reference_traits<TL>::const_reference l_;
+	typename reference_traits<TR>::const_reference r_;
 	typedef TM mesh_type;
 
 	static constexpr   unsigned int   IForm = VERTEX;
@@ -117,8 +117,8 @@ struct Field<TM, VERTEX, BiOp<DOT, TL, TR> >
 {
 
 public:
-	typename StorageTraits<TL>::const_reference l_;
-	typename StorageTraits<TR>::const_reference r_;
+	typename reference_traits<TL>::const_reference l_;
+	typename reference_traits<TR>::const_reference r_;
 	typedef TM mesh_type;
 
 	static constexpr   unsigned int   IForm = VERTEX;

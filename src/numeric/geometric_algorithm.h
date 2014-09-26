@@ -57,9 +57,9 @@ bool PointInRectangle(nTuple<DIM, TR> const &x, TRange const & range)
 {
 	bool res = true;
 
-	auto min = std::get<0>(range);
+	auto min = std::get < 0 > (range);
 
-	auto max = std::get<1>(range);
+	auto max = std::get < 1 > (range);
 
 	for (unsigned int i = 0; i < DIM; ++i)
 	{
@@ -121,11 +121,7 @@ bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end,
 
 	return has_overlap;
 }
-template<typename TR, typename ... T>
-auto _DOT3(nTuple<3, T...> const & l, TR const & r)->decltype(l[0]*r[0])
-{
-	return l[0] * r[0] + l[1] * r[1] + l[2] * r[2];
-}
+
 //inline nTuple<3, Real> Distance(nTuple<2, nTuple<3, Real>> p, nTuple<3, Real> const &x)
 //{
 //	nTuple<3, Real> u, v;
@@ -138,7 +134,7 @@ inline Real Distance(nTuple<3, nTuple<3, Real>> const & p,
 {
 	nTuple<3, Real> v;
 	v = cross(p[1] - p[0], p[2] - p[0]);
-	return _DOT3(x - p[0], v) / std::sqrt(_DOT3(v, v));
+	return dot(x - p[0], v) / std::sqrt(dot(v, v));
 }
 
 /**
@@ -162,13 +158,13 @@ inline void Reflect(TPlane const & p, nTuple<3, Real>*x, nTuple<3, Real> * v)
 
 	u = cross(p[1] - p[0], p[2] - p[0]);
 
-	Real a = _DOT3(u, *x - p[0]);
+	Real a = dot(u, *x - p[0]);
 
 	if (a < 0)
 	{
-		Real b = 1.0 / _DOT3(u, u);
+		Real b = 1.0 / dot(u, u);
 		*x -= 2 * a * u * b;
-		*v -= 2 * _DOT3(u, *v) * u * b;
+		*v -= 2 * dot(u, *v) * u * b;
 	}
 
 }

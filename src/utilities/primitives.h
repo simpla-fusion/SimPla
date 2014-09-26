@@ -53,8 +53,6 @@ typedef long Integral;
 
 typedef std::complex<Real> Complex;
 
-template<unsigned int N, typename ...> struct nTuple;
-
 static constexpr Real INIFITY = std::numeric_limits<Real>::infinity();
 
 static constexpr Real EPSILON = std::numeric_limits<Real>::epsilon();
@@ -64,26 +62,6 @@ static constexpr unsigned int MAX_NDIMS_OF_ARRAY = 10;
 static constexpr unsigned int CARTESIAN_XAXIS = 0;
 static constexpr unsigned int CARTESIAN_YAXIS = 1;
 static constexpr unsigned int CARTESIAN_ZAXIS = 2;
-
-typedef nTuple<3, Real> Vec3;
-
-typedef nTuple<3, nTuple<3, Real> > Tensor3;
-
-typedef nTuple<4, nTuple<4, Real> > Tensor4;
-
-typedef nTuple<3, Integral> IVec3;
-
-typedef nTuple<3, Real> RVec3;
-
-typedef nTuple<3, Complex> CVec3;
-
-typedef nTuple<3, nTuple<3, Real> > RTensor3;
-
-typedef nTuple<3, nTuple<3, Complex> > CTensor3;
-
-typedef nTuple<4, nTuple<4, Real> > RTensor4;
-
-typedef nTuple<4, nTuple<4, Complex> > CTensor4;
 
 template<typename > struct has_PlaceHolder
 {

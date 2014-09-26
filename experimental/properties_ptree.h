@@ -15,7 +15,6 @@
 namespace simpla
 {
 
-template<unsigned int N, typename T> struct nTuple;
 
 template<typename ... TOthers>
 class Properties<boost::property_tree::ptree, TOthers...> : public Properties<

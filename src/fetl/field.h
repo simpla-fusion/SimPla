@@ -26,7 +26,7 @@ template<typename, unsigned int> struct Domain;
  *
  */
 template<typename TM, unsigned int IFORM, typename TV>
-struct Field<Domain<TM, IFORM>, TV>
+struct Field<Domain<TM, IFORM>, TV> : public TV
 {
 
 public:
@@ -117,10 +117,6 @@ public:
 	this_type split(domain_type const &d)
 	{
 		return std::move(this_type(data_, domain_ & d));
-	}
-	this_type boundary()
-	{
-		return std::move(this_type(data_, domain_.boundary()));
 	}
 
 	const domain_type & domain() const

@@ -9,128 +9,26 @@
 #define CALCULUS_H_
 #include <type_traits>
 #include "../utilities/primitives.h"
+#include "../utilities/ntuple.h"
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/sp_functional.h"
 #include "../utilities/constant_ops.h"
+#include "../utilities/expression_template.h"
 
 namespace simpla
 {
-template<unsigned int, typename ...> class nTuple;
 template<typename ... > class Field;
+template<typename ... > class Expression;
 
-template<typename TOP, typename TL, typename TR>
-struct Field<TOP, TL, TR>
+template<typename ... T>
+class Field<Expression<T...>> : public Expression<T...>
 {
-	typename StorageTraits<TL>::const_reference lhs;
-	typename StorageTraits<TR>::const_reference rhs;
-	TOP op_;
-
-	Field(TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_()
-	{
-	}
-
-	Field(TOP op, TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_(op)
-	{
-	}
-	~Field()
-	{
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE( (op_( get_value(lhs,s),get_value(rhs,s))))
-}
-;
-
-///   \brief  Unary operation
-template<typename TOP, typename TL>
-struct Field<TOP, TL>
-{
-	typename StorageTraits<TL>::const_reference lhs;
-	TOP op_;
-
-	Field(TL const & l) :
-			lhs(l), op_()
-	{
-	}
-	Field(TOP op, TL const & l) :
-			lhs(l), op_(op)
-	{
-	}
-	~Field()
-	{
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE( (op_( get_value(lhs,s) )))
-
+	using Expression<T...>::Expression;
 };
 
-template<typename TOP, typename TL, typename TR>
-struct can_not_reference<Field<TOP, TL, TR>>
-{
-	static constexpr bool value = true;
-};
 /// \defgroup   BasicAlgebra Basic algebra
 /// @{
 
-#define _DEFINE_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
-	template<typename TR,typename ...Args> auto operator _OP_(Field<Args...> const & l,TR const &r)  \
-	DECL_RET_TYPE((Field<_impl::_NAME_,Field<Args...>,TR>(l,r)))                  \
-
-_DEFINE_EXPR_BINARY_OPERATOR(+, plus)
-_DEFINE_EXPR_BINARY_OPERATOR(-, minus)
-_DEFINE_EXPR_BINARY_OPERATOR(*, multiplies)
-_DEFINE_EXPR_BINARY_OPERATOR(/, divides)
-_DEFINE_EXPR_BINARY_OPERATOR(%, modulus)
-_DEFINE_EXPR_BINARY_OPERATOR(^, bitwise_xor)
-_DEFINE_EXPR_BINARY_OPERATOR(&, bitwise_and)
-_DEFINE_EXPR_BINARY_OPERATOR(|, bitwise_or)
-_DEFINE_EXPR_BINARY_OPERATOR(<<, shift_left)
-_DEFINE_EXPR_BINARY_OPERATOR(>>, shift_right)
-_DEFINE_EXPR_BINARY_OPERATOR(&&, logical_and)
-_DEFINE_EXPR_BINARY_OPERATOR(||, logical_or)
-_DEFINE_EXPR_BINARY_OPERATOR(==, equal_to)
-_DEFINE_EXPR_BINARY_OPERATOR(!=, not_equal_to)
-_DEFINE_EXPR_BINARY_OPERATOR(<, less)
-_DEFINE_EXPR_BINARY_OPERATOR(>, greater)
-_DEFINE_EXPR_BINARY_OPERATOR(<=, less_equal)
-_DEFINE_EXPR_BINARY_OPERATOR(>=, greater_equal)
-#undef _DEFINE_EXPR_BINARY_OPERATOR
-
-#define _DEFINE_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
-		template<typename ...Args> auto operator _OP_(Field<Args...> const &l)  \
-		DECL_RET_TYPE((Field<_impl::_NAME_,Field<Args...> >(l)))   \
-
-_DEFINE_EXPR_UNARY_OPERATOR(+, unary_plus)
-_DEFINE_EXPR_UNARY_OPERATOR(-, negate)
-_DEFINE_EXPR_UNARY_OPERATOR(~, bitwise_not)
-#undef _DEFINE_EXPR_UNARY_OPERATOR
-
-#define _DEFINE_EXPR_UNARY_FUNCTION( _NAME_)                           \
-		template<typename ...Args> auto   _NAME_(Field<Args ...> const &r)  \
-		DECL_RET_TYPE((Field<_impl::_##_NAME_,Field<Args ...>>(r)))   \
-
-_DEFINE_EXPR_UNARY_FUNCTION(abs)
-_DEFINE_EXPR_UNARY_FUNCTION(cos)
-_DEFINE_EXPR_UNARY_FUNCTION(acos)
-_DEFINE_EXPR_UNARY_FUNCTION(cosh)
-_DEFINE_EXPR_UNARY_FUNCTION(sin)
-_DEFINE_EXPR_UNARY_FUNCTION(asin)
-_DEFINE_EXPR_UNARY_FUNCTION(sinh)
-_DEFINE_EXPR_UNARY_FUNCTION(tan)
-_DEFINE_EXPR_UNARY_FUNCTION(tanh)
-_DEFINE_EXPR_UNARY_FUNCTION(atan)
-_DEFINE_EXPR_UNARY_FUNCTION(exp)
-_DEFINE_EXPR_UNARY_FUNCTION(log)
-_DEFINE_EXPR_UNARY_FUNCTION(log10)
-_DEFINE_EXPR_UNARY_FUNCTION(sqrt)
-_DEFINE_EXPR_UNARY_FUNCTION(real)
-_DEFINE_EXPR_UNARY_FUNCTION(imag)
-#undef _DEFINE_EXPR_UNARY_FUNCTION
 /// @}
 
 /// \defgroup  ExteriorAlgebra Exterior algebra
@@ -156,48 +54,53 @@ struct CodifferentialDerivative
 };
 
 template<typename TF>
-inline auto hodge_star(TF const & f)
-DECL_RET_TYPE((Field<HodgeStar, TF>(f)))
+inline Field<Expression<HodgeStar, TF>> hodge_star(TF const & f)
+{
+	return std::move((Field<Expression<HodgeStar, TF>>(f)));
+}
+//DECL_RET_TYPE((Field<Expression<HodgeStar, TF>>(f)))
 
 template<typename TL, typename TR>
-inline auto wedge(TL const & l, TR const & r)
-DECL_RET_TYPE ((Field<Wedge,TL, TR>(l, r)))
+inline Field<Expression<Wedge, TL, TR>> wedge(TL const & l, TR const & r)
+{
+	return std::move(Field<Expression<Wedge, TL, TR>>(l, r));
+}
 
 template<typename TL, typename TR>
 inline auto interior_product(TL const & l, TR const & r)
-DECL_RET_TYPE ((Field<InteriorProduct,TL, TR>(l, r)))
+DECL_RET_TYPE ((Field<Expression<InteriorProduct,TL, TR>>(l, r)))
 
 template<typename TF, typename ... Others>
 inline auto exterior_derivative(TF const & f, Others && ...others)
-DECL_RET_TYPE((Field<ExteriorDerivative, TF>(f,
+DECL_RET_TYPE((Field<Expression<ExteriorDerivative, TF>>(f,
 						std::forward<Others>(others)...)))
 
 template<typename TF, typename ... Others>
 inline auto codifferential_derivative(TF const & f, Others && ...others)
-DECL_RET_TYPE((Field<CodifferentialDerivative, TF>(f,
+DECL_RET_TYPE((Field<Expression<CodifferentialDerivative, TF>>(f,
 						std::forward<Others>(others)...)))
 
-template<typename TD, typename TL>
-inline auto operator*(Field<TD, TL> const & f)
+template<typename ...T>
+inline auto operator*(Field<T...> const & f)
 DECL_RET_TYPE((hodge_star(f)))
 ;
-template<typename TD, typename TL>
-inline auto d(Field<TD, TL> const & f)
+template<typename ... T>
+inline auto d(Field<T...> const & f)
 DECL_RET_TYPE( (exterior_derivative(f)) )
 ;
 
-template<typename TD, typename TL>
-inline auto delta(Field<TD, TL> const & f)
+template<typename ... T>
+inline auto delta(Field<T...> const & f)
 DECL_RET_TYPE( (codifferential_derivative(f)) )
 ;
 
-template<typename TD, typename TL, typename TR>
-inline auto iv(nTuple<TD::NDIMS, TL> const & v, Field<TD, TR> const & f)
+template<unsigned int NDIMS, typename TL, typename ...T>
+inline auto iv(nTuple<NDIMS, TL> const & v, Field<T...> const & f)
 DECL_RET_TYPE( (interior_product(v,f)) )
 ;
 
-template<typename TDL, typename TL, typename TDR, typename TR>
-inline auto operator^(Field<TDL, TL> const & lhs, Field<TDR, TR> const & rhs)
+template<typename ...T1, typename ... T2>
+inline auto operator^(Field<T1...> const & lhs, Field<T2...> const & rhs)
 DECL_RET_TYPE( (wedge(lhs,rhs)) )
 ;
 

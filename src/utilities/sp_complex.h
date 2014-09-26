@@ -64,11 +64,7 @@ template<typename T> struct is_complex<std::complex<T> >
 {
 	static constexpr bool value = true;
 };
-template<unsigned int DIMS, typename ...> class nTuple;
-template<unsigned int DIMS, typename  T> struct is_complex<nTuple<DIMS, T> >
-{
-	static constexpr bool value = is_complex<T>::value;
-};
+
 template<typename TL> struct is_arithmetic_scalar;
 
 template<typename T>

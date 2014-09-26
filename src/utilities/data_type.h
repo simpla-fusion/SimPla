@@ -68,17 +68,17 @@ public:
 
 	template<typename T> static DataType create()
 	{
-		static_assert( nTupleTraits<T>::NDIMS< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
+		static_assert( nTuple_traits<T>::NDIMS< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
 
-		typedef typename nTupleTraits<T>::element_type element_type;
+		typedef typename nTuple_traits<T>::element_type element_type;
 
 		size_t ele_size_in_byte = sizeof(element_type) / sizeof(ByteType);
 
-		unsigned int NDIMS = nTupleTraits<T>::NDIMS;
+		unsigned int NDIMS = nTuple_traits<T>::NDIMS;
 
-		size_t dimensions[nTupleTraits<T>::NDIMS + 1];
+		size_t dimensions[nTuple_traits<T>::NDIMS + 1];
 
-		nTupleTraits<T>::get_dimensions(dimensions);
+		nTuple_traits<T>::get_dimensions(dimensions);
 
 		return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte, NDIMS, dimensions));
 	}
