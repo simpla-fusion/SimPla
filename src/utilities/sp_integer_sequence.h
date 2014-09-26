@@ -22,9 +22,11 @@ struct integer_sequence
 		return (sizeof...(_Idx));
 			}
 
+			auto value() const
+			DECL_RET_TYPE (std::make_tuple(_Idx...))
 		};
 
-		template<typename ...> class cat_integer_sequence;
+template<typename ...> class cat_integer_sequence;
 
 template<typename T, T ... N1, T ... N2>
 struct cat_integer_sequence<integer_sequence<T, N1...>,

@@ -21,13 +21,14 @@ namespace simpla
 struct DataType
 {
 public:
-	DataType()
-			: t_index_(std::type_index(typeid(void)))
+	DataType() :
+			t_index_(std::type_index(typeid(void)))
 	{
 	}
 
-	DataType(std::type_index t_index, size_t ele_size_in_byte, unsigned int ndims = 0, size_t* dims = nullptr)
-			: t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), ndims(ndims)
+	DataType(std::type_index t_index, size_t ele_size_in_byte,
+			unsigned int ndims = 0, size_t* dims = nullptr) :
+			t_index_(t_index), ele_size_in_byte_(ele_size_in_byte), ndims(ndims)
 	{
 		if (ndims > 0 && dims != nullptr)
 		{
@@ -38,15 +39,17 @@ public:
 
 		}
 	}
-	DataType(const DataType & other)
-			: ele_size_in_byte_(other.ele_size_in_byte_), t_index_(other.t_index_), ndims(other.ndims)
+	DataType(const DataType & other) :
+			ele_size_in_byte_(other.ele_size_in_byte_), t_index_(
+					other.t_index_), ndims(other.ndims)
 	{
 		for (int i = 0; i < ndims; ++i)
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
 
-		std::copy(other.data.begin(), other.data.end(), std::back_inserter(data));
+		std::copy(other.data.begin(), other.data.end(),
+				std::back_inserter(data));
 	}
 
 	~DataType()
@@ -62,25 +65,26 @@ public:
 		{
 			dimensions_[i] = other.dimensions_[i];
 		}
-		std::copy(other.data.begin(), other.data.end(), std::back_inserter(data));
+		std::copy(other.data.begin(), other.data.end(),
+				std::back_inserter(data));
 		return *this;
 	}
 
 	template<typename T> static DataType create()
 	{
-		static_assert( nTuple_traits<T>::NDIMS< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
+		static_assert( nTuple_traits<T>::ndims< MAX_NDIMS_OF_ARRAY,"the NDIMS of ntuple is bigger than MAX_NDIMS_OF_ARRAY");
 
-		typedef typename nTuple_traits<T>::element_type element_type;
+		typedef typename nTuple_traits<T>::value_type value_type;
 
-		size_t ele_size_in_byte = sizeof(element_type) / sizeof(ByteType);
+		size_t ele_size_in_byte = sizeof(value_type) / sizeof(ByteType);
 
-		unsigned int NDIMS = nTuple_traits<T>::NDIMS;
+		unsigned int NDIMS = nTuple_traits<T>::ndims;
 
-		size_t dimensions[nTuple_traits<T>::NDIMS + 1];
+		auto dimensions = nTuple_traits<T>::dimensions.value();
 
-		nTuple_traits<T>::get_dimensions(dimensions);
-
-		return std::move(DataType(std::type_index(typeid(element_type)), ele_size_in_byte, NDIMS, dimensions));
+		return std::move(
+				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
+						NDIMS, dimensions));
 	}
 
 	size_t size_in_byte() const
@@ -114,7 +118,8 @@ public:
 			}
 			else
 			{
-				pos = std::get<2>(*(data.rbegin())) + std::get<0>(*(data.rbegin())).size_in_byte();
+				pos = std::get<2>(*(data.rbegin()))
+						+ std::get<0>(*(data.rbegin())).size_in_byte();
 			}
 		}
 

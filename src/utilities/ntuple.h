@@ -120,6 +120,14 @@ public:
 	typedef _nTuple<value_type, integer_sequence<unsigned int, M>> type;
 
 };
+
+template<typename T>
+struct make_primary_ntuple<T, integer_sequence<unsigned int>>
+{
+	typedef T value_type;
+	typedef T type;
+
+};
 template<typename ...T>
 struct make_primary_ntuple<_nTuple<T...> >
 {
@@ -347,7 +355,10 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 template<typename ... T>
 struct _nTuple<Expression<T...>> : public Expression<T...>
 {
-	typedef typename make_primary_ntuple<_nTuple<Expression<T...>>> ::type primary_type;
+	typedef _nTuple<Expression<T...>> this_type;
+	typedef typename nTuple_traits<this_type>::value_type value_type;
+	typedef typename nTuple_traits<this_type>::dimensions dimensions;
+	typedef typename make_primary_ntuple<value_type, dimensions>::type primary_type;
 
 	operator primary_type() const
 	{
