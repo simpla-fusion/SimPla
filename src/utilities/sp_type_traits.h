@@ -236,22 +236,32 @@ public:
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), v[s])
+->typename std::enable_if<(is_indexable<T,TI>::value),decltype(v[s]) >::type
+{
+	return v[s];
+}
 
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE(
-		((!is_indexable<T,TI>::value) &&
-				_impl::has_member_function_at<T,TI>::value), v.at(s))
+->typename std::enable_if<((!is_indexable<T,TI>::value) &&
+		_impl::has_member_function_at<T,TI>::value),decltype(v.at(s)) >::type
+{
+	return v.at(s);
+}
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((!(is_indexable<T,TI>::value
-						|| _impl::has_member_function_at<T,TI>::value)),(v))
+auto get_value(T & v,
+		TI const & s)->typename std::enable_if<(!(is_indexable<T,TI>::value
+						|| _impl::has_member_function_at<T,TI>::value )), T& >::type
+{
+	return v;
+}
 
 template<typename T, typename TI>
-auto get_value(std::shared_ptr<T> & v, TI const & s)
-DECL_RET_TYPE(get_value(*v ,s))
+T & get_value(std::shared_ptr<T> & v, TI const & s)
+{
+	return v.data()[s];
+}
 
 template<typename T, typename TI>
 T & get_value(T* v, TI const & s)

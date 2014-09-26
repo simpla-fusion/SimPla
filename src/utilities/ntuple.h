@@ -255,18 +255,19 @@ template<typename T, unsigned int ... N>
 struct _nTuple<T, integer_sequence<unsigned int, N...> >
 {
 
-	typedef _nTuple<T, integer_sequence<unsigned int, N...> > this_type;
+	typedef T value_type;
+	typedef integer_sequence<unsigned int, N...> dimensions;
 
-	typedef typename nTuple_traits<this_type>::dimensions dimensions;
-	typedef typename nTuple_traits<this_type>::value_type value_type;
-	typedef typename make_ndarray_type<value_type, dimensions>::type raw_data_type;
+	typedef _nTuple<value_type, dimensions> this_type;
+
+	typedef typename make_ndarray_type<value_type, dimensions>::type data_type;
 
 	static constexpr unsigned int ndims = dimensions::size();
 
 	typedef typename std::conditional<ndims <= 1, size_t,
 			_nTuple<size_t, integer_sequence<unsigned int, ndims> > >::type index_type;
 
-	raw_data_type data_;
+	data_type data_;
 
 	inline value_type & operator[](index_type const &i)
 	{
@@ -323,7 +324,8 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::multiplies_assign(), data_, rhs);
+		seq_for<dimensions>::eval_ndarray(_impl::multiplies_assign(), data_,
+				rhs);
 		return (*this);
 	}
 

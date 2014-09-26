@@ -100,6 +100,12 @@ struct Expression<TOP, TL>
 
 };
 
+template<typename ... T, typename TI, template<typename > class F>
+auto get_value(F<Expression<T...>> & expr, TI const & s)
+->typename std::remove_reference<decltype(expr[s])>::type
+{
+	return expr[s];
+}
 namespace _impl
 {
 struct binary_right
