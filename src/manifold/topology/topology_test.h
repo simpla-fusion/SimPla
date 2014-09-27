@@ -10,8 +10,8 @@
 
 #include <gtest/gtest.h>
 
-#include "../utilities/pretty_stream.h"
-#include "../utilities/log.h"
+#include "../../utilities/pretty_stream.h"
+#include "../../utilities/log.h"
 
 using namespace simpla;
 

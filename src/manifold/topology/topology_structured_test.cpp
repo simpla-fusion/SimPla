@@ -4,9 +4,9 @@
  *  created on: 2014-6-27
  *      Author: salmon
  */
-#define TOPOLOGY UniformArray
+#define TOPOLOGY StructuredMesh
 
-#include "uniform_array.h"
+#include "structured.h"
 
 #include "topology_test.h"
 

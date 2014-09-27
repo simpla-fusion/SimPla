@@ -7,8 +7,13 @@
 
 #ifndef EXPRESSION_TEMPLATE_H_
 #define EXPRESSION_TEMPLATE_H_
+
 #include <cmath>
-#include "../utilities/sp_type_traits.h"
+#include <limits>
+#include <type_traits>
+#include <complex>
+#include "sp_type_traits.h"
+
 namespace simpla
 {
 template<typename ... > class Expression;
@@ -47,8 +52,6 @@ struct reference_traits
 template<typename TOP, typename TL, typename TR>
 struct Expression<TOP, TL, TR>
 {
-	static constexpr bool is_expression = true;
-
 	typename _impl::reference_traits<TL>::const_reference lhs;
 	typename _impl::reference_traits<TR>::const_reference rhs;
 	TOP op_;
@@ -76,7 +79,6 @@ struct Expression<TOP, TL, TR>
 template<typename TOP, typename TL>
 struct Expression<TOP, TL>
 {
-	static constexpr bool is_expression = true;
 
 	typename _impl::reference_traits<TL>::const_reference lhs;
 

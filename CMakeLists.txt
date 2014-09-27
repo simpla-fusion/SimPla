@@ -36,29 +36,29 @@ LINK_DIRECTORIES(${BINARY_DIR})
 #ExternalProject_Get_Property(trilinos BINARY_DIR)
 
  
-ExternalProject_Add(tbb
-    PREFIX third_part 
+#ExternalProject_Add(tbb
+##    PREFIX third_part 
  #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
-    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/tbb43_20140724oss_src.tgz
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss
-    INSTALL_COMMAND "" )
-ExternalProject_Get_Property(tbb SOURCE_DIR)
-ExternalProject_Get_Property(tbb BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-LINK_DIRECTORIES(${BINARY_DIR})
+#    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/tbb43_20140724oss_src.tgz
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(tbb SOURCE_DIR)
+#ExternalProject_Get_Property(tbb BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+#LINK_DIRECTORIES(${BINARY_DIR})
 
-SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
+#SET(TBB_INSTALL_DIR  ${PROJECT_SOURCE_DIR}/third_part/tbb43_20140724oss)
 
 
-ExternalProject_Add(thrust
-    PREFIX third_part 
-    URL  http://thrust.googlecode.com/files/thrust-1.5.1.zip
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/thrust
-    INSTALL_COMMAND "" )
-ExternalProject_Get_Property(thrust SOURCE_DIR)
-ExternalProject_Get_Property(thrust BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-LINK_DIRECTORIES(${BINARY_DIR})
+#ExternalProject_Add(thrust
+#    PREFIX third_part 
+#    URL  http://thrust.googlecode.com/files/thrust-1.5.1.zip
+#    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/thrust
+#    INSTALL_COMMAND "" )
+#ExternalProject_Get_Property(thrust SOURCE_DIR)
+#ExternalProject_Get_Property(thrust BINARY_DIR)
+#INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+#LINK_DIRECTORIES(${BINARY_DIR})
 
 #ExternalProject_Add(pugixml
 #    PREFIX third_part 
