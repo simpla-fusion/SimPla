@@ -15,6 +15,10 @@
 namespace simpla
 {
 /**
+ *  \page DataTypeConcept Data type concept
+ *
+ *   TODO add sth for datatype
+ *
  *  \brief  Desciption of data type
  *
  */
@@ -39,6 +43,7 @@ public:
 
 		}
 	}
+
 	DataType(const DataType & other) :
 			ele_size_in_byte_(other.ele_size_in_byte_), t_index_(
 					other.t_index_), ndims(other.ndims)
@@ -78,13 +83,13 @@ public:
 
 		size_t ele_size_in_byte = sizeof(value_type) / sizeof(ByteType);
 
-		unsigned int NDIMS = nTuple_traits<T>::ndims;
+		auto ndims = nTuple_traits<T>::dimensions::size();
 
-		auto dimensions = nTuple_traits<T>::dimensions.value();
+		auto dimensions = nTuple_traits<T>::dimensions::value();
 
 		return std::move(
 				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
-						NDIMS, dimensions));
+						ndims, &dimensions[0]));
 	}
 
 	size_t size_in_byte() const

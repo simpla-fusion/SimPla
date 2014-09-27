@@ -5,143 +5,38 @@
  *      Author: salmon
  */
 #include <iostream>
-#include <typeinfo>
-template<typename _Tp, _Tp ... _Idx>
-struct integer_sequence
-
-{
-	typedef _Tp value_type;
-
-	static constexpr _Tp data[sizeof...(_Idx)] =
-			{ _Idx... };
-
-			static constexpr size_t size()
-			{
-				return (sizeof...(_Idx));
-					}
-
-				};
-
-				template<typename ...> class cat_integer_sequence;
-
-template<typename T, T ... N1, T ... N2>
-struct cat_integer_sequence<integer_sequence<T, N1...>,
-		integer_sequence<T, N2...>>
-{
-	typedef integer_sequence<T, N1..., N2...> type;
-};
-
-//template<typename ... >class show;
-//template<typename T, T M, T ... N1>
-//struct show<integer_sequence<T, M, N1...>>
+#include "../src/utilities/sp_integer_sequence.h"
+#include "../src/utilities/ntuple.h"
+#include "../src/utilities/pretty_stream.h"
+//struct FOO
 //{
-//	static void eval()
+//	void show() const
 //	{
-//		std::cout << M << " ";
-//		show<integer_sequence<T, N1...>>::eval();
+//		std::cout << std::endl;
 //	}
-//};
-//template<typename T>
-//struct show<integer_sequence<T>>
-//{
-//	static void eval()
+//	template<typename T1, typename ...T>
+//	void show(T1 const &u, T const & ...v) const
 //	{
-//		std::cout << " END " << std::endl;
+//		std::cout << u << " ";
+//		show(v...);
 //	}
+//	template<typename ...T>
+//	void operator()(T ...args) const
+//	{
+//		show(args...);
+//	}
+//
 //};
 
-template<typename ...>struct seq_to_para;
-
-template<typename TP, TP ...I>
-struct seq_to_para<integer_sequence<TP, I...>>
-{
-	template<typename OP, typename ... Args>
-	static inline void eval(OP const&op, Args && ...args)
-	{
-		(op(std::forward<Args>(args)..., I...));
-	}
-};
-
-template<typename ...> struct seq_for;
-
-template<unsigned int M, unsigned int ...N>
-struct seq_for<integer_sequence<unsigned int, M, N...>>
-{
-
-	template<typename TOP, typename ...Args>
-	static inline void eval(TOP const & op, Args && ... args)
-	{
-
-		seq_for<integer_sequence<unsigned int, N...>>::eval(op,
-				std::forward<Args>(args)..., M - 1);
-		seq_for<integer_sequence<unsigned int, M - 1, N...> >::eval(op,
-				std::forward<Args>(args)...);
-	}
-
-	template<typename TOP, typename ...Args>
-	static inline void eval2(TOP const & op, Args && ... args)
-	{
-
-		seq_for<integer_sequence<unsigned int, N...>>::eval(op,
-				std::forward<Args>(args)[M-1]...);
-		seq_for<integer_sequence<unsigned int, M - 1, N...> >::eval(op,
-				std::forward<Args>(args)...);
-	}
-};
-
-template<unsigned int ...N>
-struct seq_for<integer_sequence<unsigned int, 0, N...>>
-{
-	template<typename TOP, typename ...Args>
-	static inline void eval(TOP const & op, Args && ... args)
-	{
-	}
-	template<typename TOP, typename ...Args>
-	static inline void eval2(TOP const & op, Args && ... args)
-	{
-	}
-};
-
-template<>
-struct seq_for<integer_sequence<unsigned int>>
-{
-	template<typename TOP, typename ...Args>
-	static inline void eval(TOP const & op, Args && ... args)
-	{
-		op(std::forward<Args>(args)...);
-	}
-
-	template<typename TOP, typename ...Args>
-	static inline void eval2(TOP const & op, Args && ... args)
-	{
-		op(std::forward<Args>(args)...);
-	}
-};
-struct FOO
-{
-	void show() const
-	{
-		std::cout << std::endl;
-	}
-	template<typename T1, typename ...T>
-	void show(T1 const &u, T const & ...v) const
-	{
-		std::cout << u << " ";
-		show(v...);
-	}
-	template<typename ...T>
-	void operator()(T ...args) const
-	{
-		show(args...);
-	}
-
-};
-
+using namespace simpla;
 int main(int argc, char **argv)
 {
 
-	seq_for<integer_sequence<unsigned int, 1, 2, 3, 4>>::eval(FOO(), "hello",
-			"world");
+//	seq_for<integer_sequence<unsigned int, 1, 2, 3, 4>>::eval_multi_parameter(
+//			FOO(), "hello", "world");
+
+	std::cout << integer_sequence<unsigned int, 1, 2, 3, 4>::value()
+			<< std::endl;
 //	show<
 //			typename cat_integer_sequence<
 //					integer_sequence<unsigned int, 1, 3, 4, 7, 9>,

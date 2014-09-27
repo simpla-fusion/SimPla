@@ -8,23 +8,32 @@
 #ifndef SP_INTEGER_SEQUENCE_H_
 #define SP_INTEGER_SEQUENCE_H_
 
+#include <stddef.h>
+
+#include "sp_type_traits.h"
+
 namespace simpla
 {
-
+template<typename ...>class _nTuple;
 template<typename _Tp, _Tp ... _Idx>
 struct integer_sequence
-
 {
+private:
+	static constexpr size_t size_ = (sizeof...(_Idx));
+public:
 	typedef _Tp value_type;
 
+	static constexpr _nTuple<size_t, integer_sequence<unsigned int, size_>> value()
+	{
+		return std::move(_nTuple<size_t, integer_sequence<unsigned int, size_>>(
+		{ _Idx... }));
+	}
 	static constexpr size_t size()
 	{
-		return (sizeof...(_Idx));
-			}
+		return size_;
+	}
 
-			auto value() const
-			DECL_RET_TYPE (std::make_tuple(_Idx...))
-		};
+};
 
 template<typename ...> class cat_integer_sequence;
 
@@ -139,29 +148,32 @@ struct seq_reduce<integer_sequence<unsigned int, M, N...>>
 
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_multi_parameter(TOP const & op,
-			Reduction const & reduction, Args && ... args) DECL_RET_TYPE(
-			(
-					reduction(
-							seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction,
-									std::forward<Args>(args)..., M - 1),
-							seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_multi_parameter(op,reduction,
-									std::forward<Args>(args)...)
+			Reduction const & reduction,
+			Args && ... args)
+					DECL_RET_TYPE(
+							(
+									reduction(
+											seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction,
+													std::forward<Args>(args)..., M - 1),
+											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_multi_parameter(op,reduction,
+													std::forward<Args>(args)...)
+									)
+							)
 					)
-			)
-	)
 
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-			Args && ... args) DECL_RET_TYPE(
-			(
-					reduction(
-							seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,
-									get_value(std::forward<Args>(args),M-1)...),
-							seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray(op,reduction,
-									std::forward<Args>(args)...)
+			Args && ... args)
+					DECL_RET_TYPE(
+							(
+									reduction(
+											seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,
+													get_value(std::forward<Args>(args),M-1)...),
+											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray(op,reduction,
+													std::forward<Args>(args)...)
+									)
+							)
 					)
-			)
-	)
 
 };
 
@@ -171,15 +183,18 @@ struct seq_reduce<integer_sequence<unsigned int, 1, N...> >
 
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_multi_parameter(TOP const & op,
-			Reduction const & reduction, Args && ... args) DECL_RET_TYPE(
-			( seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction, std::forward<Args>(args)..., 0) )
-	)
+			Reduction const & reduction,
+			Args && ... args)
+					DECL_RET_TYPE(
+							( seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction, std::forward<Args>(args)..., 0) )
+					)
 
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-			Args && ... args) DECL_RET_TYPE(
-			( seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,get_value( std::forward<Args>(args),0)...) )
-	)
+			Args && ... args)
+					DECL_RET_TYPE(
+							( seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,get_value( std::forward<Args>(args),0)...) )
+					)
 };
 
 template<>
@@ -188,12 +203,12 @@ struct seq_reduce<integer_sequence<unsigned int> >
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_multi_parameter(TOP const & op,
 			Reduction const & reduction, Args && ... args)
-	DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
+			DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
 
 	template<typename TOP, typename Reduction, typename ...Args>
 	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-	Args && ... args)
-	DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
+			Args && ... args)
+			DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
 
 };
 

@@ -45,6 +45,12 @@ enum ArrayOrder
 	C_ORDER, // SLOW FIRST
 	FORTRAN_ORDER //  FAST_FIRST
 };
+
+enum GeometryFormTypeID
+{
+	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
+};
+
 typedef int8_t ByteType; // int8_t
 
 typedef double Real;

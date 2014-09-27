@@ -300,6 +300,8 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 		return !(*this == rhs);
 	}
 
+#pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
+
 	typedef typename make_primary_ntuple<this_type>::type primary_type;
 
 	operator primary_type() const
@@ -308,6 +310,9 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 		res = *this;
 		return std::move(res);
 	}
+#pragma warning( enable : 597)
+
+
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
@@ -561,6 +566,27 @@ template<typename ... T1, typename ...T2> inline auto cross(
 //	return res;
 //}
 
+template<typename TP, TP ...J>
+_nTuple<TP, std::integral_constant<unsigned int, sizeof...(J)>> make_ntuple(
+		integer_sequence<TP, J...>)
+{
+	constexpr unsigned int N = 1 + sizeof...(J);
+	typedef _nTuple<TP, std::integral_constant<unsigned int, N>> type;
+	type res;
+//
+//	seq_for<integer_sequence<unsigned int, N>>::eval_multi_parameter(
+//			[](type & r,unsigned int i)
+//			{
+//				r[i+1]=i;
+//			}, res);
+	return std::move(res);
+}
+
+//template<typename TP>
+//unsigned int make_ntuple(integer_sequence<TP>)
+//{
+//	return 0;
+//}
 }
 //namespace simpla
 

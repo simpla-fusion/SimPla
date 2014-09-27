@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 #include "../utilities/sp_type_traits.h"
+#include "../utilities/primitives.h"
 #include <valarray>
 namespace simpla
 {
@@ -19,11 +20,6 @@ template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 template<typename, unsigned int> class Domain;
 template<typename ... > class Field;
-
-enum GeometryFormTypeID
-{
-	VERTEX = 0, EDGE = 1, FACE = 2, VOLUME = 3
-};
 
 template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
