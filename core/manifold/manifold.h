@@ -76,12 +76,14 @@ public:
 			DECL_RET_TYPE((expr[s]))
 
 	template<typename TOP, typename TL>
-	auto get_value(Field<TOP, TL> const & expr, index_type const & s) const
-	DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
+	auto get_value(Field<Expression<TOP, TL>> const & expr,
+			index_type const & s) const
+			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
 
 	template<typename TOP, typename TL, typename TR>
-	auto get_value(Field<TOP, TL, TR> const & expr, index_type const & s) const
-	DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
+	auto get_value(Field<Expression<TOP, TL, TR>> const & expr,
+			index_type const & s) const
+			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
 
 };
 

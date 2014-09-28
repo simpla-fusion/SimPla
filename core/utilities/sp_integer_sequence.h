@@ -175,6 +175,20 @@ struct seq_reduce<integer_sequence<unsigned int, M, N...>>
 							)
 					)
 
+	template<typename Reduction, typename Args>
+	static inline auto eval_ndarray(Reduction const & reduction,
+			Args const& args)
+					DECL_RET_TYPE(
+							(
+									reduction(
+											seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray( reduction,
+													get_value( (args ),M-1) ),
+											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray( reduction,
+													(args ) )
+									)
+							)
+					)
+
 };
 
 template<unsigned int ...N>
@@ -195,6 +209,11 @@ struct seq_reduce<integer_sequence<unsigned int, 1, N...> >
 					DECL_RET_TYPE(
 							( seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,get_value( std::forward<Args>(args),0)...) )
 					)
+
+	template<typename Reduction, typename Args>
+	static inline auto eval_ndarray(Reduction const & reduction,
+			Args const& args)
+			DECL_RET_TYPE(( get_value( (args),0) ) )
 };
 
 template<>
@@ -209,6 +228,11 @@ struct seq_reduce<integer_sequence<unsigned int> >
 	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
 			Args && ... args)
 			DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
+
+	template<typename Reduction, typename Args>
+	static inline auto eval_ndarray(Reduction const & reduction,
+			Args const& args)
+			DECL_RET_TYPE(( get_value( (args),0) ) )
 
 };
 

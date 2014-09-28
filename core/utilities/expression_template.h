@@ -21,8 +21,13 @@ template<typename ... > class Expression;
 template<typename T>
 struct is_expresson
 {
-	HAS_MEMBER(is_expression);
-	static constexpr bool value=has_member_is_expression<T>::value;
+	static constexpr bool value = false;
+};
+
+template<typename ...T, template<typename ... > class F>
+struct is_expresson<F<Expression<T...>>>
+{
+	static constexpr bool value=true;
 };
 
 namespace _impl
@@ -446,13 +451,12 @@ _SP_DEFINE_EXPR_UNARY_FUNCTION(log10, _CONCEPT_)                                
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(real, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(imag, _CONCEPT_)                                          \
-
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                                 \
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
-//_SP_DEFINE_EXPR_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)
+_SP_DEFINE_EXPR_BINARY_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                                 \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
+_SP_DEFINE_EXPR_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)
 
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_OPERATOR

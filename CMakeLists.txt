@@ -163,7 +163,7 @@ execute_process(COMMAND  git describe --all  --dirty --long
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
  
- find_package(TBB)
+#find_package(TBB)
 IF(TBB_FOUND)
     ADD_DEFINITIONS(-DHAVE_TBB )
     MESSAGE(${TBB_INCLUDE_DIR})
@@ -174,7 +174,7 @@ ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
 
 SET(EXT_LIBRARIES    ${LUA_LIBRARIES} ${MPI_LIBRARIES} )
  
-add_subdirectory(src )
+add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )
 add_subdirectory(docs )

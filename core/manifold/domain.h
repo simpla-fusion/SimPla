@@ -7,6 +7,7 @@
 
 #ifndef DOMAIN_H_
 #define DOMAIN_H_
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -119,40 +120,21 @@ public:
 	template<typename ...Args>
 	auto gather(Args &&... args) const DECL_RET_TYPE ((this->manifold_.gather(
 							std::forward<Args> (args)...)
-			));
+			))
+	;
 
 	template<typename ...Args>
 	auto scatter(Args &&... args) const DECL_RET_TYPE ((this->manifold_.scatter(
 							std::forward<Args> (args)...)
-			));
+			))
+	;
 
-	template< typename ...Args>
-	auto calculate(Args &&... args) const DECL_RET_TYPE ((this->manifold_.calculate(
+	template<typename ...Args>
+	auto calculate(Args &&... args) const
+	DECL_RET_TYPE ((this->manifold_.calculate(
 							std::forward<Args> (args)...)
-			));
-
-private:
-	HAS_MEMBER_FUNCTION (domain);
-
-	template<typename TF> static Identity get_domain(TF const & f)
-	{
-		return Identity();
-	}
-
-	static Zero get_domain(Zero)
-	{
-		return Zero();
-	}
-
-	template<typename M,unsigned int I , typename TL>
-	static auto get_domain(Field<Domain<M, I>, TL> const & f) DECL_RET_TYPE((f.domain()))
-
-	template<typename TOP, typename TL>
-	static auto get_domain(Field<TOP, TL > const & expr) DECL_RET_TYPE ((get_domain(expr.lhs) ))
-
-	template<typename TOP, typename TL, typename TR>
-	static auto get_domain(Field<TOP, TL, TR> const & expr)
-	DECL_RET_TYPE ((get_domain(expr.lhs)&get_domain(expr.rhs)))
+			))
+	;
 
 public:
 	template<typename TL, typename TR>
@@ -160,21 +142,46 @@ public:
 	{
 		parallel_for(get_domain(lhs) & get_domain(rhs),
 
-				[& ](this_type const &r)
-				{
-					for(auto const & s:r)
-					{
-						lhs[s]= manifold_.get_value( rhs,s );
-					}
-				});
+		[& ](this_type const &r)
+		{
+			for(auto const & s:r)
+			{
+				lhs[s]= manifold_.get_value( rhs,s );
+			}
+		});
 	}
 
 }
 ;
+HAS_MEMBER_FUNCTION(domain);
+
+template<typename ... T>
+constexpr Identity get_domain(T && ...)
+{
+	return std::move(Identity());
+}
+
+constexpr Zero get_domain(Zero)
+{
+	return std::move(Zero());
+}
+
+template<typename M, unsigned int I, typename TL>
+auto get_domain(Field<Domain<M, I>, TL> const & f)
+DECL_RET_TYPE((f.domain()))
+
+template<typename TOP, typename TL>
+auto get_domain(Field<Expression<TOP, TL> > const & expr)
+DECL_RET_TYPE ((get_domain(expr.lhs) ))
+
+template<typename TOP, typename TL, typename TR>
+auto get_domain(Field<Expression<TOP, TL, TR>> const & expr)
+DECL_RET_TYPE ((get_domain(expr.lhs)&get_domain(expr.rhs)))
 
 template<typename TG, unsigned int IL, unsigned int IR>
 Domain<TG, IL> operator &(Domain<TG, IL> const & l, Domain<TG, IL> const & r)
 {
+	//TODO UNIMPLEMENT
 	return l;
 }
 
@@ -190,14 +197,14 @@ Domain<TG, IL> operator &(Identity, Domain<TG, IL> const & l)
 }
 
 template<typename TG, unsigned int IL>
-Zero operator &(Domain<TG, IL> const & l, Zero)
+constexpr Zero operator &(Domain<TG, IL> const & l, Zero)
 {
-	return Zero();
+	return std::move(Zero());
 }
 template<typename TG, unsigned int IL>
-Zero operator &(Zero, Domain<TG, IL> const & l)
+constexpr Zero operator &(Zero, Domain<TG, IL> const & l)
 {
-	return Zero();
+	return std::move(Zero());
 }
 }
 // namespace simpla

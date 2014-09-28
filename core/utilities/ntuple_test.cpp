@@ -153,7 +153,12 @@ TYPED_TEST(TestNtuple, self_assign){
 
 TYPED_TEST(TestNtuple, compare){
 {
-	EXPECT_DOUBLE_EQ(true,TestFixture::vA==TestFixture::aA);
+	EXPECT_TRUE( TestFixture::vA==TestFixture::aA);
+	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+
+	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
+
 }
 }
 

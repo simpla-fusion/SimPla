@@ -77,7 +77,7 @@ public:
 
 	static constexpr unsigned int ndims = dimensions::size();
 
-	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>() )) value_type;
+	typedef decltype(std::declval<TOP>()(get_value(std::declval<value_type_l>() ,0))) value_type;
 
 };
 template<typename TOP, typename TL, typename TR>
@@ -93,8 +93,8 @@ public:
 
 	static constexpr unsigned int ndims = dimensions::size();
 
-	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
-					std::declval<value_type_r>())) value_type;
+	typedef decltype(std::declval<TOP>()(get_value(std::declval<value_type_l>(),0),
+					get_value(std::declval<value_type_r>(),0))) value_type;
 
 };
 
@@ -125,7 +125,7 @@ template<typename T>
 struct make_primary_ntuple<T, integer_sequence<unsigned int>>
 {
 	typedef T value_type;
-	typedef T type;
+	typedef _nTuple<value_type, integer_sequence<unsigned int>> type;
 
 };
 template<typename ...T>
@@ -155,84 +155,12 @@ struct make_ndarray_type<T, integer_sequence<unsigned int, M> >
 {
 	typedef T type[M];
 };
-namespace _ntuple_impl
+
+template<typename T>
+struct make_ndarray_type<T, integer_sequence<unsigned int> >
 {
-
-//template<typename ...>struct _assign;
-//
-//template<unsigned int M>
-//struct _assign<integer_sequence<unsigned int, M>>
-//{
-//	template<typename TL, typename TR>
-//	static inline void eval(TL & l, TR const &r)
-//	{
-//		get_value(l,M-1) = get_value(r, M - 1);
-//		_assign<integer_sequence<unsigned int, M - 1>>::eval(l, r);
-//	}
-//	template<typename TFun, typename TL, typename TR>
-//	static inline void eval(TFun const & fun, TL & l, TR const &r)
-//	{
-//		get_value(l,M-1) = fun(get_value(l,M-1), get_value(r, M - 1));
-//		_assign<integer_sequence<unsigned int, M - 1>>::eval(fun, l, r);
-//	}
-//
-//};
-//template<> struct _assign<1>
-//{
-//	template<typename TL, typename TR>
-//	static inline void eval(TL & l, TR const &r)
-//	{
-//		get_value(l,0) = get_value(r, 0);
-//	}
-//	template<typename TFun, typename TL, typename TR>
-//	static inline void eval(TFun const & fun, TL & l, TR const &r)
-//	{
-//		auto & v = get_value(l,0);
-//		v = fun(v, get_value(r, 0));
-//	}
-//};
-//
-//template<unsigned int N, typename TL, typename TR>
-//void assign(TL & l, TR const & r)
-//{
-//	_assign<N>::eval(l, r);
-//}
-//template<unsigned int N, typename TFun, typename TL, typename TR>
-//void assign(TFun const & fun, TL & l, TR const & r)
-//{
-//	_assign<N>::eval(fun, l, r);
-//}
-//template<unsigned int N>
-//struct _reduce
-//{
-//	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
-//	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op,
-//			TL const & l,
-//			TR const &r)
-//					DECL_RET_TYPE ((
-//									plus_op(multi_op(get_value(l,N - 1),
-//													get_value( r,N - 1)),
-//											_reduce<N - 1>::eval(plus_op, multi_op, l, r))))
-//
-//};
-//
-//template<>
-//struct _reduce<1>
-//{
-//	template<typename TPlus, typename TMultiplies, typename TL, typename TR>
-//	static inline auto eval(TPlus const & plus_op, TMultiplies const &multi_op,
-//			TL const & l, TR const &r)
-//			DECL_RET_TYPE ((multi_op(get_value(l,0),get_value( r,0))))
-//
-//};
-//template<unsigned int N, typename TPlus, typename TMultiplies, typename TL,
-//		typename TR>
-//auto reduce(TPlus const & plus_op, TMultiplies const &multi_op, TL const & l,
-//		TR const & r)
-//		DECL_RET_TYPE (_reduce<N>::eval(plus_op, multi_op, l, r))
-
-}
-// namespace _ntuple_impl
+	typedef T type;
+};
 
 template<typename TR, typename ...T>
 void swap(_nTuple<T...> & l, TR & r)
@@ -287,18 +215,18 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 		return (get_value(data_, i));
 	}
 
-	template<typename TR>
-	inline bool operator ==(TR const &rhs) const
-	{
-		return seq_reduce<dimensions>::eval_ndarray(_impl::equal_to(),
-				_impl::logical_and(), *this, rhs);
-	}
-
-	template<typename TR>
-	inline bool operator !=(TR const &rhs) const
-	{
-		return !(*this == rhs);
-	}
+//	template<typename TR>
+//	inline bool operator ==(TR const &rhs) const
+//	{
+//		return seq_reduce<dimensions>::eval_ndarray(_impl::equal_to(),
+//				_impl::logical_and(), *this, rhs);
+//	}
+//
+//	template<typename TR>
+//	inline bool operator !=(TR const &rhs) const
+//	{
+//		return !(*this == rhs);
+//	}
 
 #pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
 
@@ -310,8 +238,8 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 		res = *this;
 		return std::move(res);
 	}
-#pragma warning( enable : 597)
 
+#pragma warning( enable : 597)
 
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
@@ -370,6 +298,11 @@ struct _nTuple<Expression<T...>> : public Expression<T...>
 		primary_type res;
 		res = *this;
 		return std::move(res);
+	}
+
+	operator bool() const
+	{
+		return seq_reduce<dimensions>::eval_ndarray(_impl::logical_and(), *this);
 	}
 
 	using Expression<T...>::Expression;
