@@ -11,21 +11,88 @@ SET(CMAKE_VERBOSE_MAKEFILE ON)
 #SET(CMAKE_BUILD_TYPE Release)
 #SET(CMAKE_BUILD_TYPE Debug)
 
+ 
+SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
+SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
+SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
+
+SET(CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -g  ")
+SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
+ 
+MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
+
+if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0   ")
+
+#  SET(CMAKE_AR      "llvm-ar-3.5")
+ # SET(CMAKE_LINKER  "llvm-ld-3.5")
+  #SET(CMAKE_LINKER_FLAG " -L/usr/lib/gcc/x86_64-linux-gnu/4.8/")
+  #SET(CMAKE_NM      "llvm-nm-3.5")
+ # SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
+  #SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
+  #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
+
+elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
+else()
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
+endif ()
+
+
+FIND_PACKAGE(Lua52)
+INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
+
+#SET(HDF5_USE_STATIC_LIBRARIES TRUE)
+
+FIND_PACKAGE(HDF5 1.8 COMPONENTS HL )
+IF(HDF5_FOUND)
+  INCLUDE_DIRECTORIES(BEFORE ${HDF5_INCLUDE_DIR} )
+  IF(HDF5_IS_PARALLEL)
+    ADD_DEFINITIONS(-DUSE_PARALLEL_IO )
+  ENDIF(HDF5_IS_PARALLEL)
+ENDIF(HDF5_FOUND)
+
+FIND_PACKAGE(MPI)
+
+IF(MPI_FOUND)
+
+  INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+  ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX )
+
+ENDIF(MPI_FOUND)
+#FIND_PACKAGE(XDMF)
+#MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
+
+
+ 
+#FIND_PACKAGE(TBB)
+IF(TBB_FOUND)
+    ADD_DEFINITIONS(-DHAVE_TBB )
+    MESSAGE(${TBB_INCLUDE_DIR})
+ENDIF(TBB_FOUND)
+ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
+ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
+#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
+
 
 INCLUDE(ExternalProject)
+
+
+enable_testing()
+
 ExternalProject_Add(googletest
-    PREFIX third_part 
-    #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
-    URL file:///${PROJECT_SOURCE_DIR}/third_part/src/gtest-1.7.0.zip
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/third_part/googletest
-    INSTALL_COMMAND "" )
-ExternalProject_Get_Property(googletest SOURCE_DIR)
-ExternalProject_Get_Property(googletest BINARY_DIR)
-INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
-LINK_DIRECTORIES(${BINARY_DIR})
+     PREFIX  ${PROJECT_BINARY_DIR}/third_part 
+     #    URL   http://googletest.googlecode.com/files/gtest-1.7.0.zip
+    URL file://${CMAKE_SOURCE_DIR}/third_part/gtest-1.7.0.zip
+     SOURCE_DIR ${PROJECT_BINARY_DIR}/third_part/googletest
+     INSTALL_COMMAND "" )
+ ExternalProject_Get_Property(googletest SOURCE_DIR)
+ ExternalProject_Get_Property(googletest BINARY_DIR)
+ INCLUDE_DIRECTORIES(${SOURCE_DIR}/include )
+ LINK_DIRECTORIES(${BINARY_DIR})
 
-
-#INCLUDE(ExternalProject)
+ 
 #ExternalProject_Add(trilinos
 #    PREFIX third_part 
 # #http://trilinos.sandia.gov/download/files/trilinos-11.10.2-Source.tar.bz2
@@ -104,76 +171,26 @@ LINK_DIRECTORIES(${BINARY_DIR})
 #LINK_DIRECTORIES(${BINARY_DIR}/bin)
 #SET(XDMF_NO_MPI ON)
 
- 
- SET(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin)
-SET(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib)
-SET(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/CMake ${CMAKE_MODULE_PATH})
 
-SET(CMAKE_CXX_FLAGS_DEBUG " -DDEBUG -g  ")
-SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
- 
-MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
-if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0   ")
 
-#  SET(CMAKE_AR      "llvm-ar-3.5")
- # SET(CMAKE_LINKER  "llvm-ld-3.5")
-  #SET(CMAKE_LINKER_FLAG " -L/usr/lib/gcc/x86_64-linux-gnu/4.8/")
-  #SET(CMAKE_NM      "llvm-nm-3.5")
- # SET(CMAKE_OBJDUMP "llvm-objdump-3.5")
-  #SET(CMAKE_RANLIB  "llvm-ranlib-3.5")
-  #SET(CMAKE_CXX_FLAGS  ${CMAKE_CXX_FLAGS} "-stdlib=libc++")
 
-elseif(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Intel")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp  ")
-else()
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fopenmp -ftemplate-backtrace-limit=0 ")
-endif ()
 
+
+
+
+
+
+
+SET(EXT_LIBRARIES    ${LUA_LIBRARIES} ${MPI_LIBRARIES} )
  
 
-find_package(Lua52)
-INCLUDE_DIRECTORIES(${LUA_INCLUDE_DIR})
-
-#SET(HDF5_USE_STATIC_LIBRARIES TRUE)
-FIND_PACKAGE(HDF5 1.8 COMPONENTS HL )
-IF(HDF5_FOUND)
-  include_directories(BEFORE ${HDF5_INCLUDE_DIR} )
-  IF(HDF5_IS_PARALLEL)
-    ADD_DEFINITIONS(-DUSE_PARALLEL_IO )
-  ENDIF(HDF5_IS_PARALLEL)
-ENDIF(HDF5_FOUND)
-
-find_package(MPI)
-
-IF(MPI_FOUND)
-
-  INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
-  ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX )
-
-ENDIF(MPI_FOUND)
-#FIND_PACKAGE(XDMF)
-#MESSAGE(STATUS "XDMF Install Dir"${XDMF_INSTALL_DIR}) 
-
-execute_process(COMMAND  git describe --all  --dirty --long
+ execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      
             WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR} 
             OUTPUT_STRIP_TRAILING_WHITESPACE 
      )
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
- 
-#find_package(TBB)
-IF(TBB_FOUND)
-    ADD_DEFINITIONS(-DHAVE_TBB )
-    MESSAGE(${TBB_INCLUDE_DIR})
-ENDIF(TBB_FOUND)
-ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
-ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
-#INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
-
-SET(EXT_LIBRARIES    ${LUA_LIBRARIES} ${MPI_LIBRARIES} )
- 
 add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )

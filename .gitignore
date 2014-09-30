@@ -28,3 +28,7 @@
 *.exe
 *.out
 *.app
+
+# Directory
+build*/
+third_part
