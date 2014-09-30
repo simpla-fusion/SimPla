@@ -50,6 +50,8 @@ template<typename TDomain, typename DataHolder>
 struct _Field<TDomain, DataHolder>
 {
 
+
+
 	typedef DataHolder data_holder_type;
 
 	typedef TDomain domain_type;

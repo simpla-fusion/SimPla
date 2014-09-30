@@ -16,3 +16,4 @@ target_link_libraries(${name} gtest_main gtest pthread)
 
  ADD_DEPENDENCIES(${name} googletest) 
 endfunction()
+ 
