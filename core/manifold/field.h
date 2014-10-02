@@ -46,25 +46,23 @@ DECL_RET_TYPE ((f[s]))
  *
  *  \brief skeleton of Field data holder
  */
-template<typename TDomain, typename DataHolder>
-struct _Field<TDomain, DataHolder>
+template<typename TDomain, typename DataContainer>
+struct _Field<TDomain, DataContainer>
 {
 
-
-
-	typedef DataHolder data_holder_type;
+	typedef DataContainer data_container_type;
 
 	typedef TDomain domain_type;
 
-	typedef _Field<domain_type, data_holder_type> this_type;
+	typedef _Field<domain_type, data_container_type> this_type;
 
-	typedef typename data_holder_type::value_type value_type;
+	typedef typename data_container_type::value_type value_type;
 	typedef typename domain_type::index_type index_type;
 	typedef typename domain_type::coordinates_type coordinates_type;
 
 	domain_type domain_;
 
-	data_holder_type data_;
+	data_container_type data_;
 
 	_Field() = delete;
 
@@ -104,20 +102,20 @@ struct _Field<TDomain, DataHolder>
 	void allocate()
 	{
 		if (!data_)
-			data_holder_type(max_hash(domain_)).swap(data_);
+			data_container_type(max_hash(domain_)).swap(data_);
 	}
 
-	data_holder_type& data()
+	data_container_type& data()
 	{
 		return data_;
 	}
 
-	data_holder_type const& data() const
+	data_container_type const& data() const
 	{
 		return data_;
 	}
 
-	void data(data_holder_type d)
+	void data(data_container_type d)
 	{
 		d.swap(data_);
 	}
@@ -163,35 +161,40 @@ struct _Field<TDomain, DataHolder>
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
-		parallel_for_each(domain_, _impl::_assign(), *this, rhs);
+		parallel_for_each(domain_ & get_domain(rhs), _impl::_assign(), *this,
+				rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{
-		parallel_for_each(domain_, _impl::plus_assign(), *this, rhs);
+		parallel_for_each(domain_ & get_domain(rhs), _impl::plus_assign(),
+				*this, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator -=(TR const &rhs)
 	{
-		parallel_for_each(domain_, _impl::minus_assign(), *this, rhs);
+		parallel_for_each(domain_ & get_domain(rhs), _impl::minus_assign(),
+				*this, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		parallel_for_each(domain_, _impl::multiplies_assign(), *this, rhs);
+		parallel_for_each(domain_ & get_domain(rhs), _impl::multiplies_assign(),
+				*this, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator /=(TR const &rhs)
 	{
-		parallel_for_each(domain_, _impl::divides_assign(), *this, rhs);
+		parallel_for_each(domain_ & get_domain(rhs), _impl::divides_assign(),
+				*this, rhs);
 		return (*this);
 	}
 ///@}
@@ -204,43 +207,45 @@ struct _Field<TDomain, DataHolder>
 template<typename ... T>
 struct _Field<Expression<T...>> : public Expression<T...>
 {
-	typedef _Field<Expression<T...>> this_type;
-	typedef field_traits<this_type> traits;
-	typedef typename traits::value_type value_type;
-	typedef typename traits::index_type index_type;
-	typedef typename traits::domain_type domain_type;
+	typedef Expression<T...> experssion_type;
+	typedef _Field<experssion_type> this_type;
 
 	friend class field_traits<this_type> ;
 
-	domain_type domain_;
-
 	_Field(Args && ... args) :
-			Expression(std::forward<Args>(args)...),
-
-			domain_(
-					traits::calculate_domain(
-							get_domain(std::forward<Args>(args))...))
+			Expression(std::forward<Args>(args)...)
 	{
 	}
 
 	operator bool() const
 	{
-		return domain_ && parallel_reduce(d, _impl::logical_and(), *this);
+		return get_domain(*this)
+				&& parallel_reduce(d, _impl::logical_and(), *this);
 	}
-	auto operator[](index_type const & s)
-	DECL_RET_TYPE((domain_.get_value(*this,s)))
 
 };
 
-template<typename TDomain, typename TDataHolder>
-struct field_traits<_Field<TDomain, TDataHolder>>
+template<typename TDomain, typename TDataContainer>
+struct field_traits<_Field<TDomain, TDataContainer>>
 
 {
-	typedef _Field<TDomain, TDataHolder> type;
+	typedef _Field<TDomain, TDataContainer> type;
 
 	typedef typename type::value_type value_type;
 
-	typedef typename type::domain_type domain_type;
+	typedef typename type::index_type index_type;
+
+	typedef typename type::coordinates_type coordinates_type;
+
+};
+
+template<typename ...T>
+struct field_traits<_Field<Expression<T...> >>
+{
+
+	typedef _Field<Expression<T...>> type;
+
+	typedef typename type::value_type value_type;
 
 	typedef typename type::index_type index_type;
 
