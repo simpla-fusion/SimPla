@@ -234,6 +234,11 @@ public:
 	static const bool value = true;
 };
 
+template<typename T>
+T& get_value(T & v)
+{
+	return v;
+}
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
 ->typename std::enable_if<(is_indexable<T,TI>::value),decltype(v[s]) >::type
@@ -267,6 +272,7 @@ template<typename T, typename TI>
 T & get_value(T* v, TI const & s)
 {
 	return v[s];
+
 }
 
 //template<typename T>

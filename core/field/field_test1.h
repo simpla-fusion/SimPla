@@ -1,30 +1,30 @@
 /*
- * fetl_test1.h
+ * field_test1.h
  *
  *  created on: 2014-3-24
  *      Author: salmon
  */
 
-#ifndef FETL_TEST1_H_
-#define FETL_TEST1_H_
+#ifndef FIELD_TEST1_H_
+#define FIELD_TEST1_H_
 
 #include <gtest/gtest.h>
 #include <random>
-#include "fetl.h"
-#include "fetl_test.h"
+#include "field.h"
+#include "field_test.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "field_update_ghosts.h"
 using namespace simpla;
 
 template<unsigned int IFORM, typename TV>
-struct TestFETLParam1
+struct TestFIELDParam1
 {
-	typedef TMesh manifold_type;
+	typedef TMesh domain_type;
 	typedef TV value_type;
 	static constexpr unsigned int iform = IFORM;
 
-//	static void SetUpMesh(manifold_type * manifold)
+//	static void SetUpMesh(domain_type * manifold)
 //	{
 //
 //	}
@@ -57,7 +57,7 @@ struct TestFETLParam1
 };
 
 template<typename TParam>
-class TestFETLBase: public testing::Test
+class TestFIELDBase: public testing::Test
 {
 protected:
 	virtual void SetUp()
@@ -80,23 +80,23 @@ protected:
 	}
 public:
 
-	typedef typename TParam::manifold_type manifold_type;
+	typedef typename TParam::domain_type domain_type;
 	typedef typename TParam::value_type value_type;
 	static constexpr unsigned int iform = TParam::iform;
 
-	typedef typename manifold_type::template field<VERTEX, Real> scalar_field_type;
-	typedef typename manifold_type::template field<VERTEX, value_type> field_type;
+	typedef typename domain_type::template field<VERTEX, Real> scalar_field_type;
+	typedef typename domain_type::template field<VERTEX, value_type> field_type;
 
-	manifold_type manifold;
+	domain_type manifold;
 	value_type default_value;
 
 };
 
-TYPED_TEST_CASE_P(TestFETLBase);
+TYPED_TEST_CASE_P(TestFIELDBase);
 
-TYPED_TEST_P(TestFETLBase, constant_real){
+TYPED_TEST_P(TestFIELDBase, constant_real){
 {
-	typename TestFixture::manifold_type const & manifold= TestFixture::manifold;
+	typename TestFixture::domain_type const & manifold= TestFixture::manifold;
 
 	if (!manifold.is_valid()) return;
 
@@ -128,10 +128,10 @@ TYPED_TEST_P(TestFETLBase, constant_real){
 }
 }
 
-TYPED_TEST_P(TestFETLBase, scalar_field){
+TYPED_TEST_P(TestFIELDBase, scalar_field){
 {
 
-	typename TestFixture::manifold_type const & manifold= TestFixture::manifold;
+	typename TestFixture::domain_type const & manifold= TestFixture::manifold;
 	if (!manifold.is_valid()) return;
 	typedef typename TestFixture::value_type value_type;
 	typedef typename TestFixture::field_type field_type;
@@ -213,42 +213,42 @@ TYPED_TEST_P(TestFETLBase, scalar_field){
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestFETLBase, constant_real, scalar_field);
+REGISTER_TYPED_TEST_CASE_P(TestFIELDBase, constant_real, scalar_field);
 
 typedef testing::Types<
 
-TestFETLParam1<VERTEX, Real>	//
-//		, TestFETLParam1<EDGE, Real>	//
-//		, TestFETLParam1<FACE, Real>	//
-//		, TestFETLParam1<VOLUME, Real>	//
+TestFIELDParam1<VERTEX, Real>	//
+//		, TestFIELDParam1<EDGE, Real>	//
+//		, TestFIELDParam1<FACE, Real>	//
+//		, TestFIELDParam1<VOLUME, Real>	//
 //
-//		, TestFETLParam1<VERTEX, Complex>	//
-//		, TestFETLParam1<EDGE, Complex>	//
-//		, TestFETLParam1<FACE, Complex>	//
-//		, TestFETLParam1<VOLUME, Complex>	//
+//		, TestFIELDParam1<VERTEX, Complex>	//
+//		, TestFIELDParam1<EDGE, Complex>	//
+//		, TestFIELDParam1<FACE, Complex>	//
+//		, TestFIELDParam1<VOLUME, Complex>	//
 //
-//		, TestFETLParam1<VERTEX, nTuple<3, Real> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, Real> >	//
-//		, TestFETLParam1<FACE, nTuple<3, Real> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, Real> >	//
+//		, TestFIELDParam1<VERTEX, nTuple<3, Real> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, Real> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, Real> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, Real> >	//
 //
-//		, TestFETLParam1<VERTEX, nTuple<3, Complex> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, Complex> >	//
-//		, TestFETLParam1<FACE, nTuple<3, Complex> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<VERTEX, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, Complex> >	//
 //
-//		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
 //
-//		, TestFETLParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFETLParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
 
 > TypeParamList;
 
-INSTANTIATE_TYPED_TEST_CASE_P(FETL, TestFETLBase, TypeParamList);
+INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestFIELDBase, TypeParamList);
 
-#endif /* FETL_TEST1_H_ */
+#endif /* FIELD_TEST1_H_ */

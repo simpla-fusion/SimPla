@@ -8,16 +8,10 @@
 #ifndef FIELD_H_
 #define FIELD_H_
 
-#include <string>
-#include <type_traits>
-#include <vector>
-#include <utility> //for move
+#include <cstdbool>
 
-#include "../utilities/log.h"
 #include "../utilities/expression_template.h"
 #include "../utilities/sp_type_traits.h"
-
-#include "../parallel/parallel.h"
 
 namespace simpla
 {
@@ -102,7 +96,7 @@ struct _Field<TDomain, DataContainer>
 	void allocate()
 	{
 		if (!data_)
-			data_container_type(max_hash(domain_)).swap(data_);
+			data_container_type(domain_.max_hash()).swap(data_);
 	}
 
 	data_container_type& data()
@@ -134,11 +128,11 @@ struct _Field<TDomain, DataContainer>
 
 	value_type & operator[](index_type const & s)
 	{
-		return get_value(data_, hash(domain_, s));
+		return get_value(data_, domain_.hash(s));
 	}
 	value_type & operator[](index_type const & s) const
 	{
-		return get_value(data_, hash(domain_, s));
+		return get_value(data_, domain_.hash(s));
 	}
 
 	template<typename ... Args>
@@ -210,8 +204,6 @@ struct _Field<Expression<T...>> : public Expression<T...>
 	typedef Expression<T...> experssion_type;
 	typedef _Field<experssion_type> this_type;
 
-	friend class field_traits<this_type> ;
-
 	_Field(Args && ... args) :
 			Expression(std::forward<Args>(args)...)
 	{
@@ -222,6 +214,9 @@ struct _Field<Expression<T...>> : public Expression<T...>
 		return get_domain(*this)
 				&& parallel_reduce(d, _impl::logical_and(), *this);
 	}
+
+	auto operator[](TI const &s)const
+	DECL_RET_TYPE(())
 
 };
 
@@ -252,11 +247,6 @@ struct field_traits<_Field<Expression<T...> >>
 	typedef typename type::coordinates_type coordinates_type;
 
 };
-
-/// \defgroup   BasicAlgebra Basic algebra
-/// @{
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
-/// @}
 
 }
 // namespace simpla

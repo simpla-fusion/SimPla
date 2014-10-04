@@ -315,7 +315,7 @@ std::ostream &operator<<(std::ostream & os, _nTuple<T...> const & v)
 	return os;
 }
 
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_nTuple)
+DEFINE_EXPRESSOPM_TEMPLATE_ARITHMETIC(_nTuple)
 
 template<unsigned int N, typename T> using nTuple=_nTuple<T,integer_sequence<unsigned int,N >>;
 

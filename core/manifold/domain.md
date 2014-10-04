@@ -44,12 +44,7 @@ Requirements for  Domain type D as a geometric object, which could be a @ref con
 
  Pseudo-Signature  				| Semantics
  -------------------------------|-------------
- unsigned int iform				| type of form, VERTEX, EDGE, FACE,VOLUME
- geometry_typ					| Geometry 
- PD boundary(  D const& )		| Boundary of domain D, PD::ndims=D::ndims-1.
  D const & parent()const		| Parent domain
- boundbox() const				| boundbox on _this_ coordinates system
- cartesian_boundbox() const		| boundbox on _Cartesian_ coordinates system
  size_t hash(index_type)const 	| get relative  postion of  grid point s in the memory  
  size_t max_hash( )const 		| get max number of grid points in memory
 
@@ -58,6 +53,11 @@ Requirements for  Domain type D as a geometric object, which could be a @ref con
 
  Pseudo-Signature  				| Semantics
  -------------------------------|-------------
+ unsigned int iform				| type of form, VERTEX, EDGE, FACE,VOLUME
+ geometry_typ					| Geometry 
+ PD boundary(  D const& )		| Boundary of domain D, PD::ndims=D::ndims-1.
+ boundbox() const				| boundbox on _this_ coordinates system
+ cartesian_boundbox() const		| boundbox on _Cartesian_ coordinates system
  gather(coordinates_type x,TF const& f)const 	| get value at x
  scatter(coordiantes_type x,v,TF f *  )const 	| scatter v at x to f
  

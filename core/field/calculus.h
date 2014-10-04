@@ -20,6 +20,11 @@ namespace simpla
 template<typename ... > class _Field;
 template<typename ... > class Expression;
 
+/// \defgroup   BasicAlgebra Basic algebra
+/// @{
+DEFINE_EXPRESSOPM_TEMPLATE_ARITHMETIC(_Field)
+/// @}
+
 /// \defgroup  ExteriorAlgebra Exterior algebra
 /// @{
 struct HodgeStar

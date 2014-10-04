@@ -5,36 +5,25 @@
  *      Author: salmon
  */
 
-#ifndef FETL_TEST_H_
-#define FETL_TEST_H_
+#ifndef FIELD_TEST_H_
+#define FIELD_TEST_H_
 #include <gtest/gtest.h>
 
-#include "fetl.h"
+#include "field.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "../io/data_stream.h"
 
 using namespace simpla;
 
-//#ifndef TMESH
-#include "../manifold/manifold.h"
-#include "../manifold/domain.h"
-#include "../manifold/geometry/cartesian.h"
-#include "../manifold/topology/structured.h"
-#include "../manifold/diff_scheme/fdm.h"
-#include "../manifold/interpolator/interpolator.h"
+class Domain;
+class Container;
 
+typedef _Field<Domain, Container> Field;
 
-typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMehtod,
-		InterpolatorLinear> TMesh;
-//#else
-//typedef TMESH TMesh;
-//#endif
-
-class TestFETL: public testing::TestWithParam<
-		std::tuple<typename TMesh::coordinates_type,
-				typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t>,
-				nTuple<TMesh::NDIMS, Real> > >
+class TestFIELD: public testing::TestWithParam<
+		std::tuple<typename Domain::coordinates_type,
+				typename Domain::coordinates_type,
+				nTuple<Domain::NDIMS, size_t>, nTuple<Domain::NDIMS, Real> > >
 {
 
 protected:
@@ -71,15 +60,15 @@ protected:
 	}
 public:
 
-	typedef TMesh mesh_type;
+	typedef Domain domain_type;
 	typedef Real value_type;
-	typedef mesh_type::scalar_type scalar_type;
-	typedef mesh_type::iterator iterator;
-	typedef mesh_type::coordinates_type coordinates_type;
+	typedef domain_type::scalar_type scalar_type;
+	typedef domain_type::iterator iterator;
+	typedef domain_type::coordinates_type coordinates_type;
 
-	mesh_type mesh;
+	domain_type mesh;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr unsigned int NDIMS = domain_type::NDIMS;
 
 	nTuple<NDIMS, Real> xmin;
 
@@ -115,11 +104,11 @@ public:
 		}
 	}
 
-	virtual ~TestFETL()
+	virtual ~TestFIELD()
 	{
 
 	}
 
 };
 
-#endif /* FETL_TEST_H_ */
+#endif /* FIELD_TEST_H_ */
