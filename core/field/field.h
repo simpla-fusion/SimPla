@@ -26,16 +26,6 @@ template<typename T> struct field_traits;
 
 template<typename ...T> struct _Field;
 
-template<typename ...T>
-void swap(_Field<T...> &l, _Field<T...> &r)
-{
-	l.swap(r);
-}
-
-template<typename ...T, typename TI>
-auto get_value(_Field<T...> && f, TI const & s)
-DECL_RET_TYPE ((f[s]))
-
 /**
  *
  *  \brief skeleton of Field data holder
@@ -80,8 +70,8 @@ struct _Field<TDomain, DataContainer>
 
 	void swap(this_type r)
 	{
-		r.data_.swap(data_);
-		r.domain_.swap(domain_);
+		simpla::swap(r.data_, data_);
+		simpla::swap(r.domain_, domain_);
 	}
 
 	bool is_same(this_type const & r) const
@@ -135,20 +125,6 @@ struct _Field<TDomain, DataContainer>
 		return get_value(data_, domain_.hash(s));
 	}
 
-	template<typename ... Args>
-	inline void scatter(Args && ... args)
-	{
-		scatter(domain_, data_, std::forward<Args>(args)...);
-	}
-
-	template<typename ... Args>
-	inline auto gather(Args && ... args) const
-	DECL_RET_TYPE( ( gather(domain_, data_, std::forward<Args>(args)... )))
-
-	template<typename ... Args>
-	inline auto operator()(Args && ... args) const
-	DECL_RET_TYPE( (gather(domain_, data_, std::forward<Args>(args)... )))
-
 ///@}
 /// @defgroup Assignment
 /// @{
@@ -192,6 +168,25 @@ struct _Field<TDomain, DataContainer>
 		return (*this);
 	}
 ///@}
+
+	/// \defgroup Function
+	/// @{
+
+	template<typename ... Args>
+	inline void scatter(Args && ... args)
+	{
+		domain_.scatter(data_, std::forward<Args>(args)...);
+	}
+
+	template<typename ... Args>
+	inline auto gather(Args && ... args) const
+	DECL_RET_TYPE( ( domain_.gather( data_, std::forward<Args>(args)... )))
+
+	template<typename ... Args>
+	inline auto operator()(Args && ... args) const
+	DECL_RET_TYPE( (domain_.gather( data_, std::forward<Args>(args)... )))
+
+	/// @}
 };
 
 /**
@@ -201,50 +196,14 @@ struct _Field<TDomain, DataContainer>
 template<typename ... T>
 struct _Field<Expression<T...>> : public Expression<T...>
 {
-	typedef Expression<T...> experssion_type;
-	typedef _Field<experssion_type> this_type;
-
-	_Field(Args && ... args) :
-			Expression(std::forward<Args>(args)...)
-	{
-	}
 
 	operator bool() const
 	{
-		return get_domain(*this)
-				&& parallel_reduce(d, _impl::logical_and(), *this);
+		auto d = get_domain(*this);
+		return d && parallel_reduce(d, _impl::logical_and(), *this);
 	}
 
-	auto operator[](TI const &s)const
-	DECL_RET_TYPE(())
-
-};
-
-template<typename TDomain, typename TDataContainer>
-struct field_traits<_Field<TDomain, TDataContainer>>
-
-{
-	typedef _Field<TDomain, TDataContainer> type;
-
-	typedef typename type::value_type value_type;
-
-	typedef typename type::index_type index_type;
-
-	typedef typename type::coordinates_type coordinates_type;
-
-};
-
-template<typename ...T>
-struct field_traits<_Field<Expression<T...> >>
-{
-
-	typedef _Field<Expression<T...>> type;
-
-	typedef typename type::value_type value_type;
-
-	typedef typename type::index_type index_type;
-
-	typedef typename type::coordinates_type coordinates_type;
+	using Expression<T...>::Expression;
 
 };
 

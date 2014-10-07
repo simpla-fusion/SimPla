@@ -315,6 +315,8 @@ std::ostream &operator<<(std::ostream & os, _nTuple<T...> const & v)
 	return os;
 }
 
+template<typename T, unsigned int N> using nTuple=_nTuple<T,std::integral_constant<unsigned int,N>>;
+
 DEFINE_EXPRESSOPM_TEMPLATE_ARITHMETIC(_nTuple)
 
 template<unsigned int N, typename T> using nTuple=_nTuple<T,integer_sequence<unsigned int,N >>;
@@ -465,16 +467,16 @@ template<typename ... T1, typename TR>
 inline auto dot(_nTuple<T1...> const &l, TR const &r)
 DECL_RET_TYPE((inner_product(l,r)))
 
-template<typename ... T1, typename ...T2> inline auto cross(
-		_nTuple<T1...> const & l, _nTuple<T2...> const & r)
-		->nTuple<3,decltype(get_value(l,0)*get_value(r,0))>
-{
-	nTuple<3, decltype(get_value(l,0)*get_value(r,0))> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
-	return std::move(res);
-}
+//template<typename ... T1, typename ...T2> inline auto cross(
+//		_nTuple<T1...> const & l, _nTuple<T2...> const & r)
+//		->nTuple<3,decltype(get_value(l,0)*get_value(r,0))>
+//{
+//	nTuple<3, decltype(get_value(l,0)*get_value(r,0))> res =
+//	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+//			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+//			- l[1] * get_value(r, 0) };
+//	return std::move(res);
+//}
 //template<unsigned int ndims, typename TExpr>
 //auto operator >>(nTuple<ndims, TExpr> const & v,
 //		unsigned int n)-> nTuple<ndims,decltype(v[0] >> n )>

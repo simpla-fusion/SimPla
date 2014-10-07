@@ -275,6 +275,20 @@ T & get_value(T* v, TI const & s)
 
 }
 
+HAS_MEMBER_FUNCTION(swap)
+
+template<typename T>
+typename std::enable_if<has_member_function_swap<T, T&>::value, void>::type //
+swap(T & l, T& r)
+{
+	l.swap(r);
+}
+template<typename T>
+typename std::enable_if<!has_member_function_swap<T, T&>::value, void>::type //
+swap(T & l, T& r)
+{
+	std::swap(l, r);
+}
 //template<typename T>
 //struct remove_const_reference
 //{
