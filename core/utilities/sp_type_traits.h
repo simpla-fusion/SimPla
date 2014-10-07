@@ -234,11 +234,6 @@ public:
 	static const bool value = true;
 };
 
-template<typename T>
-T& get_value(T & v)
-{
-	return v;
-}
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
 ->typename std::enable_if<(is_indexable<T,TI>::value),decltype(v[s]) >::type
@@ -272,23 +267,8 @@ template<typename T, typename TI>
 T & get_value(T* v, TI const & s)
 {
 	return v[s];
-
 }
 
-HAS_MEMBER_FUNCTION(swap)
-
-template<typename T>
-typename std::enable_if<has_member_function_swap<T, T&>::value, void>::type //
-swap(T & l, T& r)
-{
-	l.swap(r);
-}
-template<typename T>
-typename std::enable_if<!has_member_function_swap<T, T&>::value, void>::type //
-swap(T & l, T& r)
-{
-	std::swap(l, r);
-}
 //template<typename T>
 //struct remove_const_reference
 //{
