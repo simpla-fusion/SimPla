@@ -52,6 +52,8 @@ IF(HDF5_FOUND)
   ENDIF(HDF5_IS_PARALLEL)
 ENDIF(HDF5_FOUND)
 
+set(MPI_C_COMPILER /usr/lib64/openmpi/bin/mpicc)
+set(MPI_CXX_COMPILER /usr/lib64/openmpi/bin/mpicxx)
 FIND_PACKAGE(MPI)
 
 IF(MPI_FOUND)
@@ -195,6 +197,5 @@ add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )
 add_subdirectory(docs )
-
 
  

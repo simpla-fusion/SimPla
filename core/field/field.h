@@ -30,33 +30,36 @@ template<typename ...T> struct _Field;
  *
  *  \brief skeleton of Field data holder
  */
-template<typename TDomain, typename DataContainer>
-struct _Field<TDomain, DataContainer>
+template<typename TV, typename TDomain,
+		template<typename > class DataContainerPolicy,
+		typename ...OthersPolicies>
+struct _Field<TV, TDomain, DataContainerPolicy<TV>, OthersPolicies ...> : public OthersPolicies ...
 {
 
-	typedef DataContainer data_container_type;
-
+	typedef TV value_type;
 	typedef TDomain domain_type;
-
-	typedef _Field<domain_type, data_container_type> this_type;
-
-	typedef typename data_container_type::value_type value_type;
 	typedef typename domain_type::index_type index_type;
 	typedef typename domain_type::coordinates_type coordinates_type;
 
+	typedef DataContainerPolicy<value_type> storage_policy;
+	typedef FieldFunctionPolicy<domain_type> field_function_policy;
+
+	typedef _Field<domain_type, value_type, storage_policy,
+			field_function_policy, OthersPolicies ...> this_type;
+
 	domain_type domain_;
 
-	data_container_type data_;
+	storage_policy data_;
 
 	_Field() = delete;
 
-	_Field(TDomain const & d) :
+	_Field(domain_type const & d) :
 			domain_(d), data_(nullptr)
 	{
 	}
 
 	template<typename ...Args>
-	_Field(TDomain const & d, Args &&... args) :
+	_Field(domain_type const & d, Args &&... args) :
 			domain_(d), data_(std::forward<Args>(args)...)
 	{
 	}
@@ -86,22 +89,22 @@ struct _Field<TDomain, DataContainer>
 	void allocate()
 	{
 		if (!data_)
-			data_container_type(domain_.max_hash()).swap(data_);
+			storage_policy(domain_.max_hash()).swap(data_);
 	}
 
-	data_container_type& data()
+	storage_policy& data()
 	{
 		return data_;
 	}
 
-	data_container_type const& data() const
+	storage_policy const& data() const
 	{
 		return data_;
 	}
 
-	void data(data_container_type d)
+	void data(storage_policy d)
 	{
-		d.swap(data_);
+		simpla::swap(d, data_);
 	}
 
 	domain_type const & domain() const
@@ -118,7 +121,7 @@ struct _Field<TDomain, DataContainer>
 
 	value_type & operator[](index_type const & s)
 	{
-		return get_value(data_, domain_.hash(s));
+		return get_value(data_, domain_traits<domain_type>::hash(domain_, s));
 	}
 	value_type & operator[](index_type const & s) const
 	{
@@ -169,8 +172,8 @@ struct _Field<TDomain, DataContainer>
 	}
 ///@}
 
-	/// \defgroup Function
-	/// @{
+/// \defgroup Function
+/// @{
 
 	template<typename ... Args>
 	inline void scatter(Args && ... args)
@@ -180,13 +183,13 @@ struct _Field<TDomain, DataContainer>
 
 	template<typename ... Args>
 	inline auto gather(Args && ... args) const
-	DECL_RET_TYPE( ( domain_.gather( data_, std::forward<Args>(args)... )))
+	DECL_RET_TYPE(( domain_.gather( data_, std::forward<Args>(args)... )))
 
 	template<typename ... Args>
 	inline auto operator()(Args && ... args) const
-	DECL_RET_TYPE( (domain_.gather( data_, std::forward<Args>(args)... )))
+	DECL_RET_TYPE((domain_.gather( data_, std::forward<Args>(args)... )))
 
-	/// @}
+/// @}
 };
 
 /**
