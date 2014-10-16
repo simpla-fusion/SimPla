@@ -48,7 +48,7 @@ Value parallel_reduce(const Range& range, const OP& op, const Reduction& reduce,
 	return res;
 }
 
-template<typename Value, typename Range, typename Reduction, typename ... Args>
+template<typename Value, typename Range, typename Reduction, typename Args>
 Value parallel_reduce(const Range& range, const Reduction& reduce, Args&& args)
 {
 	auto b = begin(range);

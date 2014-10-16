@@ -260,7 +260,7 @@ auto get_value(T && v,
 template<typename T, typename TI>
 T & get_value(std::shared_ptr<T> & v, TI const & s)
 {
-	return v.data()[s];
+	return *(v.get() + s);
 }
 
 template<typename T, typename TI>
@@ -413,6 +413,21 @@ template<typename T> void decompact(T const &v, T * u)
 	*u = v;
 }
 
+HAS_MEMBER_FUNCTION(swap)
+
+template<typename T>
+typename std::enable_if<has_member_function_swap<T>::value, void>::type sp_swap(
+		T& l, T& r)
+{
+	l.swap(r);
+}
+
+template<typename T>
+typename std::enable_if<!has_member_function_swap<T>::value, void>::type sp_swap(
+		T& l, T& r)
+{
+	std::swap(l, r);
+}
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

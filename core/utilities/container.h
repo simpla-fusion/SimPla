@@ -1,0 +1,62 @@
+/*
+ * container.h
+ *
+ *  Created on: Oct 13, 2014
+ *      Author: salmon
+ */
+
+#ifndef CONTAINER_H_
+#define CONTAINER_H_
+
+#include <memory>
+
+#include "memory_pool.h"
+
+namespace simpla
+{
+
+template<typename TContainer> struct container_traits
+{
+	typedef TContainer container_type;
+	typedef typename TContainer::value_type value_type;
+
+	static container_type allocate(size_t s)
+	{
+		return std::move(container_type(s));
+	}
+
+	static bool is_empty(container_type const& that)
+	{
+		return that.empty();
+	}
+
+	static bool is_same(container_type const& lhs, container_type const& rhs)
+	{
+		return lhs == rhs;
+	}
+};
+
+template<typename TV> struct container_traits<std::shared_ptr<TV>>
+{
+	typedef std::shared_ptr<TV> container_type;
+	typedef TV value_type;
+
+	static container_type allocate(size_t s)
+	{
+		return MEMPOOL.template make_shared < value_type > (s);
+	}
+
+	static bool is_empty(container_type const& that)
+	{
+		return that == nullptr;
+	}
+
+	static bool is_same(container_type const& lhs, container_type const& rhs)
+	{
+		return lhs == rhs;
+	}
+};
+
+}
+// namespace simpla
+#endif /* CONTAINER_H_ */

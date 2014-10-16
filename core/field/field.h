@@ -9,188 +9,58 @@
 #define FIELD_H_
 
 #include <cstdbool>
+#include <memory>
 
-#include "../utilities/expression_template.h"
-#include "../utilities/sp_type_traits.h"
+#include "base_field.h"
 
 namespace simpla
 {
-/**
- *  \brief traits
- */
-template<typename T> struct field_traits;
 
 /**
  *  \brief Field concept
  */
-
-template<typename ...T> struct _Field;
+template<typename, typename > struct BaseField;
+template<typename ... >struct Expression;
+template<typename ... >struct _Field;
 
 /**
  *
  *  \brief skeleton of Field data holder
  */
-template<typename TV, typename TDomain,
-		template<typename > class DataContainerPolicy,
-		typename ...OthersPolicies>
-struct _Field<TV, TDomain, DataContainerPolicy<TV>, OthersPolicies ...> : public OthersPolicies ...
+template<typename TDomain, typename Container,
+		template<typename > class ... Policies>
+struct _Field<BaseField<TDomain, Container>,
+		Policies<BaseField<TDomain, Container>> ...> : public BaseField<TDomain,
+		Container>, public Policies<BaseField<TDomain, Container>> ...
 {
 
-	typedef TV value_type;
-	typedef TDomain domain_type;
-	typedef typename domain_type::index_type index_type;
-	typedef typename domain_type::coordinates_type coordinates_type;
+	typedef BaseField<TDomain, Container> base_type;
 
-	typedef DataContainerPolicy<value_type> storage_policy;
-	typedef FieldFunctionPolicy<domain_type> field_function_policy;
+	typedef _Field<base_type, Policies<base_type> ...> this_type;
 
-	typedef _Field<domain_type, value_type, storage_policy,
-			field_function_policy, OthersPolicies ...> this_type;
-
-	domain_type domain_;
-
-	storage_policy data_;
-
-	_Field() = delete;
-
-	_Field(domain_type const & d) :
-			domain_(d), data_(nullptr)
-	{
-	}
+public:
 
 	template<typename ...Args>
-	_Field(domain_type const & d, Args &&... args) :
-			domain_(d), data_(std::forward<Args>(args)...)
+	_Field(Args &&...args) :
+			base_type(std::forward<Args>(args)...), Policies<base_type>(*this)...
 	{
 	}
-	_Field(this_type const & r) :
-			domain_(r.domain_), data_(r.data_)
+	_Field(this_type const & that) :
+			base_type(that), Policies<base_type>(*this)...
 	{
 	}
+
 	~_Field()
 	{
 	}
 
-	void swap(this_type r)
-	{
-		simpla::swap(r.data_, data_);
-		simpla::swap(r.domain_, domain_);
-	}
-
-	bool is_same(this_type const & r) const
-	{
-		return data_ == r.data_;
-	}
-	template<typename TR>
-	bool is_same(TR const &) const
-	{
-		return false;
-	}
-	void allocate()
-	{
-		if (!data_)
-			storage_policy(domain_.max_hash()).swap(data_);
-	}
-
-	storage_policy& data()
-	{
-		return data_;
-	}
-
-	storage_policy const& data() const
-	{
-		return data_;
-	}
-
-	void data(storage_policy d)
-	{
-		simpla::swap(d, data_);
-	}
-
-	domain_type const & domain() const
-	{
-		return domain_;
-	}
-
-	void domain(domain_type d) const
-	{
-		d.swap(domain_);
-	}
-	/// @defgroup Access operation
-	/// @{
-
-	value_type & operator[](index_type const & s)
-	{
-		return get_value(data_, domain_traits<domain_type>::hash(domain_, s));
-	}
-	value_type & operator[](index_type const & s) const
-	{
-		return get_value(data_, domain_.hash(s));
-	}
-
-///@}
-/// @defgroup Assignment
-/// @{
-	template<typename TR> inline this_type &
-	operator =(TR const &rhs)
-	{
-		parallel_for_each(domain_ & get_domain(rhs), _impl::_assign(), *this,
-				rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type & operator +=(TR const &rhs)
-	{
-		parallel_for_each(domain_ & get_domain(rhs), _impl::plus_assign(),
-				*this, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type & operator -=(TR const &rhs)
-	{
-		parallel_for_each(domain_ & get_domain(rhs), _impl::minus_assign(),
-				*this, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type & operator *=(TR const &rhs)
-	{
-		parallel_for_each(domain_ & get_domain(rhs), _impl::multiplies_assign(),
-				*this, rhs);
-		return (*this);
-	}
-
-	template<typename TR>
-	inline this_type & operator /=(TR const &rhs)
-	{
-		parallel_for_each(domain_ & get_domain(rhs), _impl::divides_assign(),
-				*this, rhs);
-		return (*this);
-	}
-///@}
-
-/// \defgroup Function
-/// @{
-
-	template<typename ... Args>
-	inline void scatter(Args && ... args)
-	{
-		domain_.scatter(data_, std::forward<Args>(args)...);
-	}
-
-	template<typename ... Args>
-	inline auto gather(Args && ... args) const
-	DECL_RET_TYPE(( domain_.gather( data_, std::forward<Args>(args)... )))
-
-	template<typename ... Args>
-	inline auto operator()(Args && ... args) const
-	DECL_RET_TYPE((domain_.gather( data_, std::forward<Args>(args)... )))
-
-/// @}
-};
+	using base_type::operator=;
+	using base_type::operator+=;
+	using base_type::operator-=;
+	using base_type::operator*=;
+	using base_type::operator/=;
+}
+;
 
 /**
  *     \brief skeleton of Field expression
@@ -210,6 +80,8 @@ struct _Field<Expression<T...>> : public Expression<T...>
 
 };
 
+template<typename TDomain, typename TV, template<typename > class ... Policies> using Field=
+_Field<BaseField<TDomain, std::shared_ptr<TV>> ,Policies<BaseField<TDomain, std::shared_ptr<TV>>> ...>;
 }
 // namespace simpla
 

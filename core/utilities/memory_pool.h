@@ -39,8 +39,8 @@ private:
 
 public:
 
-	MemoryPool()
-			: MAX_POOL_SIZE(4), ratio_(2) //2G
+	MemoryPool() :
+			MAX_POOL_SIZE(4), ratio_(2) //2G
 	{
 	}
 	~MemoryPool()
@@ -61,7 +61,8 @@ public:
 	 * @param p_used
 	 * @return
 	 */
-	size_t get_memory_size(size_t * p_unused = nullptr, size_t * p_used = nullptr) const
+	size_t get_memory_size(size_t * p_unused = nullptr, size_t * p_used =
+			nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
@@ -88,7 +89,8 @@ public:
 		return unused_memory + used_memory;
 	}
 
-	double get_memory_sizeInGB(double * p_unused = nullptr, double * p_used = nullptr) const
+	double get_memory_sizeInGB(double * p_unused = nullptr, double * p_used =
+			nullptr) const
 	{
 		size_t unused_memory = 0;
 		size_t used_memory = 0;
@@ -96,12 +98,14 @@ public:
 
 		if (p_unused != nullptr)
 		{
-			*p_unused = static_cast<double>(unused_memory) / static_cast<double>(ONE_GIGA);
+			*p_unused = static_cast<double>(unused_memory)
+					/ static_cast<double>(ONE_GIGA);
 		}
 
 		if (p_used != nullptr)
 		{
-			*p_used = static_cast<double>(used_memory) / static_cast<double>(ONE_GIGA);
+			*p_used = static_cast<double>(used_memory)
+					/ static_cast<double>(ONE_GIGA);
 		}
 
 		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
@@ -119,7 +123,8 @@ public:
 
 	inline void deallocate(void * p, size_t size = 0)
 	{
-		auto it = released_raw_ptr_.find(std::hash<byte_type *>()(reinterpret_cast<byte_type*>(p)));
+		auto it = released_raw_ptr_.find(
+				std::hash<byte_type *>()(reinterpret_cast<byte_type*>(p)));
 
 		if (it != released_raw_ptr_.end())
 		{
@@ -135,14 +140,16 @@ public:
 	}
 
 	template<typename TV>
-	inline std::shared_ptr<TV> allocate_shared_ptr(size_t demand)
+	std::shared_ptr<TV> make_shared(size_t demand)
 	{
-		return std::shared_ptr<TV>(reinterpret_cast<TV*>(allocate(demand * sizeof(TV))), deallocate_m);
+		return std::shared_ptr<TV>(
+				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
+				deallocate_m);
 	}
 
 	inline std::shared_ptr<ByteType> allocate_byte_shared_ptr(size_t demand)
 	{
-		return allocate_shared_ptr<ByteType>(demand);
+		return make_shared<ByteType>(demand);
 	}
 
 private:

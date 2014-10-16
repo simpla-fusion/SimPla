@@ -12,7 +12,7 @@
 namespace simpla
 {
 class split_tag;
-template<typename ...> class Field;
+template<typename ...> class _Field;
 
 template<typename TG, unsigned int IFORM>
 class Domain
@@ -153,59 +153,20 @@ public:
 
 }
 ;
-HAS_MEMBER_FUNCTION(domain);
-
-template<typename ... T>
-constexpr Identity get_domain(T && ...)
-{
-	return std::move(Identity());
-}
-
-constexpr Zero get_domain(Zero)
-{
-	return std::move(Zero());
-}
 
 template<typename M, unsigned int I, typename TL>
-auto get_domain(Field<Domain<M, I>, TL> const & f)
+auto get_domain(_Field<Domain<M, I>, TL> const & f)
 DECL_RET_TYPE((f.domain()))
 
 template<typename TOP, typename TL>
-auto get_domain(Field<Expression<TOP, TL> > const & expr)
+auto get_domain(_Field<Expression<TOP, TL> > const & expr)
 DECL_RET_TYPE ((get_domain(expr.lhs) ))
 
 template<typename TOP, typename TL, typename TR>
-auto get_domain(Field<Expression<TOP, TL, TR>> const & expr)
+auto get_domain(_Field<Expression<TOP, TL, TR>> const & expr)
 DECL_RET_TYPE ((get_domain(expr.lhs)&get_domain(expr.rhs)))
 
-template<typename TG, unsigned int IL, unsigned int IR>
-Domain<TG, IL> operator &(Domain<TG, IL> const & l, Domain<TG, IL> const & r)
-{
-	//TODO UNIMPLEMENT
-	return l;
-}
 
-template<typename TG, unsigned int IL>
-Domain<TG, IL> operator &(Domain<TG, IL> const & l, Identity)
-{
-	return l;
-}
-template<typename TG, unsigned int IL>
-Domain<TG, IL> operator &(Identity, Domain<TG, IL> const & l)
-{
-	return l;
-}
-
-template<typename TG, unsigned int IL>
-constexpr Zero operator &(Domain<TG, IL> const & l, Zero)
-{
-	return std::move(Zero());
-}
-template<typename TG, unsigned int IL>
-constexpr Zero operator &(Zero, Domain<TG, IL> const & l)
-{
-	return std::move(Zero());
-}
 }
 // namespace simpla
 

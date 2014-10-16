@@ -7,10 +7,19 @@
 
 #ifndef BLOCK_RANGE_H_
 #define BLOCK_RANGE_H_
-#include "../utilities/range.h"
+
+#include <cstdbool>
+#include <cstddef>
+
+#include "../utilities/log.h"
 
 namespace simpla
 {
+
+struct split_tag
+{
+};
+
 /**
  *   is compatible with TBB block_range  1D,2D,3D
  */
@@ -18,18 +27,17 @@ namespace simpla
 template<typename T>
 class BlockRange
 {
-
-	typedef T const_iterator;
+public:
 	typedef T value_type;
+	typedef BlockRange<value_type> this_type;
 
 	//! Type for size of a range
 	typedef std::size_t size_type;
 
-	typedef BlockRange<T> this_type;
-
 	/// \ingroup conecpt_range
 	BlockRange(this_type const &)  //! Copy constructor
-			: i_e_(), i_b_(),
+	:
+			i_e_(), i_b_(),
 
 			o_e_(i_e_),
 
@@ -46,7 +54,8 @@ class BlockRange
 	}
 
 	BlockRange(this_type & r, split_tag) //! Split range r into two subranges.
-			: i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
+	:
+			i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
 
 			o_e_(r.i_e_),
 
@@ -56,15 +65,17 @@ class BlockRange
 
 			g_b_(r.g_e_),
 
-			grainsize_(grainsize),
+//			grainsize_(grainsize),
 
 			ghostwidth_(r.ghostwidth_)
 
 	{
 	}
 
-	BlockRange(value_type b, value_type e, size_type grainsize = 1, size_type ghost_width = 2) //! Split range r into two subranges.
-			: i_e_(e), i_b_(b),
+	BlockRange(value_type b, value_type e, size_type grainsize = 1,
+			size_type ghost_width = 2) //! Split range r into two subranges.
+	:
+			i_e_(e), i_b_(b),
 
 			o_e_(e + ghost_width),
 
@@ -91,28 +102,69 @@ class BlockRange
 	{
 		return grainsize_ > size();
 	}
+
+	struct iterator
+	{
+		value_type v_;
+		iterator(value_type const &v) :
+				v_(v)
+		{
+
+		}
+		~iterator()
+		{
+
+		}
+		value_type operator*() const
+		{
+			return v_;
+		}
+
+		iterator & operator++()
+		{
+			++v_;
+			return *this;
+		}
+		iterator operator++(int) const
+		{
+			this_type res(v_);
+			++res;
+			return std::move(res);
+		}
+
+		bool operator==(iterator const & that) const
+		{
+			return v_ == that.v_;
+		}
+
+		bool operator!=(iterator const & that) const
+		{
+			return v_ != that.v_;
+		}
+
+	};
 /// \ingroup container_range
 
-	const_iterator begin() const
+	iterator begin() const
 	{
-		return i_b_;
+		return std::move(iterator(i_b_));
 	}
 
-	const_iterator end() const
+	iterator end() const
 	{
-		return i_e_;
+		return std::move(iterator(i_e_));
 	}
 	size_type size() const
 	{
 		return size_type(end() - begin());
 	}
 
-	const_iterator outter_begin() const
+	iterator outter_begin() const
 	{
 		return o_b_;
 	}
 
-	const_iterator outter_end() const
+	iterator outter_end() const
 	{
 		return o_e_;
 	}
@@ -122,12 +174,12 @@ class BlockRange
 		return size_type(end() - begin());
 	}
 
-	const_iterator global_begin() const
+	iterator global_begin() const
 	{
 		return g_b_;
 	}
 
-	const_iterator global_end() const
+	iterator global_end() const
 	{
 		return g_e_;
 	}
@@ -139,6 +191,11 @@ class BlockRange
 	size_type hash(value_type const &i) const
 	{
 		return i - i_b_;
+	}
+
+	size_type max_hash() const
+	{
+		return i_e_ - i_b_;
 	}
 private:
 	value_type i_e_, i_b_;
@@ -159,59 +216,61 @@ private:
 
 }
 ;
-template<typename T, unsigned int N>
-class BlockRange<nTuple<N, T>>
-{
-public:
+//template<typename T, unsigned int N>
+//class BlockRange<nTuple<N, T>>
+//{
+//public:
+//
+//	typedef T const_iterator;
+//
+//	typedef T value_type;
+//	//! Type for size of a range
+//	typedef std::size_t size_type;
+//	static constexpr unsigned ndims = N;
+//
+//	typedef BlockRange<T, N> this_type;
+//
+//	typedef nTuple<N, BlockRange<T, 1>> base_type;
+//
+//	/// \ingroup conecpt_range
+//	BlockRange(this_type const & r)  //! Copy constructor
+//	:
+//			base_type(r)
+//	{
+//
+//	}
+//
+//	BlockRange(this_type & r, split_tag)  //! Split range r into two subranges.
+//	{
+//
+//	}
+//
+//	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e,
+//			size_type grainsize = 1, size_type ghost_width = 2) //! Split range r into two subranges.
+//	{
+//
+//	}
+//	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e,
+//			nTuple<N, size_type> const & grainsize,
+//			nTuple<N, size_type> ghost_width) //! Split range r into two subranges.
+//
+//	{
+//	}
+//	~BlockRange() //! Destructor
+//	{
+//
+//	}
+//
+//	bool empty() const; //! True if range is empty
+//
+//	bool is_divisible() const //!True if range can be partitioned into two subranges
+//
+//	/// \ingroup BlockRange
+//private:
+//	unsigned int ndims = 3;
+//
+//};
 
-	typedef T const_iterator;
-
-	typedef T value_type;
-	//! Type for size of a range
-	typedef std::size_t size_type;
-	static constexpr unsigned ndims = N;
-
-	typedef BlockRange<T, N> this_type;
-
-	typedef nTuple<N, BlockRange<T, 1>> base_type;
-
-	/// \ingroup conecpt_range
-	BlockRange(this_type const & r)  //! Copy constructor
-			: base_type(r)
-	{
-
-	}
-
-	BlockRange(this_type & r, split_tag)  //! Split range r into two subranges.
-	{
-
-	}
-
-	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e, size_type grainsize = 1,
-	        size_type ghost_width = 2) //! Split range r into two subranges.
-	{
-
-	}
-	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e, nTuple<N, size_type> const & grainsize,
-	        nTuple<N, size_type> ghost_width) //! Split range r into two subranges.
-
-	{
-	}
-	~BlockRange() //! Destructor
-	{
-
-	}
-
-	bool empty() const; //! True if range is empty
-
-	bool is_divisible() const //!True if range can be partitioned into two subranges
-
-	/// \ingroup BlockRange
-private:
-	unsigned int ndims = 3;
-
-};
-
-}  // namespace simpla
+}// namespace simpla
 
 #endif /* BLOCK_RANGE_H_ */
