@@ -11,11 +11,7 @@
 
 #include "field.h"
 using namespace simpla;
-#include <vector>
-int main(int argc, char **argv)
-{
-	_Field<double> f;
-}
+
 
 //#include "../utilities/log.h"
 //#include "../utilities/pretty_stream.h"

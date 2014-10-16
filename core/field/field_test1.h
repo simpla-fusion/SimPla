@@ -73,9 +73,9 @@ protected:
 		nTuple<3, size_t> dims =
 		{ 16, 32, 67 };
 
-		manifold.set_dimensions(dims);
-		manifold.set_extents(xmin, xmax);
-		manifold.update();
+		domain.set_dimensions(dims);
+		domain.set_extents(xmin, xmax);
+		domain.update();
 
 	}
 public:
@@ -87,7 +87,7 @@ public:
 	typedef typename domain_type::template field<VERTEX, Real> scalar_field_type;
 	typedef typename domain_type::template field<VERTEX, value_type> field_type;
 
-	domain_type manifold;
+	domain_type domain;
 	value_type default_value;
 
 };

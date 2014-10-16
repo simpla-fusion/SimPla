@@ -8,8 +8,6 @@
 #ifndef BASE_FIELD_H_
 #define BASE_FIELD_H_
 
-#include <stddef.h>
-
 #include "../utilities/container.h"
 #include "../utilities/sp_type_traits.h"
 #include "../manifold/domain_traits.h"
@@ -114,8 +112,10 @@ struct BaseField
 	}
 
 	template<typename TI>
-	auto operator[](TI const & s) const
-	DECL_RET_TYPE(( get_value( data_, domain_.hash(s))))
+	value_type const & operator[](TI const & s) const
+	{
+		return (get_value(data_, domain_.hash(s)));
+	}
 
 	///@}
 
@@ -125,6 +125,13 @@ struct BaseField
 	operator =(TR const &that)
 	{
 		allocate();
+//
+//
+//		for (auto const& s : domain_)
+//		{
+//			this->operator[](s) = get_value(that, s);
+//		}
+
 		parallel_for_each(domain_ & get_domain(that), _impl::_assign(), *this,
 				that);
 		return (*this);

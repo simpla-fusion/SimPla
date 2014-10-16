@@ -264,6 +264,12 @@ T & get_value(std::shared_ptr<T> & v, TI const & s)
 }
 
 template<typename T, typename TI>
+T const& get_value(std::shared_ptr<T> const& v, TI const & s)
+{
+	return *(v.get() + s);
+}
+
+template<typename T, typename TI>
 T & get_value(T* v, TI const & s)
 {
 	return v[s];

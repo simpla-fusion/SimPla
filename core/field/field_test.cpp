@@ -16,7 +16,7 @@ int main(int argc, char **argv)
 	Field<BlockRange<size_t>, double> f(domain);
 
 	std::cout << f.size() << std::endl;
-	f = 1.0;
+	f = 1.23456;
 
 	for (int i = 0; i < 10; ++i)
 	{

@@ -21,10 +21,8 @@ void update_ghosts(Field<Domain<TM, IFORM>, TC>* field, Others &&...others)
 
 	UNIMPLEMENT;
 }
-template<typename TM, unsigned int IFORM, typename TV, typename ...Others>
-void update_ghosts(
-		Field<Domain<TM, IFORM>,
-				DenseContainer<typename TM::compact_index_type, TV>>* field,
+template<typename TDomain, typename TContainer, typename ...Others>
+void update_ghosts(_Field<BaseField<TDomain, TContainer>, Others...>* field,
 		Others &&...others)
 {
 

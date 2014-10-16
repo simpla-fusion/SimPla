@@ -35,21 +35,21 @@ public:
 	typedef std::size_t size_type;
 
 	/// \ingroup conecpt_range
-	BlockRange(this_type const &)  //! Copy constructor
+	BlockRange(this_type const & that)  //! Copy constructor
 	:
-			i_e_(), i_b_(),
+			i_e_(that.i_e_), i_b_(that.i_b_),
 
-			o_e_(i_e_),
+			o_e_(that.i_e_),
 
-			o_b_(i_b_),
+			o_b_(that.i_b_),
 
-			g_e_(i_e_),
+			g_e_(that.i_e_),
 
-			g_b_(i_b_),
+			g_b_(that.i_b_),
 
-			grainsize_(1),
+			grainsize_(that.grainsize_),
 
-			ghostwidth_(0)
+			ghostwidth_(that.ghostwidth_)
 	{
 	}
 
@@ -106,6 +106,12 @@ public:
 	struct iterator
 	{
 		value_type v_;
+
+		iterator(iterator const& that) :
+				v_(that.v_)
+		{
+
+		}
 		iterator(value_type const &v) :
 				v_(v)
 		{
