@@ -10,17 +10,52 @@
 
 #include <random>
 #include <gtest/gtest.h>
-
+#include "field.h"
+#include "../manifold/calculus.h"
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
-#include "fetl.h"
-#include "fetl_test.h"
 
 using namespace simpla;
 
-TEST_P(TestFETL, vector_arithmetic)
+template<typename TField>
+class TestField: public testing::Test
 {
-	if (!mesh.is_valid()) return;
+protected:
+	virtual void SetUp()
+	{
+		LOGGER.set_stdout_visable_level(10);
+
+		domain_type(12, 20).swap(domain);
+
+	}
+public:
+
+	typedef typename TField::domain_type domain_type;
+	typedef typename TField::value_type value_type;
+
+	domain_type domain;
+	value_type default_value;
+
+	typedef Field<domain_type, value_type> field_type;
+
+	Field<domain_type, value_type> make_field() const
+	{
+		return std::move(Field<domain_type, value_type>(domain));
+	}
+
+	Field<domain_type, Real> make_scalar_field() const
+	{
+		return std::move(Field<domain_type, Real>(domain));
+	}
+
+};
+
+TYPED_TEST_CASE_P(TestField);
+
+TYPED_TEST_P(TestField, vector_arithmetic)
+{
+	if (!mesh.is_valid())
+		return;
 
 	auto f0 = mesh.make_field<VERTEX, value_type>();
 	auto f1 = mesh.make_field<EDGE, value_type>();
@@ -64,27 +99,23 @@ TEST_P(TestFETL, vector_arithmetic)
 		v = vc * uniform_dist(gen);
 	}
 
-	update_ghosts(&f1a);
-	update_ghosts(&f2a);
-	update_ghosts(&f3);
+	LOG_CMD(f2b = cross(f1a, f1b));
+	LOG_CMD(f3 = dot(f1a, f2a));
+	LOG_CMD(f3 = dot(f2a, f1a));
+	LOG_CMD(f3 = inner_product(f2a, f2a));
+	LOG_CMD(f3 = inner_product(f1a, f1a));
 
-	LOG_CMD(f2b = Cross(f1a, f1b));
-	LOG_CMD(f3 = Dot(f1a, f2a));
-	LOG_CMD(f3 = Dot(f2a, f1a));
-	LOG_CMD(f3 = InnerProduct(f2a, f2a));
-	LOG_CMD(f3 = InnerProduct(f1a, f1a));
+	LOG_CMD(f0 = wedge(f0, f0));
+	LOG_CMD(f1b = wedge(f0, f1a));
+	LOG_CMD(f1b = wedge(f1a, f0));
+	LOG_CMD(f2b = wedge(f0, f2a));
+	LOG_CMD(f2b = wedge(f2a, f0));
+	LOG_CMD(f3 = wedge(f0, f3));
+	LOG_CMD(f3 = wedge(f3, f0));
 
-	LOG_CMD(f0 = Wedge(f0, f0));
-	LOG_CMD(f1b = Wedge(f0, f1a));
-	LOG_CMD(f1b = Wedge(f1a, f0));
-	LOG_CMD(f2b = Wedge(f0, f2a));
-	LOG_CMD(f2b = Wedge(f2a, f0));
-	LOG_CMD(f3 = Wedge(f0, f3));
-	LOG_CMD(f3 = Wedge(f3, f0));
-
-	LOG_CMD(f2a = Wedge(f1a, f1b));
-	LOG_CMD(f3 = Wedge(f1a, f2b));
-	LOG_CMD(f3 = Wedge(f2a, f1b));
+	LOG_CMD(f2a = wedge(f1a, f1b));
+	LOG_CMD(f3 = wedge(f1a, f2b));
+	LOG_CMD(f3 = wedge(f2a, f1b));
 
 }
 

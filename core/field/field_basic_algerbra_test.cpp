@@ -1,5 +1,5 @@
 /*
- * field_test.cpp
+ * field_basic_algerbra_test.cpp
  *
  *  Created on: Oct 11, 2014
  *      Author: salmon
@@ -8,10 +8,9 @@
 #include <gtest/gtest.h>
 
 #include "field.h"
-
-#include "field_test1.h"
-
+#include "field_basic_algerbra_test.h"
 #include "../parallel/block_range.h"
+
 using namespace simpla;
 
 typedef testing::Types< //

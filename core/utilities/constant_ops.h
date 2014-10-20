@@ -110,6 +110,40 @@ DECL_RET_TYPE ((lhs))
 template<typename TR> inline auto   //
 operator==(Zero, TR const & rhs)
 DECL_RET_TYPE ((rhs))
+
+constexpr Identity operator &(Identity, Identity)
+{
+	return Identity();
+}
+template<typename TL>
+TL const & operator &(TL const & l, Identity)
+{
+	return l;
+}
+template<typename TR>
+TR const & operator &(Identity, TR const & r)
+{
+	return r;
+}
+
+template<typename TL>
+constexpr Zero operator
+&(TL const & l, Zero)
+{
+	return std::move(Zero());
+}
+template<typename TR>
+constexpr Zero operator &(Zero, TR const & l)
+{
+	return std::move(Zero());
+}
+
+template<typename TR>
+constexpr Zero operator &(Zero, Zero)
+{
+	return std::move(Zero());
+}
+
 }  // namespace simpla
 
 #endif /* CONSTANT_OPS_H_ */

@@ -12,10 +12,12 @@
 #include <cstdbool>
 #include <memory>
 
-#include "../utilities/container.h"
+#include "field_traits.h"
+
+#include "../utilities/container_traits.h"
+
 #include "../utilities/expression_template.h"
 #include "../utilities/sp_type_traits.h"
-#include "../manifold/domain_traits.h"
 #include "../parallel/parallel.h"
 
 namespace simpla
@@ -27,6 +29,7 @@ namespace simpla
 template<typename ... >struct Expression;
 template<typename ... >struct _Field;
 
+// namespace _impl
 /**
  *
  *  \brief skeleton of Field data holder
@@ -125,8 +128,13 @@ public:
 
 	}
 
-	// @defgroup Access operation
-	// @
+	void clear()
+	{
+		container_traits<container_type>::clear(data_, size());
+	}
+
+// @defgroup Access operation
+// @
 
 	template<typename TI>
 	value_type & operator[](TI const & s)
@@ -140,22 +148,19 @@ public:
 		return (get_value(data_, domain_.hash(s)));
 	}
 
-	///@}
+///@}
 
-	/// @defgroup Assignment
-	/// @{
+/// @defgroup Assignment
+/// @{
 	template<typename TR> inline this_type &
 	operator =(TR const &that)
 	{
 		allocate();
-		for (auto const& s : domain_ & get_domain(that))
+
+		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
 		{
-			get_value(data_, domain_.hash(s)) = domain_.calcuate(that, s);
-		}
-//		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
-//		{
-//			get_value(data_,domain_.hash(s))=domain_.calcuate(that,s);
-//		});
+			calculate(domain_,_impl::_assign(),s,*this,that);
+		});
 
 		return (*this);
 	}
@@ -164,8 +169,12 @@ public:
 	inline this_type & operator +=(TR const &that)
 	{
 		allocate();
-		parallel_for_each(domain_ & get_domain(that), _impl::plus_assign(),
-				*this, that);
+
+		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
+		{
+			calculate(domain_,_impl::plus_assign(),s,*this,that);
+		});
+
 		return (*this);
 
 	}
@@ -174,8 +183,11 @@ public:
 	inline this_type & operator -=(TR const &that)
 	{
 		allocate();
-		parallel_for_each(domain_ & get_domain(that), _impl::minus_assign(),
-				*this, that);
+		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
+		{
+			calculate(domain_,_impl::minus_assign(),s,*this,that);
+		});
+
 		return (*this);
 	}
 
@@ -183,8 +195,12 @@ public:
 	inline this_type & operator *=(TR const &that)
 	{
 		allocate();
-		parallel_for_each(domain_ & get_domain(that),
-				_impl::multiplies_assign(), *this, that);
+
+		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
+		{
+			calculate(domain_,_impl::multiplies_assign(),s,*this,that );
+		});
+
 		return (*this);
 	}
 
@@ -192,23 +208,30 @@ public:
 	inline this_type & operator /=(TR const &that)
 	{
 		allocate();
-		parallel_for_each(domain_ & get_domain(that), _impl::divides_assign(),
-				*this, that);
+
+		parallel_for(domain_ & get_domain(that), [&](index_type const & s)
+		{
+			calculate(domain_,_impl::divides_assign(),s,*this,that);
+		});
+
 		return (*this);
 	}
-	///@}
+///@}
 
 	template<typename ...Args>
 	auto operator()(Args && ... args) const
-	DECL_RET_TYPE((gather(domain_,data_,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((simpla::gather(domain_,
+							*this,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto gather(Args && ... args) const
-	DECL_RET_TYPE((gather(domain_, data_,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((simpla::gather(domain_,
+							*this,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto scatter(Args && ... args)
-	DECL_RET_TYPE((scatter(domain_,data_,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((simpla::scatter(domain_,
+							*this,std::forward<Args>(args)...)))
 
 }
 ;
@@ -230,12 +253,13 @@ struct _Field<Expression<T...>> : public Expression<T...>
 	using Expression<T...>::Expression;
 
 };
+
 /// \defgroup   BasicAlgebra Basic algebra
 /// @{
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
 /// @}
 
-template<typename TDomain, typename TV> using Field=_Field<TDomain, std::shared_ptr<TV> >;
+template<typename TDomain, typename TV> using Field= _Field<TDomain, std::shared_ptr<TV> >;
 }
 // namespace simpla
 

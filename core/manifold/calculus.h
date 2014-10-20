@@ -20,8 +20,15 @@ namespace simpla
 template<typename ... > class _Field;
 template<typename ... > class Expression;
 
+template<typename TManifold, unsigned int IFORM, typename ...Others>
+struct field_traits<_Field<Domain<TManifold, IFORM>, Others...>>
+{
+	static constexpr unsigned int iform = IFORM;
+};
 /// \defgroup  ExteriorAlgebra Exterior algebra
 /// @{
+namespace _impl
+{
 struct HodgeStar
 {
 };
@@ -41,27 +48,29 @@ struct ExteriorDerivative
 struct CodifferentialDerivative
 {
 };
+} //namespace _impl
 
 template<typename ... T>
-inline _Field<Expression<HodgeStar, _Field<T...>>> hodge_star(_Field<T...> const & f)
+inline _Field<Expression<_impl::HodgeStar, _Field<T...>>> hodge_star(_Field<T...> const & f)
 {
-	return std::move((_Field<Expression<HodgeStar, _Field<T...>>>(f)));
+	return std::move((_Field<Expression<_impl::HodgeStar, _Field<T...>>>(f)));
 }
 
 template<typename ... T, typename TR>
-inline _Field<Expression<Wedge, _Field<T...>, TR>> wedge(_Field<T...> const & l,
-		TR const & r)
+inline _Field<Expression<_impl::Wedge, _Field<T...>, TR>> wedge(
+		_Field<T...> const & l, TR const & r)
 {
-	return std::move(_Field<Expression<Wedge, _Field<T...>, TR>>(l, r));
+	return std::move(_Field<Expression<_impl::Wedge, _Field<T...>, TR>>(l, r));
 }
 
 template<typename ...T, typename TR>
-inline auto interior_product(_Field<T...> const & l, TR const & r)
-DECL_RET_TYPE ((_Field<Expression<InteriorProduct,_Field<T...>, TR>>(l, r)))
+inline auto interior_product(_Field<T...> const & l,
+		TR const & r)
+				DECL_RET_TYPE ((_Field<Expression<_impl::InteriorProduct,_Field<T...>, TR>>(l, r)))
 
 template<typename ...T, typename ... Others>
 inline auto exterior_derivative(_Field<T...> const & f, Others && ...others)
-DECL_RET_TYPE((_Field<Expression<ExteriorDerivative, _Field<T...>>>(f,
+DECL_RET_TYPE((_Field<Expression<_impl::ExteriorDerivative, _Field<T...>>>(f,
 						std::forward<Others>(others)...)))
 
 template<typename ...T, typename ... Others>

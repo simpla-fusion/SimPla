@@ -1,12 +1,12 @@
 /*
- * container.h
+ * container_traits.h
  *
  *  Created on: Oct 13, 2014
  *      Author: salmon
  */
 
-#ifndef CONTAINER_H_
-#define CONTAINER_H_
+#ifndef CONTAINER_TRAITS_H_
+#define CONTAINER_TRAITS_H_
 
 #include <memory>
 
@@ -59,4 +59,4 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 
 }
 // namespace simpla
-#endif /* CONTAINER_H_ */
+#endif /* CONTAINER_TRAITS_H_ */

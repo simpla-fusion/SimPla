@@ -39,12 +39,13 @@ public:
 
 	typedef typename topology_type::iterator iterator;
 	typedef typename topology_type::range_type range_type;
+
+public:
+	manifold_type const& manifold_;
 private:
-	TG const& manifold_;
 	Domain<TG, IFORM> const & parent_;
 	range_type range_;
 public:
-
 	Domain(manifold_type const & g) :
 			manifold_(g), parent_(*this), range_(g.select(iform))
 	{
@@ -113,29 +114,6 @@ public:
 		return 0;	 //manifold_.topology_type::max_hash();
 	}
 
-	void for_each(std::function<void(index_type)>)
-	{
-	}
-
-	template<typename ...Args>
-	auto gather(Args &&... args) const DECL_RET_TYPE ((this->manifold_.gather(
-							std::forward<Args> (args)...)
-			))
-	;
-
-	template<typename ...Args>
-	auto scatter(Args &&... args) const DECL_RET_TYPE ((this->manifold_.scatter(
-							std::forward<Args> (args)...)
-			))
-	;
-
-	template<typename ...Args>
-	auto calculate(Args &&... args) const
-	DECL_RET_TYPE ((this->manifold_.calculate(
-							std::forward<Args> (args)...)
-			))
-	;
-
 public:
 	template<typename TL, typename TR>
 	void assign(TL & lhs, TR const & rhs) const
@@ -154,19 +132,17 @@ public:
 }
 ;
 
-template<typename M, unsigned int I, typename TL>
-auto get_domain(_Field<Domain<M, I>, TL> const & f)
-DECL_RET_TYPE((f.domain()))
+template<typename TG, unsigned int IFORM, typename ...Args>
+auto calculate(Domain<TG, IFORM> const & d, Args && ... args)
+DECL_RET_TYPE((d.manifold().calculate(std::forward<Args>(args)...)))
 
-template<typename TOP, typename TL>
-auto get_domain(_Field<Expression<TOP, TL> > const & expr)
-DECL_RET_TYPE ((get_domain(expr.lhs) ))
+template<typename TG, unsigned int IFORM, typename ...Args>
+auto gather(Domain<TG, IFORM> const & d, Args && ... args)
+DECL_RET_TYPE((d.manifold().gather(std::forward<Args>(args)...)))
 
-template<typename TOP, typename TL, typename TR>
-auto get_domain(_Field<Expression<TOP, TL, TR>> const & expr)
-DECL_RET_TYPE ((get_domain(expr.lhs)&get_domain(expr.rhs)))
-
-
+template<typename TG, unsigned int IFORM, typename ...Args>
+auto scatter(Domain<TG, IFORM> const & d, Args && ... args)
+DECL_RET_TYPE((d.manifold().scatter(std::forward<Args>(args)...)))
 }
 // namespace simpla
 

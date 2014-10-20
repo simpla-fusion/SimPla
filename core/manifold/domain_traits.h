@@ -15,33 +15,20 @@
 namespace simpla
 {
 
-HAS_MEMBER_FUNCTION(gather);
+namespace _impl
+{
 
-HAS_MEMBER_FUNCTION(scatter);
+struct Gather
+{
 
-template<typename domain_type, typename ...Args>
-static auto gather(domain_type const &domain,
-		Args && ... args)
-				ENABLE_IF_DECL_RET_TYPE(( has_member_function_gather<domain_type,Args...>::value),
-						(domain.gather(std::forward<Args>(args)...)))
+};
+struct Scatter
+{
 
-template<typename domain_type, typename ...Args>
-static auto scatter(domain_type const &domain,
-		Args && ... args)
-				ENABLE_IF_DECL_RET_TYPE(( has_member_function_scatter<domain_type,Args...>::value),
-						(domain.scatter(std::forward<Args>(args)...)))
+};
+}  // namespace _impl
 
-template<typename domain_type, typename ...Args>
-static auto gather(domain_type const & domain,
-		Args && ...args)
-				ENABLE_IF_DECL_RET_TYPE((!has_member_function_gather<domain_type, Args...>::value),(0))
-
-template<typename domain_type, typename ...Args>
-static auto scatter(domain_type const & domain,
-		Args && ...args)
-				ENABLE_IF_DECL_RET_TYPE((!has_member_function_scatter<domain_type, Args...>::value),(0))
-
-template<typename ... T>
+template<typename T>
 constexpr Identity get_domain(T && ...)
 {
 	return std::move(Identity());
@@ -68,7 +55,8 @@ TR const & operator &(Identity, TR const & r)
 }
 
 template<typename TL>
-constexpr Zero operator &(TL const & l, Zero)
+constexpr Zero operator
+&(TL const & l, Zero)
 {
 	return std::move(Zero());
 }
@@ -82,6 +70,19 @@ template<typename TR>
 constexpr Zero operator &(Zero, Zero)
 {
 	return std::move(Zero());
+}
+
+template<typename TD, typename TOP, typename TI, typename ...Args>
+auto calculate(TD const & d, TOP const & op, TI const & s, Args && ... args)
+DECL_RET_TYPE2((op(get_value(std::forward<Args>(args),s)...)))
+
+template<typename TD, typename ...Args>
+void calculate(TD const & d, _impl::Scatter const & op, Args && ... args)
+{
+}
+template<typename TD, typename ...Args>
+void calculate(TD const & d, _impl::Gather const & op, Args && ... args)
+{
 }
 }  // namespace simpla
 

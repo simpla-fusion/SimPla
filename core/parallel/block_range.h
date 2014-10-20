@@ -76,6 +76,25 @@ public:
 	{
 	}
 
+	BlockRange(this_type const& l, this_type const& r) //! Split range r into two subranges.
+	:
+			i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
+
+			o_e_(r.i_e_),
+
+			o_b_(i_b_ - r.ghostwidth_),
+
+			g_e_(r.g_e_),
+
+			g_b_(r.g_e_),
+
+//			grainsize_(grainsize),
+
+			ghostwidth_(r.ghostwidth_)
+
+	{
+	}
+
 	BlockRange(value_type b, value_type e, size_type grainsize = 1,
 			size_type ghost_width = 2) //! Split range r into two subranges.
 	:
@@ -218,7 +237,7 @@ public:
 		return i_e_ - i_b_;
 	}
 	template<typename TR>
-	auto calcuate(TR const & r, value_type const &s) const
+	auto calculate(TR const & r, value_type const &s) const
 	DECL_RET_TYPE ((get_value(r, s) ))
 
 private	:
@@ -237,9 +256,22 @@ private	:
 		r.o_e_ = m + r.ghostwidth_;
 		return m;
 	}
+	static value_type do_merge(this_type const& l,this_type const& r )
+	{
+		ASSERT(r.is_divisible());
 
+		value_type m = r.i_b_ + (r.i_e_ - r.i_b_) / 2u;
+		r.i_e_ = m;
+		r.o_e_ = m + r.ghostwidth_;
+		return m;
+	}
 }
 ;
+template<typename T>
+BlockRange<T> operator&(BlockRange<T> const & l, BlockRange<T> const& r)
+{
+	return std::move(BlockRange<T>(l));
+}
 //template<typename T, unsigned int N>
 //class BlockRange<nTuple<N, T>>
 //{
