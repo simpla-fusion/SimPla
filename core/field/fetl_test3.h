@@ -10,18 +10,18 @@
 
 #include <gtest/gtest.h>
 #include "fetl_test.h"
-#include "save_field.h"
+#include "../utilities/ntuple.h"
 
 using namespace simpla;
 
 TEST_P(TestFETL, grad0)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
 
-	auto f0 = mesh.make_field<VERTEX, scalar_type>();
-	auto f1 = mesh.make_field<EDGE, scalar_type>();
-	auto f1b = mesh.make_field<EDGE, scalar_type>();
+	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
+
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f1b = make_field<EDGE, scalar_type>();
 
 	f0.clear();
 	f1.clear();
@@ -29,11 +29,11 @@ TEST_P(TestFETL, grad0)
 
 	for (auto s : mesh.select(VERTEX))
 	{
-		f0[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		f0[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f0);
 
-	LOG_CMD(f1 = Grad(f0));
+	LOG_CMD(f1 = grad(f0));
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -44,15 +44,16 @@ TEST_P(TestFETL, grad0)
 	{
 		unsigned int n = mesh.component_number(s);
 
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(InnerProductNTuple(K_real, x))
-		        + K_imag[n] * std::sin(InnerProductNTuple(K_real, x));
+		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
+				+ K_imag[n] * std::sin(dot(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
+		if (mesh.get_type_as_string() == "Cylindrical"
+				&& n == (manifold_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.get_coordinates(s);
-			expect /= r[(mesh_type::ZAxis + 2) % 3];
+			auto r = mesh.coordinates(s);
+			expect /= r[(manifold_type::ZAxis + 2) % 3];
 		}
 
 		f1b[s] = expect;
@@ -64,13 +65,13 @@ TEST_P(TestFETL, grad0)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f1[s] << " x= " << mesh.get_coordinates(s) << " K= " << K_real << " mesh.K="
+//			        << " actual = " << f1[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " mesh.K="
 //			        << mesh.k_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
-//			        << mesh.get_coordinates(s);
+//			        << mesh.coordinates(s);
 //
 //		}
 
@@ -92,12 +93,13 @@ TEST_P(TestFETL, grad0)
 
 TEST_P(TestFETL, grad3)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
 
-	auto f2 = mesh.make_field<FACE, scalar_type>();
-	auto f2b = mesh.make_field<FACE, scalar_type>();
-	auto f3 = mesh.make_field<VOLUME, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f2b = make_field<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
 
 	f3.clear();
 	f2.clear();
@@ -105,10 +107,10 @@ TEST_P(TestFETL, grad3)
 
 	for (auto s : mesh.select(VOLUME))
 	{
-		f3[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		f3[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f3);
-	LOG_CMD(f2 = Grad(f3));
+	LOG_CMD(f2 = grad(f3));
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -120,15 +122,16 @@ TEST_P(TestFETL, grad3)
 
 		unsigned int n = mesh.component_number(s);
 
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(InnerProductNTuple(K_real, x))
-		        + K_imag[n] * std::sin(InnerProductNTuple(K_real, x));
+		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
+				+ K_imag[n] * std::sin(dot(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical" && n == (mesh_type::ZAxis + 1) % 3)
+		if (mesh.get_type_as_string() == "Cylindrical"
+				&& n == (manifold_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.get_coordinates(s);
-			expect /= r[(mesh_type::ZAxis + 2) % 3];
+			auto r = mesh.coordinates(s);
+			expect /= r[(manifold_type::ZAxis + 2) % 3];
 		}
 
 		f2b[s] = expect;
@@ -140,12 +143,12 @@ TEST_P(TestFETL, grad3)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f2[s] << " x= " << mesh.get_coordinates(s) << " K= " << K_real;
+//			        << " actual = " << f2[s] << " x= " << mesh.coordinates(s) << " K= " << K_real;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
-//			        << mesh.get_coordinates(s);
+//			        << mesh.coordinates(s);
 //
 //		}
 
@@ -165,22 +168,23 @@ TEST_P(TestFETL, grad3)
 
 TEST_P(TestFETL, diverge1)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f1 = mesh.make_field<EDGE, scalar_type>();
-	auto f0 = mesh.make_field<VERTEX, scalar_type>();
-	auto f0b = mesh.make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f0b = make_field<VERTEX, scalar_type>();
 	f0.clear();
 	f0b.clear();
 	f1.clear();
 
 	for (auto s : mesh.select(EDGE))
 	{
-		f1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		f1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f1);
-	f0 = Diverge(f1);
+	f0 = diverge(f1);
 
 	Real variance = 0;
 
@@ -189,10 +193,10 @@ TEST_P(TestFETL, diverge1)
 	for (auto s : mesh.select(VERTEX))
 	{
 
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(InnerProductNTuple(K_real, x));
-		Real sin_v = std::sin(InnerProductNTuple(K_real, x));
+		Real cos_v = std::cos(dot(K_real, x));
+		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
@@ -201,25 +205,28 @@ TEST_P(TestFETL, diverge1)
 
 			expect =
 
-			(K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
+			(K_real[(manifold_type::ZAxis + 1) % 3]
+					/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
 
-			        K_real[(mesh_type::ZAxis + 2) % 3] + //  k_r
+					K_real[(manifold_type::ZAxis + 2) % 3] + //  k_r
 
-			        K_real[(mesh_type::ZAxis + 3) % 3] //  k_z
+					K_real[(manifold_type::ZAxis + 3) % 3] //  k_z
 			) * cos_v
 
-			+ (K_imag[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
+					+ (K_imag[(manifold_type::ZAxis + 1) % 3]
+							/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
 
-			        K_imag[(mesh_type::ZAxis + 2) % 3] + //  k_r
+							K_imag[(manifold_type::ZAxis + 2) % 3] + //  k_r
 
-			        K_imag[(mesh_type::ZAxis + 3) % 3] //  k_z
-			) * sin_v;
+							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
+					) * sin_v;
 
-			expect += sin_v / x[(mesh_type::ZAxis + 2) % 3]; //A_r
+			expect += sin_v / x[(manifold_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
 		{
-			expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
+			expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
+					+ (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
 		}
 
 		f0b[s] = expect;
@@ -231,13 +238,13 @@ TEST_P(TestFETL, diverge1)
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << f0[s] << " x= " << mesh.get_coordinates(s) << " K= " << K_real << " K_i= "
+//			        << " actual = " << f0[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " K_i= "
 //			        << K_imag;
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
-//			        << mesh.get_coordinates(s);
+//			        << mesh.coordinates(s);
 //
 //		}
 	}
@@ -246,38 +253,40 @@ TEST_P(TestFETL, diverge1)
 	average /= f0.size();
 
 	EXPECT_LE(std::sqrt(variance), error);
-	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= " << K_imag << " mesh.Ki=" << mesh.k_imag;
+	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
+			<< K_imag << " mesh.Ki=" << mesh.k_imag;
 
 }
 
 TEST_P(TestFETL, diverge2)
 {
-	if (!mesh.is_valid()) return;
+	if (!mesh.is_valid())
+		return;
 
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f2 = mesh.make_field<FACE, scalar_type>();
-	auto f3 = mesh.make_field<VOLUME, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
 
 	f3.clear();
 	f2.clear();
 
 	for (auto s : mesh.select(FACE))
 	{
-		f2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		f2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f2);
-	f3 = Diverge(f2);
+	f3 = diverge(f2);
 
 	Real variance = 0;
 	scalar_type average = 0.0;
 
 	for (auto s : mesh.select(VOLUME))
 	{
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(InnerProductNTuple(K_real, x));
-		Real sin_v = std::sin(InnerProductNTuple(K_real, x));
+		Real cos_v = std::cos(dot(K_real, x));
+		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
@@ -286,25 +295,29 @@ TEST_P(TestFETL, diverge2)
 
 			expect =
 
-			(K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
+			(K_real[(manifold_type::ZAxis + 1) % 3]
+					/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
 
-			        K_real[(mesh_type::ZAxis + 2) % 3] + //  k_r
+					K_real[(manifold_type::ZAxis + 2) % 3] + //  k_r
 
-			        K_real[(mesh_type::ZAxis + 3) % 3] //  k_z
+					K_real[(manifold_type::ZAxis + 3) % 3] //  k_z
 			) * cos_v
 
-			+ (K_imag[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3] + //  k_theta
+					+ (K_imag[(manifold_type::ZAxis + 1) % 3]
+							/ x[(manifold_type::ZAxis + 2) % 3] + //  k_theta
 
-			        K_imag[(mesh_type::ZAxis + 2) % 3] + //  k_r
+							K_imag[(manifold_type::ZAxis + 2) % 3] + //  k_r
 
-			        K_imag[(mesh_type::ZAxis + 3) % 3] //  k_z
-			) * sin_v;
+							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
+					) * sin_v;
 
-			expect += std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s))) / x[(mesh_type::ZAxis + 2) % 3]; //A_r
+			expect += std::sin(dot(K_real, mesh.coordinates(s)))
+					/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
 		{
-			expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v + (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
+			expect = (K_real[0] + K_real[1] + K_real[2]) * cos_v
+					+ (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
 		}
 
 		variance += abs((f3[s] - expect) * (f3[s] - expect));
@@ -326,13 +339,14 @@ TEST_P(TestFETL, diverge2)
 
 TEST_P(TestFETL, curl1)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto vf1 = mesh.make_field<EDGE, scalar_type>();
-	auto vf1b = mesh.make_field<EDGE, scalar_type>();
-	auto vf2 = mesh.make_field<FACE, scalar_type>();
-	auto vf2b = mesh.make_field<FACE, scalar_type>();
+	auto vf1 = make_field<EDGE, scalar_type>();
+	auto vf1b = make_field<EDGE, scalar_type>();
+	auto vf2 = make_field<FACE, scalar_type>();
+	auto vf2b = make_field<FACE, scalar_type>();
 
 	vf1.clear();
 	vf1b.clear();
@@ -346,19 +360,19 @@ TEST_P(TestFETL, curl1)
 
 	for (auto s : mesh.select(EDGE))
 	{
-		vf1[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		vf1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&vf1);
-	LOG_CMD(vf2 = Curl(vf1));
+	LOG_CMD(vf2 = curl(vf1));
 
 	for (auto s : mesh.select(FACE))
 	{
 		auto n = mesh.component_number(s);
 
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(InnerProductNTuple(K_real, x));
-		Real sin_v = std::sin(InnerProductNTuple(K_real, x));
+		Real cos_v = std::cos(dot(K_real, x));
+		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
@@ -366,23 +380,33 @@ TEST_P(TestFETL, curl1)
 		{
 			switch (n)
 			{
-			case (mesh_type::ZAxis + 1) % 3: // theta
-				expect = (K_real[(mesh_type::ZAxis + 2) % 3] - K_real[(mesh_type::ZAxis + 3) % 3]) * cos_v
-				        + (K_imag[(mesh_type::ZAxis + 2) % 3] - K_imag[(mesh_type::ZAxis + 3) % 3]) * sin_v;
+			case (manifold_type::ZAxis + 1) % 3: // theta
+				expect = (K_real[(manifold_type::ZAxis + 2) % 3]
+						- K_real[(manifold_type::ZAxis + 3) % 3]) * cos_v
+						+ (K_imag[(manifold_type::ZAxis + 2) % 3]
+								- K_imag[(manifold_type::ZAxis + 3) % 3])
+								* sin_v;
 				break;
-			case (mesh_type::ZAxis + 2) % 3: // r
-				expect = (K_real[(mesh_type::ZAxis + 3) % 3]
-				        - K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]) * cos_v
+			case (manifold_type::ZAxis + 2) % 3: // r
+				expect = (K_real[(manifold_type::ZAxis + 3) % 3]
+						- K_real[(manifold_type::ZAxis + 1) % 3]
+								/ x[(manifold_type::ZAxis + 2) % 3]) * cos_v
 
-				        + (K_imag[(mesh_type::ZAxis + 3) % 3]
-				                - K_imag[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]) * sin_v;
+						+ (K_imag[(manifold_type::ZAxis + 3) % 3]
+								- K_imag[(manifold_type::ZAxis + 1) % 3]
+										/ x[(manifold_type::ZAxis + 2) % 3])
+								* sin_v;
 				break;
 
-			case (mesh_type::ZAxis + 3) % 3: // z
-				expect = (K_real[(mesh_type::ZAxis + 1) % 3] - K_real[(mesh_type::ZAxis + 2) % 3]) * cos_v
-				        + (K_imag[(mesh_type::ZAxis + 1) % 3] - K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
+			case (manifold_type::ZAxis + 3) % 3: // z
+				expect = (K_real[(manifold_type::ZAxis + 1) % 3]
+						- K_real[(manifold_type::ZAxis + 2) % 3]) * cos_v
+						+ (K_imag[(manifold_type::ZAxis + 1) % 3]
+								- K_imag[(manifold_type::ZAxis + 2) % 3])
+								* sin_v;
 
-				expect -= std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s))) / x[(mesh_type::ZAxis + 2) % 3]; //A_r
+				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
 			}
@@ -391,7 +415,7 @@ TEST_P(TestFETL, curl1)
 		else
 		{
 			expect = (K_real[(n + 1) % 3] - K_real[(n + 2) % 3]) * cos_v
-			        + (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
+					+ (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
 		}
 
 		vf2b[s] = expect;
@@ -403,12 +427,12 @@ TEST_P(TestFETL, curl1)
 //		if (abs(expect) > epsilon)
 //		{
 //			EXPECT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
-//			        << " actual = " << vf2[s] << " x= " << mesh.get_coordinates(s);
+//			        << " actual = " << vf2[s] << " x= " << mesh.coordinates(s);
 //		}
 //		else
 //		{
 //			EXPECT_LE(abs(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
-//			        << mesh.get_coordinates(s);
+//			        << mesh.coordinates(s);
 //		}
 
 	}
@@ -423,13 +447,14 @@ TEST_P(TestFETL, curl1)
 
 TEST_P(TestFETL, curl2)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto vf1 = mesh.make_field<EDGE, scalar_type>();
-	auto vf1b = mesh.make_field<EDGE, scalar_type>();
-	auto vf2 = mesh.make_field<FACE, scalar_type>();
-	auto vf2b = mesh.make_field<FACE, scalar_type>();
+	auto vf1 = make_field<EDGE, scalar_type>();
+	auto vf1b = make_field<EDGE, scalar_type>();
+	auto vf2 = make_field<FACE, scalar_type>();
+	auto vf2b = make_field<FACE, scalar_type>();
 
 	vf1.clear();
 	vf1b.clear();
@@ -443,10 +468,10 @@ TEST_P(TestFETL, curl2)
 
 	for (auto s : mesh.select(FACE))
 	{
-		vf2[s] = std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s)));
+		vf2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&vf2);
-	LOG_CMD(vf1 = Curl(vf2));
+	LOG_CMD(vf1 = curl(vf2));
 
 	vf1b.clear();
 
@@ -455,10 +480,10 @@ TEST_P(TestFETL, curl2)
 
 		auto n = mesh.component_number(s);
 
-		auto x = mesh.get_coordinates(s);
+		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(InnerProductNTuple(K_real, x));
-		Real sin_v = std::sin(InnerProductNTuple(K_real, x));
+		Real cos_v = std::cos(dot(K_real, x));
+		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
@@ -466,23 +491,33 @@ TEST_P(TestFETL, curl2)
 		{
 			switch (n)
 			{
-			case (mesh_type::ZAxis + 1) % 3: // theta
-				expect = (K_real[(mesh_type::ZAxis + 2) % 3] - K_real[(mesh_type::ZAxis + 3) % 3]) * cos_v
-				        + (K_imag[(mesh_type::ZAxis + 2) % 3] - K_imag[(mesh_type::ZAxis + 3) % 3]) * sin_v;
+			case (manifold_type::ZAxis + 1) % 3: // theta
+				expect = (K_real[(manifold_type::ZAxis + 2) % 3]
+						- K_real[(manifold_type::ZAxis + 3) % 3]) * cos_v
+						+ (K_imag[(manifold_type::ZAxis + 2) % 3]
+								- K_imag[(manifold_type::ZAxis + 3) % 3])
+								* sin_v;
 				break;
-			case (mesh_type::ZAxis + 2) % 3: // r
-				expect = (K_real[(mesh_type::ZAxis + 3) % 3]
-				        - K_real[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]) * cos_v
+			case (manifold_type::ZAxis + 2) % 3: // r
+				expect = (K_real[(manifold_type::ZAxis + 3) % 3]
+						- K_real[(manifold_type::ZAxis + 1) % 3]
+								/ x[(manifold_type::ZAxis + 2) % 3]) * cos_v
 
-				        + (K_imag[(mesh_type::ZAxis + 3) % 3]
-				                - K_imag[(mesh_type::ZAxis + 1) % 3] / x[(mesh_type::ZAxis + 2) % 3]) * sin_v;
+						+ (K_imag[(manifold_type::ZAxis + 3) % 3]
+								- K_imag[(manifold_type::ZAxis + 1) % 3]
+										/ x[(manifold_type::ZAxis + 2) % 3])
+								* sin_v;
 				break;
 
-			case (mesh_type::ZAxis + 3) % 3: // z
-				expect = (K_real[(mesh_type::ZAxis + 1) % 3] - K_real[(mesh_type::ZAxis + 2) % 3]) * cos_v
-				        + (K_imag[(mesh_type::ZAxis + 1) % 3] - K_imag[(mesh_type::ZAxis + 2) % 3]) * sin_v;
+			case (manifold_type::ZAxis + 3) % 3: // z
+				expect = (K_real[(manifold_type::ZAxis + 1) % 3]
+						- K_real[(manifold_type::ZAxis + 2) % 3]) * cos_v
+						+ (K_imag[(manifold_type::ZAxis + 1) % 3]
+								- K_imag[(manifold_type::ZAxis + 2) % 3])
+								* sin_v;
 
-				expect -= std::sin(InnerProductNTuple(K_real, mesh.get_coordinates(s))) / x[(mesh_type::ZAxis + 2) % 3]; //A_r
+				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
 			}
@@ -491,7 +526,7 @@ TEST_P(TestFETL, curl2)
 		else
 		{
 			expect = (K_real[(n + 1) % 3] - K_real[(n + 2) % 3]) * cos_v
-			        + (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
+					+ (K_imag[(n + 1) % 3] - K_imag[(n + 2) % 3]) * sin_v;
 		}
 
 		vf1b[s] = expect;
@@ -502,11 +537,11 @@ TEST_P(TestFETL, curl2)
 
 //		if (abs(expect) > epsilon)
 //		{
-//			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.get_coordinates(s);
+//			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(abs(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.get_coordinates(s);
+//			ASSERT_LE(abs(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
 //
 //		}
 
@@ -522,13 +557,14 @@ TEST_P(TestFETL, curl2)
 
 TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f0 = mesh.make_field<VERTEX, scalar_type>();
-	auto f1 = mesh.make_field<EDGE, scalar_type>();
-	auto f2a = mesh.make_field<FACE, scalar_type>();
-	auto f2b = mesh.make_field<FACE, scalar_type>();
+	auto f0 = make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2a = make_field<FACE, scalar_type>();
+	auto f2b = make_field<FACE, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -546,9 +582,9 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 	m = std::sqrt(m) * abs(default_value);
 
-	LOG_CMD(f1 = Grad(f0));
-	LOG_CMD(f2a = Curl(f1));
-	LOG_CMD(f2b = Curl(Grad(f0)));
+	LOG_CMD(f1 = grad(f0));
+	LOG_CMD(f2a = curl(f1));
+	LOG_CMD(f2b = curl(grad(f0)));
 
 	size_t count = 0;
 	Real variance_a = 0;
@@ -570,13 +606,14 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f3 = mesh.make_field<VOLUME, scalar_type>();
-	auto f1a = mesh.make_field<EDGE, scalar_type>();
-	auto f1b = mesh.make_field<EDGE, scalar_type>();
-	auto f2 = mesh.make_field<FACE, scalar_type>();
+	auto f3 = make_field<VOLUME, scalar_type>();
+	auto f1a = make_field<EDGE, scalar_type>();
+	auto f1b = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -593,9 +630,9 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	update_ghosts(&f3);
 	m = std::sqrt(m) * abs(default_value);
 
-	LOG_CMD(f2 = Grad(f3));
-	LOG_CMD(f1a = Curl(f2));
-	LOG_CMD(f1b = Curl(Grad(f3)));
+	LOG_CMD(f2 = grad(f3));
+	LOG_CMD(f1a = curl(f2));
+	LOG_CMD(f1b = curl(grad(f3)));
 
 	size_t count = 0;
 	Real variance_a = 0;
@@ -617,13 +654,14 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestFETL, identity_div_curl_f1_eq0)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f1 = mesh.make_field<EDGE, scalar_type>();
-	auto f2 = mesh.make_field<FACE, scalar_type>();
-	auto f0a = mesh.make_field<VERTEX, scalar_type>();
-	auto f0b = mesh.make_field<VERTEX, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f0a = make_field<VERTEX, scalar_type>();
+	auto f0b = make_field<VERTEX, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -644,11 +682,11 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 	m = std::sqrt(m) * abs(default_value);
 
-	LOG_CMD(f1 = Curl(f2));
+	LOG_CMD(f1 = curl(f2));
 
-	LOG_CMD(f0a = Diverge(f1));
+	LOG_CMD(f0a = diverge(f1));
 
-	LOG_CMD(f0b = Diverge(Curl(f2)));
+	LOG_CMD(f0b = diverge(curl(f2)));
 
 	size_t count = 0;
 	Real variance_a = 0;
@@ -668,13 +706,14 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
-	if (!mesh.is_valid()) return;
-	Real error = abs(std::pow(InnerProductNTuple(K_real, mesh.get_dx()), 2.0));
+	if (!mesh.is_valid())
+		return;
+//	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
-	auto f1 = mesh.make_field<EDGE, scalar_type>();
-	auto f2 = mesh.make_field<FACE, scalar_type>();
-	auto f3a = mesh.make_field<VOLUME, scalar_type>();
-	auto f3b = mesh.make_field<VOLUME, scalar_type>();
+	auto f1 = make_field<EDGE, scalar_type>();
+	auto f2 = make_field<FACE, scalar_type>();
+	auto f3a = make_field<VOLUME, scalar_type>();
+	auto f3b = make_field<VOLUME, scalar_type>();
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -693,11 +732,11 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 	m = std::sqrt(m) * abs(default_value);
 
-	LOG_CMD(f2 = Curl(f1));
+	LOG_CMD(f2 = curl(f1));
 
-	LOG_CMD(f3a = Diverge(f2));
+	LOG_CMD(f3a = diverge(f2));
 
-	LOG_CMD(f3b = Diverge(Curl(f1)));
+	LOG_CMD(f3b = diverge(curl(f1)));
 
 	size_t count = 0;
 

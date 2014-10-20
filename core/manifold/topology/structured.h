@@ -17,14 +17,15 @@
 #include <iterator>
 #include <utility>
 #include <tuple>
-#include "../../utilities/ntuple.h"
-#include "../../utilities/primitives.h"
-#include "../../utilities/sp_type_traits.h"
-#include "../../utilities/pretty_stream.h"
-#include "../../utilities/memory_pool.h"
-#include "../../parallel/distributed_array.h"
-#include "../../physics/constants.h"
-#include "../../numeric/geometric_algorithm.h"
+//#include "../../utilities/ntuple.h"
+//#include "../../utilities/primitives.h"
+//#include "../../utilities/sp_type_traits.h"
+//#include "../../utilities/pretty_stream.h"
+//#include "../../utilities/memory_pool.h"
+//#include "../../parallel/distributed_array.h"
+//#include "../../physics/constants.h"
+//#include "../../numeric/geometric_algorithm.h"
+
 namespace simpla
 {
 /**
@@ -33,6 +34,7 @@ namespace simpla
 /**
  *  \brief  structured mesh, n-dimensional array
  */
+
 struct StructuredMesh
 {
 
@@ -158,7 +160,7 @@ public:
 	//  \endverbatim
 
 	template<typename TI>
-	void set_dimensions(TI const &d)
+	void dimensions(TI const &d)
 	{
 
 		for (int i = 0; i < NDIMS; ++i)
@@ -220,27 +222,25 @@ public:
 
 	}
 
-	auto get_extents() const
-	DECL_RET_TYPE(std::make_tuple(
-
-					nTuple<NDIMS,Real>(
-							{	0,0,0}),
-
-					nTuple<NDIMS,Real>(
-							{
-								global_count_[0]>1?1.0:0.0,
-								global_count_[1]>1?1.0:0.0,
-								global_count_[2]>1?1.0:0.0,
-							})))
-	;
+//	auto get_extents() const
+//	DECL_RET_TYPE(std::make_tuple(
+//
+//					nTuple<NDIMS,Real>(
+//							{	0,0,0}),
+//
+//					nTuple<NDIMS,Real>(
+//							{
+//								global_count_[0]>1?1.0:0.0,
+//								global_count_[1]>1?1.0:0.0,
+//								global_count_[2]>1?1.0:0.0,
+//							})))
+//	;
 
 	auto get_global_dimensions() const
-	DECL_RET_TYPE(global_count_)
-	;
+	DECL_RET_TYPE (global_count_);
 
-	auto get_dimensions() const
-	DECL_RET_TYPE(global_count_ )
-	;
+	auto dimensions() const
+	DECL_RET_TYPE (global_count_);
 
 	size_type get_num_of_elements(int iform = VERTEX) const
 	{
@@ -834,9 +834,10 @@ public:
 		return std::move(x);
 	}
 
-	template<typename TI> inline auto coordinates_local_to_global(
-			TI const& idx) const
-					DECL_RET_TYPE(coordinates_local_to_global(std::get<0>(idx) ,std::get<1>(idx) ))
+	template<typename TI>
+	inline auto coordinates_local_to_global(TI const& idx) const
+	DECL_RET_TYPE (coordinates_local_to_global(std::get<0> (idx),
+			std::get<1> (idx)))
 
 	/**
 	 *
@@ -1415,7 +1416,8 @@ public:
 			return self_ == rhs.self_ && shift_ == rhs.shift_;
 		}
 
-	};	// class iterator
+	};
+	// class iterator
 
 	inline static range_type make_range(nTuple<NDIMS, size_type> begin,
 			nTuple<NDIMS, size_type> end, index_type shift = 0UL)
@@ -1471,16 +1473,15 @@ public:
 	 * @return
 	 */
 	auto select(range_type range, nTuple<NDIMS, size_type> const & b,
-			nTuple<NDIMS, size_type> const &e) const
-					DECL_RET_TYPE(select_rectangle_( IForm(*std::get<0>(range)) ,std::get<0>(range).self_,std::get<1>(range).self_, b, e))
+			nTuple<NDIMS, size_type> const &e) const DECL_RET_TYPE(select_rectangle_( IForm(*std::get<0>(range)) ,std::get<0>(range).self_,std::get<1>(range).self_, b, e))
 
 	/**
 	 *
 	 */
 	auto select(range_type range, coordinates_type const & xmin,
 			coordinates_type const &xmax) const
-			DECL_RET_TYPE(select_rectangle_(
-							IForm(*std::get<0>(range)),	//
+	DECL_RET_TYPE(select_rectangle_(
+					IForm(*std::get<0>(range)),	//
 					std::get<0>(range).self_, std::get<1>(range).self_,//
 					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmin, get_first_node_shift(IForm(*std::get<0>(range))))))),
 					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmax, get_first_node_shift(IForm(*std::get<0>(range)))))))+1
@@ -1488,9 +1489,9 @@ public:
 
 	auto select(range_type range1, range_type range2) const
 	DECL_RET_TYPE(select_rectangle_(IForm(*std::get<0>(range1)),
-					std::get<0>(range1).self_, std::get<1>(range1).self_,	//
-			std::get<0>(range2).self_, std::get<1>(range2).self_//
-	))
+					std::get<0>(range1).self_, std::get<1>(range1).self_,//
+					std::get<0>(range2).self_, std::get<1>(range2).self_//
+			))
 
 //	template<typename ...Args>
 //	auto select(unsigned int iform, Args &&... args) const
@@ -1513,11 +1514,13 @@ public:
 	 */
 	auto select_outer(unsigned int iform, nTuple<NDIMS, size_type> const & b,
 			nTuple<NDIMS, size_type> const &e) const
-					DECL_RET_TYPE(select_rectangle_( iform,b,e ,local_outer_begin_, local_outer_end_))
+	DECL_RET_TYPE (select_rectangle_(iform, b, e, local_outer_begin_,
+			local_outer_end_))
 
 	auto select_inner(unsigned int iform, nTuple<NDIMS, size_type> const & b,
 			nTuple<NDIMS, size_type> const & e) const
-					DECL_RET_TYPE(select_rectangle_( iform,b,e ,local_inner_begin_, local_inner_end_))
+	DECL_RET_TYPE (select_rectangle_(iform, b, e, local_inner_begin_,
+			local_inner_end_))
 
 	/**  @} */
 	/**
@@ -1626,7 +1629,7 @@ public:
 	}
 
 	auto make_hash(unsigned int iform) const
-	DECL_RET_TYPE(make_hash(select(iform)))
+	DECL_RET_TYPE (make_hash(select (iform)))
 
 	/** @}*/
 
