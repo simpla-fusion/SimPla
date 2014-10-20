@@ -29,11 +29,15 @@ class BlockRange
 {
 public:
 	typedef T value_type;
+	typedef T index_type;
 	typedef BlockRange<value_type> this_type;
 
 	//! Type for size of a range
 	typedef std::size_t size_type;
+	BlockRange()
+	{
 
+	}
 	/// \ingroup conecpt_range
 	BlockRange(this_type const & that)  //! Copy constructor
 	:
@@ -93,6 +97,16 @@ public:
 
 	}
 
+	void swap(this_type & r)
+	{
+		std::swap(i_e_, r.i_e_);
+		std::swap(i_b_, r.i_b_);
+		std::swap(o_b_, r.o_b_);
+		std::swap(o_e_, r.o_e_);
+		std::swap(grainsize_, r.grainsize_);
+		std::swap(ghostwidth_, r.ghostwidth_);
+
+	}
 	bool empty() const //! True if range is empty
 	{
 		return i_e_ <= i_b_;
@@ -203,7 +217,11 @@ public:
 	{
 		return i_e_ - i_b_;
 	}
-private:
+	template<typename TR>
+	auto calcuate(TR const & r, value_type const &s) const
+	DECL_RET_TYPE ((get_value(r, s) ))
+
+private	:
 	value_type i_e_, i_b_;
 	value_type o_e_, o_b_;
 	value_type g_e_, g_b_;
@@ -277,6 +295,7 @@ private:
 //
 //};
 
-}// namespace simpla
+}
+// namespace simpla
 
 #endif /* BLOCK_RANGE_H_ */

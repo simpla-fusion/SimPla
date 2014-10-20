@@ -5,22 +5,49 @@
  *      Author: salmon
  */
 #include <iostream>
+#include <gtest/gtest.h>
+
 #include "field.h"
+
+#include "field_test1.h"
+
 #include "../parallel/block_range.h"
 using namespace simpla;
 
-int main(int argc, char **argv)
-{
-	BlockRange<size_t> domain(0, 10);
+typedef testing::Types< //
 
-	Field<BlockRange<size_t>, double> f(domain);
+		_Field<BlockRange<size_t>, std::shared_ptr<double>> //
+// 	,TestFIELDParam1<VERTEX, Real>
+//		, TestFIELDParam1<EDGE, Real>	//
+//		, TestFIELDParam1<FACE, Real>	//
+//		, TestFIELDParam1<VOLUME, Real>	//
+//
+//		, TestFIELDParam1<VERTEX, Complex>	//
+//		, TestFIELDParam1<EDGE, Complex>	//
+//		, TestFIELDParam1<FACE, Complex>	//
+//		, TestFIELDParam1<VOLUME, Complex>	//
+//
+//		, TestFIELDParam1<VERTEX, nTuple<3, Real> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, Real> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, Real> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, Real> >	//
+//
+//		, TestFIELDParam1<VERTEX, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, Complex> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, Complex> >	//
+//
+//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
+//
+//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
+//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
 
-	std::cout << f.size() << std::endl;
-	f = 1.23456;
+> TypeParamList;
 
-	for (int i = 0; i < 10; ++i)
-	{
-		std::cout << f[i] << std::endl;
-	}
+INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
 
-}

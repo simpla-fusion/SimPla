@@ -8,7 +8,7 @@
 #ifndef PARALLEL_H_
 #define PARALLEL_H_
 
-#include "multi_thread.h"
+//#include "multi_thread.h"
 
 /**
  *  \defgroup  Parallel Parallel

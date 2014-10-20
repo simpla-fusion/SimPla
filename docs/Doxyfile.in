@@ -756,7 +756,7 @@ WARN_LOGFILE           =
 
 INPUT                  =@PROJECT_SOURCE_DIR@/README.md \
 						@PROJECT_SOURCE_DIR@/docs/DesignDocument.md \
-					    @PROJECT_SOURCE_DIR@/src  \
+					    @PROJECT_SOURCE_DIR@/core  \
 					    @PROJECT_SOURCE_DIR@/applications \
 						@PROJECT_SOURCE_DIR@/example 
 

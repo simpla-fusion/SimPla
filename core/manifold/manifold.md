@@ -38,18 +38,18 @@ Manifold policy concept {#concept_manifold_policy}
  The following table lists requirements for a Manifold policy type `P`,  
 
  Pseudo-Signature  		| Semantics  
- -------------------|-------------  
+ -----------------------|-------------  
  `P( Geometry  & )` 	| Constructor.  
- `P( P const  & )`		| Copy constructor.  
+ `P( P const  & )`	| Copy constructor.  
  `~P( )` 				| Copy Destructor.  
  
 ## Interpolator policy
   Interpolator, map between discrete space and continue space, i.e. Gather & Scatter
   
    Pseudo-Signature  		| Semantics  
- -------------------|-------------  
+ ---------------------------|-------------  
  `gather(field_type const &f, coordinates_type x  )` 	| gather data from `f` at coordinates `x`.  
- `scatter(field_type &f, coordinates_type x ,coordiantes_type v)` 	| scatter `v` to field  `f` at coordinates `x`.  
+ `scatter(field_type &f, coordinates_type x ,value_type v)` 	| scatter `v` to field  `f` at coordinates `x`.  
   
 ## Calculus  policy
  Define calculus operation of  fields on the manifold, such  as algebra or differential calculus.
@@ -57,7 +57,7 @@ Manifold policy concept {#concept_manifold_policy}
 
 
  Pseudo-Signature  		| Semantics  
- -------------------|-------------  
+ -----------------------|-------------  
  `calculate(TOP op, field_type const &f, field_type const &f, index_type s ) `	| `calculate`  binary operation `op` at grid point `s`.  
  `calculate(TOP op, field_type const &f,  index_type s )` 	| `calculate`  unary operation  `op`  at grid point `s`.   
 

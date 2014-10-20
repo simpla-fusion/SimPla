@@ -19,16 +19,27 @@ namespace simpla
 {
 template<typename ... > class _Field;
 template<typename ... > class Expression;
+template<typename ... > class Domain;
 
-/// \defgroup   BasicAlgebra Basic algebra
-/// @{
-DEFINE_EXPRESSOPM_TEMPLATE_ARITHMETIC(_Field)
-/// @}
+template<typename T>
+struct field_traits
+{
+	static constexpr unsigned int iform = VERTEX;
+};
+
+template<typename TManifold, unsigned int IFORM, typename ...Others>
+struct field_traits<_Field<Domain<TManifold, IFORM>, Others...>>
+{
+	static constexpr unsigned int iform = IFORM;
+};
 
 /// \defgroup  ExteriorAlgebra Exterior algebra
 /// @{
 struct HodgeStar
 {
+	template<typename TL typename TI>
+	constexpr auto operator()(TL && l, TI const&s) const
+	DECL_RET_TYPE((get_value(std::forward<TL>(l),s)  ))
 };
 
 struct InteriorProduct

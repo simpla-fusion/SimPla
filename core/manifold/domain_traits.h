@@ -15,6 +15,32 @@
 namespace simpla
 {
 
+HAS_MEMBER_FUNCTION(gather);
+
+HAS_MEMBER_FUNCTION(scatter);
+
+template<typename domain_type, typename ...Args>
+static auto gather(domain_type const &domain,
+		Args && ... args)
+				ENABLE_IF_DECL_RET_TYPE(( has_member_function_gather<domain_type,Args...>::value),
+						(domain.gather(std::forward<Args>(args)...)))
+
+template<typename domain_type, typename ...Args>
+static auto scatter(domain_type const &domain,
+		Args && ... args)
+				ENABLE_IF_DECL_RET_TYPE(( has_member_function_scatter<domain_type,Args...>::value),
+						(domain.scatter(std::forward<Args>(args)...)))
+
+template<typename domain_type, typename ...Args>
+static auto gather(domain_type const & domain,
+		Args && ...args)
+				ENABLE_IF_DECL_RET_TYPE((!has_member_function_gather<domain_type, Args...>::value),(0))
+
+template<typename domain_type, typename ...Args>
+static auto scatter(domain_type const & domain,
+		Args && ...args)
+				ENABLE_IF_DECL_RET_TYPE((!has_member_function_scatter<domain_type, Args...>::value),(0))
+
 template<typename ... T>
 constexpr Identity get_domain(T && ...)
 {

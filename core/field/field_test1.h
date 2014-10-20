@@ -11,101 +11,54 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "field.h"
-#include "field_test.h"
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
-#include "field_update_ghosts.h"
 using namespace simpla;
 
-template<unsigned int IFORM, typename TV>
-struct TestFIELDParam1
-{
-	typedef TMesh domain_type;
-	typedef TV value_type;
-	static constexpr unsigned int iform = IFORM;
-
-//	static void SetUpMesh(domain_type * manifold)
-//	{
-//
-//	}
-//
-//	static void SetDefaultValue(value_type * v)
-//	{
-//		SetDefaultValue(v);
-//	}
-//	template<typename T>
-//	void SetDefaultValue(T* v)
-//	{
-//		*v = 1;
-//	}
-//	template<typename T>
-//	void SetDefaultValue(std::complex<T>* v)
-//	{
-//		T r;
-//		SetDefaultValue(&r);
-//		*v = std::complex<T>();
-//	}
-//
-//	template<unsigned int N, typename T>
-//	void SetDefaultValue(nTuple<N, T>* v)
-//	{
-//		for (int i = 0; i < N; ++i)
-//		{
-//			(*v)[i] = i;
-//		}
-//	}
-};
-
-template<typename TParam>
-class TestFIELDBase: public testing::Test
+template<typename TField>
+class TestField: public testing::Test
 {
 protected:
 	virtual void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		nTuple<3, Real> xmin =
-		{ 1.0, 1.0, 0.0 };
-
-		nTuple<3, Real> xmax =
-		{ 2.0, 3.0, TWOPI };
-
-		nTuple<3, size_t> dims =
-		{ 16, 32, 67 };
-
-		domain.set_dimensions(dims);
-		domain.set_extents(xmin, xmax);
-		domain.update();
+		domain_type(12, 20).swap(domain);
 
 	}
 public:
 
-	typedef typename TParam::domain_type domain_type;
-	typedef typename TParam::value_type value_type;
-	static constexpr unsigned int iform = TParam::iform;
-
-	typedef typename domain_type::template field<VERTEX, Real> scalar_field_type;
-	typedef typename domain_type::template field<VERTEX, value_type> field_type;
+	typedef typename TField::domain_type domain_type;
+	typedef typename TField::value_type value_type;
 
 	domain_type domain;
 	value_type default_value;
 
+	typedef Field<domain_type, value_type> field_type;
+
+	Field<domain_type, value_type> make_field() const
+	{
+		return std::move(Field<domain_type, value_type>(domain));
+	}
+
+	Field<domain_type, Real> make_scalar_field() const
+	{
+		return std::move(Field<domain_type, Real>(domain));
+	}
+
 };
 
-TYPED_TEST_CASE_P(TestFIELDBase);
+TYPED_TEST_CASE_P(TestField);
 
-TYPED_TEST_P(TestFIELDBase, constant_real){
+TYPED_TEST_P(TestField, constant_real){
 {
-	typename TestFixture::domain_type const & manifold= TestFixture::manifold;
-
-	if (!manifold.is_valid()) return;
 
 	typedef typename TestFixture::value_type value_type;
 	typedef typename TestFixture::field_type field_type;
 
-	auto f1 = manifold.template make_field<field_type>();
-	auto f2 = manifold.template make_field<field_type>();
-	auto f3 = manifold.template make_field<field_type>();
+	auto f1 = TestFixture::make_field();
+	auto f2 = TestFixture::make_field();
+	auto f3 = TestFixture::make_field();
 
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
@@ -119,32 +72,29 @@ TYPED_TEST_P(TestFIELDBase, constant_real){
 
 	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
 
-	for(auto s :manifold.select( field_type::iform))
+	for(auto s : TestFixture::domain)
 	{
 		value_type res;
 		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
-		ASSERT_EQ( res, f3[s]);
+
+		EXPECT_LE(abs( res- f3[s]),EPSILON);
 	}
 }
 }
 
-TYPED_TEST_P(TestFIELDBase, scalar_field){
+TYPED_TEST_P(TestField, scalar_field){
 {
 
-	typename TestFixture::domain_type const & manifold= TestFixture::manifold;
-	if (!manifold.is_valid()) return;
 	typedef typename TestFixture::value_type value_type;
-	typedef typename TestFixture::field_type field_type;
-	typedef typename TestFixture::scalar_field_type scalar_field_type;
 
-	auto f1 = manifold.template make_field<field_type>();
-	auto f2 = manifold.template make_field<field_type>();
-	auto f3 = manifold.template make_field<field_type>();
-	auto f4 = manifold.template make_field<field_type>();
+	auto f1 = TestFixture::make_field();
+	auto f2 = TestFixture::make_field();
+	auto f3 = TestFixture::make_field();
+	auto f4 = TestFixture::make_field();
 
-	auto a=manifold.template make_field<scalar_field_type>();
-	auto b=manifold.template make_field<scalar_field_type>();
-	auto c=manifold.template make_field<scalar_field_type>();
+	auto a=TestFixture::make_scalar_field();
+	auto b=TestFixture::make_scalar_field();
+	auto c=TestFixture::make_scalar_field();
 
 	Real ra=1.0,rb=10.0,rc=100.0;
 
@@ -154,9 +104,9 @@ TYPED_TEST_P(TestFIELDBase, scalar_field){
 	vb=rb;
 	vc=rc;
 
-	a.fill(ra);
-	b.fill(rb);
-	c.fill(rc);
+	a=ra;
+	b=rb;
+	c=rc;
 
 	f1.allocate();
 	f2.allocate();
@@ -181,9 +131,6 @@ TYPED_TEST_P(TestFIELDBase, scalar_field){
 	{
 		f3[s]=vc *uniform_dist(gen);
 	}
-//	update_ghosts(&f1);
-//	update_ghosts(&f2);
-//	update_ghosts(&f3);
 
 	LOG_CMD(f4= -f1*a +f2*b -f3/c -f1 );
 
@@ -200,55 +147,17 @@ TYPED_TEST_P(TestFIELDBase, scalar_field){
 	 * */
 	count =0;
 
-	auto hash=manifold.make_hash(manifold.select( field_type::iform ));
-
-	for(auto s :manifold.select( field_type::iform ) )
+	for(auto s :TestFixture::domain )
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( abs(res-f4[s]) ,1.0e-10 )<< "s= "<<(hash(s));
+		EXPECT_LE( abs(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestFIELDBase, constant_real, scalar_field);
-
-typedef testing::Types<
-
-TestFIELDParam1<VERTEX, Real>	//
-//		, TestFIELDParam1<EDGE, Real>	//
-//		, TestFIELDParam1<FACE, Real>	//
-//		, TestFIELDParam1<VOLUME, Real>	//
-//
-//		, TestFIELDParam1<VERTEX, Complex>	//
-//		, TestFIELDParam1<EDGE, Complex>	//
-//		, TestFIELDParam1<FACE, Complex>	//
-//		, TestFIELDParam1<VOLUME, Complex>	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Real> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Real> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Complex> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
-
-> TypeParamList;
-
-INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestFIELDBase, TypeParamList);
+REGISTER_TYPED_TEST_CASE_P(TestField, constant_real, scalar_field);
 
 #endif /* FIELD_TEST1_H_ */
