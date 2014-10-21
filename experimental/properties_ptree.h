@@ -156,15 +156,15 @@ private:
 
 	};
 	template<unsigned int N, class T>
-	struct pt_trans<nTuple<N, T>, std::string>
+	struct pt_trans<nTuple<T,N>, std::string>
 	{
-		typedef nTuple<N, T> external_type;
+		typedef nTuple<T,N> external_type;
 		typedef std::string internal_type;
 
 		external_type get_value(const internal_type &value) const
 		{
 			std::istringstream is(value);
-			nTuple<N, T> tv;
+			nTuple<T,N> tv;
 			for (int i = 0; i < N && is; ++i)
 			{
 				is >> tv[i];
@@ -186,9 +186,9 @@ private:
 	};
 
 	template<unsigned int M,  unsigned int  N, class T>
-	struct pt_trans<nTuple<M, nTuple<N, T> >, std::string>
+	struct pt_trans<nTuple<M, nTuple<T,N> >, std::string>
 	{
-		typedef nTuple<M, nTuple<N, T> > external_type;
+		typedef nTuple<M, nTuple<T,N> > external_type;
 		typedef std::string internal_type;
 
 		external_type get_value(const internal_type &value) const

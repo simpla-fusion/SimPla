@@ -817,9 +817,9 @@ template<> struct LuaTrans<std::string>
 	}
 };
 
-template<unsigned int N, typename T> struct LuaTrans<nTuple<N, T>>
+template<unsigned int N, typename T> struct LuaTrans<nTuple<T,N>>
 {
-	typedef nTuple<N, T> value_type;
+	typedef nTuple<T,N> value_type;
 
 	static inline unsigned int From(std::shared_ptr<lua_State> L, unsigned int idx, value_type * v,
 	        value_type const &default_value = value_type())

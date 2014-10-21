@@ -86,7 +86,7 @@ public:
 			_Field<Domain<TM, EDGE>, TD> const &f,
 			typename G::coordinates_type const & r)const
 	DECL_RET_TYPE(
-			make_ntuple(
+			makenTuple(
 					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DI)) ),
 					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DJ)) ),
 					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DK)) )
@@ -96,7 +96,7 @@ public:
 	inline auto gather (
 			_Field<Domain<TM, FACE>, TD> const &f,
 			typename G::coordinates_type const &r)const
-	DECL_RET_TYPE( make_ntuple(
+	DECL_RET_TYPE( makenTuple(
 
 					gather_impl_(f, geo.coordinates_global_to_local(r,((G::topology_type::_DJ | G::topology_type::_DK))) ),
 					gather_impl_(f, geo.coordinates_global_to_local(r,((G::topology_type::_DK | G::topology_type::_DI))) ),

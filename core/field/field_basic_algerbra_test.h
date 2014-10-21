@@ -248,7 +248,7 @@ REGISTER_TYPED_TEST_CASE_P(TestField, constant_real, scalar_field);
 //	}
 //
 //	template<unsigned int N, typename T>
-//	void SetDefaultValue(nTuple<N, T>* v)
+//	void SetDefaultValue(nTuple<T,N>* v)
 //	{
 //		for (int i = 0; i < N; ++i)
 //		{

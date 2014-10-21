@@ -34,7 +34,7 @@ struct MPIDataType
 {
 	MPI_Datatype type_ = MPI_DATATYPE_NULL;
 	bool is_commited_ = false;
-	static constexpr unsigned int MAX_NTUPLE_RANK = 10;
+	static constexpr unsigned int MAXnTuple_RANK = 10;
 
 	MPIDataType()
 	{

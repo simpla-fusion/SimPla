@@ -48,8 +48,8 @@ struct StructuredMesh
 	typedef long size_type;
 	typedef unsigned long index_type;
 	typedef unsigned long compact_index_type;
-	typedef _nTuple<Real, integer_sequence<unsigned int, NDIMS>> coordinates_type;
-	typedef _nTuple<size_type, integer_sequence<unsigned int, NDIMS>> index_tuple;
+	typedef nTuple<Real, integer_sequence<unsigned int, NDIMS>> coordinates_type;
+	typedef nTuple<size_type, integer_sequence<unsigned int, NDIMS>> index_tuple;
 	struct iterator;
 	typedef std::pair<iterator, iterator> range_type;
 
@@ -513,7 +513,7 @@ public:
 //		;
 //	}
 	template<typename ...TS>
-	static index_type compact(_nTuple<TS ...> const & x)
+	static index_type compact(nTuple<TS ...> const & x)
 	{
 		return
 

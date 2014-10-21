@@ -20,13 +20,13 @@
 namespace simpla
 {
 //template<typename TS,  unsigned int  NDIMS>
-//bool Clipping(nTuple<NDIMS, TS> const & l_start, nTuple<NDIMS, TS> const &l_count, nTuple<NDIMS, TS> *pr_start,
-//        nTuple<NDIMS, TS> *pr_count)
+//bool Clipping(nTuple<TS,NDIMS> const & l_start, nTuple<TS,NDIMS> const &l_count, nTuple<TS,NDIMS> *pr_start,
+//        nTuple<TS,NDIMS> *pr_count)
 //{
 //	bool has_overlap = false;
 //
-//	nTuple<NDIMS, TS> & r_start = *pr_start;
-//	nTuple<NDIMS, TS> & r_count = *pr_count;
+//	nTuple<TS,NDIMS> & r_start = *pr_start;
+//	nTuple<TS,NDIMS> & r_count = *pr_count;
 //
 //	for (int i = 0; i < NDIMS; ++i)
 //	{
@@ -53,13 +53,13 @@ namespace simpla
  *  @{
  */
 template<unsigned int DIM, typename TR, typename TRange>
-bool PointInRectangle(nTuple<DIM, TR> const &x, TRange const & range)
+bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 {
 	bool res = true;
 
-	auto min = std::get < 0 > (range);
+	auto min = std::get<0>(range);
 
-	auto max = std::get < 1 > (range);
+	auto max = std::get<1>(range);
 
 	for (unsigned int i = 0; i < DIM; ++i)
 	{
@@ -94,13 +94,13 @@ bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin,
 	return has_overlap;
 }
 template<typename TS, unsigned int NDIMS>
-bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end,
-		nTuple<NDIMS, TS> *pr_begin, nTuple<NDIMS, TS> *pr_end)
+bool Clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
+		nTuple<TS, NDIMS> *pr_begin, nTuple<TS, NDIMS> *pr_end)
 {
 	bool has_overlap = false;
 
-	nTuple<NDIMS, TS> & r_begin = *pr_begin;
-	nTuple<NDIMS, TS> & r_end = *pr_end;
+	nTuple<TS, NDIMS> & r_begin = *pr_begin;
+	nTuple<TS, NDIMS> & r_end = *pr_end;
 
 	for (int i = 0; i < NDIMS; ++i)
 	{
@@ -122,17 +122,17 @@ bool Clipping(nTuple<NDIMS, TS> l_begin, nTuple<NDIMS, TS> l_end,
 	return has_overlap;
 }
 
-//inline nTuple<3, Real> Distance(nTuple<2, nTuple<3, Real>> p, nTuple<3, Real> const &x)
+//inline nTuple<Real,3> Distance(nTuple<2, nTuple<Real,3>> p, nTuple<Real,3> const &x)
 //{
-//	nTuple<3, Real> u, v;
+//	nTuple<Real,3> u, v;
 //	v = p[1] - p[0];
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
 //	return std::move(u);
 //}
-inline Real Distance(nTuple<3, nTuple<3, Real>> const & p,
-		nTuple<3, Real> const &x)
+inline Real Distance(nTuple<nTuple<Real, 3u>, 3u> const & p,
+		nTuple<Real, 3u> const &x)
 {
-	nTuple<3, Real> v;
+	nTuple<Real, 3u> v;
 	v = cross(p[1] - p[0], p[2] - p[0]);
 	return dot(x - p[0], v) / std::sqrt(dot(v, v));
 }
@@ -152,9 +152,9 @@ inline Real Distance(nTuple<3, nTuple<3, Real>> const & p,
  *
  */
 template<typename TPlane>
-inline void Reflect(TPlane const & p, nTuple<3, Real>*x, nTuple<3, Real> * v)
+inline void Reflect(TPlane const & p, nTuple<Real, 3>*x, nTuple<Real, 3> * v)
 {
-	nTuple<3, Real> u;
+	nTuple<Real, 3> u;
 
 	u = cross(p[1] - p[0], p[2] - p[0]);
 
@@ -191,10 +191,10 @@ void createSurface(TModel const & model, Real width, TSurface * surf)
 ////	auto xmin = extent.first;
 ////	auto xmax = extent.second;
 ////	auto d = mesh.get_dx();
-////	nTuple<3, Real> x0 = { 0, 0, 0 };
-////	nTuple<3, Real> x1 = { d[0], 0, 0 };
-////	nTuple<3, Real> x2 = { 0, d[1], 0 };
-////	nTuple<3, Real> x3 = { 0, 0, d[2] };
+////	nTuple<Real,3> x0 = { 0, 0, 0 };
+////	nTuple<Real,3> x1 = { d[0], 0, 0 };
+////	nTuple<Real,3> x2 = { 0, d[1], 0 };
+////	nTuple<Real,3> x3 = { 0, 0, d[2] };
 ////
 ////	for (auto s : mesh.select(VERTEX))
 ////	{

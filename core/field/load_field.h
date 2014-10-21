@@ -134,7 +134,7 @@ bool load_field(TDict const &dict, _Field<TM, IFORM, Container> *f)
 //		);
 //
 //	}
-//	else if (dict.is_number() && !is_nTuple<field_value_type>::value)
+//	else if (dict.is_number() && !isnTuple<field_value_type>::value)
 //	{
 //		field_value_type v = dict.template as<field_value_type>();
 //
@@ -144,7 +144,7 @@ bool load_field(TDict const &dict, _Field<TM, IFORM, Container> *f)
 //		});
 //
 //	}
-//	else if (dict.is_table() && is_nTuple<field_value_type>::value)
+//	else if (dict.is_table() && isnTuple<field_value_type>::value)
 //	{
 //		field_value_type v = dict.template as<field_value_type>();
 //

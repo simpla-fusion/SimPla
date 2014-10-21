@@ -45,7 +45,8 @@ inline T ToValue(std::string const & str)
 }
 
 template<unsigned int N, typename T>
-inline std::string ToString(nTuple<N, T> const & v, std::string const & sep = " ")
+inline std::string ToString(nTuple<T, N> const & v, std::string const & sep =
+		" ")
 {
 
 	std::ostringstream os;
@@ -57,7 +58,8 @@ inline std::string ToString(nTuple<N, T> const & v, std::string const & sep = " 
 	return (os.str());
 }
 
-inline std::string AutoIncrease(std::function<bool(std::string)> const & fun, size_t count = 0, unsigned int width = 4)
+inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
+		size_t count = 0, unsigned int width = 4)
 {
 	std::string res("");
 	while (fun(res))

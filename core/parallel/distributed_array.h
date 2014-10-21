@@ -72,16 +72,16 @@ public:
 
 	void Decompose(long gw = 2);
 
-	nTuple<3, long> global_begin_;
-	nTuple<3, long> global_end_;
-	nTuple<3, long> global_strides_;
+	nTuple<long,3> global_begin_;
+	nTuple<long,3> global_end_;
+	nTuple<long,3> global_strides_;
 
 	struct sub_array_s
 	{
-		nTuple<3, long> outer_begin;
-		nTuple<3, long> outer_end;
-		nTuple<3, long> inner_begin;
-		nTuple<3, long> inner_end;
+		nTuple<long,3> outer_begin;
+		nTuple<long,3> outer_end;
+		nTuple<long,3> inner_begin;
+		nTuple<long,3> inner_end;
 	};
 	sub_array_s local_;
 
@@ -90,10 +90,10 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<3, long> send_begin;
-		nTuple<3, long> send_end;
-		nTuple<3, long> recv_begin;
-		nTuple<3, long> recv_end;
+		nTuple<long,3> send_begin;
+		nTuple<long,3> send_end;
+		nTuple<long,3> recv_begin;
+		nTuple<long,3> recv_end;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s

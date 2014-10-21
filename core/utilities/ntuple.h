@@ -6,8 +6,8 @@
  *      Author: yuzhi
  */
 
-#ifndef INCLUDE_NTUPLE_H_
-#define INCLUDE_NTUPLE_H_
+#ifndef INCLUDEnTuple_H_
+#define INCLUDEnTuple_H_
 #include <utility>
 #include <ostream>
 #include "primitives.h"
@@ -34,12 +34,13 @@ namespace simpla
  *   nTuple<5,double> t={1,2,3,4,5};
  *
  *
- *   nTuple<N,T> primary ntuple
- *   nTuple<N,TOP,TExpr> unary nTuple expression
- *   nTuple<N,TOP,TExpr1,TExpr2> binary nTuple expression
+ *   nTuple<T,N...> primary ntuple
+ *   nTuple<Expression<TOP,TExpr>> unary nTuple expression
+ *   nTuple<Expression<TOP,TExpr1,TExpr2>> binary nTuple expression
  *
  **/
-template<typename ...> struct _nTuple;
+template<typename, unsigned int...> struct nTuple;
+template<typename ...>class Expression;
 
 template<typename TV>
 struct nTuple_traits
@@ -53,7 +54,7 @@ struct nTuple_traits
 };
 
 template<typename TV, unsigned int ...N>
-struct nTuple_traits<_nTuple<TV, integer_sequence<unsigned int, N...>> >
+struct nTuple_traits<nTuple<TV, N...> >
 {
 
 	typedef typename cat_integer_sequence<integer_sequence<unsigned int, N...>,
@@ -64,10 +65,9 @@ struct nTuple_traits<_nTuple<TV, integer_sequence<unsigned int, N...>> >
 	typedef typename nTuple_traits<TV>::value_type value_type;
 
 };
-template<typename ...>class Expression;
 
 template<typename TOP, typename TL>
-struct nTuple_traits<_nTuple<Expression<TOP, TL> > >
+struct nTuple_traits<nTuple<Expression<TOP, TL> > >
 {
 private:
 	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
@@ -81,7 +81,7 @@ public:
 
 };
 template<typename TOP, typename TL, typename TR>
-struct nTuple_traits<_nTuple<Expression<TOP, TL, TR>> >
+struct nTuple_traits<nTuple<Expression<TOP, TL, TR>> >
 {
 private:
 	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
@@ -97,53 +97,56 @@ public:
 					get_value(std::declval<value_type_r>(),0))) value_type;
 
 };
-
-template<typename ...> struct make_primary_ntuple;
-
-template<typename T, unsigned int M, unsigned int ...N>
-struct make_primary_ntuple<T, integer_sequence<unsigned int, M, N...>>
-{
-private:
-	typedef T value_type;
-	typedef typename make_primary_ntuple<value_type,
-			integer_sequence<unsigned int, N...> >::type sub_type;
-public:
-	typedef _nTuple<sub_type, integer_sequence<unsigned int, M>> type;
-
-};
-template<typename T, unsigned int M>
-struct make_primary_ntuple<T, integer_sequence<unsigned int, M>>
-{
-private:
-	typedef T value_type;
-public:
-	typedef _nTuple<value_type, integer_sequence<unsigned int, M>> type;
-
-};
-
-template<typename T>
-struct make_primary_ntuple<T, integer_sequence<unsigned int>>
-{
-	typedef T value_type;
-	typedef _nTuple<value_type, integer_sequence<unsigned int>> type;
-
-};
-template<typename ...T>
-struct make_primary_ntuple<_nTuple<T...> >
-{
-private:
-	typedef _nTuple<T...> ntuple_type;
-	typedef typename nTuple_traits<ntuple_type>::value_type value_type;
-	typedef typename nTuple_traits<ntuple_type>::dimensions dimensions;
-
-public:
-	typedef typename make_primary_ntuple<value_type, dimensions>::type type;
-
-};
+//
+//template<typename ...> struct make_primary_nTuple;
+//
+//template<typename T, unsigned int M, unsigned int ...N>
+//struct make_primary_nTuple<T, integer_sequence<unsigned int, M, N...>>
+//{
+//private:
+//	typedef T value_type;
+//	typedef typename make_primary_nTuple<value_type,
+//			integer_sequence<unsigned int, N...> >::type sub_type;
+//public:
+//	typedef nTuple<sub_type, M> type;
+//
+//};
+//template<typename T, unsigned int M>
+//struct make_primary_nTuple<T, integer_sequence<unsigned int, M> >
+//{
+//private:
+//	typedef T value_type;
+//public:
+//	typedef nTuple<value_type, M> type;
+//
+//};
+//
+//template<typename T>
+//struct make_primary_nTuple<T, integer_sequence<unsigned int> >
+//{
+//	typedef T value_type;
+//	typedef nTuple<value_type> type;
+//
+//};
+//
+//
+//template<typename T, unsigned int ... N>
+//struct make_primary_nTuple<nTuple<T, N...> >
+//{
+//private:
+//	typedef nTuple<T, N...> ntuple_type;
+//	typedef T value_type;
+//	typedef integer_sequence<unsigned int, N...> dimensions;
+//
+//public:
+//	typedef typename make_primary_nTuple<value_type, dimensions>::type type;
+//
+//};
 
 template<typename ...> struct make_ndarray_type;
+
 template<typename T, unsigned int M, unsigned int ...N>
-struct make_ndarray_type<T, integer_sequence<unsigned int, M, N...> >
+struct make_ndarray_type<T, integer_sequence<unsigned int, M, N...>>
 {
 	typedef typename make_ndarray_type<T, integer_sequence<unsigned int, N...>>::type sub_type;
 
@@ -151,137 +154,159 @@ struct make_ndarray_type<T, integer_sequence<unsigned int, M, N...> >
 };
 
 template<typename T, unsigned int M>
-struct make_ndarray_type<T, integer_sequence<unsigned int, M> >
+struct make_ndarray_type<T, integer_sequence<unsigned int, M>>
 {
 	typedef T type[M];
 };
 
+//template<typename T>
+//struct make_ndarray_type<T, integer_sequence<unsigned int>>
+//{
+//	typedef T type;
+//};
+
 template<typename T>
-struct make_ndarray_type<T, integer_sequence<unsigned int> >
+struct make_ndarray_type<T, integer_sequence<unsigned int>>
 {
 	typedef T type;
 };
 
-template<typename TR, typename ...T>
-void swap(_nTuple<T...> & l, TR & r)
+template<typename TR, typename T, unsigned int ... N>
+void swap(nTuple<T, N...> & l, TR & r)
 {
-	seq_for<typename nTuple_traits<_nTuple<T...>>::dimensions>::eval_ndarray(
+	seq_for<typename nTuple_traits<nTuple<T, N...>>::dimensions>::eval_ndarray(
 			_impl::_swap(), (l), (r));
 }
 
-template<typename TR, typename ...T>
-void assign(_nTuple<T...> & l, TR const& r)
+template<typename TR, typename T, unsigned int ... N>
+void assign(nTuple<T, N...> & l, TR const& r)
 {
-	seq_for<typename nTuple_traits<_nTuple<T...>>::dimensions>::eval_ndarray(
+	seq_for<typename nTuple_traits<nTuple<T, N...>>::dimensions>::eval_ndarray(
 			_impl::_assign(), l, r);
 }
-template<typename TR, typename ...T>
-auto inner_product2(_nTuple<T...> const & l,
-		TR const& r)->decltype(get_value(l,0)*get_value(r,0))
-{
-	return (seq_reduce<typename nTuple_traits<_nTuple<T...>>::dimensions>::eval_ndarray(
-			_impl::multiplies(), _impl::plus(), l, r));
-}
+//template<typename TR, typename T, unsigned int ... N>
+//auto inner_product2(nTuple<T, N...> const & l,
+//		TR const& r)->decltype(get_value(l,0)*get_value(r,0))
+//{
+//	return (seq_reduce<typename nTuple_traits<nTuple<T, N...>>::dimensions>::eval_ndarray(
+//			_impl::multiplies(), _impl::plus(), l, r));
+//}
 
-template<typename TR, typename ...T>
-auto inner_product(_nTuple<T...> const & l, TR const& r)
+template<typename TR, typename T, unsigned int ... N>
+auto inner_product(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE((
-				seq_reduce<typename nTuple_traits<_nTuple<T...>>::dimensions
+				seq_reduce<typename nTuple_traits<nTuple<T, N...>>::dimensions
 				>::eval_ndarray( _impl::multiplies(),_impl::plus(),l, r)
 		))
 
-template<typename ...T, typename TI>
-auto get_value(_nTuple<T...> && r, TI const& s)
-DECL_RET_TYPE((r[s]))
+//template<typename T, unsigned int ... N, typename TI>
+//auto get_value(nTuple<T, N...> && r, TI const& s)
+//DECL_RET_TYPE2((r[s]))
 
 /// n-dimensional primary type
 template<typename T, unsigned int ... N>
-struct _nTuple<T, integer_sequence<unsigned int, N...> >
+struct nTuple
 {
 
 	typedef T value_type;
+
 	typedef integer_sequence<unsigned int, N...> dimensions;
-
-	typedef _nTuple<value_type, dimensions> this_type;
-
-	typedef typename make_ndarray_type<value_type, dimensions>::type data_type;
 
 	static constexpr unsigned int ndims = dimensions::size();
 
-	typedef typename std::conditional<ndims <= 1, size_t,
-			_nTuple<size_t, integer_sequence<unsigned int, ndims> > >::type index_type;
+	typedef nTuple<value_type, N...> this_type;
+
+	typedef typename make_ndarray_type<value_type, dimensions>::type data_type;
 
 	data_type data_;
 
-	inline value_type & operator[](index_type const &i)
+	template<typename TI>
+	inline auto operator[](TI const &i) ->decltype(data_[i])
 	{
-		return (get_value(data_, i));
+		return data_[i];
+	}
+	template<typename TI>
+	inline auto operator[](TI const &i) const ->decltype(data_[i])
+	{
+		return data_[i];
 	}
 
-	inline value_type const &operator[](index_type const& i) const
+	template<unsigned int ...M>
+	inline value_type & operator[](
+			integer_sequence<unsigned int, M...> const &i)
 	{
-		return (get_value(data_, i));
+		return _get_value(data_, i);
 	}
 
-//	template<typename TR>
-//	inline bool operator ==(TR const &rhs) const
+	template<unsigned int ...M>
+	inline value_type const & operator[](
+			integer_sequence<unsigned int, M...> const &i) const
+	{
+		return _get_value(data_, i);
+	}
+
+	template<typename TD, unsigned int M, unsigned int ... L>
+	auto _get_value(TD && v,
+			integer_sequence<unsigned int, M, L...>)
+					DECL_RET_TYPE((_get_value(get_value(std::forward<T>(v),M), integer_sequence<unsigned int, L...>())))
+
+	template<typename TD>
+	T& _get_value(TD & v, integer_sequence<unsigned int>)
+	{
+		return v;
+	}
+
+	template<typename TD>
+	T const& _get_value(TD const& v, integer_sequence<unsigned int>)
+	{
+		return v;
+	}
+
+//#pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
+//
+//	typedef typename make_primary_nTuple<this_type>::type primary_type;
+//
+//	operator primary_type() const
 //	{
-//		return seq_reduce<dimensions>::eval_ndarray(_impl::equal_to(),
-//				_impl::logical_and(), *this, rhs);
+//		primary_type res;
+//		res = *this;
+//		return std::move(res);
 //	}
 //
-//	template<typename TR>
-//	inline bool operator !=(TR const &rhs) const
-//	{
-//		return !(*this == rhs);
-//	}
-
-#pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
-
-	typedef typename make_primary_ntuple<this_type>::type primary_type;
-
-	operator primary_type() const
-	{
-		primary_type res;
-		res = *this;
-		return std::move(res);
-	}
-
-#pragma warning( enable : 597)
+//#pragma warning( enable : 597)
 
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::_assign(), data_, rhs);
+		seq_for<dimensions>::eval(_impl::_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::plus_assign(), data_, rhs);
+		seq_for<dimensions>::eval(_impl::plus_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator -=(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::minus_assign(), data_, rhs);
+		seq_for<dimensions>::eval(_impl::minus_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::multiplies_assign(), data_,
-				rhs);
+		seq_for<dimensions>::eval(_impl::multiplies_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator /=(TR const &rhs)
 	{
-		seq_for<dimensions>::eval_ndarray(_impl::divides_assign(), data_, rhs);
+		seq_for<dimensions>::eval(_impl::divides_assign(), data_, rhs);
 		return (*this);
 	}
 
@@ -294,113 +319,46 @@ struct _nTuple<T, integer_sequence<unsigned int, N...> >
 };
 
 template<typename ... T>
-struct _nTuple<Expression<T...>> : public Expression<T...>
+struct nTuple<Expression<T...>> : public Expression<T...>
 {
-	typedef _nTuple<Expression<T...>> this_type;
+	typedef nTuple<Expression<T...>> this_type;
 	typedef typename nTuple_traits<this_type>::value_type value_type;
 	typedef typename nTuple_traits<this_type>::dimensions dimensions;
-	typedef typename make_primary_ntuple<value_type, dimensions>::type primary_type;
+//	typedef typename make_primary_nTuple<value_type, dimensions>::type primary_type;
 
-	operator primary_type() const
-	{
-		primary_type res;
-		res = *this;
-		return std::move(res);
-	}
-
-	operator bool() const
-	{
-		return seq_reduce<dimensions>::eval_ndarray(_impl::logical_and(), *this);
-	}
+//	operator bool() const
+//	{
+//		return seq_reduce<dimensions>::eval(_impl::logical_and(), *this);
+//	}
 
 	using Expression<T...>::Expression;
 };
 
-template<typename ...T>
-std::ostream &operator<<(std::ostream & os, _nTuple<T...> const & v)
+template<typename T, unsigned int ...N>
+std::ostream &operator<<(std::ostream & os, nTuple<T, N...> const & v)
 {
 	os << "UNIMPLEMENT" << std::endl;
 	return os;
 }
 
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_nTuple)
+typedef nTuple<Real, 3> Vec3;
 
-template<unsigned int N, typename T> using nTuple=_nTuple<T,integer_sequence<unsigned int,N >>;
+typedef nTuple<Real, 3> IVec3;
 
-typedef _nTuple<Real, integer_sequence<unsigned int, 3>> Vec3;
+typedef nTuple<Integral, 3> RVec3;
 
-typedef _nTuple<Real, integer_sequence<unsigned int, 3>> IVec3;
-
-typedef _nTuple<Integral, integer_sequence<unsigned int, 3>> RVec3;
-
-typedef _nTuple<Complex, integer_sequence<unsigned int, 3>> CVec3;
+typedef nTuple<Complex, 3> CVec3;
 
 /// Eigen style
 
-template<typename T, unsigned int N> using Vector=_nTuple<T,integer_sequence<unsigned int,N >>;
+template<typename T, unsigned int N> using Vector=nTuple<T,N>;
 
-template<typename T, unsigned int ... N> using Matrix=typename make_primary_ntuple<_nTuple<T,integer_sequence<unsigned int,N...>>>::type;
+template<typename T, unsigned int M, unsigned int N> using Matrix=nTuple<T,M,N >;
 
-template<typename T, unsigned int ...N> using Tensor=_nTuple<T,integer_sequence<unsigned int,N...>>;
-
-//
-//template<typename T>
-//auto make_ntuple(T v0)
-//DECL_RET_TYPE(v0)
-//;
-//
-//template<typename T>
-//nTuple<2, T> make_ntuple(T v0, T v1)
-//{
-//	return std::move(nTuple<2, T>(
-//	{ v0, v1 }));
-//}
-//
-//template<typename T>
-//auto make_ntuple(T v0, T v1, T v2)
-//DECL_RET_TYPE((nTuple<3,T>(
-//						{	v0,v1,v2})))
-//;
-//
-//template<typename T>
-//auto make_ntuple(T v0, T v1, T v2, T v3)
-//DECL_RET_TYPE((nTuple<3,T>(
-//						{	v0,v1,v2,v3})))
-;
-
-//template<typename TV>
-//struct is_nTuple
-//{
-//	static constexpr bool value = false;
-//
-//};
-//
-//template<unsigned int N, typename TV>
-//struct is_nTuple<nTuple<N, TV>>
-//{
-//	static constexpr bool value = true;
-//
-//};
-//
-//template<unsigned int N, typename TE>
-//struct is_primitive<nTuple<N, TE> >
-//{
-//	static constexpr bool value = is_arithmetic_scalar<TE>::value;
-//};
-//
-
-//
-//template<unsigned int N, class T>
-//class is_indexable<nTuple<N, T> >
-//{
-//public:
-//	static const bool value = true;
-//
-//};
+template<typename T, unsigned int ... N> using Tensor=nTuple<T,N...>;
 
 template<typename T> inline auto determinant(
-		_nTuple<_nTuple<T, integer_sequence<unsigned int, 3>>,
-				integer_sequence<unsigned int, 3> > const & m)
+		Matrix<T, 3, 3> const & m)
 				DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
 								* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
 								* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
@@ -409,8 +367,7 @@ template<typename T> inline auto determinant(
 				)
 
 template<typename T> inline auto determinant(
-		_nTuple<_nTuple<T, integer_sequence<unsigned int, 4>>,
-				integer_sequence<unsigned int, 4> > const & m)
+		Matrix<T, 4, 4> const & m)
 		DECL_RET_TYPE((//
 				m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
 				- m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3]//
@@ -428,12 +385,11 @@ template<typename T> inline auto determinant(
 				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 		))
 
-template<typename T, unsigned int ...N> auto abs(
-		_nTuple<T, integer_sequence<unsigned int, N...>> const & m)
-		DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
+template<typename T, unsigned int ...N> auto abs(nTuple<T, N...> const & m)
+DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
 
 template<unsigned int N, typename T> inline auto NProduct(
-		_nTuple<T, integer_sequence<unsigned int, N> > const & v)
+		nTuple<T, N> const & v)
 		->decltype(v[0]*v[1])
 {
 	decltype(v[0]*v[1]) res;
@@ -445,9 +401,8 @@ template<unsigned int N, typename T> inline auto NProduct(
 	return res;
 
 }
-template<unsigned int N, typename T> inline auto NSum(
-		_nTuple<T, integer_sequence<unsigned int, N>> const & v)
-		->decltype(v[0]+v[1])
+template<unsigned int N, typename T> inline auto NSum(nTuple<T, N> const & v)
+->decltype(v[0]+v[1])
 {
 	decltype(v[0]+v[1]) res;
 	res = 0;
@@ -458,15 +413,15 @@ template<unsigned int N, typename T> inline auto NSum(
 	return res;
 }
 
-template<typename ... T1, typename TR>
-inline auto dot(_nTuple<T1...> const &l, TR const &r)
+template<typename T1, unsigned int ... N, typename TR>
+inline auto dot(nTuple<T1, N...> const &l, TR const &r)
 DECL_RET_TYPE((inner_product(l,r)))
 
-template<typename ... T1, typename ...T2> inline auto cross(
-		_nTuple<T1...> const & l, _nTuple<T2...> const & r)
-		->nTuple<3,decltype(get_value(l,0)*get_value(r,0))>
+template<typename T1, unsigned int ... N1, typename T2, unsigned int ... N2> inline auto cross(
+		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
+		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<3, decltype(get_value(l,0)*get_value(r,0))> res = { l[1] * r[2]
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
 			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
 			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
@@ -496,11 +451,10 @@ template<typename ... T1, typename ...T2> inline auto cross(
 //}
 
 template<typename TP, TP ...J>
-_nTuple<TP, integer_sequence<unsigned int, sizeof...(J)>> make_ntuple(
-		integer_sequence<TP, J...>)
+nTuple<TP, (sizeof...(J)) + 1> makenTuple(integer_sequence<TP, J...>)
 {
 	constexpr unsigned int N = 1 + sizeof...(J);
-	typedef _nTuple<TP, integer_sequence<unsigned int, N>> type;
+	typedef nTuple<TP, N> type;
 	type res;
 //
 //	seq_for<integer_sequence<unsigned int, N>>::eval_multi_parameter(
@@ -512,11 +466,46 @@ _nTuple<TP, integer_sequence<unsigned int, sizeof...(J)>> make_ntuple(
 }
 
 //template<typename TP>
-//unsigned int make_ntuple(integer_sequence<TP>)
+//unsigned int makenTuple(integer_sequence<TP>)
 //{
 //	return 0;
 //}
+
+#define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
+	template<typename T1,unsigned int ...N1,typename  T2> auto operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
+	DECL_RET_TYPE2((nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
+
+
+#define _SP_DEFINE_nTuple_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
+	template<typename T1,unsigned int ...N1,typename  T2> auto operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
+	DECL_RET_TYPE2((nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
+	template< typename T1,typename T2 ,unsigned int ...N2> auto operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+	DECL_RET_TYPE2((nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r)))                  \
+	template< typename T1,unsigned int ... N1,typename T2 ,unsigned int ...N2>  \
+	auto operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+	DECL_RET_TYPE2((nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r)))                  \
+
+
+#define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
+		template<typename T,unsigned int ...N> auto operator _OP_(nTuple<T,N...> const &l)  \
+		DECL_RET_TYPE2((nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)))   \
+
+#define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
+			template<typename T1,unsigned int ...N1,typename  T2> auto   _NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
+			DECL_RET_TYPE2((nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
+			template< typename T1,typename T2,unsigned int ...N2> auto _NAME_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+			DECL_RET_TYPE2((nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>(l,r)))                  \
+			template< typename T1,unsigned int ... N1,typename T2,unsigned int  ...N2> \
+			auto _NAME_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+			DECL_RET_TYPE2((nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r)))                  \
+
+
+#define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION( _NAME_)                           \
+		template<typename T,unsigned int ...N> auto   _NAME_(nTuple<T,N ...> const &r)  \
+		DECL_RET_TYPE2((nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r)))   \
+
+DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 }
 //namespace simpla
 
-#endif  // INCLUDE_NTUPLE_H_
+#endif  // INCLUDEnTuple_H_

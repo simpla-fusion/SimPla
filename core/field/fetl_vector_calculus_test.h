@@ -119,7 +119,7 @@ public:
 	}
 
 	template<unsigned int N, typename T>
-	void SetDefaultValue(nTuple<N, T>* v)
+	void SetDefaultValue(nTuple<T,N>* v)
 	{
 		for (int i = 0; i < N; ++i)
 		{

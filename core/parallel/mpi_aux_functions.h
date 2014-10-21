@@ -29,21 +29,23 @@ std::tuple<Integral, Integral> sync_global_location(Integral count)
 	return std::make_tuple(rbegin, rtotal);
 
 }
-void reduce(void const* send_data, void * recv_data, size_t count, DataType const & data_type,
-        std::string const & op_c);
+void reduce(void const* send_data, void * recv_data, size_t count,
+		DataType const & data_type, std::string const & op_c);
 
-void allreduce(void const* send_data, void * recv_data, size_t count, DataType const & data_type,
-        std::string const & op_c);
+void allreduce(void const* send_data, void * recv_data, size_t count,
+		DataType const & data_type, std::string const & op_c);
 
 template<typename T>
-void reduce(T * send_data, T * recv_data, size_t count, std::string const & op_c = "Sum")
+void reduce(T * send_data, T * recv_data, size_t count,
+		std::string const & op_c = "Sum")
 {
 	reduce(send_data, recv_data, count, DataType::create<T>(), op_c);
 
 }
 
 template<typename T>
-void allreduce(T * send_data, T * recv_data, size_t count, std::string const & op_c = "Sum")
+void allreduce(T * send_data, T * recv_data, size_t count,
+		std::string const & op_c = "Sum")
 {
 	allreduce(send_data, recv_data, count, DataType::create<T>(), op_c);
 }
@@ -69,20 +71,21 @@ void reduce(T * p_send, std::string const & op_c = "Sum")
 
 }
 
-template<int DIMS, typename T>
-nTuple<DIMS, T> reduce(nTuple<DIMS, T> const & send, std::string const & op_c = "Sum")
+template<typename T, int DIMS>
+nTuple<T, DIMS> reduce(nTuple<T, DIMS> const & send, std::string const & op_c =
+		"Sum")
 {
-	nTuple<DIMS, T> recv;
+	nTuple<T, DIMS> recv;
 
 	reduce(&send[0], &recv[0], DIMS, op_c);
 
 	return recv;
 }
 
-template<int DIMS, typename T>
-void reduce(nTuple<DIMS, T> * p_send, std::string const & op_c = "Sum")
+template<typename T, int DIMS>
+void reduce(nTuple<T, DIMS> * p_send, std::string const & op_c = "Sum")
 {
-	nTuple<DIMS, T> recv;
+	nTuple<T, DIMS> recv;
 
 	reduce(&(*p_send)[0], &recv[0], DIMS, op_c);
 
@@ -111,31 +114,33 @@ void allreduce(T * p_send, std::string const & op_c = "Sum")
 
 }
 
-template<int DIMS, typename T>
-nTuple<DIMS, T> allreduce(nTuple<DIMS, T> const & send, std::string const & op_c = "Sum")
+template<typename T, int DIMS>
+nTuple<T, DIMS> allreduce(nTuple<T, DIMS> const & send,
+		std::string const & op_c = "Sum")
 {
-	nTuple<DIMS, T> recv;
+	nTuple<T, DIMS> recv;
 
 	allreduce(&send[0], &recv[0], DIMS, op_c);
 
 	return recv;
 }
 
-template<int DIMS, typename T>
-void allreduce(nTuple<DIMS, T> * p_send, std::string const & op_c = "Sum")
+template<typename T, int DIMS>
+void allreduce(nTuple<T, DIMS> * p_send, std::string const & op_c = "Sum")
 {
-	nTuple<DIMS, T> recv;
+	nTuple<T, DIMS> recv;
 
 	allreduce(&(*p_send)[0], &recv[0], DIMS, op_c);
 
 	*p_send = recv;
 
 }
-std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(void const* send_buffer, std::vector<std::tuple<int, // dest;
-        int, // send_tag;
-        int, // recv_tag;
-        int, // send buffer begin;
-        int  // send buffer size;
-        >> const & info);
+std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
+		void const* send_buffer, std::vector<std::tuple<int, // dest;
+				int, // send_tag;
+				int, // recv_tag;
+				int, // send buffer begin;
+				int  // send buffer size;
+				>> const & info);
 }  // namespace simpla
 #endif /* MPI_AUX_FUNCTIONS_H_ */

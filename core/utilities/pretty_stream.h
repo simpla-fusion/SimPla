@@ -28,8 +28,9 @@ namespace simpla
 //! \ingroup Utilities
 
 template<typename TV> inline TV const *
-printNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* d, std::string const & left_brace = "{",
-        std::string const & sep = ",", std::string const & right_brace = "}")
+printNdArray(std::ostream & os, TV const *v, unsigned int rank, size_t const* d,
+		std::string const & left_brace = "{", std::string const & sep = ",",
+		std::string const & right_brace = "}")
 {
 	if (rank == 1)
 	{
@@ -55,15 +56,16 @@ printNdArray(std::ostream & os, TV const *v,  unsigned int  rank, size_t const* 
 		for (int s = 1; s < d[0]; ++s)
 		{
 			os << sep << std::endl;
-			v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep, right_brace);
+			v = printNdArray(os, v, rank - 1, d + 1, left_brace, sep,
+					right_brace);
 		}
 		os << right_brace << std::endl;
 		return (v);
 	}
 }
 
-template<unsigned int N, typename T> std::ostream &
-operator<<(std::ostream& os, const nTuple<N, T> & tv)
+template<typename T, unsigned int N> std::ostream &
+operator<<(std::ostream& os, const nTuple<T, N> & tv)
 {
 	os << "{" << tv[0];
 	for (int i = 1; i < N; ++i)
@@ -73,8 +75,8 @@ operator<<(std::ostream& os, const nTuple<N, T> & tv)
 	os << "}";
 	return (os);
 }
-template<unsigned int N, typename T> std::istream &
-operator>>(std::istream& is, nTuple<N, T> & tv)
+template<typename T, unsigned int N> std::istream &
+operator>>(std::istream& is, nTuple<T, N> & tv)
 {
 	for (int i = 0; i < N && is; ++i)
 	{
@@ -84,10 +86,11 @@ operator>>(std::istream& is, nTuple<N, T> & tv)
 	return (is);
 }
 
-template<unsigned int N, typename T> nTuple<N, T> ToNTuple(std::string const & str)
+template<typename T, unsigned int N> nTuple<T, N> ToNTuple(
+		std::string const & str)
 {
 	std::istringstream ss(str);
-	nTuple<N, T> res;
+	nTuple<T, N> res;
 	ss >> res;
 	return (res);
 }
@@ -148,7 +151,8 @@ std::ostream & ContainerOutPut2(std::ostream & os, TI const & ib, TI const & ie)
 	return os;
 }
 template<typename TI, typename TFUN>
-std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie, TFUN const& fun)
+std::ostream & ContainerOutPut3(std::ostream & os, TI const & ib, TI const & ie,
+		TFUN const& fun)
 {
 	if (ib == ie)
 		return os;
@@ -222,7 +226,8 @@ std::ostream & operator<<(std::ostream & os, std::set<U, Others...> const &d)
 }
 
 template<typename U, typename ...Others>
-std::ostream & operator<<(std::ostream & os, std::multiset<U, Others...> const &d)
+std::ostream & operator<<(std::ostream & os,
+		std::multiset<U, Others...> const &d)
 {
 	return simpla::ContainerOutPut1(os, d.begin(), d.end());
 }

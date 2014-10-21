@@ -273,7 +273,7 @@ BlockRange<T> operator&(BlockRange<T> const & l, BlockRange<T> const& r)
 	return std::move(BlockRange<T>(l));
 }
 //template<typename T, unsigned int N>
-//class BlockRange<nTuple<N, T>>
+//class BlockRange<nTuple<T,N>>
 //{
 //public:
 //

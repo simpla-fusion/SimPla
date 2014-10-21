@@ -20,8 +20,8 @@ namespace simpla
  * \brief calculate the overlap of two  hexahedron
  */
 template<unsigned int N, typename T>
-void Clipping(nTuple<N, T> const&xmin, nTuple<N, T> const&xcount, nTuple<N, T> const&ymin, nTuple<N, T> const& ycount,
-        nTuple<N, T>* rmin, nTuple<N, T>* rcount)
+void Clipping(nTuple<T,N> const&xmin, nTuple<T,N> const&xcount, nTuple<T,N> const&ymin, nTuple<T,N> const& ycount,
+        nTuple<T,N>* rmin, nTuple<T,N>* rcount)
 {
 
 	for (int i = 0; i < N; ++i)

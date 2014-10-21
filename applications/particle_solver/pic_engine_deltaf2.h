@@ -153,7 +153,7 @@ public:
 	}
 
 	template<typename TV, typename ... Others>
-	inline typename std::enable_if<!is_ntuple<TV>::value, void>::type Scatter(Point_s const &p,
+	inline typename std::enable_if<!isnTuple<TV>::value, void>::type Scatter(Point_s const &p,
 	        Field<mesh_type, VERTEX, TV>* n, Others const &... others) const
 	{
 		mesh.Scatter(p.x, p.f * p.w * q, n);

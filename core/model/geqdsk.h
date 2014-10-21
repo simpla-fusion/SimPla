@@ -194,7 +194,7 @@ public:
 	template<typename TF>
 	void GetProfile(std::string const & name, TF* f) const
 	{
-		GetProfile_(std::integral_constant<bool, is_nTuple<typename TF::field_value_type>::value>(), name, f);
+		GetProfile_(std::integral_constant<bool, isnTuple<typename TF::field_value_type>::value>(), name, f);
 		update_ghosts(f);
 	}
 
