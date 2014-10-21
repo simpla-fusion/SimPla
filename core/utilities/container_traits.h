@@ -24,6 +24,10 @@ template<typename TContainer> struct container_traits
 	{
 		return std::move(container_type(s));
 	}
+	template<typename ...T>
+	static void clear(T &&...)
+	{
+	}
 
 	static bool is_empty(container_type const& that)
 	{
@@ -46,6 +50,10 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 		return MEMPOOL.template make_shared < value_type > (s);
 	}
 
+	static void clear(std::shared_ptr<TV> d,size_t s)
+	{
+		memset(d.get(),0,s*sizeof(TV));
+	}
 	static bool is_empty(container_type const& that)
 	{
 		return that == nullptr;

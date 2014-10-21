@@ -11,7 +11,7 @@
 namespace simpla
 {
 
-template<typename ...> class Field;
+template<typename ...> class _Field;
 template<typename, unsigned int> class Domain;
 
 /**
@@ -77,13 +77,13 @@ private:
 public:
 
 	template<typename TM,typename TD>
-	inline auto gather(Field<Domain<TM, VERTEX>, TD> const &f,
+	inline auto gather(_Field<Domain<TM, VERTEX>, TD> const &f,
 			typename G::coordinates_type const & r) const //
 	DECL_RET_TYPE((gather_impl_(f, geo.coordinates_global_to_local(r, 0UL) )))
 
 	template<typename TM,typename TD>
 	inline auto gather(
-			Field<Domain<TM, EDGE>, TD> const &f,
+			_Field<Domain<TM, EDGE>, TD> const &f,
 			typename G::coordinates_type const & r)const
 	DECL_RET_TYPE(
 			make_ntuple(
@@ -94,7 +94,7 @@ public:
 
 	template<typename TM,typename TD>
 	inline auto gather (
-			Field<Domain<TM, FACE>, TD> const &f,
+			_Field<Domain<TM, FACE>, TD> const &f,
 			typename G::coordinates_type const &r)const
 	DECL_RET_TYPE( make_ntuple(
 
@@ -105,7 +105,7 @@ public:
 
 	template<typename TM,typename TD>
 	inline auto gather (
-			Field<Domain<TM, VOLUME>, TD> const &f,
+			_Field<Domain<TM, VOLUME>, TD> const &f,
 			typename G::coordinates_type const & x)const
 	DECL_RET_TYPE(gather_impl_(f, geo.coordinates_global_to_local(x, (G::topology_type::_DA)) ))
 
@@ -133,7 +133,7 @@ private:
 public:
 
 	template<typename TM, typename TD, typename TV>
-	inline void scatter(Field<Domain<TM, VERTEX>, TD> &f,
+	inline void scatter(_Field<Domain<TM, VERTEX>, TD> &f,
 			typename G::coordinates_type const &x, TV const & v) const
 	{
 //		get_value(f, std::get<0>(geo.coordinates_global_to_local_NGP(x, 0UL))) +=
@@ -142,7 +142,7 @@ public:
 	}
 
 	template<typename TM, typename TD, typename TV>
-	inline void scatter(Field<Domain<TM, EDGE>, TD> &f,
+	inline void scatter(_Field<Domain<TM, EDGE>, TD> &f,
 			typename G::coordinates_type const & x,
 			nTuple<3, TV> const & u) const
 	{
@@ -159,7 +159,7 @@ public:
 	}
 
 	template<typename TM, typename TD, typename TV>
-	inline void scatter(Field<Domain<TM, FACE>, TD> &f,
+	inline void scatter(_Field<Domain<TM, FACE>, TD> &f,
 			typename G::coordinates_type const & x,
 			nTuple<3, TV> const & u) const
 	{
@@ -179,7 +179,7 @@ public:
 	}
 
 	template<typename TM, typename TD, typename TV>
-	inline void scatter(Field<Domain<TM, VOLUME>, TD> &f,
+	inline void scatter(_Field<Domain<TM, VOLUME>, TD> &f,
 			typename G::coordinates_type const & x, TV const & v) const
 	{
 		scatter_impl_(f,

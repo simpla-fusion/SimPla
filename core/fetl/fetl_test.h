@@ -8,6 +8,7 @@
 #ifndef FETL_TEST_H_
 #define FETL_TEST_H_
 #include <gtest/gtest.h>
+#include <tuple>
 
 using namespace simpla;
 
@@ -22,10 +23,11 @@ using namespace simpla;
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMehtod, InterpolatorLinear> TMesh;
 
+typedef nTuple<3, Real> coordiantes_type;
+
 class TestFETL: public testing::TestWithParam<
-		std::tuple<typename TMesh::coordinates_type,
-				typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t>,
-				nTuple<TMesh::NDIMS, Real> > >
+		std::tuple<coordiantes_type, coordiantes_type,
+				nTuple<TMesh::NDIMS, size_t>, nTuple<TMesh::NDIMS, Real> > >
 {
 
 protected:

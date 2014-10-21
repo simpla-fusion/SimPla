@@ -19,18 +19,18 @@
 namespace simpla
 {
 template<typename, unsigned int> class Domain;
-template<typename ...> class Field;
+template<typename ...> class _Field;
 
 template<typename TM, unsigned int IFORM, typename TContainer>
-class Field<Domain<TM, IFORM>,
+class _Field<Domain<TM, IFORM>,
 		Cache<const Field<Domain<TM, IFORM>, TContainer> > >
 {
 
 public:
 
-	typedef Field<TM, IFORM, TContainer> field_type;
+	typedef _Field<TM, IFORM, TContainer> field_type;
 
-	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TContainer> > > this_type;
+	typedef _Field<TM, IFORM, Cache<const _Field<TM, IFORM, TContainer> > > this_type;
 
 	typedef TM mesh_type;
 
@@ -63,7 +63,7 @@ private:
 
 public:
 
-	Field(this_type const& r) :
+	_Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -75,7 +75,7 @@ public:
 	{
 	}
 
-	Field(this_type && r) :
+	_Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -87,14 +87,14 @@ public:
 	{
 	}
 
-	Field(field_type const & f, iterator const &s,
+	_Field(field_type const & f, iterator const &s,
 			unsigned int affect_Range = 2) :
 			mesh(f.mesh), f_(f), cell_idx_(s), affect_Range_(affect_Range), num_of_points_(
 					0)
 	{
 	}
 
-	~Field()
+	~_Field()
 	{
 	}
 
@@ -205,14 +205,14 @@ public:
 ;
 
 template<typename TM, unsigned int IFORM, typename TContainer>
-class Field<Domain<TM, IFORM>, Cache<Field<TM, IFORM, TContainer> *> >
+class _Field<Domain<TM, IFORM>, Cache<_Field<TM, IFORM, TContainer> *> >
 {
 
 public:
 
-	typedef Field<TM, IFORM, TContainer> field_type;
+	typedef _Field<TM, IFORM, TContainer> field_type;
 
-	typedef Field<TM, IFORM, Cache<field_type> > this_type;
+	typedef _Field<TM, IFORM, Cache<field_type> > this_type;
 
 	typedef TM mesh_type;
 
@@ -244,7 +244,7 @@ private:
 
 public:
 
-	Field(this_type && r) :
+	_Field(this_type && r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -254,7 +254,7 @@ public:
 			points_(r.points_), cache_(r.cache_), is_fresh_(r.is_fresh_)
 	{
 	}
-	Field(this_type const& r) :
+	_Field(this_type const& r) :
 			mesh(r.mesh), f_(r.f_),
 
 			cell_idx_(r.cell_idx_), affect_Range_(r.affect_Range_),
@@ -266,13 +266,13 @@ public:
 	{
 	}
 
-	Field(field_type * f, unsigned int affect_Range = 2) :
+	_Field(field_type * f, unsigned int affect_Range = 2) :
 			mesh(f->mesh), f_(f), affect_Range_(affect_Range), num_of_points_(
 					0), is_fresh_(false)
 	{
 	}
 
-	~Field()
+	~_Field()
 	{
 		FlushCache();
 	}
@@ -373,18 +373,18 @@ public:
 };
 
 template<typename TM, unsigned int IFORM, typename TContainer>
-struct Cache<const Field<TM, IFORM, TContainer> >
+struct Cache<const _Field<TM, IFORM, TContainer> >
 {
 
-	typedef Field<TM, IFORM, Cache<const Field<TM, IFORM, TContainer> > > type;
+	typedef _Field<TM, IFORM, Cache<const _Field<TM, IFORM, TContainer> > > type;
 
-	typedef typename Field<TM, IFORM, TContainer>::value_type value_type;
+	typedef typename _Field<TM, IFORM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TContainer> const & f, Args && ... args) :
+	Cache(_Field<TM, IFORM, TContainer> const & f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
-		VERBOSE << "Field read cache applied!";
+		VERBOSE << "_Field read cache applied!";
 	}
 
 	type & operator*()
@@ -401,19 +401,19 @@ private:
 };
 
 template<typename TM, unsigned int IFORM, typename TContainer>
-struct Cache<Field<TM, IFORM, TContainer>*>
+struct Cache<_Field<TM, IFORM, TContainer>*>
 {
-	typedef Cache<Field<TM, IFORM, TContainer>*> this_type;
+	typedef Cache<_Field<TM, IFORM, TContainer>*> this_type;
 
-	typedef Field<TM, IFORM, this_type> type;
+	typedef _Field<TM, IFORM, this_type> type;
 
-	typedef typename Field<TM, IFORM, TContainer>::value_type value_type;
+	typedef typename _Field<TM, IFORM, TContainer>::value_type value_type;
 
 	template<typename ... Args>
-	Cache(Field<TM, IFORM, TContainer>* f, Args && ... args) :
+	Cache(_Field<TM, IFORM, TContainer>* f, Args && ... args) :
 			f_(f, std::forward<Args >(args)...)
 	{
-		VERBOSE << "Field write cache applied!";
+		VERBOSE << "_Field write cache applied!";
 	}
 
 	type * operator*()
@@ -425,13 +425,13 @@ private:
 };
 
 template<typename TM, unsigned int IFORM, typename TF>
-void RefreshCache(size_t s, Field<TM, IFORM, Cache<TF>> & f)
+void RefreshCache(size_t s, _Field<TM, IFORM, Cache<TF>> & f)
 {
 	f.RefreshCache(s);
 }
 
 template<typename TM, unsigned int IFORM, typename TF>
-void FlushCache(Field<TM, IFORM, Cache<TF*>> & f)
+void FlushCache(_Field<TM, IFORM, Cache<TF*>> & f)
 {
 	f.FlushCache();
 }

@@ -11,12 +11,12 @@
 #include <iostream>
 #include <utility>
 #include <cmath>
-#include "../utilities/ntuple.h"
-#include "../utilities/primitives.h"
-#include "../utilities/utilities.h"
-#include "../utilities/log.h"
-#include "../physics/constants.h"
-#include "../physics/physical_constants.h"
+#include "../../utilities/ntuple.h"
+#include "../../utilities/primitives.h"
+#include "../../utilities/utilities.h"
+#include "../../utilities/log.h"
+#include "../../physics/constants.h"
+#include "../../physics/physical_constants.h"
 namespace simpla
 {
 
@@ -190,11 +190,12 @@ public:
 	{
 		DEFINE_PHYSICAL_CONST
 
-		auto dx = get_dx();
+		auto dx_ = dx();
 
 		Real R0 = (xmin_[RAxis] + xmax_[RAxis]) * 0.5;
 
-		dx2 += dx[RAxis] * dx[RAxis] + dx[ZAxis] * dx[ZAxis] + R0 * R0 * dx[PhiAxis] * dx[PhiAxis];
+		dx2 += dx_[RAxis] * dx_[RAxis] + dx_[ZAxis] * dx_[ZAxis]
+				+ R0 * R0 * dx_[PhiAxis] * dx_[PhiAxis];
 
 		Real safe_dt = CFL_ * std::sqrt(dx2) / speed_of_light;
 
@@ -215,38 +216,41 @@ public:
 
 		if (std::imag(kimg[RAxis]) > EPSILON)
 		{
-			dx2 += TWOPI * TWOPI / (std::imag(kimg[RAxis]) * std::imag(kimg[RAxis]));
+			dx2 += TWOPI * TWOPI
+					/ (std::imag(kimg[RAxis]) * std::imag(kimg[RAxis]));
 		}
 		if (std::imag(kimg[ZAxis]) > EPSILON)
 		{
-			dx2 += TWOPI * TWOPI / (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
+			dx2 += TWOPI * TWOPI
+					/ (std::imag(kimg[ZAxis]) * std::imag(kimg[ZAxis]));
 		}
 		if (std::imag(kimg[PhiAxis]) > EPSILON)
 		{
-			dx2 += R0 * R0 / (std::imag(kimg[PhiAxis]) * std::imag(kimg[PhiAxis]));
+			dx2 += R0 * R0
+					/ (std::imag(kimg[PhiAxis]) * std::imag(kimg[PhiAxis]));
 		}
 
 		updatedt(dx2);
 
 	}
 
-	void set_extents(nTuple<NDIMS, Real> const & pmin, nTuple<NDIMS, Real> const & pmax)
+	void extents(coordinates_type const & pmin, coordinates_type const & pmax)
 	{
 
 		xmin_ = pmin;
 		xmax_ = pmax;
 	}
-	inline std::pair<coordinates_type, coordinates_type> get_extents() const
+	inline std::pair<coordinates_type, coordinates_type> extents() const
 	{
 		return std::move(std::make_pair(xmin_, xmax_));
 	}
 
-	inline coordinates_type get_dx(compact_index_type s = 0UL) const
+	inline coordinates_type dx(compact_index_type s = 0UL) const
 	{
 
 		coordinates_type res;
 
-		auto d = topology_type::get_dx();
+		auto d = topology_type::dx();
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -259,9 +263,10 @@ public:
 //!@{
 
 	template<typename ... Args>
-	inline coordinates_type get_coordinates(Args && ... args) const
+	inline coordinates_type coordinates(Args && ... args) const
 	{
-		return CoordinatesFromTopology(topology_type::get_coordinates(std::forward<Args >(args)...));
+		return CoordinatesFromTopology(
+				topology_type::coordinates(std::forward<Args >(args)...));
 	}
 
 	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
@@ -294,18 +299,25 @@ public:
 	template<typename ... Args>
 	inline coordinates_type coordinates_local_to_global(Args && ... args) const
 	{
-		return CoordinatesFromTopology(topology_type::coordinates_local_to_global(std::forward<Args >(args)...));
+		return CoordinatesFromTopology(
+				topology_type::coordinates_local_to_global(
+						std::forward<Args >(args)...));
 	}
 
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(coordinates_type x,
-	        typename topology_type::compact_index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type x,
+			typename topology_type::compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::coordinates_global_to_local(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(
+				topology_type::coordinates_global_to_local(
+						std::move(CoordinatesToTopology(x)), shift));
 	}
-	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(coordinates_type x,
-	        compact_index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(
+			coordinates_type x, compact_index_type shift = 0UL) const
 	{
-		return std::move(topology_type::coordinates_global_to_local_NGP(std::move(CoordinatesToTopology(x)), shift));
+		return std::move(
+				topology_type::coordinates_global_to_local_NGP(
+						std::move(CoordinatesToTopology(x)), shift));
 	}
 //!@}
 //! @name Coordiantes convert Cylindrical <-> Cartesian
@@ -348,22 +360,27 @@ public:
 		 *
 		 */
 		r[ZAxis] = x[CARTESIAN_YAXIS];
-		r[RAxis] = std::sqrt(x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS] + x[CARTESIAN_ZAXIS] * x[CARTESIAN_ZAXIS]);
+		r[RAxis] = std::sqrt(
+				x[CARTESIAN_XAXIS] * x[CARTESIAN_XAXIS]
+						+ x[CARTESIAN_ZAXIS] * x[CARTESIAN_ZAXIS]);
 		r[PhiAxis] = std::atan2(x[CARTESIAN_ZAXIS], x[CARTESIAN_XAXIS]);
 
 		return std::move(r);
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> push_forward(std::tuple<coordinates_type, TV> const & Z) const
+	std::tuple<coordinates_type, TV> push_forward(
+			std::tuple<coordinates_type, TV> const & Z) const
 	{
 		return std::move(std::make_tuple(MapTo(std::get<0>(Z)), std::get<1>(Z)));
 	}
 
 	template<typename TV>
-	std::tuple<coordinates_type, TV> pull_back(std::tuple<coordinates_type, TV> const & R) const
+	std::tuple<coordinates_type, TV> pull_back(
+			std::tuple<coordinates_type, TV> const & R) const
 	{
-		return std::move(std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
+		return std::move(
+				std::make_tuple(InvMapTo(std::get<0>(R)), std::get<1>(R)));
 	}
 
 	/**
@@ -391,7 +408,7 @@ public:
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > push_forward(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
+			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z));
 
@@ -405,7 +422,8 @@ public:
 
 		u[RAxis] = v[CARTESIAN_XAXIS] * c + v[CARTESIAN_ZAXIS] * s;
 
-		u[PhiAxis] = (-v[CARTESIAN_XAXIS] * s + v[CARTESIAN_ZAXIS] * c) / r[RAxis];
+		u[PhiAxis] = (-v[CARTESIAN_XAXIS] * s + v[CARTESIAN_ZAXIS] * c)
+				/ r[RAxis];
 
 		return std::move(std::make_tuple(r, u));
 	}
@@ -421,7 +439,7 @@ public:
 	 */
 	template<typename TV>
 	std::tuple<coordinates_type, nTuple<NDIMS, TV> > pull_back(
-	        std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R) const
+			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
@@ -439,12 +457,13 @@ public:
 //! @}
 
 	auto select(unsigned int iform, coordinates_type const & xmin,
-	        coordinates_type const & xmax) const
-	                DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+			coordinates_type const & xmax) const
+					DECL_RET_TYPE((this->topology_type::select(this->topology_type::select(iform), this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
 
 	template<typename ...Args>
-	auto select(unsigned int iform, Args && ...args) const
-	DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
+	auto select(unsigned int iform,
+			Args && ...args) const
+					DECL_RET_TYPE((this->topology_type::select(iform,std::forward<Args >(args)...)))
 
 	template<typename TV>
 	TV const& Normal(index_type s, TV const & v) const
@@ -459,38 +478,44 @@ public:
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VERTEX>, index_type s,
+			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VOLUME>, index_type s, TV const &v) const
+	TV Sample(std::integral_constant<unsigned int, VOLUME>, index_type s,
+			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s,
+			nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s, nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s,
+			nTuple<3, TV> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<unsigned int IFORM, typename TV>
-	TV Sample(std::integral_constant<unsigned int, IFORM>, index_type s, TV const & v) const
+	TV Sample(std::integral_constant<unsigned int, IFORM>, index_type s,
+			TV const & v) const
 	{
 		return v;
 	}
 
 	template<unsigned int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
-	        std::integral_constant<unsigned int, IFORM>, index_type s, nTuple<NDIMS, TV> const & v) const
+			std::integral_constant<unsigned int, IFORM>, index_type s,
+			nTuple<NDIMS, TV> const & v) const
 	{
 		return Normal(s, v);
 	}
@@ -499,14 +524,14 @@ public:
 //! @{
 
 	Real volume_[8] = { 1, // 000
-	        1, //001
-	        1, //010
-	        1, //011
-	        1, //100
-	        1, //101
-	        1, //110
-	        1 //111
-	        };
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1 //111
+			};
 	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	/**
@@ -537,34 +562,39 @@ public:
 
 	Real cell_volume(compact_index_type s) const
 	{
-		return topology_type::cell_volume(s) * volume_[1] * volume_[2] * volume_[4] * get_coordinates(s)[RAxis];
+		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
+				* volume_[4] * get_coordinates(s)[RAxis];
 	}
 
 	scalar_type volume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::node_id(s);
 		return topology_type::volume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
+				* (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+						get_coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type inv_volume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::node_id(s);
 		return topology_type::inv_volume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
+				/ (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+						get_coordinates(s)[RAxis] : 1.0);
 	}
 
 	scalar_type dual_volume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::dual_volume(s) * volume_[n]
-		        * (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
+				* (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+						get_coordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type inv_dual_volume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::inv_dual_volume(s) * inv_volume_[n]
-		        / (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ? get_coordinates(s)[RAxis] : 1.0);
+				/ (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+						get_coordinates(s)[RAxis] : 1.0);
 	}
 //! @}
 }
@@ -574,36 +604,41 @@ template<typename TTopology, unsigned int IPhiAxis>
 bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 {
 
-	if (!topology_type::update()) return false;
+	if (!topology_type::update())
+		return false;
 
 	DEFINE_PHYSICAL_CONST
 
-	auto dims = topology_type::get_dimensions();
+	auto dims = topology_type::dimensions();
 
 	if (xmin_[RAxis] < EPSILON || dims[RAxis] <= 1)
 	{
 
 		RUNTIME_ERROR(
 
-		std::string(" illegal configure: Cylindrical R_min=0 or dims[R]<=1!!")
+				std::string(
+						" illegal configure: Cylindrical R_min=0 or dims[R]<=1!!")
 
-		+ " coordinates = ("
+				+ " coordinates = ("
 
-		+ " R=[ " + ToString(xmin_[RAxis]) + " , " + ToString(xmax_[RAxis]) + "]"
+				+ " R=[ " + ToString(xmin_[RAxis]) + " , "
+						+ ToString(xmax_[RAxis]) + "]"
 
-		+ ", Z=[ " + ToString(xmin_[ZAxis]) + " , " + ToString(xmax_[ZAxis]) + "]"
+						+ ", Z=[ " + ToString(xmin_[ZAxis]) + " , "
+						+ ToString(xmax_[ZAxis]) + "]"
 
-		+ ", Phi=[ " + ToString(xmin_[PhiAxis]) + " , " + ToString(xmax_[PhiAxis]) + "] )"
+						+ ", Phi=[ " + ToString(xmin_[PhiAxis]) + " , "
+						+ ToString(xmax_[PhiAxis]) + "] )"
 
-		+ ", dimension = ("
+						+ ", dimension = ("
 
-		+ " R = " + ToString(dims[RAxis])
+						+ " R = " + ToString(dims[RAxis])
 
-		+ ", Z = " + ToString(dims[RAxis])
+						+ ", Z = " + ToString(dims[RAxis])
 
-		+ ", Phi =" + ToString(dims[PhiAxis]) + ")"
+						+ ", Phi =" + ToString(dims[PhiAxis]) + ")"
 
-		);
+						);
 	}
 
 	for (int i = 0; i < NDIMS; ++i)

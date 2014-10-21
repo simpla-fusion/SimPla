@@ -123,6 +123,14 @@ struct binary_right
 		return r;
 	}
 };
+struct null_op
+{
+	template<typename TL>
+	TL const &operator()(TL const & l) const
+	{
+		return l;
+	}
+};
 
 struct _swap
 {

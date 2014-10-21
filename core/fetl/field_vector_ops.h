@@ -79,7 +79,7 @@ Cross(Field<TG, VERTEX, TL> const & lhs, Field<TG, VERTEX, TR> const & rhs)
 DECL_RET_TYPE ((Field<TG, VERTEX, BiOp<CROSS, Field<TG, VERTEX, TL>, Field<TG, VERTEX, TR> > >(lhs, rhs)))
 
 template<typename TM, typename TL, typename TR>
-struct Field<TM, VERTEX, BiOp<CROSS, TL, TR> >
+struct _Field<TM, VERTEX, BiOp<CROSS, TL, TR> >
 {
 
 public:
@@ -90,13 +90,13 @@ public:
 	static constexpr   unsigned int   IForm = VERTEX;
 	static constexpr   unsigned int   TOP = CROSS;
 
-	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
+	typedef _Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
 	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
+	_Field(TL const & l, TR const & r)
 			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}
@@ -113,7 +113,7 @@ public:
 ;
 
 template<typename TM, typename TL, typename TR>
-struct Field<TM, VERTEX, BiOp<DOT, TL, TR> >
+struct _Field<TM, VERTEX, BiOp<DOT, TL, TR> >
 {
 
 public:
@@ -124,13 +124,13 @@ public:
 	static constexpr   unsigned int   IForm = VERTEX;
 	static constexpr   unsigned int   TOP = DOT;
 
-	typedef Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
+	typedef _Field<TM, IForm, BiOp<TOP, TL, TR> > this_type;
 
 	typedef typename mesh_type::iterator iterator;
 
 	mesh_type const & mesh;
 
-	Field(TL const & l, TR const & r)
+	_Field(TL const & l, TR const & r)
 			: mesh(l.mesh), l_(l), r_(r)
 	{
 	}

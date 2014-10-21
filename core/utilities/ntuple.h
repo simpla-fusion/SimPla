@@ -176,6 +176,14 @@ void assign(_nTuple<T...> & l, TR const& r)
 			_impl::_assign(), l, r);
 }
 template<typename TR, typename ...T>
+auto inner_product2(_nTuple<T...> const & l,
+		TR const& r)->decltype(get_value(l,0)*get_value(r,0))
+{
+	return (seq_reduce<typename nTuple_traits<_nTuple<T...>>::dimensions>::eval_ndarray(
+			_impl::multiplies(), _impl::plus(), l, r));
+}
+
+template<typename TR, typename ...T>
 auto inner_product(_nTuple<T...> const & l, TR const& r)
 DECL_RET_TYPE((
 				seq_reduce<typename nTuple_traits<_nTuple<T...>>::dimensions
@@ -391,8 +399,8 @@ template<typename T, unsigned int ...N> using Tensor=_nTuple<T,integer_sequence<
 //};
 
 template<typename T> inline auto determinant(
-		_nTuple<std::integral_constant<unsigned int, 3>,
-				_nTuple<std::integral_constant<unsigned int, 3>, T> > const & m)
+		_nTuple<_nTuple<T, integer_sequence<unsigned int, 3>>,
+				integer_sequence<unsigned int, 3> > const & m)
 				DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
 								* m[1][2] * m[2][0] - m[0][1] * m[1][0] * m[2][2] + m[1][0] * m[2][1]//
 								* m[0][2] - m[1][2] * m[2][1] * m[0][0]//
@@ -401,42 +409,31 @@ template<typename T> inline auto determinant(
 				)
 
 template<typename T> inline auto determinant(
-		_nTuple<std::integral_constant<unsigned int, 4>,
-				_nTuple<std::integral_constant<unsigned int, 4>, T> > const & m)
-		DECL_RET_TYPE(
-				(//
-				m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1]
-				* m[3][0] - m[0][3] * m[1][1] * m[2][2] * m[3][0]
-				+ m[0][1] * m[1][3]//
-				* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0]
-				- m[0][1]//
-				* m[1][2] * m[2][3] * m[3][0]
-				- m[0][3] * m[1][2] * m[2][0] * m[3][1]//
+		_nTuple<_nTuple<T, integer_sequence<unsigned int, 4>>,
+				integer_sequence<unsigned int, 4> > const & m)
+		DECL_RET_TYPE((//
+				m[0][3] * m[1][2] * m[2][1] * m[3][0] - m[0][2] * m[1][3] * m[2][1] * m[3][0]//
+				- m[0][3] * m[1][1] * m[2][2] * m[3][0] + m[0][1] * m[1][3]//
+				* m[2][2] * m[3][0] + m[0][2] * m[1][1] * m[2][3] * m[3][0] - m[0][1]//
+				* m[1][2] * m[2][3] * m[3][0] - m[0][3] * m[1][2] * m[2][0] * m[3][1]//
 				+ m[0][2] * m[1][3] * m[2][0] * m[3][1] + m[0][3] * m[1][0] * m[2][2]//
-				* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1]
-				- m[0][2] * m[1][0]//
-				* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1]
-				+ m[0][3]//
-				* m[1][1] * m[2][0] * m[3][2]
-				- m[0][1] * m[1][3] * m[2][0] * m[3][2]//
-				- m[0][3] * m[1][0] * m[2][1] * m[3][2]
-				+ m[0][0] * m[1][3] * m[2][1]//
-				* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2]
-				- m[0][0] * m[1][1]//
-				* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3]
-				+ m[0][1]//
-				* m[1][2] * m[2][0] * m[3][3]
-				+ m[0][2] * m[1][0] * m[2][1] * m[3][3]//
+				* m[3][1] - m[0][0] * m[1][3] * m[2][2] * m[3][1] - m[0][2] * m[1][0]//
+				* m[2][3] * m[3][1] + m[0][0] * m[1][2] * m[2][3] * m[3][1] + m[0][3]//
+				* m[1][1] * m[2][0] * m[3][2] - m[0][1] * m[1][3] * m[2][0] * m[3][2]//
+				- m[0][3] * m[1][0] * m[2][1] * m[3][2] + m[0][0] * m[1][3] * m[2][1]//
+				* m[3][2] + m[0][1] * m[1][0] * m[2][3] * m[3][2] - m[0][0] * m[1][1]//
+				* m[2][3] * m[3][2] - m[0][2] * m[1][1] * m[2][0] * m[3][3] + m[0][1]//
+				* m[1][2] * m[2][0] * m[3][3] + m[0][2] * m[1][0] * m[2][1] * m[3][3]//
 				- m[0][0] * m[1][2] * m[2][1] * m[3][3] - m[0][1] * m[1][0] * m[2][2]//
 				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 		))
 
 template<typename T, unsigned int ...N> auto abs(
-		_nTuple<T, std::integral_constant<unsigned int, N...>> const & m)
+		_nTuple<T, integer_sequence<unsigned int, N...>> const & m)
 		DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
 
 template<unsigned int N, typename T> inline auto NProduct(
-		_nTuple<std::integral_constant<unsigned int, N>, T> const & v)
+		_nTuple<T, integer_sequence<unsigned int, N> > const & v)
 		->decltype(v[0]*v[1])
 {
 	decltype(v[0]*v[1]) res;
@@ -449,7 +446,7 @@ template<unsigned int N, typename T> inline auto NProduct(
 
 }
 template<unsigned int N, typename T> inline auto NSum(
-		_nTuple<std::integral_constant<unsigned int, N>, T> const & v)
+		_nTuple<T, integer_sequence<unsigned int, N>> const & v)
 		->decltype(v[0]+v[1])
 {
 	decltype(v[0]+v[1]) res;
@@ -469,10 +466,9 @@ template<typename ... T1, typename ...T2> inline auto cross(
 		_nTuple<T1...> const & l, _nTuple<T2...> const & r)
 		->nTuple<3,decltype(get_value(l,0)*get_value(r,0))>
 {
-	nTuple<3, decltype(get_value(l,0)*get_value(r,0))> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<3, decltype(get_value(l,0)*get_value(r,0))> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 //template<unsigned int ndims, typename TExpr>
@@ -500,11 +496,11 @@ template<typename ... T1, typename ...T2> inline auto cross(
 //}
 
 template<typename TP, TP ...J>
-_nTuple<TP, std::integral_constant<unsigned int, sizeof...(J)>> make_ntuple(
+_nTuple<TP, integer_sequence<unsigned int, sizeof...(J)>> make_ntuple(
 		integer_sequence<TP, J...>)
 {
 	constexpr unsigned int N = 1 + sizeof...(J);
-	typedef _nTuple<TP, std::integral_constant<unsigned int, N>> type;
+	typedef _nTuple<TP, integer_sequence<unsigned int, N>> type;
 	type res;
 //
 //	seq_for<integer_sequence<unsigned int, N>>::eval_multi_parameter(

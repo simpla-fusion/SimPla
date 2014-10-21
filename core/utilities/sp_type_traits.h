@@ -235,14 +235,14 @@ public:
 };
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
+auto get_value(T && v, TI const & s)
 ->typename std::enable_if<(is_indexable<T,TI>::value),decltype(v[s]) >::type
 {
 	return v[s];
 }
 
 template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
+auto get_value(T && v, TI const & s)
 ->typename std::enable_if<((!is_indexable<T,TI>::value) &&
 		_impl::has_member_function_at<T,TI>::value),decltype(v.at(s)) >::type
 {

@@ -1,36 +1,42 @@
 /*
- * fetl_test3.h
+ * fetl_vector_calculus_test.h
  *
- *  created on: 2014-3-24
+ *  Created on: 2014年10月21日
  *      Author: salmon
  */
 
-#ifndef FETL_TEST3_H_
-#define FETL_TEST3_H_
+#ifndef CORE_FETL_FETL_VECTOR_CALCULUS_TEST_H_
+#define CORE_FETL_FETL_VECTOR_CALCULUS_TEST_H_
 
 #include <gtest/gtest.h>
 #include <tuple>
 
-
 #include "../utilities/log.h"
+#include "../utilities/ntuple.h"
+#include "../field/field.h"
+#include "update_ghosts_field.h"
+using namespace simpla;
+
+#ifndef TMESH
 
 #include "../manifold/manifold.h"
+
 #include "../manifold/geometry/cartesian.h"
 #include "../manifold/topology/structured.h"
 #include "../manifold/diff_scheme/fdm.h"
 #include "../manifold/interpolator/interpolator.h"
 
-using namespace simpla;
-
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
-		FiniteDiffMehtod, InterpolatorLinear> TMesh;
+		FiniteDiffMehtod, InterpolatorLinear> manifold_type;
 
+#else
+typedef TMESH TMesh;
+#endif
 
-typedef nTuple<3, Real> coordiantes_type;
+#include "../manifold/domain.h"
 
 class TestFETL: public testing::TestWithParam<
-		std::tuple<coordiantes_type, coordiantes_type,
-				nTuple<TMesh::NDIMS, size_t>, nTuple<TMesh::NDIMS, Real> > >
+		std::tuple<Vec3, Vec3, IVec3, Vec3> >
 {
 
 protected:
@@ -64,6 +70,14 @@ protected:
 
 		mesh.update();
 
+		Vec3 dx = mesh.dx();
+
+		error = 0.0;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			error += std::pow((K_real[i] * dx[i]), 2.0);
+		}
+
 	}
 public:
 
@@ -83,11 +97,13 @@ public:
 
 	nTuple<NDIMS, size_t> dims;
 
-	nTuple<3, Real> K_real; // @NOTE must   k = n TWOPI, period condition
+	nTuple<3, Real> K_real;	// @NOTE must   k = n TWOPI, period condition
 
 	nTuple<3, scalar_type> K_imag;
 
 	value_type default_value;
+
+	Real error;
 
 	template<typename T>
 	void SetDefaultValue(T* v)
@@ -119,15 +135,15 @@ public:
 	template<unsigned int IFORM, typename TV>
 	Field<Domain<manifold_type, IFORM>, TV> make_field() const
 	{
-		return std::move(Field<Domain<manifold_type, IFORM>, TV>(mesh));
+		Field<Domain<manifold_type, IFORM>, TV> res(mesh);
+
+		return std::move(res);
 	}
 
 };
 
 TEST_P(TestFETL, grad0)
 {
-
-	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
 
 	auto f0 = make_field<VERTEX, scalar_type>();
 	auto f1 = make_field<EDGE, scalar_type>();
@@ -139,7 +155,7 @@ TEST_P(TestFETL, grad0)
 
 	for (auto s : mesh.select(VERTEX))
 	{
-		f0[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f0[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f0);
 
@@ -156,8 +172,8 @@ TEST_P(TestFETL, grad0)
 
 		auto x = mesh.coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
-				+ K_imag[n] * std::sin(dot(K_real, x));
+		scalar_type expect = K_real[n] * std::cos(inner_product2(K_real, x))
+				+ K_imag[n] * std::sin(inner_product2(K_real, x));
 
 		if (mesh.get_type_as_string() == "Cylindrical"
 				&& n == (manifold_type::ZAxis + 1) % 3)
@@ -205,7 +221,6 @@ TEST_P(TestFETL, grad3)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
 
 	auto f2 = make_field<FACE, scalar_type>();
 	auto f2b = make_field<FACE, scalar_type>();
@@ -217,7 +232,7 @@ TEST_P(TestFETL, grad3)
 
 	for (auto s : mesh.select(VOLUME))
 	{
-		f3[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f3[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f3);
 	LOG_CMD(f2 = grad(f3));
@@ -234,8 +249,8 @@ TEST_P(TestFETL, grad3)
 
 		auto x = mesh.coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
-				+ K_imag[n] * std::sin(dot(K_real, x));
+		scalar_type expect = K_real[n] * std::cos(inner_product2(K_real, x))
+				+ K_imag[n] * std::sin(inner_product2(K_real, x));
 
 		if (mesh.get_type_as_string() == "Cylindrical"
 				&& n == (manifold_type::ZAxis + 1) % 3)
@@ -280,7 +295,6 @@ TEST_P(TestFETL, diverge1)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = make_field<EDGE, scalar_type>();
 	auto f0 = make_field<VERTEX, scalar_type>();
@@ -291,7 +305,7 @@ TEST_P(TestFETL, diverge1)
 
 	for (auto s : mesh.select(EDGE))
 	{
-		f1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f1[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f1);
 	f0 = diverge(f1);
@@ -305,8 +319,8 @@ TEST_P(TestFETL, diverge1)
 
 		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(dot(K_real, x));
-		Real sin_v = std::sin(dot(K_real, x));
+		Real cos_v = std::cos(inner_product2(K_real, x));
+		Real sin_v = std::sin(inner_product2(K_real, x));
 
 		scalar_type expect;
 
@@ -364,7 +378,11 @@ TEST_P(TestFETL, diverge1)
 
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
-			<< K_imag << " mesh.Ki=" << mesh.k_imag;
+			<< K_imag
+
+//			<< " mesh.Ki=" << mesh.k_imag
+
+			;
 
 }
 
@@ -372,8 +390,6 @@ TEST_P(TestFETL, diverge2)
 {
 	if (!mesh.is_valid())
 		return;
-
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f2 = make_field<FACE, scalar_type>();
 	auto f3 = make_field<VOLUME, scalar_type>();
@@ -383,7 +399,7 @@ TEST_P(TestFETL, diverge2)
 
 	for (auto s : mesh.select(FACE))
 	{
-		f2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f2[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f2);
 	f3 = diverge(f2);
@@ -395,8 +411,8 @@ TEST_P(TestFETL, diverge2)
 	{
 		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(dot(K_real, x));
-		Real sin_v = std::sin(dot(K_real, x));
+		Real cos_v = std::cos(inner_product2(K_real, x));
+		Real sin_v = std::sin(inner_product2(K_real, x));
 
 		scalar_type expect;
 
@@ -421,7 +437,7 @@ TEST_P(TestFETL, diverge2)
 							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
 					) * sin_v;
 
-			expect += std::sin(dot(K_real, mesh.coordinates(s)))
+			expect += std::sin(inner_product2(K_real, mesh.coordinates(s)))
 					/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
@@ -451,7 +467,6 @@ TEST_P(TestFETL, curl1)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto vf1 = make_field<EDGE, scalar_type>();
 	auto vf1b = make_field<EDGE, scalar_type>();
@@ -470,7 +485,7 @@ TEST_P(TestFETL, curl1)
 
 	for (auto s : mesh.select(EDGE))
 	{
-		vf1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		vf1[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&vf1);
 	LOG_CMD(vf2 = curl(vf1));
@@ -481,8 +496,8 @@ TEST_P(TestFETL, curl1)
 
 		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(dot(K_real, x));
-		Real sin_v = std::sin(dot(K_real, x));
+		Real cos_v = std::cos(inner_product2(K_real, x));
+		Real sin_v = std::sin(inner_product2(K_real, x));
 
 		scalar_type expect;
 
@@ -515,7 +530,7 @@ TEST_P(TestFETL, curl1)
 								- K_imag[(manifold_type::ZAxis + 2) % 3])
 								* sin_v;
 
-				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+				expect -= std::sin(inner_product2(K_real, mesh.coordinates(s)))
 						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -559,7 +574,6 @@ TEST_P(TestFETL, curl2)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto vf1 = make_field<EDGE, scalar_type>();
 	auto vf1b = make_field<EDGE, scalar_type>();
@@ -578,7 +592,7 @@ TEST_P(TestFETL, curl2)
 
 	for (auto s : mesh.select(FACE))
 	{
-		vf2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		vf2[s] = std::sin(inner_product2(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&vf2);
 	LOG_CMD(vf1 = curl(vf2));
@@ -592,8 +606,8 @@ TEST_P(TestFETL, curl2)
 
 		auto x = mesh.coordinates(s);
 
-		Real cos_v = std::cos(dot(K_real, x));
-		Real sin_v = std::sin(dot(K_real, x));
+		Real cos_v = std::cos(inner_product2(K_real, x));
+		Real sin_v = std::sin(inner_product2(K_real, x));
 
 		scalar_type expect;
 
@@ -626,7 +640,7 @@ TEST_P(TestFETL, curl2)
 								- K_imag[(manifold_type::ZAxis + 2) % 3])
 								* sin_v;
 
-				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+				expect -= std::sin(inner_product2(K_real, mesh.coordinates(s)))
 						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -669,7 +683,6 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f0 = make_field<VERTEX, scalar_type>();
 	auto f1 = make_field<EDGE, scalar_type>();
@@ -718,7 +731,6 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f3 = make_field<VOLUME, scalar_type>();
 	auto f1a = make_field<EDGE, scalar_type>();
@@ -766,7 +778,6 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 {
 	if (!mesh.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = make_field<EDGE, scalar_type>();
 	auto f2 = make_field<FACE, scalar_type>();
@@ -818,7 +829,6 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
 	if (!mesh.is_valid())
 		return;
-//	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
 	auto f1 = make_field<EDGE, scalar_type>();
 	auto f2 = make_field<FACE, scalar_type>();
@@ -868,4 +878,4 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 }
 
-#endif /* FETL_TEST3_H_ */
+#endif /* CORE_FETL_FETL_VECTOR_CALCULUS_TEST_H_ */

@@ -13,10 +13,10 @@
 namespace simpla
 {
 template<typename, unsigned int> struct Domain;
-template<typename ... > struct Field;
+template<typename ... > struct _Field;
 
 template<typename TM, unsigned int IFORM, typename TV>
-struct Field<Domain<TM, IFORM>, Constant<TV> >
+struct _Field<Domain<TM, IFORM>, Constant<TV> >
 {
 
 	typedef TM mesh_type;
@@ -36,11 +36,11 @@ struct Field<Domain<TM, IFORM>, Constant<TV> >
 
 	const value_type v_;
 
-	Field(mesh_type const &pmesh, value_type const & v) :
+	_Field(mesh_type const &pmesh, value_type const & v) :
 			mesh(pmesh), v_(v)
 	{
 	}
-	~Field()
+	~_Field()
 	{
 	}
 	inline const value_type & get(iterator s) const

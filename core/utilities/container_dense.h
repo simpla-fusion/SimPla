@@ -43,8 +43,8 @@ public:
 
 	const value_type default_value_;
 
-	DenseContainer(value_type d = value_type())
-			: num_of_ele_(0), default_value_(d)
+	DenseContainer(value_type d = value_type()) :
+			num_of_ele_(0), default_value_(d)
 	{
 		hash_fun_ = [](key_type)
 		{
@@ -55,9 +55,10 @@ public:
 
 	}
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, size_t max_hash_value, std::function<size_t(key_type)> const & hash, value_type d,
-	        Others && ...)
-			: data_(nullptr),
+	DenseContainer(TR const& range, size_t max_hash_value,
+			std::function<size_t(key_type)> const & hash, value_type d,
+			Others && ...) :
+			data_(nullptr),
 
 			hash_fun_(hash),
 
@@ -68,22 +69,25 @@ public:
 	}
 
 	template<typename TR, typename ... Others>
-	DenseContainer(TR const& range, size_t max_hash_value, std::function<size_t(key_type)> const & hash,
-	        Others && ...others)
-			: DenseContainer(range, max_hash_value, hash, value_type(), std::forward<Others>(others)...)
+	DenseContainer(TR const& range, size_t max_hash_value,
+			std::function<size_t(key_type)> const & hash, Others && ...others) :
+			DenseContainer(range, max_hash_value, hash, value_type(),
+					std::forward<Others>(others)...)
 	{
 	}
 
-	DenseContainer(this_type const & rhs)
-			: data_(rhs.data_), hash_fun_(rhs.hash_fun_), num_of_ele_(rhs.num_of_ele_), default_value_(
-			        rhs.default_value_)
+	DenseContainer(this_type const & rhs) :
+			data_(rhs.data_), hash_fun_(rhs.hash_fun_), num_of_ele_(
+					rhs.num_of_ele_), default_value_(rhs.default_value_)
 	{
 	}
 
-	DenseContainer(this_type &&rhs)
-			: data_(std::forward<std::shared_ptr<value_type>>(rhs.data_)),
+	DenseContainer(this_type &&rhs) :
+			data_(std::forward<std::shared_ptr<value_type>>(rhs.data_)),
 
-			hash_fun_(std::forward<std::function<size_t(key_type)> >(rhs.hash_fun_)),
+			hash_fun_(
+					std::forward<std::function<size_t(key_type)> >(
+							rhs.hash_fun_)),
 
 			num_of_ele_(rhs.num_of_ele_), default_value_(rhs.default_value_)
 	{
@@ -123,7 +127,7 @@ public:
 	{
 		if (data_ == nullptr)
 		{
-			data_ = MEMPOOL.allocate_shared_ptr< value_type> (num_of_ele_);
+			data_ = MEMPOOL.make_shared< value_type> (num_of_ele_);
 		}
 	}
 
@@ -196,6 +200,6 @@ public:
 };
 
 }
- // namespace simpla
+				// namespace simpla
 
 #endif /* CONATINER_DENSE_H_ */

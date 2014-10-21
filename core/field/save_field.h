@@ -13,18 +13,18 @@
 
 namespace simpla
 {
-template<typename, unsigned int, typename > class Field;
+template<typename ... > class _Field;
 
 template<typename TM, unsigned int IFORM, typename TV>
 std::string save(std::string const & url,
-        Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, unsigned int flag = 0UL)
+        _Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, unsigned int flag = 0UL)
 {
 	if (d.empty())
 	{
 		return "null";
 	}
 
-	typedef typename Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>::value_type value_type;
+	typedef typename _Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>::value_type value_type;
 
 	int rank = d.get_dataset_shape();
 
