@@ -39,10 +39,10 @@ Properties::Holder ParseConfig(int argc, char ** argv)
 
 	("gen_config,g", "generate example configure file")
 
-	("RECORD,r", po::value<size_t>()->default_value(1),
+	("RECORD,r", po::value<std::size_t  >()->default_value(1),
 			"Interval between two record")
 
-	("STEP,s", po::value<size_t>()->default_value(10), "Number of time step.")
+	("STEP,s", po::value<std::size_t  >()->default_value(10), "Number of time step.")
 
 	("DIAGNOSIS,d", po::value<std::vector<std::string> >()->multitoken(),
 			"Fields need to be diagnosed");

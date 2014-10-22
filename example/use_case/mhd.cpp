@@ -43,7 +43,7 @@ int main(int argc, char **argv)
 
 	typedef typename mesh_type::scalar_type scalar_type;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr std::size_t   NDIMS = mesh_type::NDIMS;
 
 	LOG_STREAM.init(argc,argv);
 	GLOBAL_COMM.init(argc,argv);
@@ -53,15 +53,15 @@ int main(int argc, char **argv)
 
 	model_type model;
 
-	nTuple<NDIMS, size_t> dims = { 256, 256, 1 };
+	nTuple<NDIMS, std::size_t  > dims = { 256, 256, 1 };
 
 	Real dt = 1.0;
 
-	size_t num_of_step = 10;
+	std::size_t   num_of_step = 10;
 
-	size_t record_stride = 1;
+	std::size_t   record_stride = 1;
 
-	unsigned int toridal_model_number = 1;
+	std::size_t   toridal_model_number = 1;
 
 	bool just_a_test = false;
 
@@ -73,11 +73,11 @@ int main(int argc, char **argv)
 	{
 		if( opt=="step")
 		{
-			num_of_step =ToValue<size_t>(value);
+			num_of_step =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="record")
 		{
-			record_stride =ToValue<size_t>(value);
+			record_stride =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="i"||opt=="input")
 		{
@@ -85,11 +85,11 @@ int main(int argc, char **argv)
 		}
 		else if(opt=="d"|| opt=="dims")
 		{
-			dims=ToValue<nTuple<3,size_t>>(value);
+			dims=ToValue<nTuple<3,std::size_t  >>(value);
 		}
 		else if(opt=="m"|| opt=="tordial_model_number")
 		{
-			toridal_model_number=ToValue<unsigned int>(value);
+			toridal_model_number=ToValue<std::size_t  >(value);
 		}
 		else if( opt=="dt")
 		{

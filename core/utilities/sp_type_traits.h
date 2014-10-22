@@ -201,8 +201,7 @@ public:                                                                         
 }                                                                                                     \
 ;
 
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return std::move(_EXPR_);}
-#define DECL_RET_TYPE2(_EXPR_) ->decltype((_EXPR_)){return  (_EXPR_);}
+#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return  (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}

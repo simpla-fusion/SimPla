@@ -18,7 +18,7 @@ class mt_alloc
 public:
 public:
 	// type definitions
-	typedef std::size_t size_type;
+	typedef std::size_t   std::size_t  ype;
 	typedef std::ptrdiff_t difference_type;
 	typedef T* pointer;
 	typedef const T* const_pointer;
@@ -48,14 +48,14 @@ public:
 	}
 
 	// allocate but don't initialize num elements of type T
-	T* allocate(std::size_t num, const void* hint = 0)
+	T* allocate(std::size_t   num, const void* hint = 0)
 	{
 		// allocate memory with global new
 		return static_cast<T*>(::operator new(num * sizeof(T)));
 	}
 
 	// deallocate storage p of deleted elements
-	void deallocate(T* p, std::size_t num)
+	void deallocate(T* p, std::size_t   num)
 	{
 		// deallocate memory with global delete
 		::operator delete(p);
@@ -72,9 +72,9 @@ public:
 	}
 
 	// return maximum number of elements that can be allocated
-	std::size_t max_size() const throw ()
+	std::size_t   max_size() const throw ()
 	{
-		return std::numeric_limits<std::size_t>::max() / sizeof(T);
+		return std::numeric_limits<std::std::size_t  >::max() / sizeof(T);
 	}
 
 	// initialize elements of allocated storage p with value value
@@ -99,8 +99,8 @@ public:
 	};
 };
 typedef std::scoped_allocator_adaptor<
-        std::allocator<std::pair<const size_t, std::list<double, std::allocator<double>> > >, std::allocator<double>> alloc_type;
-typedef std::map<size_t, std::list<double>, std::less<size_t>, alloc_type> pool;
+        std::allocator<std::pair<const std::size_t  , std::list<double, std::allocator<double>> > >, std::allocator<double>> alloc_type;
+typedef std::map<std::size_t  , std::list<double>, std::less<std::size_t  >, alloc_type> pool;
 int main(int argc, char **argv)
 {
 //	std::vector<double, MyAlloc<double>> v;

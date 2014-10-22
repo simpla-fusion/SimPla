@@ -38,7 +38,7 @@ struct reference_traits
 {
 	static constexpr bool no_refercne = std::is_pointer<T>::value
 
-	|| std::is_reference<T>::value
+	|| std::is_rvalue_reference<T>::value
 
 	|| std::is_scalar<T>::value
 
@@ -506,7 +506,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<, less)                          
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>, greater)                                   \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<=, less_equal)                               \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>=, greater_equal)
-
 
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_OPERATOR

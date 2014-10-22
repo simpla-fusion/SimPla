@@ -32,26 +32,26 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-//	seq_for<integer_sequence<unsigned int, 1, 2, 3, 4>>::eval_multi_parameter(
+//	seq_for<integer_sequence<std::size_t  , 1, 2, 3, 4>>::eval_multi_parameter(
 //			FOO(), "hello", "world");
 
-	std::cout << integer_sequence<unsigned int, 1, 2, 3, 4>::value()
+	std::cout << integer_sequence<std::size_t  , 1, 2, 3, 4>::value()
 			<< std::endl;
 //	show<
 //			typename cat_integer_sequence<
-//					integer_sequence<unsigned int, 1, 3, 4, 7, 9>,
-//					integer_sequence<unsigned int, 2, 4, 6, 8, 10>>::type>::eval();
+//					integer_sequence<std::size_t  , 1, 3, 4, 7, 9>,
+//					integer_sequence<std::size_t  , 2, 4, 6, 8, 10>>::type>::eval();
 //
 //	show<
-//			typename cat_integer_sequence<integer_sequence<unsigned int>,
-//					integer_sequence<unsigned int, 2, 4, 6, 8, 10>>::type>::eval();
+//			typename cat_integer_sequence<integer_sequence<std::size_t  >,
+//					integer_sequence<std::size_t  , 2, 4, 6, 8, 10>>::type>::eval();
 //
 //	show<
 //			typename cat_integer_sequence<
-//					integer_sequence<unsigned int, 1, 3, 4, 7, 9>,
-//					integer_sequence<unsigned int>>::type>::eval();
+//					integer_sequence<std::size_t  , 1, 3, 4, 7, 9>,
+//					integer_sequence<std::size_t  >>::type>::eval();
 
-//	typedef integer_sequence<unsigned int, 3, 4> seq;
+//	typedef integer_sequence<std::size_t  , 3, 4> seq;
 //	typedef typename make_array_type<double, seq>::type t0;
 //	typedef double t1[3][4];
 //	typedef double t2[4][3];

@@ -9,12 +9,11 @@
 #define SP_INTEGER_SEQUENCE_H_
 
 #include <stddef.h>
-
+#include <tuple>
 #include "sp_type_traits.h"
 
 namespace simpla
 {
-template<typename, unsigned int...>class nTuple;
 
 template<typename _Tp, _Tp ... _Idx>
 struct integer_sequence
@@ -24,29 +23,31 @@ private:
 public:
 	typedef _Tp value_type;
 
-	static constexpr nTuple<size_t, size_> value()
-	{
-		return std::move(nTuple<size_t, size_>( { _Idx... }));
-	}
-	static constexpr size_t size()
+	static constexpr size_t size() noexcept
 	{
 		return size_;
 	}
 
 };
 
-template<typename ...> class cat_integer_sequence;
-
-template<typename T, T ... N1, T ... N2>
-struct cat_integer_sequence<integer_sequence<T, N1...>,
-		integer_sequence<T, N2...>>
+template<typename T, typename TInts>
+T& get_value(T &v, integer_sequence<TInts>)
 {
-	typedef integer_sequence<T, N1..., N2...> type;
-};
+	return v;
+}
 
-template<unsigned int N, typename ...> struct seq_get_value;
+template<typename T, typename TInts, TInts M, TInts ... N>
+auto get_value(T & v, integer_sequence<TInts, M, N...>)
+DECL_RET_TYPE((get_value(v[M],integer_sequence<TInts , N...>()) ))
+template<typename T, typename TInts, TInts M, TInts ... N>
+auto get_value(T* v, integer_sequence<TInts, M, N...>)
+DECL_RET_TYPE((get_value(v[M],integer_sequence<TInts , N...>()) ))
 
-template<unsigned int N, typename Tp, Tp M, Tp ...I>
+template<size_t ... N> using index_sequence = integer_sequence<size_t , N...>;
+
+template<size_t N, typename ...> struct seq_get_value;
+
+template<size_t N, typename Tp, Tp M, Tp ...I>
 struct seq_get_value<N, integer_sequence<Tp, M, I ...> >
 {
 	static constexpr Tp value =
@@ -59,76 +60,43 @@ struct seq_get_value<0, integer_sequence<Tp, M, I ...> >
 	static constexpr Tp value = M;
 };
 
-template<typename ...> struct seq_for;
+template<typename ...> class cat_integer_sequence;
 
-template<unsigned int M, unsigned int ...N>
-struct seq_for<integer_sequence<unsigned int, M, N...>>
+template<typename T, T ... N1, T ... N2>
+struct cat_integer_sequence<integer_sequence<T, N1...>,
+		integer_sequence<T, N2...>>
 {
-	template<typename TOP, typename ...Args>
-	static inline void eval_multi_parameter(TOP const & op, Args && ... args)
-	{
+	typedef integer_sequence<T, N1..., N2...> type;
+};
 
-		seq_for<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,
-				std::forward<Args>(args)..., M - 1);
-		seq_for<integer_sequence<unsigned int, M - 1, N...> >::eval_multi_parameter(
-				op, std::forward<Args>(args)...);
+template<size_t...> struct _seq_for;
+
+template<size_t M, size_t ...N>
+struct _seq_for<M, N...>
+{
+
+	template<typename TOP, typename ...Args>
+	static inline void eval(TOP const & op, Args & ... args)
+	{
+		eval(op, integer_sequence<size_t>(), (args)...);
 	}
 
-//	template<typename TOP, typename ...Args>
-//	static inline void eval_ndarray(TOP const & op, Args && ... args)
-//	{
-//
-//		seq_for<integer_sequence<unsigned int, N...>>::eval_ndarray(op,
-//				get_value( std::forward<Args>(args),M - 1)...);
-//
-//		seq_for<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray(op,
-//				std::forward<Args>(args)...);
-//	}
-//
-//	template<typename TOP, typename IndexPack, typename ...Args>
-//	static inline void eval_index_pack(TOP const & op,
-//			IndexPack const &idx_pack, Args && ... args)
-//	{
-//
-//		seq_for<integer_sequence<unsigned int, N...>>::eval_index_pack(op,
-//				typename cat_integer_sequence<IndexPack,
-//						integer_sequence<unsigned int, M - 1>>::type(),
-//				std::forward<Args>(args)...);
-//		seq_for<integer_sequence<unsigned int, M - 1, N...> >::eval_multi_parameter(
-//				op, idx_pack, std::forward<Args>(args)...);
-//	}
-
-	template<typename TOP, typename ...Args>
-	static inline void eval(TOP const & op, Args && ... args)
+	template<typename TOP, size_t ...L, typename ...Args>
+	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
+			Args && ... args)
 	{
-		typedef integer_sequence<unsigned int, M, N...> i_seq;
+		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
+				std::forward<Args>(args)...);
 
-		op(get_value(std::forward<Args>(args), i_seq())...);
-
-		seq_for<integer_sequence<unsigned int, M - 1, N...>>::eval(op,
+		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
 				std::forward<Args>(args)...);
 	}
 
 };
 
-template<unsigned int ...N>
-struct seq_for<integer_sequence<unsigned int, 0, N...>>
+template<size_t ...N>
+struct _seq_for<0, N...>
 {
-	template<typename ...Args>
-	static inline void eval_multi_parameter(Args && ... args)
-	{
-	}
-
-//	template<typename ...Args>
-//	static inline void eval_ndarray(Args && ... args)
-//	{
-//	}
-//
-//	template<typename ...Args>
-//	static inline void eval_index_pack(Args && ... args)
-//	{
-//	}
-
 	template<typename ...Args>
 	static inline void eval(Args && ... args)
 	{
@@ -136,128 +104,129 @@ struct seq_for<integer_sequence<unsigned int, 0, N...>>
 };
 
 template<>
-struct seq_for<integer_sequence<unsigned int>>
+struct _seq_for<>
 {
-	template<typename TOP, typename ...Args>
-	static inline void eval_multi_parameter(TOP const & op, Args && ... args)
-	{
-		op(std::forward<Args>(args)...);
-	}
-//	template<typename TOP, typename ...Args>
-//	static inline void eval_ndarray(TOP const & op, Args && ... args)
-//	{
-//		op(std::forward<Args>(args)...);
-//	}
-//
-//	template<typename TOP, typename IndexPack, typename ...Args>
-//	static inline void eval_index_pack(TOP const & op,
-//			IndexPack const & idx_pack, Args && ... args)
-//	{
-//		op(get_value(std::forward<Args>(args),idx_pack)...);
-//	}
 
-	template<typename ...Args>
-	static inline void eval(Args && ... args)
+	template<typename TOP, typename TInts, TInts ...L, typename ...Args>
+	static inline void eval(TOP const & op, integer_sequence<TInts, L...>,
+			Args && ... args)
 	{
+		typedef integer_sequence<size_t, (L-1)...> i_seq;
+
+		op(get_value(std::forward<Args>(args),i_seq()) ...);
+
 	}
 };
 
-template<typename ...> struct seq_reduce;
+template<size_t ... N, typename ...Args>
+void seq_for(integer_sequence<size_t, N...>, Args && ... args)
+{
+	_seq_for<N...>::eval(std::forward<Args>(args) ...);
+}
 
-template<unsigned int M, unsigned int ...N>
-struct seq_reduce<integer_sequence<unsigned int, M, N...>>
+template<size_t...> struct _seq_reduce;
+
+template<size_t M, size_t ...N>
+struct _seq_reduce<M, N...>
 {
 
-	template<typename TOP, typename Reduction, typename ...Args>
-	static inline auto eval_multi_parameter(TOP const & op,
-			Reduction const & reduction,
-			Args && ... args)
+	template<typename Reduction, size_t ...L, typename ... Args>
+	static inline auto eval(Reduction const & reduction,
+			integer_sequence<size_t, L...>,
+			Args const&... args)
 					DECL_RET_TYPE(
 							(
-									reduction(
-											seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction,
-													std::forward<Args>(args)..., M - 1),
-											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_multi_parameter(op,reduction,
-													std::forward<Args>(args)...)
-									)
+									reduction( _seq_reduce< N... >::eval( reduction,
+													integer_sequence<size_t , L..., M>(),
+													std::forward<Args const>(args)... ),
+
+											_seq_reduce< M - 1, N... >::eval( reduction,
+													integer_sequence<size_t , L...>(),
+													std::forward<Args const> (args)... ) )
+							))
+
+	template<typename Reduction, typename ...Args>
+	static inline auto eval(Reduction const & reduction,
+			Args const& ... args)
+					DECL_RET_TYPE(
+							( eval( reduction,integer_sequence<size_t >(), std::forward<Args const> (args)...) ))
+
+};
+
+template<size_t ...N>
+struct _seq_reduce<1, N...>
+{
+
+	template<typename Reduction, size_t ...L, typename ...Args>
+	static inline auto eval(Reduction const & reduction,
+			integer_sequence<size_t, L...>,
+			Args const &... args)
+					DECL_RET_TYPE(
+							(
+									_seq_reduce< N... >::eval(
+											reduction, integer_sequence<size_t , L..., 1>(),
+											std::forward<Args const>(args)... )
 							)
 					)
 
-//	template<typename TOP, typename Reduction, typename ...Args>
-//	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-//			Args && ... args)
-//					DECL_RET_TYPE(
-//							(
-//									reduction(
-//											seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,
-//													get_value(std::forward<Args>(args),M-1)...),
-//											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray(op,reduction,
-//													std::forward<Args>(args)...)
-//									)
-//							)
-//					)
-//
-//	template<typename Reduction, typename Args>
-//	static inline auto eval_ndarray(Reduction const & reduction,
-//			Args const& args)
-//					DECL_RET_TYPE(
-//							(
-//									reduction(
-//											seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray( reduction,
-//													get_value( (args ),M-1) ),
-//											seq_reduce<integer_sequence<unsigned int, M - 1, N...> >::eval_ndarray( reduction,
-//													(args ) )
-//									)
-//							)
-//					)
-
-};
-
-template<unsigned int ...N>
-struct seq_reduce<integer_sequence<unsigned int, 1, N...> >
-{
-
-	template<typename TOP, typename Reduction, typename ...Args>
-	static inline auto eval_multi_parameter(TOP const & op,
-			Reduction const & reduction,
-			Args && ... args)
-					DECL_RET_TYPE(
-							( seq_reduce<integer_sequence<unsigned int, N...>>::eval_multi_parameter(op,reduction, std::forward<Args>(args)..., 0) )
-					)
-
-	template<typename TOP, typename Reduction, typename ...Args>
-	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-			Args && ... args)
-					DECL_RET_TYPE(
-							( seq_reduce<integer_sequence<unsigned int, N...>>::eval_ndarray(op,reduction,get_value( std::forward<Args>(args),0)...) )
-					)
-
-	template<typename Reduction, typename Args>
-	static inline auto eval_ndarray(Reduction const & reduction,
-			Args const& args)
-			DECL_RET_TYPE(( get_value( (args),0) ) )
 };
 
 template<>
-struct seq_reduce<integer_sequence<unsigned int> >
+struct _seq_reduce<>
 {
-	template<typename TOP, typename Reduction, typename ...Args>
-	static inline auto eval_multi_parameter(TOP const & op,
-			Reduction const & reduction, Args && ... args)
-			DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
+	template<typename Reduction, size_t ...L, typename Args>
+	static inline auto eval(Reduction const &, integer_sequence<size_t, L...>,
+			Args const & args)
+			DECL_RET_TYPE( (get_value( (args),
+									integer_sequence<size_t , (L-1)...> ()) ))
 
-	template<typename TOP, typename Reduction, typename ...Args>
-	static inline auto eval_ndarray(TOP const & op, Reduction const & reduction,
-			Args && ... args)
-			DECL_RET_TYPE ((op(std::forward<Args> (args)...)))
+};
+template<size_t ... N, typename ...Args>
+auto seq_reduce(integer_sequence<size_t, N...>, Args && ... args)
+DECL_RET_TYPE(std::move (_seq_reduce<N...>::eval(std::forward<Args>(args) ...)))
 
-	template<typename Reduction, typename Args>
-	static inline auto eval_ndarray(Reduction const & reduction,
-			Args const& args)
-			DECL_RET_TYPE(( get_value( (args),0) ) )
+template<typename TOS, size_t...> struct _seq_print;
+
+template<typename TOS, size_t M, size_t ...N>
+struct _seq_print<TOS, M, N...>
+{
+
+	template<size_t ...L, typename T>
+	static inline void eval(TOS & os, integer_sequence<size_t, L...>,
+			T const & args)
+	{
+		_seq_print<TOS, N...>::eval(os, integer_sequence<size_t, L..., M>(),
+				args);
+
+		_seq_print<TOS, M - 1, N...>::eval(os, integer_sequence<size_t, L...>(),
+				args);
+	}
 
 };
 
+template<typename TOS, size_t ...N>
+struct _seq_print<TOS, 0, N...>
+{
+	template<typename ... T>
+	static inline void eval(TOS & os, T &&...)
+	{
+		os << std::endl;
+	}
+};
+
+template<typename TOS>
+struct _seq_print<TOS>
+{
+
+	template<typename T, size_t ...N>
+	static inline void eval(TOS & os, integer_sequence<size_t, N...>,
+			T const& args)
+	{
+		typedef integer_sequence<size_t, (N-1)...> i_seq;
+		os << (get_value(args, i_seq())) << ",";
+	}
+
+};
 }
 // namespace simpla
 #endif /* SP_INTEGER_SEQUENCE_H_ */

@@ -155,7 +155,7 @@ private:
 		}
 
 	};
-	template<unsigned int N, class T>
+	template<std::size_t   N, class T>
 	struct pt_trans<nTuple<T,N>, std::string>
 	{
 		typedef nTuple<T,N> external_type;
@@ -185,7 +185,7 @@ private:
 
 	};
 
-	template<unsigned int M,  unsigned int  N, class T>
+	template<std::size_t   M,  std::size_t    N, class T>
 	struct pt_trans<nTuple<M, nTuple<T,N> >, std::string>
 	{
 		typedef nTuple<M, nTuple<T,N> > external_type;

@@ -38,12 +38,12 @@ public:
 	{
 	}
 
-	inline pointer allocate(std::size_t num)
+	inline pointer allocate(std::size_t   num)
 	{
 		return static_cast<T*>(MEMPOOL.allocate(num*sizeof(T)));
 	}
 
-	inline void deallocate(pointer p, size_t num = 0)
+	inline void deallocate(pointer p, std::size_t   num = 0)
 	{
 		MEMPOOL.deallocate(static_cast<void*>(p),num*sizeof(T));
 	}

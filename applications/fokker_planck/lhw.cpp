@@ -26,7 +26,7 @@
 
 static const char descritpion[] = "Example for fokker_planck";
 static const char sub_version[] = __FILE__ "(version: 0.0.1)";
-static constexpr unsigned int NDIMS = 3;
+static constexpr std::size_t   NDIMS = 3;
 
 using namespace simpla;
 
@@ -143,9 +143,9 @@ int main(int argc, char **argv)
 
 	std::string context_type = "";
 
-	size_t num_of_step = 10;
+	std::size_t   num_of_step = 10;
 
-	size_t record_stride = 1;
+	std::size_t   record_stride = 1;
 
 	bool just_a_test = false;
 
@@ -153,11 +153,11 @@ int main(int argc, char **argv)
 	{
 		if(opt=="n"||opt=="num_of_step")
 		{
-			num_of_step =ToValue<size_t>(value);
+			num_of_step =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="s"||opt=="record_stride")
 		{
-			record_stride =ToValue<size_t>(value);
+			record_stride =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="i"||opt=="input")
 		{
@@ -251,14 +251,14 @@ int main(int argc, char **argv)
 		{
 			std::mt19937 rnd_gen(NDIMS * 2);
 
-			size_t num_of_particles=particles.size();
+			std::size_t   num_of_particles=particles.size();
 
 			int num_threads=omp_get_num_threads();
 			int thread_num=omp_get_thread_num();
 
-			size_t ib= num_of_particles*thread_num/num_threads;
+			std::size_t   ib= num_of_particles*thread_num/num_threads;
 
-			size_t ie= (num_of_particles+1)*thread_num/num_threads;
+			std::size_t   ie= (num_of_particles+1)*thread_num/num_threads;
 
 			rnd_gen.discard(ib*NDIMS*2);
 

@@ -33,7 +33,7 @@ template<typename TM>
 class Particle<TM, ColdFluid, PolicyFluidParticle> : public ParticleBase
 {
 public:
-	static constexpr unsigned int IForm = VERTEX;
+	static constexpr std::size_t   IForm = VERTEX;
 
 	typedef TM mesh_type;
 

@@ -38,9 +38,9 @@ int main(int argc, char **argv)
 
 	std::string context_type = "";
 
-	size_t num_of_step = 10;
+	std::size_t   num_of_step = 10;
 
-	size_t record_stride = 1;
+	std::size_t   record_stride = 1;
 
 	bool just_a_test = false;
 
@@ -48,11 +48,11 @@ int main(int argc, char **argv)
 	{
 		if(opt=="n"||opt=="num_of_step")
 		{
-			num_of_step =ToValue<size_t>(value);
+			num_of_step =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="s"||opt=="record_stride")
 		{
-			record_stride =ToValue<size_t>(value);
+			record_stride =ToValue<std::size_t  >(value);
 		}
 		else if(opt=="i"||opt=="input")
 		{
