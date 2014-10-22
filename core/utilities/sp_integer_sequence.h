@@ -30,18 +30,19 @@ public:
 
 };
 
-template<typename T, typename TInts>
-T& get_value(T &v, integer_sequence<TInts>)
-{
-	return v;
-}
+template<typename T, typename TInts, TInts M, TInts ...N>
+auto get_value(T &v, integer_sequence<TInts, M, N...>)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TInts>::value),(get_value(v[M],N... )))
 
-template<typename T, typename TInts, TInts M, TInts ... N>
-auto get_value(T & v, integer_sequence<TInts, M, N...>)
-DECL_RET_TYPE((get_value(v[M],integer_sequence<TInts , N...>()) ))
-template<typename T, typename TInts, TInts M, TInts ... N>
-auto get_value(T* v, integer_sequence<TInts, M, N...>)
-DECL_RET_TYPE((get_value(v[M],integer_sequence<TInts , N...>()) ))
+template<typename T, typename TInts, TInts M>
+auto get_value(T const &v, integer_sequence<TInts, M>)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TInts>::value),(get_value(v[M] )))
+
+
+//
+//template<typename T, typename TInts, TInts ...N, typename ...Others>
+//auto get_value(T const&v, integer_sequence<TInts, N...>, Others && ...others)
+//DECL_RET_TYPE((get_value(v,N...,std::forward<Others>(others)...)))
 
 template<size_t ... N> using index_sequence = integer_sequence<size_t , N...>;
 
@@ -76,9 +77,9 @@ struct _seq_for<M, N...>
 {
 
 	template<typename TOP, typename ...Args>
-	static inline void eval(TOP const & op, Args & ... args)
+	static inline void eval(TOP const & op, Args && ... args)
 	{
-		eval(op, integer_sequence<size_t>(), (args)...);
+		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
 	}
 
 	template<typename TOP, size_t ...L, typename ...Args>
@@ -200,6 +201,12 @@ struct _seq_print<TOS, M, N...>
 
 		_seq_print<TOS, M - 1, N...>::eval(os, integer_sequence<size_t, L...>(),
 				args);
+	}
+
+	template<typename T>
+	static inline void eval(TOS & os, T const & args)
+	{
+		eval(os, integer_sequence<size_t>(), args);
 	}
 
 };

@@ -8,14 +8,14 @@
 
 #ifndef INCLUDEnTuple_H_
 #define INCLUDEnTuple_H_
-#include <utility>
+
+#include <stddef.h>
 #include <ostream>
-#include "primitives.h"
-#include "sp_complex.h"
-#include "sp_functional.h"
-#include "sp_type_traits.h"
-#include "sp_integer_sequence.h"
+
 #include "expression_template.h"
+#include "primitives.h"
+#include "sp_integer_sequence.h"
+#include "sp_type_traits.h"
 
 namespace simpla
 {
@@ -41,62 +41,28 @@ namespace simpla
  **/
 template<typename, size_t...> struct nTuple;
 template<typename ...>class Expression;
+template<typename > struct nTuple_traits
+;
+//template<typename T, size_t M, size_t ...N, typename TI>
+//auto get_value(nTuple<T, M, N...> & v, TI const & s)
+//DECL_RET_TYPE((v[s]))
+//
+//template<typename T, size_t M, size_t ...N, typename TI>
+//auto get_value(nTuple<T, M, N...> const& v, TI const & s)
+//DECL_RET_TYPE((v[s]))
+//
+//template<typename ...T, typename TI>
+//auto get_value(nTuple<Expression<T ...>> const & v, TI const & s)
+//DECL_RET_TYPE((v[s]))
+//
+//template<typename T, size_t ... M, size_t L, size_t ... N>
+//auto get_value(nTuple<T, M...> & v, integer_sequence<size_t, L, N...>)
+//DECL_RET_TYPE((get_value(v[L],integer_sequence<size_t, N...>()) ))
+//
+//template<typename T, size_t M, size_t ... N>
+//auto get_value(T* v, integer_sequence<size_t, M, N...>)
+//DECL_RET_TYPE((get_value(v[M],integer_sequence<size_t , N...>()) ))
 
-template<typename TV>
-struct nTuple_traits
-{
-	typedef integer_sequence<size_t> dimensions;
-
-	static constexpr size_t ndims = 0;
-
-	typedef TV value_type;
-
-};
-
-template<typename TV, size_t ...N>
-struct nTuple_traits<nTuple<TV, N...> >
-{
-
-	typedef typename cat_integer_sequence<integer_sequence<size_t, N...>,
-			typename nTuple_traits<TV>::dimensions>::type dimensions;
-
-	static constexpr size_t ndims = dimensions::size();
-
-	typedef typename nTuple_traits<TV>::value_type value_type;
-
-};
-
-template<typename TOP, typename TL>
-struct nTuple_traits<nTuple<Expression<TOP, TL> > >
-{
-private:
-	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
-	typedef typename nTuple_traits<TL>::value_type value_type_l;
-public:
-	typedef d_seq_l dimensions;
-
-	static constexpr size_t ndims = dimensions::size();
-
-	typedef decltype(std::declval<TOP>()(get_value(std::declval<value_type_l>() ,0))) value_type;
-
-};
-template<typename TOP, typename TL, typename TR>
-struct nTuple_traits<nTuple<Expression<TOP, TL, TR>> >
-{
-private:
-	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
-	typedef typename nTuple_traits<TR>::dimensions d_seq_r;
-	typedef typename nTuple_traits<TL>::value_type value_type_l;
-	typedef typename nTuple_traits<TR>::value_type value_type_r;
-public:
-	typedef d_seq_l dimensions;
-
-	static constexpr size_t ndims = dimensions::size();
-
-	typedef decltype(std::declval<TOP>()(get_value(std::declval<value_type_l>(),0),
-					get_value(std::declval<value_type_r>(),0))) value_type;
-
-};
 //
 //template<typename ...> struct make_primary_nTuple;
 //
@@ -192,9 +158,7 @@ void assign(nTuple<T, N...> & l, TR const& r)
 
 template<typename TR, typename T, size_t ... N>
 auto inner_product(nTuple<T, N...> const & l, TR const& r)
-DECL_RET_TYPE((
-				_seq_reduce<N... >::eval ( _impl::plus(),l*r)
-		))
+DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
 
 //template<typename T, size_t ... N, typename TI>
 //auto get_value(nTuple<T, N...> && r, TI const& s)
@@ -218,45 +182,20 @@ struct nTuple
 	data_type data_;
 
 	template<typename TI>
-	inline auto operator[](TI const &i) ->decltype(data_[i])
-	{
-		return data_[i];
-	}
+	inline auto operator[](TI const&i)
+	DECL_RET_TYPE((get_value(data_, (i))))
+
 	template<typename TI>
-	inline auto operator[](TI const &i) const ->decltype(data_[i])
-	{
-		return data_[i];
-	}
+	inline auto operator[](TI const&i) const
+	DECL_RET_TYPE((get_value(data_, (i))))
 
-	template<size_t ...M>
-	inline value_type & operator[](integer_sequence<size_t, M...> const &i)
-	{
-		return _get_value(data_, i);
-	}
+	template<typename TInts, TInts ...L>
+	auto operator[](integer_sequence<TInts, L...>)
+	DECL_RET_TYPE((get_value( data_,L...)))
 
-	template<size_t ...M>
-	inline value_type const & operator[](
-			integer_sequence<size_t, M...> const &i) const
-	{
-		return _get_value(data_, i);
-	}
-
-	template<typename TD, size_t M, size_t ... L>
-	auto _get_value(TD && v,
-			integer_sequence<size_t, M, L...>)
-					DECL_RET_TYPE((_get_value(get_value(std::forward<T>(v),M), integer_sequence<size_t, L...>())))
-
-	template<typename TD>
-	T& _get_value(TD & v, integer_sequence<size_t>)
-	{
-		return v;
-	}
-
-	template<typename TD>
-	T const& _get_value(TD const& v, integer_sequence<size_t>)
-	{
-		return v;
-	}
+	template<typename TInts, TInts ...L>
+	auto operator[](integer_sequence<TInts, L...>) const
+	DECL_RET_TYPE((get_value( data_,L...)))
 
 //#pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
 //
@@ -328,7 +267,98 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 	}
 
 	using Expression<T...>::Expression;
+
 };
+
+template<typename T, typename TInts, TInts ...N>
+struct is_indexable<nTuple<T, N...>, TInts>
+{
+	static constexpr bool value = true;
+};
+
+template<typename TInts, TInts ...N>
+nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
+{
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
+}
+template<typename TInts, TInts ...N>
+std::ostream &operator<<(std::ostream & os, integer_sequence<TInts, N...>)
+{
+	os << seq2ntuple(integer_sequence<TInts, N...>()) << std::endl;
+	return os;
+}
+
+template<typename TV>
+struct nTuple_traits
+{
+	typedef integer_sequence<size_t> dimensions;
+
+	static constexpr size_t ndims = 0;
+
+	typedef TV value_type;
+
+};
+
+template<typename TV, size_t ...N>
+struct nTuple_traits<nTuple<TV, N...> >
+{
+
+	typedef typename cat_integer_sequence<integer_sequence<size_t, N...>,
+			typename nTuple_traits<TV>::dimensions>::type dimensions;
+
+	static constexpr size_t ndims = dimensions::size();
+
+	typedef typename nTuple_traits<TV>::value_type value_type;
+
+};
+
+template<typename TOP, typename TL>
+struct nTuple_traits<nTuple<Expression<TOP, TL> > >
+{
+private:
+	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
+	typedef typename nTuple_traits<TL>::value_type value_type_l;
+public:
+	typedef d_seq_l dimensions;
+
+	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>())) value_type;
+
+};
+template<typename TOP, typename TL, typename TR>
+struct nTuple_traits<nTuple<Expression<TOP, TL, TR>> >
+{
+private:
+	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
+	typedef typename nTuple_traits<TR>::dimensions d_seq_r;
+	typedef typename nTuple_traits<TL>::value_type value_type_l;
+	typedef typename nTuple_traits<TR>::value_type value_type_r;
+public:
+	typedef d_seq_l dimensions;
+
+	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
+					std::declval<value_type_r>())) value_type;
+
+};
+
+//namespace _impl
+//{
+//
+//template<typename T> struct reference_traits;
+//
+//template<typename T, size_t M, size_t ...N>
+//struct reference_traits<nTuple<T, M, N...>>
+//{
+//	typedef nTuple<T, M, N...> const& type;
+//};
+//
+//template<typename ... T>
+//struct reference_traits<nTuple<Expression<T...> > >
+//{
+//	typedef nTuple<Expression<T...>> type;
+//};
+//
+//}  // namespace _impl
 
 template<typename T, size_t ...N>
 std::ostream &operator<<(std::ostream & os, nTuple<T, N...> const & v)
@@ -417,9 +447,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 //template<size_t ndims, typename TExpr>
@@ -468,37 +499,57 @@ nTuple<TP, (sizeof...(J)) + 1> makenTuple(integer_sequence<TP, J...>)
 //}
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
-	template<typename T1,size_t ...N1,typename  T2> auto operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
-	DECL_RET_TYPE((nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
+	template<typename T1,size_t ...N1,typename  T2> \
+	nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	operator _OP_(nTuple<T1,N1...> const & l,T2 const &r)  \
+	{return std::move(nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)) ;}                 \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
-	template<typename T1,size_t ...N1,typename  T2> auto operator _OP_(nTuple<T1, N1...> const & l,T2 const &r)  \
-	DECL_RET_TYPE((nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
-	template< typename T1,typename T2 ,size_t ...N2> auto operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-	DECL_RET_TYPE((nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r)))                  \
+	template<typename T1,size_t ...N1,typename  T2> \
+	nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	operator _OP_(nTuple<T1, N1...> const & l,T2 const &r)  \
+	{return std::move(nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
+	\
+	template< typename T1,typename T2 ,size_t ...N2> \
+	nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
+	operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+	{return std::move(nTuple<Expression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
+	\
 	template< typename T1,size_t ... N1,typename T2 ,size_t ...N2>  \
-	auto operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-	DECL_RET_TYPE((nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r)))                  \
+	nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+	operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+	{return std::move(nTuple<Expression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
-		template<typename T,size_t ...N> auto operator _OP_(nTuple<T,N...> const &l)  \
-		DECL_RET_TYPE((nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)))   \
+		template<typename T,size_t ...N> \
+		nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >> \
+		operator _OP_(nTuple<T,N...> const &l)  \
+		{return std::move(nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
-			template<typename T1,size_t ...N1,typename  T2> auto   _NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
-			DECL_RET_TYPE((nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r)))                  \
-			template< typename T1,typename T2,size_t ...N2> auto _NAME_(T1 const & l, nTuple< T2,N2...>const &r)                    \
-			DECL_RET_TYPE((nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>(l,r)))                  \
+			template<typename T1,size_t ...N1,typename  T2> \
+			nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
+			_NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
+			{return std::move(nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r));}       \
+			\
+			template< typename T1,typename T2,size_t ...N2> \
+			nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>\
+			_NAME_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+			{return std::move(nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>(l,r)) ;}       \
+			\
 			template< typename T1,size_t ... N1,typename T2,size_t  ...N2> \
-			auto _NAME_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
-			DECL_RET_TYPE((nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r)))                  \
+			nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+			_NAME_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+			{return std::move(nTuple<Expression< _impl::_##_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r))  ;}   \
 
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION( _NAME_)                           \
-		template<typename T,size_t ...N> auto   _NAME_(nTuple<T,N ...> const &r)  \
-		DECL_RET_TYPE((nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r)))   \
+		template<typename T,size_t ...N> \
+		nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>> \
+		_NAME_(nTuple<T,N ...> const &r)  \
+		{return std::move(nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r));}     \
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 }

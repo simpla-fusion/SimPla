@@ -30,26 +30,30 @@ struct is_expresson<F<Expression<T...>>>
 	static constexpr bool value=true;
 };
 
+template<typename T, size_t...> struct nTuple;
 namespace _impl
 {
 
 template<typename T>
 struct reference_traits
 {
-	static constexpr bool no_refercne = std::is_pointer<T>::value
-
-	|| std::is_rvalue_reference<T>::value
+	typedef typename std::remove_reference<T>::type v_type;
+	static constexpr bool pass_value = std::is_pointer<T>::value
 
 	|| std::is_scalar<T>::value
 
 	|| is_expresson<T>::value;
 
-	typedef typename std::conditional<no_refercne, T, T&>::type type;
+	typedef typename std::conditional<pass_value, v_type, v_type const&>::type type;
 
-	typedef typename std::conditional<no_refercne, T, const T&>::type const_reference;
+};
 
-	typedef typename std::conditional<no_refercne, T, T&>::type reference;
+template<typename T> struct reference_traits;
 
+template<typename T, size_t M, size_t ...N>
+struct reference_traits<nTuple<T, M, N...>>
+{
+	typedef nTuple<T, M, N...> const& type;
 };
 
 }  // namespace _impl
@@ -57,26 +61,52 @@ struct reference_traits
 template<typename TOP, typename TL, typename TR>
 struct Expression<TOP, TL, TR>
 {
-	typename _impl::reference_traits<TL>::const_reference lhs;
-	typename _impl::reference_traits<TR>::const_reference rhs;
+	typedef Expression<TOP, TL, TR> this_type;
+	typename _impl::reference_traits<TL>::type lhs;
+	typename _impl::reference_traits<TR>::type rhs;
 	TOP op_;
 
 	Expression(TL const & l, TR const & r) :
 			lhs(l), rhs(r), op_()
 	{
+		std::cout << "Create :" << lhs << std::endl;
+	}
+	Expression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+		std::cout << "Move :" << that.lhs << std::endl;
+		std::cout << "Move :" << lhs << std::endl;
+	}
+
+	Expression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+		std::cout << "Copy :" << that.lhs << std::endl;
+		std::cout << "Copy :" << lhs << std::endl;
 	}
 
 	Expression(TOP op, TL const & l, TR const & r) :
 			lhs(l), rhs(r), op_(op)
 	{
+		std::cout << "Create2:" << lhs << std::endl;
 	}
 	~Expression()
 	{
 	}
-
+	this_type & operator=(this_type const that)
+	{
+		lhs = that.lhs;
+		rhs = that.rhs;
+		op_ = that.op_;
+		return *this;
+	}
 	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+	inline auto operator[](
+			IndexType const &s) const ->decltype(((op_(get_value(lhs, s), get_value(rhs, s)))))
+	{
+		return ((op_(get_value(lhs, s), get_value(rhs, s))));
+	}
+//	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
 }
 ;
 
@@ -85,7 +115,7 @@ template<typename TOP, typename TL>
 struct Expression<TOP, TL>
 {
 
-	typename _impl::reference_traits<TL>::const_reference lhs;
+	typename _impl::reference_traits<TL>::type lhs;
 
 	TOP op_;
 
@@ -107,12 +137,13 @@ struct Expression<TOP, TL>
 
 };
 
-template<typename ... T, typename TI, template<typename > class F>
-auto get_value(F<Expression<T...>> & expr, TI const & s)
-->typename std::remove_reference<decltype(expr[s])>::type
-{
-	return expr[s];
-}
+//template<typename ... T, typename TI, template<typename > class F>
+//auto get_value(F<Expression<T...>> & expr, TI const & s)
+//->typename std::remove_reference<decltype(expr[s])>::type
+//{
+//	return expr[s];
+//}
+
 namespace _impl
 {
 struct binary_right
@@ -394,35 +425,52 @@ class _inner_product
 }  // namespace _impl
 
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
-	template<typename ...T1,typename  T2> auto operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	DECL_RET_TYPE((_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r)))                  \
+	template<typename ...T1,typename  T2> _OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
+	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
+	{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
-	template<typename ...T1,typename  T2> auto operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	DECL_RET_TYPE((_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r)))                  \
-	template< typename T1,typename ...T2> auto operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
-	DECL_RET_TYPE((_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r)))                  \
-	template< typename ... T1,typename ...T2> auto operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-	DECL_RET_TYPE((_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r)))                  \
+	template<typename ...T1,typename  T2> \
+	_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
+	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
+	{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	template< typename T1,typename ...T2> \
+	_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
+	operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
+	{return std::move(_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+	template< typename ... T1,typename ...T2> \
+	_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
+	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
+	{return std::move(_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
-		template<typename ...T> auto operator _OP_(_OBJ_<T...> const &l)  \
-		DECL_RET_TYPE((_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l)))   \
+		template<typename ...T> \
+		_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >> \
+		operator _OP_(_OBJ_<T...> const &l)  \
+		{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
 
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_,_OBJ_)                                                  \
-			template<typename ...T1,typename  T2> auto   _NAME_(_OBJ_<T1...> const & l,T2 const &r)  \
-			DECL_RET_TYPE((_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>>(l,r)))                  \
-			template< typename T1,typename ...T2> auto _NAME_(T1 const & l, _OBJ_< T2...>const &r)                    \
-			DECL_RET_TYPE((_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>>(l,r)))                  \
-			template< typename ... T1,typename ...T2> auto _NAME_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-			DECL_RET_TYPE((_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r)))                  \
+			template<typename ...T1,typename  T2> \
+			_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>> \
+			_NAME_(_OBJ_<T1...> const & l,T2 const &r)  \
+			{return std::move(_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+			template< typename T1,typename ...T2> \
+			_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>> \
+			_NAME_(T1 const & l, _OBJ_< T2...>const &r)                    \
+			{return std::move(_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+			template< typename ... T1,typename ...T2> \
+			_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>> \
+			_NAME_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
+			{return std::move(_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION( _NAME_,_OBJ_)                           \
-		template<typename ...T> auto   _NAME_(_OBJ_<T ...> const &r)  \
-		DECL_RET_TYPE((_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>>(r)))   \
+		template<typename ...T> \
+		_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>> \
+		_NAME_(_OBJ_<T ...> const &r)  \
+		{return std::move(_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>>(r));}   \
 
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_CONCEPT_)                                              \

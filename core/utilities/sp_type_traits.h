@@ -209,113 +209,66 @@ public:                                                                         
 namespace _impl
 {
 
-HAS_OPERATOR(sub_script, []);
+//HAS_OPERATOR(sub_script, []);
 HAS_MEMBER_FUNCTION(at);
 
 }  // namespace _impl
 
-template<class T, typename TI = int>
-class is_indexable
+template<typename _T, typename _Args>
+struct is_indexable
 {
+private:
+	typedef std::true_type yes;
+	typedef std::false_type no;
+
+	template<typename _U>
+	static auto test(int) ->
+	decltype(std::declval<_U>() [ std::declval<_Args>() ] );
+
+	template<typename > static no test(...);
+
 public:
-	static const bool value = _impl::has_operator_sub_script<T, TI>::value; // has_operator_index<T, TI>::value;
-};
-template<class T>
-class is_indexable<T*, size_t>
-{
-public:
-	static const bool value = true;
-};
-template<class T>
-class is_indexable<T*, int>
-{
-public:
-	static const bool value = true;
+
+	static constexpr bool value =
+			!std::is_same<decltype(test<_T>(0)), no>::value;
 };
 
-template<typename T, typename TI>
-auto get_value(T && v, TI const & s)
-->typename std::enable_if<(is_indexable<T,TI>::value),decltype(v[s]) >::type
-{
-	return v[s];
-}
+template<typename T>
+auto get_value(T & v)
+DECL_RET_TYPE((v))
 
 template<typename T, typename TI>
-auto get_value(T && v, TI const & s)
-->typename std::enable_if<((!is_indexable<T,TI>::value) &&
-		_impl::has_member_function_at<T,TI>::value),decltype(v.at(s)) >::type
-{
-	return v.at(s);
-}
-
-template<typename T, typename TI>
-auto get_value(T && v,
-		TI const & s)->typename std::enable_if<(!(is_indexable<T,TI>::value
-						|| _impl::has_member_function_at<T,TI>::value )), T& >::type
-{
-	return v;
-}
-
-template<typename T, typename TI>
-T & get_value(std::shared_ptr<T> & v, TI const & s)
-{
-	return *(v.get() + s);
-}
-
-template<typename T, typename TI>
-T const& get_value(std::shared_ptr<T> const& v, TI const & s)
-{
-	return *(v.get() + s);
-}
-
-template<typename T, typename TI>
-T & get_value(T* v, TI const & s)
-{
-	return v[s];
-}
-
-//template<typename T>
-//struct remove_const_reference
-//{
-//	typedef typename std::remove_const<typename std::remove_reference<T>::type>::type type;
-//};
-//template<typename T>
-//struct is_storage_type
-//{
-//	static constexpr bool value = true;
-//};
-//template<typename T>
-//struct is_storage_type<T*>
-//{
-//	static constexpr bool value = true;
-//};
-//template<typename T>
-//struct ReferenceTraits // obsolete
-//{
-//	typedef typename remove_const_reference<T>::type TL;
-//	typedef typename std::conditional<is_storage_type<TL>::value, TL &, TL>::type type;
-//};
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), (v[s]))
 //
-//template<typename T>
-//struct ConstReferenceTraits // obsolete
-//{
-//	typedef typename remove_const_reference<T>::type TL;
-//	typedef typename std::conditional<is_storage_type<TL>::value, TL const &, const TL>::type type;
-//};
+//template<typename T, typename TI>
+//auto get_value(T & v, TI const & s)
+//ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
 
-//template<typename T, typename ...Args>
-//auto get_value(T const & f, Args && ... args)
-//DECL_RET_TYPE ((f(std::forward<Args>(args)...)))
+template<typename T, typename TI, typename ...Args>
+auto get_value(T & v, TI const & s, Args && ...args)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
+		(get_value(v[s],std::forward<Args>(args)...)))
+
+template<typename T, typename TI, typename ...Args>
+auto get_value(T & v, TI const & s, Args && ...args)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), v )
+
+template<typename T, typename ...Args>
+auto get_value(std::shared_ptr<T> & v, Args &&... args)
+DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+
+template<typename T, typename ...Args>
+auto get_value(std::shared_ptr<T> const & v, Args &&... args)
+DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
 
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
-template<unsigned int N>
-struct CountBits
+template<unsigned int N> struct CountBits
 {
 	static const unsigned int n = CountBits<N / 2>::n + 1;
 };
 
-template<>
-struct CountBits<0>
+template<> struct CountBits<0>
 {
 	static const unsigned int n = 0;
 };
@@ -387,23 +340,19 @@ template<int...> class int_tuple_t;
 //
 //}// namespace _impl
 
-template<typename T>
-T begin(std::pair<T, T>const & range)
+template<typename T> T begin(std::pair<T, T>const & range)
 {
 	return std::move(range.first);
 }
-template<typename T>
-T end(std::pair<T, T>const & range)
+template<typename T> T end(std::pair<T, T>const & range)
 {
 	return std::move(range.second);
 }
-template<typename T>
-T rbegin(std::pair<T, T>const & range)
+template<typename T> T rbegin(std::pair<T, T>const & range)
 {
 	return std::move(range.second--);
 }
-template<typename T>
-T rend(std::pair<T, T>const & range)
+template<typename T> T rend(std::pair<T, T>const & range)
 {
 	return std::move(range.first--);
 }
@@ -420,16 +369,14 @@ template<typename T> void decompact(T const &v, T * u)
 
 HAS_MEMBER_FUNCTION(swap)
 
-template<typename T>
-typename std::enable_if<has_member_function_swap<T>::value, void>::type sp_swap(
-		T& l, T& r)
+template<typename T> typename std::enable_if<has_member_function_swap<T>::value,
+		void>::type sp_swap(T& l, T& r)
 {
 	l.swap(r);
 }
 
-template<typename T>
-typename std::enable_if<!has_member_function_swap<T>::value, void>::type sp_swap(
-		T& l, T& r)
+template<typename T> typename std::enable_if<
+		!has_member_function_swap<T>::value, void>::type sp_swap(T& l, T& r)
 {
 	std::swap(l, r);
 }
