@@ -90,52 +90,52 @@ struct _seq_for<0>
 	{
 	}
 };
-//template<size_t M, size_t ...N>
-//struct _seq_for<M, N...>
-//{
-//
-//	template<typename TOP, typename ...Args>
-//	static inline void eval(TOP const & op, Args && ... args)
-//	{
-//		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
-//	}
-//
-//	template<typename TOP, size_t ...L, typename ...Args>
-//	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
-//			Args && ... args)
-//	{
-//		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
-//				std::forward<Args>(args)...);
-//
-//		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
-//				std::forward<Args>(args)...);
-//	}
-//
-//};
-//
-//template<size_t ...N>
-//struct _seq_for<0, N...>
-//{
-//	template<typename ...Args>
-//	static inline void eval(Args && ... args)
-//	{
-//	}
-//};
-//
-//template<>
-//struct _seq_for<>
-//{
-//
-//	template<typename TOP, typename TInts, TInts ...L, typename ...Args>
-//	static inline void eval(TOP const & op, integer_sequence<TInts, L...>,
-//			Args && ... args)
-//	{
-//		typedef integer_sequence<size_t, (L-1)...> i_seq;
-//
-//		op(get_value(std::forward<Args>(args),i_seq()) ...);
-//
-//	}
-//};
+template<size_t M, size_t ...N>
+struct _seq_for<M, N...>
+{
+
+	template<typename TOP, typename ...Args>
+	static inline void eval(TOP const & op, Args && ... args)
+	{
+		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
+	}
+
+	template<typename TOP, size_t ...L, typename ...Args>
+	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
+			Args && ... args)
+	{
+		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
+				std::forward<Args>(args)...);
+
+		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
+				std::forward<Args>(args)...);
+	}
+
+};
+
+template<size_t ...N>
+struct _seq_for<0, N...>
+{
+	template<typename ...Args>
+	static inline void eval(Args && ... args)
+	{
+	}
+};
+
+template<>
+struct _seq_for<>
+{
+
+	template<typename TOP, typename TInts, TInts ...L, typename ...Args>
+	static inline void eval(TOP const & op, integer_sequence<TInts, L...>,
+			Args && ... args)
+	{
+		typedef integer_sequence<size_t, (L-1)...> i_seq;
+
+		op(get_value(std::forward<Args>(args),i_seq()) ...);
+
+	}
+};
 
 template<size_t N, typename ...Args>
 void seq_for(integer_sequence<size_t, N>, Args && ... args)
@@ -158,23 +158,23 @@ struct _seq_reduce<M, N...>
 	template<typename Reduction, size_t ...L, typename ... Args>
 	static inline auto eval(Reduction const & reduction,
 			integer_sequence<size_t, L...>,
-			Args const&... args)
+			Args &&... args)
 					DECL_RET_TYPE(
 							(
 									reduction( _seq_reduce< N... >::eval( reduction,
 													integer_sequence<size_t , L..., M>(),
-													std::forward<Args const>(args)... ),
+													std::forward<Args >(args)... ),
 
 											_seq_reduce< M - 1, N... >::eval( reduction,
 													integer_sequence<size_t , L...>(),
-													std::forward<Args const> (args)... ) )
+													std::forward<Args > (args)... ) )
 							))
 
 	template<typename Reduction, typename ...Args>
 	static inline auto eval(Reduction const & reduction,
-			Args const& ... args)
+			Args && ... args)
 					DECL_RET_TYPE(
-							( eval( reduction,integer_sequence<size_t >(), std::forward<Args const> (args)...) ))
+							( eval( reduction,integer_sequence<size_t >(), std::forward<Args > (args)...) ))
 
 };
 
@@ -185,12 +185,12 @@ struct _seq_reduce<1, N...>
 	template<typename Reduction, size_t ...L, typename ...Args>
 	static inline auto eval(Reduction const & reduction,
 			integer_sequence<size_t, L...>,
-			Args const &... args)
+			Args &&... args)
 					DECL_RET_TYPE(
 							(
 									_seq_reduce< N... >::eval(
 											reduction, integer_sequence<size_t , L..., 1>(),
-											std::forward<Args const>(args)... )
+											std::forward<Args >(args)... )
 							)
 					)
 
@@ -201,9 +201,8 @@ struct _seq_reduce<>
 {
 	template<typename Reduction, size_t ...L, typename Args>
 	static inline auto eval(Reduction const &, integer_sequence<size_t, L...>,
-			Args const & args)
-			DECL_RET_TYPE( (get_value( (args),
-									integer_sequence<size_t , (L-1)...> ()) ))
+			Args const& args)
+					DECL_RET_TYPE( (get_value( (args),integer_sequence<size_t, (L-1)...>()) ))
 
 };
 template<size_t ... N, typename ...Args>
@@ -254,7 +253,7 @@ struct _seq_print<TOS>
 			T const& args)
 	{
 		typedef integer_sequence<size_t, (N-1)...> i_seq;
-		os << (get_value(args, i_seq())) << ",";
+		os << (get_value(args, (N-1)...)) << ",";
 	}
 
 };
