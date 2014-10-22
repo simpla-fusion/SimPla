@@ -253,6 +253,14 @@ struct nTuple
 
 };
 
+template<typename T> struct reference_traits;
+
+template<typename T, size_t M, size_t ...N>
+struct reference_traits<nTuple<T, M, N...>>
+{
+	typedef nTuple<T, M, N...> const& type;
+};
+
 template<typename ... T>
 struct nTuple<Expression<T...>> : public Expression<T...>
 {

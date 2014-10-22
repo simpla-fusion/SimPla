@@ -38,7 +38,6 @@ template<typename T, typename TInts, TInts M>
 auto get_value(T const &v, integer_sequence<TInts, M>)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TInts>::value),(get_value(v[M] )))
 
-
 //
 //template<typename T, typename TInts, TInts ...N, typename ...Others>
 //auto get_value(T const&v, integer_sequence<TInts, N...>, Others && ...others)
@@ -72,52 +71,77 @@ struct cat_integer_sequence<integer_sequence<T, N1...>,
 
 template<size_t...> struct _seq_for;
 
-template<size_t M, size_t ...N>
-struct _seq_for<M, N...>
+template<size_t M>
+struct _seq_for<M>
 {
 
 	template<typename TOP, typename ...Args>
 	static inline void eval(TOP const & op, Args && ... args)
 	{
-		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
-	}
-
-	template<typename TOP, size_t ...L, typename ...Args>
-	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
-			Args && ... args)
-	{
-		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
-				std::forward<Args>(args)...);
-
-		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
-				std::forward<Args>(args)...);
-	}
-
-};
-
-template<size_t ...N>
-struct _seq_for<0, N...>
-{
-	template<typename ...Args>
-	static inline void eval(Args && ... args)
-	{
+		op(get_value(std::forward<Args>(args),M-1) ...);
+		_seq_for<M - 1>::eval(op, std::forward<Args>(args)...);
 	}
 };
-
 template<>
-struct _seq_for<>
+struct _seq_for<0>
 {
-
-	template<typename TOP, typename TInts, TInts ...L, typename ...Args>
-	static inline void eval(TOP const & op, integer_sequence<TInts, L...>,
-			Args && ... args)
+	template<typename TOP, typename ...Args>
+	static inline void eval(TOP const & op, Args && ... args)
 	{
-		typedef integer_sequence<size_t, (L-1)...> i_seq;
-
-		op(get_value(std::forward<Args>(args),i_seq()) ...);
-
 	}
 };
+//template<size_t M, size_t ...N>
+//struct _seq_for<M, N...>
+//{
+//
+//	template<typename TOP, typename ...Args>
+//	static inline void eval(TOP const & op, Args && ... args)
+//	{
+//		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
+//	}
+//
+//	template<typename TOP, size_t ...L, typename ...Args>
+//	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
+//			Args && ... args)
+//	{
+//		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
+//				std::forward<Args>(args)...);
+//
+//		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
+//				std::forward<Args>(args)...);
+//	}
+//
+//};
+//
+//template<size_t ...N>
+//struct _seq_for<0, N...>
+//{
+//	template<typename ...Args>
+//	static inline void eval(Args && ... args)
+//	{
+//	}
+//};
+//
+//template<>
+//struct _seq_for<>
+//{
+//
+//	template<typename TOP, typename TInts, TInts ...L, typename ...Args>
+//	static inline void eval(TOP const & op, integer_sequence<TInts, L...>,
+//			Args && ... args)
+//	{
+//		typedef integer_sequence<size_t, (L-1)...> i_seq;
+//
+//		op(get_value(std::forward<Args>(args),i_seq()) ...);
+//
+//	}
+//};
+
+template<size_t N, typename ...Args>
+void seq_for(integer_sequence<size_t, N>, Args && ... args)
+{
+	_seq_for<N>::eval(std::forward<Args>(args) ...);
+}
 
 template<size_t ... N, typename ...Args>
 void seq_for(integer_sequence<size_t, N...>, Args && ... args)

@@ -44,16 +44,8 @@ struct reference_traits
 
 	|| is_expresson<T>::value;
 
-	typedef typename std::conditional<pass_value, v_type, v_type const&>::type type;
+	typedef typename std::conditional<pass_value, T, T const&>::type type;
 
-};
-
-template<typename T> struct reference_traits;
-
-template<typename T, size_t M, size_t ...N>
-struct reference_traits<nTuple<T, M, N...>>
-{
-	typedef nTuple<T, M, N...> const& type;
 };
 
 }  // namespace _impl
@@ -69,44 +61,19 @@ struct Expression<TOP, TL, TR>
 	Expression(TL const & l, TR const & r) :
 			lhs(l), rhs(r), op_()
 	{
-		std::cout << "Create :" << lhs << std::endl;
 	}
-	Expression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-	{
-		std::cout << "Move :" << that.lhs << std::endl;
-		std::cout << "Move :" << lhs << std::endl;
-	}
-
-	Expression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-	{
-		std::cout << "Copy :" << that.lhs << std::endl;
-		std::cout << "Copy :" << lhs << std::endl;
-	}
-
 	Expression(TOP op, TL const & l, TR const & r) :
 			lhs(l), rhs(r), op_(op)
 	{
-		std::cout << "Create2:" << lhs << std::endl;
 	}
+
 	~Expression()
 	{
 	}
-	this_type & operator=(this_type const that)
-	{
-		lhs = that.lhs;
-		rhs = that.rhs;
-		op_ = that.op_;
-		return *this;
-	}
+
 	template<typename IndexType>
-	inline auto operator[](
-			IndexType const &s) const ->decltype(((op_(get_value(lhs, s), get_value(rhs, s)))))
-	{
-		return ((op_(get_value(lhs, s), get_value(rhs, s))));
-	}
-//	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
 }
 ;
 
@@ -114,19 +81,22 @@ struct Expression<TOP, TL, TR>
 template<typename TOP, typename TL>
 struct Expression<TOP, TL>
 {
+	typedef Expression<TOP, TL> this_type;
 
 	typename _impl::reference_traits<TL>::type lhs;
 
 	TOP op_;
 
-	Expression(TL const & l) :
-			lhs(l), op_()
-	{
-	}
 	Expression(TOP op, TL const & l) :
 			lhs(l), op_(op)
 	{
 	}
+
+	Expression(TL const & l) :
+			lhs(l), op_()
+	{
+	}
+
 	~Expression()
 	{
 	}
@@ -136,13 +106,6 @@ struct Expression<TOP, TL>
 	DECL_RET_TYPE ((op_(get_value(lhs, s))))
 
 };
-
-//template<typename ... T, typename TI, template<typename > class F>
-//auto get_value(F<Expression<T...>> & expr, TI const & s)
-//->typename std::remove_reference<decltype(expr[s])>::type
-//{
-//	return expr[s];
-//}
 
 namespace _impl
 {
