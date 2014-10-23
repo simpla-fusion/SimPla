@@ -29,6 +29,7 @@ public:
 	}
 
 };
+
 //
 //template<typename T, typename TInts, TInts M, TInts ...N>
 //auto get_value(T &v, integer_sequence<TInts, M, N...>)
@@ -68,10 +69,6 @@ struct cat_integer_sequence<integer_sequence<T, N1...>,
 {
 	typedef integer_sequence<T, N1..., N2...> type;
 };
-
-template<typename T, typename TInts, TInts ...L>
-auto get_value(T& d, integer_sequence<TInts, L...>)
-DECL_RET_TYPE((get_value( d,L...)))
 
 template<size_t...> struct _seq_for;
 
@@ -190,9 +187,11 @@ struct _seq_reduce<>
 					DECL_RET_TYPE( (get_value( (args),integer_sequence<size_t, (L-1)...>()) ))
 
 };
-template<size_t ... N, typename ...Args>
-auto seq_reduce(integer_sequence<size_t, N...>, Args && ... args)
-DECL_RET_TYPE( (_seq_reduce<N...>::eval(std::forward<Args>(args) ...)))
+template<size_t ... N, typename TOP, typename ...Args>
+auto seq_reduce(integer_sequence<size_t, N...>, TOP const & op,
+		Args && ... args)
+		DECL_RET_TYPE( (_seq_reduce<N...>::eval(op,
+								std::forward<Args>(args) ...)))
 
 template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
@@ -226,60 +225,41 @@ void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 
 }
 
-template<typename TOS, size_t...> struct _seq_print;
-
-template<typename TOS, size_t M, size_t ...N>
-struct _seq_print<TOS, M, N...>
+template<typename TInts, TInts ...N, typename TOS, typename TA>
+TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
+	size_t ndims = sizeof...(N);
+	TInts dims[] = { N... };
+	TInts idx[ndims];
 
-	template<size_t ...L, typename T>
-	static inline void eval(TOS & os, integer_sequence<size_t, L...>,
-			T const & args)
+	for (int i = 0; i < ndims; ++i)
 	{
-		_seq_print<TOS, N...>::eval(os, integer_sequence<size_t, L..., M>(),
-				args);
-
-		_seq_print<TOS, M - 1, N...>::eval(os, integer_sequence<size_t, L...>(),
-				args);
+		idx[i] = 0;
 	}
 
-	template<typename T>
-	static inline void eval(TOS & os, T const & args)
+	while (1)
 	{
-		eval(os, integer_sequence<size_t>(), args);
+
+		os << get_value(d, idx) << ", ";
+
+		++idx[ndims - 1];
+
+		for (int rank = ndims - 1; rank > 0; --rank)
+		{
+			if (idx[rank] >= dims[rank])
+			{
+				idx[rank] = 0;
+				++(idx[rank - 1]);
+
+				if (rank == ndims - 1)
+					os << "\n";
+			}
+		}
+		if (idx[0] >= dims[0])
+			break;
 	}
-
-};
-
-template<typename TOS, size_t ...N>
-struct _seq_print<TOS, 0, N...>
-{
-	template<typename ... T>
-	static inline void eval(TOS & os, T &&...)
-	{
-		os << std::endl;
-	}
-};
-
-template<typename TOS>
-struct _seq_print<TOS>
-{
-
-	template<typename T, size_t ...N>
-	static inline void eval(TOS & os, integer_sequence<size_t, N...>,
-			T const& args)
-	{
-		typedef integer_sequence<size_t, (N-1)...> i_seq;
-		os << (get_value(args, (N-1)...)) << ",";
-	}
-
-};
-
-template<typename T>
-struct rank
-{
-	static constexpr unsigned int value = std::rank<T>::value;
-};
+	return os;
+}
 
 }
 // namespace simpla

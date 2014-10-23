@@ -201,7 +201,7 @@ public:                                                                         
 }                                                                                                     \
 ;
 
-#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return  (_EXPR_);}
+#define DECL_RET_TYPE(_EXPR_) ->decltype((_EXPR_)){return (_EXPR_);}
 
 #define ENABLE_IF_DECL_RET_TYPE(_COND_,_EXPR_) \
         ->typename std::enable_if<_COND_,decltype((_EXPR_))>::type {return (_EXPR_);}
@@ -230,37 +230,13 @@ private:
 public:
 
 	static constexpr bool value =
-			!std::is_same<decltype(test<_T>(0)), no>::value;
+			(!std::is_same<decltype(test<_T>(0)), no>::value);
+//					((std::is_array<_T>::value || std::is_pointer<_T>::value)
+//							&& (std::is_integral<_Args>::value))
+
 };
-
-template<typename T>
-auto get_value(T & v)
-DECL_RET_TYPE((v))
-
-template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), (v[s]))
-
-template<typename T, typename TI>
-auto get_value(T & v, TI const & s)
-ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
-
-template<typename T, typename TI, typename ...Args>
-auto get_value(T & v, TI const & s, Args && ...args)
-ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-		(get_value(v[s],std::forward<Args>(args)...)))
-
-template<typename T, typename TI, typename ...Args>
-auto get_value(T & v, TI const & s, Args && ...args)
-ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), v )
-
-template<typename T, typename ...Args>
-auto get_value(std::shared_ptr<T> & v, Args &&... args)
-DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
-
-template<typename T, typename ...Args>
-auto get_value(std::shared_ptr<T> const & v, Args &&... args)
-DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+template<typename _Tp, _Tp ... _Idx> struct integer_sequence;
+template<typename T, size_t ... N> struct nTuple;
 
 namespace _impl
 {
@@ -271,7 +247,7 @@ struct index_array
 	template<typename T, typename TI>
 	static auto eval(T & d, TI const * idx)
 	ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
-			(index_array<N-1>::eval(d[idx[0]],idx)))
+			(index_array<N-1>::eval(d[idx[0]],idx+1)))
 
 	template<typename T, typename TI>
 	static auto eval(T & d, TI const * idx)
@@ -289,9 +265,8 @@ struct index_array<1>
 	DECL_RET_TYPE((d[idx[0]]))
 };
 
-}  // namespace _impl
 template<typename T, typename TI>
-auto get_value2(T & v, TI const * idx)
+auto get_value_traits(T & v, TI const * idx)
 ->typename std::enable_if< std::is_array<T>::value,
 typename std::remove_all_extents<T>::type &>::type
 {
@@ -299,13 +274,130 @@ typename std::remove_all_extents<T>::type &>::type
 }
 
 template<typename T, typename TI>
-auto get_value2(T & v, TI const * idx)
+auto get_value_traits(T & v, TI const * idx)
 ->typename std::enable_if<!std::is_array<T>::value,T&>::type
 {
 	return v;
 }
 
+template<typename T, size_t N, size_t ...M, typename TI>
+auto get_value_traits(nTuple<T, N, M...> & v, TI const * idx)
+DECL_RET_TYPE(get_value_traits(v.data_,idx))
 
+template<typename T, size_t N, size_t ...M, typename TI>
+auto get_value_traits(nTuple<T, N, M...> const& v, TI const * idx)
+DECL_RET_TYPE(get_value_traits(v.data_,idx))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI s0)
+DECL_RET_TYPE((v[s0] ))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI s0, TI s1)
+DECL_RET_TYPE((v[s0][s1]))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI const & s0, TI const & s1, TI const & s2)
+DECL_RET_TYPE((v[s0][s1][s2]))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3)
+		DECL_RET_TYPE((v[s0][s1][s2][s3]))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3, TI const & s4)
+		DECL_RET_TYPE((v[s0][s1][s2][s3][s4]))
+
+template<typename T, typename TI>
+auto get_value_traits(T & v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3, TI const & s4, TI const & s5)
+		DECL_RET_TYPE((v[s0][s1][s2][s3][s4][s5]))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI s0)
+DECL_RET_TYPE((v[s0] ))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI s0, TI s1)
+DECL_RET_TYPE((v[s0][s1]))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI const & s0, TI const & s1, TI const & s2)
+DECL_RET_TYPE((v[s0][s1][s2]))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3)
+		DECL_RET_TYPE((v[s0][s1][s2][s3]))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3, TI const & s4)
+		DECL_RET_TYPE((v[s0][s1][s2][s3][s4]))
+
+template<typename T, typename TI>
+auto get_value_traits(T const &v, TI const & s0, TI const & s1, TI const & s2,
+		TI const & s3, TI const & s4, TI const & s5)
+		DECL_RET_TYPE((v[s0][s1][s2][s3][s4][s5]))
+//
+//template<typename T, typename TI, TI N>
+//auto get_value_traits(T & v, integer_sequence<TI, N>)
+//DECL_RET_TYPE((get_value(v,N )))
+//
+//template<typename T, typename TI, TI N>
+//auto get_value_traits(T const& v, integer_sequence<TI, N>)
+//DECL_RET_TYPE((get_value(v,N )))
+//
+//template<typename T, typename TI, TI ...N>
+//auto get_value_traits(T const& v, integer_sequence<TI, N...>)
+//DECL_RET_TYPE((_impl::get_value_traits(v,N...)))
+//
+
+template<typename T, typename TI, TI ...N>
+auto get_value_traits(T & v, integer_sequence<TI, N...>)
+ENABLE_IF_DECL_RET_TYPE(( is_indexable<T,TI>::value),
+		(_impl::get_value_traits(v,N...)))
+
+template<typename T, typename TI, TI ...N>
+auto get_value_traits(T & v, integer_sequence<TI, N...>)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
+
+}  // namespace _impl
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value ), (v[s]))
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const& s)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
+
+template<typename T, typename TI>
+auto get_value(T const& v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), (v[s]))
+
+template<typename T, typename TI>
+auto get_value(T const& v, TI const& s)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value),
+		(_impl::get_value_traits(v, s)))
+//
+//template<typename T, typename TI>
+//auto get_value(T & v, TI const* s)
+//DECL_RET_TYPE( (_impl::get_value_traits(v, s)))
+//
+//template<typename T, typename TI>
+//auto get_value(T const & v, TI const* s)
+//DECL_RET_TYPE( (_impl::get_value_traits(v, s)))
+
+//template<typename T, typename ...Args>
+//auto get_value(std::shared_ptr<T> & v, Args &&... args)
+//DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+//
+//template<typename T, typename ...Args>
+//auto get_value(std::shared_ptr<T> const & v, Args &&... args)
+//DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
 
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned int N> struct CountBits

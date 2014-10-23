@@ -13,27 +13,26 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-	nTuple<double, 6> a = { 0, 1, 2, 3, 4, 5 };
+	nTuple<double, 2, 3> a = { 0, 1, 2, 3, 4, 5 };
 	nTuple<double, 2, 3> b, c;
+
+	std::cout << a << std::endl;
 
 	b = 1;
 	c = 2;
-
-	typedef integer_sequence<size_t, 6> i_seq;
-
-	std::cout << get_value(a, integer_sequence<size_t, 2>()) << std::endl;
-
-	std::cout <<  seq_reduce(i_seq(), _impl::plus(), a)<<std::endl;
-
-//	std::cout << get_value(a, 1, 2) << std::endl;
-//	std::cout << get_value(a, i_seq()) << std::endl;
-//	std::cout << get_value(a.data_, i_seq()) << std::endl;
 //
-//	_seq_for<2, 3>::eval(_impl::_assign(), a.data_, a.data_);
+	a = b + c * 3;
 
-//	a = b + c * 3;
-//
-//	std::cout << a << std::endl;
+//	std::cout << seq_reduce(integer_sequence<size_t, 2, 3>(), _impl::plus(), a)
+//			<< std::endl;
+
+//	std::cout << _impl::get_value_traits(a.data_, 1, 2) << std::endl;
+
+	std::cout << a << std::endl;
+
+	std::cout << b << std::endl;
+
+	std::cout << c << std::endl;
 
 ////	nTuple<double, 4, 5> b;
 ////	nTuple<double, 4, 5> c;
