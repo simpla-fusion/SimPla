@@ -240,10 +240,10 @@ DECL_RET_TYPE((v))
 template<typename T, typename TI>
 auto get_value(T & v, TI const & s)
 ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value), (v[s]))
-//
-//template<typename T, typename TI>
-//auto get_value(T & v, TI const & s)
-//ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
+
+template<typename T, typename TI>
+auto get_value(T & v, TI const & s)
+ENABLE_IF_DECL_RET_TYPE((!is_indexable<T,TI>::value), (v))
 
 template<typename T, typename TI, typename ...Args>
 auto get_value(T & v, TI const & s, Args && ...args)
@@ -261,6 +261,51 @@ DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
 template<typename T, typename ...Args>
 auto get_value(std::shared_ptr<T> const & v, Args &&... args)
 DECL_RET_TYPE( get_value(v.get(),std::forward<Args>(args)...))
+
+namespace _impl
+{
+
+template<size_t N>
+struct index_array
+{
+	template<typename T, typename TI>
+	static auto eval(T & d, TI const * idx)
+	ENABLE_IF_DECL_RET_TYPE((is_indexable<T,TI>::value),
+			(index_array<N-1>::eval(d[idx[0]],idx)))
+
+	template<typename T, typename TI>
+	static auto eval(T & d, TI const * idx)
+	->typename std::enable_if<(!is_indexable<T,TI>::value),T&>::type
+	{
+		return d;
+	}
+};
+
+template<>
+struct index_array<1>
+{
+	template<typename T, typename TI>
+	static auto eval(T & d, TI const * idx)
+	DECL_RET_TYPE((d[idx[0]]))
+};
+
+}  // namespace _impl
+template<typename T, typename TI>
+auto get_value2(T & v, TI const * idx)
+->typename std::enable_if< std::is_array<T>::value,
+typename std::remove_all_extents<T>::type &>::type
+{
+	return _impl::index_array<std::rank<T>::value>::eval(v, idx);
+}
+
+template<typename T, typename TI>
+auto get_value2(T & v, TI const * idx)
+->typename std::enable_if<!std::is_array<T>::value,T&>::type
+{
+	return v;
+}
+
+
 
 /// \note  http://stackoverflow.com/questions/3913503/metaprogram-for-bit-counting
 template<unsigned int N> struct CountBits

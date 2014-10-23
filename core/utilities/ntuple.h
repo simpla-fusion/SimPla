@@ -189,27 +189,6 @@ struct nTuple
 	inline auto operator[](TI const&i) const
 	DECL_RET_TYPE((get_value(data_, (i))))
 
-	template<typename TInts, TInts ...L>
-	auto operator[](integer_sequence<TInts, L...>)
-	DECL_RET_TYPE((get_value( data_,L...)))
-
-	template<typename TInts, TInts ...L>
-	auto operator[](integer_sequence<TInts, L...>) const
-	DECL_RET_TYPE((get_value( data_,L...)))
-
-//#pragma warning( disable : 597) //disable warning #597: "operator primary_type()" will not be called for implicit or explicit conversions
-//
-//	typedef typename make_primary_nTuple<this_type>::type primary_type;
-//
-//	operator primary_type() const
-//	{
-//		primary_type res;
-//		res = *this;
-//		return std::move(res);
-//	}
-//
-//#pragma warning( enable : 597)
-
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
@@ -287,8 +266,7 @@ struct is_indexable<nTuple<T, N...>, TInts>
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
 template<typename TInts, TInts ...N>
 std::ostream &operator<<(std::ostream & os, integer_sequence<TInts, N...>)
@@ -348,6 +326,10 @@ public:
 					std::declval<value_type_r>())) value_type;
 
 };
+
+template<typename T, size_t M, size_t ...N, typename TI>
+auto get_value2(nTuple<T, M, N...> & v, TI const * idx)
+DECL_RET_TYPE((get_value2(v.data_,idx)))
 
 //namespace _impl
 //{
@@ -455,10 +437,9 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 //template<size_t ndims, typename TExpr>
