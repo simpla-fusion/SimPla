@@ -13,7 +13,6 @@
 #include "field_traits.h"
 
 #include "../utilities/container_traits.h"
-#include "../utilities/expression_template.h"
 #include "../utilities/sp_type_traits.h"
 #include "../parallel/parallel.h"
 
@@ -229,85 +228,6 @@ public:
 }
 ;
 
-/// \defgroup   Field Expression
-/// @{
-template<typename ... >struct Expression;
-
-/**
- *     \brief skeleton of Field expression
- */
-
-template<typename TOP, typename TL, typename TR>
-struct _Field<Expression<TOP, TL, TR>>
-{
-	typename _impl::reference_traits<TL>::type lhs;
-	typename _impl::reference_traits<TR>::type rhs;
-
-	TOP op_;
-
-	_Field(TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_()
-	{
-	}
-	_Field(TOP op, TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_(op)
-	{
-	}
-
-	~_Field()
-	{
-	}
-	operator bool() const
-	{
-//		auto d = get_domain(*this);
-//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
-		return false;
-	}
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_( lhs, rhs, s )))
-
-}
-;
-
-///   \brief  Unary operation
-template<typename TOP, typename TL>
-struct _Field<Expression<TOP, TL>>
-{
-
-	typename _impl::reference_traits<TL>::type lhs;
-
-	TOP op_;
-
-	_Field(TOP op, TL const & l) :
-			lhs(l), op_(op)
-	{
-	}
-
-	_Field(TL const & l) :
-			lhs(l), op_()
-	{
-	}
-
-	~_Field()
-	{
-	}
-
-	operator bool() const
-	{
-		//		auto d = get_domain(*this);
-		//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
-		return false;
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_( lhs, s) ))
-
-};
-
-DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
-/// @}
 
 template<typename TDomain, typename TV> using Field= _Field<TDomain, std::shared_ptr<TV> >;
 
