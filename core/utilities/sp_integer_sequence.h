@@ -46,29 +46,74 @@ public:
 
 template<size_t ... N> using index_sequence = integer_sequence<size_t , N...>;
 
-template<size_t N, typename ...> struct seq_get_value;
+template<size_t N, typename ...> struct seq_get;
 
 template<size_t N, typename Tp, Tp M, Tp ...I>
-struct seq_get_value<N, integer_sequence<Tp, M, I ...> >
+struct seq_get<N, integer_sequence<Tp, M, I ...> >
 {
 	static constexpr Tp value =
-			seq_get_value<N - 1, integer_sequence<Tp, I ...> >::value;
+			seq_get<N - 1, integer_sequence<Tp, I ...> >::value;
 };
 
 template<typename Tp, Tp M, Tp ...I>
-struct seq_get_value<0, integer_sequence<Tp, M, I ...> >
+struct seq_get<0, integer_sequence<Tp, M, I ...> >
 {
 	static constexpr Tp value = M;
 };
 
+template<typename Tp>
+struct seq_get<0, integer_sequence<Tp> >
+{
+	static constexpr Tp value = 0;
+};
+
 template<typename ...> class cat_integer_sequence;
 
-template<typename T, T ... N1, T ... N2>
-struct cat_integer_sequence<integer_sequence<T, N1...>,
-		integer_sequence<T, N2...>>
+template<typename T, T ... N>
+struct cat_integer_sequence<integer_sequence<T, N ...> >
 {
-	typedef integer_sequence<T, N1..., N2...> type;
+	typedef integer_sequence<T, N ...> type;
 };
+template<typename T, T ... N>
+struct cat_integer_sequence<integer_sequence<T, N ...>, integer_sequence<T>>
+{
+	typedef integer_sequence<T, N ...> type;
+};
+
+template<typename T, T ... N1, T ... N2, typename ...Others>
+struct cat_integer_sequence<integer_sequence<T, N1...>,
+		integer_sequence<T, N2...>, Others ...>
+{
+	typedef typename cat_integer_sequence<integer_sequence<T, N1..., N2...>,
+			Others...>::type type;
+};
+
+template<typename ...> class longer_integer_sequence;
+
+template<typename T, T ... N>
+struct longer_integer_sequence<integer_sequence<T, N ...> >
+{
+	typedef integer_sequence<T, N ...> type;
+};
+template<typename T, T ... N>
+struct longer_integer_sequence<integer_sequence<T, N ...>, integer_sequence<T>>
+{
+	typedef integer_sequence<T, N ...> type;
+};
+
+template<typename T, T ... N1, T ... N2, typename ...Others>
+struct longer_integer_sequence<integer_sequence<T, N1...>,
+		integer_sequence<T, N2...>, Others ...>
+{
+	typedef typename std::conditional<(sizeof...(N1) > sizeof...(N2)),
+			typename longer_integer_sequence<integer_sequence<T, N1...>,
+					Others...>::type,
+			typename longer_integer_sequence<integer_sequence<T, N2...>,
+					Others...>::type>::type type;
+
+};
+
+//TODO need implement max_integer_sequence, min_integer_sequence
 
 template<size_t...> struct _seq_for;
 
@@ -220,8 +265,7 @@ template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -253,8 +297,7 @@ template<typename TInts, TInts ...N, typename TOS, typename TA>
 TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)

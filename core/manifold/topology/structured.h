@@ -8,22 +8,21 @@
 #ifndef STRUCTURED_H_
 #define STRUCTURED_H_
 
+#include <stddef.h>
 #include <algorithm>
-#include <cassert>
-#include <cmath>
-
-#include <limits>
-#include <thread>
+#include <functional>
 #include <iterator>
-#include <utility>
+#include <limits>
+#include <string>
 #include <tuple>
-#include "../../utilities/ntuple.h"
-//#include "../../utilities/primitives.h"
-#include "../../utilities/sp_type_traits.h"
-//#include "../../utilities/pretty_stream.h"
+#include <type_traits>
+#include <utility>
+
 #include "../../parallel/distributed_array.h"
-//#include "../../physics/constants.h"
-#include "../../numeric/geometric_algorithm.h"
+#include "../../utilities/log.h"
+#include "../../utilities/ntuple.h"
+#include "../../utilities/primitives.h"
+#include "../../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -40,16 +39,17 @@ struct StructuredMesh
 	typedef StructuredMesh this_type;
 
 	//	static constexpr index_type MAX_DEPTH_OF_TREE = 5;
-	#define MAX_DEPTH_OF_TREE 5
-	static constexpr unsigned int MAX_NUM_NEIGHBOUR_ELEMENT = 12;
-	static constexpr unsigned int MAX_NUM_VERTEX_PER_CEL = 8;
-	static constexpr unsigned int NDIMS = 3;
-	static constexpr unsigned int DEFAULT_GHOSTS_WIDTH = 3;
-	typedef long size_type;
+
+	static constexpr size_t MAX_DEPTH_OF_TREE = 5;
+	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
+	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
+	static constexpr size_t NDIMS = 3;
+	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
+	typedef size_t size_type;
 	typedef unsigned long index_type;
 	typedef unsigned long compact_index_type;
-	typedef nTuple<Real, integer_sequence<unsigned int, NDIMS>> coordinates_type;
-	typedef nTuple<size_type, integer_sequence<unsigned int, NDIMS>> index_tuple;
+	typedef nTuple<Real, NDIMS> coordinates_type;
+	typedef nTuple<size_type, NDIMS> index_tuple;
 	struct iterator;
 	typedef std::pair<iterator, iterator> range_type;
 
@@ -81,7 +81,7 @@ struct StructuredMesh
 			return false;
 		}
 
-		set_dimensions(dict["Dimensions"].template as<nTuple<3, size_type>>());
+		dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
 
 		return true;
 	}
@@ -240,11 +240,14 @@ public:
 
 	auto get_global_dimensions() const
 	DECL_RET_TYPE (global_count_)
-	;
 
 	auto dimensions() const
 	DECL_RET_TYPE (global_count_)
-	;
+
+	auto extents() const
+	DECL_RET_TYPE((std::make_pair(nTuple<Real, NDIMS>(
+									{	0,0,0}),nTuple<Real, NDIMS>(
+									{	1,1,1}))))
 
 	size_type get_num_of_elements(int iform = VERTEX) const
 	{
@@ -359,7 +362,7 @@ public:
 			size_t * local_inner_begin = nullptr, size_t * local_inner_end =
 					nullptr) const
 	{
-		unsigned int IFORM = IForm(*std::get<0>(range));
+		size_t IFORM = IForm(*std::get<0>(range));
 		int rank = 0;
 
 		index_tuple outer_begin, outer_end, outer_count;
@@ -481,8 +484,6 @@ public:
 
 	static constexpr index_type INDEX_MASK = (1UL << INDEX_DIGITS) - 1;
 
-
-
 	static constexpr index_type _DI = (1UL
 			<< (INDEX_DIGITS * 2 + MAX_DEPTH_OF_TREE - 1));
 	static constexpr index_type _DJ = (1UL
@@ -512,8 +513,8 @@ public:
 //
 //		;
 //	}
-	template<typename ...TS>
-	static index_type compact(nTuple<TS ...> const & x)
+	template<typename TS>
+	static compact_index_type compact(TS const & x)
 	{
 		return
 
@@ -569,13 +570,13 @@ public:
 	static index_type compact_cell_index(index_tuple const & idx,
 			index_type shift)
 	{
-		unsigned int mtree = MAX_DEPTH_OF_TREE;
+		size_t mtree = MAX_DEPTH_OF_TREE;
 		return compact(idx << mtree) | shift;
 	}
 
 	static index_tuple decompact_cell_index(index_type s)
 	{
-		unsigned int mtree = MAX_DEPTH_OF_TREE;
+		size_t mtree = MAX_DEPTH_OF_TREE;
 
 		return std::move(decompact(s) >> (mtree));
 	}
@@ -586,7 +587,7 @@ public:
 	Real dual_volume_[8];
 	Real inv_dual_volume_[8];
 
-	nTuple<NDIMS, Real> inv_extents_, extents_, dx_, inv_dx_;
+	nTuple<Real, NDIMS> inv_extents_, extents_, dx_, inv_dx_;
 
 	bool update()
 	{
@@ -781,9 +782,13 @@ public:
 				coordinates_type(
 						{ static_cast<Real>(idx[0]
 								- (global_begin_[0] << MAX_DEPTH_OF_TREE))
-								* inv_extents_[0], static_cast<Real>(idx[1]
+								* inv_extents_[0],
+
+						static_cast<Real>(idx[1]
 								- (global_begin_[1] << MAX_DEPTH_OF_TREE))
-								* inv_extents_[1], static_cast<Real>(idx[2]
+								* inv_extents_[1],
+
+						static_cast<Real>(idx[2]
 								- (global_begin_[2] << MAX_DEPTH_OF_TREE))
 								* inv_extents_[2] }));
 	}
@@ -808,6 +813,10 @@ public:
 	}
 
 	inline coordinates_type coordinates(index_type s) const
+	{
+		return std::move(index_to_coordinates(decompact(s)));
+	}
+	inline coordinates_type get_coordinates(index_type s) const
 	{
 		return std::move(index_to_coordinates(decompact(s)));
 	}
@@ -967,7 +976,7 @@ public:
 //		return r & (~(mask | (mask << INDEX_DIGITS) | (mask << (INDEX_DIGITS * 2))));
 		return r & COMPACT_INDEX_ROOT_MASK;
 	}
-	static unsigned int node_id(index_type s)
+	static size_t node_id(index_type s)
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -990,7 +999,7 @@ public:
 #endif
 	}
 
-	index_type get_shift(unsigned int nodeid, index_type h = 0UL) const
+	index_type get_shift(size_t nodeid, index_type h = 0UL) const
 	{
 
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -1036,9 +1045,9 @@ public:
 		return get_shift(nid);
 	}
 
-	static unsigned int get_num_of_comp_per_cell(int iform)
+	static size_t get_num_of_comp_per_cell(int iform)
 	{
-		unsigned int res;
+		size_t res;
 		switch (iform)
 		{
 		case VERTEX:
@@ -1059,7 +1068,7 @@ public:
 	}
 
 #ifdef ENABLE_SUB_TREE_DEPTH
-	static unsigned int DepthOfTree(index_type r)
+	static size_t DepthOfTree(index_type r)
 	{
 		return r >> (INDEX_DIGITS * 3);
 	}
@@ -1126,7 +1135,7 @@ public:
 #endif
 	}
 
-	static index_type DI(unsigned int i, index_type r)
+	static index_type DI(size_t i, index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
 		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + MAX_DEPTH_OF_TREE - 1));
@@ -1135,7 +1144,7 @@ public:
 
 #endif
 	}
-	static index_type delta_index(unsigned int i, index_type r)
+	static index_type delta_index(size_t i, index_type r)
 	{
 		return DI(i, r) & r;
 	}
@@ -1210,9 +1219,9 @@ public:
 		typedef index_type reference;
 
 #ifndef USE_FORTRAN_ORDER_ARRAY
-		static constexpr unsigned int ARRAY_ORDER = C_ORDER;
+		static constexpr size_t ARRAY_ORDER = C_ORDER;
 #else
-		static constexpr unsigned int ARRAY_ORDER=FOTRAN_ORDER;
+		static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
 #endif
 		index_tuple self_;
 
@@ -1451,7 +1460,7 @@ private:
 
 	}
 public:
-	range_type select(unsigned int iform) const
+	range_type select(size_t iform) const
 	{
 		return std::move(
 				this_type::make_range(local_inner_begin_, local_inner_end_,
@@ -1500,10 +1509,10 @@ public:
 	))
 
 //	template<typename ...Args>
-//	auto select(unsigned int iform, Args &&... args) const
+//	auto select(size_t iform, Args &&... args) const
 //	DECL_RET_TYPE (this_type::select(this_type::select(iform),std::forward<Args>(args)...))
 
-	range_type select_outer(unsigned int iform) const
+	range_type select_outer(size_t iform) const
 	{
 		return std::move(
 				this_type::make_range(local_outer_begin_, local_outer_end_,
@@ -1518,12 +1527,12 @@ public:
 	 * @param e
 	 * @return
 	 */
-	auto select_outer(unsigned int iform, index_tuple const & b,
+	auto select_outer(size_t iform, index_tuple const & b,
 			index_tuple const &e) const
 			DECL_RET_TYPE (select_rectangle_(iform, b, e, local_outer_begin_,
 							local_outer_end_))
 
-	auto select_inner(unsigned int iform, index_tuple const & b,
+	auto select_inner(size_t iform, index_tuple const & b,
 			index_tuple const & e) const
 			DECL_RET_TYPE (select_rectangle_(iform, b, e, local_inner_begin_,
 							local_inner_end_))
@@ -1561,7 +1570,7 @@ public:
 
 		index_tuple stride;
 
-		unsigned int iform = IForm(*std::get<0>(range));
+		size_t iform = IForm(*std::get<0>(range));
 
 		stride[2] = 1;
 		stride[1] = local_outer_count_[2] * stride[2];
@@ -1570,8 +1579,8 @@ public:
 		res =
 				[=](index_type s)->size_t
 				{
-					unsigned int m_tree=MAX_DEPTH_OF_TREE;
-					nTuple<NDIMS,size_type> d =( decompact(s)>>m_tree)-local_outer_begin_;
+					size_t m_tree=MAX_DEPTH_OF_TREE;
+					nTuple<size_type,NDIMS> d =( decompact(s)>>m_tree)-local_outer_begin_;
 
 					size_type res =
 
@@ -1602,7 +1611,7 @@ public:
 
 		//+++++++++++++++++++++++++
 //
-//		unsigned int iform=IForm(*std::get<0>(range));
+//		size_t iform=IForm(*std::get<0>(range));
 //
 //#ifdef USE_FORTRAN_ORDER_ARRAY
 //		stride[0] = (iform==EDGE||iform==FACE)?3:1;
@@ -1634,7 +1643,7 @@ public:
 		return std::move(res);
 	}
 
-	auto make_hash(unsigned int iform) const
+	auto make_hash(size_t iform) const
 	DECL_RET_TYPE (make_hash(select (iform)))
 
 	/** @}*/
@@ -1643,9 +1652,9 @@ public:
 	 *  @{
 	 */
 
-	inline unsigned int get_vertices(index_type s, index_type *v) const
+	inline size_t get_vertices(index_type s, index_type *v) const
 	{
-		unsigned int n = 0;
+		size_t n = 0;
 		switch (IForm(s))
 		{
 		case VERTEX:
@@ -1697,19 +1706,17 @@ public:
 		return n;
 	}
 
-	template<unsigned int I>
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, I>,
-			std::integral_constant<unsigned int, I>, index_type s,
+	template<size_t I>
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, I>,
+			std::integral_constant<size_t, I>, index_type s,
 			index_type *v) const
 	{
 		v[0] = s;
 		return 1;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, EDGE>,
-			std::integral_constant<unsigned int, VERTEX>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
+			std::integral_constant<size_t, VERTEX>, index_type s,
 			index_type *v) const
 	{
 		v[0] = s + delta_index(s);
@@ -1717,9 +1724,8 @@ public:
 		return 2;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, FACE>,
-			std::integral_constant<unsigned int, VERTEX>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
+			std::integral_constant<size_t, VERTEX>, index_type s,
 			index_type *v) const
 	{
 		/**
@@ -1754,9 +1760,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VOLUME>,
-			std::integral_constant<unsigned int, VERTEX>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
+			std::integral_constant<size_t, VERTEX>, index_type s,
 			index_type *v) const
 	{
 		/**
@@ -1796,9 +1801,8 @@ public:
 		return 8;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VERTEX>,
-			std::integral_constant<unsigned int, EDGE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
+			std::integral_constant<size_t, EDGE>, index_type s,
 			index_type *v) const
 	{
 		/**
@@ -1839,9 +1843,8 @@ public:
 		return 6;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, FACE>,
-			std::integral_constant<unsigned int, EDGE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
+			std::integral_constant<size_t, EDGE>, index_type s,
 			index_type *v) const
 	{
 
@@ -1875,9 +1878,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VOLUME>,
-			std::integral_constant<unsigned int, EDGE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
+			std::integral_constant<size_t, EDGE>, index_type s,
 			index_type *v) const
 	{
 
@@ -1923,9 +1925,8 @@ public:
 		return 12;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VERTEX>,
-			std::integral_constant<unsigned int, FACE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
+			std::integral_constant<size_t, FACE>, index_type s,
 			index_type *v) const
 	{
 		/**
@@ -1984,9 +1985,8 @@ public:
 		return 12;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, EDGE>,
-			std::integral_constant<unsigned int, FACE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
+			std::integral_constant<size_t, FACE>, index_type s,
 			index_type *v) const
 	{
 
@@ -2036,9 +2036,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VOLUME>,
-			std::integral_constant<unsigned int, FACE>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VOLUME>,
+			std::integral_constant<size_t, FACE>, index_type s,
 			index_type *v) const
 	{
 
@@ -2079,9 +2078,8 @@ public:
 		return 6;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, VERTEX>,
-			std::integral_constant<unsigned int, VOLUME>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, VERTEX>,
+			std::integral_constant<size_t, VOLUME>, index_type s,
 			index_type *v) const
 	{
 		/**
@@ -2136,9 +2134,8 @@ public:
 		return 8;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, EDGE>,
-			std::integral_constant<unsigned int, VOLUME>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, EDGE>,
+			std::integral_constant<size_t, VOLUME>, index_type s,
 			index_type *v) const
 	{
 
@@ -2187,9 +2184,8 @@ public:
 		return 4;
 	}
 
-	inline unsigned int get_adjacent_cells(
-			std::integral_constant<unsigned int, FACE>,
-			std::integral_constant<unsigned int, VOLUME>, index_type s,
+	inline size_t get_adjacent_cells(std::integral_constant<size_t, FACE>,
+			std::integral_constant<size_t, VOLUME>, index_type s,
 			index_type *v) const
 	{
 
@@ -2225,11 +2221,11 @@ public:
 ;
 // class UniformArray
 inline StructuredMesh::range_type split(
-		StructuredMesh::range_type const & range, unsigned int num_process,
-		unsigned int process_num, unsigned int ghost_width = 0)
+		StructuredMesh::range_type const & range, size_t num_process,
+		size_t process_num, size_t ghost_width = 0)
 {
 	typedef StructuredMesh::size_type index_type;
-	static constexpr unsigned int NDIMS = StructuredMesh::NDIMS;
+	static constexpr size_t NDIMS = StructuredMesh::NDIMS;
 
 	auto b = begin(range).self_;
 	decltype(b) e = (--end(range)).self_ + 1;

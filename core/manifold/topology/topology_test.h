@@ -15,23 +15,24 @@
 
 using namespace simpla;
 
-#ifndef TOPOLOGY
-#include "../mesh/uniform_array.h"
-typedef SurturedMesh TopologyType;
-#else
+//#ifndef TOPOLOGY
+//#include "structured.h"
+//typedef SurturedMesh TopologyType;
+//#else
 typedef TOPOLOGY TopologyType;
-#endif
+//#endif
 
-class TestTopology: public testing::TestWithParam<std::tuple<nTuple<TopologyType::NDIMS, size_t> > >
+class TestTopology: public testing::TestWithParam<
+		std::tuple<nTuple<size_t, TopologyType::NDIMS> > >
 {
 protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		dims=std::get<0>(GetParam());
+		dims = std::get<0>(GetParam());
 
-		topology.set_dimensions(dims);
+		topology.dimensions(dims);
 
 	}
 public:
@@ -42,14 +43,13 @@ public:
 	typedef typename topology_type::range_type range_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
 
-	  unsigned int   NDIMS=topology_type::NDIMS;
+	size_t NDIMS = topology_type::NDIMS;
 
 	topology_type topology;
 
-	std::vector< unsigned int  > iform_list =
-	{	VERTEX, EDGE, FACE, VOLUME};
+	std::vector<size_t> iform_list = { VERTEX, EDGE, FACE, VOLUME };
 
-	nTuple<TopologyType::NDIMS, index_type> dims;
+	nTuple<size_t, TopologyType::NDIMS> dims;
 
 };
 
@@ -87,7 +87,7 @@ public:
 TEST_P(TestTopology, compact_index_type)
 {
 
-	for (int depth = 0; depth < topology_type::MAX_DEPTH_OF_TREE; ++depth)
+	for (int depth = 0; depth < (topology_type::MAX_DEPTH_OF_TREE); ++depth)
 	{
 		for (int noid = 0; noid < 8; ++noid)
 			ASSERT_EQ(noid, topology.node_id(topology.get_shift(noid, depth)));
@@ -120,19 +120,24 @@ TEST_P(TestTopology, compact_index_type)
 	EXPECT_EQ(2, topology.node_id(topology.roate(s)));
 	EXPECT_EQ(1, topology.node_id(topology.roate(topology.roate(s))));
 	EXPECT_EQ(1, topology.node_id(topology.inverse_roate(s)));
-	EXPECT_EQ(2, topology.node_id(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(2,
+			topology.node_id(
+					topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(0, topology.component_number(s));
 	EXPECT_EQ(1, topology.component_number(topology.roate(s)));
 	EXPECT_EQ(2, topology.component_number(topology.roate(topology.roate(s))));
 	EXPECT_EQ(2, topology.component_number(topology.inverse_roate(s)));
-	EXPECT_EQ(1, topology.component_number(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(1,
+			topology.component_number(
+					topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(EDGE, topology.IForm(s));
 	EXPECT_EQ(EDGE, topology.IForm(topology.roate(s)));
 	EXPECT_EQ(EDGE, topology.IForm(topology.roate(topology.roate(s))));
 	EXPECT_EQ(EDGE, topology.IForm(topology.inverse_roate(s)));
-	EXPECT_EQ(EDGE, topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(EDGE,
+			topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(3, topology.node_id(topology.dual(s)));
 	EXPECT_EQ(5, topology.node_id(topology.dual(topology.roate(s))));
@@ -140,26 +145,32 @@ TEST_P(TestTopology, compact_index_type)
 
 	EXPECT_EQ(topology.DI(0, s), topology.delta_index(s));
 	EXPECT_EQ(topology.DI(1, s), topology.delta_index(topology.roate(s)));
-	EXPECT_EQ(topology.DI(2, s), topology.delta_index(topology.inverse_roate(s)));
+	EXPECT_EQ(topology.DI(2, s),
+			topology.delta_index(topology.inverse_roate(s)));
 
 	s = topology.get_first_node_shift(FACE);
 	EXPECT_EQ(3, topology.node_id(s));
 	EXPECT_EQ(5, topology.node_id(topology.roate(s)));
 	EXPECT_EQ(6, topology.node_id(topology.roate(topology.roate(s))));
 	EXPECT_EQ(6, topology.node_id(topology.inverse_roate(s)));
-	EXPECT_EQ(5, topology.node_id(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(5,
+			topology.node_id(
+					topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(0, topology.component_number(s));
 	EXPECT_EQ(1, topology.component_number(topology.roate(s)));
 	EXPECT_EQ(2, topology.component_number(topology.roate(topology.roate(s))));
 	EXPECT_EQ(2, topology.component_number(topology.inverse_roate(s)));
-	EXPECT_EQ(1, topology.component_number(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(1,
+			topology.component_number(
+					topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(FACE, topology.IForm(s));
 	EXPECT_EQ(FACE, topology.IForm(topology.roate(s)));
 	EXPECT_EQ(FACE, topology.IForm(topology.roate(topology.roate(s))));
 	EXPECT_EQ(FACE, topology.IForm(topology.inverse_roate(s)));
-	EXPECT_EQ(FACE, topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
+	EXPECT_EQ(FACE,
+			topology.IForm(topology.inverse_roate(topology.inverse_roate(s))));
 
 	EXPECT_EQ(4, topology.node_id(topology.dual(s)));
 	EXPECT_EQ(2, topology.node_id(topology.dual(topology.roate(s))));
@@ -178,22 +189,32 @@ TEST_P(TestTopology, hash)
 		for (auto s : topology.select(iform))
 		{
 
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)), hash(s));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)),
+					hash(s));
 			ASSERT_LE(0, hash(s));
 
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(topology.roate(s))), hash(topology.roate(s)));
+			ASSERT_GT(
+					topology.get_local_memory_size(
+							topology.IForm(topology.roate(s))),
+					hash(topology.roate(s)));
 			ASSERT_LE(0, hash(topology.inverse_roate(s)));
 
 			auto DX = topology.DI(0, s);
 			auto DY = topology.DI(1, s);
 			auto DZ = topology.DI(2, s);
 
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DX)), hash(s + DX));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DY)), hash(s + DY));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DZ)), hash(s + DZ));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DX)), hash(s - DX));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DY)), hash(s - DY));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DZ)), hash(s - DZ));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DX)),
+					hash(s + DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DY)),
+					hash(s + DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DZ)),
+					hash(s + DZ));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DX)),
+					hash(s - DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DY)),
+					hash(s - DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DZ)),
+					hash(s - DZ));
 
 			ASSERT_LE(0, hash(s + DX));
 			ASSERT_LE(0, hash(s + DY));
@@ -212,7 +233,7 @@ TEST_P(TestTopology, iterator)
 	for (auto const & iform : iform_list)
 	{
 		EXPECT_EQ(topology.node_id(topology.get_first_node_shift(iform)),
-		        topology.node_id(*begin(topology.select(iform))));
+				topology.node_id(*begin(topology.select(iform))));
 
 		size_t expect_count = 1;
 
@@ -251,14 +272,15 @@ TEST_P(TestTopology, split)
 
 //	for (auto const & iform : iform_list)
 
-	  unsigned int   iform = VERTEX;
+	size_t iform = VERTEX;
 	{
 
-		nTuple<3, index_type> begin = { 0, 0, 0 };
+		nTuple<size_t, 3> begin = { 0, 0, 0 };
 
-		nTuple<3, index_type> end = dims;
+		nTuple<size_t, 3> end = dims;
 
-		auto r = topology.make_range(begin, end, topology.get_first_node_shift(iform));
+		auto r = topology.make_range(begin, end,
+				topology.get_first_node_shift(iform));
 
 		size_t total = 4;
 
@@ -287,7 +309,7 @@ TEST_P(TestTopology, split)
 TEST_P(TestTopology, coordinates)
 {
 
-	auto extents = topology.get_extents();
+	auto extents = topology.extents();
 	auto xmin = std::get<0>(extents);
 	auto xmax = std::get<1>(extents);
 
@@ -296,11 +318,13 @@ TEST_P(TestTopology, coordinates)
 	auto range2 = topology.select(FACE);
 	auto range3 = topology.select(VOLUME);
 
-	auto half_dx = topology.get_dx() / 2;
+	auto half_dx = topology.dx() / 2;
 
 	EXPECT_EQ(xmin, topology.get_coordinates(*begin(range0)));
-	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }), topology.get_coordinates(*begin(range1)));
-	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }), topology.get_coordinates(*begin(range2)));
+	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }),
+			topology.get_coordinates(*begin(range1)));
+	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }),
+			topology.get_coordinates(*begin(range2)));
 	EXPECT_EQ(xmin + half_dx, topology.get_coordinates(*begin(range3)));
 
 	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
@@ -309,21 +333,25 @@ TEST_P(TestTopology, coordinates)
 	{
 		auto shift = topology.get_first_node_shift(iform);
 		auto idx = topology.coordinates_global_to_local(x, shift);
-		EXPECT_EQ(x, topology.coordinates_local_to_global(idx) ) << "IForm =" << iform;
+		EXPECT_EQ(x, topology.coordinates_local_to_global(idx) ) << "IForm ="
+				<< iform;
 
 		auto s = std::get<0>(idx);
 
 		EXPECT_EQ(iform, topology.IForm(s));
 		EXPECT_EQ(topology.node_id(shift), topology.node_id(s));
-		EXPECT_EQ(topology.component_number(shift), topology.component_number(s));
+		EXPECT_EQ(topology.component_number(shift),
+				topology.component_number(s));
 
-		EXPECT_LT( InnerProductNTuple(std::get<1>(idx), std::get<1>(idx)),3) << std::get<1>(idx) << "IForm =" << iform;
+		EXPECT_LT( dot(std::get<1>(idx), std::get<1>(idx)),3)
+				<< std::get<1>(idx) << "IForm =" << iform;
 
 	}
 
 	auto idx = topology.coordinates_to_index(x);
 
-	EXPECT_EQ(idx, topology.coordinates_to_index(topology.index_to_coordinates(idx)));
+	EXPECT_EQ(idx,
+			topology.coordinates_to_index(topology.index_to_coordinates(idx)));
 
 }
 #endif /* TOPOLOGY_TEST_H_ */

@@ -41,6 +41,7 @@ namespace simpla
 
 /// n-dimensional primary type
 template<typename, size_t... > struct nTuple;
+template<typename > struct nTuple_traits;
 
 template<typename TV> struct nTuple<TV>
 {
@@ -51,8 +52,6 @@ template<typename TV> struct nTuple<TV>
 	typedef integer_sequence<size_t> dimensions;
 
 	typedef value_type pod_type;
-
-	static constexpr size_t ndims = 0;
 
 };
 
@@ -70,9 +69,7 @@ struct nTuple<TV, N, M...>
 	typedef typename std::conditional<(sizeof...(M) == 0), value_type,
 			typename nTuple<value_type, M...>::pod_type>::type pod_type[N];
 
-	static constexpr size_t ndims = 1 + sizeof...(M);
-
-	static constexpr size_t dims = N;
+	static constexpr size_t dims = seq_get<0, dimensions>::value;
 
 	typedef nTuple<value_type, N, M...> this_type;
 
@@ -88,74 +85,61 @@ struct nTuple<TV, N, M...>
 		return data_[s];
 	}
 
-//	template<typename TI>
-//	auto operator[](TI const & s)
-//	DECL_RET_TYPE((get_value(data_,s)))
-//
-//	template<typename TI>
-//	auto operator[](TI const & s) const
-//	DECL_RET_TYPE((get_value(data_,s)))
-//
-//	template<size_t K>
-//	sub_type const & operator[](integer_sequence<size_t, K>)
-//	{
-//		return data_[K];
-//	}
-//
-//	template<size_t K>
-//	sub_type const & operator[](integer_sequence<size_t, K>) const
-//	{
-//		return data_[K];
-//	}
-//
-//	template<size_t K, size_t ...L>
-//	auto operator[](integer_sequence<size_t, K, L...>)
-//	DECL_RET_TYPE((data_[K][integer_sequence<size_t, L...>()]))
-//
-//	template<size_t K, size_t ...L>
-//	auto operator[](integer_sequence<size_t, K, L...>) const
-//	DECL_RET_TYPE((data_[K][integer_sequence<size_t, L...>()]))
-//
-//	template<typename TIdx>
-//	auto operator[](TIdx const * idx)
-//	DECL_RET_TYPE((get_value(data_,idx)))
-//
-//	template<typename TIdx>
-//	auto operator[](TIdx const * idx) const
-//	DECL_RET_TYPE((get_value(data_,idx)))
+private:
+	template<size_t N1, size_t N2> struct min_not_zero
+	{
+		static constexpr size_t value = ((N2 < N1) && N2 != 0) ? N2 : N1;
+	};
+public:
+	//TODO need calculate the minimum   'dims' between this_type and TR
 
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
-		_seq_for<dims>::eval(_impl::_assign(), data_, rhs);
+		_seq_for<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator +=(TR const &rhs)
 	{
-		_seq_for<dims>::eval(_impl::plus_assign(), data_, rhs);
+		_seq_for<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::plus_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator -=(TR const &rhs)
 	{
-		_seq_for<dims>::eval(_impl::minus_assign(), data_, rhs);
+		_seq_for<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::minus_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator *=(TR const &rhs)
 	{
-		_seq_for<dims>::eval(_impl::multiplies_assign(), data_, rhs);
+		_seq_for<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::multiplies_assign(), data_, rhs);
 		return (*this);
 	}
 
 	template<typename TR>
 	inline this_type & operator /=(TR const &rhs)
 	{
-		_seq_for<dims>::eval(_impl::divides_assign(), data_, rhs);
+		_seq_for<
+				min_not_zero<dims,
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
+				_impl::divides_assign(), data_, rhs);
 		return (*this);
 	}
 
@@ -175,6 +159,12 @@ struct make_pod_array<TV, integer_sequence<TI, N...>>
 	typedef typename nTuple<TV, N...>::pod_type type;
 };
 
+template<typename ...> struct make_ntuple;
+template<typename TV, typename TI, TI ... N>
+struct make_ntuple<TV, integer_sequence<TI, N...>>
+{
+	typedef nTuple<TV, N...> type;
+};
 template<typename ...>class Expression;
 
 template<typename > struct nTuple_traits;
@@ -183,14 +173,20 @@ template<typename ... T>
 struct nTuple<Expression<T...>> : public Expression<T...>
 {
 	typedef nTuple<Expression<T...>> this_type;
-	typedef typename nTuple_traits<this_type>::value_type value_type;
-	typedef typename nTuple_traits<this_type>::dimensions dimensions;
 
-	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
+	typedef typename nTuple_traits<this_type>::primary_type primary_type;
+
+	operator primary_type() const
+	{
+		primary_type res;
+		res = *this;
+		return std::move(res);
+	}
 
 	operator bool() const
 	{
-		return seq_reduce(dimensions(), _impl::logical_and(), *this);
+		return seq_reduce(typename nTuple_traits<this_type>::dimensions(),
+				_impl::logical_and(), *this);
 	}
 
 	using Expression<T...>::Expression;
@@ -222,23 +218,23 @@ struct nTuple_traits
 	typedef integer_sequence<size_t> dimensions;
 
 	static constexpr size_t ndims = 0;
+	static constexpr size_t first_dims = 0;
 
 	typedef TV value_type;
 
 };
 
-template<typename TV, size_t ...N>
-struct nTuple_traits<nTuple<TV, N...> >
+template<typename TV, size_t N, size_t ...M>
+struct nTuple_traits<nTuple<TV, N, M...> >
 {
 
 	typedef typename nTuple_traits<TV>::value_type value_type;
 
-	typedef typename cat_integer_sequence<integer_sequence<size_t, N...>,
+	typedef typename cat_integer_sequence<integer_sequence<size_t, N, M...>,
 			typename nTuple_traits<TV>::dimensions>::type dimensions;
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
-
-	static constexpr size_t ndims = dimensions::size();
+	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
 
 };
 
@@ -255,6 +251,8 @@ public:
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
 
+	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
+
 };
 template<typename TOP, typename TL, typename TR>
 struct nTuple_traits<nTuple<Expression<TOP, TL, TR>> >
@@ -265,12 +263,14 @@ private:
 	typedef typename nTuple_traits<TL>::value_type value_type_l;
 	typedef typename nTuple_traits<TR>::value_type value_type_r;
 public:
-	typedef d_seq_l dimensions;
+	typedef typename longer_integer_sequence<d_seq_l, d_seq_r>::type dimensions;
 
 	typedef decltype(std::declval<TOP>()(std::declval<value_type_l>(),
 					std::declval<value_type_r>())) value_type;
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
+
+	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
 
 };
 

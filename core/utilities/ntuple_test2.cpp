@@ -13,35 +13,28 @@ using namespace simpla;
 int main(int argc, char **argv)
 {
 
-	double A[2][3] =
-	{ 0, 1, 2, 3, 4, 5 };
+	nTuple<double, 3> b = { 1, 2, 3, }, c = { 0, 1, 2, };
+//
+//	std::cout << a << std::endl;
+//
+//	b = 1;
+//	c = 2;
+//
+//	std::cout << b << std::endl;
+//
+//	std::cout << c << std::endl;
 
-	size_t idx[2] =
-	{ 1, 2 };
+	auto t = 0.3 * (b - c) + c;
+//
+//	std::cout << std::boolalpha
+//			<< std::is_same<decltype(t)::value_type, double>::value << std::endl
+//			<< std::is_same<decltype(t)::dimensions, integer_sequence<size_t, 3>>::value
+//			<< std::endl
+//			<< std::is_same<decltype(t)::primary_type, nTuple<double, 3>>::value
+//			<< std::endl << std::endl;
 
-	std::cout << std::boolalpha << is_indexable<decltype(A), size_t>::value
-			<< std::endl;
-
-	std::cout << std::boolalpha << std::is_same<decltype(idx), size_t*>::value
-			<< std::endl;
-	std::cout << std::boolalpha
-			<< is_indexable<decltype(A), decltype(idx)>::value << std::endl;
-	std::cout << get_value_r(A, idx) << std::endl;
-
-	nTuple<double, 2, 3> a =
-	{ 0, 1, 2, 3, 4, 5 };
-	nTuple<double, 2, 3> b, c;
-
-	std::cout << a << std::endl;
-
-	b = 1;
-	c = 2;
-
-	std::cout << b << std::endl;
-
-	std::cout << c << std::endl;
-
-	a = b + c * 3;
+//
+	nTuple<double, 3> a = 0.3 * (b - c) + c;
 
 //	std::cout << seq_reduce(integer_sequence<size_t, 2, 3>(), _impl::plus(), a)
 //			<< std::endl;
@@ -50,6 +43,10 @@ int main(int argc, char **argv)
 //
 	std::cout << a << std::endl;
 
+	nTuple<double, 5> d;
+	d = 10;
+	d = a;
+	std::cout << d << std::endl;
 //
 //	std::cout << b << std::endl;
 //

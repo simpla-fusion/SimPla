@@ -30,7 +30,6 @@ struct is_expresson<F<Expression<T...>>>
 	static constexpr bool value=true;
 };
 
-template<typename T, size_t...> struct nTuple;
 namespace _impl
 {
 
