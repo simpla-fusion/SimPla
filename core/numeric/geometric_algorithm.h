@@ -129,12 +129,12 @@ bool Clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
 //	u = Cross(Cross(x - p[0], v), v) / _DOT3(v, v);
 //	return std::move(u);
 //}
-inline Real Distance(nTuple<nTuple<Real, 3u>, 3u> const & p,
+inline Real Distance(nTuple<nTuple<Real, 3>, 3> const & p,
 		nTuple<Real, 3u> const &x)
 {
 	nTuple<Real, 3u> v;
 	v = cross(p[1] - p[0], p[2] - p[0]);
-	return dot(x - p[0], v) / std::sqrt(dot(v, v));
+	return dot(v, x - p[0]) / std::sqrt(dot(v, v));
 }
 
 /**

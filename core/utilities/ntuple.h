@@ -284,8 +284,7 @@ struct rank<nTuple<T, N...>>
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
 
 template<typename T, size_t M, size_t ...N>
@@ -339,6 +338,10 @@ template<typename TR, typename T, size_t ... N>
 auto inner_product(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
 
+template<typename TR, typename T, size_t ... N>
+auto dot(nTuple<T, N...> const & l, TR const& r)
+DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
+
 template<typename T> inline auto determinant(
 		Matrix<T, 3, 3> const & m)
 				DECL_RET_TYPE(( m[0][0] * m[1][1] * m[2][2] - m[0][2] * m[1][1] * m[2][0] + m[0][1] //
@@ -370,42 +373,21 @@ template<typename T> inline auto determinant(
 template<typename T, size_t ...N> auto abs(nTuple<T, N...> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
 
-template<size_t N, typename T> inline auto NProduct(nTuple<T, N> const & v)
-->decltype(v[0]*v[1])
-{
-	decltype(v[0]*v[1]) res;
-	res = 1;
-	for (size_t i = 0; i < N; ++i)
-	{
-		res *= v[i];
-	}
-	return res;
+template<typename T, size_t ...N> inline
+auto NProduct(nTuple<T, N...> const & v)
+DECL_RET_TYPE((_seq_reduce<N... >::eval( _impl::multiplies(),v) ))
 
-}
-template<size_t N, typename T> inline auto NSum(nTuple<T, N> const & v)
-->decltype(v[0]+v[1])
-{
-	decltype(v[0]+v[1]) res;
-	res = 0;
-	for (size_t i = 0; i < N; ++i)
-	{
-		res += v[i];
-	}
-	return res;
-}
-
-template<typename T1, size_t ... N, typename TR>
-inline auto dot(nTuple<T1, N...> const &l, TR const &r)
-DECL_RET_TYPE((inner_product(l,r)))
+template<typename T, size_t ...N> inline
+auto NSum(nTuple<T, N...> const & v)
+DECL_RET_TYPE((_seq_reduce<N... >::eval( _impl::plus(),v) ))
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cross(
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 

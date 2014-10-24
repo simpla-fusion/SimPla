@@ -85,7 +85,7 @@ public:
 
 		auto ndims = nTuple_traits<T>::dimensions::size();
 
-		auto dimensions = nTuple_traits<T>::dimensions::value();
+		auto dimensions = seq2ntuple(typename nTuple_traits<T>::dimensions());
 
 		return std::move(
 				DataType(std::type_index(typeid(value_type)), ele_size_in_byte,
