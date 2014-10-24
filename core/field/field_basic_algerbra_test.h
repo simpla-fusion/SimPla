@@ -27,17 +27,19 @@ protected:
 	}
 public:
 
-	typedef typename TField::domain_type domain_type;
-	typedef typename TField::value_type value_type;
+	typedef TField field_type;
+
+	typedef typename field_type::domain_type domain_type;
+
+	typedef typename field_type::value_type value_type;
 
 	domain_type domain;
+
 	value_type default_value;
 
-	typedef Field<domain_type, value_type> field_type;
-
-	Field<domain_type, value_type> make_field() const
+	field_type make_field() const
 	{
-		return std::move(Field<domain_type, value_type>(domain));
+		return std::move(field_type(domain));
 	}
 
 	Field<domain_type, Real> make_scalar_field() const
@@ -59,6 +61,7 @@ TYPED_TEST_P(TestField, constant_real){
 	auto f2 = TestFixture::make_field();
 	auto f3 = TestFixture::make_field();
 
+	f3=1;
 	Real a,b,c;
 	a=1.0,b=-2.0,c=3.0;
 

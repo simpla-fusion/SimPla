@@ -8,82 +8,83 @@
 #ifndef DOMAIN_DUMMY_H_
 #define DOMAIN_DUMMY_H_
 
+#include <stddef.h>
+#include <algorithm>
+
+#include "../parallel/block_range.h"
+
 namespace simpla
 {
-
-class split;
-
-class BlockDomain
+template<typename TCoordiantes = Real, typename TIndex = size_t>
+struct DomainDummy: BlockRange<TIndex>
 {
-	typedef BlockDomain this_type;
-	typedef size_t index_type;
-	typedef size_t iterator;
+public:
+	typedef TIndex index_type;
+	typedef TCoordiantes coordinates_type;
+	typedef BlockRange<TIndex> range_type;
 
-	iterator b_, e_;
+	typedef DomainDummy<coordinates_type, index_type> this_type;
 
-	BlockDomain(iterator b, iterator e) :
-			b_(b), e_(e)
-	{
-		;
-	}
-	~BlockDomain()
-	{
-	}
-	BlockDomain(BlockDomain & other, split)
-	{
-		e_ = other.e_;
-		other.e_ = (other.b_ + other.e_) / 2;
-		b_ = other.e_;
-	}
-	void swap(this_type & other)
-	{
-		std::swap(b_, other.b_);
-		std::swap(e_, other.e_);
-	}
-	this_type operator &(this_type const & other) const // \f$D_0 \cap \D_1\f$
+private:
+
+	coordinates_type b_, e_, dx_;
+
+public:
+
+	template<typename ...Args>
+	DomainDummy(Args && ... args) :
+			range_type(std::forward<Args>(args)...)
 	{
 
-		return BlockDomain(std::max(b_, other.b_), std::min(e_, other.e_));
 	}
-	bool empty() const // True if domain is empty.
+	~DomainDummy()
 	{
-		return e_ == b_;
 	}
 
-	bool is_divisible() const // True if domain can be partitioned into two sub-domains.
+	void swap(this_type & that)
 	{
-		return e_ > b_ + 1;
-	}
-	iterator begin() const // First item in domain.
-	{
-		return b_;
-	}
-
-	iterator end() const // One past last item in domain.
-	{
-		return e_;
+		std::swap(b_, that.b_);
+		std::swap(e_, that.e_);
+		std::swap(dx_, that.dx_);
+		range_type::swap(that);
 	}
 
-	bool operator==(this_type const& other)
+	using range_type::hash;
+
+	using range_type::max_hash;
+
+	void coordinates_domain(coordinates_type b, coordinates_type e)
 	{
-		return e_ == other.e_ && b_ == other.b_;
+		b_ = b;
+		e_ = e;
+		dx_ = (e_ - b_) / range_type::max_hash();
 	}
 
-	this_type const & parent() const  // Parent domain
+	std::pair<coordinates_type, coordinates_type> coordinates_domain() const
 	{
-		return *this;
+		return std::make_pair(b_, e_);
 	}
-	size_t hash(index_type s) const // get relative  position of grid point  in the memory
+
+	template<typename TD>
+	auto gather(TD const & d,
+			coordinates_type x) const->decltype(d[std::declval<index_type>()])
 	{
-		return s - b_;
+		index_type r = static_cast<index_type>((x - b_) / dx_ + 0.5);
+
+		return d[r];
 	}
-	size_t max_hash() const	 // get max number of grid points in memory
+
+	template<typename TD, typename TV>
+	void scatter(TD & d, coordinates_type x, TV const & v) const
 	{
-		return e_ - b_;	 //manifold_.topology_type::max_hash();
+		index_type r = static_cast<index_type>((x - b_) / dx_ + 0.5);
+
+		d[r] += v;
 	}
 
 };
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* DOMAIN_DUMMY_H_ */

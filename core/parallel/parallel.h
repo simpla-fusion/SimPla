@@ -30,7 +30,7 @@ void parallel_for(Range const & range, OP const & op)
 	}
 }
 
-template<typename Range, typename Value, typename OP, typename Reduction,
+template<typename Value, typename Range, typename OP, typename Reduction,
 		typename ... Args>
 Value parallel_reduce(const Range& range, const OP& op, const Reduction& reduce,
 		Args&&... args)

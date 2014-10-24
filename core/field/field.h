@@ -10,11 +10,9 @@
 #include <stddef.h>
 #include <cstdbool>
 #include <memory>
-
 #include "field_traits.h"
 
 #include "../utilities/container_traits.h"
-
 #include "../utilities/expression_template.h"
 #include "../utilities/sp_type_traits.h"
 #include "../parallel/parallel.h"
@@ -25,10 +23,8 @@ namespace simpla
 /**
  *  \brief Field concept
  */
-template<typename ... >struct Expression;
 template<typename ... >struct _Field;
 
-// namespace _impl
 /**
  *
  *  \brief skeleton of Field data holder
@@ -106,12 +102,12 @@ public:
 
 	bool is_same(this_type const & r) const
 	{
-		return container_traits<container_type>::is_same(data_, r.data_);
+		return data_ == r.data_;
 	}
 	template<typename TR>
 	bool is_same(TR const & r) const
 	{
-		return container_traits<container_type>::is_same(data_, r);
+		return data_ == r.data_;
 	}
 
 	bool empty() const
@@ -156,11 +152,10 @@ public:
 	{
 		allocate();
 
-		parallel_for(domain_,
-				[&](index_type const & s)
-				{
-					get_value(data_, domain_.hash(s))= calculate(domain_,_impl::null_op(),s, that);
-				});
+		parallel_for(domain_, [&](index_type const & s)
+		{
+			(*this)[s]= get_value(that, s);
+		});
 
 		return (*this);
 	}
@@ -172,7 +167,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			calculate(domain_,_impl::plus_assign(),s,*this,that);
+			(*this)[s] +=get_value(that, s);
 		});
 
 		return (*this);
@@ -185,7 +180,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			calculate(domain_,_impl::minus_assign(),s,*this,that);
+			(*this)[s] -= get_value(that, s);
 		});
 
 		return (*this);
@@ -198,7 +193,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			calculate(domain_,_impl::multiplies_assign(),s,*this,that );
+			(*this)[s] *= get_value(that, s);
 		});
 
 		return (*this);
@@ -211,7 +206,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			calculate(domain_,_impl::divides_assign(),s,*this,that);
+			(*this)[s] /= get_value(that, s);
 		});
 
 		return (*this);
@@ -220,47 +215,102 @@ public:
 
 	template<typename ...Args>
 	auto operator()(Args && ... args) const
-	DECL_RET_TYPE((simpla::gather(domain_,
-							*this,std::forward<Args>(args)...)))
+	DECL_RET_TYPE((simpla::gather(domain_,data_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto gather(Args && ... args) const
-	DECL_RET_TYPE((simpla::gather(domain_,
-							*this,std::forward<Args>(args)...)))
+	DECL_RET_TYPE(( simpla::gather(domain_,data_,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto scatter(Args && ... args)
-	DECL_RET_TYPE((simpla::scatter(domain_,
-							*this,std::forward<Args>(args)...)))
+	DECL_RET_TYPE(( simpla::scatter(domain_,data_,
+							std::forward<Args>(args)...)))
 
 }
 ;
 
+/// \defgroup   Field Expression
+/// @{
+template<typename ... >struct Expression;
+
 /**
  *     \brief skeleton of Field expression
- *
  */
-template<typename ... T>
-struct _Field<Expression<T...>> : public Expression<T...>
-{
 
+template<typename TOP, typename TL, typename TR>
+struct _Field<Expression<TOP, TL, TR>>
+{
+	typename _impl::reference_traits<TL>::type lhs;
+	typename _impl::reference_traits<TR>::type rhs;
+
+	TOP op_;
+
+	_Field(TL const & l, TR const & r) :
+			lhs(l), rhs(r), op_()
+	{
+	}
+	_Field(TOP op, TL const & l, TR const & r) :
+			lhs(l), rhs(r), op_(op)
+	{
+	}
+
+	~_Field()
+	{
+	}
 	operator bool() const
 	{
 //		auto d = get_domain(*this);
-//		return d && parallel_reduce<bool>(d, _impl::logical_and(), *this);
-		return true;
+//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
+		return false;
+	}
+	template<typename IndexType>
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_( lhs, rhs, s )))
+
+}
+;
+
+///   \brief  Unary operation
+template<typename TOP, typename TL>
+struct _Field<Expression<TOP, TL>>
+{
+
+	typename _impl::reference_traits<TL>::type lhs;
+
+	TOP op_;
+
+	_Field(TOP op, TL const & l) :
+			lhs(l), op_(op)
+	{
 	}
 
-	using Expression<T...>::Expression;
+	_Field(TL const & l) :
+			lhs(l), op_()
+	{
+	}
+
+	~_Field()
+	{
+	}
+
+	operator bool() const
+	{
+		//		auto d = get_domain(*this);
+		//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
+		return false;
+	}
+
+	template<typename IndexType>
+	inline auto operator[](IndexType const &s) const
+	DECL_RET_TYPE ((op_( lhs, s) ))
 
 };
 
-/// \defgroup   BasicAlgebra Basic algebra
-/// @{
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
 /// @}
 
 template<typename TDomain, typename TV> using Field= _Field<TDomain, std::shared_ptr<TV> >;
+
 }
 // namespace simpla
 

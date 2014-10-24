@@ -38,6 +38,7 @@ template<typename T>
 struct reference_traits
 {
 	typedef typename std::remove_reference<T>::type v_type;
+
 	static constexpr bool pass_value = std::is_pointer<T>::value
 
 	|| std::is_scalar<T>::value
@@ -74,6 +75,8 @@ struct Expression<TOP, TL, TR>
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
 	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
+//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
+
 }
 ;
 
@@ -104,6 +107,7 @@ struct Expression<TOP, TL>
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
 	DECL_RET_TYPE ((op_(get_value(lhs, s))))
+//			DECL_RET_TYPE ((op_( lhs, s) ))
 
 };
 
@@ -133,14 +137,11 @@ struct _swap
 	{
 		std::swap(l, r);
 	}
-};
 
-struct _assign
-{
-	template<typename TL, typename TR>
-	void operator()(TL & l, TR const& r) const
+	template<typename TL, typename TR, typename TI>
+	void operator()(TL & l, TR & r, TI const &s) const
 	{
-		l = r;
+		std::swap(get_value(l, s), get_value(r, s));
 	}
 };
 
@@ -150,15 +151,21 @@ struct _NAME_                                                                   
 	template<typename TL, typename TR>                                                         \
 	constexpr auto operator()(TL const& l, TR const & r) const->decltype(l _OP_ r)                 \
 	{  return l _OP_ r;   }                                                                       \
-};                                                                                             \
+	template<typename TL, typename TR,typename TI>                                                         \
+	constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
+	->decltype(get_value(l,s) _OP_ get_value( r,s) )                 \
+	{  return get_value(l,s) _OP_ get_value( r,s);   }                                    \
+};
 
-
-#define DEF_UOP(_NAME_,_OP_)     \
+#define DEF_UOP(_NAME_,_OP_)                         														\
 struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL >                                                         \
 	constexpr auto operator()(TL const & l ) const->decltype(_OP_ l )                 \
-	{  return  _OP_ l;   }                                                                                          \
+	{  return  _OP_ l;   }                                                   \
+	template<typename TL,typename TI >                                                         \
+	constexpr auto operator()(TL const & l, TI const & s) const->decltype(_OP_ get_value( l ,s)) \
+	{  return  _OP_  get_value( l ,s);   } \
 };
 
 DEF_BOP(plus, +)
@@ -190,19 +197,22 @@ DEF_BOP(less_equal, <=)
 #undef DEF_UOP
 #undef DEF_BOP
 
-#define DEF_BOP(_NAME_,_OP_)                                                               \
+#define DEF_ASSIGN_OP(_NAME_,_OP_)                                                               \
 struct _NAME_                                                                             \
 {                                                                                              \
 	template<typename TL, typename TR>                                                         \
-	constexpr auto operator()(TL  & l, TR const & r) const->decltype(l _OP_ r)                 \
-	{  return l _OP_ r;   }                                                                       \
+	void operator()(TL  & l, TR const & r) const                  \
+	{    l _OP_ r;   }                                                                       \
+	template<typename TL, typename TR,typename TI>                                                         \
+	  void operator()(TL  & l, TR const & r,TI const & s) const         \
+	{    get_value(l,s) _OP_ get_value( r,s);    }                                    \
 };
-
-DEF_BOP(plus_assign, +=)
-DEF_BOP(minus_assign, -=)
-DEF_BOP(multiplies_assign, *=)
-DEF_BOP(divides_assign, /=)
-DEF_BOP(modulus_assign, %=)
+DEF_ASSIGN_OP(_assign, =)
+DEF_ASSIGN_OP(plus_assign, +=)
+DEF_ASSIGN_OP(minus_assign, -=)
+DEF_ASSIGN_OP(multiplies_assign, *=)
+DEF_ASSIGN_OP(divides_assign, /=)
+DEF_ASSIGN_OP(modulus_assign, %=)
 
 #undef DEF_BOP
 struct equal_to
@@ -218,174 +228,55 @@ struct equal_to
 	}
 };
 
-// The few binary functions we miss.
-struct _atan2
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& x, const _Tp& y) const
-	{
-		return std::atan2(x, y);
-	}
+#define DEF_STD_BINARY_FUNCTION(_NAME_ )                                                               \
+struct _##_NAME_                                                                             \
+{                                                                                              \
+	template<typename TL, typename TR>                                                         \
+	constexpr auto operator()(TL const& l, TR const & r) const->decltype(_NAME_(l,  r))                 \
+	{  return std::_NAME_(l,  r);   }                                                                       \
+	template<typename TL, typename TR,typename TI>                                                         \
+	constexpr auto operator()(TL const& l, TR const & r,TI const & s) const         \
+	->decltype(std::_NAME_(get_value(l,s) , get_value( r,s) ))                 \
+	{  return std::_NAME_(get_value(l,s) , get_value( r,s) );   }                                    \
 };
 
-struct _pow
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& x, const _Tp& y) const
-	{
-		return std::pow(x, y);
-	}
+DEF_STD_BINARY_FUNCTION(atan2)
+DEF_STD_BINARY_FUNCTION(pow)
+
+#undef DEF_STD_BINARY_FUNCTION
+
+#define DEF_UNARY_FUNCTION(_NAME_ )                                                               \
+struct _##_NAME_                                                                             \
+{                                                                                              \
+	template<typename TL >                                                         \
+	constexpr auto operator()(TL const& l ) const->decltype(_NAME_(l ))                 \
+	{  return std::_NAME_(l );   }                                                                       \
+	template<typename TL ,typename TI>                                                         \
+	constexpr auto operator()(TL const& l, TI const & s) const         \
+	->decltype(std::_NAME_(get_value(l,s)   ))                 \
+	{  return std::_NAME_(get_value(l,s)  );   }                                    \
 };
 
-// Implementations of unary functions applied to valarray<>s.
+DEF_UNARY_FUNCTION(abs)
+DEF_UNARY_FUNCTION(cos)
+DEF_UNARY_FUNCTION(acos)
+DEF_UNARY_FUNCTION(cosh)
+DEF_UNARY_FUNCTION(sin)
+DEF_UNARY_FUNCTION(asin)
+DEF_UNARY_FUNCTION(sinh)
+DEF_UNARY_FUNCTION(tan)
+DEF_UNARY_FUNCTION(tanh)
+DEF_UNARY_FUNCTION(atan)
+DEF_UNARY_FUNCTION(exp)
+DEF_UNARY_FUNCTION(log)
+DEF_UNARY_FUNCTION(log10)
+DEF_UNARY_FUNCTION(sqrt)
+DEF_UNARY_FUNCTION(real)
+DEF_UNARY_FUNCTION(imag)
 
-struct _abs
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::abs(__t);
-	}
-};
+#undef DEF_UNARY_FUNCTION
 
-struct _cos
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::cos(__t);
-	}
-};
-
-struct _acos
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::acos(__t);
-	}
-};
-
-struct _cosh
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::cosh(__t);
-	}
-};
-
-struct _sin
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::sin(__t);
-	}
-};
-
-struct _asin
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::asin(__t);
-	}
-};
-
-struct _sinh
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::sinh(__t);
-	}
-};
-
-struct _tan
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::tan(__t);
-	}
-};
-
-struct _atan
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::atan(__t);
-	}
-};
-
-struct _tanh
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::tanh(__t);
-	}
-};
-
-struct _exp
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::exp(__t);
-	}
-};
-
-struct _log
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::log(__t);
-	}
-};
-
-struct _log10
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::log10(__t);
-	}
-};
-
-struct _sqrt
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::sqrt(__t);
-	}
-};
-
-struct _real
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::real(__t);
-	}
-};
-struct _imag
-{
-	template<typename _Tp>
-	_Tp operator()(const _Tp& __t) const
-	{
-		return std::imag(__t);
-	}
-};
-
-class _inner_product
-{
-};
-}  // namespace _impl
+} // namespace _impl
 
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> _OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>> \

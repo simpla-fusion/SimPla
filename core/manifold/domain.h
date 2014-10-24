@@ -14,19 +14,20 @@ namespace simpla
 class split_tag;
 template<typename ...> class _Field;
 
-template<typename TG, unsigned int IFORM>
+template<typename TG, size_t IFORM>
 class Domain
 {
 
 public:
 
-//	static constexpr unsigned int ndims = geometry_type::ndims; // number of dimensions of domain D
+//	static constexpr size_t ndims = geometry_type::ndims; // number of dimensions of domain D
 
-	static constexpr unsigned int iform = IFORM; // type of form, VERTEX, EDGE, FACE,VOLUME
+	static constexpr size_t iform = IFORM; // type of form, VERTEX, EDGE, FACE,VOLUME
 
 	typedef TG manifold_type;
 
 	typedef Domain<manifold_type, iform> this_type;
+
 	typedef Domain<manifold_type, iform> domain_type;
 
 	typedef typename manifold_type::topology_type topology_type;
@@ -101,7 +102,7 @@ public:
 	{
 		return manifold_.geometry_type::boundbox<iform>(range_);
 	}
-	std::tuple<nTuple<3, Real>, nTuple<3, Real>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
+	std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
 	{
 		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
 	}
@@ -132,15 +133,15 @@ public:
 }
 ;
 
-template<typename TG, unsigned int IFORM, typename ...Args>
+template<typename TG, size_t IFORM, typename ...Args>
 auto calculate(Domain<TG, IFORM> const & d, Args && ... args)
 DECL_RET_TYPE((d.manifold().calculate(std::forward<Args>(args)...)))
 
-template<typename TG, unsigned int IFORM, typename ...Args>
+template<typename TG, size_t IFORM, typename ...Args>
 auto gather(Domain<TG, IFORM> const & d, Args && ... args)
 DECL_RET_TYPE((d.manifold().gather(std::forward<Args>(args)...)))
 
-template<typename TG, unsigned int IFORM, typename ...Args>
+template<typename TG, size_t IFORM, typename ...Args>
 auto scatter(Domain<TG, IFORM> const & d, Args && ... args)
 DECL_RET_TYPE((d.manifold().scatter(std::forward<Args>(args)...)))
 }

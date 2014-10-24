@@ -28,89 +28,32 @@ template<typename T>
 class BlockRange
 {
 public:
-	typedef T value_type;
 	typedef T index_type;
-	typedef BlockRange<value_type> this_type;
+	typedef BlockRange<index_type> this_type;
 
 	//! Type for size of a range
-	typedef std::size_t size_type;
-	BlockRange()
-	{
+	typedef size_t size_type;
 
+	BlockRange(index_type b = 0, index_type e = 1, size_type grainsize = 1) :
+			i_e_(e), i_b_(b), grainsize_(grainsize)
+	{
 	}
 	/// \ingroup conecpt_range
-	BlockRange(this_type const & that)  //! Copy constructor
-	:
-			i_e_(that.i_e_), i_b_(that.i_b_),
 
-			o_e_(that.i_e_),
-
-			o_b_(that.i_b_),
-
-			g_e_(that.i_e_),
-
-			g_b_(that.i_b_),
-
-			grainsize_(that.grainsize_),
-
-			ghostwidth_(that.ghostwidth_)
+	//! Copy constructor
+	BlockRange(this_type const & that) :
+			i_e_(that.i_e_), i_b_(that.i_b_), grainsize_(that.grainsize_)
+	{
+	}
+	//! Split range r into two subranges.
+	BlockRange(this_type & r, split_tag) :
+			i_e_(r.i_e_), i_b_(do_split(r, split_tag())), grainsize_(
+					r.grainsize_)
 	{
 	}
 
-	BlockRange(this_type & r, split_tag) //! Split range r into two subranges.
-	:
-			i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
+	//! Split range r into two subranges.
 
-			o_e_(r.i_e_),
-
-			o_b_(i_b_ - r.ghostwidth_),
-
-			g_e_(r.g_e_),
-
-			g_b_(r.g_e_),
-
-//			grainsize_(grainsize),
-
-			ghostwidth_(r.ghostwidth_)
-
-	{
-	}
-
-	BlockRange(this_type const& l, this_type const& r) //! Split range r into two subranges.
-	:
-			i_e_(r.i_e_), i_b_(do_split(r, split_tag())),
-
-			o_e_(r.i_e_),
-
-			o_b_(i_b_ - r.ghostwidth_),
-
-			g_e_(r.g_e_),
-
-			g_b_(r.g_e_),
-
-//			grainsize_(grainsize),
-
-			ghostwidth_(r.ghostwidth_)
-
-	{
-	}
-
-	BlockRange(value_type b, value_type e, size_type grainsize = 1,
-			size_type ghost_width = 2) //! Split range r into two subranges.
-	:
-			i_e_(e), i_b_(b),
-
-			o_e_(e + ghost_width),
-
-			o_b_(b - ghost_width),
-
-			g_e_(e),
-
-			g_b_(b),
-
-			grainsize_(grainsize), ghostwidth_(ghost_width)
-	{
-	}
 	~BlockRange()  //! Destructor
 	{
 
@@ -120,10 +63,8 @@ public:
 	{
 		std::swap(i_e_, r.i_e_);
 		std::swap(i_b_, r.i_b_);
-		std::swap(o_b_, r.o_b_);
-		std::swap(o_e_, r.o_e_);
+
 		std::swap(grainsize_, r.grainsize_);
-		std::swap(ghostwidth_, r.ghostwidth_);
 
 	}
 	bool empty() const //! True if range is empty
@@ -138,14 +79,14 @@ public:
 
 	struct iterator
 	{
-		value_type v_;
+		index_type v_;
 
 		iterator(iterator const& that) :
 				v_(that.v_)
 		{
 
 		}
-		iterator(value_type const &v) :
+		iterator(index_type const &v) :
 				v_(v)
 		{
 
@@ -154,7 +95,7 @@ public:
 		{
 
 		}
-		value_type operator*() const
+		size_type operator*() const
 		{
 			return v_;
 		}
@@ -198,36 +139,7 @@ public:
 		return size_type(end() - begin());
 	}
 
-	iterator outter_begin() const
-	{
-		return o_b_;
-	}
-
-	iterator outter_end() const
-	{
-		return o_e_;
-	}
-
-	size_type memory_size() const
-	{
-		return size_type(end() - begin());
-	}
-
-	iterator global_begin() const
-	{
-		return g_b_;
-	}
-
-	iterator global_end() const
-	{
-		return g_e_;
-	}
-	size_type global_size() const
-	{
-		return size_type(global_end() - global_begin());
-	}
-
-	size_type hash(value_type const &i) const
+	size_type hash(index_type const &i) const
 	{
 		return i - i_b_;
 	}
@@ -236,96 +148,23 @@ public:
 	{
 		return i_e_ - i_b_;
 	}
-	template<typename TR>
-	auto calculate(TR const & r, value_type const &s) const
-	DECL_RET_TYPE ((get_value(r, s) ))
 
-private	:
-	value_type i_e_, i_b_;
-	value_type o_e_, o_b_;
-	value_type g_e_, g_b_;
+private:
+	index_type i_e_, i_b_;
+
 	size_type grainsize_;
-	size_type ghostwidth_;
 
-	static value_type do_split(this_type & r, split_tag)
+	static index_type do_split(this_type & r, split_tag)
 	{
 		ASSERT(r.is_divisible());
 
-		value_type m = r.i_b_ + (r.i_e_ - r.i_b_) / 2u;
+		index_type m = r.i_b_ + (r.i_e_ - r.i_b_) / 2u;
 		r.i_e_ = m;
-		r.o_e_ = m + r.ghostwidth_;
 		return m;
 	}
-	static value_type do_merge(this_type const& l,this_type const& r )
-	{
-		ASSERT(r.is_divisible());
 
-		value_type m = r.i_b_ + (r.i_e_ - r.i_b_) / 2u;
-		r.i_e_ = m;
-		r.o_e_ = m + r.ghostwidth_;
-		return m;
-	}
 }
 ;
-template<typename T>
-BlockRange<T> operator&(BlockRange<T> const & l, BlockRange<T> const& r)
-{
-	return std::move(BlockRange<T>(l));
-}
-//template<typename T, unsigned int N>
-//class BlockRange<nTuple<T,N>>
-//{
-//public:
-//
-//	typedef T const_iterator;
-//
-//	typedef T value_type;
-//	//! Type for size of a range
-//	typedef std::size_t size_type;
-//	static constexpr unsigned ndims = N;
-//
-//	typedef BlockRange<T, N> this_type;
-//
-//	typedef nTuple<N, BlockRange<T, 1>> base_type;
-//
-//	/// \ingroup conecpt_range
-//	BlockRange(this_type const & r)  //! Copy constructor
-//	:
-//			base_type(r)
-//	{
-//
-//	}
-//
-//	BlockRange(this_type & r, split_tag)  //! Split range r into two subranges.
-//	{
-//
-//	}
-//
-//	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e,
-//			size_type grainsize = 1, size_type ghost_width = 2) //! Split range r into two subranges.
-//	{
-//
-//	}
-//	BlockRange(nTuple<N, value_type> const & b, nTuple<N, value_type> const & e,
-//			nTuple<N, size_type> const & grainsize,
-//			nTuple<N, size_type> ghost_width) //! Split range r into two subranges.
-//
-//	{
-//	}
-//	~BlockRange() //! Destructor
-//	{
-//
-//	}
-//
-//	bool empty() const; //! True if range is empty
-//
-//	bool is_divisible() const //!True if range can be partitioned into two subranges
-//
-//	/// \ingroup BlockRange
-//private:
-//	unsigned int ndims = 3;
-//
-//};
 
 }
 // namespace simpla

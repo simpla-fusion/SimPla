@@ -4,18 +4,20 @@
  *  Created on: Oct 11, 2014
  *      Author: salmon
  */
+
+#include "field_basic_algerbra_test.h"
+
 #include <iostream>
 #include <gtest/gtest.h>
 
 #include "field.h"
-#include "field_basic_algerbra_test.h"
-#include "../parallel/block_range.h"
+#include "domain_dummy.h"
 
 using namespace simpla;
 
 typedef testing::Types< //
 
-		_Field<BlockRange<size_t>, std::shared_ptr<double>> //
+		Field<DomainDummy<>, double> //
 // 	,TestFIELDParam1<VERTEX, Real>
 //		, TestFIELDParam1<EDGE, Real>	//
 //		, TestFIELDParam1<FACE, Real>	//

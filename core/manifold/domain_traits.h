@@ -14,7 +14,6 @@
 
 namespace simpla
 {
-
 namespace _impl
 {
 
@@ -58,7 +57,8 @@ template<typename TL>
 constexpr Zero operator
 &(TL const & l, Zero)
 {
-	return std::move(Zero());
+	return std::move
+(Zero());
 }
 template<typename TR>
 constexpr Zero operator &(Zero, TR const & l)
@@ -72,18 +72,18 @@ constexpr Zero operator &(Zero, Zero)
 	return std::move(Zero());
 }
 
-template<typename TD, typename TOP, typename TI, typename ...Args>
-auto calculate(TD const & d, TOP const & op, TI const & s, Args && ... args)
-DECL_RET_TYPE((op(get_value(std::forward<Args>(args),s)...)))
-
-template<typename TD, typename ...Args>
-void calculate(TD const & d, _impl::Scatter const & op, Args && ... args)
-{
-}
-template<typename TD, typename ...Args>
-void calculate(TD const & d, _impl::Gather const & op, Args && ... args)
-{
-}
-}  // namespace simpla
+//template<typename TD, typename TOP, typename TI, typename ...Args>
+//auto calculate(TD const & d, TOP const & op, TI const & s, Args && ... args)
+//DECL_RET_TYPE((op(get_value(std::forward<Args>(args),s)...)))
+//
+//template<typename TD, typename ...Args>
+//void calculate(TD const & d, _impl::Scatter const & op, Args && ... args)
+//{
+//}
+//template<typename TD, typename ...Args>
+//void calculate(TD const & d, _impl::Gather const & op, Args && ... args)
+//{
+//}
+}// namespace simpla
 
 #endif /* DOMAIN_TRAITS_H_ */
