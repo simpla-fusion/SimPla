@@ -84,21 +84,11 @@ nTuple<double, 3>
 
 , nTuple<double, 3, 3>
 
-, nTuple<double, 3, 3, 3>
+, nTuple<double, 3, 4, 5>
 
-, nTuple<double, 20>
-
-, nTuple<int, 3>
-
-, nTuple<int, 10>
-
-, nTuple<int, 20>
+, nTuple<int, 3, 4, 5, 6>
 
 , nTuple<std::complex<double>, 3>
-
-, nTuple<std::complex<double>, 10>
-
-, nTuple<std::complex<double>, 20>
 
 > nTupleTypes;
 
@@ -247,27 +237,115 @@ TYPED_TEST(TestNtuple, Cross){
 	EXPECT_DOUBLE_EQ(0,abs(vD[0])+abs(vD[1])+abs(vD[2]) );
 }}
 
-TYPED_TEST(TestNtuple, performance_rawarray){
+//TYPED_TEST(TestNtuple, performance_rawarray){
+//{
+//	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
+//	{
+//		seq_for_each(typename TestFixture::dimensions(),
+//				[&](size_t const idx[TestFixture::dimensions::size()])
+//				{
+//					get_value_r(TestFixture::aD,idx) +=EQUATION(get_value_r(TestFixture::aA,idx),
+//							get_value_r(TestFixture::aB,idx),
+//							get_value_r(TestFixture::aC,idx))
+//					*s;
+//
+//				}
+//		)
+//
+//		;
+//	}
+//
+//}
+//}
+//TYPED_TEST(TestNtuple, performancenTuple){
+//{
+//
+//	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
+//	{
+//		TestFixture::vD +=EQUATION(TestFixture::vA ,TestFixture::vB ,TestFixture::vC)*(s);
+//	}
+//
+//}
+//}
+
+template<typename > class nTuplePerf1;
+
+template<typename T, size_t N>
+class nTuplePerf1<nTuple<T, N>> : public testing::Test
+{
+	virtual void SetUp()
+	{
+
+		a = 1;
+		b = 3;
+		c = 4;
+		d = 7;
+
+		dims0 = N;
+
+		for (int i = 0; i < dims0; ++i)
+		{
+			aA[i] = i * 2;
+			aB[i] = 5 - i;
+			aC[i] = i * 5 + 1;
+			aD[i] = 0;
+			vA[i] = aA[i];
+			vB[i] = aB[i];
+			vC[i] = aC[i];
+			vD[i] = 0;
+
+			res[i] = -(aA[i] + a) / (aB[i] * b - c) - aC[i];
+		}
+
+	}
+public:
+	std::size_t num_of_loops = 10000000L;
+
+	typedef nTuple<T, N> type;
+
+	typedef T value_type;
+
+	type vA, vB, vC, vD;
+
+	value_type aA[N], aB[N], aC[N], aD[N], res[N];
+
+	value_type a, b, c, d;
+
+	size_t dims0, dims1;
+
+};
+typedef testing::Types<
+
+nTuple<double, 3>
+
+, nTuple<double, 20>
+
+, nTuple<int, 3>
+
+, nTuple<int, 10>
+
+, nTuple<std::complex<double>, 3>
+
+, nTuple<std::complex<double>, 10>
+
+> nTuple_types1;
+
+TYPED_TEST_CASE(nTuplePerf1, nTuple_types1);
+
+TYPED_TEST(nTuplePerf1,performance_raw_array){
 {
 	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
 	{
-		seq_for_each(typename TestFixture::dimensions(),
-				[&](size_t const idx[TestFixture::dimensions::size()])
-				{
-					get_value_r(TestFixture::aD,idx) +=EQUATION(get_value_r(TestFixture::aA,idx),
-							get_value_r(TestFixture::aB,idx),
-							get_value_r(TestFixture::aC,idx))
-					*s;
+		for (int i = 0; i < TestFixture::dims0; ++i)
+		{
+			TestFixture::aD[i] += EQUATION( TestFixture::aA[i], TestFixture::aB[i], TestFixture::aC[i]) * s;
+		}
 
-				}
-		)
-
-		;
 	}
+}
+}
 
-}
-}
-TYPED_TEST(TestNtuple, performancenTuple){
+TYPED_TEST(nTuplePerf1, performancenTuple){
 {
 
 	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
@@ -278,174 +356,94 @@ TYPED_TEST(TestNtuple, performancenTuple){
 }
 }
 
-//
-//template<typename T>
-//class TestNMatrix: public testing::Test
-//{
-//protected:
-//
-//	virtual void SetUp()
-//	{
-////		a = static_cast<value_type>(1);
-////		b = static_cast<value_type>(3);
-////		c = static_cast<value_type>(4);
-////		d = static_cast<value_type>(7);
-//
-//		a = 1;
-//		b = 3;
-//		c = 4;
-//		d = 7;
-//		for (int i = 0; i < NDIMS; ++i)
-//			for (int j = 0; j < MDIMS; ++j)
-//			{
-//				aA[i][j] = i * 2;
-//				aB[i][j] = 5 - i;
-//				aC[i][j] = i * 5 + 1;
-//				aD[i][j] = (aA[i][j] + a) / (aB[i][j] * b + c) - aC[i][j];
-//				vA[i][j] = aA[i][j];
-//				vB[i][j] = aB[i][j];
-//				vC[i][j] = aC[i][j];
-//				vD[i][j] = 0;
-//			}
-//
-//		m = 1000000L;
-//	}
-//
-//public:
-//	static constexpr std::size_t NDIMS = seq_get_value<0,
-//			typename nTuple_traits<T>::dimensions>::value;
-//
-//	static constexpr std::size_t MDIMS = seq_get_value<1,
-//			typename nTuple_traits<T>::dimensions>::value;
-//
-//	typedef typename nTuple_traits<T>::value_type value_type;
-//
-//	value_type m;
-//
-//	T vA, vB, vC, vD;
-//	value_type aA[NDIMS][MDIMS], aB[NDIMS][MDIMS], aC[NDIMS][MDIMS],
-//			aD[NDIMS][MDIMS];
-//	value_type a, b, c, d;
-//
-//};
-//
-//typedef testing::Types<
-//
-//Matrix<double, 3, 3>
-////
-////, Matrix<Complex, 3, 3>
-////
-////, Matrix<int, 5, 10>
-////
-////, Matrix<double, 10, 5>
-////
-////, Tensor<double, 3, 3>
-//
-//> MatrixTypes;
-//
-//TYPED_TEST_CASE(TestNMatrix, MatrixTypes);
-////
-////TYPED_TEST(TestNMatrix, swap){
-////{
-////
-////	simpla::swap(TestFixture::vA,TestFixture::vB);
-////
-////	for (int i = 0; i < TestFixture::NDIMS; ++i)
-////	for (int j = 0; j < TestFixture::MDIMS; ++j)
-////	{
-////		EXPECT_DOUBLE_EQ(0,abs(TestFixture::aA[i][j]-TestFixture::vB[i][j]));
-////		EXPECT_DOUBLE_EQ(0,abs(TestFixture::aB[i][j]-TestFixture::vA[i][j]));
-////	}
-////
-////}
-////}
-////
-//TYPED_TEST(TestNMatrix, reduce){
-//{
-//	typename TestFixture::value_type expect=0;
-//
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
-//	for (int j = 0; j < TestFixture::MDIMS; ++j)
-//	{
-//		expect+=TestFixture::aA[i][j]*TestFixture::aB[i][j];
-//	}
-//
-//	auto value=simpla::inner_product(TestFixture::vA,TestFixture::vB);
-//
-//	EXPECT_DOUBLE_EQ(0,abs(expect -value));
-//
-//}
-//}
-//
-//TYPED_TEST(TestNMatrix,Assign_Scalar){
-//{
-//
-//	TestFixture::vD = TestFixture::a;
-//
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
-//	for (int j = 0; j < TestFixture::MDIMS; ++j)
-//
-//	{
-//		EXPECT_DOUBLE_EQ(0,abs(TestFixture::a-TestFixture::vD[i][j]) );
-//	}
-//}}
-//
-//TYPED_TEST(TestNMatrix,Assign_Array){
-//{
-//	TestFixture::vA = TestFixture::aA;
-//
-//	for (int i = 0; i < TestFixture::NDIMS; ++i)
-//	for (int j = 0; j < TestFixture::MDIMS; ++j)
-//	{
-//		EXPECT_DOUBLE_EQ(0, abs(TestFixture::aA[i][j]-TestFixture::vA[i][j]));
-//	}
-//}}
-//
-//TYPED_TEST(TestNMatrix, Compare){
-//{
-//	TestFixture::vB = TestFixture::vA;
-//
-//	EXPECT_TRUE(TestFixture::vA == TestFixture::vB);
-//	EXPECT_TRUE(TestFixture::vA != TestFixture::vC);
-//	EXPECT_FALSE(TestFixture::vA == TestFixture::vC);
-//	EXPECT_FALSE(TestFixture::vA != TestFixture::vB);
-//
-//}
-//}
-//
-//TYPED_TEST(TestNMatrix, Arithmetic){
-//{
-//	TestFixture::vD =TestFixture::vA +TestFixture::a;
-//
-////	EQUATION(vA ,vB ,vC);
-////
-////	for (int i = 0; i < TestFixture::NDIMS; ++i)
-////	for (int j = 0; j < TestFixture::MDIMS; ++j)
-////	{
-////		EXPECT_DOUBLE_EQ(0,abs(EQUATION(vA[i][j] ,vB[i][j] ,vC[i][j])- TestFixture::vD[i][j]));
-////	}
-//}
-//}
-//
-//TYPED_TEST(TestNMatrix, performance_rawarray){
-//{
-//
-//	for (std::size_t s = 0; s < 10000000L; ++s)
-//	{
-//		for(int i=0;i<TestFixture::NDIMS;++i)
-//		for (int j = 0; j < TestFixture::MDIMS; ++j)
-//		{	TestFixture::aD[i][j] +=EQUATION(aA[i][j] ,aB[i][j] ,aC[i][j])*s;};
-//	}
-//
-//}
-//}
-//TYPED_TEST(TestNMatrix, performancenTuple){
-//{
-//
-//	for (std::size_t s = 0; s < 10000000L; ++s)
-//	{
-//		TestFixture::vD +=EQUATION(vA ,vB ,vC)*(s);
-//	}
-//
-//}
-//}
+template<typename > class nTuplePerf2;
+
+template<typename T, size_t N, size_t M>
+class nTuplePerf2<nTuple<T, N, M>> : public testing::Test
+{
+	virtual void SetUp()
+	{
+
+		a = 1;
+		b = 3;
+		c = 4;
+		d = 7;
+
+		dims0 = N;
+		dims1 = M;
+
+		for (int i = 0; i < dims0; ++i)
+			for (int j = 0; j < dims1; ++j)
+			{
+				aA[i][j] = i * 2;
+				aB[i][j] = 5 - i;
+				aC[i][j] = i * 5 + 1;
+				aD[i][j] = 0;
+				vA[i][j] = aA[i][j];
+				vB[i][j] = aB[i][j];
+				vC[i][j] = aC[i][j];
+				vD[i][j] = 0;
+
+				res[i][j] = -(aA[i][j] + a) / (aB[i][j] * b - c) - aC[i][j];
+			}
+
+	}
+public:
+	std::size_t num_of_loops = 10000000L;
+
+	typedef nTuple<T, M, N> type;
+
+	typedef T value_type;
+
+	type vA, vB, vC, vD;
+
+	value_type aA[N][M], aB[N][M], aC[N][M], aD[N][M], res[N][M];
+
+	value_type a, b, c, d;
+
+	size_t dims0, dims1;
+
+};
+typedef testing::Types<
+
+nTuple<double, 3, 4>
+
+, nTuple<double, 20, 10>
+
+, nTuple<int, 3, 4>
+
+, nTuple<int, 10, 20>
+
+, nTuple<std::complex<double>, 3, 4>
+
+, nTuple<std::complex<double>, 10, 20>
+
+> nTuple_types2;
+
+TYPED_TEST_CASE(nTuplePerf2, nTuple_types2);
+
+TYPED_TEST(nTuplePerf2,performance_raw_array){
+{
+	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
+	{
+		for (int i = 0; i < TestFixture::dims0; ++i)
+		for (int j = 0; j < TestFixture::dims1; ++j)
+		{
+			TestFixture::aD[i][j] += EQUATION( TestFixture::aA[i][j], TestFixture::aB[i][j], TestFixture::aC[i][j]) * s;
+		}
+
+	}
+}
+}
+
+TYPED_TEST(nTuplePerf2, performancenTuple){
+{
+
+	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
+	{
+		TestFixture::vD +=EQUATION(TestFixture::vA ,TestFixture::vB ,TestFixture::vC)*(s);
+	}
+
+}
+}
+
