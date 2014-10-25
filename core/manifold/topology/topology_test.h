@@ -23,14 +23,14 @@ typedef TOPOLOGY TopologyType;
 //#endif
 
 class TestTopology: public testing::TestWithParam<
-		std::tuple<nTuple<size_t, TopologyType::NDIMS> > >
+		nTuple<size_t, TopologyType::NDIMS> >
 {
 protected:
 	void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		dims = std::get<0>(GetParam());
+		dims = GetParam();
 
 		topology.dimensions(dims);
 
@@ -286,9 +286,13 @@ TEST_P(TestTopology, split)
 
 		std::set<compact_index_type> data;
 
+		auto t = split(r, total, 1);
+
 		for (int sub = 0; sub < total; ++sub)
 			for (auto const & a : split(r, total, sub))
 			{
+				nTuple<size_t, 3> idx = topology.decompact(a) >> 5;
+
 				data.insert(a);
 			}
 

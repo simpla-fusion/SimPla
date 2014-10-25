@@ -46,11 +46,10 @@ struct StructuredMesh
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t NDIMS = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-	typedef size_t size_type;
-	typedef unsigned long index_type;
+	typedef size_t index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, NDIMS> coordinates_type;
-	typedef nTuple<size_type, NDIMS> index_tuple;
+	typedef nTuple<index_type, NDIMS> index_tuple;
 	struct iterator;
 	typedef std::pair<iterator, iterator> range_type;
 
@@ -82,7 +81,7 @@ struct StructuredMesh
 			return false;
 		}
 
-		dimensions(dict["Dimensions"].template as<nTuple<size_type, 3>>());
+		dimensions(dict["Dimensions"].template as<nTuple<index_type, 3>>());
 
 		return true;
 	}
@@ -168,7 +167,7 @@ public:
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
-			size_type length = d[i] > 0 ? d[i] : 1;
+			index_type length = d[i] > 0 ? d[i] : 1;
 
 			global_count_[i] = length;
 			global_begin_[i] = (1UL << (INDEX_DIGITS - MAX_DEPTH_OF_TREE - 1))
@@ -250,12 +249,12 @@ public:
 									{	0,0,0}),nTuple<Real, NDIMS>(
 									{	1,1,1}))))
 
-	size_type get_num_of_elements(int iform = VERTEX) const
+	index_type get_num_of_elements(int iform = VERTEX) const
 	{
 		return get_global_num_of_elements(iform);
 	}
 
-	size_type get_global_num_of_elements(int iform = VERTEX) const
+	index_type get_global_num_of_elements(int iform = VERTEX) const
 	{
 		return NProduct(get_global_dimensions())
 				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
@@ -266,7 +265,7 @@ public:
 		return local_inner_count_;
 	}
 
-	size_type get_memory_size(int iform = VERTEX) const
+	index_type get_memory_size(int iform = VERTEX) const
 	{
 		return get_local_memory_size(iform);
 	}
@@ -287,12 +286,12 @@ public:
 		return std::move(res);
 	}
 
-	size_type get_local_num_of_elements(int iform = VERTEX) const
+	index_type get_local_num_of_elements(int iform = VERTEX) const
 	{
 		return NProduct(std::get<2>(get_local_memory_shape()))
 				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
-	size_type get_local_memory_size(int iform = VERTEX) const
+	index_type get_local_memory_size(int iform = VERTEX) const
 	{
 		return NProduct(std::get<0>(get_local_memory_shape()))
 				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
@@ -533,13 +532,13 @@ public:
 
 		return std::move(
 				index_tuple(
-						{ static_cast<size_type>((s >> (INDEX_DIGITS * 2))
+						{ static_cast<index_type>((s >> (INDEX_DIGITS * 2))
 								& INDEX_MASK),
 
-						static_cast<size_type>((s >> (INDEX_DIGITS))
+						static_cast<index_type>((s >> (INDEX_DIGITS))
 								& INDEX_MASK),
 
-						static_cast<size_type>(s & INDEX_MASK)
+						static_cast<index_type>(s & INDEX_MASK)
 
 						}));
 	}
@@ -798,11 +797,11 @@ public:
 	{
 		return std::move(
 				index_tuple(
-						{ static_cast<size_type>(x[0] * extents_[0])
+						{ static_cast<index_type>(x[0] * extents_[0])
 								+ (global_begin_[0] << MAX_DEPTH_OF_TREE),
-								static_cast<size_type>(x[1] * extents_[1])
+								static_cast<index_type>(x[1] * extents_[1])
 										+ (global_begin_[1] << MAX_DEPTH_OF_TREE),
-								static_cast<size_type>(x[2] * extents_[2])
+								static_cast<index_type>(x[2] * extents_[2])
 										+ (global_begin_[2] << MAX_DEPTH_OF_TREE) }));
 	}
 
@@ -875,9 +874,9 @@ public:
 		r[2] = x[2] * global_count_[2] + global_begin_[2]
 				- 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<size_type>(std::floor(r[0]));
-		I[1] = static_cast<size_type>(std::floor(r[1]));
-		I[2] = static_cast<size_type>(std::floor(r[2]));
+		I[0] = static_cast<index_type>(std::floor(r[0]));
+		I[1] = static_cast<index_type>(std::floor(r[1]));
+		I[2] = static_cast<index_type>(std::floor(r[2]));
 
 		r -= I;
 
@@ -944,9 +943,9 @@ public:
 		r[2] = x[2] * global_count_[2] + global_begin_[2]
 				- 0.5 * static_cast<Real>(I[2]);
 
-		I[0] = static_cast<size_type>(std::floor(r[0] + 0.5));
-		I[1] = static_cast<size_type>(std::floor(r[1] + 0.5));
-		I[2] = static_cast<size_type>(std::floor(r[2] + 0.5));
+		I[0] = static_cast<index_type>(std::floor(r[0] + 0.5));
+		I[1] = static_cast<index_type>(std::floor(r[1] + 0.5));
+		I[2] = static_cast<index_type>(std::floor(r[2] + 0.5));
 
 		r -= I;
 
@@ -1155,9 +1154,9 @@ public:
 	 * @param s
 	 * @return
 	 */
-	static size_type component_number(index_type s)
+	static index_type component_number(index_type s)
 	{
-		size_type res = 0;
+		index_type res = 0;
 		switch (node_id(s))
 		{
 		case 4:
@@ -1176,9 +1175,9 @@ public:
 		return res;
 	}
 
-	static size_type IForm(index_type r)
+	static index_type IForm(index_type r)
 	{
-		size_type res = 0;
+		index_type res = 0;
 		switch (node_id(r))
 		{
 		case 0:
@@ -1341,14 +1340,18 @@ public:
 		void PreviousCell()
 		{
 #ifndef USE_FORTRAN_ORDER_ARRAY
-			--self_[NDIMS - 1];
+
+			if (self_[NDIMS - 1] > begin_[NDIMS - 1])
+				--self_[NDIMS - 1];
 
 			for (int i = NDIMS - 1; i > 0; --i)
 			{
-				if (self_[i] < begin_[i])
+				if (self_[i] <= begin_[i])
 				{
 					self_[i] = end_[i] - 1;
-					--self_[i - 1];
+
+					if (self_[i - 1] > begin_[i - 1])
+						--self_[i - 1];
 				}
 			}
 
@@ -1543,7 +1546,7 @@ public:
 	 *  @name Hash
 	 *  @{
 	 */
-	static size_type mod_(size_type a, size_type L)
+	static index_type mod_(index_type a, index_type L)
 	{
 		return (a + L) % L;
 	}
@@ -1581,9 +1584,9 @@ public:
 				[=](index_type s)->size_t
 				{
 					size_t m_tree=MAX_DEPTH_OF_TREE;
-					nTuple<size_type,NDIMS> d =( decompact(s)>>m_tree)-local_outer_begin_;
+					nTuple<index_type,NDIMS> d =( decompact(s)>>m_tree)-local_outer_begin_;
 
-					size_type res =
+					index_type res =
 
 					mod_( d[0], (local_outer_count_[0] )) * stride[0] +
 
@@ -2225,7 +2228,7 @@ inline StructuredMesh::range_type split(
 		StructuredMesh::range_type const & range, size_t num_process,
 		size_t process_num, size_t ghost_width = 0)
 {
-	typedef StructuredMesh::size_type index_type;
+	typedef StructuredMesh::index_type index_type;
 	static constexpr size_t NDIMS = StructuredMesh::NDIMS;
 
 	auto b = begin(range).self_;
