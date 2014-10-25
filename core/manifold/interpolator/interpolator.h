@@ -8,11 +8,14 @@
 #ifndef INTERPOLATOR_H_
 #define INTERPOLATOR_H_
 
+#include "../../fetl/field_constant.h"
+#include "../../utilities/ntuple.h"
+#include "../../utilities/primitives.h"
+
 namespace simpla
 {
 
-template<typename ...> class _Field;
-template<typename, unsigned int> class Domain;
+template<typename ...> class field_traits;
 
 /**
  * \ingroup Interpolator
@@ -25,6 +28,11 @@ class InterpolatorLinear
 
 public:
 	typedef InterpolatorLinear<G> this_type;
+
+	typedef G geometry_type;
+
+	typedef typename G::coordinates_type coordinates_type;
+	typedef typename G::topology_type topology_type;
 
 	G const & geo;
 	InterpolatorLinear(G const & g) :
@@ -58,9 +66,9 @@ private:
 			TIDX const & idx) const -> decltype(get_value(f, std::get<0>(idx) )* std::get<1>(idx)[0])
 	{
 
-		auto X = (G::topology_type::_DI) << 1;
-		auto Y = (G::topology_type::_DJ) << 1;
-		auto Z = (G::topology_type::_DK) << 1;
+		auto X = (topology_type::_DI) << 1;
+		auto Y = (topology_type::_DJ) << 1;
+		auto Z = (topology_type::_DK) << 1;
 
 		typename G::coordinates_type r = std::get<1>(idx);
 		typename G::index_type s = std::get<0>(idx);
@@ -76,47 +84,47 @@ private:
 	}
 public:
 
-	template<typename TM,typename TD>
-	inline auto gather(_Field<Domain<TM, VERTEX>, TD> const &f,
-			typename G::coordinates_type const & r) const //
-	DECL_RET_TYPE((gather_impl_(f, geo.coordinates_global_to_local(r, 0UL) )))
+	template<typename TF>
+	inline auto gather(TF const &f,
+			coordinates_type const & r) const //
+					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==VERTEX),
+							( gather_impl_(f, geo.coordinates_global_to_local(r, 0UL) )))
 
-	template<typename TM,typename TD>
-	inline auto gather(
-			_Field<Domain<TM, EDGE>, TD> const &f,
-			typename G::coordinates_type const & r)const
-	DECL_RET_TYPE(
-			makenTuple(
-					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DI)) ),
-					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DJ)) ),
-					gather_impl_(f, geo.coordinates_global_to_local(r, (G::topology_type::_DK)) )
-			))
+	template<typename TF>
+	auto gather(TF const &f,
+			coordinates_type const & r) const
+					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
+							makenTuple(
+									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DI)) ),
+									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DJ)) ),
+									gather_impl_(f, geo.coordinates_global_to_local(r, (topology_type::_DK)) )
+							))
 
-	template<typename TM,typename TD>
-	inline auto gather (
-			_Field<Domain<TM, FACE>, TD> const &f,
-			typename G::coordinates_type const &r)const
-	DECL_RET_TYPE( makenTuple(
+	template<typename TF>
+	auto gather(TF const &f,
+			coordinates_type const & r) const
+					ENABLE_IF_DECL_RET_TYPE(
+							(field_traits<TF >::iform==EDGE),
+							makenTuple(
+									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DJ | topology_type::_DK))) ),
+									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DK | topology_type::_DI))) ),
+									gather_impl_(f, geo.coordinates_global_to_local(r,((topology_type::_DI | topology_type::_DJ))) )
+							) )
 
-					gather_impl_(f, geo.coordinates_global_to_local(r,((G::topology_type::_DJ | G::topology_type::_DK))) ),
-					gather_impl_(f, geo.coordinates_global_to_local(r,((G::topology_type::_DK | G::topology_type::_DI))) ),
-					gather_impl_(f, geo.coordinates_global_to_local(r,((G::topology_type::_DI | G::topology_type::_DJ))) )
-			) )
-
-	template<typename TM,typename TD>
-	inline auto gather (
-			_Field<Domain<TM, VOLUME>, TD> const &f,
-			typename G::coordinates_type const & x)const
-	DECL_RET_TYPE(gather_impl_(f, geo.coordinates_global_to_local(x, (G::topology_type::_DA)) ))
+	template<typename TF>
+	auto gather(TF const &f,
+			coordinates_type const & x) const
+					ENABLE_IF_DECL_RET_TYPE((field_traits<TF >::iform==EDGE),
+							gather_impl_(f, geo.coordinates_global_to_local(x, (topology_type::_DA)) ))
 
 private:
 	template<typename TD, typename IDX, typename TV>
 	inline void scatter_impl_(TD &f, IDX const& idx, TV & v)
 	{
 
-		auto X = (G::topology_type::_DI) << 1;
-		auto Y = (G::topology_type::_DJ) << 1;
-		auto Z = (G::topology_type::_DK) << 1;
+		auto X = (topology_type::_DI) << 1;
+		auto Y = (topology_type::_DJ) << 1;
+		auto Z = (topology_type::_DK) << 1;
 
 		typename G::coordinates_type r = std::get<1>(idx);
 		typename G::index_type s = std::get<0>(idx);
@@ -132,58 +140,49 @@ private:
 	}
 public:
 
-	template<typename TM, typename TD, typename TV>
-	inline void scatter(_Field<Domain<TM, VERTEX>, TD> &f,
-			typename G::coordinates_type const &x, TV const & v) const
+	template<typename TF, typename TV>
+	auto scatter(TF const &f, coordinates_type const & x,
+			TV const &u) const ->typename std::enable_if< (field_traits<TF >::iform==VERTEX)>::type
 	{
-//		get_value(f, std::get<0>(geo.coordinates_global_to_local_NGP(x, 0UL))) +=
-//				v;
-		Scatter_impl_(f, geo.coordinates_global_to_local(x, 0UL), v);
+
+		scatter_impl_(f, geo.coordinates_global_to_local(x, 0UL), u);
 	}
 
-	template<typename TM, typename TD, typename TV>
-	inline void scatter(_Field<Domain<TM, EDGE>, TD> &f,
-			typename G::coordinates_type const & x,
-			nTuple<3, TV> const & u) const
+	template<typename TF, typename TV>
+	auto scatter(TF const &f, coordinates_type const & x,
+			TV const &u) const ->typename std::enable_if< (field_traits<TF >::iform==EDGE)>::type
 	{
 		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (G::topology_type::_DI)),
-				u[0]);
+				geo.coordinates_global_to_local(x, (topology_type::_DI)), u[0]);
 		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (G::topology_type::_DJ)),
-				u[1]);
+				geo.coordinates_global_to_local(x, (topology_type::_DJ)), u[1]);
 		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, (G::topology_type::_DK)),
-				u[2]);
+				geo.coordinates_global_to_local(x, (topology_type::_DK)), u[2]);
 
 	}
 
-	template<typename TM, typename TD, typename TV>
-	inline void scatter(_Field<Domain<TM, FACE>, TD> &f,
-			typename G::coordinates_type const & x,
-			nTuple<3, TV> const & u) const
+	template<typename TF, typename TV>
+	auto scatter(TF const &f, coordinates_type const & x,
+			TV const &u) const ->typename std::enable_if< (field_traits<TF >::iform==FACE)>::type
 	{
 
 		scatter_impl_(f,
 				geo.coordinates_global_to_local(x,
-						((G::topology_type::_DJ | G::topology_type::_DK))),
-				u[0]);
+						((topology_type::_DJ | topology_type::_DK))), u[0]);
 		scatter_impl_(f,
 				geo.coordinates_global_to_local(x,
-						((G::topology_type::_DK | G::topology_type::_DI))),
-				u[1]);
+						((topology_type::_DK | topology_type::_DI))), u[1]);
 		scatter_impl_(f,
 				geo.coordinates_global_to_local(x,
-						((G::topology_type::_DI | G::topology_type::_DJ))),
-				u[2]);
+						((topology_type::_DI | topology_type::_DJ))), u[2]);
 	}
 
-	template<typename TM, typename TD, typename TV>
-	inline void scatter(_Field<Domain<TM, VOLUME>, TD> &f,
-			typename G::coordinates_type const & x, TV const & v) const
+	template<typename TF, typename TV>
+	auto scatter(TF const &f, coordinates_type const & x,
+			TV const &u) const ->typename std::enable_if< (field_traits<TF >::iform==VOLUME)>::type
 	{
-		scatter_impl_(f,
-				geo.coordinates_global_to_local(x, G::topology_type::_DA), v);
+		scatter_impl_(f, geo.coordinates_global_to_local(x, topology_type::_DA),
+				u);
 	}
 
 }
