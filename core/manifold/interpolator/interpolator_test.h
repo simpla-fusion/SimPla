@@ -7,17 +7,15 @@
 
 #ifndef INTERPOLATOR_TEST_H_
 #define INTERPOLATOR_TEST_H_
-
 #include <gtest/gtest.h>
 
-#include "../utilities/pretty_stream.h"
-#include "../utilities/log.h"
-#include "../physics/constants.h"
-#include "../io/data_stream.h"
-#include "../parallel/message_comm.h"
-#include "../fetl/field.h"
-#include "../utilities/container_sparse.h"
 #include "interpolator.h"
+
+#include "../../utilities/container_sparse.h"
+#include "../../utilities/log.h"
+#include "../../utilities/ntuple.h"
+#include "../../utilities/primitives.h"
+#include "../../field/field.h"
 
 using namespace simpla;
 
@@ -29,7 +27,6 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 		xmin = coordinates_type( { 12, 0, 0 });
-
 		xmax = coordinates_type( { 14, 1, 1 });
 
 		dims = nTuple<NDIMS, index_type>( { 50, 30, 20 });
@@ -42,22 +39,23 @@ protected:
 				dims[i] = 1;
 			}
 		}
-		mesh.set_dimensions(dims);
-		mesh.set_extents(xmin, xmax);
-		mesh.update();
+		manifold.dimensions(dims);
+		manifold.extents(xmin, xmax);
+		manifold.update();
 
 	}
 public:
-	typedef typename TP::mesh_type mesh_type;
-	typedef typename mesh_type::index_type index_type;
-	typedef typename mesh_type::compact_index_type compact_index_type;
-	typedef typename mesh_type::range_type range_type;
-	typedef typename mesh_type::iterator iterator;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef typename mesh_type::scalar_type scalar_type;
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	typedef TP interpolator_type;
+	typedef typename interpolator_type::domain_type mainfold_type;
+	typedef typename mainfold_type::index_type index_type;
+	typedef typename mainfold_type::compact_index_type compact_index_type;
+	typedef typename mainfold_type::range_type range_type;
+	typedef typename mainfold_type::iterator iterator;
+	typedef typename mainfold_type::coordinates_type coordinates_type;
+	typedef typename mainfold_type::scalar_type scalar_type;
+	static constexpr unsigned int NDIMS = mainfold_type::NDIMS;
 	static constexpr unsigned int IForm = TP::IForm;
-	mesh_type mesh;
+	mainfold_type manifold;
 
 	coordinates_type xmin/* = { 12, 0, 0 }*/;
 
@@ -79,7 +77,7 @@ TYPED_TEST_P(TestInterpolator,scatter){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
-	typedef Interpolator<mesh_type> interpolator_type;
+	typedef typename TestFixture::interpolator_type interpolator_type;
 
 	auto f= mesh.template make_field<Field<mesh_type,IForm,SparseContainer<compact_index_type,scalar_type>>> ();
 
@@ -126,7 +124,7 @@ TYPED_TEST_P(TestInterpolator,gather){
 	typedef typename TestFixture::compact_index_type compact_index_type;
 	typedef typename TestFixture::coordinates_type coordinates_type;
 	typedef typename TestFixture::scalar_type scalar_type;
-	typedef Interpolator<mesh_type> interpolator_type;
+	typedef typename TestFixture::interpolator_type interpolator_type;
 
 	auto f= mesh.template make_field<IForm,scalar_type > ();
 
