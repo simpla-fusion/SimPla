@@ -91,15 +91,17 @@ private:
 		static constexpr size_t value = ((N2 < N1) && N2 != 0) ? N2 : N1;
 	};
 public:
-	//TODO need calculate the minimum   'dims' between this_type and TR
 
 	template<typename TR> inline this_type &
 	operator =(TR const &rhs)
 	{
+
+		//  assign different 'dimensions' ntuple
 		_seq_for<
 				min_not_zero<dims,
-						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value>::eval(
-				_impl::_assign(), data_, rhs);
+						seq_get<0, typename nTuple_traits<TR>::dimensions>::value>::value
+
+		>::eval(_impl::_assign(), data_, rhs);
 		return (*this);
 	}
 
@@ -375,11 +377,15 @@ DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
 
 template<typename T, size_t ...N> inline
 auto NProduct(nTuple<T, N...> const & v)
-DECL_RET_TYPE((_seq_reduce<N... >::eval( _impl::multiplies(),v) ))
+DECL_RET_TYPE((seq_reduce(
+						typename nTuple_traits<nTuple<T, N...>>::dimensions(),
+						_impl::multiplies(),v) ))
 
 template<typename T, size_t ...N> inline
 auto NSum(nTuple<T, N...> const & v)
-DECL_RET_TYPE((_seq_reduce<N... >::eval( _impl::plus(),v) ))
+DECL_RET_TYPE((seq_reduce(
+						typename nTuple_traits<nTuple<T, N...>>::dimensions(),
+						_impl::plus(),v) ))
 
 template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cross(
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)

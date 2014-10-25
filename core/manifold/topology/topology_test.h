@@ -333,8 +333,20 @@ TEST_P(TestTopology, coordinates)
 	{
 		auto shift = topology.get_first_node_shift(iform);
 		auto idx = topology.coordinates_global_to_local(x, shift);
-		EXPECT_EQ(x, topology.coordinates_local_to_global(idx) ) << "IForm ="
-				<< iform;
+
+		auto actual = topology.coordinates_local_to_global(idx);
+
+		Real error = 0.0;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (dims[i] > 1)
+				error += abs(x[i] - actual[i]);
+		}
+		error /= NDIMS;
+
+		EXPECT_GT(EPSILON*1000 , error) << "IForm =" << iform << " " << x
+				<< " ~~ " << actual << "  " << error;
 
 		auto s = std::get<0>(idx);
 

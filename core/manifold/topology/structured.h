@@ -38,9 +38,10 @@ struct StructuredMesh
 
 	typedef StructuredMesh this_type;
 
-	//	static constexpr index_type MAX_DEPTH_OF_TREE = 5;
-
-	static constexpr size_t MAX_DEPTH_OF_TREE = 5;
+	enum
+	{
+		MAX_DEPTH_OF_TREE = 5
+	};
 	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t NDIMS = 3;
