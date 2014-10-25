@@ -1,5 +1,5 @@
 /*
- * coordinates_test.h
+ * geometry_test.h
  *
  *  created on: 2014-6-27
  *      Author: salmon
@@ -17,17 +17,18 @@
 using namespace simpla;
 
 #ifndef GEOMETRY
-#include "../uniform_array.h"
+#include "../topology/structured.h"
 #include "cartesian.h"
 
-typedef CartesianCoordinates<UniformArray> TGeometry;
+typedef CartesianCoordinates<StructuredMesh> TGeometry;
 #else
 typedef GEOMETRY TGeometry;
 #endif
 
 class TestGeometry: public testing::TestWithParam<
-        std::tuple<typename TGeometry::coordinates_type, typename TGeometry::coordinates_type,
-                nTuple<TGeometry::NDIMS, size_t> > >
+		std::tuple<typename TGeometry::coordinates_type,
+				typename TGeometry::coordinates_type,
+				nTuple<size_t, TGeometry::NDIMS> > >
 {
 protected:
 	void SetUp()
@@ -42,11 +43,11 @@ protected:
 
 		dims = std::get<2>(param);
 
-		geometry.set_dimensions(dims);
-		geometry.set_extents(xmin, xmax);
+		geometry.dimensions(dims);
+		geometry.extents(xmin, xmax);
 		geometry.update();
 
-		std::tie(xmin, xmax) = geometry.get_extents();
+		std::tie(xmin, xmax) = geometry.extents();
 
 	}
 public:
@@ -57,50 +58,84 @@ public:
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 
-	unsigned int NDIMS = geometry_type::NDIMS;
+	static constexpr size_t NDIMS = geometry_type::NDIMS;
 
 	geometry_type geometry;
 
-	std::vector<unsigned int> iform_list = { VERTEX, EDGE, FACE, VOLUME };
+	std::vector<size_t> iform_list = { VERTEX, EDGE, FACE, VOLUME };
 	coordinates_type xmin, xmax;
-	nTuple<geometry_type::NDIMS, index_type> dims;
+	nTuple<index_type, geometry_type::NDIMS> dims;
 
 	Real epsilon = EPSILON * 10;
+
+	bool is_valid() const
+	{
+		size_t ndims = 0;
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			if (dims[i] > 1 && (xmax[i] > xmin[i]))
+				++ndims;
+		}
+
+		return ndims > 0;
+	}
 
 };
 
 TEST_P(TestGeometry, Coordinates)
 {
 
-	auto extents = geometry.get_extents();
-	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
+	if (!is_valid())
+		return;
+
+	auto extents = geometry.extents();
+	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+			+ std::get<0>(extents);
 
 	for (auto iform : iform_list)
 	{
-		auto idx = geometry.coordinates_global_to_local(x, geometry.get_first_node_shift(iform));
+		auto idx = geometry.coordinates_global_to_local(x,
+				geometry.get_first_node_shift(iform));
 		auto y = geometry.coordinates_local_to_global(idx);
-		EXPECT_LE(abs(x[0]- y[0]),10000*EPSILON) << y[0] - x[0];
-		EXPECT_LE(abs(x[1]- y[1]),10000*EPSILON) << y[1] - x[1];
-		EXPECT_LE(abs(x[2]- y[2]),10000*EPSILON) << y[2] - x[2];
+		EXPECT_LE( (abs(x[0]- y[0])),10000*EPSILON) << y[0] - x[0];
+		EXPECT_LE( (abs(x[1]- y[1])),10000*EPSILON) << y[1] - x[1];
+		EXPECT_LE( (abs(x[2]- y[2])),10000*EPSILON) << y[2] - x[2];
 
 		auto s = std::get<0>(idx);
 		EXPECT_EQ(iform, geometry.IForm(s));
-		EXPECT_EQ(geometry.node_id(geometry.get_first_node_shift(iform)), geometry.node_id(s));
-		EXPECT_EQ(geometry.component_number(geometry.get_first_node_shift(iform)), geometry.component_number(s));
+		EXPECT_EQ(geometry.node_id(geometry.get_first_node_shift(iform)),
+				geometry.node_id(s));
+		EXPECT_EQ(
+				geometry.component_number(geometry.get_first_node_shift(iform)),
+				geometry.component_number(s));
 
-		EXPECT_GE(3, InnerProductNTuple(std::get<1>(idx), std::get<1>(idx)));
+		EXPECT_GE(3, dot(std::get<1>(idx), std::get<1>(idx)));
 
 	}
 
-	auto idx = geometry.topology_type::coordinates_to_index(x);
+	auto idx = geometry.coordinates_to_index(x);
+	auto jdx = geometry.coordinates_to_index(
+			geometry.index_to_coordinates(idx));
 
-	EXPECT_EQ(idx, geometry.topology_type::coordinates_to_index(geometry.topology_type::index_to_coordinates(idx)));
+	auto y = geometry.index_to_coordinates(geometry.coordinates_to_index(x));
+	for (int i = 0; i < NDIMS; ++i)
+	{
+		if (dims[i] <= 1)
+			x[i] = 0;
+	}
+
+	EXPECT_GT(EPSILON, NSum(abs(x - y))) << x << y;
+
+	EXPECT_EQ(idx, jdx);
 
 }
 
 TEST_P(TestGeometry, Volume)
 {
-//	auto extents = geometry.get_extents();
+
+	if (!is_valid())
+		return;
+//	auto extents = geometry.extents();
 //	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
 
 	for (auto iform : iform_list)
@@ -111,26 +146,40 @@ TEST_P(TestGeometry, Volume)
 			auto IY = geometry_type::DI(1, s);
 			auto IZ = geometry_type::DI(2, s);
 
-			ASSERT_DOUBLE_EQ(geometry.cell_volume(s), geometry.dual_volume(s) * geometry.volume(s));
-			ASSERT_DOUBLE_EQ(1.0 / geometry.cell_volume(s), geometry.inv_dual_volume(s) * geometry.inv_volume(s));
+			ASSERT_DOUBLE_EQ(geometry.cell_volume(s),
+					geometry.dual_volume(s) * geometry.volume(s));
+			ASSERT_DOUBLE_EQ(1.0 / geometry.cell_volume(s),
+					geometry.inv_dual_volume(s) * geometry.inv_volume(s));
 
 			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s) * geometry.volume(s));
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_dual_volume(s) * geometry.dual_volume(s));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s) * geometry.dual_volume(s));
 
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s + IX) * geometry.volume(s + IX));
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_dual_volume(s + IX) * geometry.dual_volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_volume(s + IX) * geometry.volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s + IX)
+							* geometry.dual_volume(s + IX));
 
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s - IY) * geometry.volume(s - IY));
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_dual_volume(s - IY) * geometry.dual_volume(s - IY));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_volume(s - IY) * geometry.volume(s - IY));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s - IY)
+							* geometry.dual_volume(s - IY));
 
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s - IZ) * geometry.volume(s - IZ));
-			ASSERT_DOUBLE_EQ(1.0, geometry.inv_dual_volume(s - IZ) * geometry.dual_volume(s - IZ));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_volume(s - IZ) * geometry.volume(s - IZ));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s - IZ)
+							* geometry.dual_volume(s - IZ));
 		}
 	}
 
-	auto extents = geometry.get_extents();
-	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
-	auto idx = geometry.coordinates_global_to_local(x, geometry.get_first_node_shift(VERTEX));
+	auto extents = geometry.extents();
+	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+			+ std::get<0>(extents);
+	auto idx = geometry.coordinates_global_to_local(x,
+			geometry.get_first_node_shift(VERTEX));
 
 	auto s = std::get<0>(idx);
 	auto IX = geometry_type::DI(0, s) << 1;
@@ -150,9 +199,12 @@ TEST_P(TestGeometry, Volume)
 TEST_P(TestGeometry,Coordinates_transform)
 {
 
-	nTuple<3, Real> v = { 1.0, 2.0, 3.0 };
-	auto extents = geometry.get_extents();
-	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents)) + std::get<0>(extents);
+	if (!is_valid())
+		return;
+	nTuple<Real, 3> v = { 1.0, 2.0, 3.0 };
+	auto extents = geometry.extents();
+	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+			+ std::get<0>(extents);
 	auto z = std::make_tuple(x, v);
 
 	coordinates_type y = geometry.InvMapTo(geometry.MapTo(x));

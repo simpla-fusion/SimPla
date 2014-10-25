@@ -224,30 +224,24 @@ public:
 
 	}
 
-//	auto get_extents() const
-//	DECL_RET_TYPE(std::make_tuple(
-//
-//					nTuple<NDIMS,Real>(
-//							{	0,0,0}),
-//
-//					nTuple<NDIMS,Real>(
-//							{
-//								global_count_[0]>1?1.0:0.0,
-//								global_count_[1]>1?1.0:0.0,
-//								global_count_[2]>1?1.0:0.0,
-//							})))
-//	;
-
 	auto get_global_dimensions() const
 	DECL_RET_TYPE (global_count_)
 
 	auto dimensions() const
 	DECL_RET_TYPE (global_count_)
 
-	auto extents() const
-	DECL_RET_TYPE((std::make_pair(nTuple<Real, NDIMS>(
-									{	0,0,0}),nTuple<Real, NDIMS>(
-									{	1,1,1}))))
+	std::pair<coordinates_type, coordinates_type> extents() const
+	{
+		coordinates_type b, e;
+		b = 0;
+
+		for (int i = 0; i < NDIMS; ++i)
+		{
+			e[i] = global_count_[i] > 1 ? 1.0 : 0.0;
+		}
+
+		return std::move(std::make_pair(b, e));
+	}
 
 	index_type get_num_of_elements(int iform = VERTEX) const
 	{
@@ -778,6 +772,7 @@ public:
 
 	inline coordinates_type index_to_coordinates(index_tuple const&idx) const
 	{
+
 		return std::move(
 				coordinates_type(
 						{ static_cast<Real>(idx[0]

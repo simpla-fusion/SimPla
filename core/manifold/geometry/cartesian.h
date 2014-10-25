@@ -8,15 +8,16 @@
 #ifndef COORDINATES_CARTESIAN_H_
 #define COORDINATES_CARTESIAN_H_
 
-#include <iostream>
-#include <utility>
-#include <cmath>
-//#include "../../utilities/ntuple.h"
-//#include "../../utilities/primitives.h"
-//#include "../../utilities/utilities.h"
-//#include "../../utilities/log.h"
-//#include "../../physics/physical_constants.h"
-//#include "../../physics/constants.h"
+#include <stddef.h>
+#include <string>
+#include <tuple>
+#include <type_traits>
+
+#include "../../physics/constants.h"
+#include "../../physics/physical_constants.h"
+#include "../../utilities/log.h"
+#include "../../utilities/primitives.h"
+#include "../../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -26,7 +27,7 @@ namespace simpla
  *  \brief  Cartesian coordiantes (X Y Z)
  *
  */
-template<typename TTopology, unsigned int ZAXIS = CARTESIAN_ZAXIS>
+template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology
 {
 private:
@@ -35,16 +36,15 @@ public:
 	typedef TTopology topology_type;
 	typedef CartesianCoordinates<topology_type> this_type;
 
-	static constexpr unsigned int NDIMS = topology_type::NDIMS;
+	static constexpr size_t NDIMS = topology_type::NDIMS;
 
-	static constexpr unsigned int XAxis = (ZAXIS + 1) % 3;
-	static constexpr unsigned int YAxis = (ZAXIS + 2) % 3;
-	static constexpr unsigned int ZAxis = ZAXIS;
+	static constexpr size_t XAxis = (ZAXIS + 1) % 3;
+	static constexpr size_t YAxis = (ZAXIS + 2) % 3;
+	static constexpr size_t ZAxis = ZAXIS;
 
 	typedef Real scalar_type;
 
 	typedef typename topology_type::coordinates_type coordinates_type;
-	typedef typename topology_type::size_type size_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::iterator iterator;
 
@@ -54,20 +54,15 @@ public:
 			topology_type()
 	{
 
-		xmin_ = coordinates_type(
-		{ 0, 0, 0 });
+		xmin_ = coordinates_type( { 0, 0, 0 });
 
-		xmax_ = coordinates_type(
-		{ 1, 1, 1 });
+		xmax_ = coordinates_type( { 1, 1, 1 });
 
-		inv_length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		shift_ = coordinates_type(
-		{ 0, 0, 0 });
+		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
 	template<typename ... Args>
@@ -144,10 +139,10 @@ public:
 	{
 		DEFINE_PHYSICAL_CONST
 
-		auto dx = get_dx();
+		auto dx_ = dx();
 
 		Real safe_dt = CFL_
-				* std::sqrt(dx[0] * dx[0] + dx[1] * dx[1] + dx[2] * dx[2])
+				* std::sqrt(dx_[0] * dx_[0] + dx_[1] * dx_[1] + dx_[2] * dx_[2])
 				/ speed_of_light;
 
 		if (dt_ > safe_dt)
@@ -157,11 +152,11 @@ public:
 
 	}
 
-	void updatedt(nTuple<NDIMS, Real> const & kimg)
+	void updatedt(nTuple<Real, NDIMS> const & kimg)
 	{
 		updatedt(0.0);
 	}
-	void updatedt(nTuple<NDIMS, Complex> const & kimg)
+	void updatedt(nTuple<Complex, NDIMS> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -196,9 +191,9 @@ public:
 
 			set_extents(
 
-			dict["Min"].template as<nTuple<NDIMS, Real>>(),
+			dict["Min"].template as<nTuple<Real, NDIMS>>(),
 
-			dict["Max"].template as<nTuple<NDIMS, Real>>());
+			dict["Max"].template as<nTuple<Real, NDIMS>>());
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
@@ -236,7 +231,7 @@ public:
 
 	}
 
-	void extents(nTuple<NDIMS, Real> pmin, nTuple<NDIMS, Real> pmax)
+	void extents(nTuple<Real, NDIMS> pmin, nTuple<Real, NDIMS> pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;
@@ -249,9 +244,9 @@ public:
 	{
 		coordinates_type res;
 
-		auto d = topology_type::get_dx();
+		auto d = topology_type::dx();
 
-		for (unsigned int i = 0; i < NDIMS; ++i)
+		for (size_t i = 0; i < NDIMS; ++i)
 		{
 			res[i] = length_[i] * d[i];
 		}
@@ -263,16 +258,15 @@ public:
 	inline coordinates_type coordinates(Args && ... args) const
 	{
 		return std::move(
-				CoordinatesFromTopology(
+				coordinates_from_topology(
 						topology_type::get_coordinates(
 								std::forward<Args >(args)...)));
 	}
 
-	coordinates_type CoordinatesFromTopology(coordinates_type const &x) const
+	coordinates_type coordinates_from_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -283,10 +277,9 @@ public:
 		});
 
 	}
-	coordinates_type CoordinatesToTopology(coordinates_type const &x) const
+	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -298,6 +291,15 @@ public:
 
 	}
 
+	template<typename TI>
+	inline auto index_to_coordinates(TI const&idx) const
+	DECL_RET_TYPE((coordinates_from_topology(
+							topology_type::index_to_coordinates(idx))))
+
+	inline auto coordinates_to_index(coordinates_type const & x) const
+	DECL_RET_TYPE((topology_type::coordinates_to_index(
+							coordinates_to_topology(x))))
+
 	/**
 	 * @bug: truncation error of coordinates transform larger than 1000 epsilon (1e4 epsilon for cylindrical coordiantes)
 	 * @param args
@@ -307,7 +309,7 @@ public:
 	inline coordinates_type coordinates_local_to_global(Args && ... args) const
 	{
 		return std::move(
-				CoordinatesFromTopology(
+				coordinates_from_topology(
 						topology_type::coordinates_local_to_global(
 								std::forward<Args >(args)...)));
 	}
@@ -317,14 +319,14 @@ public:
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
-						std::move(CoordinatesToTopology(x)), shift));
+						std::move(coordinates_to_topology(x)), shift));
 	}
 	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
 			coordinates_type x, index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
-						std::move(CoordinatesToTopology(x)), shift));
+						std::move(coordinates_to_topology(x)), shift));
 	}
 
 	coordinates_type InvMapTo(coordinates_type const &y) const
@@ -376,14 +378,14 @@ public:
 	 */
 
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > push_forward(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
+	std::tuple<coordinates_type, nTuple<TV, NDIMS> > push_forward(
+			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & Z) const
 	{
 		coordinates_type y = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
-		nTuple<NDIMS, TV> u;
+		nTuple<TV, NDIMS> u;
 
 		u[XAxis] = v[CARTESIAN_XAXIS];
 		u[YAxis] = v[CARTESIAN_YAXIS];
@@ -401,14 +403,14 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > pull_back(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R,
-			unsigned int CartesianZAxis = 2) const
+	std::tuple<coordinates_type, nTuple<TV, NDIMS> > pull_back(
+			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & R,
+			size_t CartesianZAxis = 2) const
 	{
 		auto x = InvMapTo(std::get<0>(R));
 		auto const & u = std::get<1>(R);
 
-		nTuple<NDIMS, TV> v;
+		nTuple<TV, NDIMS> v;
 
 		v[CARTESIAN_XAXIS] = u[XAxis];
 		v[CARTESIAN_YAXIS] = u[YAxis];
@@ -419,44 +421,46 @@ public:
 
 	template<typename TR>
 	auto select(TR range, coordinates_type const & xmin,
-			coordinates_type const & xmax) const DECL_RET_TYPE((topology_type::select(range, this->CoordinatesToTopology(xmin),this->CoordinatesToTopology(xmax))))
+			coordinates_type const & xmax) const
+					DECL_RET_TYPE((topology_type::select(range, this->coordinates_to_topology(xmin),this->coordinates_to_topology(xmax))))
 
 	template<typename TR, typename ...Args>
 	auto select(TR range, Args && ...args) const
 	DECL_RET_TYPE((topology_type::select(range,std::forward<Args >(args)...)))
 
-	auto select(unsigned int iform) const
+	auto select(size_t iform) const
 	DECL_RET_TYPE((this->topology_type::select(iform)))
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VERTEX>, size_type s, TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, VOLUME>, size_type s,
+	TV Sample(std::integral_constant<size_t, VERTEX>, index_type s,
 			TV const &v) const
 	{
 		return v;
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, EDGE>, size_type s,
-			nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<size_t, VOLUME>, index_type s,
+			TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV Sample(std::integral_constant<size_t, EDGE>, index_type s,
+			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
-	TV Sample(std::integral_constant<unsigned int, FACE>, size_type s,
-			nTuple<3, TV> const &v) const
+	TV Sample(std::integral_constant<size_t, FACE>, index_type s,
+			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
-	template<unsigned int IFORM, typename TV>
-	TV Sample(std::integral_constant<unsigned int, IFORM>, size_type s,
+	template<size_t IFORM, typename TV>
+	TV Sample(std::integral_constant<size_t, IFORM>, index_type s,
 			TV const & v) const
 	{
 		return v;
@@ -487,8 +491,7 @@ public:
 	 *\endverbatim
 	 */
 
-	scalar_type volume_[8] =
-	{ 1, // 000
+	scalar_type volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -497,14 +500,11 @@ public:
 			1, //110
 			1  //111
 			};
-	scalar_type inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 
@@ -541,14 +541,14 @@ public:
 
 }
 ;
-template<typename TTopology, unsigned int ZAXIS>
+template<typename TTopology, size_t ZAXIS>
 bool CartesianCoordinates<TTopology, ZAXIS>::update()
 {
 	topology_type::update();
 
-	auto dims = topology_type::get_dimensions();
+	auto dims = topology_type::dimensions();
 
-	for (unsigned int i = 0; i < NDIMS; ++i)
+	for (size_t i = 0; i < NDIMS; ++i)
 	{
 		shift_[i] = xmin_[i];
 
