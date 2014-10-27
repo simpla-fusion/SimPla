@@ -16,8 +16,8 @@
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../physics/constants.h"
-#include "../mesh/uniform_array.h"
-#include "../mesh/geometry_cylindrical.h"
+#include "../manifold/topology/structured.h"
+#include "../manifold/geometry/cylindrical.h"
 
 namespace simpla
 {
@@ -33,11 +33,11 @@ namespace simpla
  *  default using cylindrical coordinates \f$R,Z,\phi\f$
  * \note http://w3.pppl.gov/ntcc/TORAY/G_EQDSK.pdf
  */
-class GEqdsk: public CylindricalCoordinates<SurturedMesh, 2>
+class GEqdsk: public CylindricalCoordinates<StructuredMesh, 2>
 {
 
 public:
-	typedef CylindricalCoordinates<SurturedMesh, 2> geometry_type;
+	typedef CylindricalCoordinates<StructuredMesh, 2> geometry_type;
 
 	typedef Interpolation<LinearInterpolation, Real, Real> inter_type;
 
@@ -104,7 +104,8 @@ public:
 
 	void load_profile(std::string const &fname);
 
-	inline Real Profile(std::string const & name, coordinates_type const & x) const
+	inline Real Profile(std::string const & name,
+			coordinates_type const & x) const
 	{
 		return Profile(name, psi(x[RAxis], x[ZAxis]));
 	}
@@ -184,23 +185,30 @@ public:
 
 	bool CheckProfile(std::string const & name) const
 	{
-		return (name == "psi") || (name == "JT") || (name == "B") || (profile_.find(name) != profile_.end());
+		return (name == "psi") || (name == "JT") || (name == "B")
+				|| (profile_.find(name) != profile_.end());
 	}
 
 	template<typename TModel>
 	void SetUpMaterial(TModel *model, unsigned int toridal_model_number = 0,
-	        unsigned int DestPhiAxis = CARTESIAN_ZAXIS) const;
+			unsigned int DestPhiAxis = CARTESIAN_ZAXIS) const;
 
 	template<typename TF>
 	void GetProfile(std::string const & name, TF* f) const
 	{
-		GetProfile_(std::integral_constant<bool, isnTuple<typename TF::field_value_type>::value>(), name, f);
+		GetProfile_(
+				std::integral_constant<bool,
+						is_ntuple<typename TF::field_value_type>::value>(),
+				name, f);
 		update_ghosts(f);
 	}
 
-	coordinates_type MapCylindricalToFlux(coordinates_type const & psi_theta_phi, unsigned int VecZAxis = 2) const;
+	coordinates_type MapCylindricalToFlux(
+			coordinates_type const & psi_theta_phi,
+			unsigned int VecZAxis = 2) const;
 
-	coordinates_type MapFluxFromCylindrical(coordinates_type const & x, unsigned int VecZAxis = 2) const;
+	coordinates_type MapFluxFromCylindrical(coordinates_type const & x,
+			unsigned int VecZAxis = 2) const;
 	/**
 	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
 	 *  \cite  Jardin:2010:CMP:1855040
@@ -214,7 +222,8 @@ public:
 	 *
 	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
-	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis = 2, Real resoluton = 0.001);
+	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res,
+			unsigned int ToPhiAxis = 2, Real resoluton = 0.001);
 
 	/**
 	 *
@@ -233,26 +242,34 @@ public:
 	 *   1  | constant volume
 	 *
 	 */
-	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
-	        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis = 2);
+	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
+			std::vector<coordinates_type> *res,
+			std::function<Real(Real, Real)> const & h,
+			unsigned int PhiAxis = 2);
 private:
 
 	template<typename TF>
-	void GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const;
+	void GetProfile_(std::integral_constant<bool, true>,
+			std::string const & name, TF* f) const;
 	template<typename TF>
-	void GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const;
+	void GetProfile_(std::integral_constant<bool, false>,
+			std::string const & name, TF* f) const;
 }
 ;
 template<typename TModel>
-void GEqdsk::SetUpMaterial(TModel *model, unsigned int toridal_model_number, unsigned int DestPhiAxis) const
+void GEqdsk::SetUpMaterial(TModel *model, unsigned int toridal_model_number,
+		unsigned int DestPhiAxis) const
 {
-	model->Set(model->SelectByPolylines(VERTEX, Limiter()), model->RegisterMaterial("Vacuum"));
+	model->Set(model->SelectByPolylines(VERTEX, Limiter()),
+			model->RegisterMaterial("Vacuum"));
 
-	model->Set(model->SelectByPolylines(VERTEX, Boundary()), model->RegisterMaterial("Plasma"));
+	model->Set(model->SelectByPolylines(VERTEX, Boundary()),
+			model->RegisterMaterial("Plasma"));
 
 }
 template<typename TF>
-void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const & name, TF* f) const
+void GEqdsk::GetProfile_(std::integral_constant<bool, true>,
+		std::string const & name, TF* f) const
 {
 	if (name == "B")
 	{
@@ -269,7 +286,8 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, true>, std::string const &
 }
 
 template<typename TF>
-void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const & name, TF* f) const
+void GEqdsk::GetProfile_(std::integral_constant<bool, false>,
+		std::string const & name, TF* f) const
 {
 
 	if (name == "psi")
@@ -299,7 +317,8 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, false>, std::string const 
 
 }
 
-std::string XDMFWrite(GEqdsk const & self, std::string const &fname, unsigned int flag);
+std::string XDMFWrite(GEqdsk const & self, std::string const &fname,
+		unsigned int flag);
 
 }
 // namespace simpla

@@ -15,16 +15,17 @@ namespace simpla
 {
 template<typename ... > class _Field;
 
-template<typename TM, unsigned int IFORM, typename TV>
+template<typename TD, typename TV>
 std::string save(std::string const & url,
-        _Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>> const & d, unsigned int flag = 0UL)
+		_Field<TD, DenseContainer<typename TD::index_type, TV>> const & d,
+		unsigned int flag = 0UL)
 {
 	if (d.empty())
 	{
 		return "null";
 	}
 
-	typedef typename _Field<TM, IFORM, DenseContainer<typename TM::compact_index_type, TV>>::value_type value_type;
+	typedef typename _Field<TD, DenseContainer<typename TD::index_type, TV>>::value_type value_type;
 
 	int rank = d.get_dataset_shape();
 
@@ -39,23 +40,27 @@ std::string save(std::string const & url,
 
 	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 
-	static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
+	static_cast<size_t*>(local_outer_begin),
+			static_cast<size_t*>(local_outer_end),
 
-	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end)
+			static_cast<size_t*>(local_inner_begin),
+			static_cast<size_t*>(local_inner_end)
 
-	);
+			);
 
 	return simpla::save(url, d.data().get(), rank,
 
 	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
 
-	static_cast<size_t*>(local_outer_begin), static_cast<size_t*>(local_outer_end),
+	static_cast<size_t*>(local_outer_begin),
+			static_cast<size_t*>(local_outer_end),
 
-	static_cast<size_t*>(local_inner_begin), static_cast<size_t*>(local_inner_end),
+			static_cast<size_t*>(local_inner_begin),
+			static_cast<size_t*>(local_inner_end),
 
-	flag
+			flag
 
-	);
+			);
 
 }
 }

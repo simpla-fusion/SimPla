@@ -41,21 +41,22 @@ private:
 public:
 
 	template<typename ...Args>
-	Interpolation(std::shared_ptr<container_type> y, Args && ...args)
-			: data_(y), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(std::shared_ptr<container_type> y, Args && ...args) :
+			data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename ...Args>
-	Interpolation(Args && ...args)
-			: data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(std::forward<Args >(args)...)
+	Interpolation(Args && ...args) :
+			data_(std::shared_ptr<container_type>(new container_type)), interpolate_op_(
+					std::forward<Args >(args)...)
 	{
 	}
 
 	template<typename TC, typename ...Args>
-	Interpolation(TC const &y, Args && ...args)
-			: data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
-			        std::forward<Args >(args)...)
+	Interpolation(TC const &y, Args && ...args) :
+			data_(std::shared_ptr<container_type>(new container_type(y))), interpolate_op_(
+					std::forward<Args >(args)...)
 	{
 	}
 
@@ -135,26 +136,30 @@ struct LinearInterpolation
 	}
 
 	template<typename container>
-	inline typename container::mapped_type calculus(container const &, typename container::iterator const &it,
-	        typename container::key_type const &x) const
+	inline typename container::mapped_type calculus(container const &,
+			typename container::iterator const &it,
+			typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
 		++next;
 		return it->second
-		        + (static_cast<value_type>(x - it->first) / static_cast<value_type>(next->first - it->first))
-		                * (next->second - it->second);
+				+ (static_cast<value_type>(x - it->first)
+						/ static_cast<value_type>(next->first - it->first))
+						* (next->second - it->second);
 
 	}
 
 	template<typename container>
-	inline typename container::mapped_type grad(container const &, typename container::iterator const &it,
-	        typename container::key_type const &x) const
+	inline typename container::mapped_type grad(container const &,
+			typename container::iterator const &it,
+			typename container::key_type const &x) const
 	{
 		typedef typename container::mapped_type value_type;
 		typename container::iterator next = it;
 		++next;
-		return (next->second - it->second) / static_cast<value_type>(next->first - it->first);
+		return (next->second - it->second)
+				/ static_cast<value_type>(next->first - it->first);
 	}
 };
 
@@ -180,15 +185,15 @@ private:
 public:
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args)
-			: data_(y), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(std::shared_ptr<value_type> y, Args && ...args) :
+			data_(y), interpolate_op_(std::forward<Args >(args)...)
 	{
 		update();
 	}
 
 	template<typename ...Args>
-	MultiDimesionInterpolation(Args && ...args)
-			: data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
+	MultiDimesionInterpolation(Args && ...args) :
+			data_(nullptr), interpolate_op_(std::forward<Args >(args)...)
 	{
 		update();
 	}
@@ -218,7 +223,8 @@ public:
 
 		if (data_ == nullptr)
 		{
-			data_ = std::shared_ptr<value_type>(new value_type[interpolate_op_.get_number_of_elements()]);
+			data_ = std::shared_ptr<value_type>(
+					new value_type[interpolate_op_.get_number_of_elements()]);
 		}
 
 	}
@@ -226,7 +232,9 @@ public:
 	template<typename ...TArgs>
 	inline value_type operator()(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.calculus(data_, std::forward<TArgs const &>(x)...));
+		return std::move(
+				interpolate_op_.calculus(data_,
+						std::forward<TArgs const &>(x)...));
 	}
 
 	inline value_type const &operator[](size_t s) const
@@ -241,13 +249,17 @@ public:
 	template<typename ...TArgs>
 	value_type calculus(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.calculus(data_.get(), std::forward<TArgs const &>(x)...));
+		return std::move(
+				interpolate_op_.calculus(data_.get(),
+						std::forward<TArgs const &>(x)...));
 	}
 
 	template<typename ...TArgs>
-	nTuple<NDIMS, value_type> grad(TArgs const &... x) const
+	nTuple<value_type, NDIMS> grad(TArgs const &... x) const
 	{
-		return std::move(interpolate_op_.grad(data_.get(), std::forward<TArgs const &>(x)...));
+		return std::move(
+				interpolate_op_.grad(data_.get(),
+						std::forward<TArgs const &>(x)...));
 	}
 
 };
@@ -265,8 +277,8 @@ public:
 
 private:
 
-	nTuple<NDIMS, size_t> dims_;
-	nTuple<NDIMS, Real> xmin_, xmax_, inv_dx_;
+	nTuple<size_t, NDIMS> dims_;
+	nTuple<Real, NDIMS> xmin_, xmax_, inv_dx_;
 public:
 	BiLinearInterpolation()
 	{
@@ -275,14 +287,16 @@ public:
 			dims_[s] = 1;
 		}
 	}
-	BiLinearInterpolation(nTuple<NDIMS, size_t> dims, nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const &xmax)
-			: dims_(dims), xmin_(xmin), xmax_(xmax)
+	BiLinearInterpolation(nTuple<size_t, NDIMS> dims,
+			nTuple<Real, NDIMS> const &xmin, nTuple<Real, NDIMS> const &xmax) :
+			dims_(dims), xmin_(xmin), xmax_(xmax)
 	{
 		update();
 	}
 
-	BiLinearInterpolation(nTuple<NDIMS + 1, size_t> dims, nTuple<NDIMS + 1, Real> const &xmin,
-	        nTuple<NDIMS + 1, Real> const &xmax, unsigned int ZAxis = NDIMS)
+	BiLinearInterpolation(nTuple<size_t, NDIMS + 1> dims,
+			nTuple<size_t, NDIMS + 1> const &xmin,
+			nTuple<size_t, NDIMS + 1> const &xmax, unsigned int ZAxis = NDIMS)
 
 	{
 		dims_[0] = dims[(ZAxis + 1) % 3];
@@ -305,21 +319,23 @@ public:
 		std::swap(xmax_, r.xmax_);
 		std::swap(inv_dx_, r.inv_dx_);
 	}
-	inline void set_dimensions(nTuple<NDIMS, size_t> const &dims)
+	inline void set_dimensions(nTuple<size_t, NDIMS> const &dims)
 	{
 		dims_ = dims;
 	}
-	inline void get_dimensions(nTuple<NDIMS, size_t> * dims) const
+	inline void get_dimensions(nTuple<size_t, NDIMS> * dims) const
 	{
 		*dims = dims_;
 	}
-	inline void set_define_domain(nTuple<NDIMS, Real> const &xmin, nTuple<NDIMS, Real> const & xmax)
+	inline void set_define_domain(nTuple<Real, NDIMS> const &xmin,
+			nTuple<Real, NDIMS> const & xmax)
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
 	}
 
-	inline void get_define_domain(nTuple<NDIMS, Real> *xmin, nTuple<NDIMS, Real> * xmax)
+	inline void get_define_domain(nTuple<Real, NDIMS> *xmin,
+			nTuple<Real, NDIMS> * xmax)
 	{
 		*xmin = xmin_;
 		*xmax = xmax_;
@@ -370,13 +386,15 @@ public:
 	}
 
 	template<typename TV, typename TX>
-	inline auto calculus(TV const * v, TX const & x) const->decltype(calculus(v, x[0], x[1]))
+	inline auto calculus(TV const * v,
+			TX const & x) const->decltype(calculus(v, x[0], x[1]))
 	{
 		return calculus(v, x[0], x[1]);
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline nTuple<NDIMS, TV> grad(TV const * v, TX x, TX y, Args const &...) const
+	inline nTuple<NDIMS, TV> grad(TV const * v, TX x, TX y,
+			Args const &...) const
 	{
 
 		x = (x - xmin_[0]) * inv_dx_[0];

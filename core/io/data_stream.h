@@ -135,9 +135,11 @@ public:
 	 * @param v
 	 */
 
-	void set_attribute(std::string const &url, DataType const & d_type, void const * buff);
+	void set_attribute(std::string const &url, DataType const & d_type,
+			void const * buff);
 
-	void get_attribute(std::string const &url, DataType const & d_type, void* buff);
+	void get_attribute(std::string const &url, DataType const & d_type,
+			void* buff);
 
 	void delete_attribute(std::string const &url);
 
@@ -177,21 +179,23 @@ std::string save(std::string const & name, TV const *data, Args && ...args)
 	return GLOBAL_DATA_STREAM.write(name, data , DataType::create<TV>(), std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string save(std::string const & name,
-        std::shared_ptr<TV> const & d, Args && ... args)
+template<typename TV, typename ... Args> inline std::string save(
+		std::string const & name, std::shared_ptr<TV> const & d,
+		Args && ... args)
 {
 	return GLOBAL_DATA_STREAM.write(name, d.get(), DataType::create<TV>(), std::forward<Args>(args)...);
 }
 
-template<typename TV> inline std::string save(std::string const & name, std::vector<TV>const & d)
+template<typename TV> inline std::string save(std::string const & name,
+		std::vector<TV>const & d)
 {
 
 	size_t s = d.size();
 	return GLOBAL_DATA_STREAM.write(name, &d[0], DataType::create<TV>(),1,nullptr,&s );
 }
 
-template<typename TL, typename TR, typename ... Args> inline std::string save(std::string const & name,
-        std::map<TL, TR>const & d, Args && ... args)
+template<typename TL, typename TR, typename ... Args> inline std::string save(
+		std::string const & name, std::map<TL, TR>const & d, Args && ... args)
 {
 	std::vector<std::pair<TL, TR> > d_;
 	for (auto const & p : d)
@@ -201,13 +205,13 @@ template<typename TL, typename TR, typename ... Args> inline std::string save(st
 	return save(name, d_, std::forward<Args>(args)...);
 }
 
-template<typename TV, typename ... Args> inline std::string save(std::string const & name, std::map<TV, TV>const & d,
-        Args && ... args)
+template<typename TV, typename ... Args> inline std::string save(
+		std::string const & name, std::map<TV, TV>const & d, Args && ... args)
 {
-	std::vector<nTuple<2, TV> > d_;
+	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<2, TV>( { p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

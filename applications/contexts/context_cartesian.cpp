@@ -7,20 +7,27 @@
 
 #include <utility>
 #include <string>
-#include "../../src/mesh/geometry_cartesian.h"
-#include "../../src/mesh/mesh_rectangle.h"
-#include "../../src/mesh/uniform_array.h"
-#include "../../src/utilities/factory.h"
-#include "../../src/utilities/lua_state.h"
+#include "../../core/manifold/geometry/cartesian.h"
+#include "../../core/manifold/topology/structured.h"
+#include "../../core/utilities/factory.h"
+#include "../../core/utilities/lua_state.h"
 #include "explicit_em.h"
 
 namespace simpla
 {
 
-void RegisterEMContextCartesian(Factory<std::string, ContextBase, LuaObject> * factory)
+void RegisterEMContextCartesian(
+		Factory<std::string, ContextBase, LuaObject> * factory)
 {
-	factory->Register(ExplicitEMContext<Mesh<CartesianCoordinates<SurturedMesh>>> ::template CreateFactoryFun<LuaObject>());
-	factory->Register(ExplicitEMContext<Mesh<CartesianCoordinates<SurturedMesh>,true>> ::template CreateFactoryFun<LuaObject>());
+	typedef Manifold<CartesianCoordinates<StructuredMesh>> manifold_type;
+	factory->Register(
+			ExplicitEMContext<manifold_type>::template CreateFactoryFun<
+					LuaObject>());
+
+	factory->Register(
+			ExplicitEMContext<manifold_type>::template CreateFactoryFun<
+					LuaObject>());
 }
 
-} // namespace simpla
+}
+// namespace simpla

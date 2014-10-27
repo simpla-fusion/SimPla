@@ -799,7 +799,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 		else
 		{
 
-			mempool_.allocate_shared_ptr<ByteType>(cache_memory_size * cache_depth).swap(std::get<0>(cache_[url]));
+			mempool_.make_shared<ByteType>(cache_memory_size * cache_depth).swap(std::get<0>(cache_[url]));
 
 			DataSet & item = std::get<1>(cache_[url]);
 

@@ -7,7 +7,10 @@
 
 #ifndef PARTICLE_ENGINE_H_
 #define PARTICLE_ENGINE_H_
-
+#include <stddef.h>
+#include "../physics/physical_constants.h"
+#include "../utilities/properties.h"
+#include "../utilities/sp_type_traits.h"
 namespace simpla
 {
 
@@ -373,15 +376,16 @@ private:
 	Real cmr_, q_kT_;
 public:
 
-	ParticleEngine()
-			: mass(1.0), charge(1.0), temperature(1.0)
+	ParticleEngine() :
+			mass(1.0), charge(1.0), temperature(1.0)
 	{
 		update();
 	}
 
 	void update()
 	{
-		DEFINE_PHYSICAL_CONST cmr_ = charge / mass;
+		DEFINE_PHYSICAL_CONST
+		cmr_ = charge / mass;
 		q_kT_ = charge / (temperature * boltzmann_constant);
 	}
 
@@ -395,7 +399,8 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB>
-	void next_timestep(Point_s * p, TJ* J, Real dt, TE const &fE, TB const & fB) const
+	void next_timestep(Point_s * p, TJ* J, Real dt, TE const &fE,
+			TB const & fB) const
 	{
 		p->x += p->v * dt * 0.5;
 
@@ -421,16 +426,19 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		J->scatter_cartesian(std::forward_as_tuple(p->x, p->v, p->f * charge * p->w));
+		J->scatter_cartesian(
+				std::forward_as_tuple(p->x, p->v, p->f * charge * p->w));
 
 	}
 
-	static inline Point_s push_forward(coordinates_type const & x, Vec3 const &v, scalar_type f)
+	static inline Point_s push_forward(coordinates_type const & x,
+			Vec3 const &v, scalar_type f)
 	{
 		return std::move(Point_s( { x, v, f }));
 	}
 
-	static inline auto pull_back(Point_s const & p) DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+	static inline auto pull_back(Point_s const & p)
+			DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 };
 }
 // namespace simpla

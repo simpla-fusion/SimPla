@@ -12,10 +12,10 @@
 
 namespace simpla
 {
-template<typename, unsigned int> struct Domain;
+template<typename, size_t> struct Domain;
 template<typename ... > struct _Field;
 
-template<typename TM, unsigned int IFORM, typename TV>
+template<typename TM, size_t IFORM, typename TV>
 struct _Field<Domain<TM, IFORM>, Constant<TV> >
 {
 
@@ -23,9 +23,9 @@ struct _Field<Domain<TM, IFORM>, Constant<TV> >
 
 	typedef TV value_type;
 
-	static const unsigned int IForm = IFORM;
+	static const size_t IForm = IFORM;
 
-	static const unsigned int NDIMS = mesh_type::NDIMS;
+	static const size_t NDIMS = mesh_type::NDIMS;
 
 	typedef typename mesh_type::iterator iterator;
 

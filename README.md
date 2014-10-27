@@ -16,6 +16,17 @@ Its long term goal is to provide complete modeling of a fusion device.
 
  
 
+ 
+# Building on ShenMa
 
+~~~~~~~~~~~~~{.bash}
+$module load cmake/3.0.2 compiler/llvm/3.5.0 hdf5/1.8.10 mpi/openmpi/1.6.3 lua/5.2.3 python/2.7.8
+$git clone git@github.com:simpla-fusion/SimPla.git SimPla
+$cd SimPla
+$mkdir build
+$cd build
+$CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release ../
+$make <exec name>
+~~~~~~~~~~~~~
  
 

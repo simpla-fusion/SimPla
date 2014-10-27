@@ -13,8 +13,8 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/sp_complex.h"
 
-#include "field.h"
-#include "calculus.h"
+#include "../field/field.h"
+#include "../manifold/calculus.h"
 
 
 //#include "field_vector_ops.h"

@@ -8,7 +8,7 @@
 #ifndef INTERPOLATOR_H_
 #define INTERPOLATOR_H_
 
-#include "../../fetl/field_constant.h"
+//#include "../../fetl/field_constant.h"
 #include "../../utilities/ntuple.h"
 #include "../../utilities/primitives.h"
 

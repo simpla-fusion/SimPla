@@ -12,13 +12,12 @@
 #include <vector>
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/primitives.h"
-#include <valarray>
 namespace simpla
 {
 
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
-template<typename, unsigned int> class Domain;
+template<typename, size_t> class Domain;
 template<typename ... > class _Field;
 
 template<typename TG, //
@@ -54,12 +53,12 @@ public:
 	}
 	this_type & operator=(this_type const &) = delete;
 
-	template<unsigned int IFORM = VERTEX>
+	template<size_t IFORM = VERTEX>
 	Domain<this_type, IFORM> domain() const
 	{
 		return std::move(Domain<this_type, IFORM>(*this));
 	}
-	template<unsigned int IFORM, typename TV> using
+	template<size_t IFORM, typename TV> using
 	field=_Field<Domain<this_type,IFORM>,std::vector<TV> >;
 
 	template<typename TF> TF make_field() const
@@ -70,7 +69,7 @@ public:
 	auto get_value(T const & expr, index_type const & s) const
 	DECL_RET_TYPE((simpla::get_value(expr,s)))
 
-	template<typename M, unsigned int I, typename TL>
+	template<typename M, size_t I, typename TL>
 	auto get_value(_Field<Domain<M, I>, TL> const & expr,
 			index_type const & s) const
 			DECL_RET_TYPE((expr[s]))

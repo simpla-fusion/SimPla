@@ -8,4 +8,4 @@ TARGET_LINK_LIBRARIES(io utilities ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES} hdf5
 
 
 my_test(data_stream_test           )
-target_link_libraries(data_stream_test   io parallel utilities)
+target_link_libraries(data_stream_test   io parallel utilities ${HDF5_C_LIBRARIES} ${HDF5_HL_LIBRARIES})

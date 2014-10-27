@@ -21,7 +21,7 @@ namespace simpla
 {
 
 template<typename ... > class _Field;
-template<typename, unsigned int> class Domain;
+template<typename, size_t> class Domain;
 
 /** \ingroup DiffScheme
  *  \brief template of FvMesh
@@ -32,7 +32,7 @@ struct FiniteDiffMehtod
 
 	typedef FiniteDiffMehtod<G> this_type;
 
-	static constexpr unsigned int NUM_OF_COMPONENT_TYPE = G::NDIMS + 1;
+	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::NDIMS + 1;
 
 	G const & geo;
 
@@ -119,11 +119,11 @@ private:
 		;
 	}
 
-	template<typename TM, unsigned int IL, typename TL> void calculate_(
+	template<typename TM, size_t IL, typename TL> void calculate_(
 			_impl::ExteriorDerivative, _Field<Domain<TM, IL>, TL> const & f,
 			typename G::index_type s) const = delete;
 
-	template<typename TM, unsigned int IL, typename TL> void calculate_(
+	template<typename TM, size_t IL, typename TL> void calculate_(
 			_impl::CodifferentialDerivative,
 			_Field<Domain<TM, IL>, TL> const & f,
 			typename G::index_type s) const = delete;
@@ -396,7 +396,7 @@ private:
 
 //***************************************************************************************************
 
-	template<typename TM, unsigned int IL, typename TL> inline auto calculate_(
+	template<typename TM, size_t IL, typename TL> inline auto calculate_(
 			_impl::HodgeStar, _Field<Domain<TM, IL>, TL> const & f,
 			typename G::index_type s) const -> typename std::remove_reference<decltype(get_value(f,s))>::type
 	{
@@ -430,12 +430,12 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> void calculate_(
-			_impl::InteriorProduct, nTuple<G::NDIMS, TR> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
 			_Field<Domain<TM, VERTEX>, TL> const & f,
 			typename G::index_type s) const = delete;
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<G::NDIMS, TR> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
 			_Field<Domain<TM, EDGE>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{
@@ -451,11 +451,11 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<G::NDIMS, TR> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
 			_Field<Domain<TM, FACE>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = geo.component_number(s);
+		size_t n = geo.component_number(s);
 
 		auto X = geo.delta_index(s);
 		auto Y = geo.roate(X);
@@ -468,12 +468,12 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<G::NDIMS, TR> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
 			_Field<Domain<TM, VOLUME>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{
-		unsigned int n = geo.component_number(geo.dual(s));
-		unsigned int D = geo.delta_index(geo.dual(s));
+		size_t n = geo.component_number(geo.dual(s));
+		size_t D = geo.delta_index(geo.dual(s));
 
 		return (get_value(f, s + D) - get_value(f, s - D)) * 0.5 * v[n];
 	}
@@ -482,9 +482,9 @@ private:
 // Non-standard operation
 // For curlpdx
 
-	template<typename TM, unsigned int N, typename TL> inline auto calculate_(
+	template<typename TM, size_t N, typename TL> inline auto calculate_(
 			_impl::ExteriorDerivative, _Field<Domain<TM, EDGE>, TL> const & f,
-			std::integral_constant<unsigned int, N>,
+			std::integral_constant<size_t, N>,
 			typename G::index_type s) const -> decltype(get_value(f,s)-get_value(f,s))
 	{
 
@@ -499,10 +499,10 @@ private:
 				- (get_value(f, s + Z) - get_value(f, s - Z));
 	}
 
-	template<typename TM, unsigned int N, typename TL> inline auto calculate_(
+	template<typename TM, size_t N, typename TL> inline auto calculate_(
 			_impl::CodifferentialDerivative,
 			_Field<Domain<TM, FACE>, TL> const & f,
-			std::integral_constant<unsigned int, N>,
+			std::integral_constant<size_t, N>,
 			typename G::index_type s) const -> decltype((get_value(f,s)-get_value(f,s))*std::declval<typename G::scalar_type>())
 	{
 
@@ -522,35 +522,35 @@ private:
 
 		) * geo.inv_dual_volume(s);
 	}
-	template<typename TM, unsigned int IL, typename TR> inline auto calculate_(
-			_impl::MapTo, std::integral_constant<unsigned int, IL> const &,
+	template<typename TM, size_t IL, typename TR> inline auto calculate_(
+			_impl::MapTo, std::integral_constant<size_t, IL> const &,
 			_Field<Domain<TM, IL>, TR> const & f,
 			typename G::index_type s) const
 			DECL_RET_TYPE(get_value(f,s))
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, VERTEX> const &,
+			std::integral_constant<size_t, VERTEX> const &,
 			_Field<Domain<TM, EDGE>, TR> const & f,
-			typename G::index_type s) const ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			typename G::index_type s) const ->nTuple<typename std::remove_reference<decltype(get_value(f,s))>::type,3>
 	{
 
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
-		return nTuple<3,
-				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-				{
+		return nTuple<
+				typename std::remove_reference<decltype(get_value(f,s))>::type,
+				3>( {
 
-				(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
-				(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
-				(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
+		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
 
-				});
+		});
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, EDGE> const &,
+			std::integral_constant<size_t, EDGE> const &,
 			_Field<Domain<TM, VERTEX>, TR> const & f,
 			typename G::index_type s) const ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
@@ -562,58 +562,58 @@ private:
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, VERTEX> const &,
+			std::integral_constant<size_t, VERTEX> const &,
 			_Field<Domain<TM, FACE>, TR> const & f,
-			typename G::index_type s) const ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s))>::type>
+			typename G::index_type s) const ->nTuple<typename std::remove_reference<decltype(get_value(f,s))>::type,3>
 	{
 
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
-		return nTuple<3,
-				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-				{ (
+		return nTuple<
+				typename std::remove_reference<decltype(get_value(f,s))>::type,
+				3>( { (
 
-				get_value(f, (s - Y) - Z) +
+		get_value(f, (s - Y) - Z) +
 
-				get_value(f, (s - Y) + Z) +
+		get_value(f, (s - Y) + Z) +
 
-				get_value(f, (s + Y) - Z) +
+		get_value(f, (s + Y) - Z) +
 
-				get_value(f, (s + Y) + Z)
+		get_value(f, (s + Y) + Z)
 
-				) * 0.25,
+		) * 0.25,
 
-				(
+		(
 
-				get_value(f, (s - Z) - X) +
+		get_value(f, (s - Z) - X) +
 
-				get_value(f, (s - Z) + X) +
+		get_value(f, (s - Z) + X) +
 
-				get_value(f, (s + Z) - X) +
+		get_value(f, (s + Z) - X) +
 
-				get_value(f, (s + Z) + X)
+		get_value(f, (s + Z) + X)
 
-				) * 0.25,
+		) * 0.25,
 
-				(
+		(
 
-				get_value(f, (s - X) - Y) +
+		get_value(f, (s - X) - Y) +
 
-				get_value(f, (s - X) + Y) +
+		get_value(f, (s - X) + Y) +
 
-				get_value(f, (s + X) - Y) +
+		get_value(f, (s + X) - Y) +
 
-				get_value(f, (s + X) + Y)
+		get_value(f, (s + X) + Y)
 
-				) * 0.25
+		) * 0.25
 
-				});
+		});
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, FACE> const &,
+			std::integral_constant<size_t, FACE> const &,
 			_Field<Domain<TM, VERTEX>, TR> const & f,
 			typename G::index_type s) const ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
@@ -641,28 +641,28 @@ private:
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, VOLUME>,
+			std::integral_constant<size_t, VOLUME>,
 			_Field<Domain<TM, FACE>, TR> const & f,
-			typename G::index_type s) const ->nTuple<3,decltype(get_value(f,s) )>
+			typename G::index_type s) const ->nTuple<decltype(get_value(f,s) ),3>
 	{
 
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
-		return nTuple<3,
-				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-				{
+		return nTuple<
+				typename std::remove_reference<decltype(get_value(f,s))>::type,
+				3>( {
 
-				(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
-				(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
-				(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
+		(get_value(f, s - X) + get_value(f, s + X)) * 0.5, //
+		(get_value(f, s - Y) + get_value(f, s + Y)) * 0.5, //
+		(get_value(f, s - Z) + get_value(f, s + Z)) * 0.5
 
-				});
+		});
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, FACE>,
+			std::integral_constant<size_t, FACE>,
 			_Field<Domain<TM, VOLUME>, TR> const & f,
 			typename G::index_type s) const ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{
@@ -674,58 +674,58 @@ private:
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, VOLUME>,
+			std::integral_constant<size_t, VOLUME>,
 			_Field<Domain<TM, EDGE>, TR> const & f,
-			typename G::index_type s) const ->nTuple<3,typename std::remove_reference<decltype(get_value(f,s) )>::type>
+			typename G::index_type s) const ->nTuple<typename std::remove_reference<decltype(get_value(f,s) )>::type,3>
 	{
 
 		auto X = geo.DI(0, s);
 		auto Y = geo.DI(1, s);
 		auto Z = geo.DI(2, s);
 
-		return nTuple<3,
-				typename std::remove_reference<decltype(get_value(f,s))>::type>(
-				{ (
+		return nTuple<
+				typename std::remove_reference<decltype(get_value(f,s))>::type,
+				3>( { (
 
-				get_value(f, (s - Y) - Z) +
+		get_value(f, (s - Y) - Z) +
 
-				get_value(f, (s - Y) + Z) +
+		get_value(f, (s - Y) + Z) +
 
-				get_value(f, (s + Y) - Z) +
+		get_value(f, (s + Y) - Z) +
 
-				get_value(f, (s + Y) + Z)
+		get_value(f, (s + Y) + Z)
 
-				) * 0.25,
+		) * 0.25,
 
-				(
+		(
 
-				get_value(f, (s - Z) - X) +
+		get_value(f, (s - Z) - X) +
 
-				get_value(f, (s - Z) + X) +
+		get_value(f, (s - Z) + X) +
 
-				get_value(f, (s + Z) - X) +
+		get_value(f, (s + Z) - X) +
 
-				get_value(f, (s + Z) + X)
+		get_value(f, (s + Z) + X)
 
-				) * 0.25,
+		) * 0.25,
 
-				(
+		(
 
-				get_value(f, (s - X) - Y) +
+		get_value(f, (s - X) - Y) +
 
-				get_value(f, (s - X) + Y) +
+		get_value(f, (s - X) + Y) +
 
-				get_value(f, (s + X) - Y) +
+		get_value(f, (s + X) - Y) +
 
-				get_value(f, (s + X) + Y)
+		get_value(f, (s + X) + Y)
 
-				) * 0.25,
+		) * 0.25,
 
-				});
+		});
 	}
 
 	template<typename TM, typename TR> inline auto calculate_(_impl::MapTo,
-			std::integral_constant<unsigned int, EDGE>,
+			std::integral_constant<size_t, EDGE>,
 			_Field<Domain<TM, VOLUME>, TR> const & f,
 			typename G::index_type s) const ->typename std::remove_reference<decltype(get_value(f,s)[0])>::type
 	{

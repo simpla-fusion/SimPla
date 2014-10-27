@@ -24,7 +24,7 @@ TEST(datastream,write)
 	static constexpr unsigned int ndims = 2;
 	size_t dims[ndims] = { 100, 100 };
 	size_t number = dims[0] * dims[1];
-	std::vector<nTuple<3, Real>> f0(number);
+	std::vector<nTuple<Real, 3>> f0(number);
 
 	for (size_t i = 0; i < dims[0]; ++i)
 	{
@@ -34,7 +34,8 @@ TEST(datastream,write)
 			f0[s][0] = std::sin(i * TWOPI / static_cast<Real>(dims[0] - 1));
 
 			f0[s][1] = std::cos(
-			        i * TWOPI / static_cast<Real>(dims[0] - 1) + j * TWOPI / static_cast<Real>(dims[1] - 1));
+					i * TWOPI / static_cast<Real>(dims[0] - 1)
+							+ j * TWOPI / static_cast<Real>(dims[1] - 1));
 
 			f0[s][2] = std::sin(j * TWOPI / static_cast<Real>(dims[1] - 1));
 		}
@@ -42,7 +43,7 @@ TEST(datastream,write)
 
 	data_stream.cd("data_stream_test.h5:/what");
 
-	auto data_type = DataType::create<nTuple<3, Real>>();
+	auto data_type = DataType::create<nTuple<Real, 3>>();
 
 	LOGGER << data_stream.write("f0", &f0[0], data_type, 2, nullptr, dims);
 //	LOGGER << data_stream.write("f1", &f0[0], data_type, 2, nullptr, dims);

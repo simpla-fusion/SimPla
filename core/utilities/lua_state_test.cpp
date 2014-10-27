@@ -61,7 +61,7 @@ int main(int argc, char** argv)
 	for (int i = 0; i < 10; ++i)
 	{
 
-		std::cout << "t3 \t=" << pt.get_child("t3").as<nTuple<3, double>>() << std::endl;
+		std::cout << "t3 \t=" << pt.get_child("t3").as<nTuple<double,3>>() << std::endl;
 	}
 
 	LuaObject * t1 = new LuaObject(pt["t1"]);

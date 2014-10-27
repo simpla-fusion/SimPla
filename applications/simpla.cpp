@@ -11,13 +11,13 @@
 #include <memory>
 #include <string>
 
-#include "../src/io/data_stream.h"
-#include "../src/simpla_defs.h"
-#include "../src/utilities/log.h"
-#include "../src/utilities/lua_state.h"
-#include "../src/utilities/parse_command_line.h"
-#include "../src/utilities/utilities.h"
-#include "../src/parallel/message_comm.h"
+#include "../core/io/data_stream.h"
+#include "../core/simpla_defs.h"
+#include "../core/utilities/log.h"
+#include "../core/utilities/lua_state.h"
+#include "../core/utilities/parse_command_line.h"
+#include "../core/utilities/utilities.h"
+#include "../core/parallel/message_comm.h"
 
 #include "contexts/context_factory.h"
 
@@ -38,69 +38,70 @@ int main(int argc, char **argv)
 
 	std::string context_type = "";
 
-	std::size_t   num_of_step = 10;
+	std::size_t num_of_step = 10;
 
-	std::size_t   record_stride = 1;
+	std::size_t record_stride = 1;
 
 	bool just_a_test = false;
 
-	ParseCmdLine(argc, argv, [&](std::string const & opt,std::string const & value)->int
-	{
-		if(opt=="n"||opt=="num_of_step")
-		{
-			num_of_step =ToValue<std::size_t  >(value);
-		}
-		else if(opt=="s"||opt=="record_stride")
-		{
-			record_stride =ToValue<std::size_t  >(value);
-		}
-		else if(opt=="i"||opt=="input")
-		{
-			dict.ParseFile(value);
-		}
-		else if(opt=="c"|| opt=="command")
-		{
-			dict.ParseString(value);
-		}
-		else if(opt=="g"|| opt=="generator")
-		{
-			INFORM
-			<< ShowCopyRight() << std::endl
-			<< "Too lazy to implemented it\n"<< std::endl;
-			TheEnd(1);
-		}
-		else if( opt=="context")
-		{
-			context_type =ToValue<std::string>(value);
-		}
-		else if(opt=="t")
-		{
-			just_a_test=true;
-		}
-		else if(opt=="V")
-		{
-			INFORM<<ShowShortVersion()<< std::endl;
-			TheEnd(0);
-		}
+	ParseCmdLine(argc, argv,
+			[&](std::string const & opt,std::string const & value)->int
+			{
+				if(opt=="n"||opt=="num_of_step")
+				{
+					num_of_step =ToValue<std::size_t >(value);
+				}
+				else if(opt=="s"||opt=="record_stride")
+				{
+					record_stride =ToValue<std::size_t >(value);
+				}
+				else if(opt=="i"||opt=="input")
+				{
+					dict.ParseFile(value);
+				}
+				else if(opt=="c"|| opt=="command")
+				{
+					dict.ParseString(value);
+				}
+				else if(opt=="g"|| opt=="generator")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
+					<< "Too lazy to implemented it\n"<< std::endl;
+					TheEnd(1);
+				}
+				else if( opt=="context")
+				{
+					context_type =ToValue<std::string>(value);
+				}
+				else if(opt=="t")
+				{
+					just_a_test=true;
+				}
+				else if(opt=="V")
+				{
+					INFORM<<ShowShortVersion()<< std::endl;
+					TheEnd(0);
+				}
 
-		else if(opt=="version")
-		{
-			INFORM<<ShowVersion()<< std::endl;
-			TheEnd(0);
-		}
-		else if(opt=="help")
-		{
-			INFORM
-			<< ShowCopyRight() << std::endl
+				else if(opt=="version")
+				{
+					INFORM<<ShowVersion()<< std::endl;
+					TheEnd(0);
+				}
+				else if(opt=="help")
+				{
+					INFORM
+					<< ShowCopyRight() << std::endl
 
-			<< " avaible contexts ["<<context_factory.size() <<"]  :"<<std::endl
+					<< " avaible contexts ["<<context_factory.size() <<"]  :"<<std::endl
 
-			<< context_factory
+					<< context_factory
 
-			<< std::endl;
+					<< std::endl;
 
-			TheEnd(0);
-		}
+					TheEnd(0);
+				}
 //				else
 //				{
 //					INFORM
@@ -120,11 +121,11 @@ int main(int argc, char **argv)
 //					;
 //					TheEnd(0);
 //				}
-		    return CONTINUE;
+				return CONTINUE;
 
-	    }
+			}
 
-	    );
+			);
 
 	if (context_type == "" && dict["Model"]["Type"])
 	{

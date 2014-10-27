@@ -226,9 +226,20 @@ struct nTuple_traits
 
 };
 
+template<typename > struct is_ntuple
+{
+	static constexpr bool value = false;
+};
+
+template<typename T, size_t ...N> struct is_ntuple<nTuple<T, N...>>
+{
+	static constexpr bool value = true;
+};
+
 template<typename TV, size_t N, size_t ...M>
 struct nTuple_traits<nTuple<TV, N, M...> >
 {
+	static constexpr size_t ndims = 1 + sizeof...(M);
 
 	typedef typename nTuple_traits<TV>::value_type value_type;
 

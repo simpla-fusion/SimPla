@@ -18,6 +18,7 @@
 namespace simpla
 {
 template<typename ... > class _Field;
+template<typename, size_t> class Domain;
 template<typename ... > class Expression;
 
 /// \defgroup  ExteriorAlgebra Exterior algebra
@@ -154,7 +155,7 @@ DECL_RET_TYPE( (codifferential_derivative(f)) )
 ;
 
 template<unsigned int NDIMS, typename TL, typename ...T>
-inline auto iv(nTuple<NDIMS, TL> const & v, _Field<T...> const & f)
+inline auto iv(nTuple<TL, NDIMS> const & v, _Field<T...> const & f)
 DECL_RET_TYPE( (interior_product(v,f)) )
 ;
 
@@ -187,23 +188,23 @@ template<typename ...TL, typename ...TR> inline auto cross(
 		ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<TL...>>::iform==FACE),
 				hodge_star(wedge(hodge_star(lhs) , hodge_star(rhs) )))
 
-template<typename TL, typename ... TR> inline auto dot(nTuple<3, TL> const & v,
+template<typename TL, typename ... TR> inline auto dot(nTuple<TL, 3> const & v,
 		_Field<TR...> const & f)
 		DECL_RET_TYPE( (interior_product(v, f)))
 ;
 
 template<typename ...TL, typename TR> inline auto dot(_Field<TL...> const & f,
-		nTuple<3, TR> const & v)
+		nTuple<TR, 3> const & v)
 		DECL_RET_TYPE( (interior_product(v, f)))
 ;
 
 template<typename ... TL, typename TR> inline auto cross(
-		_Field<TL...> const & f, nTuple<3, TR> const & v)
+		_Field<TL...> const & f, nTuple<TR, 3> const & v)
 		DECL_RET_TYPE( (interior_product(v, hodge_star(f))))
 ;
 
 template<typename ... T, typename TL> inline auto cross(_Field<T...> const & f,
-		nTuple<3, TL> const & v)
+		nTuple<TL, 3> const & v)
 		DECL_RET_TYPE((interior_product(v, f)))
 ;
 

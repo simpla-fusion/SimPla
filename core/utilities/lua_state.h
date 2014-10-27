@@ -11,9 +11,14 @@
 
 extern "C"
 {
+
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
+
+#if LUA_VERSION_NUM < 502
+#error  need lua version >502
+#endif
 }
 #include <algorithm>
 #include <complex>

@@ -16,24 +16,25 @@
 #include <utility>
 
 // Misc
-#include "../../src/utilities/log.h"
-#include "../../src/utilities/pretty_stream.h"
+#include "../../core/utilities/log.h"
+#include "../../core/utilities/pretty_stream.h"
+#include "../../core/physics/physical_constants.h"
 // Data IO
-#include "../../src/io/data_stream.h"
+#include "../../core/io/data_stream.h"
 
 // Field
-#include "../../src/fetl/fetl.h"
-#include "../../src/fetl/save_field.h"
-#include "../../src/fetl/load_field.h"
+#include "../../core/fetl/fetl.h"
+#include "../../core/field/save_field.h"
+#include "../../core/field/load_field.h"
 
 // Particle
-#include "../../src/particle/particle_base.h"
-#include "../../src/particle/particle_factory.h"
+#include "../../core/particle/particle_base.h"
+#include "../../core/particle/particle_factory.h"
 // Model
-#include "../../src/model/model.h"
-#include "../../src/model/geqdsk.h"
-#include "../../src/flow_control/context_base.h"
-#include "../../src/numeric/geometric_algorithm.h"
+#include "../../core/model/model.h"
+#include "../../core/model/geqdsk.h"
+#include "../../core/flow_control/context_base.h"
+#include "../../core/numeric/geometric_algorithm.h"
 
 // Solver
 #include "../field_solver/pml.h"
@@ -284,7 +285,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		typename mesh_type::coordinates_type src_max;
 		typename mesh_type::coordinates_type min1, min2, max1, max2;
 
-		std::tie(src_min, src_max) = geqdsk.get_extents();
+		std::tie(src_min, src_max) = geqdsk.extents();
 
 		min1 = model.MapTo(geqdsk.InvMapTo(src_min));
 		max1 = model.MapTo(geqdsk.InvMapTo(src_max));

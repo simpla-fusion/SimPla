@@ -11,21 +11,22 @@
 #include <string>
 
 #include "../utilities/log.h"
-#include "fetl.h"
+#include "field.h"
 
 namespace simpla
 {
-template<typename... > class _Field;
+template<typename ... > class _Field;
 
-template<typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field_(TDict const &dict, _Field<TM, IFORM, Container> *f)
+template<typename TDict, typename TM, typename Container>
+bool load_field_(TDict const &dict, _Field<TM, Container> *f)
 {
 	if (!dict)
 		return false;
 
 	typedef TM mesh_type;
-	typedef typename _Field<TM, IFORM, Container>::value_type value_type;
-	typedef typename _Field<TM, IFORM, Container>::field_value_type field_value_type;
+	typedef typename _Field<TM, Container>::value_type value_type;
+	typedef typename _Field<TM, Container>::field_value_type field_value_type;
+	constexpr size_t iform = TM::iform;
 
 	mesh_type const &mesh = f->mesh;
 
@@ -34,13 +35,14 @@ bool load_field_(TDict const &dict, _Field<TM, IFORM, Container> *f)
 	if (dict.is_function())
 	{
 
-		for (auto s : mesh.select(IFORM))
+		for (auto s : mesh.select(iform))
 		{
 			auto x = mesh.get_coordinates(s);
 
 			auto v = dict(x).template as<field_value_type>();
 
-			(*f)[s] = mesh.Sample(std::integral_constant<unsigned int, IFORM>(), s, v);
+			(*f)[s] = mesh.Sample(std::integral_constant<size_t, iform>(), s,
+					v);
 		}
 
 	}
@@ -49,11 +51,12 @@ bool load_field_(TDict const &dict, _Field<TM, IFORM, Container> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		for (auto s : mesh.select(IFORM))
+		for (auto s : mesh.select(iform))
 		{
 			auto x = mesh.get_coordinates(s);
 
-			(*f)[s] = mesh.Sample(std::integral_constant<unsigned int, IFORM>(), s, v);
+			(*f)[s] = mesh.Sample(std::integral_constant<size_t, iform>(), s,
+					v);
 		}
 
 	}
@@ -70,11 +73,13 @@ bool load_field_(TDict const &dict, _Field<TM, IFORM, Container> *f)
 
 	return true;
 }
-template<int DIMS, typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field_wrap(nTuple<DIMS, std::complex<TV> >, TDict const &dict, _Field<TM, IFORM, Container> *f)
+template<int DIMS, typename TV, typename TDict, size_t IFORM, typename TM,
+		typename Container>
+bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
+		_Field<TM, IFORM, Container> *f)
 {
 
-	auto ff = f->mesh.template make_field<IFORM, nTuple<DIMS, Real>>();
+	auto ff = f->mesh.template make_field<IFORM, nTuple<Real, DIMS>>();
 
 	ff.clear();
 
@@ -86,11 +91,12 @@ bool load_field_wrap(nTuple<DIMS, std::complex<TV> >, TDict const &dict, _Field<
 	return success;
 }
 
-template<typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<TM, IFORM, Container> *f)
+template<typename TV, typename TDict, typename TM, typename Container>
+bool load_field_wrap(std::complex<TV>, TDict const &dict,
+		_Field<TM, Container> *f)
 {
 
-	auto ff = f->mesh.template make_field<IFORM, Real>();
+	auto ff = f->mesh.template make_field<TM::iform, Real>();
 
 	ff.clear();
 
@@ -102,16 +108,16 @@ bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<TM, IFORM, Cont
 	return success;
 }
 
-template<typename TV, typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field_wrap(TV, TDict const &dict, _Field<TM, IFORM, Container> *f)
+template<typename TV, typename TDict, typename TM, typename Container>
+bool load_field_wrap(TV, TDict const &dict, _Field<TM, Container> *f)
 {
 	return load_field_(dict, f);
 }
 
-template<typename TDict, unsigned int IFORM, typename TM, typename Container>
-bool load_field(TDict const &dict, _Field<TM, IFORM, Container> *f)
+template<typename TDict, typename TM, typename Container>
+bool load_field(TDict const &dict, _Field<TM, Container> *f)
 {
-	typedef typename _Field<TM, IFORM, Container>::value_type value_type;
+	typedef typename _Field<TM, Container>::value_type value_type;
 
 	return load_field_wrap(value_type(), dict, f);
 }
