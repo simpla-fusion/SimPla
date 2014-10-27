@@ -106,7 +106,9 @@ public:
 	 * @param flag             flag to define the operation
 	 * @return
 	 */
-	std::string write(std::string const &name, void const *v,
+	std::string write(std::string const &name,
+
+	void const *v,
 
 	DataType const & datatype,
 
@@ -173,6 +175,24 @@ private:
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
+template<typename ...Args>
+std::string save(std::string const & name, std::tuple<Args...> const& args,
+		unsigned int flag = 0UL)
+{
+	return GLOBAL_DATA_STREAM.write(name,
+			&(*std::get<0>(args)), //	void const *v,
+			std::get<1>(args),//	DataType const & datatype,
+			std::get<2>(args),//	size_t ndims_or_number,
+			std::get<3>(args),//	size_t const *global_begin = nullptr,
+			std::get<4>(args),//	size_t const *global_end = nullptr,
+			std::get<5>(args),//	size_t const *local_outer_begin = nullptr,
+			std::get<6>(args),//	size_t const *local_outer_end = nullptr,
+			std::get<7>(args),//	size_t const *local_inner_begin = nullptr,
+			std::get<8>(args),//	size_t const *local_inner_end = nullptr,
+			flag
+	);
+}
+
 template<typename TV, typename ...Args>
 std::string save(std::string const & name, TV const *data, Args && ...args)
 {
@@ -211,7 +231,8 @@ template<typename TV, typename ... Args> inline std::string save(
 	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>(
+		{ p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

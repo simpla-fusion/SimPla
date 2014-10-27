@@ -42,9 +42,9 @@ public:
 		return std::move(field_type(domain));
 	}
 
-	Field<domain_type, Real> make_scalar_field() const
+	Field< Real,domain_type> make_scalar_field() const
 	{
-		return std::move(Field<domain_type, Real>(domain));
+		return std::move(Field<Real,domain_type>(domain));
 	}
 
 };

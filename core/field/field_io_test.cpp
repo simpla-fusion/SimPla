@@ -37,11 +37,14 @@ int main(int argc, char **argv)
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.cd("field_io_test.h5:/");
 
-	nTuple<Real, 3> xmin = { 0, 0, 0 };
+	nTuple<Real, 3> xmin =
+	{ 0, 0, 0 };
 
-	nTuple<Real, 3> xmax = { 1.0, 2.0, 1.0 };
+	nTuple<Real, 3> xmax =
+	{ 1.0, 2.0, 1.0 };
 
-	nTuple<size_t, 3> dims = { 40, 50, 1 };
+	nTuple<size_t, 3> dims =
+	{ 40, 50, 1 };
 
 //	typedef Manifold<CartesianCoordinates<StructuredMesh> > mesh_type;
 
@@ -54,8 +57,8 @@ int main(int argc, char **argv)
 //
 //	mesh.update();
 
-//	auto f0 = make_field<int>(domain);
-//	auto f1 = make_field<int>(domain);
+	auto f0 = make_field<int>(domain);
+	auto f1 = make_field<int>(domain);
 //
 //	f0.clear();
 //	f1.clear();
@@ -71,24 +74,24 @@ int main(int argc, char **argv)
 //
 //	}
 //
-//	INFORM << SAVE(f0);
-//	INFORM << SAVE(f1);
-//	GLOBAL_DATA_STREAM.cd("/d1/");
-//	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,true);
-//
-//	INFORM << simpla::save("f1a", f1);
-//	INFORM << simpla::save("f1a", f1);
-//	INFORM << simpla::save("f1a", f1);
-//	GLOBAL_DATA_STREAM.cd("/d2/");
-//	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,false);
-//
-//	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
-//	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
-//	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
-//
-//	INFORM << simpla::save("f1c", f1);
-//	INFORM << simpla::save("f1c", f1);
-//	INFORM << simpla::save("f1c", f1);
+	INFORM << SAVE(f0);
+	INFORM << SAVE(f1);
+	GLOBAL_DATA_STREAM.cd("/d1/");
+	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,true);
+
+	INFORM << simpla::save("f1a", f1);
+	INFORM << simpla::save("f1a", f1);
+	INFORM << simpla::save("f1a", f1);
+	GLOBAL_DATA_STREAM.cd("/d2/");
+	GLOBAL_DATA_STREAM.set_property("Enable Compact Storage" ,false);
+
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
+	INFORM << simpla::save("f0b", f0, DataStream::SP_RECORD);
+
+	INFORM << simpla::save("f1c", f1);
+	INFORM << simpla::save("f1c", f1);
+	INFORM << simpla::save("f1c", f1);
 //
 //	int cache_depth = 5;
 //	GLOBAL_DATA_STREAM.cd("/d3/");

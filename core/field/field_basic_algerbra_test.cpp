@@ -17,7 +17,7 @@ using namespace simpla;
 
 typedef testing::Types< //
 
-		Field<DomainDummy<>, double> //
+		Field<double, DomainDummy<>> //
 // 	,TestFIELDParam1<VERTEX, Real>
 //		, TestFIELDParam1<EDGE, Real>	//
 //		, TestFIELDParam1<FACE, Real>	//

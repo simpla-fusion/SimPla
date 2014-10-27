@@ -265,7 +265,8 @@ template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] = { N... };
+	TInts dims[] =
+	{ N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -297,7 +298,8 @@ template<typename TInts, TInts ...N, typename TOS, typename TA>
 TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] = { N... };
+	TInts dims[] =
+	{ N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)

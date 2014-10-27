@@ -17,7 +17,14 @@ namespace simpla
 {
 
 template<typename ... >struct _Field;
-template<typename ... >struct Expression;
+
+template<typename TV, typename ... Others>
+_Field<std::shared_ptr<TV>, Others...> make_field(Others && ...others)
+{
+	return std::move(
+			_Field<std::shared_ptr<TV>, Others...>(
+					std::forward<Others>(others)...));
+}
 
 template<typename T>
 constexpr Identity get_domain(T && ...)
@@ -39,8 +46,8 @@ template<typename TD> struct domain_traits
 HAS_MEMBER_FUNCTION(scatter)template
 <typename TD, typename TC, typename ...Args>
 auto scatter(TD const & d, TC & c, Args && ... args)
-ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value),
-		(d.scatter(c,std::forward<Args>(args)...)))
+ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
+,(d.scatter(c,std::forward<Args>(args)...)))
 
 template<typename TD, typename TC, typename ...Args>
 auto scatter(TD const & d, TC & c,
@@ -79,24 +86,50 @@ ENABLE_IF_DECL_RET_TYPE(
 
 template<typename ...> struct field_traits;
 
-template<typename TD, typename ...Others>
-struct field_traits<_Field<TD, Others...>>
+template<typename TC, typename TD, typename ...Others>
+struct field_traits<_Field<TC, TD, Others...>>
 {
-	static constexpr size_t NDIMS = TD::NDIMS;
+	typedef _Field<TC, TD, Others...> field_type;
+	static constexpr size_t ndims = TD::ndims;
 
 	static constexpr size_t iform = TD::iform;
 
 	typedef TD domain_type;
 
-	domain_type const & get_domain(_Field<TD, Others...> const &f)
+	static domain_type const & get_domain(field_type const &f)
 	{
 		return f.domain();
 	}
+
+	static auto data(field_type & f)
+	DECL_RET_TYPE((f.data()))
 };
 
 /// \defgroup   Field Expression
 /// @{
 template<typename ... >struct Expression;
+template<typename TOP, typename TL, typename ...Others>
+struct field_traits<_Field<Expression<TOP, TL, Others...> >>
+{
+
+	typedef typename field_traits<TL>::domain_type domain_type;
+
+	static constexpr size_t ndims = domain_type::ndims;
+
+	static constexpr size_t iform = domain_type::iform;
+
+	static domain_type const & get_domain(
+			_Field<Expression<TOP, TL, Others...>> const &f)
+	{
+		return field_traits<TL>::get_domain(f.lhs);
+	}
+
+	template<typename TLF, typename ...Args>
+	static domain_type const & get_domain(TLF const &l, Args &&...)
+	{
+		return field_traits<TLF>::get_domain(l);
+	}
+};
 
 /**
  *     \brief skeleton of Field expression

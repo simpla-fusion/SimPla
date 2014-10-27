@@ -24,6 +24,8 @@ public:
 	typedef BlockRange<TIndex> range_type;
 
 	typedef DomainDummy<coordinates_type, index_type> this_type;
+	static constexpr size_t ndims = 1;
+	static constexpr size_t iform = VERTEX;
 
 private:
 
