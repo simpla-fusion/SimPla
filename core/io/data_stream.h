@@ -183,12 +183,12 @@ std::string save(std::string const & name, std::tuple<Args...> const& args,
 			&(*std::get<0>(args)), //	void const *v,
 			std::get<1>(args),//	DataType const & datatype,
 			std::get<2>(args),//	size_t ndims_or_number,
-			std::get<3>(args),//	size_t const *global_begin = nullptr,
-			std::get<4>(args),//	size_t const *global_end = nullptr,
-			std::get<5>(args),//	size_t const *local_outer_begin = nullptr,
-			std::get<6>(args),//	size_t const *local_outer_end = nullptr,
-			std::get<7>(args),//	size_t const *local_inner_begin = nullptr,
-			std::get<8>(args),//	size_t const *local_inner_end = nullptr,
+			&(std::get<3>(args)[0]),//	size_t const *global_begin = nullptr,
+			&(std::get<4>(args)[0]),//	size_t const *global_end = nullptr,
+			&(std::get<5>(args)[0]),//	size_t const *local_outer_begin = nullptr,
+			&(std::get<6>(args)[0]),//	size_t const *local_outer_end = nullptr,
+			&(std::get<7>(args)[0]),//	size_t const *local_inner_begin = nullptr,
+			&(std::get<8>(args)[0]),//	size_t const *local_inner_end = nullptr,
 			flag
 	);
 }
