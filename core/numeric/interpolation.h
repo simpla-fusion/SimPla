@@ -109,11 +109,11 @@ public:
 
 	value_type operator()(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_.calculus(*data_, find(x), x));
+		return std::move(interpolate_op_.calculate(*data_, find(x), x));
 	}
-	value_type calculus(key_x_type const &x) const
+	value_type calculate(key_x_type const &x) const
 	{
-		return std::move(interpolate_op_.calculus(*data_, find(x), x));
+		return std::move(interpolate_op_.calculate(*data_, find(x), x));
 	}
 	value_type grad(key_x_type const &x) const
 	{
@@ -136,7 +136,7 @@ struct LinearInterpolation
 	}
 
 	template<typename container>
-	inline typename container::mapped_type calculus(container const &,
+	inline typename container::mapped_type calculate(container const &,
 			typename container::iterator const &it,
 			typename container::key_type const &x) const
 	{
@@ -233,7 +233,7 @@ public:
 	inline value_type operator()(TArgs const &... x) const
 	{
 		return std::move(
-				interpolate_op_.calculus(data_,
+				interpolate_op_.calculate(data_,
 						std::forward<TArgs const &>(x)...));
 	}
 
@@ -247,10 +247,10 @@ public:
 	}
 
 	template<typename ...TArgs>
-	value_type calculus(TArgs const &... x) const
+	value_type calculate(TArgs const &... x) const
 	{
 		return std::move(
-				interpolate_op_.calculus(data_.get(),
+				interpolate_op_.calculate(data_.get(),
 						std::forward<TArgs const &>(x)...));
 	}
 
@@ -319,29 +319,27 @@ public:
 		std::swap(xmax_, r.xmax_);
 		std::swap(inv_dx_, r.inv_dx_);
 	}
-	inline void set_dimensions(nTuple<size_t, NDIMS> const &dims)
+	inline void dimensions(nTuple<size_t, NDIMS> const &dims)
 	{
 		dims_ = dims;
 	}
-	inline void get_dimensions(nTuple<size_t, NDIMS> * dims) const
+	inline nTuple<size_t, NDIMS> dimensions() const
 	{
-		*dims = dims_;
+		return dims_;
 	}
-	inline void set_define_domain(nTuple<Real, NDIMS> const &xmin,
+	inline void extents(nTuple<Real, NDIMS> const &xmin,
 			nTuple<Real, NDIMS> const & xmax)
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
 	}
 
-	inline void get_define_domain(nTuple<Real, NDIMS> *xmin,
-			nTuple<Real, NDIMS> * xmax)
+	inline std::pair<nTuple<Real, NDIMS>, nTuple<Real, NDIMS>> extents() const
 	{
-		*xmin = xmin_;
-		*xmax = xmax_;
+		return std::make_pair(xmin_, xmax_);
 	}
 
-	size_t get_number_of_elements() const
+	size_t number_of_elements() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < NDIMS; ++i)
@@ -358,7 +356,7 @@ public:
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline auto calculus(TV const * v, TX x, TX y, Args const &...) const ->TV
+	inline auto calculate(TV const * v, TX x, TX y, Args const &...) const ->TV
 	{
 		x = (x - xmin_[0]) * inv_dx_[0];
 		y = (y - xmin_[1]) * inv_dx_[1];
@@ -386,14 +384,14 @@ public:
 	}
 
 	template<typename TV, typename TX>
-	inline auto calculus(TV const * v,
-			TX const & x) const->decltype(calculus(v, x[0], x[1]))
+	inline auto calculate(TV const * v,
+			TX const & x) const->decltype(calculate(v, x[0], x[1]))
 	{
-		return calculus(v, x[0], x[1]);
+		return calculate(v, x[0], x[1]);
 	}
 
 	template<typename TV, typename TX, typename ... Args>
-	inline nTuple<NDIMS, TV> grad(TV const * v, TX x, TX y,
+	inline nTuple<TV, NDIMS> grad(TV const * v, TX x, TX y,
 			Args const &...) const
 	{
 
@@ -408,7 +406,7 @@ public:
 		size_t sy = dims_[0];
 		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
-		nTuple<NDIMS, TV> res = {
+		nTuple<TV, NDIMS> res = {
 
 		(1.0 - ry) * (v[s + sx] - v[s]) + ry * (v[s + sx + sy] - v[s + sy]),
 
@@ -419,7 +417,7 @@ public:
 	}
 
 	template<typename TV, unsigned int N, typename TX>
-	inline auto grad(TV const & v, nTuple<N, TX> const & x) const
+	inline auto grad(TV const & v, nTuple<TX, N> const & x) const
 	DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 
 }

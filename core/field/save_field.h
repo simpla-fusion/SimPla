@@ -46,7 +46,7 @@ std::string save(std::string const & url, _Field<T...> const & d,
 //
 //			);
 
-	return simpla::save(url, field_traits<_Field<T...>>::dataset(d), flag);
+	return simpla::save(url, d.dataset(), flag);
 
 }
 }

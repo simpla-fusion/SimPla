@@ -23,7 +23,7 @@ typedef TOPOLOGY TopologyType;
 //#endif
 
 class TestTopology: public testing::TestWithParam<
-		nTuple<size_t, TopologyType::NDIMS> >
+		nTuple<size_t, TopologyType::ndims> >
 {
 protected:
 	void SetUp()
@@ -43,13 +43,13 @@ public:
 	typedef typename topology_type::range_type range_type;
 	typedef typename topology_type::coordinates_type coordinates_type;
 
-	size_t NDIMS = topology_type::NDIMS;
+	size_t NDIMS = topology_type::ndims;
 
 	topology_type topology;
 
 	std::vector<size_t> iform_list = { VERTEX, EDGE, FACE, VOLUME };
 
-	nTuple<size_t, TopologyType::NDIMS> dims;
+	nTuple<size_t, TopologyType::ndims> dims;
 
 };
 

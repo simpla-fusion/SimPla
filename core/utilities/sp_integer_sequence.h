@@ -30,6 +30,25 @@ public:
 
 };
 
+template<size_t N, size_t ...S>
+struct _make_index_sequence: _make_index_sequence<N - 1, N - 1, S...>
+{
+};
+
+template<size_t ...S>
+struct _make_index_sequence<0, S...>
+{
+	typedef integer_sequence<size_t, S...> type;
+};
+
+template<size_t ... Ints>
+using index_sequence = integer_sequence< size_t, Ints...>;
+
+template<size_t N>
+using make_index_sequence =typename _make_index_sequence< N>::type;
+
+template<class ... T>
+using index_sequence_for = make_index_sequence<sizeof...(T)>;
 //
 //template<typename T, typename TInts, TInts M, TInts ...N>
 //auto get_value(T &v, integer_sequence<TInts, M, N...>)
@@ -265,8 +284,7 @@ template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -298,8 +316,7 @@ template<typename TInts, TInts ...N, typename TOS, typename TA>
 TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] =
-	{ N... };
+	TInts dims[] = { N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)

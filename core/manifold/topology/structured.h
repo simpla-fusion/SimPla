@@ -44,12 +44,12 @@ struct StructuredMesh
 	};
 	static constexpr size_t MAX_NUM_NEIGHBOUR_ELEMENT = 12;
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
-	static constexpr size_t NDIMS = 3;
+	static constexpr size_t ndims = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
 	typedef size_t index_type;
 	typedef unsigned long compact_index_type;
-	typedef nTuple<Real, NDIMS> coordinates_type;
-	typedef nTuple<index_type, NDIMS> index_tuple;
+	typedef nTuple<Real, ndims> coordinates_type;
+	typedef nTuple<index_type, ndims> index_tuple;
 	struct iterator;
 	typedef std::pair<iterator, iterator> range_type;
 
@@ -129,7 +129,7 @@ public:
 	bool is_valid() const
 	{
 		bool res = true;
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			res = res && (global_count_[i] <= 1);
 		}
@@ -165,7 +165,7 @@ public:
 	void dimensions(TI const &d)
 	{
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			index_type length = d[i] > 0 ? d[i] : 1;
 
@@ -187,7 +187,7 @@ public:
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
 
-		global_array_.init(NDIMS, global_begin_, global_end_,
+		global_array_.init(ndims, global_begin_, global_end_,
 				DEFAULT_GHOSTS_WIDTH);
 
 		local_inner_begin_ = global_array_.local_.inner_begin;
@@ -235,7 +235,7 @@ public:
 		coordinates_type b, e;
 		b = 0;
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			e[i] = global_count_[i] > 1 ? 1.0 : 0.0;
 		}
@@ -298,7 +298,7 @@ public:
 	{
 		int rank = 0;
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			if (global_end_[i] - global_begin_[i] > 1)
 			{
@@ -370,7 +370,7 @@ public:
 
 		outer_end = inner_end + (-local_inner_end_ + local_outer_end_);
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			if (global_end_[i] - global_begin_[i] > 1)
 			{
@@ -426,7 +426,7 @@ public:
 	{
 		coordinates_type res;
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			res[i] =
 					global_count_[i] > 1 ?
@@ -581,12 +581,12 @@ public:
 	Real dual_volume_[8];
 	Real inv_dual_volume_[8];
 
-	nTuple<Real, NDIMS> inv_extents_, extents_, dx_, inv_dx_;
+	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 
 	bool update()
 	{
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			Real L = static_cast<Real>(global_count_[i]);
 			if (global_count_[i] <= 1)
@@ -607,10 +607,10 @@ public:
 
 			}
 
-			volume_[1UL << (NDIMS - i - 1)] = 1.0 / L;
-			dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0 / L;
-			inv_volume_[1UL << (NDIMS - i - 1)] = L;
-			inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = L;
+			volume_[1UL << (ndims - i - 1)] = 1.0 / L;
+			dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0 / L;
+			inv_volume_[1UL << (ndims - i - 1)] = L;
+			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = L;
 
 		}
 
@@ -1133,9 +1133,9 @@ public:
 	static index_type DI(size_t i, index_type r)
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
-		return (1UL << (INDEX_DIGITS * (NDIMS - i - 1) + MAX_DEPTH_OF_TREE - 1));
+		return (1UL << (INDEX_DIGITS * (ndims - i - 1) + MAX_DEPTH_OF_TREE - 1));
 #else
-		return (1UL << (INDEX_DIGITS * (NDIMS-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
+		return (1UL << (INDEX_DIGITS * (ndims-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
 
 #endif
 	}
@@ -1308,9 +1308,9 @@ public:
 		void NextCell()
 		{
 #ifndef USE_FORTRAN_ORDER_ARRAY
-			++self_[NDIMS - 1];
+			++self_[ndims - 1];
 
-			for (int i = NDIMS - 1; i > 0; --i)
+			for (int i = ndims - 1; i > 0; --i)
 			{
 				if (self_[i] >= end_[i])
 				{
@@ -1321,7 +1321,7 @@ public:
 #else
 			++self_[0];
 
-			for (int i = 0; i < NDIMS - 1; ++i)
+			for (int i = 0; i < ndims - 1; ++i)
 			{
 				if (self_[i] >= end_[i])
 				{
@@ -1336,10 +1336,10 @@ public:
 		{
 #ifndef USE_FORTRAN_ORDER_ARRAY
 
-			if (self_[NDIMS - 1] > begin_[NDIMS - 1])
-				--self_[NDIMS - 1];
+			if (self_[ndims - 1] > begin_[ndims - 1])
+				--self_[ndims - 1];
 
-			for (int i = NDIMS - 1; i > 0; --i)
+			for (int i = ndims - 1; i > 0; --i)
 			{
 				if (self_[i] <= begin_[i])
 				{
@@ -1354,7 +1354,7 @@ public:
 
 			++self_[0];
 
-			for (int i = 0; i < NDIMS; ++i)
+			for (int i = 0; i < ndims; ++i)
 			{
 				if (self_[i] < begin_[i])
 				{
@@ -1579,7 +1579,7 @@ public:
 				[=](index_type s)->size_t
 				{
 					size_t m_tree=MAX_DEPTH_OF_TREE;
-					nTuple<index_type,NDIMS> d =( decompact(s)>>m_tree)-local_outer_begin_;
+					nTuple<index_type,ndims> d =( decompact(s)>>m_tree)-local_outer_begin_;
 
 					index_type res =
 
@@ -2224,7 +2224,7 @@ inline StructuredMesh::range_type split(
 		size_t process_num, size_t ghost_width = 0)
 {
 	typedef StructuredMesh::index_type index_type;
-	static constexpr size_t NDIMS = StructuredMesh::NDIMS;
+	static constexpr size_t NDIMS = StructuredMesh::ndims;
 
 	auto b = begin(range).self_;
 	decltype(b) e = (--end(range)).self_ + 1;

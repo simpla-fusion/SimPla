@@ -17,16 +17,16 @@ namespace simpla
 {
 template<typename ... > class _Field;
 
-template<typename TDict, typename TM, typename Container>
-bool load_field_(TDict const &dict, _Field<TM, Container> *f)
+template<typename TDict, typename ...T>
+bool load_field_(TDict const &dict, _Field<T...> *f)
 {
 	if (!dict)
 		return false;
 
-	typedef TM mesh_type;
-	typedef typename _Field<TM, Container>::value_type value_type;
-	typedef typename _Field<TM, Container>::field_value_type field_value_type;
-	constexpr size_t iform = TM::iform;
+	typedef typename field_traits<_Field<T...>>::manifold_type mesh_type;
+	typedef typename field_traits<_Field<T...>>::value_type value_type;
+	typedef typename field_traits<_Field<T...>>::field_value_type field_value_type;
+	constexpr size_t iform = field_traits<_Field<T...>>::iform;
 
 	mesh_type const &mesh = f->mesh;
 
@@ -73,13 +73,12 @@ bool load_field_(TDict const &dict, _Field<TM, Container> *f)
 
 	return true;
 }
-template<int DIMS, typename TV, typename TDict, size_t IFORM, typename TM,
-		typename Container>
+template<int DIMS, typename TV, typename TDict, typename ...T>
 bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
-		_Field<TM, IFORM, Container> *f)
+		_Field<T...> *f)
 {
 
-	auto ff = f->mesh.template make_field<IFORM, nTuple<Real, DIMS>>();
+	auto ff = make_field<nTuple<Real, DIMS>>(f->domain());
 
 	ff.clear();
 
@@ -91,12 +90,11 @@ bool load_field_wrap(nTuple<std::complex<TV>, DIMS>, TDict const &dict,
 	return success;
 }
 
-template<typename TV, typename TDict, typename TM, typename Container>
-bool load_field_wrap(std::complex<TV>, TDict const &dict,
-		_Field<TM, Container> *f)
+template<typename TV, typename TDict, typename ... T>
+bool load_field_wrap(std::complex<TV>, TDict const &dict, _Field<T...> *f)
 {
 
-	auto ff = f->mesh.template make_field<TM::iform, Real>();
+	auto ff = make_field<Real>(f->domain());
 
 	ff.clear();
 
@@ -108,16 +106,16 @@ bool load_field_wrap(std::complex<TV>, TDict const &dict,
 	return success;
 }
 
-template<typename TV, typename TDict, typename TM, typename Container>
-bool load_field_wrap(TV, TDict const &dict, _Field<TM, Container> *f)
+template<typename TV, typename TDict, typename ...T>
+bool load_field_wrap(TV, TDict const &dict, _Field<T...> *f)
 {
 	return load_field_(dict, f);
 }
 
-template<typename TDict, typename TM, typename Container>
-bool load_field(TDict const &dict, _Field<TM, Container> *f)
+template<typename TDict, typename ...T>
+bool load_field(TDict const &dict, _Field<T...> *f)
 {
-	typedef typename _Field<TM, Container>::value_type value_type;
+	typedef typename field_traits<_Field<T...>>::value_type value_type;
 
 	return load_field_wrap(value_type(), dict, f);
 }

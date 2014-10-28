@@ -48,8 +48,8 @@ public:
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
-	typedef nTuple<NDIMS, Real> vector_type;
-	typedef nTuple<NDIMS, Real> covector_type;
+	typedef nTuple<Real, NDIMS> vector_type;
+	typedef nTuple<Real, NDIMS> covector_type;
 
 	CylindricalCoordinates(this_type const & rhs) = delete;
 
@@ -141,9 +141,9 @@ public:
 
 			set_extents(
 
-			dict["Min"].template as<nTuple<NDIMS, Real>>(),
+			dict["Min"].template as<nTuple<Real, NDIMS>>(),
 
-			dict["Max"].template as<nTuple<NDIMS, Real>>());
+			dict["Max"].template as<nTuple<Real, NDIMS>>());
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
@@ -204,11 +204,11 @@ public:
 			dt_ = safe_dt;
 		}
 	}
-	void updatedt(nTuple<NDIMS, Real> const & kimg)
+	void updatedt(nTuple<Real, NDIMS> const & kimg)
 	{
 		updatedt(0.0);
 	}
-	void updatedt(nTuple<NDIMS, Complex> const & kimg)
+	void updatedt(nTuple<Complex, NDIMS> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -407,14 +407,14 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > push_forward(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & Z) const
+	std::tuple<coordinates_type, nTuple<TV, NDIMS> > push_forward(
+			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & Z) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
-		nTuple<NDIMS, TV> u;
+		nTuple<TV, NDIMS> u;
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
@@ -438,15 +438,15 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<NDIMS, TV> > pull_back(
-			std::tuple<coordinates_type, nTuple<NDIMS, TV> > const & R) const
+	std::tuple<coordinates_type, nTuple<TV, NDIMS> > pull_back(
+			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
-		nTuple<NDIMS, TV> v;
+		nTuple<TV, NDIMS> v;
 
 		v[CARTESIAN_XAXIS] = u[RAxis] * c - u[PhiAxis] * r[RAxis] * s;
 		v[CARTESIAN_ZAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
@@ -472,7 +472,7 @@ public:
 	}
 
 	template<typename TV>
-	TV const& Normal(index_type s, nTuple<3, TV> const & v) const
+	TV const& Normal(index_type s, nTuple<TV, 3> const & v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
@@ -493,14 +493,14 @@ public:
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, EDGE>, index_type s,
-			nTuple<3, TV> const &v) const
+			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
 
 	template<typename TV>
 	TV Sample(std::integral_constant<unsigned int, FACE>, index_type s,
-			nTuple<3, TV> const &v) const
+			nTuple<TV, 3> const &v) const
 	{
 		return v[topology_type::component_number(s)];
 	}
@@ -515,7 +515,7 @@ public:
 	template<unsigned int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
 			std::integral_constant<unsigned int, IFORM>, index_type s,
-			nTuple<NDIMS, TV> const & v) const
+			nTuple<TV, NDIMS> const & v) const
 	{
 		return Normal(s, v);
 	}

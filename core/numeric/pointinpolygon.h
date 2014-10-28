@@ -23,19 +23,21 @@ namespace simpla
 class PointInPolygon
 {
 
-	std::vector<nTuple<2, double> > polygen_;
+	std::vector<nTuple<double, 2> > polygen_;
 	size_t num_of_vertex_;
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
 	template<unsigned int N>
-	PointInPolygon(std::vector<nTuple<N, Real> > const &polygen,   unsigned int   Z = 2)
-			: num_of_vertex_(0)
+	PointInPolygon(std::vector<nTuple<Real, N> > const &polygen,
+			unsigned int Z = 2) :
+			num_of_vertex_(0)
 	{
 
 		for (auto const & v : polygen)
 		{
-			polygen_.emplace_back(nTuple<2, Real>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
+			polygen_.emplace_back(
+					nTuple<double, 2>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
 		}
 		num_of_vertex_ = polygen_.size();
 		constant_.resize(num_of_vertex_);
@@ -50,23 +52,27 @@ public:
 			}
 			else
 			{
-				constant_[i] = polygen_[i][0] - (polygen_[i][1] * polygen_[j][0]) / (polygen_[j][1] - polygen_[i][1])
-				        + (polygen_[i][1] * polygen_[i][0]) / (polygen_[j][1] - polygen_[i][1]);
-				multiple_[i] = (polygen_[j][0] - polygen_[i][0]) / (polygen_[j][1] - polygen_[i][1]);
+				constant_[i] = polygen_[i][0]
+						- (polygen_[i][1] * polygen_[j][0])
+								/ (polygen_[j][1] - polygen_[i][1])
+						+ (polygen_[i][1] * polygen_[i][0])
+								/ (polygen_[j][1] - polygen_[i][1]);
+				multiple_[i] = (polygen_[j][0] - polygen_[i][0])
+						/ (polygen_[j][1] - polygen_[i][1]);
 			}
 			j = i;
 		}
 	}
 
-	PointInPolygon(PointInPolygon const& rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
-			        rhs.multiple_)
+	PointInPolygon(PointInPolygon const& rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
-	PointInPolygon(PointInPolygon && rhs)
-			: polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(rhs.constant_), multiple_(
-			        rhs.multiple_)
+	PointInPolygon(PointInPolygon && rhs) :
+			polygen_(rhs.polygen_), num_of_vertex_(rhs.num_of_vertex_), constant_(
+					rhs.constant_), multiple_(rhs.multiple_)
 	{
 
 	}
@@ -78,7 +84,7 @@ public:
 	}
 
 	template<unsigned int N>
-	inline bool IsInside(nTuple<N, Real> x,   unsigned int   ZAxis = 2) const
+	inline bool IsInside(nTuple<Real, N> x, unsigned int ZAxis = 2) const
 	{
 		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 	}
@@ -90,7 +96,8 @@ public:
 
 		for (size_t i = 0, j = num_of_vertex_ - 1; i < num_of_vertex_; i++)
 		{
-			if (((polygen_[i][1] < y) && (polygen_[j][1] >= y)) || ((polygen_[j][1] < y) && (polygen_[i][1] >= y)))
+			if (((polygen_[i][1] < y) && (polygen_[j][1] >= y))
+					|| ((polygen_[j][1] < y) && (polygen_[i][1] >= y)))
 			{
 				oddNodes ^= (y * multiple_[i] + constant_[i] < x);
 			}
@@ -102,13 +109,15 @@ public:
 	}
 
 	template<unsigned int N>
-	std::tuple<bool, nTuple<N, Real>> Intersection(nTuple<N, Real> const & x0, nTuple<N, Real> const &x1,
-	          unsigned int   ZAxis = 2, Real error = 0.001) const
+	std::tuple<bool, nTuple<Real, N>> Intersection(nTuple<Real, N> const & x0,
+			nTuple<Real, N> const &x1, unsigned int ZAxis = 2, Real error =
+					0.001) const
 	{
-		std::function<bool(nTuple<N, Real> const &)> fun = [this,ZAxis](nTuple<N,Real> const & x)->bool
-		{
-			return this->IsInside(x,ZAxis);
-		};
+		std::function<bool(nTuple<Real, N> const &)> fun =
+				[this,ZAxis](nTuple<Real, N> const & x)->bool
+				{
+					return this->IsInside(x,ZAxis);
+				};
 
 		return std::move(find_root(x0, x1, fun, error));
 	}

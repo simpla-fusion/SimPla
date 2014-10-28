@@ -28,7 +28,7 @@ typedef GEOMETRY TGeometry;
 class TestGeometry: public testing::TestWithParam<
 		std::tuple<typename TGeometry::coordinates_type,
 				typename TGeometry::coordinates_type,
-				nTuple<size_t, TGeometry::NDIMS> > >
+				nTuple<size_t, TGeometry::ndims> > >
 {
 protected:
 	void SetUp()
@@ -58,26 +58,26 @@ public:
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 
-	static constexpr size_t NDIMS = geometry_type::NDIMS;
+	static constexpr size_t ndims = geometry_type::ndims;
 
 	geometry_type geometry;
 
 	std::vector<size_t> iform_list = { VERTEX, EDGE, FACE, VOLUME };
 	coordinates_type xmin, xmax;
-	nTuple<index_type, geometry_type::NDIMS> dims;
+	nTuple<index_type, geometry_type::ndims> dims;
 
 	Real epsilon = EPSILON * 10;
 
 	bool is_valid() const
 	{
-		size_t ndims = 0;
-		for (int i = 0; i < NDIMS; ++i)
+		size_t nd = 0;
+		for (int i = 0; i < ndims; ++i)
 		{
 			if (dims[i] > 1 && (xmax[i] > xmin[i]))
-				++ndims;
+				++nd;
 		}
 
-		return ndims > 0;
+		return nd > 0;
 	}
 
 };
@@ -118,7 +118,7 @@ TEST_P(TestGeometry, Coordinates)
 			geometry.index_to_coordinates(idx));
 
 	auto y = geometry.index_to_coordinates(geometry.coordinates_to_index(x));
-	for (int i = 0; i < NDIMS; ++i)
+	for (int i = 0; i < ndims; ++i)
 	{
 		if (dims[i] <= 1)
 			x[i] = 0;

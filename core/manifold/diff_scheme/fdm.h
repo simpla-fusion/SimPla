@@ -32,7 +32,7 @@ struct FiniteDiffMehtod
 
 	typedef FiniteDiffMehtod<G> this_type;
 
-	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::NDIMS + 1;
+	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
 
 	G const & geo;
 
@@ -430,12 +430,12 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> void calculate_(
-			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 			_Field<Domain<TM, VERTEX>, TL> const & f,
 			typename G::index_type s) const = delete;
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 			_Field<Domain<TM, EDGE>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{
@@ -451,7 +451,7 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 			_Field<Domain<TM, FACE>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{
@@ -468,7 +468,7 @@ private:
 	}
 
 	template<typename TM, typename TL, typename TR> inline auto calculate_(
-			_impl::InteriorProduct, nTuple<TR, G::NDIMS> const & v,
+			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 			_Field<Domain<TM, VOLUME>, TL> const & f,
 			typename G::index_type s) const ->decltype(get_value(f,s)*v[0])
 	{

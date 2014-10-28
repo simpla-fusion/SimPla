@@ -25,7 +25,8 @@ $git clone git@github.com:simpla-fusion/SimPla.git SimPla
 $cd SimPla
 $mkdir build
 $cd build
-$CC=clang CXX=clang++ cmake -DCMAKE_BUILD_TYPE=Release ../
+$CC=clang CXX=clang++ HDF5_ROOT=$HDF5_ROOT MPI_ROOT=$MPI_ROOT  cmake -DCMAKE_BUILD_TYPE=Release ..
+
 $make <exec name>
 ~~~~~~~~~~~~~
  

@@ -10,14 +10,13 @@
 #include <iostream>
 #include <string>
 
-#include "../../src/fetl/fetl.h"
-#include "../../src/utilities/primitives.h"
-#include "../../src/utilities/log.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../core/field/field.h"
+#include "../../core/utilities/primitives.h"
+#include "../../core/utilities/log.h"
+#include "../../core/physics/physical_constants.h"
 
 namespace simpla
 {
-
 
 /**
  *  \ingroup FieldSolver
@@ -29,11 +28,11 @@ class PML
 
 	inline Real sigma_(Real r, Real expN, Real dB)
 	{
-		return (0.5 * (expN + 2.0) * 0.1 * dB * pow(r, expN + 1.0));
+		return (0.5 * (expN + 2.0) * 0.1 * dB * std::pow(r, expN + 1.0));
 	}
 	inline Real alpha_(Real r, Real expN, Real dB)
 	{
-		return (1.0 + 2.0 * pow(r, expN));
+		return (1.0 + 2.0 * std::pow(r, expN));
 	}
 public:
 
@@ -71,20 +70,22 @@ public:
 
 	void save(std::string const & path, bool is_verbose) const;
 
-	void next_timestepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
-	        typename mesh_type:: template field<FACE, scalar_type> const &B1,
-	        typename mesh_type:: template field<EDGE, scalar_type> *dE);
+	void next_timestepE(Real dt,
+			typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+			typename mesh_type:: template field<FACE, scalar_type> const &B1,
+			typename mesh_type:: template field<EDGE, scalar_type> *dE);
 
-	void next_timestepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
-	        typename mesh_type:: template field<FACE, scalar_type> const &B1,
-	        typename mesh_type:: template field<FACE, scalar_type> *dB);
+	void next_timestepB(Real dt,
+			typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+			typename mesh_type:: template field<FACE, scalar_type> const &B1,
+			typename mesh_type:: template field<FACE, scalar_type> *dB);
 
 };
 
 template<typename TM>
 template<typename ... Args>
-PML<TM>::PML(mesh_type const & pmesh, Args && ...args)
-		: mesh(pmesh),
+PML<TM>::PML(mesh_type const & pmesh, Args && ...args) :
+		mesh(pmesh),
 
 		a0(pmesh), a1(pmesh), a2(pmesh),
 
@@ -108,7 +109,8 @@ template<typename TM>
 template<typename TDict, typename ...Others>
 void PML<TM>::load(TDict const &dict, Others const & ...)
 {
-	load(dict["Min"].template as<coordinates_type>(), dict["Max"].template as<coordinates_type>());
+	load(dict["Min"].template as<coordinates_type>(),
+			dict["Max"].template as<coordinates_type>());
 }
 
 template<typename TM>
@@ -116,8 +118,7 @@ void PML<TM>::load(coordinates_type xmin, coordinates_type xmax)
 {
 	LOGGER << "create PML solver [" << xmin << " , " << xmax << " ]";
 
-	DEFINE_PHYSICAL_CONST
-	;
+	DEFINE_PHYSICAL_CONST;
 
 	Real dB = 100, expN = 2;
 
@@ -181,9 +182,10 @@ OS &operator<<(OS & os, PML<TM> const& self)
 }
 
 template<typename TM>
-void PML<TM>::next_timestepE(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const&E1,
-        typename mesh_type:: template field<FACE, scalar_type> const&B1,
-        typename mesh_type:: template field<EDGE, scalar_type> *dE)
+void PML<TM>::next_timestepE(Real dt,
+		typename mesh_type:: template field<EDGE, scalar_type> const&E1,
+		typename mesh_type:: template field<FACE, scalar_type> const&B1,
+		typename mesh_type:: template field<EDGE, scalar_type> *dE)
 {
 	LOGGER << "PML push E";
 
@@ -191,15 +193,18 @@ void PML<TM>::next_timestepE(Real dt, typename mesh_type:: template field<EDGE, 
 
 	auto dX1 = mesh.template make_field<EDGE, scalar_type>();
 
-	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1) / (mu0 * epsilon0) * dt) / (a0 + s0 * dt);
+	dX1 = (-2.0 * dt * s0 * X10 + CurlPDX(B1) / (mu0 * epsilon0) * dt)
+			/ (a0 + s0 * dt);
 	X10 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1) / (mu0 * epsilon0) * dt) / (a1 + s1 * dt);
+	dX1 = (-2.0 * dt * s1 * X11 + CurlPDY(B1) / (mu0 * epsilon0) * dt)
+			/ (a1 + s1 * dt);
 	X11 += dX1;
 	*dE += dX1;
 
-	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1) / (mu0 * epsilon0) * dt) / (a2 + s2 * dt);
+	dX1 = (-2.0 * dt * s2 * X12 + CurlPDZ(B1) / (mu0 * epsilon0) * dt)
+			/ (a2 + s2 * dt);
 	X12 += dX1;
 	*dE += dX1;
 
@@ -207,9 +212,10 @@ void PML<TM>::next_timestepE(Real dt, typename mesh_type:: template field<EDGE, 
 }
 
 template<typename TM>
-void PML<TM>::next_timestepB(Real dt, typename mesh_type:: template field<EDGE, scalar_type> const &E1,
-        typename mesh_type:: template field<FACE, scalar_type> const&B1,
-        typename mesh_type:: template field<FACE, scalar_type> *dB)
+void PML<TM>::next_timestepB(Real dt,
+		typename mesh_type:: template field<EDGE, scalar_type> const &E1,
+		typename mesh_type:: template field<FACE, scalar_type> const&B1,
+		typename mesh_type:: template field<FACE, scalar_type> *dB)
 {
 	LOGGER << "PML Push B";
 

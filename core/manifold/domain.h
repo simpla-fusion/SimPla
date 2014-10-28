@@ -115,6 +115,9 @@ public:
 		return 0;	 //manifold_.topology_type::max_hash();
 	}
 
+	auto dataset() const
+	DECL_RET_TYPE((std::make_tuple(max_hash())))
+
 public:
 	template<typename TL, typename TR>
 	void assign(TL & lhs, TR const & rhs) const
@@ -128,10 +131,17 @@ public:
 				lhs[s]= manifold_.get_value( rhs,s );
 			}
 		});
+
 	}
 
 }
 ;
+
+template<size_t IFORM, typename TM>
+Domain<TM, IFORM> make_domain(TM const & m)
+{
+	return std::move(Domain<TM, IFORM>(m));
+}
 
 template<typename TG, size_t IFORM, typename ...Args>
 auto calculate(Domain<TG, IFORM> const & d, Args && ... args)

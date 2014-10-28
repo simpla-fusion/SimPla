@@ -19,7 +19,6 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/any.h"
-
 namespace simpla
 {
 /** \defgroup  DataIO Data input/output system
@@ -51,32 +50,22 @@ public:
 
 	~DataStream();
 
-	Properties & get_properties();
-	Properties const & get_properties() const;
+	Properties & properties();
+	Properties const & properties() const;
 
-	template<typename T> void property(std::string const & name, T const&v)
+	template<typename T> void properties(std::string const & name, T const&v)
 	{
-		get_properties().set(name, Any(v));
+		properties().set(name, Any(v));
 	}
 
-	template<typename T> T property(std::string const & name) const
+	template<typename T> T properties(std::string const & name) const
 	{
-		return get_properties().get(name).template as<T>();
-	}
-
-	template<typename T> void set_property(std::string const & name, T const&v)
-	{
-		get_properties().set(name, Any(v));
-	}
-
-	template<typename T> T get_property(std::string const & name) const
-	{
-		return get_properties().get(name).template as<T>();
+		return properties().get(name).template as<T>();
 	}
 
 	void init(int argc = 0, char** argv = nullptr);
 
-	std::string cd(std::string const & url, unsigned int is_append = 0UL);
+	std::string cd(std::string const & url, size_t is_append = 0UL);
 
 	std::string pwd() const;
 
@@ -126,7 +115,7 @@ public:
 
 	size_t const *local_inner_end = nullptr,
 
-	unsigned int flag = 0UL
+	size_t flag = 0UL
 
 	);
 
@@ -175,22 +164,21 @@ private:
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
-template<typename ...Args>
-std::string save(std::string const & name, std::tuple<Args...> const& args,
-		unsigned int flag = 0UL)
+template<typename Tuple, size_t ...Is>
+std::string save_tuple_impl(std::string const & name, Tuple const & d,
+		index_sequence<Is...>)
 {
-	return GLOBAL_DATA_STREAM.write(name,
-			&(*std::get<0>(args)), //	void const *v,
-			std::get<1>(args),//	DataType const & datatype,
-			std::get<2>(args),//	size_t ndims_or_number,
-			&(std::get<3>(args)[0]),//	size_t const *global_begin = nullptr,
-			&(std::get<4>(args)[0]),//	size_t const *global_end = nullptr,
-			&(std::get<5>(args)[0]),//	size_t const *local_outer_begin = nullptr,
-			&(std::get<6>(args)[0]),//	size_t const *local_outer_end = nullptr,
-			&(std::get<7>(args)[0]),//	size_t const *local_inner_begin = nullptr,
-			&(std::get<8>(args)[0]),//	size_t const *local_inner_end = nullptr,
-			flag
-	);
+	return std::move(GLOBAL_DATA_STREAM.write(name, std::get<Is>(d)... ));
+}
+template<typename ...T>
+std::string save(std::string const & name, std::tuple<T...> const & d,
+		size_t flag = 0UL)
+{
+	return std::move(save_tuple_impl(name, d,
+
+	make_index_sequence<sizeof...(T)>()
+
+	));
 }
 
 template<typename TV, typename ...Args>
@@ -231,8 +219,7 @@ template<typename TV, typename ... Args> inline std::string save(
 	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<TV, 2>(
-		{ p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

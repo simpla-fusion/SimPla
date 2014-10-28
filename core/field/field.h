@@ -10,10 +10,12 @@
 #include <stddef.h>
 #include <cstdbool>
 #include <memory>
+#include <tuple>
 #include "field_traits.h"
 
 #include "../utilities/container_traits.h"
 #include "../utilities/sp_type_traits.h"
+#include "../utilities/data_type.h"
 #include "../parallel/parallel.h"
 
 namespace simpla
@@ -224,6 +226,12 @@ public:
 	auto scatter(Args && ... args)
 	DECL_RET_TYPE(( simpla::scatter(domain_,data_,
 							std::forward<Args>(args)...)))
+
+	auto dataset() const
+			DECL_RET_TYPE(std::move(
+							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
+									,domain_.dataset()))
+			)
 
 }
 ;

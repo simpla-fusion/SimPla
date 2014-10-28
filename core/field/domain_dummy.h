@@ -84,6 +84,8 @@ public:
 		d[r] += v;
 	}
 
+	auto dataset() const DECL_RET_TYPE((std::make_tuple(max_hash())))
+
 };
 
 }

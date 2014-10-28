@@ -13,9 +13,10 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/sp_complex.h"
 
-#include "field.h"
+#include "../field/field.h"
 #include "calculus.h"
-
+#include "domain.h"
+#include "manifold.h"
 
 //#include "field_vector_ops.h"
 //#include "field_constant.h"

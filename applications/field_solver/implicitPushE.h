@@ -8,9 +8,9 @@
 #ifndef IMPLICITPUSHE_H_
 #define IMPLICITPUSHE_H_
 
-#include "../../src/fetl/fetl.h"
-#include "../../src/utilities/log.h"
-#include "../../src/physics/physical_constants.h"
+#include "../../core/field/field.h"
+#include "../../core/utilities/log.h"
+#include "../../core/physics/physical_constants.h"
 
 namespace simpla
 {
@@ -34,13 +34,13 @@ public:
 
 	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
 
-	field<VERTEX, nTuple<3, scalar_type>> Ev, Bv;
+	field<VERTEX, nTuple<scalar_type,3>> Ev, Bv;
 
 	field<VERTEX, Real> BB;
 
 	typedef field<VERTEX, scalar_type> rho_type;
 
-	typedef field<VERTEX, nTuple<3, scalar_type>> J_type;
+	typedef field<VERTEX, nTuple<scalar_type,3>> J_type;
 
 	template<typename ...Others>
 	ImplicitPushE(mesh_type const & m, Others const &...)
@@ -87,8 +87,8 @@ void ImplicitPushE<TM>::next_timestep(field<EDGE, scalar_type> *pdE)
 
 	BB = Dot(B0, B0);
 
-	auto Q = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
-	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto Q = mesh.template make_field<VERTEX, nTuple<scalar_type,3>>();
+	auto K = mesh.template make_field<VERTEX, nTuple<scalar_type,3>>();
 
 	Q = MapTo<VERTEX>(*pdE);
 
@@ -128,7 +128,7 @@ void ImplicitPushE<TM>::next_timestep(field<EDGE, scalar_type> *pdE)
 	c *= 0.5 * dt / epsilon0;
 	a += 1;
 
-	auto dEv = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto dEv = mesh.template make_field<VERTEX, nTuple<scalar_type,3>>();
 
 	dEv = (Q * a - Cross(Q, B0) * b + B0 * (Dot(Q, B0) * (b * b - c * a) / (a + c * BB))) / (b * b * BB + a * a);
 

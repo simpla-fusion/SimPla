@@ -19,12 +19,10 @@ namespace simpla
 template<typename ... >struct _Field;
 
 template<typename TV, typename ... Others>
-_Field<std::shared_ptr<TV>, Others...> make_field(Others && ...others)
-{
-	return std::move(
-			_Field<std::shared_ptr<TV>, Others...>(
-					std::forward<Others>(others)...));
-}
+auto make_field(Others && ...others)
+DECL_RET_TYPE((_Field<std::shared_ptr<TV>,
+				typename std::remove_reference<Others>::type...>(
+						std::forward<Others>(others)...)))
 
 template<typename T>
 constexpr Identity get_domain(T && ...)
@@ -47,12 +45,13 @@ HAS_MEMBER_FUNCTION(scatter)template
 <typename TD, typename TC, typename ...Args>
 auto scatter(TD const & d, TC & c, Args && ... args)
 ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
-,(d.scatter(c,std::forward<Args>(args)...)))
+,(d.scatter(c,std::forward<Args>(args
+				)...)))
 
 template<typename TD, typename TC, typename ...Args>
 auto scatter(TD const & d, TC & c,
 		Args && ... args)
-		->typename std::enable_if<(!has_member_function_scatter<TD,TC,Args...>::value) >::type
+->typename std::enable_if<(!has_member_function_scatter<TD,TC,Args...>::value) >::type
 {
 }
 

@@ -32,7 +32,7 @@ public:
 	typedef Policy1<geometry_type> policy1;
 	typedef Policy2<geometry_type> policy2;
 	typedef typename geometry_type::topology_type topology_type;
-	typedef typename geometry_type::coordinates_type coordiantes_type;
+	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::index_type index_type;
 
 	template<typename ...Args>

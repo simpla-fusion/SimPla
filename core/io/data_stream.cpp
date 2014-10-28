@@ -39,7 +39,7 @@ struct DataStream::pimpl_s
 	{
 		DataType data_desc;
 
-		unsigned int ndims;
+		size_t ndims;
 
 		hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
 		hsize_t f_offset[MAX_NDIMS_OF_ARRAY];
@@ -52,7 +52,7 @@ struct DataStream::pimpl_s
 		hsize_t count[MAX_NDIMS_OF_ARRAY];
 		hsize_t block[MAX_NDIMS_OF_ARRAY];
 
-		unsigned int flag = 0UL;
+		size_t flag = 0UL;
 
 	};
 
@@ -61,7 +61,8 @@ struct DataStream::pimpl_s
 	std::map<std::string, CacheDataSet> cache_;
 
 	std::tuple<std::string, hid_t> open_group(std::string const & path);
-	std::tuple<std::string, hid_t> open_file(std::string const & path, bool is_append = false);
+	std::tuple<std::string, hid_t> open_file(std::string const & path,
+			bool is_append = false);
 
 	void close();
 
@@ -100,9 +101,10 @@ public:
 		return s == 0;
 	}
 
-	std::string cd(std::string const &file_name, std::string const &grp_name, unsigned int is_append = 0UL);
+	std::string cd(std::string const &file_name, std::string const &grp_name,
+			size_t is_append = 0UL);
 
-	std::string cd(std::string const &url, unsigned int is_append = 0UL);
+	std::string cd(std::string const &url, size_t is_append = 0UL);
 
 	std::string write(std::string const &url, const void *, DataSet ds);
 
@@ -144,34 +146,41 @@ public:
 
 	size_t const *local_inner_end = nullptr,
 
-	unsigned int flag = 0UL
+	size_t flag = 0UL
 
 	) const;
 
 	void convert_record_data_set(DataSet*) const;
 
-	std::string write_array(std::string const &name, const void *, DataSet const &);
+	std::string write_array(std::string const &name, const void *,
+			DataSet const &);
 
-	std::string write_cache(std::string const &name, const void *, DataSet const &);
+	std::string write_cache(std::string const &name, const void *,
+			DataSet const &);
 
 	std::string flush_cache(std::string const & name);
 
 	hid_t create_datadesc(DataType const &, bool is_compact_array = false);
 
-	void set_attribute(std::string const &url, DataType const &d_type, void const * buff);
+	void set_attribute(std::string const &url, DataType const &d_type,
+			void const * buff);
 
-	void get_attribute(std::string const &url, DataType const &d_type, void *buff);
+	void get_attribute(std::string const &url, DataType const &d_type,
+			void *buff);
 
 	void delete_attribute(std::string const &url);
 
-	void delete_attribute(std::string const &obj_name, std::string const & attr_name);
+	void delete_attribute(std::string const &obj_name,
+			std::string const & attr_name);
 
-	std::tuple<std::string, std::string, std::string, std::string> parser_url(std::string const & url);
+	std::tuple<std::string, std::string, std::string, std::string> parser_url(
+			std::string const & url);
 
 };
 
-DataStream::pimpl_s::pimpl_s()
-		: base_file_id_(-1), base_group_id_(-1), current_filename_("untitle.h5"), current_groupname_("/")
+DataStream::pimpl_s::pimpl_s() :
+		base_file_id_(-1), base_group_id_(-1), current_filename_("untitle.h5"), current_groupname_(
+				"/")
 {
 	hid_t error_stack = H5Eget_current_stack();
 	H5Eset_auto(error_stack, NULL, NULL);
@@ -267,7 +276,8 @@ void sync_string(std::string * filename_)
 
 }
 
-std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(std::string const & fname, bool is_append)
+std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
+		std::string const & fname, bool is_append)
 {
 	std::string filename = fname;
 
@@ -313,7 +323,8 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(std::string const 
 	H5Pset_fapl_mpio(plist_id, GLOBAL_COMM.comm(), GLOBAL_COMM.info());
 #endif
 
-	H5_ERROR(f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
+	H5_ERROR(
+			f_id = H5Fcreate( filename.c_str(), H5F_ACC_EXCL, H5P_DEFAULT, plist_id));
 
 	H5Pclose(plist_id);
 
@@ -321,7 +332,8 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(std::string const 
 
 }
 
-std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const & str)
+std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(
+		std::string const & str)
 {
 	std::string path = str;
 	hid_t g_id = -1;
@@ -342,7 +354,8 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const
 	}
 	else
 	{
-		H5_ERROR(g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
+		H5_ERROR(
+				g_id = H5Gcreate(base_file_id_, path.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT));
 	}
 
 	return std::make_tuple(path, g_id);
@@ -355,14 +368,15 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_group(std::string const
  * @param flag
  * @return
  */
-std::string DataStream::pimpl_s::cd(std::string const &url, unsigned int is_append)
+std::string DataStream::pimpl_s::cd(std::string const &url, size_t is_append)
 {
 	std::string file_name, grp_name, obj_name;
 	std::tie(file_name, grp_name, obj_name, std::ignore) = parser_url(url);
 	return cd(file_name, grp_name + obj_name, is_append);
 }
 
-std::string DataStream::pimpl_s::cd(std::string const &file_name, std::string const &grp_name, unsigned int is_append)
+std::string DataStream::pimpl_s::cd(std::string const &file_name,
+		std::string const &grp_name, size_t is_append)
 {
 //@todo using regex parser url
 
@@ -384,7 +398,8 @@ std::string DataStream::pimpl_s::cd(std::string const &file_name, std::string co
 
 	if (base_file_id_ <= 0)
 	{
-		std::tie(current_filename_, base_file_id_) = open_file(file_name, is_append);
+		std::tie(current_filename_, base_file_id_) = open_file(file_name,
+				is_append);
 	}
 
 	if (current_groupname_ != grp_name)
@@ -421,7 +436,8 @@ void DataStream::pimpl_s::close()
 
 }
 
-void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &d_type, void const * buff)
+void DataStream::pimpl_s::set_attribute(std::string const &url,
+		DataType const &d_type, void const * buff)
 {
 
 	delete_attribute(url);
@@ -434,7 +450,9 @@ void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &
 
 	std::tie(grp_path, g_id) = open_group(grp_path);
 
-	hid_t o_id = (obj_name != "") ? H5Oopen(g_id, obj_name.c_str(), H5P_DEFAULT) : g_id;
+	hid_t o_id =
+			(obj_name != "") ?
+					H5Oopen(g_id, obj_name.c_str(), H5P_DEFAULT) : g_id;
 
 	if (d_type.is_same<std::string>())
 	{
@@ -448,7 +466,8 @@ void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
-		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space,
+		H5P_DEFAULT, H5P_DEFAULT);
 
 		H5Awrite(a_id, m_type, s_str.c_str());
 
@@ -462,7 +481,8 @@ void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
-		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space, H5P_DEFAULT, H5P_DEFAULT);
+		hid_t a_id = H5Acreate(o_id, attr_name.c_str(), m_type, m_space,
+		H5P_DEFAULT, H5P_DEFAULT);
 
 		H5Awrite(a_id, m_type, buff);
 
@@ -480,7 +500,8 @@ void DataStream::pimpl_s::set_attribute(std::string const &url, DataType const &
 		H5Gclose(g_id);
 }
 
-void DataStream::pimpl_s::get_attribute(std::string const &url, DataType const &d_type, void * buff)
+void DataStream::pimpl_s::get_attribute(std::string const &url,
+		DataType const &d_type, void * buff)
 {
 	UNIMPLEMENT;
 }
@@ -495,9 +516,11 @@ void DataStream::pimpl_s::delete_attribute(std::string const &url)
 		hid_t g_id;
 		std::tie(grp_name, g_id) = open_group(grp_name);
 
-		if (H5Aexists_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT))
+		if (H5Aexists_by_name(g_id, obj_name.c_str(), attr_name.c_str(),
+		H5P_DEFAULT))
 		{
-			H5Adelete_by_name(g_id, obj_name.c_str(), attr_name.c_str(), H5P_DEFAULT);
+			H5Adelete_by_name(g_id, obj_name.c_str(), attr_name.c_str(),
+			H5P_DEFAULT);
 		}
 		if (g_id != base_group_id_)
 			H5Gclose(g_id);
@@ -511,9 +534,10 @@ void DataStream::pimpl_s::delete_attribute(std::string const &url)
  * @return
  */
 std::tuple<std::string, std::string, std::string, std::string> DataStream::pimpl_s::parser_url(
-        std::string const & url_hint)
+		std::string const & url_hint)
 {
-	std::string file_name(current_filename_), grp_name(current_groupname_), obj_name(""), attribute("");
+	std::string file_name(current_filename_), grp_name(current_groupname_),
+			obj_name(""), attribute("");
 
 	std::string url = url_hint;
 
@@ -549,7 +573,8 @@ std::tuple<std::string, std::string, std::string, std::string> DataStream::pimpl
 
 }
 
-std::string DataStream::pimpl_s::write(std::string const &url, void const* v, DataSet ds)
+std::string DataStream::pimpl_s::write(std::string const &url, void const* v,
+		DataSet ds)
 {
 	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
 	{
@@ -572,7 +597,8 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v, Da
 
 }
 
-hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type, bool is_compact_array)
+hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type,
+		bool is_compact_array)
 {
 
 	hid_t res;
@@ -602,7 +628,8 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type, bool is_compa
 		{
 			ele_type = H5T_NATIVE_DOUBLE;
 		}
-		else if (d_type.t_index_ == std::type_index(typeid(std::complex<double>)))
+		else if (d_type.t_index_
+				== std::type_index(typeid(std::complex<double>)))
 		{
 			ele_type = H5Tcreate(H5T_COMPOUND, sizeof(std::complex<double>));
 			H5Tinsert(ele_type, "r", 0, H5T_NATIVE_DOUBLE);
@@ -613,7 +640,8 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type, bool is_compa
 		if (is_compact_array && d_type.ndims > 0)
 		{
 			hsize_t dims[d_type.ndims];
-			std::copy(d_type.dimensions_, d_type.dimensions_ + d_type.ndims, dims);
+			std::copy(d_type.dimensions_, d_type.dimensions_ + d_type.ndims,
+					dims);
 			res = H5Tarray_create(ele_type, d_type.ndims, dims);
 
 		}
@@ -630,7 +658,8 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type, bool is_compa
 
 		for (auto const & item : d_type.data)
 		{
-			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item), create_datadesc(std::get<0>(item), true));
+			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
+					create_datadesc(std::get<0>(item), true));
 		}
 
 	}
@@ -656,7 +685,7 @@ size_t const *p_local_inner_begin,
 
 size_t const *p_local_inner_end,
 
-unsigned int flag) const
+size_t flag) const
 {
 	DataSet res;
 
@@ -668,33 +697,40 @@ unsigned int flag) const
 	{
 		auto g_begin = (p_global_begin == nullptr) ? 0 : p_global_begin[i];
 
-		res.f_shape[i] = (p_global_end == nullptr) ? 1 : p_global_end[i] - g_begin;
+		res.f_shape[i] =
+				(p_global_end == nullptr) ? 1 : p_global_end[i] - g_begin;
 
 		res.f_stride[i] = res.f_shape[i];
 
-		res.f_offset[i] = (p_local_inner_begin == nullptr) ? 0 : p_local_inner_begin[i] - g_begin;
+		res.f_offset[i] =
+				(p_local_inner_begin == nullptr) ?
+						0 : p_local_inner_begin[i] - g_begin;
 
 		res.m_shape[i] =
-		        (p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
-		                res.f_shape[i] : p_local_outer_end[i] - p_local_outer_begin[i];
+				(p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
+						res.f_shape[i] :
+						p_local_outer_end[i] - p_local_outer_begin[i];
 
 		res.m_offset[i] =
-		        (p_local_inner_begin == nullptr || p_local_outer_begin == nullptr) ?
-		                0 : p_local_inner_begin[i] - p_local_outer_begin[i];
+				(p_local_inner_begin == nullptr
+						|| p_local_outer_begin == nullptr) ?
+						0 : p_local_inner_begin[i] - p_local_outer_begin[i];
 
 		res.m_stride[i] = res.m_shape[i];
 
 		res.count[i] = 1;
 
 		res.block[i] =
-		        (p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
-		                res.f_shape[i] : p_local_inner_end[i] - p_local_inner_begin[i];
+				(p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
+						res.f_shape[i] :
+						p_local_inner_end[i] - p_local_inner_begin[i];
 
 	}
 
 	if ((flag & SP_UNORDER) == SP_UNORDER)
 	{
-		std::tie(res.f_offset[0], res.f_shape[0]) = sync_global_location(res.f_shape[0]);
+		std::tie(res.f_offset[0], res.f_shape[0]) = sync_global_location(
+				res.f_shape[0]);
 
 		res.f_stride[0] = res.f_shape[0];
 	}
@@ -771,7 +807,8 @@ void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
 
 }
 
-std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const void *v, DataSet const & ds)
+std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
+		const void *v, DataSet const & ds)
 {
 
 	std::string filename, grp_name, dsname;
@@ -780,7 +817,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 
 	cd(filename, grp_name, ds.flag);
 
-	std::string url = pwd() +   dsname;
+	std::string url = pwd() + dsname;
 
 	if (cache_.find(url) == cache_.end())
 	{
@@ -790,7 +827,8 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 			cache_memory_size *= ds.m_shape[i];
 		}
 
-		size_t cache_depth = properties["Max Cache Size"].as<size_t>(10 * 1024 * 1024UL) / cache_memory_size;
+		size_t cache_depth = properties["Max Cache Size"].as<size_t>(
+				10 * 1024 * 1024UL) / cache_memory_size;
 
 		if (cache_depth <= properties["Min Cache Number"].as<int>(5))
 		{
@@ -799,7 +837,8 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 		else
 		{
 
-			mempool_.make_shared<ByteType>(cache_memory_size * cache_depth).swap(std::get<0>(cache_[url]));
+			mempool_.make_shared<ByteType>(cache_memory_size * cache_depth).swap(
+					std::get<0>(cache_[url]));
 
 			DataSet & item = std::get<1>(cache_[url]);
 
@@ -845,7 +884,9 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url, const vo
 		memory_size *= item.m_shape[i];
 	}
 
-	std::memcpy(reinterpret_cast<void*>(data.get() + item.count[0] * memory_size), v, memory_size);
+	std::memcpy(
+			reinterpret_cast<void*>(data.get() + item.count[0] * memory_size),
+			v, memory_size);
 
 	++item.count[0];
 
@@ -886,7 +927,8 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 	return res;
 }
 
-std::string DataStream::pimpl_s::write_array(std::string const & url, const void *v, DataSet const &ds)
+std::string DataStream::pimpl_s::write_array(std::string const & url,
+		const void *v, DataSet const &ds)
 {
 //	if (v == nullptr)
 //	{
@@ -928,7 +970,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 
 		file_space = H5Screate_simple(ds.ndims, ds.f_shape, nullptr);
 
-		dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, file_space, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+		dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, file_space,
+		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
 
 		H5_ERROR(H5Sclose(file_space));
 
@@ -943,11 +986,15 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 		else
 		{
 
-			H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_offset, ds.f_stride, ds.count, ds.block));
+			H5_ERROR(
+					H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_offset,
+							ds.f_stride, ds.count, ds.block));
 
 			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, NULL);
 
-			H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+			H5_ERROR(
+					H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset,
+							ds.m_stride, ds.count, ds.block));
 		}
 
 	}
@@ -971,10 +1018,12 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 
 			current_dims[0] = 0;
 
-			hid_t f_space = H5Screate_simple(f_ndims, current_dims, maximum_dims);
+			hid_t f_space = H5Screate_simple(f_ndims, current_dims,
+					maximum_dims);
 
-			hid_t t_dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, f_space, H5P_DEFAULT, dcpl_id,
-			H5P_DEFAULT);
+			hid_t t_dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type,
+					f_space, H5P_DEFAULT, dcpl_id,
+					H5P_DEFAULT);
 
 			H5_ERROR(H5Sclose(f_space));
 
@@ -1015,11 +1064,15 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 
 			file_space = H5Dget_space(dset);
 
-			H5_ERROR(H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_offset, ds.f_stride, ds.count, ds.block));
+			H5_ERROR(
+					H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_offset,
+							ds.f_stride, ds.count, ds.block));
 
 			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, nullptr);
 
-			H5_ERROR(H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset, ds.m_stride, ds.count, ds.block));
+			H5_ERROR(
+					H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset,
+							ds.m_stride, ds.count, ds.block));
 		}
 		//	CHECK(ndims);
 		//	CHECK(f_shape[0]) << " " << f_shape[1];
@@ -1060,8 +1113,8 @@ std::string DataStream::pimpl_s::write_array(std::string const & url, const void
 }
 
 //=====================================================================================
-DataStream::DataStream()
-		: pimpl_(new pimpl_s)
+DataStream::DataStream() :
+		pimpl_(new pimpl_s)
 {
 }
 DataStream::~DataStream()
@@ -1075,15 +1128,15 @@ void DataStream::init(int argc, char** argv)
 {
 	pimpl_->init(argc, argv);
 }
-std::string DataStream::cd(std::string const & url, unsigned int flag)
+std::string DataStream::cd(std::string const & url, size_t flag)
 {
 	return pimpl_->cd(url, flag);
 }
-Properties & DataStream::get_properties()
+Properties & DataStream::properties()
 {
 	return pimpl_->properties;
 }
-Properties const& DataStream::get_properties() const
+Properties const& DataStream::properties() const
 {
 	return pimpl_->properties;
 }
@@ -1096,12 +1149,14 @@ void DataStream::close()
 	return pimpl_->close();
 }
 
-void DataStream::set_attribute(std::string const &url, DataType const &d_type, void const * buff)
+void DataStream::set_attribute(std::string const &url, DataType const &d_type,
+		void const * buff)
 {
 	pimpl_->set_attribute(url, d_type, buff);
 }
 
-void DataStream::get_attribute(std::string const &url, DataType const & d_type, void* buff)
+void DataStream::get_attribute(std::string const &url, DataType const & d_type,
+		void* buff)
 {
 	pimpl_->get_attribute(url, d_type, buff);
 }
@@ -1128,7 +1183,7 @@ size_t const *local_inner_begin,
 
 size_t const *local_inner_end,
 
-unsigned int flag
+size_t flag
 
 )
 {

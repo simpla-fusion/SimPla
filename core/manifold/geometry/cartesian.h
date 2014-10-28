@@ -36,7 +36,7 @@ public:
 	typedef TTopology topology_type;
 	typedef CartesianCoordinates<topology_type> this_type;
 
-	static constexpr size_t NDIMS = topology_type::NDIMS;
+	static constexpr size_t ndims = topology_type::ndims;
 
 	static constexpr size_t XAxis = (ZAXIS + 1) % 3;
 	static constexpr size_t YAxis = (ZAXIS + 2) % 3;
@@ -152,11 +152,11 @@ public:
 
 	}
 
-	void updatedt(nTuple<Real, NDIMS> const & kimg)
+	void updatedt(nTuple<Real, ndims> const & kimg)
 	{
 		updatedt(0.0);
 	}
-	void updatedt(nTuple<Complex, NDIMS> const & kimg)
+	void updatedt(nTuple<Complex, ndims> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -191,9 +191,9 @@ public:
 
 			set_extents(
 
-			dict["Min"].template as<nTuple<Real, NDIMS>>(),
+			dict["Min"].template as<nTuple<Real, ndims>>(),
 
-			dict["Max"].template as<nTuple<Real, NDIMS>>());
+			dict["Max"].template as<nTuple<Real, ndims>>());
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
@@ -231,7 +231,7 @@ public:
 
 	}
 
-	void extents(nTuple<Real, NDIMS> pmin, nTuple<Real, NDIMS> pmax)
+	void extents(nTuple<Real, ndims> pmin, nTuple<Real, ndims> pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;
@@ -246,7 +246,7 @@ public:
 
 		auto d = topology_type::dx();
 
-		for (size_t i = 0; i < NDIMS; ++i)
+		for (size_t i = 0; i < ndims; ++i)
 		{
 			res[i] = length_[i] * d[i];
 		}
@@ -378,14 +378,14 @@ public:
 	 */
 
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, NDIMS> > push_forward(
-			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & Z) const
+	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
 	{
 		coordinates_type y = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
-		nTuple<TV, NDIMS> u;
+		nTuple<TV, ndims> u;
 
 		u[XAxis] = v[CARTESIAN_XAXIS];
 		u[YAxis] = v[CARTESIAN_YAXIS];
@@ -403,14 +403,14 @@ public:
 	 * @return  x,\f$v = v[XAixs] \partial_x +  v[YAixs] \partial_y + v[ZAixs] \partial_z\f$
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, NDIMS> > pull_back(
-			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & R,
+	std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R,
 			size_t CartesianZAxis = 2) const
 	{
 		auto x = InvMapTo(std::get<0>(R));
 		auto const & u = std::get<1>(R);
 
-		nTuple<TV, NDIMS> v;
+		nTuple<TV, ndims> v;
 
 		v[CARTESIAN_XAXIS] = u[XAxis];
 		v[CARTESIAN_YAXIS] = u[YAxis];
@@ -548,7 +548,7 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 	auto dims = topology_type::dimensions();
 
-	for (size_t i = 0; i < NDIMS; ++i)
+	for (size_t i = 0; i < ndims; ++i)
 	{
 		shift_[i] = xmin_[i];
 
@@ -561,13 +561,13 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 			length_[i] = 0.0;
 
-			volume_[1UL << (NDIMS - i - 1)] = 1.0;
+			volume_[1UL << (ndims - i - 1)] = 1.0;
 
-			dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0;
+			dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
 
-			inv_volume_[1UL << (NDIMS - i - 1)] = 1.0;
+			inv_volume_[1UL << (ndims - i - 1)] = 1.0;
 
-			inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = 1.0;
+			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0;
 
 		}
 		else
@@ -576,13 +576,13 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 			length_[i] = (xmax_[i] - xmin_[i]);
 
-			volume_[1UL << (NDIMS - i - 1)] = length_[i];
+			volume_[1UL << (ndims - i - 1)] = length_[i];
 
-			dual_volume_[7 - (1UL << (NDIMS - i - 1))] = length_[i];
+			dual_volume_[7 - (1UL << (ndims - i - 1))] = length_[i];
 
-			inv_volume_[1UL << (NDIMS - i - 1)] = inv_length_[i];
+			inv_volume_[1UL << (ndims - i - 1)] = inv_length_[i];
 
-			inv_dual_volume_[7 - (1UL << (NDIMS - i - 1))] = inv_length_[i];
+			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = inv_length_[i];
 
 		}
 	}
