@@ -40,8 +40,6 @@ endif ()
 
 
 
-ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
-ADD_DEFINITIONS(-DOMPI_SKIP_MPICXX)
 #INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 FIND_PACKAGE(Lua52)
@@ -55,6 +53,7 @@ FIND_PACKAGE(MPI)
 IF(MPI_FOUND)
   INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
   ADD_DEFINITIONS(-DUSE_MPI -DOMPI_SKIP_MPICXX )
+
 ENDIF(MPI_FOUND)
 
 
@@ -175,13 +174,16 @@ ExternalProject_Add(googletest
 
  
 
- execute_process(COMMAND  git describe --all  --dirty --long
+execute_process(COMMAND  git describe --all  --dirty --long
             OUTPUT_VARIABLE PROJECT_IDENTIFY      
             WORKING_DIRECTORY   ${PROJECT_SOURCE_DIR} 
             OUTPUT_STRIP_TRAILING_WHITESPACE 
      )
 
 MESSAGE(STATUS "Identify: ${PROJECT_IDENTIFY}")
+
+ADD_DEFINITIONS(-DIDENTIFY=\"${PROJECT_IDENTIFY}\" )
+
 add_subdirectory(core )
 add_subdirectory(applications )
 add_subdirectory(example )

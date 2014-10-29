@@ -304,7 +304,7 @@ public:
 		{
 			return mesh.max_hash(*this);
 		}
-		size_t hash(compact_index_type const & s)
+		size_t hash(compact_index_type const & s)const
 		{
 			return mesh.hash(s);
 		}
@@ -403,6 +403,19 @@ public:
 		{
 			iterator e(*this, end_ - 1);
 			NextCell(e);
+			return std::move(e);
+		}
+
+		iterator rbegin() const
+		{
+			return iterator(*this, end_ - 1);
+		}
+
+		iterator rend() const
+		{
+
+			iterator e(*this, begin_ - 1);
+			--e;
 			return std::move(e);
 		}
 
@@ -771,17 +784,14 @@ public:
 	static index_tuple decompact(index_type s)
 	{
 
-		return std::move(
-				index_tuple(
-						{ static_cast<index_type>((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK),
+		return std::move(index_tuple(
+		{ static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
-						static_cast<index_type>((s >> (INDEX_DIGITS))
-								& INDEX_MASK),
+		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
 
-						static_cast<index_type>(s & INDEX_MASK)
+		static_cast<index_type>(s & INDEX_MASK)
 
-						}));
+		}));
 	}
 
 	/**

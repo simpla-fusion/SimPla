@@ -255,7 +255,7 @@ struct _##_NAME_                                                                
 	->decltype(std::_NAME_(get_value(l,s)   ))                 \
 	{  return std::_NAME_(get_value(l,s)  );   }                                    \
 };
-
+DEF_UNARY_FUNCTION(fabs)
 DEF_UNARY_FUNCTION(abs)
 DEF_UNARY_FUNCTION(cos)
 DEF_UNARY_FUNCTION(acos)

@@ -11,9 +11,9 @@
 #include <algorithm>
 #include <string>
 
-#include "../../src/flow_control/context_base.h"
-#include "../../src/utilities/factory.h"
-#include "../../src/utilities/lua_state.h"
+#include "../../core/flow_control/context_base.h"
+#include "../../core/utilities/factory.h"
+#include "../../core/utilities/lua_state.h"
 
 namespace simpla
 {

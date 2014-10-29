@@ -32,24 +32,24 @@ public:
 
 	mesh_type const &mesh;
 
-	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
+	template<typename TV, size_t iform> using field=Field< TV,Domain<TM,iform> >;
 
-	field<VERTEX, nTuple<scalar_type,3>> Ev, Bv;
+	field<nTuple<scalar_type, 3>, VERTEX> Ev, Bv;
 
-	field<VERTEX, Real> BB;
+	field<Real, VERTEX> BB;
 
-	typedef field<VERTEX, scalar_type> rho_type;
+	typedef field<scalar_type, VERTEX> rho_type;
 
-	typedef field<VERTEX, nTuple<scalar_type,3>> J_type;
+	typedef field<nTuple<scalar_type, 3>, VERTEX> J_type;
 
 	template<typename ...Others>
-	ImplicitPushE(mesh_type const & m, Others const &...)
-			: mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
+	ImplicitPushE(mesh_type const & m, Others const &...) :
+			mesh(m), BB(mesh), Ev(mesh), Bv(mesh)
 	{
 	}
 
 	template<typename TP>
-	void next_timestep(field<EDGE, scalar_type> *pdE);
+	void next_timestep(field<scalar_type, EDGE> *pdE);
 };
 
 /**
@@ -61,7 +61,7 @@ public:
  */
 template<typename TM>
 template<typename TP>
-void ImplicitPushE<TM>::next_timestep(field<EDGE, scalar_type> *pdE)
+void ImplicitPushE<TM>::next_timestep(field<scalar_type, EDGE> *pdE)
 {
 //	{
 //		bool flag = false;

@@ -29,14 +29,14 @@ class PointInPolygon
 	std::vector<double> multiple_;
 public:
 	template<size_t N>
-	PointInPolygon(std::vector<nTuple<Real, N> > const &polygen, size_t Z = 2) :
+	PointInPolygon(std::vector<nTuple<double, N> > const &polygen, size_t Z = 2) :
 			num_of_vertex_(0)
 	{
 
 		for (auto const & v : polygen)
 		{
-			polygen_.emplace_back(
-					nTuple<double, 2>( { v[(Z + 1) % 3], v[(Z + 2) % 3] }));
+			polygen_.emplace_back(nTuple<double, 2>(
+			{ v[(Z + 1) % 3], v[(Z + 2) % 3] }));
 		}
 		num_of_vertex_ = polygen_.size();
 		constant_.resize(num_of_vertex_);
@@ -83,12 +83,12 @@ public:
 	}
 
 	template<size_t N>
-	inline bool IsInside(nTuple<Real, N> x, size_t ZAxis = 2) const
+	inline bool IsInside(nTuple<double, N> x, size_t ZAxis = 2) const
 	{
 		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 	}
 
-	inline bool IsInside(Real x, Real y) const
+	inline bool IsInside(double x, double y) const
 	{
 
 		bool oddNodes = false;
@@ -108,14 +108,14 @@ public:
 	}
 
 	template<size_t N>
-	std::tuple<bool, nTuple<Real, N>> Intersection(nTuple<Real, N> const & x0,
-			nTuple<Real, N> const &x1, size_t ZAxis = 2,
-			Real error = 0.001) const
+	std::tuple<bool, nTuple<double, N>> Intersection(
+			nTuple<double, N> const & x0, nTuple<double, N> const &x1,
+			size_t ZAxis = 2, double error = 0.001) const
 	{
-		std::function<bool(nTuple<Real, N> const &)> fun =
-				[this,ZAxis](nTuple<Real, N> const & x)->bool
+		std::function<double(nTuple<double, N> const &)> fun =
+				[this,ZAxis](nTuple<double, N> const & x)->bool
 				{
-					return this->IsInside(x,ZAxis);
+					return this->IsInside(x,ZAxis)?1:0;
 				};
 
 		return std::move(find_root(x0, x1, fun, error));

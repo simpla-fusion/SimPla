@@ -23,7 +23,7 @@
 #include "../../core/io/data_stream.h"
 
 // Field
-#include "../../core/fetl/fetl.h"
+#include "../../core/manifold/fetl.h"
 #include "../../core/field/save_field.h"
 #include "../../core/field/load_field.h"
 
@@ -144,22 +144,22 @@ public:
 
 	Model<mesh_type> model;
 
-	template<int iform, typename TV> using field=typename mesh_type::template field<iform, TV>;
+	template<typename TV, size_t iform> using field=Field<TV,Domain<Model<mesh_type>,iform>>;
 
-	field<EDGE, scalar_type> E1, dE;
-	field<FACE, scalar_type> B1, dB;
+	field<scalar_type, EDGE> E1, dE;
+	field<scalar_type, FACE> B1, dB;
 
-	field<EDGE, scalar_type> J1; //!< current density
-	field<EDGE, Real> Jext; //!< external current
+	field<scalar_type, EDGE> J1; //!< current density
+	field<Real, EDGE> Jext; //!< external current
 
 //	field<VERTEX, scalar_type>  phi; //!< electrostatic potential
 
-	ImplicitPushE<mesh_type> implicit_push_E;
+	ImplicitPushE<Model<mesh_type>> implicit_push_E;
 
-	field<VERTEX, Real> n0; //!< background  equilibrium electron density
-	field<VERTEX, nTuple<Real, 3>> E0; //!<background  equilibrium electoric field  (B0)=0
-	field<VERTEX, nTuple<Real, 3>> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
-//	field<EDGE, Real> J0; //!<background  equilibrium current density J0+Curl(B0)=0
+	field<Real, VERTEX> n0; //!< background  equilibrium electron density
+	field<nTuple<Real, 3>, VERTEX> E0; //!<background  equilibrium electoric field  (B0)=0
+	field<nTuple<Real, 3>, VERTEX> B0; //!<background  equilibrium magnetic field J0+curl(B0)=0
+//	field<EDGE, Real> J0; //!<background  equilibrium current density J0+curl(B0)=0
 
 //	PML<mesh_type> pml_push;
 
@@ -270,9 +270,9 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	LOGGER << description;
 
-	field<VERTEX, Real> ne0(model);
-	field<VERTEX, Real> Te0(model);
-	field<VERTEX, Real> Ti0(model);
+	field<Real, VERTEX> ne0(model);
+	field<Real, VERTEX> Te0(model);
+	field<Real, VERTEX> Ti0(model);
 
 	if (dict["Model"]["GFile"])
 	{
@@ -293,28 +293,28 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 		min1 = model.MapTo(geqdsk.InvMapTo(src_min));
 		max1 = model.MapTo(geqdsk.InvMapTo(src_max));
 
-		std::tie(min2, max2) = model.get_extents();
+		std::tie(min2, max2) = model.extents();
 
 		Clipping(min2, max2, &min1, &max1);
 
-		auto dims = model.get_dimensions();
+		auto dims = model.dimensions();
 
-		if (model.enable_spectral_method)
-		{
-
-			/**
-			 *  @bug Lua can not handle field with complex value!!
-			 */
-
-			for (int i = 0; i < model.NDIMS; ++i)
-			{
-				if (dims[i] <= 1)
-				{
-					min1[i] = min2[i];
-					max1[i] = max2[i];
-				}
-			}
-		}
+//		if (model.enable_spectral_method)
+//		{
+//
+//			/**
+//			 *  @bug Lua can not handle field with complex value!!
+//			 */
+//
+//			for (int i = 0; i < model.NDIMS; ++i)
+//			{
+//				if (dims[i] <= 1)
+//				{
+//					min1[i] = min2[i];
+//					max1[i] = max2[i];
+//				}
+//			}
+//		}
 
 		if (dims[2] > 1)
 		{
@@ -322,7 +322,7 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			max1[2] = max2[2];
 		}
 
-		model.set_extents(min1, max1);
+		model.extents(min1, max1);
 
 		model.update();
 
@@ -420,52 +420,52 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	LOGGER << "Load Constraints";
 
-	for (auto const & item : dict["Constraints"])
-	{
-		try
-		{
-
-			auto dof = item.second["DOF"].template as<std::string>("");
-
-			VERBOSE << "Add constraint to " << dof;
-
-			if (dof == "E")
-			{
-				commandToE_.push_back(
-						E1.CreateCommand(
-								model.select_by_config(E1.IForm,
-										item.second["Select"]),
-								item.second["Operation"]));
-			}
-			else if (dof == "B")
-			{
-
-				commandToB_.push_back(
-						B1.CreateCommand(
-								model.select_by_config(B1.IForm,
-										item.second["Select"]),
-								item.second["Operation"]));
-			}
-			else if (dof == "J")
-			{
-
-				commandToJ_.push_back(
-						Jext.CreateCommand(
-								model.select_by_config(Jext.IForm,
-										item.second["Select"]),
-								item.second["Operation"]));
-			}
-			else
-			{
-				PARSER_ERROR("Unknown DOF!");
-			}
-
-		} catch (std::runtime_error const & e)
-		{
-
-			PARSER_ERROR("Load 'Constraints' error! ");
-		}
-	}
+//	for (auto const & item : dict["Constraints"])
+//	{
+//		try
+//		{
+//
+//			auto dof = item.second["DOF"].template as<std::string>("");
+//
+//			VERBOSE << "Add constraint to " << dof;
+//
+//			if (dof == "E")
+//			{
+//				commandToE_.push_back(
+//						E1.CreateCommand(
+//								model.select_by_config(E1.IForm,
+//										item.second["Select"]),
+//								item.second["Operation"]));
+//			}
+//			else if (dof == "B")
+//			{
+//
+//				commandToB_.push_back(
+//						B1.CreateCommand(
+//								model.select_by_config(B1.IForm,
+//										item.second["Select"]),
+//								item.second["Operation"]));
+//			}
+//			else if (dof == "J")
+//			{
+//
+//				commandToJ_.push_back(
+//						Jext.CreateCommand(
+//								model.select_by_config(Jext.IForm,
+//										item.second["Select"]),
+//								item.second["Operation"]));
+//			}
+//			else
+//			{
+//				PARSER_ERROR("Unknown DOF!");
+//			}
+//
+//		} catch (std::runtime_error const & e)
+//		{
+//
+//			PARSER_ERROR("Load 'Constraints' error! ");
+//		}
+//	}
 //	bool enableImplicit = false;
 //
 //	for (auto const &p : particles_)
@@ -496,13 +496,13 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 //			E_plus_CurlB = [mu0 , epsilon0](Real dt, TE const & E , TB const & B, TE* pdE)
 //			{
 //				auto & dE=*pdE;
-//				VERBOSE_CMD(dE += Curl(B)/(mu0 * epsilon0) *dt);
+//				VERBOSE_CMD(dE += curl(B)/(mu0 * epsilon0) *dt);
 //			};
 //
 //			B_minus_CurlE = [](Real dt, TE const & E, TB const &, TB* pdB)
 //			{
 //				auto & dB=*pdB;
-//				VERBOSE_CMD( dB -= Curl(E)*dt);
+//				VERBOSE_CMD( dB -= curl(E)*dt);
 //			};
 //		}
 //
@@ -529,7 +529,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 {
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_E_;
 
-	for (auto s : model.select(E_type::IForm))
+	for (auto s : E1.domain())
 	{
 		if (model.get(s) == model.null_material)
 		{
@@ -552,7 +552,7 @@ void ExplicitEMContext<TM>::InitPECboundary()
 
 	std::vector<typename mesh_type::compact_index_type> conduct_wall_B_;
 
-	for (auto s : model.select(B_type::IForm))
+	for (auto s : B1.domain())
 	{
 		if (model.get(s) == model.null_material)
 		{
@@ -596,7 +596,7 @@ void ExplicitEMContext<TM>::next_timestep()
 
 // Compute Cycle Begin
 
-	LOG_CMD(dE = (Curl(B1) / mu0 - J1) / epsilon0 * dt);
+	LOG_CMD(dE = (curl(B1) / mu0 - J1) / epsilon0 * dt);
 
 //   particle 1/2 -> 1  . To n[1/2], J[1/2]
 //	implicit_push_E.next_timestep(&dE);
@@ -605,7 +605,7 @@ void ExplicitEMContext<TM>::next_timestep()
 
 	ExcuteCommands(commandToE_);
 
-	LOG_CMD(dB = -Curl(E1) * dt);
+	LOG_CMD(dB = -curl(E1) * dt);
 
 	LOG_CMD(B1 += dB * 0.5);	//	B(t=1/2 -> 1)
 	ExcuteCommands(commandToB_);

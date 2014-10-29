@@ -15,16 +15,15 @@ class split_tag;
 template<typename ...> class _Field;
 
 template<typename TG, size_t IFORM>
-class Domain: public TG::range_type
+class Domain: public TG
 {
 
 public:
+	typedef TG manifold_type;
 
-//	static constexpr size_t ndims = geometry_type::ndims; // number of dimensions of domain D
+	static constexpr size_t ndims = manifold_type::ndims; // number of dimensions of domain D
 
 	static constexpr size_t iform = IFORM; // type of form, VERTEX, EDGE, FACE,VOLUME
-
-	typedef TG manifold_type;
 
 	typedef Domain<manifold_type, iform> this_type;
 
@@ -38,31 +37,48 @@ public:
 
 	typedef size_t difference_type; // Type for difference of two iterators
 
-	typedef typename TG::range_type range_type;
+	typedef typename manifold_type::range_type range_type;
 
-	using typename range_type::iterator;
+	typedef typename range_type::iterator iterator;
 
 public:
 	manifold_type const& manifold_;
+	range_type range_;
 //private:
 //	Domain<TG, IFORM> const & parent_;
 
 public:
 	Domain(manifold_type const & g) :
-			range_type(g.select(iform)), manifold_(g)/*, parent_(*this)*/
+			range_(g.select(iform)), manifold_(g)/*, parent_(*this)*/
 	{
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			range_type(rhs), manifold_(rhs.manifold_)/*, parent_(rhs.parent_) */
+			range_(rhs.range_), manifold_(rhs.manifold_)/*, parent_(rhs.parent_) */
 	{
 	}
 //	Domain(this_type& d, split_tag); // Split d into two sub-domains.
 
 	~Domain() = default; // Destructor.
 
-	using range_type::max_hash;
-	using range_type::hash;
+	template<typename ...Args>
+	auto hash(Args && ...args) const
+	DECL_RET_TYPE((range_. hash(std::forward<Args>(args)...)))
+
+	auto max_hash() const
+	DECL_RET_TYPE((range_.max_hash()))
+
+	auto begin() const
+	DECL_RET_TYPE((range_.begin()))
+
+	auto end() const
+	DECL_RET_TYPE((range_.end()))
+
+	auto rbegin() const
+	DECL_RET_TYPE((range_.rbegin()))
+
+	auto rend() const
+	DECL_RET_TYPE((range_.rend()))
 
 	void swap(this_type& rhs);
 

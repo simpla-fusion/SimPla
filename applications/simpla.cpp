@@ -178,10 +178,10 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		GLOBAL_DATA_STREAM.set_property< int>("Cache Depth", 20);
+		GLOBAL_DATA_STREAM.properties("Cache Depth", 20u);
 
-		GLOBAL_DATA_STREAM.set_property("Force Record Storage",true);
-		GLOBAL_DATA_STREAM.set_property("Force Write Cache",true);
+		GLOBAL_DATA_STREAM.properties("Force Record Storage",true);
+		GLOBAL_DATA_STREAM.properties("Force Write Cache",true);
 		ctx->save("/Save/" );
 
 		for (int i = 0; i < num_of_step; ++i)
@@ -196,8 +196,8 @@ int main(int argc, char **argv)
 			}
 		}
 		GLOBAL_DATA_STREAM.command("Flush");
-		GLOBAL_DATA_STREAM.set_property("Force Write Cache",false);
-		GLOBAL_DATA_STREAM.set_property("Force Record Storage",false);
+		GLOBAL_DATA_STREAM.properties("Force Write Cache",false);
+		GLOBAL_DATA_STREAM.properties("Force Record Storage",false);
 	}
 	LOGGER << "Process" << DONE;
 

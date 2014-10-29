@@ -10,8 +10,6 @@
 #define INCLUDEnTuple_H_
 
 #include <stddef.h>
-#include <ostream>
-
 #include "expression_template.h"
 #include "primitives.h"
 #include "sp_integer_sequence.h"
@@ -297,21 +295,8 @@ struct rank<nTuple<T, N...>>
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
-}
-
-template<typename T, size_t M, size_t ...N>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M, N...> const & v)
-{
-	os << std::endl << "{";
-	for (int i = 0; i < M - 1; ++i)
-	{
-		os << v[i] << " , ";
-	}
-
-	os << v[M - 1] << "}";
-
-	return os;
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 typedef nTuple<Real, 3> Vec3;
@@ -351,6 +336,12 @@ template<typename TR, typename T, size_t ... N>
 auto inner_product(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
 
+template<typename TR, typename ...T>
+auto inner_product(nTuple<Expression<T...>> const & l,
+		TR const& r)
+				DECL_RET_TYPE(( seq_reduce(typename nTuple_traits<nTuple<Expression<T...>>>::dimensions(),
+										_impl::plus(),l*r) ))
+
 template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const & l, TR const& r)
 DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
@@ -383,7 +374,9 @@ template<typename T> inline auto determinant(
 				* m[3][3] + m[0][0] * m[1][1] * m[2][2] * m[3][3]//
 		))
 
-template<typename T, size_t ...N> auto abs(nTuple<T, N...> const & m)
+template<typename T> auto sp_abs(T const &v)
+DECL_RET_TYPE((std::abs(v)))
+template<typename T, size_t ...N> auto sp_abs(nTuple<T, N...> const & m)
 DECL_RET_TYPE((std::sqrt(std::abs(dot(m, m)))))
 
 template<typename T, size_t ...N> inline
@@ -402,9 +395,10 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 

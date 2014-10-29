@@ -189,7 +189,7 @@ public:
 
 			LOGGER << "Load CartesianGeometry ";
 
-			set_extents(
+			extents(
 
 			dict["Min"].template as<nTuple<Real, ndims>>(),
 
@@ -255,7 +255,7 @@ public:
 	}
 
 	template<typename ... Args>
-	inline coordinates_type coordinates(Args && ... args) const
+	  coordinates_type coordinates(Args && ... args) const
 	{
 		return std::move(
 				coordinates_from_topology(

@@ -8,6 +8,7 @@
 #ifndef FIND_ROOT_H_
 #define FIND_ROOT_H_
 #include <tuple>
+#include "../utilities/ntuple.h"
 namespace simpla
 {
 //!  \ingroup Numeric
@@ -26,11 +27,12 @@ namespace simpla
  * @return
  */
 template<typename TX, typename TY>
-std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<TY(TX const&)> const &f, TY const & y_m, Real resolution =
-        0.001, size_t max_iterator_num = 10000)
+std::tuple<bool, TX> find_root(TX x0, TX x1,
+		std::function<TY(TX const&)> const &f, TY const & y_m,
+		double resolution = 0.001, size_t max_iterator_num = 10000)
 {
 	// @todo need change to Newton method!!!
-	resolution *= abs(x1 - x0);
+	resolution *= inner_product(x1 - x0, x1 - x0);
 
 	bool success = false;
 
@@ -62,9 +64,11 @@ std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<TY(TX const&)> const 
 		if (!success)
 			break;
 
-	} while (abs(x1 - x0) > resolution && count < max_iterator_num);
+	} while (inner_product(x1 - x0, x1 - x0) > resolution
+			&& count < max_iterator_num);
 
-	return std::forward_as_tuple(success && (count < max_iterator_num), std::move(x0));
+	return std::forward_as_tuple(success && (count < max_iterator_num),
+			std::move(x0));
 
 }
 
@@ -80,10 +84,11 @@ std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<TY(TX const&)> const 
  * @return
  */
 template<typename TX>
-std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<bool(TX const&)> const &f, Real resolution = 0.001,
-        size_t max_iterator_num = 10000)
+std::tuple<bool, TX> find_root(TX x0, TX x1,
+		std::function<bool(TX const&)> const &f, double resolution = 0.001,
+		size_t max_iterator_num = 10000)
 {
-	resolution *= abs(x1 - x0);
+	resolution *= std::abs(x1 - x0);
 
 	bool success = false;
 
@@ -113,9 +118,10 @@ std::tuple<bool, TX> find_root(TX x0, TX x1, std::function<bool(TX const&)> cons
 		if (!success)
 			break;
 
-	} while (abs(x1 - x0) > resolution && count < max_iterator_num);
+	} while (std::abs(x1 - x0) > resolution && count < max_iterator_num);
 
-	return std::forward_as_tuple(success && (count < max_iterator_num), std::move(x0));
+	return std::forward_as_tuple(success && (count < max_iterator_num),
+			std::move(x0));
 }
 
 //!  @}

@@ -104,7 +104,7 @@ struct is_expression
 };
 
 template<typename T1> auto abs(T1 const & m)
-DECL_RET_TYPE ((std::abs(m)))
+DECL_RET_TYPE ((std::fabs(m)))
 
 //
 //template<typename T>

@@ -18,7 +18,8 @@ namespace simpla
 template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 template<typename, size_t> class Domain;
-template<typename ... > class _Field;
+template<typename ...> class _Field;
+template<typename ...> class Expression;
 
 template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //

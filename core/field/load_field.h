@@ -28,20 +28,20 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 	typedef typename field_traits<_Field<T...>>::field_value_type field_value_type;
 	constexpr size_t iform = field_traits<_Field<T...>>::iform;
 
-	mesh_type const &mesh = f->mesh;
+	auto const &domain = f->domain();
 
 	f->clear();
 
 	if (dict.is_function())
 	{
 
-		for (auto s : mesh.select(iform))
+		for (auto s : domain)
 		{
-			auto x = mesh.get_coordinates(s);
+			auto x = domain.coordinates(s);
 
 			auto v = dict(x).template as<field_value_type>();
 
-			(*f)[s] = mesh.Sample(std::integral_constant<size_t, iform>(), s,
+			(*f)[s] = domain.Sample(std::integral_constant<size_t, iform>(), s,
 					v);
 		}
 
@@ -51,11 +51,11 @@ bool load_field_(TDict const &dict, _Field<T...> *f)
 
 		auto v = dict.template as<field_value_type>();
 
-		for (auto s : mesh.select(iform))
+		for (auto s : domain.select(iform))
 		{
-			auto x = mesh.get_coordinates(s);
+			auto x = domain.get_coordinates(s);
 
-			(*f)[s] = mesh.Sample(std::integral_constant<size_t, iform>(), s,
+			(*f)[s] = domain.Sample(std::integral_constant<size_t, iform>(), s,
 					v);
 		}
 

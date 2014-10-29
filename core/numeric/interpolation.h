@@ -295,8 +295,8 @@ public:
 	}
 
 	BiLinearInterpolation(nTuple<size_t, NDIMS + 1> dims,
-			nTuple<size_t, NDIMS + 1> const &xmin,
-			nTuple<size_t, NDIMS + 1> const &xmax, unsigned int ZAxis = NDIMS)
+			nTuple<Real, NDIMS + 1> const &xmin,
+			nTuple<Real, NDIMS + 1> const &xmax, size_t ZAxis = NDIMS)
 
 	{
 		dims_[0] = dims[(ZAxis + 1) % 3];
@@ -339,7 +339,7 @@ public:
 		return std::make_pair(xmin_, xmax_);
 	}
 
-	size_t number_of_elements() const
+	size_t get_number_of_elements() const
 	{
 		size_t res = 1;
 		for (int i = 0; i < NDIMS; ++i)
@@ -406,7 +406,8 @@ public:
 		size_t sy = dims_[0];
 		size_t s = static_cast<size_t>(ix) * sx + static_cast<size_t>(iy) * sy;
 
-		nTuple<TV, NDIMS> res = {
+		nTuple<TV, NDIMS> res =
+		{
 
 		(1.0 - ry) * (v[s + sx] - v[s]) + ry * (v[s + sx + sy] - v[s + sy]),
 
@@ -416,7 +417,7 @@ public:
 
 	}
 
-	template<typename TV, unsigned int N, typename TX>
+	template<typename TV, size_t N, typename TX>
 	inline auto grad(TV const & v, nTuple<TX, N> const & x) const
 	DECL_RET_TYPE(std::move(grad(v, x[0], x[1])))
 

@@ -23,7 +23,7 @@ namespace simpla
 
 class PolicyFluidParticle;
 class ColdFluid;
-template<typename, typename, typename > class Particle;
+template<typename...> class Particle;
 
 /**
  * \ingroup ParticleEngine

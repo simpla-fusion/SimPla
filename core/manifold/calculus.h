@@ -14,6 +14,7 @@
 #include "../utilities/sp_functional.h"
 #include "../utilities/constant_ops.h"
 #include "../utilities/expression_template.h"
+#include "domain.h"
 
 namespace simpla
 {
@@ -51,32 +52,50 @@ struct MapTo
 } //namespace _impl
 template<typename ...> struct field_traits;
 
-template<typename TManifold, size_t IFORM, typename ...Others>
-struct field_traits<_Field<Domain<TManifold, IFORM>, Others...>>
-{
-	static constexpr size_t ndims = TManifold::ndims;
-
-	static constexpr size_t iform = IFORM;
-};
-
-template<typename TOP, typename TL>
-struct field_traits<_Field<Expression<TOP, TL> > >
-{
-	static constexpr size_t ndims = field_traits<TL>::ndims;
-	static constexpr size_t iform = field_traits<TL>::iform;
-};
-
-template<typename TOP, typename TL, typename TR>
-struct field_traits<_Field<Expression<TOP, TL, TR> > >
-{
-	static constexpr size_t ndims = field_traits<TL>::ndims;
-	static constexpr size_t iform = field_traits<TL>::iform;
-};
+//template<typename TManifold, size_t IFORM, typename ...Others>
+//struct field_traits<_Field<Domain<TManifold, IFORM>, Others...>>
+//{
+//	static constexpr size_t ndims = TManifold::ndims;
+//
+//	static constexpr size_t iform = IFORM;
+//};
+//
+//template<typename TOP, typename TL>
+//struct field_traits<_Field<Expression<TOP, TL> > >
+//{
+//	static constexpr size_t ndims = field_traits<TL>::ndims;
+//	static constexpr size_t iform = field_traits<TL>::iform;
+//};
+//
+//template<typename TOP, typename TL, typename TR>
+//struct field_traits<_Field<Expression<TOP, TL, TR> > >
+//{
+//	static constexpr size_t ndims = field_traits<TL>::ndims;
+//	static constexpr size_t iform = field_traits<TL>::iform;
+//};
 template<typename TL>
 struct field_traits<_Field<Expression<_impl::HodgeStar, TL> > >
 {
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = ndims - field_traits<TL>::iform;
+	typedef typename field_traits<TL>::manifold_type manifold_type;
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef _Field<Expression<_impl::HodgeStar, TL> > field_type;
+
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(
+				make_domain<iform>(
+						field_traits<TL>::get_domain(f.lhs).manifold()));
+	}
+
+	static domain_type get_domain(TL const &f)
+	{
+		return std::move(
+				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+	}
+
 };
 
 template<typename TL, typename TR>
@@ -85,6 +104,26 @@ struct field_traits<_Field<Expression<_impl::InteriorProduct, TL, TR> > >
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform - 1;
+
+	typedef typename field_traits<TL>::manifold_type manifold_type;
+
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef _Field<Expression<_impl::InteriorProduct, TL, TR> > field_type;
+
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(
+				make_domain<iform>(
+						field_traits<TL>::get_domain(f.lhs).manifold()));
+	}
+
+	static domain_type get_domain(TL const &f, TR const &)
+	{
+		return std::move(
+				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+	}
+
 };
 
 template<typename TL, typename TR>
@@ -94,6 +133,26 @@ struct field_traits<_Field<Expression<_impl::Wedge, TL, TR> > >
 
 	static constexpr size_t iform = field_traits<TL>::iform
 			+ field_traits<TR>::iform;
+
+	typedef typename field_traits<TL>::manifold_type manifold_type;
+
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef _Field<Expression<_impl::Wedge, TL, TR> > field_type;
+
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(
+				make_domain<iform>(
+						field_traits<TL>::get_domain(f.lhs).manifold()));
+	}
+
+	static domain_type get_domain(TL const & l, TR const & r)
+	{
+		return std::move(
+				make_domain<iform>(field_traits<TL>::get_domain(l).manifold()));
+	}
+
 };
 
 template<typename TL>
@@ -102,14 +161,54 @@ struct field_traits<_Field<Expression<_impl::ExteriorDerivative, TL> > >
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform + 1;
+
+	typedef typename field_traits<TL>::manifold_type manifold_type;
+
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef _Field<Expression<_impl::ExteriorDerivative, TL> > field_type;
+
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(
+				make_domain<iform>(
+						field_traits<TL>::get_domain(f.lhs).manifold()));
+	}
+
+	static domain_type get_domain(TL const &f)
+	{
+		return std::move(
+				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+	}
+
 };
 
 template<typename TL>
 struct field_traits<_Field<Expression<_impl::CodifferentialDerivative, TL> > >
 {
+
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform - 1;
+
+	typedef typename field_traits<TL>::manifold_type manifold_type;
+
+	typedef Domain<manifold_type, iform> domain_type;
+
+	typedef _Field<Expression<_impl::CodifferentialDerivative, TL> > field_type;
+
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(
+				make_domain<iform>(
+						field_traits<TL>::get_domain(f.lhs).manifold()));
+	}
+
+	static domain_type get_domain(TL const &f)
+	{
+		return std::move(
+				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+	}
 };
 
 template<typename ... T>
@@ -191,7 +290,6 @@ template<typename ...TL, typename ...TR> inline auto cross(
 template<typename TL, typename ... TR> inline auto dot(nTuple<TL, 3> const & v,
 		_Field<TR...> const & f)
 		DECL_RET_TYPE( (interior_product(v, f)))
-;
 
 template<typename ...TL, typename TR> inline auto dot(_Field<TL...> const & f,
 		nTuple<TR, 3> const & v)
@@ -298,13 +396,11 @@ inline _Field<
 			(_Field<
 					Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
 							_Field<T...>>>(std::integral_constant<size_t, IL>(),f)));
-}
-
-
+		}
 
 ///   @}
 
-}
+	}
 // namespace simpla
 
 #endif /* CALCULUS_H_ */

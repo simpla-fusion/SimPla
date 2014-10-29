@@ -21,12 +21,14 @@ struct DomainDummy: BlockRange<TIndex>
 public:
 	typedef TIndex index_type;
 	typedef TCoordiantes coordinates_type;
+
 	typedef BlockRange<TIndex> range_type;
 
 	typedef DomainDummy<coordinates_type, index_type> this_type;
 	static constexpr size_t ndims = 1;
 	static constexpr size_t iform = VERTEX;
 
+	typedef this_type manifold_type;
 private:
 
 	coordinates_type b_, e_, dx_;

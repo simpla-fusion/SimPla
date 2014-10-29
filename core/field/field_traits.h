@@ -12,7 +12,7 @@
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/constant_ops.h"
 #include "../utilities/expression_template.h"
-
+#include "../utilities/container_traits.h"
 namespace simpla
 {
 
@@ -89,16 +89,22 @@ template<typename TC, typename TD, typename ...Others>
 struct field_traits<_Field<TC, TD, Others...>>
 {
 	typedef _Field<TC, TD, Others...> field_type;
+
 	static constexpr size_t ndims = TD::ndims;
 
 	static constexpr size_t iform = TD::iform;
 
+	typedef typename container_traits<TC>::value_type value_type;
+
+	typedef typename std::conditional<iform == VERTEX || iform == VOLUME,
+			value_type, nTuple<value_type, 3>>::type field_value_type;
+
 	typedef TD domain_type;
 
-	static domain_type const & get_domain(field_type const &f)
-	{
-		return f.domain();
-	}
+	typedef typename domain_type::manifold_type manifold_type;
+
+	static auto get_domain(field_type const &f)
+	DECL_RET_TYPE((f.domain()))
 
 	static auto data(field_type & f)
 	DECL_RET_TYPE((f.data()))
@@ -107,26 +113,51 @@ struct field_traits<_Field<TC, TD, Others...>>
 /// \defgroup   Field Expression
 /// @{
 template<typename ... >struct Expression;
-template<typename TOP, typename TL, typename ...Others>
-struct field_traits<_Field<Expression<TOP, TL, Others...> >>
+template<typename TOP, typename TL>
+struct field_traits<_Field<Expression<TOP, TL> >>
 {
 
 	typedef typename field_traits<TL>::domain_type domain_type;
+
+	typedef typename domain_type::manifold_type manifold_type;
 
 	static constexpr size_t ndims = domain_type::ndims;
 
 	static constexpr size_t iform = domain_type::iform;
 
-	static domain_type const & get_domain(
-			_Field<Expression<TOP, TL, Others...>> const &f)
+	static auto get_domain(TL const &f)
+	DECL_RET_TYPE((field_traits<TL>::get_domain(f)))
+
+	typedef _Field<Expression<TOP, TL> > field_type;
+	static domain_type get_domain(field_type const &f)
 	{
-		return field_traits<TL>::get_domain(f.lhs);
+		return std::move(field_traits<TL>::get_domain(f.lhs));
 	}
 
-	template<typename TLF, typename ...Args>
-	static domain_type const & get_domain(TLF const &l, Args &&...)
+};
+
+template<typename TOP, typename TL, typename TR>
+struct field_traits<_Field<Expression<TOP, TL, TR> >>
+{
+
+	typedef typename field_traits<TL>::domain_type domain_type;
+
+	typedef typename domain_type::manifold_type manifold_type;
+
+	static constexpr size_t ndims = domain_type::ndims;
+
+	static constexpr size_t iform = domain_type::iform;
+
+	static domain_type get_domain(TL const &f, TR const &)
 	{
-		return field_traits<TLF>::get_domain(l);
+		return std::move(field_traits<TL>::get_domain(f));
+	}
+//	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
+
+	typedef _Field<Expression<TOP, TL, TR> > field_type;
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(field_traits<TL>::get_domain(f.lhs));
 	}
 };
 
@@ -195,11 +226,14 @@ template<typename TOP, typename TL>
 struct _Field<Expression<TOP, TL>>
 {
 	typedef _Field<Expression<TOP, TL>> this_type;
+
 	typename _impl::reference_traits<TL>::type lhs;
 
 	TOP op_;
 
-	typename field_traits<this_type>::domain_type domain_;
+	typedef typename field_traits<this_type>::domain_type domain_type;
+
+	domain_type domain_;
 
 	_Field(TL const & l) :
 			lhs(l), op_(), domain_(field_traits<this_type>::get_domain(l))

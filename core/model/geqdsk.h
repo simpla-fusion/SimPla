@@ -16,8 +16,11 @@
 #include "../utilities/primitives.h"
 #include "../numeric/interpolation.h"
 #include "../physics/constants.h"
+#include "../manifold/domain.h"
 #include "../manifold/topology/structured.h"
 #include "../manifold/geometry/cylindrical.h"
+#include "../field/field.h"
+#include "../field/update_ghosts_field.h"
 
 namespace simpla
 {
@@ -190,25 +193,24 @@ public:
 	}
 
 	template<typename TModel>
-	void SetUpMaterial(TModel *model, unsigned int toridal_model_number = 0,
-			unsigned int DestPhiAxis = CARTESIAN_ZAXIS) const;
+	void SetUpMaterial(TModel *model, size_t toridal_model_number = 0,
+			size_t DestPhiAxis = CARTESIAN_ZAXIS) const;
 
 	template<typename TF>
 	void GetProfile(std::string const & name, TF* f) const
 	{
 		GetProfile_(
 				std::integral_constant<bool,
-						is_ntuple<typename TF::field_value_type>::value>(),
+						is_ntuple<typename field_traits<TF>::field_value_type>::value>(),
 				name, f);
 		update_ghosts(f);
 	}
 
 	coordinates_type MapCylindricalToFlux(
-			coordinates_type const & psi_theta_phi,
-			unsigned int VecZAxis = 2) const;
+			coordinates_type const & psi_theta_phi, size_t VecZAxis = 2) const;
 
 	coordinates_type MapFluxFromCylindrical(coordinates_type const & x,
-			unsigned int VecZAxis = 2) const;
+			size_t VecZAxis = 2) const;
 	/**
 	 *  caculate the contour at \f$\Psi_{j}\in\left[0,1\right]\f$
 	 *  \cite  Jardin:2010:CMP:1855040
@@ -223,7 +225,7 @@ public:
 	 * \todo need improve!!  only valid for internal flux surface \f$\psi \le 1.0\f$; need x-point support
 	 */
 	bool FluxSurface(Real psi_j, size_t M, coordinates_type*res,
-			unsigned int ToPhiAxis = 2, Real resoluton = 0.001);
+			size_t ToPhiAxis = 2, Real resoluton = 0.001);
 
 	/**
 	 *
@@ -244,8 +246,7 @@ public:
 	 */
 	bool MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
 			std::vector<coordinates_type> *res,
-			std::function<Real(Real, Real)> const & h,
-			unsigned int PhiAxis = 2);
+			std::function<Real(Real, Real)> const & h, size_t PhiAxis = 2);
 private:
 
 	template<typename TF>
@@ -257,13 +258,14 @@ private:
 }
 ;
 template<typename TModel>
-void GEqdsk::SetUpMaterial(TModel *model, unsigned int toridal_model_number,
-		unsigned int DestPhiAxis) const
+void GEqdsk::SetUpMaterial(TModel *model, size_t toridal_model_number,
+		size_t DestPhiAxis) const
 {
-	model->Set(model->SelectByPolylines(VERTEX, Limiter()),
+	model->Set(model->SelectByPolylines(make_domain<VERTEX>(*model), Limiter()),
 			model->RegisterMaterial("Vacuum"));
 
-	model->Set(model->SelectByPolylines(VERTEX, Boundary()),
+	model->Set(
+			model->SelectByPolylines(make_domain<VERTEX>(*model), Boundary()),
 			model->RegisterMaterial("Plasma"));
 
 }
@@ -318,7 +320,7 @@ void GEqdsk::GetProfile_(std::integral_constant<bool, false>,
 }
 
 std::string XDMFWrite(GEqdsk const & self, std::string const &fname,
-		unsigned int flag);
+		size_t flag);
 
 }
 // namespace simpla

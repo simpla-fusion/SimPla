@@ -215,7 +215,8 @@ public:
 
 		std::function<material_type(material_type const &)> fun;
 
-		auto range = select_by_config(VERTEX, dict["Select"]);
+		auto range = select_by_config(make_domain<VERTEX>(*this),
+				dict["Select"]);
 
 		auto material_name = dict["Value"].template as<std::string>("");
 		auto material = get_material(material_name);
@@ -431,7 +432,8 @@ FilterRange<TR> Model<TM>::select_by_config(TR const& range,
 	{
 		PARSER_ERROR("Unknown 'Select' options");
 	}
-	return FilterRange<TR>();
+	return FilterRange<TR>(range, [=](compact_index_type const &)
+	{	return true;});
 }
 template<typename TM> template<typename TR>
 FilterRange<TR> Model<TM>::SelectByPoints(TR const& range,
@@ -607,7 +609,7 @@ FilterRange<TR> Model<TM>::SelectInterface(TR const& range, T1 pin,
 				return (res & in).any();
 			};
 
-	return std::move(FilterRange<TR>(range, std::move(pred)));
+	return std::move(FilterRange<TR>(range, (pred)));
 
 }
 

@@ -7,8 +7,11 @@
 
 #include <utility>
 #include <string>
+#include "../../core/manifold/manifold.h"
 #include "../../core/manifold/geometry/cartesian.h"
 #include "../../core/manifold/topology/structured.h"
+#include "../../core/manifold/diff_scheme/fdm.h"
+#include "../../core/manifold/interpolator/interpolator.h"
 #include "../../core/utilities/factory.h"
 #include "../../core/utilities/lua_state.h"
 #include "explicit_em.h"

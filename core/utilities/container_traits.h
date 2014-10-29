@@ -9,6 +9,7 @@
 #define CONTAINER_TRAITS_H_
 
 #include <memory>
+#include <string.h>
 
 #include "memory_pool.h"
 

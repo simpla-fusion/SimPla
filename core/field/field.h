@@ -241,6 +241,26 @@ public:
 	}
 ///@}
 
+	template<typename TD, typename TFun> void pull_back(TD const & domain,
+			TFun const &fun)
+	{
+		allocate();
+
+		parallel_for(domain_, [&](index_type const & s)
+		{
+
+			//FIXME geometry coordinates convert
+
+				(*this)[s] = fun(
+						//domain.MapTo(domain_.InvMapTo(
+						domain_.manifold().coordinates(s)
+						//))
+				)
+				;
+			});
+
+	}
+
 	template<typename ...Args>
 	auto operator()(Args && ... args) const
 	DECL_RET_TYPE((simpla::gather(domain_,data_,std::forward<Args>(args)...)))

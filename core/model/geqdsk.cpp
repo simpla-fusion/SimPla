@@ -17,7 +17,6 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../utilities/ntuple.h"
-#include "../utilities/ntuple_noet.h"
 #include "../physics/constants.h"
 #include "../io/data_stream.h"
 #include "../numeric/find_root.h"
@@ -37,7 +36,7 @@ void GEqdsk::load(std::string const &fname)
 		return;
 	}
 
-	nTuple<NDIMS, size_t> dims;
+	nTuple<size_t, ndims> dims;
 	coordinates_type rzmin;
 	coordinates_type rzmax;
 
@@ -81,21 +80,21 @@ void GEqdsk::load(std::string const &fname)
 	dims[ZAxis] = nh;
 	dims[PhiAxis] = 0;
 
-	geometry_type::set_dimensions(dims);
-	geometry_type::set_extents(rzmin, rzmax);
+	geometry_type::dimensions(dims);
+	geometry_type::extents(rzmin, rzmax);
 
-	unsigned int phi_axis = PhiAxis;
+	size_t phi_axis = PhiAxis;
 
 	inter2d_type(dims, rzmin, rzmax, phi_axis).swap(psirz_);
 
 #define INPUT_VALUE(_NAME_)                                                            \
 	for (int s = 0; s < nw; ++s)                                              \
 	{                                                                                  \
-		Real y;                                                                  \
+		double y;                                                                  \
 		inFileStream_ >> std::setw(16) >> y;                                           \
 		profile_[ _NAME_ ].data().emplace(                                                         \
-	      static_cast<Real>(s)                                              \
-	          /static_cast<Real>(nw-1), y );                               \
+	      static_cast<double>(s)                                              \
+	          /static_cast<double>(nw-1), y );                               \
 	}                                                                                  \
 
 	INPUT_VALUE("fpol");
@@ -106,7 +105,7 @@ void GEqdsk::load(std::string const &fname)
 	for (int j = 0; j < nh; ++j)
 		for (int i = 0; i < nw; ++i)
 		{
-			Real v;
+			double v;
 			inFileStream_ >> std::setw(16) >> v;
 			psirz_[i + j * nw] = (v - simag) / (sibry - simag); // Normalize Poloidal flux
 		}
@@ -115,11 +114,11 @@ void GEqdsk::load(std::string const &fname)
 
 #undef INPUT_VALUE
 
-	unsigned int nbbbs, limitr;
+	size_t nbbbs, limitr;
 	inFileStream_ >> std::setw(5) >> nbbbs >> limitr;
 
-	std::vector<nTuple<2, Real>> rzbbb(nbbbs);
-	std::vector<nTuple<2, Real>> rzlim(limitr);
+	std::vector<nTuple<double, 2>> rzbbb(nbbbs);
+	std::vector<nTuple<double, 2>> rzlim(limitr);
 
 	inFileStream_ >> std::setw(16) >> rzbbb;
 	inFileStream_ >> std::setw(16) >> rzlim;
@@ -174,13 +173,13 @@ void GEqdsk::load_profile(std::string const &fname)
 	{
 		auto it = names.begin();
 		auto ie = names.end();
-		Real psi;
+		double psi;
 		inFileStream_ >> psi; 		/// \note assume first row is psi
 		*it = psi;
 
 		for (++it; it != ie; ++it)
 		{
-			Real value;
+			double value;
 			inFileStream_ >> value;
 			profile_[*it].data().emplace(psi, value);
 
@@ -207,9 +206,10 @@ std::string GEqdsk::save(std::string const & path) const
 
 	GLOBAL_DATA_STREAM.cd(path);
 
-	auto dd = geometry_type::get_dimensions();
+	auto dd = geometry_type::dimensions();
 
-	size_t d[2] = { dd[RAxis], dd[ZAxis] };
+	size_t d[2] =
+	{ dd[RAxis], dd[ZAxis] };
 
 	LOGGER << simpla::save("psi", psirz_.data(), 2, nullptr, d) << std::endl;
 
@@ -242,7 +242,8 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcenter
-	        << "\t--                                                                    " << std::endl;
+			<< "\t--                                                                    "
+			<< std::endl;
 
 //	std::cout << "rleft" << "\t= " << rleft
 //			<< "\t-- Minimum R in meter of rectangular computational box                "
@@ -253,10 +254,12 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rmaxis" << "\t= " << rmaxis
-	        << "\t-- R of magnetic axis in meter                                        " << std::endl;
+			<< "\t-- R of magnetic axis in meter                                        "
+			<< std::endl;
 
 	std::cout << "rmaxis" << "\t= " << zmaxis
-	        << "\t-- Z of magnetic axis in meter                                        " << std::endl;
+			<< "\t-- Z of magnetic axis in meter                                        "
+			<< std::endl;
 
 //	std::cout << "simag" << "\t= " << simag
 //			<< "\t-- poloidal flus ax magnetic axis in Weber / rad                      "
@@ -267,13 +270,16 @@ std::ostream & GEqdsk::print(std::ostream & os)
 //			<< std::endl;
 
 	std::cout << "rcentr" << "\t= " << rcenter
-	        << "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               " << std::endl;
+			<< "\t-- R in meter of  vacuum toroidal magnetic field BCENTR               "
+			<< std::endl;
 
 	std::cout << "bcentr" << "\t= " << bcenter
-	        << "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  " << std::endl;
+			<< "\t-- Vacuum toroidal magnetic field in Tesla at RCENTR                  "
+			<< std::endl;
 
 	std::cout << "current" << "\t= " << current
-	        << "\t-- Plasma current in Ampere                                          " << std::endl;
+			<< "\t-- Plasma current in Ampere                                          "
+			<< std::endl;
 
 //	std::cout << "fpol" << "\t= "
 //			<< "\t-- Poloidal current function in m-T<< $F=RB_T$ on flux grid           "
@@ -318,49 +324,56 @@ std::ostream & GEqdsk::print(std::ostream & os)
 	return os;
 }
 
-bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned int ToPhiAxis, Real resolution)
+bool GEqdsk::FluxSurface(double psi_j, size_t M, coordinates_type*res,
+		size_t ToPhiAxis, double resolution)
 {
 	bool success = true;
 
 	PointInPolygon boundary(rzbbb_, PhiAxis);
 
-	nTuple<3, Real> center;
+	nTuple<double, 3> center;
 
 	center[PhiAxis] = 0;
 	center[RAxis] = rcenter;
 	center[ZAxis] = zmid;
 
-	nTuple<3, Real> drz;
+	nTuple<double, 3> drz;
 
 	drz[PhiAxis] = 0;
 
-	std::function<Real(nTuple<3, Real> const &)> fun = [this ](nTuple<3, Real> const & x)->Real
-	{
-		return this->psi(x);
-	};
+	std::function<double(nTuple<double, 3> const &)> fun =
+			[this ](nTuple<double,3> const & x)->double
+			{
+				return this->psi(x);
+			};
 
 	for (int i = 0; i < M; ++i)
 	{
-		Real theta = static_cast<Real>(i) * TWOPI / static_cast<Real>(M);
+		double theta = static_cast<double>(i) * TWOPI / static_cast<double>(M);
 
 		drz[RAxis] = std::cos(theta);
 		drz[ZAxis] = std::sin(theta);
 
-		nTuple<3, Real> rmax;
+		nTuple<double, 3> rmax;
+		nTuple<double, 3> t;
+		// FIXME ntuple<Expression> auto convert
+		t = center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5;
 
-		std::tie(success, rmax) = boundary.Intersection(center,
-		        center + drz * std::sqrt(rdim * rdim + zdim * zdim) * 0.5);
+		std::tie(success, rmax) = boundary.Intersection(center, t);
 
 		if (!success)
 		{
-			RUNTIME_ERROR("Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
+			RUNTIME_ERROR(
+					"Illegal Geqdsk configuration: RZ-center is out of the boundary (rzbbb)!  ");
 		}
-
-		std::tie(success, res[i]) = find_root(center + (rmax - center) * 0.1, rmax, fun, psi_j, resolution);
+		// FIXME ntuple<Expression> auto convert
+		nTuple<double, 3> t2 = center + (rmax - center) * 0.1;
+		std::tie(success, res[i]) = find_root(t2, rmax, fun, psi_j, resolution);
 
 		if (!success)
 		{
-			WARNING << "Construct flux surface failed!" << "at theta = " << theta << " psi = " << psi_j;
+			WARNING << "Construct flux surface failed!" << "at theta = "
+					<< theta << " psi = " << psi_j;
 			break;
 		}
 
@@ -370,8 +383,9 @@ bool GEqdsk::FluxSurface(Real psi_j, size_t M, coordinates_type*res, unsigned in
 
 }
 
-bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface, std::vector<coordinates_type> *res,
-        std::function<Real(Real, Real)> const & h, unsigned int PhiAxis)
+bool GEqdsk::MapToFluxCoordiantes(std::vector<coordinates_type> const&surface,
+		std::vector<coordinates_type> *res,
+		std::function<double(double, double)> const & h, size_t PhiAxis)
 {
 	bool success = false;
 

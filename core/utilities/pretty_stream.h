@@ -28,7 +28,7 @@ namespace simpla
 //! \ingroup Utilities
 
 template<typename TV> inline TV const *
-printNdArray(std::ostream & os, TV const *v, unsigned int rank, size_t const* d,
+printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
 		std::string const & left_brace = "{", std::string const & sep = ",",
 		std::string const & right_brace = "}")
 {
@@ -64,18 +64,32 @@ printNdArray(std::ostream & os, TV const *v, unsigned int rank, size_t const* d,
 	}
 }
 
-template<typename T, unsigned int N> std::ostream &
-operator<<(std::ostream& os, const nTuple<T, N> & tv)
+//template<typename T, size_t N> std::ostream &
+//operator<<(std::ostream& os, const nTuple<T, N> & tv)
+//{
+//	os << "{" << tv[0];
+//	for (int i = 1; i < N; ++i)
+//	{
+//		os << "," << tv[i];
+//	}
+//	os << "}";
+//	return (os);
+//}
+
+template<typename T, size_t M, size_t ...N>
+std::ostream &operator<<(std::ostream & os, nTuple<T, M, N...> const & v)
 {
-	os << "{" << tv[0];
-	for (int i = 1; i < N; ++i)
+	os << std::endl << "{";
+	for (int i = 0; i < M - 1; ++i)
 	{
-		os << "," << tv[i];
+		os << v[i] << " , ";
 	}
-	os << "}";
-	return (os);
+
+	os << v[M - 1] << "}";
+
+	return os;
 }
-template<typename T, unsigned int N> std::istream &
+template<typename T, size_t N> std::istream &
 operator>>(std::istream& is, nTuple<T, N> & tv)
 {
 	for (int i = 0; i < N && is; ++i)
@@ -86,7 +100,7 @@ operator>>(std::istream& is, nTuple<T, N> & tv)
 	return (is);
 }
 
-template<typename T, unsigned int N> nTuple<T, N> ToNTuple(
+template<typename T, size_t N> nTuple<T, N> ToNTuple(
 		std::string const & str)
 {
 	std::istringstream ss(str);
