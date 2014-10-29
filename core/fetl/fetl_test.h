@@ -21,13 +21,13 @@ using namespace simpla;
 #include "../manifold/interpolator/interpolator.h"
 
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
-		FiniteDiffMehtod, InterpolatorLinear> TMesh;
+		FiniteDiffMehtod, InterpolatorLinear> TManifold;
 
 typedef nTuple<3, Real> coordiantes_type;
 
 class TestFETL: public testing::TestWithParam<
 		std::tuple<coordiantes_type, coordiantes_type,
-				nTuple<TMesh::NDIMS, size_t>, nTuple<TMesh::NDIMS, Real> > >
+				nTuple<TManifold::NDIMS, size_t>, nTuple<TManifold::NDIMS, Real> > >
 {
 
 protected:
@@ -64,7 +64,7 @@ protected:
 	}
 public:
 
-	typedef TMesh manifold_type;
+	typedef TManifold manifold_type;
 	typedef Real value_type;
 	typedef typename manifold_type::scalar_type scalar_type;
 	typedef typename manifold_type::iterator iterator;

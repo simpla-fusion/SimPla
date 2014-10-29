@@ -301,9 +301,9 @@ nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 
 typedef nTuple<Real, 3> Vec3;
 
-typedef nTuple<Real, 3> IVec3;
+typedef nTuple<Integral, 3> IVec3;
 
-typedef nTuple<Integral, 3> RVec3;
+typedef nTuple<Real, 3> RVec3;
 
 typedef nTuple<Complex, 3> CVec3;
 

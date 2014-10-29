@@ -25,28 +25,48 @@ std::string save(std::string const & url, _Field<T...> const & d,
 
 //	typedef typename field_traits<_Field<T...>>::value_type value_type;
 //
-//	int rank = field_traits<_Field<T...>>::dataset_shape();
-//
-//	size_t global_begin[rank];
-//	size_t global_end[rank];
-//	size_t local_outer_begin[rank];
-//	size_t local_outer_end[rank];
-//	size_t local_inner_begin[rank];
-//	size_t local_inner_end[rank];
-//
-//	field_traits<_Field<T...>>::dataset(d,
-//
-//	static_cast<size_t*>(global_begin), static_cast<size_t*>(global_end),
-//
-//	static_cast<size_t*>(local_outer_begin),
-//			static_cast<size_t*>(local_outer_end),
-//
-//			static_cast<size_t*>(local_inner_begin),
-//			static_cast<size_t*>(local_inner_end)
-//
-//			);
+	int rank = d.dataset_shape();
 
-	return simpla::save(url, d.dataset(), flag);
+	size_t global_begin[rank];
+	size_t global_end[rank];
+	size_t local_outer_begin[rank];
+	size_t local_outer_end[rank];
+	size_t local_inner_begin[rank];
+	size_t local_inner_end[rank];
+
+	d.dataset_shape(
+
+	static_cast<size_t*>(global_begin),
+
+	static_cast<size_t*>(global_end),
+
+	static_cast<size_t*>(local_outer_begin),
+
+	static_cast<size_t*>(local_outer_end),
+
+	static_cast<size_t*>(local_inner_begin),
+
+	static_cast<size_t*>(local_inner_end)
+
+	);
+
+	return simpla::save(url, d.data(),
+
+	rank,
+
+	static_cast<size_t*>(global_begin),
+
+	static_cast<size_t*>(global_end),
+
+	static_cast<size_t*>(local_outer_begin),
+
+	static_cast<size_t*>(local_outer_end),
+
+	static_cast<size_t*>(local_inner_begin),
+
+	static_cast<size_t*>(local_inner_end),
+
+	flag);
 
 }
 }

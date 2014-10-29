@@ -118,8 +118,13 @@ public:
 //		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
 //	}
 
-	auto dataset() const
-	DECL_RET_TYPE((std::make_tuple(max_hash())))
+	auto dataset_shape() const
+	DECL_RET_TYPE(( manifold_.get_dataset_shape( *this )))
+	template<typename ...Args>
+	auto dataset_shape(Args &&... args) const
+	DECL_RET_TYPE((
+					manifold_.get_dataset_shape(
+							*this,std::forward<Args>(args)...)))
 
 public:
 	template<typename TL, typename TR>

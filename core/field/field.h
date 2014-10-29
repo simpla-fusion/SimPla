@@ -26,6 +26,14 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
+template<typename ...T, typename TI>
+auto get_value(_Field<T...> const & f, TI const &s)
+DECL_RET_TYPE((f[s]))
+
+template<typename ...T, typename TI>
+auto get_value(_Field<T...> & f, TI const &s)
+DECL_RET_TYPE((f[s]))
+
 /**
  *
  *  \brief skeleton of Field data holder
@@ -175,11 +183,22 @@ public:
 		return (*this);
 	}
 
+//	template<typename ...T> inline this_type &
+//	operator =(_Field<T...> const &that)
+//	{
+//		allocate();
+//		parallel_for(domain_, [&](index_type const & s)
+//		{
+//			(*this)[s]= that[s];
+//		});
+//
+//		return (*this);
+//	}
+
 	template<typename TR> inline this_type &
 	operator =(TR const &that)
 	{
 		allocate();
-
 		parallel_for(domain_, [&](index_type const & s)
 		{
 			(*this)[s]= get_value(that, s);
@@ -274,11 +293,18 @@ public:
 	DECL_RET_TYPE(( simpla::scatter(domain_,data_,
 							std::forward<Args>(args)...)))
 
-	auto dataset() const
-			DECL_RET_TYPE(std::move(
-							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
-									,domain_.dataset()))
-			)
+//	auto dataset() const
+//			DECL_RET_TYPE(std::move(
+//							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
+//									,domain_.dataset()))
+//			)
+
+	auto dataset_shape() const
+	DECL_RET_TYPE(( domain_.dataset_shape()))
+
+	template<typename ...Args>
+	auto dataset_shape(Args &&... args) const
+	DECL_RET_TYPE(( domain_.dataset_shape( std::forward<Args>(args)...)))
 
 }
 ;

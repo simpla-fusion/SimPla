@@ -27,9 +27,9 @@ using namespace simpla;
 #include "../manifold/geometry/cartesian.h"
 #include "../../applications/particle_solver/pic_engine_fullf.h"
 
-typedef Manifold<CartesianCoordinates<StructuredMesh> > TMesh;
+typedef Manifold<CartesianCoordinates<StructuredMesh> > TManifold;
 
-typedef TMesh mesh_type;
+typedef TManifold mesh_type;
 
 int main(int argc, char **argv)
 {

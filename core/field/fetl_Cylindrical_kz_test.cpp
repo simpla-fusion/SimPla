@@ -18,7 +18,7 @@ using namespace simpla;
 
 #define TMESH   Manifold<CylindricalCoordinates<StructuredMesh, CARTESIAN_ZAXIS>, FiniteDiffMehtod, InterpolatorLinear>
 
-#include   "fetl_vector_calculus_test.h"
+#include   "field_vector_calculus_test.h"
 
 INSTANTIATE_TEST_CASE_P(FETLCylindrical, TestFETL,
 

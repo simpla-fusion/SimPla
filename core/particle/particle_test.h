@@ -26,13 +26,13 @@ using namespace simpla;
 #include "../mesh/mesh_rectangle.h"
 #include "../mesh/uniform_array.h"
 #include "../mesh/geometry_cartesian.h"
-typedef Mesh<CartesianGeometry<UniformArray>, false> TMesh;
+typedef Mesh<CartesianGeometry<UniformArray>, false> TManifold;
 #else
-typedef TMESH TMesh;
+typedef TMESH TManifold;
 #endif
 
 class TestParticle: public testing::TestWithParam<
-        std::tuple<typename TMesh::coordinates_type, typename TMesh::coordinates_type, nTuple<TMesh::NDIMS, size_t> > >
+        std::tuple<typename TManifold::coordinates_type, typename TManifold::coordinates_type, nTuple<TManifold::NDIMS, size_t> > >
 {
 protected:
 	virtual void SetUp()
@@ -59,7 +59,7 @@ protected:
 	}
 public:
 
-	typedef TMesh mesh_type;
+	typedef TManifold mesh_type;
 
 	struct Point_s
 	{

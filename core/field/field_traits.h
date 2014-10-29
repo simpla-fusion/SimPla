@@ -257,7 +257,7 @@ struct _Field<Expression<TOP, TL>>
 
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((calculate(domain_,op_, lhs, s ) ))
+	DECL_RET_TYPE ((domain_.calculate(op_, lhs, s ) ))
 
 };
 

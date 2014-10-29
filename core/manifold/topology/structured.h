@@ -48,7 +48,7 @@ struct StructuredMesh
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t ndims = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-	typedef size_t index_type;
+	typedef unsigned long index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, ndims> coordinates_type;
 	typedef nTuple<index_type, ndims> index_tuple;
@@ -304,7 +304,7 @@ public:
 		{
 			return mesh.max_hash(*this);
 		}
-		size_t hash(compact_index_type const & s)const
+		size_t hash(compact_index_type const & s) const
 		{
 			return mesh.hash(s);
 		}
@@ -610,11 +610,11 @@ public:
 		return rank;
 	}
 
-	int get_dataset_shape(range_type const& range, size_t * global_begin =
-			nullptr, size_t * global_end = nullptr, size_t * local_outer_begin =
-			nullptr, size_t * local_outer_end = nullptr,
-			size_t * local_inner_begin = nullptr, size_t * local_inner_end =
-					nullptr) const
+	template<typename TR>
+	int get_dataset_shape(TR const& range, size_t * global_begin = nullptr,
+			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
+					nullptr, size_t * local_inner_end = nullptr) const
 	{
 		size_t IFORM = IForm(*begin(range));
 		int rank = 0;

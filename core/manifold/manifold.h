@@ -39,18 +39,18 @@ public:
 
 	template<typename ...Args>
 	Manifold(Args && ... args) :
-			geometry_type(std::forward<Args>(args)...), //
-			policy1(dynamic_cast<geometry_type const &>(*this)), //
-			policy2(dynamic_cast<geometry_type const &>(*this))
+			geometry_type(std::forward<Args>(args)...)
 	{
+		policy1::geometry(this);
+		policy2::geometry(this);
 	}
 
 	~Manifold() = default;
 
 	Manifold(this_type const & r) :
-			geometry_type(dynamic_cast<geometry_type const &>(r)), //
-			policy1(dynamic_cast<policy1 const &>(r)), //
-			policy2(dynamic_cast<policy2 const &>(r))
+			geometry_type((r)), //
+			policy1((r)), //
+			policy2((r))
 	{
 	}
 	this_type & operator=(this_type const &) = delete;
