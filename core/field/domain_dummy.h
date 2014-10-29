@@ -1,12 +1,12 @@
 /*
  * domain_dummy.h
  *
- *  Created on: 2014年10月3日
+ *  Created on: 2014年10月29日
  *      Author: salmon
  */
 
-#ifndef DOMAIN_DUMMY_H_
-#define DOMAIN_DUMMY_H_
+#ifndef CORE_FIELD_DOMAIN_DUMMY_H_
+#define CORE_FIELD_DOMAIN_DUMMY_H_
 
 #include <stddef.h>
 #include <algorithm>
@@ -84,11 +84,12 @@ public:
 		d[r] += v;
 	}
 
-	auto dataset() const DECL_RET_TYPE((std::make_tuple(max_hash())))
+	auto dataset() const
+	DECL_RET_TYPE ((std::make_tuple(max_hash())))
 
-};
+}	;
 
 }
 // namespace simpla
 
-#endif /* DOMAIN_DUMMY_H_ */
+#endif /* CORE_FIELD_DOMAIN_DUMMY_H_ */

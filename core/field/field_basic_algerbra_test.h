@@ -37,20 +37,62 @@ public:
 
 	value_type default_value;
 
-	field_type make_field() const
-	{
-		return std::move(field_type(domain));
-	}
+	auto make_field() const
+	DECL_RET_TYPE((simpla::make_field<value_type>(domain)))
 
-	Field< Real,domain_type> make_scalar_field() const
-	{
-		return std::move(Field<Real,domain_type>(domain));
-	}
+	auto make_scalar_field() const
+	DECL_RET_TYPE((simpla::make_field<Real>(domain)))
 
 };
 
 TYPED_TEST_CASE_P(TestField);
 
+TYPED_TEST_P(TestField, assign){
+{
+
+	typedef typename TestFixture::value_type value_type;
+	typedef typename TestFixture::field_type field_type;
+
+	auto f1 = TestFixture::make_field();
+
+	value_type va;
+
+	va = 2.0;
+
+	f1 = va;
+
+	for(auto s : TestFixture::domain)
+	{
+		EXPECT_LE(abs( va- f1[s]),EPSILON);
+	}
+}
+}
+
+TYPED_TEST_P(TestField, index){
+{
+
+	typedef typename TestFixture::value_type value_type;
+	typedef typename TestFixture::field_type field_type;
+
+	auto f1 = TestFixture::make_field();
+
+	f1.clear();
+
+	value_type va;
+
+	va=2.0;
+
+	for(auto s : TestFixture::domain)
+	{
+		f1[s]=va* TestFixture::domain.hash(s);
+	}
+
+	for(auto s : TestFixture::domain)
+	{
+		EXPECT_LE(abs( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
+	}
+}
+}
 TYPED_TEST_P(TestField, constant_real){
 {
 
@@ -72,13 +114,12 @@ TYPED_TEST_P(TestField, constant_real){
 	f1=va;
 	f2=vb;
 
-	LOG_CMD(f3 = -f1*a +f2*c - f1/b -f1 );
+	LOG_CMD(f3 = -f1 *a +f2*c - f1/b -f1 );
 
 	for(auto s : TestFixture::domain)
 	{
 		value_type res;
-		res= - f1[s]*a + f2[s] *c -f1[s]/b-f1[s];
-
+		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
 		EXPECT_LE(abs( res- f3[s]),EPSILON);
 	}
 }
@@ -160,7 +201,8 @@ TYPED_TEST_P(TestField, scalar_field){
 }
 }
 
-REGISTER_TYPED_TEST_CASE_P(TestField, constant_real, scalar_field);
+REGISTER_TYPED_TEST_CASE_P(TestField, index, assign, constant_real,
+		scalar_field);
 //#include <gtest/gtest.h>
 //
 //#include "field.h"

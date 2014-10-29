@@ -72,13 +72,13 @@ auto gather(TD const & d, TC & c, Args && ... args)
 HAS_MEMBER_FUNCTION(calculate)
 
 template<typename TD, typename TOP, typename ...Args>
-auto calculate(TD const & d, TOP & c, Args && ... args)
+auto calculate(TD const & d, TOP & op, Args && ... args)
 ENABLE_IF_DECL_RET_TYPE(
 		(has_member_function_calculate<TD,TOP,Args...>::value),
-		(d.gather(c,std::forward<Args>(args)...)))
+		(d.calculate(op,std::forward<Args>(args)...)))
 
 template<typename TD, typename TOP, typename ...Args>
-auto calculate(TD const & d, TOP & c, Args && ... args)
+auto calculate(TD const & d, TOP & op, Args && ... args)
 ENABLE_IF_DECL_RET_TYPE(
 		(!has_member_function_calculate<TD,TOP,Args...>::value),
 		(op(std::forward<Args>(args)...)))
@@ -130,6 +130,24 @@ struct field_traits<_Field<Expression<TOP, TL, Others...> >>
 	}
 };
 
+namespace _impl
+{
+
+template<typename TC, typename TD>
+struct reference_traits<_Field<TC, TD> >
+{
+
+	typedef _Field<TC, TD> const & type;
+
+};
+
+template<typename ... T>
+struct reference_traits<_Field<Expression<T...> > >
+{
+	typedef _Field<Expression<T...> > type;
+
+};
+} //namespace _impl
 /**
  *     \brief skeleton of Field expression
  */

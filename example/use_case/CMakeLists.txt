@@ -1,5 +1,3 @@
-#ADD_EXECUTABLE(mhd  mhd.cpp   )
-#TARGET_LINK_LIBRARIES(mhd  physics  geqdsk io parallel)
-ADD_EXECUTABLE(RF  RF.cpp   )
-TARGET_LINK_LIBRARIES(RF  physics    io parallel)
-
+ADD_SUBDIRECTORY( mhd)
+ADD_SUBDIRECTORY( rf)
+ADD_SUBDIRECTORY( probe_particle)

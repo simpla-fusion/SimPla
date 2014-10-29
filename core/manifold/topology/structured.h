@@ -274,6 +274,7 @@ public:
 	struct range
 	{
 
+		typedef typename StructuredMesh::iterator iterator;
 #ifndef USE_FORTRAN_ORDER_ARRAY
 		static constexpr size_t ARRAY_ORDER = C_ORDER;
 #else

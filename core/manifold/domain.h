@@ -38,10 +38,9 @@ public:
 
 	typedef size_t difference_type; // Type for difference of two iterators
 
-	typedef typename TG::range_type base_type;
+	typedef typename TG::range_type range_type;
 
-	using typename TG::iterator;
-	using typename TG::range_type;
+	using typename range_type::iterator;
 
 public:
 	manifold_type const& manifold_;
@@ -50,18 +49,20 @@ public:
 
 public:
 	Domain(manifold_type const & g) :
-			base_type(g.select(iform)), manifold_(g)/*, parent_(*this)*/
+			range_type(g.select(iform)), manifold_(g)/*, parent_(*this)*/
 	{
-		;
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			manifold_(rhs.manifold_), parent_(rhs.parent_), range_(rhs.range_)
+			range_type(rhs), manifold_(rhs.manifold_)/*, parent_(rhs.parent_) */
 	{
 	}
-	Domain(this_type& d, split_tag); // Split d into two sub-domains.
+//	Domain(this_type& d, split_tag); // Split d into two sub-domains.
 
 	~Domain() = default; // Destructor.
+
+	using range_type::max_hash;
+	using range_type::hash;
 
 	void swap(this_type& rhs);
 
@@ -100,15 +101,6 @@ public:
 //	{
 //		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
 //	}
-
-	size_t hash(index_type s) const // get relative  position of grid point  in the memory
-	{
-		return 0; // manifold_.topology_type::hash<iform>(range_, s);
-	}
-	size_t max_hash() const	 // get max number of grid points in memory
-	{
-		return 0;	 //manifold_.topology_type::max_hash();
-	}
 
 	auto dataset() const
 	DECL_RET_TYPE((std::make_tuple(max_hash())))

@@ -11,11 +11,10 @@
 #include <string>
 #include <tuple>
 
-#include "../../src/physics/physical_constants.h"
-#include "../../src/utilities/primitives.h"
-#include "../../src/utilities/ntuple.h"
-#include "../../src/utilities/ntuple_noet.h"
-#include "../../src/particle/particle_engine.h"
+#include "../../core/physics/physical_constants.h"
+#include "../../core/utilities/primitives.h"
+#include "../../core/utilities/ntuple.h"
+#include "../../core/particle/particle_engine.h"
 namespace simpla
 {
 

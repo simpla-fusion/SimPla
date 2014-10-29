@@ -30,8 +30,8 @@ public:
 	Properties()
 	{
 	}
-	Properties(Any const &v)
-			: value_(v)
+	Properties(Any const &v) :
+			value_(v)
 	{
 	}
 	~Properties()
@@ -115,7 +115,7 @@ public:
 	}
 
 	template<typename T>
-	void set(std::string const & key, T const & v)
+	T const & set(std::string const & key, T const & v)
 	{
 		get(key) = v;
 	}
@@ -136,7 +136,7 @@ public:
 	template<typename T>
 	void operator()(std::string const & key, T && v)
 	{
-		return set(key, std::forward<T>(v));
+		set(key, std::forward<T>(v));
 	}
 
 	Any & value()

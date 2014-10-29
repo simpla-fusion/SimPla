@@ -39,7 +39,7 @@ public:
 
 	typedef CylindricalCoordinates<topology_type, PhiAxis> this_type;
 
-	static constexpr unsigned int NDIMS = topology_type::NDIMS;
+	static constexpr unsigned int ndims = topology_type::ndims;
 
 	typedef Real scalar_type;
 
@@ -48,8 +48,8 @@ public:
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
-	typedef nTuple<Real, NDIMS> vector_type;
-	typedef nTuple<Real, NDIMS> covector_type;
+	typedef nTuple<Real, ndims> vector_type;
+	typedef nTuple<Real, ndims> covector_type;
 
 	CylindricalCoordinates(this_type const & rhs) = delete;
 
@@ -141,9 +141,9 @@ public:
 
 			set_extents(
 
-			dict["Min"].template as<nTuple<Real, NDIMS>>(),
+			dict["Min"].template as<nTuple<Real, ndims>>(),
 
-			dict["Max"].template as<nTuple<Real, NDIMS>>());
+			dict["Max"].template as<nTuple<Real, ndims>>());
 
 			CFL_ = dict["CFL"].template as<Real>(0.5);
 
@@ -204,11 +204,11 @@ public:
 			dt_ = safe_dt;
 		}
 	}
-	void updatedt(nTuple<Real, NDIMS> const & kimg)
+	void updatedt(nTuple<Real, ndims> const & kimg)
 	{
 		updatedt(0.0);
 	}
-	void updatedt(nTuple<Complex, NDIMS> const & kimg)
+	void updatedt(nTuple<Complex, ndims> const & kimg)
 	{
 		Real dx2 = 0.0;
 
@@ -252,7 +252,7 @@ public:
 
 		auto d = topology_type::dx();
 
-		for (int i = 0; i < NDIMS; ++i)
+		for (int i = 0; i < ndims; ++i)
 		{
 			res[i] = length_[i] * d[i];
 		}
@@ -407,14 +407,14 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, NDIMS> > push_forward(
-			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & Z) const
+	std::tuple<coordinates_type, nTuple<TV, ndims> > push_forward(
+			std::tuple<coordinates_type, nTuple<TV, ndims> > const & Z) const
 	{
 		coordinates_type r = MapTo(std::get<0>(Z));
 
 		auto const & v = std::get<1>(Z);
 
-		nTuple<TV, NDIMS> u;
+		nTuple<TV, ndims> u;
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
@@ -438,15 +438,15 @@ public:
 	 *
 	 */
 	template<typename TV>
-	std::tuple<coordinates_type, nTuple<TV, NDIMS> > pull_back(
-			std::tuple<coordinates_type, nTuple<TV, NDIMS> > const & R) const
+	std::tuple<coordinates_type, nTuple<TV, ndims> > pull_back(
+			std::tuple<coordinates_type, nTuple<TV, ndims> > const & R) const
 	{
 		auto const & r = std::get<0>(R);
 		auto const & u = std::get<1>(R);
 
 		Real c = std::cos(r[PhiAxis]), s = std::sin(r[PhiAxis]);
 
-		nTuple<TV, NDIMS> v;
+		nTuple<TV, ndims> v;
 
 		v[CARTESIAN_XAXIS] = u[RAxis] * c - u[PhiAxis] * r[RAxis] * s;
 		v[CARTESIAN_ZAXIS] = u[RAxis] * s + u[PhiAxis] * r[RAxis] * c;
@@ -515,7 +515,7 @@ public:
 	template<unsigned int IFORM, typename TV>
 	typename std::enable_if<(IFORM == EDGE || IFORM == FACE), TV>::type Sample(
 			std::integral_constant<unsigned int, IFORM>, index_type s,
-			nTuple<TV, NDIMS> const & v) const
+			nTuple<TV, ndims> const & v) const
 	{
 		return Normal(s, v);
 	}
@@ -570,7 +570,7 @@ public:
 	{
 		unsigned int n = topology_type::node_id(s);
 		return topology_type::volume(s) * volume_[n]
-				* (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						get_coordinates(s)[RAxis] : 1.0);
 	}
 
@@ -578,7 +578,7 @@ public:
 	{
 		unsigned int n = topology_type::node_id(s);
 		return topology_type::inv_volume(s) * inv_volume_[n]
-				/ (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						get_coordinates(s)[RAxis] : 1.0);
 	}
 
@@ -586,14 +586,14 @@ public:
 	{
 		unsigned int n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::dual_volume(s) * volume_[n]
-				* (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+				* (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						get_coordinates(s)[RAxis] : 1.0);
 	}
 	scalar_type inv_dual_volume(compact_index_type s) const
 	{
 		unsigned int n = topology_type::node_id(topology_type::dual(s));
 		return topology_type::inv_dual_volume(s) * inv_volume_[n]
-				/ (((n & (1UL << (NDIMS - PhiAxis - 1))) > 0) ?
+				/ (((n & (1UL << (ndims - PhiAxis - 1))) > 0) ?
 						get_coordinates(s)[RAxis] : 1.0);
 	}
 //! @}
@@ -641,7 +641,7 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 						);
 	}
 
-	for (int i = 0; i < NDIMS; ++i)
+	for (int i = 0; i < ndims; ++i)
 	{
 
 		shift_[i] = xmin_[i];
@@ -655,9 +655,9 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 
 			length_[i] = 0.0;
 
-			volume_[1UL << (NDIMS - i - 1)] = 1.0;
+			volume_[1UL << (ndims - i - 1)] = 1.0;
 
-			inv_volume_[1UL << (NDIMS - i - 1)] = 1.0;
+			inv_volume_[1UL << (ndims - i - 1)] = 1.0;
 		}
 		else
 		{
@@ -673,9 +673,9 @@ bool CylindricalCoordinates<TTopology, IPhiAxis>::update()
 
 			inv_length_[i] = 1.0 / length_[i];
 
-			volume_[1UL << (NDIMS - i - 1)] = length_[i];
+			volume_[1UL << (ndims - i - 1)] = length_[i];
 
-			inv_volume_[1UL << (NDIMS - i - 1)] = inv_length_[i];
+			inv_volume_[1UL << (ndims - i - 1)] = inv_length_[i];
 
 		}
 	}

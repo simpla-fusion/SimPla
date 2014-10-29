@@ -11,11 +11,11 @@
 #include <memory>
 #include <string>
 
-#include "../../src/utilities/primitives.h"
-#include "../../src/particle/particle.h"
-#include "../../src/particle/particle_base.h"
+#include "../../core/utilities/primitives.h"
+#include "../../core/particle/particle.h"
+#include "../../core/particle/particle_base.h"
 #include "fluid_cold_engine.h"
-#include "pic_engine_fullf.h"
+//#include "pic_engine_fullf.h"
 #include "pic_engine_deltaf.h"
 //#include "pic_engine_implicit.h"
 //#include "pic_engine_ggauge.h"
@@ -36,8 +36,8 @@ Factory<std::string, ParticleBase, Args ...> RegisterAllParticles()
 
 	factory.Register(Particle<Mesh, ColdFluid>::template CreateFactoryFun<Args...>());
 
-	factory.Register(Particle<Mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
-	factory.Register(Particle<Mesh, PICEngineDeltaF>::template CreateFactoryFun<Args...>());
+//	factory.Register(Particle<Mesh, PICEngineFullF>::template CreateFactoryFun<Args...>());
+	factory.Register(Particle<Mesh, PICDeltaF>::template CreateFactoryFun<Args...>());
 //	factory.Register(Particle<PICEngineImplicit<Mesh>>::template CreateFactoryFun<Args...>());
 //	factory.Register(Particle<PICEngineGGauge<Mesh, 4, true>>::template CreateFactoryFun<Args...>());
 //	factory.Register(Particle<PICEngineGGauge<Mesh, 16, true>>::template CreateFactoryFun<Args...>());

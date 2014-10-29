@@ -126,6 +126,7 @@ public:
 
 	void clear()
 	{
+		allocate();
 		container_traits<container_type>::clear(data_, size());
 	}
 
@@ -148,6 +149,32 @@ public:
 
 /// @defgroup Assignment
 /// @{
+	inline this_type &
+	operator =(value_type const &v)
+	{
+		allocate();
+
+		parallel_for(domain_, [&](index_type const & s)
+		{
+			(*this)[s]= v;
+		});
+
+		return (*this);
+	}
+
+	inline this_type &
+	operator =(this_type const &that)
+	{
+		allocate();
+
+		parallel_for(domain_, [&](index_type const & s)
+		{
+			(*this)[s]= get_value(that, s);
+		});
+
+		return (*this);
+	}
+
 	template<typename TR> inline this_type &
 	operator =(TR const &that)
 	{

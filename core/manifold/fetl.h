@@ -17,7 +17,8 @@
 #include "calculus.h"
 #include "domain.h"
 #include "manifold.h"
-
+#include "topology/structured.h"
+#include "geometry/cartesian.h"
 //#include "field_vector_ops.h"
 //#include "field_constant.h"
 //#include "cache.h"

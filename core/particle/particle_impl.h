@@ -67,9 +67,10 @@ namespace simpla
  *  \brief Particle class
  *
  */
+template<typename ...>class Particle;
 
 template<typename TM, typename Engine>
-class Particle
+class Particle<TM, Engine>
 {
 
 public:
@@ -105,8 +106,8 @@ public:
 
 template<typename TM, typename Engine>
 template<typename ... Others>
-Particle<TM, Engine>::Particle(mesh_type const & model, Others && ...others)
-		: storage_type(model), mesh(model)
+Particle<TM, Engine>::Particle(mesh_type const & model, Others && ...others) :
+		storage_type(model), mesh(model)
 {
 	this_type::load(std::forward<Others>(others)...);
 }
@@ -123,7 +124,8 @@ void Particle<TM, Engine>::load(TDict const & dict, Others && ...others)
 
 	storage_type::load(dict, std::forward<Others>(others)...);
 
-	properties.set("DumpParticle", dict["DumpParticle"].template as<bool>(false));
+	properties.set("DumpParticle",
+			dict["DumpParticle"].template as<bool>(false));
 
 	properties.set("DivergeJ", dict["DivergeJ"].template as<bool>(false));
 
@@ -167,7 +169,8 @@ template<typename ...Args>
 void Particle<TM, Engine>::next_timestep(Args && ...args)
 {
 
-	LOGGER << "Push particles to half step [ " << engine_type::get_type_as_string() << " ]";
+	LOGGER << "Push particles to half step [ "
+			<< engine_type::get_type_as_string() << " ]";
 
 	storage_type::Sort();
 
@@ -213,7 +216,7 @@ void Particle<TM, Engine>::update_fields()
 
 	if (engine_type::properties["DivergeJ"].template as<bool>(false))
 	{
-		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(rho -= Diverge(MapTo < EDGE > (J)) * dt);
 	}
 	else if (engine_type::properties["ScatterN"].template as<bool>(false))
 	{
@@ -236,7 +239,8 @@ template<typename TM, typename Engine>
 template<typename TRange, typename TFun>
 void Particle<TM, Engine>::remove(TRange const & range, TFun const & obj)
 {
-	auto f1 = TypeCast<std::function<bool(coordinates_type const &, Vec3 const &)>>(obj);
+	auto f1 = TypeCast<
+			std::function<bool(coordinates_type const &, Vec3 const &)>>(obj);
 
 	std::function<bool(particle_type const&)> fun = [&](particle_type const & p)
 	{
@@ -256,16 +260,20 @@ template<typename TRange, typename TFun>
 void Particle<TM, Engine>::modify(TRange const & range, TFun const & obj)
 {
 
-	auto f1 = TypeCast<std::function<std::tuple<coordinates_type, Vec3>(coordinates_type const &, Vec3 const &)>>(obj);
+	auto f1 = TypeCast<
+			std::function<
+					std::tuple<coordinates_type, Vec3>(coordinates_type const &,
+							Vec3 const &)>>(obj);
 
-	std::function<void(particle_type *)> fun = [&](particle_type * p)
-	{
-		auto z0=engine_type::pull_back(*p);
+	std::function<void(particle_type *)> fun =
+			[&](particle_type * p)
+			{
+				auto z0=engine_type::pull_back(*p);
 
-		auto z1=f1(std::get<0>(z0),std::get<1>(z0));
+				auto z1=f1(std::get<0>(z0),std::get<1>(z0));
 
-		*p=engine_type::push_forward( std::get<0>(z1),std::get<1>(z1),std::get<2>(z0));
-	};
+				*p=engine_type::push_forward( std::get<0>(z1),std::get<1>(z1),std::get<2>(z0));
+			};
 
 	storage_type::modify(range, fun);
 

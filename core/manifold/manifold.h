@@ -53,18 +53,6 @@ public:
 	}
 	this_type & operator=(this_type const &) = delete;
 
-	template<size_t IFORM = VERTEX>
-	Domain<this_type, IFORM> domain() const
-	{
-		return std::move(Domain<this_type, IFORM>(*this));
-	}
-	template<size_t IFORM, typename TV> using
-	field=_Field<Domain<this_type,IFORM>,std::vector<TV> >;
-
-	template<typename TF> TF make_field() const
-	{
-		return std::move(TF(domain<TF::iform>()));
-	}
 	template<typename T>
 	auto get_value(T const & expr, index_type const & s) const
 	DECL_RET_TYPE((simpla::get_value(expr,s)))

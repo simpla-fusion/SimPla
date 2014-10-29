@@ -9,14 +9,14 @@
 #define FLUID_COLD_ENGINE_H_
 #include <functional>
 #include <typeinfo>
-#include "../../src/fetl/fetl.h"
-#include "../../src/fetl/load_field.h"
-#include "../../src/fetl/save_field.h"
-#include "../../src/particle/particle_base.h"
-#include "../../src/utilities/properties.h"
-#include "../../src/utilities/any.h"
+#include "../../core/field/field.h"
+#include "../../core/field/load_field.h"
+#include "../../core/field/save_field.h"
+#include "../../core/particle/particle_base.h"
+#include "../../core/utilities/properties.h"
+#include "../../core/utilities/any.h"
 
-#include "../../src/physics/physical_constants.h"
+#include "../../core/physics/physical_constants.h"
 
 namespace simpla
 {
@@ -33,7 +33,7 @@ template<typename TM>
 class Particle<TM, ColdFluid, PolicyFluidParticle> : public ParticleBase
 {
 public:
-	static constexpr std::size_t   IForm = VERTEX;
+	static constexpr std::size_t IForm = VERTEX;
 
 	typedef TM mesh_type;
 
@@ -49,15 +49,15 @@ public:
 
 	typedef typename mesh_type:: template field<VERTEX, scalar_type> rho_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> J_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<scalar_type, 3>> J_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > E0_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<Real, 3> > E0_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, Real> > B0_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<Real, 3> > B0_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> E1_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<scalar_type, 3>> E1_type;
 
-	typedef typename mesh_type:: template field<VERTEX, nTuple<3, scalar_type>> B1_type;
+	typedef typename mesh_type:: template field<VERTEX, nTuple<scalar_type, 3>> B1_type;
 
 	mesh_type const & mesh;
 
@@ -80,18 +80,21 @@ public:
 	template<typename ...Args>
 	static std::shared_ptr<ParticleBase> create(Args && ... args)
 	{
-		std::shared_ptr<this_type> res(new this_type(std::forward<Args>(args)...));
+		std::shared_ptr<this_type> res(
+				new this_type(std::forward<Args>(args)...));
 
 		return std::dynamic_pointer_cast<ParticleBase>(res);
 	}
 
 	template<typename ...Args>
-	static std::pair<std::string, std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
+	static std::pair<std::string,
+			std::function<std::shared_ptr<ParticleBase>(Args const &...)>> CreateFactoryFun()
 	{
-		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back = []( Args const& ...args)
-		{
-			return this_type::create(args...);
-		};
+		std::function<std::shared_ptr<ParticleBase>(Args const &...)> call_back =
+				[]( Args const& ...args)
+				{
+					return this_type::create(args...);
+				};
 		return std::move(std::make_pair(get_type_as_string_static(), call_back));
 	}
 
@@ -143,8 +146,10 @@ public:
 		return get_property_(name).template as<T>();
 	}
 
-	void next_timestep_zero(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
-	void next_timestep_half(E0_type const & E0, B0_type const & B0, E1_type const & E1, B1_type const & B1);
+	void next_timestep_zero(E0_type const & E0, B0_type const & B0,
+			E1_type const & E1, B1_type const & B1);
+	void next_timestep_half(E0_type const & E0, B0_type const & B0,
+			E1_type const & E1, B1_type const & B1);
 
 // interface
 
@@ -209,8 +214,9 @@ private:
 
 template<typename TM>
 template<typename TDict, typename TModel, typename ...Args>
-Particle<TM, ColdFluid, PolicyFluidParticle>::Particle(TDict const & dict, TModel const & model, Args && ... args)
-		: mesh(model),
+Particle<TM, ColdFluid, PolicyFluidParticle>::Particle(TDict const & dict,
+		TModel const & model, Args && ... args) :
+		mesh(model),
 
 		m(dict["Mass"].template as<Real>(1.0)),
 
@@ -227,7 +233,8 @@ Particle<TM, ColdFluid, PolicyFluidParticle>::~Particle()
 }
 template<typename TM>
 template<typename TDict, typename TModel>
-void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict, TModel const & model)
+void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict,
+		TModel const & model)
 {
 
 	try
@@ -245,13 +252,14 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict, TMod
 		PARSER_ERROR("Configure  Particle<ColdFluid> error!");
 	}
 
-	LOGGER << "Create Particles:[ Engine=" << get_type_as_string() << "]" << DONE;
+	LOGGER << "Create Particles:[ Engine=" << get_type_as_string() << "]"
+			<< DONE;
 }
 
 template<typename TM>
 template<typename TDict, typename TModel, typename TN, typename TT>
-void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict, TModel const & model, TN const & pn,
-        TT const & pT)
+void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict,
+		TModel const & model, TN const & pn, TT const & pT)
 {
 
 	load(dict, model);
@@ -276,7 +284,8 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::load(TDict const & dict, TMod
 }
 
 template<typename TM>
-std::string Particle<TM, ColdFluid, PolicyFluidParticle>::save(std::string const & path) const
+std::string Particle<TM, ColdFluid, PolicyFluidParticle>::save(
+		std::string const & path) const
 {
 
 	GLOBAL_DATA_STREAM.cd(path);
@@ -290,27 +299,30 @@ std::string Particle<TM, ColdFluid, PolicyFluidParticle>::save(std::string const
 	;
 }
 template<typename TM>
-void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_zero(E0_type const & E0, B0_type const & B0,
-        E1_type const & E1, B1_type const & B1)
+void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_zero(
+		E0_type const & E0, B0_type const & B0, E1_type const & E1,
+		B1_type const & B1)
 {
 }
 
 template<typename TM>
-void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(E0_type const & E0, B0_type const & B0,
-        E1_type const & E1, B1_type const & B1)
+void Particle<TM, ColdFluid, PolicyFluidParticle>::next_timestep_half(
+		E0_type const & E0, B0_type const & B0, E1_type const & E1,
+		B1_type const & B1)
 {
 	LOGGER << "Push particles Step Half[ " << get_type_as_string() << "]";
 
-	auto K = mesh.template make_field<VERTEX, nTuple<3, scalar_type>>();
+	auto K = mesh.template make_field<VERTEX, nTuple<scalar_type, 3>>();
 	auto B2 = mesh.template make_field<VERTEX, Real>();
 
 	Real as = 0.5 * q / m * mesh.get_dt();
 
-	K = J + Cross(J, B0) * as + 2.0 * as * rho * E1;
+	K = J + cross(J, B0) * as + 2.0 * as * rho * E1;
 
-	B2 = Dot(B0, B0);
+	B2 = dot(B0, B0);
 
-	J = (K + Cross(K, B0) * as + B0 * (Dot(K, B0) * as * as)) / (B2 * as * as + 1);
+	J = (K + cross(K, B0) * as + B0 * (dot(K, B0) * as * as))
+			/ (B2 * as * as + 1);
 
 }
 template<typename TM>
@@ -322,7 +334,7 @@ void Particle<TM, ColdFluid, PolicyFluidParticle>::update_fields()
 
 	if (properties["DivergeJ"].template as<bool>(true))
 	{
-		LOG_CMD(rho -= Diverge(MapTo<EDGE>(J)) * dt);
+		LOG_CMD(rho -= diverge(map_to<EDGE>(J)) * dt);
 	}
 
 }

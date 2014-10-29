@@ -62,8 +62,8 @@ public:
 	ExplicitEMContext();
 
 	template<typename ...Args>
-	ExplicitEMContext(Args && ...args)
-			: ExplicitEMContext()
+	ExplicitEMContext(Args && ...args) :
+			ExplicitEMContext()
 	{
 		load(std::forward<Args >(args)...);
 	}
@@ -76,16 +76,19 @@ public:
 	static std::shared_ptr<base_type> create(Args && ... args)
 	{
 		return std::dynamic_pointer_cast<base_type>(
-		        std::shared_ptr<this_type>(new this_type(std::forward<Args>(args)...)));
+				std::shared_ptr<this_type>(
+						new this_type(std::forward<Args>(args)...)));
 	}
 
 	template<typename ...Args>
-	static std::pair<std::string, std::function<std::shared_ptr<base_type>(Args const &...)>> CreateFactoryFun()
+	static std::pair<std::string,
+			std::function<std::shared_ptr<base_type>(Args const &...)>> CreateFactoryFun()
 	{
-		std::function<std::shared_ptr<base_type>(Args const &...)> call_back = []( Args const& ...args)
-		{
-			return this_type::create(args...);
-		};
+		std::function<std::shared_ptr<base_type>(Args const &...)> call_back =
+				[]( Args const& ...args)
+				{
+					return this_type::create(args...);
+				};
 		return std::move(std::make_pair(get_type_as_string_static(), call_back));
 	}
 
@@ -154,8 +157,8 @@ public:
 	ImplicitPushE<mesh_type> implicit_push_E;
 
 	field<VERTEX, Real> n0; //!< background  equilibrium electron density
-	field<VERTEX, nTuple<3, Real>> E0; //!<background  equilibrium electoric field  (B0)=0
-	field<VERTEX, nTuple<3, Real>> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
+	field<VERTEX, nTuple<Real, 3>> E0; //!<background  equilibrium electoric field  (B0)=0
+	field<VERTEX, nTuple<Real, 3>> B0; //!<background  equilibrium magnetic field J0+Curl(B0)=0
 //	field<EDGE, Real> J0; //!<background  equilibrium current density J0+Curl(B0)=0
 
 //	PML<mesh_type> pml_push;
@@ -191,8 +194,8 @@ private:
 ;
 
 template<typename TM>
-ExplicitEMContext<TM>::ExplicitEMContext()
-		: E1(model), B1(model), J1(model), dE(model), dB(model),
+ExplicitEMContext<TM>::ExplicitEMContext() :
+		E1(model), B1(model), J1(model), dE(model), dB(model),
 
 		B0(model), E0(model),
 
@@ -381,8 +384,8 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 
 	LOGGER << "Load Particles";
 
-	auto particle_factory = RegisterAllParticles<mesh_type, TDict, Model<mesh_type> const &, decltype(ne0),
-	        decltype(Te0)>();
+	auto particle_factory = RegisterAllParticles<mesh_type, TDict,
+			Model<mesh_type> const &, decltype(ne0), decltype(Te0)>();
 
 	/**
 	 * @todo load particle engine plugin
@@ -429,22 +432,28 @@ void ExplicitEMContext<TM>::load(TDict const & dict)
 			if (dof == "E")
 			{
 				commandToE_.push_back(
-				        E1.CreateCommand(model.select_by_config(E1.IForm, item.second["Select"]),
-				                item.second["Operation"]));
+						E1.CreateCommand(
+								model.select_by_config(E1.IForm,
+										item.second["Select"]),
+								item.second["Operation"]));
 			}
 			else if (dof == "B")
 			{
 
 				commandToB_.push_back(
-				        B1.CreateCommand(model.select_by_config(B1.IForm, item.second["Select"]),
-				                item.second["Operation"]));
+						B1.CreateCommand(
+								model.select_by_config(B1.IForm,
+										item.second["Select"]),
+								item.second["Operation"]));
 			}
 			else if (dof == "J")
 			{
 
 				commandToJ_.push_back(
-				        Jext.CreateCommand(model.select_by_config(Jext.IForm, item.second["Select"]),
-				                item.second["Operation"]));
+						Jext.CreateCommand(
+								model.select_by_config(Jext.IForm,
+										item.second["Select"]),
+								item.second["Operation"]));
 			}
 			else
 			{

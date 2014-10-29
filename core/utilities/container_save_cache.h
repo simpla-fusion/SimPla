@@ -48,7 +48,7 @@ public:
 		if (tail_ >= cache_.size())
 		{
 			size_t dims[2] = { cache_.size() / container_type::size(), container_type::size() };
-			return GLOBAL_DATA_STREAM.Write(name, cache_,2,nullptr,dims,nullptr,nullptr,nullptr,nullptr, false,true);
+			return GLOBAL_DATA_STREAM.write(name, cache_,2,nullptr,dims,nullptr,nullptr,nullptr,nullptr, false,true);
 		}
 		return "";
 	}

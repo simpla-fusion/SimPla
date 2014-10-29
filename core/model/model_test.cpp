@@ -151,6 +151,7 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 
 	auto f = make_field<Real>(domain);
 
+
 	f.clear();
 
 	auto r=model.SelectByRectangle( domain, TestFixture::points[0],TestFixture::points[1]);
@@ -216,6 +217,7 @@ TYPED_TEST_P(TestModel,SelectByPolylines ){
 	auto f = make_field<Real>(domain);
 
 	f.clear();
+	f=0;
 	typename TestFixture::coordinates_type v0, v1, v2, v3;
 	for (int i = 0; i < TestFixture::ndims; ++i)
 	{
