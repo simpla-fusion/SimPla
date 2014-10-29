@@ -26,14 +26,14 @@ template<typename TM, typename Engine> using ProbeParticle=Particle<TM, Engine, 
 
 template<typename TM, typename Engine>
 struct Particle<TM, Engine, PolicyProbeParticle> : public Engine,
-		public ContainerSaveCache<typename Engine::Point_s>
+		public std::vector<typename Engine::Point_s>
 {
-	typedef TM mesh_type;
+	typedef TM manifold_type;
 	typedef Engine engine_type;
 
-	typedef Particle<mesh_type, engine_type, PolicyProbeParticle> this_type;
+	typedef Particle<manifold_type, engine_type, PolicyProbeParticle> this_type;
 
-	typedef ContainerSaveCache<typename Engine::Point_s> storage_type;
+	typedef std::vector<typename Engine::Point_s> storage_type;
 
 	typedef typename engine_type::Point_s particle_type;
 
@@ -41,16 +41,16 @@ struct Particle<TM, Engine, PolicyProbeParticle> : public Engine,
 
 	typedef particle_type value_type;
 
-	typedef typename mesh_type::iterator iterator;
+	typedef typename manifold_type::iterator iterator;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename manifold_type::coordinates_type coordinates_type;
 
-	mesh_type const & mesh;
+	manifold_type const & mesh;
 
 	//***************************************************************************************************
 	// Constructor
 	template<typename ...Others>
-	Particle(mesh_type const & pmesh, Others && ...);	// Constructor
+	Particle(manifold_type const & pmesh, Others && ...);	// Constructor
 
 	// Destructor
 	~Particle();
@@ -65,7 +65,8 @@ struct Particle<TM, Engine, PolicyProbeParticle> : public Engine,
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
 
-	std::string save(std::string const & path);
+	template<typename ...Args>
+	std::string save(std::string const & path, Args &&...) const;
 
 	std::ostream& print(std::ostream & os) const
 	{
@@ -79,7 +80,7 @@ struct Particle<TM, Engine, PolicyProbeParticle> : public Engine,
 
 template<typename TM, typename Engine>
 template<typename ... Others>
-Particle<TM, Engine, PolicyProbeParticle>::Particle(mesh_type const & pmesh,
+Particle<TM, Engine, PolicyProbeParticle>::Particle(manifold_type const & pmesh,
 		Others && ...others) :
 		mesh(pmesh)
 {
@@ -92,10 +93,11 @@ Particle<TM, Engine, PolicyProbeParticle>::~Particle()
 }
 
 template<typename TM, typename Engine>
+template<typename ...Args>
 std::string Particle<TM, Engine, PolicyProbeParticle>::save(
-		std::string const & path)
+		std::string const & path, Args && ...args) const
 {
-	return storage_type::save(path);
+	return save(path, *this, std::forward<Args>(args)...);
 }
 
 template<typename TM, typename Engine>

@@ -37,8 +37,8 @@ std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model,
 			|| (TP::get_type_as_string()
 					!= dict["Type"].template as<std::string>()))
 	{
-		PARSER_ERROR((
-				"illegal particle configure!\"" + TP::get_type_as_string()
+		PARSER_ERROR(
+				("illegal particle configure!\"" + TP::get_type_as_string()
 						+ " \"!= \" "
 						+ dict["Type"].template as<std::string>("") + "\""))
 
@@ -142,24 +142,23 @@ void load_particle_constriant(TP *p, TRange const &range, TModel const & model,
 	}
 }
 
-template<typename TP, typename TR, typename TN, typename TT>
-void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
+template<typename TR, typename TN, typename TT, typename TP>
+void init_particle(TR const &domain, size_t pic, TN const & ns, TT const & Ts,
+		TP *p)
 {
 	typedef typename TP::engine_type engine_type;
 
-	typedef typename TP::mesh_type mesh_type;
+	typedef TR domain_type;
 
-	typedef typename mesh_type::coordinates_type coordinates_type;
+	typedef typename domain_type::coordinates_type coordinates_type;
 
-	static constexpr size_t ndims = mesh_type::ndims;
-
-	mesh_type const &mesh = p->mesh;
+	static constexpr size_t ndims = domain_type::ndims;
 
 	DEFINE_PHYSICAL_CONST
 
 	std::mt19937 rnd_gen(ndims * 2);
 
-	size_t number = size_of_range(range);
+	size_t number = domain.max_hash();
 
 	std::tie(number, std::ignore) = sync_global_location(
 			number * pic * ndims * 2);
@@ -170,15 +169,13 @@ void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	Real inv_sample_density = 1.0 / pic;
 
-	auto buffer = p->create_child();
-
 	rectangle_distribution<ndims> x_dist;
 
 	multi_normal_distribution<ndims> v_dist;
 
-	auto mass = p->get_charge();
+	auto mass = p->charge;
 
-	for (auto s : range)
+	for (auto s : domain)
 	{
 
 		for (int i = 0; i < pic; ++i)
@@ -187,20 +184,20 @@ void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			v_dist(rnd_gen, &v[0]);
 
-			x = mesh.coordinates_local_to_global(s, x);
+			x = domain.coordinates_local_to_global(s, x);
 
 			v *= std::sqrt(boltzmann_constant * Ts(x) / mass);
 
-			buffer.push_back(
+			p->push_back(
 					engine_type::push_forward(x, v,
 							ns(x) * inv_sample_density));
 		}
-
-		auto & d = p->get(s);
-		d.splice(d.begin(), buffer);
+//
+//		auto & d = p->get(s);
+//		d.splice(d.begin(), buffer);
 	}
 
-	p->add(&buffer);
+//	p->add(&buffer);
 //	update_ghosts(p);
 //	p->update_fields();
 

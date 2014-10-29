@@ -344,7 +344,7 @@ auto inner_product(nTuple<Expression<T...>> const & l,
 
 template<typename TR, typename T, size_t ... N>
 auto dot(nTuple<T, N...> const & l, TR const& r)
-DECL_RET_TYPE(( _seq_reduce<N... >::eval ( _impl::plus(),l*r) ))
+DECL_RET_TYPE((inner_product(l,r) ))
 
 template<typename T> inline auto determinant(
 		Matrix<T, 3, 3> const & m)

@@ -7,9 +7,15 @@
 
 #include "../../../core/common.h"
 #include "../../../core/particle/particle.h"
+#include "../../../core/particle/load_particle.h"
 #include "../../../core/manifold/fetl.h"
 #include "../../../core/field/domain_dummy.h"
 #include "../../../core/physics/physical_constants.h"
+#include "../../../core/io/data_stream.h"
+#include "../../../core/utilities/log.h"
+#include "../../../core/utilities/ntuple.h"
+#include "../../../core/utilities/parse_command_line.h"
+#include "../../../core/parallel/message_comm.h"
 
 using namespace simpla;
 
@@ -58,7 +64,7 @@ public:
 		return "PICDemo";
 	}
 
-	template<typename TJ, typename TE, typename TB>
+	template<typename TE, typename TB>
 	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const
 	{
 		p->x += p->v * dt * 0.5;
@@ -90,7 +96,8 @@ public:
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, scalar_type f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
@@ -99,95 +106,84 @@ public:
 
 typedef Manifold<CartesianCoordinates<StructuredMesh> > TMesh;
 
-typedef TMesh mesh_type;
+typedef TMesh manifold_type;
 
 int main(int argc, char **argv)
 {
+	LOGGER.init(argc, argv);
+	GLOBAL_COMM.init(argc,argv);
+	GLOBAL_DATA_STREAM.init(argc,argv);
+	GLOBAL_DATA_STREAM.cd("/");
 
-	mesh_type mesh;
+	size_t timestep = 10;
 
-	nTuple<Real, 3> xmin = { 0, 0, 0 };
-	nTuple<Real, 3> xmax = { 20, 2, 2 };
+	double dt = 0.01;
 
-	nTuple<size_t, 3> dims = { 20, 1, 1 };
+	ParseCmdLine(argc, argv,
 
-	mesh.dimensions(dims);
-	mesh.extents(xmin, xmax);
+	[&](std::string const & opt,std::string const & value)->int
+	{
+		if(opt=="s" )
+		{
+			timestep=ToValue<size_t>(value);
+		}
+		else if(opt=="t" )
+		{
+			dt=ToValue<double>(value);
+		}
+		return CONTINUE;
+	}
 
-	mesh.update();
+	);
+
+	manifold_type manifold;
+
+	nTuple<Real, 3> xmin =
+	{ 0, 0, 0 };
+	nTuple<Real, 3> xmax =
+	{ 20, 2, 2 };
+
+	nTuple<size_t, 3> dims =
+	{ 20, 1, 1 };
+
+	manifold.dimensions(dims);
+	manifold.extents(xmin, xmax);
+
+	manifold.update();
 
 	Real charge = 1.0, mass = 1.0, Te = 1.0;
 
-	ProbeParticle<mesh_type, PICDemo> p(mesh, mass, charge, Te);
-
-	p.save("/H");
-
-//	auto buffer = p.create_child();
+	ProbeParticle<manifold_type, PICDemo> p(manifold, mass, charge, Te);
 //
+////	auto buffer = p.create_child();
+////
 //	auto extents = mesh.extents();
-//
-//	rectangle_distribution<mesh_type::ndims> x_dist(nTuple<Real,3>( { 0, 0, 0 }), nTuple<Real,3>( { 1, 1, 1 }));
-//
-//	std::mt19937 rnd_gen(mesh_type::ndims);
-//
-//	nTuple<Real,3> v = { 1, 2, 3 };
-//
 //	int pic = 500;
 //
-//	auto n = [](typename mesh_type::coordinates_type const & x )
-//	{
-//		return 2.0; //std::sin(x[0]*TWOPI);
-//	    };
-//
-//	auto T = [](typename mesh_type::coordinates_type const & x )
-//	{
-//		return 1.0;
-//	};
-//
-//	p.properties("DumpParticle", true);
-//	p.properties("ScatterN", true);
+	auto n = [](typename manifold_type::coordinates_type const & x )
+	{	return 2.0;};
 
-//	init_particle(&p, mesh.select(VERTEX), 500, n, T);
-//
-////	{
-////		auto range=mesh.select(VERTEX);
-////		auto s0=*std::get<0>(range);
-////		nTuple<3,Real> r=
-////		{	0.5,0.5,0.5};
-////
-////		particle_type::Point_s a;
-////		a.x = mesh.coordinates_local_to_global(s0, r);
-////		a.f = 1.0;
-////		p[s0].push_back(std::move(a));
-////
-////	}
-//
+	auto T = [](typename manifold_type::coordinates_type const & x )
+	{	return 1.0;};
 
-//	p.update_fields();
-//
-//	p.save("/H");
-//
-//	INFORM << "update_ghosts particle DONE. Local particle number =" << (p.Count()) << std::endl;
-//
-//	INFORM << "update_ghosts particle DONE. Total particle number = " << reduce(p.Count()) << std::endl;
-//
-//	p.update_fields();
-//
-//	p.save("/H/");
+	init_particle(make_domain<VERTEX>(manifold), 5, n, T, &p);
 
-//	if(GLOBAL_COMM.get_rank()==0)
-//	{
-//		for (auto s : mesh.select(VERTEX))
-//		{
-//			rho[s]+=10;
-//		}
-//	}
+	auto B = [](nTuple<Real,3> const & )
+	{
+		return nTuple<Real,3>(
+				{	0,0,2});
+	};
+	auto E = [](nTuple<Real,3> const & )
+	{
+		return nTuple<Real,3>(
+				{	0,0,2});
+	};
+	for (int i = 0; i < timestep; ++i)
+	{
+		p.next_timestep(dt, B, E);
+		INFORM << save("/H", p, DataStream::SP_CACHE | DataStream::SP_RECORD);
+	}
 
-//
-//	update_ghosts(&p);
-//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
-//
-//	update_ghosts(&p);
-//	VERBOSE << "update_ghosts particle DONE " << p.size() << std::endl;
+	GLOBAL_DATA_STREAM.close();
 }
 

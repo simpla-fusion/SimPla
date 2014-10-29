@@ -15,12 +15,15 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
+#ifdef USE_MPI
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
+#endif
 
 #include "../utilities/properties.h"
 #include "../utilities/memory_pool.h"
+#include "../utilities/parse_command_line.h"
 
 #define H5_ERROR( _FUN_ ) if((_FUN_)<0){LOGGER<<"HDF5 Error:";H5Eprint(H5E_DEFAULT, stderr);}
 
@@ -65,6 +68,8 @@ struct DataStream::pimpl_s
 			bool is_append = false);
 
 	void close();
+
+	void flush_all();
 
 	MemoryPool mempool_;
 public:
@@ -286,11 +291,14 @@ std::tuple<std::string, hid_t> DataStream::pimpl_s::open_file(
 
 	if (!is_append)
 	{
-		if (GLOBAL_COMM.get_rank()==0 )
+#ifdef USE_MPI
+		if (GLOBAL_COMM.get_rank() == 0)
+#endif
 		{
 			std::string prefix = filename;
 
-			if (filename.size() > 3 && filename.substr(filename.size() - 3) == ".h5")
+			if (filename.size() > 3
+					&& filename.substr(filename.size() - 3) == ".h5")
 			{
 				prefix = filename.substr(0, filename.size() - 3);
 			}
@@ -422,6 +430,7 @@ std::string DataStream::pimpl_s::cd(std::string const &file_name,
 
 void DataStream::pimpl_s::close()
 {
+
 	if (base_group_id_ > 0)
 	{
 		H5Gclose(base_group_id_);
@@ -434,6 +443,14 @@ void DataStream::pimpl_s::close()
 		base_file_id_ = -1;
 	}
 
+}
+
+void DataStream::pimpl_s::flush_all()
+{
+	for (auto & item : cache_)
+	{
+		LOGGER << "\"" << flush_cache(item.first) << "\" is flushed to hard disk!";
+	}
 }
 
 void DataStream::pimpl_s::set_attribute(std::string const &url,
@@ -946,14 +963,19 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 
 	if (dsname != "" && (ds.flag & SP_APPEND) != SP_APPEND)
 	{
+#ifdef USE_MPI
 		if (GLOBAL_COMM.get_rank() == 0)
+#endif
 		{
-			dsname = dsname +
+			dsname =
+					dsname
+							+
 
-			AutoIncrease([&](std::string const & s )->bool
-			{
-				return H5Lexists(base_group_id_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
-			}, 0, 4);
+							AutoIncrease(
+									[&](std::string const & s )->bool
+									{
+										return H5Lexists(base_group_id_, (dsname + s ).c_str(), H5P_DEFAULT) > 0;
+									}, 0, 4);
 		}
 
 		sync_string(&dsname);
@@ -1146,6 +1168,7 @@ std::string DataStream::pwd() const
 }
 void DataStream::close()
 {
+	pimpl_->flush_all();
 	return pimpl_->close();
 }
 

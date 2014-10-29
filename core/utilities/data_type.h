@@ -140,6 +140,13 @@ public:
 	std::vector<std::tuple<DataType, std::string, int>> data;
 
 };
+HAS_STATIC_MEMBER_FUNCTION(data_desc)
+template<typename T>
+auto make_datatype()
+ENABLE_IF_DECL_RET_TYPE((!has_static_member_function_data_desc<T>::value),DataType::create<T>())
+template<typename T>
+auto make_datatype()
+ENABLE_IF_DECL_RET_TYPE((has_static_member_function_data_desc<T>::value),T::data_desc())
 
 }
 // namespace simpla

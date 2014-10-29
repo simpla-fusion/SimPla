@@ -141,14 +141,14 @@ public:
 
 	template<typename T> void set_attribute(std::string const & url, T const&v)
 	{
-		set_attribute(url, DataType::create<T>(), &v);
+		set_attribute(url, make_datatype<T>(), &v);
 	}
 	template<typename T>
 	T get_attribute(std::string const & url)
 	{
 		T res;
 
-		get_attribute(url, DataType::create<T>(), &res);
+		get_attribute(url, make_datatype<T>(), &res);
 
 		return std::move(res);
 	}
@@ -184,22 +184,23 @@ std::string save(std::string const & name, std::tuple<T...> const & d,
 template<typename TV, typename ...Args>
 std::string save(std::string const & name, TV const *data, Args && ...args)
 {
-	return GLOBAL_DATA_STREAM.write(name, data , DataType::create<TV>(), std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, data , make_datatype<TV>(), std::forward<Args>(args)...);
 }
 
 template<typename TV, typename ... Args> inline std::string save(
 		std::string const & name, std::shared_ptr<TV> const & d,
 		Args && ... args)
 {
-	return GLOBAL_DATA_STREAM.write(name, d.get(), DataType::create<TV>(), std::forward<Args>(args)...);
+	return GLOBAL_DATA_STREAM.write(name, d.get(), make_datatype<TV>(), std::forward<Args>(args)...);
 }
 
 template<typename TV> inline std::string save(std::string const & name,
-		std::vector<TV>const & d)
+		std::vector<TV>const & d, size_t flag = 0UL)
 {
 
 	size_t s = d.size();
-	return GLOBAL_DATA_STREAM.write(name, &d[0], DataType::create<TV>(),1,nullptr,&s );
+	return GLOBAL_DATA_STREAM.write(name, &d[0], make_datatype<TV>(),1,nullptr,&s,
+			nullptr,nullptr,nullptr,nullptr ,flag );
 }
 
 template<typename TL, typename TR, typename ... Args> inline std::string save(
@@ -219,7 +220,8 @@ template<typename TV, typename ... Args> inline std::string save(
 	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>(
+		{ p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

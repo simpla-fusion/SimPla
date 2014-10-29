@@ -53,11 +53,11 @@ Model=
 
 	--Type = "ExplicitEMContext_Cartesian_UniformArray",
 
-	Type ="ExplicitEMContext_Cylindrical2_UniformArray",
+	Type ="ExplicitEMContext_Cartesian",
 
 	UnitSystem={Type="SI"},
 
-	GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
+	--GFile='/home/salmon/workspace/SimPla/example/gfile/g038300.03900',
 
 	Mesh={
 

@@ -29,7 +29,7 @@ int main(int argc, char **argv)
 	LOGGER.init(argc, argv);
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.init(argc,argv);
-
+	GLOBAL_DATA_STREAM.cd("/");
 	LOGGER << "Register contexts." << std::endl;
 
 	auto context_factory = RegisterContext();
