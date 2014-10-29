@@ -7,7 +7,6 @@
 
 #include "../../../core/common.h"
 #include "../../../core/particle/particle.h"
-#include "../../../core/particle/load_particle.h"
 #include "../../../core/manifold/fetl.h"
 #include "../../../core/field/domain_dummy.h"
 #include "../../../core/physics/physical_constants.h"
@@ -110,6 +109,7 @@ typedef TMesh manifold_type;
 
 int main(int argc, char **argv)
 {
+	LOGGER.set_stdout_visable_level(LOG_INFORM);
 	LOGGER.init(argc, argv);
 	GLOBAL_COMM.init(argc,argv);
 	GLOBAL_DATA_STREAM.init(argc,argv);
@@ -153,20 +153,28 @@ int main(int argc, char **argv)
 
 	Real charge = 1.0, mass = 1.0, Te = 1.0;
 
-	ProbeParticle<manifold_type, PICDemo> p(manifold, mass, charge, Te);
-//
-////	auto buffer = p.create_child();
-////
-//	auto extents = mesh.extents();
-//	int pic = 500;
-//
+//	Particle<manifold_type, PICDemo, PolicyProbeParticle>
+
+	ProbeParticle<manifold_type, PICDemo> ion(manifold, mass, charge, Te);
+
+	INFORM << "=========================" << std::endl;
+	INFORM << "dt =  \t" << dt << std::endl;
+	INFORM << "time step =  \t" << timestep << std::endl;
+	INFORM << "ion =  \t {" << ion << "}" << std::endl;
+	INFORM << "=========================" << std::endl;
+
+	PICDemo::Point_s p =
+	{ 0, 0, 0, 1, 0, 0, 1, 0 };
+
+	ion.push_back(p);
+
 	auto n = [](typename manifold_type::coordinates_type const & x )
 	{	return 2.0;};
 
 	auto T = [](typename manifold_type::coordinates_type const & x )
 	{	return 1.0;};
 
-	init_particle(make_domain<VERTEX>(manifold), 5, n, T, &p);
+	init_particle(make_domain<VERTEX>(manifold), 5, n, T, &ion);
 
 	auto B = [](nTuple<Real,3> const & )
 	{
@@ -180,8 +188,8 @@ int main(int argc, char **argv)
 	};
 	for (int i = 0; i < timestep; ++i)
 	{
-		p.next_timestep(dt, B, E);
-		INFORM << save("/H", p, DataStream::SP_CACHE | DataStream::SP_RECORD);
+		ion.next_timestep(dt, B, E);
+		INFORM << save("/H", ion, DataStream::SP_CACHE | DataStream::SP_RECORD);
 	}
 
 	GLOBAL_DATA_STREAM.close();

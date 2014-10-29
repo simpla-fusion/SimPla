@@ -348,7 +348,9 @@ void load(TDict const & dict,Others && ...)                   \
 	SP_PARTICLE_LOAD_DICT(properties,dict,__VA_ARGS__)                        \
 	update();                                                     \
 }     \
-auto get_properties()const DECL_RET_TYPE((std::make_tuple(SP_PARTICLE_GET_NAME(__VA_ARGS__))))
+auto get_properties()const DECL_RET_TYPE((std::make_tuple(SP_PARTICLE_GET_NAME(__VA_ARGS__)))) \
+std::ostream & print(std::ostream &os)const                                                    \
+{		os << properties;		return os;	}
 
 template<typename Policy>
 class ParticleEngine

@@ -14,9 +14,16 @@
 #include "save_particle.h"
 #include "load_particle.h"
 
-//
-//namespace simpla
-//{
+namespace simpla
+{
+template<typename ...T>
+std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
+{
+	p.print(os);
+
+	return os;
+}
+
 //
 ///** \defgroup  Particle Particle
 // *
@@ -60,7 +67,7 @@
 //
 //};
 //
-//}
-//// namespace simpla
+}
+// namespace simpla
 
 #endif /* PARTICLE_H_ */
