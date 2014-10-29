@@ -28,9 +28,8 @@ class PointInPolygon
 	std::vector<double> constant_;
 	std::vector<double> multiple_;
 public:
-	template<unsigned int N>
-	PointInPolygon(std::vector<nTuple<Real, N> > const &polygen,
-			unsigned int Z = 2) :
+	template<size_t N>
+	PointInPolygon(std::vector<nTuple<Real, N> > const &polygen, size_t Z = 2) :
 			num_of_vertex_(0)
 	{
 
@@ -83,8 +82,8 @@ public:
 		return IsInside(std::forward<Args>(args)...);
 	}
 
-	template<unsigned int N>
-	inline bool IsInside(nTuple<Real, N> x, unsigned int ZAxis = 2) const
+	template<size_t N>
+	inline bool IsInside(nTuple<Real, N> x, size_t ZAxis = 2) const
 	{
 		return IsInside(x[(ZAxis + 1) % 3], x[(ZAxis + 2) % 3]);
 	}
@@ -108,10 +107,10 @@ public:
 		return oddNodes;
 	}
 
-	template<unsigned int N>
+	template<size_t N>
 	std::tuple<bool, nTuple<Real, N>> Intersection(nTuple<Real, N> const & x0,
-			nTuple<Real, N> const &x1, unsigned int ZAxis = 2, Real error =
-					0.001) const
+			nTuple<Real, N> const &x1, size_t ZAxis = 2,
+			Real error = 0.001) const
 	{
 		std::function<bool(nTuple<Real, N> const &)> fun =
 				[this,ZAxis](nTuple<Real, N> const & x)->bool

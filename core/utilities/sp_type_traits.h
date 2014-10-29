@@ -413,22 +413,60 @@ template<int...> class int_tuple_t;
 //
 //}// namespace _impl
 
-template<typename T> T begin(std::pair<T, T>const & range)
-{
-	return std::move(range.first);
-}
-template<typename T> T end(std::pair<T, T>const & range)
-{
-	return std::move(range.second);
-}
-template<typename T> T rbegin(std::pair<T, T>const & range)
-{
-	return std::move(range.second--);
-}
-template<typename T> T rend(std::pair<T, T>const & range)
-{
-	return std::move(range.first--);
-}
+HAS_MEMBER_FUNCTION(begin)
+HAS_MEMBER_FUNCTION(end)
+
+template<typename T>
+auto begin(T& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
+
+template<typename T>
+auto begin(T& l)
+ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
+
+template<typename T>
+auto begin(T const& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.begin()))
+
+template<typename T>
+auto begin(T const& l)
+ENABLE_IF_DECL_RET_TYPE((!has_member_function_begin<T>::value),(std::get<0>(l)))
+
+template<typename T>
+auto end(T& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
+
+template<typename T>
+auto end(T& l)
+ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
+
+template<typename T>
+auto end(T const& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.end()))
+
+template<typename T>
+auto end(T const& l)
+ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(std::get<1>(l)))
+
+HAS_MEMBER_FUNCTION(rbegin)
+HAS_MEMBER_FUNCTION(rend)
+
+template<typename T>
+auto rbegin(T& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_begin<T>::value),( l.rbegin()))
+
+template<typename T>
+auto rbegin(T& l)
+ENABLE_IF_DECL_RET_TYPE(
+		(!has_member_function_begin<T>::value),(--std::get<1>(l)))
+
+template<typename T>
+auto rend(T& l)
+ENABLE_IF_DECL_RET_TYPE((has_member_function_end<T>::value),( l.rend()))
+
+template<typename T>
+auto rend(T& l)
+ENABLE_IF_DECL_RET_TYPE((!has_member_function_end<T>::value),(--std::get<0>(l)))
 
 template<typename T> T const &compact(T const &v)
 {

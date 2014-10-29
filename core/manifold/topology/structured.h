@@ -2224,18 +2224,21 @@ inline StructuredMesh::range_type split(
 		size_t process_num, size_t ghost_width = 0)
 {
 	typedef StructuredMesh::index_type index_type;
-	static constexpr size_t NDIMS = StructuredMesh::ndims;
+	static constexpr size_t ndims = StructuredMesh::ndims;
 
-	auto b = begin(range).self_;
-	decltype(b) e = (--end(range)).self_ + 1;
+	StructuredMesh::iterator ib = begin(range);
+	StructuredMesh::iterator ie = end(range);
 
-	auto shift = begin(range).shift_;
+	auto b = ib.self_;
+	decltype(b) e = (--ie).self_ + 1;
+
+	auto shift = ib.shift_;
 
 	decltype(b) count = e - b;
 
 	int n = 0;
 	index_type L = 0;
-	for (int i = 0; i < NDIMS; ++i)
+	for (int i = 0; i < ndims; ++i)
 	{
 		if (count[i] > L)
 		{

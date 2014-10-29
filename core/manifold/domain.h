@@ -15,7 +15,7 @@ class split_tag;
 template<typename ...> class _Field;
 
 template<typename TG, size_t IFORM>
-class Domain
+class Domain: public TG
 {
 
 public:
@@ -38,8 +38,8 @@ public:
 
 	typedef size_t difference_type; // Type for difference of two iterators
 
-	typedef typename topology_type::iterator iterator;
-	typedef typename topology_type::range_type range_type;
+	using typename TG::iterator;
+	using typename TG::range_type;
 
 public:
 	manifold_type const& manifold_;

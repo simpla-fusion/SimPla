@@ -61,13 +61,13 @@ protected:
 public:
 
 	typedef Manifold<CartesianCoordinates<StructuredMesh>, FiniteDiffMehtod,
-			InterpolatorLinear> mesh_type;
+			InterpolatorLinear> manifold_type;
 	typedef Real value_type;
-	typedef typename mesh_type::coordinates_type coordinates_type;
-	typedef Model<mesh_type> model_type;
+	typedef typename manifold_type::coordinates_type coordinates_type;
+	typedef Model<manifold_type> model_type;
 
 	static constexpr size_t iform = TInt::value;
-	static constexpr size_t ndims = mesh_type::ndims;
+	static constexpr size_t ndims = manifold_type::ndims;
 
 	nTuple<Real, ndims> xmin/* = { 0.0, 0.0, 0.0, }*/;
 
@@ -88,7 +88,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 {
 	auto & model= TestFixture::model;
 
-	typedef typename TestFixture::mesh_type mesh_type;
+	typedef typename TestFixture::manifold_type manifold_type;
 
 	typename TestFixture::coordinates_type min,max,x;
 
@@ -96,7 +96,7 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	x=min*0.7+max*0.3;
 
-	typename mesh_type::compact_index_type dest;
+	typename manifold_type::compact_index_type dest;
 
 	std::tie(dest,std::ignore)=model.coordinates_global_to_local(x);
 
@@ -106,13 +106,13 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 
 	for(auto s :range)
 	{
-		EXPECT_EQ( mesh_type::get_cell_index(s),mesh_type::get_cell_index(dest));
+		EXPECT_EQ( manifold_type::get_cell_index(s),manifold_type::get_cell_index(dest));
 		++count;
 	}
 
 	LOGGER<<count;
 
-	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(TestFixture::iform));
+	EXPECT_EQ(count,manifold_type::get_num_of_comp_per_cell(TestFixture::iform));
 //
 //	x= min-100;
 //
@@ -124,10 +124,10 @@ TYPED_TEST_P(TestModel,SelectByNGP){
 //
 //	for(auto s :range2)
 //	{
-//		EXPECT_EQ( mesh_type::get_cell_index(s),mesh_type::get_cell_index(dest));
+//		EXPECT_EQ( manifold_type::get_cell_index(s),manifold_type::get_cell_index(dest));
 //		++count;
 //	}
-//	EXPECT_EQ(count,mesh_type::get_num_of_comp_per_cell(iform));
+//	EXPECT_EQ(count,manifold_type::get_num_of_comp_per_cell(iform));
 
 }
 }
@@ -205,120 +205,123 @@ TYPED_TEST_P(TestModel,SelectByRectangle ){
 //	LOGGER << SAVE(f);
 
 }}
-//
-//TYPED_TEST_P(TestModel,SelectByPolylines ){
-//{
-//
-//	auto & model= TestFixture::model;
-//
-//	auto domain = make_domain<TestFixture::iform>(model);
-//
-//	auto f = make_field<Real>(domain);
-//
-//	f.clear();
-//	typename TestFixture::coordinates_type v0, v1, v2, v3;
-//	for (int i = 0; i < TestFixture::ndims; ++i)
-//	{
-//		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
-//		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
-//
-//		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
-//		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
-//	}
-//	for (auto s : model.SelectByPolylines(domain, TestFixture::points))
-//	{
-//		f[s] = 1;
-//		auto x = model.coordinates(s);
-//
-//		ASSERT_TRUE (
-//
-//				( (v2[0] - x[0]) * (x[0] - v3[0]) >= 0) &&
-//
-//				( (v2[1] - x[1]) * (x[1] - v3[1]) >= 0) &&
-//
-//				( (v2[2] - x[2]) * (x[2] - v3[2]) >= 0)
-//
-//		)
-//
-//		;
-//	}
-////	LOGGER << SAVE(f);
-//
-//}}
 
-//TYPED_TEST_P(TestModel,SelectByMaterial ){
-//{
-//
-//	auto & model= TestFixture::model;
-//	static constexpr size_t iform=TestFixture::iform;
-//
-//	auto f = make_field<Real>(Domain<typename TestFixture::model_type,iform>(model) );
-//
-//	model.Set( model.SelectByPoints(VERTEX, TestFixture::points), "Vacuum");
-//
-//	f.clear();
-//
-//	for (auto s : model.SelectByMaterial(TestFixture::iform, "Vacuum"))
-//	{
-//		f[s] = 1;
-//	}
-////	LOGGER << SAVE(f);
-//
-//	typename TestFixture::coordinates_type v0, v1, v2, v3;
-//	for (int i = 0; i < TestFixture::ndims; ++i)
-//	{
-//		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
-//		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
-//
-//		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
-//		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
-//	}
-//	for (auto s : model.select(TestFixture::iform))
-//	{
-//		auto x = model.get_coordinates(s);
-//
-//		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
-//						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
-//		{
-//			ASSERT_EQ(1,f[s] ) << ( model.get_coordinates(s));
-//		}
-//
-//		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
-//				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
-//		{
-//			ASSERT_NE(1,f[s]) << ( model.get_coordinates(s));
-//		}
-//	}
-//
-//	auto extent = model. extents();
-//
-//	TestFixture::points.emplace_back(typename TestFixture::coordinates_type(
-//					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
-//
-//	model.Erase( model.SelectByPolylines(VERTEX, TestFixture::points));
-//
-//	model.Set( model.SelectByPolylines(VERTEX, TestFixture::points), "Plasma");
-//
-//	for (auto s : model.SelectByMaterial( TestFixture::iform, "Plasma"))
-//	{
-//		f[s] = -1;
-//	}
-//
-//	for (auto s : model.SelectInterface( TestFixture::iform, "Plasma", "Vacuum"))
-//	{
-//		f[s] = 10;
-//	}
-//
-//	for (auto s : model.SelectInterface( TestFixture::iform, "Vacuum", "NONE"))
-//	{
-//		f[s] = -10;
-//	}
-////	LOGGER << SAVE(f);
-//
-//}}
+TYPED_TEST_P(TestModel,SelectByPolylines ){
+{
 
-REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByRectangle/*, SelectByNGP ,
- SelectByPolylines,SelectByMaterial */);
+	auto & model= TestFixture::model;
+
+	auto domain = make_domain<TestFixture::iform>(model);
+
+	auto f = make_field<Real>(domain);
+
+	f.clear();
+	typename TestFixture::coordinates_type v0, v1, v2, v3;
+	for (int i = 0; i < TestFixture::ndims; ++i)
+	{
+		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
+		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
+
+		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
+		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
+	}
+	for (auto s : model.SelectByPoints(domain, TestFixture::points))
+	{
+		f[s] = 1;
+		auto x = model.coordinates(s);
+
+		ASSERT_TRUE (
+
+				( (v2[0] - x[0]) * (x[0] - v3[0]) >= 0) &&
+
+				( (v2[1] - x[1]) * (x[1] - v3[1]) >= 0) &&
+
+				( (v2[2] - x[2]) * (x[2] - v3[2]) >= 0)
+
+		)
+
+		;
+	}
+//	LOGGER << SAVE(f);
+
+}}
+
+TYPED_TEST_P(TestModel,SelectByMaterial ){
+{
+
+	auto & model= TestFixture::model;
+	static constexpr size_t iform=TestFixture::iform;
+
+	auto vertex_domain = make_domain<VERTEX>(model);
+	auto domain = make_domain<TestFixture::iform>(model);
+
+	auto f = make_field<Real>(domain );
+
+	model.Set( model.SelectByPoints(vertex_domain, TestFixture::points), "Vacuum");
+
+	f.clear();
+
+	for (auto s : model.SelectByMaterial(domain, "Vacuum"))
+	{
+		f[s] = 1;
+	}
+//	LOGGER << SAVE(f);
+
+	typename TestFixture::coordinates_type v0, v1, v2, v3;
+	for (int i = 0; i < TestFixture::ndims; ++i)
+	{
+		v0[i] = TestFixture::points[0][i] + TestFixture::dh[i];
+		v1[i] = TestFixture::points[1][i] - TestFixture::dh[i];
+
+		v2[i] = TestFixture::points[0][i] - TestFixture::dh[i] * 2;
+		v3[i] = TestFixture::points[1][i] + TestFixture::dh[i] * 2;
+	}
+	for (auto s : domain)
+	{
+		auto x = model.coordinates(s);
+
+		if (((((v0[0] - x[0]) * (x[0] - v1[0])) >= 0) && (((v0[1] - x[1]) * (x[1] - v1[1])) >= 0)
+						&& (((v0[2] - x[2]) * (x[2] - v1[2])) >= 0)))
+		{
+			ASSERT_EQ(1,f[s] ) << ( model.coordinates(s));
+		}
+
+		if (!(((v2[0] - x[0]) * (x[0] - v3[0])) >= 0) && (((v2[1] - x[1]) * (x[1] - v3[1])) >= 0)
+				&& (((v2[2] - x[2]) * (x[2] - v3[2])) >= 0))
+		{
+			ASSERT_NE(1,f[s]) << ( model.coordinates(s));
+		}
+	}
+
+	auto extent = model. extents();
+
+	TestFixture::points.emplace_back(typename TestFixture::coordinates_type(
+					{	0.3 * extent.second[0], 0.6 * extent.second[1], 0.2 * extent.first[2]}));
+
+	model.Erase( model.SelectByPolylines(vertex_domain, TestFixture::points));
+
+	model.Set( model.SelectByPolylines(vertex_domain, TestFixture::points), "Plasma");
+
+	for (auto s : model.SelectByMaterial( domain, "Plasma"))
+	{
+		f[s] = -1;
+	}
+
+	for (auto s : model.SelectInterface( domain, "Plasma", "Vacuum"))
+	{
+		f[s] = 10;
+	}
+
+	for (auto s : model.SelectInterface( domain, "Vacuum", "NONE"))
+	{
+		f[s] = -10;
+	}
+//	LOGGER << SAVE(f);
+
+}}
+
+REGISTER_TYPED_TEST_CASE_P(TestModel, SelectByNGP, SelectByRectangle,
+		SelectByPolylines, SelectByMaterial);
 
 typedef testing::Types<std::integral_constant<size_t, VERTEX>,
 		std::integral_constant<size_t, EDGE>,

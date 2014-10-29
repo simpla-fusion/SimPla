@@ -47,18 +47,18 @@ struct Iterator<TIterator, TPred, _iterator_policy_filter, true>
 	{
 	}
 
-	Iterator(this_type const & other)
-			: it_(other.it_), it_end_(other.it_end_), predicate_(other.predicate_)
+	Iterator(this_type const & other) :
+			it_(other.it_), it_end_(other.it_end_), predicate_(other.predicate_)
 	{
 	}
 
-	Iterator(this_type && other)
-			: it_(other.it_), it_end_(other.it_end_), predicate_(other.predicate_)
+	Iterator(this_type && other) :
+			it_(other.it_), it_end_(other.it_end_), predicate_(other.predicate_)
 	{
 	}
 
-	Iterator(base_iterator const & ib, base_iterator ie, predicate_fun const &p)
-			: it_(ib), it_end_(ie), predicate_(p)
+	Iterator(base_iterator const & ib, base_iterator ie, predicate_fun const &p) :
+			it_(ib), it_end_(ie), predicate_(p)
 	{
 		while (it_ != (it_end_) && !(predicate_(*it_)))
 		{
@@ -117,12 +117,14 @@ struct Iterator<TIterator, TPred, _iterator_policy_filter, true>
 
 };
 template<typename ...Args>
-auto make_iterator_filter(Args&& ... args)
-DECL_RET_TYPE((make_iterator(_iterator_policy_filter(),std::forward<Args>(args)...)))
+auto make_iterator_filter(
+		Args&& ... args)
+				DECL_RET_TYPE((make_iterator(std::forward<Args>(args)...,_iterator_policy_filter())))
 
 template<typename ...Args>
-auto make_range_filter(Args&& ... args)
-DECL_RET_TYPE((make_range<_iterator_policy_filter>( std::forward<Args>(args)...)))
+auto make_range_filter(
+		Args&& ... args)
+				DECL_RET_TYPE((make_range<_iterator_policy_filter>( std::forward<Args>(args)...)))
 
 }
 // namespace simpla
