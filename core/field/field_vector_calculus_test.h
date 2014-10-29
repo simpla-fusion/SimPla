@@ -64,7 +64,7 @@ protected:
 
 		Vec3 dx = mesh.dx();
 
-		error = std::pow(inner_product(K_real, dx), 2.0);
+		error = 2.0 * std::pow(inner_product(K_real, dx), 2.0);
 //		for (int i = 0; i < ndims; ++i)
 //		{
 //			error += std::pow((K_real[i] * dx[i]), 2.0);

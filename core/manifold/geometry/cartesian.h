@@ -54,15 +54,20 @@ public:
 			topology_type()
 	{
 
-		xmin_ = coordinates_type( { 0, 0, 0 });
+		xmin_ = coordinates_type(
+		{ 0, 0, 0 });
 
-		xmax_ = coordinates_type( { 1, 1, 1 });
+		xmax_ = coordinates_type(
+		{ 1, 1, 1 });
 
-		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
+		inv_length_ = coordinates_type(
+		{ 1.0, 1.0, 1.0 });
 
-		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
+		length_ = coordinates_type(
+		{ 1.0, 1.0, 1.0 });
 
-		shift_ = coordinates_type( { 0, 0, 0 });
+		shift_ = coordinates_type(
+		{ 0, 0, 0 });
 	}
 
 	template<typename ... Args>
@@ -255,7 +260,7 @@ public:
 	}
 
 	template<typename ... Args>
-	  coordinates_type coordinates(Args && ... args) const
+	coordinates_type coordinates(Args && ... args) const
 	{
 		return std::move(
 				coordinates_from_topology(
@@ -266,7 +271,8 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		x[0] * length_[0] + shift_[0],
 
@@ -279,7 +285,8 @@ public:
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type( {
+		return coordinates_type(
+		{
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -491,7 +498,8 @@ public:
 	 *\endverbatim
 	 */
 
-	scalar_type volume_[8] = { 1, // 000
+	scalar_type volume_[8] =
+	{ 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -500,11 +508,14 @@ public:
 			1, //110
 			1  //111
 			};
-	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 
@@ -544,7 +555,13 @@ public:
 template<typename TTopology, size_t ZAXIS>
 bool CartesianCoordinates<TTopology, ZAXIS>::update()
 {
+
 	topology_type::update();
+
+	if (!topology_type::is_ready())
+	{
+		ERROR("topology initialize failed!");
+	}
 
 	auto dims = topology_type::dimensions();
 

@@ -203,7 +203,7 @@ public:
 		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
 		local_strides_[0] = local_outer_count_[1] * local_strides_[1];
 
-		update();
+//		update();
 
 	}
 
@@ -833,10 +833,24 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8];
-	Real inv_volume_[8];
-	Real dual_volume_[8];
-	Real inv_dual_volume_[8];
+	Real volume_[8] =
+	{ 1, // 000
+			1, //001
+			1, //010
+			1, //011
+			1, //100
+			1, //101
+			1, //110
+			1  //111
+			};
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 

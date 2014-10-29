@@ -14,32 +14,33 @@ namespace simpla
 template<typename, size_t> class Domain;
 template<typename ...> class _Field;
 
-template<typename TM, unsigned int IFORM, typename TC, typename ...Others,
-		typename ...Args>
-void update_ghosts(_Field<TC, Domain<TM, IFORM>, Others...>* field,
-		Args &&...args)
+template<typename TM, unsigned int iform, typename TC, typename ...Args>
+void update_ghosts(_Field<TC, Domain<TM, iform> >* field, Args &&...args)
 {
+	typedef _Field<TC, Domain<TM, iform> > field_type;
 
-	UNIMPLEMENT;
+	typedef typename field_traits<field_type>::value_type value_type;
+
+//	static constexpr size_t iform = field_traits<field_type>::iform;
+
+	auto const & global_array = field->domain().manifold().global_array_;
+
+	value_type* data = &(*field->data());
+
+	if (iform == VERTEX || iform == VOLUME)
+	{
+		update_ghosts(data, global_array, std::forward<Args >(args)...);
+	}
+	else
+	{
+		update_ghosts(reinterpret_cast<nTuple<value_type, 3>*>(data),
+				global_array, std::forward<Args >(args)...);
+	}
 }
-template<typename ...Others>
-void update_ghosts(_Field<Others...>* fields)
+template<typename ...Others, typename ...Args>
+void update_ghosts(_Field<Others...>* field, Args && ...args)
 {
 
-//	typedef TV value_type;
-//	auto const & global_array = field->mesh.global_array_;
-//
-//	value_type* data = &(*field->data());
-//
-//	if (IFORM == VERTEX || IFORM == VOLUME)
-//	{
-//		update_ghosts(data, global_array, std::forward<Others >(others)...);
-//	}
-//	else
-//	{
-//		update_ghosts(reinterpret_cast<nTuple<3, value_type>*>(data),
-//				global_array, std::forward<Others >(others)...);
-//	}
 }
 
 }  // namespace simpla

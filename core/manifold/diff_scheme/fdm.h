@@ -82,9 +82,6 @@ private:
 			decltype((get_value(f,s)-get_value(f,s))*std::declval<typename G::scalar_type>())>::type
 	{
 		auto D = geo->delta_index(s);
-		CHECK(geo->volume(s + D));
-		CHECK(geo->volume(s - D));
-		CHECK(geo->inv_volume(s));
 		return (get_value(f, s + D) * geo->volume(s + D)
 				- get_value(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
 	}
