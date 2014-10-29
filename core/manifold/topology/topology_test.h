@@ -177,54 +177,66 @@ TEST_P(TestTopology, compact_index_type)
 	EXPECT_EQ(1, topology.node_id(topology.dual(topology.inverse_roate(s))));
 
 }
-TEST_P(TestTopology, hash)
+
+TEST_P(TestTopology, coordinates)
 {
 
+	auto extents = topology.extents();
+	auto xmin = std::get<0>(extents);
+	auto xmax = std::get<1>(extents);
+
+	auto range0 = topology.select(VERTEX);
+	auto range1 = topology.select(EDGE);
+	auto range2 = topology.select(FACE);
+	auto range3 = topology.select(VOLUME);
+
+	auto half_dx = topology.dx() / 2;
+
+	EXPECT_EQ(xmin, topology.coordinates(*begin(range0)));
+	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }),
+			topology.coordinates(*begin(range1)));
+	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }),
+			topology.coordinates(*begin(range2)));
+	EXPECT_EQ(xmin + half_dx, topology.coordinates(*begin(range3)));
+
+	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
+//
 	for (auto iform : iform_list)
+
 	{
-		size_t num = topology.get_local_memory_size(iform);
+		auto shift = topology.get_first_node_shift(iform);
+		auto idx = topology.coordinates_global_to_local(x, shift);
 
-		auto hash = topology.make_hash(topology.select(iform));
+		auto actual = topology.coordinates_local_to_global(idx);
 
-		for (auto s : topology.select(iform))
+		Real error = 0.0;
+
+		for (int i = 0; i < NDIMS; ++i)
 		{
-
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)),
-					hash(s));
-			ASSERT_LE(0, hash(s));
-
-			ASSERT_GT(
-					topology.get_local_memory_size(
-							topology.IForm(topology.roate(s))),
-					hash(topology.roate(s)));
-			ASSERT_LE(0, hash(topology.inverse_roate(s)));
-
-			auto DX = topology.DI(0, s);
-			auto DY = topology.DI(1, s);
-			auto DZ = topology.DI(2, s);
-
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DX)),
-					hash(s + DX));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DY)),
-					hash(s + DY));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DZ)),
-					hash(s + DZ));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DX)),
-					hash(s - DX));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DY)),
-					hash(s - DY));
-			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DZ)),
-					hash(s - DZ));
-
-			ASSERT_LE(0, hash(s + DX));
-			ASSERT_LE(0, hash(s + DY));
-			ASSERT_LE(0, hash(s + DZ));
-			ASSERT_LE(0, hash(s - DX));
-			ASSERT_LE(0, hash(s - DY));
-			ASSERT_LE(0, hash(s - DZ));
+			if (dims[i] > 1)
+				error += abs(x[i] - actual[i]);
 		}
+		error /= NDIMS;
+
+		EXPECT_GT(EPSILON*1000 , error) << "IForm =" << iform << " " << x
+				<< " ~~ " << actual << "  " << error;
+
+		auto s = std::get<0>(idx);
+
+		EXPECT_EQ(iform, topology.IForm(s));
+		EXPECT_EQ(topology.node_id(shift), topology.node_id(s));
+		EXPECT_EQ(topology.component_number(shift),
+				topology.component_number(s));
+
+		EXPECT_LT( dot(std::get<1>(idx), std::get<1>(idx)),3)
+				<< std::get<1>(idx) << "IForm =" << iform;
 
 	}
+	auto idx = topology.coordinates_to_index(x);
+
+	EXPECT_EQ(idx,
+			topology.coordinates_to_index(topology.index_to_coordinates(idx)));
+
 }
 
 TEST_P(TestTopology, iterator)
@@ -266,6 +278,54 @@ TEST_P(TestTopology, iterator)
 	}
 
 }
+TEST_P(TestTopology, hash)
+{
+
+	for (auto iform : iform_list)
+	{
+		size_t num = topology.get_local_memory_size(iform);
+
+		auto domain = topology.select(iform);
+		for (auto s : domain)
+		{
+
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s)),
+					domain.hash(s));
+			ASSERT_LE(0, domain.hash(s));
+
+			ASSERT_GT(
+					topology.get_local_memory_size(
+							topology.IForm(topology.roate(s))),
+					domain.hash(topology.roate(s)));
+			ASSERT_LE(0, domain.hash(topology.inverse_roate(s)));
+
+			auto DX = topology.DI(0, s);
+			auto DY = topology.DI(1, s);
+			auto DZ = topology.DI(2, s);
+
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DX)),
+					domain.hash(s + DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DY)),
+					domain.hash(s + DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s + DZ)),
+					domain.hash(s + DZ));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DX)),
+					domain.hash(s - DX));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DY)),
+					domain.hash(s - DY));
+			ASSERT_GT(topology.get_local_memory_size(topology.IForm(s - DZ)),
+					domain.hash(s - DZ));
+
+			ASSERT_LE(0, domain.hash(s + DX));
+			ASSERT_LE(0, domain.hash(s + DY));
+			ASSERT_LE(0, domain.hash(s + DZ));
+			ASSERT_LE(0, domain.hash(s - DX));
+			ASSERT_LE(0, domain.hash(s - DY));
+			ASSERT_LE(0, domain.hash(s - DZ));
+		}
+
+	}
+}
 
 TEST_P(TestTopology, split)
 {
@@ -291,7 +351,7 @@ TEST_P(TestTopology, split)
 		for (int sub = 0; sub < total; ++sub)
 			for (auto const & a : split(r, total, sub))
 			{
-				nTuple<size_t, 3> idx = topology.decompact(a) >> 5;
+//				nTuple<size_t, 3> idx = topology.decompact(a) >> 5;
 
 				data.insert(a);
 			}
@@ -307,67 +367,6 @@ TEST_P(TestTopology, split)
 			ASSERT_EQ(data.size(), size * 3);
 		}
 	}
-
-}
-
-TEST_P(TestTopology, coordinates)
-{
-
-	auto extents = topology.extents();
-	auto xmin = std::get<0>(extents);
-	auto xmax = std::get<1>(extents);
-
-	auto range0 = topology.select(VERTEX);
-	auto range1 = topology.select(EDGE);
-	auto range2 = topology.select(FACE);
-	auto range3 = topology.select(VOLUME);
-
-	auto half_dx = topology.dx() / 2;
-
-	EXPECT_EQ(xmin, topology.get_coordinates(*begin(range0)));
-	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }),
-			topology.get_coordinates(*begin(range1)));
-	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }),
-			topology.get_coordinates(*begin(range2)));
-	EXPECT_EQ(xmin + half_dx, topology.get_coordinates(*begin(range3)));
-
-	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
-
-	for (auto iform : iform_list)
-	{
-		auto shift = topology.get_first_node_shift(iform);
-		auto idx = topology.coordinates_global_to_local(x, shift);
-
-		auto actual = topology.coordinates_local_to_global(idx);
-
-		Real error = 0.0;
-
-		for (int i = 0; i < NDIMS; ++i)
-		{
-			if (dims[i] > 1)
-				error += abs(x[i] - actual[i]);
-		}
-		error /= NDIMS;
-
-		EXPECT_GT(EPSILON*1000 , error) << "IForm =" << iform << " " << x
-				<< " ~~ " << actual << "  " << error;
-
-		auto s = std::get<0>(idx);
-
-		EXPECT_EQ(iform, topology.IForm(s));
-		EXPECT_EQ(topology.node_id(shift), topology.node_id(s));
-		EXPECT_EQ(topology.component_number(shift),
-				topology.component_number(s));
-
-		EXPECT_LT( dot(std::get<1>(idx), std::get<1>(idx)),3)
-				<< std::get<1>(idx) << "IForm =" << iform;
-
-	}
-
-	auto idx = topology.coordinates_to_index(x);
-
-	EXPECT_EQ(idx,
-			topology.coordinates_to_index(topology.index_to_coordinates(idx)));
 
 }
 #endif /* TOPOLOGY_TEST_H_ */

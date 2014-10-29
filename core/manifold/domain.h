@@ -15,7 +15,7 @@ class split_tag;
 template<typename ...> class _Field;
 
 template<typename TG, size_t IFORM>
-class Domain: public TG
+class Domain: public TG::range_type
 {
 
 public:
@@ -38,17 +38,19 @@ public:
 
 	typedef size_t difference_type; // Type for difference of two iterators
 
+	typedef typename TG::range_type base_type;
+
 	using typename TG::iterator;
 	using typename TG::range_type;
 
 public:
 	manifold_type const& manifold_;
-private:
-	Domain<TG, IFORM> const & parent_;
-	range_type range_;
+//private:
+//	Domain<TG, IFORM> const & parent_;
+
 public:
 	Domain(manifold_type const & g) :
-			manifold_(g), parent_(*this), range_(g.select(iform))
+			base_type(g.select(iform)), manifold_(g)/*, parent_(*this)*/
 	{
 		;
 	}
@@ -68,44 +70,37 @@ public:
 		return manifold_;
 	}
 
-	bool empty() const; // True if domain is empty.
-
-	bool is_divisible() const; // True if domain can be partitioned into two subdomains.
-
-	iterator const & begin() const // First item in domain.
+	// True if domain can be partitioned into two sub-domains.
+	bool is_divisible() const
 	{
-		return std::get<0>(range_);
+		return false;
 	}
 
-	iterator const &end() const // One past last item in domain.
-	{
-		return std::get<1>(range_);
-	}
+//	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
+//	{
+//		return *this;
+//	}
+//	this_type operator |(this_type const & D1) const // \f$D_0 \cup \D_1\f$
+//	{
+//		return *this;
+//	}
+//	bool operator==(this_type const&)
+//	{
+//		return true;
+//	}
+//	bool is_same(this_type const&);
+//
+//	this_type const & parent() const; // Parent domain
+//
+//	std::tuple<coordinates_type, coordinates_type> boundbox() const // boundbox on _this_ coordinates system
+//	{
+//		return manifold_.geometry_type::boundbox<iform>(range_);
+//	}
+//	std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
+//	{
+//		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
+//	}
 
-	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
-	{
-		return *this;
-	}
-	this_type operator |(this_type const & D1) const // \f$D_0 \cup \D_1\f$
-	{
-		return *this;
-	}
-	bool operator==(this_type const&)
-	{
-		return true;
-	}
-	bool is_same(this_type const&);
-
-	this_type const & parent() const; // Parent domain
-
-	std::tuple<coordinates_type, coordinates_type> boundbox() const // boundbox on _this_ coordinates system
-	{
-		return manifold_.geometry_type::boundbox<iform>(range_);
-	}
-	std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
-	{
-		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
-	}
 	size_t hash(index_type s) const // get relative  position of grid point  in the memory
 	{
 		return 0; // manifold_.topology_type::hash<iform>(range_, s);

@@ -19,7 +19,7 @@
 
 namespace simpla
 {
-//template<typename TS,  unsigned int  NDIMS>
+//template<typename TS,  size_t  NDIMS>
 //bool Clipping(nTuple<TS,NDIMS> const & l_start, nTuple<TS,NDIMS> const &l_count, nTuple<TS,NDIMS> *pr_start,
 //        nTuple<TS,NDIMS> *pr_count)
 //{
@@ -52,7 +52,7 @@ namespace simpla
  *  \addtogroup GeometryAlgorithm
  *  @{
  */
-template<unsigned int DIM, typename TR, typename TRange>
+template<size_t DIM, typename TR, typename TRange>
 bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 {
 	bool res = true;
@@ -61,7 +61,7 @@ bool PointInRectangle(nTuple<TR, DIM> const &x, TRange const & range)
 
 	auto max = std::get<1>(range);
 
-	for (unsigned int i = 0; i < DIM; ++i)
+	for (size_t i = 0; i < DIM; ++i)
 	{
 		res = res && (x[i] >= min[i] && x[i] <= max[i]);
 	}
@@ -93,7 +93,7 @@ bool Clipping(int ndims, TI const & l_begin, TI const & l_end, TI & r_begin,
 
 	return has_overlap;
 }
-template<typename TS, unsigned int NDIMS>
+template<typename TS, size_t NDIMS>
 bool Clipping(nTuple<TS, NDIMS> l_begin, nTuple<TS, NDIMS> l_end,
 		nTuple<TS, NDIMS> *pr_begin, nTuple<TS, NDIMS> *pr_end)
 {
