@@ -12,8 +12,8 @@
 #include <string>
 #include <functional>
 
-#include "../fetl/fetl.h"
-#include "../fetl/load_field.h"
+#include "../field/field.h"
+#include "../field/load_field.h"
 
 #include "../numeric/multi_normal_distribution.h"
 #include "../numeric/rectangle_distribution.h"
@@ -30,13 +30,17 @@ namespace simpla
 {
 
 template<typename TP, typename TDict, typename TModel, typename TN, typename TT>
-std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model, TN const & ne0, TT const & T0)
+std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model,
+		TN const & ne0, TT const & T0)
 {
-	if (!dict || (TP::get_type_as_string() != dict["Type"].template as<std::string>()))
+	if (!dict
+			|| (TP::get_type_as_string()
+					!= dict["Type"].template as<std::string>()))
 	{
-		PARSER_ERROR(
-		        "illegal particle configure!" + "\"" + TP::get_type_as_string() + ""\"!=" + "\""
-		                + dict["Type"].template as<std::string>("") + "\"")
+		PARSER_ERROR((
+				"illegal particle configure!\"" + TP::get_type_as_string()
+						+ " \"!= \" "
+						+ dict["Type"].template as<std::string>("") + "\""))
 
 		;
 	}
@@ -64,7 +68,8 @@ std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model, TN co
 	}
 	else if (dict["Temperature"].is_function())
 	{
-		Ts = dict["Temperature"].template as<std::function<Real(coordinates_type const&)>>();
+		Ts = dict["Temperature"].template as<
+				std::function<Real(coordinates_type const&)>>();
 	}
 
 	if (!ne0.empty())
@@ -81,10 +86,11 @@ std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model, TN co
 	}
 	else if (dict["Density"].is_function())
 	{
-		ns = dict["Density"].template as<std::function<Real(coordinates_type const&)>>();
+		ns = dict["Density"].template as<
+				std::function<Real(coordinates_type const&)>>();
 	}
 
-	unsigned int pic = dict["PIC"].template as<size_t>(100);
+	size_t pic = dict["PIC"].template as<size_t>(100);
 
 	auto range = model.select_by_config(TP::IForm, dict["Select"]);
 
@@ -92,15 +98,16 @@ std::shared_ptr<TP> load_particle(TDict const &dict, TModel const & model, TN co
 
 	load_particle_constriant(res.get(), range, model, dict["Constraints"]);
 
-	LOGGER << "Create Particles:[ Engine=" << res->get_type_as_string() << ", Number of Particles=" << res->size()
-	        << "]" << DONE;
+	LOGGER << "Create Particles:[ Engine=" << res->get_type_as_string()
+			<< ", Number of Particles=" << res->size() << "]" << DONE;
 
 	return std::dynamic_pointer_cast<ParticleBase>(res);
 
 }
 
 template<typename TP, typename TRange, typename TModel, typename TDict>
-void load_particle_constriant(TP *p, TRange const &range, TModel const & model, TDict const & dict)
+void load_particle_constriant(TP *p, TRange const &range, TModel const & model,
+		TDict const & dict)
 {
 	if (!dict)
 		return;
@@ -144,29 +151,30 @@ void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
 
-	static constexpr unsigned int NDIMS = mesh_type::NDIMS;
+	static constexpr size_t ndims = mesh_type::ndims;
 
 	mesh_type const &mesh = p->mesh;
 
 	DEFINE_PHYSICAL_CONST
 
-	std::mt19937 rnd_gen(NDIMS * 2);
+	std::mt19937 rnd_gen(ndims * 2);
 
 	size_t number = size_of_range(range);
 
-	std::tie(number, std::ignore) = sync_global_location(number * pic * NDIMS * 2);
+	std::tie(number, std::ignore) = sync_global_location(
+			number * pic * ndims * 2);
 
 	rnd_gen.discard(number);
 
-	nTuple<3, Real> x, v;
+	nTuple<Real, 3> x, v;
 
 	Real inv_sample_density = 1.0 / pic;
 
 	auto buffer = p->create_child();
 
-	rectangle_distribution<NDIMS> x_dist;
+	rectangle_distribution<ndims> x_dist;
 
-	multi_normal_distribution<NDIMS> v_dist;
+	multi_normal_distribution<ndims> v_dist;
 
 	auto mass = p->get_charge();
 
@@ -183,7 +191,9 @@ void init_particle(TP *p, TR range, size_t pic, TN const & ns, TT const & Ts)
 
 			v *= std::sqrt(boltzmann_constant * Ts(x) / mass);
 
-			buffer.push_back(engine_type::push_forward(x, v, ns(x) * inv_sample_density));
+			buffer.push_back(
+					engine_type::push_forward(x, v,
+							ns(x) * inv_sample_density));
 		}
 
 		auto & d = p->get(s);

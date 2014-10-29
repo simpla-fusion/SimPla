@@ -16,15 +16,15 @@ namespace simpla
  * @param a
  * @return
  */
-template<unsigned int N, typename T>
-Matrix<N, T> && cholesky_decomposition(Matrix<N, T> &a)
+template<typename T, size_t N>
+nTuple<T, N, N> && cholesky_decomposition(nTuple<T, N, N> &a)
 {
 	/**
 	 *  Constructor.Given a positive-definite symmetric matrix
 	 *  a[0..n - 1][0..n - 1], construct and store its Cholesky
 	 *  decomposition, \f$A= L \cdot  L^T\f$.
 	 */
-	Matrix<N, T> el;
+	nTuple<T, N, N> el;
 
 	for (int i = 0; i < N; ++i)
 		for (int j = i; j < N; ++j)

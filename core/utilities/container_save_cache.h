@@ -25,7 +25,8 @@ class ContainerSaveCache: public std::vector<TV>
 public:
 	template<typename ...Args>
 	ContainerSaveCache(Args&& ... args) :
-			container_type(std::forward<Args>(args)...), tail_(0), cache_(container_type::size())
+			container_type(std::forward<Args>(args)...), tail_(0), cache_(
+					container_type::size())
 	{
 	}
 	~ContainerSaveCache()
@@ -41,14 +42,16 @@ public:
 	std::string save(std::string const & name)
 	{
 
-		std::copy(container_type::begin(), container_type::end(), &cache_[tail_]);
+		std::copy(container_type::begin(), container_type::end(),
+				&cache_[tail_]);
 
 		tail_ += container_type::size();
 
 		if (tail_ >= cache_.size())
 		{
-			size_t dims[2] = { cache_.size() / container_type::size(), container_type::size() };
-			return GLOBAL_DATA_STREAM.write(name, cache_,2,nullptr,dims,nullptr,nullptr,nullptr,nullptr, false,true);
+			size_t dims[2] = { cache_.size() / container_type::size(),
+					container_type::size() };
+			return GLOBAL_DATA_STREAM.write(name, &cache_[0],DataType::create<TV>(),2,nullptr,dims,nullptr,nullptr,nullptr,nullptr, true);
 		}
 		return "";
 	}

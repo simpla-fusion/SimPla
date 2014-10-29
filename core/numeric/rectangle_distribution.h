@@ -24,7 +24,7 @@ public:
 
 	rectangle_distribution()
 	{
-		nTuple<NDIM, double> xmin, xmax;
+		nTuple<double, NDIM> xmin, xmax;
 
 		for (int i = 0; i < NDIM; ++i)
 		{
@@ -33,7 +33,8 @@ public:
 		}
 		Reset(xmin, xmax);
 	}
-	rectangle_distribution(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
+	rectangle_distribution(nTuple<double, NDIM> const &xmin,
+			nTuple<double, NDIM> const & xmax)
 	{
 		Reset(xmin, xmax);
 	}
@@ -53,12 +54,13 @@ public:
 		Reset(std::get<0>(xrange), std::get<1>(xrange));
 	}
 
-	inline void Reset(nTuple<NDIM, double> const *xrange)
+	inline void Reset(nTuple<double, NDIM> const *xrange)
 	{
 		Reset(xrange[0], xrange[1]);
 	}
 
-	inline void Reset(nTuple<NDIM, double> const &xmin, nTuple<NDIM, double> const & xmax)
+	inline void Reset(nTuple<double, NDIM> const &xmin,
+			nTuple<double, NDIM> const & xmax)
 	{
 		xmin_ = xmin;
 		xmax_ = xmax;
@@ -66,19 +68,22 @@ public:
 		for (int i = 0; i < NDIM; ++i)
 		{
 
-			if (xmax_[i] > xmin_[i]) l_[i] = (xmax_[i] - xmin_[i]);
-			else l_[i] = 0;
+			if (xmax_[i] > xmin_[i])
+				l_[i] = (xmax_[i] - xmin_[i]);
+			else
+				l_[i] = 0;
 		}
 	}
 
 	template<typename Generator>
-	nTuple<NDIM, double> operator()(Generator &g)
+	nTuple<double, NDIM> operator()(Generator &g)
 	{
-		nTuple<NDIM, double> res;
+		nTuple<double, NDIM> res;
 
 		for (int i = 0; i < NDIM; ++i)
 		{
-			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
+			res[i] = static_cast<double>(g() - g.min())
+					/ static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
 		}
 
 		return std::move(res);
@@ -91,13 +96,14 @@ public:
 
 		for (int i = 0; i < NDIM; ++i)
 		{
-			res[i] = static_cast<double>(g() - g.min()) / static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
+			res[i] = static_cast<double>(g() - g.min())
+					/ static_cast<double>(g.max() - g.min()) * l_[i] + xmin_[i];
 		}
 	}
 private:
-	nTuple<NDIM, double> xmin_;
-	nTuple<NDIM, double> xmax_;
-	nTuple<NDIM, double> l_;
+	nTuple<double, NDIM> xmin_;
+	nTuple<double, NDIM> xmax_;
+	nTuple<double, NDIM> l_;
 
 };
 

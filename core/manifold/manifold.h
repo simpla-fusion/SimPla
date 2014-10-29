@@ -34,6 +34,7 @@ public:
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::index_type index_type;
+	typedef typename geometry_type::iterator iterator;
 
 	template<typename ...Args>
 	Manifold(Args && ... args) :

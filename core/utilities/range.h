@@ -43,7 +43,7 @@ public:
 
 	bool empty() const; //! True if range is empty
 
-	bool is_divisible() const //!True if range can be partitioned into two subranges
+	bool is_divisible() const ;//!True if range can be partitioned into two subranges
 
 	//**************************************************************************************************
 

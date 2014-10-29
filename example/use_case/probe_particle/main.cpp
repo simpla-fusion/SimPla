@@ -9,12 +9,11 @@
 #include "../../../core/particle/particle.h"
 #include "../../../core/manifold/fetl.h"
 #include "../../../core/field/domain_dummy.h"
+#include "../../../core/physics/physical_constants.h"
 
 using namespace simpla;
 
-typedef DomainDummy<nTuple<Real, 3>, nTuple<size_t, 3>> mesh_type;
-
-class PICDemo
+struct PICDemo
 {
 	typedef PICDemo this_type;
 	typedef Vec3 coordinates_type;
@@ -98,9 +97,9 @@ public:
 	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 };
 
-//typedef Manifold<CartesianCoordinates<StructuredMesh> > TMesh;
-//
-//typedef TMesh mesh_type;
+typedef Manifold<CartesianCoordinates<StructuredMesh> > TMesh;
+
+typedef TMesh mesh_type;
 
 int main(int argc, char **argv)
 {

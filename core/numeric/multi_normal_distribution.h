@@ -25,20 +25,20 @@ namespace simpla
  *            e^{- \frac{{x - \mu}^ {2}}{2 \sigma ^ {2}} }
  * @f]
  */
-template<unsigned int N, typename RealType = double, typename TNormalGen = std::normal_distribution<double> >
+template<size_t N, typename RealType = double,
+		typename TNormalGen = std::normal_distribution<RealType> >
 class multi_normal_distribution
 {
-	nTuple<N, nTuple<N, RealType>> A_;
-	nTuple<N, RealType> u_;
+	nTuple<RealType, N, N> A_;
+	nTuple<RealType, N> u_;
 	TNormalGen normal_dist_;
-
 	typedef multi_normal_distribution<N, RealType, TNormalGen> this_type;
+
 public:
-	static const  unsigned int  NDIMS = N;
+	static constexpr size_t ndims = N;
 
 	multi_normal_distribution(RealType pT = 1.0, //
-			nTuple<N, RealType> const &pu =
-			{ 0, 0, 0 }) :
+			nTuple<RealType, N> const &pu = { 0, 0, 0 }) :
 			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
@@ -55,7 +55,8 @@ public:
 			}
 	}
 
-	multi_normal_distribution(nTuple<N, RealType> const & pT, nTuple<N, RealType> const &pu) :
+	multi_normal_distribution(nTuple<RealType, N> const & pT,
+			nTuple<RealType, N> const &pu) :
 			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
@@ -72,7 +73,8 @@ public:
 			}
 	}
 
-	multi_normal_distribution(Matrix<N, RealType> const & pA, nTuple<N, RealType> const &pu) :
+	multi_normal_distribution(nTuple<RealType, N, N> const & pA,
+			nTuple<RealType, N> const &pu) :
 			A_(cholesky_decomposition(pA)), u_(pu), normal_dist_(0, 1.0)
 	{
 	}
@@ -83,27 +85,29 @@ public:
 	template<typename Generator, typename T> inline
 	void operator()(Generator & g, T * res)
 	{
-		nTuple<N, RealType> v;
-		for (int i = 0; i < NDIMS; ++i)
+		nTuple<RealType, N> v;
+		for (int i = 0; i < ndims; ++i)
 		{
 			v[i] = normal_dist_(g);
 		}
-		v = Dot(A_, v);
+		v = dot(A_, v);
 		for (int i = 0; i < N; ++i)
 		{
 			res[i] = v[i];
 		}
 	}
 
-	template<typename Generator> inline nTuple<N, RealType> operator()(Generator & g)
+	template<typename Generator> inline nTuple<RealType, N> operator()(
+			Generator & g)
 	{
-		nTuple<N, RealType> res;
+		nTuple<RealType, N> res;
 		this_type::operator()(g, res);
 		return std::move(res);
 	}
 
 };
 
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* MULTI_NORMAL_DISTRIBUTION_H_ */

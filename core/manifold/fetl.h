@@ -14,11 +14,17 @@
 #include "../utilities/sp_complex.h"
 
 #include "../field/field.h"
-#include "calculus.h"
-#include "domain.h"
-#include "manifold.h"
+
+#include "diff_scheme/fdm.h"
+#include "interpolator/interpolator.h"
+
 #include "topology/structured.h"
 #include "geometry/cartesian.h"
+#include "geometry/cylindrical.h"
+
+#include "manifold.h"
+#include "calculus.h"
+#include "domain.h"
 //#include "field_vector_ops.h"
 //#include "field_constant.h"
 //#include "cache.h"

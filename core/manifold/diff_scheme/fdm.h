@@ -27,24 +27,24 @@ template<typename, size_t> class Domain;
  *  \brief template of FvMesh
  */
 template<typename G>
-struct FiniteDiffMehtod
+struct FiniteDiffMethod
 {
 
-	typedef FiniteDiffMehtod<G> this_type;
+	typedef FiniteDiffMethod<G> this_type;
 
 	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
 
 	G const & geo;
 
-	FiniteDiffMehtod(G const & g) :
+	FiniteDiffMethod(G const & g) :
 			geo(g)
 	{
 	}
-	FiniteDiffMehtod(this_type const & r) :
+	FiniteDiffMethod(this_type const & r) :
 			geo(r.geo)
 	{
 	}
-	~FiniteDiffMehtod() = default;
+	~FiniteDiffMethod() = default;
 
 	this_type & operator=(this_type const &) = delete;
 

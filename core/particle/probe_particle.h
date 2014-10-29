@@ -25,10 +25,9 @@ template<typename ...> class Particle;
 template<typename TM, typename Engine> using ProbeParticle=Particle<TM, Engine, PolicyProbeParticle>;
 
 template<typename TM, typename Engine>
-class Particle<TM, Engine, PolicyProbeParticle> : public Engine,
+struct Particle<TM, Engine, PolicyProbeParticle> : public Engine,
 		public ContainerSaveCache<typename Engine::Point_s>
 {
-public:
 	typedef TM mesh_type;
 	typedef Engine engine_type;
 
@@ -45,8 +44,6 @@ public:
 	typedef typename mesh_type::iterator iterator;
 
 	typedef typename mesh_type::coordinates_type coordinates_type;
-
-public:
 
 	mesh_type const & mesh;
 
@@ -68,7 +65,7 @@ public:
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
 
-	std::string save(std::string const & path) const;
+	std::string save(std::string const & path);
 
 	std::ostream& print(std::ostream & os) const
 	{
@@ -96,14 +93,9 @@ Particle<TM, Engine, PolicyProbeParticle>::~Particle()
 
 template<typename TM, typename Engine>
 std::string Particle<TM, Engine, PolicyProbeParticle>::save(
-		std::string const & path) const
+		std::string const & path)
 {
-
-	VERBOSE(
-			simpla:: save(path, * dynamic_cast<std::vector<typename Engine::Point_s>const *>(this),
-					DataStream::SP_CACHE|DataStream::SP_RECORD));
-
-	return "";
+	return storage_type::save(path);
 }
 
 template<typename TM, typename Engine>

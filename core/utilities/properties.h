@@ -115,7 +115,7 @@ public:
 	}
 
 	template<typename T>
-	T const & set(std::string const & key, T const & v)
+	void set(std::string const & key, T const & v)
 	{
 		get(key) = v;
 	}
