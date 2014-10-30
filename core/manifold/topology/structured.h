@@ -873,15 +873,16 @@ public:
 				extents_[i] = static_cast<Real>((global_count_[i])
 						<< MAX_DEPTH_OF_TREE);
 				inv_extents_[i] = 1.0 / extents_[i];
-				inv_dx_[i] = static_cast<Real>(global_count_[i]);
+
+				inv_dx_[i] = L;
 				dx_[i] = 1.0 / inv_dx_[i];
 
 			}
 
-			volume_[1UL << (ndims - i - 1)] = 1.0 / L;
-			dual_volume_[7 - (1UL << (ndims - i - 1))] = 1.0 / L;
-			inv_volume_[1UL << (ndims - i - 1)] = L;
-			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = L;
+			volume_[1UL << (ndims - i - 1)] = dx_[i];
+			dual_volume_[7 - (1UL << (ndims - i - 1))] = dx_[i];
+			inv_volume_[1UL << (ndims - i - 1)] = inv_dx_[i];
+			inv_dual_volume_[7 - (1UL << (ndims - i - 1))] = inv_dx_[i];
 
 		}
 

@@ -13,50 +13,58 @@
 #include "../utilities/constant_ops.h"
 #include "../utilities/expression_template.h"
 #include "../utilities/container_traits.h"
+
 namespace simpla
 {
 
 template<typename ... >struct _Field;
+template<typename TG, size_t IFORM> class Domain;
 
 template<typename TV, typename ... Others>
 auto make_field(Others && ...others)
 DECL_RET_TYPE((_Field<std::shared_ptr<TV>,
 				typename std::remove_reference<Others>::type...>(
 						std::forward<Others>(others)...)))
+template<typename TV, size_t IFORM, typename TM, typename ... Others>
+auto make_form(TM const &manifold,
+		Others && ...others)
+				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
+										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
 template<typename T>
-constexpr Identity get_domain(T && ...)
-{
-	return std::move(Identity());
-}
+constexpr Identity get_domain(
+		T && ...)
+		{
+			return std::move(Identity());
+		}
 
-constexpr Zero get_domain(Zero)
-{
-	return std::move(Zero());
-}
+		constexpr Zero get_domain(Zero)
+		{
+			return std::move(Zero());
+		}
 
-template<typename TD> struct domain_traits
-{
-	typedef TD domain_type;
-	typedef typename domain_type::index_type index_type;
-};
+		template<typename TD> struct domain_traits
+		{
+			typedef TD domain_type;
+			typedef typename domain_type::index_type index_type;
+		};
 
-HAS_MEMBER_FUNCTION(scatter)template
-<typename TD, typename TC, typename ...Args>
-auto scatter(TD const & d, TC & c, Args && ... args)
-ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
-,(d.scatter(c,std::forward<Args>(args
-				)...)))
+		HAS_MEMBER_FUNCTION(scatter)template
+		<typename TD, typename TC, typename ...Args>
+		auto scatter(TD const & d, TC & c, Args && ... args)
+		ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
+		,(d.scatter(c,std::forward<Args>(args
+						)...)))
 
-template<typename TD, typename TC, typename ...Args>
-auto scatter(TD const & d, TC & c,
+		template<typename TD, typename TC, typename ...Args>
+		auto scatter(TD const & d, TC & c,
 		Args && ... args)
-->typename std::enable_if<(!has_member_function_scatter<TD,TC,Args...>::value) >::type
-{
-}
+		->typename std::enable_if<(!has_member_function_scatter<TD,TC,Args...>::value) >::type
+		{
+		}
 
-HAS_MEMBER_FUNCTION(gather)
-template<typename TD, typename TC, typename ...
+		HAS_MEMBER_FUNCTION(gather)template
+<typename TD, typename TC, typename ...
 Args>
 auto gather(TD const & d, TC & c, Args && ... args)
 ENABLE_IF_DECL_RET_TYPE( (has_member_function_gather<TD,TC,Args...>::value),

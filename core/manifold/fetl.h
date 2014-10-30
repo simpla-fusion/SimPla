@@ -14,6 +14,8 @@
 #include "../utilities/sp_complex.h"
 
 #include "../field/field.h"
+#include "../field/field_traits.h"
+#include "../field/save_field.h"
 
 #include "diff_scheme/fdm.h"
 #include "interpolator/interpolator.h"

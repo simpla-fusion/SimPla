@@ -9,8 +9,6 @@
 #include <cmath>
 #include "field.h"
 #include "save_field.h"
-#include "domain_dummy.h"
-
 #include "../utilities/log.h"
 //#include "../manifold/manifold.h"
 //#include "../manifold/domain.h"
@@ -24,6 +22,7 @@
 #include "../utilities/log.h"
 #include "../utilities/pretty_stream.h"
 #include "../io/data_stream.h"
+#include "../manifold/domain_dummy.h"
 #include "../physics/constants.h"
 
 using namespace simpla;

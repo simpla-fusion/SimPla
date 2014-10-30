@@ -9,9 +9,9 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
+#include "../manifold/domain_dummy.h"
 
 #include "field.h"
-#include "domain_dummy.h"
 
 using namespace simpla;
 

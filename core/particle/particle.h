@@ -9,7 +9,7 @@
 #define PARTICLE_H_
 
 #include "particle_engine.h"
-//#include "kinetic_particle.h"
+#include "kinetic_particle.h"
 #include "probe_particle.h"
 #include "save_particle.h"
 #include "load_particle.h"

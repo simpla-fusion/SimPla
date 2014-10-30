@@ -9,43 +9,45 @@
 #define CONTAINER_POOL_H_
 #include <map>
 #include <list>
-#include "../utilities/range.h"
 
 namespace simpla
 {
+template<typename ...>struct ContainerPool;
 
-template<typename ValueType, typename HashFunc>
-class ContainerPool
+template<typename KeyType, typename ValueType>
+class ContainerPool<KeyType, ValueType>
 {
 public:
 	typedef ValueType value_type;
-	typedef HashFunc hash_func;
-	typedef decltype(std::declval<hash_func>()(std::declval<value_type>())) key_type;
+	typedef KeyType key_type;
+	typedef ContainerPool<key_type, value_type> this_type;
+
+	typedef std::function<key_type(value_type const &)> hash_func;
 private:
-	typedef std::vector<value_type> inner_container;
+	typedef std::list<value_type> inner_container;
 	typedef typename inner_container::pointer inner_pointer;
-	typedef std::unordered_map<key_type, inner_pointer> map_container;
+	typedef std::map<key_type, inner_pointer> map_container;
 
-	inner_container data_;
+	typedef map_container storage_type;
 
-	map_container hash_map;
-
-	inner_container_type default_value_;
-	storage_type_ data_;
 	hash_func hash_;
+
+	inner_container trash_;
+
+	map_container data_;
+
 public:
 
 	//***************************************************************************************************
 	// Constructor
 
-	ContainerPool(hash_func hash)
-			: hash_(hash)
-
+	ContainerPool(hash_func hash) :
+			hash_(hash)
 	{
 	}
 
-	ContainerPool(this_type const & other)
-			: data_(other.data_), hash_(other.hash_)
+	ContainerPool(this_type const & other) :
+			trash_(other.trash_), hash_(other.hash_)
 
 	{
 	}
@@ -55,18 +57,24 @@ public:
 	{
 	}
 
-	inner_container_type make_buffer() const
+	inner_container make_buffer() const
 	{
-		return std::move(inner_container_type(default_value_));
+		return std::move(inner_container(trash_));
 	}
 
-	void insert(inner_container_type &);
-
 	size_t size() const;
+	bool empty() const
+	{
+		return data_.empty();
+	}
 
 	void insert(value_type &&);
+	void insert(inner_container &);
+	void insert(this_type &);
+
 	void sort();
-	void merge(this_type & other);
+	template<typename THash>
+	void sort(THash const &);
 
 	template<typename PredFun>
 	void remove_if(PredFun);
@@ -74,23 +82,20 @@ public:
 	void remove(key_type const& s);
 
 	template<typename Func>
-	void modify(key_type const & s, Func const & func, inner_container_type*buffer = nullptr);
-
-	bool empty() const
-	{
-		return data_.empty();
-	}
+	void modify(key_type const & s, Func const & func, inner_container*buffer =
+			nullptr);
 
 	void clear()
 	{
+		//TODO move every thing into the trash
 		data_.clear();
 	}
-	inner_container_type & find(key_type const& s)
+	inner_container & find(key_type const& s)
 	{
 		auto it = data_.find(s);
 		if (it == data_.end())
 		{
-			return default_value_;
+			return trash_;
 		}
 		else
 		{
@@ -100,12 +105,12 @@ public:
 	}
 };
 
-template<typename ValueType, typename HashFunc>
-size_t ContainerPool<ValueType, HashFunc>::size() const
+template<typename KeyType, typename ValueType>
+size_t ContainerPool<KeyType, ValueType>::size() const
 {
 	size_t count = 0;
 
-	for (auto const &item : data_)
+	for (auto const &item : trash_)
 	{
 		count += item.second.size();
 	}
@@ -113,27 +118,27 @@ size_t ContainerPool<ValueType, HashFunc>::size() const
 	return count;
 }
 
-template<typename ValueType, typename HashFunc>
-void ContainerPool<ValueType, HashFunc>::insert(value_type && p)
+template<typename KeyType, typename ValueType>
+void ContainerPool<KeyType, ValueType>::insert(value_type && p)
 {
-	data_[hash_(p)].push_back(p);
+	trash_[hash_(p)].push_back(p);
 }
 
-template<typename ValueType, typename HashFunc>
-void ContainerPool<ValueType, HashFunc>::merge(this_type & other)
+template<typename KeyType, typename ValueType>
+void ContainerPool<KeyType, ValueType>::insert(this_type & other)
 {
-	for (auto & v : other.data_)
+	for (auto & v : other.trash_)
 	{
-		auto & c = data_[v.first];
+		auto & c = trash_[v.first];
 		c.splice(c.begin(), v.second);
 	}
 
 }
-template<typename ValueType, typename HashFunc>
-void ContainerPool<ValueType, HashFunc>::sort()
+template<typename KeyType, typename ValueType>
+void ContainerPool<KeyType, ValueType>::sort()
 {
 
-	auto range = make_range(data_.begin(), data_.end());
+	auto range = make_range(trash_.begin(), trash_.end());
 
 	parallel_reduce((range), *this, this,
 
@@ -162,20 +167,21 @@ void ContainerPool<ValueType, HashFunc>::sort()
 
 	[&](this_type & l,this_type * r)
 	{
-		r->merge(l);
+		r->insert(l);
 	});
 
 }
 
-template<typename ValueType, typename HashFunc>
-template<typename TRange, typename Func>
-void ContainerPool<ValueType, HashFunc>::modify(key_type const & s, Func const & func, inner_container_type*buffer)
+template<typename KeyType, typename ValueType>
+template<typename Func>
+void ContainerPool<KeyType, ValueType>::modify(key_type const & s,
+		Func const & func, inner_container*buffer)
 {
 
 	auto t_buffer = make_buffer();
 
-	auto cell = storage_type_::find(s)
-	if (cell != storage_type_::end())
+	auto cell = data_.find(s);
+	if (cell != data_.end())
 	{
 		auto pt = cell->second->begin();
 		while (pt != cell->second->end())
@@ -193,13 +199,6 @@ void ContainerPool<ValueType, HashFunc>::modify(key_type const & s, Func const &
 	if (buffer != nullptr)
 		buffer->splice(buffer->begin(), t_buffer);
 
-}
-template<typename ValueType, typename HashFunc>
-template<typename TRange>
-void ContainerPool<ValueType, HashFunc>::remove(TRange && index_range)
-{
-	modify(std::forward<TRange>(index_range), [](value_type *)
-	{	return true;});
 }
 
 }  // namespace simpla
