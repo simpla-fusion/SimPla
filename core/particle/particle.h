@@ -9,7 +9,6 @@
 #define PARTICLE_H_
 
 #include "particle_engine.h"
-#include "kinetic_particle.h"
 #include "probe_particle.h"
 #include "save_particle.h"
 #include "load_particle.h"
@@ -24,20 +23,117 @@ std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
 	return os;
 }
 
+/** \defgroup  Particle Particle
+ *
+ *  \brief Particle  particle concept
+ */
+
+template<typename ...>struct Particle;
+
+template<typename Engine, typename TDomain>
+struct Particle<Engine, TDomain> : public Engine, public std::vector<
+		typename Engine::Point_s>
+{
+	typedef TDomain domain_type;
+	typedef Engine engine_type;
+
+	typedef Particle<domain_type, engine_type> this_type;
+
+	typedef std::vector<typename Engine::Point_s> storage_type;
+
+	typedef typename engine_type::Point_s particle_type;
+
+	typedef typename engine_type::scalar_type scalar_type;
+
+	typedef particle_type value_type;
+
+	typedef typename domain_type::iterator iterator;
+
+	typedef typename domain_type::coordinates_type coordinates_type;
+
+	domain_type const & domain_;
+
+	//***************************************************************************************************
+	// Constructor
+	template<typename ...Others>
+	Particle(domain_type const & pmesh, Others && ...);	// Constructor
+
+	// Destructor
+	~Particle();
+
+	static std::string get_type_as_string()
+	{
+		return engine_type::get_type_as_string();
+	}
+
+	void load();
+
+	template<typename TDict, typename ...Others>
+	void load(TDict const & dict, Others && ...others);
+
+	template<typename ...Args>
+	std::string save(std::string const & path, Args &&...) const;
+
+	std::ostream& print(std::ostream & os) const
+	{
+		engine_type::print(os);
+		return os;
+	}
+
+	template<typename ...Args> void next_timestep(Real dt, Args && ...);
+
+	template<typename ...Args> auto emplace_back(Args && ...args)
+	DECL_RET_TYPE((storage_type::emplace_back(particle_type(
+									{	args...}))))
+};
+
+template<typename Engine, typename TDomain>
+template<typename ... Others>
+Particle<Engine, TDomain>::Particle(domain_type const & pmesh,
+		Others && ...others) :
+		domain_(pmesh)
+{
+	engine_type::load(std::forward<Others>(others)...);
+}
+
+template<typename Engine, typename TDomain>
+Particle<Engine, TDomain>::~Particle()
+{
+}
+
+template<typename Engine, typename TDomain>
+template<typename ...Args>
+std::string Particle<Engine, TDomain>::save(std::string const & path,
+		Args && ...args) const
+{
+	return save(path, *this, std::forward<Args>(args)...);
+}
+
+template<typename Engine, typename TDomain>
+template<typename ... Args>
+void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
+{
+
+	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
+			<< std::endl;
+
+	for (auto & p : *this)
+	{
+		this->engine_type::next_timestep(&p, dt, std::forward<Args>(args)...);
+	}
+
+	LOGGER << DONE;
+}
+
 //
-///** \defgroup  Particle Particle
-// *
-// *  \brief Particle  particle concept
-// */
-//
-//template<typename TM, typename Engine, typename Policy>
+//template<typename TDomain, typename Engine, typename Policy>
 //class Particle: public Engine
 //{
 //
 //public:
 //	static constexpr unsigned int IForm = VERTEX;
 //
-//	typedef TM mesh_type;
+//	typedef TDomain mesh_type;
 //	typedef Engine engine_type;
 //
 //	typedef Particle<mesh_type, engine_type, Policy> this_type;

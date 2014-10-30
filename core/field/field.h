@@ -26,13 +26,26 @@ namespace simpla
  */
 template<typename ... >struct _Field;
 
-template<typename ...T, typename TI>
-auto get_value(_Field<T...> const & f, TI const &s)
-DECL_RET_TYPE((f[s]))
-
-template<typename ...T, typename TI>
-auto get_value(_Field<T...> & f, TI const &s)
-DECL_RET_TYPE((f[s]))
+//template<typename ...T, typename TI>
+//auto get_value(_Field<T...> const & f,
+//		TI const &s)->typename field_traits<_Field<T...>>::value_type const&
+//{
+//	return f[s];
+//}
+//
+//template<typename ...T, typename TI>
+//auto get_value(_Field<T...> & f,
+//		TI const &s)->typename field_traits<_Field<T...>>::value_type const&
+//{
+//	return f[s];
+//}
+//
+//template<typename ...T, typename TI>
+//auto get_value(_Field<Expression<T...>> const & f,
+//		TI const &s)->typename field_traits<_Field<Expression<T...>>>::value_type
+//{
+//	return f[s];
+//}
 
 /**
  *
@@ -177,7 +190,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= get_value(that, s);
+			(*this)[s]= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -201,7 +214,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= get_value(that, s);
+			(*this)[s]= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -214,7 +227,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] +=get_value(that, s);
+			(*this)[s] +=domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -227,7 +240,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] -= get_value(that, s);
+			(*this)[s] -= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -240,7 +253,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] *= get_value(that, s);
+			(*this)[s] *= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -253,45 +266,60 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] /= get_value(that, s);
+			(*this)[s] /= domain_.calculate(that, s);
 		});
 
 		return (*this);
 	}
 ///@}
 
+	template<typename TFun> void pull_back(TFun const &fun)
+	{
+		pull_back(domain_, fun);
+	}
+
 	template<typename TD, typename TFun> void pull_back(TD const & domain,
 			TFun const &fun)
 	{
 		allocate();
 
-		parallel_for(domain_, [&](index_type const & s)
+		parallel_for(domain, [&](index_type const & s)
 		{
 
 			//FIXME geometry coordinates convert
 
-				(*this)[s] = fun(
-						//domain.MapTo(domain_.InvMapTo(
-						domain_.manifold().coordinates(s)
-						//))
-				)
-				;
+				(*this)[s] = domain_.sample( s,fun(
+								//domain.MapTo(domain_.InvMapTo(
+								domain_.manifold().coordinates(s)
+								//))
+						)
+				);
 			});
 
 	}
 
-	template<typename ...Args>
-	auto operator()(Args && ... args) const
-	DECL_RET_TYPE((simpla::gather(domain_,data_,std::forward<Args>(args)...)))
+	typedef typename std::conditional<
+			domain_type::iform == VERTEX || domain_type::iform == VOLUME,
+			value_type, nTuple<value_type, 3>>::type field_value_type;
+
+	field_value_type operator()(
+			typename domain_type::coordinates_type const& x) const
+	{
+		return std::move(domain_.manifold().gather(*this, x));
+	}
+
+	field_value_type gather(typename domain_type::coordinates_type const& x)
+	{
+		return std::move(domain_.manifold().gather(*this, x));
+
+	}
 
 	template<typename ...Args>
-	auto gather(Args && ... args) const
-	DECL_RET_TYPE(( simpla::gather(domain_,data_,std::forward<Args>(args)...)))
-
-	template<typename ...Args>
-	auto scatter(Args && ... args)
-	DECL_RET_TYPE(( simpla::scatter(domain_,data_,
-							std::forward<Args>(args)...)))
+	void scatter(Args && ... args)
+	{
+		domain_.manifold().scatter(const_cast<this_type&>(*this),
+				std::forward<Args>(args)...);
+	}
 
 //	auto dataset() const
 //			DECL_RET_TYPE(std::move(

@@ -35,6 +35,7 @@ public:
 	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::coordinates_type coordinates_type;
 	typedef typename geometry_type::index_type index_type;
+	typedef typename geometry_type::compact_index_type compact_index_type;
 	typedef typename geometry_type::iterator iterator;
 
 	template<typename ...Args>
@@ -56,22 +57,22 @@ public:
 	this_type & operator=(this_type const &) = delete;
 
 	template<typename T>
-	auto get_value(T const & expr, index_type const & s) const
+	auto calculate(T const & expr, compact_index_type const & s) const
 	DECL_RET_TYPE((simpla::get_value(expr,s)))
 
-	template<typename M, size_t I, typename TL>
-	auto get_value(_Field<Domain<M, I>, TL> const & expr,
-			index_type const & s) const
+	template<typename TC, typename TD>
+	auto calculate(_Field<TC, TD> const & expr,
+			compact_index_type const & s) const
 			DECL_RET_TYPE((expr[s]))
 
 	template<typename TOP, typename TL>
-	auto get_value(_Field<Expression<TOP, TL>> const & expr,
-			index_type const & s) const
+	auto calculate(_Field<Expression<TOP, TL>> const & expr,
+			compact_index_type const & s) const
 			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
 
 	template<typename TOP, typename TL, typename TR>
 	auto get_value(_Field<Expression<TOP, TL, TR>> const & expr,
-			index_type const & s) const
+			compact_index_type const & s) const
 			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
 
 };

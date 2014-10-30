@@ -158,30 +158,30 @@ struct _seq_for<0>
 	}
 
 };
-//
-//template<size_t M, size_t ...N>
-//struct _seq_for<M, N...>
-//{
-//
-//	template<typename TOP, typename ...Args>
-//	static inline void eval(TOP const & op, Args && ... args)
-//	{
-//		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
-//	}
-//
-//	template<typename TOP, size_t ...L, typename ...Args>
-//	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
-//			Args && ... args)
-//	{
-//		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
-//				std::forward<Args>(args)...);
-//
-//		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
-//				std::forward<Args>(args)...);
-//	}
-//
-//};
-//
+
+template<size_t M, size_t ...N>
+struct _seq_for<M, N...>
+{
+
+	template<typename TOP, typename ...Args>
+	static inline void eval(TOP const & op, Args && ... args)
+	{
+		eval(op, integer_sequence<size_t>(), std::forward<Args>(args)...);
+	}
+
+	template<typename TOP, size_t ...L, typename ...Args>
+	static inline void eval(TOP const & op, integer_sequence<size_t, L...>,
+			Args && ... args)
+	{
+		_seq_for<N...>::eval(op, integer_sequence<size_t, L..., M>(),
+				std::forward<Args>(args)...);
+
+		_seq_for<M - 1, N...>::eval(op, integer_sequence<size_t, L...>(),
+				std::forward<Args>(args)...);
+	}
+
+};
+
 //template<size_t ...N>
 //struct _seq_for<0, N...>
 //{
@@ -284,7 +284,8 @@ template<typename TInts, TInts ...N, typename TOP>
 void seq_for_each(integer_sequence<TInts, N...>, TOP const & op)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] = { N... };
+	TInts dims[] =
+	{ N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)
@@ -316,7 +317,8 @@ template<typename TInts, TInts ...N, typename TOS, typename TA>
 TOS& seq_print(integer_sequence<TInts, N...>, TOS & os, TA const &d)
 {
 	size_t ndims = sizeof...(N);
-	TInts dims[] = { N... };
+	TInts dims[] =
+	{ N... };
 	TInts idx[ndims];
 
 	for (int i = 0; i < ndims; ++i)

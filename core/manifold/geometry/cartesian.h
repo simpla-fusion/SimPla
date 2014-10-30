@@ -46,6 +46,7 @@ public:
 
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
+	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
 
 	CartesianCoordinates(this_type const & rhs) = delete;
@@ -245,7 +246,7 @@ public:
 	inline auto extents() const
 	DECL_RET_TYPE (std::make_pair(xmin_, xmax_))
 
-	inline coordinates_type dx(index_type s = 0UL) const
+	inline coordinates_type dx(compact_index_type s = 0UL) const
 	{
 		coordinates_type res;
 
@@ -321,15 +322,15 @@ public:
 								std::forward<Args >(args)...)));
 	}
 
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local(
-			coordinates_type x, index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local(
+			coordinates_type x, compact_index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local(
 						std::move(coordinates_to_topology(x)), shift));
 	}
-	std::tuple<index_type, coordinates_type> coordinates_global_to_local_NGP(
-			coordinates_type x, index_type shift = 0UL) const
+	std::tuple<compact_index_type, coordinates_type> coordinates_global_to_local_NGP(
+			coordinates_type x, compact_index_type shift = 0UL) const
 	{
 		return std::move(
 				topology_type::coordinates_global_to_local_NGP(
@@ -437,42 +438,6 @@ public:
 
 	auto select(size_t iform) const
 	DECL_RET_TYPE((this->topology_type::select(iform)))
-
-	template<typename TV>
-	TV Sample(std::integral_constant<size_t, VERTEX>, index_type s,
-			TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV Sample(std::integral_constant<size_t, VOLUME>, index_type s,
-			TV const &v) const
-	{
-		return v;
-	}
-
-	template<typename TV>
-	TV Sample(std::integral_constant<size_t, EDGE>, index_type s,
-			nTuple<TV, 3> const &v) const
-	{
-		return v[topology_type::component_number(s)];
-	}
-
-	template<typename TV>
-	TV Sample(std::integral_constant<size_t, FACE>, index_type s,
-			nTuple<TV, 3> const &v) const
-	{
-		return v[topology_type::component_number(s)];
-	}
-
-	template<size_t IFORM, typename TV>
-	TV Sample(std::integral_constant<size_t, IFORM>, index_type s,
-			TV const & v) const
-	{
-		return v;
-	}
-
 //***************************************************************************************************
 // Volume
 //***************************************************************************************************
@@ -519,33 +484,33 @@ public:
 
 public:
 
-	scalar_type cell_volume(index_type s) const
+	scalar_type cell_volume(compact_index_type s) const
 	{
 		return topology_type::cell_volume(s) * volume_[1] * volume_[2]
 				* volume_[4];
 	}
-	scalar_type volume(index_type s) const
+	scalar_type volume(compact_index_type s) const
 	{
 		return topology_type::volume(s) * volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_volume(index_type s) const
+	scalar_type inv_volume(compact_index_type s) const
 	{
 		return topology_type::inv_volume(s)
 				* inv_volume_[topology_type::node_id(s)];
 	}
 
-	scalar_type dual_volume(index_type s) const
+	scalar_type dual_volume(compact_index_type s) const
 	{
 		return topology_type::dual_volume(s)
 				* dual_volume_[topology_type::node_id(s)];
 	}
-	scalar_type inv_dual_volume(index_type s) const
+	scalar_type inv_dual_volume(compact_index_type s) const
 	{
 		return topology_type::inv_dual_volume(s)
 				* inv_dual_volume_[topology_type::node_id(s)];
 	}
 
-	Real HodgeStarVolumeScale(index_type s) const
+	Real HodgeStarVolumeScale(compact_index_type s) const
 	{
 		return 1.0;
 	}

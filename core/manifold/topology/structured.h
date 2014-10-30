@@ -48,10 +48,10 @@ struct StructuredMesh
 	static constexpr size_t MAX_NUM_VERTEX_PER_CEL = 8;
 	static constexpr size_t ndims = 3;
 	static constexpr size_t DEFAULT_GHOSTS_WIDTH = 3;
-	typedef unsigned long index_type;
+	typedef size_t index_type;
 	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, ndims> coordinates_type;
-	typedef nTuple<index_type, ndims> index_tuple;
+	typedef nTuple<size_t, ndims> index_tuple;
 
 	//***************************************************************************************************
 
@@ -963,66 +963,66 @@ public:
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
 
-	Real const & volume(index_type s) const
+	Real const & volume(compact_index_type s) const
 	{
 		return volume_[node_id(s)];
 	}
 
-	Real inv_volume(index_type s) const
+	Real inv_volume(compact_index_type s) const
 	{
 		return inv_volume_[node_id(s)];
 	}
 
-	Real dual_volume(index_type s) const
+	Real dual_volume(compact_index_type s) const
 	{
 		return dual_volume_[node_id(s)];
 	}
 
-	Real inv_dual_volume(index_type s) const
+	Real inv_dual_volume(compact_index_type s) const
 	{
 		return inv_dual_volume_[node_id(s)];
 	}
 
-	Real cell_volume(index_type s) const
+	Real cell_volume(compact_index_type s) const
 	{
 		return volume_[1] * volume_[2] * volume_[4];
 	}
 
-	Real volume(index_type s, std::integral_constant<bool, false>) const
+	Real volume(compact_index_type s, std::integral_constant<bool, false>) const
 	{
 		return volume(s);
 	}
 
-	Real inv_volume(index_type s, std::integral_constant<bool, false>) const
+	Real inv_volume(compact_index_type s, std::integral_constant<bool, false>) const
 	{
 		return inv_volume(s);
 	}
 
-	Real inv_dual_volume(index_type s,
+	Real inv_dual_volume(compact_index_type s,
 			std::integral_constant<bool, false>) const
 	{
 		return inv_dual_volume(s);
 	}
-	Real dual_volume(index_type s, std::integral_constant<bool, false>) const
+	Real dual_volume(compact_index_type s, std::integral_constant<bool, false>) const
 	{
 		return dual_volume(s);
 	}
 
-	Real volume(index_type s, std::integral_constant<bool, true>) const
+	Real volume(compact_index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? volume(s) : 0.0;
 	}
 
-	Real inv_volume(index_type s, std::integral_constant<bool, true>) const
+	Real inv_volume(compact_index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_volume(s) : 0.0;
 	}
 
-	Real dual_volume(index_type s, std::integral_constant<bool, true>) const
+	Real dual_volume(compact_index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? dual_volume(s) : 0.0;
 	}
-	Real inv_dual_volume(index_type s, std::integral_constant<bool, true>) const
+	Real inv_dual_volume(compact_index_type s, std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_dual_volume(s) : 0.0;
 	}
@@ -1079,16 +1079,16 @@ public:
 		return std::move(index_tuple(idx));
 	}
 
-	inline coordinates_type coordinates(index_type s) const
+	inline coordinates_type coordinates(compact_index_type s) const
 	{
 		return std::move(index_to_coordinates(decompact(s)));
 	}
-	inline coordinates_type get_coordinates(index_type s) const
+	inline coordinates_type get_coordinates(compact_index_type s) const
 	{
 		return std::move(index_to_coordinates(decompact(s)));
 	}
 
-	inline coordinates_type coordinates_local_to_global(index_type s,
+	inline coordinates_type coordinates_local_to_global(compact_index_type s,
 			coordinates_type r) const
 	{
 #ifndef ENABLE_SUB_TREE_DEPTH
@@ -2285,6 +2285,42 @@ public:
 		return 2;
 	}
 	/** @}*/
+
+	template<typename TV>
+	TV sample(std::integral_constant<size_t, VERTEX>, index_type s,
+			TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV sample(std::integral_constant<size_t, VOLUME>, index_type s,
+			TV const &v) const
+	{
+		return v;
+	}
+
+	template<typename TV>
+	TV sample(std::integral_constant<size_t, EDGE>, index_type s,
+			nTuple<TV, 3> const &v) const
+	{
+		return v[component_number(s)];
+	}
+
+	template<typename TV>
+	TV sample(std::integral_constant<size_t, FACE>, index_type s,
+			nTuple<TV, 3> const &v) const
+	{
+		return v[component_number(s)];
+	}
+
+	template<size_t IFORM, typename TV>
+	TV sample(std::integral_constant<size_t, IFORM>, index_type s,
+			TV const & v) const
+	{
+		return v;
+	}
+
 }
 ;
 // class UniformArray

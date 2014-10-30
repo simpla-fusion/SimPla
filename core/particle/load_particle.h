@@ -169,9 +169,9 @@ void init_particle(TR const &domain, size_t pic, TN const & ns, TT const & Ts,
 
 	Real inv_sample_density = 1.0 / pic;
 
-	rectangle_distribution<ndims> x_dist;
+	rectangle_distribution<3> x_dist;
 
-	multi_normal_distribution<ndims> v_dist;
+	multi_normal_distribution<3> v_dist;
 
 	auto mass = p->charge;
 
@@ -184,13 +184,11 @@ void init_particle(TR const &domain, size_t pic, TN const & ns, TT const & Ts,
 
 			v_dist(rnd_gen, &v[0]);
 
-			x = domain.coordinates_local_to_global(s, x);
+			x = domain.manifold_.coordinates_local_to_global(s, x);
 
 			v *= std::sqrt(boltzmann_constant * Ts(x) / mass);
 
-			p->push_back(
-					engine_type::push_forward(x, v,
-							ns(x) * inv_sample_density));
+			p->emplace_back(x, v, ns(x) * inv_sample_density);
 		}
 //
 //		auto & d = p->get(s);

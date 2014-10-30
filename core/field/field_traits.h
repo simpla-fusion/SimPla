@@ -31,51 +31,39 @@ auto make_form(TM const &manifold,
 				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
 										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
-template<typename T>
-constexpr Identity get_domain(
-		T && ...)
-		{
-			return std::move(Identity());
-		}
+template<typename TD> struct domain_traits
+{
+	typedef TD domain_type;
+	typedef typename domain_type::index_type index_type;
+};
 
-		constexpr Zero get_domain(Zero)
-		{
-			return std::move(Zero());
-		}
-
-		template<typename TD> struct domain_traits
-		{
-			typedef TD domain_type;
-			typedef typename domain_type::index_type index_type;
-		};
-
-		HAS_MEMBER_FUNCTION(scatter)template
-		<typename TD, typename TC, typename ...Args>
-		auto scatter(TD const & d, TC & c, Args && ... args)
-		ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
+HAS_MEMBER_FUNCTION(scatter)
+template<typename TD, typename TC, typename ...Args>
+auto scatter(TD const & d, TC & c, Args && ... args)
+ENABLE_IF_DECL_RET_TYPE( (has_member_function_scatter<TD,TC,Args...>::value)
 		,(d.scatter(c,std::forward<Args>(args
 						)...)))
 
-		template<typename TD, typename TC, typename ...Args>
-		auto scatter(TD const & d, TC & c,
+template<typename TD, typename TC, typename ...Args>
+auto scatter(TD const & d, TC & c,
 		Args && ... args)
 		->typename std::enable_if<(!has_member_function_scatter<TD,TC,Args...>::value) >::type
-		{
-		}
-
-		HAS_MEMBER_FUNCTION(gather)template
-<typename TD, typename TC, typename ...
-Args>
-auto gather(TD const & d, TC & c, Args && ... args)
-ENABLE_IF_DECL_RET_TYPE( (has_member_function_gather<TD,TC,Args...>::value),
-		(d.gather(c,std::forward<Args>(args)...)))
-
-template<typename TD, typename TC, typename ...Args>
-auto gather(TD const & d, TC & c, Args && ... args)
-->typename std::enable_if<
-(!has_member_function_gather<TD,TC,Args...>::value) >::type
 {
 }
+
+//HAS_MEMBER_FUNCTION(gather)
+//template
+//<typename TD, typename TC, typename ...Args>
+//auto gather(TD const & d, TC & c, Args && ... args)
+//ENABLE_IF_DECL_RET_TYPE( (has_member_function_gather<TD,TC,Args...>::value),
+//		(d.gather(c,std::forward<Args>(args)...)))
+//
+//template<typename TD, typename TC, typename ...Args>
+//auto gather(TD const & d, TC & c, Args && ... args)
+//->typename std::enable_if<
+//(!has_member_function_gather<TD,TC,Args...>::value) >::type
+//{
+//}
 
 HAS_MEMBER_FUNCTION(calculate)
 
@@ -91,7 +79,20 @@ ENABLE_IF_DECL_RET_TYPE(
 		(!has_member_function_calculate<TD,TOP,Args...>::value),
 		(op(std::forward<Args>(args)...)))
 
-template<typename ...> struct field_traits;
+template<typename > struct is_field
+{
+	static constexpr bool value = false;
+};
+
+template<typename ...T> struct is_field<_Field<T...>>
+{
+	static constexpr bool value = true;
+};
+
+template<typename ...> struct field_traits
+{
+	typedef Identity domain_type;
+};
 
 template<typename TC, typename TD, typename ...Others>
 struct field_traits<_Field<TC, TD, Others...>>
@@ -148,7 +149,12 @@ template<typename TOP, typename TL, typename TR>
 struct field_traits<_Field<Expression<TOP, TL, TR> >>
 {
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	typedef typename field_traits<TL>::domain_type l_domain_type;
+
+	typedef typename field_traits<TR>::domain_type r_domain_type;
+
+	typedef typename std::conditional<std::is_same<TL, Identity>::value,
+			r_domain_type, l_domain_type>::type domain_type;
 
 	typedef typename domain_type::manifold_type manifold_type;
 
@@ -166,6 +172,31 @@ struct field_traits<_Field<Expression<TOP, TL, TR> >>
 	static domain_type get_domain(field_type const &f)
 	{
 		return std::move(field_traits<TL>::get_domain(f.lhs));
+	}
+};
+// FIXME just a temporary path, need fix
+template<typename TOP, typename TR>
+struct field_traits<_Field<Expression<TOP, double, TR> >>
+{
+
+	typedef typename field_traits<TR>::domain_type domain_type;
+
+	typedef typename domain_type::manifold_type manifold_type;
+
+	static constexpr size_t ndims = domain_type::ndims;
+
+	static constexpr size_t iform = domain_type::iform;
+
+	static domain_type get_domain(double const &, TR const & f)
+	{
+		return std::move(field_traits<TR>::get_domain(f));
+	}
+//	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
+
+	typedef _Field<Expression<TOP, double, TR> > field_type;
+	static domain_type get_domain(field_type const &f)
+	{
+		return std::move(field_traits<TR>::get_domain(f.rhs));
 	}
 };
 
@@ -224,7 +255,7 @@ struct _Field<Expression<TOP, TL, TR>>
 	}
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((calculate(domain_,op_, lhs, rhs, s )))
+	DECL_RET_TYPE ((domain_.manifold_.calculate( op_, lhs, rhs, s )))
 
 }
 ;
@@ -265,7 +296,7 @@ struct _Field<Expression<TOP, TL>>
 
 	template<typename IndexType>
 	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((domain_.calculate(op_, lhs, s ) ))
+	DECL_RET_TYPE ((domain_.manifold_.calculate(op_, lhs, s ) ))
 
 };
 

@@ -38,7 +38,8 @@ public:
 	static constexpr size_t ndims = N;
 
 	multi_normal_distribution(RealType pT = 1.0, //
-			nTuple<RealType, N> const &pu = { 0, 0, 0 }) :
+			nTuple<RealType, N> const &pu =
+			{ 0, 0, 0 }) :
 			u_(pu), normal_dist_(0, 1.0)
 	{
 		for (int i = 0; i < N; ++i)
@@ -90,7 +91,7 @@ public:
 		{
 			v[i] = normal_dist_(g);
 		}
-		v = dot(A_, v);
+		v = A_[0] * v[0] + A_[1] * v[1] + A_[2] * v[2];
 		for (int i = 0; i < N; ++i)
 		{
 			res[i] = v[i];

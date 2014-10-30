@@ -151,6 +151,12 @@ public:
 
 };
 
+template<typename T1, typename ...T> nTuple<T1, 1 + sizeof...(T)> make_nTuple(T1 && a1,T && ... a)
+{
+	return std::move(nTuple<T1, 1 + sizeof...(T)>(
+					{	a1,a...}));
+}
+
 template<typename ...> struct make_pod_array;
 
 template<typename TV, typename TI, TI ... N>
