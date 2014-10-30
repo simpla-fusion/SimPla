@@ -30,15 +30,25 @@ $CC=clang CXX=clang++ HDF5_ROOT=$HDF5_ROOT MPI_ROOT=$MPI_ROOT  cmake -DCMAKE_BUI
 $make <exec name>
 ~~~~~~~~~~~~~
 
-//					" -n<NUM>   \t number of steps\n"
-//					" -s<NUM>   \t recorder per <NUM> steps\n"
-//					" -o<STRING>\t output directory\n"
-//					" -i<STRING>\t configure file \n"
-//					" -c,--config <STRING>\t Lua script passed in as string \n"
-//					" -t        \t only read and parse input file, but do not process  \n"
-//					" -g,--generator   \t generator a demo input script file \n"
-//					" -v<NUM>   \t verbose  \n"
-//					" -V        \t print version  \n"
-//					" -q        \t quiet mode, standard out  \n"
+			" -n<NUM>   \t number of steps\n"
+
+			" -s<NUM>   \t recorder per <NUM> steps\n"
+
+			" -o<STRING>\t output directory\n"
+
+
+			" -i<STRING>\t configure file \n"
+
+			" -c,--config <STRING>\t Lua script passed in as string \n"
+
+ 		" -t        \t only read and parse input file, but do not process  \n"
+
+			" -g,--generator   \t generator a demo input script file \n"
+
+			" -v<NUM>   \t verbose  \n"
+
+			" -V        \t print version  \n"
+
+			" -q        \t quiet mode, standard out  \n"
  
 
