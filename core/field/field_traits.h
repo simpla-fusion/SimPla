@@ -112,8 +112,8 @@ struct field_traits<_Field<TC, TD, Others...>>
 
 	typedef typename domain_type::manifold_type manifold_type;
 
-	static auto get_domain(field_type const &f)
-	DECL_RET_TYPE((f.domain()))
+//	static auto get_domain(field_type const &f)
+//	DECL_RET_TYPE((f.domain()))
 
 	static auto data(field_type & f)
 	DECL_RET_TYPE((f.data()))
@@ -134,14 +134,14 @@ struct field_traits<_Field<Expression<TOP, TL> >>
 
 	static constexpr size_t iform = domain_type::iform;
 
-	static auto get_domain(TL const &f)
-	DECL_RET_TYPE((field_traits<TL>::get_domain(f)))
-
-	typedef _Field<Expression<TOP, TL> > field_type;
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(field_traits<TL>::get_domain(f.lhs));
-	}
+//	static auto get_domain(TL const &f)
+//	DECL_RET_TYPE((field_traits<TL>::get_domain(f)))
+//
+//	typedef _Field<Expression<TOP, TL> > field_type;
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return std::move(field_traits<TL>::get_domain(f.lhs));
+//	}
 
 };
 
@@ -162,17 +162,17 @@ struct field_traits<_Field<Expression<TOP, TL, TR> >>
 
 	static constexpr size_t iform = domain_type::iform;
 
-	static domain_type get_domain(TL const &f, TR const &)
-	{
-		return std::move(field_traits<TL>::get_domain(f));
-	}
-//	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
-
-	typedef _Field<Expression<TOP, TL, TR> > field_type;
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(field_traits<TL>::get_domain(f.lhs));
-	}
+//	static domain_type get_domain(TL const &f, TR const &)
+//	{
+//		return std::move(field_traits<TL>::get_domain(f));
+//	}
+////	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
+//
+//	typedef _Field<Expression<TOP, TL, TR> > field_type;
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return std::move(field_traits<TL>::get_domain(f.lhs));
+//	}
 };
 // FIXME just a temporary path, need fix
 template<typename TOP, typename TR>
@@ -187,17 +187,17 @@ struct field_traits<_Field<Expression<TOP, double, TR> >>
 
 	static constexpr size_t iform = domain_type::iform;
 
-	static domain_type get_domain(double const &, TR const & f)
-	{
-		return std::move(field_traits<TR>::get_domain(f));
-	}
-//	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
-
-	typedef _Field<Expression<TOP, double, TR> > field_type;
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(field_traits<TR>::get_domain(f.rhs));
-	}
+//	static domain_type get_domain(double const &, TR const & f)
+//	{
+//		return std::move(field_traits<TR>::get_domain(f));
+//	}
+////	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
+//
+//	typedef _Field<Expression<TOP, double, TR> > field_type;
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return std::move(field_traits<TR>::get_domain(f.rhs));
+//	}
 };
 
 namespace _impl
@@ -229,18 +229,18 @@ struct _Field<Expression<TOP, TL, TR>>
 	typename _impl::reference_traits<TL>::type lhs;
 	typename _impl::reference_traits<TR>::type rhs;
 
-	typename field_traits<this_type>::domain_type domain_;
+//	typename field_traits<this_type>::domain_type domain_;
 
 	TOP op_;
 
 	_Field(TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_(), domain_(
-					field_traits<this_type>::get_domain(l, r))
+			lhs(l), rhs(r), op_()
+	//, domain_(field_traits<this_type>::get_domain(l, r))
 	{
 	}
 	_Field(TOP op, TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_(op), domain_(
-					field_traits<this_type>::get_domain(l, r))
+			lhs(l), rhs(r), op_(op)
+	//, domain_( field_traits<this_type>::get_domain(l, r))
 	{
 	}
 
@@ -253,9 +253,9 @@ struct _Field<Expression<TOP, TL, TR>>
 //		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
 		return false;
 	}
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((domain_.manifold_.calculate( op_, lhs, rhs, s )))
+//	template<typename IndexType>
+//	inline auto operator[](IndexType const &s) const
+//	DECL_RET_TYPE ((domain_.manifold_.calculate( op_, lhs, rhs, s )))
 
 }
 ;
@@ -272,14 +272,14 @@ struct _Field<Expression<TOP, TL>>
 
 	typedef typename field_traits<this_type>::domain_type domain_type;
 
-	domain_type domain_;
+//	domain_type domain_;
 
 	_Field(TL const & l) :
-			lhs(l), op_(), domain_(field_traits<this_type>::get_domain(l))
+			lhs(l), op_()//, domain_(field_traits<this_type>::get_domain(l))
 	{
 	}
 	_Field(TOP op, TL const & l) :
-			lhs(l), op_(op), domain_(field_traits<this_type>::get_domain(l))
+			lhs(l), op_(op)//, domain_(field_traits<this_type>::get_domain(l))
 	{
 	}
 
@@ -294,9 +294,9 @@ struct _Field<Expression<TOP, TL>>
 		return false;
 	}
 
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((domain_.manifold_.calculate(op_, lhs, s ) ))
+//	template<typename IndexType>
+//	inline auto operator[](IndexType const &s) const
+//	DECL_RET_TYPE ((domain_.manifold_.calculate(op_, lhs, s ) ))
 
 };
 

@@ -43,13 +43,13 @@ nTuple<Real, 3>({ 1.0, 2.0, 1.0 })
 
 testing::Values(
 
-nTuple<size_t, 3>({ 80,  20, 100 }) //
-//        , nTuple<size_t,3>( { 100, 1, 1 }) //
-//        , nTuple<size_t,3>( { 1, 100, 1 }) //
-//        , nTuple<size_t,3>( { 1, 1, 100 }) //
-//        , nTuple<size_t,3>( { 1, 10 , 5  }) //
-//        , nTuple<size_t,3>( { 11, 1, 21 }) //
-//        , nTuple<size_t,3>( { 11, 21, 1 }) //
+nTuple<size_t, 3>({ 80,  10, 1 }) //
+        , nTuple<size_t,3>( { 100, 1, 1 }) //
+        , nTuple<size_t,3>( { 1, 100, 1 }) //
+        , nTuple<size_t,3>( { 1, 1, 100 }) //
+        , nTuple<size_t,3>( { 1, 10 , 5  }) //
+        , nTuple<size_t,3>( { 11, 1, 21 }) //
+        , nTuple<size_t,3>( { 11, 21, 1 }) //
 		),
 
 testing::Values(

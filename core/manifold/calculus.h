@@ -83,18 +83,18 @@ struct field_traits<_Field<Expression<_impl::HodgeStar, TL> > >
 
 	typedef _Field<Expression<_impl::HodgeStar, TL> > field_type;
 
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(
-				make_domain<iform>(
-						field_traits<TL>::get_domain(f.lhs).manifold()));
-	}
-
-	static domain_type get_domain(TL const &f)
-	{
-		return std::move(
-				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
-	}
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return (
+//				make_domain<iform>(
+//						field_traits<TL>::get_domain(f.lhs).manifold()));
+//	}
+//
+//	static domain_type get_domain(TL const &f)
+//	{
+//		return (
+//				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+//	}
 
 };
 
@@ -111,18 +111,18 @@ struct field_traits<_Field<Expression<_impl::InteriorProduct, TL, TR> > >
 
 	typedef _Field<Expression<_impl::InteriorProduct, TL, TR> > field_type;
 
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(
-				make_domain<iform>(
-						field_traits<TL>::get_domain(f.lhs).manifold()));
-	}
-
-	static domain_type get_domain(TL const &f, TR const &)
-	{
-		return std::move(
-				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
-	}
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return (
+//				make_domain<iform>(
+//						field_traits<TL>::get_domain(f.lhs).manifold()));
+//	}
+//
+//	static domain_type get_domain(TL const &f, TR const &)
+//	{
+//		return (
+//				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+//	}
 
 };
 
@@ -140,18 +140,18 @@ struct field_traits<_Field<Expression<_impl::Wedge, TL, TR> > >
 
 	typedef _Field<Expression<_impl::Wedge, TL, TR> > field_type;
 
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(
-				make_domain<iform>(
-						field_traits<TL>::get_domain(f.lhs).manifold()));
-	}
-
-	static domain_type get_domain(TL const & l, TR const & r)
-	{
-		return std::move(
-				make_domain<iform>(field_traits<TL>::get_domain(l).manifold()));
-	}
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return (
+//				make_domain<iform>(
+//						field_traits<TL>::get_domain(f.lhs).manifold()));
+//	}
+//
+//	static domain_type get_domain(TL const & l, TR const & r)
+//	{
+//		return (
+//				make_domain<iform>(field_traits<TL>::get_domain(l).manifold()));
+//	}
 
 };
 
@@ -168,18 +168,18 @@ struct field_traits<_Field<Expression<_impl::ExteriorDerivative, TL> > >
 
 	typedef _Field<Expression<_impl::ExteriorDerivative, TL> > field_type;
 
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(
-				make_domain<iform>(
-						field_traits<TL>::get_domain(f.lhs).manifold()));
-	}
-
-	static domain_type get_domain(TL const &f)
-	{
-		return std::move(
-				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
-	}
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return (
+//				make_domain<iform>(
+//						field_traits<TL>::get_domain(f.lhs).manifold()));
+//	}
+//
+//	static domain_type get_domain(TL const &f)
+//	{
+//		return (
+//				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+//	}
 
 };
 
@@ -197,31 +197,31 @@ struct field_traits<_Field<Expression<_impl::CodifferentialDerivative, TL> > >
 
 	typedef _Field<Expression<_impl::CodifferentialDerivative, TL> > field_type;
 
-	static domain_type get_domain(field_type const &f)
-	{
-		return std::move(
-				make_domain<iform>(
-						field_traits<TL>::get_domain(f.lhs).manifold()));
-	}
-
-	static domain_type get_domain(TL const &f)
-	{
-		return std::move(
-				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
-	}
+//	static domain_type get_domain(field_type const &f)
+//	{
+//		return (
+//				make_domain<iform>(
+//						field_traits<TL>::get_domain(f.lhs).manifold()));
+//	}
+//
+//	static domain_type get_domain(TL const &f)
+//	{
+//		return (
+//				make_domain<iform>(field_traits<TL>::get_domain(f).manifold()));
+//	}
 };
 
 template<typename ... T>
 inline _Field<Expression<_impl::HodgeStar, _Field<T...>>> hodge_star(_Field<T...> const & f)
 {
-	return std::move((_Field<Expression<_impl::HodgeStar, _Field<T...>>>(f)));
+	return ((_Field<Expression<_impl::HodgeStar, _Field<T...>>>(f)));
 }
 
 template<typename ... T, typename TR>
 inline _Field<Expression<_impl::Wedge, _Field<T...>, TR>> wedge(
 		_Field<T...> const & l, TR const & r)
 {
-	return std::move(_Field<Expression<_impl::Wedge, _Field<T...>, TR>>(l, r));
+	return (_Field<Expression<_impl::Wedge, _Field<T...>, TR>>(l, r));
 }
 
 template<typename ...T, typename TR>
@@ -330,8 +330,7 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 template<typename ...T>
 inline auto diverge(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==EDGE),
-		-(codifferential_derivative(f)))
-;
+		(-codifferential_derivative(f)))
 
 template<typename ... T>
 inline auto curl(_Field<T...> const & f)
@@ -392,7 +391,7 @@ inline _Field<
 		Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
 				_Field<T...>>> map_to(_Field<T...> const & f)
 {
-	return std::move(
+	return (
 			(_Field<
 					Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
 							_Field<T...>>>(std::integral_constant<size_t, IL>(),f)));

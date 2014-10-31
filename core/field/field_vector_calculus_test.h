@@ -152,6 +152,8 @@ TEST_P(TestFETL, grad0)
 	scalar_type average;
 	average *= 0.0;
 
+	Real mean = 0;
+
 	for (auto s : domain1)
 	{
 		size_t n = mesh.component_number(s);
@@ -174,6 +176,8 @@ TEST_P(TestFETL, grad0)
 
 		average += (f1[s] - expect);
 
+		m += abs(f1[s]);
+
 //		if (abs(expect) > EPSILON)
 //		{
 //			EXPECT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
@@ -193,7 +197,7 @@ TEST_P(TestFETL, grad0)
 //		}
 
 	}
-
+	CHECK(m);
 	variance /= mesh.get_num_of_elements(EDGE);
 	average /= mesh.get_num_of_elements(EDGE);
 	ASSERT_LE(std::sqrt(variance), error);
@@ -295,7 +299,9 @@ TEST_P(TestFETL, diverge1)
 		f1[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f1);
-	f0 = diverge(f1);
+//	f0 = diverge(f1);
+
+	f0 = codifferential_derivative(f1);
 
 	Real variance = 0;
 
@@ -363,6 +369,8 @@ TEST_P(TestFETL, diverge1)
 	variance /= f0.size();
 	average /= f0.size();
 
+	CHECK(average);
+
 	EXPECT_LE(std::sqrt(variance), error) << dims;
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
 			<< K_imag
@@ -371,10 +379,6 @@ TEST_P(TestFETL, diverge1)
 
 			;
 
-	GLOBAL_DATA_STREAM.cd("/div/");
-	LOGGER << SAVE(f0);
-	LOGGER << SAVE(f1);
-	LOGGER << SAVE(f0b);
 }
 
 TEST_P(TestFETL, diverge2)

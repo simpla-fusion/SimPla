@@ -187,23 +187,6 @@ int main(int argc, char **argv)
 					std::sin(x[0] *TWOPI)});
 	});
 
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[0]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[1]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[2]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[3]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[4]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[5]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[6]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->volume_[7]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[0]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[1]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[2]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[3]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[4]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[5]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[6]);
-	CHECK(B.domain().manifold_.FiniteDiffMethod::geo->inv_volume_[7]);
-
 	for (int i = 0; i < timestep; ++i)
 	{
 

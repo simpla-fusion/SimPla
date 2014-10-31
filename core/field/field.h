@@ -190,23 +190,37 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.calculate(that, s);
+			(*this)[s]= domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
 	}
 
-//	template<typename ...T> inline this_type &
-//	operator =(_Field<T...> const &that)
-//	{
-//		allocate();
-//		parallel_for(domain_, [&](index_type const & s)
-//		{
-//			(*this)[s]= that[s];
-//		});
-//
-//		return (*this);
-//	}
+	template<typename TOP, typename TL, typename TR> inline this_type &
+	operator =(_Field<Expression<TOP, TL, TR>> const &that)
+	{
+		allocate();
+		parallel_for(domain_,
+				[&](index_type const & s)
+				{
+					(*this)[s]= domain_.manifold().calculate(that.op_,that.lhs,that.rhs, s);
+				});
+
+		return (*this);
+	}
+
+	template<typename TOP, typename TL> inline this_type &
+	operator =(_Field<Expression<TOP, TL>> const &that)
+	{
+		allocate();
+		parallel_for(domain_,
+				[&](index_type const & s)
+				{
+					(*this)[s]= domain_.manifold().calculate(that.op_,that.lhs , s);
+				});
+
+		return (*this);
+	}
 
 	template<typename TR> inline this_type &
 	operator =(TR const &that)
@@ -214,7 +228,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.calculate(that, s);
+			(*this)[s]= domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
@@ -227,7 +241,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] +=domain_.calculate(that, s);
+			(*this)[s] +=domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
@@ -240,7 +254,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] -= domain_.calculate(that, s);
+			(*this)[s] -= domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
@@ -253,7 +267,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] *= domain_.calculate(that, s);
+			(*this)[s] *= domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
@@ -266,7 +280,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] /= domain_.calculate(that, s);
+			(*this)[s] /= domain_.manifold().calculate(that, s);
 		});
 
 		return (*this);
@@ -289,7 +303,7 @@ public:
 			//FIXME geometry coordinates convert
 
 				(*this)[s] = domain_.sample( s,fun(
-								//domain.MapTo(domain_.InvMapTo(
+								//domain.MapTo(domain_.manifold().InvMapTo(
 								domain_.manifold().coordinates(s)
 								//))
 						)
@@ -324,7 +338,7 @@ public:
 //	auto dataset() const
 //			DECL_RET_TYPE(std::move(
 //							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
-//									,domain_.dataset()))
+//									,domain_.manifold().dataset()))
 //			)
 
 	auto dataset_shape() const
@@ -332,7 +346,7 @@ public:
 
 	template<typename ...Args>
 	auto dataset_shape(Args &&... args) const
-	DECL_RET_TYPE(( domain_.dataset_shape( std::forward<Args>(args)...)))
+	DECL_RET_TYPE(( domain_. dataset_shape( std::forward<Args>(args)...)))
 
 }
 ;

@@ -56,24 +56,25 @@ public:
 	}
 	this_type & operator=(this_type const &) = delete;
 
-	template<typename T>
-	auto calculate(T const & expr, compact_index_type const & s) const
-	DECL_RET_TYPE((simpla::get_value(expr,s)))
+//	template<typename T, typename TI>
+//	auto calculate(T const & expr, TI s) const
+//	DECL_RET_TYPE((Policy1<TG>::calculate(expr,s)))
 
-	template<typename TC, typename TD>
-	auto calculate(_Field<TC, TD> const & expr,
-			compact_index_type const & s) const
-			DECL_RET_TYPE((expr[s]))
-
-	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL>> const & expr,
-			compact_index_type const & s) const
-			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
-
-	template<typename TOP, typename TL, typename TR>
-	auto get_value(_Field<Expression<TOP, TL, TR>> const & expr,
-			compact_index_type const & s) const
-			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
+	using Policy1<TG>::calculate;
+//	template<typename TC, typename TD>
+//	auto calculate(_Field<TC, TD> const & expr,
+//			compact_index_type const & s) const
+//			DECL_RET_TYPE((expr[s]))
+//
+//	template<typename TOP, typename TL>
+//	auto calculate(_Field<Expression<TOP, TL>> const & expr,
+//			compact_index_type const & s) const
+//			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
+//
+//	template<typename TOP, typename TL, typename TR>
+//	auto get_value(_Field<Expression<TOP, TL, TR>> const & expr,
+//			compact_index_type const & s) const
+//			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
 
 };
 
