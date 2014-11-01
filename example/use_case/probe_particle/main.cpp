@@ -186,11 +186,14 @@ int main(int argc, char **argv)
 		return nTuple<Real,3>(
 				{	0,0,2});
 	};
-	for (int i = 0; i < timestep; ++i)
-	{
-		ion.next_timestep(dt, B, E);
-		INFORM << save("/H", ion, DataStream::SP_CACHE | DataStream::SP_RECORD);
-	}
+
+	ion.next_timestep(timestep, dt, E, B);
+
+	//	for (int i = 0; i < timestep; ++i)
+//	{
+//		PICDemo::next_timestep(&p, dt, E, B);
+////		INFORM << save("/H", ion, DataStream::SP_CACHE | DataStream::SP_RECORD);
+//	}
 
 	GLOBAL_DATA_STREAM.close();
 }

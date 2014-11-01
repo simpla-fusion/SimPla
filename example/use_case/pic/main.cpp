@@ -35,7 +35,7 @@ struct PICDemo2
 			Real, charge,
 			Real, temperature
 	)
-
+#define PROPERTIES Real  mass,	Real  charge, Real   temperature
 private:
 	Real cmr_, q_kT_;
 public:
@@ -63,8 +63,8 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB>
-	void next_timestep(Point_s * p, Real dt, TJ * J, TE const &fE,
-			TB const & fB) const
+	static void next_timestep(Point_s * p, Real dt, TJ * J, TE const &fE,
+			TB const & fB, PROPERTIES)
 	{
 		p->x += p->v * dt * 0.5;
 
@@ -73,19 +73,19 @@ public:
 
 		Vec3 v_;
 
-		auto t = B * (cmr_ * dt * 0.5);
+		auto t = B * (charge / mass * dt * 0.5);
 
-		p->v += E * (cmr_ * dt * 0.5);
+		p->v += E * (charge / mass * dt * 0.5);
 
 		v_ = p->v + cross(p->v, t);
 
 		p->v += cross(v_, t) / (dot(t, t) + 1.0) * 2.0;
 
-		p->v += E * (cmr_ * dt * 0.5);
+		p->v += E * (charge / mass * dt * 0.5);
 
 		p->x += p->v * dt * 0.5;
 
-		J->scatter(p->x, p->v, p->f);
+		J->scatter(p->x, p->v, p->f * charge);
 
 	}
 
