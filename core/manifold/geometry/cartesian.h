@@ -528,13 +528,23 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 		ERROR("topology initialize failed!");
 	}
 
-	auto dims = topology_type::dimensions();
+	nTuple<size_t, 3> dims = topology_type::dimensions();
+
+	for (size_t i = 0; i < ndims; ++i)
+	{
+
+		if ((xmax_[i] - xmin_[i]) < EPSILON)
+			dims[i] = 1;
+	}
+
+	topology_type::dimensions(dims);
+	topology_type::update();
 
 	for (size_t i = 0; i < ndims; ++i)
 	{
 		shift_[i] = xmin_[i];
 
-		if ((xmax_[i] - xmin_[i]) < EPSILON || dims[i] <= 1)
+		if (dims[i] <= 1)
 		{
 
 			xmax_[i] = xmin_[i];

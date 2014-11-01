@@ -262,12 +262,12 @@ TEST_P(TestTopology, iterator)
 
 		size_t count = 0;
 
-		auto hash = topology.make_hash(topology.select(iform));
+//		auto hash = topology.make_hash(topology.select(iform));
 
 		for (auto s : topology.select(iform))
 		{
 			++count;
-			data.insert(hash(s));
+			data.insert(topology.hash(s));
 		}
 
 		EXPECT_EQ(expect_count, data.size()) << iform;

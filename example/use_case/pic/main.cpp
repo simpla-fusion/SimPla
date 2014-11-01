@@ -63,8 +63,8 @@ public:
 	}
 
 	template<typename TJ, typename TE, typename TB>
-	static void next_timestep(Point_s * p, Real dt, TJ * J, TE const &fE,
-			TB const & fB, PROPERTIES)
+	void next_timestep(Point_s * p, Real dt, TJ * J, TE const &fE,
+			TB const & fB) const
 	{
 		p->x += p->v * dt * 0.5;
 
@@ -85,7 +85,7 @@ public:
 
 		p->x += p->v * dt * 0.5;
 
-		J->scatter(p->x, p->v, p->f * charge);
+//		scatter(p->x, p->v, p->f * charge,J);
 
 	}
 

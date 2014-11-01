@@ -319,7 +319,7 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==VERTEX),
 template<typename ... T>
 inline auto grad(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==VOLUME),
-		(-(codifferential_derivative(f))) )
+		((codifferential_derivative(-f))) )
 
 template<typename ...T>
 inline auto diverge(_Field<T...> const & f)
@@ -330,7 +330,7 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 template<typename ...T>
 inline auto diverge(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==EDGE),
-		(-codifferential_derivative(f)))
+		(codifferential_derivative(-f)))
 
 template<typename ... T>
 inline auto curl(_Field<T...> const & f)
@@ -391,15 +391,14 @@ inline _Field<
 		Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
 				_Field<T...>>> map_to(_Field<T...> const & f)
 {
-	return (
-			(_Field<
-					Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
-							_Field<T...>>>(std::integral_constant<size_t, IL>(),f)));
-		}
+	return ((_Field<
+			Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
+					_Field<T...>>>(std::integral_constant<size_t, IL>(), f)));
+}
 
 ///   @}
 
-	}
+}
 // namespace simpla
 
 #endif /* CALCULUS_H_ */

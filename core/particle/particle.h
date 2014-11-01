@@ -80,10 +80,20 @@ struct Particle<Engine, TDomain> : public Engine, public std::vector<
 		return os;
 	}
 
-	template<typename ...Args> void next_timestep(size_t numstep, Real dt,
-			Args && ...);
+	template<typename ...Args>
+	void multi_timesteps(size_t step_num, Args && ...args)
+	{
+		for (size_t s = 0; s < step_num; ++s)
+		{
+			next_timestep(std::forward<Args>(args)...);
+		}
+	}
 
-	template<typename ...Args> auto emplace_back(Args && ...args)
+	template<typename ...Args>
+	void next_timestep(Real dt, Args && ...);
+
+	template<typename ...Args>
+	auto emplace_back(Args && ...args)
 	DECL_RET_TYPE((storage_type::emplace_back(particle_type(
 									{	args...}))))
 };
@@ -112,23 +122,20 @@ std::string Particle<Engine, TDomain>::save(std::string const & path,
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain>::next_timestep(size_t numstep, Real dt,
-		Args && ... args)
+void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
 {
 
 	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
 			<< std::endl;
 
 	auto p = &*(this->begin());
-//	for (auto & p : *this)
+	for (auto & p : *this)
 	{
-		for (size_t s = 0; s < numstep; ++s)
-		{
 
-			engine_type::next_timestep(p, dt, std::forward<Args>(args)...
-			/*,	engine_type::mass, engine_type::charge,
-			 engine_type::temperature*/);
-		}
+		engine_type::next_timestep(&p, dt, std::forward<Args>(args)...
+		/*,	engine_type::mass, engine_type::charge,
+		 engine_type::temperature*/);
+
 	}
 
 	LOGGER << DONE;
