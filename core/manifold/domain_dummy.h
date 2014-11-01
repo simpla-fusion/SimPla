@@ -15,6 +15,9 @@
 
 namespace simpla
 {
+template<typename ...>class _Field;
+template<typename ...>class Expression;
+
 template<typename TCoordiantes = Real, typename TIndex = size_t>
 struct DomainDummy: BlockRange<TIndex>
 {
@@ -69,6 +72,7 @@ public:
 		return std::make_pair(b_, e_);
 	}
 
+	// interpolator
 	template<typename TD>
 	auto gather(TD const & d,
 			coordinates_type x) const->decltype(d[std::declval<index_type>()])
@@ -86,10 +90,38 @@ public:
 		d[r] += v;
 	}
 
-	auto dataset() const
-	DECL_RET_TYPE ((std::make_tuple(max_hash())))
+	// topology
+	template<typename ... Args>
+	int dataset_shape(Args &&...args) const
+	{
+	}
+	// diff_scheme
+	template <typename TC, typename TD>
+	inline auto calculate(_Field<TC, TD> const& f, index_type s) const
+	DECL_RET_TYPE ((f[s]))
 
-}	;
+	template<typename TOP, typename TL>
+	auto calculate(_Field<Expression<TOP, TL> > const & f, index_type s) const DECL_RET_TYPE((this->calculate(f.op_,f.lhs,s)))
+
+	template<typename TOP, typename TL, typename TR>
+	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
+			index_type s) const
+	DECL_RET_TYPE((this->calculate(f.op_,f.lhs,f.rhs,s)))
+
+	template<typename T>
+	auto calculate(T const & v, index_type s) const
+	DECL_RET_TYPE((get_value(v,s)))
+
+	template<typename TOP, typename TL>
+	inline auto calculate(TOP op, TL const& f, index_type s) const
+	DECL_RET_TYPE( op(this->calculate(f,s) ) )
+
+	template<typename TOP, typename TL, typename TR>
+	inline auto calculate(TOP op, TL const& l, TR const &r,
+			index_type s) const
+	DECL_RET_TYPE( op(calculate( (l),s),calculate(r,s) ) )
+
+};
 
 }
 // namespace simpla

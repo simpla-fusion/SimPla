@@ -864,8 +864,8 @@ public:
 			{
 				extents_[i] = 0.0;
 				inv_extents_[i] = 0.0;
-				dx_[i] = 0.0;
-				inv_dx_[i] = 0.0;
+				dx_[i] = 1.0;
+				inv_dx_[i] = 1.0;
 
 			}
 			else

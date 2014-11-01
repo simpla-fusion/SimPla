@@ -190,7 +190,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.manifold().calculate(that, s);
+			(*this)[s]= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -203,7 +203,7 @@ public:
 		parallel_for(domain_,
 				[&](index_type const & s)
 				{
-					(*this)[s]= domain_.manifold().calculate(that.op_,that.lhs,that.rhs, s);
+					(*this)[s]= domain_.calculate(that.op_,that.lhs,that.rhs, s);
 				});
 
 		return (*this);
@@ -216,7 +216,7 @@ public:
 		parallel_for(domain_,
 				[&](index_type const & s)
 				{
-					(*this)[s]= domain_.manifold().calculate(that.op_,that.lhs , s);
+					(*this)[s]= domain_.calculate(that.op_,that.lhs , s);
 				});
 
 		return (*this);
@@ -228,7 +228,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.manifold().calculate(that, s);
+			(*this)[s]= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -241,7 +241,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] +=domain_.manifold().calculate(that, s);
+			(*this)[s] +=domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -254,7 +254,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] -= domain_.manifold().calculate(that, s);
+			(*this)[s] -= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -267,7 +267,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] *= domain_.manifold().calculate(that, s);
+			(*this)[s] *= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -280,7 +280,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] /= domain_.manifold().calculate(that, s);
+			(*this)[s] /= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -303,8 +303,8 @@ public:
 			//FIXME geometry coordinates convert
 
 				(*this)[s] = domain_.sample( s,fun(
-								//domain.MapTo(domain_.manifold().InvMapTo(
-								domain_.manifold().coordinates(s)
+								//domain.MapTo(domain_.InvMapTo(
+								domain_.coordinates(s)
 								//))
 						)
 				);
@@ -319,30 +319,30 @@ public:
 	field_value_type operator()(
 			typename domain_type::coordinates_type const& x) const
 	{
-		return std::move(domain_.manifold().gather(*this, x));
+		return std::move(domain_.gather(*this, x));
 	}
 
 	field_value_type gather(typename domain_type::coordinates_type const& x)
 	{
-		return std::move(domain_.manifold().gather(*this, x));
+		return std::move(domain_.gather(*this, x));
 
 	}
 
 	template<typename ...Args>
 	void scatter(Args && ... args)
 	{
-		domain_.manifold().scatter(const_cast<this_type&>(*this),
+		domain_.scatter(const_cast<this_type&>(*this),
 				std::forward<Args>(args)...);
 	}
 
 //	auto dataset() const
 //			DECL_RET_TYPE(std::move(
 //							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
-//									,domain_.manifold().dataset()))
+//									,domain_.dataset()))
 //			)
 
-	auto dataset_shape() const
-	DECL_RET_TYPE(( domain_.dataset_shape()))
+//	auto dataset_shape() const
+//	DECL_RET_TYPE(( domain_.dataset_shape()))
 
 	template<typename ...Args>
 	auto dataset_shape(Args &&... args) const

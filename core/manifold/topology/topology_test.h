@@ -15,7 +15,7 @@
 
 using namespace simpla;
 
-//#ifndef TOPOLOGY
+//#ifndef Tmake_hashOPOLOGY
 //#include "structured.h"
 //typedef SurturedMesh TopologyType;
 //#else
@@ -47,7 +47,8 @@ public:
 
 	topology_type topology;
 
-	std::vector<size_t> iform_list = { VERTEX, EDGE, FACE, VOLUME };
+	std::vector<size_t> iform_list =
+	{ VERTEX, EDGE, FACE, VOLUME };
 
 	nTuple<size_t, TopologyType::ndims> dims;
 
@@ -193,10 +194,10 @@ TEST_P(TestTopology, coordinates)
 	auto half_dx = topology.dx() / 2;
 
 	EXPECT_EQ(xmin, topology.coordinates(*begin(range0)));
-	EXPECT_EQ(xmin + coordinates_type( { half_dx[0], 0, 0 }),
-			topology.coordinates(*begin(range1)));
-	EXPECT_EQ(xmin + coordinates_type( { 0, half_dx[1], half_dx[2] }),
-			topology.coordinates(*begin(range2)));
+	EXPECT_EQ(xmin + coordinates_type(
+	{ half_dx[0], 0, 0 }), topology.coordinates(*begin(range1)));
+	EXPECT_EQ(xmin + coordinates_type(
+	{ 0, half_dx[1], half_dx[2] }), topology.coordinates(*begin(range2)));
 	EXPECT_EQ(xmin + half_dx, topology.coordinates(*begin(range3)));
 
 	typename topology_type::coordinates_type x = 0.21235 * (xmax - xmin) + xmin;
@@ -335,7 +336,8 @@ TEST_P(TestTopology, split)
 	size_t iform = VERTEX;
 	{
 
-		nTuple<size_t, 3> begin = { 0, 0, 0 };
+		nTuple<size_t, 3> begin =
+		{ 0, 0, 0 };
 
 		nTuple<size_t, 3> end = dims;
 
@@ -368,5 +370,66 @@ TEST_P(TestTopology, split)
 		}
 	}
 
+}
+
+TEST_P(TestTopology, volume)
+{
+
+	for (auto iform : iform_list)
+	{
+		for (auto s : topology.select(iform))
+		{
+			auto IX = topology_type::DI(0, s);
+			auto IY = topology_type::DI(1, s);
+			auto IZ = topology_type::DI(2, s);
+
+			ASSERT_DOUBLE_EQ(topology.cell_volume(s),
+					topology.dual_volume(s) * topology.volume(s));
+			ASSERT_DOUBLE_EQ(1.0 / topology.cell_volume(s),
+					topology.inv_dual_volume(s) * topology.inv_volume(s));
+
+			ASSERT_DOUBLE_EQ(1.0, topology.inv_volume(s) * topology.volume(s));
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_dual_volume(s) * topology.dual_volume(s));
+
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_volume(s + IX) * topology.volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_dual_volume(s + IX)
+							* topology.dual_volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_volume(s - IY) * topology.volume(s - IY));
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_dual_volume(s - IY)
+							* topology.dual_volume(s - IY));
+
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_volume(s - IZ) * topology.volume(s - IZ));
+			ASSERT_DOUBLE_EQ(1.0,
+					topology.inv_dual_volume(s - IZ)
+							* topology.dual_volume(s - IZ));
+
+		}
+	}
+
+//	auto extents = topology.extents();
+//	coordinates_type x = 0.21235 * (std::get<1>(extents) - std::get<0>(extents))
+//			+ std::get<0>(extents);
+//	auto idx = topology.coordinates_global_to_local(x,
+//			topology.get_first_node_shift(VERTEX));
+//
+//	auto s = std::get<0>(idx);
+//	auto IX = topology_type::DI(0, s) << 1;
+//	auto IY = topology_type::DI(1, s) << 1;
+//	auto IZ = topology_type::DI(2, s) << 1;
+//
+//	CHECK_BIT(s);
+//	CHECK_BIT(IX);
+//	CHECK(topology.volume(s - IX));
+//	CHECK(topology.volume(s + IX));
+//	CHECK(topology.volume(s - IY));
+//	CHECK(topology.volume(s + IY));
+//	CHECK(topology.volume(s - IZ));
+//	CHECK(topology.volume(s + IZ));
 }
 #endif /* TOPOLOGY_TEST_H_ */

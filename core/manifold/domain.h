@@ -15,7 +15,7 @@ class split_tag;
 template<typename ...> class _Field;
 
 template<typename TG, size_t IFORM>
-class Domain
+class Domain: public TG
 {
 
 public:
@@ -156,18 +156,6 @@ Domain<TM, IFORM> make_domain(TM const & m)
 {
 	return std::move(Domain<TM, IFORM>(m));
 }
-
-template<typename TG, size_t IFORM, typename ...Args>
-auto calculate(Domain<TG, IFORM> const & d, Args && ... args)
-DECL_RET_TYPE((d.manifold().calculate(std::forward<Args>(args)...)))
-
-template<typename TG, size_t IFORM, typename ...Args>
-auto gather(Domain<TG, IFORM> const & d, Args && ... args)
-DECL_RET_TYPE((d.manifold().gather(std::forward<Args>(args)...)))
-
-template<typename TG, size_t IFORM, typename ...Args>
-auto scatter(Domain<TG, IFORM> const & d, Args && ... args)
-DECL_RET_TYPE((d.manifold().scatter(std::forward<Args>(args)...)))
 }
 // namespace simpla
 

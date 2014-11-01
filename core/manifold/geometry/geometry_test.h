@@ -182,42 +182,39 @@ TEST_P(TestGeometry, Volume)
 //
 	for (auto iform : iform_list)
 	{
-		auto s = *begin(geometry.select(iform));
-//		for (auto s : geometry.select(iform))
+		for (auto s : geometry.select(iform))
 		{
 			auto IX = geometry_type::DI(0, s);
 			auto IY = geometry_type::DI(1, s);
 			auto IZ = geometry_type::DI(2, s);
-//
-//			ASSERT_DOUBLE_EQ(geometry.cell_volume(s),
-//					geometry.dual_volume(s) * geometry.volume(s));
-//			ASSERT_DOUBLE_EQ(1.0 / geometry.cell_volume(s),
-//					geometry.inv_dual_volume(s) * geometry.inv_volume(s));
-//
-//			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s) * geometry.volume(s));
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_dual_volume(s) * geometry.dual_volume(s));
-//
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_volume(s + IX) * geometry.volume(s + IX));
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_dual_volume(s + IX)
-//							* geometry.dual_volume(s + IX));
-//
-			CHECK(geometry.inv_volume(s - IY));
-			CHECK(geometry.	volume(s - IY));
+
+			ASSERT_DOUBLE_EQ(geometry.cell_volume(s),
+					geometry.dual_volume(s) * geometry.volume(s));
+			ASSERT_DOUBLE_EQ(1.0 / geometry.cell_volume(s),
+					geometry.inv_dual_volume(s) * geometry.inv_volume(s));
+
+			ASSERT_DOUBLE_EQ(1.0, geometry.inv_volume(s) * geometry.volume(s));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s) * geometry.dual_volume(s));
+
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_volume(s + IX) * geometry.volume(s + IX));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s + IX)
+							* geometry.dual_volume(s + IX));
+
 			ASSERT_DOUBLE_EQ(1.0,
 					geometry.inv_volume(s - IY) * geometry.volume(s - IY));
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_dual_volume(s - IY)
-//							* geometry.dual_volume(s - IY));
-//
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_volume(s - IZ) * geometry.volume(s - IZ));
-//			ASSERT_DOUBLE_EQ(1.0,
-//					geometry.inv_dual_volume(s - IZ)
-//							* geometry.dual_volume(s - IZ));
-//
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s - IY)
+							* geometry.dual_volume(s - IY));
+
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_volume(s - IZ) * geometry.volume(s - IZ));
+			ASSERT_DOUBLE_EQ(1.0,
+					geometry.inv_dual_volume(s - IZ)
+							* geometry.dual_volume(s - IZ));
+
 		}
 	}
 

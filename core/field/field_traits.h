@@ -233,6 +233,11 @@ struct _Field<Expression<TOP, TL, TR>>
 
 	TOP op_;
 
+	_Field(this_type const& that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+
 	_Field(TL const & l, TR const & r) :
 			lhs(l), rhs(r), op_()
 	//, domain_(field_traits<this_type>::get_domain(l, r))
@@ -253,9 +258,6 @@ struct _Field<Expression<TOP, TL, TR>>
 //		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
 		return false;
 	}
-//	template<typename IndexType>
-//	inline auto operator[](IndexType const &s) const
-//	DECL_RET_TYPE ((domain_.manifold_.calculate( op_, lhs, rhs, s )))
 
 }
 ;
@@ -273,13 +275,17 @@ struct _Field<Expression<TOP, TL>>
 	typedef typename field_traits<this_type>::domain_type domain_type;
 
 //	domain_type domain_;
+	_Field(this_type const& that) :
+			lhs(that.lhs), op_(that.op_)
+	{
+	}
 
 	_Field(TL const & l) :
-			lhs(l), op_()//, domain_(field_traits<this_type>::get_domain(l))
+			lhs(l), op_() //, domain_(field_traits<this_type>::get_domain(l))
 	{
 	}
 	_Field(TOP op, TL const & l) :
-			lhs(l), op_(op)//, domain_(field_traits<this_type>::get_domain(l))
+			lhs(l), op_(op) //, domain_(field_traits<this_type>::get_domain(l))
 	{
 	}
 
@@ -293,10 +299,6 @@ struct _Field<Expression<TOP, TL>>
 		//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
 		return false;
 	}
-
-//	template<typename IndexType>
-//	inline auto operator[](IndexType const &s) const
-//	DECL_RET_TYPE ((domain_.manifold_.calculate(op_, lhs, s ) ))
 
 };
 

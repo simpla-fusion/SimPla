@@ -341,7 +341,6 @@ template<typename ... T>
 inline auto curl(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 		((codifferential_derivative(-f))) )
-;
 
 ///   @}
 
