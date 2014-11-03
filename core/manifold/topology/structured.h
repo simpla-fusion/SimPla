@@ -53,9 +53,15 @@ struct StructuredMesh
 	typedef nTuple<Real, ndims> coordinates_type;
 	typedef nTuple<size_t, ndims> index_tuple;
 
+private:
+	bool is_valid_ = false;
+public:
+
+
 	//***************************************************************************************************
 
-	StructuredMesh()
+	StructuredMesh() :
+			is_valid_(false)
 	{
 	}
 
@@ -67,10 +73,7 @@ struct StructuredMesh
 
 	StructuredMesh(const this_type&) = delete;
 
-	void swap(StructuredMesh & rhs)
-	{
-		//@todo NOT COMPLETE!!
-	}
+	void swap(StructuredMesh & rhs) = delete;
 
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -106,14 +109,6 @@ struct StructuredMesh
 	{
 		return path;
 	}
-private:
-	bool is_ready_ = false;
-public:
-
-	bool is_ready() const
-	{
-		return is_ready_;
-	}
 
 	unsigned long clock_ = 0UL;
 
@@ -128,12 +123,12 @@ public:
 
 	bool is_valid() const
 	{
-		bool res = true;
-		for (int i = 0; i < ndims; ++i)
-		{
-			res = res && (global_count_[i] <= 1);
-		}
-		return !res;
+//		bool res = true;
+//		for (int i = 0; i < ndims; ++i)
+//		{
+//			res = res && (global_count_[i] <= 1);
+//		}
+		return is_valid_;
 	}
 
 	//! @name Local Data Set
@@ -784,14 +779,17 @@ public:
 	static index_tuple decompact(index_type s)
 	{
 
-		return std::move(index_tuple(
-		{ static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
+		return std::move(
+				index_tuple(
+						{ static_cast<index_type>((s >> (INDEX_DIGITS * 2))
+								& INDEX_MASK),
 
-		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
+						static_cast<index_type>((s >> (INDEX_DIGITS))
+								& INDEX_MASK),
 
-		static_cast<index_type>(s & INDEX_MASK)
+						static_cast<index_type>(s & INDEX_MASK)
 
-		}));
+						}));
 	}
 
 	/**
@@ -833,8 +831,7 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8] =
-	{ 1, // 000
+	Real volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -843,14 +840,11 @@ public:
 			1, //110
 			1  //111
 			};
-	Real inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 
@@ -957,9 +951,9 @@ public:
 		inv_dual_volume_[0] /* 111 */= inv_dual_volume_[6] * inv_dual_volume_[5]
 				* inv_dual_volume_[3];
 
-		is_ready_ = true;
+		is_valid_ = true;
 
-		return is_ready_;
+		return is_valid_;
 	}
 #ifndef ENABLE_SUB_TREE_DEPTH
 
@@ -993,7 +987,8 @@ public:
 		return volume(s);
 	}
 
-	Real inv_volume(compact_index_type s, std::integral_constant<bool, false>) const
+	Real inv_volume(compact_index_type s,
+			std::integral_constant<bool, false>) const
 	{
 		return inv_volume(s);
 	}
@@ -1003,7 +998,8 @@ public:
 	{
 		return inv_dual_volume(s);
 	}
-	Real dual_volume(compact_index_type s, std::integral_constant<bool, false>) const
+	Real dual_volume(compact_index_type s,
+			std::integral_constant<bool, false>) const
 	{
 		return dual_volume(s);
 	}
@@ -1013,16 +1009,19 @@ public:
 		return in_range(s) ? volume(s) : 0.0;
 	}
 
-	Real inv_volume(compact_index_type s, std::integral_constant<bool, true>) const
+	Real inv_volume(compact_index_type s,
+			std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_volume(s) : 0.0;
 	}
 
-	Real dual_volume(compact_index_type s, std::integral_constant<bool, true>) const
+	Real dual_volume(compact_index_type s,
+			std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? dual_volume(s) : 0.0;
 	}
-	Real inv_dual_volume(compact_index_type s, std::integral_constant<bool, true>) const
+	Real inv_dual_volume(compact_index_type s,
+			std::integral_constant<bool, true>) const
 	{
 		return in_range(s) ? inv_dual_volume(s) : 0.0;
 	}

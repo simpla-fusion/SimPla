@@ -103,9 +103,21 @@ struct FiniteDiffMethod
 	{
 		auto D = geo->delta_index(s);
 
+//		if (geo->node_id(s) == 4)
+//		{
+//			CHECK(geo->volume(s + D));
+//			CHECK(geo->volume(s - D));
+//			CHECK(geo->inv_volume(s));
+//
+//			CHECK(geo->topology_type::volume(s + D)) << " node id="
+//					<< geo->topology_type::node_id(s + D);
+//
+//			CHECK(geo->topology_type::inv_volume(s)) << " node id="
+//					<< geo->topology_type::node_id(s);
+//
+//		}
 		return (calculate(f, s + D) * geo->volume(s + D)
-				- calculate(f, s - D) * geo->volume(s - D))
-				* geo->inv_volume(s);
+				- calculate(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
 	}
 
 	template<typename ...TL>

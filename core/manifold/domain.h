@@ -15,7 +15,7 @@ class split_tag;
 template<typename ...> class _Field;
 
 template<typename TG, size_t IFORM>
-class Domain: public TG
+class Domain
 {
 
 public:
@@ -127,10 +127,22 @@ public:
 							*this,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
+	auto calculate(Args && ...args) const
+	DECL_RET_TYPE((manifold_.calculate(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
 	auto sample(Args && ... args)
 	DECL_RET_TYPE((manifold_.sample(
 							std::integral_constant<size_t, iform>(),
 							std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto gather(Args && ...args) const
+	DECL_RET_TYPE((manifold_.gather(std::forward<Args>(args)...)))
+
+	template<typename ...Args>
+	auto scatter(Args && ...args) const
+	DECL_RET_TYPE((manifold_.scatter(std::forward<Args>(args)...)))
 
 public:
 	template<typename TL, typename TR>

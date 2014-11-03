@@ -30,8 +30,7 @@ namespace simpla
 template<typename TTopology, size_t ZAXIS = CARTESIAN_ZAXIS>
 struct CartesianCoordinates: public TTopology
 {
-private:
-	bool is_ready_ = false;
+
 public:
 	typedef TTopology topology_type;
 	typedef CartesianCoordinates<topology_type> this_type;
@@ -50,25 +49,22 @@ public:
 	typedef typename topology_type::iterator iterator;
 
 	CartesianCoordinates(this_type const & rhs) = delete;
-
+private:
+	bool is_valid_ = false;
+public:
 	CartesianCoordinates() :
-			topology_type()
+			topology_type(), is_valid_(false)
 	{
 
-		xmin_ = coordinates_type(
-		{ 0, 0, 0 });
+		xmin_ = coordinates_type( { 0, 0, 0 });
 
-		xmax_ = coordinates_type(
-		{ 1, 1, 1 });
+		xmax_ = coordinates_type( { 1, 1, 1 });
 
-		inv_length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		inv_length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		length_ = coordinates_type(
-		{ 1.0, 1.0, 1.0 });
+		length_ = coordinates_type( { 1.0, 1.0, 1.0 });
 
-		shift_ = coordinates_type(
-		{ 0, 0, 0 });
+		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
 	template<typename ... Args>
@@ -124,9 +120,9 @@ public:
 		return dt_;
 	}
 
-	bool is_ready() const
+	bool is_valid() const
 	{
-		return is_ready_ && topology_type::is_ready();
+		return is_valid_ && topology_type::is_valid();
 	}
 
 	coordinates_type xmin_ /*= { 0, 0, 0 }*/;
@@ -272,8 +268,7 @@ public:
 	coordinates_type coordinates_from_topology(coordinates_type const &x) const
 	{
 
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		x[0] * length_[0] + shift_[0],
 
@@ -286,8 +281,7 @@ public:
 	}
 	coordinates_type coordinates_to_topology(coordinates_type const &x) const
 	{
-		return coordinates_type(
-		{
+		return coordinates_type( {
 
 		(x[0] - shift_[0]) * inv_length_[0],
 
@@ -463,8 +457,7 @@ public:
 	 *\endverbatim
 	 */
 
-	scalar_type volume_[8] =
-	{ 1, // 000
+	scalar_type volume_[8] = { 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -473,14 +466,11 @@ public:
 			1, //110
 			1  //111
 			};
-	scalar_type inv_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	scalar_type inv_dual_volume_[8] =
-	{ 1, 1, 1, 1, 1, 1, 1, 1 };
+	scalar_type inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 public:
 
@@ -523,7 +513,7 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 	topology_type::update();
 
-	if (!topology_type::is_ready())
+	if (!topology_type::is_valid())
 	{
 		ERROR("topology initialize failed!");
 	}
@@ -648,9 +638,9 @@ bool CartesianCoordinates<TTopology, ZAXIS>::update()
 
 	updatedt();
 
-	is_ready_ = true;
+	is_valid_ = true;
 
-	return is_ready_;
+	return is_valid_;
 }
 
 }  // namespace simpla

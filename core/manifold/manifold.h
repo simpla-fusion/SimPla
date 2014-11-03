@@ -12,6 +12,7 @@
 #include <vector>
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/primitives.h"
+#include "../utilities/log.h"
 namespace simpla
 {
 
@@ -48,33 +49,9 @@ public:
 
 	~Manifold() = default;
 
-	Manifold(this_type const & r) :
-			geometry_type((r)), //
-			policy1((r)), //
-			policy2((r))
-	{
-	}
+	Manifold(this_type const & r) = delete;
+
 	this_type & operator=(this_type const &) = delete;
-
-//	template<typename T, typename TI>
-//	auto calculate(T const & expr, TI s) const
-//	DECL_RET_TYPE((Policy1<TG>::calculate(expr,s)))
-
-	using Policy1<TG>::calculate;
-//	template<typename TC, typename TD>
-//	auto calculate(_Field<TC, TD> const & expr,
-//			compact_index_type const & s) const
-//			DECL_RET_TYPE((expr[s]))
-//
-//	template<typename TOP, typename TL>
-//	auto calculate(_Field<Expression<TOP, TL>> const & expr,
-//			compact_index_type const & s) const
-//			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, s)))
-//
-//	template<typename TOP, typename TL, typename TR>
-//	auto get_value(_Field<Expression<TOP, TL, TR>> const & expr,
-//			compact_index_type const & s) const
-//			DECL_RET_TYPE((calcluate(expr.op_, expr.lhs, expr.rhs, s)))
 
 };
 

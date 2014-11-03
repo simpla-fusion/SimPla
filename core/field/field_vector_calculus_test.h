@@ -29,12 +29,13 @@ using namespace simpla;
 #include "../manifold/diff_scheme/fdm.h"
 #include "../manifold/interpolator/interpolator.h"
 
-#define TMESH Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,FiniteDiffMethod, InterpolatorLinear> ;
+typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+		FiniteDiffMethod, InterpolatorLinear> TManifold;
 
-#endif
+#else
 
 typedef TMESH TManifold;
-
+#endif
 class TestFETL: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
 				nTuple<Real, 3>> >
@@ -203,6 +204,11 @@ TEST_P(TestFETL, grad0)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error);
 
+//	GLOBAL_DATA_STREAM.cd("/ ");
+//	LOGGER << SAVE(f0);
+//	LOGGER << SAVE(f1);
+//	LOGGER << SAVE(f1b);
+
 }
 
 TEST_P(TestFETL, grad3)
@@ -225,10 +231,10 @@ TEST_P(TestFETL, grad3)
 		f3[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f3);
-//	LOG_CMD(f2 = grad(f3));
+	LOG_CMD(f2 = grad(f3));
 
-	f2 = codifferential_derivative(f3);
-	f2 = -f2;
+//	f2 = codifferential_derivative(f3);
+//	f2 = -f2;
 
 	Real m = 0.0;
 	Real variance = 0;
@@ -303,10 +309,10 @@ TEST_P(TestFETL, diverge1)
 		f1[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f1);
-//	f0 = diverge(f1);
+	LOG_CMD(f0 = diverge(f1));
 
-	f0 = codifferential_derivative(f1);
-	f0 = -f0;
+//	f0 = codifferential_derivative(f1);
+//	f0 = -f0;
 
 	Real variance = 0;
 
@@ -405,7 +411,7 @@ TEST_P(TestFETL, diverge2)
 	};
 	update_ghosts(&f2);
 
-	f3 = diverge(f2);
+	LOG_CMD(f3 = diverge(f2));
 
 	Real variance = 0;
 	scalar_type average = 0.0;
@@ -602,11 +608,9 @@ TEST_P(TestFETL, curl2)
 		f2[s] = std::sin(inner_product(K_real, mesh.coordinates(s)));
 	};
 	update_ghosts(&f2);
-	//	LOG_CMD(f1 = curl(f2));
-	f1 = codifferential_derivative(f2);
-	f1 = -f1;
-
-
+	LOG_CMD(f1 = curl(f2));
+//	f1 = codifferential_derivative(f2);
+//	f1 = -f1;
 
 	vf1b.clear();
 
