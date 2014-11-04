@@ -210,6 +210,11 @@ struct reference_traits<nTuple<T, M, N...>>
 	typedef nTuple<T, M, N...> const& type;
 };
 
+template<typename ...T>
+struct reference_traits<nTuple<Expression<T...> >>
+{
+	typedef nTuple<Expression<T...> > type;
+};
 
 
 }  // namespace _impl
@@ -414,7 +419,7 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 #define _SP_DEFINE_nTuple_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
 	template<typename T1,size_t ...N1,typename  T2> \
 	nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
-	operator _OP_(nTuple<T1, N1...> const & l,T2 &&r)  \
+	operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
 	{return (nTuple<Expression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
 	\
 	template< typename T1,typename T2 ,size_t ...N2> \

@@ -76,15 +76,7 @@ struct Expression<TOP, TL, TR>
 			lhs(l), rhs(r), op_(op)
 	{
 	}
-	Expression(TL && l, TR && r) :
-			lhs(std::forward<TL>(l)), rhs(std::forward<TR>(r)), op_()
-	{
-	}
-	Expression(TOP op, TL && l, TR && r) :
-			lhs(std::forward<TL>(l)), rhs(std::forward<TR>(r)), op_(op)
-	{
-	}
-
+ 
 	~Expression()
 	{
 	}
