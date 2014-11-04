@@ -92,8 +92,7 @@ public:
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, scalar_type f)
 	{
-		return std::move(Point_s(
-		{ x, v, f }));
+		return std::move(Point_s( { x, v, f }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
@@ -135,13 +134,10 @@ int main(int argc, char **argv)
 
 	manifold_type manifold;
 
-	nTuple<Real, 3> xmin =
-	{ 0, 0, 0 };
-	nTuple<Real, 3> xmax =
-	{ 20, 2, 2 };
+	nTuple<Real, 3> xmin = { 0, 0, 0 };
+	nTuple<Real, 3> xmax = { 20, 2, 2 };
 
-	nTuple<size_t, 3> dims =
-	{ 20, 1, 1 };
+	nTuple<size_t, 3> dims = { 20, 1, 1 };
 
 	manifold.dimensions(dims);
 	manifold.extents(xmin, xmax);
@@ -192,7 +188,8 @@ int main(int argc, char **argv)
 
 		J.clear();
 		E += (curl(B) - J) * dt;
-		B -= curl(E) * dt * 0.5;
+		B += curl(E);
+//		* dt * 0.5;
 		ion.next_timestep(dt, &J, E, B);
 //		B -= curl(E) * dt * 0.5;
 

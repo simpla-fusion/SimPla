@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <complex>
 #include "sp_type_traits.h"
+#include "log.h"
 
 namespace simpla
 {
@@ -58,12 +59,29 @@ struct Expression<TOP, TL, TR>
 	typename _impl::reference_traits<TR>::type rhs;
 	TOP op_;
 
-	Expression(TL const & l, TR const & r) :
+	Expression(this_type const & that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+	Expression(this_type && that) :
+			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	{
+	}
+
+	Expression(TL const& l, TR const& r) :
 			lhs(l), rhs(r), op_()
 	{
 	}
-	Expression(TOP op, TL const & l, TR const & r) :
+	Expression(TOP op, TL const& l, TR const& r) :
 			lhs(l), rhs(r), op_(op)
+	{
+	}
+	Expression(TL && l, TR && r) :
+			lhs(std::forward<TL>(l)), rhs(std::forward<TR>(r)), op_()
+	{
+	}
+	Expression(TOP op, TL && l, TR && r) :
+			lhs(std::forward<TL>(l)), rhs(std::forward<TR>(r)), op_(op)
 	{
 	}
 
@@ -89,12 +107,16 @@ struct Expression<TOP, TL>
 
 	TOP op_;
 
-	Expression(TOP op, TL const & l) :
-			lhs(l), op_(op)
+	Expression(this_type const & that) :
+			lhs(that.lhs), op_(that.op_)
+	{
+	}
+	Expression(this_type && that) :
+			lhs(that.lhs), op_(that.op_)
 	{
 	}
 
-	Expression(TL const & l) :
+	Expression(TL const& l) :
 			lhs(l), op_()
 	{
 	}
@@ -280,50 +302,50 @@ DEF_UNARY_FUNCTION(imag)
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> _OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> \
 	_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 	template< typename T1,typename ...T2> \
 	_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
 	operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
-	{return std::move(_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
 	template< typename ... T1,typename ...T2> \
 	_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
 	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-	{return std::move(_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
 		_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >> \
 		operator _OP_(_OBJ_<T...> const &l)  \
-		{return std::move(_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
+		{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
 
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_,_OBJ_)                                                  \
 			template<typename ...T1,typename  T2> \
 			_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>> \
 			_NAME_(_OBJ_<T1...> const & l,T2 const &r)  \
-			{return std::move(_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+			{return (_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 			template< typename T1,typename ...T2> \
 			_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>> \
 			_NAME_(T1 const & l, _OBJ_< T2...>const &r)                    \
-			{return std::move(_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+			{return (_OBJ_<Expression< _impl::_##_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
 			template< typename ... T1,typename ...T2> \
 			_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>> \
 			_NAME_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-			{return std::move(_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+			{return (_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION( _NAME_,_OBJ_)                           \
 		template<typename ...T> \
 		_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>> \
 		_NAME_(_OBJ_<T ...> const &r)  \
-		{return std::move(_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>>(r));}   \
+		{return (_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>>(r));}   \
 
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_CONCEPT_)                                              \

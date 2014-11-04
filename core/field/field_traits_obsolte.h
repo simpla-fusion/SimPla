@@ -91,7 +91,7 @@ template<typename ...T> struct is_field<_Field<T...>>
 
 template<typename ...> struct field_traits
 {
-	typedef Identity domain_type;
+	typedef std::nullptr_t domain_type;
 };
 
 template<typename TC, typename TD, typename ...Others>
@@ -222,76 +222,55 @@ struct reference_traits<_Field<Expression<T...> > >
  *     \brief skeleton of Field expression
  */
 
-template<typename TOP, typename TL, typename TR>
-struct _Field<Expression<TOP, TL, TR>>
-{
-	typedef _Field<Expression<TOP, TL, TR>> this_type;
-	typename _impl::reference_traits<TL>::type lhs;
-	typename _impl::reference_traits<TR>::type rhs;
-
-//	typename field_traits<this_type>::domain_type domain_;
-
-	TOP op_;
-
-	_Field(this_type const& that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-	{
-	}
-
-	_Field(TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_()
-	//, domain_(field_traits<this_type>::get_domain(l, r))
-	{
-	}
-	_Field(TOP op, TL const & l, TR const & r) :
-			lhs(l), rhs(r), op_(op)
-	//, domain_( field_traits<this_type>::get_domain(l, r))
-	{
-	}
-
-	~_Field()
-	{
-	}
-	operator bool() const
-	{
-//		auto d = get_domain(*this);
-//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
-		return false;
-	}
-
-}
-;
+//template<typename TOP, typename TL, typename TR>
+//struct _Field<Expression<TOP, TL, TR>>
+//{
+//	typedef _Field<Expression<TOP, TL, TR>> this_type;
+//	typename _impl::reference_traits<TL>::type lhs;
+//	typename _impl::reference_traits<TR>::type rhs;
+//
+////	typename field_traits<this_type>::domain_type domain_;
+//
+//	TOP op_;
+//
+//	_Field(this_type const& that) :
+//			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+//	{
+//	}
+//
+//	_Field(TL const & l, TR const & r) :
+//			lhs(l), rhs(r), op_()
+//	//, domain_(field_traits<this_type>::get_domain(l, r))
+//	{
+//	}
+//	_Field(TOP op, TL const & l, TR const & r) :
+//			lhs(l), rhs(r), op_(op)
+//	//, domain_( field_traits<this_type>::get_domain(l, r))
+//	{
+//	}
+//
+//	~_Field()
+//	{
+//	}
+//	operator bool() const
+//	{
+////		auto d = get_domain(*this);
+////		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
+//		return false;
+//	}
+//
+//}
+//;
 
 ///   \brief  Unary operation
-template<typename TOP, typename TL>
-struct _Field<Expression<TOP, TL>>
+template<typename TOP, typename ...TL>
+struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
 {
-	typedef _Field<Expression<TOP, TL>> this_type;
-
-	typename _impl::reference_traits<TL>::type lhs;
-
-	TOP op_;
+	typedef _Field<Expression<TOP, TL...>> this_type;
 
 	typedef typename field_traits<this_type>::domain_type domain_type;
 
-//	domain_type domain_;
-	_Field(this_type const& that) :
-			lhs(that.lhs), op_(that.op_)
-	{
-	}
-
-	_Field(TL const & l) :
-			lhs(l), op_() //, domain_(field_traits<this_type>::get_domain(l))
-	{
-	}
-	_Field(TOP op, TL const & l) :
-			lhs(l), op_(op) //, domain_(field_traits<this_type>::get_domain(l))
-	{
-	}
-
-	~_Field()
-	{
-	}
+	using Expression<TOP, TL...>::Expression;
 
 	operator bool() const
 	{

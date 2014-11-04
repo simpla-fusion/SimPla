@@ -5,15 +5,42 @@
  *      Author: salmon
  */
 
-#include "field_basic_algerbra_test.h"
-
 #include <iostream>
 #include <gtest/gtest.h>
 #include "../manifold/domain_dummy.h"
 
 #include "field.h"
+#include "field_basic_algerbra_test.h"
 
 using namespace simpla;
+
+//int main(int argc, char **argv)
+//{
+//	LOGGER.set_stdout_visable_level(10);
+//
+//	DomainDummy<> domain(10, 20);
+//
+//	auto f1 = make_field<double>(domain);
+//	auto f2 = make_field<double>(domain);
+//	auto f3 = make_field<double>(domain);
+//
+//	f1 = 1.0;
+//
+//	f2 = 2.0;
+//
+//	LOGGER << "========";
+//
+//	auto expr = f1 + f2 * 2;
+//
+//	LOGGER << "========";
+//
+//	f3 = expr;
+//
+//	CHECK(f1[10]);
+//	CHECK(f2[10]);
+//	CHECK(f3[10]);
+//
+//}
 
 typedef testing::Types< //
 

@@ -148,6 +148,8 @@ TEST_P(TestFETL, grad0)
 	update_ghosts(&f0);
 
 	LOG_CMD(f1 = grad(f0));
+//	LOG_CMD(f1 = exterior_derivative(f0));
+
 	Real m = 0.0;
 	Real variance = 0;
 	scalar_type average;
@@ -204,7 +206,7 @@ TEST_P(TestFETL, grad0)
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error);
 
-//	GLOBAL_DATA_STREAM.cd("/ ");
+//	GLOBAL_DATA_STREAM.cd("/grad1/");
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f1b);
@@ -282,7 +284,7 @@ TEST_P(TestFETL, grad3)
 	average /= f2.size();
 	EXPECT_LE(std::sqrt(variance), error) << dims;
 	EXPECT_LE(std::abs(average), error);
-
+//
 //	GLOBAL_DATA_STREAM.cd("/grad3/");
 //	LOGGER << SAVE(f3);
 //	LOGGER << SAVE(f2);

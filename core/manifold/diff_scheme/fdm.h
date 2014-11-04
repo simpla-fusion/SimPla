@@ -31,6 +31,7 @@ struct FiniteDiffMethod
 {
 	typedef FiniteDiffMethod<G> this_type;
 	typedef G geometry_type;
+	typedef typename geometry_type::topology_type topology_type;
 	typedef typename geometry_type::compact_index_type compact_index_type;
 	typedef Real scalar_type;
 	static constexpr size_t NUM_OF_COMPONENT_TYPE = G::ndims + 1;
@@ -64,67 +65,33 @@ struct FiniteDiffMethod
 // Exterior algebra
 //***************************************************************************************************
 
-//	template<typename ...Args>
-//	auto calculate(Args && ... args) const
-//	DECL_RET_TYPE( (get_value( std::forward<Args>(args)...)) )
-
-	template<typename TC, typename TD>
-	inline auto calculate(_Field<TC, TD> const& f, compact_index_type s) const
-	DECL_RET_TYPE((f[s] ) )
-
 	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL> > const & f,
-			compact_index_type s) const
-			DECL_RET_TYPE((this->calculate(f.op_,f.lhs,s)))
-
-	template<typename TOP, typename TL, typename TR>
-	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
-			compact_index_type s) const
-			DECL_RET_TYPE((this->calculate(f.op_,f.lhs,f.rhs,s)))
-
-	template<typename T>
-	auto calculate(T const & v, compact_index_type s) const
-	DECL_RET_TYPE((get_value(v,s)))
-
-	template<typename TOP, typename TL>
-	inline auto calculate(TOP op, TL const& f, compact_index_type s) const
-	DECL_RET_TYPE( op(this->calculate(f,s) ) )
+	auto calculate(TOP op, TL const& f, compact_index_type s) const
+	DECL_RET_TYPE( op(get(f,s) ) )
 
 	template<typename TOP, typename TL, typename TR>
 	inline auto calculate(TOP op, TL const& l, TR const &r,
 			compact_index_type s) const
-			DECL_RET_TYPE( op(calculate( (l),s),calculate(r,s) ) )
+			DECL_RET_TYPE( op(get( (l),s),get(r,s) ) )
 
 	template<typename ... TL>
-	inline auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
+	auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==VERTEX,Real
-			/*decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())*/>::type
+			typename std::enable_if<field_traits<_Field<TL...>>::iform==VERTEX, Real
+//				 decltype((this->get(f,s)-this->get(f,s))*std::declval<scalar_type>())
+			>::type
 	{
 		auto D = geo->delta_index(s);
 
-//		if (geo->node_id(s) == 4)
-//		{
-//			CHECK(geo->volume(s + D));
-//			CHECK(geo->volume(s - D));
-//			CHECK(geo->inv_volume(s));
-//
-//			CHECK(geo->topology_type::volume(s + D)) << " node id="
-//					<< geo->topology_type::node_id(s + D);
-//
-//			CHECK(geo->topology_type::inv_volume(s)) << " node id="
-//					<< geo->topology_type::node_id(s);
-//
-//		}
-		return (calculate(f, s + D) * geo->volume(s + D)
-				- calculate(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
+		return (get(f, s + D) * geo->volume(s + D)
+				- get(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
 	}
 
 	template<typename ...TL>
 	inline auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
 			compact_index_type s) const ->
 			typename std::enable_if<field_traits<_Field<TL...>>::iform==EDGE,Real
-			/*decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())*/
+			/*decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())*/
 			>::type
 	{
 		auto X = geo->delta_index(geo->dual(s));
@@ -135,13 +102,13 @@ struct FiniteDiffMethod
 
 		(
 
-		calculate(f, s + Y) * geo->volume(s + Y) //
-		- calculate(f, s - Y) * geo->volume(s - Y) //
+		get(f, s + Y) * geo->volume(s + Y) //
+		- get(f, s - Y) * geo->volume(s - Y) //
 
 		) - (
 
-		calculate(f, s + Z) * geo->volume(s + Z) //
-		- calculate(f, s - Z) * geo->volume(s - Z) //
+		get(f, s + Z) * geo->volume(s + Z) //
+		- get(f, s - Z) * geo->volume(s - Z) //
 
 		)
 
@@ -153,7 +120,7 @@ struct FiniteDiffMethod
 	inline auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
 			compact_index_type s) const ->
 			typename std::enable_if<field_traits<_Field<TL...>>::iform==FACE,Real
-//			decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 			>::type
 	{
 		auto X = geo->DI(0, s);
@@ -162,13 +129,13 @@ struct FiniteDiffMethod
 
 		return (
 
-		calculate(f, s + X) * geo->volume(s + X)
+		get(f, s + X) * geo->volume(s + X)
 
-		- calculate(f, s - X) * geo->volume(s - X) //
-		+ calculate(f, s + Y) * geo->volume(s + Y) //
-		- calculate(f, s - Y) * geo->volume(s - Y) //
-		+ calculate(f, s + Z) * geo->volume(s + Z) //
-		- calculate(f, s - Z) * geo->volume(s - Z) //
+		- get(f, s - X) * geo->volume(s - X) //
+		+ get(f, s + Y) * geo->volume(s + Y) //
+		- get(f, s - Y) * geo->volume(s - Y) //
+		+ get(f, s + Z) * geo->volume(s + Z) //
+		- get(f, s - Z) * geo->volume(s - Z) //
 
 		) * geo->inv_volume(s)
 
@@ -187,7 +154,7 @@ struct FiniteDiffMethod
 			_impl::CodifferentialDerivative, _Field<TL...> const & f,
 			compact_index_type s) const ->
 			typename std::enable_if<field_traits<_Field<TL...>>::iform==EDGE,Real
-//			decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 			>::type
 	{
 		auto X = geo->DI(0, s);
@@ -198,17 +165,17 @@ struct FiniteDiffMethod
 
 		-(
 
-		calculate(f, s + X) * geo->dual_volume(s + X)
+		get(f, s + X) * geo->dual_volume(s + X)
 
-		- calculate(f, s - X) * geo->dual_volume(s - X)
+		- get(f, s - X) * geo->dual_volume(s - X)
 
-		+ calculate(f, s + Y) * geo->dual_volume(s + Y)
+		+ get(f, s + Y) * geo->dual_volume(s + Y)
 
-		- calculate(f, s - Y) * geo->dual_volume(s - Y)
+		- get(f, s - Y) * geo->dual_volume(s - Y)
 
-		+ calculate(f, s + Z) * geo->dual_volume(s + Z)
+		+ get(f, s + Z) * geo->dual_volume(s + Z)
 
-		- calculate(f, s - Z) * geo->dual_volume(s - Z)
+		- get(f, s - Z) * geo->dual_volume(s - Z)
 
 		) * geo->inv_dual_volume(s)
 
@@ -221,7 +188,7 @@ struct FiniteDiffMethod
 			_Field<TL...> const & f,
 			compact_index_type s) const ->
 			typename std::enable_if<field_traits<_Field<TL...>>::iform==FACE,Real
-//			decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 			>::type
 	{
 		auto X = geo->delta_index(s);
@@ -232,11 +199,11 @@ struct FiniteDiffMethod
 
 		-(
 
-		(calculate(f, s + Y) * (geo->dual_volume(s + Y))
-				- calculate(f, s - Y) * (geo->dual_volume(s - Y)))
+		(get(f, s + Y) * (geo->dual_volume(s + Y))
+				- get(f, s - Y) * (geo->dual_volume(s - Y)))
 
-				- (calculate(f, s + Z) * (geo->dual_volume(s + Z))
-						- calculate(f, s - Z) * (geo->dual_volume(s - Z)))
+				- (get(f, s + Z) * (geo->dual_volume(s + Z))
+						- get(f, s - Z) * (geo->dual_volume(s - Z)))
 
 		) * geo->inv_dual_volume(s)
 
@@ -247,7 +214,7 @@ struct FiniteDiffMethod
 			_impl::CodifferentialDerivative, _Field<TL...> const & f,
 			compact_index_type s) const ->
 			typename std::enable_if<field_traits<_Field<TL...>>::iform==VOLUME,Real
-//			decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 			>::type
 	{
 		auto D = geo->delta_index(geo->dual(s));
@@ -255,8 +222,8 @@ struct FiniteDiffMethod
 
 		-(
 
-		calculate(f, s + D) * (geo->dual_volume(s + D)) //
-		- calculate(f, s - D) * (geo->dual_volume(s - D))
+		get(f, s + D) * (geo->dual_volume(s + D)) //
+		- get(f, s - D) * (geo->dual_volume(s - D))
 
 		) * geo->inv_dual_volume(s)
 
@@ -467,7 +434,7 @@ struct FiniteDiffMethod
 //
 //	template<typename TM, size_t IL, typename TL> inline auto calculate(
 //			_impl::HodgeStar, _Field<Domain<TM, IL>, TL> const & f,
-//			compact_index_type s) const -> typename std::remove_reference<decltype(calculate(f,s))>::type
+//			compact_index_type s) const -> typename std::remove_reference<decltype(get(f,s))>::type
 //	{
 ////		auto X = geo->DI(0,s);
 ////		auto Y = geo->DI(1,s);
@@ -477,25 +444,25 @@ struct FiniteDiffMethod
 ////
 ////		(
 ////
-////		calculate(f,((s + X) - Y) - Z)*geo->inv_volume(((s + X) - Y) - Z) +
+////		get(f,((s + X) - Y) - Z)*geo->inv_volume(((s + X) - Y) - Z) +
 ////
-////		calculate(f,((s + X) - Y) + Z)*geo->inv_volume(((s + X) - Y) + Z) +
+////		get(f,((s + X) - Y) + Z)*geo->inv_volume(((s + X) - Y) + Z) +
 ////
-////		calculate(f,((s + X) + Y) - Z)*geo->inv_volume(((s + X) + Y) - Z) +
+////		get(f,((s + X) + Y) - Z)*geo->inv_volume(((s + X) + Y) - Z) +
 ////
-////		calculate(f,((s + X) + Y) + Z)*geo->inv_volume(((s + X) + Y) + Z) +
+////		get(f,((s + X) + Y) + Z)*geo->inv_volume(((s + X) + Y) + Z) +
 ////
-////		calculate(f,((s - X) - Y) - Z)*geo->inv_volume(((s - X) - Y) - Z) +
+////		get(f,((s - X) - Y) - Z)*geo->inv_volume(((s - X) - Y) - Z) +
 ////
-////		calculate(f,((s - X) - Y) + Z)*geo->inv_volume(((s - X) - Y) + Z) +
+////		get(f,((s - X) - Y) + Z)*geo->inv_volume(((s - X) - Y) + Z) +
 ////
-////		calculate(f,((s - X) + Y) - Z)*geo->inv_volume(((s - X) + Y) - Z) +
+////		get(f,((s - X) + Y) - Z)*geo->inv_volume(((s - X) + Y) - Z) +
 ////
-////		calculate(f,((s - X) + Y) + Z)*geo->inv_volume(((s - X) + Y) + Z)
+////		get(f,((s - X) + Y) + Z)*geo->inv_volume(((s - X) + Y) + Z)
 ////
 ////		) * 0.125 * geo->volume(s);
 //
-//		return calculate(f, s) /** geo->_impl::HodgeStarVolumeScale(s)*/;
+//		return get(f, s) /** geo->_impl::HodgeStarVolumeScale(s)*/;
 //	}
 //
 //	template<typename TM, typename TL, typename TR> void calculate(
@@ -506,7 +473,7 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TL, typename TR> inline auto calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, EDGE>, TL> const & f,
-//			compact_index_type s) const ->decltype(calculate(f,s)*v[0])
+//			compact_index_type s) const ->decltype(get(f,s)*v[0])
 //	{
 //		auto X = geo->DI(0, s);
 //		auto Y = geo->DI(1, s);
@@ -514,15 +481,15 @@ struct FiniteDiffMethod
 //
 //		return
 //
-//		(calculate(f, s + X) - calculate(f, s - X)) * 0.5 * v[0] //
-//		+ (calculate(f, s + Y) - calculate(f, s - Y)) * 0.5 * v[1] //
-//		+ (calculate(f, s + Z) - calculate(f, s - Z)) * 0.5 * v[2];
+//		(get(f, s + X) - get(f, s - X)) * 0.5 * v[0] //
+//		+ (get(f, s + Y) - get(f, s - Y)) * 0.5 * v[1] //
+//		+ (get(f, s + Z) - get(f, s - Z)) * 0.5 * v[2];
 //	}
 //
 //	template<typename TM, typename TL, typename TR> inline auto calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, FACE>, TL> const & f,
-//			compact_index_type s) const ->decltype(calculate(f,s)*v[0])
+//			compact_index_type s) const ->decltype(get(f,s)*v[0])
 //	{
 //		size_t n = geo->component_number(s);
 //
@@ -531,20 +498,20 @@ struct FiniteDiffMethod
 //		auto Z = geo->inverse_roate(X);
 //		return
 //
-//		(calculate(f, s + Y) + calculate(f, s - Y)) * 0.5 * v[(n + 2) % 3] -
+//		(get(f, s + Y) + get(f, s - Y)) * 0.5 * v[(n + 2) % 3] -
 //
-//		(calculate(f, s + Z) + calculate(f, s - Z)) * 0.5 * v[(n + 1) % 3];
+//		(get(f, s + Z) + get(f, s - Z)) * 0.5 * v[(n + 1) % 3];
 //	}
 //
 //	template<typename TM, typename TL, typename TR> inline auto calculate(
 //			_impl::InteriorProduct, nTuple<TR, G::ndims> const & v,
 //			_Field<Domain<TM, VOLUME>, TL> const & f,
-//			compact_index_type s) const ->decltype(calculate(f,s)*v[0])
+//			compact_index_type s) const ->decltype(get(f,s)*v[0])
 //	{
 //		size_t n = geo->component_number(geo->dual(s));
 //		size_t D = geo->delta_index(geo->dual(s));
 //
-//		return (calculate(f, s + D) - calculate(f, s - D)) * 0.5 * v[n];
+//		return (get(f, s + D) - get(f, s - D)) * 0.5 * v[n];
 //	}
 //
 ////**************************************************************************************************
@@ -554,7 +521,7 @@ struct FiniteDiffMethod
 //	template<typename TM, size_t N, typename TL> inline auto calculate(
 //			_impl::ExteriorDerivative, _Field<Domain<TM, EDGE>, TL> const & f,
 //			std::integral_constant<size_t, N>,
-//			compact_index_type s) const -> decltype(calculate(f,s)-calculate(f,s))
+//			compact_index_type s) const -> decltype(get(f,s)-get(f,s))
 //	{
 //
 //		auto X = geo->delta_index(geo->dual(s));
@@ -564,8 +531,8 @@ struct FiniteDiffMethod
 //		Y = (geo->component_number(Y) == N) ? Y : 0UL;
 //		Z = (geo->component_number(Z) == N) ? Z : 0UL;
 //
-//		return (calculate(f, s + Y) - calculate(f, s - Y))
-//				- (calculate(f, s + Z) - calculate(f, s - Z));
+//		return (get(f, s + Y) - get(f, s - Y))
+//				- (get(f, s + Z) - get(f, s - Z));
 //	}
 //
 //	template<typename ...TL, size_t N> inline auto calculate(
@@ -573,7 +540,7 @@ struct FiniteDiffMethod
 //			std::integral_constant<size_t, N>,
 //			compact_index_type s) const ->
 //			typename std::enable_if<field_traits<_Field<TL...>>::iform==FACE,
-//			decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())>::type
+//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())>::type
 //	{
 //
 //		auto X = geo->delta_index(s);
@@ -585,22 +552,22 @@ struct FiniteDiffMethod
 //
 //		return (
 //
-//		calculate(f, s + Y) * (geo->dual_volume(s + Y))      //
-//		- calculate(f, s - Y) * (geo->dual_volume(s - Y))    //
-//		- calculate(f, s + Z) * (geo->dual_volume(s + Z))    //
-//		+ calculate(f, s - Z) * (geo->dual_volume(s - Z))    //
+//		get(f, s + Y) * (geo->dual_volume(s + Y))      //
+//		- get(f, s - Y) * (geo->dual_volume(s - Y))    //
+//		- get(f, s + Z) * (geo->dual_volume(s + Z))    //
+//		+ get(f, s - Z) * (geo->dual_volume(s - Z))    //
 //
 //		) * geo->inv_dual_volume(s);
 //	}
 //	template<typename TM, size_t IL, typename TR> inline auto calculate(
 //			_impl::MapTo, std::integral_constant<size_t, IL> const &,
 //			_Field<Domain<TM, IL>, TR> const & f, compact_index_type s) const
-//			DECL_RET_TYPE(calculate(f,s))
+//			DECL_RET_TYPE(get(f,s))
 //
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, VERTEX> const &,
 //			_Field<Domain<TM, EDGE>, TR> const & f,
-//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(calculate(f,s))>::type,3>
+//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(get(f,s))>::type,3>
 //	{
 //
 //		auto X = geo->DI(0, s);
@@ -608,13 +575,13 @@ struct FiniteDiffMethod
 //		auto Z = geo->DI(2, s);
 //
 //		return nTuple<
-//				typename std::remove_reference<decltype(calculate(f,s))>::type,
+//				typename std::remove_reference<decltype(get(f,s))>::type,
 //				3>(
 //		{
 //
-//		(calculate(f, s - X) + calculate(f, s + X)) * 0.5, //
-//		(calculate(f, s - Y) + calculate(f, s + Y)) * 0.5, //
-//		(calculate(f, s - Z) + calculate(f, s + Z)) * 0.5
+//		(get(f, s - X) + get(f, s + X)) * 0.5, //
+//		(get(f, s - Y) + get(f, s + Y)) * 0.5, //
+//		(get(f, s - Z) + get(f, s + Z)) * 0.5
 //
 //		});
 //	}
@@ -622,19 +589,19 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, EDGE> const &,
 //			_Field<Domain<TM, VERTEX>, TR> const & f,
-//			compact_index_type s) const ->typename std::remove_reference<decltype(calculate(f,s)[0])>::type
+//			compact_index_type s) const ->typename std::remove_reference<decltype(get(f,s)[0])>::type
 //	{
 //
 //		auto n = geo->component_number(s);
 //		auto D = geo->delta_index(s);
 //
-//		return ((calculate(f, s - D)[n] + calculate(f, s + D)[n]) * 0.5);
+//		return ((get(f, s - D)[n] + get(f, s + D)[n]) * 0.5);
 //	}
 //
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, VERTEX> const &,
 //			_Field<Domain<TM, FACE>, TR> const & f,
-//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(calculate(f,s))>::type,3>
+//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(get(f,s))>::type,3>
 //	{
 //
 //		auto X = geo->DI(0, s);
@@ -642,41 +609,41 @@ struct FiniteDiffMethod
 //		auto Z = geo->DI(2, s);
 //
 //		return nTuple<
-//				typename std::remove_reference<decltype(calculate(f,s))>::type,
+//				typename std::remove_reference<decltype(get(f,s))>::type,
 //				3>(
 //		{ (
 //
-//		calculate(f, (s - Y) - Z) +
+//		get(f, (s - Y) - Z) +
 //
-//		calculate(f, (s - Y) + Z) +
+//		get(f, (s - Y) + Z) +
 //
-//		calculate(f, (s + Y) - Z) +
+//		get(f, (s + Y) - Z) +
 //
-//		calculate(f, (s + Y) + Z)
-//
-//		) * 0.25,
-//
-//		(
-//
-//		calculate(f, (s - Z) - X) +
-//
-//		calculate(f, (s - Z) + X) +
-//
-//		calculate(f, (s + Z) - X) +
-//
-//		calculate(f, (s + Z) + X)
+//		get(f, (s + Y) + Z)
 //
 //		) * 0.25,
 //
 //		(
 //
-//		calculate(f, (s - X) - Y) +
+//		get(f, (s - Z) - X) +
 //
-//		calculate(f, (s - X) + Y) +
+//		get(f, (s - Z) + X) +
 //
-//		calculate(f, (s + X) - Y) +
+//		get(f, (s + Z) - X) +
 //
-//		calculate(f, (s + X) + Y)
+//		get(f, (s + Z) + X)
+//
+//		) * 0.25,
+//
+//		(
+//
+//		get(f, (s - X) - Y) +
+//
+//		get(f, (s - X) + Y) +
+//
+//		get(f, (s + X) - Y) +
+//
+//		get(f, (s + X) + Y)
 //
 //		) * 0.25
 //
@@ -686,7 +653,7 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, FACE> const &,
 //			_Field<Domain<TM, VERTEX>, TR> const & f,
-//			compact_index_type s) const ->typename std::remove_reference<decltype(calculate(f,s)[0])>::type
+//			compact_index_type s) const ->typename std::remove_reference<decltype(get(f,s)[0])>::type
 //	{
 //
 //		auto n = geo->component_number(geo->dual(s));
@@ -698,13 +665,13 @@ struct FiniteDiffMethod
 //
 //		(
 //
-//		calculate(f, (s - Y) - Z)[n] +
+//		get(f, (s - Y) - Z)[n] +
 //
-//		calculate(f, (s - Y) + Z)[n] +
+//		get(f, (s - Y) + Z)[n] +
 //
-//		calculate(f, (s + Y) - Z)[n] +
+//		get(f, (s + Y) - Z)[n] +
 //
-//		calculate(f, (s + Y) + Z)[n]
+//		get(f, (s + Y) + Z)[n]
 //
 //		) * 0.25
 //
@@ -714,7 +681,7 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, VOLUME>,
 //			_Field<Domain<TM, FACE>, TR> const & f,
-//			compact_index_type s) const ->nTuple<decltype(calculate(f,s) ),3>
+//			compact_index_type s) const ->nTuple<decltype(get(f,s) ),3>
 //	{
 //
 //		auto X = geo->DI(0, s);
@@ -722,13 +689,13 @@ struct FiniteDiffMethod
 //		auto Z = geo->DI(2, s);
 //
 //		return nTuple<
-//				typename std::remove_reference<decltype(calculate(f,s))>::type,
+//				typename std::remove_reference<decltype(get(f,s))>::type,
 //				3>(
 //		{
 //
-//		(calculate(f, s - X) + calculate(f, s + X)) * 0.5, //
-//		(calculate(f, s - Y) + calculate(f, s + Y)) * 0.5, //
-//		(calculate(f, s - Z) + calculate(f, s + Z)) * 0.5
+//		(get(f, s - X) + get(f, s + X)) * 0.5, //
+//		(get(f, s - Y) + get(f, s + Y)) * 0.5, //
+//		(get(f, s - Z) + get(f, s + Z)) * 0.5
 //
 //		});
 //	}
@@ -736,19 +703,19 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, FACE>,
 //			_Field<Domain<TM, VOLUME>, TR> const & f,
-//			compact_index_type s) const ->typename std::remove_reference<decltype(calculate(f,s)[0])>::type
+//			compact_index_type s) const ->typename std::remove_reference<decltype(get(f,s)[0])>::type
 //	{
 //
 //		auto n = geo->component_number(geo->dual(s));
 //		auto D = geo->delta_index(geo->dual(s));
 //
-//		return ((calculate(f, s - D)[n] + calculate(f, s + D)[n]) * 0.5);
+//		return ((get(f, s - D)[n] + get(f, s + D)[n]) * 0.5);
 //	}
 //
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, VOLUME>,
 //			_Field<Domain<TM, EDGE>, TR> const & f,
-//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(calculate(f,s) )>::type,3>
+//			compact_index_type s) const ->nTuple<typename std::remove_reference<decltype(get(f,s) )>::type,3>
 //	{
 //
 //		auto X = geo->DI(0, s);
@@ -756,41 +723,41 @@ struct FiniteDiffMethod
 //		auto Z = geo->DI(2, s);
 //
 //		return nTuple<
-//				typename std::remove_reference<decltype(calculate(f,s))>::type,
+//				typename std::remove_reference<decltype(get(f,s))>::type,
 //				3>(
 //		{ (
 //
-//		calculate(f, (s - Y) - Z) +
+//		get(f, (s - Y) - Z) +
 //
-//		calculate(f, (s - Y) + Z) +
+//		get(f, (s - Y) + Z) +
 //
-//		calculate(f, (s + Y) - Z) +
+//		get(f, (s + Y) - Z) +
 //
-//		calculate(f, (s + Y) + Z)
-//
-//		) * 0.25,
-//
-//		(
-//
-//		calculate(f, (s - Z) - X) +
-//
-//		calculate(f, (s - Z) + X) +
-//
-//		calculate(f, (s + Z) - X) +
-//
-//		calculate(f, (s + Z) + X)
+//		get(f, (s + Y) + Z)
 //
 //		) * 0.25,
 //
 //		(
 //
-//		calculate(f, (s - X) - Y) +
+//		get(f, (s - Z) - X) +
 //
-//		calculate(f, (s - X) + Y) +
+//		get(f, (s - Z) + X) +
 //
-//		calculate(f, (s + X) - Y) +
+//		get(f, (s + Z) - X) +
 //
-//		calculate(f, (s + X) + Y)
+//		get(f, (s + Z) + X)
+//
+//		) * 0.25,
+//
+//		(
+//
+//		get(f, (s - X) - Y) +
+//
+//		get(f, (s - X) + Y) +
+//
+//		get(f, (s + X) - Y) +
+//
+//		get(f, (s + X) + Y)
 //
 //		) * 0.25,
 //
@@ -800,7 +767,7 @@ struct FiniteDiffMethod
 //	template<typename TM, typename TR> inline auto calculate(_impl::MapTo,
 //			std::integral_constant<size_t, EDGE>,
 //			_Field<TR, Domain<TM, VOLUME>> const & f,
-//			compact_index_type s) const ->typename std::remove_reference<decltype(calculate(f,s)[0])>::type
+//			compact_index_type s) const ->typename std::remove_reference<decltype(get(f,s)[0])>::type
 //	{
 //
 //		auto n = geo->component_number(geo->dual(s));
@@ -811,13 +778,13 @@ struct FiniteDiffMethod
 //
 //		(
 //
-//		calculate(f, (s - Y) - Z)[n] +
+//		get(f, (s - Y) - Z)[n] +
 //
-//		calculate(f, (s - Y) + Z)[n] +
+//		get(f, (s - Y) + Z)[n] +
 //
-//		calculate(f, (s + Y) - Z)[n] +
+//		get(f, (s + Y) - Z)[n] +
 //
-//		calculate(f, (s + Y) + Z)[n]
+//		get(f, (s + Y) + Z)[n]
 //
 //		) * 0.25
 //
@@ -825,6 +792,22 @@ struct FiniteDiffMethod
 //	}
 public:
 
+	template<typename TC, typename TD>
+	inline auto get(_Field<TC, TD> const& f, compact_index_type s) const
+	DECL_RET_TYPE ((f[s]))
+
+	template<typename TOP, typename TL>
+	auto get(_Field<Expression<TOP, TL> > const & f, compact_index_type s) const
+	DECL_RET_TYPE((calculate(f.op_,f.lhs,s)))
+
+	template<typename TOP, typename TL, typename TR>
+	auto get(_Field<Expression<TOP, TL, TR> > const & f,
+			compact_index_type s) const
+			DECL_RET_TYPE((calculate(f.op_,f.lhs,f.rhs,s)))
+
+	template<typename T>
+	auto get(T const & v, compact_index_type s) const
+	DECL_RET_TYPE((get_value(v,s)))
 };
 
 }

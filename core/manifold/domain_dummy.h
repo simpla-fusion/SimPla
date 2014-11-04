@@ -10,7 +10,8 @@
 
 #include <stddef.h>
 #include <algorithm>
-
+#include "../utilities/primitives.h"
+#include "../utilities/sp_type_traits.h"
 #include "../parallel/block_range.h"
 
 namespace simpla
@@ -71,7 +72,11 @@ public:
 	{
 		return std::make_pair(b_, e_);
 	}
-
+	template<typename ...Args>
+	void dimensions(Args && ... args)
+	{
+		this_type(std::forward<Args>(args)...).swap(*this);
+	}
 	// interpolator
 	template<typename TD>
 	auto gather(TD const & d,
@@ -96,30 +101,32 @@ public:
 	{
 	}
 	// diff_scheme
-	template <typename TC, typename TD>
-	inline auto calculate(_Field<TC, TD> const& f, index_type s) const
+private:
+	template<typename TOP, typename TL>
+	inline auto calculate(TOP op, TL const& f, index_type s) const
+	DECL_RET_TYPE( op(get(f,s) ) )
+
+	template<typename TOP, typename TL, typename TR>
+	inline auto calculate(TOP op, TL const& l, TR const &r, index_type s) const
+	DECL_RET_TYPE( op(get( (l),s),get(r,s) ) )
+
+public:
+
+	template<typename TC, typename TD>
+	inline auto get(_Field<TC, TD> const& f, index_type s) const
 	DECL_RET_TYPE ((f[s]))
 
 	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL> > const & f, index_type s) const DECL_RET_TYPE((this->calculate(f.op_,f.lhs,s)))
+	auto get(_Field<Expression<TOP, TL> > const & f, index_type s) const
+	DECL_RET_TYPE((calculate(f.op_,f.lhs,s)))
 
 	template<typename TOP, typename TL, typename TR>
-	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
-			index_type s) const
-	DECL_RET_TYPE((this->calculate(f.op_,f.lhs,f.rhs,s)))
+	auto get(_Field<Expression<TOP, TL, TR> > const & f, index_type s) const
+	DECL_RET_TYPE((calculate(f.op_,f.lhs,f.rhs,s)))
 
 	template<typename T>
-	auto calculate(T const & v, index_type s) const
+	auto get(T const & v, index_type s) const
 	DECL_RET_TYPE((get_value(v,s)))
-
-	template<typename TOP, typename TL>
-	inline auto calculate(TOP op, TL const& f, index_type s) const
-	DECL_RET_TYPE( op(this->calculate(f,s) ) )
-
-	template<typename TOP, typename TL, typename TR>
-	inline auto calculate(TOP op, TL const& l, TR const &r,
-			index_type s) const
-	DECL_RET_TYPE( op(calculate( (l),s),calculate(r,s) ) )
 
 };
 

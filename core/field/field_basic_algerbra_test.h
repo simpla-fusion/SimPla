@@ -22,7 +22,7 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		domain_type(12, 20).swap(domain);
+		domain.dimensions(12, 20);
 
 	}
 public:
@@ -120,7 +120,8 @@ TYPED_TEST_P(TestField, constant_real){
 	{
 		value_type res;
 		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
-		EXPECT_LE(abs( res- f3[s]),EPSILON);
+
+		EXPECT_LE(abs( res- f3[s]),EPSILON)<<res<< " "<<f1[s];
 	}
 }
 }

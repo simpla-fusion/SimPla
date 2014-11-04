@@ -2338,7 +2338,7 @@ inline StructuredMesh::range_type split(
 
 	auto shift = ib.shift_;
 
-	decltype(b) count = e - b;
+	decltype(b) count ; count = e - b;
 
 	int n = 0;
 	index_type L = 0;

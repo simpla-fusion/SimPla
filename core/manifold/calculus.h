@@ -286,7 +286,7 @@ template<typename ...TL, typename ...TR> inline auto cross(
 		_Field<TL...> const & lhs, _Field<TR...> const & rhs)
 		ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<TL...>>::iform==FACE),
 				hodge_star(wedge(hodge_star(lhs) , hodge_star(rhs) )))
-
+;
 template<typename TL, typename ... TR> inline auto dot(nTuple<TL, 3> const & v,
 		_Field<TR...> const & f)
 		DECL_RET_TYPE( (interior_product(v, f)))
@@ -315,33 +315,32 @@ template<typename ... T>
 inline auto grad(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==VERTEX),
 		(exterior_derivative(f)))
-
+;
 template<typename ... T>
 inline auto grad(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==VOLUME),
 		((codifferential_derivative(-f))) )
-
+;
 template<typename ...T>
 inline auto diverge(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 		(exterior_derivative(f)))
 ;
-
 template<typename ...T>
 inline auto diverge(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==EDGE),
 		(codifferential_derivative(-f)))
-
+;
 template<typename ... T>
 inline auto curl(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==EDGE),
 		(exterior_derivative(f)))
-
+;
 template<typename ... T>
 inline auto curl(_Field<T...> const & f)
 ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 		((codifferential_derivative(-f))) )
-
+;
 ///   @}
 
 /////  \ingroup  FETL
