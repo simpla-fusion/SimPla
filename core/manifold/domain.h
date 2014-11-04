@@ -137,7 +137,7 @@ public:
 
 	template<typename ...Args>
 	auto calculate(Args && ...args) const
-	DECL_RET_TYPE((manifold_.get(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((manifold_.calculate(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto sample(Args && ... args)

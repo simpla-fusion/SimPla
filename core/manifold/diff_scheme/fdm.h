@@ -65,21 +65,20 @@ struct FiniteDiffMethod
 // Exterior algebra
 //***************************************************************************************************
 
-	template<typename TOP, typename TL>
-	auto calculate(TOP op, TL const& f, compact_index_type s) const
-	DECL_RET_TYPE( op(get(f,s) ) )
-
-	template<typename TOP, typename TL, typename TR>
-	inline auto calculate(TOP op, TL const& l, TR const &r,
+	template<size_t IFORM, typename TOP, typename TL>
+	auto calculate(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
 			compact_index_type s) const
+			DECL_RET_TYPE( op(get(f,s) ) )
+
+	template<typename TOP, size_t IL, size_t IR, typename TL, typename TR>
+	inline auto calculate(TOP op, integer_sequence<size_t, IL, IR>, TL const& l,
+			TR const &r, compact_index_type s) const
 			DECL_RET_TYPE( op(get( (l),s),get(r,s) ) )
 
-	template<typename ... TL>
-	auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
-			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==VERTEX, Real
-//				 decltype((this->get(f,s)-this->get(f,s))*std::declval<scalar_type>())
-			>::type
+	template<typename TF>
+	auto calculate(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
+			TF const & f, compact_index_type s) const -> double //
+//			decltype((this->get(f,s)-this->get(f,s))*std::declval<scalar_type>())
 	{
 		auto D = geo->delta_index(s);
 
@@ -87,12 +86,11 @@ struct FiniteDiffMethod
 				- get(f, s - D) * geo->volume(s - D)) * geo->inv_volume(s);
 	}
 
-	template<typename ...TL>
-	inline auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
+	template<typename TF>
+	inline auto calculate(_impl::ExteriorDerivative,
+			integer_sequence<size_t, EDGE>, TF const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==EDGE,Real
-			/*decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())*/
-			>::type
+			double //decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo->delta_index(geo->dual(s));
 		auto Y = geo->roate(X);
@@ -116,12 +114,11 @@ struct FiniteDiffMethod
 
 	}
 
-	template<typename ... TL>
-	inline auto calculate(_impl::ExteriorDerivative, _Field<TL...> const & f,
+	template<typename TF>
+	inline auto calculate(_impl::ExteriorDerivative,
+			integer_sequence<size_t, FACE>, TF const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==FACE,Real
-//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
-			>::type
+			double //decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -150,12 +147,11 @@ struct FiniteDiffMethod
 //			_impl::CodifferentialDerivative,
 //			_Field<TL...> const & f, compact_index_type s) const = delete;
 
-	template<typename ... TL> inline auto calculate(
-			_impl::CodifferentialDerivative, _Field<TL...> const & f,
+	template<typename TF>
+	inline auto calculate(_impl::CodifferentialDerivative,
+			integer_sequence<size_t, EDGE>, TF const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==EDGE,Real
-//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
-			>::type
+			double //decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -183,13 +179,11 @@ struct FiniteDiffMethod
 
 	}
 
-	template<typename ...TL>
+	template<typename TF>
 	inline auto calculate(_impl::CodifferentialDerivative,
-			_Field<TL...> const & f,
+			integer_sequence<size_t, FACE>, TF const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==FACE,Real
-//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
-			>::type
+			double //decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 	{
 		auto X = geo->delta_index(s);
 		auto Y = geo->roate(X);
@@ -210,12 +204,11 @@ struct FiniteDiffMethod
 		;
 	}
 
-	template<typename ...TL> inline auto calculate(
-			_impl::CodifferentialDerivative, _Field<TL...> const & f,
+	template<typename TF>
+	inline auto calculate(_impl::CodifferentialDerivative,
+			integer_sequence<size_t, VOLUME>, TF const & f,
 			compact_index_type s) const ->
-			typename std::enable_if<field_traits<_Field<TL...>>::iform==VOLUME,Real
-//			decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
-			>::type
+			double //decltype((get(f,s)-get(f,s))*std::declval<scalar_type>())
 	{
 		auto D = geo->delta_index(geo->dual(s));
 		return
@@ -792,22 +785,25 @@ struct FiniteDiffMethod
 //	}
 public:
 
-	template<typename TC, typename TD>
-	inline auto get(_Field<TC, TD> const& f, compact_index_type s) const
-	DECL_RET_TYPE ((f[s]))
+	template<typename TV>
+	auto get(TV const &f, compact_index_type const &s) const
+		DECL_RET_TYPE((get_value(f,s)))
 
 	template<typename TOP, typename TL>
-	auto get(_Field<Expression<TOP, TL> > const & f, compact_index_type s) const
-	DECL_RET_TYPE((calculate(f.op_,f.lhs,s)))
+	auto get(_Field<Expression<TOP, TL>> const &f,
+			compact_index_type const &s) const
+					DECL_RET_TYPE((calculate(f.op_,
+											integer_sequence<size_t, field_traits<TL>::iform>(),
+											f.lhs,s )))
 
 	template<typename TOP, typename TL, typename TR>
-	auto get(_Field<Expression<TOP, TL, TR> > const & f,
-			compact_index_type s) const
-			DECL_RET_TYPE((calculate(f.op_,f.lhs,f.rhs,s)))
-
-	template<typename T>
-	auto get(T const & v, compact_index_type s) const
-	DECL_RET_TYPE((get_value(v,s)))
+	auto get(_Field<Expression<TOP, TL, TR>> const &f,
+			compact_index_type const &s) const
+			DECL_RET_TYPE((calculate(f.op_,
+									integer_sequence<size_t,
+									field_traits<TL>::iform ,
+									field_traits<TR>::iform>(),
+									f.lhs,f.rhs,s )))
 };
 
 }
