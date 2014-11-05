@@ -11,10 +11,8 @@
 
 namespace simpla
 {
-class split_tag;
-template<typename ...> class _Field;
 
-template<typename TG, size_t IFORM>
+template<typename TG, size_t IFORM = 0>
 class Domain
 {
 
@@ -42,28 +40,45 @@ public:
 	typedef typename range_type::iterator iterator;
 
 public:
-	manifold_type const& manifold_;
+	std::shared_ptr<manifold_type> manifold_;
 	range_type range_;
-//private:
-//	Domain<TG, IFORM> const & parent_;
 
 public:
-	Domain(manifold_type const & g) :
-			range_(g.select(iform)), manifold_(g)/*, parent_(*this)*/
+	Domain() :
+			manifold_(nullptr)
+	{
+	}
+	Domain(std::shared_ptr<manifold_type> g) :
+			manifold_(g), range_(manifold_->template select<iform>())/*, parent_(*this)*/
 	{
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			range_(rhs.range_), manifold_(rhs.manifold_)/*, parent_(rhs.parent_) */
+			manifold_(rhs.manifold_), range_(rhs.range_)/*, parent_(rhs.parent_) */
 	{
 	}
-//	Domain(this_type& d, split_tag); // Split d into two sub-domains.
+	// Split d into two sub-domains.
+	Domain(this_type& d, split_tag) :
+			manifold_(d.manifold_), range_(d.range_, split_tag())
+	{
+	}
 
 	~Domain() = default; // Destructor.
 
+	bool is_valid() const
+	{
+		return manifold_ != nullptr;
+	}
+
+	void swap(this_type & that)
+	{
+		sp_swap(manifold_, that.manifold_);
+		sp_swap(range_, that.range_);
+	}
+
 	template<typename ...Args>
 	auto hash(Args && ...args) const
-	DECL_RET_TYPE((range_. hash(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((range_.hash(std::forward<Args>(args)...)))
 
 	auto max_hash() const
 	DECL_RET_TYPE((range_.max_hash()))
@@ -74,23 +89,26 @@ public:
 	auto end() const
 	DECL_RET_TYPE((range_.end()))
 
-	auto rbegin() const
-	DECL_RET_TYPE((range_.rbegin()))
+//	auto rbegin() const
+//	DECL_RET_TYPE((range_.rbegin()))
+//
+//	auto rend() const
+//	DECL_RET_TYPE((range_.rend()))
 
-	auto rend() const
-	DECL_RET_TYPE((range_.rend()))
-
-	void swap(this_type& rhs);
-
-	manifold_type const & manifold() const
+	std::shared_ptr<manifold_type> manifold() const
 	{
 		return manifold_;
+	}
+
+	void manifold(std::shared_ptr<manifold_type> m)
+	{
+		manifold_ = m;
 	}
 
 	// True if domain can be partitioned into two sub-domains.
 	bool is_divisible() const
 	{
-		return false;
+		return range_.is_divisible();
 	}
 
 //	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
@@ -111,69 +129,48 @@ public:
 //
 //	std::tuple<coordinates_type, coordinates_type> boundbox() const // boundbox on _this_ coordinates system
 //	{
-//		return manifold_.geometry_type::boundbox<iform>(range_);
+//		return manifold_->geometry_type::boundbox<iform>(range_);
 //	}
 //	std::tuple<nTuple<Real, 3>, nTuple<Real, 3>> cartesian_boundbox() const // boundbox on   _Cartesian_ coordinates system
 //	{
-//		return manifold_.geometry_type::cartesian_boundbox<iform>(range_);
+//		return manifold_->geometry_type::cartesian_boundbox<iform>(range_);
 //	}
 
 	auto dataset_shape() const
-	DECL_RET_TYPE(( manifold_.get_dataset_shape( *this )))
+	DECL_RET_TYPE(( manifold_->dataset_shape( *this )))
 	template<typename ...Args>
 	auto dataset_shape(Args &&... args) const
 	DECL_RET_TYPE((
-					manifold_.get_dataset_shape(
+					manifold_->dataset_shape(
 							*this,std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const
-	DECL_RET_TYPE((manifold_.coordinates(std::forward<Args>(args)...)))
-
-
-	template<typename ...Args>
-	auto get(Args && ...args) const
-	DECL_RET_TYPE((manifold_.get(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((manifold_->coordinates(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto calculate(Args && ...args) const
-	DECL_RET_TYPE((manifold_.calculate(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((manifold_->calculate(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto sample(Args && ... args)
-	DECL_RET_TYPE((manifold_.sample(
+	DECL_RET_TYPE((manifold_->sample(
 							std::integral_constant<size_t, iform>(),
 							std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto gather(Args && ...args) const
-	DECL_RET_TYPE((manifold_.gather(std::forward<Args>(args)...)))
+	DECL_RET_TYPE((manifold_->gather(std::forward<Args>(args)...)))
 
 	template<typename ...Args>
 	auto scatter(Args && ...args) const
-	DECL_RET_TYPE((manifold_.scatter(std::forward<Args>(args)...)))
-
-public:
-	template<typename TL, typename TR>
-	void assign(TL & lhs, TR const & rhs) const
-	{
-		parallel_for(get_domain(lhs) & get_domain(rhs),
-
-		[& ](this_type const &r)
-		{
-			for(auto const & s:r)
-			{
-				lhs[s]= manifold_.get_value( rhs,s );
-			}
-		});
-
-	}
+	DECL_RET_TYPE((manifold_->scatter(std::forward<Args>(args)...)))
 
 }
 ;
 
 template<size_t IFORM, typename TM>
-Domain<TM, IFORM> make_domain(TM const & m)
+Domain<TM, IFORM> make_domain(std::shared_ptr<TM> const & m)
 {
 	return std::move(Domain<TM, IFORM>(m));
 }

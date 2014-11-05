@@ -7,7 +7,6 @@
 
 #include "../utilities/ntuple.h"
 #include "../manifold/manifold.h"
-
 #include "../manifold/geometry/cartesian.h"
 #include "../manifold/topology/structured.h"
 #include "../manifold/diff_scheme/fdm.h"
@@ -44,7 +43,7 @@ nTuple<Real, 3>( { 1.0, 2.0, 1.0 }) //
 
 testing::Values(
 
-nTuple<size_t, 3>( { 40, 1, 1 }) //
+nTuple<size_t, 3>( { 40, 12, 10 }) //
 		, nTuple<size_t, 3>( { 100, 1, 1 }) //
 		, nTuple<size_t, 3>( { 1, 100, 1 }) //
 		, nTuple<size_t, 3>( { 1, 1, 100 }) //

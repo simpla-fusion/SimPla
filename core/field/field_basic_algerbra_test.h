@@ -21,9 +21,6 @@ protected:
 	virtual void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
-
-		domain.dimensions(12, 20);
-
 	}
 public:
 

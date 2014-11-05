@@ -7,16 +7,23 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
-#include "../manifold/dummy_manifold.h"
-#include "../manifold/domain.h"
+
+#include "../manifold/manifold.h"
+#include "../manifold/geometry/cartesian.h"
+#include "../manifold/topology/structured.h"
+#include "../manifold/diff_scheme/fdm.h"
+#include "../manifold/interpolator/interpolator.h"
 #include "field.h"
 #include "field_basic_algerbra_test.h"
 
 using namespace simpla;
 
+typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+		FiniteDiffMethod, InterpolatorLinear> manifold_type;
+
 typedef testing::Types< //
 
-		Field<double, Domain<DummyManifold> > //
+		Field<double, Domain<manifold_type, VERTEX>> //
 //		, Field<nTuple<double, 3>, DomainDummy<>> //
 
 // 	,TestFIELDParam1<VERTEX, Real>

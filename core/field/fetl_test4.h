@@ -18,7 +18,7 @@ using namespace simpla;
 TEST_P(TestFETL ,vec_zero_form)
 {
 
-	if (!mesh.is_valid()) return;
+	if (!manifold.is_valid()) return;
 
 	nTuple<3, scalar_type> vc1 = { 1.0, 2.0, 3.0 };
 
@@ -27,12 +27,12 @@ TEST_P(TestFETL ,vec_zero_form)
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
-	auto res_scalar_field = mesh.make_field<VERTEX, scalar_type>();
+	auto res_scalar_field = manifold.make_field<VERTEX, scalar_type>();
 
-	auto vaf = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
-	auto vbf = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto vaf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto vbf = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
 
-	auto res_vector_field = mesh.make_field<VERTEX, nTuple<3, scalar_type> >();
+	auto res_vector_field = manifold.make_field<VERTEX, nTuple<3, scalar_type> >();
 
 	vaf.clear();
 	vbf.clear();
@@ -50,7 +50,7 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	LOG_CMD(res_vector_field = Cross(vaf, vbf));
 
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
 		ASSERT_EQ(Cross(vaf[s], vbf[s]), res_vector_field[s]);
 
@@ -58,7 +58,7 @@ TEST_P(TestFETL ,vec_zero_form)
 
 	LOG_CMD(res_scalar_field = Dot(vaf, vbf));
 
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
 		ASSERT_EQ(InnerProductNTuple(vaf[s], vbf[s]), res_scalar_field[s]);
 	}

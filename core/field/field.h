@@ -25,30 +25,6 @@ namespace simpla
  *  \brief Field concept
  */
 template<typename ... >struct _Field;
-template<typename ... >struct Expression;
-
-template<typename TG, size_t IFORM> class Domain;
-
-//template<typename ...T, typename TI>
-//auto get_value(_Field<T...> const & f,
-//		TI const &s)->typename field_traits<_Field<T...>>::value_type const&
-//{
-//	return f[s];
-//}
-//
-//template<typename ...T, typename TI>
-//auto get_value(_Field<T...> & f,
-//		TI const &s)->typename field_traits<_Field<T...>>::value_type const&
-//{
-//	return f[s];
-//}
-//
-//template<typename ...T, typename TI>
-//auto get_value(_Field<Expression<T...>> const & f,
-//		TI const &s)->typename field_traits<_Field<Expression<T...>>>::value_type
-//{
-//	return f[s];
-//}
 
 /**
  *
@@ -194,7 +170,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.get(that, s);
+			(*this)[s]= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -207,7 +183,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] +=domain_.get(that, s);
+			(*this)[s] +=domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -220,7 +196,7 @@ public:
 		allocate();
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] -= domain_.get(that, s);
+			(*this)[s] -= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -233,7 +209,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] *= domain_.get(that, s);
+			(*this)[s] *= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -246,7 +222,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s] /= domain_.get(that, s);
+			(*this)[s] /= domain_.calculate(that, s);
 		});
 
 		return (*this);
@@ -301,15 +277,6 @@ public:
 				std::forward<Args>(args)...);
 	}
 
-//	auto dataset() const
-//			DECL_RET_TYPE(std::move(
-//							std::tuple_cat(std::make_tuple(data_.get(), DataType::create<value_type>())
-//									,domain_.dataset()))
-//			)
-
-//	auto dataset_shape() const
-//	DECL_RET_TYPE(( domain_.dataset_shape()))
-
 	template<typename ...Args>
 	auto dataset_shape(Args &&... args) const
 	DECL_RET_TYPE(( domain_. dataset_shape( std::forward<Args>(args)...)))
@@ -317,6 +284,16 @@ public:
 }
 ;
 
+namespace _impl
+{
+
+template<typename TC, typename TD>
+struct reference_traits<_Field<TC, TD> >
+{
+	typedef _Field<TC, TD> const & type;
+};
+
+} //namespace _impl
 template<typename TV, typename TDomain> using Field= _Field< std::shared_ptr<TV>,TDomain >;
 
 template<typename > struct is_field
@@ -329,36 +306,20 @@ template<typename ...T> struct is_field<_Field<T...>>
 	static constexpr bool value = true;
 };
 
+template<typename ... >struct Expression;
+
 template<typename ...> struct field_traits;
 
 template<typename TC, typename TD, typename ...Others>
 struct field_traits<_Field<TC, TD, Others...>>
 {
-	typedef _Field<TC, TD, Others...> field_type;
-
 	static constexpr size_t ndims = TD::ndims;
 
 	static constexpr size_t iform = TD::iform;
-
-	typedef typename container_traits<TC>::value_type value_type;
-
-	typedef typename std::conditional<iform == VERTEX || iform == VOLUME,
-			value_type, nTuple<value_type, 3>>::type field_value_type;
-
-	typedef TD domain_type;
-
-	typedef typename domain_type::manifold_type manifold_type;
-
-//	static auto get_domain(field_type const &f)
-//	DECL_RET_TYPE((f.domain()))
-
-	static auto data(field_type & f)
-	DECL_RET_TYPE((f.data()))
 };
 
 /// \defgroup   Field Expression
 /// @{
-template<typename ... >struct Expression;
 
 template<typename ...> struct field_traits
 {
@@ -369,22 +330,9 @@ template<typename TOP, typename TL>
 struct field_traits<_Field<Expression<TOP, TL> >>
 {
 
-	typedef typename field_traits<TL>::domain_type domain_type;
+	static constexpr size_t ndims = field_traits<TL>::ndims;
 
-	typedef typename domain_type::manifold_type manifold_type;
-
-	static constexpr size_t ndims = domain_type::ndims;
-
-	static constexpr size_t iform = domain_type::iform;
-
-//	static auto get_domain(TL const &f)
-//	DECL_RET_TYPE((field_traits<TL>::get_domain(f)))
-//
-//	typedef _Field<Expression<TOP, TL> > field_type;
-//	static domain_type get_domain(field_type const &f)
-//	{
-//		return std::move(field_traits<TL>::get_domain(f.lhs));
-//	}
+	static constexpr size_t iform = field_traits<TL>::iform;
 
 };
 
@@ -392,74 +340,29 @@ template<typename TOP, typename TL, typename TR>
 struct field_traits<_Field<Expression<TOP, TL, TR> >>
 {
 
-	typedef typename field_traits<TL>::domain_type l_domain_type;
+	typedef typename std::conditional<is_field<TL>::value, field_traits<TL>,
+			field_traits<TR>>::type traits_type;
 
-	typedef typename field_traits<TR>::domain_type r_domain_type;
+	static constexpr size_t ndims = traits_type::ndims;
 
-	typedef typename std::conditional<is_field<TL>::value, l_domain_type,
-			r_domain_type>::type domain_type;
+	static constexpr size_t iform = traits_type::iform;
 
-	typedef typename domain_type::manifold_type manifold_type;
-
-	static constexpr size_t ndims = domain_type::ndims;
-
-	static constexpr size_t iform = domain_type::iform;
-
-//	static domain_type get_domain(TL const &f, TR const &)
-//	{
-//		return std::move(field_traits<TL>::get_domain(f));
-//	}
-////	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
-//
-//	typedef _Field<Expression<TOP, TL, TR> > field_type;
-//	static domain_type get_domain(field_type const &f)
-//	{
-//		return std::move(field_traits<TL>::get_domain(f.lhs));
-//	}
 };
 // FIXME just a temporary path, need fix
 template<typename TOP, typename TR>
 struct field_traits<_Field<Expression<TOP, double, TR> >>
 {
 
-	typedef typename field_traits<TR>::domain_type domain_type;
+	static constexpr size_t ndims = field_traits<TR>::ndims;
 
-	typedef typename domain_type::manifold_type manifold_type;
+	static constexpr size_t iform = field_traits<TR>::iform;
 
-	static constexpr size_t ndims = domain_type::ndims;
-
-	static constexpr size_t iform = domain_type::iform;
-
-//	static domain_type get_domain(double const &, TR const & f)
-//	{
-//		return std::move(field_traits<TR>::get_domain(f));
-//	}
-////	DECL_RET_TYPE((field_traits<TL>::get_domain(f )))
-//
-//	typedef _Field<Expression<TOP, double, TR> > field_type;
-//	static domain_type get_domain(field_type const &f)
-//	{
-//		return std::move(field_traits<TR>::get_domain(f.rhs));
-//	}
 };
-
-namespace _impl
-{
-
-template<typename TC, typename TD>
-struct reference_traits<_Field<TC, TD> >
-{
-	typedef _Field<TC, TD> const & type;
-};
-
-} //namespace _impl
 
 template<typename TOP, typename ...TL>
 struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
 {
 	typedef _Field<Expression<TOP, TL...>> this_type;
-
-	typedef typename field_traits<this_type>::domain_type domain_type;
 
 	using Expression<TOP, TL...>::Expression;
 
@@ -472,57 +375,6 @@ struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
 
 };
 
-//#define _SP_DEFINE__Field_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_NAME_)                                                  \
-//	template<typename ...T1,typename  T2> _Field<Expression<_impl::_NAME_,_Field<T1...>,T2>> \
-//	operator _OP_(_Field<T1...> && l,T2 &&r)  \
-//	{return std::move(_Field<Expression<_impl::_NAME_,_Field<T1...>,T2>>(std::forward<_Field<T1...>>(l),std::forward<T2>(r)));}                  \
-//
-//
-//#define _SP_DEFINE__Field_EXPR_BINARY_OPERATOR(_OP_,_NAME_)                                                  \
-//	template<typename ...T1,typename  T2> \
-//	_Field<Expression<_impl::_NAME_,_Field<T1...>,T2>>\
-//	operator _OP_(_Field<T1...> && l,T2 &&r)  \
-//	{return std::move(_Field<Expression<_impl::_NAME_,_Field<T1...>,T2>>(std::forward<_Field<T1...>>(l),std::forward<T2>(r)));}                  \
-//	template< typename T1,typename ...T2> \
-//	_Field<Expression< _impl::_NAME_,T1,_Field< T2...>>> \
-//	operator _OP_(T1 && l, _Field< T2...> &&r)                    \
-//	{return std::move(_Field<Expression< _impl::_NAME_,T1,_Field< T2...>>>(std::forward<T1>(l),std::forward<_Field<T2...>>(r)));}                  \
-//	template< typename ... T1,typename ...T2> \
-//	_Field<Expression< _impl::_NAME_,_Field< T1...>,_Field< T2...>>>\
-//	operator _OP_(_Field< T1...> && l,_Field< T2...>  &&r)                    \
-//	{return  (_Field<Expression< _impl::_NAME_,_Field< T1...>,_Field< T2...>>>(std::forward<_Field<T1...>>(l),std::forward<_Field<T2...>>(r)));}                  \
-//
-//
-//#define _SP_DEFINE__Field_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
-//		template<typename ...T> \
-//		_Field<Expression<_impl::_NAME_,_Field<T...> >> \
-//		operator _OP_(_Field<T...> &&l)  \
-//		{return (_Field<Expression<_impl::_NAME_,_Field<T...> >>(l));}   \
-//
-//#define _SP_DEFINE__Field_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
-//			template<typename ...T1,typename  T2> \
-//			_Field<Expression<_impl::_##_NAME_,_Field<T1...>,T2>> \
-//			_NAME_(_Field<T1...> && l,T2 &&r)  \
-//			{return std::move(_Field<Expression<_impl::_##_NAME_,_Field<T1...>,T2>>(std::forward<_Field<T1...>>(l),std::forward<T2>(r)));}                  \
-//			template< typename T1,typename ...T2> \
-//			_Field<Expression< _impl::_##_NAME_,T1,_Field< T2...>>> \
-//			_NAME_(T1 && l, _Field< T2...>&&r)                    \
-//			{return std::move(_Field<Expression< _impl::_##_NAME_,T1,_Field< T2...>>>(std::forward<T1>(l),std::forward<_Field<T2...>>(l)));}                  \
-//			template< typename ... T1,typename ...T2> \
-//			_Field<Expression< _impl::_##_NAME_,_Field< T1...>,_Field< T2...>>> \
-//			_NAME_(_Field< T1...> && l,_Field< T2...>  &&r)                    \
-//			{return std::move(_Field<Expression< _impl::_##_NAME_,_Field< T1...>,_Field< T2...>>>(std::forward<_Field<T1...>>(l),std::forward<_Field<T2...>>(r)));}                  \
-//
-//
-//#define _SP_DEFINE__Field_EXPR_UNARY_FUNCTION( _NAME_ )                           \
-//		template<typename ...T1> \
-//		_Field<Expression<_impl::_##_NAME_,_Field<T1 ...>>> \
-//		_NAME_(_Field<T1 ...> &&r)  \
-//		{return std::move(_Field<Expression<_impl::_##_NAME_,_Field<T1 ...>>>(std::forward<_Field<T1 ...>>(r)));}   \
-//
-//
-//DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(_Field)
-
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
 
 template<typename TV, typename ... Others>
@@ -530,6 +382,9 @@ auto make_field(Others && ...others)
 DECL_RET_TYPE((_Field<std::shared_ptr<TV>,
 				typename std::remove_reference<Others>::type...>(
 						std::forward<Others>(others)...)))
+
+template<typename, size_t> class Domain;
+
 template<typename TV, size_t IFORM, typename TM, typename ... Others>
 auto make_form(TM const &manifold,
 		Others && ...others)

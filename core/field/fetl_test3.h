@@ -11,7 +11,6 @@
 #include <gtest/gtest.h>
 #include <tuple>
 
-
 #include "../utilities/log.h"
 
 #include "../manifold/manifold.h"
@@ -24,7 +23,6 @@ using namespace simpla;
 
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMehtod, InterpolatorLinear> TManifold;
-
 
 typedef nTuple<3, Real> coordiantes_type;
 
@@ -59,10 +57,10 @@ protected:
 			}
 		}
 
-		mesh.dimensions(dims);
-		mesh.extents(xmin, xmax);
+		manifold.dimensions(dims);
+		manifold.extents(xmin, xmax);
 
-		mesh.update();
+		manifold.update();
 
 	}
 public:
@@ -73,7 +71,7 @@ public:
 	typedef typename manifold_type::iterator iterator;
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
-	manifold_type mesh;
+	manifold_type manifold;
 
 	static constexpr unsigned int NDIMS = manifold_type::NDIMS;
 
@@ -103,7 +101,7 @@ public:
 	}
 
 	template<unsigned int N, typename T>
-	void SetDefaultValue(nTuple<T,N>* v)
+	void SetDefaultValue(nTuple<T, N>* v)
 	{
 		for (int i = 0; i < N; ++i)
 		{
@@ -116,18 +114,12 @@ public:
 
 	}
 
-	template<unsigned int IFORM, typename TV>
-	Field<Domain<manifold_type, IFORM>, TV> make_field() const
-	{
-		return std::move(Field<Domain<manifold_type, IFORM>, TV>(mesh));
-	}
-
 };
 
 TEST_P(TestFETL, grad0)
 {
 
-	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.dx()), 2.0));
 
 	auto f0 = make_field<VERTEX, scalar_type>();
 	auto f1 = make_field<EDGE, scalar_type>();
@@ -137,9 +129,9 @@ TEST_P(TestFETL, grad0)
 	f1.clear();
 	f1b.clear();
 
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
-		f0[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f0[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&f0);
 
@@ -150,19 +142,19 @@ TEST_P(TestFETL, grad0)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
-		unsigned int n = mesh.component_number(s);
+		unsigned int n = manifold.component_number(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
 				+ K_imag[n] * std::sin(dot(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical"
+		if (manifold.get_type_as_string() == "Cylindrical"
 				&& n == (manifold_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.coordinates(s);
+			auto r = manifold.coordinates(s);
 			expect /= r[(manifold_type::ZAxis + 2) % 3];
 		}
 
@@ -195,17 +187,17 @@ TEST_P(TestFETL, grad0)
 //	LOGGER << SAVE(f0);
 //	LOGGER << SAVE(f1);
 //	LOGGER << SAVE(f1b);
-	variance /= mesh.get_num_of_elements(EDGE);
-	average /= mesh.get_num_of_elements(EDGE);
+	variance /= manifold.get_num_of_elements(EDGE);
+	average /= manifold.get_num_of_elements(EDGE);
 	ASSERT_LE(std::sqrt(variance), error);
 	ASSERT_LE(std::abs(average), error);
 }
 
 TEST_P(TestFETL, grad3)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.dx()), 2.0));
 
 	auto f2 = make_field<FACE, scalar_type>();
 	auto f2b = make_field<FACE, scalar_type>();
@@ -215,9 +207,9 @@ TEST_P(TestFETL, grad3)
 	f2.clear();
 	f2b.clear();
 
-	for (auto s : mesh.select(VOLUME))
+	for (auto s : manifold.select(VOLUME))
 	{
-		f3[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f3[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&f3);
 	LOG_CMD(f2 = grad(f3));
@@ -227,20 +219,20 @@ TEST_P(TestFETL, grad3)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
 
-		unsigned int n = mesh.component_number(s);
+		unsigned int n = manifold.component_number(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		scalar_type expect = K_real[n] * std::cos(dot(K_real, x))
 				+ K_imag[n] * std::sin(dot(K_real, x));
 
-		if (mesh.get_type_as_string() == "Cylindrical"
+		if (manifold.get_type_as_string() == "Cylindrical"
 				&& n == (manifold_type::ZAxis + 1) % 3)
 		{
-			auto r = mesh.coordinates(s);
+			auto r = manifold.coordinates(s);
 			expect /= r[(manifold_type::ZAxis + 2) % 3];
 		}
 
@@ -278,9 +270,9 @@ TEST_P(TestFETL, grad3)
 
 TEST_P(TestFETL, diverge1)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto f1 = make_field<EDGE, scalar_type>();
 	auto f0 = make_field<VERTEX, scalar_type>();
@@ -289,9 +281,9 @@ TEST_P(TestFETL, diverge1)
 	f0b.clear();
 	f1.clear();
 
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
-		f1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f1[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&f1);
 	f0 = diverge(f1);
@@ -300,17 +292,17 @@ TEST_P(TestFETL, diverge1)
 
 	scalar_type average = 0.0;
 
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
 
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		Real cos_v = std::cos(dot(K_real, x));
 		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (manifold.get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -364,16 +356,16 @@ TEST_P(TestFETL, diverge1)
 
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
-			<< K_imag << " mesh.Ki=" << mesh.k_imag;
+			<< K_imag << " mesh.Ki=" << manifold.k_imag;
 
 }
 
 TEST_P(TestFETL, diverge2)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
 
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto f2 = make_field<FACE, scalar_type>();
 	auto f3 = make_field<VOLUME, scalar_type>();
@@ -381,9 +373,9 @@ TEST_P(TestFETL, diverge2)
 	f3.clear();
 	f2.clear();
 
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
-		f2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		f2[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&f2);
 	f3 = diverge(f2);
@@ -391,16 +383,16 @@ TEST_P(TestFETL, diverge2)
 	Real variance = 0;
 	scalar_type average = 0.0;
 
-	for (auto s : mesh.select(VOLUME))
+	for (auto s : manifold.select(VOLUME))
 	{
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		Real cos_v = std::cos(dot(K_real, x));
 		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (manifold.get_type_as_string() == "Cylindrical")
 		{
 
 			expect =
@@ -421,7 +413,7 @@ TEST_P(TestFETL, diverge2)
 							K_imag[(manifold_type::ZAxis + 3) % 3] //  k_z
 					) * sin_v;
 
-			expect += std::sin(dot(K_real, mesh.coordinates(s)))
+			expect += std::sin(dot(K_real, manifold.coordinates(s)))
 					/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 		}
 		else
@@ -449,9 +441,9 @@ TEST_P(TestFETL, diverge2)
 
 TEST_P(TestFETL, curl1)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto vf1 = make_field<EDGE, scalar_type>();
 	auto vf1b = make_field<EDGE, scalar_type>();
@@ -468,25 +460,25 @@ TEST_P(TestFETL, curl1)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
-		vf1[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		vf1[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&vf1);
 	LOG_CMD(vf2 = curl(vf1));
 
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
-		auto n = mesh.component_number(s);
+		auto n = manifold.component_number(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		Real cos_v = std::cos(dot(K_real, x));
 		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (manifold.get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
@@ -515,7 +507,7 @@ TEST_P(TestFETL, curl1)
 								- K_imag[(manifold_type::ZAxis + 2) % 3])
 								* sin_v;
 
-				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+				expect -= std::sin(dot(K_real, manifold.coordinates(s)))
 						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -557,9 +549,9 @@ TEST_P(TestFETL, curl1)
 
 TEST_P(TestFETL, curl2)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto vf1 = make_field<EDGE, scalar_type>();
 	auto vf1b = make_field<EDGE, scalar_type>();
@@ -576,28 +568,28 @@ TEST_P(TestFETL, curl2)
 	scalar_type average;
 	average *= 0.0;
 
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
-		vf2[s] = std::sin(dot(K_real, mesh.coordinates(s)));
+		vf2[s] = std::sin(dot(K_real, manifold.coordinates(s)));
 	};
 	update_ghosts(&vf2);
 	LOG_CMD(vf1 = curl(vf2));
 
 	vf1b.clear();
 
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
 
-		auto n = mesh.component_number(s);
+		auto n = manifold.component_number(s);
 
-		auto x = mesh.coordinates(s);
+		auto x = manifold.coordinates(s);
 
 		Real cos_v = std::cos(dot(K_real, x));
 		Real sin_v = std::sin(dot(K_real, x));
 
 		scalar_type expect;
 
-		if (mesh.get_type_as_string() == "Cylindrical")
+		if (manifold.get_type_as_string() == "Cylindrical")
 		{
 			switch (n)
 			{
@@ -626,7 +618,7 @@ TEST_P(TestFETL, curl2)
 								- K_imag[(manifold_type::ZAxis + 2) % 3])
 								* sin_v;
 
-				expect -= std::sin(dot(K_real, mesh.coordinates(s)))
+				expect -= std::sin(dot(K_real, manifold.coordinates(s)))
 						/ x[(manifold_type::ZAxis + 2) % 3]; //A_r
 				break;
 
@@ -667,9 +659,9 @@ TEST_P(TestFETL, curl2)
 
 TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto f0 = make_field<VERTEX, scalar_type>();
 	auto f1 = make_field<EDGE, scalar_type>();
@@ -681,7 +673,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 	Real m = 0.0;
 	f0.clear();
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
 
 		auto a = uniform_dist(gen);
@@ -699,7 +691,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
 
 		variance_a += abs(f2a[s]);
@@ -716,9 +708,9 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto f3 = make_field<VOLUME, scalar_type>();
 	auto f1a = make_field<EDGE, scalar_type>();
@@ -731,7 +723,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 	f3.clear();
 
-	for (auto s : mesh.select(VOLUME))
+	for (auto s : manifold.select(VOLUME))
 	{
 		auto a = uniform_dist(gen);
 		f3[s] = a * default_value;
@@ -747,7 +739,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
 
 //		ASSERT_EQ((f1a[s]), (f1b[s]));
@@ -764,9 +756,9 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 
 TEST_P(TestFETL, identity_div_curl_f1_eq0)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
-	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
+	Real error = abs(std::pow(dot(K_real, manifold.get_dx()), 2.0));
 
 	auto f1 = make_field<EDGE, scalar_type>();
 	auto f2 = make_field<FACE, scalar_type>();
@@ -780,7 +772,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.select(FACE))
+	for (auto s : manifold.select(FACE))
 	{
 		auto a = uniform_dist(gen);
 
@@ -801,7 +793,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	size_t count = 0;
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.select(VERTEX))
+	for (auto s : manifold.select(VERTEX))
 	{
 		variance_b += abs(f0b[s] * f0b[s]);
 		variance_a += abs(f0a[s] * f0a[s]);
@@ -816,7 +808,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 TEST_P(TestFETL, identity_div_curl_f2_eq0)
 {
-	if (!mesh.is_valid())
+	if (!manifold.is_valid())
 		return;
 //	Real error = abs(std::pow(dot(K_real, mesh.get_dx()), 2.0));
 
@@ -832,7 +824,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 	Real m = 0.0;
 
-	for (auto s : mesh.select(EDGE))
+	for (auto s : manifold.select(EDGE))
 	{
 		auto a = uniform_dist(gen);
 		f1[s] = default_value * a;
@@ -852,7 +844,7 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 
 	Real variance_a = 0;
 	Real variance_b = 0;
-	for (auto s : mesh.select(VOLUME))
+	for (auto s : manifold.select(VOLUME))
 	{
 
 //		ASSERT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));

@@ -52,11 +52,9 @@ struct StructuredMesh
 	typedef unsigned long compact_index_type;
 	typedef nTuple<Real, ndims> coordinates_type;
 	typedef nTuple<size_t, ndims> index_tuple;
-
 private:
 	bool is_valid_ = false;
 public:
-
 
 	//***************************************************************************************************
 
@@ -546,7 +544,7 @@ public:
 				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
 	}
 
-	int get_dataset_shape(int IFORM, size_t * global_begin = nullptr,
+	int dataset_shape(int IFORM, size_t * global_begin = nullptr,
 			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
 			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
 					nullptr, size_t * local_inner_end = nullptr) const
@@ -606,7 +604,7 @@ public:
 	}
 
 	template<typename TR>
-	int get_dataset_shape(TR const& range, size_t * global_begin = nullptr,
+	int dataset_shape(TR const& range, size_t * global_begin = nullptr,
 			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
 			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
 					nullptr, size_t * local_inner_end = nullptr) const
@@ -1495,12 +1493,15 @@ private:
 
 	}
 public:
-	range_type select(size_t iform) const
+
+	template<size_t IFORM>
+	range_type select() const
 	{
 		return (range_type(*this, local_inner_begin_, local_inner_end_,
-				get_first_node_shift(iform)));
+				get_first_node_shift(IFORM)));
 	}
 
+	template<size_t IFORM>
 	range_type select(range_type range) const
 	{
 		return std::move(range);
@@ -1514,14 +1515,14 @@ public:
 	 * @param e
 	 * @return
 	 */
-	auto select(range_type r, index_tuple const & b,
-			index_tuple const &e) const
-					DECL_RET_TYPE(select_rectangle_( IForm(*begin(r)) ,begin(r).self_,end(r).self_, b, e))
+	template<size_t IFORM>
+	auto select(range_type r, index_tuple const & b, index_tuple const &e) const
+	DECL_RET_TYPE(select_rectangle_( IFORM,begin(r).self_,end(r).self_, b, e))
 
 	/**
 	 *
 	 */
-
+	template<size_t IFORM>
 	range_type select(range_type range, coordinates_type const & xmin,
 			coordinates_type const &xmax) const
 	{
@@ -1535,9 +1536,9 @@ public:
 //					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmin, get_first_node_shift(IForm(*std::get<0>(range))))))),
 //					to_cell_index(decompact(std::get<0>(coordinates_global_to_local( xmax, get_first_node_shift(IForm(*std::get<0>(range)))))))+1
 //			))
-
+	template<size_t IFORM>
 	auto select(range_type range1, range_type range2) const
-	DECL_RET_TYPE(select_rectangle_(IForm(*begin(range1)),
+	DECL_RET_TYPE(select_rectangle_(IFORM,
 					range1.begin().self_, end(range1).self_,	//
 			begin(range2).self_, end(range2).self_//
 	))
@@ -1545,12 +1546,12 @@ public:
 //	template<typename ...Args>
 //	auto select(size_t iform, Args &&... args) const
 //	DECL_RET_TYPE (this_type::select(this_type::select(iform),std::forward<Args>(args)...))
-
-	range_type select_outer(size_t iform) const
+	template<size_t IFORM>
+	range_type select_outer() const
 	{
 		return std::move(
 				this_type::make_range(local_outer_begin_, local_outer_end_,
-						get_first_node_shift(iform)));
+						get_first_node_shift(IFORM)));
 	}
 
 	/**
@@ -1561,15 +1562,15 @@ public:
 	 * @param e
 	 * @return
 	 */
-	auto select_outer(size_t iform, index_tuple const & b,
-			index_tuple const &e) const
-			DECL_RET_TYPE (select_rectangle_(iform, b, e, local_outer_begin_,
-							local_outer_end_))
+	template<size_t IFORM>
+	auto select_outer(index_tuple const & b, index_tuple const &e) const
+	DECL_RET_TYPE (select_rectangle_(IFORM, b, e, local_outer_begin_,
+					local_outer_end_))
 
-	auto select_inner(size_t iform, index_tuple const & b,
-			index_tuple const & e) const
-			DECL_RET_TYPE (select_rectangle_(iform, b, e, local_inner_begin_,
-							local_inner_end_))
+	template<size_t IFORM>
+	auto select_inner(index_tuple const & b, index_tuple const & e) const
+	DECL_RET_TYPE (select_rectangle_(IFORM, b, e, local_inner_begin_,
+					local_inner_end_))
 
 	/**  @} */
 	/**
@@ -2338,7 +2339,8 @@ inline StructuredMesh::range_type split(
 
 	auto shift = ib.shift_;
 
-	decltype(b) count ; count = e - b;
+	decltype(b) count;
+	count = e - b;
 
 	int n = 0;
 	index_type L = 0;

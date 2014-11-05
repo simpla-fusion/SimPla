@@ -12,13 +12,9 @@
 #include <cstddef>
 
 #include "../utilities/log.h"
-
+#include "../utilities/range.h"
 namespace simpla
 {
-
-struct split_tag
-{
-};
 
 /**
  *   is compatible with TBB block_range  1D,2D,3D

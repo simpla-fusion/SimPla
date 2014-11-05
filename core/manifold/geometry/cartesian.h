@@ -15,9 +15,11 @@
 
 #include "../../physics/constants.h"
 #include "../../physics/physical_constants.h"
+#include "../../utilities/ntuple.h"
 #include "../../utilities/log.h"
 #include "../../utilities/primitives.h"
 #include "../../utilities/sp_type_traits.h"
+#include "../../utilities/range.h"
 
 namespace simpla
 {
@@ -41,12 +43,11 @@ public:
 	static constexpr size_t YAxis = (ZAXIS + 2) % 3;
 	static constexpr size_t ZAxis = ZAXIS;
 
-	typedef Real scalar_type;
-
 	typedef typename topology_type::coordinates_type coordinates_type;
 	typedef typename topology_type::index_type index_type;
 	typedef typename topology_type::compact_index_type compact_index_type;
 	typedef typename topology_type::iterator iterator;
+	typedef Real scalar_type;
 
 	CartesianCoordinates(this_type const & rhs) = delete;
 private:
@@ -421,17 +422,21 @@ public:
 		return std::move(std::make_tuple(x, v));
 	}
 
-	template<typename TR>
+	template<size_t IFORM, typename TR>
 	auto select(TR range, coordinates_type const & xmin,
 			coordinates_type const & xmax) const
-					DECL_RET_TYPE((topology_type::select(range, this->coordinates_to_topology(xmin),this->coordinates_to_topology(xmax))))
+			DECL_RET_TYPE((topology_type::template select<IFORM>(range,
+									this->coordinates_to_topology(xmin),
+									this->coordinates_to_topology(xmax))))
 
-	template<typename TR, typename ...Args>
+	template<size_t IFORM, typename TR, typename ...Args>
 	auto select(TR range, Args && ...args) const
-	DECL_RET_TYPE((topology_type::select(range,std::forward<Args >(args)...)))
+	DECL_RET_TYPE((topology_type::template select<IFORM>(
+							range,std::forward<Args >(args)...)))
 
-	auto select(size_t iform) const
-	DECL_RET_TYPE((this->topology_type::select(iform)))
+	template<size_t IFORM>
+	auto select() const
+	DECL_RET_TYPE((this->topology_type:: template select<IFORM>()))
 //***************************************************************************************************
 // Volume
 //***************************************************************************************************
