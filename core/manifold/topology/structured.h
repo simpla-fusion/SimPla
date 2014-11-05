@@ -63,6 +63,12 @@ public:
 	{
 	}
 
+	StructuredMesh(nTuple<size_t, ndims> const & d)
+	{
+		dimensions(d);
+		update();
+	}
+
 	virtual ~StructuredMesh()
 	{
 	}
@@ -155,8 +161,7 @@ public:
 	//
 	//  \endverbatim
 
-	template<typename TI>
-	void dimensions(TI const &d)
+	void dimensions(nTuple<size_t, ndims> const &d)
 	{
 
 		for (int i = 0; i < ndims; ++i)
@@ -274,13 +279,19 @@ public:
 		static constexpr size_t ARRAY_ORDER=FOTRAN_ORDER;
 #endif
 
-		mesh_type const & mesh; //FIXME should be shared_ptr
+		mesh_type const * mesh; //FIXME should be shared_ptr
 		index_tuple begin_, end_;
 		compact_index_type shift_;
 
+		range() :
+				mesh(nullptr)
+		{
+
+		}
+
 		range(mesh_type const & m, index_tuple const & b, index_tuple const& e,
 				compact_index_type shift) :
-				mesh(m), begin_(b), end_(e), shift_(shift)
+				mesh(&m), begin_(b), end_(e), shift_(shift)
 		{
 		}
 
@@ -295,11 +306,11 @@ public:
 
 		size_t max_hash() const
 		{
-			return mesh.max_hash(*this);
+			return mesh->max_hash(*this);
 		}
 		size_t hash(compact_index_type const & s) const
 		{
-			return mesh.hash(s);
+			return mesh->hash(s);
 		}
 	private:
 		void NextCell(iterator & it) const
@@ -2365,7 +2376,7 @@ inline StructuredMesh::range_type split(
 
 	}
 
-	return std::move(StructuredMesh::range_type(range.mesh, b, e, shift));
+	return std::move(StructuredMesh::range_type(*range.mesh, b, e, shift));
 }
 
 }

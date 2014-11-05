@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <algorithm>
 #include <memory>
+#include <type_traits>
 #include "../utilities/primitives.h"
 #include "../utilities/sp_type_traits.h"
 #include "../parallel/block_range.h"
@@ -155,6 +156,17 @@ public:
 	auto calculate(_Field<Expression<TOP, TL, TR> > const & f,
 			index_type s) const
 			DECL_RET_TYPE((calculate_(f.op_,f.lhs,f.rhs,s)))
+
+	template<typename TC, typename TD>
+	auto calculate(_Field<TC, TD> const & f, index_type s) const
+	DECL_RET_TYPE((f[s]))
+
+	template<typename T, size_t ...N>
+	nTuple<T, N...> const& calculate(nTuple<T, N...> const & v,
+			index_type s) const
+	{
+		return v;
+	}
 
 	template<typename T>
 	auto calculate(T const & v, index_type s) const

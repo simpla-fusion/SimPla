@@ -22,7 +22,7 @@ SET(CMAKE_CXX_FLAGS_RELEASE "  -DNDEBUG -O3  ")
 MESSAGE(STATUS "Using Compiler ${CMAKE_CXX_COMPILER_ID} ")
 
 if(${CMAKE_CXX_COMPILER_ID}  STREQUAL "Clang")
-  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11    -ftemplate-backtrace-limit=0   ")
+  SET(CMAKE_CXX_FLAGS "-fPIC -std=c++11  -fcolor-diagnostics   -ftemplate-backtrace-limit=0   ")
 
 #  SET(CMAKE_AR      "llvm-ar-3.5")
  # SET(CMAKE_LINKER  "llvm-ld-3.5")

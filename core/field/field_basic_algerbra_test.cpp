@@ -17,39 +17,13 @@ using namespace simpla;
 typedef testing::Types< //
 
 		Field<double, Domain<DummyManifold> > //
-//		, Field<nTuple<double, 3>, DomainDummy<>> //
-
-// 	,TestFIELDParam1<VERTEX, Real>
-//		, TestFIELDParam1<EDGE, Real>	//
-//		, TestFIELDParam1<FACE, Real>	//
-//		, TestFIELDParam1<VOLUME, Real>	//
-//
-//		, TestFIELDParam1<VERTEX, Complex>	//
-//		, TestFIELDParam1<EDGE, Complex>	//
-//		, TestFIELDParam1<FACE, Complex>	//
-//		, TestFIELDParam1<VOLUME, Complex>	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Real> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Real> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Complex> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
+		, Field<nTuple<double, 3>, Domain<DummyManifold>> //
+		, Field<nTuple<double, 3, 3>, Domain<DummyManifold>> //
+		, Field<nTuple<std::complex<double>, 3>, Domain<DummyManifold>> //
 
 > TypeParamList;
+template<typename TF> std::shared_ptr<typename TestField<TF>::manifold_type> //
+TestField<TF>::manifold = std::make_shared<DummyManifold>(10, 20);
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
 

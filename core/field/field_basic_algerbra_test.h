@@ -22,7 +22,7 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		domain_type(std::make_shared<manifold_type>(10, 20)).swap(domain);
+		domain_type(manifold).swap(domain);
 
 	}
 public:
@@ -36,7 +36,8 @@ public:
 
 	static constexpr size_t iform = field_traits<TField>::iform;
 
-	std::shared_ptr<manifold_type> manifold;
+	static std::shared_ptr<manifold_type> manifold;
+
 	domain_type domain;
 
 	value_type default_value;
@@ -67,7 +68,7 @@ TYPED_TEST_P(TestField, assign){
 
 	for(auto s : TestFixture::domain)
 	{
-		EXPECT_LE(abs( va- f1[s]),EPSILON);
+		EXPECT_LE(mod( va- f1[s]),EPSILON);
 	}
 }
 }
@@ -93,7 +94,7 @@ TYPED_TEST_P(TestField, index){
 
 	for(auto s : TestFixture::domain)
 	{
-		EXPECT_LE(abs( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
+		EXPECT_LE(mod( va* TestFixture::domain.hash(s)- f1[s]),EPSILON);
 	}
 }
 }
@@ -125,7 +126,7 @@ TYPED_TEST_P(TestField, constant_real){
 		value_type res;
 		res= -f1[s] *a + f2[s] *c -f1[s]/b-f1[s];
 
-		EXPECT_LE(abs( res- f3[s]),EPSILON)<<res<< " "<<f1[s];
+		EXPECT_LE(mod( res- f3[s]),EPSILON)<<res<< " "<<f1[s];
 	}
 }
 }
@@ -199,7 +200,7 @@ TYPED_TEST_P(TestField, scalar_field){
 	{
 		value_type res= - f1[s]*ra +f2[s]* rb -f3[s]/ rc -f1[s];
 
-		EXPECT_LE( abs(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
+		EXPECT_LE( mod(res-f4[s]) ,EPSILON )<< "s= "<<(TestFixture::domain.hash(s));
 	}
 
 	EXPECT_EQ(0,count)<< "number of error points =" << count;

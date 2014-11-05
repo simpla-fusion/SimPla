@@ -358,7 +358,6 @@ _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(<<, _CONCEPT_, shift_left)                
 _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(>>, _CONCEPT_, shift_right)                              \
 _SP_DEFINE_EXPR_BINARY_FUNCTION(atan2, _CONCEPT_)        								 \
 _SP_DEFINE_EXPR_BINARY_FUNCTION(pow, _CONCEPT_)          								 \
-_SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                                           \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(cos, _CONCEPT_)                                           \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(acos, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(cosh, _CONCEPT_)                                          \
@@ -379,7 +378,9 @@ _SP_DEFINE_EXPR_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                        
 _SP_DEFINE_EXPR_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
 _SP_DEFINE_EXPR_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
 _SP_DEFINE_EXPR_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)
+_SP_DEFINE_EXPR_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
+_SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                                           \
+
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(_CONCEPT_)                                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(+, plus)                                      \
@@ -399,7 +400,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(<<, shift_left)             
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(>>, shift_right)                              \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_FUNCTION(atan2 )        								 \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_FUNCTION(pow)          								 \
-_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                                           \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(cos)                                           \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(acos)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(cosh)                                          \
@@ -420,7 +420,8 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(==, equal_to)                     
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<, less)                                      \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>, greater)                                   \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<=, less_equal)                               \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>=, greater_equal)
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>=, greater_equal)                            \
+_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                                           \
 
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
 //#undef _SP_DEFINE_EXPR_UNARY_OPERATOR

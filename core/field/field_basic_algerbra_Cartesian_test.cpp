@@ -24,39 +24,31 @@ typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 typedef testing::Types< //
 
 		Field<double, Domain<manifold_type, VERTEX>> //
-//		, Field<nTuple<double, 3>, DomainDummy<>> //
-
-// 	,TestFIELDParam1<VERTEX, Real>
-//		, TestFIELDParam1<EDGE, Real>	//
-//		, TestFIELDParam1<FACE, Real>	//
-//		, TestFIELDParam1<VOLUME, Real>	//
-//
-//		, TestFIELDParam1<VERTEX, Complex>	//
-//		, TestFIELDParam1<EDGE, Complex>	//
-//		, TestFIELDParam1<FACE, Complex>	//
-//		, TestFIELDParam1<VOLUME, Complex>	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Real> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Real> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Real> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, Complex> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, Complex> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Real>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Real>> >	//
-//
-//		, TestFIELDParam1<VERTEX, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<EDGE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<FACE, nTuple<3, nTuple<3, Complex>> >	//
-//		, TestFIELDParam1<VOLUME, nTuple<3, nTuple<3, Complex>> >	//
+		, Field<double, Domain<manifold_type, EDGE>> //
+		, Field<double, Domain<manifold_type, FACE>> //
+		, Field<double, Domain<manifold_type, VOLUME>> //
 
 > TypeParamList;
+
+//#define DECLARE_STATIC_MANIFOLD( _VALUE_TYPE_,_IFORM_ )                            \
+//template<> std::shared_ptr<manifold_type>                                          \
+//TestField<Field<_VALUE_TYPE_, Domain<manifold_type, _IFORM_> >>::manifold =        \
+//		std::make_shared<manifold_type>(nTuple<Real, 3>( { 0.0, 0.0, 0.0 }),       \
+//				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), nTuple<size_t, 3>( { 40,      \
+//						12, 10 }));
+//
+//DECLARE_STATIC_MANIFOLD(double, VERTEX)
+//DECLARE_STATIC_MANIFOLD(double, EDGE)
+//DECLARE_STATIC_MANIFOLD(double, FACE)
+//DECLARE_STATIC_MANIFOLD(double, VOLUME)
+
+template<typename TF>
+std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::manifold = //
+		std::make_shared<manifold_type>( //
+				nTuple<Real, 3>( { 0.0, 0.0, 0.0 }), //
+				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), //
+				nTuple<size_t, 3>( { 40, 12, 10 }) //
+						);
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);
 

@@ -68,11 +68,19 @@ public:
 		shift_ = coordinates_type( { 0, 0, 0 });
 	}
 
+//	template<typename ... Args>
+//	CartesianCoordinates(Args && ... args)
+//	{
+//		load(std::forward<Args>(args)...);
+//	}
+
 	template<typename ... Args>
-	CartesianCoordinates(Args && ... args) :
+	CartesianCoordinates(coordinates_type const & x0,
+			coordinates_type const & x1, Args && ... args) :
 			topology_type(std::forward<Args>(args)...)
 	{
-		load(std::forward<Args>(args)...);
+		extents(x0, x1);
+		update();
 	}
 
 	~CartesianCoordinates()
@@ -234,7 +242,8 @@ public:
 
 	}
 
-	void extents(nTuple<Real, ndims> pmin, nTuple<Real, ndims> pmax)
+	void extents(nTuple<Real, ndims> const& pmin,
+			nTuple<Real, ndims> const& pmax)
 	{
 		xmin_ = pmin;
 		xmax_ = pmax;

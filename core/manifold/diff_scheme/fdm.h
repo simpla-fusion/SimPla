@@ -781,6 +781,13 @@ public:
 	auto calculate(TV const &f, compact_index_type const &s) const
 	DECL_RET_TYPE((get_value(f,s)))
 
+	template<typename T, size_t ...N>
+	nTuple<T, N...> const& calculate(nTuple<T, N...> const & v,
+			compact_index_type s) const
+	{
+		return v;
+	}
+
 	template<typename TOP, typename TL>
 	auto calculate(_Field<Expression<TOP, TL>> const &f,
 			compact_index_type const &s) const
