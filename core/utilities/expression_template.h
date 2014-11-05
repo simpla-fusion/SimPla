@@ -361,8 +361,6 @@ _SP_DEFINE_EXPR_BINARY_OPERATOR(^, _CONCEPT_, bitwise_xor)                      
 _SP_DEFINE_EXPR_BINARY_OPERATOR(&, _CONCEPT_, bitwise_and)                               \
 _SP_DEFINE_EXPR_BINARY_OPERATOR(|, _CONCEPT_, bitwise_or)                                \
 _SP_DEFINE_EXPR_UNARY_OPERATOR(~, _CONCEPT_, bitwise_not)                                \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(&&, _CONCEPT_, logical_and)                              \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(||, _CONCEPT_, logical_or)                               \
 _SP_DEFINE_EXPR_UNARY_OPERATOR(+, _CONCEPT_, unary_plus)                                 \
 _SP_DEFINE_EXPR_UNARY_OPERATOR(-, _CONCEPT_, negate)                                     \
 _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(<<, _CONCEPT_, shift_left)                               \
@@ -384,12 +382,15 @@ _SP_DEFINE_EXPR_UNARY_FUNCTION(log10, _CONCEPT_)                                
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(real, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(imag, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                                 \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
-_SP_DEFINE_EXPR_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
+_SP_DEFINE_EXPR_BOOL_UNARY_OPERATOR(!, _CONCEPT_, logical_not)                              \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(&&, _CONCEPT_, logical_and)                              \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(||, _CONCEPT_, logical_or)                               \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                                 \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
+_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                                           \
 
 
@@ -403,8 +404,6 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(^, bitwise_xor)                   
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(&, bitwise_and)                               \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(|, bitwise_or)                                \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(~, bitwise_not)                                \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(&&, logical_and)                              \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(||, logical_or)                               \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(+, unary_plus)                                 \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_OPERATOR(-, negate)                                     \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_RIGHT_OPERATOR(<<, shift_left)                               \
@@ -426,6 +425,9 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(log10)                             
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(sqrt)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
+_SP_DEFINE_##_CONCEPT_##_BOOL_UNARY_OPERATOR(!,  logical_not)                              \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(&&, logical_and)                              \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(||, logical_or)                               \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(!=, not_equal_to)                             \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(==, equal_to)                                 \
 _SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<, less)                                      \
