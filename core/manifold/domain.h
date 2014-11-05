@@ -102,9 +102,9 @@ public:
 		return manifold_;
 	}
 
-	void manifold(std::shared_ptr<manifold_type> m)
+	void manifold(std::shared_ptr<manifold_type> const &m)
 	{
-		manifold_ = m;
+		manifold_ = m->shared_from_this();
 	}
 
 	// True if domain can be partitioned into two sub-domains.

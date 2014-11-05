@@ -22,9 +22,8 @@ protected:
 	{
 		LOGGER.set_stdout_visable_level(10);
 
-		manifold->dimensions(10, 20);
+		domain_type(std::make_shared<manifold_type>(10, 20)).swap(domain);
 
-		domain.manifold(manifold);
 	}
 public:
 

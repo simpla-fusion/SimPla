@@ -60,6 +60,7 @@ public:
 		std::swap(b_, that.b_);
 		std::swap(e_, that.e_);
 		std::swap(dx_, that.dx_);
+		range_.swap(that.range_);
 	}
 
 	template<typename ...Args>
