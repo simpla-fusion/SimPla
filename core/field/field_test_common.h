@@ -21,7 +21,7 @@
 
 using namespace simpla;
 
-//#ifndef TMESH
+#ifndef TMESH
 #include "../manifold/manifold.h"
 #include "../manifold/geometry/cartesian.h"
 #include "../manifold/topology/structured.h"
@@ -31,11 +31,11 @@ using namespace simpla;
 typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 		FiniteDiffMethod, InterpolatorLinear> TManifold;
 
-//#else
-//typedef TMESH TManifold;
-//#endif
+#else
+typedef TMESH TManifold;
+#endif
 
-class TestFETL: public testing::TestWithParam<
+class FETLTest: public testing::TestWithParam<
 		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
 				nTuple<Real, 3>> >
 {
@@ -47,7 +47,9 @@ protected:
 
 		std::tie(xmin, xmax, dims, K_real) = GetParam();
 
-		SetDefaultValue(&default_value);
+		K_imag = 0;
+
+		SetDefaultValue(&one);
 
 		for (int i = 0; i < ndims; ++i)
 		{
@@ -78,7 +80,12 @@ protected:
 public:
 
 	typedef TManifold manifold_type;
+#ifndef VALUE_TYPE
 	typedef Real value_type;
+#else
+	typedef VALUE_TYPE value_type;
+#endif
+
 	typedef typename manifold_type::scalar_type scalar_type;
 	typedef typename manifold_type::iterator iterator;
 	typedef typename manifold_type::coordinates_type coordinates_type;
@@ -97,7 +104,7 @@ public:
 
 	nTuple<scalar_type, 3> K_imag;
 
-	value_type default_value;
+	value_type one;
 
 	Real error;
 
@@ -123,7 +130,7 @@ public:
 		}
 	}
 
-	virtual ~TestFETL()
+	virtual ~FETLTest()
 	{
 
 	}

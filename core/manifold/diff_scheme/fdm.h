@@ -69,32 +69,25 @@ struct FiniteDiffMethod
 //	typename field_traits<T>::value_type calculate(T const& f,
 //			compact_index_type const &s) const;
 
-	Real calculate(Real v, compact_index_type s) const
-	{
-		return v;
-	}
+	template<typename T>
+	T const & calculate(T const & v, compact_index_type s) const;
 	template<typename ...T>
-	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type const & calculate(nTuple<Expression<T...>> const & v,
-			compact_index_type s) const
-	{
-		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
-		res=v;
-		return std::move(v);
-	}
-	template<typename T, size_t ...N>
-	nTuple<T, N...> calculate(nTuple<T, N...> const & v,
+	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
+	calculate(nTuple<Expression<T...>> const & v,
 			compact_index_type s) const;
 
 	template<typename TC, typename TD>
-	typename _Field<TC, TD>::value_type calculate(
-			_Field<TC, TD> const &f, compact_index_type const &s) const;
+	typename _Field<TC, TD>::value_type const &
+	calculate( _Field<TC, TD> const &f, compact_index_type const &s) const;
 
 	template<typename TOP, typename TL>
-	typename field_traits<_Field<Expression<TOP, TL>>> ::type calculate(_Field<Expression<TOP, TL>> const &f,
+	typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+	calculate(_Field<Expression<TOP, TL>> const &f,
 			compact_index_type const &s) const;
 
 	template<typename TOP, typename TL, typename TR>
-	typename field_traits<_Field<Expression<TOP, TL>>> ::type calculate(_Field<Expression<TOP, TL, TR>> const &f,
+	typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+	calculate(_Field<Expression<TOP, TL, TR>> const &f,
 			compact_index_type const &s) const;
 
 private:
@@ -844,22 +837,33 @@ private:
 //	return get_value(f, s);
 //}
 template<typename G>
-template<typename T, size_t ...N>
-nTuple<T, N...> FiniteDiffMethod<G>::calculate(nTuple<T, N...> const & v,
-		compact_index_type s) const
+template<typename T>
+T const &
+FiniteDiffMethod<G>::calculate(T const & v, compact_index_type s) const
 {
 	return v;
 }
 template<typename G>
+template<typename ...T>
+typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type
+FiniteDiffMethod<G>::calculate(nTuple<Expression<T...>> const & v,
+		compact_index_type s) const
+{
+	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
+	res=v;
+	return std::move(res);
+}
+
+template<typename G>
 template<typename TC, typename TD>
-typename _Field<TC, TD>::value_type FiniteDiffMethod<G>::calculate(
+typename _Field<TC, TD>::value_type const & FiniteDiffMethod<G>::calculate(
 		_Field<TC, TD> const &f, compact_index_type const &s) const
 {
 	return f[s];
 }
 template<typename G>
 template<typename TOP, typename TL>
-typename field_traits<_Field<Expression<TOP, TL>>> ::type
+typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
 FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL>> const &f,
 		compact_index_type const &s) const
 {
@@ -869,7 +873,7 @@ FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL>> const &f,
 }
 template<typename G>
 template<typename TOP, typename TL, typename TR>
-typename field_traits<_Field<Expression<TOP, TL>>> ::type
+typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
 FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL, TR>> const &f,
 		compact_index_type const &s) const
 {

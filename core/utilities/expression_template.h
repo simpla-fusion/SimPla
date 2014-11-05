@@ -18,7 +18,7 @@
 namespace simpla
 {
 template<typename ... > class Expression;
-
+template<typename ... > class BooleanExpression;
 template<typename T>
 struct is_expresson
 {
@@ -122,6 +122,17 @@ struct Expression<TOP, TL>
 	DECL_RET_TYPE ((op_(get_value(lhs, s))))
 //			DECL_RET_TYPE ((op_( lhs, s) ))
 
+};
+
+template<typename TOP, typename ... T>
+class BooleanExpression<TOP, T...> : public Expression<TOP, T...>
+{
+	using Expression<TOP, T...>::Expression;
+
+	operator bool() const
+	{
+		return false;
+	}
 };
 
 namespace _impl

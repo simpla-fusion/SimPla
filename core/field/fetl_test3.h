@@ -45,7 +45,7 @@ protected:
 
 		K_real = std::get<3>(param);
 
-		SetDefaultValue(&default_value);
+		SetDefaultValue(&one);
 
 		for (int i = 0; i < NDIMS; ++i)
 		{
@@ -85,7 +85,7 @@ public:
 
 	nTuple<3, scalar_type> K_imag;
 
-	value_type default_value;
+	value_type one;
 
 	template<typename T>
 	void SetDefaultValue(T* v)
@@ -677,12 +677,12 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	{
 
 		auto a = uniform_dist(gen);
-		f0[s] = default_value * a;
+		f0[s] = one * a;
 		m += a * a;
 	}
 	update_ghosts(&f0);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * abs(one);
 
 	LOG_CMD(f1 = grad(f0));
 	LOG_CMD(f2a = curl(f1));
@@ -726,11 +726,11 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	for (auto s : manifold.select(VOLUME))
 	{
 		auto a = uniform_dist(gen);
-		f3[s] = a * default_value;
+		f3[s] = a * one;
 		m += a * a;
 	}
 	update_ghosts(&f3);
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * abs(one);
 
 	LOG_CMD(f2 = grad(f3));
 	LOG_CMD(f1a = curl(f2));
@@ -776,13 +776,13 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	{
 		auto a = uniform_dist(gen);
 
-		f2[s] = default_value * uniform_dist(gen);
+		f2[s] = one * uniform_dist(gen);
 
 		m += a * a;
 	}
 	update_ghosts(&f2);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * abs(one);
 
 	LOG_CMD(f1 = curl(f2));
 
@@ -827,12 +827,12 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	for (auto s : manifold.select(EDGE))
 	{
 		auto a = uniform_dist(gen);
-		f1[s] = default_value * a;
+		f1[s] = one * a;
 		m += a * a;
 	}
 	update_ghosts(&f1);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * abs(one);
 
 	LOG_CMD(f2 = curl(f1));
 

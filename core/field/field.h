@@ -170,7 +170,7 @@ public:
 
 		parallel_for(domain_, [&](index_type const & s)
 		{
-			(*this)[s]= domain_.calculate(that, s);
+			(*this)[s]= domain_.manifold_->calculate(that, s);
 		});
 
 		return (*this);
@@ -389,13 +389,19 @@ struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
 
 	using Expression<TOP, TL...>::Expression;
 
+};
+
+template<typename TOP, typename ...TL>
+struct _Field<BooleanExpression<TOP, TL...>> : public Expression<TOP, TL...>
+{
+	typedef _Field<BooleanExpression<TOP, TL...>> this_type;
+
+	using Expression<TOP, TL...>::Expression;
+
 	operator bool() const
 	{
-		//		auto d = get_domain(*this);
-		//		return   parallel_reduce<bool>(d, _impl::logical_and(), *this);
 		return false;
 	}
-
 };
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)

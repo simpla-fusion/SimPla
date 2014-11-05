@@ -178,7 +178,6 @@ struct make_ntuple<TV, integer_sequence<TI>>
 	typedef TV type;
 };
 
-
 template<typename ...>class Expression;
 
 template<typename > struct nTuple_traits;
@@ -236,7 +235,6 @@ struct nTuple_traits
 
 	typedef TV value_type;
 	typedef TV primary_type;
-
 
 };
 
@@ -311,7 +309,8 @@ struct rank<nTuple<T, N...>>
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>(
+	{ N... }));
 }
 
 typedef nTuple<Real, 3> Vec3;
@@ -426,11 +425,20 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
-			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
-			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
+	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
+			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
+			- l[1] * get_value(r, 0) };
 	return std::move(res);
 }
+
+template<typename T>
+auto mod(T const & l)
+DECL_RET_TYPE(( abs(l)))
+
+//template<typename T, size_t ...N>
+//auto mod(nTuple<T, N...> const & l)
+//DECL_RET_TYPE((std::sqrt(std::abs(inner_product(l,l)))))
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_RIGHT_OPERATOR(_OP_, _NAME_)                                                  \
 	template<typename T1,size_t ...N1,typename  T2> \

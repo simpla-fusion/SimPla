@@ -15,30 +15,39 @@
 using namespace simpla;
 
 #define TMESH Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,FiniteDiffMethod, InterpolatorLinear>
+#define VEC_VALUE_TYPE nTuple<Real,3>
 
 #include "field_vector_calculus_test.h"
 
-INSTANTIATE_TEST_CASE_P(FETLCartesian, FETLTest,
+INSTANTIATE_TEST_CASE_P(FETLCartesianVec3, FETLTest,
 
 testing::Combine(testing::Values(
 
 nTuple<Real, 3>(
 { 0.0, 0.0, 0.0 })
-, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
 
-		),
+, nTuple<Real, 3>(
+{ -1.0, -2.0, -3.0 })
+
+),
 
 testing::Values(
 
 nTuple<Real, 3>(
 { 1.0, 2.0, 1.0 }) //
 
-		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 0.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 0.0, 2.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>(
+{ 2.0, 2.0, 0.0 }) //
 
 		),
 

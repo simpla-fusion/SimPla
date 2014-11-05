@@ -12,16 +12,16 @@
 
 using namespace simpla;
 
-TEST_P(TestFETL, grad0)
+TEST_P(FETLTest, grad0)
 {
 	auto domain0 = make_domain<VERTEX>(manifold);
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
 	auto domain3 = make_domain<VOLUME>(manifold);
 
-	auto f0 = make_field<scalar_type>(domain0);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f1b = make_field<scalar_type>(domain1);
+	auto f0 = make_field<value_type>(domain0);
+	auto f1 = make_field<value_type>(domain1);
+	auto f1b = make_field<value_type>(domain1);
 
 	f0.clear();
 	f1.clear();
@@ -38,7 +38,7 @@ TEST_P(TestFETL, grad0)
 
 	Real m = 0.0;
 	Real variance = 0;
-	scalar_type average;
+	value_type average;
 	average *= 0.0;
 
 	Real mean = 0;
@@ -49,7 +49,8 @@ TEST_P(TestFETL, grad0)
 
 		auto x = manifold->coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(inner_product(K_real, x))
+		value_type expect = one;
+		expect *= K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
 		if (manifold->get_type_as_string() == "Cylindrical"
@@ -61,28 +62,31 @@ TEST_P(TestFETL, grad0)
 
 		f1b[s] = expect;
 
-		variance += abs((f1[s] - expect) * (f1[s] - expect));
+//		CHECK(expect) << " " << f1[s] << " " << K_real << " " << K_imag
+//				<< std::endl;
+
+		variance += mod((f1[s] - expect) * (f1[s] - expect));
 
 		average += (f1[s] - expect);
 
-		m += abs(f1[s]);
+		m += mod(f1[s]);
 
-//		if (abs(expect) > EPSILON)
+//		if (mod(expect) > EPSILON)
 //		{
-//			EXPECT_LE(abs(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
+//			EXPECT_LE(mod(2.0 * (f1[s] - expect) / (f1[s] + expect)), error) << " expect = " << expect
 //			        << " actual = " << f1[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " mesh.K="
 //			        << mesh.k_imag;
 //		}
 //		else
 //		{
-//			EXPECT_LE(abs(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
+//			EXPECT_LE(mod(f1[s]), error) << " expect = " << expect << " actual = " << f1[s] << " x= "
 //			        << mesh.coordinates(s);
 //
 //		}
 
-//		if (abs(f1[s]) > epsilon || abs(expect) > epsilon)
+//		if (mod(f1[s]) > epsilon || mod(expect) > epsilon)
 //		{
-//			ASSERT_GE(error, abs(2.0 * (f1[s] - expect) / (f1[s] + expect)));
+//			ASSERT_GE(error, mod(2.0 * (f1[s] - expect) / (f1[s] + expect)));
 //		}
 
 	}
@@ -90,7 +94,7 @@ TEST_P(TestFETL, grad0)
 	variance /= manifold->get_num_of_elements(EDGE);
 	average /= manifold->get_num_of_elements(EDGE);
 	EXPECT_LE(std::sqrt(variance), error);
-	EXPECT_LE(std::abs(average), error);
+	EXPECT_LE(mod(average), error);
 
 //	GLOBAL_DATA_STREAM.cd("/grad1/");
 //	LOGGER << SAVE(f0);
@@ -99,16 +103,16 @@ TEST_P(TestFETL, grad0)
 
 }
 
-TEST_P(TestFETL, grad3)
+TEST_P(FETLTest, grad3)
 {
 	if (!manifold->is_valid())
 		return;
 
 	auto domain3 = make_domain<VOLUME>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
-	auto f2 = make_field<scalar_type>(make_domain<FACE>(manifold));
-	auto f2b = make_field<scalar_type>(make_domain<FACE>(manifold));
-	auto f3 = make_field<scalar_type>(make_domain<VOLUME>(manifold));
+	auto f2 = make_field<value_type>(make_domain<FACE>(manifold));
+	auto f2b = make_field<value_type>(make_domain<FACE>(manifold));
+	auto f3 = make_field<value_type>(make_domain<VOLUME>(manifold));
 
 	f3.clear();
 	f2.clear();
@@ -126,8 +130,7 @@ TEST_P(TestFETL, grad3)
 
 	Real m = 0.0;
 	Real variance = 0;
-	scalar_type average;
-	average *= 0.0;
+	value_type average = one * 0.0;
 
 	for (auto s : domain2)
 	{
@@ -136,7 +139,8 @@ TEST_P(TestFETL, grad3)
 
 		auto x = manifold->coordinates(s);
 
-		scalar_type expect = K_real[n] * std::cos(inner_product(K_real, x))
+		value_type expect = one;
+		expect *= K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
 		if (manifold->get_type_as_string() == "Cylindrical"
@@ -148,18 +152,18 @@ TEST_P(TestFETL, grad3)
 
 		f2b[s] = expect;
 
-		variance += abs((f2[s] - expect) * (f2[s] - expect));
+		variance += mod((f2[s] - expect) * (f2[s] - expect));
 
 		average += (f2[s] - expect);
 
-//		if (abs(expect) > EPSILON)
+//		if (mod(expect) > EPSILON)
 //		{
-//			EXPECT_LE(abs(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
+//			EXPECT_LE(mod(2.0 * (f2[s] - expect) / (f2[s] + expect)), error) << " expect = " << expect
 //			        << " actual = " << f2[s] << " x= " << mesh.coordinates(s) << " K= " << K_real;
 //		}
 //		else
 //		{
-//			EXPECT_LE(abs(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
+//			EXPECT_LE(mod(f2[s]), error) << " expect = " << expect << " actual = " << f2[s] << " x= "
 //			        << mesh.coordinates(s);
 //
 //		}
@@ -169,7 +173,7 @@ TEST_P(TestFETL, grad3)
 	variance /= f2.size();
 	average /= f2.size();
 	EXPECT_LE(std::sqrt(variance), error) << dims;
-	EXPECT_LE(std::abs(average), error);
+	EXPECT_LE(mod(average), error);
 //
 //	GLOBAL_DATA_STREAM.cd("/grad3/");
 //	LOGGER << SAVE(f3);
@@ -178,16 +182,16 @@ TEST_P(TestFETL, grad3)
 
 }
 
-TEST_P(TestFETL, diverge1)
+TEST_P(FETLTest, diverge1)
 {
 	if (!manifold->is_valid())
 		return;
 
 	auto domain0 = make_domain<VERTEX>(manifold);
 	auto domain1 = make_domain<EDGE>(manifold);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f0 = make_field<scalar_type>(domain0);
-	auto f0b = make_field<scalar_type>(domain0);
+	auto f1 = make_field<value_type>(domain1);
+	auto f0 = make_field<value_type>(domain0);
+	auto f0b = make_field<value_type>(domain0);
 	f0.clear();
 	f0b.clear();
 	f1.clear();
@@ -204,7 +208,7 @@ TEST_P(TestFETL, diverge1)
 
 	Real variance = 0;
 
-	scalar_type average = 0.0;
+	value_type average = one * 0.0;
 
 	for (auto s : domain0)
 	{
@@ -214,7 +218,7 @@ TEST_P(TestFETL, diverge1)
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
-		scalar_type expect;
+		value_type expect = one;
 
 		if (manifold->get_type_as_string() == "Cylindrical")
 		{
@@ -247,19 +251,19 @@ TEST_P(TestFETL, diverge1)
 
 		f0b[s] = expect;
 
-		variance += abs((f0[s] - expect) * (f0[s] - expect));
+		variance += mod((f0[s] - expect) * (f0[s] - expect));
 
 		average += (f0[s] - expect);
 
-//		if (abs(expect) > EPSILON)
+//		if (mod(expect) > EPSILON)
 //		{
-//			EXPECT_LE(abs(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
+//			EXPECT_LE(mod(2.0 * (f0[s] - expect) / (f0[s] + expect)), error) << " expect = " << expect
 //			        << " actual = " << f0[s] << " x= " << mesh.coordinates(s) << " K= " << K_real << " K_i= "
 //			        << K_imag;
 //		}
 //		else
 //		{
-//			EXPECT_LE(abs(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
+//			EXPECT_LE(mod(f0[s]), error) << " expect = " << expect << " actual = " << f0[s] << " x= "
 //			        << mesh.coordinates(s);
 //
 //		}
@@ -271,8 +275,7 @@ TEST_P(TestFETL, diverge1)
 	CHECK(average);
 
 	EXPECT_LE(std::sqrt(variance), error) << dims;
-	EXPECT_LE(std::abs(average), error) << " K= " << K_real << " K_i= "
-			<< K_imag
+	EXPECT_LE(mod(average), error) << " K= " << K_real << " K_i= " << K_imag
 
 //			<< " mesh.Ki=" << mesh.k_imag
 
@@ -280,15 +283,15 @@ TEST_P(TestFETL, diverge1)
 
 }
 
-TEST_P(TestFETL, diverge2)
+TEST_P(FETLTest, diverge2)
 {
 	if (!manifold->is_valid())
 		return;
 
 	auto domain3 = make_domain<VOLUME>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
-	auto f2 = make_field<scalar_type>(domain2);
-	auto f3 = make_field<scalar_type>(domain3);
+	auto f2 = make_field<value_type>(domain2);
+	auto f3 = make_field<value_type>(domain3);
 
 	f3.clear();
 	f2.clear();
@@ -302,7 +305,8 @@ TEST_P(TestFETL, diverge2)
 	LOG_CMD(f3 = diverge(f2));
 
 	Real variance = 0;
-	scalar_type average = 0.0;
+	value_type average = one;
+	average*=0.0;
 
 	for (auto s : domain3)
 	{
@@ -311,7 +315,7 @@ TEST_P(TestFETL, diverge2)
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
-		scalar_type expect;
+		value_type expect;
 
 		if (manifold->get_type_as_string() == "Cylindrical")
 		{
@@ -343,12 +347,12 @@ TEST_P(TestFETL, diverge2)
 					+ (K_imag[0] + K_imag[1] + K_imag[2]) * sin_v;
 		}
 
-		variance += abs((f3[s] - expect) * (f3[s] - expect));
+		variance += mod((f3[s] - expect) * (f3[s] - expect));
 
 		average += (f3[s] - expect);
 
-//		if (abs(f3[s]) > epsilon || abs(expect) > epsilon)
-//			ASSERT_LE(abs(2.0 * (f3[s] - expect) / (f3[s] + expect)), error);
+//		if (mod(f3[s]) > epsilon || mod(expect) > epsilon)
+//			ASSERT_LE(mod(2.0 * (f3[s] - expect) / (f3[s] + expect)), error);
 
 	}
 
@@ -356,21 +360,21 @@ TEST_P(TestFETL, diverge2)
 	average /= f3.size();
 
 	ASSERT_LE(std::sqrt(variance), error);
-	ASSERT_LE(std::abs(average), error);
+	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFETL, curl1)
+TEST_P(FETLTest, curl1)
 {
 	if (!manifold->is_valid())
 		return;
 
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f1b = make_field<scalar_type>(domain1);
-	auto f2 = make_field<scalar_type>(domain2);
-	auto f2b = make_field<scalar_type>(domain2);
+	auto f1 = make_field<value_type>(domain1);
+	auto f1b = make_field<value_type>(domain1);
+	auto f2 = make_field<value_type>(domain2);
+	auto f2b = make_field<value_type>(domain2);
 
 	f1.clear();
 	f1b.clear();
@@ -379,7 +383,7 @@ TEST_P(TestFETL, curl1)
 
 	Real m = 0.0;
 	Real variance = 0;
-	scalar_type average;
+	value_type average;
 	average *= 0.0;
 
 	for (auto s : domain1)
@@ -398,7 +402,7 @@ TEST_P(TestFETL, curl1)
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
-		scalar_type expect;
+		value_type expect;
 
 		if (manifold->get_type_as_string() == "Cylindrical")
 		{
@@ -445,18 +449,18 @@ TEST_P(TestFETL, curl1)
 
 		f2b[s] = expect;
 
-		variance += abs((f2[s] - expect) * (f2[s] - expect));
+		variance += mod((f2[s] - expect) * (f2[s] - expect));
 
 		average += (f2[s] - expect);
 
-//		if (abs(expect) > epsilon)
+//		if (mod(expect) > epsilon)
 //		{
-//			EXPECT_LE(abs(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
+//			EXPECT_LE(mod(2.0 * (vf2[s] - expect) / (vf2[s] + expect)), error) << " expect = " << expect
 //			        << " actual = " << vf2[s] << " x= " << mesh.coordinates(s);
 //		}
 //		else
 //		{
-//			EXPECT_LE(abs(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
+//			EXPECT_LE(mod(vf2[s]), error) << " expect = " << expect << " actual = " << vf2[s] << " x= "
 //			        << mesh.coordinates(s);
 //		}
 
@@ -466,21 +470,21 @@ TEST_P(TestFETL, curl1)
 	average /= f2.size();
 
 	ASSERT_LE(std::sqrt(variance), error);
-	ASSERT_LE(std::abs(average), error);
+	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFETL, curl2)
+TEST_P(FETLTest, curl2)
 {
 	if (!manifold->is_valid())
 		return;
 
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto vf1b = make_field<scalar_type>(domain1);
-	auto f2 = make_field<scalar_type>(domain2);
-	auto vf2b = make_field<scalar_type>(domain2);
+	auto f1 = make_field<value_type>(domain1);
+	auto vf1b = make_field<value_type>(domain1);
+	auto f2 = make_field<value_type>(domain2);
+	auto vf2b = make_field<value_type>(domain2);
 
 	f1.clear();
 	vf1b.clear();
@@ -489,7 +493,7 @@ TEST_P(TestFETL, curl2)
 
 	Real m = 0.0;
 	Real variance = 0;
-	scalar_type average;
+	value_type average;
 	average *= 0.0;
 
 	for (auto s : domain2)
@@ -513,7 +517,7 @@ TEST_P(TestFETL, curl2)
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
-		scalar_type expect;
+		value_type expect;
 
 		if (manifold->get_type_as_string() == "Cylindrical")
 		{
@@ -560,17 +564,17 @@ TEST_P(TestFETL, curl2)
 
 		vf1b[s] = expect;
 
-		variance += abs((f1[s] - expect) * (f1[s] - expect));
+		variance += mod((f1[s] - expect) * (f1[s] - expect));
 
 		average += (f1[s] - expect);
 
-//		if (abs(expect) > epsilon)
+//		if (mod(expect) > epsilon)
 //		{
-//			ASSERT_LE(abs(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
+//			ASSERT_LE(mod(2.0 * (vf1[s] - expect) / (vf1[s] + expect)), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
 //		}
 //		else
 //		{
-//			ASSERT_LE(abs(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
+//			ASSERT_LE(mod(vf1[s]), error)<< " expect = "<<expect<<" actual = "<<vf1[s]<< " x= "<<mesh.coordinates(s);
 //
 //		}
 
@@ -584,11 +588,11 @@ TEST_P(TestFETL, curl2)
 	average /= f1.size();
 
 	ASSERT_LE(std::sqrt(variance), error);
-	ASSERT_LE(std::abs(average), error);
+	ASSERT_LE(mod(average), error);
 
 }
 
-TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
+TEST_P(FETLTest, identity_curl_grad_f0_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -596,10 +600,10 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
 	auto domain3 = make_domain<VOLUME>(manifold);
-	auto f0 = make_field<scalar_type>(domain0);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f2a = make_field<scalar_type>(domain2);
-	auto f2b = make_field<scalar_type>(domain2);
+	auto f0 = make_field<value_type>(domain0);
+	auto f1 = make_field<value_type>(domain1);
+	auto f2a = make_field<value_type>(domain2);
+	auto f2b = make_field<value_type>(domain2);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -610,12 +614,12 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	{
 
 		auto a = uniform_dist(gen);
-		f0[s] = default_value * a;
+		f0[s] = one * a;
 		m += a * a;
 	}
 	update_ghosts(&f0);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * mod(one);
 
 	LOG_CMD(f1 = grad(f0));
 	LOG_CMD(f2a = curl(f1));
@@ -627,8 +631,8 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 	for (auto s : domain2)
 	{
 
-		variance_a += abs(f2a[s]);
-		variance_b += abs(f2b[s]);
+		variance_a += mod(f2a[s]);
+		variance_b += mod(f2b[s]);
 //		ASSERT_EQ((f2a[s]), (f2b[s]));
 	}
 
@@ -639,7 +643,7 @@ TEST_P(TestFETL, identity_curl_grad_f0_eq_0)
 
 }
 
-TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
+TEST_P(FETLTest, identity_curl_grad_f3_eq_0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -647,10 +651,10 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
 	auto domain3 = make_domain<VOLUME>(manifold);
-	auto f3 = make_field<scalar_type>(domain3);
-	auto f1a = make_field<scalar_type>(domain1);
-	auto f1b = make_field<scalar_type>(domain1);
-	auto f2 = make_field<scalar_type>(domain2);
+	auto f3 = make_field<value_type>(domain3);
+	auto f1a = make_field<value_type>(domain1);
+	auto f1b = make_field<value_type>(domain1);
+	auto f2 = make_field<value_type>(domain2);
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
 
@@ -661,11 +665,11 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	for (auto s : domain3)
 	{
 		auto a = uniform_dist(gen);
-		f3[s] = a * default_value;
+		f3[s] = a * one;
 		m += a * a;
 	}
 	update_ghosts(&f3);
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * mod(one);
 
 	LOG_CMD(f2 = grad(f3));
 	LOG_CMD(f1a = curl(f2));
@@ -678,8 +682,8 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	{
 
 //		ASSERT_EQ((f1a[s]), (f1b[s]));
-		variance_a += abs(f1a[s]);
-		variance_b += abs(f1b[s]);
+		variance_a += mod(f1a[s]);
+		variance_b += mod(f1b[s]);
 
 	}
 
@@ -689,7 +693,7 @@ TEST_P(TestFETL, identity_curl_grad_f3_eq_0)
 	ASSERT_LE(std::sqrt(variance_a), error);
 }
 
-TEST_P(TestFETL, identity_div_curl_f1_eq0)
+TEST_P(FETLTest, identity_div_curl_f1_eq0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -697,10 +701,10 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
 	auto domain3 = make_domain<VOLUME>(manifold);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f2 = make_field<scalar_type>(domain2);
-	auto f0a = make_field<scalar_type>(domain0);
-	auto f0b = make_field<scalar_type>(domain0);
+	auto f1 = make_field<value_type>(domain1);
+	auto f2 = make_field<value_type>(domain2);
+	auto f0a = make_field<value_type>(domain0);
+	auto f0b = make_field<value_type>(domain0);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -713,13 +717,13 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	{
 		auto a = uniform_dist(gen);
 
-		f2[s] = default_value * uniform_dist(gen);
+		f2[s] = one * uniform_dist(gen);
 
 		m += a * a;
 	}
 	update_ghosts(&f2);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * mod(one);
 
 	LOG_CMD(f1 = curl(f2));
 
@@ -732,8 +736,8 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 	Real variance_b = 0;
 	for (auto s : domain0)
 	{
-		variance_b += abs(f0b[s] * f0b[s]);
-		variance_a += abs(f0a[s] * f0a[s]);
+		variance_b += mod(f0b[s] * f0b[s]);
+		variance_a += mod(f0a[s] * f0a[s]);
 //		ASSERT_EQ((f0a[s]), (f0b[s]));
 	}
 	variance_a /= m;
@@ -743,7 +747,7 @@ TEST_P(TestFETL, identity_div_curl_f1_eq0)
 
 }
 
-TEST_P(TestFETL, identity_div_curl_f2_eq0)
+TEST_P(FETLTest, identity_div_curl_f2_eq0)
 {
 	if (!manifold->is_valid())
 		return;
@@ -751,10 +755,10 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	auto domain1 = make_domain<EDGE>(manifold);
 	auto domain2 = make_domain<FACE>(manifold);
 	auto domain3 = make_domain<VOLUME>(manifold);
-	auto f1 = make_field<scalar_type>(domain1);
-	auto f2 = make_field<scalar_type>(domain2);
-	auto f3a = make_field<scalar_type>(domain3);
-	auto f3b = make_field<scalar_type>(domain3);
+	auto f1 = make_field<value_type>(domain1);
+	auto f2 = make_field<value_type>(domain2);
+	auto f3a = make_field<value_type>(domain3);
+	auto f3b = make_field<value_type>(domain3);
 
 	std::mt19937 gen;
 	std::uniform_real_distribution<Real> uniform_dist(0, 1.0);
@@ -766,12 +770,12 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	for (auto s : domain1)
 	{
 		auto a = uniform_dist(gen);
-		f1[s] = default_value * a;
+		f1[s] = one * a;
 		m += a * a;
 	}
 	update_ghosts(&f1);
 
-	m = std::sqrt(m) * abs(default_value);
+	m = std::sqrt(m) * mod(one);
 
 	LOG_CMD(f2 = curl(f1));
 
@@ -786,9 +790,9 @@ TEST_P(TestFETL, identity_div_curl_f2_eq0)
 	for (auto s : domain3)
 	{
 
-//		ASSERT_DOUBLE_EQ(abs(f3a[s]), abs(f3b[s]));
-		variance_a += abs(f3a[s] * f3a[s]);
-		variance_b += abs(f3b[s] * f3b[s]);
+//		ASSERT_DOUBLE_EQ(mod(f3a[s]), mod(f3b[s]));
+		variance_a += mod(f3a[s] * f3a[s]);
+		variance_b += mod(f3b[s] * f3b[s]);
 
 	}
 
