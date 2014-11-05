@@ -97,7 +97,7 @@ public:
 //	auto rend() const
 //	DECL_RET_TYPE((range_.rend()))
 
-	std::shared_ptr<manifold_type> manifold() const
+	std::shared_ptr<const manifold_type> manifold() const
 	{
 		return manifold_;
 	}
@@ -174,6 +174,18 @@ public:
 template<size_t IFORM, typename TM>
 Domain<TM, IFORM> make_domain(std::shared_ptr<TM> const & m)
 {
+	return std::move(Domain<TM, IFORM>(m));
+}
+template<size_t IFORM, typename TM>
+Domain<TM, IFORM> make_domain()
+{
+	auto m = std::make_shared<TM>();
+	return std::move(Domain<TM, IFORM>(m));
+}
+template<size_t IFORM, typename TM, typename ...Args>
+Domain<TM, IFORM> make_domain(Args && ...args)
+{
+	auto m = std::make_shared<TM>(std::forward<Args>(args)...);
 	return std::move(Domain<TM, IFORM>(m));
 }
 }

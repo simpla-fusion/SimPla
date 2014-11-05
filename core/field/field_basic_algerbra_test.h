@@ -11,7 +11,7 @@
 #include <gtest/gtest.h>
 #include <random>
 #include "field.h"
-
+#include "../manifold/domain.h"
 using namespace simpla;
 
 template<typename TField>
@@ -21,15 +21,23 @@ protected:
 	virtual void SetUp()
 	{
 		LOGGER.set_stdout_visable_level(10);
+
+		manifold->dimensions(10, 20);
+
+		domain.manifold(manifold);
 	}
 public:
 
 	typedef TField field_type;
 
 	typedef typename field_type::domain_type domain_type;
+	typedef typename domain_type::manifold_type manifold_type;
 
 	typedef typename field_type::value_type value_type;
 
+	static constexpr size_t iform = field_traits<TField>::iform;
+
+	std::shared_ptr<manifold_type> manifold;
 	domain_type domain;
 
 	value_type default_value;

@@ -10,6 +10,7 @@
 
 #include <stddef.h>
 #include <algorithm>
+#include <memory>
 #include "../utilities/primitives.h"
 #include "../utilities/sp_type_traits.h"
 #include "../parallel/block_range.h"
@@ -20,7 +21,7 @@ namespace simpla
 template<typename ...>class _Field;
 template<typename ...>class Expression;
 
-struct DummyManifold
+struct DummyManifold: public std::enable_shared_from_this<DummyManifold>
 {
 public:
 
