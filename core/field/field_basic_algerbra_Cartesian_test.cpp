@@ -24,9 +24,19 @@ typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 typedef testing::Types< //
 
 		Field<double, Domain<manifold_type, VERTEX>> //
-		, Field<double, Domain<manifold_type, EDGE>> //
-		, Field<double, Domain<manifold_type, FACE>> //
-		, Field<double, Domain<manifold_type, VOLUME>> //
+//		, Field<double, Domain<manifold_type, EDGE>> //
+//		, Field<double, Domain<manifold_type, FACE>> //
+//		, Field<double, Domain<manifold_type, VOLUME>> //
+//
+//		, Field<nTuple<double, 3>, Domain<manifold_type, VERTEX>> //s
+//		, Field<nTuple<double, 3>, Domain<manifold_type, EDGE>> //
+//		, Field<nTuple<double, 3>, Domain<manifold_type, FACE>> //
+//		, Field<nTuple<double, 3>, Domain<manifold_type, VOLUME>> //
+//
+//		, Field<nTuple<std::complex<double>, 3, 3>, Domain<manifold_type, VERTEX>> //
+//		, Field<nTuple<std::complex<double>, 3, 3>, Domain<manifold_type, EDGE>> //
+//		, Field<nTuple<double, 3, 3>, Domain<manifold_type, FACE>> //
+//		, Field<nTuple<double, 3, 3>, Domain<manifold_type, VOLUME>> //
 
 > TypeParamList;
 

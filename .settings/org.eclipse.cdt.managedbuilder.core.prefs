@@ -24,7 +24,8 @@ environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.to
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082/append=true
 environment/buildEnvironmentInclude/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082/appendContributed=true
 environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/delimiter=\:
-environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/operation=remove
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/operation=replace
+environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/LIBRARY_PATH/value=/opt/llvm/clang+llvm-3.5.0-x86_64-fedora20//lib
 environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/append=true
 environment/buildEnvironmentLibrary/cdt.managedbuild.config.llvm.clang.linux.exe.release.515742065/appendContributed=true
 environment/buildEnvironmentLibrary/org.eclipse.linuxtools.cdt.autotools.core.toolChain.926025082.1065542475/LIBRARY_PATH/delimiter=\:

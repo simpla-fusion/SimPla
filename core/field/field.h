@@ -310,9 +310,20 @@ template<typename ... >struct Expression;
 
 template<typename ...> struct field_traits;
 
-template<typename TC, typename TD, typename ...Others>
-struct field_traits<_Field<TC, TD, Others...>>
+template<typename T> struct field_traits<T>
 {
+	typedef T value_type;
+
+	static constexpr size_t ndims = 0;
+
+	static constexpr size_t iform = VERTEX;
+};
+
+template<typename TC, typename TD>
+struct field_traits<_Field<TC, TD>>
+{
+	typedef typename container_traits<TC>::value_type value_type;
+
 	static constexpr size_t ndims = TD::ndims;
 
 	static constexpr size_t iform = TD::iform;
@@ -330,6 +341,8 @@ template<typename TOP, typename TL>
 struct field_traits<_Field<Expression<TOP, TL> >>
 {
 
+	typedef typename field_traits<TL>::value_type value_type;
+
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform;
@@ -339,6 +352,15 @@ struct field_traits<_Field<Expression<TOP, TL> >>
 template<typename TOP, typename TL, typename TR>
 struct field_traits<_Field<Expression<TOP, TL, TR> >>
 {
+
+	typedef typename field_traits<TL>::value_type l_value_type;
+	typedef typename field_traits<TR>::value_type r_value_type;
+
+	typedef decltype( std::declval<l_value_type>()*std::declval<r_value_type>()) type_;
+
+	typedef typename std::remove_cv<typename std::remove_reference<type_>::type>::type type__;
+
+	typedef typename nTuple_traits<type__>::primary_type value_type;
 
 	typedef typename std::conditional<is_field<TL>::value, field_traits<TL>,
 			field_traits<TR>>::type traits_type;
@@ -352,6 +374,7 @@ struct field_traits<_Field<Expression<TOP, TL, TR> >>
 template<typename TOP, typename TR>
 struct field_traits<_Field<Expression<TOP, double, TR> >>
 {
+	typedef typename field_traits<TR>::value_type value_type;
 
 	static constexpr size_t ndims = field_traits<TR>::ndims;
 

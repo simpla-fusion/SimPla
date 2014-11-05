@@ -24,7 +24,7 @@ testing::Combine(testing::Values(
 
 nTuple<Real, 3>( { 0.0, 0.0, 0.0 })
 
-, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
+//, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
 
 ),
 
@@ -32,12 +32,12 @@ testing::Values(
 
 nTuple<Real, 3>( { 1.0, 2.0, 1.0 }) //
 
-		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
-		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
-		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
+//		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
+//		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
+//		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
+//		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
+//		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
+//		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
 
 		),
 
@@ -47,9 +47,9 @@ nTuple<size_t, 3>( { 40, 12, 10 }) //
 		, nTuple<size_t, 3>( { 100, 1, 1 }) //
 		, nTuple<size_t, 3>( { 1, 100, 1 }) //
 		, nTuple<size_t, 3>( { 1, 1, 100 }) //
-		, nTuple<size_t, 3>( { 1, 10, 5 }) //
-		, nTuple<size_t, 3>( { 11, 1, 21 }) //
-		, nTuple<size_t, 3>( { 11, 21, 1 }) //
+//		, nTuple<size_t, 3>( { 1, 10, 5 }) //
+//		, nTuple<size_t, 3>( { 11, 1, 21 }) //
+//		, nTuple<size_t, 3>( { 11, 21, 1 }) //
 		),
 
 testing::Values(

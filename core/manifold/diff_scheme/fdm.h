@@ -65,11 +65,54 @@ struct FiniteDiffMethod
 // Exterior algebra
 //***************************************************************************************************
 
+//	template<typename T>
+//	typename field_traits<T>::value_type calculate(T const& f,
+//			compact_index_type const &s) const;
+
+	Real calculate(Real v, compact_index_type s) const
+	{
+		return v;
+	}
+	template<typename ...T>
+	typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type const & calculate(nTuple<Expression<T...>> const & v,
+			compact_index_type s) const
+	{
+		typename nTuple_traits<nTuple<Expression<T...>>> ::primary_type res;
+		res=v;
+		return std::move(v);
+	}
+	template<typename T, size_t ...N>
+	nTuple<T, N...> calculate(nTuple<T, N...> const & v,
+			compact_index_type s) const;
+
+	template<typename TC, typename TD>
+	typename _Field<TC, TD>::value_type calculate(
+			_Field<TC, TD> const &f, compact_index_type const &s) const;
+
+	template<typename TOP, typename TL>
+	typename field_traits<_Field<Expression<TOP, TL>>> ::type calculate(_Field<Expression<TOP, TL>> const &f,
+			compact_index_type const &s) const;
+
+	template<typename TOP, typename TL, typename TR>
+	typename field_traits<_Field<Expression<TOP, TL>>> ::type calculate(_Field<Expression<TOP, TL, TR>> const &f,
+			compact_index_type const &s) const;
+
 private:
+
+	template<size_t IFORM, typename TOP, typename TL>
+	auto calculate_(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
+			compact_index_type s) const
+	DECL_RET_TYPE( op(calculate(f,s) ) )
+
+	template<typename TOP, size_t IL, size_t IR, typename TL, typename TR>
+	inline auto calculate_(TOP op, integer_sequence<size_t, IL, IR>,
+			TL const& l, TR const &r, compact_index_type s) const
+	DECL_RET_TYPE( op(calculate(l,s),calculate(r,s) ) )
+
 	template<typename TF>
 	auto calculate_(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
-			TF const & f, compact_index_type s) const -> double //
-//			decltype((this->calculate(f,s)-this->calculate(f,s))*std::declval<scalar_type>())
+			TF const & f,
+			compact_index_type s) const ->typename field_traits<TF>::value_type
 	{
 		auto D = geo->delta_index(s);
 
@@ -80,8 +123,7 @@ private:
 	template<typename TF>
 	inline auto calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const ->
-			double //decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+			compact_index_type s) const ->typename field_traits<TF>::value_type
 	{
 		auto X = geo->delta_index(geo->dual(s));
 		auto Y = geo->roate(X);
@@ -89,17 +131,17 @@ private:
 
 		return (
 
-		(
+				(
 
-		calculate(f, s + Y) * geo->volume(s + Y) //
-		- calculate(f, s - Y) * geo->volume(s - Y) //
+						calculate(f, s + Y) * geo->volume(s + Y) //
+						- calculate(f, s - Y) * geo->volume(s - Y)//
 
-		) - (
+				) - (
 
-		calculate(f, s + Z) * geo->volume(s + Z) //
-		- calculate(f, s - Z) * geo->volume(s - Z) //
+						calculate(f, s + Z) * geo->volume(s + Z)//
+						- calculate(f, s - Z) * geo->volume(s - Z)//
 
-		)
+				)
 
 		) * geo->inv_volume(s);
 
@@ -108,8 +150,7 @@ private:
 	template<typename TF>
 	inline auto calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const ->
-			double //decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+			compact_index_type s) const->typename field_traits<TF>::value_type
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -117,13 +158,13 @@ private:
 
 		return (
 
-		calculate(f, s + X) * geo->volume(s + X)
+				calculate(f, s + X) * geo->volume(s + X)
 
-		- calculate(f, s - X) * geo->volume(s - X) //
-		+ calculate(f, s + Y) * geo->volume(s + Y) //
-		- calculate(f, s - Y) * geo->volume(s - Y) //
-		+ calculate(f, s + Z) * geo->volume(s + Z) //
-		- calculate(f, s - Z) * geo->volume(s - Z) //
+				- calculate(f, s - X) * geo->volume(s - X) //
+				+ calculate(f, s + Y) * geo->volume(s + Y)//
+				- calculate(f, s - Y) * geo->volume(s - Y)//
+				+ calculate(f, s + Z) * geo->volume(s + Z)//
+				- calculate(f, s - Z) * geo->volume(s - Z)//
 
 		) * geo->inv_volume(s)
 
@@ -141,8 +182,7 @@ private:
 	template<typename TF>
 	inline auto calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const ->
-			double //decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+			compact_index_type s) const ->typename field_traits<TF>::value_type
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -152,17 +192,17 @@ private:
 
 		-(
 
-		calculate(f, s + X) * geo->dual_volume(s + X)
+				calculate(f, s + X) * geo->dual_volume(s + X)
 
-		- calculate(f, s - X) * geo->dual_volume(s - X)
+				- calculate(f, s - X) * geo->dual_volume(s - X)
 
-		+ calculate(f, s + Y) * geo->dual_volume(s + Y)
+				+ calculate(f, s + Y) * geo->dual_volume(s + Y)
 
-		- calculate(f, s - Y) * geo->dual_volume(s - Y)
+				- calculate(f, s - Y) * geo->dual_volume(s - Y)
 
-		+ calculate(f, s + Z) * geo->dual_volume(s + Z)
+				+ calculate(f, s + Z) * geo->dual_volume(s + Z)
 
-		- calculate(f, s - Z) * geo->dual_volume(s - Z)
+				- calculate(f, s - Z) * geo->dual_volume(s - Z)
 
 		) * geo->inv_dual_volume(s)
 
@@ -173,8 +213,7 @@ private:
 	template<typename TF>
 	inline auto calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const ->
-			double //decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+			compact_index_type s) const ->typename field_traits<TF>::value_type
 	{
 		auto X = geo->delta_index(s);
 		auto Y = geo->roate(X);
@@ -184,8 +223,8 @@ private:
 
 		-(
 
-		(calculate(f, s + Y) * (geo->dual_volume(s + Y))
-				- calculate(f, s - Y) * (geo->dual_volume(s - Y)))
+				(calculate(f, s + Y) * (geo->dual_volume(s + Y))
+						- calculate(f, s - Y) * (geo->dual_volume(s - Y)))
 
 				- (calculate(f, s + Z) * (geo->dual_volume(s + Z))
 						- calculate(f, s - Z) * (geo->dual_volume(s - Z)))
@@ -198,16 +237,15 @@ private:
 	template<typename TF>
 	inline auto calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, VOLUME>, TF const & f,
-			compact_index_type s) const ->
-			double //decltype((calculate(f,s)-calculate(f,s))*std::declval<scalar_type>())
+			compact_index_type s) const ->typename field_traits<TF>::value_type
 	{
 		auto D = geo->delta_index(geo->dual(s));
 		return
 
 		-(
 
-		calculate(f, s + D) * (geo->dual_volume(s + D)) //
-		- calculate(f, s - D) * (geo->dual_volume(s - D))
+				calculate(f, s + D) * (geo->dual_volume(s + D)) //
+				- calculate(f, s - D) * (geo->dual_volume(s - D))
 
 		) * geo->inv_dual_volume(s)
 
@@ -777,42 +815,7 @@ private:
 
 public:
 
-	template<typename TV>
-	auto calculate(TV const &f, compact_index_type const &s) const
-	DECL_RET_TYPE((get_value(f,s)))
-
-	template<typename T, size_t ...N>
-	nTuple<T, N...> const& calculate(nTuple<T, N...> const & v,
-			compact_index_type s) const
-	{
-		return v;
-	}
-
-	template<typename TOP, typename TL>
-	auto calculate(_Field<Expression<TOP, TL>> const &f,
-			compact_index_type const &s) const
-					DECL_RET_TYPE((calculate_(f.op_,
-											integer_sequence<size_t, field_traits<TL>::iform>(),
-											f.lhs,s )))
-
-	template<typename TOP, typename TL, typename TR>
-	auto calculate(_Field<Expression<TOP, TL, TR>> const &f,
-			compact_index_type const &s) const
-			DECL_RET_TYPE((calculate_(f.op_,
-									integer_sequence<size_t,
-									field_traits<TL>::iform ,
-									field_traits<TR>::iform>(),
-									f.lhs,f.rhs,s )))
 private:
-	template<size_t IFORM, typename TOP, typename TL>
-	auto calculate_(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
-			compact_index_type s) const
-			DECL_RET_TYPE( op(calculate(f,s) ) )
-
-	template<typename TOP, size_t IL, size_t IR, typename TL, typename TR>
-	inline auto calculate_(TOP op, integer_sequence<size_t, IL, IR>,
-			TL const& l, TR const &r, compact_index_type s) const
-			DECL_RET_TYPE( op(calculate( (l),s),calculate(r,s) ) )
 
 //	template<typename TL>
 //	auto calculate(TL const& f, compact_index_type s) const
@@ -831,6 +834,51 @@ private:
 //									integer_sequence<size_t,field_traits<TL>::iform>(),f.lhs,f.rhs,s ) )
 };
 
+//template<typename G>
+//template<typename T>
+//typename field_traits<T>::value_type FiniteDiffMethod<G>::calculate(T const& f,
+//		compact_index_type const &s) const
+//{
+//	CHECK(typeid(T).name());
+//
+//	return get_value(f, s);
+//}
+template<typename G>
+template<typename T, size_t ...N>
+nTuple<T, N...> FiniteDiffMethod<G>::calculate(nTuple<T, N...> const & v,
+		compact_index_type s) const
+{
+	return v;
+}
+template<typename G>
+template<typename TC, typename TD>
+typename _Field<TC, TD>::value_type FiniteDiffMethod<G>::calculate(
+		_Field<TC, TD> const &f, compact_index_type const &s) const
+{
+	return f[s];
+}
+template<typename G>
+template<typename TOP, typename TL>
+typename field_traits<_Field<Expression<TOP, TL>>> ::type
+FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL>> const &f,
+		compact_index_type const &s) const
+{
+	return calculate_(f.op_,
+			integer_sequence<size_t, field_traits<TL>::iform>(),
+			f.lhs,s );
+}
+template<typename G>
+template<typename TOP, typename TL, typename TR>
+typename field_traits<_Field<Expression<TOP, TL>>> ::type
+FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL, TR>> const &f,
+		compact_index_type const &s) const
+{
+	return (calculate_(f.op_,
+					integer_sequence<size_t,
+					field_traits<TL>::iform ,
+					field_traits<TR>::iform>(),
+					f.lhs,f.rhs,s ));
+}
 }
 // namespace simpla
 

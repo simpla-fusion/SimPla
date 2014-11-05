@@ -171,6 +171,14 @@ struct make_ntuple<TV, integer_sequence<TI, N...>>
 {
 	typedef nTuple<TV, N...> type;
 };
+
+template<typename TV, typename TI>
+struct make_ntuple<TV, integer_sequence<TI>>
+{
+	typedef TV type;
+};
+
+
 template<typename ...>class Expression;
 
 template<typename > struct nTuple_traits;
@@ -227,6 +235,8 @@ struct nTuple_traits
 	static constexpr size_t first_dims = 0;
 
 	typedef TV value_type;
+	typedef TV primary_type;
+
 
 };
 
