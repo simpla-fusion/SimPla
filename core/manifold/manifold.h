@@ -7,7 +7,7 @@
 
 #ifndef MANIFOLD_H_
 #define MANIFOLD_H_
-
+#include <memory>
 #include <utility>
 #include <vector>
 #include "../utilities/sp_type_traits.h"
@@ -22,10 +22,20 @@ template<typename, size_t> class Domain;
 template<typename ...> class _Field;
 template<typename ...> class Expression;
 
+/**
+ *
+ *  \brief Manifold
+ *
+ *
+ */
+
 template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
 		template<typename > class Policy2 = InterpolatorLinear>
-class Manifold: public TG, public Policy1<TG>, public Policy2<TG>
+class Manifold: public TG,
+		public Policy1<TG>,
+		public Policy2<TG>,
+		public std::enable_shared_from_this<Manifold<TG, Policy1, Policy2>>
 {
 public:
 
@@ -39,6 +49,7 @@ public:
 	typedef typename geometry_type::compact_index_type compact_index_type;
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::scalar_type scalar_type;
+
 	template<typename ...Args>
 	Manifold(Args && ... args) :
 			geometry_type(std::forward<Args>(args)...)

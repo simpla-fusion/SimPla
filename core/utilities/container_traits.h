@@ -40,11 +40,7 @@ template<typename TContainer> struct container_traits
 		return lhs == rhs;
 	}
 };
-template<typename T>
-inline void deallocate_m(T *p)
-{
-	delete[] p;
-}
+
 template<typename TV> struct container_traits<std::shared_ptr<TV>>
 {
 	typedef std::shared_ptr<TV> container_type;
@@ -52,9 +48,7 @@ template<typename TV> struct container_traits<std::shared_ptr<TV>>
 
 	static container_type allocate(size_t s)
 	{
-		return std::shared_ptr<value_type>(new value_type[s],
-				deallocate_m<value_type>);
-//		return MEMPOOL.template make_shared < value_type > (s);
+		return MEMPOOL.template make_shared < value_type > (s);
 	}
 
 	static void clear(std::shared_ptr<TV> d, size_t s)

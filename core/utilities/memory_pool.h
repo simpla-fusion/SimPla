@@ -15,7 +15,11 @@
 namespace simpla
 {
 
-void deallocate_m(void *p);
+template<typename TV>
+inline void deallocate_m(TV *p)
+{
+	delete[] p;
+}
 //! \ingroup Utilities
 class MemoryPool
 {
@@ -139,12 +143,21 @@ public:
 		ReleaseMemory();
 	}
 
+//	template<typename TV>
+//	std::shared_ptr<TV> make_shared(size_t demand)
+//	{
+//		return std::shared_ptr<TV>(
+//				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
+//				deallocate_m);
+//	}
 	template<typename TV>
 	std::shared_ptr<TV> make_shared(size_t demand)
 	{
-		return std::shared_ptr<TV>(
-				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
-				deallocate_m);
+
+		return std::shared_ptr<TV>(new TV[demand], deallocate_m<TV>);
+//		return std::shared_ptr<TV>(
+//				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
+//				deallocate_m);
 	}
 
 	inline std::shared_ptr<ByteType> allocate_byte_shared_ptr(size_t demand)
@@ -214,10 +227,6 @@ private:
 
 #define MEMPOOL  SingletonHolder<MemoryPool>::instance()
 
-inline void deallocate_m(void *p)
-{
-	SingletonHolder<MemoryPool>::instance().deallocate(p);
-}
 }  // namespace simpla
 
 #endif  // INCLUDE_MEMORY_POOL_H_

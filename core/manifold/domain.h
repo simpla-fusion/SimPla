@@ -40,7 +40,7 @@ public:
 	typedef typename range_type::iterator iterator;
 
 public:
-	std::shared_ptr<manifold_type> manifold_;
+	std::shared_ptr<const manifold_type> manifold_;
 	range_type range_;
 
 public:
@@ -48,18 +48,20 @@ public:
 			manifold_(nullptr)
 	{
 	}
-	Domain(std::shared_ptr<manifold_type> g) :
-			manifold_(g), range_(manifold_->template select<iform>())/*, parent_(*this)*/
+	Domain(std::shared_ptr<const manifold_type> g) :
+			manifold_(g->shared_from_this()), range_(
+					manifold_->template select<iform>())/*, parent_(*this)*/
 	{
 	}
 	// Copy constructor.
 	Domain(const this_type& rhs) :
-			manifold_(rhs.manifold_), range_(rhs.range_)/*, parent_(rhs.parent_) */
+			manifold_(rhs.manifold_->shared_from_this()), range_(rhs.range_)/*, parent_(rhs.parent_) */
 	{
 	}
 	// Split d into two sub-domains.
 	Domain(this_type& d, split_tag) :
-			manifold_(d.manifold_), range_(d.range_, split_tag())
+			manifold_(d.manifold_->shared_from_this()), range_(d.range_,
+					split_tag())
 	{
 	}
 
