@@ -12,26 +12,23 @@
 #include <iostream>
 
 #include "../utilities/ntuple.h"
-#include "../utilities/ntuple_noet.h"
 #include "../utilities/pretty_stream.h"
-#include "../utilities/singleton_holder.h"
 #include "message_comm.h"
 
 using namespace simpla;
 
-class TestDistArray: public testing::TestWithParam<nTuple<3, size_t> >
+class TestDistArray: public testing::TestWithParam<nTuple<size_t, 3> >
 {
 
 protected:
 	virtual void SetUp()
 	{
-
 		global_begin = 0;
 		global_end = global_begin + GetParam();
 	}
 public:
-	nTuple<3, size_t> global_begin;
-	nTuple<3, size_t> global_end;
+	nTuple<size_t, 3> global_begin;
+	nTuple<size_t, 3> global_end;
 	static constexpr unsigned int NDIMS = 3;
 	DistributedArray darray;
 };
@@ -94,7 +91,7 @@ TEST_P(TestDistArray, updateGhostVec)
 
 	darray.init(2, global_begin,global_end);
 
-	std::vector<nTuple<3,double>> data(darray.memory_size());
+	std::vector<nTuple<double,3>> data(darray.memory_size());
 
 	std::fill(data.begin(), data.end(),GLOBAL_COMM.get_rank());
 	size_t count =0;
@@ -126,4 +123,5 @@ TEST_P(TestDistArray, updateGhostVec)
 	}
 	MPI_Barrier( GLOBAL_COMM.comm());
 }
-INSTANTIATE_TEST_CASE_P(Parallel, TestDistArray, testing::Values(nTuple<3, size_t>( { 10, 20, 1 })));
+INSTANTIATE_TEST_CASE_P(Parallel, TestDistArray,
+		testing::Values(nTuple<size_t, 3>( { 10, 20, 1 })));

@@ -23,8 +23,8 @@ public:
 
 	int self_id_ = 0;
 
-	DistributedArray()
-			: self_id_(0)
+	DistributedArray() :
+			self_id_(0)
 	{
 	}
 
@@ -72,16 +72,16 @@ public:
 
 	void Decompose(long gw = 2);
 
-	nTuple<long,3> global_begin_;
-	nTuple<long,3> global_end_;
-	nTuple<long,3> global_strides_;
+	nTuple<long, 3> global_begin_;
+	nTuple<long, 3> global_end_;
+	nTuple<long, 3> global_strides_;
 
 	struct sub_array_s
 	{
-		nTuple<long,3> outer_begin;
-		nTuple<long,3> outer_end;
-		nTuple<long,3> inner_begin;
-		nTuple<long,3> inner_end;
+		nTuple<long, 3> outer_begin;
+		nTuple<long, 3> outer_end;
+		nTuple<long, 3> inner_begin;
+		nTuple<long, 3> inner_end;
 	};
 	sub_array_s local_;
 
@@ -90,10 +90,10 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<long,3> send_begin;
-		nTuple<long,3> send_end;
-		nTuple<long,3> recv_begin;
-		nTuple<long,3> recv_end;
+		nTuple<long, 3> send_begin;
+		nTuple<long, 3> send_end;
+		nTuple<long, 3> recv_begin;
+		nTuple<long, 3> recv_end;
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
@@ -104,15 +104,24 @@ public:
 		int res = 0;
 		for (int i = 0; i < ndims; ++i)
 		{
-			res += ((d[i] - global_begin_[i] + (global_end_[i] - global_begin_[i]))
-			        % (global_end_[i] - global_begin_[i])) * global_strides_[i];
+			res += ((d[i] - global_begin_[i]
+					+ (global_end_[i] - global_begin_[i]))
+					% (global_end_[i] - global_begin_[i])) * global_strides_[i];
 		}
 		return res;
 	}
 }
 ;
 
-void update_ghosts(void * data, DataType const & data_type, DistributedArray const & global_array);
+void update_ghosts(void * data, DataType const & data_type,
+		DistributedArray const & global_array);
+
+template<typename TV>
+void update_ghosts(std::shared_ptr<TV> data,
+		DistributedArray const & global_array)
+{
+	update_ghosts(data.get(), DataType::create<TV>(), global_array);
+}
 
 template<typename TV>
 void update_ghosts(TV * data, DistributedArray const & global_array)

@@ -18,55 +18,52 @@ template<typename ... T>
 std::string save(std::string const & url, _Field<T...> const & d,
 		unsigned int flag = 0UL)
 {
-	if (d.empty())
-	{
-		return "null";
-	}
-
-//	typedef typename field_traits<_Field<T...>>::value_type value_type;
+	return simpla::save(url, d.data(), d.dataset_shape());
 //
-	int rank = d.dataset_shape();
-
-	size_t global_begin[rank];
-	size_t global_end[rank];
-	size_t local_outer_begin[rank];
-	size_t local_outer_end[rank];
-	size_t local_inner_begin[rank];
-	size_t local_inner_end[rank];
-
-	d.dataset_shape(
-
-	static_cast<size_t*>(global_begin),
-
-	static_cast<size_t*>(global_end),
-
-	static_cast<size_t*>(local_outer_begin),
-
-	static_cast<size_t*>(local_outer_end),
-
-	static_cast<size_t*>(local_inner_begin),
-
-	static_cast<size_t*>(local_inner_end)
-
-	);
-
-	return simpla::save(url, d.data(),
-
-	rank,
-
-	static_cast<size_t*>(global_begin),
-
-	static_cast<size_t*>(global_end),
-
-	static_cast<size_t*>(local_outer_begin),
-
-	static_cast<size_t*>(local_outer_end),
-
-	static_cast<size_t*>(local_inner_begin),
-
-	static_cast<size_t*>(local_inner_end),
-
-	flag);
+////	typedef typename field_traits<_Field<T...>>::value_type value_type;
+////
+//	int rank = d.dataset_shape();
+//
+//	size_t global_begin[rank];
+//	size_t global_end[rank];
+//	size_t local_outer_begin[rank];
+//	size_t local_outer_end[rank];
+//	size_t local_inner_begin[rank];
+//	size_t local_inner_end[rank];
+//
+//	d.dataset_shape(
+//
+//	static_cast<size_t*>(global_begin),
+//
+//	static_cast<size_t*>(global_end),
+//
+//	static_cast<size_t*>(local_outer_begin),
+//
+//	static_cast<size_t*>(local_outer_end),
+//
+//	static_cast<size_t*>(local_inner_begin),
+//
+//	static_cast<size_t*>(local_inner_end)
+//
+//	);
+//
+//	return simpla::save(url, d.data(),
+//
+//	rank,
+//
+//	static_cast<size_t*>(global_begin),
+//
+//	static_cast<size_t*>(global_end),
+//
+//	static_cast<size_t*>(local_outer_begin),
+//
+//	static_cast<size_t*>(local_outer_end),
+//
+//	static_cast<size_t*>(local_inner_begin),
+//
+//	static_cast<size_t*>(local_inner_end),
+//
+//	flag);
 
 }
 }
