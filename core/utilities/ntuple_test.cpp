@@ -19,10 +19,6 @@
 #include "pretty_stream.h"
 using namespace simpla;
 
-
-
-
-
 #define EQUATION(_A,_B,_C)  ( -(_A  +TestFixture::a )/(   _B *TestFixture::b -TestFixture::c  )- _C)
 
 template<typename T>
@@ -93,9 +89,9 @@ nTuple<double, 3>
 
 , nTuple<std::complex<double>, 3>
 
-> nTupleTypes;
+> ntuple_type_lists;
 
-TYPED_TEST_CASE(TestNtuple, nTupleTypes);
+TYPED_TEST_CASE(TestNtuple, ntuple_type_lists);
 
 TYPED_TEST(TestNtuple, swap){
 {
@@ -129,18 +125,29 @@ TYPED_TEST(TestNtuple, reduce){
 }
 }
 
-TYPED_TEST(TestNtuple, compare){
+TYPED_TEST(TestNtuple, equation ){
 {
-//	EXPECT_TRUE( TestFixture::vA==TestFixture::aA);
-	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+	TestFixture::vB=TestFixture::vA+1000;
 
+	EXPECT_TRUE( TestFixture::vA==TestFixture::vA);
 	EXPECT_TRUE( TestFixture::vA!=TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vA<=TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA<TestFixture::vB);
+//	EXPECT_TRUE( TestFixture::vA>=TestFixture::vA);
+//	EXPECT_TRUE( TestFixture::vB>TestFixture::vA);
+
 	EXPECT_FALSE( TestFixture::vA!=TestFixture::vA);
+	EXPECT_FALSE( TestFixture::vA==TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vA>=TestFixture::vB);
+//	EXPECT_FALSE( TestFixture::vB<=TestFixture::vA);
+//	EXPECT_FALSE( TestFixture::vA>TestFixture::vB);
+// 	EXPECT_FALSE( TestFixture::vB<TestFixture::vA);
 
 }
 }
 //
-TYPED_TEST(TestNtuple, Assign_Scalar){
+TYPED_TEST(TestNtuple, assign_Scalar){
 {
 
 	TestFixture::vA = TestFixture::a;
@@ -154,7 +161,7 @@ TYPED_TEST(TestNtuple, Assign_Scalar){
 
 }}
 
-TYPED_TEST(TestNtuple, Assign_Array){
+TYPED_TEST(TestNtuple, assign_Array){
 {
 	TestFixture::vA = TestFixture::aA;
 
@@ -167,7 +174,7 @@ TYPED_TEST(TestNtuple, Assign_Array){
 
 }}
 
-TYPED_TEST(TestNtuple, Arithmetic){
+TYPED_TEST(TestNtuple, arithmetic){
 {
 	TestFixture::vD = EQUATION(TestFixture::vA, TestFixture::vB, TestFixture::vC);
 
@@ -219,7 +226,7 @@ TYPED_TEST(TestNtuple, inner_product){
 	EXPECT_DOUBLE_EQ(0,abs(res- inner_product( TestFixture::vA, TestFixture::vB)));
 }}
 
-TYPED_TEST(TestNtuple, Cross){
+TYPED_TEST(TestNtuple, cross){
 {
 	nTuple< typename TestFixture::value_type,3> vA, vB,vC ,vD;
 
@@ -239,37 +246,6 @@ TYPED_TEST(TestNtuple, Cross){
 	vD-=vC;
 	EXPECT_DOUBLE_EQ(0,abs(vD[0])+abs(vD[1])+abs(vD[2]) );
 }}
-
-//TYPED_TEST(TestNtuple, performance_rawarray){
-//{
-//	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
-//	{
-//		seq_for_each(typename TestFixture::dimensions(),
-//				[&](size_t const idx[TestFixture::dimensions::size()])
-//				{
-//					get_value_r(TestFixture::aD,idx) +=EQUATION(get_value_r(TestFixture::aA,idx),
-//							get_value_r(TestFixture::aB,idx),
-//							get_value_r(TestFixture::aC,idx))
-//					*s;
-//
-//				}
-//		)
-//
-//		;
-//	}
-//
-//}
-//}
-//TYPED_TEST(TestNtuple, performancenTuple){
-//{
-//
-//	for (std::size_t s = 0; s < TestFixture::num_of_loops; ++s)
-//	{
-//		TestFixture::vD +=EQUATION(TestFixture::vA ,TestFixture::vB ,TestFixture::vC)*(s);
-//	}
-//
-//}
-//}
 
 template<typename > class nTuplePerf1;
 
@@ -331,9 +307,9 @@ nTuple<double, 3>
 
 , nTuple<std::complex<double>, 10>
 
-> nTuple_types1;
+> ntuple_type_lists_1d;
 
-TYPED_TEST_CASE(nTuplePerf1, nTuple_types1);
+TYPED_TEST_CASE(nTuplePerf1, ntuple_type_lists_1d);
 
 TYPED_TEST(nTuplePerf1,performance_raw_array){
 {
@@ -421,9 +397,9 @@ nTuple<double, 3, 4>
 
 , nTuple<std::complex<double>, 10, 20>
 
-> nTuple_types2;
+> ntuple_type_lists_2d;
 
-TYPED_TEST_CASE(nTuplePerf2, nTuple_types2);
+TYPED_TEST_CASE(nTuplePerf2, ntuple_type_lists_2d);
 
 TYPED_TEST(nTuplePerf2,performance_raw_array){
 {

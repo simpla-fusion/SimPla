@@ -103,9 +103,10 @@ private:
 	DECL_RET_TYPE( op(calculate(l,s),calculate(r,s) ) )
 
 	template<typename TF>
-	auto calculate_(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
+	typename field_traits<TF>::value_type
+	calculate_(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
 			TF const & f,
-			compact_index_type s) const ->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto D = geo->delta_index(s);
 
@@ -114,9 +115,10 @@ private:
 	}
 
 	template<typename TF>
-	inline auto calculate_(_impl::ExteriorDerivative,
+	inline typename field_traits<TF>::value_type
+	calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const ->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto X = geo->delta_index(geo->dual(s));
 		auto Y = geo->roate(X);
@@ -141,9 +143,10 @@ private:
 	}
 
 	template<typename TF>
-	inline auto calculate_(_impl::ExteriorDerivative,
+	inline typename field_traits<TF>::value_type
+	calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -173,9 +176,10 @@ private:
 //			_Field<TL...> const & f, compact_index_type s) const = delete;
 
 	template<typename TF>
-	inline auto calculate_(_impl::CodifferentialDerivative,
+	inline typename field_traits<TF>::value_type
+	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
-			compact_index_type s) const ->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto X = geo->DI(0, s);
 		auto Y = geo->DI(1, s);
@@ -204,9 +208,10 @@ private:
 	}
 
 	template<typename TF>
-	inline auto calculate_(_impl::CodifferentialDerivative,
+	inline typename field_traits<TF>::value_type
+	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
-			compact_index_type s) const ->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto X = geo->delta_index(s);
 		auto Y = geo->roate(X);
@@ -228,9 +233,10 @@ private:
 	}
 
 	template<typename TF>
-	inline auto calculate_(_impl::CodifferentialDerivative,
+	inline typename field_traits<TF>::value_type
+	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, VOLUME>, TF const & f,
-			compact_index_type s) const ->typename field_traits<TF>::value_type
+			compact_index_type s) const
 	{
 		auto D = geo->delta_index(geo->dual(s));
 		return

@@ -187,6 +187,8 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 {
 	typedef nTuple<Expression<T...>> this_type;
 
+	using Expression<T...>::Expression;
+
 	typedef typename nTuple_traits<this_type>::primary_type primary_type;
 
 	operator primary_type() const
@@ -196,13 +198,20 @@ struct nTuple<Expression<T...>> : public Expression<T...>
 		return std::move(res);
 	}
 
+};
+
+template<typename ... T>
+struct nTuple<BooleanExpression<T...>> : public Expression<T...>
+{
+	typedef nTuple<BooleanExpression<T...>> this_type;
+
+	using Expression<T...>::Expression;
+
 	operator bool() const
 	{
 		return seq_reduce(typename nTuple_traits<this_type>::dimensions(),
 				_impl::logical_and(), *this);
 	}
-
-	using Expression<T...>::Expression;
 
 };
 
@@ -259,6 +268,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 			typename nTuple_traits<TV>::dimensions>::type dimensions;
 
 	typedef typename make_pod_array<value_type, dimensions>::type pod_type;
+
 	typedef typename make_ntuple<value_type, dimensions>::type primary_type;
 
 };
@@ -299,6 +309,20 @@ public:
 
 };
 
+template<typename TOP, typename ...T>
+struct nTuple_traits<nTuple<BooleanExpression<TOP, T...>> >
+{
+
+	typedef typename nTuple_traits<nTuple<Expression<TOP, T...>> >::dimensions dimensions;
+
+	typedef bool value_type;
+
+	typedef bool pod_type;
+
+	typedef bool primary_type;
+
+};
+
 template<typename T, size_t ...N>
 struct rank<nTuple<T, N...>>
 {
@@ -309,8 +333,7 @@ struct rank<nTuple<T, N...>>
 template<typename TInts, TInts ...N>
 nTuple<TInts, sizeof...(N)> seq2ntuple(integer_sequence<TInts, N...>)
 {
-	return std::move(nTuple<TInts, sizeof...(N)>(
-	{ N... }));
+	return std::move(nTuple<TInts, sizeof...(N)>( { N... }));
 }
 
 typedef nTuple<Real, 3> Vec3;
@@ -425,10 +448,9 @@ template<typename T1, size_t ... N1, typename T2, size_t ... N2> inline auto cro
 		nTuple<T1, N1...> const & l, nTuple<T2, N2...> const & r)
 		->nTuple<decltype(get_value(l,0)*get_value(r,0)),3>
 {
-	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res =
-	{ l[1] * r[2] - l[2] * r[1], l[2] * get_value(r, 0)
-			- get_value(l, 0) * r[2], get_value(l, 0) * r[1]
-			- l[1] * get_value(r, 0) };
+	nTuple<decltype(get_value(l,0)*get_value(r,0)), 3> res = { l[1] * r[2]
+			- l[2] * r[1], l[2] * get_value(r, 0) - get_value(l, 0) * r[2],
+			get_value(l, 0) * r[1] - l[1] * get_value(r, 0) };
 	return std::move(res);
 }
 
@@ -470,11 +492,36 @@ DECL_RET_TYPE(( abs(l)))
 		operator _OP_(nTuple<T,N...> const &l)  \
 		{return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
 
+
+#define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                                                  \
+	template<typename T1,size_t ...N1,typename  T2> \
+	nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>> \
+	operator _OP_(nTuple<T1, N1...> const & l,T2 const&r)  \
+	{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T1,N1...>,T2>>(l,r));}                    \
+	\
+	template< typename T1,typename T2 ,size_t ...N2> \
+	nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>> \
+	operator _OP_(T1 const & l, nTuple< T2,N2...>const &r)                    \
+	{return (nTuple<BooleanExpression< _impl::_NAME_,T1,nTuple< T2,N2...>>>(l,r))  ;}                \
+	\
+	template< typename T1,size_t ... N1,typename T2 ,size_t ...N2>  \
+	nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>\
+	operator _OP_(nTuple< T1,N1...> const & l,nTuple< T2,N2...>  const &r)                    \
+	{return (nTuple<BooleanExpression< _impl::_NAME_,nTuple< T1,N1...>,nTuple< T2,N2...>>>(l,r));}                    \
+
+
+#define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                           \
+		template<typename T,size_t ...N> \
+		nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >> \
+		operator _OP_(nTuple<T,N...> const &l)  \
+		{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
+
+
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
 			template<typename T1,size_t ...N1,typename  T2> \
-			nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
+			nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>> \
 			_NAME_(nTuple<T1,N1...> const & l,T2 const &r)  \
-			{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r));}       \
+			{return (nTuple<BooleanExpression<_impl::_##_NAME_,nTuple<T1,N1...>,T2>>(l,r));}       \
 			\
 			template< typename T1,typename T2,size_t ...N2> \
 			nTuple<Expression< _impl::_##_NAME_,T1,nTuple< T2,N2...>>>\

@@ -400,6 +400,7 @@ struct _Field<BooleanExpression<TOP, TL...>> : public Expression<TOP, TL...>
 
 	operator bool() const
 	{
+		UNIMPLEMENT;
 		return false;
 	}
 };

@@ -329,6 +329,29 @@ DEF_UNARY_FUNCTION(imag)
 		operator _OP_(_OBJ_<T...> const &l)  \
 		{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
 
+#define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
+	template<typename ...T1,typename  T2> \
+	_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
+	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
+	{return (_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	template< typename T1,typename ...T2> \
+	_OBJ_<BooleanExpression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
+	operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
+	{return (_OBJ_<BooleanExpression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+	template< typename ... T1,typename ...T2> \
+	_OBJ_<BooleanExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
+	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
+	{return (_OBJ_<BooleanExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+
+
+
+#define _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
+		template<typename ...T> \
+		_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> >> \
+		operator _OP_(_OBJ_<T...> const &l)  \
+		{return (_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
+
+
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_,_OBJ_)                                                  \
 			template<typename ...T1,typename  T2> \
 			_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T1...>,T2>> \
@@ -342,6 +365,8 @@ DEF_UNARY_FUNCTION(imag)
 			_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>> \
 			_NAME_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
 			{return (_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+
+
 
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION( _NAME_,_OBJ_)                           \
@@ -382,15 +407,15 @@ _SP_DEFINE_EXPR_UNARY_FUNCTION(log10, _CONCEPT_)                                
 _SP_DEFINE_EXPR_UNARY_FUNCTION(sqrt, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(real, _CONCEPT_)                                          \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(imag, _CONCEPT_)                                          \
-_SP_DEFINE_EXPR_BOOL_UNARY_OPERATOR(!, _CONCEPT_, logical_not)                              \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(&&, _CONCEPT_, logical_and)                              \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(||, _CONCEPT_, logical_or)                               \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(==, _CONCEPT_, equal_to)                                 \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(<, _CONCEPT_, less)                                      \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(>, _CONCEPT_, greater)                                   \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(<=, _CONCEPT_, less_equal)                               \
-_SP_DEFINE_EXPR_BOOL_BINARY_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
+_SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(!, _CONCEPT_, logical_not)                              \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(&&, _CONCEPT_, logical_and)                              \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(||, _CONCEPT_, logical_or)                               \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(!=, _CONCEPT_, not_equal_to)                             \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(==, _CONCEPT_, equal_to)                                 \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<, _CONCEPT_, less)                                      \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>, _CONCEPT_, greater)                                   \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(<=, _CONCEPT_, less_equal)                               \
+_SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(>=, _CONCEPT_, greater_equal)							 \
 _SP_DEFINE_EXPR_UNARY_FUNCTION(abs, _CONCEPT_)                                           \
 
 
@@ -425,15 +450,15 @@ _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(log10)                             
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(sqrt)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(real)                                          \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(imag)                                          \
-_SP_DEFINE_##_CONCEPT_##_BOOL_UNARY_OPERATOR(!,  logical_not)                              \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(&&, logical_and)                              \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(||, logical_or)                               \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(!=, not_equal_to)                             \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(==, equal_to)                                 \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<, less)                                      \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>, greater)                                   \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(<=, less_equal)                               \
-_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_OPERATOR(>=, greater_equal)                            \
+_SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_BOOLEAN_OPERATOR(!,  logical_not)                              \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(&&, logical_and)                              \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(||, logical_or)                               \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(!=, not_equal_to)                             \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(==, equal_to)                                 \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<, less)                                      \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>, greater)                                   \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(<=, less_equal)                               \
+_SP_DEFINE_##_CONCEPT_##_EXPR_BINARY_BOOLEAN_OPERATOR(>=, greater_equal)                            \
 _SP_DEFINE_##_CONCEPT_##_EXPR_UNARY_FUNCTION(abs)                                           \
 
 //#undef _SP_DEFINE_EXPR_BINARY_OPERATOR
