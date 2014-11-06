@@ -31,9 +31,6 @@ struct is_expresson<F<Expression<T...>>>
 	static constexpr bool value=true;
 };
 
-namespace _impl
-{
-
 template<typename T>
 struct reference_traits
 {
@@ -49,14 +46,12 @@ struct reference_traits
 
 };
 
-}  // namespace _impl
-
 template<typename TOP, typename TL, typename TR>
 struct Expression<TOP, TL, TR>
 {
 	typedef Expression<TOP, TL, TR> this_type;
-	typename _impl::reference_traits<TL>::type lhs;
-	typename _impl::reference_traits<TR>::type rhs;
+	typename reference_traits<TL>::type lhs;
+	typename reference_traits<TR>::type rhs;
 	TOP op_;
 
 	Expression(this_type const & that) :
@@ -95,7 +90,7 @@ struct Expression<TOP, TL>
 {
 	typedef Expression<TOP, TL> this_type;
 
-	typename _impl::reference_traits<TL>::type lhs;
+	typename reference_traits<TL>::type lhs;
 
 	TOP op_;
 
@@ -344,7 +339,6 @@ DEF_UNARY_FUNCTION(imag)
 	{return (_OBJ_<BooleanExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
-
 #define _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
 		_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> >> \
@@ -365,8 +359,6 @@ DEF_UNARY_FUNCTION(imag)
 			_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>> \
 			_NAME_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
 			{return (_OBJ_<Expression< _impl::_##_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
-
-
 
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION( _NAME_,_OBJ_)                           \

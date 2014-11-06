@@ -8,9 +8,134 @@
 #ifndef CORE_FIELD_FIELD_VECTOR_CALCULUS_TEST_H_
 #define CORE_FIELD_FIELD_VECTOR_CALCULUS_TEST_H_
 
-#include "field_test_common.h"
+#include <gtest/gtest.h>
+#include <tuple>
+
+#include "../utilities/log.h"
+#include "../utilities/ntuple.h"
+#include "../utilities/pretty_stream.h"
+#include "../io/data_stream.h"
+#include "field.h"
+#include "save_field.h"
+#include "update_ghosts_field.h"
 
 using namespace simpla;
+
+#ifndef TMESH
+#include "../manifold/manifold.h"
+#include "../manifold/geometry/cartesian.h"
+#include "../manifold/topology/structured.h"
+#include "../manifold/diff_scheme/fdm.h"
+#include "../manifold/interpolator/interpolator.h"
+
+typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
+		FiniteDiffMethod, InterpolatorLinear> TManifold;
+
+#else
+typedef TMESH TManifold;
+#endif
+
+class FETLTest: public testing::TestWithParam<
+		std::tuple<nTuple<Real, 3>, nTuple<Real, 3>, nTuple<size_t, 3>,
+				nTuple<Real, 3>> >
+{
+
+protected:
+	void SetUp()
+	{
+		LOGGER.set_stdout_visable_level(LOG_VERBOSE);
+
+		std::tie(xmin, xmax, dims, K_real) = GetParam();
+
+		K_imag = 0;
+
+		SetDefaultValue(&one);
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			if (dims[i] <= 1 || (xmax[i] <= xmin[i]))
+			{
+				dims[i] = 1;
+				K_real[i] = 0.0;
+				xmax[i] = xmin[i];
+			}
+		}
+
+		manifold = make_manifold<manifold_type>();
+
+		manifold->dimensions(dims);
+		manifold->extents(xmin, xmax);
+		manifold->update();
+
+		Vec3 dx = manifold->dx();
+
+		error = 2.0 * std::pow(inner_product(K_real, dx), 2.0);
+
+	}
+
+	void TearDown()
+	{
+		std::shared_ptr<manifold_type>(nullptr).swap(manifold);
+	}
+public:
+
+	typedef TManifold manifold_type;
+#ifndef VALUE_TYPE
+	typedef Real value_type;
+#else
+	typedef VALUE_TYPE value_type;
+#endif
+
+	typedef typename manifold_type::scalar_type scalar_type;
+	typedef typename manifold_type::iterator iterator;
+	typedef typename manifold_type::coordinates_type coordinates_type;
+
+	std::shared_ptr<manifold_type> manifold;
+
+	static constexpr size_t ndims = manifold_type::ndims;
+
+	nTuple<Real, 3> xmin;
+
+	nTuple<Real, 3> xmax;
+
+	nTuple<size_t, 3> dims;
+
+	nTuple<Real, 3> K_real;	// @NOTE must   k = n TWOPI, period condition
+
+	nTuple<scalar_type, 3> K_imag;
+
+	value_type one;
+
+	Real error;
+
+	template<typename T>
+	void SetDefaultValue(T* v)
+	{
+		*v = 1;
+	}
+	template<typename T>
+	void SetDefaultValue(std::complex<T>* v)
+	{
+		T r;
+		SetDefaultValue(&r);
+		*v = std::complex<T>();
+	}
+
+	template<size_t N, typename T>
+	void SetDefaultValue(nTuple<T, N>* v)
+	{
+		for (int i = 0; i < N; ++i)
+		{
+			(*v)[i] = i;
+		}
+	}
+
+	virtual ~FETLTest()
+	{
+
+	}
+
+};
 
 TEST_P(FETLTest, grad0)
 {
@@ -306,7 +431,7 @@ TEST_P(FETLTest, diverge2)
 
 	Real variance = 0;
 	value_type average = one;
-	average*=0.0;
+	average *= 0.0;
 
 	for (auto s : domain3)
 	{
@@ -803,4 +928,43 @@ TEST_P(FETLTest, identity_div_curl_f2_eq0)
 
 }
 
+INSTANTIATE_TEST_CASE_P(FETLCartesian, FETLTest,
+
+testing::Combine(testing::Values(
+
+nTuple<Real, 3>( { 0.0, 0.0, 0.0 })
+
+, nTuple<Real, 3>( { -1.0, -2.0, -3.0 })
+
+),
+
+testing::Values(
+
+nTuple<Real, 3>( { 1.0, 2.0, 1.0 }) //
+
+		, nTuple<Real, 3>( { 2.0, 0.0, 0.0 }) //
+		, nTuple<Real, 3>( { 0.0, 2.0, 0.0 }) //
+		, nTuple<Real, 3>( { 0.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>( { 0.0, 2.0, 2.0 }) //
+		, nTuple<Real, 3>( { 2.0, 0.0, 2.0 }) //
+		, nTuple<Real, 3>( { 2.0, 2.0, 0.0 }) //
+
+		),
+
+testing::Values(
+
+nTuple<size_t, 3>( { 40, 12, 10 }) //
+		, nTuple<size_t, 3>( { 100, 1, 1 }) //
+		, nTuple<size_t, 3>( { 1, 100, 1 }) //
+		, nTuple<size_t, 3>( { 1, 1, 100 }) //
+		, nTuple<size_t, 3>( { 1, 10, 5 }) //
+		, nTuple<size_t, 3>( { 11, 1, 21 }) //
+		, nTuple<size_t, 3>( { 11, 21, 1 }) //
+		),
+
+testing::Values(
+
+nTuple<Real, 3>( { TWOPI, 3 * TWOPI, TWOPI }))
+
+));
 #endif /* CORE_FIELD_FIELD_VECTOR_CALCULUS_TEST_H_ */

@@ -284,16 +284,41 @@ public:
 }
 ;
 
-namespace _impl
-{
-
 template<typename TC, typename TD>
 struct reference_traits<_Field<TC, TD> >
 {
 	typedef _Field<TC, TD> const & type;
 };
 
-} //namespace _impl
+template<typename > struct field_result_of;
+template<typename ... > struct index_of;
+
+template<typename TC, typename TD, typename TI>
+struct index_of<_Field<TC, TD>, TI>
+{
+	typedef typename _Field<TC, TD>::value_type type;
+};
+
+template<typename TOP, typename ...T, typename TI>
+struct index_of<_Field<Expression<TOP, T...>>, TI>
+{
+	typedef typename field_result_of<TOP(T..., TI)>::type type;
+};
+
+template<typename TOP, typename TL, typename TI>
+struct field_result_of<TOP(TL, TI)>
+{
+	typedef typename result_of<TOP(typename index_of<TL, TI>::type)>::type type;
+};
+
+template<typename TOP, typename TL, typename TR, typename TI>
+struct field_result_of<TOP(TL, TR, TI)>
+{
+	typedef typename result_of<
+			TOP(typename index_of<TL, TI>::type,
+					typename index_of<TR, TI>::type)>::type type;
+};
+
 template<typename TV, typename TDomain> using Field= _Field< std::shared_ptr<TV>,TDomain >;
 
 template<typename > struct is_field
@@ -312,7 +337,6 @@ template<typename ...> struct field_traits;
 
 template<typename T> struct field_traits<T>
 {
-	typedef T value_type;
 
 	static constexpr size_t ndims = 0;
 
@@ -322,7 +346,6 @@ template<typename T> struct field_traits<T>
 template<typename TC, typename TD>
 struct field_traits<_Field<TC, TD>>
 {
-	typedef typename container_traits<TC>::value_type value_type;
 
 	static constexpr size_t ndims = TD::ndims;
 
@@ -341,8 +364,6 @@ template<typename TOP, typename TL>
 struct field_traits<_Field<Expression<TOP, TL> >>
 {
 
-	typedef typename field_traits<TL>::value_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
 	static constexpr size_t iform = field_traits<TL>::iform;
@@ -352,15 +373,6 @@ struct field_traits<_Field<Expression<TOP, TL> >>
 template<typename TOP, typename TL, typename TR>
 struct field_traits<_Field<Expression<TOP, TL, TR> >>
 {
-
-	typedef typename field_traits<TL>::value_type l_value_type;
-	typedef typename field_traits<TR>::value_type r_value_type;
-
-	typedef decltype( std::declval<l_value_type>()*std::declval<r_value_type>()) type_;
-
-	typedef typename std::remove_cv<typename std::remove_reference<type_>::type>::type type__;
-
-	typedef typename nTuple_traits<type__>::primary_type value_type;
 
 	typedef typename std::conditional<is_field<TL>::value, field_traits<TL>,
 			field_traits<TR>>::type traits_type;
@@ -374,7 +386,6 @@ struct field_traits<_Field<Expression<TOP, TL, TR> >>
 template<typename TOP, typename TR>
 struct field_traits<_Field<Expression<TOP, double, TR> >>
 {
-	typedef typename field_traits<TR>::value_type value_type;
 
 	static constexpr size_t ndims = field_traits<TR>::ndims;
 
@@ -414,12 +425,22 @@ DECL_RET_TYPE((_Field<std::shared_ptr<TV>,
 						std::forward<Others>(others)...)))
 
 template<typename, size_t> class Domain;
+//
+//template<typename TV, size_t IFORM, typename TM, typename ... Others>
+//auto make_form(TM const &manifold,
+//		Others && ...others)
+//				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
+//										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
 template<typename TV, size_t IFORM, typename TM, typename ... Others>
-auto make_form(TM const &manifold,
-		Others && ...others)
-				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
-										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
+_Field<std::shared_ptr<TV>, Domain<TM, IFORM>> make_form(
+		std::shared_ptr<TM> manifold, Others && ...others)
+{
+	return std::move(
+			_Field<std::shared_ptr<TV>, Domain<TM, IFORM>>(
+					Domain<TM, IFORM>(manifold->shared_from_this()),
+					std::forward<Others>(others)...));
+}
 
 }
 // namespace simpla

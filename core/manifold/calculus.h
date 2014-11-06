@@ -49,14 +49,54 @@ struct CodifferentialDerivative
 struct MapTo
 {
 };
+
 } //namespace _impl
+template<typename > struct field_result_of;
+template<typename TL, typename TI>
+struct field_result_of<_impl::HodgeStar(TL, TI)>
+{
+	typedef typename index_of<TL, TI>::type type;
+};
+
+template<typename TL, typename TR, typename TI>
+struct field_result_of<_impl::InteriorProduct(TL, TR, TI)>
+{
+	typedef typename result_of<
+			_impl::multiplies(typename index_of<TL, TI>::type,
+					typename index_of<TR, TI>::type)>::type type;
+};
+
+template<typename TL, typename TR, typename TI>
+struct field_result_of<_impl::Wedge(TL, TR, TI)>
+{
+	typedef typename result_of<
+			_impl::multiplies(typename index_of<TL, TI>::type,
+					typename index_of<TR, TI>::type)>::type type;
+};
+
+template<typename TL, typename TI>
+struct field_result_of<_impl::ExteriorDerivative(TL, TI)>
+{
+	typedef typename index_of<TL, TI>::type type;
+};
+
+template<typename TL, typename TI>
+struct field_result_of<_impl::CodifferentialDerivative(TL, TI)>
+{
+	typedef typename index_of<TL, TI>::type type;
+};
+
+template<typename TL, typename TR, typename TI>
+struct field_result_of<_impl::MapTo(TL, TR, TI)>
+{
+	typedef typename index_of<TL, TI>::type type;
+};
+
 template<typename ...> struct field_traits;
 
 template<typename TL>
 struct field_traits<_Field<Expression<_impl::HodgeStar, TL> > >
 {
-	typedef typename field_traits<TL>::value_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = ndims - field_traits<TL>::iform;
 };
@@ -64,15 +104,6 @@ struct field_traits<_Field<Expression<_impl::HodgeStar, TL> > >
 template<typename TL, typename TR>
 struct field_traits<_Field<Expression<_impl::InteriorProduct, TL, TR> > >
 {
-	typedef typename field_traits<TL>::value_type l_value_type;
-	typedef typename field_traits<TR>::value_type r_value_type;
-
-	typedef decltype( std::declval<l_value_type>()*std::declval<r_value_type>()) type_;
-
-	typedef typename std::remove_cv<typename std::remove_reference<type_>::type>::type type__;
-
-	typedef typename nTuple_traits<type__>::primary_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = field_traits<TL>::iform - 1;
 };
@@ -80,8 +111,6 @@ struct field_traits<_Field<Expression<_impl::InteriorProduct, TL, TR> > >
 template<typename TL, typename TR>
 struct field_traits<_Field<Expression<_impl::Wedge, TL, TR> > >
 {
-	typedef typename field_traits<TL>::value_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = field_traits<TL>::iform
 			+ field_traits<TR>::iform;
@@ -90,8 +119,6 @@ struct field_traits<_Field<Expression<_impl::Wedge, TL, TR> > >
 template<typename TL>
 struct field_traits<_Field<Expression<_impl::ExteriorDerivative, TL> > >
 {
-	typedef typename field_traits<TL>::value_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = field_traits<TL>::iform + 1;
 };
@@ -99,8 +126,6 @@ struct field_traits<_Field<Expression<_impl::ExteriorDerivative, TL> > >
 template<typename TL>
 struct field_traits<_Field<Expression<_impl::CodifferentialDerivative, TL> > >
 {
-	typedef typename field_traits<TL>::value_type value_type;
-
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 	static constexpr size_t iform = field_traits<TL>::iform - 1;
 };

@@ -17,6 +17,7 @@
 #include "../../physics/constants.h"
 #include "../manifold.h"
 #include "../calculus.h"
+#include "../../field/field.h"
 namespace simpla
 {
 
@@ -81,29 +82,35 @@ struct FiniteDiffMethod
 	calculate( _Field<TC, TD> const &f, compact_index_type const &s) const;
 
 	template<typename TOP, typename TL>
-	typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+	typename field_result_of<TOP(TL,compact_index_type)>::type
 	calculate(_Field<Expression<TOP, TL>> const &f,
 			compact_index_type const &s) const;
 
 	template<typename TOP, typename TL, typename TR>
-	typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+	typename field_result_of<TOP(TL,TR,compact_index_type)>::type
 	calculate(_Field<Expression<TOP, TL, TR>> const &f,
 			compact_index_type const &s) const;
 
 private:
 
 	template<size_t IFORM, typename TOP, typename TL>
-	auto calculate_(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
+	inline typename field_result_of<TOP(TL,compact_index_type)>::type
+	calculate_(TOP op, integer_sequence<size_t, IFORM>, TL const& f,
 			compact_index_type s) const
-	DECL_RET_TYPE( op(calculate(f,s) ) )
+	{
+		return op(calculate(f,s) );
+	}
 
 	template<typename TOP, size_t IL, size_t IR, typename TL, typename TR>
-	inline auto calculate_(TOP op, integer_sequence<size_t, IL, IR>,
+	inline typename field_result_of<TOP(TL,TR,compact_index_type)>::type
+	calculate_(TOP op, integer_sequence<size_t, IL, IR>,
 			TL const& l, TR const &r, compact_index_type s) const
-	DECL_RET_TYPE( op(calculate(l,s),calculate(r,s) ) )
+	{
+		return op(calculate(l,s),calculate(r,s) );
+	}
 
 	template<typename TF>
-	typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::ExteriorDerivative, integer_sequence<size_t, VERTEX>,
 			TF const & f,
 			compact_index_type s) const
@@ -115,7 +122,7 @@ private:
 	}
 
 	template<typename TF>
-	inline typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
 			compact_index_type s) const
@@ -143,7 +150,7 @@ private:
 	}
 
 	template<typename TF>
-	inline typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::ExteriorDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::ExteriorDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
 			compact_index_type s) const
@@ -176,7 +183,7 @@ private:
 //			_Field<TL...> const & f, compact_index_type s) const = delete;
 
 	template<typename TF>
-	inline typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, EDGE>, TF const & f,
 			compact_index_type s) const
@@ -208,7 +215,7 @@ private:
 	}
 
 	template<typename TF>
-	inline typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, FACE>, TF const & f,
 			compact_index_type s) const
@@ -233,7 +240,7 @@ private:
 	}
 
 	template<typename TF>
-	inline typename field_traits<TF>::value_type
+	inline typename field_result_of<_impl::CodifferentialDerivative(TF,compact_index_type)>::type
 	calculate_(_impl::CodifferentialDerivative,
 			integer_sequence<size_t, VOLUME>, TF const & f,
 			compact_index_type s) const
@@ -862,32 +869,32 @@ FiniteDiffMethod<G>::calculate(nTuple<Expression<T...>> const & v,
 
 template<typename G>
 template<typename TC, typename TD>
-typename _Field<TC, TD>::value_type const & FiniteDiffMethod<G>::calculate(
-		_Field<TC, TD> const &f, compact_index_type const &s) const
+typename _Field<TC, TD>::value_type const & //
+FiniteDiffMethod<G>::calculate(_Field<TC, TD> const &f,
+		compact_index_type const &s) const
 {
 	return f[s];
 }
 template<typename G>
 template<typename TOP, typename TL>
-typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+typename field_result_of<
+		TOP(TL, typename FiniteDiffMethod<G>::compact_index_type)>::type //
 FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL>> const &f,
 		compact_index_type const &s) const
 {
 	return calculate_(f.op_,
-			integer_sequence<size_t, field_traits<TL>::iform>(),
-			f.lhs,s );
+			integer_sequence<size_t, field_traits<TL>::iform>(), f.lhs, s);
 }
 template<typename G>
 template<typename TOP, typename TL, typename TR>
-typename field_traits<_Field<Expression<TOP, TL>>> ::value_type
+typename field_result_of<
+		TOP(TL, TR, typename FiniteDiffMethod<G>::compact_index_type)>::type //
 FiniteDiffMethod<G>::calculate(_Field<Expression<TOP, TL, TR>> const &f,
 		compact_index_type const &s) const
 {
 	return (calculate_(f.op_,
-					integer_sequence<size_t,
-					field_traits<TL>::iform ,
-					field_traits<TR>::iform>(),
-					f.lhs,f.rhs,s ));
+			integer_sequence<size_t, field_traits<TL>::iform,
+					field_traits<TR>::iform>(), f.lhs, f.rhs, s));
 }
 }
 // namespace simpla

@@ -215,10 +215,7 @@ struct nTuple<BooleanExpression<T...>> : public Expression<T...>
 
 };
 
-namespace _impl
-{
-
-template<typename T> struct reference_traits;
+template<typename > struct reference_traits;
 
 template<typename T, size_t M, size_t ...N>
 struct reference_traits<nTuple<T, M, N...>>
@@ -231,8 +228,6 @@ struct reference_traits<nTuple<Expression<T...> >>
 {
 	typedef nTuple<Expression<T...> > type;
 };
-
-}  // namespace _impl
 
 template<typename TV>
 struct nTuple_traits

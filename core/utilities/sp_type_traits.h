@@ -491,6 +491,37 @@ template<typename T> typename std::enable_if<
 {
 	std::swap(l, r);
 }
+
+template<typename > struct result_of;
+
+template<typename F, typename ...Args> struct result_of<F(Args...)>
+{
+	typedef typename std::result_of<F(Args...)>::type type;
+};
+
+namespace _impl
+{
+
+struct GetValue
+{
+	template<typename TL, typename TI>
+	constexpr auto operator()(TL const & v, TI const s) const
+	DECL_RET_TYPE((get_value(v,s)))
+
+	template<typename TL, typename TI>
+	constexpr auto operator()(TL & v, TI const s) const
+	DECL_RET_TYPE((get_value(v,s)))
+};
+
+} //namespace _impl
+template<typename ...> struct index_of;
+
+template<typename TC, typename TI>
+struct index_of<TC, TI>
+{
+	typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
+};
+
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */
