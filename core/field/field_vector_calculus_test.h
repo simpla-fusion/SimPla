@@ -118,7 +118,7 @@ public:
 	{
 		T r;
 		SetDefaultValue(&r);
-		*v = std::complex<T>();
+		*v = std::complex<T>(r, 0);
 	}
 
 	template<size_t N, typename T>
@@ -174,8 +174,9 @@ TEST_P(FETLTest, grad0)
 
 		auto x = manifold->coordinates(s);
 
-		value_type expect = one;
-		expect *= K_real[n] * std::cos(inner_product(K_real, x))
+		value_type expect;
+
+		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
 		if (manifold->get_type_as_string() == "Cylindrical"
@@ -264,8 +265,8 @@ TEST_P(FETLTest, grad3)
 
 		auto x = manifold->coordinates(s);
 
-		value_type expect = one;
-		expect *= K_real[n] * std::cos(inner_product(K_real, x))
+		value_type expect;
+		expect = K_real[n] * std::cos(inner_product(K_real, x))
 				+ K_imag[n] * std::sin(inner_product(K_real, x));
 
 		if (manifold->get_type_as_string() == "Cylindrical"
@@ -333,7 +334,8 @@ TEST_P(FETLTest, diverge1)
 
 	Real variance = 0;
 
-	value_type average = one * 0.0;
+	value_type average;
+	average *= 0;
 
 	for (auto s : domain0)
 	{
@@ -343,7 +345,7 @@ TEST_P(FETLTest, diverge1)
 		Real cos_v = std::cos(inner_product(K_real, x));
 		Real sin_v = std::sin(inner_product(K_real, x));
 
-		value_type expect = one;
+		value_type expect;
 
 		if (manifold->get_type_as_string() == "Cylindrical")
 		{
@@ -430,7 +432,7 @@ TEST_P(FETLTest, diverge2)
 	LOG_CMD(f3 = diverge(f2));
 
 	Real variance = 0;
-	value_type average = one;
+	value_type average;
 	average *= 0.0;
 
 	for (auto s : domain3)
