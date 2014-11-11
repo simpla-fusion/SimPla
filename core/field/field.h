@@ -12,9 +12,9 @@
 #include <memory>
 #include <tuple>
 
-#include "../utilities/container_traits.h"
+#include "../data_structure/data_structure.h"
+
 #include "../utilities/sp_type_traits.h"
-#include "../utilities/data_type.h"
 #include "../parallel/parallel.h"
 #include "../utilities/expression_template.h"
 
@@ -121,7 +121,6 @@ public:
 		{
 			container_traits<container_type>::allocate(size()).swap(data_);
 		}
-
 	}
 
 	void clear()
@@ -129,6 +128,13 @@ public:
 		allocate();
 		container_traits<container_type>::clear(data_, size());
 	}
+
+	auto dataset() const
+	DECL_RET_TYPE((container_traits<Container>::make_dataset(data_,
+							domain_.dataspace()) ))
+	auto dataset()
+	DECL_RET_TYPE((container_traits<Container>::make_dataset(data_,
+							domain_.dataspace()) ))
 
 // @defgroup Access operation
 // @
@@ -276,10 +282,6 @@ public:
 		domain_.scatter(const_cast<this_type&>(*this),
 				std::forward<Args>(args)...);
 	}
-
-	template<typename ...Args>
-	auto dataset_shape(Args &&... args) const
-	DECL_RET_TYPE(( domain_. dataset_shape( std::forward<Args>(args)...)))
 
 }
 ;

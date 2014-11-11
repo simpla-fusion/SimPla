@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "../utilities/data_type.h"
+#include "../data_structure/data_type.h"
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/any.h"
@@ -164,12 +164,17 @@ private:
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
 
+template<typename T>
+auto save(std::string const & name, T const & d, size_t flag = 0UL)
+DECL_RET_TYPE((save(name,d.dataset(),flag)))
+
 template<typename Tuple, size_t ...Is>
 std::string save_tuple_impl(std::string const & name, Tuple const & d,
 		index_sequence<Is...>)
 {
 	return std::move(GLOBAL_DATA_STREAM.write(name, std::get<Is>(d)... ));
 }
+
 template<typename ...T>
 std::string save(std::string const & name, std::tuple<T...> const & d,
 		size_t flag = 0UL)
@@ -220,8 +225,7 @@ template<typename TV, typename ... Args> inline std::string save(
 	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<TV, 2>(
-		{ p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

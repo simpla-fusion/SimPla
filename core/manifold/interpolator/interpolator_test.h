@@ -11,7 +11,7 @@
 
 #include "interpolator.h"
 
-#include "../../utilities/container_sparse.h"
+#include "../../data_structure/container_sparse.h"
 #include "../../utilities/log.h"
 #include "../../utilities/ntuple.h"
 #include "../../utilities/primitives.h"

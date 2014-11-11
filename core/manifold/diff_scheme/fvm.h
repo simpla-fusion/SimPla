@@ -13,8 +13,8 @@
 #include <memory>
 #include <type_traits>
 
+#include "../../data_structure/container_dense.h"
 #include "../utilities/sp_type_traits.h"
-#include "../utilities/container_dense.h"
 #include "../physics/constants.h"
 
 namespace simpla

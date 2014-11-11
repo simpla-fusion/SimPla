@@ -11,6 +11,7 @@
 
 namespace simpla
 {
+struct DataSpace;
 
 template<typename TG, size_t IFORM = 0>
 class Domain
@@ -113,6 +114,15 @@ public:
 		return range_.is_divisible();
 	}
 
+	DataSpace dataspace() const
+	{
+		return manifold_->template dataspace<IFORM>();
+	}
+
+	size_t size() const
+	{
+		return manifold_->template dataspace<IFORM>().size();
+	}
 //	this_type operator &(this_type const & D1) const // \f$D_0 \cap \D_1\f$
 //	{
 //		return *this;

@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <vector>
 
-#include "../utilities/data_type.h"
+#include "../data_structure/data_type.h"
 #include "../utilities/ntuple.h"
 
 namespace simpla
@@ -19,7 +19,7 @@ namespace simpla
 struct DistributedArray
 {
 public:
-	unsigned int ndims = 3;
+	static constexpr size_t ndims = 3;
 
 	int self_id_ = 0;
 
@@ -70,18 +70,18 @@ public:
 		return res;
 	}
 
-	void Decompose(long gw = 2);
+	void Decompose(size_t gw = 2);
 
-	nTuple<long, 3> global_begin_;
-	nTuple<long, 3> global_end_;
-	nTuple<long, 3> global_strides_;
+	size_t global_begin_[ndims];
+	size_t global_end_[ndims];
+	size_t global_strides_[ndims];
 
 	struct sub_array_s
 	{
-		nTuple<long, 3> outer_begin;
-		nTuple<long, 3> outer_end;
-		nTuple<long, 3> inner_begin;
-		nTuple<long, 3> inner_end;
+		size_t outer_begin[3];
+		size_t outer_end[3];
+		size_t inner_begin[3];
+		size_t inner_end[3];
 	};
 	sub_array_s local_;
 
@@ -90,10 +90,10 @@ public:
 		int dest;
 		int send_tag;
 		int recv_tag;
-		nTuple<long, 3> send_begin;
-		nTuple<long, 3> send_end;
-		nTuple<long, 3> recv_begin;
-		nTuple<long, 3> recv_end;
+		size_t send_begin[ndims];
+		size_t send_end[ndims];
+		size_t recv_begin[ndims];
+		size_t recv_end[ndims];
 	};
 
 	std::vector<send_recv_s> send_recv_; // dest, send_tag,recv_tag, sub_array_s
@@ -113,21 +113,21 @@ public:
 }
 ;
 
-void update_ghosts(void * data, DataType const & data_type,
-		DistributedArray const & global_array);
-
-template<typename TV>
-void update_ghosts(std::shared_ptr<TV> data,
-		DistributedArray const & global_array)
-{
-	update_ghosts(data.get(), DataType::create<TV>(), global_array);
-}
-
-template<typename TV>
-void update_ghosts(TV * data, DistributedArray const & global_array)
-{
-	update_ghosts(data, DataType::create<TV>(), global_array);
-}
+//void update_ghosts(void * data, DataType const & data_type,
+//		DistributedArray const & global_array);
+//
+//template<typename TV>
+//void update_ghosts(std::shared_ptr<TV> data,
+//		DistributedArray const & global_array)
+//{
+//	update_ghosts(data.get(), DataType::create<TV>(), global_array);
+//}
+//
+//template<typename TV>
+//void update_ghosts(TV * data, DistributedArray const & global_array)
+//{
+//	update_ghosts(data, DataType::create<TV>(), global_array);
+//}
 }
 // namespace simpla
 

@@ -8,43 +8,43 @@
 #ifndef BLOCK_RANGE_H_
 #define BLOCK_RANGE_H_
 
-#include <cstdbool>
-#include <cstddef>
+#include <type_traits>
 
-#include "../utilities/log.h"
-#include "../utilities/range.h"
+#include "../utilities/sp_type_traits.h"
+#include "../utilities/ntuple.h"
+
 namespace simpla
 {
 
-/**
- *   is compatible with TBB block_range  1D,2D,3D
- */
-
-template<typename T>
+template<typename T, size_t NDIMS = 1>
 class BlockRange
 {
 public:
-	typedef T index_type;
-	typedef BlockRange<index_type> this_type;
+	typedef BlockRange<T, NDIMS> this_type;
 
-	//! Type for size of a range
-	typedef size_t size_type;
+	static constexpr size_t ndims = NDIMS;
 
-	BlockRange(index_type b = 0, index_type e = 1, size_type grainsize = 1) :
-			i_e_(e), i_b_(b), grainsize_(grainsize)
+	typedef T single_index_type;
+
+	typedef typename std::conditional<NDIMS == 1, T,
+			nTuple<single_index_type, ndims>>::type index_type;
+
+	BlockRange(index_type b = 0, index_type e = 1) :
+			e_(e), b_(b)
 	{
 	}
-	/// \ingroup conecpt_range
 
 	//! Copy constructor
 	BlockRange(this_type const & that) :
-			i_e_(that.i_e_), i_b_(that.i_b_), grainsize_(that.grainsize_)
+			e_(that.e_), b_(that.b_)
 	{
 	}
-	//! Split range r into two subranges.
-	BlockRange(this_type & r, split_tag) :
-			i_e_(r.i_e_), i_b_(do_split(r, split_tag())), grainsize_(
-					r.grainsize_)
+	//! Split range r into two subranges. [0,d) -> [0,n) [n,d)
+	BlockRange(this_type & r, //
+			size_t n = 1, // numerator
+			size_t d = 2 // denominator
+			) :
+			e_(r.e_), b_(do_split(r.b_, r.e_, n, d))
 	{
 	}
 
@@ -57,106 +57,39 @@ public:
 
 	void swap(this_type & r)
 	{
-		std::swap(i_e_, r.i_e_);
-		std::swap(i_b_, r.i_b_);
-
-		std::swap(grainsize_, r.grainsize_);
-
+		std::swap(e_, r.e_);
+		std::swap(b_, r.b_);
 	}
+
 	bool empty() const //! True if range is empty
 	{
-		return i_e_ <= i_b_;
+		return e_ <= b_;
 	}
 
 	bool is_divisible() const //!True if range can be partitioned into two subranges
 	{
-		return grainsize_ > size();
+		return !((e_ - b_) <= 1);
 	}
 
-	struct iterator
-	{
-		index_type v_;
-
-		iterator(iterator const& that) :
-				v_(that.v_)
-		{
-
-		}
-		iterator(index_type const &v) :
-				v_(v)
-		{
-
-		}
-		~iterator()
-		{
-
-		}
-		size_type operator*() const
-		{
-			return v_;
-		}
-
-		iterator & operator++()
-		{
-			++v_;
-			return *this;
-		}
-		iterator operator++(int) const
-		{
-			this_type res(v_);
-			++res;
-			return std::move(res);
-		}
-
-		bool operator==(iterator const & that) const
-		{
-			return v_ == that.v_;
-		}
-
-		bool operator!=(iterator const & that) const
-		{
-			return v_ != that.v_;
-		}
-
-	};
 /// \ingroup container_range
 
-	iterator begin() const
-	{
-		return std::move(iterator(i_b_));
-	}
-
-	iterator end() const
-	{
-		return std::move(iterator(i_e_));
-	}
-	size_type size() const
-	{
-		return size_type(end() - begin());
-	}
-
-	size_type hash(index_type const &i) const
-	{
-		return i - i_b_;
-	}
-
-	size_type max_hash() const
-	{
-		return i_e_ - i_b_;
-	}
-
 private:
-	index_type i_e_, i_b_;
+	index_type e_, b_;
 
-	size_type grainsize_;
-
-	static index_type do_split(this_type & r, split_tag)
+	static index_type do_split(index_type & b, index_type & e, size_t n = 1,
+			size_t d = 2, size_t primary_dim = 0)
 	{
-		ASSERT(r.is_divisible());
+		ASSERT((e - b) > 1);
 
-		index_type m = r.i_b_ + (r.i_e_ - r.i_b_) / 2u;
-		r.i_e_ = m;
-		return m;
+		index_type res = e;
+
+		get_value(res, primary_dim) = get_value(b, primary_dim)
+				+ (get_value(e, primary_dim) - get_value(b, primary_dim)) * n
+						/ d;
+
+		get_value(b, primary_dim) = get_value(res, primary_dim);
+
+		return std::move(res);
 	}
 
 }

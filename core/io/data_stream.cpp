@@ -38,7 +38,7 @@ struct DataStream::pimpl_s
 	std::string current_groupname_;
 	std::string current_filename_;
 
-	struct DataSet
+	struct h5_dataset
 	{
 		DataType data_desc;
 
@@ -59,7 +59,7 @@ struct DataStream::pimpl_s
 
 	};
 
-	typedef std::tuple<std::shared_ptr<ByteType>, DataSet> CacheDataSet;
+	typedef std::tuple<std::shared_ptr<ByteType>, h5_dataset> CacheDataSet;
 
 	std::map<std::string, CacheDataSet> cache_;
 
@@ -94,7 +94,7 @@ public:
 //		properties["File Name"].as<std::string>() + ":" + properties["Group Name"].as<std::string>();
 	}
 
-	bool check_null_dataset(DataSet const & ds)
+	bool check_null_dataset(h5_dataset const & ds)
 	{
 		bool is_null = true;
 
@@ -111,7 +111,7 @@ public:
 
 	std::string cd(std::string const &url, size_t is_append = 0UL);
 
-	std::string write(std::string const &url, const void *, DataSet ds);
+	std::string write(std::string const &url, const void *, h5_dataset ds);
 
 	/**
 	 *
@@ -133,7 +133,7 @@ public:
 	 *
 	 *
 	 */
-	DataSet create_data_set(
+	h5_dataset create_data_set(
 
 	DataType const & datatype,
 
@@ -155,13 +155,13 @@ public:
 
 	) const;
 
-	void convert_record_data_set(DataSet*) const;
+	void convert_record_data_set(h5_dataset*) const;
 
 	std::string write_array(std::string const &name, const void *,
-			DataSet const &);
+			h5_dataset const &);
 
 	std::string write_cache(std::string const &name, const void *,
-			DataSet const &);
+			h5_dataset const &);
 
 	std::string flush_cache(std::string const & name);
 
@@ -449,7 +449,8 @@ void DataStream::pimpl_s::flush_all()
 {
 	for (auto & item : cache_)
 	{
-		LOGGER << "\"" << flush_cache(item.first) << "\" is flushed to hard disk!";
+		LOGGER << "\"" << flush_cache(item.first)
+				<< "\" is flushed to hard disk!";
 	}
 }
 
@@ -591,7 +592,7 @@ std::tuple<std::string, std::string, std::string, std::string> DataStream::pimpl
 }
 
 std::string DataStream::pimpl_s::write(std::string const &url, void const* v,
-		DataSet ds)
+		h5_dataset ds)
 {
 	if ((ds.flag & (SP_UNORDER)) == (SP_UNORDER))
 	{
@@ -684,7 +685,7 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type,
 	return (res);
 }
 
-DataStream::pimpl_s::DataSet DataStream::pimpl_s::create_data_set(
+DataStream::pimpl_s::h5_dataset DataStream::pimpl_s::create_data_set(
 
 DataType const & data_desc,
 
@@ -704,7 +705,7 @@ size_t const *p_local_inner_end,
 
 size_t flag) const
 {
-	DataSet res;
+	h5_dataset res;
 
 	res.data_desc = data_desc;
 
@@ -791,7 +792,7 @@ size_t flag) const
 	return std::move(res);
 
 }
-void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
+void DataStream::pimpl_s::convert_record_data_set(h5_dataset *pds) const
 {
 	for (int i = pds->ndims; i > 0; --i)
 	{
@@ -825,7 +826,7 @@ void DataStream::pimpl_s::convert_record_data_set(DataSet *pds) const
 }
 
 std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
-		const void *v, DataSet const & ds)
+		const void *v, h5_dataset const & ds)
 {
 
 	std::string filename, grp_name, dsname;
@@ -857,7 +858,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 			mempool_.make_shared<ByteType>(cache_memory_size * cache_depth).swap(
 					std::get<0>(cache_[url]));
 
-			DataSet & item = std::get<1>(cache_[url]);
+			h5_dataset & item = std::get<1>(cache_[url]);
 
 			item.data_desc = ds.data_desc;
 
@@ -945,7 +946,7 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 }
 
 std::string DataStream::pimpl_s::write_array(std::string const & url,
-		const void *v, DataSet const &ds)
+		const void *v, h5_dataset const &ds)
 {
 //	if (v == nullptr)
 //	{

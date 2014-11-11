@@ -7,7 +7,7 @@
 
 #ifndef MPI_AUX_FUNCTIONS_H_
 #define MPI_AUX_FUNCTIONS_H_
-#include "../utilities/data_type.h"
+#include "../data_structure/data_type.h"
 namespace simpla
 {
 

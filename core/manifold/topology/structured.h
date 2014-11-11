@@ -18,15 +18,17 @@
 #include <type_traits>
 #include <utility>
 
-#include "../../parallel/distributed_array.h"
 #include "../../utilities/log.h"
 #include "../../utilities/ntuple.h"
 #include "../../utilities/primitives.h"
 #include "../../utilities/sp_type_traits.h"
 #include "../../numeric/geometric_algorithm.h"
+#include "../../data_structure/data_structure.h"
+#include "../../parallel/distributed_array.h"
 
 namespace simpla
 {
+
 /**
  * \ingroup Topology
  */
@@ -58,8 +60,7 @@ public:
 
 	//***************************************************************************************************
 
-	StructuredMesh() :
-			is_valid_(false)
+	StructuredMesh()
 	{
 	}
 
@@ -100,20 +101,23 @@ public:
 
 		return os;
 	}
-	static std::string get_type_as_string_static()
+	static std::string get_type_as_string()
 	{
-		return "UniformArray";
+		return std::move(name());
+	}
+	static std::string name()
+	{
+		return "StructuredMesh";
 	}
 
-	std::string get_type_as_string() const
-	{
-		return get_type_as_string_static();
-	}
 	std::string save(std::string const &path) const
 	{
 		return path;
 	}
 
+	/**@defgroup time
+	 * @{
+	 */
 	unsigned long clock_ = 0UL;
 
 	void next_timestep()
@@ -125,17 +129,14 @@ public:
 		return clock_;
 	}
 
+	//!   @}
+
 	bool is_valid() const
 	{
-//		bool res = true;
-//		for (int i = 0; i < ndims; ++i)
-//		{
-//			res = res && (global_count_[i] <= 1);
-//		}
 		return is_valid_;
 	}
 
-	//! @name Local Data Set
+	//! @defgroup   Data Set shape
 	//! @{
 
 	index_tuple global_count_;
@@ -149,7 +150,7 @@ public:
 
 	compact_index_type global_begin_compact_index_ = 0UL;
 
-	DistributedArray global_array_;
+	DataSpace data_space_;
 
 	//  \verbatim
 	//
@@ -186,15 +187,18 @@ public:
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
 
-		global_array_.init(ndims, global_begin_, global_end_,
+		DataSpace(ndims, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH).swap(
+				data_space_);
+
+		data_space_.global_array_->init(ndims, global_begin_, global_end_,
 				DEFAULT_GHOSTS_WIDTH);
 
-		local_inner_begin_ = global_array_.local_.inner_begin;
-		local_inner_end_ = global_array_.local_.inner_end;
+		local_inner_begin_ = data_space_.global_array_->local_.inner_begin;
+		local_inner_end_ = data_space_.global_array_->local_.inner_end;
 		local_inner_count_ = local_inner_end_ - local_inner_begin_;
 
-		local_outer_begin_ = global_array_.local_.outer_begin;
-		local_outer_end_ = global_array_.local_.outer_end;
+		local_outer_begin_ = data_space_.global_array_->local_.outer_begin;
+		local_outer_end_ = data_space_.global_array_->local_.outer_end;
 		local_outer_count_ = local_outer_end_ - local_outer_begin_;
 
 		local_strides_[2] = 1;
@@ -205,7 +209,23 @@ public:
 
 	}
 
-	bool check_local_memory_bounds(compact_index_type s) const
+	auto dimensions() const
+	DECL_RET_TYPE (global_count_)
+
+	std::pair<coordinates_type, coordinates_type> extents() const
+	{
+		coordinates_type b, e;
+		b = 0;
+
+		for (int i = 0; i < ndims; ++i)
+		{
+			e[i] = global_count_[i] > 1 ? 1.0 : 0.0;
+		}
+
+		return std::move(std::make_pair(b, e));
+	}
+
+	bool check_memory_bounds(compact_index_type s) const
 	{
 		unsigned mtree = MAX_DEPTH_OF_TREE;
 		auto idx = decompact(s) >> mtree;
@@ -227,45 +247,194 @@ public:
 
 	}
 
-	auto get_global_dimensions() const
-	DECL_RET_TYPE (global_count_)
-
-	auto dimensions() const
-	DECL_RET_TYPE (global_count_)
-
-	std::pair<coordinates_type, coordinates_type> extents() const
+	template<size_t IFORM>
+	DataSpace dataspace() const
 	{
-		coordinates_type b, e;
-		b = 0;
+		DataSpace res(data_space_);
 
-		for (int i = 0; i < ndims; ++i)
-		{
-			e[i] = global_count_[i] > 1 ? 1.0 : 0.0;
-		}
-
-		return std::move(std::make_pair(b, e));
+		return;
 	}
+//	size_t get_num_of_elements(size_t iform = VERTEX) const
+//	{
+//		return get_global_num_of_elements(iform);
+//	}
+//
+//	template<size_t IFORM>
+//	size_t get_num_of_elements() const
+//	{
+//		return NProduct(global_dimensions())
+//				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+//	}
+//
+//	index_tuple local_dimensions() const
+//	{
+//		return local_inner_count_;
+//	}
+//
+//	size_t get_memory_size(size_t iform = VERTEX) const
+//	{
+//		return get_local_memory_size(iform);
+//	}
+//
+//	/**
+//	 *
+//	 * @return tuple <memory shape, begin, count>
+//	 */
+//	std::tuple<index_tuple, index_tuple, index_tuple> get_local_memory_shape() const
+//	{
+//		std::tuple<index_tuple, index_tuple, index_tuple> res;
+//
+//		std::get<0>(res) = local_outer_count_;
+//
+//		std::get<1>(res) = local_inner_begin_ - local_outer_begin_;
+//
+//		std::get<2>(res) = local_inner_count_;
+//
+//		return std::move(res);
+//	}
+//
+//	index_type get_local_num_of_elements(size_t iform = VERTEX) const
+//	{
+//		return NProduct(std::get<2>(get_local_memory_shape()))
+//				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+//	}
+//	index_type get_local_memory_size(size_t iform = VERTEX) const
+//	{
+//		return NProduct(std::get<0>(get_local_memory_shape()))
+//				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
+//	}
+//
+//	int dataset_shape(int IFORM, size_t * global_begin = nullptr,
+//			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+//			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
+//					nullptr, size_t * local_inner_end = nullptr) const
+//	{
+//		int rank = 0;
+//
+//		for (int i = 0; i < ndims; ++i)
+//		{
+//			if (global_end_[i] - global_begin_[i] > 1)
+//			{
+//
+//				if (global_begin != nullptr)
+//					global_begin[rank] = global_begin_[i];
+//
+//				if (global_end != nullptr)
+//					global_end[rank] = global_end_[i];
+//
+//				if (local_outer_begin != nullptr)
+//					local_outer_begin[rank] = local_outer_begin_[i];
+//
+//				if (local_outer_end != nullptr)
+//					local_outer_end[rank] = local_outer_end_[i];
+//
+//				if (local_inner_begin != nullptr)
+//					local_inner_begin[rank] = local_inner_begin_[i];
+//
+//				if (local_inner_end != nullptr)
+//					local_inner_end[rank] = local_inner_end_[i];
+//
+//				++rank;
+//			}
+//
+//		}
+//		if (IFORM == EDGE || IFORM == FACE)
+//		{
+//			if (global_begin != nullptr)
+//				global_begin[rank] = 0;
+//
+//			if (global_end != nullptr)
+//				global_end[rank] = 3;
+//
+//			if (local_outer_begin != nullptr)
+//				local_outer_begin[rank] = 0;
+//
+//			if (local_outer_end != nullptr)
+//				local_outer_end[rank] = 3;
+//
+//			if (local_inner_begin != nullptr)
+//				local_inner_begin[rank] = 0;
+//
+//			if (local_inner_end != nullptr)
+//				local_inner_end[rank] = 3;
+//
+//			++rank;
+//		}
+//		return rank;
+//	}
+//
+//	template<typename TR>
+//	int dataset_shape(TR const& range, size_t * global_begin = nullptr,
+//			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
+//			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
+//					nullptr, size_t * local_inner_end = nullptr) const
+//	{
+//		size_t IFORM = IForm(*begin(range));
+//		int rank = 0;
+//
+//		index_tuple outer_begin, outer_end, outer_count;
+//
+//		index_tuple inner_begin, inner_end, inner_count;
+//
+//		inner_begin = begin(range).self_;
+//		inner_end = (end(range)--).self_ + 1;
+//
+//		outer_begin = inner_begin + (-local_inner_begin_ + local_outer_begin_);
+//
+//		outer_end = inner_end + (-local_inner_end_ + local_outer_end_);
+//
+//		for (int i = 0; i < ndims; ++i)
+//		{
+//			if (global_end_[i] - global_begin_[i] > 1)
+//			{
+//
+//				if (global_begin != nullptr)
+//					global_begin[rank] = global_begin_[i];
+//
+//				if (global_end != nullptr)
+//					global_end[rank] = global_end_[i];
+//
+//				if (local_outer_begin != nullptr)
+//					local_outer_begin[rank] = outer_begin[i];
+//
+//				if (local_outer_end != nullptr)
+//					local_outer_end[rank] = outer_end[i];
+//
+//				if (local_inner_begin != nullptr)
+//					local_inner_begin[rank] = inner_begin[i];
+//
+//				if (local_inner_end != nullptr)
+//					local_inner_end[rank] = inner_end[i];
+//
+//				++rank;
+//			}
+//
+//		}
+//		if (IFORM == EDGE || IFORM == FACE)
+//		{
+//			if (global_begin != nullptr)
+//				global_begin[rank] = 0;
+//
+//			if (global_end != nullptr)
+//				global_end[rank] = 3;
+//
+//			if (local_outer_begin != nullptr)
+//				local_outer_begin[rank] = 0;
+//
+//			if (local_outer_end != nullptr)
+//				local_outer_end[rank] = 3;
+//
+//			if (local_inner_begin != nullptr)
+//				local_inner_begin[rank] = 0;
+//
+//			if (local_inner_end != nullptr)
+//				local_inner_end[rank] = 3;
+//
+//			++rank;
+//		}
+//		return rank;
+//	}
 
-	size_t get_num_of_elements(size_t iform = VERTEX) const
-	{
-		return get_global_num_of_elements(iform);
-	}
-
-	size_t get_global_num_of_elements(size_t iform = VERTEX) const
-	{
-		return NProduct(get_global_dimensions())
-				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
-	}
-
-	index_tuple get_local_dimensions() const
-	{
-		return local_inner_count_;
-	}
-
-	size_t get_memory_size(size_t iform = VERTEX) const
-	{
-		return get_local_memory_size(iform);
-	}
 	/** @{*/
 	struct iterator;
 
@@ -527,164 +696,6 @@ public:
 		return std::move(range_type(*this, begin, end, shift));
 	}
 	/** @}*/
-	/**
-	 *
-	 * @return tuple <memory shape, begin, count>
-	 */
-	std::tuple<index_tuple, index_tuple, index_tuple> get_local_memory_shape() const
-	{
-		std::tuple<index_tuple, index_tuple, index_tuple> res;
-
-		std::get<0>(res) = local_outer_count_;
-
-		std::get<1>(res) = local_inner_begin_ - local_outer_begin_;
-
-		std::get<2>(res) = local_inner_count_;
-
-		return std::move(res);
-	}
-
-	index_type get_local_num_of_elements(size_t iform = VERTEX) const
-	{
-		return NProduct(std::get<2>(get_local_memory_shape()))
-				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
-	}
-	index_type get_local_memory_size(size_t iform = VERTEX) const
-	{
-		return NProduct(std::get<0>(get_local_memory_shape()))
-				* ((iform == VERTEX || iform == VOLUME) ? 1 : 3);
-	}
-
-	int dataset_shape(int IFORM, size_t * global_begin = nullptr,
-			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
-			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
-					nullptr, size_t * local_inner_end = nullptr) const
-	{
-		int rank = 0;
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			if (global_end_[i] - global_begin_[i] > 1)
-			{
-
-				if (global_begin != nullptr)
-					global_begin[rank] = global_begin_[i];
-
-				if (global_end != nullptr)
-					global_end[rank] = global_end_[i];
-
-				if (local_outer_begin != nullptr)
-					local_outer_begin[rank] = local_outer_begin_[i];
-
-				if (local_outer_end != nullptr)
-					local_outer_end[rank] = local_outer_end_[i];
-
-				if (local_inner_begin != nullptr)
-					local_inner_begin[rank] = local_inner_begin_[i];
-
-				if (local_inner_end != nullptr)
-					local_inner_end[rank] = local_inner_end_[i];
-
-				++rank;
-			}
-
-		}
-		if (IFORM == EDGE || IFORM == FACE)
-		{
-			if (global_begin != nullptr)
-				global_begin[rank] = 0;
-
-			if (global_end != nullptr)
-				global_end[rank] = 3;
-
-			if (local_outer_begin != nullptr)
-				local_outer_begin[rank] = 0;
-
-			if (local_outer_end != nullptr)
-				local_outer_end[rank] = 3;
-
-			if (local_inner_begin != nullptr)
-				local_inner_begin[rank] = 0;
-
-			if (local_inner_end != nullptr)
-				local_inner_end[rank] = 3;
-
-			++rank;
-		}
-		return rank;
-	}
-
-	template<typename TR>
-	int dataset_shape(TR const& range, size_t * global_begin = nullptr,
-			size_t * global_end = nullptr, size_t * local_outer_begin = nullptr,
-			size_t * local_outer_end = nullptr, size_t * local_inner_begin =
-					nullptr, size_t * local_inner_end = nullptr) const
-	{
-		size_t IFORM = IForm(*begin(range));
-		int rank = 0;
-
-		index_tuple outer_begin, outer_end, outer_count;
-
-		index_tuple inner_begin, inner_end, inner_count;
-
-		inner_begin = begin(range).self_;
-		inner_end = (end(range)--).self_ + 1;
-
-		outer_begin = inner_begin + (-local_inner_begin_ + local_outer_begin_);
-
-		outer_end = inner_end + (-local_inner_end_ + local_outer_end_);
-
-		for (int i = 0; i < ndims; ++i)
-		{
-			if (global_end_[i] - global_begin_[i] > 1)
-			{
-
-				if (global_begin != nullptr)
-					global_begin[rank] = global_begin_[i];
-
-				if (global_end != nullptr)
-					global_end[rank] = global_end_[i];
-
-				if (local_outer_begin != nullptr)
-					local_outer_begin[rank] = outer_begin[i];
-
-				if (local_outer_end != nullptr)
-					local_outer_end[rank] = outer_end[i];
-
-				if (local_inner_begin != nullptr)
-					local_inner_begin[rank] = inner_begin[i];
-
-				if (local_inner_end != nullptr)
-					local_inner_end[rank] = inner_end[i];
-
-				++rank;
-			}
-
-		}
-		if (IFORM == EDGE || IFORM == FACE)
-		{
-			if (global_begin != nullptr)
-				global_begin[rank] = 0;
-
-			if (global_end != nullptr)
-				global_end[rank] = 3;
-
-			if (local_outer_begin != nullptr)
-				local_outer_begin[rank] = 0;
-
-			if (local_outer_end != nullptr)
-				local_outer_end[rank] = 3;
-
-			if (local_inner_begin != nullptr)
-				local_inner_begin[rank] = 0;
-
-			if (local_inner_end != nullptr)
-				local_inner_end[rank] = 3;
-
-			++rank;
-		}
-		return rank;
-	}
 
 	coordinates_type dx() const
 	{
@@ -1417,7 +1428,6 @@ public:
 		return (1UL << (INDEX_DIGITS * (ndims - i - 1) + MAX_DEPTH_OF_TREE - 1));
 #else
 		return (1UL << (INDEX_DIGITS * (ndims-i-1)+MAX_DEPTH_OF_TREE - DepthOfTree(r) - 1));
-
 #endif
 	}
 	static compact_index_type delta_index(size_t i, compact_index_type r)

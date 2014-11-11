@@ -15,10 +15,8 @@
 #include "../utilities/ntuple.h"
 #include "../utilities/pretty_stream.h"
 #include "../io/data_stream.h"
+#include "../parallel/update_ghosts.h"
 #include "field.h"
-#include "save_field.h"
-#include "update_ghosts_field.h"
-
 using namespace simpla;
 
 #ifndef TMESH
@@ -217,8 +215,8 @@ TEST_P(FETLTest, grad0)
 
 	}
 
-	variance /= manifold->get_num_of_elements(EDGE);
-	average /= manifold->get_num_of_elements(EDGE);
+	variance /= manifold->template get_num_of_elements<EDGE>();
+	average /= manifold->template get_num_of_elements<EDGE>();
 	EXPECT_LE(std::sqrt(variance), error);
 	EXPECT_LE(mod(average), error);
 

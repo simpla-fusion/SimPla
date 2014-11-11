@@ -9,8 +9,9 @@
 #define DOMAIN_TRAITS_H_
 
 #include <algorithm>
-#include "../utilities/sp_type_traits.h"
+
 #include "../utilities/constant_ops.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
