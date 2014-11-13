@@ -41,7 +41,7 @@ public:
 		return std::move(create_simple(RANK, &d[0]));
 	}
 
-	size_t shape(size_t dims[], size_t offset[], size_t count, size_t block[])
+	size_t shape(size_t dims[], size_t offset[], size_t count, size_t block[]);
 
 	size_t size() const;
 
@@ -53,7 +53,7 @@ public:
 	size_t block[MAX_NUM_DIMS];
 
 	std::shared_ptr<DistributedArray> global_array_;
-
+	size_t ndims() const;
 };
 
 }  // namespace simpla

@@ -29,7 +29,7 @@ template<typename TTopology, size_t  IPhiAxis = 2>
 class CylindricalCoordinates: public TTopology
 {
 private:
-	bool is_ready_ = false;
+	bool is_valid_ = false;
 public:
 	typedef TTopology topology_type;
 
@@ -180,9 +180,9 @@ public:
 		return path;
 	}
 
-	bool is_ready() const
+	bool is_valid() const
 	{
-		return is_ready_ && topology_type::is_ready();
+		return is_valid_ && topology_type::is_valid();
 	}
 	bool update();
 

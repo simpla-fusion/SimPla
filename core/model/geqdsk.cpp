@@ -194,12 +194,12 @@ void GEqdsk::load_profile(std::string const &fname)
 
 	LOGGER << "GFile is ready! Profile={" << profile_list << "}" << std::endl;
 
-	is_ready_ = true;
+	is_valid_ = true;
 }
 
 std::string GEqdsk::save(std::string const & path) const
 {
-	if (!is_ready())
+	if (!is_valid())
 	{
 		return "";
 	}

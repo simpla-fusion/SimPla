@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "../data_structure/data_type.h"
+#include "../data_structure/data_set.h"
 #include "../utilities/ntuple.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/any.h"
@@ -73,7 +73,7 @@ public:
 
 	bool command(std::string const & cmd);
 
-	bool is_ready() const;
+	bool is_valid() const;
 
 	/**
 	 *
@@ -119,6 +119,12 @@ public:
 
 	);
 
+	std::string write(std::string const &name, DataSet const & ds, size_t flag =
+			0UL) const;
+
+	std::string read(std::string const &name, DataSet *ds,
+			size_t flag = 0UL) const;
+
 	/**
 	 *
 	 * @param url  <file name>:/<group path>/<obj name>.<attribute>
@@ -163,6 +169,12 @@ private:
 
 //! Global data stream entry
 #define GLOBAL_DATA_STREAM  SingletonHolder<DataStream> ::instance()
+
+inline std::string save(std::string const & url, DataSet const & ds,
+		size_t flag = 0UL)
+{
+	return GLOBAL_DATA_STREAM.write(url,ds,flag);
+}
 
 template<typename T>
 auto save(std::string const & name, T const & d, size_t flag = 0UL)
@@ -225,7 +237,8 @@ template<typename TV, typename ... Args> inline std::string save(
 	std::vector<nTuple<TV, 2> > d_;
 	for (auto const & p : d)
 	{
-		d_.emplace_back(nTuple<TV, 2>( { p.first, p.second }));
+		d_.emplace_back(nTuple<TV, 2>(
+		{ p.first, p.second }));
 	}
 
 	return save(name, d_, std::forward<Args>(args)...);

@@ -114,7 +114,7 @@ void LoggerStreams::init(int argc, char** argv)
 
 	);
 
-	if (!GLOBAL_COMM.is_ready())
+	if (!GLOBAL_COMM.is_valid())
 	{
 		GLOBAL_COMM.init(argc,argv);
 	}

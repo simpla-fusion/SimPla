@@ -44,7 +44,7 @@ template<typename TM>
 class Model: public TM
 {
 private:
-	bool is_ready_ = false;
+	bool is_valid_ = false;
 public:
 	static constexpr size_t MAX_NUM_OF_MEIDA_TYPE = std::numeric_limits<
 			unsigned long>::digits;
@@ -91,9 +91,9 @@ public:
 		return material_.empty();
 	}
 
-	bool is_ready() const
+	bool is_valid() const
 	{
-		return is_ready_ && manifold_type::is_ready();
+		return is_valid_ && manifold_type::is_valid();
 	}
 	template<typename TDict>
 	bool load(TDict const & dict)
@@ -132,12 +132,12 @@ public:
 	void update()
 	{
 		manifold_type::update();
-		is_ready_ = manifold_type::is_ready();
+		is_valid_ = manifold_type::is_valid();
 	}
 
 	operator bool() const
 	{
-		return !material_.empty() && is_ready();
+		return !material_.empty() && is_valid();
 	}
 
 	material_type RegisterMaterial(std::string const & name)

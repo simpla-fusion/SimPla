@@ -91,7 +91,7 @@ public:
 		return MPI_INFO_NULL;
 	}
 
-	bool is_ready() const
+	bool is_valid() const
 	{
 		return comm_ != MPI_COMM_NULL;
 	}

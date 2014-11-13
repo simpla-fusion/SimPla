@@ -138,7 +138,7 @@ int main(int argc, char **argv)
 	}
 
 	);
-	if (!GLOBAL_DATA_STREAM.is_ready())
+	if (!GLOBAL_DATA_STREAM.is_valid())
 	{
 		GLOBAL_DATA_STREAM.open_file("./");
 	}

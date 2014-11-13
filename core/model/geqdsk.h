@@ -47,7 +47,7 @@ public:
 	typedef MultiDimesionInterpolation<BiLinearInterpolation, Real> inter2d_type;
 
 private:
-	bool is_ready_ = false;
+	bool is_valid_ = false;
 	std::string desc;
 //	size_t nw;//!< Number of horizontal R grid  points
 //	size_t nh;//!< Number of vertical Z grid points
@@ -127,9 +127,9 @@ public:
 		return desc;
 	}
 
-	bool is_ready() const
+	bool is_valid() const
 	{
-		return is_ready_;
+		return is_valid_;
 
 	}
 

@@ -1619,7 +1619,7 @@ public:
 
 //	std::function<size_t(compact_index_type)> make_hash(range_type r) const
 //	{
-//		if (!is_ready())
+//		if (!is_valid())
 //			RUNTIME_ERROR("Mesh is not defined!!");
 //
 //		std::function<size_t(compact_index_type)> res;

@@ -7,7 +7,8 @@
 
 #ifndef CORE_DATA_STRUCTURE_DATA_SET_H_
 #define CORE_DATA_STRUCTURE_DATA_SET_H_
-
+#include "data_space.h"
+#include "data_type.h"
 namespace simpla
 {
 struct DataType;

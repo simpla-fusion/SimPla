@@ -126,12 +126,12 @@ public:
 
 	bool empty() const
 	{
-		return !model.is_ready();
+		return !model.is_valid();
 	}
 
 	operator bool() const
 	{
-		return model.is_ready();
+		return model.is_valid();
 	}
 
 	// interface end

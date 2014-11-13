@@ -28,7 +28,7 @@ std::tuple<int, int> sync_global_location(int count)
 {
 	int begin = 0;
 
-	if ( GLOBAL_COMM.is_ready() && GLOBAL_COMM.get_size() > 1)
+	if ( GLOBAL_COMM.is_valid() && GLOBAL_COMM.get_size() > 1)
 	{
 
 		auto communicator = GLOBAL_COMM.comm();

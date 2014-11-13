@@ -11,10 +11,10 @@
 #include "mpi_datatype.h"
 namespace simpla
 {
-void Decomposer_(size_t num_process, size_t process_num, size_t gw,
-		size_t ndims, size_t const *global_begin, size_t const * global_end,
-		size_t * local_outer_begin, size_t * local_outer_end,
-		size_t * local_inner_begin, size_t * local_inner_end)
+void decomposer_(size_t num_process, size_t process_num, size_t gw,
+        size_t ndims, size_t const *global_begin, size_t const * global_end,
+        size_t * local_outer_begin, size_t * local_outer_end,
+        size_t * local_inner_begin, size_t * local_inner_end)
 {
 	local_outer_end = global_end;
 	local_outer_begin = global_begin;
@@ -36,7 +36,7 @@ void Decomposer_(size_t num_process, size_t process_num, size_t gw,
 	}
 
 	if ((2 * gw * num_process > (global_end[n] - global_begin[n])
-			|| num_process > (global_end[n] - global_begin[n])))
+	        || num_process > (global_end[n] - global_begin[n])))
 	{
 
 		RUNTIME_ERROR("Array is too small to split");
@@ -47,9 +47,9 @@ void Decomposer_(size_t num_process, size_t process_num, size_t gw,
 	else
 	{
 		local_inner_begin[n] = ((global_end[n] - global_begin[n]) * process_num)
-				/ num_process + global_begin[n];
+		        / num_process + global_begin[n];
 		local_inner_end[n] = ((global_end[n] - global_begin[n])
-				* (process_num + 1)) / num_process + global_begin[n];
+		        * (process_num + 1)) / num_process + global_begin[n];
 		local_outer_begin[n] = local_inner_begin[n] - gw;
 		local_outer_end[n] = local_inner_end[n] + gw;
 	}
@@ -61,7 +61,7 @@ void DistributedArray::Decompose(size_t gw)
 	int num_process = GLOBAL_COMM.get_size();
 	unsigned int process_num = GLOBAL_COMM.get_rank();
 
-	Decomposer_(num_process, process_num, gw, ndims,  //
+	decomposer_(num_process, process_num, gw, ndims,  //
 			global_begin_, global_end_,//
 			local_.outer_begin, local_.outer_end,//
 			local_.inner_begin, local_.inner_end);
@@ -85,7 +85,7 @@ void DistributedArray::Decompose(size_t gw)
 
 		sub_array_s node;
 
-		Decomposer_(num_process, dest, gw, ndims, global_begin_, global_end_, node.outer_begin, node.outer_end,
+		decomposer_(num_process, dest, gw, ndims, global_begin_, global_end_, node.outer_begin, node.outer_end,
 				node.inner_begin, node.inner_end);
 
 		sub_array_s remote;
@@ -141,7 +141,7 @@ void DistributedArray::Decompose(size_t gw)
 }
 
 void update_ghosts(void * data, DataType const & data_type,
-		DistributedArray const & global_array)
+        DistributedArray const & global_array)
 {
 	if (global_array.send_recv_.size() == 0)
 	{
@@ -167,23 +167,23 @@ void update_ghosts(void * data, DataType const & data_type,
 		{
 
 			g_outer_count[i] = global_array.local_.outer_end[i]
-					- global_array.local_.outer_begin[i];
+			        - global_array.local_.outer_begin[i];
 			send_count[i] = item.send_end[i] - item.send_begin[i];
 			recv_count[i] = item.recv_end[i] - item.recv_begin[i];
 			send_begin[i] = item.send_begin[i]
-					- global_array.local_.outer_begin[i];
+			        - global_array.local_.outer_begin[i];
 			recv_begin[i] = item.recv_begin[i]
-					- global_array.local_.outer_begin[i];
+			        - global_array.local_.outer_begin[i];
 		}
 		auto send_type = MPIDataType::create(data_type, ndims, g_outer_count,
-				send_count, send_begin);
+		        send_count, send_begin);
 		auto recv_type = MPIDataType::create(data_type, ndims, g_outer_count,
-				recv_count, recv_begin);
+		        recv_count, recv_begin);
 
 		MPI_Isend(data, 1, send_type.type(), item.dest, item.send_tag, comm,
-				&request[count * 2]);
+		        &request[count * 2]);
 		MPI_Irecv(data, 1, recv_type.type(), item.dest, item.recv_tag, comm,
-				&request[count * 2 + 1]);
+		        &request[count * 2 + 1]);
 
 		++count;
 	}

@@ -15,6 +15,8 @@ extern "C"
 #include <cstring> //for memcopy
 
 #include "data_stream.h"
+#include "../data_structure/data_set.h"
+
 #ifdef USE_MPI
 #include "../parallel/parallel.h"
 #include "../parallel/message_comm.h"
@@ -40,15 +42,15 @@ struct DataStream::pimpl_s
 
 	struct h5_dataset
 	{
-		DataType data_desc;
+		DataType datatype;
 
 		size_t ndims;
 
-		hsize_t f_shape[MAX_NDIMS_OF_ARRAY];
+		hsize_t f_dims[MAX_NDIMS_OF_ARRAY];
 		hsize_t f_offset[MAX_NDIMS_OF_ARRAY];
 		hsize_t f_stride[MAX_NDIMS_OF_ARRAY];
 
-		hsize_t m_shape[MAX_NDIMS_OF_ARRAY];
+		hsize_t m_dims[MAX_NDIMS_OF_ARRAY];
 		hsize_t m_offset[MAX_NDIMS_OF_ARRAY];
 		hsize_t m_stride[MAX_NDIMS_OF_ARRAY];
 
@@ -79,7 +81,7 @@ public:
 	pimpl_s();
 	~pimpl_s();
 
-	bool is_ready()
+	bool is_valid()
 	{
 		return base_file_id_ > 0;
 	}
@@ -101,7 +103,7 @@ public:
 		size_t s = 1;
 		for (int i = 0; i < ds.ndims; ++i)
 		{
-			s *= (ds.m_shape[i]);
+			s *= (ds.m_dims[i]);
 		}
 		return s == 0;
 	}
@@ -112,6 +114,10 @@ public:
 	std::string cd(std::string const &url, size_t is_append = 0UL);
 
 	std::string write(std::string const &url, const void *, h5_dataset ds);
+
+	std::string write(std::string const &url, DataSet const &ds, size_t flag =
+			0UL);
+	std::string read(std::string const &url, DataSet * ds, size_t flag = 0UL);
 
 	/**
 	 *
@@ -133,7 +139,7 @@ public:
 	 *
 	 *
 	 */
-	h5_dataset create_data_set(
+	h5_dataset create_h5_dataset(
 
 	DataType const & datatype,
 
@@ -155,7 +161,9 @@ public:
 
 	) const;
 
-	void convert_record_data_set(h5_dataset*) const;
+	h5_dataset create_h5_dataset(DataSet const & ds, size_t flag = 0UL) const;
+
+	void convert_record_dataset(h5_dataset*) const;
 
 	std::string write_array(std::string const &name, const void *,
 			h5_dataset const &);
@@ -165,7 +173,7 @@ public:
 
 	std::string flush_cache(std::string const & name);
 
-	hid_t create_datadesc(DataType const &, bool is_compact_array = false);
+	hid_t create_h5_datatype(DataType const &, bool is_compact_array = false);
 
 	void set_attribute(std::string const &url, DataType const &d_type,
 			void const * buff);
@@ -495,7 +503,7 @@ void DataStream::pimpl_s::set_attribute(std::string const &url,
 	}
 	else
 	{
-		hid_t m_type = create_datadesc(d_type);
+		hid_t m_type = create_h5_datatype(d_type);
 
 		hid_t m_space = H5Screate(H5S_SCALAR);
 
@@ -601,7 +609,7 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v,
 
 	if ((ds.flag & SP_RECORD) == SP_RECORD)
 	{
-		convert_record_data_set(&ds);
+		convert_record_dataset(&ds);
 	}
 
 	if ((ds.flag & SP_CACHE) == SP_CACHE)
@@ -615,7 +623,13 @@ std::string DataStream::pimpl_s::write(std::string const &url, void const* v,
 
 }
 
-hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type,
+std::string DataStream::pimpl_s::write(std::string const &url,
+		DataSet const &ds, size_t flag)
+{
+	return write(url, ds.data.get(), create_h5_dataset(ds, flag));
+}
+
+hid_t DataStream::pimpl_s::create_h5_datatype(DataType const &d_type,
 		bool is_compact_array)
 {
 
@@ -677,7 +691,7 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type,
 		for (auto const & item : d_type.data)
 		{
 			H5Tinsert(res, std::get<1>(item).c_str(), std::get<2>(item),
-					create_datadesc(std::get<0>(item), true));
+					create_h5_datatype(std::get<0>(item), true));
 		}
 
 	}
@@ -685,9 +699,9 @@ hid_t DataStream::pimpl_s::create_datadesc(DataType const &d_type,
 	return (res);
 }
 
-DataStream::pimpl_s::h5_dataset DataStream::pimpl_s::create_data_set(
+DataStream::pimpl_s::h5_dataset DataStream::pimpl_s::create_h5_dataset(
 
-DataType const & data_desc,
+DataType const & datatype,
 
 size_t ndims,
 
@@ -707,7 +721,7 @@ size_t flag) const
 {
 	h5_dataset res;
 
-	res.data_desc = data_desc;
+	res.datatype = datatype;
 
 	res.flag = flag;
 
@@ -715,18 +729,18 @@ size_t flag) const
 	{
 		auto g_begin = (p_global_begin == nullptr) ? 0 : p_global_begin[i];
 
-		res.f_shape[i] =
+		res.f_dims[i] =
 				(p_global_end == nullptr) ? 1 : p_global_end[i] - g_begin;
 
-		res.f_stride[i] = res.f_shape[i];
+		res.f_stride[i] = res.f_dims[i];
 
 		res.f_offset[i] =
 				(p_local_inner_begin == nullptr) ?
 						0 : p_local_inner_begin[i] - g_begin;
 
-		res.m_shape[i] =
+		res.m_dims[i] =
 				(p_local_outer_end == nullptr || p_local_outer_begin == nullptr) ?
-						res.f_shape[i] :
+						res.f_dims[i] :
 						p_local_outer_end[i] - p_local_outer_begin[i];
 
 		res.m_offset[i] =
@@ -734,44 +748,44 @@ size_t flag) const
 						|| p_local_outer_begin == nullptr) ?
 						0 : p_local_inner_begin[i] - p_local_outer_begin[i];
 
-		res.m_stride[i] = res.m_shape[i];
+		res.m_stride[i] = res.m_dims[i];
 
 		res.count[i] = 1;
 
 		res.block[i] =
 				(p_local_inner_end == nullptr || p_local_inner_begin == nullptr) ?
-						res.f_shape[i] :
+						res.f_dims[i] :
 						p_local_inner_end[i] - p_local_inner_begin[i];
 
 	}
 
 	if ((flag & SP_UNORDER) == SP_UNORDER)
 	{
-		std::tie(res.f_offset[0], res.f_shape[0]) = sync_global_location(
-				res.f_shape[0]);
+		std::tie(res.f_offset[0], res.f_dims[0]) = sync_global_location(
+				res.f_dims[0]);
 
-		res.f_stride[0] = res.f_shape[0];
+		res.f_stride[0] = res.f_dims[0];
 	}
 
-	if (data_desc.ndims > 0)
+	if (datatype.ndims > 0)
 	{
-		for (int j = 0; j < data_desc.ndims; ++j)
+		for (int j = 0; j < datatype.ndims; ++j)
 		{
 
-			res.f_shape[ndims + j] = data_desc.dimensions_[j];
+			res.f_dims[ndims + j] = datatype.dimensions_[j];
 			res.f_offset[ndims + j] = 0;
-			res.f_stride[ndims + j] = res.f_shape[ndims + j];
+			res.f_stride[ndims + j] = res.f_dims[ndims + j];
 
-			res.m_shape[ndims + j] = data_desc.dimensions_[j];
+			res.m_dims[ndims + j] = datatype.dimensions_[j];
 			res.m_offset[ndims + j] = 0;
-			res.m_stride[ndims + j] = res.m_shape[ndims + j];
+			res.m_stride[ndims + j] = res.m_dims[ndims + j];
 
 			res.count[ndims + j] = 1;
-			res.block[ndims + j] = data_desc.dimensions_[j];
+			res.block[ndims + j] = datatype.dimensions_[j];
 
 		}
 
-		ndims += data_desc.ndims;
+		ndims += datatype.ndims;
 	}
 
 	res.ndims = ndims;
@@ -792,15 +806,26 @@ size_t flag) const
 	return std::move(res);
 
 }
-void DataStream::pimpl_s::convert_record_data_set(h5_dataset *pds) const
+
+DataStream::pimpl_s::h5_dataset DataStream::pimpl_s::create_h5_dataset(
+		DataSet const & ds, size_t flag) const
+{
+
+	UNIMPLEMENT;
+	return std::move(
+			create_h5_dataset(ds.datatype, ds.dataspace.ndims(), nullptr,
+					nullptr, nullptr, nullptr, nullptr, nullptr, flag));
+
+}
+void DataStream::pimpl_s::convert_record_dataset(h5_dataset *pds) const
 {
 	for (int i = pds->ndims; i > 0; --i)
 	{
 
-		pds->f_shape[i] = pds->f_shape[i - 1];
+		pds->f_dims[i] = pds->f_dims[i - 1];
 		pds->f_offset[i] = pds->f_offset[i - 1];
 		pds->f_stride[i] = pds->f_stride[i - 1];
-		pds->m_shape[i] = pds->m_shape[i - 1];
+		pds->m_dims[i] = pds->m_dims[i - 1];
 		pds->m_offset[i] = pds->m_offset[i - 1];
 		pds->m_stride[i] = pds->m_stride[i - 1];
 		pds->count[i] = pds->count[i - 1];
@@ -808,11 +833,11 @@ void DataStream::pimpl_s::convert_record_data_set(h5_dataset *pds) const
 
 	}
 
-	pds->f_shape[0] = 1;
+	pds->f_dims[0] = 1;
 	pds->f_offset[0] = 0;
 	pds->f_stride[0] = 1;
 
-	pds->m_shape[0] = 1;
+	pds->m_dims[0] = 1;
 	pds->m_offset[0] = 0;
 	pds->m_stride[0] = 1;
 
@@ -839,10 +864,10 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 
 	if (cache_.find(url) == cache_.end())
 	{
-		size_t cache_memory_size = ds.data_desc.ele_size_in_byte_;
+		size_t cache_memory_size = ds.datatype.ele_size_in_byte_;
 		for (int i = 0; i < ds.ndims; ++i)
 		{
-			cache_memory_size *= ds.m_shape[i];
+			cache_memory_size *= ds.m_dims[i];
 		}
 
 		size_t cache_depth = properties["Max Cache Size"].as<size_t>(
@@ -860,7 +885,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 
 			h5_dataset & item = std::get<1>(cache_[url]);
 
-			item.data_desc = ds.data_desc;
+			item.datatype = ds.datatype;
 
 			item.flag = ds.flag | SP_APPEND;
 
@@ -869,13 +894,13 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 			for (int i = 0; i < ds.ndims; ++i)
 			{
 
-				item.f_shape[i] = ds.f_shape[i];
+				item.f_dims[i] = ds.f_dims[i];
 
 				item.f_offset[i] = ds.f_offset[i];
 
 				item.f_stride[i] = ds.f_stride[i];
 
-				item.m_shape[i] = ds.m_shape[i];
+				item.m_dims[i] = ds.m_dims[i];
 
 				item.m_offset[i] = ds.m_offset[i];
 
@@ -887,19 +912,19 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 
 			}
 			item.count[0] = 0;
-			item.m_shape[0] = item.m_stride[0] * cache_depth + item.m_offset[0];
-			item.f_shape[0] = item.f_stride[0] * cache_depth + item.f_offset[0];
+			item.m_dims[0] = item.m_stride[0] * cache_depth + item.m_offset[0];
+			item.f_dims[0] = item.f_stride[0] * cache_depth + item.f_offset[0];
 
 		}
 	}
 	auto & data = std::get<0>(cache_[url]);
 	auto & item = std::get<1>(cache_[url]);
 
-	size_t memory_size = ds.data_desc.ele_size_in_byte_ * item.m_stride[0];
+	size_t memory_size = ds.datatype.ele_size_in_byte_ * item.m_stride[0];
 
 	for (int i = 1; i < item.ndims; ++i)
 	{
-		memory_size *= item.m_shape[i];
+		memory_size *= item.m_dims[i];
 	}
 
 	std::memcpy(
@@ -908,7 +933,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 
 	++item.count[0];
 
-	if (item.count[0] * item.f_stride[0] + item.f_offset[0] >= item.m_shape[0])
+	if (item.count[0] * item.f_stride[0] + item.f_offset[0] >= item.m_dims[0])
 	{
 		return flush_cache(url);
 	}
@@ -929,16 +954,16 @@ std::string DataStream::pimpl_s::flush_cache(std::string const & url)
 	auto & data = std::get<0>(cache_[url]);
 	auto & item = std::get<1>(cache_[url]);
 
-	hsize_t t_f_shape = item.f_shape[0];
-	hsize_t t_m_shape = item.m_shape[0];
+	hsize_t t_f_shape = item.f_dims[0];
+	hsize_t t_m_shape = item.m_dims[0];
 
-	item.m_shape[0] = item.count[0] * item.m_stride[0] + item.m_offset[0];
-	item.f_shape[0] = item.count[0] * item.f_stride[0] + item.f_offset[0];
+	item.m_dims[0] = item.count[0] * item.m_stride[0] + item.m_offset[0];
+	item.f_dims[0] = item.count[0] * item.f_stride[0] + item.f_offset[0];
 
 	auto res = write_array(url, data.get(), item);
 
-	item.m_shape[0] = t_f_shape;
-	item.f_shape[0] = t_m_shape;
+	item.m_dims[0] = t_f_shape;
+	item.f_dims[0] = t_m_shape;
 
 	item.count[0] = 0;
 
@@ -982,7 +1007,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 		sync_string(&dsname);
 	}
 
-	hid_t m_type = create_datadesc(ds.data_desc);
+	hid_t m_type = create_h5_datatype(ds.datatype);
 
 	hid_t file_space, mem_space;
 
@@ -991,7 +1016,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 	if ((ds.flag & SP_APPEND) == 0)
 	{
 
-		file_space = H5Screate_simple(ds.ndims, ds.f_shape, nullptr);
+		file_space = H5Screate_simple(ds.ndims, ds.f_dims, nullptr);
 
 		dset = H5Dcreate(base_group_id_, dsname.c_str(), m_type, file_space,
 		H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -1013,7 +1038,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 					H5Sselect_hyperslab(file_space, H5S_SELECT_SET, ds.f_offset,
 							ds.f_stride, ds.count, ds.block));
 
-			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, NULL);
+			mem_space = H5Screate_simple(ds.ndims, ds.m_dims, NULL);
 
 			H5_ERROR(
 					H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset,
@@ -1029,9 +1054,9 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 			hsize_t current_dims[MAX_NDIMS_OF_ARRAY];
 			hsize_t maximum_dims[MAX_NDIMS_OF_ARRAY];
 
-			std::copy(ds.f_shape, ds.f_shape + ds.ndims, current_dims);
+			std::copy(ds.f_dims, ds.f_dims + ds.ndims, current_dims);
 
-			std::copy(ds.f_shape, ds.f_shape + ds.ndims, maximum_dims);
+			std::copy(ds.f_dims, ds.f_dims + ds.ndims, maximum_dims);
 
 			hid_t dcpl_id = H5Pcreate(H5P_DATASET_CREATE);
 
@@ -1081,7 +1106,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 
 			f_offset[0] += f_shape[0];
 
-			f_shape[0] += ds.f_shape[0];
+			f_shape[0] += ds.f_dims[0];
 
 			H5Dset_extent(dset, f_shape);
 
@@ -1091,7 +1116,7 @@ std::string DataStream::pimpl_s::write_array(std::string const & url,
 					H5Sselect_hyperslab(file_space, H5S_SELECT_SET, f_offset,
 							ds.f_stride, ds.count, ds.block));
 
-			mem_space = H5Screate_simple(ds.ndims, ds.m_shape, nullptr);
+			mem_space = H5Screate_simple(ds.ndims, ds.m_dims, nullptr);
 
 			H5_ERROR(
 					H5Sselect_hyperslab(mem_space, H5S_SELECT_SET, ds.m_offset,
@@ -1143,9 +1168,9 @@ DataStream::DataStream() :
 DataStream::~DataStream()
 {
 }
-bool DataStream::is_ready() const
+bool DataStream::is_valid() const
 {
-	return pimpl_->is_ready();
+	return pimpl_->is_valid();
 }
 void DataStream::init(int argc, char** argv)
 {
@@ -1189,9 +1214,15 @@ void DataStream::delete_attribute(std::string const &url)
 {
 	pimpl_->delete_attribute(url);
 }
+
+std::string DataStream::write(std::string const &name, DataSet const &ds,
+		size_t flag) const
+{
+	return pimpl_->write(name, ds, flag);
+}
 std::string DataStream::write(std::string const &name, void const *v,
 
-DataType const & data_desc,
+DataType const & datatype,
 
 size_t ndims_or_number,
 
@@ -1213,7 +1244,7 @@ size_t flag
 {
 	return pimpl_->write(name, v,
 
-	pimpl_->create_data_set(data_desc, ndims_or_number,
+	pimpl_->create_h5_dataset(datatype, ndims_or_number,
 
 	global_begin, global_end,
 
