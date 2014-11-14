@@ -117,39 +117,43 @@ inline MPI_Op get_MPI_Op(std::string const & op_c)
 	return op;
 }
 
-void reduce(void const* send_data, void * recv_data, size_t count, DataType const & data_type, std::string const & op_c)
+void reduce(void const* send_data, void * recv_data, size_t count,
+		DataType const & data_type, std::string const & op_c)
 {
 	auto m_type = MPIDataType::create(data_type);
 
 	auto communicator = GLOBAL_COMM.comm();
 	GLOBAL_COMM.barrier();
-	MPI_Reduce(const_cast<void*>(send_data), (recv_data), count, m_type.type(), get_MPI_Op(op_c), 0, communicator);
+	MPI_Reduce(const_cast<void*>(send_data), (recv_data), count, m_type.type(),
+			get_MPI_Op(op_c), 0, communicator);
 	GLOBAL_COMM.barrier();
 
 }
 
-void allreduce(void const* send_data, void * recv_data, size_t count, DataType const & data_type,
-        std::string const & op_c)
+void allreduce(void const* send_data, void * recv_data, size_t count,
+		DataType const & data_type, std::string const & op_c)
 {
 
 	auto m_type = MPIDataType::create(data_type);
 
 	auto communicator = GLOBAL_COMM.comm();
 	GLOBAL_COMM.barrier();
-	MPI_Allreduce(const_cast<void*>(send_data), reinterpret_cast<void*>(recv_data), count, m_type.type(),
-	        get_MPI_Op(op_c), communicator);
+	MPI_Allreduce(const_cast<void*>(send_data),
+			reinterpret_cast<void*>(recv_data), count, m_type.type(),
+			get_MPI_Op(op_c), communicator);
 	GLOBAL_COMM.barrier();
 
 }
 
-std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(void const* send_buffer, std::vector<
+std::tuple<std::shared_ptr<ByteType>, int> update_ghost_unorder(
+		void const* send_buffer, std::vector<
 
-std::tuple<int, // dest;
-        int, // send_tag;
-        int, // recv_tag;
-        int, // send buffer begin;
-        int  // send buffer size;
-        >> const & info)
+		std::tuple<int, // dest;
+				int, // send_tag;
+				int, // recv_tag;
+				int, // send buffer begin;
+				int  // send buffer size;
+				>> const & info)
 {
 	GLOBAL_COMM.barrier();
 
@@ -192,7 +196,7 @@ std::tuple<int, // dest;
 
 	}
 	int recv_buffer_size=std::accumulate(mem_size.begin(),mem_size.end(),0);
-	auto recv_buffer = MEMPOOL.allocate_byte_shared_ptr(recv_buffer_size);
+	auto recv_buffer = sp_make_shared_array<ByteType>(recv_buffer_size);
 
 	int pos = 0;
 	for (int i = 0; i < info.size(); ++i)

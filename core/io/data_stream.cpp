@@ -73,7 +73,6 @@ struct DataStream::pimpl_s
 
 	void flush_all();
 
-	MemoryPool mempool_;
 public:
 
 	Properties properties;
@@ -896,8 +895,7 @@ std::string DataStream::pimpl_s::write_cache(std::string const & p_url,
 		}
 		else
 		{
-
-			mempool_.make_shared<ByteType>(cache_memory_size * cache_depth).swap(
+			sp_make_shared_array<ByteType>(cache_memory_size * cache_depth).swap(
 					std::get<0>(cache_[url]));
 
 			h5_dataset & item = std::get<1>(cache_[url]);

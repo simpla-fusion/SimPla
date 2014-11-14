@@ -16,6 +16,7 @@ extern "C"
 #include "../utilities/parse_command_line.h"
 #include "../utilities/utilities.h"
 #include "../utilities/singleton_holder.h"
+#include "../utilities/log.h"
 
 namespace simpla
 {
@@ -57,18 +58,25 @@ public:
 
 			ParseCmdLine(argc, argv,
 
-			[&](std::string const & opt,std::string const & value)->int
-			{
-				if( opt=="number_of_threads")
-				{
-					num_threads_ =ToValue<size_t>(value);
-				}
+					[&](std::string const & opt,std::string const & value)->int
+					{
+						if( opt=="number_of_threads")
+						{
+							num_threads_ =ToValue<size_t>(value);
+						}
+						else if( opt=="h")
+						{
+							INFORM <<"  "<<std::setw(25) << "--number_of_thread <NUMBER>"
+							<< "set number of thread when  multithead is enabled" << std::endl;
+						}
 
-				return CONTINUE;
+						return CONTINUE;
 
-			}
+					}
 
-			);
+					);
+
+			LOGGER.set_mpi_comm(process_num_, num_process_);
 
 		}
 

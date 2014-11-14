@@ -42,11 +42,17 @@ private:
 
 public:
 
-	MemoryPool();
-	~MemoryPool();
+	MemoryPool() :
+			max_pool_depth_(4 * ONE_GIGA), pool_depth_(0) //2G
+	{
+	}
+	~MemoryPool()
+	{
+		clear();
+	}
 
 	//!  unused memory will be freed when total memory size >= pool size
-	void max_size(size_t s)
+	inline void max_size(size_t s)
 	{
 		max_pool_depth_ = s;
 	}
@@ -55,7 +61,7 @@ public:
 	 *  return the total size of memory in pool
 	 * @return
 	 */
-	double size() const
+	inline double size() const
 	{
 		return static_cast<double>(pool_depth_);
 	}
@@ -65,7 +71,7 @@ public:
 	 * @param d memory address
 	 * @param s size of memory in byte
 	 */
-	void push(void * d, size_t s);
+	inline void push(void * d, size_t s);
 
 	/**
 	 * allocate an array TV[s] from local pool or system memory
@@ -100,15 +106,7 @@ private:
 	};
 };
 
-MemoryPool::MemoryPool() :
-		max_pool_depth_(4 * ONE_GIGA), pool_depth_(0) //2G
-{
-}
-MemoryPool::~MemoryPool()
-{
-	clear();
-}
-void MemoryPool::clear()
+inline void MemoryPool::clear()
 {
 	locker_.lock();
 	for (auto & item : pool_)
@@ -117,7 +115,7 @@ void MemoryPool::clear()
 	}
 	locker_.unlock();
 }
-void MemoryPool::push(void * p, size_t s)
+inline void MemoryPool::push(void * p, size_t s)
 {
 	if ((s > MIN_BLOCK_SIZE) && (s < MAX_BLOCK_SIZE))
 	{

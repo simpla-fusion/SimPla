@@ -6,7 +6,11 @@
  */
 
 #include <iostream>
+#include <iomanip>
 #include "memory_pool.h"
+#include "../parallel/message_comm.h"
+#include "log.h"
+#include "../io/data_stream.h"
 
 using namespace simpla;
 
@@ -14,22 +18,30 @@ using namespace simpla;
 
 int main(int argc, char **argv)
 {
-	std::shared_ptr<double> p[10];
+	LOGGER.init(argc, argv);
+	GLOBAL_COMM.init(argc,argv);
+	GLOBAL_DATA_STREAM.init(argc,argv);
 
-	SingletonHolder<MemoryPool>::instance().max_size(4000);
-	for (int i = 0; i < 10; ++i)
-	{
-		p[i] = sp_make_shared_array<double>(100);
+//	std::shared_ptr<double> p[10];
+//
+//	SingletonHolder<MemoryPool>::instance().max_size(4000);
+//	for (int i = 0; i < 10; ++i)
+//	{
+//		p[i] = sp_make_shared_array<double>(100);
+//
+//		std::cout << SingletonHolder<MemoryPool>::instance().size()
+//				<< std::endl;
+//	}
+//
+//	for (int i = 0; i < 10; ++i)
+//	{
+//		p[i].reset();
+//
+//		std::cout << SingletonHolder<MemoryPool>::instance().size()
+//				<< std::endl;
+//	}
+//
+//	std::cout << "  " << std::setw(25) << std::left << "hello" << " "
+//			<< std::left << "world!" << std::endl;
 
-		std::cout << SingletonHolder<MemoryPool>::instance().size()
-				<< std::endl;
-	}
-
-	for (int i = 0; i < 10; ++i)
-	{
-		p[i].reset();
-
-		std::cout << SingletonHolder<MemoryPool>::instance().size()
-				<< std::endl;
-	}
 }

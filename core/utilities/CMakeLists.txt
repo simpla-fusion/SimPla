@@ -1,7 +1,7 @@
 ADD_EXECUTABLE(lua_state_test lua_state_test.cpp)
 TARGET_LINK_LIBRARIES(lua_state_test  parallel   physics  utilities  )
 
-add_library(utilities   properties.cpp log.cpp  )
+add_library(utilities   properties.cpp log.cpp )
 TARGET_LINK_LIBRARIES(utilities )
 
 
@@ -20,5 +20,5 @@ target_link_libraries(log_test   parallel)
 
 
 my_test(memory_pool_test   )  
-target_link_libraries(memory_pool_test utilities )
+target_link_libraries(memory_pool_test utilities io parallel )
  
