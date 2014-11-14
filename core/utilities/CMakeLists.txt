@@ -17,3 +17,8 @@ target_link_libraries(properties_test utilities   parallel   physics  utilities)
 
 my_test(log_test  log.cpp    )  
 target_link_libraries(log_test   parallel)
+
+
+my_test(memory_pool_test   )  
+target_link_libraries(memory_pool_test utilities )
+ 

@@ -30,6 +30,7 @@ namespace simpla
  **/
 struct DistributedArray
 {
+	static constexpr size_t MAX_NUM_DIMS = 10;
 
 	DistributedArray();
 

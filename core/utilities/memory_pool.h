@@ -10,17 +10,11 @@
 #include <map>
 #include <memory>
 #include "singleton_holder.h"
-#include "primitives.h"
 #include "log.h"
 namespace simpla
 {
 
-template<typename TV>
-inline void deallocate_m(TV *p)
-{
-	delete[] p;
-}
-//! \ingroup Utilities
+////! \ingroup Utilities
 class MemoryPool
 {
 private:
@@ -29,204 +23,243 @@ private:
 		MAX_POOL_DEPTH = 128
 	};
 
-	typedef unsigned char byte_type;
+	typedef char byte_type;
 
-	std::map<size_t, std::shared_ptr<byte_type>> released_raw_ptr_;
-
-	std::multimap<size_t, std::shared_ptr<byte_type> > pool_;
+	std::multimap<size_t, void*> pool_;
 
 	size_t MAX_POOL_SIZE;
 
-	const size_t ONE_GIGA = 1024l * 1024l * 1024l;
+	static constexpr size_t ONE_GIGA = 1024l * 1024l * 1024l;
 
-	size_t ratio_; /// allocatro release free memory block when "demanded size"< block size < ratio_ * "demanded size"
+	size_t ratio_; /// allocator release free memory block when
+	///  "demanded size"< block size < ratio_ * "demanded size"
+
+	size_t unused_size_ = 0;
 
 public:
 
-	MemoryPool() :
-			MAX_POOL_SIZE(4), ratio_(2) //2G
-	{
-	}
-	~MemoryPool()
-	{
-		pool_.clear();
-		released_raw_ptr_.clear();
-	}
+	MemoryPool();
+	~MemoryPool();
 
-	// unused memory will be freed when total memory size >= pool size
-	void set_pool_size_in_GB(size_t s)
+	//! unused memory will be freed when total memory size >= pool size
+	void max_size(size_t s)
 	{
-		MAX_POOL_SIZE = s * ONE_GIGA;
+		MAX_POOL_SIZE = s;
 	}
 
-	/**
-	 *
-	 * @param p_unused
-	 * @param p_used
-	 * @return
-	 */
-	size_t get_memory_size(size_t * p_unused = nullptr, size_t * p_used =
-			nullptr) const
+	double size() const
 	{
-		size_t unused_memory = 0;
-		size_t used_memory = 0;
-		for (auto const & p : pool_)
-		{
-			if (p.second.unique())
-			{
-				unused_memory += p.first;
-			}
-			else
-			{
-				used_memory += p.first;
-			}
-		}
-		if (p_unused != nullptr)
-		{
-			*p_unused = used_memory;
-		}
-		if (p_used != nullptr)
-		{
-			*p_used = used_memory;
-		}
-
-		return unused_memory + used_memory;
+		return static_cast<double>(unused_size_);
 	}
 
-	double get_memory_sizeInGB(double * p_unused = nullptr, double * p_used =
-			nullptr) const
-	{
-		size_t unused_memory = 0;
-		size_t used_memory = 0;
-		size_t total = get_memory_size(&unused_memory, &used_memory);
+	void push(void *, size_t s);
 
-		if (p_unused != nullptr)
-		{
-			*p_unused = static_cast<double>(unused_memory)
-					/ static_cast<double>(ONE_GIGA);
-		}
+	template<typename TV>
+	std::shared_ptr<TV> pop(size_t s);
 
-		if (p_used != nullptr)
-		{
-			*p_used = static_cast<double>(used_memory)
-					/ static_cast<double>(ONE_GIGA);
-		}
-
-		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
-	}
-
-	inline byte_type * allocate(size_t size)
-	{
-		std::shared_ptr<byte_type> res = _allocate_shared_ptr(size);
-
-		released_raw_ptr_[std::hash<std::shared_ptr<byte_type>>()(res)] = res;
-
-		return res.get();
-
-	}
-
-	inline void deallocate(void * p, size_t size = 0)
-	{
-		auto it = released_raw_ptr_.find(
-				std::hash<byte_type *>()(reinterpret_cast<byte_type*>(p)));
-
-		if (it != released_raw_ptr_.end())
-		{
-			it->second.reset();
-		}
-		ReleaseMemory();
-	}
-
-	inline void deallocate(std::shared_ptr<byte_type>& p, size_t size = 0)
-	{
-		p.reset();
-		ReleaseMemory();
-	}
+	void clear();
 
 //	template<typename TV>
-//	std::shared_ptr<TV> make_shared(size_t demand)
+//	size_t size(std::shared_ptr<TV> const &p) const;
+//
+//	/**
+//	 * @return p_unused,p_used
+//	 */
+//	std::tuple<size_t, size_t> memory_size() const
 //	{
-//		return std::shared_ptr<TV>(
-//				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
-//				deallocate_m);
+//		size_t unused_memory = 0;
+//		size_t used_memory = 0;
+//		for (auto const & p : pool_)
+//		{
+//			if (p.second.unique())
+//			{
+//				unused_memory += p.first;
+//			}
+//			else
+//			{
+//				used_memory += p.first;
+//			}
+//		}
+//
+//		return std::make_tuple(used_memory, unused_memory);
 //	}
-	template<typename TV>
-	std::shared_ptr<TV> make_shared(size_t demand)
-	{
-
-		return std::shared_ptr<TV>(new TV[demand], deallocate_m<TV>);
-//		return std::shared_ptr<TV>(
-//				reinterpret_cast<TV*>(allocate(demand * sizeof(TV))),
-//				deallocate_m);
-	}
-
-	inline std::shared_ptr<ByteType> allocate_byte_shared_ptr(size_t demand)
-	{
-		return make_shared<ByteType>(demand);
-	}
+//
+//	size_t total_size() const
+//	{
+//		size_t unused_memory = 0;
+//		size_t used_memory = 0;
+//
+//		std::tie(unused_memory, used_memory) = memory_size();
+//
+//		return unused_memory + used_memory;
+//
+//	}
+//
+//	double get_memory_sizeInGB(double * p_unused = nullptr, double * p_used =
+//			nullptr) const
+//	{
+//		size_t unused_memory = 0;
+//		size_t used_memory = 0;
+//
+//		std::tie(unused_memory, used_memory) = memory_size();
+//
+//		size_t total = unused_memory + used_memory;
+//
+//		if (p_unused != nullptr)
+//		{
+//			*p_unused = static_cast<double>(unused_memory)
+//					/ static_cast<double>(ONE_GIGA);
+//		}
+//
+//		if (p_used != nullptr)
+//		{
+//			*p_used = static_cast<double>(used_memory)
+//					/ static_cast<double>(ONE_GIGA);
+//		}
+//
+//		return static_cast<double>(total) / static_cast<double>(ONE_GIGA);
+//	}
 
 private:
+//
+//	template<typename TV>
+//	inline std::shared_ptr<TV> allocate(size_t size)
+//	{
+//		std::shared_ptr<void> res = _allocate_shared_ptr(size);
+//
+//		released_raw_ptr_[std::hash<std::shared_ptr<void>>()(res)] = res;
+//
+//		return res.get();
+//
+//	}
+//
+//	inline void deallocate(void * p, size_t size = 0)
+//	{
+//		auto it = released_raw_ptr_.find(std::hash<void *>()(p));
+//
+//		if (it != released_raw_ptr_.end())
+//		{
+//			it->second.reset();
+//		}
+//		ReleaseMemory();
+//	}
+//
+//	inline void deallocate(std::shared_ptr<void>& p, size_t size = 0)
+//	{
+//		p.reset();
+//		ReleaseMemory();
+//	}
+//
+//	inline void ReleaseMemory()
+//	{
+//		// the size of allocated memory
+//		size_t t_size = total_size();
+//
+//		auto it = pool_.begin();
+//
+//		// release free memory until total_size < MAX_POOL_SIZE or no free memory is avaible
+//		while (t_size > MAX_POOL_SIZE && it != pool_.end())
+//		{
+//			if (it->second.unique())
+//			{
+//				t_size -= it->first;
+//				it = pool_.erase(it);
+//			}
+//			else
+//			{
+//				++it;
+//			}
+//
+//		}
+//	}
 
-	inline std::shared_ptr<byte_type> _allocate_shared_ptr(size_t demand)
+	struct Deleter
 	{
-		std::shared_ptr<byte_type> res(nullptr);
+		void * addr_;
+		size_t s_;
 
-		// find memory block which is not smaller than demand size
-		auto pt = pool_.lower_bound(demand);
-
-		for (auto & p : pool_)
+		Deleter(void * p, size_t s) :
+				addr_(p), s_(s)
 		{
-			//release memory if block is free and size < ratio_ * demand
-			if (p.second.unique() && p.first < ratio_ * demand)
-			{
-				res = p.second;
-				break;
-			}
 		}
 
-		// if there is no proper memory block available , allocate new memory block
-		if (res == nullptr)
+		void operator ()(void * ptr)
 		{
-			try
-			{
-				res = std::shared_ptr<byte_type>(new byte_type[demand]);
+			ASSERT(ptr == addr_);
 
-			} catch (std::bad_alloc const &error)
-			{
-				ERROR_BAD_ALLOC_MEMORY(demand, error);
-			}
-
-			// put new memory into pool
-			pool_.insert(std::make_pair(demand, res));
+			SingletonHolder<MemoryPool>::instance().push(addr_, s_);
 		}
-		return res;
-	}
-	inline void ReleaseMemory()
-	{
-		// the size of allocated memory
-		size_t total_size = get_memory_size();
-
-		auto it = pool_.begin();
-
-		// release free memory until total_size < MAX_POOL_SIZE or no free memory is avaible
-		while (total_size > MAX_POOL_SIZE && it != pool_.end())
-		{
-			if (it->second.unique())
-			{
-				total_size -= it->first;
-				it = pool_.erase(it);
-			}
-			else
-			{
-				++it;
-			}
-
-		}
-	}
+	};
 };
 
-#define MEMPOOL  SingletonHolder<MemoryPool>::instance()
+MemoryPool::MemoryPool() :
+		MAX_POOL_SIZE(4 * ONE_GIGA), ratio_(2), unused_size_(0) //2G
+{
+}
+MemoryPool::~MemoryPool()
+{
+	clear();
+}
+void MemoryPool::clear()
+{
+	for (auto & item : pool_)
+	{
+		delete[] reinterpret_cast<byte_type*>(item.second);
+	}
+}
+void MemoryPool::push(void * p, size_t s)
+{
+	if (unused_size_ + s > MAX_POOL_SIZE)
+	{
+		delete[] reinterpret_cast<byte_type*>(p);
+	}
+	else
+	{
+		pool_.emplace(s, p);
+		unused_size_ += s;
+	}
+}
 
-}  // namespace simpla
+template<typename TV>
+std::shared_ptr<TV> MemoryPool::pop(size_t s)
+{
+	void * addr;
+	s *= sizeof(TV);
+
+// find memory block which is not smaller than demand size
+	auto pt = pool_.lower_bound(s);
+
+	if (pt != pool_.end())
+	{
+		std::tie(s, addr) = *pt;
+
+		pool_.erase(pt);
+
+		unused_size_ -= s;
+	}
+	else
+	{
+
+		try
+		{
+			addr = reinterpret_cast<void*>(new byte_type[s]);
+
+		} catch (std::bad_alloc const &error)
+		{
+			ERROR_BAD_ALLOC_MEMORY(s, error);
+		}
+
+	}
+	return std::shared_ptr<TV>(reinterpret_cast<TV*>(addr), Deleter(addr, s));
+}
+
+template<typename TV>
+std::shared_ptr<TV> sp_make_shared(size_t demand = 1)
+{
+	return SingletonHolder<MemoryPool>::instance().template pop<TV>(demand);
+}
+
+}
+// namespace simpla
 
 #endif  // INCLUDE_MEMORY_POOL_H_

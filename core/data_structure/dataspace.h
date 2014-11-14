@@ -19,19 +19,24 @@ class DataSpace
 {
 
 public:
+	static constexpr size_t MAX_NUM_DIMS = DistributedArray::MAX_NUM_DIMS;
 
-	DataSpace(std::shared_ptr<DistributedArray> d,
-			size_t const *block = nullptr) :
+	DataSpace() :
+			darray_(nullptr)
+	{
+	}
+
+	template<typename ...Args>
+	DataSpace(Args && ... args) :
+			darray_(new DistributedArray(std::forward<Args>(args)...))
+	{
+		update();
+	}
+
+	DataSpace(std::shared_ptr<DistributedArray> d) :
 			darray_(d)
 	{
-		global_begin_ = 0;
-		global_end_ = 1;
-		local_outer_begin_ = 0;
-		local_outer_end_ = 1;
-		local_inner_begin_ = 0;
-		local_inner_end_ = 1;
-		block_ = 1;
-
+		update();
 	}
 
 	~DataSpace()
@@ -47,27 +52,31 @@ public:
 		return std::move(create_simple(RANK, &d[0]));
 	}
 
+	void select(size_t ndims, size_t const* offset_, size_t const*count_);
+
+	size_t get_shape(size_t *global_begin = nullptr,
+
+	size_t *global_end = nullptr,
+
+	size_t *local_outer_begin = nullptr,
+
+	size_t *local_outer_end = nullptr,
+
+	size_t *local_inner_begin = nullptr,
+
+	size_t *local_inner_end = nullptr) const;
+
 private:
 
-	static constexpr size_t MAX_NUM_DIMS = 10;
+	size_t ndims = 0;
 
-	size_t ndims_ = 1;
-
-	nTuple<size_t, MAX_NUM_DIMS> global_begin_;
-
-	nTuple<size_t, MAX_NUM_DIMS> global_end_;
-
-	nTuple<size_t, MAX_NUM_DIMS> local_outer_begin_;
-
-	nTuple<size_t, MAX_NUM_DIMS> local_outer_end_;
-
-	nTuple<size_t, MAX_NUM_DIMS> local_inner_begin_;
-
-	nTuple<size_t, MAX_NUM_DIMS> local_inner_end_;
-
-	nTuple<size_t, MAX_NUM_DIMS> block_;
+	size_t begin[MAX_NUM_DIMS];
+	size_t end[MAX_NUM_DIMS];
 
 	std::shared_ptr<DistributedArray> darray_;
+
+	void update();
+
 };
 
 }  // namespace simpla

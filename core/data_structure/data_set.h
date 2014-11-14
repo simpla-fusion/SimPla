@@ -16,7 +16,6 @@ struct DataSpace;
 
 struct DataSet
 {
-
 	std::shared_ptr<void> data;
 	DataType datatype;
 	DataSpace dataspace;

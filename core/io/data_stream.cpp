@@ -810,11 +810,28 @@ size_t flag) const
 DataStream::pimpl_s::h5_dataset DataStream::pimpl_s::create_h5_dataset(
 		DataSet const & ds, size_t flag) const
 {
+	static constexpr size_t MAX_NUM_DIMS = DataSpace::MAX_NUM_DIMS;
 
-	UNIMPLEMENT;
+	size_t global_begin[MAX_NUM_DIMS];
+
+	size_t global_end[MAX_NUM_DIMS];
+
+	size_t local_outer_begin[MAX_NUM_DIMS];
+
+	size_t local_outer_end[MAX_NUM_DIMS];
+
+	size_t local_inner_begin[MAX_NUM_DIMS];
+
+	size_t local_inner_end[MAX_NUM_DIMS];
+
+	size_t ndims = ds.dataspace.get_shape(global_begin, global_end,
+			local_outer_begin, local_outer_end, local_inner_begin,
+			local_inner_end);
+
 	return std::move(
-			create_h5_dataset(ds.datatype, ds.dataspace.ndims(), nullptr,
-					nullptr, nullptr, nullptr, nullptr, nullptr, flag));
+			create_h5_dataset(ds.datatype, ndims, global_begin, global_end,
+					local_outer_begin, local_outer_end, local_inner_begin,
+					local_inner_end, flag));
 
 }
 void DataStream::pimpl_s::convert_record_dataset(h5_dataset *pds) const
