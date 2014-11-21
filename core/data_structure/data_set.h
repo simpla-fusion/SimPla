@@ -11,8 +11,6 @@
 #include "dataspace.h"
 namespace simpla
 {
-struct DataType;
-struct DataSpace;
 struct Properties;
 
 struct DataSet

@@ -27,7 +27,7 @@ int main(int argc, char **argv)
 
 	[&](std::string const & opt,std::string const & value)->int
 	{
-		if(opt=="v" || opt=="version")
+		if(opt=="V" || opt=="version")
 		{
 			STDOUT<<"simpla "<< ShowVersion();
 			TheEnd(0);

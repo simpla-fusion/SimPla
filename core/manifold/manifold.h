@@ -10,6 +10,7 @@
 #include <memory>
 #include <utility>
 #include <vector>
+#include <ostream>
 #include "../utilities/sp_type_traits.h"
 #include "../utilities/primitives.h"
 #include "../utilities/log.h"

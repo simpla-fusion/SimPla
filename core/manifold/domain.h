@@ -60,11 +60,11 @@ public:
 	{
 	}
 	// Split d into two sub-domains.
-	Domain(this_type& d, split_tag) :
-			manifold_(d.manifold_->shared_from_this()), range_(d.range_,
-					split_tag())
-	{
-	}
+//	Domain(this_type& d ) :
+//			manifold_(d.manifold_->shared_from_this()), range_(d.range_,
+//					split_tag())
+//	{
+//	}
 
 	~Domain() = default; // Destructor.
 

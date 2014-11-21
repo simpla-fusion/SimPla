@@ -15,7 +15,7 @@
 #include "../physics/physical_object.h"
 #include "../utilities/log.h"
 #include "../utilities/primitives.h"
-
+#include "../data_structure/data_set.h"
 namespace simpla
 {
 
@@ -62,7 +62,7 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 	//****************************************************************
 	// Constructor
 	template<typename ...Others>
-	Particle(domain_type const & pdomain, Others && ...);
+	Particle(std::shared_ptr<domain_type>& pdomain, Others && ...);
 
 	// Destroy
 	~Particle();
@@ -71,27 +71,27 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 	{
 		return engine_type::get_type_as_string();
 	}
-	std::string get_type_as_string()
+	std::string get_type_as_string() const
 	{
 		return get_type_as_string_static();
 	}
 
+	template<typename TDict>
+	void load(TDict const & dict)
+	{
+		engine_type::load(dict);
+	}
+
 	bool update();
 
-	void dataset(DataSet);
+//	void dataset(DataSet);
 
 	DataSet dataset() const;
 
 	void swap(this_type &);
 
-	std::ostream& print(std::ostream & os) const
-	{
-		engine_type::print(os);
-		os << ",";
-		PhysicalObject::print(os);
-
-		return os;
-	}
+	template<typename OS>
+	OS& print(OS& os) const;
 
 	template<typename ...Args>
 	void next_n_timestep(size_t step_num, Real dt, Args && ...);
@@ -105,10 +105,10 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 	void push_back(TI const & b, TI const & e);
 
 	template<typename ...Args>
-	auto emplace_back(Args && ...args);
+	void emplace_back(Args && ...args);
 
 private:
-	domain_type const & domain_;
+	std::shared_ptr<domain_type> domain_;
 
 	std::shared_ptr<Point_s> data_;
 
@@ -120,17 +120,37 @@ private:
 };
 
 template<typename Engine, typename TDomain>
-template<typename ... Others>
-Particle<Engine, TDomain>::Particle(domain_type const & pdomain,
-		Others && ...others) :
-		domain_(pdomain)
+template<typename OS>
+OS& Particle<Engine, TDomain>::print(OS & os) const
 {
-	engine_type::load(std::forward<Others>(others)...);
+	engine_type::print(os);
+	return os;
+}
+
+template<typename Engine, typename TDomain>
+template<typename ... Others>
+Particle<Engine, TDomain>::Particle(std::shared_ptr<TDomain> & pdomain,
+		Others && ...others) :
+		domain_(pdomain->shared_from_this()), engine_type(
+				std::forward<Others>(others)...)
+{
+//	engine_type::load(std::forward<Others>(others)...);
 }
 
 template<typename Engine, typename TDomain>
 Particle<Engine, TDomain>::~Particle()
 {
+}
+template<typename Engine, typename TDomain>
+bool Particle<Engine, TDomain>::update()
+{
+	return true;
+}
+template<typename Engine, typename TDomain>
+DataSet Particle<Engine, TDomain>::dataset() const
+{
+	DataSet res;
+	return (res);
 }
 
 template<typename Engine, typename TDomain>
@@ -142,14 +162,14 @@ void Particle<Engine, TDomain>::next_n_timestep(size_t step, Real dt,
 	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
 			<< std::endl;
 
-	auto p = &*(this->begin());
-	for (auto & p : *this)
-	{
-		for (int s = 0; s < step; ++s)
-		{
-			engine_type::next_timestep(p + s, dt, std::forward<Args>(args)...);
-		}
-	}
+//	auto p = &*(this->begin());
+//	for (auto & p : *this)
+//	{
+//		for (int s = 0; s < step; ++s)
+//		{
+//			engine_type::next_timestep(p + s, dt, std::forward<Args>(args)...);
+//		}
+//	}
 
 	LOGGER << DONE;
 }
@@ -162,11 +182,11 @@ void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
 	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
 			<< std::endl;
 
-	auto p = &*(this->begin());
-	for (auto & p : *this)
-	{
-			engine_type::next_timestep(p + s, dt, std::forward<Args>(args)...);
-	}
+//	auto p = &*(this->begin());
+//	for (auto & p : *this)
+//	{
+//			engine_type::next_timestep(p + s, dt, std::forward<Args>(args)...);
+//	}
 
 	LOGGER << DONE;
 }

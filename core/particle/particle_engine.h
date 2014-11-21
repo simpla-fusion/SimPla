@@ -11,6 +11,7 @@
 #include "../physics/physical_constants.h"
 #include "../utilities/properties.h"
 #include "../utilities/sp_type_traits.h"
+#include "../data_structure/data_type.h"
 namespace simpla
 {
 

@@ -97,7 +97,7 @@ public:
 	template<typename OS>
 	OS & print(OS &os) const
 	{
-		os << " Dimensions =  " << dimensions() << "," << std::endl;
+		os << " Dimensions =  " << dimensions() << ",";
 
 		return os;
 	}
@@ -186,20 +186,20 @@ public:
 //		local_outer_begin_ = global_begin_;
 //		local_outer_end_ = global_end_;
 //		local_outer_count_ = global_count_;
-
-		DataSpace(ndims, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH).swap(
-				data_space_);
-
-		data_space_.global_array_->init(ndims, global_begin_, global_end_,
-				DEFAULT_GHOSTS_WIDTH);
-
-		local_inner_begin_ = data_space_.global_array_->local_.inner_begin;
-		local_inner_end_ = data_space_.global_array_->local_.inner_end;
-		local_inner_count_ = local_inner_end_ - local_inner_begin_;
-
-		local_outer_begin_ = data_space_.global_array_->local_.outer_begin;
-		local_outer_end_ = data_space_.global_array_->local_.outer_end;
-		local_outer_count_ = local_outer_end_ - local_outer_begin_;
+		// FIXME UNIMPLEMENT
+//		DataSpace(ndims, global_begin_, global_end_, DEFAULT_GHOSTS_WIDTH).swap(
+//				data_space_);
+//
+//		data_space_.global_array_->init(ndims, global_begin_, global_end_,
+//				DEFAULT_GHOSTS_WIDTH);
+//
+//		local_inner_begin_ = data_space_.global_array_->local_.inner_begin;
+//		local_inner_end_ = data_space_.global_array_->local_.inner_end;
+//		local_inner_count_ = local_inner_end_ - local_inner_begin_;
+//
+//		local_outer_begin_ = data_space_.global_array_->local_.outer_begin;
+//		local_outer_end_ = data_space_.global_array_->local_.outer_end;
+//		local_outer_count_ = local_outer_end_ - local_outer_begin_;
 
 		local_strides_[2] = 1;
 		local_strides_[1] = local_outer_count_[2] * local_strides_[2];
@@ -252,7 +252,7 @@ public:
 	{
 		DataSpace res(data_space_);
 
-		return;
+		return std::move(res);
 	}
 //	size_t get_num_of_elements(size_t iform = VERTEX) const
 //	{
@@ -799,17 +799,14 @@ public:
 	static index_tuple decompact(index_type s)
 	{
 
-		return std::move(
-				index_tuple(
-						{ static_cast<index_type>((s >> (INDEX_DIGITS * 2))
-								& INDEX_MASK),
+		return std::move(index_tuple(
+		{ static_cast<index_type>((s >> (INDEX_DIGITS * 2)) & INDEX_MASK),
 
-						static_cast<index_type>((s >> (INDEX_DIGITS))
-								& INDEX_MASK),
+		static_cast<index_type>((s >> (INDEX_DIGITS)) & INDEX_MASK),
 
-						static_cast<index_type>(s & INDEX_MASK)
+		static_cast<index_type>(s & INDEX_MASK)
 
-						}));
+		}));
 	}
 
 	/**
@@ -851,7 +848,8 @@ public:
 	}
 	//! @name Geometry
 	//! @{
-	Real volume_[8] = { 1, // 000
+	Real volume_[8] =
+	{ 1, // 000
 			1, //001
 			1, //010
 			1, //011
@@ -860,11 +858,14 @@ public:
 			1, //110
 			1  //111
 			};
-	Real inv_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
-	Real inv_dual_volume_[8] = { 1, 1, 1, 1, 1, 1, 1, 1 };
+	Real inv_dual_volume_[8] =
+	{ 1, 1, 1, 1, 1, 1, 1, 1 };
 
 	nTuple<Real, ndims> inv_extents_, extents_, dx_, inv_dx_;
 

@@ -12,10 +12,10 @@
 //#include <iostream>
 //#include <iomanip>
 //#include "utilities/log.h"
-
-namespace simpla
-{
-
+//
+//namespace simpla
+//{
+//
 //#ifndef IDENTIFY
 //#	define IDENTIFY "UNKNOWN"
 //#endif
@@ -89,8 +89,8 @@ namespace simpla
 //	}
 //	exit(0);
 //}
-
-}
+//
+//}
 /**
  *  \include design_doc.txt
  */

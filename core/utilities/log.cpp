@@ -99,13 +99,9 @@ void LoggerStreams::init(int argc, char** argv)
 		{
 			this->open_file (value);
 		}
-		else if(opt=="v")
+		else if(opt=="v" || opt=="verbose")
 		{
 			this->set_stdout_visable_level(ToValue<int>(value));
-		}
-		else if( opt=="verbose")
-		{
-			this->set_stdout_visable_level(LOG_VERBOSE);
 		}
 		else if( opt=="quiet")
 		{
@@ -114,6 +110,10 @@ void LoggerStreams::init(int argc, char** argv)
 		else if( opt=="log_width")
 		{
 			this->set_line_width(ToValue<int>(value));
+		}
+		else if(opt=="h"|| opt=="help")
+		{
+			SHOW_OPTIONS("-v,--verbose <NUM> ", "Verbose mode")
 		}
 		return CONTINUE;
 	}

@@ -44,11 +44,11 @@ void UseCase::run(int argc, char ** argv)
 			{
 				if(opt=="i"||opt=="input")
 				{
-					dict_.parse_file(value);
+					DICT.parse_file(value);
 				}
 				else if(opt=="e"|| opt=="execute")
 				{
-					dict_.parse_string(value);
+					DICT.parse_string(value);
 				}
 				else if (opt=="h"|| opt=="help")
 				{
@@ -64,13 +64,10 @@ void UseCase::run(int argc, char ** argv)
 
 			);
 
-	if (!is_configure_test_)
-	{
-//		INFORM << "Use case:" << case_info_ << " begin" << std::endl;
-		 body();
-//		INFORM << "Use case:" << case_info_ << " end" << std::endl;
+	body();
 
-	}
+	//		INFORM << "Use case:" << case_info_ << " begin" << std::endl;
+	//		INFORM << "Use case:" << case_info_ << " end" << std::endl;
 
 }
 

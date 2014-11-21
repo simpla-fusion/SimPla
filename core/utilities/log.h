@@ -21,6 +21,8 @@
 #include <sstream>
 #include <string>
 #include "properties.h"
+#include "sp_type_traits.h"
+#include "pretty_stream.h"
 namespace simpla
 {
 /**
@@ -80,7 +82,7 @@ public:
 
 		current_line_char_count_ -= get_buffer_length();
 
-		const_cast<this_type*>(this)->buffer_ << value;
+		sp_print(const_cast<this_type*>(this)->buffer_, value);
 
 		current_line_char_count_ += get_buffer_length();
 
@@ -258,6 +260,9 @@ inline std::string ShowBit(unsigned long s)
 
 #define REDUCE_CHECK(_MSG_)    {auto __a= (_MSG_); __a=reduce(__a); if(GLOBAL_COMM.get_rank()==0){ Logger(LOG_DEBUG) <<" "<< (__FILE__) <<": line "<< (__LINE__)<<":"<<  (__PRETTY_FUNCTION__) \
 	<<"\n\t GLOBAL_SUM:"<< __STRING(_MSG_)<<"="<<__a;}}
+
+#define RIGHT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::right << _FIRST_
+#define LEFT_COLUMN(_FIRST_) STDOUT <<std::setw(15) <<std::left << _FIRST_
 
 //#else
 //#	define CHECK(_MSG_)

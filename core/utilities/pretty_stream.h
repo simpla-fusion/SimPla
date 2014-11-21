@@ -39,7 +39,7 @@ printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
 		for (int s = 1; s < d[0]; ++s)
 		{
 			os << sep << "\t";
-			if (s % 5 == 0)
+			if (s % 5 == 0 && s != 0)
 				os << std::endl;
 			os << (*v);
 			++v;
@@ -75,17 +75,28 @@ printNdArray(std::ostream & os, TV const *v, size_t rank, size_t const* d,
 //	os << "}";
 //	return (os);
 //}
-
-template<typename T, size_t M, size_t ...N>
-std::ostream &operator<<(std::ostream & os, nTuple<T, M, N...> const & v)
+template<typename T, size_t M>
+std::ostream &operator<<(std::ostream & os, nTuple<T, M> const & v)
 {
-	os << std::endl << "{";
-	for (int i = 0; i < M - 1; ++i)
+	os << "{" << v[M - 1];
+	for (int i = 1; i < M; ++i)
 	{
-		os << v[i] << " , ";
+		os << " , " << v[i];
 	}
+	os << "}";
 
-	os << v[M - 1] << "}";
+	return os;
+}
+
+template<typename T, size_t M, size_t M2, size_t ...N>
+std::ostream &operator<<(std::ostream & os, nTuple<T, M, M2, N...> const & v)
+{
+	os << "{" << v[0];
+	for (int i = 1; i < M; ++i)
+	{
+		os << " , " << v[i] << std::endl;
+	}
+	os << "}" << std::endl;
 
 	return os;
 }
@@ -100,8 +111,7 @@ operator>>(std::istream& is, nTuple<T, N> & tv)
 	return (is);
 }
 
-template<typename T, size_t N> nTuple<T, N> ToNTuple(
-		std::string const & str)
+template<typename T, size_t N> nTuple<T, N> ToNTuple(std::string const & str)
 {
 	std::istringstream ss(str);
 	nTuple<T, N> res;

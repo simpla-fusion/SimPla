@@ -27,8 +27,8 @@ public:
 	}
 
 	template<typename ...Args>
-	DataSpace(Args && ... args) :
-			darray_(new DistributedArray(std::forward<Args>(args)...))
+	DataSpace(Args && ... args)
+//	:darray_(new DistributedArray(std::forward<Args>(args)...))
 	{
 		update();
 	}

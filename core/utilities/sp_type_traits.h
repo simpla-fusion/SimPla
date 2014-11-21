@@ -522,6 +522,23 @@ struct index_of<TC, TI>
 	typedef typename result_of<_impl::GetValue(TC, TI)>::type type;
 };
 
+HAS_MEMBER_FUNCTION(print)
+template<typename OS, typename TV>
+auto sp_print(OS & os,
+		TV const & v)
+		->typename std::enable_if<has_member_function_print<TV const,OS &>::value,OS &>::type
+{
+	return v.print(os);
+}
+
+template<typename OS, typename TV>
+auto sp_print(OS & os,
+		TV const & v)
+		->typename std::enable_if<!has_member_function_print<TV const,OS &>::value,OS &>::type
+{
+	os << v;
+	return os;
+}
 }
 // namespace simpla
 #endif /* SP_TYPE_TRAITS_H_ */

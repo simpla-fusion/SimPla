@@ -35,11 +35,7 @@ struct PhysicalObject
 //
 //	virtual Properties & properties(std::string const & name = "") =0;
 
-	virtual std::ostream& print(std::ostream & os) const=0; //!<  print description to `os`
-
 	virtual std::string get_type_as_string() const=0;
-
-	virtual void dataset(DataSet)=0; //!< return the data set of PhysicalObject
 
 	virtual DataSet dataset() const =0; //!< return the data set of PhysicalObject
 

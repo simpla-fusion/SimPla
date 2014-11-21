@@ -26,11 +26,13 @@ class UseCase
 {
 	int argc_ = 0;
 	char ** argv_ = nullptr;
-	LuaObject dict_;
 
 	std::string case_info_;
 
 public:
+
+	LuaObject DICT;
+
 	UseCase()
 	{
 	}
@@ -56,9 +58,9 @@ public:
 		{
 			return std::make_tuple(true, ToValue<T>(value_str));
 		}
-		else if (dict_[name])
+		else if (DICT[name])
 		{
-			return std::make_tuple(true, dict_[name].template as<T>());
+			return std::make_tuple(true, DICT[name].template as<T>());
 		}
 
 		return std::make_tuple(false, T());
@@ -85,7 +87,7 @@ public:
 
 	void run(int argc, char ** argv);
 
-	virtual void  body()=0;
+	virtual void body()=0;
 };
 
 struct UseCaseList
@@ -123,8 +125,6 @@ inline void RunAllUseCase(int argc, char ** argv)
 {
 	SingletonHolder<UseCaseList>::instance().run_all_case(argc, argv);
 }
-
-
 
 #define USE_CASE(_use_case_name) SP_APP(_use_case_name,usecase,UseCase)
 
