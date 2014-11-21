@@ -169,6 +169,8 @@ int main(int argc, char **argv)
 
 	ion.push_back(p);
 
+	ion.
+
 	auto n = [](typename manifold_type::coordinates_type const & x )
 	{	return 2.0;};
 

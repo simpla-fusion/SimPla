@@ -45,13 +45,14 @@ template<typename ...> struct Particle;
  */
 
 template<typename Engine, typename TDomain>
-struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
+struct Particle<Engine, TDomain, IsTracable> : public Engine,
+		public PhysicalObject
 {
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
-	typedef Particle<domain_type, engine_type> this_type;
+	typedef Particle<domain_type, engine_type, IsTracable> this_type;
 
 	typedef typename Engine::Point_s Point_s;
 
@@ -84,8 +85,6 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 
 	bool update();
 
-//	void dataset(DataSet);
-
 	DataSet dataset() const;
 
 	void swap(this_type &);
@@ -94,10 +93,10 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 	OS& print(OS& os) const;
 
 	template<typename ...Args>
-	void next_n_timestep(size_t step_num, Real dt, Args && ...);
+	void next_n_steps(size_t step_num, Real dt, Args && ...);
 
 	template<typename ...Args>
-	void next_timestep(Real dt, Args && ...);
+	void next_step(Real dt, Args && ...);
 
 	void push_back(Point_s const &);
 
@@ -106,6 +105,15 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 
 	template<typename ...Args>
 	void emplace_back(Args && ...args);
+
+	void cache_length(size_t l)
+	{
+		cache_length_ = l;
+	}
+	size_t cache_length() const
+	{
+		return cache_length_;
+	}
 
 private:
 	std::shared_ptr<domain_type> domain_;
@@ -121,7 +129,7 @@ private:
 
 template<typename Engine, typename TDomain>
 template<typename OS>
-OS& Particle<Engine, TDomain>::print(OS & os) const
+OS& Particle<Engine, TDomain, IsTracable>::print(OS & os) const
 {
 	engine_type::print(os);
 	return os;
@@ -129,8 +137,8 @@ OS& Particle<Engine, TDomain>::print(OS & os) const
 
 template<typename Engine, typename TDomain>
 template<typename ... Others>
-Particle<Engine, TDomain>::Particle(std::shared_ptr<TDomain> & pdomain,
-		Others && ...others) :
+Particle<Engine, TDomain, IsTracable>::Particle(
+		std::shared_ptr<TDomain> & pdomain, Others && ...others) :
 		domain_(pdomain->shared_from_this()), engine_type(
 				std::forward<Others>(others)...)
 {
@@ -138,16 +146,16 @@ Particle<Engine, TDomain>::Particle(std::shared_ptr<TDomain> & pdomain,
 }
 
 template<typename Engine, typename TDomain>
-Particle<Engine, TDomain>::~Particle()
+Particle<Engine, TDomain, IsTracable>::~Particle()
 {
 }
 template<typename Engine, typename TDomain>
-bool Particle<Engine, TDomain>::update()
+bool Particle<Engine, TDomain, IsTracable>::update()
 {
 	return true;
 }
 template<typename Engine, typename TDomain>
-DataSet Particle<Engine, TDomain>::dataset() const
+DataSet Particle<Engine, TDomain, IsTracable>::dataset() const
 {
 	DataSet res;
 	return (res);
@@ -155,8 +163,8 @@ DataSet Particle<Engine, TDomain>::dataset() const
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain>::next_n_timestep(size_t step, Real dt,
-		Args && ... args)
+void Particle<Engine, TDomain, IsTracable>::next_n_steps(size_t step,
+		Real dt, Args && ... args)
 {
 
 	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
@@ -176,7 +184,8 @@ void Particle<Engine, TDomain>::next_n_timestep(size_t step, Real dt,
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
+void Particle<Engine, TDomain, IsTracable>::next_step(Real dt,
+		Args && ... args)
 {
 
 	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
@@ -190,7 +199,8 @@ void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
 
 	LOGGER << DONE;
 }
-
+template<typename Engine, typename TDomain>
+using ParticleTrajectory=Particle<Engine, TDomain, IsTracable>;
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_TRACABLE_PARTICLE_H_ */
