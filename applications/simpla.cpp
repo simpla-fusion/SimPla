@@ -12,13 +12,12 @@
 #include <string>
 
 #include "../core/io/data_stream.h"
+#include "../core/parallel/mpi_comm.h"
 #include "../core/simpla_defs.h"
 #include "../core/utilities/log.h"
 #include "../core/utilities/lua_state.h"
 #include "../core/utilities/parse_command_line.h"
 #include "../core/utilities/utilities.h"
-#include "../core/parallel/message_comm.h"
-
 #include "contexts/context_factory.h"
 
 using namespace simpla;
@@ -44,7 +43,7 @@ int main(int argc, char **argv)
 
 	bool just_a_test = false;
 
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
 			{
 				if(opt=="n"||opt=="num_of_step")
@@ -57,11 +56,11 @@ int main(int argc, char **argv)
 				}
 				else if(opt=="i"||opt=="input")
 				{
-					dict.ParseFile(value);
+					dict.parse_file(value);
 				}
 				else if(opt=="c"|| opt=="command")
 				{
-					dict.ParseString(value);
+					dict.parse_string(value);
 				}
 				else if(opt=="g"|| opt=="generator")
 				{

@@ -9,10 +9,10 @@
 #define COORDINATES_TEST_H_
 
 #include <gtest/gtest.h>
+#include "../../parallel/mpi_comm.h"
 
 #include "../../utilities/pretty_stream.h"
 #include "../../utilities/log.h"
-#include "../../parallel/message_comm.h"
 
 using namespace simpla;
 

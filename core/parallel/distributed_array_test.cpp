@@ -13,7 +13,7 @@
 
 #include "../utilities/ntuple.h"
 #include "../utilities/pretty_stream.h"
-#include "message_comm.h"
+#include "mpi_comm.h"
 
 using namespace simpla;
 

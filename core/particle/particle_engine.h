@@ -400,47 +400,48 @@ public:
 		return "DeltaF";
 	}
 
-	template<typename TJ, typename TE, typename TB>
-	void next_timestep(Point_s * p, TJ* J, Real dt, TE const &fE,
-			TB const & fB) const
+	template<typename TE, typename TB, typename TJ>
+	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
+			TB const & fB, TJ * J) const
 	{
-		p->x += p->v * dt * 0.5;
+		p1->x += p0->v * dt * 0.5;
 
-		auto B = fB(p->x);
-		auto E = fE(p->x);
+		auto B = fB(p0->x);
+		auto E = fE(p0->x);
 
 		Vec3 v_;
 
 		auto t = B * (cmr_ * dt * 0.5);
 
-		p->v += E * (cmr_ * dt * 0.5);
+		p1->v += p0->v + E * (cmr_ * dt * 0.5);
 
-		v_ = p->v + Cross(p->v, t);
+		v_ = p1->v + Cross(p1->v, t);
 
 		v_ = Cross(v_, t) / (Dot(t, t) + 1.0);
 
-		p->v += v_;
-		auto a = (-Dot(E, p->v) * q_kT_ * dt);
-		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+		p1->v += v_;
+		auto a = (-Dot(E, p1->v) * q_kT_ * dt);
+		p1->w = (-a + (1 + 0.5 * a) * p0->w) / (1 - 0.5 * a);
 
-		p->v += v_;
-		p->v += E * (cmr_ * dt * 0.5);
+		p1->v += v_;
+		p1->v += E * (cmr_ * dt * 0.5);
 
-		p->x += p->v * dt * 0.5;
+		p1->x += p1->v * dt * 0.5;
 
 		J->scatter_cartesian(
-				std::forward_as_tuple(p->x, p->v, p->f * charge * p->w));
+				std::forward_as_tuple(p1->x, p1->v, p1->f * charge * p1->w));
 
 	}
 
 	static inline Point_s push_forward(coordinates_type const & x,
 			Vec3 const &v, scalar_type f)
 	{
-		return std::move(Point_s( { x, v, f }));
+		return std::move(Point_s(
+		{ x, v, f }));
 	}
 
 	static inline auto pull_back(Point_s const & p)
-			DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
+	DECL_RET_TYPE((std::make_tuple(p.x,p.v,p.f)))
 };
 }
 // namespace simpla

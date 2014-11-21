@@ -91,7 +91,7 @@ private:
 void LoggerStreams::init(int argc, char** argv)
 {
 
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
 	{
@@ -182,6 +182,9 @@ void LoggerStreams::put(int level, std::string const & msg)
 		case LOG_WARNING:
 			std::cerr << std::endl << "\e[1;32m" << prefix << "\e[1;37m" << msg
 					<< "\e[0m" << surfix;
+			break;
+		case LOG_STDOUT:
+			std::cout << msg;
 			break;
 		default:
 			std::cout << std::endl << prefix << msg << surfix;
@@ -278,6 +281,13 @@ void Logger::not_endl()
 	endl_ = false;
 }
 
+void init_logger(int argc, char**argv)
+{
+	SingletonHolder<LoggerStreams>::instance().init(argc, argv);
+}
+void close_logger()
+{
+}
 }
 // namespace simpla
 

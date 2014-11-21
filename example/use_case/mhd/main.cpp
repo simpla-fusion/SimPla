@@ -67,7 +67,7 @@ int main(int argc, char **argv)
 
 	std::string gfile = "";
 
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 
 	[&](std::string const & opt,std::string const & value)->int
 	{

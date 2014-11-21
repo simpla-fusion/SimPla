@@ -10,9 +10,9 @@
 #include <string>
 
 #include "distributed_array.h"
-#include "message_comm.h"
 #include "../utilities/log.h"
 #include "../numeric/geometric_algorithm.h"
+#include "mpi_comm.h"
 #include "mpi_datatype.h"
 
 namespace simpla

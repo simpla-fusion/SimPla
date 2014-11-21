@@ -13,13 +13,16 @@ namespace simpla
 {
 struct DataType;
 struct DataSpace;
+struct Properties;
 
 struct DataSet
 {
+	Properties attribute;
 	std::shared_ptr<void> data;
 	DataType datatype;
 	DataSpace dataspace;
 };
+
 }  // namespace simpla
 
 #endif /* CORE_DATA_STRUCTURE_DATA_SET_H_ */

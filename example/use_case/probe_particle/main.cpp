@@ -64,31 +64,32 @@ public:
 	}
 
 	template<typename TE, typename TB>
-	void next_timestep(Point_s * p, Real dt, TE const &fE, TB const & fB) const
+	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
+			TB const & fB) const
 	{
-		p->x += p->v * dt * 0.5;
+		p1->x += p0->v * dt * 0.5;
 
-		auto B = fB(p->x);
-		auto E = fE(p->x);
+		auto B = fB(p0->x);
+		auto E = fE(p0->x);
 
 		Vec3 v_;
 
 		auto t = B * (cmr_ * dt * 0.5);
 
-		p->v += E * (cmr_ * dt * 0.5);
+		p1->v += E * (cmr_ * dt * 0.5);
 
-		v_ = p->v + cross(p->v, t);
+		v_ = p0->v + cross(p1->v, t);
 
 		v_ = cross(v_, t) / (dot(t, t) + 1.0);
 
-		p->v += v_;
-		auto a = (-dot(E, p->v) * q_kT_ * dt);
-		p->w = (-a + (1 + 0.5 * a) * p->w) / (1 - 0.5 * a);
+		p1->v += v_;
+		auto a = (-dot(E, p1->v) * q_kT_ * dt);
+		p1->w = (-a + (1 + 0.5 * a) * p1->w) / (1 - 0.5 * a);
 
-		p->v += v_;
-		p->v += E * (cmr_ * dt * 0.5);
+		p1->v += v_;
+		p1->v += E * (cmr_ * dt * 0.5);
 
-		p->x += p->v * dt * 0.5;
+		p1->x += p1->v * dt * 0.5;
 
 	}
 
@@ -119,7 +120,7 @@ int main(int argc, char **argv)
 
 	double dt = 0.01;
 
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 
 	[&](std::string const & opt,std::string const & value)->int
 	{
@@ -155,7 +156,7 @@ int main(int argc, char **argv)
 
 //	Particle<manifold_type, PICDemo, PolicyProbeParticle>
 
-	ProbeParticle<manifold_type, PICDemo> ion(manifold, mass, charge, Te);
+	Particle<PICDemo, manifold_type> ion(manifold, mass, charge, Te);
 
 	INFORM << "=========================" << std::endl;
 	INFORM << "dt =  \t" << dt << std::endl;
@@ -187,7 +188,7 @@ int main(int argc, char **argv)
 				{	0,0,2});
 	};
 
-	ion.next_timestep(timestep, dt, E, B);
+	ion.next_n_steps(timestep, dt, E, B);
 
 	//	for (int i = 0; i < timestep; ++i)
 //	{

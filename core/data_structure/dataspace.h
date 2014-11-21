@@ -54,7 +54,7 @@ public:
 
 	void select(size_t ndims, size_t const* offset_, size_t const*count_);
 
-	size_t get_shape(size_t *global_begin = nullptr,
+	inline size_t get_shape(size_t *global_begin = nullptr,
 
 	size_t *global_end = nullptr,
 
@@ -64,7 +64,10 @@ public:
 
 	size_t *local_inner_begin = nullptr,
 
-	size_t *local_inner_end = nullptr) const;
+	size_t *local_inner_end = nullptr) const
+	{
+		return 0;
+	}
 
 private:
 

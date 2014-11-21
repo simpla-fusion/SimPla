@@ -7,7 +7,7 @@
 
 #ifndef PROPERTIES_PUGIXML_H_
 #define PROPERTIES_PUGIXML_H_
-#include "properties.h"
+#include "obsolete_properties.h"
 #include "third_part/pugixml/src/pugixml.hpp"
 namespace simpla
 {

@@ -17,3 +17,6 @@ ADD_SUBDIRECTORY( manifold  )
 
 ADD_SUBDIRECTORY( model )
 
+ADD_SUBDIRECTORY( application )
+
+

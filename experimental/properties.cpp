@@ -5,8 +5,8 @@
  *      \author  salmon
  */
 
-#include "properties.h"
 #include <boost/property_tree/xml_parser.hpp>
+#include "obsolete_properties.h"
 
 namespace simpla
 {

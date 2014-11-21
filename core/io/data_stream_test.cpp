@@ -8,11 +8,12 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include "data_stream.h"
+
+#include "../parallel/mpi_comm.h"
 #include "../utilities/log.h"
 #include "../utilities/ntuple.h"
 #include "../physics/constants.h"
 
-#include "../parallel/message_comm.h"
 using namespace simpla;
 
 TEST(datastream,write)

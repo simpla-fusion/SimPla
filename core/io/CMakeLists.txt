@@ -1,5 +1,5 @@
 
-add_library(io  data_stream.cpp  )
+add_library(io  io.cpp data_stream.cpp  )
 TARGET_LINK_LIBRARIES(io utilities    ${HDF5_LIBRARIES})
 
 

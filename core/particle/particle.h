@@ -9,9 +9,10 @@
 #define PARTICLE_H_
 
 #include "particle_engine.h"
-#include "probe_particle.h"
 #include "save_particle.h"
 #include "load_particle.h"
+#include "tracable_particle.h"
+#include "../physics/physical_object.h"
 
 namespace simpla
 {
@@ -30,11 +31,21 @@ std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
 
 template<typename ...>struct Particle;
 
+/***
+ *  - if is  Markov chain
+ *    p_n = f(p_{n-1})
+ *    address  &p_n = &p_{n-1}
+ *
+ *  - if is  not Markov chain
+ *	  p_n = f(p_{n-1},p_{n-2},p_{n-3},...,p_{n-m})
+ *	  address  &p_n = &p_{n-1} + 1
+ *
+ */
 template<typename Engine, typename TDomain>
-struct Particle<Engine, TDomain> : public Engine, public std::vector<
-		typename Engine::Point_s>
+struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 {
 	typedef TDomain domain_type;
+
 	typedef Engine engine_type;
 
 	typedef Particle<domain_type, engine_type> this_type;
@@ -51,28 +62,30 @@ struct Particle<Engine, TDomain> : public Engine, public std::vector<
 
 	typedef typename domain_type::coordinates_type coordinates_type;
 
-	domain_type const & domain_;
+	HAS_MEMBER(is_morkov)
+
+static	constexpr bool is_morkov=has_member_is_morkov<engine_type>::value;
 
 	//***************************************************************************************************
 	// Constructor
 	template<typename ...Others>
-	Particle(domain_type const & pmesh, Others && ...);	// Constructor
+	Particle(domain_type const &, Others && ...);// Constructor
 
-	// Destructor
+	// Destroy
 	~Particle();
 
-	static std::string get_type_as_string()
+	static std::string get_type_as_string_staic()
 	{
 		return engine_type::get_type_as_string();
 	}
 
-	void load();
+	std::string get_type_as_string() const
+	{
+		return get_type_as_string_staic();
+	}
 
 	template<typename TDict, typename ...Others>
 	void load(TDict const & dict, Others && ...others);
-
-	template<typename ...Args>
-	std::string save(std::string const & path, Args &&...) const;
 
 	std::ostream& print(std::ostream & os) const
 	{
@@ -81,28 +94,39 @@ struct Particle<Engine, TDomain> : public Engine, public std::vector<
 	}
 
 	template<typename ...Args>
-	void multi_timesteps(size_t step_num, Args && ...args)
-	{
-		for (size_t s = 0; s < step_num; ++s)
-		{
-			next_timestep(std::forward<Args>(args)...);
-		}
-	}
-
-	template<typename ...Args>
-	void next_timestep(Real dt, Args && ...);
+	void next_n_steps(size_t num_of_steps, Args && ...args);
 
 	template<typename ...Args>
 	auto emplace_back(Args && ...args)
 	DECL_RET_TYPE((storage_type::emplace_back(particle_type(
 									{	args...}))))
+
+	Properties const & properties(std::string const & name = "") const;
+
+	Properties & properties(std::string const & name = "") =0;
+
+	void update();
+
+private:
+
+	domain_type const & domain_;
+
+	std::shared_ptr<Point_s> data_;
+
+	size_t clock_ = 0;
+
+	size_t num_of_points_ = 1024;
+
+	size_t cache_depth_ = 10;
+
+	size_t chain_length_ = 1;
+
 };
 
 template<typename Engine, typename TDomain>
 template<typename ... Others>
-Particle<Engine, TDomain>::Particle(domain_type const & pmesh,
-		Others && ...others) :
-		domain_(pmesh)
+Particle<Engine, TDomain>::Particle(domain_type const &d, Others && ...others) :
+		domain_(d)
 {
 	engine_type::load(std::forward<Others>(others)...);
 }
@@ -113,32 +137,27 @@ Particle<Engine, TDomain>::~Particle()
 }
 
 template<typename Engine, typename TDomain>
-template<typename ...Args>
-std::string Particle<Engine, TDomain>::save(std::string const & path,
+template<typename ... Args>
+void Particle<Engine, TDomain>::multi_n_steps(size_t num_of_steps,
 		Args && ...args) const
 {
-	return save(path, *this, std::forward<Args>(args)...);
-}
+	Point_s head_ = data_.get() + clock_;
 
-template<typename Engine, typename TDomain>
-template<typename ... Args>
-void Particle<Engine, TDomain>::next_timestep(Real dt, Args && ... args)
-{
-
-	LOGGER << "Push probe particles   [ " << get_type_as_string() << "]"
-			<< std::endl;
-
-	auto p = &*(this->begin());
-	for (auto & p : *this)
+	for (size_t s = 0; s < num_of_points_; ++s)
 	{
+		Point_s p0 = head_ + s * cache_length_;
 
-		engine_type::next_timestep(&p, dt, std::forward<Args>(args)...
-		/*,	engine_type::mass, engine_type::charge,
-		 engine_type::temperature*/);
-
+		for (size_t s = 0; p0 < num_of_steps; ++s)
+		{
+			engine_type::next_timestep(p0 + s, p0 + s + 1,
+					std::forward<Args>(args)...);
+		}
 	}
 
-	LOGGER << DONE;
+	clock_ += num_of_steps;
+
+	head_ %= cache_length_ * num_of_points_;
+
 }
 
 //

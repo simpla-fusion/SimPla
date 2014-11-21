@@ -13,9 +13,9 @@
 #include "../parallel/message_comm.h"
 #include "../parallel/mpi_aux_functions.h"
 
-#include "probe_particle.h"
 #include "particle_update_ghosts.h"
 #include "load_particle.h"
+#include "tracable_particle.h"
 
 //
 //#include "save_particle.h"

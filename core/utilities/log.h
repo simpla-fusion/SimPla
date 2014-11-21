@@ -29,12 +29,18 @@ namespace simpla
 enum
 {
 	LOG_FORCE_OUTPUT = -10000,
-
-	LOG_OUT_RANGE_ERROR = -4, LOG_LOGIC_ERROR = -3, LOG_ERROR = -2,
+	LOG_STDOUT = -10,
+	LOG_OUT_RANGE_ERROR = -4,
+	LOG_LOGIC_ERROR = -3,
+	LOG_ERROR = -2,
 
 	LOG_WARNING = -1,
 
-	LOG_INFORM = 0, LOG_LOG = 1, LOG_VERBOSE = 11, LOG_DEBUG = -20
+	LOG_INFORM = 0,
+	LOG_LOG = 1,
+
+	LOG_VERBOSE = 11,
+	LOG_DEBUG = -20
 };
 
 /**
@@ -160,9 +166,10 @@ public:
 		return *this;
 	}
 
-private:
 };
 
+void init_logger(int argc, char**argv);
+void close_logger();
 /**
  * \ingroup Logging
  * \defgroup  logmanip  manip for Logger
@@ -222,6 +229,8 @@ inline std::string ShowBit(unsigned long s)
 
 #define LOGGER Logger(LOG_LOG)
 
+#define STDOUT Logger(LOG_STDOUT)
+
 #define VERBOSE Logger(LOG_VERBOSE)
 
 #define ERROR(_MSG_) { {Logger(LOG_ERROR) <<"["<<__FILE__<<":"<<__LINE__<<":"<<  (__PRETTY_FUNCTION__)<<"]:\n\t"<<(_MSG_);}throw(std::logic_error("error"));}
@@ -277,5 +286,6 @@ inline std::string ShowBit(unsigned long s)
 
 /** @} */
 
-} // namespace simpla
+}
+// namespace simpla
 #endif /* LOG_H_ */

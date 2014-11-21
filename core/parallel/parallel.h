@@ -25,4 +25,11 @@
 #	include "parallel_dummy.h"
 #endif
 
+namespace simpla
+{
+void init_parallel(int argc, char ** argv);
+void close_parallel();
+
+}  // namespace simpla
+
 #endif /* PARALLEL_H_ */

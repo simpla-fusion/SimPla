@@ -12,7 +12,7 @@ extern "C"
 #include <mpi.h>
 }
 
-#include "message_comm.h"
+#include "mpi_comm.h"
 #include "mpi_datatype.h"
 #include "distributed_array.h"
 

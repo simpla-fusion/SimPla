@@ -19,7 +19,7 @@ extern "C"
 
 #ifdef USE_MPI
 #include "../parallel/parallel.h"
-#include "../parallel/message_comm.h"
+#include "../parallel/mpi_comm.h"
 #include "../parallel/mpi_aux_functions.h"
 #endif
 
@@ -219,11 +219,11 @@ DataStream::pimpl_s::~pimpl_s()
 
 void DataStream::pimpl_s::init(int argc, char** argv)
 {
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
 	{
-		if(opt=="o"||opt=="output"||opt=="p"||opt=="prefix")
+		if(opt=="o"||opt=="prefix")
 		{
 			properties.set("File Name",value);
 		}
@@ -234,6 +234,12 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 		else if(opt=="cache-depth")
 		{
 			properties.set("Cache Depth",ToValue<size_t>(value));
+		}
+		else if(opt=="h"||opt=="help")
+		{
+			SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
+
+			return TERMINATE;
 		}
 		return CONTINUE;
 	}

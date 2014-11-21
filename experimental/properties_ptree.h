@@ -8,10 +8,11 @@
 #ifndef PROPERTIES_PTREE_H_
 #define PROPERTIES_PTREE_H_
 
-#include "properties.h"
 #include <map>
 #include <complex>
 #include <boost/property_tree/ptree.hpp>
+
+#include "obsolete_properties.h"
 namespace simpla
 {
 

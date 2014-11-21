@@ -4,7 +4,7 @@ my_test(distributed_array_test
       )
 target_link_libraries(distributed_array_test parallel  utilities  )
 
-add_library(parallel  mpi_datatype.cpp     mpi_aux_functions.cpp)
+add_library(parallel  mpi_datatype.cpp     mpi_aux_functions.cpp  mpi_comm.cpp parallel.cpp)
 target_link_libraries(parallel ${MPI_LIBRARIES} )
 
 my_test(multi_thread_test    

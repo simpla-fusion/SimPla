@@ -66,67 +66,24 @@ enum
  *
  * @param argc
  * @param argv
- * @param options  response operation to configure options ,  std::function<int(std::string const &, std::string const &)>
+ * @param fun  response operation to configure options ,  std::function<int(std::string const &, std::string const &)>
  *
  */
-inline void ParseCmdLine(int argc, char **argv,
-        std::function<int(std::string const &, std::string const &)> const & options)
-{
-	int i = 1;
+void parse_cmd_line(int argc, char **argv,
+		std::function<int(std::string const &, std::string const &)> const & fun);
 
-	bool ready_to_process = false;
-	std::string opt = "";
-	std::string value = "";
+/**
+ *  @brief find an options from command line
+ * @param argc
+ * @param argv
+ * @param key
+ * @return  if key is found return {true, option string} else return {false,...}
+ */
+std::tuple<bool, std::string> find_option_from_cmd_line(int argc, char ** argv,
+		std::string const & key);
 
-	while (i < argc)
-	{
-		char * str = argv[i];
-		if (str[0] == '-' && ((str[1] < '0' || str[1] > '9') && (str[1] != '.'))) // is configure flag
-		{
-			if (opt == "") // if buffer is not empty, clear it
-			{
 
-				if (str[1] == '-') // is long configure flag
-				{
-					opt = str + 2;
-					++i;
-				}
-				else // is short configure flag
-				{
-					opt = str[1];
-					if (str[2] != '\0')
-					{
-						value = str + 2;
-					}
-					++i;
-				}
-			}
-			else
-			{
-				ready_to_process = true;
-			}
-
-		}
-		else
-		{
-			value = str;
-			++i;
-			ready_to_process = true;
-		}
-
-		if (ready_to_process || i >= argc)  // buffer is ready to process
-		{
-
-			if (options(opt, value) == TERMINATE)
-				break; // terminate paser stream;
-
-			opt = "";
-			value = "";
-			ready_to_process = false;
-		}
-
-	}
-}
+#define SHOW_OPTIONS(_OPT_,_DESC_) STDOUT <<"  "<<std::setw(25) <<std::left << _OPT_ << _DESC_<<std::endl;
 
 }  // namespace simpla
 #endif /* PARSE_COMMAND_LINE_H_ */

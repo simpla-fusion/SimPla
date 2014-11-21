@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
 	bool just_a_test = false;
 
-	ParseCmdLine(argc, argv, [&](std::string const & opt,std::string const & value)->int
+	parse_cmd_line(argc, argv, [&](std::string const & opt,std::string const & value)->int
 	{
 		if(opt=="n"||opt=="num_of_step")
 		{
@@ -161,11 +161,11 @@ int main(int argc, char **argv)
 		}
 		else if(opt=="i"||opt=="input")
 		{
-			dict.ParseFile(value);
+			dict.parse_file(value);
 		}
 		else if(opt=="c"|| opt=="command")
 		{
-			dict.ParseString(value);
+			dict.parse_string(value);
 		}
 		else if(opt=="g"|| opt=="generator")
 		{

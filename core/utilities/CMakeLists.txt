@@ -1,7 +1,7 @@
 ADD_EXECUTABLE(lua_state_test lua_state_test.cpp)
 TARGET_LINK_LIBRARIES(lua_state_test  parallel   physics  utilities  )
 
-add_library(utilities   properties.cpp log.cpp )
+add_library(utilities   properties.cpp log.cpp parse_command_line.cpp )
 TARGET_LINK_LIBRARIES(utilities )
 
 

@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 
 	double dt = 0.01;
 
-	ParseCmdLine(argc, argv,
+	parse_cmd_line(argc, argv,
 
 	[&](std::string const & opt,std::string const & value)->int
 	{

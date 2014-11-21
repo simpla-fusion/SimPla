@@ -16,7 +16,7 @@ int main(int argc, char** argv)
 	LuaObject pt;
 	pt.init();
 
-	pt.ParseString("c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
+	pt.parse_string("c=100 \n t1={a=5,b=6.0,c=\"text\",e={a=5,b=6.0}} \n t2={e=4,f=true} \n t3={1,3,4,5}\n"
 			"tt={6,6,7,3,e=12, d=13,h=2} \n"
 			"function f(x,y,z) \n"
 			"    return (x-y)*z  \n"
@@ -26,7 +26,7 @@ int main(int argc, char** argv)
 
 	if (argc > 1)
 	{
-		pt.ParseFile(argv[1]);
+		pt.parse_file(argv[1]);
 	}
 
 	for (int i = 0; i < 10; ++i)
@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
 	}
 	std::cout << "============================" << std::endl;
-	pt.ParseString("tt.e=1000");
+	pt.parse_string("tt.e=1000");
 
 	for (auto it = pp.begin(), e = pp.end(); it != e; ++it)
 	{
