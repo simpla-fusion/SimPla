@@ -29,35 +29,40 @@ void MPIComm::init(int argc, char** argv)
 {
 	if (comm_ == MPI_COMM_NULL)
 	{
-		MPI_Init(&argc, &argv);
-		if (comm_ == MPI_COMM_NULL)
-			comm_ = MPI_COMM_WORLD;
-
-		MPI_Comm_size(comm_, &num_process_);
-		MPI_Comm_rank(comm_, &process_num_);
+		bool do_not_execute = false;
 
 		parse_cmd_line(argc, argv,
 
-				[&](std::string const & opt,std::string const & value)->int
-				{
-					if( opt=="number_of_threads")
-					{
-						num_threads_ =ToValue<size_t>(value);
-					}
-					else if( opt=="h")
-					{
-						SHOW_OPTIONS ("--mt <NUMBER>", "number of threads");
+		[&](std::string const & opt,std::string const & value)->int
+		{
+			if( opt=="number_of_threads")
+			{
+				num_threads_ =ToValue<size_t>(value);
+			}
+			else if( opt=="h" || opt=="help")
+			{
+				SHOW_OPTIONS ("--mt <NUMBER>", "number of threads");
+				do_not_execute=true;
+				return TERMINATE;
+			}
 
-						return TERMINATE;
-					}
+			return CONTINUE;
 
-					return CONTINUE;
+		}
 
-				}
+		);
+		if (!do_not_execute)
+		{
 
-				);
+			MPI_Init(&argc, &argv);
+			if (comm_ == MPI_COMM_NULL)
+				comm_ = MPI_COMM_WORLD;
 
-		LOGGER.set_mpi_comm(process_num_, num_process_);
+			MPI_Comm_size(comm_, &num_process_);
+			MPI_Comm_rank(comm_, &process_num_);
+
+			LOGGER.set_mpi_comm(process_num_, num_process_);
+		}
 
 	}
 

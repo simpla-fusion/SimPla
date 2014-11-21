@@ -18,6 +18,7 @@
 #include "../utilities/lua_state.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/utilities.h"
+#include "application.h"
 
 namespace simpla
 {
@@ -84,7 +85,7 @@ public:
 
 	void run(int argc, char ** argv);
 
-	virtual void case_body()=0;
+	virtual void  body()=0;
 };
 
 struct UseCaseList
@@ -123,24 +124,9 @@ inline void RunAllUseCase(int argc, char ** argv)
 	SingletonHolder<UseCaseList>::instance().run_all_case(argc, argv);
 }
 
-#define SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name) _parent_class_name##_##_use_case_name
 
-#define SP_USE_CASE(_use_case_name,_parent_class_name,_parent_class) \
-class SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name):public _parent_class  \
-{ \
-public:\
-	typedef SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name)  this_type; \
-	SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name) () {}\
-	virtual ~SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name) () {}\
-	SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name) (this_type const &)=delete; \
-	static const std::string case_info; \
-private:\
-  virtual void case_body();\
-};\
-  const std::string \
-SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name)::case_info = \
-	use_case_register<SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name)>(( #_use_case_name)) ; \
-void SP_USE_CASE_CLASS_NAME_(_use_case_name,_parent_class_name)::case_body()
+
+#define USE_CASE(_use_case_name) SP_APP(_use_case_name,usecase,UseCase)
 
 }  // namespace simpla
 

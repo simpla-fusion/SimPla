@@ -219,6 +219,8 @@ DataStream::pimpl_s::~pimpl_s()
 
 void DataStream::pimpl_s::init(int argc, char** argv)
 {
+	bool do_not_execute = false;
+
 	parse_cmd_line(argc, argv,
 
 	[&,this](std::string const & opt,std::string const & value)->int
@@ -238,7 +240,7 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 		else if(opt=="h"||opt=="help")
 		{
 			SHOW_OPTIONS("-o,--prefix <STRING>", "output file path");
-
+			do_not_execute=true;
 			return TERMINATE;
 		}
 		return CONTINUE;
@@ -247,8 +249,13 @@ void DataStream::pimpl_s::init(int argc, char** argv)
 	);
 
 	current_filename_ = properties["File Name"].template as<std::string>();
+
 	current_groupname_ = "/";
-	cd(pwd());
+
+	if (!do_not_execute)
+	{
+		cd(pwd());
+	}
 
 }
 

@@ -137,7 +137,7 @@ using namespace simpla;
 //
 //void SPUseCase_pic::case_body()
 
-SP_USE_CASE(pic,UseCase,UseCase)
+USE_CASE(pic)
 {
 //	typedef Manifold<CartesianCoordinates<StructuredMesh> > TManifold;
 //

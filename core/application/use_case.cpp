@@ -67,7 +67,7 @@ void UseCase::run(int argc, char ** argv)
 	if (!is_configure_test_)
 	{
 //		INFORM << "Use case:" << case_info_ << " begin" << std::endl;
-		case_body();
+		 body();
 //		INFORM << "Use case:" << case_info_ << " end" << std::endl;
 
 	}
