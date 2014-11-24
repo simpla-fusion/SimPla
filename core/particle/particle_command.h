@@ -26,7 +26,7 @@ template<typename > class Command;
 template<typename > class Particle;
 
 template<typename Engine>
-class Command<Particle<Engine> > : public VisitorBase
+class Command<_Particle<Engine> > : public VisitorBase
 {
 public:
 

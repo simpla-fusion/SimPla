@@ -43,6 +43,20 @@ struct PhysicalObject
 	{
 		return is_valid_;
 	}
+
+	virtual bool initialize()
+	{
+		is_valid_ = true;
+		return true;
+	}
+	virtual void synchronize()
+	{
+
+	}
+	virtual void asynchronize()
+	{
+
+	}
 	virtual bool update()
 	{
 		is_valid_ = true;

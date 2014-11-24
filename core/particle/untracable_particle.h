@@ -18,7 +18,7 @@
 namespace simpla
 {
 struct IsUntracable;
-template<typename ...> struct Particle;
+template<typename ...> struct _Particle;
 
 /**
  *  @brief Particle<IsUntracable> is a container of untracable particle  .
@@ -28,13 +28,13 @@ template<typename ...> struct Particle;
  */
 
 template<typename TDomain, typename Engine>
-struct Particle<TDomain, Engine, IsUntracable> : public Engine,
+struct _Particle<TDomain, Engine, IsUntracable> : public Engine,
 		public PhysicalObject
 {
 
 	typedef TDomain domain_type;
 	typedef Engine engine_type;
-	typedef Particle<domain_type, engine_type, IsUntracable> this_type;
+	typedef _Particle<domain_type, engine_type, IsUntracable> this_type;
 
 	typedef typename domain_type::scalar_type scalar_type;
 
@@ -81,7 +81,7 @@ struct Particle<TDomain, Engine, IsUntracable> : public Engine,
 
 template<typename TM, typename Engine>
 template<typename ... Others>
-Particle<TM, Engine, IsUntracable>::Particle(domain_type const & pdomain,
+_Particle<TM, Engine, IsUntracable>::Particle(domain_type const & pdomain,
 		Others && ...others) :
 		domain_(pdomain)
 {
@@ -94,12 +94,12 @@ Particle<TM, Engine, IsUntracable>::Particle(domain_type const & pdomain,
 }
 
 template<typename TM, typename Engine>
-Particle<TM, Engine, IsUntracable>::~Particle()
+_Particle<TM, Engine, IsUntracable>::~Particle()
 {
 }
 template<typename TM, typename Engine>
 template<typename TDict, typename ...Others>
-void Particle<TM, Engine, IsUntracable>::load(TDict const & dict,
+void _Particle<TM, Engine, IsUntracable>::load(TDict const & dict,
 		Others && ...others)
 {
 	engine_type::load(dict, std::forward<Others>(others)...);
@@ -108,7 +108,7 @@ void Particle<TM, Engine, IsUntracable>::load(TDict const & dict,
 
 }
 template<typename TM, typename Engine>
-std::string Particle<TM, Engine, IsUntracable>::save(
+std::string _Particle<TM, Engine, IsUntracable>::save(
 		std::string const & path) const
 {
 //	std::stringstream os;
@@ -126,14 +126,14 @@ std::string Particle<TM, Engine, IsUntracable>::save(
 	return simpla::save(path, *this);
 }
 template<typename TM, typename Engine>
-std::ostream& Particle<TM, Engine, IsUntracable>::print(std::ostream & os) const
+std::ostream& _Particle<TM, Engine, IsUntracable>::print(std::ostream & os) const
 {
 	engine_type::print(os);
 }
 
 template<typename TM, typename Engine>
 template<typename ...Args>
-void Particle<TM, Engine, IsUntracable>::next_timestep(Real dt, Args && ...args)
+void _Particle<TM, Engine, IsUntracable>::next_timestep(Real dt, Args && ...args)
 {
 
 	LOGGER << "Push particles to  next step [ "

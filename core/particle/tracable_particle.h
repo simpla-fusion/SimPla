@@ -20,7 +20,7 @@ namespace simpla
 {
 
 struct IsTracable;
-template<typename ...> struct Particle;
+template<typename ...> struct _Particle;
 /**
  *  @brief Particle<IsTracable> is a container of particle trajectory.
  *
@@ -45,14 +45,14 @@ template<typename ...> struct Particle;
  */
 
 template<typename Engine, typename TDomain>
-struct Particle<Engine, TDomain, IsTracable> : public Engine,
+struct _Particle<Engine, TDomain, IsTracable> : public Engine,
 		public PhysicalObject
 {
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
-	typedef Particle<domain_type, engine_type, IsTracable> this_type;
+	typedef _Particle<domain_type, engine_type, IsTracable> this_type;
 
 	typedef typename Engine::Point_s Point_s;
 
@@ -129,7 +129,7 @@ private:
 
 template<typename Engine, typename TDomain>
 template<typename OS>
-OS& Particle<Engine, TDomain, IsTracable>::print(OS & os) const
+OS& _Particle<Engine, TDomain, IsTracable>::print(OS & os) const
 {
 	engine_type::print(os);
 	return os;
@@ -137,7 +137,7 @@ OS& Particle<Engine, TDomain, IsTracable>::print(OS & os) const
 
 template<typename Engine, typename TDomain>
 template<typename ... Others>
-Particle<Engine, TDomain, IsTracable>::Particle(
+_Particle<Engine, TDomain, IsTracable>::Particle(
 		std::shared_ptr<TDomain> & pdomain, Others && ...others) :
 		domain_(pdomain->shared_from_this()), engine_type(
 				std::forward<Others>(others)...)
@@ -146,16 +146,16 @@ Particle<Engine, TDomain, IsTracable>::Particle(
 }
 
 template<typename Engine, typename TDomain>
-Particle<Engine, TDomain, IsTracable>::~Particle()
+_Particle<Engine, TDomain, IsTracable>::~Particle()
 {
 }
 template<typename Engine, typename TDomain>
-bool Particle<Engine, TDomain, IsTracable>::update()
+bool _Particle<Engine, TDomain, IsTracable>::update()
 {
 	return true;
 }
 template<typename Engine, typename TDomain>
-DataSet Particle<Engine, TDomain, IsTracable>::dataset() const
+DataSet _Particle<Engine, TDomain, IsTracable>::dataset() const
 {
 	DataSet res;
 	return (res);
@@ -163,7 +163,7 @@ DataSet Particle<Engine, TDomain, IsTracable>::dataset() const
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain, IsTracable>::next_n_steps(size_t step,
+void _Particle<Engine, TDomain, IsTracable>::next_n_steps(size_t step,
 		Real dt, Args && ... args)
 {
 
@@ -184,7 +184,7 @@ void Particle<Engine, TDomain, IsTracable>::next_n_steps(size_t step,
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain, IsTracable>::next_step(Real dt,
+void _Particle<Engine, TDomain, IsTracable>::next_step(Real dt,
 		Args && ... args)
 {
 
@@ -200,7 +200,7 @@ void Particle<Engine, TDomain, IsTracable>::next_step(Real dt,
 	LOGGER << DONE;
 }
 template<typename Engine, typename TDomain>
-using ParticleTrajectory=Particle<Engine, TDomain, IsTracable>;
+using ParticleTrajectory=_Particle<Engine, TDomain, IsTracable>;
 }  // namespace simpla
 
 #endif /* CORE_PARTICLE_TRACABLE_PARTICLE_H_ */

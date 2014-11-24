@@ -13,9 +13,9 @@
 namespace simpla
 {
 
-template<typename ...> struct Particle;
+template<typename ...> struct _Particle;
 template<typename TEngine, typename TDomain> using ProbeParticle
-=Particle<TEngine,TDomain,IsTracable>;
+=_Particle<TEngine,TDomain,IsTracable>;
 
 }  // namespace simpla
 

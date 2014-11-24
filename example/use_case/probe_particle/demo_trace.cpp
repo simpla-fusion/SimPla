@@ -7,61 +7,58 @@
 
 #include "demo_trace.h"
 
+#include <stddef.h>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
 #include <string>
+
 #include "../../../core/application/use_case.h"
-#include "../../../core/particle/tracable_particle.h"
+
+#include "../../../core/utilities/utilities.h"
+#include "../../../core/manifold/mainfold.h"
+#include "../../../core/particle/particle.h"
 
 USE_CASE(pic)
 {
 
-	bool is_configure_test_ = false;
 	size_t num_of_steps = 1000;
-	size_t strides = 1000;
-	double dt = 0.01;
+	size_t strides = 10;
+	Real dt = 0.001;
 
-	parse_cmd_line(
+	options.convert_cmdline_to_option<size_t>("numb_of_steps", "n",
+			"numb_of_steps");
 
-	[&](std::string const & opt,std::string const & value)->int
+	options.convert_cmdline_to_option<size_t>("strides", "s");
+
+	options.convert_cmdline_to_option<Real>("dt", "dt");
+
+	if (options["SHOW_HELP"])
 	{
+		SHOW_OPTIONS("-n,--number_of_steps <NUM>",
+				"number of steps = <NUM> ,default=" + ToString(num_of_steps));
+		SHOW_OPTIONS("-s,--strides <NUM>",
+				" dump record per <NUM> steps, default=" + ToString(strides));
+		SHOW_OPTIONS("-dt  <real number>",
+				" value of time step,default =" + ToString(dt));
 
-		if(opt=="n" )
-		{
-			num_of_steps=ToValue<size_t>(value);
-		}
-		else if(opt=="dt" )
-		{
-			dt=ToValue<double>(value);
-		}
-		else if(opt=="s" ||opt=="strides" )
-		{
-			strides=ToValue<size_t>(value);
-		}
-		else if (opt=="t"|| opt=="test")
-		{
-			is_configure_test_=true;
-		}
-		else if(opt=="h" || opt=="help")
-		{
-			SHOW_OPTIONS("-n <NUM>","number of steps");
-			SHOW_OPTIONS("-s <NUM>","recorder per <NUM> steps");
-			SHOW_OPTIONS("-t,--test ","only read and parse input file");
-			is_configure_test_=true;
-			return TERMINATE;
-		}
-		return CONTINUE;
+		return;
 	}
 
-	);
+	options["num_of_steps"].as(&num_of_steps);
+
+	options["strides"].as<size_t>(&strides);
+
+	options["dt"].as<Real>(&dt);
 
 	typedef Manifold<CartesianCoordinates<StructuredMesh> > manifold_type;
 
 	auto manifold = make_manifold<manifold_type>();
 
-	manifold->load(DICT["Mesh"]);
+	Particle<manifold_type, PICDemo> ion(manifold);
 
-	ParticleTrajectory<PICDemo, manifold_type> ion(manifold);
-
-	ion.load(DICT["Particle"]);
+	manifold->load(options["Mesh"]);
+	ion.load(options["Particle"]);
 
 	STDOUT << std::endl;
 	STDOUT << "======== Summary ========" << std::endl;
@@ -71,7 +68,7 @@ USE_CASE(pic)
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	if (is_configure_test_)
+	if (options["JUST_A_TEST"])
 	{
 		exit(0);
 	}
@@ -79,6 +76,7 @@ USE_CASE(pic)
 	ion.cache_length(strides);
 
 	manifold->update();
+
 	ion.update();
 
 	auto B = [](nTuple<Real,3> const & )

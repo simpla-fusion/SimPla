@@ -243,7 +243,7 @@ int main(int argc, char **argv)
 //		GLOBAL_DATA_STREAM.open_file("./");
 //	}
 //
-	Particle<mesh_type, PICDeltaF> pp(model);
+	_Particle<mesh_type, PICDeltaF> pp(model);
 
 	INFORM << SIMPLA_LOGO << std::endl
 

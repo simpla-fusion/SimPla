@@ -7,16 +7,18 @@
 #ifndef CORE_FIELD_FIELD_H_
 #define CORE_FIELD_FIELD_H_
 
-#include <stddef.h>
 #include <cstdbool>
+#include <cstddef>
 #include <memory>
-#include <tuple>
+#include <type_traits>
 
-#include "../data_structure/data_structure.h"
-
-#include "../utilities/sp_type_traits.h"
-#include "../parallel/parallel.h"
+#include "../data_structure/container_traits.h"
+#include "../manifold/domain.h"
+#include "../physics/physical_object.h"
 #include "../utilities/expression_template.h"
+#include "../utilities/log.h"
+#include "../utilities/primitives.h"
+#include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
@@ -35,21 +37,21 @@ template<typename ... >struct _Field;
  *     f(coordinates_type x) =>  field value(scalar/vector/tensor) at the coordinates x
  *   Field is a Expression
  */
-template<typename Container, typename TDomain>
-struct _Field<Container, TDomain>
+template<typename TDomain, typename Container>
+struct _Field<TDomain, Container> : public PhysicalObject
 {
 
 	typedef TDomain domain_type;
 	typedef typename domain_type::index_type index_type;
-	typedef Container container_type;
-	typedef _Field<container_type, domain_type> this_type;
-	typedef typename container_traits<container_type>::value_type value_type;
+	typedef Container storage_policy;
+	typedef _Field<domain_type, storage_policy> this_type;
+	typedef typename container_traits<storage_policy>::value_type value_type;
 
 private:
 
 	domain_type domain_;
 
-	container_type data_;
+	storage_policy data_;
 
 public:
 
@@ -86,17 +88,17 @@ public:
 	{
 		return domain_.max_hash();
 	}
-	container_type & data()
+	storage_policy & data()
 	{
 		return data_;
 	}
 
-	container_type const & data() const
+	storage_policy const & data() const
 	{
 		return data_;
 	}
 
-	void data(container_type d)
+	void data(storage_policy d)
 	{
 		sp_swap(d, data_);
 	}
@@ -113,20 +115,20 @@ public:
 
 	bool empty() const
 	{
-		return container_traits<container_type>::is_empty(data_);
+		return container_traits<storage_policy>::is_empty(data_);
 	}
 	void allocate()
 	{
 		if (empty())
 		{
-			container_traits<container_type>::allocate(size()).swap(data_);
+			container_traits<storage_policy>::allocate(size()).swap(data_);
 		}
 	}
 
 	void clear()
 	{
 		allocate();
-		container_traits<container_type>::clear(data_, size());
+		container_traits<storage_policy>::clear(data_, size());
 	}
 
 	auto dataset() const
@@ -286,19 +288,19 @@ public:
 }
 ;
 
-template<typename TC, typename TD>
-struct reference_traits<_Field<TC, TD> >
+template<typename TD, typename TC>
+struct reference_traits<_Field<TD, TC> >
 {
-	typedef _Field<TC, TD> const & type;
+	typedef _Field<TD, TC> const & type;
 };
 
 template<typename > struct field_result_of;
 template<typename ... > struct index_of;
 
-template<typename TC, typename TD, typename TI>
-struct index_of<_Field<TC, TD>, TI>
+template<typename TD, typename TC, typename TI>
+struct index_of<_Field<TD, TC>, TI>
 {
-	typedef typename _Field<TC, TD>::value_type type;
+	typedef typename _Field<TD, TC>::value_type type;
 };
 
 template<typename TOP, typename ...T, typename TI>
@@ -345,8 +347,8 @@ template<typename T> struct field_traits<T>
 	static constexpr size_t iform = VERTEX;
 };
 
-template<typename TC, typename TD>
-struct field_traits<_Field<TC, TD>>
+template<typename TD, typename TC>
+struct field_traits<_Field<TD, TC>>
 {
 
 	static constexpr size_t ndims = TD::ndims;
@@ -420,10 +422,11 @@ struct _Field<BooleanExpression<TOP, TL...>> : public Expression<TOP, TL...>
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
 
-template<typename TV, typename ... Others>
-auto make_field(Others && ...others)
-DECL_RET_TYPE((_Field<std::shared_ptr<TV>,
+template<typename TV, typename TD, typename ... Others>
+auto make_field(TD && d, Others && ...others)
+DECL_RET_TYPE((_Field<TD,std::shared_ptr<TV>,
 				typename std::remove_reference<Others>::type...>(
+						std::forward<TD>(d),
 						std::forward<Others>(others)...)))
 
 template<typename, size_t> class Domain;
@@ -435,11 +438,11 @@ template<typename, size_t> class Domain;
 //										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
 template<typename TV, size_t IFORM, typename TM, typename ... Others>
-_Field<std::shared_ptr<TV>, Domain<TM, IFORM>> make_form(
+_Field<Domain<TM, IFORM>, std::shared_ptr<TV>> make_form(
 		std::shared_ptr<TM> manifold, Others && ...others)
 {
 	return std::move(
-			_Field<std::shared_ptr<TV>, Domain<TM, IFORM>>(
+			_Field<Domain<TM, IFORM>, std::shared_ptr<TV>>(
 					Domain<TM, IFORM>(manifold->shared_from_this()),
 					std::forward<Others>(others)...));
 }

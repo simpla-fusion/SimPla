@@ -7,6 +7,7 @@
 
 #ifndef MPI_COMM_H_
 #define MPI_COMM_H_
+
 extern "C"
 {
 #include <mpi.h>
@@ -14,7 +15,7 @@ extern "C"
 #include <algorithm>
 #include <thread>
 #include "../utilities/parse_command_line.h"
-#include "../utilities/utilities.h"
+#include "../utilities/misc_utilities.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/log.h"
 

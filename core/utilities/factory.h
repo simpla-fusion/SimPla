@@ -9,8 +9,8 @@
 #define FACTORY_H_
 
 #include <map>
-#include "utilities.h"
 #include "log.h"
+#include "misc_utilities.h"
 
 namespace simpla
 {

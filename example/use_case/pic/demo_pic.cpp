@@ -60,7 +60,7 @@ USE_CASE(pic)
 
 	//	Particle<manifold_type, PICDemo, PolicyProbeParticle>
 
-	Particle<PICDemo, manifold_type> ion(manifold);
+	KineticParticle<PICDemo, manifold_type> ion(manifold);
 
 	ion.load(DICT["Particle"]);
 	ion.update();

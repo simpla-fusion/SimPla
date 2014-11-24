@@ -33,7 +33,8 @@ template<typename ...> class Expression;
 template<typename TG, //
 		template<typename > class Policy1 = FiniteDiffMethod, //
 		template<typename > class Policy2 = InterpolatorLinear>
-class Manifold: public TG,
+class Manifold: public Revision,  //
+		public TG,
 		public Policy1<TG>,
 		public Policy2<TG>,
 		public std::enable_shared_from_this<Manifold<TG, Policy1, Policy2>>
@@ -64,6 +65,14 @@ public:
 	Manifold(this_type const & r) = delete;
 
 	this_type & operator=(this_type const &) = delete;
+
+	void update()
+	{
+		while (Revision::revision() < TG::revision())
+		{
+			Revision::touch();
+		}
+	}
 
 };
 

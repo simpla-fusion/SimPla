@@ -13,8 +13,9 @@
 namespace simpla
 {
 template<typename ...> class Particle;
+
 template<typename TDomain, typename Engine> using KineticParticle=
-Particle<TDomain, Engine, IsUntracable>;
+Particle<TDomain, Engine>;
 
 }  // namespace simpla
 

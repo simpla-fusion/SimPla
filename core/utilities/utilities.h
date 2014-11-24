@@ -1,105 +1,22 @@
 /*
- * utilities.h
+ * misc_utilities.h
  *
- *  created on: 2013-11-24
+ *  Created on: 2014年11月24日
  *      Author: salmon
  */
 
-#ifndef UTILITIES_H_
-#define UTILITIES_H_
+#ifndef CORE_UTILITIES_MISC_UTILITIES_H_
+#define CORE_UTILITIES_MISC_UTILITIES_H_
 
-#include <functional>
-#include <iomanip>
-#include <sstream>
-#include <string>
-#include <utility>
-
+#include "primitives.h"
+#include "sp_type_traits.h"
 #include "ntuple.h"
-/**
- *  \defgroup  Utilities Utilities
- *  @{
- *    \defgroup  DataStruct Data Struct
- *    \defgroup  Logging Logging
- *    \defgroup  Configure Configure
- *    \defgroup  iterator iterator
- *  @}
- *
- */
-namespace simpla
-{
+#include "properties.h"
+#include "log.h"
+#include "pretty_stream.h"
+#include "parse_command_line.h"
+#include "lua_state.h"
+#include "misc_utilities.h"
+#include "../physics/physical_constants.h"
 
-template<typename T>
-inline std::string ToString(T const & v)
-{
-	std::ostringstream os;
-	os << v;
-	return os.str();
-}
-template<typename T>
-inline T ToValue(std::string const & str)
-{
-	T v;
-	std::istringstream os(str);
-	os >> v;
-	return std::move(v);
-}
-
-template<unsigned int N, typename T>
-inline std::string ToString(nTuple<T, N> const & v, std::string const & sep =
-		" ")
-{
-
-	std::ostringstream os;
-	for (int i = 0; i < N - 1; ++i)
-	{
-		os << v[i] << sep;
-	}
-	os << v[N - 1];
-	return (os.str());
-}
-
-inline std::string AutoIncrease(std::function<bool(std::string)> const & fun,
-		size_t count = 0, unsigned int width = 4)
-{
-	std::string res("");
-	while (fun(res))
-	{
-		std::ostringstream os;
-
-		os << std::setw(width) << std::setfill('0') << count;
-		++count;
-		res = os.str();
-	}
-	return res;
-}
-
-inline bool CheckFileExists(std::string const & name)
-{
-	if (FILE *file = fopen(name.c_str(), "r"))
-	{
-		fclose(file);
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-template<typename T>
-inline unsigned long make_hash(T s)
-{
-	return static_cast<unsigned long>(s);
-}
-template<typename TR> size_t size_of_range(TR const &range)
-{
-	size_t count = 0;
-	for (auto const & item : range)
-	{
-		++count;
-	}
-	return count;
-}
-}  // namespace simpla
-
-#endif /* UTILITIES_H_ */
+#endif /* CORE_UTILITIES_MISC_UTILITIES_H_ */

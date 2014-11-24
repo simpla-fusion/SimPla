@@ -18,20 +18,17 @@
 #include "../utilities/lua_state.h"
 #include "../utilities/singleton_holder.h"
 #include "../utilities/utilities.h"
+#include "../utilities/optional.h"
 #include "application.h"
 
 namespace simpla
 {
 class UseCase
 {
-	int argc_ = 0;
-	char ** argv_ = nullptr;
-
 	std::string case_info_;
-
 public:
 
-	LuaObject DICT;
+	ConfigParser options;
 
 	UseCase()
 	{
@@ -40,54 +37,9 @@ public:
 	{
 	}
 
-	void parse_cmd_line(
-			std::function<int(std::string const &, std::string const &)> const & fun);
+	void init(int argc, char ** argv);
 
-	std::tuple<bool, std::string> cmdline_option(
-			std::string const & name) const;
-
-	template<typename T>
-	std::tuple<bool, T> option(std::string const & name) const
-	{
-		bool is_found = false;
-		std::string value_str;
-
-		std::tie(is_found, value_str) = cmdline_option(name);
-
-		if (is_found)
-		{
-			return std::make_tuple(true, ToValue<T>(value_str));
-		}
-		else if (DICT[name])
-		{
-			return std::make_tuple(true, DICT[name].template as<T>());
-		}
-
-		return std::make_tuple(false, T());
-	}
-
-	template<typename T>
-	T option(std::string const & name, T const & default_value) const
-	{
-		bool is_found = false;
-		T res;
-
-		std::tie(is_found, res) = option<T>(name);
-
-		if (is_found)
-		{
-			return res;
-		}
-		else
-		{
-			return default_value;
-		}
-
-	}
-
-	void run(int argc, char ** argv);
-
-	virtual void body()=0;
+	virtual void body() =0;
 };
 
 struct UseCaseList

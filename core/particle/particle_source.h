@@ -14,8 +14,8 @@
 #include "../numeric/rectangle_distribution.h"
 #include "../physics/physical_constants.h"
 #include "../utilities/log.h"
-#include "../utilities/utilities.h"
 #include "../parallel/mpi_aux_functions.h"
+#include "../utilities/misc_utilities.h"
 
 namespace simpla
 {

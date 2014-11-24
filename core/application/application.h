@@ -8,7 +8,8 @@
 #ifndef CORE_APPLICATION_APPLICATION_H_
 #define CORE_APPLICATION_APPLICATION_H_
 
-namespace simpla {
+namespace simpla
+{
 
 #define SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name) _parent_class_name##_##_use_case_name
 
@@ -29,9 +30,6 @@ SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)::info = \
 	use_case_register<SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)>(( #_use_case_name)) ; \
 void SP_APP_CLASS_NAME_(_use_case_name,_parent_class_name)::body()
 
-
 }  // namespace simpla
-
-
 
 #endif /* CORE_APPLICATION_APPLICATION_H_ */
