@@ -9,8 +9,8 @@
 #include <string>
 
 #include "../io/io.h"
-#include "../parallel/parallel.h"
 #include "../simpla_defs.h"
+#include "../parallel/parallel.h"
 #include "../utilities/log.h"
 #include "../utilities/parse_command_line.h"
 #include "use_case.h"

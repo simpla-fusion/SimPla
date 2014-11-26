@@ -84,7 +84,14 @@ public:
 
 	Properties & get(std::string const & key)
 	{
-		return base_type::operator[](key);
+		if (key == "")
+		{
+			return *this;
+		}
+		else
+		{
+			return base_type::operator[](key);
+		}
 	}
 
 	Properties const &get(std::string const & key) const
@@ -92,7 +99,7 @@ public:
 		auto it = base_type::find(key);
 		if (it == base_type::end())
 		{
-			return fail_safe_;
+			return *this;
 		}
 		else
 		{

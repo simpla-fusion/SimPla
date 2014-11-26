@@ -7,11 +7,15 @@
 
 #ifndef DOMAIN_H_
 #define DOMAIN_H_
+
+#include <memory>
+#include <type_traits>
+
+#include "../data_structure/dataspace.h"
 #include "../utilities/sp_type_traits.h"
 
 namespace simpla
 {
-struct DataSpace;
 
 template<typename TG, size_t IFORM = 0>
 class Domain

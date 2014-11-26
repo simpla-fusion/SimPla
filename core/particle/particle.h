@@ -14,13 +14,6 @@
 
 namespace simpla
 {
-template<typename ...T>
-std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
-{
-	p.print(os);
-
-	return os;
-}
 
 /** \defgroup  Particle Particle
  *
@@ -29,6 +22,13 @@ std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
 
 template<typename ...>struct Particle;
 
+template<typename ...T>
+std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
+{
+	p.print(os);
+
+	return os;
+}
 /***
  *  - if is  Markov chain
  *    p_n = f(p_{n-1})
@@ -50,15 +50,9 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 
 	typedef std::vector<typename Engine::Point_s> storage_type;
 
-	typedef typename engine_type::Point_s particle_type;
+	typedef typename engine_type::Point_s Point_s;
 
 	typedef typename engine_type::scalar_type scalar_type;
-
-	typedef particle_type value_type;
-
-	typedef typename domain_type::iterator iterator;
-
-	typedef typename domain_type::coordinates_type coordinates_type;
 
 	CHECK_BOOLEAN(enable_markov_chain,true);
 
@@ -84,7 +78,10 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 	}
 
 	template<typename TDict, typename ...Others>
-	void load(TDict const & dict, Others && ...others);
+	bool load(TDict const & dict, Others && ...others)
+	{
+		return true;
+	}
 
 	std::ostream& print(std::ostream & os) const
 	{
@@ -95,20 +92,34 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 	template<typename ...Args>
 	void next_n_steps(size_t num_of_steps, Args && ...args);
 
-	template<typename ...Args>
-	auto emplace_back(Args && ...args)
-	DECL_RET_TYPE((storage_type::emplace_back(particle_type(
-									{	args...}))))
+//	template<typename ...Args>
+//	auto emplace_back(Args && ...args)
+//	DECL_RET_TYPE((this->storage_type::emplace_back(Point_s(
+//									{	args...}))))
 
-	virtual Properties const & properties(std::string const & name = "") const;
+	Properties const & properties(std::string const & name = "") const
+	{
+		return prop_[name];
+	}
 
-	virtual Properties & properties(std::string const & name = "");
+	Properties & properties(std::string const & name = "")
+	{
+		return prop_[name];
+	}
 
-	void update();
+	bool update()
+	{
+		return true;
+	}
 
-	DataSet dataset()const;
+	DataSet dataset()const
+	{
+		return DataSet();
+	}
 
 private:
+
+	Properties prop_;
 
 	domain_type domain_;
 
@@ -118,7 +129,7 @@ private:
 
 	size_t num_of_points_ = 1024;
 
-	size_t cache_depth_ = 10;
+	size_t cache_length_ = 10;
 
 	size_t chain_length_ = 1;
 
@@ -139,25 +150,24 @@ Particle<Engine, TDomain>::~Particle()
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain>::multi_n_steps(size_t num_of_steps,
-		Args && ...args) const
+void Particle<Engine, TDomain>::next_n_steps(size_t num_of_steps,
+		Args && ...args)
 {
-	Point_s head_ = data_.get() + clock_;
+	Point_s * head_ = data_.get() + clock_;
 
-	for (size_t s = 0; s < num_of_points_; ++s)
+	for (size_t n = 0; n < num_of_points_; ++n)
 	{
-		Point_s p0 = head_ + s * cache_length_;
+		Point_s * p0 = head_ + n * cache_length_;
 
-		for (size_t s = 0; p0 < num_of_steps; ++s)
+		for (size_t s = 0; s < num_of_steps; ++s)
 		{
-			engine_type::next_timestep(p0 + s, p0 + s + 1,
-					std::forward<Args>(args)...);
+			engine_type::next_timestep(p0 + s, std::forward<Args>(args)...);
 		}
 	}
 
 	clock_ += num_of_steps;
 
-	head_ %= cache_length_ * num_of_points_;
+//	head_ %= cache_length_ * num_of_points_;
 
 }
 template<typename Engine, typename TDomain, typename ...Others>

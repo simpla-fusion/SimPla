@@ -16,17 +16,22 @@
 #include "../../../core/application/use_case.h"
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/manifold/manifold.h"
+#include "../../../core/manifold/geometry/cartesian.h"
+#include "../../../core/manifold/topology/structured.h"
+#include "../../../core/manifold/diff_scheme/fdm.h"
+#include "../../../core/manifold/interpolator/interpolator.h"
 #include "../../../core/particle/particle.h"
 
-USE_CASE(pic)
+#include "../../../core/io/io.h"
+
+USE_CASE(trace)
 {
 
 	size_t num_of_steps = 1000;
 	size_t strides = 10;
 	Real dt = 0.001;
 
-	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n",
-			"numb_of_steps");
+	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
 
 	options.register_cmd_line_option<size_t>("STRIDES", "s");
 
@@ -35,9 +40,11 @@ USE_CASE(pic)
 	if (options["SHOW_HELP"])
 	{
 		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
-				"number of steps = <NUMBER_OF_STEPS> ,default=" + ToString(num_of_steps));
+				"number of steps = <NUMBER_OF_STEPS> ,default="
+						+ ToString(num_of_steps));
 		SHOW_OPTIONS("-s,--strides <STRIDES>",
-				" dump record per <STRIDES> steps, default=" + ToString(strides));
+				" dump record per <STRIDES> steps, default="
+						+ ToString(strides));
 		SHOW_OPTIONS("-dt  <DT>",
 				" value of time step,default =" + ToString(dt));
 
@@ -50,9 +57,7 @@ USE_CASE(pic)
 
 	options["DT"].as<Real>(&dt);
 
-	typedef Manifold<CartesianCoordinates<StructuredMesh> > manifold_type;
-
-	auto manifold = make_manifold<manifold_type>();
+	auto manifold = Manifold<CartesianCoordinates<StructuredMesh> >::create();
 
 	auto ion = make_particle<PICDemo>(manifold);
 

@@ -63,6 +63,12 @@ public:
 
 	Manifold(this_type const & r) = delete;
 
+	template<typename ...Args>
+	static std::shared_ptr<this_type> create(Args &&... args)
+	{
+		return std::make_shared<this_type>(std::forward<Args>(args)...);
+	}
+
 	this_type & operator=(this_type const &) = delete;
 
 	template<typename TDict>
@@ -70,8 +76,9 @@ public:
 	{
 
 	}
-	void update()
+	bool update()
 	{
+		return true;
 	}
 
 };

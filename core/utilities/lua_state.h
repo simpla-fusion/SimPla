@@ -317,8 +317,8 @@ public:
 		}
 	public:
 		iterator() :
-				L_(nullptr), GLOBAL_IDX_(0), parent_( LUA_NOREF), key_(
-				LUA_NOREF), value_( LUA_NOREF)
+				L_(nullptr), GLOBAL_IDX_(0), parent_(LUA_NOREF), key_(
+						LUA_NOREF), value_(LUA_NOREF)
 		{
 
 		}
@@ -350,7 +350,7 @@ public:
 		iterator(std::shared_ptr<lua_State> L, unsigned int G, unsigned int p,
 				std::string path) :
 				L_(L), GLOBAL_IDX_(G), parent_(p), key_(LUA_NOREF), value_(
-				LUA_NOREF), path_(path + "[iterator]")
+						LUA_NOREF), path_(path + "[iterator]")
 		{
 			lua_rawgeti(L_.get(), GLOBAL_IDX_, p);
 			bool is_table = lua_istable(L_.get(), -1);
@@ -685,8 +685,8 @@ public:
 			return;
 
 		lua_rawgeti(L_.get(), GLOBAL_REF_IDX_, self_);
-		ToLua(L_.get(), v);
-		LuaTrans<T>::To(L_.get(), v);
+		ToLua(L_, v);
+//		LuaTrans<T>::To(L_, v);
 		lua_setfield(L_.get(), -2, name.c_str());
 		lua_pop(L_.get(), 1);
 	}
