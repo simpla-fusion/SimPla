@@ -22,8 +22,6 @@
 namespace simpla
 {
 
-
-
 std::string UseCaseList::add(std::string const & name,
 		std::shared_ptr<UseCase> const & p)
 {
@@ -45,6 +43,7 @@ void UseCaseList::run_all_case(int argc, char ** argv)
 	for (auto const & item : list_)
 	{
 		item.second->init(argc, argv);
+		item.second->body();
 	}
 }
 }  // namespace simpla

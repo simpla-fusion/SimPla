@@ -41,8 +41,8 @@ template<typename ...>struct Particle;
  *	  address  &p_n = &p_{n-1} + 1
  *
  */
-template<typename Engine, typename TDomain>
-struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
+template<typename TDomain, typename Engine>
+struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 {
 	typedef TDomain domain_type;
 
@@ -102,15 +102,17 @@ struct Particle<Engine, TDomain> : public Engine, public PhysicalObject
 	DECL_RET_TYPE((storage_type::emplace_back(particle_type(
 									{	args...}))))
 
-	Properties const & properties(std::string const & name = "") const;
+	virtual Properties const & properties(std::string const & name = "") const;
 
-	Properties & properties(std::string const & name = "") =0;
+	virtual Properties & properties(std::string const & name = "");
 
 	void update();
 
+	DataSet dataset()const;
+
 private:
 
-	domain_type const & domain_;
+	domain_type domain_;
 
 	std::shared_ptr<Point_s> data_;
 
@@ -160,7 +162,10 @@ void Particle<Engine, TDomain>::multi_n_steps(size_t num_of_steps,
 	head_ %= cache_length_ * num_of_points_;
 
 }
-
+template<typename Engine, typename TDomain, typename ...Others>
+auto make_particle(TDomain const & d, Others && ... others)
+DECL_RET_TYPE((std::make_shared<Particle<TDomain,Engine>>(
+						d,std::forward<Others>(others)...)))
 }
 // namespace simpla
 

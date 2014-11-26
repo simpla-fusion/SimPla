@@ -22,7 +22,7 @@ struct ConfigParser: public LuaObject
 	void init(int argc, char** argv);
 
 	template<typename T, typename ... Others>
-	void convert_cmdline_to_option(std::string const & key,
+	void register_cmd_line_option(std::string const & key,
 			Others const & ... alias)
 	{
 
@@ -45,9 +45,14 @@ struct ConfigParser: public LuaObject
 
 	}
 
+	void parse_cmd_line(int argc, char** argv);
+
 private:
-	int argc_;
-	char** argv_;
+
+	typedef std::function<
+			void(LuaObject &, std::string const & key, std::string const & v)> call_back;
+
+	std::map<std::string, call_back> map_;
 };
 
 }  // namespace simpla

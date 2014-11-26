@@ -37,7 +37,10 @@ public:
 	{
 	}
 
-	void init(int argc, char ** argv);
+	virtual void init(int argc, char ** argv)
+	{
+		options.init(argc, argv);
+	}
 
 	virtual void body() =0;
 };

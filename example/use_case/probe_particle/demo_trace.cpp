@@ -14,7 +14,6 @@
 #include <string>
 
 #include "../../../core/application/use_case.h"
-
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/manifold/mainfold.h"
 #include "../../../core/particle/particle.h"
@@ -26,39 +25,46 @@ USE_CASE(pic)
 	size_t strides = 10;
 	Real dt = 0.001;
 
-	options.convert_cmdline_to_option<size_t>("numb_of_steps", "n",
+	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n",
 			"numb_of_steps");
 
-	options.convert_cmdline_to_option<size_t>("strides", "s");
+	options.register_cmd_line_option<size_t>("STRIDES", "s");
 
-	options.convert_cmdline_to_option<Real>("dt", "dt");
+	options.register_cmd_line_option<Real>("DT", "dt");
 
 	if (options["SHOW_HELP"])
 	{
-		SHOW_OPTIONS("-n,--number_of_steps <NUM>",
-				"number of steps = <NUM> ,default=" + ToString(num_of_steps));
-		SHOW_OPTIONS("-s,--strides <NUM>",
-				" dump record per <NUM> steps, default=" + ToString(strides));
-		SHOW_OPTIONS("-dt  <real number>",
+		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
+				"number of steps = <NUMBER_OF_STEPS> ,default=" + ToString(num_of_steps));
+		SHOW_OPTIONS("-s,--strides <STRIDES>",
+				" dump record per <STRIDES> steps, default=" + ToString(strides));
+		SHOW_OPTIONS("-dt  <DT>",
 				" value of time step,default =" + ToString(dt));
 
 		return;
 	}
 
-	options["num_of_steps"].as(&num_of_steps);
+	options["NUMBER_OF_STEPS"].as(&num_of_steps);
 
-	options["strides"].as<size_t>(&strides);
+	options["STRIDES"].as<size_t>(&strides);
 
-	options["dt"].as<Real>(&dt);
+	options["DT"].as<Real>(&dt);
 
 	typedef Manifold<CartesianCoordinates<StructuredMesh> > manifold_type;
 
 	auto manifold = make_manifold<manifold_type>();
 
-	Particle<manifold_type, PICDemo> ion(manifold);
+	auto ion = make_particle<PICDemo>(manifold);
 
 	manifold->load(options["Mesh"]);
-	ion.load(options["Particle"]);
+
+	ion->load(options["Particle"]);
+
+	ion->properties("Cache Length") = strides;
+
+	manifold->update();
+
+	ion->update();
 
 	STDOUT << std::endl;
 	STDOUT << "======== Summary ========" << std::endl;
@@ -68,33 +74,27 @@ USE_CASE(pic)
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	if (options["JUST_A_TEST"])
+	if (!options["JUST_A_TEST"])
 	{
-		exit(0);
-	}
 
-	ion.cache_length(strides);
+		auto B = [](nTuple<Real,3> const & )
+		{
+			return nTuple<Real,3>(
+					{	0,0,2});
+		};
+		auto E = [](nTuple<Real,3> const & )
+		{
+			return nTuple<Real,3>(
+					{	0,0,2});
+		};
 
-	manifold->update();
+		for (size_t s = 0; s < num_of_steps; s += strides)
+		{
+			ion->next_n_steps(strides, dt, E, B);
 
-	ion.update();
+			save("ion", ion->dataset());
 
-	auto B = [](nTuple<Real,3> const & )
-	{
-		return nTuple<Real,3>(
-				{	0,0,2});
-	};
-	auto E = [](nTuple<Real,3> const & )
-	{
-		return nTuple<Real,3>(
-				{	0,0,2});
-	};
-
-	for (size_t s = 0; s < num_of_steps; s += strides)
-	{
-		ion.next_n_steps(num_of_steps, dt, E, B);
-
-		save("ion", ion.dataset());
+		}
 
 	}
 

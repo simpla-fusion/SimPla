@@ -51,8 +51,10 @@ int main(int argc, char **argv)
 
 		STDOUT << " Options:" << std::endl;
 
-		SHOW_OPTIONS("-h", "print this information");
-		SHOW_OPTIONS("-v,--version", "print version");
+		SHOW_OPTIONS("-h", "Print help information");
+		SHOW_OPTIONS("-v,--version", "Print version");
+		SHOW_OPTIONS("-g,--generator", "Generates  demo configure file");
+
 	}
 	init_logger(argc, argv);
 	init_parallel(argc, argv);

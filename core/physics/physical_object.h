@@ -27,19 +27,20 @@ struct PhysicalObject
 	{
 	}
 
-//	PhysicalObject(const PhysicalObject&); // copy constructor.
+	PhysicalObject(const PhysicalObject&); // copy constructor.
+
 //	PhysicalObject(PhysicalObject &&); // move constructor.
 
-//	virtual Properties const & properties(
-//			std::string const & name = "") const=0;
-//
-//	virtual Properties & properties(std::string const & name = "") =0;
+	virtual Properties const & properties(
+			std::string const & name = "") const=0;
+
+	virtual Properties & properties(std::string const & name = "") =0;
 
 	virtual std::string get_type_as_string() const=0;
 
 	virtual DataSet dataset() const =0; //!< return the data set of PhysicalObject
 
-	bool is_valid()
+	virtual bool is_valid()
 	{
 		return is_valid_;
 	}
