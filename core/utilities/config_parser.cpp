@@ -14,6 +14,8 @@ namespace simpla
 
 void ConfigParser::init(int argc, char ** argv)
 {
+	argc_ = argc;
+	argv_ = argv;
 	simpla::parse_cmd_line(argc, argv,
 			[&](std::string const & opt,std::string const & value)->int
 			{

@@ -106,11 +106,12 @@ bool find_same(T const & left)
 {
 	return false;
 }
-template<typename T>
-bool find_same(T const & left, T const & first, T const&& ...others)
+template<typename T, typename ...Others>
+bool find_same(T const & left, T const & first, Others && ... others)
 {
-	return left == first || equal_to(left, others);
+	return left == first || equal_to(left, std::forward<Others>( others)...);
 }
-}  // namespace simpla
+}
+// namespace simpla
 
 #endif /* UTILITIES_H_ */

@@ -15,7 +15,7 @@
 
 #include "../../../core/application/use_case.h"
 #include "../../../core/utilities/utilities.h"
-#include "../../../core/manifold/mainfold.h"
+#include "../../../core/manifold/manifold.h"
 #include "../../../core/particle/particle.h"
 
 USE_CASE(pic)

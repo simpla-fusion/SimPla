@@ -45,14 +45,16 @@ struct ConfigParser: public LuaObject
 
 	}
 
-	void parse_cmd_line(int argc, char** argv);
+//	void parse_cmd_line(int argc, char** argv);
 
 private:
 
-	typedef std::function<
-			void(LuaObject &, std::string const & key, std::string const & v)> call_back;
-
-	std::map<std::string, call_back> map_;
+	int argc_;
+	char ** argv_;
+//	typedef std::function<
+//			void(LuaObject &, std::string const & key, std::string const & v)> call_back;
+//
+//	std::map<std::string, call_back> map_;
 };
 
 }  // namespace simpla

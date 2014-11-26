@@ -9,9 +9,7 @@
 #define PARTICLE_H_
 
 #include "particle_engine.h"
-#include "save_particle.h"
 #include "load_particle.h"
-#include "tracable_particle.h"
 #include "../physics/physical_object.h"
 
 namespace simpla
