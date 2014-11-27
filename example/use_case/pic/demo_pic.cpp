@@ -4,100 +4,103 @@
  *  Created on: 2014年11月21日
  *      Author: salmon
  */
-
-#include <string>
-#include "../../../core/application/use_case.h"
 #include "demo_pic.h"
 
-USE_CASE(pic)
+#include <stddef.h>
+#include <cstdlib>
+#include <iostream>
+#include <memory>
+#include <string>
+
+#include "../../../core/application/use_case.h"
+#include "../../../core/utilities/utilities.h"
+#include "../../../core/manifold/manifold.h"
+#include "../../../core/manifold/geometry/cartesian.h"
+#include "../../../core/manifold/topology/structured.h"
+#include "../../../core/manifold/diff_scheme/fdm.h"
+#include "../../../core/manifold/interpolator/interpolator.h"
+#include "../../../core/particle/particle.h"
+
+#include "../../../core/io/io.h"
+
+USE_CASE(trace)
 {
 
-	bool is_configure_test_ = false;
+	size_t num_of_steps = 1000;
+	size_t strides = 10;
+	Real dt = 0.001;
 
-	size_t timestep = 10;
+	options.register_cmd_line_option<size_t>("NUMBER_OF_STEPS", "n");
 
-	double dt = 0.01;
+	options.register_cmd_line_option<size_t>("STRIDES", "s");
 
-	parse_cmd_line(
+	options.register_cmd_line_option<Real>("DT", "dt");
 
-	[&](std::string const & opt,std::string const & value)->int
+	if (options["SHOW HELP"])
 	{
+		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
+				"number of steps = <NUMBER_OF_STEPS> ,default="
+						+ ToString(num_of_steps));
+		SHOW_OPTIONS("-s,--strides <STRIDES>",
+				" dump record per <STRIDES> steps, default="
+						+ ToString(strides));
+		SHOW_OPTIONS("-dt  <DT>",
+				" value of time step,default =" + ToString(dt));
 
-		if (opt=="t"|| opt=="test")
-		{
-			is_configure_test_=true;
-		}
-		else if(opt=="n" )
-		{
-			timestep=ToValue<size_t>(value);
-		}
-		else if(opt=="dt" )
-		{
-			dt=ToValue<double>(value);
-		}
-		else if(opt=="h" || opt=="help")
-		{
-			SHOW_OPTIONS("-n <NUM>","number of steps");
-			SHOW_OPTIONS("-s <NUM>","recorder per <NUM> steps");
-			SHOW_OPTIONS("-t,--test ","only read and parse input file");
-			is_configure_test_=true;
-			return TERMINATE;
-		}
-		return CONTINUE;
+		return;
 	}
 
-	);
+	options["NUMBER_OF_STEPS"].as(&num_of_steps);
 
-	typedef Manifold<CartesianCoordinates<StructuredMesh> > TManifold;
+	options["STRIDES"].as<size_t>(&strides);
 
-	typedef TManifold manifold_type;
+	options["DT"].as<Real>(&dt);
 
-	auto manifold = make_manifold<TManifold>();
+	auto manifold = Manifold<CartesianCoordinates<StructuredMesh> >::create();
 
-	manifold->load(DICT["Mesh"]);
+	auto ion = make_probe_particle<PICDemo>(manifold);
+
+	manifold->load(options["Mesh"]);
+
+	ion->load(options["Particle"]);
+
+	ion->properties("Cache Length") = strides;
 
 	manifold->update();
 
-	//	Particle<manifold_type, PICDemo, PolicyProbeParticle>
-
-	KineticParticle<PICDemo, manifold_type> ion(manifold);
-
-	ion.load(DICT["Particle"]);
-	ion.update();
+	ion->update();
 
 	STDOUT << std::endl;
 	STDOUT << "======== Summary ========" << std::endl;
 	RIGHT_COLUMN(" mesh" ) << " = {" << *manifold << "}" << std::endl;
 	RIGHT_COLUMN(" ion") << " = " << "{" << ion << "}" << std::endl;
-	RIGHT_COLUMN(" time step" ) << " = " << timestep << std::endl;
+	RIGHT_COLUMN(" time step" ) << " = " << num_of_steps << std::endl;
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	if (!is_configure_test_)
+	if (!options["JUST A TEST"])
 	{
 
-//	ion.push_back(p);
-//
-//	auto n = [](typename manifold_type::coordinates_type const & x )
-//	{	return 2.0;};
-//
-//	auto T = [](typename manifold_type::coordinates_type const & x )
-//	{	return 1.0;};
-//
-//	init_particle(make_domain<VERTEX>(manifold), 5, n, T, &ion);
-//
-//	auto B = [](nTuple<Real,3> const & )
-//	{
-//		return nTuple<Real,3>(
-//				{	0,0,2});
-//	};
-//	auto E = [](nTuple<Real,3> const & )
-//	{
-//		return nTuple<Real,3>(
-//				{	0,0,2});
-//	};
-//
-//	ion.next_n_steps(timestep, dt, E, B);
+		auto B = [](nTuple<Real,3> const & )
+		{
+			return nTuple<Real,3>(
+					{	0,0,2});
+		};
+		auto E = [](nTuple<Real,3> const & )
+		{
+			return nTuple<Real,3>(
+					{	0,0,2});
+		};
+
+		for (size_t s = 0; s < num_of_steps; s += strides)
+		{
+			ion->next_n_timesteps(strides, dt, E, B);
+
+			save("ion", ion->dataset());
+
+		}
+
 	}
+
 }
 

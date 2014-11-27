@@ -8,20 +8,8 @@
 #ifndef EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 #define EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
 
-#include "../../../core/utilities/log.h"
-#include "../../../core/utilities/parse_command_line.h"
-
-#include "../../../core/particle/tracable_particle.h"
+#include "../../../core/utilities/utilities.h"
 #include "../../../core/particle/particle_engine.h"
-#include "../../../core/physics/physical_constants.h"
-
-#include "../../../core/manifold/fetl.h"
-#include "../../../core/physics/physical_constants.h"
-//#include "../../../core/manifold/dummy_manifold.h"
-//#include "../../../core/io/data_stream.h"
-//#include "../../../core/utilities/log.h"
-//#include "../../../core/utilities/ntuple.h"
-
 using namespace simpla;
 
 namespace simpla
@@ -73,32 +61,32 @@ public:
 	}
 
 	template<typename TE, typename TB>
-	void next_timestep(Point_s const* p0, Point_s * p1, Real dt, TE const &fE,
+	void next_timestep(Point_s const* p0, Real dt, TE const &fE,
 			TB const & fB) const
 	{
-		p1->x += p0->v * dt * 0.5;
-
-		auto B = fB(p0->x);
-		auto E = fE(p0->x);
-
-		Vec3 v_;
-
-		auto t = B * (cmr_ * dt * 0.5);
-
-		p1->v += E * (cmr_ * dt * 0.5);
-
-		v_ = p0->v + cross(p1->v, t);
-
-		v_ = cross(v_, t) / (dot(t, t) + 1.0);
-
-		p1->v += v_;
-		auto a = (-dot(E, p1->v) * q_kT_ * dt);
-		p1->w = (-a + (1 + 0.5 * a) * p1->w) / (1 - 0.5 * a);
-
-		p1->v += v_;
-		p1->v += E * (cmr_ * dt * 0.5);
-
-		p1->x += p1->v * dt * 0.5;
+//		p1->x += p0->v * dt * 0.5;
+//
+//		auto B = fB(p0->x);
+//		auto E = fE(p0->x);
+//
+//		Vec3 v_;
+//
+//		auto t = B * (cmr_ * dt * 0.5);
+//
+//		p1->v += E * (cmr_ * dt * 0.5);
+//
+//		v_ = p0->v + cross(p1->v, t);
+//
+//		v_ = cross(v_, t) / (dot(t, t) + 1.0);
+//
+//		p1->v += v_;
+//		auto a = (-dot(E, p1->v) * q_kT_ * dt);
+//		p1->w = (-a + (1 + 0.5 * a) * p1->w) / (1 - 0.5 * a);
+//
+//		p1->v += v_;
+//		p1->v += E * (cmr_ * dt * 0.5);
+//
+//		p1->x += p1->v * dt * 0.5;
 
 	}
 

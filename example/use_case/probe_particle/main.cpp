@@ -156,7 +156,7 @@ int main(int argc, char **argv)
 
 //	Particle<manifold_type, PICDemo, PolicyProbeParticle>
 
-	_Particle<PICDemo, manifold_type> ion(manifold, mass, charge, Te);
+	Particle<PICDemo, manifold_type> ion(manifold, mass, charge, Te);
 
 	INFORM << "=========================" << std::endl;
 	INFORM << "dt =  \t" << dt << std::endl;

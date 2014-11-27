@@ -1,2 +1,2 @@
-ADD_EXECUTABLE(demo_trace   demo_trace.cpp   )
-TARGET_LINK_LIBRARIES(demo_trace    physics  io   use_case parallel utilities)
+ADD_EXECUTABLE(demo_probe   demo_probe_particle.cpp   )
+TARGET_LINK_LIBRARIES(demo_probe    physics  io   use_case parallel utilities)

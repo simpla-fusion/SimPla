@@ -38,13 +38,12 @@ struct PhysicalObject
 		return is_valid_;
 	}
 
-	virtual void synchronize()
+	virtual void sync()
 	{
 
 	}
-	virtual void asynchronize()
+	virtual void load()
 	{
-
 	}
 	virtual bool update()
 	{

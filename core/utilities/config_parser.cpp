@@ -29,7 +29,7 @@ void ConfigParser::init(int argc, char ** argv)
 				}
 				else if (opt=="t"|| opt=="test")
 				{
-					dict_type::set("JUST_A_TEST",true);
+					dict_type::set("JUST A TEST",true);
 					return TERMINATE;
 				}
 				else if (opt=="h"|| opt=="help")

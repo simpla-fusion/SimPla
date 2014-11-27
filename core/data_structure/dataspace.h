@@ -78,10 +78,16 @@ private:
 
 	std::shared_ptr<DistributedArray> darray_;
 
-	void update();
+	void update()
+	{
+	}
 
 };
-
+template<typename ... Args>
+DataSpace make_dataspace(Args && ... args)
+{
+	return DataSpace::create_simple(std::forward<Args>(args)...);
+}
 }  // namespace simpla
 
 #endif /* CORE_DATA_STRUCTURE_DATASPACE_H_ */

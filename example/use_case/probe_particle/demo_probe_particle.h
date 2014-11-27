@@ -5,8 +5,8 @@
  *      Author: salmon
  */
 
-#ifndef EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
-#define EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_
+#ifndef EXAMPLE_USE_CASE_PIC_DEMO_PROBE_PARTICLE_H_
+#define EXAMPLE_USE_CASE_PIC_DEMO_PROBE_PARTICLE_H_
 
 #include "../../../core/utilities/utilities.h"
 #include "../../../core/particle/particle_engine.h"
@@ -35,8 +35,7 @@ struct PICDemo
 			Real, temperature
 	)
 
-	// set enable_markov_chain = false
-	static constexpr bool enable_markov_chain = false;
+	static constexpr size_t memory_length = 0; //!  declare this engine is memoryless
 
 private:
 	Real cmr_, q_kT_;
@@ -98,4 +97,4 @@ public:
 
 }  // namespace simpla
 
-#endif /* EXAMPLE_USE_CASE_PIC_DEMO_PIC_H_ */
+#endif /* EXAMPLE_USE_CASE_PIC_DEMO_PROBE_PARTICLE_H_ */

@@ -5,7 +5,7 @@
  *      Author: salmon
  */
 
-#include "demo_trace.h"
+#include "demo_probe_particle.h"
 
 #include <stddef.h>
 #include <cstdlib>
@@ -37,7 +37,7 @@ USE_CASE(trace)
 
 	options.register_cmd_line_option<Real>("DT", "dt");
 
-	if (options["SHOW_HELP"])
+	if (options["SHOW HELP"])
 	{
 		SHOW_OPTIONS("-n,--number_of_steps <NUMBER_OF_STEPS>",
 				"number of steps = <NUMBER_OF_STEPS> ,default="
@@ -59,7 +59,7 @@ USE_CASE(trace)
 
 	auto manifold = Manifold<CartesianCoordinates<StructuredMesh> >::create();
 
-	auto ion = make_particle<PICDemo>(manifold);
+	auto ion = make_probe_particle<PICDemo>(manifold);
 
 	manifold->load(options["Mesh"]);
 
@@ -79,7 +79,7 @@ USE_CASE(trace)
 	RIGHT_COLUMN(" dt" ) << " = " << dt << std::endl;
 	STDOUT << "=========================" << std::endl;
 
-	if (!options["JUST_A_TEST"])
+	if (!options["JUST A TEST"])
 	{
 
 		auto B = [](nTuple<Real,3> const & )

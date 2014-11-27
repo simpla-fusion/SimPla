@@ -148,7 +148,7 @@ int main(int argc, char **argv)
 
 	Domain<manifold_type, VERTEX> domain(manifold);
 
-	_Particle<PICDemo2, Domain<manifold_type, VERTEX>> ion(domain, mass, charge,
+	Particle<PICDemo2, Domain<manifold_type, VERTEX>> ion(domain, mass, charge,
 			Te);
 
 	INFORM << "=========================" << std::endl;
