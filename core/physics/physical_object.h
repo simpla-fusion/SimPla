@@ -29,13 +29,6 @@ struct PhysicalObject
 
 	PhysicalObject(const PhysicalObject&); // copy constructor.
 
-//	PhysicalObject(PhysicalObject &&); // move constructor.
-
-	virtual Properties const & properties(
-			std::string const & name = "") const=0;
-
-	virtual Properties & properties(std::string const & name = "") =0;
-
 	virtual std::string get_type_as_string() const=0;
 
 	virtual DataSet dataset() const =0; //!< return the data set of PhysicalObject
@@ -45,11 +38,6 @@ struct PhysicalObject
 		return is_valid_;
 	}
 
-	virtual bool initialize()
-	{
-		is_valid_ = true;
-		return true;
-	}
 	virtual void synchronize()
 	{
 
@@ -63,7 +51,24 @@ struct PhysicalObject
 		is_valid_ = true;
 		return true;
 	}
+
+	virtual Properties const & properties(std::string const & name = "") const
+	{
+		return prop_[name];
+	}
+
+	virtual Properties & properties(std::string const & name = "")
+	{
+		return prop_[name];
+	}
+
+	virtual std::ostream& print(std::ostream & os) const
+	{
+		return prop_.print(os);
+
+	}
 private:
+	Properties prop_;
 
 	bool is_valid_ = false;
 

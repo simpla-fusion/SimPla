@@ -11,7 +11,8 @@
 #include "particle_engine.h"
 #include "load_particle.h"
 #include "../physics/physical_object.h"
-
+#include "../parallel/parallel.h"
+#include "../utilities/sp_iterator_sequence.h"
 namespace simpla
 {
 
@@ -42,22 +43,27 @@ std::ostream& operator<<(std::ostream & os, Particle<T...> const &p)
 template<typename TDomain, typename Engine>
 struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 {
+	typedef PhysicalObject base_type;
+
 	typedef TDomain domain_type;
 
 	typedef Engine engine_type;
 
 	typedef Particle<domain_type, engine_type> this_type;
 
-	typedef std::vector<typename Engine::Point_s> storage_type;
-
 	typedef typename engine_type::Point_s Point_s;
 
-	typedef typename engine_type::scalar_type scalar_type;
+private:
 
-	CHECK_BOOLEAN(enable_markov_chain,true);
+	CHECK_VALUE(is_markov_chain,true);
 
-	static constexpr bool is_markov_chain = check_enable_markov_chain<
-	engine_type>::value;
+	CHECK_VALUE(memory_length,(check_is_markov_chain<
+					engine_type>::value?0:1));
+public:
+
+	static constexpr size_t memory_length = check_memory_length<engine_type>::value;
+
+	static constexpr bool is_markov_chain = memory_length==0;
 
 	//***************************************************************************************************
 	// Constructor
@@ -67,9 +73,34 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 	// Destroy
 	~Particle();
 
+	template<typename TDict, typename ...Others>
+	void load(TDict const & dict, Others && ...others)
+	{
+		return engine_type::load(dict,std::forward<Others>(others)...);
+	}
+
 	static std::string get_type_as_string_staic()
 	{
 		return engine_type::get_type_as_string();
+	}
+
+	template<typename ...Args>
+	void next_n_timesteps(size_t num_of_steps, Args && ...args);
+
+	template<typename ...Args>
+	void next_timestep( Args && ...args)
+	{
+		next_n_steps(1,std::forward<Args>(args)...);
+	}
+
+	Properties const & properties(std::string const & key = "") const
+	{
+		return engine_type::properties(key);
+	}
+
+	Properties & properties(std::string const & key = "")
+	{
+		return engine_type::properties(key);
 	}
 
 	std::string get_type_as_string() const
@@ -77,38 +108,19 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 		return get_type_as_string_staic();
 	}
 
-	template<typename TDict, typename ...Others>
-	bool load(TDict const & dict, Others && ...others)
-	{
-		return true;
-	}
-
 	std::ostream& print(std::ostream & os) const
 	{
 		engine_type::print(os);
+		base_type::print(os);
 		return os;
-	}
-
-	template<typename ...Args>
-	void next_n_steps(size_t num_of_steps, Args && ...args);
-
-//	template<typename ...Args>
-//	auto emplace_back(Args && ...args)
-//	DECL_RET_TYPE((this->storage_type::emplace_back(Point_s(
-//									{	args...}))))
-
-	Properties const & properties(std::string const & name = "") const
-	{
-		return prop_[name];
-	}
-
-	Properties & properties(std::string const & name = "")
-	{
-		return prop_[name];
 	}
 
 	bool update()
 	{
+		engine_type::update();
+
+		properties("Cache Length").as(&chain_length_);
+
 		return true;
 	}
 
@@ -119,8 +131,6 @@ struct Particle<TDomain, Engine> : public PhysicalObject, public Engine
 
 private:
 
-	Properties prop_;
-
 	domain_type domain_;
 
 	std::shared_ptr<Point_s> data_;
@@ -128,8 +138,6 @@ private:
 	size_t clock_ = 0;
 
 	size_t num_of_points_ = 1024;
-
-	size_t cache_length_ = 10;
 
 	size_t chain_length_ = 1;
 
@@ -150,20 +158,26 @@ Particle<Engine, TDomain>::~Particle()
 
 template<typename Engine, typename TDomain>
 template<typename ... Args>
-void Particle<Engine, TDomain>::next_n_steps(size_t num_of_steps,
+void Particle<Engine, TDomain>::next_n_timesteps(size_t num_of_steps,
 		Args && ...args)
 {
 	Point_s * head_ = data_.get() + clock_;
 
-	for (size_t n = 0; n < num_of_points_; ++n)
+	parallel_for(make_seq_range(0UL, num_of_steps),
+
+	[&](size_t n)
 	{
-		Point_s * p0 = head_ + n * cache_length_;
+
+		Point_s * p0 = head_ + n;
 
 		for (size_t s = 0; s < num_of_steps; ++s)
 		{
 			engine_type::next_timestep(p0 + s, std::forward<Args>(args)...);
 		}
+
 	}
+
+	);
 
 	clock_ += num_of_steps;
 

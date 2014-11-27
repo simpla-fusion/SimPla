@@ -280,7 +280,31 @@ struct check_##_MEMBER_                                               \
   public:                                                             \
 	static constexpr bool value =                                     \
            check_boolean<_T_CHKBOOL_,has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value;   \
-};                                                                    \
+};
+
+#define CHECK_VALUE( _MEMBER_, _DEFAULT_VALUE_ )                    \
+template<typename _T_CHKBOOL_>                                                  \
+struct check_##_MEMBER_                                               \
+{  private:                                                           \
+	HAS_STATIC_MEMBER(_MEMBER_);                                             \
+                 \
+	template<typename,bool> struct check_value;                   \
+                                                                      \
+	template<typename _U >                                             \
+	struct check_value<_U,true>                                      \
+	{                                                                 \
+		static constexpr auto value = ( _U:: _MEMBER_);               \
+	};                                                                \
+                                                                      \
+	template<typename _U >                                             \
+	struct check_value<_U,false>                                     \
+	{                                                                 \
+		static constexpr auto value = _DEFAULT_VALUE_;                \
+	};                                                                \
+  public:                                                             \
+	static constexpr auto value =                                     \
+	   check_value<_T_CHKBOOL_,has_static_member_##_MEMBER_<_T_CHKBOOL_>::value>::value;   \
+};
 
 template<typename _T, typename _Args>
 struct is_indexable

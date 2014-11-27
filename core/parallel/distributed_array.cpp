@@ -7,6 +7,7 @@
 
 #ifndef CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
 #define CORE_PARALLEL_DISTRIBUTED_ARRAY_CPP_
+
 #include <string>
 
 #include "distributed_array.h"

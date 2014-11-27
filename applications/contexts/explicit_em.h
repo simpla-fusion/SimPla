@@ -29,12 +29,11 @@
 
 // Particle
 #include "../../core/particle/particle_base.h"
-#include "../../core/particle/particle_factory.h"
-// Model
 #include "../../core/model/model.h"
 #include "../../core/model/geqdsk.h"
 #include "../../core/flow_control/context_base.h"
 #include "../../core/numeric/geometric_algorithm.h"
+#include "../../experimental/particle_factory.h"
 
 // Solver
 #include "../field_solver/pml.h"

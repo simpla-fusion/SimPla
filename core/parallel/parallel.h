@@ -17,16 +17,18 @@
  *  	\defgroup  MULTICORE Multi-thread/core and many-core support
  *  @}
  */
-#ifdef _OPENMP
-#	include "parallel_openmp.h"
-#elif defined(USE_TBB) &&  USE_TBB==on
-#	include "parallel_tbb.h"
-#else
+//#ifdef _OPENMP
+//#	include "parallel_openmp.h"
+//#elif defined(USE_TBB) &&  USE_TBB==on
+//#	include "parallel_tbb.h"
+//#else
 #	include "parallel_dummy.h"
-#endif
+#   include "../utilities/sp_range.h"
+//#endif
 
 namespace simpla
 {
+
 void init_parallel(int argc, char ** argv);
 void close_parallel();
 

@@ -140,6 +140,10 @@ public:
 	{
 		return get(key);
 	}
+	Properties & operator()(std::string const & key)
+	{
+		return get(key);
+	}
 	template<typename T>
 	void operator()(std::string const & key, T && v)
 	{

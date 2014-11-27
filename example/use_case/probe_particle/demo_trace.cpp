@@ -95,7 +95,7 @@ USE_CASE(trace)
 
 		for (size_t s = 0; s < num_of_steps; s += strides)
 		{
-			ion->next_n_steps(strides, dt, E, B);
+			ion->next_n_timesteps(strides, dt, E, B);
 
 			save("ion", ion->dataset());
 
