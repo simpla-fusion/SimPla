@@ -9,21 +9,19 @@
 #ifndef FETL_H_
 #define FETL_H_
 
-#include "../utilities/primitives.h"
-#include "../utilities/ntuple.h"
-#include "../utilities/sp_complex.h"
+#include "../utilities/utilities.h"
 
-#include "../field/field.h"
+#include "manifold.h"
+#include "domain.h"
+
+#include "geometry/cartesian.h"
+#include "topology/structured.h"
 #include "diff_scheme/fdm.h"
 #include "interpolator/interpolator.h"
 
-#include "topology/structured.h"
-#include "geometry/cartesian.h"
-#include "geometry/cylindrical.h"
-
-#include "manifold.h"
+#include "../field/field.h"
 #include "calculus.h"
-#include "domain.h"
+
 //#include "field_vector_ops.h"
 //#include "field_constant.h"
 //#include "cache.h"

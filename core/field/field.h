@@ -13,12 +13,13 @@
 #include <type_traits>
 
 #include "../data_structure/container_traits.h"
+#include "../data_structure/data_set.h"
+
 #include "../manifold/domain.h"
 #include "../physics/physical_object.h"
 #include "../utilities/expression_template.h"
-#include "../utilities/log.h"
-#include "../utilities/primitives.h"
-#include "../utilities/sp_type_traits.h"
+#include "../utilities/utilities.h"
+#include "../parallel/parallel.h"
 
 namespace simpla
 {
@@ -67,6 +68,12 @@ public:
 
 	~_Field()
 	{
+	}
+
+	std::string get_type_as_string() const
+	{
+//		" + domain_type::get_type_as_string() + "
+		return "Field<>";
 	}
 
 	void swap(this_type &r)
@@ -131,12 +138,12 @@ public:
 		container_traits<storage_policy>::clear(data_, size());
 	}
 
-	auto dataset() const
-	DECL_RET_TYPE((container_traits<Container>::make_dataset(data_,
-							domain_.dataspace()) ))
-	auto dataset()
-	DECL_RET_TYPE((container_traits<Container>::make_dataset(data_,
-							domain_.dataspace()) ))
+	DataSet dataset() const
+	{
+		return DataSet(
+				{ properties(), data_, make_datatype<value_type>(),
+						domain_.dataspace() });
+	}
 
 // @defgroup Access operation
 // @
@@ -323,7 +330,7 @@ struct field_result_of<TOP(TL, TR, TI)>
 					typename index_of<TR, TI>::type)>::type type;
 };
 
-template<typename TV, typename TDomain> using Field= _Field< std::shared_ptr<TV>,TDomain >;
+template<typename TDomain, typename TV> using Field= _Field< TDomain,std::shared_ptr<TV> >;
 
 template<typename > struct is_field
 {
@@ -397,6 +404,16 @@ struct field_traits<_Field<Expression<TOP, double, TR> >>
 
 };
 
+template<typename TOP, typename TL>
+struct field_traits<_Field<Expression<TOP, TL, double> >>
+{
+
+	static constexpr size_t ndims = field_traits<TL>::ndims;
+
+	static constexpr size_t iform = field_traits<TL>::iform;
+
+};
+
 template<typename TOP, typename ...TL>
 struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
 {
@@ -422,12 +439,9 @@ struct _Field<BooleanExpression<TOP, TL...>> : public Expression<TOP, TL...>
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_Field)
 
-template<typename TV, typename TD, typename ... Others>
-auto make_field(TD && d, Others && ...others)
-DECL_RET_TYPE((_Field<TD,std::shared_ptr<TV>,
-				typename std::remove_reference<Others>::type...>(
-						std::forward<TD>(d),
-						std::forward<Others>(others)...)))
+template<typename TV, typename TD>
+auto make_field(TD const& d)
+DECL_RET_TYPE((_Field<TD, std::shared_ptr<TV>>( (d) )))
 
 template<typename, size_t> class Domain;
 //
@@ -437,14 +451,13 @@ template<typename, size_t> class Domain;
 //				DECL_RET_TYPE((_Field<std::shared_ptr<TV>,Domain<TM,IFORM>>(
 //										Domain<TM,IFORM>(manifold),std::forward<Others>(others)...)))
 
-template<typename TV, size_t IFORM, typename TM, typename ... Others>
+template<typename TV, size_t IFORM, typename TM>
 _Field<Domain<TM, IFORM>, std::shared_ptr<TV>> make_form(
-		std::shared_ptr<TM> manifold, Others && ...others)
+		std::shared_ptr<TM> manifold)
 {
 	return std::move(
 			_Field<Domain<TM, IFORM>, std::shared_ptr<TV>>(
-					Domain<TM, IFORM>(manifold->shared_from_this()),
-					std::forward<Others>(others)...));
+					Domain<TM, IFORM>(manifold->shared_from_this())));
 }
 
 }

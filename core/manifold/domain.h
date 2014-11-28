@@ -36,6 +36,8 @@ public:
 
 	typedef typename manifold_type::coordinates_type coordinates_type;
 
+	typedef typename manifold_type::compact_index_type compact_index_type;
+
 	typedef typename manifold_type::index_type index_type;
 
 	typedef size_t difference_type; // Type for difference of two iterators
@@ -118,11 +120,6 @@ public:
 		return range_.is_divisible();
 	}
 
-	DataSpace dataspace() const
-	{
-		return manifold_->template dataspace<IFORM>();
-	}
-
 	size_t size() const
 	{
 		return manifold_->template dataspace<IFORM>().size();
@@ -151,14 +148,22 @@ public:
 //	{
 //		return manifold_->geometry_type::cartesian_boundbox<iform>(range_);
 //	}
+//	DataSpace dataspace() const
+//		{
+//			return manifold_->template dataspace<IFORM>();
+//		}
 
-	auto dataset_shape() const
-	DECL_RET_TYPE(( manifold_->dataset_shape( *this )))
-	template<typename ...Args>
-	auto dataset_shape(Args &&... args) const
-	DECL_RET_TYPE((
-					manifold_->dataset_shape(
-							*this,std::forward<Args>(args)...)))
+	DataSpace dataspace() const
+	{
+		return manifold_->template dataspace<iform>( );
+	}
+
+//	template<typename ...Args>
+//	DataSpace dataspace(Args &&... args) const
+//	{
+//		return manifold_->dataspace(
+//				*this,std::forward<Args>(args)...);
+//	}
 
 	template<typename ...Args>
 	auto coordinates(Args && ...args) const

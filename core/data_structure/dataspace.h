@@ -11,7 +11,7 @@
 namespace simpla
 {
 /**
- *  @brief `DataSpace` define the size and shape of dataset
+ *  @brief `DataSpace` define the size and  shape of data set in memory
  *
  *  Ref. http://www.hdfgroup.org/HDF5/doc/UG/UG_frame12Dataspaces.html
  */
@@ -28,9 +28,7 @@ public:
 
 	template<typename ...Args>
 	DataSpace(Args && ... args)
-//	:darray_(new DistributedArray(std::forward<Args>(args)...))
 	{
-		update();
 	}
 
 	DataSpace(std::shared_ptr<DistributedArray> d) :
@@ -44,7 +42,10 @@ public:
 	}
 	void swap(DataSpace &);
 
-	static DataSpace create_simple(size_t rank, size_t const d[]);
+	static DataSpace create_simple(size_t rank, size_t const d[])
+	{
+		return DataSpace();
+	}
 
 	template<size_t RANK>
 	static DataSpace create_simple(nTuple<size_t, RANK> const & d)

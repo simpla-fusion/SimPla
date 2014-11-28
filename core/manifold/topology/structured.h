@@ -254,17 +254,13 @@ public:
 
 		return std::move(res);
 	}
-//	size_t get_num_of_elements(size_t iform = VERTEX) const
-//	{
-//		return get_global_num_of_elements(iform);
-//	}
-//
-//	template<size_t IFORM>
-//	size_t get_num_of_elements() const
-//	{
-//		return NProduct(global_dimensions())
-//				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
-//	}
+
+	template<size_t IFORM>
+	size_t get_num_of_elements() const
+	{
+		return NProduct(global_count_)
+				* ((IFORM == VERTEX || IFORM == VOLUME) ? 1 : 3);
+	}
 //
 //	index_tuple local_dimensions() const
 //	{

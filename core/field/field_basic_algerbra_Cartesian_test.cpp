@@ -23,7 +23,7 @@ typedef Manifold<CartesianCoordinates<StructuredMesh, CARTESIAN_ZAXIS>,
 
 typedef testing::Types< //
 
-		Field<double, Domain<manifold_type, VERTEX>> //
+		Field<Domain<manifold_type, VERTEX>, double> //
 //		, Field<double, Domain<manifold_type, EDGE>> //
 //		, Field<double, Domain<manifold_type, FACE>> //
 //		, Field<double, Domain<manifold_type, VOLUME>> //
@@ -55,9 +55,12 @@ typedef testing::Types< //
 template<typename TF>
 std::shared_ptr<typename TestField<TF>::manifold_type> TestField<TF>::manifold = //
 		std::make_shared<manifold_type>( //
-				nTuple<Real, 3>( { 0.0, 0.0, 0.0 }), //
-				nTuple<Real, 3>( { 1.0, 2.0, 1.0 }), //
-				nTuple<size_t, 3>( { 40, 12, 10 }) //
+				nTuple<Real, 3>(
+				{ 0.0, 0.0, 0.0 }), //
+				nTuple<Real, 3>(
+				{ 1.0, 2.0, 1.0 }), //
+				nTuple<size_t, 3>(
+				{ 40, 12, 10 }) //
 						);
 
 INSTANTIATE_TYPED_TEST_CASE_P(FIELD, TestField, TypeParamList);

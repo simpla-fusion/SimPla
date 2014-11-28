@@ -21,7 +21,11 @@ typedef std::nullptr_t NullType;
 struct EmptyType
 {
 };
-
+template<typename T>
+struct remove_all
+{
+	typedef typename std::remove_reference<typename std::remove_const<T>::type>::type type;
+};
 #define HAS_MEMBER(_NAME_)                                                                 \
 template<typename _T>                                                                      \
 struct has_member_##_NAME_                                                                 \

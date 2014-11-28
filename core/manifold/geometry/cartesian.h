@@ -124,12 +124,12 @@ public:
 		return static_cast<double>(topology_type::get_clock()) * dt_ + time0_;
 	}
 
-	void set_dt(Real p_dt)
+	void dt(Real p_dt)
 	{
 		dt_ = p_dt;
 	}
 
-	Real get_dt() const
+	Real dt() const
 	{
 		return dt_;
 	}

@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <gtest/gtest.h>
+
 #include "../manifold/dummy_manifold.h"
 #include "../manifold/domain.h"
 #include "field.h"
@@ -16,10 +17,10 @@ using namespace simpla;
 
 typedef testing::Types< //
 
-		Field<double, Domain<DummyManifold> > //
-		, Field<nTuple<double, 3>, Domain<DummyManifold>> //
-		, Field<nTuple<double, 3, 3>, Domain<DummyManifold>> //
-		, Field<nTuple<std::complex<double>, 3>, Domain<DummyManifold>> //
+		Field<Domain<DummyManifold>, double> //
+		, Field<Domain<DummyManifold>, nTuple<double, 3> > //
+		, Field<Domain<DummyManifold>, nTuple<double, 3, 3> > //
+		, Field<Domain<DummyManifold>, nTuple<std::complex<double>, 3> > //
 
 > TypeParamList;
 template<typename TF> std::shared_ptr<typename TestField<TF>::manifold_type> //
