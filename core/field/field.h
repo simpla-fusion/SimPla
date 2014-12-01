@@ -352,8 +352,7 @@ template<typename ...T> struct is_field<_Field<T...>>
 	static constexpr bool value = true;
 };
 
-template<typename TOP, typename TL, typename TR> struct BiOpExpression;
-template<typename TOP, typename TL> struct UniOpExpression;
+template<typename TOP, typename TL, typename TR> struct Expression;
 
 template<typename ...> struct field_traits;
 
@@ -366,11 +365,14 @@ template<typename T> struct field_traits<T>
 
 	typedef T value_type;
 
+	static constexpr bool is_field = false;
+
 };
 
 template<typename TD, typename TC>
 struct field_traits<_Field<TD, TC>>
 {
+	static constexpr bool is_field = true;
 
 	static constexpr size_t ndims = TD::ndims;
 
@@ -384,11 +386,12 @@ struct field_traits<_Field<TD, TC>>
 /// @{
 
 template<typename TOP, typename TL>
-struct field_traits<_Field<UniOpExpression<TOP, TL> >>
+struct field_traits<_Field<Expression<TOP, TL, std::nullptr_t> >>
 {
 private:
 	typedef typename field_traits<TL>::value_type l_type;
 public:
+	static constexpr bool is_field = true;
 
 	static constexpr size_t ndims = field_traits<TL>::ndims;
 
@@ -399,7 +402,7 @@ public:
 };
 
 template<typename TOP, typename TL, typename TR>
-struct field_traits<_Field<BiOpExpression<TOP, TL, TR> > >
+struct field_traits<_Field<Expression<TOP, TL, TR> > >
 {
 private:
 	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
@@ -414,6 +417,7 @@ private:
 public:
 	static const size_t ndims = NDIMS;
 	static const size_t iform = IL;
+	static constexpr bool is_field = true;
 
 	typedef typename std::result_of<TOP(l_type, r_type)>::type value_type;
 
@@ -439,39 +443,21 @@ public:
 //
 //};
 
-template<typename TOP, typename TL>
-struct _Field<UniOpExpression<TOP, TL>> : public UniOpExpression<TOP, TL>
+template<typename TOP, typename TL, typename TR>
+struct _Field<Expression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 {
-	typedef _Field<UniOpExpression<TOP, TL>> this_type;
+	typedef _Field<Expression<TOP, TL, TR>> this_type;
 
-	using UniOpExpression<TOP, TL>::UniOpExpression;
+	using Expression<TOP, TL, TR>::Expression;
 
 };
 
 template<typename TOP, typename TL, typename TR>
-struct _Field<BiOpExpression<TOP, TL, TR>> : public BiOpExpression<TOP, TL, TR>
+struct _Field<BooleanExpression<TOP, TL, TR>> : public Expression<TOP, TL, TR>
 {
-	typedef _Field<BiOpExpression<TOP, TL, TR>> this_type;
+	typedef _Field<BooleanExpression<TOP, TL, TR>> this_type;
 
-	using BiOpExpression<TOP, TL, TR>::BiOpExpression;
-
-};
-
-template<typename TOP, typename ...TL>
-struct _Field<Expression<TOP, TL...>> : public Expression<TOP, TL...>
-{
-	typedef _Field<Expression<TOP, TL...>> this_type;
-
-	using Expression<TOP, TL...>::Expression;
-
-};
-
-template<typename TOP, typename ...TL>
-struct _Field<BooleanExpression<TOP, TL...>> : public Expression<TOP, TL...>
-{
-	typedef _Field<BooleanExpression<TOP, TL...>> this_type;
-
-	using Expression<TOP, TL...>::Expression;
+	using Expression<TOP, TL, TR>::Expression;
 
 	operator bool() const
 	{

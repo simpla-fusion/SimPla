@@ -178,7 +178,7 @@ struct make_ntuple<TV, integer_sequence<TI>>
 	typedef TV type;
 };
 
-template<typename ...>class Expression;
+template<typename, typename, typename > class Expression;
 
 template<typename > struct nTuple_traits;
 
@@ -269,7 +269,7 @@ struct nTuple_traits<nTuple<TV, N, M...> >
 };
 
 template<typename TOP, typename TL>
-struct nTuple_traits<nTuple<Expression<TOP, TL> > >
+struct nTuple_traits<nTuple<Expression<TOP, TL, std::nullptr_t> > >
 {
 private:
 	typedef typename nTuple_traits<TL>::dimensions d_seq_l;
@@ -483,9 +483,9 @@ DECL_RET_TYPE(( abs(l)))
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_OPERATOR(_OP_,_NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >> \
+		nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
 		operator _OP_(nTuple<T,N...> const &l)  \
-		{return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
+		{return (nTuple<Expression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                                                  \
@@ -507,9 +507,9 @@ DECL_RET_TYPE(( abs(l)))
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >> \
+		nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>> \
 		operator _OP_(nTuple<T,N...> const &l)  \
-		{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> >>(l)) ;}    \
+		{return (nTuple<BooleanExpression<_impl::_NAME_,nTuple<T,N...> , std::nullptr_t>>(l)) ;}    \
 
 
 #define _SP_DEFINE_nTuple_EXPR_BINARY_FUNCTION(_NAME_)                                                  \
@@ -531,9 +531,9 @@ DECL_RET_TYPE(( abs(l)))
 
 #define _SP_DEFINE_nTuple_EXPR_UNARY_FUNCTION( _NAME_)                           \
 		template<typename T,size_t ...N> \
-		nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>> \
+		nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>> \
 		_NAME_(nTuple<T,N ...> const &r)  \
-		{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>>>(r));}     \
+		{return (nTuple<Expression<_impl::_##_NAME_,nTuple<T,N...>, std::nullptr_t>>(r));}     \
 
 DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA2(nTuple)
 }

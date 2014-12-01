@@ -21,7 +21,7 @@ template<typename > class FiniteDiffMethod;
 template<typename > class InterpolatorLinear;
 template<typename, size_t> class Domain;
 template<typename ...> class _Field;
-template<typename ...> class Expression;
+template<typename, typename, typename > class Expression;
 
 /**
  *
@@ -50,6 +50,8 @@ public:
 	typedef typename geometry_type::compact_index_type compact_index_type;
 	typedef typename geometry_type::iterator iterator;
 	typedef typename geometry_type::scalar_type scalar_type;
+
+	static constexpr size_t ndims = topology_type::ndims;
 
 	template<typename ...Args>
 	Manifold(Args && ... args) :

@@ -21,87 +21,78 @@ namespace simpla
 {
 template<typename ... > class _Field;
 template<typename, size_t> class Domain;
-template<typename ... > class Expression;
+template<typename, typename, typename > class Expression;
 
 /// \defgroup  ExteriorAlgebra Exterior algebra
 /// @{
 namespace _impl
 {
-struct HodgeStar
+template<size_t IL, typename T> struct HodgeStar
+{
+};
+template<size_t IL, size_t IR, typename TL, typename TR> struct InteriorProduct
+{
+};
+template<size_t IL, size_t IR, typename TL, typename TR> struct Wedge
+{
+};
+template<size_t IL, typename T> struct ExteriorDerivative
+{
+};
+template<size_t IL, typename T> struct CodifferentialDerivative
 {
 };
 
-struct InteriorProduct
-{
-};
-
-struct Wedge
-{
-};
-
-struct ExteriorDerivative
-{
-};
-
-struct CodifferentialDerivative
-{
-};
-
+template<size_t NDIMS, size_t IFORM>
 struct MapTo
 {
 };
 
 } //namespace _impl
 
-template<typename > struct field_result_of;
-template<typename TL, typename TI>
-struct field_result_of<_impl::HodgeStar(TL, TI)>
+template<size_t IL, typename T>
+struct _Field<_impl::HodgeStar<IL, T>> : public Expression<
+		_impl::HodgeStar<IL, T>, T, std::nullptr_t>
 {
-	typedef typename index_of<TL, TI>::type type;
+	using Expression<_impl::HodgeStar<IL, T>, T, std::nullptr_t>::Expression;
 };
 
-template<typename TL, typename TR, typename TI>
-struct field_result_of<_impl::InteriorProduct(TL, TR, TI)>
+template<size_t IL, size_t IR, typename TL, typename TR>
+struct _Field<_impl::InteriorProduct<IL, IR, TL, TR>> : public Expression<
+		_impl::InteriorProduct<IL, IR, TL, TR>, TL, TR>
 {
-	typedef typename result_of<
-			_impl::multiplies(typename index_of<TL, TI>::type,
-					typename index_of<TR, TI>::type)>::type type;
+	using Expression<_impl::InteriorProduct<IL, IR, TL, TR>, TL, TR>::Expression;
 };
 
-template<typename TL, typename TR, typename TI>
-struct field_result_of<_impl::Wedge(TL, TR, TI)>
+template<size_t IL, size_t IR, typename TL, typename TR>
+struct _Field<_impl::Wedge<IL, IR, TL, TR>> : public Expression<
+		_impl::Wedge<IL, IR, TL, TR>, TL, TR>
 {
-	typedef typename result_of<
-			_impl::multiplies(typename index_of<TL, TI>::type,
-					typename index_of<TR, TI>::type)>::type type;
+	using Expression<_impl::Wedge<IL, IR, TL, TR>, TL, TR>::Expression;
 };
 
-template<typename TL, typename TI>
-struct field_result_of<_impl::ExteriorDerivative(TL, TI)>
+template<size_t IL, typename T>
+struct _Field<_impl::ExteriorDerivative<IL, T>> : public Expression<
+		_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>
 {
-	typedef typename index_of<TL, TI>::type type;
+	using Expression<_impl::ExteriorDerivative<IL, T>, T, std::nullptr_t>::Expression;
 };
 
-template<typename TL, typename TI>
-struct field_result_of<_impl::CodifferentialDerivative(TL, TI)>
+template<size_t IL, typename T>
+struct _Field<_impl::CodifferentialDerivative<IL, T>> : public Expression<
+		_impl::CodifferentialDerivative<IL, T>, T, std::nullptr_t>
 {
-	typedef typename index_of<TL, TI>::type type;
-};
-
-template<typename TL, typename TR, typename TI>
-struct field_result_of<_impl::MapTo(TL, TR, TI)>
-{
-	typedef typename index_of<TL, TI>::type type;
+	using Expression<_impl::CodifferentialDerivative<IL, T>, T, std::nullptr_t>::Expression;
 };
 
 template<typename ...> struct field_traits;
 
-template<typename T>
-struct field_traits<_Field<UniOpExpression<_impl::HodgeStar, T> > >
+template<size_t IL, typename T>
+struct field_traits<_Field<_impl::HodgeStar<IL, T> > >
 {
 private:
 	static constexpr size_t NDIMS = field_traits<T>::ndims;
-	static constexpr size_t IL = field_traits<T>::iform;
+//	static constexpr size_t IL = field_traits<T>::iform;
 public:
 
 	static const size_t ndims = NDIMS > -IL ? NDIMS : 0;
@@ -110,15 +101,15 @@ public:
 	typedef typename field_traits<T>::value_type value_type;
 };
 
-template<typename TL, typename TR>
-struct field_traits<_Field<BiOpExpression<_impl::InteriorProduct, TL, TR> > >
+template<size_t IL, size_t IR, typename TL, typename TR>
+struct field_traits<_Field<_impl::InteriorProduct<IL, IR, TL, TR> > >
 {
 private:
 	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
 			field_traits<TL>::ndims>::value;
-	static constexpr size_t IL = field_traits<TL>::iform;
-	static constexpr size_t IR = field_traits<TR>::iform;
-
+//	static constexpr size_t IL = field_traits<TL>::iform;
+//	static constexpr size_t IR = field_traits<TR>::iform;
+//
 	typedef typename field_traits<TL>::value_type l_type;
 	typedef typename field_traits<TR>::value_type r_type;
 
@@ -130,14 +121,14 @@ public:
 
 };
 
-template<typename TL, typename TR>
-struct field_traits<_Field<BiOpExpression<_impl::Wedge, TL, TR> > >
+template<size_t IL, size_t IR, typename TL, typename TR>
+struct field_traits<_Field<_impl::Wedge<IL, IR, TL, TR> > >
 {
 private:
 	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
 			field_traits<TL>::ndims>::value;
-	static constexpr size_t IL = field_traits<TL>::iform;
-	static constexpr size_t IR = field_traits<TR>::iform;
+//	static constexpr size_t IL = field_traits<TL>::iform;
+//	static constexpr size_t IR = field_traits<TR>::iform;
 
 	typedef typename field_traits<TL>::value_type l_type;
 	typedef typename field_traits<TR>::value_type r_type;
@@ -149,66 +140,73 @@ public:
 
 };
 
-template<typename T>
-struct field_traits<_Field<UniOpExpression<_impl::ExteriorDerivative, T> > >
+template<size_t IL, typename T>
+struct field_traits<_Field<_impl::ExteriorDerivative<IL, T> > >
 {
 private:
 	static constexpr size_t NDIMS = field_traits<T>::ndims;
-	static constexpr size_t IL = field_traits<T>::iform;
+//	static constexpr size_t IL = field_traits<T>::iform;
 
 public:
-	static const size_t ndims = IL < NDIMS ? NDIMS : 0;
-	static const size_t iform = IL + 1;
+	static constexpr size_t ndims = IL < NDIMS ? NDIMS : 0;
+	static constexpr size_t iform = IL + 1;
+	static constexpr bool is_field = field_traits<T>::is_field;
 
 	typedef typename field_traits<T>::value_type value_type;
 
 };
-
-template<typename T>
-struct field_traits<_Field<UniOpExpression<_impl::CodifferentialDerivative, T> > >
+template<size_t IL, typename T>
+struct field_traits<_Field<_impl::CodifferentialDerivative<IL, T> > >
 {
 private:
 	static constexpr size_t NDIMS = field_traits<T>::ndims;
-	static constexpr size_t IL = field_traits<T>::iform;
+//	static constexpr size_t IL = field_traits<T>::iform;
 public:
 	static const size_t ndims = IL > 0 ? NDIMS : 0;
 	static const size_t iform = IL - 1;
 	typedef typename field_traits<T>::value_type value_type;
 };
 
-template<typename TL, typename TR>
-struct field_traits<_Field<BiOpExpression<_impl::MapTo, TL, TR> > >
-{
-	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
-			field_traits<TL>::ndims>::value;
-	static constexpr size_t IL = field_traits<TL>::iform;
-	static constexpr size_t IR = field_traits<TR>::iform;
-public:
-	static const size_t ndims = NDIMS;
-	static const size_t iform = IR;
-
-	typedef typename field_traits<TR>::value_type value_type;
-};
+//template<size_t NDIMS, size_t IL, typename TL, typename TR>
+//struct field_traits<_Field<Expression<_impl::MapTo<NDIMS, IL>, TL, TR> > >
+//{
+////	static constexpr size_t NDIMS = sp_max<size_t, field_traits<TL>::ndims,
+////			field_traits<TR>::ndims>::value;
+////	static constexpr size_t IL = field_traits<TL>::iform;
+////	static constexpr size_t IR = field_traits<TR>::iform;
+//public:
+//	static const size_t ndims = NDIMS;
+//	static const size_t iform = IL;
+//
+//	typedef typename field_traits<TR>::value_type value_type;
+//};
 
 template<typename T>
 inline auto hodge_star(T const & f)
-DECL_RET_TYPE((_Field<UniOpExpression<_impl::HodgeStar, T>>(f)))
+DECL_RET_TYPE(( _Field<_impl::HodgeStar<
+				field_traits<T>::iform , T >>(f)))
 
 template<typename TL, typename TR>
 inline auto wedge(TL const & l, TR const & r)
-DECL_RET_TYPE((_Field<BiOpExpression<_impl::Wedge, TL, TR>>(l, r)))
+DECL_RET_TYPE((_Field< _impl::Wedge<
+				field_traits<TL>::iform, field_traits<TR>::iform
+				, TL, TR> > (l, r)))
 
 template<typename TL, typename TR>
 inline auto interior_product(TL const & l, TR const & r)
-DECL_RET_TYPE((_Field<BiOpExpression<_impl::InteriorProduct, TL, TR>>(l, r)))
+DECL_RET_TYPE((_Field< _impl::InteriorProduct<
+				field_traits<TL>::iform, field_traits<TR>::iform
+				, TL, TR>> (l, r)))
 
 template<typename T>
 inline auto exterior_derivative(T const & f)
-DECL_RET_TYPE((_Field<UniOpExpression<_impl::ExteriorDerivative, T>>(f)))
+DECL_RET_TYPE(( _Field<_impl::ExteriorDerivative<
+				field_traits<T >::iform , T >>(f)))
 
 template<typename T>
 inline auto codifferential_derivative(T const & f)
-DECL_RET_TYPE((_Field<UniOpExpression<_impl::CodifferentialDerivative, T>>(f)))
+DECL_RET_TYPE((_Field< _impl::CodifferentialDerivative<
+				field_traits<T>::iform , T >>(f)))
 
 template<typename ...T>
 inline auto operator*(_Field<T...> const & f)
@@ -351,15 +349,18 @@ ENABLE_IF_DECL_RET_TYPE((field_traits<_Field<T...>>::iform==FACE),
 //;
 //
 
-template<size_t IL, typename ...T>
-inline _Field<
-		Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
-				_Field<T...>>> map_to(_Field<T...> const & f)
-{
-	return ((_Field<
-			Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
-					_Field<T...>>>(std::integral_constant<size_t, IL>(), f)));
-}
+//template<size_t IL, typename ...T>
+//inline _Field<
+//		Expression<
+//				_impl::MapTo<field_traits<_Field<T...> >::ndims,
+//						field_traits<_Field<T...> >::iform>,
+//				std::integral_constant<size_t, IL>, _Field<T...>>> map_to(
+//		_Field<T...> const & f)
+//{
+//	return ((_Field<
+//			Expression<_impl::MapTo, std::integral_constant<size_t, IL>,
+//					_Field<T...>>>(std::integral_constant<size_t, IL>(), f)));
+//}
 
 ///   @}
 

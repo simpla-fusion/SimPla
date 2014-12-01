@@ -17,8 +17,9 @@
 
 namespace simpla
 {
-template<typename ... > class Expression;
-template<typename ... > class BooleanExpression;
+template<typename, typename TL, typename TR> struct Expression;
+template<typename, typename TL, typename TR> struct BooleanExpression;
+
 template<typename T>
 struct is_expresson
 {
@@ -47,7 +48,7 @@ struct reference_traits
 };
 
 template<typename TOP, typename TL, typename TR>
-struct Expression<TOP, TL, TR>
+struct Expression
 {
 	typedef Expression<TOP, TL, TR> this_type;
 	typename reference_traits<TL>::type lhs;
@@ -86,9 +87,9 @@ struct Expression<TOP, TL, TR>
 
 ///   \brief  Unary operation
 template<typename TOP, typename TL>
-struct Expression<TOP, TL>
+struct Expression<TOP, TL, std::nullptr_t>
 {
-	typedef Expression<TOP, TL> this_type;
+	typedef Expression<TOP, TL, std::nullptr_t> this_type;
 
 	typename reference_traits<TL>::type lhs;
 
@@ -118,83 +119,23 @@ struct Expression<TOP, TL>
 //			DECL_RET_TYPE ((op_( lhs, s) ))
 
 };
+
 template<typename TOP, typename TL, typename TR>
-struct BiOpExpression
+class BooleanExpression: public Expression<TOP, TL, TR>
 {
-	typedef BiOpExpression<TOP, TL, TR> this_type;
-	typename reference_traits<TL>::type lhs;
-	typename reference_traits<TR>::type rhs;
-	TOP op_;
+	using Expression<TOP, TL, TR>::Expression;
 
-	BiOpExpression(this_type const & that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
+	operator bool() const
 	{
+		return false;
 	}
-	BiOpExpression(this_type && that) :
-			lhs(that.lhs), rhs(that.rhs), op_(that.op_)
-	{
-	}
-
-	BiOpExpression(TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_()
-	{
-	}
-	BiOpExpression(TOP op, TL const& l, TR const& r) :
-			lhs(l), rhs(r), op_(op)
-	{
-	}
-
-	~BiOpExpression()
-	{
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s), get_value(rhs, s))))
-//			DECL_RET_TYPE ((op_( lhs, rhs, s )))
-
-}
-;
-
-///   \brief  Unary operation
-template<typename TOP, typename TL>
-struct UniOpExpression
-{
-	typedef UniOpExpression<TOP, TL> this_type;
-
-	typename reference_traits<TL>::type lhs;
-
-	TOP op_;
-
-	UniOpExpression(this_type const & that) :
-			lhs(that.lhs), op_(that.op_)
-	{
-	}
-	UniOpExpression(this_type && that) :
-			lhs(that.lhs), op_(that.op_)
-	{
-	}
-
-	UniOpExpression(TL const& l) :
-			lhs(l), op_()
-	{
-	}
-
-	~UniOpExpression()
-	{
-	}
-
-	template<typename IndexType>
-	inline auto operator[](IndexType const &s) const
-	DECL_RET_TYPE ((op_(get_value(lhs, s))))
-//			DECL_RET_TYPE ((op_( lhs, s) ))
-
 };
 
-template<typename TOP, typename ... T>
-class BooleanExpression<TOP, T...> : public Expression<TOP, T...>
+template<typename TOP, typename TL>
+class BooleanExpression<TOP, TL, std::nullptr_t> : public Expression<TOP, TL,
+		std::nullptr_t>
 {
-	using Expression<TOP, T...>::Expression;
+	using Expression<TOP, TL, std::nullptr_t>::Expression;
 
 	operator bool() const
 	{
@@ -370,31 +311,31 @@ DEF_UNARY_FUNCTION(imag)
 } // namespace _impl
 
 #define _SP_DEFINE_EXPR_BINARY_RIGHT_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
-	template<typename ...T1,typename  T2> _OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
+	template<typename ...T1,typename  T2> _OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>> \
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return (_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_BINARY_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> \
-	_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
+	_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>\
 	operator _OP_(_OBJ_<T1...> const & l,T2 const &r)  \
-	{return (_OBJ_<BiOpExpression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
+	{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T1...>,T2>>(l,r));}                  \
 	template< typename T1,typename ...T2> \
-	_OBJ_<BiOpExpression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
+	_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>> \
 	operator _OP_(T1 const & l, _OBJ_< T2...>const &r)                    \
-	{return (_OBJ_<BiOpExpression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<Expression< _impl::_NAME_,T1,_OBJ_< T2...>>>(l,r));}                  \
 	template< typename ... T1,typename ...T2> \
-	_OBJ_<BiOpExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
+	_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>\
 	operator _OP_(_OBJ_< T1...> const & l,_OBJ_< T2...>  const &r)                    \
-	{return (_OBJ_<BiOpExpression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
+	{return (_OBJ_<Expression< _impl::_NAME_,_OBJ_< T1...>,_OBJ_< T2...>>>(l,r));}                  \
 
 
 #define _SP_DEFINE_EXPR_UNARY_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
-		_OBJ_<UniOpExpression<_impl::_NAME_,_OBJ_<T...> >> \
+		_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...>, std::nullptr_t >> \
 		operator _OP_(_OBJ_<T...> const &l)  \
-		{return (_OBJ_<UniOpExpression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
+		{return (_OBJ_<Expression<_impl::_NAME_,_OBJ_<T...> , std::nullptr_t>>(l));}   \
 
 #define _SP_DEFINE_EXPR_BINARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                                                  \
 	template<typename ...T1,typename  T2> \
@@ -413,9 +354,9 @@ DEF_UNARY_FUNCTION(imag)
 
 #define _SP_DEFINE_EXPR_UNARY_BOOLEAN_OPERATOR(_OP_,_OBJ_,_NAME_)                           \
 		template<typename ...T> \
-		_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> >> \
+		_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> , std::nullptr_t>> \
 		operator _OP_(_OBJ_<T...> const &l)  \
-		{return (_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> >>(l));}   \
+		{return (_OBJ_<BooleanExpression<_impl::_NAME_,_OBJ_<T...> , std::nullptr_t>>(l));}   \
 
 
 #define _SP_DEFINE_EXPR_BINARY_FUNCTION(_NAME_,_OBJ_)                                                  \
@@ -435,9 +376,9 @@ DEF_UNARY_FUNCTION(imag)
 
 #define _SP_DEFINE_EXPR_UNARY_FUNCTION( _NAME_,_OBJ_)                           \
 		template<typename ...T> \
-		_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>> \
+		_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>, std::nullptr_t>> \
 		_NAME_(_OBJ_<T ...> const &r)  \
-		{return (_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>>>(r));}   \
+		{return (_OBJ_<Expression<_impl::_##_NAME_,_OBJ_<T ...>, std::nullptr_t>>(r));}   \
 
 
 #define  DEFINE_EXPRESSOPM_TEMPLATE_BASIC_ALGEBRA(_CONCEPT_)                                              \
